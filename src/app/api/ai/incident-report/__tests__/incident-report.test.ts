@@ -4,11 +4,39 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+
+// Type definitions for test modules
+interface IncidentReportAPI {
+  POST: (request: NextRequest) => Promise<NextResponse>;
+  GET: (request: NextRequest) => Promise<NextResponse>;
+  _testHelpers?: {
+    clearAlertCooldowns: () => void;
+  };
+}
+
+interface Anomaly {
+  severity: 'critical' | 'warning' | 'normal';
+  server_id: string;
+  metric: string;
+  value: number;
+  threshold: number;
+  message?: string;
+}
+
+interface SupabaseMock {
+  from: ReturnType<typeof vi.fn>;
+}
+
+type AnomaliesAPIResponse = {
+  success: boolean;
+  anomalies: Anomaly[];
+  pattern?: string;
+};
 
 // Mock dependencies
 vi.mock('@/lib/api-auth', () => ({
-  withAuth: (handler: any) => handler,
+  withAuth: (handler: (request: NextRequest) => Promise<NextResponse>) => handler,
 }));
 
 vi.mock('@/lib/supabase/supabase-client', () => ({
@@ -74,7 +102,9 @@ const mockServerMetrics = [
 ];
 
 describe('Automatic Incident Report API', () => {
-  let POST: any, GET: any, _testHelpers: any;
+  let POST: IncidentReportAPI['POST'];
+  let GET: IncidentReportAPI['GET'];
+  let _testHelpers: IncidentReportAPI['_testHelpers'];
 
   beforeEach(async () => {
     // Reset mocks
@@ -117,7 +147,7 @@ describe('Automatic Incident Report API', () => {
       expect(data.success).toBe(true);
       
       // Filter for critical anomalies only
-      const criticalAnomalies = data.anomalies.filter((a: any) => a.severity === 'critical');
+      const criticalAnomalies = data.anomalies.filter((a: Anomaly) => a.severity === 'critical');
       expect(criticalAnomalies).toHaveLength(3); // CPU 95%, Memory 92%, Network 98%
       expect(criticalAnomalies[0].severity).toBe('critical');
     });
@@ -134,7 +164,7 @@ describe('Automatic Incident Report API', () => {
       const response = await POST(request);
       const data = await response.json();
 
-      const warnings = data.anomalies.filter((a: any) => a.severity === 'warning');
+      const warnings = data.anomalies.filter((a: Anomaly) => a.severity === 'warning');
       expect(warnings).toHaveLength(2); // Memory 88%, Disk 87%
     });
 
@@ -224,7 +254,7 @@ describe('Automatic Incident Report API', () => {
     it('should store incident reports in database', async () => {
       const { supabase } = await import('@/lib/supabase/supabase-client');
       const mockInsert = vi.fn(() => Promise.resolve({ data: { id: 'report-123' }, error: null }));
-      (supabase.from as any).mockReturnValue({ insert: mockInsert });
+      (supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({ insert: mockInsert });
 
       const request = new NextRequest('http://localhost:3000/api/ai/incident-report', {
         method: 'POST',
@@ -250,7 +280,7 @@ describe('Automatic Incident Report API', () => {
       ];
 
       const { supabase } = await import('@/lib/supabase/supabase-client');
-      (supabase.from as any).mockReturnValue({
+      (supabase.from as ReturnType<typeof vi.fn>).mockReturnValue({
         select: vi.fn(() => ({
           order: vi.fn(() => ({
             limit: vi.fn(() => Promise.resolve({ data: mockReports, error: null })),
@@ -272,7 +302,7 @@ describe('Automatic Incident Report API', () => {
 
     it('should cache frequently accessed reports', async () => {
       const { getCachedData, setCachedData } = await import('@/lib/cache-helper');
-      (getCachedData as any).mockResolvedValueOnce(null);
+      (getCachedData as vi.MockedFunction<typeof getCachedData>).mockResolvedValueOnce(null);
 
       const request = new NextRequest('http://localhost:3000/api/ai/incident-report?id=report-123', {
         method: 'GET',
@@ -440,7 +470,7 @@ describe('Automatic Incident Report API', () => {
 
     it('should handle database errors gracefully', async () => {
       const { supabase } = await import('@/lib/supabase/supabase-client');
-      (supabase.from as any).mockReturnValue({
+      (supabase.from as vi.MockedFunction<typeof supabase.from>).mockReturnValue({
         insert: vi.fn(() => Promise.reject(new Error('DB Error'))),
       });
 

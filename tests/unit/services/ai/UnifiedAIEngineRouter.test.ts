@@ -472,7 +472,7 @@ describe('UnifiedAIEngineRouter - Optimized Tests', () => {
       const malformedQuery = {
         query: null,
         mode: 'invalid-mode'
-      } as any;
+      } as Partial<QueryRequest>;
 
       // 실제 타이머 사용으로 변경
       const result = await router.route({ ...malformedQuery, userId: 'user-1' });

@@ -10,11 +10,23 @@
 
 import { supabase } from '@/lib/supabase';
 
+interface DocumentMetadata {
+  category?: string;
+  title?: string;
+  tags?: string[];
+  source?: string;
+  author?: string;
+  timestamp?: string;
+  priority?: number;
+  version?: string;
+  [key: string]: unknown;
+}
+
 interface VectorDocument {
   id: string;
   content: string;
   embedding: number[];
-  metadata?: Record<string, any>;
+  metadata?: DocumentMetadata;
   created_at?: string;
   updated_at?: string;
 }
@@ -22,14 +34,24 @@ interface VectorDocument {
 interface SearchResult {
   id: string;
   content: string;
-  metadata?: Record<string, any>;
+  metadata?: DocumentMetadata;
   similarity: number;
+}
+
+interface MetadataFilter {
+  category?: string;
+  title?: string;
+  tags?: string[];
+  source?: string;
+  author?: string;
+  priority?: number;
+  [key: string]: unknown;
 }
 
 interface SearchOptions {
   topK?: number;
   threshold?: number;
-  metadata_filter?: Record<string, any>;
+  metadata_filter?: MetadataFilter;
   category?: string;
 }
 
@@ -111,7 +133,7 @@ export class PostgresVectorDB {
     id: string,
     content: string,
     embedding: number[],
-    metadata?: Record<string, any>
+    metadata?: DocumentMetadata
   ): Promise<{ success: boolean; error?: string }> {
     try {
       await this._initialize();
@@ -198,7 +220,7 @@ export class PostgresVectorDB {
 
         // 메타데이터 필터가 있는 경우 클라이언트 사이드에서 추가 필터링
         if (Object.keys(metadata_filter).length > 0) {
-          return (data || []).filter((item: any) => {
+          return (data || []).filter((item: SearchResult) => {
             return Object.entries(metadata_filter).every(([key, value]) => {
               return item.metadata && item.metadata[key] === value;
             });
@@ -426,7 +448,7 @@ export class PostgresVectorDB {
       id: string;
       content: string;
       embedding: number[];
-      metadata?: Record<string, any>;
+      metadata?: DocumentMetadata;
     }>
   ): Promise<{ success: number; failed: number }> {
     let success = 0;
@@ -502,7 +524,7 @@ export class PostgresVectorDB {
    */
   async updateMetadata(
     id: string,
-    metadata: Record<string, any>
+    metadata: DocumentMetadata
   ): Promise<boolean> {
     try {
       await this._initialize();
@@ -587,7 +609,7 @@ export class PostgresVectorDB {
    * 🔍 메타데이터로 문서 검색
    */
   async searchByMetadata(
-    filter: Record<string, any>,
+    filter: MetadataFilter,
     limit: number = 10
   ): Promise<VectorDocument[]> {
     try {

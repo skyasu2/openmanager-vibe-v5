@@ -8,7 +8,7 @@ import { NextRequest } from 'next/server';
 
 // Mock dependencies
 vi.mock('@/lib/api-auth', () => ({
-  withAuth: (handler: any) => handler,
+  withAuth: (handler: (req: NextRequest) => Promise<Response>) => handler,
 }));
 
 vi.mock('@/lib/supabase/supabase-client', () => ({
@@ -67,7 +67,8 @@ const mockCurrentMetrics = {
 };
 
 describe('Intelligent Monitoring API', () => {
-  let POST: any, GET: any;
+  let POST: (req: NextRequest) => Promise<Response>;
+  let GET: (req: NextRequest) => Promise<Response>;
 
   beforeEach(async () => {
     vi.clearAllMocks();

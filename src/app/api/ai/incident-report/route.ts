@@ -62,6 +62,27 @@ interface IncidentReport {
   created_at: string;
 }
 
+// Root cause analysis 타입 정의 - any 타입 제거
+interface RootCauseAnalysis {
+  primary_cause: string;
+  contributing_factors: string[];
+  confidence: number;
+}
+
+// Recommendation 타입 정의 - any 타입 제거
+interface Recommendation {
+  action: string;
+  priority: 'immediate' | 'high' | 'medium' | 'low';
+  expected_impact: string;
+}
+
+// Timeline event 타입 정의 - any 타입 제거
+interface TimelineEvent {
+  timestamp: string;
+  event: string;
+  severity: string;
+}
+
 // Thresholds
 const THRESHOLDS = {
   critical: 90,
@@ -196,7 +217,7 @@ function determineSeverity(anomalies: Anomaly[]): 'critical' | 'high' | 'medium'
 /**
  * Analyze root cause
  */
-function analyzeRootCause(anomalies: Anomaly[], pattern: string) {
+function analyzeRootCause(anomalies: Anomaly[], pattern: string): RootCauseAnalysis {
   // Simplified AI analysis (in production, would use actual AI)
   const criticalAnomalies = anomalies.filter(a => a.severity === 'critical');
   const metricCounts: Record<string, number> = {};
@@ -231,8 +252,8 @@ function analyzeRootCause(anomalies: Anomaly[], pattern: string) {
 function generateRecommendations(
   anomalies: Anomaly[],
   pattern: string,
-  rootCause: any
-): Array<any> {
+  rootCause: RootCauseAnalysis
+): Recommendation[] {
   const recommendations = [];
   
   // Pattern-specific recommendations
@@ -240,21 +261,21 @@ function generateRecommendations(
     case 'cascade_failure':
       recommendations.push({
         action: '영향받은 서버 간 의존성 확인 및 격리',
-        priority: 'immediate',
+        priority: 'immediate' as const,
         expected_impact: '연쇄 장애 확산 방지',
       });
       break;
     case 'network_saturation':
       recommendations.push({
         action: '네트워크 트래픽 제한 및 로드 밸런싱 조정',
-        priority: 'immediate',
+        priority: 'immediate' as const,
         expected_impact: '네트워크 병목 해소',
       });
       break;
     case 'resource_exhaustion':
       recommendations.push({
         action: '자원 사용량이 높은 프로세스 확인 및 최적화',
-        priority: 'high',
+        priority: 'high' as const,
         expected_impact: '시스템 안정성 회복',
       });
       break;
@@ -265,7 +286,7 @@ function generateRecommendations(
   if (criticalAnomalies.some(a => a.metric_type === 'cpu')) {
     recommendations.push({
       action: 'CPU 사용률 높은 프로세스 종료 또는 스케일링',
-      priority: 'high',
+      priority: 'high' as const,
       expected_impact: 'CPU 부하 감소',
     });
   }
@@ -273,7 +294,7 @@ function generateRecommendations(
   if (criticalAnomalies.some(a => a.metric_type === 'memory')) {
     recommendations.push({
       action: '메모리 누수 확인 및 가비지 컬렉션 실행',
-      priority: 'high',
+      priority: 'high' as const,
       expected_impact: '메모리 사용량 정상화',
     });
   }
@@ -281,7 +302,7 @@ function generateRecommendations(
   // General recommendation
   recommendations.push({
     action: '모니터링 임계값 조정 및 알림 규칙 업데이트',
-    priority: 'medium',
+    priority: 'medium' as const,
     expected_impact: '향후 조기 감지 개선',
   });
   
@@ -291,7 +312,7 @@ function generateRecommendations(
 /**
  * Build incident timeline
  */
-function buildTimeline(anomalies: Anomaly[]): Array<any> {
+function buildTimeline(anomalies: Anomaly[]): TimelineEvent[] {
   return anomalies
     .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
     .map(anomaly => ({

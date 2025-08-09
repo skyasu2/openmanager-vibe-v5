@@ -9,6 +9,11 @@ import { NextResponse } from 'next/server';
 import { analyzeMLMetrics } from '@/lib/gcp/gcp-functions-client';
 import { getErrorMessage } from '@/types/type-utils';
 
+interface MLAnalysisData {
+  anomalies?: unknown[];
+  [key: string]: unknown;
+}
+
 export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
@@ -54,6 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 성공 응답
+    const mlData = result.data as MLAnalysisData;
     return NextResponse.json({
       success: true,
       data: result.data,
@@ -61,7 +67,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
       performance: {
         metrics_analyzed: metrics.length,
-        anomalies_found: (result.data as any)?.anomalies?.length || 0,
+        anomalies_found: mlData?.anomalies?.length || 0,
       },
     });
 

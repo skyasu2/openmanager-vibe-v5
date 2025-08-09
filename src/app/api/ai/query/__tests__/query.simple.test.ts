@@ -7,7 +7,7 @@ import { NextRequest } from 'next/server';
 
 // Mock all dependencies first
 vi.mock('@/lib/api-auth', () => ({
-  withAuth: (handler: any) => handler,
+  withAuth: (handler: (req: NextRequest) => Promise<Response>) => handler,
 }));
 
 vi.mock('@/lib/cache-helper', () => ({

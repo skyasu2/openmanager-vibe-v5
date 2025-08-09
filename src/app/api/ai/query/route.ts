@@ -11,7 +11,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getSimplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
-import type { QueryRequest } from '@/services/ai/SimplifiedQueryEngine';
+import type { QueryRequest, QueryResponse } from '@/services/ai/SimplifiedQueryEngine';
 import { withAuth } from '@/lib/api-auth';
 import { getCachedData, setCachedData } from '@/lib/cache-helper';
 import { supabase } from '@/lib/supabase/supabase-client';
@@ -128,9 +128,9 @@ async function postHandler(request: NextRequest) {
 
     // 캐시 키 생성 및 캐시 확인
     const cacheKey = generateCacheKey(query, context);
-    const cachedResponse = getCachedData(cacheKey);
+    const cachedResponse = getCachedData(cacheKey) as QueryResponse | null;
 
-    let result: any;
+    let result: QueryResponse;
     let cacheHit = false;
     let responseTime: number;
 

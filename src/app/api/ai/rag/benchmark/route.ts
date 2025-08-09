@@ -8,6 +8,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { postgresVectorDB } from '@/services/ai/postgres-vector-db';
 import { embeddingService } from '@/services/ai/embedding-service';
 import { getSupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
+import { supabase } from '@/lib/supabase';
+
+// Interface for PostgreSQL index information
+interface PgIndex {
+  indexname: string;
+  indexdef?: string;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -57,7 +64,7 @@ export async function GET(request: NextRequest) {
     const categoryStats = await postgresVectorDB.getCategoryStats();
 
     // 5. 인덱스 정보 확인
-    const { data: indexes } = await (postgresVectorDB as any)['supabase']
+    const { data: indexes } = await supabase
       .from('pg_indexes')
       .select('indexname, indexdef')
       .eq('tablename', 'command_vectors');
@@ -91,7 +98,7 @@ export async function GET(request: NextRequest) {
         tableSize: '32KB', // 고정값 (실제로는 쿼리 필요)
       },
       optimizations: {
-        indexes: indexes?.map((idx: any) => idx.indexname) || [],
+        indexes: indexes?.map((idx: PgIndex) => idx.indexname) || [],
         cacheSettings: {
           embeddingCacheSize: 500,
           searchCacheSize: 100,

@@ -81,8 +81,15 @@ const TEST_TIMEOUT = 5000; // 5 seconds
 
 describe('SimplifiedQueryEngine', () => {
   let engine: SimplifiedQueryEngine;
-  let mockRAGEngine: any;
-  let mockContextLoader: any;
+  let mockRAGEngine: {
+    _initialize: ReturnType<typeof vi.fn>;
+    searchSimilar: ReturnType<typeof vi.fn>;
+    healthCheck: ReturnType<typeof vi.fn>;
+  };
+  let mockContextLoader: {
+    queryMCPContextForRAG: ReturnType<typeof vi.fn>;
+    getIntegratedStatus: ReturnType<typeof vi.fn>;
+  };
   let originalSetInterval: typeof global.setInterval;
   let originalClearTimeout: typeof global.clearTimeout;
   
@@ -342,7 +349,7 @@ describe('SimplifiedQueryEngine', () => {
         mode: 'local',
         options: { includeMCPContext: true },
         enableAIAssistantMCP: true, // This flag is also required
-      } as any);
+      });
       
       expect(mockContextLoader.queryMCPContextForRAG).toHaveBeenCalled();
     }, TEST_TIMEOUT);
@@ -397,7 +404,7 @@ describe('SimplifiedQueryEngine', () => {
         query: '복잡한 기술 질문',
         mode: 'google-ai',
         enableGoogleAI: true, // Enable Google AI flag
-      } as any);
+      });
       
       expect(response.success).toBe(true);
       expect(response.response).toBe('Google AI response');
@@ -417,7 +424,7 @@ describe('SimplifiedQueryEngine', () => {
         mode: 'google-ai',
         context,
         enableGoogleAI: true, // Enable Google AI flag
-      } as any);
+      });
       
       expect(global.fetch).toHaveBeenCalledWith(
         '/api/ai/google-ai/generate',
@@ -439,7 +446,7 @@ describe('SimplifiedQueryEngine', () => {
         query: 'API 오류 테스트',
         mode: 'google-ai',
         enableGoogleAI: true, // Enable Google AI flag
-      } as any);
+      });
       
       expect(response.success).toBe(true);
       expect(response.engine).toBe('local-ai'); // Fallback to local-ai
@@ -456,7 +463,7 @@ describe('SimplifiedQueryEngine', () => {
         mode: 'google-ai',
         options: { timeoutMs: 200 },
         enableGoogleAI: true, // Enable Google AI flag
-      } as any);
+      });
       
       // Should fallback to local AI after timeout
       expect(response.success).toBe(true);
@@ -481,7 +488,7 @@ describe('SimplifiedQueryEngine', () => {
         query: '매우 복잡한 질문',
         mode: 'auto',
         enableGoogleAI: true, // Enable Google AI flag
-      } as any);
+      });
       
       // Google AI mode uses fixed temperature 0.7 (not complexity-based)
       expect(global.fetch).toHaveBeenCalledWith(
@@ -622,7 +629,7 @@ describe('SimplifiedQueryEngine', () => {
         options: { includeMCPContext: true },
         enableAIAssistantMCP: true, // This flag is also required
         enableGoogleAI: true, // Also need this for google-ai mode
-      } as any);
+      });
       
       expect(response.success).toBe(true); // Should still work
       expect(response.thinkingSteps.some(step => step.status === 'failed')).toBe(true);
@@ -635,7 +642,7 @@ describe('SimplifiedQueryEngine', () => {
         query: '네트워크 오류',
         mode: 'google-ai',
         enableGoogleAI: true, // Enable Google AI flag
-      } as any);
+      });
       
       expect(response.success).toBe(true);
       expect(response.engine).toBe('local-ai'); // Fallback to local-ai
@@ -650,7 +657,7 @@ describe('SimplifiedQueryEngine', () => {
         query: '중단 오류',
         mode: 'google-ai',
         enableGoogleAI: true, // Enable Google AI flag
-      } as any);
+      });
       
       expect(response.success).toBe(true);
       expect(response.engine).toBe('local-ai'); // Fallback to local-ai
@@ -800,7 +807,7 @@ describe('SimplifiedQueryEngine', () => {
     it('should handle concurrent queries', async () => {
       const queries = [
         engine.query({ query: 'query1', mode: 'local' }),
-        engine.query({ query: 'query2', mode: 'google-ai', enableGoogleAI: true } as any),
+        engine.query({ query: 'query2', mode: 'google-ai', enableGoogleAI: true }),
         engine.query({ query: 'query3', mode: 'auto' }),
       ];
       
@@ -827,7 +834,7 @@ describe('SimplifiedQueryEngine', () => {
         mode: 'auto',
         options: { includeMCPContext: true },
         enableAIAssistantMCP: true, // This flag is also required
-      } as any);
+      });
       
       const stepTypes = response.thinkingSteps.map(s => s.step);
       expect(stepTypes).toContain('명령어 감지');

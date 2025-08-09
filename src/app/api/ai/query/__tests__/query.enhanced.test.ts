@@ -27,7 +27,7 @@ vi.mock('@/lib/supabase/supabase-client', () => ({
 
 // Mock authentication middleware
 vi.mock('@/lib/api-auth', () => ({
-  withAuth: (handler: any) => handler,
+  withAuth: (handler: (req: NextRequest) => Promise<Response>) => handler,
 }));
 
 // Mock SimplifiedQueryEngine
@@ -76,7 +76,8 @@ describe('Enhanced Query API', () => {
   };
 
   // Import handlers after mocks
-  let POST: any, GET: any;
+  let POST: (req: NextRequest) => Promise<Response>;
+  let GET: (req: NextRequest) => Promise<Response>;
   beforeEach(async () => {
     const module = await import('../route');
     POST = module.POST;
@@ -91,7 +92,7 @@ describe('Enhanced Query API', () => {
   describe('Performance Requirements', () => {
     it('should respond within 200ms for cached queries', async () => {
       const { getCachedData } = await import('@/lib/cache-helper');
-      (getCachedData as any).mockResolvedValueOnce(mockCachedResult);
+      vi.mocked(getCachedData).mockResolvedValueOnce(mockCachedResult);
 
       const startTime = Date.now();
       const request = new NextRequest('http://localhost:3000/api/ai/query', {
@@ -111,7 +112,7 @@ describe('Enhanced Query API', () => {
 
     it('should respond within 500ms for non-cached queries', async () => {
       const { getCachedData } = await import('@/lib/cache-helper');
-      (getCachedData as any).mockResolvedValueOnce(null);
+      vi.mocked(getCachedData).mockResolvedValueOnce(null);
 
       const startTime = Date.now();
       const request = new NextRequest('http://localhost:3000/api/ai/query', {
@@ -130,7 +131,7 @@ describe('Enhanced Query API', () => {
   describe('Caching Functionality', () => {
     it('should cache repeated queries', async () => {
       const { getCachedData, setCachedData } = await import('@/lib/cache-helper');
-      (getCachedData as any).mockResolvedValueOnce(null);
+      vi.mocked(getCachedData).mockResolvedValueOnce(null);
 
       const request = new NextRequest('http://localhost:3000/api/ai/query', {
         method: 'POST',
@@ -154,7 +155,7 @@ describe('Enhanced Query API', () => {
 
     it('should return cached response for identical queries', async () => {
       const { getCachedData } = await import('@/lib/cache-helper');
-      (getCachedData as any).mockResolvedValueOnce(mockCachedResult);
+      vi.mocked(getCachedData).mockResolvedValueOnce(mockCachedResult);
 
       const request = new NextRequest('http://localhost:3000/api/ai/query', {
         method: 'POST',
@@ -186,7 +187,7 @@ describe('Enhanced Query API', () => {
       await POST(request2);
 
       // 동일한 캐시 키로 호출되었는지 확인
-      const calls = (getCachedData as any).mock.calls;
+      const calls = vi.mocked(getCachedData).mock.calls;
       expect(calls[0][0]).toBe(calls[1][0]);
     });
   });
@@ -209,7 +210,7 @@ describe('Enhanced Query API', () => {
     it('should include performance metrics in logs', async () => {
       const { supabase } = await import('@/lib/supabase/supabase-client');
       const mockInsert = vi.fn(() => Promise.resolve({ data: null, error: null }));
-      (supabase.from as any).mockReturnValue({ insert: mockInsert });
+      vi.mocked(supabase.from).mockReturnValue({ insert: mockInsert });
 
       const request = new NextRequest('http://localhost:3000/api/ai/query', {
         method: 'POST',
@@ -253,7 +254,7 @@ describe('Enhanced Query API', () => {
 
     it('should not create race conditions in caching', async () => {
       const { getCachedData, setCachedData } = await import('@/lib/cache-helper');
-      (getCachedData as any).mockResolvedValue(null);
+      vi.mocked(getCachedData).mockResolvedValue(null);
 
       // 동일한 쿼리로 동시 요청
       const requests = Array.from({ length: 3 }, () => 
@@ -291,7 +292,7 @@ describe('Enhanced Query API', () => {
 
     it('should handle database logging errors gracefully', async () => {
       const { supabase } = await import('@/lib/supabase/supabase-client');
-      (supabase.from as any).mockReturnValue({
+      vi.mocked(supabase.from).mockReturnValue({
         insert: vi.fn(() => Promise.reject(new Error('DB Error'))),
       });
 
@@ -308,7 +309,7 @@ describe('Enhanced Query API', () => {
 
     it('should handle cache errors gracefully', async () => {
       const { getCachedData } = await import('@/lib/cache-helper');
-      (getCachedData as any).mockRejectedValueOnce(new Error('Cache Error'));
+      vi.mocked(getCachedData).mockRejectedValueOnce(new Error('Cache Error'));
 
       const request = new NextRequest('http://localhost:3000/api/ai/query', {
         method: 'POST',

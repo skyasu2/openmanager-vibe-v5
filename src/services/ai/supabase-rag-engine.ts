@@ -13,6 +13,18 @@ import type { AIMetadata, MCPContext } from '@/types/ai-service-types';
 import { embeddingService } from './embedding-service';
 import { PostgresVectorDB } from './postgres-vector-db';
 
+interface DocumentMetadata {
+  category?: string;
+  title?: string;
+  tags?: string[];
+  source?: string;
+  author?: string;
+  timestamp?: string;
+  priority?: number;
+  version?: string;
+  [key: string]: unknown;
+}
+
 interface RAGSearchOptions {
   maxResults?: number;
   threshold?: number;
@@ -42,6 +54,90 @@ interface _EmbeddingResult {
   embedding: number[];
   tokens: number;
   model: string;
+}
+
+interface RAGSearchResult {
+  id: string;
+  content: string;
+  similarity: number;
+  metadata?: AIMetadata;
+}
+
+// Helper function to convert DocumentMetadata to AIMetadata
+function convertDocumentMetadataToAIMetadata(docMeta?: DocumentMetadata): AIMetadata | undefined {
+  if (!docMeta) return undefined;
+  
+  const aiMeta: AIMetadata = {};
+  
+  // Map known fields with proper types
+  if (docMeta.category) aiMeta.category = docMeta.category;
+  if (docMeta.tags) aiMeta.tags = docMeta.tags;
+  if (docMeta.source) aiMeta.source = docMeta.source;
+  if (docMeta.timestamp) aiMeta.timestamp = docMeta.timestamp; // string type is compatible
+  if (docMeta.priority !== undefined) aiMeta.importance = docMeta.priority;
+  if (docMeta.version) aiMeta.version = docMeta.version;
+  
+  // Map other fields, ensuring they match AIMetadata's type constraints
+  for (const [key, value] of Object.entries(docMeta)) {
+    if (['category', 'tags', 'source', 'timestamp', 'priority', 'version', 'title', 'author'].includes(key)) {
+      continue; // Already handled or not needed
+    }
+    
+    // Only add values that match AIMetadata's allowed types
+    if (
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean' ||
+      value instanceof Date ||
+      Array.isArray(value) ||
+      (typeof value === 'object' && value !== null && !Array.isArray(value)) ||
+      value === undefined
+    ) {
+      aiMeta[key] = value as string | number | boolean | Date | string[] | Record<string, unknown> | undefined;
+    }
+  }
+  
+  return aiMeta;
+}
+
+// Helper function to convert AIMetadata to DocumentMetadata
+function convertAIMetadataToDocumentMetadata(aiMeta?: AIMetadata): DocumentMetadata | undefined {
+  if (!aiMeta) return undefined;
+  
+  const docMeta: DocumentMetadata = {};
+  
+  // Map known fields
+  if (aiMeta.category) docMeta.category = aiMeta.category;
+  if (aiMeta.tags) docMeta.tags = aiMeta.tags;
+  if (aiMeta.source) docMeta.source = aiMeta.source;
+  if (aiMeta.timestamp) {
+    // Convert Date to string if needed
+    docMeta.timestamp = aiMeta.timestamp instanceof Date 
+      ? aiMeta.timestamp.toISOString() 
+      : aiMeta.timestamp;
+  }
+  if (aiMeta.importance !== undefined) docMeta.priority = aiMeta.importance;
+  if (aiMeta.version) docMeta.version = aiMeta.version;
+  
+  // Map other fields
+  for (const [key, value] of Object.entries(aiMeta)) {
+    if (['category', 'tags', 'source', 'timestamp', 'importance', 'version'].includes(key)) {
+      continue; // Already handled
+    }
+    docMeta[key] = value;
+  }
+  
+  return docMeta;
+}
+
+interface MCPFile {
+  path: string;
+  content: string;
+}
+
+interface MCPContextData {
+  files: MCPFile[];
+  [key: string]: unknown;
 }
 
 // 메모리 기반 RAG 캐시 클래스
@@ -322,7 +418,7 @@ export class SupabaseRAGEngine {
       // 4. 컨텍스트 생성
       let context = '';
       if (includeContext) {
-        context = this.buildContext(searchResults, mcpContext);
+        context = this.buildContext(searchResults, mcpContext as unknown as MCPContextData | undefined);
       }
 
       const result: RAGEngineSearchResult = {
@@ -331,7 +427,7 @@ export class SupabaseRAGEngine {
           id: r.id,
           content: r.content,
           similarity: r.similarity,
-          metadata: r.metadata,
+          metadata: convertDocumentMetadataToAIMetadata(r.metadata),
         })),
         context,
         totalResults: searchResults.length,
@@ -424,7 +520,7 @@ export class SupabaseRAGEngine {
         id,
         content,
         embedding,
-        metadata
+        convertAIMetadataToDocumentMetadata(metadata)
       );
 
       if (result.success) {
@@ -475,7 +571,7 @@ export class SupabaseRAGEngine {
             doc.id,
             doc.content,
             doc.embedding!,
-            doc.metadata
+            convertAIMetadataToDocumentMetadata(doc.metadata)
           );
 
           if (result.success) {
@@ -506,7 +602,12 @@ export class SupabaseRAGEngine {
   /**
    * 🏗️ 컨텍스트 구축
    */
-  private buildContext(searchResults: any[], mcpContext?: any): string {
+  private buildContext(searchResults: Array<{
+    id: string;
+    content: string;
+    similarity: number;
+    metadata?: AIMetadata | DocumentMetadata;
+  }>, mcpContext?: MCPContextData): string {
     let context = '관련 정보:\n\n';
 
     // 검색 결과 컨텍스트
@@ -521,7 +622,7 @@ export class SupabaseRAGEngine {
     // MCP 컨텍스트 추가
     if (mcpContext && mcpContext.files && mcpContext.files.length > 0) {
       context += '\n추가 컨텍스트 (MCP):\n\n';
-      mcpContext.files.forEach((file: any) => {
+      mcpContext.files.forEach((file) => {
         context += `파일: ${file.path}\n`;
         context += `${file.content.substring(0, 200)}...\n\n`;
       });

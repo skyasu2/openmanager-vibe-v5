@@ -26,7 +26,7 @@ interface ThinkingStepRecord {
   timestamp: number;
   duration: number | null;
   user_id: string | null;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   created_at: string;
 }
 

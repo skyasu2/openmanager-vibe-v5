@@ -26,6 +26,10 @@ class EmbeddingService {
   private readonly DEFAULT_DIMENSION = 384; // 무료 티어 최적화
   private readonly API_ENDPOINT =
     'https://generativelanguage.googleapis.com/v1beta/models';
+  
+  // 캐시 히트율 추적을 위한 카운터
+  private cacheHits = 0;
+  private cacheMisses = 0;
 
   /**
    * 텍스트의 임베딩 벡터 생성
@@ -49,9 +53,13 @@ class EmbeddingService {
     const cacheKey = `${model}_${dimension}_${truncatedText}`;
     const cached = this.getFromCache(cacheKey);
     if (cached) {
+      this.cacheHits++;
       aiLogger.debug('캐시에서 임베딩 반환');
       return cached;
     }
+    
+    // 캐시 미스
+    this.cacheMisses++;
 
     try {
       // Google AI API 호출
@@ -124,8 +132,10 @@ class EmbeddingService {
       const cached = this.getFromCache(cacheKey);
 
       if (cached) {
+        this.cacheHits++;
         results[index] = cached;
       } else {
+        this.cacheMisses++;
         toProcess.push({ index, text: truncatedText });
       }
     });
@@ -224,6 +234,8 @@ class EmbeddingService {
    */
   clearCache(): void {
     this.cache.clear();
+    this.cacheHits = 0;
+    this.cacheMisses = 0;
     aiLogger.info('임베딩 캐시 초기화됨');
   }
 
@@ -234,11 +246,18 @@ class EmbeddingService {
     size: number;
     maxSize: number;
     hitRate: number;
+    hits: number;
+    misses: number;
   } {
+    const totalRequests = this.cacheHits + this.cacheMisses;
+    const hitRate = totalRequests > 0 ? (this.cacheHits / totalRequests) * 100 : 0;
+    
     return {
       size: this.cache.size,
       maxSize: this.MAX_CACHE_SIZE,
-      hitRate: 0, // TODO: 히트율 추적 구현
+      hitRate: Math.round(hitRate * 10) / 10, // 소수점 1자리까지
+      hits: this.cacheHits,
+      misses: this.cacheMisses,
     };
   }
 }
