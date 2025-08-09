@@ -21,6 +21,7 @@ import {
   Wifi,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import debug from '@/utils/debug';
 
 interface InfrastructureStats {
   totalServers: number;
@@ -87,7 +88,7 @@ export default function InfrastructureOverviewPage({
       // 서버 객체를 배열로 변환
       const servers = Object.values(serversObject);
 
-      console.log('🔍 인프라 현황 - 대시보드 데이터:', {
+      debug.log('🔍 인프라 현황 - 대시보드 데이터:', {
         serversCount: servers.length,
         stats,
         firstServer: servers[0],
@@ -101,7 +102,7 @@ export default function InfrastructureOverviewPage({
       const offlineServers = stats.offline || stats.critical || 0;
       const alertCount = warningServers + offlineServers;
 
-      console.log('📊 서버 상태 분포 (대시보드 API):', {
+      debug.log('📊 서버 상태 분포 (대시보드 API):', {
         totalServers,
         onlineServers,
         warningServers,
@@ -180,13 +181,13 @@ export default function InfrastructureOverviewPage({
         bandwidth: isNaN(bandwidth) ? 0 : Math.round(bandwidth),
       };
 
-      console.log('✅ 최종 통계:', safeStats);
+      debug.log('✅ 최종 통계:', safeStats);
 
       setStats(safeStats);
       setLastUpdate(new Date());
       setIsLoading(false);
     } catch (error) {
-      console.error('❌ 서버 데이터 가져오기 실패:', error);
+      debug.error('❌ 서버 데이터 가져오기 실패:', error);
       setIsLoading(false);
 
       // 🛡️ 에러 시 기본값 설정

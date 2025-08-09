@@ -7,6 +7,7 @@ import { Bot, Clock } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import React, { useEffect, useState } from 'react';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
+import debug from '@/utils/debug';
 
 // framer-motion을 동적 import로 처리
 const MotionButton = dynamic(
@@ -112,7 +113,7 @@ const DashboardHeader = React.memo(function DashboardHeader({
 
   // AI 에이전트 토글 핸들러 (새로운 사이드바 연동)
   const handleAIAgentToggle = () => {
-    console.log('🤖 AI 어시스턴트 토글');
+    debug.log('🤖 AI 어시스턴트 토글');
 
     // 새로운 사이드바 토글
     setSidebarOpen(!isSidebarOpen);
@@ -154,13 +155,13 @@ const DashboardHeader = React.memo(function DashboardHeader({
           {isSystemActive && remainingTimeFormatted && (
             <div className="flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-1">
               <div className="flex items-center gap-2">
-                <div className="_animate-pulse h-2 w-2 rounded-full bg-yellow-400" />
+                <div className="animate-pulse h-2 w-2 rounded-full bg-yellow-400" />
                 <span className="text-sm font-medium text-yellow-800">
                   시스템 자동 종료: {remainingTimeFormatted}
                 </span>
               </div>
               {systemRemainingTime && systemRemainingTime < 5 * 60 * 1000 && (
-                <span className="_animate-pulse text-xs font-semibold text-red-600">
+                <span className="animate-pulse text-xs font-semibold text-red-600">
                   ⚠️ 곧 종료됨
                 </span>
               )}
@@ -314,12 +315,12 @@ const DashboardHeader = React.memo(function DashboardHeader({
         {isSystemActive && remainingTimeFormatted && (
           <div className="flex items-center justify-center">
             <div className="flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-1 text-xs">
-              <div className="_animate-pulse h-2 w-2 rounded-full bg-yellow-400" />
+              <div className="animate-pulse h-2 w-2 rounded-full bg-yellow-400" />
               <span className="font-medium text-yellow-800">
                 자동 종료: {remainingTimeFormatted}
               </span>
               {systemRemainingTime && systemRemainingTime < 5 * 60 * 1000 && (
-                <span className="_animate-pulse font-semibold text-red-600">
+                <span className="animate-pulse font-semibold text-red-600">
                   ⚠️
                 </span>
               )}
