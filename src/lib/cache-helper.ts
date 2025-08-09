@@ -10,14 +10,17 @@
  * - LRU 캐시 만료 관리
  */
 
+// 캐시 아이템 타입 정의 - any 타입 제거
+interface CacheItem<T = unknown> {
+  value: T;
+  expires: number;
+  created: number;
+  hits: number;
+}
+
 // 메모리 기반 캐시 서비스 클래스
 class MemoryCacheService {
-  public cache = new Map<string, { 
-    value: any; 
-    expires: number; 
-    created: number;
-    hits: number;
-  }>();
+  public cache = new Map<string, CacheItem<unknown>>();
   private maxSize = 100; // 최대 100개 항목 (90% 감소)
   private stats = { hits: 0, misses: 0, sets: 0, deletes: 0 };
 
@@ -88,11 +91,21 @@ class MemoryCacheService {
     });
   }
 
-  getStats() {
+  getStats(): {
+    hits: number;
+    misses: number;
+    sets: number;
+    deletes: number;
+    size: number;
+    maxSize: number;
+    hitRate: number;
+    memoryUsage: string;
+  } {
     const totalRequests = this.stats.hits + this.stats.misses;
     return {
       ...this.stats,
       size: this.cache.size,
+      maxSize: this.maxSize,
       hitRate: totalRequests > 0 ? (this.stats.hits / totalRequests) * 100 : 0,
       memoryUsage: `${Math.round(this.cache.size * 0.5)}KB`, // 추정치
     };
@@ -298,7 +311,16 @@ export async function invalidateCache(pattern?: string): Promise<void> {
 /**
  * 캐시 통계 조회
  */
-export function getCacheStats() {
+export function getCacheStats(): {
+  hits: number;
+  misses: number;
+  sets: number;
+  deletes: number;
+  size: number;
+  maxSize: number;
+  hitRate: number;
+  memoryUsage: string;
+} {
   const cache = getCacheService();
   return cache.getStats();
 }

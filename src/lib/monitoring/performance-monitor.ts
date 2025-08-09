@@ -5,10 +5,21 @@
  * @date 2025-01-27
  */
 
+interface PerformanceMetadata {
+  error?: boolean;
+  queryType?: string;
+  endpoint?: string;
+  userId?: string;
+  sessionId?: string;
+  cacheHit?: boolean;
+  retryCount?: number;
+  [key: string]: unknown;
+}
+
 interface PerformanceMetric {
   timestamp: number;
   duration: number;
-  metadata?: Record<string, any>;
+  metadata?: PerformanceMetadata;
 }
 
 interface PerformanceReport {
@@ -42,7 +53,7 @@ class PerformanceMonitor {
   recordQueryTime(
     queryType: string,
     duration: number,
-    metadata?: Record<string, any>
+    metadata?: PerformanceMetadata
   ) {
     this.recordMetric(this.queryTimes, queryType, duration, metadata);
   }
@@ -53,7 +64,7 @@ class PerformanceMonitor {
   recordApiLatency(
     endpoint: string,
     duration: number,
-    metadata?: Record<string, any>
+    metadata?: PerformanceMetadata
   ) {
     this.recordMetric(this.apiLatencies, endpoint, duration, metadata);
   }
@@ -65,7 +76,7 @@ class PerformanceMonitor {
     storage: Map<string, PerformanceMetric[]>,
     key: string,
     duration: number,
-    metadata?: Record<string, any>
+    metadata?: PerformanceMetadata
   ) {
     if (!storage.has(key)) {
       storage.set(key, []);
@@ -227,7 +238,7 @@ class PerformanceMonitor {
 export const performanceMonitor = PerformanceMonitor.getInstance();
 
 // 타입 export
-export type { PerformanceMetric, PerformanceReport };
+export type { PerformanceMetric, PerformanceMetadata, PerformanceReport };
 
 // 헬퍼 함수: 성능 측정 데코레이터
 export function measurePerformance(type: 'query' | 'api', name: string) {

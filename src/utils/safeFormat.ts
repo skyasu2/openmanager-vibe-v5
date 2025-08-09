@@ -140,13 +140,13 @@ export function safePropertyAccess<T>(obj: unknown, path: string, fallback: T): 
     }
 
     const keys = path.split('.');
-    let current = obj;
+    let current: unknown = obj;
 
     for (const key of keys) {
       if (current == null || typeof current !== 'object' || !(key in current)) {
         return fallback;
       }
-      current = (current as any)[key];
+      current = (current as Record<string, unknown>)[key];
     }
 
     return (current as T) ?? fallback;

@@ -215,7 +215,7 @@ export function isApiResponse<T = unknown>(data: unknown): data is ApiResponse<T
     typeof data === 'object' &&
     data !== null &&
     'success' in data &&
-    typeof (data as any).success === 'boolean' &&
+    typeof (data as Record<string, unknown>).success === 'boolean' &&
     'data' in data &&
     'timestamp' in data
   );
@@ -231,8 +231,8 @@ export function isServer(data: unknown): data is Server {
     'id' in data &&
     'name' in data &&
     'status' in data &&
-    typeof (data as any).id === 'string' &&
-    typeof (data as any).name === 'string'
+    typeof (data as Record<string, unknown>).id === 'string' &&
+    typeof (data as Record<string, unknown>).name === 'string'
   );
 }
 
@@ -246,7 +246,7 @@ export function isMCPQueryResponse(data: unknown): data is MCPQueryResponse {
     'id' in data &&
     'queryId' in data &&
     'response' in data &&
-    typeof (data as any).id === 'string'
+    typeof (data as Record<string, unknown>).id === 'string'
   );
 }
 
@@ -256,7 +256,7 @@ export function isMCPQueryResponse(data: unknown): data is MCPQueryResponse {
 export function getErrorMessage(error: unknown): string {
   if (typeof error === 'string') return error;
   if (error && typeof error === 'object' && 'message' in error) {
-    return String((error as any).message);
+    return String((error as Record<string, unknown>).message);
   }
   return 'An unknown error occurred';
 }

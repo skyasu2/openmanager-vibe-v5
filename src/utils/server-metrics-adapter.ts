@@ -8,6 +8,43 @@
 // Using mock system for server metrics
 import type { ServerInstance, ServerStatus } from '@/types/server';
 
+// Define GCPServerMetrics interface based on usage in the code
+interface GCPServerMetrics {
+  id: string;
+  name: string;
+  type: string;
+  zone: string;
+  projectId: string;
+  status: string;
+  metrics?: {
+    cpu?: {
+      usage: number;
+      cores?: number;
+    };
+    memory?: {
+      usage: number;
+      total?: number;
+      available?: number;
+    };
+    disk?: {
+      usage: number;
+      total?: number;
+      io?: {
+        read: number;
+        write: number;
+      };
+    };
+    network?: {
+      rx: number;
+      tx: number;
+      connections?: number;
+    };
+  };
+  timestamp: string;
+  isErrorState?: boolean;
+  errorMessage?: string;
+}
+
 /**
  * GCP 서버 상태를 표준 서버 상태로 변환
  */
@@ -51,18 +88,13 @@ function convertGCPTypeToEnvironment(gcpType: string): string {
  * @returns ServerInstance 배열
  */
 export function adaptGCPMetricsToServerInstances(
-  gcpMetrics: unknown // GCPServerMetrics removed[]
+  gcpMetrics: GCPServerMetrics[]
 ): ServerInstance[] {
   if (!Array.isArray(gcpMetrics)) {
     throw new Error('GCP metrics must be an array');
   }
   
-  return gcpMetrics.map((gcp: unknown): ServerInstance => {
-    if (typeof gcp !== 'object' || gcp === null) {
-      throw new Error('Invalid GCP metrics data');
-    }
-    
-    const g = gcp as any;
+  return gcpMetrics.map((g: GCPServerMetrics): ServerInstance => {
     
     // 기본 속성들 매핑
     const baseInstance: ServerInstance = {
@@ -138,7 +170,7 @@ export function adaptGCPMetricsToServerInstances(
  * 단일 GCPServerMetrics를 ServerInstance로 변환
  */
 export function adaptSingleGCPMetricToServerInstance(
-  gcpMetric: unknown // GCPServerMetrics removed
+  gcpMetric: GCPServerMetrics
 ): ServerInstance {
   return adaptGCPMetricsToServerInstances([gcpMetric])[0];
 }
@@ -148,12 +180,11 @@ export function adaptSingleGCPMetricToServerInstance(
  */
 export function adaptServerInstanceToGCPMetrics(
   serverInstance: ServerInstance
-): unknown {
-  // GCPServerMetrics removed
+): GCPServerMetrics {
   return {
     id: serverInstance.id,
     name: serverInstance.name,
-    type: (serverInstance.type as any) || 'compute-engine',
+    type: serverInstance.type || 'compute-engine',
     zone: serverInstance.region,
     projectId: 'default-project', // 기본값
     status:

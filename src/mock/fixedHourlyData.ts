@@ -71,7 +71,7 @@ const HOURLY_INCIDENT_ROTATION = [
 /**
  * 🔄 연쇄 장애 패턴 정의
  */
-const CASCADE_PATTERNS = {
+const CASCADE_PATTERNS: Record<string, string[]> = {
   'lb-main-01': ['web-prd-01', 'web-prd-02', 'web-prd-03'], // LB 장애 → 웹서버 영향
   'web-prd-01': ['api-prd-01', 'api-prd-02'], // 웹서버 → API 영향
   'api-prd-01': ['app-prd-01', 'app-prd-02', 'app-prd-03'], // API → 앱서버 영향
@@ -216,7 +216,7 @@ export function generateFixedHourlyData(): HourlyServerState[] {
         
         // 연쇄 장애 체크
         for (const criticalServer of hourPattern.critical) {
-          if ((CASCADE_PATTERNS as any)[criticalServer]?.includes(serverId)) {
+          if (CASCADE_PATTERNS[criticalServer]?.includes(serverId)) {
             cascadeFrom = [criticalServer];
             break;
           }

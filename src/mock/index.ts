@@ -15,6 +15,24 @@ import type { MockDataRotator } from './mockDataRotator';
 import { getRotatorInstance } from './mockDataRotator';
 import type { Server } from '@/types/server';
 
+// 고정 시간별 데이터 타입 정의 (any 타입 제거)
+interface FixedHourlyData {
+  id: string;
+  name: string;
+  hostname: string;
+  status: string;
+  metrics: {
+    cpu: number;
+    memory: number;
+    disk: number;
+    network: number;
+  };
+  uptime: number;
+  location: string;
+  environment: string;
+  type: string;
+}
+
 export interface MockSystemConfig {
   autoRotate?: boolean;
   rotationInterval?: number;
@@ -157,17 +175,17 @@ export function getMockServers(): Server[] {
     console.log('🕐 고정 시간별 데이터 로드:', {
       서버_수: hourlyServersData.length,
       현재_시뮬레이션_시간: new Date().toLocaleTimeString(),
-      장애_서버: hourlyServersData.filter((s: any) => s.status === 'critical').length,
-      경고_서버: hourlyServersData.filter((s: any) => s.status === 'warning').length,
-      정상_서버: hourlyServersData.filter((s: any) => s.status === 'online').length,
+      장애_서버: hourlyServersData.filter((s: FixedHourlyData) => s.status === 'critical').length,
+      경고_서버: hourlyServersData.filter((s: FixedHourlyData) => s.status === 'warning').length,
+      정상_서버: hourlyServersData.filter((s: FixedHourlyData) => s.status === 'online').length,
     });
     
-    // HourlyServerState를 Server 타입으로 변환
-    return hourlyServersData.map((hourlyData: any, index: number): Server => ({
+    // FixedHourlyData를 Server 타입으로 변환
+    return hourlyServersData.map((hourlyData: FixedHourlyData, index: number): Server => ({
       id: hourlyData.id,
       name: hourlyData.name,
       hostname: hourlyData.hostname,
-      status: hourlyData.status,
+      status: hourlyData.status as 'online' | 'offline' | 'warning' | 'healthy' | 'critical',
       cpu: hourlyData.metrics.cpu,
       memory: hourlyData.metrics.memory,
       disk: hourlyData.metrics.disk,

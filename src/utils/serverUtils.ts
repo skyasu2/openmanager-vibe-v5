@@ -8,7 +8,7 @@
  * - 상태 매핑
  */
 
-import type { Server } from '@/types/server';
+import type { Server, ServerAlert, Service } from '@/types/server';
 
 /**
  * 서버 타입 가드 함수들
@@ -114,30 +114,60 @@ export function normalizeServerData(server: unknown): Server {
     throw new Error('Invalid server data');
   }
   
-  const s = server as any;
+  const s = server as Record<string, unknown>;
+  
+  // 타입 안전성을 위한 헬퍼 함수
+  const getString = (key: string, defaultValue: string): string => {
+    const value = s[key];
+    return typeof value === 'string' ? value : defaultValue;
+  };
+  
+  const getNumber = (key: string, defaultValue: number): number => {
+    const value = s[key];
+    return typeof value === 'number' ? value : defaultValue;
+  };
+  
+  const getStatus = (): 'online' | 'offline' | 'critical' | 'healthy' | 'warning' => {
+    const status = s.status;
+    if (status === 'online' || status === 'offline' || status === 'critical' || 
+        status === 'healthy' || status === 'warning') {
+      return status;
+    }
+    return 'offline';
+  };
+  
+  const partialServer: Partial<Server> = {
+    id: getString('id', getString('hostname', 'unknown')),
+    name: getString('name', getString('hostname', 'Unknown Server')),
+    hostname: getString('hostname', getString('name', 'Unknown')),
+    status: getStatus(),
+    uptime: getNumber('uptime', 0),
+    location: getString('location', 'Unknown'),
+    ip: getString('ip', '192.168.1.1'),
+    os: getString('os', 'Ubuntu 22.04 LTS'),
+    type: getString('type', getString('role', 'worker')),
+    environment: getString('environment', 'production'),
+    provider: getString('provider', 'On-Premise'),
+    lastUpdate: s.lastUpdate instanceof Date ? s.lastUpdate : new Date(),
+    services: Array.isArray(s.services) ? s.services as Service[] : [],
+    networkStatus: s.networkStatus === 'offline' || s.networkStatus === 'critical' || 
+                   s.networkStatus === 'healthy' || s.networkStatus === 'warning' || 
+                   s.networkStatus === 'maintenance' ? s.networkStatus : undefined,
+  };
+  
+  // 서버 타입 가드를 통한 메트릭 추출
+  const serverWithMetrics = { ...partialServer, ...s } as unknown as Server;
   
   return {
-    id: s.id || s.hostname || 'unknown',
-    name: s.name || s.hostname || 'Unknown Server',
-    hostname: s.hostname || s.name || 'Unknown',
-    status: s.status || 'offline',
-    cpu: serverTypeGuards.getCpu(s as Server),
-    memory: serverTypeGuards.getMemory(s as Server),
-    disk: serverTypeGuards.getDisk(s as Server),
-    network: serverTypeGuards.getNetwork(s as Server),
-    uptime: s.uptime || 0,
-    location: s.location || 'Unknown',
-    alerts: s.alerts || 0,
-    ip: s.ip || '192.168.1.1',
-    os: s.os || 'Ubuntu 22.04 LTS',
-    type: s.type || s.role || 'worker',
-    environment: s.environment || 'production',
-    provider: s.provider || 'On-Premise',
-    specs: serverTypeGuards.getSpecs(s as Server),
-    lastUpdate: s.lastUpdate || new Date(),
-    services: s.services || [],
-    networkStatus: s.networkStatus || 'healthy',
-  };
+    ...partialServer,
+    cpu: serverTypeGuards.getCpu(serverWithMetrics),
+    memory: serverTypeGuards.getMemory(serverWithMetrics),
+    disk: serverTypeGuards.getDisk(serverWithMetrics),
+    network: serverTypeGuards.getNetwork(serverWithMetrics),
+    alerts: typeof s.alerts === 'number' ? s.alerts : 
+            Array.isArray(s.alerts) ? s.alerts as ServerAlert[] : undefined,
+    specs: serverTypeGuards.getSpecs(serverWithMetrics),
+  } as Server;
 }
 
 /**

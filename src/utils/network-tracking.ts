@@ -69,9 +69,10 @@ export const recordNetworkRequest = (
   component: string
 ): void => {
   if (typeof window !== 'undefined') {
-    (window as any).__networkRequests = (window as any).__networkRequests || [];
-    (window as any).__networkRequests.push({
-      ...(networkInfo as Record<string, any>),
+    const windowWithRequests = window as Window & { __networkRequests?: NetworkRequestInfo[] };
+    windowWithRequests.__networkRequests = windowWithRequests.__networkRequests || [];
+    windowWithRequests.__networkRequests.push({
+      ...(networkInfo as Record<string, unknown>),
       timestamp: new Date().toISOString(),
       success,
       component,
@@ -84,7 +85,8 @@ export const recordNetworkRequest = (
  */
 export const getNetworkRequests = (): NetworkRequestInfo[] => {
   if (typeof window !== 'undefined') {
-    return (window as any).__networkRequests || [];
+    const windowWithRequests = window as Window & { __networkRequests?: NetworkRequestInfo[] };
+    return windowWithRequests.__networkRequests || [];
   }
   return [];
 };
@@ -94,7 +96,8 @@ export const getNetworkRequests = (): NetworkRequestInfo[] => {
  */
 export const clearNetworkRequests = (): void => {
   if (typeof window !== 'undefined') {
-    (window as any).__networkRequests = [];
+    const windowWithRequests = window as Window & { __networkRequests?: NetworkRequestInfo[] };
+    windowWithRequests.__networkRequests = [];
   }
 };
 
@@ -111,7 +114,12 @@ export const getNetworkStatsByComponent = (): Record<
   }
 > => {
   const requests = getNetworkRequests();
-  const stats: Record<string, any> = {};
+  const stats: Record<string, {
+    totalRequests: number;
+    successfulRequests: number;
+    failedRequests: number;
+    totalResponseTime: number;
+  }> = {};
 
   requests.forEach(request => {
     if (!stats[request.component]) {
@@ -133,12 +141,24 @@ export const getNetworkStatsByComponent = (): Record<
   });
 
   // 평균 응답 시간 계산
+  const result: Record<string, {
+    totalRequests: number;
+    successfulRequests: number;
+    failedRequests: number;
+    averageResponseTime: number;
+  }> = {};
+
   Object.keys(stats).forEach(component => {
     const componentStats = stats[component];
-    componentStats.averageResponseTime =
-      componentStats.totalResponseTime / componentStats.totalRequests;
-    delete componentStats.totalResponseTime;
+    result[component] = {
+      totalRequests: componentStats.totalRequests,
+      successfulRequests: componentStats.successfulRequests,
+      failedRequests: componentStats.failedRequests,
+      averageResponseTime: componentStats.totalRequests > 0 
+        ? componentStats.totalResponseTime / componentStats.totalRequests 
+        : 0,
+    };
   });
 
-  return stats;
+  return result;
 };

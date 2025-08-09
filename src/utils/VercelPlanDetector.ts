@@ -86,7 +86,7 @@ export class VercelPlanDetector {
     try {
       const nodeProcess =
         typeof globalThis !== 'undefined'
-          ? (globalThis as any).process
+          ? (globalThis as typeof globalThis & { process?: NodeJS.Process }).process
           : undefined;
       // 직접적인 플랜 정보
       const vercelPlan =
@@ -94,7 +94,7 @@ export class VercelPlanDetector {
         nodeProcess?.env?.VERCEL_PLAN;
       if (vercelPlan) {
         return {
-          plan: vercelPlan as any,
+          plan: vercelPlan as 'hobby' | 'pro' | 'enterprise' | 'unknown',
           confidence: 0.95,
           detectionMethods: ['environment_variable'],
         };
@@ -147,7 +147,7 @@ export class VercelPlanDetector {
     try {
       const nodeProcess =
         typeof globalThis !== 'undefined'
-          ? (globalThis as any).process
+          ? (globalThis as typeof globalThis & { process?: NodeJS.Process }).process
           : undefined;
       if (nodeProcess && typeof nodeProcess.memoryUsage === 'function') {
         const memUsage = nodeProcess.memoryUsage();
@@ -333,12 +333,12 @@ export class VercelPlanDetector {
     const finalConfidence = Math.min(0.95, bestScore / results.length);
 
     return {
-      plan: bestPlan as any,
+      plan: bestPlan as 'hobby' | 'pro' | 'enterprise' | 'unknown',
       confidence: finalConfidence,
       detectionMethods: [...new Set(allMethods)],
-      limitations: this.getPlanLimitations(bestPlan as any),
+      limitations: this.getPlanLimitations(bestPlan as 'hobby' | 'pro' | 'enterprise' | 'unknown'),
       recommendations: this.generateRecommendations(
-        bestPlan as any,
+        bestPlan as 'hobby' | 'pro' | 'enterprise' | 'unknown',
         finalConfidence
       ),
     };

@@ -178,7 +178,7 @@ export function generateMockServerData(): MockServerData {
     timeSeries[mockServer.id] = {
       serverId: mockServer.id,
       scenario: scenarioId,
-      data: compressedData as any, // Note: In practice, this would be the compressed format for storage
+      data: (compressedData as unknown) as TimeSeriesData[], // Note: In practice, this would be the compressed format for storage
       alerts:
         mockServer.status !== 'online'
           ? scenarioAlerts[scenarioId as keyof typeof scenarioAlerts]?.slice(
@@ -281,7 +281,7 @@ export function calculateDataSize(data: MockServerData): {
         
         acc[key] = {
           ...value,
-          data: compressed as any, // 압축된 데이터는 실제로는 다른 형태로 저장됨
+          data: (compressed as unknown) as TimeSeriesData[], // 압축된 데이터는 실제로는 다른 형태로 저장됨
         };
         return acc;
       },
