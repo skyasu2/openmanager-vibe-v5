@@ -52,7 +52,7 @@ const getHandler = createApiRoute()
               : 'warning',
         lastUpdate: server.lastUpdate instanceof Date 
           ? server.lastUpdate.toISOString() 
-          : server.lastUpdate,
+          : server.lastUpdate || new Date().toISOString(),
       };
     });
 
