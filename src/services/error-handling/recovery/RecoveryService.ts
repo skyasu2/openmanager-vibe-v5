@@ -184,7 +184,9 @@ export class RecoveryService {
       }
 
       // 간단한 연결 테스트
-      const testUrl = error.context?.url || '/api/health';
+      const testUrl = typeof error.context?.url === 'string' 
+        ? error.context.url 
+        : '/api/health';
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -264,7 +266,10 @@ export class RecoveryService {
 
     try {
       // 더 긴 타임아웃으로 재시도
-      const extendedTimeout = (error.context?.timeout || 5000) * 2;
+      const baseTimeout = typeof error.context?.timeout === 'number' 
+        ? error.context.timeout 
+        : 5000;
+      const extendedTimeout = baseTimeout * 2;
       console.log(`⏱️ 확장된 타임아웃으로 재시도: ${extendedTimeout}ms`);
 
       return {
@@ -336,7 +341,7 @@ export class RecoveryService {
 
     try {
       const apiUrl = error.context?.url;
-      if (!apiUrl) {
+      if (typeof apiUrl !== 'string') {
         return {
           success: false,
           attempts: 1,
