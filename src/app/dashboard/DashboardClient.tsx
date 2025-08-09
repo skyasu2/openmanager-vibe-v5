@@ -293,11 +293,18 @@ function DashboardPageContent() {
     isLoading: _serverDataLoading,
   } = useServerDashboard({});
 
-  // 🕐 시간 회전 시스템 자동 시작
+  // 🕐 시간 회전 시스템 자동 시작 (Mock 모드에서만)
   useEffect(() => {
     const initializeTimeRotation = async () => {
       try {
-        const { timeRotationService } = await import('@/services/time/TimeRotationService');
+        const [{ timeRotationService }, { getMockConfig }] = await Promise.all([
+          import('@/services/time/TimeRotationService'),
+          import('@/config/mock-config'),
+        ]);
+        const mockEnabled = getMockConfig().enabled;
+        if (!mockEnabled) {
+          return; // 실데이터 모드에서는 시뮬레이터를 가동하지 않음
+        }
         
         // 시간 회전 시스템이 비활성화 상태라면 시작
         if (!timeRotationService.getState().isActive) {

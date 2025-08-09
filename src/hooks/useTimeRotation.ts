@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { getMockConfig } from '@/config/mock-config';
 import {
   timeRotationService,
   type TimeOfDayPattern,
@@ -77,18 +78,21 @@ export function useTimeRotation(): UseTimeRotationReturn {
   const [timeState, setTimeState] = useState<TimeRotationState>(
     timeRotationService.getState()
   );
+  const mockEnabled = getMockConfig().enabled;
   
   // TimeRotationService 구독
   useEffect(() => {
+    if (!mockEnabled) {
+      // Mock 비활성 시, 구독/업데이트로 인한 리렌더를 막기 위해 noop 처리
+      return;
+    }
     const unsubscribe = timeRotationService.subscribe((state) => {
       setTimeState(state);
     });
-    
     // 초기 상태 설정
     setTimeState(timeRotationService.getState());
-    
     return unsubscribe;
-  }, []);
+  }, [mockEnabled]);
   
   // 포맷된 시간 정보 계산
   const formattedTime = timeRotationService.getFormattedTime();
@@ -104,24 +108,24 @@ export function useTimeRotation(): UseTimeRotationReturn {
   
   // 제어 함수들
   const startRotation = useCallback(() => {
-    timeRotationService.start();
-  }, []);
+    if (mockEnabled) timeRotationService.start();
+  }, [mockEnabled]);
   
   const pauseRotation = useCallback(() => {
-    timeRotationService.pause();
-  }, []);
+    if (mockEnabled) timeRotationService.pause();
+  }, [mockEnabled]);
   
   const resumeRotation = useCallback(() => {
-    timeRotationService.resume();
-  }, []);
+    if (mockEnabled) timeRotationService.resume();
+  }, [mockEnabled]);
   
   const stopRotation = useCallback(() => {
-    timeRotationService.stop();
-  }, []);
+    if (mockEnabled) timeRotationService.stop();
+  }, [mockEnabled]);
   
   const jumpToHour = useCallback((hour: number) => {
-    timeRotationService.jumpToHour(hour);
-  }, []);
+    if (mockEnabled) timeRotationService.jumpToHour(hour);
+  }, [mockEnabled]);
   
   return {
     timeState,
