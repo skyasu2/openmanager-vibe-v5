@@ -442,7 +442,10 @@ async function testBasicConnection(cloudContextLoader: CloudContextLoader) {
   const startTime = Date.now();
   try {
     // 기본 헬스체크 엔드포인트 테스트
-    await cloudContextLoader['checkMCPServerHealth']();
+    const isOnline = cloudContextLoader.isMCPServerOnline();
+    if (!isOnline) {
+      throw new Error('MCP Server is offline');
+    }
     return {
       name: '기본 연결',
       status: 'pass' as const,
