@@ -1,13 +1,9 @@
 import { z } from 'zod';
-import {
-  IdSchema,
-  PercentageSchema,
-  TimestampSchema,
-} from './common.schema';
+import { IdSchema, PercentageSchema, TimestampSchema } from './common.schema';
 
 /**
  * 🖥️ 서버 메트릭 및 상태 스키마
- * 
+ *
  * 서버 상태, 성능 지표, 네트워크 메트릭, 시스템 모니터링
  */
 
@@ -56,7 +52,9 @@ export const ServerPaginationQuerySchema = z.object({
   limit: z.number().positive().max(100).optional().default(20),
   sortBy: z.enum(['name', 'status', 'cpu', 'memory', 'lastUpdate']).optional(),
   sortOrder: z.enum(['asc', 'desc']).optional(),
-  status: z.enum(['online', 'offline', 'warning', 'error', 'maintenance']).optional(),
+  status: z
+    .enum(['online', 'offline', 'warning', 'error', 'maintenance'])
+    .optional(),
   search: z.string().optional(),
 });
 
@@ -84,12 +82,14 @@ export const ServerBatchRequestSchema = z.object({
 
 export const ServerBatchResponseSchema = z.object({
   success: z.boolean(),
-  results: z.array(z.object({
-    serverId: IdSchema,
-    success: z.boolean(),
-    message: z.string().optional(),
-    error: z.string().optional(),
-  })),
+  results: z.array(
+    z.object({
+      serverId: IdSchema,
+      success: z.boolean(),
+      message: z.string().optional(),
+      error: z.string().optional(),
+    })
+  ),
   summary: z.object({
     total: z.number(),
     succeeded: z.number(),

@@ -1,12 +1,9 @@
 import { z } from 'zod';
-import {
-  IdSchema,
-  TimestampSchema,
-} from './common.schema';
+import { IdSchema, TimestampSchema } from './common.schema';
 
 /**
  * 🔌 MCP (Model Context Protocol) 스키마
- * 
+ *
  * AI 쿼리 요청/응답, 컨텍스트 관리, MCP 서버 통신
  */
 
@@ -17,11 +14,13 @@ export const MCPQueryRequestSchema = z.object({
   context: z.record(z.string()).optional(),
   sessionId: z.string().optional(),
   userId: z.string().optional(),
-  options: z.object({
-    temperature: z.number().min(0).max(2).optional(),
-    maxTokens: z.number().positive().optional(),
-    stream: z.boolean().optional(),
-  }).optional(),
+  options: z
+    .object({
+      temperature: z.number().min(0).max(2).optional(),
+      maxTokens: z.number().positive().optional(),
+      stream: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 // ===== MCP 쿼리 응답 =====
@@ -36,11 +35,13 @@ export const MCPQueryResponseSchema = z.object({
   timestamp: TimestampSchema,
   sources: z.array(z.string()),
   actionable: z.boolean(),
-  metadata: z.object({
-    model: z.string().optional(),
-    processingTime: z.number().optional(),
-    tokensUsed: z.number().optional(),
-  }).optional(),
+  metadata: z
+    .object({
+      model: z.string().optional(),
+      processingTime: z.number().optional(),
+      tokensUsed: z.number().optional(),
+    })
+    .optional(),
 });
 // ===== MCP Context Integration 스키마 =====
 
@@ -78,12 +79,14 @@ export const MCPSyncResponseSchema = z.object({
   success: z.boolean(),
   syncedItems: z.number(),
   failedItems: z.number(),
-  details: z.array(z.object({
-    server: z.string(),
-    status: z.enum(['success', 'failed', 'skipped']),
-    items: z.number(),
-    error: z.string().optional(),
-  })),
+  details: z.array(
+    z.object({
+      server: z.string(),
+      status: z.enum(['success', 'failed', 'skipped']),
+      items: z.number(),
+      error: z.string().optional(),
+    })
+  ),
   timestamp: TimestampSchema,
 });
 

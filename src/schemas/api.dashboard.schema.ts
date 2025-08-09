@@ -5,7 +5,7 @@ import { AlertSchema } from './api.alert.schema';
 
 /**
  * 📊 대시보드 데이터 스키마
- * 
+ *
  * 시스템 개요, 대시보드 데이터 구조, 전체 현황
  */
 
@@ -60,11 +60,13 @@ export const DashboardResponseSchema = z.object({
   success: z.boolean(),
   data: DashboardDataSchema,
   timestamp: TimestampSchema,
-  metadata: z.object({
-    cacheHit: z.boolean().optional(),
-    processingTime: z.number().optional(),
-    dataSource: z.string().optional(),
-  }).optional(),
+  metadata: z
+    .object({
+      cacheHit: z.boolean().optional(),
+      processingTime: z.number().optional(),
+      dataSource: z.string().optional(),
+    })
+    .optional(),
 });
 
 // ===== 대시보드 서버 스키마 =====
@@ -79,26 +81,40 @@ export const DashboardServerSchema = z.object({
   disk: z.number().min(0).max(100),
   location: z.string(),
   environment: z.string().optional(),
-  metrics: z.object({
-    cpu: z.union([
-      z.number(),
-      z.object({ usage: z.number(), cores: z.number().optional(), temperature: z.number().optional() })
-    ]).optional(),
-    memory: z.union([
-      z.number(),
-      z.object({ used: z.number(), total: z.number(), usage: z.number() })
-    ]).optional(),
-    disk: z.union([
-      z.number(),
-      z.object({ used: z.number(), total: z.number(), usage: z.number() })
-    ]).optional(),
-    network: z.object({
-      rx: z.number().optional(),
-      tx: z.number().optional(),
-      bytesIn: z.number().optional(),
-      bytesOut: z.number().optional(),
-    }).optional(),
-  }).optional(),
+  metrics: z
+    .object({
+      cpu: z
+        .union([
+          z.number(),
+          z.object({
+            usage: z.number(),
+            cores: z.number().optional(),
+            temperature: z.number().optional(),
+          }),
+        ])
+        .optional(),
+      memory: z
+        .union([
+          z.number(),
+          z.object({ used: z.number(), total: z.number(), usage: z.number() }),
+        ])
+        .optional(),
+      disk: z
+        .union([
+          z.number(),
+          z.object({ used: z.number(), total: z.number(), usage: z.number() }),
+        ])
+        .optional(),
+      network: z
+        .object({
+          rx: z.number().optional(),
+          tx: z.number().optional(),
+          bytesIn: z.number().optional(),
+          bytesOut: z.number().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 // ===== 대시보드 액션 요청 스키마 =====
@@ -107,11 +123,13 @@ export const DashboardActionRequestSchema = z.object({
   action: z.enum(['refresh', 'reset', 'export', 'import']),
   targetId: z.string().optional(),
   data: z.any().optional(),
-  options: z.object({
-    force: z.boolean().optional(),
-    includeMetrics: z.boolean().optional(),
-    timeRange: z.string().optional(),
-  }).optional(),
+  options: z
+    .object({
+      force: z.boolean().optional(),
+      includeMetrics: z.boolean().optional(),
+      timeRange: z.string().optional(),
+    })
+    .optional(),
 });
 
 // ===== 대시보드 액션 응답 스키마 =====
@@ -160,30 +178,40 @@ export const DashboardOptimizedResponseSchema = z.object({
     lastUpdate: z.string(),
     dataSource: z.string(),
   }),
-  metadata: z.object({
-    responseTime: z.number(),
-    cacheHit: z.boolean(),
-    redisKeys: z.number(),
-    serversLoaded: z.number(),
-    optimizationType: z.string(),
-    performanceGain: z.string(),
-    apiVersion: z.string(),
-    scenario: z.string().optional(),
-  }).optional(),
+  metadata: z
+    .object({
+      responseTime: z.number(),
+      cacheHit: z.boolean(),
+      redisKeys: z.number(),
+      serversLoaded: z.number(),
+      optimizationType: z.string(),
+      performanceGain: z.string(),
+      apiVersion: z.string(),
+      scenario: z.string().optional(),
+    })
+    .optional(),
 });
 
 export const DashboardOptimizedErrorResponseSchema = z.object({
   success: z.literal(false),
   error: z.string(),
-  metadata: z.object({
-    responseTime: z.number(),
-    serversLoaded: z.number(),
-  }).optional(),
+  metadata: z
+    .object({
+      responseTime: z.number(),
+      serversLoaded: z.number(),
+    })
+    .optional(),
 });
 
-export type DashboardOptimizedServer = z.infer<typeof DashboardOptimizedServerSchema>;
-export type DashboardOptimizedResponse = z.infer<typeof DashboardOptimizedResponseSchema>;
-export type DashboardOptimizedErrorResponse = z.infer<typeof DashboardOptimizedErrorResponseSchema>;
+export type DashboardOptimizedServer = z.infer<
+  typeof DashboardOptimizedServerSchema
+>;
+export type DashboardOptimizedResponse = z.infer<
+  typeof DashboardOptimizedResponseSchema
+>;
+export type DashboardOptimizedErrorResponse = z.infer<
+  typeof DashboardOptimizedErrorResponseSchema
+>;
 
 // ===== 타입 내보내기 =====
 
@@ -193,5 +221,9 @@ export type DashboardStats = z.infer<typeof DashboardStatsSchema>;
 export type DashboardData = z.infer<typeof DashboardDataSchema>;
 export type DashboardResponse = z.infer<typeof DashboardResponseSchema>;
 export type DashboardServer = z.infer<typeof DashboardServerSchema>;
-export type DashboardActionRequest = z.infer<typeof DashboardActionRequestSchema>;
-export type DashboardActionResponse = z.infer<typeof DashboardActionResponseSchema>;
+export type DashboardActionRequest = z.infer<
+  typeof DashboardActionRequestSchema
+>;
+export type DashboardActionResponse = z.infer<
+  typeof DashboardActionResponseSchema
+>;
