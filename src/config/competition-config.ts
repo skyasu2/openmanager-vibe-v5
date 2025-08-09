@@ -143,7 +143,7 @@ function detectVercelTier(): 'hobby' | 'pro' | 'enterprise' {
   // 환경 변수에서 직접 확인
   const explicitTier = process.env.VERCEL_TIER;
   if (explicitTier && ['hobby', 'pro', 'enterprise'].includes(explicitTier)) {
-    return explicitTier as any;
+    return explicitTier as 'hobby' | 'pro' | 'enterprise';
   }
 
   // 메모리 제한으로 추정
@@ -182,7 +182,7 @@ export class CompetitionConfigManager {
 
     // Node.js 환경에서 프로세스 종료 신호
     if (typeof process !== 'undefined') {
-      process.emit('SIGTERM' as any);
+      process.emit('SIGTERM' as NodeJS.Signals);
     }
   }
 

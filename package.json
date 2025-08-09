@@ -45,7 +45,7 @@
     "test:e2e:server": "cross-env PORT=3002 NODE_ENV=test next dev",
     "test:e2e:watch": "playwright test --ui",
     "test:performance": "vitest run --config vitest.performance.config.ts",
-    "type-check": "tsc --noEmit",
+    "type-check": "node tsc-wrapper.js --noEmit",
     "prepare": "husky || true",
     "validate": "npm run type-check && npm run lint:quick",
     "validate:all": "npm run type-check && npm run lint && npm run test",

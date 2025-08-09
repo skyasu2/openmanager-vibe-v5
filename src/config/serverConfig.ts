@@ -4,6 +4,16 @@
  * 서버 개수를 중앙에서 관리하고, 이에 따라 다른 설정들이 자동으로 조정됩니다.
  */
 
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+interface PerformanceWithMemory extends Performance {
+  memory?: PerformanceMemory;
+}
+
 export interface ServerGenerationConfig {
   // 기본 서버 설정
   maxServers: number;
@@ -134,12 +144,14 @@ export function calculateOptimalUpdateInterval(): number {
 
   // 클라이언트 사이드에서는 performance.memory 사용
   if (typeof window !== 'undefined' && 'memory' in performance) {
-    const memory = (performance as any).memory;
-    const usagePercent = (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
+    const memory = (performance as PerformanceWithMemory).memory;
+    if (memory) {
+      const usagePercent = (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
 
-    if (usagePercent > 80) return 35000; // 높은 사용률: 35초
-    if (usagePercent > 60) return 33000; // 중간 사용률: 33초
-    return 30000; // 낮은 사용률: 30초
+      if (usagePercent > 80) return 35000; // 높은 사용률: 35초
+      if (usagePercent > 60) return 33000; // 중간 사용률: 33초
+      return 30000; // 낮은 사용률: 30초
+    }
   }
 
   return 30000; // 기본값: 30초 (생성 간격)
@@ -163,12 +175,14 @@ export function calculateOptimalCollectionInterval(): number {
 
   // 클라이언트 사이드에서는 performance.memory 사용
   if (typeof window !== 'undefined' && 'memory' in performance) {
-    const memory = (performance as any).memory;
-    const usagePercent = (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
+    const memory = (performance as PerformanceWithMemory).memory;
+    if (memory) {
+      const usagePercent = (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
 
-    if (usagePercent > 80) return 600000; // 높은 사용률: 10분
-    if (usagePercent > 60) return 450000; // 중간 사용률: 7.5분
-    return 300000; // 낮은 사용률: 5분
+      if (usagePercent > 80) return 600000; // 높은 사용률: 10분
+      if (usagePercent > 60) return 450000; // 중간 사용률: 7.5분
+      return 300000; // 낮은 사용률: 5분
+    }
   }
 
   return process.env.DATA_COLLECTION_INTERVAL

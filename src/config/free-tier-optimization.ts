@@ -276,7 +276,7 @@ export class FreeTierUsageTracker {
 
     // 사용량 기록
     if (this.usage[service] && metric in this.usage[service]) {
-      (this.usage[service] as any)[metric] += value;
+      (this.usage[service] as Record<string, number>)[metric] += value;
     }
   }
 
