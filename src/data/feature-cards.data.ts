@@ -70,7 +70,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     id: 'tech-stack',
     title: '💻 기술 스택',
     description:
-      'Next.js 15 + React 18 + TypeScript. 안정적인 프로덕션급 웹 기술로 구현된 현대적인 풀스택 애플리케이션',
+      'Next.js 15 · React 18 · TypeScript 기반. 실시간 UI와 대시보드 차트를 갖춘 프로덕션급 웹 스택',
     icon: Sparkles,
     gradient: 'from-blue-500 to-purple-600',
     detailedContent: {
@@ -84,8 +84,8 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         '🎬 Framer Motion: 부드러운 페이지 전환 및 애니메이션 효과',
         '🏬 Radix UI: 14개+ 헤드리스 UI 컴포넌트 (Dialog, Accordion, Tabs, Select 등)',
         '🎆 Lucide React: 1000+ 아이콘 라이브러리 (121곳에서 활용)',
-        '🔔 React Hot Toast: 가벼운 토스트 알림 시스템',
-        '📊 @tanstack/react-query: 서버 상태 관리 및 데이터 페칭 최적화',
+        '🧰 Zustand: 글로벌 상태 관리 및 persist 미들웨어 적용',
+        '🔔 Radix Toast: 접근성 표준 기반 알림 시스템',
       ],
       technologies: [
         'Next.js 15.4.5',
@@ -98,8 +98,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         'Vitest 3.2.4',
         'Radix UI',
         'Lucide React',
-        'React Query 5.66.1',
-        'React Hot Toast',
+        'Radix Toast',
       ],
     },
     requiresAI: false,
@@ -108,7 +107,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     id: 'cursor-ai',
     title: '🔥 Vibe Coding',
     description:
-      'Vibe Coding 워크플로우로 Claude Code & Gemini CLI를 통해, 가상 서버 데이터 기반 모니터링 웹페이지를 자동 생성하고, AI 어시스턴트 기능을 자연어 프롬프트로 설계하여 완성했습니다.',
+      'Vibe Coding으로 모니터링 웹 자동 생성. 프롬프트 기반으로 AI 어시스턴트를 완성했습니다.',
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {
