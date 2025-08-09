@@ -325,19 +325,21 @@ function DashboardPageContent() {
     };
   }, []);
 
-  // 🚀 대시보드 직접 접속 시 최적화된 초기화
+  // 🚀 대시보드 직접 접속 시 최적화된 초기화 (Mock 모드에서만 데이터 생성기 확인)
   useEffect(() => {
     console.log('🎯 대시보드 직접 접속 - 최적화된 초기화');
 
     // 🔥 즉시 실행 최적화
     const _initializeDashboard = async () => {
       try {
-        // 필요한 경우에만 데이터 생성기 상태 확인
-        // API 클라이언트 사용
-        const { apiGet, apiPost } = await import('@/lib/api-client');
-
+        const [{ getMockConfig }, { apiGet, apiPost }] = await Promise.all([
+          import('@/config/mock-config'),
+          import('@/lib/api-client'),
+        ]);
+        if (!getMockConfig().enabled) {
+          return; // 실데이터 모드에서는 데이터 생성기 호출 안 함
+        }
         const status = await apiGet('/api/data-generator/status');
-
         if (!status.success || !status.data.isRunning) {
           console.log('📊 데이터 생성기 자동 시작');
           await apiPost('/api/data-generator/start');

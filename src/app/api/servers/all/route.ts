@@ -3,7 +3,8 @@ import { getSupabaseClient } from '@/lib/supabase/supabase-client';
 import { getCachedData, setCachedData } from '@/lib/cache-helper';
 import type { Server } from '@/types/server';
 import { isMockMode, getMockHeaders } from '@/config/mock-config';
-import { getMockServers } from '@/mock';
+import fs from 'fs';
+import path from 'path';
 
 // Supabase hourly_server_states 테이블 타입 정의 - any 타입 제거
 interface HourlyServerState {
@@ -56,67 +57,73 @@ export async function GET(request: NextRequest) {
     
     console.log(`🔍 서버 목록 요청: page=${page}, limit=${limit}, search="${search}", status="${status}"`);
     
-    // Mock 모드 확인
+    // 정적 폴백 로더
+    const loadStaticFallbackServers = (): Server[] => {
+      try {
+        const fallbackPath = path.join(process.cwd(), 'public', 'fallback', 'servers.json');
+        const raw = fs.readFileSync(fallbackPath, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          return parsed as Server[];
+        }
+        if (parsed && Array.isArray(parsed.servers)) {
+          return parsed.servers as Server[];
+        }
+      } catch (e) {
+        console.warn('⚠️ 정적 폴백 서버 로드 실패:', e);
+      }
+      return [] as Server[];
+    };
+
+    // Mock 모드: 무거운 회전/동적 목업 대신 정적 폴백 사용
     if (isMockMode()) {
-      console.log('🎭 Mock 모드 활성화됨');
-      
-      // Mock 데이터 가져오기
-      const mockServers = getMockServers();
-      
-      // 필터링 및 검색
-      let filteredServers = mockServers;
-      
+      console.log('🎭 Mock 모드 활성화됨 → 정적 폴백 사용');
+      let filteredServers = loadStaticFallbackServers();
+      // 필터/정렬/페이지네이션
       if (search) {
-        filteredServers = filteredServers.filter(server => 
+        filteredServers = filteredServers.filter((server) =>
           server.name.toLowerCase().includes(search.toLowerCase()) ||
-          server.location?.toLowerCase().includes(search.toLowerCase())
+          (server.location || '').toLowerCase().includes(search.toLowerCase())
         );
       }
-      
       if (status) {
-        filteredServers = filteredServers.filter(server => server.status === status);
+        filteredServers = filteredServers.filter((server) => server.status === status);
       }
-      
-      // 정렬
       filteredServers.sort((a, b) => {
-        let comparison = 0;
+        const dir = sortOrder === 'asc' ? 1 : -1;
         switch (sortBy) {
           case 'cpu':
-            comparison = a.cpu - b.cpu;
-            break;
+            return (a.cpu - b.cpu) * dir;
           case 'memory':
-            comparison = a.memory - b.memory;
-            break;
+            return (a.memory - b.memory) * dir;
           case 'disk':
-            comparison = a.disk - b.disk;
-            break;
+            return (a.disk - b.disk) * dir;
           default:
-            comparison = a.name.localeCompare(b.name);
+            return a.name.localeCompare(b.name) * dir;
         }
-        return sortOrder === 'asc' ? comparison : -comparison;
       });
-      
-      // 페이지네이션
       const startIndex = (page - 1) * limit;
       const paginatedServers = filteredServers.slice(startIndex, startIndex + limit);
-      
-      return NextResponse.json({
-        success: true,
-        data: {
-          servers: paginatedServers,
-          page,
-          limit,
-          total: filteredServers.length,
-          totalPages: Math.ceil(filteredServers.length / limit),
+      return NextResponse.json(
+        {
+          success: true,
+          data: {
+            servers: paginatedServers,
+            page,
+            limit,
+            total: filteredServers.length,
+            totalPages: Math.ceil(filteredServers.length / limit),
+          },
+          timestamp: new Date().toISOString(),
         },
-        timestamp: new Date().toISOString(),
-      }, {
-        headers: {
-          ...getMockHeaders(),
-          'X-Response-Time': `${Date.now() - startTime}ms`,
-          'Cache-Control': 'no-store',
-        },
-      });
+        {
+          headers: {
+            ...getMockHeaders(),
+            'X-Response-Time': `${Date.now() - startTime}ms`,
+            'Cache-Control': 'public, max-age=60',
+          },
+        }
+      );
     }
     
     // 현재 시간 계산 (30초 = 1시간 매핑)
@@ -150,28 +157,29 @@ export async function GET(request: NextRequest) {
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
       
       if (!supabaseUrl || !supabaseKey || supabaseUrl === 'https://dummy.supabase.co') {
-        console.warn('⚠️ Supabase 환경변수 미설정 - Mock 데이터 사용');
-        
-        // Mock 데이터 반환
-        const mockServers = getMockServers();
-        return NextResponse.json({
-          success: true,
-          data: {
-            servers: mockServers, // 전체 Mock 서버 반환 (8개)
-            page,
-            limit,
-            total: mockServers.length,
-            totalPages: Math.ceil(mockServers.length / limit),
+        console.warn('⚠️ Supabase 환경변수 미설정 - 정적 폴백 사용');
+        const fallback = loadStaticFallbackServers();
+        return NextResponse.json(
+          {
+            success: true,
+            data: {
+              servers: fallback,
+              page,
+              limit,
+              total: fallback.length,
+              totalPages: Math.ceil(fallback.length / limit),
+            },
+            timestamp: new Date().toISOString(),
+            dataSource: 'static-fallback',
           },
-          timestamp: new Date().toISOString(),
-          dataSource: 'mock-fallback',
-        }, {
-          headers: {
-            'X-Data-Source': 'Mock-Fallback',
-            'X-Response-Time': `${Date.now() - startTime}ms`,
-            'Cache-Control': 'no-store',
-          },
-        });
+          {
+            headers: {
+              'X-Data-Source': 'Static-Fallback',
+              'X-Response-Time': `${Date.now() - startTime}ms`,
+              'Cache-Control': 'public, max-age=60',
+            },
+          }
+        );
       }
       
       // Supabase 쿼리 구성 - hourly_server_states 테이블 사용
@@ -239,29 +247,31 @@ export async function GET(request: NextRequest) {
       
       if (error) {
         console.error('❌ Supabase 쿼리 오류:', error);
-        
-        // 에러 발생 시 Mock 데이터 반환
-        const mockServers = getMockServers();
-        return NextResponse.json({
-          success: true,
-          data: {
-            servers: mockServers, // 전체 Mock 서버 반환 (8개)
-            page,
-            limit,
-            total: mockServers.length,
-            totalPages: Math.ceil(mockServers.length / limit),
+        // 에러 발생 시 정적 폴백 반환
+        const fallback = loadStaticFallbackServers();
+        return NextResponse.json(
+          {
+            success: true,
+            data: {
+              servers: fallback,
+              page,
+              limit,
+              total: fallback.length,
+              totalPages: Math.ceil(fallback.length / limit),
+            },
+            timestamp: new Date().toISOString(),
+            dataSource: 'static-on-error',
+            error: error.message,
           },
-          timestamp: new Date().toISOString(),
-          dataSource: 'mock-on-error',
-          error: error.message,
-        }, {
-          headers: {
-            'X-Data-Source': 'Mock-On-Error',
-            'X-Error': error.message,
-            'X-Response-Time': `${Date.now() - startTime}ms`,
-            'Cache-Control': 'no-store',
-          },
-        });
+          {
+            headers: {
+              'X-Data-Source': 'Static-On-Error',
+              'X-Error': error.message,
+              'X-Response-Time': `${Date.now() - startTime}ms`,
+              'Cache-Control': 'public, max-age=60',
+            },
+          }
+        );
       }
       
       // Supabase hourly_server_states 데이터를 Server 타입으로 변환

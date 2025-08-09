@@ -10,6 +10,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { DashboardTab } from '@/hooks/useServerDashboard';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { Loader2 } from 'lucide-react';
@@ -45,6 +52,7 @@ export default function ServerDashboard({
     servers,
     currentPage,
     totalPages,
+    pageSize,
     setCurrentPage,
     changePageSize,
     handleServerSelect,
@@ -184,8 +192,18 @@ export default function ServerDashboard({
               </div>
             )}
 
-            {/* 🎯 15개 서버 최적화 그리드 레이아웃 - ImprovedServerCard 사용 */}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {/* 🎯 페이지 크기에 따른 동적 그리드 레이아웃 */}
+            <div 
+              className={`grid gap-4 sm:gap-6 transition-all duration-300 ${
+                pageSize <= 3
+                  ? 'grid-cols-1' // 3개: 모바일 최적화 (1열)
+                  : pageSize <= 6
+                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' // 6개: 2x3 레이아웃
+                  : pageSize <= 9
+                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' // 9개: 3x3 레이아웃
+                  : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' // 12개 이상: 3x4 레이아웃
+              }`}
+            >
               {sortedServers.map((server, index) => (
                 <ImprovedServerCard
                   key={server.id}
@@ -219,43 +237,167 @@ export default function ServerDashboard({
       </div>
 
       {totalPages > 1 && activeTab === 'servers' && (
-        <div className="mt-8 flex justify-center">
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setCurrentPage((p) => Math.max(1, p - 1));
-                  }}
-                />
-              </PaginationItem>
-              {[...Array(totalPages)].map((_, i) => (
-                <PaginationItem key={i}>
-                  <PaginationLink
+        <div className="mt-8 space-y-4">
+          {/* 페이지당 표시 개수 선택 */}
+          <div className="flex justify-end">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                페이지당 표시:
+              </span>
+              <Select
+                value={String(pageSize)}
+                onValueChange={(value) => {
+                  changePageSize(Number(value));
+                  setCurrentPage(1); // 페이지 크기 변경 시 첫 페이지로 이동
+                }}
+              >
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="3">3개 (모바일)</SelectItem>
+                  <SelectItem value="6">6개 (추천)</SelectItem>
+                  <SelectItem value="9">9개</SelectItem>
+                  <SelectItem value="12">12개</SelectItem>
+                  <SelectItem value="15">15개 (전체)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* 페이지네이션 */}
+          <div className="flex justify-center">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
                     href="#"
-                    isActive={currentPage === i + 1}
                     onClick={(e) => {
                       e.preventDefault();
-                      setCurrentPage(i + 1);
+                      if (currentPage > 1) {
+                        setCurrentPage(currentPage - 1);
+                      }
                     }}
-                  >
-                    {i + 1}
-                  </PaginationLink>
+                    className={
+                      currentPage === 1
+                        ? 'pointer-events-none opacity-50'
+                        : 'cursor-pointer'
+                    }
+                  />
                 </PaginationItem>
-              ))}
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setCurrentPage((p) => Math.min(totalPages, p + 1));
-                  }}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+
+                {/* 페이지 번호 표시 로직 개선 */}
+                {(() => {
+                  const maxVisiblePages = 5;
+                  let startPage = Math.max(
+                    1,
+                    currentPage - Math.floor(maxVisiblePages / 2)
+                  );
+                  let endPage = Math.min(
+                    totalPages,
+                    startPage + maxVisiblePages - 1
+                  );
+
+                  if (endPage - startPage < maxVisiblePages - 1) {
+                    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                  }
+
+                  const pages = [];
+                  
+                  // 첫 페이지
+                  if (startPage > 1) {
+                    pages.push(
+                      <PaginationItem key={1}>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setCurrentPage(1);
+                          }}
+                        >
+                          1
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                    if (startPage > 2) {
+                      pages.push(
+                        <PaginationItem key="ellipsis-start">
+                          <span className="px-3">...</span>
+                        </PaginationItem>
+                      );
+                    }
+                  }
+
+                  // 중간 페이지들
+                  for (let i = startPage; i <= endPage; i++) {
+                    pages.push(
+                      <PaginationItem key={i}>
+                        <PaginationLink
+                          href="#"
+                          isActive={currentPage === i}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setCurrentPage(i);
+                          }}
+                        >
+                          {i}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  }
+
+                  // 마지막 페이지
+                  if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                      pages.push(
+                        <PaginationItem key="ellipsis-end">
+                          <span className="px-3">...</span>
+                        </PaginationItem>
+                      );
+                    }
+                    pages.push(
+                      <PaginationItem key={totalPages}>
+                        <PaginationLink
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setCurrentPage(totalPages);
+                          }}
+                        >
+                          {totalPages}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  }
+
+                  return pages;
+                })()}
+
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage < totalPages) {
+                        setCurrentPage(currentPage + 1);
+                      }
+                    }}
+                    className={
+                      currentPage === totalPages
+                        ? 'pointer-events-none opacity-50'
+                        : 'cursor-pointer'
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+
+          {/* 현재 페이지 정보 */}
+          <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+            {servers.length}개 서버 중 {(currentPage - 1) * pageSize + 1}-
+            {Math.min(currentPage * pageSize, servers.length)}번째 표시 중
+          </div>
         </div>
       )}
 

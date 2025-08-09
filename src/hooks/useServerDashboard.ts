@@ -168,7 +168,16 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
   // 페이지네이션 상태 - 설정 기반으로 동적 조정
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(15); // 🔥 서버 구성 15개로 확장
+  // 🚀 화면 크기에 따른 초기 페이지 크기 설정
+  const getInitialPageSize = () => {
+    if (typeof window === 'undefined') return 6;
+    const width = window.innerWidth;
+    if (width < 640) return 3; // 모바일: 3개
+    if (width < 1024) return 6; // 태블릿: 6개
+    return 6; // 데스크톱: 6개 (기본값)
+  };
+
+  const [pageSize, setPageSize] = useState(getInitialPageSize);
 
   // 🎯 서버 설정에 따른 동적 페이지 크기 설정
   const ITEMS_PER_PAGE = useMemo(() => {
@@ -212,6 +221,34 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
   // 🕐 시간 회전 시스템 - 24시간 데이터 시뮬레이션
   const { metricMultipliers, formattedTime, isActive: isTimeRotationActive } = useTimeRotation();
+
+  // 🎨 화면 크기 변경 시 페이지 크기 자동 조정
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      let newPageSize: number;
+      
+      if (width < 640) {
+        newPageSize = 3; // 모바일
+      } else if (width < 1024) {
+        newPageSize = 6; // 태블릿
+      } else {
+        newPageSize = 6; // 데스크톱 (기본)
+      }
+      
+      // 현재 페이지 크기와 다르면 업데이트
+      if (newPageSize !== pageSize && pageSize <= 6) {
+        // 사용자가 수동으로 큰 값(9, 12, 15)을 선택한 경우는 유지
+        setPageSize(newPageSize);
+      }
+    };
+
+    // 초기 실행 및 리스너 등록
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, []); // 의존성 배열을 비워서 초기에만 리스너 등록
 
   // 🚀 최적화된 서버 데이터 로드 및 자동 갱신 설정
   useEffect(() => {
@@ -473,6 +510,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     // 페이지네이션
     currentPage,
     totalPages,
+    pageSize,
     setCurrentPage,
     changePageSize,
 
