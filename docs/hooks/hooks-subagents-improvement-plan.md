@@ -12,6 +12,7 @@
 ### 1. 누락된 훅 추가
 
 #### post-test-hook.sh (새로 생성)
+
 ```bash
 #!/bin/bash
 # PostToolUse Hook: 테스트 실행 후 자동 분석
@@ -38,6 +39,7 @@ fi
 ```
 
 #### post-doc-hook.sh (새로 생성)
+
 ```bash
 #!/bin/bash
 # PostToolUse Hook: 문서 작성/수정 후 구조 검증
@@ -47,19 +49,20 @@ set -euo pipefail
 
 FILE_PATH="$1"
 
-# 루트 디렉토리 .md 파일이 4개 초과 시 doc-structure-guardian 호출
+# 루트 디렉토리 .md 파일이 6개 초과 시 documentation-manager 호출
 ROOT_MD_COUNT=$(find . -maxdepth 1 -name "*.md" | wc -l)
-if [ "$ROOT_MD_COUNT" -gt 4 ]; then
-    echo "📚 루트에 ${ROOT_MD_COUNT}개 .md 파일 - doc-structure-guardian 권장"
+if [ "$ROOT_MD_COUNT" -gt 6 ]; then
+    echo "📚 루트에 ${ROOT_MD_COUNT}개 .md 파일 - documentation-manager 권장"
 fi
 
-# 새 문서 생성 시 doc-writer-researcher로 내용 보강 제안
+# 새 문서 생성 시 documentation-manager로 내용 보강 제안
 if [[ ! -s "$FILE_PATH" ]]; then
-    echo "📝 새 문서 생성 - doc-writer-researcher로 내용 보강 가능"
+    echo "📝 새 문서 생성 - documentation-manager로 내용 보강 가능"
 fi
 ```
 
 #### pre-performance-check.sh (새로 생성)
+
 ```bash
 #!/bin/bash
 # PreToolUse Hook: 빌드/배포 전 성능 체크
@@ -85,6 +88,7 @@ fi
 ### 2. 기존 훅 개선
 
 #### 보안 훅 통합
+
 ```bash
 # post-security-hook.sh (통합 버전)
 #!/bin/bash
@@ -99,20 +103,21 @@ OPERATION="$2"  # "edit" or "write"
 if [[ "$FILE_PATH" =~ (auth|security|payment|admin|api/.*/(route|handler)) ]]; then
     # security-auditor 자동 호출 (권장이 아닌 자동으로 변경)
     echo "🔒 보안 중요 파일 ${OPERATION} - security-auditor 자동 실행"
-    
+
     # Exit code 2로 서브에이전트 위임 표시
     exit 2
 fi
 ```
 
 #### agent-completion-hook.sh 간소화
+
 ```bash
 # 중복 코드를 함수로 추출
 create_issue_report() {
     local agent_name="$1"
     local status="$2"
     local priority="$3"
-    
+
     # 공통 이슈 리포트 생성 로직
     ...
 }
@@ -127,8 +132,7 @@ declare -A AGENT_PRIORITIES=(
     ["ux-performance-optimizer"]="medium"
     ["ai-systems-engineer"]="medium"
     ["debugger-specialist"]="medium"
-    ["doc-structure-guardian"]="low"
-    ["doc-writer-researcher"]="low"
+    ["documentation-manager"]="medium"
     ["gemini-cli-collaborator"]="low"
     ["mcp-server-admin"]="low"
     ["issue-summary"]="low"
@@ -138,6 +142,7 @@ declare -A AGENT_PRIORITIES=(
 ### 3. 훅 체이닝 구현
 
 #### hooks/shared-functions.sh (공통 함수)
+
 ```bash
 #!/bin/bash
 # 모든 훅에서 사용하는 공통 함수
@@ -169,6 +174,7 @@ delegate_to_subagent() {
 ### 4. 훅 설정 업데이트
 
 #### .claude/settings.local.json 개선
+
 ```json
 {
   "hooks": {
@@ -176,55 +182,67 @@ delegate_to_subagent() {
       {
         "matcher": "Write|Edit|MultiEdit",
         "filter": "\\.(ts|tsx|js|jsx)$",
-        "hooks": [{
-          "type": "command",
-          "command": "./hooks/post-code-hook.sh"
-        }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/post-code-hook.sh"
+          }
+        ]
       },
       {
         "matcher": "Write|Edit",
         "filter": "\\.(md)$",
-        "hooks": [{
-          "type": "command",
-          "command": "./hooks/post-doc-hook.sh"
-        }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/post-doc-hook.sh"
+          }
+        ]
       },
       {
         "matcher": "Bash",
         "filter": "npm (run )?test",
-        "hooks": [{
-          "type": "command",
-          "command": "./hooks/post-test-hook.sh"
-        }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/post-test-hook.sh"
+          }
+        ]
       },
       {
         "matcher": "Write|Edit",
         "filter": "(auth|security|payment|admin)",
-        "hooks": [{
-          "type": "command",
-          "command": "./hooks/post-security-hook.sh",
-          "blocking": true
-        }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/post-security-hook.sh",
+            "blocking": true
+          }
+        ]
       }
     ],
     "PreToolUse": [
       {
         "matcher": "Bash",
         "filter": "(build|deploy|vercel)",
-        "hooks": [{
-          "type": "command",
-          "command": "./hooks/pre-performance-check.sh"
-        }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/pre-performance-check.sh"
+          }
+        ]
       }
     ],
     "SubagentStop": [
       {
         "matcher": "*",
-        "hooks": [{
-          "type": "command",
-          "command": "./hooks/agent-completion-hook.sh",
-          "args": ["${agent_name}", "${status}", "${result}"]
-        }]
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./hooks/agent-completion-hook.sh",
+            "args": ["${agent_name}", "${status}", "${result}"]
+          }
+        ]
       }
     ]
   }
@@ -234,18 +252,21 @@ delegate_to_subagent() {
 ## 🚀 단계별 구현 계획
 
 ### Phase 1: 즉시 적용 (1일)
+
 1. ✅ 누락된 훅 파일 생성
 2. ✅ 보안 훅 통합
 3. ✅ shared-functions.sh 생성
 4. ✅ settings.local.json 업데이트
 
 ### Phase 2: 테스트 및 검증 (2일)
+
 1. 각 훅의 개별 테스트
 2. 체이닝 시나리오 테스트
 3. 서브에이전트 자동 호출 검증
 4. 성능 측정 및 최적화
 
 ### Phase 3: 고도화 (3일)
+
 1. 훅 실행 메트릭 수집
 2. 머신러닝 기반 자동 트리거
 3. 훅 간 데이터 공유 메커니즘

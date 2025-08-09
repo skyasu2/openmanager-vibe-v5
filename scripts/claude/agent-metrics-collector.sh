@@ -243,7 +243,7 @@ benchmark_agents() {
     local benchmark_data="{}"
     
     for agent in "central-supervisor" "code-review-specialist" "test-automation-specialist" \
-                 "database-administrator" "ai-systems-engineer" "doc-writer-researcher" \
+                 "database-administrator" "ai-systems-engineer" "documentation-manager" \
                  "security-auditor" "ux-performance-optimizer" "debugger-specialist" \
                  "issue-summary" "mcp-server-admin" "gemini-cli-collaborator" \
                  "backend-gcp-specialist"; do

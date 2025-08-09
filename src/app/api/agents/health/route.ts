@@ -14,7 +14,7 @@ export async function GET() {
       'mcp-server-admin',
       'issue-summary',
       'code-review-specialist',
-      'doc-structure-guardian',
+      'documentation-manager',
       'ux-performance-optimizer',
       'gemini-cli-collaborator',
       'test-automation-specialist',

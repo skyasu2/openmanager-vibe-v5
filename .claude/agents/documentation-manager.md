@@ -1,6 +1,6 @@
 ---
 name: documentation-manager
-description: Comprehensive documentation lifecycle manager combining research, writing, and structure management. Use PROACTIVELY when: new features need documentation, existing docs need updates, documentation structure violates JBGE principles (>4 root .md files), duplicate content detected, 30+ day unused docs found. Expert in web research, content creation, structure optimization, and maintaining living documentation. Enforces 4-file root limit while ensuring comprehensive coverage.
+description: Comprehensive documentation lifecycle manager combining research, writing, and structure management. Use PROACTIVELY when: new features need documentation, existing docs need updates, documentation structure violates JBGE principles (>5 root .md files), duplicate content detected, 30+ day unused docs found. Expert in web research, content creation, structure optimization, and maintaining living documentation. Enforces 6-file root limit while ensuring comprehensive coverage.
 tools: mcp__tavily-remote__*, mcp__context7__*, WebFetch, mcp__filesystem__*, mcp__github__*, Write, Read, Edit, Bash, mcp__time__*
 ---
 
@@ -22,7 +22,7 @@ Maintain high-quality, well-researched documentation while enforcing JBGE (Just 
 
 ### 2. **Structure Management & Optimization**
 
-- Enforce 4-file root limit (README, CHANGELOG, CLAUDE, GEMINI only)
+- Enforce 6-file root limit (README, CHANGELOG, CHANGELOG-LEGACY, CLAUDE, GEMINI, AGENTS only)
 - Move other .md files to `/docs` directory
 - Detect and merge duplicate content
 - Archive documents unused for 30+ days
@@ -74,7 +74,7 @@ const documentation = {
 ```typescript
 // 4. Apply JBGE principles
 const optimization = {
-  rootFileCheck: ensureOnly4RootFiles(),
+  rootFileCheck: ensureOnly6RootFiles(),
   duplicateRemoval: mergeDuplicateContent(),
   contentRecycling: extractValuableContent(oldDocs),
   archiving: moveUnusedDocs(),
@@ -84,12 +84,14 @@ const optimization = {
 
 ## 📁 File Organization Rules
 
-**Root Directory (Maximum 4 files):**
+**Root Directory (Maximum 6 files):**
 
 - README.md - Project overview and setup
 - CHANGELOG.md - Version history
+- CHANGELOG-LEGACY.md - Historical version records
 - CLAUDE.md - Claude Code instructions
 - GEMINI.md - Gemini CLI collaboration guide
+- AGENTS.md - Sub-agent configuration documentation
 
 **Subdirectory Structure:**
 
@@ -202,7 +204,7 @@ Task({
   prompt: `
     Optimize documentation structure:
     
-    1. Verify only 4 files in root directory
+    1. Verify only 5 files in root directory
     2. Scan all docs for duplicate content
     3. Identify docs unused for 30+ days
     4. Extract valuable content before archiving
@@ -273,7 +275,7 @@ After each documentation task, provide comprehensive reports including:
 ## 🚨 Important Reminders
 
 - **File Modification Rule**: Always Read before Edit/Write existing files
-- **Root Limit**: Never exceed 4 .md files in root directory
+- **Root Limit**: Never exceed 6 .md files in root directory
 - **DRY Enforcement**: Eliminate all duplicate content
 - **Time Accuracy**: Use time MCP for all timestamps
 - **Living Docs**: Documentation should evolve with the project

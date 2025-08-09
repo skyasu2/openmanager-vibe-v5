@@ -447,7 +447,7 @@ const newFeatureScenario = {
     { agent: 'ux-performance-optimizer', task: 'UI 컴포넌트 개발' },
     { agent: 'test-automation-specialist', task: '테스트 작성' },
     { agent: 'security-auditor', task: '보안 검토' },
-    { agent: 'doc-writer-researcher', task: '문서화' },
+    { agent: 'documentation-manager', task: '문서화' },
   ],
 };
 ```

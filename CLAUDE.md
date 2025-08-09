@@ -55,7 +55,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Package Manager**: npm
 - **언어**: 한국어 우선 (기술 용어는 영어 병기)
 - **Python**: 3.11 (GCP Functions)
-- **Claude Code**: 프로젝트별 독립 설정 사용
+- **Claude Code**: Max 20x 구독 ($200/월), Opus 4.1 모델
+  - **사용량**: 5시간마다 200-800개 프롬프트
+  - **주간 사용량**: Sonnet 4 240-480시간 + Opus 4.1 24-40시간
+  - **프로젝트 설정**: 독립적 설정 사용
 
 ## 📂 프로젝트 구조
 
@@ -109,8 +112,8 @@ git commit -m "fix: 긴급 수정 [skip ci]"   # 완전 CI 스킵 (2-3분)
 2. **파일 크기**: 500줄 권장, 1500줄 초과 시 분리
 3. **코드 재사용**: 기존 코드 검색 후 작성 (`@codebase` 활용)
 4. **커밋**: 매 커밋마다 CHANGELOG.md 업데이트
-5. **문서**: 루트에는 핵심 문서 5개만 유지
-   - README.md, CHANGELOG.md, CHANGELOG-LEGACY.md, CLAUDE.md, GEMINI.md
+5. **문서**: 루트에는 핵심 문서 6개만 유지
+   - README.md, CHANGELOG.md, CHANGELOG-LEGACY.md, CLAUDE.md, GEMINI.md, AGENTS.md
    - 기타 문서는 종류별로 분류: `docs/`, `reports/`
 6. **사고 모드**: "think hard" 항상 활성화
 7. **SOLID 원칙**: 모든 코드에 적용
@@ -449,13 +452,13 @@ const timeInfo = await mcp__time__get_current_time({
 
 ### GCP VM MCP 서버 (클라우드) - Google AI 연동
 
-| 구분               | 설명                                                      |
-| ------------------ | --------------------------------------------------------- |
-| **위치**           | GCP e2-micro VM (104.154.205.25)                         |
-| **포트**           | 10000 (MCP), 10001 (AI API)                              |
-| **용도**           | Google AI API 자연어 질의 처리                            |
-| **관련 서비스**    | AI 백엔드 API, 캐싱 레이어, 스케줄러                      |
-| **환경변수**       | `GCP_MCP_SERVER_URL`, `GCP_AI_BACKEND_URL`               |
+| 구분            | 설명                                       |
+| --------------- | ------------------------------------------ |
+| **위치**        | GCP e2-micro VM (104.154.205.25)           |
+| **포트**        | 10000 (MCP), 10001 (AI API)                |
+| **용도**        | Google AI API 자연어 질의 처리             |
+| **관련 서비스** | AI 백엔드 API, 캐싱 레이어, 스케줄러       |
+| **환경변수**    | `GCP_MCP_SERVER_URL`, `GCP_AI_BACKEND_URL` |
 
 ### MCP 서버 설치 방법 (최신)
 
@@ -544,29 +547,30 @@ claude api restart
 
 복잡한 작업 시 Task 도구로 서브 에이전트 활용:
 
-| 작업 유형         | 추천 Agent                   | 용도                                 |
-| ----------------- | ---------------------------- | ------------------------------------ |
-| 복잡한 작업       | `central-supervisor`         | 마스터 오케스트레이터                |
-| 코드 로직 품질    | `code-review-specialist`     | 함수 복잡도, 버그 패턴, 성능 이슈    |
-| 프로젝트 규칙     | `quality-control-checker`    | CLAUDE.md 준수, 파일 크기, SOLID     |
-| 구조 설계         | `structure-refactor-agent`   | 중복 검출, 모듈 구조, 리팩토링       |
-| 보안 검사         | `security-auditor`           | 포트폴리오 수준 보안 검사            |
-| DB 최적화         | `database-administrator`     | Supabase PostgreSQL 전문 관리        |
-| 성능 개선         | `ux-performance-optimizer`   | Core Web Vitals                      |
-| 테스트            | `test-automation-specialist` | 테스트 작성/수정                     |
-| 개발 환경         | `dev-environment-manager`    | tmux, 테스트 서버, 빌드 관리         |
-| GCP VM 관리       | `gcp-vm-specialist`          | GCP VM 통합 백엔드 (MCP + AI API + 서비스) 관리 |
-| AI 시스템         | `ai-systems-engineer`        | AI 어시스턴트 개발                   |
-| 문서 관리         | `documentation-manager`      | 문서 작성, 구조 관리, JBGE 원칙      |
-| 디버깅            | `debugger-specialist`        | 오류 분석, 근본 원인 파악            |
-| 플랫폼 전문 분석  | `vercel-platform-specialist` | Vercel 아키텍처, 성능 최적화         |
-| MCP 관리          | `mcp-server-admin`           | MCP 에러 감지 및 자동 복구           |
-| Gemini CLI 전문가 | `gemini-cli-collaborator`    | Gemini CLI 대화형 분석, 1M 토큰 활용 |
-| Git/CI/CD         | `git-cicd-specialist`        | Git 워크플로우, CI/CD 자동화         |
+| 작업 유형             | 추천 Agent                   | 용도                                            |
+| --------------------- | ---------------------------- | ----------------------------------------------- |
+| 복잡한 작업           | `central-supervisor`         | 마스터 오케스트레이터                           |
+| 코드 로직 품질        | `code-review-specialist`     | 함수 복잡도, 버그 패턴, 성능 이슈               |
+| 프로젝트 규칙         | `quality-control-checker`    | CLAUDE.md 준수, 파일 크기, SOLID                |
+| 구조 설계             | `structure-refactor-agent`   | 중복 검출, 모듈 구조, 리팩토링                  |
+| 보안 검사             | `security-auditor`           | 포트폴리오 수준 보안 검사                       |
+| DB 최적화             | `database-administrator`     | Supabase PostgreSQL 전문 관리                   |
+| 성능 개선             | `ux-performance-optimizer`   | Core Web Vitals                                 |
+| 테스트                | `test-automation-specialist` | 테스트 작성/수정                                |
+| 개발 환경             | `dev-environment-manager`    | tmux, 테스트 서버, 빌드 관리                    |
+| GCP VM 관리           | `gcp-vm-specialist`          | GCP VM 통합 백엔드 (MCP + AI API + 서비스) 관리 |
+| AI 시스템             | `ai-systems-engineer`        | AI 어시스턴트 개발                              |
+| 문서 관리             | `documentation-manager`      | 문서 작성, 구조 관리, JBGE 원칙                 |
+| 디버깅                | `debugger-specialist`        | 오류 분석, 근본 원인 파악                       |
+| 플랫폼 전문 분석      | `vercel-platform-specialist` | Vercel 아키텍처, 성능 최적화                    |
+| MCP 관리              | `mcp-server-admin`           | MCP 에러 감지 및 자동 복구                      |
+| Gemini 개발 파트너    | `gemini-cli-collaborator`    | 전체 코드 생성/리팩토링, 1M 토큰 활용           |
+| Codex 알고리즘 전문가 | `codex-cli-partner`          | 고급 알고리즘, 성능 최적화, GPT-5               |
+| Git/CI/CD             | `git-cicd-specialist`        | Git 워크플로우, CI/CD 자동화                    |
 
 ### 📁 서브 에이전트 설정 위치
 
-- **프로젝트 로컬 설정**: `.claude/agents/` (17개 에이전트 .md 파일)
+- **프로젝트 로컬 설정**: `.claude/agents/` (18개 에이전트 .md 파일)
 - **MCP 서버 설정**: `~/.claude.json` (CLI로 관리)
 - **매핑 가이드**: `/docs/sub-agents-mcp-mapping-guide.md`
 - **글로벌 설정과의 관계**: 프로젝트별로 독립적으로 관리됨
@@ -574,6 +578,7 @@ claude api restart
 ### 🔍 MCP 서버 vs 서브 에이전트 차이점
 
 #### MCP 서버 (Model Context Protocol)
+
 - **정의**: 외부 도구 및 데이터 소스와 연결하는 프로토콜 서버
 - **관리**: `claude mcp add/remove/list` CLI 명령어로 관리
 - **위치**: `~/.claude.json`에 전역 설정
@@ -581,6 +586,7 @@ claude api restart
 - **역할**: 실제 도구 기능 제공 (파일 읽기, DB 쿼리, 웹 검색 등)
 
 #### 서브 에이전트 (Sub Agents)
+
 - **정의**: 특정 작업을 전문적으로 수행하는 AI 역할 정의
 - **관리**: `.claude/agents/*.md` 파일로 프로젝트별 관리
 - **위치**: 프로젝트 로컬 `.claude/agents/` 디렉토리
@@ -734,58 +740,105 @@ Error: File has not been read yet. Read it first before writing to it
 
 상세 설정: [`/docs/environment-variables-guide.md`](/docs/environment-variables-guide.md)
 
-## 💰 Claude + Gemini 협업 전략
+## 💰 Claude + Gemini + Codex 3-way AI 협업 전략
 
-토큰 사용량 최적화를 위한 Claude Code와 Gemini CLI 역할 분담:
+Claude Code, Gemini CLI, Codex CLI 세 AI 개발 도구의 최적 협업 체계:
 
-| 작업 유형   | Claude Code | Gemini CLI | 활용 방법                       |
-| ----------- | ----------- | ---------- | ------------------------------- |
-| 코드 생성   | ✅ 주력     | 보조       | Claude가 생성, Gemini가 검토    |
-| 대규모 분석 | 보조        | ✅ 주력    | 1M 토큰으로 전체 프로젝트 분석  |
-| 정보 조사   | 기본        | ✅ 확장    | 최신 정보는 Gemini가 보완       |
-| 대화형 작업 | ✅ 주력     | 보조       | 사용자 요청 시 Gemini 직접 대화 |
-| 리팩토링    | 설계        | ✅ 실행    | Claude 설계, Gemini 구현        |
-| 복잡도 분석 | 간단        | ✅ 심화    | Gemini의 대용량 컨텍스트 활용   |
+| 작업 유형     | Claude Code      | Gemini CLI     | Codex CLI        | 최적 활용 전략                             |
+| ------------- | ---------------- | -------------- | ---------------- | ------------------------------------------ |
+| 알고리즘 설계 | 기본 알고리즘    | 대규모 처리    | ✅ 고급 최적화   | 복잡한 알고리즘은 Codex (GPT-5)            |
+| 코드 생성     | ✅ 포커스 작업   | ✅ 대규모 생성 | ✅ 정교한 구현   | 규모에 따라 선택, 복잡도는 Codex           |
+| 리팩토링      | ✅ 부분 수정     | ✅ 전체 재구성 | 성능 최적화      | 전체는 Gemini(1M), 최적화는 Codex          |
+| 성능 최적화   | 기본 개선        | 전체 분석      | ✅ 심층 최적화   | Codex로 O(n²)→O(n log n) 개선              |
+| 시스템 설계   | ✅ 프로젝트 통합 | 대규모 구현    | ✅ 아키텍처 전문 | Codex 설계 → Gemini 구현 → Claude 통합     |
+| 디버깅        | ✅ 특정 이슈     | ✅ 전체 추적   | 복잡한 분석      | 단순은 Claude, 전체는 Gemini, 복잡은 Codex |
+| 테스트 작성   | ✅ 단위 테스트   | ✅ 통합 테스트 | 성능 벤치마크    | 기능별 분담, 성능 테스트는 Codex           |
+| 보안 구현     | 기본 보안        | 전체 감사      | ✅ 암호화 구현   | 암호화/인증은 Codex 전문                   |
+| AI/ML 구현    | 간단한 모델      | 대규모 처리    | ✅ 신경망 설계   | ML 알고리즘은 Codex가 전문                 |
 
-### 🤖 Gemini CLI 활용 방법
+### 🤖 3-way AI 도구 활용 방법
 
-#### 1. 직접 요청 (사용자 주도)
+#### 1. 대규모 개발 작업 (Gemini 주도)
 
 ```bash
-# WSL 터미널에서 직접 실행
+# 전체 시스템 구현
+gemini "Implement complete authentication system with JWT, OAuth, and 2FA"
+
+# 프로젝트 전체 리팩토링
+find . -name "*.ts" | xargs cat | gemini "Convert entire codebase from Redux to Zustand"
+
+# 대규모 마이그레이션
+gemini "Migrate this Next.js 13 app to Next.js 15 with app router"
+```
+
+#### 2. 페어 프로그래밍 (대화형 개발)
+
+```bash
+# 실시간 협업 개발
 gemini  # 대화형 모드 시작
-
-# Claude Code에 요청
-"Gemini CLI로 이 프로젝트 전체를 분석해줘"
+> "Let's build a real-time dashboard together"
+> "Now add WebSocket for live updates"
+> "Implement caching and optimize performance"
 ```
 
-#### 2. 자동 활용 (Claude 판단)
-
-```typescript
-// 대규모 분석이 필요할 때
-Task({
-  subagent_type: 'gemini-cli-collaborator',
-  prompt: 'src 전체 디렉토리의 아키텍처를 분석하고 개선점 도출',
-});
-```
-
-#### 3. 실전 협업 예시
+#### 3. Codex CLI 활용 방법 (고급 알고리즘 전문)
 
 ```bash
-# 1단계: Gemini로 전체 분석 (1M 토큰 활용)
-gemini "analyze entire codebase architecture and suggest improvements"
+# 알고리즘 최적화
+codex "Optimize this sorting algorithm from O(n²) to O(n log n) with cache-friendly design"
 
-# 2단계: Claude로 구체적 구현 (토큰 절약)
-"Gemini가 제안한 서비스 레이어 분리를 구현해줘"
+# 시스템 아키텍처 설계
+codex "Design scalable microservices architecture with CQRS and event sourcing"
 
-# 3단계: Gemini로 결과 검증
-gemini "review the implemented changes for architectural consistency"
+# 성능 분석 및 개선
+cat src/services/*.ts | codex "Analyze performance bottlenecks and implement optimizations"
+
+# 보안 구현
+codex "Implement end-to-end encryption with AES-256-GCM and key management"
 ```
 
-### 📚 Gemini CLI 상세 가이드
+#### 4. Claude + Gemini + Codex 3-way 협업 예시
+
+```bash
+# 복잡한 시스템 구현 (최적 분담)
+# 1단계: Codex로 아키텍처 설계 및 알고리즘 최적화
+codex "Design distributed rate limiting algorithm with sliding window and Redis"
+
+# 2단계: Gemini로 전체 시스템 구현 (1M 토큰 활용)
+gemini "Implement the rate limiting system across all microservices"
+
+# 3단계: Claude로 프로젝트 통합 및 MCP 연동
+"rate limiting을 프로젝트에 통합하고 monitoring 추가해줘"
+
+# 성능 최적화 파이프라인
+# 1. Codex: 알고리즘 분석 및 최적화 전략
+codex "Analyze all O(n²) or worse algorithms and provide optimization strategies"
+
+# 2. Gemini: 전체 코드베이스 리팩토링
+gemini "Refactor entire codebase with the optimizations from Codex"
+
+# 3. Claude: 테스트 및 배포 관리
+"최적화된 코드 테스트하고 배포 준비해줘"
+```
+
+### 💡 AI 도구 선택 가이드
+
+- **Claude Code**: 프로젝트 인식, MCP 서버 연동, 빠른 반복 작업
+- **Gemini CLI**: 1M 토큰 대규모 작업, 전체 프로젝트 리팩토링 (무료)
+- **Codex CLI**: 고급 알고리즘, 성능 최적화, 시스템 설계 (Plus 구독)
+
+### 📚 AI CLI 도구 상세 가이드
+
+#### Gemini CLI
 
 - **설치 및 설정**: `/docs/gemini-cli-wsl-setup-guide.md`
 - **무료 티어**: 1,000회/일, 60회/분 (Gemini 2.5 Pro)
+
+#### Codex CLI
+
+- **설치**: WSL 터미널에서 ChatGPT Plus 구독 후 설치
+- **명령어**: `codex` (WSL 터미널)
+- **엔진**: GPT-5 (2025년 8월 출시, 94.6% AIME 정확도)
 
 ## 📚 추가 문서
 
