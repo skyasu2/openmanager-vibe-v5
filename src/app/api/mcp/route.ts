@@ -21,7 +21,7 @@ interface MCPHandlerExtra {
 }
 
 // 🔍 시스템 상태 확인 함수
-const getSystemStatusHandler = async (_args: MCPHandlerArgs, _extra: MCPHandlerExtra) => {
+const getSystemStatusHandler = async (_args: unknown, _extra: unknown) => {
   const status = {
     environment: process.env.NODE_ENV,
     vercelEnv: process.env.VERCEL_ENV,
@@ -41,7 +41,7 @@ const getSystemStatusHandler = async (_args: MCPHandlerArgs, _extra: MCPHandlerE
 };
 
 // 🔑 환경변수 확인 함수
-const checkEnvConfigHandler = async (_args: MCPHandlerArgs, _extra: MCPHandlerExtra) => {
+const checkEnvConfigHandler = async (_args: unknown, _extra: unknown) => {
   const publicEnvs = Object.keys(process.env)
     .filter((key) => key.startsWith('NEXT_PUBLIC_'))
     .reduce(
@@ -80,7 +80,7 @@ const checkEnvConfigHandler = async (_args: MCPHandlerArgs, _extra: MCPHandlerEx
 };
 
 // 📊 API 헬스 체크 함수
-const checkApiHealthHandler = async (_args: MCPHandlerArgs, _extra: MCPHandlerExtra) => {
+const checkApiHealthHandler = async (_args: unknown, _extra: unknown) => {
   const endpoints = [
     '/api/health',
     '/api/servers',
@@ -130,7 +130,7 @@ const checkApiHealthHandler = async (_args: MCPHandlerArgs, _extra: MCPHandlerEx
 };
 
 // 🧪 테스트 메시지 전송 함수
-const sendTestMessageHandler = async (args: MCPHandlerArgs, _extra: MCPHandlerExtra) => {
+const sendTestMessageHandler = async (args: unknown, _extra: unknown) => {
   const messageSchema = z.object({
     message: z.string().describe('전송할 테스트 메시지'),
     level: z
@@ -155,7 +155,7 @@ const sendTestMessageHandler = async (args: MCPHandlerArgs, _extra: MCPHandlerEx
 };
 
 // 🗄️ 레디스 캐시 상태 확인 함수
-const checkRedisCacheHandler = async (_args: MCPHandlerArgs, _extra: MCPHandlerExtra) => {
+const checkRedisCacheHandler = async (_args: unknown, _extra: unknown) => {
   try {
     const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL;
     const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -211,7 +211,7 @@ const checkRedisCacheHandler = async (_args: MCPHandlerArgs, _extra: MCPHandlerE
 };
 
 // 📊 데이터베이스 연결 확인 함수
-const checkDatabaseHandler = async (_args: MCPHandlerArgs, _extra: MCPHandlerExtra) => {
+const checkDatabaseHandler = async (_args: unknown, _extra: unknown) => {
   try {
     // Supabase 연결 확인
     const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -266,7 +266,7 @@ const handler = createMcpHandler((server: MCPServer) => {
     'get_system_status',
     '현재 시스템 상태를 확인합니다',
     {},
-    getSystemStatusHandler as any
+    getSystemStatusHandler
   );
 
   // 🔑 환경변수 확인 도구
@@ -274,7 +274,7 @@ const handler = createMcpHandler((server: MCPServer) => {
     'check_env_config',
     '환경변수 설정 상태를 확인합니다',
     {},
-    checkEnvConfigHandler as any
+    checkEnvConfigHandler
   );
 
   // 📊 API 헬스 체크 도구
@@ -282,7 +282,7 @@ const handler = createMcpHandler((server: MCPServer) => {
     'check_api_health',
     'API 엔드포인트 상태를 확인합니다',
     {},
-    checkApiHealthHandler as any
+    checkApiHealthHandler
   );
 
   // 🧪 테스트 메시지 전송 도구
@@ -297,7 +297,7 @@ const handler = createMcpHandler((server: MCPServer) => {
         description: '메시지 레벨',
       },
     },
-    sendTestMessageHandler as any
+    sendTestMessageHandler
   );
 
   // 🗄️ 레디스 캐시 상태 확인 도구
@@ -305,7 +305,7 @@ const handler = createMcpHandler((server: MCPServer) => {
     'check_redis_cache',
     'Redis 캐시 서버 상태를 확인합니다',
     {},
-    checkRedisCacheHandler as any
+    checkRedisCacheHandler
   );
 
   // 📊 데이터베이스 연결 확인 도구
@@ -313,7 +313,7 @@ const handler = createMcpHandler((server: MCPServer) => {
     'check_database',
     'Supabase 데이터베이스 연결을 확인합니다',
     {},
-    checkDatabaseHandler as any
+    checkDatabaseHandler
   );
 });
 

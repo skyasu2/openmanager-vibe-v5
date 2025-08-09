@@ -188,7 +188,7 @@ export class RealMCPClient {
           const tools = await toolHandler.getAvailableTools();
           return {
             success: true,
-            result: { tools: (tools.tools || []) as any[], data: {} },
+            result: { tools: (tools.tools || []) as MCPTool[], data: {} },
           };
         }
         if (request.method === 'tools/call' && request.params?.toolName) {

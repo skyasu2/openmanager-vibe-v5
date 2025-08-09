@@ -7,6 +7,63 @@
 import { io, Socket } from 'socket.io-client';
 import axios, { AxiosInstance } from 'axios';
 
+// Type definitions for better type safety
+interface SessionContext {
+  previousQueries?: string[];
+  userPreferences?: Record<string, unknown>;
+  sessionData?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+interface SessionMetadata {
+  timestamp?: string;
+  source?: string;
+  messageId?: string;
+  [key: string]: unknown;
+}
+
+interface AnalysisResult {
+  id: string;
+  status: 'pending' | 'completed' | 'failed';
+  data?: unknown;
+  insights?: unknown[];
+  recommendations?: string[];
+  error?: string;
+  [key: string]: unknown;
+}
+
+interface StreamResult {
+  response?: string;
+  content?: string;
+  sessionId?: string;
+  status: 'completed' | 'partial';
+  metadata?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+interface StreamError {
+  message: string;
+  code?: string;
+  sessionId?: string;
+  details?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+interface HealthStatus {
+  status: 'ok' | 'error' | 'disabled';
+  message?: string;
+  timestamp?: string;
+  services?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+interface JobMetadata {
+  createdAt: Date;
+  userId?: string;
+  priority?: 'low' | 'medium' | 'high';
+  [key: string]: unknown;
+}
+
 interface VMConfig {
   websocketUrl: string;
   apiBaseUrl: string;
@@ -24,10 +81,10 @@ interface AISession {
     role: 'user' | 'assistant' | 'system';
     content: string;
     timestamp: Date;
-    metadata?: Record<string, any>;
+    metadata?: SessionMetadata;
   }>;
   summary: string;
-  context: Record<string, any>;
+  context: SessionContext;
   metadata: {
     createdAt: Date;
     lastActiveAt: Date;
@@ -41,19 +98,19 @@ interface DeepAnalysisJob {
   status: 'pending' | 'running' | 'completed' | 'failed';
   progress: number;
   query: string;
-  context?: Record<string, any>;
-  result?: any;
+  context?: SessionContext;
+  result?: AnalysisResult;
   error?: string;
   createdAt: Date;
   startedAt?: Date;
   completedAt?: Date;
-  metadata: Record<string, any>;
+  metadata: JobMetadata;
 }
 
 interface StreamData {
   type: 'thinking' | 'result' | 'progress' | 'error';
   content: string;
-  metadata?: Record<string, any>;
+  metadata?: SessionMetadata;
   progress?: number;
 }
 
@@ -202,11 +259,11 @@ export class VMBackendConnector {
       this.emit('stream:data', data);
     });
 
-    this.socket.on('ai:stream:complete', (result: any) => {
+    this.socket.on('ai:stream:complete', (result: StreamResult) => {
       this.emit('stream:complete', result);
     });
 
-    this.socket.on('ai:stream:error', (error: any) => {
+    this.socket.on('ai:stream:error', (error: StreamError) => {
       this.emit('stream:error', error);
     });
   }
@@ -239,7 +296,7 @@ export class VMBackendConnector {
   /**
    * 새 세션 생성
    */
-  async createSession(userId: string, initialContext?: Record<string, any>): Promise<AISession | null> {
+  async createSession(userId: string, initialContext?: SessionContext): Promise<AISession | null> {
     if (!this.config.enabled) return null;
 
     try {
@@ -274,7 +331,7 @@ export class VMBackendConnector {
    */
   async addMessage(
     sessionId: string, 
-    message: { role: string; content: string; metadata?: Record<string, any> }
+    message: { role: string; content: string; metadata?: SessionMetadata }
   ): Promise<boolean> {
     if (!this.config.enabled) return false;
 
@@ -312,7 +369,7 @@ export class VMBackendConnector {
   async startDeepAnalysis(
     type: string,
     query: string,
-    context?: Record<string, any>
+    context?: SessionContext
   ): Promise<DeepAnalysisJob | null> {
     if (!this.config.enabled) return null;
 
@@ -347,7 +404,7 @@ export class VMBackendConnector {
   /**
    * 분석 결과 조회
    */
-  async getAnalysisResult(jobId: string): Promise<any> {
+  async getAnalysisResult(jobId: string): Promise<AnalysisResult | null> {
     if (!this.config.enabled) return null;
 
     try {
@@ -369,7 +426,7 @@ export class VMBackendConnector {
   async startAIStream(data: {
     sessionId?: string;
     query: string;
-    context?: Record<string, any>;
+    context?: SessionContext;
   }): Promise<boolean> {
     if (!this.socket?.connected) {
       console.warn('⚠️ WebSocket not connected, attempting to connect...');
@@ -411,7 +468,7 @@ export class VMBackendConnector {
   /**
    * VM 백엔드 상태 확인
    */
-  async getHealthStatus(): Promise<any> {
+  async getHealthStatus(): Promise<HealthStatus> {
     if (!this.config.enabled) {
       return { status: 'disabled', message: 'VM Backend is disabled' };
     }
@@ -452,7 +509,7 @@ export class VMBackendConnector {
   /**
    * 이벤트 발생
    */
-  private emit(event: string, data: any): void {
+  private emit(event: string, data: unknown): void {
     const listeners = this.listeners.get(event);
     if (listeners) {
       listeners.forEach(callback => {

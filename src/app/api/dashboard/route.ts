@@ -23,6 +23,40 @@ import { getErrorMessage } from '@/types/type-utils';
  * - Zod 스키마로 타입 안전성 보장
  */
 
+// 서버 데이터 인터페이스 정의 (any 타입 제거)
+interface SupabaseServer {
+  id: string;
+  name: string;
+  type?: string;
+  status: string;
+  cpu?: number;
+  memory?: number;
+  disk?: number;
+  location?: string;
+  environment?: string;
+  uptime?: string | number;
+  lastUpdate?: string | Date;
+  metrics?: {
+    cpu?: number | { usage: number };
+    memory?: number | { usage: number };
+    disk?: number | { usage: number };
+    network?: { rx: number; tx: number; bytesIn?: number; bytesOut?: number };
+  };
+}
+
+interface MockServer {
+  id: string;
+  name: string;
+  type: string;
+  status: string;
+  cpu: number;
+  memory: number;
+  disk: number;
+  location: string;
+  environment: string;
+  metrics?: unknown;
+}
+
 // GET 핸들러
 const getHandler = createApiRoute()
   .response(DashboardResponseSchema)
@@ -37,7 +71,7 @@ const getHandler = createApiRoute()
 
     // Supabase에서 실제 서버 데이터 가져오기
     const supabase = getSupabaseClient();
-    let serverList: any[] = [];
+    let serverList: SupabaseServer[] = [];
     
     try {
       const { data: servers, error: serversError } = await supabase
@@ -62,7 +96,15 @@ const getHandler = createApiRoute()
           disk: server.disk,
           location: server.location,
           environment: server.environment,
-          metrics: server.metrics,
+          metrics: server.metrics ? {
+            ...server.metrics,
+            network: server.metrics.network ? {
+              rx: server.metrics.network.bytesIn || 0,
+              tx: server.metrics.network.bytesOut || 0,
+              bytesIn: server.metrics.network.bytesIn,
+              bytesOut: server.metrics.network.bytesOut,
+            } : undefined,
+          } : undefined,
         }));
       } else {
         serverList = servers || [];
@@ -84,7 +126,15 @@ const getHandler = createApiRoute()
         disk: server.disk,
         location: server.location,
         environment: server.environment,
-        metrics: server.metrics,
+        metrics: server.metrics ? {
+          ...server.metrics,
+          network: server.metrics.network ? {
+            rx: server.metrics.network.bytesIn || 0,
+            tx: server.metrics.network.bytesOut || 0,
+            bytesIn: server.metrics.network.bytesIn,
+            bytesOut: server.metrics.network.bytesOut,
+          } : undefined,
+        } : undefined,
       }));
     }
 
@@ -101,52 +151,74 @@ const getHandler = createApiRoute()
             : server.status === 'critical'
               ? 'critical'
               : 'warning',
-        cpu: {
-          usage: typeof server.metrics?.cpu === 'object' ? server.metrics.cpu.usage : (server.metrics?.cpu || server.cpu || 0),
-          cores: 1,
-        },
-        memory: {
-          usage: typeof server.metrics?.memory === 'object' ? server.metrics.memory.usage : (server.metrics?.memory || server.memory || 0),
-          total: 1024,
-        },
-        disk: {
-          usage: typeof server.metrics?.disk === 'object' ? server.metrics.disk.usage : (server.metrics?.disk || server.disk || 0),
-          total: 100,
-        },
-        network: {
-          rx: (server.metrics?.network as any)?.rx || (server.metrics?.network as any)?.bytesIn || 0,
-          tx: (server.metrics?.network as any)?.tx || (server.metrics?.network as any)?.bytesOut || 0,
-        },
-        location: server.location,
+        cpu: typeof server.metrics?.cpu === 'object' ? server.metrics.cpu.usage : (server.metrics?.cpu || server.cpu || 0),
+        memory: typeof server.metrics?.memory === 'object' ? server.metrics.memory.usage : (server.metrics?.memory || server.memory || 0),
+        disk: typeof server.metrics?.disk === 'object' ? server.metrics.disk.usage : (server.metrics?.disk || server.disk || 0),
+        location: server.location || 'Unknown',
         environment: server.environment,
-        uptime: typeof server.uptime === 'string' ? parseInt(server.uptime) || 0 : server.uptime,
-        lastUpdate: server.lastUpdate instanceof Date ? server.lastUpdate.toISOString() : server.lastUpdate,
-        tags: [], // tags 프로퍼티가 Server 타입에 없으므로 빈 배열로 설정
-        metrics: server.metrics as any, // 복잡한 metrics 타입 불일치 해결을 위한 캐스팅
+        metrics: {
+          cpu: server.metrics?.cpu,
+          memory: typeof server.metrics?.memory === 'object' && 'usage' in server.metrics.memory
+            ? { 
+                usage: server.metrics.memory.usage,
+                used: 'used' in server.metrics.memory ? (server.metrics.memory as any).used as number : server.metrics.memory.usage,
+                total: 'total' in server.metrics.memory ? (server.metrics.memory as any).total as number : 100
+              }
+            : server.metrics?.memory,
+          disk: typeof server.metrics?.disk === 'object' && 'usage' in server.metrics.disk
+            ? {
+                usage: server.metrics.disk.usage,
+                used: 'used' in server.metrics.disk ? (server.metrics.disk as any).used as number : server.metrics.disk.usage,
+                total: 'total' in server.metrics.disk ? (server.metrics.disk as any).total as number : 100
+              }
+            : server.metrics?.disk,
+          network: server.metrics?.network,
+        },
       };
       serversMap[server.id] = dashboardServer;
     });
 
-    // 통계 계산
-    const stats = calculateServerStats(serverList as any);
+    // 통계 계산 - SupabaseServer를 DatabaseServer 호환 형식으로 변환
+    const statsInput: DatabaseServer[] = serverList.map(server => ({
+      id: server.id,
+      name: server.name,
+      status: server.status,
+      cpu: server.cpu,
+      memory: server.memory,
+      disk: server.disk,
+      metrics: server.metrics ? {
+        cpu: typeof server.metrics.cpu === 'object' ? server.metrics.cpu.usage : server.metrics.cpu,
+        memory: typeof server.metrics.memory === 'object' ? server.metrics.memory.usage : server.metrics.memory,
+        disk: typeof server.metrics.disk === 'object' ? server.metrics.disk.usage : server.metrics.disk,
+        network: server.metrics.network || undefined,
+      } : undefined,
+      type: server.type,
+      location: server.location,
+      environment: server.environment,
+      uptime: typeof server.uptime === 'string' ? parseInt(server.uptime) || 0 : server.uptime,
+      lastUpdate: server.lastUpdate instanceof Date ? server.lastUpdate.toISOString() : server.lastUpdate,
+    }));
+    const stats = calculateServerStats(statsInput);
 
     const response: DashboardResponse = {
       success: true,
       data: {
         servers: serversMap,
         stats,
-        lastUpdate: new Date().toISOString(),
-        dataSource: 'supabase-realtime',
+        recentAlerts: [], // Add required field
+        systemHealth: 'good' as const, // Add required field
+        timestamp: new Date().toISOString(),
       },
+      timestamp: new Date().toISOString(),
       metadata: {
-        responseTime: Date.now() - startTime,
-        serversLoaded: serverList.length,
-        scenarioActive: false, // 실제 시스템에서는 시나리오 없음
+        processingTime: Date.now() - startTime,
+        cacheHit: false,
+        dataSource: 'supabase-realtime',
       },
     };
 
     console.log(
-      `✅ 실시간 대시보드 응답 완료 (${response.metadata?.responseTime || 0}ms)`
+      `✅ 실시간 대시보드 응답 완료 (${response.metadata?.processingTime || 0}ms)`
     );
 
     return response;
@@ -162,48 +234,54 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   try {
     const response = await getHandler(request);
-    const responseData = typeof response === 'object' && 'json' in response ? await response.json() : response;
+    const responseData: DashboardResponse = typeof response === 'object' && 'json' in response ? await response.json() : response;
     
     return NextResponse.json(responseData, {
       status: 200,
       headers: {
         'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
         'X-Data-Source': 'Supabase-Realtime',
-        'X-Response-Time': `${(responseData as any).metadata?.responseTime || 0}ms`,
-        'X-Server-Count': (responseData as any).data?.stats?.total?.toString() || '0',
+        'X-Response-Time': `${responseData.metadata?.processingTime || 0}ms`,
+        'X-Server-Count': responseData.data?.stats?.totalServers?.toString() || '0',
       },
     });
   } catch (error) {
     console.error('❌ 대시보드 API 오류:', error);
 
-    const responseTime = Date.now() - startTime;
+    const processingTime = Date.now() - startTime;
     return NextResponse.json(
       {
         success: false,
         data: {
           servers: {},
           stats: {
-            total: 0,
-            healthy: 0,
-            warning: 0,
-            critical: 0,
+            totalServers: 0,
+            onlineServers: 0,
+            warningServers: 0,
+            criticalServers: 0,
             avgCpu: 0,
             avgMemory: 0,
             avgDisk: 0,
+            totalAlerts: 0,
+            criticalAlerts: 0,
+            responseTime: processingTime,
           },
-          lastUpdate: new Date().toISOString(),
-          dataSource: 'error',
+          recentAlerts: [],
+          systemHealth: 'critical' as const,
+          timestamp: new Date().toISOString(),
         },
+        timestamp: new Date().toISOString(),
         metadata: {
-          responseTime,
-          serversLoaded: 0,
+          processingTime,
+          cacheHit: false,
+          dataSource: 'error',
         },
       },
       {
         status: 500,
         headers: {
           'X-Error': 'Dashboard-Error',
-          'X-Response-Time': `${responseTime}ms`,
+          'X-Response-Time': `${processingTime}ms`,
         },
       }
     );
@@ -237,19 +315,22 @@ interface DatabaseServer {
 function calculateServerStats(servers: DatabaseServer[]): DashboardStats {
   if (servers.length === 0) {
     return {
-      total: 0,
-      healthy: 0,
-      warning: 0,
-      critical: 0,
+      totalServers: 0,
+      onlineServers: 0,
+      warningServers: 0,
+      criticalServers: 0,
       avgCpu: 0,
       avgMemory: 0,
       avgDisk: 0,
+      totalAlerts: 0,
+      criticalAlerts: 0,
+      responseTime: 0,
     };
   }
 
-  const healthy = servers.filter((s) => s.status === 'online').length;
+  const online = servers.filter((s) => s.status === 'online').length;
   const warning = servers.filter((s) => s.status === 'warning').length;
-  const critical = servers.filter((s) => s.status === 'critical').length;
+  const critical = servers.filter((s) => s.status === 'critical' || s.status === 'offline').length;
 
   const totalCpu = servers.reduce((sum, s) => {
     const cpuValue = s.metrics?.cpu ?? s.cpu ?? 0;
@@ -267,13 +348,16 @@ function calculateServerStats(servers: DatabaseServer[]): DashboardStats {
   }, 0);
 
   return {
-    total: servers.length,
-    healthy,
-    warning,
-    critical,
+    totalServers: servers.length,
+    onlineServers: online,
+    warningServers: warning,
+    criticalServers: critical,
     avgCpu: Math.round(totalCpu / servers.length),
     avgMemory: Math.round(totalMemory / servers.length),
     avgDisk: Math.round(totalDisk / servers.length),
+    totalAlerts: warning + critical,
+    criticalAlerts: critical,
+    responseTime: 0,
   };
 }
 

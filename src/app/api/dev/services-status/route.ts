@@ -83,7 +83,7 @@ async function checkMemoryCache(): Promise<ServiceStatus> {
     const testValue = 'test-value';
     
     // 메모리 캐시 시뮬레이션
-    const memoryStore = new Map<string, { value: any; expires: number }>();
+    const memoryStore = new Map<string, { value: unknown; expires: number }>();
     
     // 테스트 데이터 저장
     memoryStore.set(testKey, {

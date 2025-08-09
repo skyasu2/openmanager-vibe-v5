@@ -9,6 +9,7 @@ import { createMiddlewareClient } from '@/lib/supabase-ssr';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export const runtime = 'nodejs';
 
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
     // 2. 미들웨어 클라이언트로 세션 확인
     try {
       const response = NextResponse.next();
-      const middlewareSupabase = createMiddlewareClient(request, response) as any;
+      const middlewareSupabase = createMiddlewareClient(request, response) as SupabaseClient;
       const {
         data: { session },
         error,
@@ -193,7 +194,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const response = NextResponse.next();
-    const middlewareSupabase = createMiddlewareClient(request, response) as any;
+    const middlewareSupabase = createMiddlewareClient(request, response) as SupabaseClient;
 
     // 현재 세션 확인
     const currentSession = await middlewareSupabase.auth.getSession();

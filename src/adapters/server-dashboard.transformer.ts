@@ -77,7 +77,7 @@ export function transformRawToServer(
   return {
     id: raw.id || `server-${index}`,
     name: raw.name || raw.hostname || `서버-${index + 1}`,
-    status: determinedStatus as any, // 통합 기준으로 판별된 상태 사용
+    status: determinedStatus, // 통합 기준으로 판별된 상태 사용
     location: raw.location || raw.region || 'Unknown',
     cpu: Math.round(cpu),
     memory: Math.round(memory),
@@ -90,9 +90,9 @@ export function transformRawToServer(
       { name: 'nginx', status: 'running', port: 80 },
       { name: 'nodejs', status: 'running', port: 3000 },
     ],
-    networkStatus: (raw.networkStatus as any) || 'good',
-    type: (raw.type as any) || 'api_server',
-    environment: (raw.environment as any) || 'production',
+    networkStatus: raw.networkStatus || 'healthy',
+    type: raw.type || 'api_server',
+    environment: raw.environment || 'production',
     provider: raw.provider || 'AWS',
     ip: generateMockIP(raw.id || `server-${index}`),
     os: generateMockOS(raw.type),
@@ -152,7 +152,7 @@ export function transformRawToEnhancedServer(
     },
     os: generateMockOS(raw.type),
     ip: generateMockIP(raw.id || `server-${index}`),
-    networkStatus: (raw.networkStatus as any) || 'good',
+    networkStatus: raw.networkStatus || 'healthy',
   };
 }
 

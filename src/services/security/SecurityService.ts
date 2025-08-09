@@ -26,7 +26,7 @@ interface SecurityEvent {
   userId?: string;
   ip?: string;
   timestamp: Date;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
 }
 
 export class SecurityService {
@@ -291,7 +291,7 @@ export class SecurityService {
   async createSession(userId: string, metadata?: {
     ip?: string;
     userAgent?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   }): Promise<string> {
     try {
       const sessionId = generateSessionId('session');

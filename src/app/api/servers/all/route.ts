@@ -5,6 +5,26 @@ import type { Server } from '@/types/server';
 import { isMockMode, getMockHeaders } from '@/config/mock-config';
 import { getMockServers } from '@/mock';
 
+// Supabase hourly_server_states 테이블 타입 정의 - any 타입 제거
+interface HourlyServerState {
+  server_id: string;
+  server_name: string;
+  hostname: string;
+  server_type?: string;
+  hour_of_day: number;
+  status: string;
+  cpu_usage: number;
+  memory_usage: number;
+  disk_usage: number;
+  network_usage: number;
+  location?: string;
+  environment?: string;
+  uptime?: number;
+  incident_type?: string;
+  incident_severity?: 'critical' | 'medium' | 'low' | null;
+  affected_dependencies?: string[];
+}
+
 // 📊 서버 상태 매핑 함수
 function mapSupabaseStatus(status: string): Server['status'] {
   const statusMap: Record<string, Server['status']> = {
@@ -245,7 +265,7 @@ export async function GET(request: NextRequest) {
       }
       
       // Supabase hourly_server_states 데이터를 Server 타입으로 변환
-      servers = (data || []).map((item: any): Server => ({
+      servers = (data || []).map((item: HourlyServerState): Server => ({
         id: item.server_id,
         name: item.server_name || item.hostname,
         hostname: item.hostname,

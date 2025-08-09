@@ -57,11 +57,18 @@ const getHandler = createApiRoute()
     });
 
     // 통계 계산
+    const onlineCount = servers.filter((s) => s.status === 'online').length;
+    const warningCount = servers.filter((s) => s.status === 'warning').length;
+    const criticalCount = servers.filter((s) => s.status === 'critical' || s.status === 'offline').length;
+    
     const stats = {
       total: servers.length,
-      healthy: servers.filter((s) => s.status === 'online').length,
-      warning: servers.filter((s) => s.status === 'warning').length,
-      critical: servers.filter((s) => s.status === 'critical').length,
+      online: onlineCount,
+      warning: warningCount,
+      offline: criticalCount,
+      // Legacy fields for backward compatibility
+      healthy: onlineCount,
+      critical: criticalCount,
       avgCpu: Math.round(
         servers.reduce((sum, s) => sum + (s.cpu || 0), 0) / servers.length
       ),

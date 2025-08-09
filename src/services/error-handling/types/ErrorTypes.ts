@@ -17,7 +17,7 @@ import type {
 export interface ServiceError extends Error {
   code: string;
   service: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   cause?: Error;
   timestamp?: Date;
   severity?: 'low' | 'medium' | 'high' | 'critical';
@@ -322,34 +322,34 @@ export function createServiceError(
  * 에러 심각도 판단
  */
 export function getErrorSeverity(error: ServiceError): ErrorSeverity {
-  const criticalErrors = [
+  const criticalErrors: string[] = [
     ERROR_CODES.SYSTEM_FAILURE,
     ERROR_CODES.SECURITY_BREACH,
     ERROR_CODES.MEMORY_EXHAUSTED,
     ERROR_CODES.DISK_FULL,
   ];
 
-  const highErrors = [
+  const highErrors: string[] = [
     ERROR_CODES.DATABASE_ERROR,
     ERROR_CODES.AI_AGENT_ERROR,
     ERROR_CODES.EXTERNAL_SERVICE_ERROR,
   ];
 
-  const mediumErrors = [
+  const mediumErrors: string[] = [
     ERROR_CODES.NETWORK_ERROR,
     ERROR_CODES.AUTH_ERROR,
     ERROR_CODES.TIMEOUT_ERROR,
   ];
 
-  if (criticalErrors.includes(error.code as any)) {
+  if (criticalErrors.includes(error.code)) {
     return ErrorSeverity.CRITICAL;
   }
 
-  if (highErrors.includes(error.code as any)) {
+  if (highErrors.includes(error.code)) {
     return ErrorSeverity.HIGH;
   }
 
-  if (mediumErrors.includes(error.code as any)) {
+  if (mediumErrors.includes(error.code)) {
     return ErrorSeverity.MEDIUM;
   }
 

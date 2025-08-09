@@ -66,7 +66,7 @@ describe('/api/servers API Routes', () => {
       const mockSystem = {
         getServers: vi.fn().mockReturnValue(mockServers),
       };
-      vi.mocked(getMockSystem).mockReturnValue(mockSystem as any);
+      vi.mocked(getMockSystem).mockReturnValue(mockSystem as ReturnType<typeof getMockSystem>);
     });
 
     it('모든 서버 목록을 반환해야 함', async () => {
@@ -107,7 +107,7 @@ describe('/api/servers API Routes', () => {
           throw new Error('Mock error');
         }),
       };
-      vi.mocked(getMockSystem).mockReturnValue(mockSystem as any);
+      vi.mocked(getMockSystem).mockReturnValue(mockSystem as ReturnType<typeof getMockSystem>);
 
       const response = await getAllServers();
       const data = await response.json();
@@ -142,7 +142,7 @@ describe('/api/servers API Routes', () => {
           scenario: 'mixed',
         }),
       };
-      vi.mocked(getMockSystem).mockReturnValue(mockSystem as any);
+      vi.mocked(getMockSystem).mockReturnValue(mockSystem as ReturnType<typeof getMockSystem>);
     });
 
     it('ID로 특정 서버를 찾아야 함', async () => {
@@ -269,7 +269,7 @@ describe('/api/servers API Routes', () => {
           throw new Error('Database connection failed');
         }),
       };
-      vi.mocked(getMockSystem).mockReturnValue(mockSystem as any);
+      vi.mocked(getMockSystem).mockReturnValue(mockSystem as ReturnType<typeof getMockSystem>);
 
       const request = new NextRequest('http://localhost:3000/api/servers/web-001');
       const params = Promise.resolve({ id: 'web-001' });

@@ -21,7 +21,7 @@ interface SystemLogEntry {
   timestamp: string;
   sessionId?: string;
   userId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   stackTrace?: string;
 }
 
@@ -183,7 +183,7 @@ export class CloudLoggingService {
     level: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL',
     message: string,
     module: string,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
     sessionId?: string,
     userId?: string,
     stackTrace?: string
@@ -494,7 +494,7 @@ export class CloudLoggingService {
         timestamp: String(log.timestamp),
         sessionId: String(log.session_id),
         userId: String(log.user_id),
-        metadata: log.metadata as Record<string, any> | undefined,
+        metadata: log.metadata as Record<string, unknown> | undefined,
         stackTrace: String(log.stack_trace),
       }));
     } catch (error) {
@@ -555,7 +555,7 @@ export class CloudLoggingService {
   debug(
     message: string,
     module: string,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
     sessionId?: string
   ): Promise<boolean> {
     return this.log('DEBUG', message, module, metadata, sessionId);
@@ -564,7 +564,7 @@ export class CloudLoggingService {
   info(
     message: string,
     module: string,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
     sessionId?: string
   ): Promise<boolean> {
     return this.log('INFO', message, module, metadata, sessionId);
@@ -573,7 +573,7 @@ export class CloudLoggingService {
   warn(
     message: string,
     module: string,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
     sessionId?: string
   ): Promise<boolean> {
     return this.log('WARN', message, module, metadata, sessionId);
@@ -583,7 +583,7 @@ export class CloudLoggingService {
     message: string,
     module: string,
     error?: Error,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
     sessionId?: string
   ): Promise<boolean> {
     return this.log(
@@ -601,7 +601,7 @@ export class CloudLoggingService {
     message: string,
     module: string,
     error?: Error,
-    metadata?: Record<string, any>,
+    metadata?: Record<string, unknown>,
     sessionId?: string
   ): Promise<boolean> {
     return this.log(

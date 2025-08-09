@@ -10,20 +10,29 @@
 import type { ChildProcess } from 'child_process';
 import type { MCPClient, MCPRequest, MCPResponse } from '@/types/mcp';
 
+export interface MCPServerStats {
+  totalRequests: number;
+  successfulRequests: number;
+  failedRequests: number;
+  averageResponseTime: number;
+  lastUsed: number;
+  healthScore: number;
+}
+
 export interface MCPServerConfig {
   name: string;
   command: string;
   args: string[];
   env?: Record<string, string>;
   enabled: boolean;
-  stats?: {
-    totalRequests: number;
-    successfulRequests: number;
-    failedRequests: number;
-    averageResponseTime: number;
-    lastUsed: number;
-    healthScore: number;
-  };
+  stats?: MCPServerStats;
+}
+
+export interface ServerStatusInfo {
+  enabled: boolean;
+  connected: boolean;
+  stats: MCPServerStats | null;
+  lastCheck: string;
 }
 
 export class MCPServerManager {
@@ -257,8 +266,8 @@ export class MCPServerManager {
   /**
    * 📊 서버 상태 조회
    */
-  async getServerStatus(): Promise<Record<string, any>> {
-    const status: Record<string, any> = {};
+  async getServerStatus(): Promise<Record<string, ServerStatusInfo>> {
+    const status: Record<string, ServerStatusInfo> = {};
 
     for (const [name, config] of this.servers.entries()) {
       status[name] = {

@@ -147,7 +147,9 @@ export async function middleware(request: NextRequest) {
       const cookies = Array.from(request.cookies);
       console.log(
         '🍪 미들웨어 쿠키 목록:',
-        cookies.map((c: any) => c.name || c[0])
+        cookies.map((c: [string, string] | { name: string; value: string }) => 
+          Array.isArray(c) ? c[0] : c.name
+        )
       );
 
       // 🔧 OAuth 콜백 직후인지 확인 (세션 안정화 시간 필요)

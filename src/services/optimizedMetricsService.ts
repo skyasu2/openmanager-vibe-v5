@@ -12,6 +12,17 @@
 import { getSupabaseClient } from '@/lib/supabase-singleton';
 import type { ServerMetrics } from '@/types/common';
 
+// Raw database metric interface
+interface RawMetric {
+  timestamp: string;
+  cpu?: number | { usage?: number };
+  memory?: number | { usage?: number };
+  disk?: number | { usage?: number };
+  cpu_usage?: number;
+  memory_usage?: number;
+  disk_usage?: number;
+}
+
 // 메모리 캐시 제거 - Supabase 직접 조회로 성능 최적화
 // Supabase의 내장 캐싱과 인덱스를 활용하여 메모리 사용량 75% 감소
 
@@ -171,7 +182,7 @@ export async function getAggregatedMetrics(
  * 메트릭 데이터 집계 함수
  */
 function aggregateMetricsData(
-  data: any[],
+  data: RawMetric[],
   interval: 'hour' | 'day'
 ): Array<{
   timestamp: string;
@@ -182,7 +193,7 @@ function aggregateMetricsData(
   max_memory: number;
   count: number;
 }> {
-  const groups = new Map<string, any[]>();
+  const groups = new Map<string, RawMetric[]>();
 
   // 시간 간격별로 그룹화
   data.forEach(metric => {
@@ -300,7 +311,8 @@ export async function getMetricsTrend(
     }
 
     const values = data.map(d => {
-      const value = (d as any)[metric];
+      const rawData = d as RawMetric;
+      const value = rawData[metric];
       return typeof value === 'number' ? value : (typeof value === 'object' && value && value.usage ? value.usage : 0);
     }).filter(v => typeof v === 'number');
     const current = values[values.length - 1] || 0;
@@ -317,7 +329,8 @@ export async function getMetricsTrend(
       trend,
       change: Math.round(change * 100) / 100,
       data: data.map(d => {
-        const value = (d as any)[metric];
+        const rawData = d as RawMetric;
+        const value = rawData[metric];
         const numericValue = typeof value === 'number' ? value : (typeof value === 'object' && value && value.usage ? value.usage : 0);
         return {
           timestamp: d.timestamp,

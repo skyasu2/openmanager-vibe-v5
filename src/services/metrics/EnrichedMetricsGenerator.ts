@@ -16,18 +16,30 @@ import type { EnhancedServerMetrics } from '../../types/server';
 interface BaselineData {
   pattern_multiplier?: number;
   response_time_baseline?: number;
-  [key: string]: any;
+  cpu_baseline?: number;
+  memory_baseline?: number;
+  disk_baseline?: number;
+  network_baseline?: number;
+  network_in_baseline?: number;
+  network_out_baseline?: number;
+  performance_multiplier?: number;
 }
 
 interface ScenarioData {
   type?: string;
-  severity?: number;
+  severity?: number | string;
   impact?: number;
-  [key: string]: any;
+  duration?: number;
+  affected_metrics?: string[];
+  recovery_time?: number;
+  pattern?: {
+    id?: string;
+    severity?: string;
+  };
 }
 
 interface BaselineStorage {
-  [key: string]: any;
+  [serverId: string]: BaselineData;
 }
 
 // 10배 풍부한 메트릭 인터페이스
@@ -158,14 +170,22 @@ export class EnrichedMetricsGenerator {
   // private baselineStorage = BaselineStorageService.getInstance(); // BaselineStorageService removed
   private baselineStorage: BaselineStorage | null = null;
   // LongRunningScenarioEngine removed - using direct scenario generation
-  private scenarioEngine: any = null;
+  private scenarioEngine: {
+    type?: string;
+    severity?: number;
+    isActive?: boolean;
+    generateScenario?: (type: string) => ScenarioData;
+    start?: () => Promise<void>;
+    stop?: () => Promise<void>;
+    getActiveScenarios?: () => ScenarioData[];
+  } | null = null;
 
   // 🕐 24시간 연속 운영 (기존 30분 제한 제거)
   private updateInterval: NodeJS.Timeout | null = null;
   private readonly UPDATE_CYCLE_MS = 35 * 1000; // 35초 (기존 방식 유지)
 
   // 📊 베이스라인 기반 생성 (기존 OptimizedDataGenerator 방식 계승)
-  private baselineData: Map<string, any> = new Map();
+  private baselineData: Map<string, BaselineData> = new Map();
   private lastBaselineLoad: Date | null = null;
 
   private constructor() {
@@ -197,7 +217,9 @@ export class EnrichedMetricsGenerator {
     await this.loadBaselineFromStorage();
 
     // 3️⃣ 장기 실행 시나리오 엔진 시작
-    await this.scenarioEngine.start();
+    if (this.scenarioEngine?.start) {
+      await this.scenarioEngine.start();
+    }
 
     // 4️⃣ 24시간 연속 업데이트 시작
     this.startContinuousGeneration();
@@ -220,7 +242,9 @@ export class EnrichedMetricsGenerator {
     }
 
     // 2️⃣ 시나리오 엔진 정지
-    await this.scenarioEngine.stop();
+    if (this.scenarioEngine?.stop) {
+      await this.scenarioEngine.stop();
+    }
 
     // 3️⃣ 현재 베이스라인 저장 (GCP Storage에)
     await this.saveBaselineToStorage();
@@ -301,7 +325,7 @@ export class EnrichedMetricsGenerator {
 
     // 🎯 베이스라인 데이터 활용 (기존 OptimizedDataGenerator 방식)
     const baseline = this.getServerBaseline(server.id, hour);
-    const scenarios = this.scenarioEngine.getActiveScenarios();
+    const scenarios = this.scenarioEngine?.getActiveScenarios?.() || [];
 
     // 🖥️ 시스템 메트릭 (기존 5개 → 25개로 확장)
     const systemMetrics = this.generateSystemMetrics(
@@ -560,7 +584,7 @@ export class EnrichedMetricsGenerator {
   private applyEnrichedMetrics(
     server: EnhancedServerMetrics,
     metrics: EnrichedMetrics
-  ): EnhancedServerMetrics {
+  ): EnhancedServerMetrics & { enriched_metrics?: EnrichedMetrics } {
     return {
       ...server,
       cpu_usage: metrics.system.cpu.usage,
@@ -568,11 +592,11 @@ export class EnrichedMetricsGenerator {
       disk_usage: metrics.system.disk.utilization,
       network_in: metrics.system.network.in_mbps,
       network_out: metrics.system.network.out_mbps,
-      response_time: metrics.application.http.response_time_ms,
+      responseTime: metrics.application.http.response_time_ms,
       last_updated: new Date().toISOString(),
       timestamp: new Date().toISOString(),
       // 강화된 메트릭을 확장 속성으로 추가 (타입 안전)
-      ...(metrics && ({ enriched_metrics: metrics } as any)),
+      enriched_metrics: metrics,
     };
   }
 
@@ -611,7 +635,7 @@ export class EnrichedMetricsGenerator {
       serverCount: this.servers.size,
       lastBaselineLoad: this.lastBaselineLoad?.toISOString(),
       updateCycleMs: this.UPDATE_CYCLE_MS,
-      activeScenarios: this.scenarioEngine.getActiveScenarios().length,
+      activeScenarios: this.scenarioEngine?.getActiveScenarios?.()?.length || 0,
       version: '4.0.0-vm-optimized',
     };
   }

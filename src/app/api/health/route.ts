@@ -13,36 +13,125 @@ import { z } from 'zod';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import { HealthCheckResponseSchema, type HealthCheckResponse } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
+import { getSupabaseClient } from '@/lib/supabase/supabase-client';
+import { getCacheStats } from '@/lib/cache-helper';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// 서비스 상태 체크 함수들 (실제 구현 시 각 서비스 체크 로직 추가)
+// 서비스 상태 체크 함수들 - 실제 구현
 async function checkDatabaseStatus(): Promise<'connected' | 'disconnected' | 'error'> {
   try {
-    // TODO: 실제 데이터베이스 연결 체크
+    const startTime = Date.now();
+    const supabase = getSupabaseClient();
+    
+    // Supabase 연결 체크 - 간단한 쿼리 실행
+    const { data, error } = await supabase
+      .from('servers')
+      .select('id')
+      .limit(1)
+      .single();
+    
+    const latency = Date.now() - startTime;
+    
+    if (error) {
+      console.error('❌ Database check failed:', error.message);
+      return 'error';
+    }
+    
+    console.log(`✅ Database connected (latency: ${latency}ms)`);
     return 'connected';
-  } catch {
+  } catch (error) {
+    console.error('❌ Database check error:', error);
     return 'error';
   }
 }
 
 async function checkCacheStatus(): Promise<'connected' | 'disconnected' | 'error'> {
   try {
-    // TODO: 실제 Redis 연결 체크
-    return 'connected';
-  } catch {
+    // Memory-based 캐시 상태 체크
+    const stats = getCacheStats();
+    
+    if (stats.size >= 0) {
+      console.log(`✅ Cache operational (${stats.size}/${stats.maxSize} items, hit rate: ${stats.hitRate}%)`);
+      return 'connected';
+    }
+    
+    return 'disconnected';
+  } catch (error) {
+    console.error('❌ Cache check error:', error);
     return 'error';
   }
 }
 
 async function checkAIStatus(): Promise<'connected' | 'disconnected' | 'error'> {
   try {
-    // TODO: 실제 AI 서비스 상태 체크
-    return 'connected';
-  } catch {
+    const startTime = Date.now();
+    
+    // GCP VM AI 서비스 상태 체크 (비활성화 상태 체크)
+    const gcpMcpEnabled = process.env.ENABLE_GCP_MCP_INTEGRATION === 'true';
+    
+    if (!gcpMcpEnabled) {
+      // MCP 비활성화 상태에서는 로컬 AI만 체크
+      console.log('✅ AI service operational (local mode)');
+      return 'connected';
+    }
+    
+    // GCP VM 헬스 체크 (활성화된 경우)
+    const vmUrl = process.env.GCP_MCP_SERVER_URL || 'http://104.154.205.25:10000';
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    
+    try {
+      const response = await fetch(`${vmUrl}/health`, {
+        signal: controller.signal,
+        method: 'GET',
+      });
+      
+      clearTimeout(timeoutId);
+      const latency = Date.now() - startTime;
+      
+      if (response.ok) {
+        console.log(`✅ GCP VM AI connected (latency: ${latency}ms)`);
+        return 'connected';
+      }
+      
+      console.warn(`⚠️ GCP VM AI degraded (status: ${response.status})`);
+      return 'disconnected';
+    } catch {
+      clearTimeout(timeoutId);
+      console.warn('⚠️ GCP VM AI disconnected, using local fallback');
+      return 'disconnected';
+    }
+  } catch (error) {
+    console.error('❌ AI check error:', error);
     return 'error';
   }
+}
+
+// 레이턴시 추적을 위한 타입
+interface ServiceCheckResult {
+  status: 'connected' | 'disconnected' | 'error';
+  latency: number;
+}
+
+// 서비스 체크 함수들 수정하여 레이턴시 포함
+async function checkDatabaseWithLatency(): Promise<ServiceCheckResult> {
+  const startTime = Date.now();
+  const status = await checkDatabaseStatus();
+  return { status, latency: Date.now() - startTime };
+}
+
+async function checkCacheWithLatency(): Promise<ServiceCheckResult> {
+  const startTime = Date.now();
+  const status = await checkCacheStatus();
+  return { status, latency: Date.now() - startTime };
+}
+
+async function checkAIWithLatency(): Promise<ServiceCheckResult> {
+  const startTime = Date.now();
+  const status = await checkAIStatus();
+  return { status, latency: Date.now() - startTime };
 }
 
 // 헬스체크 핸들러
@@ -55,23 +144,23 @@ const healthCheckHandler = createApiRoute()
   .build(async (_request, _context): Promise<HealthCheckResponse> => {
     const startTime = Date.now();
 
-    // 병렬로 모든 서비스 상태 체크
-    const [dbStatus, cacheStatus, aiStatus] = await Promise.all([
-      checkDatabaseStatus(),
-      checkCacheStatus(),
-      checkAIStatus(),
+    // 병렬로 모든 서비스 상태 체크 (레이턴시 포함)
+    const [dbResult, cacheResult, aiResult] = await Promise.all([
+      checkDatabaseWithLatency(),
+      checkCacheWithLatency(),
+      checkAIWithLatency(),
     ]);
 
     // 전체 상태 결정
     const allServicesHealthy = 
-      dbStatus === 'connected' && 
-      cacheStatus === 'connected' && 
-      aiStatus === 'connected';
+      dbResult.status === 'connected' && 
+      cacheResult.status === 'connected' && 
+      aiResult.status === 'connected';
 
     const hasErrors = 
-      dbStatus === 'error' || 
-      cacheStatus === 'error' || 
-      aiStatus === 'error';
+      dbResult.status === 'error' || 
+      cacheResult.status === 'error' || 
+      aiResult.status === 'error';
 
     const overallStatus = hasErrors 
       ? 'unhealthy' 
@@ -79,28 +168,28 @@ const healthCheckHandler = createApiRoute()
       ? 'healthy' 
       : 'degraded';
 
-    // 응답 생성
+    // 응답 생성 (실제 측정된 레이턴시 포함)
     const response: HealthCheckResponse = {
       status: overallStatus,
       services: {
         database: {
-          status: dbStatus,
+          status: dbResult.status,
           lastCheck: new Date().toISOString(),
-          latency: 5, // TODO: 실제 레이턴시 측정
+          latency: dbResult.latency,
         },
         cache: {
-          status: cacheStatus,
+          status: cacheResult.status,
           lastCheck: new Date().toISOString(),
-          latency: 2,
+          latency: cacheResult.latency,
         },
         ai: {
-          status: aiStatus,
+          status: aiResult.status,
           lastCheck: new Date().toISOString(),
-          latency: 150,
+          latency: aiResult.latency,
         },
       },
       uptime: process.uptime ? Math.floor(process.uptime()) : 0,
-      version: process.env.APP_VERSION || '5.44.3',
+      version: process.env.APP_VERSION || '5.66.32',
       timestamp: new Date().toISOString(),
     };
 

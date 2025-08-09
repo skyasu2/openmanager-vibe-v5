@@ -21,7 +21,7 @@ interface DashboardConfig {
     position: { x: number; y: number; w: number; h: number };
     title: string;
     enabled: boolean;
-    config: Record<string, any>;
+    config: Record<string, unknown>;
   }>;
   refresh: {
     interval: number; // 초

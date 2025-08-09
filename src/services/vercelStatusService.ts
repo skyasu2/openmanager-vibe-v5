@@ -8,6 +8,14 @@
  * - 리소스 제한 자동 적응
  */
 
+// GlobalThis 확장 인터페이스
+interface GlobalWithCache {
+  scalingConfigCache?: {
+    data: ScalingConfig;
+    expires: number;
+  };
+}
+
 // Vercel 계정 타입 정의
 export type VercelPlan = 'hobby' | 'pro' | 'enterprise';
 
@@ -233,7 +241,7 @@ export class VercelStatusService {
 
     // 메모리에 설정 저장 (임시 저장소 사용)
     if (typeof globalThis !== 'undefined') {
-      (globalThis as any).scalingConfigCache = {
+      (globalThis as typeof globalThis & GlobalWithCache).scalingConfigCache = {
         data: baseConfig,
         expires: Date.now() + 5 * 60 * 1000,
       };

@@ -1,5 +1,6 @@
 // Using mock system for real-time data
 import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter';
+import { IncidentReportService } from '@/services/ai/IncidentReportService';
 /**
  * 🚀 WebSocket Manager v2.0
  *
@@ -8,12 +9,12 @@ import { adaptGCPMetricsToServerInstances } from '@/utils/server-metrics-adapter
  * - 클라이언트별 구독 관리
  * - 자동 재연결 및 상태 모니터링
  * - 압축 기반 효율적 전송
+ * - IncidentReportService 통합 장애 감지
  */
 
-import type { Observable, Subject, BehaviorSubject } from "rxjs";
+import { Observable, Subject, BehaviorSubject, interval } from "rxjs";
+import { throttleTime, debounceTime, distinctUntilChanged, filter, map, takeUntil } from "rxjs/operators";
 import type { Socket } from "socket.io";
-// rxjs operators
-const { interval, throttleTime, debounceTime, distinctUntilChanged, filter, map, takeUntil } = {} as any; // TODO: Install rxjs
 // GCPRealDataService 사용
 // lightweight-anomaly-detector removed - using AnomalyDetectionService instead
 
@@ -37,7 +38,7 @@ interface MetricData {
     bytesIn: number;
     bytesOut: number;
   };
-  [key: string]: any;
+  [key: string]: number | { bytesIn: number; bytesOut: number; } | undefined;
 }
 
 interface AlertData {
@@ -47,15 +48,38 @@ interface AlertData {
   message?: string;
   priority?: string;
   timestamp?: string;
-  anomalies?: any[];
+  anomalies?: Array<{
+    serverId: string;
+    serverName: string;
+    metric_type: string;
+    value: number;
+    severity: string;
+  }>;
   overallScore?: number;
   confidence?: number;
   recommendations?: string[];
-  [key: string]: any;
+  [key: string]: string | number | string[] | Array<{
+    serverId: string;
+    serverName: string;
+    metric_type: string;
+    value: number;
+    severity: string;
+  }> | undefined;
+}
+
+interface ServerMetricData {
+  id: string;
+  name: string;
+  status: string;
+  cpu: number;
+  memory: number;
+  disk: number;
+  network?: number;
+  [key: string]: string | number | undefined;
 }
 
 interface DataGeneratorResponse {
-  data: any[];
+  data: ServerMetricData[];
 }
 
 interface DataGenerator {
@@ -87,6 +111,7 @@ export class WebSocketManager {
   private connectionCount$ = new BehaviorSubject<number>(0);
   private isActive = false;
   private dataGenerator: DataGenerator; // Mock data generator
+  private incidentReportService: IncidentReportService; // 장애 감지 서비스
 
   // 스트림 데이터 소스
   private dataSubject = new Subject<MetricStream>();
@@ -95,6 +120,7 @@ export class WebSocketManager {
   constructor() {
     // Using mock data generator
     this.dataGenerator = { getRealServerMetrics: async () => ({ data: [] }) };
+    this.incidentReportService = new IncidentReportService();
     this._initializeStreams();
     this.startDataGeneration();
   }
@@ -102,7 +128,7 @@ export class WebSocketManager {
   /**
    * 🔌 Socket.IO 서버 초기화
    */
-  _initialize(server: any): void {
+  _initialize(server: import('http').Server | import('https').Server): void {
     this.io = new SocketIOServer(server, {
       cors: {
         origin:
@@ -277,7 +303,7 @@ export class WebSocketManager {
       });
     });
 
-    // 30초마다 이상 탐지 실행
+    // 30초마다 장애 감지 및 보고서 생성
     interval(30000).subscribe(async () => {
       if (!this.isActive || this.clients.size === 0) return;
 
@@ -286,36 +312,78 @@ export class WebSocketManager {
           .getRealServerMetrics()
           .then((response: DataGeneratorResponse) => response.data);
         const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
-        const testMetrics = allServers.slice(0, 10).map(server => ({
-          timestamp: Date.now(),
+        
+        // IncidentReportService를 사용한 장애 분석
+        const serverMetrics = allServers.slice(0, 15).map(server => ({
+          serverId: server.id,
+          serverName: server.name,
           cpu: server.cpu,
           memory: server.memory,
           disk: server.disk,
+          network: server.network || 0,
+          status: server.status,
+          errorRate: Math.random() * 10, // Mock error rate
+          responseTime: 500 + Math.random() * 2500, // Mock response time
         }));
 
-        // Simple anomaly detection replacement (lightweight-anomaly-detector removed)
-        const anomalies = testMetrics.filter(
-          metric => metric.cpu > 90 || metric.memory > 90
-        );
-
-        if (anomalies.length > 0) {
-          const anomalyAlert: MetricStream = {
-            serverId: 'anomaly-detector',
+        // 장애 분석 실행
+        const incidentReport = await this.incidentReportService.analyzeIncident(serverMetrics);
+        
+        // 장애가 감지된 경우 알림 브로드캐스트
+        if (incidentReport.severity !== 'low' && incidentReport.affected.length > 0) {
+          const incidentAlert: MetricStream = {
+            serverId: 'incident-detector',
             data: {
-              anomalies: anomalies.slice(0, 3),
-              overallScore: 0.8,
+              serverId: incidentReport.id,
+              serverName: '장애 감지 시스템',
+              type: 'incident',
+              message: incidentReport.description,
+              priority: incidentReport.severity,
+              timestamp: incidentReport.timestamp,
+              anomalies: incidentReport.affected,
+              overallScore: incidentReport.severity === 'critical' ? 0.95 : 
+                           incidentReport.severity === 'high' ? 0.8 : 0.6,
               confidence: 0.9,
-              recommendations: ['Check high resource usage servers'],
+              recommendations: incidentReport.recommendations,
             },
-            timestamp: new Date().toISOString(),
+            timestamp: incidentReport.timestamp,
             type: 'alert',
-            priority: 'medium',
+            priority: incidentReport.severity as 'low' | 'medium' | 'high' | 'critical',
           };
 
-          this.broadcastToSubscribers('alerts', anomalyAlert);
+          this.broadcastToSubscribers('alerts', incidentAlert);
+          
+          // 중요 장애는 추가 로깅
+          if (incidentReport.severity === 'critical' || incidentReport.severity === 'high') {
+            console.log(`🚨 ${incidentReport.severity.toUpperCase()} 장애 감지:`, {
+              id: incidentReport.id,
+              title: incidentReport.title,
+              affected: incidentReport.affected,
+              impact: incidentReport.impact,
+            });
+          }
+        }
+        
+        // 배치 분석 (여러 그룹의 서버 동시 분석)
+        const batchReports = await this.incidentReportService.analyzeBatch(serverMetrics);
+        
+        // 배치 분석 결과 중 중요 장애만 추가 브로드캐스트
+        for (const report of batchReports) {
+          if (report.severity === 'critical' || report.severity === 'high') {
+            const batchAlert: AlertData = {
+              serverId: report.id,
+              serverName: `배치 분석: ${report.affected.join(', ')}`,
+              type: 'batch_incident',
+              message: report.title || '배치 장애 감지',
+              priority: report.severity,
+              timestamp: report.timestamp,
+            };
+            
+            this.alertSubject.next(batchAlert);
+          }
         }
       } catch (error) {
-        console.error('❌ 이상 탐지 중 오류:', error);
+        console.error('❌ 장애 감지 중 오류:', error);
       }
     });
   }
@@ -475,6 +543,69 @@ export class WebSocketManager {
    */
   broadcast(streamType: string, data: MetricData | AlertData): void {
     this.broadcastToSubscribers(streamType, data);
+  }
+
+  /**
+   * 🚨 수동 장애 분석 실행
+   */
+  async analyzeIncident(serverId?: string): Promise<void> {
+    try {
+      const gcpServerData = await this.dataGenerator
+        .getRealServerMetrics()
+        .then((response: DataGeneratorResponse) => response.data);
+      const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
+      
+      // 특정 서버 또는 전체 서버 메트릭 준비
+      let targetServers = allServers;
+      if (serverId) {
+        targetServers = allServers.filter(s => s.id === serverId);
+      }
+      
+      const serverMetrics = targetServers.map(server => ({
+        serverId: server.id,
+        serverName: server.name,
+        cpu: server.cpu,
+        memory: server.memory,
+        disk: server.disk,
+        network: server.network || 0,
+        status: server.status,
+        errorRate: Math.random() * 10,
+        responseTime: 500 + Math.random() * 2500,
+      }));
+      
+      // 장애 분석 실행
+      const incidentReport = await this.incidentReportService.analyzeIncident(serverMetrics);
+      
+      // 결과를 즉시 브로드캐스트
+      if (incidentReport.affected.length > 0) {
+        const manualAlert: MetricStream = {
+          serverId: 'manual-analysis',
+          data: {
+            serverId: incidentReport.id,
+            serverName: '수동 분석',
+            type: 'manual_incident',
+            message: incidentReport.description,
+            priority: incidentReport.severity,
+            timestamp: incidentReport.timestamp,
+            anomalies: incidentReport.affected,
+            recommendations: incidentReport.recommendations,
+          },
+          timestamp: incidentReport.timestamp,
+          type: 'alert',
+          priority: incidentReport.severity as 'low' | 'medium' | 'high' | 'critical',
+        };
+        
+        this.broadcastToSubscribers('alerts', manualAlert);
+        
+        console.log(`📋 수동 장애 분석 완료:`, {
+          id: incidentReport.id,
+          severity: incidentReport.severity,
+          affected: incidentReport.affected.length,
+        });
+      }
+    } catch (error) {
+      console.error('❌ 수동 장애 분석 실패:', error);
+    }
   }
 
   /**
