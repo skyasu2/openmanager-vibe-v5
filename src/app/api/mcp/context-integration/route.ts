@@ -55,13 +55,13 @@ const postHandler = createApiRoute()
       console.log(`🧠 자연어 처리 컨텍스트 제공: ${nlpType}`);
 
       const nlpContext = await cloudContextLoader.getContextForNLP(
-        query,
+        query || '',
         nlpType
       );
 
       // Transform nlpContext to match expected schema
       responseData.nlpContext = {
-        query,
+        query: query || '',
         processingType: nlpType,
         contextSources: (nlpContext.contextSources || []).map((source: string) => ({
           source,
@@ -83,7 +83,7 @@ const postHandler = createApiRoute()
         case 'mcp': {
           console.log('🔗 MCP 서버 컨텍스트 전용 요청');
           const mcpContext = await cloudContextLoader.queryMCPContextForRAG(
-            query,
+            query || '',
             {
               maxFiles: maxFiles ?? 10,
               includeSystemContext,
@@ -117,7 +117,7 @@ const postHandler = createApiRoute()
 
           // MCP 컨텍스트 조회
           const hybridMcpContext =
-            await cloudContextLoader.queryMCPContextForRAG(query, {
+            await cloudContextLoader.queryMCPContextForRAG(query || '', {
               maxFiles: Math.ceil((maxFiles ?? 10) * 0.7), // 70% MCP
               includeSystemContext,
               pathFilters,

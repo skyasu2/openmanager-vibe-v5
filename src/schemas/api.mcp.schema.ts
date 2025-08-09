@@ -47,14 +47,23 @@ export const MCPQueryResponseSchema = z.object({
 
 export const MCPContextIntegrationRequestSchema = z.object({
   action: z.enum(['sync', 'query', 'update']),
-  data: z.record(z.union([z.string(), z.number(), z.boolean(), z.object({}).passthrough()])),
+  query: z.string().optional(),
+  contextType: z.string().optional(),
+  nlpType: z.enum(['korean', 'english', 'translation', 'generation']).optional(),
+  maxFiles: z.number().min(1).max(100).optional(),
+  includeSystemContext: z.boolean().optional(),
+  pathFilters: z.array(z.string()).optional(),
+  data: z.record(z.union([z.string(), z.number(), z.boolean(), z.object({}).passthrough()])).optional(),
   sessionId: z.string().optional(),
   timestamp: TimestampSchema,
 });
 
 export const MCPContextIntegrationResponseSchema = z.object({
   success: z.boolean(),
-  action: z.enum(['sync', 'query', 'update']),
+  query: z.string().optional(),
+  contextType: z.string().optional(),
+  action: z.enum(['sync', 'query', 'update']).optional(),
+  data: z.any().optional(),
   result: z.record(z.union([z.string(), z.number(), z.boolean(), z.object({}).passthrough()])).optional(),
   message: z.string().optional(),
   timestamp: TimestampSchema,
