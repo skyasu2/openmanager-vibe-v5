@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { performance } from 'perf_hooks';
 import * as os from 'os';
+import * as http from 'http';
 
 // 색상 코드
 const colors = {
@@ -57,6 +58,20 @@ interface SystemResources {
   cpuUsage: number; // percentage
   availableMemory: number; // MB
   totalMemory: number; // MB
+}
+
+interface ServerStatus {
+  running: boolean;
+  pid?: number;
+  port: number;
+  healthStatus?: 'healthy' | 'unhealthy' | 'unknown';
+  uptime: string | null;
+  restartCount: number;
+}
+
+interface SystemStatus {
+  servers: Record<string, ServerStatus>;
+  resources: Record<string, unknown>;
 }
 
 class SmartServerManager {
@@ -316,7 +331,6 @@ class SmartServerManager {
       if (!server.process || !server.process.pid) return;
 
       try {
-        const http = require('http');
         const url = new URL(server.config.healthCheckUrl!);
         
         const options = {
@@ -327,8 +341,9 @@ class SmartServerManager {
           timeout: 5000,
         };
 
-        const req = http.request(options, (res: any) => {
-          if (res.statusCode >= 200 && res.statusCode < 300) {
+        const req = http.request(options, (res: http.IncomingMessage) => {
+          const statusCode = res.statusCode ?? 0;
+          if (statusCode >= 200 && statusCode < 300) {
             server.healthStatus = 'healthy';
             server.lastHealthCheck = Date.now();
             
@@ -337,11 +352,11 @@ class SmartServerManager {
             }
           } else {
             server.healthStatus = 'unhealthy';
-            this.log('warn', `Health check failed: ${name} (status: ${res.statusCode})`);
+            this.log('warn', `Health check failed: ${name} (status: ${statusCode})`);
           }
         });
 
-        req.on('error', (error: any) => {
+        req.on('error', (error: Error) => {
           server.healthStatus = 'unhealthy';
           this.log('error', `Health check error for ${name}: ${error.message}`);
         });
@@ -413,8 +428,8 @@ class SmartServerManager {
   /**
    * 모든 서버 상태 조회
    */
-  public getStatus(): any {
-    const status: any = {
+  public getStatus(): SystemStatus {
+    const status: SystemStatus = {
       servers: {},
       resources: {},
     };

@@ -6,6 +6,25 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { ResilientSupabaseClient } from '@/lib/supabase';
+
+// Type definitions for mock objects
+interface MockFromChain {
+  select: ReturnType<typeof vi.fn>;
+  insert: ReturnType<typeof vi.fn>;
+  update: ReturnType<typeof vi.fn>;
+  delete: ReturnType<typeof vi.fn>;
+  match: ReturnType<typeof vi.fn>;
+}
+
+interface MockChannel {
+  on: ReturnType<typeof vi.fn>;
+  subscribe: ReturnType<typeof vi.fn>;
+}
+
+interface MockSupabaseModule {
+  ResilientSupabaseClient: typeof ResilientSupabaseClient;
+}
 
 // Mock localStorage and sessionStorage
 const mockStorage = new Map<string, string>();
@@ -43,18 +62,16 @@ vi.mock('@supabase/supabase-js', () => ({
 }));
 
 describe('ResilientSupabaseClient', () => {
-  let resilientClient: any;
-  let mockFromChain: any;
-  let mockChannel: any;
-  let ResilientSupabaseClient: any;
+  let resilientClient: ResilientSupabaseClient;
+  let mockFromChain: MockFromChain;
+  let mockChannel: MockChannel;
 
   beforeEach(async () => {
     vi.clearAllMocks();
     mockStorage.clear();
     
     // Import ResilientSupabaseClient using importOriginal to bypass mocks
-    const supabaseModule = await vi.importActual('@/lib/supabase');
-    ResilientSupabaseClient = (supabaseModule as any).ResilientSupabaseClient;
+    const supabaseModule = await vi.importActual('@/lib/supabase') as MockSupabaseModule;
     
     // Mock Supabase query chain
     mockFromChain = {
@@ -75,7 +92,7 @@ describe('ResilientSupabaseClient', () => {
     
     mockSupabaseClient.channel.mockReturnValue(mockChannel);
 
-    resilientClient = new ResilientSupabaseClient();
+    resilientClient = new supabaseModule.ResilientSupabaseClient();
   });
 
   afterEach(() => {
@@ -473,6 +490,7 @@ describe('ResilientSupabaseClient', () => {
     it('should handle undefined window object', async () => {
       // Temporarily remove window
       const originalWindow = global.window;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       delete (global as any).window;
 
       const mockData = [{ id: '1' }];

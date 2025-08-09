@@ -1,0 +1,39 @@
+# Serena Project Configuration
+project_name: openmanager-vibe-v5
+project_root: /mnt/d/cursor/openmanager-vibe-v5
+
+# Exclude large directories from parsing
+exclude_paths:
+  - node_modules
+  - .next
+  - out
+  - build
+  - dist
+  - .git
+  - coverage
+  - test-results
+  - playwright-report
+  - "**/*.log"
+  - "**/.DS_Store"
+
+# Focus on source code
+include_paths:
+  - src
+  - app
+  - pages
+  - components
+  - lib
+  - utils
+  - services
+
+# Language servers configuration
+language_servers:
+  typescript:
+    enabled: true
+    file_extensions:
+      - .ts
+      - .tsx
+      - .js
+      - .jsx
+  python:
+    enabled: false
