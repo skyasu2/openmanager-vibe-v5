@@ -3,6 +3,35 @@ import type { Server } from '@/types/server';
 import type { ServerMetrics } from '@/config/server-status-thresholds';
 import { determineServerStatus } from '@/config/server-status-thresholds';
 
+// 🎯 Enhanced Server 인터페이스 정의 (unknown 타입 대체)
+export interface EnhancedServer {
+  id: string;
+  name: string;
+  hostname: string;
+  status: 'healthy' | 'warning' | 'critical' | 'offline';
+  type: string;
+  environment: string;
+  location: string;
+  provider: string;
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: number;
+  uptime: string;
+  lastUpdate: Date;
+  alerts: number;
+  services: Array<{ name: string; status: string; port: number }>;
+  specs: {
+    cpu_cores: number;
+    memory_gb: number;
+    disk_gb: number;
+    network_speed: string;
+  };
+  os: string;
+  ip: string;
+  networkStatus: string;
+}
+
 // 🎯 상태 매핑 헬퍼 (API → UI 상태 변환)
 export const mapStatus = (
   raw: RawServerData['status']
@@ -22,23 +51,12 @@ export const mapStatus = (
   }
 };
 
-// 🎯 Enhanced 모달용 상태 매핑 (다른 상태 값 사용)
+// 🎯 Enhanced 모달용 상태 매핑 (determineServerStatus 반환값에 맞춤)
 export const mapStatusForModal = (
-  raw: RawServerData['status']
+  status: 'healthy' | 'warning' | 'critical'
 ): 'healthy' | 'warning' | 'critical' | 'offline' => {
-  switch (raw) {
-    case 'running':
-      return 'healthy';
-    case 'warning':
-      return 'warning';
-    case 'error':
-      return 'critical';
-    case 'stopped':
-    case 'maintenance':
-    case 'unknown':
-    default:
-      return 'offline';
-  }
+  // determineServerStatus가 반환하는 상태를 그대로 사용
+  return status;
 };
 
 // 🎯 업타임 변환 (초 → 읽기 쉬운 형식)
@@ -102,40 +120,83 @@ export function transformRawToServer(
   } as Server;
 }
 
-// 🎯 Enhanced 모달용 서버 변환 (완전한 데이터 구조)
-export function transformRawToEnhancedServer(
-  raw: RawServerData,
-  index: number = 0
-): unknown {
+// 🎯 기본 정보 추출 헬퍼 (복잡도 감소)
+function extractBasicInfo(raw: RawServerData, index: number): Pick<EnhancedServer, 'id' | 'name' | 'hostname'> {
+  return {
+    id: raw.id || `server-${index}`,
+    name: raw.name || raw.hostname || `서버-${index + 1}`,
+    hostname: raw.hostname || raw.name || `server-${index}`,
+  };
+}
+
+// 🎯 메트릭 추출 헬퍼 (복잡도 감소)
+function extractMetrics(raw: RawServerData): Pick<EnhancedServer, 'cpu' | 'memory' | 'disk' | 'network'> {
   const cpu = raw.metrics?.cpu ?? raw.cpu ?? 0;
   const memory = raw.metrics?.memory ?? raw.memory ?? 0;
   const disk = raw.metrics?.disk ?? raw.disk ?? 0;
   const network = raw.metrics?.network?.in ?? raw.network ?? 0;
 
+  return {
+    cpu: Math.round(cpu),
+    memory: Math.round(memory),
+    disk: Math.round(disk),
+    network: Math.round(network),
+  };
+}
+
+// 🎯 스펙 정보 추출 헬퍼 (복잡도 감소)
+function extractSpecs(raw: RawServerData): EnhancedServer['specs'] {
+  return {
+    cpu_cores: generateCpuCores(raw.type),
+    memory_gb: generateMemoryGB(raw.type),
+    disk_gb: generateDiskGB(raw.type),
+    network_speed: '1Gbps',
+  };
+}
+
+// 🎯 시스템 정보 추출 헬퍼 (복잡도 감소)
+function extractSystemInfo(raw: RawServerData, index: number): Pick<EnhancedServer, 'os' | 'ip' | 'networkStatus'> {
+  return {
+    os: generateMockOS(raw.type),
+    ip: generateMockIP(raw.id || `server-${index}`),
+    networkStatus: raw.networkStatus || 'healthy',
+  };
+}
+
+// 🎯 Enhanced 모달용 서버 변환 (완전한 데이터 구조) - 함수 분할로 복잡도 감소
+export function transformRawToEnhancedServer(
+  raw: RawServerData,
+  index: number = 0
+): EnhancedServer {
+  // 🔧 기본 정보 추출
+  const basicInfo = extractBasicInfo(raw, index);
+  
+  // 🔧 메트릭 추출
+  const metrics = extractMetrics(raw);
+
   // 🚨 통합 기준으로 서버 상태 판별 (데이터 전처리 단계)
   const serverMetrics: ServerMetrics = {
-    cpu,
-    memory,
-    disk,
+    cpu: metrics.cpu,
+    memory: metrics.memory,
+    disk: metrics.disk,
     responseTime: 0, // RawServerData에 없으므로 기본값
     networkLatency: 0, // RawServerData에 없으므로 기본값
   };
 
   const determinedStatus = determineServerStatus(serverMetrics);
 
+  // 🔧 스펙 및 시스템 정보 추출
+  const specs = extractSpecs(raw);
+  const systemInfo = extractSystemInfo(raw, index);
+
   return {
-    id: raw.id || `server-${index}`,
-    name: raw.name || raw.hostname || `서버-${index + 1}`,
-    hostname: raw.hostname || raw.name || `server-${index}`,
-    status: determinedStatus, // 통합 기준으로 판별된 상태 사용
+    ...basicInfo,
+    status: mapStatusForModal(determinedStatus), // Enhanced용 상태 매핑
     type: raw.type || 'unknown',
     environment: raw.environment || 'production',
     location: raw.location || raw.region || 'Unknown',
     provider: 'AWS', // 기본값
-    cpu: Math.round(cpu),
-    memory: Math.round(memory),
-    disk: Math.round(disk),
-    network: Math.round(network),
+    ...metrics,
     uptime: formatUptime(raw.uptime || 0),
     lastUpdate: new Date(raw.lastUpdate || Date.now()),
     alerts: raw.alerts ?? 0,
@@ -144,15 +205,8 @@ export function transformRawToEnhancedServer(
       { name: 'nodejs', status: 'running', port: 3000 },
       { name: 'redis', status: 'running', port: 6379 },
     ],
-    specs: {
-      cpu_cores: generateCpuCores(raw.type),
-      memory_gb: generateMemoryGB(raw.type),
-      disk_gb: generateDiskGB(raw.type),
-      network_speed: '1Gbps',
-    },
-    os: generateMockOS(raw.type),
-    ip: generateMockIP(raw.id || `server-${index}`),
-    networkStatus: raw.networkStatus || 'healthy',
+    specs,
+    ...systemInfo,
   };
 }
 
@@ -210,11 +264,11 @@ function generateDiskGB(type?: string): number {
   return diskMap[type || 'unknown'] || 100;
 }
 
-// 🎯 배열 변환 함수들 (내부 사용을 위해 export 제거)
+// 🎯 배열 변환 함수들 (타입 안전성 개선)
 function _transformArray(rawData: RawServerData[]): Server[] {
   return rawData.map((raw, index) => transformRawToServer(raw, index));
 }
 
-function _transformArrayForModal(rawData: RawServerData[]): unknown[] {
+function _transformArrayForModal(rawData: RawServerData[]): EnhancedServer[] {
   return rawData.map((raw, index) => transformRawToEnhancedServer(raw, index));
 }

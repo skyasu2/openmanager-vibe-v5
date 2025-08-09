@@ -43,10 +43,15 @@ type ServerStatus = 'online' | 'offline' | 'warning' | 'critical';
 // ============================================================================
 
 /**
- * ServerInstance 유효성 검증
+ * ServerInstance 후보 타입 정의
+ */
+type ServerInstanceCandidate = Partial<ServerInstance>;
+
+/**
+ * ServerInstance 유효성 검증 - ServerInstance 타입 직접 사용
  */
 function _validateServerInstance(
-  instance: unknown
+  instance: ServerInstanceCandidate
 ): instance is ServerInstance {
   if (!instance || typeof instance !== 'object') {
     return false;
@@ -54,39 +59,44 @@ function _validateServerInstance(
 
   const obj = instance as Record<string, unknown>;
 
-  return (
-    typeof obj.id === 'string' &&
-    typeof obj.name === 'string' &&
-    obj.metrics !== null &&
-    typeof obj.metrics === 'object' &&
-    'cpu' in obj.metrics &&
-    'memory' in obj.metrics &&
-    'disk' in obj.metrics &&
-    typeof (obj.metrics as Record<string, unknown>).cpu === 'number' &&
-    typeof (obj.metrics as Record<string, unknown>).memory === 'number' &&
-    typeof (obj.metrics as Record<string, unknown>).disk === 'number'
-  );
-}
-
-/**
- * Server 유효성 검증
- */
-function _validateServer(server: unknown): server is Server {
-  if (!server || typeof server !== 'object') {
+  // 필수 필드 존재 확인
+  if (typeof obj.id !== 'string' || typeof obj.name !== 'string') {
     return false;
   }
 
-  const obj = server as Record<string, unknown>;
-
-  return (
-    typeof obj.id === 'string' &&
-    typeof obj.name === 'string' &&
-    typeof obj.status === 'string' &&
-    ['online', 'offline', 'warning'].includes(obj.status) &&
+  // 메트릭 정보가 있는지 확인 (직접 속성 또는 metrics 객체)
+  const hasDirectMetrics = 
     typeof obj.cpu === 'number' &&
     typeof obj.memory === 'number' &&
-    typeof obj.disk === 'number' &&
-    Array.isArray(obj.services)
+    typeof obj.disk === 'number';
+
+  const hasMetricsObject = 
+    obj.metrics !== null &&
+    typeof obj.metrics === 'object' &&
+    typeof (obj.metrics as Record<string, unknown>).cpu === 'number' &&
+    typeof (obj.metrics as Record<string, unknown>).memory === 'number' &&
+    typeof (obj.metrics as Record<string, unknown>).disk === 'number';
+
+  return hasDirectMetrics || hasMetricsObject;
+}
+
+/**
+ * Server 유효성 검증 - 더 구체적인 타입 사용
+ */
+function _validateServer(serverCandidate: Partial<Server>): serverCandidate is Server {
+  if (!serverCandidate || typeof serverCandidate !== 'object') {
+    return false;
+  }
+
+  return (
+    typeof serverCandidate.id === 'string' &&
+    typeof serverCandidate.name === 'string' &&
+    typeof serverCandidate.status === 'string' &&
+    ['online', 'offline', 'warning'].includes(serverCandidate.status) &&
+    typeof serverCandidate.cpu === 'number' &&
+    typeof serverCandidate.memory === 'number' &&
+    typeof serverCandidate.disk === 'number' &&
+    Array.isArray(serverCandidate.services)
   );
 }
 
@@ -166,7 +176,7 @@ export function transformServerInstanceToServerOptimized(
   const metricsUptime = serverInstance.uptime || 0;
 
   // 🔧 안전한 스펙 접근 - data-generator와 server 타입 호환
-  const safeSpecs = serverInstance.specs as ServerSpecs || {};
+  const safeSpecs = (serverInstance.specs as ServerSpecs) || {};
   const cpuCores =
     'cpu_cores' in safeSpecs
       ? safeSpecs.cpu_cores
