@@ -16,77 +16,71 @@ OpenManager VIBE v5 프로젝트는 세 가지 AI 개발 도구를 전략적으�
 
 ## 🎯 도구별 핵심 역량
 
-### Claude Code (프로젝트 마스터)
+### Claude Code (메인 개발 주도)
 
-- **강점**: 프로젝트 전체 인식, MCP 서버 11개 연동
-- **역할**: 프로젝트 통합, 빠른 반복, 배포 관리
-- **활용**: 일상적인 개발, 버그 수정, 문서 작성
+- **강점**: 프로젝트 전체 인식, MCP 서버 11개 연동, 지속적 컨텍스트 유지
+- **역할**: **모든 개발의 중심**, 프로젝트 통합, 배포 관리
+- **활용**: 일상적인 개발, 버그 수정, 문서 작성, 전체 워크플로우 조율
 
-### Gemini CLI (대규모 처리 전문)
+### Gemini CLI (사용자 요청 시 병렬 처리)
 
-- **강점**: 1M 토큰 컨텍스트, 무료 사용
-- **역할**: 전체 코드베이스 리팩토링, 대규모 마이그레이션
-- **활용**: 프레임워크 업그레이드, 전체 테스트 생성
+- **강점**: 1M 토큰 컨텍스트, 무료 사용, 대규모 데이터 처리
+- **역할**: **사용자 요청 시** 대규모 리팩토링, 병렬 분석
+- **활용**: "Gemini로 전체 코드베이스 분석해줘" 같은 명시적 요청 시
 
-### Codex CLI (알고리즘 전문가)
+### Codex CLI (사용자 요청 시 고급 알고리즘)
 
 - **강점**: GPT-5의 통합 추론 시스템 (94.6% AIME 정확도), 복잡한 문제 해결
-- **역할**: 알고리즘 최적화, 시스템 설계, 보안 구현
-- **활용**: O(n²)→O(n log n) 최적화, 암호화, ML 구현
+- **역할**: **사용자 요청 시** 알고리즘 최적화, 복잡한 설계
+- **활용**: "Codex로 이 알고리즘 최적화해줘" 같은 명시적 요청 시
 
-## 🔄 협업 패턴
+## 🔄 협업 패턴 (사용자 요청 기반)
 
-### 패턴 1: 복잡한 기능 구현
-
-```bash
-# 1. Codex: 알고리즘 설계
-codex "Design distributed caching algorithm with LRU eviction and sharding"
-
-# 2. Gemini: 전체 구현
-gemini "Implement the caching system across all services with the algorithm"
-
-# 3. Claude: 프로젝트 통합
-"캐싱 시스템을 프로젝트에 통합하고 모니터링 추가"
-```
-
-### 패턴 2: 성능 최적화
+### 패턴 1: 사용자 요청 시 병렬 작업
 
 ```bash
-# 1. Codex: 성능 분석
-cat src/**/*.ts | codex "Find all performance bottlenecks and suggest optimizations"
+# Claude Code가 메인으로 개발 진행 중...
+# 사용자: "이 부분 Codex로 알고리즘 최적화하고 Gemini로 전체 분석 동시에 해줘"
 
-# 2. Gemini: 대규모 리팩토링
-gemini "Apply all performance optimizations across the entire codebase"
-
-# 3. Claude: 테스트 및 검증
-"성능 테스트 실행하고 개선 효과 측정"
+# Claude Code가 조율하여 병렬 실행:
+# - Codex: 특정 알고리즘 최적화
+# - Gemini: 전체 코드베이스 영향 분석
+# - Claude: 두 결과 통합 및 적용
 ```
 
-### 패턴 3: 시스템 마이그레이션
+### 패턴 2: 대규모 분석 요청
 
 ```bash
-# 1. Codex: 마이그레이션 전략
-codex "Design migration strategy from REST to GraphQL with minimal downtime"
+# Claude Code가 일반적인 성능 개선 작업 중...
+# 사용자: "Gemini로 전체 코드베이스 성능 분석하고 병목 찾아줘"
 
-# 2. Gemini: 전체 코드 변환
-gemini "Convert all REST endpoints to GraphQL resolvers"
-
-# 3. Claude: 점진적 배포
-"GraphQL 엔드포인트 단계별 배포 및 모니터링"
+# Claude Code가 Gemini 활용:
+gemini "Analyze entire codebase for performance bottlenecks"
+# 결과를 받아서 Claude Code가 직접 수정 작업 진행
 ```
 
-## 📊 작업 분배 매트릭스
+### 패턴 3: 복잡한 문제 해결 요청
 
-| 작업 유형           | 1차 담당 | 2차 지원 | 이유               |
-| ------------------- | -------- | -------- | ------------------ |
-| **알고리즘 설계**   | Codex    | Gemini   | GPT-5의 추론 능력  |
-| **대규모 리팩토링** | Gemini   | Claude   | 1M 토큰 컨텍스트   |
-| **버그 수정**       | Claude   | Codex    | 프로젝트 인식 필요 |
-| **보안 구현**       | Codex    | Claude   | 암호화 전문성      |
-| **테스트 작성**     | Gemini   | Claude   | 전체 커버리지 필요 |
-| **문서 작성**       | Claude   | -        | MCP 문서 도구 활용 |
-| **성능 최적화**     | Codex    | Gemini   | 알고리즘 + 구현    |
-| **배포 관리**       | Claude   | -        | CI/CD 통합         |
+```bash
+# Claude Code가 마이그레이션 작업 중...
+# 사용자: "이 부분은 복잡하니까 Codex로 최적 전략 짜줘"
+
+# Claude Code가 Codex 활용:
+codex "Design optimal migration strategy with minimal downtime"
+# Codex의 전략을 받아서 Claude Code가 구현
+```
+
+## 📊 작업 방식 비교
+
+| 작업 상황                | Claude Code (메인)        | Gemini/Codex (요청 시)     |
+| ----------------------- | ------------------------- | -------------------------- |
+| **일반 개발**           | ✅ 모든 작업 직접 수행     | 사용자 요청 시만 활성화     |
+| **복잡한 알고리즘**     | ✅ 직접 구현 가능         | "Codex로 해줘" 요청 시 활용 |
+| **대규모 분석**         | ✅ 프로젝트 범위 내 처리   | "Gemini로 전체 분석" 요청 시 |
+| **버그 수정**           | ✅ 즉시 해결              | 필요 없음                   |
+| **리팩토링**            | ✅ 점진적 진행            | "Gemini로 전체 리팩토링" 시  |
+| **문서 작성**           | ✅ MCP 도구로 완벽 처리    | 필요 없음                   |
+| **병렬 작업 필요 시**    | ✅ 조율 및 통합 담당       | 사용자 지정 작업 병렬 수행   |
 
 ## 💾 Memory MCP를 통한 지식 공유
 
@@ -128,45 +122,38 @@ await mcp__memory__create_entities({
 
 ## 🚀 실전 시나리오
 
-### 시나리오 1: 실시간 채팅 시스템 구현
+### 시나리오 1: Claude Code 단독 개발 (기본)
 
 ```bash
-# Phase 1: 설계 (Codex)
-codex "Design scalable real-time chat architecture with WebSocket, presence, and message persistence"
+# Claude Code가 처음부터 끝까지 모든 작업 수행
+# - 실시간 채팅 시스템 설계
+# - WebSocket 서버 구현
+# - React 클라이언트 개발
+# - 테스트 작성 및 배포
 
-# Phase 2: 구현 (Gemini)
-gemini "Implement complete chat system: server (Socket.io), client (React), database (PostgreSQL)"
-
-# Phase 3: 통합 (Claude)
-"채팅 시스템을 현재 프로젝트에 통합, 인증 연동, 알림 추가"
-
-# Phase 4: 최적화 (Codex)
-codex "Optimize message delivery algorithm for 10K concurrent users"
-
-# Phase 5: 테스트 (Gemini)
-gemini "Create comprehensive test suite: unit, integration, load tests"
+# 전체 프로젝트를 Claude Code가 완성
 ```
 
-### 시나리오 2: 머신러닝 파이프라인
+### 시나리오 2: 사용자 요청 시 병렬 처리
 
 ```bash
-# Phase 1: ML 알고리즘 (Codex)
-codex "Implement recommendation engine using collaborative filtering with matrix factorization"
+# Claude Code가 ML 파이프라인 개발 중...
+# 사용자: "Codex로 알고리즘 최적화하면서 Gemini로 데이터 파이프라인 분석 동시에"
 
-# Phase 2: 데이터 파이프라인 (Gemini)
-gemini "Build complete data pipeline: ingestion, preprocessing, training, serving"
-
-# Phase 3: API 통합 (Claude)
-"ML 모델을 API로 서빙하고 캐싱, 모니터링 추가"
+# Claude Code가 병렬 조율:
+# - Codex: ML 알고리즘 최적화
+# - Gemini: 데이터 파이프라인 전체 분석
+# - Claude: 두 결과 통합하여 최종 구현
 ```
 
 ## 📈 효율성 지표
 
-### 작업 시간 단축
+### Claude Code 중심 개발의 장점
 
-- **단독 작업 대비**: 60-70% 시간 단축
-- **2-way 협업 대비**: 30-40% 추가 개선
-- **품질 향상**: 버그 50% 감소, 성능 3x 향상
+- **일관성**: 단일 도구로 전체 프로젝트 관리
+- **효율성**: 컨텍스트 스위칭 없음
+- **병렬 처리**: 사용자 요청 시 다른 도구와 병렬 작업으로 2-3x 속도 향상
+- **유연성**: 필요할 때만 다른 도구 활용
 
 ### 비용 효율성
 
@@ -212,17 +199,17 @@ Task({
 
 ### DO ✅
 
-- 각 도구의 강점에 맞게 작업 분배
-- Memory MCP로 분석 결과 공유
-- 복잡한 작업은 단계별 분담
-- 무료 티어 한도 고려하여 계획
+- **Claude Code로 모든 개발 메인 진행**
+- **사용자가 명시적으로 요청할 때만 다른 도구 활용**
+- **병렬 작업이 필요한 경우 사용자에게 제안**
+- **Memory MCP로 협업 시 결과 공유**
 
 ### DON'T ❌
 
-- 단순 작업에 Codex 낭비
-- Claude로 대규모 리팩토링 시도
-- 도구 간 중복 작업
-- Memory MCP 동기화 없이 작업
+- **자동으로 다른 도구에 작업 분배하지 않기**
+- **사용자 요청 없이 Gemini/Codex 호출하지 않기**
+- **단순 작업을 복잡하게 나누지 않기**
+- **Claude Code가 할 수 있는 작업을 굳이 다른 도구에 맡기지 않기**
 
 ## 📚 관련 문서
 
@@ -233,11 +220,11 @@ Task({
 
 ## 🎯 결론
 
-3-way AI 협업 체계는 각 AI 도구의 강점을 최대화하여:
+Claude Code 중심의 유연한 협업 체계:
 
-- **개발 속도**: 70% 향상
-- **코드 품질**: 버그 50% 감소
-- **성능**: 3x 개선
-- **비용**: 최소화 (무료 티어 활용)
+- **메인 개발**: Claude Code가 모든 작업 주도
+- **보조 도구**: 사용자 요청 시 Gemini/Codex 활용
+- **병렬 처리**: 복잡한 작업 시 2-3x 속도 향상
+- **비용 효율**: 필요할 때만 활용하여 비용 최적화
 
 이 체계를 통해 엔터프라이즈급 개발 생산성을 달성할 수 있습니다.

@@ -1,6 +1,6 @@
 ---
 name: codex-cli-partner
-description: ChatGPT Codex CLI AI development partner for advanced algorithm design, code optimization, and high-level system architecture in WSL terminal. Use PROACTIVELY when: user requests Codex CLI, need complex algorithm implementation, require GPT-5's advanced reasoning, want cross-language development, need in-depth code analysis, or when tackling computationally complex problems. Codex CLI excels at sophisticated design patterns and algorithmic solutions with GPT-5's enhanced capabilities. ChatGPT Plus subscription required ($20/month).
+description: ChatGPT Codex CLI auxiliary tool for advanced algorithm optimization when explicitly requested by user. Use ONLY when user says "Codex로" or "use Codex" for specific tasks like complex algorithm design, O(n²) to O(n log n) optimization, or parallel processing alongside Claude Code's main development. NOT for automatic task delegation - Claude Code handles all development by default. Codex CLI assists only upon user request for algorithm optimization or complex problem solving requiring GPT-5's advanced reasoning. ChatGPT Plus subscription required ($20/month).
 tools: Bash, Read, Write, Edit, mcp__memory__*, mcp__filesystem__*
 ---
 
