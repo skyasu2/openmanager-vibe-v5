@@ -115,7 +115,7 @@ export const ErrorReportSchema = z.object({
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   resolvedAt: z.string().datetime().optional(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
 });
 
 export const ErrorReportRequestSchema = z.object({
@@ -124,7 +124,7 @@ export const ErrorReportRequestSchema = z.object({
   severity: z.enum(['low', 'medium', 'high', 'critical']),
   category: z.string().min(1),
   affectedSystems: z.array(z.string()).optional(),
-  metadata: z.record(z.any()).optional(),
+  metadata: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
 });
 
 export const ErrorReportQuerySchema = z.object({

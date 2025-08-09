@@ -47,7 +47,7 @@ export const MCPQueryResponseSchema = z.object({
 
 export const MCPContextIntegrationRequestSchema = z.object({
   action: z.enum(['sync', 'query', 'update']),
-  data: z.record(z.any()),
+  data: z.record(z.union([z.string(), z.number(), z.boolean(), z.object({}).passthrough()])),
   sessionId: z.string().optional(),
   timestamp: TimestampSchema,
 });
@@ -55,7 +55,7 @@ export const MCPContextIntegrationRequestSchema = z.object({
 export const MCPContextIntegrationResponseSchema = z.object({
   success: z.boolean(),
   action: z.enum(['sync', 'query', 'update']),
-  result: z.record(z.any()).optional(),
+  result: z.record(z.union([z.string(), z.number(), z.boolean(), z.object({}).passthrough()])).optional(),
   message: z.string().optional(),
   timestamp: TimestampSchema,
 });
