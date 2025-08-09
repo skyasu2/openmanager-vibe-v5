@@ -12,11 +12,14 @@ import {
   type LegacyServerResponse,
   type EnhancedServerResponse,
   type ServerErrorResponse,
+} from '@/schemas/api.schema';
+// server-details.schema에서 직접 import (올바른 구조를 위해)
+import { 
   type ServerService,
   type ServerSpecs,
   type ServerHistory,
-  type ServerHistoryDataPoint,
-} from '@/schemas/api.schema';
+  type ServerHistoryDataPoint 
+} from '@/schemas/server-schemas/server-details.schema';
 import { getErrorMessage } from '@/types/type-utils';
 
 // Database Server type from Supabase
@@ -444,13 +447,7 @@ function generateServerHistory(server: DatabaseServer, range: string): ServerHis
   const startTime = endTime - timeRangeMs;
   const intervalMs = timeRangeMs / 100; // 100개 데이터 포인트
 
-  const history = {
-    time_range: range,
-    start_time: new Date(startTime).toISOString(),
-    end_time: new Date(endTime).toISOString(),
-    interval_ms: intervalMs,
-    data_points: [] as ServerHistoryDataPoint[],
-  };
+  const data_points: ServerHistoryDataPoint[] = [];
 
   // 히스토리 데이터 포인트 생성
   for (let time = startTime; time <= endTime; time += intervalMs) {
@@ -463,7 +460,7 @@ function generateServerHistory(server: DatabaseServer, range: string): ServerHis
     const baseDisk = server.metrics?.disk ?? server.disk ?? 50;
     const baseNetwork = server.metrics?.network ?? server.network ?? 100;
 
-    history.data_points.push({
+    data_points.push({
       timestamp: new Date(time).toISOString(),
       metrics: {
         cpu_usage: Math.max(
@@ -500,7 +497,14 @@ function generateServerHistory(server: DatabaseServer, range: string): ServerHis
     });
   }
 
-  return history;
+  // ServerHistory 스키마와 일치하는 구조 반환
+  return {
+    time_range: range,
+    start_time: new Date(startTime).toISOString(),
+    end_time: new Date(endTime).toISOString(),
+    interval_ms: intervalMs,
+    data_points,
+  };
 }
 
 /**
