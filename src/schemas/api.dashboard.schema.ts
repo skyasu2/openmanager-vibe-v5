@@ -124,6 +124,67 @@ export const DashboardActionResponseSchema = z.object({
   timestamp: TimestampSchema,
 });
 
+// ===== 최적화된 대시보드 스키마 =====
+
+export const DashboardOptimizedServerSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  status: z.enum(['healthy', 'warning', 'critical', 'online', 'offline']),
+  cpu: z.number().min(0).max(100),
+  memory: z.number().min(0).max(100),
+  disk: z.number().min(0).max(100),
+  network: z.number().min(0).max(1000),
+  type: z.string().optional(),
+  lastUpdate: z.string(),
+  description: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  location: z.string().optional(),
+  environment: z.string().optional(),
+});
+
+export const DashboardOptimizedResponseSchema = z.object({
+  success: z.boolean(),
+  data: z.object({
+    servers: z.record(DashboardOptimizedServerSchema),
+    stats: z.object({
+      total: z.number(),
+      online: z.number(),
+      warning: z.number(),
+      offline: z.number(),
+      healthy: z.number().optional(),
+      critical: z.number().optional(),
+      avgCpu: z.number(),
+      avgMemory: z.number(),
+      avgDisk: z.number(),
+    }),
+    lastUpdate: z.string(),
+    dataSource: z.string(),
+  }),
+  metadata: z.object({
+    responseTime: z.number(),
+    cacheHit: z.boolean(),
+    redisKeys: z.number(),
+    serversLoaded: z.number(),
+    optimizationType: z.string(),
+    performanceGain: z.string(),
+    apiVersion: z.string(),
+    scenario: z.string().optional(),
+  }).optional(),
+});
+
+export const DashboardOptimizedErrorResponseSchema = z.object({
+  success: z.literal(false),
+  error: z.string(),
+  metadata: z.object({
+    responseTime: z.number(),
+    serversLoaded: z.number(),
+  }).optional(),
+});
+
+export type DashboardOptimizedServer = z.infer<typeof DashboardOptimizedServerSchema>;
+export type DashboardOptimizedResponse = z.infer<typeof DashboardOptimizedResponseSchema>;
+export type DashboardOptimizedErrorResponse = z.infer<typeof DashboardOptimizedErrorResponseSchema>;
+
 // ===== 타입 내보내기 =====
 
 export type SystemOverview = z.infer<typeof SystemOverviewSchema>;

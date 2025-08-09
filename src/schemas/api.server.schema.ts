@@ -49,6 +49,54 @@ export const ServerStatusSchema = z.object({
   tags: z.array(z.string()).optional(),
   metadata: z.record(z.unknown()).optional(),
 });
+// ===== 서버 페이지네이션 스키마 =====
+
+export const ServerPaginationQuerySchema = z.object({
+  page: z.number().positive().optional().default(1),
+  limit: z.number().positive().max(100).optional().default(20),
+  sortBy: z.enum(['name', 'status', 'cpu', 'memory', 'lastUpdate']).optional(),
+  sortOrder: z.enum(['asc', 'desc']).optional(),
+  status: z.enum(['online', 'offline', 'warning', 'error', 'maintenance']).optional(),
+  search: z.string().optional(),
+});
+
+export const ServerPaginatedResponseSchema = z.object({
+  success: z.boolean(),
+  data: z.array(ServerStatusSchema),
+  pagination: z.object({
+    page: z.number(),
+    limit: z.number(),
+    total: z.number(),
+    totalPages: z.number(),
+    hasNext: z.boolean(),
+    hasPrev: z.boolean(),
+  }),
+  timestamp: TimestampSchema,
+});
+
+// ===== 서버 배치 작업 스키마 =====
+
+export const ServerBatchRequestSchema = z.object({
+  serverIds: z.array(IdSchema),
+  action: z.enum(['restart', 'stop', 'start', 'update', 'delete']),
+  options: z.record(z.any()).optional(),
+});
+
+export const ServerBatchResponseSchema = z.object({
+  success: z.boolean(),
+  results: z.array(z.object({
+    serverId: IdSchema,
+    success: z.boolean(),
+    message: z.string().optional(),
+    error: z.string().optional(),
+  })),
+  summary: z.object({
+    total: z.number(),
+    succeeded: z.number(),
+    failed: z.number(),
+  }),
+  timestamp: TimestampSchema,
+});
 
 // ===== 타입 내보내기 =====
 

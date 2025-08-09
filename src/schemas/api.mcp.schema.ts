@@ -42,6 +42,58 @@ export const MCPQueryResponseSchema = z.object({
     tokensUsed: z.number().optional(),
   }).optional(),
 });
+// ===== MCP Context Integration 스키마 =====
+
+export const MCPContextIntegrationRequestSchema = z.object({
+  action: z.enum(['sync', 'query', 'update']),
+  data: z.record(z.any()),
+  sessionId: z.string().optional(),
+  timestamp: TimestampSchema,
+});
+
+export const MCPContextIntegrationResponseSchema = z.object({
+  success: z.boolean(),
+  action: z.enum(['sync', 'query', 'update']),
+  result: z.record(z.any()).optional(),
+  message: z.string().optional(),
+  timestamp: TimestampSchema,
+});
+
+export const MCPIntegrationStatusResponseSchema = z.object({
+  status: z.enum(['active', 'inactive', 'error']),
+  connectedServers: z.array(z.string()),
+  lastSync: TimestampSchema.optional(),
+  version: z.string(),
+});
+
+// ===== MCP Sync 스키마 =====
+
+export const MCPSyncRequestSchema = z.object({
+  targetServers: z.array(z.string()).optional(),
+  fullSync: z.boolean().optional(),
+  dataTypes: z.array(z.enum(['context', 'memory', 'cache'])).optional(),
+});
+
+export const MCPSyncResponseSchema = z.object({
+  success: z.boolean(),
+  syncedItems: z.number(),
+  failedItems: z.number(),
+  details: z.array(z.object({
+    server: z.string(),
+    status: z.enum(['success', 'failed', 'skipped']),
+    items: z.number(),
+    error: z.string().optional(),
+  })),
+  timestamp: TimestampSchema,
+});
+
+export const MCPSyncStatusResponseSchema = z.object({
+  isSyncing: z.boolean(),
+  lastSync: TimestampSchema.optional(),
+  nextSync: TimestampSchema.optional(),
+  syncInterval: z.number(),
+  pendingItems: z.number(),
+});
 
 // ===== 타입 내보내기 =====
 
