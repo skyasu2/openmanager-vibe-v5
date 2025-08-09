@@ -117,8 +117,6 @@ async function optimizeMemoryHandler(request: NextRequest) {
         recommendations: generateMemoryRecommendations({
           status: determineMemoryStatus(afterStats.usagePercent),
           current: afterStats,
-          lastOptimization: new Date().toISOString(),
-          totalOptimizations: 1,
         }),
         apiMetrics: {
           responseTime: apiResponseTime,
@@ -203,7 +201,7 @@ function determineMemoryStatus(usagePercent: number): 'optimal' | 'good' | 'acce
 /**
  * 💡 메모리 최적화 권장사항 생성
  */
-function generateMemoryRecommendations(memorySummary: MemorySummary): string[] {
+function generateMemoryRecommendations(memorySummary: any): string[] {
   const recommendations: string[] = [];
   const { current, status } = memorySummary;
 
@@ -222,12 +220,12 @@ function generateMemoryRecommendations(memorySummary: MemorySummary): string[] {
   }
 
   // RSS 메모리가 높은 경우
-  if (current.rss > current.heapTotal * 1.5) {
+  if (current && current.rss && current.heapTotal && current.rss > current.heapTotal * 1.5) {
     recommendations.push('🔧 RSS 메모리 최적화 필요 - 시스템 재시작 고려');
   }
 
   // 외부 메모리가 높은 경우
-  if (current.external > 100) {
+  if (current && current.external && current.external > 100) {
     recommendations.push('🌐 외부 라이브러리 메모리 사용량 점검 필요');
   }
 
