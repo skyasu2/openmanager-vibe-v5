@@ -7,11 +7,15 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 import { safeConsoleError, safeErrorMessage } from '../../lib/utils-functions';
 import type { Server } from '../../types/server';
 import type { Variants } from 'framer-motion';
+import debug from '@/utils/debug';
 
-// framer-motion을 동적 import로 처리
+// framer-motion을 동적 import로 처리 - 프리로드 최적화
 const MotionDiv = dynamic(
   () => import('framer-motion').then((mod) => ({ default: mod.motion.div })),
-  { ssr: false }
+  { 
+    ssr: false,
+    loading: () => <div className="h-full w-full" /> // 빈 컨테이너로 레이아웃 시프트 방지
+  }
 );
 
 interface DashboardStatus {
@@ -77,8 +81,8 @@ export default function DashboardContent({
   mainContentVariants: _mainContentVariants,
   isAgentOpen,
 }: DashboardContentProps) {
-  // 🚀 디버깅을 위한 콘솔 로그 추가
-  console.log('🔍 DashboardContent 렌더링:', {
+  // 🚀 디버깅 로그
+  debug.log('🔍 DashboardContent 렌더링:', {
     showSequentialGeneration,
     serversCount: servers?.length,
     selectedServer: selectedServer?.name,
@@ -87,45 +91,8 @@ export default function DashboardContent({
     timestamp: new Date().toISOString(),
   });
 
-  // 🎯 대시보드 API 통계 데이터 상태
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
-  const [statsLoading, setStatsLoading] = useState(true);
-
-  // 🚀 대시보드 API에서 실제 통계 데이터 가져오기
-  const fetchDashboardStats = async () => {
-    try {
-      setStatsLoading(true);
-      const response = await fetch('/api/dashboard');
-      if (!response.ok) throw new Error('Failed to fetch dashboard stats');
-      
-      const data = await response.json();
-      const stats = data?.data?.stats || {};
-      const serversObject = data?.data?.servers || {};
-      const serversArray = Object.values(serversObject);
-
-      console.log('📊 대시보드 API 통계 데이터:', {
-        stats,
-        serversCount: serversArray.length,
-        timestamp: new Date().toISOString(),
-      });
-
-      // 📊 통계 필드 매핑 수정 (API 응답과 일치)
-      setDashboardStats({
-        total: stats.total || serversArray.length,
-        online: stats.online || stats.healthy || 0,
-        warning: stats.warning || 0,
-        offline: stats.offline || stats.critical || 0,
-        servers: serversArray,
-      });
-    } catch (error) {
-      console.error('❌ 대시보드 통계 가져오기 실패:', error);
-      // 폴백: 기존 서버 데이터 기반 통계
-      const fallbackStats = calculateFallbackStats();
-      setDashboardStats(fallbackStats);
-    } finally {
-      setStatsLoading(false);
-    }
-  };
+  // 🎯 서버 데이터에서 직접 통계 계산 (중복 API 호출 제거)
+  const [statsLoading, setStatsLoading] = useState(false);
 
   // 폴백 통계 계산 (기존 로직)
   const calculateFallbackStats = () => {
@@ -168,29 +135,17 @@ export default function DashboardContent({
     return { ...stats, servers };
   };
 
-  // 대시보드 통계 자동 갱신 (30초 간격)
-  useEffect(() => {
-    fetchDashboardStats();
-    const interval = setInterval(fetchDashboardStats, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // 최종 서버 통계 (대시보드 API 우선, 폴백 있음)
+  // 최종 서버 통계 (서버 데이터에서 직접 계산)
   const serverStats = useMemo(() => {
     if (statsLoading) {
       return { total: 0, online: 0, warning: 0, offline: 0 };
     }
 
-    if (dashboardStats) {
-      console.log('✅ 대시보드 API 통계 사용:', dashboardStats);
-      return dashboardStats;
-    }
-
-    // 폴백: 기존 로직
-    const fallbackStats = calculateFallbackStats();
-    console.log('⚠️ 폴백 통계 사용:', fallbackStats);
-    return fallbackStats;
-  }, [dashboardStats, statsLoading, servers]);
+    // 서버 데이터에서 직접 통계 계산
+    const stats = calculateFallbackStats();
+    debug.log('📊 서버 통계 계산:', stats);
+    return stats;
+  }, [statsLoading, servers]);
 
   // 🚀 에러 상태 추가
   const [renderError, setRenderError] = useState<string | null>(null);
@@ -253,7 +208,7 @@ export default function DashboardContent({
 
   useEffect(() => {
     try {
-      console.log('✅ DashboardContent 마운트됨');
+      debug.log('✅ DashboardContent 마운트됨');
       setRenderError(null);
       // 🎯 상위 컴포넌트에 통계 업데이트 전달
       if (onStatsUpdate && serverStats.total > 0) {
@@ -300,7 +255,7 @@ export default function DashboardContent({
   try {
     // 시퀀셜 생성 모드
     if (showSequentialGeneration) {
-      console.log('🔄 시퀀셜 생성 모드 렌더링');
+      debug.log('🔄 시퀀셜 생성 모드 렌더링');
       return (
         <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-6">
           <div className="mx-auto max-w-7xl">
@@ -324,7 +279,7 @@ export default function DashboardContent({
     }
 
     // 일반 대시보드 모드 - 반응형 그리드 레이아웃
-    console.log('📊 일반 대시보드 모드 렌더링');
+    debug.log('📊 일반 대시보드 모드 렌더링');
     return (
       <MotionDiv
         initial={{ opacity: 0, y: 20 }}
@@ -446,7 +401,7 @@ export default function DashboardContent({
                   servers={servers}
                   onServerClick={(server) => {
                     try {
-                      console.log('🖱️ 서버 클릭:', server);
+                      debug.log('🖱️ 서버 클릭:', server);
                       // 서버 클릭 처리는 부모에서 관리됨
                     } catch (error) {
                       safeConsoleError('서버 클릭 처리 오류:', error);
@@ -454,7 +409,7 @@ export default function DashboardContent({
                   }}
                   showModal={!!selectedServer}
                   onClose={() => {
-                    console.log('🔲 서버 모달 닫기');
+                    debug.log('🔲 서버 모달 닫기');
                   }}
                   onStatsUpdate={onStatsUpdate}
                   selectedServerId={selectedServer?.id}
@@ -473,7 +428,7 @@ export default function DashboardContent({
       </MotionDiv>
     );
   } catch (renderError) {
-    console.error('📱 DashboardContent 렌더링 오류:', renderError);
+    debug.error('📱 DashboardContent 렌더링 오류:', renderError);
     return (
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
         <div className="text-center text-gray-500">

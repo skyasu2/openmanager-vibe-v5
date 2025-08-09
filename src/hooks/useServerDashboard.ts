@@ -11,6 +11,7 @@ import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
 import type { Server, Service } from '@/types/server';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';
+import debug from '@/utils/debug';
 
 // Type interfaces for server data transformation
 interface EnhancedServerData {
@@ -191,7 +192,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
       SHOW_THIRD: Math.ceil(ACTUAL_SERVER_COUNT / 3), // 1/3씩 표시 (3개)
     };
 
-    console.log('🎯 서버 표시 설정:', {
+    debug.log('🎯 서버 표시 설정:', {
       실제_서버_생성_개수: ACTUAL_SERVER_COUNT,
       화면_표시_옵션: DISPLAY_OPTIONS,
       현재_선택: `${pageSize}개씩 페이지네이션`,
@@ -206,7 +207,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const changePageSize = (newSize: number) => {
     setPageSize(newSize);
     setCurrentPage(1); // 페이지 크기 변경 시 첫 페이지로 이동
-    console.log('📊 페이지 크기 변경:', {
+    debug.log('📊 페이지 크기 변경:', {
       이전_크기: pageSize,
       새_크기: newSize,
     });
@@ -227,16 +228,16 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
       let newPageSize: number;
       
       if (width < 640) {
-        newPageSize = 3; // 모바일
+        newPageSize = 6; // 모바일 (적어도 6개)
       } else if (width < 1024) {
-        newPageSize = 6; // 태블릿
+        newPageSize = 9; // 태블릿 (9개)
       } else {
-        newPageSize = 6; // 데스크톱 (기본)
+        newPageSize = 15; // 데스크톱 (15개 모두 표시)
       }
       
       // 현재 페이지 크기와 다르면 업데이트
-      if (newPageSize !== pageSize && pageSize <= 6) {
-        // 사용자가 수동으로 큰 값(9, 12, 15)을 선택한 경우는 유지
+      if (newPageSize !== pageSize && pageSize <= 15) {
+        // 사용자가 수동으로 변경한 경우도 반영
         setPageSize(newPageSize);
       }
     };
@@ -252,17 +253,17 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   useEffect(() => {
     // 데이터가 없을 때 최초 로드
     if (!servers || servers.length === 0) {
-      console.log('📊 서버 데이터 최초 로드');
+      debug.log('📊 서버 데이터 최초 로드');
       fetchServers();
     }
 
     // 자동 갱신 시작 (30-60초 주기)
-    console.log('🔄 서버 데이터 자동 갱신 활성화');
+    debug.log('🔄 서버 데이터 자동 갱신 활성화');
     startAutoRefresh();
 
     // 컴포넌트 언마운트 시 자동 갱신 중지
     return () => {
-      console.log('🛑 서버 데이터 자동 갱신 중지');
+      debug.log('🛑 서버 데이터 자동 갱신 중지');
       stopAutoRefresh();
     };
   }, [fetchServers, startAutoRefresh, stopAutoRefresh]); // servers 의존성 제거로 무한 루프 방지
@@ -353,7 +354,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     const endIndex = startIndex + ITEMS_PER_PAGE;
     const result = actualServers.slice(startIndex, endIndex);
 
-    console.log('📊 페이지네이션 결과:', {
+    debug.log('📊 페이지네이션 결과:', {
       totalServers: actualServers.length,
       itemsPerPage: ITEMS_PER_PAGE,
       currentPage,
@@ -431,7 +432,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
       avgDisk,
     };
 
-    console.log('📊 useServerDashboard 통계:', {
+    debug.log('📊 useServerDashboard 통계:', {
       ...result,
       서버_상태_분포: actualServers.map(s => ({
         이름: s.name || s.id,
@@ -639,7 +640,7 @@ export function useEnhancedServerDashboard({
 
   // 📊 디버깅 로그
   useEffect(() => {
-    console.log('🎯 Enhanced 서버 대시보드 상태:', {
+    debug.log('🎯 Enhanced 서버 대시보드 상태:', {
       전체_서버_수: servers.length,
       필터링된_서버_수: filteredServers.length,
       현재_페이지: currentPage,

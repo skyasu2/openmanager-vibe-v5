@@ -255,11 +255,11 @@ export default function ServerDashboard({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="3">3개 (모바일)</SelectItem>
-                  <SelectItem value="6">6개 (추천)</SelectItem>
-                  <SelectItem value="9">9개</SelectItem>
+                  <SelectItem value="6">6개 (모바일)</SelectItem>
+                  <SelectItem value="9">9개 (태블릿)</SelectItem>
                   <SelectItem value="12">12개</SelectItem>
-                  <SelectItem value="15">15개 (전체)</SelectItem>
+                  <SelectItem value="15">15개 (전체 - 권장)</SelectItem>
+                  <SelectItem value="20">20개 (확장)</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -21,16 +21,58 @@ import type { Server } from '@/types/server';
 import { AlertTriangle } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
+import debug from '@/utils/debug';
 
-// --- Dynamic Imports ---
+// 🎯 타입 변환 헬퍼 함수 - 재사용 가능하도록 분리
+function convertServerToModalData(server: Server) {
+  return {
+    ...server,
+    hostname: server.hostname || server.name,
+    type: server.type || 'server',
+    environment: server.environment || 'production',
+    provider: server.provider || 'Unknown',
+    alerts: Array.isArray(server.alerts) ? server.alerts.length : (server.alerts || 0),
+    services: server.services || [],
+    lastUpdate: server.lastUpdate || new Date(),
+    uptime: typeof server.uptime === 'number' 
+      ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m`
+      : server.uptime || '0h 0m',
+    status: (
+      server.status === 'online' ? 'healthy' : 
+      server.status === 'critical' ? 'critical' :
+      server.status === 'warning' ? 'warning' :
+      server.status === 'offline' ? 'offline' :
+      'healthy'
+    ) as 'healthy' | 'critical' | 'warning' | 'offline',
+    networkStatus: (
+      server.status === 'online' || server.status === 'healthy' ? 'excellent' :
+      server.status === 'warning' ? 'good' :
+      server.status === 'critical' ? 'poor' :
+      'offline'
+    ) as 'excellent' | 'good' | 'poor' | 'offline',
+  };
+}
+
+// --- Dynamic Imports with Preload ---
 const DashboardHeader = dynamic(
-  () => import('../../components/dashboard/DashboardHeader')
+  () => import('../../components/dashboard/DashboardHeader'),
+  { 
+    loading: () => <div className="h-16 bg-white dark:bg-gray-800 animate-pulse" />,
+    ssr: true // SSR 활성화로 초기 로딩 개선
+  }
 );
 const DashboardContent = dynamic(
-  () => import('../../components/dashboard/DashboardContent')
+  () => import('../../components/dashboard/DashboardContent'),
+  { 
+    loading: () => <ContentLoadingSkeleton />,
+    ssr: true // SSR 활성화로 초기 로딩 개선
+  }
 );
 const FloatingSystemControl = dynamic(
-  () => import('../../components/system/FloatingSystemControl')
+  () => import('../../components/system/FloatingSystemControl'),
+  {
+    ssr: false // 클라이언트 전용 컴포넌트
+  }
 );
 // EnhancedServerModal은 AnimatedServerModal로 통합됨
 
@@ -95,33 +137,8 @@ const AnimatedServerModal = dynamic(
       server: Server | null;
       onClose: () => void; 
     }) {
-      // Convert Server to ServerData type
-      const serverData = server ? {
-        ...server,
-        hostname: server.hostname || server.name,
-        type: server.type || 'server',
-        environment: server.environment || 'production',
-        provider: server.provider || 'Unknown',
-        // Fix alerts type: convert array to number if needed
-        alerts: Array.isArray(server.alerts) ? server.alerts.length : (server.alerts || 0),
-        services: server.services || [],
-        lastUpdate: server.lastUpdate || new Date(),
-        // Fix uptime type: convert number to string if needed
-        uptime: typeof server.uptime === 'number' 
-          ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m`
-          : server.uptime || '0h 0m',
-        // Fix status mapping: convert 'online' to 'healthy'
-        status: server.status === 'online' ? 'healthy' as const : 
-                server.status === 'critical' ? 'critical' as const :
-                server.status === 'warning' ? 'warning' as const :
-                server.status === 'offline' ? 'offline' as const :
-                'healthy' as const,
-        // Fix networkStatus to match NetworkStatus type
-        networkStatus: server.status === 'online' || server.status === 'healthy' ? 'excellent' as const :
-                      server.status === 'warning' ? 'good' as const :
-                      server.status === 'critical' ? 'poor' as const :
-                      'offline' as const,
-      } : null;
+      // 🎯 서버 데이터 변환 헬퍼 함수 사용
+      const serverData = server ? convertServerToModalData(server) : null;
       
       return (
         <AnimatePresence>
@@ -186,7 +203,7 @@ class DashboardErrorBoundary extends React.Component<
     return { hasError: true, error };
   }
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('🚨 Dashboard Error:', error, errorInfo);
+    debug.error('🚨 Dashboard Error:', error, errorInfo);
   }
   render() {
     if (this.state.hasError) {
@@ -242,10 +259,10 @@ function DashboardPageContent() {
     warningMinutes: 1, // 1분 전 경고
     onWarning: () => {
       setShowLogoutWarning(true);
-      console.log('⚠️ 자동 로그아웃 경고 표시 - 베르셀 사용량 최적화');
+      debug.log('⚠️ 자동 로그아웃 경고 표시 - 베르셀 사용량 최적화');
     },
     onLogout: () => {
-      console.log('🔒 자동 로그아웃 실행 - 베르셀 사용량 최적화');
+      debug.log('🔒 자동 로그아웃 실행 - 베르셀 사용량 최적화');
       systemInactivityService.pauseSystem();
     },
   });
@@ -261,7 +278,7 @@ function DashboardPageContent() {
     warningMinutes: 5, // 5분 전 경고
     onWarning: (remainingMinutes) => {
       setShowSystemWarning(true);
-      console.log(`⚠️ 시스템 자동 종료 경고: ${remainingMinutes}분 남음`);
+      debug.log(`⚠️ 시스템 자동 종료 경고: ${remainingMinutes}분 남음`);
 
       // 토스트 알림 표시 (CustomEvent 사용)
       const event = new CustomEvent('system-event', {
@@ -277,7 +294,7 @@ function DashboardPageContent() {
       window.dispatchEvent(event);
     },
     onShutdown: () => {
-      console.log('🛑 시스템 자동 종료 완료');
+      debug.log('🛑 시스템 자동 종료 완료');
       setShowSystemWarning(false);
 
       // 종료 알림은 콘솔 로그로만 표시 (info 레벨은 NotificationToast에서 필터링됨)
@@ -298,7 +315,7 @@ function DashboardPageContent() {
 
   // 🚀 대시보드 초기화 - Supabase에서 직접 데이터 로드
   useEffect(() => {
-    console.log('🎯 대시보드 초기화 - Supabase hourly_server_states 테이블 사용');
+    debug.log('🎯 대시보드 초기화 - Supabase hourly_server_states 테이블 사용');
     // Supabase에서 24시간 데이터를 직접 가져오므로 별도 초기화 불필요
   }, []);
 
@@ -320,30 +337,30 @@ function DashboardPageContent() {
     resetTimer();
     setShowLogoutWarning(false);
     systemInactivityService.resumeSystem();
-    console.log('🔄 사용자가 세션을 연장했습니다 - 베르셀 사용량 최적화');
+    debug.log('🔄 사용자가 세션을 연장했습니다 - 베르셀 사용량 최적화');
   }, [resetTimer]);
 
   // 🔒 즉시 로그아웃 처리
   const handleLogoutNow = useCallback(() => {
     forceLogout();
     setShowLogoutWarning(false);
-    console.log('🔒 사용자가 즉시 로그아웃을 선택했습니다');
+    debug.log('🔒 사용자가 즉시 로그아웃을 선택했습니다');
   }, [forceLogout]);
 
   // 🎯 서버 클릭 핸들러 - 실제 데이터와 연동
   const handleServerClick = useCallback(
     (server: Server) => {
       try {
-        console.log('🖱️ 서버 카드 클릭됨:', server?.name || server?.id);
+        debug.log('🖱️ 서버 카드 클릭됨:', server?.name || server?.id);
         if (!server) {
-          console.warn('⚠️ 유효하지 않은 서버 데이터');
+          debug.warn('⚠️ 유효하지 않은 서버 데이터');
           return;
         }
         handleServerSelect(server);
         setSelectedServer(server);
         setIsServerModalOpen(true);
       } catch (error) {
-        console.error('❌ 서버 클릭 처리 중 오류:', error);
+        debug.error('❌ 서버 클릭 처리 중 오류:', error);
       }
     },
     [handleServerSelect]
