@@ -195,6 +195,7 @@ export type DevKeyManagerDefaultResponse = z.infer<typeof DevKeyManagerDefaultRe
 export type DevKeyManagerErrorResponse = z.infer<typeof DevKeyManagerErrorResponseSchema>;
 
 // Error Report Types
+export type ErrorSeverity = z.infer<typeof ErrorReportSchema>['severity']; // 추가: ErrorSeverity 타입
 export type ErrorReport = z.infer<typeof ErrorReportSchema>;
 export type ErrorReportRequest = z.infer<typeof ErrorReportRequestSchema>;
 export type ErrorReportQuery = z.infer<typeof ErrorReportQuerySchema>;

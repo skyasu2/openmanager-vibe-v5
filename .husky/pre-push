@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "🚀 Pre-push 검증 시작..."
+echo "🚀 지능형 Pre-push 검증 시작..."
 
 # Skip if HUSKY is disabled
 if [ "$HUSKY" = "0" ]; then
@@ -8,25 +8,36 @@ if [ "$HUSKY" = "0" ]; then
     exit 0
 fi
 
-# 빠른 검증 실행 (타입 체크 + 초고속 테스트) - 2025 표준
-echo "⚡ 빠른 검증 실행 중..."
-npm run validate:commit
+# 🧠 지능형 Pre-push 엔진 실행
+node scripts/intelligent-pre-push.js
+
+# 폴백: 기본 검사 (Node.js 실행 실패 시)
 if [ $? -ne 0 ]; then
-    echo "❌ 빠른 검증 실패!"
-    echo "💡 옵션: HUSKY=0 git push (강제 푸시)"
+    echo "⚡ 폴백: 기본 Pre-push 검증"
     
-    # 대화형 모드에서만 선택 옵션 제공
-    if [ -t 0 ]; then
-        echo ""
-        echo "그래도 푸시하시겠습니까? (y/N)"
-        read -r response
-        if [ "$response" = "y" ] || [ "$response" = "Y" ]; then
-            exit 0
+    # 기본 빠른 검증
+    echo "⚡ 빠른 검증 실행 중..."
+    npm run validate:fast
+    
+    if [ $? -ne 0 ]; then
+        echo "❌ 빠른 검증 실패!"
+        echo "💡 해결책:"
+        echo "  npm run lint:fix && npm run type-check"
+        echo "  또는 HUSKY=0 git push (강제 푸시)"
+        
+        # 대화형 모드에서만 선택 옵션 제공
+        if [ -t 0 ]; then
+            echo ""
+            echo "그래도 푸시하시겠습니까? (y/N)"
+            read -r response
+            if [ "$response" = "y" ] || [ "$response" = "Y" ]; then
+                exit 0
+            fi
         fi
+        
+        exit 1
     fi
-    
-    exit 1
 fi
 
-echo "✅ Pre-push 검증 통과!"
+echo "✅ Pre-push 검증 완료!"
 echo "🚀 Push를 진행합니다..."

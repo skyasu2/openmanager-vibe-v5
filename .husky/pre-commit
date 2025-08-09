@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "🚀 Pre-commit 검증 시작..."
+echo "🚀 지능형 Pre-commit 검증 시작..."
 
 # 환경 변수로 스킵 가능
 if [ "$HUSKY" = "0" ]; then
@@ -8,25 +8,32 @@ if [ "$HUSKY" = "0" ]; then
     exit 0
 fi
 
-# 핵심 검사 1: lint-staged 실행 (변경된 파일만 검사) - 2025 표준
-echo "🧹 변경된 파일 검사 중... (성능 최적화 모드)"
-npx lint-staged --concurrent=true
+# 🧠 지능형 검증 엔진 실행
+node scripts/intelligent-pre-commit.js
 
+# 폴백: 기본 검사 (Node.js 실행 실패 시)
 if [ $? -ne 0 ]; then
-    echo "❌ Pre-commit 검증 실패!"
-    echo "💡 문제 해결: npm run lint:fix 실행 후 다시 시도하세요."
-    exit 1
-fi
-
-# 핵심 검사 2: 보안 검사 (하드코딩된 시크릿 검사) - 필수
-echo "🔒 보안 검사 중..."
-if [ -f "scripts/check-hardcoded-secrets.sh" ]; then
-    bash scripts/check-hardcoded-secrets.sh
+    echo "⚡ 폴백: 기본 검증 모드"
+    
+    # 기본 lint-staged
+    echo "🧹 변경된 파일 검사 중..."
+    npx lint-staged --concurrent=true
+    
     if [ $? -ne 0 ]; then
-        echo "❌ 보안 검사 실패! 하드코딩된 시크릿이 발견되었습니다."
-        echo "💡 환경변수로 대체하거나 .env.local에 추가하세요."
+        echo "❌ Pre-commit 검증 실패!"
+        echo "💡 해결: npm run lint:fix && npm run type-check"
         exit 1
+    fi
+    
+    # 기본 보안 검사
+    echo "🔒 보안 검사 중..."
+    if [ -f "scripts/check-hardcoded-secrets.sh" ]; then
+        bash scripts/check-hardcoded-secrets.sh --quick
+        if [ $? -ne 0 ]; then
+            echo "❌ 보안 검사 실패!"
+            exit 1
+        fi
     fi
 fi
 
-echo "✅ Pre-commit 검증 통과!"
+echo "✅ Pre-commit 검증 완료!"

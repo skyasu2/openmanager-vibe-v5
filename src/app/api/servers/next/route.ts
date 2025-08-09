@@ -122,7 +122,7 @@ const getHandler = createApiRoute()
       page = 1, 
       limit = 10, 
       sortBy = 'name', 
-      order = 'asc', 
+      sortOrder = 'asc', 
       status 
     } = context.query;
 
@@ -144,21 +144,30 @@ const getHandler = createApiRoute()
     const allServers: PaginatedServer[] = mockServers.map((server) => ({
       id: server.id,
       name: server.name,
-      status:
-        server.status === 'online'
-          ? 'healthy'
-          : server.status === 'critical'
-            ? 'critical'
-            : 'warning',
-      type: server.type || server.role || 'unknown',
-      cpu: Math.round(server.metrics?.cpu ?? server.cpu ?? 0),
-      memory: Math.round(server.metrics?.memory ?? server.memory ?? 0),
-      disk: Math.round(server.metrics?.disk ?? server.disk ?? 0),
-      network: Math.round(server.metrics?.network ?? server.network ?? 0),
-      uptime: typeof server.uptime === 'string' ? server.uptime : (typeof server.uptime === 'number' ? _formatUptime(server.uptime) : '0d 0h 0m'),
-      lastUpdate: server.lastUpdate instanceof Date ? server.lastUpdate.toISOString() : (server.lastUpdate || new Date().toISOString()),
+      status: server.status || 'offline',
       location: server.location || 'Unknown',
-      environment: server.environment || 'production',
+      uptime: typeof server.uptime === 'number' ? server.uptime : 0,
+      lastUpdate: server.lastUpdate instanceof Date ? server.lastUpdate.toISOString() : (server.lastUpdate || new Date().toISOString()),
+      metrics: {
+        cpu: Math.round(server.metrics?.cpu ?? server.cpu ?? 0),
+        memory: Math.round(server.metrics?.memory ?? server.memory ?? 0),
+        disk: Math.round(server.metrics?.disk ?? server.disk ?? 0),
+        network: {
+          bytesIn: Math.round(server.metrics?.network ?? server.network ?? 0),
+          bytesOut: Math.round(server.metrics?.network ?? server.network ?? 0),
+          packetsIn: 0,
+          packetsOut: 0,
+          latency: 0,
+          connections: 0,
+        },
+        processes: 50,
+        loadAverage: [0.5, 0.3, 0.2] as [number, number, number],
+      },
+      tags: [],
+      metadata: {
+        type: server.type || server.role || 'unknown',
+        environment: server.environment || 'production',
+      },
     }));
 
     // 상태 필터링
@@ -173,13 +182,13 @@ const getHandler = createApiRoute()
       const bValue = b[sortBy as keyof PaginatedServer];
 
       if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return order === 'asc'
+        return sortOrder === 'asc'
           ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue);
       }
 
       if (typeof aValue === 'number' && typeof bValue === 'number') {
-        return order === 'asc' ? aValue - bValue : bValue - aValue;
+        return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
       }
 
       return 0;
@@ -196,29 +205,14 @@ const getHandler = createApiRoute()
 
     return {
       success: true,
-      data: {
-        servers: paginatedServers,
-        pagination: {
-          currentPage: page,
-          totalPages,
-          totalItems: filteredServers.length,
-          itemsPerPage: limit,
-          hasNext,
-          hasPrev,
-          nextPage: hasNext ? page + 1 : null,
-          prevPage: hasPrev ? page - 1 : null,
-        },
-        filters: {
-          status: status || null,
-          sortBy,
-          order,
-        },
-        summary: {
-          total: filteredServers.length,
-          healthy: filteredServers.filter((s) => s.status === 'healthy').length,
-          warning: filteredServers.filter((s) => s.status === 'warning').length,
-          critical: filteredServers.filter((s) => s.status === 'critical').length,
-        },
+      data: paginatedServers,
+      pagination: {
+        page,
+        limit,
+        total: filteredServers.length,
+        totalPages,
+        hasNext,
+        hasPrev,
       },
       timestamp: new Date().toISOString(),
     };
@@ -259,42 +253,64 @@ const postHandler = createApiRoute()
       case 'batch-restart':
         return {
           success: true,
-          message: `${serverIds.length}개 서버 재시작이 시작되었습니다`,
-          serverIds,
-          estimatedDuration: serverIds.length * 2, // minutes
+          results: serverIds.map((id) => ({
+            serverId: id,
+            success: true,
+            message: '서버 재시작이 시작되었습니다',
+          })),
+          summary: {
+            total: serverIds.length,
+            succeeded: serverIds.length,
+            failed: 0,
+          },
           timestamp: new Date().toISOString(),
         };
 
       case 'batch-update':
         return {
           success: true,
-          message: `${serverIds.length}개 서버 업데이트가 시작되었습니다`,
-          serverIds,
-          estimatedDuration: serverIds.length * 5, // minutes
+          results: serverIds.map((id) => ({
+            serverId: id,
+            success: true,
+            message: '서버 업데이트가 시작되었습니다',
+          })),
+          summary: {
+            total: serverIds.length,
+            succeeded: serverIds.length,
+            failed: 0,
+          },
           timestamp: new Date().toISOString(),
         };
 
       case 'batch-configure':
         return {
           success: true,
-          message: `${serverIds.length}개 서버 설정이 업데이트되었습니다`,
-          serverIds,
-          settings,
+          results: serverIds.map((id) => ({
+            serverId: id,
+            success: true,
+            message: '서버 설정이 업데이트되었습니다',
+          })),
+          summary: {
+            total: serverIds.length,
+            succeeded: serverIds.length,
+            failed: 0,
+          },
           timestamp: new Date().toISOString(),
         };
 
       case 'health-check':
         return {
           success: true,
-          message: `${serverIds.length}개 서버 헬스체크가 시작되었습니다`,
           results: serverIds.map((id) => ({
             serverId: id,
-            status: (['healthy', 'warning', 'critical'] as const)[
-              Math.floor(Math.random() * 3)
-            ],
-            responseTime: Math.floor(Math.random() * 100) + 10,
-            lastCheck: new Date().toISOString(),
+            success: Math.random() > 0.1, // 90% success rate
+            message: Math.random() > 0.1 ? '헬스체크 통과' : '헬스체크 실패',
           })),
+          summary: {
+            total: serverIds.length,
+            succeeded: Math.floor(serverIds.length * 0.9),
+            failed: Math.ceil(serverIds.length * 0.1),
+          },
           timestamp: new Date().toISOString(),
         };
 

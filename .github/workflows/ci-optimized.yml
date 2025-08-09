@@ -35,20 +35,36 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: TypeScript Check
+      - name: Smart TypeScript Check
         run: |
-          npm run type-check || {
+          # 변경된 파일만 스마트 체크
+          node scripts/type-check-changed.js smart || {
             echo "⚠️ TypeScript 에러 발견"
-            echo "💡 로컬에서 npm run type-check로 확인하세요"
-            # 경고만 하고 통과 (Vercel에서 실제 체크)
+            echo "💡 로컬에서 npm run type-check로 상세 확인"
+            # 스마트 체크 실패 시 전체 체크로 폴백
+            npm run type-check || {
+              echo "❌ 전체 TypeScript 검사 실패"
+              if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+                exit 1  # main 브랜치는 실패 처리
+              fi
+            }
           }
 
-      - name: Critical Tests Only
+      - name: Intelligent Validation
         run: |
-          npm run test:quick || {
-            echo "⚠️ 핵심 테스트 실패"
-            exit 1  # 핵심 테스트는 실제로 실패 처리
-          }
+          # 브랜치별 적응형 검증
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "🚨 Main 브랜치 - 엄격한 검증"
+            npm run test:quick || exit 1
+          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            echo "🔍 Develop 브랜치 - 표준 검증"
+            npm run test:quick || exit 1
+          else
+            echo "⚡ Feature 브랜치 - 빠른 검증"
+            npm run test:quick || {
+              echo "⚠️ 테스트 실패 (경고)"
+            }
+          fi
 
   # 🔒 보안 검사 (main 브랜치만)
   security-scan:

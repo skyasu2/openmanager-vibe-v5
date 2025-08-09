@@ -27,7 +27,37 @@ export const HealthCheckResponseSchema = z.object({
   timestamp: TimestampSchema,
 });
 
+// ===== 메모리 상태 스키마 =====
+
+export const MemorySummarySchema = z.object({
+  total: z.number(),
+  used: z.number(),
+  free: z.number(),
+  available: z.number(),
+  cached: z.number().optional(),
+  buffers: z.number().optional(),
+  usage_percentage: z.number().min(0).max(100),
+});
+
+export const MemoryStatusResponseSchema = z.object({
+  success: z.boolean(),
+  memory: MemorySummarySchema,
+  swap: z.object({
+    total: z.number(),
+    used: z.number(),
+    free: z.number(),
+    usage_percentage: z.number().min(0).max(100),
+  }).optional(),
+  processes: z.object({
+    count: z.number(),
+    memory_usage: z.number(),
+  }).optional(),
+  timestamp: TimestampSchema,
+});
+
 // ===== 타입 내보내기 =====
 
 export type HealthCheckService = z.infer<typeof HealthCheckServiceSchema>;
 export type HealthCheckResponse = z.infer<typeof HealthCheckResponseSchema>;
+export type MemorySummary = z.infer<typeof MemorySummarySchema>;
+export type MemoryStatusResponse = z.infer<typeof MemoryStatusResponseSchema>;

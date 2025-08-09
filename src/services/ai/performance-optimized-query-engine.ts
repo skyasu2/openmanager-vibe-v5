@@ -632,6 +632,104 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
   }
 
   /**
+   * 🏠 로컬 응답 생성
+   */
+  private generateLocalResponse(
+    query: string,
+    ragResult: any,
+    mcpContext: MCPContext | null,
+    context?: AIQueryContext
+  ): string {
+    try {
+      // RAG 결과가 있으면 그를 기반으로 응답 생성
+      if (ragResult && ragResult.results && ragResult.results.length > 0) {
+        const topResult = ragResult.results[0];
+        return `질문에 대한 답변: ${topResult.content || topResult.text || '관련 정보를 찾았습니다.'}`;
+      }
+
+      // MCP 컨텍스트가 있으면 활용
+      if (mcpContext) {
+        return `MCP 컨텍스트를 활용한 답변: ${query}에 대한 정보를 시스템에서 찾을 수 있습니다.`;
+      }
+
+      // 기본 응답
+      return `${query}에 대한 기본 정보를 제공합니다. 더 구체적인 정보가 필요하시면 자세히 설명해주세요.`;
+    } catch (error) {
+      aiLogger.error('로컬 응답 생성 실패', error);
+      return '죄송합니다. 현재 응답을 생성할 수 없습니다.';
+    }
+  }
+
+  /**
+   * 🎯 신뢰도 계산
+   */
+  private calculateConfidence(ragResult: any): number {
+    try {
+      if (!ragResult || !ragResult.results) return 0.3;
+
+      // 결과의 수와 품질을 기반으로 신뢰도 계산
+      const resultCount = ragResult.results.length;
+      const hasHighQualityResults = ragResult.results.some((result: any) => 
+        result.score && result.score > 0.8
+      );
+
+      let confidence = 0.5; // 기본값
+
+      if (resultCount > 0) confidence += 0.2;
+      if (resultCount > 3) confidence += 0.1;
+      if (hasHighQualityResults) confidence += 0.2;
+      if (ragResult.cached) confidence += 0.05;
+
+      return Math.min(confidence, 0.95); // 최대 0.95
+    } catch (error) {
+      aiLogger.error('신뢰도 계산 실패', error);
+      return 0.3;
+    }
+  }
+
+  /**
+   * 🌐 Google AI 프롬프트 구성
+   */
+  private buildGoogleAIPrompt(
+    query: string,
+    context?: AIQueryContext,
+    mcpContext?: MCPContext | null
+  ): string {
+    try {
+      let prompt = `사용자 질문: ${query}\n\n`;
+
+      // 컨텍스트 추가
+      if (context) {
+        prompt += `컨텍스트 정보:\n`;
+        if (context.user?.id) prompt += `- 사용자 ID: ${context.user.id}\n`;
+        if (context.session?.id) prompt += `- 세션 ID: ${context.session.id}\n`;
+        if (context.previousQueries) {
+          prompt += `- 이전 질문들: ${context.previousQueries.slice(-3).join(', ')}\n`;
+        }
+        prompt += '\n';
+      }
+
+      // MCP 컨텍스트 추가
+      if (mcpContext) {
+        prompt += `시스템 컨텍스트:\n`;
+        prompt += `- MCP 연결 상태: 활성화\n`;
+        prompt += `- 사용 가능한 도구들이 있습니다.\n\n`;
+      }
+
+      prompt += `다음 지침을 따라 응답해주세요:
+1. 한국어로 명확하고 도움이 되는 답변을 제공하세요.
+2. 기술적인 내용은 구체적인 예시와 함께 설명하세요.
+3. 불확실한 정보는 추측하지 말고 확인이 필요하다고 말씀하세요.
+4. 답변은 간결하면서도 충분한 정보를 포함해야 합니다.`;
+
+      return prompt;
+    } catch (error) {
+      aiLogger.error('Google AI 프롬프트 구성 실패', error);
+      return query; // 기본값으로 질문만 반환
+    }
+  }
+
+  /**
    * 🏥 헬스체크
    */
   async healthCheck(): Promise<{

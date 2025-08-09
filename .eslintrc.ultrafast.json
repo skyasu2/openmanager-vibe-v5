@@ -13,7 +13,13 @@
     "no-console": "off",
     "react-hooks/exhaustive-deps": "off",
     "@typescript-eslint/ban-ts-comment": "off",
-    "@typescript-eslint/no-var-requires": "off"
+    "@typescript-eslint/no-var-requires": "off",
+    "prefer-const": "warn",
+    "no-var": "warn",
+    "@typescript-eslint/no-inferrable-types": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "react/no-unescaped-entities": "off",
+    "react/react-in-jsx-scope": "off"
   },
   "ignorePatterns": [
     "**/.next/**",
@@ -32,6 +38,15 @@
     "**/*.stories.*",
     "**/*.test.*",
     "**/*.spec.*",
-    "**/*.js"
-  ]
+    "**/*.js",
+    "gcp-functions/**",
+    "vm-ai-backend*/**",
+    "tests/**",
+    "src/test/**"
+  ],
+  "settings": {
+    "next": {
+      "rootDir": "."
+    }
+  }
 }

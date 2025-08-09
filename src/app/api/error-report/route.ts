@@ -26,14 +26,14 @@ import { getErrorMessage } from '@/types/type-utils';
 
 // 모의 에러 리포트 데이터 생성
 function generateMockErrorReports(count: number = 20): ErrorReport[] {
-  const types = [
+  const categories = [
     'system_error',
     'api_error',
     'database_error',
     'network_error',
     'validation_error',
   ];
-  const sources = [
+  const affectedSystems = [
     'server-001',
     'server-002',
     'api-gateway',
@@ -47,7 +47,7 @@ function generateMockErrorReports(count: number = 20): ErrorReport[] {
     'critical',
   ];
 
-  const messages = [
+  const titles = [
     '서버 연결 시간 초과',
     'API 요청 처리 실패',
     '데이터베이스 쿼리 오류',
@@ -57,27 +57,44 @@ function generateMockErrorReports(count: number = 20): ErrorReport[] {
     '파일 시스템 접근 오류',
   ];
 
-  return Array.from({ length: count }, (_, i) => ({
-    id: `err_${Date.now()}_${i}`,
-    timestamp: new Date(Date.now() - i * 3600000).toISOString(),
-    severity:
-      severities[Math.floor(Math.random() * severities.length)] ?? 'medium',
-    type: types[Math.floor(Math.random() * types.length)] ?? 'system_error',
-    message:
-      messages[Math.floor(Math.random() * messages.length)] ?? 'Unknown error',
-    source: sources[Math.floor(Math.random() * sources.length)] ?? 'unknown',
-    stackTrace:
-      i % 3 === 0
-        ? `Error at line ${Math.floor(Math.random() * 100) + 1}`
-        : undefined,
-    metadata: {
-      userId: `user_${Math.floor(Math.random() * 1000)}`,
-      sessionId: `session_${Math.random().toString(36).substr(2, 9)}`,
-      requestId: `req_${Math.random().toString(36).substr(2, 9)}`,
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-    },
-    resolved: Math.random() > 0.3,
-  }));
+  const descriptions = [
+    '서버 응답 시간이 30초를 초과했습니다.',
+    'API 엔드포인트에서 500 에러가 발생했습니다.',
+    'PostgreSQL 연결이 끊어져 쿼리 실행에 실패했습니다.',
+    '네트워크 인터페이스가 비정상적으로 종료되었습니다.',
+    '입력 파라미터가 스키마 검증에 실패했습니다.',
+    '시스템 메모리 사용량이 95%를 초과했습니다.',
+    '로그 파일에 접근할 수 없습니다.',
+  ];
+
+  const statuses = ['open', 'investigating', 'resolved', 'closed'] as const;
+
+  return Array.from({ length: count }, (_, i) => {
+    const now = new Date();
+    const createdAt = new Date(Date.now() - i * 3600000);
+    const isResolved = Math.random() > 0.3;
+    
+    return {
+      id: `err_${Date.now()}_${i}`,
+      title: titles[Math.floor(Math.random() * titles.length)] ?? 'Unknown error',
+      description: descriptions[Math.floor(Math.random() * descriptions.length)] ?? 'No description available',
+      severity: severities[Math.floor(Math.random() * severities.length)] ?? 'medium',
+      status: statuses[Math.floor(Math.random() * statuses.length)] ?? 'open',
+      category: categories[Math.floor(Math.random() * categories.length)] ?? 'system_error',
+      affectedSystems: [affectedSystems[Math.floor(Math.random() * affectedSystems.length)] ?? 'unknown'],
+      reportedBy: `user_${Math.floor(Math.random() * 1000)}`,
+      assignedTo: isResolved ? `admin_${Math.floor(Math.random() * 10)}` : undefined,
+      createdAt: createdAt.toISOString(),
+      updatedAt: now.toISOString(),
+      resolvedAt: isResolved ? now.toISOString() : undefined,
+      metadata: {
+        userId: `user_${Math.floor(Math.random() * 1000)}`,
+        sessionId: `session_${Math.random().toString(36).substr(2, 9)}`,
+        requestId: `req_${Math.random().toString(36).substr(2, 9)}`,
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      },
+    };
+  });
 }
 
 // GET 핸들러
@@ -89,7 +106,7 @@ const getHandler = createApiRoute()
     enableLogging: true,
   })
   .build(async (_request, context): Promise<ErrorReportListResponse> => {
-    const { severity, type, source, resolved, limit, page } = context.query;
+    const { severity, status, category, limit, offset } = context.query;
 
     let errorReports = generateMockErrorReports(100);
 
@@ -100,37 +117,25 @@ const getHandler = createApiRoute()
       );
     }
 
-    if (type) {
-      errorReports = errorReports.filter((report) => report.type === type);
+    if (status) {
+      errorReports = errorReports.filter((report) => report.status === status);
     }
 
-    if (source) {
-      errorReports = errorReports.filter((report) => report.source === source);
-    }
-
-    if (resolved !== undefined) {
-      const isResolved = resolved === 'true';
-      errorReports = errorReports.filter(
-        (report) => report.resolved === isResolved
-      );
+    if (category) {
+      errorReports = errorReports.filter((report) => report.category === category);
     }
 
     // 페이지네이션
-    const safePage = page ?? 1;
     const safeLimit = limit ?? 20;
-    const startIndex = (safePage - 1) * safeLimit;
-    const endIndex = startIndex + safeLimit;
-    const paginatedReports = errorReports.slice(startIndex, endIndex);
+    const safeOffset = offset ?? 0;
+    const paginatedReports = errorReports.slice(safeOffset, safeOffset + safeLimit);
 
     return {
-      reports: paginatedReports,
-      pagination: {
-        page: safePage,
-        limit: safeLimit,
-        total: errorReports.length,
-        totalPages: Math.ceil(errorReports.length / safeLimit),
-      },
-      timestamp: new Date().toISOString(),
+      success: true,
+      data: paginatedReports,
+      total: errorReports.length,
+      limit: safeLimit,
+      offset: safeOffset,
     };
   });
 
@@ -159,35 +164,37 @@ const postHandler = createApiRoute()
   })
   .build(async (_request, context): Promise<ErrorReportCreateResponse> => {
     const {
-      type,
-      message,
-      severity = 'medium',
-      source = 'unknown',
-      stackTrace,
+      title,
+      description,
+      severity,
+      category,
+      affectedSystems = [],
       metadata = {},
     } = context.body;
 
+    const now = new Date();
     const newReport: ErrorReport = {
       id: `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date().toISOString(),
+      title,
+      description,
       severity,
-      type,
-      message,
-      source,
-      stackTrace,
+      status: 'open',
+      category,
+      affectedSystems,
+      reportedBy: 'api-user', // 실제로는 인증된 사용자 ID
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString(),
       metadata: {
         ...metadata,
-        reportedAt: new Date().toISOString(),
+        reportedAt: now.toISOString(),
         autoGenerated: false,
       },
-      resolved: false,
     };
 
     return {
       success: true,
+      data: newReport,
       message: '에러 리포트가 성공적으로 생성되었습니다.',
-      report: newReport,
-      timestamp: new Date().toISOString(),
     };
   });
 

@@ -76,8 +76,9 @@ export const ServerPaginatedResponseSchema = z.object({
 
 export const ServerBatchRequestSchema = z.object({
   serverIds: z.array(IdSchema),
-  action: z.enum(['restart', 'stop', 'start', 'update', 'delete']),
+  action: z.enum(['restart', 'stop', 'start', 'update', 'delete', 'batch-restart', 'batch-update', 'batch-configure', 'health-check']),
   options: z.record(z.any()).optional(),
+  settings: z.record(z.any()).optional(), // Deprecated: use options instead, kept for backward compatibility
 });
 
 export const ServerBatchResponseSchema = z.object({
@@ -98,8 +99,76 @@ export const ServerBatchResponseSchema = z.object({
   timestamp: TimestampSchema,
 });
 
+// ===== 서버 서비스 및 스펙 스키마 =====
+
+export const ServerServiceSchema = z.object({
+  name: z.string(),
+  status: z.enum(['running', 'stopped', 'error', 'starting', 'stopping']),
+  port: z.number().optional(),
+  pid: z.number().optional(),
+  uptime: z.number().optional(),
+  memory: z.number().optional(),
+  cpu: z.number().optional(),
+});
+
+export const ServerSpecsSchema = z.object({
+  cpu: z.object({
+    cores: z.number(),
+    model: z.string(),
+    frequency: z.number().optional(),
+  }),
+  memory: z.object({
+    total: z.number(),
+    available: z.number(),
+    type: z.string().optional(),
+  }),
+  disk: z.object({
+    total: z.number(),
+    available: z.number(),
+    type: z.string().optional(),
+  }),
+  network: z.object({
+    interfaces: z.array(z.string()),
+    speed: z.number().optional(),
+  }),
+});
+
+export const ServerHistoryDataPointSchema = z.object({
+  timestamp: TimestampSchema,
+  cpu: z.number(),
+  memory: z.number(),
+  disk: z.number(),
+  network: z.number().optional(),
+});
+
+export const ServerHistorySchema = z.object({
+  serverId: IdSchema,
+  timeRange: z.enum(['1h', '6h', '24h', '7d', '30d']),
+  data: z.array(ServerHistoryDataPointSchema),
+  aggregation: z.enum(['raw', '1m', '5m', '15m', '1h']).optional(),
+});
+
+export const PaginatedServerSchema = z.object({
+  ...ServerStatusSchema.shape,
+  _pagination: z.object({
+    index: z.number(),
+    total: z.number(),
+  }).optional(),
+});
+
 // ===== 타입 내보내기 =====
 
 export type NetworkMetrics = z.infer<typeof NetworkMetricsSchema>;
 export type ServerMetrics = z.infer<typeof ServerMetricsSchema>;
 export type ServerStatus = z.infer<typeof ServerStatusSchema>;
+export type ServerService = z.infer<typeof ServerServiceSchema>;
+export type ServerSpecs = z.infer<typeof ServerSpecsSchema>;
+export type ServerHistory = z.infer<typeof ServerHistorySchema>;
+export type ServerHistoryDataPoint = z.infer<typeof ServerHistoryDataPointSchema>;
+export type PaginatedServer = z.infer<typeof PaginatedServerSchema>;
+
+// 페이지네이션 관련 타입 (스키마 이름 불일치 해결)
+export type ServerPaginationQuery = z.infer<typeof ServerPaginationQuerySchema>;
+export type ServerPaginatedResponse = z.infer<typeof ServerPaginatedResponseSchema>;
+export type ServerBatchRequest = z.infer<typeof ServerBatchRequestSchema>;
+export type ServerBatchResponse = z.infer<typeof ServerBatchResponseSchema>;

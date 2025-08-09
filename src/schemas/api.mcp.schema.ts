@@ -98,7 +98,52 @@ export const MCPSyncStatusResponseSchema = z.object({
   pendingItems: z.number(),
 });
 
+// ===== 추가 컨텍스트 스키마 =====
+
+export const MCPNLPContextSchema = z.object({
+  query: z.string(),
+  language: z.enum(['ko', 'en']),
+  intent: z.string().optional(),
+  entities: z.array(z.string()).optional(),
+  confidence: z.number().optional(),
+});
+
+export const MCPContextSchema = z.object({
+  sessionId: z.string().optional(),
+  userId: z.string().optional(),
+  timestamp: TimestampSchema,
+  metadata: z.record(z.unknown()).optional(),
+});
+
+export const LocalContextBundleSchema = z.object({
+  files: z.array(z.object({
+    path: z.string(),
+    content: z.string(),
+    type: z.string(),
+  })),
+  context: MCPContextSchema,
+  nlp: MCPNLPContextSchema.optional(),
+});
+
+export const MCPSyncResultSchema = z.object({
+  serverId: z.string(),
+  status: z.enum(['success', 'failed', 'partial']),
+  items: z.number(),
+  errors: z.array(z.string()).optional(),
+  timestamp: TimestampSchema,
+});
+
 // ===== 타입 내보내기 =====
 
 export type MCPQueryRequest = z.infer<typeof MCPQueryRequestSchema>;
 export type MCPQueryResponse = z.infer<typeof MCPQueryResponseSchema>;
+export type MCPContextIntegrationRequest = z.infer<typeof MCPContextIntegrationRequestSchema>;
+export type MCPContextIntegrationResponse = z.infer<typeof MCPContextIntegrationResponseSchema>;
+export type MCPIntegrationStatusResponse = z.infer<typeof MCPIntegrationStatusResponseSchema>;
+export type MCPSyncRequest = z.infer<typeof MCPSyncRequestSchema>;
+export type MCPSyncResponse = z.infer<typeof MCPSyncResponseSchema>;
+export type MCPSyncStatusResponse = z.infer<typeof MCPSyncStatusResponseSchema>;
+export type MCPSyncResult = z.infer<typeof MCPSyncResultSchema>;
+export type MCPNLPContext = z.infer<typeof MCPNLPContextSchema>;
+export type MCPContext = z.infer<typeof MCPContextSchema>;
+export type LocalContextBundle = z.infer<typeof LocalContextBundleSchema>;
