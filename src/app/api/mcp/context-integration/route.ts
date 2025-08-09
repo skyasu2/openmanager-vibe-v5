@@ -193,7 +193,7 @@ const getHandler = createApiRoute()
     showDetailedErrors: process.env.NODE_ENV === 'development',
     enableLogging: true,
   })
-  .build(async (): Promise<MCPIntegrationStatusResponse> => {
+  .build(async (_request, _context): Promise<MCPIntegrationStatusResponse> => {
     console.log('📊 MCP + RAG 통합 상태 조회 시작...');
 
     const cloudContextLoader = CloudContextLoader.getInstance();
