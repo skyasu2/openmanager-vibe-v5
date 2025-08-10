@@ -114,25 +114,39 @@ mcp__memory__create_entities({
 mcp__memory__search_nodes({ query: "AI" })
 ```
 
-### 3. Supabase 서버
-PostgreSQL 데이터베이스 작업, 마이그레이션, RLS 정책 관리
+### 3. Supabase 서버 ✅ 공식 버전 (2025-08-10 업데이트)
+PostgreSQL 데이터베이스 작업, 테이블 관리, 문서 검색
 
 ```bash
-# 설치
+# 설치 - 공식 Supabase MCP 서버
 claude mcp add supabase npx \
-  -e SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co \
-  -e SUPABASE_SERVICE_ROLE_KEY=eyJhbGci... \
+  -e SUPABASE_ACCESS_TOKEN=sbp_xxxxx \
   -- -y @supabase/mcp-server-supabase@latest \
+  --read-only \
   --project-ref=vnswjnltnhpsueosfhmw
 
-# 사용 예시
-mcp__supabase__execute_sql({ query: "SELECT * FROM servers" })
-mcp__supabase__list_tables({ schemas: ["public"] })
-mcp__supabase__apply_migration({ 
-  name: "add_indexes",
-  query: "CREATE INDEX idx_servers_status ON servers(status);"
-})
+# PAT 생성: https://supabase.com/dashboard/account/tokens
+# 프로젝트 REF: 프로젝트 설정 > 일반 > 프로젝트 ID
 ```
+
+**주요 변경사항:**
+- **Personal Access Token (PAT)** 사용 (Service Role Key 대신)
+- **공식 패키지**: `@supabase/mcp-server-supabase@latest` (supabase-community 제공)
+- **읽기 전용 모드**: `--read-only` 플래그로 안전한 운영
+- **프로젝트 스코핑**: `--project-ref`로 특정 프로젝트만 접근
+
+```bash
+# 사용 예시
+mcp__supabase__get_project_url()         # ✅ 프로젝트 URL
+mcp__supabase__search_docs({ query: "auth" })  # ✅ 문서 검색  
+mcp__supabase__list_tables()             # ⚠️ PAT 권한 필요
+mcp__supabase__generate_typescript_types() # ⚠️ PAT 권한 필요
+```
+
+**보안 권장사항:**
+- 읽기 전용 모드 활성화 (`--read-only`)
+- 프로젝트 범위 제한 (`--project-ref`)
+- 개발 환경에서만 사용 (프로덕션 데이터 제외)
 
 ### 4. GitHub 서버
 저장소 관리, 이슈/PR 생성, 파일 커밋
@@ -348,9 +362,8 @@ mcp__serena__read_memory({
 # GitHub
 GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxxx
 
-# Supabase
-SUPABASE_URL=https://xxxxx.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...
+# Supabase (공식 MCP 서버 - 2025-08-10 업데이트)
+SUPABASE_ACCESS_TOKEN=sbp_xxxxx  # Personal Access Token (PAT)
 
 # Tavily
 TAVILY_API_KEY=tvly-xxxxx
@@ -390,21 +403,45 @@ claude api restart
 - 환경변수가 올바르게 설정되었는지 확인
 - 네트워크 연결 상태 확인
 
-#### 3. Supabase 연결 문제
+#### 3. Supabase 연결 문제 (2025-08-10 업데이트)
 ```bash
 # 기존 설정 제거
 claude mcp remove supabase
 
-# 올바른 환경변수로 재설정
+# 공식 Supabase MCP로 재설정
 claude mcp add supabase npx \
-  -e SUPABASE_URL=... \
-  -e SUPABASE_SERVICE_ROLE_KEY=... \
+  -e SUPABASE_ACCESS_TOKEN=sbp_xxxxx \
   -- -y @supabase/mcp-server-supabase@latest \
-  --project-ref=...
+  --read-only \
+  --project-ref=vnswjnltnhpsueosfhmw
 
 # API 재시작
 claude api restart
+
+# 인증 테스트
+mcp__supabase__get_project_url()  # 성공하면 URL 반환
 ```
+
+**일반적인 Supabase 인증 오류:**
+
+1. **"Unauthorized. Please provide a valid access token"**
+   ```bash
+   # PAT가 올바르게 설정되었는지 확인
+   echo $SUPABASE_ACCESS_TOKEN
+   
+   # PAT 생성 위치: https://supabase.com/dashboard/account/tokens
+   # "Cursor MCP Server" 등의 설명으로 생성
+   ```
+
+2. **PAT vs Service Role Key 혼동**
+   - ❌ 이전: `SUPABASE_SERVICE_ROLE_KEY` (프로젝트별 키)
+   - ✅ 현재: `SUPABASE_ACCESS_TOKEN` (계정별 PAT)
+
+3. **프로젝트 REF 확인**
+   ```bash
+   # Supabase 대시보드 > 프로젝트 설정 > 일반 > 프로젝트 ID
+   # 예시: vnswjnltnhpsueosfhmw
+   ```
 
 #### 4. Python 서버 연결 실패
 ```bash

@@ -438,7 +438,7 @@ const timeInfo = await mcp__time__get_current_time({
 | `filesystem` | 파일 시스템 작업 | Node.js |
 | `memory` | 지식 그래프 관리 | Node.js |
 | `github` | GitHub 저장소 관리 | Node.js |
-| `supabase` | PostgreSQL 데이터베이스 | Node.js |
+| `supabase` | PostgreSQL 데이터베이스 ✅ **공식 버전** | Node.js |
 | `tavily-remote` | 웹 검색 및 콘텐츠 추출 | Remote |
 | `sequential-thinking` | 복잡한 문제 해결 | Node.js |
 | `playwright` | 브라우저 자동화 | Node.js |
