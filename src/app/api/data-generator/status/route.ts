@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET() {
   try {
-    console.log('🔍 데이터 생성기 상태 확인');
+    debug.log('🔍 데이터 생성기 상태 확인');
 
     // 목업 환경에서는 항상 실행 중으로 처리
     const response = {
@@ -35,7 +36,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error('❌ 데이터 생성기 상태 확인 실패:', error);
+    debug.error('❌ 데이터 생성기 상태 확인 실패:', error);
 
     return NextResponse.json(
       {

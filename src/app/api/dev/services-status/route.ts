@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase/supabase-client';
 import { getSupabaseEnv } from '@/lib/env-safe';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 // 강제 동적 라우팅 설정
 export const dynamic = 'force-dynamic';
@@ -299,7 +300,7 @@ export async function GET(_request: NextRequest) {
   }
 
   try {
-    console.log('🔍 개발자 도구: 모든 서비스 상태 확인 시작... (Redis-Free)');
+    debug.log('🔍 개발자 도구: 모든 서비스 상태 확인 시작... (Redis-Free)');
 
     // 모든 서비스 상태를 병렬로 확인 (Redis → Memory Cache로 교체)
     const [
@@ -341,13 +342,13 @@ export async function GET(_request: NextRequest) {
       summary,
     };
 
-    console.log(
+    debug.log(
       `✅ 서비스 상태 확인 완료 (Redis-Free): ${summary.connected}/${summary.total} 연결됨`
     );
 
     return NextResponse.json(response);
   } catch (error: unknown) {
-    console.error('❌ 서비스 상태 확인 중 오류:', error);
+    debug.error('❌ 서비스 상태 확인 중 오류:', error);
 
     return NextResponse.json(
       {

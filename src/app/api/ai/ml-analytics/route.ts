@@ -8,6 +8,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { analyzeMLMetrics } from '@/lib/gcp/gcp-functions-client';
 import { getErrorMessage } from '@/types/type-utils';
+import debug from '@/utils/debug';
 
 interface MLAnalysisData {
   anomalies?: unknown[];
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('📊 ML Analytics 요청 처리 중...');
+    debug.log('📊 ML Analytics 요청 처리 중...');
 
     // GCP Functions 호출
     const result = await analyzeMLMetrics(metrics, context);
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ ML Analytics API 오류:', error);
+    debug.error('❌ ML Analytics API 오류:', error);
     
     return NextResponse.json(
       {

@@ -17,6 +17,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
 
@@ -202,7 +203,7 @@ async function checkGCPVMMCPHealth(): Promise<boolean> {
     
     return response.ok;
   } catch (error) {
-    console.error('❌ GCP VM MCP 서버 헬스체크 실패:', error);
+    debug.error('❌ GCP VM MCP 서버 헬스체크 실패:', error);
     return false;
   }
 }
@@ -239,7 +240,7 @@ async function queryGCPVMMCP(
       id: requestId,
     };
     
-    console.log(`🌐 GCP VM MCP 요청 전송 (ID: ${requestId}):`, {
+    debug.log(`🌐 GCP VM MCP 요청 전송 (ID: ${requestId}):`, {
       query: request.query.substring(0, 50) + '...',
       mode: request.mode,
       timeout: timeout + 'ms'
@@ -265,7 +266,7 @@ async function queryGCPVMMCP(
     const processingTime = Date.now() - startTime;
     const responseText = response.headers.get('content-length');
     
-    console.log(`✅ GCP VM MCP 응답 수신 (ID: ${requestId}): ${processingTime}ms`);
+    debug.log(`✅ GCP VM MCP 응답 수신 (ID: ${requestId}): ${processingTime}ms`);
     
     // JSON-RPC 2.0 응답 처리
     if (data.error) {
@@ -302,7 +303,7 @@ async function queryGCPVMMCP(
     };
   } catch (error) {
     const processingTime = Date.now() - startTime;
-    console.error(`❌ GCP VM MCP 쿼리 실패 (ID: ${requestId}):`, error);
+    debug.error(`❌ GCP VM MCP 쿼리 실패 (ID: ${requestId}):`, error);
     
     const isTimeout = error instanceof Error && error.name === 'TimeoutError';
     const isNetworkError = error instanceof Error && 
@@ -333,14 +334,14 @@ export async function POST(request: NextRequest) {
   const requestId = crypto.randomUUID();
   
   try {
-    console.log(`🌐 GCP VM MCP 쿼리 요청 처리 시작 (ID: ${requestId})...`);
+    debug.log(`🌐 GCP VM MCP 쿼리 요청 처리 시작 (ID: ${requestId})...`);
     
     // 요청 본문 파싱 (JSON 파싱 에러 처리)
     let body: unknown;
     try {
       body = await request.json();
     } catch (parseError) {
-      console.error(`❌ JSON 파싱 실패 (ID: ${requestId}):`, parseError);
+      debug.error(`❌ JSON 파싱 실패 (ID: ${requestId}):`, parseError);
       return createJSONRPCError(
         MCPErrorCodes.PARSE_ERROR,
         'Invalid JSON in request body',
@@ -352,7 +353,7 @@ export async function POST(request: NextRequest) {
     // 스키마 검증 (강화된 검증)
     const validation = validateMCPRequest(body);
     if (!validation.isValid || !validation.request) {
-      console.warn(`⚠️ 스키마 검증 실패 (ID: ${requestId}):`, validation.errors);
+      debug.warn(`⚠️ 스키마 검증 실패 (ID: ${requestId}):`, validation.errors);
       return createJSONRPCError(
         MCPErrorCodes.VALIDATION_ERROR,
         'Request validation failed',
@@ -362,7 +363,7 @@ export async function POST(request: NextRequest) {
     }
     
     const validatedRequest = validation.request;
-    console.log(`✅ 스키마 검증 통과 (ID: ${requestId}):`, {
+    debug.log(`✅ 스키마 검증 통과 (ID: ${requestId}):`, {
       query: validatedRequest.query.substring(0, 50) + '...',
       mode: validatedRequest.mode || 'natural-language',
     });
@@ -371,7 +372,7 @@ export async function POST(request: NextRequest) {
     const isAvailable = await checkGCPVMMCPHealth();
     
     if (!isAvailable) {
-      console.warn(`⚠️ GCP VM MCP 서버 사용 불가, 폴백 모드 (ID: ${requestId})`);
+      debug.warn(`⚠️ GCP VM MCP 서버 사용 불가, 폴백 모드 (ID: ${requestId})`);
       return createJSONRPCError(
         MCPErrorCodes.SERVER_UNAVAILABLE,
         'GCP VM MCP server is not available',
@@ -386,7 +387,7 @@ export async function POST(request: NextRequest) {
     // GCP VM MCP 서버로 쿼리 전송
     const result = await queryGCPVMMCP(validatedRequest, requestId);
     
-    console.log(
+    debug.log(
       `✅ GCP VM MCP 쿼리 처리 완료 (ID: ${requestId}): ${result.metadata?.processingTime}ms`
     );
     
@@ -420,7 +421,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error(`❌ GCP VM MCP API 처리 실패 (ID: ${requestId}):`, error);
+    debug.error(`❌ GCP VM MCP API 처리 실패 (ID: ${requestId}):`, error);
     
     // 내부 서버 에러를 JSON-RPC 2.0 형식으로 반환
     return createJSONRPCError(
@@ -441,7 +442,7 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(_request: NextRequest) {
   try {
-    console.log('📊 GCP VM MCP 서버 상태 조회 v2.0...');
+    debug.log('📊 GCP VM MCP 서버 상태 조회 v2.0...');
     
     const gcpMcpUrl = process.env.GCP_MCP_SERVER_URL || 
       `http://${process.env.GCP_VM_IP || '104.154.205.25'}:${process.env.GCP_MCP_SERVER_PORT || '10000'}`;
@@ -539,7 +540,7 @@ export async function GET(_request: NextRequest) {
       }
     );
   } catch (error) {
-    console.error('❌ GCP VM MCP 상태 조회 실패:', error);
+    debug.error('❌ GCP VM MCP 상태 조회 실패:', error);
     
     return NextResponse.json(
       {

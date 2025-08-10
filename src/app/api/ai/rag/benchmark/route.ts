@@ -9,6 +9,7 @@ import { postgresVectorDB } from '@/services/ai/postgres-vector-db';
 import { embeddingService } from '@/services/ai/embedding-service';
 import { getSupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
 import { supabase } from '@/lib/supabase';
+import debug from '@/utils/debug';
 
 // Interface for PostgreSQL index information
 interface PgIndex {
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
     const testQuery = searchParams.get('query') || '서버 상태 확인';
     const iterations = parseInt(searchParams.get('iterations') || '10');
 
-    console.log(`🚀 벤치마크 시작: "${testQuery}" (${iterations}회 반복)`);
+    debug.log(`🚀 벤치마크 시작: "${testQuery}" (${iterations}회 반복)`);
 
     // 1. 테스트용 임베딩 생성
     const startEmbedding = Date.now();
@@ -116,7 +117,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ 벤치마크 실패:', error);
+    debug.error('❌ 벤치마크 실패:', error);
     return NextResponse.json(
       { 
         error: '벤치마크 실행 실패', 

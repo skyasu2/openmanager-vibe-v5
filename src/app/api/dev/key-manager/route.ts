@@ -21,6 +21,7 @@ import {
   type DevKeyManagerErrorResponse,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
+import debug from '@/utils/debug';
 
 // GET handler
 const getHandler = createApiRoute()
@@ -135,7 +136,7 @@ export async function GET(request: NextRequest) {
 
     return await getHandler(request);
   } catch (error) {
-    console.error('❌ DevKeyManager API 오류:', error);
+    debug.error('❌ DevKeyManager API 오류:', error);
 
     return NextResponse.json(
       {

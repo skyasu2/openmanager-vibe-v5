@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 /**
  * 🚫 Catch-all API Route
@@ -54,7 +55,7 @@ async function handleRequest(
   const requestedPath = `/api/${params.catchall.join('/')}`;
 
   // 로깅
-  console.warn(`🚫 존재하지 않는 API 요청: ${method} ${requestedPath}`, {
+  debug.warn(`🚫 존재하지 않는 API 요청: ${method} ${requestedPath}`, {
     userAgent: request.headers.get('user-agent'),
     referer: request.headers.get('referer'),
     ip:

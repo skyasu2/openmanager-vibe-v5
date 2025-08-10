@@ -12,6 +12,7 @@ import {
   type DashboardActionResponse,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
+import debug from '@/utils/debug';
 
 /**
  * 📊 실시간 대시보드 API
@@ -67,7 +68,7 @@ const getHandler = createApiRoute()
   .build(async (_request, _context): Promise<DashboardResponse> => {
     const startTime = Date.now();
 
-    console.log('📊 실시간 대시보드 API 호출...');
+    debug.log('📊 실시간 대시보드 API 호출...');
 
     // Supabase에서 실제 서버 데이터 가져오기
     const supabase = getSupabaseClient();
@@ -80,8 +81,8 @@ const getHandler = createApiRoute()
         .order('created_at', { ascending: false });
 
       if (serversError) {
-        console.error('❌ 서버 데이터 조회 실패:', serversError);
-        console.log('📦 Mock 데이터로 폴백...');
+        debug.error('❌ 서버 데이터 조회 실패:', serversError);
+        debug.log('📦 Mock 데이터로 폴백...');
         
         // Mock 데이터 사용
         const { getMockServers } = await import('@/mock');
@@ -110,8 +111,8 @@ const getHandler = createApiRoute()
         serverList = servers || [];
       }
     } catch (error) {
-      console.error('❌ Supabase 연결 실패:', error);
-      console.log('📦 Mock 데이터로 폴백...');
+      debug.error('❌ Supabase 연결 실패:', error);
+      debug.log('📦 Mock 데이터로 폴백...');
       
       // Mock 데이터 사용
       const { getMockServers } = await import('@/mock');
@@ -217,7 +218,7 @@ const getHandler = createApiRoute()
       },
     };
 
-    console.log(
+    debug.log(
       `✅ 실시간 대시보드 응답 완료 (${response.metadata?.processingTime || 0}ms)`
     );
 
@@ -246,7 +247,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       },
     });
   } catch (error) {
-    console.error('❌ 대시보드 API 오류:', error);
+    debug.error('❌ 대시보드 API 오류:', error);
 
     const processingTime = Date.now() - startTime;
     return NextResponse.json(
@@ -372,12 +373,12 @@ const postHandler = createApiRoute()
   .build(async (_request, context): Promise<DashboardActionResponse> => {
     const { action } = context.body;
 
-    console.log('🔄 대시보드 액션 요청...', action);
+    debug.log('🔄 대시보드 액션 요청...', action);
 
     // 간단한 새로고침 응답
     if (action === 'refresh') {
       // 실제 시스템에서는 캐시 새로고침 또는 데이터 갱신
-      console.log('🔄 실시간 데이터 새로고침 중...');
+      debug.log('🔄 실시간 데이터 새로고침 중...');
 
       return {
         success: true,
@@ -404,7 +405,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     return await postHandler(request);
   } catch (error) {
-    console.error('❌ 대시보드 POST 오류:', error);
+    debug.error('❌ 대시보드 POST 오류:', error);
     return NextResponse.json(
       {
         success: false,

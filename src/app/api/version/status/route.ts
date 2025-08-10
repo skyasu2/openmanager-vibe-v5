@@ -9,6 +9,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 // 🔒 타입 안전성을 위한 인터페이스 정의
 interface AIEngineVersions {
@@ -39,7 +40,7 @@ try {
   _DATA_GENERATOR_VERSIONS = versionsModule.DATA_GENERATOR_VERSIONS;
   _VersionManager = versionsModule.VersionManager;
 } catch (error) {
-  console.warn('versions 모듈 import 실패:', (error as Error).message);
+  debug.warn('versions 모듈 import 실패:', (error as Error).message);
 }
 
 // SimplifiedQueryEngine은 GCP Functions로 이관됨
@@ -48,7 +49,7 @@ try {
   // masterAIEngine = simplifiedQueryEngineModule.simplifiedQueryEngine;
   _masterAIEngine = null; // GCP Functions로 이관됨
 } catch (error) {
-  console.warn(
+  debug.warn(
     'SimplifiedQueryEngine import 실패 (GCP Functions로 이관됨):',
     (error as Error).message
   );
@@ -83,7 +84,7 @@ export async function GET(_request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Version status API error:', error);
+    debug.error('Version status API error:', error);
 
     return NextResponse.json(
       {

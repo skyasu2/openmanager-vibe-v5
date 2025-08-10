@@ -11,10 +11,11 @@ import {
   type DatabasePoolConfig,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
+import debug from '@/utils/debug';
 
 // 연결 풀 재설정 시뮬레이션
 async function resetConnectionPool(config?: DatabasePoolConfig) {
-  console.log('🔄 Resetting database connection pool...');
+  debug.log('🔄 Resetting database connection pool...');
 
   // 시뮬레이션 지연
   await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -55,7 +56,7 @@ const postHandler = createApiRoute()
   .build(async (_request, context): Promise<DatabasePoolResetResponse> => {
     const { force, config } = context.body;
 
-    console.log('🔧 Database connection pool reset requested:', {
+    debug.log('🔧 Database connection pool reset requested:', {
       force,
       config,
     });
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
   try {
     return await postHandler(request);
   } catch (error) {
-    console.error('❌ Database reset-pool POST error:', error);
+    debug.error('❌ Database reset-pool POST error:', error);
     return NextResponse.json(
       {
         success: false,
@@ -148,7 +149,7 @@ export async function GET(request: NextRequest) {
   try {
     return await getHandler(request);
   } catch (error) {
-    console.error('❌ Database reset-pool GET error:', error);
+    debug.error('❌ Database reset-pool GET error:', error);
     return NextResponse.json(
       {
         success: false,

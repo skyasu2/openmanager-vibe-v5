@@ -19,6 +19,7 @@ import {
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
 import { getGoogleAIModel } from '@/lib/ai/google-ai-client';
+import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
 
@@ -31,7 +32,7 @@ const postHandler = createApiRoute()
     enableLogging: true,
   })
   .build(async (_request, context): Promise<GoogleAIGenerateResponse> => {
-    console.log('🌐 Google AI 생성 요청 처리 시작...');
+    debug.log('🌐 Google AI 생성 요청 처리 시작...');
 
     const {
       prompt,
@@ -64,7 +65,7 @@ const postHandler = createApiRoute()
 
     const processingTime = Date.now() - startTime;
 
-    console.log(`✅ Google AI 생성 완료: ${processingTime}ms`);
+    debug.log(`✅ Google AI 생성 완료: ${processingTime}ms`);
 
     return {
       success: true,
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ Google AI 요청 처리 실패:', error);
+    debug.error('❌ Google AI 요청 처리 실패:', error);
 
     const errorMessage = getErrorMessage(error);
     

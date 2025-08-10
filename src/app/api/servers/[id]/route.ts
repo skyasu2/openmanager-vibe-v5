@@ -21,6 +21,7 @@ import {
   type ServerHistoryDataPoint 
 } from '@/schemas/server-schemas/server-details.schema';
 import { getErrorMessage } from '@/types/type-utils';
+import debug from '@/utils/debug';
 
 // Database Server type from Supabase
 interface DatabaseServer {
@@ -68,7 +69,7 @@ export async function GET(
     const includeMetrics = searchParams.get('include_metrics') === 'true';
     const includePatterns = searchParams.get('include_patterns') === 'true';
 
-    console.log(
+    debug.log(
       `📊 서버 [${id}] 정보 조회: history=${includeHistory}, range=${range}, format=${format}`
     );
 
@@ -81,7 +82,7 @@ export async function GET(
       .single();
 
     if (serverError) {
-      console.error('❌ Supabase 서버 조회 실패:', serverError);
+      debug.error('❌ Supabase 서버 조회 실패:', serverError);
     }
 
     let server = serverData as DatabaseServer | null;
@@ -105,7 +106,7 @@ export async function GET(
       );
     }
 
-    console.log(
+    debug.log(
       `✅ 서버 [${id}] 발견: ${server.hostname} (${server.environment}/${server.role})`
     );
 
@@ -282,7 +283,7 @@ export async function GET(
       });
     }
   } catch (error) {
-    console.error(`❌ 서버 [${(await params).id}] 정보 조회 실패:`, error);
+    debug.error(`❌ 서버 [${(await params).id}] 정보 조회 실패:`, error);
 
     return NextResponse.json(
       {

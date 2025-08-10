@@ -9,6 +9,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getSimplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
+import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
 
@@ -21,7 +22,7 @@ interface MCPQueryRequest {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🤖 MCP 쿼리 요청 처리 시작...');
+    debug.log('🤖 MCP 쿼리 요청 처리 시작...');
 
     const body: MCPQueryRequest = await request.json();
     const { query, context = 'ai-sidebar', includeThinking = true } = body;
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    console.log(
+    debug.log(
       `✅ MCP 쿼리 처리 완료: ${responseTime}ms, 엔진: ${result.engine}`
     );
 
@@ -90,7 +91,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ MCP 쿼리 처리 실패:', error);
+    debug.error('❌ MCP 쿼리 처리 실패:', error);
 
     return NextResponse.json(
       {
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(_request: NextRequest) {
   try {
-    console.log('📊 MCP 쿼리 시스템 상태 조회...');
+    debug.log('📊 MCP 쿼리 시스템 상태 조회...');
 
     const cloudContextLoader = CloudContextLoader.getInstance();
     const status = await cloudContextLoader.getIntegratedStatus();
@@ -138,7 +139,7 @@ export async function GET(_request: NextRequest) {
       }
     );
   } catch (error) {
-    console.error('❌ MCP 쿼리 상태 조회 실패:', error);
+    debug.error('❌ MCP 쿼리 상태 조회 실패:', error);
 
     return NextResponse.json(
       {

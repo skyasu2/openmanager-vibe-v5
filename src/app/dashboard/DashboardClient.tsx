@@ -165,14 +165,14 @@ const ContentLoadingSkeleton = () => (
   <div className="min-h-screen bg-gray-100 p-6 dark:bg-gray-900">
     <div className="space-y-6">
       {/* 헤더 스켈레톤 */}
-      <div className="_animate-pulse h-16 rounded-lg bg-gray-200 dark:bg-gray-800"></div>
+      <div className="animate-pulse h-16 rounded-lg bg-gray-200 dark:bg-gray-800"></div>
 
       {/* 통계 카드 스켈레톤 */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="_animate-pulse h-24 rounded-lg bg-gray-200 dark:bg-gray-800"
+            className="animate-pulse h-24 rounded-lg bg-gray-200 dark:bg-gray-800"
           ></div>
         ))}
       </div>
@@ -182,7 +182,7 @@ const ContentLoadingSkeleton = () => (
         {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
           <div
             key={i}
-            className="_animate-pulse h-48 rounded-lg bg-gray-200 dark:bg-gray-800"
+            className="animate-pulse h-48 rounded-lg bg-gray-200 dark:bg-gray-800"
           ></div>
         ))}
       </div>

@@ -11,6 +11,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createApiRoute } from '@/lib/api/zod-middleware';
+import debug from '@/utils/debug';
 import {
   AILogRequestSchema,
   AILogWriteResponseSchema,
@@ -128,7 +129,7 @@ export async function GET(request: NextRequest) {
   const source = searchParams.get('source') || 'all';
   const interval = parseInt(searchParams.get('interval') || '2000'); // 기본 2초
 
-  console.log(
+  debug.log(
     `📡 AI 로그 스트리밍 시작 (Memory-based) - 레벨: ${level}, 소스: ${source}, 간격: ${interval}ms`
   );
 
@@ -153,12 +154,12 @@ export async function GET(request: NextRequest) {
 
       // 클라이언트 연결 종료 감지
       request.signal.addEventListener('abort', () => {
-        console.log('🔌 AI 로그 스트림 연결 종료 (Memory-based)');
+        debug.log('🔌 AI 로그 스트림 연결 종료 (Memory-based)');
         isActive = false;
         controller.close();
       });
 
-      console.log('✅ 메모리 기반 로그 스토리지 활성화');
+      debug.log('✅ 메모리 기반 로그 스토리지 활성화');
 
       // 로그 전송 함수
       const sendLogs = async () => {
@@ -174,7 +175,7 @@ export async function GET(request: NextRequest) {
           // 실제 로그가 없는 경우 빈 상태 유지 (Mock 로그 생성 제거)
           if (existingLogs.length === 0) {
             // 실제 시스템 로그가 있을 때까지 대기
-            console.log('📝 실제 로그 대기 중...');
+            debug.log('📝 실제 로그 대기 중...');
           }
 
           // 중복 제거 (ID 기준)
@@ -234,7 +235,7 @@ export async function GET(request: NextRequest) {
             controller.close();
           }
         } catch (error) {
-          console.error('메모리 로그 전송 오류:', error);
+          debug.error('메모리 로그 전송 오류:', error);
 
           // 에러 메시지 전송
           const errorMessage = `data: ${JSON.stringify({
@@ -273,7 +274,7 @@ const postHandler = createApiRoute()
   .build(async (_request, context): Promise<AILogWriteResponse | AILogExportResponse> => {
     const body = context.body;
 
-    console.log(`📊 AI 로그 관리 액션 (Memory-based): ${body.action}`);
+    debug.log(`📊 AI 로그 관리 액션 (Memory-based): ${body.action}`);
 
     const logStorage = getLogStorage();
 
@@ -331,7 +332,7 @@ export async function POST(request: NextRequest) {
   try {
     return await postHandler(request);
   } catch (error) {
-    console.error('❌ AI 로그 관리 API 오류 (Memory-based):', error);
+    debug.error('❌ AI 로그 관리 API 오류 (Memory-based):', error);
     return NextResponse.json(
       {
         success: false,

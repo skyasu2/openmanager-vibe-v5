@@ -10,6 +10,7 @@ import {
   withAdminAuth,
   type AuthenticatedRequest,
 } from '@/lib/api/auth-middleware';
+import debug from '@/utils/debug';
 
 // 대시보드 설정 타입
 interface DashboardConfig {
@@ -166,7 +167,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch {
-    console.error('대시보드 설정 조회 오류');
+    debug.error('대시보드 설정 조회 오류');
     return NextResponse.json(
       { error: '대시보드 설정을 조회할 수 없습니다.' },
       { status: 500 }
@@ -184,7 +185,7 @@ async function updateDashboardConfig(request: AuthenticatedRequest) {
 
     if (section) {
       // 특정 섹션 업데이트
-      console.log(
+      debug.log(
         `📊 Dashboard section ${section} updated by ${request.authInfo?.userId}`
       );
       return NextResponse.json({
@@ -197,7 +198,7 @@ async function updateDashboardConfig(request: AuthenticatedRequest) {
       });
     } else {
       // 전체 설정 업데이트
-      console.log(`📊 Dashboard config updated by ${request.authInfo?.userId}`);
+      debug.log(`📊 Dashboard config updated by ${request.authInfo?.userId}`);
       return NextResponse.json({
         success: true,
         message: '대시보드 설정이 업데이트되었습니다.',
@@ -207,7 +208,7 @@ async function updateDashboardConfig(request: AuthenticatedRequest) {
       });
     }
   } catch {
-    console.error('대시보드 설정 업데이트 오류');
+    debug.error('대시보드 설정 업데이트 오류');
     return NextResponse.json(
       { error: '대시보드 설정을 업데이트할 수 없습니다.' },
       { status: 500 }
@@ -225,7 +226,7 @@ async function resetDashboardConfig(request: AuthenticatedRequest) {
     // 기본 설정으로 초기화
     const resetConfig = DEFAULT_CONFIG;
 
-    console.log(`🔄 Dashboard config reset by ${request.authInfo?.userId}`);
+    debug.log(`🔄 Dashboard config reset by ${request.authInfo?.userId}`);
 
     return NextResponse.json({
       success: true,
@@ -252,7 +253,7 @@ async function replaceDashboardConfig(request: AuthenticatedRequest) {
   try {
     const body = await request.json();
 
-    console.log(`📊 Dashboard config replaced by ${request.authInfo?.userId}`);
+    debug.log(`📊 Dashboard config replaced by ${request.authInfo?.userId}`);
     return NextResponse.json({
       success: true,
       message: '대시보드 설정이 완전히 교체되었습니다.',
@@ -261,7 +262,7 @@ async function replaceDashboardConfig(request: AuthenticatedRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch {
-    console.error('대시보드 설정 교체 오류');
+    debug.error('대시보드 설정 교체 오류');
     return NextResponse.json(
       { error: '대시보드 설정을 교체할 수 없습니다.' },
       { status: 500 }

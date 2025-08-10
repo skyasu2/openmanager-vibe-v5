@@ -10,6 +10,7 @@
 import { abTestManager, type ABTestGroup } from '@/lib/ab-test-manager';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 // 🔒 타입 안전성을 위한 인터페이스 정의
 interface TrafficSplitParams {
@@ -114,7 +115,7 @@ export async function GET(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('❌ A/B 테스트 API GET 오류:', error);
+    debug.error('❌ A/B 테스트 API GET 오류:', error);
     return NextResponse.json(
       {
         success: false,
@@ -173,7 +174,7 @@ export async function POST(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('❌ A/B 테스트 API POST 오류:', error);
+    debug.error('❌ A/B 테스트 API POST 오류:', error);
     return NextResponse.json(
       {
         success: false,

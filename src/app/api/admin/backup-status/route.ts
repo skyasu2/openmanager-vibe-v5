@@ -10,6 +10,7 @@ import {
   withAdminAuth,
   type AuthenticatedRequest,
 } from '@/lib/api/auth-middleware';
+import debug from '@/utils/debug';
 
 /**
  * 🔄 관리자 백업 상태 API (인증 필요)
@@ -29,14 +30,14 @@ async function getBackupStatus(request: AuthenticatedRequest) {
       location: 'cloud-storage',
     };
 
-    console.log(`💾 Backup status requested by ${request.authInfo?.userId}`);
+    debug.log(`💾 Backup status requested by ${request.authInfo?.userId}`);
     return NextResponse.json({
       success: true,
       data: backupStatus,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('❌ 백업 상태 조회 실패:', error);
+    debug.error('❌ 백업 상태 조회 실패:', error);
     return NextResponse.json(
       {
         success: false,
@@ -58,7 +59,7 @@ async function manageBackup(request: AuthenticatedRequest) {
     const body = await request.json();
     const { action, backupId, settings } = body;
 
-    console.log(
+    debug.log(
       `💾 Backup action '${action}' requested by ${request.authInfo?.userId}`
     );
 
@@ -130,7 +131,7 @@ async function manageBackup(request: AuthenticatedRequest) {
         );
     }
   } catch (error) {
-    console.error('❌ 백업 관리 오류:', error);
+    debug.error('❌ 백업 관리 오류:', error);
     return NextResponse.json(
       {
         error: '백업 관리 중 오류가 발생했습니다',

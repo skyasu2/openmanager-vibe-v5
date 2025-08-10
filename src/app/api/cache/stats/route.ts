@@ -18,6 +18,7 @@ import {
 import { getErrorMessage } from '@/types/type-utils';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
@@ -122,7 +123,7 @@ const cacheStatsHandler = createApiRoute()
     if (process.env.NODE_ENV === 'development') {
       const validation = CacheStatsResponseSchema.safeParse(response);
       if (!validation.success) {
-        console.error('Cache stats response validation failed:', validation.error);
+        debug.error('Cache stats response validation failed:', validation.error);
       }
     }
 
@@ -133,7 +134,7 @@ export async function GET(request: NextRequest) {
   try {
     return await cacheStatsHandler(request);
   } catch (error) {
-    console.error('❌ Memory cache stats failed:', error);
+    debug.error('❌ Memory cache stats failed:', error);
 
     // 에러 응답도 타입 안전하게
     const errorResponse = {

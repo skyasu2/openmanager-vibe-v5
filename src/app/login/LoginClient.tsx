@@ -10,6 +10,7 @@
 import { User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import debug from '@/utils/debug';
 
 // Supabase Auth 관련 임포트
 import { signInWithGitHub } from '@/lib/supabase-auth';
@@ -75,7 +76,7 @@ export default function LoginClient() {
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isLoading) {
-        console.log('🛑 로딩 취소됨');
+        debug.log('🛑 로딩 취소됨');
         setIsLoading(false);
         setLoadingType(null);
         setLoadingMessage('');
@@ -101,7 +102,7 @@ export default function LoginClient() {
     // redirectTo 파라미터가 있으면 세션 스토리지에 저장
     if (redirectTo && redirectTo !== '/main') {
       sessionStorage.setItem('auth_redirect_to', redirectTo);
-      console.log('🔗 로그인 후 리다이렉트 URL 저장:', redirectTo);
+      debug.log('🔗 로그인 후 리다이렉트 URL 저장:', redirectTo);
     }
 
     if (error && message) {
@@ -133,7 +134,7 @@ export default function LoginClient() {
       document.cookie = `guest_session_id=${guestSession.sessionId}; path=/; max-age=${2 * 60 * 60}; SameSite=Lax${secureFlag}`;
       document.cookie = `auth_type=guest; path=/; max-age=${2 * 60 * 60}; SameSite=Lax${secureFlag}`;
 
-      console.log(
+      debug.log(
         '✅ 게스트 세션 저장 완료 (localStorage + 쿠키), 페이지 이동:',
         guestSession.user.name
       );
@@ -151,8 +152,8 @@ export default function LoginClient() {
       setLoadingType('github');
       setErrorMessage('');
 
-      console.log('🔐 GitHub OAuth 로그인 시작 (Supabase Auth)...');
-      console.log('🌍 현재 환경:', {
+      debug.log('🔐 GitHub OAuth 로그인 시작 (Supabase Auth)...');
+      debug.log('🌍 현재 환경:', {
         origin: window.location.origin,
         supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
         isLocal: window.location.origin.includes('localhost'),
@@ -162,7 +163,7 @@ export default function LoginClient() {
       const { error } = await signInWithGitHub();
 
       if (error) {
-        console.error('❌ GitHub 로그인 실패:', error);
+        debug.error('❌ GitHub 로그인 실패:', error);
 
         // 더 구체적인 에러 메시지
         let errorMsg = 'GitHub 로그인에 실패했습니다.';
@@ -180,7 +181,7 @@ export default function LoginClient() {
         }
 
         setErrorMessage(errorMsg);
-        console.log('🔧 디버깅 정보:', {
+        debug.log('🔧 디버깅 정보:', {
           errorMessage: errorMessage,
           errorCode: errorCode,
           currentUrl: window.location.href,
@@ -192,10 +193,10 @@ export default function LoginClient() {
         return;
       }
 
-      console.log('✅ GitHub OAuth 로그인 요청 성공 - 리다이렉트 중...');
+      debug.log('✅ GitHub OAuth 로그인 요청 성공 - 리다이렉트 중...');
       // 성공 시 자동으로 OAuth 리다이렉트됨
     } catch (error) {
-      console.error('❌ GitHub 로그인 에러:', error);
+      debug.error('❌ GitHub 로그인 에러:', error);
       setErrorMessage(
         '로그인 중 예상치 못한 오류가 발생했습니다. 게스트 모드를 이용해주세요.'
       );
@@ -213,7 +214,7 @@ export default function LoginClient() {
       setIsLoading(true);
       setLoadingType('guest');
 
-      console.log('👤 게스트 로그인 시작...');
+      debug.log('👤 게스트 로그인 시작...');
 
       // 게스트 인증 처리
       const result = await authManager.authenticateGuest();
@@ -222,11 +223,11 @@ export default function LoginClient() {
         // localStorage에 직접 접근하는 대신 상태를 업데이트
         setGuestSession({ sessionId: result.sessionId, user: result.user });
       } else {
-        console.error('게스트 로그인 실패:', result.error);
+        debug.error('게스트 로그인 실패:', result.error);
         alert('게스트 로그인에 실패했습니다. 다시 시도해주세요.');
       }
     } catch (error) {
-      console.error('게스트 로그인 실패:', error);
+      debug.error('게스트 로그인 실패:', error);
       alert('게스트 로그인에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsLoading(false);

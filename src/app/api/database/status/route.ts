@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api-auth';
+import debug from '@/utils/debug';
 
 // 데이터베이스 상태 시뮬레이션
 function getDatabaseStatus() {
@@ -79,7 +80,7 @@ async function getHandler(request: NextRequest) {
     const component = searchParams.get('component');
     const detailed = searchParams.get('detailed') === 'true';
 
-    console.log('🔍 Database status check requested:', { component, detailed });
+    debug.log('🔍 Database status check requested:', { component, detailed });
 
     const status = getDatabaseStatus();
 
@@ -141,7 +142,7 @@ async function getHandler(request: NextRequest) {
       }
     );
   } catch (error) {
-    console.error('❌ Database status GET error:', error);
+    debug.error('❌ Database status GET error:', error);
     return NextResponse.json(
       {
         success: false,
@@ -162,7 +163,7 @@ async function postHandler(request: NextRequest) {
   try {
     const { action } = await request.json();
 
-    console.log('🔧 Database action requested:', action);
+    debug.log('🔧 Database action requested:', action);
 
     switch (action) {
       case 'health_check': {
@@ -203,7 +204,7 @@ async function postHandler(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('❌ Database status POST error:', error);
+    debug.error('❌ Database status POST error:', error);
     return NextResponse.json(
       {
         success: false,
@@ -239,7 +240,7 @@ export async function GET_NEW(_request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('❌ 데이터베이스 상태 조회 실패:', error);
+    debug.error('❌ 데이터베이스 상태 조회 실패:', error);
     return NextResponse.json(
       {
         success: false,

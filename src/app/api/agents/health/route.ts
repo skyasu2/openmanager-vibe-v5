@@ -4,6 +4,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 export async function GET() {
   try {
@@ -65,7 +66,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error('Agent health check error:', error);
+    debug.error('Agent health check error:', error);
     return NextResponse.json(
       {
         success: false,

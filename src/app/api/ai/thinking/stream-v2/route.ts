@@ -10,6 +10,7 @@
 import { NextRequest } from 'next/server';
 import { supabaseRealtimeAdapter } from '@/services/ai/adapters/service-adapters';
 import type { ThinkingStep } from '@/services/ai/interfaces/distributed-ai.interface';
+import debug from '@/utils/debug';
 
 // Node.js Runtime 필요 (SSE 지원)
 export const runtime = 'nodejs';
@@ -57,7 +58,7 @@ export async function GET(req: NextRequest) {
           );
         }
       } catch (error) {
-        console.error('Failed to load existing steps:', error);
+        debug.error('Failed to load existing steps:', error);
       }
 
       // Heartbeat 타이머
@@ -67,7 +68,7 @@ export async function GET(req: NextRequest) {
         try {
           controller.enqueue(encoder.encode(': heartbeat\n\n'));
         } catch (error) {
-          console.error('Heartbeat error:', error);
+          debug.error('Heartbeat error:', error);
           cleanup();
         }
       }, STREAM_CONFIG.heartbeatInterval);
@@ -106,11 +107,11 @@ export async function GET(req: NextRequest) {
               controller.close();
             }
           } catch (error) {
-            console.error('Failed to send thinking step:', error);
+            debug.error('Failed to send thinking step:', error);
           }
         },
         (error) => {
-          console.error('Supabase subscription error:', error);
+          debug.error('Supabase subscription error:', error);
           controller.enqueue(
             encoder.encode(`event: error\ndata: ${JSON.stringify({ 
               error: 'Subscription failed' 

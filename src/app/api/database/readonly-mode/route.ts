@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 // 읽기 전용 모드 상태 관리
 let readOnlyMode = false;
@@ -8,7 +9,7 @@ let readOnlyStartTime: string | null = null;
 
 // 읽기 전용 모드 설정/해제
 async function setReadOnlyMode(enabled: boolean, reason?: string) {
-  console.log(
+  debug.log(
     `🔒 Setting database readonly mode: ${enabled ? 'ON' : 'OFF'}`,
     reason
   );
@@ -64,7 +65,7 @@ export async function GET(_request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('❌ Database readonly-mode GET error:', error);
+    debug.error('❌ Database readonly-mode GET error:', error);
     return NextResponse.json(
       {
         success: false,
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('🔧 Database readonly mode change requested:', {
+    debug.log('🔧 Database readonly mode change requested:', {
       enabled,
       reason,
       duration,
@@ -102,9 +103,9 @@ export async function POST(request: NextRequest) {
       setTimeout(async () => {
         try {
           await setReadOnlyMode(false, 'Auto-disable after duration');
-          console.log('⏰ ReadOnly mode auto-disabled after', duration, 'ms');
+          debug.log('⏰ ReadOnly mode auto-disabled after', duration, 'ms');
         } catch (error) {
-          console.error('❌ Failed to auto-disable readonly mode:', error);
+          debug.error('❌ Failed to auto-disable readonly mode:', error);
         }
       }, duration);
 
@@ -118,7 +119,7 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('❌ Database readonly-mode POST error:', error);
+    debug.error('❌ Database readonly-mode POST error:', error);
     return NextResponse.json(
       {
         success: false,
@@ -134,7 +135,7 @@ export async function PUT(request: NextRequest) {
   try {
     const { action } = await request.json();
 
-    console.log('🔧 Database readonly mode action requested:', action);
+    debug.log('🔧 Database readonly mode action requested:', action);
 
     switch (action) {
       case 'emergency_readonly': {
@@ -183,7 +184,7 @@ export async function PUT(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('❌ Database readonly-mode PUT error:', error);
+    debug.error('❌ Database readonly-mode PUT error:', error);
     return NextResponse.json(
       {
         success: false,

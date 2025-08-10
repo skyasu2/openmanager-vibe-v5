@@ -4,6 +4,7 @@ import {
 } from '@/config/free-tier-emergency-fix';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 /**
  * 🧹 무료티어 최적화 Cron 청소 작업
@@ -21,7 +22,7 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log('🧹 무료티어 청소 작업 시작...');
+    debug.log('🧹 무료티어 청소 작업 시작...');
 
     // 1. 할당량 리셋 (새로운 날)
     const quotaProtector = QuotaProtector.getInstance();
@@ -43,7 +44,7 @@ export async function GET(_request: NextRequest) {
       ],
     };
 
-    console.log('✅ 무료티어 청소 작업 완료:', cleanupResult);
+    debug.log('✅ 무료티어 청소 작업 완료:', cleanupResult);
 
     return NextResponse.json(
       {
@@ -54,7 +55,7 @@ export async function GET(_request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('❌ 무료티어 청소 작업 실패:', error);
+    debug.error('❌ 무료티어 청소 작업 실패:', error);
 
     return NextResponse.json(
       {
@@ -70,7 +71,7 @@ export async function GET(_request: NextRequest) {
 // POST 방식도 지원 (수동 청소)
 export async function POST(_request: NextRequest) {
   try {
-    console.log('🧹 수동 청소 작업 시작...');
+    debug.log('🧹 수동 청소 작업 시작...');
 
     // 즉시 메모리 정리
     MemoryMonitor.forceGarbageCollection();
@@ -90,7 +91,7 @@ export async function POST(_request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('❌ 수동 청소 작업 실패:', error);
+    debug.error('❌ 수동 청소 작업 실패:', error);
 
     return NextResponse.json(
       {

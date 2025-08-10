@@ -12,6 +12,7 @@ import { edgeAIRouter } from '@/services/ai/edge/edge-ai-router';
 import { unifiedResponseFormatter } from '@/services/ai/formatters/unified-response-formatter';
 import { supabaseRealtimeAdapter } from '@/services/ai/adapters/service-adapters';
 import type { EdgeRouterRequest } from '@/services/ai/interfaces/distributed-ai.interface';
+import debug from '@/utils/debug';
 
 // Edge Runtime 설정
 export const runtime = 'edge';
@@ -82,7 +83,7 @@ export async function POST(req: NextRequest) {
         timestamp: Date.now(),
       },
       userId
-    ).catch(console.warn); // 실패해도 계속 진행
+    ).catch(debug.warn); // 실패해도 계속 진행
 
     // 5. Edge Router 실행
     const startTime = Date.now();
@@ -106,7 +107,7 @@ export async function POST(req: NextRequest) {
           duration: Date.now() - startTime,
         },
         userId
-      ).catch(console.warn)
+      ).catch(debug.warn)
     );
 
     // 8. 응답 헤더 설정 (캐시 제어)
@@ -126,7 +127,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(unifiedResponse, { headers });
 
   } catch (error) {
-    console.error('Edge AI Route v2 Error:', error);
+    debug.error('Edge AI Route v2 Error:', error);
     
     // 에러 응답
     return NextResponse.json(

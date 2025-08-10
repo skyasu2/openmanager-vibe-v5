@@ -11,6 +11,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getMockSystem } from '@/mock';
+import debug from '@/utils/debug';
 
 // 🔒 타입 안전성을 위한 인터페이스 정의
 interface ServerMetrics {
@@ -65,7 +66,7 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error('❌ Failed to fetch metrics:', error);
+    debug.error('❌ Failed to fetch metrics:', error);
 
     return NextResponse.json(
       {
@@ -236,7 +237,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ PromQL 쿼리 실행 실패:', error);
+    debug.error('❌ PromQL 쿼리 실행 실패:', error);
     return NextResponse.json(
       {
         status: 'error',

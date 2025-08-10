@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 // 메모리 기반 서버 프로세스 데이터 스토어
 const serverProcessesStore = new Map<string, any>();
@@ -44,7 +45,7 @@ export async function GET(
       // 프로세스 데이터가 없으면 모의 데이터 생성
       processes = generateMockProcesses(serverId);
       serverProcessesStore.set(serverId, processes);
-      console.log(`🧠 메모리 기반 프로세스 데이터 생성: ${serverId}`);
+      debug.log(`🧠 메모리 기반 프로세스 데이터 생성: ${serverId}`);
     }
 
     return NextResponse.json({ 
@@ -59,7 +60,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error(
+    debug.error(
       `[API Error] Failed to fetch processes for server ${serverId}:`,
       error
     );

@@ -15,6 +15,7 @@ import { HealthCheckResponseSchema, type HealthCheckResponse } from '@/schemas/a
 import { getErrorMessage } from '@/types/type-utils';
 import { getSupabaseClient } from '@/lib/supabase/supabase-client';
 import { getCacheStats } from '@/lib/cache-helper';
+import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -35,14 +36,14 @@ async function checkDatabaseStatus(): Promise<'connected' | 'disconnected' | 'er
     const latency = Date.now() - startTime;
     
     if (error) {
-      console.error('❌ Database check failed:', error.message);
+      debug.error('❌ Database check failed:', error.message);
       return 'error';
     }
     
-    console.log(`✅ Database connected (latency: ${latency}ms)`);
+    debug.log(`✅ Database connected (latency: ${latency}ms)`);
     return 'connected';
   } catch (error) {
-    console.error('❌ Database check error:', error);
+    debug.error('❌ Database check error:', error);
     return 'error';
   }
 }
@@ -53,13 +54,13 @@ async function checkCacheStatus(): Promise<'connected' | 'disconnected' | 'error
     const stats = getCacheStats();
     
     if (stats.size >= 0) {
-      console.log(`✅ Cache operational (${stats.size}/${stats.maxSize} items, hit rate: ${stats.hitRate}%)`);
+      debug.log(`✅ Cache operational (${stats.size}/${stats.maxSize} items, hit rate: ${stats.hitRate}%)`);
       return 'connected';
     }
     
     return 'disconnected';
   } catch (error) {
-    console.error('❌ Cache check error:', error);
+    debug.error('❌ Cache check error:', error);
     return 'error';
   }
 }
@@ -73,7 +74,7 @@ async function checkAIStatus(): Promise<'connected' | 'disconnected' | 'error'> 
     
     if (!gcpMcpEnabled) {
       // MCP 비활성화 상태에서는 로컬 AI만 체크
-      console.log('✅ AI service operational (local mode)');
+      debug.log('✅ AI service operational (local mode)');
       return 'connected';
     }
     
@@ -92,19 +93,19 @@ async function checkAIStatus(): Promise<'connected' | 'disconnected' | 'error'> 
       const latency = Date.now() - startTime;
       
       if (response.ok) {
-        console.log(`✅ GCP VM AI connected (latency: ${latency}ms)`);
+        debug.log(`✅ GCP VM AI connected (latency: ${latency}ms)`);
         return 'connected';
       }
       
-      console.warn(`⚠️ GCP VM AI degraded (status: ${response.status})`);
+      debug.warn(`⚠️ GCP VM AI degraded (status: ${response.status})`);
       return 'disconnected';
     } catch {
       clearTimeout(timeoutId);
-      console.warn('⚠️ GCP VM AI disconnected, using local fallback');
+      debug.warn('⚠️ GCP VM AI disconnected, using local fallback');
       return 'disconnected';
     }
   } catch (error) {
-    console.error('❌ AI check error:', error);
+    debug.error('❌ AI check error:', error);
     return 'error';
   }
 }
@@ -196,7 +197,7 @@ const healthCheckHandler = createApiRoute()
     // 검증 (개발 환경에서 유용)
     const validation = HealthCheckResponseSchema.safeParse(response);
     if (!validation.success) {
-      console.error('Health check response validation failed:', validation.error);
+      debug.error('Health check response validation failed:', validation.error);
     }
 
     return response;
@@ -206,7 +207,7 @@ export async function GET(request: NextRequest) {
   try {
     return await healthCheckHandler(request);
   } catch (error) {
-    console.error('❌ Health check failed:', error);
+    debug.error('❌ Health check failed:', error);
 
     // 에러 응답도 타입 안전하게
     const errorResponse = {

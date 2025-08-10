@@ -31,6 +31,7 @@ import {
   type AIOptimizationStatus,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
+import debug from '@/utils/debug';
 
 // GET 핸들러
 const getHandler = createApiRoute()
@@ -122,7 +123,7 @@ const postHandler = createApiRoute()
       iterations = 3,
     } = context.body;
 
-    console.log(`🔬 성능 벤치마크 시작: ${mode} 모드, ${iterations}회 반복`);
+    debug.log(`🔬 성능 벤치마크 시작: ${mode} 모드, ${iterations}회 반복`);
 
     if (mode === 'comparison') {
       return await runComparisonBenchmark(queries, iterations);

@@ -23,6 +23,7 @@ import {
   type LocalContextBundle,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
+import debug from '@/utils/debug';
 
 // POST handler
 const postHandler = createApiRoute()
@@ -33,7 +34,7 @@ const postHandler = createApiRoute()
     enableLogging: true,
   })
   .build(async (_request, context): Promise<MCPContextIntegrationResponse> => {
-    console.log('🤖 MCP + RAG 통합 컨텍스트 요청 처리 시작...');
+    debug.log('🤖 MCP + RAG 통합 컨텍스트 요청 처리 시작...');
 
     const {
       query,
@@ -52,7 +53,7 @@ const postHandler = createApiRoute()
 
     // NLP 타입별 컨텍스트 제공
     if (nlpType) {
-      console.log(`🧠 자연어 처리 컨텍스트 제공: ${nlpType}`);
+      debug.log(`🧠 자연어 처리 컨텍스트 제공: ${nlpType}`);
 
       const nlpContext = await cloudContextLoader.getContextForNLP(
         query || '',
@@ -74,14 +75,14 @@ const postHandler = createApiRoute()
       responseData.processingType = 'nlp';
       responseData.nlpType = nlpType;
 
-      console.log(
+      debug.log(
         `✅ NLP 컨텍스트 완료: ${nlpContext.contextSources.length}개 소스`
       );
     } else {
       // 일반 컨텍스트 요청 처리
       switch (contextType) {
         case 'mcp': {
-          console.log('🔗 MCP 서버 컨텍스트 전용 요청');
+          debug.log('🔗 MCP 서버 컨텍스트 전용 요청');
           const mcpContext = await cloudContextLoader.queryMCPContextForRAG(
             query || '',
             {
@@ -99,7 +100,7 @@ const postHandler = createApiRoute()
         }
 
         case 'local': {
-          console.log('📚 로컬 컨텍스트 전용 요청');
+          debug.log('📚 로컬 컨텍스트 전용 요청');
           const localContexts = await Promise.all([
             cloudContextLoader.loadContextBundle('base'),
             cloudContextLoader.loadContextBundle('advanced'),
@@ -113,7 +114,7 @@ const postHandler = createApiRoute()
 
         case 'hybrid':
         default: {
-          console.log('🔄 하이브리드 컨텍스트 요청 (MCP + 로컬)');
+          debug.log('🔄 하이브리드 컨텍스트 요청 (MCP + 로컬)');
 
           // MCP 컨텍스트 조회
           const hybridMcpContext =
@@ -145,7 +146,7 @@ const postHandler = createApiRoute()
       }
     }
 
-    console.log(
+    debug.log(
       `✅ 통합 컨텍스트 제공 완료: ${responseData.contextSources?.length || 0}개 소스`
     );
 
@@ -167,7 +168,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ MCP + RAG 통합 컨텍스트 처리 실패:', error);
+    debug.error('❌ MCP + RAG 통합 컨텍스트 처리 실패:', error);
 
     return NextResponse.json(
       {
@@ -194,12 +195,12 @@ const getHandler = createApiRoute()
     enableLogging: true,
   })
   .build(async (_request, _context): Promise<MCPIntegrationStatusResponse> => {
-    console.log('📊 MCP + RAG 통합 상태 조회 시작...');
+    debug.log('📊 MCP + RAG 통합 상태 조회 시작...');
 
     const cloudContextLoader = CloudContextLoader.getInstance();
     const integratedStatus = await cloudContextLoader.getIntegratedStatus();
 
-    console.log(
+    debug.log(
       `✅ 통합 상태 조회 완료: MCP ${integratedStatus.mcpServer.status}`
     );
 
@@ -236,7 +237,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ 통합 상태 조회 실패:', error);
+    debug.error('❌ 통합 상태 조회 실패:', error);
 
     return NextResponse.json(
       {

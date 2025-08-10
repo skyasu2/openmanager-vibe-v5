@@ -14,6 +14,7 @@ import {
   type PaginatedServer,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
+import debug from '@/utils/debug';
 
 /**
  * 🖥️ Sequential Server Generation API (실제 서버데이터 생성기 연동)
@@ -48,14 +49,14 @@ function _formatUptime(hours: number): string {
 
 // 🚫 서버 데이터 생성기 초기화 비활성화 (서버리스 호환)
 const __initializeGenerator = async () => {
-  console.warn('⚠️ 서버 데이터 생성기 초기화 무시됨 - 서버리스 환경');
-  console.warn('📊 요청별 데이터 생성 사용 권장');
+  debug.warn('⚠️ 서버 데이터 생성기 초기화 무시됨 - 서버리스 환경');
+  debug.warn('📊 요청별 데이터 생성 사용 권장');
 
   // 🚫 전역 상태 관리 비활성화
   // await GCPRealDataService.getInstance()._initialize();
   // await GCPRealDataService.getInstance().startAutoGeneration();
 
-  console.log('🚫 서버리스 환경에서는 요청별 처리만 지원');
+  debug.log('🚫 서버리스 환경에서는 요청별 처리만 지원');
 };
 
 // 간단한 서버 상태 관리 (실제로는 데이터베이스 사용)
@@ -134,7 +135,7 @@ const getHandler = createApiRoute()
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('❌ Supabase 서버 데이터 조회 실패:', error);
+      debug.error('❌ Supabase 서버 데이터 조회 실패:', error);
       throw new Error(`Failed to fetch paginated servers: ${error.message}`);
     }
 
@@ -226,7 +227,7 @@ export async function GET(request: NextRequest) {
   try {
     return await getHandler(request);
   } catch (error) {
-    console.error('❌ 서버 Next API 오류:', error);
+    debug.error('❌ 서버 Next API 오류:', error);
     return NextResponse.json(
       {
         success: false,
@@ -326,7 +327,7 @@ export async function POST(request: NextRequest) {
   try {
     return await postHandler(request);
   } catch (error) {
-    console.error('❌ 서버 배치 작업 오류:', error);
+    debug.error('❌ 서버 배치 작업 오류:', error);
     return NextResponse.json(
       {
         success: false,

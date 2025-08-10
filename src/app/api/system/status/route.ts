@@ -17,6 +17,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 // 🚨 응급 조치: Edge Runtime 완전 비활성화 (Vercel Pro 사용량 위기)
 // export const runtime = 'edge'; // DISABLED - 사용량 급증 원인
@@ -64,7 +65,7 @@ class MemorySystemStateManager {
     if (this.systemState.isRunning && this.systemState.endTime > 0) {
       const now = Date.now();
       if (now >= this.systemState.endTime) {
-        console.log('⏰ 시스템 타이머 만료 - 자동 중지');
+        debug.log('⏰ 시스템 타이머 만료 - 자동 중지');
         this.systemState.isRunning = false;
         this.systemState.endTime = 0;
         this.systemState.startedBy = '';
@@ -93,7 +94,7 @@ class MemorySystemStateManager {
     // 시작한 사용자 활동 기록
     await this.updateUserActivity(userId);
 
-    console.log(`🚀 메모리 기반 시스템 시작: ${userId.substring(0, 12)}...`);
+    debug.log(`🚀 메모리 기반 시스템 시작: ${userId.substring(0, 12)}...`);
     return { ...this.systemState };
   }
 
@@ -107,7 +108,7 @@ class MemorySystemStateManager {
       lastActivity: Date.now(),
     };
 
-    console.log(`🛑 메모리 기반 시스템 중지: ${userId.substring(0, 12)}...`);
+    debug.log(`🛑 메모리 기반 시스템 중지: ${userId.substring(0, 12)}...`);
     return { ...this.systemState };
   }
 
@@ -139,7 +140,7 @@ class MemorySystemStateManager {
     }
 
     if (inactiveUsers.length > 0) {
-      console.log(`🧹 비활성 사용자 정리: ${inactiveUsers.length}명`);
+      debug.log(`🧹 비활성 사용자 정리: ${inactiveUsers.length}명`);
     }
   }
 
@@ -235,7 +236,7 @@ export async function GET(request: NextRequest) {
     const userId = getUserId(request);
     const _context = getRequestContext(request);
 
-    console.log(
+    debug.log(
       `🔄 시스템 상태 확인 (Memory-based) - 사용자: ${userId.substring(0, 12)}..., 소스: ${_context.source}`
     );
 
@@ -255,7 +256,7 @@ export async function GET(request: NextRequest) {
 
       // 🚨 시스템이 시작되지 않은 상태에서는 최소 응답 반환
       if (!systemState.isRunning) {
-        console.log('⏸️ 시스템 미시작 상태 - 최소 응답 반환 (Memory-based)');
+        debug.log('⏸️ 시스템 미시작 상태 - 최소 응답 반환 (Memory-based)');
         const minimalResponse = {
           success: true,
           timestamp: now,
@@ -358,7 +359,7 @@ export async function GET(request: NextRequest) {
       environment: systemState.environment,
     };
 
-    console.log(
+    debug.log(
       `✅ 상태 응답 (Memory-based) - 실행중: ${systemState.isRunning}, 활성사용자: ${systemState.activeUsers}명`
     );
 
@@ -375,7 +376,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ 시스템 상태 확인 실패:', error);
+    debug.error('❌ 시스템 상태 확인 실패:', error);
 
     return NextResponse.json(
       {
@@ -417,7 +418,7 @@ export async function POST(request: NextRequest) {
     const userId = bodyUserId || getUserId(request);
     const _context = getRequestContext(request);
 
-    console.log(
+    debug.log(
       `🎮 시스템 제어 요청 (Memory-based) - 액션: ${action}, 사용자: ${userId.substring(0, 12)}...`
     );
 
@@ -427,12 +428,12 @@ export async function POST(request: NextRequest) {
     switch (action) {
       case 'start':
         systemState = await systemStateManager.startSystem(userId);
-        console.log(`🚀 메모리 기반 시스템 시작됨 - 30분 타이머 활성화`);
+        debug.log(`🚀 메모리 기반 시스템 시작됨 - 30분 타이머 활성화`);
         break;
 
       case 'stop':
         systemState = await systemStateManager.stopSystem(userId);
-        console.log(`🛑 메모리 기반 시스템 중지됨`);
+        debug.log(`🛑 메모리 기반 시스템 중지됨`);
         break;
 
       default:
@@ -468,7 +469,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ 시스템 제어 실패:', error);
+    debug.error('❌ 시스템 제어 실패:', error);
 
     return NextResponse.json(
       {

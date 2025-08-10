@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,7 +10,7 @@ export const dynamic = 'force-dynamic';
  */
 export async function POST() {
   try {
-    console.log('🚀 데이터 생성기 시작 요청');
+    debug.log('🚀 데이터 생성기 시작 요청');
 
     // 목업 환경에서는 항상 성공으로 처리
     const response = {
@@ -24,11 +25,11 @@ export async function POST() {
       timestamp: Date.now(),
     };
 
-    console.log('✅ 데이터 생성기 시작 완료');
+    debug.log('✅ 데이터 생성기 시작 완료');
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('❌ 데이터 생성기 시작 실패:', error);
+    debug.error('❌ 데이터 생성기 시작 실패:', error);
 
     return NextResponse.json(
       {

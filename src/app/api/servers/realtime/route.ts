@@ -11,6 +11,7 @@
 import { getSupabaseClient } from '@/lib/supabase/supabase-client';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 // 기본 경고 생성 함수 (폴백용)
 function _createBasicFallbackWarning(dataSource: string, reason: string) {
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get('limit') || '8', 10);
 
   try {
-    console.log('🚀 실시간 서버 데이터 API - Supabase 실시간 모드');
+    debug.log('🚀 실시간 서버 데이터 API - Supabase 실시간 모드');
 
     // Supabase에서 서버 데이터 가져오기
     const supabase = getSupabaseClient();
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('❌ Supabase 실시간 서버 데이터 조회 실패:', error);
+      debug.error('❌ Supabase 실시간 서버 데이터 조회 실패:', error);
       throw new Error(`Failed to fetch realtime servers: ${error.message}`);
     }
 
@@ -95,7 +96,7 @@ export async function GET(request: NextRequest) {
         Math.max(realtimeServers.length, 1),
     };
 
-    console.log(
+    debug.log(
       `📊 요약 통계: 총 ${dashboardSummary.total}개, 온라인 ${dashboardSummary.online}개, 경고 ${dashboardSummary.warning}개, 위험 ${dashboardSummary.critical}개`
     );
 
@@ -150,7 +151,7 @@ export async function GET(request: NextRequest) {
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('❌ 실시간 서버 데이터 API 오류:', errorMessage);
+    debug.error('❌ 실시간 서버 데이터 API 오류:', errorMessage);
     return NextResponse.json(
       {
         success: false,
@@ -202,7 +203,7 @@ export async function POST(request: NextRequest) {
 
       case 'refresh': {
         // Supabase 데이터 새로고침 (캐시 정리)
-        console.log('🔄 실시간 서버 데이터 새로고침 요청');
+        debug.log('🔄 실시간 서버 데이터 새로고침 요청');
         return NextResponse.json({
           success: true,
           message: '실시간 서버 데이터가 새로고침되었습니다.',
@@ -216,7 +217,7 @@ export async function POST(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('❌ 실시간 서버 데이터 POST API 오류:', error);
+    debug.error('❌ 실시간 서버 데이터 POST API 오류:', error);
     return NextResponse.json(
       {
         success: false,

@@ -14,6 +14,7 @@ import {
 } from '@/lib/cache-helper';
 import { supabase as createClient } from '@/lib/supabase';
 import { createApiRoute } from '@/lib/api/zod-middleware';
+import debug from '@/utils/debug';
 import {
   CacheOptimizeRequestSchema,
   CacheWarmupResponseSchema,
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
   try {
     return await postHandler(request);
   } catch (error) {
-    console.error('❌ 캐시 최적화 실패:', error);
+    debug.error('❌ 캐시 최적화 실패:', error);
     return NextResponse.json(
       { success: false, error: '캐시 최적화 실패', message: getErrorMessage(error) },
       { status: 500 }

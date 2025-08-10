@@ -14,6 +14,7 @@ import { withAuth } from '@/lib/api-auth';
 import { supabase } from '@/lib/supabase/supabase-client';
 import { getCachedData, setCachedData } from '@/lib/cache-helper';
 import crypto from 'crypto';
+import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
 
@@ -581,7 +582,7 @@ async function postHandler(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('Intelligent monitoring error:', error);
+    debug.error('Intelligent monitoring error:', error);
     return NextResponse.json(
       {
         success: false,
@@ -618,7 +619,7 @@ async function getHandler(_request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Get status error:', error);
+    debug.error('Get status error:', error);
     return NextResponse.json(
       {
         success: false,

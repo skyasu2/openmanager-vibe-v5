@@ -293,7 +293,7 @@ export default function DashboardContent({
             <div className="mb-4 rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="_animate-pulse h-3 w-3 rounded-full bg-purple-500"></div>
+                  <div className="animate-pulse h-3 w-3 rounded-full bg-purple-500"></div>
                   <span className="font-medium text-purple-800">
                     🎭 DEMO MODE - 온프레미스 서버 시뮬레이션
                   </span>
@@ -319,7 +319,7 @@ export default function DashboardContent({
                   </div>
                   {serverStats.warning > 0 && (
                     <div className="flex items-center gap-1">
-                      <div className="_animate-pulse h-2 w-2 rounded-full bg-yellow-500"></div>
+                      <div className="animate-pulse h-2 w-2 rounded-full bg-yellow-500"></div>
                       <span className="text-yellow-600">
                         경고 {serverStats.warning}대
                       </span>
@@ -327,7 +327,7 @@ export default function DashboardContent({
                   )}
                   {serverStats.offline > 0 && (
                     <div className="flex items-center gap-1">
-                      <div className="_animate-pulse h-2 w-2 rounded-full bg-red-500"></div>
+                      <div className="animate-pulse h-2 w-2 rounded-full bg-red-500"></div>
                       <span className="text-red-600">
                         오프라인 {serverStats.offline}대
                       </span>
@@ -367,7 +367,7 @@ export default function DashboardContent({
                     <Suspense
                       fallback={
                         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
-                          <div className="_animate-pulse">
+                          <div className="animate-pulse">
                             <div className="mb-4 h-6 w-1/3 rounded bg-gray-200"></div>
                             <div className="space-y-3">
                               <div className="h-4 rounded bg-gray-200"></div>
@@ -389,7 +389,7 @@ export default function DashboardContent({
               <Suspense
                 fallback={
                   <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
-                    <div className="_animate-pulse">
+                    <div className="animate-pulse">
                       <div className="mb-4 h-4 rounded bg-gray-200"></div>
                       <div className="mb-4 h-4 rounded bg-gray-200"></div>
                       <div className="h-4 w-5/6 rounded bg-gray-200"></div>

@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import debug from '@/utils/debug';
 
 export default function AuthSuccessPage() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function AuthSuccessPage() {
   // 🚀 성능 측정 헬퍼
   const measureTime = (label: string, startTime: number) => {
     const duration = performance.now() - startTime;
-    console.log(`⏱️ ${label}: ${duration.toFixed(0)}ms`);
+    debug.log(`⏱️ ${label}: ${duration.toFixed(0)}ms`);
     setPerformanceMetrics((prev) => ({ ...prev, [label]: duration }));
     return duration;
   };
@@ -35,8 +36,8 @@ export default function AuthSuccessPage() {
       const totalStartTime = performance.now();
 
       try {
-        console.log('🎉 인증 성공 페이지 - 세션 확인 중...');
-        console.log('⏱️ 성능 측정 시작');
+        debug.log('🎉 인증 성공 페이지 - 세션 확인 중...');
+        debug.log('⏱️ 성능 측정 시작');
 
         // Vercel 환경 감지 (더 정확한 방법)
         const isVercel =
@@ -44,7 +45,7 @@ export default function AuthSuccessPage() {
           window.location.hostname.includes('.vercel.app') ||
           process.env.VERCEL === '1' ||
           process.env.VERCEL_ENV !== undefined;
-        console.log('🌍 환경:', {
+        debug.log('🌍 환경:', {
           isVercel,
           hostname: window.location.hostname,
           vercelEnv: process.env.VERCEL_ENV,
@@ -60,7 +61,7 @@ export default function AuthSuccessPage() {
           const unsubscribe = supabase.auth.onAuthStateChange(
             (event, session) => {
               if (event === 'SIGNED_IN' && session) {
-                console.log('🎉 이벤트 기반 세션 감지!');
+                debug.log('🎉 이벤트 기반 세션 감지!');
                 unsubscribe.data.subscription.unsubscribe();
                 resolve(true);
               }
@@ -83,7 +84,7 @@ export default function AuthSuccessPage() {
         measureTime('초기 세션 확인', sessionCheckStart);
 
         if (immediateSession || eventSession) {
-          console.log('✅ 세션 즉시 확인됨!');
+          debug.log('✅ 세션 즉시 확인됨!');
           // 세션이 있으면 바로 진행
         } else {
           // 세션이 없을 때만 최소한의 대기
@@ -102,13 +103,13 @@ export default function AuthSuccessPage() {
               Date.now() <
               60000)
         ) {
-          console.log('🔄 세션 새로고침 필요함...');
+          debug.log('🔄 세션 새로고침 필요함...');
           const { error: refreshError } = await supabase.auth.refreshSession();
           if (refreshError) {
-            console.warn('⚠️ 세션 새로고침 실패:', refreshError);
+            debug.warn('⚠️ 세션 새로고침 실패:', refreshError);
           }
         } else {
-          console.log('✅ 세션 새로고침 불필요 (유효한 세션 존재)');
+          debug.log('✅ 세션 새로고침 불필요 (유효한 세션 존재)');
         }
 
         measureTime('세션 새로고침', refreshStart);
@@ -132,7 +133,7 @@ export default function AuthSuccessPage() {
 
         if (!user && !error && maxRetries > 0) {
           // 첫 시도 실패 시만 재시도
-          console.log('⚠️ 첫 시도 실패, 한 번만 재시도...');
+          debug.log('⚠️ 첫 시도 실패, 한 번만 재시도...');
           setRetryCount(1);
 
           // 짧은 대기 후 재시도
@@ -148,11 +149,11 @@ export default function AuthSuccessPage() {
         measureTime('사용자 검증', validationStart);
 
         if (user && !error) {
-          console.log('✅ 사용자 검증 성공');
+          debug.log('✅ 사용자 검증 성공');
         }
 
         if (error) {
-          console.error('❌ 세션 확인 오류:', error);
+          debug.error('❌ 세션 확인 오류:', error);
           setStatus('error');
           setTimeout(
             () => router.push('/login?error=session_check_failed'),
@@ -162,13 +163,13 @@ export default function AuthSuccessPage() {
         }
 
         if (!user || !session) {
-          console.error('❌ 사용자 인증 실패');
+          debug.error('❌ 사용자 인증 실패');
           setStatus('error');
           setTimeout(() => router.push('/login?error=no_user'), 2000);
           return;
         }
 
-        console.log('✅ 사용자 인증 완료:', user.email);
+        debug.log('✅ 사용자 인증 완료:', user.email);
         setStatus('success');
 
         // 라우터 캐시 갱신 여러 번
@@ -182,7 +183,7 @@ export default function AuthSuccessPage() {
           sessionStorage.getItem('auth_redirect_to') || '/main';
         sessionStorage.removeItem('auth_redirect_to');
 
-        console.log('🚀 리다이렉트:', redirectTo);
+        debug.log('🚀 리다이렉트:', redirectTo);
 
         // 🍪 쿠키에 인증 상태 표시 (미들웨어에서 확인용)
         document.cookie = `auth_redirect_to=${encodeURIComponent(redirectTo)}; path=/; max-age=60; SameSite=Lax`;
@@ -205,7 +206,7 @@ export default function AuthSuccessPage() {
             document.cookie.includes('auth_redirect_to')
           ) {
             cookieReady = true;
-            console.log(`✅ 쿠키 준비 완료 (${elapsed}ms)`);
+            debug.log(`✅ 쿠키 준비 완료 (${elapsed}ms)`);
             break;
           }
           await new Promise((resolve) =>
@@ -214,14 +215,14 @@ export default function AuthSuccessPage() {
         }
 
         if (!cookieReady) {
-          console.log('⚠️ 쿠키 설정 타임아웃, 계속 진행...');
+          debug.log('⚠️ 쿠키 설정 타임아웃, 계속 진행...');
         }
 
         measureTime('쿠키 동기화', cookieStart);
 
         // 쿠키 상태 확인 로그
         const cookies = document.cookie;
-        console.log('🍪 리다이렉트 전 쿠키 상태:', {
+        debug.log('🍪 리다이렉트 전 쿠키 상태:', {
           hasCookies: cookies.length > 0,
           cookieCount: cookies.split(';').length,
           supabaseCookies: cookies
@@ -231,30 +232,30 @@ export default function AuthSuccessPage() {
         });
 
         // 🚀 Phase 2: 최종 검증 완전 생략 (이미 검증됨)
-        console.log('✅ 모든 검증 완료, 리다이렉트 준비...');
+        debug.log('✅ 모든 검증 완료, 리다이렉트 준비...');
 
         // 전체 소요 시간 측정
         const totalTime = measureTime('전체 인증 프로세스', totalStartTime);
-        console.log('📊 성능 요약:', performanceMetrics);
-        console.log(`🎯 총 소요 시간: ${totalTime.toFixed(0)}ms`);
+        debug.log('📊 성능 요약:', performanceMetrics);
+        debug.log(`🎯 총 소요 시간: ${totalTime.toFixed(0)}ms`);
 
         // 🔧 Vercel 환경에서 더 안정적인 리다이렉트 방법
-        console.log('🔄 리다이렉트 실행:', redirectTo);
+        debug.log('🔄 리다이렉트 실행:', redirectTo);
 
         // 쿠키 정리
         document.cookie = 'auth_in_progress=; path=/; max-age=0';
 
         if (isVercel) {
           // Vercel에서는 window.location.replace 사용 (히스토리 스택 교체)
-          console.log('🌍 Vercel 환경 - window.location.replace 사용');
+          debug.log('🌍 Vercel 환경 - window.location.replace 사용');
           window.location.replace(redirectTo);
         } else {
           // 로컬에서는 기존 방식 유지
-          console.log('🏠 로컬 환경 - window.location.href 사용');
+          debug.log('🏠 로컬 환경 - window.location.href 사용');
           window.location.href = redirectTo;
         }
       } catch (error) {
-        console.error('❌ 예상치 못한 오류:', error);
+        debug.error('❌ 예상치 못한 오류:', error);
         setStatus('error');
         setTimeout(() => router.push('/login?error=unexpected'), 3000);
       }

@@ -23,6 +23,7 @@ import {
   type ErrorSeverity,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
+import debug from '@/utils/debug';
 
 // 모의 에러 리포트 데이터 생성
 function generateMockErrorReports(count: number = 20): ErrorReport[] {
@@ -143,7 +144,7 @@ export async function GET(request: NextRequest) {
   try {
     return await getHandler(request);
   } catch (error) {
-    console.error('에러 리포트 조회 오류:', error);
+    debug.error('에러 리포트 조회 오류:', error);
     return NextResponse.json(
       { 
         error: '에러 리포트를 조회할 수 없습니다.',
@@ -202,7 +203,7 @@ export async function POST(request: NextRequest) {
   try {
     return await postHandler(request);
   } catch (error) {
-    console.error('에러 리포트 생성 오류:', error);
+    debug.error('에러 리포트 생성 오류:', error);
     return NextResponse.json(
       { 
         error: '에러 리포트를 생성할 수 없습니다.',

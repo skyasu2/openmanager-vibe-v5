@@ -11,6 +11,7 @@
  */
 
 import type { NextRequest } from 'next/server';
+import debug from '@/utils/debug';
 import {
   createSuccessResponse,
   createErrorResponse,
@@ -31,7 +32,7 @@ async function optimizeMemoryHandler(request: NextRequest) {
   const startTime = Date.now();
 
   try {
-    console.log('🧠 메모리 최적화 API 호출');
+    debug.log('🧠 메모리 최적화 API 호출');
 
     // 요청 본문에서 최적화 레벨 확인
     const body = await request.json().catch(() => ({}));
@@ -39,18 +40,18 @@ async function optimizeMemoryHandler(request: NextRequest) {
 
     // 현재 메모리 상태 확인
     const beforeStats = memoryOptimizer.getCurrentMemoryStats();
-    console.log(
+    debug.log(
       `📊 최적화 전: ${beforeStats.usagePercent}% (${beforeStats.heapUsed}MB/${beforeStats.heapTotal}MB)`
     );
 
     // 최적화 레벨에 따른 실행
     let optimizationResult;
     if (level === 'aggressive' || beforeStats.usagePercent > 80) {
-      console.log('🚀 극한 최적화 모드 실행');
+      debug.log('🚀 극한 최적화 모드 실행');
       optimizationResult =
         await memoryOptimizer.performAggressiveOptimization();
     } else {
-      console.log('🧠 일반 최적화 모드 실행');
+      debug.log('🧠 일반 최적화 모드 실행');
       optimizationResult = await memoryOptimizer.optimizeMemoryNow();
     }
 
@@ -126,7 +127,7 @@ async function optimizeMemoryHandler(request: NextRequest) {
       `메모리 최적화 완료 - ${afterStats.usagePercent}% (${targetAchieved ? '목표 달성' : '추가 최적화 필요'})`
     );
   } catch (error) {
-    console.error('❌ 메모리 최적화 실패:', error);
+    debug.error('❌ 메모리 최적화 실패:', error);
 
     // 에러 시에도 현재 메모리 상태 포함
     const currentStats = memoryOptimizer.getCurrentMemoryStats();
@@ -147,7 +148,7 @@ async function optimizeMemoryHandler(request: NextRequest) {
  */
 async function getMemoryStatusHandler(_request: NextRequest) {
   try {
-    console.log('📊 메모리 상태 조회 API 호출');
+    debug.log('📊 메모리 상태 조회 API 호출');
 
     // 메모리 상태 요약
     const memorySummary = memoryOptimizer.getMemorySummary();
@@ -179,7 +180,7 @@ async function getMemoryStatusHandler(_request: NextRequest) {
       '메모리 상태 조회 완료'
     );
   } catch (error) {
-    console.error('❌ 메모리 상태 조회 실패:', error);
+    debug.error('❌ 메모리 상태 조회 실패:', error);
     return createErrorResponse(
       `메모리 상태 조회 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
       'INTERNAL_SERVER_ERROR'

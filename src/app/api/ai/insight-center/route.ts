@@ -14,6 +14,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api-auth';
+import debug from '@/utils/debug';
 
 // Import all modular components
 import { 
@@ -88,7 +89,7 @@ async function getHandler(_request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Get status error:', error);
+    debug.error('Get status error:', error);
     return NextResponse.json(
       {
         success: false,
@@ -159,9 +160,9 @@ async function postHandler(request: NextRequest) {
       }
 
       // Performance Analysis
-      case 'identify_bottlenecks': {
-        const { metrics } = body;
-        const bottlenecks = identifyBottlenecks(metrics);
+      case 'analyze_bottlenecks': {
+        const { system_metrics } = body;
+        const bottlenecks = identifyBottlenecks(system_metrics);
         
         return NextResponse.json({
           success: true,
@@ -170,9 +171,9 @@ async function postHandler(request: NextRequest) {
         });
       }
 
-      case 'database_performance_analysis': {
-        const { database_metrics } = body;
-        const analysis = analyzeDatabasePerformance(database_metrics);
+      case 'database_performance': {
+        const { db_metrics } = body;
+        const analysis = analyzeDatabasePerformance(db_metrics);
         
         return NextResponse.json({
           success: true,
@@ -315,7 +316,7 @@ async function postHandler(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('Insight center error:', error);
+    debug.error('Insight center error:', error);
     return NextResponse.json(
       {
         success: false,

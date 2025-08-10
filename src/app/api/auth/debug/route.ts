@@ -10,6 +10,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
 
@@ -157,7 +158,7 @@ export async function GET(request: NextRequest) {
     };
 
     // 로그 출력
-    console.log('🔍 Auth Debug Info:', JSON.stringify(debugInfo, null, 2));
+    debug.log('🔍 Auth Debug Info:', JSON.stringify(debugInfo, null, 2));
 
     return NextResponse.json({
       status: 'debug_info',
@@ -178,7 +179,7 @@ export async function GET(request: NextRequest) {
       ].filter(Boolean),
     });
   } catch (error) {
-    console.error('❌ Auth debug error:', error);
+    debug.error('❌ Auth debug error:', error);
     return NextResponse.json(
       {
         status: 'error',
@@ -198,13 +199,13 @@ export async function POST(request: NextRequest) {
 
     // 현재 세션 확인
     const currentSession = await middlewareSupabase.auth.getSession();
-    console.log('📋 현재 세션:', currentSession.data.session ? '존재' : '없음');
+    debug.log('📋 현재 세션:', currentSession.data.session ? '존재' : '없음');
 
     // 세션 새로고침 시도
     const { data, error } = await middlewareSupabase.auth.refreshSession();
 
     if (error) {
-      console.error('❌ 세션 새로고침 실패:', error);
+      debug.error('❌ 세션 새로고침 실패:', error);
       return NextResponse.json(
         {
           success: false,
@@ -215,7 +216,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('✅ 세션 새로고침 성공');
+    debug.log('✅ 세션 새로고침 성공');
 
     return NextResponse.json({
       success: true,
@@ -230,7 +231,7 @@ export async function POST(request: NextRequest) {
       previousSession: !!currentSession.data.session,
     });
   } catch (error) {
-    console.error('❌ Session refresh error:', error);
+    debug.error('❌ Session refresh error:', error);
     return NextResponse.json(
       {
         success: false,

@@ -5,6 +5,7 @@ import type { Server } from '@/types/server';
 import { isMockMode, getMockHeaders } from '@/config/mock-config';
 import fs from 'fs';
 import path from 'path';
+import debug from '@/utils/debug';
 
 // Supabase hourly_server_states 테이블 타입 정의 - any 타입 제거
 interface HourlyServerState {
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'name';
     const sortOrder = searchParams.get('sortOrder') || 'asc';
     
-    console.log(`🔍 서버 목록 요청: page=${page}, limit=${limit}, search="${search}", status="${status}"`);
+    debug.log(`🔍 서버 목록 요청: page=${page}, limit=${limit}, search="${search}", status="${status}"`);
     
     // 정적 폴백 로더
     const loadStaticFallbackServers = (): Server[] => {
@@ -70,14 +71,14 @@ export async function GET(request: NextRequest) {
           return parsed.servers as Server[];
         }
       } catch (e) {
-        console.warn('⚠️ 정적 폴백 서버 로드 실패:', e);
+        debug.warn('⚠️ 정적 폴백 서버 로드 실패:', e);
       }
       return [] as Server[];
     };
 
     // Mock 모드: 무거운 회전/동적 목업 대신 정적 폴백 사용
     if (isMockMode()) {
-      console.log('🎭 Mock 모드 활성화됨 → 정적 폴백 사용');
+      debug.log('🎭 Mock 모드 활성화됨 → 정적 폴백 사용');
       let filteredServers = loadStaticFallbackServers();
       // 필터/정렬/페이지네이션
       if (search) {
@@ -145,9 +146,9 @@ export async function GET(request: NextRequest) {
       servers = cachedResult.servers;
       totalCount = cachedResult.totalCount;
       cacheHit = true;
-      console.log(`📦 캐시에서 데이터 로드됨: ${servers.length}개 서버`);
+      debug.log(`📦 캐시에서 데이터 로드됨: ${servers.length}개 서버`);
     } else {
-      console.log('🔄 Supabase에서 새 데이터 조회 중...');
+      debug.log('🔄 Supabase에서 새 데이터 조회 중...');
       
       // Supabase 클라이언트 가져오기
       const supabase = getSupabaseClient();
@@ -157,7 +158,7 @@ export async function GET(request: NextRequest) {
       const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
       
       if (!supabaseUrl || !supabaseKey || supabaseUrl === 'https://dummy.supabase.co') {
-        console.warn('⚠️ Supabase 환경변수 미설정 - 정적 폴백 사용');
+        debug.warn('⚠️ Supabase 환경변수 미설정 - 정적 폴백 사용');
         const fallback = loadStaticFallbackServers();
         return NextResponse.json(
           {
@@ -246,7 +247,7 @@ export async function GET(request: NextRequest) {
         .range((page - 1) * limit, page * limit - 1);
       
       if (error) {
-        console.error('❌ Supabase 쿼리 오류:', error);
+        debug.error('❌ Supabase 쿼리 오류:', error);
         // 에러 발생 시 정적 폴백 반환
         const fallback = loadStaticFallbackServers();
         return NextResponse.json(
@@ -320,7 +321,7 @@ export async function GET(request: NextRequest) {
       
       // 결과를 캐시에 저장 (60초 TTL) - totalCount 사용
       setCachedData(cacheKey, { servers, totalCount: totalCount || 0 }, 60);
-      console.log(`💾 새 데이터가 캐시에 저장됨: ${servers.length}개 서버, 전체: ${totalCount}개`);
+      debug.log(`💾 새 데이터가 캐시에 저장됨: ${servers.length}개 서버, 전체: ${totalCount}개`);
     }
     
     // 페이지네이션 정보 계산 (이미 DB에서 페이지네이션 적용됨)
@@ -335,7 +336,7 @@ export async function GET(request: NextRequest) {
     };
     
     const responseTime = Date.now() - startTime;
-    console.log(`📈 응답 시간: ${responseTime}ms (캐시: ${cacheHit ? 'HIT' : 'MISS'})`);
+    debug.log(`📈 응답 시간: ${responseTime}ms (캐시: ${cacheHit ? 'HIT' : 'MISS'})`);
     
     // 응답 헤더 생성
     const headers = new Headers({
@@ -387,7 +388,7 @@ export async function GET(request: NextRequest) {
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('❌ 서버 목록 조회 실패:', errorMessage);
+    debug.error('❌ 서버 목록 조회 실패:', errorMessage);
     
     const responseTime = Date.now() - startTime;
     

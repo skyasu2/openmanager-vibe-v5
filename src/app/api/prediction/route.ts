@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 /**
  * AI 예측 시스템 API
@@ -84,7 +85,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Prediction API Error:', error);
+    debug.error('Prediction API Error:', error);
 
     return NextResponse.json(
       {

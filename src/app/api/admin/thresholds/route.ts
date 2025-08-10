@@ -11,6 +11,7 @@ import {
   withAdminAuth,
   type AuthenticatedRequest,
 } from '@/lib/api/auth-middleware';
+import debug from '@/utils/debug';
 
 // 임계값 설정 기본값
 const _defaultThresholds = {
@@ -98,7 +99,7 @@ async function getThresholds(request: AuthenticatedRequest) {
       },
     };
 
-    console.log(
+    debug.log(
       `📊 Admin thresholds requested by: ${request.authInfo?.userId}`
     );
 
@@ -108,7 +109,7 @@ async function getThresholds(request: AuthenticatedRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Admin thresholds API error:', error);
+    debug.error('Admin thresholds API error:', error);
 
     return NextResponse.json(
       {
@@ -129,7 +130,7 @@ async function updateThresholds(request: AuthenticatedRequest) {
     const body = await request.json();
 
     // 임계값 업데이트 로직 (여기서는 시뮬레이션)
-    console.log(`🔧 Thresholds update by ${request.authInfo?.userId}:`, body);
+    debug.log(`🔧 Thresholds update by ${request.authInfo?.userId}:`, body);
 
     return NextResponse.json({
       success: true,
@@ -138,7 +139,7 @@ async function updateThresholds(request: AuthenticatedRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Admin thresholds update error:', error);
+    debug.error('Admin thresholds update error:', error);
 
     return NextResponse.json(
       {
@@ -172,7 +173,7 @@ async function updateSpecificThreshold(request: AuthenticatedRequest) {
     }
 
     // 실제 환경에서는 특정 카테고리/메트릭만 업데이트
-    console.log(
+    debug.log(
       `💾 Admin threshold ${category}.${metric} updated by ${request.authInfo?.userId}:`,
       updatedData
     );
@@ -185,7 +186,7 @@ async function updateSpecificThreshold(request: AuthenticatedRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('❌ Admin thresholds PUT error:', error);
+    debug.error('❌ Admin thresholds PUT error:', error);
     return NextResponse.json(
       {
         success: false,

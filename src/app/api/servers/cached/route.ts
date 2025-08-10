@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getCachedData, setCachedData } from '@/lib/cache-helper';
 import type { Server } from '@/types/server';
 import type { EnhancedServerMetrics } from '@/types/server';
+import debug from '@/utils/debug';
 
 export async function GET() {
   try {
@@ -118,7 +119,7 @@ export async function GET() {
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('캐시된 서버 데이터 조회 실패:', errorMessage);
+    debug.error('캐시된 서버 데이터 조회 실패:', errorMessage);
     
     return NextResponse.json(
       {

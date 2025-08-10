@@ -22,6 +22,7 @@ import {
   type AuthDiagnosticsResponse,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
+import debug from '@/utils/debug';
 
 // GET 핸들러
 const getHandler = createApiRoute()
@@ -31,27 +32,27 @@ const getHandler = createApiRoute()
     enableLogging: true,
   })
   .build(async (request, _context): Promise<AuthTestResponse> => {
-    console.log('🧪 Supabase Auth 설정 테스트 시작...');
+    debug.log('🧪 Supabase Auth 설정 테스트 시작...');
 
     // 중앙 집중식 Supabase 클라이언트 사용 (환경 변수 검증 포함)
 
     // 1. Supabase 연결 테스트
-    console.log('📡 Supabase 연결 테스트...');
+    debug.log('📡 Supabase 연결 테스트...');
     const { data: _connectionTest, error: connectionError } = await supabase
       .from('_supabase_migrations')
       .select('version')
       .limit(1);
 
     const connectionStatus = !connectionError;
-    console.log('📡 연결 상태:', connectionStatus ? '✅ 성공' : '❌ 실패');
+    debug.log('📡 연결 상태:', connectionStatus ? '✅ 성공' : '❌ 실패');
 
     // 2. Auth 설정 확인 (auth.users 테이블 접근 테스트)
-    console.log('🔐 Auth 스키마 접근 테스트...');
+    debug.log('🔐 Auth 스키마 접근 테스트...');
     const { data: authTest, error: authError } =
       await supabase.auth.getSession();
 
     // 3. GitHub OAuth URL 생성 테스트
-    console.log('🐙 GitHub OAuth URL 생성 테스트...');
+    debug.log('🐙 GitHub OAuth URL 생성 테스트...');
     const { data: oauthData, error: oauthError } =
       await supabase.auth.signInWithOAuth({
         provider: 'github',
@@ -86,7 +87,7 @@ const getHandler = createApiRoute()
       },
     };
 
-    console.log('🧪 테스트 결과:', testResults);
+    debug.log('🧪 테스트 결과:', testResults);
 
     // 전체 성공 여부 판단
     const allSystemsOperational =
@@ -120,7 +121,7 @@ export async function GET(request: NextRequest) {
   try {
     return await getHandler(request);
   } catch (error) {
-    console.error('💥 Auth 테스트 중 예상치 못한 오류:', error);
+    debug.error('💥 Auth 테스트 중 예상치 못한 오류:', error);
 
     return NextResponse.json(
       {
@@ -145,7 +146,7 @@ const postHandler = createApiRoute()
   .build(async (request, context): Promise<AuthDiagnosticsResponse> => {
     const { testType = 'full' } = context.body;
 
-    console.log('🔬 GitHub OAuth 상세 진단 시작...', testType);
+    debug.log('🔬 GitHub OAuth 상세 진단 시작...', testType);
 
     // 중앙 집중식 Supabase 클라이언트 사용
 
@@ -156,7 +157,7 @@ const postHandler = createApiRoute()
 
     // GitHub OAuth 제공자 설정 테스트
     if (testType === 'full' || testType === 'oauth') {
-      console.log('🐙 GitHub OAuth 상세 설정 확인...');
+      debug.log('🐙 GitHub OAuth 상세 설정 확인...');
 
       try {
         // OAuth URL 생성 및 검증
@@ -205,7 +206,7 @@ const postHandler = createApiRoute()
 
     // Auth 스키마 및 정책 테스트
     if (testType === 'full' || testType === 'auth') {
-      console.log('🔐 Auth 스키마 및 정책 확인...');
+      debug.log('🔐 Auth 스키마 및 정책 확인...');
 
       try {
         const { data: _userCount, error: userError } = await supabase
@@ -251,7 +252,7 @@ export async function POST(request: NextRequest) {
   try {
     return await postHandler(request);
   } catch (error) {
-    console.error('💥 OAuth 진단 중 오류:', error);
+    debug.error('💥 OAuth 진단 중 오류:', error);
 
     return NextResponse.json(
       {

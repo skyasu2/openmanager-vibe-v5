@@ -11,6 +11,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getRealTimeHub } from '@/core/realtime/RealTimeHub';
+import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -91,7 +92,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ 실시간 연결 조회 오류:', error);
+    debug.error('❌ 실시간 연결 조회 오류:', error);
     return NextResponse.json(
       {
         success: false,
@@ -165,7 +166,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ 실시간 연결 등록 오류:', error);
+    debug.error('❌ 실시간 연결 등록 오류:', error);
     return NextResponse.json(
       {
         success: false,
@@ -261,7 +262,7 @@ export async function PUT(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ 그룹 관리 오류:', error);
+    debug.error('❌ 그룹 관리 오류:', error);
     return NextResponse.json(
       {
         success: false,
@@ -329,7 +330,7 @@ export async function DELETE(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ 연결 해제 오류:', error);
+    debug.error('❌ 연결 해제 오류:', error);
     return NextResponse.json(
       {
         success: false,

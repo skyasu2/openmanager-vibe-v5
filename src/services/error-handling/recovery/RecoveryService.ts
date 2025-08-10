@@ -14,6 +14,7 @@ import type {
   RecoveryResult,
   ErrorHandlingConfig,
 } from '../types/ErrorTypes';
+import debug from '@/utils/debug';
 
 export class RecoveryService {
   private recoveryAttempts = new Map<string, number>();
@@ -70,12 +71,12 @@ export class RecoveryService {
       if (result.success) {
         // 성공 시 카운터 리셋
         this.recoveryAttempts.delete(errorKey);
-        console.log(`✅ 복구 성공: ${error.code} (${attempts + 1}번째 시도)`);
+        debug.log(`✅ 복구 성공: ${error.code} (${attempts + 1}번째 시도)`);
       }
 
       return result;
     } catch (recoveryError) {
-      console.error('복구 프로세스 실패:', recoveryError);
+      debug.error('복구 프로세스 실패:', recoveryError);
       return {
         success: false,
         attempts: this.recoveryAttempts.get(errorKey) || 0,
@@ -119,7 +120,7 @@ export class RecoveryService {
       this.defaultRecoveryConfig.maxDelay
     );
 
-    console.log(`⏰ 복구 백오프 지연: ${delay}ms (${attempts}번째 시도)`);
+    debug.log(`⏰ 복구 백오프 지연: ${delay}ms (${attempts}번째 시도)`);
     await new Promise(resolve => setTimeout(resolve, delay));
   }
 
@@ -171,7 +172,7 @@ export class RecoveryService {
   private async recoverFromNetworkError(
     error: ServiceError
   ): Promise<RecoveryResult> {
-    console.log('🌐 네트워크 에러 복구 시도');
+    debug.log('🌐 네트워크 에러 복구 시도');
 
     try {
       // 네트워크 연결 상태 확인
@@ -220,7 +221,7 @@ export class RecoveryService {
   private async recoverFromDatabaseError(
     error: ServiceError
   ): Promise<RecoveryResult> {
-    console.log('💾 데이터베이스 에러 복구 시도');
+    debug.log('💾 데이터베이스 에러 복구 시도');
 
     try {
       // 데이터베이스 상태 확인
@@ -262,7 +263,7 @@ export class RecoveryService {
   private async recoverFromTimeoutError(
     error: ServiceError
   ): Promise<RecoveryResult> {
-    console.log('⏰ 타임아웃 에러 복구 시도');
+    debug.log('⏰ 타임아웃 에러 복구 시도');
 
     try {
       // 더 긴 타임아웃으로 재시도
@@ -270,7 +271,7 @@ export class RecoveryService {
         ? error.context.timeout 
         : 5000;
       const extendedTimeout = baseTimeout * 2;
-      console.log(`⏱️ 확장된 타임아웃으로 재시도: ${extendedTimeout}ms`);
+      debug.log(`⏱️ 확장된 타임아웃으로 재시도: ${extendedTimeout}ms`);
 
       return {
         success: true,
@@ -295,7 +296,7 @@ export class RecoveryService {
   private async recoverFromMemoryCacheError(
     error: ServiceError
   ): Promise<RecoveryResult> {
-    console.log('🧠 메모리 캐시 에러 복구 시도');
+    debug.log('🧠 메모리 캐시 에러 복구 시도');
 
     try {
       // 메모리 상태 확인
@@ -337,7 +338,7 @@ export class RecoveryService {
   private async recoverFromExternalAPIError(
     error: ServiceError
   ): Promise<RecoveryResult> {
-    console.log('🌍 외부 API 에러 복구 시도');
+    debug.log('🌍 외부 API 에러 복구 시도');
 
     try {
       const apiUrl = error.context?.url;
@@ -391,11 +392,11 @@ export class RecoveryService {
   private async recoverFromWebSocketError(
     error: ServiceError
   ): Promise<RecoveryResult> {
-    console.log('🔌 WebSocket 에러 복구 시도');
+    debug.log('🔌 WebSocket 에러 복구 시도');
 
     try {
       // WebSocket 재연결 시도
-      console.log('🔄 WebSocket 재연결 시도');
+      debug.log('🔄 WebSocket 재연결 시도');
 
       // 폴링으로 폴백
       if (typeof window !== 'undefined') {
@@ -425,7 +426,7 @@ export class RecoveryService {
   private async recoverFromAIAgentError(
     error: ServiceError
   ): Promise<RecoveryResult> {
-    console.log('🤖 AI 에이전트 에러 복구 시도');
+    debug.log('🤖 AI 에이전트 에러 복구 시도');
 
     try {
       // AI 에이전트 상태 확인
@@ -466,7 +467,7 @@ export class RecoveryService {
   private async recoverFromMemoryError(
     error: ServiceError
   ): Promise<RecoveryResult> {
-    console.log('🧠 메모리 에러 복구 시도');
+    debug.log('🧠 메모리 에러 복구 시도');
 
     try {
       // 가비지 컬렉션 유도
@@ -502,7 +503,7 @@ export class RecoveryService {
   private async recoverFromDiskSpaceError(
     error: ServiceError
   ): Promise<RecoveryResult> {
-    console.log('💾 디스크 공간 에러 복구 시도');
+    debug.log('💾 디스크 공간 에러 복구 시도');
 
     try {
       // 브라우저 저장소 정리
@@ -516,7 +517,7 @@ export class RecoveryService {
 
         // IndexedDB 정리 (가능한 경우)
         if ('indexedDB' in window) {
-          console.log('🗂️ IndexedDB 정리 시도');
+          debug.log('🗂️ IndexedDB 정리 시도');
         }
       }
 
@@ -542,11 +543,11 @@ export class RecoveryService {
   private async recoverFromSystemOverloadError(
     error: ServiceError
   ): Promise<RecoveryResult> {
-    console.log('⚡ 시스템 과부하 에러 복구 시도');
+    debug.log('⚡ 시스템 과부하 에러 복구 시도');
 
     try {
       // 스로틀링 활성화
-      console.log('🐌 시스템 스로틀링 활성화');
+      debug.log('🐌 시스템 스로틀링 활성화');
 
       // 비중요 작업 일시 중단
       if (typeof window !== 'undefined') {
@@ -576,7 +577,7 @@ export class RecoveryService {
   private async attemptGenericRecovery(
     error: ServiceError
   ): Promise<RecoveryResult> {
-    console.log('🔧 일반적인 복구 시도');
+    debug.log('🔧 일반적인 복구 시도');
 
     try {
       // 기본 재시도 로직
@@ -628,6 +629,6 @@ export class RecoveryService {
   resetRecoveryState(): void {
     this.recoveryAttempts.clear();
     this.lastRecoveryTime.clear();
-    console.log('🔄 복구 상태 초기화 완료');
+    debug.log('🔄 복구 상태 초기화 완료');
   }
 }

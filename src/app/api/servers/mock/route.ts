@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getMockSystem, mockHelpers } from '@/mock';
 import type { Server } from '@/types/server';
+import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -127,7 +128,7 @@ export async function GET(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('❌ Mock API 오류:', error);
+    debug.error('❌ Mock API 오류:', error);
     
     return NextResponse.json(
       {
@@ -164,7 +165,7 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   } catch (error) {
-    console.error('❌ Mock API POST 오류:', error);
+    debug.error('❌ Mock API POST 오류:', error);
     
     return NextResponse.json(
       {

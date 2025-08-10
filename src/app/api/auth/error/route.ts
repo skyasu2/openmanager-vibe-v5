@@ -7,6 +7,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
   const error_code = searchParams.get('error_code');
   const error_description = searchParams.get('error_description');
 
-  console.error('🚨 Auth Error:', {
+  debug.error('🚨 Auth Error:', {
     error,
     error_code,
     error_description,

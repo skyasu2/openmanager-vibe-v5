@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-server';
+import debug from '@/utils/debug';
 
 export async function POST(_request: NextRequest) {
   try {
@@ -55,7 +56,7 @@ export async function POST(_request: NextRequest) {
     });
 
     if (createError) {
-      console.warn(
+      debug.warn(
         'RPC exec_sql not available, trying direct table creation...'
       );
 
@@ -144,7 +145,7 @@ export async function POST(_request: NextRequest) {
       sampleDataInserted: false,
     });
   } catch (error) {
-    console.error('Notes setup error:', error);
+    debug.error('Notes setup error:', error);
     return NextResponse.json(
       {
         error: 'Internal server error',
@@ -228,7 +229,7 @@ export async function GET(_request: NextRequest) {
       data: notesSetup,
     });
   } catch (error) {
-    console.error('노트 설정 조회 오류:', error);
+    debug.error('노트 설정 조회 오류:', error);
     return NextResponse.json(
       {
         success: false,
@@ -265,7 +266,7 @@ export async function DELETE(_request: NextRequest) {
       data: resetResult,
     });
   } catch (error) {
-    console.error('노트 설정 초기화 오류:', error);
+    debug.error('노트 설정 초기화 오류:', error);
     return NextResponse.json(
       {
         success: false,

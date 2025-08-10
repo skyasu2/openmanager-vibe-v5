@@ -31,6 +31,7 @@ import {
   SERVER_STATS,
 } from '../../../lib/enterprise-servers';
 import { getCacheService } from '@/lib/cache-helper';
+import debug from '@/utils/debug';
 
 /**
  * Enterprise API Endpoint
@@ -285,7 +286,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Enterprise API error:', error);
+    debug.error('Enterprise API error:', error);
 
     return NextResponse.json(
       {
@@ -338,7 +339,7 @@ export async function POST(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('❌ 엔터프라이즈 설정 오류:', error);
+    debug.error('❌ 엔터프라이즈 설정 오류:', error);
     return NextResponse.json(
       {
         error: '엔터프라이즈 설정 중 오류가 발생했습니다',

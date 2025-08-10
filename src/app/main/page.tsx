@@ -20,6 +20,7 @@ import {
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback, useMemo } from 'react';
+import debug from '@/utils/debug';
 
 const FeatureCardsGrid = dynamic(
   () => import('@/components/home/FeatureCardsGrid'),
@@ -82,14 +83,14 @@ export default function Home() {
 
     // 시스템 상태가 변경되면 로컬 상태도 동기화
     if (multiUserStatus?.isRunning && !isSystemStarted) {
-      console.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 시작됨');
+      debug.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 시작됨');
       startSystem(); // 로컬 상태 동기화
     } else if (
       multiUserStatus &&
       !multiUserStatus.isRunning &&
       isSystemStarted
     ) {
-      console.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 정지됨');
+      debug.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 정지됨');
       stopSystem(); // 로컬 상태 동기화
     }
 
@@ -140,10 +141,10 @@ export default function Home() {
           setCurrentUser(null);
         }
 
-        console.log('🔐 인증 상태:', { isGitHub, user });
+        debug.log('🔐 인증 상태:', { isGitHub, user });
         setAuthChecked(true);
       } catch (error) {
-        console.error('❌ 인증 확인 오류:', error);
+        debug.error('❌ 인증 확인 오류:', error);
       } finally {
         setAuthLoading(false);
       }
@@ -153,7 +154,7 @@ export default function Home() {
 
     // 인증 상태 변경 리스너
     authListener = onAuthStateChange(async (_session) => {
-      console.log('🔄 Auth 상태 변경 감지');
+      debug.log('🔄 Auth 상태 변경 감지');
       await checkAuth();
     });
 
@@ -168,7 +169,7 @@ export default function Home() {
 
     // 인증 체크 완료 후 사용자가 없으면 즉시 리다이렉션
     if (authChecked && !currentUser) {
-      console.log('🚨 인증 정보 없음 - 로그인 페이지로 이동');
+      debug.log('🚨 인증 정보 없음 - 로그인 페이지로 이동');
       router.replace('/login');
     }
   }, [isMounted, authLoading, authChecked, currentUser, router]);
@@ -177,7 +178,7 @@ export default function Home() {
   useEffect(() => {
     if (!isMounted) return;
 
-    console.log('🔍 Home - 시스템 상태 변화:', {
+    debug.log('🔍 Home - 시스템 상태 변화:', {
       isSystemStarted,
       aiAgentEnabled: aiAgent.isEnabled,
       aiAgentState: aiAgent.state,
@@ -197,7 +198,7 @@ export default function Home() {
 
     // 🚨 시스템이 시작된 후에만 상태 불일치 감지
     if (isSystemStarted && !aiAgent.isEnabled) {
-      console.warn(
+      debug.warn(
         '⚠️ 상태 불일치 감지: 시스템이 활성화되었지만 AI 에이전트가 비활성화됨'
       );
     }
@@ -298,14 +299,14 @@ export default function Home() {
 
   // 🚀 백그라운드 시스템 시작 함수 (사용자는 로딩 페이지에서 대기)
   const handleSystemStartBackground = useCallback(async () => {
-    console.log('🔄 백그라운드에서 시스템 시작 프로세스 실행');
+    debug.log('🔄 백그라운드에서 시스템 시작 프로세스 실행');
 
     try {
       // 1. 다중 사용자 상태 업데이트
       await startMultiUserSystem();
 
       // 2. 데이터 동기화 및 백업 체크 (시스템 시작 시에만)
-      console.log('🔄 시스템 시작 시 데이터 동기화 중...');
+      debug.log('🔄 시스템 시작 시 데이터 동기화 중...');
       try {
         const syncResponse = await fetch('/api/system/sync-data', {
           method: 'POST',
@@ -315,12 +316,12 @@ export default function Home() {
 
         if (syncResponse.ok) {
           const syncResult = await syncResponse.json();
-          console.log('✅ 데이터 동기화 완료:', syncResult);
+          debug.log('✅ 데이터 동기화 완료:', syncResult);
         } else {
-          console.warn('⚠️ 데이터 동기화 실패, 시스템 계속 진행');
+          debug.warn('⚠️ 데이터 동기화 실패, 시스템 계속 진행');
         }
       } catch (syncError) {
-        console.warn('⚠️ 데이터 동기화 중 오류:', syncError);
+        debug.warn('⚠️ 데이터 동기화 중 오류:', syncError);
       }
 
       // 3. 기존 시스템 시작 로직 실행
@@ -329,9 +330,9 @@ export default function Home() {
       // 4. 시스템 상태 새로고침
       await refreshSystemStatus();
 
-      console.log('✅ 백그라운드 시스템 시작 완료');
+      debug.log('✅ 백그라운드 시스템 시작 완료');
     } catch (error) {
-      console.error('❌ 백그라운드 시스템 시작 실패:', error);
+      debug.error('❌ 백그라운드 시스템 시작 실패:', error);
       setIsSystemStarting(false); // 실패 시 상태 초기화
       throw error; // 에러를 다시 던져서 호출자가 처리할 수 있도록
     }
@@ -346,7 +347,7 @@ export default function Home() {
       setSystemStartCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          console.log('🚀 카운트다운 완료 - 로딩 페이지로 이동');
+          debug.log('🚀 카운트다운 완료 - 로딩 페이지로 이동');
 
           // 백그라운드에서 시스템 시작 프로세스 실행 (비동기)
           handleSystemStartBackground();
@@ -365,7 +366,7 @@ export default function Home() {
   const _handleSystemStart = useCallback(async () => {
     if (isLoading || isSystemStarting) return;
 
-    console.log('🚀 직접 시스템 시작 프로세스 시작');
+    debug.log('🚀 직접 시스템 시작 프로세스 시작');
     setIsSystemStarting(true);
 
     try {
@@ -376,7 +377,7 @@ export default function Home() {
         router.push('/dashboard');
       }, 500);
     } catch (error) {
-      console.error('❌ 시스템 시작 실패:', error);
+      debug.error('❌ 시스템 시작 실패:', error);
       setIsSystemStarting(false); // 실패 시 상태 초기화
     }
   }, [isLoading, isSystemStarting, handleSystemStartBackground, router]);

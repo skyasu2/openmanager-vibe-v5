@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
+import debug from '@/utils/debug';
 
 // 부드러운 로딩 인디케이터 컴포넌트
 const SmoothLoadingSpinner = () => {
@@ -151,7 +152,7 @@ export default function SystemBootClient() {
   useEffect(() => {
     if (!isClient) return;
 
-    console.log('🚀 OpenManager 시스템 로딩 시작');
+    debug.log('🚀 OpenManager 시스템 로딩 시작');
 
     let systemReady = false;
     let animationCompleted = false;
@@ -163,14 +164,14 @@ export default function SystemBootClient() {
         const response = await fetch('/api/system/status?source=boot-check');
         if (response.ok) {
           const data = await response.json();
-          console.log('🔍 시스템 상태 체크:', {
+          debug.log('🔍 시스템 상태 체크:', {
             isRunning: data.isRunning,
             activeUsers: data.activeUsers,
             success: data.success,
           });
 
           if (data.success && data.isRunning && !systemReady) {
-            console.log('✅ 시스템이 준비되었습니다!');
+            debug.log('✅ 시스템이 준비되었습니다!');
             systemReady = true;
 
             // 애니메이션이 완료되었거나 최소 50% 진행되었으면 즉시 이동
@@ -180,10 +181,10 @@ export default function SystemBootClient() {
             return true;
           }
         } else {
-          console.log('⚠️ 시스템 상태 API 응답 오류:', response.status);
+          debug.log('⚠️ 시스템 상태 API 응답 오류:', response.status);
         }
       } catch {
-        console.log('🔄 시스템 상태 체크 중... (네트워크 오류)');
+        debug.log('🔄 시스템 상태 체크 중... (네트워크 오류)');
       }
       return false;
     };
@@ -216,7 +217,7 @@ export default function SystemBootClient() {
           // 마지막 단계 완료
           if (index === stages.length - 1) {
             animationCompleted = true;
-            console.log('🎬 로딩 애니메이션 완료');
+            debug.log('🎬 로딩 애니메이션 완료');
 
             // 시스템이 준비되었으면 즉시 이동, 아니면 추가 대기
             if (systemReady) {
@@ -227,7 +228,7 @@ export default function SystemBootClient() {
                 // 마지막으로 한 번 더 체크
                 const finalCheck = await checkSystemStatus();
                 if (!finalCheck) {
-                  console.log('⏰ 최대 대기 시간 초과 - 대시보드로 이동');
+                  debug.log('⏰ 최대 대기 시간 초과 - 대시보드로 이동');
                 }
                 handleBootComplete();
               }, 5000);
@@ -248,7 +249,7 @@ export default function SystemBootClient() {
 
   // 부팅 완료 - 부드러운 전환 후 대시보드로 이동
   const handleBootComplete = () => {
-    console.log('🎉 시스템 로딩 완료 - 대시보드로 이동');
+    debug.log('🎉 시스템 로딩 완료 - 대시보드로 이동');
     setBootState('completed');
 
     // 완료 상태 표시

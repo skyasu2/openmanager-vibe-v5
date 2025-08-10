@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import debug from '@/utils/debug';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -20,11 +21,11 @@ export default function AuthCallbackPage() {
       const startTime = performance.now();
 
       try {
-        console.log('🔐 OAuth 콜백 페이지 로드...');
-        console.log(
+        debug.log('🔐 OAuth 콜백 페이지 로드...');
+        debug.log(
           '⚡ Supabase가 자동으로 PKCE 처리합니다 (detectSessionInUrl: true)'
         );
-        console.log('🌍 환경:', {
+        debug.log('🌍 환경:', {
           origin: window.location.origin,
           pathname: window.location.pathname,
           search: window.location.search,
@@ -36,7 +37,7 @@ export default function AuthCallbackPage() {
         const error = urlParams.get('error');
 
         if (error) {
-          console.error('❌ OAuth 에러:', error);
+          debug.error('❌ OAuth 에러:', error);
           const errorDescription = urlParams.get('error_description');
           const _errorMessage = errorDescription || error;
 
@@ -57,7 +58,7 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        console.log('🔑 Supabase 자동 PKCE 처리 대기 중...');
+        debug.log('🔑 Supabase 자동 PKCE 처리 대기 중...');
 
         // 쿠키 설정 (리다이렉트 준비)
         document.cookie = `auth_in_progress=true; path=/; max-age=60; SameSite=Lax`;
@@ -78,13 +79,13 @@ export default function AuthCallbackPage() {
           sessionError = result.error;
 
           if (!session && attempts < maxAttempts - 1) {
-            console.log(`🔄 세션 확인 재시도 ${attempts + 1}/${maxAttempts}`);
+            debug.log(`🔄 세션 확인 재시도 ${attempts + 1}/${maxAttempts}`);
             await new Promise((resolve) => setTimeout(resolve, 1000));
           }
           attempts++;
         } while (!session && !sessionError && attempts < maxAttempts);
 
-        console.log('📊 세션 상태:', {
+        debug.log('📊 세션 상태:', {
           hasSession: !!session,
           sessionError: sessionError?.message,
           user: session?.user?.email,
@@ -92,8 +93,8 @@ export default function AuthCallbackPage() {
         });
 
         if (session?.user) {
-          console.log('✅ 세션 확인됨:', session.user.email);
-          console.log(
+          debug.log('✅ 세션 확인됨:', session.user.email);
+          debug.log(
             `⏱️ 콜백 처리 시간: ${(performance.now() - startTime).toFixed(0)}ms`
           );
 
@@ -102,7 +103,7 @@ export default function AuthCallbackPage() {
           document.cookie = `auth_verified=true; path=/; max-age=${60 * 60 * 24}; SameSite=Lax${isProduction ? '; Secure' : ''}`;
 
           // 바로 메인으로 이동
-          console.log('🚀 메인 페이지로 이동!');
+          debug.log('🚀 메인 페이지로 이동!');
 
           // 세션이 완전히 설정될 때까지 충분히 대기 (중요!)
           await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -112,14 +113,14 @@ export default function AuthCallbackPage() {
           const hasAuthToken = cookies.some(
             (c) => c.startsWith('sb-') && c.includes('auth-token')
           );
-          console.log('🍪 Auth 토큰 쿠키 확인:', hasAuthToken);
+          debug.log('🍪 Auth 토큰 쿠키 확인:', hasAuthToken);
 
           // 하드 리다이렉트로 쿠키가 제대로 전송되도록 보장
           window.location.href = '/main';
         } else {
           // 세션이 없는 경우
           if (sessionError) {
-            console.error('❌ 세션 에러:', sessionError.message);
+            debug.error('❌ 세션 에러:', sessionError.message);
 
             // 더 친화적인 에러 메시지
             let userMessage = '인증 처리 중 오류가 발생했습니다.';
@@ -135,7 +136,7 @@ export default function AuthCallbackPage() {
                 encodeURIComponent(userMessage)
             );
           } else {
-            console.log('⏳ PKCE 처리 중, 추가 대기...');
+            debug.log('⏳ PKCE 처리 중, 추가 대기...');
 
             // Vercel 환경에서는 더 긴 대기
             const isVercel = window.location.origin.includes('vercel.app');
@@ -146,16 +147,16 @@ export default function AuthCallbackPage() {
             // 한 번 더 세션 확인
             const finalCheck = await supabase.auth.getSession();
             if (finalCheck.data.session) {
-              console.log('✅ 최종 세션 확인 성공!');
+              debug.log('✅ 최종 세션 확인 성공!');
               window.location.href = '/main';
             } else {
-              console.log('⚠️ 세션 생성 실패, 로그인 페이지로 이동');
+              debug.log('⚠️ 세션 생성 실패, 로그인 페이지로 이동');
               router.push('/login?error=no_session&warning=no_session');
             }
           }
         }
       } catch (error) {
-        console.error('❌ OAuth 콜백 처리 오류:', error);
+        debug.error('❌ OAuth 콜백 처리 오류:', error);
         router.push('/login?error=callback_failed');
       }
     };

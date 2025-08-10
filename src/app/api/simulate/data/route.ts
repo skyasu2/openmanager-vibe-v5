@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 // 이 라우트는 동적이므로 정적 생성을 비활성화
 export const dynamic = 'force-dynamic';
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ 시뮬레이션 데이터 조회 실패:', error);
+    debug.error('❌ 시뮬레이션 데이터 조회 실패:', error);
     return NextResponse.json(
       {
         success: false,

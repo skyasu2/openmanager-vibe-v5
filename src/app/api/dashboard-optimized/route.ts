@@ -10,6 +10,7 @@ import {
   type DashboardOptimizedErrorResponse,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
+import debug from '@/utils/debug';
 
 /**
  * 🚀 최적화된 대시보드 API v2.0
@@ -28,7 +29,7 @@ const getHandler = createApiRoute()
   })
   .build(async (): Promise<DashboardOptimizedResponse> => {
     const startTime = Date.now();
-    console.log('📊 최적화된 대시보드 API 호출');
+    debug.log('📊 최적화된 대시보드 API 호출');
 
     // 목업 시스템에서 직접 데이터 가져오기
     const mockSystem = getMockSystem();
@@ -120,7 +121,7 @@ export async function GET(_request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ 최적화된 대시보드 API 오류:', error);
+    debug.error('❌ 최적화된 대시보드 API 오류:', error);
 
     const startTime = Date.now();
     const responseTime = Date.now() - startTime;

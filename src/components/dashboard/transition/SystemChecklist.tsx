@@ -13,6 +13,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import debug from '@/utils/debug';
 import {
   useSystemChecklist,
   type ComponentStatus,
@@ -245,14 +246,14 @@ export default function SystemChecklist({
       errors: [...prev.errors.slice(-4), errorInfo], // 최근 5개만 유지
     }));
 
-    // 콘솔에 상세 에러 로그
-    console.group(`🚨 SystemChecklist 에러: ${component}`);
-    console.error('에러 메시지:', error);
-    console.error('타임스탬프:', errorInfo.timestamp);
-    console.error('재시도 횟수:', errorInfo.retryCount);
-    if (stack) console.error('스택 트레이스:', stack);
-    console.error('컴포넌트 상태:', components[component] || 'unknown');
-    console.groupEnd();
+    // debug 유틸리티로 상세 에러 로그
+    debug.group(`🚨 SystemChecklist 에러: ${component}`);
+    debug.error('에러 메시지:', error);
+    debug.error('타임스탬프:', errorInfo.timestamp);
+    debug.error('재시도 횟수:', errorInfo.retryCount);
+    if (stack) debug.error('스택 트레이스:', stack);
+    debug.error('컴포넌트 상태:', components[component] || 'unknown');
+    debug.groupEnd();
   };
 
   // 🔍 성능 정보 업데이트
@@ -334,17 +335,15 @@ export default function SystemChecklist({
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key === 'r' || e.key === 'R') {
         e.preventDefault();
-        console.log('🔄 SystemChecklist 재시도 실행');
+        debug.log('🔄 SystemChecklist 재시도 실행');
         window.location.reload();
       }
 
       if (e.key === 'd' || e.key === 'D') {
         e.preventDefault();
         setShowDebugPanel(!showDebugPanel);
-        // 디버그 패널 토글 (개발 환경에서만 로그)
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🛠️ 디버그 패널 토글:', !showDebugPanel);
-        }
+        // 디버그 패널 토글
+        debug.log('🛠️ 디버그 패널 토글:', !showDebugPanel);
       }
     };
 
@@ -373,18 +372,18 @@ export default function SystemChecklist({
         );
         const status = components[componentId];
 
-        console.group(`🔍 컴포넌트 분석: ${component?.name || componentId}`);
-        console.log('컴포넌트 정의:', component);
-        console.log('현재 상태:', status);
-        console.log(
+        debug.group(`🔍 컴포넌트 분석: ${component?.name || componentId}`);
+        debug.log('컴포넌트 정의:', component);
+        debug.log('현재 상태:', status);
+        debug.log(
           '에러 히스토리:',
           debugInfo.errors.filter((e) => e.component === componentId)
         );
-        console.log(
+        debug.log(
           '네트워크 요청:',
           debugInfo.networkRequests.filter((r) => r.url.includes(componentId))
         );
-        console.groupEnd();
+        debug.groupEnd();
 
         return {
           component,
@@ -399,10 +398,10 @@ export default function SystemChecklist({
           .filter(([_, status]) => status.status === 'failed')
           .map(([id]) => id);
 
-        console.log('🔄 실패한 컴포넌트 재시도:', failedComponents);
+        debug.log('🔄 실패한 컴포넌트 재시도:', failedComponents);
 
         if (failedComponents.length === 0) {
-          console.log('✅ 실패한 컴포넌트 없음');
+          debug.log('✅ 실패한 컴포넌트 없음');
           return;
         }
 
@@ -429,38 +428,34 @@ export default function SystemChecklist({
           failedRequests: debugInfo.networkRequests.filter((r) => !r.success),
         };
 
-        if (process.env.NODE_ENV === 'development') {
-          console.group('🌐 네트워크 진단');
-          console.log('통계:', networkStats);
-          console.log('모든 요청:', debugInfo.networkRequests);
-          console.groupEnd();
-        }
+        debug.group('🌐 네트워크 진단');
+        debug.log('통계:', networkStats);
+        debug.log('모든 요청:', debugInfo.networkRequests);
+        debug.groupEnd();
 
         return networkStats;
       },
 
       // 성능 분석
       analyzePerformance: () => {
-        if (process.env.NODE_ENV === 'development') {
-          console.group('⚡ 성능 분석');
-          console.log(
-            '체크리스트 총 시간:',
-            debugInfo.performance.checklistDuration + 'ms'
-          );
-          console.log(
-            '가장 느린 컴포넌트:',
-            debugInfo.performance.slowestComponent
-          );
-          console.log(
-            '가장 빠른 컴포넌트:',
-            debugInfo.performance.fastestComponent
-          );
-          console.log(
-            '평균 응답 시간:',
-            debugInfo.performance.averageResponseTime + 'ms'
-          );
-          console.groupEnd();
-        }
+        debug.group('⚡ 성능 분석');
+        debug.log(
+          '체크리스트 총 시간:',
+          debugInfo.performance.checklistDuration + 'ms'
+        );
+        debug.log(
+          '가장 느린 컴포넌트:',
+          debugInfo.performance.slowestComponent
+        );
+        debug.log(
+          '가장 빠른 컴포넌트:',
+          debugInfo.performance.fastestComponent
+        );
+        debug.log(
+          '평균 응답 시간:',
+          debugInfo.performance.averageResponseTime + 'ms'
+        );
+        debug.groupEnd();
 
         return debugInfo.performance;
       },
@@ -475,14 +470,14 @@ export default function SystemChecklist({
           totalProgress,
         };
 
-        console.log('📤 디버그 정보 내보내기:', exportData);
+        debug.log('📤 디버그 정보 내보내기:', exportData);
 
         // 클립보드에 복사 (브라우저에서만)
         if (typeof navigator !== 'undefined' && navigator.clipboard) {
           navigator.clipboard
             .writeText(JSON.stringify(exportData, null, 2))
-            .then(() => console.log('📋 클립보드에 복사 완료'))
-            .catch((err) => console.error('📋 클립보드 복사 실패:', err));
+            .then(() => debug.log('📋 클립보드에 복사 완료'))
+            .catch((err) => debug.error('📋 클립보드 복사 실패:', err));
         }
 
         return exportData;
@@ -490,7 +485,7 @@ export default function SystemChecklist({
 
       // 강제 완료 (안전 장치)
       forceComplete: () => {
-        console.log('🚨 SystemChecklist 강제 완료 실행');
+        debug.log('🚨 SystemChecklist 강제 완료 실행');
         setShouldProceed(true);
         onComplete();
       },
@@ -520,17 +515,15 @@ export default function SystemChecklist({
       advancedDebugTools.forceComplete;
 
     // 개발 환경에서만 디버그 정보 출력
-    if (process.env.NODE_ENV === 'development') {
-      console.group('🛠️ SystemChecklist 개발자 도구 사용 가능');
-      console.log('기본 정보:', 'debugSystemChecklist');
-      console.log('고급 도구:', 'systemChecklistDebug.*');
-      console.log('강제 완료:', 'emergencyCompleteChecklist()');
-      console.log(
-        '디버그 패널:',
-        'D키 또는 systemChecklistDebug.toggleDebugPanel()'
-      );
-      console.groupEnd();
-    }
+    debug.group('🛠️ SystemChecklist 개발자 도구 사용 가능');
+    debug.log('기본 정보:', 'debugSystemChecklist');
+    debug.log('고급 도구:', 'systemChecklistDebug.*');
+    debug.log('강제 완료:', 'emergencyCompleteChecklist()');
+    debug.log(
+      '디버그 패널:',
+      'D키 또는 systemChecklistDebug.toggleDebugPanel()'
+    );
+    debug.groupEnd();
   }, [
     components,
     componentDefinitions,

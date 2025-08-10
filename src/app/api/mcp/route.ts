@@ -10,6 +10,7 @@
 
 import { z } from 'zod';
 import { createMcpHandler, type MCPServer } from '@/lib/mcp-handler';
+import debug from '@/utils/debug';
 
 // 🔒 타입 안전성을 위한 인터페이스 정의
 interface MCPHandlerArgs {
@@ -142,7 +143,7 @@ const sendTestMessageHandler = async (args: unknown, _extra: unknown) => {
   const { message, level } = messageSchema.parse(args);
 
   // 실제로는 로그 시스템이나 모니터링 시스템에 메시지를 전송
-  console.log(`[MCP Test ${level.toUpperCase()}] ${message}`);
+  debug.log(`[MCP Test ${level.toUpperCase()}] ${message}`);
 
   return {
     content: [

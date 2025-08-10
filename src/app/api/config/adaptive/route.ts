@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { adaptiveConfigManager } from '../../../../utils/VercelPlanDetector';
+import debug from '@/utils/debug';
 
 /**
  * 🎯 적응형 서버 구성 API
@@ -87,7 +88,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(adaptiveConfig);
   } catch (error) {
-    console.error('❌ 적응형 설정 조회 오류:', error);
+    debug.error('❌ 적응형 설정 조회 오류:', error);
     return NextResponse.json(
       {
         error: '적응형 설정 조회 중 오류가 발생했습니다',
@@ -143,7 +144,7 @@ export async function POST(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('❌ 적응형 설정 업데이트 오류:', error);
+    debug.error('❌ 적응형 설정 업데이트 오류:', error);
     return NextResponse.json(
       {
         error: '적응형 설정 업데이트 중 오류가 발생했습니다',
@@ -181,7 +182,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    console.log('🎛️ 성능 기반 구성 조정 시작...', performanceMetrics);
+    debug.log('🎛️ 성능 기반 구성 조정 시작...', performanceMetrics);
 
     // 성능 메트릭을 기반으로 구성 조정
     const adjustedConfig =

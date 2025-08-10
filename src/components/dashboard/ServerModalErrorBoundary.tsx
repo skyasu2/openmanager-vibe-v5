@@ -4,6 +4,7 @@ import type { ErrorInfo, ReactNode } from 'react';
 import React, { Component } from 'react';
 import { AlertTriangle, RefreshCw, X } from 'lucide-react';
 import { motion } from 'framer-motion';
+import debug from '@/utils/debug';
 
 interface Props {
   children: ReactNode;
@@ -35,7 +36,7 @@ class ServerModalErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('🚨 ServerModal Error:', error, errorInfo);
+    debug.error('🚨 ServerModal Error:', error, errorInfo);
     this.setState({
       error,
       errorInfo,

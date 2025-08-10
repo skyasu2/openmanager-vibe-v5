@@ -20,6 +20,7 @@ import {
   type MCPSyncResult,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
+import debug from '@/utils/debug';
 
 // POST 핸들러
 const postHandler = createApiRoute()
@@ -30,7 +31,7 @@ const postHandler = createApiRoute()
     enableLogging: true,
   })
   .build(async (_request, context): Promise<MCPSyncResponse> => {
-    console.log('🔄 MCP + RAG 동기화 요청 처리 시작...');
+    debug.log('🔄 MCP + RAG 동기화 요청 처리 시작...');
 
     // 스키마에 정의되지 않은 필드들을 선택적으로 처리
     const body = context.body as any;
@@ -53,7 +54,7 @@ const postHandler = createApiRoute()
 
     switch (syncType) {
       case 'full':
-        console.log('🔄 전체 컨텍스트 동기화 실행...');
+        debug.log('🔄 전체 컨텍스트 동기화 실행...');
         const rawSyncResult = await cloudContextLoader.syncContextWithRAG(ragEngineUrl);
         syncResult = {
           ...rawSyncResult,
@@ -63,7 +64,7 @@ const postHandler = createApiRoute()
         break;
 
       case 'mcp_only': {
-        console.log('🔗 MCP 서버 컨텍스트만 동기화...');
+        debug.log('🔗 MCP 서버 컨텍스트만 동기화...');
         const mcpContext = await cloudContextLoader.queryMCPContextForRAG(
           '전체 시스템 컨텍스트',
           {
@@ -100,7 +101,7 @@ const postHandler = createApiRoute()
       }
 
       case 'local_only': {
-        console.log('📚 로컬 컨텍스트만 동기화...');
+        debug.log('📚 로컬 컨텍스트만 동기화...');
         const localContexts = await Promise.all([
           cloudContextLoader.loadContextBundle('base'),
           cloudContextLoader.loadContextBundle('advanced'),
@@ -137,7 +138,7 @@ const postHandler = createApiRoute()
       }
 
       case 'incremental': {
-        console.log('📈 증분 동기화 실행...');
+        debug.log('📈 증분 동기화 실행...');
         // 실제 구현에서는 마지막 동기화 시간 이후 변경된 컨텍스트만 동기화
         const incrementalContext =
           await cloudContextLoader.queryMCPContextForRAG('최근 변경 컨텍스트', {
@@ -180,7 +181,7 @@ const postHandler = createApiRoute()
     // 동기화 후 통합 상태 조회
     const integratedStatus = await cloudContextLoader.getIntegratedStatus();
 
-    console.log(
+    debug.log(
       `✅ 동기화 완료: ${syncResult.syncedContexts}개 컨텍스트, ${syncResult.errors.length}개 오류`
     );
 
@@ -198,7 +199,7 @@ export async function POST(request: NextRequest) {
   try {
     return await postHandler(request);
   } catch (error) {
-    console.error('❌ MCP + RAG 동기화 실패:', error);
+    debug.error('❌ MCP + RAG 동기화 실패:', error);
 
     return NextResponse.json(
       {
@@ -225,12 +226,12 @@ const getHandler = createApiRoute()
     enableLogging: true,
   })
   .build(async (_request): Promise<MCPSyncStatusResponse> => {
-    console.log('📊 동기화 상태 조회 시작...');
+    debug.log('📊 동기화 상태 조회 시작...');
 
     const cloudContextLoader = CloudContextLoader.getInstance();
     const integratedStatus = await cloudContextLoader.getIntegratedStatus();
 
-    console.log(
+    debug.log(
       `✅ 동기화 상태 조회 완료: MCP ${integratedStatus.mcpServer.status}`
     );
 
@@ -285,7 +286,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ 동기화 상태 조회 실패:', error);
+    debug.error('❌ 동기화 상태 조회 실패:', error);
 
     return NextResponse.json(
       {

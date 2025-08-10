@@ -13,6 +13,7 @@ import { withAuth } from '@/lib/api-auth';
 import { supabase } from '@/lib/supabase/supabase-client';
 import { getCachedData, setCachedData } from '@/lib/cache-helper';
 import crypto from 'crypto';
+import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
 
@@ -420,11 +421,11 @@ async function postHandler(request: NextRequest) {
           
           if (error) {
             saveWarning = 'Failed to save report to database';
-            console.error('DB save error:', error);
+            debug.error('DB save error:', error);
           }
         } catch (error) {
           saveWarning = 'Failed to save report to database';
-          console.error('DB save error:', error);
+          debug.error('DB save error:', error);
         }
 
         // Handle notifications
@@ -497,7 +498,7 @@ async function postHandler(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('Incident report error:', error);
+    debug.error('Incident report error:', error);
     return NextResponse.json(
       {
         success: false,
@@ -561,7 +562,7 @@ async function getHandler(request: NextRequest) {
       });
     }
   } catch (error) {
-    console.error('Get incident reports error:', error);
+    debug.error('Get incident reports error:', error);
     return NextResponse.json(
       {
         success: false,

@@ -9,6 +9,7 @@
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import debug from '@/utils/debug';
 
 // 🔒 타입 안전성을 위한 인터페이스 정의
 interface MCPServerInfo {
@@ -59,7 +60,7 @@ interface HealthAlert {
 
 export async function GET(_request: NextRequest) {
   try {
-    console.log('🏥 MCP 서버 헬스체크 시작...');
+    debug.log('🏥 MCP 서버 헬스체크 시작...');
 
     const cloudContextLoader = CloudContextLoader.getInstance();
     const integratedStatus = await cloudContextLoader.getIntegratedStatus();
@@ -152,7 +153,7 @@ export async function GET(_request: NextRequest) {
       },
     };
 
-    console.log(
+    debug.log(
       `✅ MCP 헬스체크 완료: ${mcpServerInfo.status} (점수: ${healthScore})`
     );
 
@@ -163,7 +164,7 @@ export async function GET(_request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ MCP 헬스체크 실패:', error);
+    debug.error('❌ MCP 헬스체크 실패:', error);
 
     return NextResponse.json(
       {
@@ -191,7 +192,7 @@ export async function GET(_request: NextRequest) {
  */
 export async function POST(_request: NextRequest) {
   try {
-    console.log('🔄 강제 MCP 헬스체크 실행...');
+    debug.log('🔄 강제 MCP 헬스체크 실행...');
 
     const body = await _request.json();
     const { includeDetailed = true, testConnectivity = true } = body;
@@ -245,7 +246,7 @@ export async function POST(_request: NextRequest) {
       summary: generateHealthSummary(localSafeServerInfo),
     };
 
-    console.log(`✅ 강제 헬스체크 완료: ${localSafeServerInfo.status}`);
+    debug.log(`✅ 강제 헬스체크 완료: ${localSafeServerInfo.status}`);
 
     return NextResponse.json(response, {
       status: 200,
@@ -254,7 +255,7 @@ export async function POST(_request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('❌ 강제 헬스체크 실패:', error);
+    debug.error('❌ 강제 헬스체크 실패:', error);
 
     return NextResponse.json(
       {

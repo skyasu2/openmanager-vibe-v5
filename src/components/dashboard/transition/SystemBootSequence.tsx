@@ -10,6 +10,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect, memo } from 'react';
+import debug from '@/utils/debug';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import type { Server } from '../../../types/server';
@@ -61,7 +62,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
     // 최종 완료 처리 함수
     const handleFinalComplete = useCallback(() => {
       if (!isComplete) {
-        console.log('🎉 SystemBootSequence 완료 처리');
+        debug.log('🎉 SystemBootSequence 완료 처리');
         setIsComplete(true);
         onBootComplete();
       }
@@ -70,7 +71,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
     // 스킵 조건 체크
     useEffect(() => {
       if (skipAnimation) {
-        console.log('⚡ 애니메이션 스킵 - 즉시 완료');
+        debug.log('⚡ 애니메이션 스킵 - 즉시 완료');
         handleFinalComplete();
       }
     }, [skipAnimation, handleFinalComplete]);
@@ -79,7 +80,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
     useEffect(() => {
       if (!autoStart || skipAnimation || isComplete) return;
 
-      console.log('🎬 간단한 부팅 시퀀스 시작');
+      debug.log('🎬 간단한 부팅 시퀀스 시작');
 
       let stageTimer: NodeJS.Timeout;
       let progressTimer: NodeJS.Timeout;
@@ -91,7 +92,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
         }
 
         const stage = LOADING_STAGES[stageIndex];
-        console.log(`📊 ${stage.name} 시작`);
+        debug.log(`📊 ${stage.name} 시작`);
         setCurrentStage(stageIndex);
 
         // 진행률 업데이트
@@ -120,7 +121,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
 
       // 안전장치: 10초 후 강제 완료
       const safetyTimer = setTimeout(() => {
-        console.log('⏰ 안전장치 발동 - 강제 완료');
+        debug.log('⏰ 안전장치 발동 - 강제 완료');
         handleFinalComplete();
       }, 10000);
 
@@ -141,7 +142,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
     useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
         if (['Enter', ' ', 'Escape'].includes(e.key) && !isComplete) {
-          console.log(`🚀 ${e.key} 키로 즉시 완료`);
+          debug.log(`🚀 ${e.key} 키로 즉시 완료`);
           handleFinalComplete();
         }
       };
@@ -181,7 +182,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
       <div
         className="fixed inset-0 z-50 cursor-pointer bg-black"
         onClick={() => {
-          console.log('🖱️ 화면 클릭 - 즉시 완료 처리');
+          debug.log('🖱️ 화면 클릭 - 즉시 완료 처리');
           handleFinalComplete();
         }}
       >
@@ -278,7 +279,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      console.log('🚀 비상 완료 버튼 클릭');
+                      debug.log('🚀 비상 완료 버튼 클릭');
                       handleFinalComplete();
                     }}
                     className="w-full transform rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-3 text-sm font-medium transition-all duration-200 hover:scale-105 hover:from-blue-700 hover:to-purple-700 active:scale-95"

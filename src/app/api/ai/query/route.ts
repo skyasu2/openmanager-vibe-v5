@@ -16,12 +16,13 @@ import { withAuth } from '@/lib/api-auth';
 import { getCachedData, setCachedData } from '@/lib/cache-helper';
 import { supabase } from '@/lib/supabase/supabase-client';
 import crypto from 'crypto';
+import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
 
 // 엔진 초기화 (서버 시작 시 한 번만)
 const queryEngine = getSimplifiedQueryEngine();
-queryEngine._initialize().catch(console.error);
+queryEngine._initialize().catch(debug.error);
 
 interface AIQueryRequest {
   query: string;
@@ -75,7 +76,7 @@ async function logQuery(
       created_at: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Query logging failed:', error);
+    debug.error('Query logging failed:', error);
     // 로깅 실패는 무시 (API 응답에 영향 없음)
   }
 }
@@ -139,7 +140,7 @@ async function postHandler(request: NextRequest) {
       result = cachedResponse;
       cacheHit = true;
       responseTime = Date.now() - startTime;
-      console.log(`✅ 캐시 HIT: ${cacheKey}, 응답 시간: ${responseTime}ms`);
+      debug.log(`✅ 캐시 HIT: ${cacheKey}, 응답 시간: ${responseTime}ms`);
     } else {
       // 새로운 쿼리 실행
       // 모드별 기능 설정
@@ -214,11 +215,11 @@ async function postHandler(request: NextRequest) {
 
     // 성능 모니터링
     if (responseTime > 500) {
-      console.warn(
+      debug.warn(
         `⚠️ AI 쿼리 응답 시간 초과: ${responseTime}ms, 엔진: ${result.engine}`
       );
     } else {
-      console.log(
+      debug.log(
         `✅ AI 쿼리 처리 완료: ${responseTime}ms, 엔진: ${result.engine}, 캐시: ${result.metadata?.cacheHit ? 'HIT' : 'MISS'}`
       );
     }
@@ -252,7 +253,7 @@ async function postHandler(request: NextRequest) {
       headers,
     });
   } catch (error) {
-    console.error('❌ AI 쿼리 처리 실패:', error);
+    debug.error('❌ AI 쿼리 처리 실패:', error);
 
     // 타임아웃이나 에러 시 폴백 응답 제공
     const fallbackResponse = {
@@ -350,7 +351,7 @@ async function getHandler(_request: NextRequest) {
       }
     );
   } catch (error) {
-    console.error('❌ AI 쿼리 상태 조회 실패:', error);
+    debug.error('❌ AI 쿼리 상태 조회 실패:', error);
 
     return NextResponse.json(
       {

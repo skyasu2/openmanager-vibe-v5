@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getMockSystem } from '@/mock';
+import debug from '@/utils/debug';
 
 /**
  * 🚀 최적화된 서버 데이터 API v2.0
@@ -16,7 +17,7 @@ export async function GET(_request: NextRequest) {
   const startTime = Date.now();
 
   try {
-    console.log('🚀 최적화된 서버 데이터 API 호출');
+    debug.log('🚀 최적화된 서버 데이터 API 호출');
 
     // 목업 시스템에서 직접 데이터 가져오기
     const mockSystem = getMockSystem();
@@ -52,7 +53,7 @@ export async function GET(_request: NextRequest) {
           : systemInfo.scenario?.scenario || 'mixed',
     });
   } catch (error) {
-    console.error('❌ 최적화된 서버 API 오류:', error);
+    debug.error('❌ 최적화된 서버 API 오류:', error);
 
     const responseTime = Date.now() - startTime;
     return NextResponse.json(
