@@ -189,7 +189,7 @@ npm run analyze:bundle
 ### 🤖 AI 도구 및 통합
 
 - [Gemini 개발 도구 v5](./docs/gemini-dev-tools-v5-guide.md) 🚀 최신
-- [MCP 서버 완전 가이드](./docs/mcp-servers-complete-guide.md) 🆕 최신 CLI 기반
+- [MCP 개발 가이드 2025](./docs/mcp-development-guide-2025.md) 🆕 11개 서버 통합 가이드
 
 ## 🤖 Claude Code 서브 에이전트 시스템
 

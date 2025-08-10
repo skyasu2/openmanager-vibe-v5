@@ -48,6 +48,16 @@ npm-debug.log*
 *.log
 
 # 🔐 보안 및 민감한 정보 방지
+# 원본 환경 변수 파일 (제외)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# 암호화된 백업 파일 (추적)
+!.backup/
+!.backup/env.backup.*.enc
 # 환경변수 파일
 .env
 .env.local
