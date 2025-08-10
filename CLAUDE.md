@@ -188,6 +188,59 @@ npm run test:tdd-cleanup  # RED → GREEN 자동 정리
 
 자세한 내용: [`/docs/portfolio-security-guide.md`](/docs/portfolio-security-guide.md)
 
+## 🔒 환경 변수 암호화 백업 시스템
+
+**목적**: GitHub 동기화 시 환경 변수를 안전하게 공유하고 쉽게 복원
+
+### 핵심 기능
+
+- **암호화**: AES-256-CBC 알고리즘으로 환경 변수 파일 암호화
+- **백업**: GitHub Actions로 자동 백업 (매일 자정)
+- **복원**: 새 환경에서 비밀번호 입력으로 즉시 복원
+- **보안 수준**: 포트폴리오 프로젝트용 (GitHub 자동 감지 방지)
+
+### 빠른 사용법
+
+#### 1. 환경 변수 암호화
+```bash
+# Node.js 방식 (권장 - 자동 비밀번호 생성)
+node scripts/setup-env.js
+
+# Shell 방식 (Linux/Mac)
+./scripts/secure_env.sh encrypt "mypassword" .env.local .env.encrypted
+
+# Batch 방식 (Windows)
+scripts\secure_env.bat encrypt "mypassword" .env.local .env.encrypted
+```
+
+#### 2. 새 환경에서 복원
+```bash
+# 대화형 복원 (권장)
+node scripts/restore-env.js
+
+# Shell 방식
+./scripts/secure_env.sh decrypt "mypassword" .env.encrypted .env.local
+```
+
+### 파일 구조
+
+| 파일 | 용도 | Git 포함 |
+|------|------|----------|
+| `.env.local` | 실제 환경 변수 | ❌ 절대 금지 |
+| `.env.encrypted` | 암호화된 환경 변수 | ✅ 안전함 |
+| `.env.example` | 환경 변수 템플릿 | ✅ 안전함 |
+| `.backup/*.enc` | 타임스탬프 백업 | ✅ 안전함 |
+
+### 주의사항
+
+- 비밀번호는 별도 안전한 채널로 공유 (1Password, Slack DM 등)
+- 이 시스템은 포트폴리오 프로젝트용 실용적 솔루션
+- 프로덕션 환경에서는 AWS Secrets Manager, HashiCorp Vault 등 사용 권장
+
+**상세 가이드**: 
+- [`/docs/env-encryption-guide.md`](/docs/env-encryption-guide.md) - 전체 문서
+- [`/scripts/ENV_ENCRYPTION_QUICK_START.md`](/scripts/ENV_ENCRYPTION_QUICK_START.md) - 빠른 시작
+
 ### 타입 안전성 유틸리티
 
 타입 안전성을 위한 유틸리티 함수들이 `src/types/type-utils.ts`와 `src/types/react-utils.ts`에 정의되어 있습니다. getErrorMessage, safeArrayAccess, useSafeEffect 등을 활용하세요.
@@ -427,121 +480,56 @@ const timeInfo = await mcp__time__get_current_time({
 
 상세 가이드: [Time MCP 활용 가이드](/docs/time-mcp-usage-guide.md)
 
-## 🔧 MCP 서버 시스템 - 두 가지 독립적인 MCP 아키텍처
+## 🔧 MCP 서버 시스템
 
-### 📍 MCP 시스템 구분
+### 📍 현재 활성 MCP 서버 (11개)
 
-1. **Claude Code MCP (로컬)**: Windows WSL에서 실행되는 11개 개발 도구 서버
-2. **GCP VM MCP (클라우드)**: GCP VM에서 실행되는 Google AI 자연어 질의용 서버
+**2025년 8월 10일 기준**: 모든 서버 정상 연결 ✅
 
-### Claude Code MCP 서버 (WSL 로컬) - 11개 활성화 (2025.8.7 기준)
+| 서버명 | 용도 | 타입 |
+|--------|------|------|
+| `filesystem` | 파일 시스템 작업 | Node.js |
+| `memory` | 지식 그래프 관리 | Node.js |
+| `github` | GitHub 저장소 관리 | Node.js |
+| `supabase` | PostgreSQL 데이터베이스 | Node.js |
+| `tavily-remote` | 웹 검색 및 콘텐츠 추출 | Remote |
+| `sequential-thinking` | 복잡한 문제 해결 | Node.js |
+| `playwright` | 브라우저 자동화 | Node.js |
+| `time` | 시간/시간대 변환 | Python |
+| `context7` | 라이브러리 문서 검색 | Node.js |
+| `serena` | 고급 코드 분석 (LSP) | Python |
+| `shadcn-ui` | UI 컴포넌트 개발 | Node.js |
 
-| 서버명                | 상태         | 용도                   | 패키지                                                    |
-| --------------------- | ------------ | ---------------------- | --------------------------------------------------------- |
-| `filesystem`          | ✅ Connected | 파일 시스템 작업       | `@modelcontextprotocol/server-filesystem@latest`          |
-| `memory`              | ✅ Connected | 지식 그래프 관리       | `@modelcontextprotocol/server-memory@latest`              |
-| `github`              | ✅ Connected | GitHub 저장소 관리     | `@modelcontextprotocol/server-github@latest`              |
-| `supabase`            | ✅ Connected | 데이터베이스 작업      | `@supabase/mcp-server-supabase@latest`                    |
-| `tavily-remote`       | ✅ Connected | 웹 검색 및 콘텐츠 추출 | `mcp-remote` (URL 기반)                                   |
-| `sequential-thinking` | ✅ Connected | 복잡한 문제 해결       | `@modelcontextprotocol/server-sequential-thinking@latest` |
-| `playwright`          | ✅ Connected | 브라우저 자동화        | `@playwright/mcp@latest`                                  |
-| `time`                | ✅ Connected | 시간/시간대 변환       | `mcp-server-time` (Python)                                |
-| `context7`            | ✅ Connected | 라이브러리 문서 검색   | `@upstash/context7-mcp@latest`                            |
-| `serena`              | ✅ Connected | 고급 코드 분석         | `git+https://github.com/oraios/serena` (Python)           |
-| `shadcn-ui`           | ✅ Connected | UI 컴포넌트 개발       | `@jpisnice/shadcn-ui-mcp-server@latest`                   |
-
-### GCP VM MCP 서버 (클라우드) - Google AI 연동
-
-| 구분            | 설명                                       |
-| --------------- | ------------------------------------------ |
-| **위치**        | GCP e2-micro VM (104.154.205.25)           |
-| **포트**        | 10000 (MCP), 10001 (AI API)                |
-| **용도**        | Google AI API 자연어 질의 처리             |
-| **관련 서비스** | AI 백엔드 API, 캐싱 레이어, 스케줄러       |
-| **환경변수**    | `GCP_MCP_SERVER_URL`, `GCP_AI_BACKEND_URL` |
-
-### MCP 서버 설치 방법 (최신)
-
-**중요**: Claude Code v1.16.0부터 MCP 설정이 CLI 기반으로 변경되었습니다.
-
-#### 1. 기본 설치 명령어
+### 빠른 시작
 
 ```bash
-# Node.js 기반 서버
-claude mcp add <서버명> npx -- -y <패키지명>@latest
-
-# Python 기반 서버
-claude mcp add <서버명> uvx -- <패키지명 또는 git URL>
-
-# 환경변수가 필요한 경우
-claude mcp add <서버명> npx -e KEY=value -- -y <패키지명>@latest
-```
-
-#### 2. 실제 설치 예시
-
-```bash
-# filesystem 서버 (작업 디렉토리 지정)
-claude mcp add filesystem npx -- -y @modelcontextprotocol/server-filesystem@latest /mnt/d/cursor/openmanager-vibe-v5
-
-# GitHub 서버 (토큰 필요)
-claude mcp add github npx -e GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxxx -- -y @modelcontextprotocol/server-github@latest
-
-# Supabase 서버 (프로젝트 ID 필수)
-claude mcp add supabase npx -e SUPABASE_URL=https://xxxxx.supabase.co -e SUPABASE_SERVICE_ROLE_KEY=eyJhbGci... -- -y @supabase/mcp-server-supabase@latest --project-ref=xxxxx
-
-# Serena 서버 (프로젝트 경로 필요)
-claude mcp add serena uvx -- --from git+https://github.com/oraios/serena serena-mcp-server --context ide-assistant --project /mnt/d/cursor/openmanager-vibe-v5
-
-# Tavily Remote 서버 (API 키 포함 URL)
-claude mcp add tavily-remote npx -- -y mcp-remote https://mcp.tavily.com/mcp/?tavilyApiKey=tvly-dev-xxxxxx
-
-# shadcn-ui 서버 (UI/UX 개발)
-claude mcp add shadcn-ui npx -- -y @jpisnice/shadcn-ui-mcp-server@latest
-# GitHub 토큰으로 API 제한 완화 (선택사항)
-claude mcp add shadcn-ui npx -- -y @jpisnice/shadcn-ui-mcp-server@latest --github-api-key ghp_xxxxx
-```
-
-### MCP 서버 관리
-
-```bash
-# 서버 목록 및 상태 확인
+# MCP 서버 상태 확인
 claude mcp list
 
-# 서버 제거
+# 서버 추가/제거
+claude mcp add <서버명> <명령어>
 claude mcp remove <서버명>
 
-# 서버 상세 정보
-claude mcp get <서버명>
-
-# Claude API 재시작 (설정 반영)
+# API 재시작
 claude api restart
 ```
 
-### 설정 위치
+### 📚 상세 가이드
 
-- **CLI 설정**: `~/.claude.json`의 projects 섹션
-- **구 파일 설정**: `.claude/mcp.json` (더 이상 사용하지 않음)
+**통합 MCP 개발 가이드**: [`/docs/mcp-development-guide-2025.md`](/docs/mcp-development-guide-2025.md)
 
-⚠️ **중요**:
+이 문서에서 다루는 내용:
+- 11개 MCP 서버별 상세 설치 및 사용법
+- Serena MCP 고급 활용법 (코드 분석, 심볼 검색, 리팩토링)
+- 환경변수 관리 및 보안
+- 문제 해결 가이드
+- Best Practices 및 성능 최적화
 
-- MCP 서버 설정 후 Claude Code 재시작 필요
-- 환경변수는 `-e` 옵션으로 전달
-- Python 서버는 `uvx` 명령어 사용
+### 주요 특징
 
-### 문제 해결 가이드
-
-#### MCP 서버 연결 실패 시
-
-1. **패키지 버전 확인**: `@latest` 태그 사용 권장
-2. **환경변수 확인**: 토큰이나 API 키가 올바른지 확인
-3. **Python 서버**: `uvx --version` 확인 (0.8.0+ 필요)
-4. **재시작**: `claude api restart` 실행
-
-#### 자주 발생하는 문제
-
-- **"No MCP servers configured"**: CLI 설정으로 마이그레이션 필요
-- **"Failed to connect"**: 패키지가 npm에 없거나 권한 문제
-- **환경변수 인식 안됨**: `-e` 옵션으로 직접 전달 필요
+- **CLI 기반 관리**: v1.16.0부터 `claude mcp` 명령어로 통합 관리
+- **프로젝트별 독립 설정**: 각 프로젝트마다 독립적인 MCP 구성
+- **다양한 통합**: 파일 시스템, DB, 웹 검색, 브라우저 자동화, AI 분석 등
 
 ## 🤖 유용한 Sub Agents - 프로젝트 로컬 설정
 
