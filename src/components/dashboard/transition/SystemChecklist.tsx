@@ -203,7 +203,7 @@ export default function SystemChecklist({
   });
 
   const [showDebugPanel, setShowDebugPanel] = useState(
-    process.env.NODE_ENV === 'development'
+    process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV === 'development'
   );
 
   // 🔍 네트워크 요청 모니터링
@@ -675,7 +675,7 @@ export default function SystemChecklist({
                 onClick={() => {
                   if (
                     status.status === 'failed' &&
-                    process.env.NODE_ENV === 'development'
+                    process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV === 'development'
                   ) {
                     (window as any).systemChecklistDebug?.analyzeComponent(
                       component.id
@@ -754,7 +754,7 @@ export default function SystemChecklist({
               재시도 (R)
             </button>
 
-            {process.env.NODE_ENV === 'development' && (
+            {process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV === 'development' && (
               <button
                 onClick={() =>
                   (window as any).systemChecklistDebug?.diagnoseNetwork()

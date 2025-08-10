@@ -137,7 +137,7 @@ export class SettingsService {
    */
   private async fetchNotificationConfig() {
     // Vercel 환경에서는 콘솔 로깅만 지원
-    if (process.env.VERCEL === '1') {
+    if (process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.VERCEL === '1') {
       return { email: false, webhook: false };
     }
 
@@ -330,7 +330,7 @@ export class SettingsService {
 
   private getDefaultNotificationSettings() {
     // Vercel 환경에서는 콘솔 로깅만 지원
-    if (process.env.VERCEL === '1') {
+    if (process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.VERCEL === '1') {
       return { email: false, webhook: false };
     }
 

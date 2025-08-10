@@ -102,7 +102,7 @@ export default function AuthStatusChecker() {
         environment: {
           hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
           hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-          nodeEnv: process.env.NODE_ENV || 'unknown',
+          nodeEnv: process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV || 'unknown',
           isClient: typeof window !== 'undefined',
         },
       };
@@ -420,7 +420,7 @@ export default function AuthStatusChecker() {
       </Card>
 
       {/* 원시 데이터 (개발용) */}
-      {process.env.NODE_ENV === 'development' && (
+      {process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV === 'development' && (
         <Card>
           <CardHeader>
             <CardTitle>원시 데이터 (개발용)</CardTitle>

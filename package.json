@@ -143,9 +143,7 @@
     "dev:tmux": "bash scripts/dev-tmux.sh",
     "dev:tmux:enhanced": "bash scripts/dev-tmux-enhanced.sh",
     "dev:tmux:test": "AUTO_START_TEST_SERVER=true bash scripts/dev-tmux-enhanced.sh",
-    "dev:tmux:clean": "tmux kill-session -t openmanager-dev",
-    "env:setup": "node scripts/setup-env.js",
-    "env:restore": "node scripts/restore-env.js"
+    "dev:tmux:clean": "tmux kill-session -t openmanager-dev"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.3.1",
@@ -335,6 +333,5 @@
     "plugins": [
       "prettier-plugin-tailwindcss"
     ]
-  },
-  "auto-install-peers": true
+  }
 }

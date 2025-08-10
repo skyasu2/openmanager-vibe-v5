@@ -25,7 +25,9 @@ interface ProfileStore {
 
 // 개발 환경 설정
 const DEVELOPMENT_MODE =
-  process.env.NODE_ENV === 'development' || typeof window !== 'undefined';
+  process.env.NEXT_PUBLIC_NODE_ENV === 'development' || 
+  process.env.NODE_ENV === 'development' || 
+  typeof window !== 'undefined';
 const BYPASS_PASSWORD = true; // 항상 비밀번호 우회 허용
 
 export class AuthenticationService {

@@ -75,7 +75,7 @@ export function useServerMetrics() {
           setMetricsHistory(generateSimulatedHistory(range));
         }
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV === 'development') {
           console.error('히스토리 데이터 로드 실패:', error);
         }
         setMetricsHistory(generateSimulatedHistory(range));

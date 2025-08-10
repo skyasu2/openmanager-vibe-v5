@@ -1,108 +1,44 @@
 /**
- * 🌐 클라이언트 안전 환경변수 프록시
+ * 🌐 클라이언트 안전 환경변수 매니저
  *
- * 이 파일은 클라이언트와 서버 모두에서 안전하게 import할 수 있습니다.
- * 서버 전용 기능은 동적 import로 처리하여 클라이언트 번들에 포함되지 않습니다.
+ * 클라이언트와 서버 양쪽에서 안전하게 사용할 수 있는 환경변수 관리 시스템
+ * - 클라이언트: NEXT_PUBLIC_ 접두사가 있는 환경변수만 접근
+ * - 서버: 모든 환경변수 접근 가능
  */
 
-// 클라이언트/서버 공통 타입 정의
-export interface EnvValidationResult {
+// 환경변수 검증 결과 타입
+interface EnvValidationResult {
   valid: boolean;
   missing: string[];
+  warnings?: string[];
 }
 
-export interface EnvBackupResult {
-  success: boolean;
-  backupId?: string;
-  message: string;
-}
+export class ClientSafeEnvironmentManager {
+  private static instance: ClientSafeEnvironmentManager;
 
-export interface EnvRestoreResult {
-  success: boolean;
-  restored: Record<string, string>;
-  message: string;
-}
+  private constructor() {}
 
-/**
- * 🔧 환경변수 관리 프록시 클래스
- * 클라이언트에서는 더미 동작, 서버에서는 실제 기능 제공
- */
-export class EnvironmentManagerProxy {
-  private static instance: EnvironmentManagerProxy;
-
-  static getInstance(): EnvironmentManagerProxy {
-    if (!EnvironmentManagerProxy.instance) {
-      EnvironmentManagerProxy.instance = new EnvironmentManagerProxy();
+  public static getInstance(): ClientSafeEnvironmentManager {
+    if (!ClientSafeEnvironmentManager.instance) {
+      ClientSafeEnvironmentManager.instance = new ClientSafeEnvironmentManager();
     }
-    return EnvironmentManagerProxy.instance;
+    return ClientSafeEnvironmentManager.instance;
   }
 
   /**
-   * 📦 환경변수 백업 (서버 전용)
+   * 🌐 클라이언트 안전 환경변수 가져오기
+   * NEXT_PUBLIC_ 접두사가 있는 환경변수만 접근 가능
    */
-  async backupEnvironment(environment = 'current'): Promise<EnvBackupResult> {
-    // 클라이언트 사이드 체크
-    if (typeof window !== 'undefined') {
-      console.log('🌐 클라이언트 사이드 - 환경변수 백업 건너뜀');
-      return {
-        success: false,
-        message: '클라이언트에서는 환경변수 백업을 할 수 없습니다.',
-      };
+  public getSafeEnv(key: string): string | undefined {
+    // 클라이언트에서는 NEXT_PUBLIC_ 접두사가 있는 것만 허용
+    if (typeof window !== 'undefined' && !key.startsWith('NEXT_PUBLIC_')) {
+      console.warn(
+        `⚠️ 클라이언트에서 "${key}" 접근 시도. NEXT_PUBLIC_ 접두사가 필요합니다.`
+      );
+      return undefined;
     }
 
-    try {
-      // 서버에서만 동적 import
-      const { serverEnvManager } = await import('./server-only-env');
-      const backupId = await serverEnvManager.backupEnvironment(environment);
-
-      return {
-        success: !!backupId,
-        backupId: backupId || undefined,
-        message: backupId ? `백업 완료: ${backupId}` : '백업 실패',
-      };
-    } catch (error) {
-      console.error('❌ 환경변수 백업 실패:', error);
-      return {
-        success: false,
-        message: `백업 실패: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      };
-    }
-  }
-
-  /**
-   * 🔄 환경변수 복구 (서버 전용)
-   */
-  async restoreEnvironment(backupId: string): Promise<EnvRestoreResult> {
-    // 클라이언트 사이드 체크
-    if (typeof window !== 'undefined') {
-      console.log('🌐 클라이언트 사이드 - 환경변수 복구 건너뜀');
-      return {
-        success: false,
-        restored: {},
-        message: '클라이언트에서는 환경변수 복구를 할 수 없습니다.',
-      };
-    }
-
-    try {
-      // 서버에서만 동적 import
-      const { serverEnvManager } = await import('./server-only-env');
-      const restored = await serverEnvManager.restoreEnvironment(backupId);
-
-      return {
-        success: !!restored,
-        restored: restored || {},
-        message: restored
-          ? `복구 완료: ${Object.keys(restored).length}개 변수`
-          : '복구 실패',
-      };
-    } catch (error) {
-      console.error('❌ 환경변수 복구 실패:', error);
-      return {
-        success: false,
-        restored: {},
-        message: `복구 실패: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      };
-    }
+    return process.env[key];
   }
 
   /**
@@ -121,7 +57,7 @@ export class EnvironmentManagerProxy {
     try {
       // 서버에서만 동적 import
       const { serverEnvManager } = await import('./server-only-env');
-      return serverEnvManager.validateEnvironment();
+      return serverEnvManager.validateServerEnv();
     } catch (error) {
       console.error('❌ 환경변수 검증 실패:', error);
       return {
@@ -132,59 +68,84 @@ export class EnvironmentManagerProxy {
   }
 
   /**
-   * 🔧 환경변수 자동 복구 시스템 (서버 전용)
+   * 🎯 현재 환경 정보 가져오기
    */
-  async autoRecovery(missingVars: string[]): Promise<EnvRestoreResult> {
-    // 클라이언트 사이드 체크
-    if (typeof window !== 'undefined') {
-      return {
-        success: false,
-        restored: {},
-        message: '클라이언트에서는 자동 복구를 할 수 없습니다.',
-      };
-    }
+  public getEnvironmentInfo(): {
+    isProduction: boolean;
+    isDevelopment: boolean;
+    isTest: boolean;
+    isClient: boolean;
+    isServer: boolean;
+    isVercel: boolean;
+    nodeEnv: string;
+  } {
+    const nodeEnv = process.env.NODE_ENV || 'development';
+    
+    return {
+      isProduction: nodeEnv === 'production',
+      isDevelopment: nodeEnv === 'development',
+      isTest: nodeEnv === 'test',
+      isClient: typeof window !== 'undefined',
+      isServer: typeof window === 'undefined',
+      isVercel: process.env.VERCEL === '1',
+      nodeEnv,
+    };
+  }
 
-    try {
-      console.log('🔧 환경변수 자동 복구 시작...', missingVars);
+  /**
+   * 📊 디버그용 환경변수 리스트 (값은 마스킹)
+   */
+  public getDebugInfo(): Record<string, string> {
+    const info: Record<string, string> = {};
+    const envKeys = Object.keys(process.env);
 
-      // 기본값 설정 (하드코딩된 안전한 값들)
-      const defaultValues: Record<string, string> = {
-        AI_ENGINE_MODE: 'LOCAL',
-        SUPABASE_RAG_ENABLED: 'true',
-        KOREAN_NLP_ENABLED: 'true',
-        REDIS_CONNECTION_DISABLED: 'false',
-        FORCE_MOCK_REDIS: 'false',
-      };
+    // 클라이언트에서는 NEXT_PUBLIC_ 변수만
+    const filteredKeys = typeof window !== 'undefined'
+      ? envKeys.filter(key => key.startsWith('NEXT_PUBLIC_'))
+      : envKeys;
 
-      const restored: Record<string, string> = {};
-      let restoredCount = 0;
-
-      for (const varName of missingVars) {
-        if (defaultValues[varName]) {
-          process.env[varName] = defaultValues[varName];
-          restored[varName] = defaultValues[varName];
-          restoredCount++;
-          console.log(`✅ ${varName}: 기본값으로 복구됨`);
+    for (const key of filteredKeys) {
+      const value = process.env[key];
+      if (value) {
+        // 민감한 값은 마스킹
+        const isSensitive = key.includes('KEY') || 
+                          key.includes('SECRET') || 
+                          key.includes('TOKEN') ||
+                          key.includes('PASSWORD');
+        
+        if (isSensitive && value.length > 8) {
+          info[key] = `${value.substring(0, 4)}...${value.substring(value.length - 4)}`;
+        } else if (value.length > 20) {
+          info[key] = `${value.substring(0, 10)}...`;
+        } else {
+          info[key] = value;
         }
       }
-
-      return {
-        success: restoredCount > 0,
-        restored,
-        message: `자동 복구 완료: ${restoredCount}개 변수`,
-      };
-    } catch (error) {
-      console.error('❌ 환경변수 자동 복구 실패:', error);
-      return {
-        success: false,
-        restored: {},
-        message: `자동 복구 실패: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      };
     }
+
+    return info;
+  }
+
+  /**
+   * ✅ 필수 클라이언트 환경변수 체크
+   */
+  public checkRequiredClientEnvs(): {
+    valid: boolean;
+    missing: string[];
+  } {
+    const required = [
+      'NEXT_PUBLIC_SUPABASE_URL',
+      'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    ];
+
+    const missing = required.filter(key => !process.env[key]);
+
+    return {
+      valid: missing.length === 0,
+      missing,
+    };
   }
 }
 
-/**
- * 🔧 환경변수 관리 프록시 인스턴스 (클라이언트/서버 공통)
- */
-export const envManagerProxy = EnvironmentManagerProxy.getInstance();
+// 싱글톤 인스턴스 export
+export const clientEnvManager = ClientSafeEnvironmentManager.getInstance();

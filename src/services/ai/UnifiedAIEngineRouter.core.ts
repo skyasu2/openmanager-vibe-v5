@@ -225,7 +225,7 @@ export class UnifiedAIEngineRouter {
 
       // 4. 모드 기반 엔진 선택
       selectedEngine = this.config.preferredEngine;
-      processingPath.push(`mode_selected_${selectedEngine}`);
+      processingPath.push(`engine_selected_${selectedEngine}`);
 
       // 5. Circuit Breaker 확인 (Circuit Breaker Module)
       if (this.config.enableCircuitBreaker) {
@@ -291,6 +291,7 @@ export class UnifiedAIEngineRouter {
 
       // 최종 선언된 엔진 업데이트
       selectedEngine = currentEngine;
+      processingPath.push(`engine_final_selected_${selectedEngine}`);
 
       // 7. 응답 보안 필터링 (Security Module)
       if (this.config.enableSecurity) {

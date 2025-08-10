@@ -91,7 +91,7 @@ const fetchSystemHealth = async (): Promise<SystemHealth> => {
     timestamp: new Date().toISOString(),
     uptime: Math.floor(Math.random() * 86400), // 0-24시간
     version: '5.44.3',
-    environment: process.env.NODE_ENV || 'development',
+    environment: process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV || 'development',
     checks: {
       memory: {
         status: 'healthy',

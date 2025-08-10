@@ -158,7 +158,7 @@ export const PermissionUtils = {
    * 디버깅용 권한 정보 출력
    */
   debugPermissions: (permissions: UserPermissions): void => {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV === 'development') {
       console.group('🔐 User Permissions Debug');
       console.log('User Type:', permissions.userType);
       console.log('User Name:', permissions.userName);

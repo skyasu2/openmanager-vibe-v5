@@ -260,8 +260,11 @@ describe('UnifiedAIEngineRouter - Optimized Tests', () => {
       // 실제 타이머 사용으로 변경
       const result = await router.route({ ...complexQuery, userId: 'user-1' });
       
+      // 디버깅: 실제 selectedEngine과 processingPath 확인
       expect(result.routingInfo.selectedEngine).toBe('google-ai');
-      expect(result.routingInfo.processingPath).toContain('engine_selected_google-ai');
+      
+      // processingPath에 최종 선택된 엔진이 포함되었는지 확인
+      expect(result.routingInfo.processingPath).toContain('engine_final_selected_google-ai');
     }, TEST_TIMEOUT);
 
     it('should select local-rag engine for simple queries', async () => {

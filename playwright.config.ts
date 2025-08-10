@@ -1,4 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
+import { config } from 'dotenv';
+
+// 환경 변수 파일 로드 (.env.test 우선, .env.local 폴백)
+config({ path: '.env.test' });
+config({ path: '.env.local', override: false });
 
 /**
  * Playwright E2E 테스트 설정 - v5.44.0 개선판
@@ -81,11 +86,33 @@ export default defineConfig({
     reuseExistingServer: true, // 항상 기존 서버 재사용
     timeout: 60000, // 서버 시작 타임아웃 1분으로 단축
 
-    // 환경변수 설정
+    // 환경변수 설정 - dotenv로 로드된 환경변수 확인 및 전달
     env: {
-      NODE_ENV: 'test',
+      NODE_ENV: 'development', // instrumentation.ts 호환성을 위해 development 사용
       PORT: '3000',
       SKIP_ENV_VALIDATION: 'true',
+      
+      // Next.js devtools 비활성화 관련 환경변수들
+      __NEXT_DISABLE_DEVTOOLS: 'true',
+      NEXT_PRIVATE_STANDALONE: 'true', 
+      __NEXT_TEST_MODE: 'true',
+      
+      // dotenv로 로드된 환경변수를 명시적으로 전달 (빈 문자열 대신 실제 값 확인)
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      SUPABASE_JWT_SECRET: process.env.SUPABASE_JWT_SECRET!,
+      
+      // GitHub OAuth
+      GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID!,
+      GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET!,
+      NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET!,
+      NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
+      
+      // Mock 설정 (테스트 안정성)
+      MOCK_MODE: 'hybrid',
+      FORCE_MOCK_SUPABASE: 'false',
+      USE_REAL_SERVICES: 'true',
     },
   },
 

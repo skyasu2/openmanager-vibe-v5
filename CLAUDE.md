@@ -188,60 +188,7 @@ npm run test:tdd-cleanup  # RED → GREEN 자동 정리
 
 자세한 내용: [`/docs/portfolio-security-guide.md`](/docs/portfolio-security-guide.md)
 
-## 🔒 환경 변수 암호화 백업 시스템
-
-**목적**: GitHub 동기화 시 환경 변수를 안전하게 공유하고 쉽게 복원
-
-### 핵심 기능
-
-- **암호화**: AES-256-CBC 알고리즘으로 환경 변수 파일 암호화
-- **백업**: GitHub Actions로 자동 백업 (매일 자정)
-- **복원**: 새 환경에서 비밀번호 입력으로 즉시 복원
-- **보안 수준**: 포트폴리오 프로젝트용 (GitHub 자동 감지 방지)
-
-### 빠른 사용법
-
-#### 1. 환경 변수 암호화
-```bash
-# Node.js 방식 (권장 - 자동 비밀번호 생성)
-node scripts/setup-env.js
-
-# Shell 방식 (Linux/Mac)
-./scripts/secure_env.sh encrypt "mypassword" .env.local .env.encrypted
-
-# Batch 방식 (Windows)
-scripts\secure_env.bat encrypt "mypassword" .env.local .env.encrypted
-```
-
-#### 2. 새 환경에서 복원
-```bash
-# 대화형 복원 (권장)
-node scripts/restore-env.js
-
-# Shell 방식
-./scripts/secure_env.sh decrypt "mypassword" .env.encrypted .env.local
-```
-
-### 파일 구조
-
-| 파일 | 용도 | Git 포함 |
-|------|------|----------|
-| `.env.local` | 실제 환경 변수 | ❌ 절대 금지 |
-| `.env.encrypted` | 암호화된 환경 변수 | ✅ 안전함 |
-| `.env.example` | 환경 변수 템플릿 | ✅ 안전함 |
-| `.backup/*.enc` | 타임스탬프 백업 | ✅ 안전함 |
-
-### 주의사항
-
-- 비밀번호는 별도 안전한 채널로 공유 (1Password, Slack DM 등)
-- 이 시스템은 포트폴리오 프로젝트용 실용적 솔루션
-- 프로덕션 환경에서는 AWS Secrets Manager, HashiCorp Vault 등 사용 권장
-
-**상세 가이드**: 
-- [`/docs/env-encryption-guide.md`](/docs/env-encryption-guide.md) - 전체 문서
-- [`/scripts/ENV_ENCRYPTION_QUICK_START.md`](/scripts/ENV_ENCRYPTION_QUICK_START.md) - 빠른 시작
-
-### 타입 안전성 유틸리티
+## 📋 타입 안전성 유틸리티
 
 타입 안전성을 위한 유틸리티 함수들이 `src/types/type-utils.ts`와 `src/types/react-utils.ts`에 정의되어 있습니다. getErrorMessage, safeArrayAccess, useSafeEffect 등을 활용하세요.
 
@@ -517,6 +464,7 @@ claude api restart
 ### 📚 상세 가이드
 
 **통합 MCP 개발 가이드**: [`/docs/mcp-development-guide-2025.md`](/docs/mcp-development-guide-2025.md)
+**Serena MCP 설정 가이드**: [`/docs/serena-mcp-setup-guide-2025.md`](/docs/serena-mcp-setup-guide-2025.md) ✨ NEW
 
 이 문서에서 다루는 내용:
 - 11개 MCP 서버별 상세 설치 및 사용법
@@ -839,5 +787,5 @@ codex "Design scalable microservices architecture with CQRS"
 - 무료 티어 사용률: Vercel 30%, GCP 15%, Supabase 3%
 - GCP Functions: 3개 배포 완료, Python 3.11 최적화
 - 서브에이전트: 17개 최적화 (gcp-vm-specialist, dev-environment-manager 추가)
-- MCP 서버: Claude Code용 11개 (WSL) + GCP VM MCP (Google AI용) 안정 운영
+- MCP 서버: **Claude Code용 11개 모두 정상 연결** ✅ (Serena 포함)
 - Gemini CLI 통합: WSL 터미널 직접 대화 지원, 1M 토큰 활용

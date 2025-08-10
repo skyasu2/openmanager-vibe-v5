@@ -69,7 +69,7 @@ export function useClientMetrics() {
 
   // 개발 환경에서 메트릭 로그 출력
   const logMetrics = useCallback(() => {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV === 'development') {
       console.log('[Client Metrics]', getMetrics());
     }
   }, [getMetrics]);

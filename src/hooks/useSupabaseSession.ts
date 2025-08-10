@@ -195,7 +195,7 @@ export async function signIn(
         redirectTo,
         provider: 'github',
         supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-        environment: process.env.NODE_ENV,
+        environment: process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV,
       });
 
       const { error } = await supabase.auth.signInWithOAuth({

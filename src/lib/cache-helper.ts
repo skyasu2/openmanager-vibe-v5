@@ -111,6 +111,10 @@ class MemoryCacheService {
     };
   }
 
+  resetStats(): void {
+    this.stats = { hits: 0, misses: 0, sets: 0, deletes: 0 };
+  }
+
   private evictLeastRecentlyUsed(): void {
     let leastUsedKey = '';
     let leastHits = Infinity;
@@ -294,6 +298,46 @@ export async function cacheOrFetchMany<T>(
     console.error('배치 캐시 조회 실패, 전체 페칭:', error);
     return Promise.all(items.map(item => item.fetcher()));
   }
+}
+
+/**
+ * 캐시 데이터 조회 또는 fallback 실행
+ * 캐시에 데이터가 없으면 fallback 함수를 실행하고 결과를 캐싱
+ */
+export async function getCachedDataWithFallback<T>(
+  key: string,
+  fallback: () => Promise<T>,
+  ttlSeconds: number = 300
+): Promise<T> {
+  const cached = getCachedData<T>(key);
+  if (cached !== null) {
+    return cached;
+  }
+
+  const result = await fallback();
+  setCachedData(key, result, ttlSeconds);
+  return result;
+}
+
+/**
+ * 함수 결과 캐싱 래퍼
+ * 함수의 실행 결과를 캐싱하는 고차 함수
+ */
+export function cacheWrapper<T extends (...args: any[]) => Promise<any>>(
+  keyPrefix: string,
+  fn: T,
+  ttlSeconds: number = 300
+): T {
+  return (async (...args: Parameters<T>) => {
+    // 인자를 포함한 캐시 키 생성
+    const cacheKey = `${keyPrefix}:${JSON.stringify(args)}`;
+    
+    return getCachedDataWithFallback(
+      cacheKey,
+      () => fn(...args),
+      ttlSeconds
+    );
+  }) as T;
 }
 
 /**

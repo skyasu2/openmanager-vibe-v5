@@ -5,15 +5,6 @@
  * Next.js의 서버 컴포넌트와 API 라우트에서만 사용됩니다.
  */
 
-import {
-  createCipheriv,
-  createDecipheriv,
-  createHash,
-  randomBytes,
-} from 'crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
-
 // 서버 사이드 체크 (런타임 보안)
 if (typeof window !== 'undefined') {
   throw new Error(
@@ -21,38 +12,23 @@ if (typeof window !== 'undefined') {
   );
 }
 
-interface EncryptedEnvVar {
-  encrypted: string;
-  iv: string;
-  authTag: string;
-  salt: string;
-}
-
-interface EnvBackupData {
-  id: string;
-  timestamp: string;
-  version: string;
-  encrypted: Record<string, EncryptedEnvVar>;
-  checksum: string;
-}
-
 export class ServerEnvironmentManager {
   private static instance: ServerEnvironmentManager;
-  private readonly algorithm = 'aes-256-gcm';
-  private readonly backupDir: string;
-  private readonly teamPassword: string;
-  private readonly masterKey: string;
+  private readonly sensitiveVars = [
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'GITHUB_CLIENT_SECRET',
+    'NEXTAUTH_SECRET',
+    'GOOGLE_AI_API_KEY',
+    'GITHUB_TOKEN',
+    'GITHUB_PERSONAL_ACCESS_TOKEN',
+    'UPSTASH_REDIS_REST_TOKEN',
+    'SUPABASE_JWT_SECRET',
+    'ENCRYPTION_KEY',
+  ];
 
-  private constructor() {
-    this.teamPassword =
-      process.env.ENV_ENCRYPTION_KEY || 'openmanager-vibe-v5-default-key';
-    this.backupDir = join(process.cwd(), 'config', 'env-backups');
-    this.masterKey =
-      process.env.ENV_ENCRYPTION_KEY || 'openmanager-vibe-v5-default-key';
-    this.ensureBackupDirectory();
-  }
+  private constructor() {}
 
-  static getInstance(): ServerEnvironmentManager {
+  public static getInstance(): ServerEnvironmentManager {
     if (!ServerEnvironmentManager.instance) {
       ServerEnvironmentManager.instance = new ServerEnvironmentManager();
     }
@@ -60,210 +36,94 @@ export class ServerEnvironmentManager {
   }
 
   /**
-   * 🔐 텍스트 암호화
+   * 서버 전용 환경변수 가져오기
    */
-  private encrypt(text: string): EncryptedEnvVar {
-    try {
-      const salt = randomBytes(32);
-      const key = createHash('sha256')
-        .update(this.masterKey + salt.toString('hex'))
-        .digest();
-      const iv = randomBytes(16);
-
-      const cipher = createCipheriv(this.algorithm, key, iv);
-      let encrypted = cipher.update(text, 'utf8', 'hex');
-      encrypted += cipher.final('hex');
-
-      const authTag = cipher.getAuthTag();
-
-      return {
-        encrypted,
-        iv: iv.toString('hex'),
-        authTag: authTag.toString('hex'),
-        salt: salt.toString('hex'),
-      };
-    } catch (error) {
-      console.error('❌ 암호화 실패:', error);
-      throw new Error(
-        `암호화 실패: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
+  public getServerEnv(key: string): string | undefined {
+    if (typeof window !== 'undefined') {
+      throw new Error(`🚨 "${key}"는 서버 전용 환경변수입니다.`);
     }
+    return process.env[key];
   }
 
   /**
-   * 🔓 텍스트 복호화
+   * 안전한 서버 환경변수 가져오기 (필수)
    */
-  private decrypt(encryptedData: EncryptedEnvVar): string {
-    try {
-      const key = createHash('sha256')
-        .update(this.masterKey + encryptedData.salt)
-        .digest();
-      const decipher = createDecipheriv(
-        this.algorithm,
-        key,
-        Buffer.from(encryptedData.iv, 'hex')
-      );
-
-      decipher.setAuthTag(Buffer.from(encryptedData.authTag, 'hex'));
-
-      let decrypted = decipher.update(encryptedData.encrypted, 'hex', 'utf8');
-      decrypted += decipher.final('utf8');
-
-      return decrypted;
-    } catch (error) {
-      console.error('❌ 복호화 실패:', error);
-      throw new Error(
-        `복호화 실패: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
+  public getRequiredServerEnv(key: string): string {
+    const value = this.getServerEnv(key);
+    if (!value) {
+      throw new Error(`❌ 필수 서버 환경변수 "${key}"가 설정되지 않았습니다.`);
     }
+    return value;
   }
 
   /**
-   * 📁 백업 디렉토리 생성
+   * 민감한 환경변수인지 확인
    */
-  private ensureBackupDirectory(): void {
-    try {
-      if (!existsSync(this.backupDir)) {
-        mkdirSync(this.backupDir, { recursive: true });
-      }
-    } catch (error) {
-      console.warn('⚠️ 백업 디렉토리 생성 실패:', error);
-    }
+  public isSensitiveVar(key: string): boolean {
+    return this.sensitiveVars.includes(key);
   }
 
   /**
-   * 📦 환경변수 백업
-   * 🚨 베르셀 환경에서 파일 저장 무력화 - 무료티어 최적화
+   * 서버 환경변수 검증
    */
-  async backupEnvironment(environment = 'current'): Promise<string | null> {
-    try {
-      console.log(`🔄 환경변수 백업 시작 (${environment})...`);
+  public validateServerEnv(): {
+    valid: boolean;
+    missing: string[];
+    warnings: string[];
+  } {
+    const missing: string[] = [];
+    const warnings: string[] = [];
 
-      // 🚨 베르셀 환경에서 파일 저장 건너뛰기
-      if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
-        console.log(
-          '⚠️ [ServerEnvironmentManager] 베르셀 환경에서 환경변수 백업 파일 저장 무력화'
-        );
-        const backupId = `env-backup-${environment}-${new Date().toISOString().replace(/[:.]/g, '-')}`;
-        return backupId;
-      }
-
-      const sensitiveVars = {
-        GOOGLE_AI_API_KEY: process.env.GOOGLE_AI_API_KEY,
-        SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-        SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
-        UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
-        UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
-        NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-        NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-      };
-
-      const encryptedVars: Record<string, EncryptedEnvVar> = {};
-      for (const [key, value] of Object.entries(sensitiveVars)) {
-        if (value) {
-          encryptedVars[key] = this.encrypt(value);
-        }
-      }
-
-      const timestamp = new Date().toISOString();
-      const backupId = `env-backup-${environment}-${timestamp.replace(/[:.]/g, '-')}`;
-
-      const backupData: EnvBackupData = {
-        id: backupId,
-        timestamp,
-        version: '5.44.0',
-        encrypted: encryptedVars,
-        checksum: this.generateChecksum(encryptedVars),
-      };
-
-      const backupPath = join(this.backupDir, `${backupId}.json`);
-      writeFileSync(backupPath, JSON.stringify(backupData, null, 2));
-
-      console.log(`✅ 환경변수 백업 완료: ${backupId}`);
-      return backupId;
-    } catch (error) {
-      console.error('❌ 환경변수 백업 실패:', error);
-      return null;
-    }
-  }
-
-  /**
-   * 🔄 환경변수 복구
-   */
-  async restoreEnvironment(
-    backupId: string
-  ): Promise<Record<string, string> | null> {
-    try {
-      console.log(`🔄 환경변수 복구 시작: ${backupId}`);
-
-      const backupPath = join(this.backupDir, `${backupId}.json`);
-      if (!existsSync(backupPath)) {
-        throw new Error(`백업 파일을 찾을 수 없습니다: ${backupId}`);
-      }
-
-      const backupData: EnvBackupData = JSON.parse(
-        readFileSync(backupPath, 'utf8')
-      );
-
-      // 체크섬 검증
-      const currentChecksum = this.generateChecksum(backupData.encrypted);
-      if (currentChecksum !== backupData.checksum) {
-        throw new Error('백업 파일이 손상되었습니다');
-      }
-
-      const restoredVars: Record<string, string> = {};
-      for (const [key, encryptedValue] of Object.entries(
-        backupData.encrypted
-      )) {
-        try {
-          const decryptedValue = this.decrypt(encryptedValue);
-          restoredVars[key] = decryptedValue;
-          process.env[key] = decryptedValue;
-        } catch (error) {
-          console.warn(`⚠️ ${key} 복호화 실패:`, error);
-        }
-      }
-
-      console.log(
-        `✅ 환경변수 복구 완료: ${Object.keys(restoredVars).length}개 변수`
-      );
-      return restoredVars;
-    } catch (error) {
-      console.error('❌ 환경변수 복구 실패:', error);
-      return null;
-    }
-  }
-
-  /**
-   * 🧮 체크섬 생성
-   */
-  private generateChecksum(data: Record<string, EncryptedEnvVar>): string {
-    return createHash('sha256').update(JSON.stringify(data)).digest('hex');
-  }
-
-  /**
-   * 🔍 환경변수 검증
-   */
-  validateEnvironment(): { valid: boolean; missing: string[] } {
+    // 필수 서버 환경변수 체크
     const requiredVars = [
-      'GOOGLE_AI_API_KEY',
       'SUPABASE_SERVICE_ROLE_KEY',
-      'SUPABASE_ANON_KEY',
+      'NEXTAUTH_SECRET',
+      'GITHUB_CLIENT_SECRET',
     ];
 
-    const missing = requiredVars.filter(varName => !process.env[varName]);
-
-    if (missing.length > 0) {
-      console.warn('⚠️ 누락된 필수 환경변수:', missing.join(', '));
-      return { valid: false, missing };
+    for (const varName of requiredVars) {
+      if (!process.env[varName]) {
+        missing.push(varName);
+      }
     }
 
-    console.log('✅ 모든 필수 환경변수가 설정되었습니다.');
-    return { valid: true, missing: [] };
+    // 선택적이지만 권장되는 환경변수
+    const optionalVars = ['GOOGLE_AI_API_KEY', 'GITHUB_TOKEN'];
+    for (const varName of optionalVars) {
+      if (!process.env[varName]) {
+        warnings.push(`"${varName}"가 설정되지 않았습니다. 일부 기능이 제한될 수 있습니다.`);
+      }
+    }
+
+    return {
+      valid: missing.length === 0,
+      missing,
+      warnings,
+    };
+  }
+
+  /**
+   * 디버그용 환경변수 상태 출력 (값은 마스킹)
+   */
+  public getEnvStatus(): Record<string, string> {
+    const status: Record<string, string> = {};
+
+    for (const key of this.sensitiveVars) {
+      const value = process.env[key];
+      if (value) {
+        // 값의 일부만 보여주고 나머지는 마스킹
+        const masked = value.length > 8 
+          ? `${value.substring(0, 4)}...${value.substring(value.length - 4)}`
+          : '***';
+        status[key] = `✅ Set (${masked})`;
+      } else {
+        status[key] = '❌ Not set';
+      }
+    }
+
+    return status;
   }
 }
 
-/**
- * 🔧 서버 전용 환경변수 관리자 인스턴스
- */
+// 싱글톤 인스턴스 export
 export const serverEnvManager = ServerEnvironmentManager.getInstance();
