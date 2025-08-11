@@ -13,13 +13,13 @@ interface ServerStatus {
   status: 'running' | 'starting' | 'stopped';
   cpu_usage: number;
   memory_usage: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface ScalingPolicy {
   maxInstances?: number;
   minInstances?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface ServerPoolInfo {

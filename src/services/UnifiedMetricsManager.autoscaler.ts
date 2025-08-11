@@ -12,6 +12,8 @@ import type {
   UnifiedServerMetrics,
   UnifiedMetricsConfig,
   MetricsPerformanceData,
+  ServerEnvironment,
+  ServerRole,
 } from './UnifiedMetricsManager.types';
 
 export class Autoscaler {
@@ -22,7 +24,7 @@ export class Autoscaler {
     servers: Map<string, UnifiedServerMetrics>,
     config: UnifiedMetricsConfig,
     metrics: MetricsPerformanceData,
-    createServerFn: (id: string, environment: any, role: any) => UnifiedServerMetrics
+    createServerFn: (id: string, environment: ServerEnvironment, role: ServerRole) => UnifiedServerMetrics
   ): Promise<void> {
     if (!config.autoscaling.enabled) return;
 
@@ -43,7 +45,7 @@ export class Autoscaler {
     servers: Map<string, UnifiedServerMetrics>,
     serverList: UnifiedServerMetrics[],
     config: UnifiedMetricsConfig,
-    createServerFn: (id: string, environment: any, role: any) => UnifiedServerMetrics
+    createServerFn: (id: string, environment: ServerEnvironment, role: ServerRole) => UnifiedServerMetrics
   ): Promise<void> {
     const avgCpu = serverList.reduce((sum, s) => sum + s.node_cpu_usage_percent, 0) / serverList.length;
     const currentCount = serverList.length;

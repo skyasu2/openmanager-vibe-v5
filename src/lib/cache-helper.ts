@@ -323,7 +323,7 @@ export async function getCachedDataWithFallback<T>(
  * 함수 결과 캐싱 래퍼
  * 함수의 실행 결과를 캐싱하는 고차 함수
  */
-export function cacheWrapper<T extends (...args: any[]) => Promise<any>>(
+export function cacheWrapper<T extends (...args: unknown[]) => Promise<unknown>>(
   keyPrefix: string,
   fn: T,
   ttlSeconds: number = 300

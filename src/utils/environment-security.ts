@@ -385,7 +385,7 @@ export class EnvironmentSecurityScanner {
   /**
    * 빌드 시 누출 검사
    */
-  checkBuildTimeLeaks(buildConfig: any): boolean {
+  checkBuildTimeLeaks(buildConfig: { publicRuntimeConfig?: Record<string, unknown> }): boolean {
     if (!buildConfig?.publicRuntimeConfig) return false;
     
     const publicConfig = buildConfig.publicRuntimeConfig;

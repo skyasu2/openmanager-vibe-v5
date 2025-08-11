@@ -28,15 +28,15 @@ import { Autoscaler } from './UnifiedMetricsManager.autoscaler';
 import { Scheduler } from './UnifiedMetricsManager.scheduler';
 import { MetricsUpdater } from './UnifiedMetricsManager.metricsUpdater';
 import { PerformanceMonitor } from './UnifiedMetricsManager.performanceMonitor';
-import type {
-  UnifiedServerMetrics,
-  UnifiedMetricsConfig,
-  MetricsPerformanceData,
-  ServerEnvironment,
-  ServerRole,
-  ServerStatus,
+import {
+  DEFAULT_METRICS_CONFIG,
+  type UnifiedServerMetrics,
+  type UnifiedMetricsConfig,
+  type MetricsPerformanceData,
+  type ServerEnvironment,
+  type ServerRole,
+  type ServerStatus,
 } from './UnifiedMetricsManager.types';
-import { DEFAULT_METRICS_CONFIG } from './UnifiedMetricsManager.types';
 
 // Re-export types for backward compatibility
 export type {
@@ -128,7 +128,7 @@ export class UnifiedMetricsManager {
       this.metrics,
       async (servers: UnifiedServerMetrics[]) => await Autoscaler.simulateAutoscaling(
         this.servers, servers, this.config, 
-        (id: string, env: any, role: any) => ServerFactory.createServer(id, env, role)
+        (id: string, env: ServerEnvironment, role: ServerRole) => ServerFactory.createServer(id, env, role)
       )
     );
   }
@@ -223,7 +223,7 @@ export class UnifiedMetricsManager {
       this.servers,
       this.config,
       this.metrics,
-      (id: string, env: any, role: any) => ServerFactory.createServer(id, env, role)
+      (id: string, env: ServerEnvironment, role: ServerRole) => ServerFactory.createServer(id, env, role)
     );
   }
 }
