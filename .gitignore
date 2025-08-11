@@ -228,6 +228,10 @@ commit/
 # 실행 파일들
 *.exe
 
+# GCP CLI
+google-cloud-cli-linux-x86_64.tar.gz
+google-cloud-sdk/
+
 # 테스트 및 분석 결과 파일들
 *-results.json
 *-report.json
