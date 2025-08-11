@@ -59,8 +59,8 @@ export async function GET(request: NextRequest) {
         console.log('⚡ 빠른 벤치마크 실행...');
         const benchmarkReport = await quickBenchmark();
         result = {
-          type: 'quick',
           ...benchmarkReport,
+          type: 'quick',
         };
         break;
       }
@@ -120,7 +120,6 @@ export async function GET(request: NextRequest) {
         const monitorDuration = parseInt(searchParams.get('duration') || '30000'); // 30초 기본
         
         result = await benchmark.startRealTimeMonitoring(monitorDuration);
-        result.type = 'real-time-monitoring';
         result.durationMs = monitorDuration;
         break;
       }
