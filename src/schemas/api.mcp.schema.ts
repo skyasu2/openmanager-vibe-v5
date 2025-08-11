@@ -113,6 +113,7 @@ export const MCPIntegrationStatusResponseSchema = z.object({
 // ===== MCP Sync 스키마 =====
 
 export const MCPSyncRequestSchema = z.object({
+  syncType: z.enum(['full', 'mcp_only', 'local_only', 'incremental']).optional().default('full'),
   targetServers: z.array(z.string()).optional(),
   fullSync: z.boolean().optional(),
   dataTypes: z.array(z.enum(['context', 'memory', 'cache'])).optional(),
@@ -139,6 +140,22 @@ export const MCPSyncStatusResponseSchema = z.object({
   nextSync: TimestampSchema.optional(),
   syncInterval: z.number(),
   pendingItems: z.number(),
+  syncStatus: z.object({
+    mcpServerOnline: z.boolean(),
+    ragIntegrationEnabled: z.boolean(),
+    lastSyncTime: z.string().optional(),
+    syncCount: z.number(),
+  }).optional(),
+  availableSyncTypes: z.array(z.object({
+    type: z.enum(['full', 'mcp_only', 'local_only', 'incremental']),
+    description: z.string(),
+    recommendedFor: z.string(),
+  })).optional(),
+  performance: z.object({
+    avgQueryTime: z.number(),
+    totalQueries: z.number(),
+    errorRate: z.number(),
+  }).optional(),
 });
 
 // ===== 추가 컨텍스트 스키마 =====
@@ -169,11 +186,15 @@ export const LocalContextBundleSchema = z.object({
 });
 
 export const MCPSyncResultSchema = z.object({
-  serverId: z.string(),
-  status: z.enum(['success', 'failed', 'partial']),
-  items: z.number(),
+  serverId: z.string().optional(),
+  success: z.boolean(),
+  syncedContexts: z.number().optional(),
+  status: z.enum(['success', 'failed', 'partial']).optional(),
+  items: z.number().optional(),
   errors: z.array(z.string()).optional(),
   timestamp: TimestampSchema,
+  syncType: z.enum(['full', 'mcp_only', 'local_only', 'incremental']).optional(),
+  message: z.string().optional(),
 });
 
 // ===== 타입 내보내기 =====

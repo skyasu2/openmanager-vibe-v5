@@ -197,7 +197,7 @@ const postHandler = createApiRoute()
       failedItems: syncResult.errors?.length || 0,
       details: [],
       timestamp: new Date().toISOString(),
-    } as MCPSyncResponse;
+    };
   });
 
 export async function POST(request: NextRequest) {
@@ -279,7 +279,7 @@ const getHandler = createApiRoute()
     };
     
     // MCPSyncStatusResponse 타입으로 반환
-    return response as MCPSyncStatusResponse;
+    return response;
   });
 
 export async function GET(request: NextRequest) {
