@@ -100,6 +100,10 @@ npm run validate:all     # 린트 + 타입 + 테스트
 npx ccusage@latest blocks --live    # Claude 사용량 실시간
 npm run health:check                 # API 상태 확인
 
+# Git 상태 확인
+npm run git:status       # Git 푸시 상태 상세 점검
+npm run git:check        # Git 동기화 상태 확인
+
 # Fast Track 배포 (2025 표준)
 git commit -m "feat: 기능 추가"           # 표준 배포 (8-10분)
 git commit -m "feat: 기능 추가 [build-skip]" # 빌드 체크 스킵 (5-7분)

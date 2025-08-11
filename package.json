@@ -90,6 +90,8 @@
     "bundle:both": "cross-env BUNDLE_ANALYZE=both npm run build",
     "git:pre-commit": "lint-staged",
     "git:pre-push": "npm run validate",
+    "git:status": "bash scripts/git/check-push-status.sh",
+    "git:check": "bash scripts/git/check-push-status.sh",
     "docker:build": "docker build -t openmanager-vibe-v5 .",
     "docker:run": "docker run -p 3000:3000 openmanager-vibe-v5",
     "docker:compose": "docker-compose up",
