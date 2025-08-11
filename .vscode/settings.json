@@ -71,8 +71,32 @@
     "**/dist/**": true,
     "**/.cache/**": true,
     "**/logs/**": true,
-    "**/.vercel/**": true
+    "**/.vercel/**": true,
+    "**/google-cloud-sdk/**": true,
+    "google-cloud-cli-linux-x86_64.tar.gz": true
   },
+  // 🚫 파일 숨기기 (IDE 탐색기에서 제외)
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/google-cloud-sdk": true,
+    "google-cloud-cli-linux-x86_64.tar.gz": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true
+  },
+  // 🔍 검색 제외
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/*.code-search": true,
+    "**/google-cloud-sdk": true,
+    "**/.next": true
+  },
+  // 📊 Git 성능 최적화
+  "git.ignoreLimitWarning": true,
+  "git.autorefresh": false,
+  "git.detectSubmodules": false,
+  "git.countBadge": "tracked",
   "files.autoSave": "onFocusChange",
   "editor.quickSuggestions": {
     "strings": true
