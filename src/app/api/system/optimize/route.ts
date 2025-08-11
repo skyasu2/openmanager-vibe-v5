@@ -115,10 +115,10 @@ async function optimizeMemoryHandler(request: NextRequest) {
             critical: '90%',
           },
         },
-        recommendations: generateMemoryRecommendations({
-          status: determineMemoryStatus(afterStats.usagePercent),
-          current: afterStats,
-        }),
+        recommendations: generateMemoryRecommendations(
+          determineMemoryStatus(afterStats.usagePercent),
+          afterStats
+        ),
         apiMetrics: {
           responseTime: apiResponseTime,
           timestamp: new Date().toISOString(),
@@ -202,9 +202,11 @@ function determineMemoryStatus(usagePercent: number): 'optimal' | 'good' | 'acce
 /**
  * 💡 메모리 최적화 권장사항 생성
  */
-function generateMemoryRecommendations(memorySummary: MemorySummary): string[] {
+function generateMemoryRecommendations(
+  status: 'optimal' | 'good' | 'acceptable' | 'warning' | 'critical',
+  current?: any
+): string[] {
   const recommendations: string[] = [];
-  const { current, status } = memorySummary;
 
   if (status === 'critical') {
     recommendations.push('🚨 즉시 메모리 최적화 필요 - 시스템 불안정 위험');
