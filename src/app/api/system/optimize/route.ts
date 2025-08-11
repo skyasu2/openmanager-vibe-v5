@@ -202,7 +202,7 @@ function determineMemoryStatus(usagePercent: number): 'optimal' | 'good' | 'acce
 /**
  * 💡 메모리 최적화 권장사항 생성
  */
-function generateMemoryRecommendations(memorySummary: any): string[] {
+function generateMemoryRecommendations(memorySummary: MemorySummary): string[] {
   const recommendations: string[] = [];
   const { current, status } = memorySummary;
 

@@ -33,8 +33,13 @@ const postHandler = createApiRoute()
   .build(async (_request, context): Promise<MCPSyncResponse> => {
     debug.log('🔄 MCP + RAG 동기화 요청 처리 시작...');
 
-    // 스키마에 정의되지 않은 필드들을 선택적으로 처리
-    const body = context.body as any;
+    // 확장된 요청 타입 정의
+    interface ExtendedSyncRequest extends MCPSyncRequest {
+      ragEngineUrl?: string;
+      force?: boolean;
+    }
+    
+    const body = context.body as ExtendedSyncRequest;
     const {
       ragEngineUrl = 'http://localhost:3001/api/rag',  // 기본값 설정
       syncType = 'full',
@@ -44,7 +49,7 @@ const postHandler = createApiRoute()
     const cloudContextLoader = CloudContextLoader.getInstance();
 
     // MCPSyncResult와 다른 구조를 사용하므로 별도 타입 정의
-    let syncResult: any = {
+    let syncResult: MCPSyncResult = {
       success: false,
       syncedContexts: 0,
       errors: [],
@@ -236,7 +241,7 @@ const getHandler = createApiRoute()
     );
 
     // MCPSyncStatusResponse와 호환되는 형식으로 반환
-    const response: any = {
+    const response: MCPSyncStatusResponse = {
       isSyncing: false,
       lastSync: new Date().toISOString(),
       nextSync: new Date(Date.now() + 3600000).toISOString(),

@@ -39,8 +39,8 @@ interface SupabaseServer {
   lastUpdate?: string | Date;
   metrics?: {
     cpu?: number | { usage: number };
-    memory?: number | { usage: number };
-    disk?: number | { usage: number };
+    memory?: number | { usage: number; used?: number; total?: number };
+    disk?: number | { usage: number; used?: number; total?: number };
     network?: { rx: number; tx: number; bytesIn?: number; bytesOut?: number };
   };
 }
@@ -162,15 +162,15 @@ const getHandler = createApiRoute()
           memory: typeof server.metrics?.memory === 'object' && 'usage' in server.metrics.memory
             ? { 
                 usage: server.metrics.memory.usage,
-                used: 'used' in server.metrics.memory ? (server.metrics.memory as any).used as number : server.metrics.memory.usage,
-                total: 'total' in server.metrics.memory ? (server.metrics.memory as any).total as number : 100
+                used: 'used' in server.metrics.memory ? server.metrics.memory.used ?? server.metrics.memory.usage : server.metrics.memory.usage,
+                total: 'total' in server.metrics.memory ? server.metrics.memory.total ?? 100 : 100
               }
             : server.metrics?.memory,
           disk: typeof server.metrics?.disk === 'object' && 'usage' in server.metrics.disk
             ? {
                 usage: server.metrics.disk.usage,
-                used: 'used' in server.metrics.disk ? (server.metrics.disk as any).used as number : server.metrics.disk.usage,
-                total: 'total' in server.metrics.disk ? (server.metrics.disk as any).total as number : 100
+                used: 'used' in server.metrics.disk ? server.metrics.disk.used ?? server.metrics.disk.usage : server.metrics.disk.usage,
+                total: 'total' in server.metrics.disk ? server.metrics.disk.total ?? 100 : 100
               }
             : server.metrics?.disk,
           network: server.metrics?.network,

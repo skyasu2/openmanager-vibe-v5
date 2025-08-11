@@ -1,11 +1,22 @@
 import { NextResponse } from 'next/server';
 import debug from '@/utils/debug';
 
+// 프로세스 타입 정의
+interface ServerProcess {
+  pid: number;
+  name: string;
+  cpu: string;
+  memory: string;
+  status: 'running' | 'stopped';
+  uptime: number;
+  user: string;
+}
+
 // 메모리 기반 서버 프로세스 데이터 스토어
-const serverProcessesStore = new Map<string, any>();
+const serverProcessesStore = new Map<string, ServerProcess[]>();
 
 // 모의 프로세스 데이터 생성기
-function generateMockProcesses(serverId: string) {
+function generateMockProcesses(serverId: string): ServerProcess[] {
   const processNames = [
     'nginx', 'node', 'postgres', 'redis-server', 'pm2', 'systemd', 
     'docker', 'kubernetes', 'apache2', 'mysql', 'mongodb', 'elasticsearch'
