@@ -187,7 +187,7 @@ const postHandler = createApiRoute()
     const integratedStatus = await cloudContextLoader.getIntegratedStatus();
 
     debug.log(
-      `✅ 동기화 완료: ${syncResult.syncedContexts}개 컨텍스트, ${syncResult.errors.length}개 오류`
+      `✅ 동기화 완료: ${syncResult.syncedContexts}개 컨텍스트, ${syncResult.errors?.length || 0}개 오류`
     );
 
     // MCPSyncResponse와 호환되는 형식으로 반환
