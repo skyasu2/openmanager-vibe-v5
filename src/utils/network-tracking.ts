@@ -12,10 +12,19 @@ import type { NetworkRequestInfo } from '../types/system-checklist';
 /**
  * 네트워크 요청 추적을 위한 래퍼 함수
  */
+interface NetworkInfo {
+  url: string;
+  method: string;
+  responseTime: number;
+  statusCode?: number;
+  headers?: Record<string, string>;
+  error?: string;
+}
+
 export const fetchWithTracking = async (
   url: string,
   options: RequestInit = {}
-): Promise<{ response: Response; networkInfo: unknown }> => {
+): Promise<{ response: Response; networkInfo: NetworkInfo }> => {
   const startTime = Date.now();
   const method = options.method || 'GET';
 
