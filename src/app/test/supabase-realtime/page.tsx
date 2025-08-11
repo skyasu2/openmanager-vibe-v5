@@ -156,7 +156,7 @@ export default function SupabaseRealtimeTestPage() {
       }, 3000);
     } catch (err) {
       console.error('Failed to add step:', err);
-      setError(err.message || '단계 추가 실패');
+      setError(err instanceof Error ? err.message : '단계 추가 실패');
     } finally {
       setIsLoading(false);
     }
@@ -217,7 +217,7 @@ export default function SupabaseRealtimeTestPage() {
       console.log('API response:', data);
     } catch (err) {
       console.error('API test failed:', err);
-      setError('API 테스트 실패: ' + err.message);
+      setError('API 테스트 실패: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
