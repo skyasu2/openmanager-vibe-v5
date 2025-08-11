@@ -57,7 +57,11 @@ export async function GET(request: NextRequest) {
     switch (type) {
       case 'quick': {
         console.log('⚡ 빠른 벤치마크 실행...');
-        result = await quickBenchmark();
+        const benchmarkReport = await quickBenchmark();
+        result = {
+          type: 'quick',
+          ...benchmarkReport,
+        };
         break;
       }
       
