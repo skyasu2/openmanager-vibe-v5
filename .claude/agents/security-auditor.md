@@ -1,6 +1,6 @@
 ---
 name: security-auditor
-description: Basic security checker for portfolio projects. Use PROACTIVELY when: hardcoded secrets detected (api_key=, token=, password=), auth/payment code modified, new API endpoints created, npm audit warnings found, environment variables missing. Focuses on: preventing hardcoded secrets, basic API protection, environment variable usage. Portfolio-appropriate security only - NOT enterprise level.
+description: Advanced security auditor with automated scanning for portfolio projects. Use PROACTIVELY when: hardcoded secrets detected (api_key=, token=, password=), auth/payment code modified, new API endpoints created, npm audit warnings found, environment variables missing, PR security reviews needed. Includes Claude Code's built-in /security-review command for automated SQLi/auth/data processing vulnerability detection. Provides comprehensive security analysis with GitHub Action integration.
 tools: mcp__filesystem__*, mcp__github__*, Grep, Read, Write, Bash, mcp__context7__*
 ---
 
@@ -589,3 +589,315 @@ Grep({
   output_mode: 'content',
 });
 ```
+
+## 🚀 자동 보안 점검 기능 (Claude Code v1.0.72+)
+
+### `/security-review` 명령어 활용
+
+Claude Code에 내장된 자동 보안 점검 기능을 활용합니다:
+
+```bash
+# 프로젝트 루트에서 실행
+claude /security-review
+
+# 특정 파일/디렉토리 대상
+claude /security-review --path src/api
+
+# 상세 분석 모드
+claude /security-review --verbose
+```
+
+**자동 탐지 항목:**
+- ✅ SQL Injection 취약점
+- ✅ 인증/인가 누락
+- ✅ 데이터 처리 보안 이슈
+- ✅ 하드코딩된 시크릿
+- ✅ 취약한 암호화 패턴
+- ✅ XSS/CSRF 취약점
+
+### 통합 보안 워크플로우
+
+```typescript
+// 1. 자동 보안 스캔 실행
+async function runSecurityAudit() {
+  // Claude Code 내장 보안 점검
+  await Bash({
+    command: 'claude /security-review',
+    description: '자동 보안 취약점 스캔'
+  });
+  
+  // NPM 취약점 검사
+  await Bash({
+    command: 'npm audit --audit-level=moderate',
+    description: 'NPM 의존성 취약점 검사'
+  });
+  
+  // 하드코딩된 시크릿 검사
+  await Bash({
+    command: 'bash scripts/security/check-hardcoded-secrets.sh',
+    description: '하드코딩 시크릿 검사'
+  });
+}
+```
+
+### GitHub Action 통합
+
+프로젝트에 자동 보안 점검을 위한 GitHub Action을 생성:
+
+```yaml
+# .github/workflows/security-review.yml
+name: Security Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * 1'  # 매주 월요일 오전 2시
+
+jobs:
+  security-review:
+    name: Automated Security Review
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: NPM Security Audit
+      run: |
+        npm audit --audit-level=high
+        npm audit fix --dry-run
+        
+    - name: Check for hardcoded secrets
+      run: |
+        # 하드코딩된 API 키, 토큰 검사
+        if grep -r "api_key\s*=\s*['\"][a-zA-Z0-9_-]\{10,\}" src/ --include="*.ts" --include="*.tsx" --include="*.js"; then
+          echo "❌ Hardcoded API keys found!"
+          exit 1
+        fi
+        
+        if grep -r "password\s*=\s*['\"][^'\"]\{5,\}" src/ --include="*.ts" --include="*.tsx"; then
+          echo "❌ Hardcoded passwords found!"
+          exit 1
+        fi
+        
+        echo "✅ No hardcoded secrets detected"
+        
+    - name: TypeScript Security Check
+      run: |
+        # any 타입 사용 검사
+        ANY_COUNT=$(grep -r ": any\b\|as any\b\|<any>" src/ --include="*.ts" --include="*.tsx" | wc -l)
+        if [ "$ANY_COUNT" -gt 0 ]; then
+          echo "⚠️ Found $ANY_COUNT uses of 'any' type - security risk"
+          grep -r ": any\b\|as any\b\|<any>" src/ --include="*.ts" --include="*.tsx"
+        fi
+        
+    - name: Security Headers Check
+      run: |
+        # Next.js 보안 헤더 설정 확인
+        if [ -f "next.config.js" ] || [ -f "next.config.mjs" ]; then
+          echo "✅ Next.js config exists"
+          grep -q "X-Content-Type-Options\|X-Frame-Options\|X-XSS-Protection" next.config.* || echo "⚠️ Security headers not configured"
+        fi
+        
+    - name: Environment Variables Check
+      run: |
+        # 필수 환경변수 확인
+        if [ -f ".env.local.template" ]; then
+          echo "✅ Environment template exists"
+          # .env.local.template의 변수들이 제대로 사용되는지 확인
+        fi
+        
+    - name: API Route Security Check
+      run: |
+        # API 라우트 보안 확인
+        find src/app/api -name "*.ts" -exec grep -l "export.*function.*GET\|POST\|PUT\|DELETE" {} \; | while read file; do
+          if ! grep -q "getServerSession\|authenticate\|auth" "$file"; then
+            echo "⚠️ Potentially unprotected API route: $file"
+          fi
+        done
+        
+    - name: Create Security Report
+      if: always()
+      run: |
+        cat > security-report.md << EOF
+        # 🛡️ Security Review Report
+        
+        **Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        **Branch**: ${{ github.head_ref || github.ref_name }}
+        **Commit**: ${{ github.sha }}
+        
+        ## 📊 Scan Results
+        
+        ### NPM Audit
+        $(npm audit --json 2>/dev/null | jq -r '.vulnerabilities | length // 0') vulnerabilities found
+        
+        ### Code Security
+        - Hardcoded secrets: $(grep -r "api_key\|password\|secret" src/ --include="*.ts" --include="*.tsx" | wc -l || echo "0") potential issues
+        - TypeScript 'any' usage: $(grep -r ": any\b\|as any\b" src/ --include="*.ts" --include="*.tsx" | wc -l || echo "0") instances
+        
+        ### Recommendations
+        
+        1. **Update dependencies**: Keep all packages up to date
+        2. **Use environment variables**: Never hardcode secrets
+        3. **Type safety**: Eliminate 'any' types for better security
+        4. **API protection**: Ensure all sensitive endpoints are authenticated
+        
+        ---
+        *Generated by Security Auditor Agent*
+        EOF
+        
+    - name: Comment PR with Security Report
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          if (fs.existsSync('security-report.md')) {
+            const report = fs.readFileSync('security-report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+          }
+```
+
+### 실시간 보안 모니터링
+
+```typescript
+// 보안 이벤트 자동 감지 및 대응
+export async function proactiveSecurityCheck() {
+  const checks = [
+    {
+      name: '하드코딩 시크릿 검사',
+      action: () => Grep({
+        pattern: '(api_key|secret|password|token)\\s*=\\s*[\'"]\\w{10,}',
+        path: './src',
+        output_mode: 'files_with_matches'
+      })
+    },
+    {
+      name: 'API 라우트 보안 검사',
+      action: () => Grep({
+        pattern: 'export\\s+(async\\s+)?function\\s+(GET|POST|PUT|DELETE)',
+        path: './src/app/api',
+        output_mode: 'content'
+      })
+    },
+    {
+      name: 'TypeScript any 타입 검사',
+      action: () => Grep({
+        pattern: ':\\s*any\\b|\\bas\\s+any\\b|<any>',
+        path: './src',
+        type: 'typescript',
+        output_mode: 'count'
+      })
+    }
+  ];
+  
+  for (const check of checks) {
+    console.log(`🔍 ${check.name} 실행 중...`);
+    const result = await check.action();
+    // 결과 분석 및 자동 수정 제안
+  }
+}
+```
+
+### 보안 점검 명령어 모음
+
+```bash
+# 종합 보안 검사
+npm run security:audit
+
+# 빠른 보안 체크
+npm run security:quick
+
+# 상세 보안 리포트
+npm run security:report
+
+# 자동 수정 (안전한 것만)
+npm run security:fix
+
+# PR 보안 검토
+npm run security:pr-review
+```
+
+### package.json 스크립트 추가
+
+```json
+{
+  "scripts": {
+    "security:audit": "npm audit && claude /security-review && bash scripts/security/check-hardcoded-secrets.sh",
+    "security:quick": "npm audit --audit-level=high && claude /security-review --path=src/app/api",
+    "security:report": "npm audit --json > reports/npm-audit-$(date +%Y%m%d).json && claude /security-review > reports/security-review-$(date +%Y%m%d).txt",
+    "security:fix": "npm audit fix && eslint --fix src/ --ext .ts,.tsx",
+    "security:pr-review": "claude /security-review && npm audit --audit-level=moderate"
+  }
+}
+```
+
+### 프로액티브 보안 트리거
+
+Security Auditor는 다음 상황에서 자동 실행됩니다:
+
+1. **코드 변경 감지**
+   - API 라우트 파일 수정
+   - 인증 관련 코드 변경
+   - 환경변수 참조 변경
+
+2. **의존성 변경**
+   - package.json 업데이트
+   - 새 패키지 설치
+
+3. **보안 이벤트**
+   - 하드코딩된 시크릿 탐지
+   - 취약한 패턴 발견
+
+4. **정기 점검**
+   - 주간 자동 스캔
+   - PR 생성/업데이트 시
+
+### 보안 대시보드
+
+```typescript
+// 보안 상태 실시간 모니터링
+export interface SecurityDashboard {
+  lastScan: Date;
+  vulnerabilities: {
+    critical: number;
+    high: number;
+    moderate: number;
+    low: number;
+  };
+  dependencies: {
+    total: number;
+    outdated: number;
+    vulnerable: number;
+  };
+  codeQuality: {
+    anyTypes: number;
+    hardcodedSecrets: number;
+    unprotectedAPIs: number;
+  };
+  compliance: {
+    owaspTop10: number; // 준수율 %
+    securityHeaders: boolean;
+    environmentVars: boolean;
+  };
+}
+```
+
+이제 Security Auditor는 Claude Code의 내장 `/security-review` 기능과 완전히 통합되어 자동화된 보안 점검, GitHub Action을 통한 CI/CD 보안 검사, 그리고 실시간 보안 모니터링을 제공합니다.

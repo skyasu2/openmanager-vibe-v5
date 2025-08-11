@@ -71,9 +71,9 @@ export interface BasicContextCache {
 
 // 메모리 기반 캐시 클래스
 class MemoryCache {
-  private cache = new Map<string, { value: any; expires: number }>();
+  private cache = new Map<string, { value: unknown; expires: number }>();
 
-  set(key: string, value: any, ttlSeconds: number): void {
+  set<T>(key: string, value: T, ttlSeconds: number): void {
     const expires = Date.now() + ttlSeconds * 1000;
     this.cache.set(key, { value, expires });
   }

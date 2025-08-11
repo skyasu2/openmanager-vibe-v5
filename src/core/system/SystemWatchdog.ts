@@ -9,6 +9,7 @@
  */
 
 import { systemLogger } from '../../lib/logger';
+import type { ProcessManager } from './ProcessManager';
 
 export interface SystemMetrics {
   cpu: Array<{ timestamp: number; value: number }>;
@@ -26,8 +27,18 @@ export interface WatchdogAlerts {
   frequentRestarts: boolean;
 }
 
+interface ProcessStatus {
+  status: string;
+  healthScore: number;
+}
+
+interface SystemStatus {
+  processes?: ProcessStatus[];
+  [key: string]: unknown;
+}
+
 export class SystemWatchdog {
-  private processManager: any; // ProcessManager 타입 (순환 참조 방지)
+  private processManager: ProcessManager;
   private metrics: SystemMetrics = {
     cpu: [],
     memory: [],
@@ -46,7 +57,7 @@ export class SystemWatchdog {
   private readonly monitoringIntervalMs = 30000; // 30초 (과도한 헬스체크 방지)
   private readonly maxDataPoints = 30; // 5분간 데이터 (30 * 10초)
 
-  constructor(processManager: any) {
+  constructor(processManager: ProcessManager) {
     this.processManager = processManager;
   }
 
@@ -148,14 +159,14 @@ export class SystemWatchdog {
    * 오류율 계산
    */
   private calculateErrorRate(systemStatus: unknown): number {
-    const status = systemStatus as any;
+    const status = systemStatus as SystemStatus;
     if (!status.processes || !Array.isArray(status.processes) || status.processes.length === 0) {
       return 0;
     }
 
     const totalProcesses = status.processes.length;
     const errorProcesses = status.processes.filter(
-      (p: any) => p.status === 'error' || p.healthScore < 50
+      (p: ProcessStatus) => p.status === 'error' || p.healthScore < 50
     ).length;
 
     return (errorProcesses / totalProcesses) * 100;

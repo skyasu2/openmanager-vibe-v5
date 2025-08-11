@@ -41,10 +41,29 @@ import {
   Pie,
 } from './PerformanceDashboard.charts';
 
+interface ModeDataItem {
+  name: string;
+  value: number;
+  [key: string]: unknown;
+}
+
+interface TrendDataItem {
+  time: string;
+  requests: number;
+  [key: string]: unknown;
+}
+
+interface EngineDataItem {
+  name: string;
+  requests: number;
+  responseTime: number;
+  [key: string]: unknown;
+}
+
 interface PerformanceDashboardTabsProps {
-  modeData: any[];
-  trendsData: any[];
-  engineData: any[];
+  modeData: ModeDataItem[];
+  trendsData: TrendDataItem[];
+  engineData: EngineDataItem[];
   filteredAlerts: PerformanceAlert[];
   filterEngine: string;
   setFilterEngine: (value: string) => void;

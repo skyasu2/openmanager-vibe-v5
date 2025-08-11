@@ -14,21 +14,21 @@ const isBrowserEnvironment = typeof window !== 'undefined';
 if (typeof globalThis !== 'undefined') {
   // globalThis에 self 정의 (최우선)
   if (typeof globalThis.self === 'undefined') {
-    (globalThis as any).self = globalThis;
+    globalThis.self = globalThis;
   }
 }
 
 // 🚨 global 객체에도 self 정의 (Node.js 환경)
 if (typeof global !== 'undefined') {
-  if (typeof (global as any).self === 'undefined') {
-    (global as any).self = global;
+  if (typeof global.self === 'undefined') {
+    global.self = global;
   }
 }
 
 // 🚨 window 객체에도 self 정의 (브라우저 환경)
 if (typeof window !== 'undefined') {
-  if (typeof (window as any).self === 'undefined') {
-    (window as any).self = window;
+  if (typeof window.self === 'undefined') {
+    window.self = window;
   }
 }
 
@@ -39,18 +39,18 @@ if (isNodeEnvironment) {
 
   // 🚀 서버 사이드에서 self 객체 polyfill (강화)
   if (typeof global !== 'undefined') {
-    if (typeof (global as any).self === 'undefined') {
-      (global as any).self = global;
+    if (typeof global.self === 'undefined') {
+      global.self = global;
     }
 
     // 🌐 서버 사이드에서 window 객체 polyfill (필요한 경우)
-    if (typeof (global as any).window === 'undefined') {
-      (global as any).window = global;
+    if (typeof global.window === 'undefined') {
+      global.window = global;
     }
 
     // 🚨 추가 브라우저 API polyfills
-    if (typeof (global as any).document === 'undefined') {
-      (global as any).document = {
+    if (typeof global.document === 'undefined') {
+      global.document = {
         createElement: () => ({}),
         getElementById: () => null,
         querySelector: () => null,
@@ -60,16 +60,16 @@ if (isNodeEnvironment) {
       };
     }
 
-    if (typeof (global as any).navigator === 'undefined') {
-      (global as any).navigator = {
+    if (typeof global.navigator === 'undefined') {
+      global.navigator = {
         userAgent: 'node.js',
         platform: 'node',
         language: 'ko-KR',
       };
     }
 
-    if (typeof (global as any).location === 'undefined') {
-      (global as any).location = {
+    if (typeof global.location === 'undefined') {
+      global.location = {
         href: '',
         origin: '',
         pathname: '',
@@ -82,8 +82,8 @@ if (isNodeEnvironment) {
     }
 
     // 🚨 localStorage/sessionStorage polyfills
-    if (typeof (global as any).localStorage === 'undefined') {
-      (global as any).localStorage = {
+    if (typeof global.localStorage === 'undefined') {
+      global.localStorage = {
         getItem: () => null,
         setItem: () => {},
         removeItem: () => {},
@@ -93,8 +93,8 @@ if (isNodeEnvironment) {
       };
     }
 
-    if (typeof (global as any).sessionStorage === 'undefined') {
-      (global as any).sessionStorage = {
+    if (typeof global.sessionStorage === 'undefined') {
+      global.sessionStorage = {
         getItem: () => null,
         setItem: () => {},
         removeItem: () => {},
@@ -113,7 +113,7 @@ if (isBrowserEnvironment) {
 
   // 🚨 브라우저에서도 self 확실히 정의
   if (typeof self === 'undefined') {
-    (window as any).self = window;
+    window.self = window;
   }
 } else {
   // Node.js 환경
@@ -125,11 +125,11 @@ if (isBrowserEnvironment) {
 try {
   if (typeof self === 'undefined') {
     if (typeof global !== 'undefined') {
-      (global as any).self = global;
+      global.self = global;
     } else if (typeof globalThis !== 'undefined') {
-      (globalThis as any).self = globalThis;
+      globalThis.self = globalThis;
     } else if (typeof window !== 'undefined') {
-      (window as any).self = window;
+      window.self = window;
     }
   }
 } catch (error) {

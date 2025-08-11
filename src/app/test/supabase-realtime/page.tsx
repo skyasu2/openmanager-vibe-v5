@@ -154,7 +154,7 @@ export default function SupabaseRealtimeTestPage() {
           await updateStepStatus(latestStep.id, 'completed');
         }
       }, 3000);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to add step:', err);
       setError(err.message || '단계 추가 실패');
     } finally {
@@ -215,7 +215,7 @@ export default function SupabaseRealtimeTestPage() {
       
       const data = await response.json();
       console.log('API response:', data);
-    } catch (err: any) {
+    } catch (err) {
       console.error('API test failed:', err);
       setError('API 테스트 실패: ' + err.message);
     }

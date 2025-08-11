@@ -1,0 +1,307 @@
+name: Security Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 2 * * 1'  # 매주 월요일 오전 2시
+
+jobs:
+  security-review:
+    name: Automated Security Review
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: NPM Security Audit
+      run: |
+        echo "🔍 NPM 의존성 보안 검사 실행 중..."
+        npm audit --audit-level=high
+        if [ $? -ne 0 ]; then
+          echo "⚠️ 높은 수준의 보안 취약점 발견 - 자동 수정 시도"
+          npm audit fix --dry-run
+        fi
+        
+    - name: Check for hardcoded secrets
+      run: |
+        echo "🔍 하드코딩된 시크릿 검사 중..."
+        
+        # API 키 패턴 검사
+        if grep -r "api_key\s*=\s*['\"][a-zA-Z0-9_-]\{10,\}" src/ --include="*.ts" --include="*.tsx" --include="*.js"; then
+          echo "❌ Hardcoded API keys found!"
+          exit 1
+        fi
+        
+        # 비밀번호 패턴 검사
+        if grep -r "password\s*=\s*['\"][^'\"]\{5,\}" src/ --include="*.ts" --include="*.tsx"; then
+          echo "❌ Hardcoded passwords found!"
+          exit 1
+        fi
+        
+        # 토큰 패턴 검사
+        if grep -r "token\s*=\s*['\"][a-zA-Z0-9_-]\{20,\}" src/ --include="*.ts" --include="*.tsx"; then
+          echo "❌ Hardcoded tokens found!"
+          exit 1
+        fi
+        
+        echo "✅ 하드코딩된 시크릿 없음"
+        
+    - name: TypeScript Security Check
+      run: |
+        echo "🔍 TypeScript 보안 검사 중..."
+        
+        # any 타입 사용 검사
+        ANY_COUNT=$(grep -r ": any\b\|as any\b\|<any>" src/ --include="*.ts" --include="*.tsx" | wc -l)
+        if [ "$ANY_COUNT" -gt 0 ]; then
+          echo "⚠️ Found $ANY_COUNT uses of 'any' type - 보안 위험"
+          echo "상세 내용:"
+          grep -r ": any\b\|as any\b\|<any>" src/ --include="*.ts" --include="*.tsx" | head -10
+        else
+          echo "✅ any 타입 사용 없음"
+        fi
+        
+    - name: Security Headers Check
+      run: |
+        echo "🔍 보안 헤더 설정 확인 중..."
+        
+        # Next.js 보안 헤더 설정 확인
+        if [ -f "next.config.js" ] || [ -f "next.config.mjs" ] || [ -f "next.config.ts" ]; then
+          echo "✅ Next.js config 파일 존재"
+          if grep -q "X-Content-Type-Options\|X-Frame-Options\|X-XSS-Protection\|Content-Security-Policy" next.config.*; then
+            echo "✅ 보안 헤더 설정됨"
+          else
+            echo "⚠️ 보안 헤더 미설정 - 권장사항"
+          fi
+        else
+          echo "⚠️ Next.js config 파일 없음"
+        fi
+        
+    - name: Environment Variables Check
+      run: |
+        echo "🔍 환경변수 설정 확인 중..."
+        
+        # 필수 환경변수 템플릿 확인
+        if [ -f ".env.local.template" ]; then
+          echo "✅ 환경변수 템플릿 존재"
+          
+          # 환경변수가 코드에서 올바르게 사용되는지 확인
+          ENV_VARS=$(grep -o "NEXT_PUBLIC_[A-Z_]*\|[A-Z_]*_API_KEY\|[A-Z_]*_SECRET" .env.local.template 2>/dev/null || true)
+          if [ -n "$ENV_VARS" ]; then
+            echo "템플릿에 정의된 환경변수들이 코드에서 사용되는지 확인:"
+            echo "$ENV_VARS" | while read var; do
+              if grep -q "process\.env\.$var\|env\.$var" src/ --include="*.ts" --include="*.tsx" -r; then
+                echo "  ✅ $var: 사용됨"
+              else
+                echo "  ⚠️ $var: 사용되지 않음"
+              fi
+            done
+          fi
+        else
+          echo "⚠️ .env.local.template 파일 없음"
+        fi
+        
+    - name: API Route Security Check
+      run: |
+        echo "🔍 API 라우트 보안 검사 중..."
+        
+        # API 라우트 파일 찾기
+        if [ -d "src/app/api" ]; then
+          API_FILES=$(find src/app/api -name "*.ts" -exec grep -l "export.*function.*GET\|POST\|PUT\|DELETE" {} \;)
+          
+          if [ -n "$API_FILES" ]; then
+            echo "발견된 API 라우트:"
+            UNPROTECTED=0
+            
+            echo "$API_FILES" | while read file; do
+              echo "  검사 중: $file"
+              # 인증 관련 코드 확인
+              if grep -q "getServerSession\|authenticate\|auth\|jwt\|token" "$file"; then
+                echo "    ✅ 인증 로직 존재"
+              else
+                echo "    ⚠️ 인증 로직 없음 - 공개 API인지 확인 필요"
+                UNPROTECTED=$((UNPROTECTED + 1))
+              fi
+            done
+            
+            if [ "$UNPROTECTED" -gt 0 ]; then
+              echo "⚠️ $UNPROTECTED개의 API 라우트에서 인증 로직을 찾을 수 없습니다"
+            fi
+          else
+            echo "✅ API 라우트 파일 없음"
+          fi
+        else
+          echo "✅ API 디렉토리 없음"
+        fi
+        
+    - name: Database Security Check
+      run: |
+        echo "🔍 데이터베이스 보안 설정 확인 중..."
+        
+        # SQL 인젝션 취약점 패턴 검사
+        SQL_ISSUES=$(grep -r "\`.*\${.*}\`\|query.*+.*\|execute.*+.*" src/ --include="*.ts" --include="*.tsx" | grep -v "test\|spec" || true)
+        if [ -n "$SQL_ISSUES" ]; then
+          echo "⚠️ SQL 인젝션 위험 패턴 발견:"
+          echo "$SQL_ISSUES"
+        else
+          echo "✅ SQL 인젝션 위험 패턴 없음"
+        fi
+        
+        # Supabase RLS 정책 확인
+        if grep -r "supabase\|from.*select\|from.*insert\|from.*update\|from.*delete" src/ --include="*.ts" --include="*.tsx" | grep -v "test\|spec" >/dev/null; then
+          echo "⚠️ 데이터베이스 쿼리 발견 - RLS 정책 설정 확인 권장"
+        fi
+        
+    - name: Create Security Report
+      if: always()
+      run: |
+        # 보고서 디렉토리 생성
+        mkdir -p reports
+        
+        # 보안 리포트 생성
+        cat > reports/security-report.md << EOF
+        # 🛡️ Security Review Report
+        
+        **Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        **Branch**: ${{ github.head_ref || github.ref_name }}
+        **Commit**: ${{ github.sha }}
+        **Workflow**: Security Review
+        
+        ## 📊 Scan Results
+        
+        ### NPM Audit Summary
+        \`\`\`bash
+        $(npm audit --json 2>/dev/null | jq -r 'if .vulnerabilities then "Vulnerabilities found: " + (.vulnerabilities | length | tostring) else "No vulnerabilities" end' || echo "No vulnerabilities")
+        \`\`\`
+        
+        ### Code Security Analysis
+        - **Hardcoded secrets**: $(grep -r "api_key\|password\|secret.*=" src/ --include="*.ts" --include="*.tsx" 2>/dev/null | wc -l || echo "0") potential issues
+        - **TypeScript 'any' usage**: $(grep -r ": any\b\|as any\b" src/ --include="*.ts" --include="*.tsx" 2>/dev/null | wc -l || echo "0") instances
+        - **API routes**: $(find src/app/api -name "*.ts" 2>/dev/null | wc -l || echo "0") files found
+        - **Environment template**: $(if [ -f ".env.local.template" ]; then echo "✅ Exists"; else echo "❌ Missing"; fi)
+        
+        ### Security Headers
+        - **Next.js config**: $(if [ -f "next.config.js" ] || [ -f "next.config.mjs" ] || [ -f "next.config.ts" ]; then echo "✅ Found"; else echo "❌ Missing"; fi)
+        - **Security headers**: $(if grep -q "X-Content-Type-Options\|X-Frame-Options\|X-XSS-Protection" next.config.* 2>/dev/null; then echo "✅ Configured"; else echo "⚠️ Not configured"; fi)
+        
+        ## 🔧 Recommendations
+        
+        ### Immediate Actions (High Priority)
+        1. **Update vulnerable dependencies** - Run \`npm audit fix\`
+        2. **Remove hardcoded secrets** - Use environment variables
+        3. **Eliminate 'any' types** - Improve type safety
+        
+        ### Short-term Improvements
+        1. **Add security headers** - Configure in Next.js config
+        2. **API authentication** - Ensure all sensitive endpoints are protected  
+        3. **Environment variables** - Create .env.local.template if missing
+        
+        ### Long-term Security
+        1. **Regular security scans** - Weekly automated reviews
+        2. **Dependency monitoring** - Automated updates
+        3. **Security training** - Team awareness
+        
+        ## 🚀 Quick Fixes
+        
+        \`\`\`bash
+        # NPM 취약점 수정
+        npm audit fix
+        
+        # Claude Code 내장 보안 점검
+        claude /security-review
+        
+        # 종합 보안 검사
+        npm run security:audit
+        \`\`\`
+        
+        ---
+        *Generated by Security Auditor Agent - Claude Code v1.0.72+*
+        
+        **보안 문의**: 이 리포트에 대한 질문이나 false positive 신고는 GitHub Issues를 통해 문의해주세요.
+        EOF
+        
+    - name: Upload Security Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-report-${{ github.sha }}
+        path: reports/security-report.md
+        retention-days: 30
+        
+    - name: Comment PR with Security Report
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          
+          if (fs.existsSync('reports/security-report.md')) {
+            const report = fs.readFileSync('reports/security-report.md', 'utf8');
+            
+            // 기존 보안 리포트 댓글 찾기
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && comment.body.includes('Security Review Report')
+            );
+            
+            if (botComment) {
+              // 기존 댓글 업데이트
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: report
+              });
+            } else {
+              // 새 댓글 생성
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: report
+              });
+            }
+          }
+          
+    - name: Set Security Status
+      if: always()
+      run: |
+        # 보안 검사 결과에 따른 상태 설정
+        CRITICAL_ISSUES=0
+        
+        # NPM 고위험 취약점 확인
+        if npm audit --audit-level=high --json | jq -e '.vulnerabilities | length > 0' >/dev/null 2>&1; then
+          CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+          echo "❌ 고위험 NPM 취약점 발견"
+        fi
+        
+        # 하드코딩된 시크릿 확인
+        if grep -r "api_key\s*=\s*['\"][a-zA-Z0-9_-]\{10,\}\|password\s*=\s*['\"][^'\"]\{5,\}\|token\s*=\s*['\"][a-zA-Z0-9_-]\{20,\}" src/ --include="*.ts" --include="*.tsx" --include="*.js" >/dev/null 2>&1; then
+          CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+          echo "❌ 하드코딩된 시크릿 발견"
+        fi
+        
+        if [ "$CRITICAL_ISSUES" -gt 0 ]; then
+          echo "::error::$CRITICAL_ISSUES critical security issues found"
+          echo "SECURITY_STATUS=critical" >> $GITHUB_ENV
+        else
+          echo "✅ 중요 보안 문제 없음"
+          echo "SECURITY_STATUS=passed" >> $GITHUB_ENV
+        fi

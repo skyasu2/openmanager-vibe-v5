@@ -57,11 +57,40 @@ export interface AdvancedContextCache {
   totalDocuments: number;
 }
 
+// Supabase 데이터 타입
+interface SupabaseDocument {
+  id: string;
+  title: string;
+  content: string;
+  file_path: string;
+  embedding: number[];
+  metadata: {
+    fileSize: number;
+    lastModified: number;
+    tags: string[];
+    category: 'documentation' | 'report' | 'log' | 'faq';
+    importance: number;
+  };
+  chunks: DocumentChunk[];
+  timestamp: string;
+}
+
+interface SupabaseFAQ {
+  id: string;
+  question: string;
+  answer: string;
+  category: string;
+  frequency: number;
+  last_accessed: string;
+  related_docs: string[];
+  confidence: number;
+}
+
 // 메모리 기반 캐시 클래스
 class AdvancedMemoryCache {
-  private cache = new Map<string, { value: any; expires: number }>();
+  private cache = new Map<string, { value: unknown; expires: number }>();
 
-  set(key: string, value: any, ttlSeconds: number): void {
+  set<T>(key: string, value: T, ttlSeconds: number): void {
     const expires = Date.now() + ttlSeconds * 1000;
     this.cache.set(key, { value, expires });
   }
@@ -806,16 +835,16 @@ export class AdvancedContextManager {
       const categories = new Map<string, number>();
 
       // 문서 변환
-      docs?.forEach((doc: any) => {
+      docs?.forEach((doc: SupabaseDocument) => {
         const docEmbedding: DocumentEmbedding = {
-          id: doc.id as string,
-          title: doc.title as string,
-          content: doc.content as string,
-          filePath: doc.file_path as string,
-          embedding: doc.embedding as number[],
-          metadata: doc.metadata as { fileSize: number; lastModified: number; tags: string[]; category: "report" | "log" | "documentation" | "faq"; importance: number; },
-          chunks: doc.chunks as DocumentChunk[],
-          timestamp: new Date(doc.timestamp as string).getTime(),
+          id: doc.id,
+          title: doc.title,
+          content: doc.content,
+          filePath: doc.file_path,
+          embedding: doc.embedding,
+          metadata: doc.metadata,
+          chunks: doc.chunks,
+          timestamp: new Date(doc.timestamp).getTime(),
         };
         documents.set(doc.id, docEmbedding);
 
@@ -825,16 +854,16 @@ export class AdvancedContextManager {
       });
 
       // FAQ 변환
-      faqs?.forEach((faq: any) => {
+      faqs?.forEach((faq: SupabaseFAQ) => {
         const faqEntry: FAQEntry = {
-          id: faq.id as string,
-          question: faq.question as string,
-          answer: faq.answer as string,
-          category: faq.category as string,
-          frequency: faq.frequency as number,
-          lastAccessed: new Date(faq.last_accessed as string).getTime(),
-          relatedDocs: faq.related_docs as string[],
-          confidence: faq.confidence as number,
+          id: faq.id,
+          question: faq.question,
+          answer: faq.answer,
+          category: faq.category,
+          frequency: faq.frequency,
+          lastAccessed: new Date(faq.last_accessed).getTime(),
+          relatedDocs: faq.related_docs,
+          confidence: faq.confidence,
         };
         faqMap.set(faq.id, faqEntry);
       });

@@ -10,14 +10,14 @@
 import type { ApiResponse, AuthenticationState } from '../types/ProfileTypes';
 
 interface ProfileStore {
-  authenticateAIAgent(password: string): Promise<{ success: boolean; data?: any }>;
+  authenticateAIAgent(password: string): Promise<{ success: boolean; data?: AuthenticationState }>;
   updateAuthState(auth: AuthenticationState): void;
   agentLocked: boolean;
   apiKey?: string;
   isLocked: boolean;
   getRemainingLockTime(): number;
   attempts: number;
-  disableAIAgent(): Promise<{ success: boolean; error?: string; data?: any }>;
+  disableAIAgent(): Promise<{ success: boolean; error?: string; data?: AuthenticationState }>;
   adminMode?: {
     isAuthenticated: boolean;
   };

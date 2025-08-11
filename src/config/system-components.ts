@@ -14,6 +14,38 @@ import {
   recordNetworkRequest,
 } from '../utils/network-tracking';
 
+// 🔧 네트워크 에러 타입 정의
+interface NetworkError extends Error {
+  networkInfo?: {
+    requestId?: string;
+    url?: string;
+    method?: string;
+    duration?: number;
+    responseTime?: number;
+    startTime?: number;
+    endTime?: number;
+  };
+  originalError?: Error;
+}
+
+// 🔧 타입 가드 함수들
+const isNetworkError = (error: unknown): error is NetworkError => {
+  return (
+    error instanceof Error &&
+    'networkInfo' in error &&
+    typeof (error as NetworkError).networkInfo === 'object'
+  );
+};
+
+const hasOriginalError = (error: unknown): error is { originalError: Error } => {
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    'originalError' in error &&
+    error.originalError instanceof Error
+  );
+};
+
 export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
   {
     id: 'api-server',
@@ -33,13 +65,13 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
 
         recordNetworkRequest(networkInfo, response.ok, 'api-server');
         return response.ok;
-      } catch (error: Error | unknown) {
-        if (error && typeof error === 'object' && 'networkInfo' in error) {
-          recordNetworkRequest((error as any).networkInfo, false, 'api-server');
+      } catch (error: unknown) {
+        if (isNetworkError(error)) {
+          recordNetworkRequest(error.networkInfo, false, 'api-server');
         }
 
-        const errorToLog = error && typeof error === 'object' && 'originalError' in error
-          ? (error as any).originalError
+        const errorToLog = hasOriginalError(error)
+          ? error.originalError
           : error;
         safeErrorLog('🌐 API 서버 연결 실패', errorToLog);
         return false;
@@ -64,13 +96,13 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
 
         recordNetworkRequest(networkInfo, response.ok, 'metrics-database');
         return response.ok;
-      } catch (error: Error | unknown) {
-        if (error && typeof error === 'object' && 'networkInfo' in error) {
-          recordNetworkRequest((error as any).networkInfo, false, 'metrics-database');
+      } catch (error: unknown) {
+        if (isNetworkError(error)) {
+          recordNetworkRequest(error.networkInfo, false, 'metrics-database');
         }
 
-        const errorToLog = error && typeof error === 'object' && 'originalError' in error
-          ? (error as any).originalError
+        const errorToLog = hasOriginalError(error)
+          ? error.originalError
           : error;
         safeErrorLog(
           '📊 메트릭 데이터베이스 연결 실패',
@@ -109,27 +141,25 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
         console.log('✅ Unified AI 엔진 체크 성공:', {
           engines: data.engines || 'unknown',
           tier: data.tier || 'fallback',
-          responseTime: (networkInfo as any)?.responseTime || 'unknown',
+          responseTime: networkInfo?.responseTime || 'unknown',
         });
 
         return true;
-      } catch (error: Error | unknown) {
-        if (error && typeof error === 'object' && 'networkInfo' in error) {
-          recordNetworkRequest((error as any).networkInfo, false, 'unified-ai-engine');
+      } catch (error: unknown) {
+        if (isNetworkError(error)) {
+          recordNetworkRequest(error.networkInfo, false, 'unified-ai-engine');
         }
 
         const errorMessage = error instanceof Error ? error.message : String(error);
-        const networkInfo = error && typeof error === 'object' && 'networkInfo' in error
-          ? (error as any).networkInfo?.responseTime
-            ? `응답시간: ${(error as any).networkInfo.responseTime}ms`
-            : undefined
+        const responseTime = isNetworkError(error) && error.networkInfo?.responseTime
+          ? `응답시간: ${error.networkInfo.responseTime}ms`
           : undefined;
 
         console.warn(
           '⚠️ Unified AI 엔진 체크 실패, Graceful Degradation 모드:',
           {
             error: errorMessage,
-            networkInfo,
+            networkInfo: responseTime,
           }
         );
 
@@ -156,13 +186,13 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
 
         recordNetworkRequest(networkInfo, response.ok, 'server-generator');
         return response.ok;
-      } catch (error: Error | unknown) {
-        if (error && typeof error === 'object' && 'networkInfo' in error) {
-          recordNetworkRequest((error as any).networkInfo, false, 'server-generator');
+      } catch (error: unknown) {
+        if (isNetworkError(error)) {
+          recordNetworkRequest(error.networkInfo, false, 'server-generator');
         }
 
-        const errorToLog = error && typeof error === 'object' && 'originalError' in error
-          ? (error as any).originalError
+        const errorToLog = hasOriginalError(error)
+          ? error.originalError
           : error;
         safeErrorLog('🖥️ 서버 생성기 연결 실패', errorToLog);
         return false;

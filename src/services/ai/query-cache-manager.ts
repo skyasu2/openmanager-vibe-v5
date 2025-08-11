@@ -9,7 +9,6 @@
 
 import { aiLogger } from '@/lib/logger';
 import type { QueryResponse } from './SimplifiedQueryEngine';
-import crypto from 'crypto';
 
 interface QueryPattern {
   id: string;
@@ -171,21 +170,29 @@ export class QueryCacheManager {
    * 패턴 해시 생성
    */
   private hashPattern(pattern: string): string {
-    return crypto
-      .createHash('md5')
-      .update(pattern)
-      .digest('hex')
-      .substring(0, 16);
+    // Edge Runtime 호환을 위해 간단한 해시 함수 사용
+    let hash = 0;
+    for (let i = 0; i < pattern.length; i++) {
+      const char = pattern.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash).toString(16).padStart(16, '0').substring(0, 16);
   }
 
   /**
    * 캐시 키 생성
    */
   private getCacheKey(query: string): string {
-    return crypto
-      .createHash('md5')
-      .update(query.toLowerCase().trim())
-      .digest('hex');
+    // Edge Runtime 호환을 위해 간단한 해시 함수 사용
+    const input = query.toLowerCase().trim();
+    let hash = 0;
+    for (let i = 0; i < input.length; i++) {
+      const char = input.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash).toString(16);
   }
 
   /**

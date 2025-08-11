@@ -7,15 +7,15 @@
  * - TTL 기반 만료 처리
  */
 
-interface CachedItem {
-  data: any;
+interface CachedItem<T = unknown> {
+  data: T;
   expiresAt: number;
   accessedAt: number;
   size: number;
 }
 
 export class EdgeCache {
-  private cache = new Map<string, CachedItem>();
+  private cache = new Map<string, CachedItem<unknown>>();
   private maxSize = 100; // 최대 캐시 항목 수
   private maxMemoryMB = 50; // Edge Runtime 메모리 제한 (MB)
   private currentMemoryUsage = 0;
@@ -23,7 +23,7 @@ export class EdgeCache {
   /**
    * 캐시에서 값 조회
    */
-  async get(key: string): Promise<any | null> {
+  async get<T = unknown>(key: string): Promise<T | null> {
     const item = this.cache.get(key);
     if (!item) return null;
     
@@ -36,13 +36,13 @@ export class EdgeCache {
     // 접근 시간 업데이트 (LRU)
     item.accessedAt = Date.now();
     
-    return item.data;
+    return item.data as T;
   }
 
   /**
    * 캐시에 값 저장
    */
-  async set(key: string, value: any, ttlSeconds: number = 300): Promise<void> {
+  async set<T = unknown>(key: string, value: T, ttlSeconds: number = 300): Promise<void> {
     const size = this.estimateSize(value);
     
     // 메모리 제한 확인
@@ -55,7 +55,7 @@ export class EdgeCache {
       this.evictLRU();
     }
     
-    const item: CachedItem = {
+    const item: CachedItem<T> = {
       data: value,
       expiresAt: Date.now() + (ttlSeconds * 1000),
       accessedAt: Date.now(),
@@ -155,7 +155,7 @@ export class EdgeCache {
   /**
    * 객체 크기 추정 (바이트)
    */
-  private estimateSize(obj: any): number {
+  private estimateSize(obj: unknown): number {
     const str = JSON.stringify(obj);
     // UTF-8 인코딩 크기 추정
     return new Blob([str]).size;

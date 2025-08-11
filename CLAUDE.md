@@ -104,7 +104,82 @@ npm run health:check                 # API 상태 확인
 git commit -m "feat: 기능 추가"           # 표준 배포 (8-10분)
 git commit -m "feat: 기능 추가 [build-skip]" # 빌드 체크 스킵 (5-7분)
 git commit -m "fix: 긴급 수정 [skip ci]"   # 완전 CI 스킵 (2-3분)
+
+# 백그라운드 명령어 (Claude Code v1.0.72+)
+# Bash 도구의 run_in_background: true 파라미터 사용
+# BashOutput 도구로 백그라운드 작업 모니터링 가능
 ```
+
+### 🔄 백그라운드 명령어 기능 (v1.0.72+)
+
+Claude Code는 백그라운드에서 명령어를 실행할 수 있는 기능을 제공합니다:
+
+```bash
+# 백그라운드 실행: run_in_background: true
+# 장시간 실행되는 작업을 백그라운드에서 처리
+# 여러 작업 동시 실행 가능 (bash_1, bash_2, bash_3...)
+# BashOutput 도구로 진행 상황 모니터링
+```
+
+**활용 예시:**
+- 개발 서버 백그라운드 실행 (`npm run dev`)
+- 빌드 프로세스 병렬 처리
+- 테스트 실행과 동시에 다른 작업 수행
+- 로그 모니터링 및 실시간 작업
+
+### 📊 상태표시줄 기능 (Beta)
+
+Claude Code 상태표시줄에 실시간 사용량 통계를 표시할 수 있습니다:
+
+```json
+// ~/.claude/settings.json에 추가
+{
+  "statusLine": {
+    "type": "command",
+    "command": "bun x ccusage statusline",
+    "padding": 0
+  }
+}
+```
+
+**표시 정보:**
+- 🤖 활성 모델 (Opus, Sonnet 등)
+- 💰 세션/일일/블록별 비용
+- ⏱️ 남은 블록 시간 (5시간 단위)
+- 🔥 토큰 소모율 (burn rate)
+
+**예시 출력:**
+```
+🤖 Opus | 💰 $0.23 session / $1.23 today / $0.45 block (2h 45m left) | 🔥 $0.12/hr
+```
+
+**Burn Rate 색상:**
+- 🟢 정상 (< 2,000 토큰/분)
+- 🟡 보통 (2,000-5,000 토큰/분) 
+- 🔴 높음 (> 5,000 토큰/분)
+
+### 🛡️ 자동 보안 점검 (v1.0.72+)
+
+Claude Code 내장 보안 검토 기능으로 SQLi, 인증, 데이터 처리 취약점을 자동 탐지:
+
+```bash
+# 프로젝트 전체 보안 점검
+claude /security-review
+
+# API 라우트 집중 검사
+claude /security-review --path src/app/api
+
+# 종합 보안 검사 (NPM + 코드)
+npm run security:audit
+```
+
+**자동 탐지 항목:**
+- SQL Injection, XSS, CSRF 취약점
+- 하드코딩된 API 키/시크릿
+- 인증/인가 누락
+- 취약한 암호화 패턴
+
+**GitHub Action 통합**: PR마다 자동 보안 검토 실행
 
 ## 📝 개발 규칙 (필수)
 
