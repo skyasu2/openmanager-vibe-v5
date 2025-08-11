@@ -339,9 +339,9 @@ export const useServerStats = () => {
     data: servers
       ? {
           total: servers.length,
-          online: servers.filter((s: any) => s.status === 'online').length,
-          offline: servers.filter((s: any) => s.status === 'offline').length,
-          warning: servers.filter((s: any) => s.status === 'warning').length,
+          online: servers.filter((s: Server) => s.status === 'online').length,
+          offline: servers.filter((s: Server) => s.status === 'offline').length,
+          warning: servers.filter((s: Server) => s.status === 'warning').length,
           avgCpu:
             servers.reduce((acc, s) => acc + s.cpu, 0) / servers.length || 0,
           avgMemory:

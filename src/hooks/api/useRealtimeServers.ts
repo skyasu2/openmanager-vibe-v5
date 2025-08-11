@@ -397,7 +397,7 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
         setError(data.error); // Set error for UI, but might still have stale data
         // Don't immediately clear servers, can show stale data with an error message
         if (data.servers && Array.isArray(data.servers)) {
-          const transformedServers = data.servers.map((s: any) => {
+          const transformedServers = data.servers.map((s: { status?: string; [key: string]: unknown }) => {
             if (typeof s === 'object' && s !== null) {
               return {
                 ...s,
@@ -417,7 +417,7 @@ export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
         );
       }
 
-      const transformedServers = data.servers.map((s: any) => {
+      const transformedServers = data.servers.map((s: { status?: string; [key: string]: unknown }) => {
         if (typeof s === 'object' && s !== null) {
           return {
             ...s,

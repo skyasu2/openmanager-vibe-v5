@@ -8,6 +8,34 @@ import type {
   SystemHealth,
 } from '../types/ai-assistant';
 
+// API 응답 타입 정의
+interface InteractionLog {
+  id?: string;
+  timestamp?: string;
+  query?: string;
+  question?: string;
+  response?: string;
+  answer?: string;
+  success?: boolean;
+  fallbackUsed?: boolean;
+  confidence?: number;
+  responseTime?: number;
+  patternMatched?: string;
+  serverContext?: Record<string, unknown>;
+}
+
+interface SuggestionData {
+  id?: string;
+  originalQuery?: string;
+  query?: string;
+  suggestedPattern?: string;
+  pattern?: string;
+  frequency?: number;
+  confidence?: number;
+  improvement?: string;
+  status?: string;
+}
+
 interface UseAIAssistantDataReturn {
   // 데이터
   _responseLogs: ResponseLogData[];
@@ -69,7 +97,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data?.interactions) {
-          const convertedLogs = data.data.interactions.map((log: any) => ({
+          const convertedLogs = data.data.interactions.map((log: InteractionLog) => ({
             id: log.id || `log-${Date.now()}-${Math.random()}`,
             timestamp: log.timestamp || new Date().toISOString(),
             question: log.query || log.question || '질문 정보 없음',
@@ -107,7 +135,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
         const data = await response.json();
         if (data.success && data.data?.suggestions) {
           const convertedSuggestions = data.data.suggestions.map(
-            (suggestion: any) => ({
+            (suggestion: SuggestionData) => ({
               id: suggestion.id || `suggestion-${Date.now()}-${Math.random()}`,
               originalQuery:
                 suggestion.originalQuery ||

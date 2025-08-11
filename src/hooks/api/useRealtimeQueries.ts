@@ -27,6 +27,35 @@ interface RealtimeMessage {
   id?: string;
 }
 
+// 🖥️ 서버 데이터 타입
+interface ServerData {
+  id: string;
+  name?: string;
+  status?: string;
+  cpu_usage?: number;
+  memory_usage?: number;
+  disk_usage?: number;
+  last_updated?: string;
+  [key: string]: unknown;
+}
+
+// 🔧 시스템 데이터 타입
+interface SystemData {
+  status?: string;
+  version?: string;
+  uptime?: number;
+  [key: string]: unknown;
+}
+
+// 🔮 예측 데이터 타입
+interface PredictionData {
+  metric: string;
+  predicted_value: number;
+  confidence?: number;
+  timestamp?: string;
+  [key: string]: unknown;
+}
+
 // 🔧 WebSocket 설정
 interface WebSocketConfig {
   url?: string;
@@ -89,10 +118,10 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
           switch (message.type) {
             case 'server_update':
               // 서버 상태 업데이트
-              const serverData = message.data as { id: string };
-              queryClient.setQueryData(serverKeys.lists(), (old: any) => {
+              const serverData = message.data as ServerData;
+              queryClient.setQueryData(serverKeys.lists(), (old: unknown) => {
                 if (!Array.isArray(old)) return old;
-                return old.map((server: any) =>
+                return old.map((server: ServerData) =>
                   server.id === serverData.id
                     ? { ...server, ...serverData }
                     : server
@@ -103,16 +132,20 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
               if (serverData.id) {
                 queryClient.setQueryData(
                   serverKeys.detail(serverData.id),
-                  (old: any) => (old ? { ...old, ...serverData } : old)
+                  (old: unknown) => {
+                    const oldServer = old as ServerData | null;
+                    return oldServer ? { ...oldServer, ...serverData } : old;
+                  }
                 );
               }
               break;
 
             case 'system_update':
               // 시스템 상태 업데이트
-              const systemData = message.data as Record<string, any>;
-              queryClient.setQueryData(systemKeys.health(), (old: any) => {
-                return old ? { ...old, ...systemData } : systemData;
+              const systemData = message.data as SystemData;
+              queryClient.setQueryData(systemKeys.health(), (old: unknown) => {
+                const oldSystem = old as SystemData | null;
+                return oldSystem ? { ...oldSystem, ...systemData } : systemData;
               });
               break;
 
@@ -275,16 +308,14 @@ export const useRealtimePredictions = () => {
 
         if (message.type === 'prediction_update') {
           // 새로운 예측 결과를 캐시에 추가
-          queryClient.setQueryData(predictionKeys.list('{}'), (old: any) => {
-            if (!Array.isArray(old)) return [message.data];
-            return [message.data, ...old.slice(0, 49)]; // 최신 50개만 유지
+          queryClient.setQueryData(predictionKeys.list('{}'), (old: unknown) => {
+            const oldPredictions = old as PredictionData[] | null;
+            if (!Array.isArray(oldPredictions)) return [message.data];
+            return [message.data as PredictionData, ...oldPredictions.slice(0, 49)]; // 최신 50개만 유지
           });
 
           // 실시간 예측 알림
-          const predictionData = message.data as {
-            metric: string;
-            predicted_value: number;
-          };
+          const predictionData = message.data as PredictionData;
           toast.success(
             `🔮 새로운 예측: ${predictionData.metric} ${predictionData.predicted_value.toFixed(1)}%`,
             { duration: 3000 }
