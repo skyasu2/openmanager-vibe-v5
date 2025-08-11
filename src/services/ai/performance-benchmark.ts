@@ -456,6 +456,7 @@ export class AIPerformanceBenchmark {
    * 📈 실시간 성능 모니터링
    */
   async startRealTimeMonitoring(durationMs: number = 60000): Promise<{
+    type: string;
     averageResponseTime: number;
     requestsPerSecond: number;
     errorRate: number;
@@ -531,6 +532,7 @@ export class AIPerformanceBenchmark {
     });
     
     return {
+      type: 'real-time-monitoring',
       averageResponseTime,
       requestsPerSecond,
       errorRate,
