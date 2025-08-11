@@ -835,7 +835,7 @@ export class AdvancedContextManager {
       const categories = new Map<string, number>();
 
       // 문서 변환
-      (docs as SupabaseDocument[] | null)?.forEach((doc) => {
+      (docs as unknown as SupabaseDocument[] | null)?.forEach((doc) => {
         const docEmbedding: DocumentEmbedding = {
           id: doc.id,
           title: doc.title,
@@ -854,7 +854,7 @@ export class AdvancedContextManager {
       });
 
       // FAQ 변환
-      (faqs as SupabaseFAQ[] | null)?.forEach((faq) => {
+      (faqs as unknown as SupabaseFAQ[] | null)?.forEach((faq) => {
         const faqEntry: FAQEntry = {
           id: faq.id,
           question: faq.question,
