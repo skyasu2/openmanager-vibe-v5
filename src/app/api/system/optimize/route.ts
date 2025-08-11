@@ -175,7 +175,7 @@ async function getMemoryStatusHandler(_request: NextRequest) {
           duration: result.duration,
           actions: result.optimizationActions,
         })),
-        recommendations: generateMemoryRecommendations(memorySummary),
+        recommendations: generateMemoryRecommendations(memorySummary.status, memorySummary.current),
       },
       '메모리 상태 조회 완료'
     );
