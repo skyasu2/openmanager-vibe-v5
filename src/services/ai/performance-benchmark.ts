@@ -60,6 +60,7 @@ interface DetailedResult {
 }
 
 interface BenchmarkReport {
+  type: 'benchmark';
   summary: {
     totalQueries: number;
     totalEngines: number;
@@ -385,6 +386,7 @@ export class AIPerformanceBenchmark {
     const recommendations = this.generateRecommendations(engineResults);
     
     return {
+      type: 'benchmark' as const,
       summary: {
         totalQueries: detailedResults.length,
         totalEngines: engineResults.length,
