@@ -45,6 +45,20 @@ interface CircuitBreakerState {
   timeout: number;
 }
 
+interface RAGResultItem {
+  content?: string;
+  text?: string;
+  score?: number;
+  metadata?: Record<string, unknown>;
+}
+
+interface RAGResult {
+  results: RAGResultItem[];
+  query?: string;
+  timestamp?: number;
+  source?: string;
+}
+
 export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
   private config: PerformanceConfig;
   private metrics: PerformanceMetrics;
@@ -636,7 +650,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
    */
   private generateLocalResponse(
     query: string,
-    ragResult: any,
+    ragResult: RAGResult | null,
     mcpContext: MCPContext | null,
     context?: AIQueryContext
   ): string {
@@ -663,13 +677,13 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
   /**
    * 🎯 신뢰도 계산
    */
-  private calculateConfidence(ragResult: any): number {
+  private calculateConfidence(ragResult: RAGResult | null): number {
     try {
       if (!ragResult || !ragResult.results) return 0.3;
 
       // 결과의 수와 품질을 기반으로 신뢰도 계산
       const resultCount = ragResult.results.length;
-      const hasHighQualityResults = ragResult.results.some((result: any) => 
+      const hasHighQualityResults = ragResult.results.some((result: RAGResultItem) => 
         result.score && result.score > 0.8
       );
 
