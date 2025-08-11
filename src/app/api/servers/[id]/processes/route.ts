@@ -22,12 +22,12 @@ function generateMockProcesses(serverId: string): ServerProcess[] {
     'docker', 'kubernetes', 'apache2', 'mysql', 'mongodb', 'elasticsearch'
   ];
 
-  const processes = processNames.slice(0, Math.floor(Math.random() * 8) + 3).map((name, index) => ({
+  const processes: ServerProcess[] = processNames.slice(0, Math.floor(Math.random() * 8) + 3).map((name, index) => ({
     pid: 1000 + index,
     name,
     cpu: (Math.random() * 50).toFixed(1),
     memory: (Math.random() * 20).toFixed(1),
-    status: Math.random() > 0.1 ? 'running' : 'stopped',
+    status: (Math.random() > 0.1 ? 'running' : 'stopped') as 'running' | 'stopped',
     uptime: Math.floor(Math.random() * 86400),
     user: 'root',
   }));
