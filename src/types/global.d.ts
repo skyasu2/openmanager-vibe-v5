@@ -19,6 +19,42 @@ interface FreeTierCache {
   [key: string]: unknown;
 }
 
+// Polyfill 관련 타입
+interface DocumentMock {
+  createElement: () => Record<string, unknown>;
+  getElementById: () => null;
+  querySelector: () => null;
+  querySelectorAll: () => unknown[];
+  addEventListener: () => void;
+  removeEventListener: () => void;
+}
+
+interface NavigatorMock {
+  userAgent: string;
+  platform: string;
+  language: string;
+}
+
+interface LocationMock {
+  href: string;
+  origin: string;
+  pathname: string;
+  search: string;
+  hash: string;
+  hostname: string;
+  port: string;
+  protocol: string;
+}
+
+interface StorageMock {
+  getItem: () => null;
+  setItem: () => void;
+  removeItem: () => void;
+  clear: () => void;
+  length: number;
+  key: () => null;
+}
+
 declare global {
   // Node.js global 객체 확장
   namespace NodeJS {
@@ -26,6 +62,14 @@ declare global {
       statusRequestCount?: StatusRequestCount;
       lastStatusCheck?: LastStatusCheck;
       freeTierCache?: FreeTierCache;
+      // Polyfill 속성들
+      self?: typeof globalThis;
+      window?: typeof globalThis;
+      document?: DocumentMock;
+      navigator?: NavigatorMock;
+      location?: LocationMock;
+      localStorage?: StorageMock;
+      sessionStorage?: StorageMock;
     }
   }
 
@@ -33,6 +77,16 @@ declare global {
   var statusRequestCount: StatusRequestCount | undefined;
   var lastStatusCheck: LastStatusCheck | undefined;
   var freeTierCache: FreeTierCache | undefined;
+  
+  // Window 객체 확장 (브라우저 환경)
+  interface Window {
+    self?: Window;
+  }
+  
+  // GlobalThis 확장
+  interface GlobalThis {
+    self?: typeof globalThis;
+  }
 }
 
 // lucide-react 모듈 타입 선언

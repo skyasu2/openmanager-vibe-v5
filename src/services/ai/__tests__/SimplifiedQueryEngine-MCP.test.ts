@@ -26,8 +26,10 @@ global.fetch = vi.fn();
 
 describe('SimplifiedQueryEngine - MCP Integration', () => {
   let engine: SimplifiedQueryEngine;
-  let mockRAGEngine: any;
-  let mockContextLoader: any;
+  // @ts-expect-error - Mock object for testing
+  let mockRAGEngine: ReturnType<typeof getSupabaseRAGEngine>;
+  // @ts-expect-error - Mock object for testing
+  let mockContextLoader: CloudContextLoader;
 
   beforeEach(() => {
     vi.clearAllMocks();

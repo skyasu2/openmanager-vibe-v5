@@ -17,8 +17,10 @@ vi.mock('../embedding-service');
 
 describe('SupabaseRAGEngine', () => {
   let engine: SupabaseRAGEngine;
-  let mockVectorDB: any;
-  let mockContextLoader: any;
+  // @ts-expect-error - Mock object for testing
+  let mockVectorDB: PostgresVectorDB;
+  // @ts-expect-error - Mock object for testing
+  let mockContextLoader: CloudContextLoader;
   
   beforeEach(() => {
     vi.clearAllMocks();

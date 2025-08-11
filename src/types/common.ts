@@ -115,6 +115,11 @@ export interface ServerAlert extends BaseAlert {
   threshold?: number;
 }
 
+// 🔧 메타데이터 타입 정의 개선
+export type MetadataValue = string | number | boolean | null | undefined;
+export type ServerMetadata = Record<string, MetadataValue>;
+export type ExtensibleMetadata = Record<string, MetadataValue | MetadataValue[]>;
+
 // 기본 서버 정보 인터페이스
 export interface BaseServer {
   id: string;
@@ -126,7 +131,7 @@ export interface BaseServer {
   created_at: Date;
 }
 
-// 확장된 서버 정보 인터페이스
+// 확장된 서버 정보 인터페이스 - any 제거
 export interface ExtendedServer extends BaseServer {
   location?: string;
   provider?: CloudProvider;
@@ -136,17 +141,26 @@ export interface ExtendedServer extends BaseServer {
     disk_gb: number;
   };
   tags?: string[];
-  metadata?: Record<string, any>;
+  metadata?: ServerMetadata; // any 대신 구체적 타입 사용
 }
 
-// API 응답 기본 구조
-export interface BaseApiResponse<T = any> {
+// 🔧 API 응답 타입 시스템 개선
+export interface ApiErrorDetails {
+  code: string;
+  message: string;
+  field?: string;
+  value?: unknown;
+  stack?: string;
+}
+
+// API 응답 기본 구조 - any 제거
+export interface BaseApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: {
     code: string;
     message: string;
-    details?: unknown;
+    details?: ApiErrorDetails;
   };
   meta?: {
     timestamp: string;
@@ -216,13 +230,17 @@ export interface SystemStatus {
 // 로그 레벨 타입
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-// 로그 엔트리 인터페이스
+// 🔧 로그 데이터 타입 시스템 개선
+export type LogDataValue = string | number | boolean | null | Date;
+export type LogData = Record<string, LogDataValue | LogDataValue[]>;
+
+// 로그 엔트리 인터페이스 - any 제거
 export interface LogEntry {
   level: LogLevel;
   message: string;
   timestamp: string;
   module: string;
-  data?: Record<string, any>;
+  data?: LogData; // any 대신 구체적 타입 사용
 }
 
 // 설정 인터페이스
@@ -233,12 +251,16 @@ export interface BaseConfig {
   debug: boolean;
 }
 
-// 에러 정보 인터페이스
+// 🔧 에러 컨텍스트 타입 시스템 개선
+export type ErrorContextValue = string | number | boolean | null | undefined;
+export type ErrorContext = Record<string, ErrorContextValue>;
+
+// 에러 정보 인터페이스 - any 제거
 export interface ErrorInfo {
   code: string;
   message: string;
   stack?: string;
-  context?: Record<string, any>;
+  context?: ErrorContext; // any 대신 구체적 타입 사용
   timestamp: Date;
 }
 
@@ -265,11 +287,9 @@ export type DeepPartial<T> = {
 // ID 생성 함수 타입
 export type IdGenerator = () => string;
 
-// 이벤트 핸들러 타입
-export type EventHandler<T = any> = (data: T) => void | Promise<void>;
-
-// 비동기 함수 타입
-export type AsyncFunction<T = any, R = any> = (data: T) => Promise<R>;
+// 🔧 이벤트 핸들러 타입 시스템 개선
+export type EventHandler<T = unknown> = (data: T) => void | Promise<void>;
+export type AsyncFunction<T = unknown, R = unknown> = (data: T) => Promise<R>;
 
 /**
  * 🤖 AI 관련 통합 타입 정의
@@ -324,8 +344,8 @@ export interface SessionContext {
   conversationId?: string;
   userIntent?: string;
   previousActions?: string[];
-  currentState?: Record<string, any>;
-  metadata?: Record<string, any>;
+  currentState?: ExtensibleMetadata; // any 대신 구체적 타입 사용
+  metadata?: ExtensibleMetadata; // any 대신 구체적 타입 사용
   lastQuery?: string;
   createdAt: Date;
   lastUpdated: Date;
@@ -339,7 +359,7 @@ export interface StandardAnalysisResponse {
   query: string;
   analysis: {
     summary: string;
-    details: unknown[];
+    details: AnalysisDetail[]; // unknown[] 대신 구체적 타입 사용
     confidence: number;
     processingTime: number;
   };
@@ -352,3 +372,46 @@ export interface StandardAnalysisResponse {
   };
   error?: string;
 }
+
+/**
+ * 🔍 분석 상세 정보 타입
+ */
+export interface AnalysisDetail {
+  type: 'metric' | 'trend' | 'anomaly' | 'recommendation' | 'insight';
+  name: string;
+  value: MetadataValue;
+  description?: string;
+  severity?: AlertSeverity;
+  timestamp?: string;
+}
+
+/**
+ * 🎯 타입 가드 함수들
+ */
+export const isMetadataValue = (value: unknown): value is MetadataValue => {
+  return typeof value === 'string' ||
+         typeof value === 'number' ||
+         typeof value === 'boolean' ||
+         value === null ||
+         value === undefined;
+};
+
+export const isLogData = (value: unknown): value is LogData => {
+  if (!value || typeof value !== 'object') return false;
+  
+  return Object.values(value).every(v => 
+    isMetadataValue(v) || (Array.isArray(v) && v.every(isMetadataValue))
+  );
+};
+
+export const isErrorContext = (value: unknown): value is ErrorContext => {
+  if (!value || typeof value !== 'object') return false;
+  
+  return Object.values(value).every(v => 
+    typeof v === 'string' ||
+    typeof v === 'number' ||
+    typeof v === 'boolean' ||
+    v === null ||
+    v === undefined
+  );
+};
