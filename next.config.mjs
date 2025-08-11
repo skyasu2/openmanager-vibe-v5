@@ -1,10 +1,17 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import bundleAnalyzer from '@next/bundle-analyzer';
 
 // package.json에서 버전 읽기
 const packageJson = JSON.parse(
   readFileSync(join(process.cwd(), 'package.json'), 'utf8')
 );
+
+// Bundle Analyzer 설정
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+  openAnalyzer: true,
+});
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -191,4 +198,5 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+// Bundle Analyzer와 함께 export
+export default withBundleAnalyzer(nextConfig);

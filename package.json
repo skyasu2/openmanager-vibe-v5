@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.66.32",
+  "version": "5.66.34",
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_OPTIONS='--max-old-space-size=8192' next dev",
@@ -116,8 +116,11 @@
     "perf:precommit-benchmark": "node scripts/performance/precommit-benchmark.js",
     "perf:all-benchmarks": "npm run perf:lint-benchmark && npm run perf:precommit-benchmark",
     "perf:quick": "node scripts/performance/quick-benchmark.js",
-    "security:audit": "npm audit --audit-level=moderate",
-    "security:fix": "npm audit fix",
+    "security:audit": "npm audit --audit-level=moderate && claude /security-review && bash scripts/security/check-hardcoded-secrets.sh",
+    "security:quick": "npm audit --audit-level=high && claude /security-review",
+    "security:report": "npm audit --json > reports/npm-audit-$(date +%Y%m%d).json && claude /security-review > reports/security-review-$(date +%Y%m%d).txt",
+    "security:fix": "npm audit fix && eslint --fix src/ --ext .ts,.tsx",
+    "security:pr-review": "claude /security-review && npm audit --audit-level=moderate",
     "security:check-types": "echo '🔍 TypeScript any 타입 검사 중...' && grep -r ': any' src/ --include='*.ts' --include='*.tsx' | wc -l | awk '{print \"발견된 any 타입: \" $1 \"개\"}'",
     "security:check-types-strict": "eslint --ext .ts,.tsx --rule '@typescript-eslint/no-explicit-any: error' src/ --max-warnings=0",
     "security:check-all": "npm run security:audit && npm run security:check-types",
