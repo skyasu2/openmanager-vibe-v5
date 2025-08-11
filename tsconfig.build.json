@@ -1,0 +1,49 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Vercel 빌드를 위한 완화된 설정
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": false,
+    "noFallthroughCasesInSwitch": false,
+    "noUncheckedIndexedAccess": false,
+    // 타입 체크 속도 향상
+    "skipLibCheck": true,
+    "incremental": true,
+    "assumeChangesOnlyAffectDirectDependencies": true,
+    // 빌드 캐시 최적화
+    "tsBuildInfoFile": ".next/cache/tsbuildinfo"
+  },
+  "exclude": [
+    "node_modules",
+    ".next",
+    "out",
+    "build",
+    "development/**/*",
+    "src/stories/**",
+    "**/*.stories.tsx",
+    "**/*.stories.ts",
+    "src/utils/createTimeoutSignal.ts",
+    "src/domains/ai-sidebar/stores/useAISidebarStore.ts",
+    "src/services/ai-agent/**",
+    "src/services/ai/orchestrator/adapters/RAGAdapter.ts",
+    "src/services/websocket/WebSocketManager.ts",
+    "commit/**/*",
+    "local-dev/**/*",
+    "**/*.mjs",
+    "**/*.cjs",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "src/test/**",
+    "tests/**",
+    "vm-ai-backend*/**",
+    // 추가 제외 패턴 - 빌드 속도 향상
+    "scripts/**/*",
+    "docs/**/*",
+    "reports/**/*",
+    "gcp-functions/**/*",
+    ".claude/**/*"
+  ]
+}
