@@ -133,7 +133,7 @@ export async function GET(request: NextRequest) {
           ? [engine]
           : ['simplified', 'performance-optimized', 'ultra-performance'];
         
-        result = await benchmark.runFullBenchmark({
+        const fullBenchmarkResult = await benchmark.runFullBenchmark({
           engines,
           testQueries: [
             '서버 상태 확인',
@@ -151,6 +151,8 @@ export async function GET(request: NextRequest) {
           concurrentUsers: 1,
           timeout,
         });
+        
+        result = { ...fullBenchmarkResult };
         break;
       }
     }
