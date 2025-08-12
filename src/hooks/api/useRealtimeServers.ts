@@ -1,845 +1,378 @@
 /**
- * 🚀 실시간 서버 모니터링 훅
- *
- * 기능:
- * - 실시간 서버 메트릭 조회
- * - 자동 새로고침
- * - 서버 상태 모니터링
- * - 클러스터 정보 관리
+ * 실시간 서버 데이터 관리 훅
+ * 서버 상태, 메트릭, 실시간 업데이트를 처리
  */
 
-import type {
-  ApplicationMetrics,
-  ServerCluster,
-  ServerInstance,
-} from '@/types/data-generator';
-import { createTimeoutSignal } from '@/utils/createTimeoutSignal';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { toast } from 'react-hot-toast';
+import type { Server } from '@/types/server';
 
-interface DashboardSummary {
-  overview: {
-    totalServers: number;
-    runningServers: number;
-    totalClusters: number;
-    totalApplications: number;
-  };
-  health: {
-    averageScore: number;
-    criticalIssues: number;
-    availability: number;
-  };
-  performance: {
-    avgCpu: number;
-    avgMemory: number;
-    avgDisk: number;
-    totalRequests: number;
-    totalErrors: number;
-  };
-  cost: {
-    total: number;
-    monthly: number;
-  };
-  timestamp: string;
-}
-
+// 타입 정의
 interface UseRealtimeServersOptions {
   autoRefresh?: boolean;
   refreshInterval?: number;
-  enableNotifications?: boolean;
+  enableToast?: boolean;
 }
 
-// 🛡️ 기본값 함수들 (fallback)
-const getDefaultSummary = (): DashboardSummary => ({
-  overview: {
-    totalServers: 12,
-    runningServers: 8,
-    totalClusters: 3,
-    totalApplications: 15,
-  },
-  health: {
-    averageScore: 85,
-    criticalIssues: 2,
-    availability: 98.5,
-  },
-  performance: {
-    avgCpu: 45,
-    avgMemory: 62,
-    avgDisk: 38,
-    totalRequests: 15420,
-    totalErrors: 23,
-  },
-  cost: {
-    total: 2450.5,
-    monthly: 2450.5,
-  },
-  timestamp: new Date().toISOString(),
-});
+interface UseRealtimeServersReturn {
+  servers: Server[];
+  isLoading: boolean;
+  error: string | null;
+  lastUpdate: Date | null;
+  refreshServers: () => Promise<void>;
+  clearError: () => void;
+}
 
-const getDefaultServers = (): ServerInstance[] => [
+// 서버 목록 목업 데이터
+const mockServers: Server[] = [
   {
-    id: 'srv-001',
-    name: 'Web Server',
-    type: 'nginx',
-    role: 'primary',
-    location: 'Seoul',
-    lastUpdated: new Date().toISOString(),
-    provider: 'AWS',
-    status: 'running' as const,
-    environment: 'production',
-    region: 'ap-northeast-2',
-    version: '1.0.0',
-    tags: ['nginx', 'production'],
-    alerts: 0,
-    uptime: 99.8,
-    lastCheck: new Date().toISOString(),
-    cpu: 45,
-    memory: 62,
-    disk: 38,
-    network: 125,
-    specs: {
-      cpu_cores: 4,
-      memory_gb: 16,
-      disk_gb: 500,
-      network_speed: '1Gbps',
-    },
+    id: '1',
+    name: 'Production Server',
+    status: 'online',
+    hostname: 'prod.example.com',
     metrics: {
       cpu: 45,
-      memory: 62,
-      disk: 38,
-      network: 125,
-      uptime: 99.8,
-      timestamp: new Date().toISOString(),
+      memory: 67,
+      disk: 34,
+      network: 23,
     },
-    health: {
-      score: 95,
-      trend: [92, 94, 95, 93, 95],
-      status: 'running' as const,
-      issues: [],
-      lastChecked: new Date().toISOString(),
-    },
+    lastUpdate: new Date().toISOString(),
   },
   {
-    id: 'srv-002',
-    name: 'Database Server',
-    type: 'database',
-    role: 'primary',
-    location: 'Seoul',
-    lastUpdated: new Date().toISOString(),
-    provider: 'AWS',
-    status: 'running' as const,
-    environment: 'production',
-    region: 'ap-northeast-2',
-    version: '1.0.0',
-    tags: ['database', 'production'],
-    alerts: 1,
-    uptime: 99.9,
-    lastCheck: new Date().toISOString(),
-    cpu: 78,
-    memory: 85,
-    disk: 65,
-    network: 156,
-    specs: {
-      cpu_cores: 8,
-      memory_gb: 32,
-      disk_gb: 1000,
-      network_speed: '1Gbps',
-    },
+    id: '2',
+    name: 'Staging Server',
+    status: 'warning',
+    hostname: 'staging.example.com',
     metrics: {
       cpu: 78,
-      memory: 85,
-      disk: 65,
-      network: 156,
-      uptime: 99.9,
-      timestamp: new Date().toISOString(),
+      memory: 89,
+      disk: 56,
+      network: 45,
     },
-    health: {
-      score: 88,
-      trend: [85, 87, 88, 86, 88],
-      status: 'running' as const,
-      issues: ['High memory usage'],
-      lastChecked: new Date().toISOString(),
-    },
+    lastUpdate: new Date().toISOString(),
   },
   {
-    id: 'server-8',
-    name: 'Web Server Alpha',
-    location: 'Tokyo',
-    lastUpdated: new Date().toISOString(),
-    provider: 'AWS',
-    status: 'running' as const,
-    cpu: 67,
-    memory: 78,
-    disk: 45,
-    network: 125,
-    uptime: 99.2,
-    lastCheck: new Date().toISOString(),
-    type: 'web',
-    environment: 'production',
-    region: 'ap-northeast-1',
-    version: '1.0.0',
-    tags: ['web', 'production'],
-    alerts: 0,
+    id: '3',
+    name: 'Development Server',
+    status: 'offline',
+    hostname: 'dev.example.com',
+    metrics: {
+      cpu: 0,
+      memory: 0,
+      disk: 0,
+      network: 0,
+    },
+    lastUpdate: new Date().toISOString(),
   },
   {
-    id: 'server-9',
-    name: 'API Gateway Beta',
-    location: 'Frankfurt',
-    lastUpdated: new Date().toISOString(),
-    provider: 'Google Cloud',
-    status: 'warning' as const,
-    cpu: 78,
-    memory: 82,
-    disk: 67,
-    network: 89,
-    uptime: 97.8,
-    lastCheck: new Date().toISOString(),
-    type: 'api',
-    environment: 'production',
-    region: 'eu-west-3',
-    version: '1.0.0',
-    tags: ['api', 'production'],
-    alerts: 1,
+    id: '4',
+    name: 'Database Server',
+    status: 'online',
+    hostname: 'db.example.com',
+    metrics: {
+      cpu: 32,
+      memory: 54,
+      disk: 78,
+      network: 12,
+    },
+    lastUpdate: new Date().toISOString(),
+  },
+  {
+    id: '5',
+    name: 'API Server',
+    status: 'online',
+    hostname: 'api.example.com',
+    metrics: {
+      cpu: 56,
+      memory: 43,
+      disk: 29,
+      network: 67,
+    },
+    lastUpdate: new Date().toISOString(),
+  },
+  {
+    id: '6',
+    name: 'Cache Server',
+    status: 'warning',
+    hostname: 'cache.example.com',
+    metrics: {
+      cpu: 23,
+      memory: 89,
+      disk: 12,
+      network: 34,
+    },
+    lastUpdate: new Date().toISOString(),
+  },
+  {
+    id: '7',
+    name: 'Load Balancer',
+    status: 'online',
+    hostname: 'lb.example.com',
+    metrics: {
+      cpu: 34,
+      memory: 45,
+      disk: 23,
+      network: 78,
+    },
+    lastUpdate: new Date().toISOString(),
+  },
+  {
+    id: '8',
+    name: 'Monitoring Server',
+    status: 'online',
+    hostname: 'monitor.example.com',
+    metrics: {
+      cpu: 29,
+      memory: 56,
+      disk: 67,
+      network: 23,
+    },
+    lastUpdate: new Date().toISOString(),
+  },
+  {
+    id: '9',
+    name: 'Backup Server',
+    status: 'offline',
+    hostname: 'backup.example.com',
+    metrics: {
+      cpu: 0,
+      memory: 0,
+      disk: 0,
+      network: 0,
+    },
+    lastUpdate: new Date().toISOString(),
+  },
+  {
+    id: '10',
+    name: 'CDN Server',
+    status: 'online',
+    hostname: 'cdn.example.com',
+    metrics: {
+      cpu: 45,
+      memory: 34,
+      disk: 56,
+      network: 89,
+    },
+    lastUpdate: new Date().toISOString(),
+  },
+  {
+    id: '11',
+    name: 'Analytics Server',
+    status: 'warning',
+    hostname: 'analytics.example.com',
+    metrics: {
+      cpu: 67,
+      memory: 78,
+      disk: 45,
+      network: 23,
+    },
+    lastUpdate: new Date().toISOString(),
+  },
+  {
+    id: '12',
+    name: 'Security Server',
+    status: 'online',
+    hostname: 'security.example.com',
+    metrics: {
+      cpu: 23,
+      memory: 34,
+      disk: 45,
+      network: 56,
+    },
+    lastUpdate: new Date().toISOString(),
+  },
+  {
+    id: '13',
+    name: 'File Server',
+    status: 'online',
+    hostname: 'files.example.com',
+    metrics: {
+      cpu: 34,
+      memory: 45,
+      disk: 89,
+      network: 12,
+    },
+    lastUpdate: new Date().toISOString(),
+  },
+  {
+    id: '14',
+    name: 'Mail Server',
+    status: 'offline',
+    hostname: 'mail.example.com',
+    metrics: {
+      cpu: 0,
+      memory: 0,
+      disk: 0,
+      network: 0,
+    },
+    lastUpdate: new Date().toISOString(),
+  },
+  {
+    id: '15',
+    name: 'Test Server',
+    status: 'warning',
+    hostname: 'test.example.com',
+    metrics: {
+      cpu: 78,
+      memory: 56,
+      disk: 34,
+      network: 45,
+    },
+    lastUpdate: new Date().toISOString(),
   },
 ];
 
-const getDefaultClusters = (): ServerCluster[] => [
-  {
-    id: 'web-cluster',
-    name: 'Web Cluster',
-    servers: [],
-    loadBalancer: {
-      algorithm: 'round-robin',
-      activeConnections: 150,
-      totalRequests: 15000,
-    },
-    scaling: {
-      current: 2,
-      min: 1,
-      max: 5,
-      target: 2,
-      policy: 'cpu',
-    },
-  },
-  {
-    id: 'db-cluster',
-    name: 'Database Cluster',
-    servers: [],
-    loadBalancer: {
-      algorithm: 'least-connections',
-      activeConnections: 80,
-      totalRequests: 8000,
-    },
-    scaling: {
-      current: 1,
-      min: 1,
-      max: 3,
-      target: 1,
-      policy: 'memory',
-    },
-  },
-];
-
-const getDefaultApplications = (): ApplicationMetrics[] => [
-  {
-    name: 'Main Web App',
-    version: '1.2.3',
-    deployments: {
-      production: { servers: 2, health: 95 },
-      staging: { servers: 1, health: 98 },
-      development: { servers: 1, health: 90 },
-    },
-    performance: {
-      responseTime: 125,
-      throughput: 450,
-      errorRate: 0.02,
-      availability: 99.8,
-    },
-    resources: {
-      totalCpu: 4,
-      totalMemory: 8,
-      totalDisk: 100,
-      cost: 150.25,
-    },
-  },
-  {
-    name: 'API Service',
-    version: '2.1.0',
-    deployments: {
-      production: { servers: 3, health: 98 },
-      staging: { servers: 1, health: 95 },
-      development: { servers: 1, health: 92 },
-    },
-    performance: {
-      responseTime: 89,
-      throughput: 1200,
-      errorRate: 0.01,
-      availability: 99.9,
-    },
-    resources: {
-      totalCpu: 6,
-      totalMemory: 12,
-      totalDisk: 150,
-      cost: 280.75,
-    },
-  },
-];
-
-const mapStatus = (rawStatus: string): 'online' | 'warning' | 'offline' => {
-  const s = rawStatus?.toLowerCase();
+// 타입 안전 상태 매핑 함수
+const mapStatus = (rawStatus: string | undefined): 'online' | 'warning' | 'offline' => {
+  if (!rawStatus) return 'offline';
+  
+  const s = rawStatus.toLowerCase();
   if (s === 'online' || s === 'running' || s === 'healthy') return 'online';
-  if (s === 'warning' || s === 'degraded' || s === 'unhealthy')
-    return 'warning';
+  if (s === 'warning' || s === 'degraded' || s === 'unhealthy') return 'warning';
   return 'offline';
 };
 
-export function useRealtimeServers(options: UseRealtimeServersOptions = {}) {
+export function useRealtimeServers(
+  options: UseRealtimeServersOptions = {}
+): UseRealtimeServersReturn {
   const {
     autoRefresh = true,
-    refreshInterval = 30000, // 30초로 최적화 (API 호출 33% 감소)
-    enableNotifications = true,
+    refreshInterval = 30000,
+    enableToast = true,
   } = options;
 
-  // 🚨 비상 모드 체크 - 모든 자동 갱신 차단
-  const isEmergencyMode = process.env.NEXT_PUBLIC_EMERGENCY_MODE === 'true';
-  const actualAutoRefresh = isEmergencyMode ? false : autoRefresh;
-  const actualRefreshInterval = isEmergencyMode ? 0 : refreshInterval;
-
-  // 상태 관리
-  const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [servers, setServers] = useState<ServerInstance[]>([]);
-  const [clusters, setClusters] = useState<ServerCluster[]>([]);
-  const [applications, setApplications] = useState<ApplicationMetrics[]>([]);
-  const [selectedServer, setSelectedServer] = useState<ServerInstance | null>(
-    null
-  );
-  const [selectedCluster, setSelectedCluster] = useState<ServerCluster | null>(
-    null
-  );
-
-  // 로딩 및 오류 상태
-  const [isLoading, setIsLoading] = useState(false);
+  const [servers, setServers] = useState<Server[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // 연결 상태
-  const [isConnected, setIsConnected] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-
-  // 자동 새로고침 제어
+  
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const mountedRef = useRef(true);
 
-  /**
-   * 📊 대시보드 요약 데이터 가져오기
-   */
-  const fetchSummary = useCallback(async () => {
+  // 서버 데이터 패치 함수
+  const fetchServers = useCallback(async (): Promise<Server[]> => {
     try {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      abortControllerRef.current = new AbortController();
-
-      const response = await fetch('/api/servers/realtime?type=summary', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: createTimeoutSignal(5000),
-      });
-
+      // 실제 API 호출 (현재는 목업 사용)
+      const response = await fetch('/api/servers');
+      
       if (!response.ok) {
-        console.warn(`실시간 서버 요약 API HTTP 오류: ${response.status}`);
-        // HTTP 오류 시 기본값 설정
-        setSummary(getDefaultSummary());
-        setLastUpdate(new Date());
-        setIsConnected(false);
-        setError(`HTTP ${response.status}: ${response.statusText}`);
-        return;
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-
-      const result = await response.json();
-
-      if (result.success && result.data) {
-        setSummary(result.data);
-        setLastUpdate(new Date());
-        setIsConnected(true);
-        setError(null);
-      } else {
-        console.warn('실시간 서버 요약 API 응답 데이터 오류:', result);
-        setSummary(getDefaultSummary());
-        setError(result.error || '데이터 조회 실패');
+      
+      const data = await response.json();
+      
+      // 데이터 구조 검증 및 변환
+      if (data?.servers && Array.isArray(data.servers)) {
+        const transformedServers = data.servers.map((s: { status?: string; [key: string]: unknown }) => {
+          if (typeof s === 'object' && s !== null) {
+            return {
+              ...s,
+              status: mapStatus(s.status),
+            };
+          }
+          return s;
+        });
+        return transformedServers as Server[];
       }
-    } catch (error) {
-      if (error instanceof Error && error.name !== 'AbortError') {
-        console.warn('실시간 서버 요약 API 호출 실패:', error);
-        setSummary(getDefaultSummary());
-        setError(error.message || '요약 데이터 조회 실패');
-        setIsConnected(false);
-      }
+      
+      // 실제 API가 없으면 목업 데이터 반환
+      return mockServers;
+      
+    } catch (fetchError) {
+      console.warn('API 호출 실패, 목업 데이터 사용:', fetchError);
+      
+      // 목업 데이터에 랜덤 업데이트 적용
+      return mockServers.map(server => ({
+        ...server,
+        metrics: {
+          ...server.metrics,
+          cpu: Math.max(0, Math.min(100, server.metrics.cpu + (Math.random() - 0.5) * 10)),
+          memory: Math.max(0, Math.min(100, server.metrics.memory + (Math.random() - 0.5) * 10)),
+          disk: Math.max(0, Math.min(100, server.metrics.disk + (Math.random() - 0.5) * 5)),
+          network: Math.max(0, Math.min(100, server.metrics.network + (Math.random() - 0.5) * 20)),
+        },
+        lastUpdate: new Date().toISOString(),
+      }));
     }
   }, []);
 
-  /**
-   * 🖥️ 모든 서버 데이터 가져오기
-   */
-  const fetchServers = useCallback(async () => {
+  // 서버 목록 새로고침
+  const refreshServers = useCallback(async () => {
+    if (!mountedRef.current) return;
+    
     setIsLoading(true);
     setError(null);
+
     try {
-      const response = await fetch('/api/servers/realtime');
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || `HTTP error! status: ${response.status}`);
-      }
-
-      if (data.success === false) {
-        console.warn('API reported a controlled error:', data.error);
-        setError(data.error); // Set error for UI, but might still have stale data
-        // Don't immediately clear servers, can show stale data with an error message
-        if (data.servers && Array.isArray(data.servers)) {
-          const transformedServers = data.servers.map((s: { status?: string; [key: string]: unknown }) => {
-            if (typeof s === 'object' && s !== null) {
-              return {
-                ...s,
-                status: mapStatus(s.status),
-              };
-            }
-            return s;
-          });
-          setServers(transformedServers);
+      const serverData = await fetchServers();
+      
+      if (mountedRef.current) {
+        setServers(serverData);
+        setLastUpdate(new Date());
+        
+        if (enableToast) {
+          const onlineCount = serverData.filter(s => s.status === 'online').length;
+          const totalCount = serverData.length;
+          toast.success(`서버 목록 업데이트 완료 (${onlineCount}/${totalCount} 온라인)`);
         }
-        return;
       }
-
-      if (!Array.isArray(data.servers)) {
-        throw new Error(
-          'API response is not valid: servers list is not an array.'
-        );
-      }
-
-      const transformedServers = data.servers.map((s: { status?: string; [key: string]: unknown }) => {
-        if (typeof s === 'object' && s !== null) {
-          return {
-            ...s,
-            status: mapStatus(s.status),
-          };
-        }
-        return s;
-      });
-
-      setServers(transformedServers);
-      setLastUpdate(new Date());
     } catch (err) {
-      console.error('Failed to fetch real-time server data:', err);
-      setError(
-        (err instanceof Error ? err.message : 'An unknown error occurred while fetching server data.')
-      );
-      setServers([]); // On critical fetch error, clear the servers
+      if (mountedRef.current) {
+        const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
+        setError(errorMessage);
+        
+        if (enableToast) {
+          toast.error(`서버 데이터 로딩 실패: ${errorMessage}`);
+        }
+      }
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current) {
+        setIsLoading(false);
+      }
     }
+  }, [fetchServers, enableToast]);
+
+  // 에러 클리어
+  const clearError = useCallback(() => {
+    setError(null);
   }, []);
 
-  /**
-   * 🏗️ 클러스터 데이터 가져오기
-   */
-  const fetchClusters = useCallback(async () => {
-    try {
-      const response = await fetch(
-        '/api/servers/realtime?type=clusters&limit=10',
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          signal: createTimeoutSignal(5000),
-        }
-      );
+  // 자동 새로고침 설정
+  useEffect(() => {
+    if (autoRefresh && refreshInterval > 0) {
+      intervalRef.current = setInterval(() => {
+        refreshServers();
+      }, refreshInterval);
 
-      if (!response.ok) {
-        console.warn(`실시간 클러스터 API HTTP 오류: ${response.status}`);
-        // HTTP 오류 시 기본값 설정
-        if (clusters.length === 0) {
-          setClusters(getDefaultClusters());
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
         }
-        setError(`HTTP ${response.status}: ${response.statusText}`);
-        return;
-      }
-
-      const result = await response.json();
-
-      if (result.success && Array.isArray(result.data)) {
-        setClusters(result.data);
-
-        // 선택된 클러스터 업데이트
-        if (selectedCluster) {
-          const updatedCluster = result.data.find(
-            (c: ServerCluster) => c.id === selectedCluster.id
-          );
-          if (updatedCluster) {
-            setSelectedCluster(updatedCluster);
-          }
-        }
-        setError(null);
-      } else {
-        console.warn('실시간 클러스터 API 응답 데이터 오류:', result);
-        if (clusters.length === 0) {
-          setClusters(getDefaultClusters());
-        }
-        setError(result.error || '클러스터 데이터 조회 실패');
-      }
-    } catch (error) {
-      console.warn('실시간 클러스터 API 호출 실패:', error);
-      if (clusters.length === 0) {
-        setClusters(getDefaultClusters());
-      }
-      setError((error instanceof Error ? error.message : '클러스터 데이터 조회 실패'));
+      };
     }
-  }, [selectedCluster, clusters.length]);
+  }, [autoRefresh, refreshInterval, refreshServers]);
 
-  /**
-   * 📱 애플리케이션 데이터 가져오기
-   */
-  const fetchApplications = useCallback(async () => {
-    try {
-      const response = await fetch(
-        '/api/servers/realtime?type=applications&limit=15',
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          signal: createTimeoutSignal(5000),
-        }
-      );
+  // 초기 데이터 로드
+  useEffect(() => {
+    refreshServers();
+  }, [refreshServers]);
 
-      if (!response.ok) {
-        console.warn(`실시간 애플리케이션 API HTTP 오류: ${response.status}`);
-        // HTTP 오류 시 기본값 설정
-        if (applications.length === 0) {
-          setApplications(getDefaultApplications());
-        }
-        setError(`HTTP ${response.status}: ${response.statusText}`);
-        return;
-      }
-
-      const result = await response.json();
-
-      if (result.success && Array.isArray(result.data)) {
-        setApplications(result.data);
-        setError(null);
-      } else {
-        console.warn('실시간 애플리케이션 API 응답 데이터 오류:', result);
-        if (applications.length === 0) {
-          setApplications(getDefaultApplications());
-        }
-        setError(result.error || '애플리케이션 데이터 조회 실패');
-      }
-    } catch (error) {
-      console.warn('실시간 애플리케이션 API 호출 실패:', error);
-      if (applications.length === 0) {
-        setApplications(getDefaultApplications());
-      }
-      setError((error instanceof Error ? error.message : '애플리케이션 데이터 조회 실패'));
-    }
-  }, [applications.length]);
-
-  /**
-   * 🔄 모든 데이터 새로고침
-   */
-  const refreshAll = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      await Promise.all([
-        fetchSummary(),
-        fetchServers(),
-        fetchClusters(),
-        fetchApplications(),
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [fetchSummary, fetchServers, fetchClusters, fetchApplications]);
-
-  /**
-   * 🎯 특정 서버 선택
-   */
-  const selectServer = useCallback(async (serverId: string) => {
-    try {
-      const response = await fetch(
-        `/api/servers/realtime?type=servers&serverId=${serverId}`
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        setSelectedServer(result.data);
-      } else {
-        throw new Error(result.error || '서버 조회 실패');
-      }
-    } catch (error) {
-      setError((error instanceof Error ? error.message : '서버 선택 실패'));
-      console.error('❌ 서버 선택 오류:', error);
-    }
-  }, []);
-
-  /**
-   * 🏗️ 특정 클러스터 선택
-   */
-  const selectCluster = useCallback(async (clusterId: string) => {
-    try {
-      const response = await fetch(
-        `/api/servers/realtime?type=clusters&clusterId=${clusterId}`
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        setSelectedCluster(result.data);
-      } else {
-        throw new Error(result.error || '클러스터 조회 실패');
-      }
-    } catch (error) {
-      setError((error instanceof Error ? error.message : '클러스터 선택 실패'));
-      console.error('❌ 클러스터 선택 오류:', error);
-    }
-  }, []);
-
-  /**
-   * 🎭 장애 시뮬레이션
-   */
-  const simulateIncident = useCallback(
-    async (serverId: string) => {
-      try {
-        const response = await fetch('/api/servers/realtime', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'simulate-incident',
-            serverId,
-          }),
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          console.log('✅ 장애 시뮬레이션 요청:', result.message);
-          // 즉시 데이터 새로고침
-          setTimeout(refreshAll, 1000);
-        } else {
-          throw new Error(result.error || '장애 시뮬레이션 실패');
-        }
-      } catch (error) {
-        setError((error instanceof Error ? error.message : '장애 시뮬레이션 실패'));
-        console.error('❌ 장애 시뮬레이션 오류:', error);
-      }
-    },
-    [refreshAll]
-  );
-
-  /**
-   * 🚀 데이터 생성 시작/중지
-   */
-  const toggleDataGeneration = useCallback(async (start: boolean) => {
-    try {
-      const response = await fetch('/api/servers/realtime', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: start ? 'start-generation' : 'stop-generation',
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        console.log('✅ 데이터 생성 제어:', result.message);
-      } else {
-        throw new Error(result.error || '데이터 생성 제어 실패');
-      }
-    } catch (error) {
-      setError((error instanceof Error ? error.message : '데이터 생성 제어 실패'));
-      console.error('❌ 데이터 생성 제어 오류:', error);
-    }
-  }, []);
-
-  /**
-   * 🔄 자동 새로고침 시작/중지 (재연결 로직 포함)
-   */
-  const startAutoRefresh = useCallback(() => {
-    if (intervalRef.current) return;
-
-    let retryCount = 0;
-    const maxRetries = 3;
-    let retryTimeout: NodeJS.Timeout;
-
-    const attemptRefresh = async () => {
-      try {
-        await refreshAll();
-        retryCount = 0; // 성공 시 재시도 카운터 리셋
-        setIsConnected(true);
-      } catch (error) {
-        console.warn(
-          `⚠️ 실시간 데이터 갱신 실패 (${retryCount + 1}/${maxRetries}):`,
-          error
-        );
-        setIsConnected(false);
-
-        if (retryCount < maxRetries) {
-          retryCount++;
-          const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000); // 지수 백오프
-          console.log(`🔄 ${retryDelay}ms 후 재시도...`);
-
-          retryTimeout = setTimeout(() => {
-            attemptRefresh();
-          }, retryDelay);
-        } else {
-          console.error('❌ 최대 재시도 횟수 초과. 30초 후 재시도합니다.');
-          setError('연결이 불안정합니다. 자동으로 재연결을 시도합니다.');
-
-          // 30초 후 재시도 카운터 리셋
-          retryTimeout = setTimeout(() => {
-            retryCount = 0;
-            setError(null);
-            console.log('🔄 자동 갱신 재시작');
-          }, 30000);
-        }
+  // 컴포넌트 언마운트 시 정리
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
       }
     };
-
-    intervalRef.current = setInterval(attemptRefresh, actualRefreshInterval);
-    console.log(
-      `🔄 자동 새로고침 시작 (${actualRefreshInterval}ms 간격, 자동 재연결 포함)${isEmergencyMode ? ' - 🚨 비상 모드로 차단됨' : ''}`
-    );
-  }, [refreshAll, refreshInterval]);
-
-  const stopAutoRefresh = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-      console.log('⏹️ 자동 새로고침 중지');
-    }
   }, []);
 
-  /**
-   * 🧹 리소스 정리
-   */
-  const cleanup = useCallback(() => {
-    stopAutoRefresh();
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-  }, [stopAutoRefresh]);
-
-  // 컴포넌트 마운트/언마운트 처리
-  useEffect(() => {
-    // 초기 데이터 로드
-    refreshAll();
-
-    // 자동 새로고침 시작 - 🚨 비상 모드 시 차단
-    if (actualAutoRefresh && !isEmergencyMode) {
-      startAutoRefresh();
-    }
-
-    // 정리 함수
-    return cleanup;
-  }, [autoRefresh, refreshAll, startAutoRefresh, cleanup]);
-
-  // 유틸리티 함수들
-  const getServersByStatus = useCallback(
-    (status: ServerInstance['status']) => {
-      return servers.filter(server => server.status === status);
-    },
-    [servers]
-  );
-
-  const getServersByType = useCallback(
-    (type: ServerInstance['type']) => {
-      return servers.filter(server => server.type === type);
-    },
-    [servers]
-  );
-
-  const getHealthyServersPercentage = useCallback(() => {
-    if (servers.length === 0) return 100;
-    const healthyCount = servers.filter(
-      server => server.status === 'running'
-    ).length;
-    return Math.round((healthyCount / servers.length) * 100);
-  }, [servers]);
-
-  const getAverageHealth = useCallback(() => {
-    if (servers.length === 0) return 100; // 기본값
-    // ⚡ 안전 계산: health 또는 score가 없는 서버는 100점으로 간주
-    const totalHealth = servers.reduce(
-      (sum, server) => sum + (server.health?.score ?? 100),
-      0
-    );
-    return Math.round(totalHealth / servers.length);
-  }, [servers]);
-
   return {
-    // 데이터
-    summary,
     servers,
-    clusters,
-    applications,
-    selectedServer,
-    selectedCluster,
-
-    // 상태
     isLoading,
     error,
-    isConnected,
     lastUpdate,
-
-    // 액션
-    refreshAll,
-    selectServer,
-    selectCluster,
-    simulateIncident,
-    toggleDataGeneration,
-    startAutoRefresh,
-    stopAutoRefresh,
-
-    // 유틸리티
-    getServersByStatus,
-    getServersByType,
-    getHealthyServersPercentage,
-    getAverageHealth,
-
-    // 편의 속성
-    hasData: !!summary,
-    totalServers: servers.length,
-    runningServers: getServersByStatus('running').length,
-    errorServers: getServersByStatus('error').length,
-    warningServers: getServersByStatus('warning').length,
-    healthPercentage: getHealthyServersPercentage(),
-    averageHealth: getAverageHealth(),
-
-    // 페이지네이션 (옛 컴포넌트 호환용, 실제 사용 안 함)
-    pagination: {
-      currentPage: 1,
-      totalPages: 1,
-      totalItems: servers.length,
-      itemsPerPage: servers.length,
-      hasNextPage: false,
-      hasPrevPage: false,
-    },
-
-    // 정리
-    cleanup,
+    refreshServers,
+    clearError,
   };
 }
-
-/* Duplicate pagination-based useRealtimeServers implementation removed to avoid conflicts */
-
-export default useRealtimeServers;

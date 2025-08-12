@@ -14,135 +14,145 @@ const isBrowserEnvironment = typeof window !== 'undefined';
 if (typeof globalThis !== 'undefined') {
   // globalThis에 self 정의 (최우선)
   if (typeof globalThis.self === 'undefined') {
-    globalThis.self = globalThis;
+    (globalThis as any).self = globalThis;
   }
 }
 
 // 🚨 global 객체에도 self 정의 (Node.js 환경)
 if (typeof global !== 'undefined') {
-  if (typeof global.self === 'undefined') {
-    global.self = global;
+  if (typeof (global as any).self === 'undefined') {
+    (global as any).self = global;
   }
 }
 
 // 🚨 window 객체에도 self 정의 (브라우저 환경)
 if (typeof window !== 'undefined') {
-  if (typeof window.self === 'undefined') {
-    window.self = window;
+  if (typeof (window as any).self === 'undefined') {
+    (window as any).self = window;
   }
 }
 
-// 🔐 Node.js crypto 모듈 사용 강제 설정
-if (isNodeEnvironment) {
-  // Node.js 환경에서 crypto 모듈 사용 강제
-  process.env.FORCE_NODE_CRYPTO = 'true';
-
-  // 🚀 서버 사이드에서 self 객체 polyfill (강화)
-  if (typeof global !== 'undefined') {
-    if (typeof global.self === 'undefined') {
-      global.self = global;
-    }
-
-    // 🌐 서버 사이드에서 window 객체 polyfill (필요한 경우)
-    if (typeof global.window === 'undefined') {
-      global.window = global;
-    }
-
-    // 🚨 추가 브라우저 API polyfills
-    if (typeof global.document === 'undefined') {
-      global.document = {
-        createElement: () => ({}),
-        getElementById: () => null,
-        querySelector: () => null,
-        querySelectorAll: () => [],
-        addEventListener: () => {},
-        removeEventListener: () => {},
-      };
-    }
-
-    if (typeof global.navigator === 'undefined') {
-      global.navigator = {
-        userAgent: 'node.js',
-        platform: 'node',
-        language: 'ko-KR',
-      };
-    }
-
-    if (typeof global.location === 'undefined') {
-      global.location = {
-        href: '',
-        origin: '',
-        pathname: '',
-        search: '',
-        hash: '',
-        hostname: 'localhost',
-        port: '',
-        protocol: 'https:',
-      };
-    }
-
-    // 🚨 localStorage/sessionStorage polyfills
-    if (typeof global.localStorage === 'undefined') {
-      global.localStorage = {
-        getItem: () => null,
-        setItem: () => {},
-        removeItem: () => {},
-        clear: () => {},
-        length: 0,
-        key: () => null,
-      };
-    }
-
-    if (typeof global.sessionStorage === 'undefined') {
-      global.sessionStorage = {
-        getItem: () => null,
-        setItem: () => {},
-        removeItem: () => {},
-        clear: () => {},
-        length: 0,
-        key: () => null,
-      };
-    }
-  }
-}
-
-// 🌐 브라우저 환경에서 기본 polyfills
+// 🚀 브라우저 환경에서 Edge case 처리
 if (isBrowserEnvironment) {
-  // 브라우저 환경에서 필요한 최소한의 polyfills
-  console.log('🌐 브라우저 환경 감지: 기본 polyfills 적용');
-
-  // 🚨 브라우저에서도 self 확실히 정의
-  if (typeof self === 'undefined') {
-    window.self = window;
+  // Edge Runtime에서 missing globals 처리
+  const win = window as any;
+  
+  // globalThis fallback
+  if (typeof win.globalThis === 'undefined') {
+    win.globalThis = win;
   }
-} else {
-  // Node.js 환경
-  console.log('🔧 Node.js 환경 감지: 서버 사이드 렌더링 모드');
-  console.log('🚨 Self polyfill 적용 완료');
+  
+  // self fallback
+  if (typeof win.self === 'undefined') {
+    win.self = win;
+  }
 }
 
-// 🚨 추가 안전장치 - 런타임에서 self 체크
-try {
-  if (typeof self === 'undefined') {
-    if (typeof global !== 'undefined') {
-      global.self = global;
-    } else if (typeof globalThis !== 'undefined') {
-      globalThis.self = globalThis;
-    } else if (typeof window !== 'undefined') {
-      window.self = window;
+// 🚀 서버사이드 환경 처리 (SSR/SSG)
+if (isNodeEnvironment && !isBrowserEnvironment) {
+  const glob = global as any;
+  
+  // 전역 window 객체 모킹 (필요한 경우만)
+  if (typeof glob.window === 'undefined') {
+    glob.window = glob;
+  }
+  
+  // Document 객체 모킹 (DOM 관련 라이브러리용)
+  if (typeof glob.document === 'undefined') {
+    glob.document = {
+      createElement: () => ({}),
+      querySelectorAll: () => [],
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    };
+  }
+  
+  // Navigator 객체 모킹
+  if (typeof glob.navigator === 'undefined') {
+    glob.navigator = {
+      userAgent: 'Node.js Server',
+      platform: 'server',
+      language: 'en',
+    };
+  }
+  
+  // Location 객체 모킹
+  if (typeof glob.location === 'undefined') {
+    glob.location = {
+      href: 'http://localhost:3000',
+      origin: 'http://localhost:3000',
+      pathname: '/',
+      search: '',
+      hash: '',
+      hostname: 'localhost',
+      port: '3000',
+      protocol: 'http:',
+    };
+  }
+}
+
+// 🔐 Crypto 모듈 Polyfill (Node.js와 브라우저 통합)
+if (typeof globalThis !== 'undefined') {
+  const glob = globalThis as any;
+  
+  // 🚀 Node.js 환경에서 crypto 모듈 사용
+  if (isNodeEnvironment && !glob.crypto) {
+    try {
+      // Node.js crypto 모듈을 브라우저 호환 형태로 노출
+      const crypto = require('crypto');
+      
+      // Web Crypto API 호환 인터페이스 제공
+      glob.crypto = {
+        // getRandomValues는 Web Crypto API와 호환되게
+        getRandomValues: (arr: any) => {
+          if (arr && arr.length) {
+            const randomBytes = crypto.randomBytes(arr.length);
+            for (let i = 0; i < arr.length; i++) {
+              arr[i] = randomBytes[i];
+            }
+          }
+          return arr;
+        },
+        
+        // Node.js crypto 함수들을 직접 노출
+        randomUUID: crypto.randomUUID,
+        subtle: undefined, // SubtleCrypto는 복잡하므로 제외
+        
+        // 추가 헬퍼 함수들
+        randomBytes: crypto.randomBytes,
+        createHash: crypto.createHash,
+        createHmac: crypto.createHmac,
+      };
+      
+      console.log('✅ Node.js crypto 모듈을 글로벌 crypto로 설정완료');
+    } catch (error) {
+      console.warn('⚠️ Node.js crypto 모듈 로드 실패:', error);
     }
   }
-} catch (error) {
-  console.warn('⚠️ Self polyfill 적용 중 오류:', error);
+  
+  // 🚀 브라우저 환경에서 crypto 확인
+  if (isBrowserEnvironment && !glob.crypto) {
+    console.warn('⚠️ 브라우저에서 crypto API를 사용할 수 없습니다.');
+  }
 }
 
-// 🚀 Next.js 15 호환성 설정
-export const polyfillsLoaded = true;
-export const selfPolyfillApplied = typeof self !== 'undefined';
-
-// 🚨 디버깅용 로그
-if (isNodeEnvironment && process.env.NODE_ENV === 'development') {
-  console.log('🔧 Polyfills 로드 완료');
-  console.log('🚨 Self 정의됨:', typeof self !== 'undefined');
-  console.log('🌍 환경:', isNodeEnvironment ? 'Node.js' : 'Browser');
+// 🚀 추가 Edge Runtime 호환성 개선
+if (typeof globalThis !== 'undefined') {
+  const glob = globalThis as any;
+  
+  // Edge Runtime에서 필요한 globals 보장
+  if (typeof glob.self === 'undefined') {
+    glob.self = glob;
+  }
+  
+  if (typeof glob.window === 'undefined' && isBrowserEnvironment) {
+    glob.window = glob;
+  }
 }
+
+console.log('🚀 Polyfills 로드 완료:', {
+  environment: isNodeEnvironment ? 'Node.js' : isBrowserEnvironment ? 'Browser' : 'Unknown',
+  hasGlobalCrypto: typeof (globalThis as any)?.crypto !== 'undefined',
+  hasSelf: typeof (globalThis as any)?.self !== 'undefined',
+  hasWindow: typeof (globalThis as any)?.window !== 'undefined',
+});

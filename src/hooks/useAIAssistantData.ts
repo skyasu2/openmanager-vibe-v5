@@ -1,448 +1,381 @@
-import { useCallback, useEffect, useState } from 'react';
-import type {
-  AIAssistantFilters,
-  AIAssistantStats,
-  ContextDocument,
-  PatternSuggestion,
-  ResponseLogData,
-  SystemHealth,
-} from '../types/ai-assistant';
+/**
+ * AI 어시스턴트 데이터 훅
+ */
 
-// API 응답 타입 정의
-interface InteractionLog {
-  id?: string;
-  timestamp?: string;
-  query?: string;
-  question?: string;
-  response?: string;
-  answer?: string;
-  success?: boolean;
-  fallbackUsed?: boolean;
-  confidence?: number;
-  responseTime?: number;
-  patternMatched?: string;
-  serverContext?: Record<string, unknown>;
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { toast } from 'react-hot-toast';
+import type { 
+  ResponseLogData, 
+  PatternSuggestion as SuggestionData, 
+  ContextDocument, 
+  SystemHealth 
+} from '@/types/ai-assistant';
+
+interface APIResponse {
+  data: unknown;
+  error?: string;
+  message?: string;
 }
 
-interface SuggestionData {
-  id?: string;
-  originalQuery?: string;
-  query?: string;
-  suggestedPattern?: string;
-  pattern?: string;
-  frequency?: number;
-  confidence?: number;
-  improvement?: string;
-  status?: string;
+interface SystemHealthData {
+  aiAssistant: {
+    status: 'online' | 'offline' | 'degraded';
+    responseTime: number;
+    uptime: number;
+    version: string;
+  };
+  mcp: {
+    status: 'connected' | 'disconnected' | 'error';
+    documentsLoaded: number;
+    lastSync: string;
+  };
 }
 
 interface UseAIAssistantDataReturn {
-  // 데이터
+  // 기존 속성들
+  logs: ResponseLogData[];
+  suggestions: SuggestionData[];
+  documents: ContextDocument[];
+  systemHealth: SystemHealth | null;
+  isLoading: boolean;
+  error: string | null;
+  refreshData: () => Promise<void>;
+  clearError: () => void;
+  addSuggestion: (suggestion: Partial<SuggestionData>) => Promise<void>;
+  updateSuggestionStatus: (id: string, status: SuggestionData['status']) => Promise<void>;
+  deleteSuggestion: (id: string) => Promise<void>;
+  uploadDocument: (file: File, category: ContextDocument['category']) => Promise<void>;
+  deleteDocument: (id: string) => Promise<void>;
+  updateSystemHealth: (health: Partial<SystemHealthData>) => void;
+  
+  // 호환성을 위한 별칭 및 추가 속성
   _responseLogs: ResponseLogData[];
-  _patternSuggestions: PatternSuggestion[];
+  _patternSuggestions: SuggestionData[];
   contextDocuments: ContextDocument[];
   _systemHealth: SystemHealth | null;
-
-  // 상태
   loading: boolean;
-  error: string | null;
-
-  // 필터링된 데이터
   filteredLogs: ResponseLogData[];
-  stats: AIAssistantStats;
-
-  // 액션
+  stats: {
+    totalLogs: number;
+    successRate: number;
+    pendingSuggestions: number;
+    totalDocuments: number;
+  };
   loadAllData: () => Promise<void>;
-  _handlePatternAction: (
-    id: string,
-    action: 'approve' | 'reject'
-  ) => Promise<void>;
-
-  // 필터
-  filters: AIAssistantFilters;
-  setFilters: React.Dispatch<React.SetStateAction<AIAssistantFilters>>;
+  _handlePatternAction: (id: string, action: 'apply' | 'reject') => Promise<void>;
+  filters: {
+    status: string;
+    dateRange: string;
+  };
+  setFilters: React.Dispatch<React.SetStateAction<{
+    status: string;
+    dateRange: string;
+  }>>;
   searchTerm: string;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export function useAIAssistantData(): UseAIAssistantDataReturn {
-  // 데이터 상태
-  const [_responseLogs, setResponseLogs] = useState<ResponseLogData[]>([]);
-  const [_patternSuggestions, setPatternSuggestions] = useState<
-    PatternSuggestion[]
-  >([]);
-  const [contextDocuments, setContextDocuments] = useState<ContextDocument[]>(
-    []
-  );
-  const [_systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
-
-  // UI 상태
-  const [loading, setLoading] = useState(true);
+  const [logs, setLogs] = useState<ResponseLogData[]>([]);
+  const [suggestions, setSuggestions] = useState<SuggestionData[]>([]);
+  const [documents, setDocuments] = useState<ContextDocument[]>([]);
+  const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-
-  // 필터 상태
-  const [filters, setFilters] = useState<AIAssistantFilters>({
-    dateRange: '24h',
+  const [filters, setFilters] = useState({
     status: 'all',
-    confidence: 'all',
+    dateRange: '7days',
   });
 
-  // 데이터 로드 함수들
-  const loadResponseLogs = useCallback(async () => {
+  // API 호출 헬퍼 함수
+  const fetchAPI = useCallback(async (endpoint: string, options?: RequestInit): Promise<APIResponse> => {
     try {
-      const response = await fetch(
-        '/api/ai-assistant/admin/logs?action=interactions&limit=100'
-      );
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data?.interactions) {
-          const convertedLogs = data.data.interactions.map((log: InteractionLog) => ({
-            id: log.id || `log-${Date.now()}-${Math.random()}`,
-            timestamp: log.timestamp || new Date().toISOString(),
-            question: log.query || log.question || '질문 정보 없음',
-            response: log.response || log.answer || '응답 정보 없음',
-            status: log.success
-              ? 'success'
-              : log.fallbackUsed
-                ? 'fallback'
-                : 'failed',
-            confidence: log.confidence || 0.5,
-            responseTime: log.responseTime || 1000,
-            fallbackStage: log.fallbackUsed ? 'stage-1' : undefined,
-            patternMatched: log.patternMatched || undefined,
-            serverContext: log.serverContext || {},
-          }));
-          setResponseLogs(convertedLogs);
-        } else {
-          setResponseLogs(generateMockResponseLogs());
-        }
-      } else {
-        setResponseLogs(generateMockResponseLogs());
+      const response = await fetch(`/api/ai-assistant${endpoint}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        ...options,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    } catch (error) {
-      console.warn('응답 로그 로드 실패, 폴백 데이터 사용:', error);
-      setResponseLogs(generateMockResponseLogs());
+
+      return await response.json();
+    } catch (err) {
+      console.error(`API 호출 실패 (${endpoint}):`, err);
+      throw err;
     }
   }, []);
 
-  const loadPatternSuggestions = useCallback(async () => {
+  // 데이터 로딩
+  const loadLogs = useCallback(async () => {
     try {
-      const response = await fetch(
-        '/api/ai-assistant/learning/analysis?action=latest-report'
-      );
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data?.suggestions) {
-          const convertedSuggestions = data.data.suggestions.map(
-            (suggestion: SuggestionData) => ({
-              id: suggestion.id || `suggestion-${Date.now()}-${Math.random()}`,
-              originalQuery:
-                suggestion.originalQuery ||
-                suggestion.query ||
-                '원본 질문 없음',
-              suggestedPattern:
-                suggestion.suggestedPattern ||
-                suggestion.pattern ||
-                '제안 패턴 없음',
-              confidence: suggestion.confidence || 0.5,
-              category: suggestion.category || 'general',
-              status: suggestion.status || 'pending',
-              createdAt: suggestion.createdAt || new Date().toISOString(),
-              examples: suggestion.examples || [],
-            })
-          );
-          setPatternSuggestions(convertedSuggestions);
-        } else {
-          setPatternSuggestions(generateMockPatternSuggestions());
-        }
-      } else {
-        setPatternSuggestions(generateMockPatternSuggestions());
+      const result = await fetchAPI('/logs');
+      if (Array.isArray(result.data)) {
+        setLogs(result.data);
       }
-    } catch (error) {
-      console.warn('패턴 제안 로드 실패, 폴백 데이터 사용:', error);
-      setPatternSuggestions(generateMockPatternSuggestions());
+    } catch (err) {
+      console.error('로그 로딩 실패:', err);
+      setError('로그 데이터를 불러오는데 실패했습니다.');
     }
-  }, []);
+  }, [fetchAPI]);
 
-  const loadContextDocuments = useCallback(async () => {
+  const loadSuggestions = useCallback(async () => {
     try {
-      setContextDocuments(generateMockContextDocuments());
-    } catch (error) {
-      console.warn('컨텍스트 문서 로드 실패, 폴백 데이터 사용:', error);
-      setContextDocuments(generateMockContextDocuments());
+      const result = await fetchAPI('/suggestions');
+      if (Array.isArray(result.data)) {
+        setSuggestions(
+          result.data.map((suggestion: Partial<SuggestionData>) => ({
+            id: suggestion.id || Math.random().toString(36).substr(2, 9),
+            originalQuery: suggestion.originalQuery || suggestion.query || '쿼리 없음',
+            suggestedPattern: 
+              suggestion.suggestedPattern ||
+              suggestion.pattern ||
+              '제안 패턴 없음',
+            confidence: suggestion.confidence || 0.5,
+            category: suggestion.category || 'general',
+            status: suggestion.status || 'pending',
+            createdAt: suggestion.createdAt || new Date().toISOString(),
+            examples: suggestion.examples || [],
+          }))
+        );
+      }
+    } catch (err) {
+      console.error('제안 로딩 실패:', err);
+      setError('제안 데이터를 불러오는데 실패했습니다.');
     }
-  }, []);
+  }, [fetchAPI]);
+
+  const loadDocuments = useCallback(async () => {
+    try {
+      const result = await fetchAPI('/documents');
+      if (Array.isArray(result.data)) {
+        setDocuments(result.data);
+      }
+    } catch (err) {
+      console.error('문서 로딩 실패:', err);
+      setError('문서 데이터를 불러오는데 실패했습니다.');
+    }
+  }, [fetchAPI]);
 
   const loadSystemHealth = useCallback(async () => {
     try {
-      setSystemHealth(generateMockSystemHealth());
-    } catch (error) {
-      console.warn('시스템 상태 로드 실패, 폴백 데이터 사용:', error);
-      setSystemHealth(generateMockSystemHealth());
+      const result = await fetchAPI('/health');
+      if (result.data) {
+        setSystemHealth(result.data as SystemHealth);
+      }
+    } catch (err) {
+      console.error('시스템 상태 로딩 실패:', err);
+      setError('시스템 상태를 불러오는데 실패했습니다.');
+    }
+  }, [fetchAPI]);
+
+  // 전체 데이터 새로고침
+  const refreshData = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await Promise.all([
+        loadLogs(),
+        loadSuggestions(),
+        loadDocuments(),
+        loadSystemHealth(),
+      ]);
+    } catch (err) {
+      console.error('데이터 새로고침 실패:', err);
+      setError('데이터 새로고침에 실패했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [loadLogs, loadSuggestions, loadDocuments, loadSystemHealth]);
+
+  // 제안 관리 함수들
+  const addSuggestion = useCallback(async (suggestion: Partial<SuggestionData>) => {
+    try {
+      const result = await fetchAPI('/suggestions', {
+        method: 'POST',
+        body: JSON.stringify(suggestion),
+      });
+
+      if (result.data) {
+        setSuggestions(prev => [...prev, result.data as SuggestionData]);
+        toast.success('제안이 추가되었습니다.');
+      }
+    } catch (err) {
+      console.error('제안 추가 실패:', err);
+      toast.error('제안 추가에 실패했습니다.');
+      throw err;
+    }
+  }, [fetchAPI]);
+
+  const updateSuggestionStatus = useCallback(async (id: string, status: SuggestionData['status']) => {
+    try {
+      const result = await fetchAPI(`/suggestions/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      });
+
+      if (result.data) {
+        setSuggestions(prev =>
+          prev.map(s => (s.id === id ? { ...s, status } : s))
+        );
+        toast.success('제안 상태가 업데이트되었습니다.');
+      }
+    } catch (err) {
+      console.error('제안 상태 업데이트 실패:', err);
+      toast.error('제안 상태 업데이트에 실패했습니다.');
+      throw err;
+    }
+  }, [fetchAPI]);
+
+  const deleteSuggestion = useCallback(async (id: string) => {
+    try {
+      await fetchAPI(`/suggestions/${id}`, {
+        method: 'DELETE',
+      });
+
+      setSuggestions(prev => prev.filter(s => s.id !== id));
+      toast.success('제안이 삭제되었습니다.');
+    } catch (err) {
+      console.error('제안 삭제 실패:', err);
+      toast.error('제안 삭제에 실패했습니다.');
+      throw err;
+    }
+  }, [fetchAPI]);
+
+  // 문서 관리 함수들
+  const uploadDocument = useCallback(async (file: File, category: ContextDocument['category']) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('category', category);
+
+      const response = await fetch('/api/ai-assistant/documents', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.data) {
+        setDocuments(prev => [...prev, result.data as ContextDocument]);
+        toast.success('문서가 업로드되었습니다.');
+      }
+    } catch (err) {
+      console.error('문서 업로드 실패:', err);
+      toast.error('문서 업로드에 실패했습니다.');
+      throw err;
     }
   }, []);
 
-  const loadAllData = useCallback(async () => {
-    setLoading(true);
+  const deleteDocument = useCallback(async (id: string) => {
     try {
-      await Promise.all([
-        loadResponseLogs(),
-        loadPatternSuggestions(),
-        loadContextDocuments(),
-        loadSystemHealth(),
-      ]);
-    } catch (error) {
-      console.error('데이터 로드 실패:', error);
-      setError('데이터를 불러오는데 실패했습니다.');
-    } finally {
-      setLoading(false);
+      await fetchAPI(`/documents/${id}`, {
+        method: 'DELETE',
+      });
+
+      setDocuments(prev => prev.filter(d => d.id !== id));
+      toast.success('문서가 삭제되었습니다.');
+    } catch (err) {
+      console.error('문서 삭제 실패:', err);
+      toast.error('문서 삭제에 실패했습니다.');
+      throw err;
     }
-  }, [
-    loadResponseLogs,
-    loadPatternSuggestions,
-    loadContextDocuments,
-    loadSystemHealth,
-  ]);
+  }, [fetchAPI]);
 
-  // 패턴 승인/거부 처리
-  const _handlePatternAction = useCallback(
-    async (id: string, action: 'approve' | 'reject') => {
-      try {
-        const apiAction =
-          action === 'approve' ? 'approve-suggestion' : 'reject-suggestion';
-        const response = await fetch('/api/ai-assistant/learning/analysis', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: apiAction,
-            data: {
-              suggestionId: id,
-              reason: action === 'reject' ? '관리자가 거부함' : undefined,
-            },
-          }),
-        });
+  // 시스템 상태 업데이트
+  const updateSystemHealth = useCallback((health: Partial<SystemHealthData>) => {
+    setSystemHealth(prev => prev ? { ...prev, ...health } : null);
+  }, []);
 
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success) {
-            setPatternSuggestions(prev =>
-              prev.map(p =>
-                p.id === id
-                  ? {
-                      ...p,
-                      status: action === 'approve' ? 'approved' : 'rejected',
-                    }
-                  : p
-              )
-            );
-            console.log(
-              `패턴 ${action === 'approve' ? '승인' : '거부'} 완료:`,
-              result.message
-            );
-          } else {
-            console.error('패턴 처리 실패:', result.error);
-          }
-        } else {
-          console.error('API 요청 실패:', response.status);
-        }
-      } catch (error) {
-        console.error('패턴 처리 실패:', error);
-      }
-    },
-    []
-  );
+  // 에러 클리어
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
 
-  // 필터링된 로그
-  const filteredLogs = _responseLogs.filter(log => {
-    if (filters.status !== 'all' && log.status !== filters.status) return false;
-    if (filters.confidence !== 'all') {
-      const confThreshold = filters.confidence === 'high' ? 0.8 : 0.5;
-      if (log.confidence < confThreshold) return false;
-    }
-    if (
-      searchTerm &&
-      !log.question.toLowerCase().includes(searchTerm.toLowerCase())
-    ) {
-      return false;
-    }
-    return true;
-  });
-
-  // 통계 계산
-  const stats: AIAssistantStats = {
-    totalLogs: _responseLogs.length,
-    successRate:
-      _responseLogs.length > 0
-        ? (_responseLogs.filter(l => l.status === 'success').length /
-            _responseLogs.length) *
-          100
-        : 0,
-    _patternSuggestions: _patternSuggestions.length,
-    pendingPatterns: _patternSuggestions.filter(p => p.status === 'pending')
-      .length,
-    contextDocuments: contextDocuments.length,
-    totalWords: Math.round(
-      contextDocuments.reduce((sum, doc) => sum + doc.wordCount, 0) / 1000
-    ),
-    systemStatus:
-      _systemHealth?.aiAssistant.status === 'online' ? '정상' : '오류',
-  };
+  // 패턴 액션 처리
+  const _handlePatternAction = useCallback(async (id: string, action: 'apply' | 'reject') => {
+    const newStatus = action === 'apply' ? 'applied' : 'rejected';
+    await updateSuggestionStatus(id, newStatus as SuggestionData['status']);
+  }, [updateSuggestionStatus]);
 
   // 초기 데이터 로드
   useEffect(() => {
-    loadAllData();
-  }, [loadAllData]);
+    refreshData();
+  }, [refreshData]);
+
+  // 로그 필터링 (메모이제이션)
+  const filteredLogs = useMemo(() => {
+    return logs.filter(log => {
+      // 상태 필터
+      if (filters.status !== 'all' && log.status !== filters.status) {
+        return false;
+      }
+      
+      // 검색어 필터
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const queryMatch = log.query?.toLowerCase().includes(searchLower);
+        const responseMatch = log.response?.toLowerCase().includes(searchLower);
+        return queryMatch || responseMatch;
+      }
+      
+      return true;
+    });
+  }, [logs, filters.status, searchTerm]);
+
+  // 통계 데이터 계산 (메모이제이션)
+  const stats = useMemo(() => {
+    const totalLogs = logs.length;
+    const successLogs = logs.filter(log => log.status === 'success').length;
+    const pendingSuggestions = suggestions.filter(s => s.status === 'pending').length;
+    const totalDocuments = documents.length;
+
+    return {
+      totalLogs,
+      successRate: totalLogs > 0 ? Math.round((successLogs / totalLogs) * 100) : 0,
+      pendingSuggestions,
+      totalDocuments,
+    };
+  }, [logs, suggestions, documents]);
 
   return {
-    // 데이터
-    _responseLogs,
-    _patternSuggestions,
-    contextDocuments,
-    _systemHealth,
-
-    // 상태
-    loading,
+    // 기존 속성들
+    logs,
+    suggestions,
+    documents,
+    systemHealth,
+    isLoading,
     error,
-
-    // 필터링된 데이터
+    refreshData,
+    clearError,
+    addSuggestion,
+    updateSuggestionStatus,
+    deleteSuggestion,
+    uploadDocument,
+    deleteDocument,
+    updateSystemHealth,
+    
+    // 호환성을 위한 별칭 및 추가 속성
+    _responseLogs: logs,
+    _patternSuggestions: suggestions,
+    contextDocuments: documents,
+    _systemHealth: systemHealth,
+    loading: isLoading,
     filteredLogs,
     stats,
-
-    // 액션
-    loadAllData,
+    loadAllData: refreshData,
     _handlePatternAction,
-
-    // 필터
     filters,
     setFilters,
     searchTerm,
     setSearchTerm,
-  };
-}
-
-// Mock 데이터 생성 함수들
-function generateMockResponseLogs(): ResponseLogData[] {
-  return [
-    {
-      id: 'log-1',
-      timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-      question: 'CPU 사용률이 높은 서버를 찾아주세요',
-      response:
-        '현재 CPU 사용률이 80% 이상인 서버는 api-server-01, web-server-03입니다.',
-      status: 'success',
-      confidence: 0.92,
-      responseTime: 1200,
-      patternMatched: 'server-monitoring',
-      serverContext: { serverCount: 15, alertLevel: 'warning' },
-    },
-    {
-      id: 'log-2',
-      timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-      question: '네트워크 트래픽 분석 결과는?',
-      response:
-        '최근 1시간 동안 평균 트래픽은 2.3GB/s이며, 피크 시간대는 오후 2시였습니다.',
-      status: 'success',
-      confidence: 0.88,
-      responseTime: 850,
-      patternMatched: 'network-analysis',
-      serverContext: { trafficPeak: '14:00', avgTraffic: '2.3GB/s' },
-    },
-    {
-      id: 'log-3',
-      timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-      question: '시스템 전체 상태를 요약해주세요',
-      response:
-        '전체 30개 서버 중 28개 정상, 2개 경고 상태입니다. 전반적으로 안정적입니다.',
-      status: 'fallback',
-      confidence: 0.65,
-      responseTime: 2100,
-      fallbackStage: 'stage-2',
-      serverContext: { totalServers: 30, healthyServers: 28 },
-    },
-  ];
-}
-
-function generateMockPatternSuggestions(): PatternSuggestion[] {
-  return [
-    {
-      id: 'pattern-1',
-      originalQuery: '서버 상태 확인해줘',
-      suggestedPattern: '서버 {서버명|전체} 상태 {확인|조회|분석}',
-      confidence: 0.85,
-      category: 'server-monitoring',
-      status: 'pending',
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      examples: ['서버 api-01 상태 확인', '전체 서버 상태 조회'],
-    },
-    {
-      id: 'pattern-2',
-      originalQuery: '메모리 사용량이 높은 곳은?',
-      suggestedPattern: '{메모리|CPU|디스크} 사용량이 {높은|낮은} {서버|위치}',
-      confidence: 0.78,
-      category: 'resource-monitoring',
-      status: 'pending',
-      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-      examples: ['CPU 사용량이 높은 서버', '디스크 사용량이 낮은 위치'],
-    },
-  ];
-}
-
-function generateMockContextDocuments(): ContextDocument[] {
-  return [
-    {
-      id: 'doc-1',
-      filename: 'server-monitoring-guide.md',
-      category: 'advanced',
-      size: 15420,
-      lastModified: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      wordCount: 2850,
-      keywords: ['모니터링', '서버', '알림', 'CPU', '메모리'],
-    },
-    {
-      id: 'doc-2',
-      filename: 'ai-analysis-basics.md',
-      category: 'basic',
-      size: 8930,
-      lastModified: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-      wordCount: 1650,
-      keywords: ['AI', '분석', '기본', '가이드'],
-    },
-    {
-      id: 'doc-3',
-      filename: 'troubleshooting-common-issues.md',
-      category: 'advanced',
-      size: 22100,
-      lastModified: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString(),
-      wordCount: 4200,
-      keywords: ['문제해결', '트러블슈팅', '일반적', '이슈'],
-    },
-  ];
-}
-
-function generateMockSystemHealth(): SystemHealth {
-  return {
-    aiAssistant: {
-      status: 'online',
-      responseTime: Math.floor(Math.random() * 500 + 200),
-      uptime: Math.floor(Math.random() * 30 + 1) * 24 * 60 * 60 * 1000,
-      version: '2.1.0',
-    },
-    mcp: {
-      status: 'connected',
-      documentsLoaded: Math.floor(Math.random() * 50 + 20),
-      lastSync: new Date(
-        Date.now() - Math.random() * 60 * 60 * 1000
-      ).toISOString(),
-    },
-    learningCycle: {
-      lastRun: new Date(
-        Date.now() - Math.random() * 24 * 60 * 60 * 1000
-      ).toISOString(),
-      nextRun: new Date(
-        Date.now() + Math.random() * 24 * 60 * 60 * 1000
-      ).toISOString(),
-      status: 'idle',
-    },
   };
 }

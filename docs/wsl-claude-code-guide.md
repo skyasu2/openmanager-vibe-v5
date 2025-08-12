@@ -292,7 +292,8 @@ lscpu
 - [Claude Code 프로젝트 가이드](../CLAUDE.md)
 - [개발 환경 설정](../README.md)
 - [테스트 시스템 가이드](./testing-system-guide.md)
+- [npm-global Config 문제 해결](./npm-global-config-guide.md)
 
 ---
 
-최종 업데이트: 2025-08-05
+최종 업데이트: 2025-08-11

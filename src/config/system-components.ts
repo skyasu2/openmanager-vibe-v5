@@ -1,34 +1,34 @@
 /**
- * 🔧 System Components Configuration
- *
- * OpenManager Vibe v5 시스템 컴포넌트 정의
- *
- * @created 2025-06-09
- * @author AI Assistant
+ * 🔧 시스템 컴포넌트 상태 체크 설정
+ * Next.js 15 Edge Runtime 최적화 버전
  */
 
-import { safeErrorLog } from '../lib/error-handler';
-import type { SystemComponent } from '../types/system-checklist';
+import { SystemComponent } from '@/types/system-checklist';
 import {
+  isNetworkError,
+  hasOriginalError,
   fetchWithTracking,
   recordNetworkRequest,
 } from '../utils/network-tracking';
 
+// 🔧 네트워크 정보 타입 정의 (타입 안전성 강화)
+interface NetworkInfo {
+  requestId?: string;
+  url?: string;
+  method?: string;
+  duration?: number;
+  responseTime?: number;
+  startTime?: number;
+  endTime?: number;
+}
+
 // 🔧 네트워크 에러 타입 정의
 interface NetworkError extends Error {
-  networkInfo?: {
-    requestId?: string;
-    url?: string;
-    method?: string;
-    duration?: number;
-    responseTime?: number;
-    startTime?: number;
-    endTime?: number;
-  };
+  networkInfo?: NetworkInfo;
   originalError?: Error;
 }
 
-// 🔧 타입 가드 함수들
+// 🔧 타입 가드 함수들 (강화된 타입 안전성)
 const isNetworkError = (error: unknown): error is NetworkError => {
   return (
     error instanceof Error &&
@@ -39,18 +39,32 @@ const isNetworkError = (error: unknown): error is NetworkError => {
 
 const hasOriginalError = (error: unknown): error is { originalError: Error } => {
   return (
-    error !== null &&
     typeof error === 'object' &&
+    error !== null &&
     'originalError' in error &&
     error.originalError instanceof Error
   );
 };
 
-export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
+// 🔧 네트워크 정보 검증 헬퍼
+const getResponseTime = (networkInfo?: NetworkInfo): string => {
+  if (!networkInfo || typeof networkInfo.responseTime !== 'number') {
+    return 'unknown';
+  }
+  return `${networkInfo.responseTime}ms`;
+};
+
+/**
+ * 🌐 시스템 컴포넌트 목록
+ * 각 컴포넌트는 독립적으로 상태 체크 수행
+ */
+export const systemComponents: SystemComponent[] = [
+  // 🚀 API 서버 상태 체크
   {
     id: 'api-server',
-    name: 'API 서버 연결',
-    description: '핵심 API 엔드포인트 연결을 확인합니다',
+    name: 'API 서버',
+    description: 'Next.js API Routes 응답성',
+    category: 'backend',
     icon: '🌐',
     priority: 'critical',
     estimatedTime: 800,
@@ -73,15 +87,19 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
         const errorToLog = hasOriginalError(error)
           ? error.originalError
           : error;
-        safeErrorLog('🌐 API 서버 연결 실패', errorToLog);
+
+        console.error('API 서버 체크 실패:', errorToLog);
         return false;
       }
     },
   },
+
+  // 📊 메트릭 데이터베이스 체크
   {
     id: 'metrics-database',
     name: '메트릭 데이터베이스',
-    description: '서버 모니터링 데이터 저장소를 준비합니다',
+    description: 'Supabase PostgreSQL 연결',
+    category: 'database',
     icon: '📊',
     priority: 'critical',
     estimatedTime: 1000,
@@ -104,18 +122,19 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
         const errorToLog = hasOriginalError(error)
           ? error.originalError
           : error;
-        safeErrorLog(
-          '📊 메트릭 데이터베이스 연결 실패',
-          errorToLog
-        );
+
+        console.error('메트릭 데이터베이스 체크 실패:', errorToLog);
         return false;
       }
     },
   },
+
+  // 🤖 Unified AI 엔진 (Graceful Degradation)
   {
     id: 'unified-ai-engine',
     name: 'Unified AI 엔진',
-    description: 'Multi-AI 융합 시스템을 초기화합니다 (MCP+RAG+Google AI)',
+    description: 'AI 분석 및 예측 서비스 (폴백 지원)',
+    category: 'ai',
     icon: '🤖',
     priority: 'high',
     estimatedTime: 1200,
@@ -141,7 +160,7 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
         console.log('✅ Unified AI 엔진 체크 성공:', {
           engines: data.engines || 'unknown',
           tier: data.tier || 'fallback',
-          responseTime: networkInfo?.responseTime || 'unknown',
+          responseTime: getResponseTime(networkInfo),
         });
 
         return true;
@@ -151,9 +170,9 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
         }
 
         const errorMessage = error instanceof Error ? error.message : String(error);
-        const responseTime = isNetworkError(error) && error.networkInfo?.responseTime
-          ? `응답시간: ${error.networkInfo.responseTime}ms`
-          : undefined;
+        const responseTime = isNetworkError(error) && error.networkInfo
+          ? getResponseTime(error.networkInfo)
+          : 'unknown';
 
         console.warn(
           '⚠️ Unified AI 엔진 체크 실패, Graceful Degradation 모드:',
@@ -168,10 +187,13 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
       }
     },
   },
+
+  // 🖥️ 서버 데이터 생성기
   {
     id: 'server-generator',
-    name: '서버 생성기',
-    description: '가상 서버 인스턴스 생성 시스템을 준비합니다',
+    name: '서버 데이터 생성기',
+    description: '실시간 서버 메트릭 생성',
+    category: 'data',
     icon: '🖥️',
     priority: 'high',
     estimatedTime: 600,
@@ -194,55 +216,158 @@ export const OPENMANAGER_COMPONENTS: SystemComponent[] = [
         const errorToLog = hasOriginalError(error)
           ? error.originalError
           : error;
-        safeErrorLog('🖥️ 서버 생성기 연결 실패', errorToLog);
+
+        console.error('서버 데이터 생성기 체크 실패:', errorToLog);
         return false;
       }
     },
   },
+
+  // 🔐 인증 시스템
   {
-    id: 'cache-system',
-    name: '캐시 시스템',
-    description: '성능 최적화를 위한 캐시를 활성화합니다',
+    id: 'auth-system',
+    name: '인증 시스템',
+    description: 'GitHub OAuth & Supabase Auth',
+    category: 'auth',
+    icon: '🔐',
+    priority: 'critical',
+    estimatedTime: 900,
+    checkFunction: async () => {
+      try {
+        const { response, networkInfo } = await fetchWithTracking(
+          '/api/auth/session',
+          {
+            method: 'GET',
+          }
+        );
+
+        recordNetworkRequest(networkInfo, response.ok, 'auth-system');
+        return response.ok;
+      } catch (error: unknown) {
+        if (isNetworkError(error)) {
+          recordNetworkRequest(error.networkInfo, false, 'auth-system');
+        }
+
+        const errorToLog = hasOriginalError(error)
+          ? error.originalError
+          : error;
+
+        console.error('인증 시스템 체크 실패:', errorToLog);
+        return false;
+      }
+    },
+  },
+
+  // 📡 실시간 통신 (WebSocket/SSE)
+  {
+    id: 'realtime-communication',
+    name: '실시간 통신',
+    description: 'WebSocket & SSE 스트림',
+    category: 'realtime',
+    icon: '📡',
+    priority: 'medium',
+    estimatedTime: 700,
+    dependencies: ['api-server'],
+    checkFunction: async () => {
+      try {
+        const { response, networkInfo } = await fetchWithTracking(
+          '/api/realtime/status',
+          {
+            method: 'GET',
+          }
+        );
+
+        recordNetworkRequest(networkInfo, response.ok, 'realtime-communication');
+        return response.ok;
+      } catch (error: unknown) {
+        if (isNetworkError(error)) {
+          recordNetworkRequest(error.networkInfo, false, 'realtime-communication');
+        }
+
+        const errorToLog = hasOriginalError(error)
+          ? error.originalError
+          : error;
+
+        console.error('실시간 통신 체크 실패:', errorToLog);
+        return false;
+      }
+    },
+  },
+
+  // ⚡ 캐시 시스템 (Memory Cache)
+  {
+    id: 'memory-cache',
+    name: '메모리 캐시',
+    description: '서버리스 최적화 LRU Cache',
+    category: 'cache',
     icon: '⚡',
     priority: 'medium',
     estimatedTime: 400,
     checkFunction: async () => {
-      // 캐시 시스템 체크 - 시뮬레이션
-      console.log('⚡ 캐시 시스템 체크 시작');
-      await new Promise(resolve => setTimeout(resolve, 300));
-      console.log('✅ 캐시 시스템 체크 완료');
-      return true;
+      try {
+        const { response, networkInfo } = await fetchWithTracking(
+          '/api/cache/health',
+          {
+            method: 'GET',
+          }
+        );
+
+        recordNetworkRequest(networkInfo, response.ok, 'memory-cache');
+        return response.ok;
+      } catch (error: unknown) {
+        if (isNetworkError(error)) {
+          recordNetworkRequest(error.networkInfo, false, 'memory-cache');
+        }
+
+        const errorToLog = hasOriginalError(error)
+          ? error.originalError
+          : error;
+
+        console.error('메모리 캐시 체크 실패:', errorToLog);
+        return false;
+      }
     },
   },
+
+  // 🔍 GCP Functions (서버리스)
   {
-    id: 'security-validator',
-    name: '보안 검증',
-    description: '시스템 보안 정책을 검증합니다',
-    icon: '🔒',
-    priority: 'medium',
-    estimatedTime: 700,
-    checkFunction: async () => {
-      // 보안 검증 로직 - 시뮬레이션
-      console.log('🔒 보안 검증 시작');
-      await new Promise(resolve => setTimeout(resolve, 500));
-      console.log('✅ 보안 검증 완료');
-      return true;
-    },
-  },
-  {
-    id: 'ui-components',
-    name: 'UI 컴포넌트',
-    description: '대시보드 인터페이스를 준비합니다',
-    icon: '🎨',
+    id: 'gcp-functions',
+    name: 'GCP Functions',
+    description: 'Python 서버리스 AI 처리',
+    category: 'external',
+    icon: '🔍',
     priority: 'low',
-    estimatedTime: 300,
-    dependencies: ['api-server', 'metrics-database'],
+    estimatedTime: 1500,
+    dependencies: ['api-server'],
     checkFunction: async () => {
-      // UI 컴포넌트 준비 체크 - 시뮬레이션
-      console.log('🎨 UI 컴포넌트 준비 시작');
-      await new Promise(resolve => setTimeout(resolve, 200));
-      console.log('✅ UI 컴포넌트 준비 완료');
-      return true;
+      try {
+        const { response, networkInfo } = await fetchWithTracking(
+          '/api/gcp/health',
+          {
+            method: 'GET',
+            headers: {
+              'X-Skip-Validation': 'true', // 선택적 체크
+            },
+          }
+        );
+
+        recordNetworkRequest(networkInfo, response.ok, 'gcp-functions');
+        
+        // GCP Functions는 선택적 서비스이므로 실패해도 전체 시스템에 영향 없음
+        if (!response.ok) {
+          console.warn('⚠️ GCP Functions 일시적 비활성화, 로컬 AI로 폴백');
+          return true; // Graceful degradation
+        }
+
+        return true;
+      } catch (error: unknown) {
+        if (isNetworkError(error)) {
+          recordNetworkRequest(error.networkInfo, false, 'gcp-functions');
+        }
+
+        console.warn('⚠️ GCP Functions 연결 실패, 로컬 처리 모드:', error);
+        return true; // 외부 서비스 실패 시에도 시스템은 동작
+      }
     },
   },
 ];

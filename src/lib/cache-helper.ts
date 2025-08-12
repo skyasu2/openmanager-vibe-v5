@@ -1,249 +1,79 @@
 /**
- * 🚀 캐시 헬퍼 유틸리티 v2.0 (Redis-Free)
+ * 🚀 캐시 헬퍼 유틸리티 v3.0 (통합 캐시 래퍼)
  *
- * API 라우트와 서버 컴포넌트에서 사용하기 쉬운 캐시 유틸리티
- * - 메모리 기반 캐시 (Redis 완전 제거)
- * - 자동 직렬화/역직렬화
- * - 타입 안전성
- * - 에러 핸들링
- * - 캐시 미스 시 자동 페칭
- * - LRU 캐시 만료 관리
+ * 이 파일은 하위 호환성을 위해 유지됩니다.
+ * 내부적으로 unified-cache.ts의 UnifiedCacheService를 사용합니다.
+ * 
+ * 마이그레이션 가이드:
+ * - 새 코드는 unified-cache.ts를 직접 import하여 사용하세요
+ * - 기존 코드는 이 파일을 계속 사용할 수 있습니다
  */
 
-// 캐시 아이템 타입 정의 - any 타입 제거
-interface CacheItem<T = unknown> {
-  value: T;
-  expires: number;
-  created: number;
-  hits: number;
-}
+// 통합 캐시에서 모든 기능을 재export
+export {
+  getCachedData,
+  setCachedData,
+  cacheOrFetch,
+  invalidateCache,
+  getCacheStats,
+  createCachedResponse,
+  UnifiedCacheService,
+  unifiedCache,
+  CacheNamespace
+} from './unified-cache';
 
-// 메모리 기반 캐시 서비스 클래스
-class MemoryCacheService {
-  public cache = new Map<string, CacheItem<unknown>>();
-  private maxSize = 100; // 최대 100개 항목 (90% 감소)
-  private stats = { hits: 0, misses: 0, sets: 0, deletes: 0 };
-
-  async get<T>(key: string): Promise<T | null> {
-    const item = this.cache.get(key);
-    
-    if (!item) {
-      this.stats.misses++;
-      return null;
-    }
-    
-    if (Date.now() > item.expires) {
-      this.cache.delete(key);
-      this.stats.misses++;
-      return null;
-    }
-    
-    item.hits++;
-    this.stats.hits++;
-    return item.value as T;
-  }
-
-  async set<T>(key: string, value: T, ttlSeconds: number = 300): Promise<void> {
-    // LRU 방식으로 캐시 크기 관리
-    if (this.cache.size >= this.maxSize) {
-      this.evictLeastRecentlyUsed();
-    }
-
-    this.cache.set(key, {
-      value,
-      expires: Date.now() + ttlSeconds * 1000,
-      created: Date.now(),
-      hits: 0,
-    });
-    
-    this.stats.sets++;
-  }
-
-  async mget<T>(keys: string[]): Promise<(T | null)[]> {
-    return Promise.all(keys.map(key => this.get<T>(key)));
-  }
-
-  async delete(key: string): Promise<void> {
-    if (this.cache.delete(key)) {
-      this.stats.deletes++;
-    }
-  }
-
-  async invalidateCache(pattern?: string): Promise<void> {
-    if (!pattern) {
-      this.cache.clear();
-      return;
-    }
-
-    // 패턴 매칭으로 키 삭제
-    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
-    const keysToDelete: string[] = [];
-    
-    for (const key of this.cache.keys()) {
-      if (regex.test(key)) {
-        keysToDelete.push(key);
-      }
-    }
-    
-    keysToDelete.forEach(key => {
-      this.cache.delete(key);
-      this.stats.deletes++;
-    });
-  }
-
-  getStats(): {
-    hits: number;
-    misses: number;
-    sets: number;
-    deletes: number;
-    size: number;
-    maxSize: number;
-    hitRate: number;
-    memoryUsage: string;
-  } {
-    const totalRequests = this.stats.hits + this.stats.misses;
-    return {
-      ...this.stats,
-      size: this.cache.size,
-      maxSize: this.maxSize,
-      hitRate: totalRequests > 0 ? (this.stats.hits / totalRequests) * 100 : 0,
-      memoryUsage: `${Math.round(this.cache.size * 0.5)}KB`, // 추정치
-    };
-  }
-
-  resetStats(): void {
-    this.stats = { hits: 0, misses: 0, sets: 0, deletes: 0 };
-  }
-
-  private evictLeastRecentlyUsed(): void {
-    let leastUsedKey = '';
-    let leastHits = Infinity;
-    let oldestTime = Date.now();
-    
-    for (const [key, item] of this.cache.entries()) {
-      // 히트수가 적거나, 같다면 더 오래된 것을 선택
-      if (item.hits < leastHits || (item.hits === leastHits && item.created < oldestTime)) {
-        leastHits = item.hits;
-        oldestTime = item.created;
-        leastUsedKey = key;
-      }
-    }
-    
-    if (leastUsedKey) {
-      this.cache.delete(leastUsedKey);
-      this.stats.deletes++;
-    }
-  }
-
-  // 만료된 항목 정리
-  cleanup(): void {
-    const now = Date.now();
-    const expiredKeys: string[] = [];
-    
-    for (const [key, item] of this.cache.entries()) {
-      if (item.expires <= now) {
-        expiredKeys.push(key);
-      }
-    }
-    
-    expiredKeys.forEach(key => {
-      this.cache.delete(key);
-      this.stats.deletes++;
-    });
-  }
-}
-
-// 글로벌 캐시 서비스 인스턴스
-let globalCacheService: MemoryCacheService | null = null;
+// 추가 호환성 함수들
+import { 
+  UnifiedCacheService, 
+  CacheNamespace,
+  unifiedCache 
+} from './unified-cache';
 
 /**
- * 캐시 서비스 인스턴스 가져오기
+ * 캐시 서비스 인스턴스 가져오기 (하위 호환성)
+ * @deprecated unified-cache.ts의 unifiedCache를 직접 사용하세요
  */
-export function getCacheService(): MemoryCacheService {
-  if (!globalCacheService) {
-    globalCacheService = new MemoryCacheService();
-    
-    // 주기적 정리 (5분마다)
-    setInterval(() => {
-      globalCacheService?.cleanup();
-    }, 5 * 60 * 1000);
-  }
-  return globalCacheService;
+export function getCacheService(): UnifiedCacheService {
+  console.warn('getCacheService() is deprecated. Use unifiedCache from unified-cache.ts instead.');
+  return UnifiedCacheService.getInstance();
 }
 
 /**
- * Simple cache get (for compatibility)
+ * 캐시 데이터 조회 또는 fallback 실행 (하위 호환성)
+ * @deprecated cacheOrFetch를 사용하세요
  */
-export function getCachedData<T>(key: string): T | null {
-  const cache = getCacheService();
-  try {
-    const item = cache.cache.get(key);
-    if (!item || Date.now() > item.expires) {
-      return null;
-    }
-    item.hits++;
-    return item.value as T;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Simple cache set (for compatibility) 
- */
-export function setCachedData<T>(key: string, data: T, ttlSeconds: number = 300): void {
-  const cache = getCacheService();
-  try {
-    cache.set(key, data, ttlSeconds);
-  } catch (error) {
-    console.error(`Cache set failed (${key}):`, error);
-  }
-}
-
-/**
- * 캐시 또는 페칭 패턴
- * 캐시에 있으면 반환, 없으면 페칭 후 캐싱
- */
-export async function cacheOrFetch<T>(
+export async function getCachedDataWithFallback<T>(
   key: string,
-  fetcher: () => Promise<T>,
-  options?: {
-    ttl?: number;
-    force?: boolean;
-  }
+  fallback: () => Promise<T>,
+  ttlSeconds: number = 300
 ): Promise<T> {
-  const cache = getCacheService();
-
-  // 강제 새로고침이 아니면 캐시 확인
-  if (!options?.force) {
-    try {
-      const cached = await cache.get<T>(key);
-      if (cached !== null) {
-        return cached;
-      }
-    } catch (error) {
-      console.error(`캐시 조회 실패 (${key}):`, error);
-    }
-  }
-
-  // 캐시 미스 또는 강제 새로고침: 데이터 페칭
-  try {
-    const data = await fetcher();
-
-    // 결과 캐싱 (비동기로 처리하여 응답 지연 방지)
-    cache.set(key, data, options?.ttl).catch(error => {
-      console.error(`캐시 저장 실패 (${key}):`, error);
-    });
-
-    return data;
-  } catch (error) {
-    console.error(`데이터 페칭 실패 (${key}):`, error);
-    throw error;
-  }
+  return unifiedCache.getOrFetch(key, fallback, {
+    ttlSeconds,
+    namespace: CacheNamespace.GENERAL
+  });
 }
 
 /**
- * 여러 키를 한 번에 캐시 또는 페칭
+ * 함수 결과 캐싱 래퍼 (하위 호환성)
+ */
+export function cacheWrapper<T extends (...args: unknown[]) => Promise<unknown>>(
+  keyPrefix: string,
+  fn: T,
+  ttlSeconds: number = 300
+): T {
+  return (async (...args: Parameters<T>) => {
+    const cacheKey = `${keyPrefix}:${JSON.stringify(args)}`;
+    
+    return unifiedCache.getOrFetch(
+      cacheKey,
+      () => fn(...args),
+      { ttlSeconds, namespace: CacheNamespace.GENERAL }
+    );
+  }) as T;
+}
+
+/**
+ * 여러 키를 한 번에 캐시 또는 페칭 (하위 호환성)
  */
 export async function cacheOrFetchMany<T>(
   items: Array<{
@@ -252,125 +82,22 @@ export async function cacheOrFetchMany<T>(
     ttl?: number;
   }>
 ): Promise<T[]> {
-  const cache = getCacheService();
-  const keys = items.map(item => item.key);
-
-  try {
-    // 배치로 캐시 조회
-    const cached = await cache.mget<T>(keys);
-    const results: T[] = [];
-    const toFetch: Array<{ index: number; item: (typeof items)[0] }> = [];
-
-    // 캐시 히트/미스 분류
-    cached.forEach((value, index) => {
-      if (value !== null) {
-        results[index] = value;
-      } else {
-        toFetch.push({ index, item: items[index] });
+  const promises = items.map(item => 
+    unifiedCache.getOrFetch(
+      item.key,
+      item.fetcher,
+      { 
+        ttlSeconds: item.ttl,
+        namespace: CacheNamespace.GENERAL 
       }
-    });
-
-    // 캐시 미스 항목 페칭
-    if (toFetch.length > 0) {
-      const fetchPromises = toFetch.map(async ({ index, item }) => {
-        try {
-          const data = await item.fetcher();
-          results[index] = data;
-
-          // 비동기 캐싱
-          cache.set(item.key, data, item.ttl).catch(error => {
-            console.error(`배치 캐시 저장 실패 (${item.key}):`, error);
-          });
-
-          return data;
-        } catch (error) {
-          console.error(`배치 페칭 실패 (${item.key}):`, error);
-          throw error;
-        }
-      });
-
-      await Promise.all(fetchPromises);
-    }
-
-    return results;
-  } catch (error) {
-    // 캐시 실패 시 모든 항목 페칭
-    console.error('배치 캐시 조회 실패, 전체 페칭:', error);
-    return Promise.all(items.map(item => item.fetcher()));
-  }
+    )
+  );
+  
+  return Promise.all(promises);
 }
 
 /**
- * 캐시 데이터 조회 또는 fallback 실행
- * 캐시에 데이터가 없으면 fallback 함수를 실행하고 결과를 캐싱
- */
-export async function getCachedDataWithFallback<T>(
-  key: string,
-  fallback: () => Promise<T>,
-  ttlSeconds: number = 300
-): Promise<T> {
-  const cached = getCachedData<T>(key);
-  if (cached !== null) {
-    return cached;
-  }
-
-  const result = await fallback();
-  setCachedData(key, result, ttlSeconds);
-  return result;
-}
-
-/**
- * 함수 결과 캐싱 래퍼
- * 함수의 실행 결과를 캐싱하는 고차 함수
- */
-export function cacheWrapper<T extends (...args: unknown[]) => Promise<unknown>>(
-  keyPrefix: string,
-  fn: T,
-  ttlSeconds: number = 300
-): T {
-  return (async (...args: Parameters<T>) => {
-    // 인자를 포함한 캐시 키 생성
-    const cacheKey = `${keyPrefix}:${JSON.stringify(args)}`;
-    
-    return getCachedDataWithFallback(
-      cacheKey,
-      () => fn(...args),
-      ttlSeconds
-    );
-  }) as T;
-}
-
-/**
- * 캐시 무효화 헬퍼
- */
-export async function invalidateCache(pattern?: string): Promise<void> {
-  const cache = getCacheService();
-  try {
-    await cache.invalidateCache(pattern);
-  } catch (error) {
-    console.error('캐시 무효화 실패:', error);
-  }
-}
-
-/**
- * 캐시 통계 조회
- */
-export function getCacheStats(): {
-  hits: number;
-  misses: number;
-  sets: number;
-  deletes: number;
-  size: number;
-  maxSize: number;
-  hitRate: number;
-  memoryUsage: string;
-} {
-  const cache = getCacheService();
-  return cache.getStats();
-}
-
-/**
- * Response 헤더에 캐시 제어 추가
+ * Response 헤더에 캐시 제어 추가 (하위 호환성)
  */
 export function setCacheHeaders(
   headers: Headers,
@@ -405,35 +132,7 @@ export function setCacheHeaders(
 }
 
 /**
- * Next.js API Response에 캐시 헤더 추가
- */
-export function createCachedResponse<T>(
-  data: T,
-  options: {
-    status?: number;
-    maxAge?: number;
-    sMaxAge?: number;
-    staleWhileRevalidate?: number;
-  } = {}
-): Response {
-  const headers = new Headers({
-    'Content-Type': 'application/json',
-  });
-
-  setCacheHeaders(headers, {
-    maxAge: options.maxAge ?? 0,
-    sMaxAge: options.sMaxAge ?? 60,
-    staleWhileRevalidate: options.staleWhileRevalidate ?? 300,
-  });
-
-  return new Response(JSON.stringify(data), {
-    status: options.status ?? 200,
-    headers,
-  });
-}
-
-/**
- * 캐시 워밍업 (사전 로딩)
+ * 캐시 워밍업 (사전 로딩) - 하위 호환성
  */
 export async function warmupCache(
   items: Array<{
@@ -442,14 +141,15 @@ export async function warmupCache(
     ttl?: number;
   }>
 ): Promise<void> {
-  const cache = getCacheService();
-
   console.log(`🔥 캐시 워밍업 시작: ${items.length}개 항목`);
 
   const promises = items.map(async ({ key, fetcher, ttl }) => {
     try {
       const data = await fetcher();
-      await cache.set(key, data, ttl);
+      await unifiedCache.set(key, data, { 
+        ttlSeconds: ttl,
+        namespace: CacheNamespace.GENERAL 
+      });
     } catch (error) {
       console.error(`캐시 워밍업 실패 (${key}):`, error);
     }
@@ -460,7 +160,7 @@ export async function warmupCache(
 }
 
 /**
- * 메모리 기반 캐시 헬스체크
+ * 메모리 기반 캐시 헬스체크 (하위 호환성)
  */
 export function getCacheHealth(): {
   status: 'healthy' | 'warning' | 'critical';
@@ -472,9 +172,8 @@ export function getCacheHealth(): {
   };
   recommendations: string[];
 } {
-  const cache = getCacheService();
-  const stats = cache.getStats();
-  const usagePercent = (stats.size / 1000) * 100; // maxSize가 1000이므로
+  const stats = unifiedCache.getStats();
+  const usagePercent = (stats.size / stats.maxSize) * 100;
   
   const recommendations: string[] = [];
   let status: 'healthy' | 'warning' | 'critical' = 'healthy';
@@ -499,10 +198,67 @@ export function getCacheHealth(): {
     status,
     details: {
       size: stats.size,
-      maxSize: 1000,
+      maxSize: stats.maxSize,
       hitRate: stats.hitRate,
       memoryPressure,
     },
     recommendations,
   };
+}
+
+// MemoryCacheService 클래스 (하위 호환성)
+export class MemoryCacheService {
+  private unifiedCache = UnifiedCacheService.getInstance();
+  
+  // 하위 호환성을 위한 public cache 속성
+  get cache() {
+    console.warn('Direct cache access is deprecated. Use the provided methods instead.');
+    return new Map();
+  }
+  
+  async get<T>(key: string): Promise<T | null> {
+    return this.unifiedCache.get<T>(key, CacheNamespace.GENERAL);
+  }
+  
+  async set<T>(key: string, value: T, ttlSeconds: number = 300): Promise<void> {
+    return this.unifiedCache.set(key, value, { 
+      ttlSeconds, 
+      namespace: CacheNamespace.GENERAL 
+    });
+  }
+  
+  async mget<T>(keys: string[]): Promise<(T | null)[]> {
+    return Promise.all(keys.map(key => this.get<T>(key)));
+  }
+  
+  async delete(key: string): Promise<void> {
+    return this.unifiedCache.invalidate(key, CacheNamespace.GENERAL);
+  }
+  
+  async invalidateCache(pattern?: string): Promise<void> {
+    return this.unifiedCache.invalidate(pattern, CacheNamespace.GENERAL);
+  }
+  
+  getStats() {
+    return this.unifiedCache.getStats();
+  }
+  
+  resetStats(): void {
+    this.unifiedCache.resetStats();
+  }
+  
+  cleanup(): void {
+    this.unifiedCache.cleanup();
+  }
+}
+
+// 글로벌 캐시 서비스 인스턴스 (하위 호환성)
+let globalCacheService: MemoryCacheService | null = null;
+
+// 하위 호환성을 위한 export
+export function getGlobalCacheService(): MemoryCacheService {
+  if (!globalCacheService) {
+    globalCacheService = new MemoryCacheService();
+  }
+  return globalCacheService;
 }

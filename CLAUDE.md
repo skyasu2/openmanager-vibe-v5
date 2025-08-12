@@ -691,6 +691,20 @@ Task({
 - **타입 에러**: `npm run type-check` → `npm run lint:fix`
 - **OAuth 실패**: `.env.local`의 GitHub 키 확인
 - **빌드 실패**: Node.js 버전 확인 (v22.15.1 필수)
+- **npm-global config mismatch**: [`/docs/npm-global-config-guide.md`](/docs/npm-global-config-guide.md) 참조
+
+### 알려진 이슈 (Claude Code v1.0.72)
+
+#### Config Mismatch 경고
+
+```
+⚠️ Config mismatch: running npm-global but config says unknown
+```
+
+- **영향**: 기능에 영향 없음 (cosmetic issue only)
+- **원인**: Claude Code의 알려진 버그 ([#3915](https://github.com/anthropics/claude-code/issues/3915), [#4977](https://github.com/anthropics/claude-code/issues/4977))
+- **대응**: 무시해도 안전함. 향후 버전에서 수정 예정
+- **확인**: `bash scripts/check-claude-environment.sh` 실행하여 환경 검증
 
 ### 파일 읽기/쓰기 에러
 
@@ -701,6 +715,24 @@ Error: File has not been read yet. Read it first before writing to it
 - **원인**: Claude Code는 기존 파일 수정 시 반드시 Read 도구 먼저 사용
 - **해결**: Write/Edit 전에 항상 Read 도구 사용
 - **주의**: Sub agents도 동일한 규칙 적용
+
+### WSL 최적화 (Windows 사용자)
+
+**성능 최적화 필수사항** (Microsoft 공식 문서 기반):
+
+- **파일 시스템**: `/mnt/c/`는 WSL 네이티브 경로보다 30-50배 느림
+  - ✅ 권장: WSL 파일시스템 사용 (`~/projects/`)
+  - ❌ 비권장: Windows 경로 (`/mnt/c/`, `/mnt/d/`)
+- **Node.js**: Linux 네이티브 버전 사용 (nvm 추천)
+  - `which npm`이 `/usr/` 또는 `~/.nvm/`로 시작해야 함
+  - `/mnt/c/Program Files/nodejs` 경로 사용 금지
+- **WSL2 설정**: `~/.wslconfig` 파일로 성능 튜닝
+  ```ini
+  [wsl2]
+  memory=8GB
+  processors=4
+  networkingMode=mirrored  # Windows 11 22H2+
+  ```
 
 ### 메모리 관리
 

@@ -165,7 +165,7 @@ npm run analyze:bundle
 ### 🏗️ 아키텍처 및 시스템
 
 - [시스템 아키텍처](./docs/system-architecture.md)
-- [AI 시스템 통합 가이드](./docs/ai-system-unified-guide.md) ✨ 최신
+- [AI 시스템 완전 가이드](./docs/ai/ai-complete-guide.md) ✨ 최신
 - [GCP Functions 완전 가이드](./docs/gcp-complete-guide.md)
 
 ### 🔧 개발 가이드
