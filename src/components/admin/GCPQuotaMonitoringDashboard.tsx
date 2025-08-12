@@ -45,62 +45,62 @@ import type {
 const BarChart = dynamic(
   () => import('recharts').then((mod) => mod.BarChart as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof BarChartType>>;
+);
 
 const LineChart = dynamic(
   () => import('recharts').then((mod) => mod.LineChart as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof LineChartType>>;
+);
 
 const PieChart = dynamic(
   () => import('recharts').then((mod) => mod.PieChart as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof PieChartType>>;
+);
 
 const ResponsiveContainer = dynamic(
   () => import('recharts').then((mod) => mod.ResponsiveContainer as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof ResponsiveContainerType>>;
+);
 
 const XAxis = dynamic(
   () => import('recharts').then((mod) => mod.XAxis as any),
   {
     ssr: false,
   }
-) as React.ComponentType<React.ComponentProps<typeof XAxisType>>;
+);
 
 const YAxis = dynamic(
   () => import('recharts').then((mod) => mod.YAxis as any),
   {
     ssr: false,
   }
-) as React.ComponentType<React.ComponentProps<typeof YAxisType>>;
+);
 
 const CartesianGrid = dynamic(
   () => import('recharts').then((mod) => mod.CartesianGrid as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof CartesianGridType>>;
+);
 
 const Tooltip = dynamic(
   () => import('recharts').then((mod) => mod.Tooltip as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof TooltipType>>;
+);
 
 const Bar = dynamic(() => import('recharts').then((mod) => mod.Bar as any), {
   ssr: false,
-}) as React.ComponentType<React.ComponentProps<typeof BarType>>;
+});
 
 const Line = dynamic(() => import('recharts').then((mod) => mod.Line as any), {
   ssr: false,
-}) as React.ComponentType<React.ComponentProps<typeof LineType>>;
+});
 
 const Cell = dynamic(() => import('recharts').then((mod) => mod.Cell as any), {
   ssr: false,
-}) as React.ComponentType<React.ComponentProps<typeof CellType>>;
+});
 
 const Pie = dynamic(() => import('recharts').then((mod) => mod.Pie as any), {
   ssr: false,
-}) as React.ComponentType<React.ComponentProps<typeof PieType>>;
+});
 
 interface GCPQuotaStats {
   freeQuotaUsage: {

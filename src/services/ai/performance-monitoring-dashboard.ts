@@ -352,7 +352,7 @@ export class PerformanceMonitoringDashboard {
       if (!groups.has(hourKey)) {
         groups.set(hourKey, []);
       }
-      groups.get(hourKey)!.push(metric);
+      groups.get(hourKey).push(metric);
     });
     
     return groups;

@@ -289,15 +289,15 @@ export const MLLearningCenter: React.FC = () => {
         }));
 
         // 결과 저장
-        setLearningResults((prev) => [result!, ...prev].slice(0, 10)); // 최근 10개만 유지
-        setSelectedResult(result!);
+        setLearningResults((prev) => [result, ...prev].slice(0, 10)); // 최근 10개만 유지
+        setSelectedResult(result);
 
         // 학습 결과는 로컬에만 저장
         console.log('✅ ML 학습 결과 저장 완료:', {
           type,
-          patternsLearned: result!.patternsLearned,
-          accuracyImprovement: result!.accuracyImprovement,
-          confidence: result!.confidence,
+          patternsLearned: result.patternsLearned,
+          accuracyImprovement: result.accuracyImprovement,
+          confidence: result.confidence,
         });
       } catch {
         // 에러 처리

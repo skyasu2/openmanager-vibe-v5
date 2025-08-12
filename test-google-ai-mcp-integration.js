@@ -62,7 +62,7 @@ const testGoogleAIMCP = async () => {
   
   // 7. 결론
   console.log('\n📌 7. 결론:');
-  console.log('   🎯 Google AI 모드에서 GCP VM MCP 활용 가능\!');
+  console.log('   🎯 Google AI 모드에서 GCP VM MCP 활용 가능!');
   console.log('   🔧 현재 비활성화 상태 (환경변수 false)');
   console.log('   ✨ 활성화 시 자연어 처리 품질 향상 예상');
   

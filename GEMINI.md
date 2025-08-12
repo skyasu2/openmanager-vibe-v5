@@ -94,6 +94,20 @@ gemini /memory list > project_memory.txt
 
 ### 현재 개발 환경
 
+- **OS**: Windows 11
+- **터미널**: PowerShell 또는 VSCode 내장 터미널
+- **참고**: 기존 WSL (Windows Subsystem for Linux) 환경에서 Windows 네이티브 환경으로 전환되었습니다. 모든 명령어는 Windows 환경에 맞춰 실행해야 합니다.
+
+### Gemini 역할 및 책임
+
+- **메인 개발 도구**: Claude Code가 주도적으로 작업
+- **Gemini CLI 역할**: **Senior Code Architect** sub agent로 통합
+- **협업 방식**: 아키- **OS**: Windows 11
+- **터미널**: PowerShell 또는 VSCode 내장 터미널
+- **참고**: 기존 WSL (Windows Subsystem for Linux) 환경에서 Windows 네이티브 환경으로 전환되었습니다. 모든 명령어는 Windows 환경에 맞춰 실행해야 합니다.
+
+### Gemini 역할 및 책임
+
 - **메인 개발 도구**: Claude Code가 주도적으로 작업
 - **Gemini CLI 역할**: **Senior Code Architect** sub agent로 통합
 - **협업 방식**: 아키텍처 리뷰 및 코드 품질 검토 전담

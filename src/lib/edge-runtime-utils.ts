@@ -327,7 +327,7 @@ export class EdgePerformanceMonitor {
       this.metrics.set(name, []);
     }
 
-    const values = this.metrics.get(name)!;
+    const values = this.metrics.get(name);
     values.push(value);
 
     // 최대 100개의 측정값만 유지

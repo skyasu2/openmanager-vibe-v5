@@ -570,7 +570,7 @@ export class SupabaseRAGEngine {
           const result = await this.vectorDB.store(
             doc.id,
             doc.content,
-            doc.embedding!,
+            doc.embedding,
             convertAIMetadataToDocumentMetadata(doc.metadata)
           );
 

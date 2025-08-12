@@ -85,7 +85,7 @@ export async function GET(
       debug.error('❌ Supabase 서버 조회 실패:', serverError);
     }
 
-    let server = serverData as DatabaseServer | null;
+    const server = serverData as DatabaseServer | null;
 
     if (!server) {
       // 사용 가능한 서버 목록을 Supabase에서 가져오기

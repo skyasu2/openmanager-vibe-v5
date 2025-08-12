@@ -16,8 +16,8 @@ export async function updateSession(
   const supabaseResponse = response || NextResponse.next();
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
         get(name: string) {
@@ -27,13 +27,13 @@ export async function updateSession(
         set(name: string, value: string, options: Record<string, unknown>) {
           // 응답 쿠키에만 설정 (request.cookies는 읽기 전용)
           // Next.js 15에서는 NextResponse.cookies 대신 headers 사용
-          const cookieValue = `${name}=${value}; Path=/; ${Object.entries(options).map(([k, v]) => `${k}=${v}`).join('; ')}`;
+          const cookieValue = `${name}=${value}; Path=/; ${Object.entries(options).map(([k, v]) => `${k}=${String(v)}`).join('; ')}`;
           supabaseResponse.headers.set('Set-Cookie', cookieValue);
         },
         remove(name: string, options: Record<string, unknown>) {
           // 응답 쿠키에서만 제거 (request.cookies는 읽기 전용)
           // Next.js 15에서는 NextResponse.cookies 대신 headers 사용
-          const cookieValue = `${name}=; Path=/; Max-Age=0; ${Object.entries(options).map(([k, v]) => `${k}=${v}`).join('; ')}`;
+          const cookieValue = `${name}=; Path=/; Max-Age=0; ${Object.entries(options).map(([k, v]) => `${k}=${String(v)}`).join('; ')}`;
           supabaseResponse.headers.set('Set-Cookie', cookieValue);
         },
       },

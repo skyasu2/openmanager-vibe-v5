@@ -294,7 +294,7 @@ export class MemoryLeakDetector {
       if (!grouped.has(snapshot.name)) {
         grouped.set(snapshot.name, []);
       }
-      grouped.get(snapshot.name)!.push(snapshot.memory);
+      grouped.get(snapshot.name).push(snapshot.memory);
     }
     
     const leaks: string[] = [];

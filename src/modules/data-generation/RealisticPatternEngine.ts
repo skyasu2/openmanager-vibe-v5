@@ -302,7 +302,7 @@ export class RealisticPatternEngine {
     previousMetrics?: PreviousMetrics
   ): number {
     const profile =
-      this.serverProfiles.get(serverType) || this.serverProfiles.get('web')!;
+      this.serverProfiles.get(serverType) || this.serverProfiles.get('web');
 
     // 기본값 설정
     let baseValue = 0;
@@ -411,7 +411,7 @@ export class RealisticPatternEngine {
     timestamp: Date
   ): { shouldTrigger: boolean; failureType?: string; severity?: number } {
     const profile =
-      this.serverProfiles.get(serverType) || this.serverProfiles.get('web')!;
+      this.serverProfiles.get(serverType) || this.serverProfiles.get('web');
 
     // 메트릭 기반 장애 확률 계산
     let failureProbability = 0.02; // 기본 2%
@@ -485,7 +485,7 @@ export class RealisticPatternEngine {
     const timeMultiplier = this.getTimeMultiplier(timestamp);
     const seasonalMultiplier = this.getSeasonalMultiplier(timestamp);
     const profile =
-      this.serverProfiles.get(serverType) || this.serverProfiles.get('web')!;
+      this.serverProfiles.get(serverType) || this.serverProfiles.get('web');
 
     const combinedMultiplier = timeMultiplier * seasonalMultiplier;
     let expectedLoad: 'low' | 'medium' | 'high' = 'medium';

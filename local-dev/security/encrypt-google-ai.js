@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-/* eslint-disable @typescript-eslint/no-require-imports */
+ 
 // Node.js 스크립트이므로 require 사용 허용
 
 /**

@@ -125,7 +125,7 @@ export class EnhancedEnvCryptoManager {
     // 캐시 확인
     const cacheKey = encryptedData.encrypted;
     if (this.decryptedCache.has(cacheKey)) {
-      return this.decryptedCache.get(cacheKey)!;
+      return this.decryptedCache.get(cacheKey);
     }
 
     // 버전 호환성 체크

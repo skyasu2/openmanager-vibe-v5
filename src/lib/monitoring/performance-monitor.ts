@@ -82,7 +82,7 @@ class PerformanceMonitor {
       storage.set(key, []);
     }
 
-    const metrics = storage.get(key)!;
+    const metrics = storage.get(key);
     metrics.push({
       timestamp: Date.now(),
       duration,
@@ -183,12 +183,12 @@ class PerformanceMonitor {
     if (thresholds.queryTimeMs) {
       this.queryTimes.forEach((metrics, queryType) => {
         const avg = this.calculateAverage(metrics);
-        if (avg > thresholds.queryTimeMs!) {
+        if (avg > thresholds.queryTimeMs) {
           violations.push({
             type: 'query',
             name: queryType,
             avg,
-            threshold: thresholds.queryTimeMs!,
+            threshold: thresholds.queryTimeMs,
           });
         }
       });
@@ -198,12 +198,12 @@ class PerformanceMonitor {
     if (thresholds.apiLatencyMs) {
       this.apiLatencies.forEach((metrics, endpoint) => {
         const avg = this.calculateAverage(metrics);
-        if (avg > thresholds.apiLatencyMs!) {
+        if (avg > thresholds.apiLatencyMs) {
           violations.push({
             type: 'api',
             name: endpoint,
             avg,
-            threshold: thresholds.apiLatencyMs!,
+            threshold: thresholds.apiLatencyMs,
           });
         }
       });

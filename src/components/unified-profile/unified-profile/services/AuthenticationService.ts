@@ -220,7 +220,7 @@ export class AuthenticationService {
   ): void {
     // 기존 타이머가 있다면 제거
     if (this.lockTimeouts.has(userId)) {
-      clearTimeout(this.lockTimeouts.get(userId)!);
+      clearTimeout(this.lockTimeouts.get(userId));
     }
 
     // 새 타이머 설정
@@ -237,7 +237,7 @@ export class AuthenticationService {
    */
   clearAutoUnlockTimer(userId: string): void {
     if (this.lockTimeouts.has(userId)) {
-      clearTimeout(this.lockTimeouts.get(userId)!);
+      clearTimeout(this.lockTimeouts.get(userId));
       this.lockTimeouts.delete(userId);
     }
   }

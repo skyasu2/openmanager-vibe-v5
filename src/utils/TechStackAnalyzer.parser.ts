@@ -168,7 +168,7 @@ export function mergeDuplicateTechs(techItems: TechItem[]): TechItem[] {
     const key = item.name.toLowerCase();
 
     if (techMap.has(key)) {
-      const existing = techMap.get(key)!;
+      const existing = techMap.get(key);
       // 중복된 경우 병합
       existing.usageCount = (existing.usageCount || 1) + 1;
       existing.categories = existing.categories || [existing.category];

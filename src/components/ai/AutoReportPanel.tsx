@@ -205,9 +205,9 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({
                     <h4 className="text-sm font-medium text-white">
                       {report.title}
                     </h4>
-                    {getStatusIcon(report.status as ReportData['status'])}
+                    {getStatusIcon(report.status)}
                     <span className="text-xs text-gray-400">
-                      {getStatusText(report.status as ReportData['status'])}
+                      {getStatusText(report.status)}
                     </span>
                   </div>
                   <p className="text-xs text-gray-400">

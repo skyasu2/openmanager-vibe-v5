@@ -338,7 +338,7 @@ export class ContextLoader {
         bundleData.documents.markdown
       )) {
         const filePath = path.join(targetPath, `${fileName}.md`);
-        fs.writeFileSync(filePath, content as string, 'utf-8');
+        fs.writeFileSync(filePath, content, 'utf-8');
       }
 
       for (const [fileName, content] of Object.entries(

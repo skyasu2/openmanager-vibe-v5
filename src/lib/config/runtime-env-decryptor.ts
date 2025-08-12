@@ -178,7 +178,7 @@ export function getDecryptedEnvVar(varName: string): string | null {
   try {
     // 이미 환경변수가 설정되어 있으면 그것을 사용
     if (process.env[varName]) {
-      return process.env[varName]!;
+      return process.env[varName];
     }
 
     // 캐시된 결과가 있으면 반환

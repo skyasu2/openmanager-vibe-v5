@@ -382,7 +382,7 @@ export const GoogleAIStatusCard: React.FC<GoogleAIStatusCardProps> = ({
                   <div className='text-sm text-gray-600 mb-2'>활성 기능:</div>
                   <div className='flex flex-wrap gap-1'>
                     {(
-                      Object.entries(status.features) as [string, boolean][]
+                      Object.entries(status.features)
                     ).map(
                       ([feature, enabled]) =>
                         enabled && (

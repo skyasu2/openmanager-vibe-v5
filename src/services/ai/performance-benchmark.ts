@@ -358,7 +358,7 @@ export class AIPerformanceBenchmark {
     benchmarkDuration: number,
     config: BenchmarkConfig
   ): BenchmarkReport {
-    const baselineEngine = engineResults.find(e => e.engineName === 'simplified')!;
+    const baselineEngine = engineResults.find(e => e.engineName === 'simplified');
     const bestEngine = engineResults.reduce((best, current) => 
       current.averageResponseTime < best.averageResponseTime ? current : best
     );

@@ -648,7 +648,7 @@ export class CloudVersionManager {
           'timestamp' in item &&
           typeof item.change_type === 'string' &&
           typeof item.timestamp === 'string' &&
-          ['MAJOR', 'MINOR', 'PATCH', 'HOTFIX'].includes(item.change_type as string)
+          ['MAJOR', 'MINOR', 'PATCH', 'HOTFIX'].includes(item.change_type)
         ) {
           rows.push(item as {
             change_type: 'MAJOR' | 'MINOR' | 'PATCH' | 'HOTFIX';
@@ -784,7 +784,7 @@ export class CloudVersionManager {
       typeof row.id === 'string' &&
       typeof row.version === 'string' &&
       typeof row.change_type === 'string' &&
-      ['MAJOR', 'MINOR', 'PATCH', 'HOTFIX'].includes(row.change_type as string) &&
+      ['MAJOR', 'MINOR', 'PATCH', 'HOTFIX'].includes(row.change_type) &&
       typeof row.timestamp === 'string' &&
       typeof row.author === 'string' &&
       typeof row.description === 'string' &&

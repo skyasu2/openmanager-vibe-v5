@@ -147,7 +147,7 @@ npm run build
 
 1. **개발 환경 검증**
    - Node.js v22.15.1 사용 확인
-   - WSL Ubuntu 환경 확인
+   - Windows 11 + PowerShell/Git Bash 환경 확인
    - Python 3.11 (GCP Functions) 확인
 
 2. **무료 티어 한계 준수**

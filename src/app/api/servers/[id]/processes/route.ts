@@ -27,7 +27,7 @@ function generateMockProcesses(serverId: string): ServerProcess[] {
     name,
     cpu: (Math.random() * 50).toFixed(1),
     memory: (Math.random() * 20).toFixed(1),
-    status: (Math.random() > 0.1 ? 'running' : 'stopped') as 'running' | 'stopped',
+    status: (Math.random() > 0.1 ? 'running' : 'stopped'),
     uptime: Math.floor(Math.random() * 86400),
     user: 'root',
   }));

@@ -212,7 +212,7 @@ export class OptimizedSSEManager {
     if (!this.eventListeners.has(eventType)) {
       this.eventListeners.set(eventType, []);
     }
-    this.eventListeners.get(eventType)!.push(listener as EventListener);
+    this.eventListeners.get(eventType).push(listener as EventListener);
   }
 
   /**
@@ -298,7 +298,7 @@ export class OptimizedSSEManager {
     if (!this.eventListeners.has(connection.channel)) {
       this.eventListeners.set(connection.channel, []);
     }
-    const channelListeners = this.eventListeners.get(connection.channel)!;
+    const channelListeners = this.eventListeners.get(connection.channel);
     channelListeners.push(onOpen, onMessage, onError);
   }
 

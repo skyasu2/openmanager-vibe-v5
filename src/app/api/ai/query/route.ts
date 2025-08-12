@@ -129,7 +129,7 @@ async function postHandler(request: NextRequest) {
 
     // 캐시 키 생성 및 캐시 확인
     const cacheKey = generateCacheKey(query, context);
-    const cachedResponse = getCachedData(cacheKey) as QueryResponse | null;
+    const cachedResponse = getCachedData(cacheKey);
 
     let result: QueryResponse;
     let cacheHit = false;

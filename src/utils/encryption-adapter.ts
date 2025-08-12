@@ -133,7 +133,7 @@ export function safeAdaptToEncryptedEnvData(
 ): EncryptedEnvData {
   // 이미 완전한 EncryptedEnvData 형식인지 확인
   if (isCompleteEncryptedEnvData(envVar)) {
-    return envVar as EncryptedEnvData;
+    return envVar;
   }
 
   // 불완전한 형식이면 어댑터를 통해 변환

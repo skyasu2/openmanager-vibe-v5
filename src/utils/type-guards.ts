@@ -14,7 +14,7 @@ export function getErrorMessage(error: unknown): string {
     return error;
   }
   if (error && typeof error === 'object' && 'message' in error) {
-    return String(error.message);
+    return String((error as { message: unknown }).message);
   }
   return '알 수 없는 오류가 발생했습니다';
 }
@@ -63,7 +63,7 @@ export function isObject(value: unknown): value is Record<string, unknown> {
 /**
  * 함수인지 확인하는 타입 가드
  */
-export function isFunction(value: unknown): value is Function {
+export function isFunction(value: unknown): value is (...args: any[]) => any {
   return typeof value === 'function';
 }
 
@@ -98,7 +98,7 @@ import type {
 export function isServerInstance(value: unknown): value is ServerInstance {
   if (!isObject(value)) return false;
 
-  const server = value as Record<string, unknown>;
+  const server = value;
 
   return (
     isString(server.id) &&
@@ -117,7 +117,7 @@ export function isServerInstance(value: unknown): value is ServerInstance {
 export function isServerMetrics(value: unknown): value is ServerMetrics {
   if (!isObject(value)) return false;
 
-  const metrics = value as Record<string, unknown>;
+  const metrics = value;
 
   return (
     isNumber(metrics.cpu) &&
@@ -154,7 +154,7 @@ export function isValidServerStatus(value: unknown): value is ServerStatus {
 export function isServerAlert(value: unknown): value is ServerAlert {
   if (!isObject(value)) return false;
 
-  const alert = value as Record<string, unknown>;
+  const alert = value;
 
   return (
     isString(alert.id) &&

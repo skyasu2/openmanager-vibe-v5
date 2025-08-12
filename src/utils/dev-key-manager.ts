@@ -119,7 +119,7 @@ export class DevKeyManager {
         : false;
 
       let status: 'active' | 'missing' | 'invalid' = 'missing';
-      let source: 'env' | 'default' | 'encrypted' = 'env';
+      const source: 'env' | 'default' | 'encrypted' = 'env';
 
       if (value) {
         if (isValid) {

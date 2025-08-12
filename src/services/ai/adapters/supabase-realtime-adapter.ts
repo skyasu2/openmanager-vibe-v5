@@ -153,7 +153,7 @@ export class SupabaseRealtimeAdapter {
     try {
       // 기존 채널이 있으면 재사용
       if (this.channels.has(sessionId)) {
-        const existingChannel = this.channels.get(sessionId)!;
+        const existingChannel = this.channels.get(sessionId);
         existingChannel.unsubscribe();
       }
 

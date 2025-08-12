@@ -27,62 +27,62 @@ import type {
 export const BarChart = dynamic(
   () => import('recharts').then((mod) => mod.BarChart as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof BarChartType>>;
+);
 
 export const LineChart = dynamic(
   () => import('recharts').then((mod) => mod.LineChart as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof LineChartType>>;
+);
 
 export const PieChart = dynamic(
   () => import('recharts').then((mod) => mod.PieChart as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof PieChartType>>;
+);
 
 export const ResponsiveContainer = dynamic(
   () => import('recharts').then((mod) => mod.ResponsiveContainer as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof ResponsiveContainerType>>;
+);
 
 export const XAxis = dynamic(
   () => import('recharts').then((mod) => mod.XAxis as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof XAxisType>>;
+);
 
 export const YAxis = dynamic(
   () => import('recharts').then((mod) => mod.YAxis as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof YAxisType>>;
+);
 
 export const CartesianGrid = dynamic(
   () => import('recharts').then((mod) => mod.CartesianGrid as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof CartesianGridType>>;
+);
 
 export const Tooltip = dynamic(
   () => import('recharts').then((mod) => mod.Tooltip as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof TooltipType>>;
+);
 
 export const Bar = dynamic(
   () => import('recharts').then((mod) => mod.Bar as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof BarType>>;
+);
 
 export const Line = dynamic(
   () => import('recharts').then((mod) => mod.Line as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof LineType>>;
+);
 
 export const Cell = dynamic(
   () => import('recharts').then((mod) => mod.Cell as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof CellType>>;
+);
 
 export const Pie = dynamic(
   () => import('recharts').then((mod) => mod.Pie as any),
   { ssr: false }
-) as React.ComponentType<React.ComponentProps<typeof PieType>>;
+);
 
 // Custom tooltip component for better styling
 export interface CustomTooltipProps {

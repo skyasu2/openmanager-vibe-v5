@@ -201,7 +201,7 @@ export class VMBackendConnector {
           reject(new Error('Connection timeout'));
         }, 10000);
 
-        this.socket!.on('connect', () => {
+        this.socket.on('connect', () => {
           clearTimeout(timeout);
           this.isConnecting = false;
           this.connectionAttempts = 0;
@@ -211,7 +211,7 @@ export class VMBackendConnector {
           resolve(true);
         });
 
-        this.socket!.on('connect_error', (error) => {
+        this.socket.on('connect_error', (error) => {
           clearTimeout(timeout);
           this.isConnecting = false;
           this.connectionAttempts++;
@@ -435,7 +435,7 @@ export class VMBackendConnector {
     }
 
     try {
-      this.socket!.emit('ai:stream:start', data);
+      this.socket.emit('ai:stream:start', data);
       return true;
     } catch (error) {
       console.error('❌ Failed to start AI stream:', error);
@@ -493,7 +493,7 @@ export class VMBackendConnector {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
-    this.listeners.get(event)!.add(callback);
+    this.listeners.get(event).add(callback);
   }
 
   /**

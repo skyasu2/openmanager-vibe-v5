@@ -53,7 +53,7 @@ export function analyzeTechStack(technologies: string[]): TechCategory[] {
     if (!categoryMap.has(mainCategory)) {
       categoryMap.set(mainCategory, []);
     }
-    categoryMap.get(mainCategory)!.push(techItem);
+    categoryMap.get(mainCategory).push(techItem);
   });
 
   // 카테고리별로 정리하고 정렬

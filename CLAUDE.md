@@ -668,11 +668,12 @@ mcp__tavily-mcp__tavily-extract({
 | 플랫폼 전문 분석      | `vercel-platform-specialist` | Vercel 아키텍처, 성능 최적화                    |
 | MCP 관리              | `mcp-server-admin`           | MCP 에러 감지 및 자동 복구                      |
 | Gemini 개발 파트너    | `gemini-cli-collaborator`    | 전체 코드 생성/리팩토링, 1M 토큰 활용           |
+| Qwen 개발 파트너      | `qwen-cli-collaborator`      | 대규모 코드 생성/리팩토링, 256K-1M 토큰, 다국어 |
 | Git/CI/CD             | `git-cicd-specialist`        | Git 워크플로우, CI/CD 자동화                    |
 
 ### 📁 서브 에이전트 설정 위치
 
-- **프로젝트 로컬 설정**: `.claude/agents/` (17개 에이전트 .md 파일)
+- **프로젝트 로컬 설정**: `.claude/agents/` (18개 에이전트 .md 파일)
 - **MCP 서버 설정**: `~/.claude.json` (CLI로 관리)
 - **매핑 가이드**: `/docs/sub-agents-mcp-mapping-guide.md`
 - **종합 가이드**: `/docs/sub-agents-comprehensive-guide.md`
@@ -866,20 +867,21 @@ Error: File has not been read yet. Read it first before writing to it
 
 상세 설정: [`/docs/environment-variables-guide.md`](/docs/environment-variables-guide.md)
 
-## 💰 Claude + Gemini 2-way AI 협업 전략
+## 💰 Claude + Gemini + Qwen 3-way AI 협업 전략
 
-Claude Code가 메인 개발을 주도하고, 사용자 요청 시 Gemini를 병렬 활용하는 유연한 협업 체계:
+Claude Code가 메인 개발을 주도하고, 사용자 요청 시 Gemini/Qwen을 병렬 활용하는 유연한 협업 체계:
 
-| 작업 접근법     | Claude Code (메인)   | Gemini CLI (요청 시) |
-| -------------- | -------------------- | ------------------- |
-| **기본 전략**   | ✅ 모든 개발 주도     | 사용자 요청 시만     |
-| **활용 시점**   | 항상 활성화          | "Gemini로" 명시 시   |
-| **병렬 작업**   | 조율 및 통합 담당     | 독립적 기능 개발     |
-| **주요 역할**   | 프로젝트 전체 관리    | 완전한 개발 도구     |
-| **일반 개발**   | ✅ 모든 작업 가능     | ✅ 모든 작업 가능    |
-| **복잡한 작업** | ✅ 직접 처리 가능     | ✅ 병렬 개발 가능    |
-| **비용 효율**   | $200/월 (메인)       | $0 (무료, Google)    |
-| **토큰 제한**   | 5시간 블록           | 1000회/일, 60회/분   |
+| 작업 접근법     | Claude Code (메인)   | Gemini CLI (요청 시) | Qwen Code (요청 시)  |
+| -------------- | -------------------- | ------------------- | ------------------- |
+| **기본 전략**   | ✅ 모든 개발 주도     | 사용자 요청 시만     | 사용자 요청 시만     |
+| **활용 시점**   | 항상 활성화          | "Gemini로" 명시 시   | "Qwen으로" 명시 시   |
+| **병렬 작업**   | 조율 및 통합 담당     | 독립적 기능 개발     | 독립적 기능 개발     |
+| **주요 역할**   | 프로젝트 전체 관리    | 완전한 개발 도구     | 완전한 개발 도구     |
+| **일반 개발**   | ✅ 모든 작업 가능     | ✅ 모든 작업 가능    | ✅ 모든 작업 가능    |
+| **복잡한 작업** | ✅ 직접 처리 가능     | ✅ 병렬 개발 가능    | ✅ 병렬 개발 가능    |
+| **비용 효율**   | $200/월 (메인)       | $0 (무료, Google)    | $0 (오픈소스)       |
+| **토큰 제한**   | 5시간 블록           | 1000회/일, 60회/분   | 256K-1M 토큰        |
+| **특화 영역**   | 범용 개발            | 대규모 분석         | 다국어 코드베이스    |
 
 ### 🤖 AI 도구 활용 방법 (서브 에이전트 통한 체계적 활용)
 
@@ -919,14 +921,18 @@ Promise.all([
 # 사용자: "Gemini로 전체 코드베이스 리팩토링 해줘"
 # → gemini-cli-collaborator 서브 에이전트가 처리
 
-# 사용자: "2개 AI 모두 활용해서 성능 개선해줘"
-# → Claude와 Gemini 병렬 실행
+# 사용자: "Qwen으로 중국어 주석을 영어로 변환해줘"
+# → qwen-cli-collaborator 서브 에이전트가 처리
+
+# 사용자: "3개 AI 모두 활용해서 성능 개선해줘"
+# → Claude, Gemini, Qwen 병렬 실행
 ```
 
 ### 💡 AI 도구 활용 원칙
 
 - **Claude Code**: 모든 개발의 메인 도구, 항상 활성화, 프로젝트 전체 관리
 - **Gemini CLI**: 사용자가 "Gemini로" 명시적 요청 시만 활용 (완전한 개발 도구)
+- **Qwen Code**: 사용자가 "Qwen으로" 명시적 요청 시만 활용 (다국어 특화 개발 도구)
 
 ### 📚 AI CLI 도구 상세 가이드
 
@@ -934,6 +940,13 @@ Promise.all([
 
 - **설치 및 설정**: `/docs/gemini-cli-setup-guide.md`
 - **무료 티어**: 1,000회/일, 60회/분 (Gemini 2.5 Pro)
+
+#### Qwen Code CLI
+
+- **설치**: `npm install -g @qwen-code/qwen-code`
+- **모델**: Qwen3-Coder (480B MoE, 35B active)
+- **컨텍스트**: 256K native, 1M extrapolated
+- **라이선스**: Apache 2.0 (오픈소스)
 
 ## 📚 추가 문서
 
@@ -968,6 +981,7 @@ Promise.all([
 - CI/CD 성능: **70% 속도 향상**, Push 성공률 99%, GitHub Actions 항상 성공
 - 무료 티어 사용률: Vercel 30%, GCP 15%, Supabase 3%
 - GCP Functions: 3개 배포 완료, Python 3.11 최적화
-- 서브에이전트: 17개 최적화 (gcp-vm-specialist, dev-environment-manager 추가)
+- 서브에이전트: 18개 최적화 (qwen-cli-collaborator 추가)
 - MCP 서버: **Claude Code용 11개 모두 정상 연결** ✅ (Serena 포함)
 - Gemini CLI 통합: 1M 토큰 활용 가능
+- Qwen Code CLI 통합: 256K-1M 토큰, 다국어 특화

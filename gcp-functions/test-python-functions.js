@@ -164,7 +164,7 @@ async function runTests(functionName, endpoint, testCases) {
   console.log(chalk.gray('━'.repeat(60)));
 
   let passedTests = 0;
-  let totalTests = testCases.length;
+  const totalTests = testCases.length;
 
   for (const testCase of testCases) {
     console.log(chalk.yellow(`\n🧪 ${testCase.name}`));

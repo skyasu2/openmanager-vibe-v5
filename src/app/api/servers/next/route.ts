@@ -35,8 +35,8 @@ import debug from '@/utils/debug';
  */
 
 // 순차 생성을 위한 상태 관리
-let _currentServerIndex = 0;
-let _isGeneratorInitialized = false;
+const _currentServerIndex = 0;
+const _isGeneratorInitialized = false;
 
 // Uptime 포맷 유틸리티 함수
 function _formatUptime(hours: number): string {
@@ -60,10 +60,10 @@ const __initializeGenerator = async () => {
 };
 
 // 간단한 서버 상태 관리 (실제로는 데이터베이스 사용)
-let _serverCount = 0;
-let _lastGeneratedTime = Date.now();
+const _serverCount = 0;
+const _lastGeneratedTime = Date.now();
 // 🚀 생성된 서버들을 메모리에 저장 (실제 환경에서는 데이터베이스 사용)
-let _generatedServers: ServerInfo[] = [];
+const _generatedServers: ServerInfo[] = [];
 
 interface ServerInfo {
   id: string;

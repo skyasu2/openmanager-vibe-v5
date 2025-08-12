@@ -39,7 +39,7 @@ async function testAIEnginePriority() {
     },
   ];
 
-  let results = [];
+  const results = [];
 
   for (const test of testQueries) {
     console.log(`📋 ${test.name}`);

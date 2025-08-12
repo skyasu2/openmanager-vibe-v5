@@ -199,7 +199,7 @@ export class AISessionStorage {
         return [];
       }
 
-      let query = this.supabase
+      const query = this.supabase
         .from(this.SUMMARY_TABLE)
         .select('*')
         .gt(

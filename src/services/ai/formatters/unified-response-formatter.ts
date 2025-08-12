@@ -126,7 +126,7 @@ export class UnifiedResponseFormatter {
     query: string,
     startTime: number
   ): UnifiedAIResponse {
-    const data = response.data!;
+    const data = response.data;
     const topResults = data.results.slice(0, 3);
     
     return {
@@ -173,7 +173,7 @@ export class UnifiedResponseFormatter {
     functionType: string,
     startTime: number
   ): UnifiedAIResponse {
-    const data = response.data!;
+    const data = response.data;
     
     return {
       id: response.id,

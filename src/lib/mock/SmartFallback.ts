@@ -73,7 +73,7 @@ export class SmartFallback {
       this.recordFallback(serviceName);
       
       if (onFallback) {
-        onFallback(lastError!);
+        onFallback(lastError);
       }
       
       try {

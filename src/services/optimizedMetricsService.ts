@@ -211,7 +211,7 @@ function aggregateMetricsData(
     if (!groups.has(groupKey)) {
       groups.set(groupKey, []);
     }
-    groups.get(groupKey)!.push(metric);
+    groups.get(groupKey).push(metric);
   });
 
   // 집계 계산

@@ -481,7 +481,7 @@ export async function withErrorRecovery<T>(
     attempts: number;
   } = {
     success: false,
-    error: lastError!,
+    error: lastError,
     attempts,
   };
 

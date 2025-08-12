@@ -69,7 +69,7 @@ class EmbeddingService {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-Goog-Api-Key': process.env.GOOGLE_AI_API_KEY!,
+            'X-Goog-Api-Key': process.env.GOOGLE_AI_API_KEY,
           },
           body: JSON.stringify({
             model: `models/${model}`,
@@ -149,7 +149,7 @@ class EmbeddingService {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'X-Goog-Api-Key': process.env.GOOGLE_AI_API_KEY!,
+              'X-Goog-Api-Key': process.env.GOOGLE_AI_API_KEY,
             },
             body: JSON.stringify({
               requests: toProcess.map(item => ({

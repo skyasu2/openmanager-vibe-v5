@@ -189,7 +189,7 @@ export class PriorityLoader {
     this.isLoading = true;
     
     while (this.loadQueue.length > 0) {
-      const { component, name } = this.loadQueue.shift()!;
+      const { component, name } = this.loadQueue.shift();
       
       try {
         console.log(`🚀 Loading component: ${name}`);

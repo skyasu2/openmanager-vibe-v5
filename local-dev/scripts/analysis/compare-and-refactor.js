@@ -164,7 +164,7 @@ function compareAndDecide(group) {
     const usage = countUsageInCodebase(group.name, group.files);
 
     let score = 0;
-    let reasons = [];
+    const reasons = [];
 
     // 사용 횟수 (가장 중요한 지표)
     if (usage.count > 0) {

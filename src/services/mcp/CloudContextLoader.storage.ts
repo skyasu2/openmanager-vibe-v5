@@ -69,7 +69,7 @@ export class ContextStorageManager {
       // 1. 메모리 캐시 확인
       if (this.contextCache.has(contextId)) {
         console.log(`✅ 메모리 캐시에서 컨텍스트 로드: ${contextId}`);
-        return this.contextCache.get(contextId)!;
+        return this.contextCache.get(contextId);
       }
 
       // 2. 메모리 캐시에서 조회

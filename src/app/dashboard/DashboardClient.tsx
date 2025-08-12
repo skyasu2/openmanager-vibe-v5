@@ -43,13 +43,13 @@ function convertServerToModalData(server: Server) {
       server.status === 'warning' ? 'warning' :
       server.status === 'offline' ? 'offline' :
       'healthy'
-    ) as 'healthy' | 'critical' | 'warning' | 'offline',
+    ),
     networkStatus: (
       server.status === 'online' || server.status === 'healthy' ? 'excellent' :
       server.status === 'warning' ? 'good' :
       server.status === 'critical' ? 'poor' :
       'offline'
-    ) as 'excellent' | 'good' | 'poor' | 'offline',
+    ),
   };
 }
 

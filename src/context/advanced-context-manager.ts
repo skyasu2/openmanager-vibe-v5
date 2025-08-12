@@ -739,7 +739,7 @@ export class AdvancedContextManager {
     const sortedResults = Array.from(scores.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, limit)
-      .map(([docId]) => contextCache.documents.get(docId)!)
+      .map(([docId]) => contextCache.documents.get(docId))
       .filter(doc => doc !== undefined);
 
     return sortedResults;

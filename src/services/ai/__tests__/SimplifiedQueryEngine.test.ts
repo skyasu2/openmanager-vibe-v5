@@ -850,7 +850,7 @@ describe('SimplifiedQueryEngine', () => {
       
       const stepsWithDuration = response.thinkingSteps.filter(s => s.duration);
       expect(stepsWithDuration.length).toBeGreaterThan(0);
-      expect(stepsWithDuration.every(s => s.duration! >= 0)).toBe(true);
+      expect(stepsWithDuration.every(s => s.duration >= 0)).toBe(true);
     }, TEST_TIMEOUT);
   });
 

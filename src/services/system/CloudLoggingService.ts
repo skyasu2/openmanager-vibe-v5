@@ -379,7 +379,7 @@ export class CloudLoggingService {
       const realtimeCount = streamInfo.length;
 
       // Supabase에서 히스토리 통계 (날짜별)
-      let supabaseStats = {
+      const supabaseStats = {
         totalLogs: 0,
         logLevels: {} as Record<string, number>,
         topModules: [] as Array<{ module: string; count: number }>,

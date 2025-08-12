@@ -47,7 +47,7 @@ export async function PATCH(
   return handleRequest(request, params, 'PATCH');
 }
 
-async function handleRequest(
+function handleRequest(
   request: NextRequest,
   params: { catchall: string[] },
   method: string

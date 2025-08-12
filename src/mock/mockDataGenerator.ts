@@ -276,7 +276,7 @@ export function calculateDataSize(data: MockServerData): {
     timeSeries: Object.entries(data.timeSeries).reduce(
       (acc, [key, value]) => {
         // TimeSeriesData[]에서 ScenarioPoint[]로 변환
-        const scenarioPoints: ScenarioPoint[] = (value.data as TimeSeriesData[]).map(item => item.metrics);
+        const scenarioPoints: ScenarioPoint[] = (value.data).map(item => item.metrics);
         const compressed = compressTimeSeriesData(scenarioPoints);
         
         acc[key] = {

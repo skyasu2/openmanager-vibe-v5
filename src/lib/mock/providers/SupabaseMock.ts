@@ -137,10 +137,10 @@ export class SupabaseMock extends MockBase {
         data.sort((a, b) => {
           const recordA = a as Record<string, any>;
           const recordB = b as Record<string, any>;
-          const aVal = recordA[builder.orderBy!.column];
-          const bVal = recordB[builder.orderBy!.column];
+          const aVal = recordA[builder.orderBy.column];
+          const bVal = recordB[builder.orderBy.column];
           const result = aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
-          return builder.orderBy!.ascending ? result : -result;
+          return builder.orderBy.ascending ? result : -result;
         });
       }
       

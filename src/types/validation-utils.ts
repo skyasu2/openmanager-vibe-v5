@@ -353,5 +353,5 @@ export function requireIf<T>(
   if (condition && value === undefined) {
     throw new Error(errorMessage);
   }
-  return value as T;
+  return value;
 }

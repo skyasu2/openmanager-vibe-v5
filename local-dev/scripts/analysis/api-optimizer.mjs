@@ -120,7 +120,7 @@ class APIOptimizer {
               /['"`]\/api\/[^'"`]*['"`]/g,
               /fetch\s*\(\s*['"`]\/api\/[^'"`]*['"`]/g,
               /axios\.[get|post|put|delete|patch]*\s*\(\s*['"`]\/api\/[^'"`]*['"`]/g,
-              /api\/[a-z-\/]+/g,
+              /api\/[a-z-/]+/g,
             ];
 
             patterns.forEach(pattern => {

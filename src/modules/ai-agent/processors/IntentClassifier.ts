@@ -287,7 +287,7 @@ export class IntentClassifier {
    */
   private calculatePatternScore(input: string, pattern: IntentPattern): number {
     let matchCount = 0;
-    let totalPatterns = pattern.patterns.length;
+    const totalPatterns = pattern.patterns.length;
     
     for (const regex of pattern.patterns) {
       if (regex.test(input)) {

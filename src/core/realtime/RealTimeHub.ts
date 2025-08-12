@@ -121,7 +121,7 @@ class RealTimeHub {
       this.groups.set(groupName, new Set());
     }
 
-    this.groups.get(groupName)!.add(connectionId);
+    this.groups.get(groupName).add(connectionId);
     connection.groups.add(groupName);
 
     this.updateGroupStats();
@@ -171,7 +171,7 @@ class RealTimeHub {
       targets.forEach(target => {
         // 그룹 대상
         if (this.groups.has(target)) {
-          const groupConnections = this.groups.get(target)!;
+          const groupConnections = this.groups.get(target);
           groupConnections.forEach(connectionId => {
             if (this.sendToConnection(connectionId, fullMessage)) {
               sentCount++;

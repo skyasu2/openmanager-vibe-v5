@@ -89,7 +89,7 @@ export default function AIEnginePanel({
       <div className="lg:col-span-2">
         {selectedEngine ? (
           <EngineDetails
-            engine={engines.find((e) => e.id === selectedEngine)!}
+            engine={engines.find((e) => e.id === selectedEngine)}
             onUpdateConfig={(config) => onUpdateConfig(selectedEngine, config)}
             onRestart={() => onRestartEngine(selectedEngine)}
           />

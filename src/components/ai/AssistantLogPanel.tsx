@@ -205,7 +205,7 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
         if (!groups.has(log.sessionId)) {
           groups.set(log.sessionId, []);
         }
-        groups.get(log.sessionId)!.push(log);
+        groups.get(log.sessionId).push(log);
       }
     });
 
@@ -539,7 +539,7 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
                       )}
                       {log.sessionId && (
                         <button
-                          onClick={() => viewSessionDetails(log.sessionId!)}
+                          onClick={() => viewSessionDetails(log.sessionId)}
                           className="text-xs text-purple-400 hover:text-purple-300"
                         >
                           세션: {log.sessionId}

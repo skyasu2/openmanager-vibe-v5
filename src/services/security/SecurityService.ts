@@ -184,7 +184,7 @@ export class SecurityService {
       return { allowed: false, reason: sessionValidation.reason };
     }
 
-    const session = sessionValidation.session!;
+    const session = sessionValidation.session;
 
     // 간단한 권한 확인
     if (session.permissions.includes('admin')) {

@@ -89,8 +89,8 @@ const parseSupabaseConfig = () => {
 
   // URL에서 호스트 정보 추출
   let host = 'aws-0-ap-southeast-1.pooler.supabase.com';
-  let port = 6543;
-  let database = 'postgres';
+  const port = 6543;
+  const database = 'postgres';
   let user = 'postgres.your_supabase_project_id_here';
 
   try {
@@ -139,10 +139,7 @@ const parseRedisConfig = () => {
 
 // 메인 설정 생성 함수
 const createConfig = (): EnvironmentConfig => {
-  const nodeEnv = (process.env.NODE_ENV || 'development') as
-    | 'development'
-    | 'production'
-    | 'test';
+  const nodeEnv = (process.env.NODE_ENV || 'development');
   const isProduction = nodeEnv === 'production';
   const isDevelopment = nodeEnv === 'development';
   const isVercel = process.env.VERCEL === '1';

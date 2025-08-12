@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-/* eslint-disable @typescript-eslint/no-require-imports */
+ 
 const crypto = require('crypto');
 const CryptoJS = require('crypto-js');
 const fs = require('fs');

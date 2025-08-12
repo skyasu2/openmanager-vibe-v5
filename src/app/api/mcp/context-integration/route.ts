@@ -90,7 +90,7 @@ const postHandler = createApiRoute()
               includeSystemContext,
               pathFilters,
             }
-          ) as MCPContext | null;
+          );
 
           if (mcpContext) {
             responseData.mcpContext = mcpContext;
@@ -122,7 +122,7 @@ const postHandler = createApiRoute()
               maxFiles: Math.ceil((maxFiles ?? 10) * 0.7), // 70% MCP
               includeSystemContext,
               pathFilters,
-            }) as MCPContext | null;
+            });
 
           // 로컬 컨텍스트 조회
           const hybridLocalContexts = await Promise.all([

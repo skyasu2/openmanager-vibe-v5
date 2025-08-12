@@ -9,7 +9,7 @@ export async function GET() {
     const cacheKey = 'servers:cached:all';
     
     // 캐시에서 데이터 시도
-    let cachedServers = getCachedData<EnhancedServerMetrics[]>(cacheKey);
+    const cachedServers = getCachedData<EnhancedServerMetrics[]>(cacheKey);
     
     if (cachedServers) {
       return NextResponse.json({

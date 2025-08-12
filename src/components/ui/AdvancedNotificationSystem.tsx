@@ -366,7 +366,7 @@ function NotificationItem({
             <button
               onClick={e => {
                 e.stopPropagation();
-                notification.action!.onClick();
+                notification.action.onClick();
                 handleDismiss();
               }}
               className='px-3 py-1.5 text-xs font-medium text-white rounded-lg bg-white/20 hover:bg-white/30 transition-colors'
