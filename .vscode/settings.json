@@ -135,7 +135,8 @@
   },
   "[typescriptreact]": {
     "editor.defaultFormatter": "vscode.typescript-language-features"
-  }
+  },
+  "kiroAgent.configureMCP": "Disabled"
 
   // 🔍 ESLint 디버깅 (필요시 활성화)
   // "eslint.debug": true,

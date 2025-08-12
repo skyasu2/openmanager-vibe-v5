@@ -1,7 +1,7 @@
 # AI CLI 협업 전략 가이드
 
 📅 **작성일**: 2025년 8월 12일  
-🎯 **목적**: Gemini/Codex CLI를 서브 에이전트를 통한 체계적 활용
+🎯 **목적**: Gemini CLI를 서브 에이전트를 통한 체계적 활용
 
 ## 🔄 협업 트리거 조건
 
@@ -27,12 +27,6 @@ if (needsSecondOpinion(implementation)) {
     prompt: `다음 구현을 검토하고 개선점 제안: ${implementation}`
   });
   
-  // Codex로 알고리즘 검증
-  await Task({
-    subagent_type: 'codex-cli-partner',
-    description: '알고리즘 최적화',
-    prompt: `알고리즘 복잡도 분석 및 최적화 제안`
-  });
 }
 ```
 
@@ -57,12 +51,6 @@ await Promise.all([
     prompt: 'gemini로 관련 API 엔드포인트 및 테스트 개발'
   }),
   
-  // Codex: 다른 모듈 독립 개발
-  Task({
-    subagent_type: 'codex-cli-partner',
-    description: '모듈 개발',
-    prompt: 'codex로 인증 미들웨어 및 보안 레이어 구현'
-  })
 ]);
 ```
 
@@ -70,8 +58,7 @@ await Promise.all([
 
 #### 명시적 요청 키워드
 - "Gemini로 분석해줘"
-- "Codex로 최적화해줘"
-- "3개 AI 모두 활용해서"
+- "2개 AI 모두 활용해서"
 
 #### 활용 패턴
 ```typescript
@@ -82,12 +69,6 @@ await Task({
   prompt: 'gemini "전체 코드베이스에서 중복 패턴 찾고 제거 방안 제시"'
 });
 
-// 사용자: "Codex로 이 정렬 알고리즘 최적화해줘"
-await Task({
-  subagent_type: 'codex-cli-partner',
-  description: '알고리즘 최적화',
-  prompt: 'codex "정렬 알고리즘을 O(n log n)으로 최적화"'
-});
 ```
 
 ## 📋 서브 에이전트 활용 매트릭스
@@ -95,9 +76,7 @@ await Task({
 | 상황 | 서브 에이전트 | CLI 명령 | 주요 역할 |
 |-----|--------------|---------|---------|
 | **제3자 검증** | gemini-cli-collaborator | `gemini` | 완전한 개발 도구로서 검증 |
-| **제3자 검증** | codex-cli-partner | `codex` | 완전한 개발 도구로서 검증 |
 | **병렬 개발** | gemini-cli-collaborator | `gemini` | 독립적 기능 구현 |
-| **병렬 개발** | codex-cli-partner | `codex` | 독립적 기능 구현 |
 | **직접 요청** | 해당 서브 에이전트 | 명시된 CLI | 요청된 모든 작업 |
 
 ## 🎯 서브 에이전트 정의
@@ -116,19 +95,6 @@ capabilities:
   - 제3자 관점 전체 검증
 ```
 
-### codex-cli-partner  
-```yaml
-name: codex-cli-partner
-description: Codex CLI를 활용한 완전한 AI 개발 도구
-tools: Bash, Read, Write, Edit, mcp__memory__*, mcp__sequential-thinking__*
-capabilities:
-  - 완전한 기능 구현 및 개발
-  - GPT-5 추론으로 복잡한 문제 해결
-  - 독립적인 모듈/서비스 개발
-  - 시스템 설계 및 아키텍처 구현
-  - 알고리즘 최적화 및 성능 개선
-  - 제3자 관점 전체 검증
-```
 
 ## 🔄 협업 워크플로우
 
@@ -154,9 +120,6 @@ function selectSubAgents(task: Task): SubAgent[] {
     agents.push('gemini-cli-collaborator');
   }
   
-  if (task.hasComplexAlgorithm || task.performanceIssue) {
-    agents.push('codex-cli-partner');
-  }
   
   return agents;
 }
@@ -186,13 +149,11 @@ async function executeParallel(agents: SubAgent[], task: Task) {
 2. **병렬 실행**:
    - **Claude**: 프론트엔드 컴포넌트 개발
    - **Gemini** (서브 에이전트): 백엔드 API 개발
-   - **Codex** (서브 에이전트): 데이터베이스 레이어 개발
 3. **Claude**: 통합 및 테스트
 
 ### 시나리오 2: 복잡한 시스템 구현
 1. **Claude**: 시스템 아키텍처 설계
 2. **병렬 실행**:
-   - **Codex** (서브 에이전트): 핵심 비즈니스 로직 구현
    - **Gemini** (서브 에이전트): 인프라 및 배포 설정
 3. **Claude**: 시스템 통합 및 검증
 
@@ -201,7 +162,6 @@ async function executeParallel(agents: SubAgent[], task: Task) {
 2. **병렬 실행**:
    - **Claude**: 메인 애플리케이션 개발
    - **Gemini** (서브 에이전트): 마이크로서비스 A 개발
-   - **Codex** (서브 에이전트): 마이크로서비스 B 개발
 3. **Claude**: 서비스 통합 및 E2E 테스트
 
 ## 💡 베스트 프랙티스
@@ -236,7 +196,6 @@ collaboration_metrics:
 ```bash
 # 일일 사용량 체크
 gemini /stats     # Gemini: 1000회/일 중 사용량
-codex --usage     # Codex: 3시간 윈도우 확인
 ```
 
 ## 🎯 결론

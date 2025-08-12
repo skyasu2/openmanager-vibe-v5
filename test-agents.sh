@@ -10,7 +10,6 @@ agents=(
   "ai-systems-engineer"
   "central-supervisor"
   "code-review-specialist"
-  "codex-cli-partner"
   "database-administrator"
   "debugger-specialist"
   "dev-environment-manager"
@@ -46,14 +45,9 @@ done
 echo "=== 문제점 분석 ==="
 echo ""
 
-# codex-cli-partner 모델 확인
-echo "1. codex-cli-partner 모델 버전:"
-echo "✅ GPT-5 사용 확인됨 (정상)"
-grep -n "GPT-5" "$AGENT_DIR/codex-cli-partner.md" | head -1 | sed 's/^/  /'
-echo ""
 
 # 중복 역할 확인
 echo "2. 역할 중복 체크:"
 echo "- 코드 품질 그룹: code-review-specialist, quality-control-checker, structure-refactor-agent"
 echo "- 개발 환경 그룹: dev-environment-manager, gcp-vm-specialist"
-echo "- AI 개발 그룹: ai-systems-engineer, gemini-cli-collaborator, codex-cli-partner"
+echo "- AI 개발 그룹: ai-systems-engineer, gemini-cli-collaborator"

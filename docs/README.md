@@ -60,6 +60,7 @@
 
 | 문서                                                        | 설명                 |
 | ----------------------------------------------------------- | -------------------- |
+| **[서브 에이전트 종합 가이드](./sub-agents-comprehensive-guide.md)** | 전체 에이전트/패턴 종합 |
 | **[MCP 베스트 프랙티스](./mcp-best-practices-guide.md)**    | MCP 서버 활용법      |
 | **[서브 에이전트 매핑](./sub-agents-mcp-mapping-guide.md)** | 서브 에이전트 가이드 |
 | **[시스템 아키텍처](./system-architecture.md)**             | 전체 구조 설명       |

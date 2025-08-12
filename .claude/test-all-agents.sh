@@ -265,7 +265,6 @@ SPECIALIZED_AGENTS=(
     "vercel-platform-specialist"
     "dev-environment-manager"
     "gemini-cli-collaborator"
-    "codex-cli-partner"
 )
 
 for agent in "${SPECIALIZED_AGENTS[@]}"; do
