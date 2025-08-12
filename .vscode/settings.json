@@ -94,7 +94,7 @@
   },
   // 📊 Git 성능 최적화
   "git.ignoreLimitWarning": true,
-  "git.autorefresh": false,
+  "git.autorefresh": true,
   "git.detectSubmodules": false,
   "git.countBadge": "tracked",
   "files.autoSave": "onFocusChange",

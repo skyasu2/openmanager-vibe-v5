@@ -4,7 +4,7 @@
 echo "🔍 환경변수 확인 중..."
 
 # .env.local 파일 경로
-ENV_FILE="/mnt/d/cursor/openmanager-vibe-v5/.env.local"
+ENV_FILE="$(pwd)/.env.local"
 
 if [ -f "$ENV_FILE" ]; then
     echo "✅ .env.local 파일 발견"

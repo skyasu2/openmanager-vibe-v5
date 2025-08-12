@@ -932,7 +932,7 @@ Promise.all([
 
 #### Gemini CLI
 
-- **설치 및 설정**: `/docs/gemini-cli-wsl-setup-guide.md`
+- **설치 및 설정**: `/docs/gemini-cli-setup-guide.md`
 - **무료 티어**: 1,000회/일, 60회/분 (Gemini 2.5 Pro)
 
 ## 📚 추가 문서

@@ -22,7 +22,7 @@ export GITHUB_TOKEN="ghp_your_actual_github_personal_access_token"
 export TAVILY_API_KEY="tvly_your_tavily_api_key"
 
 # 프로젝트 .env.local에서 자동 로드
-source /mnt/d/cursor/openmanager-vibe-v5/scripts/mcp/setup-env.sh
+source scripts/mcp/setup-env.sh
 ```
 
 ### 2. MCP 서버 재설정 (CLI 명령어)

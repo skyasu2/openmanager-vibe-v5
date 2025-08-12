@@ -5,7 +5,7 @@ echo "🔍 MCP 서버 상태 확인 중..."
 echo "================================"
 
 # 환경변수 파일 경로
-ENV_FILE="/mnt/d/cursor/openmanager-vibe-v5/.env.local"
+ENV_FILE="$(pwd)/.env.local"
 
 # 1. 환경변수 확인
 echo ""
@@ -65,7 +65,7 @@ echo "🔌 MCP 서버 연결 테스트:"
 echo "--------------------------------"
 
 # MCP 설정 파일 확인
-MCP_CONFIG="/mnt/d/cursor/openmanager-vibe-v5/.claude/mcp.json"
+MCP_CONFIG="$(pwd)/.claude/mcp.json"
 if [ -f "$MCP_CONFIG" ]; then
     echo "✅ MCP 설정 파일 존재"
     

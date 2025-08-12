@@ -9,7 +9,7 @@
 ### 이전 상태 (레거시)
 
 - **설정 방식**: `.claude/mcp.json` 파일 기반
-- **설정 파일**: `/mnt/d/cursor/openmanager-vibe-v5/.claude/mcp.json.legacy`
+- **설정 파일**: `D:\cursor\openmanager-vibe-v5\.claude\mcp.json.legacy`
 - **백업 위치**: `.claude/legacy-mcp-backup/`
 
 ### 현재 상태 (CLI 기반)
@@ -39,7 +39,7 @@
 
 ```bash
 # 1. filesystem
-claude mcp add filesystem npx -- -y @modelcontextprotocol/server-filesystem@latest /mnt/d/cursor/openmanager-vibe-v5
+claude mcp add filesystem npx -- -y @modelcontextprotocol/server-filesystem@latest D:\cursor\openmanager-vibe-v5
 
 # 2. github
 claude mcp add github npx -- -y @modelcontextprotocol/server-github@latest
@@ -66,7 +66,7 @@ claude mcp add context7 npx -- -y @upstash/context7-mcp@latest
 claude mcp add time uvx -- mcp-server-time
 
 # 10. serena (Python)
-claude mcp add serena uvx -- --from git+https://github.com/oraios/serena serena-mcp-server --context ide-assistant --project /mnt/d/cursor/openmanager-vibe-v5
+claude mcp add serena uvx -- --from git+https://github.com/oraios/serena serena-mcp-server --context ide-assistant --project D:\cursor\openmanager-vibe-v5
 
 # API 재시작
 claude api restart

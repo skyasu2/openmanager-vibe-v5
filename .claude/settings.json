@@ -21,7 +21,6 @@
       "Bash(yarn install:*)",
       "Bash(pnpm install:*)",
       "Bash(mount)",
-      "Bash(wsl.exe:*)",
       "Bash(time touch:*)",
       "Bash(git config:*)",
       "Bash(sudo rm:*)",

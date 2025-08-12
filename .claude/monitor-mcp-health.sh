@@ -31,7 +31,7 @@ check_health() {
 # 1. Filesystem MCP 테스트
 echo ""
 echo "📁 Filesystem MCP 테스트..."
-if [ -d "/mnt/d/cursor/openmanager-vibe-v5" ]; then
+if [ -d "$(pwd)" ]; then
     check_health "filesystem" "pass" "프로젝트 디렉토리 접근 가능"
 else
     check_health "filesystem" "fail" "프로젝트 디렉토리 접근 불가"
@@ -149,7 +149,7 @@ echo "=============================="
 echo "✅ 헬스 체크 완료"
 
 # 로그 파일에 결과 저장 (선택적)
-LOG_FILE="/mnt/d/cursor/openmanager-vibe-v5/.claude/mcp-health.log"
+LOG_FILE="$(pwd)/.claude/mcp-health.log"
 {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] MCP Health Check"
     echo "Health Score: ${health_score}%"
