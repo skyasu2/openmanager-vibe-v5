@@ -518,7 +518,7 @@ const timeInfo = await mcp__time__get_current_time({
 | `memory` | 지식 그래프 관리 | Node.js |
 | `github` | GitHub 저장소 관리 | Node.js |
 | `supabase` | PostgreSQL 데이터베이스 ✅ **공식 버전** | Node.js |
-| `tavily-remote` | 웹 검색 및 콘텐츠 추출 | Remote |
+| `tavily-mcp` | 고급 웹 검색, 크롤링, 콘텐츠 추출 ✨ | Remote |
 | `sequential-thinking` | 복잡한 문제 해결 | Node.js |
 | `playwright` | 브라우저 자동화 | Node.js |
 | `time` | 시간/시간대 변환 | Python |
@@ -544,10 +544,12 @@ claude api restart
 
 **통합 MCP 개발 가이드**: [`/docs/mcp-development-guide-2025.md`](/docs/mcp-development-guide-2025.md)
 **Serena MCP 설정 가이드**: [`/docs/serena-mcp-setup-guide-2025.md`](/docs/serena-mcp-setup-guide-2025.md) ✨ NEW
+**Tavily MCP 고급 활용 가이드**: [`/docs/tavily-mcp-advanced-guide.md`](/docs/tavily-mcp-advanced-guide.md) ✨ NEW
 
 이 문서에서 다루는 내용:
 - 11개 MCP 서버별 상세 설치 및 사용법
 - Serena MCP 고급 활용법 (코드 분석, 심볼 검색, 리팩토링)
+- Tavily MCP 고급 기능 (시간/도메인 필터, 크롤링, 사이트 매핑)
 - 환경변수 관리 및 보안
 - 문제 해결 가이드
 - Best Practices 및 성능 최적화
@@ -557,6 +559,46 @@ claude api restart
 - **CLI 기반 관리**: v1.16.0부터 `claude mcp` 명령어로 통합 관리
 - **프로젝트별 독립 설정**: 각 프로젝트마다 독립적인 MCP 구성
 - **다양한 통합**: 파일 시스템, DB, 웹 검색, 브라우저 자동화, AI 분석 등
+
+## 🌐 Tavily MCP - 고급 웹 인텔리전스
+
+**✅ 상태**: 모든 기능 정상 작동 (2025.8.12 검증)
+
+### 왜 Tavily MCP인가?
+
+WebSearch를 넘어서는 **강력한 웹 연구 도구**:
+- **시간 필터링**: day/week/month/year로 최신 정보만 추출
+- **도메인 필터링**: 신뢰할 수 있는 소스만 선택적 검색
+- **웹 크롤링**: 체계적인 사이트 전체 분석
+- **콘텐츠 추출**: 깔끔한 마크다운 변환
+- **사이트 매핑**: URL 구조 완벽 파악
+
+### 핵심 기능 예시
+
+```typescript
+// 최신 기술 트렌드 (1주일 이내)
+mcp__tavily-mcp__tavily-search({
+  query: "Next.js 15 new features",
+  time_range: "week",
+  search_depth: "advanced"
+});
+
+// 문서 사이트 전체 크롤링
+mcp__tavily-mcp__tavily-crawl({
+  url: "https://docs.example.com",
+  max_depth: 3,
+  categories: ["Documentation", "API"]
+});
+
+// 여러 URL에서 콘텐츠 추출
+mcp__tavily-mcp__tavily-extract({
+  urls: ["url1", "url2"],
+  format: "markdown",
+  extract_depth: "advanced"
+});
+```
+
+📚 **상세 가이드**: [`/docs/tavily-mcp-advanced-guide.md`](/docs/tavily-mcp-advanced-guide.md)
 
 ## 🤖 유용한 Sub Agents - 프로젝트 로컬 설정
 

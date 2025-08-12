@@ -1,11 +1,20 @@
-# Tavily Remote MCP 문제 해결 가이드
+# Tavily MCP 문제 해결 가이드
 
-> **📍 업데이트**: 이제 `tavily-remote` 서버를 사용합니다 (2025.8.2 기준)
+> **✅ 상태**: 모든 기능 정상 작동 중 (2025.8.12 검증)  
+> **📚 고급 활용법**: [Tavily MCP 고급 활용 가이드](./tavily-mcp-advanced-guide.md) 참조
 
-## 🚨 문제 현상
+## ✅ 현재 상태 (2025.8.12)
+
+모든 Tavily MCP 기능이 정상 작동 중입니다:
+- ✅ **tavily-search**: 고급 웹 검색 (시간/도메인 필터링)
+- ✅ **tavily-crawl**: 체계적 웹 크롤링
+- ✅ **tavily-extract**: 콘텐츠 추출 (마크다운 변환)
+- ✅ **tavily-map**: 사이트 구조 매핑
+
+## 🚨 일반적인 문제 현상
 
 - **에러**: `MCP error -32603: Invalid API key`
-- **발생 시점**: tavily-remote 도구 사용 시
+- **발생 시점**: tavily MCP 도구 사용 시
 
 ## 🔍 원인 분석
 
@@ -77,8 +86,15 @@ claude mcp add tavily-remote npx -- -y mcp-remote https://mcp.tavily.com/mcp/?ta
 # MCP 서버 상태 확인
 claude mcp list
 
-# 또는 Claude에서 직접 테스트
-mcp__tavily-remote__tavily_search({ query: "test search" })
+# 기본 검색 테스트
+mcp__tavily-mcp__tavily-search({ query: "test search" })
+
+# 고급 기능 테스트
+mcp__tavily-mcp__tavily-search({ 
+  query: "Next.js", 
+  time_range: "week",
+  max_results: 3 
+})
 ```
 
 ## 🛠️ 추가 트러블슈팅
@@ -114,7 +130,8 @@ WebSearch({ query: '검색어' });
 
 ## 🔗 관련 링크
 
+- 📚 **[Tavily MCP 고급 활용 가이드](./tavily-mcp-advanced-guide.md)** - 실전 활용법과 고급 기능
 - [Tavily 공식 문서](https://docs.tavily.com)
 - [Tavily Remote MCP](https://mcp.tavily.com)
 - [Claude MCP 문서](https://docs.anthropic.com/en/docs/claude-code/mcp)
-- [MCP Remote 패키지](https://www.npmjs.com/package/mcp-remote)
+- [MCP 개발 가이드](./mcp-development-guide-2025.md)
