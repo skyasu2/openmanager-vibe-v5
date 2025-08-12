@@ -192,7 +192,7 @@ npm run security:audit
 3. **코드 재사용**: 기존 코드 검색 후 작성 (`@codebase` 활용)
 4. **커밋**: 매 커밋마다 CHANGELOG.md 업데이트
 5. **문서**: 루트에는 핵심 문서 6개만 유지
-   - README.md, CHANGELOG.md, CHANGELOG-LEGACY.md, CLAUDE.md, GEMINI.md, AGENTS.md
+   - README.md, CHANGELOG.md, CHANGELOG-LEGACY.md, CLAUDE.md, GEMINI.md, QWEN.md
    - 기타 문서는 종류별로 분류: `docs/`, `reports/`
 6. **사고 모드**: "think hard" 항상 활성화
 7. **SOLID 원칙**: 모든 코드에 적용
@@ -648,11 +648,11 @@ mcp__tavily-mcp__tavily-extract({
 
 ## 🤖 유용한 Sub Agents - 프로젝트 로컬 설정
 
-복잡한 작업 시 Task 도구로 서브 에이전트 활용:
+**계층 구조**: Claude Code → central-supervisor → 전문 에이전트들
 
 | 작업 유형             | 추천 Agent                   | 용도                                            |
 | --------------------- | ---------------------------- | ----------------------------------------------- |
-| 복잡한 작업           | `central-supervisor`         | 마스터 오케스트레이터                           |
+| 복잡한 작업 조율      | `central-supervisor`         | Claude Code의 지시를 받는 서브 오케스트레이터   |
 | 코드 로직 품질        | `code-review-specialist`     | 함수 복잡도, 버그 패턴, 성능 이슈               |
 | 프로젝트 규칙         | `quality-control-checker`    | CLAUDE.md 준수, 파일 크기, SOLID                |
 | 구조 설계             | `structure-refactor-agent`   | 중복 검출, 모듈 구조, 리팩토링                  |
@@ -707,20 +707,23 @@ mcp__tavily-mcp__tavily-extract({
 - **quality-control-checker**: 프로젝트 규칙 감시 - CLAUDE.md 준수, 파일 크기(500-1500줄), SOLID 원칙, 보안 정책
 - **structure-refactor-agent**: 구조 설계 전문 - 중복 코드 검출/통합, 모듈 의존성, 안전한 리팩토링
 
-#### 기타 전문가 그룹
+#### 조율 에이전트
 
-- **central-supervisor**: 오케스트레이션만 - 작업 분배, 모니터링, 결과 통합
+- **central-supervisor**: Claude Code의 지시를 받는 서브 오케스트레이터 - 복잡한 작업의 분해/분배/모니터링/통합
+
+#### 기타 전문가 그룹
 - **vercel-platform-specialist**: Vercel 플랫폼 아키텍처 전문 분석 - 배포 최적화, 성능 엔지니어링, 인프라 설계
 - **debugger-specialist**: 디버깅만 - 오류 분석, 가설 수립, 최소 수정
 - **documentation-manager**: 문서 관리 - 작성, 구조 관리, JBGE 원칙 (구 doc-structure-guardian + doc-writer-researcher 통합)
 - **test-automation-specialist**: 테스트 자동화 - 테스트 작성, 수정, TDD 지원, 커버리지 관리
 - **security-auditor**: 보안만 - 취약점 탐지, OWASP, 인증/인가
 
-#### 협업 프로토콜
+#### 협업 프로토콜 (Claude Code 중심)
 
-1. **순차 실행**: structure-refactor-agent → code-review-specialist → quality-control-checker
-2. **병렬 가능**: code-review-specialist + structure-refactor-agent (독립적 분석)
-3. **Memory MCP**: 분석 결과 공유로 중복 작업 방지
+1. **기본 실행**: Claude Code가 직접 모든 개발 작업 주도
+2. **복잡한 작업**: Claude Code → central-supervisor → 전문 에이전트들 (순차/병렬)
+3. **병렬 가능**: code-review-specialist + structure-refactor-agent (독립적 분석)
+4. **Memory MCP**: 분석 결과 공유로 중복 작업 방지
 
 ```typescript
 // 권장 방식 - 작업 목표만 제시
@@ -747,7 +750,26 @@ Task({
 
 ### 🚀 서브 에이전트 활용 패턴
 
-- **협업 패턴**: central-supervisor가 작업을 분배하고 조율
+#### 계층별 역할
+
+1. **Claude Code (최상위 통제자)**
+   - 모든 개발 작업의 메인 통제자
+   - 직접 작업 수행 또는 서브에이전트 지시
+   - 최종 결과 통합 및 품질 보증
+
+2. **central-supervisor (서브 오케스트레이터)**
+   - Claude Code의 지시를 받아 복잡한 작업을 분해
+   - 전문 에이전트들에게 작업 분배 및 조율
+   - 진행 상황 모니터링 및 Claude Code에 보고
+
+3. **전문 에이전트들 (실행자)**
+   - 각자의 전문 영역에서 구체적 작업 수행
+   - central-supervisor 또는 Claude Code의 지시 실행
+
+#### 활용 패턴
+
+- **단순 작업**: Claude Code 직접 처리
+- **복잡 작업**: Claude Code → central-supervisor → 전문 에이전트들
 - **병렬 처리**: 독립적인 작업은 동시 실행으로 30-40% 시간 단축
 - **Memory MCP**: 비동기 정보 공유로 협업 효율 증대
 - **서브에이전트 상세**: `.claude/agents/` 디렉토리 참조
@@ -867,9 +889,9 @@ Error: File has not been read yet. Read it first before writing to it
 
 상세 설정: [`/docs/environment-variables-guide.md`](/docs/environment-variables-guide.md)
 
-## 💰 Claude + Gemini + Qwen 3-way AI 협업 전략
+## 💰 Claude + Gemini + Qwen AI 협업 전략
 
-Claude Code가 메인 개발을 주도하고, 사용자 요청 시 Gemini/Qwen을 병렬 활용하는 유연한 협업 체계:
+Claude Code가 메인 개발을 주도하고, 사용자 요청 시 Gemini/Qwen을 병렬 활용하는 2-way 보조 협업 체계:
 
 | 작업 접근법     | Claude Code (메인)   | Gemini CLI (요청 시) | Qwen Code (요청 시)  |
 | -------------- | -------------------- | ------------------- | ------------------- |
@@ -883,7 +905,7 @@ Claude Code가 메인 개발을 주도하고, 사용자 요청 시 Gemini/Qwen�
 | **토큰 제한**   | 5시간 블록           | 1000회/일, 60회/분   | 256K-1M 토큰        |
 | **특화 영역**   | 범용 개발            | 대규모 분석         | 다국어 코드베이스    |
 
-### 🤖 AI 도구 활용 방법 (서브 에이전트 통한 체계적 활용)
+### 🤖 AI 도구 활용 방법 (Claude Code 중심 체계)
 
 #### 1. Claude Code 메인 개발 (기본)
 
@@ -891,48 +913,57 @@ Claude Code가 메인 개발을 주도하고, 사용자 요청 시 Gemini/Qwen�
 # Claude Code가 모든 개발 작업 주도
 # - 시스템 설계, 구현, 테스트, 배포까지 전체 워크플로우 관리
 # - MCP 서버 11개 활용하여 프로젝트 통합 관리
+# - 서브에이전트들을 필요시 지시하여 활용
 ```
 
-#### 2. 제3자 시선이 필요할 때 (서브 에이전트 자동 활용)
+#### 2. Claude Code 판단에 의한 Gemini/Qwen 활용
 
 ```typescript
-// 복잡한 구현 후 자동으로 검증
+// Claude Code가 제3자 시선이 필요하다고 판단할 때
 await Task({
   subagent_type: 'gemini-cli-collaborator',
-  description: '구현 검증',
-  prompt: '코드 품질 및 아키텍처 개선점 제안'
+  description: 'Claude Code 요청: 구현 검증',
+  prompt: 'Claude Code가 구현한 코드의 품질 및 아키텍처 개선점 제안'
 });
 ```
 
-#### 3. 병렬 작업이 필요할 때 (서브 에이전트 동시 실행)
+#### 3. Claude Code 지시에 의한 병렬 작업
 
 ```typescript
-// 대규모 작업 시 자동 병렬 처리
+// Claude Code가 대규모 작업을 병렬로 분할할 때
 Promise.all([
-  Task({ subagent_type: 'gemini-cli-collaborator', ... }),  // 독립 모듈 개발
-  claude.implement()                                         // 메인 구현
+  Task({ subagent_type: 'gemini-cli-collaborator', ... }),  // Claude가 지시한 독립 모듈
+  claude.implement()                                         // Claude 직접 구현
 ]);
-// 결과: 2x 속도 향상
+// 결과: Claude 조율하에 2x 속도 향상
 ```
 
-#### 4. 사용자 직접 요청 시 (서브 에이전트 즉시 활용)
+#### 4. 사용자 명시적 요청 시 (Claude Code가 조율)
 
 ```bash
 # 사용자: "Gemini로 전체 코드베이스 리팩토링 해줘"
-# → gemini-cli-collaborator 서브 에이전트가 처리
+# → Claude Code가 gemini-cli-collaborator 지시 및 결과 검토
 
 # 사용자: "Qwen으로 중국어 주석을 영어로 변환해줘"
-# → qwen-cli-collaborator 서브 에이전트가 처리
+# → Claude Code가 qwen-cli-collaborator 지시 및 결과 통합
 
 # 사용자: "3개 AI 모두 활용해서 성능 개선해줘"
-# → Claude, Gemini, Qwen 병렬 실행
+# → Claude Code가 전체 조율하에 Gemini, Qwen 병렬 실행 및 통합
 ```
 
-### 💡 AI 도구 활용 원칙
+### 💡 AI 도구 활용 원칙 (명확한 계층 구조)
 
-- **Claude Code**: 모든 개발의 메인 도구, 항상 활성화, 프로젝트 전체 관리
-- **Gemini CLI**: 사용자가 "Gemini로" 명시적 요청 시만 활용 (완전한 개발 도구)
-- **Qwen Code**: 사용자가 "Qwen으로" 명시적 요청 시만 활용 (다국어 특화 개발 도구)
+- **Claude Code (최상위 통제자)**: 모든 개발의 메인 도구, 항상 활성화, 프로젝트 전체 관리
+  - 모든 서브에이전트를 직접 관리하고 지시
+  - Gemini/Qwen 활용 여부도 Claude Code가 최종 결정
+  
+- **Gemini CLI (보조 도구)**: Claude Code가 필요 시 또는 사용자 명시 요청 시만 활용
+  - 사용자가 "Gemini로" 명시적 요청 시
+  - Claude Code가 제3자 시선/대규모 분석이 필요하다고 판단 시
+  
+- **Qwen Code (보조 도구)**: Claude Code가 필요 시 또는 사용자 명시 요청 시만 활용
+  - 사용자가 "Qwen으로" 명시적 요청 시
+  - Claude Code가 다국어 특화 작업이 필요하다고 판단 시
 
 ### 📚 AI CLI 도구 상세 가이드
 

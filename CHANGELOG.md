@@ -5,6 +5,31 @@
 > - Legacy 파일: v5.0.0 ~ v5.65.6 (2024-05 ~ 2025-01)
 > - 현재 파일: v5.65.7 이후 (2025-01 ~)
 
+## [5.67.13] - 2025-08-13
+
+### 🤖 서브에이전트 계층 구조 명확화
+
+#### 변경사항
+- **계층 구조 정의**: Claude Code → central-supervisor → 전문 에이전트들
+- **CLAUDE.md 업데이트**: 서브에이전트 관리 체계 명확화
+- **central-supervisor 역할 재정의**: "마스터 오케스트레이터" → "Claude Code 지시하의 서브 오케스트레이터"
+- **AI 협업 원칙 개정**: Claude Code 중심의 통제 체계 확립
+
+#### 주요 개선사항
+- **명확한 지휘체계**: Claude Code가 모든 서브에이전트를 직접 관리
+- **Gemini/Qwen 활용 조건 명시**: 
+  - 사용자 명시적 요청 시
+  - Claude Code 판단에 의한 제3자 시선 필요 시
+  - 대규모 병렬 작업 필요 시
+- **문서 통합 업데이트**: 
+  - `docs/technical/ai-engines/sub-agents-comprehensive-guide.md`
+  - `.claude/agents/central-supervisor.md`
+
+#### 기술적 개선
+- 서브에이전트 활용 패턴 체계화
+- 협업 프로토콜 Claude Code 중심으로 재편
+- 계층별 역할과 책임 명확 정의
+
 ## [5.66.40] - 2025-08-12
 
 ### 📚 문서 체계화 및 JBGE 원칙 적용
