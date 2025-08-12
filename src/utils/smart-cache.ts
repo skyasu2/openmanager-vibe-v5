@@ -5,7 +5,7 @@
  * 싱글톤 패턴 제거, 전역 상태 제거
  */
 
-export interface CacheEntry<T = any> {
+export interface CacheEntry<T = unknown> {
   data: T;
   timestamp: number;
   staleTime: number;
@@ -79,7 +79,7 @@ export class RequestScopedCache {
     }
   }
 
-  async invalidateQueries(keyPrefix: string): Promise<void> {
+  invalidateQueries(keyPrefix: string): void {
     const keysToInvalidate: string[] = [];
 
     for (const key of this.cache.keys()) {

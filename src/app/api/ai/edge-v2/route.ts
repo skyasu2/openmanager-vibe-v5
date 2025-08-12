@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
 }
 
 // GET 요청: API 상태 및 정보 제공
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   return NextResponse.json({
     status: 'active',
     version: 'v2',
@@ -188,7 +188,7 @@ export async function GET(req: NextRequest) {
 }
 
 // OPTIONS 요청 처리 (CORS)
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS(_req: NextRequest) {
   return new NextResponse(null, {
     status: 200,
     headers: {
