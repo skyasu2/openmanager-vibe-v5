@@ -795,13 +795,14 @@ Claude Code가 메인 개발을 주도하고, 사용자 요청 시 Gemini/Codex�
 | -------------- | -------------------- | ------------------- | ------------------- |
 | **기본 전략**   | ✅ 모든 개발 주도     | 사용자 요청 시만     | 사용자 요청 시만     |
 | **활용 시점**   | 항상 활성화          | "Gemini로" 명시 시   | "Codex로" 명시 시    |
-| **병렬 작업**   | 조율 및 통합 담당     | 대규모 분석/처리     | 알고리즘 최적화      |
-| **주요 역할**   | 프로젝트 전체 관리    | 1M 토큰 대규모 작업  | GPT-5 고급 추론      |
-| **일반 개발**   | ✅ 모든 작업 가능     | 불필요              | 불필요              |
-| **복잡한 작업** | ✅ 직접 처리 가능     | 병렬 처리 요청 시    | 병렬 처리 요청 시    |
-| **비용 효율**   | $200/월 (메인)       | $0 (필요시만)        | $20/월 (필요시만)    |
+| **병렬 작업**   | 조율 및 통합 담당     | 독립적 기능 개발     | 독립적 기능 개발     |
+| **주요 역할**   | 프로젝트 전체 관리    | 완전한 개발 도구     | 완전한 개발 도구     |
+| **일반 개발**   | ✅ 모든 작업 가능     | ✅ 모든 작업 가능    | ✅ 모든 작업 가능    |
+| **복잡한 작업** | ✅ 직접 처리 가능     | ✅ 병렬 개발 가능    | ✅ 병렬 개발 가능    |
+| **비용 효율**   | $200/월 (메인)       | $0 (무료, Google)    | $20/월 (ChatGPT+)   |
+| **토큰 제한**   | 5시간 블록           | 1000회/일, 60회/분   | 80메시지/3시간      |
 
-### 🤖 AI 도구 활용 방법
+### 🤖 AI 도구 활용 방법 (서브 에이전트 통한 체계적 활용)
 
 #### 1. Claude Code 메인 개발 (기본)
 
@@ -811,45 +812,53 @@ Claude Code가 메인 개발을 주도하고, 사용자 요청 시 Gemini/Codex�
 # - MCP 서버 11개 활용하여 프로젝트 통합 관리
 ```
 
-#### 2. 사용자 요청 시 Gemini 활용
+#### 2. 제3자 시선이 필요할 때 (서브 에이전트 자동 활용)
+
+```typescript
+// 복잡한 구현 후 자동으로 검증
+await Task({
+  subagent_type: 'gemini-cli-collaborator',
+  description: '구현 검증',
+  prompt: '코드 품질 및 아키텍처 개선점 제안'
+});
+
+await Task({
+  subagent_type: 'codex-cli-partner',
+  description: '독립적 검토',
+  prompt: '다른 관점에서 코드 검토 및 개선 방안'
+});
+```
+
+#### 3. 병렬 작업이 필요할 때 (서브 에이전트 동시 실행)
+
+```typescript
+// 대규모 작업 시 자동 병렬 처리
+Promise.all([
+  Task({ subagent_type: 'gemini-cli-collaborator', ... }),  // 독립 모듈 개발
+  Task({ subagent_type: 'codex-cli-partner', ... }),        // 다른 모듈 개발
+  claude.implement()                                         // 메인 구현
+]);
+// 결과: 2-3x 속도 향상
+```
+
+#### 4. 사용자 직접 요청 시 (서브 에이전트 즉시 활용)
 
 ```bash
 # 사용자: "Gemini로 전체 코드베이스 리팩토링 해줘"
-gemini "Convert entire codebase from Redux to Zustand"
+# → gemini-cli-collaborator 서브 에이전트가 처리
 
-# 사용자: "Gemini로 대규모 마이그레이션 분석해줘"
-gemini "Analyze migration path from Next.js 13 to 15"
-```
-
-#### 3. 사용자 요청 시 Codex 활용
-
-```bash
 # 사용자: "Codex로 이 알고리즘 최적화해줘"
-codex "Optimize this sorting algorithm from O(n²) to O(n log n)"
+# → codex-cli-partner 서브 에이전트가 처리
 
-# 사용자: "Codex로 복잡한 아키텍처 설계해줘"
-codex "Design scalable microservices architecture with CQRS"
-```
-
-#### 4. 병렬 작업 요청 시 협업
-
-```bash
-# Claude Code가 메인으로 rate limiting 개발 중...
-# 사용자: "이 부분 Codex로 알고리즘 설계하고 Gemini로 영향 분석 동시에 해줘"
-
-# Claude Code가 병렬 조율:
-# - Codex: 알고리즘 최적화 (동시 실행)
-# - Gemini: 전체 코드베이스 영향 분석 (동시 실행)  
-# - Claude: 두 결과 통합하여 최종 구현
-
-# 결과: 2-3x 속도 향상
+# 사용자: "3개 AI 모두 활용해서 성능 개선해줘"
+# → 3개 서브 에이전트 병렬 실행
 ```
 
 ### 💡 AI 도구 활용 원칙
 
 - **Claude Code**: 모든 개발의 메인 도구, 항상 활성화, 프로젝트 전체 관리
-- **Gemini CLI**: 사용자가 "Gemini로" 명시적 요청 시만 활용 (1M 토큰 대규모 작업)
-- **Codex CLI**: 사용자가 "Codex로" 명시적 요청 시만 활용 (고급 알고리즘 최적화)
+- **Gemini CLI**: 사용자가 "Gemini로" 명시적 요청 시만 활용 (완전한 개발 도구)
+- **Codex CLI**: 사용자가 "Codex로" 명시적 요청 시만 활용 (완전한 개발 도구)
 
 ### 📚 AI CLI 도구 상세 가이드
 
