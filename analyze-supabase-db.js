@@ -32,7 +32,7 @@ async function analyzeDatabase() {
     ];
     
     let totalRecords = 0;
-    let existingTables = [];
+    const existingTables = [];
     
     for (const tableName of knownTables) {
       try {

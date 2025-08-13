@@ -72,7 +72,7 @@ export class SystemEventBus implements ISystemEventBus {
     if (!this.listeners.has(eventType)) {
       this.listeners.set(eventType, new Set());
     }
-    this.listeners.get(eventType)!.add(listener);
+    this.listeners.get(eventType).add(listener);
   }
 
   /**
