@@ -132,6 +132,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "input=$(cat); model_name=$(echo \"$input\" | jq -r '.model.display_name // \"Claude\"'); current_dir=$(echo \"$input\" | jq -r '.workspace.current_dir // \"unknown\"'); current_folder=$(basename \"$current_dir\" 2>/dev/null || echo \"workspace\"); username=$(whoami 2>/dev/null || echo \"user\"); git_info=\"\"; if [[ -d \".git\" ]] || git rev-parse --git-dir > /dev/null 2>&1; then branch=$(git symbolic-ref --short HEAD 2>/dev/null || git rev-parse --short HEAD 2>/dev/null || \"detached\"); if [[ -n $(git status --porcelain 2>/dev/null) ]]; then git_status=\"*\"; else git_status=\"✓\"; fi; git_info=\" | 🌿 $branch$git_status\"; fi; printf \"🤖 %s | 📁 %s | 👤 %s%s\" \"$model_name\" \"$current_folder\" \"$username\" \"$git_info\""
+    "command": "npx -y ccusage statusline",
+    "padding": 0
   }
 }
