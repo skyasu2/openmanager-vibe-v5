@@ -652,10 +652,10 @@ mcp__tavily-mcp__tavily-extract({
 
 | 작업 유형             | 추천 Agent                   | 용도                                            |
 | --------------------- | ---------------------------- | ----------------------------------------------- |
-| 복잡한 작업 조율      | `central-supervisor`         | Claude Code의 지시를 받는 서브 오케스트레이터   |
-| 코드 로직 품질        | `code-review-specialist`     | 함수 복잡도, 버그 패턴, 성능 이슈               |
-| 프로젝트 규칙         | `quality-control-checker`    | CLAUDE.md 준수, 파일 크기, SOLID                |
-| 구조 설계             | `structure-refactor-agent`   | 중복 검출, 모듈 구조, 리팩토링                  |
+| 복잡한 작업 조율      | `central-supervisor`         | Claude Code 지시 하에 작업 분배 (도구 4개로 제한) |
+| 함수 품질 분석        | `code-review-specialist`     | 순환/인지 복잡도, 버그 패턴, O(n²) 성능 이슈     |
+| 프로젝트 표준         | `quality-control-checker`    | CLAUDE.md, 파일크기(500/1500줄), SOLID, 네이밍  |
+| 아키텍처 설계         | `structure-refactor-agent`   | 중복코드(30줄+), 의존성, 폴더구조, 디자인패턴   |
 | 보안 검사             | `security-auditor`           | 포트폴리오 수준 보안 검사                       |
 | DB 최적화             | `database-administrator`     | Supabase PostgreSQL 전문 관리                   |
 | 성능 개선             | `ux-performance-optimizer`   | Core Web Vitals                                 |
@@ -664,7 +664,7 @@ mcp__tavily-mcp__tavily-extract({
 | GCP VM 관리           | `gcp-vm-specialist`          | GCP VM 통합 백엔드 (MCP + AI API + 서비스) 관리 |
 | AI 시스템             | `ai-systems-engineer`        | AI 어시스턴트 개발                              |
 | 문서 관리             | `documentation-manager`      | 문서 작성, 구조 관리, JBGE 원칙                 |
-| 디버깅                | `debugger-specialist`        | 오류 분석, 근본 원인 파악                       |
+| 체계적 디버깅         | `debugger-specialist`        | 5단계 프로세스: 표면→근본→연구→설계→검증 (도구 8개) |
 | 플랫폼 전문 분석      | `vercel-platform-specialist` | Vercel 아키텍처, 성능 최적화                    |
 | MCP 관리              | `mcp-server-admin`           | MCP 에러 감지 및 자동 복구                      |
 | Gemini 개발 파트너    | `gemini-cli-collaborator`    | 전체 코드 생성/리팩토링, 1M 토큰 활용           |
@@ -701,19 +701,19 @@ mcp__tavily-mcp__tavily-extract({
 
 **중요**: 각 에이전트는 명확한 전문 영역만 담당합니다.
 
-#### 코드 품질 전문가 그룹 (명확히 구분된 역할)
+#### 코드 품질 전문가 그룹 (명확히 구분된 역할) - 2025.8.12 개선
 
-- **code-review-specialist**: 함수/메서드 레벨 분석 - 복잡도 계산, 버그 패턴, 성능 이슈, 타입 안전성
-- **quality-control-checker**: 프로젝트 규칙 감시 - CLAUDE.md 준수, 파일 크기(500-1500줄), SOLID 원칙, 보안 정책
-- **structure-refactor-agent**: 구조 설계 전문 - 중복 코드 검출/통합, 모듈 의존성, 안전한 리팩토링
+- **code-review-specialist**: 함수/메서드 단위 - 순환복잡도(>10), 인지복잡도, 버그패턴(null check), O(n²)성능
+- **quality-control-checker**: 프로젝트 표준 - CLAUDE.md, 파일크기(500/1500줄), SOLID(SRP), 네이밍, 커밋형식
+- **structure-refactor-agent**: 아키텍처 - 중복코드(30줄+), 의존성그래프, 순환의존성, 폴더구조, 디자인패턴
 
-#### 조율 에이전트
+#### 조율 에이전트 (최소 권한)
 
-- **central-supervisor**: Claude Code의 지시를 받는 서브 오케스트레이터 - 복잡한 작업의 분해/분배/모니터링/통합
+- **central-supervisor**: Claude Code 지시 하에 작업 분배 - 도구 4개만(memory, sequential-thinking, Read, Bash)
 
 #### 기타 전문가 그룹
+- **debugger-specialist**: 체계적 디버깅 - 5단계(표면→근본→연구→설계→검증), 도구 8개로 최적화 (이전 13개)
 - **vercel-platform-specialist**: Vercel 플랫폼 아키텍처 전문 분석 - 배포 최적화, 성능 엔지니어링, 인프라 설계
-- **debugger-specialist**: 디버깅만 - 오류 분석, 가설 수립, 최소 수정
 - **documentation-manager**: 문서 관리 - 작성, 구조 관리, JBGE 원칙 (구 doc-structure-guardian + doc-writer-researcher 통합)
 - **test-automation-specialist**: 테스트 자동화 - 테스트 작성, 수정, TDD 지원, 커버리지 관리
 - **security-auditor**: 보안만 - 취약점 탐지, OWASP, 인증/인가

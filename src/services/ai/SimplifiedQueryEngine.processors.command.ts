@@ -1,16 +1,17 @@
 /**
- * 🛠️ Command Query Processor - SimplifiedQueryEngine
+ * 🛠️ SimplifiedQueryEngine Command Query Processor
  * 
- * Handles command query processing:
- * - Command analysis and recommendation generation
- * - Integration with UnifiedAIEngineRouter for command recommendations
- * - Command context processing
- * - Fallback command response generation
+ * Specialized processor for handling command-related queries:
+ * - Command detection and classification
+ * - Command recommendation generation
+ * - Context-aware command analysis
  */
 
-import type {
-  AIMetadata,
-} from '@/types/ai-service-types';
+import type { SupabaseRAGEngine } from './supabase-rag-engine';
+import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
+import { MockContextLoader } from './MockContextLoader';
+import { IntentClassifier } from '@/modules/ai-agent/processors/IntentClassifier';
+import { UnifiedAIEngineRouter } from './UnifiedAIEngineRouter.core';
 import type {
   QueryResponse,
   CommandContext,
@@ -18,14 +19,16 @@ import type {
 import { SimplifiedQueryEngineUtils } from './SimplifiedQueryEngine.utils';
 
 /**
- * 🛠️ 명령어 쿼리 프로세서
+ * 🛠️ 명령어 쿼리 전용 프로세서
  */
 export class CommandQueryProcessor {
-  private utils: SimplifiedQueryEngineUtils;
-
-  constructor(utils: SimplifiedQueryEngineUtils) {
-    this.utils = utils;
-  }
+  constructor(
+    private utils: SimplifiedQueryEngineUtils,
+    private ragEngine: SupabaseRAGEngine,
+    private contextLoader: CloudContextLoader,
+    private mockContextLoader: MockContextLoader,
+    private intentClassifier: IntentClassifier
+  ) {}
 
   /**
    * 🛠️ 명령어 쿼리 전용 처리
@@ -38,29 +41,29 @@ export class CommandQueryProcessor {
   ): Promise<QueryResponse> {
     const commandStepStart = Date.now();
     
-    // 명령어 분석 단계 추가
+    // ✅ 안전한 thinking steps 초기화
+    thinkingSteps = this.utils.safeInitThinkingSteps(thinkingSteps);
+
     thinkingSteps.push({
       step: '명령어 분석',
-      description: '명령어 요청 세부 분석 중',
+      description: '명령어 추천 요청 분석',
       status: 'pending',
       timestamp: commandStepStart,
     });
 
     try {
-      // UnifiedAIEngineRouter 인스턴스 가져오기 (동적 import로 순환 참조 방지)
-      const { getUnifiedAIRouter } = await import('./UnifiedAIEngineRouter');
-      const aiRouter = getUnifiedAIRouter();
-
-      // 명령어 추천 시스템 사용
+      const aiRouter = UnifiedAIEngineRouter.getInstance();
       const recommendationResult = await aiRouter.getCommandRecommendations(query, {
         maxRecommendations: 5,
         includeAnalysis: true,
       });
 
-      thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-      thinkingSteps[thinkingSteps.length - 1].description = 
-        `${recommendationResult.recommendations.length}개 명령어 추천 생성`;
-      thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - commandStepStart;
+      // ✅ 안전한 배열 접근
+      this.utils.safeUpdateLastThinkingStep(thinkingSteps, {
+        status: 'completed',
+        description: `${recommendationResult.recommendations.length}개 명령어 추천 생성`,
+        duration: Date.now() - commandStepStart
+      });
 
       // 응답 생성
       const responseStepStart = Date.now();
@@ -71,31 +74,29 @@ export class CommandQueryProcessor {
         timestamp: responseStepStart,
       });
 
-      // 신뢰도 계산 (명령어 감지 정확도 기반)
-      const confidence = Math.min(
-        recommendationResult.analysis.confidence + 0.2, // 명령어 시스템 보너스
+      const response = this.utils.generateFormattedResponse(
+        recommendationResult.recommendations,
+        recommendationResult.analysis || {},
+        query,
         0.95
       );
 
-      thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-      thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - responseStepStart;
+      // ✅ 안전한 배열 접근
+      this.utils.safeUpdateLastThinkingStep(thinkingSteps, {
+        status: 'completed',
+        duration: Date.now() - responseStepStart
+      });
 
       return {
         success: true,
-        response: recommendationResult.formattedResponse,
-        engine: 'local-rag', // 명령어는 로컬 처리
-        confidence,
+        response,
+        engine: 'local-rag',
+        confidence: 0.95,
         thinkingSteps,
         metadata: {
-          commandMode: true,
-          recommendationCount: recommendationResult.recommendations.length,
-          analysisResult: recommendationResult.analysis,
-          requestType: commandContext?.requestType || 'command_request',
-        } as AIMetadata & { 
-          commandMode?: boolean;
-          recommendationCount?: number;
-          analysisResult?: any;
-          requestType?: string;
+          source: 'command-recommendations',
+          totalRecommendations: recommendationResult.recommendations.length,
+          commandContext,
         },
         processingTime: Date.now() - startTime,
       };
@@ -103,26 +104,23 @@ export class CommandQueryProcessor {
     } catch (error) {
       console.error('❌ 명령어 처리 실패:', error);
       
-      thinkingSteps[thinkingSteps.length - 1].status = 'failed';
-      thinkingSteps[thinkingSteps.length - 1].description = '명령어 분석 실패';
-      thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - commandStepStart;
+      // ✅ 안전한 배열 접근
+      this.utils.safeUpdateLastThinkingStep(thinkingSteps, {
+        status: 'failed',
+        description: '명령어 분석 실패',
+        duration: Date.now() - commandStepStart
+      });
 
       // 폴백: 기본 명령어 안내
       const fallbackResponse = this.utils.generateCommandFallbackResponse(query);
       
       return {
-        success: true,
+        success: false,
         response: fallbackResponse,
         engine: 'fallback',
         confidence: 0.3,
         thinkingSteps,
-        metadata: {
-          commandMode: true,
-          fallback: true,
-        } as AIMetadata & { 
-          commandMode?: boolean;
-          fallback?: boolean;
-        },
+        error: error instanceof Error ? error.message : '명령어 처리 실패',
         processingTime: Date.now() - startTime,
       };
     }

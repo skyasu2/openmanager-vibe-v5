@@ -1,6 +1,6 @@
 ---
 name: quality-control-checker
-description: CLAUDE.md 규칙 감시자. 프로젝트 전체 규칙 준수 검증, 파일 크기(500-1500줄), SOLID 원칙, 문서 위치, 보안 정책, 환경 일관성. 개별 코드 품질은 code-review-specialist 담당. Use PROACTIVELY when: before commits, PR creation, deployment prep, weekly audit.
+description: 프로젝트 규칙/표준 감시자. 전담: CLAUDE.md 규칙 준수, 파일 크기(500줄 권장/1500줄 한계), SOLID 원칙(SRP 위반 감지), 문서 위치(루트 6개 제한), 네이밍 컨벤션, 커밋 메시지 형식. 제외: 함수 복잡도(code-review-specialist), 코드 중복(structure-refactor-agent), 아키텍처(structure-refactor-agent). Use PROACTIVELY when: 커밋 전, PR 생성, 배포 준비, 주간 감사.
 tools: Read, Grep, Bash
 ---
 

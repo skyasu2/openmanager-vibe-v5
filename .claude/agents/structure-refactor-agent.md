@@ -1,6 +1,6 @@
 ---
 name: structure-refactor-agent
-description: 프로젝트 구조 설계가. 전체 구조 분석, 중복 코드 검출/통합, 모듈 의존성 분석, 안전한 리팩토링 실행. 코드 품질은 code-review-specialist, 규칙 준수는 quality-control-checker 담당. Use PROACTIVELY when: new feature needs structure review, duplicate threshold exceeded, folder reorganization needed, major refactoring planned.
+description: 아키텍처/구조 설계 전문가. 전담: 중복 코드 검출(30줄 이상), 모듈 의존성 그래프, 순환 의존성 제거, 폴더 구조 설계, 대규모 리팩토링, 디자인 패턴 적용. 제외: 함수 품질(code-review-specialist), 프로젝트 규칙(quality-control-checker), 단순 버그 수정(code-review-specialist). Use PROACTIVELY when: 중복 임계치 초과, 새 기능 구조 설계, 폴더 재구성, 아키텍처 개선.
 tools: Read, Glob, Grep, Write, Bash, mcp__filesystem__*, mcp__serena__*, mcp__memory__*
 ---
 

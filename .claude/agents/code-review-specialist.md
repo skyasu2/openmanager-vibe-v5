@@ -1,6 +1,6 @@
 ---
 name: code-review-specialist
-description: 코드 로직 품질 전문가. 함수/메서드 레벨 분석, 복잡도 계산, 버그 패턴 검출, 성능 이슈 발견, 타입 안전성 검증. SOLID/파일크기는 quality-control-checker 담당, 중복검출은 structure-refactor-agent 담당. Use PROACTIVELY when: complex functions written, performance-critical code modified, type errors found, PR review requested.
+description: 함수/메서드 단위 코드 품질 전문가. 전담: 순환 복잡도(>10 경고), 인지 복잡도 분석, 버그 패턴(null check, off-by-one), 성능 병목(O(n²) 이상), 타입 안전성. 제외: SOLID 원칙(quality-control-checker), 파일 크기(quality-control-checker), 중복 코드(structure-refactor-agent), 구조 설계(structure-refactor-agent). Use PROACTIVELY when: 새 함수 작성, 복잡한 로직 수정, 성능 critical path 변경.
 tools: Bash, Read, Grep, mcp__serena__*
 ---
 

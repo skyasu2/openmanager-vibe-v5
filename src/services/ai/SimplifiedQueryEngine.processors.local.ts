@@ -1,71 +1,75 @@
 /**
- * 🏠 Local Query Processor - SimplifiedQueryEngine
+ * 🏠 SimplifiedQueryEngine Local Query Processor
  * 
- * Handles local RAG query processing:
- * - Supabase pgvector search
- * - Response generation from RAG results
- * - Confidence calculation
- * - MCP context integration
+ * Specialized processor for local RAG-based queries:
+ * - Supabase RAG search integration
+ * - Local response generation
+ * - Fallback handling
  */
 
 import type { SupabaseRAGEngine } from './supabase-rag-engine';
+import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 import { MockContextLoader } from './MockContextLoader';
-import type { ComplexityScore } from './query-complexity-analyzer';
+import { IntentClassifier } from '@/modules/ai-agent/processors/IntentClassifier';
 import type {
   AIQueryContext,
+  AIQueryOptions,
   MCPContext,
-  AIMetadata,
 } from '@/types/ai-service-types';
 import type {
-  QueryRequest,
   QueryResponse,
 } from './SimplifiedQueryEngine.types';
+import { SimplifiedQueryEngineUtils } from './SimplifiedQueryEngine.utils';
 import { SimplifiedQueryEngineHelpers } from './SimplifiedQueryEngine.processors.helpers';
 
 /**
- * 🏠 로컬 쿼리 프로세서
+ * 🏠 로컬 쿼리 프로세서 (RAG 기반)
  */
 export class LocalQueryProcessor {
-  private ragEngine: SupabaseRAGEngine;
-  private mockContextLoader: MockContextLoader;
   private helpers: SimplifiedQueryEngineHelpers;
 
   constructor(
-    ragEngine: SupabaseRAGEngine,
-    mockContextLoader: MockContextLoader,
-    helpers: SimplifiedQueryEngineHelpers
+    private utils: SimplifiedQueryEngineUtils,
+    private ragEngine: SupabaseRAGEngine,
+    private contextLoader: CloudContextLoader,
+    private mockContextLoader: MockContextLoader,
+    private intentClassifier: IntentClassifier
   ) {
-    this.ragEngine = ragEngine;
-    this.mockContextLoader = mockContextLoader;
-    this.helpers = helpers;
+    this.helpers = new SimplifiedQueryEngineHelpers(
+      utils,
+      ragEngine,
+      contextLoader,
+      mockContextLoader,
+      intentClassifier
+    );
   }
 
   /**
-   * 🏠 로컬 RAG 쿼리 처리 (최적화됨)
+   * 🔍 로컬 RAG 기반 쿼리 처리
    */
   async processLocalQuery(
     query: string,
-    context: AIQueryContext | undefined,
-    options: QueryRequest['options'],
+    context: AIQueryContext,
+    options: AIQueryOptions,
     mcpContext: MCPContext | null,
     thinkingSteps: QueryResponse['thinkingSteps'],
-    startTime: number,
-    complexity?: ComplexityScore
+    startTime: number
   ): Promise<QueryResponse> {
-    // RAG 검색
+    // ✅ 안전한 thinking steps 초기화
+    thinkingSteps = this.utils.safeInitThinkingSteps(thinkingSteps);
+
     const ragStepStart = Date.now();
     thinkingSteps.push({
-      step: 'RAG 검색',
-      description: 'Supabase 벡터 DB에서 관련 문서 검색',
+      step: '로컬 RAG 검색',
+      description: 'Supabase 벡터 검색 실행',
       status: 'pending',
       timestamp: ragStepStart,
     });
 
-    // 복잡도에 따라 검색 파라미터 조정
-    const maxResults = complexity && complexity.score < 30 ? 3 : 5;
-    const threshold = complexity && complexity.score < 30 ? 0.6 : 0.5;
-
     let ragResult;
+    const maxResults = options?.maxResults || 5;
+    const threshold = options?.threshold || 0.7;
+
     try {
       ragResult = await this.ragEngine.searchSimilar(query, {
         maxResults,
@@ -74,63 +78,68 @@ export class LocalQueryProcessor {
         enableMCP: false, // MCP는 이미 별도로 처리
       });
 
-      thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-      thinkingSteps[thinkingSteps.length - 1].description =
-        `${ragResult.totalResults}개 관련 문서 발견`;
-      thinkingSteps[thinkingSteps.length - 1].duration =
-        Date.now() - ragStepStart;
+      // ✅ 안전한 배열 접근
+      this.utils.safeUpdateLastThinkingStep(thinkingSteps, {
+        status: 'completed',
+        description: `${ragResult.totalResults}개 관련 문서 발견`,
+        duration: Date.now() - ragStepStart
+      });
     } catch (ragError) {
       // RAG 검색 실패 시 에러 처리
       console.error('RAG 검색 실패:', ragError);
-      thinkingSteps[thinkingSteps.length - 1].status = 'failed';
-      thinkingSteps[thinkingSteps.length - 1].description = 'RAG 검색 실패';
-      thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - ragStepStart;
+      
+      // ✅ 안전한 배열 접근
+      this.utils.safeUpdateLastThinkingStep(thinkingSteps, {
+        status: 'failed',
+        description: 'RAG 검색 실패',
+        duration: Date.now() - ragStepStart
+      });
       
       // RAG 실패 시 에러 응답 반환
       return {
         success: false,
-        response: '쿼리 처리 중 오류가 발생했습니다.',
+        response: '죄송합니다. 검색 중 오류가 발생했습니다.',
         engine: 'local-rag',
         confidence: 0,
         thinkingSteps,
-        error: ragError instanceof Error ? ragError.message : '알 수 없는 오류',
+        error: ragError instanceof Error ? ragError.message : 'RAG 검색 실패',
         processingTime: Date.now() - startTime,
       };
     }
 
-    // 응답 생성
+    // 3단계: 응답 생성
     const responseStepStart = Date.now();
     thinkingSteps.push({
-      step: '응답 생성',
-      description: '검색 결과를 바탕으로 응답 생성',
+      step: '로컬 응답 생성',
+      description: 'RAG 결과 기반 응답 생성',
       status: 'pending',
       timestamp: responseStepStart,
     });
 
-    const response = this.helpers.generateLocalResponse(
+    const response = await this.helpers.generateLocalResponse(
       query,
       ragResult,
       mcpContext,
       context
     );
 
-    thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-    thinkingSteps[thinkingSteps.length - 1].duration =
-      Date.now() - responseStepStart;
+    // ✅ 안전한 배열 접근
+    this.utils.safeUpdateLastThinkingStep(thinkingSteps, {
+      status: 'completed',
+      duration: Date.now() - responseStepStart
+    });
 
     return {
       success: true,
       response,
       engine: 'local-rag',
-      confidence: this.helpers.calculateConfidence(ragResult),
+      confidence: this.helpers.calculateConfidence(ragResult, query),
       thinkingSteps,
       metadata: {
         ragResults: ragResult.totalResults,
-        cached: ragResult.cached,
-        mcpUsed: !!mcpContext,
-        mockMode: !!this.mockContextLoader.getMockContext(),
-        complexity,
-      } as AIMetadata & { complexity?: ComplexityScore; cacheHit?: boolean; mockMode?: boolean },
+        sources: ragResult.results?.map(r => r.metadata?.source).filter(Boolean) || [],
+        mcpFiles: mcpContext?.files?.length || 0,
+      },
       processingTime: Date.now() - startTime,
     };
   }
