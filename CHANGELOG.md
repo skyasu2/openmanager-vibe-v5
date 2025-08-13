@@ -5,6 +5,28 @@
 > - Legacy 파일: v5.0.0 ~ v5.65.6 (2024-05 ~ 2025-01)
 > - 현재 파일: v5.65.7 이후 (2025-01 ~)
 
+## [5.67.15] - 2025-08-13
+
+### 🏗️ 구조적 리팩토링 Phase 1 - 순환 의존성 제거
+
+#### 핵심 작업
+- **타입 우선 개발 가이드 추가**: CLAUDE.md에 Type-First Development 섹션 추가
+- **ProcessManager 순환 의존성 제거**: 이벤트 버스 패턴 적용
+- **SystemWatchdog 순환 의존성 제거**: 이벤트 기반 통신 구현
+- **SystemBootstrapper 생성**: 시스템 컴포넌트 초기화 중앙화
+
+#### 생성된 파일
+- `src/core/system/ProcessManager.refactored.ts` - 이벤트 버스 적용
+- `src/core/system/SystemWatchdog.refactored.ts` - 이벤트 기반 통신
+- `src/core/system/SystemBootstrapper.ts` - 시스템 초기화 통합
+- `src/core/system/index.ts` - 통합 export 및 호환성 레이어
+
+#### 개선 효과
+- **순환 의존성 100% 제거**: ProcessManager ↔ SystemWatchdog
+- **테스트 가능성 향상**: 모듈 간 느슨한 결합
+- **확장성 개선**: 이벤트 기반 아키텍처
+- **점진적 마이그레이션 지원**: 기존 코드와 호환성 유지
+
 ## [5.67.14] - 2025-08-13
 
 ### 🔧 서브에이전트 시스템 최적화

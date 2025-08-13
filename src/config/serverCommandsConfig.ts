@@ -1,30 +1,53 @@
 /**
  * 서버 타입별 OS 명령어 매핑 설정
- * 8개 서버별 특화된 명령어와 설명, 위험도 레벨 포함
+ * 모듈화된 명령어 설정을 re-export하여 기존 코드와의 호환성 유지
+ * 
+ * @deprecated 새로운 코드에서는 './commands' 디렉토리의 개별 모듈을 직접 import하세요
  */
 
-export interface OSCommand {
-  command: string;
-  description: string;
-  category: 'monitoring' | 'process' | 'network' | 'disk' | 'system' | 'security';
-  riskLevel: 'safe' | 'moderate' | 'dangerous';
-  usage?: string;
-  example?: string;
-  alternatives?: string[];
+// 타입 re-export
+export type { OSCommand, ServerCommands } from './commands/types';
+
+// 공통 명령어 import
+import {
+  ubuntuCommonCommands,
+  rhelCommonCommands,
+  windowsCommonCommands,
+} from './commands/common-commands';
+
+// 서버별 명령어 및 유틸리티 import
+import {
+  serverCommandsMap,
+  dangerousCommandPatterns,
+  recommendCommands as recommendCommandsUtil,
+  checkCommandRisk,
+  translateCommand,
+} from './commands';
+
+// 기존 코드와의 호환성을 위한 re-export
+export { serverCommandsMap };
+export { dangerousCommandPatterns };
+
+/**
+ * 명령어 추천 함수 (기존 인터페이스 유지)
+ * @deprecated 새로운 코드에서는 './commands/command-utils'의 recommendCommands를 직접 사용하세요
+ */
+export function recommendCommands(
+  serverId: string,
+  scenario: string,
+  category?: string
+): OSCommand[] {
+  const serverCommands = serverCommandsMap[serverId];
+  if (!serverCommands) return [];
+  
+  return recommendCommandsUtil(serverCommands, scenario, category);
 }
 
-export interface ServerCommands {
-  os: string;
-  service: string;
-  commands: {
-    basic: OSCommand[];
-    advanced: OSCommand[];
-    troubleshooting: OSCommand[];
-  };
-}
+// 기존 함수들 re-export
+export { checkCommandRisk, translateCommand };
 
-// Ubuntu/Debian 계열 공통 명령어
-const ubuntuCommonCommands: OSCommand[] = [
+// 하위 호환성을 위한 상수 export
+const _ubuntuCommonCommands: OSCommand[] = [
   // 모니터링 명령어
   {
     command: 'top',
@@ -94,9 +117,8 @@ const ubuntuCommonCommands: OSCommand[] = [
   }
 ];
 
-// CentOS/RHEL 계열 공통 명령어
-const rhelCommonCommands: OSCommand[] = [
-  ...ubuntuCommonCommands, // 대부분 공통
+const _rhelCommonCommands: OSCommand[] = [
+  ..._ubuntuCommonCommands,
   {
     command: 'yum check-update',
     description: '업데이트 가능한 패키지 확인',
@@ -112,8 +134,7 @@ const rhelCommonCommands: OSCommand[] = [
   }
 ];
 
-// Windows Server 공통 명령어
-const windowsCommonCommands: OSCommand[] = [
+const _windowsCommonCommands: OSCommand[] = [
   {
     command: 'Get-Process | Sort-Object CPU -Descending',
     description: 'CPU 사용량 순으로 프로세스 정렬 (PowerShell)',
@@ -161,10 +182,8 @@ const windowsCommonCommands: OSCommand[] = [
   }
 ];
 
-/**
- * 서버별 OS 명령어 매핑
- */
-export const serverCommandsMap: Record<string, ServerCommands> = {
+// 더미 맵 (실제로는 './commands'에서 가져옴)
+const _serverCommandsMap: Record<string, ServerCommands> = {
   // 웹 서버 #1 - Ubuntu + Nginx
   'web-prd-01': {
     os: 'Ubuntu 22.04 LTS',
@@ -783,10 +802,8 @@ export const serverCommandsMap: Record<string, ServerCommands> = {
   }
 };
 
-/**
- * 위험한 명령어 패턴 (정규표현식)
- */
-export const dangerousCommandPatterns = [
+// 위험한 명령어 패턴은 이미 './commands'에서 import됨
+const _dangerousCommandPatterns = [
   /rm\s+-rf\s+\//, // rm -rf /
   /dd\s+if=.*of=\/dev\//, // dd 명령어로 디바이스 덮어쓰기
   /format\s+[cC]:/, // Windows 포맷
@@ -798,10 +815,10 @@ export const dangerousCommandPatterns = [
   />\/dev\/null\s+2>&1/, // 출력 무시 (숨겨진 작업)
 ];
 
-/**
- * 명령어 추천 함수
- */
-export function recommendCommands(
+// recommendCommands 함수는 이미 위에서 정의됨
+
+// 더미 함수 (실제로는 위에서 정의된 것 사용)
+function _recommendCommands(
   serverId: string,
   scenario: string,
   category?: string
@@ -860,10 +877,10 @@ export function recommendCommands(
   return commands;
 }
 
-/**
- * 명령어 위험도 검사
- */
-export function checkCommandRisk(command: string): {
+// checkCommandRisk는 이미 './commands'에서 import됨
+
+// 더미 함수 (실제로는 import된 것 사용)
+function _checkCommandRisk(command: string): {
   isAllowed: boolean;
   riskLevel: 'safe' | 'moderate' | 'dangerous';
   reason?: string;
@@ -911,10 +928,10 @@ export function checkCommandRisk(command: string): {
   };
 }
 
-/**
- * OS별 명령어 변환 (크로스 플랫폼 지원)
- */
-export function translateCommand(command: string, fromOS: string, toOS: string): string | null {
+// translateCommand는 이미 './commands'에서 import됨
+
+// 더미 함수 (실제로는 import된 것 사용)
+function _translateCommand(command: string, fromOS: string, toOS: string): string | null {
   const translations: Record<string, Record<string, string>> = {
     'ps aux': {
       'windows': 'Get-Process | Format-Table -AutoSize'

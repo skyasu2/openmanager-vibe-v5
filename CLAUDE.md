@@ -237,6 +237,208 @@ npm run security:audit
 6. **사고 모드**: "think hard" 항상 활성화
 7. **SOLID 원칙**: 모든 코드에 적용
 
+## 🎯 타입 우선 개발 (Type-First Development) - 핵심 원칙
+
+### 📌 왜 타입 우선인가?
+
+**타입은 코드의 설계도입니다.** 건물을 짓기 전에 설계도를 그리듯, 코드를 작성하기 전에 타입을 정의하면:
+- ✅ **버그 예방**: 컴파일 타임에 오류 발견 (런타임 에러 90% 감소)
+- ✅ **자동 문서화**: 타입이 곧 API 문서
+- ✅ **안전한 리팩토링**: 타입 변경 시 영향받는 모든 코드 자동 감지
+- ✅ **개발 속도 향상**: IDE 자동완성과 IntelliSense 최대 활용
+
+### 🔄 타입 우선 개발 워크플로우
+
+```typescript
+// 1️⃣ 먼저 타입/인터페이스 정의
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'user' | 'guest';
+  metadata?: {
+    lastLogin: Date;
+    preferences: UserPreferences;
+  };
+}
+
+// 2️⃣ 타입 기반으로 함수 시그니처 설계
+type UpdateUserProfile = (
+  userId: string,
+  updates: Partial<UserProfile>
+) => Promise<UserProfile>;
+
+// 3️⃣ 구현은 타입을 만족하도록 작성
+const updateUserProfile: UpdateUserProfile = async (userId, updates) => {
+  // 타입이 이미 정의되어 있으므로 구현이 명확함
+  // IDE가 자동완성과 타입 체크 제공
+  const user = await db.users.findById(userId);
+  return { ...user, ...updates };
+};
+```
+
+### 📋 타입 우선 개발 체크리스트
+
+#### 새 기능 개발 시:
+- [ ] **타입 먼저**: 데이터 구조와 함수 시그니처를 타입으로 정의
+- [ ] **인터페이스 설계**: 모듈 간 통신 인터페이스 명확히 정의
+- [ ] **타입 리뷰**: 구현 전 타입 정의 검토 (설계 오류 조기 발견)
+- [ ] **타입 기반 구현**: 정의된 타입을 만족하도록 코드 작성
+- [ ] **타입 테스트**: 타입 추론이 올바른지 확인
+
+#### 기존 코드 수정 시:
+- [ ] **타입 분석**: 수정할 코드의 타입 구조 파악
+- [ ] **영향 범위 확인**: 타입 변경이 미치는 영향 TypeScript로 자동 검사
+- [ ] **타입 우선 수정**: 타입을 먼저 수정하고 구현 따라가기
+- [ ] **타입 호환성**: 하위 호환성 유지 또는 마이그레이션 경로 제공
+
+### 🛠️ 타입 우선 도구 활용
+
+```typescript
+// 유틸리티 타입 적극 활용
+type ReadonlyUser = Readonly<UserProfile>;
+type OptionalUser = Partial<UserProfile>;
+type RequiredUser = Required<UserProfile>;
+type UserKeys = keyof UserProfile;
+
+// 조건부 타입으로 복잡한 로직 표현
+type AsyncReturnType<T extends (...args: any[]) => Promise<any>> = 
+  T extends (...args: any[]) => Promise<infer R> ? R : never;
+
+// 제네릭으로 재사용성 극대화
+interface ApiResponse<T> {
+  data: T;
+  error: Error | null;
+  metadata: {
+    timestamp: Date;
+    requestId: string;
+  };
+}
+
+// 타입 가드로 런타임 안전성 확보
+function isUserProfile(obj: unknown): obj is UserProfile {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'id' in obj &&
+    'name' in obj &&
+    'email' in obj
+  );
+}
+```
+
+### 📁 타입 파일 구조
+
+```
+src/
+├── types/           # 공통 타입 정의
+│   ├── models/      # 데이터 모델 타입
+│   ├── api/         # API 요청/응답 타입
+│   ├── utils/       # 유틸리티 타입
+│   └── index.ts     # 타입 re-export
+├── interfaces/      # 인터페이스 정의
+│   ├── services/    # 서비스 레이어 인터페이스
+│   ├── components/  # 컴포넌트 Props 인터페이스
+│   └── index.ts     # 인터페이스 re-export
+```
+
+### ⚠️ 타입 우선 개발 주의사항
+
+1. **과도한 타입 복잡도 피하기**: 읽기 어려운 타입은 오히려 해가 됨
+2. **타입 추론 활용**: 명시적 타입이 항상 좋은 것은 아님
+3. **점진적 타입 강화**: 처음부터 완벽한 타입보다 점진적 개선
+4. **타입 중복 제거**: DRY 원칙은 타입에도 적용
+
+### 🎓 타입 우선 개발 실전 예제
+
+```typescript
+// ❌ 나쁜 예: 구현 먼저, 타입 나중
+function processData(data) {  // any 타입
+  if (data.type === 'user') {
+    return { ...data, processed: true };
+  }
+  // 타입 안전성 없음
+}
+
+// ✅ 좋은 예: 타입 먼저, 구현 나중
+// 1. 타입 정의
+type DataType = 'user' | 'product' | 'order';
+interface BaseData<T extends DataType> {
+  id: string;
+  type: T;
+  createdAt: Date;
+}
+
+interface UserData extends BaseData<'user'> {
+  username: string;
+  email: string;
+}
+
+interface ProcessedData<T extends BaseData<DataType>> {
+  original: T;
+  processed: true;
+  processedAt: Date;
+}
+
+// 2. 타입 기반 구현
+function processData<T extends BaseData<DataType>>(
+  data: T
+): ProcessedData<T> {
+  return {
+    original: data,
+    processed: true,
+    processedAt: new Date(),
+  };
+}
+
+// 3. 타입 안전한 사용
+const userData: UserData = {
+  id: '123',
+  type: 'user',
+  username: 'john',
+  email: 'john@example.com',
+  createdAt: new Date(),
+};
+
+const result = processData(userData);  // 타입 완벽 추론
+```
+
+### 🚀 타입 우선 마이그레이션 전략
+
+기존 코드를 타입 우선으로 전환할 때:
+
+```typescript
+// Phase 1: 현재 구조 타입화
+type LegacyUserData = {
+  [key: string]: unknown;  // 임시 느슨한 타입
+};
+
+// Phase 2: 점진적 타입 강화
+interface TransitionUserData {
+  id: string;
+  name?: string;  // 선택적으로 시작
+  [key: string]: unknown;  // 나머지 허용
+}
+
+// Phase 3: 완전한 타입 정의
+interface ModernUserData {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  // 모든 필드 명확히 정의
+}
+
+// Phase 4: 타입 가드와 검증
+function migrateUserData(
+  legacy: LegacyUserData
+): ModernUserData | null {
+  // 검증 로직과 마이그레이션
+  if (!isValidUserData(legacy)) return null;
+  return transformToModern(legacy);
+}
+```
+
 ## 🧪 테스트 시스템 (3단계 전략)
 
 ### 현재 테스트 구성
