@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Send,
   Loader2,
@@ -138,6 +138,38 @@ export default function ChatSection({
   const [showHistory, setShowHistory] = useState(false);
   const [duplicateAlert, setDuplicateAlert] = useState<string | null>(null);
   const [presets, setPresets] = useState<string[]>([]);
+  
+  // 스크롤 관리를 위한 ref와 상태
+  const contentEndRef = useRef<HTMLDivElement>(null);
+  const contentContainerRef = useRef<HTMLDivElement>(null);
+  const [isUserScrolled, setIsUserScrolled] = useState(false);
+
+  // 자동 스크롤 함수
+  const scrollToBottom = () => {
+    contentEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // 스크롤 위치 확인 함수
+  const isAtBottom = () => {
+    if (!contentContainerRef.current) return true;
+    const { scrollTop, scrollHeight, clientHeight } = contentContainerRef.current;
+    return scrollHeight - scrollTop - clientHeight < 50; // 50px 여유값
+  };
+
+  // 스크롤 이벤트 핸들러
+  const handleScroll = () => {
+    if (!contentContainerRef.current) return;
+    
+    const atBottom = isAtBottom();
+    setIsUserScrolled(!atBottom);
+  };
+
+  // 페이지 변경 시 자동 스크롤
+  useEffect(() => {
+    if (!isUserScrolled) {
+      scrollToBottom();
+    }
+  }, [currentPageIndex, qaPages, isUserScrolled]);
 
   // 동적 프리셋 질문 생성 (분리된 유틸 함수)
   const generateContextualQuestions = useCallback((metrics: unknown): string[] => {
@@ -218,6 +250,8 @@ export default function ChatSection({
 
     setInput('');
     setIsProcessing(true);
+    // 새 질문 시 자동 스크롤 모드로 전환
+    setIsUserScrolled(false);
 
     try {
       // AI 응답 시뮬레이션
@@ -329,7 +363,11 @@ export default function ChatSection({
       </AnimatePresence>
 
       {/* 메인 컨텐츠 */}
-      <div className="flex-1 overflow-hidden">
+      <div 
+        ref={contentContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-hidden"
+      >
         <AnimatePresence mode="wait">
           {showHistory ? (
             // 히스토리 뷰
@@ -375,6 +413,8 @@ export default function ChatSection({
                   </motion.button>
                 ))}
               </div>
+              {/* 스크롤 타겟 */}
+              <div ref={contentEndRef} />
             </motion.div>
           ) : currentPage ? (
             // 개별 Q&A 페이지
@@ -486,6 +526,8 @@ export default function ChatSection({
                   </div>
                 </div>
               </div>
+              {/* 스크롤 타겟 */}
+              <div ref={contentEndRef} />
             </motion.div>
           ) : (
             // 홈 화면 - 동적 프리셋 질문
@@ -528,6 +570,8 @@ export default function ChatSection({
                   💡 질문이 15초마다 서버 상태에 맞춰 업데이트됩니다
                 </div>
               </div>
+              {/* 스크롤 타겟 */}
+              <div ref={contentEndRef} />
             </motion.div>
           )}
         </AnimatePresence>

@@ -20,7 +20,7 @@ import {
   Sparkles,
   StopCircle,
 } from 'lucide-react';
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 // 타입 임포트
 import type { AutoReportTrigger, ChatMessage } from '../types/ai-sidebar-types';
@@ -76,9 +76,43 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
   canGoNext,
   className = '',
 }) => {
+  // 스크롤 관리를 위한 ref와 상태
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const [isUserScrolled, setIsUserScrolled] = useState(false);
+
+  // 자동 스크롤 함수
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // 스크롤 위치 확인 함수
+  const isAtBottom = () => {
+    if (!messagesContainerRef.current) return true;
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+    return scrollHeight - scrollTop - clientHeight < 50; // 50px 여유값
+  };
+
+  // 스크롤 이벤트 핸들러
+  const handleScroll = () => {
+    if (!messagesContainerRef.current) return;
+    
+    const atBottom = isAtBottom();
+    setIsUserScrolled(!atBottom);
+  };
+
+  // 새 메시지나 생성 상태 변경 시 자동 스크롤
+  useEffect(() => {
+    if (!isUserScrolled) {
+      scrollToBottom();
+    }
+  }, [chatMessages, isGenerating, isUserScrolled]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim() && !isGenerating) {
+      // 메시지 전송 시 자동 스크롤 모드로 전환
+      setIsUserScrolled(false);
       onSendMessage();
     }
   };
@@ -156,7 +190,11 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
       </AnimatePresence>
 
       {/* 메시지 영역 */}
-      <div className='flex-1 overflow-y-auto p-3 sm:p-4 space-y-4'>
+      <div 
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+        className='flex-1 overflow-y-auto p-3 sm:p-4 space-y-4'
+      >
         {chatMessages.length === 0 ? (
           <div className='flex items-center justify-center h-full'>
             <div className='text-center'>
@@ -213,6 +251,9 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
             )}
           </>
         )}
+        
+        {/* 스크롤 타겟 - 항상 메시지 맨 아래에 위치 */}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* 프리셋 질문 영역 */}
