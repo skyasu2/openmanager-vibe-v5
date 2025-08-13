@@ -261,7 +261,7 @@ export default function AuthSuccessPage() {
       }
     };
 
-    checkSessionAndRedirect();
+    void checkSessionAndRedirect();
     // performanceMetrics는 의도적으로 의존성에서 제외 (변경될 때마다 재실행 방지)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);

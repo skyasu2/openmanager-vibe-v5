@@ -161,7 +161,7 @@ export default function AuthCallbackPage() {
       }
     };
 
-    handleCallback();
+    void handleCallback();
   }, [router]);
 
   return (

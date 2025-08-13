@@ -30,12 +30,12 @@ if (typeof window === 'undefined') {
 if (typeof globalThis !== 'undefined') {
   // self 참조 오류 방지 (강화) - 최우선
   if (typeof globalThis.self === 'undefined') {
-    (globalThis as any).self = globalThis;
+    (globalThis as typeof globalThis & { self: typeof globalThis }).self = globalThis;
   }
 
   // window 참조 오류 방지 (서버 사이드)
   if (typeof globalThis.window === 'undefined') {
-    (globalThis as any).window = globalThis;
+    (globalThis as typeof globalThis & { window: typeof globalThis }).window = globalThis;
   }
 
   // document 참조 오류 방지 (서버 사이드)
@@ -63,7 +63,7 @@ if (typeof globalThis !== 'undefined') {
         removeEventListener: () => {},
         style: {},
       },
-    } as any;
+    } as Document;
   }
 
   // navigator 참조 오류 방지 (서버 사이드)
@@ -91,15 +91,15 @@ if (typeof globalThis !== 'undefined') {
       hostname: 'localhost',
       port: '',
       protocol: 'https:',
-    } as any;
+    } as Location;
   }
 }
 
 // 추가적인 global 객체에도 적용 (이중 안전장치)
 if (typeof window === 'undefined' && typeof global !== 'undefined') {
-  (global as any).self = global;
-  (global as any).window = global;
-  (global as any).document = {
+  (global as typeof global & { self: typeof global }).self = global;
+  (global as typeof global & { window: typeof global }).window = global;
+  (global as typeof global & { document: Partial<Document> }).document = {
     createElement: () => ({
       addEventListener: () => {},
       removeEventListener: () => {},
@@ -133,7 +133,7 @@ if (typeof window === 'undefined' && typeof global !== 'undefined') {
     enumerable: true,
     configurable: true,
   });
-  (global as any).location = {
+  (global as typeof global & { location: Location }).location = {
     href: '',
     origin: '',
     pathname: '',

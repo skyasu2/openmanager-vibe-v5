@@ -14,6 +14,7 @@ import {
 import type { MockDataRotator } from './mockDataRotator';
 import { getRotatorInstance } from './mockDataRotator';
 import type { Server } from '@/types/server';
+import { getCurrentServersData } from './fixedHourlyData';
 
 // 고정 시간별 데이터 타입 정의 (any 타입 제거)
 interface FixedHourlyData {
@@ -168,8 +169,7 @@ export function resetMockSystem() {
  */
 export function getMockServers(): Server[] {
   try {
-    // 고정 시간별 데이터 시스템에서 현재 서버 상태 가져오기 (동기 import)
-    const { getCurrentServersData } = require('./fixedHourlyData');
+    // 고정 시간별 데이터 시스템에서 현재 서버 상태 가져오기
     const hourlyServersData = getCurrentServersData();
     
     console.log('🕐 고정 시간별 데이터 로드:', {

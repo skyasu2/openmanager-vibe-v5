@@ -7,6 +7,8 @@
  * 사용자 요구사항: "24시간 데이터를 회전시키면서 30초마다 실제 시간이 흐르는 거처럼"
  */
 
+import { getCurrentSimulatedHour } from '../../mock/fixedHourlyData';
+
 export interface TimeRotationState {
   // 시뮬레이션 시간
   simulatedTime: Date;
@@ -187,7 +189,6 @@ export class TimeRotationService {
     
     try {
       // 고정 시간별 데이터에서 현재 시뮬레이션 시간 가져오기
-      const { getCurrentSimulatedHour } = require('../../mock/fixedHourlyData');
       const currentHour = getCurrentSimulatedHour();
       
       // 기본 시간 계산

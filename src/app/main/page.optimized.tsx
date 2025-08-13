@@ -84,7 +84,7 @@ export default function OptimizedMainPage() {
       }
     };
     
-    checkAuth();
+    void checkAuth();
     return cleanup;
   }, []);
 

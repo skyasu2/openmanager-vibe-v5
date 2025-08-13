@@ -129,10 +129,9 @@ export default tseslint.config(
       'no-console': 'off',
 
       // TypeScript
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/ban-ts-comment': 'off',
-      '@typescript-eslint/require-await': 'warn', // Downgrade from error to warn
       
       // TypeScript unsafe operations - temporarily set to warn for migration
       '@typescript-eslint/no-unsafe-member-access': 'warn',
@@ -169,12 +168,8 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-call': 'warn',
       '@typescript-eslint/no-unsafe-return': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
-      '@typescript-eslint/require-await': 'warn', // Ensure require-await is warn, not error
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-explicit-any': 'warn', // Downgrade from error to warn
-      '@typescript-eslint/no-floating-promises': 'warn', // Downgrade from error to warn
-      '@typescript-eslint/no-misused-promises': 'warn', // Downgrade from error to warn
-      '@typescript-eslint/no-redundant-type-constituents': 'warn', // Downgrade from error to warn
+      // Keep these as error (removed temporary downgrades)
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   },
 

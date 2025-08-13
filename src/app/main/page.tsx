@@ -150,7 +150,7 @@ export default function Home() {
       }
     };
 
-    checkAuth();
+    void checkAuth();
 
     // 인증 상태 변경 리스너
     authListener = onAuthStateChange(async (_session) => {
@@ -350,7 +350,7 @@ export default function Home() {
           debug.log('🚀 카운트다운 완료 - 로딩 페이지로 이동');
 
           // 백그라운드에서 시스템 시작 프로세스 실행 (비동기)
-          handleSystemStartBackground();
+          void handleSystemStartBackground();
 
           // 즉시 로딩 페이지로 이동
           router.push('/system-boot');

@@ -111,12 +111,12 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
         toast.success('실시간 서버 모니터링 활성화');
       };
 
-      wsRef.current.onmessage = event => {
+      wsRef.current.onmessage = (event: MessageEvent) => {
         try {
           const message: RealtimeMessage = JSON.parse(event.data);
 
           switch (message.type) {
-            case 'server_update':
+            case 'server_update': {
               // 서버 상태 업데이트
               const serverData = message.data as ServerData;
               queryClient.setQueryData(serverKeys.lists(), (old: unknown) => {
@@ -139,8 +139,9 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
                 );
               }
               break;
+            }
 
-            case 'system_update':
+            case 'system_update': {
               // 시스템 상태 업데이트
               const systemData = message.data as SystemData;
               queryClient.setQueryData(systemKeys.health(), (old: unknown) => {
@@ -148,6 +149,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
                 return oldSystem ? { ...oldSystem, ...systemData } : systemData;
               });
               break;
+            }
 
             case 'alert': {
               // 실시간 알림
@@ -180,7 +182,7 @@ export const useRealtimeServers = (config: WebSocketConfig = {}) => {
         }
       };
 
-      wsRef.current.onerror = error => {
+      wsRef.current.onerror = (error: Event) => {
         console.error('❌ WebSocket 오류:', error);
       };
 
@@ -302,7 +304,7 @@ export const useRealtimePredictions = () => {
       console.log('🔮 AI 예측 WebSocket 연결됨');
     };
 
-    wsRef.current.onmessage = event => {
+    wsRef.current.onmessage = (event: MessageEvent) => {
       try {
         const message: RealtimeMessage = JSON.parse(event.data);
 
@@ -326,7 +328,7 @@ export const useRealtimePredictions = () => {
       }
     };
 
-    wsRef.current.onerror = error => {
+    wsRef.current.onerror = (error: Event) => {
       console.error('❌ 예측 WebSocket 오류:', error);
     };
 

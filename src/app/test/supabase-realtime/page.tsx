@@ -261,8 +261,9 @@ export default function SupabaseRealtimeTestPage() {
         <CardContent>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">단계 제목</label>
+              <label htmlFor="step-title" className="text-sm font-medium">단계 제목</label>
               <Input
+                id="step-title"
                 value={stepText}
                 onChange={(e) => setStepText(e.target.value)}
                 placeholder="예: 데이터 검색 중..."
@@ -270,8 +271,9 @@ export default function SupabaseRealtimeTestPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">설명 (선택)</label>
+              <label htmlFor="step-description" className="text-sm font-medium">설명 (선택)</label>
               <Textarea
+                id="step-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="상세 설명..."
@@ -280,8 +282,9 @@ export default function SupabaseRealtimeTestPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">서비스</label>
+              <label htmlFor="step-service" className="text-sm font-medium">서비스</label>
               <Input
+                id="step-service"
                 value={service}
                 onChange={(e) => setService(e.target.value)}
                 placeholder="예: supabase-rag"

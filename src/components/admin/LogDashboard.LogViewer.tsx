@@ -83,10 +83,11 @@ export function LogDashboardLogViewer({ data, filters, updateFilters }: LogViewe
           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
             {/* 레벨 필터 */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label htmlFor="log-level-filter" className="mb-1 block text-sm font-medium text-gray-700">
                 레벨
               </label>
               <select
+                id="log-level-filter"
                 multiple
                 value={filters.selectedLevels}
                 onChange={(e) =>
@@ -109,10 +110,11 @@ export function LogDashboardLogViewer({ data, filters, updateFilters }: LogViewe
 
             {/* 카테고리 필터 */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label htmlFor="log-category-filter" className="mb-1 block text-sm font-medium text-gray-700">
                 카테고리
               </label>
               <select
+                id="log-category-filter"
                 multiple
                 value={filters.selectedCategories}
                 onChange={(e) =>
@@ -135,10 +137,11 @@ export function LogDashboardLogViewer({ data, filters, updateFilters }: LogViewe
 
             {/* 소스 필터 */}
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label htmlFor="log-source-filter" className="mb-1 block text-sm font-medium text-gray-700">
                 소스
               </label>
               <input
+                id="log-source-filter"
                 type="text"
                 placeholder="소스 이름..."
                 value={filters.selectedSource}

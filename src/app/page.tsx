@@ -44,7 +44,7 @@ export default function RootRedirect() {
       }
     };
 
-    checkAuthAndRedirect();
+    void checkAuthAndRedirect();
   }, [router]);
 
   // 리다이렉션 중 로딩 화면 표시

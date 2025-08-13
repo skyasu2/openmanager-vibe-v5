@@ -58,7 +58,7 @@ const postHandler = createApiRoute()
     };
 
     switch (syncType) {
-      case 'full':
+      case 'full': {
         debug.log('🔄 전체 컨텍스트 동기화 실행...');
         const rawSyncResult = await cloudContextLoader.syncContextWithRAG(ragEngineUrl);
         syncResult = {
@@ -67,6 +67,7 @@ const postHandler = createApiRoute()
           syncType: 'full' as const,
         };
         break;
+      }
 
       case 'mcp_only': {
         debug.log('🔗 MCP 서버 컨텍스트만 동기화...');
@@ -184,7 +185,7 @@ const postHandler = createApiRoute()
     }
 
     // 동기화 후 통합 상태 조회
-    const integratedStatus = await cloudContextLoader.getIntegratedStatus();
+    const _integratedStatus = await cloudContextLoader.getIntegratedStatus();
 
     debug.log(
       `✅ 동기화 완료: ${syncResult.syncedContexts}개 컨텍스트, ${syncResult.errors?.length || 0}개 오류`
