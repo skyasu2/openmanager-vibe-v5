@@ -14,6 +14,10 @@ import { AuthTokenHandler } from '@/components/auth/AuthTokenHandler';
 import { SystemBootstrap } from '@/components/system/SystemBootstrap';
 import { Toaster } from '@/components/ui/toaster';
 
+// Vercel Analytics & Speed Insights
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/react';
+
 // Keep-alive 스케줄러 초기화
 // keep-alive-scheduler 제거됨 (사용량 모니터링 간소화)
 // 인코딩 자동 설정
@@ -30,12 +34,14 @@ if (typeof window === 'undefined') {
 if (typeof globalThis !== 'undefined') {
   // self 참조 오류 방지 (강화) - 최우선
   if (typeof globalThis.self === 'undefined') {
-    (globalThis as typeof globalThis & { self: typeof globalThis }).self = globalThis;
+    (globalThis as typeof globalThis & { self: typeof globalThis }).self =
+      globalThis;
   }
 
   // window 참조 오류 방지 (서버 사이드)
   if (typeof globalThis.window === 'undefined') {
-    (globalThis as typeof globalThis & { window: typeof globalThis }).window = globalThis;
+    (globalThis as typeof globalThis & { window: typeof globalThis }).window =
+      globalThis;
   }
 
   // document 참조 오류 방지 (서버 사이드)
@@ -176,6 +182,8 @@ export default function RootLayout({
           <Toaster />
           {children}
         </ClientProviders>
+        <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );

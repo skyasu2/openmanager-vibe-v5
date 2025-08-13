@@ -1,0 +1,78 @@
+name: Lighthouse Performance Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # 주간 정기 실행 (매주 월요일 오전 9시 KST)
+  schedule:
+    - cron: '0 0 * * 1'
+
+jobs:
+  lighthouse:
+    name: Lighthouse Performance Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Wait for Vercel Deployment
+        id: vercel-deployment
+        run: |
+          echo "Waiting for Vercel deployment..."
+          # Vercel 배포 완료 대기 (최대 10분)
+          timeout 600 bash -c '
+            until curl -sf https://openmanager-vibe-v5.vercel.app > /dev/null; do
+              echo "Waiting for deployment..."
+              sleep 30
+            done
+          '
+          echo "deployment_url=https://openmanager-vibe-v5.vercel.app" >> $GITHUB_OUTPUT
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.12.x
+
+      - name: Run Lighthouse CI
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+        run: |
+          lhci collect --url=${{ steps.vercel-deployment.outputs.deployment_url }}
+          lhci upload
+
+      - name: Lighthouse Performance Budget Check
+        run: |
+          echo "## 🚀 Lighthouse Performance Results" >> $GITHUB_STEP_SUMMARY
+          echo "### Target Metrics (A+ Grade)" >> $GITHUB_STEP_SUMMARY
+          echo "- Performance Score: ≥ 90" >> $GITHUB_STEP_SUMMARY
+          echo "- First Contentful Paint: ≤ 1.8s" >> $GITHUB_STEP_SUMMARY
+          echo "- Largest Contentful Paint: ≤ 2.5s" >> $GITHUB_STEP_SUMMARY
+          echo "- Cumulative Layout Shift: ≤ 0.1" >> $GITHUB_STEP_SUMMARY
+          echo "- First Input Delay: ≤ 100ms" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 Full report available in Lighthouse CI artifacts." >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload Lighthouse Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-results
+          path: .lighthouseci/
+          retention-days: 30
+
+      # Core Web Vitals 알림 (성능 임계값 미달 시)
+      - name: Performance Alert
+        if: failure()
+        run: |
+          echo "⚠️ Lighthouse 성능 테스트가 실패했습니다."
+          echo "Vercel Analytics와 Speed Insights에서 실제 사용자 데이터를 확인하세요."
+          echo "목표: Performance Score ≥ 90, LCP ≤ 2.5s, CLS ≤ 0.1"

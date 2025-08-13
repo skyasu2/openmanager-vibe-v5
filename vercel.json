@@ -47,6 +47,60 @@
       ]
     },
     {
+      "source": "/api/health",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=60, stale-while-revalidate=300"
+        }
+      ]
+    },
+    {
+      "source": "/api/cache/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=1800, stale-while-revalidate=3600"
+        }
+      ]
+    },
+    {
+      "source": "/api/ai/edge-v2",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=300, stale-while-revalidate=600"
+        }
+      ]
+    },
+    {
+      "source": "/api/version/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=600, stale-while-revalidate=1200"
+        }
+      ]
+    },
+    {
+      "source": "/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/_next/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {
@@ -124,23 +178,40 @@
   ],
   "functions": {
     "app/api/mcp/route.ts": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "regions": ["icn1"]
     },
     "app/api/ai/query/route.ts": {
       "maxDuration": 25,
-      "memory": 1024
+      "memory": 1024,
+      "regions": ["icn1"]
     },
     "app/api/ai/edge-v2/route.ts": {
       "maxDuration": 20,
-      "memory": 512
+      "memory": 512,
+      "regions": ["icn1"]
     },
     "app/api/ai/google-ai/generate/route.ts": {
       "maxDuration": 15,
-      "memory": 256
+      "memory": 256,
+      "regions": ["icn1"]
     },
     "app/api/servers/route.ts": {
       "maxDuration": 10,
-      "memory": 256
+      "memory": 256,
+      "regions": ["icn1"]
+    },
+    "app/api/health/route.ts": {
+      "maxDuration": 5,
+      "regions": ["icn1"]
+    },
+    "app/api/cache/*/route.ts": {
+      "maxDuration": 10,
+      "regions": ["icn1"]
+    },
+    "app/api/version/*/route.ts": {
+      "maxDuration": 5,
+      "regions": ["icn1"]
     }
   }
 }
