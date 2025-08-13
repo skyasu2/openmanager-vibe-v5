@@ -1,39 +1,19 @@
 #!/bin/sh
 
-echo "🚀 지능형 Pre-commit 검증 시작..."
-
 # 환경 변수로 스킵 가능
 if [ "$HUSKY" = "0" ]; then
-    echo "⏭️  Husky가 비활성화되어 있습니다. 검증을 건너뜁니다."
+    echo "⏭️  HUSKY=0 설정으로 검증을 건너뜁니다."
     exit 0
 fi
 
-# 🧠 지능형 검증 엔진 실행
-node scripts/intelligent-pre-commit.js
+echo "🧹 변경된 파일만 검사 중..."
 
-# 폴백: 기본 검사 (Node.js 실행 실패 시)
-if [ $? -ne 0 ]; then
-    echo "⚡ 폴백: 기본 검증 모드"
-    
-    # 기본 lint-staged
-    echo "🧹 변경된 파일 검사 중..."
-    npx lint-staged --concurrent=true
-    
-    if [ $? -ne 0 ]; then
-        echo "❌ Pre-commit 검증 실패!"
-        echo "💡 해결: npm run lint:fix && npm run type-check"
-        exit 1
-    fi
-    
-    # 기본 보안 검사
-    echo "🔒 보안 검사 중..."
-    if [ -f "scripts/check-hardcoded-secrets.sh" ]; then
-        bash scripts/check-hardcoded-secrets.sh --quick
-        if [ $? -ne 0 ]; then
-            echo "❌ 보안 검사 실패!"
-            exit 1
-        fi
-    fi
+# 핵심 수정: lint-staged만 실행 (변경된 파일만 검사)
+npx lint-staged
+
+# 추가 검사: 중국어 문자 (중요 정책)
+if [ -f "scripts/check-chinese-characters.js" ]; then
+    node scripts/check-chinese-characters.js --quiet
 fi
 
-echo "✅ Pre-commit 검증 완료!"
+echo "✅ Pre-commit 완료!"

@@ -24,7 +24,7 @@ module.exports = {
 
     // 필터링된 파일들에 대해서만 ESLint와 Prettier 실행 (성능 최적화)
     return [
-      `eslint --config .eslintrc.performance.json --no-eslintrc --cache --cache-location .next/cache/eslint/ --fix --max-warnings 20 ${filteredFiles.join(' ')}`,
+      `eslint --cache --cache-location .next/cache/eslint/ --fix --max-warnings 20 ${filteredFiles.join(' ')}`,
       `prettier --write ${filteredFiles.join(' ')}`,
     ];
   },
