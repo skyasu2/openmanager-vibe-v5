@@ -118,7 +118,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         '🌊 Windsurf: 차세대 AI 코드 에디터, Flow 모드로 자연스러운 개발 경험 제공',
         '☁️ AWS Kiro: AWS 전용 AI 코딩 어시스턴트, 클라우드 리소스 자동 관리',
         '💡 Gemini CLI: 1M 토큰 컨텍스트로 전체 코드베이스 분석 (일 1,000회 무료)',
-        '🧠 Qwen CLI: 오픈소스 무료, 480B MoE 모델, 256K-1M 토큰 초대형 컨텍스트 (무제한 사용)',
+        '🧠 Qwen CLI: 오픈소스 무료, 480B MoE 모델, 256K-1M 토큰 초대형 컨텍스트 (2,000회/일, 60회/분)',
         '🔧 실제 성과: TypeScript 에러 302→0개, ESLint 문제 475→400개 감소',
         '📊 17개 서브에이전트: code-review, test-automation, debugger 등으로 품질 자동 관리',
       ],

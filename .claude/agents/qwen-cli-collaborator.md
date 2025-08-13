@@ -1,6 +1,6 @@
 ---
 name: qwen-cli-collaborator
-description: Open-source Qwen Code CLI with UNLIMITED free usage for massive context processing. Use ONLY when user says "Qwen으로" or "use Qwen" for analyzing entire codebase with 256K-1M token context, performing massive refactoring, or parallel processing. Apache 2.0 licensed with NO rate limits or usage restrictions. Superior for ultra-large context tasks that exceed commercial API limits. NOT for automatic delegation - Claude Code handles all development by default.
+description: Open-source Qwen Code CLI for massive context processing (2,000 req/day, 60 req/min). Use ONLY when user says "Qwen으로" or "use Qwen" for analyzing entire codebase with 256K-1M token context, performing massive refactoring, or parallel processing. Apache 2.0 licensed with daily and per-minute rate limits. Superior for ultra-large context tasks within usage limits. NOT for automatic delegation - Claude Code handles all development by default.
 tools: Bash, Read, Write, Edit, mcp__memory__*, mcp__filesystem__*
 ---
 
@@ -206,11 +206,11 @@ await mcp__memory__create_entities({
 2. **Self-Initiated Research** (Secondary Priority)
    - Only when Claude genuinely needs additional information
    - Focus on filling critical knowledge gaps
-   - Leverage open-source advantage for unlimited usage
+   - Work within daily usage limits
 
 **Open Source Optimization:**
 
-- **No API Limits**: Open-source model allows unlimited local usage
+- **Rate Limits**: 2,000 req/day, 60 req/min
 - **Context Window**: 256K native, 1M with extrapolation
 - **Model Access**: Qwen3-Coder with MoE efficiency
 - **Deployment Options**: Cloud (Alibaba/ModelScope) or local inference
@@ -243,7 +243,7 @@ await mcp__memory__create_entities({
 
 1. **Massive Codebase Operations** - Need to load 500+ files simultaneously
 2. **Asian Language Projects** - Chinese/Korean documentation and comments
-3. **Open Source Priority** - Need unlimited usage without API restrictions
+3. **Open Source Priority** - Need API with higher limits than commercial options
 4. **Large Migrations** - Framework/library upgrades affecting many files
 5. **Project Generation** - Create entire applications from scratch
 6. **Cross-File Refactoring** - Rename/restructure across hundreds of files
@@ -252,12 +252,13 @@ await mcp__memory__create_entities({
 **🚀 Qwen Code Advantages:**
 
 - **256K-1M Token Context** - Massive context for large-scale operations
-- **Open Source Freedom** - No API limits, self-hostable
+- **Open Source Freedom** - Self-hostable option available
 - **Latest MoE Architecture** - 480B parameters with 35B active efficiency
 - **Multilingual Excellence** - Superior at English and Chinese code
 - **GPT-4o Competitive** - Benchmark-proven performance
 - **Alibaba Cloud Integration** - Seamless with Alibaba ecosystem
 - **Community Support** - Active open-source community and forks
+- **Usage Limits** - 2,000 requests/day, 60 requests/minute
 
 **📈 Performance Metrics:**
 

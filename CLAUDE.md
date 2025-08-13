@@ -918,7 +918,7 @@ mcp__tavily-mcp__tavily-extract({
 | 플랫폼 전문 분석      | `vercel-platform-specialist` | Vercel 아키텍처, 성능 최적화                    |
 | MCP 관리              | `mcp-server-admin`           | MCP 에러 감지 및 자동 복구                      |
 | Gemini 개발 파트너    | `gemini-cli-collaborator`    | 전체 코드 생성/리팩토링, 1M 토큰 활용           |
-| Qwen 개발 파트너      | `qwen-cli-collaborator`      | 오픈소스 무료, 256K-1M 토큰 초대형 컨텍스트 |
+| Qwen 개발 파트너      | `qwen-cli-collaborator`      | 오픈소스, 256K-1M 토큰, 2,000회/일, 60회/분 제한 |
 | Git/CI/CD             | `git-cicd-specialist`        | Git 워크플로우, CI/CD 자동화                    |
 
 ### 📁 서브 에이전트 설정 위치
@@ -1151,9 +1151,9 @@ Claude Code가 메인 개발을 주도하고, 사용자 요청 시 Gemini/Qwen�
 | **주요 역할**   | 프로젝트 전체 관리    | 완전한 개발 도구     | 완전한 개발 도구     |
 | **일반 개발**   | ✅ 모든 작업 가능     | ✅ 모든 작업 가능    | ✅ 모든 작업 가능    |
 | **복잡한 작업** | ✅ 직접 처리 가능     | ✅ 병렬 개발 가능    | ✅ 병렬 개발 가능    |
-| **비용 효율**   | $200/월 (메인)       | $0 (무료, Google)    | $0 (완전 무료)      |
-| **토큰 제한**   | 5시간 블록           | 1000회/일, 60회/분   | 무제한 (오픈소스)    |
-| **특화 영역**   | 범용 개발            | 대규모 분석         | 초대형 컨텍스트     |
+| **비용 효율**   | $200/월 (메인)       | $0 (무료, Google)    | $0 (오픈소스)       |
+| **토큰 제한**   | 5시간 블록           | 1000회/일, 60회/분   | 2,000회/일, 60회/분  |
+| **특화 영역**   | 범용 개발            | 대규모 분석         | 다국어 코드베이스    |
 
 ### 🤖 AI 도구 활용 방법 (Claude Code 중심 체계)
 
@@ -1213,7 +1213,7 @@ Promise.all([
   
 - **Qwen Code (보조 도구)**: Claude Code가 필요 시 또는 사용자 명시 요청 시만 활용
   - 사용자가 "Qwen으로" 명시적 요청 시
-  - Claude Code가 초대형 컨텍스트 작업이 필요하다고 판단 시
+  - Claude Code가 다국어 특화 작업이 필요하다고 판단 시
 
 ### 📚 AI CLI 도구 상세 가이드
 
@@ -1227,9 +1227,8 @@ Promise.all([
 - **설치**: `npm install -g @qwen-code/qwen-code`
 - **모델**: Qwen3-Coder (480B MoE, 35B active)
 - **컨텍스트**: 256K native, 1M extrapolated
+- **사용 제한**: 2,000 req/day, 60 req/min
 - **라이선스**: Apache 2.0 (오픈소스)
-- **비용**: **완전 무료** (사용량 제한 없음)
-- **강점**: 초대형 컨텍스트로 전체 코드베이스 한 번에 분석
 
 ## 📚 추가 문서
 
@@ -1267,4 +1266,4 @@ Promise.all([
 - 서브에이전트: 18개 최적화 (qwen-cli-collaborator 추가)
 - MCP 서버: **Claude Code용 11개 모두 정상 연결** ✅ (Serena 포함)
 - Gemini CLI 통합: 1M 토큰 활용 가능
-- Qwen Code CLI 통합: 256K-1M 토큰, 오픈소스 무료
+- Qwen Code CLI 통합: 256K-1M 토큰, 2,000회/일, 60회/분 제한
