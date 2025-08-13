@@ -918,7 +918,7 @@ mcp__tavily-mcp__tavily-extract({
 | 플랫폼 전문 분석      | `vercel-platform-specialist` | Vercel 아키텍처, 성능 최적화                    |
 | MCP 관리              | `mcp-server-admin`           | MCP 에러 감지 및 자동 복구                      |
 | Gemini 개발 파트너    | `gemini-cli-collaborator`    | 전체 코드 생성/리팩토링, 1M 토큰 활용           |
-| Qwen 개발 파트너      | `qwen-cli-collaborator`      | 오픈소스, 256K-1M 토큰, 2,000회/일, 60회/분 제한 |
+| Qwen 개발 파트너      | `qwen-cli-collaborator`      | 병렬 협업, 제3의 시선, 256K-1M 토큰, 2,000회/일 |
 | Git/CI/CD             | `git-cicd-specialist`        | Git 워크플로우, CI/CD 자동화                    |
 
 ### 📁 서브 에이전트 설정 위치
@@ -1139,9 +1139,11 @@ Error: File has not been read yet. Read it first before writing to it
 
 상세 설정: [`/docs/environment-variables-guide.md`](/docs/environment-variables-guide.md)
 
-## 💰 Claude + Gemini + Qwen AI 협업 전략
+## 🤝 Claude + Gemini + Qwen AI 협업 전략
 
-Claude Code가 메인 개발을 주도하고, 사용자 요청 시 Gemini/Qwen을 병렬 활용하는 2-way 보조 협업 체계:
+**핵심 목적**: 비용 감소 + 협업을 통한 빠른 개발 + 서로가 서로를 보완
+
+Claude Code가 메인 개발을 주도하고, 필요시 Gemini/Qwen을 병렬 협업 도구로 활용하는 보완 체계:
 
 | 작업 접근법     | Claude Code (메인)   | Gemini CLI (요청 시) | Qwen Code (요청 시)  |
 | -------------- | -------------------- | ------------------- | ------------------- |
@@ -1153,7 +1155,7 @@ Claude Code가 메인 개발을 주도하고, 사용자 요청 시 Gemini/Qwen�
 | **복잡한 작업** | ✅ 직접 처리 가능     | ✅ 병렬 개발 가능    | ✅ 병렬 개발 가능    |
 | **비용 효율**   | $200/월 (메인)       | $0 (무료, Google)    | $0 (오픈소스)       |
 | **토큰 제한**   | 5시간 블록           | 1000회/일, 60회/분   | 2,000회/일, 60회/분  |
-| **특화 영역**   | 범용 개발            | 대규모 분석         | 다국어 코드베이스    |
+| **특화 영역**   | 범용 개발            | 병렬 협업/제3의 시선 | 병렬 협업/제3의 시선 |
 
 ### 🤖 AI 도구 활용 방법 (Claude Code 중심 체계)
 
@@ -1166,14 +1168,14 @@ Claude Code가 메인 개발을 주도하고, 사용자 요청 시 Gemini/Qwen�
 # - 서브에이전트들을 필요시 지시하여 활용
 ```
 
-#### 2. Claude Code 판단에 의한 Gemini/Qwen 활용
+#### 2. Claude Code 판단에 의한 보완 협업
 
 ```typescript
-// Claude Code가 제3자 시선이 필요하다고 판단할 때
+// Claude Code가 병렬 작업 및 제3의 시선으로 보완이 필요하다고 판단할 때
 await Task({
-  subagent_type: 'gemini-cli-collaborator',
-  description: 'Claude Code 요청: 구현 검증',
-  prompt: 'Claude Code가 구현한 코드의 품질 및 아키텍처 개선점 제안'
+  subagent_type: 'gemini-cli-collaborator',  // 또는 'qwen-cli-collaborator'
+  description: '병렬 협업: 아키텍처 검증',
+  prompt: '현재 구현의 잠재적 문제점과 개선 방안을 독립적 관점에서 분석'
 });
 ```
 
@@ -1194,8 +1196,8 @@ Promise.all([
 # 사용자: "Gemini로 전체 코드베이스 리팩토링 해줘"
 # → Claude Code가 gemini-cli-collaborator 지시 및 결과 검토
 
-# 사용자: "Qwen으로 중국어 주석을 영어로 변환해줘"
-# → Claude Code가 qwen-cli-collaborator 지시 및 결과 통합
+# 사용자: "Qwen으로 이 아키텍처 개선점 찾아줘"
+# → Claude Code가 qwen-cli-collaborator 지시하여 제3의 시선 확보
 
 # 사용자: "3개 AI 모두 활용해서 성능 개선해줘"
 # → Claude Code가 전체 조율하에 Gemini, Qwen 병렬 실행 및 통합
@@ -1209,11 +1211,11 @@ Promise.all([
   
 - **Gemini CLI (보조 도구)**: Claude Code가 필요 시 또는 사용자 명시 요청 시만 활용
   - 사용자가 "Gemini로" 명시적 요청 시
-  - Claude Code가 제3자 시선/대규모 분석이 필요하다고 판단 시
+  - Claude Code가 병렬 작업 및 제3의 시선으로 보완 협업이 필요하다고 판단 시
   
 - **Qwen Code (보조 도구)**: Claude Code가 필요 시 또는 사용자 명시 요청 시만 활용
   - 사용자가 "Qwen으로" 명시적 요청 시
-  - Claude Code가 다국어 특화 작업이 필요하다고 판단 시
+  - Claude Code가 병렬 작업 및 제3의 시선으로 보완 협업이 필요하다고 판단 시
 
 ### 📚 AI CLI 도구 상세 가이드
 
