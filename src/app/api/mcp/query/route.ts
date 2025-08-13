@@ -7,27 +7,18 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-// 임시 비활성화: 빌드 에러 해결 후 재활성화 예정
-// import { getSimplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
+import type { QueryRequest, QueryResponse } from '@/services/ai/SimplifiedQueryEngine';
+
+// 동적 import로 빌드 시점 초기화 방지
+async function getQueryEngine() {
+  const { getSimplifiedQueryEngine } = await import('@/services/ai/SimplifiedQueryEngine');
+  return getSimplifiedQueryEngine();
+}
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
 
-// 임시 fallback: 빌드 에러 해결 후 실제 구현으로 복원 예정
-async function createMCPFallbackResponse(query: string): Promise<any> {
-  return {
-    success: true,
-    response: `MCP 시스템이 현재 유지보수 중입니다. "${query}" 요청에 대한 처리를 준비 중입니다.`,
-    confidence: 0.8,
-    engine: 'mcp-maintenance-fallback',
-    thinkingSteps: [],
-    metadata: {
-      maintenanceMode: true,
-      context: 'ai-sidebar',
-    },
-  };
-}
 
 interface MCPQueryRequest {
   query: string;
@@ -56,8 +47,21 @@ export async function POST(request: NextRequest) {
 
     const startTime = Date.now();
 
-    // 임시 fallback 응답
-    const result = await createMCPFallbackResponse(query);
+    // SimplifiedQueryEngine을 사용한 실제 쿼리 처리
+    const engine = await getQueryEngine();
+    
+    const queryRequest: QueryRequest = {
+      query,
+      mode: 'local',
+      options: {
+        temperature: 0.7,
+        maxTokens: 1000,
+        includeThinking,
+        category: context,
+      },
+    };
+
+    const result: QueryResponse = await engine.query(queryRequest);
 
     const responseTime = Date.now() - startTime;
 

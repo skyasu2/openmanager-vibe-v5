@@ -97,18 +97,23 @@
     "SERVERLESS_FUNCTION_TIMEOUT": "8",
     "MEMORY_LIMIT_MB": "40",
     "DISABLE_BACKGROUND_JOBS": "true",
-    "ENABLE_QUOTA_PROTECTION": "true"
+    "ENABLE_QUOTA_PROTECTION": "true",
+    "VERCEL_ANALYTICS_ENABLED": "true",
+    "SPEED_INSIGHTS_ENABLED": "true",
+    "CDN_CACHE_HIT_RATE_TARGET": "95",
+    "API_RESPONSE_TIME_TARGET": "100"
   },
   "build": {
     "env": {
       "NODE_ENV": "production",
       "NODE_OPTIONS": "--max-old-space-size=4096",
-      "SKIP_ENV_VALIDATION": "true",
+      "SKIP_ENV_VALIDATION": "false",
       "ESLINT_NO_DEV_ERRORS": "true",
       "BUILD_TIME_OPTIMIZATION": "true",
       "SKIP_SUPABASE_CONNECTION_CHECK": "true",
       "DISABLE_HEALTH_CHECK": "true",
-      "HEALTH_CHECK_CONTEXT": "false"
+      "HEALTH_CHECK_CONTEXT": "false",
+      "VALIDATE_ENV_ON_BUILD": "true"
     }
   },
   "crons": [
@@ -120,6 +125,22 @@
   "functions": {
     "app/api/mcp/route.ts": {
       "maxDuration": 30
+    },
+    "app/api/ai/query/route.ts": {
+      "maxDuration": 25,
+      "memory": 1024
+    },
+    "app/api/ai/edge-v2/route.ts": {
+      "maxDuration": 20,
+      "memory": 512
+    },
+    "app/api/ai/google-ai/generate/route.ts": {
+      "maxDuration": 15,
+      "memory": 256
+    },
+    "app/api/servers/route.ts": {
+      "maxDuration": 10,
+      "memory": 256
     }
   }
 }

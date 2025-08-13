@@ -141,7 +141,7 @@ export function getServerStatistics() {
     const info = getServerInfo(serverId);
     if (info) {
       // 타입별 통계
-      stats.byType[info.type as keyof typeof stats.byType]++;
+      stats.byType[info.type]++;
 
       // OS별 통계
       const osType = info.os.split(' ')[0]; // 첫 단어만 추출

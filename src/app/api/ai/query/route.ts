@@ -10,9 +10,13 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-// 임시 비활성화: 빌드 에러 해결 후 재활성화 예정
-// import { getSimplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
-// import type { QueryRequest, QueryResponse } from '@/services/ai/SimplifiedQueryEngine';
+import type { QueryRequest, QueryResponse } from '@/services/ai/SimplifiedQueryEngine';
+
+// 동적 import로 빌드 시점 초기화 방지
+async function getQueryEngine() {
+  const { getSimplifiedQueryEngine } = await import('@/services/ai/SimplifiedQueryEngine');
+  return getSimplifiedQueryEngine();
+}
 import { withAuth } from '@/lib/api-auth';
 import { getCachedData, setCachedData } from '@/lib/cache-helper';
 import { supabase } from '@/lib/supabase/supabase-client';
@@ -21,20 +25,6 @@ import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
 
-// 임시 fallback: 빌드 에러 해결 후 실제 구현으로 복원 예정
-async function createFallbackResponse(query: string): Promise<any> {
-  return {
-    success: true,
-    response: `AI 쿼리 시스템이 현재 유지보수 중입니다. 요청하신 "${query}"에 대한 답변을 준비 중입니다. 잠시 후 다시 시도해주세요.`,
-    confidence: 0.8,
-    engine: 'maintenance-fallback',
-    processingTime: 50 + Math.random() * 50,
-    metadata: {
-      maintenanceMode: true,
-      cacheHit: false,
-    },
-  };
-}
 
 interface AIQueryRequest {
   query: string;
@@ -46,8 +36,6 @@ interface AIQueryRequest {
   timeoutMs?: number;
 }
 
-// 임시 타입 정의
-type QueryRequest = any;
 
 // 캐시 키 생성 함수
 function generateCacheKey(query: string, context: string): string {
@@ -144,13 +132,13 @@ async function postHandler(request: NextRequest) {
 
     // 캐시 키 생성 및 캐시 확인
     const cacheKey = generateCacheKey(query, context);
-    const cachedResponse = getCachedData(cacheKey);
+    const cachedResponse = getCachedData<QueryResponse>(cacheKey);
 
     let result: QueryResponse;
     let cacheHit = false;
     let responseTime: number;
 
-    if (cachedResponse) {
+    if (cachedResponse && cachedResponse.success !== undefined) {
       // 캐시된 응답 사용
       result = cachedResponse;
       cacheHit = true;
@@ -186,9 +174,10 @@ async function postHandler(request: NextRequest) {
         enableVMBackend: true,  // 두 모드 모두 VM 백엔드 활성화
       };
 
-      // 임시 fallback 응답
-      result = await createFallbackResponse(query);
-      responseTime = result.processingTime;
+      // SimplifiedQueryEngine을 사용한 실제 쿼리 처리
+      const engine = await getQueryEngine();
+      result = await engine.query(queryRequest);
+      responseTime = result.processingTime || (Date.now() - startTime);
 
       // 성공한 응답만 캐시에 저장 (5분 TTL)
       if (result.success) {

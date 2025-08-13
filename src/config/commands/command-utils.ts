@@ -235,16 +235,17 @@ export function detectOSType(osString: string): 'linux' | 'windows' | 'unknown' 
 export function parseCommandOutput(
   output: string,
   format: 'json' | 'table' | 'raw' = 'raw'
-): any {
+): unknown {
   switch (format) {
-    case 'json':
+    case 'json': {
       try {
         return JSON.parse(output);
       } catch {
         return { error: 'Failed to parse JSON', raw: output };
       }
+    }
 
-    case 'table':
+    case 'table': {
       // 테이블 형식 파싱 (간단한 버전)
       const lines = output.split('\n').filter((line) => line.trim());
       if (lines.length < 2) return [];
@@ -258,6 +259,7 @@ export function parseCommandOutput(
         });
         return row;
       });
+    }
 
     case 'raw':
     default:
