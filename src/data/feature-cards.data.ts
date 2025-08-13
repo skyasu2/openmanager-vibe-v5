@@ -111,13 +111,14 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {
-      overview: `v5.66.30 - Claude Code가 현재 메인 개발 도구! 11개 MCP 서버로 완벽한 자동화를 구현하며, Cursor AI, Windsurf, AWS Kiro 등 다양한 AI 도구들과 협업하여 개발 속도 10배 향상을 달성했습니다.`,
+      overview: `v5.66.30 - Claude Code가 현재 메인 개발 도구! 11개 MCP 서버로 완벽한 자동화를 구현하며, Cursor AI, Windsurf, AWS Kiro, Qwen CLI 등 다양한 AI 도구들과 협업하여 개발 속도 10배 향상을 달성했습니다.`,
       features: [
         '🤖 Claude Code (현재 메인): 11개 MCP 서버로 파일, Git, DB 등 모든 개발 작업 자동화',
         '🚀 Cursor AI: 자동 오류 감지/수정, 백그라운드 에이전트, Composer로 멀티파일 동시 생성',
         '🌊 Windsurf: 차세대 AI 코드 에디터, Flow 모드로 자연스러운 개발 경험 제공',
         '☁️ AWS Kiro: AWS 전용 AI 코딩 어시스턴트, 클라우드 리소스 자동 관리',
         '💡 Gemini CLI: 1M 토큰 컨텍스트로 전체 코드베이스 분석 (일 1,000회 무료)',
+        '🧠 Qwen CLI: 오픈소스 480B MoE 모델, 256K-1M 토큰으로 다국어 코드베이스 특화',
         '🔧 실제 성과: TypeScript 에러 302→0개, ESLint 문제 475→400개 감소',
         '📊 17개 서브에이전트: code-review, test-automation, debugger 등으로 품질 자동 관리',
       ],
@@ -128,6 +129,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         'Windsurf',
         'AWS Kiro',
         'Gemini CLI',
+        'Qwen CLI',
         'Git + GitHub 자동화',
       ],
     },
