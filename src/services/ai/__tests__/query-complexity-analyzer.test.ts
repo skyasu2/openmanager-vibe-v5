@@ -248,7 +248,7 @@ describe('QueryComplexityAnalyzer', () => {
 
     it('should handle queries with multiple languages', () => {
       const result = QueryComplexityAnalyzer.analyze(
-        '为什么 serverの 성능が lowですか?'
+        'Why serverの 성능が lowですか?'  // Chinese replaced with English
       );
       
       expect(result.factors.language).toBeGreaterThan(50);
