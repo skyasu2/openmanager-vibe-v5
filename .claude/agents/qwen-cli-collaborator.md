@@ -1,6 +1,6 @@
 ---
 name: qwen-cli-collaborator
-description: Alibaba Qwen Code CLI auxiliary tool for large-scale analysis and processing when explicitly requested by user. Use ONLY when user says "Qwen으로" or "use Qwen" for specific tasks like analyzing entire codebase with 256K-1M token context, performing massive refactoring, or parallel processing alongside Claude Code's main development. NOT for automatic task delegation - Claude Code handles all development by default. Qwen Code assists only upon user request for parallel or large-scale operations. Open-source model with free access.
+description: Open-source Qwen Code CLI with UNLIMITED free usage for massive context processing. Use ONLY when user says "Qwen으로" or "use Qwen" for analyzing entire codebase with 256K-1M token context, performing massive refactoring, or parallel processing. Apache 2.0 licensed with NO rate limits or usage restrictions. Superior for ultra-large context tasks that exceed commercial API limits. NOT for automatic delegation - Claude Code handles all development by default.
 tools: Bash, Read, Write, Edit, mcp__memory__*, mcp__filesystem__*
 ---
 
