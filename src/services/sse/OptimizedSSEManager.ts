@@ -15,6 +15,7 @@
 
 import { ServerlessSSEConnectionPool } from './SSEConnectionPool';
 import { SSEHealthMonitor } from './SSEHealthMonitor';
+import { isNotNullOrUndefined } from '@/types/type-utils';
 
 export interface SSEManagerConfig {
   baseUrl?: string;
@@ -212,7 +213,10 @@ export class OptimizedSSEManager {
     if (!this.eventListeners.has(eventType)) {
       this.eventListeners.set(eventType, []);
     }
-    this.eventListeners.get(eventType).push(listener as EventListener);
+    const listeners = this.eventListeners.get(eventType);
+    if (isNotNullOrUndefined(listeners)) {
+      listeners.push(listener as EventListener);
+    }
   }
 
   /**
@@ -299,7 +303,9 @@ export class OptimizedSSEManager {
       this.eventListeners.set(connection.channel, []);
     }
     const channelListeners = this.eventListeners.get(connection.channel);
-    channelListeners.push(onOpen, onMessage, onError);
+    if (isNotNullOrUndefined(channelListeners)) {
+      channelListeners.push(onOpen, onMessage, onError);
+    }
   }
 
   /**

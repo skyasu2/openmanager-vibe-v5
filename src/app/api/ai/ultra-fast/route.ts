@@ -13,6 +13,7 @@ import { getUltraFastAIRouter } from '@/services/ai/ultrafast-ai-router';
 import { getPerformanceMetricsEngine, withPerformanceTracking } from '@/services/ai/performance-metrics-engine';
 import { createCachedResponse } from '@/lib/unified-cache';
 import { aiLogger } from '@/lib/logger';
+import { isBoolean, extractProperty } from '@/types/type-utils';
 
 // Edge Runtime 설정으로 최대 성능 확보
 export const runtime = 'edge';
@@ -47,8 +48,10 @@ const ultraFastRouter = getUltraFastAIRouter({
   enableStreamingEngine: true,
   enableInstantCache: true,
   enablePredictiveLoading: true,
+  maxParallelOperations: 4,
   targetResponseTime: 152,
   aggressiveCaching: true,
+  skipSecurityForSpeed: false,
   preferredEngine: 'local-ai', // 기본값
 });
 
@@ -113,12 +116,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       processingTime,
       engine: result.routingInfo?.selectedEngine || result.engine || 'unknown',
       confidence: result.confidence || 0,
-      cached: result.metadata?.cached || false,
+      cached: Boolean(extractProperty(result.metadata, 'cached')),
       metadata: {
         ultraFast: true,
         targetAchieved,
-        cacheType: result.metadata?.cacheType as string,
-        streamingUsed: enableStreaming && result.metadata?.streaming,
+        cacheType: String(extractProperty(result.metadata, 'cacheType') || ''),
+        streamingUsed: enableStreaming && Boolean(extractProperty(result.metadata, 'streaming')),
         optimizations: [
           targetAchieved ? 'target_achieved' : 'target_missed',
           result.metadata?.cached ? 'cache_hit' : 'cache_miss',

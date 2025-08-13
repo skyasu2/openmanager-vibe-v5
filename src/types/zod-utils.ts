@@ -283,7 +283,7 @@ export function dateInRange(min?: Date, max?: Date) {
         ? `날짜는 ${min.toISOString()}와 ${max.toISOString()} 사이여야 합니다`
         : min
         ? `날짜는 ${min.toISOString()} 이후여야 합니다`
-        : `날짜는 ${max.toISOString()} 이전이어야 합니다`,
+        : `날짜는 ${max?.toISOString() || 'Unknown'} 이전이어야 합니다`,
     }
   );
 }

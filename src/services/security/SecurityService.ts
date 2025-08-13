@@ -7,6 +7,7 @@
  */
 
 import { generateSessionId } from '@/lib/utils-functions';
+import { isNotNullOrUndefined } from '@/types/type-utils';
 
 // 사용자 세션
 interface UserSession {
@@ -185,6 +186,11 @@ export class SecurityService {
     }
 
     const session = sessionValidation.session;
+
+    // 안전한 세션 검증
+    if (!isNotNullOrUndefined(session)) {
+      return { allowed: false, reason: 'invalid_session' };
+    }
 
     // 간단한 권한 확인
     if (session.permissions.includes('admin')) {

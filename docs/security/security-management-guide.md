@@ -96,6 +96,32 @@ git push --force
 # - 새 토큰 발급
 ```
 
+### 3. Supabase API 키 노출 시 대처법 (2025.8.13 추가)
+
+```bash
+# 🚨 긴급 대처사항 (analyze-supabase-db.js에서 노출된 키들)
+
+# 1. Supabase 대시보드에서 즉시 키 재생성
+# https://supabase.com/dashboard/project/[PROJECT_ID]/settings/api
+# - Service Role Key 재생성
+# - Anon Key 재생성 (필요시)
+# - 프로젝트 URL은 변경 불가 (새 프로젝트 생성만 가능)
+
+# 2. .env.local 파일에 새 키 적용
+NEXT_PUBLIC_SUPABASE_URL=https://vnswjnltnhpsueosfhmw.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=[NEW_ANON_KEY_HERE]
+SUPABASE_SERVICE_ROLE_KEY=[NEW_SERVICE_ROLE_KEY_HERE]
+
+# 3. 모든 배포 환경에서 환경변수 업데이트
+# - Vercel 대시보드에서 환경변수 변경
+# - GCP Functions 환경변수 업데이트
+# - 기타 배포된 서비스들 확인
+
+# 4. 하드코딩된 파일들 검사 및 수정
+grep -r "vnswjnltnhpsueosfhmw" . --exclude-dir=node_modules
+grep -r "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" . --exclude-dir=node_modules
+```
+
 ## 📋 체크리스트
 
 ### 커밋 전 확인사항

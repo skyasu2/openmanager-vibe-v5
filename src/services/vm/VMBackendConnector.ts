@@ -6,6 +6,7 @@
 
 import { io, Socket } from 'socket.io-client';
 import axios, { AxiosInstance } from 'axios';
+import { isNotNull } from '@/types/type-utils';
 
 // Type definitions for better type safety
 interface SessionContext {
@@ -201,23 +202,27 @@ export class VMBackendConnector {
           reject(new Error('Connection timeout'));
         }, 10000);
 
-        this.socket.on('connect', () => {
-          clearTimeout(timeout);
-          this.isConnecting = false;
-          this.connectionAttempts = 0;
-          console.log('✅ Connected to VM Backend');
-          this.startHeartbeat();
-          this.setupEventListeners();
-          resolve(true);
-        });
+        if (isNotNull(this.socket)) {
+          this.socket.on('connect', () => {
+            clearTimeout(timeout);
+            this.isConnecting = false;
+            this.connectionAttempts = 0;
+            console.log('✅ Connected to VM Backend');
+            this.startHeartbeat();
+            this.setupEventListeners();
+            resolve(true);
+          });
 
-        this.socket.on('connect_error', (error) => {
-          clearTimeout(timeout);
-          this.isConnecting = false;
-          this.connectionAttempts++;
-          console.error('❌ VM Backend connection error:', error.message);
-          reject(error);
-        });
+          this.socket.on('connect_error', (error) => {
+            clearTimeout(timeout);
+            this.isConnecting = false;
+            this.connectionAttempts++;
+            console.error('❌ VM Backend connection error:', error.message);
+            reject(error);
+          });
+        } else {
+          reject(new Error('Socket is null'));
+        }
       });
     } catch (error) {
       this.isConnecting = false;
@@ -435,8 +440,11 @@ export class VMBackendConnector {
     }
 
     try {
-      this.socket.emit('ai:stream:start', data);
-      return true;
+      if (isNotNull(this.socket)) {
+        this.socket.emit('ai:stream:start', data);
+        return true;
+      }
+      return false;
     } catch (error) {
       console.error('❌ Failed to start AI stream:', error);
       return false;
@@ -489,17 +497,20 @@ export class VMBackendConnector {
   /**
    * 이벤트 리스너 추가
    */
-  on(event: string, callback: Function): void {
+  on(event: string, callback: (...args: any[]) => void): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
-    this.listeners.get(event).add(callback);
+    const eventListeners = this.listeners.get(event);
+    if (eventListeners) {
+      eventListeners.add(callback);
+    }
   }
 
   /**
    * 이벤트 리스너 제거
    */
-  off(event: string, callback: Function): void {
+  off(event: string, callback: (...args: any[]) => void): void {
     const listeners = this.listeners.get(event);
     if (listeners) {
       listeners.delete(callback);

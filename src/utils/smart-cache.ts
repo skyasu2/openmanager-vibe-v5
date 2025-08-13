@@ -57,7 +57,7 @@ export class RequestScopedCache {
 
     // 캐시된 데이터가 있고 아직 fresh한 경우
     if (cached && !this.isStale(cached) && !cached.error) {
-      return cached.data;
+      return cached.data as T;
     }
 
     // 이미 진행 중인 요청이 있는 경우 중복 제거

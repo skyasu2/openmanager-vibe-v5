@@ -2,9 +2,22 @@
 
 const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = 'https://vnswjnltnhpsueosfhmw.supabase.co';
-const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU';
+// 환경변수에서 안전하게 로드
+require('dotenv').config({ path: '.env.local' });
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+// 필수 환경변수 검증
+if (!supabaseUrl || !supabaseServiceKey || !supabaseAnonKey) {
+  console.error('❌ 필수 환경변수가 설정되지 않았습니다:');
+  console.error('- NEXT_PUBLIC_SUPABASE_URL 또는 SUPABASE_URL');
+  console.error('- SUPABASE_SERVICE_ROLE_KEY');
+  console.error('- NEXT_PUBLIC_SUPABASE_ANON_KEY');
+  console.error('\n📝 .env.local 파일을 확인하고 env.local.template를 참조하세요.');
+  process.exit(1);
+}
 
 const supabaseService = createClient(supabaseUrl, supabaseServiceKey);
 const supabaseAnon = createClient(supabaseUrl, supabaseAnonKey);
@@ -36,7 +49,7 @@ async function analyzeDatabase() {
     
     for (const tableName of knownTables) {
       try {
-        const { data, error, count } = await supabaseService
+        const { error, count } = await supabaseService
           .from(tableName)
           .select('*', { count: 'exact', head: true });
           
@@ -88,7 +101,7 @@ async function analyzeDatabase() {
     
     for (const table of existingTables) {
       try {
-        const { data: anonData, error: anonError } = await supabaseAnon
+        const { error: anonError } = await supabaseAnon
           .from(table.name)
           .select('*', { head: true });
           
@@ -115,7 +128,7 @@ async function analyzeDatabase() {
     // 응답 시간 측정
     const startTime = Date.now();
     try {
-      const { data, error } = await supabaseService
+      const { error } = await supabaseService
         .from('servers')
         .select('id')
         .limit(1);

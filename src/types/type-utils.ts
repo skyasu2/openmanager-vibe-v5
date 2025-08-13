@@ -190,3 +190,130 @@ export function safeSorted<T>(
 ): T[] {
   return array ? [...array].sort(compareFn) : [];
 }
+
+// ===== unknown 타입 처리를 위한 강화된 타입 가드들 =====
+
+// 객체인지 확인하는 기본 타입 가드 (unknown 타입 처리 핵심)
+export function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+// 배열인지 확인하는 타입 가드
+export function isArray(value: unknown): value is unknown[] {
+  return Array.isArray(value);
+}
+
+// 문자열인지 확인하는 타입 가드
+export function isString(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
+// 숫자인지 확인하는 타입 가드
+export function isNumber(value: unknown): value is number {
+  return typeof value === 'number' && !isNaN(value);
+}
+
+// 불린인지 확인하는 타입 가드
+export function isBoolean(value: unknown): value is boolean {
+  return typeof value === 'boolean';
+}
+
+// 강화된 속성 존재 확인 (unknown 객체용)
+export function hasPropertyOfType<K extends PropertyKey>(
+  obj: unknown,
+  key: K
+): obj is Record<K, unknown> {
+  return isObject(obj) && key in obj;
+}
+
+// 특정 타입의 속성을 가진 객체인지 확인
+export function hasStringProperty<K extends PropertyKey>(
+  obj: unknown,
+  key: K
+): obj is Record<K, string> & Record<string, unknown> {
+  return hasPropertyOfType(obj, key) && isString((obj as Record<K, unknown>)[key]);
+}
+
+export function hasNumberProperty<K extends PropertyKey>(
+  obj: unknown,
+  key: K
+): obj is Record<K, number> & Record<string, unknown> {
+  return hasPropertyOfType(obj, key) && isNumber((obj as Record<K, unknown>)[key]);
+}
+
+export function hasBooleanProperty<K extends PropertyKey>(
+  obj: unknown,
+  key: K
+): obj is Record<K, boolean> & Record<string, unknown> {
+  return hasPropertyOfType(obj, key) && isBoolean((obj as Record<K, unknown>)[key]);
+}
+
+// API 응답 구조 검증을 위한 복합 타입 가드
+export function isApiResponse(value: unknown): value is {
+  data: unknown;
+  status?: string;
+  error?: string;
+} {
+  return isObject(value) && hasPropertyOfType(value, 'data');
+}
+
+// 서버 메트릭 구조 검증
+export function isServerMetricsLike(value: unknown): value is {
+  cpu_usage: number;
+  memory_usage: number;
+  disk_usage: number;
+} {
+  return (
+    isObject(value) &&
+    hasNumberProperty(value, 'cpu_usage') &&
+    hasNumberProperty(value, 'memory_usage') &&
+    hasNumberProperty(value, 'disk_usage')
+  );
+}
+
+// 배열의 모든 요소가 특정 타입인지 확인
+export function isArrayOf<T>(
+  value: unknown,
+  itemCheck: (item: unknown) => item is T
+): value is T[] {
+  return isArray(value) && value.every(itemCheck);
+}
+
+// 안전한 타입 단언 (캐스팅)
+export function assertType<T>(
+  value: unknown,
+  typeGuard: (value: unknown) => value is T,
+  fallback: T
+): T {
+  return typeGuard(value) ? value : fallback;
+}
+
+// unknown 배열에서 특정 타입만 필터링
+export function filterByType<T>(
+  array: unknown[],
+  typeGuard: (item: unknown) => item is T
+): T[] {
+  return array.filter(typeGuard);
+}
+
+// unknown 객체에서 안전한 속성 추출
+export function extractProperty<K extends PropertyKey>(
+  obj: unknown,
+  key: K
+): unknown {
+  return hasPropertyOfType(obj, key) ? (obj as Record<K, unknown>)[key] : undefined;
+}
+
+// 안전한 JSON 파싱 (강화 버전)
+export function safeJsonParseWithValidation<T>(
+  json: string,
+  validator: (parsed: unknown) => parsed is T,
+  fallback: T
+): T {
+  try {
+    const parsed = JSON.parse(json);
+    return validator(parsed) ? parsed : fallback;
+  } catch {
+    return fallback;
+  }
+}
