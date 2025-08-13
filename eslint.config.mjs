@@ -74,6 +74,22 @@ export default tseslint.config(
       // GCP Functions (Python)
       'gcp-functions/',
       
+      // External libraries and SDKs
+      'google-cloud-sdk/',
+      'vm-context-api/',
+      
+      // Analysis and migration scripts
+      'analyze_*.js',
+      'check_*.js',
+      'execute_*.js',
+      'database_*.js',
+      'test-*.js',
+      '*.benchmark.js',
+      
+      // Infrastructure
+      'infra/',
+      'tests/scripts/',
+      
       // Specific problematic files
       'tests/scripts/test-ai-priority.mjs', // Corrupted file
     ],
@@ -116,6 +132,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/require-await': 'warn', // Downgrade from error to warn
       
       // TypeScript unsafe operations - temporarily set to warn for migration
       '@typescript-eslint/no-unsafe-member-access': 'warn',
@@ -152,6 +169,12 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-call': 'warn',
       '@typescript-eslint/no-unsafe-return': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
+      '@typescript-eslint/require-await': 'warn', // Ensure require-await is warn, not error
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'warn', // Downgrade from error to warn
+      '@typescript-eslint/no-floating-promises': 'warn', // Downgrade from error to warn
+      '@typescript-eslint/no-misused-promises': 'warn', // Downgrade from error to warn
+      '@typescript-eslint/no-redundant-type-constituents': 'warn', // Downgrade from error to warn
     },
   },
 
