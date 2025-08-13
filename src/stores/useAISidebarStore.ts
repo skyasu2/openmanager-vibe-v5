@@ -36,6 +36,12 @@ export interface ChatMessage {
   content: string;
   role: 'user' | 'assistant' | 'system';
   timestamp: Date;
+  engine?: string;
+  metadata?: {
+    processingTime?: number;
+    confidence?: number;
+    error?: string;
+  };
 }
 
 export interface AIResponse {
@@ -156,12 +162,17 @@ export const PRESET_QUESTIONS: readonly PresetQuestion[] = [
   },
 ] as const;
 
-// 🏪 메인 스토어 인터페이스 (단순화)
+// 🏪 메인 스토어 인터페이스 (확장)
 interface AISidebarState {
   // UI 상태
   isOpen: boolean;
   isMinimized: boolean;
   activeTab: 'chat' | 'presets' | 'thinking' | 'settings' | 'functions';
+
+  // 채팅 관련 상태
+  messages: ChatMessage[];
+  sessionId: string;
+  currentEngine: string;
 
   // 함수 패널 관련 상태
   functionTab: 'qa' | 'report' | 'patterns' | 'logs' | 'context';
@@ -170,6 +181,7 @@ interface AISidebarState {
   // 액션들
   setOpen: (open: boolean) => void;
   setMinimized: (minimized: boolean) => void;
+  toggleSidebar: () => void;
   setActiveTab: (
     tab: 'chat' | 'presets' | 'thinking' | 'settings' | 'functions'
   ) => void;
@@ -177,6 +189,12 @@ interface AISidebarState {
     tab: 'qa' | 'report' | 'patterns' | 'logs' | 'context'
   ) => void;
   setSelectedContext: (context: 'basic' | 'advanced' | 'custom') => void;
+  
+  // 채팅 관련 액션들
+  addMessage: (message: ChatMessage) => void;
+  clearMessages: () => void;
+  setCurrentEngine: (engine: string) => void;
+  
   reset: () => void;
 }
 
@@ -191,6 +209,9 @@ export const useAISidebarStore = create<AISidebarState>()(
         activeTab: 'chat',
         functionTab: 'qa',
         selectedContext: 'basic',
+        messages: [],
+        sessionId: crypto.randomUUID ? crypto.randomUUID() : `session-${Date.now()}`,
+        currentEngine: 'unified',
 
         // UI 액션들
         setOpen: open =>
@@ -200,12 +221,24 @@ export const useAISidebarStore = create<AISidebarState>()(
           })),
 
         setMinimized: minimized => set({ isMinimized: minimized }),
+        
+        toggleSidebar: () => set(state => ({ isOpen: !state.isOpen })),
 
         setActiveTab: tab => set({ activeTab: tab }),
 
         setFunctionTab: tab => set({ functionTab: tab }),
 
         setSelectedContext: context => set({ selectedContext: context }),
+        
+        // 채팅 관련 액션들
+        addMessage: message =>
+          set(state => ({
+            messages: [...state.messages, message],
+          })),
+          
+        clearMessages: () => set({ messages: [] }),
+        
+        setCurrentEngine: engine => set({ currentEngine: engine }),
 
         reset: () =>
           set({
@@ -214,6 +247,9 @@ export const useAISidebarStore = create<AISidebarState>()(
             activeTab: 'chat',
             functionTab: 'qa',
             selectedContext: 'basic',
+            messages: [],
+            sessionId: crypto.randomUUID ? crypto.randomUUID() : `session-${Date.now()}`,
+            currentEngine: 'unified',
           }),
       }),
       {

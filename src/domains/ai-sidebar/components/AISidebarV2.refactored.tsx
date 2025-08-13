@@ -127,7 +127,8 @@ export const AISidebarV2Refactored: React.FC = () => {
   // 사고 과정 시뮬레이션
   useEffect(() => {
     if (isThinking && showThinkingDisplay) {
-      return simulateRealTimeThinking();
+      const cleanup = simulateRealTimeThinking();
+      return cleanup;
     }
   }, [isThinking, showThinkingDisplay, simulateRealTimeThinking]);
 
@@ -173,14 +174,9 @@ export const AISidebarV2Refactored: React.FC = () => {
       // 자동 보고서 트리거 감지
       const trigger = detectAutoReportTrigger(result.content);
       if (trigger) {
-        const report = await generateAutoReport(trigger);
-        if (report) {
-          addMessage({
-            id: `msg-${Date.now()}-report`,
-            role: 'system',
-            content: report,
-            timestamp: new Date(),
-          });
+        const reportMessage = await generateAutoReport(trigger, sessionId);
+        if (reportMessage) {
+          addMessage(reportMessage);
         }
       }
     } catch (error) {
@@ -207,15 +203,12 @@ export const AISidebarV2Refactored: React.FC = () => {
   // 프리셋 질문 핸들러
   const handlePresetQuestionClick = useCallback(async (question: PresetQuestion) => {
     await handlePresetQuestion(
-      question,
-      selectedEngine,
-      sessionId,
-      addMessage,
-      setCurrentEngine,
-      startThinking,
-      stopThinking
+      question.text,
+      async (query: string) => {
+        await handleSendMessage(query);
+      }
     );
-  }, [selectedEngine, sessionId, addMessage, setCurrentEngine, startThinking, stopThinking]);
+  }, [handleSendMessage]);
 
   // 엔진 변경 핸들러
   const handleEngineChange = useCallback(async (newEngine: AIMode) => {

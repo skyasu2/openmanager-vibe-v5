@@ -208,117 +208,342 @@ const mockServers: Server[] = [
     name: 'Load Balancer',
     status: 'online',
     hostname: 'lb.example.com',
+    cpu: 34,
+    memory: 45,
+    disk: 23,
+    network: 78,
+    uptime: '99.9%',
+    location: 'Seoul, KR',
     metrics: {
-      cpu: 34,
-      memory: 45,
-      disk: 23,
-      network: 78,
+      cpu: {
+        usage: 34,
+        cores: 4,
+        temperature: 55,
+      },
+      memory: {
+        used: 3686,
+        total: 8192,
+        usage: 45,
+      },
+      disk: {
+        used: 230,
+        total: 1000,
+        usage: 23,
+      },
+      network: {
+        bytesIn: 3072000,
+        bytesOut: 1536000,
+        packetsIn: 30000,
+        packetsOut: 15000,
+      },
+      timestamp: new Date().toISOString(),
+      uptime: 518400,
     },
-    lastUpdate: new Date().toISOString(),
+    lastUpdate: new Date(),
   },
   {
     id: '8',
     name: 'Monitoring Server',
     status: 'online',
     hostname: 'monitor.example.com',
+    cpu: 29,
+    memory: 56,
+    disk: 67,
+    network: 23,
+    uptime: '99.5%',
+    location: 'Seoul, KR',
     metrics: {
-      cpu: 29,
-      memory: 56,
-      disk: 67,
-      network: 23,
+      cpu: {
+        usage: 29,
+        cores: 2,
+        temperature: 48,
+      },
+      memory: {
+        used: 4587,
+        total: 8192,
+        usage: 56,
+      },
+      disk: {
+        used: 670,
+        total: 1000,
+        usage: 67,
+      },
+      network: {
+        bytesIn: 512000,
+        bytesOut: 256000,
+        packetsIn: 5000,
+        packetsOut: 2500,
+      },
+      timestamp: new Date().toISOString(),
+      uptime: 691200,
     },
-    lastUpdate: new Date().toISOString(),
+    lastUpdate: new Date(),
   },
   {
     id: '9',
     name: 'Backup Server',
     status: 'offline',
     hostname: 'backup.example.com',
+    cpu: 0,
+    memory: 0,
+    disk: 0,
+    network: 0,
+    uptime: '0%',
+    location: 'Seoul, KR',
     metrics: {
-      cpu: 0,
-      memory: 0,
-      disk: 0,
-      network: 0,
+      cpu: {
+        usage: 0,
+        cores: 4,
+        temperature: 0,
+      },
+      memory: {
+        used: 0,
+        total: 8192,
+        usage: 0,
+      },
+      disk: {
+        used: 0,
+        total: 1000,
+        usage: 0,
+      },
+      network: {
+        bytesIn: 0,
+        bytesOut: 0,
+        packetsIn: 0,
+        packetsOut: 0,
+      },
+      timestamp: new Date().toISOString(),
+      uptime: 0,
     },
-    lastUpdate: new Date().toISOString(),
+    lastUpdate: new Date(),
   },
   {
     id: '10',
     name: 'CDN Server',
     status: 'online',
     hostname: 'cdn.example.com',
+    cpu: 45,
+    memory: 34,
+    disk: 56,
+    network: 89,
+    uptime: '99.99%',
+    location: 'Seoul, KR',
     metrics: {
-      cpu: 45,
-      memory: 34,
-      disk: 56,
-      network: 89,
+      cpu: {
+        usage: 45,
+        cores: 8,
+        temperature: 58,
+      },
+      memory: {
+        used: 2785,
+        total: 8192,
+        usage: 34,
+      },
+      disk: {
+        used: 560,
+        total: 1000,
+        usage: 56,
+      },
+      network: {
+        bytesIn: 8192000,
+        bytesOut: 4096000,
+        packetsIn: 80000,
+        packetsOut: 40000,
+      },
+      timestamp: new Date().toISOString(),
+      uptime: 1036800,
     },
-    lastUpdate: new Date().toISOString(),
+    lastUpdate: new Date(),
   },
   {
     id: '11',
     name: 'Analytics Server',
     status: 'warning',
     hostname: 'analytics.example.com',
+    cpu: 67,
+    memory: 78,
+    disk: 45,
+    network: 23,
+    uptime: '98.7%',
+    location: 'Seoul, KR',
     metrics: {
-      cpu: 67,
-      memory: 78,
-      disk: 45,
-      network: 23,
+      cpu: {
+        usage: 67,
+        cores: 4,
+        temperature: 68,
+      },
+      memory: {
+        used: 6390,
+        total: 8192,
+        usage: 78,
+      },
+      disk: {
+        used: 450,
+        total: 1000,
+        usage: 45,
+      },
+      network: {
+        bytesIn: 1024000,
+        bytesOut: 512000,
+        packetsIn: 10000,
+        packetsOut: 5000,
+      },
+      timestamp: new Date().toISOString(),
+      uptime: 604800,
     },
-    lastUpdate: new Date().toISOString(),
+    lastUpdate: new Date(),
   },
   {
     id: '12',
     name: 'Security Server',
     status: 'online',
     hostname: 'security.example.com',
+    cpu: 23,
+    memory: 34,
+    disk: 45,
+    network: 56,
+    uptime: '100%',
+    location: 'Seoul, KR',
     metrics: {
-      cpu: 23,
-      memory: 34,
-      disk: 45,
-      network: 56,
+      cpu: {
+        usage: 23,
+        cores: 2,
+        temperature: 45,
+      },
+      memory: {
+        used: 2785,
+        total: 8192,
+        usage: 34,
+      },
+      disk: {
+        used: 450,
+        total: 1000,
+        usage: 45,
+      },
+      network: {
+        bytesIn: 2048000,
+        bytesOut: 1024000,
+        packetsIn: 20000,
+        packetsOut: 10000,
+      },
+      timestamp: new Date().toISOString(),
+      uptime: 1209600,
     },
-    lastUpdate: new Date().toISOString(),
+    lastUpdate: new Date(),
   },
   {
     id: '13',
     name: 'File Server',
     status: 'online',
     hostname: 'files.example.com',
+    cpu: 34,
+    memory: 45,
+    disk: 89,
+    network: 12,
+    uptime: '99.8%',
+    location: 'Seoul, KR',
     metrics: {
-      cpu: 34,
-      memory: 45,
-      disk: 89,
-      network: 12,
+      cpu: {
+        usage: 34,
+        cores: 4,
+        temperature: 52,
+      },
+      memory: {
+        used: 3686,
+        total: 8192,
+        usage: 45,
+      },
+      disk: {
+        used: 890,
+        total: 1000,
+        usage: 89,
+      },
+      network: {
+        bytesIn: 256000,
+        bytesOut: 128000,
+        packetsIn: 2500,
+        packetsOut: 1250,
+      },
+      timestamp: new Date().toISOString(),
+      uptime: 777600,
     },
-    lastUpdate: new Date().toISOString(),
+    lastUpdate: new Date(),
   },
   {
     id: '14',
     name: 'Mail Server',
     status: 'offline',
     hostname: 'mail.example.com',
+    cpu: 0,
+    memory: 0,
+    disk: 0,
+    network: 0,
+    uptime: '0%',
+    location: 'Seoul, KR',
     metrics: {
-      cpu: 0,
-      memory: 0,
-      disk: 0,
-      network: 0,
+      cpu: {
+        usage: 0,
+        cores: 2,
+        temperature: 0,
+      },
+      memory: {
+        used: 0,
+        total: 4096,
+        usage: 0,
+      },
+      disk: {
+        used: 0,
+        total: 500,
+        usage: 0,
+      },
+      network: {
+        bytesIn: 0,
+        bytesOut: 0,
+        packetsIn: 0,
+        packetsOut: 0,
+      },
+      timestamp: new Date().toISOString(),
+      uptime: 0,
     },
-    lastUpdate: new Date().toISOString(),
+    lastUpdate: new Date(),
   },
   {
     id: '15',
     name: 'Test Server',
     status: 'warning',
     hostname: 'test.example.com',
+    cpu: 78,
+    memory: 56,
+    disk: 34,
+    network: 45,
+    uptime: '95.0%',
+    location: 'Seoul, KR',
     metrics: {
-      cpu: 78,
-      memory: 56,
-      disk: 34,
-      network: 45,
+      cpu: {
+        usage: 78,
+        cores: 2,
+        temperature: 70,
+      },
+      memory: {
+        used: 2293,
+        total: 4096,
+        usage: 56,
+      },
+      disk: {
+        used: 170,
+        total: 500,
+        usage: 34,
+      },
+      network: {
+        bytesIn: 1536000,
+        bytesOut: 768000,
+        packetsIn: 15000,
+        packetsOut: 7500,
+      },
+      timestamp: new Date().toISOString(),
+      uptime: 259200,
     },
-    lastUpdate: new Date().toISOString(),
+    lastUpdate: new Date(),
   },
 ];
 
@@ -382,17 +607,46 @@ export function useRealtimeServers(
       console.warn('API 호출 실패, 목업 데이터 사용:', fetchError);
       
       // 목업 데이터에 랜덤 업데이트 적용
-      return mockServers.map(server => ({
-        ...server,
-        metrics: {
-          ...server.metrics,
-          cpu: Math.max(0, Math.min(100, server.metrics.cpu + (Math.random() - 0.5) * 10)),
-          memory: Math.max(0, Math.min(100, server.metrics.memory + (Math.random() - 0.5) * 10)),
-          disk: Math.max(0, Math.min(100, server.metrics.disk + (Math.random() - 0.5) * 5)),
-          network: Math.max(0, Math.min(100, server.metrics.network + (Math.random() - 0.5) * 20)),
-        },
-        lastUpdate: new Date().toISOString(),
-      }));
+      return mockServers.map(server => {
+        if (!server.metrics) {
+          return server;
+        }
+        
+        const updatedCpuUsage = Math.max(0, Math.min(100, server.metrics.cpu.usage + (Math.random() - 0.5) * 10));
+        const updatedMemoryUsage = Math.max(0, Math.min(100, server.metrics.memory.usage + (Math.random() - 0.5) * 10));
+        const updatedDiskUsage = Math.max(0, Math.min(100, server.metrics.disk.usage + (Math.random() - 0.5) * 5));
+        const updatedNetworkIn = Math.max(0, server.metrics.network.bytesIn + Math.random() * 100000);
+        const updatedNetworkOut = Math.max(0, server.metrics.network.bytesOut + Math.random() * 50000);
+        
+        return {
+          ...server,
+          cpu: updatedCpuUsage,
+          memory: updatedMemoryUsage,
+          disk: updatedDiskUsage,
+          metrics: {
+            ...server.metrics,
+            cpu: {
+              ...server.metrics.cpu,
+              usage: updatedCpuUsage,
+            },
+            memory: {
+              ...server.metrics.memory,
+              usage: updatedMemoryUsage,
+            },
+            disk: {
+              ...server.metrics.disk,
+              usage: updatedDiskUsage,
+            },
+            network: {
+              ...server.metrics.network,
+              bytesIn: updatedNetworkIn,
+              bytesOut: updatedNetworkOut,
+            },
+            timestamp: new Date().toISOString(),
+          },
+          lastUpdate: new Date(),
+        };
+      });
     }
   }, []);
 
@@ -443,13 +697,13 @@ export function useRealtimeServers(
       intervalRef.current = setInterval(() => {
         refreshServers();
       }, refreshInterval);
-
-      return () => {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-        }
-      };
     }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
   }, [autoRefresh, refreshInterval, refreshServers]);
 
   // 초기 데이터 로드
