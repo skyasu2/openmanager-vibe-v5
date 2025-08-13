@@ -80,8 +80,24 @@ export class SimplifiedQueryEngine {
       this.intentClassifier
     );
 
-    // Cache cleanup scheduler (delegated to utils)
-    setInterval(() => this.utils.cleanupCache(), 5 * 60 * 1000);
+    // Cache cleanup scheduler (delegated to utils) - Runtime별 조건부 실행
+    this.initCleanupScheduler();
+  }
+
+  private initCleanupScheduler() {
+    try {
+      // Edge Runtime 감지 (setInterval 제한 여부 확인)
+      if (typeof setInterval === 'function' && typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
+        // Node.js Runtime: 5분마다 자동 정리
+        setInterval(() => this.utils.cleanupCache(), 5 * 60 * 1000);
+      } else {
+        // Edge Runtime: 수동 cleanup만 사용
+        // 빌드 시에는 아무것도 하지 않음
+      }
+    } catch (error) {
+      // setInterval 사용 불가 환경: 수동 cleanup만 사용
+      console.warn('SimplifiedQueryEngine: Automatic cache cleanup disabled');
+    }
   }
 
   /**

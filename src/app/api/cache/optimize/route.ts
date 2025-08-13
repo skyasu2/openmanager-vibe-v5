@@ -31,7 +31,7 @@ import {
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 
 // POST 핸들러
 const postHandler = createApiRoute()

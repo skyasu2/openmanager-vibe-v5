@@ -20,7 +20,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import debug from '@/utils/debug';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // 메모리 기반 캐시 정보 조회

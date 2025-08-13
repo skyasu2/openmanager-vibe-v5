@@ -76,8 +76,24 @@ export class UnifiedCacheService {
   private static instance: UnifiedCacheService;
   
   private constructor() {
-    // 5분마다 만료된 항목 정리
-    setInterval(() => this.cleanup(), 5 * 60 * 1000);
+    // Runtime별 cleanup 전략
+    this.initCleanupStrategy();
+  }
+  
+  private initCleanupStrategy() {
+    try {
+      // Edge Runtime 감지 (setInterval 제한 여부 확인)
+      if (typeof setInterval === 'function' && typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
+        // Node.js Runtime: 5분마다 자동 정리
+        setInterval(() => this.cleanup(), 5 * 60 * 1000);
+      } else {
+        // Edge Runtime: 요청별 정리 (cleanup은 수동으로 호출됨)
+        // 빌드 시에는 아무것도 하지 않음
+      }
+    } catch (error) {
+      // setInterval 사용 불가 환경: 수동 cleanup만 사용
+      console.warn('Automatic cache cleanup disabled: setInterval not available');
+    }
   }
   
   static getInstance(): UnifiedCacheService {
