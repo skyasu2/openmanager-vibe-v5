@@ -1,7 +1,7 @@
 {
   "statusLine": {
     "type": "command",
-    "command": "npx -y ccusage statusline",
+    "command": "node scripts/ccusage-simple-status.js",
     "padding": 0
   },
   "locale": "ko-KR",
