@@ -1,7 +1,7 @@
 {
   "statusLine": {
     "type": "command",
-    "command": "ccusage statusline",
+    "command": "npx -y ccusage statusline",
     "padding": 0
   },
   "locale": "ko-KR",
@@ -15,9 +15,6 @@
       "Bash(ccusage:*)",
       "mcp__*"
     ],
-    "deny": [
-      "Bash(rm -rf:*)",
-      "Bash(sudo rm:*)"
-    ]
+    "deny": ["Bash(rm -rf:*)", "Bash(sudo rm:*)"]
   }
 }
