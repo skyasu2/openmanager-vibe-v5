@@ -821,14 +821,16 @@ GITHUB_CLIENT_SECRET=...
 
 ## ⚡ Custom Commands
 
-### 프로젝트 전용 명령어
+### 프로젝트 전용 명령어 (현재 비활성화)
 ```bash
-# .claude/commands/에 정의
-/commit         # 스마트 커밋 생성
-/pr            # Pull Request 생성
-/test-tdd      # TDD 테스트 생성
-/refactor      # 코드 리팩토링
-/security      # 보안 검사
+# 커스텀 명령어 비활성화됨 (.claude/commands-disabled/ 이동)
+# 필요시 .claude/commands-disabled/ → .claude/commands/ 이동으로 재활성화 가능
+
+# /commit         # 스마트 커밋 생성 (비활성화)
+# /pr            # Pull Request 생성 (비활성화) 
+# /test-tdd      # TDD 테스트 생성 (비활성화)
+# /refactor      # 코드 리팩토링 (비활성화)
+# /security      # 보안 검사 (비활성화)
 ```
 
 ## 🎯 현재 상태 (2025.08.14 - 프로젝트 3개월차)
