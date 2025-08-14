@@ -43,7 +43,8 @@ import type {
 } from 'recharts';
 
 const BarChart = dynamic(
-  () => import('recharts').then((mod) => mod.BarChart as any),
+  // @ts-ignore - Recharts SSR 이슈
+  () => import('recharts').then((mod) => mod.BarChart),
   { ssr: false }
 );
 

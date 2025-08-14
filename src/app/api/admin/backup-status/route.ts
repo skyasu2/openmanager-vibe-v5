@@ -15,7 +15,7 @@ import debug from '@/utils/debug';
 /**
  * 🔄 관리자 백업 상태 API (인증 필요)
  */
-function getBackupStatus(request: AuthenticatedRequest) {
+async function getBackupStatus(request: AuthenticatedRequest): Promise<Response> {
   try {
     // 백업 상태 확인
     const backupStatus = {
@@ -54,7 +54,7 @@ export const GET = withAdminAuth(getBackupStatus);
 /**
  * POST 요청으로 백업 관리 작업 수행 (인증 필요)
  */
-async function manageBackup(request: AuthenticatedRequest) {
+async function manageBackup(request: AuthenticatedRequest): Promise<Response> {
   try {
     const body = await request.json();
     const { action, backupId, settings } = body;

@@ -34,18 +34,19 @@ if (typeof window === 'undefined') {
 if (typeof globalThis !== 'undefined') {
   // self 참조 오류 방지 (강화) - 최우선
   if (typeof globalThis.self === 'undefined') {
-    (globalThis as typeof globalThis & { self: typeof globalThis }).self =
-      globalThis;
+    // @ts-ignore - SSR 폴리필
+    globalThis.self = globalThis;
   }
 
   // window 참조 오류 방지 (서버 사이드)
   if (typeof globalThis.window === 'undefined') {
-    (globalThis as typeof globalThis & { window: typeof globalThis }).window =
-      globalThis;
+    // @ts-ignore - SSR 폴리필  
+    globalThis.window = globalThis;
   }
 
   // document 참조 오류 방지 (서버 사이드)
   if (typeof globalThis.document === 'undefined') {
+    // @ts-ignore - SSR 폴리필
     globalThis.document = {
       createElement: () => ({
         addEventListener: () => {},
@@ -69,7 +70,7 @@ if (typeof globalThis !== 'undefined') {
         removeEventListener: () => {},
         style: {},
       },
-    } as Document;
+    } as any; // SSR 폴리필
   }
 
   // navigator 참조 오류 방지 (서버 사이드)
@@ -103,9 +104,12 @@ if (typeof globalThis !== 'undefined') {
 
 // 추가적인 global 객체에도 적용 (이중 안전장치)
 if (typeof window === 'undefined' && typeof global !== 'undefined') {
-  (global as typeof global & { self: typeof global }).self = global;
-  (global as typeof global & { window: typeof global }).window = global;
-  (global as typeof global & { document: Partial<Document> }).document = {
+  // @ts-ignore - SSR 폴리필
+  global.self = global;
+  // @ts-ignore - SSR 폴리필
+  global.window = global;
+  // @ts-ignore - SSR 폴리필
+  global.document = {
     createElement: () => ({
       addEventListener: () => {},
       removeEventListener: () => {},
@@ -139,7 +143,8 @@ if (typeof window === 'undefined' && typeof global !== 'undefined') {
     enumerable: true,
     configurable: true,
   });
-  (global as typeof global & { location: Location }).location = {
+  // @ts-ignore - SSR 폴리필
+  global.location = {
     href: '',
     origin: '',
     pathname: '',

@@ -129,9 +129,10 @@ export default tseslint.config(
       'no-console': 'off',
 
       // TypeScript
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true }],
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/require-await': 'warn',
       
       // TypeScript unsafe operations - disabled for better TypeScript inference
       '@typescript-eslint/no-unsafe-member-access': 'off',

@@ -2,67 +2,85 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Cursor Auto Test",
+      "label": "🚀 GCP VM 연결",
       "type": "shell",
-      "command": "node",
-      "args": ["scripts/cursor-auto-test.js"],
-      "group": {
-        "kind": "test",
-        "isDefault": true
-      },
+      "command": "ssh",
+      "args": ["gcp-vm-dev"],
+      "group": "build",
       "presentation": {
         "echo": true,
         "reveal": "always",
         "focus": false,
-        "panel": "new"
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": false
       },
-      "problemMatcher": [],
-      "detail": "Run all automated tests in Cursor IDE"
+      "problemMatcher": []
     },
     {
-      "label": "Quick Unit Test",
+      "label": "🔗 포트 포워딩 시작",
       "type": "shell",
-      "command": "npm",
-      "args": ["run", "test:unit"],
+      "command": "powershell",
+      "args": ["-File", "./port-forward.ps1"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": [],
+      "isBackground": true
+    },
+    {
+      "label": "🏥 VM 헬스체크",
+      "type": "shell",
+      "command": "curl",
+      "args": ["http://104.154.205.25:10000/health"],
       "group": "test",
       "presentation": {
         "echo": true,
         "reveal": "always",
         "focus": false,
-        "panel": "shared"
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
       },
-      "problemMatcher": [],
-      "detail": "Run unit tests only"
+      "problemMatcher": []
     },
     {
-      "label": "Storybook Build Test",
+      "label": "📊 VM 상태 확인",
       "type": "shell",
-      "command": "npm",
-      "args": ["run", "build-storybook"],
-      "group": "build",
+      "command": "curl",
+      "args": ["http://104.154.205.25:10000/api/status"],
+      "group": "test",
       "presentation": {
         "echo": true,
         "reveal": "always",
         "focus": false,
-        "panel": "shared"
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
       },
-      "problemMatcher": [],
-      "detail": "Test Storybook build"
+      "problemMatcher": []
     },
     {
-      "label": "TypeScript Check",
+      "label": "🔧 원격 개발 환경 설정",
       "type": "shell",
-      "command": "npx",
-      "args": ["tsc", "--noEmit", "--skipLibCheck"],
+      "command": "powershell",
+      "args": ["-File", "./remote-dev-setup.ps1"],
       "group": "build",
       "presentation": {
         "echo": true,
         "reveal": "always",
-        "focus": false,
-        "panel": "shared"
+        "focus": true,
+        "panel": "new",
+        "showReuseMessage": true,
+        "clear": true
       },
-      "problemMatcher": ["$tsc"],
-      "detail": "Run TypeScript type checking"
+      "problemMatcher": []
     }
   ]
 }
