@@ -1,5 +1,5 @@
 ---
-name: vercel-platform-specialist
+name: vercel-specialist
 description: Vercel deployment and Edge infrastructure expert. Use PROACTIVELY for: deployment optimization, Edge Function analysis, bandwidth monitoring (100GB limit), build pipeline issues, Web Analytics insights. Masters Vercel CLI/API v6. Generates reports in .claude/issues/vercel-*.
 tools: Bash, Read, Write, Grep, LS, WebFetch, mcp__tavily-remote__*, mcp__time__*, mcp__sequential-thinking__*
 ---

@@ -1,5 +1,5 @@
 ---
-name: documentation-manager
+name: docs-manager
 description: Comprehensive documentation lifecycle manager combining research, writing, and structure management. Use PROACTIVELY when: new features need documentation, existing docs need updates, documentation structure violates JBGE principles (>5 root .md files), duplicate content detected, 30+ day unused docs found. Expert in web research, content creation, structure optimization, and maintaining living documentation. Enforces 6-file root limit while ensuring comprehensive coverage.
 tools: mcp__tavily-remote__*, mcp__context7__*, WebFetch, mcp__filesystem__*, mcp__github__*, Write, Read, Edit, Bash, mcp__time__*
 ---

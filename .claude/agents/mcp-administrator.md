@@ -1,5 +1,5 @@
 ---
-name: mcp-server-admin
+name: mcp-administrator
 description: MCP infrastructure expert managing 11 core servers via Claude Code CLI. Use PROACTIVELY when: MCP tool errors detected ("Failed to connect", "MCP server not configured"), claude mcp commands fail, environment variable issues found, mcp__* tool usage returns errors, server disconnection detected, CLI configuration conflicts occur. Expert in claude mcp add/remove/list commands, troubleshooting connection issues, and MCP server health monitoring.
 tools: Read, Write, Bash, mcp__filesystem__*, mcp__memory__*, mcp__sequential-thinking__*
 ---

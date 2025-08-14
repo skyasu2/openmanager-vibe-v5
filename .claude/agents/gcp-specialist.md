@@ -1,5 +1,5 @@
 ---
-name: gcp-vm-specialist
+name: gcp-specialist
 description: Google Cloud Platform specialist for comprehensive cloud infrastructure management including Compute Engine, Cloud Functions, Cloud Storage, Cloud Run, Firewall Rules, IAM & Security, and Monitoring. Masters free tier optimization with e2-micro VM management, API-based VM control, and multi-service orchestration. Specializes in Windows-compatible API management for VM operations.
 tools: Bash, Read, Write, Edit, Grep, mcp__filesystem__*, mcp__memory__*, mcp__time__*, mcp__sequential-thinking__*
 ---

@@ -127,7 +127,73 @@ mcp__filesystem__list_directory({ path: "D:\\cursor\\openmanager-vibe-v5" })
 mcp__memory__read_graph()
 ```
 
-## 🔄 최근 업데이트 (2025-07-15)
+## 🎣 서브에이전트 자동화 훅 (Hooks)
+
+### 개요
+Claude Code가 특정 이벤트 발생 시 자동으로 서브에이전트를 활성화하는 강력한 자동화 시스템입니다.
+
+### 구성된 훅 (7개)
+
+#### 📝 PostToolUse 훅 (4개)
+1. **테스트 파일 자동 검증**
+   - 트리거: `*.test.ts`, `*.spec.ts` 파일 수정
+   - 에이전트: `test-automation-specialist`
+   - 동작: 테스트 실행 및 커버리지 확인
+
+2. **대형 파일 모듈화**
+   - 트리거: 1500줄 초과 파일 생성/수정
+   - 에이전트: `structure-refactor-agent`
+   - 동작: 파일 분할 및 모듈화 제안
+
+3. **DB 쿼리 최적화**
+   - 트리거: 100ms 이상 쿼리 실행
+   - 에이전트: `database-administrator`
+   - 동작: EXPLAIN ANALYZE 및 인덱스 최적화
+
+4. **빌드/테스트 실패 디버깅**
+   - 트리거: `npm run build` 또는 `npm test` 실패
+   - 에이전트: `debugger-specialist`
+   - 동작: 5단계 체계적 디버깅 프로세스
+
+#### 🔒 PreToolUse 훅 (2개)
+1. **보안 코드 사전 검사**
+   - 트리거: auth/payment/credentials 관련 파일 수정 전
+   - 에이전트: `security-auditor`
+   - 동작: 취약점 사전 차단
+
+2. **커밋 전 품질 검사**
+   - 트리거: `git commit` 실행 전
+   - 에이전트: `quality-control-checker`
+   - 동작: CLAUDE.md 규칙 준수 확인
+
+#### 💬 UserPromptSubmit 훅 (1개)
+1. **복잡한 요청 자동 분해**
+   - 트리거: 3개 이상 작업 또는 "전체", "모든" 키워드
+   - 에이전트: `central-supervisor`
+   - 동작: 작업 분해 및 멀티 에이전트 조율
+
+### 테스트 방법
+```bash
+# 훅 테스트 스크립트 실행
+node .claude/test-hooks.js
+
+# 대형 파일 생성 테스트 (1500줄 이상)
+# test-large-file.sample.ts 자동 생성됨
+```
+
+### 설정 파일 위치
+- `.claude/settings.json` - hooks 섹션 포함
+- `.claude/settings.json.backup-hooks-20250815` - 백업
+
+## 🔄 최근 업데이트 (2025-08-15)
+
+### 서브에이전트 훅 시스템 추가
+- **7개 자동화 훅**: 테스트, 보안, 성능, 품질 자동 검사
+- **정확한 에이전트 이름**: 18개 서브에이전트 정확히 매칭
+- **1500줄 임계치**: 대형 파일 자동 모듈화 트리거
+- **테스트 스크립트**: test-hooks.js로 검증 가능
+
+## 🔄 이전 업데이트 (2025-07-15)
 
 ### Windows 네이티브 설정 완료
 

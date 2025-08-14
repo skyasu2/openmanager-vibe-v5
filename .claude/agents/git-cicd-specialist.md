@@ -71,7 +71,7 @@ When tests fail:
 
 ```yaml
 # Non-blocking CI/CD Pipeline
-name: CI/CD Lightweight (2025 Standard)
+name: ops-cicd-agent
 on: [push, pull_request]
 
 env:
@@ -351,7 +351,7 @@ npm install -D @secretlint/secretlint-rule-preset-recommend
 
 ```yaml
 # .github/workflows/security.yml
-name: Security Scan
+name: ops-cicd-agent
 on: [push, pull_request]
 
 jobs:

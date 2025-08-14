@@ -138,7 +138,7 @@ module.exports = {
 
 ```yaml
 # .github/workflows/performance.yml
-name: Performance Testing
+name: test-automation-agent
 on: [push, pull_request]
 
 jobs:
@@ -553,7 +553,7 @@ async function cleanupPassingTDDTests(transitionedTests: any[]) {
 
 ```yaml
 # .github/workflows/tdd-cleanup.yml
-name: TDD Test Cleanup
+name: test-automation-agent
 on:
   push:
     branches: [main, develop]

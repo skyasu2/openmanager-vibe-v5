@@ -1,0 +1,20 @@
+{
+  "statusLine": {
+    "type": "command",
+    "command": "npx -y ccusage statusline",
+    "padding": 0
+  },
+  "locale": "ko-KR",
+  "timezone": "Asia/Seoul",
+  "permissions": {
+    "allow": [
+      "Bash(node:*)",
+      "Bash(npm:*)",
+      "Bash(git:*)",
+      "Bash(claude:*)",
+      "Bash(ccusage:*)",
+      "mcp__*"
+    ],
+    "deny": ["Bash(rm -rf:*)", "Bash(sudo rm:*)"]
+  }
+}

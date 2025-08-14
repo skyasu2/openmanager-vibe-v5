@@ -646,7 +646,7 @@ async function runSecurityAudit() {
 
 ```yaml
 # .github/workflows/security-review.yml
-name: Security Review
+name: ops-security-agent
 
 on:
   pull_request:

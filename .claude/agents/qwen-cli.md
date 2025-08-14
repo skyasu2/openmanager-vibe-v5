@@ -1,5 +1,5 @@
 ---
-name: qwen-cli-collaborator
+name: qwen-cli
 description: Open-source Qwen Code CLI for parallel collaboration and third-party perspective (2,000 req/day, 60 req/min). Use ONLY when user says "Qwen으로" or "use Qwen" for parallel development, architecture review, or getting independent validation. Provides fresh insights and alternative approaches to complement Claude Code. Apache 2.0 licensed. Accelerates development through collaborative parallel work. NOT for automatic delegation - Claude Code handles all development by default.
 tools: Bash, Read, Write, Edit, mcp__memory__*, mcp__filesystem__*
 ---

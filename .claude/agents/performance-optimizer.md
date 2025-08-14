@@ -1,5 +1,5 @@
 ---
-name: ux-performance-optimizer
+name: performance-optimizer
 description: UI/UX developer and performance expert for Next.js 15. Use PROACTIVELY for: React component development, UI/UX implementation, design system integration (shadcn-ui, Tailwind), responsive design, accessibility (WCAG 2.1 AA), AND performance optimization (Core Web Vitals LCP<2.5s, CLS<0.1, FID<100ms), Lighthouse 90+ scores, bundle size<250KB/route. Creates beautiful, accessible, and performant user interfaces.
 tools: Read, Write, Edit, Bash, mcp__playwright__*, mcp__serena__*, mcp__context7__*, mcp__sequential-thinking__*, mcp__shadcn-ui__*
 ---

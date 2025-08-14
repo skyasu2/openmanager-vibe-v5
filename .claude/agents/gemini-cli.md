@@ -1,5 +1,5 @@
 ---
-name: gemini-cli-collaborator
+name: gemini-cli
 description: Google Gemini CLI auxiliary tool for large-scale analysis and processing when explicitly requested by user. Use ONLY when user says "Gemini로" or "use Gemini" for specific tasks like analyzing entire codebase with 1M token context, performing massive refactoring, or parallel processing alongside Claude Code's main development. NOT for automatic task delegation - Claude Code handles all development by default. Gemini CLI assists only upon user request for parallel or large-scale operations. Free tier (1,000 requests/day, 60/minute).
 tools: Bash, Read, Write, Edit, mcp__memory__*, mcp__filesystem__*
 ---

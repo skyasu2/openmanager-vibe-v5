@@ -1,5 +1,5 @@
 ---
-name: dev-environment-manager
+name: env-manager
 description: Development environment orchestrator for test servers, build processes, and tmux sessions. Use PROACTIVELY when setting up development environments, managing test servers, orchestrating tmux sessions, monitoring resource usage, or coordinating build/test workflows. Specializes in intelligent server lifecycle management, memory optimization, and development workflow automation.
 tools: Bash, Read, Write, Edit, Grep, mcp__filesystem__*, mcp__memory__*, mcp__time__*, mcp__sequential-thinking__*
 ---
