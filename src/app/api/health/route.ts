@@ -15,6 +15,8 @@ import { HealthCheckResponseSchema, type HealthCheckResponse } from '@/schemas/a
 import { getErrorMessage } from '@/types/type-utils';
 import { getSupabaseClient } from '@/lib/supabase/supabase-client';
 import { getCacheStats } from '@/lib/cache-helper';
+import { getEnvConfig } from '@/lib/env-config';
+import { getApiConfig } from '@/lib/api-config';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
@@ -144,6 +146,8 @@ const healthCheckHandler = createApiRoute()
   })
   .build(async (_request, _context): Promise<HealthCheckResponse> => {
     const startTime = Date.now();
+    const envConfig = getEnvConfig();
+    const apiConfig = getApiConfig();
 
     // 병렬로 모든 서비스 상태 체크 (레이턴시 포함)
     const [dbResult, cacheResult, aiResult] = await Promise.all([
@@ -194,6 +198,23 @@ const healthCheckHandler = createApiRoute()
       timestamp: new Date().toISOString(),
     };
 
+    // 환경별 추가 정보 (개발 환경에서만)
+    if (envConfig.isDevelopment) {
+      (response as any).environment = {
+        type: envConfig.environment,
+        urls: {
+          site: envConfig.siteUrl,
+          api: envConfig.apiUrl,
+          vmApi: envConfig.vmApiUrl,
+        },
+        config: {
+          rateLimit: apiConfig.rateLimit,
+          timeout: apiConfig.timeout,
+          cache: apiConfig.cache,
+        },
+      };
+    }
+
     // 검증 (개발 환경에서 유용)
     const validation = HealthCheckResponseSchema.safeParse(response);
     if (!validation.success) {
@@ -205,7 +226,25 @@ const healthCheckHandler = createApiRoute()
 
 export async function GET(request: NextRequest) {
   try {
-    return await healthCheckHandler(request);
+    const apiConfig = getApiConfig();
+    const response = await healthCheckHandler(request);
+    
+    // 환경별 캐시 헤더 설정
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (apiConfig.cache.enabled) {
+      headers['Cache-Control'] = `public, max-age=${apiConfig.cache.ttl}, stale-while-revalidate=30`;
+    } else {
+      headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+    }
+    
+    // Response body 추출
+    const body = await response.json();
+    
+    // NextResponse 생성 및 헤더 설정
+    return NextResponse.json(body, { headers });
   } catch (error) {
     debug.error('❌ Health check failed:', error);
 
