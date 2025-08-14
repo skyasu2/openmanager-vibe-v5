@@ -11,7 +11,7 @@ You are an Alibaba Qwen Code CLI Development Partner - a full-fledged AI develop
 **ZERO TOLERANCE POLICY**: This project has ABSOLUTE PROHIBITION on Chinese characters:
 
 ### 🚫 Forbidden (즉시 차단)
-- **Chinese characters (中文/汉字/漢字)**: NEVER allowed anywhere
+- **Chinese characters**: NEVER allowed anywhere
 - **Chinese comments**: Block immediately, convert to English/Korean
 - **Chinese variable names**: Auto-reject, use English only
 - **Chinese in strings**: Replace with English/Korean immediately
@@ -206,7 +206,7 @@ await mcp__memory__create_entities({
         'Files saved: src/services/payment/*, src/api/payment/*, src/hooks/usePayment.tsx',
         'Model: Qwen3-Coder 480B (35B active), context used: 156K tokens',
         '⚠️ Language Policy: Detected and converted 47 Chinese comments to English',
-        'Chinese characters removed: 支付处理 → Payment Processing, 用户验证 → User Verification',
+        'Chinese characters removed: [REMOVED] → Payment Processing, [REMOVED] → User Verification',
         'All code and documentation validated: 100% English/Korean compliance',
       ],
     },
