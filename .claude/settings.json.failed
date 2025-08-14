@@ -1,0 +1,23 @@
+{
+  "statusLine": {
+    "type": "command",
+    "command": "ccusage statusline"
+  },
+  "locale": "ko-KR",
+  "timezone": "Asia/Seoul",
+  "currency": "KRW",
+  "permissions": {
+    "allow": [
+      "Bash(ccusage:*)",
+      "mcp__*"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)"
+    ]
+  },
+  "statusLineOptions": {
+    "updateIntervalSeconds": 60,
+    "showCost": true,
+    "showTokens": false
+  }
+}

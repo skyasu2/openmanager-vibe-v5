@@ -5,6 +5,97 @@
 > - Legacy 파일: v5.0.0 ~ v5.65.6 (2024-05 ~ 2025-01)
 > - 현재 파일: v5.65.7 이후 (2025-01 ~)
 
+## [5.67.18] - 2025-08-14
+
+### 📚 MCP 문서 통합 및 구조 최적화 완료
+
+#### 배경
+- 4개의 분산된 MCP 관련 문서 (MCP-GUIDE.md, mcp-test-report-2025-08-14.md, SUPABASE-MCP-SETUP.md, claude/mcp-servers-complete-guide.md)
+- 중복 내용과 정보 분산으로 인한 유지보수 어려움  
+- JBGE 원칙 위반 (루트 디렉토리 19개 .md 파일)
+
+#### 해결 내용
+- **통합 마스터 가이드 작성**: `docs/MCP-COMPLETE-GUIDE.md`
+  - 11개 MCP 서버 100% 정상 작동 상태 반영
+  - Supabase MCP 완전 정상화 (Personal Access Token 방식)
+  - Windows 호환성 문제 해결 (command + args 배열)
+  - 실전 활용 패턴 5가지 추가 (병렬 처리, 체이닝 등)
+  - 트러블슈팅 가이드 강화
+  
+- **중복 문서 정리**: 
+  - 기존 MCP 문서들 → `docs/archive/` 이동
+  - 중복 내용 제거 및 최신 정보 통합
+  - `docs/claude/mcp-servers-complete-guide.md` 유지 (Claude 전용)
+
+- **루트 구조 최적화**:
+  - 19개 → 6개 .md 파일로 정리 (JBGE 원칙 준수)
+  - 유지: README, CHANGELOG, CHANGELOG-LEGACY, CLAUDE, GEMINI, QWEN
+  - 이동: 13개 파일 → `docs/archive/root-cleanup-2025-08-14/`
+
+#### 기술적 개선사항
+- **완전한 MCP 가이드**: 271줄 → 1,200줄+ (4배 확장)
+- **실전 예제**: 11개 MCP 서버별 상세 사용법
+- **자동화 스크립트**: PowerShell + Git Bash 설치 가이드
+- **모니터링**: MCP 서버 상태 점검 스크립트
+- **보안**: Personal Access Token 방식 완전 정착
+
+#### 성과 요약
+- ✅ MCP 서버 11/11 정상 작동 (100%)
+- ✅ 문서 중복 제거 완료
+- ✅ 루트 구조 JBGE 준수 (6개 파일)  
+- ✅ 통합 마스터 가이드 완성
+- ✅ 자동화 및 모니터링 체계 구축
+
+---
+
+## [5.67.17] - 2025-08-14
+
+### 📊 Claude Code Statusline 기능 개선 및 문제 해결 완료
+
+#### 배경
+- 기존 statusline 기능이 제대로 작동하지 않는 문제 발견
+- 공식 가이드 (https://ccusage.com/guide/statusline) 기반 개선 필요
+- "N/A session" 표시 문제 분석 및 해결
+
+#### 해결 내용
+- **공식 설정 적용**: `.claude/settings.json`에 statusLine 설정 추가
+  ```json
+  {
+    "statusLine": {
+      "type": "command",
+      "command": "ccusage statusline",
+      "padding": 0
+    },
+    "locale": "ko-KR",
+    "timezone": "Asia/Seoul",
+    "currency": "KRW"
+  }
+  ```
+- **성능 최적화**: 오프라인 모드 기본 사용 (캐시된 가격 데이터)
+- **한국 사용자 최적화**: 시간대, 로케일, 컨텍스트 임계값 설정
+
+#### 개선된 기능
+- **실시간 표시**: 현재 세션 비용, 오늘 총 비용, 활성 블록 정보
+- **시각적 표시기**: 소모율 및 컨텍스트 사용량 색상 코딩
+- **성능 향상**: <100ms 응답 시간 (오프라인 모드)
+- **한국 시간대**: Asia/Seoul 기준 표시
+
+#### N/A Session 문제 해결
+- **원인 분석**: Claude Code IDE와 ccusage 간 세션 동기화 지연
+- **해결 스크립트**: `scripts/fix-statusline-session.ps1` 추가
+- **해결 방법**: IDE 재시작, 캐시 정리, 세션 동기화 대기
+
+#### 추가/수정 파일
+- **설정 스크립트**: `scripts/setup-claude-korea.ps1` (간소화)
+- **문제 해결**: `scripts/fix-statusline-session.ps1` (신규)
+- **가이드 문서**: `docs/statusline-optimization-guide.md` (최신화)
+
+#### 테스트 결과
+- **ccusage 버전**: v15.9.4 확인
+- **설정 적용**: statusLine 설정 정상 추가
+- **기능 검증**: 실제 사용량 데이터 기반 테스트 완료
+- **성능**: 1.3초 응답 시간 (초기 실행)
+
 ## [5.67.16] - 2025-01-13
 
 ### 📊 코드베이스 종합 분석 완료

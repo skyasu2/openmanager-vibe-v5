@@ -7,6 +7,7 @@
 
 import type { Server } from './server';
 import type { MCPServerInfo } from './mcp';
+import type { ComplexityScore } from '@/services/ai/core/AIEngineInterface';
 
 // ============================================================================
 // 📋 컨텍스트 관련 타입
@@ -137,8 +138,8 @@ export interface AIMetadata {
   importance?: number;
   /** 카테고리 */
   category?: string;
-  /** 추가 속성 (최소화) */
-  [key: string]: string | number | boolean | Date | string[] | Record<string, unknown> | undefined;
+  /** 추가 속성 (유연한 타입 허용) */
+  [key: string]: any;
 }
 
 // ============================================================================

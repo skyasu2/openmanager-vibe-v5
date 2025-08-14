@@ -21,96 +21,25 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
-import dynamic from 'next/dynamic';
 import { useState } from 'react';
 
-// 동적 import로 차트 컴포넌트들 로드
-import type {
-  AreaChart as AreaChartType,
-  BarChart as BarChartType,
-  LineChart as LineChartType,
-  PieChart as PieChartType,
-  ResponsiveContainer as ResponsiveContainerType,
-  XAxis as XAxisType,
-  YAxis as YAxisType,
-  CartesianGrid as CartesianGridType,
-  Tooltip as TooltipType,
-  Bar as BarType,
-  Line as LineType,
-  Cell as CellType,
-  Pie as PieType,
-  Area as AreaType,
+// Recharts 컴포넌트 직접 import (Next.js 15에서 SSR 지원)
+import {
+  AreaChart,
+  BarChart,
+  LineChart,
+  PieChart,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Bar,
+  Line,
+  Cell,
+  Pie,
+  Area,
 } from 'recharts';
-
-const AreaChart = dynamic(
-  () => import('recharts').then((mod) => mod.AreaChart as any),
-  { ssr: false }
-);
-
-const BarChart = dynamic(
-  () => import('recharts').then((mod) => mod.BarChart as any),
-  { ssr: false }
-);
-
-const LineChart = dynamic(
-  () => import('recharts').then((mod) => mod.LineChart as any),
-  { ssr: false }
-);
-
-const PieChart = dynamic(
-  () => import('recharts').then((mod) => mod.PieChart as any),
-  { ssr: false }
-);
-
-const ResponsiveContainer = dynamic(
-  () => import('recharts').then((mod) => mod.ResponsiveContainer as any),
-  { ssr: false }
-);
-
-const XAxis = dynamic(
-  () => import('recharts').then((mod) => mod.XAxis as any),
-  {
-    ssr: false,
-  }
-);
-
-const YAxis = dynamic(
-  () => import('recharts').then((mod) => mod.YAxis as any),
-  {
-    ssr: false,
-  }
-);
-
-const CartesianGrid = dynamic(
-  () => import('recharts').then((mod) => mod.CartesianGrid as any),
-  { ssr: false }
-);
-
-const Tooltip = dynamic(
-  () => import('recharts').then((mod) => mod.Tooltip as any),
-  { ssr: false }
-);
-
-const Bar = dynamic(() => import('recharts').then((mod) => mod.Bar as any), {
-  ssr: false,
-});
-
-const Line = dynamic(() => import('recharts').then((mod) => mod.Line as any), {
-  ssr: false,
-});
-
-const Cell = dynamic(() => import('recharts').then((mod) => mod.Cell as any), {
-  ssr: false,
-});
-
-const Pie = dynamic(() => import('recharts').then((mod) => mod.Pie as any), {
-  ssr: false,
-});
-
-const Area = dynamic(() => import('recharts').then((mod) => mod.Area as any), {
-  ssr: false,
-});
-// Legend는 잠시 제거 (차트 타입 문제로 인해)
 
 interface LogAnalyticsData {
   overview: {

@@ -240,6 +240,11 @@ npm run analyze:bundle
 
 **OpenManager VIBE v5**는 Claude Code의 서브 에이전트 시스템을 활용하여 복잡한 작업을 효율적으로 처리합니다. 13개의 전문화된 에이전트가 협업하여 개발, 디버깅, 문서화, 배포까지 전 과정을 자동화합니다.
 
+### 📊 Claude Code Statusline 통합
+- **실시간 사용량 모니터링**: IDE 하단에 비용 및 토큰 사용량 표시
+- **한국 시간대 최적화**: Asia/Seoul 기준 표시
+- **표시 예시**: `🤖 Claude Opus 4 | 💰 N/A session / $231.75 today / $89.78 block (1h 15m left) | 🔥 $24.27/hr`
+
 ### 🎯 서브 에이전트 개요
 
 | 에이전트명                     | 역할                     | 주요 사용 시점                               |
@@ -301,6 +306,7 @@ Task({
 - **위치**: `.claude/agents/` (13개 .md 파일)
 - **MCP 서버**: `.claude/mcp.json` (npx/uvx 명령어 형식)
 - **활성화**: `.claude/settings.local.json`에서 관리
+- **Statusline**: `.claude/settings.json`에서 ccusage 통합 설정
 
 상세한 서브 에이전트 활용법은 [서브 에이전트 협업 패턴](./docs/sub-agent-collaboration-patterns.md) 문서를 참조하세요.
 

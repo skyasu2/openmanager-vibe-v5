@@ -484,7 +484,7 @@ await Task({
 
 ### 과도한 에이전트 사용
 ```bash
-# 사용량 모니터링
+# 사용량 분석 (API 추정치)
 npx ccusage blocks --live
 
 # 에이전트 사용 로그

@@ -50,7 +50,7 @@ function convertServerToModalData(server: Server) {
       server.status === 'warning' ? 'good' :
       server.status === 'critical' ? 'poor' :
       'offline'
-    ) as const,
+    ) as 'excellent' | 'good' | 'poor' | 'offline',
   };
 }
 

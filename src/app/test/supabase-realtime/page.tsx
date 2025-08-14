@@ -59,6 +59,23 @@ export default function SupabaseRealtimeTestPage() {
     setSessionId(`test-${Date.now()}`);
   }, []);
 
+  // 기존 단계 로드 (useEffect 전에 정의)
+  const loadExistingSteps = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('thinking_steps')
+        .select('*')
+        .eq('session_id', sessionId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      setSteps(data || []);
+    } catch (err) {
+      console.error('Failed to load steps:', err);
+      setError('단계 로드 실패');
+    }
+  }, [sessionId]);
+
   // Realtime 구독
   useEffect(() => {
     if (!sessionId) return;
@@ -105,22 +122,6 @@ export default function SupabaseRealtimeTestPage() {
     };
   }, [sessionId, loadExistingSteps]);
 
-  // 기존 단계 로드
-  const loadExistingSteps = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('thinking_steps')
-        .select('*')
-        .eq('session_id', sessionId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      setSteps(data || []);
-    } catch (err) {
-      console.error('Failed to load steps:', err);
-      setError('단계 로드 실패');
-    }
-  }, [sessionId]);
 
   // 단계 추가
   const addStep = async () => {

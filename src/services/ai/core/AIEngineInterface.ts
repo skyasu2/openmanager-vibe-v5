@@ -12,9 +12,20 @@ export type AIEngineType =
   | 'local-rag' 
   | 'fallback'
   | 'ultra-fast'
-  | 'pattern-based';
+  | 'pattern-based'
+  | 'keyword-based'
+  | 'error-fallback'
+  | 'preloaded'
+  | `quick-${string}`;
 
 // AI 응답 메타데이터
+// 복잡도 점수 (AIMetadata 보다 먼저 정의)
+export interface ComplexityScore extends Record<string, unknown> {
+  score: number;
+  factors: string[];
+  category: 'simple' | 'moderate' | 'complex';
+}
+
 export interface AIMetadata {
   timestamp?: string | Date;
   source?: string;
@@ -22,14 +33,7 @@ export interface AIMetadata {
   tags?: string[];
   importance?: number;
   category?: string;
-  [key: string]: string | number | boolean | string[] | Record<string, unknown> | Date | undefined;
-}
-
-// 복잡도 점수
-export interface ComplexityScore {
-  score: number;
-  factors: string[];
-  category: 'simple' | 'moderate' | 'complex';
+  [key: string]: any;
 }
 
 // AI 응답 기본 인터페이스

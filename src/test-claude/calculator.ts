@@ -1,5 +1,5 @@
 // 🟢 GREEN: 테스트를 통과시키는 최소 구현
-import type { Calculator, CalculatorHistory, CalculatorResult, OperationType } from './calculator.types';
+import type { Calculator, CalculatorHistory, CalculatorResult } from './calculator.types';
 
 class CalculatorHistoryImpl implements CalculatorHistory {
   results: CalculatorResult[] = [];
