@@ -38,7 +38,7 @@ const DefaultFallback = ({ message = '로딩 중...' }: { message?: string }) =>
 // 큰 컴포넌트들을 지연 로딩으로 변환
 export const LazyDashboardContent = lazy(() => 
   import('@/components/dashboard/DashboardContent').then(module => ({
-    default: module.DashboardContent
+    default: module??.DashboardContent
   }))
 );
 

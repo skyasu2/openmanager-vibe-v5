@@ -156,7 +156,7 @@ export class SystemBootstrapper {
     const status = this.processManager.getSystemStatus();
     
     if (this.watchdog) {
-      status.watchdogReport = this.watchdog.generateReport();
+      status??.watchdogReport = this??.watchdog??.generateReport();
     }
 
     return status;

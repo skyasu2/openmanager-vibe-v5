@@ -104,7 +104,7 @@ export function PerformanceMonitor() {
     
     // 로드 시간
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    const loadTime = navigation ? navigation.loadEventEnd - navigation.navigationStart : 0;
+    const loadTime = navigation ? navigation??.loadEventEnd - navigation??.navigationStart : 0;
     
     // 렌더 시간
     const renderTime = navigation ? navigation.domContentLoadedEventEnd - navigation.navigationStart : 0;

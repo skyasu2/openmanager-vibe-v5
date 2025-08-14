@@ -143,7 +143,7 @@ export const createMemoCache = <T,>() => {
       // 캐시 크기 제한 (메모리 최적화)
       if (cache.size >= 100) {
         const firstKey = cache.keys().next().value;
-        cache.delete(firstKey);
+        cache.delete(firstKey as any);
       }
       cache.set(key, value);
     },

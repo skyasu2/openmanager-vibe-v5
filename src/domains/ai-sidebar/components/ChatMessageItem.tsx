@@ -27,7 +27,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
       key={message.id}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+      className={`flex ${message??.type === 'user' ? 'justify-end' : 'justify-start'}`}
     >
       <div
         className={`flex items-start space-x-2 max-w-[90%] sm:max-w-[85%] ${

@@ -157,6 +157,8 @@
     "vm:logs:50": "node scripts/vm-api-client.js logs 50",
     "vm:pm2": "node scripts/vm-api-client.js pm2",
     "vm:deploy": "node scripts/vm-api-client.js deploy",
+    "commit:auto": "tsx scripts/auto-fix-and-commit.ts",
+    "commit:smart": "git add -A && tsx scripts/auto-fix-and-commit.ts",
     "vm:restart": "node scripts/vm-api-client.js restart",
     "vm:health": "node scripts/vm-api-client.js health",
     "vm:exec": "node scripts/vm-api-client.js exec",

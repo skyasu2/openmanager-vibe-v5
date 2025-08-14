@@ -95,7 +95,7 @@ export class SystemWatchdog {
     );
 
     this.eventBus.on<SystemStatusPayload>(
-      SystemEventType.SYSTEM_ERROR,
+      SystemEventType??.SYSTEM_ERROR,
       (event) => {
         this.handleSystemStatusUpdate(event.payload);
       }

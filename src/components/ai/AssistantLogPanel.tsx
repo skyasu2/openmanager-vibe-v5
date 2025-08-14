@@ -539,7 +539,7 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
                       )}
                       {log.sessionId && (
                         <button
-                          onClick={() => viewSessionDetails(log.sessionId)}
+                          onClick={() => viewSessionDetails(log.sessionId as any)}
                           className="text-xs text-purple-400 hover:text-purple-300"
                         >
                           세션: {log.sessionId}

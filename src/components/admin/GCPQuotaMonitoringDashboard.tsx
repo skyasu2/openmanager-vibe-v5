@@ -201,7 +201,7 @@ export const GCPQuotaMonitoringDashboard: React.FC = () => {
       setGCPStats(gcpData);
       setThreeTierStats(threeTierData);
       setRouterStatus(statusData);
-      setHistoricalData(historyData);
+      setHistoricalData(historyData as any);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
