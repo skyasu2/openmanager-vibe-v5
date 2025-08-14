@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "🚀 지능형 Pre-push 검증 시작..."
+echo "🚀 Pre-push 검증 시작..."
 
 # Skip if HUSKY is disabled
 if [ "$HUSKY" = "0" ]; then
@@ -8,35 +8,25 @@ if [ "$HUSKY" = "0" ]; then
     exit 0
 fi
 
-# 🧠 지능형 Pre-push 엔진 실행
-node scripts/intelligent-pre-push.js
+# 단순한 Pre-push 검증 (지능형 시스템 제거)
+echo "📋 TypeScript 타입 체크 중..."
+npm run type-check
 
-# 폴백: 기본 검사 (Node.js 실행 실패 시)
 if [ $? -ne 0 ]; then
-    echo "⚡ 폴백: 기본 Pre-push 검증"
-    
-    # 기본 빠른 검증
-    echo "⚡ 빠른 검증 실행 중..."
-    npm run validate:fast
-    
-    if [ $? -ne 0 ]; then
-        echo "❌ 빠른 검증 실패!"
-        echo "💡 해결책:"
-        echo "  npm run lint:fix && npm run type-check"
-        echo "  또는 HUSKY=0 git push (강제 푸시)"
-        
-        # 대화형 모드에서만 선택 옵션 제공
-        if [ -t 0 ]; then
-            echo ""
-            echo "그래도 푸시하시겠습니까? (y/N)"
-            read -r response
-            if [ "$response" = "y" ] || [ "$response" = "Y" ]; then
-                exit 0
-            fi
-        fi
-        
-        exit 1
-    fi
+    echo "❌ TypeScript 타입 에러가 있습니다!"
+    echo "💡 해결책: npm run type-check 실행 후 수정"
+    echo "   또는 HUSKY=0 git push (긴급시만)"
+    exit 1
+fi
+
+echo "🧪 핵심 테스트 실행 중..."
+npm run test:quick
+
+if [ $? -ne 0 ]; then
+    echo "❌ 테스트 실패!"
+    echo "💡 해결책: npm test 실행 후 수정"
+    echo "   또는 HUSKY=0 git push (긴급시만)"
+    exit 1
 fi
 
 echo "✅ Pre-push 검증 완료!"
