@@ -1,13 +1,21 @@
 ---
 name: commit
-description: 변경사항을 분석하여 자동으로 커밋 메시지 생성 후 커밋
+description: 변경사항을 분석하여 이모지와 함께 커밋 메시지 생성 후 커밋
 ---
 
-현재 staged된 변경사항을 분석하여 Conventional Commits 형식의 간단한 커밋 메시지를 생성하고 커밋해주세요.
+현재 변경사항을 분석하여 CLAUDE.md의 커밋 컨벤션에 따라 이모지와 함께 커밋 메시지를 생성하고 커밋해주세요.
 
 규칙:
-1. 메시지는 1-2줄로 간결하게
-2. Conventional Commits 형식 사용 (feat, fix, docs, style, refactor, test, chore)
+1. 메시지는 간결하게 (제목 50자 이내)
+2. CLAUDE.md 커밋 컨벤션 사용:
+   - ✨ feat: 새 기능
+   - 🐛 fix: 버그 수정
+   - ♻️ refactor: 리팩토링
+   - 🧪 test: 테스트
+   - 📚 docs: 문서
+   - ⚡ perf: 성능
+   - 🎨 style: 코드 스타일
+   - 🔧 chore: 기타 작업
 3. 한국어로 작성
-4. 이모지 사용 금지
-5. Co-Authored-By 태그 사용 금지
+4. 이모지 필수 사용
+5. 변경사항이 많으면 본문에 추가 설명 포함

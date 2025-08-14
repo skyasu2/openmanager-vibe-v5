@@ -1,1273 +1,272 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-📚 **Claude Code 공식 문서**: https://docs.anthropic.com/en/docs/claude-code/overview
+**Claude Code 프로젝트 가이드** | [공식 문서](https://docs.anthropic.com/en/docs/claude-code)
 
 ## 🎯 프로젝트 개요
 
 **OpenManager VIBE v5**: AI 기반 실시간 서버 모니터링 플랫폼
+- **아키텍처**: Next.js 15 + TypeScript (strict) + Vercel Edge + Supabase
+- **무료 티어**: 100% 무료로 운영 (Vercel 100GB/월, GCP 2M req/월, Supabase 500MB)
+- **성능**: 152ms 응답, 99.95% 가동률
 
-### 핵심 특징
-
-- 100% 무료 티어로 운영 (Vercel + GCP + Supabase)
-- 엔터프라이즈급 성능 (152ms 응답, 99.95% 가동률)
-- Next.js 15 + App Router + React 18.3.1 + TypeScript strict mode
-
-### 무료 티어 아키텍처
-
-- **Frontend**: Vercel Edge Runtime (100GB 대역폭/월)
-- **Backend API**: GCP Functions Python 3.11 (2백만 요청/월)
-- **Database**: Supabase PostgreSQL (500MB)
-- **Cache**: Memory-based LRU Cache (서버리스 최적화)
-- **GCP VM Backend**: e2-micro VM에서 Google AI MCP 서버 + AI API + 백엔드 서비스 실행 중
-
-### 주요 기능
-
-- 📊 **실시간 모니터링**: CPU, Memory, Disk, Network (15초 간격)
-- 🤖 **AI 분석**: 이상 징후 감지, 성능 예측, 자연어 질의
-- 🔐 **인증**: GitHub OAuth 기반 접근 제어
-- 📈 **대시보드**: 반응형 UI, 실시간 차트, 알림 시스템
-
-### 🚀 CI/CD 파이프라인 (2025 표준 - 70% 속도 향상)
-
-**핵심 원칙**: "배포를 막지 마라" - 필수 검증만 실제 차단, 나머지는 경고
-
-- **Fast Track 배포**: `[skip ci]` 또는 `[build-skip]` 플래그로 2-7분 내 배포
-- **CI/CD Lightweight**: 필수 검증만 실패 처리, TypeScript는 경고만
-- **GitHub Actions 최적화**: 불필요한 "항상 성공" 처리 제거, 실질적 검증 중심
-- **성능**: 70% 속도 향상 (이전 15분 → 현재 2-10분)
-- **개발자 경험**: commit early, commit often 가능, `HUSKY=0`로 모든 검사 스킵 가능
-
-#### 🪝 Git Hooks 간소화 (2025.01.13 업데이트)
-
-- **Pre-commit**: 필수 검사만 유지 (2-5초)
-  - ✅ lint-staged: 변경된 파일만 검사
-  - ✅ 시크릿 검사: 하드코딩 방지
-  - ✅ HUSKY=0: 긴급시 bypass 가능
-- **커밋 메시지**: 1-3줄로 간소화
-  - ❌ 복잡한 heredoc 제거
-  - ❌ 과도한 이모지 제거
-  - ❌ Co-Authored-By 태그 제거
-
-## 🛠️ 개발 환경
-
-- **OS**: Windows 11 + PowerShell/Git Bash
-- **Node.js**: v22.15.1
-- **Package Manager**: npm
-- **언어**: 한국어 우선 (기술 용어는 영어 병기)
-- **Python**: 3.11 (GCP Functions)
-- **Claude Code**: Max 20x 구독 ($200/월), Opus 4.1 모델
-  - **사용량**: 5시간마다 200-800개 프롬프트
-  - **주간 사용량**: Sonnet 4 240-480시간 + Opus 4.1 24-40시간
-  - **프로젝트 설정**: 독립적 설정 사용
-
-## 📂 프로젝트 구조
-
-```
-openmanager-vibe-v5/
-├── src/             # 소스 코드
-│   ├── app/         # Next.js 15 App Router
-│   ├── services/    # 비즈니스 로직 (AI, Auth, MCP)
-│   ├── components/  # React 컴포넌트
-│   └── lib/         # 유틸리티
-├── docs/            # 상세 문서 (100+개)
-├── scripts/         # 자동화 스크립트
-├── gcp-functions/   # Python 3.11 서버리스 (무료 티어)
-│   ├── enhanced-korean-nlp/    # 한국어 처리
-│   ├── ml-analytics-engine/    # ML 분석
-│   └── unified-ai-processor/   # AI 통합 처리
-└── tests/           # 테스트 코드
-```
-
-## 🚀 자주 사용하는 명령어
+## 🚀 빠른 시작
 
 ```bash
 # 개발
-npm run dev              # http://localhost:3000
+npm run dev              # localhost:3000
 npm run build            # 프로덕션 빌드
-npm run lint:fix         # ESLint 자동 수정
-npm run type-check       # TypeScript 검사
-
-# 테스트
-npm test                 # Vitest 실행
-npm run test:e2e         # Playwright E2E
-npm run test:coverage    # 커버리지 (목표: 70%+)
-npm run test:quick       # 핵심 테스트만 (22ms)
+npm run test:quick       # 빠른 테스트 (22ms)
 
 # 검증
 npm run validate:all     # 린트 + 타입 + 테스트
+npm run git:status       # Git 상태 확인
 
-# 모니터링
-npx ccusage@latest blocks --live    # Claude 사용량 실시간
-npm run health:check                 # API 상태 확인
-
-# Git 상태 확인
-npm run git:status       # Git 푸시 상태 상세 점검
-npm run git:check        # Git 동기화 상태 확인
-
-# 📝 간소화된 Git 워크플로우 (2025.01.13 개선)
-git commit -m "feat: 기능 추가"           # 표준 커밋 (간단명료)
-git commit -m "fix: 버그 수정"            # 버그 수정 (1-2줄)
-HUSKY=0 git commit -m "hotfix: 긴급 수정" # 검사 스킵 (긴급시만)
-
-# Slash Commands 활용 (.claude/commands/)
-/commit  # 자동 커밋 메시지 생성
-/pr      # Pull Request 생성
-
-# 📚 상세 가이드: docs/git-workflow-simplified-guide.md
-
-# 백그라운드 명령어 (Claude Code v1.0.72+)
-# Bash 도구의 run_in_background: true 파라미터 사용
-# BashOutput 도구로 백그라운드 작업 모니터링 가능
+# Claude 사용량
+npx ccusage blocks --live    # 실시간 모니터링
 ```
 
-### 🔄 백그라운드 명령어 기능 (v1.0.72+)
+## 💡 개발 철학
 
-Claude Code는 백그라운드에서 명령어를 실행할 수 있는 기능을 제공합니다:
-
-```bash
-# 백그라운드 실행: run_in_background: true
-# 장시간 실행되는 작업을 백그라운드에서 처리
-# 여러 작업 동시 실행 가능 (bash_1, bash_2, bash_3...)
-# BashOutput 도구로 진행 상황 모니터링
-```
-
-**활용 예시:**
-- 개발 서버 백그라운드 실행 (`npm run dev`)
-- 빌드 프로세스 병렬 처리
-- 테스트 실행과 동시에 다른 작업 수행
-- 로그 모니터링 및 실시간 작업
-
-### 📊 상태표시줄 기능 (Beta)
-
-Claude Code 상태표시줄에 실시간 사용량 통계를 표시할 수 있습니다:
-
-#### 설정 방법
-
-```json
-// ~/.claude/settings.json에 추가
-{
-  "statusLine": {
-    "type": "command",
-    "command": "ccusage statusline",  // 또는 "npx -y ccusage statusline", "bun x ccusage statusline"
-    "padding": 0  // 선택사항: 상태표시줄을 화면 끝까지 확장
-  }
-}
-```
-
-#### 설치 요구사항
-
-```bash
-# ccusage 전역 설치 (권장)
-npm install -g ccusage@latest
-
-# 또는 npx/bun을 통한 실행 (command에 지정)
-```
-
-#### 표시 정보
-
-- 🤖 **활성 모델**: Opus, Sonnet 등 현재 사용 중인 모델
-- 💰 **비용 추적**: 
-  - 세션 비용 (현재 대화)
-  - 일일 총 비용
-  - 블록 비용 (5시간 단위)
-- ⏱️ **블록 시간**: 남은 블록 시간 표시
-- 🔥 **소모율 (Burn Rate)**: 시간당 비용 계산
-
-#### 예시 출력
-
-```
-🤖 Opus | 💰 $0.23 session / $1.23 today / $0.45 block (2h 45m left) | 🔥 $0.12/hr
-```
-
-#### 성능 옵션
-
-- **오프라인 모드** (기본): 캐시된 가격 데이터 사용으로 빠른 응답
-- **온라인 모드**: `--no-offline` 플래그로 최신 가격 정보 실시간 조회
-
-#### 문제 해결
-
-1. **statusLine이 표시되지 않을 때:**
-   - `which ccusage` 명령으로 설치 확인
-   - Claude Code 로그에서 오류 확인
-   - `~/.claude/settings.json` 구문 검증
-
-2. **설정 적용:**
-   ```bash
-   # 설정 변경 후 API 재시작
-   claude api restart
-   ```
-
-3. **사용량 검증:**
-   ```bash
-   ccusage blocks  # 블록별 사용량 확인
-   ccusage daily   # 일일 사용량 확인
-   ```
-
-#### 참고 자료
-
-- 📚 [ccusage statusline 가이드](https://ccusage.com/guide/statusline)
-- 📖 [Claude Code 설정 문서](https://docs.anthropic.com/en/docs/claude-code/settings)
-
-### 🛡️ 자동 보안 점검 (v1.0.72+)
-
-Claude Code 내장 보안 검토 기능으로 SQLi, 인증, 데이터 처리 취약점을 자동 탐지:
-
-```bash
-# 프로젝트 전체 보안 점검
-claude /security-review
-
-# API 라우트 집중 검사
-claude /security-review --path src/app/api
-
-# 종합 보안 검사 (NPM + 코드)
-npm run security:audit
-```
-
-**자동 탐지 항목:**
-- SQL Injection, XSS, CSRF 취약점
-- 하드코딩된 API 키/시크릿
-- 인증/인가 누락
-- 취약한 암호화 패턴
-
-**GitHub Action 통합**: PR마다 자동 보안 검토 실행
-
-## 📝 개발 규칙 (필수)
-
-1. **TypeScript**: `any` 타입 절대 금지, strict mode 필수
-2. **파일 크기**: 500줄 권장, 1500줄 초과 시 분리
-3. **코드 재사용**: 기존 코드 검색 후 작성 (`@codebase` 활용)
-4. **커밋**: 매 커밋마다 CHANGELOG.md 업데이트
-5. **문서**: 루트에는 핵심 문서 6개만 유지
-   - README.md, CHANGELOG.md, CHANGELOG-LEGACY.md, CLAUDE.md, GEMINI.md, QWEN.md
-   - 기타 문서는 종류별로 분류: `docs/`, `reports/`
-6. **사고 모드**: "think hard" 항상 활성화
-7. **SOLID 원칙**: 모든 코드에 적용
-
-## 🎯 타입 우선 개발 (Type-First Development) - 핵심 원칙
-
-### 📌 왜 타입 우선인가?
-
-**타입은 코드의 설계도입니다.** 건물을 짓기 전에 설계도를 그리듯, 코드를 작성하기 전에 타입을 정의하면:
-- ✅ **버그 예방**: 컴파일 타임에 오류 발견 (런타임 에러 90% 감소)
-- ✅ **자동 문서화**: 타입이 곧 API 문서
-- ✅ **안전한 리팩토링**: 타입 변경 시 영향받는 모든 코드 자동 감지
-- ✅ **개발 속도 향상**: IDE 자동완성과 IntelliSense 최대 활용
-
-### 🔄 타입 우선 개발 워크플로우
+### 1. 🎨 타입 우선 개발 (Type-First)
+**타입 정의 → 구현 → 리팩토링** 순서로 개발
 
 ```typescript
-// 1️⃣ 먼저 타입/인터페이스 정의
+// 1️⃣ 타입 먼저 정의
 interface UserProfile {
   id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'user' | 'guest';
-  metadata?: {
-    lastLogin: Date;
-    preferences: UserPreferences;
-  };
+  role: 'admin' | 'user';
+  metadata?: { lastLogin: Date };
 }
 
-// 2️⃣ 타입 기반으로 함수 시그니처 설계
-type UpdateUserProfile = (
-  userId: string,
-  updates: Partial<UserProfile>
-) => Promise<UserProfile>;
-
-// 3️⃣ 구현은 타입을 만족하도록 작성
-const updateUserProfile: UpdateUserProfile = async (userId, updates) => {
-  // 타입이 이미 정의되어 있으므로 구현이 명확함
-  // IDE가 자동완성과 타입 체크 제공
-  const user = await db.users.findById(userId);
-  return { ...user, ...updates };
+// 2️⃣ 타입 기반 구현
+const updateUser = (id: string, data: Partial<UserProfile>): Promise<UserProfile> => {
+  // IDE 자동완성 100% 활용
+  return db.users.update(id, data);
 };
 ```
 
-### 📋 타입 우선 개발 체크리스트
-
-#### 새 기능 개발 시:
-- [ ] **타입 먼저**: 데이터 구조와 함수 시그니처를 타입으로 정의
-- [ ] **인터페이스 설계**: 모듈 간 통신 인터페이스 명확히 정의
-- [ ] **타입 리뷰**: 구현 전 타입 정의 검토 (설계 오류 조기 발견)
-- [ ] **타입 기반 구현**: 정의된 타입을 만족하도록 코드 작성
-- [ ] **타입 테스트**: 타입 추론이 올바른지 확인
-
-#### 기존 코드 수정 시:
-- [ ] **타입 분석**: 수정할 코드의 타입 구조 파악
-- [ ] **영향 범위 확인**: 타입 변경이 미치는 영향 TypeScript로 자동 검사
-- [ ] **타입 우선 수정**: 타입을 먼저 수정하고 구현 따라가기
-- [ ] **타입 호환성**: 하위 호환성 유지 또는 마이그레이션 경로 제공
-
-### 🛠️ 타입 우선 도구 활용
+### 2. 🧪 TDD (Test-Driven Development)
+**Red → Green → Refactor** 사이클 준수
 
 ```typescript
-// 유틸리티 타입 적극 활용
-type ReadonlyUser = Readonly<UserProfile>;
-type OptionalUser = Partial<UserProfile>;
-type RequiredUser = Required<UserProfile>;
-type UserKeys = keyof UserProfile;
+// @tdd-red @created-date: 2025-01-14
+it('should calculate total with tax', () => {
+  expect(calculateTotalWithTax(100, 0.1)).toBe(110); // RED: 함수 미구현
+});
 
-// 조건부 타입으로 복잡한 로직 표현
-type AsyncReturnType<T extends (...args: any[]) => Promise<any>> = 
-  T extends (...args: any[]) => Promise<infer R> ? R : never;
+// GREEN: 구현
+const calculateTotalWithTax = (amount: number, tax: number) => amount * (1 + tax);
 
-// 제네릭으로 재사용성 극대화
-interface ApiResponse<T> {
-  data: T;
-  error: Error | null;
-  metadata: {
-    timestamp: Date;
-    requestId: string;
-  };
-}
-
-// 타입 가드로 런타임 안전성 확보
-function isUserProfile(obj: unknown): obj is UserProfile {
-  return (
-    typeof obj === 'object' &&
-    obj !== null &&
-    'id' in obj &&
-    'name' in obj &&
-    'email' in obj
-  );
-}
-```
-
-### 📁 타입 파일 구조
-
-```
-src/
-├── types/           # 공통 타입 정의
-│   ├── models/      # 데이터 모델 타입
-│   ├── api/         # API 요청/응답 타입
-│   ├── utils/       # 유틸리티 타입
-│   └── index.ts     # 타입 re-export
-├── interfaces/      # 인터페이스 정의
-│   ├── services/    # 서비스 레이어 인터페이스
-│   ├── components/  # 컴포넌트 Props 인터페이스
-│   └── index.ts     # 인터페이스 re-export
-```
-
-### ⚠️ 타입 우선 개발 주의사항
-
-1. **과도한 타입 복잡도 피하기**: 읽기 어려운 타입은 오히려 해가 됨
-2. **타입 추론 활용**: 명시적 타입이 항상 좋은 것은 아님
-3. **점진적 타입 강화**: 처음부터 완벽한 타입보다 점진적 개선
-4. **타입 중복 제거**: DRY 원칙은 타입에도 적용
-
-### 🎓 타입 우선 개발 실전 예제
-
-```typescript
-// ❌ 나쁜 예: 구현 먼저, 타입 나중
-function processData(data) {  // any 타입
-  if (data.type === 'user') {
-    return { ...data, processed: true };
-  }
-  // 타입 안전성 없음
-}
-
-// ✅ 좋은 예: 타입 먼저, 구현 나중
-// 1. 타입 정의
-type DataType = 'user' | 'product' | 'order';
-interface BaseData<T extends DataType> {
-  id: string;
-  type: T;
-  createdAt: Date;
-}
-
-interface UserData extends BaseData<'user'> {
-  username: string;
-  email: string;
-}
-
-interface ProcessedData<T extends BaseData<DataType>> {
-  original: T;
-  processed: true;
-  processedAt: Date;
-}
-
-// 2. 타입 기반 구현
-function processData<T extends BaseData<DataType>>(
-  data: T
-): ProcessedData<T> {
-  return {
-    original: data,
-    processed: true,
-    processedAt: new Date(),
-  };
-}
-
-// 3. 타입 안전한 사용
-const userData: UserData = {
-  id: '123',
-  type: 'user',
-  username: 'john',
-  email: 'john@example.com',
-  createdAt: new Date(),
+// REFACTOR: 개선
+const calculateTotalWithTax = (amount: number, taxRate: number): number => {
+  if (taxRate < 0) throw new Error('Tax rate cannot be negative');
+  return amount * (1 + taxRate);
 };
-
-const result = processData(userData);  // 타입 완벽 추론
 ```
 
-### 🚀 타입 우선 마이그레이션 전략
+### 3. 📝 커밋 컨벤션 (이모지 필수)
 
-기존 코드를 타입 우선으로 전환할 때:
+| 타입 | 이모지 | 설명 | 예시 |
+|------|--------|------|------|
+| feat | ✨ | 새 기능 | `✨ feat: 사용자 인증 추가` |
+| fix | 🐛 | 버그 수정 | `🐛 fix: 로그인 오류 해결` |
+| refactor | ♻️ | 리팩토링 | `♻️ refactor: API 구조 개선` |
+| test | 🧪 | 테스트 | `🧪 test: 인증 테스트 추가` |
+| docs | 📚 | 문서 | `📚 docs: API 문서 업데이트` |
+| perf | ⚡ | 성능 | `⚡ perf: 쿼리 최적화` |
 
-```typescript
-// Phase 1: 현재 구조 타입화
-type LegacyUserData = {
-  [key: string]: unknown;  // 임시 느슨한 타입
-};
+## 📐 핵심 규칙
 
-// Phase 2: 점진적 타입 강화
-interface TransitionUserData {
-  id: string;
-  name?: string;  // 선택적으로 시작
-  [key: string]: unknown;  // 나머지 허용
-}
+1. **TypeScript**: `any` 금지, strict mode 필수
+2. **파일 크기**: 500줄 권장, 1500줄 초과 시 분리
+3. **테스트**: 커버리지 70%+, TDD 적용
+4. **문서**: 루트 6개 제한 (README, CHANGELOG, CLAUDE, GEMINI, QWEN)
+5. **커밋**: 이모지 + 간결한 메시지
 
-// Phase 3: 완전한 타입 정의
-interface ModernUserData {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  // 모든 필드 명확히 정의
-}
+## 🏗️ Next.js 15 특징
 
-// Phase 4: 타입 가드와 검증
-function migrateUserData(
-  legacy: LegacyUserData
-): ModernUserData | null {
-  // 검증 로직과 마이그레이션
-  if (!isValidUserData(legacy)) return null;
-  return transformToModern(legacy);
-}
-```
-
-## 🧪 테스트 시스템 (3단계 전략)
-
-### 현재 테스트 구성
-
-- **총 40개 테스트** (이전 204개에서 최적화)
-- **3단계 전략**: minimal(22ms) → smart → full
-- **자동화 도구**: 스마트 선택기, 메타데이터 추적, TDD 자동화
-
-### 핵심 테스트 명령어
-
-```bash
-# 빠른 검증 (22ms)
-npm run test:quick      # 커밋/푸시 전 초고속 검증
-
-# 스마트 선택 (변경 기반)
-npm run test:smart      # 변경된 파일만 테스트
-npm run test:smart:branch  # 브랜치 전체 변경사항
-
-# 전체 테스트
-npm test               # 모든 테스트 실행
-npm run test:coverage  # 커버리지 리포트 (목표: 70%+)
-
-# TDD 워크플로우
-npm run test:tdd-check    # @tdd-red 상태 확인
-npm run test:tdd-cleanup  # RED → GREEN 자동 정리
-```
-
-### 테스트 자동화 도구
-
-- **스마트 테스트 선택기**: Git diff 기반 영향 분석 → 80% 시간 절약
-- **메타데이터 추적**: 실행 시간, 성공률, flakiness 모니터링
-- **서브에이전트 협업**: `test-first-developer`, `test-automation-specialist`
-
-### Vitest 설정 최적화
-
-- **Pool 설정**: `threads` 사용 (vmThreads는 isolate:false와 호환 불가)
-- **환경 분리**: Node 환경과 DOM 환경 테스트 분리
-- **Mock 조건부 로드**: 환경에 따른 브라우저 Mock 선택적 로드
-- **성능**: isolate:false로 4x 성능 향상
-
-상세 가이드: [`/docs/testing-system-guide.md`](/docs/testing-system-guide.md)
-
-## 🔒 포트폴리오 보안 정책
-
-**중요**: 이 프로젝트는 포트폴리오/데모용으로 **기본적인 보안**만 적용합니다.
-
-### 현재 보안 설정
-
-- **AI 보안**: `enableStrictMode: false` (포트폴리오 수준)
-- **API 보호**: 민감한 엔드포인트만 (`/api/admin`, `/api/database`, `/api/ai`)
-- **시크릿 관리**: 환경변수 사용, 하드코딩 방지 (Husky 검사)
-- **보안 에이전트**: 기본 보안만 검사 (과도한 엔터프라이즈 보안 제거)
-
-### 보안 체크리스트
-
-- ✅ 하드코딩된 시크릿 없음
-- ✅ 환경변수로 설정 관리
-- ✅ 기본 API 인증
-- ❌ 복잡한 보안 패턴 (불필요)
-- ❌ 엔터프라이즈급 감사 (과도함)
-
-### 🔐 시크릿 관리 (중요!)
-
-- **절대 하드코딩 금지**: API 키, 토큰은 반드시 환경변수 사용
-- **문서 마스킹**: 예시에서도 `[환경변수에서 설정]` 또는 `ghp_XXXXX` 형태 사용
-- **자동 검사**: Pre-commit 훅이 시크릿 노출 자동 차단
-- **상세 가이드**: [`/docs/security-management-guide.md`](/docs/security-management-guide.md)
-
-자세한 내용: [`/docs/portfolio-security-guide.md`](/docs/portfolio-security-guide.md)
-
-## 📋 타입 안전성 유틸리티
-
-타입 안전성을 위한 유틸리티 함수들이 `src/types/type-utils.ts`와 `src/types/react-utils.ts`에 정의되어 있습니다. getErrorMessage, safeArrayAccess, useSafeEffect 등을 활용하세요.
-
-## 🔧 Next.js 15 App Router 모범 사례
-
-### 프로덕션 최적화 (2024)
-
-#### 1. 캐싱 전략 변경
-
-- **중요**: Next.js 15부터 GET Route Handlers와 Client Router Cache가 기본적으로 **uncached**로 변경
-- **이전**: 기본 캐시 → **현재**: 기본 비캐시
-- **성능 영향**: 명시적 캐싱 전략 필요
-
+### App Router + React 19
 ```typescript
 // app/api/servers/route.ts
 export async function GET() {
-  // Next.js 15: 명시적 캐싱 필요
+  // 기본 uncached (변경됨!)
   return NextResponse.json(data, {
-    headers: {
-      'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-    },
+    headers: { 'Cache-Control': 'public, s-maxage=60' }
   });
 }
-```
 
-#### 2. Runtime 설정 업데이트
-
-```typescript
-// ❌ 구버전 (deprecated)
-export const runtime = 'experimental-edge';
-
-// ✅ Next.js 15
-export const runtime = 'edge';
-```
-
-#### 3. 번들 최적화
-
-```javascript
-// next.config.js
-module.exports = {
-  // 자동 외부 패키지 번들링 (Pages Router)
-  bundlePagesRouterDependencies: true,
-
-  // 특정 패키지 번들링 제외
-  serverExternalPackages: ['sharp'],
-
-  // ESLint 9 지원
-  eslint: {
-    ignoreDuringBuilds: false,
-  },
-};
-```
-
-#### 4. 성능 모니터링
-
-```typescript
-// app/layout.tsx - Core Web Vitals 추적
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Analytics } from '@vercel/analytics/react';
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="ko">
-      <body>
-        {children}
-        <SpeedInsights />
-        <Analytics />
-      </body>
-    </html>
-  );
+// app/layout.tsx - async component
+export default async function RootLayout({ children }) {
+  const data = await fetch('...'); // 서버 컴포넌트에서 직접 fetch
+  return <html>{children}</html>;
 }
 ```
 
-## 💡 핵심 시스템
-
-### AI 엔진
-
-- **UnifiedAIEngineRouter**: 모든 AI 서비스 중앙 관리
-- **엔진**: Google AI, Supabase RAG, Korean NLP
-- **자동 폴백**: 실패 시 다른 엔진으로 자동 전환
-
-### GCP Functions (서버리스)
-
-- **enhanced-korean-nlp**: 한국어 자연어 처리
-- **ml-analytics-engine**: ML 기반 분석
-- **unified-ai-processor**: 통합 AI 처리
-- **배포**: `scripts/deployment/deploy-all.sh`
-
-### 인증
-
-- **Supabase Auth**: GitHub OAuth
-- **세션 관리**: JWT + Refresh Token
-
-### 데이터베이스
-
-- **PostgreSQL**: Supabase (500MB 무료)
-  - 공식 문서: https://supabase.com/docs
-  - **전담 관리**: `database-administrator` 서브 에이전트
-- **Cache**: Memory-based LRU Cache (서버리스 최적화)
-  - 메모리 기반 캐싱: 네트워크 지연 제거
-  - TTL 지원: 자동 만료 및 정리
-  - **구현**: cache-helper.ts 라이브러리
-- **Vector DB**: pgvector 확장 (Supabase 내)
-
-## 🧠 Memory-based 캐싱 시스템
-
-**무료 티어 최적화**: 메모리 기반 캐싱으로 네트워크 지연 시간을 0에 가깝게 줄였습니다.
-
-### 핵심 특징
-
-- ✅ **네트워크 지연 없음**: 메모리 직접 액세스로 초고속 응답
-- ✅ **서버리스 최적화**: Vercel Edge Runtime에 완벽 최적화
-- ✅ **LRU 캐시**: 1000개 아이템 제한, 자동 정리
-- ✅ **TTL 지원**: 5분 간격 자동 만료 및 정리
-- ✅ **통계 추적**: 히트율, 메모리 사용량 모니터링
-
-### 핵심 사용 패턴
-
-#### 1. 캐싱 헬퍼 사용
-
-```typescript
-// lib/cache-helper.ts 활용
-import { getCachedData, setCachedData } from '@/lib/cache-helper';
-
-export async function getServerMetrics(serverId: string) {
-  return getCachedData(
-    `server:${serverId}:metrics`,
-    () => fetchServerMetrics(serverId),
-    60 // 1분 TTL
-  );
-}
-```
-
-#### 2. 메모리 기반 세션 관리
-
-```typescript
-// 메모리 기반 세션 (system/status API 참조)
-class MemorySessionManager {
-  private sessions = new Map<string, SessionData>();
-
-  create(userId: string, data: any): string {
-    const sessionId = crypto.randomUUID();
-    this.sessions.set(sessionId, {
-      userId,
-      ...data,
-      createdAt: Date.now(),
-      lastActivity: Date.now(),
-    });
-    return sessionId;
-  }
-
-  get(sessionId: string): SessionData | null {
-    return this.sessions.get(sessionId) || null;
+### Turbopack (기본 번들러)
+```json
+{
+  "scripts": {
+    "dev": "next dev --turbo",  // Turbopack 자동 사용
+    "build": "next build"        // 프로덕션도 Turbopack
   }
 }
 ```
 
-#### 3. AI 로그 스트리밍 (메모리 기반)
+## 🔧 MCP 서버 (11개)
 
-```typescript
-// api/ai/logging/stream/route.ts 참조
-class MemoryLogStorage {
-  private logs: AILogEntry[] = [];
-  private maxSize = 1000;
+### 필수 MCP 서버
+```bash
+# 설치 (Windows)
+./scripts/install-all-mcp-servers.ps1
 
-  addLog(log: AILogEntry): void {
-    this.logs.unshift(log);
-    if (this.logs.length > this.maxSize) {
-      this.logs = this.logs.slice(0, this.maxSize);
-    }
-  }
-
-  getLogs(count: number, level?: string): AILogEntry[] {
-    return this.logs
-      .filter((log) => !level || log.level === level)
-      .slice(0, count);
-  }
-}
+# 환경변수 설정 (.env.local)
+TAVILY_API_KEY=tvly-...
+SUPABASE_ACCESS_TOKEN=sbp_...
 ```
 
-### 성능 특징
+### 주요 MCP 활용 예제
 
-| 항목      | Memory Cache | 특징         |
-| --------- | ------------ | ------------ |
-| 응답 시간 | <1ms         | 🚀 초고속    |
-| 네트워크  | 불필요       | 📡 지연 없음 |
-| 의존성    | 내장         | 🔧 단순함    |
-| 비용      | $0           | 💰 완전 무료 |
-
-상세 구현: [`/src/lib/cache-helper.ts`](/src/lib/cache-helper.ts)
-
-## 🟢 Supabase RLS 보안
-
-데이터베이스 Row Level Security (RLS) 정책으로 데이터 보안을 강화합니다.
-
-- **필수 설정**: 모든 테이블에 RLS 활성화
-- **정책 패턴**: 사용자별 격리, 팀 기반 접근, 역할 기반 권한
-- **성능 최적화**: RLS 정책 컬럼에 인덱스 필수
-- **JWT 보안**: `app_metadata` 사용 (서버 전용)
-
-상세 가이드: [`/docs/supabase-rls-security-guide.md`](/docs/supabase-rls-security-guide.md)
-
-## 🔌 주요 API 엔드포인트
-
-- `/api/servers/*` - 서버 메트릭 CRUD
-- `/api/ai/*` - AI 분석 및 예측
-- `/api/auth/*` - 인증/인가
-- `/api/realtime/*` - 실시간 데이터 스트림
-- `/api/admin/*` - 관리자 기능
-
-## 🕐 Time MCP 활용 (필수)
-
-**문서 작성 시 정확한 시간 기록:**
-
+#### 1. 파일 시스템 + GitHub 연동
 ```typescript
-// ❌ 잘못된 방법
-const now = new Date(); // 서버 타임존에 의존
-
-// ✅ 올바른 방법
-const timeInfo = await mcp__time__get_current_time({
-  timezone: 'Asia/Seoul',
+// 파일 검색 → GitHub 커밋
+await mcp__filesystem__search_files({ pattern: "*.test.ts" });
+await mcp__github__create_pull_request({
+  owner: "user",
+  repo: "project",
+  title: "✨ feat: 테스트 추가"
 });
 ```
 
-**주요 활용처:**
-
-- 문서 헤더 타임스탬프
-- CHANGELOG 엔트리
-- 이슈 리포트 생성
-- 배포 로그 기록
-- 서버 메트릭 수집
-
-상세 가이드: [Time MCP 활용 가이드](/docs/time-mcp-usage-guide.md)
-
-## 🔧 MCP 서버 시스템
-
-### 📍 현재 MCP 서버 상태 (Windows)
-
-**2025년 8월 12일 23:00 기준**: **11/11 서버 100% 정상 작동!** 🎉
-
-#### ✅ 정상 작동 (11개 전체)
-
-| 서버명 | 용도 | 타입 | 상태 | 수정 완료 |
-|--------|------|------|------|-----------|
-| `filesystem` | 파일 시스템 작업 | Node.js | ✅ | - |
-| `memory` | 지식 그래프 관리 | Node.js | ✅ | - |
-| `github` | GitHub 저장소 관리 | Node.js | ✅ | - |
-| `sequential-thinking` | 복잡한 문제 해결 | Node.js | ✅ | - |
-| `time` | 시간/시간대 변환 | Python | ✅ | - |
-| `context7` | 라이브러리 문서 검색 | Node.js | ✅ | - |
-| `shadcn-ui` | UI 컴포넌트 개발 | Node.js | ✅ | - |
-| `tavily-mcp` | **웹 검색, 크롤링** | Node.js | ✅ | - |
-| **`supabase`** 🆕 | **PostgreSQL 데이터베이스** | Node.js | ✅ | **SUPABASE_ACCESS_TOKEN 추가** |
-| **`playwright`** 🆕 | **브라우저 자동화** | Node.js | ✅ | **command/args 구조 수정** |
-| **`serena`** 🆕 | **고급 코드 분석 (LSP)** | Python | ✅ | **command/args 분리** |
-
-### 🎯 해결 완료된 문제들
-
-| 이전 문제 | 근본 원인 | 해결 방법 | 결과 |
-|-----------|-----------|-----------|------|
-| **Supabase 초기화 오류** | 환경변수 누락, stdio 타입 누락 | `SUPABASE_ACCESS_TOKEN` 추가, `type: "stdio"` 명시 | ✅ 완전 해결 |
-| **Playwright Windows 호환성** | command/args 구조 오류 | command와 args 명확 분리 | ✅ 완전 해결 |
-| **Serena Python 경로 문제** | uvx 경로 혼재, command 구조 오류 | 절대 경로 사용, args 분리 | ✅ 완전 해결 |
-
-### 🚀 빠른 시작 (Windows) - 자동 설치
-
-#### PowerShell 자동 설치 (권장)
-```powershell
-# 완전 자동 설치 (11개 서버)
-./scripts/install-all-mcp-servers.ps1
-
-# 환경변수 서버 제외 설치
-./scripts/install-all-mcp-servers.ps1 -SkipEnvServers
-
-# 테스트 모드 (Serena 제외)
-./scripts/install-all-mcp-servers.ps1 -TestOnly
-
-# MCP 환경변수 로드 및 시작 (권장)
-./scripts/start-claude-with-mcp.ps1
-```
-
-#### Git Bash 자동 설치
-```bash
-# 완전 자동 설치
-./scripts/install-all-mcp-servers.sh
-
-# 환경변수 서버 제외
-./scripts/install-all-mcp-servers.sh --skip-env
-
-# 테스트 모드
-./scripts/install-all-mcp-servers.sh --test-only
-
-# MCP 환경변수 로드 및 시작 (권장)
-./scripts/start-claude-with-mcp.sh
-```
-
-#### 설치 검증
-```bash
-# API 재시작 후 상태 확인
-claude api restart
-claude mcp list
-```
-
-### 📚 완전한 설치 가이드
-
-**🎯 메인 가이드**: [`/docs/windows-mcp-complete-installation-guide.md`](/docs/windows-mcp-complete-installation-guide.md) 🆕 **완전판**
-
-**세부 가이드**:
-- **MCP 환경변수 설정**: [`/docs/mcp-environment-variables-guide.md`](/docs/mcp-environment-variables-guide.md) 🆕 **.env.local 활용법**
-- **Windows MCP 설정 상태**: [`/docs/mcp-setup-status.md`](/docs/mcp-setup-status.md) 🆕 **성공 사례**
-- **통합 MCP 개발 가이드**: [`/docs/mcp-development-guide-2025.md`](/docs/mcp-development-guide-2025.md)
-- **Serena MCP 설정 가이드**: [`/docs/serena-mcp-setup-guide-2025.md`](/docs/serena-mcp-setup-guide-2025.md)
-- **Tavily MCP 고급 활용 가이드**: [`/docs/tavily-mcp-advanced-guide.md`](/docs/tavily-mcp-advanced-guide.md)
-
-### 💡 완전 설치 가이드에서 다루는 내용
-
-#### 📦 카테고리별 설치법 (3가지)
-1. **NPX 기반** (7개): filesystem, memory, github, sequential-thinking, supabase, tavily-mcp, playwright
-2. **Python 기반** (2개): time, serena - uvx 절대 경로 활용
-3. **npm 전역 기반** (2개): context7, shadcn-ui - 사전 설치 필요
-
-#### 🔧 고급 기능
-- **자동화 스크립트**: PowerShell + Git Bash 버전
-- **환경변수 설정**: Supabase, Tavily API 키 관리
-- **문제 해결 가이드**: Windows 특화 문제 및 해결책
-- **성능 최적화**: 메모리 사용량, 연결 시간 단축
-- **업그레이드 가이드**: 정기 점검 및 업데이트 방법
-
-### 주요 특징
-
-- **CLI 기반 관리**: v1.16.0부터 `claude mcp` 명령어로 통합 관리
-- **프로젝트별 독립 설정**: 각 프로젝트마다 독립적인 MCP 구성
-- **다양한 통합**: 파일 시스템, DB, 웹 검색, 브라우저 자동화, AI 분석 등
-
-## 🌐 Tavily MCP - 고급 웹 인텔리전스
-
-**✅ 상태**: 모든 기능 정상 작동 (2025.8.12 검증)
-
-### 왜 Tavily MCP인가?
-
-WebSearch를 넘어서는 **강력한 웹 연구 도구**:
-- **시간 필터링**: day/week/month/year로 최신 정보만 추출
-- **도메인 필터링**: 신뢰할 수 있는 소스만 선택적 검색
-- **웹 크롤링**: 체계적인 사이트 전체 분석
-- **콘텐츠 추출**: 깔끔한 마크다운 변환
-- **사이트 매핑**: URL 구조 완벽 파악
-
-### 핵심 기능 예시
-
+#### 2. Supabase DB 관리
 ```typescript
-// 최신 기술 트렌드 (1주일 이내)
-mcp__tavily-mcp__tavily-search({
-  query: "Next.js 15 new features",
+// RLS 정책 적용 및 쿼리 실행
+await mcp__supabase__execute_sql({
+  project_id: "xxx",
+  query: "CREATE POLICY user_isolation ON users..."
+});
+```
+
+#### 3. Tavily 웹 검색 + 크롤링
+```typescript
+// 최신 문서 검색 및 분석
+const docs = await mcp__tavily-mcp__tavily-search({
+  query: "Next.js 15 features",
   time_range: "week",
   search_depth: "advanced"
 });
-
-// 문서 사이트 전체 크롤링
-mcp__tavily-mcp__tavily-crawl({
-  url: "https://docs.example.com",
-  max_depth: 3,
-  categories: ["Documentation", "API"]
-});
-
-// 여러 URL에서 콘텐츠 추출
-mcp__tavily-mcp__tavily-extract({
-  urls: ["url1", "url2"],
-  format: "markdown",
-  extract_depth: "advanced"
-});
 ```
 
-📚 **상세 가이드**: [`/docs/tavily-mcp-advanced-guide.md`](/docs/tavily-mcp-advanced-guide.md)
+## 🤖 서브 에이전트 활용
 
-## 🤖 유용한 Sub Agents - 프로젝트 로컬 설정
-
-**계층 구조**: Claude Code → central-supervisor → 전문 에이전트들
-
-| 작업 유형             | 추천 Agent                   | 용도                                            |
-| --------------------- | ---------------------------- | ----------------------------------------------- |
-| 복잡한 작업 조율      | `central-supervisor`         | Claude Code 지시 하에 작업 분배 (도구 4개로 제한) |
-| 함수 품질 분석        | `code-review-specialist`     | 순환/인지 복잡도, 버그 패턴, O(n²) 성능 이슈     |
-| 프로젝트 표준         | `quality-control-checker`    | CLAUDE.md, 파일크기(500/1500줄), SOLID, 네이밍  |
-| 아키텍처 설계         | `structure-refactor-agent`   | 중복코드(30줄+), 의존성, 폴더구조, 디자인패턴   |
-| 보안 검사             | `security-auditor`           | 포트폴리오 수준 보안 검사                       |
-| DB 최적화             | `database-administrator`     | Supabase PostgreSQL 전문 관리                   |
-| 성능 개선             | `ux-performance-optimizer`   | Core Web Vitals                                 |
-| 테스트                | `test-automation-specialist` | 테스트 작성/수정                                |
-| 개발 환경             | `dev-environment-manager`    | tmux, 테스트 서버, 빌드 관리                    |
-| GCP VM 관리           | `gcp-vm-specialist`          | GCP VM 통합 백엔드 (MCP + AI API + 서비스) 관리 |
-| AI 시스템             | `ai-systems-engineer`        | AI 어시스턴트 개발                              |
-| 문서 관리             | `documentation-manager`      | 문서 작성, 구조 관리, JBGE 원칙                 |
-| 체계적 디버깅         | `debugger-specialist`        | 5단계 프로세스: 표면→근본→연구→설계→검증 (도구 8개) |
-| 플랫폼 전문 분석      | `vercel-platform-specialist` | Vercel 아키텍처, 성능 최적화                    |
-| MCP 관리              | `mcp-server-admin`           | MCP 에러 감지 및 자동 복구                      |
-| Gemini 개발 파트너    | `gemini-cli-collaborator`    | 전체 코드 생성/리팩토링, 1M 토큰 활용           |
-| Qwen 개발 파트너      | `qwen-cli-collaborator`      | 병렬 협업, 제3의 시선, 256K-1M 토큰, 2,000회/일 |
-| Git/CI/CD             | `git-cicd-specialist`        | Git 워크플로우, CI/CD 자동화                    |
-
-### 📁 서브 에이전트 설정 위치
-
-- **프로젝트 로컬 설정**: `.claude/agents/` (18개 에이전트 .md 파일)
-- **MCP 서버 설정**: `~/.claude.json` (CLI로 관리)
-- **매핑 가이드**: `/docs/sub-agents-mcp-mapping-guide.md`
-- **종합 가이드**: `/docs/sub-agents-comprehensive-guide.md`
-- **글로벌 설정과의 관계**: 프로젝트별로 독립적으로 관리됨
-
-### 🔍 MCP 서버 vs 서브 에이전트 차이점
-
-#### MCP 서버 (Model Context Protocol)
-
-- **정의**: 외부 도구 및 데이터 소스와 연결하는 프로토콜 서버
-- **관리**: `claude mcp add/remove/list` CLI 명령어로 관리
-- **위치**: `~/.claude.json`에 전역 설정
-- **예시**: filesystem, github, supabase, time 등 (11개 운영)
-- **역할**: 실제 도구 기능 제공 (파일 읽기, DB 쿼리, 웹 검색 등)
-
-#### 서브 에이전트 (Sub Agents)
-
-- **정의**: 특정 작업을 전문적으로 수행하는 AI 역할 정의
-- **관리**: `.claude/agents/*.md` 파일로 프로젝트별 관리
-- **위치**: 프로젝트 로컬 `.claude/agents/` 디렉토리
-- **예시**: gcp-vm-specialist, database-administrator 등 (17개 운영)
-- **역할**: Task 도구로 호출되어 전문 작업 수행
-
-### 🚀 서브 에이전트 역할 분리 원칙
-
-**중요**: 각 에이전트는 명확한 전문 영역만 담당합니다.
-
-#### 코드 품질 전문가 그룹 (명확히 구분된 역할) - 2025.8.12 개선
-
-- **code-review-specialist**: 함수/메서드 단위 - 순환복잡도(>10), 인지복잡도, 버그패턴(null check), O(n²)성능
-- **quality-control-checker**: 프로젝트 표준 - CLAUDE.md, 파일크기(500/1500줄), SOLID(SRP), 네이밍, 커밋형식
-- **structure-refactor-agent**: 아키텍처 - 중복코드(30줄+), 의존성그래프, 순환의존성, 폴더구조, 디자인패턴
-
-#### 조율 에이전트 (최소 권한)
-
-- **central-supervisor**: Claude Code 지시 하에 작업 분배 - 도구 4개만(memory, sequential-thinking, Read, Bash)
-
-#### 기타 전문가 그룹
-- **debugger-specialist**: 체계적 디버깅 - 5단계(표면→근본→연구→설계→검증), 도구 8개로 최적화 (이전 13개)
-- **vercel-platform-specialist**: Vercel 플랫폼 아키텍처 전문 분석 - 배포 최적화, 성능 엔지니어링, 인프라 설계
-- **documentation-manager**: 문서 관리 - 작성, 구조 관리, JBGE 원칙 (구 doc-structure-guardian + doc-writer-researcher 통합)
-- **test-automation-specialist**: 테스트 자동화 - 테스트 작성, 수정, TDD 지원, 커버리지 관리
-- **security-auditor**: 보안만 - 취약점 탐지, OWASP, 인증/인가
-
-#### 협업 프로토콜 (Claude Code 중심)
-
-1. **기본 실행**: Claude Code가 직접 모든 개발 작업 주도
-2. **복잡한 작업**: Claude Code → central-supervisor → 전문 에이전트들 (순차/병렬)
-3. **병렬 가능**: code-review-specialist + structure-refactor-agent (독립적 분석)
-4. **Memory MCP**: 분석 결과 공유로 중복 작업 방지
-
+### 효율적 작업 분배
 ```typescript
-// 권장 방식 - 작업 목표만 제시
-Task({
-  subagent_type: 'database-administrator',
-  description: 'Supabase DB 최적화',
-  prompt: 'Supabase PostgreSQL 쿼리 성능 분석 및 인덱스 최적화를 수행해주세요.',
-});
-
-// 병렬 처리 - 독립적인 작업은 동시 실행
-Task({
-  subagent_type: 'dev-environment-manager',
-  prompt: '개발 환경 설정 및 테스트 서버 최적화',
-});
-Task({
-  subagent_type: 'ux-performance-optimizer',
-  prompt: '프론트엔드 성능 개선',
-});
-Task({
-  subagent_type: 'database-administrator',
-  prompt: 'Supabase RLS 정책 검토 및 pgvector 인덱스 최적화',
-});
-```
-
-### 🚀 서브 에이전트 활용 패턴
-
-#### 계층별 역할
-
-1. **Claude Code (최상위 통제자)**
-   - 모든 개발 작업의 메인 통제자
-   - 직접 작업 수행 또는 서브에이전트 지시
-   - 최종 결과 통합 및 품질 보증
-
-2. **central-supervisor (서브 오케스트레이터)**
-   - Claude Code의 지시를 받아 복잡한 작업을 분해
-   - 전문 에이전트들에게 작업 분배 및 조율
-   - 진행 상황 모니터링 및 Claude Code에 보고
-
-3. **전문 에이전트들 (실행자)**
-   - 각자의 전문 영역에서 구체적 작업 수행
-   - central-supervisor 또는 Claude Code의 지시 실행
-
-#### 활용 패턴
-
-- **단순 작업**: Claude Code 직접 처리
-- **복잡 작업**: Claude Code → central-supervisor → 전문 에이전트들
-- **병렬 처리**: 독립적인 작업은 동시 실행으로 30-40% 시간 단축
-- **Memory MCP**: 비동기 정보 공유로 협업 효율 증대
-- **서브에이전트 상세**: `.claude/agents/` 디렉토리 참조
-
-## 📋 Claude Code 프로젝트 설정 구조
-
-### 설정 파일 우선순위
-
-1. `.claude/settings.local.json` (개인 로컬 설정)
-2. `.claude/settings.json` (팀 공유 설정)
-3. `~/.claude/settings.json` (사용자 전역 설정)
-
-### MCP 서버 관리
-
-- **MCP 설정**: CLI 명령어 (`claude mcp add/remove/list`)로 관리
-- **서브에이전트**: `.claude/agents/*.md` 파일로 관리
-- **독립성**: 각 프로젝트마다 독립적인 설정 유지
-
-## ⚠️ 주의사항 및 트러블슈팅
-
-### 환경 설정
-
-1. **환경 변수**: `.env.local` 필수 (env.local.template 참조)
-2. **무료 티어 한계**: [무료 티어 아키텍처](#무료-티어-아키텍처) 섹션 참조
-3. **Git Hooks**: Husky 자동 실행 (pre-commit, pre-push)
-
-### 자주 발생하는 문제
-
-- **MCP 연결 오류**: `bash scripts/mcp/reset.sh` 실행
-- **타입 에러**: `npm run type-check` → `npm run lint:fix`
-- **OAuth 실패**: `.env.local`의 GitHub 키 확인
-- **빌드 실패**: Node.js 버전 확인 (v22.15.1 필수)
-- **npm-global config mismatch**: [`/docs/npm-global-config-guide.md`](/docs/npm-global-config-guide.md) 참조
-
-### 알려진 이슈 (Claude Code v1.0.72)
-
-#### Config Mismatch 경고
-
-```
-⚠️ Config mismatch: running npm-global but config says unknown
-```
-
-- **영향**: 기능에 영향 없음 (cosmetic issue only)
-- **원인**: Claude Code의 알려진 버그 ([#3915](https://github.com/anthropics/claude-code/issues/3915), [#4977](https://github.com/anthropics/claude-code/issues/4977))
-- **대응**: 무시해도 안전함. 향후 버전에서 수정 예정
-- **확인**: `bash scripts/check-claude-environment.sh` 실행하여 환경 검증
-
-### 파일 읽기/쓰기 에러
-
-```
-Error: File has not been read yet. Read it first before writing to it
-```
-
-- **원인**: Claude Code는 기존 파일 수정 시 반드시 Read 도구 먼저 사용
-- **해결**: Write/Edit 전에 항상 Read 도구 사용
-- **주의**: Sub agents도 동일한 규칙 적용
-
-### Windows 개발 환경 (PowerShell/Git Bash)
-
-**현재 실행 환경**:
-
-- **Git Bash**: MSYS 환경에서 실행 중 (Windows Git Bash)
-- **파일 경로**: Windows 네이티브 경로 사용 (`D:\cursor\openmanager-vibe-v5`)
-- **Node.js**: Windows 버전 사용 (v22.15.1)
-- **터미널**: PowerShell 또는 Git Bash 선택 가능
-
-### 메모리 관리
-
-```bash
-# 개발 환경
---max-old-space-size=8192  # 8GB
-
-# 프로덕션
---max-old-space-size=4096  # 4GB
-```
-
-## 🚀 배포 및 무료 티어 전략
-
-### Vercel (Frontend)
-
-- **공식 문서**: https://vercel.com/docs
-- **명령어**: `vercel --prod` (main 브랜치 자동 배포)
-- **환경 변수**: Vercel 대시보드에서 설정
-- **무료 한계**: [무료 티어 아키텍처](#무료-티어-아키텍처) 참조
-
-### GCP Functions (Backend API)
-
-- **공식 문서**: https://cloud.google.com/docs
-- **Python 함수**: `gcp-functions/` 디렉토리
-- **배포**: `scripts/deployment/deploy-all.sh`
-- **무료 한계**: [무료 티어 아키텍처](#무료-티어-아키텍처) 참조
-
-### 무료 티어 최적화 전략
-
-- **캐싱**: 메모리 기반 캐시로 초고속 응답
-- **Edge Runtime**: Vercel Edge로 서버 부하 감소
-- **요청 배치**: 여러 요청을 하나로 묶어 처리
-- **자동 스케일링**: 트래픽에 따라 자동 조절
-
-### 무료 티어 환경변수 설정
-
-환경변수 템플릿은 `.env.local.template` 파일을 참조하세요.
-
-**필수 환경변수 그룹**:
-
-- Next.js & Vercel 설정
-- Supabase (PostgreSQL + Auth)
-- GitHub OAuth
-- GCP Functions
-- Google AI (Gemini API)
-
-**보안 원칙**:
-
-- 절대 하드코딩 금지
-- 서버 전용 키는 클라이언트에 노출 금지
-- `NEXT_PUBLIC_` 접두사는 공개 가능한 키만 사용
-
-상세 설정: [`/docs/environment-variables-guide.md`](/docs/environment-variables-guide.md)
-
-## 🤝 Claude + Gemini + Qwen AI 협업 전략
-
-**핵심 목적**: 비용 감소 + 협업을 통한 빠른 개발 + 서로가 서로를 보완
-
-Claude Code가 메인 개발을 주도하고, 필요시 Gemini/Qwen을 병렬 협업 도구로 활용하는 보완 체계:
-
-| 작업 접근법     | Claude Code (메인)   | Gemini CLI (요청 시) | Qwen Code (요청 시)  |
-| -------------- | -------------------- | ------------------- | ------------------- |
-| **기본 전략**   | ✅ 모든 개발 주도     | 사용자 요청 시만     | 사용자 요청 시만     |
-| **활용 시점**   | 항상 활성화          | "Gemini로" 명시 시   | "Qwen으로" 명시 시   |
-| **병렬 작업**   | 조율 및 통합 담당     | 독립적 기능 개발     | 독립적 기능 개발     |
-| **주요 역할**   | 프로젝트 전체 관리    | 완전한 개발 도구     | 완전한 개발 도구     |
-| **일반 개발**   | ✅ 모든 작업 가능     | ✅ 모든 작업 가능    | ✅ 모든 작업 가능    |
-| **복잡한 작업** | ✅ 직접 처리 가능     | ✅ 병렬 개발 가능    | ✅ 병렬 개발 가능    |
-| **비용 효율**   | $200/월 (메인)       | $0 (무료, Google)    | $0 (오픈소스)       |
-| **토큰 제한**   | 5시간 블록           | 1000회/일, 60회/분   | 2,000회/일, 60회/분  |
-| **특화 영역**   | 범용 개발            | 병렬 협업/제3의 시선 | 병렬 협업/제3의 시선 |
-
-### 🤖 AI 도구 활용 방법 (Claude Code 중심 체계)
-
-#### 1. Claude Code 메인 개발 (기본)
-
-```bash
-# Claude Code가 모든 개발 작업 주도
-# - 시스템 설계, 구현, 테스트, 배포까지 전체 워크플로우 관리
-# - MCP 서버 11개 활용하여 프로젝트 통합 관리
-# - 서브에이전트들을 필요시 지시하여 활용
-```
-
-#### 2. Claude Code 판단에 의한 보완 협업
-
-```typescript
-// Claude Code가 병렬 작업 및 제3의 시선으로 보완이 필요하다고 판단할 때
+// 복잡한 작업은 central-supervisor가 조율
 await Task({
-  subagent_type: 'gemini-cli-collaborator',  // 또는 'qwen-cli-collaborator'
-  description: '병렬 협업: 아키텍처 검증',
-  prompt: '현재 구현의 잠재적 문제점과 개선 방안을 독립적 관점에서 분석'
+  subagent_type: 'central-supervisor',
+  prompt: '전체 리팩토링 작업 조율'
 });
-```
 
-#### 3. Claude Code 지시에 의한 병렬 작업
-
-```typescript
-// Claude Code가 대규모 작업을 병렬로 분할할 때
-Promise.all([
-  Task({ subagent_type: 'gemini-cli-collaborator', ... }),  // Claude가 지시한 독립 모듈
-  claude.implement()                                         // Claude 직접 구현
+// 병렬 작업으로 속도 향상
+await Promise.all([
+  Task({ subagent_type: 'test-automation-specialist', prompt: '테스트 작성' }),
+  Task({ subagent_type: 'ux-performance-optimizer', prompt: '성능 최적화' })
 ]);
-// 결과: Claude 조율하에 2x 속도 향상
 ```
 
-#### 4. 사용자 명시적 요청 시 (Claude Code가 조율)
+### 주요 전문가 에이전트
+- **database-administrator**: Supabase PostgreSQL 최적화
+- **debugger-specialist**: 5단계 체계적 디버깅
+- **test-automation-specialist**: 테스트 자동화 (TDD 지원)
+- **security-auditor**: 포트폴리오 수준 보안 검사
 
+## 📊 프로젝트 구조
+
+```
+openmanager-vibe-v5/
+├── src/
+│   ├── app/         # Next.js 15 App Router
+│   ├── services/    # 비즈니스 로직
+│   └── components/  # React 컴포넌트
+├── docs/            # 상세 문서
+├── scripts/         # 자동화 스크립트
+└── .claude/         # Claude Code 설정
+    ├── agents/      # 서브에이전트 정의
+    └── commands/    # 커스텀 명령어
+```
+
+## 🚀 CI/CD 파이프라인
+
+### Fast Track 배포 (2-7분)
 ```bash
-# 사용자: "Gemini로 전체 코드베이스 리팩토링 해줘"
-# → Claude Code가 gemini-cli-collaborator 지시 및 결과 검토
+# 긴급 배포
+git commit -m "🚑 hotfix: 긴급 수정 [skip ci]"
 
-# 사용자: "Qwen으로 이 아키텍처 개선점 찾아줘"
-# → Claude Code가 qwen-cli-collaborator 지시하여 제3의 시선 확보
-
-# 사용자: "3개 AI 모두 활용해서 성능 개선해줘"
-# → Claude Code가 전체 조율하에 Gemini, Qwen 병렬 실행 및 통합
+# 검사 스킵
+HUSKY=0 git commit -m "⚡ perf: 성능 개선"
 ```
 
-### 💡 AI 도구 활용 원칙 (명확한 계층 구조)
+### GitHub Actions 최적화
+- 필수 검증만 실패 처리
+- TypeScript 에러는 경고만
+- 병렬 처리로 70% 속도 향상
 
-- **Claude Code (최상위 통제자)**: 모든 개발의 메인 도구, 항상 활성화, 프로젝트 전체 관리
-  - 모든 서브에이전트를 직접 관리하고 지시
-  - Gemini/Qwen 활용 여부도 Claude Code가 최종 결정
-  
-- **Gemini CLI (보조 도구)**: Claude Code가 필요 시 또는 사용자 명시 요청 시만 활용
-  - 사용자가 "Gemini로" 명시적 요청 시
-  - Claude Code가 병렬 작업 및 제3의 시선으로 보완 협업이 필요하다고 판단 시
-  
-- **Qwen Code (보조 도구)**: Claude Code가 필요 시 또는 사용자 명시 요청 시만 활용
-  - 사용자가 "Qwen으로" 명시적 요청 시
-  - Claude Code가 병렬 작업 및 제3의 시선으로 보완 협업이 필요하다고 판단 시
+## 🔐 환경 설정
 
-### 📚 AI CLI 도구 상세 가이드
+### 필수 환경변수 (.env.local)
+```bash
+# Next.js
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 
-#### Gemini CLI
+# MCP 서버
+TAVILY_API_KEY=tvly-...
+SUPABASE_ACCESS_TOKEN=sbp_...
 
-- **설치 및 설정**: `/docs/gemini-cli-setup-guide.md`
-- **무료 티어**: 1,000회/일, 60회/분 (Gemini 2.5 Pro)
-
-#### Qwen Code CLI
-
-- **설치**: `npm install -g @qwen-code/qwen-code`
-- **모델**: Qwen3-Coder (480B MoE, 35B active)
-- **컨텍스트**: 256K native, 1M extrapolated
-- **사용 제한**: 2,000 req/day, 60 req/min
-- **라이선스**: Apache 2.0 (오픈소스)
+# GitHub OAuth
+GITHUB_CLIENT_ID=...
+GITHUB_CLIENT_SECRET=...
+```
 
 ## 📚 추가 문서
 
-### 프로젝트 문서
+### 핵심 가이드
+- [타입 우선 개발 상세](/docs/claude/type-first-development-guide.md)
+- [TDD 실전 가이드](/docs/claude/tdd-practical-guide.md)
+- [MCP 서버 완전 가이드](/docs/claude/mcp-servers-complete-guide.md)
+- [서브에이전트 종합 가이드](/docs/claude/sub-agents-comprehensive-guide.md)
 
-- 상세 가이드: `/docs` 폴더
-- API 문서: `/docs/api`
-- Gemini 협업: `GEMINI.md`
-- **MCP 서버 완전 가이드**: `/docs/mcp-servers-complete-guide.md`
-- 서브에이전트 정의: `.claude/agents/`
+### 기술 문서
+- [Next.js 15 마이그레이션](/docs/claude/nextjs15-migration-guide.md)
+- [Supabase RLS 보안](/docs/claude/supabase-rls-security-guide.md)
+- [성능 최적화 전략](/docs/claude/performance-optimization-guide.md)
 
-### aitmpl.com 템플릿 참조 문서
+### 운영 문서
+- [무료 티어 최적화](/docs/claude/free-tier-optimization-guide.md)
+- [모니터링 대시보드](/docs/claude/monitoring-dashboard-guide.md)
+- [트러블슈팅 가이드](/docs/claude/troubleshooting-guide.md)
 
-- **메인 참조 가이드**: `/docs/aitmpl-reference-guide.md` - aitmpl.com 시스템 전체 분석
-- **비교 분석**: `/docs/aitmpl-comparison-analysis.md` - 우리 프로젝트와 상세 비교
-- **활용 패턴**: `/docs/aitmpl-usage-patterns.md` - 실전 활용 방법 및 체크리스트
+## ⚡ Custom Commands
 
-### Claude Code 공식 문서
+### 프로젝트 전용 명령어
+```bash
+# .claude/commands/에 정의
+/commit         # 스마트 커밋 생성
+/pr            # Pull Request 생성
+/test-tdd      # TDD 테스트 생성
+/refactor      # 코드 리팩토링
+/security      # 보안 검사
+```
 
-- [Claude Code 개요](https://docs.anthropic.com/en/docs/claude-code/overview)
-- [MCP (Model Context Protocol)](https://docs.anthropic.com/en/docs/claude-code/mcp)
-- [서브 에이전트](https://docs.anthropic.com/en/docs/claude-code/sub-agents)
-- [설정 가이드](https://docs.anthropic.com/en/docs/claude-code/settings)
+## 🎯 현재 상태 (2025.01.14)
+
+- **코드 품질**: TypeScript 382개 → 목표 0개
+- **테스트**: 54/55 통과 (98.2%), 6ms 속도
+- **CI/CD**: Push 성공률 99%, 평균 5분
+- **MCP**: 11개 서버 100% 정상
+- **무료 티어**: Vercel 30%, GCP 15%, Supabase 3%
 
 ---
 
-💡 **핵심 원칙**: 간결성, 재사용성, 타입 안전성, 무료 티어 최적화
+💡 **핵심 원칙**: Type-First + TDD + 이모지 커밋 + MCP 활용
 
-📊 **프로젝트 현황** (2025.8.13 기준):
-
-- **보안 강화**: 하드코딩된 Supabase 키 제거 ✅ 환경변수 전환 완료
-- **코드 품질**: TypeScript 에러 386개 → 382개 (4개 해결), Critical 보안 문제 100% 해결
-- **테스트 시스템**: 54/55개 테스트 통과 (98.2%), 6ms 초고속 검증 시스템 동작
-- **CI/CD 성능**: **70% 속도 향상**, Push 성공률 99%, GitHub Actions 항상 성공
-- **무료 티어 사용률**: Vercel 30%, GCP 15%, Supabase 3%
-- **GCP Functions**: 3개 배포 완료, Python 3.11 최적화
-- **서브에이전트**: 18개 최적화 (qwen-cli-collaborator 추가)
-- **MCP 서버**: **Claude Code용 11개 모두 정상 연결** ✅ (Serena 포함)
-- **Gemini CLI 통합**: 1M 토큰 활용 가능
-- **Qwen Code CLI 통합**: 256K-1M 토큰, 2,000회/일, 60회/분 제한
+📖 **상세 내용**: `/docs` 폴더 참조
