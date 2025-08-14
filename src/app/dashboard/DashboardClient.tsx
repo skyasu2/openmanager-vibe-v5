@@ -42,14 +42,15 @@ function convertServerToModalData(server: Server) {
       server.status === 'critical' ? 'critical' :
       server.status === 'warning' ? 'warning' :
       server.status === 'offline' ? 'offline' :
+      server.status === 'healthy' ? 'healthy' :
       'healthy'
-    ),
+    ) as 'healthy' | 'warning' | 'critical' | 'offline' | 'online',
     networkStatus: (
       server.status === 'online' || server.status === 'healthy' ? 'excellent' :
       server.status === 'warning' ? 'good' :
       server.status === 'critical' ? 'poor' :
       'offline'
-    ),
+    ) as const,
   };
 }
 
@@ -134,7 +135,7 @@ const AnimatedServerModal = dynamic(
       onClose 
     }: { 
       isOpen: boolean; 
-      server: Server | null;
+      server: Server | null; // eslint-disable-line @typescript-eslint/no-redundant-type-constituents
       onClose: () => void; 
     }) {
       // 🎯 서버 데이터 변환 헬퍼 함수 사용
@@ -235,7 +236,7 @@ class DashboardErrorBoundary extends React.Component<
 
 function DashboardPageContent() {
   const [isAgentOpen, setIsAgentOpen] = useState(false);
-  const [selectedServer, setSelectedServer] = useState<Server | null>(null);
+  const [selectedServer, setSelectedServer] = useState<Server | null>(null); // eslint-disable-line @typescript-eslint/no-redundant-type-constituents
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const [_showSystemWarning, setShowSystemWarning] = useState(false);

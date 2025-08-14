@@ -10,6 +10,8 @@
 
 'use client';
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,81 +29,63 @@ import dynamic from 'next/dynamic';
 import React, { useEffect, useState } from 'react';
 
 // 동적 import로 차트 컴포넌트들 로드
-import type {
-  BarChart as BarChartType,
-  LineChart as LineChartType,
-  PieChart as PieChartType,
-  ResponsiveContainer as ResponsiveContainerType,
-  XAxis as XAxisType,
-  YAxis as YAxisType,
-  CartesianGrid as CartesianGridType,
-  Tooltip as TooltipType,
-  Bar as BarType,
-  Line as LineType,
-  Cell as CellType,
-  Pie as PieType,
-} from 'recharts';
+// 타입 정의는 사용하지 않으므로 제거
 
 const BarChart = dynamic(
-  // @ts-ignore - Recharts SSR 이슈
   () => import('recharts').then((mod) => mod.BarChart),
   { ssr: false }
-);
+) as any;
 
 const LineChart = dynamic(
-  () => import('recharts').then((mod) => mod.LineChart as any),
+  () => import('recharts').then((mod) => mod.LineChart),
   { ssr: false }
-);
+) as any;
 
 const PieChart = dynamic(
-  () => import('recharts').then((mod) => mod.PieChart as any),
+  () => import('recharts').then((mod) => mod.PieChart),
   { ssr: false }
-);
+) as any;
 
 const ResponsiveContainer = dynamic(
-  () => import('recharts').then((mod) => mod.ResponsiveContainer as any),
+  () => import('recharts').then((mod) => mod.ResponsiveContainer),
   { ssr: false }
-);
+) as any;
 
 const XAxis = dynamic(
-  () => import('recharts').then((mod) => mod.XAxis as any),
-  {
-    ssr: false,
-  }
-);
+  () => import('recharts').then((mod) => mod.XAxis),
+  { ssr: false }
+) as any;
 
 const YAxis = dynamic(
-  () => import('recharts').then((mod) => mod.YAxis as any),
-  {
-    ssr: false,
-  }
-);
+  () => import('recharts').then((mod) => mod.YAxis),
+  { ssr: false }
+) as any;
 
 const CartesianGrid = dynamic(
-  () => import('recharts').then((mod) => mod.CartesianGrid as any),
+  () => import('recharts').then((mod) => mod.CartesianGrid),
   { ssr: false }
-);
+) as any;
 
 const Tooltip = dynamic(
-  () => import('recharts').then((mod) => mod.Tooltip as any),
+  () => import('recharts').then((mod) => mod.Tooltip),
   { ssr: false }
-);
+) as any;
 
-const Bar = dynamic(() => import('recharts').then((mod) => mod.Bar as any), {
+const Bar = dynamic(() => import('recharts').then((mod) => mod.Bar), {
   ssr: false,
-});
+}) as any;
 
-const Line = dynamic(() => import('recharts').then((mod) => mod.Line as any), {
+const Line = dynamic(() => import('recharts').then((mod) => mod.Line), {
   ssr: false,
-});
+}) as any;
 
-const Cell = dynamic(() => import('recharts').then((mod) => mod.Cell as any), {
+const Cell = dynamic(() => import('recharts').then((mod) => mod.Cell), {
   ssr: false,
-});
+}) as any;
 
-const Pie = dynamic(() => import('recharts').then((mod) => mod.Pie as any), {
+const Pie = dynamic(() => import('recharts').then((mod) => mod.Pie), {
   ssr: false,
-});
+}) as any;
 
 interface GCPQuotaStats {
   freeQuotaUsage: {
@@ -163,7 +147,7 @@ export const GCPQuotaMonitoringDashboard: React.FC = () => {
     null
   );
   const [routerStatus, setRouterStatus] = useState<RouterStatus | null>(null);
-  const [historicalData, setHistoricalData] = useState<any[]>([]);
+  const [historicalData, setHistoricalData] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -227,8 +211,10 @@ export const GCPQuotaMonitoringDashboard: React.FC = () => {
 
   // 자동 새로고침
   useEffect(() => {
-    loadDashboardData();
-    const interval = setInterval(loadDashboardData, 30000); // 30초마다 업데이트
+    void loadDashboardData();
+    const interval = setInterval(() => {
+      void loadDashboardData();
+    }, 30000); // 30초마다 업데이트
     return () => clearInterval(interval);
   }, []);
 
@@ -469,7 +455,7 @@ export const GCPQuotaMonitoringDashboard: React.FC = () => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) =>
+                      label={({ name, percent }: { name: string; percent: number }) =>
                         `${name} ${((percent || 0) * 100).toFixed(0)}%`
                       }
                       outerRadius={80}
@@ -549,7 +535,7 @@ export const GCPQuotaMonitoringDashboard: React.FC = () => {
                     <XAxis dataKey="name" />
                     <YAxis />
                     <Tooltip
-                      formatter={(value) => [`${value}ms`, 'Response Time']}
+                      formatter={(value: number) => [`${value}ms`, 'Response Time']}
                     />
                     <Bar dataKey="time" fill="#82ca9d" />
                   </BarChart>

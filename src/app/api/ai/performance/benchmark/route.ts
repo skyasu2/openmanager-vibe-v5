@@ -12,9 +12,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-// 임시 비활성화: 빌드 에러 해결 후 재활성화 예정
-// import { getAIPerformanceBenchmark, quickBenchmark, validatePerformanceTarget } from '@/services/ai/performance-benchmark';
-// import { getUltraPerformanceAIEngine } from '@/services/ai/ultra-performance-ai-engine';
+import { getAIPerformanceBenchmark, quickBenchmark, validatePerformanceTarget } from '@/services/ai/performance-benchmark';
+import { getUltraPerformanceAIEngine } from '@/services/ai/ultra-performance-ai-engine';
 
 export const runtime = 'nodejs';
 export const maxDuration = 300; // 5분 제한

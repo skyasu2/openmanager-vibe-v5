@@ -42,7 +42,7 @@ export class ContextStorageManager {
 
       // 2. 메모리 캐싱
       if (this.config.enableMemoryCache) {
-        await this.saveToMemory(contextDoc);
+        this.saveToMemory(contextDoc);
       }
 
       // 3. 메모리 캐시 업데이트
@@ -69,12 +69,12 @@ export class ContextStorageManager {
       // 1. 메모리 캐시 확인
       if (this.contextCache.has(contextId)) {
         console.log(`✅ 메모리 캐시에서 컨텍스트 로드: ${contextId}`);
-        return this.contextCache.get(contextId);
+        return this.contextCache.get(contextId) || null;
       }
 
       // 2. 메모리 캐시에서 조회
       if (this.config.enableMemoryCache) {
-        const cached = await this.getFromMemory(contextId);
+        const cached = this.getFromMemory(contextId);
         if (cached) {
           this.updateMemoryCache(cached);
           console.log(`✅ 메모리에서 컨텍스트 로드: ${contextId}`);
@@ -88,7 +88,7 @@ export class ContextStorageManager {
         if (firestore) {
           // 메모리 캐시 업데이트
           if (this.config.enableMemoryCache) {
-            await this.saveToMemory(firestore);
+            this.saveToMemory(firestore);
           }
           this.updateMemoryCache(firestore);
           console.log(`✅ Firestore에서 컨텍스트 로드: ${contextId}`);
@@ -233,7 +233,7 @@ export class ContextStorageManager {
   /**
    * 💾 메모리 캐싱
    */
-  private async saveToMemory(contextDoc: ContextDocument): Promise<void> {
+  private saveToMemory(contextDoc: ContextDocument): void {
     try {
       const key = `${this.config.memoryPrefix}${contextDoc.id}`;
       this.memoryCache.set(key, contextDoc, this.config.memoryTTL);
@@ -276,9 +276,9 @@ export class ContextStorageManager {
   /**
    * 🔍 메모리에서 컨텍스트 조회
    */
-  private async getFromMemory(
+  private getFromMemory(
     contextId: string
-  ): Promise<ContextDocument | null> {
+  ): ContextDocument | null {
     try {
       const key = `${this.config.memoryPrefix}${contextId}`;
       return this.memoryCache.get<ContextDocument>(key);

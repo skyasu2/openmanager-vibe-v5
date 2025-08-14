@@ -104,7 +104,7 @@ const getHandler = createApiRoute()
             !connectionStatus && '📡 Supabase 연결 확인 필요',
             authError && '🔐 Auth 설정 확인 필요',
             oauthError && '🐙 GitHub OAuth Provider 설정 확인 필요',
-          ].filter(Boolean)
+          ].filter((item): item is string => Boolean(item))
         : ['🎉 모든 시스템이 정상입니다!'],
     };
   });

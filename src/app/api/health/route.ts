@@ -9,7 +9,6 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import { HealthCheckResponseSchema, type HealthCheckResponse } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
@@ -29,7 +28,7 @@ async function checkDatabaseStatus(): Promise<'connected' | 'disconnected' | 'er
     const supabase = getSupabaseClient();
     
     // Supabase 연결 체크 - 간단한 쿼리 실행
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('servers')
       .select('id')
       .limit(1)

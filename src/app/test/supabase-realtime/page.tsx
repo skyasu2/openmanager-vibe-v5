@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,8 +26,8 @@ import {
 
 // Supabase 클라이언트
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 );
 
 interface ThinkingStep {
@@ -93,20 +93,20 @@ export default function SupabaseRealtimeTestPage() {
       )
       .subscribe((status) => {
         console.log('Subscription status:', status);
-        setIsConnected(status === 'SUBSCRIBED');
+        setIsConnected(String(status) === 'SUBSCRIBED');
       });
 
     // 기존 단계 로드
-    loadExistingSteps();
+    void loadExistingSteps();
 
     return () => {
-      channel.unsubscribe();
+      void channel.unsubscribe();
       setIsConnected(false);
     };
-  }, [sessionId]);
+  }, [sessionId, loadExistingSteps]);
 
   // 기존 단계 로드
-  const loadExistingSteps = async () => {
+  const loadExistingSteps = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('thinking_steps')
@@ -120,7 +120,7 @@ export default function SupabaseRealtimeTestPage() {
       console.error('Failed to load steps:', err);
       setError('단계 로드 실패');
     }
-  };
+  }, [sessionId]);
 
   // 단계 추가
   const addStep = async () => {
@@ -148,10 +148,10 @@ export default function SupabaseRealtimeTestPage() {
       setDescription('');
       
       // 3초 후 자동 완료
-      setTimeout(async () => {
+      setTimeout(() => {
         const latestStep = steps[steps.length - 1];
         if (latestStep && latestStep.status === 'processing') {
-          await updateStepStatus(latestStep.id, 'completed');
+          void updateStepStatus(latestStep.id, 'completed');
         }
       }, 3000);
     } catch (err) {

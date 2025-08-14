@@ -391,7 +391,7 @@ const postHandler = createApiRoute()
     return {
       success: true,
       message: '액션 처리 완료',
-      action: action || 'none',
+      action: action || 'refresh',
       timestamp: new Date().toISOString(),
     };
   });

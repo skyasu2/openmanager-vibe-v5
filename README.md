@@ -78,9 +78,54 @@ GOOGLE_AI_API_KEY=your_google_ai_api_key
 # GitHub OAuth (선택)
 GITHUB_ID=your_github_oauth_id
 GITHUB_SECRET=your_github_oauth_secret
+
+# GCP VM API 관리 (선택) - Windows 최적화
+VM_API_TOKEN=your_vm_api_token
 ```
 
 상세 설정은 [환경 설정 가이드](./docs/setup/ENV-SETUP-QUICKSTART.md)를 참조하세요.
+
+## 🖥️ GCP VM 관리 (Windows 최적화)
+
+Windows 환경에서 GCP VM을 API로 관리할 수 있는 통합 시스템:
+
+### VM 관리 명령어
+
+```bash
+# 시스템 상태 확인
+npm run vm:status
+
+# 로그 확인 (최근 100줄)
+npm run vm:logs
+npm run vm:logs:50    # 최근 50줄
+
+# PM2 프로세스 상태
+npm run vm:pm2
+
+# 코드 배포
+npm run vm:deploy
+
+# 서비스 재시작
+npm run vm:restart
+
+# 종합 헬스체크
+npm run vm:health
+
+# 사용법 도움말
+npm run vm:help
+```
+
+### PowerShell/Git Bash 래퍼
+
+```powershell
+# PowerShell
+.\scripts\vm-manager.ps1 status
+.\scripts\vm-manager.ps1 logs 50
+
+# Git Bash
+./scripts/vm-manager.sh status
+./scripts/vm-manager.sh logs 50
+```
 
 ## 🚀 주요 기능
 

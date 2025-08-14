@@ -57,17 +57,20 @@ if (typeof globalThis !== 'undefined') {
       }),
       getElementById: () => null,
       querySelector: () => null,
+      // @ts-ignore - SSR 폴리필  
       querySelectorAll: () => [],
       addEventListener: () => {},
       removeEventListener: () => {},
       body: {
         addEventListener: () => {},
         removeEventListener: () => {},
+        // @ts-ignore - SSR 폴리필
         style: {},
       },
       documentElement: {
         addEventListener: () => {},
         removeEventListener: () => {},
+        // @ts-ignore - SSR 폴리필
         style: {},
       },
     } as any; // SSR 폴리필
@@ -110,6 +113,7 @@ if (typeof window === 'undefined' && typeof global !== 'undefined') {
   global.window = global;
   // @ts-ignore - SSR 폴리필
   global.document = {
+    // @ts-ignore - SSR 폴리필
     createElement: () => ({
       addEventListener: () => {},
       removeEventListener: () => {},
@@ -119,17 +123,20 @@ if (typeof window === 'undefined' && typeof global !== 'undefined') {
     }),
     getElementById: () => null,
     querySelector: () => null,
+    // @ts-ignore - SSR 폴리필
     querySelectorAll: () => [],
     addEventListener: () => {},
     removeEventListener: () => {},
     body: {
       addEventListener: () => {},
       removeEventListener: () => {},
+      // @ts-ignore - SSR 폴리필
       style: {},
     },
     documentElement: {
       addEventListener: () => {},
       removeEventListener: () => {},
+      // @ts-ignore - SSR 폴리필
       style: {},
     },
   };

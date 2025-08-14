@@ -5,11 +5,11 @@
 
 'use client';
 
-import { Suspense, lazy, ComponentType, ReactNode } from 'react';
+import { Suspense, lazy, ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
 
 // 최소 로딩 컴포넌트 (번들 크기 최소화)
-const MinimalFallback = () => (
+export const MinimalFallback = () => (
   <div className="flex h-32 items-center justify-center">
     <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
   </div>
@@ -59,7 +59,7 @@ export const LazyAnimatedCard = lazy(() =>
 // Recharts 대신 경량 차트 구현
 export const LazyLightChart = lazy(() => 
   import('react').then(() => ({
-    default: ({ data, type = 'line' }: { data: any[]; type?: 'line' | 'bar' }) => (
+    default: ({ data, type: _type = 'line' }: { data: unknown[]; type?: 'line' | 'bar' }) => (
       <div className="h-64 w-full bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4">
         <div className="text-sm text-gray-600 mb-2">성능 차트 (경량 버전)</div>
         <div className="h-48 bg-white/50 rounded flex items-end justify-around p-2">
@@ -129,8 +129,8 @@ export function OptimizedLazy({
   priority = 'medium',
   viewport = false
 }: OptimizedLazyProps) {
-  // 우선순위에 따른 로딩 지연
-  const delay = {
+  // 우선순위에 따른 로딩 지연 (사용 예정)
+  const _delay = {
     high: 0,
     medium: 100,
     low: 500,

@@ -211,7 +211,7 @@ function aggregateMetricsData(
     if (!groups.has(groupKey)) {
       groups.set(groupKey, []);
     }
-    groups.get(groupKey).push(metric);
+    groups.get(groupKey)?.push(metric);
   });
 
   // 집계 계산
@@ -285,7 +285,7 @@ export async function getMetricsTrend(
   change: number;
   data: Array<{ timestamp: string; value: number }>;
 }> {
-  const cacheKey = `trend:${serverId}:${metric}:${timeRange}`;
+  const _cacheKey = `trend:${serverId}:${metric}:${timeRange}`;
 
   // 캐시 제거 - Supabase 직접 조회
 

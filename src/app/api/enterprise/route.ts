@@ -244,7 +244,7 @@ export async function GET(request: NextRequest) {
     };
 
     // 캐시에 저장 (1분)
-    await cache.set('enterprise:overview', enterpriseOverview, 60);
+    await cache.set('enterprise:overview', enterpriseOverview, { ttlSeconds: 60 });
 
     if (feature) {
       // 기능별 정보를 별도로 처리
