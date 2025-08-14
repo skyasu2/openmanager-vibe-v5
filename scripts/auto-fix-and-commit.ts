@@ -310,7 +310,28 @@ class AutoFixAndCommit {
     let fixed = false;
 
     // TypeScript 에러 패턴 분석 및 수정
-    if (error.message.includes('is defined but never used')) {
+    if (error.message.includes('Expression expected')) {
+      // TS1109: Expression expected - 주로 잘못된 ?? 패턴
+      // ??.property → ?.property (optional chaining)
+      content = content.replace(/\?\?\./g, '?.');
+      
+      // 독립적인 ?? 패턴 (앞뒤로 연산자가 있는 경우)
+      // status??.watchdogReport = → status && status.watchdogReport =
+      // 하지만 이건 복잡하므로 단순히 ?.로 변경
+      
+      // 전체 패턴 교체
+      const lines = content.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        // ??. 패턴을 ?.로 교체
+        lines[i] = lines[i].replace(/\?\?\./g, '?.');
+        
+        // SystemEventType??.PROPERTY → SystemEventType.PROPERTY (enum/const 객체는 optional 불필요)
+        lines[i] = lines[i].replace(/(\b[A-Z][a-zA-Z]*Type)\?\?\./g, '$1.');
+      }
+      content = lines.join('\n');
+      
+      fixed = true;
+    } else if (error.message.includes('is defined but never used')) {
       // 미사용 변수 처리
       const match = error.message.match(/'(\w+)'/);
       if (match) {

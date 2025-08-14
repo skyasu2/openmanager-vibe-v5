@@ -129,7 +129,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
         setSuggestions(
           result.data.map((suggestion: Partial<SuggestionData>) => ({
             id: suggestion.id || Math.random().toString(36).substr(2, 9),
-            originalQuery: suggestion??.originalQuery || suggestion??.query || '쿼리 없음',
+            originalQuery: suggestion?.originalQuery || suggestion?.query || '쿼리 없음',
             suggestedPattern: 
               suggestion.suggestedPattern ||
               suggestion.pattern ||

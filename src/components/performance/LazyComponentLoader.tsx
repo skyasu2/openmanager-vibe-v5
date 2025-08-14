@@ -37,39 +37,27 @@ const DefaultFallback = ({ message = '로딩 중...' }: { message?: string }) =>
 
 // 큰 컴포넌트들을 지연 로딩으로 변환
 export const LazyDashboardContent = lazy(() => 
-  import('@/components/dashboard/DashboardContent').then(module => ({
-    default: module??.DashboardContent
-  }))
+  import('@/components/dashboard/DashboardContent')
 );
 
 export const LazyAIAssistantDashboard = lazy(() => 
-  import('@/components/ai/AIAssistantAdminDashboard').then(module => ({
-    default: module.default
-  }))
+  import('@/components/ai/AIAssistantAdminDashboard')
 );
 
 export const LazyPerformanceDashboard = lazy(() => 
-  import('@/components/admin/PerformanceDashboard.charts').then(module => ({
-    default: module.default
-  }))
+  import('@/components/admin/PerformanceDashboard.charts')
 );
 
 export const LazyLogAnalyticsDashboard = lazy(() => 
-  import('@/components/admin/LogAnalyticsDashboard').then(module => ({
-    default: module.default
-  }))
+  import('@/components/admin/LogAnalyticsDashboard')
 );
 
 export const LazyGCPQuotaMonitoring = lazy(() => 
-  import('@/components/admin/GCPQuotaMonitoringDashboard').then(module => ({
-    default: module.default
-  }))
+  import('@/components/admin/GCPQuotaMonitoringDashboard')
 );
 
 export const LazyFeatureCardModal = lazy(() => 
-  import('@/components/shared/FeatureCardModal').then(module => ({
-    default: module.default
-  }))
+  import('@/components/shared/FeatureCardModal')
 );
 
 // 차트 컴포넌트들 (recharts는 크기가 큼)

@@ -149,7 +149,7 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
 
       {/* 자동 장애 보고서 트리거 */}
       <AnimatePresence>
-        {autoReportTrigger??.shouldGenerate && (
+        {autoReportTrigger?.shouldGenerate && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
