@@ -9,9 +9,12 @@
  * - Vercel 자체 로깅과 중복 기능 제거
  * - 핵심 장애 감지 및 알림에 집중
  * - 메모리 기반 로그 스트림 사용
+ * 
+ * ✅ 리팩토링: 중복 코드 제거 - 통합 팩토리 사용
  */
 
-import { createClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { getClientSupabase } from '@/lib/supabase-factory';
 
 interface SystemLogEntry {
   id: string;
@@ -122,7 +125,7 @@ export class CloudLoggingService {
   private static instance: CloudLoggingService;
   private config: LoggingConfig;
   private memoryStream: MemoryLogStream;
-  private supabase: ReturnType<typeof createClient> | null = null;
+  private supabase: SupabaseClient | null = null;
   private logBuffer: SystemLogEntry[] = [];
   private batchTimer: NodeJS.Timeout | null = null;
   private isProcessing = false;
@@ -147,14 +150,11 @@ export class CloudLoggingService {
     // 메모리 스트림 초기화
     this.memoryStream = new MemoryLogStream(this.config.maxStreamLength);
 
-    // Supabase 연결 (환경변수 있을 때만)
+    // Supabase 연결 (환경변수 있을 때만) - 팩토리 사용
     if (this.config.enableSupabase && 
         process.env.NEXT_PUBLIC_SUPABASE_URL && 
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      this.supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      );
+      this.supabase = getClientSupabase();
       this.startBatchProcessor();
     }
 

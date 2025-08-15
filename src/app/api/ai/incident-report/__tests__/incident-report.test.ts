@@ -4,7 +4,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextRequest } from 'next/server';
-import { GET, POST } from '../route';
+import { GET, POST, _testHelpers } from '../route';
 
 // Mock setup
 vi.mock('@/lib/cache-helper', () => ({
@@ -69,6 +69,8 @@ console.log('🎭 Supabase Mock 활성화됨 (테스트 환경)');
 describe('Automatic Incident Report API', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // 🔧 Alert cooldowns 초기화 - TDD 테스트 안정성 보장
+    _testHelpers.clearAlertCooldowns();
   });
 
   describe('Anomaly Detection', () => {

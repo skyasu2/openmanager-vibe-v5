@@ -1,15 +1,17 @@
 # 📚 OpenManager VIBE v5 문서
 
-> **JBGE 원칙 기반 체계적 문서 관리** - 찾기 쉽고, 유지보수 쉬운 문서
+> **JBGE 원칙 기반 체계적 문서 관리** - 찾기 쉽고, 유지보수 쉬운 문서  
+> **최신 업데이트**: 2025-08-15 | 루트 파일 6개 제한 달성 ✅
 
 ## 🎯 문서 철학
 
 **"Just Barely Good Enough (JBGE) + 체계적 분류"**
 
-- 루트 레벨: 인간 친화적 핵심 가이드 (6개 이하)
-- 기술 문서: Claude 참조용 세부 구현
-- 가이드: 단계별 설정 및 사용법
-- API 문서: 엔드포인트 및 스키마
+- **루트 레벨**: 핵심 가이드 5개 (JBGE 6개 제한 달성)
+- **기술 문서**: Claude/AI 참조용 세부 구현
+- **가이드**: 단계별 설정 및 사용법
+- **AI 도구**: Claude/Gemini/Qwen CLI 통합 활용
+- **아카이브**: 날짜별 보관 (중복 제거)
 
 ## 🚀 핵심 문서 (루트 레벨)
 
@@ -26,14 +28,13 @@
 ### 📁 technical/ - Claude 참조용 기술 문서
 ```
 technical/
-├── mcp/                    # MCP 서버 관련 (20+ 문서)
-│   ├── windows-mcp-complete-installation-guide.md
+├── mcp/                    # MCP 서버 관련 (16 문서, 중복 제거)
+│   ├── mcp-development-guide-2025.md         # 통합 가이드
 │   ├── mcp-best-practices-guide.md
 │   ├── tavily-mcp-advanced-guide.md
 │   └── ...
 ├── ai-engines/             # AI 시스템 세부 구현  
-│   ├── ai-complete-guide.md
-│   ├── aitmpl-reference-guide.md
+│   ├── ai-system-unified-guide.md            # AI 통합 가이드
 │   ├── sub-agents-comprehensive-guide.md
 │   └── ...
 ├── vercel-deployment/      # Vercel 배포 최적화
@@ -63,10 +64,21 @@ api/
 └── authentication/         # 인증 방법
 ```
 
+### 📁 ai-tools/ - AI 도구 통합 🆕
+```
+ai-tools/
+├── qwen-cli-guide.md      # Qwen Code CLI 활용법 (루트에서 이동)
+├── gemini-cli-guide.md    # Gemini CLI 연동
+└── ai-tools-comparison.md # AI 도구 비교 분석
+```
+
 ### 📁 archive/ - 아카이브
 ```
 archive/
-├── 2025-08-12/            # 오늘 정리된 분석 리포트들
+├── 2025-08-15/            # 오늘 정리된 문서들
+│   ├── changelog-archive.md        # 루트에서 이동
+│   └── duplicate-mcp-docs/         # 중복 MCP 문서들
+├── 2025-08-12/            # 이전 분석 리포트들
 ├── mcp-legacy/            # 이전 MCP 설정 문서
 └── wsl-legacy/            # WSL 관련 레거시 문서
 ```
@@ -124,6 +136,18 @@ archive/
 - [프로덕션 사이트](https://your-app.vercel.app)
 - [개발 환경](http://localhost:3000)
 
+## 📈 문서 최적화 현황 (2025-08-15)
+
+### JBGE 원칙 달성 ✅
+- **루트 파일**: 7개 → 5개 (목표 6개 이하 달성)
+- **중복 제거**: MCP 관련 16개 → 통합 예정
+- **구조화**: AI 도구 전용 디렉토리 신설
+
+### 접근성 개선
+- **빠른 접근**: 핵심 문서 5개로 집중
+- **체계적 분류**: 6개 카테고리별 명확한 역할
+- **검색 최적화**: 명명 규칙 표준화
+
 ---
 
-> **마지막 업데이트**: 2025-07-28 | **문서 개선 제안은 이슈로 등록해주세요**
+> **마지막 업데이트**: 2025-08-15 | **JBGE 원칙 적용 완료** ✅

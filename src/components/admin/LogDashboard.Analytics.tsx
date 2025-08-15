@@ -1,3 +1,4 @@
+'use client';
 /**
  * 📊 LogDashboard Analytics Tab
  * 
@@ -23,8 +24,9 @@ import {
   Cell,
   CustomTooltip,
 } from './LogDashboard.charts';
-import type { LogData, ChartDataPoint } from './LogDashboard.types';
+import type { LogData } from './LogDashboard.types';
 import { LEVEL_COLORS, CATEGORY_COLORS } from './LogDashboard.types';
+import type { ChartDataPoint } from "@/types/core-types";
 
 interface AnalyticsTabProps {
   data: LogData;

@@ -6,9 +6,12 @@
  * ✅ md → embedding vector 구조
  * ✅ 의미 기반 문서 검색
  * ✅ 메모리 기반 캐시 + Supabase 영구 저장
+ * 
+ * ✅ 리팩토링: 중복 코드 제거 - 통합 팩토리 사용
  */
 
-import { createClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { getClientSupabase } from '@/lib/supabase-factory';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -118,7 +121,7 @@ class AdvancedMemoryCache {
 
 export class AdvancedContextManager {
   private memoryCache: AdvancedMemoryCache;
-  private supabase: ReturnType<typeof createClient> | null = null;
+  private supabase: SupabaseClient | null = null;
   private readonly CACHE_KEY = 'openmanager:advanced_context';
   private readonly DOCS_PATH = './docs';
   private readonly LOGS_PATH = './logs';
@@ -129,13 +132,10 @@ export class AdvancedContextManager {
     // 메모리 캐시 초기화
     this.memoryCache = new AdvancedMemoryCache();
 
-    // Supabase 연결 (환경변수 있을 때만)
+    // Supabase 연결 (환경변수 있을 때만) - 팩토리 사용
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && 
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      this.supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-      );
+      this.supabase = getClientSupabase();
     }
 
     console.log('🧠 AdvancedContextManager 초기화 완료');

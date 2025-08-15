@@ -8,7 +8,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { createClient } from '@supabase/supabase-js';
+import { getSupabaseClient } from '@/lib/supabase-singleton';
 
 export interface CustomRule {
   id: string;
@@ -126,24 +126,15 @@ export class CustomContextManager {
   }
 
   /**
-   * 🔧 Supabase 초기화
+   * 🔧 Supabase 초기화 (통합 싱글톤 사용)
    */
   private async _initializeSupabase(): Promise<void> {
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-      if (supabaseUrl && supabaseKey) {
-        this.supabase = createClient(supabaseUrl, supabaseKey);
-        await this.createTablesIfNotExists();
-        this.isInitialized = true;
-        console.log('✅ [CustomContext] Supabase 연결 성공');
-      } else {
-        console.warn(
-          '⚠️ [CustomContext] Supabase 환경변수 없음, 로컬 캐시 모드로 실행'
-        );
-        this.isInitialized = true;
-      }
+      // 통합 Supabase 싱글톤 사용
+      this.supabase = getSupabaseClient();
+      await this.createTablesIfNotExists();
+      this.isInitialized = true;
+      console.log('✅ [CustomContext] Supabase 싱글톤 연결 성공');
     } catch (error) {
       console.error('❌ [CustomContext] Supabase 초기화 실패:', error);
       this.isInitialized = true; // 로컬 캐시로 폴백
