@@ -1,29 +1,39 @@
-# 🤖 서브 에이전트 종합 가이드
+# 🤖 서브 에이전트 종합 가이드 (2025-08-15 최적화)
 
 ## 📌 서브 에이전트 아키텍처
 
 ```
-사용자 → Claude Code (메인) → Central Supervisor → 전문 에이전트들
+사용자 → Claude Code (메인) → Central Supervisor → 18개 핵심 에이전트
                 ↓                    ↓
           직접 처리 (간단)      조율 및 분배 (복잡)
 ```
 
-## 🎯 에이전트 활용 전략
+## 🎯 최적화 전략 (22개 → 18개 활용)
 
-### 언제 사용하나?
+### ✅ 언제 서브에이전트를 사용하나?
 1. **복잡한 다단계 작업**: 3개 이상 도메인 연관
 2. **전문성 필요**: 특정 분야 깊은 지식 요구
 3. **병렬 처리**: 독립적 작업 동시 실행
 4. **체계적 접근**: 정형화된 프로세스 필요
+5. **500줄 이상 코드**: AI 협업 3종 세트 자동 활용
 
-### 언제 직접 처리하나?
-1. **단순 작업**: 파일 읽기/쓰기
-2. **빠른 응답**: 즉시 처리 가능
+### ⚡ 언제 직접 처리하나?
+1. **단순 작업**: 파일 읽기/쓰기 (50줄 미만)
+2. **빠른 응답**: 즉시 처리 가능 
 3. **컨텍스트 유지**: 대화 흐름 중요
+4. **일회성 설정**: statusline, output-style 등
 
-## 👥 주요 서브 에이전트 (25개)
+### ❌ 사용하지 않을 에이전트 (4개)
+```
+❌ general-purpose (중복, 전문 에이전트로 대체)
+❌ statusline-setup (일회성 설정)  
+❌ output-style-setup (일회성 설정)
+❌ 기타 비효율 에이전트
+```
 
-### 1. 🎛️ Central Supervisor
+## 👥 핵심 서브 에이전트 (18개 전략적 활용)
+
+### 1. 🎛️ Central Supervisor ⭐ **핵심**
 **복잡한 작업 조율 전문가**
 ```typescript
 await Task({
@@ -39,12 +49,26 @@ await Task({
   description: "풀스택 기능 개발 조율"
 });
 ```
+
+**🚀 자동 트리거 조건**:
+```bash
+# 복잡한 멀티 도메인 작업
+if (domains > 3 || task_complexity == "high") {
+  auto_trigger("central-supervisor")
+}
+
+# 500줄 이상 대규모 작업
+if (estimated_lines > 500) {
+  central_supervisor → parallel_ai_collaboration()
+}
+```
+
 **활용 시나리오**:
 - 전체 기능 개발 (DB + API + UI)
-- 대규모 리팩토링
-- 멀티 도메인 통합
+- 대규모 리팩토링 (1000줄+)
+- 멀티 도메인 통합 (3개 이상)
 
-### 2. 🗄️ Database Administrator
+### 2. 🗄️ Database Administrator ⭐ **핵심**
 **Supabase PostgreSQL 최적화 전문가**
 ```typescript
 await Task({
@@ -58,15 +82,34 @@ await Task({
   description: "DB 성능 최적화"
 });
 ```
+
+**🚀 자동 트리거 조건**:
+```bash
+# 쿼리 성능 이슈
+if (query_time > 2000ms) {
+  auto_trigger("database-administrator")
+}
+
+# DB 용량 한계 접근
+if (db_size > 400MB) { # 500MB 한계의 80%
+  optimize_database_storage()
+}
+
+# RLS 정책 관련 코드
+if (code_contains("auth|rls|policy")) {
+  review_security_policies()
+}
+```
+
 **전문 분야**:
 - 느린 쿼리 분석 (EXPLAIN ANALYZE)
-- RLS 정책 설계
+- RLS 정책 설계 및 검토
 - pgvector 벡터 검색 최적화
-- 인덱스 전략
+- 인덱스 전략 수립
 - 무료 티어 500MB 최적화
 
-### 3. 🧪 Test Automation Specialist
-**테스트 자동화 전문가**
+### 3. 🧪 Test Automation Specialist ⭐ **핵심**
+**테스트 자동화 전문가 (Vitest + Playwright)**
 ```typescript
 await Task({
   subagent_type: 'test-automation-specialist',
@@ -80,54 +123,127 @@ await Task({
   description: "테스트 자동화"
 });
 ```
-**자동 감지 및 실행**:
-- `npm test` 실패 시 자동 개입
-- 커버리지 80% 미만 시 보완
-- 새 컴포넌트 생성 시 테스트 추가
 
-### 4. 🎨 UX Performance Optimizer
-**UI/UX 및 성능 최적화 전문가**
+**🚀 자동 트리거 조건**:
+```bash
+# 테스트 실패 시 즉시 개입
+npm test (exit_code != 0) → auto_trigger("test-automation-specialist")
+
+# 커버리지 임계치 미달
+if (test_coverage < 80%) {
+  improve_test_coverage()
+}
+
+# 새 컴포넌트/함수 생성 시
+if (new_component_created) {
+  auto_generate_tests()
+}
+
+# E2E 테스트 실패
+if (playwright_failed) {
+  debug_e2e_issues()
+}
+```
+
+**전문 분야**:
+- Vitest 단위/통합 테스트
+- Playwright E2E 테스트 
+- TDD 리팩토링 지원
+- 커버리지 80%+ 유지
+
+### 4. 🎨 UX Performance Optimizer → **UX/UI Specialist** ⭐ **핵심** 
+**UI/UX 전문가 + 성능 최적화**
 ```typescript
 await Task({
-  subagent_type: 'ux-performance-optimizer',
+  subagent_type: 'ux-performance-optimizer', // 실제 에이전트명
   prompt: `
-    대시보드 페이지 최적화:
+    UX/UI 종합 개선:
+    - 사용자 경험 최적화
     - Core Web Vitals 개선 (LCP < 2.5s)
     - React 컴포넌트 최적화
-    - 번들 크기 250KB 이하
     - 접근성 WCAG 2.1 AA 준수
+    - 디자인 시스템 구축
   `,
-  description: "UI 성능 최적화"
+  description: "UX/UI 및 성능 최적화"
 });
 ```
-**핵심 지표**:
-- Lighthouse 90+ 점수
-- FCP < 1.8s, CLS < 0.1
-- 번들 크기 최적화
-- 코드 스플리팅
 
-### 5. 🔒 Security Auditor
-**보안 감사 전문가**
+**🚀 자동 트리거 조건**:
+```bash
+# 성능 지표 임계치 미달
+if (lighthouse_score < 90 || lcp > 2500ms) {
+  auto_trigger("ux-performance-optimizer")
+}
+
+# 번들 크기 초과
+if (bundle_size > 250KB) {
+  optimize_bundle_size()
+}
+
+# UI 컴포넌트 생성 시
+if (new_ui_component) {
+  apply_design_system_guidelines()
+}
+
+# 접근성 이슈 감지
+if (accessibility_violations > 0) {
+  fix_accessibility_issues()
+}
+```
+
+**전문 분야**:
+- **UX 설계**: 사용자 여정, 정보 구조
+- **UI 컴포넌트**: 디자인 시스템, 재사용성
+- **성능 최적화**: Core Web Vitals, 번들 최적화
+- **접근성**: WCAG 2.1 AA 준수
+
+### 5. 🔒 Security Auditor ⭐ **핵심** (포트폴리오 수준)
+**기본 보안 감사 전문가** 
 ```typescript
 await Task({
   subagent_type: 'security-auditor',
   prompt: `
-    결제 시스템 보안 감사:
-    - 하드코딩된 시크릿 검사
-    - SQL Injection 취약점
-    - XSS/CSRF 방어
-    - RLS 정책 검증
+    포트폴리오용 기본 보안 검사:
+    - 하드코딩된 API 키/시크릿 검사
+    - 기본적인 XSS 방어 확인
+    - Vercel/Supabase/GCP/GitHub 호환 보안
+    - 환경변수 누출 방지
+    - 과도한 보안 적용 피하기
   `,
-  description: "보안 감사"
+  description: "기본 보안 감사"
 });
 ```
-**자동 실행 조건**:
-- API 키/토큰 패턴 감지
-- auth/payment 코드 수정
-- PR 생성 시 보안 리뷰
 
-### 6. 🐛 Debugger Specialist
-**체계적 디버깅 전문가**
+**🚀 자동 트리거 조건**:
+```bash
+# API 키/토큰 패턴 감지
+if (code_contains("api_key|secret|token|password")) {
+  check_hardcoded_secrets()
+}
+
+# 인증 관련 코드 수정
+if (code_contains("auth|login|signup")) {
+  basic_auth_security_review()
+}
+
+# 환경변수 관련
+if (code_contains(".env|process.env")) {
+  check_env_security()
+}
+
+# PR 생성 시 (포트폴리오 수준만)
+if (pr_created) {
+  basic_security_scan()
+}
+```
+
+**보안 범위 (포트폴리오 최적화)**:
+- **✅ 적용**: API 키 보호, 기본 XSS 방어
+- **✅ 플랫폼 호환**: Vercel/Supabase/GCP/GitHub 정책 준수
+- **❌ 과도한 적용 피함**: 엔터프라이즈급 보안 배제
+
+### 6. 🐛 Debugger Specialist ⭐ **핵심**
+**체계적 디버깅 및 근본 원인 분석 전문가**
 ```typescript
 await Task({
   subagent_type: 'debugger-specialist',
@@ -136,16 +252,41 @@ await Task({
     Error: Cannot read property 'id' of undefined
     Location: UserProfile.tsx:45
     Frequency: 15회/시간
+    Stack Trace: [상세 스택 트레이스]
   `,
   description: "에러 원인 분석"
 });
 ```
-**5단계 프로세스**:
-1. 표면 분석 (증상)
-2. 근본 원인 분석
-3. 베스트 프랙티스 연구
-4. 솔루션 설계
-5. 검증 및 테스트
+
+**🚀 자동 트리거 조건**:
+```bash
+# 런타임 에러 발생
+if (runtime_error || exception_thrown) {
+  auto_trigger("debugger-specialist")
+}
+
+# 빌드 실패
+if (build_failed || compile_error) {
+  analyze_build_issues()
+}
+
+# 성능 문제 감지
+if (response_time > 5000ms) {
+  performance_debugging()
+}
+
+# 반복적 에러 패턴
+if (error_frequency > 10_per_hour) {
+  systematic_debugging()
+}
+```
+
+**5단계 디버깅 프로세스**:
+1. **표면 분석**: 증상 및 패턴 파악
+2. **근본 원인 분석**: 스택 트레이스 + 로그 분석  
+3. **베스트 프랙티스 연구**: 웹 검색으로 솔루션 조사
+4. **솔루션 설계**: 단계별 해결 방안
+5. **검증 및 테스트**: 수정 후 테스트 확인
 
 ### 7. ♻️ Structure Refactor Agent
 **아키텍처 리팩토링 전문가**
@@ -326,37 +467,113 @@ await Task({
 });
 ```
 
-### 17. 🤖 Qwen CLI Collaborator
-**오픈소스 Qwen 병렬 개발 도구**
+## 🤖 AI 협업 에이전트 (3종 세트) ⭐ **핵심**
+
+### 17. 🤖 Qwen CLI Collaborator ⭐ **핵심**
+**무료 오픈소스 Qwen 병렬 개발 도구**
 ```typescript
-// 사용자가 명시적으로 요청 시에만
+// 큰 작업 시 자동 또는 사용자 요청 시
 await Task({
   subagent_type: 'qwen-cli-collaborator',
   prompt: `
     Qwen으로 병렬 개발:
-    - 아키텍처 리뷰
-    - 독립적 검증
-    - 대안 접근법 제시
+    - 아키텍처 리뷰 및 대안 제시
+    - 독립적 코드 검증
+    - 256K-1M 토큰 대용량 처리
+    - Claude와 다른 관점의 솔루션
   `,
   description: "Qwen 병렬 작업"
 });
 ```
-**제한사항**: 2,000회/일, 60회/분
 
-### 18. 💎 Gemini CLI Collaborator
-**Google Gemini 대규모 분석 도구**
+**🚀 자동 트리거 조건**:
+```bash
+# 대용량 작업 시 무료 AI 우선 활용
+if (estimated_lines > 500 && cost_efficiency_mode) {
+  auto_suggest("qwen-cli-collaborator")
+}
+
+# 아키텍처 리뷰 요청
+if (architecture_review_needed) {
+  parallel_ai_review("qwen-cli-collaborator")
+}
+```
+
+**무료 제한사항**: 2,000회/일, 60회/분
+
+### 18. 💎 Gemini CLI Collaborator ⭐ **핵심**
+**무료 Google Gemini 대규모 분석 도구**
 ```typescript
-// 사용자가 "Gemini로" 요청 시에만
+// 대규모 분석 시 자동 또는 사용자 요청 시
 await Task({
   subagent_type: 'gemini-cli-collaborator',
   prompt: `
     Gemini로 대규모 분석:
     - 전체 코드베이스 분석 (1M 토큰)
-    - 대규모 리팩토링
-    - 병렬 처리
+    - 대규모 리팩토링 계획
+    - 문서 자동 생성
+    - 로그 패턴 분석
   `,
-  description: "Gemini 분석"
+  description: "Gemini 대규모 분석"
 });
+```
+
+**🚀 자동 트리거 조건**:
+```bash
+# 대규모 분석 작업
+if (codebase_analysis || large_refactor) {
+  auto_suggest("gemini-cli-collaborator")
+}
+
+# 문서 생성 요청
+if (documentation_needed) {
+  gemini_auto_docs_generation()
+}
+```
+
+### 💰 Codex CLI (ChatGPT Plus) ⭐ **핵심**
+**유료 고성능 AI 개발 CLI**
+```typescript
+// 복잡한 로직 구현 시 활용
+await Task({
+  subagent_type: 'codex-cli', // 별도 CLI 도구
+  prompt: `
+    Codex로 고급 개발:
+    - 복잡한 알고리즘 구현
+    - 고품질 코드 리뷰
+    - 보안 취약점 분석
+    - 성능 최적화
+  `,
+  description: "Codex 고급 개발"
+});
+```
+
+**🚀 자동 트리거 조건**:
+```bash
+# 복잡한 로직 요구 시
+if (algorithm_complexity == "high") {
+  suggest_premium_ai("codex-cli")
+}
+
+# 중요한 코드 리뷰
+if (critical_feature_review) {
+  parallel_premium_review()
+}
+```
+
+### 🔄 AI 협업 3종 세트 전략
+```bash
+# 대규모 작업 시 순차적 활용
+large_task → {
+  1. qwen-cli (무료 1차 검토)
+  2. gemini-cli (무료 대용량 분석)  
+  3. codex-cli (유료 고품질 마무리)
+}
+
+# 교차 검증 패턴
+critical_code → {
+  claude + qwen + gemini + codex (4-way 검증)
+}
 ```
 
 ## 🎮 병렬 처리 패턴
@@ -429,6 +646,78 @@ graph TD
     M --> N[병렬 실행]
     N --> O[결과 통합]
 ```
+
+## 🎯 18개 핵심 에이전트 요약 (2025-08-15 최적화)
+
+### ⭐ **1순위 - 메인 조정자** (1개)
+- `central-supervisor` - 복잡한 작업 분해/오케스트레이션
+
+### ⭐ **2순위 - 개발 환경** (2개) 
+- `dev-environment-manager` - WSL 최적화, 개발서버 관리
+- `structure-refactor-agent` - 프로젝트 구조 정리
+
+### ⭐ **3순위 - 백엔드/인프라** (5개)
+- `database-administrator` - Supabase PostgreSQL 전문
+- `gcp-vm-specialist` - GCP VM/Functions 관리
+- `ai-systems-engineer` - AI 어시스턴트 개발/분석
+- `vercel-platform-specialist` - Vercel 플랫폼 최적화
+- `mcp-server-admin` - 11개 MCP 서버 관리
+
+### ⭐ **4순위 - 품질/테스트** (5개)
+- `test-automation-specialist` - Vitest/Playwright 자동화
+- `code-review-specialist` - 코드 품질 검토
+- `debugger-specialist` - 버그 해결/근본 원인 분석
+- `security-auditor` - 포트폴리오용 기본 보안
+- `quality-control-checker` - CLAUDE.md 규칙 준수
+
+### ⭐ **5순위 - 문서/Git** (2개)
+- `documentation-manager` - docs 폴더 + 루트 문서 관리
+- `git-cicd-specialist` - Git/CI/CD 전문
+
+### ⭐ **6순위 - AI 협업** (3개)
+- `qwen-cli-collaborator` - 무료 Qwen 병렬 개발
+- `gemini-cli-collaborator` - 무료 Gemini 대규모 분석
+- `codex-cli` - 유료 ChatGPT Plus CLI
+
+### ⭐ **7순위 - UX/성능** (1개)
+- `ux-performance-optimizer` - UX/UI 전문가 + 성능 최적화
+
+## ❌ 사용하지 않을 에이전트 (4개)
+```
+❌ general-purpose (중복)
+❌ statusline-setup (일회성)  
+❌ output-style-setup (일회성)
+❌ 기타 비효율 에이전트
+```
+
+## 💡 최적화 활용 전략
+
+### 🚀 자동 트리거 시스템
+```bash
+# 복잡도 기반 자동 선택
+if (complexity >= 500_lines) {
+  central_supervisor → multi_agent_collaboration
+}
+
+# 도메인별 자동 라우팅  
+auth_code → security_auditor
+db_query → database_administrator  
+test_failed → test_automation_specialist
+git_error → git_cicd_specialist
+
+# AI 협업 3종 세트 활용
+large_task → qwen(1차) → gemini(분석) → codex(마무리)
+```
+
+### 📈 효율성 향상 효과
+- **선택 부담 감소**: 22개 → 18개 (18% 감소)
+- **역할 명확화**: 7개 카테고리로 체계화
+- **자동화 강화**: 트리거 조건으로 즉시 투입
+- **비용 최적화**: 무료 AI 우선 → 유료 AI 마무리
+
+---
+
+💡 **핵심 원칙**: **18개 핵심만 전략적 활용** → 최적 효율성과 최고 품질
 
 ## ⚡ 프로액티브 에이전트
 

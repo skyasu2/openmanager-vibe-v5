@@ -256,7 +256,92 @@ echo "🔄 최적 모델 선택으로 생산성 극대화"
 
 ---
 
-💡 **핵심 철학**: **Max 정액제 + 서브 3개** 체제로 무제한 생산성과 극도의 비용 효율성`
+💡 **핵심 철학**: **Max 정액제 + 서브 3개** 체제로 무제한 생산성과 극도의 비용 효율성
+
+## 🤖 서브에이전트 최적화 전략 (2025-08-15 신규 최적화)
+
+**18개 핵심 에이전트 전략적 활용** - 22개 → 18개로 효율성 극대화
+
+### 🎯 핵심 에이전트 구성 (18개)
+
+#### **1. 메인 조정자** (1개)
+- **central-supervisor**: 복잡한 작업 분해 및 서브에이전트 오케스트레이션
+
+#### **2. 개발 환경 & 구조** (2개) 
+- **dev-environment-manager**: WSL 최적화, Node.js 버전 관리, 개발서버 관리
+- **structure-refactor-agent**: 프로젝트 구조 정리, 폴더/파일 위치 최적화
+
+#### **3. 백엔드 & 인프라** (5개)
+- **gcp-vm-specialist**: GCP VM 백엔드 관리, Cloud Functions 배포
+- **database-administrator**: Supabase PostgreSQL 전문 관리  
+- **ai-systems-engineer**: AI 어시스턴트 기능 개발/성능 분석
+- **vercel-platform-specialist**: Vercel 플랫폼 + 내장 MCP 접속/상태점검
+- **mcp-server-admin**: 11개 MCP 서버 관리/추가/수정
+
+#### **4. 코드 품질 & 테스트** (5개)
+- **code-review-specialist**: 코드 리뷰, SOLID 원칙 검증
+- **debugger-specialist**: 버그 해결, 스택 트레이스 분석  
+- **security-auditor**: 포트폴리오용 기본 보안 (Vercel/Supabase/GCP/GitHub 호환)
+- **quality-control-checker**: CLAUDE.md 규칙 준수 검토
+- **test-automation-specialist**: Vitest/Playwright 테스트 작성/수정
+
+#### **5. 문서화 & Git** (2개)
+- **documentation-manager**: docs 폴더 + 루트 문서 관리, JBGE 원칙
+- **git-cicd-specialist**: 커밋/푸시/PR 전문, 문제 해결
+
+#### **6. AI 협업** (3개)
+- **codex-cli**: ChatGPT Plus 요금제 AI 개발 CLI (병렬 개발)
+- **gemini-cli-collaborator**: Google Gemini 병렬 개발
+- **qwen-cli-collaborator**: Qwen Code 병렬 개발
+
+#### **7. UX/성능** (1개)
+- **ux-performance-optimizer**: UX/UI 전문가 + Core Web Vitals 최적화
+
+### ❌ 사용하지 않을 에이전트 (4개)
+```
+❌ general-purpose (중복, 다른 전문 에이전트로 대체)
+❌ statusline-setup (일회성 설정, 에이전트 불필요)  
+❌ output-style-setup (일회성 설정, 에이전트 불필요)
+❌ 기타 명시되지 않은 비효율 에이전트
+```
+
+### 🚀 자동 트리거 조건
+
+#### **AI 협업 3종 세트 자동 활용**
+```bash
+# 복잡도 높은 작업 (500줄+ 코드)
+if (code_lines > 500 || complexity == "high") {
+  suggest_parallel_ai_collaboration()
+}
+
+# 큰 작업 시 자동 병렬 처리
+large_task → codex-cli + gemini-cli + qwen-cli (동시 실행)
+
+# 교차 검증 필요 시
+critical_feature → multi_ai_review_process()
+```
+
+#### **전문 에이전트 자동 호출**
+```bash
+# 테스트 실패 → test-automation-specialist
+npm test (failed) → auto_trigger("test-automation-specialist")
+
+# 보안 관련 코드 → security-auditor  
+auth|payment|api_key → auto_trigger("security-auditor")
+
+# DB 성능 이슈 → database-administrator
+query_time > 2s → auto_trigger("database-administrator")
+
+# Git 문제 → git-cicd-specialist
+git_push_failed → auto_trigger("git-cicd-specialist")
+```
+
+### 💡 활용 전략
+
+1. **복잡한 작업**: central-supervisor로 시작 → 전문 에이전트 분배
+2. **병렬 개발**: AI 협업 3종 세트 동시 활용
+3. **자동화**: 트리거 조건으로 즉시 전문가 투입
+4. **효율성**: 18개만 사용으로 빠른 의사결정
 
 ## 📊 Claude Code Statusline (2025-08-15 신규 추가)
 
@@ -481,6 +566,100 @@ sudo npm install -g @qwen-code/qwen-code
 
 Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-legacy/ 폴더로 이동되었습니다.
 현재는 WSL 환경에서 모든 AI CLI 도구가 완벽하게 작동하므로 더 이상 필요하지 않습니다.
+
+## 🔌 MCP 통합 (Model Context Protocol)
+
+**11개 MCP 서버 완전 정상화 완료** ✅
+
+Claude Code와 외부 시스템을 직접 연결하는 핵심 기능입니다.
+
+### 🎯 핵심 서버 (11/11 정상)
+
+- **파일 시스템**: `filesystem`, `memory` - 프로젝트 파일 직접 조작
+- **개발 플랫폼**: `github`, `supabase` - GitHub API, 데이터베이스 연동
+- **웹 & 브라우저**: `tavily`, `playwright` - 웹 검색, 자동화
+- **AI & 분석**: `thinking`, `context7`, `serena` - 고급 사고, 문서 검색, 코드 분석
+- **유틸리티**: `time`, `shadcn` - 시간대 변환, UI 컴포넌트
+
+### 📚 사용법
+
+```bash
+# MCP 서버 상태 확인
+claude mcp list
+
+# Claude Code에서 MCP 도구 사용
+# 예: mcp__github__search_repositories
+# 예: mcp__tavily__tavily-search
+# 예: mcp__supabase__execute_sql
+```
+
+### 📖 상세 문서
+
+- **[MCP 설치 가이드](docs/MCP-SETUP-GUIDE.md)** - 환경 설정 및 설치
+- **[MCP 활용 가이드](docs/MCP-USAGE-GUIDE.md)** - 실전 사용법 및 예제
+- **[MCP 문제해결](docs/MCP-TROUBLESHOOTING.md)** - 일반적인 문제 해결
+
+---
+
+## 📚 프로젝트 문서 아카이브
+
+**체계적으로 정리된 전체 문서 구조** - JBGE 원칙 기반 docs 폴더 연결
+
+### 🚀 핵심 가이드 (빠른 시작)
+
+| 문서 | 설명 | 소요시간 |
+|------|------|----------|
+| **[⚡ 빠른 시작](docs/QUICK-START.md)** | 5분 내 개발 환경 완전 설정 | 5분 |
+| **[🏗️ 시스템 아키텍처](docs/system-architecture.md)** | 전체 아키텍처와 기술 명세 | 15분 |
+| **[🤖 AI 시스템](docs/AI-SYSTEMS.md)** | Claude + Gemini + Qwen 협업 | 15분 |
+| **[🚨 문제 해결](docs/TROUBLESHOOTING.md)** | 주요 문제들의 빠른 해결법 | 상황별 |
+
+### 🔌 MCP & AI 도구 통합
+
+| 카테고리 | 주요 문서 | 설명 |
+|----------|-----------|------|
+| **MCP 서버** | [MCP 설정](docs/MCP-SETUP-GUIDE.md) • [MCP 활용](docs/MCP-USAGE-GUIDE.md) • [MCP 문제해결](docs/MCP-TROUBLESHOOTING.md) | 11개 MCP 서버 완전 활용 |
+| **AI 협업** | [AI 도구 비교](docs/ai-tools/ai-tools-comparison.md) • [Gemini CLI](docs/ai-tools/gemini-cli-guide.md) • [Qwen CLI](docs/ai-tools/qwen-cli-guide.md) | 3-AI 병렬 개발 |
+| **서브 에이전트** | [종합 가이드](docs/claude/sub-agents-comprehensive-guide.md) • [MCP 서버 가이드](docs/claude/mcp-servers-complete-guide.md) | 18개 전문 에이전트 활용 |
+
+### 🛠️ 개발 환경 & 워크플로우
+
+| 카테고리 | 주요 문서 | 설명 |
+|----------|-----------|------|
+| **개발 환경** | [개발 가이드](docs/development/development-guide.md) • [환경 설정](docs/development/development-environment.md) • [WSL 최적화](docs/development/wsl-optimization-analysis-report.md) | 개발 환경 완전 설정 |
+| **타입 시스템** | [TypeScript 설정](docs/development/typescript-configuration-guide.md) • [타입 안전성](docs/development/type-safety-utilities.md) • [타입 우선 개발](docs/claude/type-first-development-guide.md) | TypeScript strict 모드 |
+| **테스트 & 품질** | [TDD 가이드](docs/claude/tdd-practical-guide.md) • [테스트 가이드](docs/testing/testing-guide.md) • [E2E 테스트](docs/testing/e2e-test-guide.md) | 테스트 주도 개발 |
+
+### ⚡ 성능 & 최적화
+
+| 카테고리 | 주요 문서 | 설명 |
+|----------|-----------|------|
+| **성능 최적화** | [성능 가이드](docs/performance/performance-optimization-complete-guide.md) • [메모리 최적화](docs/performance/memory-optimization-guide.md) • [번들 최적화](docs/performance/bundle-optimization-report.md) | 90% 성능 향상 달성 |
+| **API 최적화** | [API 최적화](docs/performance/api-optimization-guide.md) • [캐시 마이그레이션](docs/performance/cache-migration-complete-report.md) | 1-5ms 응답시간 |
+| **React 최적화** | [컴포넌트 최적화](docs/performance/react-component-optimization-examples.md) • [Hook 최적화](docs/development/react-hooks-optimization.md) | React 성능 극대화 |
+
+### 🔐 보안 & 인프라
+
+| 카테고리 | 주요 문서 | 설명 |
+|----------|-----------|------|
+| **보안** | [보안 가이드](docs/security/security-complete-guide.md) • [환경변수 보안](docs/security/env-security-guide.md) • [CSP 구현](docs/security/csp-implementation.md) | AES-256 암호화 |
+| **GCP 통합** | [GCP 가이드](docs/gcp/gcp-complete-guide.md) • [VM 백엔드](docs/gcp/VM-DEPLOY-GUIDE.md) • [Cloud Functions](docs/quick-start/gcp-functions.md) | 무료 티어 최적화 |
+| **배포** | [Vercel 배포](docs/technical/vercel-deployment/vercel-env-setup-guide.md) • [Supabase 인증](docs/quick-start/supabase-auth.md) | 무료 플랫폼 활용 |
+
+### 📊 모니터링 & 분석
+
+| 카테고리 | 주요 문서 | 설명 |
+|----------|-----------|------|
+| **시스템 모니터링** | [상태 모니터링](docs/monitoring/system-status-monitoring-guide.md) • [성능 엔진 테스트](docs/performance/performance-engine-testing-guide.md) | 실시간 모니터링 |
+| **AI 성능** | [AI 엔진 최적화](docs/technical/ai-engines/ai-performance-optimization-summary-2025-08-10.md) • [토큰 사용량 분석](docs/technical/ai-engines/ai-tools-token-usage-analysis.md) | AI 성능 분석 |
+
+### 📖 전체 문서 인덱스
+
+- **[📚 문서 README](docs/README.md)** - JBGE 원칙 기반 전체 문서 구조
+- **[📋 기술 문서 인덱스](docs/technical/DOCUMENT-INDEX.md)** - Claude 참조용 기술 문서 목록
+- **[🗂️ 아카이브](docs/archive/)** - 날짜별 히스토리 보관 (2025-08-15 이전)
+
+---
 
 ## 💡 개발 철학
 

@@ -27,6 +27,15 @@ const PerformanceMonitor = dynamic(
   }
 );
 
+// 🛡️ CSP 호환 성능 모니터링
+const SafePerformanceScript = dynamic(
+  () => import('@/components/security/SafePerformanceScript'),
+  {
+    ssr: false,
+    loading: () => null,
+  }
+);
+
 // 폰트 최적화
 const inter = Inter({ 
   subsets: ['latin', 'latin-ext'],
@@ -243,45 +252,8 @@ export default function RootLayout({
           </>
         )}
         
-        {/* 사용자 정의 성능 추적 */}
-        <Script
-          id="custom-performance"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              // 번들 크기 추적
-              if ('connection' in navigator) {
-                const connection = navigator.connection;
-                console.log('📶 Network:', connection.effectiveType, connection.downlink + 'Mbps');
-              }
-              
-              // 메모리 사용량 추적
-              if ('memory' in performance) {
-                const memory = performance.memory;
-                console.log('🧠 Memory:', {
-                  used: Math.round(memory.usedJSHeapSize / 1024 / 1024) + 'MB',
-                  total: Math.round(memory.totalJSHeapSize / 1024 / 1024) + 'MB',
-                  limit: Math.round(memory.jsHeapSizeLimit / 1024 / 1024) + 'MB'
-                });
-              }
-              
-              // 페이지 로드 완료 시 종합 성능 리포트
-              window.addEventListener('load', () => {
-                setTimeout(() => {
-                  const navigation = performance.getEntriesByType('navigation')[0];
-                  const paint = performance.getEntriesByType('paint');
-                  
-                  console.log('🚀 Performance Report:', {
-                    TTFB: Math.round(navigation.responseStart - navigation.requestStart) + 'ms',
-                    DOMContentLoaded: Math.round(navigation.domContentLoadedEventEnd - navigation.navigationStart) + 'ms',
-                    Load: Math.round(navigation.loadEventEnd - navigation.navigationStart) + 'ms',
-                    FCP: paint.find(p => p.name === 'first-contentful-paint')?.startTime || 'N/A'
-                  });
-                }, 2000);
-              });
-            `,
-          }}
-        />
+        {/* CSP 호환 성능 추적 컴포넌트 */}
+        <SafePerformanceScript />
       </body>
     </html>
   );

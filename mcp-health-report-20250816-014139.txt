@@ -1,0 +1,29 @@
+MCP 서버 헬스체크 리포트
+생성 시간: Sat Aug 16 01:41:39 KST 2025
+=========================
+
+환경 정보:
+- Claude Code: 1.0.81 (Claude Code)
+- Node.js: v22.18.0
+- npm: 10.9.3
+- uvx: uvx 0.8.11
+- OS: Linux sky-note 6.6.87.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
+
+MCP 서버 상태:
+Checking MCP server health...
+
+filesystem: npx -y @modelcontextprotocol/server-filesystem /mnt/d/cursor/openmanager-vibe-v5 - ✓ Connected
+memory: npx -y @modelcontextprotocol/server-memory - ✓ Connected
+github: npx -y @modelcontextprotocol/server-github - ✓ Connected
+supabase: npx -y @supabase/mcp-server-supabase@latest --project-ref ${SUPABASE_PROJECT_ID} - ✓ Connected
+tavily: npx -y tavily-mcp - ✓ Connected
+playwright: npx -y @executeautomation/playwright-mcp-server - ✓ Connected
+time: /home/skyasu/.local/bin/uvx mcp-server-time - ✓ Connected
+thinking: npx -y @modelcontextprotocol/server-sequential-thinking - ✓ Connected
+context7: npx -y @upstash/context7-mcp - ✓ Connected
+shadcn: npx -y @magnusrodseth/shadcn-mcp-server - ✓ Connected
+serena: /home/skyasu/.local/bin/uvx --from git+https://github.com/oraios/serena serena-mcp-server - ✓ Connected
+
+환경변수 상태:
+✓ .env.local 파일 존재
+환경변수 개수: 118
