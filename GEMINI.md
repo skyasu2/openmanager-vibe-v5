@@ -32,17 +32,24 @@ Gemini CLI 사용 가이드 및 Claude Code Sub Agent 협업 방법
 
 #### 일일 제한 (Google 계정 OAuth 인증 시)
 
-- **무료 제한**: 1,000회/일, 60회/분 
+- **무료 제한**: 1,000회/일, 60회/분
 - **리셋 시간**: 태평양 표준시(PST) 자정 = 한국 시간 오후 4-5시경
 - **인증 방법**: Google 계정 OAuth 로그인 (이메일 인증)
 
-#### 사용량 명령어
+#### 사용량 명령어 (WSL 환경)
 
 ```bash
+# WSL에서 직접 실행
+wsl
 gemini /stats      # 사용량 확인
 gemini /compress   # 대화 압축 (토큰 절약)
 gemini /clear      # 컨텍스트 초기화
 gemini /memory list # 저장된 메모리 확인
+
+# Windows에서 WSL 실행
+.\gemini-wsl.bat /stats
+.\gemini-wsl.bat /compress
+.\gemini-wsl.bat /clear
 ```
 
 #### 사용량 임계값 가이드
