@@ -1,0 +1,16 @@
+{
+  "src/test-claude/calculator.test.ts": {
+    "filePath": "src/test-claude/calculator.test.ts",
+    "totalRuns": 8,
+    "successCount": 0,
+    "failureCount": 8,
+    "averageRunTime": 845.25,
+    "flakiness": 0.5,
+    "priority": "critical",
+    "tags": [],
+    "createdAt": "2025-08-15T06:46:56.268Z",
+    "updatedAt": "2025-08-15T06:47:02.656Z",
+    "lastRun": "2025-08-15T06:47:02.656Z",
+    "lastRunTime": 849
+  }
+}
