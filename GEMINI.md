@@ -39,18 +39,14 @@ Gemini CLI 사용 가이드 및 Claude Code Sub Agent 협업 방법
 #### 사용량 명령어 (WSL 환경)
 
 ```bash
-# WSL에서 직접 실행
-wsl
+# WSL 환경에서 직접 실행
 gemini /stats      # 사용량 확인
 gemini /compress   # 대화 압축 (토큰 절약)
 gemini /clear      # 컨텍스트 초기화
 gemini /memory list # 저장된 메모리 확인
-
-# Windows에서 WSL 실행
-.\gemini-wsl.bat /stats
-.\gemini-wsl.bat /compress
-.\gemini-wsl.bat /clear
 ```
+
+> **참고**: Windows 환경에서 WSL의 Gemini CLI를 실행해야 할 경우, `gemini-wsl.bat` 스크립트를 사용할 수 있습니다. (예: `.\gemini-wsl.bat /stats`)
 
 #### 사용량 임계값 가이드
 
@@ -101,17 +97,9 @@ gemini /memory list > project_memory.txt
 
 ### 현재 개발 환경
 
-- **OS**: Windows 11
-- **터미널**: PowerShell 또는 VSCode 내장 터미널
-- **참고**: 기존 WSL (Windows Subsystem for Linux) 환경에서 Windows 네이티브 환경으로 전환되었습니다. 모든 명령어는 Windows 환경에 맞춰 실행해야 합니다.
-
-### Gemini 역할 및 책임
-
-- **메인 개발 도구**: Claude Code가 주도적으로 작업
-- **Gemini CLI 역할**: **Senior Code Architect** sub agent로 통합
-- **협업 방식**: 아키- **OS**: Windows 11
-- **터미널**: PowerShell 또는 VSCode 내장 터미널
-- **참고**: 기존 WSL (Windows Subsystem for Linux) 환경에서 Windows 네이티브 환경으로 전환되었습니다. 모든 명령어는 Windows 환경에 맞춰 실행해야 합니다.
+- **OS**: WSL (Windows Subsystem for Linux)
+- **터미널**: WSL 터미널 (예: Ubuntu)
+- **참고**: 개발 환경이 Windows에서 다시 WSL (Windows Subsystem for Linux)로 전환되었습니다. 모든 명령어는 WSL 환경에 맞춰 실행해야 합니다.
 
 ### Gemini 역할 및 책임
 
