@@ -20,23 +20,28 @@ claude mcp list
 ```
 
 #### 📁 파일 시스템 & 데이터 관리
+
 - **Filesystem** ✅: 파일 읽기/쓰기/검색
 - **Memory** ✅: 지식 그래프 저장
 
 #### 🛠️ 개발 플랫폼 통합
+
 - **GitHub** ✅: 리포지토리 관리, PR, 이슈
 - **Supabase** ✅: PostgreSQL 데이터베이스
 
 #### 🌐 웹 & 브라우저
+
 - **Tavily** ✅: 웹 검색, 크롤링, 문서 추출
 - **Playwright** ✅: 브라우저 자동화, E2E 테스트
 
 #### 🤖 AI & 코드 분석
+
 - **Thinking** ✅: 순차적 사고 처리
 - **Context7** ✅: 라이브러리 문서 검색
 - **Serena** ✅: LSP 기반 코드 분석
 
 #### 🔧 유틸리티
+
 - **Time** ✅: 시간대 변환
 - **ShadCN** ✅: UI 컴포넌트 관리
 
@@ -104,24 +109,24 @@ claude mcp list
 ```typescript
 // ✅ GitHub - 저장소 검색 (정상 작동)
 await mcp__github__search_repositories({
-  query: "openmanager",
-  perPage: 1
+  query: 'openmanager',
+  perPage: 1,
 });
 
 // ✅ Tavily - 웹 검색 (정상 작동)
 await mcp__tavily__tavily_search({
-  query: "Claude Code MCP tutorial",
-  max_results: 3
+  query: 'Claude Code MCP tutorial',
+  max_results: 3,
 });
 
 // ✅ Time - 현재 시간 (정상 작동)
 await mcp__time__get_current_time({
-  timezone: "Asia/Seoul"
+  timezone: 'Asia/Seoul',
 });
 
 // ✅ Serena - 프로젝트 활성화 (정상 작동)
 await mcp__serena__activate_project({
-  project: "/mnt/d/cursor/openmanager-vibe-v5"
+  project: '/mnt/d/cursor/openmanager-vibe-v5',
 });
 ```
 
@@ -131,7 +136,7 @@ await mcp__serena__activate_project({
 // ❌ FileSystem - 현재 실행 문제
 // mcp__filesystem__list_directory({...})
 
-// ❌ Memory - 현재 실행 문제  
+// ❌ Memory - 현재 실행 문제
 // mcp__memory__create_entities({...})
 
 // ❌ Supabase - 현재 설정 문제
@@ -210,7 +215,7 @@ await mcp__time__get_current_time({
 });
 // 결과: {
 //   timezone: "Asia/Seoul",
-//   datetime: "2025-08-15T21:30:00+09:00", 
+//   datetime: "2025-08-15T21:30:00+09:00",
 //   is_dst: false
 // }
 
@@ -252,24 +257,29 @@ await mcp__serena__find_file({
 ### ❌ 현재 미작동 서버 (7개) - 참고용
 
 #### 1. 🗂️ FileSystem MCP ❌
+
 - **문제**: 패키지 실행 오류 (`Error accessing directory --help`)
 - **대안**: Claude Code 내장 파일 시스템 도구 사용 또는 bash 명령어
 
-#### 2. 🧠 Memory MCP ❌  
+#### 2. 🧠 Memory MCP ❌
+
 - **문제**: stdin 처리 문제 (테스트 실패)
 - **대안**: 직접 메모리 관리 또는 외부 노트 도구
 
 #### 4. 🗄️ Supabase MCP ❌
+
 - **문제**: 설정 또는 패키지 버전 문제
 - **대안**: Supabase 클라이언트 직접 사용
 
 #### 6. 🎭 Playwright MCP ❌
+
 - **문제**: 브라우저 종속성 미설치
 - **해결 시도**: `npx playwright install chromium`
 
 #### 7-9. 기타 미작동 서버 ❌
+
 - **Thinking**: 패키지 실행 문제
-- **Context7**: Redis 연결 문제  
+- **Context7**: Redis 연결 문제
 - **ShadCN**: 패키지 또는 환경 문제
 
 ---
@@ -298,8 +308,8 @@ const [gitInfo, webInfo, timeInfo, codeInfo] = await Promise.all([
   }),
 
   // 현재 시간 기록
-  mcp__time__get_current_time({ 
-    timezone: 'Asia/Seoul' 
+  mcp__time__get_current_time({
+    timezone: 'Asia/Seoul',
   }),
 
   // 프로젝트 코드 구조 (Serena)

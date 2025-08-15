@@ -39,7 +39,7 @@
 | `serena`     | ✅   | Python | LSP 코드 분석        | GitHub 직접 실행 (uvx)                             |
 
 **✅ 정상 작동**: 10개 (filesystem, memory, github, supabase, tavily, playwright, thinking, context7, time, serena)  
-**⚠️ 부분 작동**: 1개 (shadcn - 대안으로 직접 CLI 사용)  
+**⚠️ 부분 작동**: 1개 (shadcn - 대안으로 직접 CLI 사용)
 
 🎉 **성과**: 11개 중 10개 서버 완전 정상화! Claude Code에서 `/mcp` 명령으로 확인 가능
 
@@ -107,6 +107,7 @@ Python 서버는 uvx로 실행 시 자동 설치되므로 별도 설치 불필�
 ⚠️ **중요**: Claude Code 표준 형식을 엄격히 준수해야 합니다!
 
 ### ✅ 올바른 .mcp.json 형식
+
 ```json
 {
   "mcpServers": {
@@ -122,6 +123,7 @@ Python 서버는 uvx로 실행 시 자동 설치되므로 별도 설치 불필�
 ```
 
 #### 🚫 금지사항:
+
 - `_status`, `_metadata` 등 비표준 필드 추가 금지
 - 주석이나 설명 추가 금지 (JSON 표준 위반)
 - 환경변수는 반드시 `${VAR}` 형식으로 참조
@@ -210,6 +212,7 @@ Python 서버는 uvx로 실행 시 자동 설치되므로 별도 설치 불필�
 ```
 
 **🔑 필수 환경변수 (.env.local)**:
+
 ```bash
 GITHUB_PERSONAL_ACCESS_TOKEN=your_token_here
 SUPABASE_PROJECT_ID=your_project_id
@@ -226,6 +229,7 @@ UPSTASH_REDIS_REST_TOKEN=your_redis_token
 ### ✅ 정상 작동 서버 (4개)
 
 #### 3. github ✅
+
 - **상태**: 정상 작동
 - **용도**: GitHub 저장소 관리 (이슈, PR, 코드)
 - **필수 환경변수**:
@@ -236,6 +240,7 @@ UPSTASH_REDIS_REST_TOKEN=your_redis_token
   ```
 
 #### 5. tavily ✅
+
 - **상태**: 정상 작동
 - **용도**: 웹 검색, 크롤링, 콘텐츠 추출
 - **필수 환경변수**:
@@ -245,6 +250,7 @@ UPSTASH_REDIS_REST_TOKEN=your_redis_token
   ```
 
 #### 10. time ✅
+
 - **상태**: 정상 작동 (Python/UVX)
 - **용도**: 시간대 변환, 날짜 계산
 - **중요**: uvx 절대 경로 사용 필수
@@ -253,6 +259,7 @@ UPSTASH_REDIS_REST_TOKEN=your_redis_token
   ```
 
 #### 11. serena ✅
+
 - **상태**: 정상 작동 (Python/UVX)
 - **용도**: LSP 기반 고급 코드 분석
 - **중요**:
@@ -263,6 +270,7 @@ UPSTASH_REDIS_REST_TOKEN=your_redis_token
 ### ❌ 현재 미작동 서버 (7개) - 문제 해결 필요
 
 #### 1. filesystem ❌
+
 - **상태**: 테스트 실패 (패키지 실행 문제)
 - **용도**: 파일 시스템 작업 (읽기, 쓰기, 검색)
 - **문제**: npx 실행 시 --help 옵션 인식 오류
@@ -270,12 +278,14 @@ UPSTASH_REDIS_REST_TOKEN=your_redis_token
 - **WSL 주의**: `/mnt/d/` 형식 사용
 
 #### 2. memory ❌
+
 - **상태**: 테스트 실패 (stdin 처리 문제)
 - **용도**: 대화 중 정보를 지식 그래프로 저장
 - **문제**: 테스트 방식 문제로 추정, 실제로는 정상일 수 있음
 - **설정**: 추가 설정 불필요
 
 #### 4. supabase ❌
+
 - **상태**: 테스트 실패 (설정 문제)
 - **용도**: PostgreSQL 데이터베이스 관리
 - **문제**: 패키지 버전 또는 환경변수 설정
@@ -285,18 +295,21 @@ UPSTASH_REDIS_REST_TOKEN=your_redis_token
   - **인자**: `--project-ref YOUR_PROJECT_ID`
 
 #### 6. playwright ❌
+
 - **상태**: 테스트 실패 (브라우저 종속성)
 - **용도**: 브라우저 자동화, E2E 테스트
 - **문제**: 브라우저 바이너리 또는 의존성 설치 필요
 - **해결**: `npx playwright install` 실행
 
 #### 7. thinking ❌
+
 - **상태**: 테스트 실패 (패키지 실행 문제)
 - **용도**: 복잡한 문제를 단계별로 해결
 - **문제**: 패키지 버전 또는 실행 방식
 - **설정**: 추가 설정 불필요 (이론상)
 
 #### 8. context7 ❌
+
 - **상태**: 테스트 실패 (Redis 연결 문제)
 - **용도**: 라이브러리 문서 검색
 - **문제**: Upstash Redis 설정 또는 연결
@@ -307,9 +320,10 @@ UPSTASH_REDIS_REST_TOKEN=your_redis_token
   ```
 
 #### 9. shadcn ❌
+
 - **상태**: 테스트 실패 (패키지 실행 문제)
 - **용도**: shadcn/ui 컴포넌트 생성
-- **문제**: 패키지 실행 또는 프로젝트 환경 
+- **문제**: 패키지 실행 또는 프로젝트 환경
 - **요구사항**: React/Next.js 프로젝트
 
 ---
@@ -374,7 +388,9 @@ which uvx  # 출력: /home/username/.local/bin/uvx
 ### 4. 실패한 서버들 개별 문제 해결 (2025-08-15 테스트 기반)
 
 #### filesystem 서버 문제
+
 **문제**: `Error accessing directory --help`
+
 ```bash
 # 해결 시도
 npx -y @modelcontextprotocol/server-filesystem /mnt/d/cursor/openmanager-vibe-v5
@@ -382,7 +398,9 @@ npx -y @modelcontextprotocol/server-filesystem /mnt/d/cursor/openmanager-vibe-v5
 ```
 
 #### supabase 서버 문제
+
 **문제**: 환경변수 또는 패키지 설정
+
 ```bash
 # 최신 공식 패키지 사용 확인
 npx -y @supabase/mcp-server-supabase@latest --help
@@ -393,7 +411,9 @@ echo $SUPABASE_PROJECT_ID
 ```
 
 #### playwright 서버 문제
+
 **문제**: 브라우저 종속성 미설치
+
 ```bash
 # 브라우저 설치
 npx playwright install chromium
@@ -403,7 +423,9 @@ sudo apt-get install -y libnspr4 libnss3 libasound2t64
 ```
 
 #### context7 서버 문제
+
 **문제**: Upstash Redis 연결 실패
+
 ```bash
 # Redis URL/Token 확인
 curl -X GET ${UPSTASH_REDIS_REST_URL}/ping \
@@ -413,12 +435,15 @@ curl -X GET ${UPSTASH_REDIS_REST_URL}/ping \
 ### 5. GitHub 토큰 관리 (보안 개선)
 
 **권장 방법**: 환경변수 사용
+
 1. `.env.local`에 토큰 저장:
+
 ```bash
 GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxxx
 ```
 
 2. `.mcp.json`에서 참조:
+
 ```json
 "github": {
   "env": {
@@ -428,6 +453,7 @@ GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxxx
 ```
 
 3. Claude Code 재시작:
+
 ```bash
 /reload
 ```
