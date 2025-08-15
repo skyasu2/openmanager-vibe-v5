@@ -11,9 +11,6 @@ echo "🧹 변경된 파일만 검사 중..."
 # 핵심 수정: lint-staged만 실행 (변경된 파일만 검사)
 npx lint-staged
 
-# 추가 검사: 중국어 문자 (중요 정책)
-if [ -f "scripts/check-chinese-characters.js" ]; then
-    node scripts/check-chinese-characters.js --quiet
-fi
+# 중국어 검사 비활성화 (Qwen에서 자동 차단 설정됨)
 
 echo "✅ Pre-commit 완료!"

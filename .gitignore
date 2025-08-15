@@ -222,8 +222,8 @@ commit/
 .claude_session.json
 
 # Claude Code settings
-.claude/settings.local.json
-.claude/mcp-*.json
+.claude/
+archive/
 
 # 실행 파일들
 *.exe

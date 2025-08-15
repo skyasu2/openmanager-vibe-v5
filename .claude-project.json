@@ -1,0 +1,76 @@
+{
+  "projectName": "openmanager-vibe-v5",
+  "root": ".",
+  "language": {
+    "primary": "ko",
+    "allowEnglishTerms": true,
+    "conversationHeader": "한국어로 우선 대화, 기술용어는 영어 사용허용"
+  },
+  "protectedFiles": ["AGENTS.md"],
+  "docsAgent": {
+    "enabled": true,
+    "description": "Claude Code 문서정리 Sub-Agent",
+    "rootPolicy": {
+      "whitelist": [
+        "README.md",
+        "CHANGELOG.md",
+        "CHANGELOG-LEGACY.md",
+        "CLAUDE.md",
+        "GEMINI.md",
+        "QWEN.md",
+        "AGENTS.md"
+      ],
+      "exceptions": [
+        {
+          "path": "AGENTS.md",
+          "action": "keep_at_root"
+        }
+      ],
+      "moveRules": [
+        {
+          "pattern": "**/*.md",
+          "dest": "docs/",
+          "notes": "기본 문서는 docs로 이동"
+        },
+        {
+          "pattern": "**/*report*.{md,txt,json}",
+          "dest": "reports/",
+          "notes": "리포트류는 reports"
+        },
+        { "pattern": "**/*.log*", "dest": "logs/", "notes": "로그는 logs" },
+        {
+          "pattern": "**/*analysis*.{js,ts,mjs}",
+          "dest": "scripts/analysis/",
+          "notes": "분석 스크립트"
+        },
+        {
+          "pattern": "**/DRAFT_*",
+          "dest": "docs/drafts/",
+          "notes": "드래프트 문서"
+        },
+        {
+          "pattern": "**/*_draft.*",
+          "dest": "docs/drafts/",
+          "notes": "드래프트 문서"
+        }
+      ],
+      "archiveAfterDays": 90,
+      "archivePath": "docs/archive/",
+      "logPath": "reports/docs-move-log.md",
+      "conflictSuffix": " (n)"
+    },
+    "init": {
+      "onCommand": "/init",
+      "ensureHeaders": [
+        {
+          "file": "CLAUDE.md",
+          "startsWith": "한국어로 우선 대화, 기술용어는 영어 사용허용"
+        },
+        {
+          "file": "AGENTS.md",
+          "startsWith": "한국어로 우선 대화, 기술용어는 영어 사용허용"
+        }
+      ]
+    }
+  }
+}
