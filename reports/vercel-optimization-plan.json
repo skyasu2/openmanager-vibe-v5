@@ -1,0 +1,206 @@
+{
+  "version": 2,
+  "name": "openmanager-vibe-v5",
+  "regions": ["icn1"],
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+
+  "headers": [
+    {
+      "source": "/api/mcp",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        },
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300, s-maxage=300"
+        },
+        { "key": "X-Free-Tier-Mode", "value": "enabled" }
+      ]
+    },
+    {
+      "source": "/api/system/status",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=1800, stale-while-revalidate=3600"
+        }
+      ]
+    },
+    {
+      "source": "/api/health",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=60, stale-while-revalidate=300"
+        }
+      ]
+    },
+    {
+      "source": "/api/cache/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=1800, stale-while-revalidate=3600"
+        }
+      ]
+    },
+    {
+      "source": "/api/ai/edge-v2",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=300, stale-while-revalidate=600"
+        }
+      ]
+    },
+    {
+      "source": "/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/_next/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ],
+
+  "redirects": [
+    {
+      "source": "/admin/((?!ai-agent).*)",
+      "destination": "/admin/ai-agent",
+      "permanent": false
+    }
+  ],
+
+  "rewrites": [{ "source": "/health", "destination": "/api/health" }],
+
+  "env": {
+    "DISABLE_LOCAL_RAG": "true",
+    "PREFER_SUPABASE_RAG": "true",
+    "AI_ENGINE_PRIORITY": "supabase_rag,rule_based,mcp,google_ai",
+    "VERCEL_HEALTH_OPTIMIZATION": "true",
+    "HEALTH_CHECK_CACHE_HOURS": "6",
+    "DISABLE_EXCESSIVE_HEALTH_CHECKS": "true",
+    "DISABLE_CRON_JOBS": "true",
+    "AI_STREAM_TIMEOUT_PREVENTION": "true",
+    "NEXT_PUBLIC_FREE_TIER_MODE": "true",
+    "VERCEL_HOBBY_PLAN": "true",
+    "SERVERLESS_FUNCTION_TIMEOUT": "10",
+    "MEMORY_LIMIT_MB": "512",
+    "DISABLE_BACKGROUND_JOBS": "true",
+    "ENABLE_QUOTA_PROTECTION": "true",
+    "VERCEL_ANALYTICS_ENABLED": "true",
+    "SPEED_INSIGHTS_ENABLED": "true",
+    "CDN_CACHE_HIT_RATE_TARGET": "95",
+    "API_RESPONSE_TIME_TARGET": "80"
+  },
+
+  "build": {
+    "env": {
+      "NODE_ENV": "production",
+      "NODE_OPTIONS": "--max-old-space-size=4096",
+      "SKIP_ENV_VALIDATION": "false",
+      "ESLINT_NO_DEV_ERRORS": "true",
+      "BUILD_TIME_OPTIMIZATION": "true",
+      "SKIP_SUPABASE_CONNECTION_CHECK": "true",
+      "DISABLE_HEALTH_CHECK": "true",
+      "HEALTH_CHECK_CONTEXT": "false",
+      "VALIDATE_ENV_ON_BUILD": "true",
+      "DISABLE_AI_BENCHMARK": "true"
+    }
+  },
+
+  "crons": [],
+
+  "functions": {
+    "app/api/mcp/route.ts": {
+      "maxDuration": 10,
+      "memory": 512,
+      "regions": ["icn1"]
+    },
+    "app/api/ai/query/route.ts": {
+      "maxDuration": 10,
+      "memory": 512,
+      "regions": ["icn1"]
+    },
+    "app/api/ai/edge-v2/route.ts": {
+      "maxDuration": 8,
+      "memory": 256,
+      "regions": ["icn1"]
+    },
+    "app/api/ai/google-ai/generate/route.ts": {
+      "maxDuration": 10,
+      "memory": 256,
+      "regions": ["icn1"]
+    },
+    "app/api/servers/route.ts": {
+      "maxDuration": 5,
+      "memory": 256,
+      "regions": ["icn1"]
+    },
+    "app/api/health/route.ts": {
+      "maxDuration": 3,
+      "memory": 128,
+      "regions": ["icn1"]
+    },
+    "app/api/cache/*/route.ts": {
+      "maxDuration": 5,
+      "memory": 128,
+      "regions": ["icn1"]
+    },
+    "app/api/version/*/route.ts": {
+      "maxDuration": 3,
+      "memory": 128,
+      "regions": ["icn1"]
+    }
+  },
+
+  "images": {
+    "deviceSizes": [640, 828, 1200, 1920],
+    "imageSizes": [16, 32, 48, 64, 96, 128, 256],
+    "formats": ["image/webp", "image/avif"],
+    "minimumCacheTTL": 31536000,
+    "dangerouslyAllowSVG": false,
+    "contentSecurityPolicy": "default-src 'self'; script-src 'none'; sandbox;",
+    "unoptimized": false
+  }
+}

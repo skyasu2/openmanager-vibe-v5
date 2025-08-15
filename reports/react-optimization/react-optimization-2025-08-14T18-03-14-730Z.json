@@ -1,0 +1,11 @@
+{
+  "totalFiles": 0,
+  "analyzedFiles": 0,
+  "issues": [],
+  "suggestions": [],
+  "summary": {
+    "performance": 100,
+    "maintainability": 100,
+    "codeQuality": 100
+  }
+}

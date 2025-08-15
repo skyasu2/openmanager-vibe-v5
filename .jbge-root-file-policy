@@ -1,0 +1,38 @@
+# JBGE Root File Policy
+# Just Barely Good Enough 문서 관리 정책
+
+## 허용된 루트 파일 종류
+
+### Core Documentation
+- README.md          # 프로젝트 개요 및 시작 가이드
+- CHANGELOG.md       # 최신 변경사항 (현재 버전)
+- CHANGELOG-LEGACY.md # 레거시 변경사항 아카이브
+
+### AI Assistant Guides  
+- CLAUDE.md          # Claude Code 설정 및 사용법
+- GEMINI.md          # Gemini 통합 및 워크플로우
+- QWEN.md            # Qwen CLI 협업 패턴
+
+### Configuration Files (허용)
+- package.json, tsconfig.json, next.config.mjs 등
+- .env 파일들, .gitignore, .eslintrc.json 등
+
+## 금지된 루트 파일
+- 기타 모든 .md 파일 → /docs/ 디렉토리로 이동
+- 리포트 파일 (*.json, *.log) → /reports/, /logs/ 디렉토리로 이동
+- 분석 스크립트 → /scripts/analysis/ 디렉토리로 이동
+- 임시 파일, 테스트 파일 → /temp/ 디렉토리로 이동
+
+## 정책 적용
+- docs-manager 에이전트가 자동 감시
+- quality-assurance 에이전트가 주기적 검사
+- 위반 시 자동 이동:
+  - .md 파일 → /docs/ 또는 /docs/archive/
+  - 리포트 파일 → /reports/
+  - 로그 파일 → /logs/  
+  - 분석 스크립트 → /scripts/analysis/
+  - 임시 파일 → /temp/
+
+## 예외 처리
+- 임시적으로 필요한 경우 24시간 이내 정리
+- 새로운 AI 가이드 추가 시 사전 승인 필요
