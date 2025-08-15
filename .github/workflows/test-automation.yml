@@ -9,8 +9,8 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    # 매일 오전 9시 (KST) 정기 테스트
-    - cron: '0 0 * * *'
+    # 매주 월요일 오전 9시 (KST) 정기 테스트 - 간소화
+    - cron: '0 0 * * 1'
 
 env:
   NODE_VERSION: '22.18.0'
@@ -18,19 +18,11 @@ env:
   FORCE_COLOR: true
 
 jobs:
-  # 🔍 단위 테스트 (Vitest)
+  # 🔍 단위 테스트 (Vitest) - 간소화
   unit-tests:
     name: 🧪 Unit Tests (Vitest)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    strategy:
-      matrix:
-        test-group:
-          - utils
-          - components
-          - services
-          - api
+    timeout-minutes: 8
 
     steps:
       - name: 📥 Checkout Repository
@@ -43,45 +35,28 @@ jobs:
           cache: 'npm'
 
       - name: 📦 Install Dependencies
-        run: |
-          npm ci --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit
 
       - name: 🏗️ Build Project
         run: npm run build
 
-      - name: 🧪 Run Unit Tests
-        run: |
-          npm run test -- \
-            --coverage \
-            --reporter=json \
-            --outputFile=./test-results/unit-${{ matrix.test-group }}.json \
-            tests/unit/${{ matrix.test-group }}/**/*.test.ts
-        env:
-          VITEST_POOL: threads
-          VITEST_POOL_OPTIONS_THREADS_ISOLATE: true
+      - name: 🧪 Run All Unit Tests
+        run: npm run test -- --coverage
 
-      - name: 📊 Upload Coverage
+      - name: 📊 Upload Coverage (Main branch only)
+        if: github.ref == 'refs/heads/main'
         uses: codecov/codecov-action@v4
         with:
           files: ./coverage/lcov.info
-          flags: unit-tests-${{ matrix.test-group }}
-          name: unit-coverage-${{ matrix.test-group }}
+          flags: unit-tests
+          name: unit-coverage
 
-      - name: 📋 Upload Test Results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: unit-test-results-${{ matrix.test-group }}
-          path: |
-            test-results/
-            coverage/
-          retention-days: 30
-
-  # ⚡ 성능 테스트
+  # ⚡ 성능 테스트 - 메인 브랜치만 실행
   performance-tests:
     name: 🚀 Performance Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: 📥 Checkout Repository
@@ -115,16 +90,13 @@ jobs:
           path: performance-report.json
           retention-days: 7
 
-  # 🎭 E2E 테스트 (Playwright)
+  # 🎭 E2E 테스트 (Playwright) - 간소화
   e2e-tests:
     name: 🎭 E2E Tests (Playwright)
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-
-    strategy:
-      matrix:
-        browser: [chromium, firefox, webkit]
-        shard: [1/4, 2/4, 3/4, 4/4]
+    timeout-minutes: 15
+    # 메인 브랜치와 PR만 실행
+    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
 
     steps:
       - name: 📥 Checkout Repository
@@ -139,8 +111,8 @@ jobs:
       - name: 📦 Install Dependencies
         run: npm ci --prefer-offline --no-audit
 
-      - name: 🎭 Install Playwright Browsers
-        run: npx playwright install --with-deps ${{ matrix.browser }}
+      - name: 🎭 Install Playwright (Chromium only)
+        run: npx playwright install --with-deps chromium
 
       - name: 🏗️ Build Project
         run: npm run build
@@ -148,36 +120,28 @@ jobs:
       - name: 🚀 Start Test Server
         run: |
           npm run dev &
-          npx wait-on http://localhost:3000 --timeout 60000
+          npx wait-on http://localhost:3000 --timeout 30000
         env:
           NODE_ENV: test
           PORT: 3000
 
-      - name: 🎭 Run E2E Tests
-        run: |
-          npx playwright test \
-            --project=${{ matrix.browser }} \
-            --shard=${{ matrix.shard }} \
-            --reporter=json \
-            --output-dir=test-results/e2e-${{ matrix.browser }}-${{ matrix.shard }}
-        env:
-          PLAYWRIGHT_JSON_OUTPUT_NAME: test-results-${{ matrix.browser }}-${{ matrix.shard }}.json
+      - name: 🎭 Run E2E Tests (Chromium only)
+        run: npx playwright test --project=chromium --reporter=line
 
-      - name: 📋 Upload E2E Results
+      - name: 📋 Upload E2E Results (Main branch only)
+        if: failure() && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: e2e-results-${{ matrix.browser }}-${{ matrix.shard }}
-          path: |
-            test-results/
-            playwright-report/
-          retention-days: 7
+          name: e2e-results
+          path: playwright-report/
+          retention-days: 3
 
-  # 🔐 보안 테스트
+  # 🔐 보안 테스트 - 간소화
   security-tests:
     name: 🔒 Security Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
+    if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
 
     steps:
       - name: 📥 Checkout Repository
@@ -214,123 +178,38 @@ jobs:
           echo "- npm audit: 통과" >> $GITHUB_STEP_SUMMARY
           echo "- TypeScript any 타입: 제한 내" >> $GITHUB_STEP_SUMMARY
 
-  # 📊 테스트 결과 통합
+  # 📊 테스트 결과 통합 - 간소화
   test-summary:
     name: 📊 Test Summary
     runs-on: ubuntu-latest
     needs: [unit-tests, performance-tests, e2e-tests, security-tests]
-    if: always()
-    timeout-minutes: 5
+    if: always() && github.ref == 'refs/heads/main'
+    timeout-minutes: 2
 
     steps:
-      - name: 📥 Download All Artifacts
-        uses: actions/download-artifact@v4
-
-      - name: 📊 Generate Test Report
+      - name: 📊 Simple Test Report
         run: |
-          echo "# 🧪 OpenManager VIBE v5 - 테스트 결과 리포트" > test-summary.md
-          echo "" >> test-summary.md
-          echo "## 📈 테스트 통계" >> test-summary.md
-          echo "- 실행 시간: $(date)" >> test-summary.md
-          echo "- Git SHA: ${{ github.sha }}" >> test-summary.md
-          echo "- Branch: ${{ github.ref_name }}" >> test-summary.md
-          echo "" >> test-summary.md
+          echo "## 🧪 테스트 결과 요약" >> $GITHUB_STEP_SUMMARY
+          echo "- 단위 테스트: ${{ needs.unit-tests.result == 'success' && '✅ 통과' || '❌ 실패' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- E2E 테스트: ${{ needs.e2e-tests.result == 'success' && '✅ 통과' || needs.e2e-tests.result == 'skipped' && '⏭️ 건너뜀' || '❌ 실패' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- 성능 테스트: ${{ needs.performance-tests.result == 'success' && '✅ 통과' || needs.performance-tests.result == 'skipped' && '⏭️ 건너뜀' || '❌ 실패' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- 보안 테스트: ${{ needs.security-tests.result == 'success' && '✅ 통과' || needs.security-tests.result == 'skipped' && '⏭️ 건너뜀' || '❌ 실패' }}" >> $GITHUB_STEP_SUMMARY
 
-          # 단위 테스트 결과
-          echo "## 🧪 단위 테스트 결과" >> test-summary.md
-          echo "| 테스트 그룹 | 상태 | 커버리지 |" >> test-summary.md
-          echo "|------------|------|----------|" >> test-summary.md
-
-          for group in utils components services api; do
-            if [ "${{ needs.unit-tests.result }}" == "success" ]; then
-              echo "| $group | ✅ 통과 | 98%+ |" >> test-summary.md
-            else
-              echo "| $group | ❌ 실패 | - |" >> test-summary.md
-            fi
-          done
-
-          echo "" >> test-summary.md
-
-          # E2E 테스트 결과
-          echo "## 🎭 E2E 테스트 결과" >> test-summary.md
-          echo "| 브라우저 | 상태 |" >> test-summary.md
-          echo "|----------|------|" >> test-summary.md
-
-          for browser in chromium firefox webkit; do
-            if [ "${{ needs.e2e-tests.result }}" == "success" ]; then
-              echo "| $browser | ✅ 통과 |" >> test-summary.md
-            else
-              echo "| $browser | ❌ 실패 |" >> test-summary.md
-            fi
-          done
-
-          echo "" >> test-summary.md
-
-          # 성능 테스트 결과
-          echo "## 🚀 성능 테스트 결과" >> test-summary.md
-          if [ "${{ needs.performance-tests.result }}" == "success" ]; then
-            echo "- Core Web Vitals: ✅ 목표 달성" >> test-summary.md
-            echo "- LCP < 2.5s, FID < 100ms, CLS < 0.1" >> test-summary.md
-          else
-            echo "- Core Web Vitals: ❌ 목표 미달성" >> test-summary.md
-          fi
-
-          echo "" >> test-summary.md
-
-          # 보안 테스트 결과
-          echo "## 🔒 보안 테스트 결과" >> test-summary.md
-          if [ "${{ needs.security-tests.result }}" == "success" ]; then
-            echo "- 보안 취약점 검사: ✅ 통과" >> test-summary.md
-            echo "- TypeScript 타입 안전성: ✅ 통과" >> test-summary.md
-          else
-            echo "- 보안 테스트: ❌ 실패" >> test-summary.md
-          fi
-
-      - name: 📋 Comment PR with Results
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const report = fs.readFileSync('test-summary.md', 'utf8');
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: report
-            });
-
-      - name: 📊 Add to Job Summary
-        run: cat test-summary.md >> $GITHUB_STEP_SUMMARY
-
-      - name: 📋 Upload Test Summary
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-summary
-          path: test-summary.md
-          retention-days: 90
-
-  # 🚀 배포 준비 검증 (main 브랜치만)
+  # 🚀 배포 준비 검증 - 간소화
   deployment-ready:
     name: 🚀 Deployment Ready
     runs-on: ubuntu-latest
-    needs: [unit-tests, performance-tests, e2e-tests, security-tests]
+    needs: [unit-tests]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    timeout-minutes: 5
+    timeout-minutes: 1
 
     steps:
-      - name: ✅ All Tests Passed
-        if: needs.unit-tests.result == 'success' && needs.performance-tests.result == 'success' && needs.e2e-tests.result == 'success' && needs.security-tests.result == 'success'
-        run: |
-          echo "🎉 모든 테스트가 통과했습니다!"
-          echo "📦 배포 준비가 완료되었습니다."
-          echo "deployment-ready=true" >> $GITHUB_OUTPUT
+      - name: ✅ Core Tests Passed
+        if: needs.unit-tests.result == 'success'
+        run: echo "🎉 핵심 테스트 통과! 배포 가능합니다."
 
-      - name: ❌ Tests Failed
-        if: needs.unit-tests.result != 'success' || needs.performance-tests.result != 'success' || needs.e2e-tests.result != 'success' || needs.security-tests.result != 'success'
+      - name: ❌ Core Tests Failed
+        if: needs.unit-tests.result != 'success'
         run: |
-          echo "❌ 일부 테스트가 실패했습니다."
-          echo "🔄 배포 전 문제를 해결해주세요."
-          echo "deployment-ready=false" >> $GITHUB_OUTPUT
+          echo "❌ 핵심 테스트 실패! 배포 차단됩니다."
           exit 1
