@@ -3,10 +3,10 @@
  * Provides real-time performance metrics for monitoring
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { PerformanceService } from '@/modules/performance-monitor/services/PerformanceService';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const performanceService = PerformanceService.getInstance();
     const currentMetrics = performanceService.getCurrentMetrics();

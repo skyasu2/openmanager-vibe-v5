@@ -3,8 +3,8 @@
  * Provides historical performance metrics data
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { PerformanceService } from '@/modules/performance-monitor/services/PerformanceService';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {

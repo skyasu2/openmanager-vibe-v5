@@ -8,12 +8,12 @@
  * - 패턴 학습 및 예측
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api-auth';
-import { supabase } from '@/lib/supabase/supabase-client';
 import { getCachedData, setCachedData } from '@/lib/cache-helper';
-import crypto from 'crypto';
+import { supabase } from '@/lib/supabase/supabase-client';
 import debug from '@/utils/debug';
+import crypto from 'crypto';
+import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
@@ -103,7 +103,7 @@ export const _testHelpers = {
 /**
  * Validate server metrics
  */
-function validateMetrics(metrics: any[]): metrics is ServerMetric[] {
+function validateMetrics(metrics: unknown[]): metrics is ServerMetric[] {
   if (!Array.isArray(metrics) || metrics.length === 0) {
     return false;
   }
@@ -276,7 +276,7 @@ function analyzeRootCause(anomalies: Anomaly[], pattern: string): RootCauseAnaly
 function generateRecommendations(
   anomalies: Anomaly[],
   pattern: string,
-  rootCause: RootCauseAnalysis
+  _rootCause: RootCauseAnalysis
 ): Recommendation[] {
   const recommendations = [];
   
