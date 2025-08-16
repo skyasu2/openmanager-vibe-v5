@@ -12,6 +12,7 @@
 ## 📋 목차
 
 ### 🛠️ [Part 1: 설치 및 설정](#part-1-설치-및-설정)
+
 1. [MCP 소개](#mcp-소개)
 2. [사전 준비](#사전-준비)
 3. [MCP 서버 설치](#mcp-서버-설치)
@@ -19,6 +20,7 @@
 5. [설치 확인](#설치-확인)
 
 ### 🚀 [Part 2: 실전 활용](#part-2-실전-활용)
+
 6. [11개 MCP 서버 완전 활용](#11개-mcp-서버-완전-활용)
 7. [실전 통합 워크플로우](#실전-통합-워크플로우)
 8. [성능 최적화 전략](#성능-최적화-전략)
@@ -228,14 +230,14 @@ await mcp__filesystem__read_text_file({ path: 'README.md' });
 // ✏️ 파일 쓰기
 await mcp__filesystem__write_file({
   path: '/mnt/d/cursor/openmanager-vibe-v5/docs/new-guide.md',
-  content: '# 새로운 가이드\n\n내용...'
+  content: '# 새로운 가이드\n\n내용...',
 });
 
 // 🔍 파일 검색
 await mcp__filesystem__search_files({
   path: '/mnt/d/cursor/openmanager-vibe-v5',
   pattern: '*.ts',
-  excludePatterns: ['node_modules', '.next']
+  excludePatterns: ['node_modules', '.next'],
 });
 ```
 
@@ -246,20 +248,24 @@ await mcp__filesystem__search_files({
 ```typescript
 // 📝 지식 생성
 await mcp__memory__create_entities({
-  entities: [{
-    name: 'ProjectInfo',
-    entityType: 'Knowledge',
-    observations: ['중요한 프로젝트 정보', '버전: 5.66.40']
-  }]
+  entities: [
+    {
+      name: 'ProjectInfo',
+      entityType: 'Knowledge',
+      observations: ['중요한 프로젝트 정보', '버전: 5.66.40'],
+    },
+  ],
 });
 
 // 🔗 관계 생성
 await mcp__memory__create_relations({
-  relations: [{
-    from: 'ProjectInfo',
-    to: 'MCP',
-    relationType: 'uses'
-  }]
+  relations: [
+    {
+      from: 'ProjectInfo',
+      to: 'MCP',
+      relationType: 'uses',
+    },
+  ],
 });
 
 // 📊 전체 그래프 읽기
@@ -274,14 +280,14 @@ await mcp__memory__read_graph();
 // 🔍 저장소 검색
 await mcp__github__search_repositories({
   query: 'openmanager user:skyasu2',
-  perPage: 3
+  perPage: 3,
 });
 
 // 📄 파일 내용 조회
 await mcp__github__get_file_contents({
   owner: 'skyasu2',
   repo: 'openmanager-vibe-v5',
-  path: 'README.md'
+  path: 'README.md',
 });
 
 // 🐛 이슈 생성
@@ -289,7 +295,7 @@ await mcp__github__create_issue({
   owner: 'skyasu2',
   repo: 'openmanager-vibe-v5',
   title: 'MCP 문서 통합 완료',
-  body: '11개 서버 모두 정상 작동 확인'
+  body: '11개 서버 모두 정상 작동 확인',
 });
 
 // 🔀 PR 생성
@@ -299,7 +305,7 @@ await mcp__github__create_pull_request({
   title: 'MCP 완전 가이드 추가',
   head: 'feature/mcp-guide',
   base: 'main',
-  body: '통합된 MCP 가이드 문서'
+  body: '통합된 MCP 가이드 문서',
 });
 ```
 
@@ -310,7 +316,7 @@ await mcp__github__create_pull_request({
 ```typescript
 // 📊 SQL 직접 실행
 await mcp__supabase__execute_sql({
-  query: 'SELECT * FROM servers LIMIT 5;'
+  query: 'SELECT * FROM servers LIMIT 5;',
 });
 
 // 🔧 TypeScript 타입 생성
@@ -318,7 +324,7 @@ await mcp__supabase__generate_typescript_types();
 
 // 📋 테이블 목록
 await mcp__supabase__list_tables({
-  schemas: ['public']
+  schemas: ['public'],
 });
 
 // 🔍 브랜치 목록 (개발 환경)
@@ -334,20 +340,20 @@ await mcp__supabase__list_branches();
 await mcp__tavily__tavily_search({
   query: 'Next.js 15 새로운 기능',
   max_results: 5,
-  search_depth: 'basic'
+  search_depth: 'basic',
 });
 
 // 📰 뉴스 검색
 await mcp__tavily__tavily_search({
   query: 'Claude Code MCP 업데이트',
   topic: 'news',
-  max_results: 3
+  max_results: 3,
 });
 
 // 📄 웹 페이지 추출
 await mcp__tavily__tavily_extract({
   urls: ['https://docs.anthropic.com/en/docs/claude-code'],
-  format: 'markdown'
+  format: 'markdown',
 });
 ```
 
@@ -360,31 +366,31 @@ await mcp__tavily__tavily_extract({
 await mcp__playwright__playwright_navigate({
   url: 'http://localhost:3000',
   browserType: 'chromium',
-  headless: true
+  headless: true,
 });
 
 // 📸 스크린샷
 await mcp__playwright__playwright_screenshot({
   name: 'homepage',
   fullPage: true,
-  savePng: true
+  savePng: true,
 });
 
 // 🖱️ 클릭
 await mcp__playwright__playwright_click({
-  selector: '[data-testid="login-button"]'
+  selector: '[data-testid="login-button"]',
 });
 
 // ⌨️ 입력
 await mcp__playwright__playwright_fill({
   selector: '#email',
-  value: 'test@example.com'
+  value: 'test@example.com',
 });
 
 // 📋 콘솔 로그 확인
 await mcp__playwright__playwright_console_logs({
   type: 'error',
-  limit: 10
+  limit: 10,
 });
 ```
 
@@ -398,7 +404,7 @@ await mcp__thinking__sequentialthinking({
   thought: 'MCP 서버 통합 최적화 방안을 분석해보자',
   thoughtNumber: 1,
   totalThoughts: 5,
-  nextThoughtNeeded: true
+  nextThoughtNeeded: true,
 });
 ```
 
@@ -409,14 +415,14 @@ await mcp__thinking__sequentialthinking({
 ```typescript
 // 🔍 라이브러리 ID 찾기
 await mcp__context7__resolve_library_id({
-  libraryName: 'Next.js'
+  libraryName: 'Next.js',
 });
 
 // 📖 문서 가져오기
 await mcp__context7__get_library_docs({
   context7CompatibleLibraryID: '/vercel/next.js',
   topic: 'routing',
-  tokens: 5000
+  tokens: 5000,
 });
 ```
 
@@ -430,12 +436,12 @@ await mcp__shadcn__list_components();
 
 // 🔧 컴포넌트 가져오기
 await mcp__shadcn__get_component({
-  componentName: 'button'
+  componentName: 'button',
 });
 
 // 🏗️ 블록 가져오기
 await mcp__shadcn__get_block({
-  blockName: 'dashboard-01'
+  blockName: 'dashboard-01',
 });
 ```
 
@@ -446,14 +452,14 @@ await mcp__shadcn__get_block({
 ```typescript
 // 🕐 현재 시간 조회
 await mcp__time__get_current_time({
-  timezone: 'Asia/Seoul'
+  timezone: 'Asia/Seoul',
 });
 
 // 🔄 시간대 변환
 await mcp__time__convert_time({
   source_timezone: 'Asia/Seoul',
   target_timezone: 'America/New_York',
-  time: '14:30'
+  time: '14:30',
 });
 ```
 
@@ -464,24 +470,24 @@ await mcp__time__convert_time({
 ```typescript
 // 📁 프로젝트 활성화
 await mcp__serena__activate_project({
-  project: '/mnt/d/cursor/openmanager-vibe-v5'
+  project: '/mnt/d/cursor/openmanager-vibe-v5',
 });
 
 // 📂 디렉토리 목록
 await mcp__serena__list_dir({
   relative_path: 'src',
-  recursive: false
+  recursive: false,
 });
 
 // 🔍 심볼 찾기
 await mcp__serena__find_symbol({
   name_path: 'UserService/createUser',
-  relative_path: 'src'
+  relative_path: 'src',
 });
 
 // 📄 파일 읽기
 await mcp__serena__read_file({
-  relative_path: 'src/types/user.ts'
+  relative_path: 'src/types/user.ts',
 });
 ```
 
@@ -495,38 +501,40 @@ const [gitInfo, webInfo, timeInfo, codeInfo] = await Promise.all([
   // GitHub 저장소 정보
   mcp__github__search_repositories({
     query: 'openmanager user:skyasu2',
-    perPage: 1
+    perPage: 1,
   }),
-  
+
   // 관련 웹 정보 검색
   mcp__tavily__tavily_search({
     query: 'Next.js 15 TypeScript project structure',
-    max_results: 3
+    max_results: 3,
   }),
-  
+
   // 현재 시간 기록
   mcp__time__get_current_time({
-    timezone: 'Asia/Seoul'
+    timezone: 'Asia/Seoul',
   }),
-  
+
   // 프로젝트 코드 구조 (Serena)
   mcp__serena__list_dir({
     relative_path: 'src',
-    recursive: false
-  })
+    recursive: false,
+  }),
 ]);
 
 // 📝 결과 기록
 await mcp__memory__create_entities({
-  entities: [{
-    name: 'ProjectAnalysis',
-    entityType: 'Analysis',
-    observations: [
-      `분석 시간: ${timeInfo.datetime}`,
-      `GitHub 정보: ${gitInfo.items?.[0]?.name}`,
-      `프로젝트 구조: ${codeInfo.directories?.length}개 디렉토리`
-    ]
-  }]
+  entities: [
+    {
+      name: 'ProjectAnalysis',
+      entityType: 'Analysis',
+      observations: [
+        `분석 시간: ${timeInfo.datetime}`,
+        `GitHub 정보: ${gitInfo.items?.[0]?.name}`,
+        `프로젝트 구조: ${codeInfo.directories?.length}개 디렉토리`,
+      ],
+    },
+  ],
 });
 ```
 
@@ -538,31 +546,33 @@ async function runFullE2ETest(url: string) {
   await mcp__playwright__playwright_navigate({
     url,
     browserType: 'chromium',
-    headless: true
+    headless: true,
   });
 
   // 2. 페이지 로딩 확인
   const title = await mcp__playwright__playwright_evaluate({
-    script: 'document.title'
+    script: 'document.title',
   });
 
   // 3. 스크린샷 저장
   await mcp__playwright__playwright_screenshot({
     name: `e2e-test-${Date.now()}`,
-    fullPage: true
+    fullPage: true,
   });
 
   // 4. 결과 기록
   await mcp__memory__create_entities({
-    entities: [{
-      name: 'E2ETestResult',
-      entityType: 'TestResult',
-      observations: [
-        `URL: ${url}`,
-        `Title: ${title}`,
-        `테스트 완료: ${new Date().toISOString()}`
-      ]
-    }]
+    entities: [
+      {
+        name: 'E2ETestResult',
+        entityType: 'TestResult',
+        observations: [
+          `URL: ${url}`,
+          `Title: ${title}`,
+          `테스트 완료: ${new Date().toISOString()}`,
+        ],
+      },
+    ],
   });
 
   // 5. 브라우저 종료
@@ -576,17 +586,17 @@ async function runFullE2ETest(url: string) {
 async function generateComprehensiveDocs() {
   // 1. TypeScript 타입 생성
   const types = await mcp__supabase__generate_typescript_types();
-  
+
   // 2. 최신 정보 검색
   const latestInfo = await mcp__tavily__tavily_search({
     query: 'Supabase TypeScript best practices 2025',
-    max_results: 3
+    max_results: 3,
   });
 
   // 3. 라이브러리 문서 참조
   const nextjsDocs = await mcp__context7__get_library_docs({
     context7CompatibleLibraryID: '/vercel/next.js',
-    topic: 'database integration'
+    topic: 'database integration',
   });
 
   // 4. 통합 문서 생성
@@ -609,7 +619,7 @@ ${nextjsDocs}
   // 5. 파일 저장
   await mcp__filesystem__write_file({
     path: '/mnt/d/cursor/openmanager-vibe-v5/docs/API-Complete-Guide.md',
-    content: docContent
+    content: docContent,
   });
 }
 ```
@@ -626,7 +636,7 @@ const file2 = await mcp__filesystem__read_text_file({ path: 'file2.txt' });
 // ✅ 병렬 처리 (3배 빠름)
 const [file1, file2] = await Promise.all([
   mcp__filesystem__read_text_file({ path: 'file1.txt' }),
-  mcp__filesystem__read_text_file({ path: 'file2.txt' })
+  mcp__filesystem__read_text_file({ path: 'file2.txt' }),
 ]);
 ```
 
@@ -645,7 +655,7 @@ async function cachedMcpCall(key: string, operation: Function, ttl = 300000) {
   const result = await operation();
   mcpCache.set(key, {
     data: result,
-    expiry: Date.now() + ttl
+    expiry: Date.now() + ttl,
   });
 
   return result;
@@ -669,21 +679,23 @@ mcp__filesystem__list_directory({ path: '.' });
 mcp__filesystem__read_text_file({ path: 'README.md' });
 
 // 🧠 메모리 저장
-mcp__memory__create_entities([{
-  name: 'ProjectInfo',
-  entityType: 'Knowledge',
-  observations: ['중요한 정보']
-}]);
+mcp__memory__create_entities([
+  {
+    name: 'ProjectInfo',
+    entityType: 'Knowledge',
+    observations: ['중요한 정보'],
+  },
+]);
 
 // 🗄️ Supabase 직접 쿼리
 mcp__supabase__execute_sql({
-  query: 'SELECT * FROM servers LIMIT 5;'
+  query: 'SELECT * FROM servers LIMIT 5;',
 });
 
 // 🔍 웹 검색
 mcp__tavily__tavily_search({
   query: '검색어',
-  max_results: 3
+  max_results: 3,
 });
 
 // ⏰ 현재 시간
@@ -700,6 +712,7 @@ mcp__time__get_current_time({ timezone: 'Asia/Seoul' });
 ---
 
 **📚 추가 리소스**
+
 - [MCP 프로토콜 사양](https://modelcontextprotocol.io)
 - [Claude Code MCP 문서](https://docs.anthropic.com/en/docs/claude-code/mcp)
 - [MCP 문제해결 가이드](./MCP-OPERATIONS.md)

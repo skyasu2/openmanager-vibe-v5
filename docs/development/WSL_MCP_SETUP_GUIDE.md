@@ -7,11 +7,13 @@
 ## 🔍 **WSL MCP 환경변수 문제 원인**
 
 ### 1. WSL 환경변수 격리
+
 - **문제**: Windows 환경변수가 WSL에서 자동으로 사용 불가
 - **원인**: WSL은 독립적인 Linux 환경으로 실행
 - **해결**: WSL 내부에서 별도 환경변수 설정 필요
 
 ### 2. Claude Code 실행 환경 차이
+
 - **문제**: Claude Code가 WSL bash 환경변수를 인식하지 못함
 - **원인**: VS Code Remote WSL과 유사한 환경변수 격리 이슈
 - **해결**: 올바른 환경변수 설정 방법 적용 필요
@@ -75,17 +77,19 @@ echo $GITHUB_PERSONAL_ACCESS_TOKEN
 ## 🔧 **MCP 서버별 환경변수 요구사항**
 
 ### GitHub MCP 서버
+
 ```bash
 # 필수 환경변수
 export GITHUB_PERSONAL_ACCESS_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 # 권한 요구사항
 # - repo (저장소 접근)
-# - read:org (조직 정보 읽기)  
+# - read:org (조직 정보 읽기)
 # - read:packages (패키지 읽기)
 ```
 
 ### Supabase MCP 서버
+
 ```bash
 # 필수 환경변수
 export SUPABASE_PROJECT_ID="vnswjnltnhpsueosfhmw"  # 프로젝트 ID
@@ -93,6 +97,7 @@ export SUPABASE_ACCESS_TOKEN="sbp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"  # 서�
 ```
 
 ### Tavily MCP 서버
+
 ```bash
 # 필수 환경변수
 export TAVILY_API_KEY="tvly-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -101,6 +106,7 @@ export TAVILY_API_KEY="tvly-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 ```
 
 ### Upstash Context7 MCP 서버
+
 ```bash
 # 필수 환경변수
 export UPSTASH_REDIS_REST_URL="https://your-instance.upstash.io"
@@ -143,11 +149,13 @@ claude mcp add tavily --command npx --args "-y tavily-mcp"
 ## 🔒 **보안 베스트 프랙티스**
 
 ### 1. 토큰 관리
+
 - **절대 금지**: Git 저장소에 토큰 커밋
 - **권장**: 환경변수 또는 별도 설정 파일 사용
 - **보안**: 파일 권한 600으로 설정 (`chmod 600`)
 
 ### 2. 토큰 권한 최소화
+
 ```bash
 # GitHub PAT 최소 권한
 # - repo (필요한 저장소만)
@@ -160,10 +168,11 @@ claude mcp add tavily --command npx --args "-y tavily-mcp"
 ```
 
 ### 3. 토큰 로테이션
+
 ```bash
 # 정기적 토큰 교체 (권장: 3개월)
 # 1. 새 토큰 생성
-# 2. 환경변수 업데이트  
+# 2. 환경변수 업데이트
 # 3. Claude Code 재시작
 # 4. 기존 토큰 비활성화
 ```
@@ -171,6 +180,7 @@ claude mcp add tavily --command npx --args "-y tavily-mcp"
 ## 🛠️ **문제 해결 가이드**
 
 ### 환경변수 인식 안 됨
+
 ```bash
 # 1. 환경변수 설정 확인
 env | grep -E "(GITHUB|SUPABASE|TAVILY|UPSTASH)"
@@ -186,6 +196,7 @@ echo $GITHUB_PERSONAL_ACCESS_TOKEN
 ```
 
 ### MCP 서버 연결 실패
+
 ```bash
 # 1. 패키지 재설치
 npm cache clean --force
@@ -199,6 +210,7 @@ claude mcp status
 ```
 
 ### WSL vs Windows 환경변수 충돌
+
 ```bash
 # WSL 환경변수 우선 설정
 export WSLENV="GITHUB_PERSONAL_ACCESS_TOKEN/u:SUPABASE_ACCESS_TOKEN/u"
@@ -210,6 +222,7 @@ unset Windows환경변수들
 ## 📊 **설정 완료 확인**
 
 ### 1. 환경변수 확인
+
 ```bash
 #!/bin/bash
 echo "=== MCP 환경변수 확인 ==="
@@ -218,6 +231,7 @@ echo "=== 총 $(env | grep -E '(GITHUB|SUPABASE|TAVILY|UPSTASH)' | wc -l)개 설
 ```
 
 ### 2. MCP 서버 상태 확인
+
 ```bash
 # Claude Code에서 확인
 claude mcp list
@@ -227,10 +241,11 @@ claude mcp status
 ```
 
 ### 3. 개별 서버 테스트
+
 ```bash
 # 각 서버 개별 실행 테스트
 npx -y @modelcontextprotocol/server-github --version
-npx -y @supabase/mcp-server-supabase@latest --version  
+npx -y @supabase/mcp-server-supabase@latest --version
 npx -y tavily-mcp --version
 npx -y @upstash/context7-mcp --version
 ```
@@ -238,6 +253,7 @@ npx -y @upstash/context7-mcp --version
 ## 💡 **WSL 특화 최적화**
 
 ### 1. Shell 설정 최적화
+
 ```bash
 # .bashrc에 MCP 관련 별칭 추가
 alias mcp-status="claude mcp status"
@@ -246,6 +262,7 @@ alias mcp-restart="pkill claude && claude"
 ```
 
 ### 2. 환경변수 자동 검증
+
 ```bash
 #!/bin/bash
 # ~/check_mcp_env.sh
@@ -253,7 +270,7 @@ echo "🔍 MCP 환경변수 검증 중..."
 
 required_vars=(
     "GITHUB_PERSONAL_ACCESS_TOKEN"
-    "SUPABASE_PROJECT_ID" 
+    "SUPABASE_PROJECT_ID"
     "SUPABASE_ACCESS_TOKEN"
     "TAVILY_API_KEY"
     "UPSTASH_REDIS_REST_URL"
@@ -272,7 +289,7 @@ done
 ## 🎯 **다음 단계**
 
 1. **환경변수 설정**: 위 가이드에 따라 실제 토큰으로 환경변수 설정
-2. **Claude Code 재시작**: WSL 터미널 완전 재시작 후 Claude Code 실행  
+2. **Claude Code 재시작**: WSL 터미널 완전 재시작 후 Claude Code 실행
 3. **MCP 상태 확인**: `claude mcp status` 또는 `/mcp` 명령으로 연결 확인
 4. **기능 테스트**: 각 MCP 서버 기능 정상 작동 확인
 

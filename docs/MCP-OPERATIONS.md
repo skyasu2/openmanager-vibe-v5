@@ -12,12 +12,14 @@
 ## 📋 목차
 
 ### 📊 [Part 1: 모니터링](#part-1-모니터링)
+
 1. [실시간 상태 확인](#실시간-상태-확인)
 2. [프로세스 모니터링](#프로세스-모니터링)
 3. [성능 메트릭](#성능-메트릭)
 4. [자동화된 헬스 체크](#자동화된-헬스-체크)
 
 ### 🚨 [Part 2: 문제 해결](#part-2-문제-해결)
+
 5. [일반적인 문제와 해결책](#일반적인-문제와-해결책)
 6. [개별 서버 문제 진단](#개별-서버-문제-진단)
 7. [환경 관련 문제](#환경-관련-문제)
@@ -131,14 +133,14 @@ echo "⚡ MCP 서버 응답시간 테스트"
 test_mcp_response() {
     local server=$1
     local start_time=$(date +%s%3N)
-    
+
     # 간단한 MCP 호출 테스트
     timeout 10s claude mcp list > /dev/null 2>&1
     local exit_code=$?
-    
+
     local end_time=$(date +%s%3N)
     local duration=$((end_time - start_time))
-    
+
     if [ $exit_code -eq 0 ]; then
         echo "✅ $server: ${duration}ms"
     else
@@ -168,7 +170,7 @@ while true; do
     timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     memory_usage=$(ps aux | grep -E "(mcp|npx.*mcp)" | grep -v grep | awk '{sum+=$4} END {print sum}')
     process_count=$(pgrep -f "mcp|npx.*mcp" | wc -l)
-    
+
     echo "$timestamp,${memory_usage:-0},${process_count}" >> "$LOG_FILE"
     sleep 60  # 1분마다 기록
 done
@@ -210,9 +212,9 @@ check_server_health() {
     local status="unknown"
     local response_time=0
     local memory_usage=0
-    
+
     echo "🔍 $server 서버 체크 중..."
-    
+
     # 응답시간 측정
     local start_time=$(date +%s%3N)
     if timeout 5s claude mcp list 2>/dev/null | grep -q "$server"; then
@@ -222,10 +224,10 @@ check_server_health() {
     else
         status="unhealthy"
     fi
-    
+
     # 메모리 사용량 (대략적)
     memory_usage=$(ps aux | grep "$server" | grep -v grep | awk '{sum+=$4} END {print sum}' || echo "0")
-    
+
     # JSON 추가
     cat >> "$HEALTH_REPORT" << JSON_SERVER
     "$server": {
@@ -234,7 +236,7 @@ check_server_health() {
       "memory_usage_percent": ${memory_usage:-0}
     },
 JSON_SERVER
-    
+
     # 콘솔 출력
     if [ "$status" = "healthy" ]; then
         echo "  ✅ $server: ${response_time}ms"
@@ -281,6 +283,7 @@ chmod +x scripts/mcp-health-comprehensive.sh
 **증상**: Claude Code에서 MCP 서버를 인식하지 못함
 
 **해결책**:
+
 ```bash
 # 1. 설정 파일 위치 확인
 ls -la .mcp.json
@@ -300,6 +303,7 @@ cat .mcp.json | jq .  # JSON 형식 확인
 **증상**: API 키가 필요한 서버들의 인증 실패
 
 **해결책**:
+
 ```bash
 # 1. 환경변수 확인
 source .env.local
@@ -319,6 +323,7 @@ export $(cat .env.local | grep -v '^#' | xargs)
 **증상**: time, serena 서버 연결 실패
 
 **해결책**:
+
 ```bash
 # 1. uvx 설치 확인
 which uvx
@@ -336,6 +341,7 @@ uvx --version
 **증상**: Playwright MCP 서버 브라우저 실행 실패
 
 **해결책**:
+
 ```bash
 # WSL 시스템 의존성 설치
 sudo apt-get update
@@ -356,6 +362,7 @@ npx playwright install-deps
 **증상**: GitHub MCP 서버 401 오류
 
 **해결책**:
+
 ```bash
 # 1. 토큰 유효성 테스트
 curl -H "Authorization: token $GITHUB_PERSONAL_ACCESS_TOKEN" \
@@ -420,6 +427,7 @@ curl -X GET \
 **증상**: localhost 접근 불가, 타임아웃
 
 **해결책**:
+
 ```bash
 # 1. WSL 네트워크 상태 확인
 ip addr show
@@ -436,6 +444,7 @@ ip addr show
 **증상**: NPM 패키지 설치/실행 오류
 
 **해결책**:
+
 ```bash
 # 1. Node.js 버전 확인
 node --version  # v22.18.0 이상 필요
@@ -559,14 +568,17 @@ chmod +x scripts/mcp-diagnose.sh
 ## 📚 추가 리소스
 
 ### 🔗 공식 문서
+
 - [MCP 프로토콜 사양](https://modelcontextprotocol.io)
 - [Claude Code MCP 문서](https://docs.anthropic.com/en/docs/claude-code/mcp)
 
 ### 🛠️ 개발 도구
+
 - [MCP 서버 목록](https://github.com/modelcontextprotocol/servers)
 - [Claude Code GitHub](https://github.com/anthropics/claude-code)
 
 ### 📞 지원
+
 - [Claude Code 이슈 리포트](https://github.com/anthropics/claude-code/issues)
 - [MCP 커뮤니티](https://discord.gg/modelcontextprotocol)
 

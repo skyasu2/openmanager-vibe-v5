@@ -7,11 +7,13 @@
 ## 📋 **Claude Code 공식 MCP 명령어**
 
 ### 기본 구조
+
 ```bash
 claude mcp add <name> [--scope <scope>] [--transport <transport>] [--env KEY=value] -- <command>
 ```
 
 ### 스코프 옵션
+
 - `--scope local`: 프로젝트별 (기본값)
 - `--scope project`: `.mcp.json`을 통해 공유
 - `--scope user`: 모든 프로젝트에서 사용
@@ -21,46 +23,55 @@ claude mcp add <name> [--scope <scope>] [--transport <transport>] [--env KEY=val
 ### NPX 기반 JavaScript 서버 (9개)
 
 #### 1. Filesystem 서버
+
 ```bash
 claude mcp add filesystem --scope project -- npx -y @modelcontextprotocol/server-filesystem /mnt/d/cursor/openmanager-vibe-v5
 ```
 
 #### 2. Memory 서버
+
 ```bash
 claude mcp add memory --scope project -- npx -y @modelcontextprotocol/server-memory
 ```
 
 #### 3. GitHub 서버 (환경변수 필요)
+
 ```bash
 claude mcp add github --scope project --env GITHUB_PERSONAL_ACCESS_TOKEN="your_token" -- npx -y @modelcontextprotocol/server-github
 ```
 
 #### 4. Supabase 서버 (환경변수 + 프로젝트 ID 필요)
+
 ```bash
 claude mcp add supabase --scope project --env SUPABASE_ACCESS_TOKEN="your_token" -- npx -y @supabase/mcp-server-supabase@latest --project-ref "vnswjnltnhpsueosfhmw"
 ```
 
 #### 5. Tavily 서버 (웹 검색, 환경변수 필요)
+
 ```bash
 claude mcp add tavily --scope project --env TAVILY_API_KEY="your_key" -- npx -y tavily-mcp
 ```
 
 #### 6. Playwright 서버 (브라우저 자동화)
+
 ```bash
 claude mcp add playwright --scope project -- npx -y @executeautomation/playwright-mcp-server
 ```
 
 #### 7. Sequential Thinking 서버
+
 ```bash
 claude mcp add thinking --scope project -- npx -y @modelcontextprotocol/server-sequential-thinking
 ```
 
 #### 8. Context7 서버 (라이브러리 문서, 환경변수 필요)
+
 ```bash
 claude mcp add context7 --scope project --env UPSTASH_REDIS_REST_URL="your_url" --env UPSTASH_REDIS_REST_TOKEN="your_token" -- npx -y @upstash/context7-mcp
 ```
 
 #### 9. ShadcN UI 서버
+
 ```bash
 claude mcp add shadcn --scope project -- npx -y @magnusrodseth/shadcn-mcp-server
 ```
@@ -68,11 +79,13 @@ claude mcp add shadcn --scope project -- npx -y @magnusrodseth/shadcn-mcp-server
 ### UVX 기반 Python 서버 (2개)
 
 #### 10. Time 서버
+
 ```bash
 claude mcp add time --scope project -- /home/skyasu/.local/bin/uvx mcp-server-time
 ```
 
 #### 11. Serena 서버 (특별 설정)
+
 ```bash
 claude mcp add serena --scope project -- /home/skyasu/.local/bin/uvx --from "git+https://github.com/oraios/serena" serena-mcp-server
 ```
@@ -80,6 +93,7 @@ claude mcp add serena --scope project -- /home/skyasu/.local/bin/uvx --from "git
 ## 🔑 **환경변수 설정 (WSL 권장 방법)**
 
 ### 1. 영구 환경변수 설정
+
 ```bash
 # ~/.bashrc 편집
 nano ~/.bashrc
@@ -97,6 +111,7 @@ source ~/.bashrc
 ```
 
 ### 2. 환경변수 확인
+
 ```bash
 env | grep -E "(GITHUB|SUPABASE|TAVILY|UPSTASH)" | sort
 ```
@@ -108,7 +123,11 @@ env | grep -E "(GITHUB|SUPABASE|TAVILY|UPSTASH)" | sort
   "mcpServers": {
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/mnt/d/cursor/openmanager-vibe-v5"]
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/mnt/d/cursor/openmanager-vibe-v5"
+      ]
     },
     "memory": {
       "command": "npx",
@@ -126,7 +145,8 @@ env | grep -E "(GITHUB|SUPABASE|TAVILY|UPSTASH)" | sort
       "args": [
         "-y",
         "@supabase/mcp-server-supabase@latest",
-        "--project-ref", "${SUPABASE_PROJECT_ID}"
+        "--project-ref",
+        "${SUPABASE_PROJECT_ID}"
       ],
       "env": {
         "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
@@ -165,7 +185,11 @@ env | grep -E "(GITHUB|SUPABASE|TAVILY|UPSTASH)" | sort
     },
     "serena": {
       "command": "/home/skyasu/.local/bin/uvx",
-      "args": ["--from", "git+https://github.com/oraios/serena", "serena-mcp-server"]
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena-mcp-server"
+      ]
     }
   }
 }
@@ -174,6 +198,7 @@ env | grep -E "(GITHUB|SUPABASE|TAVILY|UPSTASH)" | sort
 ## 🛠️ **MCP 서버 관리 명령어**
 
 ### 상태 확인
+
 ```bash
 # MCP 서버 목록 조회
 claude mcp list
@@ -186,11 +211,13 @@ claude mcp get <server_name>
 ```
 
 ### 서버 제거
+
 ```bash
 claude mcp remove <server_name>
 ```
 
 ### 서버 재시작
+
 ```bash
 # Claude Code 재시작으로 모든 MCP 서버 재시작
 # 환경변수 변경 후 필수
@@ -199,6 +226,7 @@ claude mcp remove <server_name>
 ## ⚙️ **개별 서버 기능 테스트**
 
 ### NPX 서버 테스트
+
 ```bash
 # Memory 서버 (stdio 모드)
 timeout 5s npx -y @modelcontextprotocol/server-memory --help
@@ -208,6 +236,7 @@ timeout 5s npx -y @executeautomation/playwright-mcp-server --help
 ```
 
 ### UVX 서버 테스트
+
 ```bash
 # Time 서버
 uvx mcp-server-time --help
@@ -219,6 +248,7 @@ uvx --from "git+https://github.com/oraios/serena" serena-mcp-server --help
 ## 🔐 **보안 고려사항**
 
 ### 1. 환경변수 보안
+
 ```bash
 # .bashrc 권한 설정
 chmod 600 ~/.bashrc
@@ -230,6 +260,7 @@ echo "source ~/.mcp_env" >> ~/.bashrc
 ```
 
 ### 2. 토큰 권한 최소화
+
 - **GitHub PAT**: `repo`, `read:org` 최소 권한
 - **Supabase**: 필요한 테이블만 접근 가능한 키
 - **Tavily**: 무료 티어 (1000회/월)
@@ -238,6 +269,7 @@ echo "source ~/.mcp_env" >> ~/.bashrc
 ## 🚨 **문제 해결**
 
 ### 환경변수 인식 안 됨
+
 ```bash
 # 1. 환경변수 확인
 env | grep -E "(GITHUB|SUPABASE|TAVILY|UPSTASH)"
@@ -250,6 +282,7 @@ source ~/.bashrc
 ```
 
 ### MCP 서버 연결 실패
+
 ```bash
 # 1. 개별 서버 테스트
 npx -y @modelcontextprotocol/server-memory --help
@@ -262,6 +295,7 @@ claude mcp list
 ```
 
 ### WSL 관련 문제
+
 ```bash
 # Windows cmd 명령어 사용 금지
 # ❌ cmd /c npx ...
@@ -274,8 +308,9 @@ unset WINDOWS_ENV_VARS
 ## 📊 **현재 설정 상태**
 
 ### ✅ **완성된 서버 (11개)**
+
 1. **filesystem** - 파일 시스템 작업 ✅
-2. **memory** - 지식 그래프 관리 ✅  
+2. **memory** - 지식 그래프 관리 ✅
 3. **github** - GitHub 저장소 관리 ✅
 4. **supabase** - PostgreSQL DB 관리 ✅
 5. **tavily** - 웹 검색/크롤링 ✅
@@ -287,29 +322,33 @@ unset WINDOWS_ENV_VARS
 11. **serena** - LSP 기반 코드 분석 ✅
 
 ### 🔑 **환경변수 상태**
+
 - **GitHub**: GITHUB_PERSONAL_ACCESS_TOKEN ⚠️ (더미값)
 - **Supabase**: SUPABASE_ACCESS_TOKEN ⚠️ (더미값)
 - **Tavily**: TAVILY_API_KEY ⚠️ (더미값)
-- **Upstash**: UPSTASH_REDIS_* ⚠️ (더미값)
+- **Upstash**: UPSTASH*REDIS*\* ⚠️ (더미값)
 
 ## 🎯 **다음 단계**
 
 ### 1. 실제 API 키 설정
+
 ```bash
 # 각 서비스에서 실제 API 키 발급 후 ~/.bashrc 업데이트
 # GitHub: https://github.com/settings/tokens
-# Supabase: https://supabase.com/dashboard/account/tokens  
+# Supabase: https://supabase.com/dashboard/account/tokens
 # Tavily: https://tavily.com/
 # Upstash: https://console.upstash.com/
 ```
 
 ### 2. Claude Code 재시작
+
 ```bash
 # 환경변수 적용을 위해 완전 재시작 필요
 # WSL 터미널도 재시작 권장
 ```
 
 ### 3. 연결 상태 확인
+
 ```bash
 claude mcp list
 # 또는 대화형 모드에서
