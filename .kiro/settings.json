@@ -17,6 +17,23 @@
           "path": "cmd.exe",
           "args": ["/K", "cd", "/d", "${workspaceFolder}"],
           "icon": "terminal-cmd"
+        },
+        "WSL": {
+          "path": "wsl.exe",
+          "args": [
+            "-d", "Ubuntu-24.04",
+            "--cd", "/mnt/d/cursor/openmanager-vibe-v5"
+          ],
+          "icon": "terminal-ubuntu"
+        },
+        "WSL Bash": {
+          "path": "wsl.exe",
+          "args": [
+            "-d", "Ubuntu-24.04",
+            "--cd", "/mnt/d/cursor/openmanager-vibe-v5",
+            "--exec", "bash", "-l"
+          ],
+          "icon": "terminal-bash"
         }
       }
     }
@@ -33,6 +50,23 @@
   "development": {
     "autoSave": true,
     "formatOnSave": true,
-    "linting": true
+    "linting": true,
+    "wsl": {
+      "enabled": true,
+      "defaultDistribution": "Ubuntu-24.04",
+      "projectPath": "/mnt/d/cursor/openmanager-vibe-v5",
+      "nodeVersion": "v22.18.0"
+    }
+  },
+  "extensions": {
+    "wsl": {
+      "enabled": true,
+      "autoConnect": true
+    },
+    "claude": {
+      "enabled": true,
+      "apiKey": "${ANTHROPIC_API_KEY}",
+      "model": "claude-3-5-sonnet-20241022"
+    }
   }
 }

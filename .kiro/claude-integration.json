@@ -1,0 +1,39 @@
+{
+  "claude": {
+    "enabled": true,
+    "cliPath": "wsl -d Ubuntu-24.04 -- claude",
+    "models": {
+      "default": "claude-3-5-sonnet-20241022",
+      "coding": "claude-3-5-sonnet-20241022",
+      "analysis": "claude-3-opus-20240229"
+    },
+    "features": {
+      "autoComplete": true,
+      "codeReview": true,
+      "documentation": true,
+      "refactoring": true
+    },
+    "shortcuts": {
+      "askClaude": "Ctrl+Shift+C",
+      "codeReview": "Ctrl+Shift+R",
+      "explain": "Ctrl+Shift+E"
+    }
+  },
+  "mcp": {
+    "enabled": true,
+    "configPath": ".mcp.json",
+    "servers": [
+      "filesystem",
+      "memory", 
+      "github",
+      "supabase",
+      "gcp",
+      "tavily",
+      "playwright",
+      "thinking",
+      "context7",
+      "time",
+      "shadcn"
+    ]
+  }
+}

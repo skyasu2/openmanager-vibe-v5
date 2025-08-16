@@ -1,0 +1,19 @@
+{
+  "recommendations": [
+    "ms-vscode-remote.remote-wsl",
+    "anthropic.claude-dev",
+    "ms-vscode.vscode-typescript-next",
+    "bradlc.vscode-tailwindcss",
+    "esbenp.prettier-vscode",
+    "ms-playwright.playwright"
+  ],
+  "unwantedRecommendations": [],
+  "autoInstall": true,
+  "wsl": {
+    "enabled": true,
+    "extensions": [
+      "ms-vscode-remote.remote-wsl",
+      "anthropic.claude-dev"
+    ]
+  }
+}
