@@ -31,9 +31,8 @@ def main():
         "uvx",
         "--from", "git+https://github.com/oraios/serena",
         "serena-mcp-server",
-        "--project", project_root,
         "--context", "ide-assistant",
-        "--transport", "stdio"
+        "--project", project_root
     ]
     
     # Add any additional arguments passed to launcher

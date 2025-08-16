@@ -32,8 +32,13 @@ fi
 
 # MCP 편의 명령어
 alias mcp-status="claude mcp list"
-alias mcp-env="env | grep -E '(GITHUB|SUPABASE|TAVILY|UPSTASH)' | sort"
+alias mcp-env="env | grep -E '(GITHUB|SUPABASE|TAVILY|UPSTASH|GCP|GOOGLE)' | sort"
 alias mcp-test="cd $PROJECT_ROOT && source scripts/test-mcp-servers.sh"
+
+# GCP 환경변수 추가
+export GCP_PROJECT_ID="openmanager-free-tier"
+export GOOGLE_CLOUD_PROJECT="openmanager-free-tier"
+export PATH="$PATH:/home/skyasu/google-cloud-sdk/bin"
 
 # MCP 환경변수 끝
 EOF
@@ -49,7 +54,7 @@ echo "✅ .env.local 기반 환경변수 설정 완료!"
 echo
 echo "📍 설정된 환경변수:"
 if [[ -f "$ENV_LOCAL_FILE" ]]; then
-    env | grep -E "(GITHUB|SUPABASE|TAVILY|UPSTASH)" | sort | while read line; do
+    env | grep -E "(GITHUB|SUPABASE|TAVILY|UPSTASH|GCP|GOOGLE)" | sort | while read line; do
         key=$(echo "$line" | cut -d'=' -f1)
         value=$(echo "$line" | cut -d'=' -f2-)
         if [[ "$value" == *"your_actual"* || "$value" == *"_here" ]]; then
