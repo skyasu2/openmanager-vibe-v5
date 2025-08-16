@@ -1,45 +1,83 @@
 {
-  "multiIdeWorkflow": {
-    "primary": {
-      "tool": "Claude Code CLI",
-      "environment": "WSL 2 (Ubuntu-24.04)",
-      "role": "메인 개발, 코드 생성, 리팩토링",
-      "usage": "80% 작업량",
-      "strengths": ["MCP 서버 통합", "무제한 사용", "Linux 네이티브"]
-    },
-    "secondary": {
-      "kiro": {
-        "role": "프로젝트 설정, 터미널 관리, 통합 환경",
-        "usage": "10% 작업량",
-        "strengths": ["WSL 통합", "설정 관리", "한국어 지원"],
-        "useCase": ["프로젝트 구조 확인", "설정 파일 편집", "터미널 관리"]
+  "currentPhase": "IDE_EXPLORATION",
+  "status": "여러 IDE를 테스트하여 메인 IDE 결정 중",
+
+  "aiToolsEnvironment": {
+    "location": "WSL 2 (Ubuntu-24.04)",
+    "tools": {
+      "claudeCode": {
+        "command": "claude",
+        "role": "주력 AI 개발 도구",
+        "features": ["MCP 서버 12개", "서브에이전트 18개", "무제한 사용"]
       },
-      "windsurf": {
-        "role": "AI 코딩 어시스턴트, 빠른 프로토타이핑",
-        "usage": "7% 작업량", 
-        "strengths": ["실시간 AI 제안", "코드 자동완성", "빠른 반응"],
-        "useCase": ["빠른 코드 스니펫", "실시간 제안", "UI 컴포넌트"]
+      "codex": {
+        "command": "codex-cli",
+        "role": "병렬 개발 도구",
+        "features": ["ChatGPT Plus", "고성능 코드 생성"]
       },
-      "vscode": {
-        "role": "디버깅, 확장 생태계, 전통적 개발",
-        "usage": "3% 작업량",
-        "strengths": ["확장 생태계", "디버깅 도구", "Git 통합"],
-        "useCase": ["복잡한 디버깅", "확장 기능", "Git 시각화"]
+      "gemini": {
+        "command": "gemini",
+        "role": "무료 보조 도구",
+        "features": ["대용량 데이터 분석", "문서 생성"]
+      },
+      "qwen": {
+        "command": "qwen",
+        "role": "무료 검증 도구",
+        "features": ["빠른 프로토타이핑", "알고리즘 검증"]
       }
     }
   },
-  "workflowPatterns": {
-    "dailyDevelopment": [
-      "1. WSL에서 Claude Code로 메인 개발",
-      "2. Kiro에서 프로젝트 구조 확인",
-      "3. Windsurf로 빠른 수정사항 검증",
-      "4. VSCode로 최종 디버깅 및 커밋"
-    ],
-    "complexFeature": [
-      "1. Claude Code로 기능 설계 및 구현",
-      "2. Windsurf로 UI/UX 개선",
-      "3. Kiro에서 설정 및 환경 조정",
-      "4. VSCode로 통합 테스트"
+
+  "ideExperimentation": {
+    "windows_environment": "Windows 11에서 WSL 터미널 연동",
+    "testing_ides": {
+      "kiro": {
+        "status": "테스트 중",
+        "strengths": ["WSL 통합", "한국어 지원", "프로젝트 설정"],
+        "testAreas": ["터미널 관리", "설정 파일 편집", "프로젝트 구조"]
+      },
+      "windsurf": {
+        "status": "테스트 중",
+        "strengths": ["AI 어시스턴트", "실시간 제안", "빠른 반응"],
+        "testAreas": ["코드 자동완성", "UI 컴포넌트", "빠른 수정"]
+      },
+      "vscode": {
+        "status": "테스트 중",
+        "strengths": ["Copilot", "확장 생태계", "디버깅"],
+        "testAreas": ["복잡한 디버깅", "Git 시각화", "확장 기능"]
+      }
+    },
+    "evaluationCriteria": [
+      "WSL 터미널 연동 품질",
+      "AI 도구와의 호환성",
+      "개발 워크플로우 효율성",
+      "한국어 지원 수준",
+      "프로젝트 관리 기능"
     ]
-  }
+  },
+  "currentWorkflow": {
+    "experimentalApproach": "상황에 따라 다른 IDE를 테스트하며 사용",
+    "commonPatterns": [
+      "Windows IDE에서 WSL 터미널 열기",
+      "WSL에서 AI CLI 도구들 실행 (claude, codex, gemini, qwen)",
+      "각 IDE의 특성을 파악하기 위한 다양한 작업 시도",
+      "WSL ↔ Windows IDE 연동 품질 평가"
+    ],
+    "testScenarios": {
+      "codeGeneration": "AI 도구 연동 및 코드 생성 테스트",
+      "debugging": "디버깅 도구 및 워크플로우 평가",
+      "projectManagement": "프로젝트 구조 관리 및 설정 편의성",
+      "terminalIntegration": "WSL 터미널 연동 품질 평가",
+      "aiAssistance": "AI 어시스턴트 기능 비교"
+    }
+  },
+
+  "decisionFactors": [
+    "WSL 터미널 연동 안정성",
+    "AI CLI 도구와의 호환성",
+    "한국어 지원 품질",
+    "개발 워크플로우 효율성",
+    "설정 및 커스터마이징 자유도",
+    "장기적 유지보수성"
+  ]
 }
