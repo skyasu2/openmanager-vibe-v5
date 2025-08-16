@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "🚀 Pre-push 검증 시작 (Non-blocking v2.0)..."
+echo "🚀 Pre-push 검증 시작 (Non-blocking v3.0)..."
 
 # Skip if HUSKY is disabled
 if [ "$HUSKY" = "0" ]; then
@@ -9,50 +9,17 @@ if [ "$HUSKY" = "0" ]; then
 fi
 
 # Fast track options
-if [[ "$1" == "--fast" ]] || [[ "$FAST_PUSH" == "1" ]]; then
+if [ "$1" = "--fast" ] || [ "$FAST_PUSH" = "1" ]; then
     echo "⚡ Fast track 모드 - 기본 검증만 실행"
     npm run test:quick
     exit $?
 fi
 
-# 병렬 검증 시작
-echo "🔄 병렬 검증 시작..."
-
-# 1. 초고속 테스트 (백그라운드)
+# 단순 동기 실행 (백그라운드 프로세스 제거)
 echo "🧪 핵심 테스트 실행 중..."
-npm run test:quick &
-TEST_PID=$!
+npm run test:quick
 
-# 2. TypeScript 스마트 체크 (변경된 파일만)
-echo "📋 TypeScript 스마트 체크 중..."
-if [ -f "scripts/type-check-changed.js" ]; then
-    node scripts/type-check-changed.js smart 2>&1 | head -10 &
-    TS_PID=$!
-else
-    npm run type-check 2>&1 | head -10 &
-    TS_PID=$!
-fi
-
-# 3. 환경변수 검증 (백그라운드)
-if [ -f "scripts/check-env.js" ]; then
-    echo "🔧 환경변수 검증 중..."
-    node scripts/check-env.js &
-    ENV_PID=$!
-fi
-
-# 테스트 결과 대기 (가장 중요)
-wait $TEST_PID
 TEST_RESULT=$?
-
-# TypeScript 결과 대기 (경고만)
-wait $TS_PID
-TS_RESULT=$?
-
-# 환경변수 결과 대기 (선택적)
-if [ ! -z "$ENV_PID" ]; then
-    wait $ENV_PID
-    ENV_RESULT=$?
-fi
 
 # 결과 처리
 if [ $TEST_RESULT -ne 0 ]; then
@@ -65,15 +32,7 @@ if [ $TEST_RESULT -ne 0 ]; then
     exit 1
 fi
 
-# TypeScript 경고 처리
-if [ $TS_RESULT -ne 0 ]; then
-    echo "⚠️  TypeScript 경고가 있습니다 (현재 382개 알려진 이슈)"
-    echo "💡 주요 원인: Recharts 컴포넌트 타입 충돌"
-    echo "🔧 해결책: npm run type-fix (자동 수정)"
-    echo "📋 현재는 계속 진행합니다..."
-fi
-
 # 성공 메시지
 echo "✅ Pre-push 검증 완료!"
 echo "🚀 Push를 진행합니다..."
-echo "📊 성능: 병렬 처리로 70% 속도 향상"
+echo "📊 성능: 단순화로 타임아웃 문제 해결"
