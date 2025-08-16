@@ -56,6 +56,12 @@
       "defaultDistribution": "Ubuntu-24.04",
       "projectPath": "/mnt/d/cursor/openmanager-vibe-v5",
       "nodeVersion": "v22.18.0"
+    },
+    "multiIde": {
+      "role": "project-manager",
+      "primaryTasks": ["설정 관리", "터미널 통합", "프로젝트 구조"],
+      "claudeIntegration": true,
+      "wslPriority": true
     }
   },
   "extensions": {
