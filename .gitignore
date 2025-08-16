@@ -106,6 +106,7 @@ ai-combined.log
 .env*
 !.env.example
 .env.local.backup
+.env.wsl
 scripts/quick-push.sh
 # 🔐 복호화된 환경변수 파일들 (절대 커밋 금지)
 .env.decrypted
