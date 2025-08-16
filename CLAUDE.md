@@ -605,9 +605,8 @@ claude mcp list
 
 ### 📖 상세 문서
 
-- **[MCP 설치 가이드](docs/MCP-SETUP-GUIDE.md)** - 환경 설정 및 설치
-- **[MCP 활용 가이드](docs/MCP-USAGE-GUIDE.md)** - 실전 사용법 및 예제
-- **[MCP 문제해결](docs/MCP-TROUBLESHOOTING.md)** - 일반적인 문제 해결
+- **[MCP 종합 가이드](docs/MCP-GUIDE.md)** - 환경 설정, 설치 및 실전 사용법
+- **[MCP 운영 가이드](docs/MCP-OPERATIONS.md)** - 모니터링, 문제해결 및 관리
 
 ---
 
@@ -628,7 +627,7 @@ claude mcp list
 
 | 카테고리 | 주요 문서 | 설명 |
 |----------|-----------|------|
-| **MCP 서버** | [MCP 설정](docs/MCP-SETUP-GUIDE.md) • [MCP 활용](docs/MCP-USAGE-GUIDE.md) • [MCP 문제해결](docs/MCP-TROUBLESHOOTING.md) | 11개 MCP 서버 완전 활용 |
+| **MCP 서버** | [MCP 종합 가이드](docs/MCP-GUIDE.md) • [MCP 운영 가이드](docs/MCP-OPERATIONS.md) | 11개 MCP 서버 완전 활용 |
 | **AI 협업** | [AI 도구 비교](docs/ai-tools/ai-tools-comparison.md) • [Gemini CLI](docs/ai-tools/gemini-cli-guide.md) • [Qwen CLI](docs/ai-tools/qwen-cli-guide.md) | 3-AI 병렬 개발 |
 | **서브 에이전트** | [종합 가이드](docs/claude/sub-agents-comprehensive-guide.md) • [MCP 서버 가이드](docs/claude/mcp-servers-complete-guide.md) | 18개 전문 에이전트 활용 |
 
@@ -667,7 +666,6 @@ claude mcp list
 
 - **[📚 문서 README](docs/README.md)** - JBGE 원칙 기반 전체 문서 구조
 - **[📋 기술 문서 인덱스](docs/technical/DOCUMENT-INDEX.md)** - Claude 참조용 기술 문서 목록
-- **[🗂️ 아카이브](docs/archive/)** - 날짜별 히스토리 보관 (2025-08-15 이전)
 
 ---
 
@@ -734,7 +732,7 @@ return amount \* (1 + taxRate);
    - **기타 .md**: /docs/ 디렉토리로 이동
 5. **커밋**: 이모지 + 간결한 메시지
 
-## 🎯 현재 상태 (2025.08.15 - WSL 전환 완료)
+## 🎯 현재 상태 (2025.08.16 - 대규모 정리 완료)
 
 ### 개발 환경 전환
 
@@ -742,6 +740,15 @@ return amount \* (1 + taxRate);
 - **이전 환경**: Windows PowerShell + Claude Code 문제 다수
 - **현재 환경**: WSL 2 + 완벽한 AI CLI 도구 통합
 - **성과**: 모든 Raw mode, 환경변수, 신뢰 문제 해결
+
+### 대규모 정리 성과 (2025.08.16)
+
+- **MCP 문서 통합**: 4개 → 2개 (50% 감축, 품질 향상)
+- **스크립트 정리**: 293개 → 24개 (91.8% 감축)
+- **테스트 파일 정리**: 60개+ → 49개 (18% 감축, 구조 최적화)
+- **아카이브 완전 제거**: 41개 파일 → 0개 (고가치 내용만 재활용)
+- **리포트 통합**: 58개 → 8개 (86.2% 감축, 1일 자동 삭제)
+- **서브에이전트 학습**: documentation-manager, structure-refactor-agent 지식 학습 완료
 
 ### 프로젝트 현황
 
@@ -769,9 +776,11 @@ return amount \* (1 + taxRate);
 
 💡 **핵심 원칙**: Type-First + TDD + 이모지 커밋 + WSL 멀티 AI 통합
 
-📖 **상세 내용**: /docs 폴더 참조
+📖 **상세 내용**: /docs 폴더 참조 (JBGE 원칙 기반 체계적 구조)
 
 🐧 **WSL 우선**: 모든 AI 개발 작업은 WSL에서 수행
 
 🤖 **멀티 AI 전략**: 메인 1개 + 서브 3개로 비용 효율성과 생산성 극대화
+
+🧹 **정리 완료**: 87% 파일 감축으로 프로젝트 효율성 극대화 (2025.08.16)
 ````

@@ -136,6 +136,21 @@ function validateQwenOutput(output) {
 3. **의존성 자동 해결** - import/export 자동 관리
 4. **문서 자동 생성** - JSDoc, README 자동 작성
 
+### 팀 협업 시나리오
+```bash
+# 프론트엔드 팀: Claude로 UI/UX 개발
+claude-code "사용자 인증 시스템 설계 및 핵심 로직 구현"
+
+# 백엔드 팀: Qwen으로 API 및 서비스 개발  
+qwen-code "이메일 알림 서비스 모듈을 독립적으로 개발"
+
+# DevOps 팀: Gemini로 인프라 및 배포 자동화
+gemini-cli "전체 코드베이스 성능 최적화 및 번들 크기 분석"
+
+# 통합 및 테스트
+claude-code "개발된 모듈들을 통합하고 E2E 테스트 실행"
+```
+
 ### 병렬 작업 최적화
 ```bash
 # 다중 작업 동시 실행
