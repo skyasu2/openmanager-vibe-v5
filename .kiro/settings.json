@@ -1,0 +1,38 @@
+{
+  "terminal": {
+    "defaultCwd": "${workspaceFolder}",
+    "autoChangeDirectory": true,
+    "profiles": {
+      "windows": {
+        "PowerShell": {
+          "path": "powershell.exe",
+          "args": [
+            "-NoExit",
+            "-Command",
+            "Set-Location '${workspaceFolder}'; Write-Host 'Kiro IDE - 워크스페이스 준비 완료!' -ForegroundColor Green"
+          ],
+          "icon": "terminal-powershell"
+        },
+        "Command Prompt": {
+          "path": "cmd.exe",
+          "args": ["/K", "cd", "/d", "${workspaceFolder}"],
+          "icon": "terminal-cmd"
+        }
+      }
+    }
+  },
+  "workspace": {
+    "rootPath": "D:\\cursor\\openmanager-vibe-v5",
+    "autoDetectRoot": true,
+    "preserveTerminalCwd": true
+  },
+  "ui": {
+    "language": "ko-KR",
+    "theme": "dark"
+  },
+  "development": {
+    "autoSave": true,
+    "formatOnSave": true,
+    "linting": true
+  }
+}
