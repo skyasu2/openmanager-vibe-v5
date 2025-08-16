@@ -58,14 +58,14 @@ describe('🧪 테스트 환경변수 설정', () => {
 
   describe('🤖 AI 서비스 Mock 설정', () => {
     it('Google AI Mock 설정이 올바르게 정의되어야 함', () => {
-      expect(TEST_ENV_CONFIG.GOOGLE_AI_ENABLED).toBe('false');
+      expect(TEST_ENV_CONFIG.GOOGLE_AI_ENABLED).toBe('true');
       expect(TEST_ENV_CONFIG.FORCE_MOCK_GOOGLE_AI).toBe('true');
-      expect(TEST_ENV_CONFIG.GOOGLE_AI_API_KEY).toBe('mock-google-ai-key');
+      expect(TEST_ENV_CONFIG.GOOGLE_AI_API_KEY).toBe('mock-google-ai-api-key-for-testing');
     });
 
     it('AI 할당량 보호 설정이 활성화되어야 함', () => {
       expect(TEST_ENV_CONFIG.GOOGLE_AI_QUOTA_PROTECTION).toBe('true');
-      expect(TEST_ENV_CONFIG.GOOGLE_AI_TEST_LIMIT_PER_DAY).toBe('0');
+      expect(TEST_ENV_CONFIG.GOOGLE_AI_TEST_LIMIT_PER_DAY).toBe('5');
     });
   });
 
@@ -77,7 +77,7 @@ describe('🧪 테스트 환경변수 설정', () => {
       expect(process.env.NODE_ENV).toBe('test');
       expect(process.env.VITEST).toBe('true');
       expect(process.env.FORCE_MOCK_REDIS).toBe('true');
-      expect(process.env.GOOGLE_AI_ENABLED).toBe('false');
+      expect(process.env.GOOGLE_AI_ENABLED).toBe('true');
     });
 
     it('setupEnvironmentGroup 함수가 특정 그룹만 설정해야 함', () => {
@@ -96,7 +96,7 @@ describe('🧪 테스트 환경변수 설정', () => {
 
       expect(ENV_GROUPS.basic.NODE_ENV).toBe('test');
       expect(ENV_GROUPS.database.FORCE_MOCK_REDIS).toBe('true');
-      expect(ENV_GROUPS.ai_services.GOOGLE_AI_ENABLED).toBe('false');
+      expect(ENV_GROUPS.ai_services.GOOGLE_AI_ENABLED).toBe('true');
     });
   });
 
