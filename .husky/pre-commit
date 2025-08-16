@@ -8,6 +8,15 @@ fi
 
 echo "🧹 변경된 파일만 검사 중..."
 
+# 보안 검사: 하드코딩된 시크릿 탐지
+echo "🔒 보안 검사: 하드코딩된 시크릿 탐지 중..."
+node scripts/security/check-hardcoded-secrets.js
+
+if [ $? -ne 0 ]; then
+    echo "❌ 보안 검사 실패! 하드코딩된 시크릿을 제거하세요."
+    exit 1
+fi
+
 # 핵심 수정: lint-staged만 실행 (변경된 파일만 검사)
 npx lint-staged
 
