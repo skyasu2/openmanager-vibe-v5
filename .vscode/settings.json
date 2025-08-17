@@ -1,244 +1,46 @@
 {
-  // 기본 터미널 설정
-  "terminal.integrated.defaultProfile.windows": "Command Prompt",
-  "terminal.integrated.profiles.windows": {
-    "Command Prompt": {
-      "path": "cmd.exe",
-      "icon": "terminal-cmd"
-    },
-    "PowerShell": {
-      "source": "PowerShell",
-      "icon": "terminal-powershell"
-    }
-  },
-
-  // 🚀 터미널 설정
+  // 최소화된 안전한 워크스페이스 설정
   "terminal.integrated.defaultProfile.windows": "PowerShell",
-  "terminal.integrated.profiles.windows": {
-    "PowerShell": {
-      "source": "PowerShell",
-      "icon": "terminal-powershell",
-      "args": ["-NoLogo"]
-    }
-  },
-
-  // 🤖 GitHub Copilot 설정
-  "github.copilot.enable": {
-    "*": true,
-    "plaintext": true,
-    "markdown": true,
-    "scminput": false
-  },
-  "github.copilot.editor.enableAutoCompletions": true,
-  "github.copilot.advanced": {
-    "showEditorCompletions": true
-  },
-
-  // 🎨 Prettier 설정
-  "prettier.singleQuote": true,
-  "prettier.semi": true,
-  "prettier.trailingComma": "es5",
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  
-  // 🎯 언어별 포맷터 설정
-  "[javascript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
-  },
-  "[javascriptreact]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[typescript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
-  },
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
-  },
-
-  // 🧪 Vitest 테스트 설정
-  "vitest.enable": true,
-  "vitest.commandLine": "npm run test:unit",
-  "vitest.disableWorkspaceWarning": true,
-  "vitest.rootConfig": "./vitest.config.ts",
-  "testing.automaticallyOpenPeekView": "never",
-  "testing.followRunningTest": true,
-  "testing.openTesting": "neverOpen",
-  "testing.automaticallyOpenTestResults": "neverOpen",
-  "testing.defaultGutterClickAction": "run",
-  "testing.gutterEnabled": true,
-  "jest.autoRun": "off",
-
-  // 📦 NPM 설정
-  "npm.packageManager": "npm",
-
-  // 🚀 터미널 설정
-  "terminal.integrated.defaultProfile.windows": "PowerShell",
-  "terminal.integrated.profiles.windows": {
-    "PowerShell": {
-      "source": "PowerShell",
-      "icon": "terminal-powershell",
-      "args": ["-NoLogo"]
-    }
-  },
-
-  // 🤖 GitHub Copilot 설정
-  "github.copilot.enable": {
-    "*": true,
-    "plaintext": true,
-    "markdown": true,
-    "scminput": false
-  },
-  "github.copilot.editor.enableAutoCompletions": true,
-  "github.copilot.advanced": {
-    "showEditorCompletions": true
-  },
-
-  // 🚀 터미널 설정
-  "terminal.integrated.defaultProfile.windows": "PowerShell",
-  "terminal.integrated.profiles.windows": {
-    "PowerShell": {
-      "source": "PowerShell",
-      "icon": "terminal-powershell",
-      "args": ["-NoLogo"]
-    }
-  },
-  "terminal.integrated.env.windows": {
-    "PSExecutionPolicyPreference": "RemoteSigned"
-  },
-
-  // 🤖 GitHub Copilot 설정
-  "github.copilot.enable": {
-    "*": true,
-    "plaintext": true,
-    "markdown": true,
-    "scminput": false
-  },
-  "github.copilot.editor.enableAutoCompletions": true,
-  "github.copilot.advanced": {
-    "showEditorCompletions": true
-  },
-  "npm.scriptExplorerAction": "run",
-
-  // 🎨 TailwindCSS 설정
-  "tailwindCSS.includeLanguages": {
-    "typescript": "javascript",
-    "typescriptreact": "javascript"
-  },
-
-  // 🐧 WSL-First 터미널 설정
-  "terminal.integrated.defaultProfile.windows": "Claude Code (WSL)",
   "terminal.integrated.cwd": "${workspaceFolder}",
   "terminal.integrated.profiles.windows": {
-    "Claude Code (WSL)": {
-      "path": "wsl.exe",
-      "args": ["-d", "Ubuntu", "cd", "/mnt/d/cursor/openmanager-vibe-v5", "&&", "claude"],
-      "icon": "robot"
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell",
+      "args": ["-NoLogo"]
     },
     "WSL": {
       "path": "wsl.exe",
-      "args": ["-d", "Ubuntu", "cd", "/mnt/d/cursor/openmanager-vibe-v5", "&&", "bash"],
+      "args": ["-d", "Ubuntu"],
       "icon": "terminal-ubuntu"
-    },
-    "PowerShell": {
-      "source": "PowerShell",
-      "icon": "terminal-powershell",
-      "args": ["-NoExit", "-Command", "Set-Location '${workspaceFolder}'"]
     }
   },
 
-  // 🔧 터미널 최적화 설정
-  "terminal.integrated.enableMultiLinePasteWarning": false,
-  "terminal.integrated.copyOnSelection": true,
-  "terminal.integrated.rightClickBehavior": "copyPaste",
-  "terminal.integrated.fontSize": 14,
-  "terminal.integrated.fontFamily": "'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Courier New', monospace",
-  "terminal.integrated.cursorBlinking": true,
-  "terminal.integrated.cursorStyle": "block",
-  "terminal.integrated.scrollback": 10000,
-  "terminal.integrated.fastScrollSensitivity": 5,
-  "terminal.integrated.mouseWheelScrollSensitivity": 3,
-  "terminal.integrated.inheritEnv": true,
-  "terminal.integrated.allowChords": false,
-
-  // 📁 파일 시스템 최적화
-  "files.eol": "\n",
-  "files.encoding": "utf8",
-  "files.autoGuessEncoding": true,
-  "files.autoSave": "onFocusChange",
-  "files.hotExit": "onExitAndWindowClose",
-  "files.watcherExclude": {
-    "**/.git/objects/**": true,
-    "**/.git/subtree-cache/**": true,
-    "**/node_modules/**": true,
-    "**/.next/**": true,
-    "**/out/**": true,
-    "**/build/**": true,
-    "**/dist/**": true,
-    "**/.cache/**": true,
-    "**/logs/**": true,
-    "**/.vercel/**": true,
-    "**/google-cloud-sdk/**": true,
-    "google-cloud-cli-linux-x86_64.tar.gz": true,
-    "**/.local/**": true
+  // GitHub Copilot 관련 (터미널 자동 실행 비활성화)
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": true,
+    "markdown": true,
+    "scminput": false
   },
-  "files.exclude": {
-    "**/node_modules": true,
-    "**/.next": true,
-    "**/google-cloud-sdk": true,
-    "google-cloud-cli-linux-x86_64.tar.gz": true,
-    "**/.DS_Store": true,
-    "**/Thumbs.db": true,
-    "**/.local": true
+  "github.copilot.editor.enableAutoCompletions": true,
+  "github.copilot.advanced": {
+    "showEditorCompletions": true
   },
-  "search.exclude": {
-    "**/node_modules": true,
-    "**/bower_components": true,
-    "**/*.code-search": true,
-    "**/google-cloud-sdk": true,
-    "**/.next": true,
-    "**/.local": true
+  "github.copilot.terminal": {
+    "enabled": false
   },
 
-  // 🔍 ESLint 설정
-  "eslint.enable": true,
-  "eslint.experimental.useFlatConfig": true,
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact"
-  ],
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit",
-    "source.organizeImports": "explicit"
-  },
-
-  // 🔗 Git 설정
-  "git.useIntegratedTerminal": true,
-  "git.terminalAuthentication": true,
-  "git.ignoreLimitWarning": true,
-  "git.autorefresh": true,
-  "git.detectSubmodules": false,
-  "git.countBadge": "tracked",
-  "git.useEditorAsCommitInput": false,
-  "git.enableSmartCommit": true,
-  "git.confirmSync": false,
-  "git.autofetch": true,
-  "git.branchProtection": ["main", "master"],
-
-  // 🎯 에디터 설정
-  "editor.quickSuggestions": {
-    "strings": true
-  },
-  "editorconfig.generateAuto": false,
-
-  // 🔧 기타 설정
-  "tasks.autoDetect": "off",
-  "kiroAgent.configureMCP": "Disabled",
-  "extensions.ignoreRecommendations": false,
-  "workbench.startupEditor": "none",
-  "workbench.settings.enableNaturalLanguageSearch": false,
-
-  // 🐧 WSL 통합 설정
+  // 리모트/WSL 동작 제한
+  "remote.WSL.enabled": false,
   "remote.WSL.fileWatcher.polling": false,
-  "remote.WSL.useShellEnvironment": true
+  "remote.WSL.useShellEnvironment": false,
+
+  // 일반 동작
+  "workbench.startupEditor": "none",
+  "tasks.autoDetect": "off",
+  "terminal.integrated.shellIntegration.enabled": false,
+  "terminal.integrated.enablePersistentSessions": false,
+  "terminal.integrated.persistentSessionReviveProcess": "never",
+  "terminal.integrated.defaultLocation": "editor",
+  "terminal.integrated.inheritEnv": false
 }
