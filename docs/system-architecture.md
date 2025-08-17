@@ -97,7 +97,10 @@ import { AIMode, AIResponse } from '@/types/ai-modes';
 ```typescript
 // src/services/ai/two-mode-router.ts
 export class TwoModeAIRouter {
-  async processRequest(mode: 'LOCAL' | 'GOOGLE_ONLY', payload: any): Promise<any> {
+  async processRequest(
+    mode: 'LOCAL' | 'GOOGLE_ONLY',
+    payload: any
+  ): Promise<any> {
     switch (mode) {
       case 'LOCAL':
         return this.processLocal(payload);
@@ -186,7 +189,7 @@ async function checkTwoModeAIHealth() {
     'ml-analytics-engine', // 187ms
   ];
   const health = await Promise.all(
-    functions.map(fn => fetch(`${GCP_BASE_URL}/${fn}/health`))
+    functions.map((fn) => fetch(`${GCP_BASE_URL}/${fn}/health`))
   );
   return health;
 }
@@ -246,14 +249,14 @@ vercel env add GCP_SERVICE_ACCOUNT_KEY
 
 #### **현재 성능 (v5.65.11)**
 
-| 지표          | 값        | 목표      | 달성 |
-| ------------- | --------- | --------- | ---- |
-| Korean NLP    | 152ms     | <200ms    | ✅   |
-| AI Processor  | 234ms     | <300ms    | ✅   |
-| ML Analytics  | 187ms     | <200ms    | ✅   |
-| 가동률        | 99.95%    | 99.95%    | ✅   |
-| 코드 복잡도   | 400 라인  | <500 라인 | ✅   |
-| 메모리 사용량 | 70MB      | <100MB    | ✅   |
+| 지표          | 값       | 목표      | 달성 |
+| ------------- | -------- | --------- | ---- |
+| Korean NLP    | 152ms    | <200ms    | ✅   |
+| AI Processor  | 234ms    | <300ms    | ✅   |
+| ML Analytics  | 187ms    | <200ms    | ✅   |
+| 가동률        | 99.95%   | 99.95%    | ✅   |
+| 코드 복잡도   | 400 라인 | <500 라인 | ✅   |
+| 메모리 사용량 | 70MB     | <100MB    | ✅   |
 
 #### **최적화 성과**
 
@@ -266,8 +269,8 @@ vercel env add GCP_SERVICE_ACCOUNT_KEY
 
 ## 📚 관련 문서
 
-- [AI 시스템 통합 가이드](./ai-system-unified-guide.md)
-- [AI 시스템 완전 가이드](./ai-complete-guide.md)
-- [배포 완전 가이드](./deployment-complete-guide.md)
-- [성능 최적화 가이드](./performance-optimization-guide.md)
-- [보안 완전 가이드](./security-complete-guide.md)
+- [AI 시스템 통합 가이드](./ai/ai-system-unified-guide.md)
+- [AI 시스템 완전 가이드](./ai/ai-complete-guide.md)
+- [배포 완전 가이드](./quick-start/deployment-guide.md)
+- [성능 최적화 가이드](./performance/performance-optimization-complete-guide.md)
+- [보안 완전 가이드](./security/security-complete-guide.md)

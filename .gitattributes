@@ -1,6 +1,11 @@
 # 기본 텍스트 파일은 자동 감지
 * text=auto
 
+# Windows 스크립트는 CRLF 사용
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
 # 스크립트 파일은 LF 고정 (Windows에서도)
 *.sh text eol=lf
 .husky/* text eol=lf

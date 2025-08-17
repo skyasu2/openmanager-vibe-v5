@@ -1,10 +1,10 @@
-# Supabase MCP 서버 설정 완료 ✅
+ARCHIVED
 
 ## 🎉 최종 해결 완료 (2025-08-14)
 
 **문제**: Supabase MCP 서버가 "Failed to connect" 상태  
 **원인**: Windows CMD에서 npm 패키지명의 특수문자 처리 문제  
-**해결**: `command`를 단일 문자열에서 `command` + `args` 배열로 변경  
+**해결**: `command`를 단일 문자열에서 `command` + `args` 배열로 변경
 
 ## ✅ 성공적인 해결 방법
 
@@ -30,27 +30,38 @@
 ### Windows 특수문자 문제 해결
 
 ❌ **실패했던 방법**:
+
 ```json
 "command": "npx @supabase/mcp-server-supabase@latest --project-ref vnswjnltnhpsueosfhmw --access-token xxx"
 ```
+
 **에러**: `npm error Invalid package name "@supabase\mcp-server-supabase"`
 
 ✅ **성공한 방법**:
+
 ```json
 {
   "command": "npx",
-  "args": ["@supabase/mcp-server-supabase@latest", "--project-ref", "vnswjnltnhpsueosfhmw", "--access-token", "xxx"]
+  "args": [
+    "@supabase/mcp-server-supabase@latest",
+    "--project-ref",
+    "vnswjnltnhpsueosfhmw",
+    "--access-token",
+    "xxx"
+  ]
 }
 ```
 
 ### 디버깅 과정
 
 1. **디버그 모드 실행**:
+
    ```bash
    claude --debug mcp list
    ```
 
 2. **핵심 에러 발견**:
+
    ```
    [ERROR] MCP server "supabase" Server stderr: npm error Invalid package name "@supabase\mcp-server-supabase"
    ```
@@ -69,7 +80,7 @@ claude mcp list
 
 ```
 ✓ filesystem - Connected
-✓ memory - Connected  
+✓ memory - Connected
 ✓ github - Connected
 ✓ sequential-thinking - Connected
 ✓ time - Connected
@@ -102,6 +113,7 @@ claude mcp list
 ### 연결 실패 시
 
 1. **환경변수 확인**:
+
    ```powershell
    echo $env:SUPABASE_ACCESS_TOKEN
    ```
@@ -146,6 +158,6 @@ refreshenv
 
 ---
 
-*작성일: 2025-08-14*  
-*버전: 1.0*  
-*작성자: Claude Code*
+_작성일: 2025-08-14_  
+_버전: 1.0_  
+_작성자: Claude Code_

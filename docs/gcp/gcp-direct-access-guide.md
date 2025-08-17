@@ -529,8 +529,8 @@ gcloud kms keys create openmanager-key \
 ### 프로젝트 내 문서
 
 - [GCP 통합 가이드](./gcp-complete-guide.md)
-- [배포 완전 가이드](./deployment-complete-guide.md)
-- [무료 티어 설정 가이드](./archive/FREE_TIER_SETUP.md)
+- [배포 완전 가이드](../quick-start/deployment-guide.md)
+- [무료 티어 설정 가이드](../free-tier-optimization-guide.md)
 
 ### 유용한 명령어
 

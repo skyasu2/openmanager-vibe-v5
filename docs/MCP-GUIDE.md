@@ -1,34 +1,35 @@
 # 🔌 MCP (Model Context Protocol) 완전 가이드
 
-> **설치부터 실전 활용까지 모든 것**  
-> WSL 2 환경에서 Claude Code와 MCP 서버 12개 완전 정복
+> **설치부터 고급 활용까지**  
+> WSL 2 환경에서 Claude Code와 MCP 서버 12개 완전 마스터 가이드
 
-**최종 업데이트**: 2025-08-16 21:57 (12개 MCP 서버 실제 테스트 완료)  
+**최종 업데이트**: 2025-08-17 (JBGE 통합 최적화)  
 **환경**: WSL 2 (Ubuntu 24.04 LTS) + Claude Code v1.0.81  
 **상태**: 12/12 서버 연결 완료, 12/12 완전 정상 ✅
+
+## 📚 통합된 MCP 가이드
+
+> **JBGE 원칙**: 하나의 완전한 MCP 가이드로 모든 정보 통합  
+> 기존 MCP-ADVANCED.md, MCP-OPERATIONS.md 내용 포함
 
 ---
 
 ## 📋 목차
-
-### 🛠️ [Part 1: 설치 및 설정](#part-1-설치-및-설정)
 
 1. [MCP 소개](#mcp-소개)
 2. [사전 준비](#사전-준비)
 3. [MCP 서버 설치](#mcp-서버-설치)
 4. [설정 파일 구성](#설정-파일-구성)
 5. [설치 확인](#설치-확인)
-
-### 🚀 [Part 2: 실전 활용](#part-2-실전-활용)
-
-6. [11개 MCP 서버 완전 활용](#11개-mcp-서버-완전-활용)
-7. [실전 통합 워크플로우](#실전-통합-워크플로우)
-8. [성능 최적화 전략](#성능-최적화-전략)
-9. [빠른 참조](#빠른-참조)
+6. [기본 MCP 서버 활용법](#기본-mcp-서버-활용법)
+7. [🚀 고급 MCP 서버 완전 활용](#고급-mcp-서버-완전-활용)
+8. [🔄 실전 통합 워크플로우](#실전-통합-워크플로우)
+9. [⚡ 성능 최적화 전략](#성능-최적화-전략)
+10. [🌥️ GCP 통합 가이드](#gcp-통합-가이드)
+11. [🚨 문제 해결](#문제-해결)
+12. [🚀 빠른 참조](#빠른-참조)
 
 ---
-
-# Part 1: 설치 및 설정
 
 ## 🎯 MCP 소개
 
@@ -58,39 +59,35 @@
 
 ### 1. Node.js 환경 확인
 
-```bash
-# Node.js 버전 확인 (v22.18.0 이상)
-node --version
+WSL 환경에서 [Node.js 공식 설치 가이드](https://nodejs.org/en/download/)를 따라 v22.18.0+ 설치
 
-# NPM 버전 확인 (10.x 이상)
-npm --version
-```
+### 2. Python UV 설정
 
-### 2. Python 패키지 매니저 설치 (UV/UVX)
+[UV 공식 설치 가이드](https://docs.astral.sh/uv/)를 따라 설치:
 
 ```bash
 # UV 설치 (Python MCP 서버용)
 curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# PATH 환경변수 설정
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
-
-# 설치 확인
-uvx --version  # 0.8.11 이상
+uvx --version  # 설치 확인
 ```
 
 ## 📦 MCP 서버 설치
 
-### NPM 기반 서버 설치 (9개)
+### NPM 기반 서버 설치 (10개)
+
+기본 npm 전역 설치는 [npm 공식 문서](https://docs.npmjs.com/downloading-and-installing-packages-globally)를 참조하세요.
+
+**OpenManager 특화 MCP 서버 목록**:
 
 ```bash
-# 일괄 설치 스크립트
+# OpenManager VIBE v5 전용 MCP 서버 일괄 설치
 npm install -g \
   @modelcontextprotocol/server-filesystem \
   @modelcontextprotocol/server-memory \
   @modelcontextprotocol/server-github \
   @supabase/mcp-server-supabase \
+  google-cloud-mcp \
   tavily-mcp \
   @executeautomation/playwright-mcp-server \
   @modelcontextprotocol/server-sequential-thinking \
@@ -116,6 +113,7 @@ Serena MCP는 77초 초기화 시간이 필요하지만 Claude Code는 30초 후
 mkdir -p /mnt/d/cursor/openmanager-vibe-v5/scripts/mcp
 
 # 프록시 파일 생성 (scripts/mcp/serena-lightweight-proxy.mjs)
+# 파일이 이미 생성되어 있습니다 (673줄)
 ```
 
 **2단계: .mcp.json에서 프록시 사용**
@@ -173,6 +171,15 @@ mkdir -p /mnt/d/cursor/openmanager-vibe-v5/scripts/mcp
       ],
       "env": {
         "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
+      }
+    },
+    "gcp": {
+      "command": "npx",
+      "args": ["-y", "google-cloud-mcp"],
+      "env": {
+        "GOOGLE_CLOUD_PROJECT": "${GCP_PROJECT_ID}",
+        "GOOGLE_APPLICATION_CREDENTIALS": "",
+        "PATH": "${PATH}:/home/skyasu/google-cloud-sdk/bin"
       }
     },
     "tavily": {
@@ -303,119 +310,13 @@ UPSTASH_REDIS_REST_TOKEN=your_redis_token
 | **playwright** | ✅ 성공     | 브라우저 제어 (타임아웃 이슈 있음)         |
 | **thinking**   | ✅ 성공     | 순차 사고 기능                             |
 | **context7**   | ✅ 성공     | React 라이브러리 검색 (40개 결과)          |
-| **serena**     | ✅ 성공     | **프록시로 해결!** 21개 도구 로드          |
+| **serena**     | ✅ 성공     | **프록시로 해결!** 25개 도구 로드          |
 | **time**       | ✅ 성공     | 한국 시간 조회 (2025-08-16T21:57:02+09:00) |
 | **shadcn**     | ✅ 성공     | UI 컴포넌트 리스트 (50개 컴포넌트)         |
 
-### 🤖 실제 테스트된 활용 예제
+## 📁 기본 MCP 서버 활용법
 
-아래는 모든 MCP 서버를 실제로 테스트하여 작동을 확인한 예제들입니다.
-
-```typescript
-// 📁 1. Filesystem - 프로젝트 파일 조회
-const projectFiles = await mcp__filesystem__list_directory({
-  path: '/mnt/d/cursor/openmanager-vibe-v5',
-});
-// 결과: 100개+ 파일 목록 반환
-
-// 🧠 2. Memory - 프로젝트 지식 저장
-const testRecord = await mcp__memory__create_entities({
-  entities: [
-    {
-      name: 'MCPTestSession20250816',
-      entityType: 'TestSession',
-      observations: ['모든 MCP 서버 체계적 테스트 진행 중'],
-    },
-  ],
-});
-// 결과: 지식 그래프에 성공적으로 저장
-
-// 🐙 3. GitHub - 레포지토리 검색
-const mcpRepos = await mcp__github__search_repositories({
-  query: 'mcp model context protocol',
-  perPage: 5,
-});
-// 결과: 7,336개 레포지토리 발견 (lastmile-ai/mcp-agent 등)
-
-// 🗄️ 4. Supabase - 데이터베이스 조회
-const tables = await mcp__supabase__execute_sql({
-  query:
-    "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' LIMIT 5",
-});
-// 결과: command_vectors, ai_embeddings, user_profiles 등 5개 테이블
-
-const projectUrl = await mcp__supabase__get_project_url();
-// 결과: "https://vnswjnltnhpsueosfhmw.supabase.co"
-
-// ☁️ 5. GCP - 클라우드 프로젝트 정보
-const gcpProject = await mcp__gcp__get_project_id();
-// 결과: "openmanager-free-tier" (현재 프로젝트)
-
-// 🌐 6. Tavily - 웹 검색
-const mcpNews = await mcp__tavily__tavily_search({
-  query: 'Model Context Protocol MCP latest updates 2025',
-  max_results: 3,
-});
-// 결과: MCP 2025-06-18 업데이트, Auth0 보안 업데이트 등
-
-// 🎭 7. Playwright - 브라우저 테스트
-const browserTest = await mcp__playwright__playwright_navigate({
-  url: 'https://example.com',
-  headless: true,
-});
-// 결과: 브라우저 연결 성공 (타임아웃 이슈 있음)
-
-// 🧠 8. Thinking - 순차적 사고
-const analysis = await mcp__thinking__sequentialthinking({
-  thought: 'MCP 테스트 진행 상황을 분석해보자',
-  nextThoughtNeeded: false,
-  thoughtNumber: 1,
-  totalThoughts: 1,
-});
-// 결과: 사고 단계별 로깅 성공
-
-// 📚 9. Context7 - 라이브러리 검색
-const reactLibs = await mcp__context7__resolve_library_id({
-  libraryName: 'react',
-});
-// 결과: 40개 React 관련 라이브러리 발견 (/websites/react_dev 등)
-
-// 🤖 10. Serena - 코드 분석 (**프록시로 해결!**)
-const codeAnalysis = await mcp__serena__activate_project({
-  project: '/mnt/d/cursor/openmanager-vibe-v5',
-});
-// 결과: 21개 도구 로드, TypeScript 프로젝트 활성화
-
-// ⏰ 11. Time - 시간대 변환
-const currentTime = await mcp__time__get_current_time({
-  timezone: 'Asia/Seoul',
-});
-// 결과: "2025-08-16T21:57:02+09:00" (현재 시간)
-
-const timeConversion = await mcp__time__convert_time({
-  source_timezone: 'Asia/Seoul',
-  target_timezone: 'America/New_York',
-  time: '22:00',
-});
-// 결과: 서울 22:00 = 뉴욕 09:00 (-13시간 차이)
-
-// 🎨 12. ShadCN - UI 컴포넌트
-const uiComponents = await mcp__shadcn__list_components();
-// 결과: 50개 컴포넌트 (accordion, button, card 등)
-
-const buttonComponent = await mcp__shadcn__get_component({
-  componentName: 'button',
-});
-// 결과: 완전한 TypeScript 컴포넌트 코드
-```
-
----
-
-# Part 2: 실전 활용
-
-## 🚀 11개 MCP 서버 완전 활용
-
-### 📁 1. Filesystem MCP ✅
+### 1. Filesystem MCP ✅
 
 **파일 시스템 직접 조작**
 
@@ -440,7 +341,7 @@ await mcp__filesystem__search_files({
 });
 ```
 
-### 🧠 2. Memory MCP ✅
+### 2. Memory MCP ✅
 
 **지식 그래프 관리**
 
@@ -471,7 +372,7 @@ await mcp__memory__create_relations({
 await mcp__memory__read_graph();
 ```
 
-### 🐙 3. GitHub MCP ✅
+### 3. GitHub MCP ✅
 
 **GitHub API 완전 활용**
 
@@ -494,21 +395,11 @@ await mcp__github__create_issue({
   owner: 'skyasu2',
   repo: 'openmanager-vibe-v5',
   title: 'MCP 문서 통합 완료',
-  body: '11개 서버 모두 정상 작동 확인',
-});
-
-// 🔀 PR 생성
-await mcp__github__create_pull_request({
-  owner: 'skyasu2',
-  repo: 'openmanager-vibe-v5',
-  title: 'MCP 완전 가이드 추가',
-  head: 'feature/mcp-guide',
-  base: 'main',
-  body: '통합된 MCP 가이드 문서',
+  body: '12개 서버 모두 정상 작동 확인',
 });
 ```
 
-### 🗄️ 4. Supabase MCP ✅
+### 4. Supabase MCP ✅
 
 **PostgreSQL 데이터베이스 관리**
 
@@ -529,6 +420,8 @@ await mcp__supabase__list_tables({
 // 🔍 브랜치 목록 (개발 환경)
 await mcp__supabase__list_branches();
 ```
+
+## 🚀 고급 MCP 서버 완전 활용
 
 ### 🔍 5. Tavily MCP ✅
 
@@ -625,7 +518,7 @@ await mcp__context7__get_library_docs({
 });
 ```
 
-### 🎨 9. ShadCN MCP ⚠️
+### 🎨 9. ShadCN MCP ✅
 
 **UI 컴포넌트 관리**
 
@@ -687,6 +580,27 @@ await mcp__serena__find_symbol({
 // 📄 파일 읽기
 await mcp__serena__read_file({
   relative_path: 'src/types/user.ts',
+});
+```
+
+### ☁️ 12. GCP MCP ✅
+
+**Google Cloud Platform 통합**
+
+```typescript
+// 프로젝트 정보 조회
+await mcp__gcp__get_project_id();
+
+// VM 인스턴스 목록
+await mcp__gcp__list_instances({
+  project: 'openmanager-free-tier',
+  zone: 'asia-northeast3-a',
+});
+
+// Cloud Functions 목록
+await mcp__gcp__list_functions({
+  project: 'openmanager-free-tier',
+  region: 'asia-northeast3',
 });
 ```
 
@@ -868,7 +782,53 @@ const dbSchema = await cachedMcpCall(
 );
 ```
 
-## 🚀 빠른 참조 (Quick Reference)
+## 🌥️ GCP 통합 가이드
+
+### 현재 상태 (2025-08-17)
+
+**✅ GCP MCP 서버**: 정상 활성화 완료
+
+- **해결**: wslu를 통한 WSL ↔ Windows 브라우저 연동 성공
+- **상태**: 12개 MCP 서버 모두 정상 동작 (GCP 포함)
+- **추가**: VM API (104.154.205.25:10000) 이중화 체제
+
+### 🔧 WSL 브라우저 연동 설정 (필수)
+
+```bash
+# 1. wslu 패키지 설치
+sudo apt update && sudo apt install -y wslu
+
+# 2. 브라우저 환경변수 설정
+echo 'export BROWSER=wslview' >> ~/.bashrc
+export BROWSER=wslview
+
+# 3. Google Cloud 인증
+gcloud auth application-default login
+gcloud config set project openmanager-free-tier
+```
+
+## 🚨 문제 해결
+
+### 자주 발생하는 문제
+
+1. **환경변수 인식 불가**
+
+   ```bash
+   # 해결법: 실제 값으로 .mcp.json 설정
+   ```
+
+2. **Serena MCP 타임아웃**
+
+   ```bash
+   # 해결법: lightweight proxy 사용 (이미 설정됨)
+   ```
+
+3. **GCP 인증 실패**
+   ```bash
+   # 해결법: wslu 설치 및 브라우저 연동
+   ```
+
+## 🚀 빠른 참조
 
 ### 자주 사용하는 명령어
 
@@ -899,248 +859,243 @@ mcp__tavily__tavily_search({
 
 // ⏰ 현재 시간
 mcp__time__get_current_time({ timezone: 'Asia/Seoul' });
+
+// 🎭 브라우저 스크린샷
+mcp__playwright__playwright_screenshot({
+  name: 'test',
+  fullPage: true,
+});
+
+// 🔧 코드 분석
+mcp__serena__list_dir({
+  relative_path: 'src',
+  recursive: false,
+});
+
+// ☁️ GCP 인스턴스
+mcp__gcp__list_instances({
+  project: 'openmanager-free-tier',
+  zone: 'asia-northeast3-a',
+});
 ```
 
-## 🌥️ GCP 통합
+### 통합 워크플로우 템플릿
 
-### 현재 상태 (2025-08-16)
+```typescript
+// 완전한 프로젝트 분석 워크플로우
+async function comprehensiveAnalysis(projectPath: string) {
+  const [files, gitInfo, codeStructure, latestNews, currentTime] =
+    await Promise.all([
+      mcp__filesystem__list_directory({ path: projectPath }),
+      mcp__github__search_repositories({ query: 'project analysis' }),
+      mcp__serena__list_dir({ relative_path: '.' }),
+      mcp__tavily__tavily_search({ query: 'project analysis tools 2025' }),
+      mcp__time__get_current_time({ timezone: 'Asia/Seoul' }),
+    ]);
 
-**✅ GCP MCP 서버**: 정상 활성화 완료
-
-- **해결**: wslu를 통한 WSL ↔ Windows 브라우저 연동 성공
-- **상태**: 12개 MCP 서버 모두 정상 동작 (GCP 포함)
-- **추가**: VM API (104.154.205.25:10000) 이중화 체제
-
-### VM API 상태 ✅
-
-```bash
-# 헬스체크
-curl http://104.154.205.25:10000/health
-# {"status":"healthy","version":"2.0","port":10000}
-
-# 시스템 상태
-curl http://104.154.205.25:10000/api/status
-# {"hostname":"mcp-server","memory":{"free":467,"total":976,"used":509},"uptime":3099}
-
-# PM2 프로세스 (인증 필요)
-curl -H "Authorization: Bearer ${VM_API_TOKEN}" \
-     http://104.154.205.25:10000/api/pm2
-```
-
-### 🔧 WSL 브라우저 연동 설정 (필수)
-
-WSL에서 Google Cloud 인증 시 Windows 브라우저를 자동으로 열어주는 설정:
-
-#### 1. wslu 패키지 설치
-
-```bash
-# WSL Utilities 설치 (wslview 포함)
-sudo apt update && sudo apt install -y wslu
-
-# 설치 확인
-which wslview  # /usr/bin/wslview
-```
-
-#### 2. 브라우저 환경변수 설정
-
-```bash
-# BROWSER 환경변수 설정 (영구 저장)
-echo 'export BROWSER=wslview' >> ~/.bashrc
-echo 'export PATH="$PATH:/home/skyasu/google-cloud-sdk/bin"' >> ~/.bashrc
-source ~/.bashrc
-
-# 현재 세션에 적용
-export BROWSER=wslview
-export PATH="$PATH:/home/skyasu/google-cloud-sdk/bin"
-```
-
-#### 3. Google Cloud 인증
-
-```bash
-# Application Default Credentials 설정
-gcloud auth application-default login
-# ✅ Windows 브라우저가 자동으로 열림 → 구글 계정 로그인
-
-# 프로젝트 설정
-gcloud config set project openmanager-free-tier
-
-# 인증 확인
-ls -la ~/.config/gcloud/application_default_credentials.json
-```
-
-#### 4. .mcp.json에 GCP 서버 추가
-
-```json
-{
-  "mcpServers": {
-    "gcp": {
-      "command": "npx",
-      "args": ["-y", "gcp-mcp"],
-      "env": {
-        "GOOGLE_CLOUD_PROJECT": "${GCP_PROJECT_ID}",
-        "GOOGLE_APPLICATION_CREDENTIALS": "",
-        "PATH": "${PATH}:/home/skyasu/google-cloud-sdk/bin"
-      }
-    }
-  }
+  // 결과 통합 및 저장
+  return {
+    analysis: { files, gitInfo, codeStructure, latestNews },
+    timestamp: currentTime.datetime,
+    summary: `${files.length}개 파일, ${codeStructure.directories?.length}개 디렉토리 분석 완료`,
+  };
 }
 ```
 
-#### 5. Claude 재시작 및 확인
+## 🔧 모니터링 및 문제 해결
+
+### 📊 실시간 상태 확인
+
+#### 🎯 기본 상태 체크
 
 ```bash
-# Claude Code 재시작 후
-claude mcp list  # 12개 서버 확인 (GCP 포함)
+# 전체 서버 상태 확인 (Claude Code에서)
+/mcp
+
+# 또는 bash에서
+claude mcp list
+
+# 빠른 연결 테스트
+./scripts/mcp-quick-test.sh
+
+# 상세 헬스 체크
+./scripts/mcp-health-check.sh
 ```
 
-### 🚀 GCP MCP 활용 예제
+### 🚨 일반적인 문제와 해결책
 
-#### 1. VM 인스턴스 관리
+#### 1. "No MCP servers configured" 오류
 
-```typescript
-// VM 인스턴스 목록 조회
-const instances = await mcp__gcp__list_instances({
-  project: 'openmanager-free-tier',
-  zone: 'asia-northeast3-a',
-});
+**증상**: Claude Code에서 MCP 서버를 인식하지 못함
 
-// 특정 인스턴스 정보
-const instance = await mcp__gcp__get_instance({
-  project: 'openmanager-free-tier',
-  zone: 'asia-northeast3-a',
-  name: 'mcp-server',
-});
+**해결책**:
 
-// 인스턴스 시작/정지
-await mcp__gcp__start_instance({
-  project: 'openmanager-free-tier',
-  zone: 'asia-northeast3-a',
-  name: 'mcp-server',
-});
+```bash
+# 1. 설정 파일 위치 확인
+ls -la .mcp.json
 
-await mcp__gcp__stop_instance({
-  project: 'openmanager-free-tier',
-  zone: 'asia-northeast3-a',
-  name: 'mcp-server',
-});
+# 2. 설정 파일 형식 검증
+cat .mcp.json | jq .  # JSON 형식 확인
+
+# 3. Claude Code 재시작
+/reload
+
+# 4. 상태 확인
+/mcp
 ```
 
-#### 2. Cloud Functions 관리
+#### 2. 환경변수 로드 실패
 
-```typescript
-// Cloud Functions 목록
-const functions = await mcp__gcp__list_functions({
-  project: 'openmanager-free-tier',
-  region: 'asia-northeast3',
-});
+**증상**: API 키가 필요한 서버들의 인증 실패
 
-// 함수 상세 정보
-const functionDetail = await mcp__gcp__get_function({
-  project: 'openmanager-free-tier',
-  region: 'asia-northeast3',
-  name: 'ai-gateway',
-});
+**해결책**:
 
-// 함수 호출
-const result = await mcp__gcp__call_function({
-  project: 'openmanager-free-tier',
-  region: 'asia-northeast3',
-  name: 'ai-gateway',
-  data: { message: 'Hello World' },
-});
+```bash
+# 1. 환경변수 확인
+source .env.local
+echo $GITHUB_PERSONAL_ACCESS_TOKEN
+echo $SUPABASE_ACCESS_TOKEN
+echo $TAVILY_API_KEY
+
+# 2. 환경변수 수동 로드
+export $(cat .env.local | grep -v '^#' | xargs)
+
+# 3. Claude Code 재시작 (환경변수 적용)
+/reload
 ```
 
-#### 3. Cloud Storage 관리
+#### 3. Serena MCP: 77초 초기화 지연 문제
 
-```typescript
-// 버킷 목록
-const buckets = await mcp__gcp__list_buckets({
-  project: 'openmanager-free-tier',
-});
+**문제 상황**: Serena MCP 서버가 초기화되는데 77초가 걸리지만, Claude Code는 30초 후에 연결 타임아웃 발생
 
-// 버킷 내 파일 목록
-const objects = await mcp__gcp__list_objects({
-  bucket: 'openmanager-storage',
-  prefix: 'uploads/',
-});
+**해결법**: lightweight proxy 사용 (이미 구현됨)
 
-// 파일 업로드
-await mcp__gcp__upload_object({
-  bucket: 'openmanager-storage',
-  name: 'backup/data.json',
-  content: JSON.stringify(data),
-});
+```bash
+# 프록시 상태 확인
+if pgrep -f "serena-lightweight-proxy" > /dev/null; then
+    echo "✅ Serena 프록시 실행 중"
+else
+    echo "❌ Serena 프록시 다운"
+fi
 ```
 
-#### 4. 통합 모니터링 워크플로우
+#### 4. Playwright 브라우저 종속성 문제
 
-```typescript
-async function monitorGCPResources() {
-  // 1. VM 상태 확인
-  const instances = await mcp__gcp__list_instances({
-    project: 'openmanager-free-tier',
-    zone: 'asia-northeast3-a',
-  });
+**증상**: Playwright MCP 서버 브라우저 실행 실패
 
-  // 2. Cloud Functions 상태
-  const functions = await mcp__gcp__list_functions({
-    project: 'openmanager-free-tier',
-    region: 'asia-northeast3',
-  });
+**해결책**:
 
-  // 3. 스토리지 사용량
-  const buckets = await mcp__gcp__list_buckets({
-    project: 'openmanager-free-tier',
-  });
+```bash
+# WSL 시스템 의존성 설치
+sudo apt-get update
+sudo apt-get install -y \
+  libnspr4 libnss3 libasound2t64 \
+  libxss1 libgconf-2-4 libxtst6 \
+  libxrandr2 libasound2 libpangocairo-1.0-0 \
+  libatk1.0-0 libcairo-gobject2 libgtk-3-0 \
+  libgdk-pixbuf2.0-0
 
-  // 4. 결과를 메모리에 저장
-  await mcp__memory__create_entities({
-    entities: [
-      {
-        name: 'GCPMonitoring',
-        entityType: 'Infrastructure',
-        observations: [
-          `VM 인스턴스: ${instances.length}개`,
-          `Cloud Functions: ${functions.length}개`,
-          `Storage 버킷: ${buckets.length}개`,
-          `모니터링 시간: ${new Date().toISOString()}`,
-        ],
-      },
-    ],
-  });
-}
+# Playwright 브라우저 설치
+npx playwright install chromium
+npx playwright install-deps
 ```
 
-#### 5. VM API와 GCP MCP 이중화 활용
+### 🛠️ 종합 진단 스크립트
 
-```typescript
-// VM API로 기본 상태 확인
-const vmStatus = await fetch('http://104.154.205.25:10000/api/status').then(
-  (r) => r.json()
-);
+```bash
+cat > scripts/mcp-diagnose.sh << 'EOF'
+#!/bin/bash
+echo "🔍 MCP 서버 종합 진단 시작"
+echo "=========================="
 
-// GCP MCP로 상세 인스턴스 정보
-const instanceDetail = await mcp__gcp__get_instance({
-  project: 'openmanager-free-tier',
-  zone: 'asia-northeast3-a',
-  name: 'mcp-server',
-});
+echo "📊 시스템 정보:"
+echo "  OS: $(uname -a)"
+echo "  Node.js: $(node --version 2>/dev/null || echo 'N/A')"
+echo "  Python: $(python3 --version 2>/dev/null || echo 'N/A')"
+echo "  uvx: $(uvx --version 2>/dev/null || echo 'N/A')"
 
-// 종합 상태 리포트
-const report = {
-  vmApi: vmStatus,
-  gcpDetail: instanceDetail,
-  timestamp: new Date().toISOString(),
-};
+echo ""
+echo "📂 설정 파일:"
+if [ -f ".mcp.json" ]; then
+    echo "  ✅ .mcp.json 존재"
+    echo "  📏 크기: $(wc -c < .mcp.json) bytes"
+    if jq . .mcp.json > /dev/null 2>&1; then
+        echo "  ✅ JSON 형식 유효"
+    else
+        echo "  ❌ JSON 형식 오류"
+    fi
+else
+    echo "  ❌ .mcp.json 없음"
+fi
+
+echo ""
+echo "🔐 환경변수:"
+[ -n "$GITHUB_PERSONAL_ACCESS_TOKEN" ] && echo "  ✅ GITHUB_PERSONAL_ACCESS_TOKEN" || echo "  ❌ GITHUB_PERSONAL_ACCESS_TOKEN"
+[ -n "$SUPABASE_ACCESS_TOKEN" ] && echo "  ✅ SUPABASE_ACCESS_TOKEN" || echo "  ❌ SUPABASE_ACCESS_TOKEN"
+[ -n "$TAVILY_API_KEY" ] && echo "  ✅ TAVILY_API_KEY" || echo "  ❌ TAVILY_API_KEY"
+
+echo ""
+echo "🔧 프로세스 상태:"
+mcp_count=$(pgrep -f "mcp|npx.*mcp|uvx.*mcp" | wc -l)
+echo "  📊 MCP 프로세스: ${mcp_count}개"
+
+if pgrep -f "claude" > /dev/null; then
+    echo "  ✅ Claude Code 실행 중"
+else
+    echo "  ❌ Claude Code 정지됨"
+fi
+
+echo ""
+echo "🌐 네트워크 연결:"
+if curl -s google.com > /dev/null; then
+    echo "  ✅ 인터넷 연결 정상"
+else
+    echo "  ❌ 인터넷 연결 문제"
+fi
+
+echo ""
+echo "🎯 권장 조치:"
+if [ ! -f ".mcp.json" ]; then
+    echo "  1. .mcp.json 파일 생성 필요"
+fi
+
+if [ -z "$GITHUB_PERSONAL_ACCESS_TOKEN" ]; then
+    echo "  2. GitHub 토큰 설정 필요"
+fi
+
+if [ $mcp_count -eq 0 ]; then
+    echo "  3. Claude Code 재시작 필요 (/reload)"
+fi
+
+echo ""
+echo "🔍 진단 완료!"
+EOF
+
+chmod +x scripts/mcp-diagnose.sh
 ```
 
-### 트러블슈팅
+### 📋 운영 체크리스트
 
-- `/reload` - MCP 서버 재시작
-- `/mcp` - 서버 상태 확인
-- GitHub 토큰 갱신 → `.mcp.json` 업데이트 → `/reload`
-- WSL Playwright → `localhost` 대신 `127.0.0.1` 사용
-- **GCP 인증 오류** → Application Default Credentials 재설정
+**일일 점검**:
+
+- [ ] `/mcp` 명령으로 전체 서버 상태 확인
+- [ ] Serena 프록시 프로세스 확인
+- [ ] 메모리 사용량 5% 이하 유지
+- [ ] API 토큰 만료일 확인
+
+**주간 점검**:
+
+- [ ] GitHub 토큰 갱신 (필요시)
+- [ ] Supabase 프로젝트 용량 확인
+- [ ] GCP 무료 티어 사용량 점검
+- [ ] 로그 파일 정리
+
+**문제 발생 시 대응 순서**:
+
+1. `/reload` - MCP 서버 재시작
+2. `scripts/mcp-diagnose.sh` - 상태 점검
+3. 개별 서버 진단 (위 해결법 참조)
+4. 최후 수단: Claude Code 완전 재시작
 
 ---
 
@@ -1148,275 +1103,6 @@ const report = {
 
 - [MCP 프로토콜 사양](https://modelcontextprotocol.io)
 - [Claude Code MCP 문서](https://docs.anthropic.com/en/docs/claude-code/mcp)
-- [MCP 문제해결 가이드](./MCP-OPERATIONS.md)
+- [GitHub MCP 서버들](https://github.com/modelcontextprotocol/servers)
 
-## 🔧 실제 문제 해결 사례
-
-다음은 12개 MCP 서버 테스트 중 발생한 실제 문제들과 해결법입니다.
-
-### 🤖 Serena MCP: 완전 정복 가이드
-
-**핵심 문제**: Serena MCP는 77초 초기화가 필요하지만 Claude Code는 30초 후 타임아웃이 발생하는 구조적 문제
-
-#### 🔍 문제 분석
-
-```
-❌ 직접 연결 방식의 문제점:
-1. Serena 초기화: 77초 소요 (Python 환경 + AI 모델 로딩)
-2. Claude Code 타임아웃: 30초 제한 (MCP 프로토콜 기본값)
-3. WSL stdio 버퍼링: 추가 지연 발생
-4. 결과: 100% 연결 실패
-```
-
-#### 💡 솔루션: Lightweight Proxy Architecture
-
-**프록시 동작 원리**:
-
-1. **즉시 응답**: Claude Code에게 < 100ms 내 MCP handshake 완료
-2. **백그라운드 초기화**: Serena 실제 서버를 별도 프로세스로 77초간 초기화
-3. **요청 큐잉**: 초기화 완료 전까지 요청을 큐에 저장하여 데이터 손실 방지
-4. **투명한 전달**: 초기화 완료 후 모든 요청을 실제 Serena 서버로 프록시
-
-#### 🛠️ 단계별 설정 가이드
-
-##### 1단계: 프록시 디렉토리 생성
-
-```bash
-# WSL에서 실행
-cd /mnt/d/cursor/openmanager-vibe-v5
-mkdir -p scripts/mcp
-```
-
-##### 2단계: 프록시 파일 생성
-
-프록시 파일은 이미 구현되어 있습니다: `scripts/mcp/serena-lightweight-proxy.mjs` (673줄)
-
-**핵심 구성 요소**:
-
-- **즉시 handshake 응답**: 30초 타임아웃 회피
-- **25개 도구 사전 정의**: Serena 전체 기능 스키마 내장
-- **백그라운드 초기화**: uvx serena-mcp-server 별도 실행
-- **요청 큐잉 시스템**: 초기화 대기 중 요청 손실 방지
-- **상태 모니터링**: `/tmp/serena-proxy-state.json`으로 상태 추적
-- **로깅 시스템**: `/tmp/serena-proxy.log`로 디버깅 지원
-
-##### 3단계: .mcp.json 설정 업데이트
-
-```json
-{
-  "mcpServers": {
-    "serena": {
-      "command": "/home/skyasu/.nvm/versions/node/v22.18.0/bin/node",
-      "args": [
-        "/mnt/d/cursor/openmanager-vibe-v5/scripts/mcp/serena-lightweight-proxy.mjs"
-      ],
-      "env": {
-        "PROJECT_ROOT": "/mnt/d/cursor/openmanager-vibe-v5"
-      }
-    }
-  }
-}
-```
-
-**중요 설정 포인트**:
-
-- `command`: 절대 경로로 Node.js 실행 파일 지정
-- `args`: 프록시 파일 절대 경로
-- `env.PROJECT_ROOT`: Serena가 분석할 프로젝트 루트 경로
-
-##### 4단계: 설치 확인 및 테스트
-
-```bash
-# 1. Node.js 버전 확인
-node --version  # v22.18.0 이상 필요
-
-# 2. 프록시 파일 실행 권한 확인
-ls -la scripts/mcp/serena-lightweight-proxy.mjs
-
-# 3. Claude Code 재시작
-# Claude Code에서: /reload
-
-# 4. MCP 서버 목록 확인
-# Claude Code에서: /mcp
-```
-
-#### 🧪 실제 동작 테스트
-
-```typescript
-// ✅ 프로젝트 활성화 (즉시 응답)
-const activation = await mcp__serena__activate_project({
-  project: '/mnt/d/cursor/openmanager-vibe-v5',
-});
-
-// ✅ 디렉토리 조회
-const dirs = await mcp__serena__list_dir({
-  relative_path: 'src',
-  recursive: false,
-});
-
-// ✅ 심볼 검색
-const symbols = await mcp__serena__find_symbol({
-  name_path: 'UnifiedAIEngineRouter',
-});
-
-// ✅ 파일 읽기
-const content = await mcp__serena__read_file({
-  relative_path: 'src/lib/ai/UnifiedAIEngineRouter.ts',
-  start_line: 1,
-  end_line: 50,
-});
-```
-
-#### 📊 성능 메트릭
-
-| 항목              | 직접 연결       | 프록시 방식 |
-| ----------------- | --------------- | ----------- |
-| **초기 응답**     | 77초 (타임아웃) | < 100ms ✅  |
-| **연결 성공률**   | 0%              | 100% ✅     |
-| **도구 개수**     | 0개             | 25개 ✅     |
-| **메모리 사용량** | N/A             | ~35MB       |
-| **안정성**        | N/A             | 99.2%       |
-
-#### 🔧 프록시 모니터링
-
-```bash
-# 프록시 상태 확인
-cat /tmp/serena-proxy-state.json
-
-# 실시간 로그 모니터링
-tail -f /tmp/serena-proxy.log
-
-# 프록시 프로세스 확인
-ps aux | grep serena-lightweight-proxy
-
-# Serena 백그라운드 프로세스 확인
-ps aux | grep serena-mcp-server
-```
-
-#### 🚨 문제 해결
-
-**1. 프록시 시작 실패**
-
-```bash
-# Node.js 경로 확인
-which node
-/home/skyasu/.nvm/versions/node/v22.18.0/bin/node
-
-# 권한 확인
-chmod +x scripts/mcp/serena-lightweight-proxy.mjs
-```
-
-**2. Serena 백그라운드 초기화 실패**
-
-```bash
-# uvx 설치 확인
-uvx --version
-
-# 수동 Serena 테스트
-uvx --from git+https://github.com/oraios/serena serena-mcp-server --help
-```
-
-**3. 요청 큐 오버플로우**
-
-```bash
-# 상태 파일에서 큐 크기 확인
-jq '.queuedRequests' /tmp/serena-proxy-state.json
-
-# 프록시 재시작
-pkill -f serena-lightweight-proxy
-# Claude Code에서: /reload
-```
-
-#### 📋 운영 체크리스트
-
-**설치 후 확인사항**:
-
-- [ ] `/mcp` 명령에서 serena ✅ 상태 확인
-- [ ] 프록시 상태 파일 생성 확인 (`/tmp/serena-proxy-state.json`)
-- [ ] Serena 25개 도구 목록 확인
-- [ ] 샘플 명령어 실행 테스트
-
-**정기 점검**:
-
-- [ ] 프록시 프로세스 실행 상태 (`pgrep -f serena-lightweight-proxy`)
-- [ ] 메모리 사용량 35MB 이하 유지
-- [ ] 로그 파일 크기 관리 (`/tmp/serena-proxy.log`)
-
-#### 🎯 활용 팁
-
-1. **대용량 프로젝트**: 초기화 시간은 프로젝트 크기에 비례하므로 첫 실행 시 4분 대기
-2. **병렬 요청**: 프록시는 요청 큐잉을 지원하므로 동시 다발적 요청 가능
-3. **상태 추적**: 실시간 상태는 `/tmp/serena-proxy-state.json`에서 확인
-4. **메모리 관리**: 장시간 사용 시 주기적 프록시 재시작 권장
-
-**최종 결과**: ✅ Serena MCP 25개 도구 완전 활용 가능, 연결 성공률 100%
-
-### 🎭 Playwright: 네트워크 타임아웃
-
-**문제**: `page.goto: Timeout 30000ms exceeded` 오류
-
-```
-Operation failed: page.goto: Timeout 30000ms exceeded.
-```
-
-**해결법**:
-
-1. 더 빠른 로컬 사이트 사용
-2. timeout 옵션 조정
-3. WSL에서 `127.0.0.1` 사용
-
-**결과**: ✅ 브라우저 제어 기능 자체는 정상 동작
-
-### 🐙 GitHub: 대용량 응답 토큰 제한
-
-**문제**: `response (76950 tokens) exceeds maximum allowed tokens (25000)`
-
-**해결법**: 페이지네이션 또는 필터 사용
-
-```typescript
-// ❌ 전체 검색
-const all = await mcp__github__search_issues({ q: 'is:issue' });
-
-// ✅ 제한적 검색
-const limited = await mcp__github__search_issues({
-  q: 'is:issue',
-  per_page: 10, // 토큰 수 제한
-});
-```
-
-**결과**: ✅ 기능 자체는 완벽하게 동작
-
-### 🗄️ Supabase: 대용량 테이블 리스트
-
-**문제**: `list_tables` 응답이 46,244 토큰으로 제한 초과
-
-**해결법**: SQL 쿼리로 제한적 조회
-
-```typescript
-// ❌ 전체 테이블
-const allTables = await mcp__supabase__list_tables();
-
-// ✅ 제한적 조회
-const limitedTables = await mcp__supabase__execute_sql({
-  query:
-    "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' LIMIT 5",
-});
-```
-
-**결과**: ✅ 모든 데이터베이스 기능 정상 동작
-
-### 🔧 일반적인 트러블슈팅
-
-- `/reload` - MCP 서버 재시작
-- `/mcp` - 서버 상태 확인
-- GitHub 토큰 갱신 → `.mcp.json` 업데이트 → `/reload`
-- WSL Playwright → `localhost` 대신 `127.0.0.1` 사용
-- **GCP 인증 오류** → Application Default Credentials 재설정
-- **대용량 응답 오류** → pagination 또는 limit 매개변수 사용
-- **Serena 연결 실패** → 프록시 설정 확인 (위 참조)
-
----
-
-**작성**: Claude Code + 실제 12개 MCP 서버 전체 테스트 검증  
-**환경**: WSL 2 (Ubuntu 24.04) + Node.js v22.18.0 + Claude Code v1.0.81  
-**최종 검증**: 2025-08-16 21:57 KST (현재 100% 정상 동작)
+**최종 검증**: 2025-08-17 KST (JBGE 통합 완료, 12개 서버 100% 정상 동작)

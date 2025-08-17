@@ -1,6 +1,6 @@
 # 🌐 OpenManager VIBE v5
 
-> **작성일**: 2025년 5월 25일 | **최종 수정일**: 2025년 8월 5일
+> **작성일**: 2025년 5월 25일 | **최종 수정일**: 2025년 8월 17일
 
 > **AI 기반 실시간 서버 모니터링 플랫폼** - 포트폴리오 프로젝트 | 바이브 코딩 대회 출품작 (2025.06)
 
@@ -15,7 +15,7 @@
 
 ### 📚 프로젝트 배경
 
-- **개발 기간**: 2025년 5월 말 ~ 현재 (약 2개월)
+- **개발 기간**: 2025년 5월 말 ~ 현재 (약 3개월)
 - **출품 성과**: 사내 바이브 코딩 대회 출품작 (2025년 6월 중순)
 - **목적**: 최신 기술 스택 학습 및 포트폴리오 구축
 - **현재 상태**: 대회 출품 후 지속적인 고도화 진행 중
@@ -29,7 +29,7 @@
 
 ### 🏗️ 기술 스택
 
-- **Frontend**: Next.js 14.2.4 (App Router), React 18.2.0, TypeScript, Tailwind CSS
+- **Frontend**: Next.js 15 (App Router), React 18.2.0, TypeScript (strict), Tailwind CSS
 - **Backend**: Edge Runtime, GCP Functions (Python 3.11), Supabase
 - **Database**: PostgreSQL (Supabase) + pgVector, Memory-based Cache
 - **AI/ML**: Google AI Studio (Gemini 2.0), Supabase RAG, Korean NLP
@@ -40,27 +40,36 @@
 
 ### Prerequisites
 
-- Node.js v22.15.1 이상
+- **Windows 11 + WSL 2** (권장 개발 환경)
+- Node.js v22.18.0 이상 (WSL 내부 설치)
 - npm 10.x 이상
 - Git
+- **Claude Code v1.0.81** (메인 AI 개발 도구)
 
 ### Quick Start
 
 ```bash
 # 1. 저장소 클론
-git clone https://github.com/yourusername/openmanager-vibe-v5.git
+git clone https://github.com/skyasu2/openmanager-vibe-v5.git
 cd openmanager-vibe-v5
 
-# 2. 의존성 설치
+# 2. WSL 환경에서 개발 (권장)
+wsl
+cd /mnt/d/cursor/openmanager-vibe-v5
+
+# 3. 의존성 설치
 npm install
 
-# 3. 환경 설정
+# 4. 환경 설정
 cp env.local.template .env.local
 # .env.local 파일을 열어 필요한 환경 변수 설정
 
-# 4. 개발 서버 실행
+# 5. 개발 서버 실행
 npm run dev
 # http://localhost:3000 에서 확인
+
+# 6. Claude Code 통합 개발 (WSL)
+claude --version  # v1.0.81
 ```
 
 ### 환경 변수 설정
@@ -211,57 +220,85 @@ npm run analyze:bundle
 
 - [시스템 아키텍처](./docs/system-architecture.md)
 - [AI 시스템 완전 가이드](./docs/ai/ai-complete-guide.md) ✨ 최신
-- [GCP Functions 완전 가이드](./docs/gcp-complete-guide.md)
+- [GCP Functions 완전 가이드](./docs/gcp/gcp-complete-guide.md)
 
 ### 🔧 개발 가이드
 
-- [개발 가이드](./docs/development-guide.md)
-- [개발 도구 통합](./docs/development-tools.md)
-- [TypeScript 개선 가이드](./docs/typescript-improvement-guide.md)
-- [테스팅 가이드](./docs/testing-guide.md)
+- [개발 가이드](./docs/development/development-guide.md)
+- [개발 도구 통합](./docs/development/development-tools.md)
+- [TypeScript 개선 가이드](./docs/development/typescript-improvement-guide.md)
+- [테스팅 가이드](./docs/testing/testing-guide.md)
 
 ### 🔒 보안 및 운영
 
-- [보안 완전 가이드](./docs/security-complete-guide.md)
-- [배포 완전 가이드](./docs/deployment-complete-guide.md)
-- [메모리 최적화 가이드](./docs/memory-optimization-guide.md)
+- [보안 완전 가이드](./docs/security/security-complete-guide.md)
+- [배포 완전 가이드](./docs/quick-start/deployment-guide.md)
+- [메모리 최적화 가이드](./docs/performance/memory-optimization-guide.md)
 
 ### 🔐 인증 및 문제 해결
 
-- [OAuth 성공 사례 분석](./docs/oauth-success-analysis.md) 🎉 최신
-- [OAuth 문제 해결 가이드](./docs/troubleshooting/oauth-issues.md) ✅ 검증됨
+- [OAuth 설정 가이드](./docs/guides/setup/supabase-oauth-setup-guide.md) 🎉 최신
+- [OAuth 문제 해결 가이드](./docs/guides/setup/oauth-test-guide.md) ✅ 검증됨
 
 ### 🤖 AI 도구 및 통합
 
-- [Gemini 개발 도구 v5](./docs/gemini-dev-tools-v5-guide.md) 🚀 최신
-- [MCP 개발 가이드 2025](./docs/mcp-development-guide-2025.md) 🆕 11개 서버 통합 가이드
+- [Gemini CLI 가이드](./docs/ai-tools/gemini-cli-guide.md) 🚀 최신
+- [MCP 개발 가이드 2025](./docs/technical/mcp/mcp-development-guide-2025.md) 🆕 11개 서버 통합 가이드
 
-## 🤖 Claude Code 서브 에이전트 시스템
+## 🤖 Claude Code + MCP 통합 개발 환경
 
-**OpenManager VIBE v5**는 Claude Code의 서브 에이전트 시스템을 활용하여 복잡한 작업을 효율적으로 처리합니다. 13개의 전문화된 에이전트가 협업하여 개발, 디버깅, 문서화, 배포까지 전 과정을 자동화합니다.
+**OpenManager VIBE v5**는 Claude Code의 서브 에이전트 시스템과 MCP(Model Context Protocol) 서버를 활용하여 복잡한 작업을 효율적으로 처리합니다. 18개의 전문화된 에이전트와 11개의 MCP 서버가 협업하여 개발, 디버깅, 문서화, 배포까지 전 과정을 자동화합니다.
 
 ### 📊 Claude Code Statusline 통합
-- **실시간 사용량 모니터링**: IDE 하단에 비용 및 토큰 사용량 표시
-- **한국 시간대 최적화**: Asia/Seoul 기준 표시
-- **표시 예시**: `🤖 Claude Opus 4 | 💰 N/A session / $231.75 today / $89.78 block (1h 15m left) | 🔥 $24.27/hr`
 
-### 🎯 서브 에이전트 개요
+- **실시간 사용량 모니터링**: IDE 하단에 비용 및 토큰 사용량 표시 (ccusage v15.9.7)
+- **Max 사용자 효율성**: $200 정액으로 $2,200+ 가치 창출 (11배 절약 효과)
+- **표시 예시**: `🤖 Opus | 💰 $66.77 session / $73.59 today | 🔥 $22.14/hr`
 
-| 에이전트명                     | 역할                     | 주요 사용 시점                               |
-| ------------------------------ | ------------------------ | -------------------------------------------- |
-| **central-supervisor**         | 🎯 마스터 오케스트레이터 | 3개 이상 도메인 관련 작업, 전체 조율 필요 시 |
-| **code-review-specialist**     | 🔍 코드 품질 검토        | 코드 작성/수정 완료 후, PR 생성 전           |
-| **security-auditor**           | 🔒 보안 취약점 검사      | auth/payment 수정, API 엔드포인트 생성 시    |
-| **database-administrator**     | 💾 DB 전담 관리          | Memory Cache + Supabase 최적화 필요 시       |
-| **ux-performance-optimizer**   | ⚡ 프론트엔드 성능       | Core Web Vitals 개선, 번들 최적화 시         |
-| **test-automation-specialist** | 🧪 테스트 자동화         | 테스트 실패, 커버리지 80% 미만 시            |
-| **ai-systems-engineer**        | 🤖 AI/ML 최적화          | AI 엔진 개선, 쿼리 라우팅 구현 시            |
-| **doc-structure-guardian**     | 📚 문서 구조 관리        | 문서 중복 발견, JBGE 원칙 위반 시            |
-| **doc-writer-researcher**      | ✍️ 문서 작성/연구        | 새 기능 문서화, API 문서 작성 시             |
-| **debugger-specialist**        | 🐛 체계적 디버깅         | 스택 트레이스 발견, 런타임 에러 시           |
-| **issue-summary**              | 📊 플랫폼 모니터링       | 배포 후, 일일 헬스체크, 무료 티어 추적       |
-| **mcp-server-admin**           | 🔧 MCP 인프라 관리       | MCP 설정 충돌, 서버 상태 이상 시             |
-| **gemini-cli-collaborator**    | 🤝 AI 협업 전문가        | 대안 관점 필요, 대규모 분석 시               |
+### 🔌 MCP 서버 통합 (11개 서버)
+
+- **개발 도구**: filesystem, github, memory, sequential-thinking
+- **AI 보조**: supabase, context7, tavily, serena
+- **유틸리티**: time, shadcn, thinking
+- **상태**: 11/11 서버 정상 작동 (100% 성공률)
+
+### 🎯 서브 에이전트 개요 (18개)
+
+#### 🎯 핵심 에이전트 (1개)
+
+- **central-supervisor**: 복잡한 작업 분해 및 서브에이전트 오케스트레이션
+
+#### 🛠️ 개발 환경 & 구조 (2개)
+
+- **dev-environment-manager**: WSL 최적화, Node.js 버전 관리, 개발서버 관리
+- **structure-refactor-specialist**: 프로젝트 구조 정리, 폴더/파일 위치 최적화
+
+#### 🌐 백엔드 & 인프라 (5개)
+
+- **gcp-vm-specialist**: GCP VM 백엔드 관리, Cloud Functions 배포
+- **database-administrator**: Supabase PostgreSQL 전문 관리
+- **ai-systems-specialist**: AI 어시스턴트 기능 개발/성능 분석
+- **vercel-platform-specialist**: Vercel 플랫폼 + 내장 MCP 접속/상태점검
+- **mcp-server-administrator**: 11개 MCP 서버 관리/추가/수정
+
+#### 🔍 코드 품질 & 테스트 (5개)
+
+- **code-review-specialist**: 코드 리뷰, SOLID 원칙 검증
+- **debugger-specialist**: 버그 해결, 스택 트레이스 분석
+- **security-auditor**: 포트폴리오용 기본 보안 (Vercel/Supabase/GCP/GitHub 호환)
+- **quality-control-specialist**: CLAUDE.md 규칙 준수 검토
+- **test-automation-specialist**: Vitest/Playwright 테스트 작성/수정
+
+#### 📚 문서화 & Git (2개)
+
+- **documentation-manager**: docs 폴더 + 루트 문서 관리, JBGE 원칙
+- **git-cicd-specialist**: 커밋/푸시/PR 전문, 문제 해결
+
+#### 🤖 AI 협업 (3개)
+
+- **codex-agent**: ChatGPT Plus 요금제 AI 개발 CLI (병렬 개발)
+- **gemini-agent**: Google Gemini 병렬 개발
+- **qwen-agent**: Qwen Code 병렬 개발
 
 ### 🔗 협업 워크플로우
 
@@ -303,12 +340,19 @@ Task({
 
 ### 📁 서브 에이전트 설정
 
-- **위치**: `.claude/agents/` (13개 .md 파일)
-- **MCP 서버**: `.claude/mcp.json` (npx/uvx 명령어 형식)
-- **활성화**: `.claude/settings.local.json`에서 관리
-- **Statusline**: `.claude/settings.json`에서 ccusage 통합 설정
+- **위치**: `.claude/agents/` (18개 .md 파일)
+- **MCP 서버**: `.mcp.json` (11개 서버, uvx 명령어 형식)
+- **활성화**: `.claude/settings.json`에서 관리
+- **Statusline**: ccusage v15.9.7 통합 설정 (실시간 효율성 모니터링)
 
-상세한 서브 에이전트 활용법은 [서브 에이전트 협업 패턴](./docs/sub-agent-collaboration-patterns.md) 문서를 참조하세요.
+### 🔄 멀티 AI 협업 전략
+
+- **메인**: Claude Code Max ($200/월 정액) - 80% 작업량
+- **서브**: Codex CLI (ChatGPT Plus $20/월) - 병렬 개발
+- **무료**: Gemini CLI + Qwen CLI - 교차 검증
+- **효율성**: $220/월로 $2,200+ 가치 창출 (10배 절약)
+
+상세한 활용법은 [CLAUDE.md](./CLAUDE.md) 문서를 참조하세요.
 
 ## 🏆 프로젝트 하이라이트
 

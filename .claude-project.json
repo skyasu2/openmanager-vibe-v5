@@ -68,7 +68,7 @@
         },
         {
           "file": "AGENTS.md",
-          "startsWith": "한국어로 우선 대화, 기술용어는 영어 사용허용"
+          "startsWith": "# 🤖 AGENTS.md - Codex CLI Configuration"
         }
       ]
     }

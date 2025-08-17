@@ -15,89 +15,70 @@
 
 ## 🎯 개요
 
-OpenManager Vibe v5.65.11은 **GCP Functions와 완전히 통합된 고성능 AI 시스템**으로, Python 3.11 기반의 ML 처리와 TypeScript의 완전한 타입 안전성을 제공합니다.
+기본 Google Cloud 설정은 [Google Cloud 공식 시작 가이드](https://cloud.google.com/docs/get-started)를 참조하세요.
 
-### 핵심 특징
+**OpenManager VIBE v5 GCP 특화 기능**:
 
-- **GCP Functions 통합**: Python 3.11 런타임으로 2-5x 성능 향상
-- **TypeScript 완전 타입 안전성**: 223개 오류 → 0개 달성
-- **API Gateway**: 자동 라우팅 및 fallback 전략
-- **번들 크기 최적화**: 219,271줄 → 137,781줄 (37% 감소)
-- **무료 티어 최적화**: GCP, Vercel, Supabase 100% Free Tier
+- **무료 티어 100% 활용**: Cloud Functions 무료 사용량 최적화
+- **Python 3.11 런타임**: ML/AI 성능 특화
+- **API Gateway 통합**: Vercel Edge + GCP Functions 연결
+- **한국어 NLP 최적화**: KoNLPy 기반 형태소 분석
 
-### 성능 지표
+### OpenManager 성능 비교
 
-| 지표         | JavaScript (기존) | Python (GCP Functions) | 개선율   |
-| ------------ | ----------------- | ---------------------- | -------- |
-| Korean NLP   | 320ms             | 152ms                  | 2.1x     |
-| ML Analytics | 450ms             | 187ms                  | 2.4x     |
-| AI Processor | 580ms             | 234ms                  | 2.5x     |
-| 메모리 사용  | 800MB             | 520MB                  | 35% 감소 |
+| 기능         | 일반 JS 구현 | GCP Functions 최적화 | 개선율   |
+| ------------ | ------------ | -------------------- | -------- |
+| Korean NLP   | 320ms        | 152ms                | **2.1x** |
+| ML Analytics | 450ms        | 187ms                | **2.4x** |
+| AI Processor | 580ms        | 234ms                | **2.5x** |
 
 ---
 
 ## 🎯 GCP Functions 통합 시스템
 
-### 1. 배포된 Functions
+### 1. OpenManager GCP Functions 배포 현황
 
-#### **enhanced-korean-nlp** 🇰🇷
+#### 배포된 GCP Functions
 
-**특징:**
+기본 Cloud Functions 개발은 [Cloud Functions 공식 가이드](https://cloud.google.com/functions/docs)를 참조하세요.
 
-- ✅ Python 3.11 런타임 (2.1x 성능 향상)
-- ✅ KoNLPy, MeCab 기반 형태소 분석
-- ✅ 754줄의 최적화된 Python 코드
-- ✅ Cold Start: 5-10초, Warm: 100-200ms
+**OpenManager 특화 Functions**:
 
-**주요 기능:**
+1. **enhanced-korean-nlp** 🇰🇷
+   - 한국어 전용 NLP 처리 (KoNLPy + MeCab)
+   - Cold Start 5-10초, Warm 100-200ms
+   - 무료 티어 한도 내 최적화
 
-- 한국어 자연어 이해 및 처리
-- 의도 분류 및 엔티티 추출
-- 감정 분석 및 키워드 추출
+2. **unified-ai-processor** 🤖
+   - AI 라우팅 엔진 + Fallback 전략
+   - Transformers + scikit-learn 통합
+   - 벡터 검색 및 유사도 계산
 
-#### **unified-ai-processor** 🤖
-
-**특징:**
-
-- ✅ 통합 AI 라우팅 엔진
-- ✅ Transformers + scikit-learn
-- ✅ 벡터 검색 및 유사도 계산
-- ✅ 자동 fallback 전략
-
-#### **ml-analytics-engine** 📊
-
-**특징:**
-
-- ✅ pandas + numpy 기반 분석
-- ✅ 실시간 메트릭 처리
-- ✅ 예측 모델 실행
-- ✅ 성능 모니터링
+3. **ml-analytics-engine** 📊
+   - pandas + numpy 기반 실시간 분석
+   - 예측 모델 실행 + 성능 모니터링
 
 ---
 
 ## 🔗 API Gateway 통합
 
-### 아키텍처 흐름
+### 아키텍처 개요
+
+Google Cloud 아키텍처 기본 사항은 [Google Cloud 아키텍처 가이드](https://cloud.google.com/architecture)를 참조하세요.
+
+**OpenManager 특화 아키텍처**:
 
 ```
-┌─────────────┐     ┌──────────────┐     ┌────────────────┐
-│   Vercel    │────▶│ API Gateway  │────▶│ GCP Functions  │
-│   Next.js   │     │   Router     │     │  (Python 3.11) │
-└─────────────┘     └──────────────┘     └────────────────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │   Fallback   │
-                    │   Strategy   │
-                    └──────────────┘
+Vercel Edge → API Gateway → GCP Functions (Python 3.11)
+│
+└─────────▶ Fallback Strategy (무료 티어 보호)
 ```
 
-### API Gateway 기능
+**핵심 라우팅**:
 
-1. **자동 라우팅**
-   - `/api/ai-gateway/nlp` → enhanced-korean-nlp
-   - `/api/ai-gateway/process` → unified-ai-processor
-   - `/api/ai-gateway/analytics` → ml-analytics-engine
+- `/api/ai-gateway/nlp` → 한국어 NLP 처리
+- `/api/ai-gateway/process` → AI 통합 프로세서
+- `/api/ai-gateway/analytics` → ML 분석 엔진
 
 2. **Fallback 전략**
    - Primary: GCP Function 호출
@@ -372,7 +353,7 @@ gcloud functions call enhanced-korean-nlp --data '{"test": true}'
 
 ## 📚 관련 문서
 
-- [AI 시스템 통합 가이드](./ai-system-unified-guide.md)
-- [AI 시스템 완전 가이드](./ai-complete-guide.md)
-- [시스템 아키텍처](./system-architecture.md)
-- [배포 완전 가이드](./deployment-complete-guide.md)
+- [AI 시스템 통합 가이드](../ai/ai-system-unified-guide.md)
+- [AI 시스템 완전 가이드](../ai/ai-complete-guide.md)
+- [시스템 아키텍처](../system-architecture.md)
+- [배포 완전 가이드](../quick-start/deployment-guide.md)

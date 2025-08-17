@@ -224,6 +224,8 @@ commit/
 
 # Claude Code settings
 .claude/
+
+# Archive folder (local temporary storage only)
 archive/
 
 # 실행 파일들
@@ -259,9 +261,41 @@ scripts/fix-case-declarations.cjs
 .serena/
 .serena-mcp/
 
-# 루트 디렉토리 문서 제한 (4개 필수 파일만 허용)
+# 루트 디렉토리 문서 제한 (JBGE 정책에 따라 허용된 파일만)
 /*.md
 !README.md
 !CLAUDE.md
 !CHANGELOG.md
+!CHANGELOG-LEGACY.md
 !GEMINI.md
+!QWEN.md
+!AGENTS.md
+
+# Scripts moved to /scripts/
+enhanced-vm-control.ps1
+ai-vm-interface.ps1
+auth-now.ps1
+auto-deploy.bat
+fix-vm-now.sh
+gcp-auth.bat
+port-forward.ps1
+quick-ssh-key-register.ps1
+startup-script.sh
+gcp-vm-manager.ps1
+claude-wsl-optimized.bat
+ai-cli-wsl.bat
+setup-sudo-nopasswd.sh
+execute-optimization.js
+
+# Config files moved to /config/
+next.config.performance.mjs
+next.config.optimized.mjs
+next.config.ultra-optimized.mjs
+package.optimized.json
+vitest.config.dom.ts
+vitest.config.minimal.ts
+vitest.config.node.ts
+vitest.config.performance.ts
+
+# Reports moved to /reports/
+gcp-functions-health-report.json

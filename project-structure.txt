@@ -1,0 +1,33 @@
+openmanager-vibe-v5/ (root snapshot)
+
+.claude/
+.claude-project.json
+.env.local
+.env.local.template
+.env.wsl
+.eslintrc.json
+.git/
+.gitattributes
+.github/
+.husky/
+.jbge-essential-docs
+.jbge-root-file-policy
+.mcp.json
+.next/
+.vscode/
+AGENTS.md
+CLAUDE.md
+components.json
+config/
+docs/
+archive/
+local-dev/
+package.json
+package-lock.json
+public/
+scripts/
+src/
+startup-script.sh
+vercel.json
+
+(Generated: 2025-08-17)

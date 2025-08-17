@@ -67,72 +67,20 @@
 
 ### ✅ Vitest 환경 구축
 
-#### 새로운 Vitest 설정
+#### OpenManager VIBE v5 Vitest 설정
 
-```typescript
-// vitest.config.ts
-import { defineConfig } from 'vitest/config';
-import { resolve } from 'path';
+Vitest 기본 설정은 [Vitest 공식 가이드](https://vitest.dev/guide/)를 참조하세요.
 
-export default defineConfig({
-  test: {
-    globals: true,
-    environment: 'node',
-    setupFiles: ['./src/test/setup.ts'],
-    exclude: [
-      'node_modules',
-      'dist',
-      '.next',
-      'coverage',
-      // 제거된 불필요한 테스트 파일들
-      'tests/integration/on-demand-health-check.test.ts',
-      'tests/integration/system-state-management.test.ts',
-      'tests/memory cache/memory cache-metrics-manager.test.ts',
-      'tests/unit/memory cache-metrics-manager.test.ts',
-      'tests/unit/server-monitoring-patterns.test.ts',
-      'tests/unit/auto-incident-report-system.test.ts',
-      'tests/unit/urgent-free-tier-optimization.test.ts',
-      'tests/unit/dashboard-summary.test.ts',
-      'tests/unit/phase2-ui-cleanup.test.ts',
-      'tests/unit/mcp-cleanup.test.ts',
-      'tests/unit/cursor-auto-tests.test.ts',
-    ],
-    coverage: {
-      reporter: ['text', 'json', 'html'],
-      exclude: ['node_modules/', 'src/test/', '**/*.d.ts', '**/*.config.ts'],
-    },
-  },
-  resolve: {
-    alias: {
-      '@': resolve(__dirname, './src'),
-    },
-  },
-});
-```
+**프로젝트 특화 설정** (프로젝트 루트의 `vitest.config.ts` 참조):
 
-#### 새로운 테스트 환경 설정
+- 무료 티어 최적화를 위한 테스트 제외 목록
+- OpenManager 전용 메모리 캠시 테스트 설정
+- WSL 환경 최적화
 
-```typescript
-// src/test/setup.ts
-import { beforeAll, afterAll, afterEach } from 'vitest';
-import { cleanup } from '@testing-library/react';
+**전역 설정** (`src/test/setup.ts`):
 
-// React Testing Library 정리
-afterEach(() => {
-  cleanup();
-});
-
-// 전역 설정
-beforeAll(() => {
-  // 환경 변수 설정
-  process.env.NODE_ENV = 'test';
-  process.env.NEXT_PUBLIC_FREE_TIER_MODE = 'true';
-});
-
-afterAll(() => {
-  // 정리 작업
-});
-```
+- 무료 티어 모드 활성화
+- React Testing Library 정리 자동화
 
 ### Vitest의 Jest 대비 장점
 
@@ -323,74 +271,17 @@ tests/
 
 ## 🎭 모킹 시스템
 
-### Memory Cache Mock
+### 모킹 시스템
 
-```typescript
-// tests/mocks/memory cache-mock.ts
-import { vi } from 'vitest';
+Vitest 기본 모킹은 [Vitest 모킹 가이드](https://vitest.dev/guide/mocking.html)를 참조하세요.
 
-export const createMemory CacheMock = () => ({
-  get: vi.fn().mockResolvedValue(null),
-  set: vi.fn().mockResolvedValue('OK'),
-  del: vi.fn().mockResolvedValue(1),
-  exists: vi.fn().mockResolvedValue(0),
-  expire: vi.fn().mockResolvedValue(1),
-  keys: vi.fn().mockResolvedValue([]),
-  pipeline: vi.fn().mockReturnValue({
-    get: vi.fn().mockReturnThis(),
-    set: vi.fn().mockReturnThis(),
-    hgetall: vi.fn().mockReturnThis(),
-    exec: vi.fn().mockResolvedValue([]),
-  }),
-});
+**OpenManager 특화 모킹 구성**:
 
-// 사용 예시
-vi.mock('memory cache', () => ({
-  Memory Cache: vi.fn().mockImplementation(() => createMemory CacheMock()),
-}));
-```
+- **Memory Cache Mock**: 무료 티어 레디스 제약 시뮤레이션
+- **Supabase Mock**: PostgreSQL + pgvector 모킹
+- **API Mock**: GCP/Vercel Edge 환경 모킹
 
-### Supabase Mock
-
-```typescript
-// tests/mocks/supabase-mock.ts
-import { vi } from 'vitest';
-
-export const createSupabaseMock = () => ({
-  from: vi.fn().mockReturnValue({
-    select: vi.fn().mockReturnValue({
-      eq: vi.fn().mockResolvedValue({
-        data: [],
-        error: null,
-      }),
-    }),
-    insert: vi.fn().mockResolvedValue({
-      data: {},
-      error: null,
-    }),
-    update: vi.fn().mockResolvedValue({
-      data: {},
-      error: null,
-    }),
-  }),
-});
-```
-
-### API Mock
-
-```typescript
-// tests/mocks/api-mock.ts
-import { vi } from 'vitest';
-
-export const mockFetch = (responseData: any, status = 200) => {
-  global.fetch = vi.fn().mockResolvedValue({
-    ok: status >= 200 && status < 300,
-    status,
-    json: vi.fn().mockResolvedValue(responseData),
-    text: vi.fn().mockResolvedValue(JSON.stringify(responseData)),
-  });
-};
-```
+전체 모킹 설정은 `tests/mocks/` 디렉토리를 참조하세요.
 
 ---
 
@@ -565,52 +456,17 @@ npm test --timeout=10000
 
 ## 🔄 CI/CD 통합
 
-### GitHub Actions 설정
+### CI/CD 통합
 
-```yaml
-# .github/workflows/test.yml
-name: Test
+GitHub Actions 기본 설정은 [GitHub Actions 공식 가이드](https://docs.github.com/en/actions)를 참조하세요.
 
-on: [push, pull_request]
+**OpenManager 특화 설정**:
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
+- 무료 티어 최적화를 위한 테스트 배치 제한
+- Vercel 배포 시 자동 테스트 + 정적 분석
+- WSL 환경 호환성 보장
 
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '22'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm test
-
-      - name: Run static analysis
-        run: npm run analyze
-
-      - name: Type check
-        run: npm run type-check
-
-      - name: Lint check
-        run: npm run lint
-```
-
-### Vercel 배포 시 테스트
-
-```json
-// vercel.json
-{
-  "buildCommand": "npm run build && npm test && npm run analyze",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./src ./tests"
-}
-```
+전체 CI/CD 설정은 `.github/workflows/` 및 `vercel.json`을 참조하세요.
 
 ---
 
@@ -683,9 +539,9 @@ describe('DashboardService', () => {
 
 - [Vitest 공식 문서](https://vitest.dev/)
 - [Testing Library 가이드](https://testing-library.com/)
-- [개발 가이드](./development-guide.md)
-- [TDD 방법론](./development-guide.md#tdd-방법론)
-- [정적 분석 가이드](./development-guide.md#코드-품질-관리)
+- [개발 가이드](../development/development-guide.md)
+- [TDD 방법론](../development/development-guide.md#tdd-방법론)
+- [정적 분석 가이드](../development/development-guide.md#코드-품질-관리)
 
 ---
 

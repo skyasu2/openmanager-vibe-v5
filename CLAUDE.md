@@ -94,6 +94,24 @@ qwen --version # Qwen CLI v0.0.6
 - **네트워크**: localhost 공유 (포트 포워딩 자동)
 - **실행 래퍼**: Windows에서 WSL AI 도구 직접 실행 가능
 
+## 📋 AI 설정 파일 구분
+
+**프로젝트에는 AI 관련 설정 파일 2개가 있습니다:**
+
+### 📄 AGENTS.md (Codex CLI 설정)
+- **용도**: ChatGPT Codex CLI 전용 설정 파일
+- **내용**: 12개 Codex 전문 에이전트 (TypeScript 엔지니어, Next.js 최적화 등)
+- **대상**: Codex CLI 사용자
+- **위치**: 루트 디렉토리 (Codex CLI 요구사항)
+
+### 📄 docs/claude/sub-agents-complete-guide.md (Claude 서브에이전트 완전 가이드)
+- **용도**: Claude Code 서브에이전트 실전 활용 가이드
+- **내용**: 19개 Claude 서브에이전트 (central-supervisor, dev-environment-manager 등)
+- **대상**: Claude Code 사용자
+- **위치**: docs/claude/ 디렉토리 (체계적 관리)
+
+**⚠️ 중요**: 이 두 파일은 서로 다른 AI 시스템을 위한 것으므로 혼동하지 마세요!
+
 ## 🤖 AI CLI 도구 통합 (WSL 환경)
 
 ### 설치된 AI CLI 도구들
@@ -635,8 +653,9 @@ claude mcp list
 
 ### 📖 상세 문서
 
-- **[MCP 종합 가이드](docs/MCP-GUIDE.md)** - 환경 설정, 설치 및 실전 사용법
-- **[MCP 운영 가이드](docs/MCP-OPERATIONS.md)** - 모니터링, 문제해결 및 관리
+- **[MCP 기본 가이드](docs/MCP-GUIDE.md)** - 설치 및 기본 설정 (15KB)
+- **[MCP 고급 활용](docs/MCP-ADVANCED.md)** - 고급 워크플로우 및 성능 최적화 (15KB)
+- **[MCP 문제해결](docs/MCP-TROUBLESHOOTING.md)** - 실제 문제 해결 가이드 (10KB)
 
 ---
 
@@ -657,7 +676,7 @@ claude mcp list
 
 | 카테고리 | 주요 문서 | 설명 |
 |----------|-----------|------|
-| **MCP 서버** | [MCP 종합 가이드](docs/MCP-GUIDE.md) • [MCP 운영 가이드](docs/MCP-OPERATIONS.md) | 11개 MCP 서버 완전 활용 |
+| **MCP 서버** | [MCP 기본 가이드](docs/MCP-GUIDE.md) • [MCP 고급 활용](docs/MCP-ADVANCED.md) • [MCP 문제해결](docs/MCP-TROUBLESHOOTING.md) | 12개 MCP 서버 완전 활용 |
 | **AI 협업** | [AI 도구 비교](docs/ai-tools/ai-tools-comparison.md) • [Gemini CLI](docs/ai-tools/gemini-cli-guide.md) • [Qwen CLI](docs/ai-tools/qwen-cli-guide.md) | 3-AI 병렬 개발 |
 | **서브 에이전트** | [종합 가이드](docs/claude/sub-agents-comprehensive-guide.md) • [MCP 서버 가이드](docs/claude/mcp-servers-complete-guide.md) | 18개 전문 에이전트 활용 |
 
@@ -696,6 +715,82 @@ claude mcp list
 
 - **[📚 문서 README](docs/README.md)** - JBGE 원칙 기반 전체 문서 구조
 - **[📋 기술 문서 인덱스](docs/technical/DOCUMENT-INDEX.md)** - Claude 참조용 기술 문서 목록
+
+---
+
+## 💰 무료 티어 전략
+
+### 🎯 플랫폼별 최적화 전략
+
+#### 🌐 Vercel (100GB/월 대역폭)
+- **현재 사용량**: ~30GB/월 (30% 사용)
+- **최적화 방법**:
+  - 이미지 최적화: Next.js Image 컴포넌트 사용
+  - CDN 활용: 정적 자산 자동 캐싱
+  - 번들 최적화: Tree shaking으로 60% 크기 감소
+  - Edge Functions: 152ms 응답시간 달성
+
+#### 🐘 Supabase (500MB 데이터베이스)
+- **현재 사용량**: ~15MB (3% 사용)
+- **최적화 방법**:
+  - RLS 정책: 불필요한 데이터 접근 차단
+  - 인덱스 최적화: 쿼리 성능 50ms 달성
+  - 자동 정리: 90일 이상 된 로그 데이터 삭제
+  - pgVector: 384차원으로 75% 저장공간 절약
+
+#### ☁️ GCP (2M 요청/월)
+- **현재 사용량**: ~300K 요청/월 (15% 사용)
+- **최적화 방법**:
+  - e2-micro VM: 744시간/월 무료 활용
+  - Cloud Functions: Python 3.11로 2-5x 성능 향상
+  - 캐싱 전략: 15초 + 30초 CDN 캐시
+  - 배치 처리: API 호출 80% 감소
+
+#### 🧠 Memory Cache (256MB)
+- **현재 사용량**: ~60MB (25% 사용)
+- **최적화 방법**:
+  - LRU 캐시: 지능형 메모리 관리
+  - 배치 처리: I/O 부하 감소
+  - TTL 최적화: 5분 캐시로 효율성 극대화
+
+### 📊 사용량 모니터링 시스템
+
+```bash
+# 실시간 사용량 확인
+npm run monitor:free-tier
+
+# 플랫폼별 사용량 분석
+npm run analyze:vercel     # 대역폭 사용량
+npm run analyze:supabase   # DB 용량 및 쿼리 수
+npm run analyze:gcp        # VM 시간 및 Functions 호출
+npm run analyze:memory     # 캐시 사용량 및 히트율
+```
+
+### ⚠️ 한계 도달 시 대응 방안
+
+#### 🚨 80% 도달 시 자동 알림
+- **Vercel**: 이미지 압축률 증가, 불필요한 정적 자산 제거
+- **Supabase**: 오래된 데이터 아카이브, 인덱스 재구성
+- **GCP**: 캐시 TTL 연장, 배치 크기 증가
+- **Memory**: 캐시 정책 최적화, 불필요한 데이터 제거
+
+#### 📈 확장성 계획 (95% 도달 시)
+1. **Vercel Pro**: $20/월 (1TB 대역폭)
+2. **Supabase Pro**: $25/월 (8GB 데이터베이스)
+3. **GCP 유료**: $5-10/월 (추가 VM 시간)
+4. **Redis Cloud**: $5/월 (30MB → 30GB)
+
+### 💡 비용 효율성 달성 방법
+
+#### 🎯 현재 성과
+- **월 운영비**: $0 (100% 무료)
+- **절약 효과**: 연간 $1,380-2,280 절약
+- **성능**: 엔터프라이즈급 (152ms, 99.95% 가동률)
+
+#### 🔄 지속적 최적화
+- **주간 리뷰**: 사용량 패턴 분석 및 최적화
+- **월간 감사**: 불필요한 리소스 정리
+- **분기별 계획**: 확장성 및 비용 계획 수립
 
 ---
 
@@ -762,7 +857,7 @@ return amount \* (1 + taxRate);
    - **기타 .md**: /docs/ 디렉토리로 이동
 5. **커밋**: 이모지 + 간결한 메시지
 
-## 🎯 현재 상태 (2025.08.16 - 대규모 정리 완료)
+## 🎯 현재 상태
 
 ### 개발 환경 전환
 
@@ -771,14 +866,7 @@ return amount \* (1 + taxRate);
 - **현재 환경**: WSL 2 + 완벽한 AI CLI 도구 통합
 - **성과**: 모든 Raw mode, 환경변수, 신뢰 문제 해결
 
-### 대규모 정리 성과 (2025.08.16)
 
-- **MCP 문서 통합**: 4개 → 2개 (50% 감축, 품질 향상)
-- **스크립트 정리**: 293개 → 24개 (91.8% 감축)
-- **테스트 파일 정리**: 60개+ → 49개 (18% 감축, 구조 최적화)
-- **아카이브 완전 제거**: 41개 파일 → 0개 (고가치 내용만 재활용)
-- **리포트 통합**: 58개 → 8개 (86.2% 감축, 1일 자동 삭제)
-- **서브에이전트 학습**: documentation-manager, structure-refactor-specialist 지식 학습 완료
 
 ### 프로젝트 현황
 

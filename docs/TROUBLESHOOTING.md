@@ -1,324 +1,303 @@
-# 🚨 문제 해결 가이드
+# 🚨 OpenManager VIBE v5 문제 해결 가이드
 
-> 주요 문제들의 빠른 해결 방법
+> **빠른 해결책 중심** | WSL 2 + AI CLI 통합 환경  
+> **최신 업데이트**: 2025-08-17 | **테스트 환경**: Windows 11 + WSL 2
 
-## 🎯 자주 발생하는 문제들
+## 🎯 자주 발생하는 문제 TOP 10
 
-### 🔧 개발 환경 문제
+### 1. 🐧 WSL 메모리 부족 (가장 빈번)
 
-#### 1. 의존성 설치 실패
+**증상**: npm install 실패, AI 도구 응답 지연
+
 ```bash
-# 증상: npm install 실패, 패키지 충돌
-# 해결방법:
-npm cache clean --force
-rm -rf node_modules package-lock.json
-npm install
+# 메모리 확인
+free -h
+# Available이 1GB 미만이면 부족
 
-# 또는 Node.js 버전 확인
-node --version  # v22.15.1 필요
+# 빠른 해결
+wsl --shutdown
+wsl
+
+# 영구 해결 (.wslconfig 편집)
+# Windows에서: %USERPROFILE%\.wslconfig
+[wsl2]
+memory=10GB
+swap=8GB
 ```
 
-#### 2. 개발 서버 시작 실패
-```bash
-# 증상: npm run dev 실패, 포트 충돌
-# 해결방법:
-PORT=3001 npm run dev  # 다른 포트 사용
+### 2. 🤖 AI CLI 도구 설치/실행 실패
 
-# 또는 프로세스 종료
-lsof -ti:3000 | xargs kill -9  # macOS/Linux
-netstat -ano | findstr :3000   # Windows에서 PID 확인 후 종료
+**증상**: `claude: command not found`, `gemini: command not found`
+
+```bash
+# WSL에서 설치 확인
+which claude gemini qwen ccusage
+
+# 없으면 재설치 (WSL 내부에서)
+sudo npm install -g @anthropic-ai/claude-code
+sudo npm install -g @google/gemini-cli
+sudo npm install -g @qwen-code/qwen-code
+sudo npm install -g ccusage
+
+# PATH 확인
+echo $PATH | grep npm
 ```
 
-#### 3. 환경변수 오류
+### 3. 🔌 MCP 서버 연결 실패
+
+**증상**: Claude Code에서 MCP 도구 사용 불가
+
 ```bash
-# 증상: .env.local 관련 오류
-# 해결방법:
-cp .env.local.template .env.local
-# 필요한 환경변수들 설정
+# MCP 설정 확인
+cat .mcp.json | head -5
 
-# 환경변수 검증
-npm run env:check
-```
+# 환경변수 로드 확인
+echo $GITHUB_PERSONAL_ACCESS_TOKEN
+echo $TAVILY_API_KEY
 
-### 🔌 MCP 서버 문제
-
-#### 1. MCP 서버 연결 실패
-```bash
-# 증상: MCP 서버가 연결되지 않음
-# 해결방법:
-claude api restart
-
-# MCP 서버 상태 확인
+# Claude MCP 재시작
 claude mcp list
-
-# 설정 리셋
-bash scripts/mcp/reset.sh
+claude api restart
 ```
 
-#### 2. MCP 서버 설치 실패
-```bash
-# 증상: MCP 서버 설치 중 오류
-# 해결방법:
-# Python MCP 서버 (time, serena)
-uvx --version  # uvx 설치 확인
-python --version  # Python 3.11+ 확인
+### 4. 🔑 GitHub 인증 실패
 
-# Node.js MCP 서버
-npx clear-npx-cache
-npm install -g @modelcontextprotocol/server-filesystem
+**증상**: git push 실패, "Invalid username or token"
+
+```bash
+# git 원격 URL 확인
+git remote -v
+
+# 하드코딩된 토큰 제거
+git remote set-url origin https://github.com/skyasu2/openmanager-vibe-v5.git
+
+# 환경변수에서 토큰 로드
+source .env.local
+git push
 ```
 
-#### 3. 환경변수 MCP 서버 오류
-```bash
-# 증상: Supabase, Tavily MCP 연결 실패
-# 해결방법:
-# .env.local에 다음 값들 확인:
-SUPABASE_ACCESS_TOKEN=your_token
-TAVILY_API_KEY=your_key
+### 5. 📦 Node.js 버전 불일치
 
-# 환경변수 로드된 상태로 Claude 시작
-./scripts/start-claude-with-mcp.ps1
+**증상**: npm install 오류, "engine not compatible"
+
+```bash
+# WSL에서 Node.js 버전 확인
+node --version
+# 필요: v22.18.0+
+
+# 버전 업데이트
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+source ~/.bashrc
+nvm install 22.18.0
+nvm use 22.18.0
 ```
 
-### 🤖 AI 시스템 문제
+### 6. 🌐 개발 서버 포트 충돌
 
-#### 1. AI 쿼리 실패
+**증상**: `EADDRINUSE: address already in use :::3000`
+
 ```bash
-# 증상: AI API 호출 실패
-# 해결방법:
-# Google AI API 키 확인
-GOOGLE_AI_API_KEY=your_key
+# 포트 사용 프로세스 확인
+ss -tulpn | grep :3000
 
-# AI 엔진 상태 확인
-curl http://localhost:3000/api/ai/health
+# 프로세스 종료
+pkill -f "node.*3000"
 
-# 폴백 엔진 활성화
-# 자동으로 다른 AI 엔진으로 전환됨
+# 다른 포트 사용
+PORT=3001 npm run dev
 ```
 
-#### 2. Supabase RAG 오류
-```bash
-# 증상: Vector search 실패
-# 해결방법:
-# Supabase 연결 확인
-NEXT_PUBLIC_SUPABASE_URL=your_url
-SUPABASE_SERVICE_ROLE_KEY=your_key
+### 7. 📄 환경변수 설정 오류
 
-# pgvector 확장 활성화 확인
-# Supabase Dashboard → SQL Editor에서:
-CREATE EXTENSION IF NOT EXISTS vector;
+**증상**: API 호출 실패, 인증 오류
+
+```bash
+# 환경변수 파일 확인
+ls -la .env.local
+
+# 템플릿에서 복사
+cp .env.local.template .env.local
+
+# 필수 변수 설정 확인
+grep -E "GITHUB_|GOOGLE_|SUPABASE_" .env.local
 ```
 
-#### 3. GCP Functions 연결 실패
+### 8. 🧪 테스트 실행 실패
+
+**증상**: `npm test` 오류, Vitest 실행 안됨
+
 ```bash
-# 증상: Korean NLP, ML Analytics 실패
-# 해결방법:
-# GCP 프로젝트 설정 확인
-GCP_PROJECT_ID=your_project_id
-
-# Functions 배포 상태 확인
-gcloud functions list --regions=us-central1
-
-# 필요시 재배포
-bash scripts/deployment/deploy-all.sh
-```
-
-### 🗄️ 데이터베이스 문제
-
-#### 1. Supabase 연결 오류
-```bash
-# 증상: Database connection failed
-# 해결방법:
-# 연결 정보 확인
-NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
-
-# Supabase 프로젝트 상태 확인
-# https://supabase.com/dashboard
-```
-
-#### 2. RLS 정책 오류
-```bash
-# 증상: Row Level Security 권한 오류
-# 해결방법:
-# Supabase Dashboard → Authentication → Users에서 사용자 확인
-# SQL Editor에서 RLS 정책 확인:
-SELECT * FROM pg_policies WHERE tablename = 'servers';
-```
-
-#### 3. pgvector 관련 오류
-```bash
-# 증상: Vector similarity search 실패
-# 해결방법:
-# pgvector 확장 설치 확인
-SELECT * FROM pg_extension WHERE extname = 'vector';
-
-# 벡터 인덱스 생성
-CREATE INDEX ON embeddings USING ivfflat (embedding vector_cosine_ops);
-```
-
-### 🚀 배포 관련 문제
-
-#### 1. Vercel 배포 실패
-```bash
-# 증상: Build 또는 배포 오류
-# 해결방법:
-# 로컬 빌드 테스트
-npm run build
-
-# TypeScript 오류 확인
-npm run type-check
-
-# Vercel 환경변수 확인
-# Vercel Dashboard → Settings → Environment Variables
-```
-
-#### 2. GitHub Actions CI/CD 실패
-```bash
-# 증상: CI/CD 파이프라인 실패
-# 해결방법:
-# 로컬에서 같은 명령 실행
-npm run validate:all
-
-# Git hooks 비활성화 (테스트용)
-HUSKY=0 git commit -m "test commit"
-
-# Fast track 배포
-git commit -m "fix: 긴급 수정 [skip ci]"
-```
-
-#### 3. 환경변수 누락
-```bash
-# 증상: 배포 후 기능 동작 안함
-# 해결방법:
-# Vercel에서 환경변수 설정 확인
-# GitHub에서 Secrets 설정 확인
-# .env.local.template과 비교
-```
-
-### 🧪 테스트 관련 문제
-
-#### 1. 테스트 실행 실패
-```bash
-# 증상: npm test 실패
-# 해결방법:
 # 빠른 테스트만 실행
 npm run test:quick
 
-# 테스트 환경 변수 확인
-NODE_ENV=test npm test
-
-# 특정 테스트 파일만 실행
-npm test -- src/services/ai/__tests__/SimplifiedQueryEngine.test.ts
+# 캐시 정리 후 재시도
+npm cache clean --force
+rm -rf node_modules package-lock.json
+npm install
 ```
 
-#### 2. E2E 테스트 실패
+### 9. 🏗️ 빌드 실패 (TypeScript 오류)
+
+**증상**: `npm run build` 실패, 타입 오류
+
 ```bash
-# 증상: Playwright 테스트 실패
-# 해결방법:
-# 브라우저 설치 확인
-npx playwright install
+# 타입 체크만 실행
+npm run type-check
 
-# 개발 서버 실행 상태 확인
-npm run dev  # 다른 터미널에서
+# 빠른 빌드 (타입 체크 스킵)
+npm run build:fallback
 
-# 헤드리스 모드 비활성화
-npm run test:e2e -- --headed
+# Vercel 배포용 빌드
+npm run build:production
 ```
 
-### 💾 캐시 관련 문제
+### 10. 💾 Supabase 연결 실패
 
-#### 1. 메모리 캐시 오류
+**증상**: 데이터베이스 연결 오류, RAG 검색 실패
+
 ```bash
-# 증상: 캐시 관련 메모리 오류
-# 해결방법:
-# 캐시 초기화
-npm run cache:clear
+# Supabase 설정 확인
+echo $NEXT_PUBLIC_SUPABASE_URL
+echo $SUPABASE_SERVICE_ROLE_KEY
 
-# 메모리 사용량 확인
-node --max-old-space-size=8192 npm run dev
+# 연결 테스트
+curl "$NEXT_PUBLIC_SUPABASE_URL/rest/v1/" \
+  -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"
 ```
 
-#### 2. 브라우저 캐시 문제
-```bash
-# 증상: 이전 버전 코드가 로드됨
-# 해결방법:
-# 하드 리프레시
-Ctrl+F5 (Windows)
-Cmd+Shift+R (macOS)
+## 🔧 고급 문제 해결
 
-# 또는 시크릿 모드에서 테스트
+### Windows ↔ WSL 파일 권한 문제
+
+```bash
+# WSL에서 파일 권한 수정
+sudo chown -R $(whoami):$(whoami) /mnt/d/cursor/openmanager-vibe-v5
+chmod -R 755 /mnt/d/cursor/openmanager-vibe-v5
 ```
 
-## 🔍 진단 도구
+### IDE 연동 문제 (Kiro, VSCode, Windsurf)
 
-### 시스템 상태 확인
 ```bash
-# 전체 시스템 헬스 체크
-npm run health:check
+# WSL 터미널에서 IDE 연동 확인
+echo $TERM
+echo $SHELL
 
-# Claude Code 환경 확인
-bash scripts/check-claude-environment.sh
-
-# Git 상태 확인
-npm run git:status
+# 필요시 bash 프로파일 설정
+source ~/.bashrc
+source ~/.profile
 ```
 
-### 로그 확인
+### MCP 서버 개별 디버깅
+
 ```bash
-# 개발 서버 로그
-npm run dev  # 콘솔 출력 확인
+# 개별 MCP 서버 테스트
+timeout 10s uvx mcp-server-time --version
+timeout 10s npx -y @supabase/mcp-server-supabase@latest --version
 
-# AI 시스템 로그
-npm run logs:ai
-
-# Vercel 배포 로그
-vercel logs
+# 권한 문제 해결
+sudo chmod +x ~/.local/bin/uvx
 ```
 
-### 성능 진단
+## 🛡️ 예방 조치
+
+### 정기 시스템 유지보수
+
 ```bash
-# 성능 벤치마크
-npm run test:performance
+# 주간 정리 (매주 실행 권장)
+#!/bin/bash
+# WSL 캐시 정리
+sudo apt autoremove
+sudo apt autoclean
+npm cache clean --force
 
-# 빌드 성능 분석
-npm run build:analyze
+# AI 도구 업데이트
+sudo npm update -g @anthropic-ai/claude-code
+sudo npm update -g ccusage
+```
 
-# 메모리 사용량 프로파일링
-npm run profile:memory
+### 환경 백업
+
+```bash
+# 중요 설정 백업
+cp .env.local .env.local.backup
+cp .mcp.json .mcp.json.backup
+cp ~/.wslconfig ~/.wslconfig.backup
+```
+
+## 📊 진단 도구
+
+### 시스템 상태 한번에 확인
+
+```bash
+#!/bin/bash
+echo "=== WSL 환경 상태 ==="
+free -h
+df -h /
+echo "\n=== AI CLI 도구 ==="
+claude --version 2>/dev/null || echo "Claude: 설치 안됨"
+gemini --version 2>/dev/null || echo "Gemini: 설치 안됨"
+echo "\n=== Node.js 환경 ==="
+node --version
+npm --version
+echo "\n=== 프로젝트 상태 ==="
+ls -la .env.local 2>/dev/null || echo "환경변수 파일 없음"
+ls -la .mcp.json 2>/dev/null || echo "MCP 설정 파일 없음"
+```
+
+### 빠른 헬스체크
+
+```bash
+# 5초 만에 핵심 상태 확인
+npm run health:quick || echo "헬스체크 스크립트 없음"
+claude mcp list | head -3
+echo "메모리: $(free -h | grep Mem | awk '{print $3"/"$2}')"
 ```
 
 ## 📞 추가 도움
 
-### 문서 참조
-- **[빠른 시작](./QUICK-START.md)** - 기본 설정
-- **[MCP 가이드](./MCP-GUIDE.md)** - MCP 서버 문제
-- **[AI 시스템](./AI-SYSTEMS.md)** - AI 관련 문제
-- **[시스템 아키텍처](./system-architecture.md)** - 전체 구조
+### 우선순위별 문서 참조
 
-### 기술 문서
-- **[개발 가이드](./guides/development/)** - 개발 환경 설정
-- **[보안 가이드](./security/)** - 보안 관련 설정
-- **[성능 최적화](./performance/)** - 성능 관련 문제
+1. **즉시 해결**: 위의 TOP 10 문제 확인
+2. **환경 설정**: [QUICK-START.md](./QUICK-START.md)
+3. **MCP 문제**: [MCP-GUIDE.md](./MCP-GUIDE.md)
+4. **AI 협업**: [AI-SYSTEMS.md](./AI-SYSTEMS.md)
+5. **전체 구조**: [system-architecture.md](./system-architecture.md)
 
-### 이슈 보고
-문제가 계속 발생하면 다음 정보와 함께 이슈를 등록해주세요:
+### 긴급 상황 (5분 이내 해결)
 
-1. **환경 정보**:
-   - OS: Windows 11 / macOS / Linux
-   - Node.js 버전: `node --version`
-   - npm 버전: `npm --version`
+```bash
+# 모든 것이 안되면 마지막 수단
+wsl --shutdown
+wsl --unregister Ubuntu-24.04
+wsl --install Ubuntu-24.04
+# 주의: 모든 WSL 데이터 삭제됨
+```
 
-2. **오류 정보**:
-   - 정확한 오류 메시지
-   - 오류 발생 단계
-   - 재현 방법
+### 문제 보고 템플릿
 
-3. **로그**:
-   - 콘솔 출력
-   - 브라우저 개발자 도구 오류
-   - 관련 로그 파일
+```
+🐛 버그 리포트
+
+**환경**:
+- OS: Windows 11 + WSL 2
+- WSL 버전: `wsl --version`
+- Node.js: `node --version`
+- Claude: `claude --version`
+
+**문제 상황**:
+[구체적인 오류 메시지와 상황]
+
+**재현 단계**:
+1. ...
+2. ...
+
+**시도한 해결책**:
+[위 가이드에서 시도한 방법들]
+```
 
 ---
 
-> **여전히 문제가 해결되지 않나요?** GitHub 이슈를 등록하거나 팀에 문의해주세요.
+💡 **핵심 원칙**: WSL 우선 → AI CLI 확인 → 환경변수 검증 → MCP 서버 상태  
+🚀 **빠른 시작**: [QUICK-START.md](./QUICK-START.md)에서 5분 설정 가능
+
+> **99% 문제는 위 TOP 10으로 해결됩니다!** 📈

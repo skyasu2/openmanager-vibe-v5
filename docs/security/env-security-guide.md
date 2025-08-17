@@ -85,7 +85,7 @@ const required = [
   'SUPABASE_SERVICE_ROLE_KEY',
 ];
 
-const missing = required.filter(key => !process.env[key]);
+const missing = required.filter((key) => !process.env[key]);
 
 if (missing.length > 0) {
   console.error('❌ Missing environment variables:', missing);
@@ -215,6 +215,6 @@ openssl enc -aes-256-cbc -d -in .env.local.enc -out .env.local
 
 **관련 문서**:
 
-- [보안 경고 2025-07-16](./SECURITY-ALERT-2025-07-16.md)
-- [MCP 설정 가이드](./claude-code-mcp-setup-2025.md)
-- [프로젝트 보안 정책](../SECURITY.md)
+- [보안 가이드라인](./security-guidelines.md)
+- [MCP 설정 가이드](../MCP-GUIDE.md)
+- [보안 전체 가이드](./security-complete-guide.md)
