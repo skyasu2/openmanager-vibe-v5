@@ -14,60 +14,94 @@
 
 ## 💻 개발 환경
 
-**Windows 11 + WSL 2 환경**
+**WSL-First 개발 정책** 🐧
 
 - **Host OS**: Windows 11 Pro (22H2)
-- **Development Environment**: WSL 2 (Ubuntu 24.04 LTS)
-- **Shell**: bash (WSL 내부), PowerShell (Windows 호스트)
+- **Development Environment**: WSL 2 (Ubuntu 24.04 LTS) - **메인 환경**
+- **Shell**: bash (WSL 내부), PowerShell (개인 도구만)
 - **Node.js**: v22.18.0 (WSL 내부 설치)
 - **Package Manager**: npm (WSL 전역 패키지 관리)
-- **메인 개발**: **Claude Code (WSL)** - 압도적 사용 환경
-- **Windows IDE**: VS Code + GitHub Copilot (현재) - 상호 보완적 활용
-  - 역할: 이미지 붙여넣기, 웹페이지 수정, 캡쳐 전달 등
-  - 사용 빈도: 아주 가끔 (폭넓은 도구 활용)
-  - 사용 이유: CLI와 GUI 도구의 각 강점을 활용한 종합적 접근
-  - 배경: Cursor AI 사용 경험으로 IDE AI 기능에 익숙, 전략적 도구 조합
-  - 사용 경험: Cursor → Windsurf → Kiro → VS Code 순서로 테스트
-- **터미널**: Windows Terminal (WSL 통합)
 - **Memory**: 8GB allocated to WSL (7.8GB available)
 - **Swap**: 8GB configured
 
+### 🏆 메인 개발: WSL + Claude Code
+- **용도**: 모든 개발 작업의 중심축
+- **장점**: Linux 네이티브 성능, MCP 서버 완전 통합
+- **도구**: Claude Code v1.0.81, Node.js v22.18.0
+
+### 🔧 보조 도구: Windows + VSCode
+- **용도**: 이미지 처리, 가끔 간단한 수정
+- **역할**: 보완적 활용만 (메인 개발 아님)
+- **도구**: VSCode, GitHub Copilot
+
+### 🛠️ 개인 도구 관리
+- **위치**: `.local/windows/` 폴더
+- **정책**: Git 추적 제외 (개인 백업 권장)
+- **용도**: Windows 개인 스크립트, 개발 환경 전환 도구
+- **관리**: 별도 개인 관리 (프로젝트와 분리)
+
+### 🎯 WSL-First 정책 원칙
+- **모든 프로젝트 작업**: WSL 환경에서 수행
+- **일관된 설정**: LF 통일, WSL 기준 설정
+- **성능 우선**: Linux 네이티브 성능 활용
+- **AI 도구 통합**: Claude Code + MCP 서버 완전 활용
+
 ## 🚀 빠른 시작
 
-````bash
+### 🐧 WSL-First 개발 환경
 
+```bash
 # WSL에서 Claude Code 실행 (Windows에서)
-
 .\claude-wsl-optimized.bat
 
 # WSL 내부에서 개발
-
 wsl
 cd /mnt/d/cursor/openmanager-vibe-v5
 
 # 개발 명령어 (WSL bash)
-
 npm run dev # localhost:3000
 npm run build # 프로덕션 빌드
 npm run test:quick # 빠른 테스트 (22ms)
 
 # 검증
-
 npm run validate:all # 린트 + 타입 + 테스트
 npm run git:status # Git 상태 확인
 
 # AI CLI 도구들 (WSL에서 실행)
-
 claude --version # Claude Code v1.0.81
 gemini --version # Google Gemini CLI v0.1.21
 qwen --version # Qwen CLI v0.0.6
 
 # Windows에서 WSL AI 도구 실행
-
 .\claude-wsl-optimized.bat /status
 .\gemini-wsl.bat --help
 .\qwen-wsl.bat --help
-`
+.\ai-cli-wsl.bat claude --version
+```
+
+### 🛠️ 개인 도구 사용 (선택사항)
+
+```powershell
+# Windows PowerShell에서
+cd D:\cursor\openmanager-vibe-v5\.local\windows
+
+# 예: Claude Code WSL 시작
+.\claude-wsl-optimized.bat
+
+# 예: 개발 환경 전환
+.\dev-switch.ps1 wsl
+```
+
+### 🔧 보조 도구 (가끔 사용)
+
+```powershell
+# VSCode 시작 (이미지 처리, 간단한 수정)
+code .
+
+# WSL 명령어 실행 (Windows에서)
+wsl npm run dev
+wsl claude --version
+```
 
 ## 🐧 WSL 2 개발 환경 특화
 

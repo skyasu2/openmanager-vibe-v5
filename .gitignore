@@ -228,6 +228,9 @@ commit/
 # Archive folder (local temporary storage only)
 archive/
 
+# 🛠️ Personal tools folder (WSL-First policy)
+.local/
+
 # 실행 파일들
 *.exe
 
