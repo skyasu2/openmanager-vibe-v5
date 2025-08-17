@@ -7,8 +7,6 @@
     "ecmaFeatures": {
       "jsx": true
     },
-    "project": "./tsconfig.json",
-    "tsconfigRootDir": ".",
     "cache": true,
     "cacheLocation": ".next/cache/eslint/"
   },
