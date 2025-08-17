@@ -15,6 +15,7 @@ export default defineConfig(({ mode }) => {
       // 🎯 핵심 테스트만 실행
       include: [
         'src/test/**/*.test.{ts,tsx}', // 환경 설정 테스트
+        'src/test-claude/**/*.test.{ts,tsx}', // TDD 테스트 파일 (Claude Code 전용)
         'src/**/__tests__/**/*.{test,spec}.{ts,tsx}', // 모든 __tests__ 디렉토리
         'tests/unit/**/*.test.{ts,tsx}',
         'tests/integration/**/*.test.{ts,tsx}',

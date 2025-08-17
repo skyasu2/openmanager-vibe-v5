@@ -103,33 +103,54 @@ class TddCleanupManager {
    * 테스트 실행하여 현재 상태 확인
    */
   private async checkTestStatus(tests: TddTestInfo[]): Promise<void> {
-    for (const test of tests) {
+    // 파일별로 그룹화하여 한 번에 테스트 실행 (효율성 향상)
+    const fileMap = new Map<string, TddTestInfo[]>();
+    tests.forEach(test => {
+      if (!fileMap.has(test.file)) {
+        fileMap.set(test.file, []);
+      }
+      fileMap.get(test.file)!.push(test);
+    });
+
+    for (const [filePath, fileTests] of fileMap) {
       try {
-        // 개별 테스트 실행 (빠른 검증)
-        const testCommand = `npm run test:quick -- --reporter=verbose --run "${test.file}"`;
+        // 파일 단위로 테스트 실행
+        const testCommand = `npm test -- "${filePath}" --run --reporter=dot`;
         
         try {
-          execSync(testCommand, { 
+          const result = execSync(testCommand, { 
             stdio: 'pipe',
-            timeout: 10000 // 10초 타임아웃
+            timeout: 20000, // 20초 타임아웃 (setup + 여러 테스트)
+            encoding: 'utf8'
           });
-          
-          test.status = 'passing';
-          test.needsCleanup = true;
-          
-          if (this.verbose) {
-            console.log(`✅ ${test.testName} (${test.file}:${test.line}) - 통과`);
-          }
+
+          // 모든 테스트가 성공하면 해당 파일의 모든 테스트를 통과로 마킹
+          fileTests.forEach(test => {
+            test.status = 'passing';
+            test.needsCleanup = true;
+            
+            if (this.verbose) {
+              console.log(`✅ ${test.testName} (${test.file}:${test.line}) - 통과`);
+            }
+          });
+
         } catch (error) {
-          test.status = 'red';
-          test.needsCleanup = false;
-          
-          if (this.verbose) {
-            console.log(`❌ ${test.testName} (${test.file}:${test.line}) - 실패`);
-          }
+          // 실패 시 모든 테스트를 실패로 마킹
+          fileTests.forEach(test => {
+            test.status = 'red';
+            test.needsCleanup = false;
+            
+            if (this.verbose) {
+              console.log(`❌ ${test.testName} (${test.file}:${test.line}) - 실패`);
+            }
+          });
         }
       } catch (error) {
-        console.warn(`⚠️ 테스트 상태 확인 실패: ${test.testName}`);
+        console.warn(`⚠️ 테스트 파일 실행 실패: ${filePath}`);
+        fileTests.forEach(test => {
+          test.status = 'red';
+          test.needsCleanup = false;
+        });
       }
     }
   }
