@@ -1,0 +1,42 @@
+{
+  "extends": ["next/core-web-vitals"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "cache": true,
+  "cacheLocation": "/tmp/lint-cache/eslint-fast/",
+  "rules": {
+    "no-console": "off",
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "prettier/prettier": "off",
+    "react-hooks/exhaustive-deps": "off"
+  },
+  "ignorePatterns": [
+    "**/.next/**",
+    "**/node_modules/**",
+    "**/coverage/**",
+    "**/dist/**",
+    "**/build/**",
+    "scripts/**",
+    "config/**",
+    "public/**",
+    "docs/**",
+    "local-dev/**",
+    "**/*.config.*",
+    "**/*.d.ts",
+    "**/*.test.*",
+    "**/*.spec.*"
+  ],
+  "env": {
+    "browser": true,
+    "es2022": true,
+    "node": true
+  }
+}

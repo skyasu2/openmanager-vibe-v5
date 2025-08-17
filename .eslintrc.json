@@ -6,16 +6,16 @@
     "sourceType": "module",
     "ecmaFeatures": {
       "jsx": true
-    },
-    "cache": true,
-    "cacheLocation": ".next/cache/eslint/"
+    }
   },
+  "cache": true,
+  "cacheLocation": "/tmp/lint-cache/eslint/",
   "plugins": ["@typescript-eslint", "prettier"],
   "rules": {
     "prettier/prettier": [
       "error",
       {
-        "printWidth": 80
+        "printWidth": 120
       }
     ],
     "@typescript-eslint/no-unused-vars": [

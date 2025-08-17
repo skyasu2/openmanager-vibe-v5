@@ -1,41 +1,34 @@
 #!/bin/sh
 
+# 🚀 스마트 Pre-commit Hook v2.0
+# 
+# 특징:
+# - 파일 수 기반 자동 모드 선택 (minimal/fast/full)
+# - 단계별 검증 (보안 → 구문 → 품질 → 테스트)
+# - 빠른 실패 패턴으로 효율성 극대화
+# - WSL2 환경 최적화된 캐시 사용
+
 # 환경 변수로 스킵 가능
 if [ "$HUSKY" = "0" ]; then
     echo "⏭️  HUSKY=0 설정으로 검증을 건너뜁니다."
     exit 0
 fi
 
-echo "🧹 변경된 파일만 검사 중..."
+# Node.js 스마트 스크립트 실행
+echo "🚀 스마트 Pre-commit 검증 시작..."
+node scripts/smart-pre-commit.js
 
-# 타임아웃 설정 (5분)
-TIMEOUT_SECONDS=300
+# 스크립트 결과에 따라 처리
+exit_code=$?
 
-# 보안 검사: 하드코딩된 시크릿 탐지 (타임아웃 적용)
-echo "🔒 보안 검사: 하드코딩된 시크릿 탐지 중..."
-timeout $TIMEOUT_SECONDS node scripts/security/check-hardcoded-secrets.js
-
-if [ $? -eq 124 ]; then
-    echo "⏰ 보안 검사 타임아웃 - 스킵하고 계속 진행합니다."
-elif [ $? -ne 0 ]; then
-    echo "❌ 보안 검사 실패! 하드코딩된 시크릿을 제거하세요."
-    echo "💡 빠른 커밋을 원하면: HUSKY=0 git commit"
-    exit 1
+if [ $exit_code -eq 0 ]; then
+    echo "🎉 스마트 Pre-commit 완료!"
+else
+    echo "❌ Pre-commit 검증 실패!"
+    echo "💡 빠른 커밋 옵션:"
+    echo "   - HUSKY=0 git commit (검증 완전 스킵)"
+    echo "   - npm run commit:fast (Husky 비활성화)"
+    echo "   - npm run commit:ultra-fast (즉시 푸시)"
 fi
 
-# lint-staged 실행 (타임아웃 적용)
-echo "🔧 코드 품질 검사 중..."
-timeout $TIMEOUT_SECONDS npx lint-staged
-
-if [ $? -eq 124 ]; then
-    echo "⏰ Lint 검사 타임아웃 - 자동으로 HUSKY=0 모드로 커밋합니다."
-    echo "🚀 빠른 커밋을 위해 검증을 스킵합니다..."
-    export HUSKY=0
-    exit 0
-elif [ $? -ne 0 ]; then
-    echo "❌ 코드 품질 검사 실패!"
-    echo "💡 빠른 커밋을 원하면: HUSKY=0 git commit"
-    exit 1
-fi
-
-echo "✅ Pre-commit 완료! (${TIMEOUT_SECONDS}초 제한 내 완료)"
+exit $exit_code
