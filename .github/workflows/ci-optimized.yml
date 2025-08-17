@@ -13,8 +13,8 @@ on:
     branches: [main]
 
 env:
-  NODE_VERSION: '22.15.1'
-  SKIP_ENV_VALIDATION: true  # 환경변수 없이도 빌드 가능
+  NODE_VERSION: '22.18.0'
+  SKIP_ENV_VALIDATION: true # 환경변수 없이도 빌드 가능
 
 jobs:
   # 🚀 필수 검증 (의미 있는 실패 처리)
@@ -77,8 +77,8 @@ jobs:
 
       - name: Hardcoded Secrets Check
         run: |
-          if [ -f "scripts/check-hardcoded-secrets.sh" ]; then
-            bash scripts/check-hardcoded-secrets.sh || {
+          if [ -f "scripts/security/check-hardcoded-secrets.js" ]; then
+            node scripts/security/check-hardcoded-secrets.js || {
               echo "⚠️ 하드코딩된 시크릿 발견!"
               exit 1  # 시크릿은 실제로 실패 처리
             }

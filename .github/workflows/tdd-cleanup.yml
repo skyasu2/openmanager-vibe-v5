@@ -12,33 +12,33 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22.15.1'
+          node-version: '22.18.0'
           cache: 'npm'
-          
+
       - name: Install dependencies
         run: npm ci
-        
+
       - name: Check TDD test transitions
         id: tdd-check
         run: |
           npm run test:tdd-check
           echo "cleanup_needed=$?" >> $GITHUB_OUTPUT
-          
+
       - name: Run TDD cleanup
         if: steps.tdd-check.outputs.cleanup_needed == '0'
         run: npm run test:tdd-cleanup
-        
+
       - name: Check for changes
         id: changes
         run: |
@@ -47,7 +47,7 @@ jobs:
           else
             echo "has_changes=false" >> $GITHUB_OUTPUT
           fi
-          
+
       - name: Create Pull Request
         if: steps.changes.outputs.has_changes == 'true'
         uses: peter-evans/create-pull-request@v5
@@ -57,16 +57,16 @@ jobs:
           title: '[자동화] TDD 테스트 정리'
           body: |
             ## 🔄 TDD 테스트 자동 정리
-            
+
             이 PR은 자동으로 생성되었습니다.
-            
+
             ### 변경사항
             - RED에서 GREEN으로 전환된 테스트의 `@tdd-red` 태그 제거
             - 관련 메타데이터 정리
-            
+
             ### 리포트
             상세 내용은 `tdd-cleanup-report.md` 파일을 확인하세요.
-            
+
             ---
             *이 PR은 GitHub Actions에 의해 자동으로 생성되었습니다.*
           branch: auto/tdd-cleanup
@@ -75,7 +75,7 @@ jobs:
             automation
             tests
             cleanup
-            
+
       - name: Upload cleanup report
         if: always()
         uses: actions/upload-artifact@v4
