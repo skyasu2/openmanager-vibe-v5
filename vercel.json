@@ -143,12 +143,8 @@
       "destination": "/api/health"
     }
   ],
-  "regions": ["icn1"],
   "cleanUrls": true,
   "trailingSlash": false,
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "framework": "nextjs",
   "env": {
     "DISABLE_LOCAL_RAG": "true",
     "PREFER_SUPABASE_RAG": "true",
@@ -189,46 +185,32 @@
     }
   ],
   "functions": {
-    "app/api/mcp/route.ts": {
-      "maxDuration": 30,
-      "regions": ["icn1"]
+    "src/app/api/mcp/route.ts": {
+      "maxDuration": 10
     },
-    "app/api/ai/query/route.ts": {
-      "maxDuration": 25,
-      "memory": 1024,
-      "regions": ["icn1"]
+    "src/app/api/ai/query/route.ts": {
+      "maxDuration": 10
     },
-    "app/api/ai/edge-v2/route.ts": {
-      "maxDuration": 20,
-      "memory": 512,
-      "regions": ["icn1"]
+    "src/app/api/ai/edge-v2/route.ts": {
+      "maxDuration": 10
     },
-    "app/api/ai/google-ai/generate/route.ts": {
-      "maxDuration": 15,
-      "memory": 256,
-      "regions": ["icn1"]
+    "src/app/api/ai/google-ai/generate/route.ts": {
+      "maxDuration": 10
     },
-    "app/api/servers/route.ts": {
-      "maxDuration": 10,
-      "memory": 256,
-      "regions": ["icn1"]
+    "src/app/api/servers/route.ts": {
+      "maxDuration": 10
     },
-    "app/api/health/route.ts": {
-      "maxDuration": 5,
-      "regions": ["icn1"]
+    "src/app/api/health/route.ts": {
+      "maxDuration": 5
     },
-    "app/api/cache/*/route.ts": {
-      "maxDuration": 10,
-      "regions": ["icn1"]
+    "src/app/api/cache/*/route.ts": {
+      "maxDuration": 5
     },
-    "app/api/version/*/route.ts": {
-      "maxDuration": 5,
-      "regions": ["icn1"]
+    "src/app/api/version/*/route.ts": {
+      "maxDuration": 5
     },
-    "app/api/security/csp-report/route.ts": {
-      "maxDuration": 5,
-      "memory": 128,
-      "regions": ["icn1"]
+    "src/app/api/security/csp-report/route.ts": {
+      "maxDuration": 5
     }
   }
 }
