@@ -29,6 +29,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
   const [status, setStatus] = useState<SystemStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastFocusRefresh, setLastFocusRefresh] = useState<number>(0);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -103,17 +104,22 @@ export function useSystemStatus(): UseSystemStatusReturn {
   useEffect(() => {
     fetchStatus();
 
-    // 30초마다 상태 업데이트
-    const interval = setInterval(fetchStatus, 30000);
+    // 5분마다 상태 업데이트 (30초 → 300초로 10배 감소)
+    const interval = setInterval(fetchStatus, 300000);
 
     return () => clearInterval(interval);
   }, [fetchStatus]);
 
-  // 페이지 포커스 시 상태 새로고침
+  // 페이지 포커스 시 상태 새로고침 (2분 throttle)
   useEffect(() => {
     const handleFocus = () => {
       if (!document.hidden) {
-        fetchStatus();
+        const now = Date.now();
+        // 2분(120초) 이내 중복 호출 방지
+        if (now - lastFocusRefresh > 120000) {
+          setLastFocusRefresh(now);
+          fetchStatus();
+        }
       }
     };
 
@@ -124,7 +130,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
       document.removeEventListener('visibilitychange', handleFocus);
       window.removeEventListener('focus', handleFocus);
     };
-  }, [fetchStatus]);
+  }, [fetchStatus, lastFocusRefresh]);
 
   return {
     status,
