@@ -3,6 +3,7 @@
   "version": "5.66.40",
   "private": true,
   "scripts": {
+    "check:claude": "wsl ./scripts/windows-support/utils/run-claude.sh",
     "windows:dev": "powershell -ExecutionPolicy Bypass -File scripts/windows-support/env-setup/quick-dev-start.ps1",
     "windows:dev:fast": "powershell -ExecutionPolicy Bypass -File scripts/windows-support/env-setup/quick-dev-start.ps1 -Fast",
     "windows:dev:full": "powershell -ExecutionPolicy Bypass -File scripts/windows-support/env-setup/quick-dev-start.ps1 -Full",

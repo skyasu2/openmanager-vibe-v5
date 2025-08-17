@@ -1,16 +1,38 @@
 {
-  // 🎯 TypeScript 설정
-  "typescript.preferences.quoteStyle": "single",
-  "javascript.preferences.quoteStyle": "single",
-  "typescript.preferences.importModuleSpecifier": "relative",
-  "typescript.suggest.autoImports": false,
-  "typescript.updateImportsOnFileMove.enabled": "always",
-  "typescript.tsserver.maxTsServerMemory": 8192,
-  "typescript.tsserver.experimental.enableProjectDiagnostics": false,
-  "typescript.validate.enable": false,
-  "typescript.suggest.includeCompletionsForImportStatements": false,
-  "typescript.suggest.includeCompletionsForModuleExports": false,
-  "typescript.disableAutomaticTypeAcquisition": true,
+  // 기본 터미널 설정
+  "terminal.integrated.defaultProfile.windows": "Command Prompt",
+  "terminal.integrated.profiles.windows": {
+    "Command Prompt": {
+      "path": "cmd.exe",
+      "icon": "terminal-cmd"
+    },
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell"
+    }
+  },
+
+  // 🚀 터미널 설정
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell",
+      "args": ["-NoLogo"]
+    }
+  },
+
+  // 🤖 GitHub Copilot 설정
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": true,
+    "markdown": true,
+    "scminput": false
+  },
+  "github.copilot.editor.enableAutoCompletions": true,
+  "github.copilot.advanced": {
+    "showEditorCompletions": true
+  },
 
   // 🎨 Prettier 설정
   "prettier.singleQuote": true,
@@ -47,7 +69,53 @@
 
   // 📦 NPM 설정
   "npm.packageManager": "npm",
-  "npm.enableScriptExplorer": true,
+
+  // 🚀 터미널 설정
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell",
+      "args": ["-NoLogo"]
+    }
+  },
+
+  // 🤖 GitHub Copilot 설정
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": true,
+    "markdown": true,
+    "scminput": false
+  },
+  "github.copilot.editor.enableAutoCompletions": true,
+  "github.copilot.advanced": {
+    "showEditorCompletions": true
+  },
+
+  // 🚀 터미널 설정
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell",
+      "args": ["-NoLogo"]
+    }
+  },
+  "terminal.integrated.env.windows": {
+    "PSExecutionPolicyPreference": "RemoteSigned"
+  },
+
+  // 🤖 GitHub Copilot 설정
+  "github.copilot.enable": {
+    "*": true,
+    "plaintext": true,
+    "markdown": true,
+    "scminput": false
+  },
+  "github.copilot.editor.enableAutoCompletions": true,
+  "github.copilot.advanced": {
+    "showEditorCompletions": true
+  },
   "npm.scriptExplorerAction": "run",
 
   // 🎨 TailwindCSS 설정
@@ -164,10 +232,10 @@
   "editorconfig.generateAuto": false,
 
   // 🔧 기타 설정
-  "tasks.autoDetect": "on",
+  "tasks.autoDetect": "off",
   "kiroAgent.configureMCP": "Disabled",
   "extensions.ignoreRecommendations": false,
-  "workbench.startupEditor": "welcomePage",
+  "workbench.startupEditor": "none",
   "workbench.settings.enableNaturalLanguageSearch": false,
 
   // 🐧 WSL 통합 설정
