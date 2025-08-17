@@ -1,9 +1,28 @@
 {
   "projectType": "next-app",
   "mainLanguages": ["typescript", "python"],
+  "developmentEnvironment": {
+    "primary": "wsl-claude-code",
+    "primaryUsage": "압도적 메인 개발 환경",
+    "windowsIDE": {
+      "current": "vscode-copilot",
+      "role": "auxiliary",
+      "purpose": [
+        "이미지 붙여넣기",
+        "웹페이지 수정",
+        "캡쳐 전달",
+        "WSL 터미널 연동"
+      ],
+      "usageFrequency": "아주 가끔",
+      "approach": "CLI와 GUI 도구의 상호 보완적 활용",
+      "advantage": "시각적 콘텐츠 처리 및 폭넓은 도구 선택권",
+      "adoptionSequence": ["cursor", "windsurf", "kiro", "vscode-copilot"],
+      "changeReason": "종합적 개발 환경 구축, Cursor AI 경험 바탕 전략적 도구 조합"
+    }
+  },
   "aiTools": {
     "primary": "claude-code",
-    "secondary": ["gemini", "qwen"]
+    "secondary": ["codex", "gemini", "qwen"]
   },
   "priorityFiles": [
     "docs/PROJECT-SUMMARY.md",

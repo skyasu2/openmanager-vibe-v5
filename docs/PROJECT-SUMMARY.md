@@ -8,7 +8,7 @@
 
 - Frontend: Next.js 15 (App Router), React 18, TypeScript(strict), Tailwind
 - Backend: Edge runtime, GCP Functions, Supabase(Postgres + pgVector)
-- AI: Claude Code 중심, Google/Gemini, Qwen 등 보조 에이전트
+- AI: Claude Code 중심, Codex, Google/Gemini, Qwen 등 보조 에이전트
 
 개발 환경(권장)
 

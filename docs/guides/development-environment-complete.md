@@ -26,7 +26,7 @@ OpenManager VIBE v5는 Windows 11에서 WSL 2를 활용한 하이브리드 개�
 ### 하드웨어 환경
 
 - **CPU**: AMD Ryzen 5 7430U (6코어) 이상
-- **메모리**: 16GB 이상 (WSL에 10GB 할당)
+- **메모리**: 16GB 이상 (WSL에 8GB 할당)
 - **디스크**: 500GB 이상 (SSD 권장)
 - **네트워크**: 안정적인 인터넷 연결
 
@@ -66,16 +66,17 @@ wsl --install -d Ubuntu-24.04
 # %USERPROFILE%\.wslconfig
 
 [wsl2]
-memory=10GB          # WSL 최대 메모리 (AI 모델 처리 최적화)
-processors=8         # 프로세서 코어 수
-swap=8GB            # 스왑 파일 크기 (대용량 작업 지원)
-localhostForwarding=true  # localhost 포워딩 활성화
+memory=8GB           # WSL 최대 메모리 (실제 7.8GB 할당)
+processors=6         # 프로세서 코어 수
+swap=16GB           # 스왑 파일 크기 (대용량 작업 지원)
+networkingMode=mirrored      # localhost 접속 최적화
 vmIdleTimeout=60000  # VM 유휴 시간 설정
 
 [experimental]
+autoMemoryReclaim=gradual    # 자동 메모리 회수
 sparseVhd=true      # 디스크 공간 효율성
-hostProcessInheritance=true  # 호스트 프로세스 상속
-useWindowsDriver=true        # Windows 드라이버 사용
+dnsTunneling=true   # 빠른 외부 API 호출
+firewall=false      # 로컬 개발용 방화벽 비활성화
 ```
 
 ### 3단계: WSL Ubuntu 초기 설정

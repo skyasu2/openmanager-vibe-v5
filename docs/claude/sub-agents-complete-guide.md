@@ -375,22 +375,27 @@ const [dbResult, securityResult] = await Promise.all([
 ### 고급 협업 패턴
 
 ```typescript
-// AI 협업 3종 세트 (병렬 처리)
+// AI 협업 4종 세트 (병렬 처리)
 const aiCollaboration = async (task: string) => {
-  const [claudeResult, geminiResult, qwenResult] = await Promise.all([
-    Task({
-      subagent_type: 'ai-systems-specialist',
-      prompt: task,
-    }),
-    Task({
-      subagent_type: 'gemini-agent',
-      prompt: `대규모 분석: ${task}`,
-    }),
-    Task({
-      subagent_type: 'qwen-agent',
-      prompt: `빠른 검증: ${task}`,
-    }),
-  ]);
+  const [claudeResult, codexResult, geminiResult, qwenResult] =
+    await Promise.all([
+      Task({
+        subagent_type: 'ai-systems-specialist',
+        prompt: task,
+      }),
+      Task({
+        subagent_type: 'codex-agent',
+        prompt: `고품질 구현: ${task}`,
+      }),
+      Task({
+        subagent_type: 'gemini-agent',
+        prompt: `대규모 분석: ${task}`,
+      }),
+      Task({
+        subagent_type: 'qwen-agent',
+        prompt: `빠른 검증: ${task}`,
+      }),
+    ]);
 
   return { claude: claudeResult, gemini: geminiResult, qwen: qwenResult };
 };

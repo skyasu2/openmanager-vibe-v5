@@ -21,8 +21,8 @@ wsl
 # 영구 해결 (.wslconfig 편집)
 # Windows에서: %USERPROFILE%\.wslconfig
 [wsl2]
-memory=10GB
-swap=8GB
+memory=8GB
+swap=16GB
 ```
 
 ### 2. 🤖 AI CLI 도구 설치/실행 실패
@@ -175,7 +175,7 @@ sudo chown -R $(whoami):$(whoami) /mnt/d/cursor/openmanager-vibe-v5
 chmod -R 755 /mnt/d/cursor/openmanager-vibe-v5
 ```
 
-### IDE 연동 문제 (Kiro, VSCode, Windsurf)
+### IDE 연동 문제 (Cursor, Windsurf, Kiro, VSCode)
 
 ```bash
 # WSL 터미널에서 IDE 연동 확인

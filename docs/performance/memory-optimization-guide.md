@@ -21,33 +21,40 @@
 
 1.  **OOM 에러 완전 차단**: 메모리 부족으로 인한 프로세스 종료 방지.
 2.  **예측 가능한 성능**: GC 실행으로 인한 속도 저하 가능성은 있으나, 프로세스 종료 없이 연속성 보장.
-3.  **개발 환경 안정성**: Cursor IDE 크래시 방지, TypeScript 언어 서버 및 빌드 프로세스 안정성 확보.
+3.  **개발 환경 안정성**: WSL + Claude Code 환경에서 TypeScript 언어 서버 및 빌드 프로세스 안정성 확보.
 
 #### ⚠️ 단점 (허용 가능)
 
 1.  **속도 저하 가능성**: 메모리 사용량 증가 시 GC 빈도 증가.
 2.  **시스템 리소스 사용**: 8GB 메모리 예약 (실제 사용은 필요시만).
 
-### 📊 다중 IDE 사용 시나리오 및 8GB 설정의 안전성
+### 📊 현재 개발 환경 메모리 사용 패턴 및 8GB 설정의 안전성
 
-다중 IDE 환경에서 Node.js 프로세스에 8GB를 할당하는 것이 가장 안전하고 효율적입니다.
+**메인 개발 환경**: WSL + Claude Code (압도적 사용)
+**보조 도구**: Windows IDE (이미지 붙여넣기, 웹페이지 수정 등)
 
-#### IDE 2개 사용 시 (안전)
+#### 일반적인 개발 시나리오 (안전)
 
-- Cursor IDE #1: 2GB
-- Cursor IDE #2: 1.5GB
-- Node.js 프로세스 #1: 8GB
-- Node.js 프로세스 #2: 6GB
-- 브라우저: 3GB
-- 시스템: 5GB
-- **총합: 25.5GB → 32GB 여유 6.5GB ✅**
+- **WSL 환경**: 7.8GB (AI CLI 도구 + Node.js 개발 서버)
+  - Claude Code AI 처리: 3GB
+  - Node.js 개발 서버: 6GB
+  - 기타 WSL 프로세스: 1GB
+- **Windows IDE (보조)**: 1.5GB (VS Code + GitHub Copilot)
+- **브라우저**: 3GB
+- **시스템**: 5GB
+- **총합: 19.5GB → 32GB 여유 12.5GB ✅**
 
-#### IDE 3개 사용 시 (안전)
+#### 멀티 AI 협업 시나리오 (안전)
 
-- Cursor IDE #1: 2GB
-- Cursor IDE #2: 1.5GB
-- Cursor IDE #3: 1GB
-- Node.js 프로세스 #1: 8GB
+- **WSL 환경**: 12GB
+  - Claude Code: 4GB
+  - Gemini CLI 병렬 처리: 2GB
+  - Qwen CLI 병렬 처리: 1GB
+  - Node.js 개발 서버: 5GB
+- **Windows IDE (보조)**: 1.5GB
+- **브라우저**: 3GB
+- **시스템**: 5GB
+- **총합: 21.5GB → 32GB 여유 10.5GB ✅**
 - Node.js 프로세스 #2: 6GB
 - Node.js 프로세스 #3: 4GB
 - 브라우저: 3GB

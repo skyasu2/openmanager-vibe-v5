@@ -15,7 +15,7 @@ OpenManager VIBE v5는 Windows 11에서 WSL 2를 활용한 하이브리드 개�
 - **CPU**: AMD Ryzen 5 7430U with Radeon Graphics (6 코어)
 - **메모리**: 7.8GB (WSL 할당)
 - **스왑**: 16GB (WSL)
-- **디스크**: 466GB (D:\ 드라이브, 사용률 1%)
+- **디스크**: 1007GB (약 1TB, 사용률 1%)
 
 ### 운영체제
 
@@ -41,11 +41,25 @@ OpenManager VIBE v5는 Windows 11에서 WSL 2를 활용한 하이브리드 개�
 | **Qwen CLI**    | 0.0.6  | 무료 검증 AI 도구      | WSL       |
 | **ccusage**     | 15.9.7 | Claude 사용량 모니터링 | WSL       |
 
-### IDE 통합 (실험 단계)
+### 🏆 메인 개발 환경 (압도적 사용)
 
-- **Kiro IDE**: Windows에서 WSL 터미널 연동 (테스트 중)
-- **Windsurf**: AI 어시스턴트 기능 (테스트 중)
-- **VSCode**: Copilot + 확장 생태계 (테스트 중)
+- **WSL + Claude Code**: 모든 개발 작업의 핵심 환경
+  - WSL 2 (Ubuntu 24.04 LTS)에서 실행
+  - 19개 서브에이전트, 12개 MCP 서버 통합
+  - 멀티 AI 협업 (Codex, Gemini, Qwen CLI 병렬 사용)
+
+### 🛠️ Windows IDE (보조 도구)
+
+- **VS Code + GitHub Copilot** (현재 사용)
+  - **주요 역할**: WSL 터미널 연동하여 Claude Code 지원
+  - **특별 기능**: 이미지 붙여넣기, 웹페이지 수정, 캡쳐 전달
+  - **사용 빈도**: 아주 가끔 (폭넓은 도구 활용)
+  - **사용 이유**:
+    - CLI와 GUI 도구의 각 강점을 활용한 상호 보완적 접근
+    - 시각적 콘텐츠(이미지) 처리 시 CLI 도구의 한계 보완
+    - Cursor AI 사용 경험으로 IDE AI 기능에 익숙하여 유연한 활용
+    - 종합적 개발 환경 구축을 위한 전략적 도구 조합
+  - **사용 경험**: Cursor → Windsurf → Kiro → VS Code 순서로 테스트
 
 ## 📦 프로젝트 구성
 
@@ -153,12 +167,8 @@ npm run test:quick  # Vitest 최소 설정
 
 ```
 /mnt/d/cursor/openmanager-vibe-v5/
-├── .kiro/                    # Kiro IDE 설정
-│   ├── settings.json         # 터미널 및 WSL 설정
-│   ├── claude-integration.json # Claude Code 연동
-│   ├── ide-workflow.json     # 멀티 IDE 워크플로우
-│   ├── extensions.json       # VS Code 확장 추천
-│   └── tasks.json           # 자동화 작업
+├── .vscode/                 # VS Code 설정
+│   └── ai-context.json      # AI 도구 컨텍스트 설정
 ├── .husky/                  # Git hooks
 │   ├── pre-commit          # lint-staged 실행
 │   └── pre-push            # test:quick 실행
@@ -173,10 +183,20 @@ npm run test:quick  # Vitest 최소 설정
 
 ## ⚡ 성능 최적화
 
-### 메모리 관리
+### WSL 최적화 설정
+
+- **메모리**: 8GB 설정 → 7.8GB 사용 가능
+- **스왑**: 16GB (대용량 작업 지원)
+- **네트워킹**: mirrored 모드 (localhost 접속 최적화)
+- **실험적 기능**:
+  - autoMemoryReclaim=gradual (자동 메모리 회수)
+  - sparseVhd=true (디스크 공간 절약)
+  - dnsTunneling=true (빠른 외부 API 호출)
+  - firewall=false (로컬 개발용)
+
+### Node.js 메모리 관리
 
 - **Node.js 힙**: 6144MB (개발), 8192MB (Mock 모드)
-- **WSL 메모리**: 7.8GB 할당
 - **빌드 캐시**: .next/cache/ 활용
 
 ### 테스트 최적화
@@ -230,7 +250,7 @@ npm run test:quick  # Vitest 최소 설정
 
 ### 일반적인 개발 사이클
 
-1. **IDE 선택**: Kiro/Windsurf/VSCode 중 상황별 선택
+1. **개발 환경**: WSL + Claude Code 메인, Windows IDE(VS Code) 보조 활용
 2. **WSL 터미널**: Windows IDE에서 WSL 터미널 연결
 3. **AI 도구 활용**: Claude Code + 보조 AI들 병렬 사용
 4. **코드 작성**: TypeScript strict mode + TDD
@@ -270,7 +290,7 @@ npm run test:quick  # Vitest 최소 설정
 ### 백업 전략
 
 - **Git**: 모든 변경사항 버전 관리
-- **환경설정**: .kiro/, .husky/ 폴더 백업
+- **환경설정**: .vscode/, .husky/ 폴더 백업
 - **데이터베이스**: Supabase 자동 백업
 
 ---

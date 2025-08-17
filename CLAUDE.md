@@ -21,9 +21,15 @@
 - **Shell**: bash (WSL 내부), PowerShell (Windows 호스트)
 - **Node.js**: v22.18.0 (WSL 내부 설치)
 - **Package Manager**: npm (WSL 전역 패키지 관리)
-- **IDE**: Claude Code (WSL에서 실행)
+- **메인 개발**: **Claude Code (WSL)** - 압도적 사용 환경
+- **Windows IDE**: VS Code + GitHub Copilot (현재) - 상호 보완적 활용
+  - 역할: 이미지 붙여넣기, 웹페이지 수정, 캡쳐 전달 등
+  - 사용 빈도: 아주 가끔 (폭넓은 도구 활용)
+  - 사용 이유: CLI와 GUI 도구의 각 강점을 활용한 종합적 접근
+  - 배경: Cursor AI 사용 경험으로 IDE AI 기능에 익숙, 전략적 도구 조합
+  - 사용 경험: Cursor → Windsurf → Kiro → VS Code 순서로 테스트
 - **터미널**: Windows Terminal (WSL 통합)
-- **Memory**: 10GB allocated to WSL
+- **Memory**: 8GB allocated to WSL (7.8GB available)
 - **Swap**: 8GB configured
 
 ## 🚀 빠른 시작
@@ -67,7 +73,7 @@ qwen --version # Qwen CLI v0.0.6
 
 ### WSL 최적화 설정
 
-- **메모리**: 10GB 할당 (AI 모델 처리 최적화)
+- **메모리**: 8GB 할당 (AI 모델 처리 최적화, 실제 7.8GB 사용 가능)
 - **스왑**: 8GB 설정 (대용량 작업 지원)
 - **프로세서**: 8코어 사용
 - **systemd**: 활성화 (서비스 관리)
@@ -883,7 +889,7 @@ return amount \* (1 + taxRate);
 
 ### WSL 환경 상태
 
-- **메모리**: 10GB 할당, 9.7GB 사용 가능
+- **메모리**: 8GB 할당, 7.8GB 사용 가능
 - **스왑**: 8GB 설정
 - **AI CLI 도구**: 6개 모두 완벽 작동 (Claude, Codex, Gemini, Qwen, OpenAI, ccusage)
 - **멀티 AI 협업**: Max 정액제 + 서브 3개 체제 ($220/월로 $2,200+ 가치)

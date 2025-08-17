@@ -188,10 +188,10 @@ ls -la .mcp.json
 
 ### 개발 효율성 극대화
 
-- **AI 협업**: Claude + Gemini + Qwen 동시 활용
+- **AI 협업**: Claude + Codex + Gemini + Qwen 동시 활용
 - **실시간 모니터링**: `ccusage statusline` 활성화
 - **빠른 테스트**: `npm run test:quick` (6초)
-- **메모리 최적화**: WSL 10GB 할당 권장
+- **메모리 최적화**: WSL 8GB 할당 (실제 7.8GB 사용 가능)
 
 ### 자주 사용하는 명령어
 

@@ -17,13 +17,14 @@ Windows 사용자 홈 디렉토리(`C:\Users\사용자명`)에 `.wslconfig` 파�
 
 ```ini
 [wsl2]
-memory=8GB    # WSL2에 할당할 메모리
-processors=4  # 할당할 프로세서 개수
-swap=4GB      # 스왑 파일 크기
-localhostForwarding=true
+memory=8GB    # WSL2에 할당할 메모리 (실제 7.8GB 사용 가능)
+processors=6  # 할당할 프로세서 개수
+swap=16GB     # 스왑 파일 크기
+networkingMode=mirrored  # localhost 접속 최적화
 ```
 
 설정 후 PowerShell에서:
+
 ```powershell
 wsl --shutdown
 ```
@@ -61,6 +62,7 @@ cchealth
 ```
 
 건강 체크 항목:
+
 - WSL 환경 확인
 - Node.js 및 npm 버전
 - Git 설정 상태
@@ -76,6 +78,7 @@ ccclean
 ```
 
 정리 대상:
+
 - Node.js 프로세스 (개발 서버 제외)
 - npm 캐시
 - 시스템 페이지 캐시
@@ -111,7 +114,7 @@ cctmux
 ### tmux 단축키
 
 - **창 전환**: `Ctrl+b` + 숫자 (0-3)
-- **창 분할**: 
+- **창 분할**:
   - 수평: `Ctrl+b` + `"`
   - 수직: `Ctrl+b` + `%`
 - **창 이동**: `Ctrl+b` + 화살표
@@ -123,6 +126,7 @@ cctmux
 ### 1. Node.js 메모리 설정
 
 `.bashrc`에 추가:
+
 ```bash
 export NODE_OPTIONS="--max-old-space-size=4096"
 ```
@@ -130,6 +134,7 @@ export NODE_OPTIONS="--max-old-space-size=4096"
 ### 2. WSL 파일 시스템 성능
 
 **권장사항**:
+
 - 프로젝트는 Windows 드라이브(`/mnt/d/`)에 유지
 - 빌드 캐시는 WSL 네이티브 경로 사용
 - `node_modules`는 Windows Defender 제외 추가
@@ -242,23 +247,23 @@ cctmux
 
 ### Claude Code 별칭
 
-| 명령어 | 설명 |
-|--------|------|
-| `ccdev` | 통합 개발 환경 시작 |
-| `cctmux` | tmux 개발 세션 시작 |
-| `cctest` | tmux에서 테스트 실행 |
-| `ccperf` | WSL 성능 모니터 |
-| `cclog` | Next.js 추적 로그 |
-| `ccrestart` | 개발 서버 재시작 |
-| `ccquick` | 빠른 검증 (테스트+타입+린트) |
-| `ccfix` | ESLint 자동 수정 |
-| `ccbuild` | 프로덕션 빌드 |
-| `ccgit` | Git 상태 확인 |
-| `cchealth` | 개발 환경 건강 체크 |
-| `ccclean` | 메모리 정리 |
-| `ccstatus` | 개발 환경 상태 |
-| `cchelp` | 도움말 |
-| `om` | 프로젝트 디렉토리로 이동 |
+| 명령어      | 설명                         |
+| ----------- | ---------------------------- |
+| `ccdev`     | 통합 개발 환경 시작          |
+| `cctmux`    | tmux 개발 세션 시작          |
+| `cctest`    | tmux에서 테스트 실행         |
+| `ccperf`    | WSL 성능 모니터              |
+| `cclog`     | Next.js 추적 로그            |
+| `ccrestart` | 개발 서버 재시작             |
+| `ccquick`   | 빠른 검증 (테스트+타입+린트) |
+| `ccfix`     | ESLint 자동 수정             |
+| `ccbuild`   | 프로덕션 빌드                |
+| `ccgit`     | Git 상태 확인                |
+| `cchealth`  | 개발 환경 건강 체크          |
+| `ccclean`   | 메모리 정리                  |
+| `ccstatus`  | 개발 환경 상태               |
+| `cchelp`    | 도움말                       |
+| `om`        | 프로젝트 디렉토리로 이동     |
 
 ### 유용한 WSL 명령어
 
