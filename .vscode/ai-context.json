@@ -1,0 +1,28 @@
+{
+  "projectType": "next-app",
+  "mainLanguages": ["typescript", "python"],
+  "aiTools": {
+    "primary": "claude-code",
+    "secondary": ["gemini", "qwen"]
+  },
+  "priorityFiles": [
+    "docs/PROJECT-SUMMARY.md",
+    "README.md",
+    "package.json",
+    ".mcp.json"
+  ],
+  "ignorePaths": ["node_modules", ".next", "dist", "logs", "reports"],
+  "contextRules": {
+    "includePatterns": [
+      "src/**/*.{ts,tsx}",
+      "scripts/**/*.{sh,ps1}",
+      "docs/**/*.md"
+    ],
+    "excludePatterns": ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}", "**/test-*"]
+  },
+  "customCommands": {
+    "dev": "npm run dev",
+    "test": "npm run test:quick",
+    "build": "npm run build"
+  }
+}

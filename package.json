@@ -3,6 +3,9 @@
   "version": "5.66.40",
   "private": true,
   "scripts": {
+    "windows:dev": "powershell -ExecutionPolicy Bypass -File scripts/windows-support/env-setup/quick-dev-start.ps1",
+    "windows:dev:fast": "powershell -ExecutionPolicy Bypass -File scripts/windows-support/env-setup/quick-dev-start.ps1 -Fast",
+    "windows:dev:full": "powershell -ExecutionPolicy Bypass -File scripts/windows-support/env-setup/quick-dev-start.ps1 -Full",
     "dev": "cross-env NODE_OPTIONS='--max-old-space-size=6144' next dev",
     "dev:turbo": "cross-env NODE_OPTIONS='--max-old-space-size=6144' next dev --turbo",
     "dev:optimized": "cross-env NODE_OPTIONS='--max-old-space-size=4096 --optimize-for-size' NEXT_TELEMETRY_DISABLED=1 next dev --turbo",
