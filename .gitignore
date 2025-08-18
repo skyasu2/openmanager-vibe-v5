@@ -302,3 +302,8 @@ vitest.config.performance.ts
 
 # Reports moved to /reports/
 gcp-functions-health-report.json
+
+# TypeScript 임시 파일 (pre-commit hook에서 생성)
+*.temp.json
+.tsconfig.temp.json
+tsconfig.*.temp.json
