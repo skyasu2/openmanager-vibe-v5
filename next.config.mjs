@@ -43,8 +43,8 @@ const nextConfig = {
   experimental: {
     // CSS 최적화 활성화 (MIME type 에러 해결)
     optimizeCss: true,
-    // CSS 청킹 강제 분리 (CSS/JS 완전 분리)
-    cssChunking: 'strict',
+    // CSS 청킹 비활성화 (MIME type 에러 방지)
+    // cssChunking: 'strict',
     // 트랜스폼 최적화
     forceSwcTransforms: true,
     // 빌드 워커 활성화 (성능 향상)
@@ -290,15 +290,6 @@ const nextConfig = {
         chunks: 'all',
         maxInitialRequests: 6, // 초기 요청 수 제한
         cacheGroups: {
-          // CSS 전용 처리 (최우선)
-          styles: {
-            name: 'styles',
-            test: /\.(css|scss|sass)$/,
-            chunks: 'all',
-            priority: 30,
-            enforce: true,
-            type: 'css/mini-extract',
-          },
           // Framework 통합 (React, Next.js 등)
           framework: {
             name: 'framework',
