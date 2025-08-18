@@ -1,22 +1,16 @@
-// 테스트용 TypeScript 파일 - 의도적 오류 포함
+// 테스트용 TypeScript 파일 - 스마트 커밋 시스템 테스트를 위한 의도적 오류
 
-export function testFunction(param1, param2) {
-  // 오류 1: 매개변수에 타입이 없음 (implicit any)
-  const result = param1 + param2;
-  
-  // 오류 2: 사용하지 않는 변수
-  const unusedVariable = "this will not be used";
-  
-  // 오류 3: 누락된 반환 타입
-  return result;
+// 오류 1 수정: 매개변수에 타입 추가
+export function calculateSum(a: number, b: number): number {
+  return a + b;
 }
 
-// 오류 4: 누락된 import (React를 사용하지만 import하지 않음)
-export const TestComponent = () => {
-  return React.createElement('div', null, 'Test');
-};
+// 오류 2 수정: 사용하지 않는 변수 제거
+export function processData(input: string): string {
+  return input.toUpperCase();
+}
 
-// 오류 5: null 체크 없이 접근
-export function accessProperty(obj) {
-  return obj.property.value; // obj가 null일 수 있음
+// 오류 3 수정: 반환 타입 추가
+export function multiply(x: number, y: number): number {
+  return x * y;
 }
