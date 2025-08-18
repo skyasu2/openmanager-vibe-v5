@@ -41,8 +41,6 @@ const nextConfig = {
 
   // 실험적 기능 최적화
   experimental: {
-    // Next.js devtools 비활성화 (SSR 에러 방지)
-    devtools: false,
     // CSS 최적화 비활성화 (critters 의존성 제거)
     optimizeCss: false,
     // 트랜스폼 최적화
@@ -285,56 +283,27 @@ const nextConfig = {
         crypto: false,
       };
       
-      // 번들 분할 최적화
+      // 단순화된 번들 분할 (CSS 중복 로드 방지)
       config.optimization.splitChunks = {
         chunks: 'all',
         cacheGroups: {
-          // 프레임워크 번들 (React, Next.js)
-          framework: {
-            test: /[\\/]node_modules[\\/](react|react-dom|next)[\\/]/,
-            name: 'framework',
-            priority: 40,
+          // CSS 파일은 별도 처리
+          styles: {
+            name: 'styles',
+            test: /\.(css|scss|sass)$/,
+            chunks: 'all',
             enforce: true,
+            priority: 100,
           },
-          // UI 라이브러리 번들
-          ui: {
-            test: /[\\/]node_modules[\\/](@radix-ui|lucide-react|@heroicons)[\\/]/,
-            name: 'ui',
-            priority: 30,
-          },
-          // 유틸리티 번들
-          utils: {
-            test: /[\\/]node_modules[\\/](clsx|tailwind-merge|class-variance-authority)[\\/]/,
-            name: 'utils',
-            priority: 25,
-          },
-          // 대용량 라이브러리 번들 (별도 분리)
-          heavy: {
-            test: /[\\/]node_modules[\\/](framer-motion|recharts|monaco-editor)[\\/]/,
-            name: 'heavy',
-            priority: 20,
-            enforce: true,
-          },
-          // 기본 vendor 번들
+          // 기본 vendor 번들만 유지
           vendor: {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
             priority: 10,
-            minChunks: 2,
-          },
-          // 공통 코드 번들
-          common: {
-            minChunks: 2,
-            priority: 5,
-            reuseExistingChunk: true,
+            minChunks: 1,
           },
         },
       };
-
-      // 번들 크기 제한
-      config.optimization.splitChunks.maxSize = 200000; // 200KB
-      config.optimization.splitChunks.maxAsyncSize = 300000; // 300KB
-      config.optimization.splitChunks.maxInitialSize = 250000; // 250KB
     }
 
     // 프로덕션 최적화
