@@ -81,6 +81,9 @@ function Home() {
 
   // 시스템 상태 동기화 debounce를 위한 ref
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // 이전 상태 추적을 위한 ref (추가 안정성)
+  const prevRunningRef = useRef<boolean | null>(null);
 
   // 상태 안내 메시지 메모이제이션 (JSX에서 분리하여 성능 최적화)
   const statusInfo = useMemo(() => {
@@ -127,8 +130,15 @@ function Home() {
       clearTimeout(syncTimeoutRef.current);
     }
 
-    // debounce: 500ms 후에 실행 (무한 루프 방지를 위한 더 긴 지연)
+    // debounce: 1000ms 후에 실행 (무한 루프 방지를 위한 더 긴 지연)
     syncTimeoutRef.current = setTimeout(() => {
+      // 이전 상태와 비교하여 실제 변화가 있을 때만 처리 (추가 안정성)
+      const currentRunning = multiUserStatus.isRunning;
+      if (prevRunningRef.current === currentRunning) {
+        return; // 상태 변화가 없으면 무시
+      }
+      prevRunningRef.current = currentRunning;
+      
       // 상태 변화가 실제로 있을 때만 동기화 (무한 루프 방지)
       const needsStart = multiUserStatus.isRunning && !isSystemStarted;
       const needsStop = !multiUserStatus.isRunning && isSystemStarted;
@@ -146,7 +156,7 @@ function Home() {
       if (currentStarting !== isSystemStarting) {
         setIsSystemStarting(currentStarting);
       }
-    }, 500);
+    }, 1000);
 
     return () => {
       if (syncTimeoutRef.current) {
@@ -160,8 +170,8 @@ function Home() {
     multiUserStatus?.isStarting,
     isSystemStarted,
     isSystemStarting,
-    startSystem, // startSystem 함수 추가
-    stopSystem,  // stopSystem 함수 추가
+    // startSystem, stopSystem 제거 - Zustand 함수는 안정적이므로 의존성 불필요
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   ]);
 
   // 🔄 클라이언트 마운트 감지
@@ -396,9 +406,11 @@ function Home() {
     }
   }, [isLoading, isSystemStarting, handleSystemStartBackground, router]);
 
-  // 대시보드 클릭 핸들러
+  // 대시보드 클릭 핸들러 (최적화: 현재 경로가 다를 때만 이동)
   const handleDashboardClick = useCallback(() => {
-    router.push('/dashboard');
+    if (router.pathname !== '/dashboard') {
+      router.push('/dashboard');
+    }
   }, [router]);
 
   // 시스템 토글 함수 (깜빡임 방지 개선)
