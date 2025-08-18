@@ -134,6 +134,7 @@ const nextConfig = {
         "'self'",
         isDev ? "'unsafe-eval'" : '', // 개발 환경에서만 eval 허용
         "'unsafe-inline'", // dangerouslySetInnerHTML 호환
+        'https://vercel.live', // Vercel Toolbar
         'https://va.vercel-scripts.com', // Vercel Analytics
         'https://vitals.vercel-insights.com', // Speed Insights
         'blob:', // 동적 스크립트 허용
@@ -151,6 +152,7 @@ const nextConfig = {
       ],
       'connect-src': [
         "'self'",
+        'https://vercel.live', // Vercel Toolbar
         'https://api.openmanager.dev', // 자체 API
         'https://vnswjnltnhpsueosfhmw.supabase.co', // Supabase
         'https://generativelanguage.googleapis.com', // Google AI
@@ -165,7 +167,7 @@ const nextConfig = {
         'data:', // Base64 폰트
       ],
       'frame-src': [
-        "'none'", // 프레임 완전 차단
+        'https://vercel.live', // Vercel Toolbar 허용
       ],
       'object-src': [
         "'none'", // Object/Embed 차단

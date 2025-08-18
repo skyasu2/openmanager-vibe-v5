@@ -82,7 +82,7 @@ export function useInitialAuth() {
 
       // 인증되지 않은 경우 로그인 페이지로 리다이렉션 (지연 없이)
       if (!user) {
-        safeRedirect('/');
+        safeRedirect('/login');
       }
 
     } catch (error) {
@@ -98,7 +98,7 @@ export function useInitialAuth() {
       });
 
       // 에러 시 로그인 페이지로 리다이렉션
-      safeRedirect('/');
+      safeRedirect('/login');
     }
   }, [updateState, safeRedirect]);
 
