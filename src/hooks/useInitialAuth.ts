@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { getCurrentUser, isGitHubAuthenticated } from '@/lib/auth';
+import { useRouter, usePathname } from 'next/navigation';
+import { getCurrentUser, isGitHubAuthenticated } from '@/lib/supabase-auth';
 import { User } from '@supabase/supabase-js';
 
 // 초기화 상태 타입 정의
@@ -32,13 +32,28 @@ const initialState: InitialAuthState = {
 export function useInitialAuth() {
   const [state, setState] = useState<InitialAuthState>(initialState);
   const router = useRouter();
+  const pathname = usePathname();
   const initRef = useRef(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const redirectRef = useRef(false);
 
   // 상태 업데이트 헬퍼
   const updateState = useCallback((updates: Partial<InitialAuthState>) => {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
+
+  // 안전한 리다이렉트 헬퍼 (무한 루프 방지)
+  const safeRedirect = useCallback((targetPath: string) => {
+    // 이미 리다이렉트했거나 현재 경로가 타겟과 같으면 리다이렉트하지 않음
+    if (redirectRef.current || pathname === targetPath) {
+      console.log(`🚫 리다이렉트 스킵: 현재 경로(${pathname}) === 타겟(${targetPath}) 또는 이미 리다이렉트됨`);
+      return;
+    }
+    
+    redirectRef.current = true;
+    console.log(`🔄 안전한 리다이렉트: ${pathname} → ${targetPath}`);
+    setTimeout(() => router.replace(targetPath), 100);
+  }, [pathname, router]);
 
   // 통합 초기화 프로세스
   const initializeAuth = useCallback(async () => {
@@ -67,7 +82,7 @@ export function useInitialAuth() {
 
       // 인증되지 않은 경우 로그인 페이지로 리다이렉션 (지연 없이)
       if (!user) {
-        setTimeout(() => router.replace('/'), 100);
+        safeRedirect('/');
       }
 
     } catch (error) {
@@ -83,9 +98,9 @@ export function useInitialAuth() {
       });
 
       // 에러 시 로그인 페이지로 리다이렉션
-      setTimeout(() => router.replace('/'), 100);
+      safeRedirect('/');
     }
-  }, [router, updateState]);
+  }, [updateState, safeRedirect]);
 
   // 초기화 실행 - 의존성 배열 제거로 무한 루프 방지
   useEffect(() => {
@@ -104,6 +119,7 @@ export function useInitialAuth() {
   useEffect(() => {
     return () => {
       initRef.current = false;
+      redirectRef.current = false;
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
@@ -113,6 +129,7 @@ export function useInitialAuth() {
   // 재시도 함수
   const retry = useCallback(() => {
     initRef.current = false;
+    redirectRef.current = false;
     setState(initialState);
     initializeAuth();
   }, [initializeAuth]);
