@@ -37,34 +37,6 @@
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
-/* 🚫 깜박거림 방지 최적화 */
-* {
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  -moz-backface-visibility: hidden;
-  -ms-backface-visibility: hidden;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-/* 애니메이션 최적화 */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* GPU 가속 강제 */
-.transform-gpu {
-  transform: translateZ(0);
-  will-change: transform;
-}
-
 /* 🌊 웨이브 파티클 배경 효과 - Commit 18a89a4 스타일 */
 .wave-particles {
   position: fixed;
@@ -74,8 +46,6 @@ html {
   height: 100%;
   pointer-events: none;
   z-index: 1;
-  transform: translateZ(0);
-  will-change: background;
   background:
     radial-gradient(
       ellipse at center,

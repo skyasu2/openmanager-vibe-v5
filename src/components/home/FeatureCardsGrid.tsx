@@ -5,10 +5,7 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { motion } from 'framer-motion';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type { FeatureCard, FeatureCardProps } from '@/types/feature-card.types';
-import {
-  FEATURE_CARDS_DATA,
-  CARD_COMPLETION_RATES,
-} from '@/data/feature-cards.data';
+import { FEATURE_CARDS_DATA, CARD_COMPLETION_RATES } from '@/data/feature-cards.data';
 
 // AI 단어에 그라데이션 애니메이션 적용하는 함수 - 컴포넌트 외부로 이동
 const renderTextWithAIGradient = (text: string) => {
@@ -51,9 +48,8 @@ const FeatureCardItem = memo(
     isAIDisabled: boolean;
   }) => {
     // 완성도 가져오기
-    const completionRate =
-      CARD_COMPLETION_RATES[card.id] || CARD_COMPLETION_RATES.default;
-
+    const completionRate = CARD_COMPLETION_RATES[card.id] || CARD_COMPLETION_RATES.default;
+    
     // 카드 타입별 스타일 헬퍼
     const getCardStyles = (card: FeatureCard) => {
       return {
@@ -162,51 +158,13 @@ const FeatureCardItem = memo(
           {/* Vibe Coding 카드 특별 디자인 */}
           {card.isVibeCard && (
             <>
-              {/* 장식 요소 - 깜박거림 방지 최적화 */}
-              <motion.div
-                className="absolute right-2 top-2 h-6 w-6 rounded-full bg-yellow-400/30"
-                animate={{
-                  opacity: [0.3, 0.7, 0.3],
-                  scale: [1, 1.1, 1],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              />
-              <motion.div
-                className="absolute bottom-2 left-2 h-4 w-4 rounded-full bg-yellow-400/20"
-                animate={{
-                  opacity: [0.2, 0.6, 0.2],
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{
-                  duration: 2.5,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                  delay: 0.5,
-                }}
-              />
+              {/* 장식 요소 */}
+              <div className="_animate-pulse absolute right-2 top-2 h-6 w-6 rounded-full bg-yellow-400/30"></div>
+              <div className="_animate-pulse absolute bottom-2 left-2 h-4 w-4 rounded-full bg-yellow-400/20"></div>
 
-              {/* 개선된 배경 그라데이션 - 부드러운 애니메이션 */}
+              {/* 개선된 배경 그라데이션 - 애니메이션 효과 */}
               <div className="absolute inset-0 overflow-hidden rounded-2xl">
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 opacity-90"
-                  animate={{
-                    background: [
-                      'linear-gradient(135deg, rgb(245,158,11) 0%, rgb(234,88,12) 50%, rgb(220,38,38) 100%)',
-                      'linear-gradient(225deg, rgb(245,158,11) 0%, rgb(234,88,12) 50%, rgb(220,38,38) 100%)',
-                      'linear-gradient(315deg, rgb(245,158,11) 0%, rgb(234,88,12) 50%, rgb(220,38,38) 100%)',
-                      'linear-gradient(135deg, rgb(245,158,11) 0%, rgb(234,88,12) 50%, rgb(220,38,38) 100%)',
-                    ],
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                />
+                <div className="_animate-gradient absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 bg-[length:200%_200%] opacity-90" />
               </div>
 
               {/* 텍스트 가독성을 위한 오버레이 */}
@@ -324,8 +282,7 @@ export default function FeatureCardsGrid() {
     setSelectedCard(null);
   };
 
-  const selectedCardData =
-    FEATURE_CARDS_DATA.find((card) => card.id === selectedCard) || null;
+  const selectedCardData = FEATURE_CARDS_DATA.find((card) => card.id === selectedCard) || null;
 
   return (
     <>
