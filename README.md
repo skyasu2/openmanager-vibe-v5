@@ -347,10 +347,13 @@ Task({
 
 ### 🔄 멀티 AI 협업 전략
 
-- **메인**: Claude Code Max ($200/월 정액) - 80% 작업량
-- **서브**: Codex CLI (ChatGPT Plus $20/월) - 병렬 개발
-- **무료**: Gemini CLI + Qwen CLI - 교차 검증
-- **효율성**: $220/월로 $2,200+ 가치 창출 (10배 절약)
+- **메인**: Claude Code Max ($200/월) - 주력 개발 환경 (정액제)
+- **서브**: Codex CLI (ChatGPT Plus $20/월) - 병렬 개발, 테스트 코드
+- **아키텍트**: Gemini CLI (무료 1K req/day) - 코드 품질 검토, SOLID 원칙
+- **병렬**: Qwen Code (무료 2K req/day) - 독립 모듈, 제3의 시선
+- **효율성**: $220/월로 $2,200+ 가치 창출 (10배+ 절약)
+
+> **💡 새로운 비교표**: [AI-CLI-COMPARISON.md](./AI-CLI-COMPARISON.md) 참조
 
 상세한 활용법은 [CLAUDE.md](./CLAUDE.md) 문서를 참조하세요.
 

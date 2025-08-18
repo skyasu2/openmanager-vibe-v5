@@ -1,18 +1,32 @@
-# <!--
-
-# CODEX 전용 문서 (AGENTS.md)
-
+<!--
+CODEX 전용 문서 (AGENTS.md)
 ChatGPT Codex CLI를 위한 OpenManager VIBE v5 특화 설정
 실제 프로젝트 상황 100% 반영, 멀티 AI 협업 최적화
-===========================================
 -->
 
 # 🤖 AGENTS.md - Codex CLI Configuration
 
 > **OpenManager VIBE v5 전용 Codex CLI 설정**  
 > **Language Policy**: 한국어 우선, 기술용어 영어 허용  
-> **Last Updated**: 2025-08-17 | **Environment**: Windows 11 + WSL 2  
+> **Last Updated**: 2025-08-18 | **Environment**: Windows 11 + WSL 2  
 > **Project Status**: 69,260줄 TypeScript, 98.2% 테스트 커버리지, 12개 MCP 서버
+
+## ℹ️ Codex /init 사용 안내
+
+- Codex CLI에서 `/init` 실행 시 루트에 `AGENTS.md`가 생성/갱신됩니다.
+- 본 문서는 Codex 설정의 출발점이며 `.codex/` 디렉터리 구조와 연동됩니다.
+- Windows 호스트에선 래퍼를 사용해 바로 실행할 수 있습니다.
+
+```powershell
+# Windows에서 Codex 초기화 (WSL 래퍼)
+.\ai-cli-wsl.bat codex-cli init --project openmanager-vibe-v5 --korean --wsl
+.\ai-cli-wsl.bat codex-cli --help
+```
+
+```bash
+# WSL 내부에서 Codex 초기화
+codex-cli init --project openmanager-vibe-v5 --korean --wsl
+```
 
 ## 🎯 Codex 빠른 시작 (OpenManager VIBE v5)
 
@@ -31,6 +45,10 @@ codex-cli "Vitest 테스트 커버리지 100% 달성"
 alias cdv="cd /mnt/d/cursor/openmanager-vibe-v5"
 alias codex="codex-cli"
 alias cx="codex-cli"
+
+# Windows에서 바로 실행 (WSL 래퍼)
+## 예: 동일 명령을 Windows 쉘에서 실행
+## .\ai-cli-wsl.bat codex-cli "Next.js 15 App Router 성능 최적화"
 ```
 
 ## 🏗️ OpenManager VIBE v5 프로젝트 정보
@@ -50,7 +68,7 @@ Status:
   Free_Tier: '100% 무료 운영 (Vercel 100GB + GCP 2M req + Supabase 500MB)'
 
 AI_Integration:
-  MCP_Servers: 12개 (11개 정상 동작)
+  MCP_Servers: 12개 (12개 정상 동작)
   AI_Engines: 4개 (Google AI, Supabase RAG, Korean NLP, ML Analytics)
   Claude_SubAgents: 18개 전문 에이전트
   Multi_AI: 'Claude + Gemini + Qwen + Codex 병렬 협업'
@@ -58,7 +76,7 @@ AI_Integration:
 
 ## 🤖 Codex 전문 에이전트 구성 (12개)
 
-### 1. 🔧 TypeScript 엔진니어
+### 1. 🔧 TypeScript 엔지니어
 
 ```yaml
 typescript_engineer:
@@ -266,7 +284,7 @@ alias cxs="codex-cli status"
 
 ### .codex/ 폴더 구성
 
-```
+```text
 /mnt/d/cursor/openmanager-vibe-v5/.codex/
 ├── config.json                 # 메인 설정
 ├── agents.yml                  # 에이전트 정의
@@ -298,6 +316,8 @@ alias cxs="codex-cli status"
     ├── typescript-fixes.log   # TypeScript 수정 로그
     └── performance.log        # 성능 최적화 로그
 ```
+
+> 권장: `.codex/logs/`는 Git 추적 제외(.gitignore)에 추가하세요.
 
 ## 🎯 실전 Codex 명령어 모음
 

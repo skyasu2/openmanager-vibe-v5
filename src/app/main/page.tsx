@@ -10,13 +10,9 @@
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { useInitialAuth } from '@/hooks/useInitialAuth';
 import { motion } from 'framer-motion';
 import { BarChart3, Bot, Loader2, Play, X, LogIn } from 'lucide-react';
-import {
-  getCurrentUser,
-  isGitHubAuthenticated,
-  onAuthStateChange,
-} from '@/lib/supabase-auth';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
@@ -38,15 +34,20 @@ const FeatureCardsGrid = dynamic(
 
 export default function Home() {
   const router = useRouter();
-  const [isGitHubUser, setIsGitHubUser] = useState(false);
-  const [currentUser, setCurrentUser] = useState<{
-    name: string;
-    email?: string;
-    avatar?: string;
-  } | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
-  const [_redirecting, _setRedirecting] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true);
+  
+  // 통합 초기화 훅 사용 (5-6초 지연 문제 해결)
+  const {
+    isLoading: authLoading,
+    isAuthenticated,
+    user: currentUser,
+    isGitHubConnected: isGitHubUser,
+    error: authError,
+    isReady: authReady,
+    shouldRedirect,
+    getLoadingMessage,
+    retry: retryAuth
+  } = useInitialAuth();
+  
   const [isMounted, setIsMounted] = useState(false); // 🔄 클라이언트 마운트 상태 (hydration 문제 방지)
 
   const {
@@ -80,16 +81,16 @@ export default function Home() {
   // 시스템 상태 동기화 debounce를 위한 ref
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 시스템 상태 동기화 - 실시간 업데이트 (debounce 적용)
+  // 시스템 상태 동기화 - 최적화된 실시간 업데이트 (인증 완료 후에만 실행)
   useEffect(() => {
-    if (!isMounted || !multiUserStatus) return;
+    if (!isMounted || !authReady || !multiUserStatus) return;
 
     // 이전 타이머 클리어
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
     }
 
-    // debounce: 100ms 후에 실행
+    // debounce: 200ms 후에 실행 (더 안정적인 동기화)
     syncTimeoutRef.current = setTimeout(() => {
       // 시스템 상태가 변경되면 로컬 상태도 동기화
       if (multiUserStatus.isRunning && !isSystemStarted) {
@@ -104,7 +105,7 @@ export default function Home() {
       if (multiUserStatus.isStarting !== isSystemStarting) {
         setIsSystemStarting(multiUserStatus.isStarting || false);
       }
-    }, 100);
+    }, 200);
 
     return () => {
       if (syncTimeoutRef.current) {
@@ -113,6 +114,7 @@ export default function Home() {
     };
   }, [
     isMounted,
+    authReady, // 인증 준비 완료 후에만 동기화 시작
     multiUserStatus?.isRunning,
     multiUserStatus?.isStarting,
     isSystemStarted,
@@ -124,77 +126,23 @@ export default function Home() {
     setIsMounted(true);
   }, []);
 
-  // Supabase Auth 상태 확인 (최적화됨)
+  // 인증 에러 시 재시도 로직
   useEffect(() => {
-    if (!isMounted) return;
-
-    let authListener: { subscription: { unsubscribe: () => void } } | null;
-    let isInitialLoad = true;
-
-    const checkAuth = async (skipLoader = false) => {
-      if (!skipLoader) setAuthLoading(true);
-      
-      try {
-        // 병렬 API 호출로 성능 최적화
-        const [isGitHub, user] = await Promise.all([
-          isGitHubAuthenticated(),
-          getCurrentUser()
-        ]);
-
-        setIsGitHubUser(isGitHub);
-
-        // 사용자 정보 설정
-        if (user) {
-          setCurrentUser({
-            name: user.name || 'User',
-            email: user.email,
-            avatar: user.avatar,
-          });
-        } else {
-          setCurrentUser(null);
-        }
-
-        debug.log('🔐 인증 상태:', { isGitHub, user });
-        setAuthChecked(true);
-      } catch (error) {
-        debug.error('❌ 인증 확인 오류:', error);
-        setAuthChecked(true); // 오류 시에도 체크 완료로 설정
-      } finally {
-        if (!skipLoader) setAuthLoading(false);
-      }
-    };
-
-    void checkAuth();
-
-    // 인증 상태 변경 리스너 (초기 로드 시에는 스킵)
-    authListener = onAuthStateChange(async (_session) => {
-      if (isInitialLoad) {
-        isInitialLoad = false; // 초기 트리거 스킵
-        return;
-      }
-      debug.log('🔄 Auth 상태 변경 감지');
-      await checkAuth(true); // 로더 없이 빠르게 업데이트
-    });
-
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
-  }, [isMounted]);
-
-  // 즉시 리다이렉션 체크
-  useEffect(() => {
-    if (!isMounted || authLoading) return;
-
-    // 인증 체크 완료 후 사용자가 없으면 즉시 리다이렉션
-    if (authChecked && !currentUser) {
-      debug.log('🚨 인증 정보 없음 - 로그인 페이지로 이동');
-      router.replace('/login');
+    if (authError && authReady) {
+      debug.error('❌ 인증 에러 발생:', authError);
+      // 3초 후 자동 재시도 (선택적)
+      const retryTimer = setTimeout(retryAuth, 3000);
+      return () => clearTimeout(retryTimer);
     }
-  }, [isMounted, authLoading, authChecked, currentUser, router]);
+  }, [authError, authReady, retryAuth]);
 
-  // 🔧 상태 변화 디버깅 (클라이언트에서만) - 최적화됨
+  // 기존 인증 로직은 useInitialAuth 훅으로 대체됨
+
+  // 리다이렉션은 useInitialAuth 훅에서 자동 처리됨
+
+  // 🔧 상태 변화 디버깅 - 인증 완료 후에만 실행하여 초기화 성능 향상
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || !authReady) return;
 
     debug.log('🔍 Home - 시스템 상태 변화:', {
       isSystemStarted,
@@ -202,11 +150,11 @@ export default function Home() {
       aiAgentState: aiAgent.state,
       timeRemaining: systemTimeRemaining,
     });
-  }, [isMounted, isSystemStarted, aiAgent.isEnabled, systemTimeRemaining]);
+  }, [isMounted, authReady, isSystemStarted, aiAgent.isEnabled, systemTimeRemaining]);
 
-  // 🛡️ 상태 불일치 방지 - AI 에이전트가 시스템 중지 시 비활성화되는지 확인 (클라이언트에서만)
+  // 🛡️ 상태 불일치 방지 - 인증 완료 후에만 체크하여 초기화 성능 향상
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || !authReady) return;
 
     // 🚨 시스템이 시작된 후에만 상태 불일치 감지
     if (isSystemStarted && !aiAgent.isEnabled) {
@@ -214,11 +162,11 @@ export default function Home() {
         '⚠️ 상태 불일치 감지: 시스템이 활성화되었지만 AI 에이전트가 비활성화됨'
       );
     }
-  }, [isMounted, isSystemStarted, aiAgent.isEnabled]);
+  }, [isMounted, authReady, isSystemStarted, aiAgent.isEnabled]);
 
-  // 시스템 타이머 업데이트 (클라이언트에서만) - 최적화됨
+  // 시스템 타이머 업데이트 - 인증 완료 후에만 시작하여 초기화 지연 방지
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || !authReady) return;
 
     if (isSystemStarted) {
       const updateTimer = () => {
@@ -234,7 +182,7 @@ export default function Home() {
       setSystemTimeRemaining(0);
       return;
     }
-  }, [isMounted, isSystemStarted]);
+  }, [isMounted, authReady, isSystemStarted, getSystemRemainingTime]);
 
   // 카운트다운 중지 함수 (깜빡임 방지 개선)
   const stopSystemCountdown = useCallback(() => {
@@ -428,113 +376,111 @@ export default function Home() {
     handleDashboardClick,
   ]);
 
-  // 📊 버튼 텍스트와 상태 결정 (진행바 효과로 개선)
-  const getButtonConfig = useMemo(
-    () => () => {
-      // 1. 카운트다운 중 (최우선)
-      if (systemStartCountdown > 0) {
-        return {
-          text: `시작 취소 (${systemStartCountdown}초)`,
-          icon: <X className="h-5 w-5" />,
-          className:
-            'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50 relative overflow-hidden',
-        };
-      }
-
-      // 2. 시스템 시작 중 (카운트다운 완료 후)
-      if (isSystemStarting) {
-        return {
-          text: '시스템 시작 중...',
-          icon: <Loader2 className="h-5 w-5 animate-spin" />,
-          className:
-            'bg-gradient-to-r from-purple-500 to-blue-600 text-white border-purple-400/50 cursor-not-allowed',
-        };
-      }
-
-      // 3. 일반 로딩 상태
-      if (isLoading || statusLoading) {
-        return {
-          text: '시스템 초기화 중...',
-          icon: <Loader2 className="h-5 w-5 animate-spin" />,
-          className:
-            'bg-gray-500 text-white border-gray-400/50 cursor-not-allowed',
-        };
-      }
-
-      // 4. 시스템 실행 중 (대시보드 이동)
-      if (multiUserStatus?.isRunning || isSystemStarted) {
-        return {
-          text: `📊 대시보드 이동 (사용자: ${multiUserStatus?.userCount || 0}명)`,
-          icon: <BarChart3 className="h-5 w-5" />,
-          className:
-            'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50',
-        };
-      }
-
-      // 5. 기본 상태 (시스템 시작 대기)
+  // 📊 버튼 설정 메모이제이션 최적화 - 렌더링 성능 향상
+  const buttonConfig = useMemo(() => {
+    // 1. 카운트다운 중 (최우선)
+    if (systemStartCountdown > 0) {
       return {
-        text: '🚀 시스템 시작',
-        icon: <Play className="h-5 w-5" />,
+        text: `시작 취소 (${systemStartCountdown}초)`,
+        icon: <X className="h-5 w-5" />,
         className:
-          'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-blue-400/50',
+          'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50 relative overflow-hidden',
+        disabled: false,
       };
-    },
-    [
-      systemStartCountdown,
-      isSystemStarting,
-      isLoading,
-      statusLoading,
-      multiUserStatus?.isRunning,
-      multiUserStatus?.userCount,
-      isSystemStarted,
-    ]
-  );
+    }
+
+    // 2. 시스템 시작 중 (카운트다운 완료 후)
+    if (isSystemStarting) {
+      return {
+        text: '시스템 시작 중...',
+        icon: <Loader2 className="h-5 w-5 animate-spin" />,
+        className:
+          'bg-gradient-to-r from-purple-500 to-blue-600 text-white border-purple-400/50 cursor-not-allowed',
+        disabled: true,
+      };
+    }
+
+    // 3. 일반 로딩 상태
+    if (isLoading || statusLoading) {
+      return {
+        text: '시스템 초기화 중...',
+        icon: <Loader2 className="h-5 w-5 animate-spin" />,
+        className:
+          'bg-gray-500 text-white border-gray-400/50 cursor-not-allowed',
+        disabled: true,
+      };
+    }
+
+    // 4. 시스템 실행 중 (대시보드 이동)
+    if (multiUserStatus?.isRunning || isSystemStarted) {
+      return {
+        text: `📊 대시보드 이동 (사용자: ${multiUserStatus?.userCount || 0}명)`,
+        icon: <BarChart3 className="h-5 w-5" />,
+        className:
+          'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50',
+        disabled: false,
+      };
+    }
+
+    // 5. 기본 상태 (시스템 시작 대기)
+    return {
+      text: '🚀 시스템 시작',
+      icon: <Play className="h-5 w-5" />,
+      className:
+        'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-blue-400/50',
+      disabled: false,
+    };
+  }, [
+    systemStartCountdown,
+    isSystemStarting,
+    isLoading,
+    statusLoading,
+    multiUserStatus?.isRunning,
+    multiUserStatus?.userCount,
+    isSystemStarted,
+  ]);
 
   // 로그아웃 처리는 UnifiedProfileHeader에서 처리됨
 
-  // 🔄 클라이언트 마운트 전에는 로딩 표시
-  if (!isMounted) {
+  // 🔄 통합 로딩 상태 - 단일 로딩 화면 (5-6초 지연 문제 해결)
+  if (!isMounted || authLoading || shouldRedirect) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
         <div className="flex min-h-screen items-center justify-center">
           <div className="text-center">
-            <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-white" />
-            <p className="text-white/80">페이지 로딩 중...</p>
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+            >
+              <Loader2 className="mx-auto mb-4 h-8 w-8 text-white" />
+            </motion.div>
+            <p className="text-white/90 font-medium">{getLoadingMessage()}</p>
+            {authError && (
+              <div className="mt-4 max-w-md mx-auto">
+                <p className="text-red-400 text-sm mb-2">인증 오류: {authError}</p>
+                <button 
+                  onClick={retryAuth}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                >
+                  다시 시도
+                </button>
+              </div>
+            )}
+            <div className="mt-2 text-xs text-white/50">
+              잠시만 기다려주세요...
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  // 인증 로딩 중이고 아직 인증 체크가 안됐으면 대기
-  if (authLoading && !authChecked) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-white" />
-            <p className="text-white/80">인증 확인 중...</p>
-          </div>
-        </div>
-      </div>
-    );
+  // 인증이 완료되지 않았으면 대기
+  if (!authReady || !isAuthenticated) {
+    return null; // 이미 리다이렉션 중이므로 빈 화면
   }
 
-  // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
-  if (authChecked && !currentUser) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-white" />
-            <p className="text-white/80">로그인 페이지로 이동 중...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const buttonConfig = getButtonConfig();
+  // buttonConfig is now directly available as a memoized object
 
   return (
     <div
@@ -683,16 +629,17 @@ export default function Home() {
                 {isGitHubUser ? (
                   <>
                     {/* GitHub 인증 사용자 - 시스템 시작 버튼 표시 */}
+                    {/* 현재 사용자: {currentUser?.name || currentUser?.email || 'Unknown'} */
                     <motion.button
                       onClick={handleSystemToggle}
-                      disabled={isLoading || isSystemStarting}
+                      disabled={buttonConfig.disabled}
                       className={`flex h-16 w-64 items-center justify-center gap-3 rounded-xl border font-semibold shadow-xl transition-all duration-300 ${buttonConfig.className}`}
                       whileHover={
-                        !isLoading && systemStartCountdown === 0
+                        !buttonConfig.disabled && systemStartCountdown === 0
                           ? { scale: 1.05 }
                           : {}
                       }
-                      whileTap={!isLoading ? { scale: 0.95 } : {}}
+                      whileTap={!buttonConfig.disabled ? { scale: 0.95 } : {}}
                     >
                       {/* 카운트다운 진행바 */}
                       {systemStartCountdown > 0 && (
@@ -725,49 +672,52 @@ export default function Home() {
                       </div>
                     </motion.button>
 
-                    {/* 상태 안내 */}
-                    <div className="mt-2 flex flex-col items-center gap-1">
-                      <span
-                        className={`text-sm font-medium opacity-80 transition-all duration-300 ${
-                          systemStartCountdown > 0
-                            ? 'text-orange-300'
-                            : isSystemStarting
-                              ? 'text-purple-300'
-                              : multiUserStatus?.isRunning
-                                ? 'text-green-300'
-                                : 'text-white'
-                        }`}
-                      >
-                        {systemStartCountdown > 0
-                          ? '⚠️ 시작 예정 - 취소하려면 클릭'
-                          : isSystemStarting
-                            ? '🚀 시스템 부팅 중...'
-                            : multiUserStatus?.isRunning || isSystemStarted
-                              ? (() => {
-                                  // 자동 종료 시간 계산
-                                  const shutdownTime = localStorage.getItem(
-                                    'system_auto_shutdown'
-                                  );
+                    {/* 상태 안내 - 메모이제이션으로 렌더링 최적화 */}
+                    {useMemo(() => {
+                      const statusInfo = systemStartCountdown > 0
+                        ? {
+                            color: 'text-orange-300',
+                            message: '⚠️ 시작 예정 - 취소하려면 클릭',
+                            showEscHint: true
+                          }
+                        : isSystemStarting
+                          ? {
+                              color: 'text-purple-300',
+                              message: '🚀 시스템 부팅 중...',
+                              showEscHint: false
+                            }
+                          : multiUserStatus?.isRunning || isSystemStarted
+                            ? {
+                                color: 'text-green-300',
+                                message: (() => {
+                                  const shutdownTime = localStorage.getItem('system_auto_shutdown');
                                   if (shutdownTime) {
-                                    const timeLeft = Math.max(
-                                      0,
-                                      Math.floor(
-                                        (parseInt(shutdownTime) - Date.now()) /
-                                          60000
-                                      )
-                                    );
+                                    const timeLeft = Math.max(0, Math.floor((parseInt(shutdownTime) - Date.now()) / 60000));
                                     return `✅ 시스템 가동 중 (${timeLeft}분 후 자동 종료)`;
                                   }
                                   return `✅ 시스템 가동 중 - 대시보드로 이동`;
-                                })()
-                              : '클릭하여 시작하기'}
-                      </span>
-                      {systemStartCountdown > 0 && (
-                        <span className="text-xs text-white/60">
-                          또는 ESC 키를 눌러 취소
-                        </span>
-                      )}
-                    </div>
+                                })(),
+                                showEscHint: false
+                              }
+                            : {
+                                color: 'text-white',
+                                message: '클릭하여 시작하기',
+                                showEscHint: false
+                              };
+                      
+                      return (
+                        <div className="mt-2 flex flex-col items-center gap-1">
+                          <span className={`text-sm font-medium opacity-80 transition-all duration-300 ${statusInfo.color}`}>
+                            {statusInfo.message}
+                          </span>
+                          {statusInfo.showEscHint && (
+                            <span className="text-xs text-white/60">
+                              또는 ESC 키를 눌러 취소
+                            </span>
+                          )}
+                        </div>
+                      );
+                    }, [systemStartCountdown, isSystemStarting, multiUserStatus?.isRunning, isSystemStarted])}
 
                     {/* 시작 버튼 안내 아이콘 - 시스템 정지 상태일 때만 표시 */}
                     {!systemStartCountdown &&
