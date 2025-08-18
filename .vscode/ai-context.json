@@ -1,28 +1,39 @@
 {
   "projectType": "next-app",
-  "mainLanguages": ["typescript", "python"],
+  "mainLanguages": [
+    "typescript",
+    "python"
+  ],
   "developmentEnvironment": {
     "primary": "wsl-claude-code",
-    "primaryUsage": "압도적 메인 개발 환경",
-    "windowsIDE": {
-      "current": "vscode-copilot",
+    "primaryUsage": "메인 개발 환경 (WSL 터미널 내)",
+    "description": "Claude Code가 주력 AI 개발 도구로 사용됨",
+    "subAgents": {
+      "gemini": "gemini-cli - 주력 보조 AI (Claude 사용량 조절 및 토큰 부족시 대체)",
+      "codex": "codex-cli - ChatGPT Plus 요금제 활용 (추가 코드 생성 옵션)",
+      "qwen": "qwen-cli - 무료 제공량 풍부 (비용 절약용 대안)"
+    },
+    "windowsVSCode": {
       "role": "auxiliary",
-      "purpose": [
-        "이미지 붙여넣기",
-        "웹페이지 수정",
-        "캡쳐 전달",
-        "WSL 터미널 연동"
+      "primaryPurpose": [
+        "이미지 캡쳐 및 붙여넣기",
+        "시각적 콘텐츠 처리",
+        "WSL 터미널 호스팅",
+        "GitHub Copilot 보조 역할"
       ],
-      "usageFrequency": "아주 가끔",
-      "approach": "CLI와 GUI 도구의 상호 보완적 활용",
-      "advantage": "시각적 콘텐츠 처리 및 폭넓은 도구 선택권",
-      "adoptionSequence": ["cursor", "windsurf", "kiro", "vscode-copilot"],
-      "changeReason": "종합적 개발 환경 구축, Cursor AI 경험 바탕 전략적 도구 조합"
+      "usage": "Claude Code 개발 중 필요시 보조 도구로 활용",
+      "copilotRole": "이미지 분석, 캡쳐 기반 작업, 보조 코드 제안"
     }
   },
   "aiTools": {
     "primary": "claude-code",
-    "secondary": ["codex", "gemini", "qwen"]
+    "location": "WSL 터미널",
+    "subAgents": [
+      "gemini-cli",
+      "codex-cli",
+      "qwen-cli"
+    ],
+    "auxiliary": "github-copilot"
   },
   "priorityFiles": [
     "docs/PROJECT-SUMMARY.md",
@@ -30,14 +41,24 @@
     "package.json",
     ".mcp.json"
   ],
-  "ignorePaths": ["node_modules", ".next", "dist", "logs", "reports"],
+  "ignorePaths": [
+    "node_modules",
+    ".next",
+    "dist",
+    "logs",
+    "reports"
+  ],
   "contextRules": {
     "includePatterns": [
       "src/**/*.{ts,tsx}",
       "scripts/**/*.{sh,ps1}",
       "docs/**/*.md"
     ],
-    "excludePatterns": ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}", "**/test-*"]
+    "excludePatterns": [
+      "**/*.test.{ts,tsx}",
+      "**/*.spec.{ts,tsx}",
+      "**/test-*"
+    ]
   },
   "customCommands": {
     "dev": "npm run dev",

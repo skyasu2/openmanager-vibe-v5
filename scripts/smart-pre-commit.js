@@ -151,6 +151,31 @@ const utils = {
 
 // 검증 단계들
 const validators = {
+  // 0단계: 자동 코드 리뷰 및 수정 (새로 추가)
+  async autoReview(files, mode) {
+    console.log('\n🤖 0단계: 자동 코드 리뷰 및 수정');
+    
+    // minimal 모드에서는 자동 리뷰 스킵
+    if (mode === 'minimal') {
+      console.log('✅ 자동 리뷰 스킵 (minimal 모드)');
+      return { success: true, skipped: true };
+    }
+    
+    // 파일이 너무 많으면 스킵
+    if (files.length > 10) {
+      console.log('✅ 자동 리뷰 스킵 (파일 10개 초과)');
+      return { success: true, skipped: true };
+    }
+
+    console.log(`🚀 서브에이전트 기반 자동 리뷰 시작 (${files.length}개 파일)`);
+    
+    return utils.timeCommand(
+      '자동 코드 리뷰 및 수정',
+      'node scripts/auto-review-and-fix.js',
+      180 // 3분 제한
+    );
+  },
+
   // 1단계: 보안 검사 (가장 빠른 실패)
   async security(files) {
     console.log('\n🔒 1단계: 보안 검사');
@@ -312,8 +337,9 @@ async function main() {
   const results = [];
 
   try {
-    // 단계별 실행
+    // 단계별 실행 (자동 리뷰 추가)
     const steps = [
+      () => validators.autoReview(codeFiles, mode),
       () => validators.security(codeFiles),
       () => validators.syntax(codeFiles),
       () => validators.quality(codeFiles, mode),
@@ -344,7 +370,7 @@ async function main() {
     const executedSteps = results.filter(r => !r.skipped).length;
     
     console.log(`\n🎉 Pre-commit 검증 완료!`);
-    console.log(`📊 실행된 단계: ${executedSteps}/4, 총 소요시간: ${totalTime}초`);
+    console.log(`📊 실행된 단계: ${executedSteps}/5, 총 소요시간: ${totalTime}초`);
     console.log(`🚀 모드: ${mode.toUpperCase()}, 파일: ${codeFiles.length}개`);
 
   } catch (error) {
