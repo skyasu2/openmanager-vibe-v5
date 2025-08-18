@@ -42,7 +42,7 @@ export function useInitialAuth() {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  // 안전한 리다이렉트 헬퍼 (무한 루프 방지)
+  // 안전한 리다이렉트 헬퍼 (베르셀 환경 최적화)
   const safeRedirect = useCallback((targetPath: string) => {
     // 이미 리다이렉트했거나 현재 경로가 타겟과 같으면 리다이렉트하지 않음
     if (redirectRef.current || pathname === targetPath) {
@@ -50,9 +50,23 @@ export function useInitialAuth() {
       return;
     }
     
+    // 베르셀 환경 감지
+    const isVercel = process.env.VERCEL === '1' || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'));
+    
     redirectRef.current = true;
-    console.log(`🔄 안전한 리다이렉트: ${pathname} → ${targetPath}`);
-    setTimeout(() => router.replace(targetPath), 100);
+    console.log(`🔄 안전한 리다이렉트 (${isVercel ? 'Vercel' : 'Local'}): ${pathname} → ${targetPath}`);
+    
+    // 베르셀에서는 더 긴 지연으로 안정성 확보
+    const delay = isVercel ? 300 : 100;
+    setTimeout(() => {
+      try {
+        router.replace(targetPath);
+      } catch (error) {
+        console.error('❌ 리다이렉트 실패:', error);
+        // 실패 시 재시도 방지를 위해 ref 초기화
+        redirectRef.current = false;
+      }
+    }, delay);
   }, [pathname, router]);
 
   // 통합 초기화 프로세스
@@ -102,9 +116,20 @@ export function useInitialAuth() {
     }
   }, [updateState, safeRedirect]);
 
-  // 초기화 실행 - 의존성 배열 제거로 무한 루프 방지
+  // 초기화 실행 - 베르셀 환경 최적화
   useEffect(() => {
-    const timeoutId = setTimeout(initializeAuth, 50); // 최소 지연으로 브라우저 렌더링 최적화
+    // 베르셀 환경에서는 더 긴 지연으로 안정성 확보
+    const isVercel = process.env.VERCEL === '1' || typeof window !== 'undefined' && window.location.hostname.includes('vercel.app');
+    const delay = isVercel ? 500 : 100; // 베르셀에서 0.5초, 로컬에서 0.1초
+    
+    const timeoutId = setTimeout(() => {
+      // 베르셀에서 중복 실행 방지 강화
+      if (initRef.current) {
+        console.log('🚫 useInitialAuth: 이미 초기화 중이므로 스킵');
+        return;
+      }
+      initializeAuth();
+    }, delay);
     
     return () => {
       clearTimeout(timeoutId);
