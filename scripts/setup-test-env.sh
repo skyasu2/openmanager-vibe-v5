@@ -7,7 +7,7 @@ echo "🧪 MCP 테스트용 환경변수 설정 중..."
 
 # 현재 터미널 세션에 환경변수 설정
 export GITHUB_PERSONAL_ACCESS_TOKEN="dummy_token_replace_later"
-export SUPABASE_PROJECT_ID="vnswjnltnhpsueosfhmw"
+export SUPABASE_PROJECT_ID="your-supabase-project-id"  # 실제 프로젝트 ID로 교체 필요
 export SUPABASE_ACCESS_TOKEN="dummy_supabase_token" 
 export TAVILY_API_KEY="dummy_tavily_key"
 export UPSTASH_REDIS_REST_URL="https://dummy-redis.upstash.io"

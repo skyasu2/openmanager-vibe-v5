@@ -1,21 +1,20 @@
 {
   // 최소화된 안전한 워크스페이스 설정
-  "terminal.integrated.defaultProfile.windows": "PowerShell",
   "terminal.integrated.cwd": "${workspaceFolder}",
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
   "terminal.integrated.profiles.windows": {
     "PowerShell": {
-      "source": "PowerShell",
+      "path": "C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
       "icon": "terminal-powershell",
-      "args": ["-NoLogo"]
+      "startingDirectory": "${workspaceFolder}"
     },
-    "WSL": {
-      "path": "wsl.exe",
-      "args": ["-d", "Ubuntu"],
-      "icon": "terminal-ubuntu"
-    }
+    
+  },
+  "terminal.integrated.env.windows": {
+    "HOME": "${workspaceFolder}"
   },
 
-  // GitHub Copilot 관련 (터미널 자동 실행 비활성화)
+  // GitHub Copilot 관련
   "github.copilot.enable": {
     "*": true,
     "plaintext": true,
@@ -38,9 +37,6 @@
   // 일반 동작
   "workbench.startupEditor": "none",
   "tasks.autoDetect": "off",
-  "terminal.integrated.shellIntegration.enabled": false,
-  "terminal.integrated.enablePersistentSessions": false,
-  "terminal.integrated.persistentSessionReviveProcess": "never",
-  "terminal.integrated.defaultLocation": "editor",
-  "terminal.integrated.inheritEnv": false
+  "terminal.integrated.shellIntegration.enabled": true,
+  "terminal.integrated.inheritEnv": true
 }

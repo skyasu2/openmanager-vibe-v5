@@ -95,14 +95,8 @@
       }
     },
     "serena": {
-      "command": "/home/skyasu/.nvm/versions/node/v22.18.0/bin/node",
-      "args": [
-        "/mnt/d/cursor/openmanager-vibe-v5/scripts/mcp/serena-lightweight-proxy.mjs"
-      ],
-      "env": {
-        "PROJECT_ROOT": "/mnt/d/cursor/openmanager-vibe-v5",
-        "NODE_ENV": "production"
-      }
+      "type": "sse",
+      "url": "http://localhost:9121/sse"
     }
   }
 }

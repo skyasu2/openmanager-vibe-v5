@@ -71,7 +71,7 @@ test_claude_connectivity() {
     
     # Supabase 연결 테스트
     echo "   🗄️  Supabase 연결..."
-    if curl -s --connect-timeout 5 https://vnswjnltnhpsueosfhmw.supabase.co/rest/v1/ >/dev/null 2>&1; then
+    if [[ -n "${SUPABASE_PROJECT_ID:-}" ]] && curl -s --connect-timeout 5 "https://${SUPABASE_PROJECT_ID}.supabase.co/rest/v1/" >/dev/null 2>&1; then
         echo "      ✅ Supabase: 정상"
     else
         echo "      ❌ Supabase: 연결 실패"

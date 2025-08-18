@@ -49,11 +49,11 @@
 | `thinking`   | ✅   | NPM  | 순차적 사고 처리     | `@modelcontextprotocol/server-sequential-thinking` |
 | `context7`   | ✅   | NPM  | 라이브러리 문서 검색 | `@upstash/context7-mcp`                            |
 | `shadcn`     | ✅   | NPM  | UI 컴포넌트 관리     | `@magnusrodseth/shadcn-mcp-server`                 |
-| `serena`     | ✅   | UVX  | 코드 분석/리팩토링   | `serena-mcp-server` (GitHub)                       |
+| `serena`     | ✅   | SSE  | 코드 분석/리팩토링   | `serena-mcp-server` (SSE)                          |
 | `time`       | ✅   | UVX  | 시간대 변환/관리     | `mcp-server-time`                                  |
 
 **✅ 완전 정상**: 12개 전체 (filesystem, memory, github, supabase, gcp, tavily, playwright, thinking, context7, shadcn, serena, time)  
-**🎉 특별 해결**: Serena MCP - WSL 환경에서 프록시 솔루션으로 77초 초기화 문제 완전 해결
+**🎉 특별 해결**: Serena MCP - SSE 하트비트 시스템으로 타임아웃 문제 완전 해결
 
 ## 🛠️ 사전 준비
 
@@ -100,35 +100,42 @@ npm install -g \
 Python 서버는 uvx로 실행 시 자동 설치되므로 별도 설치 불필요:
 
 - `time`: uvx mcp-server-time
-- `serena`: **특별 설정 필요** (WSL에서 프록시 사용)
+- `serena`: **SSE 방식 연결** (Server-Sent Events)
 
-#### ⚠️ Serena MCP WSL 특별 설정
+#### 🌐 Serena MCP SSE 설정
 
-Serena MCP는 77초 초기화 시간이 필요하지만 Claude Code는 30초 후 타임아웃됩니다. 이를 해결하기 위해 lightweight proxy를 사용합니다.
+Serena MCP는 SSE(Server-Sent Events) 방식으로 연결되어 안정적인 실시간 통신을 제공합니다.
 
-**1단계: 프록시 파일 생성**
+**1단계: Serena SSE 서버 시작**
 
 ```bash
-# 디렉토리 생성
-mkdir -p /mnt/d/cursor/openmanager-vibe-v5/scripts/mcp
+# Serena SSE 모드로 시작
+./scripts/start-serena-sse.sh
 
-# 프록시 파일 생성 (scripts/mcp/serena-lightweight-proxy.mjs)
-# 파일이 이미 생성되어 있습니다 (673줄)
+# 또는 수동으로 시작
+uvx --from git+https://github.com/oraios/serena serena-mcp-server \
+  --transport sse \
+  --port 9121 \
+  --project /mnt/d/cursor/openmanager-vibe-v5
 ```
 
-**2단계: .mcp.json에서 프록시 사용**
+**2단계: .mcp.json에서 SSE 설정**
 
 ```json
 "serena": {
-  "command": "/home/사용자명/.nvm/versions/node/v22.18.0/bin/node",
-  "args": [
-    "/mnt/d/cursor/openmanager-vibe-v5/scripts/mcp/serena-lightweight-proxy.mjs"
-  ],
-  "env": {
-    "PROJECT_ROOT": "/mnt/d/cursor/openmanager-vibe-v5",
-    "NODE_ENV": "production"
-  }
+  "type": "sse",
+  "url": "http://localhost:9121/sse"
 }
+```
+
+**3단계: 연결 확인**
+
+```bash
+# SSE 엔드포인트 테스트
+curl -s http://localhost:9121/sse | head -3
+
+# Claude Code에서 연결 확인
+claude mcp list | grep serena
 ```
 
 ## 📝 설정 파일 구성
@@ -214,62 +221,53 @@ mkdir -p /mnt/d/cursor/openmanager-vibe-v5/scripts/mcp
       "args": ["mcp-server-time"]
     },
     "serena": {
-      "command": "/home/skyasu/.nvm/versions/node/v22.18.0/bin/node",
-      "args": [
-        "/mnt/d/cursor/openmanager-vibe-v5/scripts/mcp/serena-lightweight-proxy.mjs"
-      ],
-      "env": {
-        "PROJECT_ROOT": "/mnt/d/cursor/openmanager-vibe-v5",
-        "NODE_ENV": "production"
-      }
+      "type": "sse",
+      "url": "http://localhost:9121/sse"
     }
   }
 }
 ```
 
-### ⚠️ WSL 환경변수 문제 해결
+### ⚠️ 환경변수 경고 메시지 이해하기
 
-**문제**: `.mcp.json`에서 `${환경변수명}` 참조 시 "Missing environment variables" 경고 발생
+**현상**: `.mcp.json`에서 `${환경변수명}` 참조 시 "Missing environment variables" 경고가 표시됨
 
-**원인**: WSL 환경에서 Claude Code가 환경변수를 제대로 읽지 못하는 경우
+**중요**: 이 경고는 **정상적인 동작**입니다! 🎯
 
-**해결법 1: 실제 값 직접 설정 (권장)**
+**원인**: Claude Code가 설정 파일을 검증하는 시점에서는 환경변수 참조를 인식하지 못하지만, 실제 MCP 서버 실행 시에는 올바르게 환경변수가 확장됩니다.
 
-```json
-{
-  "mcpServers": {
-    "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_실제토큰값여기에입력"
-      }
-    },
-    "supabase": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@supabase/mcp-server-supabase@latest",
-        "--project-ref",
-        "실제프로젝트ID"
-      ],
-      "env": {
-        "SUPABASE_ACCESS_TOKEN": "sbp_실제토큰값여기에입력"
-      }
-    }
-  }
-}
-```
-
-**해결법 2: 환경변수 제대로 로드**
+**확인 방법**: MCP 서버가 실제로 연결되는지 확인
 
 ```bash
-# WSL에서 환경변수 설정
+# 모든 서버가 ✓ Connected로 표시되면 정상 작동
+claude mcp list
+```
+
+**현재 상태 (2025-08-18 확인)**:
+```
+✅ filesystem: Connected
+✅ memory: Connected  
+✅ github: Connected (GITHUB_PERSONAL_ACCESS_TOKEN 정상 로드됨)
+✅ supabase: Connected (SUPABASE_ACCESS_TOKEN 정상 로드됨)
+✅ tavily: Connected (TAVILY_API_KEY 정상 로드됨)
+✅ context7: Connected (UPSTASH_REDIS 정상 로드됨)
+✅ 기타 모든 서버: Connected
+```
+
+**결론**: 경고 메시지가 나와도 실제 연결이 성공하면 **무시해도 됩니다**! ✨
+
+**문제 해결이 필요한 경우**:
+
+```bash
+# 1. 환경변수가 실제로 설정되어 있는지 확인
+env | grep -E "(GITHUB_PERSONAL_ACCESS_TOKEN|SUPABASE_ACCESS_TOKEN|TAVILY_API_KEY)"
+
+# 2. 환경변수 재설정 (필요시)
 export GITHUB_PERSONAL_ACCESS_TOKEN="your_token_here"
 export SUPABASE_ACCESS_TOKEN="your_token_here"
 export TAVILY_API_KEY="your_key_here"
-
-# Claude Code 재시작
+export UPSTASH_REDIS_REST_URL="your_redis_url"
+export UPSTASH_REDIS_REST_TOKEN="your_redis_token"
 ```
 
 ### 🔑 필수 환경변수 (.env.local)
@@ -809,21 +807,51 @@ gcloud config set project openmanager-free-tier
 
 ## 🚨 문제 해결
 
+### 🚀 자동 복구 스크립트 (추천)
+
+**OpenManager VIBE v5**에는 **6개의 전문 복구 스크립트**가 포함되어 있습니다.
+
+```bash
+# 🏆 원클릭 완전 복구 (가장 추천)
+./scripts/mcp-master-recovery.sh
+
+# 🔐 환경변수 복구 (암호화 시스템 연동)
+./scripts/mcp-env-recovery.sh --auto
+
+# 🤖 Serena SSE 복구 
+./scripts/serena-auto-recovery.sh
+
+# 📦 의존성 재설치
+./scripts/mcp-dependencies-installer.sh --reinstall
+```
+
+**📖 상세 가이드**: [MCP 설치 가이드 - 자동 복구 스크립트 활용](mcp/mcp-complete-installation-guide-2025.md#자동-복구-스크립트-활용)
+
 ### 자주 발생하는 문제
 
 1. **환경변수 인식 불가**
-
    ```bash
-   # 해결법: 실제 값으로 .mcp.json 설정
+   # ✅ 자동 해결: 복구 스크립트 사용
+   ./scripts/mcp-env-recovery.sh --auto
+   
+   # 또는 수동 해결: 실제 값으로 .mcp.json 설정
    ```
 
 2. **Serena MCP 타임아웃**
-
    ```bash
-   # 해결법: lightweight proxy 사용 (이미 설정됨)
+   # ✅ 자동 해결: SSE 복구 스크립트
+   ./scripts/serena-auto-recovery.sh
+   
+   # 또는 수동 해결: lightweight proxy 사용 (이미 설정됨)
    ```
 
-3. **GCP 인증 실패**
+3. **모든 MCP 서버 연결 실패**
+   ```bash
+   # ✅ 원클릭 해결: 마스터 복구 스크립트
+   ./scripts/mcp-master-recovery.sh
+   ```
+
+4. **GCP 인증 실패**
    ```bash
    # 해결법: wslu 설치 및 브라우저 연동
    ```

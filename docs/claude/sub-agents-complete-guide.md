@@ -633,6 +633,177 @@ const costOptimized = async (task: string) => {
 
 ---
 
+## 🛠️ 서브에이전트 복구 및 유지보수 가이드
+
+### 자동 복구 스크립트
+
+**새로 추가된 자동 복구 시스템**을 통해 서브에이전트 파일의 무결성을 보장하고 문제를 신속하게 해결할 수 있습니다.
+
+#### 기본 사용법
+
+```bash
+# 📍 스크립트 위치: /scripts/subagent-recovery.sh
+
+# 🔍 에이전트 상태 확인
+./scripts/subagent-recovery.sh --check
+
+# 📦 백업 생성 (자동 타임스탬프)
+./scripts/subagent-recovery.sh --backup
+
+# 🔧 누락된 에이전트 자동 복구
+./scripts/subagent-recovery.sh --recover
+
+# 🔨 손상된 에이전트 파일 수정
+./scripts/subagent-recovery.sh --repair
+
+# 🚀 전체 복구 (백업 + 복구 + 수정)
+./scripts/subagent-recovery.sh --full
+
+# 📊 상세 상태 리포트
+./scripts/subagent-recovery.sh --report
+
+# 🔌 MCP 도구 매핑 검증
+./scripts/subagent-recovery.sh --mcp
+```
+
+#### 복구 스크립트 주요 기능
+
+1. **검증 시스템**
+   - 19개 에이전트 파일 존재 확인
+   - YAML frontmatter 형식 검증
+   - 필수 필드 (name, description, tools) 확인
+   - MCP 도구 매핑 검증
+
+2. **백업 관리**
+   - 자동 타임스탬프 백업 (`.claude/backup/agents-recovery/`)
+   - 압축 저장 (tar.gz)
+   - 최대 10개 백업 유지 (자동 정리)
+
+3. **자동 복구**
+   - 누락된 에이전트 템플릿 기반 재생성
+   - 손상된 YAML frontmatter 자동 수정
+   - 에이전트별 맞춤 설정 적용
+
+4. **통합 관리**
+   - Task 도구 보유 에이전트 식별
+   - MCP 접근 권한 매핑
+   - 상세 상태 리포트 생성
+
+### 수동 복구 절차
+
+#### 에이전트 파일 형식
+
+각 에이전트 파일은 다음 표준을 준수해야 합니다:
+
+```markdown
+---
+name: agent-name
+description: 에이전트 설명
+tools: Read, Write, Edit, Bash  # 사용 가능한 도구들
+---
+
+# 에이전트 제목
+
+## 핵심 역할
+에이전트의 주요 책임과 역할...
+
+## 주요 책임
+1. **핵심 기능**
+   - 구체적인 작업 내용
+   
+## 참조 문서
+- 관련 문서 링크들
+```
+
+#### 파일 위치 및 명명 규칙
+
+```bash
+# 📁 올바른 파일 구조
+.claude/
+├── agents/                    # 19개 에이전트 파일
+│   ├── central-supervisor.md
+│   ├── ai-systems-specialist.md
+│   ├── database-administrator.md
+│   ├── dev-environment-manager.md
+│   ├── gcp-vm-specialist.md
+│   ├── mcp-server-administrator.md
+│   ├── vercel-platform-specialist.md
+│   ├── code-review-specialist.md
+│   ├── debugger-specialist.md
+│   ├── security-auditor.md
+│   ├── test-automation-specialist.md
+│   ├── quality-control-specialist.md
+│   ├── documentation-manager.md
+│   ├── git-cicd-specialist.md
+│   ├── structure-refactor-specialist.md
+│   ├── ux-performance-specialist.md
+│   ├── codex-agent.md
+│   ├── gemini-agent.md
+│   └── qwen-agent.md
+├── settings.json              # 프로젝트 설정
+├── settings.local.json        # 개인 설정 (Git 제외)
+└── README.md                  # 구조 가이드
+```
+
+### 트러블슈팅 가이드
+
+#### 문제 유형별 해결책
+
+| 문제 | 증상 | 해결책 |
+|------|------|--------|
+| **에이전트 응답 없음** | Task 호출 시 무반응 | `./scripts/subagent-recovery.sh --check` 실행 |
+| **파일 손상** | YAML 오류, 형식 문제 | `./scripts/subagent-recovery.sh --repair` 실행 |
+| **에이전트 누락** | 특정 에이전트 파일 없음 | `./scripts/subagent-recovery.sh --recover` 실행 |
+| **MCP 연결 실패** | MCP 도구 사용 불가 | 환경변수 확인 후 `--mcp` 검증 |
+| **전체 시스템 문제** | 다수 에이전트 오류 | `./scripts/subagent-recovery.sh --full` 실행 |
+
+#### 긴급 복구 절차
+
+```bash
+# 🚨 긴급 상황 시 즉시 실행
+# 1. 현재 상태 백업
+./scripts/subagent-recovery.sh --backup
+
+# 2. 전체 시스템 복구
+./scripts/subagent-recovery.sh --full
+
+# 3. 결과 확인
+./scripts/subagent-recovery.sh --report
+
+# 4. Claude Code 재시작 후 테스트
+claude /agents
+```
+
+#### 예방적 유지보수
+
+```bash
+# 📅 정기 점검 (주 1회 권장)
+./scripts/subagent-recovery.sh --check
+
+# 🔍 MCP 매핑 검증 (월 1회 권장)
+./scripts/subagent-recovery.sh --mcp
+
+# 📦 정기 백업 (중요 작업 전)
+./scripts/subagent-recovery.sh --backup
+```
+
+### 개발자 팁
+
+#### 새 에이전트 추가 시
+
+1. **파일 생성**: `.claude/agents/new-agent.md`
+2. **YAML frontmatter 필수**: name, description, tools
+3. **검증 실행**: `./scripts/subagent-recovery.sh --check`
+4. **MCP 매핑 확인**: 필요시 tools 필드에 MCP 도구 추가
+
+#### 에이전트 수정 시
+
+1. **백업 생성**: 수정 전 항상 백업
+2. **점진적 수정**: 한 번에 하나씩 수정
+3. **즉시 검증**: 수정 후 바로 검증 실행
+
+---
+
 ## 📊 효율성 메트릭
 
 ### 현재 성능 지표

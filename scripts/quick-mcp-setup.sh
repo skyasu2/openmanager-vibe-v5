@@ -23,7 +23,7 @@ cat >> ~/.bashrc << 'EOF'
 # Upstash: https://console.upstash.com/redis (무료 10MB)
 
 export GITHUB_PERSONAL_ACCESS_TOKEN="ghp_test_token_replace_with_real"
-export SUPABASE_PROJECT_ID="vnswjnltnhpsueosfhmw"
+export SUPABASE_PROJECT_ID="your-project-id"  # 실제 Supabase 프로젝트 ID로 교체
 export SUPABASE_ACCESS_TOKEN="sbp_test_token_replace_with_real"
 export TAVILY_API_KEY="tvly-test_key_replace_with_real"
 export UPSTASH_REDIS_REST_URL="https://test-redis.upstash.io"

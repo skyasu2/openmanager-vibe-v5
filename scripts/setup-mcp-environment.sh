@@ -41,8 +41,8 @@ declare -A required_apis=(
     ["UPSTASH_REDIS_REST_TOKEN"]="Upstash Redis REST Token"
 )
 
-# 고정 환경변수
-SUPABASE_PROJECT_ID="vnswjnltnhpsueosfhmw"
+# 환경변수 (기존 암호화 시스템에서 로드 또는 수동 설정)
+SUPABASE_PROJECT_ID="${SUPABASE_PROJECT_ID:-}"  # 암호화 시스템에서 자동 로드
 
 # API 키 발급 방법 안내
 show_api_key_guide() {

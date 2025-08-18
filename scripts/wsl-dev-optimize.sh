@@ -89,7 +89,7 @@ test_mcp_servers() {
     
     # Supabase (프로젝트 DB)
     echo "   🗄️  Supabase..."
-    if curl -s --connect-timeout 3 https://vnswjnltnhpsueosfhmw.supabase.co/rest/v1/ >/dev/null 2>&1; then
+    if [[ -n "${SUPABASE_PROJECT_ID:-}" ]] && curl -s --connect-timeout 3 "https://${SUPABASE_PROJECT_ID}.supabase.co/rest/v1/" >/dev/null 2>&1; then
         echo "      ✅ 연결 정상"
     else
         echo "      ❌ 연결 실패"
