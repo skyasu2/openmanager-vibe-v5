@@ -347,6 +347,56 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
+#### 4. 시작 메시지 최적화
+
+**문제**: Serena 시작 시 과도한 로그 출력 (시스템 프롬프트 180+ 줄)
+
+**해결 방법**:
+
+```yaml
+# ~/.serena/serena_config.yml 설정
+agent:
+  startup:
+    show_system_prompt: false
+    show_tool_details: false
+    concise_mode: true
+
+logging:
+  console:
+    level: INFO
+    filter_system_prompt: true
+  file:
+    level: DEBUG
+    include_all: true
+```
+
+**환경변수 방식**:
+
+```bash
+# ~/.bashrc 또는 ~/.zshrc에 추가
+export SERENA_STARTUP_MODE="concise"
+export SERENA_LOG_SYSTEM_PROMPT="false"
+export SERENA_SHOW_QUICK_START="true"
+```
+
+**커스텀 래퍼 스크립트**:
+
+```bash
+#!/bin/bash
+# ~/bin/serena-start
+
+# 간결한 모드로 Serena 시작
+SERENA_STARTUP_MODE=concise \
+SERENA_LOG_LEVEL=INFO \
+serena mcp 2>&1 | grep -v "System prompt:" | \
+sed 's/INFO.*serena.agent:create_system_prompt.*/✓ System configured/'
+```
+
+**기대 효과**:
+- 시작 시간: 5초 → 2초
+- 가독성 향상: 핵심 정보만 표시
+- 사용성 개선: 명확한 다음 단계 안내
+
 ### 연결 상태 확인
 
 ```bash

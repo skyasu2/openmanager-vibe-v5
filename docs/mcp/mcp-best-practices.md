@@ -291,10 +291,11 @@ if (diff.length > 0) {
 
 ## 📚 관련 문서
 
-### MCP 설정
+### MCP 설정 및 활용
 
-- **[MCP 기본 가이드](../MCP-GUIDE.md)**
-- **[MCP 고급 활용](../MCP-ADVANCED.md)**
+- **[MCP 종합 가이드](../MCP-GUIDE.md)** - 12개 서버 완전 활용 가이드
+- **[Tavily MCP 가이드](tavily-mcp-complete-guide.md)** - 웹 검색 및 정보 수집
+- **[Serena MCP 가이드](serena-mcp-complete-guide.md)** - 고급 코드 분석 도구
 
 ### 개발 가이드
 

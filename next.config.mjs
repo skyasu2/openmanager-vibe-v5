@@ -41,6 +41,8 @@ const nextConfig = {
 
   // 실험적 기능 최적화
   experimental: {
+    // Next.js devtools 비활성화 (SSR 에러 방지)
+    devtools: false,
     // CSS 최적화 비활성화 (critters 의존성 제거)
     optimizeCss: false,
     // 트랜스폼 최적화

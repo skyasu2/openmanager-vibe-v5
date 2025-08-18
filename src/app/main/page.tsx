@@ -29,7 +29,11 @@ const FeatureCardsGrid = dynamic(
     loading: () => (
       <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="_animate-pulse h-32 rounded-lg bg-white/10" />
+          <div 
+            key={i} 
+            className="h-32 rounded-lg bg-white/10 animate-pulse"
+            style={{ animationDelay: `${i * 100}ms` }}
+          />
         ))}
       </div>
     ),
@@ -77,30 +81,34 @@ export default function Home() {
   );
   const [isSystemStarting, setIsSystemStarting] = useState(false); // 시스템 시작 중 상태 추가
 
-  // 시스템 상태 동기화 - 실시간 업데이트
+  // 시스템 상태 동기화 - 실시간 업데이트 (깜박임 방지 최적화)
   useEffect(() => {
     if (!isMounted) return;
 
-    // 시스템 상태가 변경되면 로컬 상태도 동기화
-    if (multiUserStatus?.isRunning && !isSystemStarted) {
-      debug.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 시작됨');
-      startSystem(); // 로컬 상태 동기화
-    } else if (
-      multiUserStatus &&
-      !multiUserStatus.isRunning &&
-      isSystemStarted
-    ) {
-      debug.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 정지됨');
-      stopSystem(); // 로컬 상태 동기화
-    }
+    // 상태 변경 배치화를 위한 타이머
+    const syncTimer = setTimeout(() => {
+      // 시스템 상태가 변경되면 로컬 상태도 동기화
+      if (multiUserStatus?.isRunning && !isSystemStarted) {
+        debug.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 시작됨');
+        startSystem(); // 로컬 상태 동기화
+      } else if (
+        multiUserStatus &&
+        !multiUserStatus.isRunning &&
+        isSystemStarted
+      ) {
+        debug.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 정지됨');
+        stopSystem(); // 로컬 상태 동기화
+      }
 
-    // 시스템 시작 중 상태 동기화
-    if (multiUserStatus?.isStarting !== isSystemStarting) {
-      setIsSystemStarting(multiUserStatus?.isStarting || false);
-    }
+      // 시스템 시작 중 상태 동기화
+      if (multiUserStatus?.isStarting !== isSystemStarting) {
+        setIsSystemStarting(multiUserStatus?.isStarting || false);
+      }
+    }, 50); // 50ms 디바운스로 빠른 상태 변경 배치화
+
+    return () => clearTimeout(syncTimer);
   }, [
     isMounted,
-    multiUserStatus,
     multiUserStatus?.isRunning,
     multiUserStatus?.isStarting,
     isSystemStarted,
@@ -114,31 +122,43 @@ export default function Home() {
     setIsMounted(true);
   }, []);
 
-  // Supabase Auth 상태 확인
+  // Supabase Auth 상태 확인 (깜박임 방지 최적화)
   useEffect(() => {
     if (!isMounted) return;
 
     let authListener: { subscription: { unsubscribe: () => void } } | null;
+    let isCheckingAuth = false; // 중복 체크 방지
 
     const checkAuth = async () => {
+      if (isCheckingAuth) return; // 이미 체크 중이면 무시
+      isCheckingAuth = true;
+      
       setAuthLoading(true);
       try {
         // GitHub 인증 확인
         const isGitHub = await isGitHubAuthenticated();
-        setIsGitHubUser(isGitHub);
-
+        
         // 현재 사용자 정보 가져오기
         const user = await getCurrentUser();
 
+        // 상태가 실제로 변경된 경우에만 업데이트 (깜박임 방지)
+        setIsGitHubUser(prev => prev !== isGitHub ? isGitHub : prev);
+        
         // 사용자 정보 설정
         if (user) {
-          setCurrentUser({
+          const newUserData = {
             name: user.name || 'User',
             email: user.email,
             avatar: user.avatar,
+          };
+          setCurrentUser(prev => {
+            if (!prev || prev.name !== newUserData.name || prev.email !== newUserData.email) {
+              return newUserData;
+            }
+            return prev;
           });
         } else {
-          setCurrentUser(null);
+          setCurrentUser(prev => prev !== null ? null : prev);
         }
 
         debug.log('🔐 인증 상태:', { isGitHub, user });
@@ -147,30 +167,42 @@ export default function Home() {
         debug.error('❌ 인증 확인 오류:', error);
       } finally {
         setAuthLoading(false);
+        isCheckingAuth = false;
       }
     };
 
     void checkAuth();
 
-    // 인증 상태 변경 리스너
+    // 인증 상태 변경 리스너 (디바운스 적용)
+    let authChangeTimer: NodeJS.Timeout;
     authListener = onAuthStateChange(async (_session) => {
       debug.log('🔄 Auth 상태 변경 감지');
-      await checkAuth();
+      // 100ms 디바운스로 빠른 상태 변경 배치화
+      clearTimeout(authChangeTimer);
+      authChangeTimer = setTimeout(() => {
+        void checkAuth();
+      }, 100);
     });
 
     return () => {
       authListener?.subscription.unsubscribe();
+      clearTimeout(authChangeTimer);
     };
   }, [isMounted]);
 
-  // 즉시 리다이렉션 체크
+  // 즉시 리다이렉션 체크 (깜박임 방지 최적화)
   useEffect(() => {
     if (!isMounted || authLoading) return;
 
-    // 인증 체크 완료 후 사용자가 없으면 즉시 리다이렉션
+    // 인증 체크 완료 후 사용자가 없으면 지연된 리다이렉션 (깜박임 방지)
     if (authChecked && !currentUser) {
       debug.log('🚨 인증 정보 없음 - 로그인 페이지로 이동');
-      router.replace('/login');
+      // 200ms 지연으로 부드러운 전환
+      const redirectTimer = setTimeout(() => {
+        router.replace('/login');
+      }, 200);
+      
+      return () => clearTimeout(redirectTimer);
     }
   }, [isMounted, authLoading, authChecked, currentUser, router]);
 
@@ -204,14 +236,20 @@ export default function Home() {
     }
   }, [isMounted, isSystemStarted, aiAgent.isEnabled]);
 
-  // 시스템 타이머 업데이트 (클라이언트에서만)
+  // 시스템 타이머 업데이트 (클라이언트에서만) - 깜박임 방지 최적화
   useEffect(() => {
     if (!isMounted) return;
 
     if (isSystemStarted) {
       const updateTimer = () => {
         const remaining = getSystemRemainingTime();
-        setSystemTimeRemaining(remaining);
+        // 시간이 실제로 변경된 경우에만 상태 업데이트 (초 단위)
+        const remainingSeconds = Math.floor(remaining / 1000);
+        const currentSeconds = Math.floor(systemTimeRemaining / 1000);
+        
+        if (remainingSeconds !== currentSeconds) {
+          setSystemTimeRemaining(remaining);
+        }
       };
 
       updateTimer(); // 즉시 실행
@@ -219,10 +257,14 @@ export default function Home() {
 
       return () => clearInterval(interval);
     } else {
-      setSystemTimeRemaining(0);
+      // 시스템이 정지되면 즉시 0으로 설정하지 않고 부드럽게 처리
+      if (systemTimeRemaining > 0) {
+        const fadeTimer = setTimeout(() => setSystemTimeRemaining(0), 100);
+        return () => clearTimeout(fadeTimer);
+      }
       return;
     }
-  }, [isMounted, isSystemStarted, getSystemRemainingTime]);
+  }, [isMounted, isSystemStarted, getSystemRemainingTime, systemTimeRemaining]);
 
   // 카운트다운 중지 함수 (깜빡임 방지 개선)
   const stopSystemCountdown = useCallback(() => {
