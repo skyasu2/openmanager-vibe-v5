@@ -127,7 +127,6 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         'MCP 서버 11개 (보조 도구)',
         'Cursor AI',
         'Windsurf',
-        'VS Code + GitHub Copilot',
         'AWS Kiro',
         'Gemini CLI',
         'Qwen CLI',
