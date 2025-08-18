@@ -19,7 +19,7 @@ import {
 } from '@/lib/supabase-auth';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import debug from '@/utils/debug';
 
 const FeatureCardsGrid = dynamic(
@@ -77,36 +77,46 @@ export default function Home() {
   );
   const [isSystemStarting, setIsSystemStarting] = useState(false); // 시스템 시작 중 상태 추가
 
-  // 시스템 상태 동기화 - 실시간 업데이트
+  // 시스템 상태 동기화 debounce를 위한 ref
+  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 시스템 상태 동기화 - 실시간 업데이트 (debounce 적용)
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || !multiUserStatus) return;
 
-    // 시스템 상태가 변경되면 로컬 상태도 동기화
-    if (multiUserStatus?.isRunning && !isSystemStarted) {
-      debug.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 시작됨');
-      startSystem(); // 로컬 상태 동기화
-    } else if (
-      multiUserStatus &&
-      !multiUserStatus.isRunning &&
-      isSystemStarted
-    ) {
-      debug.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 정지됨');
-      stopSystem(); // 로컬 상태 동기화
+    // 이전 타이머 클리어
+    if (syncTimeoutRef.current) {
+      clearTimeout(syncTimeoutRef.current);
     }
 
-    // 시스템 시작 중 상태 동기화
-    if (multiUserStatus?.isStarting !== isSystemStarting) {
-      setIsSystemStarting(multiUserStatus?.isStarting || false);
-    }
+    // debounce: 100ms 후에 실행
+    syncTimeoutRef.current = setTimeout(() => {
+      // 시스템 상태가 변경되면 로컬 상태도 동기화
+      if (multiUserStatus.isRunning && !isSystemStarted) {
+        debug.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 시작됨');
+        startSystem(); // 로컬 상태 동기화
+      } else if (!multiUserStatus.isRunning && isSystemStarted) {
+        debug.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 정지됨');
+        stopSystem(); // 로컬 상태 동기화
+      }
+
+      // 시스템 시작 중 상태 동기화
+      if (multiUserStatus.isStarting !== isSystemStarting) {
+        setIsSystemStarting(multiUserStatus.isStarting || false);
+      }
+    }, 100);
+
+    return () => {
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+      }
+    };
   }, [
     isMounted,
-    multiUserStatus,
     multiUserStatus?.isRunning,
     multiUserStatus?.isStarting,
     isSystemStarted,
     isSystemStarting,
-    startSystem,
-    stopSystem,
   ]);
 
   // 🔄 클라이언트 마운트 감지
@@ -114,21 +124,24 @@ export default function Home() {
     setIsMounted(true);
   }, []);
 
-  // Supabase Auth 상태 확인
+  // Supabase Auth 상태 확인 (최적화됨)
   useEffect(() => {
     if (!isMounted) return;
 
     let authListener: { subscription: { unsubscribe: () => void } } | null;
+    let isInitialLoad = true;
 
-    const checkAuth = async () => {
-      setAuthLoading(true);
+    const checkAuth = async (skipLoader = false) => {
+      if (!skipLoader) setAuthLoading(true);
+      
       try {
-        // GitHub 인증 확인
-        const isGitHub = await isGitHubAuthenticated();
-        setIsGitHubUser(isGitHub);
+        // 병렬 API 호출로 성능 최적화
+        const [isGitHub, user] = await Promise.all([
+          isGitHubAuthenticated(),
+          getCurrentUser()
+        ]);
 
-        // 현재 사용자 정보 가져오기
-        const user = await getCurrentUser();
+        setIsGitHubUser(isGitHub);
 
         // 사용자 정보 설정
         if (user) {
@@ -145,17 +158,22 @@ export default function Home() {
         setAuthChecked(true);
       } catch (error) {
         debug.error('❌ 인증 확인 오류:', error);
+        setAuthChecked(true); // 오류 시에도 체크 완료로 설정
       } finally {
-        setAuthLoading(false);
+        if (!skipLoader) setAuthLoading(false);
       }
     };
 
     void checkAuth();
 
-    // 인증 상태 변경 리스너
+    // 인증 상태 변경 리스너 (초기 로드 시에는 스킵)
     authListener = onAuthStateChange(async (_session) => {
+      if (isInitialLoad) {
+        isInitialLoad = false; // 초기 트리거 스킵
+        return;
+      }
       debug.log('🔄 Auth 상태 변경 감지');
-      await checkAuth();
+      await checkAuth(true); // 로더 없이 빠르게 업데이트
     });
 
     return () => {
@@ -174,7 +192,7 @@ export default function Home() {
     }
   }, [isMounted, authLoading, authChecked, currentUser, router]);
 
-  // 🔧 상태 변화 디버깅 (클라이언트에서만)
+  // 🔧 상태 변화 디버깅 (클라이언트에서만) - 최적화됨
   useEffect(() => {
     if (!isMounted) return;
 
@@ -184,13 +202,7 @@ export default function Home() {
       aiAgentState: aiAgent.state,
       timeRemaining: systemTimeRemaining,
     });
-  }, [
-    isMounted,
-    isSystemStarted,
-    aiAgent.isEnabled,
-    aiAgent.state,
-    systemTimeRemaining,
-  ]);
+  }, [isMounted, isSystemStarted, aiAgent.isEnabled, systemTimeRemaining]);
 
   // 🛡️ 상태 불일치 방지 - AI 에이전트가 시스템 중지 시 비활성화되는지 확인 (클라이언트에서만)
   useEffect(() => {
@@ -204,7 +216,7 @@ export default function Home() {
     }
   }, [isMounted, isSystemStarted, aiAgent.isEnabled]);
 
-  // 시스템 타이머 업데이트 (클라이언트에서만)
+  // 시스템 타이머 업데이트 (클라이언트에서만) - 최적화됨
   useEffect(() => {
     if (!isMounted) return;
 
@@ -222,7 +234,7 @@ export default function Home() {
       setSystemTimeRemaining(0);
       return;
     }
-  }, [isMounted, isSystemStarted, getSystemRemainingTime]);
+  }, [isMounted, isSystemStarted]);
 
   // 카운트다운 중지 함수 (깜빡임 방지 개선)
   const stopSystemCountdown = useCallback(() => {
@@ -297,7 +309,7 @@ export default function Home() {
     });
   };
 
-  // 🚀 백그라운드 시스템 시작 함수 (사용자는 로딩 페이지에서 대기)
+  // 🚀 백그라운드 시스템 시작 함수 (사용자는 로딩 페이지에서 대기) - 최적화됨
   const handleSystemStartBackground = useCallback(async () => {
     debug.log('🔄 백그라운드에서 시스템 시작 프로세스 실행');
 
@@ -305,38 +317,37 @@ export default function Home() {
       // 1. 다중 사용자 상태 업데이트
       await startMultiUserSystem();
 
-      // 2. 데이터 동기화 및 백업 체크 (시스템 시작 시에만)
-      debug.log('🔄 시스템 시작 시 데이터 동기화 중...');
-      try {
-        const syncResponse = await fetch('/api/system/sync-data', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ triggerType: 'system-start' }),
-        });
-
-        if (syncResponse.ok) {
-          const syncResult = await syncResponse.json();
-          debug.log('✅ 데이터 동기화 완료:', syncResult);
-        } else {
-          debug.warn('⚠️ 데이터 동기화 실패, 시스템 계속 진행');
-        }
-      } catch (syncError) {
-        debug.warn('⚠️ 데이터 동기화 중 오류:', syncError);
-      }
-
-      // 3. 기존 시스템 시작 로직 실행
+      // 2. 기존 시스템 시작 로직 실행
       await startSystem();
 
-      // 4. 시스템 상태 새로고침
-      await refreshSystemStatus();
+      // 3. 데이터 동기화 및 백업 체크 (백그라운드에서 비동기 실행)
+      void (async () => {
+        try {
+          debug.log('🔄 백그라운드 데이터 동기화 시작...');
+          const syncResponse = await fetch('/api/system/sync-data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ triggerType: 'system-start' }),
+          });
 
-      debug.log('✅ 백그라운드 시스템 시작 완료');
+          if (syncResponse.ok) {
+            const syncResult = await syncResponse.json();
+            debug.log('✅ 백그라운드 데이터 동기화 완료:', syncResult);
+          } else {
+            debug.warn('⚠️ 백그라운드 데이터 동기화 실패');
+          }
+        } catch (syncError) {
+          debug.warn('⚠️ 백그라운드 데이터 동기화 중 오류:', syncError);
+        }
+      })();
+
+      debug.log('✅ 백그라운드 시스템 시작 완료 (동기화는 백그라운드 진행)');
     } catch (error) {
       debug.error('❌ 백그라운드 시스템 시작 실패:', error);
       setIsSystemStarting(false); // 실패 시 상태 초기화
       throw error; // 에러를 다시 던져서 호출자가 처리할 수 있도록
     }
-  }, [startMultiUserSystem, startSystem, refreshSystemStatus]);
+  }, [startMultiUserSystem, startSystem]);
 
   // 🚀 시스템 시작 카운트다운 함수 (바로 로딩 페이지 이동)
   const startSystemCountdown = useCallback(() => {
