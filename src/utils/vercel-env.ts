@@ -9,40 +9,44 @@
  */
 
 /**
- * 베르셀 환경 여부를 안정적으로 감지
- * - 서버사이드: 환경변수만 체크
- * - 클라이언트사이드: hostname 체크
- * - 1회만 실행되어 성능 최적화
+ * 베르셀 환경 여부를 안전하게 감지하는 함수
+ * - 런타임에 호출되어 안전함
  */
-export const isVercelEnvironment = (() => {
+function getIsVercelEnvironment(): boolean {
   // 서버사이드 렌더링 중인 경우
   if (typeof window === 'undefined') {
-    return process.env.VERCEL === '1';
+    return process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined;
   }
   
   // 클라이언트사이드에서는 hostname으로 판단
-  return window.location.hostname.includes('vercel.app') || 
-         window.location.hostname.endsWith('.vercel.app');
-})();
+  try {
+    return window.location.hostname.includes('vercel.app') || 
+           window.location.hostname.endsWith('.vercel.app');
+  } catch {
+    return false; // window.location 접근 실패시 안전한 기본값
+  }
+}
 
 /**
- * 베르셀 환경별 설정값 제공
+ * 베르셀 환경별 설정값 제공 (런타임에 계산)
  */
 export const vercelConfig = {
-  // 타이머 지연 시간 (베르셀: 1초, 로컬: 0.1초)
-  initDelay: isVercelEnvironment ? 1000 : 100,
+  get isVercel() { return getIsVercelEnvironment(); },
   
-  // 인증 재시도 간격 (베르셀: 10초, 로컬: 5초)
-  authRetryDelay: isVercelEnvironment ? 10000 : 5000,
+  // 타이머 지연 시간 (베르셀: 300ms, 로컬: 100ms) - 무한 로딩 방지를 위해 단축
+  get initDelay() { return this.isVercel ? 300 : 100; },
   
-  // 시스템 동기화 debounce (베르셀: 3초, 로컬: 1초)
-  syncDebounce: isVercelEnvironment ? 3000 : 1000,
+  // 인증 재시도 간격 (베르셀: 5초, 로컬: 3초) - 더 빠른 응답
+  get authRetryDelay() { return this.isVercel ? 5000 : 3000; },
   
-  // 클라이언트 마운트 지연 (베르셀: 300ms, 로컬: 0ms)
-  mountDelay: isVercelEnvironment ? 300 : 0,
+  // 시스템 동기화 debounce (베르셀: 1초, 로컬: 500ms) - 더 빠른 응답
+  get syncDebounce() { return this.isVercel ? 1000 : 500; },
+  
+  // 클라이언트 마운트 지연 (베르셀: 100ms, 로컬: 0ms) - 빠른 시작
+  get mountDelay() { return this.isVercel ? 100 : 0; },
   
   // 환경 표시 문자열
-  envLabel: isVercelEnvironment ? 'Vercel' : 'Local'
+  get envLabel() { return this.isVercel ? 'Vercel' : 'Local'; }
 };
 
 /**
