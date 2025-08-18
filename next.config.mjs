@@ -39,19 +39,9 @@ const nextConfig = {
     'axios',
   ],
 
-  // 실험적 기능 최적화 (기존 디자인 유지)
+  // 실험적 기능 - Next.js 기본 설정 (CSS 문제 해결)
   experimental: {
-    // CSS 최적화 활성화 (MIME type 에러 해결)
-    optimizeCss: true,
-    // CSS 청킹 비활성화 (MIME type 에러 방지)
-    // cssChunking: 'strict',
-    // 트랜스폼 최적화
-    forceSwcTransforms: true,
-    // 빌드 워커 활성화 (성능 향상)
-    webpackBuildWorker: true,
-    // Lightning CSS 비활성화 (TailwindCSS 호환)
-    useLightningcss: false,
-    // 번들 최적화
+    // 기본 패키지 최적화만 유지
     optimizePackageImports: [
       'lucide-react',
       '@radix-ui/react-icons',
@@ -285,57 +275,11 @@ const nextConfig = {
         crypto: false,
       };
       
-      // CSS/JS 완전 분리 및 청크 최적화 (11개 → 4개)
-      config.optimization.splitChunks = {
-        chunks: 'all',
-        maxInitialRequests: 6, // 초기 요청 수 제한
-        cacheGroups: {
-          // Framework 통합 (React, Next.js 등)
-          framework: {
-            name: 'framework',
-            test: /[\\/]node_modules[\\/](react|react-dom|next|@next)[\\/]/,
-            priority: 20,
-            chunks: 'all',
-            enforce: true,
-            reuseExistingChunk: true,
-          },
-          // 핵심 UI 라이브러리
-          ui: {
-            name: 'ui',
-            test: /[\\/]node_modules[\\/](@radix-ui|lucide-react|framer-motion)[\\/]/,
-            priority: 15,
-            chunks: 'all',
-            enforce: true,
-          },
-          // 기타 vendor 라이브러리
-          vendor: {
-            name: 'vendors',
-            test: /[\\/]node_modules[\\/]/,
-            priority: -10,
-            chunks: 'all',
-            minChunks: 1,
-            reuseExistingChunk: true,
-          },
-          // 애플리케이션 기본 코드 (자동 이름 생성)
-          default: {
-            minChunks: 2,
-            priority: -20,
-            reuseExistingChunk: true,
-          },
-        },
-      };
+      // Next.js 기본 splitChunks 사용 (CSS 문제 해결)
 
     }
 
-    // 프로덕션 최적화
-    if (!dev) {
-      // Tree shaking 강화
-      config.optimization.usedExports = true;
-      config.optimization.sideEffects = false;
-      
-      // 압축 최적화
-      config.optimization.minimize = true;
-    }
+    // Next.js 기본 최적화 사용
 
     // 큰 파일 및 테스트 파일 제외
     config.module.rules.push(
