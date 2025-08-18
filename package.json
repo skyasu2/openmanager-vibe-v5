@@ -194,7 +194,6 @@
     "vm:pm2": "node scripts/vm-api-client.js pm2",
     "vm:deploy": "node scripts/vm-api-client.js deploy",
     "commit:auto": "tsx scripts/auto-fix-and-commit.ts",
-    "commit:smart": "git add -A && tsx scripts/auto-fix-and-commit.ts",
     "commit:v3": "node scripts/smart-commit.js",
     "commit:fast": "node scripts/smart-commit.js --fast",
     "commit:fix": "node scripts/smart-commit.js --fix",
