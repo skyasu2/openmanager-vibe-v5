@@ -39,7 +39,7 @@ const nextConfig = {
     'axios',
   ],
 
-  // 실험적 기능 최적화
+  // 실험적 기능 최적화 (기존 디자인 유지)
   experimental: {
     // CSS 최적화 비활성화 (critters 의존성 제거)
     optimizeCss: false,
@@ -47,8 +47,8 @@ const nextConfig = {
     forceSwcTransforms: true,
     // 빌드 워커 활성화 (성능 향상)
     webpackBuildWorker: true,
-    // Lightning CSS 활성화 (PostCSS 대체)
-    useLightningcss: false, // TailwindCSS와 충돌 방지
+    // Lightning CSS 비활성화 (TailwindCSS와 충돌 방지)
+    useLightningcss: false,
     // 번들 최적화
     optimizePackageImports: [
       'lucide-react',
@@ -283,24 +283,20 @@ const nextConfig = {
         crypto: false,
       };
       
-      // 단순화된 번들 분할 (CSS 중복 로드 방지)
+      // 안전한 번들 분할 (기존 기능 유지)
       config.optimization.splitChunks = {
         chunks: 'all',
         cacheGroups: {
-          // CSS 파일은 별도 처리
-          styles: {
-            name: 'styles',
-            test: /\.(css|scss|sass)$/,
-            chunks: 'all',
-            enforce: true,
-            priority: 100,
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true,
           },
-          // 기본 vendor 번들만 유지
           vendor: {
             test: /[\\/]node_modules[\\/]/,
             name: 'vendors',
-            priority: 10,
-            minChunks: 1,
+            priority: -10,
+            chunks: 'all',
           },
         },
       };
