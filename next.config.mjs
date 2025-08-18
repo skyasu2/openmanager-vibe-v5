@@ -41,13 +41,15 @@ const nextConfig = {
 
   // 실험적 기능 최적화 (기존 디자인 유지)
   experimental: {
-    // CSS 최적화 비활성화 (critters 의존성 제거)
-    optimizeCss: false,
+    // CSS 최적화 활성화 (MIME type 에러 해결)
+    optimizeCss: true,
+    // CSS 청킹 강제 분리 (CSS/JS 완전 분리)
+    cssChunking: 'strict',
     // 트랜스폼 최적화
     forceSwcTransforms: true,
     // 빌드 워커 활성화 (성능 향상)
     webpackBuildWorker: true,
-    // Lightning CSS 비활성화 (TailwindCSS와 충돌 방지)
+    // Lightning CSS 비활성화 (TailwindCSS 호환)
     useLightningcss: false,
     // 번들 최적화
     optimizePackageImports: [
@@ -283,23 +285,55 @@ const nextConfig = {
         crypto: false,
       };
       
-      // 안전한 번들 분할 (기존 기능 유지)
+      // CSS/JS 완전 분리 및 청크 최적화 (11개 → 4개)
       config.optimization.splitChunks = {
         chunks: 'all',
+        maxInitialRequests: 6, // 초기 요청 수 제한
         cacheGroups: {
+          // CSS 전용 처리 (최우선)
+          styles: {
+            name: 'styles',
+            test: /\.(css|scss|sass)$/,
+            chunks: 'all',
+            priority: 30,
+            enforce: true,
+            type: 'css/mini-extract',
+          },
+          // Framework 통합 (React, Next.js 등)
+          framework: {
+            name: 'framework',
+            test: /[\\/]node_modules[\\/](react|react-dom|next|@next)[\\/]/,
+            priority: 20,
+            chunks: 'all',
+            enforce: true,
+            reuseExistingChunk: true,
+          },
+          // 핵심 UI 라이브러리
+          ui: {
+            name: 'ui',
+            test: /[\\/]node_modules[\\/](@radix-ui|lucide-react|framer-motion)[\\/]/,
+            priority: 15,
+            chunks: 'all',
+            enforce: true,
+          },
+          // 기타 vendor 라이브러리
+          vendor: {
+            name: 'vendors',
+            test: /[\\/]node_modules[\\/]/,
+            priority: -10,
+            chunks: 'all',
+            minChunks: 1,
+            reuseExistingChunk: true,
+          },
+          // 애플리케이션 기본 코드 (자동 이름 생성)
           default: {
             minChunks: 2,
             priority: -20,
             reuseExistingChunk: true,
           },
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            priority: -10,
-            chunks: 'all',
-          },
         },
       };
+
     }
 
     // 프로덕션 최적화
