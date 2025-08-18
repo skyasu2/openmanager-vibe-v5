@@ -124,7 +124,7 @@ function Home() {
 
   // 🎯 마스터 타이머 시스템 - 모든 타이머 로직을 하나로 통합
   useEffect(() => {
-    if (!isMounted) return;
+    // isMounted 조건 제거: 초기화를 위해 항상 실행 필요
 
     let masterTimer: NodeJS.Timeout | null = null;
     let syncTimeout: NodeJS.Timeout | null = null;
