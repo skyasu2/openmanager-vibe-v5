@@ -1,9 +1,9 @@
 /**
  * 🧩 TechStackAnalyzer Categories
- * 
+ *
  * Category definitions for technology classification:
  * - Frontend & UI categories
- * - Backend & Data categories  
+ * - Backend & Data categories
  * - AI & Development categories
  * - Infrastructure & Deployment categories
  */

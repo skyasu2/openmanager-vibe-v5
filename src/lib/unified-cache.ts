@@ -1,11 +1,11 @@
 /**
  * 🚀 통합 캐시 시스템 v3.0
- * 
+ *
  * 3개의 중복 캐시 시스템을 하나로 통합
  * - Memory 기반 LRU 캐시 (cache-helper.ts)
  * - AI 쿼리 패턴 캐시 (query-cache-manager.ts)
  * - AI 응답 캐시 (CacheManager.ts)
- * 
+ *
  * 특징:
  * - 단일 인터페이스로 모든 캐시 기능 제공
  * - 타입별 네임스페이스 지원
@@ -64,26 +64,30 @@ export class UnifiedCacheService {
   private cache = new Map<string, CacheItem<unknown>>();
   private patterns = new Map<string, QueryPattern>();
   private maxSize = 1000; // 통합 후 최대 1000개
-  private stats = { 
-    hits: 0, 
-    misses: 0, 
-    sets: 0, 
+  private stats = {
+    hits: 0,
+    misses: 0,
+    sets: 0,
     deletes: 0,
-    namespaces: {} as Record<string, number>
+    namespaces: {} as Record<string, number>,
   };
-  
+
   // Singleton 인스턴스
   private static instance: UnifiedCacheService;
-  
+
   private constructor() {
     // Runtime별 cleanup 전략
     this.initCleanupStrategy();
   }
-  
+
   private initCleanupStrategy() {
     try {
       // Edge Runtime 감지 (setInterval 제한 여부 확인)
-      if (typeof setInterval === 'function' && typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
+      if (
+        typeof setInterval === 'function' &&
+        typeof process !== 'undefined' &&
+        process.env.NODE_ENV !== 'test'
+      ) {
         // Node.js Runtime: 5분마다 자동 정리
         setInterval(() => this.cleanup(), 5 * 60 * 1000);
       } else {
@@ -92,43 +96,45 @@ export class UnifiedCacheService {
       }
     } catch (error) {
       // setInterval 사용 불가 환경: 수동 cleanup만 사용
-      console.warn('Automatic cache cleanup disabled: setInterval not available');
+      console.warn(
+        'Automatic cache cleanup disabled: setInterval not available'
+      );
     }
   }
-  
+
   static getInstance(): UnifiedCacheService {
     if (!UnifiedCacheService.instance) {
       UnifiedCacheService.instance = new UnifiedCacheService();
     }
     return UnifiedCacheService.instance;
   }
-  
+
   /**
    * 캐시에서 값 가져오기
    */
   async get<T>(
-    key: string, 
+    key: string,
     namespace: CacheNamespace = CacheNamespace.GENERAL
   ): Promise<T | null> {
     const fullKey = `${namespace}:${key}`;
     const item = this.cache.get(fullKey);
-    
+
     if (!item) {
       this.stats.misses++;
       return null;
     }
-    
+
     if (Date.now() > item.expires) {
       this.cache.delete(fullKey);
       this.stats.misses++;
       return null;
     }
-    
+
     item.hits++;
     this.stats.hits++;
     return item.value as T;
   }
-  
+
   /**
    * 캐시에 값 저장
    */
@@ -146,16 +152,16 @@ export class UnifiedCacheService {
       ttlSeconds = 300,
       namespace = CacheNamespace.GENERAL,
       pattern,
-      metadata
+      metadata,
     } = options;
-    
+
     const fullKey = `${namespace}:${key}`;
-    
+
     // LRU 정책 적용
     if (this.cache.size >= this.maxSize) {
       this.evictLeastRecentlyUsed();
     }
-    
+
     this.cache.set(fullKey, {
       value,
       expires: Date.now() + ttlSeconds * 1000,
@@ -163,19 +169,20 @@ export class UnifiedCacheService {
       hits: 0,
       namespace,
       pattern,
-      metadata
+      metadata,
     });
-    
+
     // 네임스페이스별 통계 업데이트
-    this.stats.namespaces[namespace] = (this.stats.namespaces[namespace] || 0) + 1;
+    this.stats.namespaces[namespace] =
+      (this.stats.namespaces[namespace] || 0) + 1;
     this.stats.sets++;
-    
+
     // 패턴 학습 (AI 쿼리인 경우)
     if (namespace === CacheNamespace.AI_QUERY && pattern) {
       this.learnPattern(pattern, metadata);
     }
   }
-  
+
   /**
    * 캐시 또는 페칭 패턴
    */
@@ -189,34 +196,38 @@ export class UnifiedCacheService {
     } = {}
   ): Promise<T> {
     const { force = false, namespace = CacheNamespace.GENERAL } = options;
-    
+
     if (!force) {
       const cached = await this.get<T>(key, namespace);
       if (cached !== null) {
         return cached;
       }
     }
-    
+
     const data = await fetcher();
     await this.set(key, data, options);
     return data;
   }
-  
+
   /**
    * 패턴 학습 (AI 쿼리용)
    */
-  private learnPattern(pattern: string, metadata?: Record<string, unknown>): void {
+  private learnPattern(
+    pattern: string,
+    metadata?: Record<string, unknown>
+  ): void {
     const patternKey = this.normalizePattern(pattern);
     const existing = this.patterns.get(patternKey);
-    
+
     if (existing) {
       existing.frequency++;
       existing.hits++;
       existing.lastUsed = new Date();
       if (metadata?.responseTime) {
-        existing.avgResponseTime = 
-          (existing.avgResponseTime * (existing.hits - 1) + 
-           (metadata.responseTime as number)) / existing.hits;
+        existing.avgResponseTime =
+          (existing.avgResponseTime * (existing.hits - 1) +
+            (metadata.responseTime as number)) /
+          existing.hits;
       }
     } else {
       this.patterns.set(patternKey, {
@@ -225,11 +236,11 @@ export class UnifiedCacheService {
         frequency: 1,
         avgResponseTime: (metadata?.responseTime as number) || 0,
         lastUsed: new Date(),
-        hits: 1
+        hits: 1,
       });
     }
   }
-  
+
   /**
    * 패턴 정규화
    */
@@ -240,41 +251,44 @@ export class UnifiedCacheService {
       .replace(/[^\w\s]/g, '')
       .trim();
   }
-  
+
   /**
    * 캐시 무효화
    */
-  async invalidate(pattern?: string, namespace?: CacheNamespace): Promise<void> {
+  async invalidate(
+    pattern?: string,
+    namespace?: CacheNamespace
+  ): Promise<void> {
     if (!pattern && !namespace) {
       this.cache.clear();
       this.stats.deletes += this.cache.size;
       return;
     }
-    
+
     const keysToDelete: string[] = [];
-    
+
     for (const key of this.cache.keys()) {
       const item = this.cache.get(key);
       if (!item) continue;
-      
+
       // 네임스페이스 매칭
       if (namespace && item.namespace !== namespace) continue;
-      
+
       // 패턴 매칭
       if (pattern) {
         const regex = new RegExp(pattern.replace(/\*/g, '.*'));
         if (!regex.test(key)) continue;
       }
-      
+
       keysToDelete.push(key);
     }
-    
-    keysToDelete.forEach(key => {
+
+    keysToDelete.forEach((key) => {
       this.cache.delete(key);
       this.stats.deletes++;
     });
   }
-  
+
   /**
    * LRU 정책으로 가장 오래된/적게 사용된 항목 제거
    */
@@ -282,16 +296,18 @@ export class UnifiedCacheService {
     let leastUsedKey = '';
     let leastHits = Infinity;
     let oldestTime = Date.now();
-    
+
     for (const [key, item] of this.cache.entries()) {
-      if (item.hits < leastHits || 
-          (item.hits === leastHits && item.created < oldestTime)) {
+      if (
+        item.hits < leastHits ||
+        (item.hits === leastHits && item.created < oldestTime)
+      ) {
         leastHits = item.hits;
         oldestTime = item.created;
         leastUsedKey = key;
       }
     }
-    
+
     if (leastUsedKey) {
       const item = this.cache.get(leastUsedKey);
       if (item?.namespace) {
@@ -301,14 +317,14 @@ export class UnifiedCacheService {
       this.stats.deletes++;
     }
   }
-  
+
   /**
    * 만료된 항목 정리
    */
   cleanup(): void {
     const now = Date.now();
     const expiredKeys: string[] = [];
-    
+
     for (const [key, item] of this.cache.entries()) {
       if (item.expires <= now) {
         expiredKeys.push(key);
@@ -317,35 +333,36 @@ export class UnifiedCacheService {
         }
       }
     }
-    
-    expiredKeys.forEach(key => {
+
+    expiredKeys.forEach((key) => {
       this.cache.delete(key);
       this.stats.deletes++;
     });
   }
-  
+
   /**
    * 통계 정보 가져오기
    */
   getStats(): CacheStats {
     const totalRequests = this.stats.hits + this.stats.misses;
     const namespaceCount: Record<string, number> = {};
-    
+
     // 현재 네임스페이스별 카운트
     for (const item of this.cache.values()) {
-      namespaceCount[item.namespace] = (namespaceCount[item.namespace] || 0) + 1;
+      namespaceCount[item.namespace] =
+        (namespaceCount[item.namespace] || 0) + 1;
     }
-    
+
     return {
       ...this.stats,
       size: this.cache.size,
       maxSize: this.maxSize,
       hitRate: totalRequests > 0 ? (this.stats.hits / totalRequests) * 100 : 0,
       memoryUsage: `${Math.round(this.cache.size * 0.5)}KB`,
-      namespaces: namespaceCount
+      namespaces: namespaceCount,
     };
   }
-  
+
   /**
    * 패턴 통계 가져오기
    */
@@ -354,17 +371,17 @@ export class UnifiedCacheService {
       .sort((a, b) => b.frequency - a.frequency)
       .slice(0, 10); // Top 10 패턴
   }
-  
+
   /**
    * 통계 리셋
    */
   resetStats(): void {
-    this.stats = { 
-      hits: 0, 
-      misses: 0, 
-      sets: 0, 
+    this.stats = {
+      hits: 0,
+      misses: 0,
+      sets: 0,
       deletes: 0,
-      namespaces: {}
+      namespaces: {},
     };
   }
 }
@@ -377,12 +394,12 @@ export function getCachedData<T>(key: string): T | null {
   const cache = UnifiedCacheService.getInstance();
   // Synchronous wrapper for backward compatibility
   const result = cache.get<T>(key, CacheNamespace.GENERAL);
-  return result instanceof Promise ? null : result as T | null;
+  return result instanceof Promise ? null : (result as T | null);
 }
 
 export function setCachedData<T>(
-  key: string, 
-  data: T, 
+  key: string,
+  data: T,
   ttlSeconds: number = 300
 ): void {
   const cache = UnifiedCacheService.getInstance();
@@ -401,7 +418,7 @@ export async function cacheOrFetch<T>(
   return cache.getOrFetch(key, fetcher, {
     ttlSeconds: options?.ttl,
     force: options?.force,
-    namespace: CacheNamespace.GENERAL
+    namespace: CacheNamespace.GENERAL,
   });
 }
 
@@ -431,8 +448,8 @@ export function createCachedResponse<T>(
       'public',
       `max-age=${options.maxAge ?? 0}`,
       `s-maxage=${options.sMaxAge ?? 60}`,
-      `stale-while-revalidate=${options.staleWhileRevalidate ?? 300}`
-    ].join(', ')
+      `stale-while-revalidate=${options.staleWhileRevalidate ?? 300}`,
+    ].join(', '),
   });
 
   return new Response(JSON.stringify(data), {

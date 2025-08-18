@@ -3,17 +3,17 @@
  *
  * 메모리 기반 캐시 성능 모니터링
  * Zod 스키마와 타입 안전성이 적용된 버전
- * 
+ *
  * GET /api/cache/stats
  */
 
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import { getCacheStats } from '@/lib/cache-helper';
 import {
-    CacheStatsResponseSchema,
-    type CachePerformance,
-    type CacheStats,
-    type CacheStatsResponse,
+  CacheStatsResponseSchema,
+  type CachePerformance,
+  type CacheStats,
+  type CacheStatsResponse,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
 import type { NextRequest } from 'next/server';
@@ -43,7 +43,7 @@ function estimateMemoryCacheUsage() {
   const estimatedMB = estimatedKB / 1024;
   const maxMB = 50; // 최대 50MB 권장
   const usagePercent = (estimatedMB / maxMB) * 100;
-  
+
   return {
     estimatedMB: Math.round(estimatedMB * 100) / 100,
     maxMB,
@@ -61,7 +61,7 @@ const cacheStatsHandler = createApiRoute()
   .build(async (_request, _context): Promise<CacheStatsResponse> => {
     // 메모리 기반 캐시 통계
     const rawStats = getCacheStats();
-    
+
     const stats: CacheStats = {
       hits: rawStats.hits || 0,
       misses: rawStats.misses || 0,
@@ -71,7 +71,8 @@ const cacheStatsHandler = createApiRoute()
       storeSize: rawStats.size || 0,
       hitRate: rawStats.hitRate || 0,
       commandsPerSecond: 0, // MemoryCacheService doesn't track start time
-      memoryUsageMB: Math.round((rawStats.size * 0.5) / 1024 * 100) / 100 || 0, // MB 단위
+      memoryUsageMB:
+        Math.round(((rawStats.size * 0.5) / 1024) * 100) / 100 || 0, // MB 단위
     };
 
     // 메모리 캐시 정보
@@ -123,7 +124,10 @@ const cacheStatsHandler = createApiRoute()
     if (process.env.NODE_ENV === 'development') {
       const validation = CacheStatsResponseSchema.safeParse(response);
       if (!validation.success) {
-        debug.error('Cache stats response validation failed:', validation.error);
+        debug.error(
+          'Cache stats response validation failed:',
+          validation.error
+        );
       }
     }
 
@@ -204,7 +208,10 @@ function analyzePerformance(stats: CacheStats): CachePerformance {
 /**
  * 메모리 캐시 개선 권장사항 생성
  */
-function getMemoryCacheRecommendations(stats: CacheStats, issues: string[]): string[] {
+function getMemoryCacheRecommendations(
+  stats: CacheStats,
+  issues: string[]
+): string[] {
   const recommendations: string[] = [];
 
   if (stats.hitRate < 50) {

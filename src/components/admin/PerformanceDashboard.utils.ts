@@ -1,6 +1,6 @@
 /**
  * 📊 PerformanceDashboard Utils
- * 
+ *
  * Utility functions for performance dashboard:
  * - Data export functionality
  * - Manual refresh handlers
@@ -34,7 +34,7 @@ export async function handleExportData(
     const blob = new Blob([JSON.stringify(exportData, null, 2)], {
       type: 'application/json',
     });
-    
+
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

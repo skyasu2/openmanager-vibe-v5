@@ -336,7 +336,7 @@ export function setupGlobalErrorHandler(): void {
   (window as any).__openManagerErrorHandlerSetup = true;
 
   // Unhandled JavaScript errors
-  window.addEventListener('error', event => {
+  window.addEventListener('error', (event) => {
     const safeError = safeErrorLog('🚨 Global Error', event.error, true);
 
     // 로딩 관련 에러면 자동 복구 시도
@@ -357,7 +357,7 @@ export function setupGlobalErrorHandler(): void {
   });
 
   // Unhandled promise rejections
-  window.addEventListener('unhandledrejection', event => {
+  window.addEventListener('unhandledrejection', (event) => {
     const safeError = safeErrorLog(
       '🚨 Unhandled Promise Rejection',
       event.reason,
@@ -465,7 +465,7 @@ export async function withErrorRecovery<T>(
         onRetry?.(i + 2, lastError); // 다음 시도 번호 전달
 
         if (retryDelay > 0) {
-          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
       } else {
         // 재시도하지 않는 경우에도 onRetry 호출하지 않음

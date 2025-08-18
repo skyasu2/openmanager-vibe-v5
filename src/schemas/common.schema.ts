@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * 🌐 공통 Zod 스키마 정의
- * 
+ *
  * 프로젝트 전체에서 재사용되는 기본 스키마들
  */
 
@@ -141,29 +141,37 @@ export const EmptyStringToUndefined = z
   .transform((val) => (val === '' ? undefined : val));
 
 // 문자열을 숫자로 변환
-export const StringToNumber = z
-  .string()
-  .transform((val, ctx) => {
-    const parsed = parseFloat(val);
-    if (isNaN(parsed)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Invalid number string',
-      });
-      return z.NEVER;
-    }
-    return parsed;
-  });
+export const StringToNumber = z.string().transform((val, ctx) => {
+  const parsed = parseFloat(val);
+  if (isNaN(parsed)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Invalid number string',
+    });
+    return z.NEVER;
+  }
+  return parsed;
+});
 
 // 문자열을 불린으로 변환
 export const StringToBoolean = z
   .string()
   .transform((val) => {
     const lower = val.toLowerCase();
-    if (lower === 'true' || lower === '1' || lower === 'yes' || lower === 'on') {
+    if (
+      lower === 'true' ||
+      lower === '1' ||
+      lower === 'yes' ||
+      lower === 'on'
+    ) {
       return true;
     }
-    if (lower === 'false' || lower === '0' || lower === 'no' || lower === 'off') {
+    if (
+      lower === 'false' ||
+      lower === '0' ||
+      lower === 'no' ||
+      lower === 'off'
+    ) {
       return false;
     }
     return null;

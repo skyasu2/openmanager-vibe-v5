@@ -74,7 +74,7 @@ export class PerformanceService {
       let totalIdle = 0;
       let totalTick = 0;
 
-      cpus.forEach(cpu => {
+      cpus.forEach((cpu) => {
         for (const type in cpu.times) {
           totalTick += cpu.times[type as keyof typeof cpu.times];
         }
@@ -83,7 +83,7 @@ export class PerformanceService {
 
       const idle = totalIdle / cpus.length;
       const total = totalTick / cpus.length;
-      
+
       return ((total - idle) / total) * 100;
     } catch {
       return Math.random() * 100; // Fallback
@@ -109,7 +109,7 @@ export class PerformanceService {
       const totalMem = os.totalmem();
       const freeMem = os.freemem();
       const usedMem = totalMem - freeMem;
-      
+
       return (usedMem / totalMem) * 100;
     } catch {
       return Math.random() * 100; // Fallback
@@ -122,13 +122,13 @@ export class PerformanceService {
   private async getResponseTime(): Promise<number> {
     try {
       const start = performance.now();
-      
+
       // Test API endpoint response time
-      await fetch('/api/health', { 
+      await fetch('/api/health', {
         method: 'HEAD',
-        cache: 'no-cache' 
+        cache: 'no-cache',
       });
-      
+
       return performance.now() - start;
     } catch {
       return Math.random() * 1000; // Fallback
@@ -180,30 +180,62 @@ export class PerformanceService {
 
     // CPU Alert
     if (metric.cpu > thresholds.cpu.critical) {
-      this.generateAlert('cpu', 'critical', `Critical CPU usage: ${metric.cpu.toFixed(1)}%`);
+      this.generateAlert(
+        'cpu',
+        'critical',
+        `Critical CPU usage: ${metric.cpu.toFixed(1)}%`
+      );
     } else if (metric.cpu > thresholds.cpu.warning) {
-      this.generateAlert('cpu', 'warning', `High CPU usage: ${metric.cpu.toFixed(1)}%`);
+      this.generateAlert(
+        'cpu',
+        'warning',
+        `High CPU usage: ${metric.cpu.toFixed(1)}%`
+      );
     }
 
     // Memory Alert
     if (metric.memory > thresholds.memory.critical) {
-      this.generateAlert('memory', 'critical', `Critical memory usage: ${metric.memory.toFixed(1)}%`);
+      this.generateAlert(
+        'memory',
+        'critical',
+        `Critical memory usage: ${metric.memory.toFixed(1)}%`
+      );
     } else if (metric.memory > thresholds.memory.warning) {
-      this.generateAlert('memory', 'warning', `High memory usage: ${metric.memory.toFixed(1)}%`);
+      this.generateAlert(
+        'memory',
+        'warning',
+        `High memory usage: ${metric.memory.toFixed(1)}%`
+      );
     }
 
     // Response Time Alert
     if (metric.responseTime > thresholds.responseTime.critical) {
-      this.generateAlert('response-time', 'critical', `Critical response time: ${metric.responseTime.toFixed(0)}ms`);
+      this.generateAlert(
+        'response-time',
+        'critical',
+        `Critical response time: ${metric.responseTime.toFixed(0)}ms`
+      );
     } else if (metric.responseTime > thresholds.responseTime.warning) {
-      this.generateAlert('response-time', 'warning', `Slow response time: ${metric.responseTime.toFixed(0)}ms`);
+      this.generateAlert(
+        'response-time',
+        'warning',
+        `Slow response time: ${metric.responseTime.toFixed(0)}ms`
+      );
     }
 
     // Error Rate Alert
     if (metric.errorRate > thresholds.errorRate.critical) {
-      this.generateAlert('error-rate', 'critical', `Critical error rate: ${metric.errorRate.toFixed(1)}%`);
+      this.generateAlert(
+        'error-rate',
+        'critical',
+        `Critical error rate: ${metric.errorRate.toFixed(1)}%`
+      );
     } else if (metric.errorRate > thresholds.errorRate.warning) {
-      this.generateAlert('error-rate', 'warning', `High error rate: ${metric.errorRate.toFixed(1)}%`);
+      this.generateAlert(
+        'error-rate',
+        'warning',
+        `High error rate: ${metric.errorRate.toFixed(1)}%`
+      );
     }
   }
 
@@ -211,8 +243,8 @@ export class PerformanceService {
    * Generate alert
    */
   private generateAlert(
-    type: Alert['type'], 
-    severity: Alert['severity'], 
+    type: Alert['type'],
+    severity: Alert['severity'],
     message: string
   ): void {
     const alert: Alert = {
@@ -239,7 +271,9 @@ export class PerformanceService {
    * Get current metrics
    */
   public getCurrentMetrics(): PerformanceMetric | null {
-    return this.metrics.length > 0 ? this.metrics[this.metrics.length - 1] : null;
+    return this.metrics.length > 0
+      ? this.metrics[this.metrics.length - 1]
+      : null;
   }
 
   /**
@@ -253,7 +287,7 @@ export class PerformanceService {
    * Get active alerts
    */
   public getActiveAlerts(): Alert[] {
-    return this.alerts.filter(alert => !alert.resolved);
+    return this.alerts.filter((alert) => !alert.resolved);
   }
 
   /**
@@ -267,7 +301,7 @@ export class PerformanceService {
    * Resolve alert
    */
   public resolveAlert(alertId: string): boolean {
-    const alert = this.alerts.find(a => a.id === alertId);
+    const alert = this.alerts.find((a) => a.id === alertId);
     if (alert) {
       alert.resolved = true;
       this.notifyClients('alert', alert);
@@ -292,12 +326,13 @@ export class PerformanceService {
     const scores = [
       Math.max(0, 100 - currentMetric.cpu),
       Math.max(0, 100 - currentMetric.memory),
-      Math.max(0, 100 - (currentMetric.responseTime / 20)),
-      Math.max(0, 100 - (currentMetric.errorRate * 10)),
+      Math.max(0, 100 - currentMetric.responseTime / 20),
+      Math.max(0, 100 - currentMetric.errorRate * 10),
     ];
 
-    const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
-    
+    const averageScore =
+      scores.reduce((sum, score) => sum + score, 0) / scores.length;
+
     let status: SystemHealth['status'] = 'healthy';
     if (averageScore < 60) status = 'critical';
     else if (averageScore < 80) status = 'warning';
@@ -316,9 +351,11 @@ export class PerformanceService {
     // This would be implemented with actual WebSocket server
     // For now, we'll use a placeholder
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('performance-update', {
-        detail: { type, data }
-      }));
+      window.dispatchEvent(
+        new CustomEvent('performance-update', {
+          detail: { type, data },
+        })
+      );
     }
   }
 
@@ -327,8 +364,15 @@ export class PerformanceService {
    */
   public exportMetrics(format: 'json' | 'csv' = 'json'): string {
     if (format === 'csv') {
-      const headers = ['Timestamp', 'CPU %', 'Memory %', 'Response Time (ms)', 'Active Connections', 'Error Rate %'];
-      const rows = this.metrics.map(metric => [
+      const headers = [
+        'Timestamp',
+        'CPU %',
+        'Memory %',
+        'Response Time (ms)',
+        'Active Connections',
+        'Error Rate %',
+      ];
+      const rows = this.metrics.map((metric) => [
         new Date(metric.timestamp).toISOString(),
         metric.cpu.toFixed(2),
         metric.memory.toFixed(2),
@@ -336,14 +380,18 @@ export class PerformanceService {
         metric.activeConnections.toString(),
         metric.errorRate.toFixed(2),
       ]);
-      
-      return [headers, ...rows].map(row => row.join(',')).join('\n');
+
+      return [headers, ...rows].map((row) => row.join(',')).join('\n');
     }
-    
-    return JSON.stringify({
-      metrics: this.metrics,
-      alerts: this.alerts,
-      exportedAt: new Date().toISOString(),
-    }, null, 2);
+
+    return JSON.stringify(
+      {
+        metrics: this.metrics,
+        alerts: this.alerts,
+        exportedAt: new Date().toISOString(),
+      },
+      null,
+      2
+    );
   }
 }

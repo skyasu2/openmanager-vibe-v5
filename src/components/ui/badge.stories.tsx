@@ -13,21 +13,22 @@ const meta = {
     layout: 'centered',
     docs: {
       description: {
-        component: '🏷️ 상태 표시용 Badge 컴포넌트입니다. 서버 상태, AI 엔진 상태, 알림 등을 시각적으로 구분하여 표시합니다.'
-      }
-    }
+        component:
+          '🏷️ 상태 표시용 Badge 컴포넌트입니다. 서버 상태, AI 엔진 상태, 알림 등을 시각적으로 구분하여 표시합니다.',
+      },
+    },
   },
   tags: ['autodocs'],
   argTypes: {
     variant: {
       control: 'select',
-      options: ['default', 'secondary', 'destructive', 'outline']
+      options: ['default', 'secondary', 'destructive', 'outline'],
     },
     children: {
       control: 'text',
-      description: 'Badge 내부에 표시될 내용'
-    }
-  }
+      description: 'Badge 내부에 표시될 내용',
+    },
+  },
 } satisfies Meta<typeof Badge>;
 
 export default meta;
@@ -71,18 +72,18 @@ export const Outline: Story = {
 // 🖥️ 서버 상태 배지들
 export const ServerStatusBadges: Story = {
   render: () => (
-    <div className='flex flex-wrap gap-3'>
-      <Badge variant='default' className='bg-green-600'>
+    <div className="flex flex-wrap gap-3">
+      <Badge variant="default" className="bg-green-600">
         ✅ 온라인
       </Badge>
-      <Badge variant='secondary' className='bg-blue-100 text-blue-800'>
+      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
         🔄 시작 중
       </Badge>
-      <Badge variant='destructive' className='bg-orange-600'>
+      <Badge variant="destructive" className="bg-orange-600">
         ⚠️ 경고
       </Badge>
-      <Badge variant='destructive'>🔴 오프라인</Badge>
-      <Badge variant='outline' className='border-yellow-300 text-yellow-700'>
+      <Badge variant="destructive">🔴 오프라인</Badge>
+      <Badge variant="outline" className="border-yellow-300 text-yellow-700">
         🔧 유지보수
       </Badge>
     </div>
@@ -100,18 +101,18 @@ export const ServerStatusBadges: Story = {
 // 🤖 AI 엔진 상태 배지들
 export const AIStatusBadges: Story = {
   render: () => (
-    <div className='flex flex-wrap gap-3'>
-      <Badge variant='default' className='bg-purple-600'>
+    <div className="flex flex-wrap gap-3">
+      <Badge variant="default" className="bg-purple-600">
         🧠 활성
       </Badge>
-      <Badge variant='secondary' className='bg-purple-100 text-purple-800'>
+      <Badge variant="secondary" className="bg-purple-100 text-purple-800">
         💭 처리 중
       </Badge>
-      <Badge variant='outline' className='border-purple-300 text-purple-700'>
+      <Badge variant="outline" className="border-purple-300 text-purple-700">
         💤 대기
       </Badge>
-      <Badge variant='destructive'>❌ 오류</Badge>
-      <Badge variant='secondary' className='bg-cyan-100 text-cyan-800'>
+      <Badge variant="destructive">❌ 오류</Badge>
+      <Badge variant="secondary" className="bg-cyan-100 text-cyan-800">
         🔄 학습 중
       </Badge>
     </div>
@@ -129,35 +130,35 @@ export const AIStatusBadges: Story = {
 // 📊 메트릭 레벨 배지들
 export const MetricLevelBadges: Story = {
   render: () => (
-    <div className='space-y-4'>
+    <div className="space-y-4">
       {/* CPU 사용률 레벨 */}
       <div>
-        <h4 className='text-sm font-medium mb-2'>CPU 사용률</h4>
-        <div className='flex gap-2'>
-          <Badge variant='default' className='bg-green-600'>
+        <h4 className="mb-2 text-sm font-medium">CPU 사용률</h4>
+        <div className="flex gap-2">
+          <Badge variant="default" className="bg-green-600">
             낮음 (0-50%)
           </Badge>
-          <Badge variant='secondary' className='bg-yellow-100 text-yellow-800'>
+          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
             보통 (50-75%)
           </Badge>
-          <Badge variant='destructive' className='bg-orange-600'>
+          <Badge variant="destructive" className="bg-orange-600">
             높음 (75-90%)
           </Badge>
-          <Badge variant='destructive'>위험 (90%+)</Badge>
+          <Badge variant="destructive">위험 (90%+)</Badge>
         </div>
       </div>
 
       {/* 메모리 사용률 레벨 */}
       <div>
-        <h4 className='text-sm font-medium mb-2'>메모리 사용률</h4>
-        <div className='flex gap-2'>
-          <Badge variant='default' className='bg-blue-600'>
+        <h4 className="mb-2 text-sm font-medium">메모리 사용률</h4>
+        <div className="flex gap-2">
+          <Badge variant="default" className="bg-blue-600">
             안전 (0-60%)
           </Badge>
-          <Badge variant='secondary' className='bg-blue-100 text-blue-800'>
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
             주의 (60-80%)
           </Badge>
-          <Badge variant='destructive' className='bg-red-600'>
+          <Badge variant="destructive" className="bg-red-600">
             경고 (80%+)
           </Badge>
         </div>
@@ -177,19 +178,19 @@ export const MetricLevelBadges: Story = {
 // 🔔 알림 및 우선순위 배지들
 export const AlertPriorityBadges: Story = {
   render: () => (
-    <div className='space-y-4'>
+    <div className="space-y-4">
       {/* 알림 종류 */}
       <div>
-        <h4 className='text-sm font-medium mb-2'>알림 종류</h4>
-        <div className='flex gap-2'>
-          <Badge variant='destructive'>🚨 긴급</Badge>
-          <Badge variant='destructive' className='bg-orange-600'>
+        <h4 className="mb-2 text-sm font-medium">알림 종류</h4>
+        <div className="flex gap-2">
+          <Badge variant="destructive">🚨 긴급</Badge>
+          <Badge variant="destructive" className="bg-orange-600">
             ⚠️ 경고
           </Badge>
-          <Badge variant='secondary' className='bg-blue-100 text-blue-800'>
+          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
             ℹ️ 정보
           </Badge>
-          <Badge variant='outline' className='border-gray-300 text-gray-700'>
+          <Badge variant="outline" className="border-gray-300 text-gray-700">
             📢 알림
           </Badge>
         </div>
@@ -197,13 +198,13 @@ export const AlertPriorityBadges: Story = {
 
       {/* 우선순위 */}
       <div>
-        <h4 className='text-sm font-medium mb-2'>작업 우선순위</h4>
-        <div className='flex gap-2'>
-          <Badge variant='destructive'>🔥 High</Badge>
-          <Badge variant='secondary' className='bg-yellow-100 text-yellow-800'>
+        <h4 className="mb-2 text-sm font-medium">작업 우선순위</h4>
+        <div className="flex gap-2">
+          <Badge variant="destructive">🔥 High</Badge>
+          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
             📋 Medium
           </Badge>
-          <Badge variant='outline' className='border-green-300 text-green-700'>
+          <Badge variant="outline" className="border-green-300 text-green-700">
             📝 Low
           </Badge>
         </div>
@@ -223,20 +224,20 @@ export const AlertPriorityBadges: Story = {
 // 👤 사용자 권한 배지들
 export const UserRoleBadges: Story = {
   render: () => (
-    <div className='flex flex-wrap gap-3'>
-      <Badge variant='default' className='bg-purple-600'>
+    <div className="flex flex-wrap gap-3">
+      <Badge variant="default" className="bg-purple-600">
         👑 관리자
       </Badge>
-      <Badge variant='secondary' className='bg-blue-100 text-blue-800'>
+      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
         🔧 운영자
       </Badge>
-      <Badge variant='outline' className='border-green-300 text-green-700'>
+      <Badge variant="outline" className="border-green-300 text-green-700">
         👤 사용자
       </Badge>
-      <Badge variant='outline' className='border-gray-300 text-gray-500'>
+      <Badge variant="outline" className="border-gray-300 text-gray-500">
         👻 게스트
       </Badge>
-      <Badge variant='secondary' className='bg-amber-100 text-amber-800'>
+      <Badge variant="secondary" className="bg-amber-100 text-amber-800">
         🎯 GitHub 인증
       </Badge>
     </div>
@@ -254,20 +255,20 @@ export const UserRoleBadges: Story = {
 // 📅 시간 관련 배지들
 export const TimeBadges: Story = {
   render: () => (
-    <div className='flex flex-wrap gap-3'>
-      <Badge variant='default' className='bg-green-600'>
+    <div className="flex flex-wrap gap-3">
+      <Badge variant="default" className="bg-green-600">
         📅 실시간
       </Badge>
-      <Badge variant='secondary' className='bg-blue-100 text-blue-800'>
+      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
         🕐 1분 전
       </Badge>
-      <Badge variant='secondary' className='bg-yellow-100 text-yellow-800'>
+      <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
         ⏰ 5분 전
       </Badge>
-      <Badge variant='destructive' className='bg-orange-600'>
+      <Badge variant="destructive" className="bg-orange-600">
         ⚠️ 10분 전
       </Badge>
-      <Badge variant='destructive'>🔴 연결 끊김</Badge>
+      <Badge variant="destructive">🔴 연결 끊김</Badge>
     </div>
   ),
   parameters: {
@@ -283,19 +284,19 @@ export const TimeBadges: Story = {
 // 📱 작은 크기 배지들 (모바일)
 export const SmallBadges: Story = {
   render: () => (
-    <div className='space-y-3'>
-      <div className='flex gap-2'>
-        <Badge variant='default' className='text-xs px-1.5 py-0.5'>
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <Badge variant="default" className="px-1.5 py-0.5 text-xs">
           온라인
         </Badge>
-        <Badge variant='destructive' className='text-xs px-1.5 py-0.5'>
+        <Badge variant="destructive" className="px-1.5 py-0.5 text-xs">
           오프라인
         </Badge>
-        <Badge variant='secondary' className='text-xs px-1.5 py-0.5'>
+        <Badge variant="secondary" className="px-1.5 py-0.5 text-xs">
           처리중
         </Badge>
       </div>
-      <div className='text-xs text-muted-foreground'>
+      <div className="text-xs text-muted-foreground">
         모바일 환경에서 사용되는 작은 크기의 배지들
       </div>
     </div>
@@ -316,35 +317,35 @@ export const SmallBadges: Story = {
 // 🎭 실제 사용 예시 (카드 내에서)
 export const InContextUsage: Story = {
   render: () => (
-    <div className='grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl'>
+    <div className="grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-2">
       {/* 서버 카드 예시 */}
       <Card>
-        <CardContent className='p-4'>
-          <div className='flex items-center justify-between mb-3'>
-            <h3 className='font-semibold'>웹 서버 01</h3>
-            <Badge variant='default' className='bg-green-600'>
+        <CardContent className="p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="font-semibold">웹 서버 01</h3>
+            <Badge variant="default" className="bg-green-600">
               ✅ 온라인
             </Badge>
           </div>
-          <div className='space-y-2 text-sm'>
-            <div className='flex justify-between'>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
               <span>CPU 사용률:</span>
-              <Badge variant='secondary' className='bg-blue-100 text-blue-800'>
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                 45%
               </Badge>
             </div>
-            <div className='flex justify-between'>
+            <div className="flex justify-between">
               <span>메모리:</span>
               <Badge
-                variant='secondary'
-                className='bg-yellow-100 text-yellow-800'
+                variant="secondary"
+                className="bg-yellow-100 text-yellow-800"
               >
                 67%
               </Badge>
             </div>
-            <div className='flex justify-between'>
+            <div className="flex justify-between">
               <span>알림:</span>
-              <Badge variant='outline' className='border-gray-300'>
+              <Badge variant="outline" className="border-gray-300">
                 0개
               </Badge>
             </div>
@@ -354,34 +355,34 @@ export const InContextUsage: Story = {
 
       {/* AI 엔진 카드 예시 */}
       <Card>
-        <CardContent className='p-4'>
-          <div className='flex items-center justify-between mb-3'>
-            <h3 className='font-semibold'>Multi-AI 엔진</h3>
-            <Badge variant='default' className='bg-purple-600'>
+        <CardContent className="p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="font-semibold">Multi-AI 엔진</h3>
+            <Badge variant="default" className="bg-purple-600">
               🧠 활성
             </Badge>
           </div>
-          <div className='space-y-2 text-sm'>
-            <div className='flex justify-between'>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
               <span>MCP 엔진:</span>
-              <Badge variant='default' className='bg-green-600'>
+              <Badge variant="default" className="bg-green-600">
                 활성
               </Badge>
             </div>
-            <div className='flex justify-between'>
+            <div className="flex justify-between">
               <span>RAG 검색:</span>
               <Badge
-                variant='secondary'
-                className='bg-purple-100 text-purple-800'
+                variant="secondary"
+                className="bg-purple-100 text-purple-800"
               >
                 처리중
               </Badge>
             </div>
-            <div className='flex justify-between'>
+            <div className="flex justify-between">
               <span>Google AI:</span>
               <Badge
-                variant='outline'
-                className='border-purple-300 text-purple-700'
+                variant="outline"
+                className="border-purple-300 text-purple-700"
               >
                 대기
               </Badge>
@@ -405,42 +406,42 @@ export const InContextUsage: Story = {
 // 🌙 다크모드 배지들
 export const DarkModeBadges: Story = {
   render: () => (
-    <div className='bg-gray-900 p-6 rounded-lg space-y-4'>
+    <div className="space-y-4 rounded-lg bg-gray-900 p-6">
       <div>
-        <h4 className='text-white text-sm font-medium mb-2'>
+        <h4 className="mb-2 text-sm font-medium text-white">
           서버 상태 (다크모드)
         </h4>
-        <div className='flex gap-2'>
-          <Badge variant='default' className='bg-green-600'>
+        <div className="flex gap-2">
+          <Badge variant="default" className="bg-green-600">
             온라인
           </Badge>
-          <Badge variant='destructive' className='bg-orange-600'>
+          <Badge variant="destructive" className="bg-orange-600">
             경고
           </Badge>
-          <Badge variant='destructive'>오프라인</Badge>
-          <Badge variant='secondary' className='bg-gray-700 text-gray-200'>
+          <Badge variant="destructive">오프라인</Badge>
+          <Badge variant="secondary" className="bg-gray-700 text-gray-200">
             유지보수
           </Badge>
         </div>
       </div>
 
       <div>
-        <h4 className='text-white text-sm font-medium mb-2'>
+        <h4 className="mb-2 text-sm font-medium text-white">
           AI 엔진 상태 (다크모드)
         </h4>
-        <div className='flex gap-2'>
-          <Badge variant='default' className='bg-purple-600'>
+        <div className="flex gap-2">
+          <Badge variant="default" className="bg-purple-600">
             활성
           </Badge>
           <Badge
-            variant='secondary'
-            className='bg-purple-800/50 text-purple-200'
+            variant="secondary"
+            className="bg-purple-800/50 text-purple-200"
           >
             처리중
           </Badge>
           <Badge
-            variant='outline'
-            className='border-purple-400 text-purple-300'
+            variant="outline"
+            className="border-purple-400 text-purple-300"
           >
             대기
           </Badge>

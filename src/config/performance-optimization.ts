@@ -13,14 +13,10 @@ export const CRITICAL_RESOURCES = {
       crossOrigin: 'anonymous',
     },
   ],
-  
+
   // 중요 CSS (Above-the-fold)
-  criticalCSS: [
-    'base',
-    'components',
-    'utilities',
-  ],
-  
+  criticalCSS: ['base', 'components', 'utilities'],
+
   // 즉시 로드해야 할 컴포넌트
   immediateComponents: [
     'UnifiedProfileHeader',
@@ -37,20 +33,12 @@ export const LAZY_LOAD_COMPONENTS = {
     'PerformanceDashboard',
     'LogAnalyticsDashboard',
   ],
-  
+
   // 사용자 상호작용 시 로드
-  onDemand: [
-    'FeatureCardModal',
-    'GCPQuotaMonitoringDashboard',
-    'AdminPanel',
-  ],
-  
+  onDemand: ['FeatureCardModal', 'GCPQuotaMonitoringDashboard', 'AdminPanel'],
+
   // 뷰포트 진입 시 로드
-  viewport: [
-    'Chart',
-    'MonacoEditor',
-    'Mermaid',
-  ],
+  viewport: ['Chart', 'MonacoEditor', 'Mermaid'],
 };
 
 // 번들 분할 설정
@@ -63,7 +51,7 @@ export const BUNDLE_OPTIMIZATION = {
     utils: ['date-fns', 'lodash', 'axios'],
     ai: ['@google/generative-ai', '@supabase/supabase-js'],
   },
-  
+
   // 라우트별 코드 분할
   routeChunks: {
     '/': 'home',
@@ -80,7 +68,7 @@ export const LAYOUT_STABILITY = {
     chart: { width: '100%', height: '400px' },
     profileHeader: { width: '200px', height: '40px' },
   },
-  
+
   // 애니메이션 성능 최적화
   animations: {
     reduceMotion: false, // 사용자 설정에 따라 동적 조정
@@ -93,7 +81,7 @@ export const LAYOUT_STABILITY = {
 export const MAIN_THREAD_OPTIMIZATION = {
   // 작업 분할 크기
   chunkSize: 5, // 5ms 단위로 작업 분할
-  
+
   // 우선순위별 작업 큐
   taskPriority: {
     critical: ['user-input', 'navigation'],
@@ -101,7 +89,7 @@ export const MAIN_THREAD_OPTIMIZATION = {
     normal: ['animation', 'analytics'],
     low: ['prefetch', 'cleanup'],
   },
-  
+
   // 지연 실행할 작업들
   deferredTasks: [
     'analytics-tracking',
@@ -112,27 +100,18 @@ export const MAIN_THREAD_OPTIMIZATION = {
 
 // 리소스 힌트 설정
 export const RESOURCE_HINTS = {
-  preconnect: [
-    'https://fonts.googleapis.com',
-    'https://api.openmanager.dev',
-  ],
-  
-  prefetch: [
-    '/api/servers',
-    '/api/system/status',
-  ],
-  
-  preload: [
-    '/fonts/inter-var.woff2',
-    '/images/hero-bg.webp',
-  ],
+  preconnect: ['https://fonts.googleapis.com', 'https://api.openmanager.dev'],
+
+  prefetch: ['/api/servers', '/api/system/status'],
+
+  preload: ['/fonts/inter-var.woff2', '/images/hero-bg.webp'],
 };
 
 // 성능 모니터링 임계값
 export const PERFORMANCE_THRESHOLDS = {
   lcp: 2500, // 2.5초
-  fid: 100,  // 100ms
-  cls: 0.1,  // 0.1
+  fid: 100, // 100ms
+  cls: 0.1, // 0.1
   fcp: 1800, // 1.8초
   ttfb: 600, // 600ms
 };

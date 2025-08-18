@@ -1,6 +1,6 @@
 /**
  * 🤔 AI 생각중 상태 스트리밍 API v2
- * 
+ *
  * Supabase Realtime 기반 실시간 상태 전송
  * - Server-Sent Events (SSE) 사용
  * - WebSocket 폴백 지원
@@ -24,7 +24,7 @@ const STREAM_CONFIG = {
 
 export async function GET(req: NextRequest) {
   const sessionId = req.nextUrl.searchParams.get('sessionId');
-  
+
   if (!sessionId) {
     return new Response('Session ID is required', { status: 400 });
   }
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
   const headers = new Headers({
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive',
+    Connection: 'keep-alive',
     'X-Accel-Buffering': 'no', // Nginx 버퍼링 비활성화
   });
 
@@ -46,15 +46,20 @@ export async function GET(req: NextRequest) {
 
       // 초기 연결 메시지
       controller.enqueue(
-        encoder.encode(`event: connected\ndata: ${JSON.stringify({ sessionId })}\n\n`)
+        encoder.encode(
+          `event: connected\ndata: ${JSON.stringify({ sessionId })}\n\n`
+        )
       );
 
       // 초기 단계들 로드
       try {
-        const existingSteps = await supabaseRealtimeAdapter.getThinkingSteps(sessionId);
+        const existingSteps =
+          await supabaseRealtimeAdapter.getThinkingSteps(sessionId);
         for (const step of existingSteps) {
           controller.enqueue(
-            encoder.encode(`id: ${step.id}\nevent: thinking\ndata: ${JSON.stringify(step)}\n\n`)
+            encoder.encode(
+              `id: ${step.id}\nevent: thinking\ndata: ${JSON.stringify(step)}\n\n`
+            )
           );
         }
       } catch (error) {
@@ -64,7 +69,7 @@ export async function GET(req: NextRequest) {
       // Heartbeat 타이머
       const heartbeatTimer = setInterval(() => {
         if (!isActive) return;
-        
+
         try {
           controller.enqueue(encoder.encode(': heartbeat\n\n'));
         } catch (error) {
@@ -92,16 +97,20 @@ export async function GET(req: NextRequest) {
             // 새로운 생각 단계 전송
             const data = JSON.stringify(step);
             controller.enqueue(
-              encoder.encode(`id: ${step.id}\nevent: thinking\ndata: ${data}\n\n`)
+              encoder.encode(
+                `id: ${step.id}\nevent: thinking\ndata: ${data}\n\n`
+              )
             );
 
             // 완료 상태 감지
             if (step.status === 'completed' && step.step === 'AI 처리 완료') {
               controller.enqueue(
-                encoder.encode(`event: complete\ndata: ${JSON.stringify({ 
-                  sessionId,
-                  timestamp: Date.now()
-                })}\n\n`)
+                encoder.encode(
+                  `event: complete\ndata: ${JSON.stringify({
+                    sessionId,
+                    timestamp: Date.now(),
+                  })}\n\n`
+                )
               );
               cleanup();
               controller.close();
@@ -113,9 +122,11 @@ export async function GET(req: NextRequest) {
         (error) => {
           debug.error('Supabase subscription error:', error);
           controller.enqueue(
-            encoder.encode(`event: error\ndata: ${JSON.stringify({ 
-              error: 'Subscription failed' 
-            })}\n\n`)
+            encoder.encode(
+              `event: error\ndata: ${JSON.stringify({
+                error: 'Subscription failed',
+              })}\n\n`
+            )
           );
         }
       );
@@ -123,11 +134,13 @@ export async function GET(req: NextRequest) {
       // 무료 티어 시간 제한 체크
       const timeoutTimer = setTimeout(() => {
         if (!isActive) return;
-        
+
         controller.enqueue(
-          encoder.encode(`event: timeout\ndata: ${JSON.stringify({ 
-            message: 'Stream timeout reached' 
-          })}\n\n`)
+          encoder.encode(
+            `event: timeout\ndata: ${JSON.stringify({
+              message: 'Stream timeout reached',
+            })}\n\n`
+          )
         );
         cleanup();
         controller.close();
@@ -148,7 +161,13 @@ export async function GET(req: NextRequest) {
 // POST: 수동으로 생각중 단계 추가 (테스트용)
 export async function POST(req: NextRequest) {
   try {
-    const { sessionId, step, description, status = 'processing', userId } = await req.json();
+    const {
+      sessionId,
+      step,
+      description,
+      status = 'processing',
+      userId,
+    } = await req.json();
 
     if (!sessionId || !step) {
       return new Response(
@@ -168,10 +187,9 @@ export async function POST(req: NextRequest) {
       userId
     );
 
-    return new Response(
-      JSON.stringify({ success: true, stepId }),
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ success: true, stepId }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     return new Response(
       JSON.stringify({ error: 'Failed to add thinking step' }),

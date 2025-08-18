@@ -78,7 +78,7 @@ export class SystemWatchdog {
    */
   setEventBus(eventBus: ISystemEventBus): void {
     this.eventBus = eventBus;
-    
+
     // ProcessManager로부터 시스템 상태 업데이트 수신
     this.eventBus.on<SystemStatusPayload>(
       SystemEventType.SYSTEM_HEALTHY,
@@ -108,11 +108,19 @@ export class SystemWatchdog {
   private handleSystemStatusUpdate(payload: SystemStatusPayload): void {
     // ProcessManager로부터 받은 시스템 상태 업데이트
     this.systemStatus = {
-      processes: payload.services?.map(service => ({
-        status: service.status === 'up' ? 'running' : 
-                service.status === 'degraded' ? 'degraded' : 'error',
-        healthScore: service.status === 'up' ? 100 : 
-                    service.status === 'degraded' ? 50 : 0,
+      processes: payload.services?.map((service) => ({
+        status:
+          service.status === 'up'
+            ? 'running'
+            : service.status === 'degraded'
+              ? 'degraded'
+              : 'error',
+        healthScore:
+          service.status === 'up'
+            ? 100
+            : service.status === 'degraded'
+              ? 50
+              : 0,
       })),
       metrics: payload.metrics,
     };
@@ -175,9 +183,11 @@ export class SystemWatchdog {
       // 오래된 데이터 정리 (최근 5분만 유지)
       const cutoffTime = timestamp - 5 * 60 * 1000; // 5분 전
       this.metrics.memory = this.metrics.memory.filter(
-        m => m.timestamp > cutoffTime
+        (m) => m.timestamp > cutoffTime
       );
-      this.metrics.cpu = this.metrics.cpu.filter(c => c.timestamp > cutoffTime);
+      this.metrics.cpu = this.metrics.cpu.filter(
+        (c) => c.timestamp > cutoffTime
+      );
 
       // 시스템 상태에서 오류율 및 재시작 횟수 업데이트
       if (this.systemStatus) {
@@ -216,7 +226,7 @@ export class SystemWatchdog {
     const startUsage = process.cpuUsage();
 
     // 짧은 작업 시뮬레이션
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     const endTime = process.hrtime.bigint();
     const endUsage = process.cpuUsage(startUsage);
@@ -232,7 +242,11 @@ export class SystemWatchdog {
    * 오류율 계산
    */
   private calculateErrorRate(systemStatus: SystemStatus): number {
-    if (!systemStatus.processes || !Array.isArray(systemStatus.processes) || systemStatus.processes.length === 0) {
+    if (
+      !systemStatus.processes ||
+      !Array.isArray(systemStatus.processes) ||
+      systemStatus.processes.length === 0
+    ) {
       return 0;
     }
 
@@ -447,7 +461,7 @@ export class SystemWatchdog {
   }> {
     const cutoffTime = Date.now() - timeWindow;
     return this.alertsHistory.filter(
-      alert => alert.timestamp.getTime() > cutoffTime
+      (alert) => alert.timestamp.getTime() > cutoffTime
     );
   }
 
@@ -516,13 +530,16 @@ export class SystemWatchdog {
     let recommendation = '시스템이 정상적으로 작동 중입니다.';
 
     if (alerts.memoryLeak) {
-      recommendation = '메모리 누수가 의심됩니다. 메모리 사용량을 모니터링하고 필요시 재시작을 고려하세요.';
+      recommendation =
+        '메모리 누수가 의심됩니다. 메모리 사용량을 모니터링하고 필요시 재시작을 고려하세요.';
     } else if (alerts.highErrorRate) {
       recommendation = '오류율이 높습니다. 로그를 확인하고 문제를 해결하세요.';
     } else if (alerts.performanceDegradation) {
-      recommendation = '성능이 저하되었습니다. 리소스 사용량을 확인하고 최적화를 고려하세요.';
+      recommendation =
+        '성능이 저하되었습니다. 리소스 사용량을 확인하고 최적화를 고려하세요.';
     } else if (alerts.frequentRestarts) {
-      recommendation = '프로세스가 자주 재시작됩니다. 안정성 문제를 조사하세요.';
+      recommendation =
+        '프로세스가 자주 재시작됩니다. 안정성 문제를 조사하세요.';
     }
 
     return {

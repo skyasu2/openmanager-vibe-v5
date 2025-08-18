@@ -31,48 +31,63 @@ function convertServerToModalData(server: Server) {
     type: server.type || 'server',
     environment: server.environment || 'production',
     provider: server.provider || 'Unknown',
-    alerts: Array.isArray(server.alerts) ? server.alerts.length : (server.alerts || 0),
+    alerts: Array.isArray(server.alerts)
+      ? server.alerts.length
+      : server.alerts || 0,
     services: server.services || [],
     lastUpdate: server.lastUpdate || new Date(),
-    uptime: typeof server.uptime === 'number' 
-      ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m`
-      : server.uptime || '0h 0m',
-    status: (
-      server.status === 'online' ? 'healthy' : 
-      server.status === 'critical' ? 'critical' :
-      server.status === 'warning' ? 'warning' :
-      server.status === 'offline' ? 'offline' :
-      server.status === 'healthy' ? 'healthy' :
-      'healthy'
-    ) as 'healthy' | 'warning' | 'critical' | 'offline' | 'online',
-    networkStatus: (
-      server.status === 'online' || server.status === 'healthy' ? 'excellent' :
-      server.status === 'warning' ? 'good' :
-      server.status === 'critical' ? 'poor' :
-      'offline'
-    ) as 'excellent' | 'good' | 'poor' | 'offline',
+    uptime:
+      typeof server.uptime === 'number'
+        ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m`
+        : server.uptime || '0h 0m',
+    status: (server.status === 'online'
+      ? 'healthy'
+      : server.status === 'critical'
+        ? 'critical'
+        : server.status === 'warning'
+          ? 'warning'
+          : server.status === 'offline'
+            ? 'offline'
+            : server.status === 'healthy'
+              ? 'healthy'
+              : 'healthy') as
+      | 'healthy'
+      | 'warning'
+      | 'critical'
+      | 'offline'
+      | 'online',
+    networkStatus:
+      server.status === 'online' || server.status === 'healthy'
+        ? 'excellent'
+        : server.status === 'warning'
+          ? 'good'
+          : server.status === 'critical'
+            ? 'poor'
+            : 'offline',
   };
 }
 
 // --- Dynamic Imports with Preload ---
 const DashboardHeader = dynamic(
   () => import('../../components/dashboard/DashboardHeader'),
-  { 
-    loading: () => <div className="h-16 bg-white dark:bg-gray-800 animate-pulse" />,
-    ssr: true // SSR 활성화로 초기 로딩 개선
+  {
+    loading: () => (
+      <div className="h-16 animate-pulse bg-white dark:bg-gray-800" />
+    ),
+    ssr: true, // SSR 활성화로 초기 로딩 개선
   }
 );
 const DashboardContent = dynamic(
   () => import('../../components/dashboard/DashboardContent'),
-  { 
+  {
     loading: () => <ContentLoadingSkeleton />,
-    ssr: true // SSR 활성화로 초기 로딩 개선
+    ssr: true, // SSR 활성화로 초기 로딩 개선
   }
 );
 const FloatingSystemControl = dynamic(
   () => import('../../components/system/FloatingSystemControl'),
   {
-    ssr: false // 클라이언트 전용 컴포넌트
+    ssr: false, // 클라이언트 전용 컴포넌트
   }
 );
 // EnhancedServerModal은 AnimatedServerModal로 통합됨
@@ -84,14 +99,14 @@ const AnimatedAISidebar = dynamic(
       import('framer-motion'),
       import('@/domains/ai-sidebar/components/AISidebarV2'),
     ]);
-    
-    return function AnimatedAISidebarWrapper({ 
-      isOpen, 
-      onClose, 
-      ...props 
-    }: { 
-      isOpen: boolean; 
-      onClose: () => void; 
+
+    return function AnimatedAISidebarWrapper({
+      isOpen,
+      onClose,
+      ...props
+    }: {
+      isOpen: boolean;
+      onClose: () => void;
     }) {
       return (
         <AnimatePresence>
@@ -103,7 +118,11 @@ const AnimatedAISidebar = dynamic(
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               className="fixed inset-y-0 right-0 z-40 w-96"
             >
-              <AISidebarV2.default onClose={onClose} isOpen={isOpen} {...props} />
+              <AISidebarV2.default
+                onClose={onClose}
+                isOpen={isOpen}
+                {...props}
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -112,8 +131,8 @@ const AnimatedAISidebar = dynamic(
   },
   {
     loading: () => (
-      <div className="fixed inset-y-0 right-0 z-40 w-96 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-center h-full">
+      <div className="fixed inset-y-0 right-0 z-40 w-96 border-l border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
+        <div className="flex h-full items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent"></div>
         </div>
       </div>
@@ -128,19 +147,19 @@ const AnimatedServerModal = dynamic(
       import('framer-motion'),
       import('../../components/dashboard/EnhancedServerModal'),
     ]);
-    
-    return function AnimatedServerModalWrapper({ 
-      isOpen, 
+
+    return function AnimatedServerModalWrapper({
+      isOpen,
       server,
-      onClose 
-    }: { 
-      isOpen: boolean; 
+      onClose,
+    }: {
+      isOpen: boolean;
       server: Server | null; // eslint-disable-line @typescript-eslint/no-redundant-type-constituents
-      onClose: () => void; 
+      onClose: () => void;
     }) {
       // 🎯 서버 데이터 변환 헬퍼 함수 사용
       const serverData = server ? convertServerToModalData(server) : null;
-      
+
       return (
         <AnimatePresence>
           {isOpen && serverData && (
@@ -166,14 +185,14 @@ const ContentLoadingSkeleton = () => (
   <div className="min-h-screen bg-gray-100 p-6 dark:bg-gray-900">
     <div className="space-y-6">
       {/* 헤더 스켈레톤 */}
-      <div className="animate-pulse h-16 rounded-lg bg-gray-200 dark:bg-gray-800"></div>
+      <div className="h-16 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-800"></div>
 
       {/* 통계 카드 스켈레톤 */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="animate-pulse h-24 rounded-lg bg-gray-200 dark:bg-gray-800"
+            className="h-24 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-800"
           ></div>
         ))}
       </div>
@@ -183,7 +202,7 @@ const ContentLoadingSkeleton = () => (
         {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
           <div
             key={i}
-            className="animate-pulse h-48 rounded-lg bg-gray-200 dark:bg-gray-800"
+            className="h-48 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-800"
           ></div>
         ))}
       </div>
@@ -425,10 +444,10 @@ function DashboardPageContent() {
         <AnimatedAISidebar isOpen={isAgentOpen} onClose={closeAgent} />
 
         {/* 🎯 서버 모달 - 동적 로딩으로 최적화 */}
-        <AnimatedServerModal 
-          isOpen={isServerModalOpen} 
-          server={selectedServer} 
-          onClose={handleServerModalClose} 
+        <AnimatedServerModal
+          isOpen={isServerModalOpen}
+          server={selectedServer}
+          onClose={handleServerModalClose}
         />
 
         {/* 🔒 자동 로그아웃 경고 모달 - 베르셀 사용량 최적화 */}

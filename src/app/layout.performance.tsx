@@ -21,7 +21,7 @@ import dynamic from 'next/dynamic';
 
 const PerformanceMonitor = dynamic(
   () => import('@/components/performance/PerformanceMonitor'),
-  { 
+  {
     ssr: false,
     loading: () => null,
   }
@@ -37,7 +37,7 @@ const SafePerformanceScript = dynamic(
 );
 
 // 폰트 최적화
-const inter = Inter({ 
+const inter = Inter({
   subsets: ['latin', 'latin-ext'],
   display: 'swap', // FOIT 방지
   preload: true,
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
   authors: [{ name: 'OpenManager Team' }],
   creator: 'OpenManager',
   publisher: 'OpenManager',
-  
+
   // Open Graph 최적화
   openGraph: {
     type: 'website',
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
       },
     ],
   },
-  
+
   // Twitter Card
   twitter: {
     card: 'summary_large_image',
@@ -82,7 +82,7 @@ export const metadata: Metadata = {
     description: 'AI 기반 서버 모니터링 및 관리 시스템',
     images: ['/images/og-image.png'],
   },
-  
+
   // 성능 최적화
   robots: {
     index: true,
@@ -95,7 +95,7 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  
+
   // 아이콘 최적화
   icons: {
     icon: [
@@ -109,10 +109,10 @@ export const metadata: Metadata = {
       { rel: 'mask-icon', url: '/safari-pinned-tab.svg', color: '#3b82f6' },
     ],
   },
-  
+
   // PWA 매니페스트
   manifest: '/manifest.json',
-  
+
   // 언어 및 지역
   alternates: {
     canonical: 'https://openmanager.dev',
@@ -146,9 +146,13 @@ export default function RootLayout({
       <head>
         {/* 리소스 힌트 - 성능 최적화 */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin=""
+        />
         <link rel="preconnect" href="https://api.openmanager.dev" />
-        
+
         {/* 폰트 프리로드 */}
         <link
           rel="preload"
@@ -157,7 +161,7 @@ export default function RootLayout({
           type="font/woff2"
           crossOrigin=""
         />
-        
+
         {/* 중요 이미지 프리로드 */}
         <link
           rel="preload"
@@ -165,19 +169,19 @@ export default function RootLayout({
           as="image"
           type="image/webp"
         />
-        
+
         {/* DNS 프리페치 */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="dns-prefetch" href="//api.openmanager.dev" />
-        
+
         {/* 성능 모니터링을 위한 메타 태그 */}
         <meta name="performance-optimization" content="enabled" />
       </head>
-      
+
       <body className={`${inter.className} antialiased`}>
         {/* Critical Above-the-fold 컴포넌트 */}
         <EmergencyBanner />
-        
+
         {/* Client Providers로 감싸기 */}
         <ClientProviders>
           <AuthTokenHandler />
@@ -185,10 +189,10 @@ export default function RootLayout({
           <Toaster />
           {children}
         </ClientProviders>
-        
+
         {/* 성능 모니터링 (프로덕션에서만) */}
         {process.env.NODE_ENV === 'production' && <PerformanceMonitor />}
-        
+
         {/* Core Web Vitals 측정 스크립트 */}
         <Script
           id="web-vitals"
@@ -237,7 +241,7 @@ export default function RootLayout({
             `,
           }}
         />
-        
+
         {/* Vercel Analytics (프로덕션에서만) */}
         {process.env.NODE_ENV === 'production' && (
           <>
@@ -251,7 +255,7 @@ export default function RootLayout({
             />
           </>
         )}
-        
+
         {/* CSP 호환 성능 추적 컴포넌트 */}
         <SafePerformanceScript />
       </body>

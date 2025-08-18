@@ -193,15 +193,15 @@ export default function ServerDashboard({
             )}
 
             {/* 🎯 페이지 크기에 따른 동적 그리드 레이아웃 */}
-            <div 
-              className={`grid gap-4 sm:gap-6 transition-all duration-300 ${
+            <div
+              className={`grid gap-4 transition-all duration-300 sm:gap-6 ${
                 pageSize <= 3
                   ? 'grid-cols-1' // 3개: 모바일 최적화 (1열)
                   : pageSize <= 6
-                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' // 6개: 2x3 레이아웃
-                  : pageSize <= 9
-                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' // 9개: 3x3 레이아웃
-                  : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' // 12개 이상: 3x4 레이아웃
+                    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' // 6개: 2x3 레이아웃
+                    : pageSize <= 9
+                      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' // 9개: 3x3 레이아웃
+                      : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' // 12개 이상: 3x4 레이아웃
               }`}
             >
               {sortedServers.map((server, index) => (
@@ -303,7 +303,7 @@ export default function ServerDashboard({
                   }
 
                   const pages = [];
-                  
+
                   // 첫 페이지
                   if (startPage > 1) {
                     pages.push(

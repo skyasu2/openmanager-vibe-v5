@@ -18,7 +18,7 @@ export const queryClient = new QueryClient({
       staleTime: emergencyMode.isEmergencyMode() ? Infinity : 1000 * 60 * 5, // 🚨 비상 시 영원히 캐시
       gcTime: emergencyMode.isEmergencyMode() ? Infinity : 1000 * 60 * 30, // 🚨 비상 시 영원히 보관
       retry: emergencyMode.isEmergencyMode() ? false : 3, // 🚨 비상 시 재시도 차단
-      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000), // 지수 백오프
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // 지수 백오프
 
       // 네트워크 관련 - 🚨 비상 시 모든 자동 갱신 차단
       refetchOnWindowFocus: false, // 윈도우 포커스 시 자동 재요청 비활성화
@@ -138,7 +138,10 @@ export const api = {
       return response.json();
     },
 
-    getPrediction: async (type: string, interval = '30min'): Promise<unknown> => {
+    getPrediction: async (
+      type: string,
+      interval = '30min'
+    ): Promise<unknown> => {
       const params = new URLSearchParams({ type, interval });
       const response = await fetch(`/api/ai/prediction?${params}`);
       if (!response.ok) {

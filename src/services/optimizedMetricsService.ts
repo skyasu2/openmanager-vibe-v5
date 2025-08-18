@@ -48,12 +48,24 @@ function parseTimeRange(range: string): number {
  */
 function compressMetrics(metrics: ServerMetrics[]): ServerMetrics[] {
   // 불필요한 소수점 제거 및 반올림
-  return metrics.map(metric => ({
+  return metrics.map((metric) => ({
     ...metric,
-    cpu: typeof metric.cpu === 'number' ? Math.round(metric.cpu * 100) / 100 : metric.cpu,
-    memory: typeof metric.memory === 'number' ? Math.round(metric.memory * 100) / 100 : metric.memory,
-    disk: typeof metric.disk === 'number' ? Math.round(metric.disk * 100) / 100 : metric.disk,
-    network: typeof metric.network === 'number' ? Math.round(metric.network * 100) / 100 : metric.network,
+    cpu:
+      typeof metric.cpu === 'number'
+        ? Math.round(metric.cpu * 100) / 100
+        : metric.cpu,
+    memory:
+      typeof metric.memory === 'number'
+        ? Math.round(metric.memory * 100) / 100
+        : metric.memory,
+    disk:
+      typeof metric.disk === 'number'
+        ? Math.round(metric.disk * 100) / 100
+        : metric.disk,
+    network:
+      typeof metric.network === 'number'
+        ? Math.round(metric.network * 100) / 100
+        : metric.network,
   }));
 }
 
@@ -76,7 +88,7 @@ export async function getOptimizedServerMetrics(
   try {
     // 2. Supabase에서 직접 조회
     console.log('🔍 데이터베이스 조회: 캐시 제거됨');
-    
+
     const supabase = getSupabaseClient();
     const timeRangeMs = parseTimeRange(timeRange);
     const startTime = new Date(Date.now() - timeRangeMs);
@@ -110,10 +122,9 @@ export async function getOptimizedServerMetrics(
 
     console.log(`✅ 메트릭 조회 완료: ${metrics.length}개 항목`);
     return metrics;
-
   } catch (error) {
     console.error('❌ 최적화된 메트릭 조회 실패:', error);
-    
+
     // 에러 발생 시 빈 배열 반환 (앱 중단 방지)
     return [];
   }
@@ -126,15 +137,17 @@ export async function getAggregatedMetrics(
   serverId?: string,
   timeRange: string = '24h',
   interval: 'hour' | 'day' = 'hour'
-): Promise<Array<{
-  timestamp: string;
-  avg_cpu: number;
-  avg_memory: number;
-  avg_disk: number;
-  max_cpu: number;
-  max_memory: number;
-  count: number;
-}>> {
+): Promise<
+  Array<{
+    timestamp: string;
+    avg_cpu: number;
+    avg_memory: number;
+    avg_disk: number;
+    max_cpu: number;
+    max_memory: number;
+    count: number;
+  }>
+> {
   // 캐시 제거 - Supabase 직접 조회로 최적화
 
   try {
@@ -145,12 +158,14 @@ export async function getAggregatedMetrics(
     // PostgreSQL의 date_trunc 함수 사용
     let query = supabase
       .from('server_metrics')
-      .select(`
+      .select(
+        `
         timestamp,
         cpu_usage,
         memory_usage,
         disk_usage
-      `)
+      `
+      )
       .gte('timestamp', startTime.toISOString())
       .order('timestamp', { ascending: false });
 
@@ -171,7 +186,6 @@ export async function getAggregatedMetrics(
     // 캐시 제거 - 메모리 사용량 최적화
 
     return aggregated;
-
   } catch (error) {
     console.error('❌ 집계 메트릭 조회 실패:', error);
     return [];
@@ -196,7 +210,7 @@ function aggregateMetricsData(
   const groups = new Map<string, RawMetric[]>();
 
   // 시간 간격별로 그룹화
-  data.forEach(metric => {
+  data.forEach((metric) => {
     const date = new Date(metric.timestamp);
     let groupKey: string;
 
@@ -226,31 +240,75 @@ function aggregateMetricsData(
   }> = [];
 
   for (const [timestamp, metrics] of groups.entries()) {
-    const cpuValues = metrics.map(m => typeof m.cpu === 'number' ? m.cpu : (typeof m.cpu === 'object' && m.cpu.usage ? m.cpu.usage : 0)).filter(v => typeof v === 'number');
-    const memoryValues = metrics.map(m => typeof m.memory === 'number' ? m.memory : (typeof m.memory === 'object' && m.memory.usage ? m.memory.usage : 0)).filter(v => typeof v === 'number');
-    const diskValues = metrics.map(m => typeof m.disk === 'number' ? m.disk : (typeof m.disk === 'object' && m.disk.usage ? m.disk.usage : 0)).filter(v => typeof v === 'number');
+    const cpuValues = metrics
+      .map((m) =>
+        typeof m.cpu === 'number'
+          ? m.cpu
+          : typeof m.cpu === 'object' && m.cpu.usage
+            ? m.cpu.usage
+            : 0
+      )
+      .filter((v) => typeof v === 'number');
+    const memoryValues = metrics
+      .map((m) =>
+        typeof m.memory === 'number'
+          ? m.memory
+          : typeof m.memory === 'object' && m.memory.usage
+            ? m.memory.usage
+            : 0
+      )
+      .filter((v) => typeof v === 'number');
+    const diskValues = metrics
+      .map((m) =>
+        typeof m.disk === 'number'
+          ? m.disk
+          : typeof m.disk === 'object' && m.disk.usage
+            ? m.disk.usage
+            : 0
+      )
+      .filter((v) => typeof v === 'number');
 
     result.push({
       timestamp,
-      avg_cpu: cpuValues.length > 0 ? Math.round((cpuValues.reduce((a, b) => a + b, 0) / cpuValues.length) * 100) / 100 : 0,
-      avg_memory: memoryValues.length > 0 ? Math.round((memoryValues.reduce((a, b) => a + b, 0) / memoryValues.length) * 100) / 100 : 0,
-      avg_disk: diskValues.length > 0 ? Math.round((diskValues.reduce((a, b) => a + b, 0) / diskValues.length) * 100) / 100 : 0,
+      avg_cpu:
+        cpuValues.length > 0
+          ? Math.round(
+              (cpuValues.reduce((a, b) => a + b, 0) / cpuValues.length) * 100
+            ) / 100
+          : 0,
+      avg_memory:
+        memoryValues.length > 0
+          ? Math.round(
+              (memoryValues.reduce((a, b) => a + b, 0) / memoryValues.length) *
+                100
+            ) / 100
+          : 0,
+      avg_disk:
+        diskValues.length > 0
+          ? Math.round(
+              (diskValues.reduce((a, b) => a + b, 0) / diskValues.length) * 100
+            ) / 100
+          : 0,
       max_cpu: cpuValues.length > 0 ? Math.max(...cpuValues) : 0,
       max_memory: memoryValues.length > 0 ? Math.max(...memoryValues) : 0,
       count: metrics.length,
     });
   }
 
-  return result.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  return result.sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
 }
 
 /**
  * 🎯 실시간 메트릭 조회 (캐시 없음)
  */
-export async function getRealtimeMetrics(serverId: string): Promise<ServerMetrics | null> {
+export async function getRealtimeMetrics(
+  serverId: string
+): Promise<ServerMetrics | null> {
   try {
     const supabase = getSupabaseClient();
-    
+
     const { data, error } = await supabase
       .from('server_metrics')
       .select('*')
@@ -265,7 +323,6 @@ export async function getRealtimeMetrics(serverId: string): Promise<ServerMetric
     }
 
     return data;
-
   } catch (error) {
     console.error('❌ 실시간 메트릭 조회 실패:', error);
     return null;
@@ -310,17 +367,24 @@ export async function getMetricsTrend(
       };
     }
 
-    const values = data.map(d => {
-      const rawData = d as RawMetric;
-      const value = rawData[metric];
-      return typeof value === 'number' ? value : (typeof value === 'object' && value && value.usage ? value.usage : 0);
-    }).filter(v => typeof v === 'number');
+    const values = data
+      .map((d) => {
+        const rawData = d as RawMetric;
+        const value = rawData[metric];
+        return typeof value === 'number'
+          ? value
+          : typeof value === 'object' && value && value.usage
+            ? value.usage
+            : 0;
+      })
+      .filter((v) => typeof v === 'number');
     const current = values[values.length - 1] || 0;
     const previous = values[0] || 0;
     const change = current - previous;
 
     let trend: 'up' | 'down' | 'stable' = 'stable';
-    if (Math.abs(change) > 1) { // 1% 이상 변화 시만 트렌드 표시
+    if (Math.abs(change) > 1) {
+      // 1% 이상 변화 시만 트렌드 표시
       trend = change > 0 ? 'up' : 'down';
     }
 
@@ -328,10 +392,15 @@ export async function getMetricsTrend(
       current,
       trend,
       change: Math.round(change * 100) / 100,
-      data: data.map(d => {
+      data: data.map((d) => {
         const rawData = d as RawMetric;
         const value = rawData[metric];
-        const numericValue = typeof value === 'number' ? value : (typeof value === 'object' && value && value.usage ? value.usage : 0);
+        const numericValue =
+          typeof value === 'number'
+            ? value
+            : typeof value === 'object' && value && value.usage
+              ? value.usage
+              : 0;
         return {
           timestamp: d.timestamp,
           value: numericValue,
@@ -342,7 +411,6 @@ export async function getMetricsTrend(
     // 캐시 제거 - 메모리 최적화
 
     return result;
-
   } catch (error) {
     console.error('❌ 메트릭 트렌드 분석 실패:', error);
     return {
@@ -380,25 +448,25 @@ export function getMetricsCacheStats(): {
 /**
  * 🔧 배치 메트릭 저장 (메모리 효율적)
  */
-export async function saveBatchMetrics(metrics: ServerMetrics[]): Promise<boolean> {
+export async function saveBatchMetrics(
+  metrics: ServerMetrics[]
+): Promise<boolean> {
   if (metrics.length === 0) return true;
 
   try {
     const supabase = getSupabaseClient();
-    
+
     // 배치 크기 제한 (무료 티어 고려)
     const batchSize = 100;
     const batches = [];
-    
+
     for (let i = 0; i < metrics.length; i += batchSize) {
       batches.push(metrics.slice(i, i + batchSize));
     }
 
     // 순차적으로 배치 처리
     for (const batch of batches) {
-      const { error } = await supabase
-        .from('server_metrics')
-        .insert(batch);
+      const { error } = await supabase.from('server_metrics').insert(batch);
 
       if (error) {
         console.error('❌ 배치 메트릭 저장 실패:', error);
@@ -407,11 +475,10 @@ export async function saveBatchMetrics(metrics: ServerMetrics[]): Promise<boolea
     }
 
     console.log(`✅ 배치 메트릭 저장 완료: ${metrics.length}개 항목`);
-    
-    // 캐시 제거됨 - 메모리 최적화
-    
-    return true;
 
+    // 캐시 제거됨 - 메모리 최적화
+
+    return true;
   } catch (error) {
     console.error('❌ 배치 메트릭 저장 실패:', error);
     return false;

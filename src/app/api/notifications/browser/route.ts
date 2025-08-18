@@ -36,7 +36,9 @@ async function checkNotificationStatus(): Promise<NotificationStatus> {
 /**
  * 테스트 알림 발송
  */
-async function handleSendTestNotification(data: TestNotificationData): Promise<NotificationResponse> {
+async function handleSendTestNotification(
+  data: TestNotificationData
+): Promise<NotificationResponse> {
   // 테스트 알림 발송 로직
   return {
     success: true,
@@ -48,7 +50,9 @@ async function handleSendTestNotification(data: TestNotificationData): Promise<N
 /**
  * 알림 유효성 검증
  */
-async function handleValidateNotification(data: ValidateNotificationData): Promise<NotificationResponse> {
+async function handleValidateNotification(
+  data: ValidateNotificationData
+): Promise<NotificationResponse> {
   // 알림 유효성 검증 로직
   return {
     success: true,
@@ -71,7 +75,9 @@ async function handleClearHistory(): Promise<NotificationResponse> {
 /**
  * 알림 설정 업데이트
  */
-async function handleUpdateSettings(data: UpdateNotificationSettings): Promise<NotificationResponse> {
+async function handleUpdateSettings(
+  data: UpdateNotificationSettings
+): Promise<NotificationResponse> {
   // 설정 업데이트 로직
   return {
     success: true,

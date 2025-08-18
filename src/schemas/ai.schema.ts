@@ -8,7 +8,7 @@ import {
 
 /**
  * 🤖 AI 관련 Zod 스키마
- * 
+ *
  * AI 엔진 및 분석에 사용되는 스키마들
  */
 
@@ -61,11 +61,15 @@ export const AIQueryOptionsSchema = z.object({
 export const AIQueryRequestSchema = z.object({
   query: z.string().min(1).max(10000),
   engine: AIEngineTypeSchema.optional(),
-  context: z.array(z.object({
-    role: z.enum(['system', 'user', 'assistant']),
-    content: z.string(),
-    timestamp: TimestampSchema.optional(),
-  })).optional(),
+  context: z
+    .array(
+      z.object({
+        role: z.enum(['system', 'user', 'assistant']),
+        content: z.string(),
+        timestamp: TimestampSchema.optional(),
+      })
+    )
+    .optional(),
   options: AIQueryOptionsSchema.optional(),
   sessionId: z.string().optional(),
   userId: z.string().optional(),
@@ -79,20 +83,28 @@ export const AIQueryResponseSchema = z.object({
   model: AIModelSchema.optional(),
   confidence: PercentageSchema,
   processingTime: z.number(), // ms
-  tokensUsed: z.object({
-    prompt: z.number(),
-    completion: z.number(),
-    total: z.number(),
-  }).optional(),
-  metadata: z.object({
-    sources: z.array(z.string()).optional(),
-    citations: z.array(z.object({
-      text: z.string(),
-      source: z.string(),
-      confidence: PercentageSchema,
-    })).optional(),
-    relatedTopics: z.array(z.string()).optional(),
-  }).optional(),
+  tokensUsed: z
+    .object({
+      prompt: z.number(),
+      completion: z.number(),
+      total: z.number(),
+    })
+    .optional(),
+  metadata: z
+    .object({
+      sources: z.array(z.string()).optional(),
+      citations: z
+        .array(
+          z.object({
+            text: z.string(),
+            source: z.string(),
+            confidence: PercentageSchema,
+          })
+        )
+        .optional(),
+      relatedTopics: z.array(z.string()).optional(),
+    })
+    .optional(),
   timestamp: TimestampSchema,
 });
 
@@ -129,13 +141,15 @@ export const PredictionSchema = z.object({
   targetId: IdSchema,
   metric: z.string(),
   timeframe: z.enum(['1h', '6h', '24h', '7d', '30d']),
-  predictions: z.array(z.object({
-    timestamp: TimestampSchema,
-    value: z.number(),
-    confidence: PercentageSchema,
-    upperBound: z.number().optional(),
-    lowerBound: z.number().optional(),
-  })),
+  predictions: z.array(
+    z.object({
+      timestamp: TimestampSchema,
+      value: z.number(),
+      confidence: PercentageSchema,
+      upperBound: z.number().optional(),
+      lowerBound: z.number().optional(),
+    })
+  ),
   modelInfo: z.object({
     algorithm: z.string(),
     accuracy: PercentageSchema,
@@ -164,12 +178,14 @@ export const AIInsightSchema = z.object({
   impact: z.enum(['low', 'medium', 'high']),
   confidence: PercentageSchema,
   affectedResources: z.array(IdSchema),
-  recommendations: z.array(z.object({
-    action: z.string(),
-    priority: z.enum(['low', 'medium', 'high', 'urgent']),
-    estimatedImpact: z.string(),
-    implementation: z.string().optional(),
-  })),
+  recommendations: z.array(
+    z.object({
+      action: z.string(),
+      priority: z.enum(['low', 'medium', 'high', 'urgent']),
+      estimatedImpact: z.string(),
+      implementation: z.string().optional(),
+    })
+  ),
   supportingData: z.record(z.unknown()).optional(),
   generatedAt: TimestampSchema,
   expiresAt: TimestampSchema.optional(),
@@ -188,28 +204,37 @@ export const KoreanNLPRequestSchema = z.object({
     'translation',
     'question_answering',
   ]),
-  options: z.object({
-    language: z.enum(['ko', 'en']).default('ko'),
-    returnOriginal: z.boolean().default(false),
-    detailed: z.boolean().default(false),
-  }).optional(),
+  options: z
+    .object({
+      language: z.enum(['ko', 'en']).default('ko'),
+      returnOriginal: z.boolean().default(false),
+      detailed: z.boolean().default(false),
+    })
+    .optional(),
 });
 
 export const KoreanNLPResponseSchema = z.object({
   task: z.string(),
   result: z.union([
     z.array(z.string()), // tokenization
-    z.array(z.object({ // pos_tagging
-      token: z.string(),
-      pos: z.string(),
-    })),
-    z.array(z.object({ // ner
-      entity: z.string(),
-      type: z.string(),
-      start: z.number(),
-      end: z.number(),
-    })),
-    z.object({ // sentiment_analysis
+    z.array(
+      z.object({
+        // pos_tagging
+        token: z.string(),
+        pos: z.string(),
+      })
+    ),
+    z.array(
+      z.object({
+        // ner
+        entity: z.string(),
+        type: z.string(),
+        start: z.number(),
+        end: z.number(),
+      })
+    ),
+    z.object({
+      // sentiment_analysis
       sentiment: z.enum(['positive', 'negative', 'neutral']),
       confidence: PercentageSchema,
       scores: z.object({
@@ -219,7 +244,8 @@ export const KoreanNLPResponseSchema = z.object({
       }),
     }),
     z.string(), // summarization, translation
-    z.object({ // question_answering
+    z.object({
+      // question_answering
       answer: z.string(),
       confidence: PercentageSchema,
       context: z.string().optional(),

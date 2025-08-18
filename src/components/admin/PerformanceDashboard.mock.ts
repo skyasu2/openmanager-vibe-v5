@@ -1,6 +1,6 @@
 /**
  * 📊 PerformanceDashboard Mock Data
- * 
+ *
  * Mock data generation for performance dashboard:
  * - Simulated performance metrics
  * - Network delay simulation
@@ -62,9 +62,7 @@ export async function fetchPerformanceData(): Promise<PerformanceData> {
         },
       },
       hourlyStats: Array.from({ length: 24 }, (_, i) => ({
-        hour: new Date(
-          Date.now() - (23 - i) * 60 * 60 * 1000
-        ).toISOString(),
+        hour: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
         requests: Math.floor(Math.random() * 100) + 50,
         averageResponseTime: Math.floor(Math.random() * 200) + 150,
         successRate: 0.95 + Math.random() * 0.05,

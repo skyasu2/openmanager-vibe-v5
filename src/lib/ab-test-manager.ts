@@ -60,11 +60,14 @@ export interface ABTestResult {
 
 // 메모리 기반 A/B 테스트 캐시
 class MemoryABTestCache {
-  private cache = new Map<string, {
-    value: any;
-    expires: number;
-    created: number;
-  }>();
+  private cache = new Map<
+    string,
+    {
+      value: any;
+      expires: number;
+      created: number;
+    }
+  >();
   private maxSize = 200; // 최대 200개 항목
 
   set(key: string, value: any, ttlSeconds: number = 3600): void {
@@ -85,16 +88,16 @@ class MemoryABTestCache {
 
   get(key: string): any {
     const item = this.cache.get(key);
-    
+
     if (!item) {
       return null;
     }
-    
+
     if (Date.now() > item.expires) {
       this.cache.delete(key);
       return null;
     }
-    
+
     try {
       return JSON.parse(item.value);
     } catch {
@@ -108,14 +111,14 @@ class MemoryABTestCache {
 
   keys(pattern?: string): string[] {
     const allKeys = Array.from(this.cache.keys());
-    
+
     if (!pattern) {
       return allKeys;
     }
-    
+
     // 간단한 패턴 매칭 (와일드카드 지원)
     const regex = new RegExp(pattern.replace(/\*/g, '.*'));
-    return allKeys.filter(key => regex.test(key));
+    return allKeys.filter((key) => regex.test(key));
   }
 
   clear(): void {
@@ -125,28 +128,28 @@ class MemoryABTestCache {
   private getOldestKey(): string | null {
     let oldestKey: string | null = null;
     let oldestTime = Date.now();
-    
+
     for (const [key, item] of this.cache.entries()) {
       if (item.created < oldestTime) {
         oldestTime = item.created;
         oldestKey = key;
       }
     }
-    
+
     return oldestKey;
   }
 
   cleanup(): void {
     const now = Date.now();
     const expiredKeys: string[] = [];
-    
+
     for (const [key, item] of this.cache.entries()) {
       if (item.expires <= now) {
         expiredKeys.push(key);
       }
     }
-    
-    expiredKeys.forEach(key => this.cache.delete(key));
+
+    expiredKeys.forEach((key) => this.cache.delete(key));
   }
 }
 
@@ -203,9 +206,12 @@ export class ABTestManager {
    * 🧹 주기적 정리 시작
    */
   private startCleanupTimer(): void {
-    this.cleanupTimer = setInterval(() => {
-      this.memoryCache.cleanup();
-    }, 5 * 60 * 1000); // 5분마다
+    this.cleanupTimer = setInterval(
+      () => {
+        this.memoryCache.cleanup();
+      },
+      5 * 60 * 1000
+    ); // 5분마다
   }
 
   /**
@@ -422,11 +428,7 @@ export class ABTestManager {
       const currentConfig = await this.getConfig();
       const updatedConfig = { ...currentConfig, ...newConfig };
 
-      this.memoryCache.set(
-        this.CACHE_KEYS.CONFIG,
-        updatedConfig,
-        3600
-      );
+      this.memoryCache.set(this.CACHE_KEYS.CONFIG, updatedConfig, 3600);
 
       console.log('⚙️ A/B 테스트 설정 업데이트:', newConfig);
     } catch (error) {
@@ -479,7 +481,7 @@ export class ABTestManager {
   async cleanup(): Promise<void> {
     try {
       const keys = this.memoryCache.keys('openmanager:ab_test:*');
-      keys.forEach(key => this.memoryCache.delete(key));
+      keys.forEach((key) => this.memoryCache.delete(key));
       console.log('🧹 A/B 테스트 데이터 정리 완료');
     } catch (error) {
       console.error('❌ A/B 테스트 데이터 정리 실패:', error);
@@ -510,15 +512,17 @@ export class ABTestManager {
     const metricsKey = `${this.CACHE_KEYS.METRICS}:${group}`;
     const metrics = this.memoryCache.get(metricsKey);
 
-    return metrics || {
-      group,
-      requestCount: 0,
-      totalResponseTime: 0,
-      errorCount: 0,
-      successCount: 0,
-      lastUpdated: Date.now(),
-      samples: [],
-    };
+    return (
+      metrics || {
+        group,
+        requestCount: 0,
+        totalResponseTime: 0,
+        errorCount: 0,
+        successCount: 0,
+        lastUpdated: Date.now(),
+        samples: [],
+      }
+    );
   }
 
   private calculateResult(metrics: ABTestMetrics): ABTestResult {

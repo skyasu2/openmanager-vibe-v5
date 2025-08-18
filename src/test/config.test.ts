@@ -20,7 +20,7 @@ describe('프로젝트 설정 검증', () => {
   it('TypeScript 설정이 올바르게 되어 있어야 함', () => {
     const tsconfigPath = path.join(process.cwd(), 'tsconfig.json');
     const tsconfig = JSON.parse(fs.readFileSync(tsconfigPath, 'utf-8'));
-    
+
     // strict mode 확인
     expect(tsconfig.compilerOptions.strict).toBe(true);
     expect(tsconfig.compilerOptions.noImplicitAny).toBe(true);

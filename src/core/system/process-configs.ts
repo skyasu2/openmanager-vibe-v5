@@ -23,12 +23,18 @@ const isGlobalWithState = (obj: unknown): obj is GlobalState => {
   return obj !== null && typeof obj === 'object';
 };
 
-const hasSystemCache = (obj: GlobalState): obj is GlobalState & { systemCache: Map<string, unknown> } => {
+const hasSystemCache = (
+  obj: GlobalState
+): obj is GlobalState & { systemCache: Map<string, unknown> } => {
   return obj.systemCache instanceof Map;
 };
 
 const isDevModeActive = (obj: GlobalState): boolean => {
-  return obj.devModeActive === true && typeof obj.devModeStartTime === 'number' && obj.devModeStartTime > 0;
+  return (
+    obj.devModeActive === true &&
+    typeof obj.devModeStartTime === 'number' &&
+    obj.devModeStartTime > 0
+  );
 };
 
 // 🔧 안전한 전역 객체 접근 함수
@@ -39,7 +45,10 @@ const getGlobalState = (): GlobalState => {
   return {};
 };
 
-const setGlobalProperty = <K extends keyof GlobalState>(key: K, value: GlobalState[K]): void => {
+const setGlobalProperty = <K extends keyof GlobalState>(
+  key: K,
+  value: GlobalState[K]
+): void => {
   if (typeof global !== 'undefined') {
     (global as GlobalState)[key] = value;
   }
@@ -379,7 +388,7 @@ export const DEVELOPMENT_PROCESS_CONFIGS: ProcessConfig[] = [
       setGlobalProperty('devModeStartTime', Date.now());
 
       // 개발 모드에서는 기본 헬스체크만 수행
-      await new Promise(resolve => setTimeout(resolve, 100)); // 짧은 지연
+      await new Promise((resolve) => setTimeout(resolve, 100)); // 짧은 지연
       systemLogger.system('✅ 개발 모드 시작 완료');
     },
     stopCommand: async () => {
@@ -389,13 +398,13 @@ export const DEVELOPMENT_PROCESS_CONFIGS: ProcessConfig[] = [
       setGlobalProperty('devModeActive', false);
       deleteGlobalProperty('devModeStartTime');
 
-      await new Promise(resolve => setTimeout(resolve, 50)); // 짧은 지연
+      await new Promise((resolve) => setTimeout(resolve, 50)); // 짧은 지연
       systemLogger.system('✅ 개발 모드 중지 완료');
     },
     healthCheck: async () => {
       // 🚀 개발 모드에서는 전역 상태 확인으로 건강 상태 판단
       const globalState = getGlobalState();
-      
+
       if (isGlobalWithState(globalState) && isDevModeActive(globalState)) {
         systemLogger.system('💓 개발 모드 헬스체크 통과');
         return true;
@@ -468,7 +477,7 @@ export function validateProcessConfigs(configs: ProcessConfig[]): {
     // 의존성 확인
     if (config.dependencies) {
       for (const depId of config.dependencies) {
-        if (!configs.find(c => c.id === depId)) {
+        if (!configs.find((c) => c.id === depId)) {
           warnings.push(`프로세스 ${config.id}: 존재하지 않는 의존성 ${depId}`);
         }
       }

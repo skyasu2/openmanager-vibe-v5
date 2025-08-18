@@ -1,6 +1,6 @@
 /**
  * AI Security Test Suite for OpenManager VIBE v5
- * 
+ *
  * Comprehensive security testing for:
  * - Prompt injection attacks
  * - AI response filtering
@@ -8,15 +8,26 @@
  * - Session ID security
  * - Token usage limits
  * - UnifiedAIEngineRouter security
- * 
+ *
  * @author AI Systems Engineer
  * @version 1.0.0
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { PromptSanitizer, sanitizePrompt, isPromptSafe } from '../security/PromptSanitizer';
-import { AIResponseFilter, filterAIResponse, isResponseSafe } from '../security/AIResponseFilter';
-import { UnifiedAIEngineRouter, getUnifiedAIRouter } from '../UnifiedAIEngineRouter';
+import {
+  PromptSanitizer,
+  sanitizePrompt,
+  isPromptSafe,
+} from '../security/PromptSanitizer';
+import {
+  AIResponseFilter,
+  filterAIResponse,
+  isResponseSafe,
+} from '../security/AIResponseFilter';
+import {
+  UnifiedAIEngineRouter,
+  getUnifiedAIRouter,
+} from '../UnifiedAIEngineRouter';
 import { generateSessionId } from '@/lib/utils-functions';
 
 describe('🛡️ AI Security Test Suite', () => {
@@ -100,7 +111,7 @@ describe('🛡️ AI Security Test Suite', () => {
     it('should handle excessive input length', () => {
       const longInput = 'A'.repeat(5000);
       const result = sanitizer.sanitize(longInput);
-      
+
       expect(result.threatsDetected).toContain('input_too_long');
       expect(result.sanitizedLength).toBeLessThan(result.originalLength);
     });
@@ -109,7 +120,7 @@ describe('🛡️ AI Security Test Suite', () => {
       const sqlInjections = [
         "admin'; DROP TABLE users; --",
         "' OR 1=1 --",
-        "UNION SELECT password FROM users",
+        'UNION SELECT password FROM users',
         "'; INSERT INTO admin VALUES('hacker', 'password'); --",
       ];
 
@@ -149,7 +160,7 @@ describe('🛡️ AI Security Test Suite', () => {
       const dangerousResponses = [
         'Your API key is sk-1234567890abcdef',
         'The database connection string is mongodb://admin:password@localhost',
-        'Here\'s the environment variables: process.env.SECRET_KEY',
+        "Here's the environment variables: process.env.SECRET_KEY",
         'You can access the files at /etc/passwd',
         'Try this system command: rm -rf /',
       ];
@@ -244,14 +255,16 @@ describe('🛡️ AI Security Test Suite', () => {
       // Generate multiple session IDs to test uniqueness
       for (let i = 0; i < iterations; i++) {
         const sessionId = generateSessionId();
-        
+
         // Check format
-        expect(sessionId).toMatch(/^[0-9a-z]+\.[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$/);
-        
+        expect(sessionId).toMatch(
+          /^[0-9a-z]+\.[123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz]+$/
+        );
+
         // Check uniqueness
         expect(sessionIds.has(sessionId)).toBe(false);
         sessionIds.add(sessionId);
-        
+
         // Check minimum length for security
         expect(sessionId.length).toBeGreaterThan(20);
       }
@@ -278,16 +291,16 @@ describe('🛡️ AI Security Test Suite', () => {
       // Mock crypto unavailability
       const originalCrypto = global.crypto;
       const originalWindow = global.window;
-      
+
       delete (global as any).crypto;
       delete (global as any).window;
 
       const sessionId = generateSessionId();
-      
+
       // Should still generate valid ID
       expect(sessionId).toBeDefined();
       expect(sessionId.length).toBeGreaterThan(10);
-      
+
       // Restore
       global.crypto = originalCrypto;
       global.window = originalWindow;
@@ -313,7 +326,7 @@ describe('🛡️ AI Security Test Suite', () => {
       };
 
       const result = await router.route(maliciousQuery);
-      
+
       expect(result.success).toBe(false);
       expect(result.routingInfo.securityApplied).toBe(true);
       expect(result.engine).toBe('security-filter');
@@ -321,7 +334,7 @@ describe('🛡️ AI Security Test Suite', () => {
 
     it('should enforce token limits', async () => {
       const user = 'heavy-user';
-      
+
       // Simulate exceeding user token limit
       for (let i = 0; i < 5; i++) {
         await router.route({
@@ -346,9 +359,11 @@ describe('🛡️ AI Security Test Suite', () => {
       };
 
       const result = await router.route(koreanQuery);
-      
+
       // Should route to Korean NLP or handle Korean content appropriately
-      expect(result.routingInfo.processingPath).toContain('engine_selected_korean-nlp');
+      expect(result.routingInfo.processingPath).toContain(
+        'engine_selected_korean-nlp'
+      );
     });
 
     it('should handle circuit breaker functionality', async () => {
@@ -359,7 +374,9 @@ describe('🛡️ AI Security Test Suite', () => {
       };
 
       // Simulate multiple failures
-      vi.spyOn(router as any, 'executeEngine').mockRejectedValue(new Error('Engine failure'));
+      vi.spyOn(router as any, 'executeEngine').mockRejectedValue(
+        new Error('Engine failure')
+      );
 
       // Trigger failures
       const results = [];
@@ -373,7 +390,9 @@ describe('🛡️ AI Security Test Suite', () => {
       }
 
       // Circuit should trigger fallback or error handling
-      expect(results.some(r => r?.routingInfo?.fallbackUsed || r?.error)).toBe(true);
+      expect(
+        results.some((r) => r?.routingInfo?.fallbackUsed || r?.error)
+      ).toBe(true);
     });
 
     it('should sanitize both input and output', async () => {
@@ -391,7 +410,7 @@ describe('🛡️ AI Security Test Suite', () => {
       });
 
       const result = await router.route(unsafeQuery);
-      
+
       expect(result.routingInfo.securityApplied).toBe(true);
       expect(result.response).not.toContain('sk-12345');
       expect(result.response).not.toContain('admin123');
@@ -404,7 +423,7 @@ describe('🛡️ AI Security Test Suite', () => {
       };
 
       const result = await router.route(query);
-      
+
       expect(result.routingInfo).toHaveProperty('selectedEngine');
       expect(result.routingInfo).toHaveProperty('fallbackUsed');
       expect(result.routingInfo).toHaveProperty('securityApplied');
@@ -435,7 +454,7 @@ describe('🛡️ AI Security Test Suite', () => {
       });
 
       const result = await router.route(query);
-      
+
       expect(result.success).toBe(true);
       expect(result.routingInfo.fallbackUsed).toBe(true);
       expect(result.routingInfo.processingPath).toContain('retry_attempt');
@@ -527,7 +546,7 @@ describe('🛡️ AI Security Test Suite', () => {
       });
 
       const startTime = Date.now();
-      
+
       await router.route({
         query: 'normal server monitoring query',
         userId: 'perf-test',

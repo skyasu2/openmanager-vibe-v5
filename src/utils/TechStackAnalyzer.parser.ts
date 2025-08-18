@@ -1,6 +1,6 @@
 /**
  * 🧩 TechStackAnalyzer Parser
- * 
+ *
  * Parsing and normalization functions:
  * - Tech string parsing with regex patterns
  * - Technology name normalization and aliasing
@@ -26,7 +26,7 @@ export function parseTechString(techString: string): string[] {
   const techs = new Set<string>();
 
   // 각 패턴으로 기술명 추출
-  patterns.forEach(pattern => {
+  patterns.forEach((pattern) => {
     let match;
     while ((match = pattern.exec(techString)) !== null) {
       const tech = match[1].trim().toLowerCase();
@@ -42,16 +42,16 @@ export function parseTechString(techString: string): string[] {
   // 기본 분할 방식도 추가
   const basicSplit = techString
     .split(/[,+&]/)
-    .map(tech =>
+    .map((tech) =>
       tech
         .replace(/[🎯🧠🔍🌐🤖🔄💭]/gu, '')
         .trim()
         .toLowerCase()
     )
-    .filter(tech => tech.length > 2)
-    .filter(tech => !['and', 'with', 'using', 'based', 'for'].includes(tech));
+    .filter((tech) => tech.length > 2)
+    .filter((tech) => !['and', 'with', 'using', 'based', 'for'].includes(tech));
 
-  basicSplit.forEach(tech => techs.add(tech));
+  basicSplit.forEach((tech) => techs.add(tech));
 
   return Array.from(techs);
 }
@@ -164,13 +164,13 @@ export function normalizeTechName(tech: string): string {
 export function mergeDuplicateTechs(techItems: TechItem[]): TechItem[] {
   const techMap = new Map<string, TechItem>();
 
-  techItems.forEach(item => {
+  techItems.forEach((item) => {
     const key = item.name.toLowerCase();
 
     if (techMap.has(key)) {
       const existing = techMap.get(key);
       if (!existing) return; // undefined 체크
-      
+
       // 중복된 경우 병합
       existing.usageCount = (existing.usageCount || 1) + 1;
       existing.categories = existing.categories || [existing.category];

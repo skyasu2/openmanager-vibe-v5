@@ -3,7 +3,7 @@ import { TimestampSchema } from './common.schema';
 
 /**
  * 🔐 인증 및 OAuth 테스트 스키마
- * 
+ *
  * Supabase 인증, GitHub OAuth, 환경 설정, 인증 진단
  */
 
@@ -53,26 +53,32 @@ export const AuthDiagnosticsRequestSchema = z.object({
 export const AuthDiagnosticsSchema = z.object({
   timestamp: TimestampSchema,
   testType: z.enum(['full', 'oauth', 'auth']),
-  github: z.object({
-    success: z.boolean(),
-    url: z.string().optional(),
-    error: z.string().optional(),
-    provider: z.string().optional(),
-    urlAnalysis: z.object({
-      domain: z.string(),
-      hasClientId: z.boolean(),
-      hasRedirectUri: z.boolean(),
-      hasScopes: z.boolean(),
-      redirectUri: z.string().nullable(),
-      scopes: z.string().nullable(),
-      state: z.string().nullable(),
-    }).optional(),
-  }).optional(),
-  authSchema: z.object({
-    success: z.boolean(),
-    error: z.string().optional(),
-    canAccessAuthTable: z.boolean(),
-  }).optional(),
+  github: z
+    .object({
+      success: z.boolean(),
+      url: z.string().optional(),
+      error: z.string().optional(),
+      provider: z.string().optional(),
+      urlAnalysis: z
+        .object({
+          domain: z.string(),
+          hasClientId: z.boolean(),
+          hasRedirectUri: z.boolean(),
+          hasScopes: z.boolean(),
+          redirectUri: z.string().nullable(),
+          scopes: z.string().nullable(),
+          state: z.string().nullable(),
+        })
+        .optional(),
+    })
+    .optional(),
+  authSchema: z
+    .object({
+      success: z.boolean(),
+      error: z.string().optional(),
+      canAccessAuthTable: z.boolean(),
+    })
+    .optional(),
 });
 
 // ===== 인증 진단 응답 =====
@@ -87,6 +93,10 @@ export const AuthDiagnosticsResponseSchema = z.object({
 
 export type AuthTestResult = z.infer<typeof AuthTestResultSchema>;
 export type AuthTestResponse = z.infer<typeof AuthTestResponseSchema>;
-export type AuthDiagnosticsRequest = z.infer<typeof AuthDiagnosticsRequestSchema>;
+export type AuthDiagnosticsRequest = z.infer<
+  typeof AuthDiagnosticsRequestSchema
+>;
 export type AuthDiagnostics = z.infer<typeof AuthDiagnosticsSchema>;
-export type AuthDiagnosticsResponse = z.infer<typeof AuthDiagnosticsResponseSchema>;
+export type AuthDiagnosticsResponse = z.infer<
+  typeof AuthDiagnosticsResponseSchema
+>;

@@ -1,6 +1,6 @@
 /**
  * 📝 LogDashboard Types & Constants
- * 
+ *
  * Centralized type definitions and constants for the logging dashboard:
  * - Log entry interfaces and metadata
  * - Status and statistics types

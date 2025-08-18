@@ -1,10 +1,10 @@
 /**
  * 📊 PerformanceDashboard Metrics Cards
- * 
+ *
  * Extracted metrics summary cards:
  * - Performance score card
  * - Total requests card
- * - Average response time card  
+ * - Average response time card
  * - Success rate card
  * - Fallback rate card
  */

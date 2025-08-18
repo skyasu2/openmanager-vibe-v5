@@ -19,27 +19,27 @@ function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps) {
     error.message.includes('HTTP');
 
   return (
-    <div className='min-h-screen flex items-center justify-center bg-gray-50'>
-      <div className='max-w-md w-full mx-4'>
-        <div className='bg-white rounded-lg shadow-lg p-6 border border-red-200'>
-          <div className='flex items-center mb-4'>
-            <div className='flex-shrink-0'>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="mx-4 w-full max-w-md">
+        <div className="rounded-lg border border-red-200 bg-white p-6 shadow-lg">
+          <div className="mb-4 flex items-center">
+            <div className="flex-shrink-0">
               <svg
-                className='h-8 w-8 text-red-500'
-                fill='none'
-                viewBox='0 0 24 24'
-                stroke='currentColor'
+                className="h-8 w-8 text-red-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
                 <path
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   strokeWidth={2}
-                  d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z'
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z"
                 />
               </svg>
             </div>
-            <div className='ml-3'>
-              <h3 className='text-lg font-medium text-red-800'>
+            <div className="ml-3">
+              <h3 className="text-lg font-medium text-red-800">
                 {isDataError
                   ? '서버 데이터 오류'
                   : isNetworkError
@@ -49,49 +49,49 @@ function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps) {
             </div>
           </div>
 
-          <div className='mb-4'>
-            <p className='text-sm text-red-600 mb-2'>
+          <div className="mb-4">
+            <p className="mb-2 text-sm text-red-600">
               {isDataError
                 ? '서버 데이터 형식 문제로 인한 일시적 오류입니다. 데이터가 안전하게 복구됩니다.'
                 : isNetworkError
                   ? '네트워크 연결 문제가 발생했습니다. 잠시 후 다시 시도해주세요.'
                   : 'Redis 연결 문제로 인한 일시적 오류입니다.'}
             </p>
-            <details className='text-xs text-gray-600'>
-              <summary className='cursor-pointer hover:text-gray-800'>
+            <details className="text-xs text-gray-600">
+              <summary className="cursor-pointer hover:text-gray-800">
                 기술적 상세정보
               </summary>
-              <pre className='mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto max-h-32'>
+              <pre className="mt-2 max-h-32 overflow-auto rounded bg-gray-100 p-2 text-xs">
                 {error.message}
               </pre>
             </details>
           </div>
 
-          <div className='flex space-x-3'>
+          <div className="flex space-x-3">
             <button
               onClick={resetErrorBoundary}
-              className='flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors'
+              className="flex-1 rounded-md bg-red-600 px-4 py-2 text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             >
               다시 시도
             </button>
             <button
               onClick={() => (window.location.href = '/main')}
-              className='flex-1 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors'
+              className="flex-1 rounded-md bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
             >
               홈으로 이동
             </button>
           </div>
 
           {isDataError && (
-            <div className='mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md'>
-              <p className='text-xs text-blue-700'>
+            <div className="mt-4 rounded-md border border-blue-200 bg-blue-50 p-3">
+              <p className="text-xs text-blue-700">
                 💡 <strong>자동 복구:</strong> 시스템이 안전한 기본 데이터로
                 자동 전환됩니다.
               </p>
             </div>
           )}
 
-          <div className='mt-4 text-xs text-gray-500 text-center'>
+          <div className="mt-4 text-center text-xs text-gray-500">
             문제가 지속되면 개발팀에 문의해주세요.
           </div>
         </div>

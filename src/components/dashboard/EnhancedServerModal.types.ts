@@ -1,6 +1,6 @@
 /**
  * 📝 Enhanced Server Modal Type Definitions
- * 
+ *
  * Type definitions and interfaces for the server modal system
  * - Server data interfaces
  * - Modal props and state types
@@ -8,7 +8,12 @@
  * - Tab navigation types
  */
 
-export type ServerStatus = 'healthy' | 'warning' | 'critical' | 'offline' | 'online';
+export type ServerStatus =
+  | 'healthy'
+  | 'warning'
+  | 'critical'
+  | 'offline'
+  | 'online';
 export type NetworkStatus = 'excellent' | 'good' | 'poor' | 'offline';
 export type LogLevel = 'info' | 'warn' | 'error';
 export type ServiceStatus = 'running' | 'stopped';

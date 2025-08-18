@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * 📊 AI 성능 모니터링 API 스키마
- * 
+ *
  * AI 엔진의 성능 메트릭, 벤치마크, 최적화 상태 등을 정의
  */
 
@@ -66,7 +66,9 @@ export const AIPerformanceStatsResponseSchema = z.object({
 
 export const AIBenchmarkRequestSchema = z.object({
   mode: z.enum(['comparison', 'load']).default('comparison'),
-  queries: z.array(z.string()).default(['서버 상태', 'CPU 사용률', '메모리 상태']),
+  queries: z
+    .array(z.string())
+    .default(['서버 상태', 'CPU 사용률', '메모리 상태']),
   iterations: z.number().positive().default(3),
 });
 
@@ -154,9 +156,13 @@ export const CacheClearResponseSchema = z.object({
 export type AIPerformanceMetrics = z.infer<typeof AIPerformanceMetricsSchema>;
 export type AIOptimizationStatus = z.infer<typeof AIOptimizationStatusSchema>;
 export type AIEngineHealth = z.infer<typeof AIEngineHealthSchema>;
-export type AIPerformanceStatsResponse = z.infer<typeof AIPerformanceStatsResponseSchema>;
+export type AIPerformanceStatsResponse = z.infer<
+  typeof AIPerformanceStatsResponseSchema
+>;
 export type AIBenchmarkRequest = z.infer<typeof AIBenchmarkRequestSchema>;
 export type BenchmarkResponseItem = z.infer<typeof BenchmarkResponseItemSchema>;
-export type ComparisonBenchmarkResponse = z.infer<typeof ComparisonBenchmarkResponseSchema>;
+export type ComparisonBenchmarkResponse = z.infer<
+  typeof ComparisonBenchmarkResponseSchema
+>;
 export type LoadBenchmarkResponse = z.infer<typeof LoadBenchmarkResponseSchema>;
 export type CacheClearResponse = z.infer<typeof CacheClearResponseSchema>;

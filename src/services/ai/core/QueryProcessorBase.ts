@@ -1,6 +1,6 @@
 /**
  * 🎯 쿼리 프로세서 기본 클래스
- * 
+ *
  * 모든 AI 엔진이 상속받을 추상 클래스로
  * 공통 로직을 제공하여 중복 코드를 제거합니다.
  */
@@ -70,7 +70,7 @@ export abstract class QueryProcessorBase implements IAIProcessor {
    */
   async initialize(config: AIEngineConfig): Promise<void> {
     this.config = { ...this.config, ...config };
-    
+
     try {
       // 구체적인 초기화 로직은 서브클래스에서 구현
       await this.doInitialize();
@@ -79,7 +79,7 @@ export abstract class QueryProcessorBase implements IAIProcessor {
     } catch (error) {
       this.status.healthy = false;
       this.status.errors = [
-        `Initialization failed: ${error instanceof Error ? error.message : String(error)}`
+        `Initialization failed: ${error instanceof Error ? error.message : String(error)}`,
       ];
       throw error;
     }
@@ -88,10 +88,7 @@ export abstract class QueryProcessorBase implements IAIProcessor {
   /**
    * 쿼리 처리
    */
-  async process(
-    query: string,
-    options?: AIQueryOptions
-  ): Promise<AIResponse> {
+  async process(query: string, options?: AIQueryOptions): Promise<AIResponse> {
     if (!this.initialized) {
       throw new Error(`${this.type} processor not initialized`);
     }
@@ -102,7 +99,7 @@ export abstract class QueryProcessorBase implements IAIProcessor {
     try {
       // 옵션 병합
       const mergedOptions = this.mergeOptions(options);
-      
+
       // 재시도 로직 적용
       const response = await this.executeWithRetry(
         () => this.doProcess(query, mergedOptions),
@@ -111,12 +108,12 @@ export abstract class QueryProcessorBase implements IAIProcessor {
 
       // 메트릭 업데이트
       this.updateSuccessMetrics(Date.now() - startTime);
-      
+
       return response;
     } catch (error) {
       // 메트릭 업데이트
       this.updateFailureMetrics(Date.now() - startTime);
-      
+
       // 에러 응답 생성
       return this.createErrorResponse(
         query,
@@ -133,19 +130,19 @@ export abstract class QueryProcessorBase implements IAIProcessor {
       const healthy = await this.doHealthCheck();
       this.status.healthy = healthy;
       this.status.lastCheck = new Date();
-      
+
       if (!healthy && !this.status.errors) {
         this.status.errors = ['Health check failed'];
       } else if (healthy) {
         delete this.status.errors;
       }
-      
+
       return healthy;
     } catch (error) {
       this.status.healthy = false;
       this.status.lastCheck = new Date();
       this.status.errors = [
-        `Health check error: ${error instanceof Error ? error.message : String(error)}`
+        `Health check error: ${error instanceof Error ? error.message : String(error)}`,
       ];
       return false;
     }
@@ -179,32 +176,34 @@ export abstract class QueryProcessorBase implements IAIProcessor {
     fn: () => Promise<T>,
     options: AIQueryOptions
   ): Promise<T> {
-    const maxRetries = options.maxRetries ?? this.config.retryConfig?.maxRetries ?? 3;
+    const maxRetries =
+      options.maxRetries ?? this.config.retryConfig?.maxRetries ?? 3;
     const retryDelay = this.config.retryConfig?.retryDelay ?? 1000;
-    const exponentialBackoff = this.config.retryConfig?.exponentialBackoff ?? true;
+    const exponentialBackoff =
+      this.config.retryConfig?.exponentialBackoff ?? true;
 
     let lastError: Error | null = null;
-    
+
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         return await fn();
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
-        
+
         if (attempt < maxRetries) {
-          const delay = exponentialBackoff 
+          const delay = exponentialBackoff
             ? retryDelay * Math.pow(2, attempt)
             : retryDelay;
-          
+
           console.log(
             `⚠️ [${this.type}] Attempt ${attempt + 1} failed, retrying in ${delay}ms...`
           );
-          
+
           await this.delay(delay);
         }
       }
     }
-    
+
     throw lastError || new Error('Max retries exceeded');
   }
 
@@ -247,11 +246,11 @@ export abstract class QueryProcessorBase implements IAIProcessor {
    */
   protected updateSuccessMetrics(responseTime: number): void {
     this.status.metrics.successfulRequests++;
-    
+
     // 평균 응답 시간 계산 (이동 평균)
     const totalRequests = this.status.metrics.successfulRequests;
     const currentAvg = this.status.metrics.averageResponseTime;
-    this.status.metrics.averageResponseTime = 
+    this.status.metrics.averageResponseTime =
       (currentAvg * (totalRequests - 1) + responseTime) / totalRequests;
   }
 
@@ -260,12 +259,12 @@ export abstract class QueryProcessorBase implements IAIProcessor {
    */
   protected updateFailureMetrics(responseTime: number): void {
     this.status.metrics.failedRequests++;
-    
+
     // 에러가 있어도 응답 시간은 기록
     if (responseTime > 0) {
       const totalRequests = this.status.metrics.totalRequests;
       const currentAvg = this.status.metrics.averageResponseTime;
-      this.status.metrics.averageResponseTime = 
+      this.status.metrics.averageResponseTime =
         (currentAvg * (totalRequests - 1) + responseTime) / totalRequests;
     }
   }
@@ -278,10 +277,10 @@ export abstract class QueryProcessorBase implements IAIProcessor {
     const hasSpecialChars = /[^a-zA-Z0-9\s가-힣]/.test(query);
     const hasNumbers = /\d/.test(query);
     const hasCode = /[{}()\[\];:<>]/.test(query);
-    
+
     const factors: string[] = [];
     let score = 0;
-    
+
     // 길이 기반 점수
     if (wordCount > 50) {
       score += 3;
@@ -293,25 +292,25 @@ export abstract class QueryProcessorBase implements IAIProcessor {
       score += 1;
       factors.push('short_query');
     }
-    
+
     // 특수 문자
     if (hasSpecialChars) {
       score += 1;
       factors.push('special_chars');
     }
-    
+
     // 숫자 포함
     if (hasNumbers) {
       score += 1;
       factors.push('numeric_content');
     }
-    
+
     // 코드 패턴
     if (hasCode) {
       score += 2;
       factors.push('code_pattern');
     }
-    
+
     // 카테고리 결정
     let category: 'simple' | 'moderate' | 'complex';
     if (score <= 2) {
@@ -321,7 +320,7 @@ export abstract class QueryProcessorBase implements IAIProcessor {
     } else {
       category = 'complex';
     }
-    
+
     return { score, factors, category };
   }
 
@@ -329,7 +328,7 @@ export abstract class QueryProcessorBase implements IAIProcessor {
    * 지연 유틸리티
    */
   protected delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   // 추상 메서드 - 서브클래스에서 구현 필요

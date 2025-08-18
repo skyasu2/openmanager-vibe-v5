@@ -1,6 +1,6 @@
 /**
  * 💾 CloudContextLoader Storage Module
- * 
+ *
  * Storage operations for context documents:
  * - Firestore persistent storage
  * - Memory cache management
@@ -9,10 +9,10 @@
  * - Statistics tracking
  */
 
-import type { 
-  ContextDocument, 
+import type {
+  ContextDocument,
   CloudContextLoaderConfig,
-  ContextStatsResponse
+  ContextStatsResponse,
 } from './CloudContextLoader.types';
 import { MemoryContextCache } from './CloudContextLoader.cache';
 import { generateContextId } from './CloudContextLoader.utils';
@@ -276,9 +276,7 @@ export class ContextStorageManager {
   /**
    * 🔍 메모리에서 컨텍스트 조회
    */
-  private getFromMemory(
-    contextId: string
-  ): ContextDocument | null {
+  private getFromMemory(contextId: string): ContextDocument | null {
     try {
       const key = `${this.config.memoryPrefix}${contextId}`;
       return this.memoryCache.get<ContextDocument>(key);

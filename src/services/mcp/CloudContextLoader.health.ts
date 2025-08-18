@@ -1,6 +1,6 @@
 /**
  * 🏥 MCP Server Health Check Module - CloudContextLoader
- * 
+ *
  * Dedicated health monitoring for Google Cloud VM AI Backend:
  * - Periodic health checks (30s intervals)
  * - Status tracking and response time monitoring
@@ -9,7 +9,10 @@
  * - Health metrics collection
  */
 
-import type { MCPServerInfo, CloudContextLoaderConfig } from './CloudContextLoader.types';
+import type {
+  MCPServerInfo,
+  CloudContextLoaderConfig,
+} from './CloudContextLoader.types';
 
 /**
  * MCP 서버 헬스체크 관리자
@@ -114,7 +117,10 @@ export class MCPHealthChecker {
    * 🔍 서버 사용 가능 여부 확인 (온라인 또는 성능 저하)
    */
   isServerAvailable(): boolean {
-    return this.mcpServerInfo.status === 'online' || this.mcpServerInfo.status === 'degraded';
+    return (
+      this.mcpServerInfo.status === 'online' ||
+      this.mcpServerInfo.status === 'degraded'
+    );
   }
 
   /**

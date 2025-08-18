@@ -5,11 +5,11 @@
  * ✅ 고급 검색 및 필터링
  * ✅ 로그 분석 및 통계
  * ✅ 로그 내보내기 및 관리
- * 
+ *
  * Modularization Complete: 1045 → 266 lines (75% reduction)
  * Modules: 6 specialized components for optimal maintainability
  * - LogDashboard.types.ts (119 lines) - Type definitions
- * - LogDashboard.charts.tsx (95 lines) - Dynamic chart imports  
+ * - LogDashboard.charts.tsx (95 lines) - Dynamic chart imports
  * - LogDashboard.hooks.ts (227 lines) - Data management hooks
  * - LogDashboard.StatsCards.tsx (72 lines) - Summary statistics
  * - LogDashboard.Analytics.tsx (206 lines) - Analytics visualization
@@ -19,13 +19,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import {
-  Download,
-  FileText,
-  RefreshCw,
-  Settings,
-  Trash2,
-} from 'lucide-react';
+import { Download, FileText, RefreshCw, Settings, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
 // Import modular components
@@ -35,16 +29,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { LogDashboardStatsCards } from './LogDashboard.StatsCards';
 import { LogDashboardAnalytics } from './LogDashboard.Analytics';
 import { LogDashboardLogViewer } from './LogDashboard.LogViewer';
-import { useLogDashboard, useLogExport, useLogClear } from './LogDashboard.hooks';
+import {
+  useLogDashboard,
+  useLogExport,
+  useLogClear,
+} from './LogDashboard.hooks';
 import type { LogFilters } from './LogDashboard.types';
 
 export default function LogDashboard() {
-  const { data, loading, error, autoRefresh, setAutoRefresh, fetchLogData } = useLogDashboard();
+  const { data, loading, error, autoRefresh, setAutoRefresh, fetchLogData } =
+    useLogDashboard();
   const { exportLogs } = useLogExport();
   const { clearLogs } = useLogClear();
-  
+
   const [selectedTab, setSelectedTab] = useState('logs');
-  
+
   // 필터 상태
   const [filters, setFilters] = useState<LogFilters>({
     searchQuery: '',
@@ -62,7 +61,7 @@ export default function LogDashboard() {
 
   // 필터 업데이트 헬퍼 함수
   const updateFilters = useCallback((updates: Partial<LogFilters>) => {
-    setFilters(prev => ({ ...prev, ...updates }));
+    setFilters((prev) => ({ ...prev, ...updates }));
   }, []);
 
   // 📤 로그 내보내기 핸들러
@@ -75,7 +74,7 @@ export default function LogDashboard() {
         includeMetadata: true,
         includeStackTrace: false,
       });
-      
+
       console.log('로그 내보내기 완료');
     } catch (err) {
       console.error('로그 내보내기 실패:', err);
@@ -110,8 +109,8 @@ export default function LogDashboard() {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
         <p className="text-red-600">오류: {error}</p>
-        <Button 
-          onClick={() => fetchLogData(filters)} 
+        <Button
+          onClick={() => fetchLogData(filters)}
           className="mt-4"
           variant="outline"
         >
@@ -141,8 +140,8 @@ export default function LogDashboard() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">📝 로그 대시보드</h1>
           <p className="text-gray-600">
-            {data.logs.length.toLocaleString()}개 로그 • 
-            마지막 업데이트: {new Date().toLocaleString('ko-KR')}
+            {data.logs.length.toLocaleString()}개 로그 • 마지막 업데이트:{' '}
+            {new Date().toLocaleString('ko-KR')}
           </p>
         </div>
 
@@ -186,10 +185,10 @@ export default function LogDashboard() {
           </TabsList>
 
           {/* 로그 뷰어 탭 */}
-          <LogDashboardLogViewer 
-            data={data} 
-            filters={filters} 
-            updateFilters={updateFilters} 
+          <LogDashboardLogViewer
+            data={data}
+            filters={filters}
+            updateFilters={updateFilters}
           />
 
           {/* 분석 탭 */}
@@ -204,7 +203,9 @@ export default function LogDashboard() {
                 <CardTitle>트렌드 분석</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-500">트렌드 분석 기능이 곧 추가됩니다.</p>
+                <p className="text-gray-500">
+                  트렌드 분석 기능이 곧 추가됩니다.
+                </p>
               </CardContent>
             </Card>
           </TabsContent>

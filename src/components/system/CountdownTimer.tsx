@@ -138,10 +138,10 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   };
 
   const getIcon = () => {
-    if (isExpired) return <AlertCircle className='w-4 h-4' />;
-    if (timeLeft.minutes <= 1) return <AlertCircle className='w-4 h-4' />;
-    if (timeLeft.minutes <= 5) return <AlertTriangle className='w-4 h-4' />;
-    return <Clock className='w-4 h-4' />;
+    if (isExpired) return <AlertCircle className="h-4 w-4" />;
+    if (timeLeft.minutes <= 1) return <AlertCircle className="h-4 w-4" />;
+    if (timeLeft.minutes <= 5) return <AlertTriangle className="h-4 w-4" />;
+    return <Clock className="h-4 w-4" />;
   };
 
   // 포맷된 시간 문자열
@@ -166,25 +166,20 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
 
   return (
     <div
-      className={`
-        inline-flex items-center gap-2 px-3 py-2 rounded-lg border
-        ${getStatusColor()}
-        ${getSizeClasses()}
-        ${className}
-      `}
-      role='timer'
+      className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 ${getStatusColor()} ${getSizeClasses()} ${className} `}
+      role="timer"
       aria-label={getAriaLabel()}
-      aria-live='polite'
+      aria-live="polite"
     >
       {showIcon && getIcon()}
 
-      <div className='flex flex-col items-center'>
-        <div className='font-mono font-semibold tracking-wider'>
+      <div className="flex flex-col items-center">
+        <div className="font-mono font-semibold tracking-wider">
           {formatTime()}
         </div>
 
         {showLabel && (
-          <div className='text-xs opacity-75'>{getStatusText()}</div>
+          <div className="text-xs opacity-75">{getStatusText()}</div>
         )}
       </div>
     </div>

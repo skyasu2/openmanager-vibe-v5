@@ -293,7 +293,8 @@ export class PromptSanitizer {
     const mixedMatches = input.match(mixedLanguagePattern);
     if (
       mixedLanguagePattern.test(input) &&
-      mixedMatches && mixedMatches.length > 3
+      mixedMatches &&
+      mixedMatches.length > 3
     ) {
       threats.push('korean_english_bypass');
     }
@@ -345,7 +346,7 @@ export class PromptSanitizer {
     // 2. 허용되지 않은 특수문자 제거
     sanitized = sanitized
       .split('')
-      .filter(char => {
+      .filter((char) => {
         // 한글, 영문, 숫자는 허용
         if (/[ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9]/.test(char)) return true;
         // 허용된 특수문자 확인
@@ -398,7 +399,7 @@ export class PromptSanitizer {
       /('|\").*(\1.*){2,}/gi, // Quote manipulation
     ];
 
-    return sqlPatterns.some(pattern => pattern.test(input));
+    return sqlPatterns.some((pattern) => pattern.test(input));
   }
 
   /**
@@ -412,7 +413,7 @@ export class PromptSanitizer {
       /%[0-9a-f]{2}/gi, // URL encoded
     ];
 
-    return commandPatterns.some(pattern => pattern.test(input));
+    return commandPatterns.some((pattern) => pattern.test(input));
   }
 
   /**
@@ -426,7 +427,7 @@ export class PromptSanitizer {
       /trust\s+me|believe\s+me|i\s+promise|나를\s+믿어|약속해/gi,
     ];
 
-    return socialPatterns.some(pattern => pattern.test(input));
+    return socialPatterns.some((pattern) => pattern.test(input));
   }
 
   /**

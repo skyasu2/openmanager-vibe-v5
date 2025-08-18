@@ -1,6 +1,6 @@
 /**
  * 🛠️ 서버 관련 공통 유틸리티 함수
- * 
+ *
  * 중복 코드 제거 및 번들 크기 최적화
  * - 타입 가드 함수
  * - 서버 데이터 변환 함수
@@ -90,9 +90,11 @@ export const SERVER_STATUS_PRIORITY = {
 export function sortServersByStatus(servers: Server[]): Server[] {
   return [...servers].sort((a, b) => {
     const priorityA =
-      SERVER_STATUS_PRIORITY[a.status as keyof typeof SERVER_STATUS_PRIORITY] ?? 3;
+      SERVER_STATUS_PRIORITY[a.status as keyof typeof SERVER_STATUS_PRIORITY] ??
+      3;
     const priorityB =
-      SERVER_STATUS_PRIORITY[b.status as keyof typeof SERVER_STATUS_PRIORITY] ?? 3;
+      SERVER_STATUS_PRIORITY[b.status as keyof typeof SERVER_STATUS_PRIORITY] ??
+      3;
 
     if (priorityA !== priorityB) {
       return priorityA - priorityB;
@@ -113,29 +115,39 @@ export function normalizeServerData(server: unknown): Server {
   if (typeof server !== 'object' || server === null) {
     throw new Error('Invalid server data');
   }
-  
+
   const s = server as Record<string, unknown>;
-  
+
   // 타입 안전성을 위한 헬퍼 함수
   const getString = (key: string, defaultValue: string): string => {
     const value = s[key];
     return typeof value === 'string' ? value : defaultValue;
   };
-  
+
   const getNumber = (key: string, defaultValue: number): number => {
     const value = s[key];
     return typeof value === 'number' ? value : defaultValue;
   };
-  
-  const getStatus = (): 'online' | 'offline' | 'critical' | 'healthy' | 'warning' => {
+
+  const getStatus = ():
+    | 'online'
+    | 'offline'
+    | 'critical'
+    | 'healthy'
+    | 'warning' => {
     const status = s.status;
-    if (status === 'online' || status === 'offline' || status === 'critical' || 
-        status === 'healthy' || status === 'warning') {
+    if (
+      status === 'online' ||
+      status === 'offline' ||
+      status === 'critical' ||
+      status === 'healthy' ||
+      status === 'warning'
+    ) {
       return status;
     }
     return 'offline';
   };
-  
+
   const partialServer: Partial<Server> = {
     id: getString('id', getString('hostname', 'unknown')),
     name: getString('name', getString('hostname', 'Unknown Server')),
@@ -149,23 +161,32 @@ export function normalizeServerData(server: unknown): Server {
     environment: getString('environment', 'production'),
     provider: getString('provider', 'On-Premise'),
     lastUpdate: s.lastUpdate instanceof Date ? s.lastUpdate : new Date(),
-    services: Array.isArray(s.services) ? s.services as Service[] : [],
-    networkStatus: s.networkStatus === 'offline' || s.networkStatus === 'critical' || 
-                   s.networkStatus === 'healthy' || s.networkStatus === 'warning' || 
-                   s.networkStatus === 'maintenance' ? s.networkStatus : undefined,
+    services: Array.isArray(s.services) ? (s.services as Service[]) : [],
+    networkStatus:
+      s.networkStatus === 'offline' ||
+      s.networkStatus === 'critical' ||
+      s.networkStatus === 'healthy' ||
+      s.networkStatus === 'warning' ||
+      s.networkStatus === 'maintenance'
+        ? s.networkStatus
+        : undefined,
   };
-  
+
   // 서버 타입 가드를 통한 메트릭 추출
   const serverWithMetrics = { ...partialServer, ...s } as unknown as Server;
-  
+
   return {
     ...partialServer,
     cpu: serverTypeGuards.getCpu(serverWithMetrics),
     memory: serverTypeGuards.getMemory(serverWithMetrics),
     disk: serverTypeGuards.getDisk(serverWithMetrics),
     network: serverTypeGuards.getNetwork(serverWithMetrics),
-    alerts: typeof s.alerts === 'number' ? s.alerts : 
-            Array.isArray(s.alerts) ? s.alerts as ServerAlert[] : undefined,
+    alerts:
+      typeof s.alerts === 'number'
+        ? s.alerts
+        : Array.isArray(s.alerts)
+          ? (s.alerts as ServerAlert[])
+          : undefined,
     specs: serverTypeGuards.getSpecs(serverWithMetrics),
   } as Server;
 }
@@ -236,9 +257,10 @@ export function calculateServerHealth(server: Server): number {
   const cpu = serverTypeGuards.getCpu(server);
   const memory = serverTypeGuards.getMemory(server);
   const disk = serverTypeGuards.getDisk(server);
-  
+
   // 가중 평균 계산 (CPU: 40%, Memory: 40%, Disk: 20%)
-  const weightedScore = (100 - cpu) * 0.4 + (100 - memory) * 0.4 + (100 - disk) * 0.2;
-  
+  const weightedScore =
+    (100 - cpu) * 0.4 + (100 - memory) * 0.4 + (100 - disk) * 0.2;
+
   return Math.round(Math.max(0, Math.min(100, weightedScore)));
 }

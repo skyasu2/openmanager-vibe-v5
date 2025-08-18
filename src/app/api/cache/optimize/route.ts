@@ -67,7 +67,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     debug.error('❌ 캐시 최적화 실패:', error);
     return NextResponse.json(
-      { success: false, error: '캐시 최적화 실패', message: getErrorMessage(error) },
+      {
+        success: false,
+        error: '캐시 최적화 실패',
+        message: getErrorMessage(error),
+      },
       { status: 500 }
     );
   }
@@ -76,7 +80,10 @@ export async function POST(request: NextRequest) {
 /**
  * 캐시 워밍업 처리
  */
-async function handleWarmup(options?: { targets?: string[]; pattern?: string }): Promise<CacheWarmupResponse> {
+async function handleWarmup(options?: {
+  targets?: string[];
+  pattern?: string;
+}): Promise<CacheWarmupResponse> {
   const supabaseClient = createClient;
   const warmupItems = [];
 
@@ -158,7 +165,10 @@ async function handleWarmup(options?: { targets?: string[]; pattern?: string }):
 /**
  * 캐시 무효화 처리
  */
-async function handleInvalidate(options?: { targets?: string[]; pattern?: string }): Promise<CacheInvalidateResponse> {
+async function handleInvalidate(options?: {
+  targets?: string[];
+  pattern?: string;
+}): Promise<CacheInvalidateResponse> {
   await invalidateCache(options?.pattern);
 
   return {
@@ -187,7 +197,8 @@ async function handleOptimize(): Promise<CacheOptimizeResponse> {
 
   // 메모리 사용량 최적화
   const memoryUsageKB = parseInt(stats.memoryUsage.replace('KB', '')) || 0;
-  if (memoryUsageKB > 200000) { // 200MB 이상
+  if (memoryUsageKB > 200000) {
+    // 200MB 이상
     // 오래된 실시간 데이터 정리
     await invalidateCache('realtime');
     optimizations.push('실시간 데이터 캐시 정리 완료');

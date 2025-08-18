@@ -12,9 +12,16 @@ import { IncidentReportService } from '@/services/ai/IncidentReportService';
  * - IncidentReportService 통합 장애 감지
  */
 
-import { Observable, Subject, BehaviorSubject, interval } from "rxjs";
-import { throttleTime, debounceTime, distinctUntilChanged, filter, map, takeUntil } from "rxjs/operators";
-import type { Socket } from "socket.io";
+import { Observable, Subject, BehaviorSubject, interval } from 'rxjs';
+import {
+  throttleTime,
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  map,
+  takeUntil,
+} from 'rxjs/operators';
+import type { Socket } from 'socket.io';
 // GCPRealDataService 사용
 // lightweight-anomaly-detector removed - using AnomalyDetectionService instead
 
@@ -38,7 +45,7 @@ interface MetricData {
     bytesIn: number;
     bytesOut: number;
   };
-  [key: string]: number | { bytesIn: number; bytesOut: number; } | undefined;
+  [key: string]: number | { bytesIn: number; bytesOut: number } | undefined;
 }
 
 interface AlertData {
@@ -58,13 +65,18 @@ interface AlertData {
   overallScore?: number;
   confidence?: number;
   recommendations?: string[];
-  [key: string]: string | number | string[] | Array<{
-    serverId: string;
-    serverName: string;
-    metric_type: string;
-    value: number;
-    severity: string;
-  }> | undefined;
+  [key: string]:
+    | string
+    | number
+    | string[]
+    | Array<{
+        serverId: string;
+        serverName: string;
+        metric_type: string;
+        value: number;
+        severity: string;
+      }>
+    | undefined;
 }
 
 interface ServerMetricData {
@@ -159,7 +171,7 @@ export class WebSocketManager {
   private setupEventHandlers(): void {
     if (!this.io) return;
 
-    this.io.on('connection', socket => {
+    this.io.on('connection', (socket) => {
       const clientId = socket.id;
       const clientInfo: WebSocketClient = {
         id: clientId,
@@ -213,7 +225,7 @@ export class WebSocketManager {
       'performance',
     ];
 
-    streamTypes.forEach(type => {
+    streamTypes.forEach((type) => {
       this.streams.set(type, new Subject<MetricStream>());
     });
 
@@ -226,7 +238,7 @@ export class WebSocketManager {
             prev.serverId === curr.serverId && prev.type === curr.type
         )
       )
-      .subscribe(data => {
+      .subscribe((data) => {
         this.broadcastToSubscribers('server-metrics', data);
       });
 
@@ -234,10 +246,10 @@ export class WebSocketManager {
     this.alertSubject
       .pipe(
         filter(
-          alert => alert.priority === 'high' || alert.priority === 'critical'
+          (alert) => alert.priority === 'high' || alert.priority === 'critical'
         )
       )
-      .subscribe(alert => {
+      .subscribe((alert) => {
         this.broadcastToSubscribers('alerts', alert);
       });
   }
@@ -253,7 +265,7 @@ export class WebSocketManager {
         .then((response: DataGeneratorResponse) => response.data);
       const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
 
-      const serverMetrics = allServers.map(server => {
+      const serverMetrics = allServers.map((server) => {
         return {
           id: server.id,
           name: server.name,
@@ -274,7 +286,7 @@ export class WebSocketManager {
       // 임계값 초과 시 알림 발생
       if (
         serverMetrics.some(
-          server => server.metrics.cpu > 85 || server.metrics.memory > 90
+          (server) => server.metrics.cpu > 85 || server.metrics.memory > 90
         )
       ) {
         this.alertSubject.next({
@@ -287,7 +299,7 @@ export class WebSocketManager {
         });
       }
 
-      serverMetrics.forEach(server => {
+      serverMetrics.forEach((server) => {
         const streamData: MetricStream = {
           serverId: server.id,
           data: server.metrics,
@@ -312,9 +324,9 @@ export class WebSocketManager {
           .getRealServerMetrics()
           .then((response: DataGeneratorResponse) => response.data);
         const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
-        
+
         // IncidentReportService를 사용한 장애 분석
-        const serverMetrics = allServers.slice(0, 15).map(server => ({
+        const serverMetrics = allServers.slice(0, 15).map((server) => ({
           serverId: server.id,
           serverName: server.name,
           cpu: server.cpu,
@@ -327,10 +339,14 @@ export class WebSocketManager {
         }));
 
         // 장애 분석 실행
-        const incidentReport = await this.incidentReportService.analyzeIncident(serverMetrics);
-        
+        const incidentReport =
+          await this.incidentReportService.analyzeIncident(serverMetrics);
+
         // 장애가 감지된 경우 알림 브로드캐스트
-        if (incidentReport.severity !== 'low' && incidentReport.affected.length > 0) {
+        if (
+          incidentReport.severity !== 'low' &&
+          incidentReport.affected.length > 0
+        ) {
           const incidentAlert: MetricStream = {
             serverId: 'incident-detector',
             data: {
@@ -341,32 +357,47 @@ export class WebSocketManager {
               priority: incidentReport.severity,
               timestamp: incidentReport.timestamp,
               anomalies: incidentReport.affected,
-              overallScore: incidentReport.severity === 'critical' ? 0.95 : 
-                           incidentReport.severity === 'high' ? 0.8 : 0.6,
+              overallScore:
+                incidentReport.severity === 'critical'
+                  ? 0.95
+                  : incidentReport.severity === 'high'
+                    ? 0.8
+                    : 0.6,
               confidence: 0.9,
               recommendations: incidentReport.recommendations,
             },
             timestamp: incidentReport.timestamp,
             type: 'alert',
-            priority: incidentReport.severity as 'low' | 'medium' | 'high' | 'critical',
+            priority: incidentReport.severity as
+              | 'low'
+              | 'medium'
+              | 'high'
+              | 'critical',
           };
 
           this.broadcastToSubscribers('alerts', incidentAlert);
-          
+
           // 중요 장애는 추가 로깅
-          if (incidentReport.severity === 'critical' || incidentReport.severity === 'high') {
-            console.log(`🚨 ${incidentReport.severity.toUpperCase()} 장애 감지:`, {
-              id: incidentReport.id,
-              title: incidentReport.title,
-              affected: incidentReport.affected,
-              impact: incidentReport.impact,
-            });
+          if (
+            incidentReport.severity === 'critical' ||
+            incidentReport.severity === 'high'
+          ) {
+            console.log(
+              `🚨 ${incidentReport.severity.toUpperCase()} 장애 감지:`,
+              {
+                id: incidentReport.id,
+                title: incidentReport.title,
+                affected: incidentReport.affected,
+                impact: incidentReport.impact,
+              }
+            );
           }
         }
-        
+
         // 배치 분석 (여러 그룹의 서버 동시 분석)
-        const batchReports = await this.incidentReportService.analyzeBatch(serverMetrics);
-        
+        const batchReports =
+          await this.incidentReportService.analyzeBatch(serverMetrics);
+
         // 배치 분석 결과 중 중요 장애만 추가 브로드캐스트
         for (const report of batchReports) {
           if (report.severity === 'critical' || report.severity === 'high') {
@@ -378,7 +409,7 @@ export class WebSocketManager {
               priority: report.severity,
               timestamp: report.timestamp,
             };
-            
+
             this.alertSubject.next(batchAlert);
           }
         }
@@ -391,16 +422,19 @@ export class WebSocketManager {
   /**
    * 📢 구독자들에게 브로드캐스트
    */
-  private broadcastToSubscribers(streamType: string, data: MetricData | AlertData): void {
+  private broadcastToSubscribers(
+    streamType: string,
+    data: MetricData | AlertData
+  ): void {
     if (!this.io) return;
 
-    const subscribedClients = Array.from(this.clients.values()).filter(client =>
-      client.subscriptions.has(streamType)
+    const subscribedClients = Array.from(this.clients.values()).filter(
+      (client) => client.subscriptions.has(streamType)
     );
 
     if (subscribedClients.length === 0) return;
 
-    subscribedClients.forEach(client => {
+    subscribedClients.forEach((client) => {
       this.io?.to(client.id).emit(streamType, data);
     });
 
@@ -554,14 +588,14 @@ export class WebSocketManager {
         .getRealServerMetrics()
         .then((response: DataGeneratorResponse) => response.data);
       const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
-      
+
       // 특정 서버 또는 전체 서버 메트릭 준비
       let targetServers = allServers;
       if (serverId) {
-        targetServers = allServers.filter(s => s.id === serverId);
+        targetServers = allServers.filter((s) => s.id === serverId);
       }
-      
-      const serverMetrics = targetServers.map(server => ({
+
+      const serverMetrics = targetServers.map((server) => ({
         serverId: server.id,
         serverName: server.name,
         cpu: server.cpu,
@@ -572,10 +606,11 @@ export class WebSocketManager {
         errorRate: Math.random() * 10,
         responseTime: 500 + Math.random() * 2500,
       }));
-      
+
       // 장애 분석 실행
-      const incidentReport = await this.incidentReportService.analyzeIncident(serverMetrics);
-      
+      const incidentReport =
+        await this.incidentReportService.analyzeIncident(serverMetrics);
+
       // 결과를 즉시 브로드캐스트
       if (incidentReport.affected.length > 0) {
         const manualAlert: MetricStream = {
@@ -592,11 +627,15 @@ export class WebSocketManager {
           },
           timestamp: incidentReport.timestamp,
           type: 'alert',
-          priority: incidentReport.severity as 'low' | 'medium' | 'high' | 'critical',
+          priority: incidentReport.severity as
+            | 'low'
+            | 'medium'
+            | 'high'
+            | 'critical',
         };
-        
+
         this.broadcastToSubscribers('alerts', manualAlert);
-        
+
         console.log(`📋 수동 장애 분석 완료:`, {
           id: incidentReport.id,
           severity: incidentReport.severity,
@@ -620,7 +659,7 @@ export class WebSocketManager {
     }
 
     // 모든 스트림 정리
-    this.streams.forEach(stream => stream.complete());
+    this.streams.forEach((stream) => stream.complete());
     this.streams.clear();
     this.clients.clear();
   }

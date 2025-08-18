@@ -176,7 +176,7 @@ export class ImprovedQueryEngine {
 
     // 백그라운드에서 로드 (블로킹하지 않음)
     setTimeout(() => {
-      frequentPatterns.forEach(pattern => {
+      frequentPatterns.forEach((pattern) => {
         this.warmupCache(pattern);
       });
     }, 5000);
@@ -229,7 +229,7 @@ export class ImprovedQueryEngine {
     if (this.initPromise && !this.isInitialized) {
       await Promise.race([
         this.initPromise,
-        new Promise(resolve => setTimeout(resolve, 1000)), // 최대 1초 대기
+        new Promise((resolve) => setTimeout(resolve, 1000)), // 최대 1초 대기
       ]);
     }
 
@@ -522,7 +522,7 @@ export class ImprovedQueryEngine {
         }
       });
 
-      keysToDelete.forEach(key => this.memoryCache.delete(key));
+      keysToDelete.forEach((key) => this.memoryCache.delete(key));
     }, 60000); // 1분마다
   }
 
@@ -581,7 +581,13 @@ export class ImprovedQueryEngine {
   // 기존 메서드들 재사용...
   private generateLocalResponse(
     query: string,
-    ragResult: { results: Array<{ content: string; similarity: number; metadata?: AIMetadata }> },
+    ragResult: {
+      results: Array<{
+        content: string;
+        similarity: number;
+        metadata?: AIMetadata;
+      }>;
+    },
     mcpContext: MCPContext | null,
     context: AIQueryContext
   ): string {
@@ -600,7 +606,7 @@ export class ImprovedQueryEngine {
 
     if (mcpContext && mcpContext.files.length > 0) {
       response += '\n\n프로젝트 파일 참고:\n';
-      mcpContext.files.slice(0, 2).forEach(file => {
+      mcpContext.files.slice(0, 2).forEach((file) => {
         response += `- ${file.path}\n`;
       });
     }
@@ -622,7 +628,7 @@ export class ImprovedQueryEngine {
 
     if (mcpContext && mcpContext.files.length > 0) {
       prompt += '관련 파일 내용:\n';
-      mcpContext.files.forEach(file => {
+      mcpContext.files.forEach((file) => {
         prompt += `\n파일: ${file.path}\n`;
         prompt += `${file.content.substring(0, 500)}...\n`;
       });
@@ -633,13 +639,16 @@ export class ImprovedQueryEngine {
     return prompt;
   }
 
-  private calculateConfidence(ragResult: { results: Array<{ similarity: number }> }): number {
+  private calculateConfidence(ragResult: {
+    results: Array<{ similarity: number }>;
+  }): number {
     if (ragResult.results.length === 0) return 0.1;
-    
+
     const topSimilarity = ragResult.results[0].similarity;
     const resultCount = ragResult.results.length;
-    
-    const confidence = topSimilarity * 0.7 + Math.min(resultCount / 10, 1) * 0.3;
+
+    const confidence =
+      topSimilarity * 0.7 + Math.min(resultCount / 10, 1) * 0.3;
     return Math.min(confidence, 0.95);
   }
 }

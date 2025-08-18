@@ -36,65 +36,63 @@ const DefaultFallback = ({ message = '로딩 중...' }: { message?: string }) =>
 );
 
 // 큰 컴포넌트들을 지연 로딩으로 변환
-export const LazyDashboardContent = lazy(() => 
-  import('@/components/dashboard/DashboardContent')
+export const LazyDashboardContent = lazy(
+  () => import('@/components/dashboard/DashboardContent')
 );
 
-export const LazyAIAssistantDashboard = lazy(() => 
-  import('@/components/ai/AIAssistantAdminDashboard')
+export const LazyAIAssistantDashboard = lazy(
+  () => import('@/components/ai/AIAssistantAdminDashboard')
 );
 
-export const LazyPerformanceDashboard = lazy(() => 
-  import('@/components/admin/PerformanceDashboard.charts')
+export const LazyPerformanceDashboard = lazy(
+  () => import('@/components/admin/PerformanceDashboard.charts')
 );
 
-export const LazyLogAnalyticsDashboard = lazy(() => 
-  import('@/components/admin/LogAnalyticsDashboard')
+export const LazyLogAnalyticsDashboard = lazy(
+  () => import('@/components/admin/LogAnalyticsDashboard')
 );
 
-export const LazyGCPQuotaMonitoring = lazy(() => 
-  import('@/components/admin/GCPQuotaMonitoringDashboard')
+export const LazyGCPQuotaMonitoring = lazy(
+  () => import('@/components/admin/GCPQuotaMonitoringDashboard')
 );
 
-export const LazyFeatureCardModal = lazy(() => 
-  import('@/components/shared/FeatureCardModal')
+export const LazyFeatureCardModal = lazy(
+  () => import('@/components/shared/FeatureCardModal')
 );
 
 // 차트 컴포넌트들 (recharts는 크기가 큼)
-export const LazyChart = lazy(() => 
-  import('recharts').then(module => ({
-    default: module.ResponsiveContainer
+export const LazyChart = lazy(() =>
+  import('recharts').then((module) => ({
+    default: module.ResponsiveContainer,
   }))
 );
 
 // Monaco Editor (500KB+)
-export const LazyMonacoEditor = lazy(() => 
-  import('@monaco-editor/react').then(module => ({
-    default: module.default
+export const LazyMonacoEditor = lazy(() =>
+  import('@monaco-editor/react').then((module) => ({
+    default: module.default,
   }))
 );
 
 // Mermaid 다이어그램 (애니메이션 라이브러리)
-export const LazyMermaid = lazy(() => 
-  import('@/components/shared/MermaidDiagram').then(module => ({
-    default: module.default
+export const LazyMermaid = lazy(() =>
+  import('@/components/shared/MermaidDiagram').then((module) => ({
+    default: module.default,
   }))
 );
 
 /**
  * 지연 로딩 래퍼 컴포넌트
  */
-export function LazyComponentWrapper({ 
-  children, 
-  fallback, 
-  config = {} 
+export function LazyComponentWrapper({
+  children,
+  fallback,
+  config = {},
 }: LazyComponentProps) {
   const { delay = 0, priority = 5 } = config;
 
   return (
-    <Suspense fallback={fallback || <DefaultFallback />}>
-      {children}
-    </Suspense>
+    <Suspense fallback={fallback || <DefaultFallback />}>{children}</Suspense>
   );
 }
 
@@ -148,22 +146,22 @@ export function useInteractionLoader() {
  * 성능 우선순위 기반 로더
  */
 export class PriorityLoader {
-  private static loadQueue: Array<{ 
-    component: () => Promise<any>; 
-    priority: number; 
-    name: string 
+  private static loadQueue: Array<{
+    component: () => Promise<any>;
+    priority: number;
+    name: string;
   }> = [];
-  
+
   private static isLoading = false;
 
   static addToQueue(
-    component: () => Promise<any>, 
-    priority: number, 
+    component: () => Promise<any>,
+    priority: number,
     name: string
   ) {
     this.loadQueue.push({ component, priority, name });
     this.loadQueue.sort((a, b) => a.priority - b.priority);
-    
+
     if (!this.isLoading) {
       this.processQueue();
     }
@@ -175,10 +173,10 @@ export class PriorityLoader {
     }
 
     this.isLoading = true;
-    
+
     while (this.loadQueue.length > 0) {
       const { component, name } = this.loadQueue.shift();
-      
+
       try {
         console.log(`🚀 Loading component: ${name}`);
         await component();
@@ -186,11 +184,11 @@ export class PriorityLoader {
       } catch (error) {
         console.error(`❌ Failed to load component: ${name}`, error);
       }
-      
+
       // 메인 스레드 블로킹 방지
-      await new Promise(resolve => setTimeout(resolve, 5));
+      await new Promise((resolve) => setTimeout(resolve, 5));
     }
-    
+
     this.isLoading = false;
   }
 }
@@ -205,19 +203,19 @@ export const COMPONENT_LOAD_CONFIG = {
     SystemBootstrap: { priority: 2, delay: 0 },
     FeatureCardsGrid: { priority: 3, delay: 100 },
   },
-  
+
   // 중요한 컴포넌트 (우선순위 4-6)
   important: {
     DashboardContent: { priority: 4, delay: 500 },
     AIAssistantSidebar: { priority: 5, delay: 1000 },
   },
-  
+
   // 일반 컴포넌트 (우선순위 7-9)
   normal: {
     PerformanceDashboard: { priority: 7, delay: 2000 },
     LogAnalyticsDashboard: { priority: 8, delay: 3000 },
   },
-  
+
   // 지연 가능한 컴포넌트 (우선순위 10+)
   deferred: {
     GCPQuotaMonitoring: { priority: 10, delay: 5000 },

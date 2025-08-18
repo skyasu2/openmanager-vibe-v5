@@ -23,7 +23,6 @@ declare global {
       readonly NEXT_PUBLIC_SUPABASE_ANON_KEY?: string;
       readonly SUPABASE_SERVICE_ROLE_KEY?: string;
 
-
       // 🤖 AI 관련 환경변수
       readonly GOOGLE_AI_API_KEY?: string;
       readonly GOOGLE_AI_ENABLED?: string;

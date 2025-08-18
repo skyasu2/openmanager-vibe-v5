@@ -36,12 +36,12 @@ if (typeof window !== 'undefined') {
 if (isBrowserEnvironment) {
   // Edge Runtime에서 missing globals 처리
   const win = window as any;
-  
+
   // globalThis fallback
   if (typeof win.globalThis === 'undefined') {
     win.globalThis = win;
   }
-  
+
   // self fallback
   if (typeof win.self === 'undefined') {
     win.self = win;
@@ -51,12 +51,12 @@ if (isBrowserEnvironment) {
 // 🚀 서버사이드 환경 처리 (SSR/SSG)
 if (isNodeEnvironment && !isBrowserEnvironment) {
   const glob = global as any;
-  
+
   // 전역 window 객체 모킹 (필요한 경우만)
   if (typeof glob.window === 'undefined') {
     glob.window = glob;
   }
-  
+
   // Document 객체 모킹 (DOM 관련 라이브러리용)
   if (typeof glob.document === 'undefined') {
     glob.document = {
@@ -66,7 +66,7 @@ if (isNodeEnvironment && !isBrowserEnvironment) {
       removeEventListener: () => {},
     };
   }
-  
+
   // Navigator 객체 모킹
   if (typeof glob.navigator === 'undefined') {
     glob.navigator = {
@@ -75,7 +75,7 @@ if (isNodeEnvironment && !isBrowserEnvironment) {
       language: 'en',
     };
   }
-  
+
   // Location 객체 모킹
   if (typeof glob.location === 'undefined') {
     glob.location = {
@@ -94,13 +94,13 @@ if (isNodeEnvironment && !isBrowserEnvironment) {
 // 🔐 Crypto 모듈 Polyfill (Node.js와 브라우저 통합)
 if (typeof globalThis !== 'undefined') {
   const glob = globalThis as any;
-  
+
   // 🚀 Node.js 환경에서 crypto 모듈 사용
   if (isNodeEnvironment && !glob.crypto) {
     try {
       // Node.js crypto 모듈을 브라우저 호환 형태로 노출
       const crypto = require('crypto');
-      
+
       // Web Crypto API 호환 인터페이스 제공
       glob.crypto = {
         // getRandomValues는 Web Crypto API와 호환되게
@@ -113,23 +113,23 @@ if (typeof globalThis !== 'undefined') {
           }
           return arr;
         },
-        
+
         // Node.js crypto 함수들을 직접 노출
         randomUUID: crypto.randomUUID,
         subtle: undefined, // SubtleCrypto는 복잡하므로 제외
-        
+
         // 추가 헬퍼 함수들
         randomBytes: crypto.randomBytes,
         createHash: crypto.createHash,
         createHmac: crypto.createHmac,
       };
-      
+
       console.log('✅ Node.js crypto 모듈을 글로벌 crypto로 설정완료');
     } catch (error) {
       console.warn('⚠️ Node.js crypto 모듈 로드 실패:', error);
     }
   }
-  
+
   // 🚀 브라우저 환경에서 crypto 확인
   if (isBrowserEnvironment && !glob.crypto) {
     console.warn('⚠️ 브라우저에서 crypto API를 사용할 수 없습니다.');
@@ -139,19 +139,23 @@ if (typeof globalThis !== 'undefined') {
 // 🚀 추가 Edge Runtime 호환성 개선
 if (typeof globalThis !== 'undefined') {
   const glob = globalThis as any;
-  
+
   // Edge Runtime에서 필요한 globals 보장
   if (typeof glob.self === 'undefined') {
     glob.self = glob;
   }
-  
+
   if (typeof glob.window === 'undefined' && isBrowserEnvironment) {
     glob.window = glob;
   }
 }
 
 console.log('🚀 Polyfills 로드 완료:', {
-  environment: isNodeEnvironment ? 'Node.js' : isBrowserEnvironment ? 'Browser' : 'Unknown',
+  environment: isNodeEnvironment
+    ? 'Node.js'
+    : isBrowserEnvironment
+      ? 'Browser'
+      : 'Unknown',
   hasGlobalCrypto: typeof (globalThis as any)?.crypto !== 'undefined',
   hasSelf: typeof (globalThis as any)?.self !== 'undefined',
   hasWindow: typeof (globalThis as any)?.window !== 'undefined',

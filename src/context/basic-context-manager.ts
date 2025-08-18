@@ -129,7 +129,10 @@ export class BasicContextManager {
       this.supabase = getSupabaseClient();
       console.log('✅ BasicContextManager - Supabase 싱글톤 연결 성공');
     } catch (error) {
-      console.warn('⚠️ BasicContextManager - Supabase 연결 실패, 메모리 캐시만 사용:', error);
+      console.warn(
+        '⚠️ BasicContextManager - Supabase 연결 실패, 메모리 캐시만 사용:',
+        error
+      );
     }
 
     console.log('🔧 BasicContextManager 초기화 완료');
@@ -146,13 +149,16 @@ export class BasicContextManager {
     await this.collectBasicContext();
 
     // 주기적 업데이트 (5분마다)
-    this.updateInterval = setInterval(async () => {
-      try {
-        await this.collectBasicContext();
-      } catch (error) {
-        console.error('❌ BasicContextManager 주기적 업데이트 실패:', error);
-      }
-    }, 5 * 60 * 1000); // 5분
+    this.updateInterval = setInterval(
+      async () => {
+        try {
+          await this.collectBasicContext();
+        } catch (error) {
+          console.error('❌ BasicContextManager 주기적 업데이트 실패:', error);
+        }
+      },
+      5 * 60 * 1000
+    ); // 5분
 
     console.log('✅ BasicContextManager 주기적 업데이트 시작 (5분 간격)');
   }
@@ -193,7 +199,10 @@ export class BasicContextManager {
         try {
           await this.saveContextToSupabase(context);
         } catch (supabaseError) {
-          console.warn('⚠️ Supabase 저장 실패, 메모리 캐시는 유지:', supabaseError);
+          console.warn(
+            '⚠️ Supabase 저장 실패, 메모리 캐시는 유지:',
+            supabaseError
+          );
         }
       }
 
@@ -203,7 +212,9 @@ export class BasicContextManager {
       console.error('❌ 기본 컨텍스트 수집 실패:', error);
 
       // 폴백: 오래된 캐시라도 반환
-      const fallbackCache = this.memoryCache.get<BasicContextData>(this.CACHE_KEY);
+      const fallbackCache = this.memoryCache.get<BasicContextData>(
+        this.CACHE_KEY
+      );
       if (fallbackCache) {
         console.log('🔄 폴백: 오래된 캐시 데이터 반환');
         return fallbackCache;
@@ -259,16 +270,16 @@ export class BasicContextManager {
 
       const servers = data || [];
       const statusCounts = {
-        online: servers.filter(s => s.status === 'online').length,
-        offline: servers.filter(s => s.status === 'offline').length,
-        warning: servers.filter(s => s.status === 'warning').length,
-        critical: servers.filter(s => s.status === 'critical').length,
+        online: servers.filter((s) => s.status === 'online').length,
+        offline: servers.filter((s) => s.status === 'offline').length,
+        warning: servers.filter((s) => s.status === 'warning').length,
+        critical: servers.filter((s) => s.status === 'critical').length,
       };
 
       return {
         total: servers.length,
         ...statusCounts,
-        list: servers.map(server => ({
+        list: servers.map((server) => ({
           id: server.id,
           name: server.name || 'Unknown',
           status: server.status || 'offline',
@@ -288,7 +299,9 @@ export class BasicContextManager {
   private async collectAlertsData() {
     if (this.supabase) {
       // 최근 24시간 알림만 조회
-      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const yesterday = new Date(
+        Date.now() - 24 * 60 * 60 * 1000
+      ).toISOString();
 
       const { data, error } = await this.supabase
         .from('alerts')
@@ -303,7 +316,7 @@ export class BasicContextManager {
 
       return {
         total: alerts.length,
-        recent: alerts.map(alert => ({
+        recent: alerts.map((alert) => ({
           id: alert.id,
           type: alert.type || 'cpu',
           severity: alert.severity || 'warning',
@@ -331,7 +344,7 @@ export class BasicContextManager {
 
       if (error) throw error;
 
-      return (data || []).map(guide => ({
+      return (data || []).map((guide) => ({
         id: guide.id,
         title: guide.title || '제목 없음',
         content: guide.content || '',
@@ -358,7 +371,7 @@ export class BasicContextManager {
 
       if (error) throw error;
 
-      return (data || []).map(faq => ({
+      return (data || []).map((faq) => ({
         id: faq.id,
         question: faq.question || '질문 없음',
         answer: faq.answer || '답변 없음',
@@ -400,7 +413,9 @@ export class BasicContextManager {
   /**
    * 💾 Supabase에 컨텍스트 저장
    */
-  private async saveContextToSupabase(context: BasicContextData): Promise<void> {
+  private async saveContextToSupabase(
+    context: BasicContextData
+  ): Promise<void> {
     if (!this.supabase) return;
 
     try {
@@ -443,7 +458,7 @@ export class BasicContextManager {
       if (error) return;
 
       if (data && data.length > 0) {
-        const idsToDelete = data.map(item => item.id);
+        const idsToDelete = data.map((item) => item.id);
         await this.supabase
           .from('context_cache')
           .delete()
@@ -487,8 +502,7 @@ export class BasicContextManager {
       const currentContext = await this.getCurrentContext();
       const newAlerts = await this.collectAlertsData();
 
-      currentContext.alerts.recent =
-        newAlerts.recent.slice(0, 10); // 최신 10개만
+      currentContext.alerts.recent = newAlerts.recent.slice(0, 10); // 최신 10개만
       currentContext.lastUpdated = Date.now();
 
       // 캐시 업데이트
@@ -505,17 +519,21 @@ export class BasicContextManager {
    */
   getStatistics() {
     const cacheStats = this.memoryCache.getStats();
-    const currentContext = this.memoryCache.get<BasicContextData>(this.CACHE_KEY);
+    const currentContext = this.memoryCache.get<BasicContextData>(
+      this.CACHE_KEY
+    );
 
     return {
       cache: cacheStats,
-      context: currentContext ? {
-        lastUpdated: new Date(currentContext.lastUpdated),
-        serversTotal: currentContext.servers.total,
-        alertsTotal: currentContext.alerts.total,
-        guidesTotal: currentContext.guides.length,
-        faqsTotal: currentContext.faqs.length,
-      } : null,
+      context: currentContext
+        ? {
+            lastUpdated: new Date(currentContext.lastUpdated),
+            serversTotal: currentContext.servers.total,
+            alertsTotal: currentContext.alerts.total,
+            guidesTotal: currentContext.guides.length,
+            faqsTotal: currentContext.faqs.length,
+          }
+        : null,
       supabaseConnected: this.supabase !== null,
       updateInterval: this.updateInterval !== null,
     };

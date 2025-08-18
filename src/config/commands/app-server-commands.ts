@@ -18,27 +18,27 @@ export const appServerCommands: Record<string, ServerCommands> = {
           command: 'ps aux | grep java',
           description: 'Java/Tomcat 프로세스 확인',
           category: 'process',
-          riskLevel: 'safe'
+          riskLevel: 'safe',
         },
         {
           command: 'jps -lv',
           description: 'Java 프로세스 상세 정보',
           category: 'process',
-          riskLevel: 'safe'
+          riskLevel: 'safe',
         },
         {
           command: 'tail -f $CATALINA_HOME/logs/catalina.out',
           description: 'Tomcat 메인 로그 모니터링',
           category: 'monitoring',
-          riskLevel: 'safe'
+          riskLevel: 'safe',
         },
         {
           command: 'jstat -gcutil <pid> 1000',
           description: 'JVM 가비지 컬렉션 통계',
           category: 'monitoring',
           riskLevel: 'safe',
-          usage: 'jstat -gcutil [pid] [interval_ms]'
-        }
+          usage: 'jstat -gcutil [pid] [interval_ms]',
+        },
       ],
       advanced: [
         {
@@ -46,50 +46,50 @@ export const appServerCommands: Record<string, ServerCommands> = {
           description: 'JVM 힙 메모리 정보',
           category: 'monitoring',
           riskLevel: 'moderate',
-          usage: 'jmap -heap [pid]'
+          usage: 'jmap -heap [pid]',
         },
         {
           command: 'jstack <pid>',
           description: 'Java 스레드 덤프',
           category: 'process',
           riskLevel: 'moderate',
-          usage: 'jstack [pid] > thread_dump.txt'
+          usage: 'jstack [pid] > thread_dump.txt',
         },
         {
           command: '$CATALINA_HOME/bin/catalina.sh stop',
           description: 'Tomcat 정지',
           category: 'system',
-          riskLevel: 'dangerous'
+          riskLevel: 'dangerous',
         },
         {
           command: '$CATALINA_HOME/bin/catalina.sh start',
           description: 'Tomcat 시작',
           category: 'system',
-          riskLevel: 'moderate'
-        }
+          riskLevel: 'moderate',
+        },
       ],
       troubleshooting: [
         {
           command: 'jmap -histo:live <pid> | head -20',
           description: 'JVM 라이브 객체 히스토그램',
           category: 'monitoring',
-          riskLevel: 'moderate'
+          riskLevel: 'moderate',
         },
         {
           command: 'jcmd <pid> GC.heap_dump /tmp/heap.hprof',
           description: '힙 덤프 생성',
           category: 'process',
           riskLevel: 'dangerous',
-          usage: 'jcmd [pid] GC.heap_dump [output_file]'
+          usage: 'jcmd [pid] GC.heap_dump [output_file]',
         },
         {
           command: 'netstat -an | grep 8080',
           description: 'Tomcat 포트 연결 상태',
           category: 'network',
-          riskLevel: 'safe'
-        }
-      ]
-    }
+          riskLevel: 'safe',
+        },
+      ],
+    },
   },
 
   // 애플리케이션 서버 #2 - Ubuntu + Node.js
@@ -103,93 +103,93 @@ export const appServerCommands: Record<string, ServerCommands> = {
           command: 'pm2 list',
           description: 'PM2 프로세스 목록',
           category: 'process',
-          riskLevel: 'safe'
+          riskLevel: 'safe',
         },
         {
           command: 'pm2 status',
           description: 'PM2 프로세스 상태',
           category: 'process',
-          riskLevel: 'safe'
+          riskLevel: 'safe',
         },
         {
           command: 'pm2 monit',
           description: 'PM2 실시간 모니터링',
           category: 'monitoring',
-          riskLevel: 'safe'
+          riskLevel: 'safe',
         },
         {
           command: 'pm2 logs',
           description: 'PM2 로그 확인',
           category: 'monitoring',
           riskLevel: 'safe',
-          usage: 'pm2 logs [app-name] [--lines 100]'
+          usage: 'pm2 logs [app-name] [--lines 100]',
         },
         {
           command: 'node --version',
           description: 'Node.js 버전 확인',
           category: 'system',
-          riskLevel: 'safe'
-        }
+          riskLevel: 'safe',
+        },
       ],
       advanced: [
         {
           command: 'pm2 restart all',
           description: '모든 PM2 프로세스 재시작',
           category: 'system',
-          riskLevel: 'moderate'
+          riskLevel: 'moderate',
         },
         {
           command: 'pm2 reload ecosystem.config.js',
           description: 'PM2 설정 재로드',
           category: 'system',
-          riskLevel: 'moderate'
+          riskLevel: 'moderate',
         },
         {
           command: 'pm2 save',
           description: 'PM2 프로세스 목록 저장',
           category: 'system',
-          riskLevel: 'safe'
+          riskLevel: 'safe',
         },
         {
           command: 'node --inspect=0.0.0.0:9229',
           description: 'Node.js 디버그 모드 실행',
           category: 'process',
           riskLevel: 'dangerous',
-          usage: 'node --inspect=[host:port] app.js'
-        }
+          usage: 'node --inspect=[host:port] app.js',
+        },
       ],
       troubleshooting: [
         {
           command: 'pm2 describe <app-name>',
           description: 'PM2 앱 상세 정보',
           category: 'process',
-          riskLevel: 'safe'
+          riskLevel: 'safe',
         },
         {
           command: 'pm2 info <app-name>',
           description: 'PM2 앱 전체 정보',
           category: 'process',
-          riskLevel: 'safe'
+          riskLevel: 'safe',
         },
         {
           command: 'node --trace-warnings app.js',
           description: 'Node.js 경고 추적',
           category: 'process',
-          riskLevel: 'moderate'
+          riskLevel: 'moderate',
         },
         {
           command: 'npx clinic doctor -- node app.js',
           description: 'Node.js 성능 진단',
           category: 'monitoring',
-          riskLevel: 'moderate'
+          riskLevel: 'moderate',
         },
         {
           command: 'lsof -i :3000',
           description: '포트 3000 사용 프로세스 확인',
           category: 'network',
-          riskLevel: 'safe'
-        }
-      ]
-    }
-  }
+          riskLevel: 'safe',
+        },
+      ],
+    },
+  },
 };

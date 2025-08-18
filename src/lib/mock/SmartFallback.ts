@@ -1,6 +1,6 @@
 /**
  * 🔄 스마트 폴백 시스템
- * 
+ *
  * 실제 서비스 실패 시 자동으로 Mock으로 전환
  * Claude Code 개발 중단을 방지
  */
@@ -44,13 +44,15 @@ export class SmartFallback {
     // 최근 폴백 이력 확인 (5분 이내 3번 이상 실패 시 바로 Mock)
     const recentFallbacks = this.getRecentFallbackCount(serviceName);
     if (recentFallbacks >= 3) {
-      console.log(`⚡ ${serviceName}: 잦은 실패로 Mock 자동 사용 (${recentFallbacks}회)`);
+      console.log(
+        `⚡ ${serviceName}: 잦은 실패로 Mock 자동 사용 (${recentFallbacks}회)`
+      );
       return mockFn();
     }
 
     // 실제 서비스 시도
     let lastError: Error | null = null;
-    
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const result = await realFn();
@@ -59,10 +61,13 @@ export class SmartFallback {
         return result;
       } catch (error) {
         lastError = error as Error;
-        console.warn(`⚠️ ${serviceName} 시도 ${attempt}/${maxRetries} 실패:`, error);
-        
+        console.warn(
+          `⚠️ ${serviceName} 시도 ${attempt}/${maxRetries} 실패:`,
+          error
+        );
+
         if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          await new Promise((resolve) => setTimeout(resolve, retryDelay));
         }
       }
     }
@@ -71,11 +76,11 @@ export class SmartFallback {
     if (enableAutoFallback && mockFn) {
       console.log(`🔄 ${serviceName}: Mock으로 자동 전환`);
       this.recordFallback(serviceName);
-      
+
       if (onFallback) {
         onFallback(lastError);
       }
-      
+
       try {
         return await mockFn();
       } catch (mockError) {
@@ -100,7 +105,7 @@ export class SmartFallback {
       console.log(`🎯 ${serviceName}: 조건에 따라 Mock 사용`);
       return mockFn();
     }
-    
+
     return this.execute(realFn, mockFn, {
       serviceName,
       enableAutoFallback: true,
@@ -114,13 +119,13 @@ export class SmartFallback {
     const history = this.fallbackHistory.get(serviceName) || 0;
     const lastTime = this.lastFallbackTime.get(serviceName) || 0;
     const now = Date.now();
-    
+
     // 5분이 지났으면 카운트 리셋
     if (now - lastTime > 5 * 60 * 1000) {
       this.fallbackHistory.set(serviceName, 0);
       return 0;
     }
-    
+
     return history;
   }
 
@@ -146,7 +151,7 @@ export class SmartFallback {
    */
   static getFallbackStats(): Record<string, any> {
     const stats: Record<string, any> = {};
-    
+
     for (const [service, count] of this.fallbackHistory.entries()) {
       const lastTime = this.lastFallbackTime.get(service);
       stats[service] = {
@@ -154,7 +159,7 @@ export class SmartFallback {
         lastFallback: lastTime ? new Date(lastTime).toISOString() : null,
       };
     }
-    
+
     return stats;
   }
 }

@@ -1,6 +1,6 @@
 /**
  * Google AI 클라이언트 - 실제 Google AI API 사용
- * 
+ *
  * 실제 Google AI API를 직접 사용하여 일관된 응답 품질 보장
  */
 
@@ -9,14 +9,16 @@ import googleAIManager from '@/lib/google-ai-manager';
 
 /**
  * Google AI 클라이언트 가져오기
- * 
+ *
  * @returns Google Generative AI 인스턴스 (실제 API)
  */
 export function getGoogleAIClient(): GoogleGenerativeAI {
   const apiKey = googleAIManager.getAPIKey();
-  
+
   if (!apiKey) {
-    throw new Error('⚠️ Google AI API 키가 설정되지 않았습니다. .env.local을 확인하세요.');
+    throw new Error(
+      '⚠️ Google AI API 키가 설정되지 않았습니다. .env.local을 확인하세요.'
+    );
   }
 
   console.log('🌐 실제 Google AI API 사용 중');
@@ -25,7 +27,7 @@ export function getGoogleAIClient(): GoogleGenerativeAI {
 
 /**
  * 모델 가져오기 헬퍼
- * 
+ *
  * @param modelName 모델 이름 (기본값: gemini-pro)
  * @returns 생성 모델 인스턴스
  */

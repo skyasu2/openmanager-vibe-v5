@@ -1,5 +1,10 @@
 // ♻️ REFACTOR: 코드 개선 (DRY 원칙 적용)
-import type { Calculator, CalculatorHistory, CalculatorResult, OperationType } from './calculator.types';
+import type {
+  Calculator,
+  CalculatorHistory,
+  CalculatorResult,
+  OperationType,
+} from './calculator.types';
 
 class CalculatorHistoryImpl implements CalculatorHistory {
   results: CalculatorResult[] = [];
@@ -19,16 +24,19 @@ class CalculatorHistoryImpl implements CalculatorHistory {
 
 export class ImprovedCalculator implements Calculator {
   private readonly history: CalculatorHistory;
-  
+
   // 연산 로직을 매핑으로 분리 (DRY)
-  private readonly operations: Record<OperationType, (a: number, b: number) => number> = {
+  private readonly operations: Record<
+    OperationType,
+    (a: number, b: number) => number
+  > = {
     add: (a, b) => a + b,
     subtract: (a, b) => a - b,
     multiply: (a, b) => a * b,
     divide: (a, b) => {
       if (b === 0) throw new Error('Division by zero');
       return a / b;
-    }
+    },
   };
 
   constructor() {
@@ -42,13 +50,13 @@ export class ImprovedCalculator implements Calculator {
     b: number
   ): number {
     const value = this.operations[operation](a, b);
-    
+
     this.history.addResult({
       value,
       operation,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
-    
+
     return value;
   }
 

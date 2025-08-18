@@ -203,7 +203,10 @@ export const safeBackupCreation = (
 /**
  * 환경 변수 백업 차단 (베르셀 환경에서 무력화)
  */
-export const safeEnvBackup = (backupData: unknown, backupPath: string): boolean => {
+export const safeEnvBackup = (
+  backupData: unknown,
+  backupPath: string
+): boolean => {
   if (isVercelEnvironment()) {
     console.warn(`🚫 베르셀 환경에서 환경 변수 백업 차단됨: ${backupPath}`);
     return false;

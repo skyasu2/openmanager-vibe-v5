@@ -20,7 +20,8 @@ export class ClientSafeEnvironmentManager {
 
   public static getInstance(): ClientSafeEnvironmentManager {
     if (!ClientSafeEnvironmentManager.instance) {
-      ClientSafeEnvironmentManager.instance = new ClientSafeEnvironmentManager();
+      ClientSafeEnvironmentManager.instance =
+        new ClientSafeEnvironmentManager();
     }
     return ClientSafeEnvironmentManager.instance;
   }
@@ -80,7 +81,7 @@ export class ClientSafeEnvironmentManager {
     nodeEnv: string;
   } {
     const nodeEnv = process.env.NODE_ENV || 'development';
-    
+
     return {
       isProduction: nodeEnv === 'production',
       isDevelopment: nodeEnv === 'development',
@@ -100,21 +101,24 @@ export class ClientSafeEnvironmentManager {
     const envKeys = Object.keys(process.env);
 
     // 클라이언트에서는 NEXT_PUBLIC_ 변수만
-    const filteredKeys = typeof window !== 'undefined'
-      ? envKeys.filter(key => key.startsWith('NEXT_PUBLIC_'))
-      : envKeys;
+    const filteredKeys =
+      typeof window !== 'undefined'
+        ? envKeys.filter((key) => key.startsWith('NEXT_PUBLIC_'))
+        : envKeys;
 
     for (const key of filteredKeys) {
       const value = process.env[key];
       if (value) {
         // 민감한 값은 마스킹
-        const isSensitive = key.includes('KEY') || 
-                          key.includes('SECRET') || 
-                          key.includes('TOKEN') ||
-                          key.includes('PASSWORD');
-        
+        const isSensitive =
+          key.includes('KEY') ||
+          key.includes('SECRET') ||
+          key.includes('TOKEN') ||
+          key.includes('PASSWORD');
+
         if (isSensitive && value.length > 8) {
-          info[key] = `${value.substring(0, 4)}...${value.substring(value.length - 4)}`;
+          info[key] =
+            `${value.substring(0, 4)}...${value.substring(value.length - 4)}`;
         } else if (value.length > 20) {
           info[key] = `${value.substring(0, 10)}...`;
         } else {
@@ -138,7 +142,7 @@ export class ClientSafeEnvironmentManager {
       'NEXT_PUBLIC_SUPABASE_ANON_KEY',
     ];
 
-    const missing = required.filter(key => !process.env[key]);
+    const missing = required.filter((key) => !process.env[key]);
 
     return {
       valid: missing.length === 0,

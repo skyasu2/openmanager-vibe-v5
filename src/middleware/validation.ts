@@ -1,17 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { validateRequestBody, validateQueryParams } from '@/types/validation-utils';
+import {
+  validateRequestBody,
+  validateQueryParams,
+} from '@/types/validation-utils';
 import { ApiError } from '@/types/common-replacements';
 
 /**
  * 🛡️ API 검증 미들웨어
- * 
+ *
  * API 요청/응답을 자동으로 검증하는 미들웨어
  */
 
 // ===== 미들웨어 타입 정의 =====
 
-export type ApiHandler<TBody = unknown, TQuery = unknown, TResponse = unknown> = (
+export type ApiHandler<
+  TBody = unknown,
+  TQuery = unknown,
+  TResponse = unknown,
+> = (
   request: NextRequest,
   context: {
     body?: TBody;
@@ -20,7 +27,11 @@ export type ApiHandler<TBody = unknown, TQuery = unknown, TResponse = unknown> =
   }
 ) => Promise<NextResponse> | NextResponse;
 
-export interface ValidationSchemas<TBody = unknown, TQuery = unknown, TResponse = unknown> {
+export interface ValidationSchemas<
+  TBody = unknown,
+  TQuery = unknown,
+  TResponse = unknown,
+> {
   body?: z.ZodSchema<TBody>;
   query?: z.ZodSchema<TQuery>;
   response?: z.ZodSchema<TResponse>;
@@ -31,7 +42,11 @@ export interface ValidationSchemas<TBody = unknown, TQuery = unknown, TResponse 
 /**
  * API 핸들러에 검증 기능을 추가하는 미들웨어
  */
-export function withValidation<TBody = unknown, TQuery = unknown, TResponse = unknown>(
+export function withValidation<
+  TBody = unknown,
+  TQuery = unknown,
+  TResponse = unknown,
+>(
   schemas: ValidationSchemas<TBody, TQuery, TResponse>,
   handler: ApiHandler<TBody, TQuery, TResponse>
 ) {
@@ -70,9 +85,12 @@ export function withValidation<TBody = unknown, TQuery = unknown, TResponse = un
         try {
           const responseData = await response.clone().json();
           const validationResult = schemas.response.safeParse(responseData);
-          
+
           if (!validationResult.success) {
-            console.error('Response validation failed:', validationResult.error);
+            console.error(
+              'Response validation failed:',
+              validationResult.error
+            );
           }
         } catch (error) {
           console.error('Failed to validate response:', error);
@@ -160,7 +178,9 @@ function isApiError(error: unknown): error is ApiError {
 /**
  * 여러 미들웨어를 체인으로 연결
  */
-export function composeMiddleware(...middlewares: Array<(req: NextRequest) => Promise<NextResponse | null>>) {
+export function composeMiddleware(
+  ...middlewares: Array<(req: NextRequest) => Promise<NextResponse | null>>
+) {
   return async (request: NextRequest): Promise<NextResponse> => {
     for (const middleware of middlewares) {
       const response = await middleware(request);
@@ -168,7 +188,7 @@ export function composeMiddleware(...middlewares: Array<(req: NextRequest) => Pr
         return response;
       }
     }
-    
+
     return NextResponse.json(
       {
         success: false,
@@ -214,7 +234,10 @@ export const searchQuerySchema = z.object({
 /**
  * 성공 응답 생성
  */
-export function successResponse<T>(data: T, metadata?: Record<string, unknown>): NextResponse {
+export function successResponse<T>(
+  data: T,
+  metadata?: Record<string, unknown>
+): NextResponse {
   return NextResponse.json({
     success: true,
     data,
@@ -267,6 +290,9 @@ export function withCorsHeaders(
 ): NextResponse {
   response.headers.set('Access-Control-Allow-Origin', origin);
   response.headers.set('Access-Control-Allow-Methods', methods.join(', '));
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  response.headers.set(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Authorization'
+  );
   return response;
 }

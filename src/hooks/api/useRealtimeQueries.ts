@@ -310,11 +310,17 @@ export const useRealtimePredictions = () => {
 
         if (message.type === 'prediction_update') {
           // 새로운 예측 결과를 캐시에 추가
-          queryClient.setQueryData(predictionKeys.list('{}'), (old: unknown) => {
-            const oldPredictions = old as PredictionData[] | null;
-            if (!Array.isArray(oldPredictions)) return [message.data];
-            return [message.data as PredictionData, ...oldPredictions.slice(0, 49)]; // 최신 50개만 유지
-          });
+          queryClient.setQueryData(
+            predictionKeys.list('{}'),
+            (old: unknown) => {
+              const oldPredictions = old as PredictionData[] | null;
+              if (!Array.isArray(oldPredictions)) return [message.data];
+              return [
+                message.data as PredictionData,
+                ...oldPredictions.slice(0, 49),
+              ]; // 최신 50개만 유지
+            }
+          );
 
           // 실시간 예측 알림
           const predictionData = message.data as PredictionData;

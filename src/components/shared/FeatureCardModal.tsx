@@ -3,15 +3,19 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import React, { useEffect } from 'react';
-import type { 
-  FeatureCardModalProps, 
-  TechItem, 
+import type {
+  FeatureCardModalProps,
+  TechItem,
   ImportanceLevel,
   TechCategory,
   ImportanceStyle,
-  CategoryStyle 
+  CategoryStyle,
 } from '@/types/feature-card.types';
-import { TECH_STACKS_DATA, IMPORTANCE_STYLES, CATEGORY_STYLES } from '@/data/tech-stacks.data';
+import {
+  TECH_STACKS_DATA,
+  IMPORTANCE_STYLES,
+  CATEGORY_STYLES,
+} from '@/data/tech-stacks.data';
 
 export default function FeatureCardModal({
   selectedCard,
@@ -98,30 +102,28 @@ export default function FeatureCardModal({
             <span
               className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                 tech.type === 'custom'
-                  ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                  ? 'border border-blue-500/30 bg-blue-500/20 text-blue-300'
                   : tech.type === 'opensource'
-                  ? 'bg-green-500/20 text-green-300 border border-green-500/30'
-                  : 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                    ? 'border border-green-500/30 bg-green-500/20 text-green-300'
+                    : 'border border-purple-500/30 bg-purple-500/20 text-purple-300'
               }`}
             >
-              {tech.type === 'custom' 
-                ? '🏭 커스텀' 
-                : tech.type === 'opensource' 
-                ? '🔓 오픈소스'
-                : '📦 상용'}
+              {tech.type === 'custom'
+                ? '🏭 커스텀'
+                : tech.type === 'opensource'
+                  ? '🔓 오픈소스'
+                  : '📦 상용'}
             </span>
           )}
           {tech.aiType && (
             <span
               className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                 tech.aiType === 'google-api'
-                  ? 'bg-green-500/20 text-green-300 border border-green-500/30'
-                  : 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
+                  ? 'border border-green-500/30 bg-green-500/20 text-green-300'
+                  : 'border border-yellow-500/30 bg-yellow-500/20 text-yellow-300'
               }`}
             >
-              {tech.aiType === 'google-api'
-                ? '🌐 Google AI'
-                : '💻 로컬 AI'}
+              {tech.aiType === 'google-api' ? '🌐 Google AI' : '💻 로컬 AI'}
             </span>
           )}
         </div>

@@ -43,7 +43,9 @@ export function recommendCommands(
 
     case 'disk_full':
       commands = [
-        ...serverCommands.commands.basic.filter((cmd) => cmd.category === 'disk'),
+        ...serverCommands.commands.basic.filter(
+          (cmd) => cmd.category === 'disk'
+        ),
         ...serverCommands.commands.troubleshooting.filter(
           (cmd) => cmd.category === 'disk'
         ),
@@ -52,16 +54,21 @@ export function recommendCommands(
 
     case 'service_down':
       commands = [
-        ...serverCommands.commands.basic.filter((cmd) => cmd.category === 'system'),
+        ...serverCommands.commands.basic.filter(
+          (cmd) => cmd.category === 'system'
+        ),
         ...serverCommands.commands.advanced.filter(
-          (cmd) => cmd.command.includes('start') || cmd.command.includes('restart')
+          (cmd) =>
+            cmd.command.includes('start') || cmd.command.includes('restart')
         ),
       ];
       break;
 
     case 'network_issue':
       commands = [
-        ...serverCommands.commands.basic.filter((cmd) => cmd.category === 'network'),
+        ...serverCommands.commands.basic.filter(
+          (cmd) => cmd.category === 'network'
+        ),
         ...serverCommands.commands.troubleshooting.filter(
           (cmd) => cmd.category === 'network'
         ),
@@ -78,7 +85,8 @@ export function recommendCommands(
       // 기본: 안전한 모니터링 명령어
       commands = serverCommands.commands.basic.filter(
         (cmd) =>
-          cmd.riskLevel === 'safe' && (category ? cmd.category === category : true)
+          cmd.riskLevel === 'safe' &&
+          (category ? cmd.category === category : true)
       );
   }
 
@@ -117,13 +125,13 @@ export function translateCommand(
     'ls -la': {
       windows: 'Get-ChildItem -Force',
     },
-    'grep': {
+    grep: {
       windows: 'Select-String',
     },
-    'cat': {
+    cat: {
       windows: 'Get-Content',
     },
-    'which': {
+    which: {
       windows: 'Get-Command',
     },
 
@@ -143,11 +151,12 @@ export function translateCommand(
   };
 
   const isWindowsTarget = toOS.toLowerCase().includes('windows');
-  const isLinuxTarget = toOS.toLowerCase().includes('linux') || 
-                        toOS.toLowerCase().includes('ubuntu') || 
-                        toOS.toLowerCase().includes('centos') ||
-                        toOS.toLowerCase().includes('rhel') ||
-                        toOS.toLowerCase().includes('debian');
+  const isLinuxTarget =
+    toOS.toLowerCase().includes('linux') ||
+    toOS.toLowerCase().includes('ubuntu') ||
+    toOS.toLowerCase().includes('centos') ||
+    toOS.toLowerCase().includes('rhel') ||
+    toOS.toLowerCase().includes('debian');
 
   // Linux -> Windows
   if (isWindowsTarget && translations[command]) {
@@ -196,10 +205,12 @@ export function searchCommands(
       cmd.description.toLowerCase().includes(search);
 
     // 카테고리 필터
-    const matchesCategory = !options?.category || cmd.category === options.category;
+    const matchesCategory =
+      !options?.category || cmd.category === options.category;
 
     // 위험도 필터
-    const matchesRiskLevel = !options?.riskLevel || cmd.riskLevel === options.riskLevel;
+    const matchesRiskLevel =
+      !options?.riskLevel || cmd.riskLevel === options.riskLevel;
 
     return matchesSearch && matchesCategory && matchesRiskLevel;
   });
@@ -208,7 +219,9 @@ export function searchCommands(
 /**
  * 서버 OS 타입 감지
  */
-export function detectOSType(osString: string): 'linux' | 'windows' | 'unknown' {
+export function detectOSType(
+  osString: string
+): 'linux' | 'windows' | 'unknown' {
   const lower = osString.toLowerCase();
 
   if (

@@ -4,11 +4,11 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
-import type { 
-  ResponseLogData, 
-  PatternSuggestion as SuggestionData, 
-  ContextDocument, 
-  SystemHealth 
+import type {
+  ResponseLogData,
+  PatternSuggestion as SuggestionData,
+  ContextDocument,
+  SystemHealth,
 } from '@/types/ai-assistant';
 
 interface APIResponse {
@@ -42,12 +42,18 @@ interface UseAIAssistantDataReturn {
   refreshData: () => Promise<void>;
   clearError: () => void;
   addSuggestion: (suggestion: Partial<SuggestionData>) => Promise<void>;
-  updateSuggestionStatus: (id: string, status: SuggestionData['status']) => Promise<void>;
+  updateSuggestionStatus: (
+    id: string,
+    status: SuggestionData['status']
+  ) => Promise<void>;
   deleteSuggestion: (id: string) => Promise<void>;
-  uploadDocument: (file: File, category: ContextDocument['category']) => Promise<void>;
+  uploadDocument: (
+    file: File,
+    category: ContextDocument['category']
+  ) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
   updateSystemHealth: (health: Partial<SystemHealthData>) => void;
-  
+
   // 호환성을 위한 별칭 및 추가 속성
   _responseLogs: ResponseLogData[];
   _patternSuggestions: SuggestionData[];
@@ -62,15 +68,20 @@ interface UseAIAssistantDataReturn {
     totalDocuments: number;
   };
   loadAllData: () => Promise<void>;
-  _handlePatternAction: (id: string, action: 'apply' | 'reject') => Promise<void>;
+  _handlePatternAction: (
+    id: string,
+    action: 'apply' | 'reject'
+  ) => Promise<void>;
   filters: {
     status: string;
     dateRange: string;
   };
-  setFilters: React.Dispatch<React.SetStateAction<{
-    status: string;
-    dateRange: string;
-  }>>;
+  setFilters: React.Dispatch<
+    React.SetStateAction<{
+      status: string;
+      dateRange: string;
+    }>
+  >;
   searchTerm: string;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
 }
@@ -89,25 +100,28 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
   });
 
   // API 호출 헬퍼 함수
-  const fetchAPI = useCallback(async (endpoint: string, options?: RequestInit): Promise<APIResponse> => {
-    try {
-      const response = await fetch(`/api/ai-assistant${endpoint}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        ...options,
-      });
+  const fetchAPI = useCallback(
+    async (endpoint: string, options?: RequestInit): Promise<APIResponse> => {
+      try {
+        const response = await fetch(`/api/ai-assistant${endpoint}`, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          ...options,
+        });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        return await response.json();
+      } catch (err) {
+        console.error(`API 호출 실패 (${endpoint}):`, err);
+        throw err;
       }
-
-      return await response.json();
-    } catch (err) {
-      console.error(`API 호출 실패 (${endpoint}):`, err);
-      throw err;
-    }
-  }, []);
+    },
+    []
+  );
 
   // 데이터 로딩
   const loadLogs = useCallback(async () => {
@@ -129,8 +143,9 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
         setSuggestions(
           result.data.map((suggestion: Partial<SuggestionData>) => ({
             id: suggestion.id || Math.random().toString(36).substr(2, 9),
-            originalQuery: suggestion?.originalQuery || suggestion?.query || '쿼리 없음',
-            suggestedPattern: 
+            originalQuery:
+              suggestion?.originalQuery || suggestion?.query || '쿼리 없음',
+            suggestedPattern:
               suggestion.suggestedPattern ||
               suggestion.pattern ||
               '제안 패턴 없음',
@@ -193,107 +208,125 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
   }, [loadLogs, loadSuggestions, loadDocuments, loadSystemHealth]);
 
   // 제안 관리 함수들
-  const addSuggestion = useCallback(async (suggestion: Partial<SuggestionData>) => {
-    try {
-      const result = await fetchAPI('/suggestions', {
-        method: 'POST',
-        body: JSON.stringify(suggestion),
-      });
+  const addSuggestion = useCallback(
+    async (suggestion: Partial<SuggestionData>) => {
+      try {
+        const result = await fetchAPI('/suggestions', {
+          method: 'POST',
+          body: JSON.stringify(suggestion),
+        });
 
-      if (result.data) {
-        setSuggestions(prev => [...prev, result.data as SuggestionData]);
-        toast.success('제안이 추가되었습니다.');
+        if (result.data) {
+          setSuggestions((prev) => [...prev, result.data as SuggestionData]);
+          toast.success('제안이 추가되었습니다.');
+        }
+      } catch (err) {
+        console.error('제안 추가 실패:', err);
+        toast.error('제안 추가에 실패했습니다.');
+        throw err;
       }
-    } catch (err) {
-      console.error('제안 추가 실패:', err);
-      toast.error('제안 추가에 실패했습니다.');
-      throw err;
-    }
-  }, [fetchAPI]);
+    },
+    [fetchAPI]
+  );
 
-  const updateSuggestionStatus = useCallback(async (id: string, status: SuggestionData['status']) => {
-    try {
-      const result = await fetchAPI(`/suggestions/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status }),
-      });
+  const updateSuggestionStatus = useCallback(
+    async (id: string, status: SuggestionData['status']) => {
+      try {
+        const result = await fetchAPI(`/suggestions/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status }),
+        });
 
-      if (result.data) {
-        setSuggestions(prev =>
-          prev.map(s => (s.id === id ? { ...s, status } : s))
-        );
-        toast.success('제안 상태가 업데이트되었습니다.');
+        if (result.data) {
+          setSuggestions((prev) =>
+            prev.map((s) => (s.id === id ? { ...s, status } : s))
+          );
+          toast.success('제안 상태가 업데이트되었습니다.');
+        }
+      } catch (err) {
+        console.error('제안 상태 업데이트 실패:', err);
+        toast.error('제안 상태 업데이트에 실패했습니다.');
+        throw err;
       }
-    } catch (err) {
-      console.error('제안 상태 업데이트 실패:', err);
-      toast.error('제안 상태 업데이트에 실패했습니다.');
-      throw err;
-    }
-  }, [fetchAPI]);
+    },
+    [fetchAPI]
+  );
 
-  const deleteSuggestion = useCallback(async (id: string) => {
-    try {
-      await fetchAPI(`/suggestions/${id}`, {
-        method: 'DELETE',
-      });
+  const deleteSuggestion = useCallback(
+    async (id: string) => {
+      try {
+        await fetchAPI(`/suggestions/${id}`, {
+          method: 'DELETE',
+        });
 
-      setSuggestions(prev => prev.filter(s => s.id !== id));
-      toast.success('제안이 삭제되었습니다.');
-    } catch (err) {
-      console.error('제안 삭제 실패:', err);
-      toast.error('제안 삭제에 실패했습니다.');
-      throw err;
-    }
-  }, [fetchAPI]);
+        setSuggestions((prev) => prev.filter((s) => s.id !== id));
+        toast.success('제안이 삭제되었습니다.');
+      } catch (err) {
+        console.error('제안 삭제 실패:', err);
+        toast.error('제안 삭제에 실패했습니다.');
+        throw err;
+      }
+    },
+    [fetchAPI]
+  );
 
   // 문서 관리 함수들
-  const uploadDocument = useCallback(async (file: File, category: ContextDocument['category']) => {
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('category', category);
+  const uploadDocument = useCallback(
+    async (file: File, category: ContextDocument['category']) => {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('category', category);
 
-      const response = await fetch('/api/ai-assistant/documents', {
-        method: 'POST',
-        body: formData,
-      });
+        const response = await fetch('/api/ai-assistant/documents', {
+          method: 'POST',
+          body: formData,
+        });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+
+        if (result.data) {
+          setDocuments((prev) => [...prev, result.data as ContextDocument]);
+          toast.success('문서가 업로드되었습니다.');
+        }
+      } catch (err) {
+        console.error('문서 업로드 실패:', err);
+        toast.error('문서 업로드에 실패했습니다.');
+        throw err;
       }
+    },
+    []
+  );
 
-      const result = await response.json();
-      
-      if (result.data) {
-        setDocuments(prev => [...prev, result.data as ContextDocument]);
-        toast.success('문서가 업로드되었습니다.');
+  const deleteDocument = useCallback(
+    async (id: string) => {
+      try {
+        await fetchAPI(`/documents/${id}`, {
+          method: 'DELETE',
+        });
+
+        setDocuments((prev) => prev.filter((d) => d.id !== id));
+        toast.success('문서가 삭제되었습니다.');
+      } catch (err) {
+        console.error('문서 삭제 실패:', err);
+        toast.error('문서 삭제에 실패했습니다.');
+        throw err;
       }
-    } catch (err) {
-      console.error('문서 업로드 실패:', err);
-      toast.error('문서 업로드에 실패했습니다.');
-      throw err;
-    }
-  }, []);
-
-  const deleteDocument = useCallback(async (id: string) => {
-    try {
-      await fetchAPI(`/documents/${id}`, {
-        method: 'DELETE',
-      });
-
-      setDocuments(prev => prev.filter(d => d.id !== id));
-      toast.success('문서가 삭제되었습니다.');
-    } catch (err) {
-      console.error('문서 삭제 실패:', err);
-      toast.error('문서 삭제에 실패했습니다.');
-      throw err;
-    }
-  }, [fetchAPI]);
+    },
+    [fetchAPI]
+  );
 
   // 시스템 상태 업데이트
-  const updateSystemHealth = useCallback((health: Partial<SystemHealthData>) => {
-    setSystemHealth(prev => prev ? { ...prev, ...health } : null);
-  }, []);
+  const updateSystemHealth = useCallback(
+    (health: Partial<SystemHealthData>) => {
+      setSystemHealth((prev) => (prev ? { ...prev, ...health } : null));
+    },
+    []
+  );
 
   // 에러 클리어
   const clearError = useCallback(() => {
@@ -301,10 +334,13 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
   }, []);
 
   // 패턴 액션 처리
-  const _handlePatternAction = useCallback(async (id: string, action: 'apply' | 'reject') => {
-    const newStatus = action === 'apply' ? 'applied' : 'rejected';
-    await updateSuggestionStatus(id, newStatus as SuggestionData['status']);
-  }, [updateSuggestionStatus]);
+  const _handlePatternAction = useCallback(
+    async (id: string, action: 'apply' | 'reject') => {
+      const newStatus = action === 'apply' ? 'applied' : 'rejected';
+      await updateSuggestionStatus(id, newStatus as SuggestionData['status']);
+    },
+    [updateSuggestionStatus]
+  );
 
   // 초기 데이터 로드
   useEffect(() => {
@@ -313,12 +349,12 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
 
   // 로그 필터링 (메모이제이션)
   const filteredLogs = useMemo(() => {
-    return logs.filter(log => {
+    return logs.filter((log) => {
       // 상태 필터
       if (filters.status !== 'all' && log.status !== filters.status) {
         return false;
       }
-      
+
       // 검색어 필터
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
@@ -326,7 +362,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
         const responseMatch = log.response?.toLowerCase().includes(searchLower);
         return queryMatch || responseMatch;
       }
-      
+
       return true;
     });
   }, [logs, filters.status, searchTerm]);
@@ -334,13 +370,16 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
   // 통계 데이터 계산 (메모이제이션)
   const stats = useMemo(() => {
     const totalLogs = logs.length;
-    const successLogs = logs.filter(log => log.status === 'success').length;
-    const pendingSuggestions = suggestions.filter(s => s.status === 'pending').length;
+    const successLogs = logs.filter((log) => log.status === 'success').length;
+    const pendingSuggestions = suggestions.filter(
+      (s) => s.status === 'pending'
+    ).length;
     const totalDocuments = documents.length;
 
     return {
       totalLogs,
-      successRate: totalLogs > 0 ? Math.round((successLogs / totalLogs) * 100) : 0,
+      successRate:
+        totalLogs > 0 ? Math.round((successLogs / totalLogs) * 100) : 0,
       pendingSuggestions,
       totalDocuments,
     };
@@ -362,7 +401,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
     uploadDocument,
     deleteDocument,
     updateSystemHealth,
-    
+
     // 호환성을 위한 별칭 및 추가 속성
     _responseLogs: logs,
     _patternSuggestions: suggestions,

@@ -37,7 +37,9 @@ const isNetworkError = (error: unknown): error is NetworkError => {
   );
 };
 
-const hasOriginalError = (error: unknown): error is { originalError: Error } => {
+const hasOriginalError = (
+  error: unknown
+): error is { originalError: Error } => {
   return (
     typeof error === 'object' &&
     error !== null &&
@@ -169,10 +171,12 @@ export const systemComponents: SystemComponent[] = [
           recordNetworkRequest(error.networkInfo, false, 'unified-ai-engine');
         }
 
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        const responseTime = isNetworkError(error) && error.networkInfo
-          ? getResponseTime(error.networkInfo)
-          : 'unknown';
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        const responseTime =
+          isNetworkError(error) && error.networkInfo
+            ? getResponseTime(error.networkInfo)
+            : 'unknown';
 
         console.warn(
           '⚠️ Unified AI 엔진 체크 실패, Graceful Degradation 모드:',
@@ -277,11 +281,19 @@ export const systemComponents: SystemComponent[] = [
           }
         );
 
-        recordNetworkRequest(networkInfo, response.ok, 'realtime-communication');
+        recordNetworkRequest(
+          networkInfo,
+          response.ok,
+          'realtime-communication'
+        );
         return response.ok;
       } catch (error: unknown) {
         if (isNetworkError(error)) {
-          recordNetworkRequest(error.networkInfo, false, 'realtime-communication');
+          recordNetworkRequest(
+            error.networkInfo,
+            false,
+            'realtime-communication'
+          );
         }
 
         const errorToLog = hasOriginalError(error)
@@ -352,7 +364,7 @@ export const systemComponents: SystemComponent[] = [
         );
 
         recordNetworkRequest(networkInfo, response.ok, 'gcp-functions');
-        
+
         // GCP Functions는 선택적 서비스이므로 실패해도 전체 시스템에 영향 없음
         if (!response.ok) {
           console.warn('⚠️ GCP Functions 일시적 비활성화, 로컬 AI로 폴백');

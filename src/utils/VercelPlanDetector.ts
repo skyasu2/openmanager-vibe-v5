@@ -64,8 +64,8 @@ export class VercelPlanDetector {
     ]);
 
     const validResults = detectionResults
-      .filter(result => result.status === 'fulfilled')
-      .map(result => (result).value);
+      .filter((result) => result.status === 'fulfilled')
+      .map((result) => result.value);
 
     // 투표 시스템으로 최종 플랜 결정
     const finalPlan = this.aggregateResults(validResults);
@@ -86,7 +86,8 @@ export class VercelPlanDetector {
     try {
       const nodeProcess =
         typeof globalThis !== 'undefined'
-          ? (globalThis as typeof globalThis & { process?: NodeJS.Process }).process
+          ? (globalThis as typeof globalThis & { process?: NodeJS.Process })
+              .process
           : undefined;
       // 직접적인 플랜 정보
       const vercelPlan =
@@ -147,7 +148,8 @@ export class VercelPlanDetector {
     try {
       const nodeProcess =
         typeof globalThis !== 'undefined'
-          ? (globalThis as typeof globalThis & { process?: NodeJS.Process }).process
+          ? (globalThis as typeof globalThis & { process?: NodeJS.Process })
+              .process
           : undefined;
       if (nodeProcess && typeof nodeProcess.memoryUsage === 'function') {
         const memUsage = nodeProcess.memoryUsage();
@@ -199,7 +201,7 @@ export class VercelPlanDetector {
       // 작은 비동기 작업의 성능으로 제한 추정
       const startTime = Date.now();
 
-      await new Promise(resolve => {
+      await new Promise((resolve) => {
         // 1초 대기 후 성능 측정
         setTimeout(resolve, 1000);
       });
@@ -302,7 +304,7 @@ export class VercelPlanDetector {
     };
 
     // 투표 집계
-    results.forEach(result => {
+    results.forEach((result) => {
       if (result.plan && result.confidence && result.detectionMethods) {
         const plan = result.plan;
         planVotes[plan].count++;
@@ -336,7 +338,9 @@ export class VercelPlanDetector {
       plan: bestPlan as 'hobby' | 'pro' | 'enterprise' | 'unknown',
       confidence: finalConfidence,
       detectionMethods: [...new Set(allMethods)],
-      limitations: this.getPlanLimitations(bestPlan as 'hobby' | 'pro' | 'enterprise' | 'unknown'),
+      limitations: this.getPlanLimitations(
+        bestPlan as 'hobby' | 'pro' | 'enterprise' | 'unknown'
+      ),
       recommendations: this.generateRecommendations(
         bestPlan as 'hobby' | 'pro' | 'enterprise' | 'unknown',
         finalConfidence

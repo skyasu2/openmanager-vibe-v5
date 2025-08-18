@@ -141,7 +141,11 @@ export const FILE_SYSTEM_PROTECTION = {
     contextCache: new Map<string, any>(),
 
     // 컨텍스트 캐시 저장
-    cacheContext: (bundleType: string, bundleData: unknown, clientId?: string) => {
+    cacheContext: (
+      bundleType: string,
+      bundleData: unknown,
+      clientId?: string
+    ) => {
       const key = `${bundleType}${clientId ? `_${clientId}` : ''}`;
       FILE_SYSTEM_PROTECTION.alternativeContextBundle.contextCache.set(key, {
         bundleData,
@@ -445,7 +449,7 @@ export const enableGlobalProtection = () => {
   }
 
   // 전역 오류 핸들러
-  process.on('uncaughtException', error => {
+  process.on('uncaughtException', (error) => {
     console.error('🚨 무료티어 보호: 치명적 오류 감지', error);
     MemoryMonitor.forceGarbageCollection();
   });

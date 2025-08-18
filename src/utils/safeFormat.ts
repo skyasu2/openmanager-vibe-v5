@@ -114,7 +114,11 @@ export function safeIncludes(text: unknown, searchString: string): boolean {
  * @param fallback - 기본값
  * @returns 안전한 배열 요소
  */
-export function safeArrayAccess<T>(array: unknown, index: number, fallback: T): T {
+export function safeArrayAccess<T>(
+  array: unknown,
+  index: number,
+  fallback: T
+): T {
   try {
     if (!Array.isArray(array) || index < 0 || index >= array.length) {
       return fallback;
@@ -133,7 +137,11 @@ export function safeArrayAccess<T>(array: unknown, index: number, fallback: T): 
  * @param fallback - 기본값
  * @returns 안전한 속성 값
  */
-export function safePropertyAccess<T>(obj: unknown, path: string, fallback: T): T {
+export function safePropertyAccess<T>(
+  obj: unknown,
+  path: string,
+  fallback: T
+): T {
   try {
     if (!obj || typeof obj !== 'object') {
       return fallback;
@@ -206,7 +214,10 @@ export function safeNumber(value: unknown, fallback: number = 0): number {
  * @param asDecimal - 소수점 형태인지 여부 (0-1)
  * @returns 포맷팅된 퍼센트 문자열
  */
-export function safePercentage(value: unknown, asDecimal: boolean = false): string {
+export function safePercentage(
+  value: unknown,
+  asDecimal: boolean = false
+): string {
   try {
     const num = safeNumber(value, 0);
     const percentage = asDecimal ? num * 100 : num;

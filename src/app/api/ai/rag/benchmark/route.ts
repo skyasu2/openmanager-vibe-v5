@@ -1,6 +1,6 @@
 /**
  * 🚀 RAG 벡터 검색 성능 벤치마크 API
- * 
+ *
  * pgvector 네이티브 vs 클라이언트 사이드 성능 비교
  */
 
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     // 3. RAG 엔진 캐시 성능 테스트
     const ragEngine = getSupabaseRAGEngine();
     const cacheTests = [];
-    
+
     // 첫 번째 호출 (캐시 미스)
     const firstCallStart = Date.now();
     const firstResult = await ragEngine.searchSimilar(testQuery, {
@@ -58,7 +58,11 @@ export async function GET(request: NextRequest) {
       cached: true,
     });
     const secondCallTime = Date.now() - secondCallStart;
-    cacheTests.push({ call: 2, time: secondCallTime, cached: secondResult.cached });
+    cacheTests.push({
+      call: 2,
+      time: secondCallTime,
+      cached: secondResult.cached,
+    });
 
     // 4. 통계 수집
     const stats = await postgresVectorDB.getStats();
@@ -90,7 +94,9 @@ export async function GET(request: NextRequest) {
       },
       cachePerformance: {
         tests: cacheTests,
-        cacheSpeedup: cacheTests[1].cached ? `${Math.round(cacheTests[0].time / cacheTests[1].time)}x` : 'N/A',
+        cacheSpeedup: cacheTests[1].cached
+          ? `${Math.round(cacheTests[0].time / cacheTests[1].time)}x`
+          : 'N/A',
       },
       statistics: {
         totalDocuments: stats.total_documents,
@@ -119,9 +125,9 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     debug.error('❌ 벤치마크 실패:', error);
     return NextResponse.json(
-      { 
-        error: '벤치마크 실행 실패', 
-        details: error instanceof Error ? error.message : '알 수 없는 오류' 
+      {
+        error: '벤치마크 실행 실패',
+        details: error instanceof Error ? error.message : '알 수 없는 오류',
       },
       { status: 500 }
     );

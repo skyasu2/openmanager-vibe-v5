@@ -47,10 +47,10 @@ export const useSystemAuth = () => {
 
 // 서버 데이터 관련 통합 훅
 export const useServerManagement = () => {
-  const servers = useServerDataStore(state => state.servers);
-  const isLoading = useServerDataStore(state => state.isLoading);
-  const error = useServerDataStore(state => state.error);
-  const actions = useServerDataStore(state => state.actions);
+  const servers = useServerDataStore((state) => state.servers);
+  const isLoading = useServerDataStore((state) => state.isLoading);
+  const error = useServerDataStore((state) => state.error);
+  const actions = useServerDataStore((state) => state.actions);
   const { isSystemStarted } = useUnifiedAdminStore();
 
   return {

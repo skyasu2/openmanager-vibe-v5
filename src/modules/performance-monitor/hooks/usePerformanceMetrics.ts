@@ -4,13 +4,13 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  PerformanceMetric, 
-  PerformanceData, 
-  Alert, 
-  AlertConfig, 
+import {
+  PerformanceMetric,
+  PerformanceData,
+  Alert,
+  AlertConfig,
   SystemHealth,
-  WebSocketPerformanceMessage 
+  WebSocketPerformanceMessage,
 } from '../types/performance';
 
 interface UsePerformanceMetricsOptions {
@@ -28,7 +28,9 @@ const DEFAULT_ALERT_CONFIG: AlertConfig = {
   enabled: true,
 };
 
-export const usePerformanceMetrics = (options: UsePerformanceMetricsOptions = {}) => {
+export const usePerformanceMetrics = (
+  options: UsePerformanceMetricsOptions = {}
+) => {
   const {
     updateInterval = 5000,
     historyLimit = 100,
@@ -62,79 +64,86 @@ export const usePerformanceMetrics = (options: UsePerformanceMetricsOptions = {}
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Calculate system health score
-  const calculateHealthScore = useCallback((metric: PerformanceMetric): SystemHealth => {
-    const scores = [
-      Math.max(0, 100 - metric.cpu),
-      Math.max(0, 100 - metric.memory),
-      Math.max(0, 100 - (metric.responseTime / 10)),
-      Math.max(0, 100 - (metric.errorRate * 10)),
-    ];
+  const calculateHealthScore = useCallback(
+    (metric: PerformanceMetric): SystemHealth => {
+      const scores = [
+        Math.max(0, 100 - metric.cpu),
+        Math.max(0, 100 - metric.memory),
+        Math.max(0, 100 - metric.responseTime / 10),
+        Math.max(0, 100 - metric.errorRate * 10),
+      ];
 
-    const averageScore = scores.reduce((sum, score) => sum + score, 0) / scores.length;
-    
-    let status: SystemHealth['status'] = 'healthy';
-    if (averageScore < 60) status = 'critical';
-    else if (averageScore < 80) status = 'warning';
+      const averageScore =
+        scores.reduce((sum, score) => sum + score, 0) / scores.length;
 
-    return {
-      status,
-      score: Math.round(averageScore),
-      lastUpdate: Date.now(),
-    };
-  }, []);
+      let status: SystemHealth['status'] = 'healthy';
+      if (averageScore < 60) status = 'critical';
+      else if (averageScore < 80) status = 'warning';
+
+      return {
+        status,
+        score: Math.round(averageScore),
+        lastUpdate: Date.now(),
+      };
+    },
+    []
+  );
 
   // Generate alerts based on thresholds
-  const checkForAlerts = useCallback((metric: PerformanceMetric): Alert[] => {
-    if (!alertConfig.enabled) return [];
+  const checkForAlerts = useCallback(
+    (metric: PerformanceMetric): Alert[] => {
+      if (!alertConfig.enabled) return [];
 
-    const alerts: Alert[] = [];
+      const alerts: Alert[] = [];
 
-    if (metric.cpu > alertConfig.cpuThreshold) {
-      alerts.push({
-        id: `cpu-${Date.now()}`,
-        type: 'cpu',
-        severity: metric.cpu > 90 ? 'critical' : 'warning',
-        message: `High CPU usage detected: ${metric.cpu.toFixed(1)}%`,
-        timestamp: Date.now(),
-        resolved: false,
-      });
-    }
+      if (metric.cpu > alertConfig.cpuThreshold) {
+        alerts.push({
+          id: `cpu-${Date.now()}`,
+          type: 'cpu',
+          severity: metric.cpu > 90 ? 'critical' : 'warning',
+          message: `High CPU usage detected: ${metric.cpu.toFixed(1)}%`,
+          timestamp: Date.now(),
+          resolved: false,
+        });
+      }
 
-    if (metric.memory > alertConfig.memoryThreshold) {
-      alerts.push({
-        id: `memory-${Date.now()}`,
-        type: 'memory',
-        severity: metric.memory > 95 ? 'critical' : 'warning',
-        message: `High memory usage detected: ${metric.memory.toFixed(1)}%`,
-        timestamp: Date.now(),
-        resolved: false,
-      });
-    }
+      if (metric.memory > alertConfig.memoryThreshold) {
+        alerts.push({
+          id: `memory-${Date.now()}`,
+          type: 'memory',
+          severity: metric.memory > 95 ? 'critical' : 'warning',
+          message: `High memory usage detected: ${metric.memory.toFixed(1)}%`,
+          timestamp: Date.now(),
+          resolved: false,
+        });
+      }
 
-    if (metric.responseTime > alertConfig.responseTimeThreshold) {
-      alerts.push({
-        id: `response-time-${Date.now()}`,
-        type: 'response-time',
-        severity: metric.responseTime > 2000 ? 'critical' : 'warning',
-        message: `Slow response time detected: ${metric.responseTime}ms`,
-        timestamp: Date.now(),
-        resolved: false,
-      });
-    }
+      if (metric.responseTime > alertConfig.responseTimeThreshold) {
+        alerts.push({
+          id: `response-time-${Date.now()}`,
+          type: 'response-time',
+          severity: metric.responseTime > 2000 ? 'critical' : 'warning',
+          message: `Slow response time detected: ${metric.responseTime}ms`,
+          timestamp: Date.now(),
+          resolved: false,
+        });
+      }
 
-    if (metric.errorRate > alertConfig.errorRateThreshold) {
-      alerts.push({
-        id: `error-rate-${Date.now()}`,
-        type: 'error-rate',
-        severity: metric.errorRate > 10 ? 'critical' : 'warning',
-        message: `High error rate detected: ${metric.errorRate.toFixed(1)}%`,
-        timestamp: Date.now(),
-        resolved: false,
-      });
-    }
+      if (metric.errorRate > alertConfig.errorRateThreshold) {
+        alerts.push({
+          id: `error-rate-${Date.now()}`,
+          type: 'error-rate',
+          severity: metric.errorRate > 10 ? 'critical' : 'warning',
+          message: `High error rate detected: ${metric.errorRate.toFixed(1)}%`,
+          timestamp: Date.now(),
+          resolved: false,
+        });
+      }
 
-    return alerts;
-  }, [alertConfig]);
+      return alerts;
+    },
+    [alertConfig]
+  );
 
   // Fetch performance metrics from API
   const fetchMetrics = useCallback(async (): Promise<PerformanceMetric> => {
@@ -166,15 +175,12 @@ export const usePerformanceMetrics = (options: UsePerformanceMetricsOptions = {}
       const health = calculateHealthScore(newMetric);
       const newAlerts = checkForAlerts(newMetric);
 
-      setPerformanceData(prev => ({
+      setPerformanceData((prev) => ({
         current: newMetric,
-        history: [
-          ...prev.history.slice(-(historyLimit - 1)),
-          newMetric,
-        ],
+        history: [...prev.history.slice(-(historyLimit - 1)), newMetric],
         health,
         alerts: [
-          ...prev.alerts.filter(alert => !alert.resolved),
+          ...prev.alerts.filter((alert) => !alert.resolved),
           ...newAlerts,
         ],
       }));
@@ -196,7 +202,7 @@ export const usePerformanceMetrics = (options: UsePerformanceMetricsOptions = {}
     try {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const wsUrl = `${protocol}//${window.location.host}/ws/performance`;
-      
+
       wsRef.current = new WebSocket(wsUrl);
 
       wsRef.current.onopen = () => {
@@ -208,18 +214,15 @@ export const usePerformanceMetrics = (options: UsePerformanceMetricsOptions = {}
       wsRef.current.onmessage = (event) => {
         try {
           const message: WebSocketPerformanceMessage = JSON.parse(event.data);
-          
+
           switch (message.type) {
             case 'performance-update':
               const metric = message.data as PerformanceMetric;
               const health = calculateHealthScore(metric);
-              
-              setPerformanceData(prev => ({
+
+              setPerformanceData((prev) => ({
                 current: metric,
-                history: [
-                  ...prev.history.slice(-(historyLimit - 1)),
-                  metric,
-                ],
+                history: [...prev.history.slice(-(historyLimit - 1)), metric],
                 health,
                 alerts: prev.alerts,
               }));
@@ -227,7 +230,7 @@ export const usePerformanceMetrics = (options: UsePerformanceMetricsOptions = {}
 
             case 'alert':
               const alert = message.data as Alert;
-              setPerformanceData(prev => ({
+              setPerformanceData((prev) => ({
                 ...prev,
                 alerts: [...prev.alerts, alert],
               }));
@@ -235,7 +238,7 @@ export const usePerformanceMetrics = (options: UsePerformanceMetricsOptions = {}
 
             case 'health-check':
               const healthData = message.data as SystemHealth;
-              setPerformanceData(prev => ({
+              setPerformanceData((prev) => ({
                 ...prev,
                 health: healthData,
               }));
@@ -254,7 +257,7 @@ export const usePerformanceMetrics = (options: UsePerformanceMetricsOptions = {}
       wsRef.current.onclose = () => {
         setIsConnected(false);
         console.log('Performance WebSocket disconnected');
-        
+
         // Attempt to reconnect after 5 seconds
         setTimeout(() => {
           if (autoConnect) {
@@ -263,7 +266,9 @@ export const usePerformanceMetrics = (options: UsePerformanceMetricsOptions = {}
         }, 5000);
       };
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'WebSocket connection failed');
+      setError(
+        err instanceof Error ? err.message : 'WebSocket connection failed'
+      );
     }
   }, [calculateHealthScore, historyLimit, autoConnect]);
 
@@ -278,9 +283,9 @@ export const usePerformanceMetrics = (options: UsePerformanceMetricsOptions = {}
 
   // Resolve alert
   const resolveAlert = useCallback((alertId: string) => {
-    setPerformanceData(prev => ({
+    setPerformanceData((prev) => ({
       ...prev,
-      alerts: prev.alerts.map(alert =>
+      alerts: prev.alerts.map((alert) =>
         alert.id === alertId ? { ...alert, resolved: true } : alert
       ),
     }));
@@ -288,9 +293,9 @@ export const usePerformanceMetrics = (options: UsePerformanceMetricsOptions = {}
 
   // Clear resolved alerts
   const clearResolvedAlerts = useCallback(() => {
-    setPerformanceData(prev => ({
+    setPerformanceData((prev) => ({
       ...prev,
-      alerts: prev.alerts.filter(alert => !alert.resolved),
+      alerts: prev.alerts.filter((alert) => !alert.resolved),
     }));
   }, []);
 
@@ -318,7 +323,13 @@ export const usePerformanceMetrics = (options: UsePerformanceMetricsOptions = {}
       }
       disconnectWebSocket();
     };
-  }, [autoConnect, updateInterval, updatePerformanceData, connectWebSocket, disconnectWebSocket]);
+  }, [
+    autoConnect,
+    updateInterval,
+    updatePerformanceData,
+    connectWebSocket,
+    disconnectWebSocket,
+  ]);
 
   return {
     // Data
@@ -338,7 +349,7 @@ export const usePerformanceMetrics = (options: UsePerformanceMetricsOptions = {}
     currentMetrics: performanceData.current,
     metricsHistory: performanceData.history,
     systemHealth: performanceData.health,
-    activeAlerts: performanceData.alerts.filter(alert => !alert.resolved),
-    resolvedAlerts: performanceData.alerts.filter(alert => alert.resolved),
+    activeAlerts: performanceData.alerts.filter((alert) => !alert.resolved),
+    resolvedAlerts: performanceData.alerts.filter((alert) => alert.resolved),
   };
 };

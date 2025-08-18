@@ -18,7 +18,7 @@ import {
   withErrorHandler,
 } from '../../../../lib/api/errorHandler';
 import { memoryOptimizer } from '../../../../utils/MemoryOptimizer';
-import { 
+import {
   type SystemOptimizeRequest,
   type MemorySummary,
   type SystemOptimizeResponse,
@@ -175,7 +175,10 @@ async function getMemoryStatusHandler(_request: NextRequest) {
           duration: result.duration,
           actions: result.optimizationActions,
         })),
-        recommendations: generateMemoryRecommendations(memorySummary.status, memorySummary.current),
+        recommendations: generateMemoryRecommendations(
+          memorySummary.status,
+          memorySummary.current
+        ),
       },
       '메모리 상태 조회 완료'
     );
@@ -191,7 +194,9 @@ async function getMemoryStatusHandler(_request: NextRequest) {
 /**
  * 🎯 메모리 상태 판단
  */
-function determineMemoryStatus(usagePercent: number): 'optimal' | 'good' | 'acceptable' | 'warning' | 'critical' {
+function determineMemoryStatus(
+  usagePercent: number
+): 'optimal' | 'good' | 'acceptable' | 'warning' | 'critical' {
   if (usagePercent >= 90) return 'critical';
   if (usagePercent >= 75) return 'warning';
   if (usagePercent >= 60) return 'acceptable';
@@ -223,7 +228,12 @@ function generateMemoryRecommendations(
   }
 
   // RSS 메모리가 높은 경우
-  if (current && current.rss && current.heapTotal && current.rss > current.heapTotal * 1.5) {
+  if (
+    current &&
+    current.rss &&
+    current.heapTotal &&
+    current.rss > current.heapTotal * 1.5
+  ) {
     recommendations.push('🔧 RSS 메모리 최적화 필요 - 시스템 재시작 고려');
   }
 

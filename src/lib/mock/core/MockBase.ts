@@ -1,6 +1,6 @@
 /**
  * 🎭 Mock 시스템 기본 클래스
- * 
+ *
  * 모든 Mock 서비스의 공통 기능을 제공
  * - 통계 수집
  * - 로깅
@@ -73,7 +73,9 @@ export abstract class MockBase<T = any> {
    */
   protected async simulateDelay(): Promise<void> {
     if (this.options.responseDelay && this.options.responseDelay > 0) {
-      await new Promise(resolve => setTimeout(resolve, this.options.responseDelay));
+      await new Promise((resolve) =>
+        setTimeout(resolve, this.options.responseDelay)
+      );
     }
   }
 
@@ -96,18 +98,18 @@ export abstract class MockBase<T = any> {
     fn: () => Promise<R> | R
   ): Promise<R> {
     const startTime = Date.now();
-    
+
     try {
       this.stats.recordOperation(operation);
       await this.simulateDelay();
       await this.simulateError(operation);
-      
+
       const result = await fn();
-      
+
       const duration = Date.now() - startTime;
       this.stats.recordDuration(operation, duration);
       this.logger.debug(`${operation} 완료`, { duration });
-      
+
       return result;
     } catch (error) {
       this.stats.recordError(operation);

@@ -118,7 +118,10 @@ export interface ServerAlert extends BaseAlert {
 // 🔧 메타데이터 타입 정의 개선
 export type MetadataValue = string | number | boolean | null | undefined;
 export type ServerMetadata = Record<string, MetadataValue>;
-export type ExtensibleMetadata = Record<string, MetadataValue | MetadataValue[]>;
+export type ExtensibleMetadata = Record<
+  string,
+  MetadataValue | MetadataValue[]
+>;
 
 // 기본 서버 정보 인터페이스
 export interface BaseServer {
@@ -389,29 +392,32 @@ export interface AnalysisDetail {
  * 🎯 타입 가드 함수들
  */
 export const isMetadataValue = (value: unknown): value is MetadataValue => {
-  return typeof value === 'string' ||
-         typeof value === 'number' ||
-         typeof value === 'boolean' ||
-         value === null ||
-         value === undefined;
+  return (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean' ||
+    value === null ||
+    value === undefined
+  );
 };
 
 export const isLogData = (value: unknown): value is LogData => {
   if (!value || typeof value !== 'object') return false;
-  
-  return Object.values(value).every(v => 
-    isMetadataValue(v) || (Array.isArray(v) && v.every(isMetadataValue))
+
+  return Object.values(value).every(
+    (v) => isMetadataValue(v) || (Array.isArray(v) && v.every(isMetadataValue))
   );
 };
 
 export const isErrorContext = (value: unknown): value is ErrorContext => {
   if (!value || typeof value !== 'object') return false;
-  
-  return Object.values(value).every(v => 
-    typeof v === 'string' ||
-    typeof v === 'number' ||
-    typeof v === 'boolean' ||
-    v === null ||
-    v === undefined
+
+  return Object.values(value).every(
+    (v) =>
+      typeof v === 'string' ||
+      typeof v === 'number' ||
+      typeof v === 'boolean' ||
+      v === null ||
+      v === undefined
   );
 };

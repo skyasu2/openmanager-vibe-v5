@@ -1,6 +1,6 @@
 /**
  * 🎯 AI Insight Center - Performance Analysis Module
- * 
+ *
  * System performance analysis and optimization:
  * - System bottleneck identification
  * - Database performance analysis
@@ -22,7 +22,7 @@ import type {
  */
 export function identifyBottlenecks(metrics: SystemMetrics): Bottleneck[] {
   const bottlenecks = [];
-  
+
   // Check server bottlenecks
   for (const server of metrics.servers) {
     if (server.cpu_avg > 80) {
@@ -33,7 +33,7 @@ export function identifyBottlenecks(metrics: SystemMetrics): Bottleneck[] {
         resolution: 'Scale up CPU resources or optimize code',
       });
     }
-    
+
     if (server.response_time > 300) {
       bottlenecks.push({
         component: `Server ${server.id} Response Time`,
@@ -43,7 +43,7 @@ export function identifyBottlenecks(metrics: SystemMetrics): Bottleneck[] {
       });
     }
   }
-  
+
   // Check database bottlenecks
   if (metrics.database.query_performance.slow_queries > 10) {
     bottlenecks.push({
@@ -53,8 +53,11 @@ export function identifyBottlenecks(metrics: SystemMetrics): Bottleneck[] {
       resolution: 'Optimize slow queries and add indexes',
     });
   }
-  
-  if (metrics.database.connection_pool.active >= metrics.database.connection_pool.max * 0.9) {
+
+  if (
+    metrics.database.connection_pool.active >=
+    metrics.database.connection_pool.max * 0.9
+  ) {
     bottlenecks.push({
       component: 'Database Connection Pool',
       severity: 'critical' as const,
@@ -62,7 +65,7 @@ export function identifyBottlenecks(metrics: SystemMetrics): Bottleneck[] {
       resolution: 'Increase pool size or optimize connection usage',
     });
   }
-  
+
   // Check network bottlenecks
   if (metrics.network.latency.p99 > 100) {
     bottlenecks.push({
@@ -72,9 +75,14 @@ export function identifyBottlenecks(metrics: SystemMetrics): Bottleneck[] {
       resolution: 'Implement CDN or edge caching',
     });
   }
-  
+
   return (bottlenecks as Bottleneck[]).sort((a, b) => {
-    const severityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
+    const severityOrder: Record<string, number> = {
+      critical: 0,
+      high: 1,
+      medium: 2,
+      low: 3,
+    };
     return severityOrder[a.severity] - severityOrder[b.severity];
   });
 }
@@ -82,22 +90,30 @@ export function identifyBottlenecks(metrics: SystemMetrics): Bottleneck[] {
 /**
  * Analyze database performance
  */
-export function analyzeDatabasePerformance(dbMetrics: DatabaseMetrics): DatabaseAnalysis {
+export function analyzeDatabasePerformance(
+  dbMetrics: DatabaseMetrics
+): DatabaseAnalysis {
   return {
     slow_query_analysis: {
       count: dbMetrics.query_performance.slow_queries,
       avg_time: dbMetrics.query_performance.avg_execution_time,
-      recommendation: dbMetrics.query_performance.slow_queries > 10 
-        ? 'Review and optimize queries with execution time > 100ms'
-        : 'Query performance is acceptable',
+      recommendation:
+        dbMetrics.query_performance.slow_queries > 10
+          ? 'Review and optimize queries with execution time > 100ms'
+          : 'Query performance is acceptable',
     },
     connection_pool_health: {
-      utilization: (dbMetrics.connection_pool.active / dbMetrics.connection_pool.max) * 100,
-      status: dbMetrics.connection_pool.active > dbMetrics.connection_pool.max * 0.8 
-        ? 'warning' : 'healthy',
-      recommendation: dbMetrics.connection_pool.idle < 2 
-        ? 'Consider increasing pool size' 
-        : 'Pool size is adequate',
+      utilization:
+        (dbMetrics.connection_pool.active / dbMetrics.connection_pool.max) *
+        100,
+      status:
+        dbMetrics.connection_pool.active > dbMetrics.connection_pool.max * 0.8
+          ? 'warning'
+          : 'healthy',
+      recommendation:
+        dbMetrics.connection_pool.idle < 2
+          ? 'Consider increasing pool size'
+          : 'Pool size is adequate',
     },
     optimization_suggestions: [
       'Add indexes for frequently queried columns',
@@ -111,7 +127,9 @@ export function analyzeDatabasePerformance(dbMetrics: DatabaseMetrics): Database
 /**
  * Generate network optimization insights
  */
-export function generateNetworkOptimizations(networkMetrics: NetworkMetrics): NetworkOptimization {
+export function generateNetworkOptimizations(
+  networkMetrics: NetworkMetrics
+): NetworkOptimization {
   return {
     latency_reduction: {
       current_p99: networkMetrics.latency.p99,

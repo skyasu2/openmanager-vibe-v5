@@ -29,7 +29,11 @@ export async function processRealAIQuery(
   engine: AIMode = 'LOCAL',
   sessionId: string,
   onThinkingStart: () => void,
-  onThinkingStop: (query: string, engine: string, processingTime: number) => void
+  onThinkingStop: (
+    query: string,
+    engine: string,
+    processingTime: number
+  ) => void
 ): Promise<AIQueryResult> {
   const startTime = Date.now();
   onThinkingStart(); // 생각중 시작
@@ -38,11 +42,12 @@ export async function processRealAIQuery(
     console.log(`🤖 실제 AI 쿼리 처리 시작: ${query} (엔진: ${engine})`);
 
     // 엔진별 API 엔드포인트 선택
-    const apiEndpoint = engine === 'GOOGLE_ONLY' 
-      ? '/api/ai/google-ai/generate'
-      : engine === 'LOCAL' 
-      ? '/api/mcp/query'
-      : '/api/ai/edge-v2';
+    const apiEndpoint =
+      engine === 'GOOGLE_ONLY'
+        ? '/api/ai/google-ai/generate'
+        : engine === 'LOCAL'
+          ? '/api/mcp/query'
+          : '/api/ai/edge-v2';
 
     // API 엔드포인트 호출
     const response = await fetch(apiEndpoint, {
@@ -113,7 +118,7 @@ export async function generateAutoReport(
 
   try {
     console.log('🤖 자동장애보고서 생성 중...');
-    
+
     // 자동장애보고서 API 호출
     const response = await fetch('/api/ai/auto-report', {
       method: 'POST',
@@ -161,37 +166,46 @@ export async function handlePresetQuestion(
 /**
  * 자동 보고서 트리거 감지
  */
-export function detectAutoReportTrigger(query: string): AutoReportTrigger | null {
+export function detectAutoReportTrigger(
+  query: string
+): AutoReportTrigger | null {
   const lowerQuery = query.toLowerCase();
-  
+
   // 장애 관련 키워드 검사
-  const criticalKeywords = ['장애', '다운', '정지', 'error', 'failure', 'crash'];
+  const criticalKeywords = [
+    '장애',
+    '다운',
+    '정지',
+    'error',
+    'failure',
+    'crash',
+  ];
   const highKeywords = ['느림', '지연', 'slow', 'timeout', 'delay'];
   const mediumKeywords = ['경고', 'warning', '주의', 'alert'];
-  
-  if (criticalKeywords.some(k => lowerQuery.includes(k))) {
+
+  if (criticalKeywords.some((k) => lowerQuery.includes(k))) {
     return {
       shouldGenerate: true,
       lastQuery: query,
       severity: 'critical',
     };
   }
-  
-  if (highKeywords.some(k => lowerQuery.includes(k))) {
+
+  if (highKeywords.some((k) => lowerQuery.includes(k))) {
     return {
       shouldGenerate: true,
-      lastQuery: query, 
+      lastQuery: query,
       severity: 'high',
     };
   }
-  
-  if (mediumKeywords.some(k => lowerQuery.includes(k))) {
+
+  if (mediumKeywords.some((k) => lowerQuery.includes(k))) {
     return {
       shouldGenerate: true,
       lastQuery: query,
       severity: 'medium',
     };
   }
-  
+
   return null;
 }

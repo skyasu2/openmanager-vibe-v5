@@ -2,13 +2,17 @@ import { z } from 'zod';
 
 /**
  * 🔔 브라우저 알림 관리 스키마
- * 
+ *
  * 알림 권한, 상태, 테스트, 설정, 웹 푸시 알림
  */
 
 // ===== 알림 권한 =====
 
-export const NotificationPermissionSchema = z.enum(['default', 'granted', 'denied']);
+export const NotificationPermissionSchema = z.enum([
+  'default',
+  'granted',
+  'denied',
+]);
 
 // ===== 알림 상태 =====
 
@@ -20,7 +24,12 @@ export const NotificationStatusSchema = z.object({
 
 // ===== 알림 액션 =====
 
-export const NotificationActionSchema = z.enum(['test', 'validate', 'clear-history', 'update-settings']);
+export const NotificationActionSchema = z.enum([
+  'test',
+  'validate',
+  'clear-history',
+  'update-settings',
+]);
 
 // ===== 테스트 알림 데이터 =====
 
@@ -36,13 +45,17 @@ export const TestNotificationDataSchema = z.object({
 // ===== 알림 검증 데이터 =====
 
 export const ValidateNotificationDataSchema = z.object({
-  subscription: z.object({
-    endpoint: z.string().url(),
-    keys: z.object({
-      p256dh: z.string(),
-      auth: z.string(),
-    }).optional(),
-  }).optional(),
+  subscription: z
+    .object({
+      endpoint: z.string().url(),
+      keys: z
+        .object({
+          p256dh: z.string(),
+          auth: z.string(),
+        })
+        .optional(),
+    })
+    .optional(),
   permission: NotificationPermissionSchema.optional(),
 });
 
@@ -69,13 +82,17 @@ export const NotificationRequestSchema = z.discriminatedUnion('action', [
   }),
   z.object({
     action: z.literal('validate'),
-    subscription: z.object({
-      endpoint: z.string().url(),
-      keys: z.object({
-        p256dh: z.string(),
-        auth: z.string(),
-      }).optional(),
-    }).optional(),
+    subscription: z
+      .object({
+        endpoint: z.string().url(),
+        keys: z
+          .object({
+            p256dh: z.string(),
+            auth: z.string(),
+          })
+          .optional(),
+      })
+      .optional(),
     permission: NotificationPermissionSchema.optional(),
   }),
   z.object({
@@ -106,12 +123,20 @@ export const NotificationStatusResponseSchema = z.object({
 
 // ===== 타입 내보내기 =====
 
-export type NotificationPermission = z.infer<typeof NotificationPermissionSchema>;
+export type NotificationPermission = z.infer<
+  typeof NotificationPermissionSchema
+>;
 export type NotificationStatus = z.infer<typeof NotificationStatusSchema>;
 export type NotificationAction = z.infer<typeof NotificationActionSchema>;
 export type TestNotificationData = z.infer<typeof TestNotificationDataSchema>;
-export type ValidateNotificationData = z.infer<typeof ValidateNotificationDataSchema>;
-export type UpdateNotificationSettings = z.infer<typeof UpdateNotificationSettingsSchema>;
+export type ValidateNotificationData = z.infer<
+  typeof ValidateNotificationDataSchema
+>;
+export type UpdateNotificationSettings = z.infer<
+  typeof UpdateNotificationSettingsSchema
+>;
 export type NotificationRequest = z.infer<typeof NotificationRequestSchema>;
 export type NotificationResponse = z.infer<typeof NotificationResponseSchema>;
-export type NotificationStatusResponse = z.infer<typeof NotificationStatusResponseSchema>;
+export type NotificationStatusResponse = z.infer<
+  typeof NotificationStatusResponseSchema
+>;

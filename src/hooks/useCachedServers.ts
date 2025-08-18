@@ -227,7 +227,7 @@ export function useCachedServers(
    */
   const setFilters = useCallback(
     (filters: Partial<UseCachedServersOptions>) => {
-      setCurrentFilters(prev => ({
+      setCurrentFilters((prev) => ({
         ...prev,
         status: filters.status ?? prev.status,
         search: filters.search ?? prev.search,

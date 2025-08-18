@@ -1,6 +1,6 @@
 /**
  * 🚀 테스트 성능 도구 및 헬퍼
- * 
+ *
  * Vitest 테스트 성능 최적화를 위한 유틸리티 함수들
  */
 
@@ -15,7 +15,7 @@ export const performanceHelpers = {
    * setTimeout(0)보다 빠르게 실행됨
    */
   async fastAsync(): Promise<void> {
-    return new Promise(resolve => setImmediate(resolve));
+    return new Promise((resolve) => setImmediate(resolve));
   },
 
   /**
@@ -44,18 +44,14 @@ export const performanceHelpers = {
   /**
    * 재시도 로직이 있는 비동기 작업
    */
-  async retry<T>(
-    fn: () => Promise<T>,
-    retries = 3,
-    delay = 100
-  ): Promise<T> {
+  async retry<T>(fn: () => Promise<T>, retries = 3, delay = 100): Promise<T> {
     try {
       return await fn();
     } catch (error) {
       if (retries === 0) {
         throw error;
       }
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
       return this.retry(fn, retries - 1, delay * 2);
     }
   },
@@ -95,9 +91,7 @@ export const performanceHelpers = {
     if (delayMs === 0) {
       return Promise.resolve(value);
     }
-    return new Promise(resolve => 
-      setImmediate(() => resolve(value))
-    );
+    return new Promise((resolve) => setImmediate(() => resolve(value)));
   },
 
   /**
@@ -107,7 +101,9 @@ export const performanceHelpers = {
     // Fake timers 사용 시 주의사항:
     // 1. async/await와 함께 사용 시 문제 발생 가능
     // 2. 실제 타이머 사용 권장
-    console.warn('⚠️ Fake timers는 async 테스트에서 문제를 일으킬 수 있습니다.');
+    console.warn(
+      '⚠️ Fake timers는 async 테스트에서 문제를 일으킬 수 있습니다.'
+    );
     return {
       advance: (ms: number) => {
         // 실제로는 타이머를 진행시키지 않음
@@ -127,12 +123,12 @@ export const performanceHelpers = {
     vi.clearAllTimers();
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
-    
+
     // 메모리 정리를 위한 가비지 컬렉션 힌트
     if (global.gc) {
       global.gc();
     }
-    
+
     // 다음 이벤트 루프까지 대기
     await this.fastAsync();
   },
@@ -176,12 +172,12 @@ export const performanceHelpers = {
     checkInterval = 100
   ): Promise<void> {
     const startTime = Date.now();
-    
+
     while (!condition()) {
       if (Date.now() - startTime > maxWaitMs) {
         throw new Error(`Condition not met within ${maxWaitMs}ms`);
       }
-      await new Promise(resolve => setTimeout(resolve, checkInterval));
+      await new Promise((resolve) => setTimeout(resolve, checkInterval));
     }
   },
 
@@ -214,16 +210,20 @@ export const performanceHelpers = {
 export class TestBenchmark {
   private results: Map<string, number[]> = new Map();
 
-  async run(name: string, fn: () => Promise<void>, iterations = 10): Promise<void> {
+  async run(
+    name: string,
+    fn: () => Promise<void>,
+    iterations = 10
+  ): Promise<void> {
     const times: number[] = [];
-    
+
     for (let i = 0; i < iterations; i++) {
       const start = performance.now();
       await fn();
       const time = performance.now() - start;
       times.push(time);
     }
-    
+
     this.results.set(name, times);
   }
 
@@ -232,14 +232,14 @@ export class TestBenchmark {
     if (times.length === 0) {
       return null;
     }
-    
+
     const sorted = [...times].sort((a, b) => a - b);
     const avg = times.reduce((sum, time) => sum + time, 0) / times.length;
     const median = sorted[Math.floor(sorted.length / 2)];
     const min = sorted[0];
     const max = sorted[sorted.length - 1];
     const p95 = sorted[Math.floor(sorted.length * 0.95)];
-    
+
     return {
       avg: Math.round(avg * 100) / 100,
       median: Math.round(median * 100) / 100,
@@ -252,17 +252,21 @@ export class TestBenchmark {
 
   printReport(): void {
     console.log('\n📊 테스트 성능 벤치마크 결과\n');
-    console.log('Name                  | Avg(ms) | Med(ms) | Min(ms) | Max(ms) | P95(ms) | Runs');
-    console.log('---------------------|---------|---------|---------|---------|---------|------');
-    
+    console.log(
+      'Name                  | Avg(ms) | Med(ms) | Min(ms) | Max(ms) | P95(ms) | Runs'
+    );
+    console.log(
+      '---------------------|---------|---------|---------|---------|---------|------'
+    );
+
     for (const [name, _] of this.results) {
       const stats = this.getStats(name);
       if (stats) {
         console.log(
           `${name.padEnd(20)} | ${stats.avg.toString().padStart(7)} | ` +
-          `${stats.median.toString().padStart(7)} | ${stats.min.toString().padStart(7)} | ` +
-          `${stats.max.toString().padStart(7)} | ${stats.p95.toString().padStart(7)} | ` +
-          `${stats.iterations.toString().padStart(5)}`
+            `${stats.median.toString().padStart(7)} | ${stats.min.toString().padStart(7)} | ` +
+            `${stats.max.toString().padStart(7)} | ${stats.p95.toString().padStart(7)} | ` +
+            `${stats.iterations.toString().padStart(5)}`
         );
       }
     }
@@ -274,7 +278,11 @@ export class TestBenchmark {
  * 메모리 리크 감지기
  */
 export class MemoryLeakDetector {
-  private snapshots: Array<{ name: string; memory: number; timestamp: number }> = [];
+  private snapshots: Array<{
+    name: string;
+    memory: number;
+    timestamp: number;
+  }> = [];
 
   takeSnapshot(name: string): void {
     if (typeof process !== 'undefined' && process.memoryUsage) {
@@ -289,22 +297,22 @@ export class MemoryLeakDetector {
 
   analyze(threshold = 10): { leaks: string[]; safe: string[] } {
     const grouped = new Map<string, number[]>();
-    
+
     for (const snapshot of this.snapshots) {
       if (!grouped.has(snapshot.name)) {
         grouped.set(snapshot.name, []);
       }
       grouped.get(snapshot.name).push(snapshot.memory);
     }
-    
+
     const leaks: string[] = [];
     const safe: string[] = [];
-    
+
     for (const [name, memories] of grouped) {
       if (memories.length >= 2) {
         const growth = memories[memories.length - 1] - memories[0];
         const growthMB = growth / 1024 / 1024;
-        
+
         if (growthMB > threshold) {
           leaks.push(`${name}: +${growthMB.toFixed(2)}MB`);
         } else {
@@ -312,7 +320,7 @@ export class MemoryLeakDetector {
         }
       }
     }
-    
+
     return { leaks, safe };
   }
 
@@ -323,6 +331,7 @@ export class MemoryLeakDetector {
 
 // Export convenience functions
 export const fastAsync = performanceHelpers.fastAsync.bind(performanceHelpers);
-export const measureTime = performanceHelpers.measureTime.bind(performanceHelpers);
+export const measureTime =
+  performanceHelpers.measureTime.bind(performanceHelpers);
 export const cleanup = performanceHelpers.cleanup.bind(performanceHelpers);
 export const waitUntil = performanceHelpers.waitUntil.bind(performanceHelpers);

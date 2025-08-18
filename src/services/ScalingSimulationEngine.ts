@@ -303,8 +303,10 @@ export class ScalingSimulationEngine {
       servers.reduce((sum: number, s: ServerStatus) => sum + s.cpu_usage, 0) /
       totalServers;
     const avgMemory =
-      servers.reduce((sum: number, s: ServerStatus) => sum + s.memory_usage, 0) /
-      totalServers;
+      servers.reduce(
+        (sum: number, s: ServerStatus) => sum + s.memory_usage,
+        0
+      ) / totalServers;
 
     return {
       totalServers,

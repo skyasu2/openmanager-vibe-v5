@@ -10,14 +10,20 @@
 import type { ApiResponse, AuthenticationState } from '../types/ProfileTypes';
 
 interface ProfileStore {
-  authenticateAIAgent(password: string): Promise<{ success: boolean; data?: AuthenticationState }>;
+  authenticateAIAgent(
+    password: string
+  ): Promise<{ success: boolean; data?: AuthenticationState }>;
   updateAuthState(auth: AuthenticationState): void;
   agentLocked: boolean;
   apiKey?: string;
   isLocked: boolean;
   getRemainingLockTime(): number;
   attempts: number;
-  disableAIAgent(): Promise<{ success: boolean; error?: string; data?: AuthenticationState }>;
+  disableAIAgent(): Promise<{
+    success: boolean;
+    error?: string;
+    data?: AuthenticationState;
+  }>;
   adminMode?: {
     isAuthenticated: boolean;
   };
@@ -25,8 +31,8 @@ interface ProfileStore {
 
 // 개발 환경 설정
 const DEVELOPMENT_MODE =
-  process.env.NEXT_PUBLIC_NODE_ENV === 'development' || 
-  process.env.NODE_ENV === 'development' || 
+  process.env.NEXT_PUBLIC_NODE_ENV === 'development' ||
+  process.env.NODE_ENV === 'development' ||
   typeof window !== 'undefined';
 const BYPASS_PASSWORD = true; // 항상 비밀번호 우회 허용
 
@@ -246,7 +252,7 @@ export class AuthenticationService {
    * 모든 타이머 정리
    */
   clearAllTimers(): void {
-    this.lockTimeouts.forEach(timeoutId => {
+    this.lockTimeouts.forEach((timeoutId) => {
       clearTimeout(timeoutId);
     });
     this.lockTimeouts.clear();

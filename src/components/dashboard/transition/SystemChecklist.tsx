@@ -674,8 +674,9 @@ export default function SystemChecklist({
                 } transition-all duration-300 ${status.status === 'failed' ? 'cursor-pointer hover:bg-red-500/20' : ''} `}
                 onClick={() => {
                   if (
-                    status.status === 'failed' &&
-                    process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV === 'development'
+                    (status.status === 'failed' &&
+                      process.env.NEXT_PUBLIC_NODE_ENV) ||
+                    process.env.NODE_ENV === 'development'
                   ) {
                     (window as any).systemChecklistDebug?.analyzeComponent(
                       component.id
@@ -754,16 +755,17 @@ export default function SystemChecklist({
               재시도 (R)
             </button>
 
-            {process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV === 'development' && (
-              <button
-                onClick={() =>
-                  (window as any).systemChecklistDebug?.diagnoseNetwork()
-                }
-                className="rounded-lg border border-yellow-500/50 bg-yellow-500/20 px-4 py-2 text-sm text-yellow-300 transition-colors hover:bg-yellow-500/30"
-              >
-                네트워크 진단
-              </button>
-            )}
+            {process.env.NEXT_PUBLIC_NODE_ENV ||
+              (process.env.NODE_ENV === 'development' && (
+                <button
+                  onClick={() =>
+                    (window as any).systemChecklistDebug?.diagnoseNetwork()
+                  }
+                  className="rounded-lg border border-yellow-500/50 bg-yellow-500/20 px-4 py-2 text-sm text-yellow-300 transition-colors hover:bg-yellow-500/30"
+                >
+                  네트워크 진단
+                </button>
+              ))}
           </motion.div>
         )}
 

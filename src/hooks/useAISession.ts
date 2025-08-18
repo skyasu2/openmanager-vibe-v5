@@ -97,7 +97,7 @@ export function useAISession(
       const saved = localStorage.getItem(localStorageKey);
       if (saved) {
         const parsedState = JSON.parse(saved);
-        setSessionState(prev => ({
+        setSessionState((prev) => ({
           ...prev,
           ...parsedState,
           isLoading: false, // 복원 시 로딩 상태는 항상 false
@@ -137,7 +137,7 @@ export function useAISession(
         undefined,
         maxHistoryItems
       );
-      setSessionState(prev => ({ ...prev, history }));
+      setSessionState((prev) => ({ ...prev, history }));
     } catch (error) {
       console.warn('세션 이력 로드 실패:', error);
     }
@@ -214,7 +214,7 @@ export function useAISession(
         timestamp: Date.now(),
       };
 
-      setSessionState(prev => {
+      setSessionState((prev) => {
         const newState = {
           ...prev,
           thinkingProcess: [...prev.thinkingProcess, newStep],

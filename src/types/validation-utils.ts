@@ -5,7 +5,7 @@ import { validateData, formatZodErrors } from './zod-utils';
 
 /**
  * ✅ 런타임 검증 유틸리티
- * 
+ *
  * API 요청/응답 및 데이터 검증을 위한 유틸리티 함수들
  */
 
@@ -18,13 +18,12 @@ export async function validateRequestBody<T extends z.ZodTypeAny>(
   request: NextRequest,
   schema: T
 ): Promise<
-  | { success: true; data: z.infer<T> }
-  | { success: false; error: NextResponse }
+  { success: true; data: z.infer<T> } | { success: false; error: NextResponse }
 > {
   try {
     const body = await request.json();
     const result = validateData(schema, body);
-    
+
     if (!result.success) {
       return {
         success: false,
@@ -39,7 +38,7 @@ export async function validateRequestBody<T extends z.ZodTypeAny>(
         ),
       };
     }
-    
+
     return { success: true, data: result.data };
   } catch (error) {
     return {
@@ -63,22 +62,24 @@ export async function validateRequestBody<T extends z.ZodTypeAny>(
 export function validateQueryParams<T extends z.ZodTypeAny>(
   searchParams: URLSearchParams,
   schema: T
-): { success: true; data: z.infer<T> } | { success: false; error: NextResponse } {
+):
+  | { success: true; data: z.infer<T> }
+  | { success: false; error: NextResponse } {
   const params: Record<string, string | string[]> = {};
-  
+
   searchParams.forEach((value, key) => {
     const existing = params[key];
     if (existing) {
-      params[key] = Array.isArray(existing) 
-        ? [...existing, value] 
+      params[key] = Array.isArray(existing)
+        ? [...existing, value]
         : [existing, value];
     } else {
       params[key] = value;
     }
   });
-  
+
   const result = validateData(schema, params);
-  
+
   if (!result.success) {
     return {
       success: false,
@@ -93,7 +94,7 @@ export function validateQueryParams<T extends z.ZodTypeAny>(
       ),
     };
   }
-  
+
   return { success: true, data: result.data };
 }
 
@@ -106,11 +107,11 @@ export function validateResponse<T extends z.ZodTypeAny>(
 ): NextResponse {
   if (process.env.NODE_ENV === 'development') {
     const result = validateData(schema, data);
-    
+
     if (!result.success) {
       console.error('Response validation failed:', result.error);
       console.error('Details:', result.details);
-      
+
       return NextResponse.json(
         {
           success: false,
@@ -121,7 +122,7 @@ export function validateResponse<T extends z.ZodTypeAny>(
       );
     }
   }
-  
+
   return NextResponse.json(data);
 }
 
@@ -133,27 +134,29 @@ export function validateResponse<T extends z.ZodTypeAny>(
 export function validateFormData<T extends z.ZodTypeAny>(
   formData: FormData,
   schema: T
-): { success: true; data: z.infer<T> } | { success: false; errors: Record<string, string[]> } {
+):
+  | { success: true; data: z.infer<T> }
+  | { success: false; errors: Record<string, string[]> } {
   const data: Record<string, unknown> = {};
-  
+
   formData.forEach((value, key) => {
     const existing = data[key];
     if (existing) {
-      data[key] = Array.isArray(existing) 
-        ? [...existing, value] 
+      data[key] = Array.isArray(existing)
+        ? [...existing, value]
         : [existing, value];
     } else {
       data[key] = value;
     }
   });
-  
+
   const result = schema.safeParse(data);
-  
+
   if (!result.success) {
     const formatted = formatZodErrors(result.error);
     return { success: false, errors: formatted.details };
   }
-  
+
   return { success: true, data: result.data };
 }
 
@@ -167,19 +170,19 @@ export function validateEnv<T extends z.ZodRawShape>(
 ): z.infer<typeof schema> {
   const env = process.env;
   const result = schema.safeParse(env);
-  
+
   if (!result.success) {
     const formatted = formatZodErrors(result.error);
     console.error('환경변수 검증 실패:');
     console.error(formatted.message);
-    
+
     if (process.env.NODE_ENV === 'development') {
       console.error('상세 오류:', formatted.details);
     }
-    
+
     throw new Error(`환경변수 검증 실패: ${formatted.message}`);
   }
-  
+
   return result.data;
 }
 
@@ -195,14 +198,17 @@ export function safeJsonParse<T extends z.ZodTypeAny>(
   try {
     const parsed = JSON.parse(jsonString);
     const result = validateData(schema, parsed);
-    
+
     if (!result.success) {
       return { success: false, error: result.error };
     }
-    
+
     return { success: true, data: result.data };
   } catch (error) {
-    return { success: false, error: 'JSON 파싱 실패: ' + getErrorMessage(error) };
+    return {
+      success: false,
+      error: 'JSON 파싱 실패: ' + getErrorMessage(error),
+    };
   }
 }
 
@@ -227,25 +233,33 @@ export function validateBatch<T extends z.ZodTypeAny>(
   schema: T
 ): {
   valid: Array<{ index: number; data: z.infer<T> }>;
-  invalid: Array<{ index: number; error: string; details?: Record<string, string[]> }>;
+  invalid: Array<{
+    index: number;
+    error: string;
+    details?: Record<string, string[]>;
+  }>;
 } {
   const valid: Array<{ index: number; data: z.infer<T> }> = [];
-  const invalid: Array<{ index: number; error: string; details?: Record<string, string[]> }> = [];
-  
+  const invalid: Array<{
+    index: number;
+    error: string;
+    details?: Record<string, string[]>;
+  }> = [];
+
   items.forEach((item, index) => {
     const result = validateData(schema, item);
-    
+
     if (result.success) {
       valid.push({ index, data: result.data });
     } else {
-      invalid.push({ 
-        index, 
+      invalid.push({
+        index,
         error: result.error,
         details: result.details,
       });
     }
   });
-  
+
   return { valid, invalid };
 }
 
@@ -254,7 +268,10 @@ export function validateBatch<T extends z.ZodTypeAny>(
 /**
  * 이메일 도메인 검증
  */
-export function validateEmailDomain(email: string, allowedDomains: string[]): boolean {
+export function validateEmailDomain(
+  email: string,
+  allowedDomains: string[]
+): boolean {
   const domain = email.split('@')[1];
   return domain ? allowedDomains.includes(domain) : false;
 }
@@ -262,7 +279,10 @@ export function validateEmailDomain(email: string, allowedDomains: string[]): bo
 /**
  * 파일 확장자 검증
  */
-export function validateFileExtension(filename: string, allowedExtensions: string[]): boolean {
+export function validateFileExtension(
+  filename: string,
+  allowedExtensions: string[]
+): boolean {
   const extension = filename.split('.').pop()?.toLowerCase();
   return extension ? allowedExtensions.includes(extension) : false;
 }
@@ -270,14 +290,17 @@ export function validateFileExtension(filename: string, allowedExtensions: strin
 /**
  * IP 주소 범위 검증
  */
-export function validateIpRange(ip: string, ranges: Array<{ start: string; end: string }>): boolean {
+export function validateIpRange(
+  ip: string,
+  ranges: Array<{ start: string; end: string }>
+): boolean {
   const ipToNumber = (ip: string) => {
     const parts = ip.split('.').map(Number);
     return (parts[0] << 24) + (parts[1] << 16) + (parts[2] << 8) + parts[3];
   };
-  
+
   const ipNum = ipToNumber(ip);
-  
+
   return ranges.some((range) => {
     const startNum = ipToNumber(range.start);
     const endNum = ipToNumber(range.end);
@@ -297,7 +320,7 @@ export function validateSqlSafe(value: string): boolean {
     /(\bOR\b\s*\d+\s*=\s*\d+)/i,
     /(\bAND\b\s*\d+\s*=\s*\d+)/i,
   ];
-  
+
   return !sqlPatterns.some((pattern) => pattern.test(value));
 }
 
@@ -311,7 +334,7 @@ export function validateXssSafe(value: string): boolean {
     /javascript:/gi,
     /on\w+\s*=/gi,
   ];
-  
+
   return !xssPatterns.some((pattern) => pattern.test(value));
 }
 
@@ -321,7 +344,9 @@ export function validateXssSafe(value: string): boolean {
  * 검증 결과를 HTTP 응답으로 변환
  */
 export function validationResultToResponse<T>(
-  result: { success: true; data: T } | { success: false; error: string; details?: Record<string, string[]> }
+  result:
+    | { success: true; data: T }
+    | { success: false; error: string; details?: Record<string, string[]> }
 ): NextResponse {
   if (result.success) {
     return NextResponse.json({
@@ -330,7 +355,7 @@ export function validationResultToResponse<T>(
       timestamp: new Date().toISOString(),
     });
   }
-  
+
   return NextResponse.json(
     {
       success: false,
@@ -353,5 +378,5 @@ export function requireIf<T>(
   if (condition && value === undefined) {
     throw new Error(errorMessage);
   }
-  return value as T;
+  return value;
 }

@@ -1,6 +1,6 @@
 /**
  * 🔌 VM Backend Hook
- * 
+ *
  * VM AI 백엔드 연결 및 상태 관리를 위한 React Hook
  */
 
@@ -111,20 +111,20 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
       return state.isConnected;
     }
 
-    setState(prev => ({ ...prev, isConnecting: true }));
+    setState((prev) => ({ ...prev, isConnecting: true }));
 
     try {
       const connected = await vmBackendConnector.connect();
-      
-      setState(prev => ({
+
+      setState((prev) => ({
         ...prev,
         isConnected: connected,
         isConnecting: false,
-        health: { 
+        health: {
           status: connected ? 'healthy' : 'error',
           message: connected ? 'Connected successfully' : 'Connection failed',
-          lastCheck: new Date()
-        }
+          lastCheck: new Date(),
+        },
       }));
 
       if (connected) {
@@ -135,16 +135,16 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
       return connected;
     } catch (error) {
       console.error('❌ VM Backend connection failed:', error);
-      
-      setState(prev => ({
+
+      setState((prev) => ({
         ...prev,
         isConnected: false,
         isConnecting: false,
-        health: { 
+        health: {
           status: 'error',
           message: error instanceof Error ? error.message : 'Connection failed',
-          lastCheck: new Date()
-        }
+          lastCheck: new Date(),
+        },
       }));
 
       return false;
@@ -154,12 +154,12 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
   // VM 백엔드 연결 해제
   const disconnect = useCallback(() => {
     vmBackendConnector.disconnect();
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       isConnected: false,
       isConnecting: false,
       health: { status: 'disabled' },
-      currentSession: null
+      currentSession: null,
     }));
     setStreamData([]);
     setIsStreaming(false);
@@ -168,32 +168,33 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
   // 상태 확인
   const checkHealth = useCallback(async () => {
     if (!state.isEnabled) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
-        health: { status: 'disabled', message: 'VM Backend is disabled' }
+        health: { status: 'disabled', message: 'VM Backend is disabled' },
       }));
       return;
     }
 
     try {
       const health = await vmBackendConnector.getHealthStatus();
-      
-      setState(prev => ({
+
+      setState((prev) => ({
         ...prev,
         health: {
           status: health.status === 'ok' ? 'healthy' : 'unhealthy',
           message: health.message || health.status,
-          lastCheck: new Date()
-        }
+          lastCheck: new Date(),
+        },
       }));
     } catch (error) {
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         health: {
           status: 'error',
-          message: error instanceof Error ? error.message : 'Health check failed',
-          lastCheck: new Date()
-        }
+          message:
+            error instanceof Error ? error.message : 'Health check failed',
+          lastCheck: new Date(),
+        },
       }));
     }
   }, [state.isEnabled]);
@@ -205,7 +206,7 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
     try {
       const sessions = await vmBackendConnector.getUserSessions(userId);
       // AISession을 VMBackendState.sessions 형식으로 변환
-      const mappedSessions = sessions.map(session => ({
+      const mappedSessions = sessions.map((session) => ({
         id: session.id,
         userId: session.userId,
         messageCount: session.metadata.messageCount,
@@ -213,92 +214,104 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
         lastActiveAt: session.metadata.lastActiveAt,
         summary: session.summary,
       }));
-      setState(prev => ({ ...prev, sessions: mappedSessions }));
+      setState((prev) => ({ ...prev, sessions: mappedSessions }));
     } catch (error) {
       console.error('❌ Failed to load user sessions:', error);
     }
   }, [state.isConnected, userId]);
 
   // 새 세션 생성
-  const createSession = useCallback(async (initialContext?: AnalysisContext): Promise<string | null> => {
-    if (!state.isConnected) {
-      console.warn('⚠️ VM Backend not connected');
-      return null;
-    }
-
-    try {
-      const session = await vmBackendConnector.createSession(userId, initialContext);
-      if (session) {
-        // AISession을 VMBackendState.sessions 형식으로 변환
-        const mappedSession = {
-          id: session.id,
-          userId: session.userId,
-          messageCount: session.metadata.messageCount,
-          createdAt: session.metadata.createdAt,
-          lastActiveAt: session.metadata.lastActiveAt,
-          summary: session.summary,
-        };
-        setState(prev => ({ 
-          ...prev, 
-          currentSession: session.id,
-          sessions: [mappedSession, ...prev.sessions]
-        }));
-        return session.id;
+  const createSession = useCallback(
+    async (initialContext?: AnalysisContext): Promise<string | null> => {
+      if (!state.isConnected) {
+        console.warn('⚠️ VM Backend not connected');
+        return null;
       }
-    } catch (error) {
-      console.error('❌ Failed to create session:', error);
-    }
 
-    return null;
-  }, [state.isConnected, userId]);
+      try {
+        const session = await vmBackendConnector.createSession(
+          userId,
+          initialContext
+        );
+        if (session) {
+          // AISession을 VMBackendState.sessions 형식으로 변환
+          const mappedSession = {
+            id: session.id,
+            userId: session.userId,
+            messageCount: session.metadata.messageCount,
+            createdAt: session.metadata.createdAt,
+            lastActiveAt: session.metadata.lastActiveAt,
+            summary: session.summary,
+          };
+          setState((prev) => ({
+            ...prev,
+            currentSession: session.id,
+            sessions: [mappedSession, ...prev.sessions],
+          }));
+          return session.id;
+        }
+      } catch (error) {
+        console.error('❌ Failed to create session:', error);
+      }
+
+      return null;
+    },
+    [state.isConnected, userId]
+  );
 
   // 세션 선택
   const selectSession = useCallback((sessionId: string) => {
-    setState(prev => ({ ...prev, currentSession: sessionId }));
+    setState((prev) => ({ ...prev, currentSession: sessionId }));
     vmBackendConnector.subscribeToSession(sessionId);
   }, []);
 
   // 메시지 전송
-  const sendMessage = useCallback(async (content: string, metadata?: StreamMetadata): Promise<boolean> => {
-    if (!state.currentSession) {
-      console.warn('⚠️ No active session');
-      return false;
-    }
+  const sendMessage = useCallback(
+    async (content: string, metadata?: StreamMetadata): Promise<boolean> => {
+      if (!state.currentSession) {
+        console.warn('⚠️ No active session');
+        return false;
+      }
 
-    try {
-      return await vmBackendConnector.addMessage(state.currentSession, {
-        role: 'user',
-        content,
-        metadata
-      });
-    } catch (error) {
-      console.error('❌ Failed to send message:', error);
-      return false;
-    }
-  }, [state.currentSession]);
+      try {
+        return await vmBackendConnector.addMessage(state.currentSession, {
+          role: 'user',
+          content,
+          metadata,
+        });
+      } catch (error) {
+        console.error('❌ Failed to send message:', error);
+        return false;
+      }
+    },
+    [state.currentSession]
+  );
 
   // AI 스트리밍 시작
-  const startAIStream = useCallback(async (query: string, context?: AnalysisContext): Promise<boolean> => {
-    if (!state.isConnected) {
-      console.warn('⚠️ VM Backend not connected');
-      return false;
-    }
+  const startAIStream = useCallback(
+    async (query: string, context?: AnalysisContext): Promise<boolean> => {
+      if (!state.isConnected) {
+        console.warn('⚠️ VM Backend not connected');
+        return false;
+      }
 
-    setIsStreaming(true);
-    setStreamData([]);
+      setIsStreaming(true);
+      setStreamData([]);
 
-    try {
-      return await vmBackendConnector.startAIStream({
-        sessionId: state.currentSession || undefined,
-        query,
-        context
-      });
-    } catch (error) {
-      console.error('❌ Failed to start AI stream:', error);
-      setIsStreaming(false);
-      return false;
-    }
-  }, [state.isConnected, state.currentSession]);
+      try {
+        return await vmBackendConnector.startAIStream({
+          sessionId: state.currentSession || undefined,
+          query,
+          context,
+        });
+      } catch (error) {
+        console.error('❌ Failed to start AI stream:', error);
+        setIsStreaming(false);
+        return false;
+      }
+    },
+    [state.isConnected, state.currentSession]
+  );
 
   // AI 스트리밍 중지
   const stopAIStream = useCallback(() => {
@@ -307,59 +320,75 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
   }, []);
 
   // 심층 분석 시작
-  const startDeepAnalysis = useCallback(async (
-    type: string,
-    query: string,
-    context?: AnalysisContext
-  ): Promise<string | null> => {
-    if (!state.isConnected) {
-      console.warn('⚠️ VM Backend not connected');
-      return null;
-    }
+  const startDeepAnalysis = useCallback(
+    async (
+      type: string,
+      query: string,
+      context?: AnalysisContext
+    ): Promise<string | null> => {
+      if (!state.isConnected) {
+        console.warn('⚠️ VM Backend not connected');
+        return null;
+      }
 
-    try {
-      const job = await vmBackendConnector.startDeepAnalysis(type, query, context);
-      return job?.id || null;
-    } catch (error) {
-      console.error('❌ Failed to start deep analysis:', error);
-      return null;
-    }
-  }, [state.isConnected]);
+      try {
+        const job = await vmBackendConnector.startDeepAnalysis(
+          type,
+          query,
+          context
+        );
+        return job?.id || null;
+      } catch (error) {
+        console.error('❌ Failed to start deep analysis:', error);
+        return null;
+      }
+    },
+    [state.isConnected]
+  );
 
   // 분석 결과 조회
-  const getAnalysisResult = useCallback(async (jobId: string): Promise<AnalysisResult | null> => {
-    if (!state.isConnected) return null;
+  const getAnalysisResult = useCallback(
+    async (jobId: string): Promise<AnalysisResult | null> => {
+      if (!state.isConnected) return null;
 
-    try {
-      return await vmBackendConnector.getAnalysisResult(jobId);
-    } catch (error) {
-      console.error('❌ Failed to get analysis result:', error);
-      return null;
-    }
-  }, [state.isConnected]);
+      try {
+        return await vmBackendConnector.getAnalysisResult(jobId);
+      } catch (error) {
+        console.error('❌ Failed to get analysis result:', error);
+        return null;
+      }
+    },
+    [state.isConnected]
+  );
 
   // 스트리밍 이벤트 핸들러
   useEffect(() => {
     const handleStreamData = (data: StreamData) => {
-      setStreamData(prev => [...prev, data]);
+      setStreamData((prev) => [...prev, data]);
     };
 
     const handleStreamComplete = (result: StreamCompletionResult) => {
       setIsStreaming(false);
-      setStreamData(prev => [...prev, {
-        type: 'result',
-        content: result.response || result.content || 'Analysis completed',
-        metadata: result
-      }]);
+      setStreamData((prev) => [
+        ...prev,
+        {
+          type: 'result',
+          content: result.response || result.content || 'Analysis completed',
+          metadata: result,
+        },
+      ]);
     };
 
     const handleStreamError = (error: StreamError) => {
       setIsStreaming(false);
-      setStreamData(prev => [...prev, {
-        type: 'error',
-        content: error.message || 'Stream error occurred',
-        metadata: error
-      }]);
+      setStreamData((prev) => [
+        ...prev,
+        {
+          type: 'error',
+          content: error.message || 'Stream error occurred',
+          metadata: error,
+        },
+      ]);
     };
 
     vmBackendConnector.on('stream:data', handleStreamData);
@@ -375,10 +404,21 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
 
   // 자동 연결 및 상태 체크
   useEffect(() => {
-    if (autoConnect && state.isEnabled && !state.isConnected && !state.isConnecting) {
+    if (
+      autoConnect &&
+      state.isEnabled &&
+      !state.isConnected &&
+      !state.isConnecting
+    ) {
       connect();
     }
-  }, [autoConnect, state.isEnabled, state.isConnected, state.isConnecting, connect]);
+  }, [
+    autoConnect,
+    state.isEnabled,
+    state.isConnected,
+    state.isConnecting,
+    connect,
+  ]);
 
   // 정기 상태 체크
   useEffect(() => {
@@ -393,7 +433,7 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
         }
       };
     }
-    
+
     // enableHealthCheck가 false이거나 state.isEnabled가 false인 경우 아무것도 반환하지 않음
     return undefined;
   }, [enableHealthCheck, state.isEnabled, checkHealth, healthCheckInterval]);
@@ -413,24 +453,24 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
     ...state,
     isStreaming,
     streamData,
-    
+
     // 연결 관리
     connect,
     disconnect,
     checkHealth,
-    
+
     // 세션 관리
     loadUserSessions,
     createSession,
     selectSession,
     sendMessage,
-    
+
     // AI 기능
     startAIStream,
     stopAIStream,
     startDeepAnalysis,
     getAnalysisResult,
-    
+
     // 유틸리티
     clearStreamData: () => setStreamData([]),
   };

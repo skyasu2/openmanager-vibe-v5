@@ -1,6 +1,6 @@
 /**
  * 🏗️ Unified Metrics Manager Server Factory
- * 
+ *
  * Server creation and initialization functionality:
  * - Server generation with realistic metrics
  * - Architecture-based server allocation
@@ -35,7 +35,7 @@ export class ServerFactory {
     architecture: ArchitectureType = 'standard'
   ): Map<string, UnifiedServerMetrics> {
     const servers = new Map<string, UnifiedServerMetrics>();
-    
+
     console.log(`🏗️ 서버 초기화 시작: ${architecture} 아키텍처`);
 
     const maxServers = Math.min(targetServerCount, 50); // 최대 50개 제한
@@ -131,11 +131,16 @@ export class ServerFactory {
       node_memory_usage_percent: this.generateRealisticValue(30, 85, role),
       node_disk_usage_percent: this.generateRealisticValue(10, 70, role),
       node_network_receive_rate_mbps: this.generateRealisticValue(1, 100, role),
-      node_network_transmit_rate_mbps: this.generateRealisticValue(1, 100, role),
+      node_network_transmit_rate_mbps: this.generateRealisticValue(
+        1,
+        100,
+        role
+      ),
       node_uptime_seconds: Math.floor(Math.random() * 30 * 24 * 3600), // Max 30 days
 
       // Application metrics
-      http_request_duration_seconds: this.generateRealisticValue(0.1, 2.0, role) / 1000,
+      http_request_duration_seconds:
+        this.generateRealisticValue(0.1, 2.0, role) / 1000,
       http_requests_total: Math.floor(Math.random() * 10000),
       http_requests_errors_total: Math.floor(Math.random() * 100),
 
@@ -160,8 +165,9 @@ export class ServerFactory {
     const baseValue = min + Math.random() * (max - min);
 
     // Apply role-specific multipliers
-    const multiplier = this.roleMultipliers[role as keyof typeof this.roleMultipliers] || 1.0;
-    
+    const multiplier =
+      this.roleMultipliers[role as keyof typeof this.roleMultipliers] || 1.0;
+
     return Math.min(100, Math.max(0, baseValue * multiplier));
   }
 
@@ -206,7 +212,9 @@ export class ServerFactory {
   /**
    * 🔧 Update server status based on metrics
    */
-  static updateServerStatus(server: UnifiedServerMetrics): UnifiedServerMetrics {
+  static updateServerStatus(
+    server: UnifiedServerMetrics
+  ): UnifiedServerMetrics {
     let status: ServerStatus = 'healthy';
 
     // Determine status based on metrics
@@ -234,13 +242,15 @@ export class ServerFactory {
   /**
    * 🎲 Apply realistic fluctuations to server metrics
    */
-  static applyRealisticFluctuations(server: UnifiedServerMetrics): UnifiedServerMetrics {
+  static applyRealisticFluctuations(
+    server: UnifiedServerMetrics
+  ): UnifiedServerMetrics {
     const fluctuation = 0.1; // 10% fluctuation
-    
+
     return {
       ...server,
       node_cpu_usage_percent: this.applyFluctuation(
-        server.node_cpu_usage_percent, 
+        server.node_cpu_usage_percent,
         fluctuation
       ),
       node_memory_usage_percent: this.applyFluctuation(
@@ -255,7 +265,8 @@ export class ServerFactory {
         server.node_network_transmit_rate_mbps,
         fluctuation * 2
       ),
-      http_requests_total: server.http_requests_total + Math.floor(Math.random() * 100),
+      http_requests_total:
+        server.http_requests_total + Math.floor(Math.random() * 100),
       timestamp: Date.now(),
     };
   }
@@ -271,13 +282,15 @@ export class ServerFactory {
   /**
    * 📋 Format servers for dashboard compatibility
    */
-  static formatServersForDashboard(servers: UnifiedServerMetrics[]): UnifiedServerMetrics[] {
+  static formatServersForDashboard(
+    servers: UnifiedServerMetrics[]
+  ): UnifiedServerMetrics[] {
     if (servers.length === 0) {
       console.log('📋 서버 목록이 비어있음, 에러 상태 서버 반환');
       return this.generateErrorStateServers();
     }
 
-    const formattedServers = servers.map(server => ({
+    const formattedServers = servers.map((server) => ({
       ...server,
       environment: server.environment || 'development',
       // ServerDashboard 호환성을 위한 추가 필드

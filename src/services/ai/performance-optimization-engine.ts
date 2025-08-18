@@ -1,6 +1,6 @@
 /**
  * 🚀 AI Performance Optimization Engine
- * 
+ *
  * 목표: 152ms 이하 응답 시간 달성
  * - 예측적 캐싱 및 워밍업
  * - 지능형 라우팅 최적화
@@ -8,7 +8,10 @@
  * - 서비스 지연 시간 최소화
  */
 
-import { QueryComplexityAnalyzer, type QueryAnalysis } from './QueryComplexityAnalyzer';
+import {
+  QueryComplexityAnalyzer,
+  type QueryAnalysis,
+} from './QueryComplexityAnalyzer';
 import { getSupabaseRAGEngine } from './supabase-rag-engine';
 import type { QueryRequest, QueryResponse } from './SimplifiedQueryEngine';
 
@@ -41,13 +44,13 @@ export class AIPerformanceOptimizer {
     'CPU 사용률 분석',
     '메모리 사용량 모니터링',
     '디스크 용량 확인',
-    '네트워크 트래픽 분석'
+    '네트워크 트래픽 분석',
   ];
   private metrics: OptimizationMetrics = {
     avgResponseTime: 450,
     cacheHitRate: 0.25,
     parallelEfficiency: 0.6,
-    networkLatency: 75
+    networkLatency: 75,
   };
 
   constructor() {
@@ -60,10 +63,10 @@ export class AIPerformanceOptimizer {
   private async initializeOptimizer(): Promise<void> {
     // 1. 예측적 워밍업 실행
     await this.performPredictiveWarmup();
-    
+
     // 2. 네트워크 레이턴시 측정
     await this.measureNetworkLatency();
-    
+
     // 3. 캐시 예열 완료
     console.log('🚀 AI Performance Optimizer 초기화 완료');
   }
@@ -71,7 +74,9 @@ export class AIPerformanceOptimizer {
   /**
    * ⚡ 최적화된 쿼리 처리
    */
-  async optimizedQuery(request: QueryRequest): Promise<QueryResponse & { optimizationInfo: OptimizationInfo }> {
+  async optimizedQuery(
+    request: QueryRequest
+  ): Promise<QueryResponse & { optimizationInfo: OptimizationInfo }> {
     const startTime = Date.now();
     const optimizationSteps: string[] = [];
 
@@ -84,8 +89,8 @@ export class AIPerformanceOptimizer {
         optimizationInfo: {
           optimizationSteps,
           totalTime: Date.now() - startTime,
-          cacheType: 'predictive'
-        }
+          cacheType: 'predictive',
+        },
       };
     }
 
@@ -95,10 +100,10 @@ export class AIPerformanceOptimizer {
 
     // 3. 병렬 파이프라인 실행 (120ms 목표)
     const response = await this.executePipelineOptimized(request, complexity);
-    
+
     // 4. 응답 후처리 및 학습 (17ms 목표)
     await this.postProcessAndLearn(request.query, response, complexity);
-    
+
     const totalTime = Date.now() - startTime;
     optimizationSteps.push(`total_${totalTime}ms`);
 
@@ -117,9 +122,9 @@ export class AIPerformanceOptimizer {
           cacheCheck: 5,
           routing: 10,
           execution: 120,
-          postProcess: 17
-        }
-      }
+          postProcess: 17,
+        },
+      },
     };
   }
 
@@ -147,7 +152,7 @@ export class AIPerformanceOptimizer {
     }
 
     const results = await Promise.allSettled(pipeline);
-    
+
     // 첫 번째 성공한 결과 반환
     for (const result of results) {
       if (result.status === 'fulfilled' && result.value) {
@@ -166,12 +171,15 @@ export class AIPerformanceOptimizer {
     for (const [cachedQuery, cache] of this.predictiveCache) {
       if (this.calculateSimilarity(query, cachedQuery) > 0.8) {
         cache.lastAccessed = Date.now();
-        this.metrics.cacheHitRate = Math.min(this.metrics.cacheHitRate + 0.01, 0.9);
-        
+        this.metrics.cacheHitRate = Math.min(
+          this.metrics.cacheHitRate + 0.01,
+          0.9
+        );
+
         return cache.precomputedResponse || null;
       }
     }
-    
+
     return null;
   }
 
@@ -180,18 +188,18 @@ export class AIPerformanceOptimizer {
    */
   private async performPredictiveWarmup(): Promise<void> {
     console.log('🔥 예측적 워밍업 시작...');
-    
+
     const ragEngine = getSupabaseRAGEngine();
     const warmupPromises = this.warmupQueries.map(async (query) => {
       try {
         // 임베딩 미리 생성
         const embedding = await ragEngine.generateEmbedding(query);
-        
+
         // 검색 결과 미리 캐싱
         const searchResult = await ragEngine.searchSimilar(query, {
           maxResults: 3,
           threshold: 0.7,
-          cached: true
+          cached: true,
         });
 
         // 예측적 캐시에 저장
@@ -203,17 +211,18 @@ export class AIPerformanceOptimizer {
             response: `${query}에 대한 사전 계산된 응답`,
             engine: 'local-rag',
             confidence: 0.85,
-            thinkingSteps: [{
-              step: '예측적 캐시',
-              description: '워밍업 중 미리 계산됨',
-              status: 'completed',
-              timestamp: Date.now()
-            }],
-            processingTime: 15 // 워밍업으로 단축된 시간
+            thinkingSteps: [
+              {
+                step: '예측적 캐시',
+                description: '워밍업 중 미리 계산됨',
+                status: 'completed',
+                timestamp: Date.now(),
+              },
+            ],
+            processingTime: 15, // 워밍업으로 단축된 시간
           },
-          lastAccessed: Date.now()
+          lastAccessed: Date.now(),
         });
-
       } catch (error) {
         console.warn(`워밍업 실패: ${query}`, error);
       }
@@ -228,12 +237,12 @@ export class AIPerformanceOptimizer {
    */
   private async measureNetworkLatency(): Promise<void> {
     const startTime = Date.now();
-    
+
     try {
       // 더미 요청으로 레이턴시 측정
       await fetch('/api/ai/health', { method: 'HEAD' });
       this.metrics.networkLatency = Date.now() - startTime;
-      
+
       console.log(`📡 네트워크 레이턴시: ${this.metrics.networkLatency}ms`);
     } catch {
       this.metrics.networkLatency = 100; // 기본값
@@ -245,41 +254,46 @@ export class AIPerformanceOptimizer {
    */
   private async optimizedRAGSearch(query: string): Promise<QueryResponse> {
     const ragEngine = getSupabaseRAGEngine();
-    
+
     // 임계값 동적 조정으로 속도 향상
     const threshold = query.length < 20 ? 0.6 : 0.7;
-    
+
     const result = await ragEngine.searchSimilar(query, {
       maxResults: 3, // 결과 수 제한으로 속도 향상
       threshold,
       cached: true,
-      enableMCP: false // MCP 비활성화로 속도 향상
+      enableMCP: false, // MCP 비활성화로 속도 향상
     });
 
     return {
       success: result.success,
-      response: result.results.length > 0 
-        ? `${result.results[0].content}` 
-        : '관련 정보를 찾을 수 없습니다.',
+      response:
+        result.results.length > 0
+          ? `${result.results[0].content}`
+          : '관련 정보를 찾을 수 없습니다.',
       engine: 'local-rag',
       confidence: result.results.length > 0 ? 0.8 : 0.3,
-      thinkingSteps: [{
-        step: '최적화된 RAG 검색',
-        description: `${result.results.length}개 결과, ${threshold} 임계값`,
-        status: 'completed',
-        timestamp: Date.now()
-      }],
-      processingTime: result.processingTime
+      thinkingSteps: [
+        {
+          step: '최적화된 RAG 검색',
+          description: `${result.results.length}개 결과, ${threshold} 임계값`,
+          status: 'completed',
+          timestamp: Date.now(),
+        },
+      ],
+      processingTime: result.processingTime,
     };
   }
 
   /**
    * 🌐 최적화된 Google AI 호출
    */
-  private async optimizedGoogleAICall(request: QueryRequest): Promise<QueryResponse> {
+  private async optimizedGoogleAICall(
+    request: QueryRequest
+  ): Promise<QueryResponse> {
     // 토큰 수 제한으로 속도 향상
     const optimizedPrompt = this.optimizePrompt(request.query);
-    
+
     try {
       const response = await fetch('/api/ai/google-ai/generate', {
         method: 'POST',
@@ -288,23 +302,25 @@ export class AIPerformanceOptimizer {
           prompt: optimizedPrompt,
           maxTokens: 300, // 토큰 제한으로 속도 향상
           temperature: 0.3, // 일관성을 위해 낮은 temperature
-        })
+        }),
       });
 
       const data = await response.json();
-      
+
       return {
         success: true,
         response: data.response || '응답을 생성할 수 없습니다.',
         engine: 'google-ai',
         confidence: 0.9,
-        thinkingSteps: [{
-          step: '최적화된 Google AI',
-          description: '토큰 제한 및 프롬프트 최적화 적용',
-          status: 'completed',
-          timestamp: Date.now()
-        }],
-        processingTime: 0
+        thinkingSteps: [
+          {
+            step: '최적화된 Google AI',
+            description: '토큰 제한 및 프롬프트 최적화 적용',
+            status: 'completed',
+            timestamp: Date.now(),
+          },
+        ],
+        processingTime: 0,
       };
     } catch (error) {
       throw new Error(`Google AI 최적화 호출 실패: ${error}`);
@@ -325,7 +341,7 @@ export class AIPerformanceOptimizer {
   private async preloadNextPrediction(currentQuery: string): Promise<void> {
     // 현재 쿼리 패턴 기반 다음 쿼리 예측
     const predictedNext = this.predictNextQuery(currentQuery);
-    
+
     if (predictedNext && !this.predictiveCache.has(predictedNext)) {
       // 백그라운드에서 미리 계산
       setTimeout(async () => {
@@ -335,7 +351,7 @@ export class AIPerformanceOptimizer {
             query: predictedNext,
             prediction: 0.7,
             precomputedResponse: response,
-            lastAccessed: 0
+            lastAccessed: 0,
           });
         } catch (error) {
           console.warn('예측 로드 실패:', error);
@@ -349,11 +365,11 @@ export class AIPerformanceOptimizer {
    */
   private predictNextQuery(currentQuery: string): string | null {
     const patterns = {
-      'CPU': '메모리 사용률',
-      '메모리': '디스크 용량',
-      '디스크': '네트워크 트래픽',
+      CPU: '메모리 사용률',
+      메모리: '디스크 용량',
+      디스크: '네트워크 트래픽',
       '서버 상태': 'CPU 사용률',
-      '에러': '로그 분석'
+      에러: '로그 분석',
     };
 
     for (const [pattern, next] of Object.entries(patterns)) {
@@ -368,7 +384,9 @@ export class AIPerformanceOptimizer {
   /**
    * 🔄 폴백 RAG 미리 로드
    */
-  private async fallbackRAGPreload(query: string): Promise<QueryResponse | null> {
+  private async fallbackRAGPreload(
+    query: string
+  ): Promise<QueryResponse | null> {
     // Google AI 실행 중에 동시에 RAG도 준비
     try {
       return await this.optimizedRAGSearch(query);
@@ -381,13 +399,13 @@ export class AIPerformanceOptimizer {
    * 📊 후처리 및 학습
    */
   private async postProcessAndLearn(
-    query: string, 
-    response: QueryResponse, 
+    query: string,
+    response: QueryResponse,
     complexity: QueryAnalysis
   ): Promise<void> {
     // 성능 메트릭 업데이트
     this.updatePerformanceMetrics(response.processingTime || 0);
-    
+
     // 실패한 쿼리 패턴 학습
     if (!response.success) {
       console.warn(`학습 대상 실패 쿼리: ${query}`);
@@ -398,7 +416,7 @@ export class AIPerformanceOptimizer {
    * 📊 성능 메트릭 업데이트
    */
   private updatePerformanceMetrics(responseTime: number): void {
-    this.metrics.avgResponseTime = 
+    this.metrics.avgResponseTime =
       (this.metrics.avgResponseTime + responseTime) / 2;
   }
 
@@ -408,10 +426,10 @@ export class AIPerformanceOptimizer {
   private calculateSimilarity(query1: string, query2: string): number {
     const words1 = new Set(query1.toLowerCase().split(/\s+/));
     const words2 = new Set(query2.toLowerCase().split(/\s+/));
-    
-    const intersection = new Set([...words1].filter(x => words2.has(x)));
+
+    const intersection = new Set([...words1].filter((x) => words2.has(x)));
     const union = new Set([...words1, ...words2]);
-    
+
     return intersection.size / union.size;
   }
 
@@ -426,8 +444,8 @@ export class AIPerformanceOptimizer {
       improvements: {
         'Cache Hit Rate': `${(this.metrics.cacheHitRate * 100).toFixed(1)}%`,
         'Avg Response Time': `${this.metrics.avgResponseTime.toFixed(0)}ms`,
-        'Parallel Efficiency': `${(this.metrics.parallelEfficiency * 100).toFixed(1)}%`
-      }
+        'Parallel Efficiency': `${(this.metrics.parallelEfficiency * 100).toFixed(1)}%`,
+      },
     };
   }
 }

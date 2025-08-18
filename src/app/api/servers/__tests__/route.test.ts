@@ -20,9 +20,9 @@ describe('/api/servers API Routes', () => {
   describe('GET /api/servers', () => {
     it('리다이렉트를 /api/servers/all로 수행해야 함', async () => {
       const request = new NextRequest('http://localhost:3000/api/servers');
-      
+
       const response = await getServers(request);
-      
+
       expect(response.status).toBe(308); // Permanent Redirect
       expect(response.headers.get('location')).toContain('/api/servers/all');
     });
@@ -66,7 +66,9 @@ describe('/api/servers API Routes', () => {
       const mockSystem = {
         getServers: vi.fn().mockReturnValue(mockServers),
       };
-      vi.mocked(getMockSystem).mockReturnValue(mockSystem as ReturnType<typeof getMockSystem>);
+      vi.mocked(getMockSystem).mockReturnValue(
+        mockSystem as ReturnType<typeof getMockSystem>
+      );
     });
 
     it('모든 서버 목록을 반환해야 함', async () => {
@@ -98,7 +100,9 @@ describe('/api/servers API Routes', () => {
       expect(response.headers.get('Cache-Control')).toBe(
         'public, s-maxage=30, stale-while-revalidate=60'
       );
-      expect(response.headers.get('CDN-Cache-Control')).toBe('public, s-maxage=30');
+      expect(response.headers.get('CDN-Cache-Control')).toBe(
+        'public, s-maxage=30'
+      );
     });
 
     it('오류 발생 시 적절한 에러 응답을 반환해야 함', async () => {
@@ -107,7 +111,9 @@ describe('/api/servers API Routes', () => {
           throw new Error('Mock error');
         }),
       };
-      vi.mocked(getMockSystem).mockReturnValue(mockSystem as ReturnType<typeof getMockSystem>);
+      vi.mocked(getMockSystem).mockReturnValue(
+        mockSystem as ReturnType<typeof getMockSystem>
+      );
 
       const response = await getAllServers();
       const data = await response.json();
@@ -142,11 +148,15 @@ describe('/api/servers API Routes', () => {
           scenario: 'mixed',
         }),
       };
-      vi.mocked(getMockSystem).mockReturnValue(mockSystem as ReturnType<typeof getMockSystem>);
+      vi.mocked(getMockSystem).mockReturnValue(
+        mockSystem as ReturnType<typeof getMockSystem>
+      );
     });
 
     it('ID로 특정 서버를 찾아야 함', async () => {
-      const request = new NextRequest('http://localhost:3000/api/servers/web-001');
+      const request = new NextRequest(
+        'http://localhost:3000/api/servers/web-001'
+      );
       const params = Promise.resolve({ id: 'web-001' });
 
       const response = await getServerById(request, { params });
@@ -158,7 +168,9 @@ describe('/api/servers API Routes', () => {
     });
 
     it('hostname으로도 서버를 찾을 수 있어야 함', async () => {
-      const request = new NextRequest('http://localhost:3000/api/servers/web-server-001');
+      const request = new NextRequest(
+        'http://localhost:3000/api/servers/web-server-001'
+      );
       const params = Promise.resolve({ id: 'web-server-001' });
 
       const response = await getServerById(request, { params });
@@ -169,7 +181,9 @@ describe('/api/servers API Routes', () => {
     });
 
     it('서버를 찾을 수 없을 때 404를 반환해야 함', async () => {
-      const request = new NextRequest('http://localhost:3000/api/servers/unknown');
+      const request = new NextRequest(
+        'http://localhost:3000/api/servers/unknown'
+      );
       const params = Promise.resolve({ id: 'unknown' });
 
       const response = await getServerById(request, { params });
@@ -226,7 +240,9 @@ describe('/api/servers API Routes', () => {
     });
 
     it('커스텀 헤더를 포함해야 함', async () => {
-      const request = new NextRequest('http://localhost:3000/api/servers/web-001');
+      const request = new NextRequest(
+        'http://localhost:3000/api/servers/web-001'
+      );
       const params = Promise.resolve({ id: 'web-001' });
 
       const response = await getServerById(request, { params });
@@ -238,7 +254,9 @@ describe('/api/servers API Routes', () => {
     });
 
     it('업타임을 올바른 형식으로 포맷해야 함', async () => {
-      const request = new NextRequest('http://localhost:3000/api/servers/web-001');
+      const request = new NextRequest(
+        'http://localhost:3000/api/servers/web-001'
+      );
       const params = Promise.resolve({ id: 'web-001' });
 
       const response = await getServerById(request, { params });
@@ -248,7 +266,9 @@ describe('/api/servers API Routes', () => {
     });
 
     it('역할에 따른 적절한 서비스를 생성해야 함', async () => {
-      const request = new NextRequest('http://localhost:3000/api/servers/web-001');
+      const request = new NextRequest(
+        'http://localhost:3000/api/servers/web-001'
+      );
       const params = Promise.resolve({ id: 'web-001' });
 
       const response = await getServerById(request, { params });
@@ -269,9 +289,13 @@ describe('/api/servers API Routes', () => {
           throw new Error('Database connection failed');
         }),
       };
-      vi.mocked(getMockSystem).mockReturnValue(mockSystem as ReturnType<typeof getMockSystem>);
+      vi.mocked(getMockSystem).mockReturnValue(
+        mockSystem as ReturnType<typeof getMockSystem>
+      );
 
-      const request = new NextRequest('http://localhost:3000/api/servers/web-001');
+      const request = new NextRequest(
+        'http://localhost:3000/api/servers/web-001'
+      );
       const params = Promise.resolve({ id: 'web-001' });
 
       const response = await getServerById(request, { params });

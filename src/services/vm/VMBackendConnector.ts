@@ -1,6 +1,6 @@
 /**
  * 🔌 VM Backend Connector
- * 
+ *
  * VM AI 백엔드와의 WebSocket 및 HTTP 연결 관리
  */
 
@@ -126,16 +126,28 @@ export class VMBackendConnector {
 
   constructor() {
     // VM AI 백엔드 환경변수로부터 설정 읽기
-    const websocketUrl = process.env.NEXT_PUBLIC_VM_WEBSOCKET_URL || 'ws://localhost:3001/ws';
-    const vmEnabled = process.env.NEXT_PUBLIC_VM_BACKEND_ENABLED === 'true' && websocketUrl !== 'ws://localhost:3001/ws';
-    
+    const websocketUrl =
+      process.env.NEXT_PUBLIC_VM_WEBSOCKET_URL || 'ws://localhost:3001/ws';
+    const vmEnabled =
+      process.env.NEXT_PUBLIC_VM_BACKEND_ENABLED === 'true' &&
+      websocketUrl !== 'ws://localhost:3001/ws';
+
     this.config = {
       websocketUrl,
-      apiBaseUrl: process.env.NEXT_PUBLIC_VM_API_BASE_URL || websocketUrl.replace('ws://', 'http://').replace('/ws', '/api') || 'http://localhost:3001/api',
-      reconnectAttempts: parseInt(process.env.NEXT_PUBLIC_VM_RECONNECT_ATTEMPTS || '5'),
-      reconnectDelay: parseInt(process.env.NEXT_PUBLIC_VM_RECONNECT_DELAY || '1000'),
-      heartbeatInterval: parseInt(process.env.NEXT_PUBLIC_VM_HEARTBEAT_INTERVAL || '30000'),
-      enabled: vmEnabled
+      apiBaseUrl:
+        process.env.NEXT_PUBLIC_VM_API_BASE_URL ||
+        websocketUrl.replace('ws://', 'http://').replace('/ws', '/api') ||
+        'http://localhost:3001/api',
+      reconnectAttempts: parseInt(
+        process.env.NEXT_PUBLIC_VM_RECONNECT_ATTEMPTS || '5'
+      ),
+      reconnectDelay: parseInt(
+        process.env.NEXT_PUBLIC_VM_RECONNECT_DELAY || '1000'
+      ),
+      heartbeatInterval: parseInt(
+        process.env.NEXT_PUBLIC_VM_HEARTBEAT_INTERVAL || '30000'
+      ),
+      enabled: vmEnabled,
     };
 
     // HTTP 클라이언트 설정
@@ -143,17 +155,19 @@ export class VMBackendConnector {
       baseURL: this.config.apiBaseUrl,
       timeout: 30000,
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     });
 
     // 요청/응답 인터셉터
     this.httpClient.interceptors.response.use(
-      response => response,
-      error => {
+      (response) => response,
+      (error) => {
         console.error('🔥 VM Backend HTTP Error:', error.message);
         // VM 백엔드 연결 실패 시 로컬 모드로 폴백
-        return Promise.reject(new Error(`VM Backend unavailable: ${error.message}`));
+        return Promise.reject(
+          new Error(`VM Backend unavailable: ${error.message}`)
+        );
       }
     );
   }
@@ -194,7 +208,7 @@ export class VMBackendConnector {
         reconnection: true,
         reconnectionAttempts: this.config.reconnectAttempts,
         reconnectionDelay: this.config.reconnectDelay,
-        transports: ['websocket', 'polling']
+        transports: ['websocket', 'polling'],
       });
 
       return new Promise((resolve, reject) => {
@@ -301,13 +315,16 @@ export class VMBackendConnector {
   /**
    * 새 세션 생성
    */
-  async createSession(userId: string, initialContext?: SessionContext): Promise<AISession | null> {
+  async createSession(
+    userId: string,
+    initialContext?: SessionContext
+  ): Promise<AISession | null> {
     if (!this.config.enabled) return null;
 
     try {
       const response = await this.httpClient.post('/ai/session', {
         userId,
-        initialContext
+        initialContext,
       });
       return response.data.session;
     } catch (error) {
@@ -335,7 +352,7 @@ export class VMBackendConnector {
    * 세션에 메시지 추가
    */
   async addMessage(
-    sessionId: string, 
+    sessionId: string,
     message: { role: string; content: string; metadata?: SessionMetadata }
   ): Promise<boolean> {
     if (!this.config.enabled) return false;
@@ -382,7 +399,7 @@ export class VMBackendConnector {
       const response = await this.httpClient.post('/ai/deep-analysis', {
         type,
         query,
-        context
+        context,
       });
       return response.data.job;
     } catch (error) {
@@ -413,7 +430,9 @@ export class VMBackendConnector {
     if (!this.config.enabled) return null;
 
     try {
-      const response = await this.httpClient.get(`/ai/deep-analysis/${jobId}/result`);
+      const response = await this.httpClient.get(
+        `/ai/deep-analysis/${jobId}/result`
+      );
       return response.data.result;
     } catch (error) {
       console.error('❌ Failed to get analysis result:', error);
@@ -486,7 +505,10 @@ export class VMBackendConnector {
       return response.data;
     } catch (error) {
       console.error('❌ Health check failed:', error);
-      return { status: 'error', message: error instanceof Error ? error.message : 'Unknown error' };
+      return {
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   }
 
@@ -523,7 +545,7 @@ export class VMBackendConnector {
   private emit(event: string, data: unknown): void {
     const listeners = this.listeners.get(event);
     if (listeners) {
-      listeners.forEach(callback => {
+      listeners.forEach((callback) => {
         try {
           callback(data);
         } catch (error) {

@@ -1,9 +1,9 @@
 /**
  * 📊 PerformanceDashboard Header Component
- * 
+ *
  * Extracted header section with controls:
  * - Title and description
- * - Time range selector  
+ * - Time range selector
  * - Auto refresh toggle
  * - Alerts toggle
  * - Manual refresh button
@@ -11,7 +11,15 @@
  */
 
 import { motion } from 'framer-motion';
-import { Activity, Bell, BellOff, Download, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import {
+  Activity,
+  Bell,
+  BellOff,
+  Download,
+  RefreshCw,
+  Wifi,
+  WifiOff,
+} from 'lucide-react';
 import { Button } from '../ui/button';
 
 interface PerformanceDashboardHeaderProps {

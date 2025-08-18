@@ -1,9 +1,9 @@
 /**
  * 📊 PerformanceDashboard Footer Component
- * 
+ *
  * Extracted footer status information:
  * - Monitoring status
- * - Metrics count  
+ * - Metrics count
  * - Alerts count
  * - Last update timestamp
  */

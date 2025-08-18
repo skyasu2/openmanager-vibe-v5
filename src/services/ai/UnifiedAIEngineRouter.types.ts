@@ -1,11 +1,11 @@
 /**
  * 🏗️ Unified AI Engine Router - Type Definitions
- * 
+ *
  * Central type definitions for the AI routing system
  * - Router configuration and metrics
  * - Korean NLP and command recommendation types
  * - Response and routing information types
- * 
+ *
  * @author AI Systems Engineer
  * @version 1.0.0
  */
@@ -42,7 +42,11 @@ export interface CommandRequestContext {
   detectedCategories: string[];
   specificCommands: string[];
   confidence: number;
-  requestType: 'command_inquiry' | 'command_usage' | 'command_request' | 'general';
+  requestType:
+    | 'command_inquiry'
+    | 'command_usage'
+    | 'command_request'
+    | 'general';
 }
 
 export interface CommandAnalysisResult {
@@ -152,7 +156,11 @@ export interface ExtendedQueryRequest extends QueryRequest {
 
 // ===== Engine Selection Types =====
 
-export type AIEngineType = 'simplified' | 'performance-optimized' | 'supabase-rag' | 'korean-nlp';
+export type AIEngineType =
+  | 'simplified'
+  | 'performance-optimized'
+  | 'supabase-rag'
+  | 'korean-nlp';
 
 export interface EngineSelectionContext {
   request: QueryRequest;
@@ -179,7 +187,7 @@ export interface RouterError extends Error {
 
 // ===== Utility Types =====
 
-export type ProcessingPathStep = 
+export type ProcessingPathStep =
   | 'request_received'
   | 'cache_hit'
   | 'cache_miss'
@@ -213,7 +221,9 @@ export const DEFAULT_ROUTER_CONFIG: Omit<RouterConfig, 'preferredEngine'> = {
 
 // ===== Type Guards =====
 
-export function isCommandRecommendation(obj: unknown): obj is CommandRecommendation {
+export function isCommandRecommendation(
+  obj: unknown
+): obj is CommandRecommendation {
   return (
     typeof obj === 'object' &&
     obj !== null &&

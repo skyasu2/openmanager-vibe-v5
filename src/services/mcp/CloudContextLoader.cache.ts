@@ -1,6 +1,6 @@
 /**
  * 🧠 Memory Context Cache - CloudContextLoader Module
- * 
+ *
  * High-performance in-memory caching for MCP context data:
  * - LRU (Least Recently Used) eviction policy
  * - TTL (Time To Live) expiration management
@@ -24,7 +24,7 @@ export interface CacheStats {
 
 /**
  * 메모리 기반 컨텍스트 캐시
- * 
+ *
  * Features:
  * - Maximum 50 context entries (configurable)
  * - LRU eviction when cache is full
@@ -45,14 +45,14 @@ export class MemoryContextCache {
     if (this.cache.size >= this.maxSize) {
       let oldestKey = '';
       let oldestTime = Date.now();
-      
+
       for (const [k, v] of this.cache.entries()) {
         if (v.lastAccess < oldestTime) {
           oldestTime = v.lastAccess;
           oldestKey = k;
         }
       }
-      
+
       if (oldestKey) {
         this.cache.delete(oldestKey);
       }
@@ -74,13 +74,13 @@ export class MemoryContextCache {
       this.misses++;
       return null;
     }
-    
+
     if (Date.now() > item.expires) {
       this.cache.delete(key);
       this.misses++;
       return null;
     }
-    
+
     item.lastAccess = Date.now();
     this.hits++;
     return item.value as T;
@@ -106,12 +106,12 @@ export class MemoryContextCache {
   has(key: string): boolean {
     const item = this.cache.get(key);
     if (!item) return false;
-    
+
     if (Date.now() > item.expires) {
       this.cache.delete(key);
       return false;
     }
-    
+
     return true;
   }
 

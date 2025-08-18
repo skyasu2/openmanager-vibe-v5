@@ -99,9 +99,7 @@ async function getThresholds(request: AuthenticatedRequest) {
       },
     };
 
-    debug.log(
-      `📊 Admin thresholds requested by: ${request.authInfo?.userId}`
-    );
+    debug.log(`📊 Admin thresholds requested by: ${request.authInfo?.userId}`);
 
     return NextResponse.json({
       success: true,

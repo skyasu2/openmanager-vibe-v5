@@ -65,12 +65,12 @@ function _validateServerInstance(
   }
 
   // 메트릭 정보가 있는지 확인 (직접 속성 또는 metrics 객체)
-  const hasDirectMetrics = 
+  const hasDirectMetrics =
     typeof obj.cpu === 'number' &&
     typeof obj.memory === 'number' &&
     typeof obj.disk === 'number';
 
-  const hasMetricsObject = 
+  const hasMetricsObject =
     obj.metrics !== null &&
     typeof obj.metrics === 'object' &&
     typeof (obj.metrics as Record<string, unknown>).cpu === 'number' &&
@@ -83,7 +83,9 @@ function _validateServerInstance(
 /**
  * Server 유효성 검증 - 더 구체적인 타입 사용
  */
-function _validateServer(serverCandidate: Partial<Server>): serverCandidate is Server {
+function _validateServer(
+  serverCandidate: Partial<Server>
+): serverCandidate is Server {
   if (!serverCandidate || typeof serverCandidate !== 'object') {
     return false;
   }
@@ -194,9 +196,7 @@ export function transformServerInstanceToServerOptimized(
           safeSpecs.memory &&
           typeof safeSpecs.memory === 'object' &&
           'total' in safeSpecs.memory
-        ? Math.round(
-            Number(safeSpecs.memory.total) / (1024 * 1024 * 1024)
-          )
+        ? Math.round(Number(safeSpecs.memory.total) / (1024 * 1024 * 1024))
         : 8;
 
   const diskGb =
@@ -206,9 +206,7 @@ export function transformServerInstanceToServerOptimized(
           safeSpecs.disk &&
           typeof safeSpecs.disk === 'object' &&
           'total' in safeSpecs.disk
-        ? Math.round(
-            Number(safeSpecs.disk.total) / (1024 * 1024 * 1024)
-          )
+        ? Math.round(Number(safeSpecs.disk.total) / (1024 * 1024 * 1024))
         : 100;
 
   const networkSpeed =

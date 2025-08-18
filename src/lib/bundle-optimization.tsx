@@ -8,7 +8,7 @@
  */
 
 // Lodash 대신 네이티브 함수 사용
-export const debounce = <T extends (...args: any[]) => any,>(
+export const debounce = <T extends (...args: any[]) => any>(
   func: T,
   wait: number
 ): T => {
@@ -19,7 +19,7 @@ export const debounce = <T extends (...args: any[]) => any,>(
   }) as T;
 };
 
-export const throttle = <T extends (...args: any[]) => any,>(
+export const throttle = <T extends (...args: any[]) => any>(
   func: T,
   limit: number
 ): T => {
@@ -34,22 +34,26 @@ export const throttle = <T extends (...args: any[]) => any,>(
 };
 
 // UUID 대신 간단한 ID 생성
-export const generateId = () => 
+export const generateId = () =>
   Date.now().toString(36) + Math.random().toString(36).substr(2);
 
 // Date-fns 대신 네이티브 Date 사용
-export const formatDate = (date: Date | string, format: 'short' | 'long' = 'short') => {
+export const formatDate = (
+  date: Date | string,
+  format: 'short' | 'long' = 'short'
+) => {
   const d = new Date(date);
-  const options: Intl.DateTimeFormatOptions = format === 'short' 
-    ? { year: '2-digit', month: '2-digit', day: '2-digit' }
-    : { year: 'numeric', month: 'long', day: 'numeric' };
+  const options: Intl.DateTimeFormatOptions =
+    format === 'short'
+      ? { year: '2-digit', month: '2-digit', day: '2-digit' }
+      : { year: 'numeric', month: 'long', day: 'numeric' };
   return d.toLocaleDateString('ko-KR', options);
 };
 
 /**
  * 🎯 전략 2: 아이콘 최적화 (Lucide React 선별적 import)
  */
-export { 
+export {
   BarChart3,
   Bot,
   Loader2,
@@ -74,9 +78,12 @@ export const cn = (...inputs: (string | undefined | null | false)[]) => {
 
 // 자주 사용되는 스타일 조합
 export const buttonVariants = {
-  primary: 'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors',
-  secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-900 px-4 py-2 rounded-lg transition-colors',
-  ghost: 'hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-lg transition-colors',
+  primary:
+    'bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors',
+  secondary:
+    'bg-gray-200 hover:bg-gray-300 text-gray-900 px-4 py-2 rounded-lg transition-colors',
+  ghost:
+    'hover:bg-gray-100 text-gray-700 px-4 py-2 rounded-lg transition-colors',
 };
 
 export const cardVariants = {
@@ -96,20 +103,22 @@ export const isMobile = isClientSide && window.innerWidth <= 768;
  */
 export class BundleAnalyzer {
   private static readonly isDev = process.env.NODE_ENV === 'development';
-  
+
   static measureComponentRender(componentName: string) {
     if (!this.isDev) return () => {};
-    
+
     const start = performance.now();
     return () => {
       const end = performance.now();
-      console.log(`⚡ ${componentName} rendered in ${(end - start).toFixed(2)}ms`);
+      console.log(
+        `⚡ ${componentName} rendered in ${(end - start).toFixed(2)}ms`
+      );
     };
   }
-  
+
   static trackBundleSize(chunkName: string) {
     if (!this.isDev) return;
-    
+
     // 웹팩 청크 정보 로그
     console.log(`📦 Loading chunk: ${chunkName}`);
   }
@@ -121,9 +130,9 @@ export class BundleAnalyzer {
 export class LightErrorBoundary {
   static createFallback(componentName: string) {
     return () => (
-      <div className="p-4 border border-red-200 bg-red-50 rounded-lg">
-        <h3 className="text-red-800 font-medium">오류 발생</h3>
-        <p className="text-red-600 text-sm mt-1">
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+        <h3 className="font-medium text-red-800">오류 발생</h3>
+        <p className="mt-1 text-sm text-red-600">
           {componentName} 컴포넌트를 로드할 수 없습니다.
         </p>
       </div>
@@ -136,14 +145,14 @@ export class LightErrorBoundary {
  */
 export const createMemoCache = <T,>() => {
   const cache = new Map<string, T>();
-  
+
   return {
     get: (key: string): T | undefined => cache.get(key),
     set: (key: string, value: T): void => {
       // 캐시 크기 제한 (메모리 최적화)
       if (cache.size >= 100) {
         const firstKey = cache.keys().next().value;
-        cache.delete(firstKey as any);
+        cache.delete(firstKey);
       }
       cache.set(key, value);
     },
@@ -157,7 +166,7 @@ export const createMemoCache = <T,>() => {
  */
 export const getBundleReport = () => {
   if (typeof window === 'undefined') return null;
-  
+
   const report = {
     timestamp: new Date().toISOString(),
     windowSize: {
@@ -170,7 +179,7 @@ export const getBundleReport = () => {
       timing: performance.timing,
     },
   };
-  
+
   return report;
 };
 

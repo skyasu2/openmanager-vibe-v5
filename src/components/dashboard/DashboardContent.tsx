@@ -12,9 +12,9 @@ import debug from '@/utils/debug';
 // framer-motion을 동적 import로 처리 - 프리로드 최적화
 const MotionDiv = dynamic(
   () => import('framer-motion').then((mod) => ({ default: mod.motion.div })),
-  { 
+  {
     ssr: false,
-    loading: () => <div className="h-full w-full" /> // 빈 컨테이너로 레이아웃 시프트 방지
+    loading: () => <div className="h-full w-full" />, // 빈 컨테이너로 레이아웃 시프트 방지
   }
 );
 
@@ -293,7 +293,7 @@ export default function DashboardContent({
             <div className="mb-4 rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="animate-pulse h-3 w-3 rounded-full bg-purple-500"></div>
+                  <div className="h-3 w-3 animate-pulse rounded-full bg-purple-500"></div>
                   <span className="font-medium text-purple-800">
                     🎭 DEMO MODE - 온프레미스 서버 시뮬레이션
                   </span>
@@ -319,7 +319,7 @@ export default function DashboardContent({
                   </div>
                   {serverStats.warning > 0 && (
                     <div className="flex items-center gap-1">
-                      <div className="animate-pulse h-2 w-2 rounded-full bg-yellow-500"></div>
+                      <div className="h-2 w-2 animate-pulse rounded-full bg-yellow-500"></div>
                       <span className="text-yellow-600">
                         경고 {serverStats.warning}대
                       </span>
@@ -327,7 +327,7 @@ export default function DashboardContent({
                   )}
                   {serverStats.offline > 0 && (
                     <div className="flex items-center gap-1">
-                      <div className="animate-pulse h-2 w-2 rounded-full bg-red-500"></div>
+                      <div className="h-2 w-2 animate-pulse rounded-full bg-red-500"></div>
                       <span className="text-red-600">
                         오프라인 {serverStats.offline}대
                       </span>

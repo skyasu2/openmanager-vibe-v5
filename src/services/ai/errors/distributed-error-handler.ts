@@ -1,16 +1,16 @@
 /**
  * 🚨 분산 AI 시스템 통합 에러 핸들러
- * 
+ *
  * 모든 분산 서비스의 에러를 표준화하여 처리
  * - 서비스별 에러 매핑
  * - 복구 가능 여부 판단
  * - Circuit Breaker 연동
  */
 
-import type { 
-  AIServiceType, 
+import type {
+  AIServiceType,
   DistributedError,
-  ProcessingStatus 
+  ProcessingStatus,
 } from '../interfaces/distributed-ai.interface';
 
 // 에러 코드 정의
@@ -19,29 +19,29 @@ export const ERROR_CODES = {
   NETWORK_TIMEOUT: 'NETWORK_TIMEOUT',
   NETWORK_ERROR: 'NETWORK_ERROR',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
-  
+
   // 인증 에러
   UNAUTHORIZED: 'UNAUTHORIZED',
   FORBIDDEN: 'FORBIDDEN',
-  
+
   // 요청 에러
   BAD_REQUEST: 'BAD_REQUEST',
   INVALID_PARAMETERS: 'INVALID_PARAMETERS',
   RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
-  
+
   // 서비스별 에러
   VECTOR_SEARCH_FAILED: 'VECTOR_SEARCH_FAILED',
   EMBEDDING_FAILED: 'EMBEDDING_FAILED',
   NLP_PROCESSING_FAILED: 'NLP_PROCESSING_FAILED',
   CACHE_OPERATION_FAILED: 'CACHE_OPERATION_FAILED',
-  
+
   // 시스템 에러
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   MEMORY_LIMIT_EXCEEDED: 'MEMORY_LIMIT_EXCEEDED',
   CIRCUIT_BREAKER_OPEN: 'CIRCUIT_BREAKER_OPEN',
 } as const;
 
-export type ErrorCode = typeof ERROR_CODES[keyof typeof ERROR_CODES];
+export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
 
 /**
  * 에러 심각도
@@ -50,27 +50,33 @@ export enum ErrorSeverity {
   LOW = 'low',
   MEDIUM = 'medium',
   HIGH = 'high',
-  CRITICAL = 'critical'
+  CRITICAL = 'critical',
 }
 
 /**
  * 서비스별 에러 매핑
  */
-const SERVICE_ERROR_MAPPING: Record<string, { code: ErrorCode; recoverable: boolean }> = {
+const SERVICE_ERROR_MAPPING: Record<
+  string,
+  { code: ErrorCode; recoverable: boolean }
+> = {
   // Supabase 에러
-  'PGRST301': { code: ERROR_CODES.NETWORK_TIMEOUT, recoverable: true },
-  'PGRST000': { code: ERROR_CODES.INTERNAL_ERROR, recoverable: false },
+  PGRST301: { code: ERROR_CODES.NETWORK_TIMEOUT, recoverable: true },
+  PGRST000: { code: ERROR_CODES.INTERNAL_ERROR, recoverable: false },
   '42P01': { code: ERROR_CODES.VECTOR_SEARCH_FAILED, recoverable: false },
-  
+
   // GCP Functions 에러
-  'DEADLINE_EXCEEDED': { code: ERROR_CODES.NETWORK_TIMEOUT, recoverable: true },
-  'RESOURCE_EXHAUSTED': { code: ERROR_CODES.RATE_LIMIT_EXCEEDED, recoverable: true },
-  'UNAUTHENTICATED': { code: ERROR_CODES.UNAUTHORIZED, recoverable: false },
-  
+  DEADLINE_EXCEEDED: { code: ERROR_CODES.NETWORK_TIMEOUT, recoverable: true },
+  RESOURCE_EXHAUSTED: {
+    code: ERROR_CODES.RATE_LIMIT_EXCEEDED,
+    recoverable: true,
+  },
+  UNAUTHENTICATED: { code: ERROR_CODES.UNAUTHORIZED, recoverable: false },
+
   // Redis 에러
-  'WRONGTYPE': { code: ERROR_CODES.INVALID_PARAMETERS, recoverable: false },
-  'OOM': { code: ERROR_CODES.MEMORY_LIMIT_EXCEEDED, recoverable: false },
-  'LOADING': { code: ERROR_CODES.SERVICE_UNAVAILABLE, recoverable: true },
+  WRONGTYPE: { code: ERROR_CODES.INVALID_PARAMETERS, recoverable: false },
+  OOM: { code: ERROR_CODES.MEMORY_LIMIT_EXCEEDED, recoverable: false },
+  LOADING: { code: ERROR_CODES.SERVICE_UNAVAILABLE, recoverable: true },
 };
 
 /**
@@ -118,7 +124,10 @@ export class DistributedErrorHandler {
 
     // 재시도 가능한 경우 재시도 시간 추가
     if (recoverable) {
-      distributedError.retryAfter = this.calculateRetryAfter(errorCode, service);
+      distributedError.retryAfter = this.calculateRetryAfter(
+        errorCode,
+        service
+      );
     }
 
     // 에러 기록
@@ -280,7 +289,9 @@ export class DistributedErrorHandler {
   /**
    * 서비스별 에러 카운트
    */
-  private getServiceErrorCounts(service: AIServiceType): Record<string, number> {
+  private getServiceErrorCounts(
+    service: AIServiceType
+  ): Record<string, number> {
     const counts: Record<string, number> = {};
     for (const [key, count] of this.errorCounts) {
       if (key.startsWith(`${service}:`)) {
@@ -357,7 +368,9 @@ export class DistributedErrorHandler {
     );
   }
 
-  private extractErrorDetails(error: unknown): Record<string, unknown> | undefined {
+  private extractErrorDetails(
+    error: unknown
+  ): Record<string, unknown> | undefined {
     if (typeof error === 'object' && error !== null) {
       const { message, stack, ...details } = error as Record<string, unknown>;
       return Object.keys(details).length > 0 ? details : undefined;
@@ -380,7 +393,10 @@ export class DistributedErrorHandler {
     }
 
     // 인증 실패
-    const authErrorCodes: ErrorCode[] = [ERROR_CODES.UNAUTHORIZED, ERROR_CODES.FORBIDDEN];
+    const authErrorCodes: ErrorCode[] = [
+      ERROR_CODES.UNAUTHORIZED,
+      ERROR_CODES.FORBIDDEN,
+    ];
     if (authErrorCodes.includes(error.code as ErrorCode)) {
       return ErrorSeverity.HIGH;
     }
@@ -391,7 +407,10 @@ export class DistributedErrorHandler {
     }
 
     // 네트워크 에러
-    const networkErrorCodes: ErrorCode[] = [ERROR_CODES.NETWORK_ERROR, ERROR_CODES.NETWORK_TIMEOUT];
+    const networkErrorCodes: ErrorCode[] = [
+      ERROR_CODES.NETWORK_ERROR,
+      ERROR_CODES.NETWORK_TIMEOUT,
+    ];
     if (networkErrorCodes.includes(error.code as ErrorCode)) {
       return ErrorSeverity.MEDIUM;
     }

@@ -2,9 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { Button } from './button';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
 import { Badge } from './badge';
-import {
-  a11yLabels,
-} from '../../stories/templates/StoryTemplate';
+import { a11yLabels } from '../../stories/templates/StoryTemplate';
 import { useState } from 'react';
 import {
   Play,
@@ -36,22 +34,30 @@ const meta = {
     layout: 'centered',
     docs: {
       description: {
-        component: '🎯 OpenManager Vibe v5의 핵심 버튼 컴포넌트입니다. 서버 제어, AI 상호작용, 시스템 관리 등 모든 작업의 시작점이 되는 중요한 컴포넌트입니다.'
-      }
-    }
+        component:
+          '🎯 OpenManager Vibe v5의 핵심 버튼 컴포넌트입니다. 서버 제어, AI 상호작용, 시스템 관리 등 모든 작업의 시작점이 되는 중요한 컴포넌트입니다.',
+      },
+    },
   },
   tags: ['autodocs'],
   argTypes: {
     variant: {
       control: 'select',
-      options: ['default', 'secondary', 'destructive', 'outline', 'ghost', 'link']
+      options: [
+        'default',
+        'secondary',
+        'destructive',
+        'outline',
+        'ghost',
+        'link',
+      ],
     },
     size: {
       control: 'select',
-      options: ['default', 'sm', 'lg', 'icon']
+      options: ['default', 'sm', 'lg', 'icon'],
     },
-    onClick: { action: 'clicked' }
-  }
+    onClick: { action: 'clicked' },
+  },
 } satisfies Meta<typeof Button>;
 
 export default meta;

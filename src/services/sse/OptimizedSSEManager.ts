@@ -224,7 +224,7 @@ export class OptimizedSSEManager {
    */
   private emit(eventType: string, data?: unknown): void {
     const listeners = this.eventListeners.get(eventType) || [];
-    listeners.forEach(listener => {
+    listeners.forEach((listener) => {
       try {
         (listener as any)(data);
       } catch (error) {
@@ -339,7 +339,7 @@ export class OptimizedSSEManager {
 
     // 이벤트 리스너 제거
     const listeners = this.eventListeners.get(channel) || [];
-    listeners.forEach(listener => {
+    listeners.forEach((listener) => {
       connection.removeEventListener('open', listener);
       connection.removeEventListener('message', listener);
       connection.removeEventListener('error', listener);

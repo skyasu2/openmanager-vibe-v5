@@ -28,7 +28,11 @@ interface ThinkingProcessVisualizerProps {
 // 단계 타입별 스타일 매핑
 const stepTypeConfig: Record<
   AIThinkingStep['type'],
-  { icon: React.ComponentType<{ className?: string }>; color: string; label: string }
+  {
+    icon: React.ComponentType<{ className?: string }>;
+    color: string;
+    label: string;
+  }
 > = {
   analyzing: {
     icon: Eye,

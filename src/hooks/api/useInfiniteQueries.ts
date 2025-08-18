@@ -38,7 +38,6 @@ interface MetricHistoryEntry {
   tags?: Record<string, string>;
 }
 
-
 // 페이지 매개변수 타입 정의
 interface PageParam {
   pageParam: string | number;
@@ -65,7 +64,9 @@ export const useInfiniteLogs = (
 ) => {
   const fetchLogs = async ({
     pageParam = 0,
-  }: { pageParam?: string | number }): Promise<PaginatedResponse<LogEntry>> => {
+  }: {
+    pageParam?: string | number;
+  }): Promise<PaginatedResponse<LogEntry>> => {
     const params = new URLSearchParams({
       cursor: pageParam.toString(),
       limit: '50',
@@ -84,20 +85,20 @@ export const useInfiniteLogs = (
   return useInfiniteQuery({
     queryKey: infiniteKeys.logs(JSON.stringify(filters)),
     queryFn: fetchLogs,
-    getNextPageParam: lastPage => lastPage.nextCursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: 0,
     staleTime: 30 * 1000, // 30초
     refetchInterval: 2 * 60 * 1000, // 2분
     select: (data: InfiniteData<PaginatedResponse<LogEntry>>) => ({
       pages: data.pages,
       pageParams: data.pageParams,
-      allLogs: data.pages.flatMap(page => page.data),
+      allLogs: data.pages.flatMap((page) => page.data),
       errorCount: data.pages
-        .flatMap(page => page.data)
-        .filter(log => log.level === 'error').length,
+        .flatMap((page) => page.data)
+        .filter((log) => log.level === 'error').length,
       warningCount: data.pages
-        .flatMap(page => page.data)
-        .filter(log => log.level === 'warning').length,
+        .flatMap((page) => page.data)
+        .filter((log) => log.level === 'warning').length,
     }),
   });
 };
@@ -110,7 +111,9 @@ export const useInfiniteMetrics = (
 ) => {
   const fetchMetrics = async ({
     pageParam = 0,
-  }: { pageParam?: string | number }): Promise<PaginatedResponse<MetricHistoryEntry>> => {
+  }: {
+    pageParam?: string | number;
+  }): Promise<PaginatedResponse<MetricHistoryEntry>> => {
     const params = new URLSearchParams({
       cursor: pageParam.toString(),
       limit: '100',
@@ -129,14 +132,14 @@ export const useInfiniteMetrics = (
   return useInfiniteQuery({
     queryKey: infiniteKeys.metrics(serverId, metric, timeRange),
     queryFn: fetchMetrics,
-    getNextPageParam: lastPage => lastPage.nextCursor,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
     initialPageParam: 0,
     staleTime: 60 * 1000, // 1분
     refetchInterval: 5 * 60 * 1000, // 5분
     enabled: !!serverId && !!metric,
     select: (data: InfiniteData<PaginatedResponse<MetricHistoryEntry>>) => {
-      const allMetrics = data.pages.flatMap(page => page.data);
-      const values = allMetrics.map(m => m.value);
+      const allMetrics = data.pages.flatMap((page) => page.data);
+      const values = allMetrics.map((m) => m.value);
 
       return {
         pages: data.pages,
@@ -163,8 +166,8 @@ export const useInfiniteScrollManager = () => {
     return queryClient
       .getQueryCache()
       .getAll()
-      .filter(query => query.queryKey[0] === 'infinite')
-      .map(query => ({
+      .filter((query) => query.queryKey[0] === 'infinite')
+      .map((query) => ({
         key: query.queryKey,
         status: query.state.status,
         dataUpdatedAt: query.state.dataUpdatedAt,
@@ -176,7 +179,7 @@ export const useInfiniteScrollManager = () => {
   const refreshInfiniteQueries = useCallback(
     (type: 'logs' | 'metrics' | 'predictions' | 'alerts') => {
       queryClient.invalidateQueries({
-        predicate: query =>
+        predicate: (query) =>
           query.queryKey[0] === 'infinite' && query.queryKey[1] === type,
       });
     },
@@ -188,9 +191,9 @@ export const useInfiniteScrollManager = () => {
     const infiniteQueries = queryClient
       .getQueryCache()
       .getAll()
-      .filter(query => query.queryKey[0] === 'infinite');
+      .filter((query) => query.queryKey[0] === 'infinite');
 
-    infiniteQueries.forEach(query => {
+    infiniteQueries.forEach((query) => {
       const data = query.state.data as InfiniteData<unknown>;
       if (data?.pages && data.pages.length > 10) {
         // 처음 5페이지와 마지막 5페이지만 유지

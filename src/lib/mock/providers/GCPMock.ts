@@ -1,6 +1,6 @@
 /**
  * ☁️ GCP Functions Mock Provider
- * 
+ *
  * GCP Cloud Functions의 간소화된 Mock 구현
  */
 
@@ -18,18 +18,21 @@ export class GCPMock extends MockBase {
   /**
    * Korean NLP 분석
    */
-  async analyzeKoreanNLP(text: string, context?: unknown): Promise<{
+  async analyzeKoreanNLP(
+    text: string,
+    context?: unknown
+  ): Promise<{
     intent: string;
     entities: Array<{ type: string; value: string }>;
     confidence: number;
   }> {
     return this.execute('analyzeKoreanNLP', async () => {
       const lowerText = text.toLowerCase();
-      
+
       // 의도 분석
       let intent = 'general';
       let confidence = 0.7;
-      
+
       if (lowerText.includes('서버') || lowerText.includes('상태')) {
         intent = 'server_status';
         confidence = 0.9;
@@ -40,17 +43,17 @@ export class GCPMock extends MockBase {
         intent = 'error_detection';
         confidence = 0.88;
       }
-      
+
       // 엔티티 추출
       const entities: Array<{ type: string; value: string }> = [];
-      
+
       // 서버 이름 추출
       for (const server of mockServers.servers) {
         if (text.includes(server.name)) {
           entities.push({ type: 'server', value: server.name });
         }
       }
-      
+
       // 메트릭 타입 추출
       const metrics = ['cpu', 'memory', 'disk', 'network'];
       for (const metric of metrics) {
@@ -58,7 +61,7 @@ export class GCPMock extends MockBase {
           entities.push({ type: 'metric', value: metric });
         }
       }
-      
+
       return { intent, entities, confidence };
     });
   }
@@ -66,31 +69,33 @@ export class GCPMock extends MockBase {
   /**
    * ML 분석 엔진
    */
-  async analyzeMLMetrics(metrics: Array<{
-    timestamp: string;
-    value: number;
-    server_id: string;
-    metric_type: string;
-  }>): Promise<{
+  async analyzeMLMetrics(
+    metrics: Array<{
+      timestamp: string;
+      value: number;
+      server_id: string;
+      metric_type: string;
+    }>
+  ): Promise<{
     trend: 'increasing' | 'decreasing' | 'stable';
     anomalies: Array<{ timestamp: string; severity: number }>;
     prediction: { next_hour: number; confidence: number };
   }> {
     return this.execute('analyzeMLMetrics', async () => {
       // 트렌드 분석
-      const values = metrics.map(m => m.value);
+      const values = metrics.map((m) => m.value);
       const avg = values.reduce((a, b) => a + b, 0) / values.length;
       const lastAvg = values.slice(-3).reduce((a, b) => a + b, 0) / 3;
-      
+
       let trend: 'increasing' | 'decreasing' | 'stable' = 'stable';
       if (lastAvg > avg * 1.1) trend = 'increasing';
       else if (lastAvg < avg * 0.9) trend = 'decreasing';
-      
+
       // 이상 탐지
       const anomalies: Array<{ timestamp: string; severity: number }> = [];
       const threshold = avg + (Math.max(...values) - avg) * 0.8;
-      
-      metrics.forEach(metric => {
+
+      metrics.forEach((metric) => {
         if (metric.value > threshold) {
           anomalies.push({
             timestamp: metric.timestamp,
@@ -98,14 +103,18 @@ export class GCPMock extends MockBase {
           });
         }
       });
-      
+
       // 예측
       const prediction = {
-        next_hour: trend === 'increasing' ? lastAvg * 1.05 : 
-                   trend === 'decreasing' ? lastAvg * 0.95 : lastAvg,
+        next_hour:
+          trend === 'increasing'
+            ? lastAvg * 1.05
+            : trend === 'decreasing'
+              ? lastAvg * 0.95
+              : lastAvg,
         confidence: 0.75,
       };
-      
+
       return { trend, anomalies, prediction };
     });
   }
@@ -125,7 +134,7 @@ export class GCPMock extends MockBase {
       const startTime = Date.now();
       let result: unknown;
       let confidence = 0.8;
-      
+
       switch (request.type) {
         case 'analysis':
           result = {
@@ -137,7 +146,7 @@ export class GCPMock extends MockBase {
             ],
           };
           break;
-          
+
         case 'prediction':
           result = {
             forecast: '향후 24시간 내 시스템 안정성 유지 예상',
@@ -146,7 +155,7 @@ export class GCPMock extends MockBase {
           };
           confidence = 0.85;
           break;
-          
+
         case 'recommendation':
           result = {
             actions: [
@@ -157,11 +166,11 @@ export class GCPMock extends MockBase {
           };
           confidence = 0.9;
           break;
-          
+
         default:
           result = { message: '처리 완료' };
       }
-      
+
       return {
         result,
         confidence,

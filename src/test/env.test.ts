@@ -60,7 +60,9 @@ describe('🧪 테스트 환경변수 설정', () => {
     it('Google AI Mock 설정이 올바르게 정의되어야 함', () => {
       expect(TEST_ENV_CONFIG.GOOGLE_AI_ENABLED).toBe('true');
       expect(TEST_ENV_CONFIG.FORCE_MOCK_GOOGLE_AI).toBe('true');
-      expect(TEST_ENV_CONFIG.GOOGLE_AI_API_KEY).toBe('mock-google-ai-api-key-for-testing');
+      expect(TEST_ENV_CONFIG.GOOGLE_AI_API_KEY).toBe(
+        'mock-google-ai-api-key-for-testing'
+      );
     });
 
     it('AI 할당량 보호 설정이 활성화되어야 함', () => {

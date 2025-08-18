@@ -29,7 +29,7 @@ const mockStats = {
 // 테스트 환경에서는 항상 Supabase Mock 사용
 if (process.env.NODE_ENV === 'test' || process.env.VITEST === 'true') {
   console.log('🎭 Supabase Mock 활성화됨 (테스트 환경)');
-  
+
   vi.mock('@supabase/supabase-js', () => ({
     createClient: vi.fn(() => ({
       from: vi.fn((tableName: string) => {
@@ -79,9 +79,10 @@ if (process.env.NODE_ENV === 'test' || process.env.VITEST === 'true') {
           contains: vi.fn().mockReturnThis(),
           // Add missing range method
           range: vi.fn((start: number, end: number) => {
-            const data = tableName === 'command_vectors' 
-              ? mockVectorDocuments.slice(start, end + 1)
-              : [];
+            const data =
+              tableName === 'command_vectors'
+                ? mockVectorDocuments.slice(start, end + 1)
+                : [];
             return Promise.resolve(createMockResponse(data));
           }),
           limit: vi.fn((count: number) => {
@@ -109,7 +110,9 @@ if (process.env.NODE_ENV === 'test' || process.env.VITEST === 'true') {
                   Promise.resolve(createMockResponse(mockStats))
                 ),
                 then: vi.fn((callback) =>
-                  Promise.resolve(createMockResponse([mockStats])).then(callback)
+                  Promise.resolve(createMockResponse([mockStats])).then(
+                    callback
+                  )
                 ),
               };
             }
@@ -179,7 +182,10 @@ if (process.env.NODE_ENV === 'test' || process.env.VITEST === 'true') {
           count: null,
         });
 
-        if (funcName === 'match_documents' || funcName === 'similarity_search') {
+        if (
+          funcName === 'match_documents' ||
+          funcName === 'similarity_search'
+        ) {
           return Promise.resolve(
             createMockResponse(
               mockVectorDocuments.map((doc) => ({
@@ -244,9 +250,10 @@ if (process.env.NODE_ENV === 'test' || process.env.VITEST === 'true') {
           contains: vi.fn().mockReturnThis(),
           // Add missing range method
           range: vi.fn((start: number, end: number) => {
-            const data = tableName === 'command_vectors' 
-              ? mockVectorDocuments.slice(start, end + 1)
-              : [];
+            const data =
+              tableName === 'command_vectors'
+                ? mockVectorDocuments.slice(start, end + 1)
+                : [];
             return Promise.resolve(createMockResponse(data));
           }),
           limit: vi.fn((count: number) => {
@@ -274,7 +281,9 @@ if (process.env.NODE_ENV === 'test' || process.env.VITEST === 'true') {
                   Promise.resolve(createMockResponse(mockStats))
                 ),
                 then: vi.fn((callback) =>
-                  Promise.resolve(createMockResponse([mockStats])).then(callback)
+                  Promise.resolve(createMockResponse([mockStats])).then(
+                    callback
+                  )
                 ),
               };
             }
@@ -327,7 +336,10 @@ if (process.env.NODE_ENV === 'test' || process.env.VITEST === 'true') {
           count: null,
         });
 
-        if (funcName === 'match_documents' || funcName === 'similarity_search') {
+        if (
+          funcName === 'match_documents' ||
+          funcName === 'similarity_search'
+        ) {
           return Promise.resolve(
             createMockResponse(
               mockVectorDocuments.map((doc) => ({

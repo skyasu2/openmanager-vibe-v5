@@ -21,8 +21,8 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json(currentMetrics, {
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
+        Pragma: 'no-cache',
+        Expires: '0',
       },
     });
   } catch (error) {
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
-        
+
         const resolved = performanceService.resolveAlert(alertId);
         if (!resolved) {
           return NextResponse.json(
@@ -57,14 +57,11 @@ export async function POST(request: NextRequest) {
             { status: 404 }
           );
         }
-        
+
         return NextResponse.json({ success: true });
 
       default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
   } catch (error) {
     console.error('Error processing performance action:', error);

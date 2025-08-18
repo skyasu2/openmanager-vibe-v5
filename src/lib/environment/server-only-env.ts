@@ -91,7 +91,9 @@ export class ServerEnvironmentManager {
     const optionalVars = ['GOOGLE_AI_API_KEY', 'GITHUB_TOKEN'];
     for (const varName of optionalVars) {
       if (!process.env[varName]) {
-        warnings.push(`"${varName}"가 설정되지 않았습니다. 일부 기능이 제한될 수 있습니다.`);
+        warnings.push(
+          `"${varName}"가 설정되지 않았습니다. 일부 기능이 제한될 수 있습니다.`
+        );
       }
     }
 
@@ -112,9 +114,10 @@ export class ServerEnvironmentManager {
       const value = process.env[key];
       if (value) {
         // 값의 일부만 보여주고 나머지는 마스킹
-        const masked = value.length > 8 
-          ? `${value.substring(0, 4)}...${value.substring(value.length - 4)}`
-          : '***';
+        const masked =
+          value.length > 8
+            ? `${value.substring(0, 4)}...${value.substring(value.length - 4)}`
+            : '***';
         status[key] = `✅ Set (${masked})`;
       } else {
         status[key] = '❌ Not set';

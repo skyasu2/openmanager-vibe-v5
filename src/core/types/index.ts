@@ -1,10 +1,10 @@
 /**
  * 🎯 Core Types Index
- * 
+ *
  * 중앙화된 타입 시스템의 진입점
  * - 모든 core 타입을 한 곳에서 관리
  * - 일관된 import 경로 제공
- * 
+ *
  * @usage
  * import { ServerMetrics, Server } from '@/core/types';
  */

@@ -133,14 +133,22 @@ export const DashboardActionDataSchema = z.union([
   // Export action data
   z.object({
     format: z.enum(['json', 'csv', 'xml']).optional(),
-    filters: z.object({
-      dateRange: z.object({
-        start: z.string(),
-        end: z.string(),
-      }).optional(),
-      serverTypes: z.array(z.string()).optional(),
-      status: z.array(z.enum(['online', 'offline', 'critical', 'healthy', 'warning'])).optional(),
-    }).optional(),
+    filters: z
+      .object({
+        dateRange: z
+          .object({
+            start: z.string(),
+            end: z.string(),
+          })
+          .optional(),
+        serverTypes: z.array(z.string()).optional(),
+        status: z
+          .array(
+            z.enum(['online', 'offline', 'critical', 'healthy', 'warning'])
+          )
+          .optional(),
+      })
+      .optional(),
   }),
   // Import action data
   z.object({
@@ -193,11 +201,13 @@ export const DashboardActionResponseDataSchema = z.union([
   z.object({
     importedRecords: z.number(),
     skippedRecords: z.number(),
-    errors: z.array(z.object({
-      row: z.number(),
-      field: z.string(),
-      error: z.string(),
-    })),
+    errors: z.array(
+      z.object({
+        row: z.number(),
+        field: z.string(),
+        error: z.string(),
+      })
+    ),
     importId: z.string(),
   }),
 ]);

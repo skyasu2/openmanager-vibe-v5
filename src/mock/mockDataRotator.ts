@@ -47,7 +47,7 @@ export class MockDataRotator {
   private decompressAllData() {
     Object.entries(this.timeSeries).forEach(([serverId, data]) => {
       this.decompressedData[serverId] = decompressTimeSeriesData(
-        (data.data as unknown) as import('./mockDataGenerator').CompressedDataPoint[]
+        data.data as unknown as import('./mockDataGenerator').CompressedDataPoint[]
       );
     });
   }

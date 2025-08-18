@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * 📄 서버 페이지네이션 API 스키마
- * 
+ *
  * 서버 목록의 페이지네이션 처리를 위한 스키마
  */
 
@@ -74,7 +74,12 @@ export const ServerPaginatedResponseSchema = z.object({
 
 // ===== 배치 작업 =====
 
-export const ServerBatchActionSchema = z.enum(['batch-restart', 'batch-update', 'batch-configure', 'health-check']);
+export const ServerBatchActionSchema = z.enum([
+  'batch-restart',
+  'batch-update',
+  'batch-configure',
+  'health-check',
+]);
 
 export const ServerBatchRequestSchema = z.object({
   action: ServerBatchActionSchema,
@@ -89,12 +94,16 @@ export const ServerBatchResponseSchema = z.object({
   estimatedDuration: z.number().optional(),
   timestamp: z.string(),
   settings: z.record(z.unknown()).optional(),
-  results: z.array(z.object({
-    serverId: z.string(),
-    status: z.enum(['healthy', 'warning', 'critical']),
-    responseTime: z.number(),
-    lastCheck: z.string(),
-  })).optional(),
+  results: z
+    .array(
+      z.object({
+        serverId: z.string(),
+        status: z.enum(['healthy', 'warning', 'critical']),
+        responseTime: z.number(),
+        lastCheck: z.string(),
+      })
+    )
+    .optional(),
 });
 
 // ===== 타입 내보내기 =====
@@ -103,7 +112,9 @@ export type ServerPaginationQuery = z.infer<typeof ServerPaginationQuerySchema>;
 export type PaginatedServer = z.infer<typeof PaginatedServerSchema>;
 export type ServerPagination = z.infer<typeof ServerPaginationSchema>;
 export type ServerSummary = z.infer<typeof ServerSummarySchema>;
-export type ServerPaginatedResponse = z.infer<typeof ServerPaginatedResponseSchema>;
+export type ServerPaginatedResponse = z.infer<
+  typeof ServerPaginatedResponseSchema
+>;
 export type ServerBatchAction = z.infer<typeof ServerBatchActionSchema>;
 export type ServerBatchRequest = z.infer<typeof ServerBatchRequestSchema>;
 export type ServerBatchResponse = z.infer<typeof ServerBatchResponseSchema>;

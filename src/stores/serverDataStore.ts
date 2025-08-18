@@ -228,11 +228,9 @@ export const createServerDataStore = (
         const { servers, isLoading, error, lastUpdate } = get();
         return {
           totalServers: servers.length,
-          healthyServers: servers.filter(s => s.status === 'healthy')
-            .length,
-          warningServers: servers.filter(s => s.status === 'warning')
-            .length,
-          criticalServers: servers.filter(s => s.status === 'critical')
+          healthyServers: servers.filter((s) => s.status === 'healthy').length,
+          warningServers: servers.filter((s) => s.status === 'warning').length,
+          criticalServers: servers.filter((s) => s.status === 'critical')
             .length,
           isLoading,
           error,
@@ -242,15 +240,15 @@ export const createServerDataStore = (
 
       // 개별 서버 조회 및 필터링
       getServerById: (id: string) => {
-        return get().servers.find(s => s.id === id);
+        return get().servers.find((s) => s.id === id);
       },
 
       getServersByStatus: (status: 'healthy' | 'warning' | 'critical') => {
-        return get().servers.filter(s => s.status === status);
+        return get().servers.filter((s) => s.status === status);
       },
 
       getServersByEnvironment: (environment: string) => {
-        return get().servers.filter(s => s.environment === environment);
+        return get().servers.filter((s) => s.environment === environment);
       },
     }))
   );

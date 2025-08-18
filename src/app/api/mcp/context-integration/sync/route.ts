@@ -38,10 +38,10 @@ const postHandler = createApiRoute()
       ragEngineUrl?: string;
       force?: boolean;
     }
-    
+
     const body = context.body as ExtendedSyncRequest;
     const {
-      ragEngineUrl = 'http://localhost:3001/api/rag',  // 기본값 설정
+      ragEngineUrl = 'http://localhost:3001/api/rag', // 기본값 설정
       syncType = 'full',
       force: _force = false,
     } = body;
@@ -60,7 +60,8 @@ const postHandler = createApiRoute()
     switch (syncType) {
       case 'full': {
         debug.log('🔄 전체 컨텍스트 동기화 실행...');
-        const rawSyncResult = await cloudContextLoader.syncContextWithRAG(ragEngineUrl);
+        const rawSyncResult =
+          await cloudContextLoader.syncContextWithRAG(ragEngineUrl);
         syncResult = {
           ...rawSyncResult,
           timestamp: new Date().toISOString(),
@@ -83,7 +84,7 @@ const postHandler = createApiRoute()
           // sendContextToRAG 메서드가 없으므로 Mock 응답
           const ragSyncResult = {
             success: true,
-            message: 'MCP context synced'
+            message: 'MCP context synced',
           };
           syncResult = {
             success: ragSyncResult.success,
@@ -123,7 +124,7 @@ const postHandler = createApiRoute()
             // sendContextToRAG 메서드가 없으므로 Mock 응답
             const ragSyncResult = {
               success: true,
-              message: 'Local context synced'
+              message: 'Local context synced',
             };
             if (ragSyncResult.success) {
               localSyncCount++;
@@ -156,7 +157,7 @@ const postHandler = createApiRoute()
           // sendContextToRAG 메서드가 없으므로 Mock 응답
           const ragSyncResult = {
             success: true,
-            message: 'Incremental context synced'
+            message: 'Incremental context synced',
           };
           syncResult = {
             success: ragSyncResult.success,
@@ -278,7 +279,7 @@ const getHandler = createApiRoute()
       ],
       performance: integratedStatus.performance,
     };
-    
+
     // MCPSyncStatusResponse 타입으로 반환
     return response;
   });

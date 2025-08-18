@@ -80,7 +80,9 @@ export const ReportGenerator: React.FC = () => {
       setReport(result.report);
       setIsModalOpen(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다');
+      setError(
+        err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다'
+      );
       setIsModalOpen(true);
     } finally {
       setIsLoading(false);

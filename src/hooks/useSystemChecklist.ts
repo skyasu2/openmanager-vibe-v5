@@ -37,7 +37,7 @@ export const useSystemChecklist = ({
   const [components, setComponents] = useState<Record<string, ComponentStatus>>(
     () => {
       const _initial: Record<string, ComponentStatus> = {};
-      OPENMANAGER_COMPONENTS.forEach(comp => {
+      OPENMANAGER_COMPONENTS.forEach((comp) => {
         _initial[comp.id] = {
           id: comp.id,
           status: 'pending',
@@ -57,7 +57,7 @@ export const useSystemChecklist = ({
       const componentId = componentDef.id;
 
       // 로딩 상태 시작
-      setComponents(prev => ({
+      setComponents((prev) => ({
         ...prev,
         [componentId]: {
           ...prev[componentId],
@@ -73,7 +73,7 @@ export const useSystemChecklist = ({
 
       // 프로그레스 애니메이션
       const _animateProgress = () => {
-        setComponents(prev => {
+        setComponents((prev) => {
           const current = prev[componentId];
           if (current.status === 'loading' && current.progress < 90) {
             const increment = Math.random() * 15 + 5; // 5-20% 증가
@@ -100,7 +100,7 @@ export const useSystemChecklist = ({
         // 최소 표시 시간과 실제 체크 병렬 실행
         const [checkResult] = await Promise.all([
           componentDef.checkFunction(),
-          new Promise(resolve =>
+          new Promise((resolve) =>
             setTimeout(resolve, Math.max(500, componentDef.estimatedTime * 0.3))
           ),
         ]);
@@ -110,7 +110,7 @@ export const useSystemChecklist = ({
         }
 
         if (checkResult) {
-          setComponents(prev => ({
+          setComponents((prev) => ({
             ...prev,
             [componentId]: {
               ...prev[componentId],
@@ -133,7 +133,7 @@ export const useSystemChecklist = ({
         const errorMessage =
           error instanceof Error ? error.message : '알 수 없는 오류';
 
-        setComponents(prev => ({
+        setComponents((prev) => ({
           ...prev,
           [componentId]: {
             ...prev[componentId],
@@ -160,7 +160,7 @@ export const useSystemChecklist = ({
         return true;
       }
 
-      return componentDef.dependencies.every(depId => {
+      return componentDef.dependencies.every((depId) => {
         const depStatus = components[depId];
         return depStatus && depStatus.status === 'completed';
       });
@@ -174,21 +174,23 @@ export const useSystemChecklist = ({
 
     // 의존성이 없는 컴포넌트들 먼저 시작
     const independentComponents = OPENMANAGER_COMPONENTS.filter(
-      comp => !comp.dependencies || comp.dependencies.length === 0
+      (comp) => !comp.dependencies || comp.dependencies.length === 0
     );
 
     // 병렬로 독립적인 컴포넌트들 체크
-    await Promise.all(independentComponents.map(comp => checkComponent(comp)));
+    await Promise.all(
+      independentComponents.map((comp) => checkComponent(comp))
+    );
 
     // 의존성이 있는 컴포넌트들 순차적으로 체크
     const dependentComponents = OPENMANAGER_COMPONENTS.filter(
-      comp => comp.dependencies && comp.dependencies.length > 0
+      (comp) => comp.dependencies && comp.dependencies.length > 0
     );
 
     for (const comp of dependentComponents) {
       // 의존성이 충족될 때까지 대기
       while (!canStartComponent(comp)) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
       await checkComponent(comp);
     }
@@ -198,11 +200,13 @@ export const useSystemChecklist = ({
   const stats = useMemo(() => {
     const componentList = Object.values(components);
     const completedCount = componentList.filter(
-      c => c.status === 'completed'
+      (c) => c.status === 'completed'
     ).length;
-    const failedCount = componentList.filter(c => c.status === 'failed').length;
+    const failedCount = componentList.filter(
+      (c) => c.status === 'failed'
+    ).length;
     const loadingCount = componentList.filter(
-      c => c.status === 'loading'
+      (c) => c.status === 'loading'
     ).length;
     const totalProgress =
       componentList.reduce((sum, c) => sum + c.progress, 0) /
@@ -219,10 +223,10 @@ export const useSystemChecklist = ({
   // 완료 조건 체크
   useEffect(() => {
     const criticalComponents = OPENMANAGER_COMPONENTS.filter(
-      c => c.priority === 'critical'
+      (c) => c.priority === 'critical'
     );
     const criticalCompleted = criticalComponents.every(
-      comp => components[comp.id]?.status === 'completed'
+      (comp) => components[comp.id]?.status === 'completed'
     );
 
     if (criticalCompleted && !isCompleted) {

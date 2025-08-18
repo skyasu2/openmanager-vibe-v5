@@ -5,15 +5,15 @@
  */
 
 import type {
-    DeploymentEnvConfig,
-    EnvironmentConfig,
-    EnvironmentName,
-    EnvironmentValidationResult,
-    GoogleAIEnvConfig,
-    MonitoringEnvConfig,
-    SafeEnvironmentAccess,
-    SecurityEnvConfig,
-    SupabaseEnvConfig,
+  DeploymentEnvConfig,
+  EnvironmentConfig,
+  EnvironmentName,
+  EnvironmentValidationResult,
+  GoogleAIEnvConfig,
+  MonitoringEnvConfig,
+  SafeEnvironmentAccess,
+  SecurityEnvConfig,
+  SupabaseEnvConfig,
 } from '@/types/environment';
 import { isValidEnvironmentName } from '@/types/environment';
 
@@ -108,7 +108,7 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
 
     return value
       .split(separator)
-      .map(item => item.trim())
+      .map((item) => item.trim())
       .filter(Boolean);
   }
 
@@ -359,7 +359,9 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
         for (const [key, value] of Object.entries(process.env)) {
           if (
             value &&
-            prodPatterns.some(pattern => value.toLowerCase().includes(pattern))
+            prodPatterns.some((pattern) =>
+              value.toLowerCase().includes(pattern)
+            )
           ) {
             vulnerabilities.push(
               `Development environment using production-like value for ${key}`
@@ -423,4 +425,3 @@ export const isDevelopment = () => safeEnv.isDevelopment();
 export const isTest = () => safeEnv.isTest();
 
 export { SafeEnvironmentAccessImpl };
-

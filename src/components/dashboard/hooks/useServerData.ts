@@ -96,25 +96,28 @@ export const useServerData = (): UseServerDataReturn => {
           const mappedServers = realtimeData.map((server: unknown) => {
             if (typeof server !== 'object' || server === null) {
               // 필수 속성들을 모두 포함한 기본 서버 객체 반환
-              return fallbackServers[0] || {
-                id: 'unknown',
-                name: 'Unknown Server',
-                hostname: 'unknown',
-                status: 'offline' as const,
-                cpu: 0,
-                memory: 0,
-                disk: 0,
-                network: 0,
-                uptime: 0,
-                location: 'Unknown',
-                alerts: 0,
-                ip: '0.0.0.0',
-                os: 'Unknown',
-                type: 'unknown',
-                environment: 'unknown',
-                provider: 'unknown',
-                lastUpdate: new Date(),
-              } as Server;
+              return (
+                fallbackServers[0] ||
+                ({
+                  id: 'unknown',
+                  name: 'Unknown Server',
+                  hostname: 'unknown',
+                  status: 'offline' as const,
+                  cpu: 0,
+                  memory: 0,
+                  disk: 0,
+                  network: 0,
+                  uptime: 0,
+                  location: 'Unknown',
+                  alerts: 0,
+                  ip: '0.0.0.0',
+                  os: 'Unknown',
+                  type: 'unknown',
+                  environment: 'unknown',
+                  provider: 'unknown',
+                  lastUpdate: new Date(),
+                } as Server)
+              );
             }
             const s = server as Record<string, unknown>;
             return {

@@ -1,6 +1,6 @@
 /**
  * 🏠 SimplifiedQueryEngine Local Query Processor
- * 
+ *
  * Specialized processor for local RAG-based queries:
  * - Supabase RAG search integration
  * - Local response generation
@@ -16,9 +16,7 @@ import type {
   AIQueryOptions,
   MCPContext,
 } from '@/types/ai-service-types';
-import type {
-  QueryResponse,
-} from './SimplifiedQueryEngine.types';
+import type { QueryResponse } from './SimplifiedQueryEngine.types';
 import { SimplifiedQueryEngineUtils } from './SimplifiedQueryEngine.utils';
 import { SimplifiedQueryEngineHelpers } from './SimplifiedQueryEngine.processors.helpers';
 
@@ -82,19 +80,19 @@ export class LocalQueryProcessor {
       this.utils.safeUpdateLastThinkingStep(thinkingSteps, {
         status: 'completed',
         description: `${ragResult.totalResults}개 관련 문서 발견`,
-        duration: Date.now() - ragStepStart
+        duration: Date.now() - ragStepStart,
       });
     } catch (ragError) {
       // RAG 검색 실패 시 에러 처리
       console.error('RAG 검색 실패:', ragError);
-      
+
       // ✅ 안전한 배열 접근
       this.utils.safeUpdateLastThinkingStep(thinkingSteps, {
         status: 'failed',
         description: 'RAG 검색 실패',
-        duration: Date.now() - ragStepStart
+        duration: Date.now() - ragStepStart,
       });
-      
+
       // RAG 실패 시 에러 응답 반환
       return {
         success: false,
@@ -126,7 +124,7 @@ export class LocalQueryProcessor {
     // ✅ 안전한 배열 접근
     this.utils.safeUpdateLastThinkingStep(thinkingSteps, {
       status: 'completed',
-      duration: Date.now() - responseStepStart
+      duration: Date.now() - responseStepStart,
     });
 
     return {
@@ -137,7 +135,9 @@ export class LocalQueryProcessor {
       thinkingSteps,
       metadata: {
         ragResults: ragResult.totalResults,
-        sources: ragResult.results?.map(r => r.metadata?.source).filter(Boolean) || [],
+        sources:
+          ragResult.results?.map((r) => r.metadata?.source).filter(Boolean) ||
+          [],
         mcpFiles: mcpContext?.files?.length || 0,
       },
       processingTime: Date.now() - startTime,

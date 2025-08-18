@@ -1,15 +1,15 @@
 /**
  * 📡 API Schema Index - Modular Architecture
- * 
+ *
  * Centralized export point for all API-related schemas
  * - Imports and re-exports from 13 specialized modules
  * - Maintains clean separation of concerns
  * - Single point of access for all API schemas
- * 
+ *
  * Modules:
  * - AI: AI queries, responses, and analysis
  * - Auth: Authentication and OAuth
- * - Cache: Caching strategies and operations  
+ * - Cache: Caching strategies and operations
  * - Dashboard: Dashboard APIs and data
  * - Database: Database operations and migrations
  * - DevTools: Development and debugging tools
@@ -63,13 +63,13 @@ export * from './api.streaming.schema';
 
 /**
  * 🎯 Architecture Benefits:
- * 
+ *
  * Before: 1859 lines monolithic file
  * After: 13 specialized modules + 1 index file
- * 
+ *
  * - 📦 Modular: Each domain has its own file
  * - 🔍 Discoverable: Clear module organization
- * - 🛠️ Maintainable: Easy to locate and update schemas  
+ * - 🛠️ Maintainable: Easy to locate and update schemas
  * - 🔄 Reusable: Modules can be imported independently
  * - ⚡ Performance: Better tree-shaking and bundling
  */

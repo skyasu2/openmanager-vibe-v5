@@ -1,6 +1,6 @@
 /**
  * 🇰🇷 한국어 NLP 엣지 케이스 및 산업별 시나리오
- * 
+ *
  * 실제 운영 환경에서 발생 가능한 다양한 한국어 처리 케이스
  */
 
@@ -24,7 +24,8 @@ export const TECHNICAL_MIXED_CASES: KoreanNLPScenario[] = [
     id: 'tech-mixed-1',
     category: 'technical',
     industry: 'it',
-    input: 'web-prd-01 서버의 CPU utilization이 90% 넘었는데 load average는 어떻게 되나요?',
+    input:
+      'web-prd-01 서버의 CPU utilization이 90% 넘었는데 load average는 어떻게 되나요?',
     expectedIntent: 'check_server_metrics',
     expectedEntities: {
       server_id: 'web-prd-01',
@@ -37,7 +38,8 @@ export const TECHNICAL_MIXED_CASES: KoreanNLPScenario[] = [
     id: 'tech-mixed-2',
     category: 'technical',
     industry: 'it',
-    input: 'k8s 클러스터에서 pod가 계속 CrashLoopBackOff 상태인데 로그 좀 보여줘',
+    input:
+      'k8s 클러스터에서 pod가 계속 CrashLoopBackOff 상태인데 로그 좀 보여줘',
     expectedIntent: 'show_kubernetes_logs',
     expectedEntities: {
       platform: 'kubernetes',
@@ -51,7 +53,8 @@ export const TECHNICAL_MIXED_CASES: KoreanNLPScenario[] = [
     id: 'tech-mixed-3',
     category: 'technical',
     industry: 'it',
-    input: 'Redis에서 memory fragmentation ratio가 높은데 이거 어떻게 해결하지?',
+    input:
+      'Redis에서 memory fragmentation ratio가 높은데 이거 어떻게 해결하지?',
     expectedIntent: 'troubleshoot_redis',
     expectedEntities: {
       service: 'redis',
@@ -143,7 +146,8 @@ export const COMPLEX_MIXED_CASES: KoreanNLPScenario[] = [
   {
     id: 'complex-1',
     category: 'mixed',
-    input: '어제 3시부터 5시 사이에 API 응답 시간이 느렸다는데 그 시간대 CPU랑 메모리 사용률 그래프로 보여주고 로그에 에러 있었는지도 확인해줘',
+    input:
+      '어제 3시부터 5시 사이에 API 응답 시간이 느렸다는데 그 시간대 CPU랑 메모리 사용률 그래프로 보여주고 로그에 에러 있었는지도 확인해줘',
     expectedIntent: 'analyze_past_incident',
     expectedEntities: {
       time_range: {
@@ -161,7 +165,8 @@ export const COMPLEX_MIXED_CASES: KoreanNLPScenario[] = [
   {
     id: 'complex-2',
     category: 'mixed',
-    input: '지금 웹서버 3대 중에 하나만 CPU가 높은데 로드밸런서 설정이 잘못된 건지 아니면 특정 요청이 몰리는 건지 분석해줘',
+    input:
+      '지금 웹서버 3대 중에 하나만 CPU가 높은데 로드밸런서 설정이 잘못된 건지 아니면 특정 요청이 몰리는 건지 분석해줘',
     expectedIntent: 'diagnose_load_imbalance',
     expectedEntities: {
       server_group: 'web_servers',
@@ -174,7 +179,8 @@ export const COMPLEX_MIXED_CASES: KoreanNLPScenario[] = [
   {
     id: 'complex-3',
     category: 'mixed',
-    input: 'SSL 인증서 만료일이 다가오는 서버들 목록이랑 각 서버별로 언제 갱신해야 하는지 정리해서 보여줘',
+    input:
+      'SSL 인증서 만료일이 다가오는 서버들 목록이랑 각 서버별로 언제 갱신해야 하는지 정리해서 보여줘',
     expectedIntent: 'ssl_certificate_management',
     expectedEntities: {
       check_type: 'ssl_expiry',
@@ -326,19 +332,21 @@ export function evaluateNLPResult(
   extraEntities: string[];
 } {
   const intentMatch = actualIntent === scenario.expectedIntent;
-  
+
   const expectedKeys = Object.keys(scenario.expectedEntities);
   const actualKeys = Object.keys(actualEntities);
-  
-  const missingEntities = expectedKeys.filter(key => !actualKeys.includes(key));
-  const extraEntities = actualKeys.filter(key => !expectedKeys.includes(key));
-  
+
+  const missingEntities = expectedKeys.filter(
+    (key) => !actualKeys.includes(key)
+  );
+  const extraEntities = actualKeys.filter((key) => !expectedKeys.includes(key));
+
   let matchedEntities = 0;
-  expectedKeys.forEach(key => {
+  expectedKeys.forEach((key) => {
     if (actualKeys.includes(key)) {
       const expected = scenario.expectedEntities[key];
       const actual = actualEntities[key];
-      
+
       if (JSON.stringify(expected) === JSON.stringify(actual)) {
         matchedEntities++;
       } else if (typeof expected === typeof actual) {
@@ -346,11 +354,10 @@ export function evaluateNLPResult(
       }
     }
   });
-  
-  const entityMatchScore = expectedKeys.length > 0 
-    ? matchedEntities / expectedKeys.length 
-    : 1;
-  
+
+  const entityMatchScore =
+    expectedKeys.length > 0 ? matchedEntities / expectedKeys.length : 1;
+
   return {
     intentMatch,
     entityMatchScore,
@@ -373,8 +380,8 @@ export function getScenariosByDifficulty(
     ...ABBREVIATION_SLANG_CASES,
     ...TYPO_CASES,
   ];
-  
-  return allScenarios.filter(s => s.difficulty === difficulty);
+
+  return allScenarios.filter((s) => s.difficulty === difficulty);
 }
 
 /**
@@ -383,12 +390,9 @@ export function getScenariosByDifficulty(
 export function getScenariosByIndustry(
   industry: 'it' | 'finance' | 'healthcare' | 'ecommerce' | 'general'
 ): KoreanNLPScenario[] {
-  const allScenarios = [
-    ...TECHNICAL_MIXED_CASES,
-    ...BUSINESS_CONTEXT_CASES,
-  ];
-  
-  return allScenarios.filter(s => s.industry === industry);
+  const allScenarios = [...TECHNICAL_MIXED_CASES, ...BUSINESS_CONTEXT_CASES];
+
+  return allScenarios.filter((s) => s.industry === industry);
 }
 
 /**
@@ -401,7 +405,7 @@ export function generateRandomKoreanQuery(): KoreanNLPScenario {
     '{metric}이/가 {threshold} 넘은 서버들 {action}해줘',
     '{service}에서 {problem} 발생했는데 원인 분석해줘',
   ];
-  
+
   const servers = ['web-001', 'api-002', 'db-003', 'cache-001'];
   const metrics = ['CPU', '메모리', '디스크', '네트워크'];
   const times = ['지난 1시간', '어제', '오늘 오전', '최근 24시간'];
@@ -410,18 +414,24 @@ export function generateRandomKoreanQuery(): KoreanNLPScenario {
   const actions = ['재시작', '모니터링', '알림 설정', '스케일링'];
   const services = ['Redis', 'MySQL', 'Nginx', 'Docker'];
   const problems = ['응답 지연', '연결 거부', '메모리 부족', '높은 부하'];
-  
+
   const template = templates[Math.floor(Math.random() * templates.length)];
   const input = template
     .replace('{server}', servers[Math.floor(Math.random() * servers.length)])
     .replace('{metric}', metrics[Math.floor(Math.random() * metrics.length)])
     .replace('{time}', times[Math.floor(Math.random() * times.length)])
     .replace('{issue}', issues[Math.floor(Math.random() * issues.length)])
-    .replace('{threshold}', thresholds[Math.floor(Math.random() * thresholds.length)])
+    .replace(
+      '{threshold}',
+      thresholds[Math.floor(Math.random() * thresholds.length)]
+    )
     .replace('{action}', actions[Math.floor(Math.random() * actions.length)])
     .replace('{service}', services[Math.floor(Math.random() * services.length)])
-    .replace('{problem}', problems[Math.floor(Math.random() * problems.length)]);
-  
+    .replace(
+      '{problem}',
+      problems[Math.floor(Math.random() * problems.length)]
+    );
+
   return {
     id: `generated-${Date.now()}`,
     category: 'technical',

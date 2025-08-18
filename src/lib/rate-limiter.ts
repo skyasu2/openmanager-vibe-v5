@@ -75,7 +75,7 @@ class RateLimiter {
   // 주기적으로 만료된 기록 정리
   cleanup() {
     const now = Date.now();
-    Object.keys(this.store).forEach(key => {
+    Object.keys(this.store).forEach((key) => {
       const entry = this.store[key];
       if (entry && entry.resetTime <= now) {
         delete this.store[key];
@@ -96,7 +96,7 @@ export const rateLimiters = {
 // 10분마다 정리
 setInterval(
   () => {
-    Object.values(rateLimiters).forEach(limiter => limiter.cleanup());
+    Object.values(rateLimiters).forEach((limiter) => limiter.cleanup());
   },
   10 * 60 * 1000
 );

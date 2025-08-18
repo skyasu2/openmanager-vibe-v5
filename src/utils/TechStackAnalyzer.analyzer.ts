@@ -1,6 +1,6 @@
 /**
  * 🧩 TechStackAnalyzer Analyzer
- * 
+ *
  * Core analysis functions:
  * - Technology stack analysis and categorization
  * - Summary generation for tech stack overview
@@ -10,7 +10,11 @@
 import type { TechItem, TechCategory } from './TechStackAnalyzer.types';
 import { TECH_DATABASE } from './TechStackAnalyzer.database';
 import { CATEGORIES } from './TechStackAnalyzer.categories';
-import { parseTechString, normalizeTechName, mergeDuplicateTechs } from './TechStackAnalyzer.parser';
+import {
+  parseTechString,
+  normalizeTechName,
+  mergeDuplicateTechs,
+} from './TechStackAnalyzer.parser';
 
 /**
  * 특정 기능 카드의 기술 스택을 분석 (중복 제거 적용)
@@ -19,10 +23,10 @@ export function analyzeTechStack(technologies: string[]): TechCategory[] {
   const techItems: TechItem[] = [];
 
   // 각 기술 문자열을 파싱하고 분석
-  technologies.forEach(techString => {
+  technologies.forEach((techString) => {
     const parsedTechs = parseTechString(techString);
 
-    parsedTechs.forEach(tech => {
+    parsedTechs.forEach((tech) => {
       const normalizedTech = normalizeTechName(tech);
       const techInfo = TECH_DATABASE[normalizedTech];
 
@@ -46,7 +50,7 @@ export function analyzeTechStack(technologies: string[]): TechCategory[] {
   // 카테고리별로 분류
   const categoryMap = new Map<string, TechItem[]>();
 
-  mergedTechs.forEach(techItem => {
+  mergedTechs.forEach((techItem) => {
     // 메인 카테고리 사용
     const mainCategory = techItem.category;
 
@@ -83,17 +87,17 @@ export function analyzeTechStack(technologies: string[]): TechCategory[] {
 
   // 카테고리를 중요도와 코어 기술 기준으로 정렬
   return categories.sort((a, b) => {
-    const aHasCore = a.items.some(item => item.isCore);
-    const bHasCore = b.items.some(item => item.isCore);
+    const aHasCore = a.items.some((item) => item.isCore);
+    const bHasCore = b.items.some((item) => item.isCore);
 
     if (aHasCore && !bHasCore) return -1;
     if (!aHasCore && bHasCore) return 1;
 
     const aHighImportance = a.items.filter(
-      item => item.importance === 'high'
+      (item) => item.importance === 'high'
     ).length;
     const bHighImportance = b.items.filter(
-      item => item.importance === 'high'
+      (item) => item.importance === 'high'
     ).length;
 
     return bHighImportance - aHighImportance;
@@ -111,14 +115,14 @@ export function generateTechStackSummary(categories: TechCategory[]): {
 } {
   const totalTechs = categories.reduce((sum, cat) => sum + cat.items.length, 0);
   const coreCount = categories.reduce(
-    (sum, cat) => sum + cat.items.filter(item => item.isCore).length,
+    (sum, cat) => sum + cat.items.filter((item) => item.isCore).length,
     0
   );
 
   const topCategories = categories
     .sort((a, b) => b.items.length - a.items.length)
     .slice(0, 3)
-    .map(cat => cat.name);
+    .map((cat) => cat.name);
 
   return {
     totalTechs,

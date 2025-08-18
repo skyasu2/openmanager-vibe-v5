@@ -1,13 +1,13 @@
 /**
  * 🎯 AI 인사이트 센터 API - Modular Architecture
- * 
+ *
  * Phase 4: AI Insight Center
  * - 코드 품질 인사이트
  * - 성능 병목 분석
  * - 시스템 아키텍처 개선 제안
  * - 비용 최적화 분석
  * - 보안 취약점 분석
- * 
+ *
  * Modularization: 1076 → ~200 lines (81% reduction)
  * Modules: 8 specialized modules for improved maintainability
  */
@@ -17,7 +17,7 @@ import { withAuth } from '@/lib/api-auth';
 import debug from '@/utils/debug';
 
 // Import all modular components
-import { 
+import {
   calculateCodeHealth,
   analyzeCodeQuality,
   analyzeTechnicalDebt,
@@ -35,9 +35,7 @@ import {
   assessScalability,
 } from './insight-center.architecture';
 
-import {
-  reviewTechStack,
-} from './insight-center.technology';
+import { reviewTechStack } from './insight-center.technology';
 
 import {
   analyzeCosts,
@@ -116,7 +114,7 @@ async function postHandler(request: NextRequest) {
       case 'analyze_code_quality': {
         const { metrics } = body;
         const insights = analyzeCodeQuality(metrics);
-        
+
         return NextResponse.json({
           success: true,
           insights,
@@ -128,7 +126,7 @@ async function postHandler(request: NextRequest) {
       case 'technical_debt_analysis': {
         const { metrics } = body;
         const insights = analyzeTechnicalDebt(metrics);
-        
+
         return NextResponse.json({
           success: true,
           insights,
@@ -140,7 +138,7 @@ async function postHandler(request: NextRequest) {
       case 'refactoring_suggestions': {
         const { metrics } = body;
         const suggestions = generateRefactoringSuggestions(metrics);
-        
+
         return NextResponse.json({
           success: true,
           suggestions,
@@ -151,7 +149,7 @@ async function postHandler(request: NextRequest) {
       case 'code_health_check': {
         const { metrics } = body;
         const health = calculateCodeHealth(metrics);
-        
+
         return NextResponse.json({
           success: true,
           health,
@@ -163,7 +161,7 @@ async function postHandler(request: NextRequest) {
       case 'analyze_bottlenecks': {
         const { system_metrics } = body;
         const bottlenecks = identifyBottlenecks(system_metrics);
-        
+
         return NextResponse.json({
           success: true,
           bottlenecks,
@@ -174,7 +172,7 @@ async function postHandler(request: NextRequest) {
       case 'database_performance': {
         const { db_metrics } = body;
         const analysis = analyzeDatabasePerformance(db_metrics);
-        
+
         return NextResponse.json({
           success: true,
           analysis,
@@ -185,7 +183,7 @@ async function postHandler(request: NextRequest) {
       case 'network_optimization': {
         const { network_metrics } = body;
         const optimizations = generateNetworkOptimizations(network_metrics);
-        
+
         return NextResponse.json({
           success: true,
           optimizations,
@@ -197,7 +195,7 @@ async function postHandler(request: NextRequest) {
       case 'architecture_review': {
         const { current_architecture } = body;
         const improvements = reviewArchitecture(current_architecture);
-        
+
         return NextResponse.json({
           success: true,
           improvements,
@@ -208,7 +206,7 @@ async function postHandler(request: NextRequest) {
       case 'scalability_assessment': {
         const { expected_growth } = body;
         const assessment = assessScalability(expected_growth);
-        
+
         return NextResponse.json({
           success: true,
           assessment,
@@ -220,7 +218,7 @@ async function postHandler(request: NextRequest) {
       case 'tech_stack_review': {
         const { current_stack } = body;
         const recommendations = reviewTechStack(current_stack);
-        
+
         return NextResponse.json({
           success: true,
           recommendations,
@@ -232,7 +230,7 @@ async function postHandler(request: NextRequest) {
       case 'cost_analysis': {
         const { infrastructure } = body;
         const analysis = analyzeCosts(infrastructure);
-        
+
         return NextResponse.json({
           success: true,
           analysis,
@@ -243,7 +241,7 @@ async function postHandler(request: NextRequest) {
       case 'resource_optimization': {
         const { utilization } = body;
         const optimizations = optimizeResources(utilization);
-        
+
         return NextResponse.json({
           success: true,
           optimizations,
@@ -254,7 +252,7 @@ async function postHandler(request: NextRequest) {
       case 'cloud_migration_analysis': {
         const { current_infrastructure } = body;
         const analysis = analyzeCloudMigration(current_infrastructure);
-        
+
         return NextResponse.json({
           success: true,
           analysis,
@@ -266,7 +264,7 @@ async function postHandler(request: NextRequest) {
       case 'security_audit': {
         const { scan_results } = body;
         const audit = performSecurityAudit(scan_results);
-        
+
         return NextResponse.json({
           success: true,
           audit,
@@ -277,8 +275,9 @@ async function postHandler(request: NextRequest) {
 
       case 'security_hardening': {
         const { current_measures } = body;
-        const recommendations = generateSecurityRecommendations(current_measures);
-        
+        const recommendations =
+          generateSecurityRecommendations(current_measures);
+
         return NextResponse.json({
           success: true,
           recommendations,
@@ -289,7 +288,7 @@ async function postHandler(request: NextRequest) {
       // Executive Reporting
       case 'executive_summary': {
         const summary = generateExecutiveSummary();
-        
+
         return NextResponse.json({
           success: true,
           summary,
@@ -301,7 +300,7 @@ async function postHandler(request: NextRequest) {
       case 'improvement_roadmap': {
         const { timeline } = body;
         const roadmap = createRoadmap(timeline);
-        
+
         return NextResponse.json({
           success: true,
           roadmap,

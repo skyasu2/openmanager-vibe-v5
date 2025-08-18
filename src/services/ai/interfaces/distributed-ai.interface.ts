@@ -1,6 +1,6 @@
 /**
  * 🏗️ 분산 AI 시스템 공통 인터페이스
- * 
+ *
  * 하이브리드 아키텍처를 위한 표준 인터페이스 정의
  * - 물리적 분산, 논리적 통합
  * - Edge 최적화 지원
@@ -14,18 +14,18 @@ import type { AIMetadata } from '@/types/ai-service-types';
 /**
  * AI 서비스 타입
  */
-export type AIServiceType = 
-  | 'supabase-rag'    // Supabase PostgreSQL + pgvector
-  | 'gcp-korean-nlp'  // GCP Functions Korean NLP
+export type AIServiceType =
+  | 'supabase-rag' // Supabase PostgreSQL + pgvector
+  | 'gcp-korean-nlp' // GCP Functions Korean NLP
   | 'gcp-ml-analytics' // GCP Functions ML Analytics
-  | 'redis-cache'     // Upstash Redis Cache
-  | 'edge-router'     // Vercel Edge Router
-  | 'edge-cache';     // Edge Runtime Cache
+  | 'redis-cache' // Upstash Redis Cache
+  | 'edge-router' // Vercel Edge Router
+  | 'edge-cache'; // Edge Runtime Cache
 
 /**
  * 처리 상태
  */
-export type ProcessingStatus = 
+export type ProcessingStatus =
   | 'pending'
   | 'processing'
   | 'completed'
@@ -160,18 +160,18 @@ export interface EdgeRouterConfig {
   // 병렬 처리 설정
   enableParallel: boolean;
   maxConcurrency: number;
-  
+
   // 타임아웃 설정
   globalTimeout: number;
   serviceTimeouts: Partial<Record<AIServiceType, number>>;
-  
+
   // Circuit Breaker
   circuitBreaker: {
     enabled: boolean;
     failureThreshold: number;
     resetTimeout: number;
   };
-  
+
   // 캐싱 전략
   caching: {
     enabled: boolean;
@@ -267,6 +267,6 @@ export function isGCPFunctionResponse(
     response !== null &&
     'metadata' in response &&
     ((response as DistributedResponse).metadata.service === 'gcp-korean-nlp' ||
-     (response as DistributedResponse).metadata.service === 'gcp-ml-analytics')
+      (response as DistributedResponse).metadata.service === 'gcp-ml-analytics')
   );
 }

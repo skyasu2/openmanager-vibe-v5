@@ -190,12 +190,15 @@ export class PostgresVectorDB {
       // pgvector 네이티브 함수 사용
       if (category) {
         // 카테고리별 검색
-        const { data, error } = await supabase.rpc('search_vectors_by_category', {
-          query_embedding: queryEmbedding,
-          category: category,
-          similarity_threshold: threshold,
-          max_results: topK,
-        });
+        const { data, error } = await supabase.rpc(
+          'search_vectors_by_category',
+          {
+            query_embedding: queryEmbedding,
+            category: category,
+            similarity_threshold: threshold,
+            max_results: topK,
+          }
+        );
 
         if (error) {
           console.error('카테고리별 벡터 검색 오류:', error);
@@ -243,8 +246,10 @@ export class PostgresVectorDB {
     queryEmbedding: number[],
     options: SearchOptions = {}
   ): Promise<SearchResult[]> {
-    console.warn('⚠️ pgvector 네이티브 함수 실패, 클라이언트 사이드 검색으로 폴백');
-    
+    console.warn(
+      '⚠️ pgvector 네이티브 함수 실패, 클라이언트 사이드 검색으로 폴백'
+    );
+
     const {
       topK = 10,
       threshold = 0.3,
@@ -278,7 +283,7 @@ export class PostgresVectorDB {
         console.warn(`문서 ${row.id}에 임베딩이 없습니다`);
         continue;
       }
-      
+
       // pgvector 타입을 배열로 변환 (Supabase는 vector를 문자열로 반환할 수 있음)
       let embeddingArray: number[];
       if (typeof row.embedding === 'string') {
@@ -292,12 +297,18 @@ export class PostgresVectorDB {
       } else if (Array.isArray(row.embedding)) {
         embeddingArray = row.embedding;
       } else {
-        console.warn(`알 수 없는 임베딩 형식 (${row.id}):`, typeof row.embedding);
+        console.warn(
+          `알 수 없는 임베딩 형식 (${row.id}):`,
+          typeof row.embedding
+        );
         continue;
       }
-      
+
       try {
-        const similarity = this.cosineSimilarity(queryEmbedding, embeddingArray);
+        const similarity = this.cosineSimilarity(
+          queryEmbedding,
+          embeddingArray
+        );
 
         if (similarity > threshold) {
           results.push({
@@ -338,7 +349,7 @@ export class PostgresVectorDB {
         console.error('하이브리드 검색 오류:', error);
         // 폴백: 벡터 검색만 수행
         const vectorResults = await this.search(queryEmbedding, { topK });
-        return vectorResults.map(result => ({
+        return vectorResults.map((result) => ({
           ...result,
           vector_similarity: result.similarity,
           text_rank: 0,
@@ -424,7 +435,7 @@ export class PostgresVectorDB {
 
       // 클라이언트 사이드에서 집계
       const categoryCount: Record<string, number> = {};
-      data?.forEach(row => {
+      data?.forEach((row) => {
         const category = row.metadata?.category;
         if (category) {
           categoryCount[category] = (categoryCount[category] || 0) + 1;
@@ -559,8 +570,12 @@ export class PostgresVectorDB {
   }> {
     // 임베딩 차원 검증
     if (queryEmbedding.length !== this.dimension) {
-      console.error(`임베딩 차원 오류: 예상 ${this.dimension}, 실제 ${queryEmbedding.length}`);
-      throw new Error(`임베딩 차원이 일치하지 않습니다. 예상: ${this.dimension}, 실제: ${queryEmbedding.length}`);
+      console.error(
+        `임베딩 차원 오류: 예상 ${this.dimension}, 실제 ${queryEmbedding.length}`
+      );
+      throw new Error(
+        `임베딩 차원이 일치하지 않습니다. 예상: ${this.dimension}, 실제: ${queryEmbedding.length}`
+      );
     }
 
     // 네이티브 pgvector 검색 벤치마크
@@ -572,7 +587,7 @@ export class PostgresVectorDB {
         similarity_threshold: 0.3,
         max_results: 10,
       });
-      
+
       if (error) {
         console.error('네이티브 검색 오류:', error);
       }
@@ -581,22 +596,23 @@ export class PostgresVectorDB {
 
     // 폴백 (클라이언트 사이드) 검색 벤치마크
     const fallbackTimes: number[] = [];
-    
+
     // 폴백 검색을 위해 임시로 네이티브 함수를 비활성화
     const originalSearch = this.search.bind(this);
     this.search = this.fallbackSearch.bind(this);
-    
+
     for (let i = 0; i < iterations; i++) {
       const start = Date.now();
       await this.fallbackSearch(queryEmbedding, { topK: 10 });
       fallbackTimes.push(Date.now() - start);
     }
-    
+
     // 원래 검색 함수 복원
     this.search = originalSearch;
 
     const nativeAvg = nativeTimes.reduce((a, b) => a + b) / nativeTimes.length;
-    const fallbackAvg = fallbackTimes.reduce((a, b) => a + b) / fallbackTimes.length;
+    const fallbackAvg =
+      fallbackTimes.reduce((a, b) => a + b) / fallbackTimes.length;
 
     return {
       nativeAvgTime: Math.round(nativeAvg),

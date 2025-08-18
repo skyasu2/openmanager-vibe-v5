@@ -192,7 +192,10 @@ export interface INLPProcessor {
 }
 
 export interface IIntentClassifier {
-  classify(query: string, context?: unknown): Promise<IntentClassificationResult>;
+  classify(
+    query: string,
+    context?: unknown
+  ): Promise<IntentClassificationResult>;
   _initialize(): Promise<void>;
   isReady(): boolean;
 }

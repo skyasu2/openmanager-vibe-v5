@@ -73,7 +73,7 @@ const getHandler = createApiRoute()
     // Supabase에서 실제 서버 데이터 가져오기
     const supabase = getSupabaseClient();
     let serverList: SupabaseServer[] = [];
-    
+
     try {
       const { data: servers, error: serversError } = await supabase
         .from('servers')
@@ -83,11 +83,11 @@ const getHandler = createApiRoute()
       if (serversError) {
         debug.error('❌ 서버 데이터 조회 실패:', serversError);
         debug.log('📦 Mock 데이터로 폴백...');
-        
+
         // Mock 데이터 사용
         const { getMockServers } = await import('@/mock');
         const mockServers = getMockServers();
-        serverList = mockServers.map(server => ({
+        serverList = mockServers.map((server) => ({
           id: server.id,
           name: server.name,
           type: server.type,
@@ -97,15 +97,19 @@ const getHandler = createApiRoute()
           disk: server.disk,
           location: server.location,
           environment: server.environment,
-          metrics: server.metrics ? {
-            ...server.metrics,
-            network: server.metrics.network ? {
-              rx: server.metrics.network.bytesIn || 0,
-              tx: server.metrics.network.bytesOut || 0,
-              bytesIn: server.metrics.network.bytesIn,
-              bytesOut: server.metrics.network.bytesOut,
-            } : undefined,
-          } : undefined,
+          metrics: server.metrics
+            ? {
+                ...server.metrics,
+                network: server.metrics.network
+                  ? {
+                      rx: server.metrics.network.bytesIn || 0,
+                      tx: server.metrics.network.bytesOut || 0,
+                      bytesIn: server.metrics.network.bytesIn,
+                      bytesOut: server.metrics.network.bytesOut,
+                    }
+                  : undefined,
+              }
+            : undefined,
         }));
       } else {
         serverList = servers || [];
@@ -113,11 +117,11 @@ const getHandler = createApiRoute()
     } catch (error) {
       debug.error('❌ Supabase 연결 실패:', error);
       debug.log('📦 Mock 데이터로 폴백...');
-      
+
       // Mock 데이터 사용
       const { getMockServers } = await import('@/mock');
       const mockServers = getMockServers();
-      serverList = mockServers.map(server => ({
+      serverList = mockServers.map((server) => ({
         id: server.id,
         name: server.name,
         type: server.type,
@@ -127,15 +131,19 @@ const getHandler = createApiRoute()
         disk: server.disk,
         location: server.location,
         environment: server.environment,
-        metrics: server.metrics ? {
-          ...server.metrics,
-          network: server.metrics.network ? {
-            rx: server.metrics.network.bytesIn || 0,
-            tx: server.metrics.network.bytesOut || 0,
-            bytesIn: server.metrics.network.bytesIn,
-            bytesOut: server.metrics.network.bytesOut,
-          } : undefined,
-        } : undefined,
+        metrics: server.metrics
+          ? {
+              ...server.metrics,
+              network: server.metrics.network
+                ? {
+                    rx: server.metrics.network.bytesIn || 0,
+                    tx: server.metrics.network.bytesOut || 0,
+                    bytesIn: server.metrics.network.bytesIn,
+                    bytesOut: server.metrics.network.bytesOut,
+                  }
+                : undefined,
+            }
+          : undefined,
       }));
     }
 
@@ -152,27 +160,53 @@ const getHandler = createApiRoute()
             : server.status === 'critical'
               ? 'critical'
               : 'warning',
-        cpu: typeof server.metrics?.cpu === 'object' ? server.metrics.cpu.usage : (server.metrics?.cpu || server.cpu || 0),
-        memory: typeof server.metrics?.memory === 'object' ? server.metrics.memory.usage : (server.metrics?.memory || server.memory || 0),
-        disk: typeof server.metrics?.disk === 'object' ? server.metrics.disk.usage : (server.metrics?.disk || server.disk || 0),
+        cpu:
+          typeof server.metrics?.cpu === 'object'
+            ? server.metrics.cpu.usage
+            : server.metrics?.cpu || server.cpu || 0,
+        memory:
+          typeof server.metrics?.memory === 'object'
+            ? server.metrics.memory.usage
+            : server.metrics?.memory || server.memory || 0,
+        disk:
+          typeof server.metrics?.disk === 'object'
+            ? server.metrics.disk.usage
+            : server.metrics?.disk || server.disk || 0,
         location: server.location || 'Unknown',
         environment: server.environment,
         metrics: {
           cpu: server.metrics?.cpu,
-          memory: typeof server.metrics?.memory === 'object' && 'usage' in server.metrics.memory
-            ? { 
-                usage: server.metrics.memory.usage,
-                used: 'used' in server.metrics.memory ? server.metrics.memory.used ?? server.metrics.memory.usage : server.metrics.memory.usage,
-                total: 'total' in server.metrics.memory ? server.metrics.memory.total ?? 100 : 100
-              }
-            : server.metrics?.memory,
-          disk: typeof server.metrics?.disk === 'object' && 'usage' in server.metrics.disk
-            ? {
-                usage: server.metrics.disk.usage,
-                used: 'used' in server.metrics.disk ? server.metrics.disk.used ?? server.metrics.disk.usage : server.metrics.disk.usage,
-                total: 'total' in server.metrics.disk ? server.metrics.disk.total ?? 100 : 100
-              }
-            : server.metrics?.disk,
+          memory:
+            typeof server.metrics?.memory === 'object' &&
+            'usage' in server.metrics.memory
+              ? {
+                  usage: server.metrics.memory.usage,
+                  used:
+                    'used' in server.metrics.memory
+                      ? (server.metrics.memory.used ??
+                        server.metrics.memory.usage)
+                      : server.metrics.memory.usage,
+                  total:
+                    'total' in server.metrics.memory
+                      ? (server.metrics.memory.total ?? 100)
+                      : 100,
+                }
+              : server.metrics?.memory,
+          disk:
+            typeof server.metrics?.disk === 'object' &&
+            'usage' in server.metrics.disk
+              ? {
+                  usage: server.metrics.disk.usage,
+                  used:
+                    'used' in server.metrics.disk
+                      ? (server.metrics.disk.used ?? server.metrics.disk.usage)
+                      : server.metrics.disk.usage,
+                  total:
+                    'total' in server.metrics.disk
+                      ? (server.metrics.disk.total ?? 100)
+                      : 100,
+                }
+              : server.metrics?.disk,
           network: server.metrics?.network,
         },
       };
@@ -180,24 +214,41 @@ const getHandler = createApiRoute()
     });
 
     // 통계 계산 - SupabaseServer를 DatabaseServer 호환 형식으로 변환
-    const statsInput: DatabaseServer[] = serverList.map(server => ({
+    const statsInput: DatabaseServer[] = serverList.map((server) => ({
       id: server.id,
       name: server.name,
       status: server.status,
       cpu: server.cpu,
       memory: server.memory,
       disk: server.disk,
-      metrics: server.metrics ? {
-        cpu: typeof server.metrics.cpu === 'object' ? server.metrics.cpu.usage : server.metrics.cpu,
-        memory: typeof server.metrics.memory === 'object' ? server.metrics.memory.usage : server.metrics.memory,
-        disk: typeof server.metrics.disk === 'object' ? server.metrics.disk.usage : server.metrics.disk,
-        network: server.metrics.network || undefined,
-      } : undefined,
+      metrics: server.metrics
+        ? {
+            cpu:
+              typeof server.metrics.cpu === 'object'
+                ? server.metrics.cpu.usage
+                : server.metrics.cpu,
+            memory:
+              typeof server.metrics.memory === 'object'
+                ? server.metrics.memory.usage
+                : server.metrics.memory,
+            disk:
+              typeof server.metrics.disk === 'object'
+                ? server.metrics.disk.usage
+                : server.metrics.disk,
+            network: server.metrics.network || undefined,
+          }
+        : undefined,
       type: server.type,
       location: server.location,
       environment: server.environment,
-      uptime: typeof server.uptime === 'string' ? parseInt(server.uptime) || 0 : server.uptime,
-      lastUpdate: server.lastUpdate instanceof Date ? server.lastUpdate.toISOString() : server.lastUpdate,
+      uptime:
+        typeof server.uptime === 'string'
+          ? parseInt(server.uptime) || 0
+          : server.uptime,
+      lastUpdate:
+        server.lastUpdate instanceof Date
+          ? server.lastUpdate.toISOString()
+          : server.lastUpdate,
     }));
     const stats = calculateServerStats(statsInput);
 
@@ -235,15 +286,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   try {
     const response = await getHandler(request);
-    const responseData: DashboardResponse = typeof response === 'object' && 'json' in response ? await response.json() : response;
-    
+    const responseData: DashboardResponse =
+      typeof response === 'object' && 'json' in response
+        ? await response.json()
+        : response;
+
     return NextResponse.json(responseData, {
       status: 200,
       headers: {
         'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
         'X-Data-Source': 'Supabase-Realtime',
         'X-Response-Time': `${responseData.metadata?.processingTime || 0}ms`,
-        'X-Server-Count': responseData.data?.stats?.totalServers?.toString() || '0',
+        'X-Server-Count':
+          responseData.data?.stats?.totalServers?.toString() || '0',
       },
     });
   } catch (error) {
@@ -331,18 +386,20 @@ function calculateServerStats(servers: DatabaseServer[]): DashboardStats {
 
   const online = servers.filter((s) => s.status === 'online').length;
   const warning = servers.filter((s) => s.status === 'warning').length;
-  const critical = servers.filter((s) => s.status === 'critical' || s.status === 'offline').length;
+  const critical = servers.filter(
+    (s) => s.status === 'critical' || s.status === 'offline'
+  ).length;
 
   const totalCpu = servers.reduce((sum, s) => {
     const cpuValue = s.metrics?.cpu ?? s.cpu ?? 0;
     return sum + cpuValue;
   }, 0);
-  
+
   const totalMemory = servers.reduce((sum, s) => {
     const memoryValue = s.metrics?.memory ?? s.memory ?? 0;
     return sum + memoryValue;
   }, 0);
-  
+
   const totalDisk = servers.reduce((sum, s) => {
     const diskValue = s.metrics?.disk ?? s.disk ?? 0;
     return sum + diskValue;

@@ -27,11 +27,11 @@ import type { AIMode } from '@/types/ai-types';
 import { useAIThinking, useAIEngine } from '../hooks';
 
 // Utils
-import { 
-  processRealAIQuery, 
-  generateAutoReport, 
+import {
+  processRealAIQuery,
+  generateAutoReport,
   handlePresetQuestion,
-  detectAutoReportTrigger 
+  detectAutoReportTrigger,
 } from '../utils';
 
 // Components
@@ -133,97 +133,104 @@ export const AISidebarV2Refactored: React.FC = () => {
   }, [isThinking, showThinkingDisplay, simulateRealTimeThinking]);
 
   // 메시지 전송 핸들러
-  const handleSendMessage = useCallback(async (message: string) => {
-    if (!message.trim() || isProcessing) return;
+  const handleSendMessage = useCallback(
+    async (message: string) => {
+      if (!message.trim() || isProcessing) return;
 
-    const userMessage: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      role: 'user',
-      content: message.trim(),
-      timestamp: new Date(),
-    };
-
-    addMessage(userMessage);
-    setInputValue('');
-    setIsProcessing(true);
-
-    try {
-      const result = await processRealAIQuery(
-        message.trim(),
-        selectedEngine,
-        sessionId,
-        startThinking,
-        stopThinking
-      );
-
-      const assistantMessage: ChatMessage = {
-        id: `msg-${Date.now()}-response`,
-        role: 'assistant',
-        content: result.content,
+      const userMessage: ChatMessage = {
+        id: `msg-${Date.now()}`,
+        role: 'user',
+        content: message.trim(),
         timestamp: new Date(),
-        engine: result.engine,
-        metadata: {
-          processingTime: result.processingTime,
-        },
       };
 
-      addMessage(assistantMessage);
-      setCurrentEngine(result.engine);
-      setCurrentEngineState(result.engine);
+      addMessage(userMessage);
+      setInputValue('');
+      setIsProcessing(true);
 
-      // 자동 보고서 트리거 감지
-      const trigger = detectAutoReportTrigger(result.content);
-      if (trigger) {
-        const reportMessage = await generateAutoReport(trigger, sessionId);
-        if (reportMessage) {
-          addMessage(reportMessage);
+      try {
+        const result = await processRealAIQuery(
+          message.trim(),
+          selectedEngine,
+          sessionId,
+          startThinking,
+          stopThinking
+        );
+
+        const assistantMessage: ChatMessage = {
+          id: `msg-${Date.now()}-response`,
+          role: 'assistant',
+          content: result.content,
+          timestamp: new Date(),
+          engine: result.engine,
+          metadata: {
+            processingTime: result.processingTime,
+          },
+        };
+
+        addMessage(assistantMessage);
+        setCurrentEngine(result.engine);
+        setCurrentEngineState(result.engine);
+
+        // 자동 보고서 트리거 감지
+        const trigger = detectAutoReportTrigger(result.content);
+        if (trigger) {
+          const reportMessage = await generateAutoReport(trigger, sessionId);
+          if (reportMessage) {
+            addMessage(reportMessage);
+          }
         }
+      } catch (error) {
+        console.error('Error processing message:', error);
+        addMessage({
+          id: `msg-${Date.now()}-error`,
+          role: 'system',
+          content:
+            '죄송합니다. 처리 중 오류가 발생했습니다. 다시 시도해주세요.',
+          timestamp: new Date(),
+        });
+      } finally {
+        setIsProcessing(false);
       }
-    } catch (error) {
-      console.error('Error processing message:', error);
-      addMessage({
-        id: `msg-${Date.now()}-error`,
-        role: 'system',
-        content: '죄송합니다. 처리 중 오류가 발생했습니다. 다시 시도해주세요.',
-        timestamp: new Date(),
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [
-    isProcessing, 
-    selectedEngine, 
-    sessionId, 
-    addMessage, 
-    setCurrentEngine,
-    startThinking,
-    stopThinking
-  ]);
+    },
+    [
+      isProcessing,
+      selectedEngine,
+      sessionId,
+      addMessage,
+      setCurrentEngine,
+      startThinking,
+      stopThinking,
+    ]
+  );
 
   // 프리셋 질문 핸들러
-  const handlePresetQuestionClick = useCallback(async (question: PresetQuestion) => {
-    await handlePresetQuestion(
-      question.text,
-      async (query: string) => {
+  const handlePresetQuestionClick = useCallback(
+    async (question: PresetQuestion) => {
+      await handlePresetQuestion(question.text, async (query: string) => {
         await handleSendMessage(query);
-      }
-    );
-  }, [handleSendMessage]);
+      });
+    },
+    [handleSendMessage]
+  );
 
   // 엔진 변경 핸들러
-  const handleEngineChange = useCallback(async (newEngine: AIMode) => {
-    const message = await handleModeChange(newEngine);
-    if (message) {
-      addMessage(message);
-    }
-  }, [handleModeChange, addMessage]);
+  const handleEngineChange = useCallback(
+    async (newEngine: AIMode) => {
+      const message = await handleModeChange(newEngine);
+      if (message) {
+        addMessage(message);
+      }
+    },
+    [handleModeChange, addMessage]
+  );
 
   // 채팅 내보내기
   const handleExportChat = useCallback(() => {
     const chatData = {
       sessionId,
       exportDate: new Date().toISOString(),
-      messages: messages.map(msg => ({
+      messages: messages.map((msg) => ({
         ...msg,
         timestamp: msg.timestamp.toISOString(),
       })),
@@ -241,12 +248,15 @@ export const AISidebarV2Refactored: React.FC = () => {
   }, [sessionId, messages]);
 
   // Enter 키 핸들러
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage(inputValue);
-    }
-  }, [inputValue, handleSendMessage]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage(inputValue);
+      }
+    },
+    [inputValue, handleSendMessage]
+  );
 
   if (!isOpen) return null;
 
@@ -257,31 +267,31 @@ export const AISidebarV2Refactored: React.FC = () => {
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-        className='fixed right-0 top-0 h-full w-80 sm:w-96 bg-white shadow-xl z-50 flex flex-col'
+        className="fixed right-0 top-0 z-50 flex h-full w-80 flex-col bg-white shadow-xl sm:w-96"
       >
         {/* 헤더 */}
-        <div className='flex items-center justify-between p-4 border-b border-gray-200'>
-          <div className='flex items-center space-x-2'>
-            <div className='w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg flex items-center justify-center'>
-              <Bot className='w-4 h-4 text-white' />
+        <div className="flex items-center justify-between border-b border-gray-200 p-4">
+          <div className="flex items-center space-x-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-blue-600">
+              <Bot className="h-4 w-4 text-white" />
             </div>
             <div>
-              <h2 className='text-sm font-semibold text-gray-800'>
+              <h2 className="text-sm font-semibold text-gray-800">
                 AI Assistant
               </h2>
-              <p className='text-xs text-gray-500'>실시간 분석 지원</p>
+              <p className="text-xs text-gray-500">실시간 분석 지원</p>
             </div>
           </div>
           <button
             onClick={toggleSidebar}
-            className='p-1 hover:bg-gray-100 rounded-lg transition-colors'
+            className="rounded-lg p-1 transition-colors hover:bg-gray-100"
           >
-            <X className='w-4 h-4 text-gray-600' />
+            <X className="h-4 w-4 text-gray-600" />
           </button>
         </div>
 
         {/* 엔진 선택 & 옵션 */}
-        <div className='px-4 py-2 border-b border-gray-100 flex items-center justify-between'>
+        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-2">
           <AIEngineDropdown
             selectedEngine={selectedEngine}
             showEngineInfo={showEngineInfo}
@@ -289,33 +299,33 @@ export const AISidebarV2Refactored: React.FC = () => {
             onToggleEngineInfo={toggleEngineInfo}
             currentEngine={currentEngine}
           />
-          <div className='flex items-center space-x-1'>
+          <div className="flex items-center space-x-1">
             <button
               onClick={clearMessages}
-              className='p-1 hover:bg-gray-100 rounded transition-colors'
-              title='대화 초기화'
+              className="rounded p-1 transition-colors hover:bg-gray-100"
+              title="대화 초기화"
             >
-              <RefreshCw className='w-3.5 h-3.5 text-gray-600' />
+              <RefreshCw className="h-3.5 w-3.5 text-gray-600" />
             </button>
             <button
               onClick={handleExportChat}
-              className='p-1 hover:bg-gray-100 rounded transition-colors'
-              title='대화 내보내기'
+              className="rounded p-1 transition-colors hover:bg-gray-100"
+              title="대화 내보내기"
             >
-              <Download className='w-3.5 h-3.5 text-gray-600' />
+              <Download className="h-3.5 w-3.5 text-gray-600" />
             </button>
             <button
               onClick={toggleEngineInfo}
-              className='p-1 hover:bg-gray-100 rounded transition-colors'
-              title='설정'
+              className="rounded p-1 transition-colors hover:bg-gray-100"
+              title="설정"
             >
-              <Settings className='w-3.5 h-3.5 text-gray-600' />
+              <Settings className="h-3.5 w-3.5 text-gray-600" />
             </button>
           </div>
         </div>
 
         {/* 채팅 영역 */}
-        <div className='flex-1 overflow-y-auto px-4 py-3 space-y-3'>
+        <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
           <AIChatMessages
             messages={messages}
             completedThinkingSteps={completedThinkingSteps}
@@ -326,7 +336,7 @@ export const AISidebarV2Refactored: React.FC = () => {
 
         {/* 사고 과정 표시 */}
         {isThinking && showThinkingDisplay && (
-          <div className='px-4 pb-2'>
+          <div className="px-4 pb-2">
             <AIThinkingDisplay
               isThinking={isThinking}
               currentSteps={currentThinkingSteps}
@@ -339,19 +349,19 @@ export const AISidebarV2Refactored: React.FC = () => {
 
         {/* 프리셋 질문 */}
         {messages.length === 0 && (
-          <div className='px-4 pb-3'>
-            <div className='grid grid-cols-2 gap-2'>
-              {PRESET_QUESTIONS.map(question => (
+          <div className="px-4 pb-3">
+            <div className="grid grid-cols-2 gap-2">
+              {PRESET_QUESTIONS.map((question) => (
                 <button
                   key={question.id}
                   onClick={() => handlePresetQuestionClick(question)}
                   disabled={isProcessing}
-                  className='flex items-center space-x-2 p-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-left disabled:opacity-50'
+                  className="flex items-center space-x-2 rounded-lg bg-gray-50 p-2 text-left transition-colors hover:bg-gray-100 disabled:opacity-50"
                 >
                   {React.createElement(question.icon, {
                     className: 'w-3.5 h-3.5 text-gray-600',
                   })}
-                  <span className='text-xs text-gray-700 line-clamp-2'>
+                  <span className="line-clamp-2 text-xs text-gray-700">
                     {question.text}
                   </span>
                 </button>
@@ -361,12 +371,12 @@ export const AISidebarV2Refactored: React.FC = () => {
         )}
 
         {/* 입력 영역 */}
-        <div className='p-4 border-t border-gray-200'>
-          <div className='flex items-end space-x-2'>
+        <div className="border-t border-gray-200 p-4">
+          <div className="flex items-end space-x-2">
             <textarea
               ref={inputRef}
               value={inputValue}
-              onChange={e => setInputValue(e.target.value)}
+              onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={
                 isProcessing
@@ -374,28 +384,28 @@ export const AISidebarV2Refactored: React.FC = () => {
                   : '메시지를 입력하세요... (Shift+Enter로 줄바꿈)'
               }
               disabled={isProcessing}
-              className='flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none disabled:bg-gray-50 disabled:text-gray-500'
+              className="flex-1 resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
               rows={2}
             />
             <button
               onClick={() => handleSendMessage(inputValue)}
               disabled={!inputValue.trim() || isProcessing}
-              className='p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed'
+              className="rounded-lg bg-blue-500 p-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-gray-300"
             >
               {isProcessing ? (
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 >
-                  <RefreshCw className='w-4 h-4' />
+                  <RefreshCw className="h-4 w-4" />
                 </motion.div>
               ) : (
-                <Send className='w-4 h-4' />
+                <Send className="h-4 w-4" />
               )}
             </button>
           </div>
           {isChangingEngine && (
-            <p className='text-xs text-orange-600 mt-2'>
+            <p className="mt-2 text-xs text-orange-600">
               엔진을 변경하는 중입니다...
             </p>
           )}

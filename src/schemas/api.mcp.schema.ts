@@ -49,11 +49,22 @@ export const MCPContextIntegrationRequestSchema = z.object({
   action: z.enum(['sync', 'query', 'update']),
   query: z.string().optional(),
   contextType: z.string().optional(),
-  nlpType: z.enum(['intent_analysis', 'entity_extraction', 'sentiment_analysis', 'command_parsing']).optional(),
+  nlpType: z
+    .enum([
+      'intent_analysis',
+      'entity_extraction',
+      'sentiment_analysis',
+      'command_parsing',
+    ])
+    .optional(),
   maxFiles: z.number().min(1).max(100).optional(),
   includeSystemContext: z.boolean().optional(),
   pathFilters: z.array(z.string()).optional(),
-  data: z.record(z.union([z.string(), z.number(), z.boolean(), z.object({}).passthrough()])).optional(),
+  data: z
+    .record(
+      z.union([z.string(), z.number(), z.boolean(), z.object({}).passthrough()])
+    )
+    .optional(),
   sessionId: z.string().optional(),
   timestamp: TimestampSchema,
 });
@@ -64,7 +75,11 @@ export const MCPContextIntegrationResponseSchema = z.object({
   contextType: z.string().optional(),
   action: z.enum(['sync', 'query', 'update']).optional(),
   data: z.any().optional(),
-  result: z.record(z.union([z.string(), z.number(), z.boolean(), z.object({}).passthrough()])).optional(),
+  result: z
+    .record(
+      z.union([z.string(), z.number(), z.boolean(), z.object({}).passthrough()])
+    )
+    .optional(),
   message: z.string().optional(),
   timestamp: TimestampSchema,
 });
@@ -113,7 +128,10 @@ export const MCPIntegrationStatusResponseSchema = z.object({
 // ===== MCP Sync 스키마 =====
 
 export const MCPSyncRequestSchema = z.object({
-  syncType: z.enum(['full', 'mcp_only', 'local_only', 'incremental']).optional().default('full'),
+  syncType: z
+    .enum(['full', 'mcp_only', 'local_only', 'incremental'])
+    .optional()
+    .default('full'),
   targetServers: z.array(z.string()).optional(),
   fullSync: z.boolean().optional(),
   dataTypes: z.array(z.enum(['context', 'memory', 'cache'])).optional(),
@@ -140,22 +158,30 @@ export const MCPSyncStatusResponseSchema = z.object({
   nextSync: TimestampSchema.optional(),
   syncInterval: z.number(),
   pendingItems: z.number(),
-  syncStatus: z.object({
-    mcpServerOnline: z.boolean(),
-    ragIntegrationEnabled: z.boolean(),
-    lastSyncTime: z.string().optional(),
-    syncCount: z.number(),
-  }).optional(),
-  availableSyncTypes: z.array(z.object({
-    type: z.enum(['full', 'mcp_only', 'local_only', 'incremental']),
-    description: z.string(),
-    recommendedFor: z.string(),
-  })).optional(),
-  performance: z.object({
-    avgQueryTime: z.number(),
-    totalQueries: z.number(),
-    errorRate: z.number(),
-  }).optional(),
+  syncStatus: z
+    .object({
+      mcpServerOnline: z.boolean(),
+      ragIntegrationEnabled: z.boolean(),
+      lastSyncTime: z.string().optional(),
+      syncCount: z.number(),
+    })
+    .optional(),
+  availableSyncTypes: z
+    .array(
+      z.object({
+        type: z.enum(['full', 'mcp_only', 'local_only', 'incremental']),
+        description: z.string(),
+        recommendedFor: z.string(),
+      })
+    )
+    .optional(),
+  performance: z
+    .object({
+      avgQueryTime: z.number(),
+      totalQueries: z.number(),
+      errorRate: z.number(),
+    })
+    .optional(),
 });
 
 // ===== 추가 컨텍스트 스키마 =====
@@ -176,11 +202,13 @@ export const MCPContextSchema = z.object({
 });
 
 export const LocalContextBundleSchema = z.object({
-  files: z.array(z.object({
-    path: z.string(),
-    content: z.string(),
-    type: z.string(),
-  })),
+  files: z.array(
+    z.object({
+      path: z.string(),
+      content: z.string(),
+      type: z.string(),
+    })
+  ),
   context: MCPContextSchema,
   nlp: MCPNLPContextSchema.optional(),
 });
@@ -193,7 +221,9 @@ export const MCPSyncResultSchema = z.object({
   items: z.number().optional(),
   errors: z.array(z.string()).optional(),
   timestamp: TimestampSchema,
-  syncType: z.enum(['full', 'mcp_only', 'local_only', 'incremental']).optional(),
+  syncType: z
+    .enum(['full', 'mcp_only', 'local_only', 'incremental'])
+    .optional(),
   message: z.string().optional(),
 });
 
@@ -201,9 +231,15 @@ export const MCPSyncResultSchema = z.object({
 
 export type MCPQueryRequest = z.infer<typeof MCPQueryRequestSchema>;
 export type MCPQueryResponse = z.infer<typeof MCPQueryResponseSchema>;
-export type MCPContextIntegrationRequest = z.infer<typeof MCPContextIntegrationRequestSchema>;
-export type MCPContextIntegrationResponse = z.infer<typeof MCPContextIntegrationResponseSchema>;
-export type MCPIntegrationStatusResponse = z.infer<typeof MCPIntegrationStatusResponseSchema>;
+export type MCPContextIntegrationRequest = z.infer<
+  typeof MCPContextIntegrationRequestSchema
+>;
+export type MCPContextIntegrationResponse = z.infer<
+  typeof MCPContextIntegrationResponseSchema
+>;
+export type MCPIntegrationStatusResponse = z.infer<
+  typeof MCPIntegrationStatusResponseSchema
+>;
 export type MCPSyncRequest = z.infer<typeof MCPSyncRequestSchema>;
 export type MCPSyncResponse = z.infer<typeof MCPSyncResponseSchema>;
 export type MCPSyncStatusResponse = z.infer<typeof MCPSyncStatusResponseSchema>;

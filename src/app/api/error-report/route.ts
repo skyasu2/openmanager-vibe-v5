@@ -41,12 +41,7 @@ function generateMockErrorReports(count: number = 20): ErrorReport[] {
     'database',
     'cache-manager',
   ];
-  const severities: ErrorSeverity[] = [
-    'low',
-    'medium',
-    'high',
-    'critical',
-  ];
+  const severities: ErrorSeverity[] = ['low', 'medium', 'high', 'critical'];
 
   const titles = [
     '서버 연결 시간 초과',
@@ -74,17 +69,28 @@ function generateMockErrorReports(count: number = 20): ErrorReport[] {
     const now = new Date();
     const createdAt = new Date(Date.now() - i * 3600000);
     const isResolved = Math.random() > 0.3;
-    
+
     return {
       id: `err_${Date.now()}_${i}`,
-      title: titles[Math.floor(Math.random() * titles.length)] ?? 'Unknown error',
-      description: descriptions[Math.floor(Math.random() * descriptions.length)] ?? 'No description available',
-      severity: severities[Math.floor(Math.random() * severities.length)] ?? 'medium',
+      title:
+        titles[Math.floor(Math.random() * titles.length)] ?? 'Unknown error',
+      description:
+        descriptions[Math.floor(Math.random() * descriptions.length)] ??
+        'No description available',
+      severity:
+        severities[Math.floor(Math.random() * severities.length)] ?? 'medium',
       status: statuses[Math.floor(Math.random() * statuses.length)] ?? 'open',
-      category: categories[Math.floor(Math.random() * categories.length)] ?? 'system_error',
-      affectedSystems: [affectedSystems[Math.floor(Math.random() * affectedSystems.length)] ?? 'unknown'],
+      category:
+        categories[Math.floor(Math.random() * categories.length)] ??
+        'system_error',
+      affectedSystems: [
+        affectedSystems[Math.floor(Math.random() * affectedSystems.length)] ??
+          'unknown',
+      ],
       reportedBy: `user_${Math.floor(Math.random() * 1000)}`,
-      assignedTo: isResolved ? `admin_${Math.floor(Math.random() * 10)}` : undefined,
+      assignedTo: isResolved
+        ? `admin_${Math.floor(Math.random() * 10)}`
+        : undefined,
       createdAt: createdAt.toISOString(),
       updatedAt: now.toISOString(),
       resolvedAt: isResolved ? now.toISOString() : undefined,
@@ -92,7 +98,8 @@ function generateMockErrorReports(count: number = 20): ErrorReport[] {
         userId: `user_${Math.floor(Math.random() * 1000)}`,
         sessionId: `session_${Math.random().toString(36).substr(2, 9)}`,
         requestId: `req_${Math.random().toString(36).substr(2, 9)}`,
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        userAgent:
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       },
     };
   });
@@ -123,13 +130,18 @@ const getHandler = createApiRoute()
     }
 
     if (category) {
-      errorReports = errorReports.filter((report) => report.category === category);
+      errorReports = errorReports.filter(
+        (report) => report.category === category
+      );
     }
 
     // 페이지네이션
     const safeLimit = limit ?? 20;
     const safeOffset = offset ?? 0;
-    const paginatedReports = errorReports.slice(safeOffset, safeOffset + safeLimit);
+    const paginatedReports = errorReports.slice(
+      safeOffset,
+      safeOffset + safeLimit
+    );
 
     return {
       success: true,
@@ -146,7 +158,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     debug.error('에러 리포트 조회 오류:', error);
     return NextResponse.json(
-      { 
+      {
         error: '에러 리포트를 조회할 수 없습니다.',
         message: getErrorMessage(error),
       },
@@ -205,7 +217,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     debug.error('에러 리포트 생성 오류:', error);
     return NextResponse.json(
-      { 
+      {
         error: '에러 리포트를 생성할 수 없습니다.',
         message: getErrorMessage(error),
       },

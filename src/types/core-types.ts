@@ -1,6 +1,6 @@
 ﻿/**
  * 🏛️ 핵심 타입 정의 - 중앙 집중식 타입 관리
- * 
+ *
  * Type-First 개발 철학에 따른 타입 시스템 정리:
  * - 중복 타입 정의 제거
  * - 일관된 네이밍 컨벤션
@@ -14,10 +14,10 @@
 /**
  * AI 엔진 타입 - 통합 정의 (Single Source of Truth)
  */
-export type AIEngineType = 
+export type AIEngineType =
   | 'google-ai'
-  | 'local-ai' 
-  | 'local-rag' 
+  | 'local-ai'
+  | 'local-rag'
   | 'fallback'
   | 'ultra-fast'
   | 'pattern-based'
@@ -59,7 +59,14 @@ export interface AIMetadata {
   importance?: number;
   category?: string;
   // ComplexityScore 호환을 위한 확장된 인덱스 시그니처
-  [key: string]: string | number | boolean | Date | string[] | Record<string, unknown> | undefined;
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | Date
+    | string[]
+    | Record<string, unknown>
+    | undefined;
 }
 
 /**
@@ -87,14 +94,25 @@ export const TypeGuards = {
 
   isAIEngineType: (type: string): type is AIEngineType => {
     const validTypes: AIEngineType[] = [
-      'google-ai', 'local-ai', 'local-rag', 'fallback',
-      'ultra-fast', 'pattern-based', 'keyword-based',
-      'error-fallback', 'preloaded', 'simplified',
-      'performance-optimized', 'supabase-rag', 'korean-nlp',
-      'mcp-client', 'gcp-mcp', 'transformers', 'mcp-context'
+      'google-ai',
+      'local-ai',
+      'local-rag',
+      'fallback',
+      'ultra-fast',
+      'pattern-based',
+      'keyword-based',
+      'error-fallback',
+      'preloaded',
+      'simplified',
+      'performance-optimized',
+      'supabase-rag',
+      'korean-nlp',
+      'mcp-client',
+      'gcp-mcp',
+      'transformers',
+      'mcp-context',
     ];
-    
-    return validTypes.includes(type as AIEngineType) || 
-           /^quick-.+$/.test(type);
-  }
+
+    return validTypes.includes(type as AIEngineType) || /^quick-.+$/.test(type);
+  },
 };

@@ -1,11 +1,14 @@
 /**
  * 🎯 SimplifiedQueryEngine Type Definitions
- * 
+ *
  * Shared types and interfaces for the SimplifiedQueryEngine system
  */
 
 import type { ComplexityScore } from './query-complexity-analyzer';
-import type { Entity, IntentResult } from '@/modules/ai-agent/processors/IntentClassifier';
+import type {
+  Entity,
+  IntentResult,
+} from '@/modules/ai-agent/processors/IntentClassifier';
 import type {
   AIQueryContext,
   AIQueryOptions,
@@ -19,13 +22,13 @@ export interface QueryRequest {
   query: string;
   mode?: 'local' | 'google-ai' | 'local-ai'; // 'auto' 제거, 'local-ai' 추가
   context?: AIQueryContext;
-  
+
   // 모드별 기능 제어 옵션 (UnifiedAIEngineRouter에서 설정)
-  enableGoogleAI?: boolean;        // Google AI API 활성화/비활성화
-  enableAIAssistantMCP?: boolean;  // 로컬 MCP를 통한 컨텍스트 로딩 활성화/비활성화
-  enableKoreanNLP?: boolean;       // 한국어 NLP 활성화/비활성화
-  enableVMBackend?: boolean;       // VM AI 백엔드 활성화/비활성화 (MCP와 무관)
-  
+  enableGoogleAI?: boolean; // Google AI API 활성화/비활성화
+  enableAIAssistantMCP?: boolean; // 로컬 MCP를 통한 컨텍스트 로딩 활성화/비활성화
+  enableKoreanNLP?: boolean; // 한국어 NLP 활성화/비활성화
+  enableVMBackend?: boolean; // VM AI 백엔드 활성화/비활성화 (MCP와 무관)
+
   options?: AIQueryOptions & {
     includeThinking?: boolean;
     includeMCPContext?: boolean;
@@ -36,7 +39,11 @@ export interface QueryRequest {
       isCommandRequest?: boolean;
       categories?: string[];
       specificCommands?: string[];
-      requestType?: 'command_inquiry' | 'command_usage' | 'command_request' | 'general';
+      requestType?:
+        | 'command_inquiry'
+        | 'command_usage'
+        | 'command_request'
+        | 'general';
     };
   };
 }
@@ -85,7 +92,11 @@ export interface CommandContext {
   isCommandRequest?: boolean;
   categories?: string[];
   specificCommands?: string[];
-  requestType?: 'command_inquiry' | 'command_usage' | 'command_request' | 'general';
+  requestType?:
+    | 'command_inquiry'
+    | 'command_usage'
+    | 'command_request'
+    | 'general';
   metadata?: Record<string, string | number | boolean>;
 }
 

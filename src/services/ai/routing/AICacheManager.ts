@@ -1,11 +1,11 @@
 /**
  * AI Cache Manager
- * 
+ *
  * AI 응답 캐싱 관리
  * - TTL 기반 캐시 만료
  * - 캐시 키 생성 및 관리
  * - 메모리 효율적 캐시 크기 제한
- * 
+ *
  * @author AI Systems Engineer
  * @version 1.0.0
  */
@@ -37,7 +37,7 @@ export interface CacheStats {
 export class AICacheManager {
   private cache: Map<string, CacheEntry>;
   private stats: Omit<CacheStats, 'size' | 'hitRate'>;
-  
+
   constructor(private config: CacheConfig) {
     this.cache = new Map();
     this.stats = {
@@ -58,7 +58,7 @@ export class AICacheManager {
       JSON.stringify(request.context || {}),
       request.userId || 'anonymous',
     ];
-    
+
     // Base64 인코딩으로 안전한 키 생성
     return Buffer.from(keyParts.join('|')).toString('base64');
   }
@@ -72,7 +72,7 @@ export class AICacheManager {
     }
 
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       this.stats.misses++;
       return null;
@@ -89,13 +89,13 @@ export class AICacheManager {
     // 캐시 히트
     entry.hits++;
     this.stats.hits++;
-    
+
     // 캐시된 응답에 메타데이터 추가 (타입 안전성을 위해 cacheHit만 설정)
     const metadata = {
       ...entry.response.metadata,
       cacheHit: true,
     } as typeof entry.response.metadata;
-    
+
     return {
       ...entry.response,
       metadata,
@@ -151,7 +151,7 @@ export class AICacheManager {
    */
   getStats(): CacheStats {
     const total = this.stats.hits + this.stats.misses;
-    
+
     return {
       size: this.cache.size,
       hits: this.stats.hits,
@@ -167,18 +167,18 @@ export class AICacheManager {
   cleanup(): number {
     const now = Date.now();
     let removed = 0;
-    
+
     for (const [key, entry] of this.cache) {
       if (now - entry.timestamp > entry.ttl) {
         this.cache.delete(key);
         removed++;
       }
     }
-    
+
     if (removed > 0) {
       console.log(`🧹 만료된 캐시 ${removed}개 정리 완료`);
     }
-    
+
     return removed;
   }
 
@@ -187,7 +187,7 @@ export class AICacheManager {
    */
   updateConfig(newConfig: Partial<CacheConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    
+
     // 캐시 비활성화 시 초기화
     if (!this.config.enableCache) {
       this.clear();
@@ -213,15 +213,15 @@ export class AICacheManager {
   private evictOldest(): void {
     let oldestKey: string | null = null;
     let oldestTime = Infinity;
-    
+
     for (const [key, entry] of this.cache) {
-      const lastAccess = entry.timestamp + (entry.hits * 60000); // 히트마다 1분 보너스
+      const lastAccess = entry.timestamp + entry.hits * 60000; // 히트마다 1분 보너스
       if (lastAccess < oldestTime) {
         oldestTime = lastAccess;
         oldestKey = key;
       }
     }
-    
+
     if (oldestKey) {
       this.cache.delete(oldestKey);
       this.stats.evictions++;

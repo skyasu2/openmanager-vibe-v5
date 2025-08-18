@@ -1,6 +1,6 @@
 /**
  * 🧠 지능형 모니터링 API
- * 
+ *
  * Phase 3: Intelligent Monitoring Backend
  * - 예측적 알림 (Predictive alerts)
  * - 이상 징후 예측 (Anomaly forecasting)
@@ -70,17 +70,20 @@ interface ScalingRecommendation {
 /**
  * Simple linear regression for prediction
  */
-function linearRegression(data: number[]): { slope: number; intercept: number } {
+function linearRegression(data: number[]): {
+  slope: number;
+  intercept: number;
+} {
   const n = data.length;
   const x = Array.from({ length: n }, (_, i) => i);
   const sumX = x.reduce((a, b) => a + b, 0);
   const sumY = data.reduce((a, b) => a + b, 0);
   const sumXY = x.reduce((sum, xi, i) => sum + xi * data[i], 0);
   const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
-  
+
   const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
   const intercept = (sumY - slope * sumX) / n;
-  
+
   return { slope, intercept };
 }
 
@@ -94,18 +97,20 @@ function predictFutureValue(
   if (historicalData.length < 2) {
     return { value: historicalData[0] || 0, confidence: 0 };
   }
-  
+
   const { slope, intercept } = linearRegression(historicalData);
-  const predictedValue = slope * (historicalData.length + stepsAhead - 1) + intercept;
-  
+  const predictedValue =
+    slope * (historicalData.length + stepsAhead - 1) + intercept;
+
   // Simple confidence calculation based on data consistency
-  const variance = historicalData.reduce((sum, val, i) => {
-    const expected = slope * i + intercept;
-    return sum + Math.pow(val - expected, 2);
-  }, 0) / historicalData.length;
-  
-  const confidence = Math.max(0, Math.min(1, 1 - (variance / 100)));
-  
+  const variance =
+    historicalData.reduce((sum, val, i) => {
+      const expected = slope * i + intercept;
+      return sum + Math.pow(val - expected, 2);
+    }, 0) / historicalData.length;
+
+  const confidence = Math.max(0, Math.min(1, 1 - variance / 100));
+
   return { value: predictedValue, confidence };
 }
 
@@ -125,25 +130,33 @@ function predictResourceExhaustion(
   const metrics = ['cpu', 'memory', 'disk', 'network'] as const;
   const predictions: Record<string, Prediction> = {};
   const alerts: PredictiveAlert[] = [];
-  
+
   // Data quality check
-  const dataQuality = historicalData.length >= 10 ? 'good' : 
-                      historicalData.length >= 5 ? 'sufficient' : 'limited';
-  
+  const dataQuality =
+    historicalData.length >= 10
+      ? 'good'
+      : historicalData.length >= 5
+        ? 'sufficient'
+        : 'limited';
+
   for (const metric of metrics) {
-    const values = historicalData.map(d => d[metric]);
+    const values = historicalData.map((d) => d[metric]);
     values.push(currentMetrics[metric]);
-    
-    const { value: predictedValue, confidence } = predictFutureValue(values, horizonHours);
+
+    const { value: predictedValue, confidence } = predictFutureValue(
+      values,
+      horizonHours
+    );
     const threshold = metric === 'cpu' || metric === 'memory' ? 90 : 80;
     const willExceed = predictedValue > threshold;
-    
+
     // Calculate time to threshold
     const { slope } = linearRegression(values);
-    const timeToThreshold = slope > 0 
-      ? Math.max(0, (threshold - currentMetrics[metric]) / slope)
-      : Infinity;
-    
+    const timeToThreshold =
+      slope > 0
+        ? Math.max(0, (threshold - currentMetrics[metric]) / slope)
+        : Infinity;
+
     predictions[metric] = {
       metric,
       current_value: currentMetrics[metric],
@@ -151,14 +164,19 @@ function predictResourceExhaustion(
       time_to_threshold: Math.min(horizonHours, timeToThreshold),
       will_exceed_threshold: willExceed && timeToThreshold < horizonHours,
       confidence,
-      trend: slope > 0.5 ? 'increasing' : slope < -0.5 ? 'decreasing' : 'stable',
+      trend:
+        slope > 0.5 ? 'increasing' : slope < -0.5 ? 'decreasing' : 'stable',
     };
-    
+
     // Generate alerts - more lenient for testing
     if (willExceed || currentMetrics[metric] > 75) {
-      const severity = timeToThreshold < 1 ? 'critical' : 
-                      timeToThreshold < 4 ? 'warning' : 'info';
-      
+      const severity =
+        timeToThreshold < 1
+          ? 'critical'
+          : timeToThreshold < 4
+            ? 'warning'
+            : 'info';
+
       alerts.push({
         type: 'predictive',
         severity,
@@ -168,11 +186,11 @@ function predictResourceExhaustion(
       });
     }
   }
-  
+
   // Overall confidence based on data quality and prediction consistency
-  const overallConfidence = dataQuality === 'good' ? 0.85 :
-                           dataQuality === 'sufficient' ? 0.65 : 0.45;
-  
+  const overallConfidence =
+    dataQuality === 'good' ? 0.85 : dataQuality === 'sufficient' ? 0.65 : 0.45;
+
   return {
     predictions,
     alerts,
@@ -194,28 +212,30 @@ function forecastAnomalies(
 } {
   // Simplified anomaly detection based on deviation from mean
   const recentData = historicalData.slice(-patternWindow);
-  
-  const avgCpu = recentData.reduce((sum, d) => sum + d.cpu, 0) / recentData.length;
+
+  const avgCpu =
+    recentData.reduce((sum, d) => sum + d.cpu, 0) / recentData.length;
   const stdCpu = Math.sqrt(
-    recentData.reduce((sum, d) => sum + Math.pow(d.cpu - avgCpu, 2), 0) / recentData.length
+    recentData.reduce((sum, d) => sum + Math.pow(d.cpu - avgCpu, 2), 0) /
+      recentData.length
   );
-  
+
   // Calculate trend
-  const cpuValues = recentData.map(d => d.cpu);
+  const cpuValues = recentData.map((d) => d.cpu);
   const { slope } = linearRegression(cpuValues);
-  
+
   // Simple probability calculation
   const trendFactor = Math.abs(slope) / 10;
   const variabilityFactor = stdCpu / 100;
-  
+
   const nextHourProb = Math.min(1, trendFactor + variabilityFactor + 0.1);
   const nextDayProb = Math.min(1, nextHourProb * 0.7 + 0.15);
-  
+
   const riskFactors = [];
   if (slope > 2) riskFactors.push('Rapid resource increase detected');
   if (stdCpu > 15) riskFactors.push('High variability in metrics');
   if (avgCpu > 70) riskFactors.push('Elevated baseline usage');
-  
+
   return {
     next_hour_probability: nextHourProb,
     next_day_probability: nextDayProb,
@@ -230,18 +250,20 @@ function calculateAdaptiveThresholds(
   metricType: string,
   historicalData: Metric[]
 ): AdaptiveThreshold {
-  const values = historicalData.map(d => d[metricType as keyof Metric] as number);
-  
+  const values = historicalData.map(
+    (d) => d[metricType as keyof Metric] as number
+  );
+
   const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
   const std = Math.sqrt(
     values.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / values.length
   );
-  
+
   // Calculate percentiles for thresholds
   const sorted = [...values].sort((a, b) => a - b);
   const p75 = sorted[Math.floor(sorted.length * 0.75)];
   const p95 = sorted[Math.floor(sorted.length * 0.95)];
-  
+
   return {
     metric: metricType,
     warning: Math.min(90, Math.max(60, p75 + std)),
@@ -262,7 +284,7 @@ function generateScalingRecommendations(
   predictedLoad: { cpu: number; memory: number }
 ): ScalingRecommendation[] {
   const recommendations: ScalingRecommendation[] = [];
-  
+
   if (predictedLoad.cpu > 85) {
     recommendations.push({
       action: 'scale_up',
@@ -273,7 +295,7 @@ function generateScalingRecommendations(
       expected_improvement: `Reduce CPU usage to ~70%`,
     });
   }
-  
+
   if (predictedLoad.memory > 85) {
     recommendations.push({
       action: 'scale_up',
@@ -284,7 +306,7 @@ function generateScalingRecommendations(
       expected_improvement: `Reduce memory usage to ~70%`,
     });
   }
-  
+
   if (currentMetrics.cpu < 30 && currentMetrics.memory < 30) {
     recommendations.push({
       action: 'scale_down',
@@ -295,7 +317,7 @@ function generateScalingRecommendations(
       expected_improvement: `Save costs with minimal performance impact`,
     });
   }
-  
+
   return recommendations;
 }
 
@@ -309,22 +331,26 @@ async function postHandler(request: NextRequest) {
 
     switch (action) {
       case 'predict': {
-        const { server_id, historical_data, current_metrics, horizon_hours } = body;
-        
+        const { server_id, historical_data, current_metrics, horizon_hours } =
+          body;
+
         if (!historical_data || historical_data.length < 2) {
           return NextResponse.json(
             { success: false, error: 'Insufficient data for prediction' },
             { status: 400 }
           );
         }
-        
+
         if (horizon_hours > 24) {
           return NextResponse.json(
-            { success: false, error: 'Prediction horizon too long (max 24 hours)' },
+            {
+              success: false,
+              error: 'Prediction horizon too long (max 24 hours)',
+            },
             { status: 400 }
           );
         }
-        
+
         const startTime = Date.now();
         const result = predictResourceExhaustion(
           historical_data,
@@ -332,7 +358,7 @@ async function postHandler(request: NextRequest) {
           horizon_hours
         );
         const responseTime = Date.now() - startTime;
-        
+
         return NextResponse.json({
           success: true,
           predictions: {
@@ -350,9 +376,9 @@ async function postHandler(request: NextRequest) {
 
       case 'forecast_anomalies': {
         const { server_id, historical_data, pattern_window = 24 } = body;
-        
+
         const forecast = forecastAnomalies(historical_data, pattern_window);
-        
+
         return NextResponse.json({
           success: true,
           server_id,
@@ -363,7 +389,7 @@ async function postHandler(request: NextRequest) {
 
       case 'analyze_patterns': {
         const { server_id } = body;
-        
+
         // Simplified pattern analysis
         const patterns = [
           {
@@ -373,7 +399,7 @@ async function postHandler(request: NextRequest) {
             confidence: 0.75,
           },
         ];
-        
+
         return NextResponse.json({
           success: true,
           server_id,
@@ -384,14 +410,18 @@ async function postHandler(request: NextRequest) {
 
       case 'seasonal_analysis': {
         const { server_id } = body;
-        
+
         return NextResponse.json({
           success: true,
           server_id,
           seasonal_patterns: {
             daily_peak_hours: ['09:00', '14:00', '16:00'],
             weekly_peak_days: ['Monday', 'Tuesday', 'Thursday'],
-            monthly_trends: { start_of_month: 'high', mid_month: 'normal', end_of_month: 'low' },
+            monthly_trends: {
+              start_of_month: 'high',
+              mid_month: 'normal',
+              end_of_month: 'low',
+            },
           },
           timestamp: new Date().toISOString(),
         });
@@ -399,7 +429,7 @@ async function postHandler(request: NextRequest) {
 
       case 'calculate_thresholds': {
         const { server_id, metric_type, learning_period } = body;
-        
+
         // Mock historical data for calculation
         const mockData = Array.from({ length: 100 }, () => ({
           timestamp: new Date().toISOString(),
@@ -408,9 +438,9 @@ async function postHandler(request: NextRequest) {
           disk: 20 + Math.random() * 40,
           network: 15 + Math.random() * 60,
         }));
-        
+
         const thresholds = calculateAdaptiveThresholds(metric_type, mockData);
-        
+
         return NextResponse.json({
           success: true,
           server_id,
@@ -423,7 +453,7 @@ async function postHandler(request: NextRequest) {
 
       case 'adapt_thresholds': {
         const { server_id, context } = body;
-        
+
         const adapted = {
           business_hours: {
             cpu: 85,
@@ -438,7 +468,7 @@ async function postHandler(request: NextRequest) {
             network: 75,
           },
         };
-        
+
         return NextResponse.json({
           success: true,
           server_id,
@@ -450,7 +480,7 @@ async function postHandler(request: NextRequest) {
 
       case 'threshold_recommendations': {
         const { server_id, false_positive_rate } = body;
-        
+
         const recommendations = [
           {
             metric: 'cpu',
@@ -459,7 +489,7 @@ async function postHandler(request: NextRequest) {
             reason: 'High false positive rate detected',
           },
         ];
-        
+
         return NextResponse.json({
           success: true,
           server_id,
@@ -471,7 +501,7 @@ async function postHandler(request: NextRequest) {
 
       case 'learn_patterns': {
         const { incident_history } = body;
-        
+
         return NextResponse.json({
           success: true,
           learned_patterns: {
@@ -479,7 +509,11 @@ async function postHandler(request: NextRequest) {
               { type: 'cpu_spike', frequency: 'daily', time: '10:00' },
             ],
             resolution_patterns: [
-              { issue: 'cpu_spike', resolution: 'auto_scale', success_rate: 0.85 },
+              {
+                issue: 'cpu_spike',
+                resolution: 'auto_scale',
+                success_rate: 0.85,
+              },
             ],
           },
           timestamp: new Date().toISOString(),
@@ -488,7 +522,7 @@ async function postHandler(request: NextRequest) {
 
       case 'evaluate_learning': {
         const { server_id } = body;
-        
+
         return NextResponse.json({
           success: true,
           server_id,
@@ -504,7 +538,7 @@ async function postHandler(request: NextRequest) {
 
       case 'multi_metric_analysis': {
         const { server_id, metrics } = body;
-        
+
         return NextResponse.json({
           success: true,
           server_id,
@@ -522,12 +556,12 @@ async function postHandler(request: NextRequest) {
 
       case 'scaling_recommendations': {
         const { server_id, current_metrics, predicted_load } = body;
-        
+
         const recommendations = generateScalingRecommendations(
           current_metrics,
           predicted_load
         );
-        
+
         return NextResponse.json({
           success: true,
           server_id,
@@ -538,7 +572,7 @@ async function postHandler(request: NextRequest) {
 
       case 'cost_optimized_scaling': {
         const { server_id, budget_constraint } = body;
-        
+
         return NextResponse.json({
           success: true,
           server_id,
@@ -555,7 +589,7 @@ async function postHandler(request: NextRequest) {
 
       case 'schedule_scaling': {
         const { server_id, predicted_patterns } = body;
-        
+
         return NextResponse.json({
           success: true,
           server_id,

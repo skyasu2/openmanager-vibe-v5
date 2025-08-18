@@ -1,13 +1,16 @@
 /**
  * 📊 PerformanceDashboard Data Processing
- * 
+ *
  * Data transformation functions for performance dashboard:
  * - Chart data conversion
  * - Statistics aggregation
  * - Filter and search logic
  */
 
-import type { PerformanceData, PerformanceAlert } from './PerformanceDashboard.types';
+import type {
+  PerformanceData,
+  PerformanceAlert,
+} from './PerformanceDashboard.types';
 import { ENGINE_COLORS, COLORS } from './PerformanceDashboard.constants';
 
 /**
@@ -85,8 +88,7 @@ export function getFilteredAlerts(
 
   // 시간순 정렬 (최신순)
   return filtered.sort(
-    (a, b) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
 }
 
@@ -94,17 +96,19 @@ export function getFilteredAlerts(
  * 🎯 성능 점수 계산
  * 성공률(40%) + 응답시간(40%) + 에러율(20%) 가중 평균
  */
-export function calculatePerformanceScore(data: PerformanceData | null): number {
+export function calculatePerformanceScore(
+  data: PerformanceData | null
+): number {
   if (!data?.stats) return 0;
 
   const { successRate, averageResponseTime, errorRate } = data.stats;
 
   // 성공률 점수 (40% 가중치)
   const successScore = successRate * 40;
-  
+
   // 응답시간 점수 (40% 가중치) - 5000ms 기준으로 역계산
   const responseScore = Math.max(0, (5000 - averageResponseTime) / 5000) * 40;
-  
+
   // 에러율 점수 (20% 가중치) - 10% 이하면 만점
   const errorScore = Math.max(0, (0.1 - errorRate) / 0.1) * 20;
 

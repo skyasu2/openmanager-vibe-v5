@@ -1,6 +1,6 @@
 /**
  * 📊 LogDashboard Stats Cards
- * 
+ *
  * Summary statistics cards for the log dashboard:
  * - Total logs count with formatting
  * - Error rate percentage display
@@ -62,7 +62,7 @@ export function LogDashboardStatsCards({ data }: StatsCardsProps) {
     >
       {cards.map((card, index) => {
         const IconComponent = card.icon;
-        
+
         return (
           <motion.div
             key={card.title}

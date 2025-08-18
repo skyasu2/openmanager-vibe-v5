@@ -77,12 +77,12 @@ declare global {
   var statusRequestCount: StatusRequestCount | undefined;
   var lastStatusCheck: LastStatusCheck | undefined;
   var freeTierCache: FreeTierCache | undefined;
-  
+
   // Window 객체 확장 (브라우저 환경)
   interface Window {
     self?: Window;
   }
-  
+
   // GlobalThis 확장
   interface GlobalThis {
     self?: typeof globalThis;
@@ -92,16 +92,16 @@ declare global {
 // lucide-react 모듈 타입 선언
 declare module 'lucide-react' {
   import { FC, SVGProps } from 'react';
-  
+
   export interface IconProps extends SVGProps<SVGSVGElement> {
     size?: number | string;
     color?: string;
     stroke?: string;
     strokeWidth?: number | string;
   }
-  
+
   export type Icon = FC<IconProps>;
-  
+
   export const Activity: Icon;
   export const AlertCircle: Icon;
   export const AlertTriangle: Icon;

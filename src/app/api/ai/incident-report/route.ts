@@ -1,6 +1,6 @@
 /**
  * 🚨 자동 장애 보고서 API
- * 
+ *
  * Phase 2: Auto Incident Report Backend
  * - 이상 징후 자동 감지
  * - AI 기반 원인 분석
@@ -108,17 +108,20 @@ function validateMetrics(metrics: unknown[]): metrics is ServerMetric[] {
     return false;
   }
 
-  return metrics.every(metric => {
+  return metrics.every((metric) => {
     // Required string fields
     if (!metric.server_id || typeof metric.server_id !== 'string') return false;
-    if (!metric.server_name || typeof metric.server_name !== 'string') return false;
+    if (!metric.server_name || typeof metric.server_name !== 'string')
+      return false;
     if (!metric.timestamp || typeof metric.timestamp !== 'string') return false;
 
     // Required numeric fields (must be numbers, not strings or null)
     const numericFields = ['cpu', 'memory', 'disk', 'network'];
-    return numericFields.every(field => {
+    return numericFields.every((field) => {
       const value = metric[field];
-      return typeof value === 'number' && !isNaN(value) && value >= 0 && value <= 100;
+      return (
+        typeof value === 'number' && !isNaN(value) && value >= 0 && value <= 100
+      );
     });
   });
 }
@@ -131,15 +134,16 @@ function detectAnomalies(metrics: ServerMetric[]): {
   pattern: string;
 } {
   const anomalies: Anomaly[] = [];
-  
+
   for (const metric of metrics) {
     // Check each metric type
-    const metricTypes: Array<keyof Pick<ServerMetric, 'cpu' | 'memory' | 'disk' | 'network'>> = 
-      ['cpu', 'memory', 'disk', 'network'];
-    
+    const metricTypes: Array<
+      keyof Pick<ServerMetric, 'cpu' | 'memory' | 'disk' | 'network'>
+    > = ['cpu', 'memory', 'disk', 'network'];
+
     for (const type of metricTypes) {
       const value = metric[type];
-      
+
       if (value >= THRESHOLDS.critical) {
         anomalies.push({
           server_id: metric.server_id,
@@ -166,7 +170,7 @@ function detectAnomalies(metrics: ServerMetric[]): {
 
   // Analyze pattern
   const pattern = analyzePattern(anomalies);
-  
+
   return { anomalies, pattern };
 }
 
@@ -174,20 +178,27 @@ function detectAnomalies(metrics: ServerMetric[]): {
  * Analyze anomaly patterns
  */
 function analyzePattern(anomalies: Anomaly[]): string {
-  const criticalCount = anomalies.filter(a => a.severity === 'critical').length;
-  const affectedServers = new Set(anomalies.map(a => a.server_id)).size;
-  const metricTypes = new Set(anomalies.map(a => a.metric_type));
+  const criticalCount = anomalies.filter(
+    (a) => a.severity === 'critical'
+  ).length;
+  const affectedServers = new Set(anomalies.map((a) => a.server_id)).size;
+  const metricTypes = new Set(anomalies.map((a) => a.metric_type));
 
   if (criticalCount >= 3 && affectedServers >= 2) {
     return 'cascade_failure';
   }
-  if (metricTypes.has('network') && anomalies.some(a => a.metric_type === 'network' && a.severity === 'critical')) {
+  if (
+    metricTypes.has('network') &&
+    anomalies.some(
+      (a) => a.metric_type === 'network' && a.severity === 'critical'
+    )
+  ) {
     return 'network_saturation';
   }
   if (metricTypes.has('cpu') && metricTypes.has('memory')) {
     return 'resource_exhaustion';
   }
-  
+
   return 'isolated_spike';
 }
 
@@ -200,17 +211,21 @@ function generateReport(
   pattern: string
 ): IncidentReport {
   const severity = determineSeverity(anomalies);
-  const affectedServers = [...new Set(anomalies.map(a => a.server_id))];
-  
+  const affectedServers = [...new Set(anomalies.map((a) => a.server_id))];
+
   // AI-powered root cause analysis (simplified)
   const rootCause = analyzeRootCause(anomalies, pattern);
-  
+
   // Generate recommendations
-  const recommendations = generateRecommendations(anomalies, pattern, rootCause);
-  
+  const recommendations = generateRecommendations(
+    anomalies,
+    pattern,
+    rootCause
+  );
+
   // Build timeline
   const timeline = buildTimeline(anomalies);
-  
+
   return {
     id: crypto.randomUUID(),
     title: generateTitle(severity, pattern),
@@ -228,10 +243,14 @@ function generateReport(
 /**
  * Determine overall severity
  */
-function determineSeverity(anomalies: Anomaly[]): 'critical' | 'high' | 'medium' | 'low' {
-  const criticalCount = anomalies.filter(a => a.severity === 'critical').length;
-  const warningCount = anomalies.filter(a => a.severity === 'warning').length;
-  
+function determineSeverity(
+  anomalies: Anomaly[]
+): 'critical' | 'high' | 'medium' | 'low' {
+  const criticalCount = anomalies.filter(
+    (a) => a.severity === 'critical'
+  ).length;
+  const warningCount = anomalies.filter((a) => a.severity === 'warning').length;
+
   if (criticalCount >= 2) return 'critical';
   if (criticalCount >= 1) return 'high';
   if (warningCount >= 2) return 'medium';
@@ -241,29 +260,35 @@ function determineSeverity(anomalies: Anomaly[]): 'critical' | 'high' | 'medium'
 /**
  * Analyze root cause
  */
-function analyzeRootCause(anomalies: Anomaly[], pattern: string): RootCauseAnalysis {
+function analyzeRootCause(
+  anomalies: Anomaly[],
+  pattern: string
+): RootCauseAnalysis {
   // Simplified AI analysis (in production, would use actual AI)
-  const criticalAnomalies = anomalies.filter(a => a.severity === 'critical');
+  const criticalAnomalies = anomalies.filter((a) => a.severity === 'critical');
   const metricCounts: Record<string, number> = {};
-  
-  anomalies.forEach(a => {
+
+  anomalies.forEach((a) => {
     metricCounts[a.metric_type] = (metricCounts[a.metric_type] || 0) + 1;
   });
-  
-  const primaryMetric = Object.entries(metricCounts)
-    .sort(([, a], [, b]) => b - a)[0]?.[0] || 'unknown';
-  
+
+  const primaryMetric =
+    Object.entries(metricCounts).sort(([, a], [, b]) => b - a)[0]?.[0] ||
+    'unknown';
+
   const causeMap: Record<string, string> = {
     cascade_failure: '연쇄 장애: 하나의 서버 장애가 다른 서버로 전파',
     network_saturation: '네트워크 포화: 과도한 트래픽으로 인한 네트워크 병목',
     resource_exhaustion: '리소스 고갈: CPU/메모리 자원 부족',
     isolated_spike: '개별 스파이크: 특정 서버의 일시적 부하 증가',
   };
-  
+
   return {
     primary_cause: causeMap[pattern] || '알 수 없는 원인',
     contributing_factors: [
-      criticalAnomalies.length > 0 ? `${criticalAnomalies.length}개 서버에서 심각한 문제 발견` : '',
+      criticalAnomalies.length > 0
+        ? `${criticalAnomalies.length}개 서버에서 심각한 문제 발견`
+        : '',
       primaryMetric !== 'unknown' ? `${primaryMetric} 메트릭이 주요 문제` : '',
     ].filter(Boolean),
     confidence: 0.75 + (pattern !== 'isolated_spike' ? 0.15 : 0),
@@ -279,7 +304,7 @@ function generateRecommendations(
   _rootCause: RootCauseAnalysis
 ): Recommendation[] {
   const recommendations = [];
-  
+
   // Pattern-specific recommendations
   switch (pattern) {
     case 'cascade_failure':
@@ -304,32 +329,32 @@ function generateRecommendations(
       });
       break;
   }
-  
+
   // Metric-specific recommendations
-  const criticalAnomalies = anomalies.filter(a => a.severity === 'critical');
-  if (criticalAnomalies.some(a => a.metric_type === 'cpu')) {
+  const criticalAnomalies = anomalies.filter((a) => a.severity === 'critical');
+  if (criticalAnomalies.some((a) => a.metric_type === 'cpu')) {
     recommendations.push({
       action: 'CPU 사용률 높은 프로세스 종료 또는 스케일링',
       priority: 'high' as const,
       expected_impact: 'CPU 부하 감소',
     });
   }
-  
-  if (criticalAnomalies.some(a => a.metric_type === 'memory')) {
+
+  if (criticalAnomalies.some((a) => a.metric_type === 'memory')) {
     recommendations.push({
       action: '메모리 누수 확인 및 가비지 컬렉션 실행',
       priority: 'high' as const,
       expected_impact: '메모리 사용량 정상화',
     });
   }
-  
+
   // General recommendation
   recommendations.push({
     action: '모니터링 임계값 조정 및 알림 규칙 업데이트',
     priority: 'medium' as const,
     expected_impact: '향후 조기 감지 개선',
   });
-  
+
   return recommendations;
 }
 
@@ -338,8 +363,11 @@ function generateRecommendations(
  */
 function buildTimeline(anomalies: Anomaly[]): TimelineEvent[] {
   return anomalies
-    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-    .map(anomaly => ({
+    .sort(
+      (a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    )
+    .map((anomaly) => ({
       timestamp: anomaly.timestamp,
       event: `${anomaly.server_name}: ${anomaly.metric_type} ${anomaly.value}% (${anomaly.severity})`,
       severity: anomaly.severity,
@@ -356,14 +384,14 @@ function generateTitle(severity: string, pattern: string): string {
     medium: '🟡 중간',
     low: '🟢 낮음',
   };
-  
+
   const patternMap: Record<string, string> = {
     cascade_failure: '연쇄 장애 발생',
     network_saturation: '네트워크 포화 감지',
     resource_exhaustion: '리소스 고갈 경고',
     isolated_spike: '개별 서버 이상',
   };
-  
+
   return `${severityMap[severity]} - ${patternMap[pattern] || '시스템 이상 감지'}`;
 }
 
@@ -373,12 +401,12 @@ function generateTitle(severity: string, pattern: string): string {
 function shouldSendAlert(reportId: string): boolean {
   const now = Date.now();
   const lastAlert = alertCooldowns.get(reportId);
-  
+
   if (!lastAlert || now - lastAlert > COOLDOWN_PERIOD) {
     alertCooldowns.set(reportId, now);
     return true;
   }
-  
+
   return false;
 }
 
@@ -423,24 +451,22 @@ async function postHandler(request: NextRequest) {
         const startTime = Date.now();
         const { anomalies, pattern } = detectAnomalies(metrics);
         const report = generateReport(metrics, anomalies, pattern);
-        
+
         // Try to save to database
         try {
-          const { error } = await supabase
-            .from('incident_reports')
-            .insert({
-              id: report.id,
-              title: report.title,
-              severity: report.severity,
-              affected_servers: report.affected_servers,
-              anomalies: report.anomalies,
-              root_cause_analysis: report.root_cause_analysis,
-              recommendations: report.recommendations,
-              timeline: report.timeline,
-              pattern: report.pattern,
-              created_at: report.created_at,
-            });
-          
+          const { error } = await supabase.from('incident_reports').insert({
+            id: report.id,
+            title: report.title,
+            severity: report.severity,
+            affected_servers: report.affected_servers,
+            anomalies: report.anomalies,
+            root_cause_analysis: report.root_cause_analysis,
+            recommendations: report.recommendations,
+            timeline: report.timeline,
+            pattern: report.pattern,
+            created_at: report.created_at,
+          });
+
           if (error) {
             debug.error('DB save error:', error);
             return NextResponse.json(
@@ -458,7 +484,10 @@ async function postHandler(request: NextRequest) {
             {
               success: false,
               error: 'Database connection failed',
-              message: error instanceof Error ? error.message : 'Unknown database error',
+              message:
+                error instanceof Error
+                  ? error.message
+                  : 'Unknown database error',
             },
             { status: 500 }
           );
@@ -469,7 +498,7 @@ async function postHandler(request: NextRequest) {
         if (notify) {
           const alertKey = `${report.severity}-${pattern}`;
           const sent = shouldSendAlert(alertKey);
-          
+
           notifications = {
             sent,
             channels: sent ? ['webhook'] : [],
@@ -511,7 +540,8 @@ async function postHandler(request: NextRequest) {
             patterns,
             timeRange: timeRange || '7d',
             total_incidents: patterns.length,
-            critical_patterns: patterns.filter(p => p.type === 'memory_leak').length,
+            critical_patterns: patterns.filter((p) => p.type === 'memory_leak')
+              .length,
           },
           timestamp: new Date().toISOString(),
         });
@@ -590,17 +620,17 @@ async function getHandler(request: NextRequest) {
       // Get specific report
       const cacheKey = `incident:${id}`;
       let report = getCachedData(cacheKey);
-      
+
       if (!report) {
         const { data, error } = await supabase
           .from('incident_reports')
           .select('*')
           .eq('id', id)
           .single();
-        
+
         if (error) throw error;
         report = data;
-        
+
         if (report) {
           setCachedData(cacheKey, report, 300);
         }

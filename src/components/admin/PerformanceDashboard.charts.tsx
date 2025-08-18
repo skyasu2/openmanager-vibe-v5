@@ -1,6 +1,6 @@
 /**
  * 📊 PerformanceDashboard Charts
- * 
+ *
  * Dynamic chart component imports for performance dashboard:
  * - Recharts components with SSR disabled
  * - Type-safe dynamic imports
@@ -27,7 +27,7 @@ import type {
 
 // 동적 import로 차트 컴포넌트들 로드
 export const AreaChart = dynamic(
-  () => import('recharts').then((mod) => mod.AreaChart as any),
+  () => import('recharts').then((mod) => mod.AreaChart),
   { ssr: false }
 );
 
@@ -75,22 +75,34 @@ export const Tooltip = dynamic(
   { ssr: false }
 );
 
-export const Area = dynamic(() => import('recharts').then((mod) => mod.Area as any), {
+export const Area = dynamic(() => import('recharts').then((mod) => mod.Area), {
   ssr: false,
 });
 
-export const Bar = dynamic(() => import('recharts').then((mod) => mod.Bar as any), {
-  ssr: false,
-});
+export const Bar = dynamic(
+  () => import('recharts').then((mod) => mod.Bar as any),
+  {
+    ssr: false,
+  }
+);
 
-export const Line = dynamic(() => import('recharts').then((mod) => mod.Line as any), {
-  ssr: false,
-});
+export const Line = dynamic(
+  () => import('recharts').then((mod) => mod.Line as any),
+  {
+    ssr: false,
+  }
+);
 
-export const Cell = dynamic(() => import('recharts').then((mod) => mod.Cell as any), {
-  ssr: false,
-});
+export const Cell = dynamic(
+  () => import('recharts').then((mod) => mod.Cell as any),
+  {
+    ssr: false,
+  }
+);
 
-export const Pie = dynamic(() => import('recharts').then((mod) => mod.Pie as any), {
-  ssr: false,
-});
+export const Pie = dynamic(
+  () => import('recharts').then((mod) => mod.Pie as any),
+  {
+    ssr: false,
+  }
+);

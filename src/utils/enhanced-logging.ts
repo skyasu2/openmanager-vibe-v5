@@ -61,9 +61,15 @@ const safeStringify = (obj: unknown, maxDepth = 3): string => {
 
     // 재귀적으로 깊이 추가
     if (typeof value === 'object' && value !== null) {
-      const result: Record<string, unknown> | unknown[] = Array.isArray(value) ? [] : {};
+      const result: Record<string, unknown> | unknown[] = Array.isArray(value)
+        ? []
+        : {};
       for (const k in value) {
-        (result as Record<string, unknown>)[k] = replacer(k, (value as Record<string, unknown>)[k], depth + 1);
+        (result as Record<string, unknown>)[k] = replacer(
+          k,
+          (value as Record<string, unknown>)[k],
+          depth + 1
+        );
       }
       return result;
     }
@@ -79,7 +85,11 @@ const safeStringify = (obj: unknown, maxDepth = 3): string => {
 };
 
 // 로그 포맷팅 함수
-const formatMessage = (level: string, message: string, data?: unknown): string => {
+const formatMessage = (
+  level: string,
+  message: string,
+  data?: unknown
+): string => {
   const timestamp = new Date().toISOString();
   const prefix = `[${timestamp}] [${level}]`;
 

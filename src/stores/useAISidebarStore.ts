@@ -189,12 +189,12 @@ interface AISidebarState {
     tab: 'qa' | 'report' | 'patterns' | 'logs' | 'context'
   ) => void;
   setSelectedContext: (context: 'basic' | 'advanced' | 'custom') => void;
-  
+
   // 채팅 관련 액션들
   addMessage: (message: ChatMessage) => void;
   clearMessages: () => void;
   setCurrentEngine: (engine: string) => void;
-  
+
   reset: () => void;
 }
 
@@ -210,35 +210,37 @@ export const useAISidebarStore = create<AISidebarState>()(
         functionTab: 'qa',
         selectedContext: 'basic',
         messages: [],
-        sessionId: crypto.randomUUID ? crypto.randomUUID() : `session-${Date.now()}`,
+        sessionId: crypto.randomUUID
+          ? crypto.randomUUID()
+          : `session-${Date.now()}`,
         currentEngine: 'unified',
 
         // UI 액션들
-        setOpen: open =>
-          set(state => ({
+        setOpen: (open) =>
+          set((state) => ({
             isOpen: open,
             isMinimized: open ? false : state.isMinimized,
           })),
 
-        setMinimized: minimized => set({ isMinimized: minimized }),
-        
-        toggleSidebar: () => set(state => ({ isOpen: !state.isOpen })),
+        setMinimized: (minimized) => set({ isMinimized: minimized }),
 
-        setActiveTab: tab => set({ activeTab: tab }),
+        toggleSidebar: () => set((state) => ({ isOpen: !state.isOpen })),
 
-        setFunctionTab: tab => set({ functionTab: tab }),
+        setActiveTab: (tab) => set({ activeTab: tab }),
 
-        setSelectedContext: context => set({ selectedContext: context }),
-        
+        setFunctionTab: (tab) => set({ functionTab: tab }),
+
+        setSelectedContext: (context) => set({ selectedContext: context }),
+
         // 채팅 관련 액션들
-        addMessage: message =>
-          set(state => ({
+        addMessage: (message) =>
+          set((state) => ({
             messages: [...state.messages, message],
           })),
-          
+
         clearMessages: () => set({ messages: [] }),
-        
-        setCurrentEngine: engine => set({ currentEngine: engine }),
+
+        setCurrentEngine: (engine) => set({ currentEngine: engine }),
 
         reset: () =>
           set({
@@ -248,13 +250,15 @@ export const useAISidebarStore = create<AISidebarState>()(
             functionTab: 'qa',
             selectedContext: 'basic',
             messages: [],
-            sessionId: crypto.randomUUID ? crypto.randomUUID() : `session-${Date.now()}`,
+            sessionId: crypto.randomUUID
+              ? crypto.randomUUID()
+              : `session-${Date.now()}`,
             currentEngine: 'unified',
           }),
       }),
       {
         name: 'ai-sidebar-storage',
-        partialize: state => ({
+        partialize: (state) => ({
           // 중요한 상태만 영속화
           isMinimized: state.isMinimized,
           activeTab: state.activeTab,
@@ -271,14 +275,14 @@ export const useAISidebarStore = create<AISidebarState>()(
 
 // 🎛️ 선택적 훅들 (성능 최적화)
 export const useAISidebarUI = () => {
-  const isOpen = useAISidebarStore(state => state.isOpen);
-  const isMinimized = useAISidebarStore(state => state.isMinimized);
-  const activeTab = useAISidebarStore(state => state.activeTab);
-  const functionTab = useAISidebarStore(state => state.functionTab);
-  const setOpen = useAISidebarStore(state => state.setOpen);
-  const setMinimized = useAISidebarStore(state => state.setMinimized);
-  const setActiveTab = useAISidebarStore(state => state.setActiveTab);
-  const setFunctionTab = useAISidebarStore(state => state.setFunctionTab);
+  const isOpen = useAISidebarStore((state) => state.isOpen);
+  const isMinimized = useAISidebarStore((state) => state.isMinimized);
+  const activeTab = useAISidebarStore((state) => state.activeTab);
+  const functionTab = useAISidebarStore((state) => state.functionTab);
+  const setOpen = useAISidebarStore((state) => state.setOpen);
+  const setMinimized = useAISidebarStore((state) => state.setMinimized);
+  const setActiveTab = useAISidebarStore((state) => state.setActiveTab);
+  const setFunctionTab = useAISidebarStore((state) => state.setFunctionTab);
 
   return {
     isOpen,
@@ -293,9 +297,9 @@ export const useAISidebarUI = () => {
 };
 
 export const useAIContext = () => {
-  const selectedContext = useAISidebarStore(state => state.selectedContext);
+  const selectedContext = useAISidebarStore((state) => state.selectedContext);
   const setSelectedContext = useAISidebarStore(
-    state => state.setSelectedContext
+    (state) => state.setSelectedContext
   );
 
   return {
@@ -318,9 +322,9 @@ export const selectQuickQuestions = () => [
 
 // 🎛️ 추가 훅들
 export const useAISettings = () => {
-  const selectedContext = useAISidebarStore(state => state.selectedContext);
+  const selectedContext = useAISidebarStore((state) => state.selectedContext);
   const setSelectedContext = useAISidebarStore(
-    state => state.setSelectedContext
+    (state) => state.setSelectedContext
   );
 
   return {

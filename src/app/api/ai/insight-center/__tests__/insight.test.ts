@@ -1,7 +1,7 @@
 /**
  * 🎯 AI Insight Center API Tests
  * TDD for Phase 4: AI 인사이트 센터
- * 
+ *
  * 주요 기능:
  * - 코드 품질 인사이트
  * - 성능 병목 분석
@@ -91,7 +91,7 @@ describe('AI Insight Center API', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    
+
     // Dynamically import after mocks are set
     const module = await import('../route');
     POST = module.POST;
@@ -104,13 +104,16 @@ describe('AI Insight Center API', () => {
 
   describe('Code Quality Insights', () => {
     it('should analyze code quality metrics', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'analyze_code_quality',
-          metrics: mockCodeMetrics,
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'analyze_code_quality',
+            metrics: mockCodeMetrics,
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -127,13 +130,16 @@ describe('AI Insight Center API', () => {
     });
 
     it('should identify technical debt hotspots', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'technical_debt_analysis',
-          metrics: mockCodeMetrics,
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'technical_debt_analysis',
+            metrics: mockCodeMetrics,
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -149,13 +155,16 @@ describe('AI Insight Center API', () => {
     });
 
     it('should suggest refactoring opportunities', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'refactoring_suggestions',
-          complexity_threshold: 10,
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'refactoring_suggestions',
+            complexity_threshold: 10,
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -170,13 +179,16 @@ describe('AI Insight Center API', () => {
 
   describe('Performance Bottleneck Analysis', () => {
     it('should identify system bottlenecks', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'analyze_bottlenecks',
-          system_metrics: mockSystemMetrics,
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'analyze_bottlenecks',
+            system_metrics: mockSystemMetrics,
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -191,13 +203,16 @@ describe('AI Insight Center API', () => {
     });
 
     it('should analyze database performance', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'database_performance',
-          db_metrics: mockSystemMetrics.database,
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'database_performance',
+            db_metrics: mockSystemMetrics.database,
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -209,13 +224,16 @@ describe('AI Insight Center API', () => {
     });
 
     it('should provide network optimization insights', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'network_optimization',
-          network_metrics: mockSystemMetrics.network,
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'network_optimization',
+            network_metrics: mockSystemMetrics.network,
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -229,18 +247,21 @@ describe('AI Insight Center API', () => {
 
   describe('Architecture Improvements', () => {
     it('should suggest architecture improvements', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'architecture_review',
-          current_architecture: {
-            microservices: false,
-            load_balancing: 'basic',
-            caching_strategy: 'minimal',
-            database_replication: false,
-          },
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'architecture_review',
+            current_architecture: {
+              microservices: false,
+              load_balancing: 'basic',
+              caching_strategy: 'minimal',
+              database_replication: false,
+            },
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -256,13 +277,16 @@ describe('AI Insight Center API', () => {
     });
 
     it('should evaluate scalability readiness', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'scalability_assessment',
-          expected_growth: '3x',
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'scalability_assessment',
+            expected_growth: '3x',
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -276,13 +300,16 @@ describe('AI Insight Center API', () => {
     });
 
     it('should recommend technology stack updates', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'tech_stack_review',
-          current_stack: ['Node.js', 'PostgreSQL', 'React'],
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'tech_stack_review',
+            current_stack: ['Node.js', 'PostgreSQL', 'React'],
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -296,18 +323,21 @@ describe('AI Insight Center API', () => {
 
   describe('Cost Optimization', () => {
     it('should analyze infrastructure costs', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'cost_analysis',
-          infrastructure: {
-            servers: 5,
-            storage_gb: 500,
-            bandwidth_gb: 1000,
-            monthly_cost: 1500,
-          },
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'cost_analysis',
+            infrastructure: {
+              servers: 5,
+              storage_gb: 500,
+              bandwidth_gb: 1000,
+              monthly_cost: 1500,
+            },
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -321,13 +351,16 @@ describe('AI Insight Center API', () => {
     });
 
     it('should suggest resource right-sizing', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'resource_optimization',
-          utilization: mockSystemMetrics.servers,
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'resource_optimization',
+            utilization: mockSystemMetrics.servers,
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -341,13 +374,16 @@ describe('AI Insight Center API', () => {
     });
 
     it('should provide cloud migration cost-benefit analysis', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'cloud_migration_analysis',
-          current_infrastructure: 'on-premise',
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'cloud_migration_analysis',
+            current_infrastructure: 'on-premise',
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -362,18 +398,21 @@ describe('AI Insight Center API', () => {
 
   describe('Security Analysis', () => {
     it('should identify security vulnerabilities', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'security_audit',
-          scan_results: {
-            critical: 2,
-            high: 5,
-            medium: 12,
-            low: 25,
-          },
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'security_audit',
+            scan_results: {
+              critical: 2,
+              high: 5,
+              medium: 12,
+              low: 25,
+            },
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -387,13 +426,16 @@ describe('AI Insight Center API', () => {
     });
 
     it('should provide security hardening recommendations', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'security_hardening',
-          current_measures: ['basic_auth', 'https'],
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'security_hardening',
+            current_measures: ['basic_auth', 'https'],
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -408,13 +450,16 @@ describe('AI Insight Center API', () => {
 
   describe('Comprehensive Insights', () => {
     it('should generate executive summary', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'executive_summary',
-          period: '30d',
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'executive_summary',
+            period: '30d',
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -429,13 +474,16 @@ describe('AI Insight Center API', () => {
     });
 
     it('should provide actionable roadmap', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'improvement_roadmap',
-          timeline: '6_months',
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'improvement_roadmap',
+            timeline: '6_months',
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -453,14 +501,17 @@ describe('AI Insight Center API', () => {
   describe('Performance Requirements', () => {
     it('should generate insights within 300ms', async () => {
       const startTime = Date.now();
-      
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'analyze_code_quality',
-          metrics: mockCodeMetrics,
-        }),
-      });
+
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'analyze_code_quality',
+            metrics: mockCodeMetrics,
+          }),
+        }
+      );
 
       await POST(request);
       const responseTime = Date.now() - startTime;
@@ -471,9 +522,12 @@ describe('AI Insight Center API', () => {
 
   describe('GET Endpoint - Status and Capabilities', () => {
     it('should return insight center status and capabilities', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/insight-center', {
-        method: 'GET',
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/insight-center',
+        {
+          method: 'GET',
+        }
+      );
 
       const response = await GET(request);
       const data = await response.json();

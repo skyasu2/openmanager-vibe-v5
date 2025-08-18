@@ -22,7 +22,7 @@ const toastStore: {
 };
 
 const notify = () => {
-  toastStore.listeners.forEach(listener => listener());
+  toastStore.listeners.forEach((listener) => listener());
 };
 
 export const toast = {
@@ -31,7 +31,7 @@ export const toast = {
     toastStore.toasts.push({ id, message, type: 'success', duration });
     notify();
     setTimeout(() => {
-      toastStore.toasts = toastStore.toasts.filter(t => t.id !== id);
+      toastStore.toasts = toastStore.toasts.filter((t) => t.id !== id);
       notify();
     }, duration);
   },
@@ -40,7 +40,7 @@ export const toast = {
     toastStore.toasts.push({ id, message, type: 'error', duration });
     notify();
     setTimeout(() => {
-      toastStore.toasts = toastStore.toasts.filter(t => t.id !== id);
+      toastStore.toasts = toastStore.toasts.filter((t) => t.id !== id);
       notify();
     }, duration);
   },
@@ -49,7 +49,7 @@ export const toast = {
     toastStore.toasts.push({ id, message, type: 'warning', duration });
     notify();
     setTimeout(() => {
-      toastStore.toasts = toastStore.toasts.filter(t => t.id !== id);
+      toastStore.toasts = toastStore.toasts.filter((t) => t.id !== id);
       notify();
     }, duration);
   },
@@ -58,7 +58,7 @@ export const toast = {
     toastStore.toasts.push({ id, message, type: 'info', duration });
     notify();
     setTimeout(() => {
-      toastStore.toasts = toastStore.toasts.filter(t => t.id !== id);
+      toastStore.toasts = toastStore.toasts.filter((t) => t.id !== id);
       notify();
     }, duration);
   },
@@ -93,17 +93,11 @@ export function ToastContainer() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className='fixed top-4 right-4 z-50 space-y-2'>
-      {toasts.map(toastItem => (
+    <div className="fixed right-4 top-4 z-50 space-y-2">
+      {toasts.map((toastItem) => (
         <div
           key={toastItem.id}
-          className={`
-            px-4 py-2 rounded-lg shadow-lg text-white text-sm max-w-sm
-            ${toastItem.type === 'success' ? 'bg-green-600' : ''}
-            ${toastItem.type === 'error' ? 'bg-red-600' : ''}
-            ${toastItem.type === 'warning' ? 'bg-yellow-600' : ''}
-            ${toastItem.type === 'info' ? 'bg-blue-600' : ''}
-          `}
+          className={`max-w-sm rounded-lg px-4 py-2 text-sm text-white shadow-lg ${toastItem.type === 'success' ? 'bg-green-600' : ''} ${toastItem.type === 'error' ? 'bg-red-600' : ''} ${toastItem.type === 'warning' ? 'bg-yellow-600' : ''} ${toastItem.type === 'info' ? 'bg-blue-600' : ''} `}
         >
           {toastItem.message}
         </div>

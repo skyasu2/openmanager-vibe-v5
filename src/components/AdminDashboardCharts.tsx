@@ -249,10 +249,10 @@ export default function AdminDashboardCharts() {
   };
 
   // 🎨 커스텀 툴팁 컴포넌트
-  const CustomTooltip = ({ 
-    active, 
-    payload, 
-    label 
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
   }: {
     active?: boolean;
     payload?: Array<{

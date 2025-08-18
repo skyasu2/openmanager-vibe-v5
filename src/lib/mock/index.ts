@@ -1,6 +1,6 @@
 /**
  * 🎭 Mock 시스템 통합 Export
- * 
+ *
  * Claude Code 최적화 Mock 시스템의 중앙 진입점
  */
 
@@ -21,7 +21,7 @@ export function getMockMode(): 'off' | 'dev' | 'test' | 'force' {
   if (mode && ['off', 'dev', 'test', 'force'].includes(mode)) {
     return mode as 'off' | 'dev' | 'test' | 'force';
   }
-  
+
   if (process.env.NODE_ENV === 'test') return 'test';
   if (process.env.NODE_ENV === 'development') return 'dev';
   return 'off';
@@ -32,14 +32,17 @@ export function getMockMode(): 'off' | 'dev' | 'test' | 'force' {
  */
 export function shouldUseMock(serviceName?: string): boolean {
   const mode = getMockMode();
-  
+
   switch (mode) {
     case 'force':
       return true;
     case 'test':
       return process.env.NODE_ENV === 'test';
     case 'dev':
-      return process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+      return (
+        process.env.NODE_ENV === 'development' ||
+        process.env.NODE_ENV === 'test'
+      );
     case 'off':
     default:
       return false;
@@ -95,7 +98,7 @@ export function resetAllMocks(): void {
   googleAIMock?.reset();
   supabaseMock?.reset();
   gcpMock?.reset();
-  
+
   console.log('🎭 모든 Mock이 리셋되었습니다');
 }
 
@@ -110,7 +113,7 @@ export function getMockSystemInfo(): {
 } {
   const mode = getMockMode();
   const active = shouldUseMock();
-  
+
   return {
     version: '2.0.0',
     mode,

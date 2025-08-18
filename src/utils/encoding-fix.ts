@@ -146,7 +146,9 @@ export function safeProcessQuery(query: string): string {
 /**
  * 🌐 API 요청 본문 안전 처리
  */
-export async function safeProcessRequestBody(request: Request): Promise<unknown> {
+export async function safeProcessRequestBody(
+  request: Request
+): Promise<unknown> {
   try {
     // 1. ArrayBuffer로 원시 데이터 읽기
     const rawBody = await request.arrayBuffer();
@@ -211,7 +213,7 @@ export function testKoreanEncoding(): {
     { name: 'URL 인코딩', input: encodeURIComponent('네트워크 연결 테스트') },
   ];
 
-  const results = testCases.map(testCase => {
+  const results = testCases.map((testCase) => {
     try {
       const output = safeDecodeKorean(testCase.input);
       const success = isValidKorean(output);
@@ -232,7 +234,7 @@ export function testKoreanEncoding(): {
     }
   });
 
-  const success = results.every(result => result.success);
+  const success = results.every((result) => result.success);
 
   return { success, tests: results };
 }

@@ -1,21 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { 
-  validateRequestBody, 
-  validateQueryParams, 
-  validationResultToResponse 
+import {
+  validateRequestBody,
+  validateQueryParams,
+  validationResultToResponse,
 } from '@/types/validation-utils';
-import { 
-  BaseResponseSchema, 
-  ErrorResponseSchema
+import {
+  BaseResponseSchema,
+  ErrorResponseSchema,
 } from '@/schemas/common.schema';
-import { 
-  ApiSuccessResponseSchema 
-} from '@/schemas/api.schema';
+import { ApiSuccessResponseSchema } from '@/schemas/api.schema';
 
 /**
  * 🔧 Zod 스키마 기반 API 미들웨어
- * 
+ *
  * Zod 스키마를 사용한 고급 API 검증 기능
  */
 
@@ -31,7 +29,10 @@ export interface MiddlewareConfig {
   // 로깅 활성화
   enableLogging?: boolean;
   // 커스텀 에러 핸들러
-  onError?: (error: unknown, request: NextRequest) => NextResponse | Promise<NextResponse>;
+  onError?: (
+    error: unknown,
+    request: NextRequest
+  ) => NextResponse | Promise<NextResponse>;
 }
 
 const defaultConfig: MiddlewareConfig = {
@@ -43,11 +44,17 @@ const defaultConfig: MiddlewareConfig = {
 
 // ===== API 라우트 빌더 =====
 
-export class ApiRouteBuilder<TBody = unknown, TQuery = unknown, TResponse = unknown> {
+export class ApiRouteBuilder<
+  TBody = unknown,
+  TQuery = unknown,
+  TResponse = unknown,
+> {
   private bodySchema?: z.ZodSchema<TBody>;
   private querySchema?: z.ZodSchema<TQuery>;
   private responseSchema?: z.ZodSchema<TResponse>;
-  private middlewares: Array<(req: NextRequest) => Promise<NextRequest | NextResponse>> = [];
+  private middlewares: Array<
+    (req: NextRequest) => Promise<NextRequest | NextResponse>
+  > = [];
   private config: MiddlewareConfig = defaultConfig;
 
   /**
@@ -77,7 +84,9 @@ export class ApiRouteBuilder<TBody = unknown, TQuery = unknown, TResponse = unkn
   /**
    * 커스텀 미들웨어 추가
    */
-  use(middleware: (req: NextRequest) => Promise<NextRequest | NextResponse>): this {
+  use(
+    middleware: (req: NextRequest) => Promise<NextRequest | NextResponse>
+  ): this {
     this.middlewares.push(middleware);
     return this;
   }
@@ -103,9 +112,12 @@ export class ApiRouteBuilder<TBody = unknown, TQuery = unknown, TResponse = unkn
       }
     ) => Promise<TResponse> | TResponse
   ) {
-    return async (request: NextRequest, { params = {} }: { params?: Record<string, string> } = {}) => {
+    return async (
+      request: NextRequest,
+      { params = {} }: { params?: Record<string, string> } = {}
+    ) => {
       const startTime = Date.now();
-      
+
       try {
         // 로깅
         if (this.config.enableLogging) {
@@ -114,7 +126,10 @@ export class ApiRouteBuilder<TBody = unknown, TQuery = unknown, TResponse = unkn
 
         // 타임아웃 처리
         const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Request timeout')), this.config.timeout);
+          setTimeout(
+            () => reject(new Error('Request timeout')),
+            this.config.timeout
+          );
         });
 
         // 커스텀 미들웨어 실행
@@ -138,8 +153,14 @@ export class ApiRouteBuilder<TBody = unknown, TQuery = unknown, TResponse = unkn
         };
 
         // Body 검증
-        if (this.bodySchema && ['POST', 'PUT', 'PATCH'].includes(request.method)) {
-          const bodyResult = await validateRequestBody(request, this.bodySchema);
+        if (
+          this.bodySchema &&
+          ['POST', 'PUT', 'PATCH'].includes(request.method)
+        ) {
+          const bodyResult = await validateRequestBody(
+            request,
+            this.bodySchema
+          );
           if (!bodyResult.success) {
             return bodyResult.error;
           }
@@ -149,7 +170,10 @@ export class ApiRouteBuilder<TBody = unknown, TQuery = unknown, TResponse = unkn
         // Query 검증
         if (this.querySchema) {
           const { searchParams } = new URL(request.url);
-          const queryResult = validateQueryParams(searchParams, this.querySchema);
+          const queryResult = validateQueryParams(
+            searchParams,
+            this.querySchema
+          );
           if (!queryResult.success) {
             return queryResult.error;
           }
@@ -157,17 +181,20 @@ export class ApiRouteBuilder<TBody = unknown, TQuery = unknown, TResponse = unkn
         }
 
         // 핸들러 실행 (타임아웃 포함)
-        const responseData = await Promise.race([
+        const responseData = (await Promise.race([
           handler(request, context),
           timeoutPromise,
-        ]) as TResponse;
+        ])) as TResponse;
 
         // 응답 검증
         if (this.responseSchema && this.config.validateResponse) {
           const validationResult = this.responseSchema.safeParse(responseData);
           if (!validationResult.success) {
-            console.error('Response validation failed:', validationResult.error);
-            
+            console.error(
+              'Response validation failed:',
+              validationResult.error
+            );
+
             if (this.config.showDetailedErrors) {
               return NextResponse.json(
                 {
@@ -244,7 +271,9 @@ export class ApiRouteBuilder<TBody = unknown, TQuery = unknown, TResponse = unkn
       return NextResponse.json(
         {
           success: false,
-          error: this.config.showDetailedErrors ? error.message : '서버 오류가 발생했습니다',
+          error: this.config.showDetailedErrors
+            ? error.message
+            : '서버 오류가 발생했습니다',
           timestamp: new Date().toISOString(),
         },
         { status: 500 }
@@ -277,9 +306,11 @@ export function createApiRoute() {
 /**
  * 인증 미들웨어
  */
-export async function authMiddleware(request: NextRequest): Promise<NextRequest | NextResponse> {
+export async function authMiddleware(
+  request: NextRequest
+): Promise<NextRequest | NextResponse> {
   const token = request.headers.get('authorization')?.replace('Bearer ', '');
-  
+
   if (!token) {
     return NextResponse.json(
       {
@@ -308,11 +339,12 @@ export async function rateLimitMiddleware(
   window = 3600 // 1시간
 ) {
   return async (request: NextRequest): Promise<NextRequest | NextResponse> => {
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 
-               request.headers.get('x-real-ip') || 
-               'unknown';
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0] ||
+      request.headers.get('x-real-ip') ||
+      'unknown';
     const key = `rate_limit:${ip}:${request.url}`;
-    
+
     // Rate limiting 로직 (Redis 등 사용)
     // const count = await redis.incr(key);
     // if (count === 1) {

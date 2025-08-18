@@ -28,7 +28,7 @@ export default function SupabaseAuthProvider({
 }: SupabaseAuthProviderProps) {
   useEffect(() => {
     // 인증 상태 변경 리스너 설정
-    const authListener = onAuthStateChange(session => {
+    const authListener = onAuthStateChange((session) => {
       // 전역 인증 상태 업데이트는 각 컴포넌트에서 처리
       console.log(
         '🔐 Auth state changed:',

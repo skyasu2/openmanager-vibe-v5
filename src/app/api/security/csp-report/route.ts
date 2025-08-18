@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     // CSP 위반 리포트 파싱
     const report = await request.json();
-    
+
     // 📊 기본 로깅 (Vercel 함수 로그로 수집)
     console.warn('🛡️ CSP Violation Report:', {
       timestamp,
@@ -33,19 +33,29 @@ export async function POST(request: NextRequest) {
 
     // 📈 간단한 통계 카운팅 (메모리 내)
     const violationType = report['violated-directive']?.split(' ')[0];
-    
+
     if (violationType) {
       // 개발 환경에서만 상세 로깅
       if (process.env.NODE_ENV === 'development') {
         console.info(`🔍 CSP Violation Type: ${violationType}`);
-        
+
         // 일반적인 위반 원인 분석
-        if (violationType === 'script-src' && report['blocked-uri']?.includes('data:')) {
-          console.warn('💡 Suggestion: Consider using nonce or hash for inline scripts');
+        if (
+          violationType === 'script-src' &&
+          report['blocked-uri']?.includes('data:')
+        ) {
+          console.warn(
+            '💡 Suggestion: Consider using nonce or hash for inline scripts'
+          );
         }
-        
-        if (violationType === 'style-src' && report['blocked-uri']?.includes('data:')) {
-          console.warn('💡 Suggestion: Consider using CSS-in-JS with nonce or external stylesheets');
+
+        if (
+          violationType === 'style-src' &&
+          report['blocked-uri']?.includes('data:')
+        ) {
+          console.warn(
+            '💡 Suggestion: Consider using CSS-in-JS with nonce or external stylesheets'
+          );
         }
       }
     }
@@ -58,10 +68,9 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'text/plain',
       },
     });
-
   } catch (error) {
     console.error('❌ CSP Report Processing Error:', error);
-    
+
     // 에러 상황에서도 빠른 응답
     return new NextResponse('Error', {
       status: 400,
@@ -77,18 +86,21 @@ export async function POST(request: NextRequest) {
  * CSP 리포트 엔드포인트 상태 확인
  */
 export async function GET() {
-  return NextResponse.json({
-    status: 'active',
-    endpoint: '/api/security/csp-report',
-    description: 'CSP violation report collector',
-    environment: process.env.NODE_ENV,
-    timestamp: new Date().toISOString(),
-  }, {
-    headers: {
-      'Cache-Control': 'public, s-maxage=3600',
-      'Content-Type': 'application/json',
+  return NextResponse.json(
+    {
+      status: 'active',
+      endpoint: '/api/security/csp-report',
+      description: 'CSP violation report collector',
+      environment: process.env.NODE_ENV,
+      timestamp: new Date().toISOString(),
     },
-  });
+    {
+      headers: {
+        'Cache-Control': 'public, s-maxage=3600',
+        'Content-Type': 'application/json',
+      },
+    }
+  );
 }
 
 // OPTIONS 메서드 지원 (CORS preflight)

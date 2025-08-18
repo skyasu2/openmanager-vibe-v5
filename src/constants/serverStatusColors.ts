@@ -1,6 +1,6 @@
 /**
  * 🎨 서버 상태별 색상 테마 상수 정의
- * 
+ *
  * 사용자 요구사항:
  * - 심각 상황(critical/offline): 빨간색 계열
  * - 경고 상황(warning): 노랑/주황 계열
@@ -35,7 +35,7 @@ export const METRIC_THRESHOLDS: Record<string, MetricThreshold> = {
 export const SERVER_STATUS_COLORS = {
   // 심각/오프라인 - 빨간색 계열
   critical: {
-    lineColor: '#dc2626',  // red-600
+    lineColor: '#dc2626', // red-600
     textColor: 'text-red-700',
     bgColor: 'bg-red-50',
     gradientFrom: 'from-red-600',
@@ -47,10 +47,10 @@ export const SERVER_STATUS_COLORS = {
     badge: 'bg-red-100 text-red-800',
     border: 'border-red-300',
   },
-  
+
   // 경고 - 노랑/주황 계열
   warning: {
-    lineColor: '#f59e0b',  // amber-500
+    lineColor: '#f59e0b', // amber-500
     textColor: 'text-amber-700',
     bgColor: 'bg-amber-50',
     gradientFrom: 'from-amber-500',
@@ -62,10 +62,10 @@ export const SERVER_STATUS_COLORS = {
     badge: 'bg-yellow-100 text-yellow-800',
     border: 'border-yellow-300',
   },
-  
+
   // 정상/온라인 - 녹색 계열
   online: {
-    lineColor: '#10b981',  // emerald-500
+    lineColor: '#10b981', // emerald-500
     textColor: 'text-emerald-700',
     bgColor: 'bg-emerald-50',
     gradientFrom: 'from-emerald-500',
@@ -77,10 +77,10 @@ export const SERVER_STATUS_COLORS = {
     badge: 'bg-green-100 text-green-800',
     border: 'border-green-300',
   },
-  
+
   // 기본값 (상태 불명) - 회색 계열
   unknown: {
-    lineColor: '#6b7280',  // gray-500
+    lineColor: '#6b7280', // gray-500
     textColor: 'text-gray-700',
     bgColor: 'bg-gray-50',
     gradientFrom: 'from-gray-500',
@@ -99,21 +99,31 @@ export const SERVER_STATUS_COLORS = {
  * critical → offline 매핑
  * healthy → online 매핑
  */
-export function normalizeServerStatus(status: string): 'online' | 'warning' | 'critical' | 'unknown' {
+export function normalizeServerStatus(
+  status: string
+): 'online' | 'warning' | 'critical' | 'unknown' {
   const normalizedStatus = status.toLowerCase();
-  
-  if (normalizedStatus === 'offline' || normalizedStatus === 'critical' || normalizedStatus === 'error') {
+
+  if (
+    normalizedStatus === 'offline' ||
+    normalizedStatus === 'critical' ||
+    normalizedStatus === 'error'
+  ) {
     return 'critical';
   }
-  
+
   if (normalizedStatus === 'warning' || normalizedStatus === 'degraded') {
     return 'warning';
   }
-  
-  if (normalizedStatus === 'online' || normalizedStatus === 'healthy' || normalizedStatus === 'running') {
+
+  if (
+    normalizedStatus === 'online' ||
+    normalizedStatus === 'healthy' ||
+    normalizedStatus === 'running'
+  ) {
     return 'online';
   }
-  
+
   return 'unknown';
 }
 
@@ -138,7 +148,7 @@ export function getMetricColorConfig(
   if (serverStatus) {
     const normalized = normalizeServerStatus(serverStatus);
     const colors = SERVER_STATUS_COLORS[normalized];
-    
+
     return {
       lineColor: colors.lineColor,
       textColor: colors.textColor,
@@ -149,10 +159,10 @@ export function getMetricColorConfig(
       fillColor: colors.fillColor,
     };
   }
-  
+
   // 서버 상태가 없으면 메트릭 값 기반 판단
   const threshold = METRIC_THRESHOLDS[type];
-  
+
   if (value >= threshold.critical) {
     const colors = SERVER_STATUS_COLORS.critical;
     return {
@@ -165,7 +175,7 @@ export function getMetricColorConfig(
       fillColor: colors.fillColor,
     };
   }
-  
+
   if (value >= threshold.warning) {
     const colors = SERVER_STATUS_COLORS.warning;
     return {
@@ -178,7 +188,7 @@ export function getMetricColorConfig(
       fillColor: colors.fillColor,
     };
   }
-  
+
   const colors = SERVER_STATUS_COLORS.online;
   return {
     lineColor: colors.lineColor,

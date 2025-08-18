@@ -7,12 +7,12 @@
 
 import { EventEmitter } from 'events';
 import { systemLogger } from '../../lib/logger';
-import { 
+import {
   ISystemEventBus,
   ISystemEventEmitter,
   SystemEventType,
   ProcessEventPayload,
-  SystemStatusPayload
+  SystemStatusPayload,
 } from '../interfaces/SystemEventBus';
 
 export interface ProcessConfig {
@@ -61,11 +61,14 @@ export interface SystemMetrics {
  * 리팩토링된 ProcessManager
  * 이벤트 버스를 통해 SystemWatchdog와 통신
  */
-export class ProcessManager extends EventEmitter implements ISystemEventEmitter {
+export class ProcessManager
+  extends EventEmitter
+  implements ISystemEventEmitter
+{
   private processes = new Map<string, ProcessConfig>();
   private states = new Map<string, ProcessState>();
   private healthCheckInterval?: NodeJS.Timeout;
-  private eventBus?: ISystemEventBus;  // SystemWatchdog 대신 이벤트 버스 사용
+  private eventBus?: ISystemEventBus; // SystemWatchdog 대신 이벤트 버스 사용
   private isSystemRunning = false;
   private systemStartTime?: Date;
   private stabilityTimeout?: NodeJS.Timeout;
@@ -310,7 +313,7 @@ export class ProcessManager extends EventEmitter implements ISystemEventEmitter 
       state.lastHealthCheck = new Date();
 
       systemLogger.system(`✅ ${config.name} 시작 완료`);
-      
+
       // 이벤트 버스를 통해 프로세스 시작 알림
       if (this.eventBus) {
         this.eventBus.emit<ProcessEventPayload>({
@@ -324,14 +327,15 @@ export class ProcessManager extends EventEmitter implements ISystemEventEmitter 
           },
         });
       }
-      
+
       this.emit('process:started', { processId, config, state });
       return true;
     } catch (error) {
       state.status = 'error';
       state.stoppedAt = new Date();
-      const errorMsg = error instanceof Error ? error.message : '알 수 없는 오류';
-      
+      const errorMsg =
+        error instanceof Error ? error.message : '알 수 없는 오류';
+
       state.errors.push({
         timestamp: new Date(),
         message: errorMsg,
@@ -339,7 +343,7 @@ export class ProcessManager extends EventEmitter implements ISystemEventEmitter 
       });
 
       systemLogger.error(`${config.name} 시작 실패:`, error);
-      
+
       // 이벤트 버스를 통해 프로세스 오류 알림
       if (this.eventBus) {
         this.eventBus.emit<ProcessEventPayload>({
@@ -385,15 +389,17 @@ export class ProcessManager extends EventEmitter implements ISystemEventEmitter 
         state.healthScore = Math.min(100, state.healthScore + 5);
       } else {
         state.healthScore = Math.max(0, state.healthScore - 20);
-        
+
         if (state.healthScore < 50) {
-          systemLogger.warn(`⚠️ ${config.name} 건강도 낮음: ${state.healthScore}%`);
-          
+          systemLogger.warn(
+            `⚠️ ${config.name} 건강도 낮음: ${state.healthScore}%`
+          );
+
           // 이벤트 버스를 통해 헬스체크 결과 알림
           if (this.eventBus) {
             const memoryUsage = process.memoryUsage();
             const cpuUsage = process.cpuUsage();
-            
+
             this.eventBus.emit<ProcessEventPayload>({
               type: SystemEventType.PROCESS_HEALTH_CHECK,
               timestamp: Date.now(),
@@ -488,7 +494,7 @@ export class ProcessManager extends EventEmitter implements ISystemEventEmitter 
       systemLogger.system(
         `✅ 시스템 정지 완료 (${stoppedCount}/${this.processes.size} 프로세스 정지)`
       );
-      
+
       this.emit('system:stopped', {
         stoppedCount,
         totalCount: this.processes.size,
@@ -534,7 +540,7 @@ export class ProcessManager extends EventEmitter implements ISystemEventEmitter 
     systemLogger.system(
       `🔄 ${config.name} 재시작 중... (시도 ${state.restartCount}/${config.maxRestarts})`
     );
-    
+
     this.emit('process:restarting', {
       processId,
       attempt: state.restartCount,
@@ -558,16 +564,17 @@ export class ProcessManager extends EventEmitter implements ISystemEventEmitter 
     return Array.from(this.processes.entries()).map(([id, config]) => {
       const state = this.states.get(id);
       let status: 'up' | 'down' | 'degraded' = 'down';
-      
+
       if (state?.status === 'running') {
         status = state.healthScore >= 70 ? 'up' : 'degraded';
       }
-      
+
       return {
         name: config.name,
         status,
-        responseTime: state?.lastHealthCheck ? 
-          Date.now() - state.lastHealthCheck.getTime() : undefined,
+        responseTime: state?.lastHealthCheck
+          ? Date.now() - state.lastHealthCheck.getTime()
+          : undefined,
       };
     });
   }
@@ -591,14 +598,14 @@ export class ProcessManager extends EventEmitter implements ISystemEventEmitter 
     const visit = (id: string) => {
       if (visited.has(id)) return;
       visited.add(id);
-      
+
       const config = this.processes.get(id);
       if (config?.dependencies) {
         for (const depId of config.dependencies) {
           visit(depId);
         }
       }
-      
+
       order.push(id);
     };
 
@@ -626,7 +633,7 @@ export class ProcessManager extends EventEmitter implements ISystemEventEmitter 
       await config.stopCommand();
       state.status = 'stopped';
       state.stoppedAt = new Date();
-      
+
       // 업타임 계산
       if (state.startedAt) {
         state.uptime = state.stoppedAt.getTime() - state.startedAt.getTime();
@@ -673,15 +680,15 @@ export class ProcessManager extends EventEmitter implements ISystemEventEmitter 
   private async emergencyShutdown(): Promise<void> {
     systemLogger.error('🚨 긴급 시스템 종료 시작...');
     this.isSystemRunning = false;
-    
+
     this.stopHealthChecks();
-    
-    const stopPromises = Array.from(this.processes.keys()).map(id =>
-      this.stopProcess(id).catch(error =>
+
+    const stopPromises = Array.from(this.processes.keys()).map((id) =>
+      this.stopProcess(id).catch((error) =>
         systemLogger.error(`프로세스 ${id} 종료 실패:`, error)
       )
     );
-    
+
     await Promise.allSettled(stopPromises);
     this.emit('system:emergency-shutdown');
   }
@@ -698,7 +705,7 @@ export class ProcessManager extends EventEmitter implements ISystemEventEmitter 
   }
 
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   getSystemStatus(): {
@@ -715,8 +722,8 @@ export class ProcessManager extends EventEmitter implements ISystemEventEmitter 
 
   getSystemMetrics(): SystemMetrics {
     const states = Array.from(this.states.values());
-    const runningStates = states.filter(s => s.status === 'running');
-    const healthyStates = runningStates.filter(s => s.healthScore >= 70);
+    const runningStates = states.filter((s) => s.status === 'running');
+    const healthyStates = runningStates.filter((s) => s.healthScore >= 70);
 
     const totalRestarts = states.reduce(
       (sum, state) => sum + state.restartCount,

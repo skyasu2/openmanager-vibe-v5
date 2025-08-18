@@ -160,7 +160,10 @@ export class MCPContextManager {
   /**
    * 🔄 컨텍스트 업데이트
    */
-  async updateContext(sessionId: string, updates: Record<string, unknown>): Promise<boolean> {
+  async updateContext(
+    sessionId: string,
+    updates: Record<string, unknown>
+  ): Promise<boolean> {
     try {
       const existingContext = this.contexts.get(sessionId);
 
@@ -384,7 +387,11 @@ export class MCPContextManager {
 
         // 불필요한 메타데이터 제거
         if (context.data && typeof context.data === 'object') {
-          const dataObj = context.data as Record<string, unknown> & { _debug?: unknown; _temp?: unknown; _cache?: unknown };
+          const dataObj = context.data as Record<string, unknown> & {
+            _debug?: unknown;
+            _temp?: unknown;
+            _cache?: unknown;
+          };
           delete dataObj._debug;
           delete dataObj._temp;
           delete dataObj._cache;

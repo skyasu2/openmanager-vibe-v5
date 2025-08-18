@@ -201,12 +201,8 @@ export async function GET(request: NextRequest) {
       serverDetails: {
         byStatus: serversByStatus,
         kubernetes: {
-          masters: ENTERPRISE_SERVERS.filter((s) =>
-            s.id.includes('master')
-          ),
-          workers: ENTERPRISE_SERVERS.filter((s) =>
-            s.id.includes('worker')
-          ),
+          masters: ENTERPRISE_SERVERS.filter((s) => s.id.includes('master')),
+          workers: ENTERPRISE_SERVERS.filter((s) => s.id.includes('worker')),
         },
         onPremise: {
           web: ENTERPRISE_SERVERS.filter((s) => s.id.includes('web-')),
@@ -244,7 +240,9 @@ export async function GET(request: NextRequest) {
     };
 
     // 캐시에 저장 (1분)
-    await cache.set('enterprise:overview', enterpriseOverview, { ttlSeconds: 60 });
+    await cache.set('enterprise:overview', enterpriseOverview, {
+      ttlSeconds: 60,
+    });
 
     if (feature) {
       // 기능별 정보를 별도로 처리

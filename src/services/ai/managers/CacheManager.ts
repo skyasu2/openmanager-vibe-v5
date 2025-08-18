@@ -29,19 +29,19 @@ export interface CacheEntry {
 }
 
 export interface CacheOptions {
-  maxSize?: number;        // 최대 캐시 항목 수 (기본: 200)
-  defaultTTL?: number;     // 기본 TTL (기본: 5분)
+  maxSize?: number; // 최대 캐시 항목 수 (기본: 200)
+  defaultTTL?: number; // 기본 TTL (기본: 5분)
   enableMetrics?: boolean; // 메트릭 수집 여부
 }
 
 export interface CacheMetrics {
   hits: number;
   misses: number;
-  hitRate: number;          // 0-100%
+  hitRate: number; // 0-100%
   totalSize: number;
   averageTTL: number;
-  oldestEntry: number;      // timestamp
-  newestEntry: number;      // timestamp
+  oldestEntry: number; // timestamp
+  newestEntry: number; // timestamp
   mostAccessedKeys: Array<{
     key: string;
     hits: number;
@@ -78,7 +78,7 @@ export class CacheManager {
       request.query,
       request.mode || 'auto',
       JSON.stringify(request.context || {}),
-      request.userId || 'anonymous'
+      request.userId || 'anonymous',
     ];
     return Buffer.from(keyParts.join('|')).toString('base64');
   }
@@ -119,12 +119,12 @@ export class CacheManager {
    * 응답 캐시 저장
    */
   setCachedResponse(
-    cacheKey: string, 
-    response: QueryResponse, 
+    cacheKey: string,
+    response: QueryResponse,
     ttl: number = this.options.defaultTTL
   ): void {
     const now = Date.now();
-    
+
     this.cache.set(cacheKey, {
       response: { ...response }, // 깊은 복사
       timestamp: now,
@@ -164,7 +164,7 @@ export class CacheManager {
    */
   invalidateByPattern(pattern: RegExp): number {
     let removedCount = 0;
-    
+
     for (const [key] of this.cache.entries()) {
       if (pattern.test(key)) {
         this.cache.delete(key);
@@ -220,12 +220,15 @@ export class CacheManager {
   getMetrics(): CacheMetrics {
     const entries = Array.from(this.cache.entries());
     const totalRequests = this.metrics.hits + this.metrics.misses;
-    const hitRate = totalRequests > 0 ? (this.metrics.hits / totalRequests) * 100 : 0;
+    const hitRate =
+      totalRequests > 0 ? (this.metrics.hits / totalRequests) * 100 : 0;
 
     // 평균 TTL 계산
-    const averageTTL = entries.length > 0 
-      ? entries.reduce((sum, [, entry]) => sum + entry.ttl, 0) / entries.length
-      : 0;
+    const averageTTL =
+      entries.length > 0
+        ? entries.reduce((sum, [, entry]) => sum + entry.ttl, 0) /
+          entries.length
+        : 0;
 
     // 가장 오래된/최신 항목
     const timestamps = entries.map(([, entry]) => entry.timestamp);
@@ -261,22 +264,26 @@ export class CacheManager {
     size: number;
     maxSize: number;
     utilizationRate: number; // 0-100%
-    averageAge: number;      // ms
-    hitRate: number;         // 0-100%
+    averageAge: number; // ms
+    hitRate: number; // 0-100%
   } {
     const metrics = this.getMetrics();
     const now = Date.now();
-    
+
     // 평균 나이 계산
     const entries = Array.from(this.cache.values());
-    const averageAge = entries.length > 0
-      ? entries.reduce((sum, entry) => sum + (now - entry.timestamp), 0) / entries.length
-      : 0;
+    const averageAge =
+      entries.length > 0
+        ? entries.reduce((sum, entry) => sum + (now - entry.timestamp), 0) /
+          entries.length
+        : 0;
 
     return {
       size: this.cache.size,
       maxSize: this.options.maxSize,
-      utilizationRate: Math.round((this.cache.size / this.options.maxSize) * 100),
+      utilizationRate: Math.round(
+        (this.cache.size / this.options.maxSize) * 100
+      ),
       averageAge: Math.round(averageAge),
       hitRate: metrics.hitRate,
     };
@@ -287,7 +294,7 @@ export class CacheManager {
    */
   updateOptions(newOptions: Partial<CacheOptions>): void {
     this.options = { ...this.options, ...newOptions };
-    
+
     // 최대 크기가 줄어들면 즉시 정리
     if (newOptions.maxSize && this.cache.size > newOptions.maxSize) {
       while (this.cache.size > newOptions.maxSize) {

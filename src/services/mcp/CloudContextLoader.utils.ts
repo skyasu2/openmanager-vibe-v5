@@ -1,6 +1,6 @@
 /**
  * 🛠️ CloudContextLoader Utilities - Helper Functions
- * 
+ *
  * Utility functions for CloudContextLoader:
  * - Path extraction and filtering
  * - Query hash generation
@@ -100,7 +100,10 @@ export function generateQueryHash(query: string): string {
 /**
  * 🔑 컨텍스트 ID 생성
  */
-export function generateContextId(bundleType: string, clientId?: string): string {
+export function generateContextId(
+  bundleType: string,
+  clientId?: string
+): string {
   return clientId && bundleType === 'custom'
     ? `${bundleType}-${clientId}`
     : bundleType;
@@ -144,13 +147,17 @@ export function formatMCPContextForNLP(mcpContext: {
 /**
  * 📝 로컬 컨텍스트 포맷팅 (NLP용)
  */
-export function formatLocalContextForNLP(localContext: Array<{
-  bundleType: string;
-  documents: { markdown: Record<string, string> };
-}>): string {
+export function formatLocalContextForNLP(
+  localContext: Array<{
+    bundleType: string;
+    documents: { markdown: Record<string, string> };
+  }>
+): string {
   let formatted = '';
   for (const context of localContext) {
-    const markdownContent = Object.values(context.documents.markdown).join('\n');
+    const markdownContent = Object.values(context.documents.markdown).join(
+      '\n'
+    );
     formatted += `[로컬 컨텍스트: ${context.bundleType}]\n${markdownContent.substring(0, 300)}...\n\n`;
   }
   return formatted;

@@ -1,6 +1,6 @@
 /**
  * 🔌 서비스 어댑터
- * 
+ *
  * 기존 분산 서비스들을 새로운 통합 인터페이스와 연결
  * - 기존 코드 유지하면서 점진적 마이그레이션
  * - 인터페이스 호환성 보장
@@ -60,20 +60,24 @@ export class SupabaseRAGAdapter {
       const response: DistributedResponse<SupabaseRAGResponse> = {
         id: request.id,
         success: result.success,
-        data: result.success ? {
-          results: result.results.map((r) => ({
-            id: r.id,
-            content: r.content,
-            similarity: r.similarity || 0, // Provide default if missing
-            metadata: r.metadata,
-          })),
-          context: result.context,
-          totalResults: result.totalResults,
-        } : undefined,
-        error: result.success ? undefined : distributedErrorHandler.createDistributedError(
-          new Error(result.error || '검색 실패'),
-          'supabase-rag'
-        ),
+        data: result.success
+          ? {
+              results: result.results.map((r) => ({
+                id: r.id,
+                content: r.content,
+                similarity: r.similarity || 0, // Provide default if missing
+                metadata: r.metadata,
+              })),
+              context: result.context,
+              totalResults: result.totalResults,
+            }
+          : undefined,
+        error: result.success
+          ? undefined
+          : distributedErrorHandler.createDistributedError(
+              new Error(result.error || '검색 실패'),
+              'supabase-rag'
+            ),
         metadata: {
           service: 'supabase-rag',
           processingTime: Date.now() - startTime,
@@ -91,7 +95,10 @@ export class SupabaseRAGAdapter {
       return {
         id: request.id,
         success: false,
-        error: distributedErrorHandler.createDistributedError(error, 'supabase-rag'),
+        error: distributedErrorHandler.createDistributedError(
+          error,
+          'supabase-rag'
+        ),
         metadata: {
           service: 'supabase-rag',
           processingTime: Date.now() - startTime,
@@ -107,7 +114,8 @@ export class SupabaseRAGAdapter {
  * GCP Functions 어댑터
  */
 export class GCPFunctionsAdapter {
-  private readonly baseUrl = process.env.NEXT_PUBLIC_GCP_FUNCTIONS_BASE_URL || '';
+  private readonly baseUrl =
+    process.env.NEXT_PUBLIC_GCP_FUNCTIONS_BASE_URL || '';
   private readonly apiKey = process.env.GCP_FUNCTIONS_API_KEY || '';
 
   async callFunction(
@@ -133,7 +141,7 @@ export class GCPFunctionsAdapter {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
         },
         body: JSON.stringify({
           query: request.query,
@@ -192,7 +200,6 @@ export class GCPFunctionsAdapter {
     }
   }
 }
-
 
 // 싱글톤 인스턴스들
 export const supabaseRAGAdapter = new SupabaseRAGAdapter();

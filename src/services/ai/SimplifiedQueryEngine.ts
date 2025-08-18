@@ -59,7 +59,7 @@ export class SimplifiedQueryEngine {
   protected intentClassifier: IntentClassifier;
   protected isInitialized = false;
   private initPromise: Promise<void> | null = null;
-  
+
   // Extracted utility and processor classes
   private utils: SimplifiedQueryEngineUtils;
   private processors: SimplifiedQueryEngineProcessors;
@@ -69,7 +69,7 @@ export class SimplifiedQueryEngine {
     this.contextLoader = CloudContextLoader.getInstance();
     this.mockContextLoader = MockContextLoader.getInstance();
     this.intentClassifier = new IntentClassifier();
-    
+
     // Initialize extracted modules
     this.utils = new SimplifiedQueryEngineUtils();
     this.processors = new SimplifiedQueryEngineProcessors(
@@ -87,7 +87,11 @@ export class SimplifiedQueryEngine {
   private initCleanupScheduler() {
     try {
       // Edge Runtime 감지 (setInterval 제한 여부 확인)
-      if (typeof setInterval === 'function' && typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
+      if (
+        typeof setInterval === 'function' &&
+        typeof process !== 'undefined' &&
+        process.env.NODE_ENV !== 'test'
+      ) {
         // Node.js Runtime: 5분마다 자동 정리
         setInterval(() => this.utils.cleanupCache(), 5 * 60 * 1000);
       } else {
@@ -212,12 +216,17 @@ export class SimplifiedQueryEngine {
       });
 
       // Command keyword detection (delegated to utils)
-      const isCommandQuery = this.utils.detectCommandQuery(query, options.commandContext);
-      
+      const isCommandQuery = this.utils.detectCommandQuery(
+        query,
+        options.commandContext
+      );
+
       if (isCommandQuery) {
         thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-        thinkingSteps[thinkingSteps.length - 1].description = '명령어 쿼리로 감지됨';
-        thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - commandStepStart;
+        thinkingSteps[thinkingSteps.length - 1].description =
+          '명령어 쿼리로 감지됨';
+        thinkingSteps[thinkingSteps.length - 1].duration =
+          Date.now() - commandStepStart;
 
         // Command-specific processing (delegated to processors)
         return await this.processors.processCommandQuery(
@@ -228,8 +237,10 @@ export class SimplifiedQueryEngine {
         );
       } else {
         thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-        thinkingSteps[thinkingSteps.length - 1].description = '일반 쿼리로 판단';
-        thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - commandStepStart;
+        thinkingSteps[thinkingSteps.length - 1].description =
+          '일반 쿼리로 판단';
+        thinkingSteps[thinkingSteps.length - 1].duration =
+          Date.now() - commandStepStart;
       }
 
       // 모드별 처리 전환
@@ -259,7 +270,7 @@ export class SimplifiedQueryEngine {
               maxFiles: 3, // 성능을 위해 파일 수 제한
               includeSystemContext: true,
             })
-            .then(result => {
+            .then((result) => {
               mcpContext = result;
               thinkingSteps[mcpStepIndex].status = 'completed';
               thinkingSteps[mcpStepIndex].description =
@@ -267,7 +278,7 @@ export class SimplifiedQueryEngine {
               thinkingSteps[mcpStepIndex].duration =
                 Date.now() - thinkingSteps[mcpStepIndex].timestamp;
             })
-            .catch(error => {
+            .catch((error) => {
               console.warn('MCP 컨텍스트 수집 실패:', error);
               thinkingSteps[mcpStepIndex].status = 'failed';
               thinkingSteps[mcpStepIndex].duration =
@@ -287,7 +298,7 @@ export class SimplifiedQueryEngine {
       if (processingPromises.length > 0) {
         await Promise.race([
           Promise.all(processingPromises),
-          new Promise(resolve => setTimeout(resolve, 100)),
+          new Promise((resolve) => setTimeout(resolve, 100)),
         ]);
       }
 
@@ -323,7 +334,12 @@ export class SimplifiedQueryEngine {
               mcpContext,
               thinkingSteps,
               startTime,
-              { enableGoogleAI, enableAIAssistantMCP, enableKoreanNLP, enableVMBackend }
+              {
+                enableGoogleAI,
+                enableAIAssistantMCP,
+                enableKoreanNLP,
+                enableVMBackend,
+              }
             ),
             queryTimeout,
           ]);
@@ -352,7 +368,11 @@ export class SimplifiedQueryEngine {
           );
         } else {
           // Local also failed, generate fallback (delegated to utils)
-          return this.utils.generateFallbackResponse(query, thinkingSteps, startTime);
+          return this.utils.generateFallbackResponse(
+            query,
+            thinkingSteps,
+            startTime
+          );
         }
       }
     } catch (error) {
@@ -361,7 +381,8 @@ export class SimplifiedQueryEngine {
       return {
         success: false,
         response: '죄송합니다. 쿼리 처리 중 오류가 발생했습니다.',
-        engine: mode === 'local' || mode === 'local-ai' ? 'local-rag' : 'google-ai',
+        engine:
+          mode === 'local' || mode === 'local-ai' ? 'local-rag' : 'google-ai',
         confidence: 0,
         thinkingSteps,
         error: error instanceof Error ? error.message : '알 수 없는 오류',
@@ -402,7 +423,7 @@ export class SimplifiedQueryEngine {
   // generateCommandFallbackResponse method is now handled by SimplifiedQueryEngineUtils
 
   // callKoreanNLPFunction method is now handled by SimplifiedQueryEngineUtils
-  
+
   // detectBasicIntent method is now handled by SimplifiedQueryEngineUtils
 
   /**

@@ -84,7 +84,7 @@ export default function InfrastructureOverviewPage({
       const response_data = await response.json();
       const serversObject = response_data?.data?.servers || {};
       const stats = response_data?.data?.stats || {};
-      
+
       // 서버 객체를 배열로 변환
       const servers = Object.values(serversObject);
 
@@ -123,7 +123,10 @@ export default function InfrastructureOverviewPage({
             if (typeof s === 'object' && s !== null) {
               const server = s as DashboardServerData;
               // CPU 값은 cpu.usage 또는 직접 cpu 필드에서 가져옴
-              const cpuValue = typeof server.cpu === 'object' && server.cpu ? server.cpu.usage || 0 : server.cpu || 0;
+              const cpuValue =
+                typeof server.cpu === 'object' && server.cpu
+                  ? server.cpu.usage || 0
+                  : server.cpu || 0;
               return sum + cpuValue;
             }
             return sum;
@@ -134,7 +137,10 @@ export default function InfrastructureOverviewPage({
             if (typeof s === 'object' && s !== null) {
               const server = s as DashboardServerData;
               // Memory 값은 memory.usage 또는 직접 memory 필드에서 가져옴
-              const memoryValue = typeof server.memory === 'object' && server.memory ? server.memory.usage || 0 : server.memory || 0;
+              const memoryValue =
+                typeof server.memory === 'object' && server.memory
+                  ? server.memory.usage || 0
+                  : server.memory || 0;
               return sum + memoryValue;
             }
             return sum;
@@ -145,7 +151,10 @@ export default function InfrastructureOverviewPage({
             if (typeof s === 'object' && s !== null) {
               const server = s as DashboardServerData;
               // Disk 값은 disk.usage 또는 직접 disk 필드에서 가져옴
-              const diskValue = typeof server.disk === 'object' && server.disk ? server.disk.usage || 0 : server.disk || 0;
+              const diskValue =
+                typeof server.disk === 'object' && server.disk
+                  ? server.disk.usage || 0
+                  : server.disk || 0;
               return sum + diskValue;
             }
             return sum;
@@ -325,9 +334,7 @@ export default function InfrastructureOverviewPage({
             className={`rounded-lg border p-2 ${getStatusBgColor(stats.totalCpu)}`}
           >
             <div className="mb-1 flex items-center justify-between">
-              <Cpu
-                className={`h-4 w-4 ${getStatusColor(stats.totalCpu)}`}
-              />
+              <Cpu className={`h-4 w-4 ${getStatusColor(stats.totalCpu)}`} />
               <span
                 className={`text-lg font-bold ${getStatusColor(stats.totalCpu)}`}
               >

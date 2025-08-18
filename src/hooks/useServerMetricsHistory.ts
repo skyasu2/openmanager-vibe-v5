@@ -19,33 +19,27 @@ export function useServerMetricsHistory(serverId: string) {
   });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const handleDataUpdate = useCallback(
-    (data: unknown) => {
-      const newData = data as {
-        cpu: number;
-        memory: number;
-        disk: number;
-        network: number;
-      };
-      setMetricsHistory(prevHistory => ({
-        cpu: [...prevHistory.cpu.slice(-MAX_HISTORY_LENGTH + 1), newData.cpu],
-        memory: [
-          ...prevHistory.memory.slice(-MAX_HISTORY_LENGTH + 1),
-          newData.memory,
-        ],
-        disk: [
-          ...prevHistory.disk.slice(-MAX_HISTORY_LENGTH + 1),
-          newData.disk,
-        ],
-        network: [
-          ...prevHistory.network.slice(-MAX_HISTORY_LENGTH + 1),
-          newData.network,
-        ],
-      }));
-      setLastUpdated(new Date());
-    },
-    []
-  );
+  const handleDataUpdate = useCallback((data: unknown) => {
+    const newData = data as {
+      cpu: number;
+      memory: number;
+      disk: number;
+      network: number;
+    };
+    setMetricsHistory((prevHistory) => ({
+      cpu: [...prevHistory.cpu.slice(-MAX_HISTORY_LENGTH + 1), newData.cpu],
+      memory: [
+        ...prevHistory.memory.slice(-MAX_HISTORY_LENGTH + 1),
+        newData.memory,
+      ],
+      disk: [...prevHistory.disk.slice(-MAX_HISTORY_LENGTH + 1), newData.disk],
+      network: [
+        ...prevHistory.network.slice(-MAX_HISTORY_LENGTH + 1),
+        newData.network,
+      ],
+    }));
+    setLastUpdated(new Date());
+  }, []);
 
   useEffect(() => {
     const subscriberId = `server-metrics-history-${serverId}`;

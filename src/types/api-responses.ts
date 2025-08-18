@@ -1,6 +1,6 @@
 /**
  * 🎯 API 응답 TypeScript 타입 정의
- * 
+ *
  * Zod 스키마에서 자동 생성된 타입 안전한 API 응답 타입들
  * 600+ TypeScript 에러 해결을 위한 핵심 타입 정의
  */
@@ -11,12 +11,12 @@ import {
   MCPQueryRequestSchema,
   MCPQueryResponseSchema,
   HealthCheckResponseSchema,
-  
+
   // 서버 스키마 (alias 사용)
   ServerSchema,
   ServerMetricsSchema,
   NetworkInfoSchema,
-  
+
   // 공통 스키마
   BaseResponseSchema,
   ErrorResponseSchema,
@@ -56,9 +56,9 @@ export type Percentage = z.infer<typeof PercentageSchema>;
 
 // 서버 타입들 (임시로 간단하게 정의)
 export type ServerType = 'web' | 'database' | 'api' | 'cache' | 'worker';
-export type CPUInfo = { usage: number; cores: number; };
-export type MemoryInfo = { usage: number; total: number; };
-export type DiskInfo = { usage: number; total: number; };
+export type CPUInfo = { usage: number; cores: number };
+export type MemoryInfo = { usage: number; total: number };
+export type DiskInfo = { usage: number; total: number };
 
 // ===== 공통 API 응답 래퍼 타입 =====
 
@@ -97,22 +97,23 @@ export interface PaginatedApiResponse<T = unknown> extends ApiResponse<T[]> {
 /**
  * 대시보드 응답 타입
  */
-export interface DashboardResponse extends ApiResponse<{
-  servers: Server[];
-  metrics: {
-    totalServers: number;
-    onlineServers: number;
-    offlineServers: number;
-    criticalAlerts: number;
-  };
-  recentActivities: Array<{
-    id: string;
-    type: 'alert' | 'maintenance' | 'deployment';
-    message: string;
-    timestamp: string;
-    severity: 'low' | 'medium' | 'high' | 'critical';
-  }>;
-}> {}
+export interface DashboardResponse
+  extends ApiResponse<{
+    servers: Server[];
+    metrics: {
+      totalServers: number;
+      onlineServers: number;
+      offlineServers: number;
+      criticalAlerts: number;
+    };
+    recentActivities: Array<{
+      id: string;
+      type: 'alert' | 'maintenance' | 'deployment';
+      message: string;
+      timestamp: string;
+      severity: 'low' | 'medium' | 'high' | 'critical';
+    }>;
+  }> {}
 
 /**
  * 서버 목록 응답 타입
@@ -122,40 +123,42 @@ export interface ServerListResponse extends PaginatedApiResponse<Server> {}
 /**
  * 서버 상세 정보 응답 타입
  */
-export interface ServerDetailResponse extends ApiResponse<{
-  server: Server;
-  metrics: ServerMetrics;
-  recentLogs: Array<{
-    id: string;
-    level: 'debug' | 'info' | 'warn' | 'error';
-    message: string;
-    timestamp: string;
-    source: string;
-  }>;
-}> {}
+export interface ServerDetailResponse
+  extends ApiResponse<{
+    server: Server;
+    metrics: ServerMetrics;
+    recentLogs: Array<{
+      id: string;
+      level: 'debug' | 'info' | 'warn' | 'error';
+      message: string;
+      timestamp: string;
+      source: string;
+    }>;
+  }> {}
 
 /**
  * AI 분석 결과 응답 타입
  */
-export interface AIAnalysisResponse extends ApiResponse<{
-  analysis: {
-    summary: string;
-    insights: string[];
-    recommendations: string[];
-    confidence: number;
-  };
-  thinkingSteps?: Array<{
-    step: number;
-    description: string;
-    reasoning: string;
-    confidence: number;
-  }>;
-  metadata: {
-    engine: string;
-    processingTime: number;
-    tokensUsed: number;
-  };
-}> {}
+export interface AIAnalysisResponse
+  extends ApiResponse<{
+    analysis: {
+      summary: string;
+      insights: string[];
+      recommendations: string[];
+      confidence: number;
+    };
+    thinkingSteps?: Array<{
+      step: number;
+      description: string;
+      reasoning: string;
+      confidence: number;
+    }>;
+    metadata: {
+      engine: string;
+      processingTime: number;
+      tokensUsed: number;
+    };
+  }> {}
 
 // ===== React 컴포넌트에서 자주 사용되는 타입들 =====
 
@@ -210,7 +213,9 @@ export type ChartTooltipPayload = {
 /**
  * unknown 데이터가 ApiResponse인지 확인하는 타입 가드
  */
-export function isApiResponse<T = unknown>(data: unknown): data is ApiResponse<T> {
+export function isApiResponse<T = unknown>(
+  data: unknown
+): data is ApiResponse<T> {
   return (
     typeof data === 'object' &&
     data !== null &&
@@ -264,7 +269,10 @@ export function getErrorMessage(error: unknown): string {
 /**
  * 배열에서 안전하게 요소에 접근하는 유틸리티
  */
-export function safeArrayAccess<T>(array: unknown, index: number): T | undefined {
+export function safeArrayAccess<T>(
+  array: unknown,
+  index: number
+): T | undefined {
   if (!Array.isArray(array) || index < 0 || index >= array.length) {
     return undefined;
   }

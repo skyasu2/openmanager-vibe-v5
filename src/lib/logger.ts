@@ -222,17 +222,25 @@ export const logger = {
 };
 
 export const apiLogger = {
-  info: (message: string, data?: unknown) => devLogger.info('api', message, data),
-  warn: (message: string, data?: unknown) => devLogger.warn('api', message, data),
-  error: (message: string, data?: unknown) => devLogger.error('api', message, data),
-  debug: (message: string, data?: unknown) => devLogger.debug('api', message, data),
+  info: (message: string, data?: unknown) =>
+    devLogger.info('api', message, data),
+  warn: (message: string, data?: unknown) =>
+    devLogger.warn('api', message, data),
+  error: (message: string, data?: unknown) =>
+    devLogger.error('api', message, data),
+  debug: (message: string, data?: unknown) =>
+    devLogger.debug('api', message, data),
 };
 
 export const aiLogger = {
-  info: (message: string, data?: unknown) => devLogger.info('ai', message, data),
-  warn: (message: string, data?: unknown) => devLogger.warn('ai', message, data),
-  error: (message: string, data?: unknown) => devLogger.error('ai', message, data),
-  debug: (message: string, data?: unknown) => devLogger.debug('ai', message, data),
+  info: (message: string, data?: unknown) =>
+    devLogger.info('ai', message, data),
+  warn: (message: string, data?: unknown) =>
+    devLogger.warn('ai', message, data),
+  error: (message: string, data?: unknown) =>
+    devLogger.error('ai', message, data),
+  debug: (message: string, data?: unknown) =>
+    devLogger.debug('ai', message, data),
 };
 
 // 기본 export

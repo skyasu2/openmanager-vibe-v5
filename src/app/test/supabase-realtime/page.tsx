@@ -1,6 +1,6 @@
 /**
  * 🧪 Supabase Realtime 테스트 페이지
- * 
+ *
  * Redis → Supabase 마이그레이션 검증용
  */
 
@@ -8,20 +8,26 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { 
-  CheckCircle, 
-  AlertCircle, 
-  Loader2, 
-  Database, 
-  Wifi, 
+import {
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  Database,
+  Wifi,
   WifiOff,
   Trash2,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 
 // Supabase 클라이언트
@@ -48,7 +54,7 @@ export default function SupabaseRealtimeTestPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // 폼 상태
   const [stepText, setStepText] = useState('');
   const [description, setDescription] = useState('');
@@ -92,19 +98,19 @@ export default function SupabaseRealtimeTestPage() {
         },
         (payload) => {
           console.log('Realtime event:', payload);
-          
+
           if (payload.eventType === 'INSERT') {
-            setSteps(prev => [...prev, payload.new as ThinkingStep]);
+            setSteps((prev) => [...prev, payload.new as ThinkingStep]);
           } else if (payload.eventType === 'UPDATE') {
-            setSteps(prev => 
-              prev.map(step => 
-                step.id === payload.new.id 
-                  ? { ...step, ...payload.new }
-                  : step
+            setSteps((prev) =>
+              prev.map((step) =>
+                step.id === payload.new.id ? { ...step, ...payload.new } : step
               )
             );
           } else if (payload.eventType === 'DELETE') {
-            setSteps(prev => prev.filter(step => step.id !== payload.old.id));
+            setSteps((prev) =>
+              prev.filter((step) => step.id !== payload.old.id)
+            );
           }
         }
       )
@@ -122,32 +128,29 @@ export default function SupabaseRealtimeTestPage() {
     };
   }, [sessionId, loadExistingSteps]);
 
-
   // 단계 추가
   const addStep = async () => {
     if (!stepText.trim()) return;
-    
+
     setIsLoading(true);
     setError(null);
 
     try {
-      const { error } = await supabase
-        .from('thinking_steps')
-        .insert({
-          session_id: sessionId,
-          step: stepText,
-          description: description || null,
-          status: 'processing',
-          service: service || null,
-          timestamp: Date.now(),
-        });
+      const { error } = await supabase.from('thinking_steps').insert({
+        session_id: sessionId,
+        step: stepText,
+        description: description || null,
+        status: 'processing',
+        service: service || null,
+        timestamp: Date.now(),
+      });
 
       if (error) throw error;
 
       // 폼 초기화
       setStepText('');
       setDescription('');
-      
+
       // 3초 후 자동 완료
       setTimeout(() => {
         const latestStep = steps[steps.length - 1];
@@ -168,9 +171,9 @@ export default function SupabaseRealtimeTestPage() {
     try {
       const { error } = await supabase
         .from('thinking_steps')
-        .update({ 
+        .update({
           status,
-          duration: status === 'completed' ? 3000 : null
+          duration: status === 'completed' ? 3000 : null,
         })
         .eq('id', stepId);
 
@@ -213,26 +216,26 @@ export default function SupabaseRealtimeTestPage() {
       });
 
       if (!response.ok) throw new Error('API 요청 실패');
-      
+
       const data = await response.json();
       console.log('API response:', data);
     } catch (err) {
       console.error('API test failed:', err);
-      setError('API 테스트 실패: ' + (err instanceof Error ? err.message : String(err)));
+      setError(
+        'API 테스트 실패: ' + (err instanceof Error ? err.message : String(err))
+      );
     }
   };
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-4xl">
+    <div className="container mx-auto max-w-4xl px-4 py-8">
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="text-2xl flex items-center gap-2">
-            <Database className="w-6 h-6" />
+          <CardTitle className="flex items-center gap-2 text-2xl">
+            <Database className="h-6 w-6" />
             Supabase Realtime 테스트
           </CardTitle>
-          <CardDescription>
-            Redis → Supabase 마이그레이션 검증
-          </CardDescription>
+          <CardDescription>Redis → Supabase 마이그레이션 검증</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
@@ -242,11 +245,15 @@ export default function SupabaseRealtimeTestPage() {
             </div>
             <div>
               <div className="text-sm text-muted-foreground">연결 상태</div>
-              <Badge variant={isConnected ? "default" : "secondary"}>
+              <Badge variant={isConnected ? 'default' : 'secondary'}>
                 {isConnected ? (
-                  <><Wifi className="w-3 h-3 mr-1" /> 연결됨</>
+                  <>
+                    <Wifi className="mr-1 h-3 w-3" /> 연결됨
+                  </>
                 ) : (
-                  <><WifiOff className="w-3 h-3 mr-1" /> 연결 안됨</>
+                  <>
+                    <WifiOff className="mr-1 h-3 w-3" /> 연결 안됨
+                  </>
                 )}
               </Badge>
             </div>
@@ -262,7 +269,9 @@ export default function SupabaseRealtimeTestPage() {
         <CardContent>
           <div className="space-y-4">
             <div>
-              <label htmlFor="step-title" className="text-sm font-medium">단계 제목</label>
+              <label htmlFor="step-title" className="text-sm font-medium">
+                단계 제목
+              </label>
               <Input
                 id="step-title"
                 value={stepText}
@@ -272,7 +281,9 @@ export default function SupabaseRealtimeTestPage() {
               />
             </div>
             <div>
-              <label htmlFor="step-description" className="text-sm font-medium">설명 (선택)</label>
+              <label htmlFor="step-description" className="text-sm font-medium">
+                설명 (선택)
+              </label>
               <Textarea
                 id="step-description"
                 value={description}
@@ -283,7 +294,9 @@ export default function SupabaseRealtimeTestPage() {
               />
             </div>
             <div>
-              <label htmlFor="step-service" className="text-sm font-medium">서비스</label>
+              <label htmlFor="step-service" className="text-sm font-medium">
+                서비스
+              </label>
               <Input
                 id="step-service"
                 value={service}
@@ -292,21 +305,23 @@ export default function SupabaseRealtimeTestPage() {
                 disabled={isLoading}
               />
             </div>
-            
+
             {error && (
-              <div className="text-sm text-red-600 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-sm text-red-600">
+                <AlertCircle className="h-4 w-4" />
                 {error}
               </div>
             )}
 
             <div className="flex gap-2">
-              <Button 
-                onClick={addStep} 
+              <Button
+                onClick={addStep}
                 disabled={isLoading || !stepText.trim()}
               >
                 {isLoading ? (
-                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> 추가 중...</>
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 추가 중...
+                  </>
                 ) : (
                   '단계 추가'
                 )}
@@ -315,11 +330,11 @@ export default function SupabaseRealtimeTestPage() {
                 API 테스트
               </Button>
               <Button variant="outline" onClick={loadExistingSteps}>
-                <RefreshCw className="w-4 h-4 mr-2" />
+                <RefreshCw className="mr-2 h-4 w-4" />
                 새로고침
               </Button>
               <Button variant="destructive" onClick={clearSession}>
-                <Trash2 className="w-4 h-4 mr-2" />
+                <Trash2 className="mr-2 h-4 w-4" />
                 초기화
               </Button>
             </div>
@@ -335,48 +350,41 @@ export default function SupabaseRealtimeTestPage() {
         </CardHeader>
         <CardContent>
           {steps.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="py-8 text-center text-muted-foreground">
               아직 단계가 없습니다. 위에서 추가해보세요.
             </div>
           ) : (
             <div className="space-y-3">
               {steps.map((step) => (
-                <div 
-                  key={step.id} 
-                  className="border rounded-lg p-4 space-y-2"
-                >
+                <div key={step.id} className="space-y-2 rounded-lg border p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-2">
                       {step.status === 'completed' ? (
-                        <CheckCircle className="w-5 h-5 text-green-500" />
+                        <CheckCircle className="h-5 w-5 text-green-500" />
                       ) : step.status === 'failed' ? (
-                        <AlertCircle className="w-5 h-5 text-red-500" />
+                        <AlertCircle className="h-5 w-5 text-red-500" />
                       ) : (
-                        <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                        <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
                       )}
                       <span className="font-medium">{step.step}</span>
                     </div>
                     <Badge variant="outline">{step.status}</Badge>
                   </div>
-                  
+
                   {step.description && (
-                    <p className="text-sm text-muted-foreground pl-7">
+                    <p className="pl-7 text-sm text-muted-foreground">
                       {step.description}
                     </p>
                   )}
-                  
-                  <div className="flex gap-4 text-xs text-muted-foreground pl-7">
-                    {step.service && (
-                      <span>서비스: {step.service}</span>
-                    )}
-                    {step.duration && (
-                      <span>소요시간: {step.duration}ms</span>
-                    )}
+
+                  <div className="flex gap-4 pl-7 text-xs text-muted-foreground">
+                    {step.service && <span>서비스: {step.service}</span>}
+                    {step.duration && <span>소요시간: {step.duration}ms</span>}
                     <span>
                       생성: {new Date(step.created_at).toLocaleTimeString()}
                     </span>
                   </div>
-                  
+
                   {step.status === 'processing' && (
                     <div className="pl-7">
                       <Button

@@ -6,7 +6,16 @@
 export interface MockServerInfo {
   id: string;
   hostname: string;
-  type: 'web' | 'app' | 'database' | 'storage' | 'backup' | 'load-balancer' | 'cache' | 'api' | 'monitoring';
+  type:
+    | 'web'
+    | 'app'
+    | 'database'
+    | 'storage'
+    | 'backup'
+    | 'load-balancer'
+    | 'cache'
+    | 'api'
+    | 'monitoring';
   os: string;
   service: string;
   ip: string;
@@ -41,7 +50,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     disk: { total: 200 },
     status: 'critical',
     description: '메인 로드밸런서 - 트래픽 분산 실패',
-    dependencies: []
+    dependencies: [],
   },
 
   // 웹 서버 (3대)
@@ -58,7 +67,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     disk: { total: 500 },
     status: 'warning',
     description: '프로덕션 웹 서버 #1 - 응답 지연',
-    dependencies: ['lb-main-01']
+    dependencies: ['lb-main-01'],
   },
   {
     id: 'web-prd-02',
@@ -73,7 +82,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     disk: { total: 500 },
     status: 'online',
     description: '프로덕션 웹 서버 #2',
-    dependencies: ['lb-main-01']
+    dependencies: ['lb-main-01'],
   },
   {
     id: 'web-prd-03',
@@ -88,7 +97,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     disk: { total: 500 },
     status: 'online',
     description: '프로덕션 웹 서버 #3',
-    dependencies: ['lb-main-01']
+    dependencies: ['lb-main-01'],
   },
 
   // API 서버 (2대)
@@ -105,7 +114,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     disk: { total: 750 },
     status: 'warning',
     description: 'REST API 서버 #1 - 높은 지연시간',
-    dependencies: ['web-prd-01', 'web-prd-02', 'web-prd-03']
+    dependencies: ['web-prd-01', 'web-prd-02', 'web-prd-03'],
   },
   {
     id: 'api-prd-02',
@@ -120,7 +129,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     disk: { total: 750 },
     status: 'online',
     description: 'GraphQL API 서버 #2',
-    dependencies: ['web-prd-01', 'web-prd-02', 'web-prd-03']
+    dependencies: ['web-prd-01', 'web-prd-02', 'web-prd-03'],
   },
 
   // 애플리케이션 서버 (3대)
@@ -137,7 +146,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     disk: { total: 1000 },
     status: 'critical',
     description: 'Java 애플리케이션 서버 #1 - 메모리 누수 심각',
-    dependencies: ['api-prd-01', 'api-prd-02']
+    dependencies: ['api-prd-01', 'api-prd-02'],
   },
   {
     id: 'app-prd-02',
@@ -152,7 +161,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     disk: { total: 1000 },
     status: 'warning',
     description: 'Python 애플리케이션 서버 #2 - CPU 높음',
-    dependencies: ['api-prd-01', 'api-prd-02']
+    dependencies: ['api-prd-01', 'api-prd-02'],
   },
   {
     id: 'app-prd-03',
@@ -167,7 +176,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     disk: { total: 1000 },
     status: 'online',
     description: '.NET 애플리케이션 서버 #3',
-    dependencies: ['api-prd-01', 'api-prd-02']
+    dependencies: ['api-prd-01', 'api-prd-02'],
   },
 
   // 캐시 서버 (1대)
@@ -184,7 +193,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     disk: { total: 200 },
     status: 'online',
     description: '인메모리 캐시 서버',
-    dependencies: ['app-prd-01', 'app-prd-02', 'app-prd-03']
+    dependencies: ['app-prd-01', 'app-prd-02', 'app-prd-03'],
   },
 
   // 데이터베이스 서버 (3대)
@@ -201,7 +210,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     disk: { total: 4000 },
     status: 'critical',
     description: '메인 데이터베이스 서버 - 디스크 96% 사용',
-    dependencies: ['cache-prd-01']
+    dependencies: ['cache-prd-01'],
   },
   {
     id: 'db-repl-01',
@@ -216,7 +225,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     disk: { total: 4000 },
     status: 'warning',
     description: '읽기 전용 복제 DB - 동기화 지연',
-    dependencies: ['db-main-01']
+    dependencies: ['db-main-01'],
   },
   {
     id: 'db-arch-01',
@@ -231,7 +240,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     disk: { total: 8000 },
     status: 'online',
     description: '아카이브 데이터베이스',
-    dependencies: ['db-main-01']
+    dependencies: ['db-main-01'],
   },
 
   // 스토리지 서버 (1대)
@@ -248,7 +257,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     disk: { total: 50000 }, // 50TB
     status: 'warning',
     description: 'NAS 스토리지 - 백업 큐 지연',
-    dependencies: ['db-main-01', 'db-repl-01', 'db-arch-01']
+    dependencies: ['db-main-01', 'db-repl-01', 'db-arch-01'],
   },
 
   // 모니터링 서버 (1대)
@@ -265,8 +274,8 @@ export const mockServersExpanded: MockServerInfo[] = [
     disk: { total: 2000 },
     status: 'online',
     description: '중앙 모니터링 서버',
-    dependencies: [] // 모든 서버를 모니터링하지만 의존성은 없음
-  }
+    dependencies: [], // 모든 서버를 모니터링하지만 의존성은 없음
+  },
 ];
 
 // 서버별 초기 시나리오 정의 (15개 서버)
@@ -285,7 +294,7 @@ export const serverInitialStatesExpanded = {
   'db-repl-01': { scenario: 'replication_lag' },
   'db-arch-01': { scenario: 'normal' },
   'storage-nas-01': { scenario: 'backup_delay' },
-  'mon-prd-01': { scenario: 'normal' }
+  'mon-prd-01': { scenario: 'normal' },
 };
 
 // 서버 상태별 색상 및 아이콘 매핑

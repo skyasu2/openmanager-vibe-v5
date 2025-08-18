@@ -1,6 +1,6 @@
 /**
  * 🎭 복잡한 서버 모니터링 시나리오
- * 
+ *
  * 실제 운영 환경에서 발생 가능한 다양한 상황 시뮬레이션
  */
 
@@ -56,7 +56,13 @@ export const CASCADING_FAILURE_SCENARIO: ServerScenario = {
     {
       serverId: 'db-prd-01',
       timeOffset: 30,
-      metrics: { cpu: 85, memory: 78, disk: 60, network: 70, responseTime: 250 },
+      metrics: {
+        cpu: 85,
+        memory: 78,
+        disk: 60,
+        network: 70,
+        responseTime: 250,
+      },
       status: 'warning',
       alerts: ['High CPU usage detected'],
     },
@@ -64,7 +70,13 @@ export const CASCADING_FAILURE_SCENARIO: ServerScenario = {
     {
       serverId: 'db-prd-01',
       timeOffset: 60,
-      metrics: { cpu: 98, memory: 95, disk: 60, network: 90, responseTime: 5000 },
+      metrics: {
+        cpu: 98,
+        memory: 95,
+        disk: 60,
+        network: 90,
+        responseTime: 5000,
+      },
       status: 'critical',
       alerts: ['Database connection timeout', 'Memory exhausted'],
     },
@@ -72,7 +84,13 @@ export const CASCADING_FAILURE_SCENARIO: ServerScenario = {
     {
       serverId: 'api-prd-01',
       timeOffset: 90,
-      metrics: { cpu: 75, memory: 65, disk: 40, network: 85, responseTime: 3000 },
+      metrics: {
+        cpu: 75,
+        memory: 65,
+        disk: 40,
+        network: 85,
+        responseTime: 3000,
+      },
       status: 'warning',
       alerts: ['Database connection failed', 'Request queue growing'],
     },
@@ -80,7 +98,13 @@ export const CASCADING_FAILURE_SCENARIO: ServerScenario = {
     {
       serverId: 'web-prd-01',
       timeOffset: 120,
-      metrics: { cpu: 80, memory: 70, disk: 30, network: 95, responseTime: 4000 },
+      metrics: {
+        cpu: 80,
+        memory: 70,
+        disk: 30,
+        network: 95,
+        responseTime: 4000,
+      },
       status: 'warning',
       alerts: ['API timeout errors', 'User experience degraded'],
     },
@@ -152,14 +176,26 @@ export const PEAK_LOAD_SCENARIO: ServerScenario = {
     {
       serverId: 'web-prd-01',
       timeOffset: 60,
-      metrics: { cpu: 45, memory: 55, disk: 50, network: 40, responseTime: 120 },
+      metrics: {
+        cpu: 45,
+        memory: 55,
+        disk: 50,
+        network: 40,
+        responseTime: 120,
+      },
       status: 'healthy',
     },
     // T+120: 급격한 증가
     {
       serverId: 'web-prd-01',
       timeOffset: 120,
-      metrics: { cpu: 75, memory: 70, disk: 50, network: 80, responseTime: 300 },
+      metrics: {
+        cpu: 75,
+        memory: 70,
+        disk: 50,
+        network: 80,
+        responseTime: 300,
+      },
       status: 'warning',
       alerts: ['Traffic spike detected'],
     },
@@ -167,7 +203,13 @@ export const PEAK_LOAD_SCENARIO: ServerScenario = {
     {
       serverId: 'web-prd-01',
       timeOffset: 180,
-      metrics: { cpu: 92, memory: 85, disk: 50, network: 95, responseTime: 800 },
+      metrics: {
+        cpu: 92,
+        memory: 85,
+        disk: 50,
+        network: 95,
+        responseTime: 800,
+      },
       status: 'critical',
       alerts: ['CPU near capacity', 'Response time degraded'],
     },
@@ -175,7 +217,13 @@ export const PEAK_LOAD_SCENARIO: ServerScenario = {
     {
       serverId: 'web-prd-02',
       timeOffset: 300,
-      metrics: { cpu: 30, memory: 35, disk: 40, network: 25, responseTime: 100 },
+      metrics: {
+        cpu: 30,
+        memory: 35,
+        disk: 40,
+        network: 25,
+        responseTime: 100,
+      },
       status: 'healthy',
       alerts: ['Auto-scaling activated'],
     },
@@ -183,7 +231,13 @@ export const PEAK_LOAD_SCENARIO: ServerScenario = {
     {
       serverId: 'web-prd-01',
       timeOffset: 360,
-      metrics: { cpu: 60, memory: 65, disk: 50, network: 50, responseTime: 150 },
+      metrics: {
+        cpu: 60,
+        memory: 65,
+        disk: 50,
+        network: 50,
+        responseTime: 150,
+      },
       status: 'healthy',
     },
   ],
@@ -239,33 +293,63 @@ export const MEMORY_LEAK_SCENARIO: ServerScenario = {
     {
       serverId: 'api-prd-01',
       timeOffset: 0,
-      metrics: { cpu: 30, memory: 35, disk: 40, network: 25, responseTime: 100 },
+      metrics: {
+        cpu: 30,
+        memory: 35,
+        disk: 40,
+        network: 25,
+        responseTime: 100,
+      },
       status: 'healthy',
     },
     {
       serverId: 'api-prd-01',
       timeOffset: 180,
-      metrics: { cpu: 35, memory: 55, disk: 40, network: 30, responseTime: 150 },
+      metrics: {
+        cpu: 35,
+        memory: 55,
+        disk: 40,
+        network: 30,
+        responseTime: 150,
+      },
       status: 'healthy',
     },
     {
       serverId: 'api-prd-01',
       timeOffset: 360,
-      metrics: { cpu: 40, memory: 72, disk: 40, network: 35, responseTime: 250 },
+      metrics: {
+        cpu: 40,
+        memory: 72,
+        disk: 40,
+        network: 35,
+        responseTime: 250,
+      },
       status: 'warning',
       alerts: ['Memory usage increasing'],
     },
     {
       serverId: 'api-prd-01',
       timeOffset: 540,
-      metrics: { cpu: 50, memory: 88, disk: 40, network: 40, responseTime: 500 },
+      metrics: {
+        cpu: 50,
+        memory: 88,
+        disk: 40,
+        network: 40,
+        responseTime: 500,
+      },
       status: 'critical',
       alerts: ['High memory usage', 'GC overhead limit'],
     },
     {
       serverId: 'api-prd-01',
       timeOffset: 720,
-      metrics: { cpu: 65, memory: 95, disk: 40, network: 45, responseTime: 1000 },
+      metrics: {
+        cpu: 65,
+        memory: 95,
+        disk: 40,
+        network: 45,
+        responseTime: 1000,
+      },
       status: 'critical',
       alerts: ['Memory exhaustion imminent', 'Service degradation'],
     },
@@ -322,7 +406,13 @@ export const NETWORK_PARTITION_SCENARIO: ServerScenario = {
     {
       serverId: 'web-dc1-01',
       timeOffset: 0,
-      metrics: { cpu: 40, memory: 50, disk: 45, network: 35, responseTime: 100 },
+      metrics: {
+        cpu: 40,
+        memory: 50,
+        disk: 45,
+        network: 35,
+        responseTime: 100,
+      },
       status: 'healthy',
     },
     {
@@ -334,21 +424,39 @@ export const NETWORK_PARTITION_SCENARIO: ServerScenario = {
     {
       serverId: 'web-dc1-01',
       timeOffset: 120,
-      metrics: { cpu: 45, memory: 52, disk: 45, network: 10, responseTime: 2000 },
+      metrics: {
+        cpu: 45,
+        memory: 52,
+        disk: 45,
+        network: 10,
+        responseTime: 2000,
+      },
       status: 'warning',
       alerts: ['Network latency detected'],
     },
     {
       serverId: 'api-dc2-01',
       timeOffset: 120,
-      metrics: { cpu: 38, memory: 47, disk: 50, network: 5, responseTime: 3000 },
+      metrics: {
+        cpu: 38,
+        memory: 47,
+        disk: 50,
+        network: 5,
+        responseTime: 3000,
+      },
       status: 'warning',
       alerts: ['Cross-DC communication failing'],
     },
     {
       serverId: 'web-dc1-01',
       timeOffset: 240,
-      metrics: { cpu: 50, memory: 55, disk: 45, network: 0, responseTime: 5000 },
+      metrics: {
+        cpu: 50,
+        memory: 55,
+        disk: 45,
+        network: 0,
+        responseTime: 5000,
+      },
       status: 'critical',
       alerts: ['Network partition detected', 'DC2 unreachable'],
     },
@@ -405,15 +513,15 @@ export function combineScenarios(
     const combinedServers: ServerState[] = [];
     const combinedEvents: ScenarioEvent[] = [];
 
-    scenarios.forEach(scenario => {
-      scenario.servers.forEach(server => {
+    scenarios.forEach((scenario) => {
+      scenario.servers.forEach((server) => {
         combinedServers.push({
           ...server,
           timeOffset: server.timeOffset + totalDuration,
         });
       });
 
-      scenario.events.forEach(event => {
+      scenario.events.forEach((event) => {
         combinedEvents.push({
           ...event,
           timeOffset: event.timeOffset + totalDuration,
@@ -426,18 +534,18 @@ export function combineScenarios(
     return {
       id: 'combined-sequential',
       name: '복합 시나리오 (순차)',
-      description: scenarios.map(s => s.name).join(' → '),
+      description: scenarios.map((s) => s.name).join(' → '),
       duration: totalDuration,
       servers: combinedServers,
       events: combinedEvents,
     };
   } else {
     // 병렬 실행
-    const maxDuration = Math.max(...scenarios.map(s => s.duration));
+    const maxDuration = Math.max(...scenarios.map((s) => s.duration));
     const combinedServers: ServerState[] = [];
     const combinedEvents: ScenarioEvent[] = [];
 
-    scenarios.forEach(scenario => {
+    scenarios.forEach((scenario) => {
       combinedServers.push(...scenario.servers);
       combinedEvents.push(...scenario.events);
     });
@@ -445,7 +553,7 @@ export function combineScenarios(
     return {
       id: 'combined-parallel',
       name: '복합 시나리오 (병렬)',
-      description: scenarios.map(s => s.name).join(' + '),
+      description: scenarios.map((s) => s.name).join(' + '),
       duration: maxDuration,
       servers: combinedServers,
       events: combinedEvents,
@@ -495,8 +603,8 @@ export class ScenarioRunner {
 
     // 현재 시간에 해당하는 서버 상태 찾기
     const currentServers = new Map<string, ServerState>();
-    
-    this.scenario.servers.forEach(server => {
+
+    this.scenario.servers.forEach((server) => {
       if (server.timeOffset <= this.currentTime) {
         const existing = currentServers.get(server.serverId);
         if (!existing || existing.timeOffset < server.timeOffset) {
@@ -507,7 +615,7 @@ export class ScenarioRunner {
 
     // 최근 이벤트 찾기 (지난 30초)
     const recentEvents = this.scenario.events.filter(
-      event => 
+      (event) =>
         event.timeOffset <= this.currentTime &&
         event.timeOffset > this.currentTime - 30
     );
@@ -539,8 +647,10 @@ export function getRandomScenario(): ServerScenario {
 }
 
 // 서버 타입별 시나리오 필터링
-export function getScenariosByServerType(type: 'web' | 'api' | 'database'): ServerScenario[] {
-  return Object.values(SCENARIO_LIBRARY).filter(scenario =>
-    scenario.servers.some(server => server.serverId.includes(type))
+export function getScenariosByServerType(
+  type: 'web' | 'api' | 'database'
+): ServerScenario[] {
+  return Object.values(SCENARIO_LIBRARY).filter((scenario) =>
+    scenario.servers.some((server) => server.serverId.includes(type))
   );
 }

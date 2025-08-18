@@ -5,7 +5,12 @@
 import * as React from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Alert, AlertDescription, AlertTitle } from './alert';
-import { AlertCircle, AlertTriangle, CheckCircle, Info as InfoIcon } from 'lucide-react';
+import {
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle,
+  Info as InfoIcon,
+} from 'lucide-react';
 
 const meta = {
   title: 'UI/Alert',
@@ -14,7 +19,8 @@ const meta = {
     layout: 'padded',
     docs: {
       description: {
-        component: 'Alert 컴포넌트는 사용자에게 중요한 정보나 경고를 표시하는 데 사용됩니다.',
+        component:
+          'Alert 컴포넌트는 사용자에게 중요한 정보나 경고를 표시하는 데 사용됩니다.',
       },
     },
   },
@@ -41,9 +47,7 @@ export const Default: Story = {
     children: (
       <>
         <AlertTitle>알림</AlertTitle>
-        <AlertDescription>
-          이것은 기본 알림 메시지입니다.
-        </AlertDescription>
+        <AlertDescription>이것은 기본 알림 메시지입니다.</AlertDescription>
       </>
     ),
   },
@@ -84,9 +88,7 @@ export const Success: Story = {
     <Alert className="border-green-500/50 text-green-600 [&>svg]:text-green-600">
       <CheckCircle className="h-4 w-4" />
       <AlertTitle>성공</AlertTitle>
-      <AlertDescription>
-        데이터가 성공적으로 저장되었습니다.
-      </AlertDescription>
+      <AlertDescription>데이터가 성공적으로 저장되었습니다.</AlertDescription>
     </Alert>
   ),
 };
@@ -123,10 +125,10 @@ export const LongContent: Story = {
       <InfoIcon className="h-4 w-4" />
       <AlertTitle>시스템 업데이트 안내</AlertTitle>
       <AlertDescription>
-        2025년 7월 22일 새벽 2시부터 4시까지 시스템 업데이트가 진행됩니다. 
-        업데이트 중에는 서비스 이용이 일시적으로 제한될 수 있으며, 
-        진행 중인 작업은 미리 저장해주시기 바랍니다. 
-        업데이트 완료 후 새로운 기능과 개선사항이 적용됩니다.
+        2025년 7월 22일 새벽 2시부터 4시까지 시스템 업데이트가 진행됩니다.
+        업데이트 중에는 서비스 이용이 일시적으로 제한될 수 있으며, 진행 중인
+        작업은 미리 저장해주시기 바랍니다. 업데이트 완료 후 새로운 기능과
+        개선사항이 적용됩니다.
       </AlertDescription>
     </Alert>
   ),
@@ -139,25 +141,19 @@ export const Multiple: Story = {
       <Alert>
         <InfoIcon className="h-4 w-4" />
         <AlertTitle>정보</AlertTitle>
-        <AlertDescription>
-          새로운 기능이 추가되었습니다.
-        </AlertDescription>
+        <AlertDescription>새로운 기능이 추가되었습니다.</AlertDescription>
       </Alert>
-      
+
       <Alert className="border-yellow-500/50 text-yellow-600 [&>svg]:text-yellow-600">
         <AlertTriangle className="h-4 w-4" />
         <AlertTitle>경고</AlertTitle>
-        <AlertDescription>
-          API 사용량이 한도에 근접했습니다.
-        </AlertDescription>
+        <AlertDescription>API 사용량이 한도에 근접했습니다.</AlertDescription>
       </Alert>
-      
+
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>오류</AlertTitle>
-        <AlertDescription>
-          서버 연결에 실패했습니다.
-        </AlertDescription>
+        <AlertDescription>서버 연결에 실패했습니다.</AlertDescription>
       </Alert>
     </div>
   ),
@@ -167,16 +163,16 @@ export const Multiple: Story = {
 export const Interactive: Story = {
   render: () => {
     const [show, setShow] = React.useState(true);
-    
+
     return (
       <div className="space-y-4">
         <button
           onClick={() => setShow(!show)}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
         >
           Alert 토글
         </button>
-        
+
         {show && (
           <Alert>
             <InfoIcon className="h-4 w-4" />

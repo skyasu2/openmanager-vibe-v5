@@ -376,31 +376,38 @@ export async function GET(request: NextRequest) {
             const listeners: EventListener[] = [
               {
                 event: 'system:started',
-                handler: (_data: EventData) => sendEvent('system-started', _data),
+                handler: (_data: EventData) =>
+                  sendEvent('system-started', _data),
               },
               {
                 event: 'system:stopped',
-                handler: (_data: EventData) => sendEvent('system-stopped', _data),
+                handler: (_data: EventData) =>
+                  sendEvent('system-stopped', _data),
               },
               {
                 event: 'system:health-update',
-                handler: (_data: EventData) => sendEvent('health-update', _data),
+                handler: (_data: EventData) =>
+                  sendEvent('health-update', _data),
               },
               {
                 event: 'process:started',
-                handler: (_data: EventData) => sendEvent('process-started', _data),
+                handler: (_data: EventData) =>
+                  sendEvent('process-started', _data),
               },
               {
                 event: 'process:stopped',
-                handler: (_data: EventData) => sendEvent('process-stopped', _data),
+                handler: (_data: EventData) =>
+                  sendEvent('process-stopped', _data),
               },
               {
                 event: 'process:unhealthy',
-                handler: (_data: EventData) => sendEvent('process-unhealthy', _data),
+                handler: (_data: EventData) =>
+                  sendEvent('process-unhealthy', _data),
               },
               {
                 event: 'system:stable',
-                handler: (_data: EventData) => sendEvent('system-stable', _data),
+                handler: (_data: EventData) =>
+                  sendEvent('system-stable', _data),
               },
             ];
 

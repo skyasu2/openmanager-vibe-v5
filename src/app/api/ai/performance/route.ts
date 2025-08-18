@@ -56,9 +56,7 @@ const getHandler = createApiRoute()
         avgResponseTime: Math.round(stats.metrics.avgResponseTime),
         cacheHitRate: Math.round(stats.metrics.cacheHitRate * 100), // 백분율
         errorRate: Math.round(stats.metrics.errorRate * 100),
-        parallelEfficiency: Math.round(
-          stats.metrics.parallelEfficiency * 100
-        ),
+        parallelEfficiency: Math.round(stats.metrics.parallelEfficiency * 100),
         optimizationsSaved: stats.metrics.optimizationsSaved,
       },
 
@@ -73,12 +71,16 @@ const getHandler = createApiRoute()
       // 시스템 헬스
       health: {
         status: healthStatus.status as 'healthy' | 'degraded' | 'unavailable',
-        engines: Object.entries(healthStatus.engines || {}).map(([id, available]) => ({
-          status: available ? 'healthy' : 'unavailable' as 'healthy' | 'degraded' | 'unavailable',
-          id,
-          responseTime: 0,
-          lastCheck: new Date().toISOString(),
-        })),
+        engines: Object.entries(healthStatus.engines || {}).map(
+          ([id, available]) => ({
+            status: available
+              ? 'healthy'
+              : ('unavailable' as 'healthy' | 'degraded' | 'unavailable'),
+            id,
+            responseTime: 0,
+            lastCheck: new Date().toISOString(),
+          })
+        ),
       },
 
       // 성능 분석
@@ -111,28 +113,37 @@ export async function GET(request: NextRequest) {
 // POST 핸들러
 const postHandler = createApiRoute()
   .body(AIBenchmarkRequestSchema)
-  .response(z.union([ComparisonBenchmarkResponseSchema, LoadBenchmarkResponseSchema]))
+  .response(
+    z.union([ComparisonBenchmarkResponseSchema, LoadBenchmarkResponseSchema])
+  )
   .configure({
     showDetailedErrors: process.env.NODE_ENV === 'development',
     enableLogging: true,
   })
-  .build(async (_request, context): Promise<ComparisonBenchmarkResponse | LoadBenchmarkResponse> => {
-    const {
-      mode = 'comparison',
-      queries = ['서버 상태', 'CPU 사용률', '메모리 상태'],
-      iterations = 3,
-    } = context.body;
+  .build(
+    async (
+      _request,
+      context
+    ): Promise<ComparisonBenchmarkResponse | LoadBenchmarkResponse> => {
+      const {
+        mode = 'comparison',
+        queries = ['서버 상태', 'CPU 사용률', '메모리 상태'],
+        iterations = 3,
+      } = context.body;
 
-    debug.log(`🔬 성능 벤치마크 시작: ${mode} 모드, ${iterations}회 반복`);
+      debug.log(`🔬 성능 벤치마크 시작: ${mode} 모드, ${iterations}회 반복`);
 
-    if (mode === 'comparison') {
-      return await runComparisonBenchmark(queries, iterations);
-    } else if (mode === 'load') {
-      return await runLoadBenchmark(queries, iterations);
-    } else {
-      throw new Error(`Invalid benchmark mode: ${mode}. Supported modes: comparison, load`);
+      if (mode === 'comparison') {
+        return await runComparisonBenchmark(queries, iterations);
+      } else if (mode === 'load') {
+        return await runLoadBenchmark(queries, iterations);
+      } else {
+        throw new Error(
+          `Invalid benchmark mode: ${mode}. Supported modes: comparison, load`
+        );
+      }
     }
-  });
+  );
 
 export async function POST(request: NextRequest) {
   try {
@@ -187,7 +198,10 @@ export async function DELETE(request: NextRequest) {
 /**
  * 📊 기본 엔진 vs 최적화된 엔진 비교 벤치마크
  */
-async function runComparisonBenchmark(queries: string[], iterations: number): Promise<ComparisonBenchmarkResponse> {
+async function runComparisonBenchmark(
+  queries: string[],
+  iterations: number
+): Promise<ComparisonBenchmarkResponse> {
   const originalEngine = new SimplifiedQueryEngine();
   const optimizedEngine = getPerformanceOptimizedQueryEngine();
 
@@ -321,7 +335,10 @@ async function runComparisonBenchmark(queries: string[], iterations: number): Pr
 /**
  * 🚀 부하 테스트 벤치마크
  */
-async function runLoadBenchmark(queries: string[], iterations: number): Promise<LoadBenchmarkResponse> {
+async function runLoadBenchmark(
+  queries: string[],
+  iterations: number
+): Promise<LoadBenchmarkResponse> {
   const engine = getPerformanceOptimizedQueryEngine();
   const concurrency = Math.min(5, iterations); // 최대 5개 동시 실행
 
@@ -437,7 +454,10 @@ function identifyBottlenecks(metrics: AIPerformanceMetrics): string[] {
 /**
  * 성능 개선 권장사항 생성
  */
-function generateRecommendations(metrics: AIPerformanceMetrics, optimization: AIOptimizationStatus): string[] {
+function generateRecommendations(
+  metrics: AIPerformanceMetrics,
+  optimization: AIOptimizationStatus
+): string[] {
   const recommendations = [];
 
   if (metrics.avgResponseTime > 2000) {

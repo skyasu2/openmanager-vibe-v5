@@ -282,13 +282,26 @@ export class RealMCPClient {
 
       return {
         success: result.success ?? false,
-        results: Array.isArray(result.results) ? result.results.map(item => ({
-          path: typeof item === 'object' && item !== null && 'path' in item ? String(item.path) : '',
-          content: typeof item === 'object' && item !== null && 'content' in item ? String(item.content) : '',
-          score: typeof item === 'object' && item !== null && 'score' in item ? Number(item.score) : undefined,
-          metadata: typeof item === 'object' && item !== null && 'metadata' in item ? 
-            (item.metadata as Record<string, unknown>) : undefined
-        })) : [],
+        results: Array.isArray(result.results)
+          ? result.results.map((item) => ({
+              path:
+                typeof item === 'object' && item !== null && 'path' in item
+                  ? String(item.path)
+                  : '',
+              content:
+                typeof item === 'object' && item !== null && 'content' in item
+                  ? String(item.content)
+                  : '',
+              score:
+                typeof item === 'object' && item !== null && 'score' in item
+                  ? Number(item.score)
+                  : undefined,
+              metadata:
+                typeof item === 'object' && item !== null && 'metadata' in item
+                  ? (item.metadata as Record<string, unknown>)
+                  : undefined,
+            }))
+          : [],
         source: result.source || 'unknown',
         tools_used: Array.isArray(result.tools_used) ? result.tools_used : [],
         responseTime: Date.now() - startTime,
@@ -308,16 +321,29 @@ export class RealMCPClient {
 
   async searchWeb(query: string): Promise<RealMCPSearchResult> {
     const result = await this.toolHandler.searchWeb(query);
-    
+
     return {
       success: result.success ?? false,
-      results: Array.isArray(result.results) ? result.results.map(item => ({
-        path: typeof item === 'object' && item !== null && 'path' in item ? String(item.path) : '',
-        content: typeof item === 'object' && item !== null && 'content' in item ? String(item.content) : '',
-        score: typeof item === 'object' && item !== null && 'score' in item ? Number(item.score) : undefined,
-        metadata: typeof item === 'object' && item !== null && 'metadata' in item ? 
-          (item.metadata as Record<string, unknown>) : undefined
-      })) : [],
+      results: Array.isArray(result.results)
+        ? result.results.map((item) => ({
+            path:
+              typeof item === 'object' && item !== null && 'path' in item
+                ? String(item.path)
+                : '',
+            content:
+              typeof item === 'object' && item !== null && 'content' in item
+                ? String(item.content)
+                : '',
+            score:
+              typeof item === 'object' && item !== null && 'score' in item
+                ? Number(item.score)
+                : undefined,
+            metadata:
+              typeof item === 'object' && item !== null && 'metadata' in item
+                ? (item.metadata as Record<string, unknown>)
+                : undefined,
+          }))
+        : [],
       source: result.source || 'web',
       tools_used: Array.isArray(result.tools_used) ? result.tools_used : [],
       responseTime: result.responseTime || 0,
@@ -333,7 +359,9 @@ export class RealMCPClient {
   }
 
   async retrieveContext(sessionId: string): Promise<MCPQueryContext | null> {
-    return (await this.contextManager.retrieveContext(sessionId)) as MCPQueryContext | null;
+    return (await this.contextManager.retrieveContext(
+      sessionId
+    )) as MCPQueryContext | null;
   }
 
   async readFile(filePath: string): Promise<string> {
@@ -369,8 +397,12 @@ export class RealMCPClient {
         const items = result.metadata.items;
         if (Array.isArray(items)) {
           return items
-            .filter((item): item is { name: string } => 
-              typeof item === 'object' && item !== null && 'name' in item && typeof item.name === 'string'
+            .filter(
+              (item): item is { name: string } =>
+                typeof item === 'object' &&
+                item !== null &&
+                'name' in item &&
+                typeof item.name === 'string'
             )
             .map((item) => item.name);
         }

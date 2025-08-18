@@ -5,7 +5,8 @@
 import { vi } from 'vitest';
 
 // 테스트 환경에서는 항상 Mock 사용
-const isTestEnvironment = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
+const isTestEnvironment =
+  process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
 
 // Google AI - 테스트 환경에서는 항상 Mock
 console.log('🎭 Google AI Mock 활성화됨 (테스트 환경)');

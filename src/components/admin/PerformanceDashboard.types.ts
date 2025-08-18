@@ -1,6 +1,6 @@
 /**
  * 📊 PerformanceDashboard Types
- * 
+ *
  * Type definitions for performance monitoring:
  * - Performance metrics interfaces
  * - Alert system types

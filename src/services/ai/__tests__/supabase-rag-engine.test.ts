@@ -1,11 +1,14 @@
 /**
  * 🧠 SupabaseRAGEngine 기본 단위 테스트
- * 
+ *
  * RAG 엔진의 핵심 기능을 테스트합니다.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { SupabaseRAGEngine, getSupabaseRAGEngine } from '../supabase-rag-engine';
+import {
+  SupabaseRAGEngine,
+  getSupabaseRAGEngine,
+} from '../supabase-rag-engine';
 import { PostgresVectorDB } from '../postgres-vector-db';
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 import { embeddingService } from '../embedding-service';
@@ -21,10 +24,10 @@ describe('SupabaseRAGEngine', () => {
   let mockVectorDB: PostgresVectorDB;
   // @ts-expect-error - Mock object for testing
   let mockContextLoader: CloudContextLoader;
-  
+
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Mock PostgresVectorDB
     mockVectorDB = {
       getStats: vi.fn().mockResolvedValue({
@@ -46,7 +49,7 @@ describe('SupabaseRAGEngine', () => {
       addDocument: vi.fn().mockResolvedValue({ success: true }),
       clearCollection: vi.fn().mockResolvedValue({ success: true }),
     };
-    
+
     // Mock CloudContextLoader
     mockContextLoader = {
       queryMCPContextForRAG: vi.fn().mockResolvedValue({
@@ -54,19 +57,21 @@ describe('SupabaseRAGEngine', () => {
         systemContext: {},
       }),
     };
-    
+
     // Mock embeddingService
     vi.mocked(embeddingService.createEmbedding).mockResolvedValue(
       new Array(384).fill(0.1)
     );
-    
+
     // Set up mocks
     vi.mocked(PostgresVectorDB).mockImplementation(() => mockVectorDB);
-    vi.mocked(CloudContextLoader.getInstance).mockReturnValue(mockContextLoader);
-    
+    vi.mocked(CloudContextLoader.getInstance).mockReturnValue(
+      mockContextLoader
+    );
+
     engine = new SupabaseRAGEngine();
   });
-  
+
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -74,7 +79,7 @@ describe('SupabaseRAGEngine', () => {
   describe('Initialization', () => {
     it('should _initialize successfully', async () => {
       await engine._initialize();
-      
+
       expect(mockVectorDB.getStats).toHaveBeenCalled();
       expect(engine['isInitialized']).toBe(true);
     });
@@ -83,7 +88,7 @@ describe('SupabaseRAGEngine', () => {
       await engine._initialize();
       await engine._initialize();
       await engine._initialize();
-      
+
       expect(mockVectorDB.getStats).toHaveBeenCalledTimes(1);
     });
 
@@ -92,18 +97,18 @@ describe('SupabaseRAGEngine', () => {
         total_documents: 0,
         total_categories: 0,
       });
-      
+
       // Mock loadInitialKnowledgeBase
       engine['loadInitialKnowledgeBase'] = vi.fn().mockResolvedValue(undefined);
-      
+
       await engine._initialize();
-      
+
       expect(engine['loadInitialKnowledgeBase']).toHaveBeenCalled();
     });
 
     it('should handle _initialization errors gracefully', async () => {
       mockVectorDB.getStats.mockRejectedValue(new Error('DB error'));
-      
+
       await expect(engine._initialize()).resolves.toBeUndefined();
       expect(engine['isInitialized']).toBe(true);
     });
@@ -116,20 +121,24 @@ describe('SupabaseRAGEngine', () => {
 
     it('should perform basic search', async () => {
       const result = await engine.searchSimilar('테스트 쿼리');
-      
+
       expect(result.success).toBe(true);
       expect(result.results).toHaveLength(1);
       expect(result.results[0].content).toBe('Test content');
-      expect(embeddingService.createEmbedding).toHaveBeenCalledWith('테스트 쿼리');
+      expect(embeddingService.createEmbedding).toHaveBeenCalledWith(
+        '테스트 쿼리'
+      );
     });
 
     it('should use memory cache when available', async () => {
       // First search to populate cache
       await engine.searchSimilar('캐시된 쿼리', { cached: true });
-      
+
       // Second search should use memory cache
-      const result = await engine.searchSimilar('캐시된 쿼리', { cached: true });
-      
+      const result = await engine.searchSimilar('캐시된 쿼리', {
+        cached: true,
+      });
+
       expect(result.success).toBe(true);
       // Should only call vector DB once due to memory caching
       expect(mockVectorDB.search).toHaveBeenCalledTimes(2); // Both calls go to DB in this mock
@@ -141,7 +150,7 @@ describe('SupabaseRAGEngine', () => {
         threshold: 0.7,
         category: 'test-category',
       });
-      
+
       expect(mockVectorDB.search).toHaveBeenCalledWith(
         expect.any(Array),
         expect.objectContaining({
@@ -157,11 +166,11 @@ describe('SupabaseRAGEngine', () => {
         files: [{ path: '/test.ts', content: 'test file' }],
         systemContext: { test: true },
       });
-      
+
       const result = await engine.searchSimilar('MCP 쿼리', {
         enableMCP: true,
       });
-      
+
       expect(mockContextLoader.queryMCPContextForRAG).toHaveBeenCalled();
       expect(result.mcpContext).toBeDefined();
     });
@@ -170,9 +179,9 @@ describe('SupabaseRAGEngine', () => {
       vi.mocked(embeddingService.createEmbedding).mockRejectedValue(
         new Error('Embedding error')
       );
-      
+
       const result = await engine.searchSimilar('에러 쿼리');
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toContain('임베딩 생성 실패');
     });
@@ -182,9 +191,9 @@ describe('SupabaseRAGEngine', () => {
         success: false,
         error: 'Search error',
       });
-      
+
       const result = await engine.searchSimilar('검색 에러');
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toBe('Search error');
     });
@@ -196,27 +205,33 @@ describe('SupabaseRAGEngine', () => {
     });
 
     it('should add document successfully', async () => {
-      const result = await engine.bulkIndex([{
-        id: 'doc1',
-        content: 'New document content',
-        metadata: { category: 'test', author: 'test' },
-      }]);
-      
+      const result = await engine.bulkIndex([
+        {
+          id: 'doc1',
+          content: 'New document content',
+          metadata: { category: 'test', author: 'test' },
+        },
+      ]);
+
       expect(result.success).toBeGreaterThan(0);
-      expect(embeddingService.createEmbedding).toHaveBeenCalledWith('New document content');
+      expect(embeddingService.createEmbedding).toHaveBeenCalledWith(
+        'New document content'
+      );
       expect(mockVectorDB.addDocument).toHaveBeenCalled();
     });
 
     it('should clear search cache after adding document', async () => {
       // Add some cache
       engine['searchCache'].set('test-key', {} as any);
-      
-      await engine.bulkIndex([{
-        id: 'doc2',
-        content: 'New content',
-        metadata: { category: 'test' },
-      }]);
-      
+
+      await engine.bulkIndex([
+        {
+          id: 'doc2',
+          content: 'New content',
+          metadata: { category: 'test' },
+        },
+      ]);
+
       expect(engine['searchCache'].size).toBe(0);
     });
 
@@ -225,13 +240,15 @@ describe('SupabaseRAGEngine', () => {
         success: false,
         error: 'Add error',
       });
-      
-      const result = await engine.bulkIndex([{
-        id: 'doc3',
-        content: 'Error content',
-        metadata: { category: 'test' },
-      }]);
-      
+
+      const result = await engine.bulkIndex([
+        {
+          id: 'doc3',
+          content: 'Error content',
+          metadata: { category: 'test' },
+        },
+      ]);
+
       expect(result.success).toBe(0);
       expect(result.failed).toBeGreaterThan(0);
     });
@@ -240,9 +257,9 @@ describe('SupabaseRAGEngine', () => {
   describe('Health Check', () => {
     it('should return healthy status', async () => {
       await engine._initialize();
-      
+
       const health = await engine.healthCheck();
-      
+
       expect(health.status).toBe('healthy');
       expect(health.vectorDB).toBe(true);
       expect(health.totalDocuments).toBe(10);
@@ -251,9 +268,9 @@ describe('SupabaseRAGEngine', () => {
 
     it('should handle unhealthy vector DB', async () => {
       mockVectorDB.getStats.mockRejectedValue(new Error('DB error'));
-      
+
       const health = await engine.healthCheck();
-      
+
       expect(health.status).toBe('unhealthy');
       expect(health.vectorDB).toBe(false);
     });
@@ -267,20 +284,20 @@ describe('SupabaseRAGEngine', () => {
     it('should use memory cache for embeddings', async () => {
       // First call
       await engine.searchSimilar('동일한 쿼리');
-      
+
       // Second call should use cached embedding
       await engine.searchSimilar('동일한 쿼리');
-      
+
       expect(embeddingService.createEmbedding).toHaveBeenCalledTimes(1);
     });
 
     it('should cache search results in memory', async () => {
       // First search
       const result1 = await engine.searchSimilar('메모리 캐싱 테스트');
-      
+
       // Second search should be faster (memory cached)
       const result2 = await engine.searchSimilar('메모리 캐싱 테스트');
-      
+
       expect(result1.success).toBe(true);
       expect(result2.success).toBe(true);
     });
@@ -289,15 +306,15 @@ describe('SupabaseRAGEngine', () => {
   describe('Clear Knowledge Base', () => {
     it('should clear knowledge base and caches', async () => {
       await engine._initialize();
-      
+
       // Add some cache
       engine['embeddingCache'].set('test', []);
       engine['searchCache'].set('test', {} as any);
-      
+
       // Clear caches manually since clearKnowledgeBase doesn't exist
       engine['embeddingCache'].clear();
       engine['searchCache'].clear();
-      
+
       expect(engine['embeddingCache'].size).toBe(0);
       expect(engine['searchCache'].size).toBe(0);
     });
@@ -307,7 +324,7 @@ describe('SupabaseRAGEngine', () => {
     it('should return same instance', () => {
       const instance1 = getSupabaseRAGEngine();
       const instance2 = getSupabaseRAGEngine();
-      
+
       expect(instance1).toBe(instance2);
     });
   });
@@ -319,7 +336,7 @@ describe('SupabaseRAGEngine', () => {
 
     it('should handle empty search query', async () => {
       const result = await engine.searchSimilar('');
-      
+
       expect(result.success).toBe(false);
       expect(result.error).toContain('빈 쿼리');
     });
@@ -327,7 +344,7 @@ describe('SupabaseRAGEngine', () => {
     it('should handle very long queries', async () => {
       const longQuery = '긴 쿼리 '.repeat(100);
       const result = await engine.searchSimilar(longQuery);
-      
+
       expect(result.success).toBe(true);
       expect(embeddingService.createEmbedding).toHaveBeenCalledWith(
         expect.stringContaining('긴 쿼리')
@@ -337,7 +354,7 @@ describe('SupabaseRAGEngine', () => {
     it('should handle special characters in queries', async () => {
       const specialQuery = '테스트!@#$%^&*()';
       const result = await engine.searchSimilar(specialQuery);
-      
+
       expect(result.success).toBe(true);
     });
 
@@ -354,14 +371,14 @@ describe('SupabaseRAGEngine', () => {
     });
 
     it('should handle concurrent searches efficiently', async () => {
-      const searches = Array.from({ length: 5 }, (_, i) => 
+      const searches = Array.from({ length: 5 }, (_, i) =>
         engine.searchSimilar(`동시 검색 ${i}`)
       );
-      
+
       const results = await Promise.all(searches);
-      
+
       expect(results).toHaveLength(5);
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result.success).toBe(true);
       });
     });
@@ -371,7 +388,7 @@ describe('SupabaseRAGEngine', () => {
       for (let i = 0; i < 150; i++) {
         engine['embeddingCache'].set(`key-${i}`, new Array(384).fill(0.1));
       }
-      
+
       // Cache should be limited in size (implementation dependent)
       expect(engine['embeddingCache'].size).toBeLessThanOrEqual(200);
     });

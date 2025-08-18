@@ -274,9 +274,9 @@ export class ContextManager {
    */
   private updateMetrics(metrics: unknown): void {
     if (!metrics || typeof metrics !== 'object') return;
-    
+
     const metricsData = metrics as any;
-    
+
     this.currentContext.system.current_metrics = {
       timestamp: new Date().toISOString(),
       cpu: 'cpu' in metricsData ? metricsData.cpu : 0,
@@ -286,7 +286,8 @@ export class ContextManager {
         in: 'networkIn' in metricsData ? metricsData.networkIn : 0,
         out: 'networkOut' in metricsData ? metricsData.networkOut : 0,
       },
-      responseTime: 'responseTime' in metricsData ? metricsData.responseTime : 0,
+      responseTime:
+        'responseTime' in metricsData ? metricsData.responseTime : 0,
       errorRate: 'errorRate' in metricsData ? metricsData.errorRate : 0,
     };
 
@@ -452,7 +453,7 @@ export class ContextManager {
    */
   private findApplicableRules(query: string): BusinessRule[] {
     return this.currentContext.domain.rules.filter(
-      rule =>
+      (rule) =>
         rule.active && query.toLowerCase().includes(rule.name.toLowerCase())
     );
   }
@@ -489,7 +490,10 @@ export class ContextManager {
   /**
    * 🎯 패턴 추출
    */
-  private async extractPattern(data: unknown, patternType: string): Promise<any> {
+  private async extractPattern(
+    data: unknown,
+    patternType: string
+  ): Promise<any> {
     return {
       id: `pattern_${Date.now()}`,
       type: patternType,
@@ -539,7 +543,8 @@ export class ContextManager {
 
       // 세션 컨텍스트에 결과 저장
       const analysisResult: Result = {
-        queryId: 'queryId' in resultData ? resultData.queryId : `result_${Date.now()}`,
+        queryId:
+          'queryId' in resultData ? resultData.queryId : `result_${Date.now()}`,
         toolsUsed: 'tools_used' in resultData ? resultData.tools_used : [],
         result: result,
         confidence: 'confidence' in resultData ? resultData.confidence : 0.8,

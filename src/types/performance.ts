@@ -25,7 +25,7 @@ export interface PerformanceSummary {
   peakMemoryUsage: number;
   topOptimizations: string[];
   topBottlenecks: string[];
-  
+
   // 문자열 데이터 (성능 모니터 디스플레이용)
   avgResponseTimeDisplay?: string;
   avgMemoryUsage?: string;
@@ -65,13 +65,13 @@ export interface AutoOptimizationResult {
     targetAchieved: boolean;
     optimizations: string[];
   }>;
-  
+
   // 조정된 설정들
   adjustedCacheSize?: number;
   triggeredWarmup?: boolean;
   improvedParallelization?: boolean;
   optimizedEngineRouting?: boolean;
-  
+
   [key: string]: unknown;
 }
 

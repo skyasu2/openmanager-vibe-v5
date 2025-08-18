@@ -1,6 +1,6 @@
 /**
  * 🚀 Ultra-Fast AI API Endpoint
- * 
+ *
  * 152ms 목표 달성을 위한 최적화된 AI API 엔드포인트
  * - Edge Runtime 완전 활용
  * - 스트리밍 응답 지원
@@ -10,7 +10,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getUltraFastAIRouter } from '@/services/ai/ultrafast-ai-router';
-import { getPerformanceMetricsEngine, withPerformanceTracking } from '@/services/ai/performance-metrics-engine';
+import {
+  getPerformanceMetricsEngine,
+  withPerformanceTracking,
+} from '@/services/ai/performance-metrics-engine';
 import { createCachedResponse } from '@/lib/unified-cache';
 import { aiLogger } from '@/lib/logger';
 import { isBoolean, extractProperty } from '@/types/type-utils';
@@ -70,8 +73,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   try {
     // 요청 파싱 (빠른 처리를 위해 최소화)
-    const body = await request.json() as AIRequest;
-    const { query, userId, mode = 'local-ai', enableStreaming = true, maxResponseTime = 152 } = body;
+    const body = (await request.json()) as AIRequest;
+    const {
+      query,
+      userId,
+      mode = 'local-ai',
+      enableStreaming = true,
+      maxResponseTime = 152,
+    } = body;
 
     // 입력 검증 (최소한으로)
     if (!query || typeof query !== 'string' || query.trim().length === 0) {
@@ -121,7 +130,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         ultraFast: true,
         targetAchieved,
         cacheType: String(extractProperty(result.metadata, 'cacheType') || ''),
-        streamingUsed: enableStreaming && Boolean(extractProperty(result.metadata, 'streaming')),
+        streamingUsed:
+          enableStreaming &&
+          Boolean(extractProperty(result.metadata, 'streaming')),
         optimizations: [
           targetAchieved ? 'target_achieved' : 'target_missed',
           result.metadata?.cached ? 'cache_hit' : 'cache_miss',
@@ -158,10 +169,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       sMaxAge: targetAchieved ? 60 : 30,
       staleWhileRevalidate: 300,
     });
-
   } catch (error) {
     const processingTime = performance.now() - startTime;
-    
+
     // 메트릭 추적 종료 (에러)
     metricsEngine.endTracking(requestId, false, 'error', false);
 
@@ -211,15 +221,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     // GET 요청은 POST로 전달
-    return await POST(new NextRequest(request.url, {
-      method: 'POST',
-      headers: request.headers,
-      body: JSON.stringify({ query }),
-    }));
-
+    return await POST(
+      new NextRequest(request.url, {
+        method: 'POST',
+        headers: request.headers,
+        body: JSON.stringify({ query }),
+      })
+    );
   } catch (error) {
     aiLogger.error('Ultra-Fast AI GET 오류', error);
-    
+
     return NextResponse.json(
       {
         success: false,

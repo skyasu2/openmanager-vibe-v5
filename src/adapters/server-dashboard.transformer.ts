@@ -121,7 +121,10 @@ export function transformRawToServer(
 }
 
 // 🎯 기본 정보 추출 헬퍼 (복잡도 감소)
-function extractBasicInfo(raw: RawServerData, index: number): Pick<EnhancedServer, 'id' | 'name' | 'hostname'> {
+function extractBasicInfo(
+  raw: RawServerData,
+  index: number
+): Pick<EnhancedServer, 'id' | 'name' | 'hostname'> {
   return {
     id: raw.id || `server-${index}`,
     name: raw.name || raw.hostname || `서버-${index + 1}`,
@@ -130,7 +133,9 @@ function extractBasicInfo(raw: RawServerData, index: number): Pick<EnhancedServe
 }
 
 // 🎯 메트릭 추출 헬퍼 (복잡도 감소)
-function extractMetrics(raw: RawServerData): Pick<EnhancedServer, 'cpu' | 'memory' | 'disk' | 'network'> {
+function extractMetrics(
+  raw: RawServerData
+): Pick<EnhancedServer, 'cpu' | 'memory' | 'disk' | 'network'> {
   const cpu = raw.metrics?.cpu ?? raw.cpu ?? 0;
   const memory = raw.metrics?.memory ?? raw.memory ?? 0;
   const disk = raw.metrics?.disk ?? raw.disk ?? 0;
@@ -155,7 +160,10 @@ function extractSpecs(raw: RawServerData): EnhancedServer['specs'] {
 }
 
 // 🎯 시스템 정보 추출 헬퍼 (복잡도 감소)
-function extractSystemInfo(raw: RawServerData, index: number): Pick<EnhancedServer, 'os' | 'ip' | 'networkStatus'> {
+function extractSystemInfo(
+  raw: RawServerData,
+  index: number
+): Pick<EnhancedServer, 'os' | 'ip' | 'networkStatus'> {
   return {
     os: generateMockOS(raw.type),
     ip: generateMockIP(raw.id || `server-${index}`),
@@ -170,7 +178,7 @@ export function transformRawToEnhancedServer(
 ): EnhancedServer {
   // 🔧 기본 정보 추출
   const basicInfo = extractBasicInfo(raw, index);
-  
+
   // 🔧 메트릭 추출
   const metrics = extractMetrics(raw);
 

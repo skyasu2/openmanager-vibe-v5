@@ -34,12 +34,7 @@ const postHandler = createApiRoute()
   .build(async (_request, context): Promise<GoogleAIGenerateResponse> => {
     debug.log('🌐 Google AI 생성 요청 처리 시작...');
 
-    const {
-      prompt,
-      temperature,
-      maxTokens,
-      model,
-    } = context.body;
+    const { prompt, temperature, maxTokens, model } = context.body;
 
     const startTime = Date.now();
 
@@ -99,12 +94,9 @@ export async function POST(request: NextRequest) {
     debug.error('❌ Google AI 요청 처리 실패:', error);
 
     const errorMessage = getErrorMessage(error);
-    
+
     // API 한도 초과 등의 특정 오류 처리
-    if (
-      errorMessage.includes('quota') ||
-      errorMessage.includes('limit')
-    ) {
+    if (errorMessage.includes('quota') || errorMessage.includes('limit')) {
       return NextResponse.json(
         {
           success: false,

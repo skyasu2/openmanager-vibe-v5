@@ -1,6 +1,6 @@
 /**
  * 📈 Unified Metrics Manager Performance Monitor
- * 
+ *
  * Performance monitoring and optimization functionality:
  * - System performance tracking
  * - Memory usage monitoring
@@ -51,13 +51,19 @@ export class PerformanceMonitor {
     memory_external_mb: number;
   }): void {
     const processingTime = parseFloat(report.avg_processing_time);
-    
+
     if (processingTime > 500) {
-      console.warn('⚠️ 평균 처리 시간이 500ms를 초과했습니다:', processingTime + 'ms');
+      console.warn(
+        '⚠️ 평균 처리 시간이 500ms를 초과했습니다:',
+        processingTime + 'ms'
+      );
     }
 
     if (report.memory_heap_mb > 100) {
-      console.warn('⚠️ 힙 메모리 사용량이 높습니다:', report.memory_heap_mb + 'MB');
+      console.warn(
+        '⚠️ 힙 메모리 사용량이 높습니다:',
+        report.memory_heap_mb + 'MB'
+      );
     }
 
     if (report.errors_count > 10) {
@@ -98,15 +104,28 @@ export class PerformanceMonitor {
   } {
     const memoryUsage = process.memoryUsage();
     const serverList = Array.from(servers.values());
-    
+
     // Calculate server statistics
-    const healthyCount = serverList.filter(s => s.status === 'healthy').length;
-    const warningCount = serverList.filter(s => s.status === 'warning').length;
-    const criticalCount = serverList.filter(s => s.status === 'critical').length;
-    
-    const avgCpu = serverList.reduce((sum, s) => sum + s.node_cpu_usage_percent, 0) / serverList.length || 0;
-    const avgMemory = serverList.reduce((sum, s) => sum + s.node_memory_usage_percent, 0) / serverList.length || 0;
-    const totalRequests = serverList.reduce((sum, s) => sum + s.http_requests_total, 0);
+    const healthyCount = serverList.filter(
+      (s) => s.status === 'healthy'
+    ).length;
+    const warningCount = serverList.filter(
+      (s) => s.status === 'warning'
+    ).length;
+    const criticalCount = serverList.filter(
+      (s) => s.status === 'critical'
+    ).length;
+
+    const avgCpu =
+      serverList.reduce((sum, s) => sum + s.node_cpu_usage_percent, 0) /
+        serverList.length || 0;
+    const avgMemory =
+      serverList.reduce((sum, s) => sum + s.node_memory_usage_percent, 0) /
+        serverList.length || 0;
+    const totalRequests = serverList.reduce(
+      (sum, s) => sum + s.http_requests_total,
+      0
+    );
 
     // Calculate performance score (0-100)
     let performanceScore = 100;
@@ -130,7 +149,9 @@ export class PerformanceMonitor {
     return {
       system: {
         totalServers: serverList.length,
-        uptime: process.uptime() ? `${Math.floor(process.uptime() / 3600)}시간` : 'N/A',
+        uptime: process.uptime()
+          ? `${Math.floor(process.uptime() / 3600)}시간`
+          : 'N/A',
         memoryUsage,
         performanceScore,
       },
@@ -168,11 +189,15 @@ export class PerformanceMonitor {
     const recommendations: string[] = [];
 
     if (params.avgProcessingTime > 500) {
-      recommendations.push('평균 처리 시간이 길어 배치 처리 크기를 줄이는 것을 고려하세요.');
+      recommendations.push(
+        '평균 처리 시간이 길어 배치 처리 크기를 줄이는 것을 고려하세요.'
+      );
     }
 
     if (params.memoryHeap > 150) {
-      recommendations.push('메모리 사용량이 높아 가비지 컬렉션 최적화를 고려하세요.');
+      recommendations.push(
+        '메모리 사용량이 높아 가비지 컬렉션 최적화를 고려하세요.'
+      );
     }
 
     if (params.errorsCount > 10) {
@@ -180,15 +205,21 @@ export class PerformanceMonitor {
     }
 
     if (params.criticalServers > 2) {
-      recommendations.push(`${params.criticalServers}개 서버가 위험 상태입니다. 즉시 점검이 필요합니다.`);
+      recommendations.push(
+        `${params.criticalServers}개 서버가 위험 상태입니다. 즉시 점검이 필요합니다.`
+      );
     }
 
     if (params.avgCpu > 80) {
-      recommendations.push('평균 CPU 사용률이 높습니다. 자동 스케일링 설정을 확인하세요.');
+      recommendations.push(
+        '평균 CPU 사용률이 높습니다. 자동 스케일링 설정을 확인하세요.'
+      );
     }
 
     if (params.avgMemory > 85) {
-      recommendations.push('평균 메모리 사용률이 높습니다. 메모리 누수를 점검하세요.');
+      recommendations.push(
+        '평균 메모리 사용률이 높습니다. 메모리 누수를 점검하세요.'
+      );
     }
 
     if (recommendations.length === 0) {
@@ -224,36 +255,53 @@ export class PerformanceMonitor {
     }
 
     // Resource utilization efficiency (optimal around 60-70%)
-    const avgCpu = servers.reduce((sum, s) => sum + s.node_cpu_usage_percent, 0) / servers.length;
-    const avgMemory = servers.reduce((sum, s) => sum + s.node_memory_usage_percent, 0) / servers.length;
+    const avgCpu =
+      servers.reduce((sum, s) => sum + s.node_cpu_usage_percent, 0) /
+      servers.length;
+    const avgMemory =
+      servers.reduce((sum, s) => sum + s.node_memory_usage_percent, 0) /
+      servers.length;
     const optimalCpu = 65;
     const optimalMemory = 70;
-    
+
     const cpuEfficiency = Math.max(0, 100 - Math.abs(avgCpu - optimalCpu) * 2);
-    const memoryEfficiency = Math.max(0, 100 - Math.abs(avgMemory - optimalMemory) * 2);
+    const memoryEfficiency = Math.max(
+      0,
+      100 - Math.abs(avgMemory - optimalMemory) * 2
+    );
     const resourceUtilization = (cpuEfficiency + memoryEfficiency) / 2;
 
     // Response time efficiency
-    const avgResponseTime = servers.reduce((sum, s) => sum + s.http_request_duration_seconds, 0) / servers.length;
-    const responseTimeEfficiency = Math.max(0, 100 - (avgResponseTime - 0.1) * 100);
+    const avgResponseTime =
+      servers.reduce((sum, s) => sum + s.http_request_duration_seconds, 0) /
+      servers.length;
+    const responseTimeEfficiency = Math.max(
+      0,
+      100 - (avgResponseTime - 0.1) * 100
+    );
 
     // Error rate efficiency
-    const totalRequests = servers.reduce((sum, s) => sum + s.http_requests_total, 0);
-    const totalErrors = servers.reduce((sum, s) => sum + s.http_requests_errors_total, 0);
+    const totalRequests = servers.reduce(
+      (sum, s) => sum + s.http_requests_total,
+      0
+    );
+    const totalErrors = servers.reduce(
+      (sum, s) => sum + s.http_requests_errors_total,
+      0
+    );
     const errorRate = totalRequests > 0 ? totalErrors / totalRequests : 0;
     const errorRateEfficiency = Math.max(0, 100 - errorRate * 2000);
 
     // Uptime efficiency (based on healthy servers)
-    const healthyServers = servers.filter(s => s.status === 'healthy').length;
+    const healthyServers = servers.filter((s) => s.status === 'healthy').length;
     const uptimeEfficiency = (healthyServers / servers.length) * 100;
 
     // Overall efficiency
-    const overallEfficiency = (
+    const overallEfficiency =
       resourceUtilization * 0.3 +
       responseTimeEfficiency * 0.25 +
       errorRateEfficiency * 0.25 +
-      uptimeEfficiency * 0.2
-    );
+      uptimeEfficiency * 0.2;
 
     // Identify bottlenecks
     const bottlenecks: string[] = [];
@@ -261,7 +309,8 @@ export class PerformanceMonitor {
     if (avgMemory > 90) bottlenecks.push('메모리 부족');
     if (avgResponseTime > 2.0) bottlenecks.push('응답 시간 지연');
     if (errorRate > 0.05) bottlenecks.push('높은 에러율');
-    if (healthyServers / servers.length < 0.8) bottlenecks.push('서버 가용성 저하');
+    if (healthyServers / servers.length < 0.8)
+      bottlenecks.push('서버 가용성 저하');
 
     return {
       overallEfficiency: Number(overallEfficiency.toFixed(1)),
@@ -354,9 +403,15 @@ export class PerformanceMonitor {
 
     // Determine overall priority
     let priority: 'high' | 'medium' | 'low' = 'low';
-    if (efficiency.overallEfficiency < 50 || efficiency.bottlenecks.length > 2) {
+    if (
+      efficiency.overallEfficiency < 50 ||
+      efficiency.bottlenecks.length > 2
+    ) {
       priority = 'high';
-    } else if (efficiency.overallEfficiency < 70 || efficiency.bottlenecks.length > 0) {
+    } else if (
+      efficiency.overallEfficiency < 70 ||
+      efficiency.bottlenecks.length > 0
+    ) {
       priority = 'medium';
     }
 

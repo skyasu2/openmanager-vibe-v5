@@ -56,9 +56,7 @@ export async function POST(_request: NextRequest) {
     });
 
     if (createError) {
-      debug.warn(
-        'RPC exec_sql not available, trying direct table creation...'
-      );
+      debug.warn('RPC exec_sql not available, trying direct table creation...');
 
       // RPC 함수가 없다면 직접 테이블 생성 시도
       const { error: directError } = await supabaseAdmin

@@ -1,11 +1,12 @@
 /**
  * GCP Functions 클라이언트 - 실제 GCP Functions 사용
- * 
+ *
  * 실제 GCP Functions를 직접 사용하여 일관된 처리 결과 보장
  */
 
 // GCP Functions URL
-const GCP_FUNCTIONS_BASE_URL = process.env.NEXT_PUBLIC_GCP_FUNCTIONS_URL || 
+const GCP_FUNCTIONS_BASE_URL =
+  process.env.NEXT_PUBLIC_GCP_FUNCTIONS_URL ||
   'https://us-central1-your-project.cloudfunctions.net';
 
 /**
@@ -19,7 +20,7 @@ export class GCPFunctionsClient {
     try {
       const url = `${GCP_FUNCTIONS_BASE_URL}/${functionName}`;
       console.log(`🌐 GCP Function 호출: ${functionName}`);
-      
+
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -49,13 +50,18 @@ let globalClient: GCPFunctionsClient | null = null;
 
 /**
  * GCP Functions 클라이언트 가져오기
- * 
+ *
  * @returns GCPFunctionsClient 인스턴스 (실제 API)
  */
 export function getGCPFunctionsClient(): GCPFunctionsClient {
   if (!globalClient) {
-    if (!GCP_FUNCTIONS_BASE_URL || GCP_FUNCTIONS_BASE_URL.includes('your-project')) {
-      throw new Error('⚠️ GCP Functions URL이 설정되지 않았습니다. .env.local을 확인하세요.');
+    if (
+      !GCP_FUNCTIONS_BASE_URL ||
+      GCP_FUNCTIONS_BASE_URL.includes('your-project')
+    ) {
+      throw new Error(
+        '⚠️ GCP Functions URL이 설정되지 않았습니다. .env.local을 확인하세요.'
+      );
     }
     globalClient = new GCPFunctionsClient();
     console.log('🌐 실제 GCP Functions 사용 중');

@@ -10,7 +10,10 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { createApiRoute } from '@/lib/api/zod-middleware';
-import { HealthCheckResponseSchema, type HealthCheckResponse } from '@/schemas/api.schema';
+import {
+  HealthCheckResponseSchema,
+  type HealthCheckResponse,
+} from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
 import { getSupabaseClient } from '@/lib/supabase/supabase-client';
 import { getCacheStats } from '@/lib/cache-helper';
@@ -22,25 +25,27 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // 서비스 상태 체크 함수들 - 실제 구현
-async function checkDatabaseStatus(): Promise<'connected' | 'disconnected' | 'error'> {
+async function checkDatabaseStatus(): Promise<
+  'connected' | 'disconnected' | 'error'
+> {
   try {
     const startTime = Date.now();
     const supabase = getSupabaseClient();
-    
+
     // Supabase 연결 체크 - 간단한 쿼리 실행
     const { error } = await supabase
       .from('servers')
       .select('id')
       .limit(1)
       .single();
-    
+
     const latency = Date.now() - startTime;
-    
+
     if (error) {
       debug.error('❌ Database check failed:', error.message);
       return 'error';
     }
-    
+
     debug.log(`✅ Database connected (latency: ${latency}ms)`);
     return 'connected';
   } catch (error) {
@@ -49,16 +54,20 @@ async function checkDatabaseStatus(): Promise<'connected' | 'disconnected' | 'er
   }
 }
 
-async function checkCacheStatus(): Promise<'connected' | 'disconnected' | 'error'> {
+async function checkCacheStatus(): Promise<
+  'connected' | 'disconnected' | 'error'
+> {
   try {
     // Memory-based 캐시 상태 체크
     const stats = getCacheStats();
-    
+
     if (stats.size >= 0) {
-      debug.log(`✅ Cache operational (${stats.size}/${stats.maxSize} items, hit rate: ${stats.hitRate}%)`);
+      debug.log(
+        `✅ Cache operational (${stats.size}/${stats.maxSize} items, hit rate: ${stats.hitRate}%)`
+      );
       return 'connected';
     }
-    
+
     return 'disconnected';
   } catch (error) {
     debug.error('❌ Cache check error:', error);
@@ -66,38 +75,41 @@ async function checkCacheStatus(): Promise<'connected' | 'disconnected' | 'error
   }
 }
 
-async function checkAIStatus(): Promise<'connected' | 'disconnected' | 'error'> {
+async function checkAIStatus(): Promise<
+  'connected' | 'disconnected' | 'error'
+> {
   try {
     const startTime = Date.now();
-    
+
     // GCP VM AI 서비스 상태 체크 (비활성화 상태 체크)
     const gcpMcpEnabled = process.env.ENABLE_GCP_MCP_INTEGRATION === 'true';
-    
+
     if (!gcpMcpEnabled) {
       // MCP 비활성화 상태에서는 로컬 AI만 체크
       debug.log('✅ AI service operational (local mode)');
       return 'connected';
     }
-    
+
     // GCP VM 헬스 체크 (활성화된 경우)
-    const vmUrl = process.env.GCP_MCP_SERVER_URL || 'http://104.154.205.25:10000';
+    const vmUrl =
+      process.env.GCP_MCP_SERVER_URL || 'http://104.154.205.25:10000';
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3000);
-    
+
     try {
       const response = await fetch(`${vmUrl}/health`, {
         signal: controller.signal,
         method: 'GET',
       });
-      
+
       clearTimeout(timeoutId);
       const latency = Date.now() - startTime;
-      
+
       if (response.ok) {
         debug.log(`✅ GCP VM AI connected (latency: ${latency}ms)`);
         return 'connected';
       }
-      
+
       debug.warn(`⚠️ GCP VM AI degraded (status: ${response.status})`);
       return 'disconnected';
     } catch {
@@ -156,21 +168,21 @@ const healthCheckHandler = createApiRoute()
     ]);
 
     // 전체 상태 결정
-    const allServicesHealthy = 
-      dbResult.status === 'connected' && 
-      cacheResult.status === 'connected' && 
+    const allServicesHealthy =
+      dbResult.status === 'connected' &&
+      cacheResult.status === 'connected' &&
       aiResult.status === 'connected';
 
-    const hasErrors = 
-      dbResult.status === 'error' || 
-      cacheResult.status === 'error' || 
+    const hasErrors =
+      dbResult.status === 'error' ||
+      cacheResult.status === 'error' ||
       aiResult.status === 'error';
 
-    const overallStatus = hasErrors 
-      ? 'unhealthy' 
-      : allServicesHealthy 
-      ? 'healthy' 
-      : 'degraded';
+    const overallStatus = hasErrors
+      ? 'unhealthy'
+      : allServicesHealthy
+        ? 'healthy'
+        : 'degraded';
 
     // 응답 생성 (실제 측정된 레이턴시 포함)
     const response: HealthCheckResponse = {
@@ -227,21 +239,22 @@ export async function GET(request: NextRequest) {
   try {
     const apiConfig = getApiConfig();
     const response = await healthCheckHandler(request);
-    
+
     // 환경별 캐시 헤더 설정
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
-    
+
     if (apiConfig.cache.enabled) {
-      headers['Cache-Control'] = `public, max-age=${apiConfig.cache.ttl}, stale-while-revalidate=30`;
+      headers['Cache-Control'] =
+        `public, max-age=${apiConfig.cache.ttl}, stale-while-revalidate=30`;
     } else {
       headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
     }
-    
+
     // Response body 추출
     const body = await response.json();
-    
+
     // NextResponse 생성 및 헤더 설정
     return NextResponse.json(body, { headers });
   } catch (error) {

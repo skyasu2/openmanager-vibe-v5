@@ -26,7 +26,7 @@ class EmbeddingService {
   private readonly DEFAULT_DIMENSION = 384; // 무료 티어 최적화
   private readonly API_ENDPOINT =
     'https://generativelanguage.googleapis.com/v1beta/models';
-  
+
   // 캐시 히트율 추적을 위한 카운터
   private cacheHits = 0;
   private cacheMisses = 0;
@@ -57,7 +57,7 @@ class EmbeddingService {
       aiLogger.debug('캐시에서 임베딩 반환');
       return cached;
     }
-    
+
     // 캐시 미스
     this.cacheMisses++;
 
@@ -111,7 +111,7 @@ class EmbeddingService {
     const model = options.model || 'text-embedding-004';
 
     // 빈 텍스트 필터링
-    const validTexts = texts.filter(text => text && text.trim().length > 0);
+    const validTexts = texts.filter((text) => text && text.trim().length > 0);
 
     if (validTexts.length === 0) {
       return [];
@@ -152,7 +152,7 @@ class EmbeddingService {
               'X-Goog-Api-Key': process.env.GOOGLE_AI_API_KEY,
             },
             body: JSON.stringify({
-              requests: toProcess.map(item => ({
+              requests: toProcess.map((item) => ({
                 model: `models/${model}`,
                 content: {
                   parts: [{ text: item.text }],
@@ -170,19 +170,21 @@ class EmbeddingService {
         const data = await response.json();
 
         // 결과를 캐시에 저장하고 results 배열에 할당
-        data.embeddings.forEach((embedding: { values: number[] }, i: number) => {
-          const item = toProcess[i];
-          const values = embedding.values;
+        data.embeddings.forEach(
+          (embedding: { values: number[] }, i: number) => {
+            const item = toProcess[i];
+            const values = embedding.values;
 
-          const cacheKey = `${model}_${dimension}_${item.text}`;
-          this.saveToCache(cacheKey, values);
+            const cacheKey = `${model}_${dimension}_${item.text}`;
+            this.saveToCache(cacheKey, values);
 
-          results[item.index] = values;
-        });
+            results[item.index] = values;
+          }
+        );
       } catch (error) {
         aiLogger.error('배치 임베딩 생성 실패:', error);
         // 실패한 항목들은 빈 임베딩으로 채움
-        toProcess.forEach(item => {
+        toProcess.forEach((item) => {
           results[item.index] = new Array(dimension).fill(0);
         });
       }
@@ -250,8 +252,9 @@ class EmbeddingService {
     misses: number;
   } {
     const totalRequests = this.cacheHits + this.cacheMisses;
-    const hitRate = totalRequests > 0 ? (this.cacheHits / totalRequests) * 100 : 0;
-    
+    const hitRate =
+      totalRequests > 0 ? (this.cacheHits / totalRequests) * 100 : 0;
+
     return {
       size: this.cache.size,
       maxSize: this.MAX_CACHE_SIZE,

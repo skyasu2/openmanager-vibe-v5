@@ -7,7 +7,15 @@ interface BaselineServerInput {
   id: string;
   hostname: string;
   environment: 'production' | 'staging' | 'development';
-  role: 'web' | 'api' | 'database' | 'cache' | 'vm' | 'storage' | 'load-balancer' | 'backup';
+  role:
+    | 'web'
+    | 'api'
+    | 'database'
+    | 'cache'
+    | 'vm'
+    | 'storage'
+    | 'load-balancer'
+    | 'backup';
   status: 'healthy' | 'warning' | 'critical';
 }
 
@@ -161,7 +169,9 @@ export class BaselineOptimizer {
   /**
    * 📊 개별 서버 베이스라인 생성
    */
-  private createServerBaseline(server: BaselineServerInput): ServerBaselineData {
+  private createServerBaseline(
+    server: BaselineServerInput
+  ): ServerBaselineData {
     const dailyPattern: BaselineDataPoint[] = [];
     const currentTime = Date.now();
 
@@ -281,7 +291,7 @@ export class BaselineOptimizer {
     baseline: ServerBaselineData
   ): ServerBaselineData {
     // 기존 패턴에 약간의 변화를 주어 업데이트
-    const updatedPattern = baseline.daily_pattern.map(point => ({
+    const updatedPattern = baseline.daily_pattern.map((point) => ({
       ...point,
       pattern_multiplier:
         point.pattern_multiplier * (0.95 + Math.random() * 0.1), // ±5% 변화
@@ -303,7 +313,9 @@ export class BaselineOptimizer {
       lastPatternUpdate: new Date(this.lastPatternUpdate).toISOString(),
       memoryUsage: process.memoryUsage().heapUsed,
       oldestBaseline: Math.min(
-        ...Array.from(this.baselineStorage.values()).map(b => b.last_generated)
+        ...Array.from(this.baselineStorage.values()).map(
+          (b) => b.last_generated
+        )
       ),
       avgDataPoints: this.baselineStorage.size > 0 ? 1440 : 0, // 24시간 = 1440분
     };

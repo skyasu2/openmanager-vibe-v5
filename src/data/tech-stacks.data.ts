@@ -11,8 +11,10 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       name: 'GCP VM MCP 서버',
       category: 'ai',
       importance: 'critical',
-      description: 'Google Cloud VM에서 실행되는 Google AI 자연어 처리 전용 MCP 서버',
-      implementation: 'e2-micro VM 포트 10000에서 Google AI 자연어 쿼리 처리 전담',
+      description:
+        'Google Cloud VM에서 실행되는 Google AI 자연어 처리 전용 MCP 서버',
+      implementation:
+        'e2-micro VM 포트 10000에서 Google AI 자연어 쿼리 처리 전담',
       version: 'v5.66.33',
       status: 'active',
       icon: '🌐',
@@ -37,7 +39,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       category: 'ai',
       importance: 'critical',
       description: '로컬 AI 기본 모드 + Google AI 선택 모드',
-      implementation: '모든 기능 로컬 AI로 기본 제공, 사용자 선택으로 Google AI 전환',
+      implementation:
+        '모든 기능 로컬 AI로 기본 제공, 사용자 선택으로 Google AI 전환',
       version: 'v5.66.22',
       status: 'active',
       icon: '🎯',
@@ -49,7 +52,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       category: 'language',
       importance: 'high',
       description: '"CPU 높은 서버?" 같은 한국어 자연어 질문 처리',
-      implementation: '로컬 AI 기본으로 처리, Google AI 모드 선택 시 더 정교한 분석',
+      implementation:
+        '로컬 AI 기본으로 처리, Google AI 모드 선택 시 더 정교한 분석',
       status: 'active',
       icon: '🇰🇷',
       tags: ['한국어', 'NLP', '자연어'],
@@ -96,7 +100,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       category: 'ai',
       importance: 'medium',
       description: '로컬 AI 기본 쿼리 처리, Google AI 선택 가능',
-      implementation: '모든 쿼리 로컬 AI로 기본 처리, 선택적으로 Google Gemini 활용',
+      implementation:
+        '모든 쿼리 로컬 AI로 기본 처리, 선택적으로 Google Gemini 활용',
       status: 'active',
       icon: '🧠',
       tags: ['쿼리엔진', 'NLP', '지능형분석'],
@@ -121,7 +126,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       category: 'deployment',
       importance: 'critical',
       description: '프론트엔드 애플리케이션 클라우드 호스팅 플랫폼',
-      implementation: 'GitHub 연동으로 Push 시 자동 빌드, 전 세계 CDN으로 즉시 배포',
+      implementation:
+        'GitHub 연동으로 Push 시 자동 빌드, 전 세계 CDN으로 즉시 배포',
       status: 'active',
       icon: '▲',
       tags: ['배포', '클라우드 호스팅', '무료티어'],
@@ -143,7 +149,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       category: 'deployment',
       importance: 'critical',
       description: 'e2-micro VM 무료 티어 - 통합 백엔드 호스팅',
-      implementation: 'e2-micro (1vCPU, 1GB RAM, 30GB SSD) - MCP 서버, AI API, 캐싱, 스케줄러 등 다중 서비스 실행',
+      implementation:
+        'e2-micro (1vCPU, 1GB RAM, 30GB SSD) - MCP 서버, AI API, 캐싱, 스케줄러 등 다중 서비스 실행',
       status: 'active',
       icon: '🖥️',
       tags: ['VM', '무료티어', '통합백엔드', 'MCP+AI'],
@@ -154,7 +161,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       category: 'deployment',
       importance: 'high',
       description: '3개의 Python 서버리스 함수 배포 완료',
-      implementation: 'enhanced-korean-nlp (한국어 처리), ml-analytics-engine (ML 분석), unified-ai-processor (AI 통합)',
+      implementation:
+        'enhanced-korean-nlp (한국어 처리), ml-analytics-engine (ML 분석), unified-ai-processor (AI 통합)',
       version: 'Python 3.11',
       status: 'active',
       icon: '☁️',
@@ -179,7 +187,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       category: 'framework',
       importance: 'critical',
       description: 'React 기반 풀스택 프레임워크',
-      implementation: 'App Router + 서버 컴포넌트로 최적화된 서버 사이드 렌더링',
+      implementation:
+        'App Router + 서버 컴포넌트로 최적화된 서버 사이드 렌더링',
       version: '15.4.5',
       status: 'active',
       icon: '⚛️',
@@ -227,7 +236,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       category: 'framework',
       importance: 'high',
       description: '고속 테스트 프레임워크',
-      implementation: '40개 테스트 파일, 3단계 테스트 전략 (minimal 22ms → smart → full)',
+      implementation:
+        '40개 테스트 파일, 3단계 테스트 전략 (minimal 22ms → smart → full)',
       status: 'active',
       icon: '🧪',
       tags: ['테스트', '오픈소스', '고속'],
@@ -262,7 +272,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       category: 'ui',
       importance: 'medium',
       description: '고성능 애니메이션 라이브러리',
-      implementation: '페이지 전환 효과, 카드 호버 애니메이션, 부드러운 UI 전환',
+      implementation:
+        '페이지 전환 효과, 카드 호버 애니메이션, 부드러운 UI 전환',
       version: '11.3.21',
       status: 'active',
       icon: '🎬',
@@ -274,20 +285,22 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       category: 'ui',
       importance: 'medium',
       description: '경량 아이콘 라이브러리',
-      implementation: '1000+ 아이콘 지원, Tree-shaking 최적화, TypeScript 완벽 지원',
+      implementation:
+        '1000+ 아이콘 지원, Tree-shaking 최적화, TypeScript 완벽 지원',
       version: '0.441.0',
       status: 'active',
       icon: '🎨',
       tags: ['아이콘', '오픈소스', 'UI'],
       type: 'opensource',
     },
-    
+
     {
       name: 'Radix UI',
       category: 'ui',
       importance: 'high',
       description: '접근성 높은 헤드리스 UI 컴포넌트',
-      implementation: '17개 컴포넌트 사용 중 (Dialog, Toast, Dropdown, Tabs 등)',
+      implementation:
+        '17개 컴포넌트 사용 중 (Dialog, Toast, Dropdown, Tabs 등)',
       version: '1.x',
       status: 'active',
       icon: '🎯',
@@ -299,17 +312,14 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       category: 'ui',
       importance: 'medium',
       description: '접근성 표준을 따르는 토스트 알림 컴포넌트',
-      implementation: 'Radix UI Toast 프리미티브 기반 커스텀 토스트 컴포넌트 사용',
+      implementation:
+        'Radix UI Toast 프리미티브 기반 커스텀 토스트 컴포넌트 사용',
       status: 'active',
       icon: '🔔',
       tags: ['알림', '접근성', 'UI'],
       type: 'opensource',
     },
-    
-    
-    
-    
-    
+
     {
       name: 'clsx',
       category: 'utility',
@@ -322,17 +332,16 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       tags: ['유틸리티', '오픈소스', '스타일링'],
       type: 'opensource',
     },
-    
-    
-    
   ],
   'cursor-ai': [
     {
       name: 'Claude Code (현재 메인)',
       category: 'ai',
       importance: 'critical',
-      description: '현재 메인 개발 도구 - Anthropic의 공식 CLI 기반 AI 코딩 어시스턴트',
-      implementation: 'claude.ai/code로 제공되는 강력한 AI 개발 도구. 파일 읽기/쓰기, 코드 수정, 터미널 명령어 실행, 웹 검색 등을 자연어로 수행. Opus 4 모델 기반으로 복잡한 코딩 작업 자동화',
+      description:
+        '현재 메인 개발 도구 - Anthropic의 공식 CLI 기반 AI 코딩 어시스턴트',
+      implementation:
+        'claude.ai/code로 제공되는 강력한 AI 개발 도구. 파일 읽기/쓰기, 코드 수정, 터미널 명령어 실행, 웹 검색 등을 자연어로 수행. Opus 4 모델 기반으로 복잡한 코딩 작업 자동화',
       version: 'v5.66.30',
       status: 'active',
       icon: '🤖',
@@ -343,7 +352,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       name: 'MCP 서버 11개 (보조 도구)',
       category: 'ai',
       importance: 'high',
-      description: 'Claude Code의 기능을 확장하는 Model Context Protocol 서버들',
+      description:
+        'Claude Code의 기능을 확장하는 Model Context Protocol 서버들',
       implementation: `• filesystem: 파일 시스템 작업 자동화
 • memory: 지식 그래프 관리 및 컨텍스트 유지
 • github: GitHub 저장소, PR, 이슈 관리
@@ -365,7 +375,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       category: 'ai',
       importance: 'critical',
       description: '프로젝트 초기부터 사용한 핵심 AI 개발 도구',
-      implementation: 'GPT-4와 Claude 3.7 지원, 자동 오류 감지/수정, 백그라운드 에이전트, Composer로 멀티파일 동시 생성',
+      implementation:
+        'GPT-4와 Claude 3.7 지원, 자동 오류 감지/수정, 백그라운드 에이전트, Composer로 멀티파일 동시 생성',
       status: 'active',
       icon: '🚀',
       tags: ['AI개발', '자동완성', '오류수정'],
@@ -376,7 +387,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       category: 'ai',
       importance: 'high',
       description: '차세대 AI 코드 에디터',
-      implementation: 'Flow 모드로 자연스러운 개발 경험 제공, AI와의 대화형 코딩, 실시간 코드 리뷰 및 제안',
+      implementation:
+        'Flow 모드로 자연스러운 개발 경험 제공, AI와의 대화형 코딩, 실시간 코드 리뷰 및 제안',
       status: 'active',
       icon: '🌊',
       tags: ['차세대에디터', 'Flow모드', 'AI대화'],
@@ -387,7 +399,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       category: 'ai',
       importance: 'high',
       description: 'AWS 전용 AI 코딩 어시스턴트',
-      implementation: 'AWS 리소스 자동 관리, Lambda 함수 생성, CloudFormation 템플릿 작성, AWS 베스트 프랙티스 제안',
+      implementation:
+        'AWS 리소스 자동 관리, Lambda 함수 생성, CloudFormation 템플릿 작성, AWS 베스트 프랙티스 제안',
       status: 'active',
       icon: '☁️',
       tags: ['AWS전용', '클라우드자동화', '인프라코드'],
@@ -398,7 +411,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       category: 'ai',
       importance: 'medium',
       description: 'WSL 터미널에서 1M 토큰으로 대규모 분석',
-      implementation: '코드베이스 전체 분석, 대용량 로그 분석, Claude Code와 협업',
+      implementation:
+        '코드베이스 전체 분석, 대용량 로그 분석, Claude Code와 협업',
       status: 'active',
       icon: '✨',
       tags: ['Gemini', '대용량분석', '협업AI'],

@@ -51,17 +51,20 @@ const getHandler = createApiRoute()
             : server.status === 'critical'
               ? 'critical'
               : 'warning',
-        lastUpdate: server.lastUpdate instanceof Date 
-          ? server.lastUpdate.toISOString() 
-          : server.lastUpdate || new Date().toISOString(),
+        lastUpdate:
+          server.lastUpdate instanceof Date
+            ? server.lastUpdate.toISOString()
+            : server.lastUpdate || new Date().toISOString(),
       };
     });
 
     // 통계 계산
     const onlineCount = servers.filter((s) => s.status === 'online').length;
     const warningCount = servers.filter((s) => s.status === 'warning').length;
-    const criticalCount = servers.filter((s) => s.status === 'critical' || s.status === 'offline').length;
-    
+    const criticalCount = servers.filter(
+      (s) => s.status === 'critical' || s.status === 'offline'
+    ).length;
+
     const stats = {
       total: servers.length,
       online: onlineCount,
@@ -116,7 +119,9 @@ export async function GET(_request: NextRequest) {
         'Cache-Control': 'public, max-age=30, stale-while-revalidate=60',
         'X-Data-Source': 'Mock-Ultra-Optimized',
         'X-Response-Time': `${responseData.metadata?.responseTime || 0}ms`,
-        'X-Server-Count': Object.keys(responseData.data?.servers || {}).length.toString(),
+        'X-Server-Count': Object.keys(
+          responseData.data?.servers || {}
+        ).length.toString(),
         'X-Performance-Gain': '95%',
       },
     });

@@ -1,6 +1,6 @@
 /**
  * 🎯 Performance Metrics Engine - 152ms 목표 달성 추적
- * 
+ *
  * 실시간 성능 메트릭 수집 및 분석
  * - 응답 시간 추적
  * - 병목 지점 감지
@@ -10,7 +10,11 @@
 
 import { aiLogger } from '@/lib/logger';
 import { unifiedCache, CacheNamespace } from '@/lib/unified-cache';
-import type { PerformanceMetric, PerformanceSummary, AutoOptimizationResult } from '@/types/performance';
+import type {
+  PerformanceMetric,
+  PerformanceSummary,
+  AutoOptimizationResult,
+} from '@/types/performance';
 
 interface MetricsConfig {
   enableRealTimeTracking: boolean;
@@ -49,9 +53,12 @@ export class PerformanceMetricsEngine {
   private metrics: RealTimeMetrics;
   private performanceHistory: PerformanceMetric[] = [];
   private bottleneckDetection = new Map<string, BottleneckAnalysis>();
-  
+
   // 실시간 추적용
-  private activeRequests = new Map<string, { startTime: number; operation: string }>();
+  private activeRequests = new Map<
+    string,
+    { startTime: number; operation: string }
+  >();
   private currentSample: PerformanceMetric[] = [];
 
   private constructor(config?: Partial<MetricsConfig>) {
@@ -82,7 +89,9 @@ export class PerformanceMetricsEngine {
     this.startRealTimeTracking();
   }
 
-  static getInstance(config?: Partial<MetricsConfig>): PerformanceMetricsEngine {
+  static getInstance(
+    config?: Partial<MetricsConfig>
+  ): PerformanceMetricsEngine {
     if (!PerformanceMetricsEngine.instance) {
       PerformanceMetricsEngine.instance = new PerformanceMetricsEngine(config);
     }
@@ -94,7 +103,7 @@ export class PerformanceMetricsEngine {
    */
   startTracking(requestId: string, operation: string): void {
     if (!this.config.enableRealTimeTracking) return;
-    
+
     // 샘플링 적용
     if (Math.random() > this.config.samplingRate) return;
 
@@ -154,7 +163,7 @@ export class PerformanceMetricsEngine {
    */
   private recordMetric(metric: PerformanceMetric, success: boolean): void {
     this.currentSample.push(metric);
-    
+
     // 히스토리 관리
     this.performanceHistory.push(metric);
     if (this.performanceHistory.length > this.config.maxHistorySize) {
@@ -168,24 +177,29 @@ export class PerformanceMetricsEngine {
   /**
    * 📊 실시간 메트릭 업데이트
    */
-  private updateRealTimeMetrics(metric: PerformanceMetric, success: boolean): void {
+  private updateRealTimeMetrics(
+    metric: PerformanceMetric,
+    success: boolean
+  ): void {
     this.metrics.requestCount++;
     this.metrics.currentResponseTime = metric.responseTime;
-    
+
     // 이동 평균 계산
-    this.metrics.avgResponseTime = 
-      (this.metrics.avgResponseTime * (this.metrics.requestCount - 1) + metric.responseTime) / 
+    this.metrics.avgResponseTime =
+      (this.metrics.avgResponseTime * (this.metrics.requestCount - 1) +
+        metric.responseTime) /
       this.metrics.requestCount;
 
     // 캐시 히트율 업데이트
     const cacheRequests = this.currentSample.length;
-    const cacheHits = this.currentSample.filter(m => m.cacheHit).length;
-    this.metrics.cacheHitRate = cacheRequests > 0 ? cacheHits / cacheRequests : 0;
+    const cacheHits = this.currentSample.filter((m) => m.cacheHit).length;
+    this.metrics.cacheHitRate =
+      cacheRequests > 0 ? cacheHits / cacheRequests : 0;
 
     // 에러율 업데이트
     if (!success) {
-      this.metrics.errorRate = 
-        (this.metrics.errorRate * (this.metrics.requestCount - 1) + 1) / 
+      this.metrics.errorRate =
+        (this.metrics.errorRate * (this.metrics.requestCount - 1) + 1) /
         this.metrics.requestCount;
     }
   }
@@ -195,23 +209,29 @@ export class PerformanceMetricsEngine {
    */
   private analyzeBottleneck(metric: PerformanceMetric): void {
     const { engineType, responseTime, operation } = metric;
-    
+
     // 느린 응답 감지
     if (responseTime > this.config.targetResponseTime * 1.5) {
       const key = `${engineType}_${operation}`;
       const existing = this.bottleneckDetection.get(key);
-      
+
       if (existing) {
         existing.frequency++;
         existing.avgDelay = (existing.avgDelay + responseTime) / 2;
-        existing.impact = this.calculateImpact(existing.avgDelay, existing.frequency);
+        existing.impact = this.calculateImpact(
+          existing.avgDelay,
+          existing.frequency
+        );
       } else {
         this.bottleneckDetection.set(key, {
           component: key,
           avgDelay: responseTime,
           frequency: 1,
           impact: 'medium',
-          suggestions: this.generateOptimizationSuggestions(engineType, responseTime),
+          suggestions: this.generateOptimizationSuggestions(
+            engineType,
+            responseTime
+          ),
         });
       }
     }
@@ -220,7 +240,10 @@ export class PerformanceMetricsEngine {
   /**
    * 🎯 영향도 계산
    */
-  private calculateImpact(avgDelay: number, frequency: number): 'low' | 'medium' | 'high' | 'critical' {
+  private calculateImpact(
+    avgDelay: number,
+    frequency: number
+  ): 'low' | 'medium' | 'high' | 'critical' {
     const delayScore = avgDelay / this.config.targetResponseTime;
     const frequencyScore = frequency / this.metrics.requestCount;
     const totalScore = delayScore * frequencyScore;
@@ -234,7 +257,10 @@ export class PerformanceMetricsEngine {
   /**
    * 💡 최적화 제안 생성
    */
-  private generateOptimizationSuggestions(engineType: string, responseTime: number): string[] {
+  private generateOptimizationSuggestions(
+    engineType: string,
+    responseTime: number
+  ): string[] {
     const suggestions: string[] = [];
 
     if (responseTime > 300) {
@@ -280,7 +306,8 @@ export class PerformanceMetricsEngine {
       issues.push('error_rate_high');
     }
 
-    if (shouldOptimize && Date.now() - this.metrics.lastOptimization > 300000) { // 5분 쿨다운
+    if (shouldOptimize && Date.now() - this.metrics.lastOptimization > 300000) {
+      // 5분 쿨다운
       this.triggerAutoOptimization(issues);
     }
   }
@@ -296,7 +323,7 @@ export class PerformanceMetricsEngine {
 
     try {
       const result = await this.runOptimizationTests();
-      
+
       // 결과 캐싱
       await unifiedCache.set('auto_optimization_result', result, {
         ttlSeconds: 3600,
@@ -304,7 +331,6 @@ export class PerformanceMetricsEngine {
       });
 
       aiLogger.info('자동 최적화 완료', result);
-
     } catch (error) {
       aiLogger.error('자동 최적화 실패', error);
     }
@@ -327,13 +353,13 @@ export class PerformanceMetricsEngine {
     // 10회 테스트 실행
     for (let i = 0; i < 10; i++) {
       const testStart = performance.now();
-      
+
       // 간단한 최적화 테스트 (실제로는 더 복잡한 로직)
       await this.simulateOptimizedQuery();
-      
+
       const responseTime = performance.now() - testStart;
       const targetAchieved = responseTime <= this.config.targetResponseTime;
-      
+
       if (targetAchieved) successfulTests++;
       totalTime += responseTime;
 
@@ -367,19 +393,26 @@ export class PerformanceMetricsEngine {
   private async simulateOptimizedQuery(): Promise<void> {
     // 간단한 지연 시뮬레이션
     const delay = Math.random() * 100 + 50; // 50-150ms
-    await new Promise(resolve => setTimeout(resolve, delay));
+    await new Promise((resolve) => setTimeout(resolve, delay));
   }
 
   /**
    * 💾 메트릭 캐시
    */
-  private async cacheMetric(metric: PerformanceMetric, success: boolean): Promise<void> {
+  private async cacheMetric(
+    metric: PerformanceMetric,
+    success: boolean
+  ): Promise<void> {
     try {
       const cacheKey = `metrics:${Date.now()}:${metric.id}`;
-      await unifiedCache.set(cacheKey, { metric, success }, {
-        ttlSeconds: 3600, // 1시간
-        namespace: CacheNamespace.GENERAL,
-      });
+      await unifiedCache.set(
+        cacheKey,
+        { metric, success },
+        {
+          ttlSeconds: 3600, // 1시간
+          namespace: CacheNamespace.GENERAL,
+        }
+      );
     } catch (error) {
       aiLogger.warn('메트릭 캐시 실패', error);
     }
@@ -390,7 +423,7 @@ export class PerformanceMetricsEngine {
    */
   generatePerformanceSummary(): PerformanceSummary {
     const recentMetrics = this.performanceHistory.slice(-100); // 최근 100개
-    
+
     if (recentMetrics.length === 0) {
       return {
         totalRequests: 0,
@@ -410,23 +443,31 @@ export class PerformanceMetricsEngine {
     }
 
     const totalRequests = recentMetrics.length;
-    const avgResponseTime = recentMetrics.reduce((sum, m) => sum + m.responseTime, 0) / totalRequests;
-    const cacheHits = recentMetrics.filter(m => m.cacheHit).length;
+    const avgResponseTime =
+      recentMetrics.reduce((sum, m) => sum + m.responseTime, 0) / totalRequests;
+    const cacheHits = recentMetrics.filter((m) => m.cacheHit).length;
     const cacheHitRate = cacheHits / totalRequests;
-    const targetAchieved = recentMetrics.filter(m => m.responseTime <= this.config.targetResponseTime).length;
+    const targetAchieved = recentMetrics.filter(
+      (m) => m.responseTime <= this.config.targetResponseTime
+    ).length;
     const targetAchievementRate = targetAchieved / totalRequests;
-    const peakMemoryUsage = Math.max(...recentMetrics.map(m => m.memoryUsage));
-    const avgAccuracy = recentMetrics.reduce((sum, m) => sum + m.accuracy, 0) / totalRequests;
+    const peakMemoryUsage = Math.max(
+      ...recentMetrics.map((m) => m.memoryUsage)
+    );
+    const avgAccuracy =
+      recentMetrics.reduce((sum, m) => sum + m.accuracy, 0) / totalRequests;
 
     // 병목 지점 상위 5개
     const topBottlenecks = Array.from(this.bottleneckDetection.values())
       .sort((a, b) => b.frequency - a.frequency)
       .slice(0, 5)
-      .map(b => `${b.component} (${b.avgDelay.toFixed(1)}ms)`);
+      .map((b) => `${b.component} (${b.avgDelay.toFixed(1)}ms)`);
 
     // 최적화 제안
     const topOptimizations = [
-      avgResponseTime > this.config.targetResponseTime ? '응답 시간 최적화' : null,
+      avgResponseTime > this.config.targetResponseTime
+        ? '응답 시간 최적화'
+        : null,
       cacheHitRate < 0.8 ? '캐시 효율성 개선' : null,
       avgAccuracy < 0.9 ? '정확도 향상' : null,
       peakMemoryUsage > 100 ? '메모리 사용량 최적화' : null,
@@ -445,9 +486,10 @@ export class PerformanceMetricsEngine {
       avgAccuracy: `${(avgAccuracy * 100).toFixed(1)}%`,
       totalMeasurements: totalRequests,
       period: 'recent',
-      message: targetAchievementRate >= 0.8 ? 
-        '목표 달성률이 우수합니다!' : 
-        '성능 개선이 필요합니다.',
+      message:
+        targetAchievementRate >= 0.8
+          ? '목표 달성률이 우수합니다!'
+          : '성능 개선이 필요합니다.',
     };
   }
 
@@ -465,7 +507,9 @@ export class PerformanceMetricsEngine {
     const recent = this.performanceHistory.slice(-50);
     if (recent.length === 0) return 0;
 
-    const achieved = recent.filter(m => m.responseTime <= this.config.targetResponseTime).length;
+    const achieved = recent.filter(
+      (m) => m.responseTime <= this.config.targetResponseTime
+    ).length;
     return achieved / recent.length;
   }
 
@@ -473,11 +517,10 @@ export class PerformanceMetricsEngine {
    * 🔍 병목 지점 조회
    */
   getBottlenecks(): BottleneckAnalysis[] {
-    return Array.from(this.bottleneckDetection.values())
-      .sort((a, b) => {
-        const impactOrder = { critical: 4, high: 3, medium: 2, low: 1 };
-        return impactOrder[b.impact] - impactOrder[a.impact];
-      });
+    return Array.from(this.bottleneckDetection.values()).sort((a, b) => {
+      const impactOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+      return impactOrder[b.impact] - impactOrder[a.impact];
+    });
   }
 
   /**
@@ -494,7 +537,7 @@ export class PerformanceMetricsEngine {
     // 오래된 데이터 정리
     const cutoff = Date.now() - 86400000; // 24시간
     this.performanceHistory = this.performanceHistory.filter(
-      m => new Date(m.timestamp).getTime() > cutoff
+      (m) => new Date(m.timestamp).getTime() > cutoff
     );
 
     // 병목 데이터 정리 (빈도가 낮은 것들)
@@ -529,8 +572,10 @@ export class PerformanceMetricsEngine {
    * 📊 현재 샘플 분석
    */
   private analyzeCurrentSample(): void {
-    const avgTime = this.currentSample.reduce((sum, m) => sum + m.responseTime, 0) / this.currentSample.length;
-    
+    const avgTime =
+      this.currentSample.reduce((sum, m) => sum + m.responseTime, 0) /
+      this.currentSample.length;
+
     if (avgTime > this.config.alertThresholds.responseTime) {
       aiLogger.warn('성능 경고: 평균 응답시간 초과', {
         avgTime,
@@ -540,7 +585,9 @@ export class PerformanceMetricsEngine {
     }
 
     // 성공률 체크
-    const cacheHitRate = this.currentSample.filter(m => m.cacheHit).length / this.currentSample.length;
+    const cacheHitRate =
+      this.currentSample.filter((m) => m.cacheHit).length /
+      this.currentSample.length;
     if (cacheHitRate < this.config.alertThresholds.cacheHitRate) {
       aiLogger.warn('캐시 효율성 경고', {
         cacheHitRate,
@@ -551,7 +598,9 @@ export class PerformanceMetricsEngine {
 }
 
 // 편의 함수
-export function getPerformanceMetricsEngine(config?: Partial<MetricsConfig>): PerformanceMetricsEngine {
+export function getPerformanceMetricsEngine(
+  config?: Partial<MetricsConfig>
+): PerformanceMetricsEngine {
   return PerformanceMetricsEngine.getInstance(config);
 }
 
@@ -563,15 +612,15 @@ export function withPerformanceTracking<T>(
 ): Promise<T> {
   const metricsEngine = getPerformanceMetricsEngine();
   const requestId = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
+
   metricsEngine.startTracking(requestId, operation);
-  
+
   return fn().then(
-    result => {
+    (result) => {
       metricsEngine.endTracking(requestId, true, engineType);
       return result;
     },
-    error => {
+    (error) => {
       metricsEngine.endTracking(requestId, false, engineType);
       throw error;
     }

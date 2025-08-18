@@ -1,17 +1,20 @@
 /**
  * AI Security Service
- * 
+ *
  * AI 요청/응답에 대한 보안 처리를 담당
  * - 프롬프트 검증 및 삭제
  * - 응답 필터링
  * - 보안 이벤트 추적
- * 
+ *
  * @author AI Systems Engineer
  * @version 1.0.0
  */
 
 import { PromptSanitizer, sanitizePrompt } from '../security/PromptSanitizer';
-import { AIResponseFilter, filterAIResponse } from '../security/AIResponseFilter';
+import {
+  AIResponseFilter,
+  filterAIResponse,
+} from '../security/AIResponseFilter';
 import type { QueryRequest, QueryResponse } from '../SimplifiedQueryEngine';
 
 export interface SecurityConfig {
@@ -35,19 +38,19 @@ export class AISecurityService {
   private promptSanitizer: PromptSanitizer;
   private responseFilter: AIResponseFilter;
   private metrics: SecurityMetrics;
-  
+
   constructor(private config: SecurityConfig) {
     this.promptSanitizer = PromptSanitizer.getInstance({
       enableStrictMode: config.strictSecurityMode,
       maxInputLength: 2000,
     });
-    
+
     this.responseFilter = AIResponseFilter.getInstance({
       enableStrictFiltering: config.strictSecurityMode,
       preventCodeExecution: true,
       preventInfoLeakage: true,
     });
-    
+
     this.metrics = {
       promptsBlocked: 0,
       responsesFiltered: 0,
@@ -66,17 +69,21 @@ export class AISecurityService {
     try {
       // 프롬프트 검증
       const sanitizationResult = await sanitizePrompt(request.query);
-      
+
       if (sanitizationResult.blocked) {
         this.metrics.promptsBlocked++;
-        
+
         if (sanitizationResult.threatsDetected.length > 0) {
-          this.metrics.threatsDetected.push(...sanitizationResult.threatsDetected);
+          this.metrics.threatsDetected.push(
+            ...sanitizationResult.threatsDetected
+          );
         }
-        
+
         return {
           allowed: false,
-          reason: sanitizationResult.threatsDetected.join(', ') || 'Security policy violation',
+          reason:
+            sanitizationResult.threatsDetected.join(', ') ||
+            'Security policy violation',
         };
       }
 
@@ -90,7 +97,7 @@ export class AISecurityService {
       };
     } catch (error) {
       console.error('Security check error:', error);
-      
+
       // 보안 검사 실패 시 안전하게 차단
       if (this.config.strictSecurityMode) {
         return {
@@ -98,7 +105,7 @@ export class AISecurityService {
           reason: 'Security validation failed',
         };
       }
-      
+
       return { allowed: true };
     }
   }
@@ -113,20 +120,20 @@ export class AISecurityService {
 
     try {
       const filteredResult = await filterAIResponse(response.response);
-      
+
       if (filteredResult.filtered) {
         this.metrics.responsesFiltered++;
-        
+
         const baseMetadata = response.metadata || {};
         const metadata: typeof response.metadata = baseMetadata;
-        
+
         return {
           ...response,
           response: filteredResult.filtered,
           metadata,
         };
       }
-      
+
       return response;
     } catch (error) {
       console.error('Response filtering error:', error);
@@ -172,15 +179,17 @@ export class AISecurityService {
    */
   updateConfig(newConfig: Partial<SecurityConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    
+
     // 싱글톤 인스턴스 업데이트
     this.promptSanitizer.updateConfig({
       enableStrictMode: this.config.strictSecurityMode,
     });
-    
+
     // Note: AIResponseFilter doesn't have updateConfig, so we need to get a new instance
     // This is a limitation of the singleton pattern when config changes are needed
-    console.warn('AIResponseFilter config update requires service restart for full effect');
+    console.warn(
+      'AIResponseFilter config update requires service restart for full effect'
+    );
   }
 
   /**

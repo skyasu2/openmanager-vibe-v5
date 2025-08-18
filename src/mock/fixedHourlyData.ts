@@ -1,7 +1,7 @@
 /**
  * 🕐 고정 시간별 데이터 시스템
  * 24시간 × 15서버 = 360개 고정 레코드
- * 
+ *
  * 사용자 요구사항:
  * - 24시간 30초 간격 고정값을 실시간인 것처럼
  * - 24시간 내내 번갈아가며 장애 발생
@@ -30,42 +30,162 @@ export interface HourlyServerState {
  */
 const HOURLY_INCIDENT_ROTATION = [
   // 0시-5시: 심야 유지보수 중 장애
-  { hour: 0, critical: ['db-main-01'], warning: ['storage-nas-01', 'db-repl-01'], incident: '백업 중 디스크 포화' },
-  { hour: 1, critical: ['storage-nas-01'], warning: ['db-main-01', 'db-arch-01'], incident: '백업 스토리지 장애' },
-  { hour: 2, critical: ['db-arch-01'], warning: ['storage-nas-01', 'mon-prd-01'], incident: '아카이브 프로세스 실패' },
-  { hour: 3, critical: ['storage-nas-01'], warning: ['db-main-01', 'db-repl-01'], incident: '스토리지 I/O 병목' },
-  { hour: 4, critical: ['db-repl-01'], warning: ['db-main-01', 'cache-prd-01'], incident: '복제 지연 심화' },
-  { hour: 5, critical: ['cache-prd-01'], warning: ['app-prd-01', 'app-prd-02'], incident: '캐시 메모리 부족' },
-  
+  {
+    hour: 0,
+    critical: ['db-main-01'],
+    warning: ['storage-nas-01', 'db-repl-01'],
+    incident: '백업 중 디스크 포화',
+  },
+  {
+    hour: 1,
+    critical: ['storage-nas-01'],
+    warning: ['db-main-01', 'db-arch-01'],
+    incident: '백업 스토리지 장애',
+  },
+  {
+    hour: 2,
+    critical: ['db-arch-01'],
+    warning: ['storage-nas-01', 'mon-prd-01'],
+    incident: '아카이브 프로세스 실패',
+  },
+  {
+    hour: 3,
+    critical: ['storage-nas-01'],
+    warning: ['db-main-01', 'db-repl-01'],
+    incident: '스토리지 I/O 병목',
+  },
+  {
+    hour: 4,
+    critical: ['db-repl-01'],
+    warning: ['db-main-01', 'cache-prd-01'],
+    incident: '복제 지연 심화',
+  },
+  {
+    hour: 5,
+    critical: ['cache-prd-01'],
+    warning: ['app-prd-01', 'app-prd-02'],
+    incident: '캐시 메모리 부족',
+  },
+
   // 6시-8시: 출근 시간 트래픽 급증
-  { hour: 6, critical: ['lb-main-01'], warning: ['web-prd-01', 'web-prd-02', 'api-prd-01'], incident: '로드밸런서 과부하' },
-  { hour: 7, critical: ['web-prd-01'], warning: ['lb-main-01', 'api-prd-01', 'api-prd-02'], incident: '웹서버 응답 지연' },
-  { hour: 8, critical: ['api-prd-01'], warning: ['web-prd-01', 'app-prd-01', 'app-prd-02'], incident: 'API 타임아웃' },
-  
+  {
+    hour: 6,
+    critical: ['lb-main-01'],
+    warning: ['web-prd-01', 'web-prd-02', 'api-prd-01'],
+    incident: '로드밸런서 과부하',
+  },
+  {
+    hour: 7,
+    critical: ['web-prd-01'],
+    warning: ['lb-main-01', 'api-prd-01', 'api-prd-02'],
+    incident: '웹서버 응답 지연',
+  },
+  {
+    hour: 8,
+    critical: ['api-prd-01'],
+    warning: ['web-prd-01', 'app-prd-01', 'app-prd-02'],
+    incident: 'API 타임아웃',
+  },
+
   // 9시-11시: 오전 업무 피크
-  { hour: 9, critical: ['app-prd-01'], warning: ['app-prd-02', 'db-main-01', 'cache-prd-01'], incident: '애플리케이션 메모리 누수' },
-  { hour: 10, critical: ['app-prd-02'], warning: ['app-prd-01', 'api-prd-01', 'db-main-01'], incident: 'CPU 스파이크' },
-  { hour: 11, critical: ['db-main-01'], warning: ['db-repl-01', 'app-prd-01', 'cache-prd-01'], incident: '데이터베이스 락' },
-  
+  {
+    hour: 9,
+    critical: ['app-prd-01'],
+    warning: ['app-prd-02', 'db-main-01', 'cache-prd-01'],
+    incident: '애플리케이션 메모리 누수',
+  },
+  {
+    hour: 10,
+    critical: ['app-prd-02'],
+    warning: ['app-prd-01', 'api-prd-01', 'db-main-01'],
+    incident: 'CPU 스파이크',
+  },
+  {
+    hour: 11,
+    critical: ['db-main-01'],
+    warning: ['db-repl-01', 'app-prd-01', 'cache-prd-01'],
+    incident: '데이터베이스 락',
+  },
+
   // 12시-13시: 점심시간
-  { hour: 12, critical: ['web-prd-02'], warning: ['web-prd-01', 'lb-main-01'], incident: '웹서버 메모리 부족' },
-  { hour: 13, critical: ['api-prd-02'], warning: ['api-prd-01', 'app-prd-03'], incident: 'GraphQL 쿼리 지연' },
-  
+  {
+    hour: 12,
+    critical: ['web-prd-02'],
+    warning: ['web-prd-01', 'lb-main-01'],
+    incident: '웹서버 메모리 부족',
+  },
+  {
+    hour: 13,
+    critical: ['api-prd-02'],
+    warning: ['api-prd-01', 'app-prd-03'],
+    incident: 'GraphQL 쿼리 지연',
+  },
+
   // 14시-17시: 오후 최대 피크
-  { hour: 14, critical: ['lb-main-01'], warning: ['web-prd-01', 'web-prd-02', 'web-prd-03'], incident: '트래픽 폭증' },
-  { hour: 15, critical: ['app-prd-01'], warning: ['app-prd-02', 'app-prd-03', 'db-main-01'], incident: '애플리케이션 장애 연쇄' },
-  { hour: 16, critical: ['db-main-01'], warning: ['db-repl-01', 'cache-prd-01', 'app-prd-01'], incident: '디스크 95% 초과' },
-  { hour: 17, critical: ['app-prd-03'], warning: ['api-prd-01', 'api-prd-02', 'web-prd-03'], incident: '.NET 서버 크래시' },
-  
+  {
+    hour: 14,
+    critical: ['lb-main-01'],
+    warning: ['web-prd-01', 'web-prd-02', 'web-prd-03'],
+    incident: '트래픽 폭증',
+  },
+  {
+    hour: 15,
+    critical: ['app-prd-01'],
+    warning: ['app-prd-02', 'app-prd-03', 'db-main-01'],
+    incident: '애플리케이션 장애 연쇄',
+  },
+  {
+    hour: 16,
+    critical: ['db-main-01'],
+    warning: ['db-repl-01', 'cache-prd-01', 'app-prd-01'],
+    incident: '디스크 95% 초과',
+  },
+  {
+    hour: 17,
+    critical: ['app-prd-03'],
+    warning: ['api-prd-01', 'api-prd-02', 'web-prd-03'],
+    incident: '.NET 서버 크래시',
+  },
+
   // 18시-20시: 퇴근 시간
-  { hour: 18, critical: ['web-prd-03'], warning: ['lb-main-01', 'api-prd-02'], incident: '세션 과다' },
-  { hour: 19, critical: ['cache-prd-01'], warning: ['app-prd-01', 'app-prd-02'], incident: 'Redis 연결 풀 고갈' },
-  { hour: 20, critical: ['api-prd-01'], warning: ['web-prd-01', 'app-prd-01'], incident: 'API 레이트 리밋' },
-  
+  {
+    hour: 18,
+    critical: ['web-prd-03'],
+    warning: ['lb-main-01', 'api-prd-02'],
+    incident: '세션 과다',
+  },
+  {
+    hour: 19,
+    critical: ['cache-prd-01'],
+    warning: ['app-prd-01', 'app-prd-02'],
+    incident: 'Redis 연결 풀 고갈',
+  },
+  {
+    hour: 20,
+    critical: ['api-prd-01'],
+    warning: ['web-prd-01', 'app-prd-01'],
+    incident: 'API 레이트 리밋',
+  },
+
   // 21시-23시: 야간 배치
-  { hour: 21, critical: ['db-arch-01'], warning: ['db-main-01', 'storage-nas-01'], incident: '배치 작업 실패' },
-  { hour: 22, critical: ['storage-nas-01'], warning: ['db-arch-01', 'mon-prd-01'], incident: '스토리지 85% 경고' },
-  { hour: 23, critical: ['mon-prd-01'], warning: ['db-main-01', 'storage-nas-01'], incident: '모니터링 데이터 손실' }
+  {
+    hour: 21,
+    critical: ['db-arch-01'],
+    warning: ['db-main-01', 'storage-nas-01'],
+    incident: '배치 작업 실패',
+  },
+  {
+    hour: 22,
+    critical: ['storage-nas-01'],
+    warning: ['db-arch-01', 'mon-prd-01'],
+    incident: '스토리지 85% 경고',
+  },
+  {
+    hour: 23,
+    critical: ['mon-prd-01'],
+    warning: ['db-main-01', 'storage-nas-01'],
+    incident: '모니터링 데이터 손실',
+  },
 ];
 
 /**
@@ -78,13 +198,16 @@ const CASCADE_PATTERNS: Record<string, string[]> = {
   'app-prd-01': ['db-main-01', 'cache-prd-01'], // 앱서버 → DB/캐시 영향
   'db-main-01': ['db-repl-01', 'db-arch-01'], // 메인DB → 복제DB 영향
   'cache-prd-01': ['app-prd-01', 'app-prd-02', 'app-prd-03'], // 캐시 → 앱서버 영향
-  'storage-nas-01': ['db-main-01', 'db-arch-01'] // 스토리지 → DB 영향
+  'storage-nas-01': ['db-main-01', 'db-arch-01'], // 스토리지 → DB 영향
 };
 
 /**
  * 📊 서버별 베이스라인 메트릭
  */
-const SERVER_BASELINES: Record<string, { cpu: number; memory: number; disk: number; network: number }> = {
+const SERVER_BASELINES: Record<
+  string,
+  { cpu: number; memory: number; disk: number; network: number }
+> = {
   'lb-main-01': { cpu: 25, memory: 30, disk: 20, network: 70 },
   'web-prd-01': { cpu: 35, memory: 40, disk: 45, network: 50 },
   'web-prd-02': { cpu: 30, memory: 35, disk: 40, network: 45 },
@@ -99,7 +222,7 @@ const SERVER_BASELINES: Record<string, { cpu: number; memory: number; disk: numb
   'db-repl-01': { cpu: 40, memory: 60, disk: 70, network: 35 },
   'db-arch-01': { cpu: 30, memory: 40, disk: 75, network: 25 },
   'storage-nas-01': { cpu: 25, memory: 35, disk: 80, network: 60 },
-  'mon-prd-01': { cpu: 30, memory: 40, disk: 50, network: 30 }
+  'mon-prd-01': { cpu: 30, memory: 40, disk: 50, network: 30 },
 };
 
 /**
@@ -117,7 +240,14 @@ function adjustMetricsForIncident(
   baseline: { cpu: number; memory: number; disk: number; network: number },
   status: 'online' | 'warning' | 'critical',
   hour: number
-): { cpu: number; memory: number; disk: number; network: number; responseTime: number; errorRate: number } {
+): {
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: number;
+  responseTime: number;
+  errorRate: number;
+} {
   let cpu = baseline.cpu;
   let memory = baseline.memory;
   let disk = baseline.disk;
@@ -127,7 +257,7 @@ function adjustMetricsForIncident(
 
   // 시간대별 기본 가중치
   const timeMultiplier = getTimeMultiplier(hour);
-  
+
   cpu *= timeMultiplier.cpu;
   memory *= timeMultiplier.memory;
   disk *= timeMultiplier.disk;
@@ -155,14 +285,19 @@ function adjustMetricsForIncident(
     disk: addNoise(disk),
     network: addNoise(network),
     responseTime,
-    errorRate
+    errorRate,
   };
 }
 
 /**
  * ⏰ 시간대별 가중치
  */
-function getTimeMultiplier(hour: number): { cpu: number; memory: number; disk: number; network: number } {
+function getTimeMultiplier(hour: number): {
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: number;
+} {
   // 0-5시: 낮음
   if (hour >= 0 && hour < 6) {
     return { cpu: 0.5, memory: 0.6, disk: 1.2, network: 0.4 };
@@ -200,7 +335,7 @@ export function generateFixedHourlyData(): HourlyServerState[] {
 
   for (let hour = 0; hour < 24; hour++) {
     const hourPattern = HOURLY_INCIDENT_ROTATION[hour];
-    
+
     for (const serverId of allServerIds) {
       let status: 'online' | 'warning' | 'critical' = 'online';
       let incidentType: string | undefined;
@@ -213,7 +348,7 @@ export function generateFixedHourlyData(): HourlyServerState[] {
       } else if (hourPattern.warning.includes(serverId)) {
         status = 'warning';
         incidentType = hourPattern.incident;
-        
+
         // 연쇄 장애 체크
         for (const criticalServer of hourPattern.critical) {
           if (CASCADE_PATTERNS[criticalServer]?.includes(serverId)) {
@@ -238,7 +373,7 @@ export function generateFixedHourlyData(): HourlyServerState[] {
         responseTime: Math.round(metrics.responseTime),
         errorRate: Math.round(metrics.errorRate * 10) / 10,
         incidentType, // AI가 분석할 수 있도록 포함하지만 UI에는 표시 안함
-        cascadeFrom // 연쇄 장애 정보
+        cascadeFrom, // 연쇄 장애 정보
       });
     }
   }
@@ -249,9 +384,14 @@ export function generateFixedHourlyData(): HourlyServerState[] {
 /**
  * 🔍 특정 시간의 서버 상태 조회
  */
-export function getServerStateAtHour(serverId: string, hour: number): HourlyServerState | null {
+export function getServerStateAtHour(
+  serverId: string,
+  hour: number
+): HourlyServerState | null {
   const allData = generateFixedHourlyData();
-  return allData.find(d => d.serverId === serverId && d.hour === hour) || null;
+  return (
+    allData.find((d) => d.serverId === serverId && d.hour === hour) || null
+  );
 }
 
 /**
@@ -259,7 +399,7 @@ export function getServerStateAtHour(serverId: string, hour: number): HourlyServ
  */
 export function getServerDayData(serverId: string): HourlyServerState[] {
   const allData = generateFixedHourlyData();
-  return allData.filter(d => d.serverId === serverId);
+  return allData.filter((d) => d.serverId === serverId);
 }
 
 /**
@@ -267,7 +407,7 @@ export function getServerDayData(serverId: string): HourlyServerState[] {
  */
 export function getAllServersAtHour(hour: number): HourlyServerState[] {
   const allData = generateFixedHourlyData();
-  return allData.filter(d => d.hour === hour);
+  return allData.filter((d) => d.hour === hour);
 }
 
 /**
@@ -283,15 +423,21 @@ export function getHourlyStatistics(hour: number): {
   avgResponseTime: number;
 } {
   const servers = getAllServersAtHour(hour);
-  
+
   const stats = {
     totalServers: servers.length,
-    online: servers.filter(s => s.status === 'online').length,
-    warning: servers.filter(s => s.status === 'warning').length,
-    critical: servers.filter(s => s.status === 'critical').length,
-    avgCpu: Math.round(servers.reduce((sum, s) => sum + s.cpu, 0) / servers.length),
-    avgMemory: Math.round(servers.reduce((sum, s) => sum + s.memory, 0) / servers.length),
-    avgResponseTime: Math.round(servers.reduce((sum, s) => sum + s.responseTime, 0) / servers.length)
+    online: servers.filter((s) => s.status === 'online').length,
+    warning: servers.filter((s) => s.status === 'warning').length,
+    critical: servers.filter((s) => s.status === 'critical').length,
+    avgCpu: Math.round(
+      servers.reduce((sum, s) => sum + s.cpu, 0) / servers.length
+    ),
+    avgMemory: Math.round(
+      servers.reduce((sum, s) => sum + s.memory, 0) / servers.length
+    ),
+    avgResponseTime: Math.round(
+      servers.reduce((sum, s) => sum + s.responseTime, 0) / servers.length
+    ),
   };
 
   return stats;
@@ -305,14 +451,14 @@ export function getCurrentSimulatedHour(): number {
   const now = new Date();
   const seconds = now.getSeconds();
   const minutes = now.getMinutes();
-  
+
   // 전체 초로 변환 (0-3599)
   const totalSeconds = minutes * 60 + seconds;
-  
+
   // 30초 = 1시간으로 매핑 (0-23)
   // 12분(720초) = 24시간
   const hour = Math.floor((totalSeconds % 720) / 30);
-  
+
   return hour;
 }
 

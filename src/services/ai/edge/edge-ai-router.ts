@@ -1,6 +1,6 @@
 /**
  * 🚀 Edge AI Router
- * 
+ *
  * Vercel Edge Runtime에서 실행되는 고성능 AI 라우터
  * - 분산 서비스 직접 통신
  * - 병렬 처리 최적화
@@ -18,7 +18,7 @@ import type {
   ThinkingStep,
 } from '../interfaces/distributed-ai.interface';
 
-import { 
+import {
   supabaseRAGAdapter,
   gcpFunctionsAdapter,
 } from '../adapters/service-adapters';
@@ -75,7 +75,7 @@ export class EdgeAIRouter {
 
     this.circuitBreakers = new Map();
     this.serviceHealth = new Map();
-    
+
     // 서비스 초기화
     this.initializeServices();
   }
@@ -94,7 +94,7 @@ export class EdgeAIRouter {
         const cachedResponse = await this.checkCache(request);
         if (cachedResponse) {
           routingPath.push('cache_hit');
-          
+
           // 캐시된 응답이 있으면 캐시된 서비스 정보 사용
           if (cachedResponse.success && cachedResponse.data) {
             results.set(cachedResponse.metadata.service, cachedResponse);
@@ -135,7 +135,7 @@ export class EdgeAIRouter {
         error,
         'edge-router'
       );
-      
+
       results.set('edge-router', {
         id: request.id,
         success: false,
@@ -175,14 +175,17 @@ export class EdgeAIRouter {
       routingPath.push(service);
 
       const promise = this.callService(service, request)
-        .then(response => {
+        .then((response) => {
           results.set(service, response);
         })
-        .catch(error => {
+        .catch((error) => {
           results.set(service, {
             id: request.id,
             success: false,
-            error: distributedErrorHandler.createDistributedError(error, service),
+            error: distributedErrorHandler.createDistributedError(
+              error,
+              service
+            ),
             metadata: {
               service,
               processingTime: 0,
@@ -275,8 +278,9 @@ export class EdgeAIRouter {
     service: AIServiceType,
     request: EdgeRouterRequest
   ): Promise<DistributedResponse> {
-    const timeout = this.config.serviceTimeouts[service] || this.config.globalTimeout;
-    
+    const timeout =
+      this.config.serviceTimeouts[service] || this.config.globalTimeout;
+
     // Circuit Breaker 체크
     if (!this.canCallService(service)) {
       throw new Error(`Circuit breaker open for ${service}`);
@@ -334,7 +338,6 @@ export class EdgeAIRouter {
           ]);
           break;
 
-
         default:
           throw new Error(`Unknown service: ${service}`);
       }
@@ -342,7 +345,6 @@ export class EdgeAIRouter {
       // 성공 시 Circuit Breaker 업데이트
       this.recordSuccess(service);
       return response;
-
     } catch (error) {
       // 실패 시 Circuit Breaker 업데이트
       this.recordFailure(service);
@@ -367,7 +369,7 @@ export class EdgeAIRouter {
     } catch (error) {
       console.warn('Cache check failed:', error);
     }
-    
+
     return null;
   }
 
@@ -381,7 +383,7 @@ export class EdgeAIRouter {
     try {
       const cacheKey = `ai:response:${this.generateCacheKey(request)}`;
       const successfulResponse = this.getBestResponse(results);
-      
+
       if (successfulResponse) {
         await edgeCache.set(
           cacheKey,
@@ -402,16 +404,16 @@ export class EdgeAIRouter {
       query: request.query.toLowerCase().trim(),
       services: request.services.sort().join(','),
     };
-    
+
     // 간단한 해시 함수
     let hash = 0;
     const str = JSON.stringify(normalized);
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
-    
+
     return hash.toString(36);
   }
 
@@ -420,7 +422,7 @@ export class EdgeAIRouter {
   private initializeServices(): void {
     const services: AIServiceType[] = [
       'supabase-rag',
-      'gcp-korean-nlp', 
+      'gcp-korean-nlp',
       'gcp-ml-analytics',
     ];
 
@@ -449,7 +451,10 @@ export class EdgeAIRouter {
     if (breaker.state === 'open') {
       // 재시도 시간 확인
       const now = Date.now();
-      if (now - breaker.lastFailureTime > this.config.circuitBreaker.resetTimeout) {
+      if (
+        now - breaker.lastFailureTime >
+        this.config.circuitBreaker.resetTimeout
+      ) {
         breaker.state = 'half-open';
         breaker.failureCount = 0;
       } else {
@@ -469,7 +474,7 @@ export class EdgeAIRouter {
     if (!breaker) return;
 
     breaker.successCount++;
-    
+
     if (breaker.state === 'half-open') {
       breaker.state = 'closed';
       breaker.failureCount = 0;
@@ -479,7 +484,8 @@ export class EdgeAIRouter {
     const health = this.serviceHealth.get(service);
     if (health) {
       health.status = 'healthy';
-      health.successRate = breaker.successCount / (breaker.successCount + breaker.failureCount);
+      health.successRate =
+        breaker.successCount / (breaker.successCount + breaker.failureCount);
     }
   }
 
@@ -498,13 +504,16 @@ export class EdgeAIRouter {
     const health = this.serviceHealth.get(service);
     if (health) {
       health.status = breaker.state === 'open' ? 'unhealthy' : 'degraded';
-      health.successRate = breaker.successCount / (breaker.successCount + breaker.failureCount);
+      health.successRate =
+        breaker.successCount / (breaker.successCount + breaker.failureCount);
     }
   }
 
   // === 헬퍼 메서드들 ===
 
-  private hasSuccessfulResult(results: Map<AIServiceType, DistributedResponse>): boolean {
+  private hasSuccessfulResult(
+    results: Map<AIServiceType, DistributedResponse>
+  ): boolean {
     for (const response of results.values()) {
       if (response.success && response.data) return true;
     }

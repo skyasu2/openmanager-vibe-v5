@@ -221,14 +221,15 @@ export class AuthStateManager {
    */
   getAuthStats() {
     const activeSessions = Array.from(this.sessions.values()).filter(
-      session => Date.now() <= session.expiresAt
+      (session) => Date.now() <= session.expiresAt
     );
 
     return {
       totalSessions: this.sessions.size,
       activeSessions: activeSessions.length,
-      guestSessions: activeSessions.filter((s: AuthSession) => s.userType === 'guest')
-        .length,
+      guestSessions: activeSessions.filter(
+        (s: AuthSession) => s.userType === 'guest'
+      ).length,
     };
   }
 }

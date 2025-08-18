@@ -188,7 +188,7 @@ export class ConfigLoader {
           Number(process.env.WEBSOCKET_HEARTBEAT_INTERVAL) || 30000,
       },
       logging: {
-        level: (process.env.LOG_LEVEL) || 'info',
+        level: process.env.LOG_LEVEL || 'info',
         enableConsole: process.env.LOG_ENABLE_CONSOLE !== 'false',
         enableFile: process.env.LOG_ENABLE_FILE === 'true',
         maxFileSize: Number(process.env.LOG_MAX_FILE_SIZE) || 10485760,

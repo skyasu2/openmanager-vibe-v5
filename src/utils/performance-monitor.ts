@@ -185,7 +185,7 @@ export class PerformanceMonitor {
     let totalRecall = 0;
     let validClasses = 0;
 
-    statuses.forEach(status => {
+    statuses.forEach((status) => {
       const tp = validPredictions.filter(
         (p, i) => p.status === status && validActuals[i]?.status === status
       ).length;
@@ -230,7 +230,7 @@ export class PerformanceMonitor {
    * 💻 CPU 사용률 측정 (Node.js 기반)
    */
   static async getCPUUsage(): Promise<{ usage: number; category: string }> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const startUsage = process.cpuUsage();
       const startTime = process.hrtime();
 

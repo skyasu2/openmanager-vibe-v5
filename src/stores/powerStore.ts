@@ -215,19 +215,19 @@ export const usePowerStore = create<PowerStore>()(
         }
       },
 
-      addAutoReport: report => {
+      addAutoReport: (report) => {
         const newReport: AutoReport = {
           ...report,
           id: `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           createdAt: new Date(),
         };
 
-        set(state => ({
+        set((state) => ({
           autoReports: [newReport, ...state.autoReports].slice(0, 50), // 최대 50개 보관
         }));
       },
 
-      addSystemAlert: alert => {
+      addSystemAlert: (alert) => {
         const newAlert: SystemAlert = {
           ...alert,
           id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -236,7 +236,7 @@ export const usePowerStore = create<PowerStore>()(
           autoResolved: false,
         };
 
-        set(state => ({
+        set((state) => ({
           systemAlerts: [newAlert, ...state.systemAlerts].slice(0, 100), // 최대 100개 보관
         }));
 
@@ -280,9 +280,9 @@ ${alert.message}
         }
       },
 
-      acknowledgeAlert: alertId => {
-        set(state => ({
-          systemAlerts: state.systemAlerts.map(alert =>
+      acknowledgeAlert: (alertId) => {
+        set((state) => ({
+          systemAlerts: state.systemAlerts.map((alert) =>
             alert.id === alertId ? { ...alert, acknowledged: true } : alert
           ),
         }));
@@ -290,30 +290,30 @@ ${alert.message}
 
       clearOldReports: () => {
         const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        set(state => ({
+        set((state) => ({
           autoReports: state.autoReports.filter(
-            report => report.createdAt > oneDayAgo
+            (report) => report.createdAt > oneDayAgo
           ),
           systemAlerts: state.systemAlerts.filter(
-            alert => alert.timestamp > oneDayAgo
+            (alert) => alert.timestamp > oneDayAgo
           ),
         }));
       },
 
-      setEnergyLevel: level => {
+      setEnergyLevel: (level) => {
         set({ energySavingLevel: level });
       },
 
       // Getters
       getActiveAlerts: () => {
         return get().systemAlerts.filter(
-          alert => !alert.acknowledged && !alert.autoResolved
+          (alert) => !alert.acknowledged && !alert.autoResolved
         );
       },
 
       getCriticalAlerts: () => {
         return get().systemAlerts.filter(
-          alert =>
+          (alert) =>
             alert.severity === 'critical' &&
             !alert.acknowledged &&
             !alert.autoResolved
@@ -323,7 +323,7 @@ ${alert.message}
       getRecentReports: () => {
         const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
         return get().autoReports.filter(
-          report => report.createdAt > oneHourAgo
+          (report) => report.createdAt > oneHourAgo
         );
       },
 
@@ -347,7 +347,7 @@ ${alert.message}
     }),
     {
       name: 'power-store',
-      partialize: state => ({
+      partialize: (state) => ({
         mode: state.mode,
         energySavingLevel: state.energySavingLevel,
         autoReports: state.autoReports.slice(0, 10), // 최근 10개만 저장

@@ -1,6 +1,6 @@
 /**
  * 📊 Unified Metrics Manager Metrics Updater
- * 
+ *
  * Metrics generation and update functionality:
  * - Server metrics generation
  * - Realistic value fluctuations
@@ -149,9 +149,7 @@ export class MetricsUpdater {
   /**
    * 🚨 Determine server status based on metrics
    */
-  static determineServerStatus(
-    server: UnifiedServerMetrics
-  ): ServerStatus {
+  static determineServerStatus(server: UnifiedServerMetrics): ServerStatus {
     const cpu = server.node_cpu_usage_percent;
     const memory = server.node_memory_usage_percent;
     const responseTime = server.http_request_duration_seconds;
@@ -237,12 +235,18 @@ export class MetricsUpdater {
 
       switch (scenarioType) {
         case 0: // CPU spike
-          updated.node_cpu_usage_percent = Math.min(95, updated.node_cpu_usage_percent * 1.8);
+          updated.node_cpu_usage_percent = Math.min(
+            95,
+            updated.node_cpu_usage_percent * 1.8
+          );
           updated.http_request_duration_seconds *= 2.5;
           break;
 
         case 1: // Memory leak
-          updated.node_memory_usage_percent = Math.min(98, updated.node_memory_usage_percent * 1.5);
+          updated.node_memory_usage_percent = Math.min(
+            98,
+            updated.node_memory_usage_percent * 1.5
+          );
           break;
 
         case 2: // Network congestion
@@ -298,9 +302,7 @@ export class MetricsUpdater {
   /**
    * 📈 Calculate metrics statistics
    */
-  static calculateMetricsStatistics(
-    servers: UnifiedServerMetrics[]
-  ): {
+  static calculateMetricsStatistics(servers: UnifiedServerMetrics[]): {
     avgCpu: number;
     avgMemory: number;
     avgDisk: number;
@@ -328,17 +330,33 @@ export class MetricsUpdater {
     }
 
     const totalServers = servers.length;
-    const avgCpu = servers.reduce((sum, s) => sum + s.node_cpu_usage_percent, 0) / totalServers;
-    const avgMemory = servers.reduce((sum, s) => sum + s.node_memory_usage_percent, 0) / totalServers;
-    const avgDisk = servers.reduce((sum, s) => sum + s.node_disk_usage_percent, 0) / totalServers;
-    const avgResponseTime = servers.reduce((sum, s) => sum + s.http_request_duration_seconds, 0) / totalServers;
+    const avgCpu =
+      servers.reduce((sum, s) => sum + s.node_cpu_usage_percent, 0) /
+      totalServers;
+    const avgMemory =
+      servers.reduce((sum, s) => sum + s.node_memory_usage_percent, 0) /
+      totalServers;
+    const avgDisk =
+      servers.reduce((sum, s) => sum + s.node_disk_usage_percent, 0) /
+      totalServers;
+    const avgResponseTime =
+      servers.reduce((sum, s) => sum + s.http_request_duration_seconds, 0) /
+      totalServers;
 
-    const healthyServers = servers.filter(s => s.status === 'healthy').length;
-    const warningServers = servers.filter(s => s.status === 'warning').length;
-    const criticalServers = servers.filter(s => s.status === 'critical').length;
+    const healthyServers = servers.filter((s) => s.status === 'healthy').length;
+    const warningServers = servers.filter((s) => s.status === 'warning').length;
+    const criticalServers = servers.filter(
+      (s) => s.status === 'critical'
+    ).length;
 
-    const totalRequests = servers.reduce((sum, s) => sum + s.http_requests_total, 0);
-    const totalErrors = servers.reduce((sum, s) => sum + s.http_requests_errors_total, 0);
+    const totalRequests = servers.reduce(
+      (sum, s) => sum + s.http_requests_total,
+      0
+    );
+    const totalErrors = servers.reduce(
+      (sum, s) => sum + s.http_requests_errors_total,
+      0
+    );
     const errorRate = totalRequests > 0 ? totalErrors / totalRequests : 0;
 
     return {

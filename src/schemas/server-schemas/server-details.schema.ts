@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * 📡 서버 상세 정보 API 스키마
- * 
+ *
  * 서버의 상세 정보, 히스토리, 서비스 상태 등을 정의
  */
 
@@ -26,7 +26,10 @@ export const ServerSpecsSchema = z.object({
 export const ServerDetailQuerySchema = z.object({
   history: z.enum(['true', 'false']).optional(),
   range: z.string().optional().default('24h'),
-  format: z.enum(['enhanced', 'legacy', 'prometheus']).optional().default('enhanced'),
+  format: z
+    .enum(['enhanced', 'legacy', 'prometheus'])
+    .optional()
+    .default('enhanced'),
   include_metrics: z.enum(['true', 'false']).optional(),
   include_patterns: z.enum(['true', 'false']).optional(),
 });
@@ -150,10 +153,14 @@ export const ServerErrorResponseSchema = z.object({
   success: z.boolean(),
   error: z.string(),
   message: z.string(),
-  available_servers: z.array(z.object({
-    id: z.string(),
-    hostname: z.string(),
-  })).optional(),
+  available_servers: z
+    .array(
+      z.object({
+        id: z.string(),
+        hostname: z.string(),
+      })
+    )
+    .optional(),
   timestamp: z.string(),
 });
 
@@ -162,8 +169,12 @@ export const ServerErrorResponseSchema = z.object({
 export type ServerService = z.infer<typeof ServerServiceSchema>;
 export type ServerSpecs = z.infer<typeof ServerSpecsSchema>;
 export type ServerDetailQuery = z.infer<typeof ServerDetailQuerySchema>;
-export type ServerHistoryDataPoint = z.infer<typeof ServerHistoryDataPointSchema>;
+export type ServerHistoryDataPoint = z.infer<
+  typeof ServerHistoryDataPointSchema
+>;
 export type ServerHistory = z.infer<typeof ServerHistorySchema>;
 export type LegacyServerResponse = z.infer<typeof LegacyServerResponseSchema>;
-export type EnhancedServerResponse = z.infer<typeof EnhancedServerResponseSchema>;
+export type EnhancedServerResponse = z.infer<
+  typeof EnhancedServerResponseSchema
+>;
 export type ServerErrorResponse = z.infer<typeof ServerErrorResponseSchema>;

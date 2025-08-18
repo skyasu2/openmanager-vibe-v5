@@ -263,7 +263,8 @@ export const hasHighCpuUsage = (
   metrics: ServerMetrics,
   threshold = 80
 ): boolean => {
-  const cpuValue = typeof metrics.cpu === 'number' ? metrics.cpu : metrics.cpu.usage;
+  const cpuValue =
+    typeof metrics.cpu === 'number' ? metrics.cpu : metrics.cpu.usage;
   return cpuValue > threshold;
 };
 
@@ -271,16 +272,20 @@ export const hasHighMemoryUsage = (
   metrics: ServerMetrics,
   threshold = 85
 ): boolean => {
-  const memoryValue = typeof metrics.memory === 'number' ? metrics.memory : metrics.memory.usage;
+  const memoryValue =
+    typeof metrics.memory === 'number' ? metrics.memory : metrics.memory.usage;
   return memoryValue > threshold;
 };
 
 // 유틸리티 함수들
 export const calculateServerHealth = (metrics: ServerMetrics): number => {
-  const cpuValue = typeof metrics.cpu === 'number' ? metrics.cpu : metrics.cpu.usage;
-  const memoryValue = typeof metrics.memory === 'number' ? metrics.memory : metrics.memory.usage;
-  const diskValue = typeof metrics.disk === 'number' ? metrics.disk : metrics.disk.usage;
-  
+  const cpuValue =
+    typeof metrics.cpu === 'number' ? metrics.cpu : metrics.cpu.usage;
+  const memoryValue =
+    typeof metrics.memory === 'number' ? metrics.memory : metrics.memory.usage;
+  const diskValue =
+    typeof metrics.disk === 'number' ? metrics.disk : metrics.disk.usage;
+
   const cpuHealth = Math.max(0, 100 - cpuValue);
   const memoryHealth = Math.max(0, 100 - memoryValue);
   const diskHealth = Math.max(0, 100 - diskValue);

@@ -29,9 +29,9 @@ const FeatureCardsGrid = dynamic(
     loading: () => (
       <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {[...Array(6)].map((_, i) => (
-          <div 
-            key={i} 
-            className="h-32 rounded-lg bg-white/10 animate-pulse"
+          <div
+            key={i}
+            className="h-32 animate-pulse rounded-lg bg-white/10"
             style={{ animationDelay: `${i * 100}ms` }}
           />
         ))}
@@ -132,18 +132,18 @@ export default function Home() {
     const checkAuth = async () => {
       if (isCheckingAuth) return; // 이미 체크 중이면 무시
       isCheckingAuth = true;
-      
+
       setAuthLoading(true);
       try {
         // GitHub 인증 확인
         const isGitHub = await isGitHubAuthenticated();
-        
+
         // 현재 사용자 정보 가져오기
         const user = await getCurrentUser();
 
         // 상태가 실제로 변경된 경우에만 업데이트 (깜박임 방지)
-        setIsGitHubUser(prev => prev !== isGitHub ? isGitHub : prev);
-        
+        setIsGitHubUser((prev) => (prev !== isGitHub ? isGitHub : prev));
+
         // 사용자 정보 설정
         if (user) {
           const newUserData = {
@@ -151,14 +151,18 @@ export default function Home() {
             email: user.email,
             avatar: user.avatar,
           };
-          setCurrentUser(prev => {
-            if (!prev || prev.name !== newUserData.name || prev.email !== newUserData.email) {
+          setCurrentUser((prev) => {
+            if (
+              !prev ||
+              prev.name !== newUserData.name ||
+              prev.email !== newUserData.email
+            ) {
               return newUserData;
             }
             return prev;
           });
         } else {
-          setCurrentUser(prev => prev !== null ? null : prev);
+          setCurrentUser((prev) => (prev !== null ? null : prev));
         }
 
         debug.log('🔐 인증 상태:', { isGitHub, user });
@@ -201,7 +205,7 @@ export default function Home() {
       const redirectTimer = setTimeout(() => {
         router.replace('/login');
       }, 200);
-      
+
       return () => clearTimeout(redirectTimer);
     }
   }, [isMounted, authLoading, authChecked, currentUser, router]);
@@ -246,7 +250,7 @@ export default function Home() {
         // 시간이 실제로 변경된 경우에만 상태 업데이트 (초 단위)
         const remainingSeconds = Math.floor(remaining / 1000);
         const currentSeconds = Math.floor(systemTimeRemaining / 1000);
-        
+
         if (remainingSeconds !== currentSeconds) {
           setSystemTimeRemaining(remaining);
         }

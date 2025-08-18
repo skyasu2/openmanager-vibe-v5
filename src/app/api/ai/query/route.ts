@@ -10,11 +10,16 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import type { QueryRequest, QueryResponse } from '@/services/ai/SimplifiedQueryEngine';
+import type {
+  QueryRequest,
+  QueryResponse,
+} from '@/services/ai/SimplifiedQueryEngine';
 
 // 동적 import로 빌드 시점 초기화 방지
 async function getQueryEngine() {
-  const { getSimplifiedQueryEngine } = await import('@/services/ai/SimplifiedQueryEngine');
+  const { getSimplifiedQueryEngine } = await import(
+    '@/services/ai/SimplifiedQueryEngine'
+  );
   return getSimplifiedQueryEngine();
 }
 import { withAuth } from '@/lib/api-auth';
@@ -24,7 +29,6 @@ import crypto from 'crypto';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
-
 
 interface AIQueryRequest {
   query: string;
@@ -36,30 +40,50 @@ interface AIQueryRequest {
   timeoutMs?: number;
 }
 
-
 // 캐시 키 생성 함수
 function generateCacheKey(query: string, context: string): string {
-  const hash = crypto.createHash('md5').update(`${query}:${context}`).digest('hex');
+  const hash = crypto
+    .createHash('md5')
+    .update(`${query}:${context}`)
+    .digest('hex');
   return `query:${hash}`;
 }
 
 // 쿼리 의도 분석 함수
 function analyzeQueryIntent(query: string): string {
   const lowerQuery = query.toLowerCase();
-  
-  if (lowerQuery.includes('cpu') || lowerQuery.includes('memory') || lowerQuery.includes('디스크') || lowerQuery.includes('네트워크')) {
+
+  if (
+    lowerQuery.includes('cpu') ||
+    lowerQuery.includes('memory') ||
+    lowerQuery.includes('디스크') ||
+    lowerQuery.includes('네트워크')
+  ) {
     return 'metric_query';
   }
-  if (lowerQuery.includes('상태') || lowerQuery.includes('status') || lowerQuery.includes('확인')) {
+  if (
+    lowerQuery.includes('상태') ||
+    lowerQuery.includes('status') ||
+    lowerQuery.includes('확인')
+  ) {
     return 'status_check';
   }
-  if (lowerQuery.includes('장애') || lowerQuery.includes('에러') || lowerQuery.includes('이력') || lowerQuery.includes('문제')) {
+  if (
+    lowerQuery.includes('장애') ||
+    lowerQuery.includes('에러') ||
+    lowerQuery.includes('이력') ||
+    lowerQuery.includes('문제')
+  ) {
     return 'incident_history';
   }
-  if (lowerQuery.includes('최적화') || lowerQuery.includes('개선') || lowerQuery.includes('성능')) {
+  if (
+    lowerQuery.includes('최적화') ||
+    lowerQuery.includes('개선') ||
+    lowerQuery.includes('성능')
+  ) {
     return 'optimization';
   }
-  
+
   return 'general';
 }
 
@@ -86,7 +110,7 @@ async function logQuery(
 
 async function postHandler(request: NextRequest) {
   let query = ''; // 에러 처리를 위해 query를 외부에서 선언
-  
+
   try {
     const startTime = Date.now();
 
@@ -170,14 +194,14 @@ async function postHandler(request: NextRequest) {
         // 모드별 기능 제어 옵션 추가
         enableGoogleAI,
         enableAIAssistantMCP,
-        enableKoreanNLP: true,  // 두 모드 모두 한국어 NLP 활성화
-        enableVMBackend: true,  // 두 모드 모두 VM 백엔드 활성화
+        enableKoreanNLP: true, // 두 모드 모두 한국어 NLP 활성화
+        enableVMBackend: true, // 두 모드 모두 VM 백엔드 활성화
       };
 
       // SimplifiedQueryEngine을 사용한 실제 쿼리 처리
       const engine = await getQueryEngine();
       result = await engine.query(queryRequest);
-      responseTime = result.processingTime || (Date.now() - startTime);
+      responseTime = result.processingTime || Date.now() - startTime;
 
       // 성공한 응답만 캐시에 저장 (5분 TTL)
       if (result.success) {
@@ -232,9 +256,7 @@ async function postHandler(request: NextRequest) {
     // 성능 모니터링 헤더 추가
     const headers = new Headers({
       'Content-Type': 'application/json',
-      'Cache-Control': cacheHit
-        ? 'public, max-age=60'
-        : 'no-store',
+      'Cache-Control': cacheHit ? 'public, max-age=60' : 'no-store',
       'X-Response-Time': responseTime.toString(),
       'X-AI-Engine': result.engine,
       'X-Cache-Status': cacheHit ? 'HIT' : 'MISS',
@@ -264,8 +286,10 @@ async function postHandler(request: NextRequest) {
     const fallbackResponse = {
       success: true, // 폴백도 성공으로 처리
       query: query || '', // 이미 저장된 query 사용
-      answer: '죄송합니다. 일시적인 문제로 쿼리를 처리할 수 없습니다. 잠시 후 다시 시도해주세요.',
-      response: '죄송합니다. 일시적인 문제로 쿼리를 처리할 수 없습니다. 잠시 후 다시 시도해주세요.',
+      answer:
+        '죄송합니다. 일시적인 문제로 쿼리를 처리할 수 없습니다. 잠시 후 다시 시도해주세요.',
+      response:
+        '죄송합니다. 일시적인 문제로 쿼리를 처리할 수 없습니다. 잠시 후 다시 시도해주세요.',
       confidence: 0.5,
       engine: 'fallback',
       responseTime: 0,

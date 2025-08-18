@@ -195,7 +195,8 @@ export function useRealAI(options: UseRealAIOptions = {}) {
           return null;
         }
 
-        const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+        const errorMessage =
+          error instanceof Error ? error.message : '알 수 없는 오류';
         setError(errorMessage);
         showToast.error(`AI 분석 실패: ${errorMessage}`);
 
@@ -254,7 +255,8 @@ export function useRealAI(options: UseRealAIOptions = {}) {
           throw new Error(result.error || '헬스체크 실패');
         }
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : '헬스체크 오류';
+        const errorMessage =
+          error instanceof Error ? error.message : '헬스체크 오류';
         setError(errorMessage);
         showToast.error(`시스템 헬스체크 실패: ${errorMessage}`);
         return null;
@@ -294,10 +296,11 @@ export function useRealAI(options: UseRealAIOptions = {}) {
     if (!_systemHealth) return null;
     return {
       overall: _systemHealth.overall,
-      services: Object.keys(_systemHealth).filter(key => key !== 'overall')
+      services: Object.keys(_systemHealth).filter((key) => key !== 'overall')
         .length,
       healthy: Object.values(_systemHealth).filter(
-        service => typeof service === 'object' && service?.status === 'healthy'
+        (service) =>
+          typeof service === 'object' && service?.status === 'healthy'
       ).length,
     };
   }, [_systemHealth]);

@@ -86,10 +86,10 @@ export function isString(value: unknown): value is string {
 // ============================================
 
 import type {
-    ServerAlert,
-    ServerInstance,
-    ServerMetricsLegacy as ServerMetrics,
-    ServerStatus,
+  ServerAlert,
+  ServerInstance,
+  ServerMetricsLegacy as ServerMetrics,
+  ServerStatus,
 } from '@/types/unified';
 
 /**

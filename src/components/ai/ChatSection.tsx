@@ -138,7 +138,7 @@ export default function ChatSection({
   const [showHistory, setShowHistory] = useState(false);
   const [duplicateAlert, setDuplicateAlert] = useState<string | null>(null);
   const [presets, setPresets] = useState<string[]>([]);
-  
+
   // 스크롤 관리를 위한 ref와 상태
   const contentEndRef = useRef<HTMLDivElement>(null);
   const contentContainerRef = useRef<HTMLDivElement>(null);
@@ -152,14 +152,15 @@ export default function ChatSection({
   // 스크롤 위치 확인 함수
   const isAtBottom = () => {
     if (!contentContainerRef.current) return true;
-    const { scrollTop, scrollHeight, clientHeight } = contentContainerRef.current;
+    const { scrollTop, scrollHeight, clientHeight } =
+      contentContainerRef.current;
     return scrollHeight - scrollTop - clientHeight < 50; // 50px 여유값
   };
 
   // 스크롤 이벤트 핸들러
   const handleScroll = () => {
     if (!contentContainerRef.current) return;
-    
+
     const atBottom = isAtBottom();
     setIsUserScrolled(!atBottom);
   };
@@ -172,9 +173,12 @@ export default function ChatSection({
   }, [currentPageIndex, qaPages, isUserScrolled]);
 
   // 동적 프리셋 질문 생성 (분리된 유틸 함수)
-  const generateContextualQuestions = useCallback((metrics: unknown): string[] => {
-    return generateQuestions(metrics);
-  }, []);
+  const generateContextualQuestions = useCallback(
+    (metrics: unknown): string[] => {
+      return generateQuestions(metrics);
+    },
+    []
+  );
 
   const getQuestionIcon = useCallback((question: string) => {
     return getIconForQuestion(question);
@@ -363,7 +367,7 @@ export default function ChatSection({
       </AnimatePresence>
 
       {/* 메인 컨텐츠 */}
-      <div 
+      <div
         ref={contentContainerRef}
         onScroll={handleScroll}
         className="flex-1 overflow-hidden"

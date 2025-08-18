@@ -1,25 +1,22 @@
 /**
  * 🛠️ Unified AI Engine Router - Utility Functions
- * 
+ *
  * Collection of utility functions and response generators
  * - Korean NLP response conversion utilities
  * - Cache key generation and management
  * - Error response and status response generators
  * - Helper functions for routing operations
  * - Response formatting and processing utilities
- * 
+ *
  * @author AI Systems Engineer
  * @version 1.0.0
  */
 
-import { 
-  QueryRequest, 
-  QueryResponse 
-} from './SimplifiedQueryEngine';
-import { 
+import { QueryRequest, QueryResponse } from './SimplifiedQueryEngine';
+import {
   RouteResult,
   RouterConfig,
-  RouterMetrics 
+  RouterMetrics,
 } from './UnifiedAIEngineRouter.types';
 import type { SanitizationResult } from './security/PromptSanitizer';
 
@@ -37,11 +34,14 @@ interface KoreanNLPResponse {
 }
 
 export class UnifiedAIEngineRouterUtils {
-  private cache: Map<string, {
-    response: QueryResponse;
-    timestamp: number;
-    ttl: number;
-  }>;
+  private cache: Map<
+    string,
+    {
+      response: QueryResponse;
+      timestamp: number;
+      ttl: number;
+    }
+  >;
 
   constructor() {
     this.cache = new Map();
@@ -49,7 +49,7 @@ export class UnifiedAIEngineRouterUtils {
 
   /**
    * 🔄 한국어 NLP 응답 변환
-   * 
+   *
    * Korean NLP API 응답을 사용자 친화적인 텍스트로 변환
    */
   public convertKoreanNLPResponse(nlpData: KoreanNLPResponse | null): string {
@@ -71,7 +71,10 @@ export class UnifiedAIEngineRouterUtils {
       }
     }
 
-    if (response_guidance?.visualization_suggestions && response_guidance.visualization_suggestions.length > 0) {
+    if (
+      response_guidance?.visualization_suggestions &&
+      response_guidance.visualization_suggestions.length > 0
+    ) {
       response += `\n권장 시각화: ${response_guidance.visualization_suggestions.join(', ')}`;
     }
 
@@ -80,7 +83,7 @@ export class UnifiedAIEngineRouterUtils {
 
   /**
    * 💾 캐시 키 생성
-   * 
+   *
    * 요청 데이터를 기반으로 고유한 캐시 키 생성
    */
   public generateCacheKey(request: QueryRequest & { userId?: string }): string {
@@ -88,14 +91,14 @@ export class UnifiedAIEngineRouterUtils {
       request.query,
       request.mode || 'auto',
       JSON.stringify(request.context || {}),
-      request.userId || 'anonymous'
+      request.userId || 'anonymous',
     ];
     return Buffer.from(keyParts.join('|')).toString('base64');
   }
 
   /**
    * 💾 캐시된 응답 조회
-   * 
+   *
    * TTL을 확인하여 유효한 캐시된 응답 반환
    */
   public getCachedResponse(cacheKey: string): QueryResponse | null {
@@ -114,10 +117,14 @@ export class UnifiedAIEngineRouterUtils {
 
   /**
    * 💾 응답 캐시 저장
-   * 
+   *
    * 성공적인 응답을 TTL과 함께 캐시에 저장
    */
-  public setCachedResponse(cacheKey: string, response: QueryResponse, ttl: number = 300000): void {
+  public setCachedResponse(
+    cacheKey: string,
+    response: QueryResponse,
+    ttl: number = 300000
+  ): void {
     // 5분 기본 TTL
     this.cache.set(cacheKey, {
       response: { ...response },
@@ -136,7 +143,7 @@ export class UnifiedAIEngineRouterUtils {
 
   /**
    * 🚫 보안 차단 응답 생성
-   * 
+   *
    * 보안 정책에 위반된 요청에 대한 표준화된 응답 생성
    */
   public createSecurityBlockedResponse(
@@ -174,7 +181,7 @@ export class UnifiedAIEngineRouterUtils {
 
   /**
    * 🚫 토큰 제한 응답 생성
-   * 
+   *
    * 토큰 사용량 한도 초과 시 표준화된 응답 생성
    */
   public createTokenLimitResponse(
@@ -210,13 +217,14 @@ export class UnifiedAIEngineRouterUtils {
 
   /**
    * 🔌 Circuit Breaker 열림 응답 생성
-   * 
+   *
    * 모든 엔진이 Circuit Breaker에 의해 차단된 상태의 응답 생성
    */
   public createCircuitOpenResponse(processingPath: string[]): RouteResult {
     return {
       success: false,
-      response: '시스템이 일시적으로 제한된 모드로 동작 중입니다. 잠시 후 다시 시도해 주세요.',
+      response:
+        '시스템이 일시적으로 제한된 모드로 동작 중입니다. 잠시 후 다시 시도해 주세요.',
       engine: 'fallback' as const,
       confidence: 0,
       thinkingSteps: [
@@ -240,15 +248,16 @@ export class UnifiedAIEngineRouterUtils {
 
   /**
    * ❌ 에러 응답 생성
-   * 
+   *
    * 예상치 못한 오류에 대한 표준화된 응답 생성
    */
   public createErrorResponse(
     error: Error | unknown,
     processingPath: string[]
   ): RouteResult {
-    const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-    
+    const errorMessage =
+      error instanceof Error ? error.message : '알 수 없는 오류';
+
     return {
       success: false,
       response: '요청을 처리하는 중 오류가 발생했습니다.',
@@ -276,7 +285,7 @@ export class UnifiedAIEngineRouterUtils {
 
   /**
    * 🔄 폴백 재시도 응답 생성
-   * 
+   *
    * 모든 엔진 실패 후 최후 폴백 시도의 응답 생성
    */
   public async createRetryWithFallbackResponse(
@@ -308,7 +317,7 @@ export class UnifiedAIEngineRouterUtils {
 
   /**
    * 🧹 캐시 초기화
-   * 
+   *
    * 모든 캐시 항목 삭제
    */
   public clearCache(): void {
@@ -318,7 +327,7 @@ export class UnifiedAIEngineRouterUtils {
 
   /**
    * 📊 캐시 통계 조회
-   * 
+   *
    * 현재 캐시 상태 및 통계 정보 반환
    */
   public getCacheStats(): {
@@ -342,14 +351,15 @@ export class UnifiedAIEngineRouterUtils {
     return {
       totalEntries: this.cache.size,
       cacheSize: this.cache.size,
-      oldestEntry: oldestTimestamp !== Infinity ? new Date(oldestTimestamp) : null,
+      oldestEntry:
+        oldestTimestamp !== Infinity ? new Date(oldestTimestamp) : null,
       newestEntry: newestTimestamp > 0 ? new Date(newestTimestamp) : null,
     };
   }
 
   /**
    * 🔍 캐시 정리
-   * 
+   *
    * 만료된 캐시 항목들을 정리
    */
   public cleanupExpiredCache(): number {
@@ -400,7 +410,7 @@ export class UnifiedAIEngineRouterUtils {
 
   /**
    * 📏 문자열 자르기 유틸리티
-   * 
+   *
    * 로그나 에러 메시지에서 긴 문자열을 안전하게 자름
    */
   public truncateString(str: string, maxLength: number = 100): string {
@@ -410,7 +420,7 @@ export class UnifiedAIEngineRouterUtils {
 
   /**
    * 🎯 응답 시간 포맷터
-   * 
+   *
    * 밀리초를 사람이 읽기 쉬운 형태로 변환
    */
   public formatResponseTime(ms: number): string {
@@ -427,7 +437,7 @@ export class UnifiedAIEngineRouterUtils {
 
   /**
    * 🔧 Deep clone 유틸리티
-   * 
+   *
    * 객체의 깊은 복사본 생성 (순환 참조 안전)
    */
   public deepClone<T>(obj: T): T {
@@ -448,7 +458,7 @@ export class UnifiedAIEngineRouterUtils {
     }
 
     if (obj instanceof Array) {
-      return obj.map(item => this.deepClone(item)) as unknown as T;
+      return obj.map((item) => this.deepClone(item)) as unknown as T;
     }
 
     if (typeof obj === 'object') {
@@ -466,29 +476,31 @@ export class UnifiedAIEngineRouterUtils {
 
   /**
    * 📦 메타데이터 합성기
-   * 
+   *
    * 여러 소스의 메타데이터를 안전하게 병합
    */
-  public mergeMetadata(...metadataObjects: Array<Record<string, unknown> | undefined>): Record<string, unknown> {
+  public mergeMetadata(
+    ...metadataObjects: Array<Record<string, unknown> | undefined>
+  ): Record<string, unknown> {
     const result: Record<string, unknown> = {};
-    
+
     for (const metadata of metadataObjects) {
       if (metadata && typeof metadata === 'object') {
         Object.assign(result, metadata);
       }
     }
-    
+
     return result;
   }
 
   /**
    * 🎭 처리 경로 포맷터
-   * 
+   *
    * processingPath를 사람이 읽기 쉬운 형태로 포맷
    */
   public formatProcessingPath(processingPath: string[]): string {
     if (processingPath.length === 0) return '처리 경로 없음';
-    
+
     return processingPath
       .map((step, index) => `${index + 1}. ${step.replace(/_/g, ' ')}`)
       .join(' → ');

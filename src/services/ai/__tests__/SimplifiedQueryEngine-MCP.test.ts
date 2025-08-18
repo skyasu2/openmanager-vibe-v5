@@ -4,7 +4,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SimplifiedQueryEngine, getSimplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
+import {
+  SimplifiedQueryEngine,
+  getSimplifiedQueryEngine,
+} from '@/services/ai/SimplifiedQueryEngine';
 import type {
   QueryRequest,
   QueryResponse,
@@ -34,7 +37,7 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
-    
+
     // Mock RAG engine
     mockRAGEngine = {
       _initialize: vi.fn().mockResolvedValue(undefined),
@@ -54,7 +57,7 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
         vectorDB: true,
       }),
     };
-    
+
     // Mock context loader
     mockContextLoader = {
       queryMCPContextForRAG: vi.fn().mockResolvedValue({
@@ -73,7 +76,7 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
         mcpServer: { status: 'online' },
       }),
     };
-    
+
     // Mock complexity analyzer
     vi.mocked(QueryComplexityAnalyzer.analyze).mockReturnValue({
       score: 60,
@@ -87,16 +90,20 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
         multipleTopics: false,
       },
     });
-    
+
     // Mock cache config
-    vi.mocked(cacheConfig.createCacheKey).mockImplementation((prefix, key) => `${prefix}:${key}`);
+    vi.mocked(cacheConfig.createCacheKey).mockImplementation(
+      (prefix, key) => `${prefix}:${key}`
+    );
     vi.mocked(cacheConfig.getTTL).mockReturnValue(900);
     vi.mocked(cacheConfig.validateDataSize).mockReturnValue(true);
-    
+
     // Mock static methods
     vi.mocked(getSupabaseRAGEngine).mockReturnValue(mockRAGEngine);
-    vi.mocked(CloudContextLoader.getInstance).mockReturnValue(mockContextLoader);
-    
+    vi.mocked(CloudContextLoader.getInstance).mockReturnValue(
+      mockContextLoader
+    );
+
     // Mock fetch for Google AI
     vi.mocked(global.fetch).mockResolvedValue({
       ok: true,
@@ -107,7 +114,7 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
         tokensUsed: 150,
       }),
     } as Response);
-    
+
     engine = new SimplifiedQueryEngine();
   });
 
@@ -123,7 +130,7 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
 
       await engine._initialize();
       const response = await engine.query(request);
-      
+
       // Wait for MCP context
       vi.advanceTimersByTime(100);
 
@@ -131,7 +138,8 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
       expect(response.metadata?.mcpUsed).toBe(true);
       expect(
         response.thinkingSteps.some(
-          step => step.step.includes('MCP') || step.description?.includes('MCP')
+          (step) =>
+            step.step.includes('MCP') || step.description?.includes('MCP')
         )
       ).toBe(true);
       expect(mockContextLoader.queryMCPContextForRAG).toHaveBeenCalledWith(
@@ -167,7 +175,7 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
 
       await engine._initialize();
       const response = await engine.query(request);
-      
+
       // Wait for async operations
       vi.advanceTimersByTime(100);
 
@@ -176,12 +184,15 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
       expect(response.metadata?.mcpUsed).toBe(true);
 
       // MCP 단계가 thinkingSteps에 포함되어야 함
-      const mcpStep = response.thinkingSteps.find(step =>
-        step.step.includes('MCP') || step.description?.includes('MCP') || step.description?.includes('파일')
+      const mcpStep = response.thinkingSteps.find(
+        (step) =>
+          step.step.includes('MCP') ||
+          step.description?.includes('MCP') ||
+          step.description?.includes('파일')
       );
       expect(mcpStep).toBeDefined();
       expect(mcpStep?.status).toBe('completed');
-      
+
       // Google AI가 MCP 컨텍스트를 포함한 프롬프트를 받았는지 확인
       expect(global.fetch).toHaveBeenCalledWith(
         '/api/ai/google-ai/generate',
@@ -207,7 +218,7 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
       expect(response.metadata?.mcpUsed).toBe(false);
       expect(
         response.thinkingSteps.every(
-          step =>
+          (step) =>
             !step.step.includes('MCP') && !step.description?.includes('MCP')
         )
       ).toBe(true);
@@ -216,7 +227,9 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
 
     it('MCP 오류 시에도 Google AI가 정상 작동해야 함', async () => {
       // MCP가 오류를 발생시키도록 설정
-      mockContextLoader.queryMCPContextForRAG.mockRejectedValue(new Error('MCP Error'));
+      mockContextLoader.queryMCPContextForRAG.mockRejectedValue(
+        new Error('MCP Error')
+      );
 
       const request: QueryRequest = {
         query: '서버 문제 진단',
@@ -228,7 +241,7 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
 
       await engine._initialize();
       const response = await engine.query(request);
-      
+
       // Wait for async operations
       vi.advanceTimersByTime(100);
 
@@ -237,7 +250,9 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
       expect(response.engine).toBe('google-ai');
       // MCP는 사용 시도했지만 실패
       const mcpFailedStep = response.thinkingSteps.find(
-        step => step.status === 'failed' && (step.step.includes('MCP') || step.description?.includes('MCP'))
+        (step) =>
+          step.status === 'failed' &&
+          (step.step.includes('MCP') || step.description?.includes('MCP'))
       );
       expect(mcpFailedStep).toBeDefined();
     });
@@ -259,7 +274,7 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
         ...baseRequest,
         mode: 'local',
       });
-      
+
       // Wait for async operations
       vi.advanceTimersByTime(100);
 
@@ -268,35 +283,37 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
         ...baseRequest,
         mode: 'google-ai',
       });
-      
+
       // Wait for async operations
       vi.advanceTimersByTime(100);
 
       // Local 모드는 MCP를 사용하지 않음
       expect(localResponse.metadata?.mcpUsed).toBeFalsy();
-      
+
       // Google AI 모드는 MCP를 사용함
       expect(googleResponse.metadata?.mcpUsed).toBe(true);
 
       // Local 모드는 MCP 단계가 없어야 함
       expect(
-        localResponse.thinkingSteps.some(step =>
-          step.step.includes('MCP') || step.description?.includes('MCP')
+        localResponse.thinkingSteps.some(
+          (step) =>
+            step.step.includes('MCP') || step.description?.includes('MCP')
         )
       ).toBe(false);
-      
+
       // Google AI 모드는 MCP 단계가 있어야 함
       expect(
-        googleResponse.thinkingSteps.some(step =>
-          step.step.includes('MCP') || step.description?.includes('MCP')
+        googleResponse.thinkingSteps.some(
+          (step) =>
+            step.step.includes('MCP') || step.description?.includes('MCP')
         )
       ).toBe(true);
-      
+
       // MCP context loader가 Google AI 모드에서만 호출되었는지 확인
       expect(mockContextLoader.queryMCPContextForRAG).toHaveBeenCalledTimes(1);
     });
   });
-  
+
   afterEach(() => {
     vi.useRealTimers();
   });

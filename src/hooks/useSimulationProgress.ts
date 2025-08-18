@@ -286,7 +286,7 @@ const useSimulationProgress = ({
           lastDataRef.current.progress !== newData?.progress ||
           lastDataRef.current.stepDescription !== newData?.stepDescription
         ) {
-          setData(prevData => {
+          setData((prevData) => {
             lastDataRef.current = newData;
             return newData;
           });
@@ -381,7 +381,7 @@ const useSimulationProgress = ({
   }, [autoStart, pauseWhenHidden, startPolling, stopPolling]);
 
   const resetSimulation = useCallback(() => {
-    setData(prev => {
+    setData((prev) => {
       if (!prev) return null;
       return {
         ...prev,

@@ -1,32 +1,32 @@
 /**
  * 🛡️ Unified AI Engine Router - Security System
- * 
+ *
  * Comprehensive security layer for AI query processing
  * - Prompt sanitization and threat detection
  * - Response filtering and risk assessment
  * - Security event tracking and logging
  * - Token limit enforcement
  * - Rate limiting and abuse prevention
- * 
+ *
  * @author AI Systems Engineer
  * @version 1.0.0
  */
 
 import { QueryRequest } from './SimplifiedQueryEngine';
-import { 
+import {
   PromptSanitizer,
   sanitizePrompt,
-  type SanitizationResult
+  type SanitizationResult,
 } from './security/PromptSanitizer';
-import { 
+import {
   AIResponseFilter,
   filterAIResponse,
 } from './security/AIResponseFilter';
-import { 
-  RouterMetrics, 
-  RouteResult, 
+import {
+  RouterMetrics,
+  RouteResult,
   SecurityContext,
-  RouterConfig 
+  RouterConfig,
 } from './UnifiedAIEngineRouter.types';
 
 export class UnifiedAIEngineRouterSecurity {
@@ -71,7 +71,7 @@ export class UnifiedAIEngineRouterSecurity {
    * 🛡️ 요청 보안 검사 적용
    */
   public async applySecurity(
-    request: QueryRequest, 
+    request: QueryRequest,
     metrics: RouterMetrics
   ): Promise<SanitizationResult> {
     if (!this.securityConfig.enableSecurity) {
@@ -93,7 +93,10 @@ export class UnifiedAIEngineRouterSecurity {
         ...sanitizationResult.threatsDetected
       );
 
-      if (sanitizationResult.riskLevel === 'critical' || sanitizationResult.blocked) {
+      if (
+        sanitizationResult.riskLevel === 'critical' ||
+        sanitizationResult.blocked
+      ) {
         metrics.securityEvents.promptsBlocked++;
       }
 
@@ -111,7 +114,7 @@ export class UnifiedAIEngineRouterSecurity {
    * 🔍 응답 보안 필터링
    */
   public async filterResponse(
-    response: string, 
+    response: string,
     metrics: RouterMetrics
   ): Promise<{
     filtered: string;
@@ -131,7 +134,10 @@ export class UnifiedAIEngineRouterSecurity {
     const filterResult = filterAIResponse(response);
 
     // 보안 이벤트 기록
-    if (filterResult.requiresRegeneration || filterResult.riskLevel === 'blocked') {
+    if (
+      filterResult.requiresRegeneration ||
+      filterResult.riskLevel === 'blocked'
+    ) {
       metrics.securityEvents.responsesFiltered++;
 
       console.warn('🚨 응답 필터링 적용:', {
@@ -166,8 +172,8 @@ export class UnifiedAIEngineRouterSecurity {
     // 일일 전체 한도 확인
     const dailyRemaining = config.dailyTokenLimit - metrics.tokenUsage.daily;
     if (dailyRemaining <= 0) {
-      return { 
-        allowed: false, 
+      return {
+        allowed: false,
         reason: 'daily_limit_exceeded',
         remainingDaily: 0,
       };
@@ -177,15 +183,15 @@ export class UnifiedAIEngineRouterSecurity {
     const userUsage = metrics.tokenUsage.byUser.get(userId) || 0;
     const userRemaining = config.userTokenLimit - userUsage;
     if (userRemaining <= 0) {
-      return { 
-        allowed: false, 
+      return {
+        allowed: false,
         reason: 'user_limit_exceeded',
         remainingUser: 0,
         remainingDaily: dailyRemaining,
       };
     }
 
-    return { 
+    return {
       allowed: true,
       remainingDaily: dailyRemaining,
       remainingUser: userRemaining,
@@ -196,8 +202,8 @@ export class UnifiedAIEngineRouterSecurity {
    * 📊 토큰 사용량 기록
    */
   public recordTokenUsage(
-    userId: string, 
-    tokens: number, 
+    userId: string,
+    tokens: number,
     metrics: RouterMetrics
   ): void {
     metrics.tokenUsage.daily += tokens;
@@ -298,7 +304,8 @@ export class UnifiedAIEngineRouterSecurity {
       responsesFiltered: metrics.securityEvents.responsesFiltered,
       threatTypes,
       blockRate: (metrics.securityEvents.promptsBlocked / totalRequests) * 100,
-      filterRate: (metrics.securityEvents.responsesFiltered / totalRequests) * 100,
+      filterRate:
+        (metrics.securityEvents.responsesFiltered / totalRequests) * 100,
     };
   }
 
@@ -307,9 +314,12 @@ export class UnifiedAIEngineRouterSecurity {
    */
   public updateSecurityConfig(newConfig: Partial<SecurityContext>): void {
     this.securityConfig = { ...this.securityConfig, ...newConfig };
-    
+
     // 컴포넌트 재초기화 (필요한 경우)
-    if (newConfig.strictMode !== undefined || newConfig.enableKoreanProtection !== undefined) {
+    if (
+      newConfig.strictMode !== undefined ||
+      newConfig.enableKoreanProtection !== undefined
+    ) {
       this.initializeSecurityComponents();
     }
 
@@ -319,20 +329,28 @@ export class UnifiedAIEngineRouterSecurity {
   /**
    * 🧹 보안 이벤트 로그 정리
    */
-  public cleanupSecurityLogs(metrics: RouterMetrics, maxAge: number = 86400000): void {
+  public cleanupSecurityLogs(
+    metrics: RouterMetrics,
+    maxAge: number = 86400000
+  ): void {
     const cutoffTime = Date.now() - maxAge; // 기본 24시간
 
     // 오래된 위협 로그 제거 (실제 구현 시에는 타임스탬프 포함 필요)
     const before = metrics.securityEvents.threatsDetected.length;
-    metrics.securityEvents.threatsDetected = metrics.securityEvents.threatsDetected.slice(-1000); // 최근 1000개만 유지
+    metrics.securityEvents.threatsDetected =
+      metrics.securityEvents.threatsDetected.slice(-1000); // 최근 1000개만 유지
 
-    console.log(`🧹 보안 로그 정리: ${before} → ${metrics.securityEvents.threatsDetected.length}`);
+    console.log(
+      `🧹 보안 로그 정리: ${before} → ${metrics.securityEvents.threatsDetected.length}`
+    );
   }
 
   /**
    * 🔒 보안 차단 메시지 생성
    */
-  private getSecurityBlockedMessage(securityResult: SanitizationResult): string {
+  private getSecurityBlockedMessage(
+    securityResult: SanitizationResult
+  ): string {
     if (this.securityConfig.strictMode) {
       return '보안 정책에 의해 처리할 수 없는 요청입니다. 다른 방식으로 질문해 주세요.';
     } else {

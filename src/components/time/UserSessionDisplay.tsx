@@ -2,7 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { Clock, Play, Pause, RotateCw, AlertCircle, User } from 'lucide-react';
-import { userSessionService, type UserSession } from '@/services/time/UserSessionService';
+import {
+  userSessionService,
+  type UserSession,
+} from '@/services/time/UserSessionService';
 import dynamic from 'next/dynamic';
 
 // framer-motion을 동적 import로 처리
@@ -27,29 +30,35 @@ export const UserSessionDisplay: React.FC<UserSessionDisplayProps> = ({
   compact = false,
 }) => {
   const [session, setSession] = useState<UserSession | null>(null);
-  const [sessionInfo, setSessionInfo] = useState(userSessionService.getFormattedSessionInfo());
+  const [sessionInfo, setSessionInfo] = useState(
+    userSessionService.getFormattedSessionInfo()
+  );
   const [showWarning, setShowWarning] = useState(false);
 
   useEffect(() => {
     // 세션 상태 구독
-    const unsubscribeSession = userSessionService.subscribeToSession((newSession) => {
-      setSession(newSession);
-      setSessionInfo(userSessionService.getFormattedSessionInfo());
-    });
+    const unsubscribeSession = userSessionService.subscribeToSession(
+      (newSession) => {
+        setSession(newSession);
+        setSessionInfo(userSessionService.getFormattedSessionInfo());
+      }
+    );
 
     // 경고 알림 구독
-    const unsubscribeWarning = userSessionService.subscribeToWarnings((remainingMinutes) => {
-      setShowWarning(true);
-      setTimeout(() => setShowWarning(false), 5000);
-      
-      // 브라우저 알림 (권한이 있는 경우)
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('세션 종료 임박', {
-          body: `${remainingMinutes}분 후 세션이 종료됩니다.`,
-          icon: '/favicon.ico',
-        });
+    const unsubscribeWarning = userSessionService.subscribeToWarnings(
+      (remainingMinutes) => {
+        setShowWarning(true);
+        setTimeout(() => setShowWarning(false), 5000);
+
+        // 브라우저 알림 (권한이 있는 경우)
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('세션 종료 임박', {
+            body: `${remainingMinutes}분 후 세션이 종료됩니다.`,
+            icon: '/favicon.ico',
+          });
+        }
       }
-    });
+    );
 
     // 알림 권한 요청
     if ('Notification' in window && Notification.permission === 'default') {
@@ -95,10 +104,14 @@ export const UserSessionDisplay: React.FC<UserSessionDisplayProps> = ({
   // 경고 레벨에 따른 색상
   const getWarningColor = () => {
     switch (sessionInfo.warningLevel) {
-      case 'high': return 'text-red-600 bg-red-100 border-red-300';
-      case 'medium': return 'text-orange-600 bg-orange-100 border-orange-300';
-      case 'low': return 'text-yellow-600 bg-yellow-100 border-yellow-300';
-      default: return 'text-blue-600 bg-blue-100 border-blue-300';
+      case 'high':
+        return 'text-red-600 bg-red-100 border-red-300';
+      case 'medium':
+        return 'text-orange-600 bg-orange-100 border-orange-300';
+      case 'low':
+        return 'text-yellow-600 bg-yellow-100 border-yellow-300';
+      default:
+        return 'text-blue-600 bg-blue-100 border-blue-300';
     }
   };
 
@@ -109,17 +122,19 @@ export const UserSessionDisplay: React.FC<UserSessionDisplayProps> = ({
         <User className="h-4 w-4 text-gray-500" />
         {session ? (
           <>
-            <span className={`text-sm font-medium ${sessionInfo.warningLevel !== 'none' ? 'text-orange-600' : 'text-gray-700'}`}>
+            <span
+              className={`text-sm font-medium ${sessionInfo.warningLevel !== 'none' ? 'text-orange-600' : 'text-gray-700'}`}
+            >
               세션: {sessionInfo.remainingTime}
             </span>
             {sessionInfo.warningLevel !== 'none' && (
-              <AlertCircle className="h-4 w-4 text-orange-500 animate-pulse" />
+              <AlertCircle className="h-4 w-4 animate-pulse text-orange-500" />
             )}
           </>
         ) : (
           <button
             onClick={handleStartSession}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="text-sm font-medium text-blue-600 hover:text-blue-700"
           >
             세션 시작
           </button>
@@ -143,34 +158,36 @@ export const UserSessionDisplay: React.FC<UserSessionDisplayProps> = ({
               />
             )}
           </div>
-          
+
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold">
-                사용자 세션
-              </span>
+              <span className="text-sm font-semibold">사용자 세션</span>
               {session && (
-                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                  session.isPaused ? 'bg-yellow-200 text-yellow-800' : 'bg-green-200 text-green-800'
-                }`}>
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs ${
+                    session.isPaused
+                      ? 'bg-yellow-200 text-yellow-800'
+                      : 'bg-green-200 text-green-800'
+                  }`}
+                >
                   {sessionInfo.status}
                 </span>
               )}
             </div>
-            
+
             {session ? (
-              <div className="flex items-center gap-3 mt-1">
+              <div className="mt-1 flex items-center gap-3">
                 <div className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
                   <span className="text-xs font-medium">
                     {sessionInfo.remainingTime}
                   </span>
                 </div>
-                
+
                 <div className="text-xs text-gray-600">
                   진행률: {sessionInfo.progress}
                 </div>
-                
+
                 {session.completedCycles > 0 && (
                   <div className="text-xs text-gray-600">
                     주기: {session.completedCycles}회
@@ -178,7 +195,7 @@ export const UserSessionDisplay: React.FC<UserSessionDisplayProps> = ({
                 )}
               </div>
             ) : (
-              <div className="text-xs text-gray-600 mt-1">
+              <div className="mt-1 text-xs text-gray-600">
                 세션이 시작되지 않았습니다
               </div>
             )}
@@ -190,7 +207,7 @@ export const UserSessionDisplay: React.FC<UserSessionDisplayProps> = ({
             {!session ? (
               <button
                 onClick={handleStartSession}
-                className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                className="flex items-center gap-1 rounded-md bg-blue-600 px-3 py-1.5 text-sm text-white transition-colors hover:bg-blue-700"
                 title="세션 시작"
               >
                 <Play className="h-4 w-4" />
@@ -200,7 +217,7 @@ export const UserSessionDisplay: React.FC<UserSessionDisplayProps> = ({
               <>
                 <button
                   onClick={handleTogglePause}
-                  className="p-1.5 bg-white rounded-md hover:bg-gray-100 transition-colors"
+                  className="rounded-md bg-white p-1.5 transition-colors hover:bg-gray-100"
                   title={session.isPaused ? '재개' : '일시정지'}
                 >
                   {session.isPaused ? (
@@ -209,18 +226,18 @@ export const UserSessionDisplay: React.FC<UserSessionDisplayProps> = ({
                     <Pause className="h-4 w-4" />
                   )}
                 </button>
-                
+
                 <button
                   onClick={handleRenewSession}
-                  className="p-1.5 bg-white rounded-md hover:bg-gray-100 transition-colors"
+                  className="rounded-md bg-white p-1.5 transition-colors hover:bg-gray-100"
                   title="세션 갱신 (30분 연장)"
                 >
                   <RotateCw className="h-4 w-4" />
                 </button>
-                
+
                 <button
                   onClick={handleEndSession}
-                  className="px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors text-xs"
+                  className="rounded-md bg-red-500 px-2 py-1 text-xs text-white transition-colors hover:bg-red-600"
                   title="세션 종료"
                 >
                   종료
@@ -237,11 +254,11 @@ export const UserSessionDisplay: React.FC<UserSessionDisplayProps> = ({
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="mt-2 p-2 bg-yellow-50 border border-yellow-300 rounded-md"
+          className="mt-2 rounded-md border border-yellow-300 bg-yellow-50 p-2"
         >
           <div className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4 text-yellow-600" />
-            <span className="text-xs text-yellow-800 font-medium">
+            <span className="text-xs font-medium text-yellow-800">
               세션이 곧 종료됩니다. 필요시 갱신해주세요.
             </span>
           </div>
@@ -251,13 +268,16 @@ export const UserSessionDisplay: React.FC<UserSessionDisplayProps> = ({
       {/* 진행 바 */}
       {session && (
         <div className="mt-2">
-          <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-1 overflow-hidden rounded-full bg-gray-200">
             <MotionDiv
               className={`h-full ${
-                sessionInfo.warningLevel === 'high' ? 'bg-red-500' :
-                sessionInfo.warningLevel === 'medium' ? 'bg-orange-500' :
-                sessionInfo.warningLevel === 'low' ? 'bg-yellow-500' :
-                'bg-blue-500'
+                sessionInfo.warningLevel === 'high'
+                  ? 'bg-red-500'
+                  : sessionInfo.warningLevel === 'medium'
+                    ? 'bg-orange-500'
+                    : sessionInfo.warningLevel === 'low'
+                      ? 'bg-yellow-500'
+                      : 'bg-blue-500'
               }`}
               initial={{ width: '0%' }}
               animate={{ width: `${sessionInfo.progress}` }}
@@ -273,6 +293,10 @@ export const UserSessionDisplay: React.FC<UserSessionDisplayProps> = ({
 /**
  * 🎯 헤더용 컴팩트 세션 표시
  */
-export const UserSessionHeader: React.FC<{ className?: string }> = ({ className = '' }) => {
-  return <UserSessionDisplay className={className} compact showControls={false} />;
+export const UserSessionHeader: React.FC<{ className?: string }> = ({
+  className = '',
+}) => {
+  return (
+    <UserSessionDisplay className={className} compact showControls={false} />
+  );
 };

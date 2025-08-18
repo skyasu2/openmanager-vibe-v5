@@ -248,10 +248,10 @@ export class AuthManager {
     const last24h = now - 24 * 60 * 60 * 1000;
 
     const recent24hAttempts = this.authAttempts.filter(
-      a => a.timestamp >= last24h
+      (a) => a.timestamp >= last24h
     );
-    const successfulAttempts = recent24hAttempts.filter(a => a.success);
-    const failedAttempts = recent24hAttempts.filter(a => !a.success);
+    const successfulAttempts = recent24hAttempts.filter((a) => a.success);
+    const failedAttempts = recent24hAttempts.filter((a) => !a.success);
 
     const activeSessions = this.getActiveSessions();
 
@@ -259,8 +259,7 @@ export class AuthManager {
       activeSessions: activeSessions.length,
       adminSessions: activeSessions.filter((s) => s.userRole === 'admin')
         .length,
-      demoSessions: activeSessions.filter((s) => s.userRole === 'demo')
-        .length,
+      demoSessions: activeSessions.filter((s) => s.userRole === 'demo').length,
 
       last24h: {
         totalAttempts: recent24hAttempts.length,
@@ -373,7 +372,7 @@ export class AuthManager {
 
     // 실패 횟수 계산
     const recentFailures = this.authAttempts.filter(
-      a =>
+      (a) =>
         a.ipAddress === ipAddress &&
         !a.success &&
         a.timestamp > Date.now() - 15 * 60 * 1000
@@ -435,7 +434,7 @@ export class AuthManager {
     // 오래된 인증 시도 기록 정리 (7일 이상)
     const cutoff = now - 7 * 24 * 60 * 60 * 1000;
     const originalLength = this.authAttempts.length;
-    this.authAttempts = this.authAttempts.filter(a => a.timestamp >= cutoff);
+    this.authAttempts = this.authAttempts.filter((a) => a.timestamp >= cutoff);
     const cleanedAttempts = originalLength - this.authAttempts.length;
 
     if (cleanedSessions > 0 || cleanedBlocks > 0 || cleanedAttempts > 0) {

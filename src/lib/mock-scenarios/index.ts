@@ -1,6 +1,6 @@
 /**
  * 🎭 Mock 시나리오 통합 모듈
- * 
+ *
  * 모든 시나리오를 통합하고 기존 Mock 시스템과 연결
  */
 
@@ -8,19 +8,19 @@ export * from './server-monitoring-scenarios';
 export * from './korean-nlp-scenarios';
 export * from './ml-analytics-scenarios';
 
-import { 
-  ServerScenario, 
+import {
+  ServerScenario,
   ScenarioRunner,
-  SCENARIO_LIBRARY as SERVER_SCENARIOS 
+  SCENARIO_LIBRARY as SERVER_SCENARIOS,
 } from './server-monitoring-scenarios';
 
-import { 
+import {
   KoreanNLPScenario,
   TECHNICAL_MIXED_CASES,
   BUSINESS_CONTEXT_CASES,
   COMPLEX_MIXED_CASES,
   EDGE_CASES,
-  generateRandomKoreanQuery
+  generateRandomKoreanQuery,
 } from './korean-nlp-scenarios';
 
 import {
@@ -28,7 +28,7 @@ import {
   ML_PATTERN_LIBRARY,
   generateMetricsByWorkload,
   detectAnomalies,
-  generatePredictions
+  generatePredictions,
 } from './ml-analytics-scenarios';
 
 /**
@@ -61,7 +61,10 @@ export class MockScenarioManager {
 
     // 주기적으로 상태 업데이트
     const updateInterval = setInterval(() => {
-      if (!this.serverScenarioRunner || this.serverScenarioRunner.isComplete()) {
+      if (
+        !this.serverScenarioRunner ||
+        this.serverScenarioRunner.isComplete()
+      ) {
         clearInterval(updateInterval);
         console.log('✅ 서버 시나리오 완료');
         return;
@@ -75,12 +78,14 @@ export class MockScenarioManager {
   /**
    * Korean NLP 시나리오 테스트 (실제 GCP Functions 사용)
    */
-  async testKoreanNLPScenarios(category?: 'technical' | 'business' | 'mixed' | 'edge-case') {
+  async testKoreanNLPScenarios(
+    category?: 'technical' | 'business' | 'mixed' | 'edge-case'
+  ) {
     // 실제 GCP Functions 사용
     const { analyzeKoreanNLP } = await import('@/lib/gcp/gcp-functions-client');
 
     let scenarios: KoreanNLPScenario[] = [];
-    
+
     if (!category) {
       scenarios = [
         ...TECHNICAL_MIXED_CASES,
@@ -94,10 +99,12 @@ export class MockScenarioManager {
         ...BUSINESS_CONTEXT_CASES,
         ...COMPLEX_MIXED_CASES,
         ...EDGE_CASES,
-      ].filter(s => s.category === category);
+      ].filter((s) => s.category === category);
     }
 
-    console.log(`🧪 Korean NLP 시나리오 테스트 시작 (${scenarios.length}개) - 실제 GCP Functions 사용`);
+    console.log(
+      `🧪 Korean NLP 시나리오 테스트 시작 (${scenarios.length}개) - 실제 GCP Functions 사용`
+    );
 
     const results = [];
     for (const scenario of scenarios) {
@@ -115,7 +122,10 @@ export class MockScenarioManager {
         console.error(`❌ ${scenario.id} 실패:`, error);
         results.push({
           scenario,
-          result: { success: false, error: error instanceof Error ? error.message : 'Unknown error' },
+          result: {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
           success: false,
         });
       }
@@ -137,8 +147,8 @@ export class MockScenarioManager {
       return;
     }
 
-    const pattern = patternId 
-      ? patterns.find(p => p.id === patternId)
+    const pattern = patternId
+      ? patterns.find((p) => p.id === patternId)
       : patterns[0];
 
     if (!pattern) {
@@ -158,12 +168,16 @@ export class MockScenarioManager {
    */
   startRandomScenario() {
     const scenarioTypes = ['server', 'nlp', 'ml'];
-    const randomType = scenarioTypes[Math.floor(Math.random() * scenarioTypes.length)];
+    const randomType =
+      scenarioTypes[Math.floor(Math.random() * scenarioTypes.length)];
 
     switch (randomType) {
       case 'server':
-        const serverScenarios = Object.keys(SERVER_SCENARIOS) as Array<keyof typeof SERVER_SCENARIOS>;
-        const randomServerScenario = serverScenarios[Math.floor(Math.random() * serverScenarios.length)];
+        const serverScenarios = Object.keys(SERVER_SCENARIOS) as Array<
+          keyof typeof SERVER_SCENARIOS
+        >;
+        const randomServerScenario =
+          serverScenarios[Math.floor(Math.random() * serverScenarios.length)];
         this.startServerScenario(randomServerScenario);
         break;
 
@@ -173,7 +187,8 @@ export class MockScenarioManager {
 
       case 'ml':
         const serverTypes = ['web', 'api', 'database', 'cache', 'ml'] as const;
-        const randomServerType = serverTypes[Math.floor(Math.random() * serverTypes.length)];
+        const randomServerType =
+          serverTypes[Math.floor(Math.random() * serverTypes.length)];
         this.applyMLAnalyticsPattern(randomServerType);
         break;
     }
@@ -184,7 +199,7 @@ export class MockScenarioManager {
    */
   getActiveScenarios() {
     const scenarios: Record<string, any> = {};
-    
+
     if (this.serverScenarioRunner) {
       scenarios.server = {
         ...this.activeScenarios.get('server'),
@@ -210,7 +225,6 @@ export class MockScenarioManager {
     console.log('🛑 모든 시나리오 중지됨');
   }
 
-
   /**
    * Private: Mock 데이터 업데이트 (실제 Supabase 사용으로 로깅만)
    */
@@ -219,7 +233,7 @@ export class MockScenarioManager {
     console.log('📊 서버 메트릭 업데이트:', state.servers.size, '개 서버');
 
     // 최근 이벤트 로깅
-    state.recentEvents.forEach(event => {
+    state.recentEvents.forEach((event) => {
       console.log(`🔔 이벤트: [${event.severity}] ${event.message}`);
     });
   }
@@ -234,9 +248,11 @@ export class MockScenarioManager {
     // 24시간 동안의 메트릭 생성
     for (let h = -24; h <= 0; h++) {
       const timestamp = new Date(now.getTime() + h * 60 * 60 * 1000);
-      
-      pattern.metrics.forEach(metricPattern => {
-        const baseValue = (metricPattern.baselineRange.min + metricPattern.baselineRange.max) / 2;
+
+      pattern.metrics.forEach((metricPattern) => {
+        const baseValue =
+          (metricPattern.baselineRange.min + metricPattern.baselineRange.max) /
+          2;
         const value = generateMetricsByWorkload(
           pattern.workloadType,
           baseValue,
@@ -253,13 +269,15 @@ export class MockScenarioManager {
 
     // 이상 징후 감지
     const anomalies = detectAnomalies(metrics, pattern);
-    
+
     // 예측 생성
     const predictions = generatePredictions(metrics, pattern, 24);
 
     // 실제 GCP Functions에 분석 결과 로깅
-    console.log(`📈 ML 분석 결과: ${anomalies.length}개 이상 징후, ${predictions.length}개 예측`);
-    
+    console.log(
+      `📈 ML 분석 결과: ${anomalies.length}개 이상 징후, ${predictions.length}개 예측`
+    );
+
     // 실제 서비스와 연동 시 여기서 결과를 전송할 수 있음
     // await analyzeMLMetrics(metrics, { anomalies, predictions });
   }
@@ -288,7 +306,7 @@ export function generateRealisticServerMetrics(
   };
 
   const base = baseMetrics[serverType];
-  
+
   // 시간대별 부하 패턴
   let timeMultiplier = 1;
   if (timeOfDay >= 9 && timeOfDay <= 11) timeMultiplier = 1.3; // 오전 피크
@@ -305,7 +323,10 @@ export function generateRealisticServerMetrics(
     memory: Math.min(95, base.memory * timeMultiplier * randomFactor * 0.9), // 메모리는 덜 변동
     disk: Math.min(95, base.disk * (1 + Math.random() * 0.1)), // 디스크는 거의 일정
     network: Math.min(95, base.network * timeMultiplier * randomFactor),
-    responseTime: Math.max(1, base.responseTime * timeMultiplier * randomFactor),
+    responseTime: Math.max(
+      1,
+      base.responseTime * timeMultiplier * randomFactor
+    ),
   };
 }
 
@@ -327,8 +348,8 @@ export function generateScenarioAlerts(
   }> = [];
 
   scenario.events
-    .filter(event => event.timeOffset <= currentTime)
-    .forEach(event => {
+    .filter((event) => event.timeOffset <= currentTime)
+    .forEach((event) => {
       alerts.push({
         serverId: event.serverId,
         severity: event.severity,

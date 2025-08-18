@@ -1,11 +1,11 @@
 /**
  * AI Metrics Collector
- * 
+ *
  * AI 서비스의 성능 및 사용량 메트릭 수집
  * - 요청/응답 통계
  * - 엔진별 사용량 추적
  * - 성능 지표 계산
- * 
+ *
  * @author AI Systems Engineer
  * @version 1.0.0
  */
@@ -95,7 +95,7 @@ export class AIMetricsCollector {
     this.metrics.successfulRequests++;
     this.updateEngineMetrics(engine, true, processingTime);
     this.updateAverageResponseTime(processingTime);
-    
+
     // 캐시 통계 업데이트
     if (cached) {
       this.metrics.cacheStats.hits++;
@@ -117,16 +117,19 @@ export class AIMetricsCollector {
   /**
    * 보안 이벤트 기록
    */
-  recordSecurityEvent(type: 'prompt_blocked' | 'response_filtered', threat?: string): void {
+  recordSecurityEvent(
+    type: 'prompt_blocked' | 'response_filtered',
+    threat?: string
+  ): void {
     if (type === 'prompt_blocked') {
       this.metrics.securityEvents.promptsBlocked++;
     } else if (type === 'response_filtered') {
       this.metrics.securityEvents.responsesFiltered++;
     }
-    
+
     if (threat) {
       this.metrics.securityEvents.threatsDetected.push(threat);
-      
+
       // 최대 100개까지만 보관
       if (this.metrics.securityEvents.threatsDetected.length > 100) {
         this.metrics.securityEvents.threatsDetected.shift();
@@ -140,7 +143,7 @@ export class AIMetricsCollector {
   recordTokenUsage(userId: string, tokens: number): void {
     this.metrics.tokenUsage.daily += tokens;
     this.metrics.tokenUsage.total += tokens;
-    
+
     const currentUsage = this.metrics.tokenUsage.byUser.get(userId) || 0;
     this.metrics.tokenUsage.byUser.set(userId, currentUsage + tokens);
   }
@@ -182,14 +185,15 @@ export class AIMetricsCollector {
    */
   getPerformanceSummary() {
     const totalRequests = this.metrics.totalRequests;
-    const successRate = totalRequests > 0 ? this.metrics.successfulRequests / totalRequests : 0;
+    const successRate =
+      totalRequests > 0 ? this.metrics.successfulRequests / totalRequests : 0;
     const uptime = Date.now() - this.sessionStartTime;
-    
+
     return {
       totalRequests,
       successRate,
       averageResponseTime: this.metrics.averageResponseTime,
-      requestsPerHour: uptime > 0 ? (totalRequests / (uptime / 3600000)) : 0,
+      requestsPerHour: uptime > 0 ? totalRequests / (uptime / 3600000) : 0,
       uptime,
       cacheHitRate: this.metrics.cacheStats.hitRate,
     };
@@ -250,9 +254,13 @@ export class AIMetricsCollector {
 
   // === Private Methods ===
 
-  private updateEngineMetrics(engine: string, success: boolean, processingTime: number): void {
+  private updateEngineMetrics(
+    engine: string,
+    success: boolean,
+    processingTime: number
+  ): void {
     let engineMetrics = this.metrics.engineUsage.get(engine);
-    
+
     if (!engineMetrics) {
       engineMetrics = {
         totalRequests: 0,
@@ -264,30 +272,32 @@ export class AIMetricsCollector {
       };
       this.metrics.engineUsage.set(engine, engineMetrics);
     }
-    
+
     engineMetrics.totalRequests++;
     engineMetrics.totalResponseTime += processingTime;
     engineMetrics.lastUsed = Date.now();
-    
+
     if (success) {
       engineMetrics.successfulRequests++;
     } else {
       engineMetrics.failedRequests++;
     }
-    
+
     // 평균 응답시간 업데이트
-    engineMetrics.averageResponseTime = 
+    engineMetrics.averageResponseTime =
       engineMetrics.totalResponseTime / engineMetrics.totalRequests;
   }
 
   private updateAverageResponseTime(processingTime: number): void {
     const totalRequests = this.metrics.totalRequests;
     const currentTotal = this.metrics.averageResponseTime * (totalRequests - 1);
-    this.metrics.averageResponseTime = (currentTotal + processingTime) / totalRequests;
+    this.metrics.averageResponseTime =
+      (currentTotal + processingTime) / totalRequests;
   }
 
   private updateCacheHitRate(): void {
     const total = this.metrics.cacheStats.hits + this.metrics.cacheStats.misses;
-    this.metrics.cacheStats.hitRate = total > 0 ? this.metrics.cacheStats.hits / total : 0;
+    this.metrics.cacheStats.hitRate =
+      total > 0 ? this.metrics.cacheStats.hits / total : 0;
   }
 }

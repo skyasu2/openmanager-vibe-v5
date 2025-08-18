@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * 🗄️ 데이터베이스 연결풀 관리 스키마
- * 
+ *
  * 연결풀 설정, 상태 관리, 성능 통계, 헬스체크
  */
 
@@ -74,7 +74,13 @@ export const DatabasePoolStatusResponseSchema = z.object({
 // ===== 타입 내보내기 =====
 
 export type DatabasePoolConfig = z.infer<typeof DatabasePoolConfigSchema>;
-export type DatabasePoolResetRequest = z.infer<typeof DatabasePoolResetRequestSchema>;
+export type DatabasePoolResetRequest = z.infer<
+  typeof DatabasePoolResetRequestSchema
+>;
 export type DatabasePoolStatus = z.infer<typeof DatabasePoolStatusSchema>;
-export type DatabasePoolResetResponse = z.infer<typeof DatabasePoolResetResponseSchema>;
-export type DatabasePoolStatusResponse = z.infer<typeof DatabasePoolStatusResponseSchema>;
+export type DatabasePoolResetResponse = z.infer<
+  typeof DatabasePoolResetResponseSchema
+>;
+export type DatabasePoolStatusResponse = z.infer<
+  typeof DatabasePoolStatusResponseSchema
+>;

@@ -193,7 +193,7 @@ export const useAIResponseFormatter = () => {
       const total = 6;
 
       // 6W1H 패턴 매칭 확인
-      Object.values(sixWPatterns).forEach(pattern => {
+      Object.values(sixWPatterns).forEach((pattern) => {
         if (pattern[language].test(text)) {
           matches++;
         }
@@ -370,11 +370,17 @@ export const useAIResponseFormatter = () => {
         console.log('✅ AI 응답 포맷팅 완료:', result);
         return result;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : '알 수 없는 오류가 발생했습니다.';
 
         if (error instanceof Error && error.message.includes('타임아웃')) {
           handleError('timeout', errorMessage);
-        } else if (error instanceof Error && error.message.includes('네트워크')) {
+        } else if (
+          error instanceof Error &&
+          error.message.includes('네트워크')
+        ) {
           handleError('network', errorMessage);
         } else if (error instanceof Error && error.message.includes('파싱')) {
           handleError('parsing', errorMessage);
@@ -409,7 +415,7 @@ export const useAIResponseFormatter = () => {
     (response: SixWPrincipleResponse): boolean => {
       const required = ['who', 'what', 'when', 'where', 'why', 'how'];
       return required.every(
-        key =>
+        (key) =>
           response[key as keyof SixWPrincipleResponse] &&
           (response[key as keyof SixWPrincipleResponse] as string).trim() !== ''
       );
@@ -421,7 +427,7 @@ export const useAIResponseFormatter = () => {
   const retryFormat = useCallback(
     async (rawResponse: string, options?: Partial<FormatOptions>) => {
       if (error && error.retryCount < error.maxRetries) {
-        setError(prev =>
+        setError((prev) =>
           prev ? { ...prev, retryCount: prev.retryCount + 1 } : null
         );
         return formatResponse(rawResponse, options);

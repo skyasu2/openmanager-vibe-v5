@@ -1,6 +1,6 @@
 /**
  * 📊 Enhanced Server Modal Metrics Tab
- * 
+ *
  * Real-time metrics monitoring tab:
  * - Real-time performance charts (CPU, Memory, Disk, Network)
  * - Interactive real-time controls
@@ -13,7 +13,11 @@
 import React from 'react';
 import { Pause, Play } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import { ServerData, RealtimeData, ChartData } from './EnhancedServerModal.types';
+import {
+  ServerData,
+  RealtimeData,
+  ChartData,
+} from './EnhancedServerModal.types';
 import { getMetricColorByStatus } from './EnhancedServerModal.utils';
 import { RealtimeChart } from './EnhancedServerModal.components';
 
@@ -43,7 +47,7 @@ interface MetricsTabProps {
 
 /**
  * 📈 Metrics Tab Component
- * 
+ *
  * 서버의 실시간 메트릭을 시각화하는 탭
  * - CPU, Memory, Disk, Network 실시간 차트
  * - 실시간 모니터링 제어
@@ -62,30 +66,45 @@ export const MetricsTab: React.FC<MetricsTabProps> = ({
       color: getMetricColorByStatus(server.cpu, 'cpu', server.status).color,
       label: 'CPU 사용률',
       icon: '🔥',
-      gradient: getMetricColorByStatus(server.cpu, 'cpu', server.status).gradient,
+      gradient: getMetricColorByStatus(server.cpu, 'cpu', server.status)
+        .gradient,
     },
     {
       data: realtimeData.memory,
-      color: getMetricColorByStatus(server.memory, 'memory', server.status).color,
+      color: getMetricColorByStatus(server.memory, 'memory', server.status)
+        .color,
       label: '메모리 사용률',
       icon: '💾',
-      gradient: getMetricColorByStatus(server.memory, 'memory', server.status).gradient,
+      gradient: getMetricColorByStatus(server.memory, 'memory', server.status)
+        .gradient,
     },
     {
       data: realtimeData.disk,
       color: getMetricColorByStatus(server.disk, 'disk', server.status).color,
       label: '디스크 사용률',
       icon: '💿',
-      gradient: getMetricColorByStatus(server.disk, 'disk', server.status).gradient,
+      gradient: getMetricColorByStatus(server.disk, 'disk', server.status)
+        .gradient,
     },
     {
       data: realtimeData.network.map((n) =>
-        Math.min(100, Math.max(0, typeof n === 'number' ? n : (n.in + n.out) / 2))
+        Math.min(
+          100,
+          Math.max(0, typeof n === 'number' ? n : (n.in + n.out) / 2)
+        )
       ),
-      color: getMetricColorByStatus(server.network || 0, 'network', server.status).color,
+      color: getMetricColorByStatus(
+        server.network || 0,
+        'network',
+        server.status
+      ).color,
       label: '네트워크 사용률',
       icon: '🌐',
-      gradient: getMetricColorByStatus(server.network || 0, 'network', server.status).gradient,
+      gradient: getMetricColorByStatus(
+        server.network || 0,
+        'network',
+        server.status
+      ).gradient,
     },
   ];
 
@@ -97,8 +116,8 @@ export const MetricsTab: React.FC<MetricsTabProps> = ({
         transition={{ delay: 0.1 }}
       >
         {/* 헤더 섹션 */}
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent">
+        <div className="mb-6 flex items-center justify-between">
+          <h3 className="bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
             실시간 메트릭 모니터링
           </h3>
 
@@ -128,7 +147,7 @@ export const MetricsTab: React.FC<MetricsTabProps> = ({
         </div>
 
         {/* 메트릭 차트 그리드 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {chartConfigs.map((chart, idx) => (
             <MotionDiv
               key={idx}
@@ -136,38 +155,38 @@ export const MetricsTab: React.FC<MetricsTabProps> = ({
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 + idx * 0.1 }}
               whileHover={{ y: -4 }}
-              className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-xl hover:shadow-2xl transition-all"
+              className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all hover:shadow-2xl"
             >
               {/* 배경 그라데이션 */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${chart.gradient} opacity-5`} />
-              
+              <div
+                className={`absolute inset-0 bg-gradient-to-br ${chart.gradient} opacity-5`}
+              />
+
               <div className="relative">
                 {/* 차트 헤더 */}
-                <div className="flex items-center justify-between mb-4">
+                <div className="mb-4 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">{chart.icon}</span>
                     <h4 className="font-bold text-gray-800">{chart.label}</h4>
                   </div>
 
                   {/* 현재 값 표시 */}
-                  <div className={`text-2xl font-bold bg-gradient-to-r ${chart.gradient} bg-clip-text text-transparent`}>
+                  <div
+                    className={`bg-gradient-to-r text-2xl font-bold ${chart.gradient} bg-clip-text text-transparent`}
+                  >
                     {chart.data[chart.data.length - 1]?.toFixed(1) || '0'}%
                   </div>
                 </div>
 
                 {/* 실시간 차트 */}
-                <RealtimeChart
-                  data={chart.data}
-                  color={chart.color}
-                  label=""
-                />
+                <RealtimeChart data={chart.data} color={chart.color} label="" />
               </div>
 
               {/* 상태 표시기 */}
-              <div className="absolute top-4 right-4">
+              <div className="absolute right-4 top-4">
                 <div className="flex items-center gap-1">
-                  <div 
-                    className="w-2 h-2 rounded-full animate-pulse"
+                  <div
+                    className="h-2 w-2 animate-pulse rounded-full"
                     style={{ backgroundColor: chart.color }}
                   />
                   <span className="text-xs text-gray-500">실시간</span>
@@ -182,20 +201,22 @@ export const MetricsTab: React.FC<MetricsTabProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4"
+          className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4"
         >
           {chartConfigs.map((chart, idx) => {
             const currentValue = chart.data[chart.data.length - 1] || 0;
-            const avgValue = chart.data.length > 0 
-              ? chart.data.reduce((sum, val) => sum + val, 0) / chart.data.length 
-              : 0;
+            const avgValue =
+              chart.data.length > 0
+                ? chart.data.reduce((sum, val) => sum + val, 0) /
+                  chart.data.length
+                : 0;
 
             return (
               <div
                 key={idx}
-                className="bg-white rounded-xl p-4 shadow-sm border border-gray-100"
+                className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm"
               >
-                <div className="flex items-center gap-2 mb-2">
+                <div className="mb-2 flex items-center gap-2">
                   <span className="text-lg">{chart.icon}</span>
                   <span className="text-xs font-medium text-gray-600">
                     {chart.label.split(' ')[0]}
@@ -205,7 +226,7 @@ export const MetricsTab: React.FC<MetricsTabProps> = ({
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">현재</span>
-                    <span 
+                    <span
                       className="text-sm font-bold"
                       style={{ color: chart.color }}
                     >

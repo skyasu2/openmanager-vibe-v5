@@ -34,7 +34,7 @@ async function checkSupabase(): Promise<ServiceStatus> {
   try {
     // 안전한 환경 변수 가져오기
     const { url: supabaseUrl } = getSupabaseEnv();
-    
+
     // 중앙 집중식 Supabase 클라이언트 사용 (환경 변수 검증 포함)
     const { error } = await supabase
       .from('system_logs')
@@ -58,7 +58,10 @@ async function checkSupabase(): Promise<ServiceStatus> {
       status: 'connected',
       responseTime,
       details: {
-        url: supabaseUrl === 'https://dummy.supabase.co' ? '미설정 (Mock)' : '설정됨',
+        url:
+          supabaseUrl === 'https://dummy.supabase.co'
+            ? '미설정 (Mock)'
+            : '설정됨',
         region: 'Seoul-DC-1',
         database: 'postgres',
         connection: 'pooler',
@@ -82,23 +85,23 @@ async function checkMemoryCache(): Promise<ServiceStatus> {
     // 메모리 기반 캐시 상태 확인
     const testKey = `memory-test-${Date.now()}`;
     const testValue = 'test-value';
-    
+
     // 메모리 캐시 시뮬레이션
     const memoryStore = new Map<string, { value: unknown; expires: number }>();
-    
+
     // 테스트 데이터 저장
     memoryStore.set(testKey, {
       value: testValue,
       expires: Date.now() + 10000, // 10초 후 만료
     });
-    
+
     // 테스트 데이터 읽기
     const retrieved = memoryStore.get(testKey);
     const testPassed = retrieved?.value === testValue;
-    
+
     // 정리
     memoryStore.delete(testKey);
-    
+
     const responseTime = Date.now() - startTime;
 
     return {
@@ -327,11 +330,15 @@ export async function GET(_request: NextRequest) {
 
     const summary = {
       total: services.length,
-      connected: services.filter((s: ServiceStatus) => s.status === 'connected').length,
-      errors: services.filter((s: ServiceStatus) => s.status === 'error').length,
+      connected: services.filter((s: ServiceStatus) => s.status === 'connected')
+        .length,
+      errors: services.filter((s: ServiceStatus) => s.status === 'error')
+        .length,
       averageResponseTime: Math.round(
-        services.reduce((sum: number, s: ServiceStatus) => sum + s.responseTime, 0) /
-          services.length
+        services.reduce(
+          (sum: number, s: ServiceStatus) => sum + s.responseTime,
+          0
+        ) / services.length
       ),
     };
 

@@ -1,6 +1,6 @@
 /**
  * 🎯 시스템 이벤트 핸들러 - 중재자 패턴 구현
- * 
+ *
  * ProcessManager와 SystemWatchdog 간의 통신을 중재하여
  * 순환 의존성을 해결합니다.
  */
@@ -59,7 +59,7 @@ export class SystemEventBus implements ISystemEventBus {
     // 리스너 호출
     const listeners = this.listeners.get(event.type);
     if (listeners && listeners.size > 0) {
-      listeners.forEach(listener => {
+      listeners.forEach((listener) => {
         this.invokeListener(listener, event);
       });
     }
@@ -123,15 +123,15 @@ export class SystemEventBus implements ISystemEventBus {
    */
   getHistory(eventType?: SystemEventType, limit?: number): SystemEvent[] {
     let filtered = this.history;
-    
+
     if (eventType) {
-      filtered = filtered.filter(event => event.type === eventType);
+      filtered = filtered.filter((event) => event.type === eventType);
     }
-    
+
     if (limit) {
       filtered = filtered.slice(-limit);
     }
-    
+
     return filtered;
   }
 
@@ -151,20 +151,23 @@ export class SystemEventBus implements ISystemEventBus {
       if (this.config.enableDebugLogging) {
         console.error(`❌ [EventBus] Listener error for ${event.type}:`, error);
       }
-      
+
       // 재시도 로직
       if (this.config.retryFailedEvents && event.metadata) {
         const retryCount = event.metadata.retryCount || 0;
         if (retryCount < (this.config.maxRetries || 3)) {
-          setTimeout(() => {
-            this.emit({
-              ...event,
-              metadata: {
-                ...event.metadata,
-                retryCount: retryCount + 1,
-              },
-            });
-          }, Math.pow(2, retryCount) * 1000); // Exponential backoff
+          setTimeout(
+            () => {
+              this.emit({
+                ...event,
+                metadata: {
+                  ...event.metadata,
+                  retryCount: retryCount + 1,
+                },
+              });
+            },
+            Math.pow(2, retryCount) * 1000
+          ); // Exponential backoff
         }
       }
     }
@@ -175,7 +178,7 @@ export class SystemEventBus implements ISystemEventBus {
    */
   private addToHistory(event: SystemEvent): void {
     this.history.push(event);
-    
+
     // 히스토리 크기 제한
     if (this.history.length > (this.config.historyLimit || 100)) {
       this.history.shift();
@@ -195,9 +198,11 @@ export class SystemEventMediator {
   };
 
   constructor(eventBus?: SystemEventBus) {
-    this.eventBus = eventBus || new SystemEventBus({
-      enableDebugLogging: process.env.NODE_ENV === 'development',
-    });
+    this.eventBus =
+      eventBus ||
+      new SystemEventBus({
+        enableDebugLogging: process.env.NODE_ENV === 'development',
+      });
     this.setupEventHandlers();
   }
 
@@ -232,9 +237,11 @@ export class SystemEventMediator {
   /**
    * Process 에러 처리
    */
-  private async handleProcessError(event: SystemEvent<ProcessEventPayload>): Promise<void> {
+  private async handleProcessError(
+    event: SystemEvent<ProcessEventPayload>
+  ): Promise<void> {
     const { payload } = event;
-    
+
     // Watchdog에 알림
     this.eventBus.emit<WatchdogEventPayload>({
       type: SystemEventType.WATCHDOG_ALERT,
@@ -243,12 +250,14 @@ export class SystemEventMediator {
       payload: {
         severity: 'error',
         message: `Process error: ${payload.processName} (${payload.error?.message})`,
-        metrics: payload.resources ? {
-          cpu: payload.resources.cpu,
-          memory: payload.resources.memory,
-          disk: 0,
-          network: 0,
-        } : undefined,
+        metrics: payload.resources
+          ? {
+              cpu: payload.resources.cpu,
+              memory: payload.resources.memory,
+              disk: 0,
+              network: 0,
+            }
+          : undefined,
       },
       metadata: {
         priority: 'high',
@@ -264,13 +273,15 @@ export class SystemEventMediator {
     event: SystemEvent<ProcessEventPayload>
   ): Promise<void> {
     const { payload } = event;
-    
+
     if (payload.resources) {
       const { cpu, memory } = payload.resources;
-      
+
       // 임계값 체크
-      if (cpu > this.processHealthThresholds.cpu || 
-          memory > this.processHealthThresholds.memory) {
+      if (
+        cpu > this.processHealthThresholds.cpu ||
+        memory > this.processHealthThresholds.memory
+      ) {
         this.eventBus.emit<WatchdogEventPayload>({
           type: SystemEventType.WATCHDOG_THRESHOLD_EXCEEDED,
           timestamp: Date.now(),
@@ -284,9 +295,18 @@ export class SystemEventMediator {
               disk: 0,
               network: 0,
             },
-            threshold: cpu > this.processHealthThresholds.cpu
-              ? { name: 'CPU', value: cpu, limit: this.processHealthThresholds.cpu }
-              : { name: 'Memory', value: memory, limit: this.processHealthThresholds.memory },
+            threshold:
+              cpu > this.processHealthThresholds.cpu
+                ? {
+                    name: 'CPU',
+                    value: cpu,
+                    limit: this.processHealthThresholds.cpu,
+                  }
+                : {
+                    name: 'Memory',
+                    value: memory,
+                    limit: this.processHealthThresholds.memory,
+                  },
           },
         });
       }
@@ -300,12 +320,13 @@ export class SystemEventMediator {
     event: SystemEvent<WatchdogEventPayload>
   ): Promise<void> {
     const { payload } = event;
-    
+
     // 시스템 상태 업데이트
     this.eventBus.emit<SystemStatusPayload>({
-      type: payload.severity === 'critical' 
-        ? SystemEventType.SYSTEM_CRITICAL 
-        : SystemEventType.SYSTEM_DEGRADED,
+      type:
+        payload.severity === 'critical'
+          ? SystemEventType.SYSTEM_CRITICAL
+          : SystemEventType.SYSTEM_DEGRADED,
       timestamp: Date.now(),
       source: 'SystemEventMediator',
       payload: {
@@ -326,8 +347,11 @@ export class SystemEventMediator {
   private async handleSystemCritical(
     event: SystemEvent<SystemStatusPayload>
   ): Promise<void> {
-    console.error('🚨 [SystemEventMediator] System critical state detected!', event);
-    
+    console.error(
+      '🚨 [SystemEventMediator] System critical state detected!',
+      event
+    );
+
     // 여기서 알림, 복구 프로세스 등을 트리거할 수 있습니다
     // 예: 이메일 알림, Slack 알림, 자동 복구 스크립트 실행 등
   }

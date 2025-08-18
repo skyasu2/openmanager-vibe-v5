@@ -39,7 +39,7 @@ const BasicTyping: React.FC<BasicTypingProps> = ({
 
   return (
     <div className={`typing-container ${className}`}>
-      <span className='typing-text'>{text}</span>
+      <span className="typing-text">{text}</span>
 
       <style jsx>{`
         .typing-container {

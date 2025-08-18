@@ -84,15 +84,17 @@ export class MCPToolHandler {
   /**
    * 📋 사용 가능한 도구 목록 조회
    */
-  async getAvailableTools(): Promise<{ tools: Array<{
-    name: string;
-    description: string;
-    schema: {
-      type: string;
-      properties?: Record<string, any>;
-      required?: string[];
-    };
-  }> }> {
+  async getAvailableTools(): Promise<{
+    tools: Array<{
+      name: string;
+      description: string;
+      schema: {
+        type: string;
+        properties?: Record<string, any>;
+        required?: string[];
+      };
+    }>;
+  }> {
     const toolsList = Array.from(this.tools.values());
 
     console.log(
@@ -121,7 +123,9 @@ export class MCPToolHandler {
 
     switch (name) {
       case 'search_files':
-        return await this.realSearchFiles(args as { pattern?: string; content?: string; });
+        return await this.realSearchFiles(
+          args as { pattern?: string; content?: string }
+        );
       case 'read_file':
         return await this.realReadFile((args as { path: string }).path);
       case 'list_directory':
@@ -142,7 +146,7 @@ export class MCPToolHandler {
     results: unknown[];
     total: number;
     searchTime: number;
-    query: { pattern?: string; content?: string; };
+    query: { pattern?: string; content?: string };
   }> {
     const { pattern, content } = args;
     const startTime = Date.now();
@@ -347,7 +351,7 @@ export class MCPToolHandler {
       const entries = fs.readdirSync(dirPath, { withFileTypes: true });
       const items = entries.map((entry) => ({
         name: entry.name,
-        type: entry.isDirectory() ? 'directory' as const : 'file' as const,
+        type: entry.isDirectory() ? ('directory' as const) : ('file' as const),
         path: path.join(dirPath, entry.name),
       }));
 
@@ -429,7 +433,10 @@ export class MCPToolHandler {
       const client = clients.get(serverName);
       if (!client) {
         // 클라이언트가 없으면 로컬 처리
-        return await this.handleToolCall({ name: toolName, arguments: args }) as MCPToolResult;
+        return (await this.handleToolCall({
+          name: toolName,
+          arguments: args,
+        })) as MCPToolResult;
       }
 
       try {
@@ -456,7 +463,10 @@ export class MCPToolHandler {
         };
       } catch {
         console.warn(`⚠️ 서버 도구 호출 실패, 로컬 처리: ${toolName}`);
-        return await this.handleToolCall({ name: toolName, arguments: args }) as MCPToolResult;
+        return (await this.handleToolCall({
+          name: toolName,
+          arguments: args,
+        })) as MCPToolResult;
       }
     } catch (error) {
       console.error(`❌ 도구 호출 실패: ${toolName}`, error);
@@ -560,14 +570,17 @@ export class MCPToolHandler {
   /**
    * 🔧 도구 추가
    */
-  addTool(name: string, tool: {
-    description: string;
-    schema: {
-      type: string;
-      properties?: Record<string, any>;
-      required?: string[];
-    };
-  }): void {
+  addTool(
+    name: string,
+    tool: {
+      description: string;
+      schema: {
+        type: string;
+        properties?: Record<string, any>;
+        required?: string[];
+      };
+    }
+  ): void {
     this.tools.set(name, { name, ...tool });
     console.log(`🔧 도구 추가됨: ${name}`);
   }

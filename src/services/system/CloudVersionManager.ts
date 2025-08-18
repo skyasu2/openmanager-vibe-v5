@@ -133,7 +133,10 @@ export class CloudVersionManager {
         this.supabase = getSupabaseClient();
         console.log('✅ CloudVersionManager - Supabase 싱글톤 연결 성공');
       } catch (error) {
-        console.warn('⚠️ CloudVersionManager - Supabase 연결 실패, 메모리 캐시만 사용:', error);
+        console.warn(
+          '⚠️ CloudVersionManager - Supabase 연결 실패, 메모리 캐시만 사용:',
+          error
+        );
       }
     }
 
@@ -143,7 +146,9 @@ export class CloudVersionManager {
     console.log(`📦 캐시: Memory${this.supabase ? ' + Supabase' : ' Only'}`);
   }
 
-  static getInstance(config?: Partial<CloudVersionConfig>): CloudVersionManager {
+  static getInstance(
+    config?: Partial<CloudVersionConfig>
+  ): CloudVersionManager {
     if (!CloudVersionManager.instance) {
       CloudVersionManager.instance = new CloudVersionManager(config);
     }
@@ -251,7 +256,7 @@ export class CloudVersionManager {
 
         if (error) throw error;
 
-        versions = (data || []).map(item => ({
+        versions = (data || []).map((item) => ({
           id: item.id,
           version: item.version,
           environment: item.environment,
@@ -284,8 +289,8 @@ export class CloudVersionManager {
   ): Promise<VersionComparison | null> {
     try {
       const versions = await this.getVersionHistory(50);
-      const current = versions.find(v => v.id === currentVersionId);
-      const previous = versions.find(v => v.id === previousVersionId);
+      const current = versions.find((v) => v.id === currentVersionId);
+      const previous = versions.find((v) => v.id === previousVersionId);
 
       if (!current || !previous) {
         throw new Error('버전을 찾을 수 없습니다');
@@ -298,7 +303,9 @@ export class CloudVersionManager {
         compatibility: await this.checkCompatibility(current, previous),
       };
 
-      console.log(`⚡ 버전 비교 완료: ${current.version} vs ${previous.version}`);
+      console.log(
+        `⚡ 버전 비교 완료: ${current.version} vs ${previous.version}`
+      );
       return comparison;
     } catch (error) {
       console.error('❌ 버전 비교 실패:', error);
@@ -314,7 +321,7 @@ export class CloudVersionManager {
       console.log(`🔄 버전 롤백 시작: ${versionId}`);
 
       const versions = await this.getVersionHistory(50);
-      const targetVersion = versions.find(v => v.id === versionId);
+      const targetVersion = versions.find((v) => v.id === versionId);
 
       if (!targetVersion) {
         throw new Error('대상 버전을 찾을 수 없습니다');
@@ -372,7 +379,9 @@ export class CloudVersionManager {
 
       if (this.supabase) {
         // 최근 30일 데이터 분석
-        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+        const thirtyDaysAgo = new Date(
+          Date.now() - 30 * 24 * 60 * 60 * 1000
+        ).toISOString();
 
         const { data, error } = await this.supabase
           .from('cloud_versions')
@@ -382,14 +391,29 @@ export class CloudVersionManager {
         if (error) throw error;
 
         const deployments = data || [];
-        const successful = deployments.filter(d => d.status === 'active').length;
-        const rolledBack = deployments.filter(d => d.status === 'rolled-back').length;
+        const successful = deployments.filter(
+          (d) => d.status === 'active'
+        ).length;
+        const rolledBack = deployments.filter(
+          (d) => d.status === 'rolled-back'
+        ).length;
 
         metrics = {
-          successRate: deployments.length > 0 ? (successful / deployments.length) * 100 : 0,
+          successRate:
+            deployments.length > 0
+              ? (successful / deployments.length) * 100
+              : 0,
           averageDeployTime: this.calculateAverageDeployTime(deployments),
-          rollbackRate: deployments.length > 0 ? (rolledBack / deployments.length) * 100 : 0,
-          lastDeployment: deployments.length > 0 ? Math.max(...deployments.map(d => new Date(d.deploy_time).getTime())) : 0,
+          rollbackRate:
+            deployments.length > 0
+              ? (rolledBack / deployments.length) * 100
+              : 0,
+          lastDeployment:
+            deployments.length > 0
+              ? Math.max(
+                  ...deployments.map((d) => new Date(d.deploy_time).getTime())
+                )
+              : 0,
           totalDeployments: deployments.length,
         };
       }
@@ -419,7 +443,9 @@ export class CloudVersionManager {
       // Node.js 환경에서만 파일 시스템 접근
       if (typeof window === 'undefined') {
         const fs = await import('fs');
-        const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
+        const packageJson = JSON.parse(
+          fs.readFileSync('package.json', 'utf-8')
+        );
         return packageJson;
       }
     } catch (error) {
@@ -432,8 +458,12 @@ export class CloudVersionManager {
     try {
       if (typeof window === 'undefined') {
         const { execSync } = await import('child_process');
-        const commitHash = execSync('git rev-parse HEAD', { encoding: 'utf-8' }).trim();
-        const commitMessage = execSync('git log -1 --pretty=%B', { encoding: 'utf-8' }).trim();
+        const commitHash = execSync('git rev-parse HEAD', {
+          encoding: 'utf-8',
+        }).trim();
+        const commitMessage = execSync('git log -1 --pretty=%B', {
+          encoding: 'utf-8',
+        }).trim();
         return { commitHash, commitMessage };
       }
     } catch (error) {
@@ -496,9 +526,16 @@ export class CloudVersionManager {
     ];
   }
 
-  private async checkCompatibility(current: CloudVersion, previous: CloudVersion): Promise<boolean> {
+  private async checkCompatibility(
+    current: CloudVersion,
+    previous: CloudVersion
+  ): Promise<boolean> {
     // 실제로는 API 호환성, 데이터베이스 스키마 등을 확인
-    const versionDiff = current.version.localeCompare(previous.version, undefined, { numeric: true });
+    const versionDiff = current.version.localeCompare(
+      previous.version,
+      undefined,
+      { numeric: true }
+    );
     return versionDiff >= 0; // 상위 버전이면 호환
   }
 
@@ -517,11 +554,11 @@ export class CloudVersionManager {
 
   private calculateAverageDeployTime(deployments: any[]): number {
     if (deployments.length === 0) return 0;
-    
+
     const totalTime = deployments.reduce((sum, d) => {
       return sum + (d.performance_data?.buildTime || 0);
     }, 0);
-    
+
     return totalTime / deployments.length;
   }
 

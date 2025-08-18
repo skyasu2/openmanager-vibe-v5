@@ -1,6 +1,6 @@
 /**
  * 📝 Mock 로거
- * 
+ *
  * Mock 서비스의 동작을 로깅
  */
 
@@ -20,7 +20,7 @@ export class MockLogger {
    */
   info(message: string, data?: unknown): void {
     if (!this.enabled) return;
-    
+
     if (data) {
       console.log(this.prefix, message, data);
     } else {
@@ -33,7 +33,7 @@ export class MockLogger {
    */
   debug(message: string, data?: unknown): void {
     if (!this.enabled || process.env.DEBUG !== 'true') return;
-    
+
     if (data) {
       console.debug(this.prefix, '[DEBUG]', message, data);
     } else {
@@ -46,7 +46,7 @@ export class MockLogger {
    */
   warn(message: string, data?: unknown): void {
     if (!this.enabled) return;
-    
+
     if (data) {
       console.warn(this.prefix, '⚠️', message, data);
     } else {
@@ -59,7 +59,7 @@ export class MockLogger {
    */
   error(message: string, error?: unknown): void {
     if (!this.enabled) return;
-    
+
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(this.prefix, '❌', message, errorMessage);
   }

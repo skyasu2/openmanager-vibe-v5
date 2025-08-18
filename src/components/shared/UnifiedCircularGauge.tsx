@@ -140,35 +140,35 @@ export default function UnifiedCircularGauge({
   return (
     <div className={`flex flex-col items-center ${className}`}>
       <div
-        className='relative'
+        className="relative"
         style={{ width: currentConfig.size, height: currentConfig.size }}
       >
         <svg
           width={currentConfig.size}
           height={currentConfig.size}
-          className={`transform -rotate-90 ${variant === 'modal-3d' ? 'drop-shadow-lg' : ''}`}
+          className={`-rotate-90 transform ${variant === 'modal-3d' ? 'drop-shadow-lg' : ''}`}
         >
           <defs>
             {/* 그라데이션 정의 */}
             <linearGradient
               id={`gradient-${label}-${type}`}
-              x1='0%'
-              y1='0%'
-              x2='100%'
-              y2='100%'
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="100%"
             >
-              <stop offset='0%' stopColor={config.color} stopOpacity='0.8' />
-              <stop offset='100%' stopColor={config.color} stopOpacity='1' />
+              <stop offset="0%" stopColor={config.color} stopOpacity="0.8" />
+              <stop offset="100%" stopColor={config.color} stopOpacity="1" />
             </linearGradient>
 
             {/* 3D 효과용 방사형 그라데이션 */}
             {variant === 'modal-3d' && (
               <radialGradient id={`radial-gradient-${label}-${type}`}>
-                <stop offset='0%' stopColor={config.color} stopOpacity='0.3' />
+                <stop offset="0%" stopColor={config.color} stopOpacity="0.3" />
                 <stop
-                  offset='100%'
+                  offset="100%"
                   stopColor={config.color}
-                  stopOpacity='0.1'
+                  stopOpacity="0.1"
                 />
               </radialGradient>
             )}
@@ -176,12 +176,12 @@ export default function UnifiedCircularGauge({
             {/* 그림자 효과 */}
             <filter
               id={`shadow-${label}-${type}`}
-              x='-50%'
-              y='-50%'
-              width='200%'
-              height='200%'
+              x="-50%"
+              y="-50%"
+              width="200%"
+              height="200%"
             >
-              <feDropShadow dx='0' dy='2' stdDeviation='3' floodOpacity='0.3' />
+              <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.3" />
             </filter>
           </defs>
 
@@ -190,9 +190,9 @@ export default function UnifiedCircularGauge({
             cx={currentConfig.size / 2}
             cy={currentConfig.size / 2}
             r={radius}
-            stroke='#e5e7eb'
+            stroke="#e5e7eb"
             strokeWidth={currentConfig.strokeWidth}
-            fill='none'
+            fill="none"
             opacity={variant === 'card' ? '0.2' : '1'}
           />
 
@@ -203,7 +203,7 @@ export default function UnifiedCircularGauge({
               cy={currentConfig.size / 2}
               r={radius - 10}
               fill={`url(#radial-gradient-${label}-${type})`}
-              className='opacity-20'
+              className="opacity-20"
             />
           )}
 
@@ -218,8 +218,8 @@ export default function UnifiedCircularGauge({
                 : config.color
             }
             strokeWidth={currentConfig.strokeWidth}
-            fill='none'
-            strokeLinecap='round'
+            fill="none"
+            strokeLinecap="round"
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
             filter={
@@ -245,8 +245,8 @@ export default function UnifiedCircularGauge({
         </svg>
 
         {/* 중앙 텍스트 */}
-        <div className='absolute inset-0 flex items-center justify-center'>
-          <div className='text-center'>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
             <div
               className={`font-bold ${currentConfig.centerTextSize}`}
               style={{ color: config.color }}
@@ -259,7 +259,7 @@ export default function UnifiedCircularGauge({
               </span>
             </div>
             {currentConfig.showStatus && (
-              <div className='text-xs text-gray-500 mt-1'>{config.status}</div>
+              <div className="mt-1 text-xs text-gray-500">{config.status}</div>
             )}
           </div>
         </div>
@@ -282,9 +282,9 @@ export default function UnifiedCircularGauge({
 
         {/* 애니메이션 효과 (모달 전용) */}
         {showAnimation && variant !== 'card' && percentage > 75 && (
-          <div className='absolute inset-0 flex items-center justify-center'>
+          <div className="absolute inset-0 flex items-center justify-center">
             <div
-              className='w-3 h-3 rounded-full _animate-pulse'
+              className="_animate-pulse h-3 w-3 rounded-full"
               style={{
                 backgroundColor: config.color,
                 boxShadow: `0 0 10px ${config.color}50`,
@@ -295,12 +295,12 @@ export default function UnifiedCircularGauge({
       </div>
 
       {/* 라벨 */}
-      <div className='mt-2 text-center'>
+      <div className="mt-2 text-center">
         <div className={`font-medium text-gray-700 ${currentConfig.labelSize}`}>
           {label}
         </div>
         {max !== 100 && variant !== 'card' && (
-          <div className='text-xs text-gray-500'>
+          <div className="text-xs text-gray-500">
             {value.toFixed(2)} / {max}
           </div>
         )}
@@ -312,12 +312,12 @@ export default function UnifiedCircularGauge({
 // 편의를 위한 사전 정의된 변형들
 export const ServerCardGauge = (
   props: Omit<UnifiedCircularGaugeProps, 'variant'>
-) => <UnifiedCircularGauge {...props} variant='card' />;
+) => <UnifiedCircularGauge {...props} variant="card" />;
 
 export const ServerModalGauge = (
   props: Omit<UnifiedCircularGaugeProps, 'variant'>
-) => <UnifiedCircularGauge {...props} variant='modal' />;
+) => <UnifiedCircularGauge {...props} variant="modal" />;
 
 export const ServerModal3DGauge = (
   props: Omit<UnifiedCircularGaugeProps, 'variant'>
-) => <UnifiedCircularGauge {...props} variant='modal-3d' />;
+) => <UnifiedCircularGauge {...props} variant="modal-3d" />;

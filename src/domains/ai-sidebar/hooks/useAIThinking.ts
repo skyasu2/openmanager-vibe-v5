@@ -21,13 +21,17 @@ export interface UseAIThinkingReturn {
   isThinkingExpanded: boolean;
   thinkingStartTime: Date | null;
   showThinkingDisplay: boolean;
-  
+
   // 완료된 사고 과정
   completedThinkingSteps: Record<string, CompletedThinking>;
-  
+
   // 액션
   startThinking: () => void;
-  stopThinking: (query?: string, engine?: string, processingTime?: number) => void;
+  stopThinking: (
+    query?: string,
+    engine?: string,
+    processingTime?: number
+  ) => void;
   toggleThinkingExpanded: () => void;
   toggleCompletedThinking: (messageId: string) => void;
   simulateRealTimeThinking: () => () => void;
@@ -36,12 +40,15 @@ export interface UseAIThinkingReturn {
 export function useAIThinking(): UseAIThinkingReturn {
   // 현재 사고 상태
   const [isThinking, setIsThinking] = useState(false);
-  const [currentThinkingSteps, setCurrentThinkingSteps] = useState<ThinkingStep[]>([]);
+  const [currentThinkingSteps, setCurrentThinkingSteps] = useState<
+    ThinkingStep[]
+  >([]);
   const [isThinkingExpanded, setIsThinkingExpanded] = useState(true);
   const [thinkingStartTime, setThinkingStartTime] = useState<Date | null>(null);
   const [showThinkingDisplay, setShowThinkingDisplay] = useState(false);
-  const [thinkingPersistTimer, setThinkingPersistTimer] = useState<NodeJS.Timeout | null>(null);
-  
+  const [thinkingPersistTimer, setThinkingPersistTimer] =
+    useState<NodeJS.Timeout | null>(null);
+
   // 완료된 사고 과정 저장
   const [completedThinkingSteps, setCompletedThinkingSteps] = useState<
     Record<string, CompletedThinking>
@@ -88,7 +95,7 @@ export function useAIThinking(): UseAIThinkingReturn {
     const interval = setInterval(
       () => {
         if (currentStepIndex < steps.length) {
-          setCurrentThinkingSteps(prev =>
+          setCurrentThinkingSteps((prev) =>
             prev.map((step, index) => {
               if (index === currentStepIndex) {
                 return {
@@ -133,10 +140,10 @@ export function useAIThinking(): UseAIThinkingReturn {
       // 완료된 사고 과정을 저장 (질문과 답변 사이에 표시하기 위해)
       if (query && currentThinkingSteps.length > 0) {
         const messageId = `thinking-${Date.now()}`;
-        setCompletedThinkingSteps(prev => ({
+        setCompletedThinkingSteps((prev) => ({
           ...prev,
           [messageId]: {
-            steps: [...currentThinkingSteps].map(step => ({
+            steps: [...currentThinkingSteps].map((step) => ({
               ...step,
               status: 'completed' as const,
             })),
@@ -161,12 +168,12 @@ export function useAIThinking(): UseAIThinkingReturn {
 
   // 사고 확장/축소 토글
   const toggleThinkingExpanded = useCallback(() => {
-    setIsThinkingExpanded(prev => !prev);
+    setIsThinkingExpanded((prev) => !prev);
   }, []);
 
   // 완료된 사고 과정 토글
   const toggleCompletedThinking = useCallback((messageId: string) => {
-    setCompletedThinkingSteps(prev => ({
+    setCompletedThinkingSteps((prev) => ({
       ...prev,
       [messageId]: {
         ...prev[messageId],
@@ -183,7 +190,7 @@ export function useAIThinking(): UseAIThinkingReturn {
     thinkingStartTime,
     showThinkingDisplay,
     completedThinkingSteps,
-    
+
     // 액션
     startThinking,
     stopThinking,

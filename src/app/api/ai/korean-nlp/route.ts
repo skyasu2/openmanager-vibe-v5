@@ -1,6 +1,6 @@
 /**
  * 🇰🇷 Korean NLP API Route
- * 
+ *
  * GCP Functions의 enhanced-korean-nlp를 호출하는 API
  */
 
@@ -61,10 +61,9 @@ export async function POST(request: NextRequest) {
       source: 'gcp-functions',
       timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
     debug.error('❌ Korean NLP API 오류:', error);
-    
+
     return NextResponse.json(
       {
         success: false,

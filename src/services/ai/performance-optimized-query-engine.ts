@@ -17,7 +17,11 @@ import {
 import { getQueryCacheManager } from './query-cache-manager';
 import { getVectorSearchOptimizer } from './vector-search-optimizer';
 import { aiLogger } from '@/lib/logger';
-import type { MCPContext, AIQueryContext, AIQueryOptions } from '@/types/ai-service-types';
+import type {
+  MCPContext,
+  AIQueryContext,
+  AIQueryOptions,
+} from '@/types/ai-service-types';
 
 interface PerformanceConfig {
   enableParallelProcessing: boolean;
@@ -94,7 +98,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
 
     // 워밍업 시작
     if (this.config.warmupOnStart) {
-      this.performWarmup().catch(error => {
+      this.performWarmup().catch((error) => {
         aiLogger.error('워밍업 실패', error);
       });
     }
@@ -125,12 +129,12 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       // 3. 병렬 임베딩 생성
       if (this.config.enablePredictiveLoading) {
         await Promise.allSettled(
-          commonQueries.map(async query => {
+          commonQueries.map(async (query) => {
             try {
               const embedding = await this.ragEngine.generateEmbedding(query);
               if (embedding) {
-        this.preloadedEmbeddings.set(query, embedding);
-      }
+                this.preloadedEmbeddings.set(query, embedding);
+              }
             } catch (error) {
               aiLogger.warn(`임베딩 예열 실패: ${query}`, error);
             }
@@ -243,8 +247,12 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       : null;
 
     if (mode === 'local') {
-      const embeddingResult = embeddingPromise &&
-        taskResults.find(r => r.status === 'fulfilled')?.value as number[] | null | undefined;
+      const embeddingResult =
+        embeddingPromise &&
+        (taskResults.find((r) => r.status === 'fulfilled')?.value as
+          | number[]
+          | null
+          | undefined);
       const embedding = embeddingResult === null ? undefined : embeddingResult;
       return await this.processLocalQueryOptimized(
         query,
@@ -317,7 +325,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     const words1 = new Set(query1.toLowerCase().split(/\s+/));
     const words2 = new Set(query2.toLowerCase().split(/\s+/));
 
-    const intersection = new Set([...words1].filter(x => words2.has(x)));
+    const intersection = new Set([...words1].filter((x) => words2.has(x)));
     const union = new Set([...words1, ...words2]);
 
     return intersection.size / union.size;
@@ -359,7 +367,8 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       const ragResult = await this.ragEngine.searchSimilar(query, {
         maxResults: 3, // 성능을 위해 결과 수 제한
         threshold: 0.6, // 임계값 상향 조정
-        category: typeof options?.category === 'string' ? options.category : undefined,
+        category:
+          typeof options?.category === 'string' ? options.category : undefined,
         enableMCP: false,
         cached: true,
       });
@@ -404,7 +413,11 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     startTime: number
   ): Promise<QueryResponse> {
     try {
-      const prompt = this.buildGoogleAIPrompt(query, context as AIQueryContext | undefined, mcpContext as MCPContext | null);
+      const prompt = this.buildGoogleAIPrompt(
+        query,
+        context as AIQueryContext | undefined,
+        mcpContext as MCPContext | null
+      );
 
       // 타임아웃이 있는 API 호출
       const controller = new AbortController();
@@ -683,8 +696,8 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
 
       // 결과의 수와 품질을 기반으로 신뢰도 계산
       const resultCount = ragResult.results.length;
-      const hasHighQualityResults = ragResult.results.some((result: RAGResultItem) => 
-        result.score && result.score > 0.8
+      const hasHighQualityResults = ragResult.results.some(
+        (result: RAGResultItem) => result.score && result.score > 0.8
       );
 
       let confidence = 0.5; // 기본값
@@ -762,7 +775,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       const optimizationHealth =
         this.circuitBreakers.size > 0 &&
         Array.from(this.circuitBreakers.values()).every(
-          cb => cb.state !== 'open'
+          (cb) => cb.state !== 'open'
         );
 
       return {

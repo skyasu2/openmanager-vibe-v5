@@ -1,6 +1,6 @@
 /**
  * 🎭 Mock 데이터 컨텍스트 로더
- * 
+ *
  * AI가 Mock 데이터를 실제 서버처럼 분석할 수 있도록
  * 컨텍스트 정보를 제공
  */
@@ -59,19 +59,36 @@ export class MockContextLoader {
       const systemInfo = mockSystem.getSystemInfo();
 
       // 메트릭 계산
-      const criticalServers = servers.filter(s => s.status === 'critical' || s.status === 'warning');
-      const warningServers = servers.filter(s => s.status === 'warning');
-      const healthyServers = servers.filter(s => s.status === 'online' || s.status === 'healthy');
+      const criticalServers = servers.filter(
+        (s) => s.status === 'critical' || s.status === 'warning'
+      );
+      const warningServers = servers.filter((s) => s.status === 'warning');
+      const healthyServers = servers.filter(
+        (s) => s.status === 'online' || s.status === 'healthy'
+      );
 
-      const avgCpu = servers.reduce((sum, s) => sum + s.cpu, 0) / servers.length;
-      const avgMemory = servers.reduce((sum, s) => sum + s.memory, 0) / servers.length;
-      const avgDisk = servers.reduce((sum, s) => sum + s.disk, 0) / servers.length;
+      const avgCpu =
+        servers.reduce((sum, s) => sum + s.cpu, 0) / servers.length;
+      const avgMemory =
+        servers.reduce((sum, s) => sum + s.memory, 0) / servers.length;
+      const avgDisk =
+        servers.reduce((sum, s) => sum + s.disk, 0) / servers.length;
 
       // 트렌드 분석 (간단한 휴리스틱)
-      const cpuTrend = avgCpu > 70 ? 'increasing' : avgCpu < 30 ? 'decreasing' : 'stable';
-      const memoryTrend = avgMemory > 75 ? 'increasing' : avgMemory < 40 ? 'decreasing' : 'stable';
-      const alertTrend = criticalServers.length > servers.length * 0.3 ? 'increasing' : 
-                         criticalServers.length === 0 ? 'decreasing' : 'stable';
+      const cpuTrend =
+        avgCpu > 70 ? 'increasing' : avgCpu < 30 ? 'decreasing' : 'stable';
+      const memoryTrend =
+        avgMemory > 75
+          ? 'increasing'
+          : avgMemory < 40
+            ? 'decreasing'
+            : 'stable';
+      const alertTrend =
+        criticalServers.length > servers.length * 0.3
+          ? 'increasing'
+          : criticalServers.length === 0
+            ? 'decreasing'
+            : 'stable';
 
       return {
         enabled: true,
@@ -79,8 +96,12 @@ export class MockContextLoader {
         scenario: {
           name: systemInfo.scenario.scenario,
           description: systemInfo.scenario.description,
-          severity: criticalServers.length > servers.length * 0.5 ? 'critical' :
-                   warningServers.length > servers.length * 0.3 ? 'warning' : 'normal',
+          severity:
+            criticalServers.length > servers.length * 0.5
+              ? 'critical'
+              : warningServers.length > servers.length * 0.3
+                ? 'warning'
+                : 'normal',
           startHour: systemInfo.scenario.startHour,
         },
         metrics: {
@@ -132,14 +153,20 @@ export class MockContextLoader {
 
     // 주요 문제 서버 정보 추가 (시나리오 언급 없이)
     if (context.servers && context.servers.length > 0) {
-      const problemServers = context.servers.filter(s => 
-        s.status === 'critical' || s.status === 'warning' || s.cpu > 80 || s.memory > 85
+      const problemServers = context.servers.filter(
+        (s) =>
+          s.status === 'critical' ||
+          s.status === 'warning' ||
+          s.cpu > 80 ||
+          s.memory > 85
       );
-      
+
       if (problemServers.length > 0) {
         lines.push('', '주요 서버 상태:');
-        problemServers.slice(0, 3).forEach(server => {
-          lines.push(`- ${server.name}: CPU ${server.cpu}%, Memory ${server.memory}%, 상태: ${server.status}`);
+        problemServers.slice(0, 3).forEach((server) => {
+          lines.push(
+            `- ${server.name}: CPU ${server.cpu}%, Memory ${server.memory}%, 상태: ${server.status}`
+          );
         });
       }
     }
@@ -157,7 +184,7 @@ export class MockContextLoader {
       return '';
     }
 
-    const server = context.servers.find(s => s.id === serverId);
+    const server = context.servers.find((s) => s.id === serverId);
     if (!server) {
       return '서버를 찾을 수 없습니다.';
     }

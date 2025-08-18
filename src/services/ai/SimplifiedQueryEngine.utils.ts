@@ -1,11 +1,14 @@
 /**
  * 🛠️ SimplifiedQueryEngine Utilities
- * 
+ *
  * Utility functions for caching, command detection, fallback responses,
  * and other helper methods used by the SimplifiedQueryEngine
  */
 
-import type { Entity, IntentResult } from '@/modules/ai-agent/processors/IntentClassifier';
+import type {
+  Entity,
+  IntentResult,
+} from '@/modules/ai-agent/processors/IntentClassifier';
 import type { CommandRequestContext } from './UnifiedAIEngineRouter';
 import type { AIQueryContext } from '@/types/ai-service-types';
 import {
@@ -109,21 +112,32 @@ export class SimplifiedQueryEngineUtils {
    */
   detectCommandQuery(query: string, commandContext?: CommandContext): boolean {
     const lowerQuery = query.toLowerCase().trim();
-    
+
     // 명령어 키워드 패턴
     const commandKeywords = [
-      'command', '명령어', '명령', 'cmd',
-      'how to', '어떻게', '방법',
-      'help', '도움', '도움말',
-      'list', '목록', '리스트',
-      'show', '보여', '표시'
+      'command',
+      '명령어',
+      '명령',
+      'cmd',
+      'how to',
+      '어떻게',
+      '방법',
+      'help',
+      '도움',
+      '도움말',
+      'list',
+      '목록',
+      '리스트',
+      'show',
+      '보여',
+      '표시',
     ];
 
     // 명시적 명령어 요청
     if (commandContext?.isCommandRequest) return true;
 
     // 키워드 기반 감지
-    return commandKeywords.some(keyword => lowerQuery.includes(keyword));
+    return commandKeywords.some((keyword) => lowerQuery.includes(keyword));
   }
 
   /**
@@ -135,14 +149,14 @@ export class SimplifiedQueryEngineUtils {
     keywords: string[];
   } {
     const lowerQuery = query.toLowerCase();
-    
+
     // 간단한 패턴 매칭
     const patterns = {
       status: ['상태', 'status', '현황', '어떻', '어떤'],
       help: ['도움', 'help', '방법', 'how'],
       command: ['명령', 'command', 'cmd'],
       server: ['서버', 'server', '시스템', 'system'],
-      monitoring: ['모니터링', 'monitor', '감시', '추적']
+      monitoring: ['모니터링', 'monitor', '감시', '추적'],
     };
 
     let maxScore = 0;
@@ -150,7 +164,9 @@ export class SimplifiedQueryEngineUtils {
     let foundKeywords: string[] = [];
 
     for (const [intent, keywords] of Object.entries(patterns)) {
-      const matches = keywords.filter(keyword => lowerQuery.includes(keyword));
+      const matches = keywords.filter((keyword) =>
+        lowerQuery.includes(keyword)
+      );
       if (matches.length > maxScore) {
         maxScore = matches.length;
         detectedIntent = intent;
@@ -161,7 +177,7 @@ export class SimplifiedQueryEngineUtils {
     return {
       intent: detectedIntent,
       confidence: Math.min(maxScore * 0.3, 0.9),
-      keywords: foundKeywords
+      keywords: foundKeywords,
     };
   }
 
@@ -175,7 +191,9 @@ export class SimplifiedQueryEngineUtils {
   ): QueryResponse {
     // ✅ 방어적 프로그래밍: thinkingSteps 배열 안전성 검증
     if (!Array.isArray(thinkingSteps)) {
-      console.warn('⚠️ generateFallbackResponse: thinkingSteps가 배열이 아닙니다. 빈 배열로 초기화합니다.');
+      console.warn(
+        '⚠️ generateFallbackResponse: thinkingSteps가 배열이 아닙니다. 빈 배열로 초기화합니다.'
+      );
       thinkingSteps = [];
     }
 
@@ -187,13 +205,15 @@ export class SimplifiedQueryEngineUtils {
     });
 
     const basicIntent = this.detectBasicIntent(query);
-    
+
     let response = `질의 "${query}"에 대한 정보를 찾을 수 없었습니다.`;
-    
+
     if (basicIntent.intent === 'server') {
-      response += '\n\n서버 관련 질의는 다음 형식으로 시도해보세요:\n- "서버 상태는?"\n- "CPU 사용률 확인"';
+      response +=
+        '\n\n서버 관련 질의는 다음 형식으로 시도해보세요:\n- "서버 상태는?"\n- "CPU 사용률 확인"';
     } else if (basicIntent.intent === 'help') {
-      response += '\n\n도움말이나 명령어는 다음과 같이 질의해보세요:\n- "사용 가능한 명령어 목록"\n- "모니터링 방법"';
+      response +=
+        '\n\n도움말이나 명령어는 다음과 같이 질의해보세요:\n- "사용 가능한 명령어 목록"\n- "모니터링 방법"';
     }
 
     return {
@@ -239,7 +259,7 @@ export class SimplifiedQueryEngineUtils {
       // 실제 구현에서는 GCP Functions의 Korean NLP 엔드포인트 호출
       // 현재는 Mock 응답
       const koreanRatio = this.calculateKoreanRatio(query);
-      
+
       if (koreanRatio < 0.3) {
         return null; // 한국어 비율이 낮으면 NLP 처리 안함
       }
@@ -247,12 +267,12 @@ export class SimplifiedQueryEngineUtils {
       return {
         intent: this.detectBasicIntent(query).intent,
         sentiment: 'neutral',
-        keywords: query.split(' ').filter(word => word.length > 1),
+        keywords: query.split(' ').filter((word) => word.length > 1),
         summary: query.length > 50 ? query.substring(0, 50) + '...' : query,
         metadata: {
           koreanRatio,
-          processed: true
-        }
+          processed: true,
+        },
       };
     } catch (error) {
       console.error('한국어 NLP 처리 실패:', error);
@@ -265,7 +285,7 @@ export class SimplifiedQueryEngineUtils {
    */
   private calculateKoreanRatio(text: string): number {
     if (!text) return 0;
-    
+
     const koreanCharCount = (text.match(/[가-힣]/g) || []).length;
     return koreanCharCount / text.length;
   }
@@ -274,7 +294,11 @@ export class SimplifiedQueryEngineUtils {
    * 📊 포맷된 응답 생성
    */
   generateFormattedResponse(
-    recommendations: Array<{ title: string; description: string; usage?: string }>,
+    recommendations: Array<{
+      title: string;
+      description: string;
+      usage?: string;
+    }>,
     analysis: Record<string, unknown>,
     query: string,
     confidence: number
@@ -284,7 +308,7 @@ export class SimplifiedQueryEngineUtils {
     }
 
     let response = `"${query}"와 관련된 추천 명령어:\n\n`;
-    
+
     recommendations.forEach((rec, index) => {
       response += `${index + 1}. **${rec.title}**\n`;
       response += `   ${rec.description}\n`;
@@ -310,8 +334,14 @@ export class SimplifiedQueryEngineUtils {
     return {
       totalEntries: this.responseCache.size,
       totalHits: entries.reduce((sum, entry) => sum + entry.hits, 0),
-      avgHits: entries.length > 0 ? entries.reduce((sum, entry) => sum + entry.hits, 0) / entries.length : 0,
-      oldestEntry: entries.length > 0 ? Math.min(...entries.map(e => e.timestamp)) : null,
+      avgHits:
+        entries.length > 0
+          ? entries.reduce((sum, entry) => sum + entry.hits, 0) / entries.length
+          : 0,
+      oldestEntry:
+        entries.length > 0
+          ? Math.min(...entries.map((e) => e.timestamp))
+          : null,
     };
   }
 
@@ -366,13 +396,17 @@ export class SimplifiedQueryEngineUtils {
   ): void {
     // ✅ 방어적 프로그래밍: 배열 존재 및 요소 존재 확인
     if (!Array.isArray(thinkingSteps) || thinkingSteps.length === 0) {
-      console.warn('⚠️ safeUpdateLastThinkingStep: thinkingSteps 배열이 비어있거나 유효하지 않습니다.');
+      console.warn(
+        '⚠️ safeUpdateLastThinkingStep: thinkingSteps 배열이 비어있거나 유효하지 않습니다.'
+      );
       return;
     }
 
     const lastStep = thinkingSteps[thinkingSteps.length - 1];
     if (!lastStep) {
-      console.warn('⚠️ safeUpdateLastThinkingStep: 마지막 단계를 찾을 수 없습니다.');
+      console.warn(
+        '⚠️ safeUpdateLastThinkingStep: 마지막 단계를 찾을 수 없습니다.'
+      );
       return;
     }
 
@@ -394,9 +428,13 @@ export class SimplifiedQueryEngineUtils {
   /**
    * ✅ 안전한 thinking steps 배열 초기화
    */
-  safeInitThinkingSteps(thinkingSteps?: QueryResponse['thinkingSteps']): QueryResponse['thinkingSteps'] {
+  safeInitThinkingSteps(
+    thinkingSteps?: QueryResponse['thinkingSteps']
+  ): QueryResponse['thinkingSteps'] {
     if (!Array.isArray(thinkingSteps)) {
-      console.warn('⚠️ safeInitThinkingSteps: thinkingSteps가 배열이 아닙니다. 빈 배열로 초기화합니다.');
+      console.warn(
+        '⚠️ safeInitThinkingSteps: thinkingSteps가 배열이 아닙니다. 빈 배열로 초기화합니다.'
+      );
       return [];
     }
     return thinkingSteps;

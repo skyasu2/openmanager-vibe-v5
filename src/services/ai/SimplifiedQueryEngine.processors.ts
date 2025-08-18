@@ -1,6 +1,6 @@
 /**
  * 🔄 SimplifiedQueryEngine Processors
- * 
+ *
  * Delegating processor class that coordinates specialized processor modules:
  * - LocalQueryProcessor: Local RAG processing
  * - LocalAIModeProcessor: Local AI mode with NLP and VM backend
@@ -14,10 +14,7 @@ import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 import { MockContextLoader } from './MockContextLoader';
 import { IntentClassifier } from '@/modules/ai-agent/processors/IntentClassifier';
 import type { ComplexityScore } from './query-complexity-analyzer';
-import type {
-  AIQueryContext,
-  MCPContext,
-} from '@/types/ai-service-types';
+import type { AIQueryContext, MCPContext } from '@/types/ai-service-types';
 import type {
   QueryRequest,
   QueryResponse,
@@ -49,14 +46,14 @@ export class SimplifiedQueryEngineProcessors {
   ) {
     // Initialize shared helpers
     this.helpers = new SimplifiedQueryEngineHelpers(mockContextLoader);
-    
+
     // Initialize specialized processors
     this.localProcessor = new LocalQueryProcessor(
       ragEngine,
       mockContextLoader,
       this.helpers
     );
-    
+
     this.localAIProcessor = new LocalAIModeProcessor(
       utils,
       ragEngine,
@@ -64,7 +61,7 @@ export class SimplifiedQueryEngineProcessors {
       intentClassifier,
       this.helpers
     );
-    
+
     this.googleAIProcessor = new GoogleAIModeProcessor(
       utils,
       contextLoader,
@@ -72,7 +69,7 @@ export class SimplifiedQueryEngineProcessors {
       this.helpers,
       this.localAIProcessor
     );
-    
+
     this.commandProcessor = new CommandQueryProcessor(utils);
   }
 
@@ -103,7 +100,7 @@ export class SimplifiedQueryEngineProcessors {
    * 로컬 AI 모드 쿼리 처리
    * - 한국어 NLP 처리 (enableKoreanNLP=true일 때)
    * - Supabase RAG 검색
-   * - VM 백엔드 연동 (enableVMBackend=true일 때) 
+   * - VM 백엔드 연동 (enableVMBackend=true일 때)
    * - Google AI API 사용하지 않음
    * - AI 어시스턴트 MCP 사용하지 않음
    */
@@ -142,10 +139,10 @@ export class SimplifiedQueryEngineProcessors {
     mcpContext: MCPContext | null,
     thinkingSteps: QueryResponse['thinkingSteps'],
     startTime: number,
-    modeConfig: { 
-      enableGoogleAI: boolean; 
-      enableAIAssistantMCP: boolean; 
-      enableKoreanNLP: boolean; 
+    modeConfig: {
+      enableGoogleAI: boolean;
+      enableAIAssistantMCP: boolean;
+      enableKoreanNLP: boolean;
       enableVMBackend: boolean;
     }
   ): Promise<QueryResponse> {
@@ -176,5 +173,4 @@ export class SimplifiedQueryEngineProcessors {
       startTime
     );
   }
-
 }

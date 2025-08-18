@@ -9,7 +9,7 @@
  * - Vercel 자체 로깅과 중복 기능 제거
  * - 핵심 장애 감지 및 알림에 집중
  * - 메모리 기반 로그 스트림 사용
- * 
+ *
  * ✅ 리팩토링: 중복 코드 제거 - 통합 팩토리 사용
  */
 
@@ -43,7 +43,11 @@ interface LoggingConfig {
 
 // 메모리 기반 로그 스트림 구현
 class MemoryLogStream {
-  private logs: Array<{ id: string; entry: SystemLogEntry; timestamp: number }> = [];
+  private logs: Array<{
+    id: string;
+    entry: SystemLogEntry;
+    timestamp: number;
+  }> = [];
   private maxLength: number;
   private counters = new Map<string, number>();
 
@@ -81,15 +85,15 @@ class MemoryLogStream {
     let filteredLogs = this.logs;
 
     if (level) {
-      filteredLogs = this.logs.filter(log => 
-        log.entry.level.toLowerCase() === level.toLowerCase()
+      filteredLogs = this.logs.filter(
+        (log) => log.entry.level.toLowerCase() === level.toLowerCase()
       );
     }
 
     return filteredLogs
       .slice(-count)
       .reverse()
-      .map(log => log.entry);
+      .map((log) => log.entry);
   }
 
   getCount(level?: string): number {
@@ -99,7 +103,11 @@ class MemoryLogStream {
     return this.logs.length;
   }
 
-  getInfo(): { length: number; oldestTimestamp: number; newestTimestamp: number } {
+  getInfo(): {
+    length: number;
+    oldestTimestamp: number;
+    newestTimestamp: number;
+  } {
     if (this.logs.length === 0) {
       return { length: 0, oldestTimestamp: 0, newestTimestamp: 0 };
     }
@@ -151,9 +159,11 @@ export class CloudLoggingService {
     this.memoryStream = new MemoryLogStream(this.config.maxStreamLength);
 
     // Supabase 연결 (환경변수 있을 때만) - 팩토리 사용
-    if (this.config.enableSupabase && 
-        process.env.NEXT_PUBLIC_SUPABASE_URL && 
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    if (
+      this.config.enableSupabase &&
+      process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    ) {
       this.supabase = getClientSupabase();
       this.startBatchProcessor();
     }
@@ -161,7 +171,9 @@ export class CloudLoggingService {
     console.log(
       `🌐 CloudLoggingService 초기화 완료 (${isProduction ? 'Production' : 'Development'} 모드)`
     );
-    console.log(`📦 스토리지: Memory${this.supabase ? ' + Supabase' : ' Only'}`);
+    console.log(
+      `📦 스토리지: Memory${this.supabase ? ' + Supabase' : ' Only'}`
+    );
     if (isProduction) {
       console.log(
         `⚠️ 프로덕션 모드: ${this.config.productionLogLevels.join(', ')} 레벨만 처리`
@@ -190,7 +202,10 @@ export class CloudLoggingService {
   ): Promise<boolean> {
     try {
       // 프로덕션에서는 중요 로그만 처리
-      if (this.config.isProduction && !this.config.productionLogLevels.includes(level)) {
+      if (
+        this.config.isProduction &&
+        !this.config.productionLogLevels.includes(level)
+      ) {
         return true; // 조용히 무시
       }
 
@@ -279,7 +294,8 @@ export class CloudLoggingService {
    * 📦 Supabase 배치 처리
    */
   private async processBatch(): Promise<void> {
-    if (this.isProcessing || this.logBuffer.length === 0 || !this.supabase) return;
+    if (this.isProcessing || this.logBuffer.length === 0 || !this.supabase)
+      return;
 
     this.isProcessing = true;
     const batch = [...this.logBuffer];
@@ -287,21 +303,19 @@ export class CloudLoggingService {
 
     try {
       // Supabase 배치 저장
-      const { error } = await this.supabase
-        .from('system_logs')
-        .insert(
-          batch.map(log => ({
-            id: log.id,
-            level: log.level,
-            message: log.message,
-            module: log.module,
-            timestamp: log.timestamp,
-            session_id: log.sessionId,
-            user_id: log.userId,
-            metadata: log.metadata,
-            stack_trace: log.stackTrace,
-          }))
-        );
+      const { error } = await this.supabase.from('system_logs').insert(
+        batch.map((log) => ({
+          id: log.id,
+          level: log.level,
+          message: log.message,
+          module: log.module,
+          timestamp: log.timestamp,
+          session_id: log.sessionId,
+          user_id: log.userId,
+          metadata: log.metadata,
+          stack_trace: log.stackTrace,
+        }))
+      );
 
       if (error) throw error;
 
@@ -387,17 +401,16 @@ export class CloudLoggingService {
       };
 
       if (this.supabase) {
-        const query = this.supabase
-          .from('system_logs')
-          .select('level, module');
+        const query = this.supabase.from('system_logs').select('level, module');
 
         if (date) {
           const startDate = new Date(date);
           const endDate = new Date(startDate);
           endDate.setDate(endDate.getDate() + 1);
 
-          query.gte('timestamp', startDate.toISOString())
-               .lt('timestamp', endDate.toISOString());
+          query
+            .gte('timestamp', startDate.toISOString())
+            .lt('timestamp', endDate.toISOString());
         }
 
         const { data, error } = await query;
@@ -409,7 +422,7 @@ export class CloudLoggingService {
           const levelCounts: Record<string, number> = {};
           const moduleCounts: Record<string, number> = {};
 
-          data.forEach(log => {
+          data.forEach((log) => {
             const level = String(log.level);
             const module = String(log.module);
             levelCounts[level] = (levelCounts[level] || 0) + 1;
@@ -423,8 +436,10 @@ export class CloudLoggingService {
             .slice(0, 10);
 
           // 에러율 계산
-          const errorCount = (levelCounts['ERROR'] || 0) + (levelCounts['CRITICAL'] || 0);
-          supabaseStats.errorRate = data.length > 0 ? (errorCount / data.length) * 100 : 0;
+          const errorCount =
+            (levelCounts['ERROR'] || 0) + (levelCounts['CRITICAL'] || 0);
+          supabaseStats.errorRate =
+            data.length > 0 ? (errorCount / data.length) * 100 : 0;
         }
       }
 
@@ -486,9 +501,14 @@ export class CloudLoggingService {
       if (error) throw error;
       if (!data) return [];
 
-      return data.map(log => ({
+      return data.map((log) => ({
         id: String(log.id),
-        level: String(log.level) as 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL',
+        level: String(log.level) as
+          | 'DEBUG'
+          | 'INFO'
+          | 'WARN'
+          | 'ERROR'
+          | 'CRITICAL',
         message: String(log.message),
         module: String(log.module),
         timestamp: String(log.timestamp),

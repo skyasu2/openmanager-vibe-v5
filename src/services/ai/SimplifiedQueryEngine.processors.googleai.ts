@@ -1,6 +1,6 @@
 /**
  * 🤖 Google AI Mode Processor - SimplifiedQueryEngine
- * 
+ *
  * Handles Google AI mode query processing:
  * - Google AI API activation
  * - AI Assistant MCP activation (CloudContextLoader)
@@ -13,10 +13,7 @@
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 import { MockContextLoader } from './MockContextLoader';
 import { vmBackendConnector } from '@/services/vm/VMBackendConnector';
-import { 
-  validateGoogleAIMCPConfig,
-  getGCPVMMCPEnv 
-} from '@/lib/env-safe';
+import { validateGoogleAIMCPConfig, getGCPVMMCPEnv } from '@/lib/env-safe';
 import type {
   AIQueryContext,
   MCPContext,
@@ -70,14 +67,19 @@ export class GoogleAIModeProcessor {
     mcpContext: MCPContext | null,
     thinkingSteps: QueryResponse['thinkingSteps'],
     startTime: number,
-    modeConfig: { 
-      enableGoogleAI: boolean; 
-      enableAIAssistantMCP: boolean; 
-      enableKoreanNLP: boolean; 
+    modeConfig: {
+      enableGoogleAI: boolean;
+      enableAIAssistantMCP: boolean;
+      enableKoreanNLP: boolean;
       enableVMBackend: boolean;
     }
   ): Promise<QueryResponse> {
-    const { enableGoogleAI, enableAIAssistantMCP, enableKoreanNLP, enableVMBackend } = modeConfig;
+    const {
+      enableGoogleAI,
+      enableAIAssistantMCP,
+      enableKoreanNLP,
+      enableVMBackend,
+    } = modeConfig;
 
     // 1단계: 한국어 NLP 처리 (활성화된 경우)
     if (enableKoreanNLP) {
@@ -91,23 +93,25 @@ export class GoogleAIModeProcessor {
 
       try {
         const koreanRatio = this.utils.calculateKoreanRatio(query);
-        
+
         if (koreanRatio > 0.3) {
           // Korean NLP 엔진 (Google AI mode에서는 Gemini API가 자체 처리)
           thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-          thinkingSteps[thinkingSteps.length - 1].description = 
+          thinkingSteps[thinkingSteps.length - 1].description =
             `한국어 비율 ${Math.round(koreanRatio * 100)}% - NLP 처리 완료`;
         } else {
           thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-          thinkingSteps[thinkingSteps.length - 1].description = 
+          thinkingSteps[thinkingSteps.length - 1].description =
             `영어 쿼리 감지 - NLP 건너뛰기`;
         }
-        
-        thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - nlpStepStart;
+
+        thinkingSteps[thinkingSteps.length - 1].duration =
+          Date.now() - nlpStepStart;
       } catch (error) {
         console.warn('한국어 NLP 처리 실패:', error);
         thinkingSteps[thinkingSteps.length - 1].status = 'failed';
-        thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - nlpStepStart;
+        thinkingSteps[thinkingSteps.length - 1].duration =
+          Date.now() - nlpStepStart;
       }
     }
 
@@ -126,7 +130,11 @@ export class GoogleAIModeProcessor {
       }
 
       // 컨텍스트를 포함한 프롬프트 생성
-      const prompt = this.helpers.buildGoogleAIPrompt(query, context, mcpContext);
+      const prompt = this.helpers.buildGoogleAIPrompt(
+        query,
+        context,
+        mcpContext
+      );
 
       // Google AI API 호출 (타임아웃 설정)
       const controller = new AbortController();
@@ -138,7 +146,7 @@ export class GoogleAIModeProcessor {
         body: JSON.stringify({
           prompt,
           temperature: 0.7, // 고정값 (복잡도 분석 없음)
-          maxTokens: 1000,  // 고정값
+          maxTokens: 1000, // 고정값
         }),
         signal: controller.signal,
       });
@@ -152,13 +160,15 @@ export class GoogleAIModeProcessor {
       const data = await response.json();
 
       thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-      thinkingSteps[thinkingSteps.length - 1].description = 'Gemini API 응답 수신';
-      thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - googleStepStart;
+      thinkingSteps[thinkingSteps.length - 1].description =
+        'Gemini API 응답 수신';
+      thinkingSteps[thinkingSteps.length - 1].duration =
+        Date.now() - googleStepStart;
 
       // 2.5단계: GCP VM MCP 서버 직접 호출 (베스트 프렉티스 적용)
       let gcpMcpResult = null;
       const mcpConfig = validateGoogleAIMCPConfig();
-      
+
       if (mcpConfig.isValid && mcpConfig.config.gcpVMMCP.integrationEnabled) {
         const mcpStepStart = Date.now();
         thinkingSteps.push({
@@ -170,7 +180,7 @@ export class GoogleAIModeProcessor {
 
         try {
           const { serverUrl, timeout } = mcpConfig.config.gcpVMMCP;
-          
+
           // JSON-RPC 표준 준수 (베스트 프렉티스)
           const mcpRequest = {
             jsonrpc: '2.0',
@@ -183,15 +193,15 @@ export class GoogleAIModeProcessor {
                 googleAIResponse: data.response || data.text,
                 originalQuery: query,
                 timestamp: new Date().toISOString(),
-                mcpContext: mcpContext
+                mcpContext: mcpContext,
               },
               options: {
                 temperature: 0.7,
                 maxTokens: 500,
                 includeMetrics: true,
-                source: 'google-ai-mode'
-              }
-            }
+                source: 'google-ai-mode',
+              },
+            },
           };
 
           // 타임아웃 설정 (베스트 프렉티스)
@@ -203,7 +213,7 @@ export class GoogleAIModeProcessor {
 
           // GCP VM MCP 서버 직접 호출
           console.log(`🌐 GCP VM MCP 서버 호출: ${serverUrl}`);
-          
+
           const mcpResponse = await fetch(`${serverUrl}/mcp/query`, {
             method: 'POST',
             headers: {
@@ -219,11 +229,13 @@ export class GoogleAIModeProcessor {
           clearTimeout(mcpTimeout);
 
           if (!mcpResponse.ok) {
-            throw new Error(`GCP VM MCP 서버 응답 오류: ${mcpResponse.status} ${mcpResponse.statusText}`);
+            throw new Error(
+              `GCP VM MCP 서버 응답 오류: ${mcpResponse.status} ${mcpResponse.statusText}`
+            );
           }
 
           const mcpData = await mcpResponse.json();
-          
+
           // 응답 검증 (JSON-RPC 표준)
           if (mcpData.success !== undefined ? mcpData.success : true) {
             gcpMcpResult = {
@@ -232,36 +244,43 @@ export class GoogleAIModeProcessor {
               serverUsed: 'gcp-vm-mcp',
               metadata: mcpData.metadata || {
                 mcpType: 'google-ai',
-                aiMode: 'natural-language-processing'
-              }
+                aiMode: 'natural-language-processing',
+              },
             };
 
             thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-            thinkingSteps[thinkingSteps.length - 1].description = 
+            thinkingSteps[thinkingSteps.length - 1].description =
               `MCP 자연어 처리 완료 (${gcpMcpResult.processingTime}ms)`;
-            
-            console.log(`✅ GCP VM MCP 호출 성공: ${gcpMcpResult.processingTime}ms`);
+
+            console.log(
+              `✅ GCP VM MCP 호출 성공: ${gcpMcpResult.processingTime}ms`
+            );
           } else {
-            throw new Error(mcpData.error || 'MCP 서버에서 알 수 없는 오류 반환');
+            throw new Error(
+              mcpData.error || 'MCP 서버에서 알 수 없는 오류 반환'
+            );
           }
 
-          thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - mcpStepStart;
-          
+          thinkingSteps[thinkingSteps.length - 1].duration =
+            Date.now() - mcpStepStart;
         } catch (error) {
           // 상세한 에러 핸들링 (베스트 프렉티스)
-          const errorMsg = error instanceof Error ? error.message : '알 수 없는 오류';
-          
+          const errorMsg =
+            error instanceof Error ? error.message : '알 수 없는 오류';
+
           console.warn(`⚠️ GCP VM MCP 호출 실패: ${errorMsg}`);
-          
+
           thinkingSteps[thinkingSteps.length - 1].status = 'failed';
-          thinkingSteps[thinkingSteps.length - 1].description = `MCP 서버 오류: ${errorMsg}`;
-          thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - mcpStepStart;
-          
+          thinkingSteps[thinkingSteps.length - 1].description =
+            `MCP 서버 오류: ${errorMsg}`;
+          thinkingSteps[thinkingSteps.length - 1].duration =
+            Date.now() - mcpStepStart;
+
           // MCP 실패는 전체 응답을 방해하지 않음 (폴백)
           gcpMcpResult = {
             fallback: true,
             error: errorMsg,
-            processingTime: Date.now() - mcpStepStart
+            processingTime: Date.now() - mcpStepStart,
           };
         }
       } else {
@@ -289,28 +308,31 @@ export class GoogleAIModeProcessor {
           if (vmBackendConnector.isEnabled) {
             try {
               // 1. 세션 생성 및 메시지 기록
-              const session = await vmBackendConnector.createSession('google-ai-user', {
-                query,
-                mode: 'google-ai',
-                googleAIResponse: data.response,
-                mcpUsed: !!mcpContext && enableAIAssistantMCP
-              });
+              const session = await vmBackendConnector.createSession(
+                'google-ai-user',
+                {
+                  query,
+                  mode: 'google-ai',
+                  googleAIResponse: data.response,
+                  mcpUsed: !!mcpContext && enableAIAssistantMCP,
+                }
+              );
 
               if (session) {
                 await vmBackendConnector.addMessage(session.id, {
                   role: 'user',
                   content: query,
-                  metadata: { mode: 'google-ai', mcpContext: !!mcpContext }
+                  metadata: { mode: 'google-ai', mcpContext: !!mcpContext },
                 });
 
                 await vmBackendConnector.addMessage(session.id, {
                   role: 'assistant',
                   content: data.response || data.text,
-                  metadata: { 
+                  metadata: {
                     model: data.model,
                     tokensUsed: data.tokensUsed,
-                    confidence: data.confidence
-                  }
+                    confidence: data.confidence,
+                  },
                 });
 
                 // 2. 심층 분석 시작 (비동기)
@@ -320,7 +342,7 @@ export class GoogleAIModeProcessor {
                   {
                     googleAIResponse: data.response,
                     sessionId: session.id,
-                    mcpContext: mcpContext
+                    mcpContext: mcpContext,
                   }
                 );
 
@@ -333,7 +355,7 @@ export class GoogleAIModeProcessor {
                   sessionId: session.id,
                   analysisJobId: analysisJob?.id,
                   deepAnalysisStarted: !!analysisJob,
-                  streamingEnabled: true
+                  streamingEnabled: true,
                 };
               }
             } catch (vmError) {
@@ -341,28 +363,34 @@ export class GoogleAIModeProcessor {
               // VM 백엔드 오류는 전체 응답을 방해하지 않음
             }
           }
-          
+
           thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-          thinkingSteps[thinkingSteps.length - 1].description = 'VM 백엔드 고급 처리 완료';
-          thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - vmStepStart;
+          thinkingSteps[thinkingSteps.length - 1].description =
+            'VM 백엔드 고급 처리 완료';
+          thinkingSteps[thinkingSteps.length - 1].duration =
+            Date.now() - vmStepStart;
         } catch (error) {
           console.warn('VM 백엔드 고급 처리 실패:', error);
           thinkingSteps[thinkingSteps.length - 1].status = 'failed';
-          thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - vmStepStart;
+          thinkingSteps[thinkingSteps.length - 1].duration =
+            Date.now() - vmStepStart;
         }
       }
 
       // Google AI 응답과 GCP VM MCP 결과 통합
-      let finalResponse = data.response || data.text || '응답을 생성할 수 없습니다.';
+      let finalResponse =
+        data.response || data.text || '응답을 생성할 수 없습니다.';
       let finalConfidence = data.confidence || 0.9;
-      
+
       // GCP VM MCP 결과가 있고 성공적이면 응답 향상
       if (gcpMcpResult && !gcpMcpResult.fallback && gcpMcpResult.enhanced) {
         // MCP가 응답을 보강한 경우
         finalResponse = gcpMcpResult.enhanced;
         finalConfidence = Math.min(finalConfidence + 0.1, 1.0); // 신뢰도 10% 향상 (최대 1.0)
-        
-        console.log(`✨ GCP VM MCP로 응답 보강 완료 (신뢰도: ${finalConfidence})`);
+
+        console.log(
+          `✨ GCP VM MCP로 응답 보강 완료 (신뢰도: ${finalConfidence})`
+        );
       } else if (gcpMcpResult && gcpMcpResult.fallback) {
         console.log(`⚠️ GCP VM MCP 폴백 모드: ${gcpMcpResult.error}`);
       }
@@ -381,20 +409,24 @@ export class GoogleAIModeProcessor {
           koreanNLPUsed: enableKoreanNLP,
           vmBackendUsed: enableVMBackend && !!vmBackendResult,
           gcpVMMCPUsed: !!gcpMcpResult && !gcpMcpResult.fallback, // 🎯 GCP VM MCP 사용 여부
-          gcpVMMCPResult: gcpMcpResult ? {
-            success: !gcpMcpResult.fallback,
-            data: {
-              response: gcpMcpResult.fallback ? '' : (gcpMcpResult.enhanced || ''),
-              confidence: gcpMcpResult.fallback ? 0 : 0.85,
-              metadata: gcpMcpResult.metadata || {}
-            }
-          } : undefined,
+          gcpVMMCPResult: gcpMcpResult
+            ? {
+                success: !gcpMcpResult.fallback,
+                data: {
+                  response: gcpMcpResult.fallback
+                    ? ''
+                    : gcpMcpResult.enhanced || '',
+                  confidence: gcpMcpResult.fallback ? 0 : 0.85,
+                  metadata: gcpMcpResult.metadata || {},
+                },
+              }
+            : undefined,
           mockMode: !!this.mockContextLoader.getMockContext(),
           mode: 'google-ai',
-        } as unknown as AIMetadata & { 
-          aiAssistantMCPUsed?: boolean; 
-          koreanNLPUsed?: boolean; 
-          vmBackendUsed?: boolean; 
+        } as unknown as AIMetadata & {
+          aiAssistantMCPUsed?: boolean;
+          koreanNLPUsed?: boolean;
+          vmBackendUsed?: boolean;
           gcpVMMCPUsed?: boolean;
           gcpVMMCPResult?: GCPVMMCPResult;
           mockMode?: boolean;
@@ -406,8 +438,10 @@ export class GoogleAIModeProcessor {
 
       // 폴백: 로컬 AI 모드로 전환
       thinkingSteps[thinkingSteps.length - 1].status = 'failed';
-      thinkingSteps[thinkingSteps.length - 1].description = 'Google AI 실패, 로컬 AI 모드로 전환';
-      thinkingSteps[thinkingSteps.length - 1].duration = Date.now() - googleStepStart;
+      thinkingSteps[thinkingSteps.length - 1].description =
+        'Google AI 실패, 로컬 AI 모드로 전환';
+      thinkingSteps[thinkingSteps.length - 1].duration =
+        Date.now() - googleStepStart;
 
       return await this.localAIProcessor.processLocalAIModeQuery(
         query,

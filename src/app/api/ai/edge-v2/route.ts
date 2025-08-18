@@ -1,6 +1,6 @@
 /**
  * 🚀 Edge AI API Route v2
- * 
+ *
  * Supabase Realtime 기반 Edge Runtime API
  * - Supabase로 생각중 상태 저장
  * - 캐시 우선 전략으로 Edge Runtime 시간 절약
@@ -32,21 +32,24 @@ export async function POST(req: NextRequest) {
     // 1. 레이트 리미팅 (무료 티어 보호)
     const clientIp = req.headers.get('x-forwarded-for') || 'anonymous';
     const now = Date.now();
-    
-    const clientData = requestCounts.get(clientIp) || { count: 0, resetTime: now + RATE_LIMIT.windowMs };
-    
+
+    const clientData = requestCounts.get(clientIp) || {
+      count: 0,
+      resetTime: now + RATE_LIMIT.windowMs,
+    };
+
     if (now > clientData.resetTime) {
       clientData.count = 0;
       clientData.resetTime = now + RATE_LIMIT.windowMs;
     }
-    
+
     if (clientData.count >= RATE_LIMIT.maxRequests) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },
         { status: 429 }
       );
     }
-    
+
     clientData.count++;
     requestCounts.set(clientIp, clientData);
 
@@ -55,10 +58,7 @@ export async function POST(req: NextRequest) {
     const { query, userId, sessionId, services, parallel, metadata } = body;
 
     if (!query) {
-      return NextResponse.json(
-        { error: 'Query is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
     // 3. Edge Router 요청 구성
@@ -75,16 +75,18 @@ export async function POST(req: NextRequest) {
 
     // 4. 생각중 상태 시작 (비동기)
     const sessionIdString = routerRequest.sessionId || crypto.randomUUID();
-    const thinkingPromise = supabaseRealtimeAdapter.addThinkingStep(
-      sessionIdString,
-      {
-        step: 'AI 처리 시작',
-        description: query.substring(0, 100),
-        status: 'processing',
-        timestamp: Date.now(),
-      },
-      userId
-    ).catch(debug.warn); // 실패해도 계속 진행
+    const thinkingPromise = supabaseRealtimeAdapter
+      .addThinkingStep(
+        sessionIdString,
+        {
+          step: 'AI 처리 시작',
+          description: query.substring(0, 100),
+          status: 'processing',
+          timestamp: Date.now(),
+        },
+        userId
+      )
+      .catch(debug.warn); // 실패해도 계속 진행
 
     // 5. Edge Router 실행
     const startTime = Date.now();
@@ -98,17 +100,19 @@ export async function POST(req: NextRequest) {
     );
 
     // 7. 생각중 상태 완료 (비동기)
-    thinkingPromise.then(() => 
-      supabaseRealtimeAdapter.addThinkingStep(
-        sessionIdString,
-        {
-          step: 'AI 처리 완료',
-          status: 'completed',
-          timestamp: Date.now(),
-          duration: Date.now() - startTime,
-        },
-        userId
-      ).catch(debug.warn)
+    thinkingPromise.then(() =>
+      supabaseRealtimeAdapter
+        .addThinkingStep(
+          sessionIdString,
+          {
+            step: 'AI 처리 완료',
+            status: 'completed',
+            timestamp: Date.now(),
+            duration: Date.now() - startTime,
+          },
+          userId
+        )
+        .catch(debug.warn)
     );
 
     // 8. 응답 헤더 설정 (캐시 제어)
@@ -120,16 +124,18 @@ export async function POST(req: NextRequest) {
 
     // 캐시 히트인 경우 브라우저 캐싱 허용
     if (unifiedResponse.metadata.cacheHit) {
-      headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+      headers.set(
+        'Cache-Control',
+        'public, s-maxage=300, stale-while-revalidate=600'
+      );
     } else {
       headers.set('Cache-Control', 'no-cache');
     }
 
     return NextResponse.json(unifiedResponse, { headers });
-
   } catch (error) {
     debug.error('Edge AI Route v2 Error:', error);
-    
+
     // 에러 응답
     return NextResponse.json(
       {
@@ -157,9 +163,9 @@ export async function GET(_req: NextRequest) {
     },
     services: [
       'redis-cache',
-      'supabase-rag', 
+      'supabase-rag',
       'gcp-korean-nlp',
-      'gcp-ml-analytics'
+      'gcp-ml-analytics',
     ],
     usage: {
       method: 'POST',
@@ -181,7 +187,7 @@ export async function GET(_req: NextRequest) {
         '실시간성: 1초 폴링 → 즉시 (WebSocket)',
         '네트워크: SSE + 폴링 → WebSocket 단일',
         '저장 기간: 1시간 TTL → 영구 저장',
-        '쿼리 기능: 제한적 → Full SQL'
+        '쿼리 기능: 제한적 → Full SQL',
       ],
     },
     timestamp: new Date().toISOString(),
@@ -201,11 +207,14 @@ export async function OPTIONS(_req: NextRequest) {
 }
 
 // 주기적 메모리 정리 (5분마다)
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, data] of requestCounts.entries()) {
-    if (now > data.resetTime + RATE_LIMIT.windowMs) {
-      requestCounts.delete(ip);
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [ip, data] of requestCounts.entries()) {
+      if (now > data.resetTime + RATE_LIMIT.windowMs) {
+        requestCounts.delete(ip);
+      }
     }
-  }
-}, 5 * 60 * 1000);
+  },
+  5 * 60 * 1000
+);

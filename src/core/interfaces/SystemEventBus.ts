@@ -1,6 +1,6 @@
 /**
  * 🚌 시스템 이벤트 버스 인터페이스
- * 
+ *
  * ProcessManager와 SystemWatchdog 간의 순환 의존성을 해결하기 위한
  * 이벤트 기반 통신 인터페이스
  */
@@ -12,17 +12,17 @@ export enum SystemEventType {
   PROCESS_STOPPED = 'process:stopped',
   PROCESS_ERROR = 'process:error',
   PROCESS_HEALTH_CHECK = 'process:health_check',
-  
+
   // System Watchdog Events
   WATCHDOG_ALERT = 'watchdog:alert',
   WATCHDOG_RECOVERY = 'watchdog:recovery',
   WATCHDOG_THRESHOLD_EXCEEDED = 'watchdog:threshold_exceeded',
-  
+
   // System Status Events
   SYSTEM_HEALTHY = 'system:healthy',
   SYSTEM_DEGRADED = 'system:degraded',
   SYSTEM_CRITICAL = 'system:critical',
-  
+
   // Resource Events
   MEMORY_HIGH = 'resource:memory_high',
   CPU_HIGH = 'resource:cpu_high',
@@ -88,28 +88,30 @@ export interface SystemStatusPayload {
 }
 
 // 이벤트 리스너 타입
-export type EventListener<T = unknown> = (event: SystemEvent<T>) => void | Promise<void>;
+export type EventListener<T = unknown> = (
+  event: SystemEvent<T>
+) => void | Promise<void>;
 
 // 이벤트 버스 인터페이스
 export interface ISystemEventBus {
   // 이벤트 발행
   emit<T>(event: SystemEvent<T>): void;
-  
+
   // 이벤트 구독
   on<T>(eventType: SystemEventType, listener: EventListener<T>): void;
-  
+
   // 이벤트 구독 해제
   off<T>(eventType: SystemEventType, listener: EventListener<T>): void;
-  
+
   // 일회성 이벤트 구독
   once<T>(eventType: SystemEventType, listener: EventListener<T>): void;
-  
+
   // 모든 리스너 제거
   removeAllListeners(eventType?: SystemEventType): void;
-  
+
   // 이벤트 타입별 리스너 수
   listenerCount(eventType: SystemEventType): number;
-  
+
   // 이벤트 히스토리 조회 (선택적)
   getHistory?(eventType?: SystemEventType, limit?: number): SystemEvent[];
 }

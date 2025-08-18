@@ -1,6 +1,6 @@
 /**
  * 환경별 설정 관리 유틸리티
- * 
+ *
  * Vercel 배포, 테스트 서버, 로컬 개발 환경을 구분하여 적절한 URL 반환
  */
 
@@ -25,20 +25,20 @@ function detectEnvironment(): Environment {
   if (process.env.VERCEL_ENV === 'production') {
     return 'production';
   }
-  
+
   if (process.env.VERCEL_ENV === 'preview') {
     return 'test';
   }
-  
+
   // NODE_ENV 체크
   if (process.env.NODE_ENV === 'production') {
     return 'production';
   }
-  
+
   if (process.env.NODE_ENV === 'test') {
     return 'test';
   }
-  
+
   return 'development';
 }
 
@@ -50,14 +50,20 @@ function getSiteUrl(env: Environment): string {
   if (process.env.NEXT_PUBLIC_VERCEL_URL) {
     return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
   }
-  
+
   switch (env) {
     case 'production':
-      return process.env.NEXT_PUBLIC_PROD_URL || 'https://openmanager-vibe-v5.vercel.app';
-    
+      return (
+        process.env.NEXT_PUBLIC_PROD_URL ||
+        'https://openmanager-vibe-v5.vercel.app'
+      );
+
     case 'test':
-      return process.env.NEXT_PUBLIC_TEST_URL || 'https://openmanager-test.vercel.app';
-    
+      return (
+        process.env.NEXT_PUBLIC_TEST_URL ||
+        'https://openmanager-test.vercel.app'
+      );
+
     case 'development':
     default:
       return process.env.NEXT_PUBLIC_DEV_URL || 'http://localhost:3000';
@@ -84,7 +90,7 @@ function getVmApiUrl(): string {
  */
 export function getEnvConfig(): EnvConfig {
   const environment = detectEnvironment();
-  
+
   return {
     environment,
     siteUrl: getSiteUrl(environment),
@@ -102,7 +108,7 @@ export function getEnvConfig(): EnvConfig {
  */
 export function getPublicEnvConfig() {
   const environment = detectEnvironment();
-  
+
   return {
     environment,
     siteUrl: getSiteUrl(environment),
@@ -119,12 +125,13 @@ export function getPublicEnvConfig() {
 export const featureFlags = {
   // 개발 환경에서만 활성화
   debugMode: process.env.NODE_ENV === 'development',
-  mockMode: process.env.NODE_ENV === 'development' && process.env.MOCK_MODE === 'true',
-  
+  mockMode:
+    process.env.NODE_ENV === 'development' && process.env.MOCK_MODE === 'true',
+
   // 프로덕션에서만 활성화
   analytics: process.env.NODE_ENV === 'production',
   errorReporting: process.env.NODE_ENV === 'production',
-  
+
   // 테스트 환경에서 활성화
   testFeatures: process.env.NODE_ENV === 'test',
 };

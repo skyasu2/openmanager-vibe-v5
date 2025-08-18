@@ -1,6 +1,6 @@
 /**
  * 📊 PerformanceDashboard Components
- * 
+ *
  * Reusable UI components for performance dashboard:
  * - Custom tooltip component
  * - Chart-specific UI elements

@@ -25,14 +25,14 @@ export const AIChatMessages: React.FC<AIChatMessagesProps> = ({
 }) => {
   if (messages.length === 0) {
     return (
-      <div className='text-center py-8'>
-        <div className='w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3'>
-          <Bot className='w-6 h-6 text-white' />
+      <div className="py-8 text-center">
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-blue-600">
+          <Bot className="h-6 w-6 text-white" />
         </div>
-        <h3 className='text-lg font-medium text-gray-900 mb-2'>
+        <h3 className="mb-2 text-lg font-medium text-gray-900">
           안녕하세요! 👋
         </h3>
-        <p className='text-sm text-gray-500 max-w-[280px] mx-auto'>
+        <p className="mx-auto max-w-[280px] text-sm text-gray-500">
           아래 프리셋 질문을 선택하거나 직접 질문을 입력해보세요.
         </p>
       </div>
@@ -44,14 +44,15 @@ export const AIChatMessages: React.FC<AIChatMessagesProps> = ({
       {messages.map((message, index) => {
         // 메시지 ID로 완료된 사고 과정 찾기
         const thinkingForMessage = Object.entries(completedThinkingSteps).find(
-          ([_, thinking]) => thinking.query === message.content && message.role === 'user'
+          ([_, thinking]) =>
+            thinking.query === message.content && message.role === 'user'
         );
 
         return (
           <React.Fragment key={message.id}>
             {/* 사용자 메시지 다음에 사고 과정 표시 */}
             {message.role === 'user' && thinkingForMessage && (
-              <div className='mb-3'>
+              <div className="mb-3">
                 <AIThinkingDisplay
                   isThinking={false}
                   currentSteps={[]}
@@ -59,7 +60,9 @@ export const AIChatMessages: React.FC<AIChatMessagesProps> = ({
                   startTime={null}
                   onToggleExpanded={() => {}}
                   completedThinking={thinkingForMessage[1]}
-                  onToggleCompleted={() => onToggleCompletedThinking(thinkingForMessage[0])}
+                  onToggleCompleted={() =>
+                    onToggleCompletedThinking(thinkingForMessage[0])
+                  }
                 />
               </div>
             )}
@@ -77,19 +80,19 @@ export const AIChatMessages: React.FC<AIChatMessagesProps> = ({
                     : 'bg-gray-100 text-gray-800'
                 }`}
               >
-                <div className='flex items-start space-x-2'>
-                  <div className='mt-0.5'>
+                <div className="flex items-start space-x-2">
+                  <div className="mt-0.5">
                     {message.role === 'user' ? (
-                      <User className='w-3 h-3' />
+                      <User className="h-3 w-3" />
                     ) : (
-                      <Bot className='w-3 h-3' />
+                      <Bot className="h-3 w-3" />
                     )}
                   </div>
-                  <div className='flex-1'>
-                    <p className='text-sm whitespace-pre-wrap break-words'>
+                  <div className="flex-1">
+                    <p className="whitespace-pre-wrap break-words text-sm">
                       {message.content}
                     </p>
-                    <span className='text-xs opacity-70 mt-1 block'>
+                    <span className="mt-1 block text-xs opacity-70">
                       {new Date(message.timestamp).toLocaleTimeString()}
                     </span>
                   </div>

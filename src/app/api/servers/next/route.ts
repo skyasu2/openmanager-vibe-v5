@@ -119,12 +119,12 @@ const getHandler = createApiRoute()
     enableLogging: true,
   })
   .build(async (_request, context): Promise<ServerPaginatedResponse> => {
-    const { 
-      page = 1, 
-      limit = 10, 
-      sortBy = 'name', 
-      sortOrder = 'asc', 
-      status 
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = 'name',
+      sortOrder = 'asc',
+      status,
     } = context.query;
 
     // Supabase에서 서버 데이터 가져오기
@@ -148,7 +148,10 @@ const getHandler = createApiRoute()
       status: server.status || 'offline',
       location: server.location || 'Unknown',
       uptime: typeof server.uptime === 'number' ? server.uptime : 0,
-      lastUpdate: server.lastUpdate instanceof Date ? server.lastUpdate.toISOString() : (server.lastUpdate || new Date().toISOString()),
+      lastUpdate:
+        server.lastUpdate instanceof Date
+          ? server.lastUpdate.toISOString()
+          : server.lastUpdate || new Date().toISOString(),
       metrics: {
         cpu: Math.round(server.metrics?.cpu ?? server.cpu ?? 0),
         memory: Math.round(server.metrics?.memory ?? server.memory ?? 0),

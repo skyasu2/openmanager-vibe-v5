@@ -9,18 +9,13 @@ import {
 
 /**
  * 🔐 인증 관련 Zod 스키마
- * 
+ *
  * 사용자 인증 및 권한 관리에 사용되는 스키마들
  */
 
 // ===== 사용자 =====
 
-export const UserRoleSchema = z.enum([
-  'admin',
-  'editor',
-  'viewer',
-  'guest',
-]);
+export const UserRoleSchema = z.enum(['admin', 'editor', 'viewer', 'guest']);
 
 export const UserStatusSchema = z.enum([
   'active',
@@ -35,22 +30,28 @@ export const UserProfileSchema = z.object({
   bio: z.string().max(500).optional(),
   location: z.string().max(100).optional(),
   website: UrlSchema.optional(),
-  preferences: z.object({
-    theme: z.enum(['light', 'dark', 'system']).default('system'),
-    language: z.string().default('ko'),
-    timezone: z.string().default('Asia/Seoul'),
-    notifications: z.object({
-      email: z.boolean().default(true),
-      push: z.boolean().default(true),
-      sms: z.boolean().default(false),
-    }),
-  }).optional(),
+  preferences: z
+    .object({
+      theme: z.enum(['light', 'dark', 'system']).default('system'),
+      language: z.string().default('ko'),
+      timezone: z.string().default('Asia/Seoul'),
+      notifications: z.object({
+        email: z.boolean().default(true),
+        push: z.boolean().default(true),
+        sms: z.boolean().default(false),
+      }),
+    })
+    .optional(),
 });
 
 export const UserSchema = z.object({
   id: IdSchema,
   email: EmailSchema,
-  username: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_-]+$/),
+  username: z
+    .string()
+    .min(3)
+    .max(30)
+    .regex(/^[a-zA-Z0-9_-]+$/),
   role: UserRoleSchema,
   status: UserStatusSchema,
   profile: UserProfileSchema,
@@ -74,19 +75,28 @@ export const GitHubLoginRequestSchema = z.object({
   state: z.string().optional(),
 });
 
-export const RegisterRequestSchema = z.object({
-  email: EmailSchema,
-  username: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_-]+$/),
-  password: z.string()
-    .min(8)
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-      '비밀번호는 대소문자, 숫자, 특수문자를 포함해야 합니다'),
-  confirmPassword: z.string(),
-  acceptTerms: z.boolean(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: '비밀번호가 일치하지 않습니다',
-  path: ['confirmPassword'],
-});
+export const RegisterRequestSchema = z
+  .object({
+    email: EmailSchema,
+    username: z
+      .string()
+      .min(3)
+      .max(30)
+      .regex(/^[a-zA-Z0-9_-]+$/),
+    password: z
+      .string()
+      .min(8)
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+        '비밀번호는 대소문자, 숫자, 특수문자를 포함해야 합니다'
+      ),
+    confirmPassword: z.string(),
+    acceptTerms: z.boolean(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: '비밀번호가 일치하지 않습니다',
+    path: ['confirmPassword'],
+  });
 
 // ===== 토큰 =====
 
@@ -126,11 +136,13 @@ export const SessionSchema = z.object({
     os: z.string().optional(),
     device: z.string().optional(),
   }),
-  location: z.object({
-    country: z.string().optional(),
-    city: z.string().optional(),
-    timezone: z.string().optional(),
-  }).optional(),
+  location: z
+    .object({
+      country: z.string().optional(),
+      city: z.string().optional(),
+      timezone: z.string().optional(),
+    })
+    .optional(),
   createdAt: TimestampSchema,
   lastActivity: TimestampSchema,
   expiresAt: TimestampSchema,
@@ -179,16 +191,19 @@ export const PasswordResetRequestSchema = z.object({
   captcha: z.string().optional(),
 });
 
-export const PasswordResetConfirmSchema = z.object({
-  token: z.string(),
-  password: z.string()
-    .min(8)
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: '비밀번호가 일치하지 않습니다',
-  path: ['confirmPassword'],
-});
+export const PasswordResetConfirmSchema = z
+  .object({
+    token: z.string(),
+    password: z
+      .string()
+      .min(8)
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: '비밀번호가 일치하지 않습니다',
+    path: ['confirmPassword'],
+  });
 
 // ===== 2단계 인증 =====
 

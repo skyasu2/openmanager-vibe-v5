@@ -1,18 +1,20 @@
 import { z } from 'zod';
-import {
-  IdSchema,
-  TimestampSchema,
-} from './common.schema';
+import { IdSchema, TimestampSchema } from './common.schema';
 
 /**
  * 🚨 알림 및 경고 스키마
- * 
+ *
  * 시스템 알림, 경고 수준, 알림 관리, 해결 추적
  */
 
 // ===== 알림 심각도 =====
 
-export const AlertSeveritySchema = z.enum(['low', 'medium', 'high', 'critical']);
+export const AlertSeveritySchema = z.enum([
+  'low',
+  'medium',
+  'high',
+  'critical',
+]);
 
 // ===== 알림 객체 =====
 

@@ -2,13 +2,18 @@ import { z } from 'zod';
 
 /**
  * 🛠️ 개발도구 키 관리자 스키마
- * 
+ *
  * 환경변수 키 관리, 유효성 검사, 자동 설정, 개발 환경 설정
  */
 
 // ===== Dev Key Manager 액션 =====
 
-export const DevKeyManagerActionSchema = z.enum(['status', 'report', 'generate-env', 'quick-setup']);
+export const DevKeyManagerActionSchema = z.enum([
+  'status',
+  'report',
+  'generate-env',
+  'quick-setup',
+]);
 
 // ===== 서비스 세부정보 =====
 
@@ -69,11 +74,13 @@ export const DevKeyManagerSetupResponseSchema = z.object({
   timestamp: z.string(),
   success: z.boolean(),
   message: z.string(),
-  details: z.object({
-    envFileCreated: z.boolean().optional(),
-    keysGenerated: z.number().optional(),
-    warnings: z.array(z.string()).optional(),
-  }).optional(),
+  details: z
+    .object({
+      envFileCreated: z.boolean().optional(),
+      keysGenerated: z.number().optional(),
+      warnings: z.array(z.string()).optional(),
+    })
+    .optional(),
 });
 
 // ===== 기본 응답 =====
@@ -115,7 +122,9 @@ export const ErrorReportSchema = z.object({
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   resolvedAt: z.string().datetime().optional(),
-  metadata: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
+  metadata: z
+    .record(z.union([z.string(), z.number(), z.boolean(), z.null()]))
+    .optional(),
 });
 
 export const ErrorReportRequestSchema = z.object({
@@ -124,7 +133,9 @@ export const ErrorReportRequestSchema = z.object({
   severity: z.enum(['low', 'medium', 'high', 'critical']),
   category: z.string().min(1),
   affectedSystems: z.array(z.string()).optional(),
-  metadata: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])).optional(),
+  metadata: z
+    .record(z.union([z.string(), z.number(), z.boolean(), z.null()]))
+    .optional(),
 });
 
 export const ErrorReportQuerySchema = z.object({
@@ -156,12 +167,14 @@ export const SystemOptimizeRequestSchema = z.object({
   targetSystems: z.array(z.string()).optional(),
   aggressive: z.boolean().default(false),
   dryRun: z.boolean().default(true),
-  options: z.object({
-    clearCache: z.boolean().optional(),
-    restartServices: z.boolean().optional(),
-    updateConfigs: z.boolean().optional(),
-    generateReport: z.boolean().optional(),
-  }).optional(),
+  options: z
+    .object({
+      clearCache: z.boolean().optional(),
+      restartServices: z.boolean().optional(),
+      updateConfigs: z.boolean().optional(),
+      generateReport: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 export const SystemOptimizeResponseSchema = z.object({
@@ -176,32 +189,56 @@ export const SystemOptimizeResponseSchema = z.object({
   }),
   recommendations: z.array(z.string()).optional(),
   timestamp: z.string().datetime(),
-  metadata: z.object({
-    processingTime: z.number().optional(),
-    affectedSystems: z.array(z.string()).optional(),
-  }).optional(),
+  metadata: z
+    .object({
+      processingTime: z.number().optional(),
+      affectedSystems: z.array(z.string()).optional(),
+    })
+    .optional(),
 });
 
 // ===== 타입 내보내기 =====
 
 export type DevKeyManagerAction = z.infer<typeof DevKeyManagerActionSchema>;
-export type DevKeyManagerServiceDetail = z.infer<typeof DevKeyManagerServiceDetailSchema>;
-export type DevKeyManagerValidation = z.infer<typeof DevKeyManagerValidationSchema>;
-export type DevKeyManagerStatusResponse = z.infer<typeof DevKeyManagerStatusResponseSchema>;
-export type DevKeyManagerReportResponse = z.infer<typeof DevKeyManagerReportResponseSchema>;
-export type DevKeyManagerEnvResponse = z.infer<typeof DevKeyManagerEnvResponseSchema>;
-export type DevKeyManagerSetupResponse = z.infer<typeof DevKeyManagerSetupResponseSchema>;
-export type DevKeyManagerDefaultResponse = z.infer<typeof DevKeyManagerDefaultResponseSchema>;
-export type DevKeyManagerErrorResponse = z.infer<typeof DevKeyManagerErrorResponseSchema>;
+export type DevKeyManagerServiceDetail = z.infer<
+  typeof DevKeyManagerServiceDetailSchema
+>;
+export type DevKeyManagerValidation = z.infer<
+  typeof DevKeyManagerValidationSchema
+>;
+export type DevKeyManagerStatusResponse = z.infer<
+  typeof DevKeyManagerStatusResponseSchema
+>;
+export type DevKeyManagerReportResponse = z.infer<
+  typeof DevKeyManagerReportResponseSchema
+>;
+export type DevKeyManagerEnvResponse = z.infer<
+  typeof DevKeyManagerEnvResponseSchema
+>;
+export type DevKeyManagerSetupResponse = z.infer<
+  typeof DevKeyManagerSetupResponseSchema
+>;
+export type DevKeyManagerDefaultResponse = z.infer<
+  typeof DevKeyManagerDefaultResponseSchema
+>;
+export type DevKeyManagerErrorResponse = z.infer<
+  typeof DevKeyManagerErrorResponseSchema
+>;
 
 // Error Report Types
 export type ErrorSeverity = z.infer<typeof ErrorReportSchema>['severity']; // 추가: ErrorSeverity 타입
 export type ErrorReport = z.infer<typeof ErrorReportSchema>;
 export type ErrorReportRequest = z.infer<typeof ErrorReportRequestSchema>;
 export type ErrorReportQuery = z.infer<typeof ErrorReportQuerySchema>;
-export type ErrorReportListResponse = z.infer<typeof ErrorReportListResponseSchema>;
-export type ErrorReportCreateResponse = z.infer<typeof ErrorReportCreateResponseSchema>;
+export type ErrorReportListResponse = z.infer<
+  typeof ErrorReportListResponseSchema
+>;
+export type ErrorReportCreateResponse = z.infer<
+  typeof ErrorReportCreateResponseSchema
+>;
 
 // System Optimization Types
 export type SystemOptimizeRequest = z.infer<typeof SystemOptimizeRequestSchema>;
-export type SystemOptimizeResponse = z.infer<typeof SystemOptimizeResponseSchema>;
+export type SystemOptimizeResponse = z.infer<
+  typeof SystemOptimizeResponseSchema
+>;

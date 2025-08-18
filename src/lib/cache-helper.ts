@@ -3,7 +3,7 @@
  *
  * 이 파일은 하위 호환성을 위해 유지됩니다.
  * 내부적으로 unified-cache.ts의 UnifiedCacheService를 사용합니다.
- * 
+ *
  * 마이그레이션 가이드:
  * - 새 코드는 unified-cache.ts를 직접 import하여 사용하세요
  * - 기존 코드는 이 파일을 계속 사용할 수 있습니다
@@ -19,14 +19,14 @@ export {
   createCachedResponse,
   UnifiedCacheService,
   unifiedCache,
-  CacheNamespace
+  CacheNamespace,
 } from './unified-cache';
 
 // 추가 호환성 함수들
-import { 
-  UnifiedCacheService, 
+import {
+  UnifiedCacheService,
   CacheNamespace,
-  unifiedCache 
+  unifiedCache,
 } from './unified-cache';
 
 /**
@@ -34,7 +34,9 @@ import {
  * @deprecated unified-cache.ts의 unifiedCache를 직접 사용하세요
  */
 export function getCacheService(): UnifiedCacheService {
-  console.warn('getCacheService() is deprecated. Use unifiedCache from unified-cache.ts instead.');
+  console.warn(
+    'getCacheService() is deprecated. Use unifiedCache from unified-cache.ts instead.'
+  );
   return UnifiedCacheService.getInstance();
 }
 
@@ -49,26 +51,23 @@ export async function getCachedDataWithFallback<T>(
 ): Promise<T> {
   return unifiedCache.getOrFetch(key, fallback, {
     ttlSeconds,
-    namespace: CacheNamespace.GENERAL
+    namespace: CacheNamespace.GENERAL,
   });
 }
 
 /**
  * 함수 결과 캐싱 래퍼 (하위 호환성)
  */
-export function cacheWrapper<T extends (...args: unknown[]) => Promise<unknown>>(
-  keyPrefix: string,
-  fn: T,
-  ttlSeconds: number = 300
-): T {
+export function cacheWrapper<
+  T extends (...args: unknown[]) => Promise<unknown>,
+>(keyPrefix: string, fn: T, ttlSeconds: number = 300): T {
   return (async (...args: Parameters<T>) => {
     const cacheKey = `${keyPrefix}:${JSON.stringify(args)}`;
-    
-    return unifiedCache.getOrFetch(
-      cacheKey,
-      () => fn(...args),
-      { ttlSeconds, namespace: CacheNamespace.GENERAL }
-    );
+
+    return unifiedCache.getOrFetch(cacheKey, () => fn(...args), {
+      ttlSeconds,
+      namespace: CacheNamespace.GENERAL,
+    });
   }) as T;
 }
 
@@ -82,17 +81,13 @@ export async function cacheOrFetchMany<T>(
     ttl?: number;
   }>
 ): Promise<T[]> {
-  const promises = items.map(item => 
-    unifiedCache.getOrFetch(
-      item.key,
-      item.fetcher,
-      { 
-        ttlSeconds: item.ttl,
-        namespace: CacheNamespace.GENERAL 
-      }
-    )
+  const promises = items.map((item) =>
+    unifiedCache.getOrFetch(item.key, item.fetcher, {
+      ttlSeconds: item.ttl,
+      namespace: CacheNamespace.GENERAL,
+    })
   );
-  
+
   return Promise.all(promises);
 }
 
@@ -146,9 +141,9 @@ export async function warmupCache(
   const promises = items.map(async ({ key, fetcher, ttl }) => {
     try {
       const data = await fetcher();
-      await unifiedCache.set(key, data, { 
+      await unifiedCache.set(key, data, {
         ttlSeconds: ttl,
-        namespace: CacheNamespace.GENERAL 
+        namespace: CacheNamespace.GENERAL,
       });
     } catch (error) {
       console.error(`캐시 워밍업 실패 (${key}):`, error);
@@ -174,7 +169,7 @@ export function getCacheHealth(): {
 } {
   const stats = unifiedCache.getStats();
   const usagePercent = (stats.size / stats.maxSize) * 100;
-  
+
   const recommendations: string[] = [];
   let status: 'healthy' | 'warning' | 'critical' = 'healthy';
   let memoryPressure: 'low' | 'medium' | 'high' = 'low';
@@ -209,44 +204,46 @@ export function getCacheHealth(): {
 // MemoryCacheService 클래스 (하위 호환성)
 export class MemoryCacheService {
   private unifiedCache = UnifiedCacheService.getInstance();
-  
+
   // 하위 호환성을 위한 public cache 속성
   get cache() {
-    console.warn('Direct cache access is deprecated. Use the provided methods instead.');
+    console.warn(
+      'Direct cache access is deprecated. Use the provided methods instead.'
+    );
     return new Map();
   }
-  
+
   async get<T>(key: string): Promise<T | null> {
     return this.unifiedCache.get<T>(key, CacheNamespace.GENERAL);
   }
-  
+
   async set<T>(key: string, value: T, ttlSeconds: number = 300): Promise<void> {
-    return this.unifiedCache.set(key, value, { 
-      ttlSeconds, 
-      namespace: CacheNamespace.GENERAL 
+    return this.unifiedCache.set(key, value, {
+      ttlSeconds,
+      namespace: CacheNamespace.GENERAL,
     });
   }
-  
+
   async mget<T>(keys: string[]): Promise<(T | null)[]> {
-    return Promise.all(keys.map(key => this.get<T>(key)));
+    return Promise.all(keys.map((key) => this.get<T>(key)));
   }
-  
+
   async delete(key: string): Promise<void> {
     return this.unifiedCache.invalidate(key, CacheNamespace.GENERAL);
   }
-  
+
   async invalidateCache(pattern?: string): Promise<void> {
     return this.unifiedCache.invalidate(pattern, CacheNamespace.GENERAL);
   }
-  
+
   getStats() {
     return this.unifiedCache.getStats();
   }
-  
+
   resetStats(): void {
     this.unifiedCache.resetStats();
   }
-  
+
   cleanup(): void {
     this.unifiedCache.cleanup();
   }

@@ -64,11 +64,13 @@ interface RAGSearchResult {
 }
 
 // Helper function to convert DocumentMetadata to AIMetadata
-function convertDocumentMetadataToAIMetadata(docMeta?: DocumentMetadata): AIMetadata | undefined {
+function convertDocumentMetadataToAIMetadata(
+  docMeta?: DocumentMetadata
+): AIMetadata | undefined {
   if (!docMeta) return undefined;
-  
+
   const aiMeta: AIMetadata = {};
-  
+
   // Map known fields with proper types
   if (docMeta.category) aiMeta.category = docMeta.category;
   if (docMeta.tags) aiMeta.tags = docMeta.tags;
@@ -76,13 +78,24 @@ function convertDocumentMetadataToAIMetadata(docMeta?: DocumentMetadata): AIMeta
   if (docMeta.timestamp) aiMeta.timestamp = docMeta.timestamp; // string type is compatible
   if (docMeta.priority !== undefined) aiMeta.importance = docMeta.priority;
   if (docMeta.version) aiMeta.version = docMeta.version;
-  
+
   // Map other fields, ensuring they match AIMetadata's type constraints
   for (const [key, value] of Object.entries(docMeta)) {
-    if (['category', 'tags', 'source', 'timestamp', 'priority', 'version', 'title', 'author'].includes(key)) {
+    if (
+      [
+        'category',
+        'tags',
+        'source',
+        'timestamp',
+        'priority',
+        'version',
+        'title',
+        'author',
+      ].includes(key)
+    ) {
       continue; // Already handled or not needed
     }
-    
+
     // Only add values that match AIMetadata's allowed types
     if (
       typeof value === 'string' ||
@@ -93,40 +106,59 @@ function convertDocumentMetadataToAIMetadata(docMeta?: DocumentMetadata): AIMeta
       (typeof value === 'object' && value !== null && !Array.isArray(value)) ||
       value === undefined
     ) {
-      aiMeta[key] = value as string | number | boolean | Date | string[] | Record<string, unknown> | undefined;
+      aiMeta[key] = value as
+        | string
+        | number
+        | boolean
+        | Date
+        | string[]
+        | Record<string, unknown>
+        | undefined;
     }
   }
-  
+
   return aiMeta;
 }
 
 // Helper function to convert AIMetadata to DocumentMetadata
-function convertAIMetadataToDocumentMetadata(aiMeta?: AIMetadata): DocumentMetadata | undefined {
+function convertAIMetadataToDocumentMetadata(
+  aiMeta?: AIMetadata
+): DocumentMetadata | undefined {
   if (!aiMeta) return undefined;
-  
+
   const docMeta: DocumentMetadata = {};
-  
+
   // Map known fields
   if (aiMeta.category) docMeta.category = aiMeta.category;
   if (aiMeta.tags) docMeta.tags = aiMeta.tags;
   if (aiMeta.source) docMeta.source = aiMeta.source;
   if (aiMeta.timestamp) {
     // Convert Date to string if needed
-    docMeta.timestamp = aiMeta.timestamp instanceof Date 
-      ? aiMeta.timestamp.toISOString() 
-      : aiMeta.timestamp;
+    docMeta.timestamp =
+      aiMeta.timestamp instanceof Date
+        ? aiMeta.timestamp.toISOString()
+        : aiMeta.timestamp;
   }
   if (aiMeta.importance !== undefined) docMeta.priority = aiMeta.importance;
   if (aiMeta.version) docMeta.version = aiMeta.version;
-  
+
   // Map other fields
   for (const [key, value] of Object.entries(aiMeta)) {
-    if (['category', 'tags', 'source', 'timestamp', 'importance', 'version'].includes(key)) {
+    if (
+      [
+        'category',
+        'tags',
+        'source',
+        'timestamp',
+        'importance',
+        'version',
+      ].includes(key)
+    ) {
       continue; // Already handled
     }
     docMeta[key] = value;
   }
-  
+
   return docMeta;
 }
 
@@ -142,17 +174,23 @@ interface MCPContextData {
 
 // 메모리 기반 RAG 캐시 클래스
 class MemoryRAGCache {
-  private embeddingCache = new Map<string, { 
-    embedding: number[]; 
-    timestamp: number; 
-    hits: number; 
-  }>();
-  private searchCache = new Map<string, { 
-    result: RAGEngineSearchResult; 
-    timestamp: number; 
-    hits: number; 
-  }>();
-  
+  private embeddingCache = new Map<
+    string,
+    {
+      embedding: number[];
+      timestamp: number;
+      hits: number;
+    }
+  >();
+  private searchCache = new Map<
+    string,
+    {
+      result: RAGEngineSearchResult;
+      timestamp: number;
+      hits: number;
+    }
+  >();
+
   private maxEmbeddingSize = 500; // 최대 500개 임베딩 (성능 최적화)
   private maxSearchSize = 100; // 최대 100개 검색 결과 (캐시 히트율 향상)
   private ttlSeconds = 1800; // 30분 TTL (무료 티어 최적화)
@@ -161,12 +199,12 @@ class MemoryRAGCache {
   getEmbedding(key: string): number[] | null {
     const item = this.embeddingCache.get(key);
     if (!item) return null;
-    
+
     if (Date.now() - item.timestamp > this.ttlSeconds * 1000) {
       this.embeddingCache.delete(key);
       return null;
     }
-    
+
     item.hits++;
     return item.embedding;
   }
@@ -175,7 +213,7 @@ class MemoryRAGCache {
     if (this.embeddingCache.size >= this.maxEmbeddingSize) {
       this.evictLeastUsedEmbedding();
     }
-    
+
     this.embeddingCache.set(key, {
       embedding,
       timestamp: Date.now(),
@@ -187,12 +225,12 @@ class MemoryRAGCache {
   getSearchResult(key: string): RAGEngineSearchResult | null {
     const item = this.searchCache.get(key);
     if (!item) return null;
-    
+
     if (Date.now() - item.timestamp > this.ttlSeconds * 1000) {
       this.searchCache.delete(key);
       return null;
     }
-    
+
     item.hits++;
     return item.result;
   }
@@ -201,7 +239,7 @@ class MemoryRAGCache {
     if (this.searchCache.size >= this.maxSearchSize) {
       this.evictLeastUsedSearch();
     }
-    
+
     this.searchCache.set(key, {
       result,
       timestamp: Date.now(),
@@ -219,8 +257,14 @@ class MemoryRAGCache {
     return {
       embeddingCacheSize: this.embeddingCache.size,
       searchCacheSize: this.searchCache.size,
-      embeddingHits: Array.from(this.embeddingCache.values()).reduce((sum, item) => sum + item.hits, 0),
-      searchHits: Array.from(this.searchCache.values()).reduce((sum, item) => sum + item.hits, 0),
+      embeddingHits: Array.from(this.embeddingCache.values()).reduce(
+        (sum, item) => sum + item.hits,
+        0
+      ),
+      searchHits: Array.from(this.searchCache.values()).reduce(
+        (sum, item) => sum + item.hits,
+        0
+      ),
     };
   }
 
@@ -229,15 +273,18 @@ class MemoryRAGCache {
     let leastUsedKey = '';
     let leastHits = Infinity;
     let oldestTime = Date.now();
-    
+
     for (const [key, item] of this.embeddingCache) {
-      if (item.hits < leastHits || (item.hits === leastHits && item.timestamp < oldestTime)) {
+      if (
+        item.hits < leastHits ||
+        (item.hits === leastHits && item.timestamp < oldestTime)
+      ) {
         leastHits = item.hits;
         oldestTime = item.timestamp;
         leastUsedKey = key;
       }
     }
-    
+
     if (leastUsedKey) {
       this.embeddingCache.delete(leastUsedKey);
     }
@@ -247,15 +294,18 @@ class MemoryRAGCache {
     let leastUsedKey = '';
     let leastHits = Infinity;
     let oldestTime = Date.now();
-    
+
     for (const [key, item] of this.searchCache) {
-      if (item.hits < leastHits || (item.hits === leastHits && item.timestamp < oldestTime)) {
+      if (
+        item.hits < leastHits ||
+        (item.hits === leastHits && item.timestamp < oldestTime)
+      ) {
         leastHits = item.hits;
         oldestTime = item.timestamp;
         leastUsedKey = key;
       }
     }
-    
+
     if (leastUsedKey) {
       this.searchCache.delete(leastUsedKey);
     }
@@ -265,7 +315,7 @@ class MemoryRAGCache {
   cleanup(): void {
     const now = Date.now();
     const expireTime = this.ttlSeconds * 1000;
-    
+
     // 만료된 임베딩 제거
     const expiredEmbeddings: string[] = [];
     for (const [key, item] of this.embeddingCache) {
@@ -273,8 +323,8 @@ class MemoryRAGCache {
         expiredEmbeddings.push(key);
       }
     }
-    expiredEmbeddings.forEach(key => this.embeddingCache.delete(key));
-    
+    expiredEmbeddings.forEach((key) => this.embeddingCache.delete(key));
+
     // 만료된 검색 결과 제거
     const expiredSearches: string[] = [];
     for (const [key, item] of this.searchCache) {
@@ -282,7 +332,7 @@ class MemoryRAGCache {
         expiredSearches.push(key);
       }
     }
-    expiredSearches.forEach(key => this.searchCache.delete(key));
+    expiredSearches.forEach((key) => this.searchCache.delete(key));
   }
 }
 
@@ -300,11 +350,14 @@ export class SupabaseRAGEngine {
     this.vectorDB = new PostgresVectorDB();
     this.contextLoader = CloudContextLoader.getInstance();
     this.memoryCache = new MemoryRAGCache();
-    
+
     // 주기적 정리 (5분마다)
-    this.cleanupTimer = setInterval(() => {
-      this.memoryCache.cleanup();
-    }, 5 * 60 * 1000);
+    this.cleanupTimer = setInterval(
+      () => {
+        this.memoryCache.cleanup();
+      },
+      5 * 60 * 1000
+    );
   }
 
   /**
@@ -406,42 +459,45 @@ export class SupabaseRAGEngine {
           };
         }
 
-      // 3. MCP 컨텍스트 수집 (옵션)
-      let mcpContext = null;
-      if (enableMCP) {
-        mcpContext = await this.contextLoader.queryMCPContextForRAG(query, {
-          maxFiles: 5,
-          includeSystemContext: true,
-        });
-      }
+        // 3. MCP 컨텍스트 수집 (옵션)
+        let mcpContext = null;
+        if (enableMCP) {
+          mcpContext = await this.contextLoader.queryMCPContextForRAG(query, {
+            maxFiles: 5,
+            includeSystemContext: true,
+          });
+        }
 
-      // 4. 컨텍스트 생성
-      let context = '';
-      if (includeContext) {
-        context = this.buildContext(searchResults, mcpContext as unknown as MCPContextData | undefined);
-      }
+        // 4. 컨텍스트 생성
+        let context = '';
+        if (includeContext) {
+          context = this.buildContext(
+            searchResults,
+            mcpContext as unknown as MCPContextData | undefined
+          );
+        }
 
-      const result: RAGEngineSearchResult = {
-        success: true,
-        results: searchResults.map(r => ({
-          id: r.id,
-          content: r.content,
-          similarity: r.similarity,
-          metadata: convertDocumentMetadataToAIMetadata(r.metadata),
-        })),
-        context,
-        totalResults: searchResults.length,
-        processingTime: Date.now() - startTime,
-        cached: false,
-        mcpContext: mcpContext || undefined,
-      };
+        const result: RAGEngineSearchResult = {
+          success: true,
+          results: searchResults.map((r) => ({
+            id: r.id,
+            content: r.content,
+            similarity: r.similarity,
+            metadata: convertDocumentMetadataToAIMetadata(r.metadata),
+          })),
+          context,
+          totalResults: searchResults.length,
+          processingTime: Date.now() - startTime,
+          cached: false,
+          mcpContext: mcpContext || undefined,
+        };
 
-      // 메모리 캐시 저장
-      if (cached) {
-        this.memoryCache.setSearchResult(cacheKey, result);
-      }
+        // 메모리 캐시 저장
+        if (cached) {
+          this.memoryCache.setSearchResult(cacheKey, result);
+        }
 
-      return result;
+        return result;
       } catch (searchError) {
         // 벡터 검색 에러 처리
         console.error('벡터 검색 실패:', searchError);
@@ -451,7 +507,10 @@ export class SupabaseRAGEngine {
           totalResults: 0,
           processingTime: Date.now() - startTime,
           cached: false,
-          error: searchError instanceof Error ? searchError.message : '벡터 검색 실패',
+          error:
+            searchError instanceof Error
+              ? searchError.message
+              : '벡터 검색 실패',
         };
       }
     } catch (error) {
@@ -552,13 +611,13 @@ export class SupabaseRAGEngine {
     try {
       // 배치 임베딩 생성
       const embeddings = await Promise.all(
-        documents.map(doc => this.generateEmbedding(doc.content))
+        documents.map((doc) => this.generateEmbedding(doc.content))
       );
 
       // 임베딩이 성공한 문서들만 처리
       const validDocuments = documents
         .map((doc, i) => ({ ...doc, embedding: embeddings[i] }))
-        .filter(doc => doc.embedding !== null);
+        .filter((doc) => doc.embedding !== null);
 
       if (validDocuments.length === 0) {
         return { success: 0, failed: documents.length };
@@ -602,12 +661,15 @@ export class SupabaseRAGEngine {
   /**
    * 🏗️ 컨텍스트 구축
    */
-  private buildContext(searchResults: Array<{
-    id: string;
-    content: string;
-    similarity: number;
-    metadata?: AIMetadata | DocumentMetadata;
-  }>, mcpContext?: MCPContextData): string {
+  private buildContext(
+    searchResults: Array<{
+      id: string;
+      content: string;
+      similarity: number;
+      metadata?: AIMetadata | DocumentMetadata;
+    }>,
+    mcpContext?: MCPContextData
+  ): string {
     let context = '관련 정보:\n\n';
 
     // 검색 결과 컨텍스트
@@ -650,7 +712,7 @@ export class SupabaseRAGEngine {
     const magnitude = Math.sqrt(
       embedding.reduce((sum, val) => sum + val * val, 0)
     );
-    return embedding.map(val => val / magnitude);
+    return embedding.map((val) => val / magnitude);
   }
 
   /**
@@ -727,7 +789,9 @@ export class SupabaseRAGEngine {
         status: 'unhealthy',
         vectorDB: false,
         totalDocuments: 0,
-        cacheSize: this.memoryCache.getStats().searchCacheSize + this.memoryCache.getStats().embeddingCacheSize,
+        cacheSize:
+          this.memoryCache.getStats().searchCacheSize +
+          this.memoryCache.getStats().embeddingCacheSize,
       };
     }
   }

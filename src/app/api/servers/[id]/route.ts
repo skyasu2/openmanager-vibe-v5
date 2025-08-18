@@ -14,11 +14,11 @@ import {
   type ServerErrorResponse,
 } from '@/schemas/api.schema';
 // server-details.schema에서 직접 import (올바른 구조를 위해)
-import { 
+import {
   type ServerService,
   type ServerSpecs,
   type ServerHistory,
-  type ServerHistoryDataPoint 
+  type ServerHistoryDataPoint,
 } from '@/schemas/server-schemas/server-details.schema';
 import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';
@@ -153,8 +153,12 @@ export async function GET(
           cpu: Math.round(server.metrics?.cpu ?? server.cpu ?? 0),
           memory: Math.round(server.metrics?.memory ?? server.memory ?? 0),
           disk: Math.round(server.metrics?.disk ?? server.disk ?? 0),
-          network_in: Math.round(server.metrics?.network ?? server.network ?? 0),
-          network_out: Math.round(server.metrics?.network ?? server.network ?? 0),
+          network_in: Math.round(
+            server.metrics?.network ?? server.network ?? 0
+          ),
+          network_out: Math.round(
+            server.metrics?.network ?? server.network ?? 0
+          ),
           response_time: 50,
         },
       };
@@ -442,7 +446,10 @@ function formatUptime(uptimeSeconds: number): string {
 /**
  * 📈 서버 히스토리 생성 (실제 데이터 기반)
  */
-function generateServerHistory(server: DatabaseServer, range: string): ServerHistory {
+function generateServerHistory(
+  server: DatabaseServer,
+  range: string
+): ServerHistory {
   const timeRangeMs = parseTimeRange(range);
   const endTime = Date.now();
   const startTime = endTime - timeRangeMs;
@@ -466,17 +473,11 @@ function generateServerHistory(server: DatabaseServer, range: string): ServerHis
       metrics: {
         cpu_usage: Math.max(
           0,
-          Math.min(
-            100,
-            baseCpu + variation * 20 + (Math.random() - 0.5) * 10
-          )
+          Math.min(100, baseCpu + variation * 20 + (Math.random() - 0.5) * 10)
         ),
         memory_usage: Math.max(
           0,
-          Math.min(
-            100,
-            baseMemory + variation * 15 + (Math.random() - 0.5) * 8
-          )
+          Math.min(100, baseMemory + variation * 15 + (Math.random() - 0.5) * 8)
         ),
         disk_usage: Math.max(
           0,

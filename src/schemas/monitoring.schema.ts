@@ -8,7 +8,7 @@ import {
 
 /**
  * 📊 모니터링 관련 Zod 스키마
- * 
+ *
  * 시스템 모니터링 및 알림에 사용되는 스키마들
  */
 
@@ -61,7 +61,9 @@ export const MetricDefinitionSchema = z.object({
   unit: MetricUnitSchema,
   description: z.string().optional(),
   labels: z.array(z.string()).default([]),
-  aggregations: z.array(z.enum(['min', 'max', 'avg', 'sum', 'count'])).optional(),
+  aggregations: z
+    .array(z.enum(['min', 'max', 'avg', 'sum', 'count']))
+    .optional(),
 });
 
 export const MetricValueSchema = z.object({
@@ -73,17 +75,19 @@ export const MetricValueSchema = z.object({
 export const MetricDataSchema = z.object({
   metric: MetricDefinitionSchema,
   values: z.array(MetricValueSchema),
-  aggregated: z.object({
-    min: z.number().optional(),
-    max: z.number().optional(),
-    avg: z.number().optional(),
-    sum: z.number().optional(),
-    count: z.number().optional(),
-    p50: z.number().optional(),
-    p90: z.number().optional(),
-    p95: z.number().optional(),
-    p99: z.number().optional(),
-  }).optional(),
+  aggregated: z
+    .object({
+      min: z.number().optional(),
+      max: z.number().optional(),
+      avg: z.number().optional(),
+      sum: z.number().optional(),
+      count: z.number().optional(),
+      p50: z.number().optional(),
+      p90: z.number().optional(),
+      p95: z.number().optional(),
+      p99: z.number().optional(),
+    })
+    .optional(),
 });
 
 // ===== 알림 규칙 =====
@@ -119,10 +123,12 @@ export const AlertRuleSchema = z.object({
   severity: PrioritySchema,
   cooldown: z.number().nonnegative().default(300), // seconds
   annotations: z.record(z.string()).optional(),
-  actions: z.array(z.object({
-    type: z.enum(['email', 'sms', 'webhook', 'slack', 'pagerduty']),
-    config: z.record(z.unknown()),
-  })),
+  actions: z.array(
+    z.object({
+      type: z.enum(['email', 'sms', 'webhook', 'slack', 'pagerduty']),
+      config: z.record(z.unknown()),
+    })
+  ),
 });
 
 // ===== 알림 인스턴스 =====
@@ -176,13 +182,15 @@ export const DashboardPanelSchema = z.object({
     width: z.number().positive(),
     height: z.number().positive(),
   }),
-  queries: z.array(z.object({
-    metric: z.string(),
-    targetId: IdSchema.optional(),
-    filters: z.record(z.string()).optional(),
-    aggregation: z.string().optional(),
-    groupBy: z.array(z.string()).optional(),
-  })),
+  queries: z.array(
+    z.object({
+      metric: z.string(),
+      targetId: IdSchema.optional(),
+      filters: z.record(z.string()).optional(),
+      aggregation: z.string().optional(),
+      groupBy: z.array(z.string()).optional(),
+    })
+  ),
   options: z.record(z.unknown()).optional(),
   refreshInterval: z.number().positive().optional(), // seconds
 });
@@ -192,16 +200,22 @@ export const DashboardSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   panels: z.array(DashboardPanelSchema),
-  variables: z.array(z.object({
-    name: z.string(),
-    type: z.enum(['query', 'custom', 'constant']),
-    value: z.union([z.string(), z.array(z.string())]),
-    options: z.record(z.unknown()).optional(),
-  })).optional(),
-  timeRange: z.object({
-    from: z.string(),
-    to: z.string(),
-  }).optional(),
+  variables: z
+    .array(
+      z.object({
+        name: z.string(),
+        type: z.enum(['query', 'custom', 'constant']),
+        value: z.union([z.string(), z.array(z.string())]),
+        options: z.record(z.unknown()).optional(),
+      })
+    )
+    .optional(),
+  timeRange: z
+    .object({
+      from: z.string(),
+      to: z.string(),
+    })
+    .optional(),
   refreshInterval: z.number().positive().optional(),
   tags: z.array(z.string()).default([]),
   metadata: z.record(z.unknown()).optional(),
@@ -232,11 +246,13 @@ export const LogEntrySchema = z.object({
   traceId: z.string().optional(),
   spanId: z.string().optional(),
   userId: z.string().optional(),
-  error: z.object({
-    type: z.string(),
-    message: z.string(),
-    stack: z.string().optional(),
-  }).optional(),
+  error: z
+    .object({
+      type: z.string(),
+      message: z.string(),
+      stack: z.string().optional(),
+    })
+    .optional(),
 });
 
 // ===== SLA =====
@@ -254,14 +270,22 @@ export const SLASchema = z.object({
   description: z.string().optional(),
   targets: z.array(SLATargetSchema),
   period: z.enum(['daily', 'weekly', 'monthly', 'quarterly', 'yearly']),
-  penalties: z.array(z.object({
-    threshold: PercentageSchema,
-    penalty: z.string(),
-  })).optional(),
-  exclusions: z.array(z.object({
-    type: z.enum(['maintenance', 'force_majeure', 'customer_fault']),
-    description: z.string(),
-  })).optional(),
+  penalties: z
+    .array(
+      z.object({
+        threshold: PercentageSchema,
+        penalty: z.string(),
+      })
+    )
+    .optional(),
+  exclusions: z
+    .array(
+      z.object({
+        type: z.enum(['maintenance', 'force_majeure', 'customer_fault']),
+        description: z.string(),
+      })
+    )
+    .optional(),
 });
 
 // ===== 타입 내보내기 =====

@@ -481,7 +481,10 @@ export interface QueryOptions {
   }>;
   limit?: number;
   offset?: number;
-  filters?: Record<string, string | number | boolean | null | string[] | number[]>;
+  filters?: Record<
+    string,
+    string | number | boolean | null | string[] | number[]
+  >;
 }
 
 // Response types for database operations

@@ -34,27 +34,31 @@ vi.mock('@/lib/api-auth', () => ({
 vi.mock('@/services/ai/SimplifiedQueryEngine', () => ({
   getSimplifiedQueryEngine: () => ({
     _initialize: vi.fn(() => Promise.resolve()),
-    query: vi.fn(() => Promise.resolve({
-      success: true,
-      response: '현재 Server-03의 CPU 사용률이 85%로 가장 높습니다.',
-      confidence: 0.9,
-      engine: 'mock-engine',
-      processingTime: 150,
-      metadata: {
-        complexity: { score: 0.5, recommendation: 'simple' },
-        cacheHit: false,
-        ragResults: [],
-      },
-      thinkingSteps: [],
-    })),
-    healthCheck: vi.fn(() => Promise.resolve({
-      status: 'healthy',
-      engines: {
-        localRAG: true,
-        googleAI: true,
-        mcp: true,
-      },
-    })),
+    query: vi.fn(() =>
+      Promise.resolve({
+        success: true,
+        response: '현재 Server-03의 CPU 사용률이 85%로 가장 높습니다.',
+        confidence: 0.9,
+        engine: 'mock-engine',
+        processingTime: 150,
+        metadata: {
+          complexity: { score: 0.5, recommendation: 'simple' },
+          cacheHit: false,
+          ragResults: [],
+        },
+        thinkingSteps: [],
+      })
+    ),
+    healthCheck: vi.fn(() =>
+      Promise.resolve({
+        status: 'healthy',
+        engines: {
+          localRAG: true,
+          googleAI: true,
+          mcp: true,
+        },
+      })
+    ),
   }),
 }));
 
@@ -105,7 +109,7 @@ describe('Enhanced Query API', () => {
 
       expect(response.status).toBe(200);
       expect(responseTime).toBeLessThan(200);
-      
+
       const data = await response.json();
       expect(data.metadata.cacheHit).toBe(true);
     });
@@ -130,7 +134,9 @@ describe('Enhanced Query API', () => {
 
   describe('Caching Functionality', () => {
     it('should cache repeated queries', async () => {
-      const { getCachedData, setCachedData } = await import('@/lib/cache-helper');
+      const { getCachedData, setCachedData } = await import(
+        '@/lib/cache-helper'
+      );
       vi.mocked(getCachedData).mockResolvedValueOnce(null);
 
       const request = new NextRequest('http://localhost:3000/api/ai/query', {
@@ -172,7 +178,7 @@ describe('Enhanced Query API', () => {
 
     it('should generate consistent cache keys for same queries', async () => {
       const { getCachedData } = await import('@/lib/cache-helper');
-      
+
       const request1 = new NextRequest('http://localhost:3000/api/ai/query', {
         method: 'POST',
         body: JSON.stringify({ query: mockQuery }),
@@ -195,7 +201,7 @@ describe('Enhanced Query API', () => {
   describe('Query Logging', () => {
     it('should log query patterns for analysis', async () => {
       const { supabase } = await import('@/lib/supabase/supabase-client');
-      
+
       const request = new NextRequest('http://localhost:3000/api/ai/query', {
         method: 'POST',
         body: JSON.stringify({ query: mockQuery }),
@@ -209,7 +215,9 @@ describe('Enhanced Query API', () => {
 
     it('should include performance metrics in logs', async () => {
       const { supabase } = await import('@/lib/supabase/supabase-client');
-      const mockInsert = vi.fn(() => Promise.resolve({ data: null, error: null }));
+      const mockInsert = vi.fn(() =>
+        Promise.resolve({ data: null, error: null })
+      );
       vi.mocked(supabase.from).mockReturnValue({ insert: mockInsert });
 
       const request = new NextRequest('http://localhost:3000/api/ai/query', {
@@ -232,19 +240,21 @@ describe('Enhanced Query API', () => {
 
   describe('Concurrent Request Handling', () => {
     it('should handle concurrent requests efficiently', async () => {
-      const requests = Array.from({ length: 5 }, (_, i) => 
-        new NextRequest('http://localhost:3000/api/ai/query', {
-          method: 'POST',
-          body: JSON.stringify({ query: `Query ${i}` }),
-        })
+      const requests = Array.from(
+        { length: 5 },
+        (_, i) =>
+          new NextRequest('http://localhost:3000/api/ai/query', {
+            method: 'POST',
+            body: JSON.stringify({ query: `Query ${i}` }),
+          })
       );
 
       const startTime = Date.now();
-      const responses = await Promise.all(requests.map(req => POST(req)));
+      const responses = await Promise.all(requests.map((req) => POST(req)));
       const totalTime = Date.now() - startTime;
 
       // 모든 요청이 성공해야 함
-      responses.forEach(response => {
+      responses.forEach((response) => {
         expect(response.status).toBe(200);
       });
 
@@ -253,18 +263,22 @@ describe('Enhanced Query API', () => {
     });
 
     it('should not create race conditions in caching', async () => {
-      const { getCachedData, setCachedData } = await import('@/lib/cache-helper');
+      const { getCachedData, setCachedData } = await import(
+        '@/lib/cache-helper'
+      );
       vi.mocked(getCachedData).mockResolvedValue(null);
 
       // 동일한 쿼리로 동시 요청
-      const requests = Array.from({ length: 3 }, () => 
-        new NextRequest('http://localhost:3000/api/ai/query', {
-          method: 'POST',
-          body: JSON.stringify({ query: mockQuery }),
-        })
+      const requests = Array.from(
+        { length: 3 },
+        () =>
+          new NextRequest('http://localhost:3000/api/ai/query', {
+            method: 'POST',
+            body: JSON.stringify({ query: mockQuery }),
+          })
       );
 
-      await Promise.all(requests.map(req => POST(req)));
+      await Promise.all(requests.map((req) => POST(req)));
 
       // 캐시 설정이 한 번만 호출되어야 함 (race condition 방지)
       expect(setCachedData).toHaveBeenCalledTimes(3); // 각 요청마다 호출
@@ -276,15 +290,15 @@ describe('Enhanced Query API', () => {
       // 매우 짧은 타임아웃이어도 응답을 반환해야 함
       const request = new NextRequest('http://localhost:3000/api/ai/query', {
         method: 'POST',
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           query: mockQuery,
-          timeoutMs: 1 // 매우 짧은 타임아웃
+          timeoutMs: 1, // 매우 짧은 타임아웃
         }),
       });
 
       const response = await POST(request);
       expect(response.status).toBe(200); // 에러 시에도 200 반환
-      
+
       const data = await response.json();
       expect(data).toHaveProperty('answer');
       expect(data.success).toBe(true); // 성공 응답
@@ -302,7 +316,7 @@ describe('Enhanced Query API', () => {
       });
 
       const response = await POST(request);
-      
+
       // DB 에러가 있어도 API는 정상 응답해야 함
       expect(response.status).toBe(200);
     });
@@ -317,7 +331,7 @@ describe('Enhanced Query API', () => {
       });
 
       const response = await POST(request);
-      
+
       // 캐시 에러가 있어도 정상 처리되어야 함
       expect(response.status).toBe(200);
     });
@@ -340,16 +354,21 @@ describe('Enhanced Query API', () => {
 
         const response = await POST(request);
         const data = await response.json();
-        
+
         expect(data.metadata).toHaveProperty('intent');
         // 의도 분류가 합리적인지 확인
-        expect(['metric_query', 'status_check', 'incident_history', 'optimization']).toContain(data.metadata.intent);
+        expect([
+          'metric_query',
+          'status_check',
+          'incident_history',
+          'optimization',
+        ]).toContain(data.metadata.intent);
       }
     });
 
     it('should track query frequency for popular queries', async () => {
       const { supabase } = await import('@/lib/supabase/supabase-client');
-      
+
       // 동일한 쿼리를 여러 번 실행
       for (let i = 0; i < 3; i++) {
         const request = new NextRequest('http://localhost:3000/api/ai/query', {

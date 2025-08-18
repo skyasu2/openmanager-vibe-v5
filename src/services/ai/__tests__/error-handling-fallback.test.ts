@@ -32,7 +32,7 @@ describe('에러 처리 및 폴백 메커니즘', () => {
 
       // 빈 임베딩이 반환되어야 함
       expect(embedding).toHaveLength(384);
-      expect(embedding.every(v => v === 0)).toBe(true);
+      expect(embedding.every((v) => v === 0)).toBe(true);
     });
 
     it('잘못된 응답 형식 처리', async () => {
@@ -44,7 +44,7 @@ describe('에러 처리 및 폴백 메커니즘', () => {
       const embedding = await embeddingService.createEmbedding('test');
 
       expect(embedding).toHaveLength(384);
-      expect(embedding.every(v => v === 0)).toBe(true);
+      expect(embedding.every((v) => v === 0)).toBe(true);
     });
 
     it('캐시 히트 시 API 호출 없음', async () => {
@@ -134,7 +134,7 @@ describe('에러 처리 및 폴백 메커니즘', () => {
     it('타임아웃 처리', async () => {
       // 느린 응답 시뮬레이션
       vi.spyOn(ragEngine, 'searchSimilar').mockImplementation(
-        () => new Promise(resolve => setTimeout(resolve, 10000))
+        () => new Promise((resolve) => setTimeout(resolve, 10000))
       );
 
       const response = await queryEngine.query({
@@ -263,10 +263,10 @@ describe('에러 처리 및 폴백 메커니즘', () => {
       const results = await Promise.all(requests);
 
       // 모든 요청이 성공해야 함
-      expect(results.every(r => r.success)).toBe(true);
-      expect(new Set(results.map(r => r.processingTime)).size).toBeGreaterThan(
-        1
-      ); // 서로 다른 처리 시간
+      expect(results.every((r) => r.success)).toBe(true);
+      expect(
+        new Set(results.map((r) => r.processingTime)).size
+      ).toBeGreaterThan(1); // 서로 다른 처리 시간
     });
   });
 

@@ -1,6 +1,6 @@
 /**
  * 🤖 RAG Integration Module - CloudContextLoader
- * 
+ *
  * RAG (Retrieval-Augmented Generation) integration:
  * - MCP context queries for RAG engines
  * - Context synchronization with RAG systems
@@ -9,24 +9,24 @@
  * - File retrieval from MCP servers
  */
 
-import type { 
-  RAGEngineContext, 
+import type {
+  RAGEngineContext,
   MCPQueryOptions,
   RAGSyncResult,
   RAGSendResult,
   NLPContextResponse,
   NLPType,
   ContextDocument,
-  CloudContextLoaderConfig
+  CloudContextLoaderConfig,
 } from './CloudContextLoader.types';
-import { 
+import {
   extractRelevantPaths,
   getNLPRelevantPaths,
   getBundlesForNLP,
   formatMCPContextForNLP,
   formatLocalContextForNLP,
   optimizeContextLength,
-  generateQueryHash
+  generateQueryHash,
 } from './CloudContextLoader.utils';
 import { MemoryContextCache } from './CloudContextLoader.cache';
 import { ContextStorageManager } from './CloudContextLoader.storage';
@@ -207,7 +207,9 @@ export class RAGIntegrationManager {
           if (ragSyncResult.success) {
             syncedContexts++;
           } else {
-            errors.push(`로컬 컨텍스트 동기화 실패: ${context && typeof context === 'object' && 'id' in context ? (context as { id: string }).id : 'unknown'}`);
+            errors.push(
+              `로컬 컨텍스트 동기화 실패: ${context && typeof context === 'object' && 'id' in context ? (context as { id: string }).id : 'unknown'}`
+            );
           }
         }
       }

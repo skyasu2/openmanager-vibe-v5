@@ -3,10 +3,10 @@
  *
  * ✅ Modularization Complete: 1024 → ~200 lines (80% reduction)
  * 🏗️ Architecture: Delegation pattern with 7 specialized modules
- * 
+ *
  * Modules:
  * - UnifiedMetricsManager.types.ts (185 lines) - Type definitions
- * - UnifiedMetricsManager.serverFactory.ts (260 lines) - Server creation logic  
+ * - UnifiedMetricsManager.serverFactory.ts (260 lines) - Server creation logic
  * - UnifiedMetricsManager.aiAnalyzer.ts (330 lines) - AI analysis functionality
  * - UnifiedMetricsManager.autoscaler.ts (140 lines) - Autoscaling functionality
  * - UnifiedMetricsManager.scheduler.ts (170 lines) - Timer and scheduling
@@ -126,26 +126,32 @@ export class UnifiedMetricsManager {
       this.servers,
       this.config,
       this.metrics,
-      async (servers: UnifiedServerMetrics[]) => await Autoscaler.simulateAutoscaling(
-        this.servers, servers, this.config, 
-        (id: string, env: ServerEnvironment, role: ServerRole) => ServerFactory.createServer(id, env, role)
-      )
+      async (servers: UnifiedServerMetrics[]) =>
+        await Autoscaler.simulateAutoscaling(
+          this.servers,
+          servers,
+          this.config,
+          (id: string, env: ServerEnvironment, role: ServerRole) =>
+            ServerFactory.createServer(id, env, role)
+        )
     );
   }
 
   // 🤖 AI 분석 (AIAnalyzer 위임)
   private async performAIAnalysis(): Promise<void> {
     if (!this.isRunning || !this.config.ai_analysis.enabled) return;
-    
+
     const servers = Array.from(this.servers.values());
     await AIAnalyzer.performAIAnalysis(servers, this.metrics);
   }
 
   // 📈 성능 모니터링 (PerformanceMonitor 위임)
   private async monitorPerformance(): Promise<void> {
-    await PerformanceMonitor.monitorPerformance(this.servers.size, this.metrics);
+    await PerformanceMonitor.monitorPerformance(
+      this.servers.size,
+      this.metrics
+    );
   }
-
 
   // 🛑 시스템 중지 (Scheduler 위임)
   stop(): void {
@@ -207,9 +213,10 @@ export class UnifiedMetricsManager {
       this.initializeServers();
     }
 
-    return ServerFactory.formatServersForDashboard(Array.from(this.servers.values()));
+    return ServerFactory.formatServersForDashboard(
+      Array.from(this.servers.values())
+    );
   }
-
 
   // 🔧 설정 업데이트
   updateConfig(newConfig: Partial<UnifiedMetricsConfig>): void {
@@ -223,7 +230,8 @@ export class UnifiedMetricsManager {
       this.servers,
       this.config,
       this.metrics,
-      (id: string, env: ServerEnvironment, role: ServerRole) => ServerFactory.createServer(id, env, role)
+      (id: string, env: ServerEnvironment, role: ServerRole) =>
+        ServerFactory.createServer(id, env, role)
     );
   }
 }

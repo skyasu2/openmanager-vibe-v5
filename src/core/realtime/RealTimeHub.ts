@@ -92,7 +92,7 @@ class RealTimeHub {
     if (!connection) return false;
 
     // 모든 그룹에서 제거
-    connection.groups.forEach(group => {
+    connection.groups.forEach((group) => {
       this.removeFromGroup(group, connectionId);
     });
 
@@ -168,11 +168,11 @@ class RealTimeHub {
         ? message.target
         : [message.target];
 
-      targets.forEach(target => {
+      targets.forEach((target) => {
         // 그룹 대상
         if (this.groups.has(target)) {
           const groupConnections = this.groups.get(target);
-          groupConnections.forEach(connectionId => {
+          groupConnections.forEach((connectionId) => {
             if (this.sendToConnection(connectionId, fullMessage)) {
               sentCount++;
             }
@@ -255,7 +255,7 @@ class RealTimeHub {
     const now = Date.now();
     let activeCount = 0;
 
-    this.connections.forEach(connection => {
+    this.connections.forEach((connection) => {
       if (now - connection.lastActivity < this.CONNECTION_TIMEOUT) {
         activeCount++;
       }
@@ -289,7 +289,7 @@ class RealTimeHub {
         }
       });
 
-      toRemove.forEach(connectionId => {
+      toRemove.forEach((connectionId) => {
         this.disconnectConnection(connectionId);
       });
 

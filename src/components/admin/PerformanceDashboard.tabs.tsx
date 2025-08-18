@@ -1,6 +1,6 @@
 /**
  * 📊 PerformanceDashboard Tab Components
- * 
+ *
  * Extracted tab content components:
  * - Overview tab
  * - Engines tab
@@ -21,7 +21,10 @@ import {
 import { Badge } from '../ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TabsContent } from '../ui/tabs';
-import type { PerformanceData, PerformanceAlert } from './PerformanceDashboard.types';
+import type {
+  PerformanceData,
+  PerformanceAlert,
+} from './PerformanceDashboard.types';
 import { COLORS, ENGINE_COLORS } from './PerformanceDashboard.constants';
 import { CustomTooltip } from './PerformanceDashboard.components';
 import {
@@ -305,9 +308,7 @@ export function PerformanceDashboardTabs({
                                 : 'secondary'
                             }
                           >
-                            {alert.type === 'critical'
-                              ? 'CRITICAL'
-                              : 'WARNING'}
+                            {alert.type === 'critical' ? 'CRITICAL' : 'WARNING'}
                           </Badge>
                           <span className="text-sm font-medium text-gray-900">
                             {alert.engine}
@@ -334,9 +335,7 @@ export function PerformanceDashboardTabs({
                                 : ''}
                           </span>
                           <span>
-                            {new Date(alert.timestamp).toLocaleString(
-                              'ko-KR'
-                            )}
+                            {new Date(alert.timestamp).toLocaleString('ko-KR')}
                           </span>
                         </div>
                       </div>

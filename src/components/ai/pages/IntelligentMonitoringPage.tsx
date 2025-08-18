@@ -792,7 +792,10 @@ export default function IntelligentMonitoringPage() {
                       <div className="flex flex-wrap gap-1">
                         {result.rootCauseAnalysis.aiInsights.map(
                           (insight, index) => {
-                            const insightData = insight as { engine?: string; confidence?: number };
+                            const insightData = insight as {
+                              engine?: string;
+                              confidence?: number;
+                            };
                             return (
                               <span
                                 key={index}
@@ -800,7 +803,11 @@ export default function IntelligentMonitoringPage() {
                               >
                                 {insightData.engine || 'Unknown'}
                                 <span className="ml-1 text-blue-500">
-                                  ({Math.round((insightData.confidence || 0) * 100)}%)
+                                  (
+                                  {Math.round(
+                                    (insightData.confidence || 0) * 100
+                                  )}
+                                  %)
                                 </span>
                               </span>
                             );

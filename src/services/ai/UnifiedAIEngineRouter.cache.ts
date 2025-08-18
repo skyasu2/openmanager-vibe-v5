@@ -1,19 +1,23 @@
 /**
  * 💾 Unified AI Engine Router - Caching System
- * 
+ *
  * High-performance in-memory caching for AI query responses
  * - Cache key generation
  * - TTL-based cache management
  * - LRU eviction policy
  * - Cache size optimization
- * 
+ *
  * @author AI Systems Engineer
  * @version 1.0.0
  */
 
 import { QueryRequest, QueryResponse } from './SimplifiedQueryEngine';
 import type { AIMetadata } from '@/types/ai-service-types';
-import { CacheEntry, ResponseCache, ExtendedQueryRequest } from './UnifiedAIEngineRouter.types';
+import {
+  CacheEntry,
+  ResponseCache,
+  ExtendedQueryRequest,
+} from './UnifiedAIEngineRouter.types';
 
 export class UnifiedAIEngineRouterCache {
   private cache: ResponseCache;
@@ -26,7 +30,7 @@ export class UnifiedAIEngineRouterCache {
 
   /**
    * 💾 캐시 키 생성
-   * 
+   *
    * 쿼리, 모드, 컨텍스트, 사용자ID를 조합하여 유니크한 캐시 키 생성
    */
   public generateCacheKey(request: ExtendedQueryRequest): string {
@@ -34,14 +38,14 @@ export class UnifiedAIEngineRouterCache {
       request.query,
       request.mode || 'auto',
       JSON.stringify(request.context || {}),
-      request.userId || 'anonymous'
+      request.userId || 'anonymous',
     ];
     return Buffer.from(keyParts.join('|')).toString('base64');
   }
 
   /**
    * 💾 캐시된 응답 조회
-   * 
+   *
    * TTL 기반 만료 확인 및 자동 정리
    */
   public getCachedResponse(cacheKey: string): QueryResponse | null {
@@ -83,20 +87,21 @@ export class UnifiedAIEngineRouterCache {
 
   /**
    * 💾 응답 캐시 저장
-   * 
+   *
    * LRU 기반 캐시 크기 관리
    */
   public setCachedResponse(
-    cacheKey: string, 
-    response: QueryResponse, 
+    cacheKey: string,
+    response: QueryResponse,
     ttl: number = this.DEFAULT_TTL
   ): void {
     // 응답 복사 (immutable)
     const cachedResponse = { ...response };
-    
+
     // 캐시 메타데이터 제거 (중복 방지)
     if (cachedResponse.metadata) {
-      const { cached, cacheHit, cacheTimestamp, ...cleanMetadata } = cachedResponse.metadata as any;
+      const { cached, cacheHit, cacheTimestamp, ...cleanMetadata } =
+        cachedResponse.metadata as any;
       cachedResponse.metadata = cleanMetadata;
     }
 
@@ -151,7 +156,7 @@ export class UnifiedAIEngineRouterCache {
     newestEntry: number | null;
   } {
     const entries = Array.from(this.cache.values());
-    const timestamps = entries.map(entry => entry.timestamp);
+    const timestamps = entries.map((entry) => entry.timestamp);
 
     return {
       size: this.cache.size,
@@ -193,7 +198,7 @@ export class UnifiedAIEngineRouterCache {
       }
     }
 
-    keysToDelete.forEach(key => {
+    keysToDelete.forEach((key) => {
       this.cache.delete(key);
       removedCount++;
     });
@@ -214,7 +219,7 @@ export class UnifiedAIEngineRouterCache {
       try {
         const request: QueryRequest = { query };
         const cacheKey = this.generateCacheKey(request);
-        
+
         // 이미 캐시된 경우 스킵
         if (this.cache.has(cacheKey)) continue;
 
@@ -234,7 +239,10 @@ export class UnifiedAIEngineRouterCache {
   /**
    * 💡 캐시 히트율 계산
    */
-  public calculateHitRate(hits: number, misses: number): {
+  public calculateHitRate(
+    hits: number,
+    misses: number
+  ): {
     hitRate: number;
     totalRequests: number;
     efficiency: 'excellent' | 'good' | 'fair' | 'poor';
@@ -258,11 +266,13 @@ export class UnifiedAIEngineRouterCache {
   /**
    * 🕒 TTL 기반 캐시 전략 최적화
    */
-  public getOptimalTTL(queryType: 'realtime' | 'analysis' | 'static' | 'user-specific'): number {
+  public getOptimalTTL(
+    queryType: 'realtime' | 'analysis' | 'static' | 'user-specific'
+  ): number {
     const TTL_STRATEGIES = {
-      'realtime': 60000,      // 1분 (실시간 데이터)
-      'analysis': 300000,     // 5분 (분석 결과)
-      'static': 3600000,      // 1시간 (정적 정보)
+      realtime: 60000, // 1분 (실시간 데이터)
+      analysis: 300000, // 5분 (분석 결과)
+      static: 3600000, // 1시간 (정적 정보)
       'user-specific': 1800000, // 30분 (사용자별 데이터)
     };
 

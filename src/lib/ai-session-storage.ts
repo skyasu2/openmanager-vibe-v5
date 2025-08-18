@@ -363,17 +363,21 @@ export async function saveAIResponse(
       success: typedResponse.success || false,
       response: typedResponse.response || typedResponse.result || '',
       confidence: typedResponse.confidence || 0.7,
-      engine_path: typedResponse.enginePath || typedResponse.engines?.used || [],
-      processing_time: typedResponse.processingTime || typedResponse.response_time || 0,
+      engine_path:
+        typedResponse.enginePath || typedResponse.engines?.used || [],
+      processing_time:
+        typedResponse.processingTime || typedResponse.response_time || 0,
       fallbacks_used:
         typedResponse.fallbacksUsed || typedResponse.engines?.fallbacks || 0,
     },
-    thinking_process: thinkingProcess as Array<{
-      type: string;
-      title: string;
-      description: string;
-      timestamp: number;
-    }> | undefined,
+    thinking_process: thinkingProcess as
+      | Array<{
+          type: string;
+          title: string;
+          description: string;
+          timestamp: number;
+        }>
+      | undefined,
     reasoning_steps: reasoningSteps,
     metadata: {
       timestamp: new Date().toISOString(),

@@ -41,7 +41,8 @@ export function ServerDetailLogs({ serverId }: ServerDetailLogsProps) {
         const data = await response.json();
         setLogs(data.logs || []);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : '처리 중 오류가 발생했습니다.';
+        const errorMessage =
+          err instanceof Error ? err.message : '처리 중 오류가 발생했습니다.';
         setError(errorMessage);
       } finally {
         setIsLoading(false);

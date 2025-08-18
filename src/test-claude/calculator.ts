@@ -1,5 +1,9 @@
 // 🟢 GREEN: 테스트를 통과시키는 최소 구현
-import type { Calculator, CalculatorHistory, CalculatorResult } from './calculator.types';
+import type {
+  Calculator,
+  CalculatorHistory,
+  CalculatorResult,
+} from './calculator.types';
 
 class CalculatorHistoryImpl implements CalculatorHistory {
   results: CalculatorResult[] = [];
@@ -29,7 +33,7 @@ export class BasicCalculator implements Calculator {
     this.history.addResult({
       value,
       operation: 'add',
-      timestamp: new Date()
+      timestamp: new Date(),
     });
     return value;
   }
@@ -39,7 +43,7 @@ export class BasicCalculator implements Calculator {
     this.history.addResult({
       value,
       operation: 'subtract',
-      timestamp: new Date()
+      timestamp: new Date(),
     });
     return value;
   }
@@ -49,7 +53,7 @@ export class BasicCalculator implements Calculator {
     this.history.addResult({
       value,
       operation: 'multiply',
-      timestamp: new Date()
+      timestamp: new Date(),
     });
     return value;
   }
@@ -62,7 +66,7 @@ export class BasicCalculator implements Calculator {
     this.history.addResult({
       value,
       operation: 'divide',
-      timestamp: new Date()
+      timestamp: new Date(),
     });
     return value;
   }

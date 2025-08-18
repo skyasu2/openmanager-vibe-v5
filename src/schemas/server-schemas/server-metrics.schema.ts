@@ -1,13 +1,9 @@
 import { z } from 'zod';
-import { 
-  PercentageSchema, 
-  IdSchema, 
-  TimestampSchema 
-} from '../common.schema';
+import { PercentageSchema, IdSchema, TimestampSchema } from '../common.schema';
 
 /**
  * 📊 서버 메트릭 스키마
- * 
+ *
  * 서버의 성능 메트릭 및 상태 정보 정의
  */
 

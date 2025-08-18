@@ -1,10 +1,10 @@
 /**
  * 🎯 Core Server Types
- * 
+ *
  * 프로젝트 전체에서 사용되는 서버 관련 타입의 중앙 정의
  * - ServerMetrics: 21개 파일에서 중복 정의되던 타입 통합
  * - 모든 서버 관련 타입의 Single Source of Truth
- * 
+ *
  * @created 2025-01-30
  * @author AI Systems Engineer
  */
@@ -18,38 +18,46 @@ import type { ServerStatus } from '@/types/common';
  */
 export interface ServerMetrics {
   // CPU 메트릭 (간단한 숫자 또는 상세 객체)
-  cpu: number | {
-    usage: number;
-    cores?: number;
-    temperature?: number;
-    loadAverage?: number[];
-  };
+  cpu:
+    | number
+    | {
+        usage: number;
+        cores?: number;
+        temperature?: number;
+        loadAverage?: number[];
+      };
 
   // 메모리 메트릭
-  memory: number | {
-    used: number;
-    total: number;
-    usage: number;
-    available?: number;
-  };
+  memory:
+    | number
+    | {
+        used: number;
+        total: number;
+        usage: number;
+        available?: number;
+      };
 
   // 디스크 메트릭
-  disk: number | {
-    used: number;
-    total: number;
-    usage: number;
-    iops?: number;
-    readSpeed?: number;
-    writeSpeed?: number;
-  };
+  disk:
+    | number
+    | {
+        used: number;
+        total: number;
+        usage: number;
+        iops?: number;
+        readSpeed?: number;
+        writeSpeed?: number;
+      };
 
   // 네트워크 메트릭
-  network: number | {
-    in: number;
-    out: number;
-    bandwidth?: number;
-    connections?: number;
-  };
+  network:
+    | number
+    | {
+        in: number;
+        out: number;
+        bandwidth?: number;
+        connections?: number;
+      };
 
   // 시간 정보
   timestamp?: string | Date;
@@ -71,7 +79,7 @@ export interface ServerMetrics {
   errorRate?: number;
   requestsPerSecond?: number;
   activeSessions?: number;
-  
+
   // 프로세스 정보
   processes?: {
     total: number;
@@ -81,11 +89,14 @@ export interface ServerMetrics {
   };
 
   // 서비스별 메트릭
-  services?: Record<string, {
-    status: string;
-    cpu?: number;
-    memory?: number;
-  }>;
+  services?: Record<
+    string,
+    {
+      status: string;
+      cpu?: number;
+      memory?: number;
+    }
+  >;
 
   // 원시 데이터 (호환성)
   raw?: unknown;
@@ -106,7 +117,8 @@ export interface SimpleServerMetrics {
 /**
  * 상세 서버 메트릭
  */
-export interface DetailedServerMetrics extends Required<Omit<ServerMetrics, 'cpu' | 'memory' | 'disk' | 'network'>> {
+export interface DetailedServerMetrics
+  extends Required<Omit<ServerMetrics, 'cpu' | 'memory' | 'disk' | 'network'>> {
   cpu: {
     usage: number;
     cores: number;
@@ -175,18 +187,18 @@ export interface Server {
   type: 'web' | 'database' | 'api' | 'cache' | 'storage' | 'other';
   status: ServerStatus;
   metrics?: ServerMetrics;
-  
+
   // 연결 정보
   host?: string;
   port?: number;
   protocol?: string;
-  
+
   // 메타데이터
   region?: string;
   environment?: string;
   tags?: string[];
   lastUpdated?: string;
-  
+
   // 설정
   config?: Record<string, unknown>;
   monitoringEnabled?: boolean;
@@ -213,7 +225,9 @@ export interface ServerGroup {
 /**
  * 타입 가드: SimpleServerMetrics 체크
  */
-export function isSimpleMetrics(metrics: ServerMetrics): metrics is SimpleServerMetrics {
+export function isSimpleMetrics(
+  metrics: ServerMetrics
+): metrics is SimpleServerMetrics {
   return (
     typeof metrics.cpu === 'number' &&
     typeof metrics.memory === 'number' &&
@@ -225,7 +239,9 @@ export function isSimpleMetrics(metrics: ServerMetrics): metrics is SimpleServer
 /**
  * 타입 가드: DetailedServerMetrics 체크
  */
-export function isDetailedMetrics(metrics: ServerMetrics): metrics is DetailedServerMetrics {
+export function isDetailedMetrics(
+  metrics: ServerMetrics
+): metrics is DetailedServerMetrics {
   return (
     typeof metrics.cpu === 'object' &&
     typeof metrics.memory === 'object' &&
@@ -237,7 +253,9 @@ export function isDetailedMetrics(metrics: ServerMetrics): metrics is DetailedSe
 /**
  * 헬퍼: 간단한 메트릭을 상세 메트릭으로 변환
  */
-export function toDetailedMetrics(simple: SimpleServerMetrics): DetailedServerMetrics {
+export function toDetailedMetrics(
+  simple: SimpleServerMetrics
+): DetailedServerMetrics {
   return {
     cpu: {
       usage: simple.cpu,
@@ -258,15 +276,17 @@ export function toDetailedMetrics(simple: SimpleServerMetrics): DetailedServerMe
       out: simple.network / 2, // 추정
     },
     timestamp: simple.timestamp || new Date().toISOString(),
-    id: simple.id as string || 'unknown',
-    hostname: simple.hostname as string || 'unknown',
+    id: (simple.id as string) || 'unknown',
+    hostname: (simple.hostname as string) || 'unknown',
   } as DetailedServerMetrics;
 }
 
 /**
  * 헬퍼: 메트릭 정규화 (어떤 형태든 받아서 일관된 형태로 변환)
  */
-export function normalizeMetrics(metrics: Partial<ServerMetrics>): ServerMetrics {
+export function normalizeMetrics(
+  metrics: Partial<ServerMetrics>
+): ServerMetrics {
   return {
     cpu: metrics.cpu ?? 0,
     memory: metrics.memory ?? 0,

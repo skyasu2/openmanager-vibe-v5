@@ -1,6 +1,6 @@
 /**
  * 🧩 TechStackAnalyzer Types
- * 
+ *
  * Type definitions for tech stack analysis:
  * - TechItem: Individual technology item structure
  * - TechCategory: Category grouping for technologies

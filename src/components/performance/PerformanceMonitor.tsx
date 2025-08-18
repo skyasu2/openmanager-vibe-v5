@@ -11,7 +11,7 @@ import { Activity, Clock, Zap, TrendingUp, AlertTriangle } from 'lucide-react';
 
 interface WebVitals {
   lcp: number | null; // Largest Contentful Paint
-  fid: number | null; // First Input Delay  
+  fid: number | null; // First Input Delay
   cls: number | null; // Cumulative Layout Shift
   fcp: number | null; // First Contentful Paint
   ttfb: number | null; // Time to First Byte
@@ -79,14 +79,18 @@ export function PerformanceMonitor() {
       }).observe({ entryTypes: ['layout-shift'] });
 
       // Navigation Timing API로 FCP, TTFB 측정
-      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      const navigation = performance.getEntriesByType(
+        'navigation'
+      )[0] as PerformanceNavigationTiming;
       if (navigation) {
         vitals.ttfb = navigation.responseStart - navigation.requestStart;
       }
 
       // Paint Timing API로 FCP 측정
       const paintEntries = performance.getEntriesByType('paint');
-      const fcpEntry = paintEntries.find(entry => entry.name === 'first-contentful-paint');
+      const fcpEntry = paintEntries.find(
+        (entry) => entry.name === 'first-contentful-paint'
+      );
       if (fcpEntry) {
         vitals.fcp = fcpEntry.startTime;
       }
@@ -98,16 +102,22 @@ export function PerformanceMonitor() {
   // 성능 메트릭 수집
   const collectMetrics = useCallback(() => {
     const webVitals = collectWebVitals();
-    
+
     // 메모리 사용량
     const memoryUsage = (performance as any).memory?.usedJSHeapSize || 0;
-    
+
     // 로드 시간
-    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    const loadTime = navigation ? navigation.loadEventEnd - navigation.navigationStart : 0;
-    
+    const navigation = performance.getEntriesByType(
+      'navigation'
+    )[0] as PerformanceNavigationTiming;
+    const loadTime = navigation
+      ? navigation.loadEventEnd - navigation.navigationStart
+      : 0;
+
     // 렌더 시간
-    const renderTime = navigation ? navigation.domContentLoadedEventEnd - navigation.navigationStart : 0;
+    const renderTime = navigation
+      ? navigation.domContentLoadedEventEnd - navigation.navigationStart
+      : 0;
 
     const newMetrics: PerformanceMetrics = {
       webVitals,
@@ -119,13 +129,16 @@ export function PerformanceMonitor() {
     };
 
     setMetrics(newMetrics);
-    setHistory(prev => [...prev.slice(-9), newMetrics]); // 최근 10개 유지
+    setHistory((prev) => [...prev.slice(-9), newMetrics]); // 최근 10개 유지
   }, [collectWebVitals]);
 
   // 성능 등급 계산
-  const getPerformanceGrade = (metric: keyof WebVitals, value: number | null): 'good' | 'needs-improvement' | 'poor' => {
+  const getPerformanceGrade = (
+    metric: keyof WebVitals,
+    value: number | null
+  ): 'good' | 'needs-improvement' | 'poor' => {
     if (value === null) return 'poor';
-    
+
     const threshold = THRESHOLDS[metric];
     if (value <= threshold.good) return 'good';
     if (value <= threshold.poor) return 'needs-improvement';
@@ -135,10 +148,14 @@ export function PerformanceMonitor() {
   // 색상 매핑
   const getGradeColor = (grade: string): string => {
     switch (grade) {
-      case 'good': return 'text-green-500';
-      case 'needs-improvement': return 'text-yellow-500';
-      case 'poor': return 'text-red-500';
-      default: return 'text-gray-500';
+      case 'good':
+        return 'text-green-500';
+      case 'needs-improvement':
+        return 'text-yellow-500';
+      case 'poor':
+        return 'text-red-500';
+      default:
+        return 'text-gray-500';
     }
   };
 
@@ -150,7 +167,8 @@ export function PerformanceMonitor() {
     Object.entries(metrics).forEach(([key, value]) => {
       if (value !== null) {
         const grade = getPerformanceGrade(key as keyof WebVitals, value);
-        score += grade === 'good' ? 100 : grade === 'needs-improvement' ? 60 : 20;
+        score +=
+          grade === 'good' ? 100 : grade === 'needs-improvement' ? 60 : 20;
         count++;
       }
     });
@@ -196,10 +214,10 @@ export function PerformanceMonitor() {
       <motion.button
         onClick={() => setIsVisible(!isVisible)}
         className={`mb-2 flex items-center space-x-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-          score >= 90 
-            ? 'bg-green-500/90 text-white' 
-            : score >= 70 
-              ? 'bg-yellow-500/90 text-white' 
+          score >= 90
+            ? 'bg-green-500/90 text-white'
+            : score >= 70
+              ? 'bg-yellow-500/90 text-white'
               : 'bg-red-500/90 text-white'
         }`}
         whileHover={{ scale: 1.05 }}
@@ -237,8 +255,12 @@ export function PerformanceMonitor() {
                 <span className="text-sm">LCP</span>
               </div>
               <div className="text-right">
-                <div className={`font-mono text-sm ${getGradeColor(getPerformanceGrade('lcp', metrics.webVitals.lcp))}`}>
-                  {metrics.webVitals.lcp ? `${Math.round(metrics.webVitals.lcp)}ms` : 'N/A'}
+                <div
+                  className={`font-mono text-sm ${getGradeColor(getPerformanceGrade('lcp', metrics.webVitals.lcp))}`}
+                >
+                  {metrics.webVitals.lcp
+                    ? `${Math.round(metrics.webVitals.lcp)}ms`
+                    : 'N/A'}
                 </div>
                 <div className="text-xs text-gray-500">목표: 2.5s</div>
               </div>
@@ -250,8 +272,12 @@ export function PerformanceMonitor() {
                 <span className="text-sm">FID</span>
               </div>
               <div className="text-right">
-                <div className={`font-mono text-sm ${getGradeColor(getPerformanceGrade('fid', metrics.webVitals.fid))}`}>
-                  {metrics.webVitals.fid ? `${Math.round(metrics.webVitals.fid)}ms` : 'N/A'}
+                <div
+                  className={`font-mono text-sm ${getGradeColor(getPerformanceGrade('fid', metrics.webVitals.fid))}`}
+                >
+                  {metrics.webVitals.fid
+                    ? `${Math.round(metrics.webVitals.fid)}ms`
+                    : 'N/A'}
                 </div>
                 <div className="text-xs text-gray-500">목표: 100ms</div>
               </div>
@@ -263,8 +289,12 @@ export function PerformanceMonitor() {
                 <span className="text-sm">CLS</span>
               </div>
               <div className="text-right">
-                <div className={`font-mono text-sm ${getGradeColor(getPerformanceGrade('cls', metrics.webVitals.cls))}`}>
-                  {metrics.webVitals.cls ? metrics.webVitals.cls.toFixed(3) : 'N/A'}
+                <div
+                  className={`font-mono text-sm ${getGradeColor(getPerformanceGrade('cls', metrics.webVitals.cls))}`}
+                >
+                  {metrics.webVitals.cls
+                    ? metrics.webVitals.cls.toFixed(3)
+                    : 'N/A'}
                 </div>
                 <div className="text-xs text-gray-500">목표: 0.1</div>
               </div>

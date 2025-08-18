@@ -1,6 +1,6 @@
 /**
  * SimplifiedQueryEngine 성능 테스트
- * 
+ *
  * 목표: 응답 시간 500ms 이하
  */
 
@@ -31,9 +31,7 @@ vi.mock('@/services/mcp/CloudContextLoader', () => ({
   CloudContextLoader: {
     getInstance: () => ({
       queryMCPContextForRAG: vi.fn().mockResolvedValue({
-        files: [
-          { path: '/test/file.ts', content: 'test content' },
-        ],
+        files: [{ path: '/test/file.ts', content: 'test content' }],
       }),
       getIntegratedStatus: vi.fn().mockResolvedValue({
         mcpServer: { status: 'online' },
@@ -51,7 +49,7 @@ describe('SimplifiedQueryEngine Performance', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     engine = new SimplifiedQueryEngine();
-    
+
     // Reset fetch mock
     (global.fetch as any).mockReset();
   });
@@ -59,14 +57,14 @@ describe('SimplifiedQueryEngine Performance', () => {
   describe('응답 시간 테스트', () => {
     it('로컬 RAG 응답이 500ms 이하여야 함', async () => {
       const startTime = Date.now();
-      
+
       const response = await engine.query({
         query: '서버 상태 확인',
         mode: 'local',
       });
 
       const elapsedTime = Date.now() - startTime;
-      
+
       expect(response.success).toBe(true);
       expect(response.engine).toBe('local-rag');
       expect(elapsedTime).toBeLessThan(500);
@@ -84,7 +82,7 @@ describe('SimplifiedQueryEngine Performance', () => {
       });
 
       const startTime = Date.now();
-      
+
       const response = await engine.query({
         query: '복잡한 분석 요청',
         mode: 'google-ai',
@@ -92,7 +90,7 @@ describe('SimplifiedQueryEngine Performance', () => {
       });
 
       const elapsedTime = Date.now() - startTime;
-      
+
       expect(response.success).toBe(true);
       expect(response.engine).toBe('google-ai');
       expect(elapsedTime).toBeLessThan(500);
@@ -100,8 +98,8 @@ describe('SimplifiedQueryEngine Performance', () => {
 
     it('타임아웃 시 폴백이 작동해야 함', async () => {
       // Google AI를 느리게 만들기
-      (global.fetch as any).mockImplementationOnce(() => 
-        new Promise(resolve => setTimeout(resolve, 600))
+      (global.fetch as any).mockImplementationOnce(
+        () => new Promise((resolve) => setTimeout(resolve, 600))
       );
 
       const response = await engine.query({
@@ -137,7 +135,8 @@ describe('SimplifiedQueryEngine Performance', () => {
       });
 
       const response = await engine.query({
-        query: '지난 한 달간의 서버 성능을 분석하고, 이상 패턴을 찾아서 향후 개선 방안을 제안해주세요. 특히 CPU와 메모리 사용률의 상관관계를 중점적으로 분석해주세요.',
+        query:
+          '지난 한 달간의 서버 성능을 분석하고, 이상 패턴을 찾아서 향후 개선 방안을 제안해주세요. 특히 CPU와 메모리 사용률의 상관관계를 중점적으로 분석해주세요.',
         mode: 'auto',
       });
 
@@ -203,7 +202,7 @@ describe('SimplifiedQueryEngine Performance', () => {
       const response = await engine.query({
         query: '병렬 처리 테스트',
         mode: 'google-ai',
-        options: { 
+        options: {
           includeMCPContext: true,
           timeoutMs: 450,
         },
@@ -211,8 +210,10 @@ describe('SimplifiedQueryEngine Performance', () => {
 
       // MCP 처리가 병렬로 진행되므로 전체 시간이 단축됨
       expect(response.processingTime).toBeLessThan(500);
-      
-      const mcpStep = response.thinkingSteps.find(s => s.step === 'MCP 컨텍스트 수집');
+
+      const mcpStep = response.thinkingSteps.find(
+        (s) => s.step === 'MCP 컨텍스트 수집'
+      );
       expect(mcpStep).toBeDefined();
       expect(mcpStep?.duration).toBeDefined();
     });
@@ -221,8 +222,12 @@ describe('SimplifiedQueryEngine Performance', () => {
   describe('복잡도 분석기 단위 테스트', () => {
     it('쿼리 길이에 따른 복잡도 계산', () => {
       const short = QueryComplexityAnalyzer.analyze('상태');
-      const medium = QueryComplexityAnalyzer.analyze('서버의 현재 CPU 사용률과 메모리 사용률을 보여주세요');
-      const long = QueryComplexityAnalyzer.analyze('지난 24시간 동안의 모든 서버의 성능 지표를 분석하여 이상 징후를 찾고, 각 서버별로 최적화 방안을 제시해주세요. 특히 데이터베이스 서버의 쿼리 성능과 웹 서버의 응답 시간을 중점적으로 살펴봐주세요.');
+      const medium = QueryComplexityAnalyzer.analyze(
+        '서버의 현재 CPU 사용률과 메모리 사용률을 보여주세요'
+      );
+      const long = QueryComplexityAnalyzer.analyze(
+        '지난 24시간 동안의 모든 서버의 성능 지표를 분석하여 이상 징후를 찾고, 각 서버별로 최적화 방안을 제시해주세요. 특히 데이터베이스 서버의 쿼리 성능과 웹 서버의 응답 시간을 중점적으로 살펴봐주세요.'
+      );
 
       expect(short.factors.length).toBeLessThan(30);
       expect(medium.factors.length).toBeGreaterThan(20);
@@ -231,14 +236,17 @@ describe('SimplifiedQueryEngine Performance', () => {
 
     it('키워드 기반 복잡도 계산', () => {
       const simple = QueryComplexityAnalyzer.analyze('서버 목록 보기');
-      const complex = QueryComplexityAnalyzer.analyze('서버 성능을 분석하고 최적화 전략을 제안해주세요');
+      const complex = QueryComplexityAnalyzer.analyze(
+        '서버 성능을 분석하고 최적화 전략을 제안해주세요'
+      );
 
       expect(simple.factors.keywords).toBeLessThan(30);
       expect(complex.factors.keywords).toBeGreaterThan(50);
     });
 
     it('기술적 패턴 인식', () => {
-      const technical = QueryComplexityAnalyzer.analyze('CPU 메모리 디스크 사용률');
+      const technical =
+        QueryComplexityAnalyzer.analyze('CPU 메모리 디스크 사용률');
       const general = QueryComplexityAnalyzer.analyze('어떻게 하면 좋을까요?');
 
       expect(technical.factors.patterns).toBeLessThan(30);
@@ -247,8 +255,12 @@ describe('SimplifiedQueryEngine Performance', () => {
 
     it('엔진 추천이 적절해야 함', () => {
       const simpleQuery = QueryComplexityAnalyzer.analyze('서버 상태');
-      const complexQuery = QueryComplexityAnalyzer.analyze('지난 한 달간의 모든 서버의 성능 추이를 분석하고, 머신러닝을 활용하여 향후 3개월간의 성능을 예측해주세요. 또한 예상되는 병목 지점과 대응 방안을 제시해주세요.');
-      const hybridQuery = QueryComplexityAnalyzer.analyze('서버 성능을 분석해서 개선점을 찾아주세요');
+      const complexQuery = QueryComplexityAnalyzer.analyze(
+        '지난 한 달간의 모든 서버의 성능 추이를 분석하고, 머신러닝을 활용하여 향후 3개월간의 성능을 예측해주세요. 또한 예상되는 병목 지점과 대응 방안을 제시해주세요.'
+      );
+      const hybridQuery = QueryComplexityAnalyzer.analyze(
+        '서버 성능을 분석해서 개선점을 찾아주세요'
+      );
 
       expect(simpleQuery.recommendation).toBe('local');
       expect(complexQuery.recommendation).toBe('google-ai');
@@ -261,7 +273,7 @@ describe('SimplifiedQueryEngine Performance', () => {
     it('초기화 실패 시에도 쿼리 처리가 가능해야 함', async () => {
       // 새 인스턴스로 테스트
       const failEngine = new SimplifiedQueryEngine();
-      
+
       // RAG 엔진 초기화 실패 시뮬레이션
       vi.mocked(failEngine['ragEngine']._initialize).mockRejectedValueOnce(
         new Error('초기화 실패')

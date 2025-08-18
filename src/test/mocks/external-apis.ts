@@ -34,7 +34,7 @@ global.fetch = vi.fn().mockImplementation((url: string) => {
         Promise.resolve({
           response: 'Mock GCP VM MCP response',
           confidence: 0.9,
-          engine: 'mock-gcp-vm'
+          engine: 'mock-gcp-vm',
         }),
     });
   }
@@ -51,8 +51,8 @@ global.fetch = vi.fn().mockImplementation((url: string) => {
           data: {
             intent: 'mock_intent',
             entities: [],
-            confidence: 0.8
-          }
+            confidence: 0.8,
+          },
         }),
     });
   }

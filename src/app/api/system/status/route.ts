@@ -81,7 +81,7 @@ class MemorySystemStateManager {
 
   async startSystem(userId: string): Promise<SystemState> {
     const now = Date.now();
-    
+
     this.systemState = {
       ...this.systemState,
       isRunning: true,

@@ -1,6 +1,6 @@
 /**
  * React Hook for API configuration
- * 
+ *
  * 환경별 API 설정을 React 컴포넌트에서 사용하기 위한 훅
  */
 
@@ -14,15 +14,15 @@ export interface UseApiConfigReturn {
   isProduction: boolean;
   isDevelopment: boolean;
   isTest: boolean;
-  
+
   // URL 정보
   siteUrl: string;
   apiUrl: string;
-  
+
   // API 헬퍼
   apiCall: typeof apiCall;
   apiEndpoint: typeof apiEndpoint;
-  
+
   // 유틸리티 함수
   buildUrl: (path: string) => string;
   buildApiUrl: (path: string) => string;
@@ -33,7 +33,7 @@ export interface UseApiConfigReturn {
  */
 export function useApiConfig(): UseApiConfigReturn {
   const config = useMemo(() => getPublicEnvConfig(), []);
-  
+
   // URL 빌더 함수들
   const buildUrl = useMemo(() => {
     return (path: string) => {
@@ -41,29 +41,29 @@ export function useApiConfig(): UseApiConfigReturn {
       return `${config.siteUrl}${cleanPath}`;
     };
   }, [config.siteUrl]);
-  
+
   const buildApiUrl = useMemo(() => {
     return (path: string) => {
       const cleanPath = path.startsWith('/') ? path : `/${path}`;
       return `${config.apiUrl}${cleanPath}`;
     };
   }, [config.apiUrl]);
-  
+
   return {
     // 환경 정보
     environment: config.environment,
     isProduction: config.isProduction,
     isDevelopment: config.isDevelopment,
     isTest: config.isTest,
-    
+
     // URL 정보
     siteUrl: config.siteUrl,
     apiUrl: config.apiUrl,
-    
+
     // API 헬퍼
     apiCall,
     apiEndpoint,
-    
+
     // 유틸리티 함수
     buildUrl,
     buildApiUrl,
@@ -75,15 +75,15 @@ export function useApiConfig(): UseApiConfigReturn {
  */
 export function useEnvironment() {
   const { environment, isProduction, isDevelopment, isTest } = useApiConfig();
-  
+
   return {
     current: environment,
     isProduction,
     isDevelopment,
     isTest,
-    
+
     // 헬퍼 함수
-    when: <T,>(
+    when: <T>(
       conditions: Partial<Record<typeof environment, T>>,
       defaultValue: T
     ): T => {
@@ -97,13 +97,13 @@ export function useEnvironment() {
  */
 export function useApiCall() {
   const { apiCall, buildApiUrl } = useApiConfig();
-  
+
   return {
     // GET 요청
     get: <T = unknown>(endpoint: string) => {
       return apiCall<T>(endpoint, { method: 'GET' });
     },
-    
+
     // POST 요청
     post: <T = unknown>(endpoint: string, data: unknown) => {
       return apiCall<T>(endpoint, {
@@ -111,7 +111,7 @@ export function useApiCall() {
         body: data,
       });
     },
-    
+
     // PUT 요청
     put: <T = unknown>(endpoint: string, data: unknown) => {
       return apiCall<T>(endpoint, {
@@ -119,14 +119,14 @@ export function useApiCall() {
         body: data,
       });
     },
-    
+
     // DELETE 요청
     delete: <T = unknown>(endpoint: string) => {
       return apiCall<T>(endpoint, {
         method: 'DELETE',
       });
     },
-    
+
     // URL 빌더
     buildUrl: buildApiUrl,
   };

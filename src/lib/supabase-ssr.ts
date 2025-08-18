@@ -64,7 +64,9 @@ export function createMiddlewareClient(
           path: options.path || '/',
           // Vercel에서는 더 긴 maxAge 설정
           maxAge:
-            isVercel && options.maxAge ? Math.floor((options.maxAge as number) * 1.2) : options.maxAge,
+            isVercel && options.maxAge
+              ? Math.floor((options.maxAge as number) * 1.2)
+              : options.maxAge,
         };
 
         // ✅ response 객체에만 쿠키를 설정합니다 (request는 읽기 전용)

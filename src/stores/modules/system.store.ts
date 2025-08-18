@@ -126,7 +126,7 @@ export const useSystemStore = create<SystemState>()(
         name: 'system-store',
         storage: createJSONStorage(() => localStorage),
         // shutdownTimer는 persist하지 않음
-        partialize: state => ({
+        partialize: (state) => ({
           isStarted: state.isStarted,
           startTime: state.startTime,
           uptime: state.uptime,

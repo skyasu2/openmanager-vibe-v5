@@ -7,7 +7,7 @@
  * 3. 예측적 캐싱
  * 4. 병렬 처리 최적화
  * 5. 메모리 기반 초고속 액세스
- * 
+ *
  * 성능 목표: 280ms → 152ms (45% 개선)
  */
 
@@ -107,7 +107,6 @@ export class StreamingAIEngine {
 
       // 4. 병렬 처리 폴백
       return await this.processParallelQuery(request, startTime);
-
     } catch (error) {
       aiLogger.error('StreamingAIEngine 오류', error);
       return this.createFallbackResponse(request, startTime);
@@ -117,13 +116,22 @@ export class StreamingAIEngine {
   /**
    * ⚡ 즉시 캐시 확인 (< 1ms)
    */
-  private async getInstantCache(request: QueryRequest): Promise<QueryResponse | null> {
+  private async getInstantCache(
+    request: QueryRequest
+  ): Promise<QueryResponse | null> {
     try {
       // 메모리 캐시에서 즉시 확인
       const cacheKey = this.generateCacheKey(request);
-      const cached = await unifiedCache.get<QueryResponse>(cacheKey, CacheNamespace.AI_RESPONSE);
-      
-      if (cached && Date.now() - (cached.metadata?.timestamp as number || 0) < 300000) { // 5분 TTL
+      const cached = await unifiedCache.get<QueryResponse>(
+        cacheKey,
+        CacheNamespace.AI_RESPONSE
+      );
+
+      if (
+        cached &&
+        Date.now() - ((cached.metadata?.timestamp as number) || 0) < 300000
+      ) {
+        // 5분 TTL
         return {
           ...cached,
           metadata: {
@@ -137,7 +145,7 @@ export class StreamingAIEngine {
     } catch (error) {
       aiLogger.warn('즉시 캐시 확인 실패', error);
     }
-    
+
     return null;
   }
 
@@ -150,12 +158,15 @@ export class StreamingAIEngine {
     try {
       const pattern = this.extractPattern(request.query);
       const preloaded = this.preloadedResponses.get(pattern);
-      
+
       if (preloaded) {
         // 응답을 현재 쿼리에 맞게 조정
         return {
           ...preloaded,
-          response: this.adaptResponseToQuery(preloaded.response, request.query),
+          response: this.adaptResponseToQuery(
+            preloaded.response,
+            request.query
+          ),
           metadata: {
             ...preloaded.metadata,
             predictive: true,
@@ -183,11 +194,13 @@ export class StreamingAIEngine {
       const stream = new ReadableStream({
         start: (controller) => {
           this.activeStreams.set(streamId, stream);
-          
+
           // 빠른 초기 응답 (50ms 이내)
           setTimeout(() => {
             const initialChunk = this.generateInitialResponse(request);
-            controller.enqueue(new TextEncoder().encode(JSON.stringify(initialChunk)));
+            controller.enqueue(
+              new TextEncoder().encode(JSON.stringify(initialChunk))
+            );
           }, 20);
 
           // 병렬로 완전한 응답 처리
@@ -197,7 +210,6 @@ export class StreamingAIEngine {
 
       // 스트림에서 최종 응답 대기
       return await this.collectStreamResponse(stream, startTime);
-
     } catch (error) {
       aiLogger.error('스트리밍 처리 실패', error);
       return this.processParallelQuery(request, startTime);
@@ -227,22 +239,21 @@ export class StreamingAIEngine {
     try {
       // Race 방식으로 첫 번째 성공 응답 사용
       const results = await Promise.allSettled(tasks);
-      
+
       for (const result of results) {
         if (result.status === 'fulfilled' && result.value) {
           const response = result.value;
           response.processingTime = performance.now() - startTime;
-          
+
           // 비동기로 캐시 및 패턴 학습
           this.learnAndCache(request, response);
-          
+
           return response;
         }
       }
 
       // 모든 작업 실패 시 폴백
       return this.createFallbackResponse(request, startTime);
-
     } catch (error) {
       aiLogger.error('병렬 처리 실패', error);
       return this.createFallbackResponse(request, startTime);
@@ -252,12 +263,16 @@ export class StreamingAIEngine {
   /**
    * 🧠 RAG 쿼리 처리
    */
-  private async processRAGQuery(request: QueryRequest): Promise<QueryResponse | null> {
+  private async processRAGQuery(
+    request: QueryRequest
+  ): Promise<QueryResponse | null> {
     try {
       const cacheManager = getQueryCacheManager();
-      
+
       // 패턴 캐시에서 먼저 확인
-      const patternResponse = await cacheManager.getFromPatternCache(request.query);
+      const patternResponse = await cacheManager.getFromPatternCache(
+        request.query
+      );
       if (patternResponse) {
         return {
           ...patternResponse,
@@ -270,7 +285,6 @@ export class StreamingAIEngine {
 
       // 실제 RAG 검색은 시간이 걸리므로 스킵하고 패턴 기반 응답 사용
       return null;
-
     } catch (error) {
       aiLogger.warn('RAG 처리 실패', error);
       return null;
@@ -280,15 +294,20 @@ export class StreamingAIEngine {
   /**
    * 🎯 패턴 매칭 쿼리 처리
    */
-  private async processPatternQuery(request: QueryRequest): Promise<QueryResponse | null> {
+  private async processPatternQuery(
+    request: QueryRequest
+  ): Promise<QueryResponse | null> {
     try {
       const pattern = this.extractPattern(request.query);
       const knownPattern = this.predictivePatterns.get(pattern);
-      
+
       if (knownPattern && knownPattern.frequency > 5) {
         return {
           success: true,
-          response: this.generatePatternBasedResponse(request.query, knownPattern),
+          response: this.generatePatternBasedResponse(
+            request.query,
+            knownPattern
+          ),
           engine: 'pattern-matched',
           confidence: Math.min(0.8, knownPattern.frequency / 100),
           thinkingSteps: [
@@ -318,11 +337,13 @@ export class StreamingAIEngine {
   /**
    * 📝 기본 쿼리 처리
    */
-  private async processBasicQuery(request: QueryRequest): Promise<QueryResponse | null> {
+  private async processBasicQuery(
+    request: QueryRequest
+  ): Promise<QueryResponse | null> {
     // 매우 간단한 키워드 기반 응답
     const keywords = this.extractKeywords(request.query);
     const response = this.generateKeywordBasedResponse(keywords, request.query);
-    
+
     return {
       success: true,
       response,
@@ -347,7 +368,9 @@ export class StreamingAIEngine {
   /**
    * 🎯 초기 응답 생성 (20ms 이내)
    */
-  private generateInitialResponse(request: QueryRequest): Partial<QueryResponse> {
+  private generateInitialResponse(
+    request: QueryRequest
+  ): Partial<QueryResponse> {
     return {
       success: true,
       response: '분석 중입니다...',
@@ -371,11 +394,10 @@ export class StreamingAIEngine {
     try {
       // 병렬로 완전한 응답 생성
       const response = await this.processParallelQuery(request, startTime);
-      
+
       // 스트림에 최종 응답 전송
       controller.enqueue(new TextEncoder().encode(JSON.stringify(response)));
       controller.close();
-
     } catch (error) {
       controller.error(error);
     }
@@ -391,10 +413,13 @@ export class StreamingAIEngine {
     try {
       const reader = stream.getReader();
       let finalResponse: QueryResponse | null = null;
-      
+
       // 타임아웃과 함께 응답 수집
       const timeout = new Promise<QueryResponse>((_, reject) =>
-        setTimeout(() => reject(new Error('Stream timeout')), this.config.targetResponseTime)
+        setTimeout(
+          () => reject(new Error('Stream timeout')),
+          this.config.targetResponseTime
+        )
       );
 
       const streamProcessing = (async (): Promise<QueryResponse> => {
@@ -405,7 +430,7 @@ export class StreamingAIEngine {
           try {
             const chunk = new TextDecoder().decode(value);
             const parsed = JSON.parse(chunk);
-            
+
             if (parsed.success && parsed.response) {
               finalResponse = parsed;
             }
@@ -413,12 +438,14 @@ export class StreamingAIEngine {
             // 파싱 에러는 무시하고 계속
           }
         }
-        
-        return finalResponse || this.createFallbackResponse({} as QueryRequest, startTime);
+
+        return (
+          finalResponse ||
+          this.createFallbackResponse({} as QueryRequest, startTime)
+        );
       })();
 
       return await Promise.race([streamProcessing, timeout]);
-
     } catch (error) {
       aiLogger.error('스트림 수집 실패', error);
       return this.createFallbackResponse({} as QueryRequest, startTime);
@@ -428,15 +455,19 @@ export class StreamingAIEngine {
   /**
    * 🧠 패턴 학습 및 캐싱 (비동기)
    */
-  private async learnAndCache(request: QueryRequest, response: QueryResponse): Promise<void> {
+  private async learnAndCache(
+    request: QueryRequest,
+    response: QueryResponse
+  ): Promise<void> {
     try {
       // 패턴 학습
       const pattern = this.extractPattern(request.query);
       const existing = this.predictivePatterns.get(pattern);
-      
+
       if (existing) {
         existing.frequency++;
-        existing.avgResponseTime = (existing.avgResponseTime + response.processingTime) / 2;
+        existing.avgResponseTime =
+          (existing.avgResponseTime + response.processingTime) / 2;
       } else {
         this.predictivePatterns.set(pattern, {
           pattern,
@@ -460,7 +491,6 @@ export class StreamingAIEngine {
       if (response.processingTime < this.config.targetResponseTime) {
         this.preloadedResponses.set(pattern, response);
       }
-
     } catch (error) {
       aiLogger.warn('패턴 학습 실패', error);
     }
@@ -489,30 +519,48 @@ export class StreamingAIEngine {
    * 🔤 키워드 추출
    */
   private extractKeywords(query: string): string[] {
-    const stopWords = new Set(['은', '는', '이', '가', '을', '를', '의', '에', '에서', '으로', '로']);
+    const stopWords = new Set([
+      '은',
+      '는',
+      '이',
+      '가',
+      '을',
+      '를',
+      '의',
+      '에',
+      '에서',
+      '으로',
+      '로',
+    ]);
     return query
       .split(/\s+/)
-      .filter(word => word.length > 1 && !stopWords.has(word))
+      .filter((word) => word.length > 1 && !stopWords.has(word))
       .slice(0, 5);
   }
 
   /**
    * 📝 패턴 기반 응답 생성
    */
-  private generatePatternBasedResponse(query: string, pattern: PredictivePattern): string {
+  private generatePatternBasedResponse(
+    query: string,
+    pattern: PredictivePattern
+  ): string {
     const templates = [
       `${query}에 대한 정보를 제공합니다.`,
       `요청하신 ${query} 관련 분석 결과입니다.`,
       `${query}에 대해 ${pattern.frequency}회의 이전 분석을 바탕으로 답변드립니다.`,
     ];
-    
+
     return templates[Math.floor(Math.random() * templates.length)];
   }
 
   /**
    * 🔤 키워드 기반 응답 생성
    */
-  private generateKeywordBasedResponse(keywords: string[], query: string): string {
+  private generateKeywordBasedResponse(
+    keywords: string[],
+    query: string
+  ): string {
     if (keywords.length === 0) {
       return '질문에 대한 기본 정보를 제공해드리겠습니다.';
     }
@@ -524,10 +572,14 @@ export class StreamingAIEngine {
   /**
    * 🆘 폴백 응답 생성
    */
-  private createFallbackResponse(request: QueryRequest, startTime: number): QueryResponse {
+  private createFallbackResponse(
+    request: QueryRequest,
+    startTime: number
+  ): QueryResponse {
     return {
       success: true,
-      response: '현재 시스템이 최적화 모드로 동작중입니다. 기본 정보를 제공해드릴 수 있습니다.',
+      response:
+        '현재 시스템이 최적화 모드로 동작중입니다. 기본 정보를 제공해드릴 수 있습니다.',
       engine: 'streaming-fallback',
       confidence: 0.3,
       thinkingSteps: [
@@ -561,7 +613,7 @@ export class StreamingAIEngine {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return Math.abs(hash).toString(36);
@@ -577,15 +629,24 @@ export class StreamingAIEngine {
   /**
    * 📊 메트릭 업데이트
    */
-  private updateMetrics(type: 'cache_hit' | 'predictive_hit' | 'streaming' | 'parallel', responseTime: number): void {
+  private updateMetrics(
+    type: 'cache_hit' | 'predictive_hit' | 'streaming' | 'parallel',
+    responseTime: number
+  ): void {
     this.metrics.responseTime = (this.metrics.responseTime + responseTime) / 2;
-    
+
     if (type === 'cache_hit' || type === 'predictive_hit') {
-      this.metrics.cacheHitRate = Math.min(this.metrics.cacheHitRate + 0.1, 1.0);
+      this.metrics.cacheHitRate = Math.min(
+        this.metrics.cacheHitRate + 0.1,
+        1.0
+      );
     }
-    
+
     if (responseTime < this.config.targetResponseTime) {
-      this.metrics.streamingEfficiency = Math.min(this.metrics.streamingEfficiency + 0.05, 1.0);
+      this.metrics.streamingEfficiency = Math.min(
+        this.metrics.streamingEfficiency + 0.05,
+        1.0
+      );
     }
   }
 
@@ -603,7 +664,7 @@ export class StreamingAIEngine {
       '시스템 모니터링',
     ];
 
-    commonPatterns.forEach(pattern => {
+    commonPatterns.forEach((pattern) => {
       this.predictivePatterns.set(pattern, {
         pattern,
         frequency: 10,
@@ -622,8 +683,10 @@ export class StreamingAIEngine {
     patternsLearned: number;
     preloadedResponses: number;
   } {
-    const targetAchievementRate = this.metrics.responseTime <= this.config.targetResponseTime ? 1.0 : 
-      this.config.targetResponseTime / this.metrics.responseTime;
+    const targetAchievementRate =
+      this.metrics.responseTime <= this.config.targetResponseTime
+        ? 1.0
+        : this.config.targetResponseTime / this.metrics.responseTime;
 
     return {
       ...this.metrics,
@@ -639,11 +702,11 @@ export class StreamingAIEngine {
   cleanup(): void {
     // 활성 스트림 정리
     this.activeStreams.clear();
-    
+
     // 오래된 예측적 응답 정리
     const cutoff = Date.now() - 600000; // 10분
     for (const [key, response] of this.preloadedResponses.entries()) {
-      const timestamp = response.metadata?.timestamp as number || 0;
+      const timestamp = (response.metadata?.timestamp as number) || 0;
       if (timestamp < cutoff) {
         this.preloadedResponses.delete(key);
       }
@@ -654,13 +717,15 @@ export class StreamingAIEngine {
 // 싱글톤 인스턴스
 let streamingEngineInstance: StreamingAIEngine | null = null;
 
-export function getStreamingAIEngine(config?: Partial<StreamingConfig>): StreamingAIEngine {
+export function getStreamingAIEngine(
+  config?: Partial<StreamingConfig>
+): StreamingAIEngine {
   if (!streamingEngineInstance) {
     streamingEngineInstance = new StreamingAIEngine(config);
-    
+
     // 10분마다 정리
     setInterval(() => streamingEngineInstance?.cleanup(), 10 * 60 * 1000);
   }
-  
+
   return streamingEngineInstance;
 }

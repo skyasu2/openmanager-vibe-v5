@@ -1,6 +1,6 @@
 /**
  * 🧪 AI Performance Integration Test
- * 
+ *
  * 280ms → 152ms 성능 개선 검증을 위한 통합 테스트
  * - UltraFastAIRouter 성능 측정
  * - StreamingAIEngine 효율성 검증
@@ -50,13 +50,13 @@ export class AIPerformanceIntegrationTest {
     targetResponseTime: 152,
     aggressiveCaching: true,
   });
-  
+
   private streamingEngine = getStreamingAIEngine({
     enableStreaming: true,
     enablePredictiveCaching: true,
     targetResponseTime: 152,
   });
-  
+
   private metricsEngine = getPerformanceMetricsEngine({
     enableRealTimeTracking: true,
     targetResponseTime: 152,
@@ -72,7 +72,7 @@ export class AIPerformanceIntegrationTest {
     aiLogger.info('🧪 AI 성능 통합 테스트 시작 - 목표: 280ms → 152ms');
 
     const testResults: PerformanceTestResult[] = [];
-    
+
     // 테스트 시나리오들
     const testScenarios = [
       { name: 'instant_cache_test', query: 'CPU 사용률' },
@@ -81,13 +81,19 @@ export class AIPerformanceIntegrationTest {
       { name: 'parallel_processing_test', query: '네트워크 트래픽 모니터링' },
       { name: 'predictive_cache_test', query: '서버 상태 점검' },
       { name: 'keyword_analysis_test', query: '시스템 성능 최적화' },
-      { name: 'complex_query_test', query: '서버 클러스터 전체 상태 분석 및 성능 병목 지점 식별' },
+      {
+        name: 'complex_query_test',
+        query: '서버 클러스터 전체 상태 분석 및 성능 병목 지점 식별',
+      },
       { name: 'rapid_fire_test', query: '빠른 연속 요청' },
     ];
 
     // 각 시나리오 테스트
     for (const scenario of testScenarios) {
-      const result = await this.runSinglePerformanceTest(scenario.name, scenario.query);
+      const result = await this.runSinglePerformanceTest(
+        scenario.name,
+        scenario.query
+      );
       testResults.push(result);
     }
 
@@ -97,10 +103,10 @@ export class AIPerformanceIntegrationTest {
 
     // 결과 분석
     const suite = this.analyzeTestResults(testResults);
-    
+
     // 보고서 생성
     this.generatePerformanceReport(suite);
-    
+
     return suite;
   }
 
@@ -112,20 +118,21 @@ export class AIPerformanceIntegrationTest {
     query: string
   ): Promise<PerformanceTestResult> {
     const requestId = `test_${testName}_${Date.now()}`;
-    
+
     // 메트릭 추적 시작
     this.metricsEngine.startTracking(requestId, testName);
-    
+
     const startTime = performance.now();
-    
+
     try {
       // UltraFastAIRouter를 통한 요청
       const request: QueryRequest = { query };
       const response = await this.ultraFastRouter.route(request);
-      
+
       const actualTime = performance.now() - startTime;
       const achieved = actualTime <= this.TARGET_TIME;
-      const improvement = ((this.BASELINE_TIME - actualTime) / this.BASELINE_TIME) * 100;
+      const improvement =
+        ((this.BASELINE_TIME - actualTime) / this.BASELINE_TIME) * 100;
 
       // 세부 성능 정보 수집
       const routerStats = this.ultraFastRouter.getPerformanceStats();
@@ -154,12 +161,11 @@ export class AIPerformanceIntegrationTest {
           memoryUsage: routerStats.currentResponseTime, // 임시로 응답시간 사용
         },
       };
-
     } catch (error) {
       aiLogger.error(`테스트 ${testName} 실패`, error);
-      
+
       const actualTime = performance.now() - startTime;
-      
+
       return {
         testName,
         targetTime: this.TARGET_TIME,
@@ -195,7 +201,7 @@ export class AIPerformanceIntegrationTest {
     // 10회 연속 요청
     const promises = queries.map(async (query, index) => {
       const requestStart = performance.now();
-      
+
       try {
         await this.ultraFastRouter.route({ query });
         const responseTime = performance.now() - requestStart;
@@ -208,13 +214,16 @@ export class AIPerformanceIntegrationTest {
     });
 
     await Promise.all(promises);
-    
-    const totalTime = performance.now() - startTime;
-    const avgTime = results.reduce((sum, time) => sum + time, 0) / results.length;
-    const maxTime = Math.max(...results);
-    const achieved = avgTime <= this.TARGET_TIME && maxTime <= this.TARGET_TIME * 2;
 
-    const improvement = ((this.BASELINE_TIME - avgTime) / this.BASELINE_TIME) * 100;
+    const totalTime = performance.now() - startTime;
+    const avgTime =
+      results.reduce((sum, time) => sum + time, 0) / results.length;
+    const maxTime = Math.max(...results);
+    const achieved =
+      avgTime <= this.TARGET_TIME && maxTime <= this.TARGET_TIME * 2;
+
+    const improvement =
+      ((this.BASELINE_TIME - avgTime) / this.BASELINE_TIME) * 100;
 
     return {
       testName,
@@ -223,9 +232,11 @@ export class AIPerformanceIntegrationTest {
       achieved,
       improvement,
       details: {
-        cacheHitRate: results.filter(time => time < 50).length / results.length, // 50ms 미만을 캐시 히트로 간주
+        cacheHitRate:
+          results.filter((time) => time < 50).length / results.length, // 50ms 미만을 캐시 히트로 간주
         streamingEfficiency: achieved ? 1.0 : 0.5,
-        parallelEfficiency: totalTime < (avgTime * results.length * 0.8) ? 1.0 : 0.5,
+        parallelEfficiency:
+          totalTime < avgTime * results.length * 0.8 ? 1.0 : 0.5,
         memoryUsage: maxTime,
       },
     };
@@ -234,19 +245,28 @@ export class AIPerformanceIntegrationTest {
   /**
    * 📊 테스트 결과 분석
    */
-  private analyzeTestResults(results: PerformanceTestResult[]): IntegrationTestSuite {
+  private analyzeTestResults(
+    results: PerformanceTestResult[]
+  ): IntegrationTestSuite {
     const totalTests = results.length;
-    const passedTests = results.filter(r => r.achieved).length;
-    const avgImprovement = results.reduce((sum, r) => sum + r.improvement, 0) / totalTests;
+    const passedTests = results.filter((r) => r.achieved).length;
+    const avgImprovement =
+      results.reduce((sum, r) => sum + r.improvement, 0) / totalTests;
     const targetAchievementRate = passedTests / totalTests;
 
     // 평균 성능 계산
     const avgBeforeOptimization = this.BASELINE_TIME;
-    const avgAfterOptimization = results.reduce((sum, r) => sum + r.actualTime, 0) / totalTests;
-    const improvementPercentage = ((avgBeforeOptimization - avgAfterOptimization) / avgBeforeOptimization) * 100;
+    const avgAfterOptimization =
+      results.reduce((sum, r) => sum + r.actualTime, 0) / totalTests;
+    const improvementPercentage =
+      ((avgBeforeOptimization - avgAfterOptimization) / avgBeforeOptimization) *
+      100;
 
     // 추천 액션 생성
-    const recommendedActions = this.generateRecommendations(results, targetAchievementRate);
+    const recommendedActions = this.generateRecommendations(
+      results,
+      targetAchievementRate
+    );
 
     return {
       totalTests,
@@ -277,13 +297,17 @@ export class AIPerformanceIntegrationTest {
       recommendations.push('스트리밍 엔진 최적화');
     }
 
-    const avgCacheHitRate = results.reduce((sum, r) => sum + r.details.cacheHitRate, 0) / results.length;
+    const avgCacheHitRate =
+      results.reduce((sum, r) => sum + r.details.cacheHitRate, 0) /
+      results.length;
     if (avgCacheHitRate < 0.7) {
       recommendations.push('예측적 캐싱 개선');
       recommendations.push('캐시 크기 증대');
     }
 
-    const slowTests = results.filter(r => r.actualTime > this.TARGET_TIME * 1.5);
+    const slowTests = results.filter(
+      (r) => r.actualTime > this.TARGET_TIME * 1.5
+    );
     if (slowTests.length > 0) {
       recommendations.push('병렬 처리 최적화');
       recommendations.push('병목 지점 제거');
@@ -319,17 +343,20 @@ export class AIPerformanceIntegrationTest {
 ${suite.targetAchievementRate >= 0.8 ? '✅ 목표 달성!' : '⚠️ 추가 최적화 필요'}
 
 📈 개별 테스트 결과:
-${suite.results.map(r => 
-  `- ${r.testName}: ${r.actualTime.toFixed(1)}ms ${r.achieved ? '✅' : '❌'} (${r.improvement.toFixed(1)}% 개선)`
-).join('\n')}
+${suite.results
+  .map(
+    (r) =>
+      `- ${r.testName}: ${r.actualTime.toFixed(1)}ms ${r.achieved ? '✅' : '❌'} (${r.improvement.toFixed(1)}% 개선)`
+  )
+  .join('\n')}
 
 💡 추천 액션:
-${suite.summary.recommendedActions.map(action => `- ${action}`).join('\n')}
+${suite.summary.recommendedActions.map((action) => `- ${action}`).join('\n')}
 
 🔍 상세 분석:
-- 평균 캐시 히트율: ${(suite.results.reduce((sum, r) => sum + r.details.cacheHitRate, 0) / suite.results.length * 100).toFixed(1)}%
-- 스트리밍 효율성: ${(suite.results.reduce((sum, r) => sum + r.details.streamingEfficiency, 0) / suite.results.length * 100).toFixed(1)}%
-- 병렬 처리 효율성: ${(suite.results.reduce((sum, r) => sum + r.details.parallelEfficiency, 0) / suite.results.length * 100).toFixed(1)}%
+- 평균 캐시 히트율: ${((suite.results.reduce((sum, r) => sum + r.details.cacheHitRate, 0) / suite.results.length) * 100).toFixed(1)}%
+- 스트리밍 효율성: ${((suite.results.reduce((sum, r) => sum + r.details.streamingEfficiency, 0) / suite.results.length) * 100).toFixed(1)}%
+- 병렬 처리 효율성: ${((suite.results.reduce((sum, r) => sum + r.details.parallelEfficiency, 0) / suite.results.length) * 100).toFixed(1)}%
 `;
 
     aiLogger.info('성능 테스트 보고서', report);
@@ -343,7 +370,7 @@ ${suite.summary.recommendedActions.map(action => `- ${action}`).join('\n')}
     setInterval(async () => {
       const metrics = this.metricsEngine.getRealTimeMetrics();
       const routerStats = this.ultraFastRouter.getPerformanceStats();
-      
+
       if (metrics.avgResponseTime > this.TARGET_TIME * 1.2) {
         aiLogger.warn('성능 경고: 응답시간 초과', {
           current: metrics.avgResponseTime,
@@ -370,7 +397,9 @@ ${suite.summary.recommendedActions.map(action => `- ${action}`).join('\n')}
     for (let i = 0; i < iterations; i++) {
       const start = performance.now();
       // 기존 엔진 지연 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 250 + Math.random() * 60)); // 250-310ms
+      await new Promise((resolve) =>
+        setTimeout(resolve, 250 + Math.random() * 60)
+      ); // 250-310ms
       originalTimes.push(performance.now() - start);
     }
 
@@ -382,8 +411,10 @@ ${suite.summary.recommendedActions.map(action => `- ${action}`).join('\n')}
       optimizedTimes.push(performance.now() - start);
     }
 
-    const originalAvg = originalTimes.reduce((sum, time) => sum + time, 0) / iterations;
-    const optimizedAvg = optimizedTimes.reduce((sum, time) => sum + time, 0) / iterations;
+    const originalAvg =
+      originalTimes.reduce((sum, time) => sum + time, 0) / iterations;
+    const optimizedAvg =
+      optimizedTimes.reduce((sum, time) => sum + time, 0) / iterations;
     const improvement = ((originalAvg - optimizedAvg) / originalAvg) * 100;
 
     aiLogger.info('벤치마크 비교 결과', {
@@ -410,16 +441,16 @@ ${suite.summary.recommendedActions.map(action => `- ${action}`).join('\n')}
   }> {
     const routerStats = this.ultraFastRouter.getPerformanceStats();
     const streamingStats = this.streamingEngine.getPerformanceStats();
-    
+
     // 통합 캐시 통계
     const cacheStats = unifiedCache.getStats();
     const unifiedCacheHitRate = cacheStats.hitRate / 100;
 
-    const overallEfficiency = (
-      routerStats.cacheHitRate + 
-      streamingStats.targetAchievementRate + 
-      unifiedCacheHitRate
-    ) / 3;
+    const overallEfficiency =
+      (routerStats.cacheHitRate +
+        streamingStats.targetAchievementRate +
+        unifiedCacheHitRate) /
+      3;
 
     return {
       instantCacheHitRate: routerStats.cacheHitRate,
@@ -434,10 +465,12 @@ ${suite.summary.recommendedActions.map(action => `- ${action}`).join('\n')}
    */
   verifyTargetAchievement(): boolean {
     const routerAchievement = this.ultraFastRouter.getTargetAchievementRate();
-    const streamingAchievement = this.streamingEngine.getPerformanceStats().targetAchievementRate;
+    const streamingAchievement =
+      this.streamingEngine.getPerformanceStats().targetAchievementRate;
     const metricsAchievement = this.metricsEngine.getTargetAchievementRate();
 
-    const overallAchievement = (routerAchievement + streamingAchievement + metricsAchievement) / 3;
+    const overallAchievement =
+      (routerAchievement + streamingAchievement + metricsAchievement) / 3;
 
     aiLogger.info('목표 달성률 검증', {
       router: `${(routerAchievement * 100).toFixed(1)}%`,

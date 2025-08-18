@@ -62,7 +62,9 @@ export function getServerCommands(serverId: string) {
 /**
  * 서버 타입별로 명령어 가져오기
  */
-export function getCommandsByServerType(serverType: 'web' | 'app' | 'database' | 'storage') {
+export function getCommandsByServerType(
+  serverType: 'web' | 'app' | 'database' | 'storage'
+) {
   switch (serverType) {
     case 'web':
       return webServerCommands;
@@ -87,11 +89,14 @@ export function getAllServerIds(): string[] {
 /**
  * 서버 타입 감지
  */
-export function detectServerType(serverId: string): 'web' | 'app' | 'database' | 'storage' | 'unknown' {
+export function detectServerType(
+  serverId: string
+): 'web' | 'app' | 'database' | 'storage' | 'unknown' {
   if (serverId.startsWith('web-')) return 'web';
   if (serverId.startsWith('app-')) return 'app';
   if (serverId.startsWith('db-')) return 'database';
-  if (serverId.startsWith('file-') || serverId.startsWith('backup-')) return 'storage';
+  if (serverId.startsWith('file-') || serverId.startsWith('backup-'))
+    return 'storage';
   return 'unknown';
 }
 

@@ -7,18 +7,22 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import type { QueryRequest, QueryResponse } from '@/services/ai/SimplifiedQueryEngine';
+import type {
+  QueryRequest,
+  QueryResponse,
+} from '@/services/ai/SimplifiedQueryEngine';
 
 // 동적 import로 빌드 시점 초기화 방지
 async function getQueryEngine() {
-  const { getSimplifiedQueryEngine } = await import('@/services/ai/SimplifiedQueryEngine');
+  const { getSimplifiedQueryEngine } = await import(
+    '@/services/ai/SimplifiedQueryEngine'
+  );
   return getSimplifiedQueryEngine();
 }
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
-
 
 interface MCPQueryRequest {
   query: string;
@@ -49,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     // SimplifiedQueryEngine을 사용한 실제 쿼리 처리
     const engine = await getQueryEngine();
-    
+
     const queryRequest: QueryRequest = {
       query,
       mode: 'local',

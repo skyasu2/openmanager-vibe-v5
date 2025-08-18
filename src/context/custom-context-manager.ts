@@ -334,7 +334,7 @@ export class CustomContextManager {
         const { data, error } = await query;
         if (error) throw error;
 
-        const rules = data.map(item => item.rule_data as CustomRule);
+        const rules = data.map((item) => item.rule_data as CustomRule);
         console.log(
           `📏 [CustomContext] 커스텀 규칙 조회 완료: ${rules.length}개 (${category || 'all'})`
         );
@@ -375,7 +375,7 @@ export class CustomContextManager {
       console.log(`⚡ [CustomContext] 규칙 실행 시작: ${orgId}`);
 
       const rules = await this.getCustomRules();
-      const enabledRules = rules.filter(rule => rule.enabled);
+      const enabledRules = rules.filter((rule) => rule.enabled);
 
       let executed = 0;
       let triggered = 0;
@@ -684,7 +684,7 @@ export class CustomContextManager {
             keysToDelete.push(key);
           }
         }
-        keysToDelete.forEach(key => this.localCache.delete(key));
+        keysToDelete.forEach((key) => this.localCache.delete(key));
         console.log(
           `🗑️ [CustomContext] 패턴 캐시 정리 완료: ${pattern} (${keysToDelete.length}개)`
         );
@@ -721,7 +721,7 @@ export class CustomContextManager {
         const totalUsers = userResult.count || 0;
         const rules = ruleResult.data || [];
         const totalRules = rules.length;
-        const activeRules = rules.filter(r => r.enabled).length;
+        const activeRules = rules.filter((r) => r.enabled).length;
         const avgSuccessRate =
           rules.length > 0
             ? rules.reduce(

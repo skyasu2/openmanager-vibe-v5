@@ -93,9 +93,8 @@ export function adaptGCPMetricsToServerInstances(
   if (!Array.isArray(gcpMetrics)) {
     throw new Error('GCP metrics must be an array');
   }
-  
+
   return gcpMetrics.map((g: GCPServerMetrics): ServerInstance => {
-    
     // 기본 속성들 매핑
     const baseInstance: ServerInstance = {
       id: g.id,
@@ -106,7 +105,8 @@ export function adaptGCPMetricsToServerInstances(
       cpu: g.metrics?.cpu?.usage || 0,
       memory: g.metrics?.memory?.usage || 0,
       disk: g.metrics?.disk?.usage || 0,
-      network: ((g.metrics?.network?.rx || 0) + (g.metrics?.network?.tx || 0)) / 2, // 평균값 사용
+      network:
+        ((g.metrics?.network?.rx || 0) + (g.metrics?.network?.tx || 0)) / 2, // 평균값 사용
 
       // 기본 메타데이터
       uptime: 0, // GCP에서 제공하지 않는 경우 기본값
@@ -128,7 +128,8 @@ export function adaptGCPMetricsToServerInstances(
         cpu: g.metrics?.cpu?.usage || 0,
         memory: g.metrics?.memory?.usage || 0,
         disk: g.metrics?.disk?.usage || 0,
-        network: ((g.metrics?.network?.rx || 0) + (g.metrics?.network?.tx || 0)) / 2,
+        network:
+          ((g.metrics?.network?.rx || 0) + (g.metrics?.network?.tx || 0)) / 2,
         timestamp: g.timestamp,
         uptime: 0, // 기본값
       },
@@ -136,8 +137,12 @@ export function adaptGCPMetricsToServerInstances(
       // 서버 스펙 추정 (실제 GCP API에서 가져올 수 있으면 더 정확함)
       specs: {
         cpu_cores: g.metrics?.cpu?.cores || 1,
-        memory_gb: Math.round((g.metrics?.memory?.total || 0) / (1024 * 1024 * 1024)),
-        disk_gb: Math.round((g.metrics?.disk?.total || 0) / (1024 * 1024 * 1024)),
+        memory_gb: Math.round(
+          (g.metrics?.memory?.total || 0) / (1024 * 1024 * 1024)
+        ),
+        disk_gb: Math.round(
+          (g.metrics?.disk?.total || 0) / (1024 * 1024 * 1024)
+        ),
         network_speed: '1Gbps', // 기본값
       },
 

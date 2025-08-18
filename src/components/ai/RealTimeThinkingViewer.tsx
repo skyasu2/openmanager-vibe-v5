@@ -65,7 +65,11 @@ interface RealTimeAILog {
 // 오픈소스 기술 매핑
 const _TECH_STACK_MAP: Record<
   string,
-  { name: string; icon: React.ComponentType<{ className?: string }>; color: string }
+  {
+    name: string;
+    icon: React.ComponentType<{ className?: string }>;
+    color: string;
+  }
 > = {
   mcp: {
     name: 'Model Context Protocol',

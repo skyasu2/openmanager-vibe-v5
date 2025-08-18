@@ -1,8 +1,12 @@
 // Temporary type declarations for Next.js modules
 declare module 'next/link' {
   import { FC, AnchorHTMLAttributes, ReactNode } from 'react';
-  
-  interface LinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'onMouseEnter' | 'onTouchStart' | 'onClick'> {
+
+  interface LinkProps
+    extends Omit<
+      AnchorHTMLAttributes<HTMLAnchorElement>,
+      'href' | 'onMouseEnter' | 'onTouchStart' | 'onClick'
+    > {
     href: string | { pathname?: string; query?: unknown; hash?: string };
     as?: string;
     replace?: boolean;
@@ -13,7 +17,7 @@ declare module 'next/link' {
     locale?: string | false;
     legacyBehavior?: boolean;
   }
-  
+
   const Link: FC<LinkProps & { children?: ReactNode }>;
   export default Link;
 }
@@ -27,7 +31,7 @@ declare module 'next/navigation' {
     refresh(): void;
     prefetch(href: string): void;
   };
-  
+
   export function usePathname(): string;
   export function useSearchParams(): URLSearchParams;
   export function redirect(url: string): never;
@@ -44,7 +48,7 @@ declare module 'next/server' {
     cookies: Map<string, string>;
     headers: Headers;
   }
-  
+
   export class NextResponse extends Response {
     static json(data: unknown, init?: ResponseInit): NextResponse;
     static redirect(url: string | URL, status?: number): NextResponse;

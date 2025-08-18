@@ -1,11 +1,11 @@
 /**
  * Circuit Breaker Service
- * 
+ *
  * AI 엔진의 장애 대응을 위한 Circuit Breaker 패턴 구현
  * - 연속 실패 시 자동 차단
  * - 시간 경과 후 자동 복구 시도
  * - 엔진별 독립적 관리
- * 
+ *
  * @author AI Systems Engineer
  * @version 1.0.0
  */
@@ -21,9 +21,9 @@ export interface CircuitBreakerConfig {
 }
 
 export enum CircuitState {
-  CLOSED = 'CLOSED',     // 정상 작동
-  OPEN = 'OPEN',         // 차단됨
-  HALF_OPEN = 'HALF_OPEN' // 복구 시도 중
+  CLOSED = 'CLOSED', // 정상 작동
+  OPEN = 'OPEN', // 차단됨
+  HALF_OPEN = 'HALF_OPEN', // 복구 시도 중
 }
 
 interface CircuitBreaker {
@@ -36,7 +36,7 @@ interface CircuitBreaker {
 
 export class CircuitBreakerService {
   private breakers: Map<string, CircuitBreaker>;
-  
+
   constructor(private config: CircuitBreakerConfig) {
     this.breakers = new Map();
   }
@@ -51,7 +51,7 @@ export class CircuitBreakerService {
 
     const breaker = this.getOrCreateBreaker(engine);
     this.updateBreakerState(engine, breaker);
-    
+
     return breaker.state === CircuitState.OPEN;
   }
 
@@ -66,10 +66,12 @@ export class CircuitBreakerService {
     const breaker = this.getOrCreateBreaker(engine);
     breaker.failures++;
     breaker.lastFailureTime = Date.now();
-    
+
     // 임계값 초과 시 회로 열기
-    if (breaker.failures >= this.config.failureThreshold && 
-        breaker.state === CircuitState.CLOSED) {
+    if (
+      breaker.failures >= this.config.failureThreshold &&
+      breaker.state === CircuitState.CLOSED
+    ) {
       this.openCircuit(engine, breaker);
     }
   }
@@ -83,10 +85,10 @@ export class CircuitBreakerService {
     }
 
     const breaker = this.getOrCreateBreaker(engine);
-    
+
     if (breaker.state === CircuitState.HALF_OPEN) {
       breaker.successCount++;
-      
+
       // Half-open 상태에서 성공하면 회로 닫기
       if (breaker.successCount >= 2) {
         this.closeCircuit(engine, breaker);
@@ -102,10 +104,13 @@ export class CircuitBreakerService {
    */
   createCircuitOpenResponse(engine: string): QueryResponse {
     const breaker = this.breakers.get(engine);
-    const timeToReset = breaker ? 
-      Math.ceil((this.config.resetTimeout - (Date.now() - breaker.lastStateChange)) / 1000) : 
-      Math.ceil(this.config.resetTimeout / 1000);
-    
+    const timeToReset = breaker
+      ? Math.ceil(
+          (this.config.resetTimeout - (Date.now() - breaker.lastStateChange)) /
+            1000
+        )
+      : Math.ceil(this.config.resetTimeout / 1000);
+
     return {
       success: false,
       response: `🔌 ${engine} 엔진이 일시적으로 사용할 수 없습니다.\n\n약 ${timeToReset}초 후에 다시 시도됩니다.`,
@@ -136,7 +141,7 @@ export class CircuitBreakerService {
     if (!breaker) {
       return CircuitState.CLOSED;
     }
-    
+
     this.updateBreakerState(engine, breaker);
     return breaker.state;
   }
@@ -146,12 +151,12 @@ export class CircuitBreakerService {
    */
   getAllStates(): Map<string, CircuitState> {
     const states = new Map<string, CircuitState>();
-    
+
     for (const [engine, breaker] of this.breakers) {
       this.updateBreakerState(engine, breaker);
       states.set(engine, breaker.state);
     }
-    
+
     return states;
   }
 
@@ -182,7 +187,7 @@ export class CircuitBreakerService {
 
   private getOrCreateBreaker(engine: string): CircuitBreaker {
     let breaker = this.breakers.get(engine);
-    
+
     if (!breaker) {
       breaker = {
         state: CircuitState.CLOSED,
@@ -193,13 +198,13 @@ export class CircuitBreakerService {
       };
       this.breakers.set(engine, breaker);
     }
-    
+
     return breaker;
   }
 
   private updateBreakerState(engine: string, breaker: CircuitBreaker): void {
     const now = Date.now();
-    
+
     switch (breaker.state) {
       case CircuitState.OPEN:
         // 리셋 타임아웃 후 Half-open으로 전환
@@ -210,7 +215,7 @@ export class CircuitBreakerService {
           console.log(`🔌 ${engine} Circuit Breaker: OPEN → HALF_OPEN`);
         }
         break;
-        
+
       case CircuitState.HALF_OPEN:
         // Half-open 타임아웃 후 다시 Open으로
         if (now - breaker.lastStateChange >= this.config.halfOpenTimeout) {
@@ -223,7 +228,9 @@ export class CircuitBreakerService {
   private openCircuit(engine: string, breaker: CircuitBreaker): void {
     breaker.state = CircuitState.OPEN;
     breaker.lastStateChange = Date.now();
-    console.warn(`🔌 ${engine} Circuit Breaker OPEN - 실패: ${breaker.failures}회`);
+    console.warn(
+      `🔌 ${engine} Circuit Breaker OPEN - 실패: ${breaker.failures}회`
+    );
   }
 
   private closeCircuit(engine: string, breaker: CircuitBreaker): void {

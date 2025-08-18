@@ -1,6 +1,6 @@
 /**
  * ⏰ Unified Metrics Manager Scheduler
- * 
+ *
  * Timer and scheduling functionality:
  * - Unified scheduler management
  * - Duplicate timer cleanup
@@ -126,7 +126,7 @@ export class Scheduler {
       'unified-performance-monitor',
     ];
 
-    timerIds.forEach(id => {
+    timerIds.forEach((id) => {
       try {
         TimerManager.getInstance().unregister(id);
       } catch (error) {
@@ -146,14 +146,14 @@ export class Scheduler {
     lastExecutionTimes: Record<string, number>;
   } {
     const timerManager = TimerManager.getInstance();
-    
+
     // Get active timer information (this would need to be implemented in TimerManager)
     const activeTimers = [
       'unified-metrics-generation',
       'unified-ai-analysis',
       'unified-autoscaling',
       'unified-performance-monitor',
-    ].filter(id => {
+    ].filter((id) => {
       // In a real implementation, we would check if the timer is actually registered
       return true; // Placeholder
     });
@@ -189,10 +189,10 @@ export class Scheduler {
   ): boolean {
     try {
       const timerManager = TimerManager.getInstance();
-      
+
       // Unregister old timer
       timerManager.unregister(timerId);
-      
+
       // Register with new configuration
       if (callback) {
         timerManager.register({
@@ -242,7 +242,7 @@ export class Scheduler {
       optimizedIntervals['unified-metrics-generation'] *= 1.5;
       optimizedIntervals['unified-ai-analysis'] *= 2;
       optimizedIntervals['unified-performance-monitor'] *= 1.2;
-      
+
       recommendations.push('시스템 부하가 높아 스케줄러 간격을 늘렸습니다.');
     }
 
@@ -251,7 +251,7 @@ export class Scheduler {
       // Increase monitoring frequency
       optimizedIntervals['unified-performance-monitor'] *= 0.5;
       optimizedIntervals['unified-metrics-generation'] *= 0.8;
-      
+
       recommendations.push('에러율이 높아 모니터링 빈도를 증가시켰습니다.');
     }
 
@@ -260,8 +260,10 @@ export class Scheduler {
       // Can afford more frequent updates
       optimizedIntervals['unified-metrics-generation'] *= 0.8;
       optimizedIntervals['unified-autoscaling'] *= 0.9;
-      
-      recommendations.push('시스템 여유가 있어 업데이트 빈도를 증가시켰습니다.');
+
+      recommendations.push(
+        '시스템 여유가 있어 업데이트 빈도를 증가시켰습니다.'
+      );
     }
 
     return {

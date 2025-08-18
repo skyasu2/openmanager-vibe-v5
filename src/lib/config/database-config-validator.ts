@@ -1,6 +1,6 @@
 /**
  * 🔐 데이터베이스 설정 검증기 v1.0
- * 
+ *
  * Upstash Redis + Supabase PostgreSQL 환경변수 검증 및 보안 강화
  * - 환경변수 존재성 검증
  * - 연결 테스트 자동화
@@ -16,9 +16,13 @@ const DatabaseConfigSchema = z.object({
   supabase: z.object({
     url: z.string().url('올바른 Supabase URL이 아닙니다'),
     anonKey: z.string().min(100, 'Supabase Anon Key가 너무 짧습니다'),
-    serviceRoleKey: z.string().min(100, 'Supabase Service Role Key가 너무 짧습니다'),
+    serviceRoleKey: z
+      .string()
+      .min(100, 'Supabase Service Role Key가 너무 짧습니다'),
     jwtSecret: z.string().min(32, 'JWT Secret은 최소 32자 이상이어야 합니다'),
-    projectRef: z.string().regex(/^[a-z]{20}$/, '올바른 Supabase Project Reference가 아닙니다'),
+    projectRef: z
+      .string()
+      .regex(/^[a-z]{20}$/, '올바른 Supabase Project Reference가 아닙니다'),
   }),
 
   // Upstash Redis 설정 (이중화)
@@ -26,7 +30,7 @@ const DatabaseConfigSchema = z.object({
     // 메인 Upstash Redis 설정
     upstashUrl: z.string().url('올바른 Upstash Redis URL이 아닙니다'),
     upstashToken: z.string().min(50, 'Upstash Redis Token이 너무 짧습니다'),
-    
+
     // KV 호환 설정 (Vercel KV)
     kvUrl: z.string().url('올바른 KV URL이 아닙니다').optional(),
     kvToken: z.string().min(50, 'KV Token이 너무 짧습니다').optional(),
@@ -49,7 +53,8 @@ type DatabaseConfig = z.infer<typeof DatabaseConfigSchema>;
 function extractDatabaseConfig(): DatabaseConfig {
   return {
     supabase: {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '',
+      url:
+        process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '',
       anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
       serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
       jwtSecret: process.env.SUPABASE_JWT_SECRET || '',
@@ -108,8 +113,8 @@ export async function validateDatabaseConfig(): Promise<DatabaseValidationResult
     const validation = DatabaseConfigSchema.safeParse(config);
 
     if (!validation.success) {
-      result.errors = validation.error.errors.map(err => 
-        `${err.path.join('.')}: ${err.message}`
+      result.errors = validation.error.errors.map(
+        (err) => `${err.path.join('.')}: ${err.message}`
       );
       return result;
     }
@@ -134,7 +139,6 @@ export async function validateDatabaseConfig(): Promise<DatabaseValidationResult
     if (result.errors.length === 0) {
       result.isValid = true;
     }
-
   } catch (error) {
     result.errors.push(`설정 검증 중 오류: ${error}`);
   }
@@ -198,7 +202,9 @@ async function performSecurityCheck(config: DatabaseConfig): Promise<{
   if (process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY) {
     security.score -= 50;
     security.issues.push('🚨 CRITICAL: Service Role Key가 public으로 노출됨');
-    security.recommendations.push('NEXT_PUBLIC_ 접두사를 제거하고 서버 전용으로 사용하세요');
+    security.recommendations.push(
+      'NEXT_PUBLIC_ 접두사를 제거하고 서버 전용으로 사용하세요'
+    );
   }
 
   return security;
@@ -221,16 +227,19 @@ async function performConnectionTests(config: DatabaseConfig): Promise<{
     const supabaseTest = await testSupabaseConnection(config.supabase);
     if (!supabaseTest.success) {
       result.warnings.push(`Supabase 연결 실패: ${supabaseTest.error}`);
-      result.recommendations.push('Supabase 환경변수와 네트워크 연결을 확인하세요');
+      result.recommendations.push(
+        'Supabase 환경변수와 네트워크 연결을 확인하세요'
+      );
     }
 
     // Redis 연결 테스트
     const redisTest = await testRedisConnection(config.redis);
     if (!redisTest.success) {
       result.warnings.push(`Redis 연결 실패: ${redisTest.error}`);
-      result.recommendations.push('Upstash Redis 환경변수와 네트워크 연결을 확인하세요');
+      result.recommendations.push(
+        'Upstash Redis 환경변수와 네트워크 연결을 확인하세요'
+      );
     }
-
   } catch (error) {
     result.warnings.push(`연결 테스트 중 오류: ${error}`);
   }
@@ -245,8 +254,12 @@ function performFreeTierOptimizationCheck(config: DatabaseConfig): string[] {
   const recommendations: string[] = [];
 
   // Supabase 무료 티어 최적화
-  recommendations.push('📊 Supabase 500MB 제한: RLS 정책으로 불필요한 데이터 접근 차단');
-  recommendations.push('🔄 자동 데이터 정리: 90일 이상 된 임베딩 데이터 정리 활성화');
+  recommendations.push(
+    '📊 Supabase 500MB 제한: RLS 정책으로 불필요한 데이터 접근 차단'
+  );
+  recommendations.push(
+    '🔄 자동 데이터 정리: 90일 이상 된 임베딩 데이터 정리 활성화'
+  );
   recommendations.push('📈 인덱스 최적화: 사용되지 않는 벡터 인덱스 정리');
 
   // Upstash Redis 무료 티어 최적화
@@ -256,7 +269,9 @@ function performFreeTierOptimizationCheck(config: DatabaseConfig): string[] {
 
   // 환경별 최적화
   if (config.environment.isProduction) {
-    recommendations.push('🚀 프로덕션 최적화: Connection pooling 및 캐시 최적화 활성화');
+    recommendations.push(
+      '🚀 프로덕션 최적화: Connection pooling 및 캐시 최적화 활성화'
+    );
   }
 
   return recommendations;
@@ -265,7 +280,9 @@ function performFreeTierOptimizationCheck(config: DatabaseConfig): string[] {
 /**
  * 🧪 개별 연결 테스트 함수들
  */
-async function testSupabaseConnection(supabaseConfig: DatabaseConfig['supabase']): Promise<{
+async function testSupabaseConnection(
+  supabaseConfig: DatabaseConfig['supabase']
+): Promise<{
   success: boolean;
   error?: string;
 }> {
@@ -273,8 +290,8 @@ async function testSupabaseConnection(supabaseConfig: DatabaseConfig['supabase']
     // 간단한 Supabase 연결 테스트
     const response = await fetch(`${supabaseConfig.url}/rest/v1/`, {
       headers: {
-        'apikey': supabaseConfig.anonKey,
-        'Authorization': `Bearer ${supabaseConfig.anonKey}`,
+        apikey: supabaseConfig.anonKey,
+        Authorization: `Bearer ${supabaseConfig.anonKey}`,
       },
     });
 
@@ -284,7 +301,9 @@ async function testSupabaseConnection(supabaseConfig: DatabaseConfig['supabase']
   }
 }
 
-async function testRedisConnection(redisConfig: DatabaseConfig['redis']): Promise<{
+async function testRedisConnection(
+  redisConfig: DatabaseConfig['redis']
+): Promise<{
   success: boolean;
   error?: string;
 }> {
@@ -292,7 +311,7 @@ async function testRedisConnection(redisConfig: DatabaseConfig['redis']): Promis
     // Upstash Redis REST API 테스트
     const response = await fetch(`${redisConfig.upstashUrl}/ping`, {
       headers: {
-        'Authorization': `Bearer ${redisConfig.upstashToken}`,
+        Authorization: `Bearer ${redisConfig.upstashToken}`,
       },
     });
 
@@ -306,11 +325,13 @@ async function testRedisConnection(redisConfig: DatabaseConfig['redis']): Promis
 /**
  * 📋 설정 상태 리포트 생성
  */
-export function generateConfigReport(validation: DatabaseValidationResult): string {
+export function generateConfigReport(
+  validation: DatabaseValidationResult
+): string {
   const lines: string[] = [];
-  
+
   lines.push('🔐 데이터베이스 설정 검증 리포트');
-  lines.push('=' .repeat(50));
+  lines.push('='.repeat(50));
   lines.push('');
 
   // 전체 상태
@@ -321,32 +342,34 @@ export function generateConfigReport(validation: DatabaseValidationResult): stri
   // 오류
   if (validation.errors.length > 0) {
     lines.push('❌ 오류:');
-    validation.errors.forEach(error => lines.push(`  - ${error}`));
+    validation.errors.forEach((error) => lines.push(`  - ${error}`));
     lines.push('');
   }
 
   // 경고
   if (validation.warnings.length > 0) {
     lines.push('⚠️ 경고:');
-    validation.warnings.forEach(warning => lines.push(`  - ${warning}`));
+    validation.warnings.forEach((warning) => lines.push(`  - ${warning}`));
     lines.push('');
   }
 
   // 보안 이슈
   if (validation.security.issues.length > 0) {
     lines.push('🚨 보안 이슈:');
-    validation.security.issues.forEach(issue => lines.push(`  - ${issue}`));
+    validation.security.issues.forEach((issue) => lines.push(`  - ${issue}`));
     lines.push('');
   }
 
   // 권장사항
   if (validation.recommendations.length > 0) {
     lines.push('💡 권장사항:');
-    validation.recommendations.forEach(rec => lines.push(`  - ${rec}`));
+    validation.recommendations.forEach((rec) => lines.push(`  - ${rec}`));
     lines.push('');
   }
 
-  lines.push(`생성 시간: ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}`);
+  lines.push(
+    `생성 시간: ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}`
+  );
 
   return lines.join('\n');
 }
@@ -355,14 +378,16 @@ export function generateConfigReport(validation: DatabaseValidationResult): stri
  * 🚀 시작 시 자동 검증 (개발 모드에서만)
  */
 if (process.env.NODE_ENV === 'development' && typeof window === 'undefined') {
-  validateDatabaseConfig().then(result => {
-    if (!result.isValid || result.security.score < 80) {
-      console.warn('⚠️ 데이터베이스 설정 검증 결과:');
-      console.warn(generateConfigReport(result));
-    } else {
-      console.log('✅ 데이터베이스 설정 검증 통과');
-    }
-  }).catch(console.error);
+  validateDatabaseConfig()
+    .then((result) => {
+      if (!result.isValid || result.security.score < 80) {
+        console.warn('⚠️ 데이터베이스 설정 검증 결과:');
+        console.warn(generateConfigReport(result));
+      } else {
+        console.log('✅ 데이터베이스 설정 검증 통과');
+      }
+    })
+    .catch(console.error);
 }
 
 export default validateDatabaseConfig;

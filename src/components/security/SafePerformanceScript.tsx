@@ -27,7 +27,9 @@ export default function SafePerformanceScript() {
             total: Math.round(memory.totalJSHeapSize / 1024 / 1024),
             limit: Math.round(memory.jsHeapSizeLimit / 1024 / 1024),
           };
-          console.log(`🧠 Memory: ${memoryInfo.used}MB / ${memoryInfo.total}MB (Limit: ${memoryInfo.limit}MB)`);
+          console.log(
+            `🧠 Memory: ${memoryInfo.used}MB / ${memoryInfo.total}MB (Limit: ${memoryInfo.limit}MB)`
+          );
         }
 
         // ⚡ Core Web Vitals 측정
@@ -42,7 +44,9 @@ export default function SafePerformanceScript() {
           // FID (First Input Delay) - INP로 대체
           const fidObserver = new PerformanceObserver((list) => {
             for (const entry of list.getEntries()) {
-              console.log(`👆 FID: ${Math.round((entry as any).processingStart - entry.startTime)}ms`);
+              console.log(
+                `👆 FID: ${Math.round((entry as any).processingStart - entry.startTime)}ms`
+              );
             }
           });
 
@@ -73,8 +77,9 @@ export default function SafePerformanceScript() {
         if (performance.timing) {
           const timing = performance.timing;
           const loadTime = timing.loadEventEnd - timing.navigationStart;
-          const domContentLoaded = timing.domContentLoadedEventEnd - timing.navigationStart;
-          
+          const domContentLoaded =
+            timing.domContentLoadedEventEnd - timing.navigationStart;
+
           console.log(`⏱️ Page Load: ${loadTime}ms`);
           console.log(`📄 DOM Ready: ${domContentLoaded}ms`);
         }
@@ -90,18 +95,32 @@ export default function SafePerformanceScript() {
         // 📊 리소스 로딩 분석
         const analyzeResources = () => {
           if (performance.getEntriesByType) {
-            const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[];
-            const jsResources = resources.filter(r => r.name.includes('.js'));
-            const cssResources = resources.filter(r => r.name.includes('.css'));
-            
+            const resources = performance.getEntriesByType(
+              'resource'
+            ) as PerformanceResourceTiming[];
+            const jsResources = resources.filter((r) => r.name.includes('.js'));
+            const cssResources = resources.filter((r) =>
+              r.name.includes('.css')
+            );
+
             if (jsResources.length > 0) {
-              const totalJsSize = jsResources.reduce((sum, r) => sum + (r.transferSize || 0), 0);
-              console.log(`📦 JS Bundle: ${Math.round(totalJsSize / 1024)}KB (${jsResources.length} files)`);
+              const totalJsSize = jsResources.reduce(
+                (sum, r) => sum + (r.transferSize || 0),
+                0
+              );
+              console.log(
+                `📦 JS Bundle: ${Math.round(totalJsSize / 1024)}KB (${jsResources.length} files)`
+              );
             }
-            
+
             if (cssResources.length > 0) {
-              const totalCssSize = cssResources.reduce((sum, r) => sum + (r.transferSize || 0), 0);
-              console.log(`🎨 CSS Bundle: ${Math.round(totalCssSize / 1024)}KB (${cssResources.length} files)`);
+              const totalCssSize = cssResources.reduce(
+                (sum, r) => sum + (r.transferSize || 0),
+                0
+              );
+              console.log(
+                `🎨 CSS Bundle: ${Math.round(totalCssSize / 1024)}KB (${cssResources.length} files)`
+              );
             }
           }
         };
@@ -119,7 +138,7 @@ export default function SafePerformanceScript() {
             if ((performance as any).memory) {
               const memory = (performance as any).memory;
               const used = Math.round(memory.usedJSHeapSize / 1024 / 1024);
-              
+
               // 메모리 사용량이 100MB를 초과하면 경고
               if (used > 100) {
                 console.warn(`⚠️ High Memory Usage: ${used}MB`);
@@ -129,12 +148,11 @@ export default function SafePerformanceScript() {
 
           // 30초마다 모니터링
           const performanceInterval = setInterval(monitorPerformance, 30000);
-          
+
           return () => {
             clearInterval(performanceInterval);
           };
         }
-
       } catch (error) {
         console.warn('⚠️ Performance monitoring initialization failed:', error);
       }

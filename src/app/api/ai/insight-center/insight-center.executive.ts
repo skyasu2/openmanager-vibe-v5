@@ -1,6 +1,6 @@
 /**
  * 🎯 AI Insight Center - Executive Summary & Reporting Module
- * 
+ *
  * Executive reporting and strategic roadmap planning:
  * - Executive dashboard summaries
  * - ROI analysis and business metrics
@@ -60,7 +60,7 @@ export function createRoadmap(timeline: string): ImprovementRoadmap {
     deliverables: string[];
     expected_outcomes: string[];
   }> = [];
-  
+
   for (let i = 1; i <= months; i++) {
     const phase = {
       month: i,
@@ -68,24 +68,33 @@ export function createRoadmap(timeline: string): ImprovementRoadmap {
       deliverables: [] as string[],
       expected_outcomes: [] as string[],
     };
-    
+
     if (i <= 2) {
       phase.focus_areas = ['Quick wins', 'Critical fixes'];
       phase.deliverables = ['Security patches', 'Performance hotfixes'];
-      phase.expected_outcomes = ['Stabilized system', '20% performance improvement'];
+      phase.expected_outcomes = [
+        'Stabilized system',
+        '20% performance improvement',
+      ];
     } else if (i <= 4) {
       phase.focus_areas = ['Architecture improvements', 'Scaling preparation'];
       phase.deliverables = ['Caching implementation', 'Database optimization'];
-      phase.expected_outcomes = ['50% latency reduction', 'Ready for 2x growth'];
+      phase.expected_outcomes = [
+        '50% latency reduction',
+        'Ready for 2x growth',
+      ];
     } else {
       phase.focus_areas = ['Long-term improvements', 'Innovation'];
       phase.deliverables = ['Microservices migration', 'AI integration'];
-      phase.expected_outcomes = ['Fully scalable architecture', 'Predictive capabilities'];
+      phase.expected_outcomes = [
+        'Fully scalable architecture',
+        'Predictive capabilities',
+      ];
     }
-    
+
     phases.push(phase);
   }
-  
+
   return {
     phases,
     total_investment: months * 5000,

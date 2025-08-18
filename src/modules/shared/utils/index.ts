@@ -131,7 +131,10 @@ export const safeJsonParse = <T = any>(json: string, defaultValue: T): T => {
 /**
  * 안전한 JSON 문자열화
  */
-export const safeJsonStringify = (obj: unknown, defaultValue = '{}'): string => {
+export const safeJsonStringify = (
+  obj: unknown,
+  defaultValue = '{}'
+): string => {
   try {
     return JSON.stringify(obj);
   } catch {
@@ -192,5 +195,5 @@ export const randomString = (length = 8): string => {
  * 슬립 함수
  */
 export const sleep = (ms: number): Promise<void> => {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 };

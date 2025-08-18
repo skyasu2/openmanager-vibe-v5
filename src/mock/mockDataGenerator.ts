@@ -73,11 +73,13 @@ function convertToServerType(
     ],
     alerts:
       status !== 'online'
-        ? (scenarioAlerts[
-            serverInitialStates[
-              mockServer.id as keyof typeof serverInitialStates
-            ].scenario as keyof typeof scenarioAlerts
-          ] || []).length
+        ? (
+            scenarioAlerts[
+              serverInitialStates[
+                mockServer.id as keyof typeof serverInitialStates
+              ].scenario as keyof typeof scenarioAlerts
+            ] || []
+          ).length
         : 0,
   };
 }
@@ -122,7 +124,9 @@ function compressTimeSeriesData(data: ScenarioPoint[]): CompressedDataPoint[] {
 /**
  * 압축된 데이터 복원
  */
-export function decompressTimeSeriesData(compressed: CompressedDataPoint[]): ScenarioPoint[] {
+export function decompressTimeSeriesData(
+  compressed: CompressedDataPoint[]
+): ScenarioPoint[] {
   if (compressed.length === 0) return [];
 
   const decompressed: ScenarioPoint[] = [
@@ -178,7 +182,7 @@ export function generateMockServerData(): MockServerData {
     timeSeries[mockServer.id] = {
       serverId: mockServer.id,
       scenario: scenarioId,
-      data: (compressedData as unknown) as TimeSeriesData[], // Note: In practice, this would be the compressed format for storage
+      data: compressedData as unknown as TimeSeriesData[], // Note: In practice, this would be the compressed format for storage
       alerts:
         mockServer.status !== 'online'
           ? scenarioAlerts[scenarioId as keyof typeof scenarioAlerts]?.slice(
@@ -276,12 +280,14 @@ export function calculateDataSize(data: MockServerData): {
     timeSeries: Object.entries(data.timeSeries).reduce(
       (acc, [key, value]) => {
         // TimeSeriesData[]에서 ScenarioPoint[]로 변환
-        const scenarioPoints: ScenarioPoint[] = (value.data).map(item => item.metrics);
+        const scenarioPoints: ScenarioPoint[] = value.data.map(
+          (item) => item.metrics
+        );
         const compressed = compressTimeSeriesData(scenarioPoints);
-        
+
         acc[key] = {
           ...value,
-          data: (compressed as unknown) as TimeSeriesData[], // 압축된 데이터는 실제로는 다른 형태로 저장됨
+          data: compressed as unknown as TimeSeriesData[], // 압축된 데이터는 실제로는 다른 형태로 저장됨
         };
         return acc;
       },

@@ -5,7 +5,13 @@
 export interface OSCommand {
   command: string;
   description: string;
-  category: 'monitoring' | 'process' | 'network' | 'disk' | 'system' | 'security';
+  category:
+    | 'monitoring'
+    | 'process'
+    | 'network'
+    | 'disk'
+    | 'system'
+    | 'security';
   riskLevel: 'safe' | 'moderate' | 'dangerous';
   usage?: string;
   example?: string;
@@ -22,7 +28,7 @@ export interface ServerCommands {
   };
 }
 
-export type ServerType = 
+export type ServerType =
   | 'web-server'
   | 'database-server'
   | 'cache-server'

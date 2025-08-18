@@ -276,7 +276,7 @@ export const useAIStore = create<AIState>()(
         name: 'ai-store',
         storage: createJSONStorage(() => localStorage),
         // 메트릭과 학습 데이터는 persist
-        partialize: state => ({
+        partialize: (state) => ({
           isEnabled: state.isEnabled,
           config: state.config,
           metrics: state.metrics,
@@ -290,8 +290,8 @@ export const useAIStore = create<AIState>()(
 // AI 상태 변화 감지
 if (typeof window !== 'undefined') {
   useAIStore.subscribe(
-    state => state.isEnabled,
-    isEnabled => {
+    (state) => state.isEnabled,
+    (isEnabled) => {
       console.log(`🤖 [AI] 상태 변화: ${isEnabled ? '활성화' : '비활성화'}`);
     }
   );

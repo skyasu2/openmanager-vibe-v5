@@ -48,13 +48,13 @@ export const AIEngineTest: React.FC = () => {
     try {
       const aiConfig = getDefaultConfig();
       const validation = { isValid: true, errors: [] as string[] };
-      setConfig({ 
+      setConfig({
         ...aiConfig,
         engine: aiConfig.engine || 'test',
         timeout: aiConfig.timeout || 5000,
         internalEngineEnabled: true,
         fallbackEnabled: true,
-        validation 
+        validation,
       });
     } catch (error) {
       console.error('Config load error:', error);
@@ -251,15 +251,16 @@ export const AIEngineTest: React.FC = () => {
                 >
                   {config.validation?.isValid ? '유효함' : '오류 있음'}
                 </p>
-                {config.validation?.errors && config.validation.errors.length > 0 && (
-                  <ul className="mt-1 text-xs text-red-400">
-                    {config.validation.errors.map(
-                      (error: string, idx: number) => (
-                        <li key={idx}>• {error}</li>
-                      )
-                    )}
-                  </ul>
-                )}
+                {config.validation?.errors &&
+                  config.validation.errors.length > 0 && (
+                    <ul className="mt-1 text-xs text-red-400">
+                      {config.validation.errors.map(
+                        (error: string, idx: number) => (
+                          <li key={idx}>• {error}</li>
+                        )
+                      )}
+                    </ul>
+                  )}
               </div>
             </div>
           ) : (

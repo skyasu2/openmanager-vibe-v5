@@ -6,7 +6,7 @@
  * ✅ md → embedding vector 구조
  * ✅ 의미 기반 문서 검색
  * ✅ 메모리 기반 캐시 + Supabase 영구 저장
- * 
+ *
  * ✅ 리팩토링: 중복 코드 제거 - 통합 팩토리 사용
  */
 
@@ -101,12 +101,12 @@ class AdvancedMemoryCache {
   get<T>(key: string): T | null {
     const item = this.cache.get(key);
     if (!item) return null;
-    
+
     if (Date.now() > item.expires) {
       this.cache.delete(key);
       return null;
     }
-    
+
     return item.value as T;
   }
 
@@ -133,8 +133,10 @@ export class AdvancedContextManager {
     this.memoryCache = new AdvancedMemoryCache();
 
     // Supabase 연결 (환경변수 있을 때만) - 팩토리 사용
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL && 
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    if (
+      process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    ) {
       this.supabase = getClientSupabase();
     }
 
@@ -212,9 +214,8 @@ export class AdvancedContextManager {
     if (!this.supabase) return;
 
     try {
-      const { error } = await this.supabase
-        .from('document_embeddings')
-        .insert([{
+      const { error } = await this.supabase.from('document_embeddings').insert([
+        {
           id: doc.id,
           title: doc.title,
           content: doc.content,
@@ -223,7 +224,8 @@ export class AdvancedContextManager {
           metadata: doc.metadata,
           chunks: doc.chunks,
           timestamp: new Date(doc.timestamp).toISOString(),
-        }]);
+        },
+      ]);
 
       if (error) {
         console.warn('⚠️ [AdvancedContext] Supabase 문서 저장 실패:', error);
@@ -507,7 +509,7 @@ export class AdvancedContextManager {
     for (const [docId, doc] of contextCache.documents) {
       if (doc.metadata.category === 'faq') {
         const faqs = this.extractFAQsFromDocument(doc);
-        faqs.forEach(faq => {
+        faqs.forEach((faq) => {
           contextCache.faqs.set(faq.id, faq);
         });
       }
@@ -515,12 +517,12 @@ export class AdvancedContextManager {
 
     // 로그에서 자주 발생하는 질문 패턴 분석
     const logDocs = Array.from(contextCache.documents.values()).filter(
-      doc => doc.metadata.category === 'log'
+      (doc) => doc.metadata.category === 'log'
     );
 
     for (const logDoc of logDocs) {
       const faqs = this.generateFAQsFromLogs(logDoc);
-      faqs.forEach(faq => {
+      faqs.forEach((faq) => {
         const existingFaq = contextCache.faqs.get(faq.question);
         if (existingFaq) {
           existingFaq.frequency++;
@@ -548,20 +550,18 @@ export class AdvancedContextManager {
     if (!this.supabase || faqs.length === 0) return;
 
     try {
-      const { error } = await this.supabase
-        .from('faqs')
-        .insert(
-          faqs.map(faq => ({
-            id: faq.id,
-            question: faq.question,
-            answer: faq.answer,
-            category: faq.category,
-            frequency: faq.frequency,
-            last_accessed: new Date(faq.lastAccessed).toISOString(),
-            related_docs: faq.relatedDocs,
-            confidence: faq.confidence,
-          }))
-        );
+      const { error } = await this.supabase.from('faqs').insert(
+        faqs.map((faq) => ({
+          id: faq.id,
+          question: faq.question,
+          answer: faq.answer,
+          category: faq.category,
+          frequency: faq.frequency,
+          last_accessed: new Date(faq.lastAccessed).toISOString(),
+          related_docs: faq.relatedDocs,
+          confidence: faq.confidence,
+        }))
+      );
 
       if (error) {
         console.warn('⚠️ [AdvancedContext] Supabase FAQ 저장 실패:', error);
@@ -666,18 +666,18 @@ export class AdvancedContextManager {
       doc.title
         .toLowerCase()
         .split(/\s+/)
-        .forEach(word => {
+        .forEach((word) => {
           if (word.length > 2) keywords.add(word);
         });
 
       // 태그 추가
-      doc.metadata.tags.forEach(tag => keywords.add(tag.toLowerCase()));
+      doc.metadata.tags.forEach((tag) => keywords.add(tag.toLowerCase()));
 
       // 내용에서 중요 키워드 추출 (단순화된 방법)
       const words = doc.content.toLowerCase().match(/\b\w{3,}\b/g) || [];
       const wordFreq = new Map<string, number>();
 
-      words.forEach(word => {
+      words.forEach((word) => {
         wordFreq.set(word, (wordFreq.get(word) || 0) + 1);
       });
 
@@ -687,10 +687,10 @@ export class AdvancedContextManager {
         .slice(0, 20)
         .map(([word]) => word);
 
-      topWords.forEach(word => keywords.add(word));
+      topWords.forEach((word) => keywords.add(word));
 
       // 검색 인덱스에 추가
-      keywords.forEach(keyword => {
+      keywords.forEach((keyword) => {
         const existing = contextCache.searchIndex.get(keyword) || [];
         existing.push(docId);
         contextCache.searchIndex.set(keyword, existing);
@@ -718,7 +718,7 @@ export class AdvancedContextManager {
     // 키워드 기반 검색
     for (const word of queryWords) {
       const docIds = contextCache.searchIndex.get(word) || [];
-      docIds.forEach(docId => {
+      docIds.forEach((docId) => {
         scores.set(docId, (scores.get(docId) || 0) + 1);
       });
     }
@@ -740,7 +740,7 @@ export class AdvancedContextManager {
       .sort((a, b) => b[1] - a[1])
       .slice(0, limit)
       .map(([docId]) => contextCache.documents.get(docId))
-      .filter(doc => doc !== undefined);
+      .filter((doc) => doc !== undefined);
 
     return sortedResults;
   }

@@ -31,45 +31,40 @@ import React, { useEffect, useState } from 'react';
 // 동적 import로 차트 컴포넌트들 로드
 // 타입 정의는 사용하지 않으므로 제거
 
-const BarChart = dynamic(
-  () => import('recharts').then((mod) => mod.BarChart),
-  { ssr: false }
-) as any;
+const BarChart = dynamic(() => import('recharts').then((mod) => mod.BarChart), {
+  ssr: false,
+}) as any;
 
 const LineChart = dynamic(
   () => import('recharts').then((mod) => mod.LineChart),
   { ssr: false }
 ) as any;
 
-const PieChart = dynamic(
-  () => import('recharts').then((mod) => mod.PieChart),
-  { ssr: false }
-) as any;
+const PieChart = dynamic(() => import('recharts').then((mod) => mod.PieChart), {
+  ssr: false,
+}) as any;
 
 const ResponsiveContainer = dynamic(
   () => import('recharts').then((mod) => mod.ResponsiveContainer),
   { ssr: false }
 ) as any;
 
-const XAxis = dynamic(
-  () => import('recharts').then((mod) => mod.XAxis),
-  { ssr: false }
-) as any;
+const XAxis = dynamic(() => import('recharts').then((mod) => mod.XAxis), {
+  ssr: false,
+}) as any;
 
-const YAxis = dynamic(
-  () => import('recharts').then((mod) => mod.YAxis),
-  { ssr: false }
-) as any;
+const YAxis = dynamic(() => import('recharts').then((mod) => mod.YAxis), {
+  ssr: false,
+}) as any;
 
 const CartesianGrid = dynamic(
   () => import('recharts').then((mod) => mod.CartesianGrid),
   { ssr: false }
 ) as any;
 
-const Tooltip = dynamic(
-  () => import('recharts').then((mod) => mod.Tooltip),
-  { ssr: false }
-) as any;
+const Tooltip = dynamic(() => import('recharts').then((mod) => mod.Tooltip), {
+  ssr: false,
+}) as any;
 
 const Bar = dynamic(() => import('recharts').then((mod) => mod.Bar), {
   ssr: false,
@@ -147,7 +142,9 @@ export const GCPQuotaMonitoringDashboard: React.FC = () => {
     null
   );
   const [routerStatus, setRouterStatus] = useState<RouterStatus | null>(null);
-  const [historicalData, setHistoricalData] = useState<Record<string, unknown>[]>([]);
+  const [historicalData, setHistoricalData] = useState<
+    Record<string, unknown>[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -455,9 +452,13 @@ export const GCPQuotaMonitoringDashboard: React.FC = () => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }: { name: string; percent: number }) =>
-                        `${name} ${((percent || 0) * 100).toFixed(0)}%`
-                      }
+                      label={({
+                        name,
+                        percent,
+                      }: {
+                        name: string;
+                        percent: number;
+                      }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
@@ -535,7 +536,10 @@ export const GCPQuotaMonitoringDashboard: React.FC = () => {
                     <XAxis dataKey="name" />
                     <YAxis />
                     <Tooltip
-                      formatter={(value: number) => [`${value}ms`, 'Response Time']}
+                      formatter={(value: number) => [
+                        `${value}ms`,
+                        'Response Time',
+                      ]}
                     />
                     <Bar dataKey="time" fill="#82ca9d" />
                   </BarChart>

@@ -107,7 +107,11 @@ export function createMiddlewareSupabaseClient(
             ? cookie
             : String((cookie as any).value);
         },
-        set: (name: string, value: string, options: Record<string, unknown>) => {
+        set: (
+          name: string,
+          value: string,
+          options: Record<string, unknown>
+        ) => {
           // 미들웨어에서는 response에 쿠키 설정
           try {
             if (response && 'cookies' in response) {

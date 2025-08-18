@@ -1,6 +1,6 @@
 /**
  * 📊 ML Analytics API Route
- * 
+ *
  * GCP Functions의 ml-analytics-engine을 호출하는 API
  */
 
@@ -71,10 +71,9 @@ export async function POST(request: NextRequest) {
         anomalies_found: mlData?.anomalies?.length || 0,
       },
     });
-
   } catch (error) {
     debug.error('❌ ML Analytics API 오류:', error);
-    
+
     return NextResponse.json(
       {
         success: false,

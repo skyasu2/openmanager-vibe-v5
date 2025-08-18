@@ -1,6 +1,6 @@
 /**
  * 🤖 Google AI Mock Provider
- * 
+ *
  * Google Generative AI의 간소화된 Mock 구현
  */
 
@@ -50,13 +50,13 @@ export class GoogleAIMock extends MockBase {
    */
   async *generateContentStream(prompt: string): AsyncGenerator<string> {
     await this.simulateDelay();
-    
+
     const response = this.findBestResponse(prompt);
     const words = response.split(' ');
-    
+
     for (const word of words) {
       yield word + ' ';
-      await new Promise(resolve => setTimeout(resolve, 20));
+      await new Promise((resolve) => setTimeout(resolve, 20));
     }
   }
 
@@ -65,19 +65,21 @@ export class GoogleAIMock extends MockBase {
    */
   private findBestResponse(prompt: string): string {
     const lowerPrompt = prompt.toLowerCase();
-    
+
     // 시나리오에서 매칭되는 응답 찾기
     for (const [key, scenario] of Object.entries(scenarios.googleAI)) {
-      const hasKeyword = scenario.keywords.some(keyword => 
+      const hasKeyword = scenario.keywords.some((keyword) =>
         lowerPrompt.includes(keyword.toLowerCase())
       );
-      
+
       if (hasKeyword) {
-        const randomIndex = Math.floor(Math.random() * scenario.responses.length);
+        const randomIndex = Math.floor(
+          Math.random() * scenario.responses.length
+        );
         return scenario.responses[randomIndex];
       }
     }
-    
+
     // 기본 응답
     return this.generateDefaultResponse(prompt);
   }

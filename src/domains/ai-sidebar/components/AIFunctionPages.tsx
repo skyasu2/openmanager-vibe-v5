@@ -32,32 +32,32 @@ export const AIFunctionPages: React.FC<AIFunctionPagesProps> = ({
       case 'chat':
         return (
           <div
-            className='p-4 text-center text-white/70'
-            data-testid='chat-page'
+            className="p-4 text-center text-white/70"
+            data-testid="chat-page"
           >
             💬 채팅 기능이 선택되었습니다.
             <br />
-            <span className='text-sm'>메인 채팅 인터페이스가 표시됩니다.</span>
+            <span className="text-sm">메인 채팅 인터페이스가 표시됩니다.</span>
           </div>
         );
 
       case 'auto-report':
         return (
-          <div data-testid='auto-report-page'>
+          <div data-testid="auto-report-page">
             <AutoReportPage />
           </div>
         );
 
       case 'intelligent-monitoring':
         return (
-          <div data-testid='intelligent-monitoring-page'>
+          <div data-testid="intelligent-monitoring-page">
             <IntelligentMonitoringPage />
           </div>
         );
 
       case 'advanced-management':
         return (
-          <div data-testid='advanced-management-page'>
+          <div data-testid="advanced-management-page">
             <MLLearningCenter />
           </div>
         );
@@ -65,8 +65,8 @@ export const AIFunctionPages: React.FC<AIFunctionPagesProps> = ({
       default:
         return (
           <div
-            className='p-4 text-center text-white/70'
-            data-testid='default-page'
+            className="p-4 text-center text-white/70"
+            data-testid="default-page"
           >
             🤖 AI 기능을 선택해주세요.
           </div>
@@ -75,9 +75,9 @@ export const AIFunctionPages: React.FC<AIFunctionPagesProps> = ({
   };
 
   return (
-    <div className={`flex flex-col h-full ${className}`}>
+    <div className={`flex h-full flex-col ${className}`}>
       {/* AI 기능 아이콘 패널 */}
-      <div className='flex-shrink-0' data-testid='ai-function-navigation'>
+      <div className="flex-shrink-0" data-testid="ai-function-navigation">
         <AIAssistantIconPanel
           selectedFunction={selectedFunction}
           onFunctionChange={onFunctionChange}
@@ -85,7 +85,7 @@ export const AIFunctionPages: React.FC<AIFunctionPagesProps> = ({
       </div>
 
       {/* 선택된 기능 페이지 */}
-      <div className='flex-1 overflow-y-auto' data-testid='ai-function-content'>
+      <div className="flex-1 overflow-y-auto" data-testid="ai-function-content">
         {renderFunctionPage()}
       </div>
     </div>

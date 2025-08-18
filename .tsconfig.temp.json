@@ -17,7 +17,7 @@
     "disableReferencedProjectLoad": true
   },
   "include": [
-    "src/data/feature-cards.data.ts"
+    "test-typescript-error.ts"
   ],
   "exclude": [
     "node_modules",

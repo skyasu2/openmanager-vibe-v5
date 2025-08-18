@@ -138,16 +138,16 @@ export class MCPServerManager {
    */
   private setupProductionServers(): void {
     console.log('🔧 프로덕션 MCP 서버 설정 (두 가지 MCP 시스템)');
-    
+
     // 1. Claude Code용 로컬 MCP 서버 (WSL)
     this.setupDevelopmentServers();
-    
+
     // 2. GCP VM MCP 서버 (Google AI 자연어 질의용)
     if (process.env.GCP_MCP_SERVER_URL) {
       console.log('🌐 GCP VM MCP 서버 감지:', process.env.GCP_MCP_SERVER_URL);
       this.servers.set('gcp-vm-mcp', {
         name: 'gcp-vm-mcp',
-        command: 'http',  // HTTP 엔드포인트로 통신
+        command: 'http', // HTTP 엔드포인트로 통신
         args: [process.env.GCP_MCP_SERVER_URL],
         enabled: true,
         env: {
@@ -241,9 +241,9 @@ export class MCPServerManager {
       },
 
       async request(_request: MCPRequest): Promise<MCPResponse> {
-        return { 
+        return {
           success: true,
-          result: { result: `Mock response from ${serverName}` }
+          result: { result: `Mock response from ${serverName}` },
         };
       },
 

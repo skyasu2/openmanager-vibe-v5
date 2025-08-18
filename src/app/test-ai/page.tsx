@@ -223,7 +223,9 @@ export default function TestAIPage() {
                 <div className="rounded-lg bg-gray-800 p-4">
                   <h3 className="mb-2 font-semibold">메타데이터:</h3>
                   <div className="space-y-1 text-sm text-gray-400">
-                    <div>신뢰도: {((response.confidence || 0) * 100).toFixed(1)}%</div>
+                    <div>
+                      신뢰도: {((response.confidence || 0) * 100).toFixed(1)}%
+                    </div>
                     {response.metadata && (
                       <>
                         <div>처리 시간: {response.metadata.totalTime}ms</div>

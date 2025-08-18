@@ -231,21 +231,21 @@ export function hasStringProperty<K extends PropertyKey>(
   obj: unknown,
   key: K
 ): obj is Record<K, string> & Record<string, unknown> {
-  return hasPropertyOfType(obj, key) && isString((obj as Record<K, unknown>)[key]);
+  return hasPropertyOfType(obj, key) && isString(obj[key]);
 }
 
 export function hasNumberProperty<K extends PropertyKey>(
   obj: unknown,
   key: K
 ): obj is Record<K, number> & Record<string, unknown> {
-  return hasPropertyOfType(obj, key) && isNumber((obj as Record<K, unknown>)[key]);
+  return hasPropertyOfType(obj, key) && isNumber(obj[key]);
 }
 
 export function hasBooleanProperty<K extends PropertyKey>(
   obj: unknown,
   key: K
 ): obj is Record<K, boolean> & Record<string, unknown> {
-  return hasPropertyOfType(obj, key) && isBoolean((obj as Record<K, unknown>)[key]);
+  return hasPropertyOfType(obj, key) && isBoolean(obj[key]);
 }
 
 // API 응답 구조 검증을 위한 복합 타입 가드
@@ -301,7 +301,7 @@ export function extractProperty<K extends PropertyKey>(
   obj: unknown,
   key: K
 ): unknown {
-  return hasPropertyOfType(obj, key) ? (obj as Record<K, unknown>)[key] : undefined;
+  return hasPropertyOfType(obj, key) ? obj[key] : undefined;
 }
 
 // 안전한 JSON 파싱 (강화 버전)

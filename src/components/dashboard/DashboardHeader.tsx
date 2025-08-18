@@ -155,7 +155,7 @@ const DashboardHeader = React.memo(function DashboardHeader({
           {isSystemActive && remainingTimeFormatted && (
             <div className="flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-1">
               <div className="flex items-center gap-2">
-                <div className="animate-pulse h-2 w-2 rounded-full bg-yellow-400" />
+                <div className="h-2 w-2 animate-pulse rounded-full bg-yellow-400" />
                 <span className="text-sm font-medium text-yellow-800">
                   시스템 자동 종료: {remainingTimeFormatted}
                 </span>
@@ -315,7 +315,7 @@ const DashboardHeader = React.memo(function DashboardHeader({
         {isSystemActive && remainingTimeFormatted && (
           <div className="flex items-center justify-center">
             <div className="flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-1 text-xs">
-              <div className="animate-pulse h-2 w-2 rounded-full bg-yellow-400" />
+              <div className="h-2 w-2 animate-pulse rounded-full bg-yellow-400" />
               <span className="font-medium text-yellow-800">
                 자동 종료: {remainingTimeFormatted}
               </span>

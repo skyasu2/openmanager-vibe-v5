@@ -10,7 +10,7 @@ import {
 
 /**
  * 🖥️ 서버 관련 Zod 스키마
- * 
+ *
  * 서버 모니터링 및 관리에 사용되는 스키마들
  */
 
@@ -185,16 +185,18 @@ export const ServerGroupSchema = z.object({
   type: z.enum(['cluster', 'pool', 'region', 'custom']),
   servers: z.array(IdSchema),
   metadata: MetadataSchema,
-  policies: z.object({
-    autoScaling: z.boolean().default(false),
-    loadBalancing: z.boolean().default(false),
-    healthCheck: z.object({
-      enabled: z.boolean().default(true),
-      interval: z.number().positive().default(30),
-      timeout: z.number().positive().default(5),
-      retries: z.number().nonnegative().default(3),
-    }),
-  }).optional(),
+  policies: z
+    .object({
+      autoScaling: z.boolean().default(false),
+      loadBalancing: z.boolean().default(false),
+      healthCheck: z.object({
+        enabled: z.boolean().default(true),
+        interval: z.number().positive().default(30),
+        timeout: z.number().positive().default(5),
+        retries: z.number().nonnegative().default(3),
+      }),
+    })
+    .optional(),
 });
 
 // ===== 서버 메트릭 히스토리 =====

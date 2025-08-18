@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * 🔧 유틸리티 Zod 스키마
- * 
+ *
  * 스키마 생성 및 검증을 위한 헬퍼 함수들
  */
 
@@ -47,20 +47,29 @@ export function emailString() {
  * URL을 검증하고 정규화하는 헬퍼
  */
 export function urlString(options?: { protocols?: string[] }) {
-  return z.string().url().transform((url) => {
-    const parsed = new URL(url);
-    if (options?.protocols && !options.protocols.includes(parsed.protocol.slice(0, -1))) {
-      throw new Error(`Invalid protocol: ${parsed.protocol}`);
-    }
-    return parsed.toString();
-  });
+  return z
+    .string()
+    .url()
+    .transform((url) => {
+      const parsed = new URL(url);
+      if (
+        options?.protocols &&
+        !options.protocols.includes(parsed.protocol.slice(0, -1))
+      ) {
+        throw new Error(`Invalid protocol: ${parsed.protocol}`);
+      }
+      return parsed.toString();
+    });
 }
 
 /**
  * 날짜 문자열을 Date 객체로 변환하는 헬퍼
  */
 export function dateString() {
-  return z.string().datetime().transform((str) => new Date(str));
+  return z
+    .string()
+    .datetime()
+    .transform((str) => new Date(str));
 }
 
 /**
@@ -135,14 +144,15 @@ export function exclusiveFields<T extends z.ZodRawShape>(
  * 빈 문자열을 undefined로 변환하는 헬퍼
  */
 export function emptyStringToUndefined() {
-  return z.string().transform((val) => val === '' ? undefined : val);
+  return z.string().transform((val) => (val === '' ? undefined : val));
 }
 
 /**
  * 불린 문자열을 불린으로 변환하는 헬퍼
  */
 export function booleanString() {
-  return z.enum(['true', 'false', '1', '0', 'yes', 'no', 'on', 'off'])
+  return z
+    .enum(['true', 'false', '1', '0', 'yes', 'no', 'on', 'off'])
     .transform((val) => ['true', '1', 'yes', 'on'].includes(val.toLowerCase()));
 }
 
@@ -151,7 +161,10 @@ export function booleanString() {
  */
 export function csvString<T extends z.ZodTypeAny>(itemSchema: T) {
   return z.string().transform((val) => {
-    const items = val.split(',').map((item) => item.trim()).filter(Boolean);
+    const items = val
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
     return z.array(itemSchema).parse(items);
   });
 }
@@ -177,7 +190,7 @@ export function safeParse<T extends z.ZodTypeAny>(
  */
 export function formatZodError(error: z.ZodError): Record<string, string[]> {
   const formatted: Record<string, string[]> = {};
-  
+
   error.issues.forEach((issue) => {
     const path = issue.path.join('.');
     if (!formatted[path]) {
@@ -185,7 +198,7 @@ export function formatZodError(error: z.ZodError): Record<string, string[]> {
     }
     formatted[path].push(issue.message);
   });
-  
+
   return formatted;
 }
 
@@ -225,10 +238,10 @@ export function deepPartial<T extends z.ZodObject<z.ZodRawShape>>(schema: T) {
 /**
  * Pick 유틸리티 타입과 같은 기능의 헬퍼
  */
-export function pick<T extends z.ZodObject<z.ZodRawShape>, K extends keyof z.infer<T>>(
-  schema: T,
-  keys: K[]
-) {
+export function pick<
+  T extends z.ZodObject<z.ZodRawShape>,
+  K extends keyof z.infer<T>,
+>(schema: T, keys: K[]) {
   const pickObj = keys.reduce((acc, key) => {
     acc[key as string] = true;
     return acc;
@@ -239,10 +252,10 @@ export function pick<T extends z.ZodObject<z.ZodRawShape>, K extends keyof z.inf
 /**
  * Omit 유틸리티 타입과 같은 기능의 헬퍼
  */
-export function omit<T extends z.ZodObject<z.ZodRawShape>, K extends keyof z.infer<T>>(
-  schema: T,
-  keys: K[]
-) {
+export function omit<
+  T extends z.ZodObject<z.ZodRawShape>,
+  K extends keyof z.infer<T>,
+>(schema: T, keys: K[]) {
   const omitObj = keys.reduce((acc, key) => {
     acc[key as string] = true;
     return acc;
@@ -255,35 +268,37 @@ export function omit<T extends z.ZodObject<z.ZodRawShape>, K extends keyof z.inf
 /**
  * 한국어 전화번호 검증
  */
-export const koreanPhoneNumber = z.string().regex(
-  /^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$/,
-  '올바른 전화번호 형식이 아닙니다'
-);
+export const koreanPhoneNumber = z
+  .string()
+  .regex(/^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$/, '올바른 전화번호 형식이 아닙니다');
 
 /**
  * 한국어 사업자등록번호 검증
  */
-export const businessRegistrationNumber = z.string().regex(
-  /^\d{3}-\d{2}-\d{5}$/,
-  '올바른 사업자등록번호 형식이 아닙니다'
-);
+export const businessRegistrationNumber = z
+  .string()
+  .regex(/^\d{3}-\d{2}-\d{5}$/, '올바른 사업자등록번호 형식이 아닙니다');
 
 /**
  * 파일 크기 제한 검증
  */
 export function fileSize(maxBytes: number) {
-  return z.instanceof(File).refine(
-    (file) => file.size <= maxBytes,
-    `파일 크기는 ${maxBytes / 1024 / 1024}MB를 초과할 수 없습니다`
-  );
+  return z
+    .instanceof(File)
+    .refine(
+      (file) => file.size <= maxBytes,
+      `파일 크기는 ${maxBytes / 1024 / 1024}MB를 초과할 수 없습니다`
+    );
 }
 
 /**
  * 파일 타입 제한 검증
  */
 export function fileType(allowedTypes: string[]) {
-  return z.instanceof(File).refine(
-    (file) => allowedTypes.includes(file.type),
-    `허용된 파일 타입: ${allowedTypes.join(', ')}`
-  );
+  return z
+    .instanceof(File)
+    .refine(
+      (file) => allowedTypes.includes(file.type),
+      `허용된 파일 타입: ${allowedTypes.join(', ')}`
+    );
 }

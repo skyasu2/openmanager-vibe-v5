@@ -159,12 +159,14 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const { onStatsUpdate } = options;
 
   // Zustand 스토어에서 서버 데이터 가져오기
-  const servers = useServerDataStore(state => state.servers);
-  const isLoading = useServerDataStore(state => state.isLoading);
-  const error = useServerDataStore(state => state.error);
-  const fetchServers = useServerDataStore(state => state.fetchServers);
-  const startAutoRefresh = useServerDataStore(state => state.startAutoRefresh);
-  const stopAutoRefresh = useServerDataStore(state => state.stopAutoRefresh);
+  const servers = useServerDataStore((state) => state.servers);
+  const isLoading = useServerDataStore((state) => state.isLoading);
+  const error = useServerDataStore((state) => state.error);
+  const fetchServers = useServerDataStore((state) => state.fetchServers);
+  const startAutoRefresh = useServerDataStore(
+    (state) => state.startAutoRefresh
+  );
+  const stopAutoRefresh = useServerDataStore((state) => state.stopAutoRefresh);
 
   // 페이지네이션 상태 - 설정 기반으로 동적 조정
   const [currentPage, setCurrentPage] = useState(1);
@@ -226,7 +228,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     const handleResize = () => {
       const width = window.innerWidth;
       let newPageSize: number;
-      
+
       if (width < 640) {
         newPageSize = 6; // 모바일 (적어도 6개)
       } else if (width < 1024) {
@@ -234,7 +236,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
       } else {
         newPageSize = 15; // 데스크톱 (15개 모두 표시)
       }
-      
+
       // 현재 페이지 크기와 다르면 업데이트
       if (newPageSize !== pageSize && pageSize <= 15) {
         // 사용자가 수동으로 변경한 경우도 반영
@@ -245,7 +247,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     // 초기 실행 및 리스너 등록
     handleResize();
     window.addEventListener('resize', handleResize);
-    
+
     return () => window.removeEventListener('resize', handleResize);
   }, []); // 의존성 배열을 비워서 초기에만 리스너 등록
 
@@ -275,77 +277,84 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     }
 
     // EnhancedServerMetrics를 Server 타입으로 변환 (고정 시간별 데이터 사용)
-    return servers.map(
-      (server: unknown): Server => {
-        const s = server as EnhancedServerData;
-        
-        // 고정 시간별 데이터에서 이미 시간 기반 메트릭이 적용되어 있음
-        // 추가 시간 배율 적용 없이 데이터 그대로 사용
-        const cpu = Math.round(s.cpu || s.cpu_usage || 0);
-        const memory = Math.round(s.memory || s.memory_usage || 0);
-        const disk = Math.round(s.disk || s.disk_usage || 0);
-        const network = Math.round(s.network || ((s.network_in || 0) + (s.network_out || 0)) || 0);
+    return servers.map((server: unknown): Server => {
+      const s = server as EnhancedServerData;
 
+      // 고정 시간별 데이터에서 이미 시간 기반 메트릭이 적용되어 있음
+      // 추가 시간 배율 적용 없이 데이터 그대로 사용
+      const cpu = Math.round(s.cpu || s.cpu_usage || 0);
+      const memory = Math.round(s.memory || s.memory_usage || 0);
+      const disk = Math.round(s.disk || s.disk_usage || 0);
+      const network = Math.round(
+        s.network || (s.network_in || 0) + (s.network_out || 0) || 0
+      );
 
-        return {
-          id: s.id,
-          name: s.name || s.hostname || 'Unknown',
-          hostname: s.hostname || s.name || 'Unknown',
-          status: s.status,
-          // 고정 시간별 데이터의 메트릭 그대로 사용
-          cpu: cpu,
-          memory: memory,
-          disk: disk,
-          network: network,
-          uptime: s.uptime || 0,
-          location: s.location || 'Unknown',
-          alerts: Array.isArray(s.alerts) ? s.alerts.length : (s.alerts || 0),
-          ip: s.ip || '192.168.1.1',
+      return {
+        id: s.id,
+        name: s.name || s.hostname || 'Unknown',
+        hostname: s.hostname || s.name || 'Unknown',
+        status: s.status,
+        // 고정 시간별 데이터의 메트릭 그대로 사용
+        cpu: cpu,
+        memory: memory,
+        disk: disk,
+        network: network,
+        uptime: s.uptime || 0,
+        location: s.location || 'Unknown',
+        alerts: Array.isArray(s.alerts) ? s.alerts.length : s.alerts || 0,
+        ip: s.ip || '192.168.1.1',
+        os: s.os || 'Ubuntu 22.04 LTS',
+        type: s.type || s.role || 'worker',
+        environment: s.environment || 'production',
+        provider: s.provider || 'On-Premise',
+        specs: s.specs || {
+          cpu_cores: 4,
+          memory_gb: 8,
+          disk_gb: 250,
+          network_speed: '1Gbps',
+        },
+        lastUpdate:
+          typeof s.lastUpdate === 'string'
+            ? new Date(s.lastUpdate)
+            : s.lastUpdate || new Date(),
+        services: Array.isArray(s.services) ? (s.services as Service[]) : [],
+        networkStatus:
+          s.status === 'online'
+            ? 'healthy'
+            : s.status === 'warning'
+              ? 'warning'
+              : 'critical',
+        systemInfo: s.systemInfo || {
           os: s.os || 'Ubuntu 22.04 LTS',
-          type: s.type || s.role || 'worker',
-          environment: s.environment || 'production',
-          provider: s.provider || 'On-Premise',
-          specs: s.specs || {
-            cpu_cores: 4,
-            memory_gb: 8,
-            disk_gb: 250,
-            network_speed: '1Gbps',
-          },
-          lastUpdate: typeof s.lastUpdate === 'string' ? new Date(s.lastUpdate) : (s.lastUpdate || new Date()),
-          services: Array.isArray(s.services) ? s.services as Service[] : [],
-          networkStatus:
+          uptime:
+            typeof s.uptime === 'string'
+              ? s.uptime
+              : `${Math.floor((s.uptime || 0) / 3600)}h`,
+          processes: Math.floor(Math.random() * 200) + 50,
+          zombieProcesses: Math.floor(Math.random() * 5),
+          loadAverage: '1.23, 1.45, 1.67',
+          lastUpdate:
+            typeof s.lastUpdate === 'string'
+              ? s.lastUpdate
+              : s.lastUpdate instanceof Date
+                ? s.lastUpdate.toISOString()
+                : new Date().toISOString(),
+        },
+        networkInfo: s.networkInfo || {
+          interface: 'eth0',
+          receivedBytes: `${Math.floor(s.network_in || 0)} MB`,
+          sentBytes: `${Math.floor(s.network_out || 0)} MB`,
+          receivedErrors: Math.floor(Math.random() * 10),
+          sentErrors: Math.floor(Math.random() * 10),
+          status:
             s.status === 'online'
               ? 'healthy'
               : s.status === 'warning'
                 ? 'warning'
                 : 'critical',
-          systemInfo: s.systemInfo || {
-            os: s.os || 'Ubuntu 22.04 LTS',
-            uptime:
-              typeof s.uptime === 'string'
-                ? s.uptime
-                : `${Math.floor((s.uptime || 0) / 3600)}h`,
-            processes: Math.floor(Math.random() * 200) + 50,
-            zombieProcesses: Math.floor(Math.random() * 5),
-            loadAverage: '1.23, 1.45, 1.67',
-            lastUpdate: typeof s.lastUpdate === 'string' ? s.lastUpdate : (s.lastUpdate instanceof Date ? s.lastUpdate.toISOString() : new Date().toISOString()),
-          },
-          networkInfo: s.networkInfo || {
-            interface: 'eth0',
-            receivedBytes: `${Math.floor(s.network_in || 0)} MB`,
-            sentBytes: `${Math.floor(s.network_out || 0)} MB`,
-            receivedErrors: Math.floor(Math.random() * 10),
-            sentErrors: Math.floor(Math.random() * 10),
-            status:
-              s.status === 'online'
-                ? 'healthy'
-                : s.status === 'warning'
-                  ? 'warning'
-                  : 'critical',
-          },
-        };
-      }
-    );
+        },
+      };
+    });
   }, [servers]); // 고정 시간별 데이터 사용으로 시간 회전 의존성 제거
 
   // 페이지네이션된 서버 데이터 (메모이제이션)
@@ -410,16 +419,23 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     });
 
     const avgCpu = Math.round(
-      actualServers.reduce((sum: number, s: unknown) => sum + ((s as ServerWithMetrics).cpu || 0), 0) /
-        total
+      actualServers.reduce(
+        (sum: number, s: unknown) => sum + ((s as ServerWithMetrics).cpu || 0),
+        0
+      ) / total
     );
     const avgMemory = Math.round(
-      actualServers.reduce((sum: number, s: unknown) => sum + ((s as ServerWithMetrics).memory || 0), 0) /
-        total
+      actualServers.reduce(
+        (sum: number, s: unknown) =>
+          sum + ((s as ServerWithMetrics).memory || 0),
+        0
+      ) / total
     );
     const avgDisk = Math.round(
-      actualServers.reduce((sum: number, s: unknown) => sum + ((s as ServerWithMetrics).disk || 0), 0) /
-        total
+      actualServers.reduce(
+        (sum: number, s: unknown) => sum + ((s as ServerWithMetrics).disk || 0),
+        0
+      ) / total
     );
 
     const result = {
@@ -434,7 +450,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
     debug.log('📊 useServerDashboard 통계:', {
       ...result,
-      서버_상태_분포: actualServers.map(s => ({
+      서버_상태_분포: actualServers.map((s) => ({
         이름: s.name || s.id,
         상태: s.status,
       })),
@@ -578,12 +594,12 @@ export function useEnhancedServerDashboard({
 
   // 🌍 고유 위치 목록
   const uniqueLocations = useMemo(() => {
-    return Array.from(new Set(servers.map(server => server.location))).sort();
+    return Array.from(new Set(servers.map((server) => server.location))).sort();
   }, [servers]);
 
   // 🔍 필터링된 서버
   const filteredServers = useMemo(() => {
-    return servers.filter(server => {
+    return servers.filter((server) => {
       const matchesSearch =
         server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         server.location.toLowerCase().includes(searchTerm.toLowerCase());

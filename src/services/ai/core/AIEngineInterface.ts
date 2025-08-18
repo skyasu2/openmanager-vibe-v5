@@ -1,13 +1,17 @@
 ﻿/**
  * 🤖 AI 엔진 핵심 인터페이스 - 개선된 버전
- * 
+ *
  * 중앙 집중식 타입 시스템으로 마이그레이션:
  * - 중복 타입 정의 제거
  * - core-types.ts에서 타입 import
  */
 
 // 중앙 집중식 타입에서 import
-import type { AIEngineType, ComplexityScore, AIMetadata } from '@/types/core-types';
+import type {
+  AIEngineType,
+  ComplexityScore,
+  AIMetadata,
+} from '@/types/core-types';
 
 // 기존 ComplexityScore와 호환성을 위한 확장 (임시)
 export interface LegacyComplexityScore extends ComplexityScore {
@@ -38,7 +42,7 @@ export interface AIQueryOptions {
   useCache?: boolean;
   cacheTTL?: number;
   forceEngine?: AIEngineType;
-  
+
   // 성능 관련 옵션들
   priorityLevel?: 'low' | 'medium' | 'high';
   requiresRealtime?: boolean;
@@ -73,12 +77,12 @@ export interface AIPerformanceMetrics {
 export interface IAIEngine {
   name: string;
   type: AIEngineType;
-  
+
   // 핵심 메서드
   query(prompt: string, options?: AIQueryOptions): Promise<AIResponse>;
   getStatus(): Promise<AIEngineStatus>;
   calculateComplexity(query: string): ComplexityScore;
-  
+
   // 성능 메서드
   warmup?(): Promise<void>;
   cleanup?(): Promise<void>;

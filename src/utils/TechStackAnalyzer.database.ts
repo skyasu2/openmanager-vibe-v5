@@ -1,6 +1,6 @@
 /**
  * 🧩 TechStackAnalyzer Database
- * 
+ *
  * Technology database with detailed information:
  * - Frontend frameworks and libraries
  * - Backend and database technologies
@@ -486,7 +486,7 @@ export const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     importance: 'medium',
     description: 'AWS 기반 AI 개발 환경, 클라우드 통합 개발',
   },
-  'windsurf': {
+  windsurf: {
     name: 'Windsurf',
     version: 'latest',
     role: 'AI IDE 도구 (5% 사용)',
@@ -500,7 +500,8 @@ export const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     role: '독립 도구 (filesystem, search, thinking)',
     category: 'ai-development',
     importance: 'high',
-    description: '파일시스템 분석, 웹 검색, 단계별 사고 - 3개 도구 통합 (Cursor와 분리)',
+    description:
+      '파일시스템 분석, 웹 검색, 단계별 사고 - 3개 도구 통합 (Cursor와 분리)',
     isCore: true,
   },
   'vibe-coding-results': {
@@ -509,7 +510,8 @@ export const TECH_DATABASE: Record<string, Omit<TechItem, 'usage'>> = {
     role: 'Claude Code 메인 + Gemini CLI 보조 + AWS Kiro/Windsurf 번갈아 활용',
     category: 'ai-development',
     importance: 'showcase',
-    description: '현재 워크플로우: Claude Code (Opus 4 + Sonnet 4) 70% + Gemini CLI 20% + 기타 AI IDE 10%',
+    description:
+      '현재 워크플로우: Claude Code (Opus 4 + Sonnet 4) 70% + Gemini CLI 20% + 기타 AI IDE 10%',
   },
   vm: {
     name: 'VM',

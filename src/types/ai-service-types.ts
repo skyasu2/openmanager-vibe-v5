@@ -321,7 +321,9 @@ export function isMCPContext(obj: unknown): obj is MCPContext {
   );
 }
 
-export function isMemoryCacheInterface(obj: unknown): obj is MemoryCacheInterface {
+export function isMemoryCacheInterface(
+  obj: unknown
+): obj is MemoryCacheInterface {
   return (
     typeof obj === 'object' &&
     obj !== null &&

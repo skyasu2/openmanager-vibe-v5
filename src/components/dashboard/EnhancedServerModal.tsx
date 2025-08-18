@@ -38,7 +38,10 @@ import type {
   TabId,
   TabInfo,
 } from './EnhancedServerModal.types';
-import { getMetricColorByStatus, getStatusTheme } from './EnhancedServerModal.utils';
+import {
+  getMetricColorByStatus,
+  getStatusTheme,
+} from './EnhancedServerModal.utils';
 import { RealtimeChart } from './EnhancedServerModal.components';
 import { OverviewTab } from './EnhancedServerModal.OverviewTab';
 import { MetricsTab } from './EnhancedServerModal.MetricsTab';
@@ -79,37 +82,38 @@ export default function EnhancedServerModal({
   });
 
   // 🛡️ 서버 데이터 안전성 검증 및 기본값 설정
-  const safeServer = useMemo((): ServerData | null =>
-    server
-      ? {
-          id: server.id || 'unknown',
-          hostname: server.hostname || 'unknown.local',
-          name: server.name || 'Unknown Server',
-          type: server.type || 'unknown',
-          environment: server.environment || 'unknown',
-          location: server.location || 'Unknown Location',
-          provider: server.provider || 'Unknown Provider',
-          status: server.status || 'offline',
-          cpu: typeof server.cpu === 'number' ? server.cpu : 0,
-          memory: typeof server.memory === 'number' ? server.memory : 0,
-          disk: typeof server.disk === 'number' ? server.disk : 0,
-          network: typeof server.network === 'number' ? server.network : 0,
-          uptime: server.uptime || '0h 0m',
-          lastUpdate: server.lastUpdate || new Date(),
-          alerts: typeof server.alerts === 'number' ? server.alerts : 0,
-          services: Array.isArray(server.services) ? server.services : [],
-          specs: server.specs || { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
-          os: server.os || 'Unknown OS',
-          ip: server.ip || '0.0.0.0',
-          networkStatus: server.networkStatus || 'offline',
-          health: server.health || { score: 0, trend: [] },
-          alertsSummary: server.alertsSummary || {
-            total: 0,
-            critical: 0,
-            warning: 0,
-          },
-        }
-      : null,
+  const safeServer = useMemo(
+    (): ServerData | null =>
+      server
+        ? {
+            id: server.id || 'unknown',
+            hostname: server.hostname || 'unknown.local',
+            name: server.name || 'Unknown Server',
+            type: server.type || 'unknown',
+            environment: server.environment || 'unknown',
+            location: server.location || 'Unknown Location',
+            provider: server.provider || 'Unknown Provider',
+            status: server.status || 'offline',
+            cpu: typeof server.cpu === 'number' ? server.cpu : 0,
+            memory: typeof server.memory === 'number' ? server.memory : 0,
+            disk: typeof server.disk === 'number' ? server.disk : 0,
+            network: typeof server.network === 'number' ? server.network : 0,
+            uptime: server.uptime || '0h 0m',
+            lastUpdate: server.lastUpdate || new Date(),
+            alerts: typeof server.alerts === 'number' ? server.alerts : 0,
+            services: Array.isArray(server.services) ? server.services : [],
+            specs: server.specs || { cpu_cores: 4, memory_gb: 8, disk_gb: 100 },
+            os: server.os || 'Unknown OS',
+            ip: server.ip || '0.0.0.0',
+            networkStatus: server.networkStatus || 'offline',
+            health: server.health || { score: 0, trend: [] },
+            alertsSummary: server.alertsSummary || {
+              total: 0,
+              critical: 0,
+              warning: 0,
+            },
+          }
+        : null,
     [server]
   );
 
@@ -217,7 +221,6 @@ export default function EnhancedServerModal({
     { id: 'network', label: '네트워크', icon: Network },
   ];
 
-
   if (!safeServer) {
     console.warn('⚠️ [EnhancedServerModal] 서버 데이터가 없습니다.');
     // 모달을 닫지 않고 오류 상태를 표시
@@ -277,13 +280,15 @@ export default function EnhancedServerModal({
           onClick={(e) => e.stopPropagation()}
         >
           {/* 헤더 - 상태별 색상 적용 */}
-          <div className={`bg-gradient-to-r ${statusTheme.gradient} p-6 text-white`}>
+          <div
+            className={`bg-gradient-to-r ${statusTheme.gradient} p-6 text-white`}
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <MotionDiv
                   whileHover={{ rotate: 360 }}
                   transition={{ duration: 0.5 }}
-                  className="rounded-xl bg-white/25 p-3 backdrop-blur-sm shadow-lg"
+                  className="rounded-xl bg-white/25 p-3 shadow-lg backdrop-blur-sm"
                 >
                   <ServerIcon className="h-7 w-7 text-white" />
                 </MotionDiv>
@@ -302,7 +307,7 @@ export default function EnhancedServerModal({
                       </MotionDiv>
                     )}
                   </h2>
-                  <p className="flex items-center gap-3 text-white/90 mt-1">
+                  <p className="mt-1 flex items-center gap-3 text-white/90">
                     <span className="font-medium">{safeServer.type}</span>
                     <span>•</span>
                     <span>{safeServer.location}</span>
@@ -377,14 +382,20 @@ export default function EnhancedServerModal({
                         : 'bg-white/10 text-white/90 backdrop-blur-sm hover:bg-white/20'
                     }`}
                   >
-                    <Icon className={`h-4 w-4 ${isActive ? 'text-gray-700' : 'text-white/90'}`} />
+                    <Icon
+                      className={`h-4 w-4 ${isActive ? 'text-gray-700' : 'text-white/90'}`}
+                    />
                     <span>{tab.label}</span>
                     {isActive && (
                       <MotionDiv
                         layoutId="activeTab"
                         className="absolute inset-0 rounded-xl bg-white"
                         style={{ zIndex: -1 }}
-                        transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                        transition={{
+                          type: 'spring',
+                          bounce: 0.2,
+                          duration: 0.6,
+                        }}
                       />
                     )}
                   </MotionButton>
@@ -401,25 +412,22 @@ export default function EnhancedServerModal({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                transition={{ 
-                  type: 'spring', 
-                  stiffness: 300, 
-                  damping: 30 
+                transition={{
+                  type: 'spring',
+                  stiffness: 300,
+                  damping: 30,
                 }}
                 className="p-6"
               >
                 {selectedTab === 'overview' && (
-                  <OverviewTab 
-                    server={safeServer} 
-                    statusTheme={statusTheme}
-                  />
+                  <OverviewTab server={safeServer} statusTheme={statusTheme} />
                 )}
                 {selectedTab === 'metrics' && (
-                  <MetricsTab 
-                    server={safeServer} 
+                  <MetricsTab
+                    server={safeServer}
                     realtimeData={realtimeData}
                     isRealtime={isRealtime}
-                    onToggleRealtime={() => setIsRealtime(prev => !prev)}
+                    onToggleRealtime={() => setIsRealtime((prev) => !prev)}
                   />
                 )}
                 {selectedTab === 'processes' && (
@@ -429,10 +437,7 @@ export default function EnhancedServerModal({
                   <LogsTab realtimeData={realtimeData} />
                 )}
                 {selectedTab === 'network' && (
-                  <NetworkTab 
-                    server={safeServer} 
-                    realtimeData={realtimeData}
-                  />
+                  <NetworkTab server={safeServer} realtimeData={realtimeData} />
                 )}
               </MotionDiv>
             </AnimatePresence>

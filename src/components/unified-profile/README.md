@@ -115,7 +115,7 @@ src/components/unified-profile/
 ```tsx
 import UnifiedProfileComponent from '@/components/UnifiedProfileComponent';
 
-<UnifiedProfileComponent userName='관리자' userAvatar='/images/avatar.jpg' />;
+<UnifiedProfileComponent userName="관리자" userAvatar="/images/avatar.jpg" />;
 ```
 
 ### 고급 설정

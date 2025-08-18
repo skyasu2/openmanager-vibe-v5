@@ -259,7 +259,7 @@ export class EnrichedMetricsGenerator {
   private _initializeServers(servers: EnhancedServerMetrics[]): void {
     this.servers.clear();
 
-    servers.forEach(server => {
+    servers.forEach((server) => {
       this.servers.set(server.id, server);
     });
 
@@ -396,7 +396,7 @@ export class EnrichedMetricsGenerator {
         },
         page_faults: Math.floor(currentLoad * 1000),
         memory_leaks: scenarios.some(
-          s => s.pattern?.id === 'gradual-memory-leak'
+          (s) => s.pattern?.id === 'gradual-memory-leak'
         )
           ? Math.floor(currentLoad * 50)
           : 0,
@@ -540,13 +540,16 @@ export class EnrichedMetricsGenerator {
 
   // 🛠️ 유틸리티 메서드들
 
-  private getServerBaseline(serverId: string, hour: number): BaselineData | null {
+  private getServerBaseline(
+    serverId: string,
+    hour: number
+  ): BaselineData | null {
     return this.baselineData.get(`${serverId}-${hour}`) || {};
   }
 
   private calculateScenarioImpact(scenarios: ScenarioData[]): number {
     let impact = 1.0;
-    scenarios.forEach(scenario => {
+    scenarios.forEach((scenario) => {
       switch (scenario.pattern?.severity) {
         case 'critical':
           impact *= 1.5;

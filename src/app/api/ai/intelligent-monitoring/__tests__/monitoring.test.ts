@@ -45,14 +45,62 @@ vi.mock('@/lib/cache-helper', () => ({
 
 // Mock historical data
 const mockHistoricalData = [
-  { timestamp: '2024-01-01T00:00:00Z', cpu: 45, memory: 50, disk: 30, network: 25 },
-  { timestamp: '2024-01-01T01:00:00Z', cpu: 48, memory: 52, disk: 31, network: 28 },
-  { timestamp: '2024-01-01T02:00:00Z', cpu: 52, memory: 55, disk: 32, network: 30 },
-  { timestamp: '2024-01-01T03:00:00Z', cpu: 58, memory: 60, disk: 33, network: 35 },
-  { timestamp: '2024-01-01T04:00:00Z', cpu: 65, memory: 68, disk: 35, network: 40 },
-  { timestamp: '2024-01-01T05:00:00Z', cpu: 72, memory: 75, disk: 37, network: 45 },
-  { timestamp: '2024-01-01T06:00:00Z', cpu: 80, memory: 82, disk: 40, network: 50 },
-  { timestamp: '2024-01-01T07:00:00Z', cpu: 85, memory: 88, disk: 42, network: 55 },
+  {
+    timestamp: '2024-01-01T00:00:00Z',
+    cpu: 45,
+    memory: 50,
+    disk: 30,
+    network: 25,
+  },
+  {
+    timestamp: '2024-01-01T01:00:00Z',
+    cpu: 48,
+    memory: 52,
+    disk: 31,
+    network: 28,
+  },
+  {
+    timestamp: '2024-01-01T02:00:00Z',
+    cpu: 52,
+    memory: 55,
+    disk: 32,
+    network: 30,
+  },
+  {
+    timestamp: '2024-01-01T03:00:00Z',
+    cpu: 58,
+    memory: 60,
+    disk: 33,
+    network: 35,
+  },
+  {
+    timestamp: '2024-01-01T04:00:00Z',
+    cpu: 65,
+    memory: 68,
+    disk: 35,
+    network: 40,
+  },
+  {
+    timestamp: '2024-01-01T05:00:00Z',
+    cpu: 72,
+    memory: 75,
+    disk: 37,
+    network: 45,
+  },
+  {
+    timestamp: '2024-01-01T06:00:00Z',
+    cpu: 80,
+    memory: 82,
+    disk: 40,
+    network: 50,
+  },
+  {
+    timestamp: '2024-01-01T07:00:00Z',
+    cpu: 85,
+    memory: 88,
+    disk: 42,
+    network: 55,
+  },
 ];
 
 // Mock current metrics
@@ -72,7 +120,7 @@ describe('Intelligent Monitoring API', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    
+
     // Dynamically import after mocks are set
     const module = await import('../route');
     POST = module.POST;
@@ -85,16 +133,19 @@ describe('Intelligent Monitoring API', () => {
 
   describe('Predictive Alerts', () => {
     it('should predict future resource exhaustion', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'predict',
-          server_id: 'server-01',
-          historical_data: mockHistoricalData,
-          current_metrics: mockCurrentMetrics,
-          horizon_hours: 4,
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'predict',
+            server_id: 'server-01',
+            historical_data: mockHistoricalData,
+            current_metrics: mockCurrentMetrics,
+            horizon_hours: 4,
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -109,16 +160,19 @@ describe('Intelligent Monitoring API', () => {
     });
 
     it('should generate preemptive alerts for predicted issues', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'predict',
-          server_id: 'server-01',
-          historical_data: mockHistoricalData,
-          current_metrics: mockCurrentMetrics,
-          horizon_hours: 2,
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'predict',
+            server_id: 'server-01',
+            historical_data: mockHistoricalData,
+            current_metrics: mockCurrentMetrics,
+            horizon_hours: 2,
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -132,16 +186,19 @@ describe('Intelligent Monitoring API', () => {
     });
 
     it('should calculate prediction confidence based on data quality', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'predict',
-          server_id: 'server-01',
-          historical_data: mockHistoricalData.slice(0, 3), // Less data
-          current_metrics: mockCurrentMetrics,
-          horizon_hours: 8, // Longer prediction
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'predict',
+            server_id: 'server-01',
+            historical_data: mockHistoricalData.slice(0, 3), // Less data
+            current_metrics: mockCurrentMetrics,
+            horizon_hours: 8, // Longer prediction
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -153,15 +210,18 @@ describe('Intelligent Monitoring API', () => {
 
   describe('Anomaly Forecasting', () => {
     it('should forecast anomaly probability', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'forecast_anomalies',
-          server_id: 'server-01',
-          historical_data: mockHistoricalData,
-          pattern_window: 24,
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'forecast_anomalies',
+            server_id: 'server-01',
+            historical_data: mockHistoricalData,
+            pattern_window: 24,
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -176,14 +236,17 @@ describe('Intelligent Monitoring API', () => {
     });
 
     it('should identify recurring anomaly patterns', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'analyze_patterns',
-          server_id: 'server-01',
-          time_range: '7d',
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'analyze_patterns',
+            server_id: 'server-01',
+            time_range: '7d',
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -199,13 +262,16 @@ describe('Intelligent Monitoring API', () => {
     });
 
     it('should predict seasonal patterns', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'seasonal_analysis',
-          server_id: 'server-01',
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'seasonal_analysis',
+            server_id: 'server-01',
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -219,15 +285,18 @@ describe('Intelligent Monitoring API', () => {
 
   describe('Adaptive Thresholds', () => {
     it('should calculate dynamic thresholds based on historical data', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'calculate_thresholds',
-          server_id: 'server-01',
-          metric_type: 'cpu',
-          learning_period: '7d',
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'calculate_thresholds',
+            server_id: 'server-01',
+            metric_type: 'cpu',
+            learning_period: '7d',
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -242,14 +311,17 @@ describe('Intelligent Monitoring API', () => {
     });
 
     it('should adapt thresholds to workload patterns', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'adapt_thresholds',
-          server_id: 'server-01',
-          context: 'business_hours',
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'adapt_thresholds',
+            server_id: 'server-01',
+            context: 'business_hours',
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -263,14 +335,17 @@ describe('Intelligent Monitoring API', () => {
     });
 
     it('should provide threshold adjustment recommendations', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'threshold_recommendations',
-          server_id: 'server-01',
-          false_positive_rate: 0.15,
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'threshold_recommendations',
+            server_id: 'server-01',
+            false_positive_rate: 0.15,
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -286,17 +361,32 @@ describe('Intelligent Monitoring API', () => {
 
   describe('Learning-based Pattern Recognition', () => {
     it('should learn from historical incidents', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'learn_patterns',
-          incident_history: [
-            { timestamp: '2024-01-01T10:00:00Z', type: 'cpu_spike', resolved: true },
-            { timestamp: '2024-01-02T10:00:00Z', type: 'cpu_spike', resolved: true },
-            { timestamp: '2024-01-03T10:00:00Z', type: 'cpu_spike', resolved: true },
-          ],
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'learn_patterns',
+            incident_history: [
+              {
+                timestamp: '2024-01-01T10:00:00Z',
+                type: 'cpu_spike',
+                resolved: true,
+              },
+              {
+                timestamp: '2024-01-02T10:00:00Z',
+                type: 'cpu_spike',
+                resolved: true,
+              },
+              {
+                timestamp: '2024-01-03T10:00:00Z',
+                type: 'cpu_spike',
+                resolved: true,
+              },
+            ],
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -309,13 +399,16 @@ describe('Intelligent Monitoring API', () => {
     });
 
     it('should improve prediction accuracy over time', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'evaluate_learning',
-          server_id: 'server-01',
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'evaluate_learning',
+            server_id: 'server-01',
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -328,14 +421,17 @@ describe('Intelligent Monitoring API', () => {
     });
 
     it('should identify complex multi-metric patterns', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'multi_metric_analysis',
-          server_id: 'server-01',
-          metrics: ['cpu', 'memory', 'network'],
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'multi_metric_analysis',
+            server_id: 'server-01',
+            metrics: ['cpu', 'memory', 'network'],
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -349,15 +445,18 @@ describe('Intelligent Monitoring API', () => {
 
   describe('Auto-scaling Recommendations', () => {
     it('should recommend scaling actions based on predictions', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'scaling_recommendations',
-          server_id: 'server-01',
-          current_metrics: mockCurrentMetrics,
-          predicted_load: { cpu: 95, memory: 92 },
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'scaling_recommendations',
+            server_id: 'server-01',
+            current_metrics: mockCurrentMetrics,
+            predicted_load: { cpu: 95, memory: 92 },
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -373,14 +472,17 @@ describe('Intelligent Monitoring API', () => {
     });
 
     it('should provide cost-optimized scaling suggestions', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'cost_optimized_scaling',
-          server_id: 'server-01',
-          budget_constraint: 100,
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'cost_optimized_scaling',
+            server_id: 'server-01',
+            budget_constraint: 100,
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -393,17 +495,20 @@ describe('Intelligent Monitoring API', () => {
     });
 
     it('should schedule scaling actions for optimal timing', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'schedule_scaling',
-          server_id: 'server-01',
-          predicted_patterns: {
-            peak_start: '09:00',
-            peak_end: '17:00',
-          },
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'schedule_scaling',
+            server_id: 'server-01',
+            predicted_patterns: {
+              peak_start: '09:00',
+              peak_end: '17:00',
+            },
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -419,17 +524,20 @@ describe('Intelligent Monitoring API', () => {
   describe('Performance Requirements', () => {
     it('should complete predictions within 200ms', async () => {
       const startTime = Date.now();
-      
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'predict',
-          server_id: 'server-01',
-          historical_data: mockHistoricalData.slice(-5),
-          current_metrics: mockCurrentMetrics,
-          horizon_hours: 1,
-        }),
-      });
+
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'predict',
+            server_id: 'server-01',
+            historical_data: mockHistoricalData.slice(-5),
+            current_metrics: mockCurrentMetrics,
+            horizon_hours: 1,
+          }),
+        }
+      );
 
       await POST(request);
       const responseTime = Date.now() - startTime;
@@ -447,15 +555,18 @@ describe('Intelligent Monitoring API', () => {
       }));
 
       const startTime = Date.now();
-      
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'analyze_patterns',
-          server_id: 'server-01',
-          historical_data: largeHistoricalData,
-        }),
-      });
+
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'analyze_patterns',
+            server_id: 'server-01',
+            historical_data: largeHistoricalData,
+          }),
+        }
+      );
 
       await POST(request);
       const responseTime = Date.now() - startTime;
@@ -466,16 +577,19 @@ describe('Intelligent Monitoring API', () => {
 
   describe('Error Handling', () => {
     it('should handle insufficient data gracefully', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'predict',
-          server_id: 'server-01',
-          historical_data: [], // No data
-          current_metrics: mockCurrentMetrics,
-          horizon_hours: 4,
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'predict',
+            server_id: 'server-01',
+            historical_data: [], // No data
+            current_metrics: mockCurrentMetrics,
+            horizon_hours: 4,
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -486,16 +600,19 @@ describe('Intelligent Monitoring API', () => {
     });
 
     it('should validate prediction horizon limits', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'POST',
-        body: JSON.stringify({
-          action: 'predict',
-          server_id: 'server-01',
-          historical_data: mockHistoricalData,
-          current_metrics: mockCurrentMetrics,
-          horizon_hours: 168, // 7 days - too long
-        }),
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'predict',
+            server_id: 'server-01',
+            historical_data: mockHistoricalData,
+            current_metrics: mockCurrentMetrics,
+            horizon_hours: 168, // 7 days - too long
+          }),
+        }
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -507,9 +624,12 @@ describe('Intelligent Monitoring API', () => {
 
   describe('GET Endpoint - Status and Capabilities', () => {
     it('should return monitoring system status', async () => {
-      const request = new NextRequest('http://localhost:3000/api/ai/intelligent-monitoring', {
-        method: 'GET',
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/ai/intelligent-monitoring',
+        {
+          method: 'GET',
+        }
+      );
 
       const response = await GET(request);
       const data = await response.json();

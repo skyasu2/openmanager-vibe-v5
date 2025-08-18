@@ -145,9 +145,11 @@ function MainContent() {
     if (!hooks) return;
 
     // 훅이 로드되면 상태 초기화
-    const { isGitHubAuthenticated } = (hooks as { auth: { isGitHubAuthenticated: () => Promise<unknown> } }).auth;
+    const { isGitHubAuthenticated } = (
+      hooks as { auth: { isGitHubAuthenticated: () => Promise<unknown> } }
+    ).auth;
     isGitHubAuthenticated().then((result) => {
-      setSystemState(prev => ({ ...prev, isGitHubUser: Boolean(result) }));
+      setSystemState((prev) => ({ ...prev, isGitHubUser: Boolean(result) }));
     });
   }, [hooks]);
 

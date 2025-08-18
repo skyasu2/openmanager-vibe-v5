@@ -1,11 +1,11 @@
 /**
  * Korean NLP Processor
- * 
+ *
  * 한국어 자연어 처리 전담 서비스
  * - 한국어 감지 및 비율 계산
  * - GCP Korean NLP API 호출
  * - 한국어 특화 응답 변환
- * 
+ *
  * @author AI Systems Engineer
  * @version 1.0.0
  */
@@ -66,10 +66,10 @@ export class KoreanNLPProcessor {
     const koreanRegex = /[가-힣ㄱ-ㅎㅏ-ㅣ]/g;
     const koreanMatches = text.match(koreanRegex);
     const koreanCount = koreanMatches ? koreanMatches.length : 0;
-    
+
     // 공백 제외한 전체 문자 수
     const totalChars = text.replace(/\s/g, '').length;
-    
+
     return totalChars > 0 ? koreanCount / totalChars : 0;
   }
 
@@ -79,7 +79,7 @@ export class KoreanNLPProcessor {
   async process(request: QueryRequest): Promise<QueryResponse> {
     try {
       const nlpResponse = await this.callKoreanNLPAPI(request);
-      
+
       if (!nlpResponse.success || !nlpResponse.data) {
         throw new Error(nlpResponse.error || 'Korean NLP API 응답 없음');
       }
@@ -87,7 +87,7 @@ export class KoreanNLPProcessor {
       return this.convertToQueryResponse(nlpResponse.data, request);
     } catch (error) {
       console.error('Korean NLP 처리 오류:', error);
-      
+
       if (this.config.fallbackToLocal) {
         return this.createFallbackResponse(request, error as Error);
       } else {
@@ -99,7 +99,9 @@ export class KoreanNLPProcessor {
   /**
    * Korean NLP API 호출
    */
-  private async callKoreanNLPAPI(request: QueryRequest): Promise<KoreanNLPResponse> {
+  private async callKoreanNLPAPI(
+    request: QueryRequest
+  ): Promise<KoreanNLPResponse> {
     const response = await fetch(this.config.apiEndpoint, {
       method: 'POST',
       headers: {
@@ -117,7 +119,9 @@ export class KoreanNLPProcessor {
     });
 
     if (!response.ok) {
-      throw new Error(`Korean NLP API 호출 실패: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `Korean NLP API 호출 실패: ${response.status} ${response.statusText}`
+      );
     }
 
     return await response.json();
@@ -126,13 +130,16 @@ export class KoreanNLPProcessor {
   /**
    * NLP 응답을 QueryResponse로 변환
    */
-  private convertToQueryResponse(nlpData: KoreanNLPResponse['data'], request: QueryRequest): QueryResponse {
+  private convertToQueryResponse(
+    nlpData: KoreanNLPResponse['data'],
+    request: QueryRequest
+  ): QueryResponse {
     if (!nlpData) {
       throw new Error('NLP 데이터가 없습니다');
     }
 
     const responseText = this.buildResponseText(nlpData);
-    
+
     return {
       success: true,
       response: responseText,
@@ -176,31 +183,31 @@ export class KoreanNLPProcessor {
     if (!nlpData) return '한국어 분석 결과를 가져올 수 없습니다.';
 
     let response = `🇰🇷 한국어 분석 결과:\n\n`;
-    
+
     // 의도 분석
     response += `**의도**: ${nlpData.intent}\n`;
-    
+
     // 엔티티 정보
     if (nlpData.entities && nlpData.entities.length > 0) {
-      response += `**감지된 요소**: ${nlpData.entities.map(e => `${e.type}(${e.value})`).join(', ')}\n`;
+      response += `**감지된 요소**: ${nlpData.entities.map((e) => `${e.type}(${e.value})`).join(', ')}\n`;
     }
-    
+
     // 의미 분석
     if (nlpData.semantic_analysis) {
       response += `**주요 주제**: ${nlpData.semantic_analysis.main_topic}\n`;
-      
+
       if (nlpData.semantic_analysis.urgency_level !== 'low') {
         response += `**긴급도**: ${nlpData.semantic_analysis.urgency_level}\n`;
       }
-      
+
       response += `**복잡도**: ${Math.round(nlpData.semantic_analysis.complexity * 100)}%\n`;
     }
-    
+
     // 시각화 제안
     if (nlpData.response_guidance?.visualization_suggestions?.length > 0) {
       response += `\n**권장 시각화**: ${nlpData.response_guidance.visualization_suggestions.join(', ')}\n`;
     }
-    
+
     // 액션 아이템
     if (nlpData.response_guidance?.action_items?.length > 0) {
       response += `\n**권장 작업**:\n`;
@@ -208,14 +215,17 @@ export class KoreanNLPProcessor {
         response += `${index + 1}. ${item}\n`;
       });
     }
-    
+
     return response;
   }
 
   /**
    * 폴백 응답 생성
    */
-  private createFallbackResponse(request: QueryRequest, error: Error): QueryResponse {
+  private createFallbackResponse(
+    request: QueryRequest,
+    error: Error
+  ): QueryResponse {
     return {
       success: true,
       response: `한국어 분석을 시도했지만 처리 중 오류가 발생했습니다.\n\n문의사항: "${request.query}"\n\n기본 검색 모드로 처리합니다.`,

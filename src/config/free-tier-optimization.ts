@@ -357,10 +357,7 @@ export class FreeTierOptimizer {
    */
   getEnvironmentConfig() {
     const env = process.env.NODE_ENV || 'development';
-    return (
-      ENVIRONMENT_CONFIG[env] ||
-      ENVIRONMENT_CONFIG.development
-    );
+    return ENVIRONMENT_CONFIG[env] || ENVIRONMENT_CONFIG.development;
   }
 
   /**

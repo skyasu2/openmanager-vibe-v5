@@ -1,6 +1,6 @@
 /**
  * 📊 PerformanceDashboard State Components
- * 
+ *
  * Extracted loading and error state components:
  * - Loading state with spinner
  * - Error state with retry button

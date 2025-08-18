@@ -76,7 +76,17 @@ export const ServerPaginatedResponseSchema = z.object({
 
 export const ServerBatchRequestSchema = z.object({
   serverIds: z.array(IdSchema),
-  action: z.enum(['restart', 'stop', 'start', 'update', 'delete', 'batch-restart', 'batch-update', 'batch-configure', 'health-check']),
+  action: z.enum([
+    'restart',
+    'stop',
+    'start',
+    'update',
+    'delete',
+    'batch-restart',
+    'batch-update',
+    'batch-configure',
+    'health-check',
+  ]),
   options: z.record(z.any()).optional(),
   settings: z.record(z.any()).optional(), // Deprecated: use options instead, kept for backward compatibility
 });
@@ -150,10 +160,12 @@ export const ServerHistorySchema = z.object({
 
 export const PaginatedServerSchema = z.object({
   ...ServerStatusSchema.shape,
-  _pagination: z.object({
-    index: z.number(),
-    total: z.number(),
-  }).optional(),
+  _pagination: z
+    .object({
+      index: z.number(),
+      total: z.number(),
+    })
+    .optional(),
 });
 
 // ===== 타입 내보내기 =====
@@ -164,12 +176,16 @@ export type ServerStatus = z.infer<typeof ServerStatusSchema>;
 export type ServerService = z.infer<typeof ServerServiceSchema>;
 export type ServerSpecs = z.infer<typeof ServerSpecsSchema>;
 export type ServerHistory = z.infer<typeof ServerHistorySchema>;
-export type ServerHistoryDataPoint = z.infer<typeof ServerHistoryDataPointSchema>;
+export type ServerHistoryDataPoint = z.infer<
+  typeof ServerHistoryDataPointSchema
+>;
 export type PaginatedServer = z.infer<typeof PaginatedServerSchema>;
 
 // 페이지네이션 관련 타입 (스키마 이름 불일치 해결)
 export type ServerPaginationQuery = z.infer<typeof ServerPaginationQuerySchema>;
-export type ServerPaginatedResponse = z.infer<typeof ServerPaginatedResponseSchema>;
+export type ServerPaginatedResponse = z.infer<
+  typeof ServerPaginatedResponseSchema
+>;
 export type ServerBatchRequest = z.infer<typeof ServerBatchRequestSchema>;
 export type ServerBatchResponse = z.infer<typeof ServerBatchResponseSchema>;
 

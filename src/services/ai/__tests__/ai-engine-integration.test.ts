@@ -124,7 +124,7 @@ describe('SimplifiedQueryEngine 기본 동작', () => {
     expect(response.response).toContain('주의');
     expect(
       response.thinkingSteps.some(
-        s => s.step.includes('쿼리') || s.step.includes('RAG')
+        (s) => s.step.includes('쿼리') || s.step.includes('RAG')
       )
     ).toBe(true);
   });
@@ -140,14 +140,14 @@ describe('SimplifiedQueryEngine 기본 동작', () => {
     expect(response.thinkingSteps.length).toBeGreaterThanOrEqual(3);
 
     // 각 단계가 올바른 속성을 가져야 함
-    response.thinkingSteps.forEach(step => {
+    response.thinkingSteps.forEach((step) => {
       expect(step.step).toBeDefined();
       expect(step.status).toMatch(/thinking|processing|completed|error/);
     });
 
     // 모든 단계가 완료되어야 함
     const allCompleted = response.thinkingSteps.every(
-      s => s.status === 'completed'
+      (s) => s.status === 'completed'
     );
     expect(allCompleted).toBe(true);
   });

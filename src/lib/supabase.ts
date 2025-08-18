@@ -4,10 +4,22 @@
  */
 
 import { getErrorMessage } from '@/types/type-utils';
-import { supabase, browserSupabase, getSupabaseUser, signInWithGitHub, signOut } from '@/lib/supabase/supabase-client';
+import {
+  supabase,
+  browserSupabase,
+  getSupabaseUser,
+  signInWithGitHub,
+  signOut,
+} from '@/lib/supabase/supabase-client';
 
 // Re-export from supabase-client
-export { supabase, browserSupabase, getSupabaseUser, signInWithGitHub, signOut };
+export {
+  supabase,
+  browserSupabase,
+  getSupabaseUser,
+  signInWithGitHub,
+  signOut,
+};
 
 // 타입 정의
 interface FallbackStorage {
@@ -144,7 +156,7 @@ export class ResilientSupabaseClient {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table },
-        payload => {
+        (payload) => {
           // 실시간 데이터도 캐시에 저장
           const result = payload as unknown as { new: T; old: T };
 
@@ -175,7 +187,7 @@ export class ResilientSupabaseClient {
     };
 
     // 연결 상태 모니터링
-    channel.on('system', {}, payload => {
+    channel.on('system', {}, (payload) => {
       if (payload.status === 'closed') {
         handleDisconnect();
       }

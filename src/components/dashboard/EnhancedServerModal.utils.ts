@@ -1,17 +1,21 @@
 /**
  * 🔧 Enhanced Server Modal Utility Functions
- * 
+ *
  * Utility functions for server modal operations:
  * - Metric color determination based on server status and values
  * - Status theme configuration for UI styling
  * - Color and gradient calculations for different server states
  */
 
-import { ServerStatus, MetricColorResult, StatusTheme } from './EnhancedServerModal.types';
+import {
+  ServerStatus,
+  MetricColorResult,
+  StatusTheme,
+} from './EnhancedServerModal.types';
 
 /**
  * 🎨 메트릭별 색상 결정 함수 (서버 상태 우선)
- * 
+ *
  * @param value - 메트릭 값 (0-100)
  * @param type - 메트릭 타입 ('cpu' | 'memory' | 'disk' | 'network')
  * @param serverStatus - 서버 전체 상태
@@ -23,29 +27,30 @@ export const getMetricColorByStatus = (
   serverStatus: string
 ): MetricColorResult => {
   // 서버 상태 정규화 (critical → offline 매핑)
-  const normalizedStatus = serverStatus === 'critical' ? 'offline' : serverStatus;
-  
+  const normalizedStatus =
+    serverStatus === 'critical' ? 'offline' : serverStatus;
+
   // 서버 상태별 색상 정의
   if (normalizedStatus === 'offline') {
     // 심각 상황 - 빨간색 계열
     return {
-      color: '#dc2626',  // red-600
+      color: '#dc2626', // red-600
       gradient: 'from-red-500 to-red-600',
     };
   } else if (normalizedStatus === 'warning') {
     // 경고 상황 - 노랑/주황 계열
     return {
-      color: '#f59e0b',  // amber-500
+      color: '#f59e0b', // amber-500
       gradient: 'from-amber-500 to-amber-600',
     };
   } else if (normalizedStatus === 'healthy' || normalizedStatus === 'online') {
     // 정상 상황 - 녹색 계열
     return {
-      color: '#10b981',  // emerald-500
+      color: '#10b981', // emerald-500
       gradient: 'from-emerald-500 to-emerald-600',
     };
   }
-  
+
   // 서버 상태가 불명확한 경우 메트릭 값 기반 판단
   const thresholds = {
     cpu: { warning: 70, critical: 85 },
@@ -57,17 +62,17 @@ export const getMetricColorByStatus = (
   const threshold = thresholds[type];
   if (value >= threshold.critical) {
     return {
-      color: '#dc2626',  // red-600
+      color: '#dc2626', // red-600
       gradient: 'from-red-500 to-red-600',
     };
   } else if (value >= threshold.warning) {
     return {
-      color: '#f59e0b',  // amber-500
+      color: '#f59e0b', // amber-500
       gradient: 'from-amber-500 to-amber-600',
     };
   } else {
     return {
-      color: '#10b981',  // emerald-500
+      color: '#10b981', // emerald-500
       gradient: 'from-emerald-500 to-emerald-600',
     };
   }
@@ -75,7 +80,7 @@ export const getMetricColorByStatus = (
 
 /**
  * 🎨 상태별 색상 테마 가져오기
- * 
+ *
  * @param status - 서버 상태
  * @returns 전체 테마 설정 객체
  */
@@ -123,13 +128,13 @@ export const getStatusTheme = (status?: ServerStatus): StatusTheme => {
 
 /**
  * 🔍 메트릭 값의 상태 분류
- * 
+ *
  * @param value - 메트릭 값 (0-100)
  * @param type - 메트릭 타입
  * @returns 상태 문자열 ('normal' | 'warning' | 'critical')
  */
 export const getMetricStatus = (
-  value: number, 
+  value: number,
   type: 'cpu' | 'memory' | 'disk' | 'network'
 ): 'normal' | 'warning' | 'critical' => {
   const thresholds = {
@@ -140,7 +145,7 @@ export const getMetricStatus = (
   };
 
   const threshold = thresholds[type];
-  
+
   if (value >= threshold.critical) return 'critical';
   if (value >= threshold.warning) return 'warning';
   return 'normal';
@@ -148,7 +153,7 @@ export const getMetricStatus = (
 
 /**
  * 📊 차트 데이터 정규화 (0-100 범위로 제한)
- * 
+ *
  * @param data - 원본 데이터 배열
  * @returns 정규화된 데이터 배열
  */
@@ -158,7 +163,7 @@ export const normalizeChartData = (data: number[]): number[] => {
 
 /**
  * ⏱️ 업타임 문자열 포맷팅
- * 
+ *
  * @param uptimeString - 원본 업타임 문자열 (예: "4320h 30m")
  * @returns 포맷된 업타임 문자열 (예: "180일 30분")
  */
@@ -167,14 +172,14 @@ export const formatUptime = (uptimeString: string): string => {
     // 시간과 분 추출
     const hourMatch = uptimeString.match(/(\d+)h/);
     const minuteMatch = uptimeString.match(/(\d+)m/);
-    
+
     const hours = hourMatch ? parseInt(hourMatch[1], 10) : 0;
     const minutes = minuteMatch ? parseInt(minuteMatch[1], 10) : 0;
-    
+
     // 일 단위로 변환
     const days = Math.floor(hours / 24);
     const remainingHours = hours % 24;
-    
+
     if (days > 0) {
       if (remainingHours > 0) {
         return `${days}일 ${remainingHours}시간`;
@@ -184,7 +189,9 @@ export const formatUptime = (uptimeString: string): string => {
         return `${days}일`;
       }
     } else if (remainingHours > 0) {
-      return minutes > 0 ? `${remainingHours}시간 ${minutes}분` : `${remainingHours}시간`;
+      return minutes > 0
+        ? `${remainingHours}시간 ${minutes}분`
+        : `${remainingHours}시간`;
     } else {
       return `${minutes}분`;
     }

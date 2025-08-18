@@ -84,14 +84,15 @@ export const systemKeys = {
 // API 함수들 - 포트폴리오 버전에서 헬스체크 모킹
 const fetchSystemHealth = async (): Promise<SystemHealth> => {
   // health API 제거로 인한 모킹 (Vercel 무료 티어 최적화)
-  await new Promise(resolve => setTimeout(resolve, 100)); // 네트워크 지연 시뮬레이션
+  await new Promise((resolve) => setTimeout(resolve, 100)); // 네트워크 지연 시뮬레이션
 
   return {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: Math.floor(Math.random() * 86400), // 0-24시간
     version: '5.44.3',
-    environment: process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV || 'development',
+    environment:
+      process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV || 'development',
     checks: {
       memory: {
         status: 'healthy',
@@ -168,37 +169,39 @@ const fetchSystemAlerts = async (filters?: {
   const alerts: SystemAlert[] = [];
 
   if (dashboardData.servers) {
-    dashboardData.servers.forEach((server: { id: string; status: string; name: string }) => {
-      if (
-        server.status === 'critical' &&
-        (!filters?.level || filters.level === 'error')
-      ) {
-        alerts.push({
-          id: `${server.id}-critical`,
-          level: 'error',
-          title: '서버 오류',
-          message: `서버 ${server.name}에 심각한 문제가 발생했습니다`,
-          timestamp: new Date().toISOString(),
-          source: 'server-monitor',
-          resolved: false,
-          metadata: { serverId: server.id },
-        });
-      } else if (
-        server.status === 'warning' &&
-        (!filters?.level || filters.level === 'warning')
-      ) {
-        alerts.push({
-          id: `${server.id}-warning`,
-          level: 'warning',
-          title: '서버 주의',
-          message: `서버 ${server.name}에 주의가 필요합니다`,
-          timestamp: new Date().toISOString(),
-          source: 'server-monitor',
-          resolved: false,
-          metadata: { serverId: server.id },
-        });
+    dashboardData.servers.forEach(
+      (server: { id: string; status: string; name: string }) => {
+        if (
+          server.status === 'critical' &&
+          (!filters?.level || filters.level === 'error')
+        ) {
+          alerts.push({
+            id: `${server.id}-critical`,
+            level: 'error',
+            title: '서버 오류',
+            message: `서버 ${server.name}에 심각한 문제가 발생했습니다`,
+            timestamp: new Date().toISOString(),
+            source: 'server-monitor',
+            resolved: false,
+            metadata: { serverId: server.id },
+          });
+        } else if (
+          server.status === 'warning' &&
+          (!filters?.level || filters.level === 'warning')
+        ) {
+          alerts.push({
+            id: `${server.id}-warning`,
+            level: 'warning',
+            title: '서버 주의',
+            message: `서버 ${server.name}에 주의가 필요합니다`,
+            timestamp: new Date().toISOString(),
+            source: 'server-monitor',
+            resolved: false,
+            metadata: { serverId: server.id },
+          });
+        }
       }
-    });
+    );
   }
 
   return alerts.slice(0, filters?.limit || 50);
@@ -240,8 +243,9 @@ export const useSystemStatus = (options?: {
       ...data,
       servicesCount: {
         total: Object.keys(data.services).length,
-        online: Object.values(data.services).filter((s: unknown) => s === 'online')
-          .length,
+        online: Object.values(data.services).filter(
+          (s: unknown) => s === 'online'
+        ).length,
         degraded: Object.values(data.services).filter(
           (s: unknown) => s === 'degraded'
         ).length,
@@ -269,12 +273,12 @@ export const useSystemAlerts = (filters?: {
       alerts,
       stats: {
         total: alerts.length,
-        unresolved: alerts.filter(a => !a.resolved).length,
+        unresolved: alerts.filter((a) => !a.resolved).length,
         byLevel: {
-          critical: alerts.filter(a => a.level === 'critical').length,
-          error: alerts.filter(a => a.level === 'error').length,
-          warning: alerts.filter(a => a.level === 'warning').length,
-          info: alerts.filter(a => a.level === 'info').length,
+          critical: alerts.filter((a) => a.level === 'critical').length,
+          error: alerts.filter((a) => a.level === 'error').length,
+          warning: alerts.filter((a) => a.level === 'warning').length,
+          info: alerts.filter((a) => a.level === 'info').length,
         },
       },
     }),
@@ -309,10 +313,10 @@ function calculateOverallHealth(
 ): 'healthy' | 'warning' | 'critical' {
   const checks = Object.values(health.checks);
   const criticalCount = checks.filter(
-    check => check.status === 'critical'
+    (check) => check.status === 'critical'
   ).length;
   const warningCount = checks.filter(
-    check => check.status === 'warning'
+    (check) => check.status === 'warning'
   ).length;
 
   if (criticalCount > 0) return 'critical';
@@ -333,7 +337,7 @@ function getCriticalIssues(health: SystemHealth): string[] {
 function calculateHealthScore(health: SystemHealth): number {
   const checks = Object.values(health.checks);
   const healthyCount = checks.filter(
-    check => check.status === 'healthy'
+    (check) => check.status === 'healthy'
   ).length;
   return (healthyCount / checks.length) * 100;
 }

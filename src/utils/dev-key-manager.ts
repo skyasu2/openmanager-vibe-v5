@@ -57,7 +57,7 @@ export class DevKeyManager {
       name: 'Google AI API Key',
       envKey: 'GOOGLE_AI_API_KEY',
       required: true,
-      validator: value => value.startsWith('AIza') && value.length > 30,
+      validator: (value) => value.startsWith('AIza') && value.length > 30,
       description: 'Google AI Studio에서 발급받은 API 키',
     },
   ];
@@ -87,7 +87,7 @@ export class DevKeyManager {
    * 🔄 환경변수에서 키 로드
    */
   private loadKeysFromEnv(): void {
-    this.keyDefinitions.forEach(keyDef => {
+    this.keyDefinitions.forEach((keyDef) => {
       const value = process.env[keyDef.envKey];
       if (value) {
         this.keys.set(keyDef.envKey, value);
@@ -110,7 +110,7 @@ export class DevKeyManager {
    * 🔍 모든 서비스 상태 확인
    */
   getAllKeyStatus(): KeyStatus[] {
-    return this.keyDefinitions.map(keyDef => {
+    return this.keyDefinitions.map((keyDef) => {
       const value = this.getKey(keyDef.envKey);
       const isValid = value
         ? keyDef.validator
@@ -226,10 +226,10 @@ SKIP_ENV_VALIDATION=true
       },
     ];
 
-    categories.forEach(category => {
+    categories.forEach((category) => {
       content += `# ${category.title}\n`;
-      category.keys.forEach(envKey => {
-        const keyDef = this.keyDefinitions.find(k => k.envKey === envKey);
+      category.keys.forEach((envKey) => {
+        const keyDef = this.keyDefinitions.find((k) => k.envKey === envKey);
         const value = this.getKey(envKey);
 
         if (keyDef && value) {
@@ -276,7 +276,7 @@ CRON_GEMINI_LEARNING=true
     let invalid = 0;
     let missing = 0;
 
-    this.keyDefinitions.forEach(keyDef => {
+    this.keyDefinitions.forEach((keyDef) => {
       const value = this.getKey(keyDef.envKey);
       if (value) {
         if (keyDef.validator && keyDef.validator(value)) {
@@ -329,7 +329,7 @@ CRON_GEMINI_LEARNING=true
 ---
 `;
 
-    details.forEach(result => {
+    details.forEach((result) => {
       const icon =
         result.status === 'valid'
           ? '✅'
@@ -362,7 +362,7 @@ CRON_GEMINI_LEARNING=true
       return {
         success:
           validation.valid >=
-          this.keyDefinitions.filter(k => k.required).length,
+          this.keyDefinitions.filter((k) => k.required).length,
         message: `🚀 빠른 설정 완료! ${validation.valid}/${this.keyDefinitions.length} 서비스 활성화`,
       };
     } catch (error) {
@@ -394,8 +394,8 @@ CRON_GEMINI_LEARNING=true
       loaded,
       valid,
       missing: this.keyDefinitions
-        .filter(k => k.required && !this.keys.has(k.envKey))
-        .map(k => k.envKey),
+        .filter((k) => k.required && !this.keys.has(k.envKey))
+        .map((k) => k.envKey),
     };
   }
 
@@ -433,9 +433,7 @@ CRON_GEMINI_LEARNING=true
   getMCPUrl(): string | null {
     // MCP는 로컬 개발 도구이므로 로컬 URL만 반환
     return (
-      this.getKey('MCP_URL') ||
-      process.env.MCP_URL ||
-      'http://localhost:3000' // 기본 로컬 개발 서버
+      this.getKey('MCP_URL') || process.env.MCP_URL || 'http://localhost:3000' // 기본 로컬 개발 서버
     );
   }
 }

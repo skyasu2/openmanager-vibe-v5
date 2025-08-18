@@ -175,7 +175,7 @@ export class ErrorHandlingService implements IErrorHandler {
         criticalErrors: report.health.criticalErrorsLast24h,
         recoverySuccessRate: report.health.recoverySuccessRate,
       },
-      alerts: alerts.map(alert => ({
+      alerts: alerts.map((alert) => ({
         type: alert.type,
         message: alert.message,
       })),

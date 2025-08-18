@@ -1,12 +1,12 @@
 /**
  * 🚀 Ultra-Fast AI Router - 152ms 목표 달성을 위한 최적화 라우터
- * 
+ *
  * UnifiedAIEngineRouter 성능 최적화 버전
  * - 기존 모듈형 아키텍처 유지
  * - 병목 지점 제거 및 병렬 처리 강화
  * - 스트리밍 AI 엔진 통합
  * - 메모리 기반 초고속 캐싱
- * 
+ *
  * 성능 목표: 280ms → 152ms (45% 개선)
  */
 
@@ -43,11 +43,14 @@ export class UltraFastAIRouter {
   private config: UltraFastConfig;
   private performanceTracker: PerformanceTracker;
   private streamingEngine = getStreamingAIEngine();
-  
+
   // 메모리 기반 초고속 캐시
-  private instantCache = new Map<string, { data: QueryResponse; expires: number }>();
+  private instantCache = new Map<
+    string,
+    { data: QueryResponse; expires: number }
+  >();
   private predictiveCache = new Map<string, QueryResponse>();
-  
+
   // 병렬 처리 큐
   private operationQueue: Array<() => Promise<void>> = [];
   private isProcessingQueue = false;
@@ -76,18 +79,20 @@ export class UltraFastAIRouter {
 
     // 예측적 캐시 워밍업
     this.warmupPredictiveCache();
-    
+
     // 성능 모니터링 시작
     this.startPerformanceMonitoring();
   }
 
   static getInstance(config?: UltraFastConfig): UltraFastAIRouter {
     if (!UltraFastAIRouter.instance) {
-      UltraFastAIRouter.instance = new UltraFastAIRouter(config || {
-        preferredEngine: 'local-ai', // 기본값
-        enableStreamingEngine: true,
-        targetResponseTime: 152,
-      });
+      UltraFastAIRouter.instance = new UltraFastAIRouter(
+        config || {
+          preferredEngine: 'local-ai', // 기본값
+          enableStreamingEngine: true,
+          targetResponseTime: 152,
+        }
+      );
     }
     return UltraFastAIRouter.instance;
   }
@@ -95,10 +100,12 @@ export class UltraFastAIRouter {
   /**
    * 🚀 초고속 라우팅 (목표: 152ms)
    */
-  async route(request: QueryRequest & { userId?: string }): Promise<RouteResult> {
+  async route(
+    request: QueryRequest & { userId?: string }
+  ): Promise<RouteResult> {
     const startTime = performance.now();
     const processingPath: string[] = ['ultrafast_start'];
-    
+
     try {
       this.performanceTracker.totalRequests++;
 
@@ -106,31 +113,52 @@ export class UltraFastAIRouter {
       const instantResult = this.checkInstantCache(request);
       if (instantResult) {
         processingPath.push('instant_cache_hit');
-        return this.createRouteResult(instantResult, startTime, processingPath, 'instant-cache');
+        return this.createRouteResult(
+          instantResult,
+          startTime,
+          processingPath,
+          'instant-cache'
+        );
       }
 
       // Phase 2: 병렬 작업 시작
-      const parallelTasks = this.startParallelOperations(request, startTime, processingPath);
-      
+      const parallelTasks = this.startParallelOperations(
+        request,
+        startTime,
+        processingPath
+      );
+
       // Phase 3: 레이스 조건으로 가장 빠른 응답 사용
       const response = await Promise.race([
         ...parallelTasks,
-        this.createTimeoutFallback(request, startTime + this.config.targetResponseTime),
+        this.createTimeoutFallback(
+          request,
+          startTime + this.config.targetResponseTime
+        ),
       ]);
 
       processingPath.push('response_received');
-      
+
       // Phase 4: 비동기 후처리 (응답 속도에 영향 없음)
       this.postProcessAsync(request, response, startTime);
-      
-      return this.createRouteResult(response, startTime, processingPath, response.engine);
 
+      return this.createRouteResult(
+        response,
+        startTime,
+        processingPath,
+        response.engine
+      );
     } catch (error) {
       processingPath.push('error_fallback');
       aiLogger.error('UltraFastAIRouter 오류', error);
-      
+
       const fallbackResponse = this.createErrorFallback(request, startTime);
-      return this.createRouteResult(fallbackResponse, startTime, processingPath, 'error-fallback');
+      return this.createRouteResult(
+        fallbackResponse,
+        startTime,
+        processingPath,
+        'error-fallback'
+      );
     }
   }
 
@@ -143,7 +171,7 @@ export class UltraFastAIRouter {
     try {
       const cacheKey = this.generateFastCacheKey(request);
       const cached = this.instantCache.get(cacheKey);
-      
+
       if (cached && cached.expires > Date.now()) {
         this.updateCacheHitRate(true);
         return {
@@ -156,7 +184,7 @@ export class UltraFastAIRouter {
           },
         };
       }
-      
+
       // 예측적 캐시 확인
       const predictive = this.predictiveCache.get(cacheKey);
       if (predictive) {
@@ -171,7 +199,6 @@ export class UltraFastAIRouter {
           },
         };
       }
-
     } catch (error) {
       aiLogger.warn('즉시 캐시 확인 실패', error);
     }
@@ -193,7 +220,7 @@ export class UltraFastAIRouter {
     // Task 1: 스트리밍 엔진 (최우선)
     if (this.config.enableStreamingEngine) {
       tasks.push(
-        this.streamingEngine.query(request).then(response => {
+        this.streamingEngine.query(request).then((response) => {
           processingPath.push('streaming_engine_complete');
           return response;
         })
@@ -223,12 +250,15 @@ export class UltraFastAIRouter {
   ): Promise<QueryResponse> {
     return new Promise((resolve) => {
       processingPath.push('pattern_analysis_start');
-      
+
       // 매우 빠른 패턴 매칭 (< 10ms)
       setTimeout(() => {
         const patterns = this.extractQueryPatterns(request.query);
-        const response = this.generateResponseFromPatterns(patterns, request.query);
-        
+        const response = this.generateResponseFromPatterns(
+          patterns,
+          request.query
+        );
+
         processingPath.push('pattern_analysis_complete');
         resolve({
           success: true,
@@ -262,10 +292,13 @@ export class UltraFastAIRouter {
   ): Promise<QueryResponse> {
     try {
       processingPath.push('unified_cache_check');
-      
+
       const cacheKey = `ultrafast:${this.hashQuery(request.query)}`;
-      const cached = await unifiedCache.get<QueryResponse>(cacheKey, CacheNamespace.AI_RESPONSE);
-      
+      const cached = await unifiedCache.get<QueryResponse>(
+        cacheKey,
+        CacheNamespace.AI_RESPONSE
+      );
+
       if (cached) {
         processingPath.push('unified_cache_hit');
         return {
@@ -280,7 +313,6 @@ export class UltraFastAIRouter {
 
       // 캐시 미스 시 빠른 응답 생성
       return this.generateQuickResponse(request, 'unified-cache-miss');
-
     } catch (error) {
       aiLogger.warn('통합 캐시 확인 실패', error);
       return this.generateQuickResponse(request, 'cache-error');
@@ -296,11 +328,14 @@ export class UltraFastAIRouter {
   ): Promise<QueryResponse> {
     return new Promise((resolve) => {
       processingPath.push('keyword_analysis_start');
-      
+
       setTimeout(() => {
         const keywords = this.extractKeywords(request.query);
-        const response = this.generateResponseFromKeywords(keywords, request.query);
-        
+        const response = this.generateResponseFromKeywords(
+          keywords,
+          request.query
+        );
+
         processingPath.push('keyword_analysis_complete');
         resolve({
           success: true,
@@ -334,7 +369,7 @@ export class UltraFastAIRouter {
   ): Promise<QueryResponse> {
     return new Promise((resolve) => {
       const delay = Math.max(0, timeoutTime - performance.now());
-      
+
       setTimeout(() => {
         resolve(this.generateQuickResponse(request, 'timeout-fallback'));
       }, delay);
@@ -344,7 +379,10 @@ export class UltraFastAIRouter {
   /**
    * 🏃‍♂️ 빠른 응답 생성
    */
-  private generateQuickResponse(request: QueryRequest, source: string): QueryResponse {
+  private generateQuickResponse(
+    request: QueryRequest,
+    source: string
+  ): QueryResponse {
     const templates = [
       `${request.query}에 대한 정보를 분석 중입니다.`,
       `요청하신 내용에 대해 신속하게 처리하고 있습니다.`,
@@ -385,10 +423,10 @@ export class UltraFastAIRouter {
       try {
         // 캐시 업데이트
         this.updateCaches(request, response);
-        
+
         // 성능 메트릭 업데이트
         this.updatePerformanceTracker(response.processingTime);
-        
+
         // 예측적 로딩
         if (this.config.enablePredictiveLoading) {
           this.triggerPredictiveLoading(request);
@@ -396,7 +434,6 @@ export class UltraFastAIRouter {
 
         // 패턴 학습
         this.learnFromQuery(request, response);
-
       } catch (error) {
         aiLogger.warn('비동기 후처리 실패', error);
       }
@@ -411,7 +448,7 @@ export class UltraFastAIRouter {
 
     try {
       const cacheKey = this.generateFastCacheKey(request);
-      
+
       // 즉시 캐시 업데이트 (메모리)
       if (response.processingTime < this.config.targetResponseTime) {
         this.instantCache.set(cacheKey, {
@@ -426,7 +463,6 @@ export class UltraFastAIRouter {
         namespace: CacheNamespace.AI_RESPONSE,
         metadata: { responseTime: response.processingTime },
       });
-
     } catch (error) {
       aiLogger.warn('캐시 업데이트 실패', error);
     }
@@ -437,8 +473,8 @@ export class UltraFastAIRouter {
    */
   private triggerPredictiveLoading(request: QueryRequest): void {
     const relatedQueries = this.generateRelatedQueries(request.query);
-    
-    relatedQueries.forEach(query => {
+
+    relatedQueries.forEach((query) => {
       // 백그라운드에서 관련 쿼리 사전 처리
       this.addToOperationQueue(() => this.preloadQuery(query));
     });
@@ -448,12 +484,14 @@ export class UltraFastAIRouter {
    * 📈 성능 추적 업데이트
    */
   private updatePerformanceTracker(responseTime: number): void {
-    this.performanceTracker.avgResponseTime = 
+    this.performanceTracker.avgResponseTime =
       (this.performanceTracker.avgResponseTime + responseTime) / 2;
-    
+
     if (responseTime <= this.config.targetResponseTime) {
-      this.performanceTracker.targetAchievementRate = 
-        Math.min(this.performanceTracker.targetAchievementRate + 0.1, 1.0);
+      this.performanceTracker.targetAchievementRate = Math.min(
+        this.performanceTracker.targetAchievementRate + 0.1,
+        1.0
+      );
     }
   }
 
@@ -462,14 +500,14 @@ export class UltraFastAIRouter {
    */
   private extractQueryPatterns(query: string): string[] {
     const patterns: string[] = [];
-    
+
     // 시스템 관련 패턴
     if (/cpu|프로세서|성능/i.test(query)) patterns.push('system_performance');
     if (/메모리|ram|memory/i.test(query)) patterns.push('memory_status');
     if (/디스크|저장소|용량/i.test(query)) patterns.push('storage_info');
     if (/네트워크|인터넷|연결/i.test(query)) patterns.push('network_status');
     if (/서버|시스템|상태/i.test(query)) patterns.push('server_status');
-    
+
     return patterns;
   }
 
@@ -477,17 +515,32 @@ export class UltraFastAIRouter {
    * 🔤 키워드 추출
    */
   private extractKeywords(query: string): string[] {
-    const stopWords = new Set(['은', '는', '이', '가', '을', '를', '의', '에', '에서', '와', '과']);
+    const stopWords = new Set([
+      '은',
+      '는',
+      '이',
+      '가',
+      '을',
+      '를',
+      '의',
+      '에',
+      '에서',
+      '와',
+      '과',
+    ]);
     return query
       .split(/\s+/)
-      .filter(word => word.length > 1 && !stopWords.has(word))
+      .filter((word) => word.length > 1 && !stopWords.has(word))
       .slice(0, 5);
   }
 
   /**
    * 📝 패턴 기반 응답 생성
    */
-  private generateResponseFromPatterns(patterns: string[], query: string): string {
+  private generateResponseFromPatterns(
+    patterns: string[],
+    query: string
+  ): string {
     if (patterns.length === 0) {
       return `${query}에 대한 기본 정보를 제공해드리겠습니다.`;
     }
@@ -501,13 +554,19 @@ export class UltraFastAIRouter {
     };
 
     const primaryPattern = patterns[0];
-    return patternResponses[primaryPattern] || `${query}에 대한 상세 분석을 수행합니다.`;
+    return (
+      patternResponses[primaryPattern] ||
+      `${query}에 대한 상세 분석을 수행합니다.`
+    );
   }
 
   /**
    * 🔤 키워드 기반 응답 생성
    */
-  private generateResponseFromKeywords(keywords: string[], query: string): string {
+  private generateResponseFromKeywords(
+    keywords: string[],
+    query: string
+  ): string {
     if (keywords.length === 0) {
       return '요청사항을 처리하여 결과를 제공하겠습니다.';
     }
@@ -540,9 +599,8 @@ export class UltraFastAIRouter {
     try {
       const response = await this.streamingEngine.query({ query });
       const cacheKey = this.generateFastCacheKey({ query });
-      
+
       this.predictiveCache.set(cacheKey, response);
-      
     } catch (error) {
       aiLogger.warn('쿼리 사전 로딩 실패', error);
     }
@@ -553,7 +611,10 @@ export class UltraFastAIRouter {
    */
   private learnFromQuery(request: QueryRequest, response: QueryResponse): void {
     // 성공한 빠른 응답 패턴 학습
-    if (response.processingTime < this.config.targetResponseTime && response.confidence > 0.7) {
+    if (
+      response.processingTime < this.config.targetResponseTime &&
+      response.confidence > 0.7
+    ) {
       const pattern = this.extractQueryPatterns(request.query).join('_');
       if (pattern) {
         const cacheKey = `pattern:${pattern}`;
@@ -572,7 +633,7 @@ export class UltraFastAIRouter {
     engine: string
   ): RouteResult {
     const processingTime = performance.now() - startTime;
-    
+
     return {
       ...response,
       processingTime,
@@ -595,10 +656,14 @@ export class UltraFastAIRouter {
   /**
    * 🚨 에러 폴백 생성
    */
-  private createErrorFallback(request: QueryRequest, startTime: number): QueryResponse {
+  private createErrorFallback(
+    request: QueryRequest,
+    startTime: number
+  ): QueryResponse {
     return {
       success: true,
-      response: '시스템이 초고속 모드로 동작중입니다. 빠른 응답을 제공해드리겠습니다.',
+      response:
+        '시스템이 초고속 모드로 동작중입니다. 빠른 응답을 제공해드리겠습니다.',
       engine: 'error-fallback',
       confidence: 0.3,
       thinkingSteps: [
@@ -622,7 +687,7 @@ export class UltraFastAIRouter {
    */
   private addToOperationQueue(operation: () => Promise<void>): void {
     this.operationQueue.push(operation);
-    
+
     if (!this.isProcessingQueue) {
       this.processOperationQueue();
     }
@@ -630,7 +695,7 @@ export class UltraFastAIRouter {
 
   private async processOperationQueue(): Promise<void> {
     this.isProcessingQueue = true;
-    
+
     while (this.operationQueue.length > 0) {
       const operation = this.operationQueue.shift();
       if (operation) {
@@ -641,7 +706,7 @@ export class UltraFastAIRouter {
         }
       }
     }
-    
+
     this.isProcessingQueue = false;
   }
 
@@ -660,7 +725,7 @@ export class UltraFastAIRouter {
     const normalized = query.toLowerCase().trim();
     for (let i = 0; i < normalized.length; i++) {
       const char = normalized.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return Math.abs(hash).toString(36);
@@ -671,9 +736,9 @@ export class UltraFastAIRouter {
    */
   private updateCacheHitRate(hit: boolean): void {
     const currentRate = this.performanceTracker.cacheHitRate;
-    this.performanceTracker.cacheHitRate = hit ? 
-      Math.min(currentRate + 0.1, 1.0) : 
-      Math.max(currentRate - 0.05, 0.0);
+    this.performanceTracker.cacheHitRate = hit
+      ? Math.min(currentRate + 0.1, 1.0)
+      : Math.max(currentRate - 0.05, 0.0);
   }
 
   /**
@@ -691,7 +756,7 @@ export class UltraFastAIRouter {
       '에러 로그',
     ];
 
-    commonQueries.forEach(query => {
+    commonQueries.forEach((query) => {
       const cacheKey = this.generateFastCacheKey({ query });
       this.predictiveCache.set(cacheKey, {
         success: true,
@@ -711,7 +776,7 @@ export class UltraFastAIRouter {
   private startPerformanceMonitoring(): void {
     // 1분마다 성능 통계 업데이트
     setInterval(() => {
-      this.performanceTracker.streamingEfficiency = 
+      this.performanceTracker.streamingEfficiency =
         this.streamingEngine.getPerformanceStats().targetAchievementRate;
     }, 60000);
 
@@ -726,7 +791,7 @@ export class UltraFastAIRouter {
    */
   private cleanupCaches(): void {
     const now = Date.now();
-    
+
     // 만료된 즉시 캐시 정리
     for (const [key, value] of this.instantCache.entries()) {
       if (value.expires < now) {
@@ -737,7 +802,7 @@ export class UltraFastAIRouter {
     // 예측적 캐시 크기 제한
     if (this.predictiveCache.size > 100) {
       const keys = Array.from(this.predictiveCache.keys());
-      keys.slice(0, 50).forEach(key => this.predictiveCache.delete(key));
+      keys.slice(0, 50).forEach((key) => this.predictiveCache.delete(key));
     }
   }
 
@@ -773,7 +838,9 @@ export class UltraFastAIRouter {
 }
 
 // 편의 함수
-export function getUltraFastAIRouter(config?: UltraFastConfig): UltraFastAIRouter {
+export function getUltraFastAIRouter(
+  config?: UltraFastConfig
+): UltraFastAIRouter {
   return UltraFastAIRouter.getInstance(config);
 }
 

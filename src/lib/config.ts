@@ -139,7 +139,7 @@ const parseRedisConfig = () => {
 
 // 메인 설정 생성 함수
 const createConfig = (): EnvironmentConfig => {
-  const nodeEnv = (process.env.NODE_ENV || 'development');
+  const nodeEnv = process.env.NODE_ENV || 'development';
   const isProduction = nodeEnv === 'production';
   const isDevelopment = nodeEnv === 'development';
   const isVercel = process.env.VERCEL === '1';

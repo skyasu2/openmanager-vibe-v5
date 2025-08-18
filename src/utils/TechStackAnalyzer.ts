@@ -3,11 +3,11 @@
  *
  * ✅ Modularization Complete: 1009 → ~200 lines (80% reduction)
  * 🏗️ Architecture: Delegation pattern with 4 specialized modules
- * 
+ *
  * Modules:
  * - TechStackAnalyzer.types.ts (47 lines) - Type definitions
  * - TechStackAnalyzer.database.ts (520 lines) - Technology database
- * - TechStackAnalyzer.categories.ts (150 lines) - Category definitions  
+ * - TechStackAnalyzer.categories.ts (150 lines) - Category definitions
  * - TechStackAnalyzer.parser.ts (200 lines) - Parsing functions
  * - TechStackAnalyzer.analyzer.ts (100 lines) - Analysis functions
  *
@@ -19,8 +19,16 @@
  */
 
 // Import modular components
-import type { TechItem, TechCategory, TechStackSummary, TechAnalysisOptions } from './TechStackAnalyzer.types';
-import { analyzeTechStack as analyzeStack, generateTechStackSummary as generateSummary } from './TechStackAnalyzer.analyzer';
+import type {
+  TechItem,
+  TechCategory,
+  TechStackSummary,
+  TechAnalysisOptions,
+} from './TechStackAnalyzer.types';
+import {
+  analyzeTechStack as analyzeStack,
+  generateTechStackSummary as generateSummary,
+} from './TechStackAnalyzer.analyzer';
 
 // Re-export types for backward compatibility
 export type { TechItem, TechCategory, TechStackSummary, TechAnalysisOptions };

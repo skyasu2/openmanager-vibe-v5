@@ -5,7 +5,14 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, ChevronDown, ChevronUp, CheckCircle, Loader2, Clock } from 'lucide-react';
+import {
+  Brain,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle,
+  Loader2,
+  Clock,
+} from 'lucide-react';
 import type { ThinkingStep } from '../types/ai-sidebar-types';
 import type { CompletedThinking } from '../hooks/useAIThinking';
 
@@ -16,7 +23,7 @@ interface AIThinkingDisplayProps {
   isExpanded: boolean;
   startTime: Date | null;
   onToggleExpanded: () => void;
-  
+
   // 완료된 사고 과정
   completedThinking?: CompletedThinking;
   onToggleCompleted?: () => void;
@@ -46,25 +53,25 @@ export const AIThinkingDisplay: React.FC<AIThinkingDisplayProps> = ({
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          className='bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg overflow-hidden'
+          className="overflow-hidden rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50"
         >
           <button
             onClick={onToggleExpanded}
-            className='w-full px-3 py-2 flex items-center justify-between hover:bg-blue-100/50 transition-colors'
+            className="flex w-full items-center justify-between px-3 py-2 transition-colors hover:bg-blue-100/50"
           >
-            <div className='flex items-center space-x-2'>
-              <Brain className='w-4 h-4 text-blue-600 animate-pulse' />
-              <span className='text-xs font-medium text-blue-800'>
+            <div className="flex items-center space-x-2">
+              <Brain className="h-4 w-4 animate-pulse text-blue-600" />
+              <span className="text-xs font-medium text-blue-800">
                 AI가 생각하는 중...
               </span>
-              <span className='text-xs text-blue-600'>
+              <span className="text-xs text-blue-600">
                 ({getElapsedTime()}초)
               </span>
             </div>
             {isExpanded ? (
-              <ChevronUp className='w-3 h-3 text-blue-600' />
+              <ChevronUp className="h-3 w-3 text-blue-600" />
             ) : (
-              <ChevronDown className='w-3 h-3 text-blue-600' />
+              <ChevronDown className="h-3 w-3 text-blue-600" />
             )}
           </button>
 
@@ -74,34 +81,34 @@ export const AIThinkingDisplay: React.FC<AIThinkingDisplayProps> = ({
                 initial={{ height: 0 }}
                 animate={{ height: 'auto' }}
                 exit={{ height: 0 }}
-                className='px-3 pb-2'
+                className="px-3 pb-2"
               >
-                <div className='space-y-1.5 mt-2'>
+                <div className="mt-2 space-y-1.5">
                   {currentSteps.map((step) => (
                     <motion.div
                       key={step.id}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className='flex items-start space-x-2'
+                      className="flex items-start space-x-2"
                     >
-                      <div className='mt-0.5'>
+                      <div className="mt-0.5">
                         {step.status === 'completed' ? (
-                          <CheckCircle className='w-3 h-3 text-green-500' />
+                          <CheckCircle className="h-3 w-3 text-green-500" />
                         ) : step.status === 'processing' ? (
-                          <Loader2 className='w-3 h-3 text-blue-500 animate-spin' />
+                          <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
                         ) : (
-                          <div className='w-3 h-3 rounded-full border border-gray-300' />
+                          <div className="h-3 w-3 rounded-full border border-gray-300" />
                         )}
                       </div>
-                      <div className='flex-1'>
-                        <h4 className='text-xs font-medium text-gray-800'>
+                      <div className="flex-1">
+                        <h4 className="text-xs font-medium text-gray-800">
                           {step.title}
                         </h4>
-                        <p className='text-xs text-gray-600'>
+                        <p className="text-xs text-gray-600">
                           {step.description}
                         </p>
                         {step.duration && (
-                          <span className='text-xs text-gray-500'>
+                          <span className="text-xs text-gray-500">
                             {(step.duration / 1000).toFixed(1)}초
                           </span>
                         )}
@@ -123,25 +130,23 @@ export const AIThinkingDisplay: React.FC<AIThinkingDisplayProps> = ({
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className='bg-gray-50 border border-gray-200 rounded-lg overflow-hidden'
+        className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
       >
         <button
           onClick={onToggleCompleted}
-          className='w-full px-3 py-2 flex items-center justify-between hover:bg-gray-100 transition-colors'
+          className="flex w-full items-center justify-between px-3 py-2 transition-colors hover:bg-gray-100"
         >
-          <div className='flex items-center space-x-2'>
-            <Brain className='w-3 h-3 text-gray-500' />
-            <span className='text-xs text-gray-600'>
-              AI 사고 과정
-            </span>
-            <span className='text-xs text-gray-500'>
+          <div className="flex items-center space-x-2">
+            <Brain className="h-3 w-3 text-gray-500" />
+            <span className="text-xs text-gray-600">AI 사고 과정</span>
+            <span className="text-xs text-gray-500">
               ({(completedThinking.processingTime / 1000).toFixed(1)}초)
             </span>
           </div>
           {completedThinking.isExpanded ? (
-            <ChevronUp className='w-3 h-3 text-gray-500' />
+            <ChevronUp className="h-3 w-3 text-gray-500" />
           ) : (
-            <ChevronDown className='w-3 h-3 text-gray-500' />
+            <ChevronDown className="h-3 w-3 text-gray-500" />
           )}
         </button>
 
@@ -151,30 +156,27 @@ export const AIThinkingDisplay: React.FC<AIThinkingDisplayProps> = ({
               initial={{ height: 0 }}
               animate={{ height: 'auto' }}
               exit={{ height: 0 }}
-              className='px-3 pb-2'
+              className="px-3 pb-2"
             >
-              <div className='space-y-1 mt-2'>
+              <div className="mt-2 space-y-1">
                 {completedThinking.steps.map((step) => (
-                  <div
-                    key={step.id}
-                    className='flex items-start space-x-2'
-                  >
-                    <CheckCircle className='w-3 h-3 text-green-500 mt-0.5' />
-                    <div className='flex-1'>
-                      <span className='text-xs text-gray-700'>
+                  <div key={step.id} className="flex items-start space-x-2">
+                    <CheckCircle className="mt-0.5 h-3 w-3 text-green-500" />
+                    <div className="flex-1">
+                      <span className="text-xs text-gray-700">
                         {step.title}
                       </span>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className='mt-2 pt-2 border-t border-gray-200'>
-                <div className='flex items-center justify-between text-xs'>
-                  <span className='text-gray-500'>
+              <div className="mt-2 border-t border-gray-200 pt-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-gray-500">
                     엔진: {completedThinking.engine}
                   </span>
-                  <div className='flex items-center space-x-1 text-gray-500'>
-                    <Clock className='w-3 h-3' />
+                  <div className="flex items-center space-x-1 text-gray-500">
+                    <Clock className="h-3 w-3" />
                     <span>
                       {(completedThinking.processingTime / 1000).toFixed(1)}초
                     </span>

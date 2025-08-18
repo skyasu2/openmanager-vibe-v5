@@ -21,40 +21,51 @@ const getMetricConfig = (
   // 서버 상태 우선 확인
   if (serverStatus) {
     const normalizedStatus = serverStatus.toLowerCase();
-    
+
     // 서버 상태별 색상 정의
-    if (normalizedStatus === 'offline' || normalizedStatus === 'critical' || normalizedStatus === 'error') {
+    if (
+      normalizedStatus === 'offline' ||
+      normalizedStatus === 'critical' ||
+      normalizedStatus === 'error'
+    ) {
       // 심각 상황 - 빨간색 계열
       return {
-        lineColor: '#dc2626',  // red-600
+        lineColor: '#dc2626', // red-600
         textColor: 'text-red-700',
         bgColor: 'bg-red-50',
         gradientFrom: 'from-red-600',
         gradientTo: 'to-red-100',
         status: '오프라인',
-        fillColor: 'rgba(220, 38, 38, 0.1)',  // 빨간색 투명도
+        fillColor: 'rgba(220, 38, 38, 0.1)', // 빨간색 투명도
       };
-    } else if (normalizedStatus === 'warning' || normalizedStatus === 'degraded') {
+    } else if (
+      normalizedStatus === 'warning' ||
+      normalizedStatus === 'degraded'
+    ) {
       // 경고 상황 - 노랑/주황 계열
       return {
-        lineColor: '#f59e0b',  // amber-500
+        lineColor: '#f59e0b', // amber-500
         textColor: 'text-amber-700',
         bgColor: 'bg-amber-50',
         gradientFrom: 'from-amber-500',
         gradientTo: 'to-amber-100',
         status: '경고',
-        fillColor: 'rgba(245, 158, 11, 0.1)',  // 주황색 투명도
+        fillColor: 'rgba(245, 158, 11, 0.1)', // 주황색 투명도
       };
-    } else if (normalizedStatus === 'online' || normalizedStatus === 'healthy' || normalizedStatus === 'running') {
+    } else if (
+      normalizedStatus === 'online' ||
+      normalizedStatus === 'healthy' ||
+      normalizedStatus === 'running'
+    ) {
       // 정상 상황 - 녹색 계열
       return {
-        lineColor: '#10b981',  // emerald-500
+        lineColor: '#10b981', // emerald-500
         textColor: 'text-emerald-700',
         bgColor: 'bg-emerald-50',
         gradientFrom: 'from-emerald-500',
         gradientTo: 'to-emerald-100',
         status: '정상',
-        fillColor: 'rgba(16, 185, 129, 0.1)',  // 녹색 투명도
+        fillColor: 'rgba(16, 185, 129, 0.1)', // 녹색 투명도
       };
     }
   }
@@ -74,7 +85,7 @@ const getMetricConfig = (
   // 메트릭 값에 따른 색상
   if (isCritical) {
     return {
-      lineColor: '#dc2626',  // red-600
+      lineColor: '#dc2626', // red-600
       textColor: 'text-red-700',
       bgColor: 'bg-red-50',
       gradientFrom: 'from-red-600',
@@ -84,7 +95,7 @@ const getMetricConfig = (
     };
   } else if (isWarning) {
     return {
-      lineColor: '#f59e0b',  // amber-500
+      lineColor: '#f59e0b', // amber-500
       textColor: 'text-amber-700',
       bgColor: 'bg-amber-50',
       gradientFrom: 'from-amber-500',
@@ -95,7 +106,7 @@ const getMetricConfig = (
   } else {
     // 정상 상태 - 녹색
     return {
-      lineColor: '#10b981',  // emerald-500
+      lineColor: '#10b981', // emerald-500
       textColor: 'text-emerald-700',
       bgColor: 'bg-emerald-50',
       gradientFrom: 'from-emerald-500',
@@ -152,7 +163,7 @@ export default function ServerMetricsLineChart({
     if (!showRealTimeUpdates) return;
 
     const interval = setInterval(() => {
-      setHistoricalData(prev => {
+      setHistoricalData((prev) => {
         // 기존 데이터를 한 칸씩 앞으로 밀고 새 데이터 추가
         const newData = prev.slice(1).map((item, index) => ({
           ...item,
@@ -185,22 +196,23 @@ export default function ServerMetricsLineChart({
     const padding = 10;
 
     const xScale = (x: number) => (x / 29) * (width - 2 * padding) + padding;
-    const yScale = (y: number) => height - (y / 100) * (height - 2 * padding) - padding;
+    const yScale = (y: number) =>
+      height - (y / 100) * (height - 2 * padding) - padding;
 
-    const points = historicalData.map(d => ({
+    const points = historicalData.map((d) => ({
       x: xScale(d.x),
       y: yScale(d.value),
     }));
 
     // Create smooth path using cubic bezier curves
     let path = `M ${points[0].x} ${points[0].y}`;
-    
+
     for (let i = 1; i < points.length; i++) {
       const cp1x = (points[i - 1].x + points[i].x) / 2;
       const cp1y = points[i - 1].y;
       const cp2x = cp1x;
       const cp2y = points[i].y;
-      
+
       path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${points[i].x} ${points[i].y}`;
     }
 
@@ -212,36 +224,36 @@ export default function ServerMetricsLineChart({
   return (
     <div className={`${className}`}>
       {/* 라벨과 현재값 */}
-      <div className='flex items-center justify-between mb-2'>
-        <span className='text-xs font-medium text-gray-600'>{label}</span>
+      <div className="mb-2 flex items-center justify-between">
+        <span className="text-xs font-medium text-gray-600">{label}</span>
         <span className={`text-sm font-bold ${config.textColor}`}>
           {Math.round(value)}%
         </span>
       </div>
 
       {/* 라인 차트 */}
-      <div className='relative'>
+      <div className="relative">
         <svg
           ref={svgRef}
-          width='100%'
-          height='80'
-          viewBox='0 0 180 80'
-          className='w-full'
+          width="100%"
+          height="80"
+          viewBox="0 0 180 80"
+          className="w-full"
           style={{ maxWidth: '180px' }}
         >
           {/* 그리드 라인 */}
-          <g className='opacity-20'>
+          <g className="opacity-20">
             {[0, 25, 50, 75, 100].map((val) => {
               const y = 80 - (val / 100) * 60 - 10;
               return (
                 <line
                   key={val}
-                  x1='10'
-                  x2='170'
+                  x1="10"
+                  x2="170"
                   y1={y}
                   y2={y}
-                  stroke='#e5e7eb'
-                  strokeWidth='1'
+                  stroke="#e5e7eb"
+                  strokeWidth="1"
                 />
               );
             })}
@@ -249,9 +261,17 @@ export default function ServerMetricsLineChart({
 
           {/* 그라데이션 정의 */}
           <defs>
-            <linearGradient id={`gradient-${type}`} x1='0' y1='0' x2='0' y2='1'>
-              <stop offset='0%' stopColor={config.lineColor} stopOpacity='0.5' />
-              <stop offset='100%' stopColor={config.lineColor} stopOpacity='0.05' />
+            <linearGradient id={`gradient-${type}`} x1="0" y1="0" x2="0" y2="1">
+              <stop
+                offset="0%"
+                stopColor={config.lineColor}
+                stopOpacity="0.5"
+              />
+              <stop
+                offset="100%"
+                stopColor={config.lineColor}
+                stopOpacity="0.05"
+              />
             </linearGradient>
           </defs>
 
@@ -267,11 +287,11 @@ export default function ServerMetricsLineChart({
           {/* 라인 */}
           <motion.path
             d={path}
-            fill='none'
+            fill="none"
             stroke={config.lineColor}
-            strokeWidth='3'
-            strokeLinecap='round'
-            strokeLinejoin='round'
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
             transition={{ duration: 1, ease: 'easeInOut' }}
@@ -281,7 +301,7 @@ export default function ServerMetricsLineChart({
           {points.map((point, index) => {
             const isLast = index === points.length - 1;
             const dataValue = historicalData[index].value;
-            
+
             return (
               <g key={index}>
                 {/* 포인트 */}
@@ -293,9 +313,9 @@ export default function ServerMetricsLineChart({
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: index * 0.02, duration: 0.3 }}
-                  className={isLast ? 'filter drop-shadow-md' : ''}
+                  className={isLast ? 'drop-shadow-md filter' : ''}
                 />
-                
+
                 {/* 현재값 표시 */}
                 {isLast && (
                   <motion.g
@@ -306,17 +326,17 @@ export default function ServerMetricsLineChart({
                     <rect
                       x={point.x - 15}
                       y={point.y - 25}
-                      width='30'
-                      height='18'
-                      rx='3'
+                      width="30"
+                      height="18"
+                      rx="3"
                       fill={config.lineColor}
-                      className='filter drop-shadow-sm'
+                      className="drop-shadow-sm filter"
                     />
                     <text
                       x={point.x}
                       y={point.y - 12}
-                      textAnchor='middle'
-                      className='text-xs font-bold fill-white'
+                      textAnchor="middle"
+                      className="fill-white text-xs font-bold"
                     >
                       {dataValue}%
                     </text>
@@ -324,20 +344,22 @@ export default function ServerMetricsLineChart({
                 )}
 
                 {/* 최고값 표시 */}
-                {dataValue === Math.max(...historicalData.map(d => d.value)) && !isLast && (
-                  <motion.text
-                    x={point.x}
-                    y={point.y - 8}
-                    textAnchor='middle'
-                    className='text-xs font-medium'
-                    fill={config.lineColor}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    {dataValue}
-                  </motion.text>
-                )}
+                {dataValue ===
+                  Math.max(...historicalData.map((d) => d.value)) &&
+                  !isLast && (
+                    <motion.text
+                      x={point.x}
+                      y={point.y - 8}
+                      textAnchor="middle"
+                      className="text-xs font-medium"
+                      fill={config.lineColor}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      {dataValue}
+                    </motion.text>
+                  )}
               </g>
             );
           })}
@@ -347,10 +369,10 @@ export default function ServerMetricsLineChart({
             <motion.circle
               cx={points[points.length - 1].x}
               cy={points[points.length - 1].y}
-              r='6'
-              fill='none'
+              r="6"
+              fill="none"
               stroke={config.lineColor}
-              strokeWidth='2'
+              strokeWidth="2"
               animate={{
                 r: [6, 12, 6],
                 opacity: [1, 0, 1],
@@ -365,18 +387,18 @@ export default function ServerMetricsLineChart({
         </svg>
 
         {/* 시간 라벨 */}
-        <div className='flex justify-between text-xs text-gray-400 mt-1 px-2'>
+        <div className="mt-1 flex justify-between px-2 text-xs text-gray-400">
           <span>-5분</span>
           <span>-2.5분</span>
-          <span className='font-medium text-gray-600'>현재</span>
+          <span className="font-medium text-gray-600">현재</span>
         </div>
       </div>
 
       {/* 상태 표시 */}
-      <div className='flex items-center justify-between mt-2'>
-        <div className='flex items-center gap-1'>
+      <div className="mt-2 flex items-center justify-between">
+        <div className="flex items-center gap-1">
           <motion.div
-            className={`w-2 h-2 rounded-full`}
+            className={`h-2 w-2 rounded-full`}
             style={{ backgroundColor: config.lineColor }}
             animate={{
               scale: [1, 1.2, 1],
@@ -387,12 +409,12 @@ export default function ServerMetricsLineChart({
               ease: 'easeInOut',
             }}
           />
-          <span className='text-xs text-gray-500'>{config.status}</span>
+          <span className="text-xs text-gray-500">{config.status}</span>
         </div>
 
         {showRealTimeUpdates && (
           <motion.div
-            className='text-xs text-gray-400'
+            className="text-xs text-gray-400"
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 2, repeat: Infinity }}
           >

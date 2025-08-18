@@ -5,7 +5,14 @@
 
 'use client';
 
-import { BarChart3, Bot, Shield, Zap, Globe, Clock } from '@/lib/bundle-optimization';
+import {
+  BarChart3,
+  Bot,
+  Shield,
+  Zap,
+  Globe,
+  Clock,
+} from '@/lib/bundle-optimization';
 
 interface FeatureCard {
   id: string;
@@ -69,43 +76,51 @@ const features: FeatureCard[] = [
 
 const colorClasses = {
   blue: 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
-  purple: 'from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700',
+  purple:
+    'from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700',
   green: 'from-green-500 to-green-600 hover:from-green-600 hover:to-green-700',
-  yellow: 'from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700',
-  indigo: 'from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700',
+  yellow:
+    'from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700',
+  indigo:
+    'from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700',
   red: 'from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
 };
 
 const FeatureCard = ({ feature }: { feature: FeatureCard }) => {
   const Icon = feature.icon;
-  
+
   return (
     <div className="group relative">
-      <div className="absolute -inset-1 bg-gradient-to-r from-gray-200 to-gray-300 rounded-lg blur opacity-25 group-hover:opacity-100 transition duration-300"></div>
-      <div className="relative bg-white rounded-lg p-6 shadow-sm hover:shadow-md transition-all duration-300">
-        <div className="flex items-start justify-between mb-4">
-          <div className={`p-3 rounded-lg bg-gradient-to-r ${colorClasses[feature.color as keyof typeof colorClasses]} shadow-sm`}>
-            <Icon className="w-6 h-6 text-white" />
+      <div className="absolute -inset-1 rounded-lg bg-gradient-to-r from-gray-200 to-gray-300 opacity-25 blur transition duration-300 group-hover:opacity-100"></div>
+      <div className="relative rounded-lg bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md">
+        <div className="mb-4 flex items-start justify-between">
+          <div
+            className={`rounded-lg bg-gradient-to-r p-3 ${colorClasses[feature.color as keyof typeof colorClasses]} shadow-sm`}
+          >
+            <Icon className="h-6 w-6 text-white" />
           </div>
           {feature.stats && (
-            <div className="text-sm font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
+            <div className="rounded bg-gray-100 px-2 py-1 text-sm font-medium text-gray-500">
               {feature.stats}
             </div>
           )}
         </div>
-        
-        <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-gray-700 transition-colors">
+
+        <h3 className="mb-2 text-lg font-semibold text-gray-900 transition-colors group-hover:text-gray-700">
           {feature.title}
         </h3>
-        
-        <p className="text-gray-600 text-sm leading-relaxed">
+
+        <p className="text-sm leading-relaxed text-gray-600">
           {feature.description}
         </p>
 
         {/* 간단한 호버 인디케이터 */}
-        <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-b-lg"
-             style={{ backgroundImage: `linear-gradient(to right, var(--${feature.color}-500), var(--${feature.color}-600))` }}>
-        </div>
+        <div
+          className="absolute bottom-0 left-0 h-1 w-full rounded-b-lg bg-gradient-to-r opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          style={{
+            backgroundImage: `linear-gradient(to right, var(--${feature.color}-500), var(--${feature.color}-600))`,
+          }}
+        ></div>
       </div>
     </div>
   );
@@ -114,20 +129,18 @@ const FeatureCard = ({ feature }: { feature: FeatureCard }) => {
 export default function FeatureCardsOptimized() {
   return (
     <div className="py-12">
-      <div className="text-center mb-12">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">
-          핵심 기능
-        </h2>
-        <p className="text-gray-600 max-w-2xl mx-auto">
+      <div className="mb-12 text-center">
+        <h2 className="mb-4 text-3xl font-bold text-gray-900">핵심 기능</h2>
+        <p className="mx-auto max-w-2xl text-gray-600">
           엔터프라이즈급 서버 모니터링 솔루션의 모든 기능을 무료로 제공합니다
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {features.map((feature, index) => (
           <div
             key={feature.id}
-            className="opacity-0 animate-fadeInUp"
+            className="animate-fadeInUp opacity-0"
             style={{
               animationDelay: `${index * 100}ms`,
               animationFillMode: 'forwards',

@@ -21,28 +21,44 @@ export function ServerDetailNetwork({
 
   // 타입 안전성을 위한 헬퍼 함수
   const getActiveConnections = (metrics: unknown) => {
-    if (typeof metrics === 'object' && metrics !== null && 'activeConnections' in metrics) {
+    if (
+      typeof metrics === 'object' &&
+      metrics !== null &&
+      'activeConnections' in metrics
+    ) {
       return (metrics as any).activeConnections || 0;
     }
     return 0;
   };
-  
+
   const getLatency = (metrics: unknown) => {
-    if (typeof metrics === 'object' && metrics !== null && 'latency' in metrics) {
+    if (
+      typeof metrics === 'object' &&
+      metrics !== null &&
+      'latency' in metrics
+    ) {
       return (metrics as any).latency || 0;
     }
     return 0;
   };
-  
+
   const getPacketIO = (metrics: unknown) => {
-    if (typeof metrics === 'object' && metrics !== null && 'packetIO' in metrics) {
+    if (
+      typeof metrics === 'object' &&
+      metrics !== null &&
+      'packetIO' in metrics
+    ) {
       return (metrics as any).packetIO || { in: 0, out: 0 };
     }
     return { in: 0, out: 0 };
   };
-  
+
   const getNetworkThroughput = (metrics: unknown) => {
-    if (typeof metrics === 'object' && metrics !== null && 'networkThroughput' in metrics) {
+    if (
+      typeof metrics === 'object' &&
+      metrics !== null &&
+      'networkThroughput' in metrics
+    ) {
       return (metrics as any).networkThroughput || { in: 0, out: 0 };
     }
     return { in: 0, out: 0 };

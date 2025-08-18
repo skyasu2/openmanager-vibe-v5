@@ -1,13 +1,13 @@
 /**
  * 🎯 Unified AI Engine Router - Main Router Core (Module 8/8)
- * 
+ *
  * Central orchestrator that coordinates all AI routing modules:
  * - Imports and manages all 7 specialized modules
  * - Provides singleton instance management
  * - Orchestrates the main routing workflow
  * - Maintains clean separation of concerns
  * - Implements SOLID principles
- * 
+ *
  * @author AI Systems Engineer
  * @version 1.0.0
  */
@@ -19,17 +19,17 @@ import {
 } from './SimplifiedQueryEngine';
 import {
   getPerformanceOptimizedQueryEngine,
-  type PerformanceOptimizedQueryEngine
+  type PerformanceOptimizedQueryEngine,
 } from './performance-optimized-query-engine';
 import { getSupabaseRAGEngine } from './supabase-rag-engine';
 
 // Import all 7 extracted modules
-import { 
-  RouterConfig, 
-  RouterMetrics, 
+import {
+  RouterConfig,
+  RouterMetrics,
   RouteResult,
   CommandRequestContext,
-  CommandRecommendation
+  CommandRecommendation,
 } from './UnifiedAIEngineRouter.types';
 import { UnifiedAIEngineRouterCache } from './UnifiedAIEngineRouter.cache';
 import { UnifiedAIEngineRouterCircuitBreaker } from './UnifiedAIEngineRouter.circuitBreaker';
@@ -58,7 +58,9 @@ export class UnifiedAIEngineRouter {
   private constructor(config: RouterConfig) {
     // preferredEngine이 반드시 제공되어야 함
     if (!config.preferredEngine) {
-      throw new Error('preferredEngine 설정이 필수입니다. "local-ai" 또는 "google-ai"를 선택해주세요.');
+      throw new Error(
+        'preferredEngine 설정이 필수입니다. "local-ai" 또는 "google-ai"를 선택해주세요.'
+      );
     }
 
     // 기본값 설정
@@ -86,12 +88,15 @@ export class UnifiedAIEngineRouter {
     this.commandsModule = new UnifiedAIEngineRouterCommands(this.config);
     this.metricsModule = new UnifiedAIEngineRouterMetrics(this.config);
     this.utilsModule = new UnifiedAIEngineRouterUtils();
-    
+
     // 동기적으로 초기화 (테스트 환경에서 문제 방지)
     try {
       this.initializeComponents();
     } catch (error) {
-      console.warn('⚠️ 초기화 중 일부 컴포넌트 실패 (테스트 환경에서는 정상):', error);
+      console.warn(
+        '⚠️ 초기화 중 일부 컴포넌트 실패 (테스트 환경에서는 정상):',
+        error
+      );
     }
   }
 
@@ -103,11 +108,11 @@ export class UnifiedAIEngineRouter {
       if (!config?.preferredEngine) {
         throw new Error(
           'UnifiedAIEngineRouter 초기화 시 preferredEngine이 필요합니다.\n' +
-          '- 로컬 AI 모드: { preferredEngine: "local-ai" }\n' +
-          '- 구글 AI 모드: { preferredEngine: "google-ai" }'
+            '- 로컬 AI 모드: { preferredEngine: "local-ai" }\n' +
+            '- 구글 AI 모드: { preferredEngine: "google-ai" }'
         );
       }
-      
+
       // 기본 설정과 전달된 설정을 병합
       const defaultConfig: RouterConfig = {
         enableSecurity: true,
@@ -122,7 +127,7 @@ export class UnifiedAIEngineRouter {
         enableKoreanNLP: true,
         koreanNLPThreshold: 0.7,
       };
-      
+
       const finalConfig = { ...defaultConfig, ...config };
       UnifiedAIEngineRouter.instance = new UnifiedAIEngineRouter(finalConfig);
     }
@@ -180,13 +185,18 @@ export class UnifiedAIEngineRouter {
             tokensCounted: false,
             processingPath,
           },
-          metadata: cachedResult.metadata ? (() => {
-            const { cacheHit, ...rest } = cachedResult.metadata as Record<string, unknown>;
-            return {
-              ...rest,
-              cached: true,
-            };
-          })() : undefined,
+          metadata: cachedResult.metadata
+            ? (() => {
+                const { cacheHit, ...rest } = cachedResult.metadata as Record<
+                  string,
+                  unknown
+                >;
+                return {
+                  ...rest,
+                  cached: true,
+                };
+              })()
+            : undefined,
           processingTime: Date.now() - startTime,
         };
       }
@@ -194,7 +204,10 @@ export class UnifiedAIEngineRouter {
 
       // 2. 보안 검사 (Security Module)
       if (this.config.enableSecurity) {
-        const securityResult = await this.securityModule.applySecurity(request, metrics);
+        const securityResult = await this.securityModule.applySecurity(
+          request,
+          metrics
+        );
         if (securityResult.riskLevel === 'critical' || securityResult.blocked) {
           return this.utilsModule.createSecurityBlockedResponse(
             securityResult,
@@ -231,16 +244,21 @@ export class UnifiedAIEngineRouter {
       if (this.config.enableCircuitBreaker) {
         if (this.circuitBreakerModule.isCircuitOpen(selectedEngine)) {
           processingPath.push(`circuit_open_${selectedEngine}`);
-          
+
           // 폴백 엔진 찾기
           const fallbackEngine = this.circuitBreakerModule.getFallbackEngine(
             selectedEngine,
             this.config.fallbackChain
           );
-          if (fallbackEngine && !this.circuitBreakerModule.isCircuitOpen(fallbackEngine)) {
+          if (
+            fallbackEngine &&
+            !this.circuitBreakerModule.isCircuitOpen(fallbackEngine)
+          ) {
             selectedEngine = fallbackEngine;
             fallbackUsed = true;
-            processingPath.push(`circuit_breaker_fallback_to_${selectedEngine}`);
+            processingPath.push(
+              `circuit_breaker_fallback_to_${selectedEngine}`
+            );
           } else {
             // 모든 엔진이 Circuit이 열린 상태
             return this.utilsModule.createCircuitOpenResponse(processingPath);
@@ -261,11 +279,14 @@ export class UnifiedAIEngineRouter {
           processingPath.push(`engine_executed_${currentEngine}`);
           break; // 성공시 종료
         } catch (engineError) {
-          lastError = engineError instanceof Error ? engineError : new Error(String(engineError));
+          lastError =
+            engineError instanceof Error
+              ? engineError
+              : new Error(String(engineError));
           engineAttempts++;
           this.circuitBreakerModule.recordFailure(currentEngine);
           processingPath.push(`engine_failed_${currentEngine}`);
-          
+
           // 다음 폴백 엔진 선택
           const nextEngine = this.circuitBreakerModule.getFallbackEngine(
             currentEngine,
@@ -285,7 +306,8 @@ export class UnifiedAIEngineRouter {
 
       // 모든 시도 후에도 response가 없으면 에러 던지기
       if (!response) {
-        const finalError = lastError || new Error('모든 AI 엔진에서 응답을 받지 못했습니다.');
+        const finalError =
+          lastError || new Error('모든 AI 엔진에서 응답을 받지 못했습니다.');
         throw finalError;
       }
 
@@ -295,19 +317,23 @@ export class UnifiedAIEngineRouter {
 
       // 7. 응답 보안 필터링 (Security Module)
       if (this.config.enableSecurity) {
-        const filterResult = await this.securityModule.filterResponse(response.response, metrics);
+        const filterResult = await this.securityModule.filterResponse(
+          response.response,
+          metrics
+        );
         if (
           filterResult.riskLevel === 'blocked' ||
           filterResult.requiresRegeneration
         ) {
           processingPath.push('response_needs_filtering');
-          
+
           // 다른 엔진으로 재시도
-          const retryResponse = await this.utilsModule.createRetryWithFallbackResponse(
-            request,
-            processingPath,
-            this.simplifiedEngine
-          );
+          const retryResponse =
+            await this.utilsModule.createRetryWithFallbackResponse(
+              request,
+              processingPath,
+              this.simplifiedEngine
+            );
           if (retryResponse.success && retryResponse.response) {
             response.response = retryResponse.response;
             selectedEngine = retryResponse.engine;
@@ -321,10 +347,11 @@ export class UnifiedAIEngineRouter {
 
       // 8. 토큰 사용량 기록 (Metrics Module)
       if (request.userId && response.metadata?.tokensUsed) {
-        const tokensUsed = typeof response.metadata.tokensUsed === 'number' 
-          ? response.metadata.tokensUsed 
-          : parseInt(String(response.metadata.tokensUsed), 10);
-        
+        const tokensUsed =
+          typeof response.metadata.tokensUsed === 'number'
+            ? response.metadata.tokensUsed
+            : parseInt(String(response.metadata.tokensUsed), 10);
+
         if (!isNaN(tokensUsed)) {
           this.metricsModule.recordTokenUsage(request.userId, tokensUsed);
           tokensCounted = true;
@@ -351,13 +378,18 @@ export class UnifiedAIEngineRouter {
           tokensCounted,
           processingPath,
         },
-        metadata: response.metadata ? (() => {
-          const { cacheHit, ...rest } = response.metadata as Record<string, unknown>;
-          return {
-            ...rest,
-            cached: false, // 새로운 응답이므로 cached = false
-          };
-        })() : undefined,
+        metadata: response.metadata
+          ? (() => {
+              const { cacheHit, ...rest } = response.metadata as Record<
+                string,
+                unknown
+              >;
+              return {
+                ...rest,
+                cached: false, // 새로운 응답이므로 cached = false
+              };
+            })()
+          : undefined,
       };
     } catch (error) {
       console.error('❌ UnifiedAIEngineRouter 오류:', error);
@@ -377,17 +409,17 @@ export class UnifiedAIEngineRouter {
     request: QueryRequest
   ): Promise<QueryResponse> {
     let response: QueryResponse;
-    
+
     switch (engineName) {
       case 'local-ai':
         // 로컬 AI 모드: Korean NLP + Supabase RAG + VM 백엔드
         response = await this.simplifiedEngine.query({
           ...request,
           mode: 'local',
-          enableGoogleAI: false,        // Google AI API 비활성화
-          enableAIAssistantMCP: false,  // AI 어시스턴트 MCP 비활성화
-          enableKoreanNLP: true,        // 한국어 NLP 활성화
-          enableVMBackend: true,        // VM 백엔드 활성화
+          enableGoogleAI: false, // Google AI API 비활성화
+          enableAIAssistantMCP: false, // AI 어시스턴트 MCP 비활성화
+          enableKoreanNLP: true, // 한국어 NLP 활성화
+          enableVMBackend: true, // VM 백엔드 활성화
         });
         break;
 
@@ -396,17 +428,19 @@ export class UnifiedAIEngineRouter {
         response = await this.simplifiedEngine.query({
           ...request,
           mode: 'google-ai',
-          enableGoogleAI: true,         // Google AI API 활성화
-          enableAIAssistantMCP: true,   // AI 어시스턴트 MCP 활성화
-          enableKoreanNLP: true,        // 한국어 NLP 활성화
-          enableVMBackend: true,        // VM 백엔드 활성화
+          enableGoogleAI: true, // Google AI API 활성화
+          enableAIAssistantMCP: true, // AI 어시스턴트 MCP 활성화
+          enableKoreanNLP: true, // 한국어 NLP 활성화
+          enableVMBackend: true, // VM 백엔드 활성화
         });
         break;
 
       default:
-        throw new Error(`Unknown AI mode: ${engineName}. 지원되는 모드: 'local-ai', 'google-ai'`);
+        throw new Error(
+          `Unknown AI mode: ${engineName}. 지원되는 모드: 'local-ai', 'google-ai'`
+        );
     }
-    
+
     return response;
   }
 
@@ -445,14 +479,14 @@ export class UnifiedAIEngineRouter {
    */
   public updateConfig(newConfig: Partial<RouterConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    
+
     // 모든 모듈에 설정 업데이트 전파
     this.securityModule.updateSecurityConfig({
       enableSecurity: this.config.enableSecurity,
       strictMode: this.config.strictSecurityMode,
       enableKoreanProtection: this.config.enableKoreanNLP,
     });
-    
+
     this.commandsModule.updateConfig(this.config);
     this.metricsModule.updateConfig(this.config);
     // Circuit breaker doesn't have updateConfig method

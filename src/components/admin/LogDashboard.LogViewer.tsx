@@ -1,6 +1,6 @@
 /**
  * 📝 LogDashboard Log Viewer Tab
- * 
+ *
  * Main log viewer interface with:
  * - Search and filtering controls
  * - Log list with expandable details
@@ -15,11 +15,11 @@ import { useCallback, useState } from 'react';
 import { Badge } from '../ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { TabsContent } from '../ui/tabs';
-import type { 
-  LogData, 
-  LogFilters, 
-  LogLevel, 
-  LogCategory 
+import type {
+  LogData,
+  LogFilters,
+  LogLevel,
+  LogCategory,
 } from './LogDashboard.types';
 
 // Color mappings (duplicated from main file for consistency)
@@ -49,12 +49,19 @@ interface LogViewerProps {
   updateFilters: (updates: Partial<LogFilters>) => void;
 }
 
-export function LogDashboardLogViewer({ data, filters, updateFilters }: LogViewerProps) {
+export function LogDashboardLogViewer({
+  data,
+  filters,
+  updateFilters,
+}: LogViewerProps) {
   const [expandedLog, setExpandedLog] = useState<string | null>(null);
 
-  const handleExpandLog = useCallback((logId: string) => {
-    setExpandedLog(expandedLog === logId ? null : logId);
-  }, [expandedLog]);
+  const handleExpandLog = useCallback(
+    (logId: string) => {
+      setExpandedLog(expandedLog === logId ? null : logId);
+    },
+    [expandedLog]
+  );
 
   return (
     <TabsContent value="logs" className="space-y-6">
@@ -83,7 +90,10 @@ export function LogDashboardLogViewer({ data, filters, updateFilters }: LogViewe
           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
             {/* 레벨 필터 */}
             <div>
-              <label htmlFor="log-level-filter" className="mb-1 block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="log-level-filter"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
                 레벨
               </label>
               <select
@@ -110,7 +120,10 @@ export function LogDashboardLogViewer({ data, filters, updateFilters }: LogViewe
 
             {/* 카테고리 필터 */}
             <div>
-              <label htmlFor="log-category-filter" className="mb-1 block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="log-category-filter"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
                 카테고리
               </label>
               <select
@@ -137,7 +150,10 @@ export function LogDashboardLogViewer({ data, filters, updateFilters }: LogViewe
 
             {/* 소스 필터 */}
             <div>
-              <label htmlFor="log-source-filter" className="mb-1 block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="log-source-filter"
+                className="mb-1 block text-sm font-medium text-gray-700"
+              >
                 소스
               </label>
               <input
@@ -145,7 +161,9 @@ export function LogDashboardLogViewer({ data, filters, updateFilters }: LogViewe
                 type="text"
                 placeholder="소스 이름..."
                 value={filters.selectedSource}
-                onChange={(e) => updateFilters({ selectedSource: e.target.value })}
+                onChange={(e) =>
+                  updateFilters({ selectedSource: e.target.value })
+                }
                 className="w-full rounded-lg border border-gray-300 px-3 py-2"
               />
             </div>
@@ -157,7 +175,9 @@ export function LogDashboardLogViewer({ data, filters, updateFilters }: LogViewe
               </label>
               <select
                 value={filters.limit}
-                onChange={(e) => updateFilters({ limit: Number(e.target.value) })}
+                onChange={(e) =>
+                  updateFilters({ limit: Number(e.target.value) })
+                }
                 className="w-full rounded-lg border border-gray-300 px-3 py-2"
               >
                 <option value={50}>50개</option>
@@ -245,9 +265,7 @@ export function LogDashboardLogViewer({ data, filters, updateFilters }: LogViewe
                               {Object.entries(log.metadata).map(
                                 ([key, value]) => (
                                   <div key={key}>
-                                    <span className="font-medium">
-                                      {key}:
-                                    </span>{' '}
+                                    <span className="font-medium">{key}:</span>{' '}
                                     {String(value)}
                                   </div>
                                 )
@@ -267,9 +285,7 @@ export function LogDashboardLogViewer({ data, filters, updateFilters }: LogViewe
                                 {log.error.name}
                               </p>
                               <p>
-                                <span className="font-medium">
-                                  메시지:
-                                </span>{' '}
+                                <span className="font-medium">메시지:</span>{' '}
                                 {log.error.message}
                               </p>
                               {log.error.stack && (

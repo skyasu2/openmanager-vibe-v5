@@ -71,7 +71,10 @@ export function calculateServerConfig(
   const tolerancePercent = 0.05; // 5% 변동값 (±5%)
 
   // 심각 상태 서버 수 계산 (8개 기준 2개 고정)
-  const criticalCount = serverCount === 8 ? 2 : Math.max(1, Math.floor(serverCount * criticalPercent));
+  const criticalCount =
+    serverCount === 8
+      ? 2
+      : Math.max(1, Math.floor(serverCount * criticalPercent));
 
   // 페이지네이션 설정 (서버 개수에 따라 조정)
   const defaultPageSize =
@@ -94,23 +97,26 @@ export function calculateServerConfig(
       tolerancePercent,
     },
     // 8개 서버 전용 타입 할당 설정
-    serverTypes: serverCount === 8 ? {
-      orderedTypes: [
-        'web',         // 웹 서버 (nginx, apache)
-        'app',         // 애플리케이션 서버
-        'api',         // API 서버 (REST, GraphQL)
-        'database',    // 데이터베이스 서버
-        'cache',       // 캐시 서버 (Redis, Memcached)
-        'storage',     // 스토리지 서버
-        'load-balancer', // 로드밸런서
-        'backup',      // 백업 서버
-      ],
-      statusMapping: {
-        critical: [3, 6], // database(인덱스 3), load-balancer(인덱스 6) - 심각 2대
-        warning: [1, 4, 7], // app(인덱스 1), cache(인덱스 4), backup(인덱스 7) - 경고 3대
-        normal: [0, 2, 5], // web(인덱스 0), api(인덱스 2), storage(인덱스 5) - 정상 3대
-      },
-    } : undefined,
+    serverTypes:
+      serverCount === 8
+        ? {
+            orderedTypes: [
+              'web', // 웹 서버 (nginx, apache)
+              'app', // 애플리케이션 서버
+              'api', // API 서버 (REST, GraphQL)
+              'database', // 데이터베이스 서버
+              'cache', // 캐시 서버 (Redis, Memcached)
+              'storage', // 스토리지 서버
+              'load-balancer', // 로드밸런서
+              'backup', // 백업 서버
+            ],
+            statusMapping: {
+              critical: [3, 6], // database(인덱스 3), load-balancer(인덱스 6) - 심각 2대
+              warning: [1, 4, 7], // app(인덱스 1), cache(인덱스 4), backup(인덱스 7) - 경고 3대
+              normal: [0, 2, 5], // web(인덱스 0), api(인덱스 2), storage(인덱스 5) - 정상 3대
+            },
+          }
+        : undefined,
     pagination: {
       defaultPageSize,
       maxPageSize,
@@ -146,7 +152,8 @@ export function calculateOptimalUpdateInterval(): number {
   if (typeof window !== 'undefined' && 'memory' in performance) {
     const memory = (performance as PerformanceWithMemory).memory;
     if (memory) {
-      const usagePercent = (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
+      const usagePercent =
+        (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
 
       if (usagePercent > 80) return 35000; // 높은 사용률: 35초
       if (usagePercent > 60) return 33000; // 중간 사용률: 33초
@@ -177,7 +184,8 @@ export function calculateOptimalCollectionInterval(): number {
   if (typeof window !== 'undefined' && 'memory' in performance) {
     const memory = (performance as PerformanceWithMemory).memory;
     if (memory) {
-      const usagePercent = (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
+      const usagePercent =
+        (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
 
       if (usagePercent > 80) return 600000; // 높은 사용률: 10분
       if (usagePercent > 60) return 450000; // 중간 사용률: 7.5분
@@ -232,18 +240,33 @@ export const ACTIVE_SERVER_CONFIG = getEnvironmentServerConfig();
  */
 export function getServerTypeByIndex(index: number): string {
   const config = ACTIVE_SERVER_CONFIG;
-  if (config.serverTypes && index >= 0 && index < config.serverTypes.orderedTypes.length) {
+  if (
+    config.serverTypes &&
+    index >= 0 &&
+    index < config.serverTypes.orderedTypes.length
+  ) {
     return config.serverTypes.orderedTypes[index];
   }
   // 폴백: 기본 타입
-  const fallbackTypes = ['web', 'app', 'api', 'database', 'cache', 'storage', 'load-balancer', 'backup'];
+  const fallbackTypes = [
+    'web',
+    'app',
+    'api',
+    'database',
+    'cache',
+    'storage',
+    'load-balancer',
+    'backup',
+  ];
   return fallbackTypes[index % fallbackTypes.length];
 }
 
 /**
  * 🚦 서버 인덱스로 상태 가져오기 (0-7 인덱스)
  */
-export function getServerStatusByIndex(index: number): 'online' | 'warning' | 'critical' {
+export function getServerStatusByIndex(
+  index: number
+): 'online' | 'warning' | 'critical' {
   const config = ACTIVE_SERVER_CONFIG;
   if (config.serverTypes) {
     if (config.serverTypes.statusMapping.critical.includes(index)) {
@@ -258,7 +281,7 @@ export function getServerStatusByIndex(index: number): 'online' | 'warning' | 'c
   }
   // 폴백: 기본 상태 (인덱스 기반)
   if (index <= 1) return 'critical'; // 처음 2개
-  if (index <= 4) return 'warning';  // 다음 3개
+  if (index <= 4) return 'warning'; // 다음 3개
   return 'online'; // 나머지 3개
 }
 
@@ -295,7 +318,7 @@ export function logServerConfig(
   console.log(
     `  ⚠️  경고 상태: ${Math.round(config.scenario.warningPercent * 100)}%`
   );
-  
+
   // 8개 서버 타입 정보 추가 로깅
   if (config.serverTypes) {
     console.log('  🏢 서버 타입 할당:');
@@ -309,18 +332,22 @@ export function logServerConfig(
       console.log(`    ${index + 1}. ${type} (${status})`);
     });
   }
-  
+
   console.log(
     `  📄 페이지 크기: ${config.pagination.defaultPageSize}개 (최대 ${config.pagination.maxPageSize}개)`
   );
   console.log(`  🔄 업데이트 간격: ${config.cache.updateInterval / 1000}초`);
   console.log(`  ⚡ 배치 크기: ${config.performance.batchSize}개`);
-  
+
   // 전체 서버 정보 로깅
   console.log('\n  📋 전체 서버 정보:');
-  getAllServersInfo().forEach(server => {
-    const statusIcon = server.status === 'critical' ? '🔴' : 
-                      server.status === 'warning' ? '🟡' : '🟢';
+  getAllServersInfo().forEach((server) => {
+    const statusIcon =
+      server.status === 'critical'
+        ? '🔴'
+        : server.status === 'warning'
+          ? '🟡'
+          : '🟢';
     console.log(`    ${server.name}: ${server.type} ${statusIcon}`);
   });
 }

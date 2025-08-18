@@ -1,20 +1,20 @@
 // Recharts 타입 정의 (SSR 지원)
 declare module 'recharts' {
   import { ComponentType, ReactNode } from 'react';
-  
+
   interface BaseChartProps {
     width?: number | string;
     height?: number | string;
     children?: ReactNode;
     data?: any[];
   }
-  
+
   interface ResponsiveContainerProps {
     width?: number | string;
     height?: number | string;
     children?: ReactNode;
   }
-  
+
   interface PieProps {
     data?: any[];
     cx?: number | string;
@@ -26,12 +26,12 @@ declare module 'recharts' {
     dataKey?: string;
     children?: ReactNode;
   }
-  
+
   interface BarProps {
     dataKey?: string;
     fill?: string;
   }
-  
+
   interface LineProps {
     type?: string;
     dataKey?: string;
@@ -39,26 +39,26 @@ declare module 'recharts' {
     strokeWidth?: number;
     name?: string;
   }
-  
+
   interface CellProps {
     key?: string;
     fill?: string;
   }
-  
+
   interface XAxisProps {
     dataKey?: string;
   }
-  
+
   interface YAxisProps {}
-  
+
   interface CartesianGridProps {
     strokeDasharray?: string;
   }
-  
+
   interface TooltipProps {
     formatter?: (value: any, name?: string) => [string, string];
   }
-  
+
   export const ResponsiveContainer: ComponentType<ResponsiveContainerProps>;
   export const BarChart: ComponentType<BaseChartProps>;
   export const Bar: ComponentType<BarProps>;

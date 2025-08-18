@@ -1,6 +1,6 @@
 /**
  * 🎯 AI Insight Center - Security Analysis Module
- * 
+ *
  * Security audit and hardening recommendations:
  * - Security vulnerability assessment
  * - Compliance gap analysis
@@ -17,15 +17,17 @@ import type {
 /**
  * Perform security audit
  */
-export function performSecurityAudit(scanResults: SecurityScanResult): SecurityAudit {
-  const riskScore = 
+export function performSecurityAudit(
+  scanResults: SecurityScanResult
+): SecurityAudit {
+  const riskScore =
     scanResults.critical * 40 +
     scanResults.high * 20 +
     scanResults.medium * 5 +
     scanResults.low * 1;
-  
+
   const priorityFixes = [];
-  
+
   if (scanResults.critical > 0) {
     priorityFixes.push({
       severity: 'critical',
@@ -34,7 +36,7 @@ export function performSecurityAudit(scanResults: SecurityScanResult): SecurityA
       timeline: '24 hours',
     });
   }
-  
+
   if (scanResults.high > 0) {
     priorityFixes.push({
       severity: 'high',
@@ -43,14 +45,14 @@ export function performSecurityAudit(scanResults: SecurityScanResult): SecurityA
       timeline: '1 week',
     });
   }
-  
+
   const complianceGaps = [];
-  
+
   if (riskScore > 100) {
     complianceGaps.push('OWASP Top 10 compliance at risk');
     complianceGaps.push('PCI DSS requirements not met');
   }
-  
+
   return {
     risk_score: Math.min(100, Math.round(riskScore / 10)),
     priority_fixes: priorityFixes,
@@ -62,7 +64,9 @@ export function performSecurityAudit(scanResults: SecurityScanResult): SecurityA
 /**
  * Generate security hardening recommendations
  */
-export function generateSecurityRecommendations(currentMeasures: string[]): SecurityRecommendation[] {
+export function generateSecurityRecommendations(
+  currentMeasures: string[]
+): SecurityRecommendation[] {
   const allRecommendations = [
     {
       measure: 'Multi-factor authentication',
@@ -95,10 +99,11 @@ export function generateSecurityRecommendations(currentMeasures: string[]): Secu
       implementation_guide: 'Schedule quarterly security assessments',
     },
   ];
-  
+
   return allRecommendations.filter(
-    rec => !currentMeasures.some(measure => 
-      measure.toLowerCase().includes(rec.measure.toLowerCase().split(' ')[0])
-    )
+    (rec) =>
+      !currentMeasures.some((measure) =>
+        measure.toLowerCase().includes(rec.measure.toLowerCase().split(' ')[0])
+      )
   );
 }

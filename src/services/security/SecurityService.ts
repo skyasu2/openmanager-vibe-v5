@@ -223,7 +223,7 @@ export class SecurityService {
    */
   private cleanupUserSessions(userId: string): void {
     const userSessions = Array.from(this.sessions.values())
-      .filter(session => session.userId === userId && session.isValid)
+      .filter((session) => session.userId === userId && session.isValid)
       .sort((a, b) => b.lastActivity.getTime() - a.lastActivity.getTime());
 
     if (userSessions.length >= this.MAX_SESSIONS) {
@@ -270,7 +270,7 @@ export class SecurityService {
       (s: UserSession) => s.isValid
     ).length;
     const recentEvents = this.securityEvents.filter(
-      e => Date.now() - e.timestamp.getTime() < 60 * 60 * 1000 // 1시간 내
+      (e) => Date.now() - e.timestamp.getTime() < 60 * 60 * 1000 // 1시간 내
     );
 
     return {
@@ -291,14 +291,19 @@ export class SecurityService {
    * 🧪 현재 세션 목록 조회 (테스트용)
    */
   getActiveSessions(): UserSession[] {
-    return Array.from(this.sessions.values()).filter((s: UserSession) => s.isValid);
+    return Array.from(this.sessions.values()).filter(
+      (s: UserSession) => s.isValid
+    );
   }
 
-  async createSession(userId: string, metadata?: {
-    ip?: string;
-    userAgent?: string;
-    [key: string]: unknown;
-  }): Promise<string> {
+  async createSession(
+    userId: string,
+    metadata?: {
+      ip?: string;
+      userAgent?: string;
+      [key: string]: unknown;
+    }
+  ): Promise<string> {
     try {
       const sessionId = generateSessionId('session');
 

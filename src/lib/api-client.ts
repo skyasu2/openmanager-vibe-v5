@@ -6,10 +6,10 @@
  */
 
 import { z } from 'zod';
-import { 
-  ApiResponse, 
-  isApiResponse, 
-  getErrorMessage 
+import {
+  ApiResponse,
+  isApiResponse,
+  getErrorMessage,
 } from '@/types/api-responses';
 
 /**
@@ -134,7 +134,7 @@ export async function apiDelete<T = any>(endpoint: string): Promise<T> {
 
 /**
  * 🎯 타입 안전한 API 호출 함수 (Zod 스키마 기반)
- * 
+ *
  * 런타임 타입 검증과 TypeScript 타입 안전성을 동시에 제공
  * 600+ TypeScript 에러 해결을 위한 핵심 함수
  */
@@ -145,28 +145,31 @@ export async function safeApiCall<T>(
 ): Promise<T> {
   try {
     const response = await apiFetch(endpoint, options);
-    
+
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`API 요청 실패: ${response.status} ${response.statusText} - ${errorText}`);
+      throw new Error(
+        `API 요청 실패: ${response.status} ${response.statusText} - ${errorText}`
+      );
     }
-    
+
     const rawData = await response.json();
-    
+
     // Zod 스키마로 런타임 검증 + TypeScript 타입 안전성 확보
     const validatedData = responseSchema.parse(rawData);
-    
+
     console.log(`✅ 타입 안전한 API 호출 성공: ${endpoint}`);
     return validatedData;
-    
   } catch (error) {
     console.error(`❌ 타입 안전한 API 호출 실패: ${endpoint}`, error);
-    
+
     if (error instanceof z.ZodError) {
       console.error('스키마 검증 실패:', error.errors);
-      throw new Error(`응답 데이터 형식 오류: ${error.errors.map(e => e.message).join(', ')}`);
+      throw new Error(
+        `응답 데이터 형식 오류: ${error.errors.map((e) => e.message).join(', ')}`
+      );
     }
-    
+
     throw error;
   }
 }
@@ -182,20 +185,19 @@ export async function safeApiCallWithResponse<T>(
   try {
     const response = await apiFetch(endpoint, options);
     const rawData = await response.json();
-    
+
     // ApiResponse 형식인지 확인
     if (!isApiResponse(rawData)) {
       throw new Error('응답이 표준 ApiResponse 형식이 아닙니다');
     }
-    
+
     // 데이터 부분만 스키마로 검증
     const validatedData = dataSchema.parse(rawData.data);
-    
+
     return {
       ...rawData,
       data: validatedData,
     } as ApiResponse<T>;
-    
   } catch (error) {
     console.error(`❌ ApiResponse 안전한 호출 실패: ${endpoint}`, error);
     throw error;
@@ -227,12 +229,14 @@ export async function safeApiPost<TRequest, TResponse>(
       requestSchema.parse(data);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new Error(`요청 데이터 형식 오류: ${error.errors.map(e => e.message).join(', ')}`);
+        throw new Error(
+          `요청 데이터 형식 오류: ${error.errors.map((e) => e.message).join(', ')}`
+        );
       }
       throw error;
     }
   }
-  
+
   return safeApiCall(endpoint, responseSchema, {
     method: 'POST',
     body: JSON.stringify(data),
@@ -252,7 +256,7 @@ export default {
   delete: apiDelete,
   fetch: apiFetch,
   createUrl: createApiUrl,
-  
+
   // 새로운 타입 안전한 함수들
   safeCall: safeApiCall,
   safeCallWithResponse: safeApiCallWithResponse,

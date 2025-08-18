@@ -17,7 +17,7 @@
  * Data Modules:
  * - PerformanceDashboard.types.ts - Type definitions
  * - PerformanceDashboard.data.ts - Data processing
- * - PerformanceDashboard.utils.ts - Utility functions  
+ * - PerformanceDashboard.utils.ts - Utility functions
  * - PerformanceDashboard.mock.ts - Mock data generation
  * - PerformanceDashboard.constants.ts - Colors and constants
  * - PerformanceDashboard.charts.tsx - Chart components
@@ -29,12 +29,12 @@ import { motion } from 'framer-motion';
 import { useCallback, useEffect, useState } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 
-// Import modular components  
+// Import modular components
 import type { PerformanceData } from './PerformanceDashboard.types';
 import { AUTO_REFRESH_INTERVAL } from './PerformanceDashboard.constants';
-import { 
+import {
   getEnginePerformanceData,
-  getModeDistributionData, 
+  getModeDistributionData,
   getHourlyTrendsData,
   getFilteredAlerts,
   calculatePerformanceScore,
@@ -110,7 +110,9 @@ export default function PerformanceDashboard() {
 
   // 에러 상태 (PerformanceDashboard.states 위임)
   if (error) {
-    return <ErrorState error={error} handleManualRefresh={handleManualRefresh} />;
+    return (
+      <ErrorState error={error} handleManualRefresh={handleManualRefresh} />
+    );
   }
 
   if (!data) return null;

@@ -3,7 +3,7 @@ import { AlertSeveritySchema } from './api.alert.schema';
 
 /**
  * 🔄 실시간 스트리밍 및 SSE 스키마
- * 
+ *
  * 서버-송신 이벤트(SSE), 실시간 알림, 스트리밍 데이터
  */
 

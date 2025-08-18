@@ -125,31 +125,31 @@ export default function ServerStartButton() {
   }, [showWarmupProgress, pollWarmupStatus]);
 
   return (
-    <div className='bg-white rounded-lg shadow-lg p-6 border'>
-      <div className='text-center'>
-        <h3 className='text-lg font-semibold text-gray-900 mb-4'>
+    <div className="rounded-lg border bg-white p-6 shadow-lg">
+      <div className="text-center">
+        <h3 className="mb-4 text-lg font-semibold text-gray-900">
           🚀 AI 서버 제어
         </h3>
 
         {/* 진행 상태 표시 */}
         {progress && (
-          <div className='mb-6'>
-            <div className='mb-2'>
-              <div className='flex justify-between text-sm text-gray-600'>
+          <div className="mb-6">
+            <div className="mb-2">
+              <div className="flex justify-between text-sm text-gray-600">
                 <span>웜업 진행률</span>
                 <span>
                   {progress.current_count}/{progress.max_count} 완료
                 </span>
               </div>
-              <div className='w-full bg-gray-200 rounded-full h-2 mt-1'>
+              <div className="mt-1 h-2 w-full rounded-full bg-gray-200">
                 <div
-                  className='bg-blue-600 h-2 rounded-full transition-all duration-300'
+                  className="h-2 rounded-full bg-blue-600 transition-all duration-300"
                   style={{ width: `${progress.percentage}%` }}
                 ></div>
               </div>
             </div>
 
-            <div className='text-xs text-gray-500 space-y-1'>
+            <div className="space-y-1 text-xs text-gray-500">
               <div>
                 상태:{' '}
                 {progress.stage === 'running'
@@ -166,16 +166,16 @@ export default function ServerStartButton() {
         )}
 
         {/* 컨트롤 버튼들 */}
-        <div className='space-y-3'>
+        <div className="space-y-3">
           {!progress?.active && !progress?.completed && (
             <button
               onClick={handleStartServer}
               disabled={isLoading}
-              className='w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2'
+              className="flex w-full items-center justify-center space-x-2 rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors duration-200 hover:bg-blue-700 disabled:bg-blue-300"
             >
               {isLoading ? (
                 <>
-                  <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white'></div>
+                  <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
                   <span>시작 중...</span>
                 </>
               ) : (
@@ -190,7 +190,7 @@ export default function ServerStartButton() {
           {progress?.active && !progress?.completed && (
             <button
               onClick={handleStopWarmup}
-              className='w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2'
+              className="flex w-full items-center justify-center space-x-2 rounded-lg bg-red-600 px-4 py-3 font-medium text-white transition-colors duration-200 hover:bg-red-700"
             >
               <span>🛑</span>
               <span>웜업 중지</span>
@@ -198,15 +198,15 @@ export default function ServerStartButton() {
           )}
 
           {progress?.completed && (
-            <div className='text-center'>
-              <div className='bg-green-100 text-green-800 py-3 px-4 rounded-lg'>
-                <div className='font-medium'>🎉 웜업 완료!</div>
-                <div className='text-sm mt-1'>AI 서버가 준비되었습니다</div>
+            <div className="text-center">
+              <div className="rounded-lg bg-green-100 px-4 py-3 text-green-800">
+                <div className="font-medium">🎉 웜업 완료!</div>
+                <div className="mt-1 text-sm">AI 서버가 준비되었습니다</div>
               </div>
 
               <button
                 onClick={() => setProgress(null)}
-                className='mt-3 text-sm text-gray-500 hover:text-gray-700'
+                className="mt-3 text-sm text-gray-500 hover:text-gray-700"
               >
                 상태 초기화
               </button>
@@ -215,7 +215,7 @@ export default function ServerStartButton() {
         </div>
 
         {/* 안내 메시지 */}
-        <div className='mt-4 text-xs text-gray-500 space-y-1'>
+        <div className="mt-4 space-y-1 text-xs text-gray-500">
           <div>• 8분 간격으로 4번 웜업 후 자동 중지</div>
           <div>• 총 소요시간: 약 32분</div>
           <div>• Python AI 서버 콜드 스타트 방지</div>

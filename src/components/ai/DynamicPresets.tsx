@@ -22,7 +22,9 @@ export default function DynamicPresets({
 }: DynamicPresetsProps) {
   const [presets, setPresets] = useState<string[]>([]);
 
-  const generateContextualQuestions = (metrics: PresetsMetrics | unknown): string[] => {
+  const generateContextualQuestions = (
+    metrics: PresetsMetrics | unknown
+  ): string[] => {
     const questions = [
       '현재 시스템 전체 상태를 요약해줘',
       'CPU 사용률이 높은 서버들을 분석해줘',
@@ -32,7 +34,11 @@ export default function DynamicPresets({
     ];
 
     // 서버 메트릭스에 따른 동적 질문 생성
-    if (metrics && typeof metrics === 'object' && 'criticalServers' in metrics) {
+    if (
+      metrics &&
+      typeof metrics === 'object' &&
+      'criticalServers' in metrics
+    ) {
       const m = metrics as PresetsMetrics;
       if (m.criticalServers && m.criticalServers > 0) {
         questions.unshift('⚠️ 위험 상태 서버들을 즉시 점검해줘');

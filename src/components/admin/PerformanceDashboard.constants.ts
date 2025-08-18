@@ -1,6 +1,6 @@
 /**
  * 📊 PerformanceDashboard Constants
- * 
+ *
  * Color schemes and constants for performance dashboard:
  * - Color palette definitions
  * - Engine-specific color mappings
@@ -31,7 +31,7 @@ export const ENGINE_COLORS: Record<string, string> = {
 
 // 차트 테마 설정
 export const CHART_CONFIG = {
-  strokeDashArray: "3 3",
+  strokeDashArray: '3 3',
   strokeWidth: 2,
   fillOpacity: 0.3,
   outerRadius: 80,

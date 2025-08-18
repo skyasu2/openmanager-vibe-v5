@@ -1,6 +1,6 @@
 /**
  * 🎯 AI Insight Center - Cost Analysis Module
- * 
+ *
  * Infrastructure cost analysis and optimization:
  * - Cost breakdown and analysis
  * - Resource utilization optimization
@@ -22,16 +22,19 @@ import type {
 export function analyzeCosts(infrastructure: InfrastructureInfo): CostAnalysis {
   const costBreakdown = {
     servers: infrastructure.servers * 200, // $200 per server
-    storage: infrastructure.storage_gb * 0.10, // $0.10 per GB
+    storage: infrastructure.storage_gb * 0.1, // $0.10 per GB
     bandwidth: infrastructure.bandwidth_gb * 0.05, // $0.05 per GB
   };
-  
-  const totalCalculated = Object.values(costBreakdown).reduce((sum, v) => sum + v, 0);
+
+  const totalCalculated = Object.values(costBreakdown).reduce(
+    (sum, v) => sum + v,
+    0
+  );
   const actualCost = infrastructure.monthly_cost;
-  
+
   const optimizationOpportunities = [];
   let potentialSavings = 0;
-  
+
   if (infrastructure.servers > 3) {
     optimizationOpportunities.push({
       area: 'Server consolidation',
@@ -40,7 +43,7 @@ export function analyzeCosts(infrastructure: InfrastructureInfo): CostAnalysis {
     });
     potentialSavings += infrastructure.servers > 5 ? 400 : 200;
   }
-  
+
   if (infrastructure.storage_gb > 300) {
     optimizationOpportunities.push({
       area: 'Storage optimization',
@@ -49,7 +52,7 @@ export function analyzeCosts(infrastructure: InfrastructureInfo): CostAnalysis {
     });
     potentialSavings += infrastructure.storage_gb * 0.02;
   }
-  
+
   if (infrastructure.bandwidth_gb > 500) {
     optimizationOpportunities.push({
       area: 'CDN implementation',
@@ -58,7 +61,7 @@ export function analyzeCosts(infrastructure: InfrastructureInfo): CostAnalysis {
     });
     potentialSavings += infrastructure.bandwidth_gb * 0.02;
   }
-  
+
   return {
     cost_breakdown: costBreakdown,
     optimization_opportunities: optimizationOpportunities,
@@ -70,15 +73,17 @@ export function analyzeCosts(infrastructure: InfrastructureInfo): CostAnalysis {
 /**
  * Suggest resource optimization
  */
-export function optimizeResources(utilization: UtilizationMetric[]): ResourceOptimization[] {
-  return utilization.map(server => {
+export function optimizeResources(
+  utilization: UtilizationMetric[]
+): ResourceOptimization[] {
+  return utilization.map((server) => {
     const optimizations = {
       resource: server.id,
       current_size: 'Standard',
       recommended_size: 'Standard',
       monthly_savings: 0,
     };
-    
+
     if (server.cpu_avg < 30 && server.memory_avg < 40) {
       optimizations.recommended_size = 'Small';
       optimizations.monthly_savings = 50;
@@ -86,7 +91,7 @@ export function optimizeResources(utilization: UtilizationMetric[]): ResourceOpt
       optimizations.recommended_size = 'Large';
       optimizations.monthly_savings = -100; // Additional cost
     }
-    
+
     return optimizations;
   });
 }
@@ -94,9 +99,11 @@ export function optimizeResources(utilization: UtilizationMetric[]): ResourceOpt
 /**
  * Analyze cloud migration
  */
-export function analyzeCloudMigration(currentInfra: string): CloudMigrationAnalysis {
+export function analyzeCloudMigration(
+  currentInfra: string
+): CloudMigrationAnalysis {
   const isOnPremise = currentInfra === 'on-premise';
-  
+
   return {
     migration_cost: isOnPremise ? 15000 : 5000,
     monthly_savings: isOnPremise ? 800 : 200,

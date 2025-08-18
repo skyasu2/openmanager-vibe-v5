@@ -69,7 +69,7 @@ class MemoryMetricsStore {
 
   addMetric(metric: PerformanceMetrics): void {
     this.metrics.push(metric);
-    
+
     // 메모리 사용량 제한
     if (this.metrics.length > this.maxSize) {
       this.metrics = this.metrics.slice(-this.maxSize / 2); // 절반만 유지
@@ -78,17 +78,19 @@ class MemoryMetricsStore {
 
   addResponseTime(timestamp: number, duration: number): void {
     this.responseTimes.push({ timestamp, duration });
-    
+
     // 최근 1시간 데이터만 유지
     const oneHourAgo = Date.now() - 3600000;
-    this.responseTimes = this.responseTimes.filter(rt => rt.timestamp > oneHourAgo);
+    this.responseTimes = this.responseTimes.filter(
+      (rt) => rt.timestamp > oneHourAgo
+    );
   }
 
   getRecentResponseTimes(windowMs: number = 60000): number[] {
     const cutoff = Date.now() - windowMs;
     return this.responseTimes
-      .filter(rt => rt.timestamp > cutoff)
-      .map(rt => rt.duration);
+      .filter((rt) => rt.timestamp > cutoff)
+      .map((rt) => rt.duration);
   }
 
   getAllMetrics(): PerformanceMetrics[] {
@@ -170,10 +172,11 @@ export class PerformanceTester {
     // Node.js process 정보 활용
     const cpuUsage = process.cpuUsage();
     const totalCpuTime = cpuUsage.user + cpuUsage.system;
-    
+
     return {
       cpuUsage: Math.min(100, (totalCpuTime / 1000000) % 100), // 마이크로초를 백분율로
-      loadAverage: process.platform === 'win32' ? [0, 0, 0] : require('os').loadavg(),
+      loadAverage:
+        process.platform === 'win32' ? [0, 0, 0] : require('os').loadavg(),
       uptime: process.uptime(),
     };
   }
@@ -189,7 +192,7 @@ export class PerformanceTester {
     p99: number;
   } {
     const recentTimes = this.metricsStore.getRecentResponseTimes();
-    
+
     if (recentTimes.length === 0) {
       return { average: 0, min: 0, max: 0, p95: 0, p99: 0 };
     }
@@ -282,11 +285,15 @@ export class PerformanceTester {
       totalRequests,
       successfulRequests,
       failedRequests,
-      averageResponseTime: allResponseTimes.length > 0 
-        ? allResponseTimes.reduce((a, b) => a + b, 0) / allResponseTimes.length 
-        : 0,
-      maxResponseTime: allResponseTimes.length > 0 ? Math.max(...allResponseTimes) : 0,
-      minResponseTime: allResponseTimes.length > 0 ? Math.min(...allResponseTimes) : 0,
+      averageResponseTime:
+        allResponseTimes.length > 0
+          ? allResponseTimes.reduce((a, b) => a + b, 0) /
+            allResponseTimes.length
+          : 0,
+      maxResponseTime:
+        allResponseTimes.length > 0 ? Math.max(...allResponseTimes) : 0,
+      minResponseTime:
+        allResponseTimes.length > 0 ? Math.min(...allResponseTimes) : 0,
       throughput: totalRequests / config.duration,
       errorRate: totalRequests > 0 ? (failedRequests / totalRequests) * 100 : 0,
     };
@@ -337,7 +344,7 @@ export class PerformanceTester {
       } catch (error) {
         const responseTime = Date.now() - startTime;
         onRequest(responseTime, false);
-        
+
         if (error instanceof Error && error.name !== 'AbortError') {
           console.error('❌ 요청 실패:', error.message);
         }
@@ -346,9 +353,9 @@ export class PerformanceTester {
       // 요청 간격 조절
       const elapsed = Date.now() - startTime;
       const waitTime = Math.max(0, requestInterval - elapsed);
-      
+
       if (waitTime > 0) {
-        await new Promise(resolve => setTimeout(resolve, waitTime));
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
       }
     }
   }
@@ -396,7 +403,10 @@ export class PerformanceTester {
     // CPU 사용률 분석
     if (metrics.length > 0) {
       const recentMetric = metrics[metrics.length - 1];
-      if (recentMetric.systemMetrics && recentMetric.systemMetrics.cpuUsage > 80) {
+      if (
+        recentMetric.systemMetrics &&
+        recentMetric.systemMetrics.cpuUsage > 80
+      ) {
         recommendations.push(
           '🔥 CPU 사용률이 높습니다. 프로세스 최적화가 필요합니다.'
         );
@@ -476,9 +486,8 @@ export class PerformanceTester {
   generatePerformanceReport(testResult: LoadTestResult): string {
     const { config, summary, recommendations, metrics } = testResult;
 
-    const memoryStats = metrics.length > 0 
-      ? metrics[metrics.length - 1].memoryUsage
-      : null;
+    const memoryStats =
+      metrics.length > 0 ? metrics[metrics.length - 1].memoryUsage : null;
 
     return `
 # 🚀 OpenManager 성능 테스트 리포트
@@ -499,14 +508,18 @@ export class PerformanceTester {
 - **처리량**: ${summary.throughput.toFixed(1)} req/s
 
 ## 💾 시스템 리소스
-${memoryStats ? `
+${
+  memoryStats
+    ? `
 - **메모리 사용률**: ${memoryStats.usagePercent.toFixed(1)}%
 - **힙 메모리**: ${(memoryStats.heapUsed / 1024 / 1024).toFixed(1)}MB / ${(memoryStats.heapTotal / 1024 / 1024).toFixed(1)}MB
 - **RSS 메모리**: ${(memoryStats.rss / 1024 / 1024).toFixed(1)}MB
-` : '- **메모리 정보**: 수집되지 않음'}
+`
+    : '- **메모리 정보**: 수집되지 않음'
+}
 
 ## 💡 최적화 권장사항
-${recommendations.map(rec => `- ${rec}`).join('\n')}
+${recommendations.map((rec) => `- ${rec}`).join('\n')}
 
 ## 📈 성능 등급
 ${this.calculatePerformanceGrade(summary)}

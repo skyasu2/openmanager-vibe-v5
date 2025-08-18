@@ -40,7 +40,7 @@ if (typeof globalThis !== 'undefined') {
 
   // window 참조 오류 방지 (서버 사이드)
   if (typeof globalThis.window === 'undefined') {
-    // @ts-ignore - SSR 폴리필  
+    // @ts-ignore - SSR 폴리필
     globalThis.window = globalThis;
   }
 
@@ -57,7 +57,7 @@ if (typeof globalThis !== 'undefined') {
       }),
       getElementById: () => null,
       querySelector: () => null,
-      // @ts-ignore - SSR 폴리필  
+      // @ts-ignore - SSR 폴리필
       querySelectorAll: () => [],
       addEventListener: () => {},
       removeEventListener: () => {},

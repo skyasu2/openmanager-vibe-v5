@@ -1,6 +1,6 @@
 /**
  * 🎯 AI Insight Center - Technology Analysis Module
- * 
+ *
  * Technology stack analysis and modernization recommendations:
  * - Technology update recommendations
  * - New technology additions
@@ -18,13 +18,15 @@ import type {
 /**
  * Review technology stack
  */
-export function reviewTechStack(currentStack: string[]): TechStackRecommendations {
+export function reviewTechStack(
+  currentStack: string[]
+): TechStackRecommendations {
   const recommendations = {
     updates: [] as TechUpdate[],
     additions: [] as TechAddition[],
     replacements: [] as TechReplacement[],
   };
-  
+
   // Check for outdated technologies
   if (currentStack.includes('Node.js')) {
     recommendations.updates.push({
@@ -34,7 +36,7 @@ export function reviewTechStack(currentStack: string[]): TechStackRecommendation
       reason: 'Performance improvements and new features',
     });
   }
-  
+
   // Suggest additions
   if (!currentStack.includes('Redis')) {
     recommendations.additions.push({
@@ -43,7 +45,7 @@ export function reviewTechStack(currentStack: string[]): TechStackRecommendation
       benefit: '10-100x faster than database queries',
     });
   }
-  
+
   if (!currentStack.includes('Elasticsearch')) {
     recommendations.additions.push({
       technology: 'Elasticsearch',
@@ -51,7 +53,7 @@ export function reviewTechStack(currentStack: string[]): TechStackRecommendation
       benefit: 'Advanced search capabilities',
     });
   }
-  
+
   // Suggest replacements for better alternatives
   if (currentStack.includes('MySQL') && !currentStack.includes('PostgreSQL')) {
     recommendations.replacements.push({
@@ -60,6 +62,6 @@ export function reviewTechStack(currentStack: string[]): TechStackRecommendation
       reason: 'Better performance, more features, better JSON support',
     });
   }
-  
+
   return recommendations;
 }

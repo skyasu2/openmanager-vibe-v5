@@ -10,7 +10,4 @@ export {
   detectAutoReportTrigger,
 } from './aiQueryHandlers';
 
-export type {
-  AIQueryResult,
-  AutoReportTrigger,
-} from './aiQueryHandlers';
+export type { AIQueryResult, AutoReportTrigger } from './aiQueryHandlers';

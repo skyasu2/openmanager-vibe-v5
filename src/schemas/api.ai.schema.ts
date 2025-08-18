@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * 🤖 AI 서비스 관련 스키마
- * 
+ *
  * AI 로그 스트리밍, 성능 모니터링, 벤치마크, Google AI API
  */
 
@@ -16,23 +16,27 @@ export const AILogEntrySchema = z.object({
   level: AILogLevelSchema,
   source: z.string(),
   message: z.string(),
-  metadata: z.object({
-    engineId: z.string().optional(),
-    processingTime: z.number().optional(),
-    confidence: z.string().optional(),
-    tokensUsed: z.number().optional(),
-  }).optional(),
+  metadata: z
+    .object({
+      engineId: z.string().optional(),
+      processingTime: z.number().optional(),
+      confidence: z.string().optional(),
+      tokensUsed: z.number().optional(),
+    })
+    .optional(),
 });
 
 export const AILogActionSchema = z.enum(['write', 'clear', 'export']);
 
 export const AILogWriteRequestSchema = z.object({
   action: z.literal('write'),
-  logs: z.array(AILogEntrySchema.partial().extend({
-    level: AILogLevelSchema,
-    source: z.string(),
-    message: z.string(),
-  })),
+  logs: z.array(
+    AILogEntrySchema.partial().extend({
+      level: AILogLevelSchema,
+      source: z.string(),
+      message: z.string(),
+    })
+  ),
 });
 
 export const AILogClearRequestSchema = z.object({
@@ -76,17 +80,16 @@ export const AILogStatsSchema = z.object({
 
 export const AILogStreamMessageSchema = z.object({
   type: z.enum(['logs', 'stats', 'error']),
-  data: z.union([
-    z.array(AILogEntrySchema),
-    AILogStatsSchema,
-  ]).optional(),
+  data: z.union([z.array(AILogEntrySchema), AILogStatsSchema]).optional(),
   message: z.string().optional(),
   timestamp: z.string(),
   count: z.number().optional(),
-  filters: z.object({
-    level: z.string(),
-    source: z.string(),
-  }).optional(),
+  filters: z
+    .object({
+      level: z.string(),
+      source: z.string(),
+    })
+    .optional(),
 });
 
 // ===== AI 성능 모니터링 =====
@@ -147,7 +150,9 @@ export const AIPerformanceStatsResponseSchema = z.object({
 
 export const AIBenchmarkRequestSchema = z.object({
   mode: z.enum(['comparison', 'load']).default('comparison'),
-  queries: z.array(z.string()).default(['서버 상태', 'CPU 사용률', '메모리 상태']),
+  queries: z
+    .array(z.string())
+    .default(['서버 상태', 'CPU 사용률', '메모리 상태']),
   iterations: z.number().positive().default(3),
 });
 
@@ -294,18 +299,28 @@ export type AILogStreamMessage = z.infer<typeof AILogStreamMessageSchema>;
 export type AIPerformanceMetrics = z.infer<typeof AIPerformanceMetricsSchema>;
 export type AIOptimizationStatus = z.infer<typeof AIOptimizationStatusSchema>;
 export type AIEngineHealth = z.infer<typeof AIEngineHealthSchema>;
-export type AIPerformanceStatsResponse = z.infer<typeof AIPerformanceStatsResponseSchema>;
+export type AIPerformanceStatsResponse = z.infer<
+  typeof AIPerformanceStatsResponseSchema
+>;
 
 // AI 벤치마크 타입
 export type AIBenchmarkRequest = z.infer<typeof AIBenchmarkRequestSchema>;
 export type BenchmarkResponseItem = z.infer<typeof BenchmarkResponseItemSchema>;
-export type ComparisonBenchmarkResponse = z.infer<typeof ComparisonBenchmarkResponseSchema>;
+export type ComparisonBenchmarkResponse = z.infer<
+  typeof ComparisonBenchmarkResponseSchema
+>;
 export type LoadBenchmarkResponse = z.infer<typeof LoadBenchmarkResponseSchema>;
 export type CacheClearResponse = z.infer<typeof CacheClearResponseSchema>;
 
 // Google AI 타입
-export type GoogleAIGenerateRequest = z.infer<typeof GoogleAIGenerateRequestSchema>;
+export type GoogleAIGenerateRequest = z.infer<
+  typeof GoogleAIGenerateRequestSchema
+>;
 export type GoogleAIUsageMetadata = z.infer<typeof GoogleAIUsageMetadataSchema>;
-export type GoogleAIGenerateResponse = z.infer<typeof GoogleAIGenerateResponseSchema>;
+export type GoogleAIGenerateResponse = z.infer<
+  typeof GoogleAIGenerateResponseSchema
+>;
 export type GoogleAIErrorResponse = z.infer<typeof GoogleAIErrorResponseSchema>;
-export type GoogleAIStatusResponse = z.infer<typeof GoogleAIStatusResponseSchema>;
+export type GoogleAIStatusResponse = z.infer<
+  typeof GoogleAIStatusResponseSchema
+>;

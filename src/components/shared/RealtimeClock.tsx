@@ -1,6 +1,6 @@
 /**
  * 🕐 실시간 시계 컴포넌트
- * 
+ *
  * 성능 최적화를 위해 분리된 독립 컴포넌트
  * - 매초 업데이트가 다른 컴포넌트에 영향 주지 않음
  * - memo로 불필요한 리렌더링 방지
@@ -61,7 +61,9 @@ export const RealtimeClock = memo(function RealtimeClock({
   };
 
   return (
-    <div className={`flex items-center space-x-2 text-gray-600 dark:text-gray-300 ${className}`}>
+    <div
+      className={`flex items-center space-x-2 text-gray-600 dark:text-gray-300 ${className}`}
+    >
       {showIcon && <Clock className="h-5 w-5" />}
       <span className="font-mono text-sm">{formatTime()}</span>
     </div>
@@ -90,12 +92,15 @@ export const DateTimeClock = memo(function DateTimeClock({
   }, []);
 
   const formatDate = () => {
-    const options: Intl.DateTimeFormatOptions = 
+    const options: Intl.DateTimeFormatOptions =
       dateFormat === 'short'
         ? { month: 'short', day: 'numeric' }
         : { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
 
-    return currentTime.toLocaleDateString(clockProps.locale || 'ko-KR', options);
+    return currentTime.toLocaleDateString(
+      clockProps.locale || 'ko-KR',
+      options
+    );
   };
 
   return (

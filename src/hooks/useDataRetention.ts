@@ -192,7 +192,7 @@ export function useDataRetentionByType(
       }
     : null;
 
-  const typePolicy = policies.find(p => p.dataType === dataType);
+  const typePolicy = policies.find((p) => p.dataType === dataType);
 
   const runTypeCleanup = useCallback(() => {
     return runManualCleanup(dataType);

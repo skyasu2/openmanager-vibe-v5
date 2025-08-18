@@ -50,7 +50,7 @@ function validateEnvironment() {
   try {
     // 개발 환경에서는 NEXT_PUBLIC_APP_URL이 없어도 기본값으로 진행
     const requiredVars = ['NEXT_PUBLIC_APP_URL'];
-    const hasMissing = requiredVars.some(varName => !process.env[varName]);
+    const hasMissing = requiredVars.some((varName) => !process.env[varName]);
 
     if (hasMissing) {
       const nodeEnv = process.env.NODE_ENV || 'development';
@@ -107,7 +107,7 @@ export function validateRuntimeEnvironment() {
 
     // Redis 제거됨 - 메모리 최적화
 
-    const missing = requiredVars.filter(varName => !process.env[varName]);
+    const missing = requiredVars.filter((varName) => !process.env[varName]);
 
     if (missing.length > 0) {
       const allMissing = [...missing];
@@ -142,11 +142,31 @@ export function getRedisConfig() {
 
 // 🌟 새로운 환경변수 시스템으로의 마이그레이션을 위한 추가 export
 export {
-    checkEnvironmentSecurity, getDeploymentConfig, getFullEnvironmentConfig, getGoogleAIConfig, getMonitoringConfig, getSecurityConfig, getSupabaseConfig as getSupabaseConfigNew, isBuildTime as isBuildTimeNew, isDevelopment, isProduction, isServer, isTest, isVercel, logEnvironmentStatus, safeEnv
+  checkEnvironmentSecurity,
+  getDeploymentConfig,
+  getFullEnvironmentConfig,
+  getGoogleAIConfig,
+  getMonitoringConfig,
+  getSecurityConfig,
+  getSupabaseConfig as getSupabaseConfigNew,
+  isBuildTime as isBuildTimeNew,
+  isDevelopment,
+  isProduction,
+  isServer,
+  isTest,
+  isVercel,
+  logEnvironmentStatus,
+  safeEnv,
 } from '@/utils/safe-environment';
 
 // 🎯 타입 재export
 export type {
-    DeploymentEnvConfig, EnvironmentConfig, EnvironmentValidationResult, GoogleAIEnvConfig, MonitoringEnvConfig, SafeEnvironmentAccess, SecurityEnvConfig, SupabaseEnvConfig
+  DeploymentEnvConfig,
+  EnvironmentConfig,
+  EnvironmentValidationResult,
+  GoogleAIEnvConfig,
+  MonitoringEnvConfig,
+  SafeEnvironmentAccess,
+  SecurityEnvConfig,
+  SupabaseEnvConfig,
 } from '@/types/environment';
-

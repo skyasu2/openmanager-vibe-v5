@@ -1,6 +1,6 @@
 /**
  * 🌐 CloudContextLoader Type Definitions
- * 
+ *
  * Type interfaces for the CloudContextLoader system:
  * - Context document structures
  * - MCP server information
@@ -162,7 +162,7 @@ export interface BundleUploadData {
 /**
  * 📝 NLP 타입 열거형
  */
-export type NLPType = 
+export type NLPType =
   | 'intent_analysis'
   | 'entity_extraction'
   | 'sentiment_analysis'

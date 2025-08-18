@@ -1,6 +1,6 @@
 /**
  * 📊 Enhanced Server Modal Shared Components
- * 
+ *
  * Reusable components for the server modal system:
  * - RealtimeChart: Real-time data visualization component
  * - Common UI elements and visualizations
@@ -24,13 +24,13 @@ interface RealtimeChartProps {
 
 /**
  * 📊 실시간 차트 컴포넌트
- * 
+ *
  * SVG 기반의 실시간 데이터 시각화 컴포넌트
  * - 시간순 데이터를 선형 그래프로 표시
  * - 그라데이션 영역 효과 적용
  * - 최신 데이터 포인트 강조
  * - 격자 및 Y축 라벨 표시
- * 
+ *
  * @param props RealtimeChartProps
  * @returns JSX.Element
  */
@@ -53,7 +53,7 @@ export const RealtimeChart: React.FC<RealtimeChartProps> = ({
     <div className="rounded-lg border bg-white p-4 shadow-sm">
       {/* 차트 제목 */}
       <h4 className="mb-2 text-sm font-medium text-gray-700">{label}</h4>
-      
+
       {/* 차트 영역 */}
       <div className="relative" style={{ height }}>
         <svg
@@ -146,10 +146,10 @@ interface StatusLEDProps {
   animated?: boolean;
 }
 
-export const StatusLED: React.FC<StatusLEDProps> = ({ 
-  status, 
-  size = 8, 
-  animated = true 
+export const StatusLED: React.FC<StatusLEDProps> = ({
+  status,
+  size = 8,
+  animated = true,
 }) => {
   const getStatusColor = () => {
     switch (status) {
@@ -167,13 +167,13 @@ export const StatusLED: React.FC<StatusLEDProps> = ({
   };
 
   return (
-    <div 
+    <div
       className={`rounded-full shadow-sm ${getStatusColor()} ${
         animated ? 'animate-pulse' : ''
       }`}
-      style={{ 
-        width: `${size}px`, 
-        height: `${size}px` 
+      style={{
+        width: `${size}px`,
+        height: `${size}px`,
       }}
     />
   );
@@ -200,17 +200,17 @@ export const MiniProgressBar: React.FC<MiniProgressBarProps> = ({
   background = '#e5e7eb',
 }) => {
   const clampedValue = Math.max(0, Math.min(100, value));
-  
+
   return (
-    <div 
+    <div
       className="relative overflow-hidden rounded-full"
       style={{ height: `${height}px`, backgroundColor: background }}
     >
-      <div 
-        className="h-full transition-all duration-300 ease-out rounded-full"
-        style={{ 
-          width: `${clampedValue}%`, 
-          backgroundColor: color 
+      <div
+        className="h-full rounded-full transition-all duration-300 ease-out"
+        style={{
+          width: `${clampedValue}%`,
+          backgroundColor: color,
         }}
       />
     </div>
@@ -254,11 +254,9 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
   };
 
   return (
-    <span className={`
-      inline-flex items-center rounded-full font-bold shadow-sm
-      ${getVariantClasses()}
-      ${getSizeClasses()}
-    `}>
+    <span
+      className={`inline-flex items-center rounded-full font-bold shadow-sm ${getVariantClasses()} ${getSizeClasses()} `}
+    >
       {status}
     </span>
   );

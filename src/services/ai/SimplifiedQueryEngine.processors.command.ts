@@ -1,6 +1,6 @@
 /**
  * 🛠️ SimplifiedQueryEngine Command Query Processor
- * 
+ *
  * Specialized processor for handling command-related queries:
  * - Command detection and classification
  * - Command recommendation generation
@@ -40,7 +40,7 @@ export class CommandQueryProcessor {
     startTime: number
   ): Promise<QueryResponse> {
     const commandStepStart = Date.now();
-    
+
     // ✅ 안전한 thinking steps 초기화
     thinkingSteps = this.utils.safeInitThinkingSteps(thinkingSteps);
 
@@ -53,16 +53,19 @@ export class CommandQueryProcessor {
 
     try {
       const aiRouter = UnifiedAIEngineRouter.getInstance();
-      const recommendationResult = await aiRouter.getCommandRecommendations(query, {
-        maxRecommendations: 5,
-        includeAnalysis: true,
-      });
+      const recommendationResult = await aiRouter.getCommandRecommendations(
+        query,
+        {
+          maxRecommendations: 5,
+          includeAnalysis: true,
+        }
+      );
 
       // ✅ 안전한 배열 접근
       this.utils.safeUpdateLastThinkingStep(thinkingSteps, {
         status: 'completed',
         description: `${recommendationResult.recommendations.length}개 명령어 추천 생성`,
-        duration: Date.now() - commandStepStart
+        duration: Date.now() - commandStepStart,
       });
 
       // 응답 생성
@@ -84,7 +87,7 @@ export class CommandQueryProcessor {
       // ✅ 안전한 배열 접근
       this.utils.safeUpdateLastThinkingStep(thinkingSteps, {
         status: 'completed',
-        duration: Date.now() - responseStepStart
+        duration: Date.now() - responseStepStart,
       });
 
       return {
@@ -100,20 +103,20 @@ export class CommandQueryProcessor {
         },
         processingTime: Date.now() - startTime,
       };
-
     } catch (error) {
       console.error('❌ 명령어 처리 실패:', error);
-      
+
       // ✅ 안전한 배열 접근
       this.utils.safeUpdateLastThinkingStep(thinkingSteps, {
         status: 'failed',
         description: '명령어 분석 실패',
-        duration: Date.now() - commandStepStart
+        duration: Date.now() - commandStepStart,
       });
 
       // 폴백: 기본 명령어 안내
-      const fallbackResponse = this.utils.generateCommandFallbackResponse(query);
-      
+      const fallbackResponse =
+        this.utils.generateCommandFallbackResponse(query);
+
       return {
         success: false,
         response: fallbackResponse,

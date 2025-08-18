@@ -1,6 +1,6 @@
 /**
  * 🎯 AI Insight Center - Type Definitions
- * 
+ *
  * Comprehensive type system for AI-powered system analysis:
  * - Code metrics and analysis types
  * - System performance metrics
@@ -340,7 +340,7 @@ export interface ImprovementRoadmap {
   risk_mitigation: string;
 }
 
-export type AnalysisAction = 
+export type AnalysisAction =
   | 'analyze_code_quality'
   | 'technical_debt_analysis'
   | 'refactoring_suggestions'

@@ -1,6 +1,6 @@
 /**
  * 🎯 하이브리드 AI 시스템 React Hook
- * 
+ *
  * 무료 티어 최적화된 AI 요청 관리
  * - 자동 요청 배치 처리
  * - 실시간 생각중 상태 스트리밍
@@ -10,7 +10,10 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import type { UnifiedAIResponse } from '@/services/ai/formatters/unified-response-formatter';
-import type { ThinkingStep, AIServiceType } from '@/services/ai/interfaces/distributed-ai.interface';
+import type {
+  ThinkingStep,
+  AIServiceType,
+} from '@/services/ai/interfaces/distributed-ai.interface';
 
 // Hook 설정
 const CONFIG = {
@@ -140,7 +143,7 @@ export function useHybridAI() {
           }
 
           const data: UnifiedAIResponse = await response.json();
-          
+
           // 로컬 캐시 저장
           const cacheKey = query.toLowerCase().trim();
           localCache.current.set(cacheKey, {
@@ -222,7 +225,11 @@ export function useHybridAI() {
                   query: prompt,
                   userId: session?.user?.id,
                   sessionId,
-                  services: options.services || ['redis-cache', 'supabase-rag', 'gcp-korean-nlp'],
+                  services: options.services || [
+                    'redis-cache',
+                    'supabase-rag',
+                    'gcp-korean-nlp',
+                  ],
                   parallel: true,
                 }),
               });
@@ -232,7 +239,7 @@ export function useHybridAI() {
               }
 
               const data: UnifiedAIResponse = await response.json();
-              
+
               // 상태 업데이트
               const responseTime = Date.now() - startTime;
               responseTimes.current.push(responseTime);
@@ -246,15 +253,16 @@ export function useHybridAI() {
                 response: data,
                 stats: {
                   ...prev.stats,
-                  avgResponseTime: 
-                    responseTimes.current.reduce((a, b) => a + b, 0) / 
+                  avgResponseTime:
+                    responseTimes.current.reduce((a, b) => a + b, 0) /
                     responseTimes.current.length,
                 },
               }));
 
               resolve(data);
             } catch (error) {
-              const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+              const errorMessage =
+                error instanceof Error ? error.message : 'Unknown error';
               setState((prev) => ({
                 ...prev,
                 isLoading: false,
@@ -327,12 +335,12 @@ export function useHybridAI() {
   return {
     // 상태
     ...state,
-    
+
     // 메서드
     query,
     clearCache,
     resetStats,
-    
+
     // 유틸리티
     isStreaming: !!eventSource.current,
     cacheSize: localCache.current.size,

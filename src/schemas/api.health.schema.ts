@@ -1,12 +1,9 @@
 import { z } from 'zod';
-import {
-  HealthStatusSchema,
-  TimestampSchema,
-} from './common.schema';
+import { HealthStatusSchema, TimestampSchema } from './common.schema';
 
 /**
  * 🏥 API 헬스체크 스키마
- * 
+ *
  * 시스템 상태 확인, 서비스 헬스체크, 업타임 모니터링
  */
 
@@ -42,16 +39,20 @@ export const MemorySummarySchema = z.object({
 export const MemoryStatusResponseSchema = z.object({
   success: z.boolean(),
   memory: MemorySummarySchema,
-  swap: z.object({
-    total: z.number(),
-    used: z.number(),
-    free: z.number(),
-    usage_percentage: z.number().min(0).max(100),
-  }).optional(),
-  processes: z.object({
-    count: z.number(),
-    memory_usage: z.number(),
-  }).optional(),
+  swap: z
+    .object({
+      total: z.number(),
+      used: z.number(),
+      free: z.number(),
+      usage_percentage: z.number().min(0).max(100),
+    })
+    .optional(),
+  processes: z
+    .object({
+      count: z.number(),
+      memory_usage: z.number(),
+    })
+    .optional(),
   timestamp: TimestampSchema,
 });
 

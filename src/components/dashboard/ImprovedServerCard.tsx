@@ -65,7 +65,6 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
       lastUpdate: Date.now(),
     });
 
-
     // 실시간 메트릭 업데이트 시뮬레이션 (안정화 버전)
     useEffect(() => {
       if (!showRealTimeUpdates) return;

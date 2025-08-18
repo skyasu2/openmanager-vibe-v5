@@ -14,9 +14,9 @@ export function generateCSPNonce(): string {
     crypto.getRandomValues(array);
     return btoa(String.fromCharCode(...array));
   }
-  
+
   // Fallback for server-side rendering
-  const randomBytes = Array.from({ length: 16 }, () => 
+  const randomBytes = Array.from({ length: 16 }, () =>
     Math.floor(Math.random() * 256)
   );
   return btoa(String.fromCharCode(...randomBytes));
@@ -72,12 +72,14 @@ export function generateCSPString(
       'https://va.vercel-scripts.com',
       'https://vitals.vercel-insights.com',
       // 개발 환경
-      ...(isDev ? [
-        'ws://localhost:3000',
-        'http://localhost:3000',
-        'ws://127.0.0.1:3000',
-        'http://127.0.0.1:3000',
-      ] : []),
+      ...(isDev
+        ? [
+            'ws://localhost:3000',
+            'http://localhost:3000',
+            'ws://127.0.0.1:3000',
+            'http://127.0.0.1:3000',
+          ]
+        : []),
     ],
     'font-src': [
       "'self'",
@@ -95,7 +97,11 @@ export function generateCSPString(
   return Object.entries(directives)
     .filter(([_, values]) => values.length > 0)
     .map(([directive, values]) => {
-      if (directive === 'upgrade-insecure-requests' && values.length === 1 && values[0] === '') {
+      if (
+        directive === 'upgrade-insecure-requests' &&
+        values.length === 1 &&
+        values[0] === ''
+      ) {
         return directive;
       }
       return `${directive} ${values.join(' ')}`;
@@ -106,7 +112,8 @@ export function generateCSPString(
 /**
  * API 엔드포인트용 제한적 CSP 정책
  */
-export const API_CSP = "default-src 'self'; script-src 'none'; object-src 'none'; frame-src 'none';";
+export const API_CSP =
+  "default-src 'self'; script-src 'none'; object-src 'none'; frame-src 'none';";
 
 /**
  * 관리자 영역용 강화된 CSP 정책
@@ -154,7 +161,8 @@ export function checkCSPSupport(userAgent?: string): {
   return {
     supportsCSP: true,
     supportsNonce: true,
-    supportsTrustedTypes: userAgent?.includes('Chrome/') && 
+    supportsTrustedTypes:
+      userAgent?.includes('Chrome/') &&
       parseInt(userAgent.match(/Chrome\/(\d+)/)?.[1] || '0') >= 83,
   };
 }
@@ -164,25 +172,29 @@ export function checkCSPSupport(userAgent?: string): {
  * @param options 설정 옵션
  * @returns 보안 헤더 객체
  */
-export function generateSecurityHeaders(options: {
-  isDev?: boolean;
-  isVercel?: boolean;
-  nonce?: string;
-  customCSP?: string;
-} = {}) {
+export function generateSecurityHeaders(
+  options: {
+    isDev?: boolean;
+    isVercel?: boolean;
+    nonce?: string;
+    customCSP?: string;
+  } = {}
+) {
   const { isDev = false, isVercel = false, nonce, customCSP } = options;
-  
+
   const csp = customCSP || generateCSPString(isDev, isVercel, nonce);
-  
+
   return {
     'Content-Security-Policy': csp,
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'X-XSS-Protection': '1; mode=block',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=()',
+    'Permissions-Policy':
+      'camera=(), microphone=(), geolocation=(), payment=()',
     ...(isVercel && {
-      'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+      'Strict-Transport-Security':
+        'max-age=31536000; includeSubDomains; preload',
     }),
   };
 }
@@ -197,7 +209,8 @@ export const CSP_PRESETS = {
     'connect-src': "'self' ws: http: https:",
   },
   production: {
-    'script-src': "'self' 'unsafe-inline' blob: https://va.vercel-scripts.com https://vitals.vercel-insights.com",
+    'script-src':
+      "'self' 'unsafe-inline' blob: https://va.vercel-scripts.com https://vitals.vercel-insights.com",
     'style-src': "'self' 'unsafe-inline' https://fonts.googleapis.com",
     'connect-src': "'self' https:",
   },

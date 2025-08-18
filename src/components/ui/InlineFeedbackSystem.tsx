@@ -47,7 +47,7 @@ class InlineFeedbackManager {
   }
 
   private notify(): void {
-    this.listeners.forEach(listener => {
+    this.listeners.forEach((listener) => {
       listener(new Map(this.feedbacks));
     });
   }
@@ -180,7 +180,7 @@ function FeedbackDisplay({ feedback, compact = false }: FeedbackDisplayProps) {
           container: `${baseStyles} bg-green-50 text-green-800 border border-green-200`,
           icon: (
             <CheckCircle
-              className={`${compact ? 'w-4 h-4' : 'w-5 h-5'} text-green-600`}
+              className={`${compact ? 'h-4 w-4' : 'h-5 w-5'} text-green-600`}
             />
           ),
         };
@@ -189,7 +189,7 @@ function FeedbackDisplay({ feedback, compact = false }: FeedbackDisplayProps) {
           container: `${baseStyles} bg-red-50 text-red-800 border border-red-200`,
           icon: (
             <XCircle
-              className={`${compact ? 'w-4 h-4' : 'w-5 h-5'} text-red-600`}
+              className={`${compact ? 'h-4 w-4' : 'h-5 w-5'} text-red-600`}
             />
           ),
         };
@@ -198,7 +198,7 @@ function FeedbackDisplay({ feedback, compact = false }: FeedbackDisplayProps) {
           container: `${baseStyles} bg-yellow-50 text-yellow-800 border border-yellow-200`,
           icon: (
             <AlertTriangle
-              className={`${compact ? 'w-4 h-4' : 'w-5 h-5'} text-yellow-600`}
+              className={`${compact ? 'h-4 w-4' : 'h-5 w-5'} text-yellow-600`}
             />
           ),
         };
@@ -207,7 +207,7 @@ function FeedbackDisplay({ feedback, compact = false }: FeedbackDisplayProps) {
           container: `${baseStyles} bg-blue-50 text-blue-800 border border-blue-200`,
           icon: (
             <Loader2
-              className={`${compact ? 'w-4 h-4' : 'w-5 h-5'} text-blue-600 animate-spin`}
+              className={`${compact ? 'h-4 w-4' : 'h-5 w-5'} animate-spin text-blue-600`}
             />
           ),
         };
@@ -217,7 +217,7 @@ function FeedbackDisplay({ feedback, compact = false }: FeedbackDisplayProps) {
           container: `${baseStyles} bg-blue-50 text-blue-800 border border-blue-200`,
           icon: (
             <Info
-              className={`${compact ? 'w-4 h-4' : 'w-5 h-5'} text-blue-600`}
+              className={`${compact ? 'h-4 w-4' : 'h-5 w-5'} text-blue-600`}
             />
           ),
         };
@@ -268,7 +268,7 @@ export function InlineFeedbackContainer({
 
   return (
     <div className={`${className}`}>
-      <AnimatePresence mode='wait'>
+      <AnimatePresence mode="wait">
         <FeedbackDisplay
           key={feedback.id}
           feedback={feedback}
@@ -307,11 +307,11 @@ export function StatusBadge({
   const getStatusIcon = () => {
     switch (status) {
       case 'loading':
-        return <Loader2 className='w-3 h-3 animate-spin' />;
+        return <Loader2 className="h-3 w-3 animate-spin" />;
       case 'success':
-        return <CheckCircle className='w-3 h-3' />;
+        return <CheckCircle className="h-3 w-3" />;
       case 'error':
-        return <XCircle className='w-3 h-3' />;
+        return <XCircle className="h-3 w-3" />;
       default:
         return null;
     }
@@ -322,7 +322,7 @@ export function StatusBadge({
       key={status}
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border ${getStatusStyles()} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium ${getStatusStyles()} ${className}`}
     >
       {getStatusIcon()}
       {children}
@@ -386,12 +386,12 @@ export function ButtonWithFeedback({
   };
 
   return (
-    <div className='space-y-2'>
+    <div className="space-y-2">
       <motion.button
         onClick={handleClick}
         disabled={disabled || status === 'loading'}
         className={`${className} ${
-          status === 'loading' ? 'opacity-75 cursor-not-allowed' : ''
+          status === 'loading' ? 'cursor-not-allowed opacity-75' : ''
         }`}
         whileHover={status !== 'loading' ? { scale: 1.02 } : {}}
         whileTap={status !== 'loading' ? { scale: 0.98 } : {}}

@@ -75,7 +75,10 @@ export function useServerMetrics() {
           setMetricsHistory(generateSimulatedHistory(range));
         }
       } catch (error) {
-        if (process.env.NEXT_PUBLIC_NODE_ENV || process.env.NODE_ENV === 'development') {
+        if (
+          process.env.NEXT_PUBLIC_NODE_ENV ||
+          process.env.NODE_ENV === 'development'
+        ) {
           console.error('히스토리 데이터 로드 실패:', error);
         }
         setMetricsHistory(generateSimulatedHistory(range));
@@ -104,11 +107,11 @@ export function useServerMetrics() {
           history.length
       );
 
-      const cpuMax = Math.max(...history.map(m => m.cpu));
-      const memoryMax = Math.max(...history.map(m => m.memory));
-      const diskMax = Math.max(...history.map(m => m.disk));
+      const cpuMax = Math.max(...history.map((m) => m.cpu));
+      const memoryMax = Math.max(...history.map((m) => m.memory));
+      const diskMax = Math.max(...history.map((m) => m.disk));
       const responseTimeMax = Math.max(
-        ...history.map(m => m.responseTime ?? 0)
+        ...history.map((m) => m.responseTime ?? 0)
       );
 
       return {

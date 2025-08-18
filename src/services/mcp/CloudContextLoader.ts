@@ -12,17 +12,17 @@
  *
  * 모듈 아키텍처 (1195 → ~200 lines):
  * - CloudContextLoader.types.ts: 타입 정의
- * - CloudContextLoader.cache.ts: 메모리 캐싱 
+ * - CloudContextLoader.cache.ts: 메모리 캐싱
  * - CloudContextLoader.health.ts: MCP 서버 헬스체크
  * - CloudContextLoader.utils.ts: 유틸리티 함수
  * - CloudContextLoader.storage.ts: 스토리지 CRUD 관리
  * - CloudContextLoader.rag.ts: RAG/NLP 통합 처리
  */
 
-import type { 
-  ContextDocument, 
-  MCPServerInfo, 
-  RAGEngineContext, 
+import type {
+  ContextDocument,
+  MCPServerInfo,
+  RAGEngineContext,
   CloudContextLoaderConfig,
   IntegratedStatusResponse,
   ContextStatsResponse,
@@ -30,13 +30,17 @@ import type {
   NLPType,
   BundleUploadData,
   BundleType,
-  MCPQueryOptions
+  MCPQueryOptions,
 } from './CloudContextLoader.types';
 import { MemoryContextCache } from './CloudContextLoader.cache';
 import { MCPHealthChecker } from './CloudContextLoader.health';
 import { ContextStorageManager } from './CloudContextLoader.storage';
 import { RAGIntegrationManager } from './CloudContextLoader.rag';
-import { createDefaultConfig, generateChecksum, generateContextId } from './CloudContextLoader.utils';
+import {
+  createDefaultConfig,
+  generateChecksum,
+  generateContextId,
+} from './CloudContextLoader.utils';
 
 export class CloudContextLoader {
   private static instance: CloudContextLoader;
@@ -68,7 +72,9 @@ export class CloudContextLoader {
     // 주기적 캐시 정리 (5분마다)
     this.startCacheCleanup();
 
-    console.log('🌐 CloudContextLoader 초기화 완료 (Modular Architecture: 6 modules)');
+    console.log(
+      '🌐 CloudContextLoader 초기화 완료 (Modular Architecture: 6 modules)'
+    );
   }
 
   static getInstance(
@@ -84,10 +90,13 @@ export class CloudContextLoader {
    * 🧹 주기적 캐시 정리 시작
    */
   private startCacheCleanup(): void {
-    this.cleanupTimer = setInterval(() => {
-      this.memoryCache.cleanup();
-      this.storageManager.cleanup();
-    }, 5 * 60 * 1000); // 5분마다
+    this.cleanupTimer = setInterval(
+      () => {
+        this.memoryCache.cleanup();
+        this.storageManager.cleanup();
+      },
+      5 * 60 * 1000
+    ); // 5분마다
   }
 
   // ===== RAG & NLP 통합 API (모두 RAG 모듈로 위임) =====
@@ -155,7 +164,9 @@ export class CloudContextLoader {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           source: 'cloud_upload',
-          checksum: generateChecksum(bundleData as unknown as Record<string, unknown>),
+          checksum: generateChecksum(
+            bundleData as unknown as Record<string, unknown>
+          ),
         },
       };
 
@@ -164,7 +175,9 @@ export class CloudContextLoader {
 
       // RAG 엔진과 자동 동기화
       if (saved && this.config.enableRAGIntegration) {
-        await this.ragIntegration.syncContextWithRAG(this.healthChecker.getServerInfo());
+        await this.ragIntegration.syncContextWithRAG(
+          this.healthChecker.getServerInfo()
+        );
       }
 
       return saved;
@@ -207,9 +220,7 @@ export class CloudContextLoader {
   /**
    * 📋 컨텍스트 목록 조회
    */
-  async getContextList(
-    bundleType?: BundleType
-  ): Promise<string[]> {
+  async getContextList(bundleType?: BundleType): Promise<string[]> {
     return this.storageManager.getContextList(bundleType);
   }
 
@@ -228,7 +239,7 @@ export class CloudContextLoader {
   async getIntegratedStatus(): Promise<IntegratedStatusResponse> {
     const cacheStats = this.memoryCache.getStats();
     const serverInfo = this.healthChecker.getServerInfo();
-    
+
     return {
       mcpServer: serverInfo,
       contextCache: {

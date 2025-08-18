@@ -1,6 +1,6 @@
 /**
  * 🚀 시스템 부트스트래퍼
- * 
+ *
  * ProcessManager와 SystemWatchdog를 이벤트 버스로 연결하여
  * 순환 의존성 없이 시스템을 초기화합니다.
  */
@@ -154,7 +154,7 @@ export class SystemBootstrapper {
     watchdogReport?: any;
   } {
     const status = this.processManager.getSystemStatus();
-    
+
     if (this.watchdog && status) {
       status.watchdogReport = this.watchdog.generateReport();
     }
@@ -167,7 +167,7 @@ export class SystemBootstrapper {
    */
   getSystemMetrics(): any {
     const metrics = this.processManager.getSystemMetrics();
-    
+
     if (this.watchdog) {
       const watchdogMetrics = this.watchdog.getMetrics();
       return {
@@ -223,23 +223,23 @@ export class SystemBootstrapper {
       'WATCHDOG_ALERT' as SystemEventType,
       (event) => {
         const { alertType, message, metrics } = event.payload;
-        
+
         switch (alertType) {
           case 'memory-leak':
             systemLogger.error('🚨 메모리 누수 감지:', message);
             this.handleMemoryLeak(metrics);
             break;
-          
+
           case 'high-error-rate':
             systemLogger.warn('⚠️ 높은 오류율:', message);
             this.handleHighErrorRate(metrics);
             break;
-          
+
           case 'performance-degradation':
             systemLogger.warn('⚠️ 성능 저하:', message);
             this.handlePerformanceDegradation(metrics);
             break;
-          
+
           case 'frequent-restarts':
             systemLogger.warn('⚠️ 빈번한 재시작:', message);
             this.handleFrequentRestarts(metrics);
@@ -268,7 +268,9 @@ export class SystemBootstrapper {
   private handleHighErrorRate(metrics?: any): void {
     // 오류율이 50% 이상이면 시스템 재시작 고려
     if (metrics?.errorRate && metrics.errorRate > 50) {
-      systemLogger.error('❌ 오류율이 50%를 초과했습니다. 시스템 점검이 필요합니다.');
+      systemLogger.error(
+        '❌ 오류율이 50%를 초과했습니다. 시스템 점검이 필요합니다.'
+      );
     }
   }
 
@@ -288,7 +290,9 @@ export class SystemBootstrapper {
   private handleFrequentRestarts(metrics?: any): void {
     // 재시작 횟수가 10회를 초과하면 경고
     if (metrics?.restartCount && metrics.restartCount > 10) {
-      systemLogger.error('⚠️ 과도한 프로세스 재시작. 안정성 문제를 확인하세요.');
+      systemLogger.error(
+        '⚠️ 과도한 프로세스 재시작. 안정성 문제를 확인하세요.'
+      );
     }
   }
 

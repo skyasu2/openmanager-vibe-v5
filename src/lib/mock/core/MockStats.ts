@@ -1,6 +1,6 @@
 /**
  * 📊 Mock 통계 수집기
- * 
+ *
  * Mock 서비스의 사용 통계를 수집하고 관리
  */
 
@@ -55,9 +55,10 @@ export class MockStats {
     for (const [op, count] of this.stats.operationCounts.entries()) {
       const errors = this.stats.errorCounts.get(op) || 0;
       const durations = this.stats.durations.get(op) || [];
-      const avgDuration = durations.length > 0
-        ? durations.reduce((a, b) => a + b, 0) / durations.length
-        : 0;
+      const avgDuration =
+        durations.length > 0
+          ? durations.reduce((a, b) => a + b, 0) / durations.length
+          : 0;
 
       operations[op] = {
         count,

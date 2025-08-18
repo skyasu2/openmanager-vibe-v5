@@ -1,22 +1,25 @@
 /**
  * 🔌 Unified AI Engine Router - Circuit Breaker System
- * 
+ *
  * Advanced circuit breaker pattern implementation for AI engine reliability
  * - Failure tracking and threshold management
  * - Three-state circuit breaker (closed, open, half-open)
  * - Automatic recovery with configurable timeouts
  * - Engine-specific failure isolation
- * 
+ *
  * @author AI Systems Engineer
  * @version 1.0.0
  */
 
-import { CircuitBreakerState, CircuitBreakers } from './UnifiedAIEngineRouter.types';
+import {
+  CircuitBreakerState,
+  CircuitBreakers,
+} from './UnifiedAIEngineRouter.types';
 
 export class UnifiedAIEngineRouterCircuitBreaker {
   private circuitBreakers: CircuitBreakers;
-  private readonly DEFAULT_THRESHOLD = 5;    // 5회 연속 실패 시 차단
-  private readonly DEFAULT_TIMEOUT = 60000;  // 1분 타임아웃
+  private readonly DEFAULT_THRESHOLD = 5; // 5회 연속 실패 시 차단
+  private readonly DEFAULT_TIMEOUT = 60000; // 1분 타임아웃
 
   constructor() {
     this.circuitBreakers = new Map();
@@ -24,7 +27,7 @@ export class UnifiedAIEngineRouterCircuitBreaker {
 
   /**
    * 🔌 Circuit Breaker 상태 확인
-   * 
+   *
    * 엔진이 사용 가능한 상태인지 확인
    */
   public isCircuitOpen(engine: string): boolean {
@@ -56,7 +59,7 @@ export class UnifiedAIEngineRouterCircuitBreaker {
    */
   public recordFailure(engine: string): void {
     let breaker = this.circuitBreakers.get(engine);
-    
+
     // 기존 Circuit Breaker가 없으면 새로 생성
     if (!breaker) {
       breaker = this.createNewCircuitBreaker();
@@ -69,7 +72,9 @@ export class UnifiedAIEngineRouterCircuitBreaker {
     // 임계값 도달 시 Circuit 열기
     if (breaker.failures >= breaker.threshold) {
       breaker.state = 'open';
-      console.warn(`🔌 Circuit breaker opened for engine: ${engine} (${breaker.failures} failures)`);
+      console.warn(
+        `🔌 Circuit breaker opened for engine: ${engine} (${breaker.failures} failures)`
+      );
     }
   }
 
@@ -95,13 +100,16 @@ export class UnifiedAIEngineRouterCircuitBreaker {
 
   /**
    * 🔄 폴백 엔진 선택
-   * 
+   *
    * 실패한 엔진을 제외하고 다음 사용 가능한 엔진 반환
    */
-  public getFallbackEngine(failedEngine: string, fallbackChain: string[]): string | null {
+  public getFallbackEngine(
+    failedEngine: string,
+    fallbackChain: string[]
+  ): string | null {
     // 실패한 엔진의 다음 엔진 찾기
     const fallbackIndex = fallbackChain.indexOf(failedEngine);
-    
+
     if (fallbackIndex >= 0 && fallbackIndex < fallbackChain.length - 1) {
       const nextEngine = fallbackChain[fallbackIndex + 1];
       // 다음 엔진도 Circuit이 열려있지 않은지 확인
@@ -185,7 +193,8 @@ export class UnifiedAIEngineRouterCircuitBreaker {
           engine,
           failures: breaker.failures,
           state: breaker.state,
-          lastFailure: breaker.lastFailure > 0 ? new Date(breaker.lastFailure) : null,
+          lastFailure:
+            breaker.lastFailure > 0 ? new Date(breaker.lastFailure) : null,
         });
       }
     }
@@ -201,7 +210,7 @@ export class UnifiedAIEngineRouterCircuitBreaker {
 
   /**
    * 🕒 만료된 Circuit Breaker 자동 복구
-   * 
+   *
    * 정기적으로 호출하여 타임아웃된 Circuit Breaker를 half-open으로 전환
    */
   public processTimeouts(): number {
@@ -209,7 +218,10 @@ export class UnifiedAIEngineRouterCircuitBreaker {
     const now = Date.now();
 
     for (const [engine, breaker] of this.circuitBreakers.entries()) {
-      if (breaker.state === 'open' && now - breaker.lastFailure > breaker.timeout) {
+      if (
+        breaker.state === 'open' &&
+        now - breaker.lastFailure > breaker.timeout
+      ) {
         breaker.state = 'half-open';
         console.log(`🔌 Circuit breaker ${engine} auto-recovered to half-open`);
         processedCount++;
@@ -230,7 +242,7 @@ export class UnifiedAIEngineRouterCircuitBreaker {
     }
   ): void {
     let breaker = this.circuitBreakers.get(engine);
-    
+
     if (!breaker) {
       breaker = this.createNewCircuitBreaker();
       this.circuitBreakers.set(engine, breaker);
@@ -266,8 +278,8 @@ export class UnifiedAIEngineRouterCircuitBreaker {
     let status: 'healthy' | 'degraded' | 'critical';
     const recommendations: string[] = [];
     const failedEngines = stats.enginesWithFailures
-      .filter(e => e.state === 'open')
-      .map(e => e.engine);
+      .filter((e) => e.state === 'open')
+      .map((e) => e.engine);
 
     if (openPercentage === 0) {
       status = 'healthy';

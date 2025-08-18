@@ -105,7 +105,13 @@ export class SimulationEngine {
         alerts: [] as Array<{
           id: string;
           server_id: string;
-          type: 'cpu' | 'memory' | 'disk' | 'network' | 'responseTime' | 'custom';
+          type:
+            | 'cpu'
+            | 'memory'
+            | 'disk'
+            | 'network'
+            | 'responseTime'
+            | 'custom';
           message: string;
           severity: 'info' | 'warning' | 'critical';
           timestamp: string;
@@ -166,7 +172,7 @@ export class SimulationEngine {
    */
   getServerById(serverId: string): EnhancedServerMetrics | undefined {
     const servers = this.getServers();
-    return servers.find(server => server.id === serverId);
+    return servers.find((server) => server.id === serverId);
   }
 
   /**
@@ -189,7 +195,7 @@ export class SimulationEngine {
       servers = this.getServers();
     }
 
-    return servers.flatMap(server => [
+    return servers.flatMap((server) => [
       {
         name: 'node_cpu_usage_percent',
         type: 'gauge',
@@ -238,16 +244,22 @@ export class SimulationEngine {
       criticalServers,
       healthPercentage: Math.round((healthyServers / totalServers) * 100),
       averageCpu: Math.round(
-        servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + s.cpu_usage, 0) /
-          totalServers
+        servers.reduce(
+          (sum: number, s: EnhancedServerMetrics) => sum + s.cpu_usage,
+          0
+        ) / totalServers
       ),
       averageMemory: Math.round(
-        servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + s.memory_usage, 0) /
-          totalServers
+        servers.reduce(
+          (sum: number, s: EnhancedServerMetrics) => sum + s.memory_usage,
+          0
+        ) / totalServers
       ),
       averageResponseTime: Math.round(
-        servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + s.responseTime, 0) /
-          totalServers
+        servers.reduce(
+          (sum: number, s: EnhancedServerMetrics) => sum + s.responseTime,
+          0
+        ) / totalServers
       ),
       timestamp: new Date().toISOString(),
       // 추가 속성들

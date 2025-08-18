@@ -115,6 +115,8 @@
     "git:push:force": "HUSKY=0 git push --no-verify",
     "git:commit-push": "npm run commit:v3 && git push",
     "git:emergency": "npm run commit:skip && HUSKY=0 git push --no-verify",
+    "commit:smart": "node scripts/smart-commit-push.js",
+    "commit:smart:monitor": "MONITOR_CI=true node scripts/smart-commit-push.js",
     "commit:safe": "npm run lint:quick && git commit",
     "commit:ultra-fast": "HUSKY=0 git commit -m 'WIP: 빠른 커밋' && HUSKY=0 git push",
     "env:optimize": "powershell -File scripts/dev-env-optimizer.ps1 -All",

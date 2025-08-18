@@ -28,7 +28,10 @@ export function ServerDetailProcesses({
         const data = await response.json();
         setProcesses(data.processes || []);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : '프로세스 데이터를 가져오는 데 실패했습니다.';
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : '프로세스 데이터를 가져오는 데 실패했습니다.';
         setError(errorMessage);
       } finally {
         setIsLoading(false);

@@ -41,13 +41,15 @@ class MemoryLogStorage {
     // 로그 ID 생성 (없는 경우)
     const completeLog = {
       ...log,
-      id: log.id || `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id:
+        log.id ||
+        `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: log.timestamp || new Date().toISOString(),
     };
 
     // 로그 추가
     this.logs.unshift(completeLog); // 최신 로그를 앞에 추가
-    
+
     // 크기 제한 관리
     if (this.logs.length > this.maxSize) {
       this.logs = this.logs.slice(0, this.maxSize);
@@ -59,20 +61,24 @@ class MemoryLogStorage {
   }
 
   addLogs(logs: AILogEntry[]): void {
-    logs.forEach(log => this.addLog(log));
+    logs.forEach((log) => this.addLog(log));
   }
 
-  getLogs(count: number = 10, level?: AILogLevel | 'all', source?: string): AILogEntry[] {
+  getLogs(
+    count: number = 10,
+    level?: AILogLevel | 'all',
+    source?: string
+  ): AILogEntry[] {
     let filtered = this.logs;
 
     // 레벨 필터링
     if (level && level !== 'all') {
-      filtered = filtered.filter(log => log.level === level);
+      filtered = filtered.filter((log) => log.level === level);
     }
 
     // 소스 필터링
     if (source && source !== 'all') {
-      filtered = filtered.filter(log => log.source === source);
+      filtered = filtered.filter((log) => log.source === source);
     }
 
     return filtered.slice(0, count);
@@ -94,7 +100,10 @@ class MemoryLogStorage {
       ...this.stats,
       currentSize: this.logs.length,
       maxSize: this.maxSize,
-      errorRate: this.stats.totalLogs > 0 ? this.stats.errorCount / this.stats.totalLogs : 0,
+      errorRate:
+        this.stats.totalLogs > 0
+          ? this.stats.errorCount / this.stats.totalLogs
+          : 0,
     };
   }
 
@@ -169,7 +178,11 @@ export async function GET(request: NextRequest) {
           const logs: AILogEntry[] = [];
 
           // 메모리 스토리지에서 기존 로그 가져오기
-          const existingLogs = logStorage.getLogs(5, level as AILogLevel, source);
+          const existingLogs = logStorage.getLogs(
+            5,
+            level as AILogLevel,
+            source
+          );
           logs.push(...existingLogs);
 
           // 실제 로그가 없는 경우 빈 상태 유지 (Mock 로그 생성 제거)
@@ -179,8 +192,9 @@ export async function GET(request: NextRequest) {
           }
 
           // 중복 제거 (ID 기준)
-          const uniqueLogs = logs.filter((log, index, self) => 
-            index === self.findIndex(l => l.id === log.id)
+          const uniqueLogs = logs.filter(
+            (log, index, self) =>
+              index === self.findIndex((l) => l.id === log.id)
           );
 
           // SSE 메시지 전송
@@ -231,7 +245,9 @@ export async function GET(request: NextRequest) {
               message: '스트림 종료 (최대 시간 도달)',
               timestamp: new Date().toISOString(),
             };
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify(endMessage)}\n\n`));
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify(endMessage)}\n\n`)
+            );
             controller.close();
           }
         } catch (error) {
@@ -271,57 +287,66 @@ const postHandler = createApiRoute()
     showDetailedErrors: process.env.NODE_ENV === 'development',
     enableLogging: true,
   })
-  .build(async (_request, context): Promise<AILogWriteResponse | AILogExportResponse> => {
-    const body = context.body;
+  .build(
+    async (
+      _request,
+      context
+    ): Promise<AILogWriteResponse | AILogExportResponse> => {
+      const body = context.body;
 
-    debug.log(`📊 AI 로그 관리 액션 (Memory-based): ${body.action}`);
+      debug.log(`📊 AI 로그 관리 액션 (Memory-based): ${body.action}`);
 
-    const logStorage = getLogStorage();
+      const logStorage = getLogStorage();
 
-    switch (body.action) {
-      case 'write': {
-        const { logs } = body;
+      switch (body.action) {
+        case 'write': {
+          const { logs } = body;
 
-        // 메모리 스토리지에 로그 저장
-        logStorage.addLogs(logs.map(log => ({
-          ...log,
-          id: log.id || `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          timestamp: log.timestamp || new Date().toISOString(),
-        })));
+          // 메모리 스토리지에 로그 저장
+          logStorage.addLogs(
+            logs.map((log) => ({
+              ...log,
+              id:
+                log.id ||
+                `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              timestamp: log.timestamp || new Date().toISOString(),
+            }))
+          );
 
-        return {
-          success: true,
-          message: `${logs.length} logs written to memory storage`,
-          timestamp: new Date().toISOString(),
-        };
+          return {
+            success: true,
+            message: `${logs.length} logs written to memory storage`,
+            timestamp: new Date().toISOString(),
+          };
+        }
+
+        case 'clear':
+          // 메모리 로그 삭제
+          logStorage.clear();
+
+          return {
+            success: true,
+            message: 'Memory logs cleared successfully',
+            timestamp: new Date().toISOString(),
+          };
+
+        case 'export': {
+          // 메모리에서 로그 내보내기
+          const exportLogs = logStorage.exportAll();
+
+          return {
+            success: true,
+            logs: exportLogs,
+            count: exportLogs.length,
+            timestamp: new Date().toISOString(),
+          };
+        }
+
+        default:
+          throw new Error('Invalid action');
       }
-
-      case 'clear':
-        // 메모리 로그 삭제
-        logStorage.clear();
-
-        return {
-          success: true,
-          message: 'Memory logs cleared successfully',
-          timestamp: new Date().toISOString(),
-        };
-
-      case 'export': {
-        // 메모리에서 로그 내보내기
-        const exportLogs = logStorage.exportAll();
-
-        return {
-          success: true,
-          logs: exportLogs,
-          count: exportLogs.length,
-          timestamp: new Date().toISOString(),
-        };
-      }
-
-      default:
-        throw new Error('Invalid action');
     }
-  });
+  );
 
 /**
  * 📊 AI 로그 관리 API (Memory-based)
@@ -340,7 +365,7 @@ export async function POST(request: NextRequest) {
         message: getErrorMessage(error),
         storage: 'memory-based',
       },
-      { 
+      {
         status: 500,
         headers: {
           'X-Storage': 'Memory-based',

@@ -3,7 +3,8 @@
  */
 
 const isDevelopment = process.env.NODE_ENV === 'development';
-const isDebugEnabled = isDevelopment || process.env.NEXT_PUBLIC_DEBUG === 'true';
+const isDebugEnabled =
+  isDevelopment || process.env.NEXT_PUBLIC_DEBUG === 'true';
 
 interface DebugLogger {
   log: (...args: unknown[]) => void;
@@ -55,12 +56,9 @@ export const debug: DebugLogger = {
 /**
  * 성능 측정 헬퍼
  */
-export function measurePerformance<T>(
-  label: string,
-  fn: () => T
-): T {
+export function measurePerformance<T>(label: string, fn: () => T): T {
   if (!isDebugEnabled) return fn();
-  
+
   debug.time(label);
   const result = fn();
   debug.timeEnd(label);

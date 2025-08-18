@@ -1,6 +1,6 @@
 /**
  * 📊 LogDashboard Chart Components
- * 
+ *
  * Direct imports for Recharts components (Next.js 15 supports SSR):
  * - Type-safe Recharts components
  * - Optimized for Next.js 15 SSR compatibility
@@ -33,7 +33,11 @@ export interface CustomTooltipProps {
   label?: string;
 }
 
-export const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+export const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="rounded-lg border border-gray-200 bg-white p-2 shadow-lg">

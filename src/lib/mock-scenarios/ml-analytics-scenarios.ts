@@ -1,6 +1,6 @@
 /**
  * 🤖 ML Analytics 패턴 시나리오
- * 
+ *
  * 서버 타입별, 워크로드별 ML 분석 패턴
  */
 
@@ -27,7 +27,12 @@ export interface MetricPattern {
 }
 
 export interface AnomalyPattern {
-  type: 'spike' | 'dip' | 'gradual_increase' | 'gradual_decrease' | 'pattern_change';
+  type:
+    | 'spike'
+    | 'dip'
+    | 'gradual_increase'
+    | 'gradual_decrease'
+    | 'pattern_change';
   frequency: 'rare' | 'occasional' | 'frequent';
   severity: 'low' | 'medium' | 'high' | 'critical';
   duration: { min: number; max: number }; // 분 단위
@@ -138,7 +143,11 @@ export const WEB_SERVER_PATTERNS: MLAnalyticsPattern[] = [
         timeHorizon: '7d',
         confidence: 0.75,
         expectedChange: 30,
-        riskFactors: ['upcoming_sale', 'competitor_event', 'inventory_shortage'],
+        riskFactors: [
+          'upcoming_sale',
+          'competitor_event',
+          'inventory_shortage',
+        ],
       },
     ],
   },
@@ -184,7 +193,11 @@ export const API_SERVER_PATTERNS: MLAnalyticsPattern[] = [
         frequency: 'occasional',
         severity: 'high',
         duration: { min: 1, max: 10 },
-        indicators: ['cascade_failure', 'circuit_breaker_open', 'dependency_timeout'],
+        indicators: [
+          'cascade_failure',
+          'circuit_breaker_open',
+          'dependency_timeout',
+        ],
       },
       {
         type: 'gradual_increase',
@@ -197,7 +210,7 @@ export const API_SERVER_PATTERNS: MLAnalyticsPattern[] = [
     predictions: [
       {
         timeHorizon: '6h',
-        confidence: 0.90,
+        confidence: 0.9,
         expectedChange: 10,
         riskFactors: ['upstream_service_degradation', 'network_congestion'],
       },
@@ -235,9 +248,13 @@ export const API_SERVER_PATTERNS: MLAnalyticsPattern[] = [
     predictions: [
       {
         timeHorizon: '24h',
-        confidence: 0.80,
+        confidence: 0.8,
         expectedChange: 15,
-        riskFactors: ['api_limit_reached', 'new_feature_launch', 'third_party_integration'],
+        riskFactors: [
+          'api_limit_reached',
+          'new_feature_launch',
+          'third_party_integration',
+        ],
       },
     ],
   },
@@ -338,7 +355,7 @@ export const DATABASE_SERVER_PATTERNS: MLAnalyticsPattern[] = [
     predictions: [
       {
         timeHorizon: '24h',
-        confidence: 0.90,
+        confidence: 0.9,
         expectedChange: 0,
         riskFactors: ['batch_job_failure', 'data_pipeline_delay'],
       },
@@ -452,7 +469,7 @@ export const ML_SERVER_PATTERNS: MLAnalyticsPattern[] = [
     predictions: [
       {
         timeHorizon: '24h',
-        confidence: 0.70,
+        confidence: 0.7,
         expectedChange: 10,
         riskFactors: ['model_update', 'gpu_throttling', 'batch_size_change'],
       },
@@ -471,57 +488,62 @@ export function generateMetricsByWorkload(
   const hour = timestamp.getHours();
   const dayOfWeek = timestamp.getDay();
   const minute = timestamp.getMinutes();
-  
+
   let value = baseValue;
-  
+
   switch (workloadType) {
     case 'steady':
       // 안정적인 패턴 with 약간의 노이즈
       value += (Math.random() - 0.5) * baseValue * 0.1;
       break;
-      
+
     case 'periodic':
       // 주기적인 패턴 (일일 주기)
       const dailyCycle = Math.sin((hour / 24) * 2 * Math.PI);
       value += dailyCycle * baseValue * 0.3;
       break;
-      
+
     case 'bursty':
       // 간헐적인 스파이크
-      if (Math.random() < 0.05) { // 5% 확률로 스파이크
+      if (Math.random() < 0.05) {
+        // 5% 확률로 스파이크
         value *= 2 + Math.random();
       }
       value += (Math.random() - 0.5) * baseValue * 0.2;
       break;
-      
+
     case 'growing':
       // 점진적 증가
-      const daysSinceStart = (timestamp.getTime() - new Date('2024-01-01').getTime()) / (1000 * 60 * 60 * 24);
+      const daysSinceStart =
+        (timestamp.getTime() - new Date('2024-01-01').getTime()) /
+        (1000 * 60 * 60 * 24);
       value *= 1 + (daysSinceStart / 365) * 0.5;
       break;
-      
+
     case 'declining':
       // 점진적 감소
-      const daysDecline = (timestamp.getTime() - new Date('2024-01-01').getTime()) / (1000 * 60 * 60 * 24);
+      const daysDecline =
+        (timestamp.getTime() - new Date('2024-01-01').getTime()) /
+        (1000 * 60 * 60 * 24);
       value *= 1 - (daysDecline / 365) * 0.3;
       break;
   }
-  
+
   // 주말 효과 (웹/API 서버)
   if (dayOfWeek === 0 || dayOfWeek === 6) {
     value *= 0.7;
   }
-  
+
   // 점심시간 효과 (12-13시)
   if (hour === 12) {
     value *= 1.2;
   }
-  
+
   // 새벽 시간 효과 (2-5시)
   if (hour >= 2 && hour <= 5) {
     value *= 0.5;
   }
-  
+
   return Math.max(0, Math.min(100, value));
 }
 
@@ -545,25 +567,26 @@ export function detectAnomalies(
     confidence: number;
     description: string;
   }> = [];
-  
+
   // 이동 평균 계산
   const windowSize = 10;
   for (let i = windowSize; i < metrics.length; i++) {
     const window = metrics.slice(i - windowSize, i);
     const avg = window.reduce((sum, m) => sum + m.value, 0) / windowSize;
     const stdDev = Math.sqrt(
-      window.reduce((sum, m) => sum + Math.pow(m.value - avg, 2), 0) / windowSize
+      window.reduce((sum, m) => sum + Math.pow(m.value - avg, 2), 0) /
+        windowSize
     );
-    
+
     const current = metrics[i];
     const zScore = Math.abs((current.value - avg) / stdDev);
-    
+
     // Z-score 기반 이상 감지
     if (zScore > 3) {
       const anomalyPattern = pattern.anomalyPatterns.find(
-        p => p.type === (current.value > avg ? 'spike' : 'dip')
+        (p) => p.type === (current.value > avg ? 'spike' : 'dip')
       );
-      
+
       if (anomalyPattern) {
         anomalies.push({
           timestamp: current.timestamp,
@@ -574,13 +597,14 @@ export function detectAnomalies(
         });
       }
     }
-    
+
     // 트렌드 변화 감지
     if (i >= windowSize * 2) {
       const prevWindow = metrics.slice(i - windowSize * 2, i - windowSize);
-      const prevAvg = prevWindow.reduce((sum, m) => sum + m.value, 0) / windowSize;
+      const prevAvg =
+        prevWindow.reduce((sum, m) => sum + m.value, 0) / windowSize;
       const changeRate = Math.abs((avg - prevAvg) / prevAvg);
-      
+
       if (changeRate > 0.3) {
         anomalies.push({
           timestamp: current.timestamp,
@@ -592,7 +616,7 @@ export function detectAnomalies(
       }
     }
   }
-  
+
   return anomalies;
 }
 
@@ -615,28 +639,33 @@ export function generatePredictions(
     confidenceInterval: { lower: number; upper: number };
     confidence: number;
   }> = [];
-  
+
   // 간단한 이동 평균 기반 예측
   const recentMetrics = historicalMetrics.slice(-24); // 최근 24개 데이터
-  const trend = (recentMetrics[recentMetrics.length - 1].value - recentMetrics[0].value) / recentMetrics.length;
-  
-  const lastTimestamp = historicalMetrics[historicalMetrics.length - 1].timestamp;
+  const trend =
+    (recentMetrics[recentMetrics.length - 1].value - recentMetrics[0].value) /
+    recentMetrics.length;
+
+  const lastTimestamp =
+    historicalMetrics[historicalMetrics.length - 1].timestamp;
   const lastValue = historicalMetrics[historicalMetrics.length - 1].value;
-  
+
   for (let h = 1; h <= horizonHours; h++) {
-    const futureTimestamp = new Date(lastTimestamp.getTime() + h * 60 * 60 * 1000);
+    const futureTimestamp = new Date(
+      lastTimestamp.getTime() + h * 60 * 60 * 1000
+    );
     const baselinePrediction = lastValue + trend * h;
-    
+
     // 워크로드 타입에 따른 예측 조정
     const adjustedPrediction = generateMetricsByWorkload(
       pattern.workloadType,
       baselinePrediction,
       futureTimestamp
     );
-    
+
     // 신뢰 구간 계산 (시간이 멀수록 넓어짐)
     const uncertainty = h * 0.05 * adjustedPrediction;
-    
+
     predictions.push({
       timestamp: futureTimestamp,
       predictedValue: adjustedPrediction,
@@ -647,7 +676,7 @@ export function generatePredictions(
       confidence: Math.max(0.5, 0.95 - h * 0.02),
     });
   }
-  
+
   return predictions;
 }
 
@@ -660,16 +689,23 @@ export function calculatePatternMatchScore(
 ): number {
   let score = 0;
   let totalWeight = 0;
-  
+
   // 메트릭 타입별 매칭
-  pattern.metrics.forEach(metricPattern => {
-    const relevantMetrics = actualMetrics.filter(m => m.type === metricPattern.metricType);
+  pattern.metrics.forEach((metricPattern) => {
+    const relevantMetrics = actualMetrics.filter(
+      (m) => m.type === metricPattern.metricType
+    );
     if (relevantMetrics.length === 0) return;
-    
-    const avgValue = relevantMetrics.reduce((sum, m) => sum + m.value, 0) / relevantMetrics.length;
-    
+
+    const avgValue =
+      relevantMetrics.reduce((sum, m) => sum + m.value, 0) /
+      relevantMetrics.length;
+
     // 베이스라인 범위 내에 있는지 확인
-    if (avgValue >= metricPattern.baselineRange.min && avgValue <= metricPattern.baselineRange.max) {
+    if (
+      avgValue >= metricPattern.baselineRange.min &&
+      avgValue <= metricPattern.baselineRange.max
+    ) {
       score += 1;
     } else {
       // 범위를 벗어난 정도에 따라 부분 점수
@@ -679,10 +715,10 @@ export function calculatePatternMatchScore(
       );
       score += Math.max(0, 1 - distance / 50);
     }
-    
+
     totalWeight += 1;
   });
-  
+
   return totalWeight > 0 ? score / totalWeight : 0;
 }
 
@@ -702,17 +738,17 @@ export function recommendPattern(
 ): MLAnalyticsPattern | null {
   // queue 타입은 ML_PATTERN_LIBRARY에 없으므로 처리
   const availableTypes = ['web', 'api', 'database', 'cache', 'ml'] as const;
-  type AvailableServerType = typeof availableTypes[number];
-  
+  type AvailableServerType = (typeof availableTypes)[number];
+
   if (!availableTypes.includes(serverType as AvailableServerType)) {
     return null;
   }
-  
+
   const patterns = ML_PATTERN_LIBRARY[serverType as AvailableServerType] || [];
-  
+
   let bestPattern: MLAnalyticsPattern | null = null;
   let bestScore = 0;
-  
+
   patterns.forEach((pattern: MLAnalyticsPattern) => {
     const score = calculatePatternMatchScore(recentMetrics, pattern);
     if (score > bestScore) {
@@ -720,6 +756,6 @@ export function recommendPattern(
       bestPattern = pattern;
     }
   });
-  
+
   return bestPattern;
 }

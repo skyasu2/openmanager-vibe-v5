@@ -221,7 +221,7 @@ export interface EnhancedServerMetrics {
 
   // 🔧 호환성을 위한 추가 속성들
   network?: number; // network_in/network_out의 합계 또는 평균
-  
+
   // 🔧 기존 Server 타입과의 호환성을 위한 metrics 속성
   metrics?: {
     cpu?: {
@@ -275,13 +275,7 @@ export interface FailureScenario {
 export interface FailureStep {
   delay: number; // ms
   server_id: string;
-  metric: keyof Pick<
-    ServerMetrics,
-    | 'cpu'
-    | 'memory'
-    | 'disk'
-    | 'network'
-  >;
+  metric: keyof Pick<ServerMetrics, 'cpu' | 'memory' | 'disk' | 'network'>;
   value: number;
   alert?: Omit<ServerAlert, 'id' | 'server_id' | 'timestamp'>;
 }
@@ -334,7 +328,14 @@ export const SERVER_TYPE_DEFINITIONS: Record<ServerRole, ServerTypeDefinition> =
     },
     app: {
       type: 'app',
-      tags: ['node', 'nginx', 'java', 'dotnet', 'application', 'business-logic'],
+      tags: [
+        'node',
+        'nginx',
+        'java',
+        'dotnet',
+        'application',
+        'business-logic',
+      ],
       characteristics: {
         cpuWeight: 0.9,
         memoryWeight: 0.8,
@@ -504,7 +505,8 @@ export interface ProcessInfo {
     | 'System'
     | 'svchost.exe'
     | 'chrome.exe'
-    | 'node' | 'nginx'
+    | 'node'
+    | 'nginx'
     | 'python'
     | 'java'
     | 'spindump'

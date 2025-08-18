@@ -66,7 +66,7 @@ export async function GET(_request: NextRequest) {
     const integratedStatus = await cloudContextLoader.getIntegratedStatus();
 
     const mcpServerInfo = integratedStatus.mcpServer;
-    
+
     // 안전한 서버 정보 (version과 capabilities가 undefined일 수 있으므로 기본값 제공)
     const safeServerInfo: MCPServerInfo = {
       ...mcpServerInfo,
@@ -110,7 +110,10 @@ export async function GET(_request: NextRequest) {
     };
 
     // 헬스 점수 계산 (0-100)
-    const healthScore = calculateHealthScore(safeServerInfo, safeIntegratedStatus);
+    const healthScore = calculateHealthScore(
+      safeServerInfo,
+      safeIntegratedStatus
+    );
 
     const response = {
       success: true,
@@ -422,7 +425,9 @@ function getNextCheckTime(): string {
 /**
  * 연결 테스트 수행
  */
-async function performConnectivityTest(cloudContextLoader: CloudContextLoader): Promise<ConnectivityTest> {
+async function performConnectivityTest(
+  cloudContextLoader: CloudContextLoader
+): Promise<ConnectivityTest> {
   const tests = [];
 
   // 기본 연결 테스트

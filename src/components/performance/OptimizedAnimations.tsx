@@ -32,20 +32,20 @@ const useOptimizedMotion = () => {
 export const optimizedVariants = {
   // 페이지 전환 (GPU 가속 사용)
   pageTransition: {
-    initial: { 
-      opacity: 0, 
+    initial: {
+      opacity: 0,
       transform: 'translate3d(0, 20px, 0)',
     },
-    animate: { 
-      opacity: 1, 
+    animate: {
+      opacity: 1,
       transform: 'translate3d(0, 0, 0)',
       transition: {
         duration: 0.3,
         ease: [0.25, 0.25, 0, 1], // cubic-bezier 최적화
       },
     },
-    exit: { 
-      opacity: 0, 
+    exit: {
+      opacity: 0,
       transform: 'translate3d(0, -20px, 0)',
       transition: { duration: 0.2 },
     },
@@ -53,15 +53,15 @@ export const optimizedVariants = {
 
   // 카드 애니메이션 (transform 최적화)
   cardHover: {
-    rest: { 
+    rest: {
       scale: 1,
       y: 0,
       transition: { duration: 0.2 },
     },
-    hover: { 
+    hover: {
       scale: 1.02,
       y: -4,
-      transition: { 
+      transition: {
         duration: 0.2,
         ease: 'easeOut',
       },
@@ -71,8 +71,8 @@ export const optimizedVariants = {
   // 스케일 애니메이션 (composite layer 활용)
   scaleAnimation: {
     initial: { scale: 0.8, opacity: 0 },
-    animate: { 
-      scale: 1, 
+    animate: {
+      scale: 1,
       opacity: 1,
       transition: {
         scale: { duration: 0.3, ease: 'easeOut' },
@@ -93,8 +93,8 @@ export const optimizedVariants = {
 
   staggerItem: {
     initial: { opacity: 0, y: 20 },
-    animate: { 
-      opacity: 1, 
+    animate: {
+      opacity: 1,
       y: 0,
       transition: { duration: 0.3 },
     },
@@ -112,9 +112,9 @@ interface OptimizedMotionProps {
 /**
  * 최적화된 페이지 전환 컴포넌트
  */
-export function OptimizedPageTransition({ 
-  children, 
-  className 
+export function OptimizedPageTransition({
+  children,
+  className,
 }: OptimizedMotionProps) {
   const { shouldAnimate } = useOptimizedMotion();
 
@@ -130,7 +130,7 @@ export function OptimizedPageTransition({
       animate="animate"
       exit="exit"
       // GPU 가속 강제 활성화
-      style={{ 
+      style={{
         willChange: 'transform, opacity',
         backfaceVisibility: 'hidden',
         perspective: 1000,
@@ -144,10 +144,10 @@ export function OptimizedPageTransition({
 /**
  * 최적화된 카드 호버 컴포넌트
  */
-export function OptimizedHoverCard({ 
-  children, 
-  className, 
-  onClick 
+export function OptimizedHoverCard({
+  children,
+  className,
+  onClick,
 }: OptimizedMotionProps) {
   const { shouldAnimate } = useOptimizedMotion();
 
@@ -168,7 +168,7 @@ export function OptimizedHoverCard({
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       // 성능 최적화
-      style={{ 
+      style={{
         willChange: 'transform',
         backfaceVisibility: 'hidden',
       }}
@@ -181,9 +181,9 @@ export function OptimizedHoverCard({
 /**
  * 최적화된 스태거 애니메이션 컨테이너
  */
-export function OptimizedStaggerContainer({ 
-  children, 
-  className 
+export function OptimizedStaggerContainer({
+  children,
+  className,
 }: OptimizedMotionProps) {
   const { shouldAnimate } = useOptimizedMotion();
 
@@ -206,9 +206,9 @@ export function OptimizedStaggerContainer({
 /**
  * 최적화된 스태거 아이템
  */
-export function OptimizedStaggerItem({ 
-  children, 
-  className 
+export function OptimizedStaggerItem({
+  children,
+  className,
 }: OptimizedMotionProps) {
   const { shouldAnimate } = useOptimizedMotion();
 
@@ -220,7 +220,7 @@ export function OptimizedStaggerItem({
     <motion.div
       className={className}
       variants={optimizedVariants.staggerItem}
-      style={{ 
+      style={{
         willChange: 'transform, opacity',
         backfaceVisibility: 'hidden',
       }}
@@ -239,12 +239,14 @@ export class AnimationPerformanceMonitor {
 
   static startAnimation(name: string) {
     this.animationCount++;
-    
+
     if (this.animationCount > this.maxConcurrentAnimations) {
       console.warn(`⚠️ Too many concurrent animations: ${this.animationCount}`);
     }
 
-    console.log(`🎭 Animation started: ${name} (total: ${this.animationCount})`);
+    console.log(
+      `🎭 Animation started: ${name} (total: ${this.animationCount})`
+    );
   }
 
   static endAnimation(name: string) {
@@ -278,32 +280,32 @@ interface ConditionalAnimationProps {
   fallback: ReactNode;
 }
 
-export function ConditionalAnimation({ 
-  condition, 
-  animation, 
-  fallback 
+export function ConditionalAnimation({
+  condition,
+  animation,
+  fallback,
 }: ConditionalAnimationProps) {
   const { shouldAnimate } = useOptimizedMotion();
-  
+
   if (shouldAnimate && condition) {
     return <>{animation}</>;
   }
-  
+
   return <>{fallback}</>;
 }
 
 /**
  * 배치 애니메이션 (여러 요소를 효율적으로 애니메이션)
  */
-export function BatchAnimation({ 
-  children, 
-  delay = 0 
-}: { 
-  children: ReactNode[]; 
+export function BatchAnimation({
+  children,
+  delay = 0,
+}: {
+  children: ReactNode[];
   delay?: number;
 }) {
   const { shouldAnimate } = useOptimizedMotion();
-  
+
   if (!shouldAnimate) {
     return <>{children}</>;
   }

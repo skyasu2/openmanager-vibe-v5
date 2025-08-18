@@ -138,9 +138,9 @@ export function logDataConsistencyStatus(): void {
     console.log('✅ 데이터 일관성 검증 통과');
   } else {
     console.warn('⚠️ 데이터 일관성 문제 발견:');
-    validation.issues.forEach(issue => console.warn(`  - ${issue}`));
+    validation.issues.forEach((issue) => console.warn(`  - ${issue}`));
     console.log('��� 권장사항:');
-    validation.recommendations.forEach(rec => console.log(`  - ${rec}`));
+    validation.recommendations.forEach((rec) => console.log(`  - ${rec}`));
   }
 }
 

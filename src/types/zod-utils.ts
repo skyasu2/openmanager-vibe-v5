@@ -3,13 +3,13 @@ import { getErrorMessage } from './type-utils';
 
 /**
  * 🛡️ Zod 관련 유틸리티 함수들
- * 
+ *
  * Zod 스키마 검증과 관련된 헬퍼 함수들
  */
 
 // ===== 검증 결과 타입 =====
 
-export type ValidationResult<T> = 
+export type ValidationResult<T> =
   | { success: true; data: T }
   | { success: false; error: string; details?: Record<string, string[]> };
 
@@ -24,11 +24,11 @@ export function validateData<T extends z.ZodTypeAny>(
 ): ValidationResult<z.infer<T>> {
   try {
     const result = schema.safeParse(data);
-    
+
     if (result.success) {
       return { success: true, data: result.data };
     }
-    
+
     const formatted = formatZodErrors(result.error);
     return {
       success: false,
@@ -51,11 +51,11 @@ export function validateOrThrow<T extends z.ZodTypeAny>(
   data: unknown
 ): z.infer<T> {
   const result = validateData(schema, data);
-  
+
   if (!result.success) {
     throw new Error(result.error);
   }
-  
+
   return result.data;
 }
 
@@ -68,11 +68,11 @@ export async function validateAsync<T extends z.ZodTypeAny>(
 ): Promise<ValidationResult<z.infer<T>>> {
   try {
     const result = await schema.safeParseAsync(data);
-    
+
     if (result.success) {
       return { success: true, data: result.data };
     }
-    
+
     const formatted = formatZodErrors(result.error);
     return {
       success: false,
@@ -100,16 +100,16 @@ interface FormattedZodError {
 export function formatZodErrors(error: z.ZodError): FormattedZodError {
   const details: Record<string, string[]> = {};
   const messages: string[] = [];
-  
+
   error.issues.forEach((issue) => {
     const path = issue.path.length > 0 ? issue.path.join('.') : 'root';
-    
+
     if (!details[path]) {
       details[path] = [];
     }
-    
+
     details[path].push(issue.message);
-    
+
     // 전체 메시지 구성
     if (path === 'root') {
       messages.push(issue.message);
@@ -117,7 +117,7 @@ export function formatZodErrors(error: z.ZodError): FormattedZodError {
       messages.push(`${path}: ${issue.message}`);
     }
   });
-  
+
   return {
     message: messages.join(', '),
     details,
@@ -130,7 +130,7 @@ export function formatZodErrors(error: z.ZodError): FormattedZodError {
 export function getFirstZodError(error: z.ZodError): string {
   const firstIssue = error.issues[0];
   if (!firstIssue) return '검증 오류가 발생했습니다';
-  
+
   const path = firstIssue.path.length > 0 ? firstIssue.path.join('.') : '';
   return path ? `${path}: ${firstIssue.message}` : firstIssue.message;
 }
@@ -156,7 +156,7 @@ export function makeRequired<T extends z.ZodObject<z.ZodRawShape>>(schema: T) {
  */
 export function pickFields<
   T extends z.ZodObject<z.ZodRawShape>,
-  K extends keyof z.infer<T>
+  K extends keyof z.infer<T>,
 >(schema: T, fields: K[]): z.ZodObject<z.ZodRawShape> {
   const picked: Record<string, z.ZodTypeAny> = {};
   fields.forEach((field) => {
@@ -174,7 +174,7 @@ export function pickFields<
  */
 export function omitFields<
   T extends z.ZodObject<z.ZodRawShape>,
-  K extends keyof z.infer<T>
+  K extends keyof z.infer<T>,
 >(schema: T, fields: K[]): z.ZodObject<z.ZodRawShape> {
   const schemaShape = schema.shape as Record<string, z.ZodTypeAny>;
   const shape = { ...schemaShape };
@@ -201,7 +201,7 @@ export function conditionalValidation<T extends z.ZodObject<z.ZodRawShape>>(
       if (condition.when(data)) {
         const updatedSchema = condition.then(schema);
         const result = updatedSchema.safeParse(data);
-        
+
         if (!result.success) {
           result.error.issues.forEach((issue) => {
             ctx.addIssue(issue);
@@ -244,15 +244,15 @@ export function uniqueArray<T extends z.ZodTypeAny>(
  */
 export function trimmedString(minLength = 0, maxLength?: number) {
   let schema = z.string().trim();
-  
+
   if (minLength > 0) {
     schema = schema.min(minLength, `최소 ${minLength}자 이상이어야 합니다`);
   }
-  
+
   if (maxLength !== undefined) {
     schema = schema.max(maxLength, `최대 ${maxLength}자까지 입력 가능합니다`);
   }
-  
+
   return schema;
 }
 
@@ -260,7 +260,8 @@ export function trimmedString(minLength = 0, maxLength?: number) {
  * 정규화된 이메일 (소문자 변환)
  */
 export function normalizedEmail() {
-  return z.string()
+  return z
+    .string()
     .email('올바른 이메일 형식이 아닙니다')
     .transform((email) => email.toLowerCase().trim());
 }
@@ -271,21 +272,25 @@ export function normalizedEmail() {
  * 날짜 범위 검증
  */
 export function dateInRange(min?: Date, max?: Date) {
-  return z.string().datetime().refine(
-    (dateStr) => {
-      const date = new Date(dateStr);
-      if (min && date < min) return false;
-      if (max && date > max) return false;
-      return true;
-    },
-    {
-      message: min && max
-        ? `날짜는 ${min.toISOString()}와 ${max.toISOString()} 사이여야 합니다`
-        : min
-        ? `날짜는 ${min.toISOString()} 이후여야 합니다`
-        : `날짜는 ${max?.toISOString() || 'Unknown'} 이전이어야 합니다`,
-    }
-  );
+  return z
+    .string()
+    .datetime()
+    .refine(
+      (dateStr) => {
+        const date = new Date(dateStr);
+        if (min && date < min) return false;
+        if (max && date > max) return false;
+        return true;
+      },
+      {
+        message:
+          min && max
+            ? `날짜는 ${min.toISOString()}와 ${max.toISOString()} 사이여야 합니다`
+            : min
+              ? `날짜는 ${min.toISOString()} 이후여야 합니다`
+              : `날짜는 ${max?.toISOString() || 'Unknown'} 이전이어야 합니다`,
+      }
+    );
 }
 
 // ===== 환경변수 검증 =====
@@ -297,7 +302,7 @@ export function envSchema<T extends z.ZodRawShape>(shape: T) {
   return z.object(shape).transform((env) => {
     // 환경변수 기본값 처리
     const processed: Record<string, any> = {};
-    
+
     for (const [key, value] of Object.entries(env)) {
       // 'true'/'false' 문자열을 boolean으로 변환
       if (value === 'true') processed[key] = true;
@@ -309,7 +314,7 @@ export function envSchema<T extends z.ZodRawShape>(shape: T) {
         processed[key] = value;
       }
     }
-    
+
     return processed as z.infer<z.ZodObject<T>>;
   });
 }

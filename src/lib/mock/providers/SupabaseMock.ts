@@ -1,6 +1,6 @@
 /**
  * 🗄️ Supabase Mock Provider
- * 
+ *
  * Supabase의 간소화된 Mock 구현
  */
 
@@ -48,15 +48,18 @@ export class SupabaseMock extends MockBase {
   /**
    * auth.signIn() - 로그인
    */
-  async signIn(email: string, password: string): Promise<{ user: unknown; session: unknown }> {
+  async signIn(
+    email: string,
+    password: string
+  ): Promise<{ user: unknown; session: unknown }> {
     return this.execute('auth.signIn', async () => {
       const users = this.tables.get('users') || [];
-      const user = users.find(u => u.email === email);
-      
+      const user = users.find((u) => u.email === email);
+
       if (!user) {
         throw new Error('사용자를 찾을 수 없습니다');
       }
-      
+
       this.currentUser = user;
       const session = {
         access_token: `mock-token-${user.id}`,
@@ -64,7 +67,7 @@ export class SupabaseMock extends MockBase {
         expires_in: 3600,
         user,
       };
-      
+
       return { user, session };
     });
   }
@@ -105,10 +108,10 @@ export class SupabaseMock extends MockBase {
   async executeQuery(builder: QueryBuilder): Promise<unknown> {
     return this.execute(`query.${builder.table}`, async () => {
       let data = [...this.getTableData(builder.table)];
-      
+
       // 필터 적용
       for (const filter of builder.filters) {
-        data = data.filter(item => {
+        data = data.filter((item) => {
           const record = item as Record<string, any>;
           const value = record[filter.column];
           switch (filter.operator) {
@@ -131,7 +134,7 @@ export class SupabaseMock extends MockBase {
           }
         });
       }
-      
+
       // 정렬 적용
       if (builder.orderBy) {
         data.sort((a, b) => {
@@ -143,12 +146,12 @@ export class SupabaseMock extends MockBase {
           return builder.orderBy.ascending ? result : -result;
         });
       }
-      
+
       // 제한 적용
       if (builder.limitCount) {
         data = data.slice(0, builder.limitCount);
       }
-      
+
       return { data, error: null };
     });
   }
@@ -227,7 +230,10 @@ class SupabaseQueryBuilder {
   }
 
   // 쿼리 실행
-  then(resolve: (value: unknown) => unknown, reject?: (reason: unknown) => unknown): Promise<unknown> {
+  then(
+    resolve: (value: unknown) => unknown,
+    reject?: (reason: unknown) => unknown
+  ): Promise<unknown> {
     return this.mock.executeQuery(this.builder).then(resolve, reject);
   }
 }

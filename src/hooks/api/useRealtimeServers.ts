@@ -548,12 +548,15 @@ const mockServers: Server[] = [
 ];
 
 // 타입 안전 상태 매핑 함수
-const mapStatus = (rawStatus: string | undefined): 'online' | 'warning' | 'offline' => {
+const mapStatus = (
+  rawStatus: string | undefined
+): 'online' | 'warning' | 'offline' => {
   if (!rawStatus) return 'offline';
-  
+
   const s = rawStatus.toLowerCase();
   if (s === 'online' || s === 'running' || s === 'healthy') return 'online';
-  if (s === 'warning' || s === 'degraded' || s === 'unhealthy') return 'warning';
+  if (s === 'warning' || s === 'degraded' || s === 'unhealthy')
+    return 'warning';
   return 'offline';
 };
 
@@ -570,7 +573,7 @@ export function useRealtimeServers(
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
 
@@ -579,45 +582,64 @@ export function useRealtimeServers(
     try {
       // 실제 API 호출 (현재는 목업 사용)
       const response = await fetch('/api/servers');
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
-      
+
       // 데이터 구조 검증 및 변환
       if (data?.servers && Array.isArray(data.servers)) {
-        const transformedServers = data.servers.map((s: { status?: string; [key: string]: unknown }) => {
-          if (typeof s === 'object' && s !== null) {
-            return {
-              ...s,
-              status: mapStatus(s.status),
-            };
+        const transformedServers = data.servers.map(
+          (s: { status?: string; [key: string]: unknown }) => {
+            if (typeof s === 'object' && s !== null) {
+              return {
+                ...s,
+                status: mapStatus(s.status),
+              };
+            }
+            return s;
           }
-          return s;
-        });
+        );
         return transformedServers as Server[];
       }
-      
+
       // 실제 API가 없으면 목업 데이터 반환
       return mockServers;
-      
     } catch (fetchError) {
       console.warn('API 호출 실패, 목업 데이터 사용:', fetchError);
-      
+
       // 목업 데이터에 랜덤 업데이트 적용
-      return mockServers.map(server => {
+      return mockServers.map((server) => {
         if (!server.metrics) {
           return server;
         }
-        
-        const updatedCpuUsage = Math.max(0, Math.min(100, server.metrics.cpu.usage + (Math.random() - 0.5) * 10));
-        const updatedMemoryUsage = Math.max(0, Math.min(100, server.metrics.memory.usage + (Math.random() - 0.5) * 10));
-        const updatedDiskUsage = Math.max(0, Math.min(100, server.metrics.disk.usage + (Math.random() - 0.5) * 5));
-        const updatedNetworkIn = Math.max(0, server.metrics.network.bytesIn + Math.random() * 100000);
-        const updatedNetworkOut = Math.max(0, server.metrics.network.bytesOut + Math.random() * 50000);
-        
+
+        const updatedCpuUsage = Math.max(
+          0,
+          Math.min(100, server.metrics.cpu.usage + (Math.random() - 0.5) * 10)
+        );
+        const updatedMemoryUsage = Math.max(
+          0,
+          Math.min(
+            100,
+            server.metrics.memory.usage + (Math.random() - 0.5) * 10
+          )
+        );
+        const updatedDiskUsage = Math.max(
+          0,
+          Math.min(100, server.metrics.disk.usage + (Math.random() - 0.5) * 5)
+        );
+        const updatedNetworkIn = Math.max(
+          0,
+          server.metrics.network.bytesIn + Math.random() * 100000
+        );
+        const updatedNetworkOut = Math.max(
+          0,
+          server.metrics.network.bytesOut + Math.random() * 50000
+        );
+
         return {
           ...server,
           cpu: updatedCpuUsage,
@@ -653,28 +675,35 @@ export function useRealtimeServers(
   // 서버 목록 새로고침
   const refreshServers = useCallback(async () => {
     if (!mountedRef.current) return;
-    
+
     setIsLoading(true);
     setError(null);
 
     try {
       const serverData = await fetchServers();
-      
+
       if (mountedRef.current) {
         setServers(serverData);
         setLastUpdate(new Date());
-        
+
         if (enableToast) {
-          const onlineCount = serverData.filter(s => s.status === 'online').length;
+          const onlineCount = serverData.filter(
+            (s) => s.status === 'online'
+          ).length;
           const totalCount = serverData.length;
-          toast.success(`서버 목록 업데이트 완료 (${onlineCount}/${totalCount} 온라인)`);
+          toast.success(
+            `서버 목록 업데이트 완료 (${onlineCount}/${totalCount} 온라인)`
+          );
         }
       }
     } catch (err) {
       if (mountedRef.current) {
-        const errorMessage = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
+        const errorMessage =
+          err instanceof Error
+            ? err.message
+            : '알 수 없는 오류가 발생했습니다.';
         setError(errorMessage);
-        
+
         if (enableToast) {
           toast.error(`서버 데이터 로딩 실패: ${errorMessage}`);
         }

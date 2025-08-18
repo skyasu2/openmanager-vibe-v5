@@ -64,11 +64,13 @@ const postHandler = createApiRoute()
       responseData.nlpContext = {
         query: query || '',
         processingType: nlpType,
-        contextSources: (nlpContext.contextSources || []).map((source: string) => ({
-          source,
-          relevance: 1.0,
-          content: undefined,
-        })),
+        contextSources: (nlpContext.contextSources || []).map(
+          (source: string) => ({
+            source,
+            relevance: 1.0,
+            content: undefined,
+          })
+        ),
         metadata: {},
         relevanceScore: 1.0,
       };
@@ -101,12 +103,14 @@ const postHandler = createApiRoute()
 
         case 'local': {
           debug.log('📚 로컬 컨텍스트 전용 요청');
-          const localContexts = await Promise.all([
+          const localContexts = (await Promise.all([
             cloudContextLoader.loadContextBundle('base'),
             cloudContextLoader.loadContextBundle('advanced'),
-          ]) as (LocalContextBundle | null)[];
+          ])) as (LocalContextBundle | null)[];
 
-          const filteredContexts = localContexts.filter(Boolean) as LocalContextBundle[];
+          const filteredContexts = localContexts.filter(
+            Boolean
+          ) as LocalContextBundle[];
           responseData.localContexts = filteredContexts;
           responseData.contextSources = ['local-base', 'local-advanced'];
           break;
@@ -125,15 +129,17 @@ const postHandler = createApiRoute()
             });
 
           // 로컬 컨텍스트 조회
-          const hybridLocalContexts = await Promise.all([
+          const hybridLocalContexts = (await Promise.all([
             cloudContextLoader.loadContextBundle('base'),
             cloudContextLoader.loadContextBundle('advanced'),
-          ]) as (LocalContextBundle | null)[];
+          ])) as (LocalContextBundle | null)[];
 
           if (hybridMcpContext) {
             responseData.mcpContext = hybridMcpContext;
           }
-          const filteredLocalContexts = hybridLocalContexts.filter(Boolean) as LocalContextBundle[];
+          const filteredLocalContexts = hybridLocalContexts.filter(
+            Boolean
+          ) as LocalContextBundle[];
           responseData.localContexts = filteredLocalContexts;
           responseData.contextSources = [
             ...(hybridMcpContext ? ['mcp-server'] : []),

@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'; // Vercel edge 캐싱 방지
 /**
  * Server-Sent Events (SSE) endpoint for real-time alerts
  * GET /api/alerts/stream
- * 
+ *
  * Streams real-time alert events to connected clients
  */
 export async function GET(req: NextRequest) {
