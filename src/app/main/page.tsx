@@ -671,7 +671,7 @@ export default function Home() {
                 {isGitHubUser ? (
                   <>
                     {/* GitHub 인증 사용자 - 시스템 시작 버튼 표시 */}
-                    {/* 현재 사용자: {currentUser?.name || currentUser?.email || 'Unknown'} */
+                    {/* 현재 사용자: {currentUser?.name || currentUser?.email || 'Unknown'} */}
                     <motion.button
                       onClick={handleSystemToggle}
                       disabled={buttonConfig.disabled}
@@ -714,7 +714,7 @@ export default function Home() {
                       </div>
                     </motion.button>
 
-                    {/* 상태 안내 - 메모이제이션으로 렌더링 최적화 (컴포넌트 레벨로 이동) */}
+                    {/* 상태 안내 - 메모이제이션으로 렌더링 최적화 - 컴포넌트 레벨로 이동 */}
                     <div className="mt-2 flex flex-col items-center gap-1">
                       <span className={`text-sm font-medium opacity-80 transition-all duration-300 ${statusInfo.color}`}>
                         {statusInfo.message}
