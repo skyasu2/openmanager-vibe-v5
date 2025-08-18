@@ -60,7 +60,7 @@ export const debugWithEnv = (message: string) => {
  * 베르셀 환경에서만 실행되는 함수
  */
 export const onlyInVercel = (fn: () => void) => {
-  if (isVercelEnvironment) {
+  if (vercelConfig.isVercel) {
     fn();
   }
 };
@@ -69,7 +69,7 @@ export const onlyInVercel = (fn: () => void) => {
  * 로컬 환경에서만 실행되는 함수
  */
 export const onlyInLocal = (fn: () => void) => {
-  if (!isVercelEnvironment) {
+  if (!vercelConfig.isVercel) {
     fn();
   }
 };
@@ -78,5 +78,5 @@ export const onlyInLocal = (fn: () => void) => {
  * 환경별 다른 값 반환
  */
 export const envValue = <T>(vercelValue: T, localValue: T): T => {
-  return isVercelEnvironment ? vercelValue : localValue;
+  return vercelConfig.isVercel ? vercelValue : localValue;
 };
