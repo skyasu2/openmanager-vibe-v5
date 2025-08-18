@@ -11,12 +11,13 @@ import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useInitialAuth } from '@/hooks/useInitialAuth';
-import { motion } from 'framer-motion';
 import { BarChart3, Bot, Loader2, Play, X, LogIn } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import debug from '@/utils/debug';
+
+import { motion } from 'framer-motion';
 
 const FeatureCardsGrid = dynamic(
   () => import('@/components/home/FeatureCardsGrid'),
@@ -32,7 +33,7 @@ const FeatureCardsGrid = dynamic(
   }
 );
 
-export default function Home() {
+function Home() {
   const router = useRouter();
   
   // 통합 초기화 훅 사용 (5-6초 지연 문제 해결)
@@ -865,3 +866,6 @@ export default function Home() {
     </div>
   );
 }
+
+// 동적 임포트로 SSR 완전 회피
+export default dynamic(() => Promise.resolve(Home), { ssr: false });
