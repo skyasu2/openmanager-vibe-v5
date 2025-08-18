@@ -81,13 +81,13 @@ export default function Home() {
   );
   const [isSystemStarting, setIsSystemStarting] = useState(false); // 시스템 시작 중 상태 추가
 
-  // 시스템 상태 동기화 - 실시간 업데이트 (깜박임 방지 최적화)
+  // 시스템 상태 동기화 - 안전한 실시간 업데이트 (무한 루프 방지)
   useEffect(() => {
     if (!isMounted) return;
 
-    // 상태 변경 배치화를 위한 타이머
+    // 상태 변경 배치화를 위한 타이머 (무한 루프 방지)
     const syncTimer = setTimeout(() => {
-      // 시스템 상태가 변경되면 로컬 상태도 동기화
+      // 시스템 상태가 변경되면 로컬 상태도 동기화 (조건부 실행)
       if (multiUserStatus?.isRunning && !isSystemStarted) {
         debug.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 시작됨');
         startSystem(); // 로컬 상태 동기화
@@ -104,7 +104,7 @@ export default function Home() {
       if (multiUserStatus?.isStarting !== isSystemStarting) {
         setIsSystemStarting(multiUserStatus?.isStarting || false);
       }
-    }, 50); // 50ms 디바운스로 빠른 상태 변경 배치화
+    }, 100); // 100ms 디바운스로 안정적인 상태 변경
 
     return () => clearTimeout(syncTimer);
   }, [
@@ -113,8 +113,7 @@ export default function Home() {
     multiUserStatus?.isStarting,
     isSystemStarted,
     isSystemStarting,
-    startSystem,
-    stopSystem,
+    // startSystem, stopSystem 의존성 제거로 무한 루프 방지
   ]);
 
   // 🔄 클라이언트 마운트 감지
@@ -194,21 +193,21 @@ export default function Home() {
     };
   }, [isMounted]);
 
-  // 즉시 리다이렉션 체크 (깜박임 방지 최적화)
+  // 즉시 리다이렉션 체크 (무한 리다이렉션 방지 최적화)
   useEffect(() => {
     if (!isMounted || authLoading) return;
 
-    // 인증 체크 완료 후 사용자가 없으면 지연된 리다이렉션 (깜박임 방지)
+    // 인증 체크 완료 후 사용자가 없으면 지연된 리다이렉션 (한 번만 실행)
     if (authChecked && !currentUser) {
       debug.log('🚨 인증 정보 없음 - 로그인 페이지로 이동');
-      // 200ms 지연으로 부드러운 전환
+      // 500ms 지연으로 부드러운 전환 (무한 리다이렉션 방지)
       const redirectTimer = setTimeout(() => {
         router.replace('/login');
-      }, 200);
+      }, 500);
 
       return () => clearTimeout(redirectTimer);
     }
-  }, [isMounted, authLoading, authChecked, currentUser, router]);
+  }, [isMounted, authLoading, authChecked, currentUser]); // router 의존성 제거
 
   // 🔧 상태 변화 디버깅 (클라이언트에서만)
   useEffect(() => {
