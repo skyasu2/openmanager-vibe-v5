@@ -81,6 +81,42 @@ export default function Home() {
   // 시스템 상태 동기화 debounce를 위한 ref
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // 상태 안내 메시지 메모이제이션 (JSX에서 분리하여 성능 최적화)
+  const statusInfo = useMemo(() => {
+    if (systemStartCountdown > 0) {
+      return {
+        color: 'text-orange-300',
+        message: '⚠️ 시작 예정 - 취소하려면 클릭',
+        showEscHint: true
+      };
+    }
+    if (isSystemStarting) {
+      return {
+        color: 'text-purple-300',
+        message: '🚀 시스템 부팅 중...',
+        showEscHint: false
+      };
+    }
+    if (multiUserStatus?.isRunning || isSystemStarted) {
+      const shutdownTime = typeof window !== 'undefined' ? localStorage.getItem('system_auto_shutdown') : null;
+      let message = '✅ 시스템 가동 중 - 대시보드로 이동';
+      if (shutdownTime) {
+        const timeLeft = Math.max(0, Math.floor((parseInt(shutdownTime) - Date.now()) / 60000));
+        message = `✅ 시스템 가동 중 (${timeLeft}분 후 자동 종료)`;
+      }
+      return {
+        color: 'text-green-300',
+        message,
+        showEscHint: false
+      };
+    }
+    return {
+      color: 'text-white',
+      message: '클릭하여 시작하기',
+      showEscHint: false
+    };
+  }, [systemStartCountdown, isSystemStarting, multiUserStatus?.isRunning, isSystemStarted]);
+
   // 시스템 상태 동기화 - 최적화된 실시간 업데이트 (인증 완료 후에만 실행)
   useEffect(() => {
     if (!isMounted || !authReady || !multiUserStatus) return;
@@ -90,22 +126,26 @@ export default function Home() {
       clearTimeout(syncTimeoutRef.current);
     }
 
-    // debounce: 200ms 후에 실행 (더 안정적인 동기화)
+    // debounce: 500ms 후에 실행 (무한 루프 방지를 위한 더 긴 지연)
     syncTimeoutRef.current = setTimeout(() => {
-      // 시스템 상태가 변경되면 로컬 상태도 동기화
-      if (multiUserStatus.isRunning && !isSystemStarted) {
+      // 상태 변화가 실제로 있을 때만 동기화 (무한 루프 방지)
+      const needsStart = multiUserStatus.isRunning && !isSystemStarted;
+      const needsStop = !multiUserStatus.isRunning && isSystemStarted;
+      
+      if (needsStart) {
         debug.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 시작됨');
-        startSystem(); // 로컬 상태 동기화
-      } else if (!multiUserStatus.isRunning && isSystemStarted) {
-        debug.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 정지됨');
-        stopSystem(); // 로컬 상태 동기화
+        startSystem();
+      } else if (needsStop) {
+        debug.log('🔄 시스템 상태 동기화: 시스템이 다른 사용자에 의해 정지됨');  
+        stopSystem();
       }
 
-      // 시스템 시작 중 상태 동기화
-      if (multiUserStatus.isStarting !== isSystemStarting) {
-        setIsSystemStarting(multiUserStatus.isStarting || false);
+      // 시작 중 상태도 실제 변화가 있을 때만 업데이트
+      const currentStarting = multiUserStatus.isStarting || false;
+      if (currentStarting !== isSystemStarting) {
+        setIsSystemStarting(currentStarting);
       }
-    }, 200);
+    }, 500);
 
     return () => {
       if (syncTimeoutRef.current) {
@@ -119,6 +159,8 @@ export default function Home() {
     multiUserStatus?.isStarting,
     isSystemStarted,
     isSystemStarting,
+    startSystem, // startSystem 함수 추가
+    stopSystem,  // stopSystem 함수 추가
   ]);
 
   // 🔄 클라이언트 마운트 감지
@@ -622,8 +664,8 @@ export default function Home() {
           transition={{ duration: 0.6, delay: 0.3 }}
         >
           {!isSystemStarted ? (
-            /* 시스템 중지 상태 - 대시보드 버튼 중심으로 변경 */
             <div className="mx-auto max-w-2xl text-center">
+              {/* 시스템 중지 상태 - 대시보드 버튼 중심으로 변경 */}
               {/* 메인 제어 버튼들 */}
               <div className="mb-6 flex flex-col items-center space-y-4">
                 {isGitHubUser ? (
@@ -672,52 +714,17 @@ export default function Home() {
                       </div>
                     </motion.button>
 
-                    {/* 상태 안내 - 메모이제이션으로 렌더링 최적화 */}
-                    {useMemo(() => {
-                      const statusInfo = systemStartCountdown > 0
-                        ? {
-                            color: 'text-orange-300',
-                            message: '⚠️ 시작 예정 - 취소하려면 클릭',
-                            showEscHint: true
-                          }
-                        : isSystemStarting
-                          ? {
-                              color: 'text-purple-300',
-                              message: '🚀 시스템 부팅 중...',
-                              showEscHint: false
-                            }
-                          : multiUserStatus?.isRunning || isSystemStarted
-                            ? {
-                                color: 'text-green-300',
-                                message: (() => {
-                                  const shutdownTime = localStorage.getItem('system_auto_shutdown');
-                                  if (shutdownTime) {
-                                    const timeLeft = Math.max(0, Math.floor((parseInt(shutdownTime) - Date.now()) / 60000));
-                                    return `✅ 시스템 가동 중 (${timeLeft}분 후 자동 종료)`;
-                                  }
-                                  return `✅ 시스템 가동 중 - 대시보드로 이동`;
-                                })(),
-                                showEscHint: false
-                              }
-                            : {
-                                color: 'text-white',
-                                message: '클릭하여 시작하기',
-                                showEscHint: false
-                              };
-                      
-                      return (
-                        <div className="mt-2 flex flex-col items-center gap-1">
-                          <span className={`text-sm font-medium opacity-80 transition-all duration-300 ${statusInfo.color}`}>
-                            {statusInfo.message}
-                          </span>
-                          {statusInfo.showEscHint && (
-                            <span className="text-xs text-white/60">
-                              또는 ESC 키를 눌러 취소
-                            </span>
-                          )}
-                        </div>
-                      );
-                    }, [systemStartCountdown, isSystemStarting, multiUserStatus?.isRunning, isSystemStarted])}
+                    {/* 상태 안내 - 메모이제이션으로 렌더링 최적화 (컴포넌트 레벨로 이동) */}
+                    <div className="mt-2 flex flex-col items-center gap-1">
+                      <span className={`text-sm font-medium opacity-80 transition-all duration-300 ${statusInfo.color}`}>
+                        {statusInfo.message}
+                      </span>
+                      {statusInfo.showEscHint && (
+                        <span className="text-xs text-white/60">
+                          또는 ESC 키를 눌러 취소
+                        </span>
+                      )}
+                    </div>
 
                     {/* 시작 버튼 안내 아이콘 - 시스템 정지 상태일 때만 표시 */}
                     {!systemStartCountdown &&
@@ -730,8 +737,8 @@ export default function Home() {
                       )}
                   </>
                 ) : (
-                  /* 게스트 사용자 - 안내 메시지 표시 */
                   <div className="text-center">
+                    {/* 게스트 사용자 - 안내 메시지 표시 */}
                     <div className="mb-4 rounded-xl border border-blue-400/30 bg-blue-500/10 p-6">
                       <LogIn className="mx-auto mb-3 h-12 w-12 text-blue-400" />
                       <h3 className="mb-2 text-lg font-semibold text-white">
@@ -771,13 +778,13 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            /* 시스템 활성 상태 */
             <motion.div
               className="mx-auto max-w-4xl text-center"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5 }}
             >
+              {/* 시스템 활성 상태 */}
               {/* 대시보드 버튼 - 중앙 배치 */}
               <div className="mb-6 flex justify-center">
                 <div className="flex flex-col items-center">

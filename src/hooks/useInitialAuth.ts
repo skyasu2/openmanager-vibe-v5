@@ -87,7 +87,7 @@ export function useInitialAuth() {
     }
   }, [router, updateState]);
 
-  // 초기화 실행
+  // 초기화 실행 - 의존성 배열 제거로 무한 루프 방지
   useEffect(() => {
     const timeoutId = setTimeout(initializeAuth, 50); // 최소 지연으로 브라우저 렌더링 최적화
     
@@ -97,7 +97,8 @@ export function useInitialAuth() {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [initializeAuth]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 빈 배열로 한 번만 실행
 
   // 컴포넌트 언마운트 시 정리
   useEffect(() => {
