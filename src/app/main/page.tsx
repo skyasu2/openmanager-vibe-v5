@@ -269,12 +269,24 @@ export default function Home() {
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // AI 단어에 그라데이션 애니메이션 적용하는 함수
+  // AI 단어에 그라데이션 애니메이션 적용하는 함수 - SSR 안전성 보장
   const renderTextWithAIGradient = (text: string) => {
     if (!text.includes('AI')) return text;
 
     return text.split(/(AI)/g).map((part, index) => {
       if (part === 'AI') {
+        // SSR에서는 정적 스타일, 클라이언트에서는 애니메이션 적용
+        if (!isMounted) {
+          return (
+            <span
+              key={index}
+              className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text font-bold text-transparent"
+            >
+              {part}
+            </span>
+          );
+        }
+        
         return (
           <motion.span
             key={index}
@@ -418,13 +430,19 @@ export default function Home() {
     handleDashboardClick,
   ]);
 
-  // 📊 버튼 설정 메모이제이션 최적화 - 렌더링 성능 향상
+  // 📊 버튼 설정 메모이제이션 최적화 - 렌더링 성능 향상 + SSR 안전성
   const buttonConfig = useMemo(() => {
+    // SSR 안전성: 클라이언트 마운트 전에는 아이콘 없이 렌더링
+    const getIcon = (IconComponent: any, className: string) => {
+      if (!isMounted) return null;
+      return <IconComponent className={className} />;
+    };
+
     // 1. 카운트다운 중 (최우선)
     if (systemStartCountdown > 0) {
       return {
         text: `시작 취소 (${systemStartCountdown}초)`,
-        icon: <X className="h-5 w-5" />,
+        icon: getIcon(X, "h-5 w-5"),
         className:
           'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50 relative overflow-hidden',
         disabled: false,
@@ -435,7 +453,7 @@ export default function Home() {
     if (isSystemStarting) {
       return {
         text: '시스템 시작 중...',
-        icon: <Loader2 className="h-5 w-5 animate-spin" />,
+        icon: getIcon(Loader2, "h-5 w-5 animate-spin"),
         className:
           'bg-gradient-to-r from-purple-500 to-blue-600 text-white border-purple-400/50 cursor-not-allowed',
         disabled: true,
@@ -446,7 +464,7 @@ export default function Home() {
     if (isLoading || statusLoading) {
       return {
         text: '시스템 초기화 중...',
-        icon: <Loader2 className="h-5 w-5 animate-spin" />,
+        icon: getIcon(Loader2, "h-5 w-5 animate-spin"),
         className:
           'bg-gray-500 text-white border-gray-400/50 cursor-not-allowed',
         disabled: true,
@@ -457,7 +475,7 @@ export default function Home() {
     if (multiUserStatus?.isRunning || isSystemStarted) {
       return {
         text: `📊 대시보드 이동 (사용자: ${multiUserStatus?.userCount || 0}명)`,
-        icon: <BarChart3 className="h-5 w-5" />,
+        icon: getIcon(BarChart3, "h-5 w-5"),
         className:
           'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50',
         disabled: false,
@@ -467,12 +485,13 @@ export default function Home() {
     // 5. 기본 상태 (시스템 시작 대기)
     return {
       text: '🚀 시스템 시작',
-      icon: <Play className="h-5 w-5" />,
+      icon: getIcon(Play, "h-5 w-5"),
       className:
         'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-blue-400/50',
       disabled: false,
     };
   }, [
+    isMounted, // SSR 안전성을 위한 의존성 추가
     systemStartCountdown,
     isSystemStarting,
     isLoading,
@@ -740,7 +759,7 @@ export default function Home() {
                   <div className="text-center">
                     {/* 게스트 사용자 - 안내 메시지 표시 */}
                     <div className="mb-4 rounded-xl border border-blue-400/30 bg-blue-500/10 p-6">
-                      <LogIn className="mx-auto mb-3 h-12 w-12 text-blue-400" />
+                      {isMounted && <LogIn className="mx-auto mb-3 h-12 w-12 text-blue-400" />}
                       <h3 className="mb-2 text-lg font-semibold text-white">
                         GitHub 로그인이 필요합니다
                       </h3>
@@ -768,7 +787,7 @@ export default function Home() {
               <div className="flex justify-center text-sm">
                 <div className="max-w-md rounded-lg bg-white/5 p-3">
                   <div className="mb-1 flex items-center justify-center gap-2">
-                    <Bot className="h-4 w-4 text-purple-400" />
+                    {isMounted && <Bot className="h-4 w-4 text-purple-400" />}
                     <span className="font-semibold">AI 어시스턴트</span>
                   </div>
                   <p className="text-center text-white/70">
