@@ -127,6 +127,27 @@
       ]
     },
     {
+      "source": "/(main|login)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate, max-age=0"
+        },
+        {
+          "key": "X-Timer-Stability",
+          "value": "enabled"
+        },
+        {
+          "key": "X-Environment-Detection",
+          "value": "stable"
+        },
+        {
+          "key": "X-Refresh-Prevention",
+          "value": "active"
+        }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {
@@ -189,7 +210,14 @@
     "VERCEL_ANALYTICS_ENABLED": "true",
     "SPEED_INSIGHTS_ENABLED": "true",
     "CDN_CACHE_HIT_RATE_TARGET": "95",
-    "API_RESPONSE_TIME_TARGET": "100"
+    "API_RESPONSE_TIME_TARGET": "100",
+    "VERCEL_TIMER_STABILITY": "true",
+    "VERCEL_ENV_DETECTION_STABLE": "true",
+    "VERCEL_AUTH_RETRY_DELAY": "10000",
+    "VERCEL_INIT_DELAY": "1000",
+    "VERCEL_SYNC_DEBOUNCE": "3000",
+    "PREVENT_AUTO_REFRESH": "true",
+    "STABLE_ENVIRONMENT_DETECTION": "true"
   },
   "build": {
     "env": {

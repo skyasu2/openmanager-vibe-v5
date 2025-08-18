@@ -50,6 +50,12 @@ const nextConfig = {
     ],
   },
 
+  // 개발 도구 비활성화 (SSR 오류 방지)
+  devIndicators: {
+    buildActivity: false,
+    appIsrStatus: false,
+  },
+
   // 컴파일러 최적화
   compiler: {
     // 미사용 코드 제거

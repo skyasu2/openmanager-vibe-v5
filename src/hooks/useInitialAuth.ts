@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { getCurrentUser, isGitHubAuthenticated } from '@/lib/supabase-auth';
+import { vercelConfig, debugWithEnv } from '@/utils/vercel-env';
 import { User } from '@supabase/supabase-js';
 
 // 초기화 상태 타입 정의
@@ -42,31 +43,27 @@ export function useInitialAuth() {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  // 안전한 리다이렉트 헬퍼 (베르셀 환경 최적화)
+  // 안전한 리다이렉트 헬퍼 (안정된 환경 감지)
   const safeRedirect = useCallback((targetPath: string) => {
     // 이미 리다이렉트했거나 현재 경로가 타겟과 같으면 리다이렉트하지 않음
     if (redirectRef.current || pathname === targetPath) {
-      console.log(`🚫 리다이렉트 스킵: 현재 경로(${pathname}) === 타겟(${targetPath}) 또는 이미 리다이렉트됨`);
+      console.log(debugWithEnv(`🚫 리다이렉트 스킵: 현재 경로(${pathname}) === 타겟(${targetPath}) 또는 이미 리다이렉트됨`));
       return;
     }
     
-    // 베르셀 환경 감지
-    const isVercel = process.env.VERCEL === '1' || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'));
-    
     redirectRef.current = true;
-    console.log(`🔄 안전한 리다이렉트 (${isVercel ? 'Vercel' : 'Local'}): ${pathname} → ${targetPath}`);
+    console.log(debugWithEnv(`🔄 안전한 리다이렉트: ${pathname} → ${targetPath}`));
     
-    // 베르셀에서는 더 긴 지연으로 안정성 확보
-    const delay = isVercel ? 300 : 100;
+    // 환경별 최적화된 지연 시간 사용
     setTimeout(() => {
       try {
         router.replace(targetPath);
       } catch (error) {
-        console.error('❌ 리다이렉트 실패:', error);
+        console.error(debugWithEnv('❌ 리다이렉트 실패'), error);
         // 실패 시 재시도 방지를 위해 ref 초기화
         redirectRef.current = false;
       }
-    }, delay);
+    }, vercelConfig.initDelay);
   }, [pathname, router]);
 
   // 통합 초기화 프로세스
@@ -116,26 +113,26 @@ export function useInitialAuth() {
     }
   }, [updateState, safeRedirect]);
 
-  // 초기화 실행 - 베르셀 환경 최적화
+  // 초기화 실행 - 안정적인 환경 감지로 최적화
   useEffect(() => {
-    // 베르셀 환경에서는 더 긴 지연으로 안정성 확보
-    const isVercel = process.env.VERCEL === '1' || typeof window !== 'undefined' && window.location.hostname.includes('vercel.app');
-    const delay = isVercel ? 500 : 100; // 베르셀에서 0.5초, 로컬에서 0.1초
+    console.log(debugWithEnv('🔄 useInitialAuth 초기화 시작'));
     
     const timeoutId = setTimeout(() => {
-      // 베르셀에서 중복 실행 방지 강화
+      // 중복 실행 방지 강화
       if (initRef.current) {
-        console.log('🚫 useInitialAuth: 이미 초기화 중이므로 스킵');
+        console.log(debugWithEnv('🚫 useInitialAuth: 이미 초기화 중이므로 스킵'));
         return;
       }
       initializeAuth();
-    }, delay);
+    }, vercelConfig.initDelay);
     
     return () => {
       clearTimeout(timeoutId);
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
+      console.log(debugWithEnv('🧹 useInitialAuth 타이머 정리 완료'));
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 빈 배열로 한 번만 실행

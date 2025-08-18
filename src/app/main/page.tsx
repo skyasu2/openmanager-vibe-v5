@@ -16,6 +16,7 @@ import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import debug from '@/utils/debug';
+import { vercelConfig, debugWithEnv } from '@/utils/vercel-env';
 
 import { motion } from 'framer-motion';
 
@@ -121,150 +122,93 @@ function Home() {
     };
   }, [systemStartCountdown, isSystemStarting, multiUserStatus?.isRunning, isSystemStarted]);
 
-  // 시스템 상태 동기화 - 베르셀 환경 최적화
+  // 🎯 마스터 타이머 시스템 - 모든 타이머 로직을 하나로 통합
   useEffect(() => {
-    if (!isMounted || !authReady || !multiUserStatus) return;
+    if (!isMounted) return;
 
-    // 베르셀 환경 감지
-    const isVercel = process.env.VERCEL === '1' || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'));
-    
-    // 이전 타이머 클리어
-    if (syncTimeoutRef.current) {
-      clearTimeout(syncTimeoutRef.current);
-    }
+    let masterTimer: NodeJS.Timeout | null = null;
+    let syncTimeout: NodeJS.Timeout | null = null;
+    let authRetryTimeout: NodeJS.Timeout | null = null;
 
-    // 베르셀에서는 더 긴 debounce로 안정성 확보 (베르셀: 2초, 로컬: 1초)
-    const debounceDelay = isVercel ? 2000 : 1000;
-    
-    syncTimeoutRef.current = setTimeout(() => {
-      // 이전 상태와 비교하여 실제 변화가 있을 때만 처리 (추가 안정성)
-      const currentRunning = multiUserStatus.isRunning;
-      if (prevRunningRef.current === currentRunning) {
-        debug.log('🚫 시스템 상태 동기화 스킵: 상태 변화 없음');
-        return; // 상태 변화가 없으면 무시
+    // 즉시 클라이언트 마운트 처리
+    const mountTimer = setTimeout(() => {
+      setIsMounted(true);
+      debug.log(debugWithEnv('✅ 클라이언트 마운트 완료'));
+    }, vercelConfig.mountDelay);
+
+    // 마스터 타이머 시작 (1초 간격으로 모든 로직 처리)
+    masterTimer = setInterval(() => {
+      // 1. 시스템 상태 동기화 처리
+      if (authReady && multiUserStatus) {
+        const currentRunning = multiUserStatus.isRunning;
+        if (prevRunningRef.current !== currentRunning) {
+          prevRunningRef.current = currentRunning;
+          
+          // 3초 debounce로 시스템 상태 동기화
+          if (syncTimeout) clearTimeout(syncTimeout);
+          syncTimeout = setTimeout(() => {
+            const needsStart = multiUserStatus.isRunning && !isSystemStarted;
+            const needsStop = !multiUserStatus.isRunning && isSystemStarted;
+            
+            if (needsStart) {
+              debug.log(debugWithEnv('🔄 시스템이 다른 사용자에 의해 시작됨'));
+              startSystem();
+            } else if (needsStop) {
+              debug.log(debugWithEnv('🔄 시스템이 다른 사용자에 의해 정지됨'));
+              stopSystem();
+            }
+          }, vercelConfig.syncDebounce);
+        }
+        
+        // 시작 중 상태 업데이트
+        const currentStarting = multiUserStatus.isStarting || false;
+        if (currentStarting !== isSystemStarting) {
+          debug.log(debugWithEnv(`🔄 시스템 시작 상태 업데이트: ${isSystemStarting} → ${currentStarting}`));
+          setIsSystemStarting(currentStarting);
+        }
       }
-      prevRunningRef.current = currentRunning;
-      
-      // 상태 변화가 실제로 있을 때만 동기화 (무한 루프 방지)
-      const needsStart = multiUserStatus.isRunning && !isSystemStarted;
-      const needsStop = !multiUserStatus.isRunning && isSystemStarted;
-      
-      if (needsStart) {
-        debug.log(`🔄 시스템 상태 동기화 (${isVercel ? 'Vercel' : 'Local'}): 시스템이 다른 사용자에 의해 시작됨`);
-        startSystem();
-      } else if (needsStop) {
-        debug.log(`🔄 시스템 상태 동기화 (${isVercel ? 'Vercel' : 'Local'}): 시스템이 다른 사용자에 의해 정지됨`);  
-        stopSystem();
+
+      // 2. 인증 에러 재시도 처리
+      if (authError && authReady && !authRetryTimeout) {
+        debug.error(debugWithEnv('❌ 인증 에러 발생'), authError);
+        authRetryTimeout = setTimeout(() => {
+          debug.log(debugWithEnv(`🔄 인증 재시도 시작 (${vercelConfig.authRetryDelay/1000}초 후)`));
+          retryAuth();
+          authRetryTimeout = null;
+        }, vercelConfig.authRetryDelay);
       }
 
-      // 시작 중 상태도 실제 변화가 있을 때만 업데이트
-      const currentStarting = multiUserStatus.isStarting || false;
-      if (currentStarting !== isSystemStarting) {
-        debug.log(`🔄 시스템 시작 상태 업데이트: ${isSystemStarting} → ${currentStarting}`);
-        setIsSystemStarting(currentStarting);
+      // 3. 시스템 타이머 업데이트
+      if (isSystemStarted) {
+        const remaining = getSystemRemainingTime();
+        setSystemTimeRemaining(remaining);
+      } else {
+        setSystemTimeRemaining(0);
       }
-    }, debounceDelay);
+    }, 1000); // 1초 간격
 
+    // 정리 함수
     return () => {
-      if (syncTimeoutRef.current) {
-        clearTimeout(syncTimeoutRef.current);
-      }
+      clearTimeout(mountTimer);
+      if (masterTimer) clearInterval(masterTimer);
+      if (syncTimeout) clearTimeout(syncTimeout);
+      if (authRetryTimeout) clearTimeout(authRetryTimeout);
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
     };
   }, [
     isMounted,
-    authReady, // 인증 준비 완료 후에만 동기화 시작
-    multiUserStatus?.isRunning,
-    multiUserStatus?.isStarting,
+    authReady,
+    authError,
     isSystemStarted,
-    isSystemStarting,
-    // startSystem, stopSystem 제거 - Zustand 함수는 안정적이므로 의존성 불필요
+    // 함수들은 의존성에서 제거 (stable하므로)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   ]);
-
-  // 🔄 클라이언트 마운트 감지 - 베르셀 환경 최적화
-  useEffect(() => {
-    // 베르셀 환경에서는 더 신중한 마운트 처리
-    const isVercel = process.env.VERCEL === '1' || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'));
-    
-    if (isVercel) {
-      // 베르셀에서는 추가 지연으로 hydration 안정성 확보
-      const timer = setTimeout(() => {
-        setIsMounted(true);
-        debug.log('✅ Vercel 환경에서 클라이언트 마운트 완료');
-      }, 200);
-      return () => clearTimeout(timer);
-    } else {
-      // 로컬 환경에서는 즉시 마운트
-      setIsMounted(true);
-      debug.log('✅ 로컬 환경에서 클라이언트 마운트 완료');
-    }
-  }, []);
-
-  // 인증 에러 시 재시도 로직 - 베르셀 환경 최적화
-  useEffect(() => {
-    if (authError && authReady) {
-      const isVercel = process.env.VERCEL === '1' || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'));
-      
-      debug.error(`❌ 인증 에러 발생 (${isVercel ? 'Vercel' : 'Local'}):`, authError);
-      
-      // 베르셀에서는 더 긴 재시도 간격 (베르셀: 5초, 로컬: 3초)
-      const retryDelay = isVercel ? 5000 : 3000;
-      const retryTimer = setTimeout(() => {
-        debug.log(`🔄 인증 재시도 시작 (${retryDelay/1000}초 후)`);
-        retryAuth();
-      }, retryDelay);
-      
-      return () => clearTimeout(retryTimer);
-    }
-  }, [authError, authReady, retryAuth]);
 
   // 기존 인증 로직은 useInitialAuth 훅으로 대체됨
 
   // 리다이렉션은 useInitialAuth 훅에서 자동 처리됨
 
-  // 🔧 상태 변화 디버깅 - 인증 완료 후에만 실행하여 초기화 성능 향상
-  useEffect(() => {
-    if (!isMounted || !authReady) return;
-
-    debug.log('🔍 Home - 시스템 상태 변화:', {
-      isSystemStarted,
-      aiAgentEnabled: aiAgent.isEnabled,
-      aiAgentState: aiAgent.state,
-      timeRemaining: systemTimeRemaining,
-    });
-  }, [isMounted, authReady, isSystemStarted, aiAgent.isEnabled, systemTimeRemaining]);
-
-  // 🛡️ 상태 불일치 방지 - 인증 완료 후에만 체크하여 초기화 성능 향상
-  useEffect(() => {
-    if (!isMounted || !authReady) return;
-
-    // 🚨 시스템이 시작된 후에만 상태 불일치 감지
-    if (isSystemStarted && !aiAgent.isEnabled) {
-      debug.warn(
-        '⚠️ 상태 불일치 감지: 시스템이 활성화되었지만 AI 에이전트가 비활성화됨'
-      );
-    }
-  }, [isMounted, authReady, isSystemStarted, aiAgent.isEnabled]);
-
-  // 시스템 타이머 업데이트 - 인증 완료 후에만 시작하여 초기화 지연 방지
-  useEffect(() => {
-    if (!isMounted || !authReady) return;
-
-    if (isSystemStarted) {
-      const updateTimer = () => {
-        const remaining = getSystemRemainingTime();
-        setSystemTimeRemaining(remaining);
-      };
-
-      updateTimer(); // 즉시 실행
-      const interval = setInterval(updateTimer, 1000);
-
-      return () => clearInterval(interval);
-    } else {
-      setSystemTimeRemaining(0);
-      return;
-    }
-  }, [isMounted, authReady, isSystemStarted, getSystemRemainingTime]);
+  // ✅ 모든 타이머 로직은 위 마스터 타이머에서 통합 처리됨
 
   // 카운트다운 중지 함수 (깜빡임 방지 개선)
   const stopSystemCountdown = useCallback(() => {
@@ -545,12 +489,10 @@ function Home() {
 
   // 로그아웃 처리는 UnifiedProfileHeader에서 처리됨
 
-  // 🔄 통합 로딩 상태 - 베르셀 환경 최적화
+  // 🔄 통합 로딩 상태 - 안정된 환경 감지
   const shouldShowLoading = !isMounted || authLoading || shouldRedirect;
   
   if (shouldShowLoading) {
-    const isVercel = process.env.VERCEL === '1' || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'));
-    
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
         <div className="flex min-h-screen items-center justify-center">
@@ -562,7 +504,7 @@ function Home() {
               <Loader2 className="mx-auto mb-4 h-8 w-8 text-white" />
             </motion.div>
             <p className="text-white/90 font-medium">
-              {getLoadingMessage()} {isVercel && '(Vercel 환경)'}
+              {getLoadingMessage()} ({vercelConfig.envLabel} 환경)
             </p>
             {authError && (
               <div className="mt-4 max-w-md mx-auto">
@@ -576,7 +518,7 @@ function Home() {
               </div>
             )}
             <div className="mt-2 text-xs text-white/50">
-              {isVercel ? '베르셀 서버에서 로딩 중...' : '잠시만 기다려주세요...'}
+              {vercelConfig.envLabel} 서버에서 로딩 중...
             </div>
           </div>
         </div>
@@ -584,23 +526,16 @@ function Home() {
     );
   }
 
-  // 인증이 완료되지 않았으면 대기 - 베르셀 환경 최적화
+  // 인증이 완료되지 않았으면 대기 - 안정된 환경 처리
   if (!authReady || !isAuthenticated) {
-    // 베르셀에서는 null 대신 간단한 로딩 화면으로 깜빡임 방지
-    const isVercel = process.env.VERCEL === '1' || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app'));
-    
-    if (isVercel) {
-      return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
-          <div className="text-white text-center">
-            <div className="h-4 w-4 mx-auto mb-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            <div className="text-sm">리다이렉션 중...</div>
-          </div>
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="h-4 w-4 mx-auto mb-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-sm">리다이렉션 중... ({vercelConfig.envLabel})</div>
         </div>
-      );
-    }
-    
-    return null; // 로컬에서는 빈 화면
+      </div>
+    );
   }
 
   // buttonConfig is now directly available as a memoized object
