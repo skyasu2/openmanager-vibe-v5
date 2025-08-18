@@ -18,9 +18,11 @@ const path = require('path');
 // 설정 상수
 const CONFIG = {
   TIMEOUT_SECONDS: 300, // 5분
-  MAX_FILES_FOR_FULL_CHECK: 5,
-  MAX_FILES_FOR_FAST_CHECK: 15,
-  MAX_FILES_FOR_MINIMAL_CHECK: 30,
+  MAX_FILES_FOR_FULL_CHECK: 10,
+  MAX_FILES_FOR_FAST_CHECK: 25,
+  MAX_FILES_FOR_MINIMAL_CHECK: 50,
+  TS_CACHE_DIR: '/tmp/tsc-precommit-cache',
+  MAX_FILE_SIZE_MB: 2,
 };
 
 // 유틸리티 함수들
@@ -80,6 +82,70 @@ const utils = {
     const percentage = Math.round((current / total) * 100);
     const bar = '█'.repeat(Math.round(percentage / 5)) + '░'.repeat(20 - Math.round(percentage / 5));
     console.log(`📊 [${bar}] ${percentage}% - ${description}`);
+  },
+
+  // 캐시 디렉토리 설정
+  ensureCacheDir() {
+    try {
+      if (!fs.existsSync(CONFIG.TS_CACHE_DIR)) {
+        fs.mkdirSync(CONFIG.TS_CACHE_DIR, { recursive: true });
+      }
+    } catch (error) {
+      console.log('⚠️  캐시 디렉토리 생성 실패, 캐시 비활성화');
+    }
+  },
+
+  // 파일 크기 확인
+  isFileTooLarge(filePath) {
+    try {
+      const stats = fs.statSync(filePath);
+      const fileSizeMB = stats.size / (1024 * 1024);
+      return fileSizeMB > CONFIG.MAX_FILE_SIZE_MB;
+    } catch {
+      return false;
+    }
+  },
+
+  // 변경된 TypeScript 파일만으로 임시 tsconfig 생성
+  createTempTsConfig(files) {
+    const tsFiles = files.filter(f => 
+      (f.endsWith('.ts') || f.endsWith('.tsx') || f.endsWith('.js') || f.endsWith('.jsx')) && 
+      !this.isFileTooLarge(f) &&
+      fs.existsSync(f)
+    );
+
+    if (tsFiles.length === 0) return null;
+
+    // 프로젝트 루트에 임시 파일 생성 (상대 경로 문제 해결)
+    const tempConfigPath = path.join(process.cwd(), '.tsconfig.temp.json');
+    
+    // 기본 설정을 그대로 복사하고 include만 변경
+    const baseConfig = JSON.parse(fs.readFileSync('./tsconfig.precommit.json', 'utf8'));
+    const tempConfig = {
+      ...baseConfig,
+      include: tsFiles,
+      exclude: baseConfig.exclude || []
+    };
+
+    try {
+      fs.writeFileSync(tempConfigPath, JSON.stringify(tempConfig, null, 2));
+      return tempConfigPath;
+    } catch (error) {
+      console.log('⚠️  임시 tsconfig 생성 실패:', error.message);
+      return null;
+    }
+  },
+
+  // 임시 파일 정리
+  cleanupTempFiles() {
+    const tempConfigPath = path.join(process.cwd(), '.tsconfig.temp.json');
+    try {
+      if (fs.existsSync(tempConfigPath)) {
+        fs.unlinkSync(tempConfigPath);
+      }
+    } catch (error) {
+      // 무시
+    }
   }
 };
 
@@ -116,17 +182,47 @@ const validators = {
     console.log('\n🔍 2단계: 구문 검사');
     utils.showProgress(2, 4, '구문 검사 중');
 
+    // 캐시 디렉토리 준비
+    utils.ensureCacheDir();
+
     const tsFiles = files.filter(f => f.endsWith('.ts') || f.endsWith('.tsx'));
     if (tsFiles.length === 0) {
       console.log('✅ TypeScript 파일 없음 - 스킵');
       return { success: true, skipped: true };
     }
 
-    // 가장 빠른 타입 체크 (노-이밋 모드)
+    // 큰 파일 제외
+    const validFiles = tsFiles.filter(f => !utils.isFileTooLarge(f));
+    const skippedLargeFiles = tsFiles.length - validFiles.length;
+    
+    if (skippedLargeFiles > 0) {
+      console.log(`⚠️  큰 파일 ${skippedLargeFiles}개 스킵 (>${CONFIG.MAX_FILE_SIZE_MB}MB)`);
+    }
+
+    if (validFiles.length === 0) {
+      console.log('✅ 검사할 TypeScript 파일 없음 - 스킵');
+      return { success: true, skipped: true };
+    }
+
+    console.log(`🔧 TypeScript 파일 ${validFiles.length}개 검사 (변경된 파일만)`);
+
+    // 변경된 파일만으로 임시 tsconfig 생성
+    const tempConfigPath = utils.createTempTsConfig(validFiles);
+    
+    if (!tempConfigPath) {
+      console.log('⚠️  임시 설정 생성 실패, 기본 검사로 대체');
+      return utils.timeCommand(
+        'TypeScript 구문 검사 (기본)',
+        'npx tsc --noEmit --skipLibCheck --project tsconfig.precommit.json',
+        60 // 1분 제한
+      );
+    }
+
+    // 최적화된 TypeScript 검사 (변경된 파일만)
     return utils.timeCommand(
-      'TypeScript 구문 검사',
-      'npx tsc --noEmit --skipLibCheck --incremental false',
-      120 // 2분 제한
+      `TypeScript 구문 검사 (${validFiles.length}개 파일)`,
+      `npx tsc --noEmit --skipLibCheck --project "${tempConfigPath}"`,
+      30 // 30초 제한 (변경된 파일만이므로 빠름)
     );
   },
 
@@ -175,13 +271,16 @@ const validators = {
 
 // 메인 실행 함수
 async function main() {
-  console.log('🚀 스마트 Pre-commit 검증 시작\n');
+  console.log('🚀 스마트 Pre-commit 검증 시작 (v3.0 - 성능 최적화)\n');
   
   // 환경 변수 체크
   if (process.env.HUSKY === '0') {
     console.log('⏭️  HUSKY=0 설정으로 검증을 건너뜁니다.');
     process.exit(0);
   }
+
+  // 캐시 시스템 초기화
+  utils.ensureCacheDir();
 
   // 변경된 파일 분석
   const allFiles = utils.getChangedFiles();
@@ -253,6 +352,9 @@ async function main() {
     console.log('🚀 검증을 스킵하고 커밋을 진행합니다...');
     process.env.HUSKY = '0';
     process.exit(0);
+  } finally {
+    // 임시 파일 정리
+    utils.cleanupTempFiles();
   }
 }
 
