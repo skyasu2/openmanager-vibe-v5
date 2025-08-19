@@ -99,8 +99,21 @@
       "args": [
         "--from", "git+https://github.com/oraios/serena",
         "serena-mcp-server",
+        "--tool-timeout", "60",
         "--project", "/mnt/d/cursor/openmanager-vibe-v5"
-      ]
+      ],
+      "env": {
+        "UV_CACHE_DIR": "/tmp/uv-cache",
+        "UV_LINK_MODE": "copy",
+        "PYTHONUNBUFFERED": "1",
+        "UV_NO_PROGRESS": "true"
+      },
+      "timeout": 120000,
+      "restart": {
+        "enabled": true,
+        "delay": 5000,
+        "maxRetries": 3
+      }
     }
   }
 }

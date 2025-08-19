@@ -49,11 +49,11 @@
 | `thinking`   | ✅   | NPM  | 순차적 사고 처리     | `@modelcontextprotocol/server-sequential-thinking` |
 | `context7`   | ✅   | NPM  | 라이브러리 문서 검색 | `@upstash/context7-mcp`                            |
 | `shadcn`     | ✅   | NPM  | UI 컴포넌트 관리     | `@magnusrodseth/shadcn-mcp-server`                 |
-| `serena`     | ✅   | SSE  | 코드 분석/리팩토링   | `serena-mcp-server` (SSE)                          |
+| `serena`     | ✅   | UVX  | 코드 분석/리팩토링   | `serena-mcp-server` (UVX + 안정화)                  |
 | `time`       | ✅   | UVX  | 시간대 변환/관리     | `mcp-server-time`                                  |
 
 **✅ 완전 정상**: 12개 전체 (filesystem, memory, github, supabase, gcp, tavily, playwright, thinking, context7, shadcn, serena, time)  
-**🎉 특별 해결**: Serena MCP - SSE 하트비트 시스템으로 타임아웃 문제 완전 해결
+**🎉 특별 해결**: Serena MCP - UVX 안정화 설정으로 타임아웃 문제 완전 해결
 
 ## 🛠️ 사전 준비
 
@@ -100,39 +100,34 @@ npm install -g \
 Python 서버는 uvx로 실행 시 자동 설치되므로 별도 설치 불필요:
 
 - `time`: uvx mcp-server-time
-- `serena`: **SSE 방식 연결** (Server-Sent Events)
+- `serena`: **UVX 안정화 방식** (캐시 최적화 + 링크 모드)
 
-#### 🌐 Serena MCP SSE 설정
+#### 🔧 Serena MCP UVX 안정화 설정
 
-Serena MCP는 SSE(Server-Sent Events) 방식으로 연결되어 안정적인 실시간 통신을 제공합니다.
+Serena MCP는 UVX 방식에 안정화 설정을 추가하여 타임아웃 문제를 해결했습니다.
 
-**1단계: Serena SSE 서버 시작**
-
-```bash
-# Serena SSE 모드로 시작
-./scripts/start-serena-sse.sh
-
-# 또는 수동으로 시작
-uvx --from git+https://github.com/oraios/serena serena-mcp-server \
-  --transport sse \
-  --port 9121 \
-  --project /mnt/d/cursor/openmanager-vibe-v5
-```
-
-**2단계: .mcp.json에서 SSE 설정**
+**1단계: .mcp.json에서 UVX 안정화 설정**
 
 ```json
 "serena": {
-  "type": "sse",
-  "url": "http://localhost:9121/sse"
+  "command": "/home/skyasu/.local/bin/uvx",
+  "args": [
+    "--from", "git+https://github.com/oraios/serena",
+    "serena-mcp-server",
+    "--project", "/mnt/d/cursor/openmanager-vibe-v5"
+  ],
+  "env": {
+    "UV_CACHE_DIR": "/tmp/uv-cache",
+    "UV_LINK_MODE": "copy"
+  }
 }
 ```
 
-**3단계: 연결 확인**
+**2단계: 연결 확인**
 
 ```bash
-# SSE 엔드포인트 테스트
-curl -s http://localhost:9121/sse | head -3
+# UVX Serena 설치 확인
+uvx --from git+https://github.com/oraios/serena serena-mcp-server --help
 
 # Claude Code에서 연결 확인
 claude mcp list | grep serena
@@ -221,8 +216,16 @@ claude mcp list | grep serena
       "args": ["mcp-server-time"]
     },
     "serena": {
-      "type": "sse",
-      "url": "http://localhost:9121/sse"
+      "command": "/home/skyasu/.local/bin/uvx",
+      "args": [
+        "--from", "git+https://github.com/oraios/serena",
+        "serena-mcp-server",
+        "--project", "/mnt/d/cursor/openmanager-vibe-v5"
+      ],
+      "env": {
+        "UV_CACHE_DIR": "/tmp/uv-cache",
+        "UV_LINK_MODE": "copy"
+      }
     }
   }
 }
