@@ -302,35 +302,36 @@ MCP: 모든 서버 접근 (filesystem, memory, github, supabase, gcp 등)
 
 ## 🤖 AI 협업
 
-### gemini-agent ⭐ (무료 대용량)
+### gemini-agent ⭐ (Claude 서브에이전트)
 
-**Google AI 1M 토큰 전문가**
+**Google AI 1M 토큰 전문가 (Claude 서브에이전트)**
 
 ```yaml
 도구: Read, Write, Bash, Grep
-특화: 대규모 코드 분석, SOLID 원칙 검증, 멀티모달 처리
+특화: 대규모 코드 분석, SOLID 원칙 검증, 멀티모달 처리  
 제한: 일일 1,000회, 분당 60회 (무료)
+연동: Gemini CLI와 통합
 ```
 
-### qwen-agent (무료 빠른)
+### 외부 AI 도구들 (별도 CLI 시스템)
 
-**Alibaba AI 빠른 프로토타이핑**
+#### Codex CLI (단일 도구)
+**ChatGPT Plus 기반 개발 도구**
+- **설정 파일**: AGENTS.md (12개 전문 분야)
+- **비용**: $20/월 (ChatGPT Plus)
+- **특화**: TypeScript, Next.js, 테스트 등 12개 도메인
 
-```yaml
-도구: Read, Write, Edit, MultiEdit, Bash
-특화: 빠른 코드 스니펫, 알고리즘 검증, 70% 빠른 처리
-제한: 무료 (제한 없음)
-```
+#### Qwen CLI (단일 도구)  
+**Alibaba AI 빠른 개발 도구**
+- **설정 파일**: QWEN.md (활용 가이드)
+- **비용**: 무료 (2,000회/일)
+- **특화**: 병렬 개발, 빠른 프로토타이핑
 
-### codex-agent (유료 고급)
-
-**ChatGPT Plus 요금제 AI**
-
-```yaml
-도구: Read, Write, Edit, MultiEdit, Bash, Glob, Grep, LS, TodoWrite
-특화: 복잡한 로직 구현, 한국어 개발 지원, 환경 설정 관리
-비용: Plus $20/월
-```
+#### Gemini CLI (단일 도구)
+**Google AI Senior Architect**
+- **설정 파일**: GEMINI.md (활용 가이드)
+- **비용**: 무료 (1,000회/일)
+- **특화**: 대규모 분석, 아키텍처 검토
 
 ## 🎨 기타 전문가
 
@@ -375,29 +376,31 @@ const [dbResult, securityResult] = await Promise.all([
 ### 고급 협업 패턴
 
 ```typescript
-// AI 협업 4종 세트 (병렬 처리)
-const aiCollaboration = async (task: string) => {
-  const [claudeResult, codexResult, geminiResult, qwenResult] =
-    await Promise.all([
-      Task({
-        subagent_type: 'ai-systems-specialist',
-        prompt: task,
-      }),
-      Task({
-        subagent_type: 'codex-agent',
-        prompt: `고품질 구현: ${task}`,
-      }),
-      Task({
-        subagent_type: 'gemini-agent',
-        prompt: `대규모 분석: ${task}`,
-      }),
-      Task({
-        subagent_type: 'qwen-agent',
-        prompt: `빠른 검증: ${task}`,
-      }),
-    ]);
+// Claude 서브에이전트 + 외부 AI 협업
+const multiAiCollaboration = async (task: string) => {
+  // 1. Claude 서브에이전트 실행
+  const claudeResult = await Task({
+    subagent_type: 'ai-systems-specialist',
+    prompt: task,
+  });
+  
+  const geminiResult = await Task({
+    subagent_type: 'gemini-agent', // Claude 서브에이전트
+    prompt: `대규모 분석: ${task}`,
+  });
 
-  return { claude: claudeResult, gemini: geminiResult, qwen: qwenResult };
+  // 2. 외부 CLI 도구 병렬 실행
+  const [codexResult, qwenResult] = await Promise.all([
+    executeCodexCLI(`전문 분야 구현: ${task}`),
+    executeQwenCLI(`빠른 프로토타입: ${task}`)
+  ]);
+
+  return { 
+    claude: claudeResult, 
+    gemini: geminiResult, 
+    codex: codexResult, 
+    qwen: qwenResult 
+  };
 };
 ```
 
@@ -810,11 +813,18 @@ claude /agents
 
 ```typescript
 const metrics = {
-  agents: {
-    total: 22, // 19개 프로젝트 + 3개 기본
+  claude_subagents: {
+    total: 19, // Claude Code 서브에이전트
     taskEnabled: 5, // Task 도구 보유
     mcpIntegrated: 4, // MCP 접근 가능
     structureHealth: '100%',
+  },
+
+  external_ai_tools: {
+    codex_cli: 1, // ChatGPT Plus 기반 (12개 전문 분야)
+    gemini_cli: 1, // Google AI (Senior Architect)
+    qwen_cli: 1, // Alibaba AI (병렬 개발)
+    total: 3,
   },
 
   productivity: {
@@ -825,7 +835,6 @@ const metrics = {
   },
 
   collaboration: {
-    aiTools: 3, // Claude + Gemini + Qwen + Codex
     monthlyCost: '$220', // Claude Max $200 + Codex $20
     monthlyValue: '$2,200+', // API 환산 시
     efficiency: '10x',
@@ -835,6 +844,10 @@ const metrics = {
 
 ---
 
-**🎯 결론**: 19개 전문 에이전트를 통한 계층적 협업 체계로 개발 생산성 극대화 달성
+**🎯 결론**: 19개 Claude 서브에이전트 + 3개 외부 AI 도구로 극대화된 개발 생산성 달성
 
-**💡 핵심**: Task 도구 + MCP 통합 + 병렬 AI 협업 = **무제한 생산성** ✨
+**💡 핵심**: Task 도구 + MCP 통합 + 다중 AI 협업 = **무제한 생산성** ✨
+
+**📊 시스템 구성**:
+- **Claude Code 서브에이전트**: 19개 (Task 5개, MCP 4개)
+- **외부 AI CLI 도구**: Codex CLI, Gemini CLI, Qwen CLI

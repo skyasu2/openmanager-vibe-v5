@@ -28,18 +28,40 @@ ChatGPT Codex CLI를 위한 OpenManager VIBE v5 특화 설정
 codex-cli init --project openmanager-vibe-v5 --korean --wsl
 ```
 
-## 🎯 Codex 빠른 시작 (OpenManager VIBE v5)
+## 🎯 Codex 에이전트 역할 정의
+
+### 🧠 Senior Development AI Assistant
+
+**역할**: 풀스택 개발 문제 해결 및 코드 아키텍처 설계 전문가
+
+**핵심 역량**:
+- **TypeScript & Next.js**: strict 모드 최적화, App Router 성능 튜닝
+- **데이터베이스**: Supabase PostgreSQL 스키마 설계 및 RLS 정책
+- **테스트 주도 개발**: Vitest/Playwright 자동화 및 커버리지 관리
+- **성능 최적화**: Core Web Vitals, 번들 크기, 메모리 사용량 개선
+- **보안 감사**: 취약점 스캔, 환경변수 보안, CSP 구현
+- **AI 시스템 통합**: MCP 서버 관리, 멀티 AI 협업 최적화
+- **인프라 관리**: Vercel 배포, GCP 백엔드, 무료 티어 최적화
+- **코드 아키텍처**: 대규모 리팩토링, 의존성 관리, 모듈 설계
+
+**작업 우선순위**:
+1. **사용자 요청 직접 해결** (1순위)
+2. **복잡한 기술 문제 분석** (2순위)  
+3. **제3자 관점 코드 리뷰** (3순위)
+4. **Claude Code 사용량 절약** (Max 요금제로 현재 불필요)
+
+## 🚀 Codex 빠른 시작 (OpenManager VIBE v5)
 
 ```bash
 # WSL 접속 및 프로젝트 이동
 wsl
 cd /mnt/d/cursor/openmanager-vibe-v5
 
-# Codex CLI 기본 명령어
-codex-cli "TypeScript 382개 에러 자동 수정해줘"
-codex-cli "Next.js 15 App Router 성능 최적화"
-codex-cli "Supabase RLS 정책 보안 검토"
-codex-cli "Vitest 테스트 커버리지 100% 달성"
+# Codex CLI 핵심 사용 패턴
+codex-cli "TypeScript 382개 에러 종합 분석 및 자동 수정 전략"
+codex-cli "Next.js 15 성능 병목점 진단 및 최적화 로드맵"
+codex-cli "Supabase RLS 정책 보안 취약점 감사 및 개선안"
+codex-cli "AI 협업 시스템 아키텍처 개선 방안 제시"
 
 # 프로젝트별 단축 명령어
 alias cdv="cd /mnt/d/cursor/openmanager-vibe-v5"
@@ -74,9 +96,41 @@ AI_Integration:
   Multi_AI: 'Claude + Gemini + Qwen + Codex 병렬 협업'
 ```
 
-## 🤖 Codex 전문 에이전트 구성 (12개)
+## 💡 주요 활용 시나리오
 
-### 1. 🔧 TypeScript 엔지니어
+**Claude Code 서브에이전트로 통합 완료** - Task 도구로 호출 가능
+
+**우선순위**: Claude Code > Gemini CLI, Codex CLI > Qwen CLI
+
+### 1️⃣ 긴급 문제 해결 (최우선)
+```bash
+codex-cli "TypeScript 컴파일 에러 382개 원인 분석 및 즉시 해결"
+codex-cli "프로덕션 배포 실패 근본 원인 진단 및 복구"
+codex-cli "성능 급저하 병목점 탐지 및 응급 최적화"
+```
+
+### 2️⃣ 복잡한 아키텍처 분석 (2순위)  
+```bash
+codex-cli "Next.js 15 App Router 아키텍처 성능 병목점 종합 진단"
+codex-cli "Supabase RLS 정책 보안 취약점 전체 감사"
+codex-cli "MCP 서버 12개 통합 아키텍처 최적화 방안"
+```
+
+### 3️⃣ 제3자 관점 코드 리뷰 (3순위)
+```bash
+codex-cli "현재 컴포넌트 구조의 문제점과 개선 로드맵 제시"
+codex-cli "AI 협업 시스템 아키텍처 객관적 검토 및 개선안"
+codex-cli "전체 코드베이스 품질 감사 및 리팩토링 우선순위"
+```
+
+### 4️⃣ 사용량 절약 모드 (Max 요금제로 현재 불필요)
+```bash
+# 차후 Pro/Max5 요금제 전환 시 활용
+codex-cli "간단한 버그 수정 및 타입 오류 해결"
+codex-cli "반복적인 코드 패턴 생성"
+```
+
+## 🤖 이전 12개 전문 분야 섹션 (참고용)
 
 ```yaml
 typescript_engineer:

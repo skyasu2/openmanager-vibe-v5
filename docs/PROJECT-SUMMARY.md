@@ -8,13 +8,12 @@
 
 - Frontend: Next.js 15 (App Router), React 18, TypeScript(strict), Tailwind
 - Backend: Edge runtime, GCP Functions, Supabase(Postgres + pgVector)
-- AI: Claude Code 중심, Codex, Google/Gemini, Qwen 등 보조 에이전트
+- AI: Claude Code (메인), 서브 에이전트들, VSCode Copilot (보조)
 
 개발 환경(권장)
 
-- WSL2 (Ubuntu 24.04)에서 Node.js, npm 등 개발 서버를 실행하고,
-  **코드 편집은 Windows에서 VSCode를 직접 실행**하는 방식을 권장합니다.
-  (예: Windows에서 `code .` 명령 또는 바탕화면에서 폴더 열기)
+- **WSL2** (Ubuntu 24.04): 메인 개발 환경
+- **VSCode** (Windows): 보조 개발 환경 (자세한 AI 도구 활용법은 `CLAUDE.md` 참조)
 - Node >= 20 (권장: 22.18.0+), npm 10+
 
 중요한 루트 파일/폴더

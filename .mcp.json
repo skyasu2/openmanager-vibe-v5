@@ -95,8 +95,12 @@
       }
     },
     "serena": {
-      "type": "sse",
-      "url": "http://localhost:9121/sse"
+      "command": "/home/skyasu/.local/bin/uvx",
+      "args": [
+        "--from", "git+https://github.com/oraios/serena",
+        "serena-mcp-server",
+        "--project", "/mnt/d/cursor/openmanager-vibe-v5"
+      ]
     }
   }
 }

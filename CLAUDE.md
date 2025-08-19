@@ -29,10 +29,16 @@
 - **장점**: Linux 네이티브 성능, MCP 서버 완전 통합
 - **도구**: Claude Code v1.0.81, Node.js v22.18.0
 
-### 🔧 보조 도구: Windows + VSCode
-- **용도**: 이미지 처리, 가끔 간단한 수정
-- **역할**: 보완적 활용만 (메인 개발 아님)
+### 🔧 보조 개발 환경: Windows + VSCode + GitHub Copilot
+- **용도**: 이미지 처리, WSL 터미널 호스팅, 보조 코드 제안
+- **역할**: Claude Code 보완 및 전문 분야 지원
 - **도구**: VSCode, GitHub Copilot
+- **전문 분야**:
+  - WSL 터미널 호스팅 (Claude Code 실행 환경)
+  - 스크린샷 캡쳐 및 이미지 분석
+  - 시각적 콘텐츠 처리 및 UI 목업 변환  
+  - 빠른 코드 스니펫 및 타입 자동완성
+  - 반복 패턴 코드 제안 및 간단한 리팩토링
 
 ### 🛠️ 개인 도구 관리
 - **위치**: `.local/windows/` 폴더
@@ -92,11 +98,17 @@ cd D:\cursor\openmanager-vibe-v5\.local\windows
 .\dev-switch.ps1 wsl
 ```
 
-### 🔧 보조 도구 (가끔 사용)
+### 🔧 보조 개발 환경 활용
 
 ```powershell
-# VSCode 시작 (이미지 처리, 간단한 수정)
+# VSCode + GitHub Copilot 시작
 code .
+
+# 주요 활용 시나리오:
+# 1. 스크린샷 캡쳐 → Claude Code로 분석 요청
+# 2. 이미지 목업 → React 컴포넌트 변환 
+# 3. GitHub Copilot으로 타입 자동완성
+# 4. 반복 패턴 코드 제안 받기
 
 # WSL 명령어 실행 (Windows에서)
 wsl npm run dev
@@ -136,7 +148,7 @@ wsl claude --version
 **AI CLI 도구 응답시간:**
 - **Claude Code**: 1.0초 (정상)
 - **Gemini CLI**: 3.1초 (보통)
-- **Qwen CLI**: 4.8초 (최적화 필요)
+- **Qwen CLI**: 4.8초 (OpenRouter 경유, 최적화 필요)
 - **ccusage**: 0.16초 (우수)
 
 #### ⚙️ 최적화 설정 상세
@@ -194,7 +206,7 @@ command=sysctl -w vm.vfs_cache_pressure=50
 
 - **Claude Code**: WSL에서 실행 (메인 AI 개발 환경)
 - **Gemini CLI**: WSL 전용 설치 (Google AI 통합)
-- **Qwen CLI**: WSL 전용 설치 (Alibaba AI 통합)
+- **Qwen CLI**: WSL 전용 설치 (OpenRouter 통해 1K/day 무료)
 - **Node.js**: WSL 네이티브 설치 (v22.18.0)
 - **Git**: WSL 네이티브 (Linux 호환성)
 
@@ -238,7 +250,7 @@ command=sysctl -w vm.vfs_cache_pressure=50
 | **Claude Code**       | v1.0.81 | Max ($200/월) | 🏆 **메인 개발 환경**       | .\claude-wsl-optimized.bat |
 | **Codex CLI**         | 최신    | Plus ($20/월)       | 🤝 **서브 에이전트** (유료)  | .\codex-wsl.bat            |
 | **Google Gemini CLI** | v0.1.21 | 무료 (1K req/day)   | 👨‍💻 **코드 아키텍트** (무료) | .\gemini-wsl.bat           |
-| **Qwen Code**         | v0.0.6  | 무료 (2K req/day)   | 🔷 **병렬 모듈 개발** (무료) | .\qwen-wsl.bat             |
+| **Qwen Code**         | v0.0.6  | 무료 (OpenRouter 1K/day)   | 🔷 **병렬 모듈 개발** (무료) | .\qwen-wsl.bat             |
 | **OpenAI CLI**        | 설치됨  | -                   | 🔧 **SDK 도구**             | .\openai-wsl.bat           |
 | **ccusage**           | v15.9.7 | 무료                | 📊 **사용량 모니터링**      | ccusage daily              |
 
@@ -305,7 +317,7 @@ gemini -p "서버 로그 패턴 분석 및 성능 병목 찾기"
 gemini -p "API 문서 자동 생성해줘"
 ```
 
-#### 🆓 Qwen CLI (Alibaba AI 무료)
+#### 🆓 Qwen CLI (OpenRouter를 통해 1,000회/일 무료)
 
 **빠른 프로토타이핑 및 검증**
 
@@ -385,7 +397,7 @@ echo "🔄 최적 모델 선택으로 생산성 극대화"
 - **총 월 투자**: $220 (Claude Max $200 + Codex $20)
 - **실제 작업 가치**: $2,200+ (API 환산 시)
 - **비용 효율성**: 10배 이상 절약 효과
-- **무료 보조 도구**: Gemini + Qwen (무제한 병렬 처리)
+- **무료 보조 도구**: Gemini (1K/day) + Qwen (OpenRouter 1K/day) 병렬 처리
 - **개발 생산성**: 4배 증가 (멀티 AI 협업)
 - **코드 품질**: 교차 검증으로 버그 90% 감소
 

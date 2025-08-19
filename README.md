@@ -94,6 +94,37 @@ VM_API_TOKEN=your_vm_api_token
 
 상세 설정은 [환경 설정 가이드](./docs/setup/ENV-SETUP-QUICKSTART.md)를 참조하세요.
 
+## 🤖 AI 개발 도구 통합
+
+### 메인 AI: Claude Code (WSL 환경)
+
+```bash
+# WSL 터미널에서 실행 (메인 개발 환경)
+claude --version  # v1.0.81
+claude /status    # 상태 확인
+```
+
+**역할**: 메인 개발, 아키텍처 설계, 프로젝트 전체 컨텍스트 관리
+
+### 서브 AI: 병렬 개발 지원
+
+```bash
+# 토큰 부족시 또는 병렬 처리시 활용
+gemini-cli "코드 최적화 요청"    # Google AI (무료)
+codex-cli "복잡한 알고리즘"      # ChatGPT Plus ($20/월)
+qwen-cli "함수 설명 요청"        # Qwen (무료 백업)
+```
+
+### 보조 AI: VSCode + GitHub Copilot (Windows)
+
+**전문 분야**: 
+- 이미지 캡쳐 및 분석
+- UI 목업 → React 컴포넌트 변환
+- 타입 자동완성 및 스니펫 생성
+- WSL 터미널 호스팅
+
+**활용법**: `code .` → GitHub Copilot으로 보조 작업 → Claude Code로 메인 개발
+
 ## 🖥️ GCP VM 관리 (Windows 최적화)
 
 Windows 환경에서 GCP VM을 API로 관리할 수 있는 통합 시스템:
