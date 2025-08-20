@@ -200,6 +200,10 @@ logs/gcp-*.json
 reports/gcp-quota-report-*.md
 .vscode/gcp-alerts.json
 
+# AI 검토 보고서 및 분석 리포트 (GitHub 제외)
+reports/
+!reports/README.md
+
 # External MCP servers (cloned from GitHub)
 fetch-mcp/
 fetch-mcp-server/

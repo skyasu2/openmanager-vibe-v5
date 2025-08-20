@@ -60,13 +60,6 @@
         "mcp-server-time"
       ]
     },
-    "thinking": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking"
-      ]
-    },
     "context7": {
       "command": "npx",
       "args": [
@@ -78,42 +71,47 @@
         "UPSTASH_REDIS_REST_TOKEN": "${UPSTASH_REDIS_REST_TOKEN}"
       }
     },
-    "shadcn": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@magnusrodseth/shadcn-mcp-server"
-      ]
-    },
     "gcp": {
       "command": "node",
       "args": [
-        "/home/skyasu/.nvm/versions/node/v22.18.0/lib/node_modules/google-cloud-mcp/dist/index.js"
+        "/home/skyasu/.nvm/versions/node/v22.17.1/lib/node_modules/google-cloud-mcp/dist/index.js"
       ],
       "env": {
-        "GOOGLE_CLOUD_PROJECT": "openmanager-free-tier"
+        "GOOGLE_CLOUD_PROJECT": "${GCP_PROJECT_ID}",
+        "GOOGLE_APPLICATION_CREDENTIALS": "${HOME}/.config/gcloud/application_default_credentials.json"
       }
     },
     "serena": {
       "command": "/home/skyasu/.local/bin/uvx",
       "args": [
-        "--from", "git+https://github.com/oraios/serena",
+        "--from",
+        "git+https://github.com/oraios/serena",
         "serena-mcp-server",
-        "--tool-timeout", "60",
-        "--project", "/mnt/d/cursor/openmanager-vibe-v5"
+        "--tool-timeout",
+        "60",
+        "--project",
+        "/mnt/d/cursor/openmanager-vibe-v5"
       ],
       "env": {
         "UV_CACHE_DIR": "/tmp/uv-cache",
         "UV_LINK_MODE": "copy",
         "PYTHONUNBUFFERED": "1",
         "UV_NO_PROGRESS": "true"
-      },
-      "timeout": 120000,
-      "restart": {
-        "enabled": true,
-        "delay": 5000,
-        "maxRetries": 3
       }
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking@latest"
+      ]
+    },
+    "shadcn-ui": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@jpisnice/shadcn-ui-mcp-server@latest"
+      ]
     }
   }
 }

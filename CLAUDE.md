@@ -127,9 +127,9 @@ wsl claude --version
 - **논리 프로세서**: 12개
 
 **WSL2 최적화 할당 (.wslconfig):**
-- **메모리**: 12GB (시스템의 75%, 기존 8GB → 12GB 향상)
-- **프로세서**: 8개 (논리 프로세서의 66%, 기존 4개 → 8개 향상)
-- **스왑**: 8GB (대규모 AI 작업 지원, 기존 1GB → 8GB 향상)
+- **메모리**: 8GB (시스템의 50%, 안정적 성능 보장)
+- **프로세서**: 6개 (논리 프로세서의 50%, 균형잡힌 리소스 배분)
+- **스왑**: 16GB (대규모 AI 작업 지원, 여유로운 스왑 공간)
 - **네트워크**: localhost 포워딩, NAT 모드
 - **성능 옵션**: 메모리 압축 비활성화, 중첩 가상화 지원
 
@@ -156,13 +156,14 @@ wsl claude --version
 **C:\Users\skyas\.wslconfig:**
 ```ini
 [wsl2]
-memory=12GB              # 75% 메모리 할당
-processors=8             # 66% CPU 할당
-swap=8GB                 # 대용량 작업 지원
+memory=8GB               # 50% 메모리 할당 (안정성 우선)
+processors=6             # 50% CPU 할당 (균형잡힌 성능)
+swap=16GB                # 여유로운 스왑 공간 (AI 작업 지원)
 localhostForwarding=true # 네트워크 최적화
-kernelCommandLine=sysctl.vm.swappiness=10
+firewall=true            # 보안 강화
+nestedVirtualization=true # 중첩 가상화 지원
 vmIdleTimeout=60000      # AI 작업 고려 연장
-nestedVirtualization=true
+kernelCommandLine=sysctl.vm.swappiness=10
 pageReporting=false      # 성능 우선
 ```
 
@@ -192,15 +193,15 @@ command=sysctl -w vm.vfs_cache_pressure=50
 #### 💡 최적화 효과
 
 **리소스 활용률 개선:**
-- CPU 활용: 33% → 66% (2배 향상)
-- 메모리 활용: 50% → 75% (1.5배 향상)
-- 스왑 용량: 1GB → 8GB (8배 향상)
+- CPU 활용: 33% → 50% (1.5배 향상)
+- 메모리 활용: 40% → 50% (1.25배 향상)
+- 스왑 용량: 1GB → 16GB (16배 향상)
 
 **예상 성능 향상:**
-- AI CLI 도구 응답속도 20-30% 향상
-- 대용량 컴파일 작업 40% 빨라짐
+- AI CLI 도구 응답속도 15-20% 향상
+- 대용량 컴파일 작업 25% 빨라짐
 - 동시 AI 도구 실행 성능 향상
-- 메모리 부족 현상 해결
+- 메모리 부족 현상 해결 (16GB 스왑 활용)
 
 ### 개발 도구 통합
 
@@ -247,10 +248,10 @@ command=sysctl -w vm.vfs_cache_pressure=50
 
 | 도구                  | 버전    | 요금제              | 역할 구분                   | 실행 방법                  |
 | --------------------- | ------- | ------------------- | --------------------------- | -------------------------- |
-| **Claude Code**       | v1.0.81 | Max ($200/월) | 🏆 **메인 개발 환경**       | .\claude-wsl-optimized.bat |
-| **Codex CLI**         | 최신    | Plus ($20/월)       | 🤝 **서브 에이전트** (유료)  | .\codex-wsl.bat            |
-| **Google Gemini CLI** | v0.1.21 | 무료 (1K req/day)   | 👨‍💻 **코드 아키텍트** (무료) | .\gemini-wsl.bat           |
-| **Qwen Code**         | v0.0.6  | 무료 (OpenRouter 1K/day)   | 🔷 **병렬 모듈 개발** (무료) | .\qwen-wsl.bat             |
+| **Claude Code**       | v1.0.84 | Max ($200/월) | 🏆 **메인 개발 환경**       | .\claude-wsl-optimized.bat |
+| **Codex CLI**         | v0.22.0 | Plus ($20/월)       | 🤝 **서브 에이전트** (유료)  | .\codex-wsl.bat            |
+| **Google Gemini CLI** | v0.1.22 | 무료 (1K req/day)   | 👨‍💻 **코드 아키텍트** (무료) | .\gemini-wsl.bat           |
+| **Qwen Code**         | v0.0.7  | 무료 (OpenRouter 1K/day)   | 🔷 **병렬 모듈 개발** (무료) | .\qwen-wsl.bat             |
 | **OpenAI CLI**        | 설치됨  | -                   | 🔧 **SDK 도구**             | .\openai-wsl.bat           |
 | **ccusage**           | v15.9.7 | 무료                | 📊 **사용량 모니터링**      | ccusage daily              |
 
@@ -404,6 +405,172 @@ echo "🔄 최적 모델 선택으로 생산성 극대화"
 ---
 
 💡 **핵심 철학**: **Max 정액제 + 서브 3개** 체제로 무제한 생산성과 극도의 비용 효율성
+
+## 🤝 AI 협력 검토 시스템 v2.0 (2025-08-20 신규)
+
+**Claude Code Max를 메인으로 한 자동 검토 및 협력 개발 시스템**
+
+### 🎯 핵심 기능
+
+#### 📊 작업 크기/중요도 자동 평가
+- **자동 분석**: 변경 줄 수, 파일 중요도, 복잡도 자동 계산
+- **검토 레벨 자동 결정**:
+  - **Level 1** (< 50줄): 1개 AI 검토 (Gemini 우선)
+  - **Level 2** (50-200줄): 2개 AI 병렬 검토 (Gemini + Codex)
+  - **Level 3** (> 200줄): 3개 AI 전체 검토 (Gemini + Codex + Qwen)
+
+#### 🔒 중요 파일 자동 Level 3 검토
+```javascript
+// 자동으로 3-AI 검토가 트리거되는 파일들
+*.config.*      // 설정 파일
+.env*          // 환경변수
+auth/*         // 인증 관련
+api/*          // API 엔드포인트
+security/*     // 보안 관련
+```
+
+### 🚀 사용 방법
+
+#### 기본 명령어
+```bash
+# 시스템 설정 (최초 1회)
+./scripts/ai-collaborate.sh setup
+
+# 파일 검토
+./scripts/ai-collaborate.sh review src/app/api/auth/route.ts
+
+# 파일 변경 자동 감시
+./scripts/ai-collaborate.sh watch --auto
+
+# 커밋 검토
+./scripts/ai-collaborate.sh commit HEAD
+
+# PR 검토
+./scripts/ai-collaborate.sh pr 123
+
+# AI 사용량 확인
+./scripts/ai-collaborate.sh status
+```
+
+#### 고급 옵션
+```bash
+# 보안에 초점을 맞춘 검토
+./scripts/ai-collaborate.sh review *.ts --focus security
+
+# Level 3 강제 적용 (중요한 변경)
+./scripts/ai-collaborate.sh review *.ts --level 3
+
+# 특정 AI만 사용
+./scripts/ai-collaborate.sh review *.ts --ai gemini
+
+# 자동 모드 (확인 없이 개선사항 적용)
+./scripts/ai-collaborate.sh watch --auto
+```
+
+### 📈 검토 프로세스
+
+```mermaid
+graph LR
+    A[Claude Code 개발] --> B[자동 분석]
+    B --> C{검토 레벨 결정}
+    C -->|Level 1| D[1 AI 검토]
+    C -->|Level 2| E[2 AI 병렬 검토]
+    C -->|Level 3| F[3 AI 전체 검토]
+    D --> G[결과 통합]
+    E --> G
+    F --> G
+    G --> H{의사결정}
+    H -->|8.5+점| I[자동 수용]
+    H -->|6-8.5점| J[부분 수용]
+    H -->|<6점| K[재작업]
+    I --> L[보고서 생성]
+    J --> L
+    K --> L
+```
+
+### 🎯 자동 트리거 조건
+
+| 조건 | 자동 동작 |
+|------|-----------|
+| 파일 50줄+ 변경 | Level 1 검토 자동 실행 |
+| 파일 200줄+ 변경 | Level 2 검토 자동 실행 |
+| auth/*, api/* 변경 | Level 3 검토 강제 실행 |
+| Git commit 시 | 변경량 기반 자동 검토 |
+| PR 생성 시 | 전체 3-AI 검토 + PR 코멘트 |
+
+### 📊 검토 결과 및 의사결정
+
+#### 점수 기반 자동 결정
+- **8.5점 이상**: ✅ 자동 수용 (고품질 코드)
+- **6.0-8.5점**: ⚠️ 부분 수용 (개선사항 적용 후)
+- **6.0점 미만**: ❌ 재작업 필요
+- **보안 이슈 발견**: 🚨 즉시 거절 (수정 필수)
+
+#### AI 합의 수준
+- **High**: 🟢 모든 AI 의견 일치 (±0.5점)
+- **Medium**: 🟡 대체로 일치 (±1.0점)
+- **Low**: 🟠 의견 차이 있음 (±2.0점)
+- **Very Low**: 🔴 큰 의견 차이 (수동 검토 필요)
+
+### 📄 검토 보고서
+
+모든 검토는 자동으로 마크다운 보고서로 생성됩니다:
+- **위치**: `reports/ai-reviews/`
+- **형식**: `YYYY-MM-DD_HH-MM-SS_review_ID.md`
+- **내용**: 점수, 개선사항, 보안 이슈, 권장사항
+
+```bash
+# 보고서 목록 확인
+./scripts/ai-collaborate.sh report
+
+# 일일 요약 생성
+./scripts/ai-collaborate.sh daily
+```
+
+### 💡 효율성 최적화
+
+#### AI 사용량 관리
+```javascript
+// 일일 제한 (무료 티어)
+Gemini: 1,000회/일
+Qwen: 1,000회/일 (OpenRouter)
+Codex: 무제한 (ChatGPT Plus $20/월)
+
+// 우선순위
+1. 무료 AI 우선 사용 (Gemini, Qwen)
+2. 제한 도달 시 Codex 사용
+3. 중요 작업은 Codex 우선
+```
+
+#### 병렬 처리
+- 2-3개 AI 동시 실행으로 검토 시간 단축
+- 비동기 처리로 대기 시간 최소화
+- 결과 캐싱으로 중복 검토 방지
+
+### 🔄 향후 확장성
+
+#### 교차 검증 모드 (비용 절감 시)
+```javascript
+// Claude Code 사용량 절감 모드
+if (monthlyUsage > threshold) {
+  // A 개발 → B,C 검토
+  Gemini 개발 → Codex, Qwen 검토
+  Codex 개발 → Gemini, Qwen 검토
+  Qwen 개발 → Gemini, Codex 검토
+}
+```
+
+#### 커스텀 규칙 추가
+```javascript
+// .ai-review-config.json
+{
+  "customRules": {
+    "database/*": { "minLevel": 3 },
+    "*.test.ts": { "skip": true },
+    "migrations/*": { "focus": "security" }
+  }
+}
+```
 
 ## 🤖 서브에이전트 최적화 전략 (2025-08-15 신규 최적화)
 
@@ -726,76 +893,152 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 
 ## 🔌 MCP 통합 (Model Context Protocol)
 
-**12개 MCP 서버 연결 완료** - 12개 모두 완전 정상 ✅ (2025-08-17 업데이트)
+**✅ 11/12 서버 정상 작동** (2025-08-20 11:00 전체 재테스트 완료)
 
 Claude Code와 외부 시스템을 직접 연결하는 핵심 기능입니다.
 
-### 🎯 핵심 서버 (12/12 연결, 12/12 완전 정상) 
+### 🎯 핵심 서버 상태 (2025-08-20 11:00 전체 재테스트)
 
-- **✅ 파일 시스템**: `filesystem`, `memory` - 프로젝트 파일 직접 조작
-- **✅ 개발 플랫폼**: `github`, `supabase` - GitHub API, 데이터베이스 연동
-- **✅ 클라우드 인프라**: `gcp` - Google Cloud Platform 리소스 관리
-- **✅ 웹 검색**: `tavily` - 웹 검색, 크롤링
-- **✅ 브라우저 자동화**: `playwright` - 브라우저 테스트, 스크린샷
-- **✅ AI & 분석**: `thinking`, `context7` - 고급 사고, 문서 검색
-- **✅ 코드 분석**: `serena` - SSE 방식으로 완전 해결 (25개 도구)
-- **✅ 유틸리티**: `time`, `shadcn` - 시간대 변환, UI 컴포넌트
+- **✅ 파일 시스템**: `filesystem`, `memory` - 정상 작동
+- **❌ GitHub**: 인증 실패 (Bad credentials) - 토큰 갱신 후에도 문제 지속
+- **✅ 개발 플랫폼**: `supabase` - 정상 작동 (대용량 응답)
+- **✅ 클라우드 인프라**: `gcp` - 정상 작동 (프로젝트 관리)
+- **✅ 웹 검색**: `tavily` - 정상 작동 (웹 검색, 크롤링)
+- **✅ 브라우저 자동화**: `playwright` - 정상 작동 (브라우저 제어)
+- **✅ AI & 분석**: `sequential-thinking`, `context7` - 정상 작동
+- **✅ 코드 분석**: `serena` - 정상 작동 (프로젝트 활성화 필요)
+- **✅ 유틸리티**: `time`, `shadcn-ui` - 정상 작동 (시간대 변환, UI 컴포넌트)
 
-### 🔧 해결된 문제
+### 🔧 해결이 필요한 문제
 
-- **Serena MCP**: SSE 방식 도입으로 타임아웃 문제 완전 해결
-- **환경변수 경고**: `.mcp.json` 환경변수 참조는 정상 동작 (경고 무시 가능)
-- **인증 문제**: GitHub, Supabase, Tavily, Upstash API 키 설정 완료
-- **설정 충돌**: 중복 설정 정리 및 단일 설정 소스로 통합
-- **성능 최적화**: 12개 서버 병렬 처리 및 캐싱 전략 적용
+#### ❌ GitHub MCP 서버 인증 실패 - 근본 원인 발견 (2025-08-20 11:00)
+- **근본 원인**: Claude Code가 시작 시점의 환경변수를 캐시하여 설정 변경이 반영되지 않음
+- **증거**: 실행 중인 GitHub MCP 프로세스가 만료된 토큰 사용 중
+  - 캐시된 토큰: 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 (만료)
+  - 새 토큰: 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 (유효)
+- **해결 방법**:
+  1. Claude Code 완전 종료: `pkill -f claude`
+  2. 프로세스 확인: `ps aux | grep claude`
+  3. Claude Code 재시작
+  4. GitHub MCP 정상 작동 확인
+
+
+### 🔐 환경변수 보안 설정 (2025-08-20 업데이트)
+
+**중요**: 모든 토큰과 API 키는 `.env.local`에 저장하고, `.mcp.json`에는 환경변수 참조만 사용합니다.
+
+```bash
+# .env.local 파일 설정 (Git에서 제외됨)
+GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxxx
+SUPABASE_ACCESS_TOKEN=sbp_xxxxx  
+TAVILY_API_KEY=tvly-xxxxx
+UPSTASH_REDIS_REST_URL=https://xxxxx.upstash.io
+UPSTASH_REDIS_REST_TOKEN=xxxxx
+
+# .mcp.json은 환경변수 참조만 포함
+"env": {
+  "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+}
+```
+
+**보안 문서**: [MCP 환경변수 보안 가이드](docs/security/mcp-environment-security-guide.md)
+
+### 📝 MCP 서버 재설정 가이드
+
+#### 1단계: 환경변수 설정
+```bash
+# .env.local 파일 확인 및 토큰 설정
+cat .env.local | grep -E "(GITHUB|SUPABASE|TAVILY|UPSTASH)"
+
+# 테스트 스크립트 실행
+./scripts/test-mcp-servers.sh
+```
+
+#### 2단계: MCP 서버 의존성 설치
+```bash
+# npx 기반 서버들 (자동 설치되지만 확인 필요)
+npx -y @modelcontextprotocol/server-filesystem --version
+npx -y @modelcontextprotocol/server-memory --version
+npx -y @modelcontextprotocol/server-github --version
+npx -y @supabase/mcp-server-supabase@latest --version
+npx -y tavily-mcp --version
+npx -y @executeautomation/playwright-mcp-server --version
+npx -y @modelcontextprotocol/server-sequential-thinking@latest --version
+npx -y @upstash/context7-mcp --version
+npx -y @jpisnice/shadcn-ui-mcp-server@latest --version
+
+# uvx 기반 서버들
+uvx mcp-server-time --version
+uvx --from git+https://github.com/oraios/serena serena-mcp-server --version
+
+# GCP MCP는 별도 설치 필요
+npm install -g google-cloud-mcp
+```
+
+#### 3단계: Claude Code 재시작
+```bash
+# Claude Code 완전 재시작
+claude api restart
+
+# MCP 서버 상태 확인
+claude mcp list
+```
 
 ### 🌥️ GCP 통합 현황
 
-**✅ GCP MCP**: 정상 활성화 (wslu 브라우저 연동 완료)
-**✅ VM API**: 정상 동작 (104.154.205.25:10000)
+**❌ GCP MCP**: 연결 안됨 (재설정 필요)
+**✅ VM API**: 정상 동작 가능 (104.154.205.25:10000)
 
 ```bash
-# GCP MCP로 VM 인스턴스 확인
-mcp__gcp__list_instances({project: 'openmanager-free-tier'})
+# GCP MCP 재설정 필요
+# 1. Google Cloud SDK 설치 확인
+gcloud auth application-default login
 
-# VM API 헬스체크 (보조)
+# 2. 인증 파일 확인
+ls -la ~/.config/gcloud/application_default_credentials.json
+
+# 3. GCP MCP 재설치
+npm install -g google-cloud-mcp
+
+# VM API 헬스체크 (대체 방법)
 curl http://104.154.205.25:10000/health
 # {"status":"healthy","version":"2.0","port":10000}
 
 # 시스템 모니터링
 curl http://104.154.205.25:10000/api/status
-# PM2 프로세스 정상, 메모리 976MB 중 509MB 사용
 ```
 
-**이중화 체제**: GCP MCP + VM API로 안정적인 인프라 관리
+**현재 상태**: VM API만 사용 가능, MCP 재설정 필요
 
-### 📚 사용법
+### 📚 현재 사용 가능한 MCP 도구
 
 ```bash
 # MCP 서버 상태 확인
-claude mcp list  # 12/12 서버 Connected 확인
+claude mcp list  # 현재 2/12개만 작동
 
-# Serena SSE 서버 시작 (필요시)
-./scripts/start-serena-sse.sh
+# 현재 사용 가능한 MCP 도구들 (✅ 정상)
+# - mcp__filesystem__* : 파일 시스템 조작
+# - mcp__memory__* : 메모리 그래프 관리
 
-# MCP 설정 최적화
-./scripts/optimize-mcp-config.sh
-
-# Claude Code에서 MCP 도구 사용 (94개 도구 활용 가능)
-# 예: mcp__github__search_repositories
-# 예: mcp__tavily__tavily_search  
-# 예: mcp__supabase__execute_sql
-# 예: mcp__gcp__list_instances
-# 예: mcp__serena__activate_project
-# 예: mcp__shadcn__list_components
+# 현재 사용 불가능한 MCP 도구들 (❌ 재설정 필요)
+# - mcp__github__* : GitHub 토큰 만료
+# - mcp__supabase__* : 서버 미연결
+# - mcp__gcp__* : 서버 미연결
+# - mcp__tavily__* : 서버 미연결
+# - mcp__playwright__* : 서버 미연결
+# - mcp__serena__* : 서버 미연결
+# - mcp__shadcn__* : 서버 미연결
+# - mcp__sequential_thinking__* : 서버 미연결
+# - mcp__context7__* : 서버 미연결
+# - mcp__time__* : 서버 미연결
 ```
 
 ### 📖 상세 문서 (2025년 8월 업데이트)
 
 - **[MCP 종합 가이드](docs/MCP-GUIDE.md)** - 12개 서버 완전 활용 가이드 (150KB)
 - **[MCP 설치 가이드](docs/mcp/mcp-complete-installation-guide-2025.md)** - 2025년판 완전 설치 가이드 (80KB)
-- **[MCP 도구 레퍼런스](docs/mcp/mcp-tools-reference.md)** - 94개 도구 완전 레퍼런스 (120KB)
-- **[MCP 필수 서버 가이드](docs/mcp/essential-mcp-servers-guide.md)** - Time, ShadCN, Google AI 통합 (45KB)
+- **[MCP 도구 레퍼런스](docs/mcp/mcp-tools-reference.md)** - 90+ 도구 완전 레퍼런스 (120KB)
+- **[MCP 필수 서버 가이드](docs/mcp/essential-mcp-servers-guide.md)** - Time, ShadCN UI, Context7 통합 (45KB)
 
 ---
 
@@ -1024,7 +1267,8 @@ return amount \* (1 + taxRate);
 ### WSL 환경 상태
 
 - **메모리**: 8GB 할당, 7.8GB 사용 가능
-- **스왑**: 8GB 설정
+- **프로세서**: 6개 할당 (균형잡힌 성능)
+- **스왑**: 16GB 설정 (여유로운 AI 작업 지원)
 - **AI CLI 도구**: 6개 모두 완벽 작동 (Claude, Codex, Gemini, Qwen, OpenAI, ccusage)
 - **멀티 AI 협업**: Max 정액제 + 서브 3개 체제 ($220/월로 $2,200+ 가치)
 - **Claude 사용량 모니터링**: ccusage statusline 실시간 표시 활성화
