@@ -16,7 +16,7 @@ fi
 
 # Node.js 스마트 스크립트 실행
 echo "🚀 스마트 Pre-commit 검증 시작..."
-node scripts/git/smart-pre-commit.js
+node scripts/update/smart-pre-commit.js
 
 # 스크립트 결과에 따라 처리
 exit_code=$?

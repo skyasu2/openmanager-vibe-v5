@@ -246,14 +246,16 @@ command=sysctl -w vm.vfs_cache_pressure=50
 
 ### 설치된 AI CLI 도구들
 
-| 도구                  | 버전    | 요금제              | 역할 구분                   | 실행 방법                  |
-| --------------------- | ------- | ------------------- | --------------------------- | -------------------------- |
-| **Claude Code**       | v1.0.84 | Max ($200/월) | 🏆 **메인 개발 환경**       | .\claude-wsl-optimized.bat |
-| **Codex CLI**         | v0.22.0 | Plus ($20/월)       | 🤝 **서브 에이전트** (유료)  | .\codex-wsl.bat            |
-| **Google Gemini CLI** | v0.1.22 | 무료 (1K req/day)   | 👨‍💻 **코드 아키텍트** (무료) | .\gemini-wsl.bat           |
-| **Qwen Code**         | v0.0.7  | 무료 (Qwen OAuth 2K/day)   | 🔷 **병렬 모듈 개발** (무료) | .\qwen-wsl.bat             |
-| **OpenAI CLI**        | 설치됨  | -                   | 🔧 **SDK 도구**             | .\openai-wsl.bat           |
-| **ccusage**           | v16.1.1 | 무료                | 📊 **사용량 모니터링**      | ccusage daily              |
+| 도구                  | 버전    | 요금제              | 역할 구분                   | WSL 실행                   | Windows 네이티브           |
+| --------------------- | ------- | ------------------- | --------------------------- | -------------------------- | -------------------------- |
+| **Claude Code**       | v1.0.84 | Max ($200/월) | 🏆 **메인 개발 환경**       | .\claude-wsl-optimized.bat | ✅ 완벽 지원                |
+| **Codex CLI**         | v0.22.0 | Plus ($20/월)       | 🤝 **서브 에이전트** (유료)  | .\codex-wsl.bat            | ❌ **미지원**              |
+| **Google Gemini CLI** | v0.1.22 | 무료 (1K req/day)   | 👨‍💻 **코드 아키텍트** (무료) | .\gemini-wsl.bat           | ✅ 완벽 지원                |
+| **Qwen Code**         | v0.0.7  | 무료 (Qwen OAuth 2K/day)   | 🔷 **병렬 모듈 개발** (무료) | .\qwen-wsl.bat             | ✅ 완벽 지원                |
+| **OpenAI CLI**        | 설치됨  | -                   | 🔧 **SDK 도구**             | .\openai-wsl.bat           | ✅ 완벽 지원                |
+| **ccusage**           | v16.1.1 | 무료                | 📊 **사용량 모니터링**      | ccusage daily              | ✅ 완벽 지원                |
+
+> ⚠️ **중요**: **Codex CLI는 WSL에서만 지원**됩니다. Windows 네이티브 환경에서는 사용할 수 없습니다.
 
 ### 통합 실행
 
