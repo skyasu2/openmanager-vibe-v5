@@ -13,13 +13,13 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { OPENMANAGER_COMPONENTS } from '../config/system-components';
+import { OPENMANAGER_COMPONENTS } from '@/config/system-components';
 import type {
   ComponentStatus,
   SystemChecklistState,
   SystemComponent,
   UseSystemChecklistProps,
-} from '../types/system-checklist';
+} from '@/types/system-checklist';
 
 // 타입들을 re-export
 export type {

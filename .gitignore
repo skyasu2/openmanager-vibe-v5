@@ -338,3 +338,10 @@ eslint-result.json
 *.swp
 *.swo
 *~
+
+# Build artifacts and temporary files
+logs/
+test-results/
+playwright-report/
+.next/
+

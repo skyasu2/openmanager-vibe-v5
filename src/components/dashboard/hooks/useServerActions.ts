@@ -22,7 +22,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import type { Server } from '../../../types/server';
+import type { Server } from '@/types/server';
 import type { ServerAction } from '../types/dashboard.types';
 
 export const useServerActions = () => {

@@ -1,5 +1,5 @@
 import { Activity, FileText, Lightbulb, MessageSquare } from 'lucide-react';
-import type { AIAssistantStats } from '../../../types/ai-assistant';
+import type { AIAssistantStats } from '@/types/ai-assistant';
 import { Card, CardContent } from '../../ui/card';
 
 interface AIAssistantStatsCardsProps {
