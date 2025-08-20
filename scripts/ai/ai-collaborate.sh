@@ -196,7 +196,7 @@ review_files() {
     
     # Node.js 스크립트 실행
     cd "$PROJECT_ROOT"
-    node "$SCRIPTS_DIR/ai-collaboration-workflow.mjs" review "${files[@]}" $EXTRA_OPTS
+    node "$SCRIPTS_DIR/ai/ai-collaboration-workflow.mjs" review "${files[@]}" $EXTRA_OPTS
 }
 
 # === 파일 감시 ===
@@ -205,7 +205,7 @@ watch_files() {
     log INFO "종료하려면 Ctrl+C를 누르세요"
     
     cd "$PROJECT_ROOT"
-    node "$SCRIPTS_DIR/ai-collaboration-workflow.mjs" watch $EXTRA_OPTS
+    node "$SCRIPTS_DIR/ai/ai-collaboration-workflow.mjs" watch $EXTRA_OPTS
 }
 
 # === 커밋 검토 ===
@@ -215,7 +215,7 @@ review_commit() {
     log INFO "커밋 검토: $commit"
     
     cd "$PROJECT_ROOT"
-    node "$SCRIPTS_DIR/ai-collaboration-workflow.mjs" commit "$commit" $EXTRA_OPTS
+    node "$SCRIPTS_DIR/ai/ai-collaboration-workflow.mjs" commit "$commit" $EXTRA_OPTS
 }
 
 # === PR 검토 ===
@@ -230,7 +230,7 @@ review_pr() {
     log INFO "Pull Request #$pr_number 검토..."
     
     cd "$PROJECT_ROOT"
-    node "$SCRIPTS_DIR/ai-collaboration-workflow.mjs" pr "$pr_number" $EXTRA_OPTS
+    node "$SCRIPTS_DIR/ai/ai-collaboration-workflow.mjs" pr "$pr_number" $EXTRA_OPTS
 }
 
 # === 작업 분석 ===
@@ -245,7 +245,7 @@ analyze_task() {
     log INFO "${#files[@]}개 파일 분석 중..."
     
     cd "$PROJECT_ROOT"
-    node "$SCRIPTS_DIR/ai-review-system.mjs" analyze "${files[@]}"
+    node "$SCRIPTS_DIR/ai/ai-review-system.mjs" analyze "${files[@]}"
 }
 
 # === AI 사용량 현황 ===
@@ -253,7 +253,7 @@ show_status() {
     log INFO "AI 사용량 현황 확인..."
     
     cd "$PROJECT_ROOT"
-    node "$SCRIPTS_DIR/ai-review-system.mjs" status
+    node "$SCRIPTS_DIR/ai/ai-review-system.mjs" status
     
     # Claude Code 사용량도 표시
     if command -v ccusage &> /dev/null; then
@@ -268,7 +268,7 @@ list_reports() {
     log INFO "검토 보고서 목록..."
     
     cd "$PROJECT_ROOT"
-    node "$SCRIPTS_DIR/ai-review-reporter.mjs" list --limit 20
+    node "$SCRIPTS_DIR/ai/ai-review-reporter.mjs" list --limit 20
 }
 
 # === 일일 요약 ===
@@ -276,7 +276,7 @@ generate_daily() {
     log INFO "일일 요약 생성 중..."
     
     cd "$PROJECT_ROOT"
-    node "$SCRIPTS_DIR/ai-review-reporter.mjs" daily
+    node "$SCRIPTS_DIR/ai/ai-review-reporter.mjs" daily
 }
 
 # === 시스템 테스트 ===
@@ -323,7 +323,7 @@ test_system() {
     
     for module in "${modules[@]}"; do
         echo -n "  $module: "
-        if [ -f "$SCRIPTS_DIR/$module" ]; then
+        if [ -f "$SCRIPTS_DIR/ai/$module" ]; then
             echo -e "${GREEN}✓${NC}"
         else
             echo -e "${RED}✗${NC}"
@@ -379,7 +379,7 @@ setup_system() {
     
     echo -e "\n${CYAN}3. 실행 권한 설정${NC}"
     chmod +x "$PROJECT_ROOT/scripts/ai-collaborate.sh"
-    chmod +x "$PROJECT_ROOT/scripts/"*.mjs
+    chmod +x "$PROJECT_ROOT/scripts/ai/"*.mjs
     log SUCCESS "실행 권한 설정 완료"
     
     echo -e "\n${CYAN}4. npm 패키지 설치${NC}"
