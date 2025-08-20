@@ -313,3 +313,28 @@ gcp-functions-health-report.json
 *.temp.json
 .tsconfig.temp.json
 tsconfig.*.temp.json
+
+# 🏗️ Build & Test Results (Enhanced - 2025-08-20)
+coverage/
+playwright-report/
+test-results/
+.nyc_output/
+dist/
+build/
+.tmp/
+tmp/
+
+# 📊 Large Analysis Files (Enhanced - 2025-08-20)
+reports/analysis/*.json
+reports/performance/*.json
+*.analysis.json
+eslint-result.json
+*-results.json
+*-report.json
+
+# 🔧 IDE & Tools (Enhanced - 2025-08-20)
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
