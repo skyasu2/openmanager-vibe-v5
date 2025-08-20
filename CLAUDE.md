@@ -253,7 +253,7 @@ command=sysctl -w vm.vfs_cache_pressure=50
 | **Google Gemini CLI** | v0.1.22 | 무료 (1K req/day)   | 👨‍💻 **코드 아키텍트** (무료) | .\gemini-wsl.bat           |
 | **Qwen Code**         | v0.0.7  | 무료 (Qwen OAuth 2K/day)   | 🔷 **병렬 모듈 개발** (무료) | .\qwen-wsl.bat             |
 | **OpenAI CLI**        | 설치됨  | -                   | 🔧 **SDK 도구**             | .\openai-wsl.bat           |
-| **ccusage**           | v15.9.7 | 무료                | 📊 **사용량 모니터링**      | ccusage daily              |
+| **ccusage**           | v16.1.1 | 무료                | 📊 **사용량 모니터링**      | ccusage daily              |
 
 ### 통합 실행
 
@@ -888,7 +888,7 @@ git_push_failed → auto_trigger("git-cicd-specialist")
 3. **자동화**: 트리거 조건으로 즉시 전문가 투입
 4. **효율성**: 18개만 사용으로 빠른 의사결정
 
-## 📊 Claude Code Statusline (2025-08-15 신규 추가)
+## 📊 Claude Code Statusline (2025-08-20 업데이트)
 
 **실시간 Claude 효율성 모니터링** - Max 사용자의 작업량 가치 추적 (가상 비용 환산)
 
@@ -897,7 +897,7 @@ git_push_failed → auto_trigger("git-cicd-specialist")
 Claude Code statusline은 다음과 같은 실시간 정보를 표시합니다:
 
 ```
-🤖 Opus | 💰 $0.23 session / $1.23 today / $0.45 block (2h 45m left) | 🔥 $0.12/hr | 🧠 25,000 (12%)
+🤖 Opus | 💰 $0.23 session / $1.23 today / $0.45 block (2h 45m left) | 🔥 $0.12/hr 🟢 | 🧠 25,000 (12%)
 ```
 
 #### 표시 구성 요소
@@ -906,47 +906,55 @@ Claude Code statusline은 다음과 같은 실시간 정보를 표시합니다:
 - **💰 Session Cost**: 현재 대화 세션 작업량 (API 가치 환산)
 - **💰 Daily Total**: 당일 총 누적 작업량 (API 가치 환산)
 - **💰 Block Cost**: 5시간 블록 작업량 및 남은 시간
-- **🔥 Burn Rate**: 시간당 토큰 소비 비율 (색상 코딩)
+- **🔥 Burn Rate**: 시간당 토큰 소비 비율 (이모지 색상 코딩)
 - **🧠 Context Usage**: 입력 토큰 수 및 한계 대비 비율 (색상 코딩)
 
-### ⚙️ 설정 방법
+### ⚙️ 설정 방법 (중복 실행 이슈 해결 버전)
 
-#### 1. ccusage 설치 확인
+#### 1. ccusage 글로벌 설치 (중복 실행 방지)
 
 ```bash
-# WSL에서 ccusage 설치 상태 확인
-ccusage --version  # v15.9.7 이상
-npm list -g ccusage # 글로벌 설치 확인
-
-# 미설치 시 설치
+# WSL에서 ccusage 글로벌 설치 (중복 실행 방지를 위해 필수)
 npm install -g ccusage
+
+# 설치 확인
+ccusage --version  # v16.1.1 이상
+which ccusage      # /usr/bin/ccusage 또는 /usr/local/bin/ccusage
 ```
 
 #### 2. Claude Code 설정 파일 생성
 
 ```bash
-# ~/.claude/settings.json 또는 ~/.config/claude/settings.json 생성
+# ~/.claude/settings.json 설정 (글로벌 ccusage 직접 호출)
 {
   "statusLine": {
     "type": "command",
-    "command": "ccusage statusline",
+    "command": "ccusage statusline --visual-burn-rate emoji",
     "padding": 0
   }
 }
 ```
 
+**⚠️ 중요**: `npx` 또는 `bun x` 대신 글로벌 설치된 `ccusage`를 직접 호출하여 중복 실행 이슈 해결
+
 #### 3. 고급 설정 옵션
 
-```bash
-# 온라인 모드로 최신 가격 정보 사용 (기본값: offline)
+```json
+// visual-burn-rate 옵션들
 {
   "statusLine": {
     "type": "command",
-    "command": "ccusage statusline --no-offline",
+    "command": "ccusage statusline --visual-burn-rate emoji",     // 🟢 ⚠️ 🚨
+    // 또는
+    "command": "ccusage statusline --visual-burn-rate text",      // (low) (medium) (high)
+    // 또는
+    "command": "ccusage statusline --visual-burn-rate emoji-text", // 🟢 (low)
     "padding": 0
   }
 }
+```
 
+```bash
 # 환경변수로 색상 임계값 커스터마이징
 export CCUSAGE_CONTEXT_LOW_THRESHOLD=40
 export CCUSAGE_CONTEXT_MEDIUM_THRESHOLD=70
@@ -955,17 +963,21 @@ export CCUSAGE_CONTEXT_MEDIUM_THRESHOLD=70
 #### 4. Claude Code 재시작
 
 ```bash
-# Claude Code 완전 종료 후 재시작
-# 상태 표시줄에 실시간 정보 표시 확인
+# Claude Code 재시작 (설정 적용)
+claude api restart
+
+# 또는 프로세스 재시작
+pkill -f claude
+claude
 ```
 
 ### 🎨 색상 코딩 시스템
 
-#### Burn Rate (소각률) 색상
+#### Burn Rate (소각률) 이모지 표시
 
-- **🟢 녹색**: 정상 소비율 (효율적 사용)
-- **🟡 노란색**: 보통 소비율 (적정 수준)
-- **🔴 빨간색**: 높은 소비율 (주의 필요)
+- **🟢**: 정상 소비율 (효율적 사용)
+- **⚠️**: 보통 소비율 (적정 수준)
+- **🚨**: 높은 소비율 (주의 필요)
 
 #### Context Usage (컨텍스트 사용량) 색상
 
@@ -1006,24 +1018,32 @@ ccusage daily --instances
 #### Statusline이 표시되지 않는 경우
 
 ```bash
-# 1. ccusage 설치 확인
+# 1. ccusage 글로벌 설치 확인 (중요!)
 which ccusage
-ccusage --version
+ccusage --version  # v16.1.1 이상
 
-# 2. 설정 파일 경로 확인
-ls -la ~/.claude/settings.json
-ls -la ~/.config/claude/settings.json
+# 2. 설정 파일 경로 및 내용 확인
+cat ~/.claude/settings.json
 
 # 3. 수동으로 statusline 테스트
-echo '{"model":"claude-3-5-sonnet-20241022","input_tokens":1000,"output_tokens":500}' | ccusage statusline
+echo '{"model":"claude-3-5-sonnet-20241022","input_tokens":1000,"output_tokens":500}' | ccusage statusline --visual-burn-rate emoji
 
 # 4. Claude Code 재시작
-# Claude Code 완전 종료 후 재시작 필요
+claude api restart
+
+# 5. 프로세스 확인
+ps aux | grep ccusage  # 중복 프로세스 확인
 ```
+
+#### 중복 실행 이슈 해결
+
+- **원인**: npx/bun x 사용 시 매번 패키지 다운로드로 인한 중복 실행
+- **해결책**: 글로벌 설치 후 직접 호출 (`ccusage` not `npx ccusage`)
+- **확인**: `ps aux | grep ccusage`로 단일 프로세스만 실행 중인지 확인
 
 #### 오프라인 모드 활용
 
-- **기본값**: `--offline` (빠른 성능, 캐시된 가격 데이터 사용)
+- **기본값**: `--offline` (빠른 성능, 캐시된 가격 데이터 사용) 
 - **온라인 모드**: `--no-offline` (최신 가격 정보, 약간 느림)
 
 ### 💡 Max 사용자 활용 팁
@@ -1492,7 +1512,7 @@ return amount \* (1 + taxRate);
 - **스왑**: 16GB 설정 (여유로운 AI 작업 지원)
 - **AI CLI 도구**: 6개 모두 완벽 작동 (Claude, Codex, Gemini, Qwen, OpenAI, ccusage)
 - **멀티 AI 협업**: Max 정액제 + 서브 3개 체제 ($220/월로 $2,200+ 가치)
-- **Claude 사용량 모니터링**: ccusage statusline 실시간 표시 활성화
+- **Claude 사용량 모니터링**: ccusage v16.1.1 statusline 실시간 표시 활성화 (중복 실행 이슈 해결)
 - **sudo**: 비밀번호 없이 사용 가능
 
 ---
