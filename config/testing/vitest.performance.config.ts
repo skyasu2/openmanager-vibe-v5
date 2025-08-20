@@ -9,14 +9,14 @@ export default defineConfig({
     testTimeout: 30000, // 성능 테스트는 더 긴 시간 필요
     hookTimeout: 10000,
     globals: true,
-    reporter: ['verbose'],
+    reporters: ['verbose'],
     outputFile: {
       json: './coverage/performance-test-results.json',
     },
     benchmark: {
       include: ['**/*.{bench,benchmark}.{js,ts}'],
       exclude: ['node_modules'],
-      reporter: ['verbose', 'json'],
+      reporters: ['verbose'],
       outputFile: {
         json: './coverage/benchmark-results.json',
       },

@@ -14,7 +14,7 @@ export default defineConfig({
       '**/*.dom.*',
     ],
     globals: true,
-    reporter: ['verbose', 'json'],
+    reporters: ['verbose', 'json'],
     outputFile: {
       json: '../../coverage/node-test-results.json',
     },

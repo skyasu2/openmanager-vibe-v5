@@ -8,7 +8,7 @@ describe('프로젝트 설정 검증', () => {
       'next.config.mjs',
       'tsconfig.json',
       'package.json',
-      'vitest.config.ts',
+      'config/testing/vitest.config.main.ts', // 이동된 위치
     ];
 
     requiredConfigs.forEach((config) => {

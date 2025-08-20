@@ -126,16 +126,16 @@ export default defineConfig(({ mode }) => {
     // 📦 Vite 설정
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src'),
-        '@/components': path.resolve(__dirname, './src/components'),
-        '@/lib': path.resolve(__dirname, './src/lib'),
-        '@/utils': path.resolve(__dirname, './src/utils'),
-        '@/types': path.resolve(__dirname, './src/types'),
-        '@/services': path.resolve(__dirname, './src/services'),
-        '@/core': path.resolve(__dirname, './src/core'),
-        '@/modules': path.resolve(__dirname, './src/modules'),
-        '@/test': path.resolve(__dirname, './src/test'),
-        '~': path.resolve(__dirname, './'),
+        '@': path.resolve(__dirname, '../../src'),
+        '@/components': path.resolve(__dirname, '../../src/components'),
+        '@/lib': path.resolve(__dirname, '../../src/lib'),
+        '@/utils': path.resolve(__dirname, '../../src/utils'),
+        '@/types': path.resolve(__dirname, '../../src/types'),
+        '@/services': path.resolve(__dirname, '../../src/services'),
+        '@/core': path.resolve(__dirname, '../../src/core'),
+        '@/modules': path.resolve(__dirname, '../../src/modules'),
+        '@/test': path.resolve(__dirname, '../../src/test'),
+        '~': path.resolve(__dirname, '../../'),
       },
     },
 
