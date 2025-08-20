@@ -1,146 +1,102 @@
-# 🔐 OpenManager Vibe v5 - 환경변수 암호화 시스템
+# Config Directory
 
-## 📋 개요
+**체계적으로 정리된 설정 파일 구조** - JBGE 원칙 적용 (2025-08-20 업데이트)
 
-OpenManager Vibe v5는 민감한 환경변수들을 AES 암호화하여 안전하게 저장하고 관리하는 시스템을 제공합니다. 이 시스템을 통해 데이터베이스 연결 정보, API 키, 토큰 등을 Git에 안전하게 커밋할 수 있습니다.
+This directory contains organized configuration files for OpenManager VIBE v5, categorized by purpose and functionality.
 
-## 🔑 암호화된 환경변수 목록
-
-현재 암호화되어 저장된 환경변수들:
-
-### 📊 Supabase (데이터베이스)
-
-- `NEXT_PUBLIC_SUPABASE_URL`: Supabase 프로젝트 URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase 익명 키 (공개)
-- `SUPABASE_SERVICE_ROLE_KEY`: Supabase 서비스 롤 키 (비공개)
-
-### 🔴 Redis (캐시)
-
-- `UPSTASH_REDIS_REST_URL`: Upstash Redis REST URL
-- `UPSTASH_REDIS_REST_TOKEN`: Upstash Redis 인증 토큰
-
-### 🔧 MCP 서버 (Model Context Protocol)
-
-- **Claude Code MCP 서버**: stdio (표준 입출력) 통신, 포트 사용 안 함
-  - **중요**: Claude Code의 11개 MCP 서버는 네트워크 포트를 사용하지 않습니다
-  - 프로세스 간 파이프를 통한 JSON-RPC 통신 방식
-  - filesystem, memory, github 등은 모두 stdio로 Claude Code와 직접 통신
-
-### 🚀 GCP AI 백엔드
-
-- `GCP_AI_BACKEND_URL`: GCP VM AI 백엔드 URL (선택사항)
-  - **참고**: AI 백엔드는 MCP 서버와 완전히 별개의 시스템입니다
-
-## 🚀 사용법
-
-### 1. 전체 환경변수 복호화
-
-```bash
-# 모든 환경변수를 복호화하여 .env.decrypted 파일 생성
-node scripts/decrypt-env-vars.mjs openmanager2025
-```
-
-### 2. 특정 환경변수 복호화
-
-```bash
-# 특정 환경변수만 복호화하여 출력
-node scripts/decrypt-env-vars.mjs openmanager2025 UPSTASH_REDIS_REST_TOKEN
-node scripts/decrypt-env-vars.mjs openmanager2025 NEXT_PUBLIC_SUPABASE_URL
-```
-
-### 3. 새로운 환경변수 암호화
-
-```bash
-# 환경변수 값을 수정한 후 재암호화
-node scripts/encrypt-env-vars.mjs
-```
-
-## 🔧 개발 환경 설정
-
-### 방법 1: 복호화된 환경변수 사용
-
-```bash
-# 1. 환경변수 복호화
-node scripts/decrypt-env-vars.mjs openmanager2025
-
-# 2. .env.decrypted를 .env.local로 복사
-cp .env.decrypted .env.local
-
-# 3. 개발 서버 시작
-npm run dev
-
-# 4. 보안을 위해 복호화 파일 삭제
-rm .env.decrypted
-```
-
-### 방법 2: 직접 환경변수 설정
-
-```bash
-# 특정 변수만 복호화하여 환경변수로 설정
-export UPSTASH_REDIS_REST_TOKEN=$(node scripts/decrypt-env-vars.mjs openmanager2025 UPSTASH_REDIS_REST_TOKEN | cut -d'=' -f2)
-```
-
-## 🛡️ 보안 가이드라인
-
-### ✅ 안전한 사용법
-
-- 팀 비밀번호는 안전한 곳에 보관
-- 복호화된 파일(`.env.decrypted`)은 사용 후 즉시 삭제
-- 암호화된 설정 파일(`encrypted-env-config.mjs`)은 Git에 커밋 가능
-
-### ❌ 금지사항
-
-- 복호화된 환경변수를 Git에 커밋하지 말 것
-- 팀 비밀번호를 코드에 하드코딩하지 말 것
-- 복호화된 파일을 장기간 보관하지 말 것
-
-## 🔄 환경변수 순환 일정
-
-- **Quarterly (분기별)**: Redis 토큰
-- **Manual (수동)**: 기타 모든 환경변수
-
-## 📂 파일 구조
+## 📁 Directory Structure
 
 ```
 config/
-├── encrypted-env-config.mjs    # 암호화된 환경변수 설정
-└── README.md                   # 이 파일
-
-scripts/
-├── encrypt-env-vars.mjs        # 환경변수 암호화 스크립트
-└── decrypt-env-vars.mjs        # 환경변수 복호화 스크립트
+├── build/           # 빌드 최적화 설정
+├── next/            # Next.js 변형 설정
+├── security/        # 보안 및 암호화 설정
+├── testing/         # 테스트 환경 설정
+└── typescript/      # TypeScript 컴파일러 설정
 ```
 
-## 🆘 문제 해결
+## 🏗️ Build Configuration (`build/`)
+- `package.optimized.json` - 최적화된 패키지 설정
 
-### 비밀번호 오류
+## ⚛️ Next.js Configuration (`next/`)
+- `next.config.optimized.mjs` - 성능 최적화 버전
+- `next.config.performance.mjs` - 성능 특화 설정
+- `next.config.ultra-optimized.mjs` - 극한 최적화 버전
 
+## 🔐 Security Configuration (`security/`)
+- `encrypted-env-config.mjs` - 환경변수 암호화 (MJS)
+- `encrypted-env-config.ts` - 환경변수 암호화 (TypeScript)
+- `supabase-encrypted.json` - Supabase 암호화 설정
+
+## 🧪 Testing Configuration (`testing/`)
+- `vitest.config.dom.ts` - DOM 테스트 환경
+- `vitest.config.minimal.ts` - 최소 테스트 설정
+- `vitest.node.config.ts` - Node.js 테스트 환경
+- `vitest.performance.config.ts` - 성능 테스트 설정
+
+## 📘 TypeScript Configuration (`typescript/`)
+- `tsconfig.build.json` - 빌드용 TypeScript 설정
+- `tsconfig.precommit.json` - Pre-commit 검증용 설정
+- `tsconfig.test.json` - 테스트용 TypeScript 설정
+
+## 🎯 사용 방법
+
+### 특정 설정으로 실행
 ```bash
-❌ 복호화 실패: 팀 비밀번호가 올바르지 않습니다.
+# 성능 최적화 모드로 개발
+npx next dev -c config/next/next.config.performance.mjs
+
+# 성능 테스트 실행
+npx vitest run -c config/testing/vitest.performance.config.ts
+
+# 빌드용 TypeScript 컴파일
+npx tsc -p config/typescript/tsconfig.build.json
 ```
 
-**해결**: 올바른 팀 비밀번호를 사용하세요.
-
-### 환경변수 없음
-
+### 환경별 설정 전환
 ```bash
-❌ 환경변수 VARIABLE_NAME을 찾을 수 없습니다.
+# 최적화된 패키지로 빌드
+cp config/build/package.optimized.json package.json
+npm run build
 ```
 
-**해결**: 사용 가능한 환경변수 목록을 확인하세요.
+## 📋 루트 디렉토리 유지 파일
 
-### 복호화 실패
+다음 파일들은 도구 호환성을 위해 루트에 유지됩니다:
 
-```bash
-❌ 복호화 실패: 복호화 결과가 비어있습니다.
+- `package.json` - 기본 패키지 설정
+- `tsconfig.json` - 기본 TypeScript 설정
+- `next.config.mjs` - 기본 Next.js 설정
+- `eslint.config.mjs` - ESLint 설정
+- `tailwind.config.ts` - Tailwind CSS 설정
+- `postcss.config.mjs` - PostCSS 설정
+- `playwright.config.ts` - E2E 테스트 설정
+- `vitest.config.ts` - 기본 테스트 설정
+- `components.json` - shadcn/ui 설정
+- `vercel.json` - Vercel 배포 설정
+
+## 🔄 Configuration Switching
+
+### 개발 환경별 전환
+```javascript
+// package.json scripts
+{
+  "dev": "next dev",
+  "dev:optimized": "next dev -c config/next/next.config.optimized.mjs",
+  "dev:performance": "next dev -c config/next/next.config.performance.mjs"
+}
 ```
 
-**해결**: 암호화된 데이터가 손상되었을 수 있습니다. 관리자에게 문의하세요.
-
-## 📞 지원
-
-문제가 발생하거나 새로운 환경변수를 추가해야 하는 경우 개발팀에 문의하세요.
+### 테스트 환경별 전환
+```javascript
+{
+  "test": "vitest",
+  "test:dom": "vitest -c config/testing/vitest.config.dom.ts",
+  "test:node": "vitest -c config/testing/vitest.node.config.ts",
+  "test:performance": "vitest -c config/testing/vitest.performance.config.ts"
+}
+```
 
 ---
 
-**⚠️ 중요**: 이 시스템은 개발 편의성과 보안을 위해 설계되었습니다. 프로덕션 환경에서는 각 플랫폼의 환경변수 관리 시스템을 사용하세요.
+💡 **원칙**: 베이스 설정은 루트에 유지, 변형/최적화 설정은 config/에서 관리

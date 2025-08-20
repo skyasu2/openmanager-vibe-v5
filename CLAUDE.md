@@ -1301,7 +1301,7 @@ claude mcp list  # 현재 2/12개만 작동
 | 카테고리 | 주요 문서 | 설명 |
 |----------|-----------|------|
 | **MCP 서버** | [MCP 종합 가이드](docs/MCP-GUIDE.md) • [MCP 설치 가이드](docs/mcp/mcp-complete-installation-guide-2025.md) • [MCP 도구 레퍼런스](docs/mcp/mcp-tools-reference.md) • [필수 서버 가이드](docs/mcp/essential-mcp-servers-guide.md) | 12개 서버 94개 도구 완전 활용 |
-| **AI 협업** | [AI 도구 비교](docs/ai-tools/ai-tools-comparison.md) • [Gemini CLI](docs/ai-tools/gemini-cli-guide.md) • [Qwen CLI](docs/ai-tools/qwen-cli-guide.md) | 3-AI 병렬 개발 |
+| **AI 협업** | [AI 도구 비교](docs/ai-tools/ai-tools-comparison.md) • [AI CLI 비교](docs/ai-tools/AI-CLI-COMPARISON.md) • [AI 컨텍스트](docs/ai-tools/AI-CONTEXT.md) • [Gemini CLI](docs/ai-tools/gemini-cli-guide.md) • [Qwen CLI](docs/ai-tools/qwen-cli-guide.md) | 3-AI 병렬 개발 |
 | **서브 에이전트** | [종합 가이드](docs/claude/sub-agents-comprehensive-guide.md) • [MCP 서버 가이드](docs/claude/mcp-servers-complete-guide.md) | 18개 전문 에이전트 활용 |
 
 ### 🛠️ 개발 환경 & 워크플로우
