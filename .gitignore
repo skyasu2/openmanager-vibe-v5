@@ -296,15 +296,15 @@ ai-cli-wsl.bat
 setup-sudo-nopasswd.sh
 execute-optimization.js
 
-# Config files moved to /config/
-next.config.performance.mjs
-next.config.optimized.mjs
-next.config.ultra-optimized.mjs
-package.optimized.json
-vitest.config.dom.ts
-vitest.config.minimal.ts
-vitest.config.node.ts
-vitest.config.performance.ts
+# Legacy config files (루트 디렉토리만 무시, config/ 폴더는 추적)
+/next.config.performance.mjs
+/next.config.optimized.mjs
+/next.config.ultra-optimized.mjs
+/package.optimized.json
+/vitest.config.dom.ts
+/vitest.config.minimal.ts
+/vitest.config.node.ts
+/vitest.config.performance.ts
 
 # Reports moved to /reports/
 gcp-functions-health-report.json
