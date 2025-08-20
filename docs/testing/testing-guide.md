@@ -71,7 +71,7 @@
 
 Vitest 기본 설정은 [Vitest 공식 가이드](https://vitest.dev/guide/)를 참조하세요.
 
-**프로젝트 특화 설정** (프로젝트 루트의 `vitest.config.ts` 참조):
+**프로젝트 특화 설정** (`config/testing/vitest.config.ts` 참조):
 
 - 무료 티어 최적화를 위한 테스트 제외 목록
 - OpenManager 전용 메모리 캠시 테스트 설정

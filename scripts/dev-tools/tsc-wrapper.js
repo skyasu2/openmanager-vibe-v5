@@ -4,8 +4,9 @@
 const spawn = require('child_process').spawn;
 const path = require('path');
 
-// Get the actual tsc.js path
-const tscPath = path.join(__dirname, 'node_modules', 'typescript', 'lib', 'tsc.js');
+// Get the actual tsc.js path from project root
+const projectRoot = path.join(__dirname, '..', '..');
+const tscPath = path.join(projectRoot, 'node_modules', 'typescript', 'lib', 'tsc.js');
 
 // Filter out any "2" argument that shouldn't be there
 const args = process.argv.slice(2).filter(arg => arg !== '2');

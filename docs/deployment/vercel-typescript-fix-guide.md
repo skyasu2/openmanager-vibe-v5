@@ -18,7 +18,7 @@ Vercel 배포: 조건부 타입 체크 무시
 
 ### 2. 적용된 변경사항
 
-#### A. `tsconfig.build.json` 생성
+#### A. `config/typescript/tsconfig.build.json` 생성
 
 - 빌드 전용 완화된 TypeScript 설정
 - 불필요한 파일 제외로 빌드 속도 향상
@@ -34,7 +34,7 @@ typescript: {
   // Vercel 환경에서만 타입 에러 무시
   ignoreBuildErrors: process.env.VERCEL === '1' || process.env.CI === 'true',
   // Vercel에서 빌드용 tsconfig 사용
-  tsconfigPath: process.env.VERCEL === '1' ? './tsconfig.build.json' : './tsconfig.json',
+  tsconfigPath: process.env.VERCEL === '1' ? './config/typescript/tsconfig.build.json' : './tsconfig.json',
 }
 ```
 

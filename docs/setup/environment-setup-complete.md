@@ -123,7 +123,7 @@ gcloud compute instances create openmanager-vm \
 ### Vitest 환경 설정
 
 ```typescript
-// vitest.config.ts
+// config/testing/vitest.config.ts
 export default defineConfig({
   test: {
     environment: 'jsdom',

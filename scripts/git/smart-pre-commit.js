@@ -120,7 +120,7 @@ const utils = {
     const tempConfigPath = path.join(process.cwd(), '.tsconfig.temp.json');
     
     // 기본 설정을 그대로 복사하고 include만 변경
-    const baseConfig = JSON.parse(fs.readFileSync('./tsconfig.precommit.json', 'utf8'));
+    const baseConfig = JSON.parse(fs.readFileSync('./config/typescript/tsconfig.precommit.json', 'utf8'));
     const tempConfig = {
       ...baseConfig,
       include: tsFiles,
@@ -171,7 +171,7 @@ const validators = {
     
     return utils.timeCommand(
       '자동 코드 리뷰 및 수정',
-      'node scripts/auto-review-and-fix.js',
+      'node scripts/dev-tools/auto-review-and-fix.js',
       180 // 3분 제한
     );
   },
@@ -238,7 +238,7 @@ const validators = {
       console.log('⚠️  임시 설정 생성 실패, 기본 검사로 대체');
       return utils.timeCommand(
         'TypeScript 구문 검사 (기본)',
-        'npx tsc --noEmit --skipLibCheck --project tsconfig.precommit.json',
+        'npx tsc --noEmit --skipLibCheck --project config/typescript/tsconfig.precommit.json',
         60 // 1분 제한
       );
     }

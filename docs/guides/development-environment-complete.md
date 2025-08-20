@@ -455,7 +455,7 @@ export function getEnvConfig() {
   "scripts": {
     "dev": "NODE_OPTIONS='--max-old-space-size=6144' next dev",
     "build": "NODE_OPTIONS='--max-old-space-size=6144' next build",
-    "test:quick": "NODE_OPTIONS='--max-old-space-size=4096' vitest run --config vitest.config.minimal.ts"
+    "test:quick": "NODE_OPTIONS='--max-old-space-size=4096' vitest run --config config/testing/vitest.config.minimal.ts"
   }
 }
 ```

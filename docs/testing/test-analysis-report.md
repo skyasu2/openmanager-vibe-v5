@@ -72,7 +72,7 @@ TypeError: Cannot redefine property: localStorage
 ### 4. Playwright 테스트 충돌 ✅ 해결됨
 **문제**: Vitest가 Playwright 테스트를 실행하려 함
 **원인**: E2E 테스트가 unit 테스트 폴더에 포함됨
-**해결**: vitest.config.ts에서 제외 패턴 추가
+**해결**: config/testing/vitest.config.ts에서 제외 패턴 추가
 
 ## ✅ 성공한 테스트 카테고리
 
@@ -112,7 +112,7 @@ npm run test:smart:branch # 브랜치 변경사항 테스트
 
 ## 📈 커버리지 목표
 
-### 현재 설정 (vitest.config.ts)
+### 현재 설정 (config/testing/vitest.config.ts)
 ```javascript
 thresholds: {
   branches: 75,

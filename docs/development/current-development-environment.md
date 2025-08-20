@@ -201,7 +201,7 @@ npm run test:quick  # Vitest 최소 설정
 
 ### 테스트 최적화
 
-- **최소 설정**: vitest.config.minimal.ts
+- **최소 설정**: config/testing/vitest.config.minimal.ts
 - **실행 시간**: 평균 6.03초 (16개 테스트)
 - **커버리지**: 98.2% (목표 70% 초과)
 

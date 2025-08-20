@@ -54,7 +54,7 @@ Tests closed successfully but something prevents Vite server from exiting
 #### 1.1 Vitest 설정 최적화
 
 ```typescript
-// vitest.config.ts
+// config/testing/vitest.config.ts
 export default defineConfig({
   test: {
     // 타임아웃 설정 개선
@@ -263,7 +263,7 @@ export class TestPerformanceMonitor {
 // vitest.workspace.ts - 워크스페이스 설정
 export default defineWorkspace([
   {
-    extends: './vitest.config.ts',
+    extends: './config/testing/vitest.config.ts',
     test: {
       name: 'unit',
       include: ['tests/unit/**/*.test.ts'],
@@ -276,7 +276,7 @@ export default defineWorkspace([
     }
   },
   {
-    extends: './vitest.config.ts',
+    extends: './config/testing/vitest.config.ts',
     test: {
       name: 'integration',
       include: ['tests/integration/**/*.test.ts'],
@@ -284,7 +284,7 @@ export default defineWorkspace([
     }
   },
   {
-    extends: './vitest.config.ts',
+    extends: './config/testing/vitest.config.ts',
     test: {
       name: 'api',
       include: ['tests/api/**/*.test.ts'],

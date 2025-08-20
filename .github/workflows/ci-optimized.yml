@@ -38,7 +38,7 @@ jobs:
       - name: Smart TypeScript Check
         run: |
           # 변경된 파일만 스마트 체크
-          node scripts/type-check-changed.js smart || {
+          node scripts/dev-tools/type-check-changed.js smart || {
             echo "⚠️ TypeScript 에러 발견"
             echo "💡 로컬에서 npm run type-check로 상세 확인"
             # 스마트 체크 실패 시 전체 체크로 폴백

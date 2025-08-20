@@ -5,7 +5,7 @@ Vitest 테스트 시스템의 타임아웃 문제 해결 및 성능 최적화
 
 ## ✅ 완료된 작업
 
-### 1. Vitest 설정 최적화 (`vitest.config.ts`)
+### 1. Vitest 설정 최적화 (`config/testing/vitest.config.ts`)
 
 #### 변경 전
 ```typescript

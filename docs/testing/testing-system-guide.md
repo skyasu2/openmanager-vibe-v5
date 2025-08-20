@@ -136,7 +136,7 @@ npm run test:monitor        # 실시간 모니터링
 
 ## 🔧 Vitest 설정
 
-### 메인 설정 (vitest.config.ts)
+### 메인 설정 (config/testing/vitest.config.ts)
 
 ```typescript
 {
@@ -153,13 +153,13 @@ npm run test:monitor        # 실시간 모니터링
 }
 ```
 
-### 최소 설정 (vitest.config.minimal.ts)
+### 최소 설정 (config/testing/vitest.config.minimal.ts)
 
 - 최소한의 테스트만 실행
 - 격리 완전 비활성화
 - 1초 타임아웃
 
-### DOM 설정 (vitest.config.dom.ts)
+### DOM 설정 (config/testing/vitest.config.dom.ts)
 
 - happy-dom 사용 (jsdom보다 빠름)
 - React 컴포넌트 테스트
