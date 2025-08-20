@@ -9,8 +9,8 @@
  * - 중복 구조 해결
  * 
  * 사용법:
- *   node scripts/dev-tools/reorganize-components.js --dry-run
- *   node scripts/dev-tools/reorganize-components.js --execute
+ *   node scripts/dev/reorganize-components.js --dry-run
+ *   node scripts/dev/reorganize-components.js --execute
  */
 
 const fs = require('fs');

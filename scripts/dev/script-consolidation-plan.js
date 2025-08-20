@@ -8,8 +8,8 @@
  * - Git 히스토리 보존
  * 
  * 사용법:
- *   node scripts/dev-tools/script-consolidation-plan.js --dry-run
- *   node scripts/dev-tools/script-consolidation-plan.js --execute
+ *   node scripts/dev/script-consolidation-plan.js --dry-run
+ *   node scripts/dev/script-consolidation-plan.js --execute
  */
 
 const fs = require('fs');
