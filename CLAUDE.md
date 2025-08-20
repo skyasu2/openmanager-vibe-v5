@@ -76,7 +76,7 @@ npm run git:status # Git 상태 확인
 # AI CLI 도구들 (WSL에서 실행)
 claude --version # Claude Code v1.0.81
 gemini --version # Google Gemini CLI v0.1.21
-qwen --version # Qwen CLI v0.0.6
+qwen --version # Qwen CLI v0.0.7
 
 # Windows에서 WSL AI 도구 실행
 .\claude-wsl-optimized.bat /status
@@ -148,7 +148,7 @@ wsl claude --version
 **AI CLI 도구 응답시간:**
 - **Claude Code**: 1.0초 (정상)
 - **Gemini CLI**: 3.1초 (보통)
-- **Qwen CLI**: 4.8초 (OpenRouter 경유, 최적화 필요)
+- **Qwen CLI**: 7.6초 (Qwen OAuth 직접 연결, 안정적 동작)
 - **ccusage**: 0.16초 (우수)
 
 #### ⚙️ 최적화 설정 상세
@@ -207,7 +207,7 @@ command=sysctl -w vm.vfs_cache_pressure=50
 
 - **Claude Code**: WSL에서 실행 (메인 AI 개발 환경)
 - **Gemini CLI**: WSL 전용 설치 (Google AI 통합)
-- **Qwen CLI**: WSL 전용 설치 (OpenRouter 통해 1K/day 무료)
+- **Qwen CLI**: WSL 전용 설치 (Qwen OAuth 통해 2K/day 무료)
 - **Node.js**: WSL 네이티브 설치 (v22.18.0)
 - **Git**: WSL 네이티브 (Linux 호환성)
 
@@ -251,7 +251,7 @@ command=sysctl -w vm.vfs_cache_pressure=50
 | **Claude Code**       | v1.0.84 | Max ($200/월) | 🏆 **메인 개발 환경**       | .\claude-wsl-optimized.bat |
 | **Codex CLI**         | v0.22.0 | Plus ($20/월)       | 🤝 **서브 에이전트** (유료)  | .\codex-wsl.bat            |
 | **Google Gemini CLI** | v0.1.22 | 무료 (1K req/day)   | 👨‍💻 **코드 아키텍트** (무료) | .\gemini-wsl.bat           |
-| **Qwen Code**         | v0.0.7  | 무료 (OpenRouter 1K/day)   | 🔷 **병렬 모듈 개발** (무료) | .\qwen-wsl.bat             |
+| **Qwen Code**         | v0.0.7  | 무료 (Qwen OAuth 2K/day)   | 🔷 **병렬 모듈 개발** (무료) | .\qwen-wsl.bat             |
 | **OpenAI CLI**        | 설치됨  | -                   | 🔧 **SDK 도구**             | .\openai-wsl.bat           |
 | **ccusage**           | v15.9.7 | 무료                | 📊 **사용량 모니터링**      | ccusage daily              |
 
@@ -318,7 +318,7 @@ gemini -p "서버 로그 패턴 분석 및 성능 병목 찾기"
 gemini -p "API 문서 자동 생성해줘"
 ```
 
-#### 🆓 Qwen CLI (OpenRouter를 통해 1,000회/일 무료)
+#### 🆓 Qwen CLI (Qwen OAuth를 통해 2,000회/일 무료)
 
 **빠른 프로토타이핑 및 검증**
 
@@ -398,7 +398,7 @@ echo "🔄 최적 모델 선택으로 생산성 극대화"
 - **총 월 투자**: $220 (Claude Max $200 + Codex $20)
 - **실제 작업 가치**: $2,200+ (API 환산 시)
 - **비용 효율성**: 10배 이상 절약 효과
-- **무료 보조 도구**: Gemini (1K/day) + Qwen (OpenRouter 1K/day) 병렬 처리
+- **무료 보조 도구**: Gemini (1K/day) + Qwen (OAuth 2K/day) 병렬 처리
 - **개발 생산성**: 4배 증가 (멀티 AI 협업)
 - **코드 품질**: 교차 검증으로 버그 90% 감소
 
@@ -533,7 +533,7 @@ graph LR
 ```javascript
 // 일일 제한 (무료 티어)
 Gemini: 1,000회/일
-Qwen: 1,000회/일 (OpenRouter)
+Qwen: 2,000회/일 + 60회/분 (OAuth)
 Codex: 무제한 (ChatGPT Plus $20/월)
 
 // 우선순위
