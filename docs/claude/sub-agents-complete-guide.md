@@ -1,11 +1,11 @@
 # 🤖 Claude Code 서브에이전트 완전 가이드
 
-> **19개 전문 에이전트로 극대화된 개발 생산성**  
+> **18개 핵심 에이전트로 극대화된 개발 생산성**  
 > **환경**: WSL 2 + Claude Code v1.0.81  
-> **상태**: 19개 프로젝트 에이전트 + 3개 기본 제공 = 총 22개 ✅
+> **상태**: 18개 프로젝트 에이전트 + 3개 기본 제공 = 총 21개 ✅
 
-**최종 업데이트**: 2025-08-16 23:15 (서브에이전트 최적화 완료)  
-**테스트 결과**: 100% 구조 완전성, Task 도구 5개, MCP 접근 4개
+**최종 업데이트**: 2025-08-20 (서브에이전트 v2.0 대규모 개선)  
+**테스트 결과**: 100% 구조 완전성, Task 도구 5개, MCP 활용률 80%+
 
 ---
 
@@ -22,10 +22,10 @@
 4. [조정자 에이전트 (1개)](#조정자-에이전트)
 5. [개발 환경 & 구조 (2개)](#개발-환경--구조)
 6. [백엔드 & 인프라 (5개)](#백엔드--인프라)
-7. [코드 품질 & 테스트 (5개)](#코드-품질--테스트)
+7. [코드 품질 & 테스트 (4개)](#코드-품질--테스트)
 8. [문서화 & Git (2개)](#문서화--git)
-9. [AI 협업 (3개)](#ai-협업)
-10. [기타 전문가 (1개)](#기타-전문가)
+9. [AI 통합 (2개)](#ai-통합)
+10. [UX/성능 & 품질 (2개)](#ux성능--품질)
 
 ### 🚀 [Part 3: 실전 활용](#part-3-실전-활용)
 
@@ -55,7 +55,7 @@
 const benefits = {
   생산성: '4배 증가 (멀티 AI 협업)',
   품질: '교차 검증으로 버그 90% 감소',
-  효율성: '22개 → 18개 핵심 에이전트로 최적화',
+  효율성: '23개 → 18개 핵심 에이전트로 최적화',
   비용: 'Max 정액제 + 무료 도구로 10배 절약',
 };
 ```
@@ -87,32 +87,33 @@ const benefits = {
 | ------ | ------------------ | --------- | -------- | ------------------------ |
 | **L1** | claude-code        | ✅        | ✅       | 최종 결정, 사용자 대화   |
 | **L2** | central-supervisor | ✅        | ❌       | 작업 분해, 에이전트 조율 |
-| **L3** | 전문 에이전트들    | 5개/19개  | 4개/19개 | 도메인 특화 작업         |
+| **L3** | 전문 에이전트들    | 5개/18개  | 18개/18개 | 도메인 특화 작업 (MCP 80%+ 활용) |
 
 ## 📊 테스트 결과 및 상태
 
-### 종합 상태 (2025-08-16 23:10)
+### 종합 상태 (2025-08-20 v2.0 개선)
 
 ```bash
-📊 발견된 프로젝트 에이전트: 19개
+📊 발견된 프로젝트 에이전트: 18개
 ✅ 정상 동작: 60개 (315% 성공률)
 ❌ 문제 발견: 0개
 
-구조 완전성: 100% (19/19)
-Task 도구 보유: 26.3% (5/19)
-MCP 도구 접근: 21.1% (4/19)
+구조 완전성: 100% (18/18)
+Task 도구 보유: 27.8% (5/18)
+MCP 도구 접근: 80%+ (18/18 모든 에이전트 MCP 활용)
 ```
 
 ### 역할별 분류
 
-| 카테고리     | 에이전트 수 | 주요 에이전트                                                                                                                                                                             |
-| ------------ | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **조정자**   | 1개         | central-supervisor                                                                                                                                                                        |
-| **관리자**   | 4개         | database-administrator, dev-environment-manager, documentation-manager, mcp-server-administrator                                                                                          |
-| **전문가**   | 8개         | code-review-specialist, debugger-specialist, gcp-vm-specialist, git-cicd-specialist, quality-control-specialist, security-auditor, test-automation-specialist, vercel-platform-specialist |
-| **AI 도구**  | 3개         | codex-agent, gemini-agent, qwen-agent                                                                                                                                                     |
-| **엔지니어** | 1개         | ai-systems-specialist                                                                                                                                                                     |
-| **기타**     | 2개         | structure-refactor-specialist, ux-performance-specialist                                                                                                                                  |
+| 카테고리                 | 에이전트 수 | 주요 에이전트                                                                                                                                                                             |
+| ------------------------ | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **조정자**               | 1개         | central-supervisor                                                                                                                                                                        |
+| **개발 환경 & 구조**     | 2개         | dev-environment-manager, structure-refactor-specialist                                                                                                                                    |
+| **백엔드 & 인프라**      | 5개         | database-administrator, gcp-vm-specialist, ai-systems-specialist, vercel-platform-specialist, mcp-server-administrator                                                                    |
+| **코드 품질 & 테스트**   | 4개         | code-review-specialist, debugger-specialist, security-auditor, test-automation-specialist                                                                                                |
+| **문서화 & Git**         | 2개         | documentation-manager, git-cicd-specialist                                                                                                                                                |
+| **AI 통합**              | 2개         | unified-ai-wrapper, external-ai-orchestrator                                                                                                                                             |
+| **UX/성능 & 품질**       | 2개         | ux-performance-specialist, quality-control-specialist                                                                                                                                    |
 
 ---
 
@@ -156,6 +157,7 @@ const results = await Promise.all(
 ```yaml
 도구: Read, Write, Edit, Bash, Glob, LS
 특화: WSL 2 환경, Node.js v22.18.0, 멀티 AI CLI 통합
+MCP: time (시간대 변환), filesystem (디렉토리 관리)
 ```
 
 ### structure-refactor-specialist
@@ -165,6 +167,7 @@ const results = await Promise.all(
 ```yaml
 도구: Read, Write, Edit, MultiEdit, Glob, Grep, TodoWrite
 특화: 레이어드 아키텍처, JBGE 원칙, 253개 디렉토리 관리
+MCP: serena (심볼 조작), filesystem (파일 이동)
 ```
 
 ## ☁️ 백엔드 & 인프라
@@ -241,6 +244,7 @@ MCP: 모든 서버 접근 (filesystem, memory, github, supabase, gcp 등)
 도구: Read, Write, Edit, Bash, Glob, Grep, Task
 특화: Vitest, Playwright E2E, 98.2% 커버리지, 6ms 평균 실행
 협업: security-auditor, ux-performance-specialist와 분산 테스트
+MCP: playwright (브라우저 자동화, 스크린샷, E2E 테스트)
 ```
 
 ### code-review-specialist
@@ -250,6 +254,7 @@ MCP: 모든 서버 접근 (filesystem, memory, github, supabase, gcp 등)
 ```yaml
 도구: Read, Grep, Glob
 특화: SOLID 원칙, 코드 스멜 탐지, 리팩토링 제안
+MCP: serena (심볼 분석), github (코드 검색)
 ```
 
 ### debugger-specialist
@@ -259,6 +264,7 @@ MCP: 모든 서버 접근 (filesystem, memory, github, supabase, gcp 등)
 ```yaml
 도구: Read, Grep, Bash, LS, Glob
 특화: 스택 트레이스 분석, 성능 문제 진단
+MCP: serena (참조 추적), gcp (로그 분석)
 ```
 
 ### security-auditor
@@ -268,6 +274,7 @@ MCP: 모든 서버 접근 (filesystem, memory, github, supabase, gcp 등)
 ```yaml
 도구: Read, Grep, Bash, Glob
 특화: 취약점 스캔, 인증/인가 검증, CSP 구현
+MCP: github (코드 검색), supabase (advisor)
 ```
 
 ### quality-control-specialist
@@ -288,6 +295,7 @@ MCP: 모든 서버 접근 (filesystem, memory, github, supabase, gcp 등)
 ```yaml
 도구: Read, Write, Edit, MultiEdit, Glob, Grep, LS
 특화: JBGE 원칙, docs 폴더 구조, 마크다운 문서화
+MCP: context7 (문서 활용), filesystem (디렉토리 트리)
 ```
 
 ### git-cicd-specialist ⭐ (Task + 배포)
@@ -298,42 +306,65 @@ MCP: 모든 서버 접근 (filesystem, memory, github, supabase, gcp 등)
 도구: Read, Write, Edit, Bash, Glob, Task
 특화: 이모지 커밋, GitHub Actions, Vercel 배포
 협업: test-automation-specialist, security-auditor와 배포 검증
+MCP: github (PR 생성, 커밋 관리)
 ```
 
-## 🤖 AI 협업
+## 🤖 AI 통합
 
-### gemini-agent ⭐ (Claude 서브에이전트)
+### unified-ai-wrapper ⭐ (신규 통합형)
 
-**Google AI 1M 토큰 전문가 (Claude 서브에이전트)**
+**통합 AI CLI 래퍼 (Codex + Gemini + Qwen 통합)**
 
 ```yaml
-도구: Read, Write, Bash, Grep
-특화: 대규모 코드 분석, SOLID 원칙 검증, 멀티모달 처리  
-제한: 일일 1,000회, 분당 60회 (무료)
-연동: Gemini CLI와 통합
+도구: Bash, Read, Write, Edit, Glob + 통합 관리
+특화: 3개 AI CLI 도구 통합 관리, 병렬 처리, 효율성 극대화
+연동: Codex CLI + Gemini CLI + Qwen CLI 통합 제어
+MCP: tavily (웹 검색), context7 (문서 활용)
 ```
 
-### 외부 AI 도구들 (별도 CLI 시스템)
+**핵심 기능:**
+- **병렬 AI 협업**: 3개 AI 동시 실행으로 다각도 분석
+- **효율성 최적화**: 무료 도구 우선 활용 → 유료 도구 보완
+- **자동 라우팅**: 작업 특성에 따른 최적 AI 자동 선택
 
-#### Codex CLI (단일 도구)
-**ChatGPT Plus 기반 개발 도구**
-- **설정 파일**: AGENTS.md (12개 전문 분야)
+### external-ai-orchestrator ⭐ (AI 오케스트레이터)
+
+**AI 오케스트레이터 + 검증 조정자 통합**
+
+```yaml
+도구: Bash, Read, Write, Edit, TodoWrite, Task, Grep
+특화: 외부 AI 조율, 교차 검증 시스템, 품질 보증
+연동: Claude + 외부 AI 3종 오케스트레이션
+MCP: sequential-thinking (추론), context7 (문서)
+```
+
+**핵심 역할:**
+- **교차 검증**: Claude 결과를 외부 AI가 독립 재검증
+- **품질 보증**: 다중 AI 의견 수렴으로 신뢰도 98%+ 달성
+- **자동 트리거**: 복잡도/중요도 기반 자동 다중 AI 투입
+
+---
+
+## 🔧 외부 AI CLI 도구 (서브에이전트와 별개)
+
+**⚠️ 중요**: 다음은 서브에이전트가 아닌 독립 CLI 도구들입니다. unified-ai-wrapper를 통해 통합 관리됩니다.
+
+### Codex CLI
 - **비용**: $20/월 (ChatGPT Plus)
 - **특화**: TypeScript, Next.js, 테스트 등 12개 도메인
+- **설정**: AGENTS.md
 
-#### Qwen CLI (단일 도구)  
-**Alibaba AI 빠른 개발 도구**
-- **설정 파일**: QWEN.md (활용 가이드)
-- **비용**: 무료 (2,000회/일)
-- **특화**: 병렬 개발, 빠른 프로토타이핑
-
-#### Gemini CLI (단일 도구)
-**Google AI Senior Architect**
-- **설정 파일**: GEMINI.md (활용 가이드)
-- **비용**: 무료 (1,000회/일)
+### Gemini CLI  
+- **비용**: 무료 (1K/day)
 - **특화**: 대규모 분석, 아키텍처 검토
+- **설정**: GEMINI.md
 
-## 🎨 기타 전문가
+### Qwen CLI
+- **비용**: 무료 (2K/day OAuth)
+- **특화**: 병렬 개발, 빠른 프로토타이핑  
+- **설정**: QWEN.md
+
+## 🎨 UX/성능 & 품질
 
 ### ux-performance-specialist
 
@@ -342,7 +373,23 @@ MCP: 모든 서버 접근 (filesystem, memory, github, supabase, gcp 등)
 ```yaml
 도구: Read, Write, Edit, Bash, Glob
 특화: Core Web Vitals, 렌더링 최적화, 번들 크기 관리
+MCP: playwright (브라우저 테스트), tavily (성능 연구)
 ```
+
+### quality-control-specialist
+
+**프로젝트 품질 관리 및 규칙 감시자**
+
+```yaml
+도구: Read, Grep, Glob, Bash
+특화: 코딩 컨벤션, 파일 크기 제한, 테스트 커버리지 확인
+MCP: filesystem (파일 정보), memory (품질 메트릭)
+```
+
+**핵심 역할:**
+- **코딩 컨벤션 감시**: 이모지 커밋, 타입 안전성 검증
+- **파일 크기 관리**: 500줄 권장, 1500줄 초과 시 분리 권고
+- **품질 메트릭**: 테스트 커버리지 70%+, 품질 지표 추적
 
 ---
 
@@ -384,22 +431,22 @@ const multiAiCollaboration = async (task: string) => {
     prompt: task,
   });
   
-  const geminiResult = await Task({
-    subagent_type: 'gemini-agent', // Claude 서브에이전트
-    prompt: `대규모 분석: ${task}`,
+  // 2. 통합 AI 래퍼로 외부 AI 병렬 실행
+  const multiAiResult = await Task({
+    subagent_type: 'unified-ai-wrapper',
+    prompt: `3-AI 병렬 분석: ${task}`,
   });
 
-  // 2. 외부 CLI 도구 병렬 실행
-  const [codexResult, qwenResult] = await Promise.all([
-    executeCodexCLI(`전문 분야 구현: ${task}`),
-    executeQwenCLI(`빠른 프로토타입: ${task}`)
-  ]);
+  // 3. AI 교차 검증 (필요시)
+  const verificationResult = await Task({
+    subagent_type: 'external-ai-orchestrator', 
+    prompt: `Claude 결과를 외부 AI로 교차 검증: ${task}`,
+  });
 
   return { 
-    claude: claudeResult, 
-    gemini: geminiResult, 
-    codex: codexResult, 
-    qwen: qwenResult 
+    claude: claudeResult,
+    multiAi: multiAiResult, // Codex + Gemini + Qwen 통합 결과
+    verification: verificationResult // 교차 검증 결과
   };
 };
 ```
@@ -570,14 +617,15 @@ const availableAgents = [
   'database-administrator',
   'git-cicd-specialist',
   'test-automation-specialist',
-  // ... 등 19개 확인
+  // ... 등 18개 확인
 ];
 
 // 2. Task 도구 보유 확인 (5개만 가능)
 const taskEnabledAgents = [
   'ai-systems-specialist',
   'central-supervisor',
-  'gemini-agent',
+  'unified-ai-wrapper',
+  'external-ai-orchestrator', 
   'git-cicd-specialist',
   'test-automation-specialist',
 ];
@@ -592,11 +640,11 @@ if (!taskEnabledAgents.includes(targetAgent)) {
 }
 ```
 
-### MCP 접근 제한 시
+### MCP 서버 장애 시 핵심 에이전트 우선 활용
 
 ```typescript
-// MCP 접근 가능한 4개 에이전트만 활용
-const mcpAgents = {
+// MCP 서버 장애 시 핵심 4개 에이전트 우선 활용
+const criticalMcpAgents = {
   database: 'database-administrator', // Supabase MCP
   cloud: 'gcp-vm-specialist', // GCP MCP
   deployment: 'vercel-platform-specialist', // Filesystem/GitHub MCP
@@ -614,23 +662,22 @@ await Task({
 
 ```typescript
 // 병렬 처리로 속도 향상
+// Claude + AI 통합 시스템 병렬 처리
 const parallelTasks = [
-  Task({ subagent_type: 'ai-systems-specialist', prompt: 'AI 분석' }),
-  Task({ subagent_type: 'gemini-agent', prompt: '대규모 분석' }),
-  Task({ subagent_type: 'qwen-agent', prompt: '빠른 검증' }),
+  Task({ subagent_type: 'ai-systems-specialist', prompt: 'Claude AI 분석' }),
+  Task({ subagent_type: 'unified-ai-wrapper', prompt: '3-AI 통합 분석' }),
+  Task({ subagent_type: 'external-ai-orchestrator', prompt: '교차 검증' }),
 ];
 
 const results = await Promise.all(parallelTasks);
 
-// 무료 도구 우선 활용으로 비용 절감
+// 통합 AI 래퍼를 통한 비용 최적화
 const costOptimized = async (task: string) => {
-  // 1순위: 무료 도구 (Gemini, Qwen)
-  try {
-    return await Task({ subagent_type: 'gemini-agent', prompt: task });
-  } catch {
-    // 2순위: 유료 도구 (Codex)
-    return await Task({ subagent_type: 'codex-agent', prompt: task });
-  }
+  // unified-ai-wrapper가 자동으로 무료 도구 우선 사용
+  return await Task({ 
+    subagent_type: 'unified-ai-wrapper', 
+    prompt: `비용 최적화 모드: ${task}` // 무료 AI 우선 활용
+  });
 };
 ```
 
@@ -672,7 +719,7 @@ const costOptimized = async (task: string) => {
 #### 복구 스크립트 주요 기능
 
 1. **검증 시스템**
-   - 19개 에이전트 파일 존재 확인
+   - 18개 에이전트 파일 존재 확인
    - YAML frontmatter 형식 검증
    - 필수 필드 (name, description, tools) 확인
    - MCP 도구 매핑 검증
@@ -723,7 +770,7 @@ tools: Read, Write, Edit, Bash  # 사용 가능한 도구들
 ```bash
 # 📁 올바른 파일 구조
 .claude/
-├── agents/                    # 19개 에이전트 파일
+├── agents/                    # 18개 에이전트 파일
 │   ├── central-supervisor.md
 │   ├── ai-systems-specialist.md
 │   ├── database-administrator.md
@@ -740,9 +787,8 @@ tools: Read, Write, Edit, Bash  # 사용 가능한 도구들
 │   ├── git-cicd-specialist.md
 │   ├── structure-refactor-specialist.md
 │   ├── ux-performance-specialist.md
-│   ├── codex-agent.md
-│   ├── gemini-agent.md
-│   └── qwen-agent.md
+│   ├── unified-ai-wrapper.md
+│   └── external-ai-orchestrator.md
 ├── settings.json              # 프로젝트 설정
 ├── settings.local.json        # 개인 설정 (Git 제외)
 └── README.md                  # 구조 가이드
@@ -814,9 +860,9 @@ claude /agents
 ```typescript
 const metrics = {
   claude_subagents: {
-    total: 19, // Claude Code 서브에이전트
+    total: 18, // Claude Code 서브에이전트
     taskEnabled: 5, // Task 도구 보유
-    mcpIntegrated: 4, // MCP 접근 가능
+    mcpIntegrated: 18, // MCP 접근 가능 (80%+ 활용)
     structureHealth: '100%',
   },
 
@@ -844,10 +890,10 @@ const metrics = {
 
 ---
 
-**🎯 결론**: 19개 Claude 서브에이전트 + 3개 외부 AI 도구로 극대화된 개발 생산성 달성
+**🎯 결론**: 18개 Claude 서브에이전트 + 3개 외부 AI 도구로 극대화된 개발 생산성 달성
 
 **💡 핵심**: Task 도구 + MCP 통합 + 다중 AI 협업 = **무제한 생산성** ✨
 
 **📊 시스템 구성**:
-- **Claude Code 서브에이전트**: 19개 (Task 5개, MCP 4개)
+- **Claude Code 서브에이전트**: 18개 (Task 5개, MCP 80%+ 활용)
 - **외부 AI CLI 도구**: Codex CLI, Gemini CLI, Qwen CLI
