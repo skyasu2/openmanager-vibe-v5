@@ -12,7 +12,7 @@ import type { SupabaseRAGEngine } from './supabase-rag-engine';
 import { getSupabaseRAGEngine } from './supabase-rag-engine';
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 import { QueryComplexityAnalyzer } from './QueryComplexityAnalyzer';
-import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
+// Google AI import removed - only accessible through AI Assistant
 import type {
   AIQueryContext,
   AIQueryOptions,
@@ -66,8 +66,7 @@ export interface PerformanceMetrics {
 export class ImprovedQueryEngine {
   private ragEngine: SupabaseRAGEngine;
   private contextLoader: CloudContextLoader;
-  private googleAI: GoogleGenerativeAI | null = null;
-  private googleAIModel: GenerativeModel | null = null;
+  // Google AI removed - only accessible through AI Assistant
 
   // 초기화 상태
   private initPromise: Promise<void> | null = null;
@@ -113,7 +112,6 @@ export class ImprovedQueryEngine {
       // 병렬 초기화
       const initTasks = [
         this._initializeRAGEngine(),
-        this._initializeGoogleAI(),
         this.loadFrequentQueries(),
       ];
 
@@ -141,26 +139,7 @@ export class ImprovedQueryEngine {
     }
   }
 
-  /**
-   * 🌐 Google AI 초기화
-   */
-  private async _initializeGoogleAI(): Promise<void> {
-    try {
-      const apiKey =
-        process.env.GOOGLE_AI_API_KEY ||
-        process.env.NEXT_PUBLIC_GOOGLE_AI_API_KEY;
-
-      if (apiKey) {
-        this.googleAI = new GoogleGenerativeAI(apiKey);
-        this.googleAIModel = this.googleAI.getGenerativeModel({
-          model: 'gemini-pro',
-        });
-        console.log('✅ Google AI 클라이언트 초기화 완료');
-      }
-    } catch (error) {
-      console.warn('⚠️ Google AI 초기화 실패:', error);
-    }
-  }
+  // Google AI initialization removed - only accessible through AI Assistant
 
   /**
    * 📊 자주 사용되는 쿼리 프리로드
@@ -333,14 +312,8 @@ export class ImprovedQueryEngine {
     if (engine === 'local-rag') {
       return this.processLocalQuery(query, context, options, mcpContextPromise);
     } else {
-      // Ensure streaming is disabled when called from processWithEngine
-      const googleOptions = { ...options, stream: false };
-      return this.processGoogleAIQuery(
-        query,
-        context,
-        googleOptions,
-        mcpContextPromise
-      ) as Promise<AIEngineResponse>;
+      // Google AI access restricted - only available through AI Assistant
+      throw new Error('Google AI access restricted to AI Assistant only');
     }
   }
 
@@ -389,75 +362,7 @@ export class ImprovedQueryEngine {
     };
   }
 
-  /**
-   * 🌐 개선된 Google AI 처리
-   */
-  private async processGoogleAIQuery(
-    query: string,
-    context: AIQueryContext,
-    options: AIQueryOptions & {
-      useCache?: boolean;
-      preferredEngine?: 'local-rag' | 'google-ai';
-    },
-    mcpContextPromise: Promise<MCPContext | null>
-  ): Promise<AIEngineResponse | AIEngineStreamResponse> {
-    const startTime = Date.now();
-
-    if (!this.googleAIModel) {
-      throw new Error('Google AI가 초기화되지 않았습니다');
-    }
-
-    // MCP 컨텍스트 대기
-    const mcpContext = await mcpContextPromise;
-
-    // 프롬프트 생성
-    const prompt = this.buildGoogleAIPrompt(query, context, mcpContext);
-
-    // 생성 설정
-    const generationConfig = {
-      temperature: options?.temperature || 0.7,
-      maxOutputTokens: options?.maxTokens || 1000,
-      topK: 40,
-      topP: 0.95,
-    };
-
-    // 스트리밍 지원
-    if (options.stream) {
-      const result = await this.googleAIModel.generateContentStream({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig,
-      });
-
-      return {
-        success: true,
-        stream: result.stream,
-        engine: 'google-ai' as const,
-        processingTime: Date.now() - startTime,
-      } as AIEngineStreamResponse;
-    }
-
-    // 일반 생성
-    const result = await this.googleAIModel.generateContent({
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig,
-    });
-
-    const response = result.response;
-    const text = response.text();
-
-    return {
-      success: true,
-      response: text,
-      engine: 'google-ai',
-      confidence: 0.9,
-      metadata: {
-        model: 'gemini-pro',
-        tokensUsed: response.usageMetadata?.totalTokenCount,
-        mcpUsed: !!mcpContext,
-      },
-      processingTime: Date.now() - startTime,
-    };
-  }
+  // Google AI processing removed - only accessible through AI Assistant
 
   /**
    * 💾 캐시 관리
@@ -571,7 +476,7 @@ export class ImprovedQueryEngine {
 
     return {
       local: ragHealth.status === 'healthy',
-      googleAI: !!this.googleAIModel,
+      googleAI: false, // Google AI access restricted to AI Assistant only
       mcp: mcpStatus.mcpServer.status === 'online',
       cacheSize: this.memoryCache.size,
       metrics: this.getPerformanceMetrics(),
@@ -614,30 +519,7 @@ export class ImprovedQueryEngine {
     return response;
   }
 
-  private buildGoogleAIPrompt(
-    query: string,
-    context: AIQueryContext,
-    mcpContext: MCPContext | null
-  ): string {
-    let prompt = `사용자 질문: ${query}\n\n`;
-
-    if (context && Object.keys(context).length > 0) {
-      prompt += '컨텍스트:\n';
-      prompt += JSON.stringify(context, null, 2) + '\n\n';
-    }
-
-    if (mcpContext && mcpContext.files.length > 0) {
-      prompt += '관련 파일 내용:\n';
-      mcpContext.files.forEach((file) => {
-        prompt += `\n파일: ${file.path}\n`;
-        prompt += `${file.content.substring(0, 500)}...\n`;
-      });
-      prompt += '\n';
-    }
-
-    prompt += '위 정보를 바탕으로 사용자의 질문에 답변해주세요.';
-    return prompt;
-  }
+  // Google AI prompt builder removed - only accessible through AI Assistant
 
   private calculateConfidence(ragResult: {
     results: Array<{ similarity: number }>;

@@ -29,7 +29,7 @@
 
 ### 🏗️ 기술 스택
 
-- **Frontend**: Next.js 15 (App Router), React 18.2.0, TypeScript (strict), Tailwind CSS
+- **Frontend**: Next.js 15 (App Router), React 18, TypeScript (strict), Tailwind CSS
 - **Backend**: Edge Runtime, GCP Functions (Python 3.11), Supabase
 - **Database**: PostgreSQL (Supabase) + pgVector, Memory-based Cache
 - **AI/ML**: Google AI Studio (Gemini 2.0), Supabase RAG, Korean NLP
@@ -41,7 +41,7 @@
 ### Prerequisites
 
 - **Windows 11 + WSL 2** (권장 개발 환경)
-- Node.js v22.18.0 이상 (WSL 내부 설치)
+- Node.js v22 이상 (WSL 내부 설치)
 - npm 10.x 이상
 - Git
 - **Claude Code v1.0.81** (메인 AI 개발 도구)
@@ -413,4 +413,4 @@ Task({
   <p>Built with ❤️ using cutting-edge technologies</p>
   <p>© 2025 OpenManager VIBE - MIT License</p>
 </div>
-# Force Vercel redeploy - Mon Aug 18 19:30:23 KST 2025
+# Force Vercel redeploy - Wed Aug 20 2025 18:44:32 GMT+0900 (대한민국 표준시)

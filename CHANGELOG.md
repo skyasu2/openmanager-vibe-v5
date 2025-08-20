@@ -5,6 +5,332 @@
 > - Legacy 파일: v5.0.0 ~ v5.65.6 (2024-05 ~ 2025-01)
 > - 현재 파일: v5.65.7 이후 (2025-01 ~)
 
+## [5.70.0] - 2025-08-20
+
+### fix: GitHub 토큰 하드코딩 문제 완전 해결 (109개 변경)
+
+#### Added
+
+- feat: AI 협력 검토 시스템 v2.0 구현 및 프로젝트 구조 대규모 개선 (26245b2a)
+- feat: Serena MCP 자동 관리 시스템 및 성능 분석 도구 구축 (af20b339)
+- feat: 문서 업데이트 (14개 파일) (6dee4f3c)
+- fix: Vercel 배포 실패 문제 완전 해결 (54e8f130)
+- scripts: WSL 최적화 및 개발 도구 스크립트 대규모 추가 (1fbd4885)
+- feat: CLAUDE.md 개선 및 동작 검증 완료 (962cc0c1)
+- feat: Vercel Platform A+ 성능 최적화 완료 (690717c9)
+- feat: Vibe Coding 모달에 Qwen CLI 정보 추가 (d0cd5b51)
+- feat: Phase 5 완료 - 클라우드 네이티브 모니터링 및 프로덕션 준비 (403b434f)
+
+#### Changed
+
+- fix: GitHub 토큰 하드코딩 문제 완전 해결 (e2d93736)
+- refactor: Serena MCP 설정 최적화 및 불필요한 스크립트 정리 (ee272662)
+- ️ fix: 베르셀 5초 자동 새로고침 근본 원인 해결 (a4ea39ee)
+- fix: Vercel Toolbar CSP 및 무한 리다이렉트 루프 완전 해결 (657c0399)
+- ️ fix: 메인 페이지 SSR 완전 회피로 SVG 오류 해결 (00f40989)
+- trigger: 베르셀 강제 재배포 트리거 (bda3cbf6)
+- ️ fix: SSR SVGElement 오류 완전 해결 (8774132c)
+- fix: TypeScript 임시 파일 추적 방지 설정 추가 (1cd5a1ee)
+- fix: Next.js 기본 설정으로 CSS 문제 근본 해결 (35060aa6)
+- fix: CSS 청킹 비활성화로 MIME type 에러 근본 해결 (7723eecb)
+- fix: CSS MIME type 에러 완전 해결 (ebb4dd56)
+- fix: UI/UX 유지하며 안전한 CSS 처리 방식 적용 (432a58ba)
+- ⏪ revert: f5db7657 이전으로 프론트엔드 구성 롤백 (2ec81264)
+- ⏪ revert: f5db7657 이전으로 프론트엔드 구성 롤백 (d96a1d88)
+- cleanup: TypeScript 테스트 파일 정리 (e5d20f42)
+- update: AI 도구 분석 업데이트 - VS Code 추가 (f5db7657)
+- ️ refactor: MCP 통합 문서화 및 스크립트 최적화 (e850dafa)
+- refactor: 최종 Windows 경로 유지 설정 (4ad24d26)
+- refactor: WSL 환경 이전 롤백 - Windows 경로 유지 (e7e0625f)
+- ️ fix: Pre-commit hook 성능 대폭 개선 (56c1a206)
+- refactor: WSL-First 개발 정책 완전 전환 (b0c3d4ce)
+- ️ fix: Pre-commit hook 성능 대폭 개선 (ed1d165d)
+- ️ fix: Pre-commit hook 성능 대폭 개선 (d046c011)
+- fix: TDD cleanup 워크플로우 완전 수정 (62fb6dac)
+- fix: CI/CD 워크플로우 완전 수정 (0dfd0cf0)
+- refactor: 개발 환경 구조 재정립 및 WSL 실제 환경 반영 (4cafa2c4)
+- ️ refactor: Windows 스크립트 구조 개선 및 AI 컨텍스트 추가 (65f20694)
+- chore(scripts): reorganize windows scripts and add cross-platform wrappers (f75532ff)
+- security: 환경변수 하드코딩 보안 시스템 구축 (9454f2c4)
+- kiro: IDE 워크플로우를 현실적 탐색 단계로 수정 (25a47158)
+- kiro: 멀티 IDE 워크플로우 시스템 추가 (020a8702)
+- kiro: Kiro IDE Windows 환경 통합 설정 추가 (b3b104c1)
+- scripts: 핵심 스크립트 업데이트 (c1ce7acd)
+- config: 개발 환경 설정 업데이트 (eb2b1fbf)
+- fix: Husky pre-push shell 호환성 문제 해결 (76fe1718)
+- ci: GitHub Actions 최적화 - 51a562f 수준으로 간소화 [skip ci] (7ea65673)
+- fix: pre-push 훅 스크립트 참조 수정 (354d694d)
+- major: 87% 프로젝트 파일 정리 및 구조 최적화 완료 (69b8e088)
+- cleanup: MCP 백업 파일 정리 및 문서 체계화 (cbc19f39)
+- cleanup: 레거시 파일 정리 및 중국어 검사 비활성화 (08df2632)
+- ️ refactor: WSL 환경 전환 및 프로젝트 구조 최적화 (7ebb6e70)
+- Archive legacy documentation (e110e771)
+- Add comprehensive automation and optimization scripts (b5b8782d)
+- Add comprehensive documentation and CI enhancements (36fc50f0)
+- Resolve ESLint issues in API routes (4ee67aa5)
+- Add performance monitoring system and optimize AI services (51a562f4)
+- cleanup: Claude 레거시 파일 및 임시 파일 정리 (e92ef0fa)
+- feat: Windows → WSL 2 개발환경 완전 전환 (9b763cee)
+- config: 커스텀 명령어 비활성화 - 슬래시 명령어 자동완성 정리 (a1cb76e6)
+- ️ refactor: 서브에이전트 명명 규칙 일관화 및 문서 구조 개선 완료 (e81e9182)
+- fix: ccusage statusline session N/A 문제 해결 (935ee8cd)
+- ️ chore: Claude Code statusline 명령어 npx 방식으로 수정 (49da6db4)
+- ️ chore: Claude Code 설정 및 Statusline 최적화 도구 추가 (08109197)
+- ️ refactor: 프로젝트 종합 정리 및 MCP 문서 구조화 (d9b2f05d)
+- TypeScript TS1109 에러 근본적 해결 및 개발 도구 개선 (d86d5893)
+- 자동 수정 및 재시도 시스템 구축 완료 (a154a549)
+- 핵심 ESLint 에러 해결 및 TypeScript 안정화 (f39b1dea)
+- 한자 포함 파일 정리 및 중국어 차단 정책 강화 (c675e794)
+- Windows GCP VM 원격 개발 환경 구축 (e4608f4a)
+- Husky 검증 시스템 간소화 및 ESLint 설정 완화 (285c43b8)
+- 환경별 설정 통합 및 자동화 시스템 구축 (e041a42c)
+- Critical 보안 취약점 해결 및 TypeScript 타입 안전성 개선 (9bd47aeb)
+- Pre-commit 실패 핵심 문제 해결 (ed89b219)
+- 중국어 완전 차단 시스템 구축 및 Qwen 사용량 수정 (9e69eaea)
+- AI 협업 전략 재정의 보고서 추가 (28d75bb9)
+- Qwen CLI 목적 재정의 - 병렬 협업 및 제3의 시선 중심 (8c03b674)
+- Qwen 사용량 제한 정보 수정 - 2,000회/일, 60회/분 (61cba8e0)
+- Git 워크플로우 개선 보고서 추가 (20bb175e)
+- Git 워크플로우 간소화 - heredoc 제거, 1-3줄 커밋 메시지 (df6bde0a)
+- docs: Qwen CLI 설명을 "오픈소스 무료"로 개선 (fe579227)
+- docs: 3개 AI 도구로 코드베이스 종합 분석 완료 (d532386c)
+- chore: 코드 품질 개선 - const 사용 및 타입 안전성 강화 (aaa06e33)
+
+#### Fixed
+
+- hotfix: 무한 로딩 근본 원인 해결 - 치명적인 논리 오류 수정 (02fbe99c)
+- hotfix: 무한 로딩 근본 원인 해결 - undefined 변수 참조 수정 (67610c7e)
+- hotfix: 무한 로딩 문제 긴급 해결 (09073642)
+- fix: 베르셀 5초 자동 새로고침 근본 원인 해결 (5ad8a1ea)
+- fix: 인증 시스템 근본 문제 해결 (871c726f)
+- fix: 메인 페이지 무한 새로고침 문제 완전 해결 (541e0d06)
+- fix: 베르셀 5초 자동 새로고침 근본 원인 해결 (da2db51e)
+- fix: 베르셀 5초 자동 새로고침 근본 원인 해결 (377d98d4)
+- fix: CSS 중복 로드 및 TypeScript 설정 문제 해결 (fe861245)
+- fix: 메인 페이지 빠른 새로고침 문제 해결 (3c3cafb8)
+- fix: package.json 중복 스크립트 정리 (739aa0f5)
+- fix: package.json 중복 키 제거 (7e4e6d78)
+- fix: 메인 페이지 깜박거림 완전 해결 (c0526086)
+- fix: package.json 중복 키 제거 (6f041a43)
+- fix: TypeScript 타입 에러 65개 해결 (a042aa88)
+
+#### Improved
+
+- fix: 메인 페이지 5-6초 지연 문제 완전 해결 (2ea0dd37)
+- perf: /main 페이지 인증 지연 문제 완전 해결 (e0c1eb52)
+- perf: Pre-commit Hook 성능 혁명적 개선 - 94% 속도 향상 (c762895d)
+- perf: Edge request 대폭 감소 최적화 (62b61d38)
+- ci: GitHub Actions 워크플로우 대폭 간소화 (dfafedc6)
+
+#### Documentation
+
+- docs: Qwen CLI 사용량 정보 대폭 업데이트 (910e29ca)
+- docs: Claude 참조 문서 추가 (b748fbc5)
+- docs: 핵심 프로젝트 문서 대규모 업데이트 (94eb47c4)
+- docs: 문서 포맷팅 및 구조 개선 (c3071c5b)
+- docs: MCP 가이드 완전 정리 및 보안 강화 (e485736c)
+- docs: Claude Code statusline 설정 가이드 완전 재작성 (d54e706d)
+
+#### Testing
+
+- test: 스마트 커밋 시스템 TypeScript 자동 수정 검증 완료 (0011baec)
+- test: env.test.ts Google AI 설정 불일치 수정 (aad00654)
+
+
+## [5.69.0] - 2025-08-20
+
+### fix: GitHub 토큰 하드코딩 문제 완전 해결 (109개 변경)
+
+#### Added
+
+- feat: AI 협력 검토 시스템 v2.0 구현 및 프로젝트 구조 대규모 개선 (26245b2a)
+- feat: Serena MCP 자동 관리 시스템 및 성능 분석 도구 구축 (af20b339)
+- feat: 문서 업데이트 (14개 파일) (6dee4f3c)
+- fix: Vercel 배포 실패 문제 완전 해결 (54e8f130)
+- scripts: WSL 최적화 및 개발 도구 스크립트 대규모 추가 (1fbd4885)
+- feat: CLAUDE.md 개선 및 동작 검증 완료 (962cc0c1)
+- feat: Vercel Platform A+ 성능 최적화 완료 (690717c9)
+- feat: Vibe Coding 모달에 Qwen CLI 정보 추가 (d0cd5b51)
+- feat: Phase 5 완료 - 클라우드 네이티브 모니터링 및 프로덕션 준비 (403b434f)
+
+#### Changed
+
+- fix: GitHub 토큰 하드코딩 문제 완전 해결 (e2d93736)
+- refactor: Serena MCP 설정 최적화 및 불필요한 스크립트 정리 (ee272662)
+- ️ fix: 베르셀 5초 자동 새로고침 근본 원인 해결 (a4ea39ee)
+- fix: Vercel Toolbar CSP 및 무한 리다이렉트 루프 완전 해결 (657c0399)
+- ️ fix: 메인 페이지 SSR 완전 회피로 SVG 오류 해결 (00f40989)
+- trigger: 베르셀 강제 재배포 트리거 (bda3cbf6)
+- ️ fix: SSR SVGElement 오류 완전 해결 (8774132c)
+- fix: TypeScript 임시 파일 추적 방지 설정 추가 (1cd5a1ee)
+- fix: Next.js 기본 설정으로 CSS 문제 근본 해결 (35060aa6)
+- fix: CSS 청킹 비활성화로 MIME type 에러 근본 해결 (7723eecb)
+- fix: CSS MIME type 에러 완전 해결 (ebb4dd56)
+- fix: UI/UX 유지하며 안전한 CSS 처리 방식 적용 (432a58ba)
+- ⏪ revert: f5db7657 이전으로 프론트엔드 구성 롤백 (2ec81264)
+- ⏪ revert: f5db7657 이전으로 프론트엔드 구성 롤백 (d96a1d88)
+- cleanup: TypeScript 테스트 파일 정리 (e5d20f42)
+- update: AI 도구 분석 업데이트 - VS Code 추가 (f5db7657)
+- ️ refactor: MCP 통합 문서화 및 스크립트 최적화 (e850dafa)
+- refactor: 최종 Windows 경로 유지 설정 (4ad24d26)
+- refactor: WSL 환경 이전 롤백 - Windows 경로 유지 (e7e0625f)
+- ️ fix: Pre-commit hook 성능 대폭 개선 (56c1a206)
+- refactor: WSL-First 개발 정책 완전 전환 (b0c3d4ce)
+- ️ fix: Pre-commit hook 성능 대폭 개선 (ed1d165d)
+- ️ fix: Pre-commit hook 성능 대폭 개선 (d046c011)
+- fix: TDD cleanup 워크플로우 완전 수정 (62fb6dac)
+- fix: CI/CD 워크플로우 완전 수정 (0dfd0cf0)
+- refactor: 개발 환경 구조 재정립 및 WSL 실제 환경 반영 (4cafa2c4)
+- ️ refactor: Windows 스크립트 구조 개선 및 AI 컨텍스트 추가 (65f20694)
+- chore(scripts): reorganize windows scripts and add cross-platform wrappers (f75532ff)
+- security: 환경변수 하드코딩 보안 시스템 구축 (9454f2c4)
+- kiro: IDE 워크플로우를 현실적 탐색 단계로 수정 (25a47158)
+- kiro: 멀티 IDE 워크플로우 시스템 추가 (020a8702)
+- kiro: Kiro IDE Windows 환경 통합 설정 추가 (b3b104c1)
+- scripts: 핵심 스크립트 업데이트 (c1ce7acd)
+- config: 개발 환경 설정 업데이트 (eb2b1fbf)
+- fix: Husky pre-push shell 호환성 문제 해결 (76fe1718)
+- ci: GitHub Actions 최적화 - 51a562f 수준으로 간소화 [skip ci] (7ea65673)
+- fix: pre-push 훅 스크립트 참조 수정 (354d694d)
+- major: 87% 프로젝트 파일 정리 및 구조 최적화 완료 (69b8e088)
+- cleanup: MCP 백업 파일 정리 및 문서 체계화 (cbc19f39)
+- cleanup: 레거시 파일 정리 및 중국어 검사 비활성화 (08df2632)
+- ️ refactor: WSL 환경 전환 및 프로젝트 구조 최적화 (7ebb6e70)
+- Archive legacy documentation (e110e771)
+- Add comprehensive automation and optimization scripts (b5b8782d)
+- Add comprehensive documentation and CI enhancements (36fc50f0)
+- Resolve ESLint issues in API routes (4ee67aa5)
+- Add performance monitoring system and optimize AI services (51a562f4)
+- cleanup: Claude 레거시 파일 및 임시 파일 정리 (e92ef0fa)
+- feat: Windows → WSL 2 개발환경 완전 전환 (9b763cee)
+- config: 커스텀 명령어 비활성화 - 슬래시 명령어 자동완성 정리 (a1cb76e6)
+- ️ refactor: 서브에이전트 명명 규칙 일관화 및 문서 구조 개선 완료 (e81e9182)
+- fix: ccusage statusline session N/A 문제 해결 (935ee8cd)
+- ️ chore: Claude Code statusline 명령어 npx 방식으로 수정 (49da6db4)
+- ️ chore: Claude Code 설정 및 Statusline 최적화 도구 추가 (08109197)
+- ️ refactor: 프로젝트 종합 정리 및 MCP 문서 구조화 (d9b2f05d)
+- TypeScript TS1109 에러 근본적 해결 및 개발 도구 개선 (d86d5893)
+- 자동 수정 및 재시도 시스템 구축 완료 (a154a549)
+- 핵심 ESLint 에러 해결 및 TypeScript 안정화 (f39b1dea)
+- 한자 포함 파일 정리 및 중국어 차단 정책 강화 (c675e794)
+- Windows GCP VM 원격 개발 환경 구축 (e4608f4a)
+- Husky 검증 시스템 간소화 및 ESLint 설정 완화 (285c43b8)
+- 환경별 설정 통합 및 자동화 시스템 구축 (e041a42c)
+- Critical 보안 취약점 해결 및 TypeScript 타입 안전성 개선 (9bd47aeb)
+- Pre-commit 실패 핵심 문제 해결 (ed89b219)
+- 중국어 완전 차단 시스템 구축 및 Qwen 사용량 수정 (9e69eaea)
+- AI 협업 전략 재정의 보고서 추가 (28d75bb9)
+- Qwen CLI 목적 재정의 - 병렬 협업 및 제3의 시선 중심 (8c03b674)
+- Qwen 사용량 제한 정보 수정 - 2,000회/일, 60회/분 (61cba8e0)
+- Git 워크플로우 개선 보고서 추가 (20bb175e)
+- Git 워크플로우 간소화 - heredoc 제거, 1-3줄 커밋 메시지 (df6bde0a)
+- docs: Qwen CLI 설명을 "오픈소스 무료"로 개선 (fe579227)
+- docs: 3개 AI 도구로 코드베이스 종합 분석 완료 (d532386c)
+- chore: 코드 품질 개선 - const 사용 및 타입 안전성 강화 (aaa06e33)
+
+#### Fixed
+
+- hotfix: 무한 로딩 근본 원인 해결 - 치명적인 논리 오류 수정 (02fbe99c)
+- hotfix: 무한 로딩 근본 원인 해결 - undefined 변수 참조 수정 (67610c7e)
+- hotfix: 무한 로딩 문제 긴급 해결 (09073642)
+- fix: 베르셀 5초 자동 새로고침 근본 원인 해결 (5ad8a1ea)
+- fix: 인증 시스템 근본 문제 해결 (871c726f)
+- fix: 메인 페이지 무한 새로고침 문제 완전 해결 (541e0d06)
+- fix: 베르셀 5초 자동 새로고침 근본 원인 해결 (da2db51e)
+- fix: 베르셀 5초 자동 새로고침 근본 원인 해결 (377d98d4)
+- fix: CSS 중복 로드 및 TypeScript 설정 문제 해결 (fe861245)
+- fix: 메인 페이지 빠른 새로고침 문제 해결 (3c3cafb8)
+- fix: package.json 중복 스크립트 정리 (739aa0f5)
+- fix: package.json 중복 키 제거 (7e4e6d78)
+- fix: 메인 페이지 깜박거림 완전 해결 (c0526086)
+- fix: package.json 중복 키 제거 (6f041a43)
+- fix: TypeScript 타입 에러 65개 해결 (a042aa88)
+
+#### Improved
+
+- fix: 메인 페이지 5-6초 지연 문제 완전 해결 (2ea0dd37)
+- perf: /main 페이지 인증 지연 문제 완전 해결 (e0c1eb52)
+- perf: Pre-commit Hook 성능 혁명적 개선 - 94% 속도 향상 (c762895d)
+- perf: Edge request 대폭 감소 최적화 (62b61d38)
+- ci: GitHub Actions 워크플로우 대폭 간소화 (dfafedc6)
+
+#### Documentation
+
+- docs: Qwen CLI 사용량 정보 대폭 업데이트 (910e29ca)
+- docs: Claude 참조 문서 추가 (b748fbc5)
+- docs: 핵심 프로젝트 문서 대규모 업데이트 (94eb47c4)
+- docs: 문서 포맷팅 및 구조 개선 (c3071c5b)
+- docs: MCP 가이드 완전 정리 및 보안 강화 (e485736c)
+- docs: Claude Code statusline 설정 가이드 완전 재작성 (d54e706d)
+
+#### Testing
+
+- test: 스마트 커밋 시스템 TypeScript 자동 수정 검증 완료 (0011baec)
+- test: env.test.ts Google AI 설정 불일치 수정 (aad00654)
+
+
+## [5.68.0] - 2025-08-20
+
+### 🚀 AI 협력 검토 시스템 v2.0 및 서브에이전트 최적화
+
+#### Added
+
+- **AI 협력 검토 시스템 v2.0** (`scripts/ai-collaborate.sh`)
+  - Claude Code Max + Gemini + Codex + Qwen 멀티 AI 협업
+  - 작업 크기/중요도 기반 자동 검토 레벨 결정 (Level 1-3)
+  - 점수 기반 자동 의사결정 (8.5+ 자동수용, <6.0 자동거절)
+  - JSON 형식 검토 보고서 자동 생성
+  - 파일 감시 모드 및 배치 처리 지원
+
+- **Serena MCP 자동 관리 시스템** (`scripts/serena-mcp-health-monitor.sh`)
+  - Serena MCP WSL 헬스체크 자동 복구 시스템 (systemd/cron)
+  - 실시간 차트 성능 분석 도구 및 벤치마크
+  - 보안 강화: CSP, 환경변수 암호화, 통합 테스트
+  - AI 에이전트 통합 인터페이스 자동 트리거
+
+#### Improved
+
+- **서브에이전트 최적화 v2.0** (`.claude/agents/`)
+  - 23개 → 18개 에이전트로 통합 (22% 감소)
+  - MCP 도구 활용률: 21.1% → 80%+ (278% 향상)
+  - 5개 중복 에이전트 제거 및 통합
+  - `unified-ai-wrapper.md`: Codex, Gemini, Qwen 통합 래퍼
+  - 모든 에이전트에 2-3개 MCP 도구 추가
+
+- **Qwen CLI 사용량 대폭 개선** (`CLAUDE.md`)
+  - 사용량: 1,000회/일 → 2,000회/일 (2배 증가)
+  - 분당 제한: 60회/분 신규 추가
+  - 인증 방식: OpenRouter → Qwen OAuth 직접 연결
+  - 응답 시간: 4.8초 → 7.6초 (실측값 반영)
+
+#### Fixed
+
+- **GitHub 토큰 보안 문제 해결**
+  - Git remote URL 하드코딩 제거
+  - .env.local 토큰 통합 관리
+  - credential.helper cache 모드로 변경
+  - 안전한 push 스크립트 구현
+
+- **Vercel 배포 안정성 개선**
+  - 무한 로딩 문제 완전 해결 (3개 hotfix)
+  - 베르셀 5초 자동 새로고침 문제 해결
+  - SSR SVGElement 오류 해결
+  - CSP 및 무한 리다이렉트 루프 수정
+  - CSS MIME type 에러 완전 해결
+
+- **인증 시스템 안정화**
+  - getCurrentUser 함수 참조 오류 수정
+  - useInitialAuth import 경로 수정
+  - 무한 리다이렉트 루프 방지 로직 추가
+
+#### Documentation
+
+- **MCP 서버 문서 대규모 업데이트** (`docs/mcp/`)
+  - GitHub MCP 인증 문제 해결 가이드
+  - MCP 환경변수 보안 가이드
+  - 12개 MCP 서버 테스트 보고서
+  - 종합 API 테스트 스크립트 추가
+
 ## [5.67.22] - 2025-08-17
 
 ### 🎯 Kiro IDE 프로젝트 학습 시스템 구축

@@ -403,7 +403,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
   }
 
   /**
-   * 🌐 최적화된 Google AI 쿼리 처리
+   * 🌐 Google AI 처리 - 접근 제한됨
    */
   private async processGoogleAIQueryOptimized(
     query: string,
@@ -412,66 +412,16 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     mcpContext: unknown,
     startTime: number
   ): Promise<QueryResponse> {
-    try {
-      const prompt = this.buildGoogleAIPrompt(
-        query,
-        context as AIQueryContext | undefined,
-        mcpContext as MCPContext | null
-      );
-
-      // 타임아웃이 있는 API 호출
-      const controller = new AbortController();
-      const timeoutId = setTimeout(
-        () => controller.abort(),
-        this.config.timeoutMs
-      );
-
-      const response = await fetch('/api/ai/google-ai/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt,
-          temperature: options?.temperature || 0.7,
-          maxTokens: options?.maxTokens || 800, // 토큰 수 제한으로 속도 향상
-        }),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        throw new Error(`Google AI API 오류: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-
-      return {
-        success: true,
-        response: data.response || data.text || '응답을 생성할 수 없습니다.',
-        engine: 'google-ai',
-        confidence: data.confidence || 0.9,
-        thinkingSteps: this.generateOptimizedThinkingSteps(),
-        metadata: {
-          model: data.model || 'gemini-pro',
-          tokensUsed: data.tokensUsed,
-          mcpUsed: !!mcpContext,
-          optimized: true,
-          parallelProcessed: true,
-        },
-        processingTime: Date.now() - startTime,
-      };
-    } catch (error) {
-      // 폴백: 로컬 RAG로 전환
-      aiLogger.warn('Google AI 실패, 로컬 모드로 폴백', error);
-      return await this.processLocalQueryOptimized(
-        query,
-        context,
-        options,
-        mcpContext,
-        undefined,
-        startTime
-      );
-    }
+    // Google AI access restricted - only available through AI Assistant
+    aiLogger.warn('Google AI 직접 접근 차단됨, 로컬 모드로 전환');
+    return await this.processLocalQueryOptimized(
+      query,
+      context,
+      options,
+      mcpContext,
+      undefined,
+      startTime
+    );
   }
 
   /**

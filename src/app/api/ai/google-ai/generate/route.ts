@@ -23,7 +23,7 @@ import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
 
-// POST handler
+// POST handler with AI Assistant access control
 const postHandler = createApiRoute()
   .body(GoogleAIGenerateRequestSchema)
   .response(GoogleAIGenerateResponseSchema)
@@ -31,8 +31,30 @@ const postHandler = createApiRoute()
     showDetailedErrors: process.env.NODE_ENV === 'development',
     enableLogging: true,
   })
-  .build(async (_request, context): Promise<GoogleAIGenerateResponse> => {
-    debug.log('🌐 Google AI 생성 요청 처리 시작...');
+  .build(async (request, context): Promise<GoogleAIGenerateResponse> => {
+    // 🔒 AI Assistant 전용 접근 제어
+    const aiAssistantHeader = request.headers.get('X-AI-Assistant');
+    const aiModeHeader = request.headers.get('X-AI-Mode');
+    const userAgent = request.headers.get('User-Agent') || '';
+    
+    // AI 어시스턴트에서 Google AI 모드로 호출된 경우만 허용
+    const isValidAIAssistant = 
+      aiAssistantHeader === 'true' ||
+      aiModeHeader === 'google-ai' ||
+      aiModeHeader === 'google_only' || // AI Sidebar에서 GOOGLE_ONLY 모드로 전송
+      userAgent.includes('AI-Assistant');
+      
+    if (!isValidAIAssistant) {
+      debug.warn('❌ Google AI API 무단 접근 시도 차단됨', {
+        aiAssistant: aiAssistantHeader,
+        aiMode: aiModeHeader,
+        userAgent: userAgent.substring(0, 50)
+      });
+      
+      throw new Error('Access denied: Google AI API is restricted to AI Assistant only');
+    }
+
+    debug.log('🌐 Google AI 생성 요청 처리 시작... (AI Assistant)');
 
     const { prompt, temperature, maxTokens, model } = context.body;
 
