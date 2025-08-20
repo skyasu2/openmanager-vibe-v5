@@ -171,7 +171,7 @@ const validators = {
     
     return utils.timeCommand(
       '자동 코드 리뷰 및 수정',
-      'node scripts/dev-tools/auto-review-and-fix.js',
+      'node scripts/dev/auto-review-and-fix.js',
       180 // 3분 제한
     );
   },
@@ -197,7 +197,7 @@ const validators = {
     console.log(`🔍 ${sensitiveFiles.length}개 파일에서 보안 검사 실행`);
     return utils.timeCommand(
       '보안 검사',
-      'node scripts/security/check-hardcoded-secrets.js',
+      'node scripts/env/check-hardcoded-secrets.js',
       60 // 1분 제한
     );
   },

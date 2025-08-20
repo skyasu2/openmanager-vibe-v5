@@ -18,7 +18,7 @@ jobs:
       - name: 하드코딩된 시크릿 검사 (개선된 스크립트)
         run: |
           # 정교한 보안 검사 스크립트 실행 (JavaScript 버전)
-          node scripts/security/check-hardcoded-secrets.js
+          node scripts/env/check-hardcoded-secrets.js
 
       - name: npm audit 보안 취약점 검사
         run: |

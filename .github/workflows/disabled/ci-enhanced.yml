@@ -121,8 +121,8 @@ jobs:
           echo "🔍 TypeScript 스마트 체크 실행 중..."
 
           # 변경된 파일만 체크 (성능 최적화)
-          if [ -f "scripts/dev-tools/type-check-changed.js" ]; then
-            node scripts/dev-tools/type-check-changed.js smart || {
+          if [ -f "scripts/dev/type-check-changed.js" ]; then
+            node scripts/dev/type-check-changed.js smart || {
               echo "⚠️ 변경된 파일에서 TypeScript 에러 발견"
               echo "📋 전체 체크로 전환..."
               npm run type-check || {

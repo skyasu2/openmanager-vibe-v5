@@ -13,7 +13,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { OPENMANAGER_COMPONENTS } from '@/config/system-components';
+import { systemComponents } from '@/config/system-components';
 import type {
   ComponentStatus,
   SystemChecklistState,
@@ -37,7 +37,7 @@ export const useSystemChecklist = ({
   const [components, setComponents] = useState<Record<string, ComponentStatus>>(
     () => {
       const _initial: Record<string, ComponentStatus> = {};
-      OPENMANAGER_COMPONENTS.forEach((comp) => {
+      systemComponents.forEach((comp) => {
         _initial[comp.id] = {
           id: comp.id,
           status: 'pending',
@@ -173,7 +173,7 @@ export const useSystemChecklist = ({
     console.log('🚀 시스템 체크리스트 시작');
 
     // 의존성이 없는 컴포넌트들 먼저 시작
-    const independentComponents = OPENMANAGER_COMPONENTS.filter(
+    const independentComponents = systemComponents.filter(
       (comp) => !comp.dependencies || comp.dependencies.length === 0
     );
 
@@ -183,7 +183,7 @@ export const useSystemChecklist = ({
     );
 
     // 의존성이 있는 컴포넌트들 순차적으로 체크
-    const dependentComponents = OPENMANAGER_COMPONENTS.filter(
+    const dependentComponents = systemComponents.filter(
       (comp) => comp.dependencies && comp.dependencies.length > 0
     );
 
@@ -222,7 +222,7 @@ export const useSystemChecklist = ({
 
   // 완료 조건 체크
   useEffect(() => {
-    const criticalComponents = OPENMANAGER_COMPONENTS.filter(
+    const criticalComponents = systemComponents.filter(
       (c) => c.priority === 'critical'
     );
     const criticalCompleted = criticalComponents.every(
@@ -271,7 +271,7 @@ export const useSystemChecklist = ({
 
   return {
     components,
-    componentDefinitions: OPENMANAGER_COMPONENTS,
+    componentDefinitions: systemComponents,
     isCompleted,
     totalProgress: stats.totalProgress,
     completedCount: stats.completedCount,

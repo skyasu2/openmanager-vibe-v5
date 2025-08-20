@@ -38,7 +38,7 @@ jobs:
       - name: Smart TypeScript Check
         run: |
           # 변경된 파일만 스마트 체크
-          node scripts/dev-tools/type-check-changed.js smart || {
+          node scripts/dev/type-check-changed.js smart || {
             echo "⚠️ TypeScript 에러 발견"
             echo "💡 로컬에서 npm run type-check로 상세 확인"
             # 스마트 체크 실패 시 전체 체크로 폴백
@@ -77,8 +77,8 @@ jobs:
 
       - name: Hardcoded Secrets Check
         run: |
-          if [ -f "scripts/security/check-hardcoded-secrets.js" ]; then
-            node scripts/security/check-hardcoded-secrets.js || {
+          if [ -f "scripts/env/check-hardcoded-secrets.js" ]; then
+            node scripts/env/check-hardcoded-secrets.js || {
               echo "⚠️ 하드코딩된 시크릿 발견!"
               exit 1  # 시크릿은 실제로 실패 처리
             }
