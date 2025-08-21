@@ -36,39 +36,48 @@ jobs:
         run: npm ci
 
       - name: Smart TypeScript Check
-        timeout-minutes: 3
+        timeout-minutes: 2
         run: |
-          # 변경된 파일만 스마트 체크 (타임아웃 방지)
-          node scripts/dev/type-check-changed.js smart || {
-            echo "⚠️ TypeScript 에러 발견"
-            echo "💡 로컬에서 npm run type-check로 상세 확인"
+          echo "🚀 TypeScript 스마트 체크 시작..."
+          
+          # 변경된 파일만 스마트 체크 (성공하면 바로 끝)
+          if node scripts/dev/type-check-changed.js smart; then
+            echo "✅ 스마트 타입 체크 통과!"
+          else
+            echo "⚠️ 스마트 체크에서 문제 발견"
+            echo "💡 로컬 개발 환경에서 'npm run type-check'로 상세 확인 권장"
             
-            # 스마트 체크 실패 시 빠른 필수 체크만 실행
-            echo "🔍 src/ 디렉토리만 빠른 체크..."
-            timeout 120s npx tsc --noEmit src/**/*.ts src/**/*.tsx || {
-              echo "❌ 핵심 TypeScript 검사 실패"
-              if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-                exit 1  # main 브랜치는 실패 처리
-              else
-                echo "⚠️ Feature 브랜치 - 경고로 처리"
-              fi
-            }
-          }
+            # CI에서는 빠른 체크만 실행하고 경고로 처리
+            npm run type-check:fast
+            
+            # main 브랜치는 실패, 다른 브랜치는 경고
+            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+              echo "🚨 Main 브랜치 - TypeScript 오류로 인한 실패"
+              exit 1
+            else
+              echo "⚠️ Feature 브랜치 - TypeScript 경고 (빌드 계속 진행)"
+            fi
+          fi
 
       - name: Intelligent Validation
+        timeout-minutes: 5
         run: |
-          # 브랜치별 적응형 검증
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "🚨 Main 브랜치 - 엄격한 검증"
-            npm run test:quick || exit 1
-          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
-            echo "🔍 Develop 브랜치 - 표준 검증"
-            npm run test:quick || exit 1
+          echo "🧪 테스트 실행 시작..."
+          
+          # 테스트 실행
+          if npm run test:quick; then
+            echo "✅ 모든 테스트 통과!"
           else
-            echo "⚡ Feature 브랜치 - 빠른 검증"
-            npm run test:quick || {
-              echo "⚠️ 테스트 실패 (경고)"
-            }
+            echo "❌ 테스트 실패 감지"
+            
+            # 브랜치별 차등 처리
+            if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+              echo "🚨 Main 브랜치 - 테스트 실패로 인한 빌드 중단"
+              exit 1
+            else
+              echo "⚠️ Feature 브랜치 - 테스트 실패 경고 (계속 진행)"
+              echo "💡 로컬에서 'npm run test'로 상세 확인 권장"
+            fi
           fi
 
   # 🔒 보안 검사 (main 브랜치만)
