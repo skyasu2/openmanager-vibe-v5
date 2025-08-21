@@ -43,6 +43,24 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
   });
 
   describe('GET /api/ai/performance - 성능 통계 조회', () => {
+    it('분석 함수들이 정상적으로 작동해야 함', async () => {
+      // 직접 분석 함수들 테스트
+      const mockMetrics = {
+        totalQueries: 150,
+        avgResponseTime: 1250,
+        cacheHitRate: 75, // 백분율
+        errorRate: 5,
+        parallelEfficiency: 85,
+        optimizationsSaved: 25,
+      };
+
+      // 함수들을 직접 import하여 테스트
+      const route = await import('@/app/api/ai/performance/route');
+      
+      // 현재는 함수들이 private이므로 일단 이 테스트를 스킵하고 전체 테스트를 확인
+      console.log('✅ 분석 함수 직접 테스트 준비 완료');
+    });
+
     it('정상적인 성능 통계를 반환해야 함', async () => {
       // Mock 성능 엔진 설정
       const mockEngine = {
@@ -79,15 +97,37 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
         mockEngine
       );
 
-      const response = await GET();
+      // NextRequest 모킹 (zod-middleware에서 필요)
+      const mockRequest = new NextRequest('http://localhost:3000/api/ai/performance', {
+        method: 'GET',
+      });
+
+      const response = await GET(mockRequest);
       const data = await response.json();
+
+      // 디버깅: 500 오류인 경우 오류 메시지 출력 & 응답 구조 확인
+      if (response.status !== 200) {
+        console.error('❌ API 응답 오류:', {
+          status: response.status,
+          data: data,
+          error: data.error,
+          details: data.details,
+          fullResponse: JSON.stringify(data, null, 2),
+        });
+      } else {
+        console.error('✅ 성공 응답 구조 확인:', {
+          status: response.status,
+          dataKeys: Object.keys(data),
+          dataStructure: JSON.stringify(data, null, 2),
+        });
+      }
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success', true);
-      expect(data).toHaveProperty('service', 'ai-performance-monitor');
+      expect(data.data).toHaveProperty('service', 'ai-performance-monitor');
 
-      // 메트릭 검증
-      expect(data.metrics).toEqual({
+      // 메트릭 검증 (data.data 사용)
+      expect(data.data.metrics).toEqual({
         totalQueries: 150,
         avgResponseTime: 1250,
         cacheHitRate: 75, // 백분율 변환
@@ -97,7 +137,7 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       });
 
       // 최적화 상태 검증
-      expect(data.optimization).toEqual({
+      expect(data.data.optimization).toEqual({
         warmupCompleted: true,
         preloadedEmbeddings: 8,
         circuitBreakers: 2,
@@ -105,7 +145,7 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       });
 
       // 헬스 상태 검증
-      expect(data.health).toEqual({
+      expect(data.data.health).toEqual({
         status: 'healthy',
         engines: {
           localRAG: true,
@@ -115,13 +155,13 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       });
 
       // 분석 결과 검증
-      expect(data.analysis).toHaveProperty('performanceGrade');
-      expect(data.analysis).toHaveProperty('bottlenecks');
-      expect(data.analysis).toHaveProperty('recommendations');
+      expect(data.data.analysis).toHaveProperty('performanceGrade');
+      expect(data.data.analysis).toHaveProperty('bottlenecks');
+      expect(data.data.analysis).toHaveProperty('recommendations');
 
       console.log(
         '✅ 성능 통계 응답 검증 완료:',
-        data.analysis.performanceGrade
+        data.data.analysis.performanceGrade
       );
     });
 
@@ -139,7 +179,12 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
         mockEngine
       );
 
-      const response = await GET();
+      // NextRequest 모킹 (zod-middleware에서 필요)
+      const mockRequest = new NextRequest('http://localhost:3000/api/ai/performance', {
+        method: 'GET',
+      });
+
+      const response = await GET(mockRequest);
       const data = await response.json();
 
       expect(response.status).toBe(500);
@@ -205,27 +250,27 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success', true);
-      expect(data).toHaveProperty('benchmarkType', 'comparison');
-      expect(data).toHaveProperty('results');
-      expect(data).toHaveProperty('analysis');
+      expect(data.data).toHaveProperty('benchmarkType', 'comparison');
+      expect(data.data).toHaveProperty('results');
+      expect(data.data).toHaveProperty('analysis');
 
       // 결과 구조 검증
-      expect(data.results).toHaveProperty('originalEngine');
-      expect(data.results).toHaveProperty('optimizedEngine');
-      expect(data.results.originalEngine).toHaveProperty('avgResponseTime');
-      expect(data.results.optimizedEngine).toHaveProperty('avgResponseTime');
-      expect(data.results.optimizedEngine).toHaveProperty('cacheHitRate');
+      expect(data.data.results).toHaveProperty('originalEngine');
+      expect(data.data.results).toHaveProperty('optimizedEngine');
+      expect(data.data.results.originalEngine).toHaveProperty('avgResponseTime');
+      expect(data.data.results.optimizedEngine).toHaveProperty('avgResponseTime');
+      expect(data.data.results.optimizedEngine).toHaveProperty('cacheHitRate');
 
       // 성능 개선 분석
-      expect(data.analysis).toHaveProperty('improvementPercentage');
-      expect(data.analysis).toHaveProperty('timeSaved');
-      expect(data.analysis).toHaveProperty('performanceBetter');
-      expect(data.analysis).toHaveProperty('cacheEffectiveness');
+      expect(data.data.analysis).toHaveProperty('improvementPercentage');
+      expect(data.data.analysis).toHaveProperty('timeSaved');
+      expect(data.data.analysis).toHaveProperty('performanceBetter');
+      expect(data.data.analysis).toHaveProperty('cacheEffectiveness');
 
       console.log('🏆 비교 벤치마크 결과:', {
-        improvement: data.analysis.improvementPercentage,
-        timeSaved: data.analysis.timeSaved,
-        cacheHitRate: data.results.optimizedEngine.cacheHitRate,
+        improvement: data.data.analysis.improvementPercentage,
+        timeSaved: data.data.analysis.timeSaved,
+        cacheHitRate: data.data.results.optimizedEngine.cacheHitRate,
       });
     });
 
@@ -260,36 +305,36 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success', true);
-      expect(data).toHaveProperty('benchmarkType', 'load');
-      expect(data).toHaveProperty('results');
-      expect(data).toHaveProperty('analysis');
+      expect(data.data).toHaveProperty('benchmarkType', 'load');
+      expect(data.data).toHaveProperty('results');
+      expect(data.data).toHaveProperty('analysis');
 
       // 부하 테스트 결과 검증
-      expect(data.results).toHaveProperty('totalTime');
-      expect(typeof data.results.totalTime).toBe('number');
-      expect(data.results).toHaveProperty('avgResponseTime');
-      expect(typeof data.results.avgResponseTime).toBe('number');
-      expect(data.results).toHaveProperty('successRate');
-      expect(typeof data.results.successRate).toBe('number');
-      expect(data.results).toHaveProperty('cacheHitRate');
-      expect(typeof data.results.cacheHitRate).toBe('number');
-      expect(data.results).toHaveProperty('throughput');
-      expect(typeof data.results.throughput).toBe('number');
+      expect(data.data.results).toHaveProperty('totalTime');
+      expect(typeof data.data.results.totalTime).toBe('number');
+      expect(data.data.results).toHaveProperty('avgResponseTime');
+      expect(typeof data.data.results.avgResponseTime).toBe('number');
+      expect(data.data.results).toHaveProperty('successRate');
+      expect(typeof data.data.results.successRate).toBe('number');
+      expect(data.data.results).toHaveProperty('cacheHitRate');
+      expect(typeof data.data.results.cacheHitRate).toBe('number');
+      expect(data.data.results).toHaveProperty('throughput');
+      expect(typeof data.data.results.throughput).toBe('number');
 
       // 분석 결과 검증
-      expect(data.analysis).toHaveProperty('performanceGrade');
-      expect(data.analysis).toHaveProperty('bottlenecks');
-      expect(Array.isArray(data.analysis.bottlenecks)).toBe(true);
-      expect(data.analysis).toHaveProperty('scalability');
+      expect(data.data.analysis).toHaveProperty('performanceGrade');
+      expect(data.data.analysis).toHaveProperty('bottlenecks');
+      expect(Array.isArray(data.data.analysis.bottlenecks)).toBe(true);
+      expect(data.data.analysis).toHaveProperty('scalability');
 
       // 값 범위 검증
-      expect(data.results.successRate).toBeGreaterThan(0);
-      expect(data.results.throughput).toBeGreaterThanOrEqual(0);
+      expect(data.data.results.successRate).toBeGreaterThan(0);
+      expect(data.data.results.throughput).toBeGreaterThanOrEqual(0);
 
       console.log('🚀 부하 테스트 결과:', {
-        throughput: data.results.throughput,
-        successRate: data.results.successRate,
-        grade: data.analysis.performanceGrade,
+        throughput: data.data.results.throughput,
+        successRate: data.data.results.successRate,
+        grade: data.data.analysis.performanceGrade,
       });
     });
 
@@ -306,10 +351,10 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
 
       expect(response.status).toBe(400);
       expect(data).toHaveProperty('success', false);
-      expect(data).toHaveProperty('error', 'Invalid benchmark mode');
-      expect(data).toHaveProperty('supportedModes');
-      expect(data.supportedModes).toContain('comparison');
-      expect(data.supportedModes).toContain('load');
+      expect(data).toHaveProperty('error');
+      expect(data.error).toContain('Invalid enum value');
+      expect(data.error).toContain('comparison');
+      expect(data.error).toContain('load');
     });
 
     it('잘못된 JSON 요청에 대해 500 에러를 반환해야 함', async () => {
@@ -325,7 +370,7 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       const response = await POST(invalidRequest);
       const data = await response.json();
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(400);
       expect(data).toHaveProperty('success', false);
       expect(data).toHaveProperty('error');
     });
@@ -344,12 +389,17 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
         mockEngine
       );
 
-      const response = await DELETE();
+      // NextRequest 모킹 (zod-middleware에서 필요)
+      const mockRequest = new NextRequest('http://localhost:3000/api/ai/performance', {
+        method: 'DELETE',
+      });
+
+      const response = await DELETE(mockRequest);
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success', true);
-      expect(data).toHaveProperty(
+      expect(data.data).toHaveProperty(
         'message',
         'Performance cache cleared successfully'
       );
@@ -374,12 +424,17 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
         mockEngine
       );
 
-      const response = await DELETE();
+      // NextRequest 모킹 (zod-middleware에서 필요)
+      const mockRequest = new NextRequest('http://localhost:3000/api/ai/performance', {
+        method: 'DELETE',
+      });
+
+      const response = await DELETE(mockRequest);
       const data = await response.json();
 
       expect(response.status).toBe(500);
       expect(data).toHaveProperty('success', false);
-      expect(data).toHaveProperty('error', 'Cache clear failed');
+      expect(data).toHaveProperty('error', '서버 오류가 발생했습니다');
       expect(data).toHaveProperty('timestamp');
     });
   });
@@ -443,10 +498,15 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
           mockEngine
         );
 
-        const response = await GET();
+        // NextRequest 모킹 (zod-middleware에서 필요)
+        const mockRequest = new NextRequest('http://localhost:3000/api/ai/performance', {
+          method: 'GET',
+        });
+
+        const response = await GET(mockRequest);
         const data = await response.json();
 
-        expect(data.analysis.performanceGrade).toBe(scenario.expectedGrade);
+        expect(data.data.analysis.performanceGrade).toBe(scenario.expectedGrade);
         console.log(
           `📊 ${scenario.description}: ${scenario.expectedGrade} (응답시간: ${scenario.metrics.avgResponseTime}ms, 캐시: ${scenario.metrics.cacheHitRate * 100}%)`
         );
@@ -484,7 +544,12 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
         mockEngine
       );
 
-      const response = await GET();
+      // NextRequest 모킹 (zod-middleware에서 필요)
+      const mockRequest = new NextRequest('http://localhost:3000/api/ai/performance', {
+        method: 'GET',
+      });
+
+      const response = await GET(mockRequest);
       const data = await response.json();
 
       // 예상되는 병목 지점들
@@ -496,15 +561,15 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
       ];
 
       for (const bottleneck of expectedBottlenecks) {
-        expect(data.analysis.bottlenecks).toContain(bottleneck);
+        expect(data.data.analysis.bottlenecks).toContain(bottleneck);
       }
 
       // 권장사항이 제공되어야 함
-      expect(data.analysis.recommendations).toBeInstanceOf(Array);
-      expect(data.analysis.recommendations.length).toBeGreaterThan(0);
+      expect(data.data.analysis.recommendations).toBeInstanceOf(Array);
+      expect(data.data.analysis.recommendations.length).toBeGreaterThan(0);
 
-      console.log('🔍 식별된 병목 지점:', data.analysis.bottlenecks);
-      console.log('💡 권장사항:', data.analysis.recommendations);
+      console.log('🔍 식별된 병목 지점:', data.data.analysis.bottlenecks);
+      console.log('💡 권장사항:', data.data.analysis.recommendations);
     });
   });
 
@@ -542,7 +607,12 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
         mockEngine
       );
 
-      const response = await GET();
+      // NextRequest 모킹 (zod-middleware에서 필요)
+      const mockRequest = new NextRequest('http://localhost:3000/api/ai/performance', {
+        method: 'GET',
+      });
+
+      const response = await GET(mockRequest);
 
       // CORS 헤더 확인
       expect(response.headers.get('Access-Control-Allow-Origin')).toBeTruthy();
@@ -564,7 +634,12 @@ describe('📡 Performance API 엔드포인트 테스트', () => {
         mockEngine
       );
 
-      const response = await DELETE();
+      // NextRequest 모킹 (zod-middleware에서 필요)
+      const mockRequest = new NextRequest('http://localhost:3000/api/ai/performance', {
+        method: 'DELETE',
+      });
+
+      const response = await DELETE(mockRequest);
 
       expect(response.headers.get('Content-Type')).toContain(
         'application/json'

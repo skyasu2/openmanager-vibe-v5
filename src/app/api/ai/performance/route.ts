@@ -41,69 +41,127 @@ const getHandler = createApiRoute()
     enableLogging: true,
   })
   .build(async (): Promise<AIPerformanceStatsResponse> => {
-    const engine = getPerformanceOptimizedQueryEngine();
-    const stats = engine.getPerformanceStats();
-    const healthStatus = await engine.healthCheck();
+    try {
+      debug.log('🔍 Performance API: 시작');
+      
+      // Engine 초기화
+      const engine = getPerformanceOptimizedQueryEngine();
+      debug.log('✅ Performance API: Engine 초기화 완료');
+      
+      // 성능 통계 수집
+      const stats = engine.getPerformanceStats();
+      debug.log('✅ Performance API: Stats 수집 완료', { stats });
+      
+      // 헬스체크
+      const healthStatus = await engine.healthCheck();
+      debug.log('✅ Performance API: HealthCheck 완료', { healthStatus });
 
-    return {
-      success: true,
-      timestamp: new Date().toISOString(),
-      service: 'ai-performance-monitor',
-
-      // 성능 메트릭
-      metrics: {
+      // 백분율로 변환된 메트릭 (분석 함수용)
+      const convertedMetrics = {
         totalQueries: stats.metrics.totalQueries,
-        avgResponseTime: Math.round(stats.metrics.avgResponseTime),
-        cacheHitRate: Math.round(stats.metrics.cacheHitRate * 100), // 백분율
-        errorRate: Math.round(stats.metrics.errorRate * 100),
-        parallelEfficiency: Math.round(stats.metrics.parallelEfficiency * 100),
+        avgResponseTime: stats.metrics.avgResponseTime,
+        cacheHitRate: stats.metrics.cacheHitRate * 100, // 백분율 변환 (0-100)
+        errorRate: stats.metrics.errorRate * 100,
+        parallelEfficiency: stats.metrics.parallelEfficiency * 100,
         optimizationsSaved: stats.metrics.optimizationsSaved,
-      },
+      };
+      debug.log('✅ Performance API: Metrics 변환 완료', { convertedMetrics });
 
-      // 최적화 상태
-      optimization: {
-        warmupCompleted: stats.optimization.warmupCompleted,
-        preloadedEmbeddings: stats.optimization.preloadedEmbeddings,
-        circuitBreakers: stats.optimization.circuitBreakers,
-        cacheHitRate: Math.round(stats.optimization.cacheHitRate * 100),
-      },
+      // 분석 함수들 개별 실행 및 디버깅
+      let performanceGrade: string;
+      let bottlenecks: string[];
+      let recommendations: string[];
 
-      // 시스템 헬스
-      health: {
-        status: healthStatus.status as 'healthy' | 'degraded' | 'unavailable',
-        engines: Object.entries(healthStatus.engines || {}).map(
-          ([id, available]) => ({
-            status: available
-              ? 'healthy'
-              : ('unavailable' as 'healthy' | 'degraded' | 'unavailable'),
-            id,
-            responseTime: 0,
-            lastCheck: new Date().toISOString(),
-          })
-        ),
-      },
+      try {
+        performanceGrade = calculatePerformanceGrade(convertedMetrics);
+        debug.log('✅ Performance API: Grade 계산 완료', { performanceGrade });
+      } catch (error) {
+        debug.error('❌ Performance API: Grade 계산 실패', { error, convertedMetrics });
+        throw new Error(`Grade calculation failed: ${getErrorMessage(error)}`);
+      }
 
-      // 성능 분석
-      analysis: {
-        performanceGrade: calculatePerformanceGrade(stats.metrics),
-        bottlenecks: identifyBottlenecks(stats.metrics),
-        recommendations: generateRecommendations(
-          stats.metrics,
-          stats.optimization
-        ),
-      },
-    };
+      try {
+        bottlenecks = identifyBottlenecks(convertedMetrics);
+        debug.log('✅ Performance API: Bottlenecks 식별 완료', { bottlenecks });
+      } catch (error) {
+        debug.error('❌ Performance API: Bottlenecks 식별 실패', { error, convertedMetrics });
+        throw new Error(`Bottlenecks identification failed: ${getErrorMessage(error)}`);
+      }
+
+      try {
+        recommendations = generateRecommendations(convertedMetrics, stats.optimization);
+        debug.log('✅ Performance API: Recommendations 생성 완료', { recommendations });
+      } catch (error) {
+        debug.error('❌ Performance API: Recommendations 생성 실패', { error, convertedMetrics, optimization: stats.optimization });
+        throw new Error(`Recommendations generation failed: ${getErrorMessage(error)}`);
+      }
+
+      const response = {
+        success: true,
+        timestamp: new Date().toISOString(),
+        service: 'ai-performance-monitor',
+
+        // 성능 메트릭 (응답용 - 반올림)
+        metrics: {
+          totalQueries: stats.metrics.totalQueries,
+          avgResponseTime: Math.round(stats.metrics.avgResponseTime),
+          cacheHitRate: Math.round(convertedMetrics.cacheHitRate),
+          errorRate: Math.round(convertedMetrics.errorRate),
+          parallelEfficiency: Math.round(convertedMetrics.parallelEfficiency),
+          optimizationsSaved: stats.metrics.optimizationsSaved,
+        },
+
+        // 최적화 상태
+        optimization: {
+          warmupCompleted: stats.optimization.warmupCompleted,
+          preloadedEmbeddings: stats.optimization.preloadedEmbeddings,
+          circuitBreakers: stats.optimization.circuitBreakers,
+          cacheHitRate: Math.round(stats.optimization.cacheHitRate * 100),
+        },
+
+        // 시스템 헬스
+        health: {
+          status: healthStatus.status as 'healthy' | 'degraded' | 'unavailable',
+          engines: healthStatus.engines || {},
+        },
+
+        // 성능 분석 (변환된 메트릭 사용)
+        analysis: {
+          performanceGrade,
+          bottlenecks,
+          recommendations,
+        },
+      };
+
+      debug.log('✅ Performance API: 응답 생성 완료', { response });
+      return response;
+
+    } catch (error) {
+      debug.error('❌ Performance API: 전체 실행 실패', { error });
+      throw error; // re-throw to be handled by outer try-catch
+    }
   });
 
 export async function GET(request: NextRequest) {
   try {
-    return await getHandler(request);
+    debug.log('🚀 GET /api/ai/performance 요청 시작');
+    const result = await getHandler(request);
+    debug.log('✅ GET /api/ai/performance 성공적으로 완료');
+    return result;
   } catch (error) {
-    aiLogger.error('성능 통계 조회 실패', error);
+    const errorMessage = getErrorMessage(error);
+    debug.error('❌ GET /api/ai/performance 실패', {
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined,
+    });
+    aiLogger.error('성능 통계 조회 실패', { error: errorMessage, stack: error instanceof Error ? error.stack : undefined });
+    
     return NextResponse.json(
       {
         success: false,
         error: '성능 통계 조회 중 오류가 발생했습니다',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
       },
       { status: 500, headers: corsHeaders }
     );
@@ -423,24 +481,36 @@ async function runLoadBenchmark(
 }
 
 /**
+ * 백분율 기반 메트릭 타입 (분석 함수용)
+ */
+type PercentageMetrics = {
+  totalQueries: number;
+  avgResponseTime: number;
+  cacheHitRate: number; // 백분율 (0-100)
+  errorRate: number; // 백분율 (0-100)
+  parallelEfficiency: number; // 백분율 (0-100)
+  optimizationsSaved: number;
+};
+
+/**
  * 성능 등급 계산
  */
-function calculatePerformanceGrade(metrics: AIPerformanceMetrics): string {
+function calculatePerformanceGrade(metrics: PercentageMetrics): string {
   const responseTime = metrics.avgResponseTime;
-  const cacheHitRate = metrics.cacheHitRate / 100; // 백분율을 소수로 변환
-  const errorRate = metrics.errorRate / 100; // 백분율을 소수로 변환
+  const cacheHitRate = metrics.cacheHitRate; // 이미 백분율 (0-100)
+  const errorRate = metrics.errorRate; // 이미 백분율 (0-100)
 
-  if (responseTime < 500 && cacheHitRate > 0.7 && errorRate < 0.05) return 'A+';
-  if (responseTime < 1000 && cacheHitRate > 0.5 && errorRate < 0.1) return 'A';
-  if (responseTime < 2000 && cacheHitRate > 0.3 && errorRate < 0.15) return 'B';
-  if (responseTime < 3000 && errorRate < 0.25) return 'C';
+  if (responseTime < 500 && cacheHitRate > 70 && errorRate < 5) return 'A+';
+  if (responseTime < 1000 && cacheHitRate > 50 && errorRate < 10) return 'A';
+  if (responseTime < 2000 && cacheHitRate > 30 && errorRate < 15) return 'B';
+  if (responseTime < 3000 && errorRate < 25) return 'C';
   return 'D';
 }
 
 /**
  * 병목 지점 식별
  */
-function identifyBottlenecks(metrics: AIPerformanceMetrics): string[] {
+function identifyBottlenecks(metrics: PercentageMetrics): string[] {
   const bottlenecks = [];
 
   if (metrics.avgResponseTime > 2000) bottlenecks.push('response_time');
@@ -455,7 +525,7 @@ function identifyBottlenecks(metrics: AIPerformanceMetrics): string[] {
  * 성능 개선 권장사항 생성
  */
 function generateRecommendations(
-  metrics: AIPerformanceMetrics,
+  metrics: PercentageMetrics,
   optimization: AIOptimizationStatus
 ): string[] {
   const recommendations = [];

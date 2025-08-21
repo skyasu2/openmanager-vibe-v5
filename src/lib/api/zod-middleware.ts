@@ -209,11 +209,17 @@ export class ApiRouteBuilder<
           }
         }
 
-        // 성공 응답
+        // 성공 응답 (CORS 헤더 포함)
         const response = NextResponse.json({
           success: true,
           data: responseData,
           timestamp: new Date().toISOString(),
+        }, {
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          }
         });
 
         // 로깅
