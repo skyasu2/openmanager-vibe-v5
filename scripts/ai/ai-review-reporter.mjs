@@ -89,7 +89,17 @@ export class AIReviewReporter {
     const statsPath = path.join(this.reportsDir, 'statistics.json');
     try {
       const data = await fs.readFile(statsPath, 'utf8');
-      Object.assign(this.statistics, JSON.parse(data));
+      const parsed = JSON.parse(data);
+      
+      // Map을 제외한 나머지 속성 복사
+      this.statistics.totalReviews = parsed.totalReviews || 0;
+      this.statistics.avgScore = parsed.avgScore || 0;
+      this.statistics.aiUsage = parsed.aiUsage || {};
+      
+      // commonIssues를 Map으로 유지
+      if (parsed.commonIssues) {
+        this.statistics.commonIssues = new Map(Object.entries(parsed.commonIssues));
+      }
     } catch {
       // 통계 파일 없음 - 기본값 사용
     }
@@ -98,9 +108,16 @@ export class AIReviewReporter {
   // === 통계 저장 ===
   async saveStatistics() {
     const statsPath = path.join(this.reportsDir, 'statistics.json');
+    
+    // Map을 객체로 변환하여 저장
+    const statsToSave = {
+      ...this.statistics,
+      commonIssues: Object.fromEntries(this.statistics.commonIssues)
+    };
+    
     await fs.writeFile(
       statsPath,
-      JSON.stringify(this.statistics, null, 2)
+      JSON.stringify(statsToSave, null, 2)
     );
   }
 
@@ -490,8 +507,9 @@ ${grade.emoji} **평균 점수: ${integration.avgScore}/10** (${grade.label}등�
     
     // 주요 이슈 업데이트
     for (const improvement of integration.improvements || []) {
-      // 간단한 키워드 추출
-      const keywords = improvement.toLowerCase().split(' ').filter(w => w.length > 4);
+      // 간단한 키워드 추출 - improvement가 문자열이 아닐 수 있음
+      const improvementStr = String(improvement);
+      const keywords = improvementStr.toLowerCase().split(' ').filter(w => w.length > 4);
       for (const keyword of keywords.slice(0, 3)) {
         this.statistics.commonIssues.set(
           keyword,

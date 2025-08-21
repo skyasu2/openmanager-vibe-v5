@@ -634,8 +634,16 @@ ${focusPrompts[focus] || focusPrompts.general}
   // === AI 응답 파싱 ===
   parseAIResponse(response, aiName) {
     try {
-      // JSON 부분 추출
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      // JSON 부분 추출 - 마크다운 코드 블록 처리 추가
+      let jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        // 마크다운 코드 블록에서 JSON 추출
+        jsonMatch = [jsonMatch[1]];
+      } else {
+        // 일반 JSON 추출
+        jsonMatch = response.match(/\{[\s\S]*\}/);
+      }
+      
       if (!jsonMatch) {
         throw new Error('No JSON found in response');
       }

@@ -40,6 +40,7 @@
       "@/core/*": ["./src/core/*"],
       "@/modules/*": ["./src/modules/*"],
       "@/test/*": ["./src/test/*"],
+      "@/schemas/*": ["./src/schemas/*"],
       "~/*": ["./*"]
     },
     "tsBuildInfoFile": ".next/cache/tsbuildinfo",

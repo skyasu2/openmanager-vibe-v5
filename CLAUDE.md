@@ -408,65 +408,95 @@ echo "🔄 최적 모델 선택으로 생산성 극대화"
 
 💡 **핵심 철학**: **Max 정액제 + 서브 3개** 체제로 무제한 생산성과 극도의 비용 효율성
 
-## 🤝 AI 협력 검토 시스템 v2.0 (2025-08-20 신규)
+## 🤝 AI 협력 검토 시스템 v3.0 (2025-08-21 서브에이전트 전환)
 
-**Claude Code Max를 메인으로 한 자동 검토 및 협력 개발 시스템**
+**Claude Code 네이티브 서브에이전트 기반 AI 검증 시스템**
 
-### 🎯 핵심 기능
+### 🎯 핵심 개선사항 (v3.0)
 
-#### 📊 작업 크기/중요도 자동 평가
-- **자동 분석**: 변경 줄 수, 파일 중요도, 복잡도 자동 계산
-- **검토 레벨 자동 결정**:
-  - **Level 1** (< 50줄): 1개 AI 검토 (Gemini 우선)
-  - **Level 2** (50-200줄): 2개 AI 병렬 검토 (Gemini + Codex)
-  - **Level 3** (> 200줄): 3개 AI 전체 검토 (Gemini + Codex + Qwen)
+#### 📋 스크립트 → 서브에이전트 전환
+- **이전**: 복잡한 bash/JavaScript 스크립트 오케스트레이션
+- **현재**: Claude Code Task 도구로 자연어 기반 제어
+- **장점**: 안정성 향상, TTY 에러 해결, JSON 파싱 불필요
 
-#### 🔒 중요 파일 자동 Level 3 검토
-```javascript
-// 자동으로 3-AI 검토가 트리거되는 파일들
-*.config.*      // 설정 파일
-.env*          // 환경변수
-auth/*         // 인증 관련
-api/*          // API 엔드포인트
-security/*     // 보안 관련
+#### 🤖 새로운 AI 검증 서브에이전트
+```
+.claude/agents/
+├── verification-specialist.md     # AI 검증 전문가 (메인)
+├── ai-verification-coordinator.md # 교차 검증 조정자
+├── gemini-wrapper.md              # Gemini 아키텍처 분석가
+├── codex-wrapper.md               # Codex 실무 검토자
+└── qwen-wrapper.md                # Qwen 알고리즘 최적화
 ```
 
-### 🚀 사용 방법
+### 📊 자동 검토 레벨 시스템
 
-#### 기본 명령어
-```bash
-# 시스템 설정 (최초 1회)
-./scripts/ai-collaborate.sh setup
+#### 작업 크기/중요도 자동 평가
+- **Level 1** (< 50줄): Gemini 단독 검토
+- **Level 2** (50-200줄): Gemini + Codex 병렬 검토
+- **Level 3** (> 200줄 또는 중요 파일): 3-AI 완전 검토
 
-# 파일 검토
-./scripts/ai-collaborate.sh review src/app/api/auth/route.ts
-
-# 파일 변경 자동 감시
-./scripts/ai-collaborate.sh watch --auto
-
-# 커밋 검토
-./scripts/ai-collaborate.sh commit HEAD
-
-# PR 검토
-./scripts/ai-collaborate.sh pr 123
-
-# AI 사용량 확인
-./scripts/ai-collaborate.sh status
+#### 🔒 중요 파일 자동 Level 3
+```typescript
+// 항상 Level 3 검토가 적용되는 패턴
+**/auth/**      // 인증 관련
+**/api/**       // API 엔드포인트
+**/*.config.*   // 설정 파일
+.env*           // 환경변수
+**/security/**  // 보안 관련
+**/payment/**   // 결제 관련
 ```
 
-#### 고급 옵션
-```bash
-# 보안에 초점을 맞춘 검토
-./scripts/ai-collaborate.sh review *.ts --focus security
+### 🚀 사용 방법 (서브에이전트 방식)
 
-# Level 3 강제 적용 (중요한 변경)
-./scripts/ai-collaborate.sh review *.ts --level 3
+#### 기본 검증 명령
+```
+# 파일 검증 (자동 레벨 결정)
+Task verification-specialist "src/app/api/auth/route.ts 검증"
 
-# 특정 AI만 사용
-./scripts/ai-collaborate.sh review *.ts --ai gemini
+# 커밋 검증
+Task verification-specialist "최근 커밋 변경사항 검증"
 
-# 자동 모드 (확인 없이 개선사항 적용)
-./scripts/ai-collaborate.sh watch --auto
+# Level 3 강제 실행
+Task verification-specialist "src/lib/utils.ts Level 3 검증 강제 실행"
+
+# 보안 중심 검증
+Task verification-specialist "src/app/api/payment/route.ts 보안 취약점 중심 검증"
+```
+
+#### AI별 직접 호출 (필요시)
+```
+# Gemini: 아키텍처 분석
+Task gemini-wrapper "이 파일의 설계 패턴과 SOLID 원칙 준수 검토"
+
+# Codex: 실무 관점
+Task codex-wrapper "프로덕션 환경 엣지 케이스 및 보안 검토"
+
+# Qwen: 알고리즘 최적화
+Task qwen-wrapper "시간/공간 복잡도 분석 및 최적화 제안"
+```
+
+#### 교차 검증 조정
+```
+# 여러 AI 결과 종합
+Task ai-verification-coordinator "3-AI 검토 결과 종합 및 최종 의사결정"
+```
+
+### 🔄 자동 트리거 (hooks)
+
+**.claude/settings.json** 설정:
+```json
+{
+  "hooks": {
+    "PostToolUse": [{
+      "matcher": "Edit|Write|MultiEdit",
+      "hooks": [{
+        "type": "command",
+        "command": "echo '파일 변경 감지' >> .claude/verification.log"
+      }]
+    }]
+  }
+}
 ```
 
 ### 📈 검토 프로세스

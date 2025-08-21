@@ -178,6 +178,16 @@ sub-agents-windows-compatibility-test-report.md # 서브에이전트 Windows 호
 
 ## 💡 문서 관리 원칙
 
+```
+
+##### 📁 technical/system/ (1 문서)
+
+```
+
+hardware-specs.md # 개발 환경 시스템 스펙 및 WSL 최적화
+
+```
+
 ### JBGE (Just Barely Good Enough)
 
 1. **루트는 핵심만**: 필수 정보만
@@ -203,3 +213,4 @@ sub-agents-windows-compatibility-test-report.md # 서브에이전트 Windows 호
 ---
 
 > **문서 구조 개선 제안이 있으시면** 이슈로 등록해주세요!
+```

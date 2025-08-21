@@ -1,0 +1,34 @@
+# WSL2 최적화 설정
+# 경로: %USERPROFILE%\.wslconfig
+
+[wsl2]
+# 메모리 할당 (32GB 중 24GB 할당 - 개발용 최적화)
+memory=24GB
+
+# CPU 코어 할당 (16 스레드 모두 활용)
+processors=16
+
+# 스왑 메모리 (8GB로 증가)
+swap=8GB
+
+# 스왑 파일 경로 (D 드라이브 활용)
+swapFile=D:\\wsl-swap.vhdx
+
+# 로컬호스트 포워딩 활성화
+localhostForwarding=true
+
+# 중첩 가상화 활성화 (Docker 등을 위해)
+nestedVirtualization=true
+
+# 메모리 회수 모드 (gradual - 점진적 회수로 성능 향상)
+vmIdleTimeout=60000
+
+# 디버그 콘솔 비활성화 (성능 향상)
+debugConsole=false
+
+[experimental]
+# 자동 메모리 회수 활성화
+autoMemoryReclaim=gradual
+
+# 희소 VHD 활성화 (디스크 공간 절약)
+sparseVhd=true
