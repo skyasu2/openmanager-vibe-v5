@@ -74,7 +74,7 @@
     "gcp": {
       "command": "node",
       "args": [
-        "/home/skyasu/.nvm/versions/node/v22.17.1/lib/node_modules/google-cloud-mcp/dist/index.js"
+        "/home/skyasu/.nvm/versions/node/v22.18.0/lib/node_modules/google-cloud-mcp/dist/index.js"
       ],
       "env": {
         "GOOGLE_CLOUD_PROJECT": "${GCP_PROJECT_ID}",

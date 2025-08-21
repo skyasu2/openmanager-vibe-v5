@@ -248,8 +248,8 @@ command=sysctl -w vm.vfs_cache_pressure=50
 
 | 도구                  | 버전    | 요금제              | 역할 구분                   | WSL 실행                   | Windows 네이티브           |
 | --------------------- | ------- | ------------------- | --------------------------- | -------------------------- | -------------------------- |
-| **Claude Code**       | v1.0.84 | Max ($200/월) | 🏆 **메인 개발 환경**       | .\claude-wsl-optimized.bat | ✅ 완벽 지원                |
-| **Codex CLI**         | v0.22.0 | Plus ($20/월)       | 🤝 **서브 에이전트** (유료)  | .\codex-wsl.bat            | ❌ **미지원**              |
+| **Claude Code**       | v1.0.86 | Max ($200/월) | 🏆 **메인 개발 환경**       | .\claude-wsl-optimized.bat | ✅ 완벽 지원                |
+| **Codex CLI**         | v0.23.0 | Plus ($20/월)       | 🤝 **서브 에이전트** (유료)  | .\codex-wsl.bat            | ❌ **미지원**              |
 | **Google Gemini CLI** | v0.1.22 | 무료 (1K req/day)   | 👨‍💻 **코드 아키텍트** (무료) | .\gemini-wsl.bat           | ✅ 완벽 지원                |
 | **Qwen Code**         | v0.0.7  | 무료 (Qwen OAuth 2K/day)   | 🔷 **병렬 모듈 개발** (무료) | .\qwen-wsl.bat             | ✅ 완벽 지원                |
 | **OpenAI CLI**        | 설치됨  | -                   | 🔧 **SDK 도구**             | .\openai-wsl.bat           | ✅ 완벽 지원                |
@@ -1066,9 +1066,9 @@ WSL에서 모든 AI CLI 도구가 완벽하게 작동합니다:
 # WSL 내부에서 직접 실행
 
 wsl
-claude --version # Claude Code v1.0.81
-gemini --version # Google Gemini CLI v0.1.21
-qwen --version # Qwen CLI v0.0.6
+claude --version # Claude Code v1.0.86
+gemini --version # Google Gemini CLI v0.1.22
+qwen --version # Qwen CLI v0.0.7
 
 # Windows에서 WSL 도구 실행
 
@@ -1136,34 +1136,62 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 
 ## 🔌 MCP 통합 (Model Context Protocol)
 
-**✅ 11/12 서버 정상 작동** (2025-08-20 11:00 전체 재테스트 완료)
+**✅ 12/12 서버 모두 정상 작동** (2025-08-21 시스템 복구 완료)
 
 Claude Code와 외부 시스템을 직접 연결하는 핵심 기능입니다.
 
-### 🎯 핵심 서버 상태 (2025-08-20 11:00 전체 재테스트)
+### 🎯 핵심 서버 상태 (2025-08-21 전체 복구 완료)
 
 - **✅ 파일 시스템**: `filesystem`, `memory` - 정상 작동
-- **❌ GitHub**: 인증 실패 (Bad credentials) - 토큰 갱신 후에도 문제 지속
-- **✅ 개발 플랫폼**: `supabase` - 정상 작동 (대용량 응답)
+- **✅ GitHub**: GitHub API 통합 - 정상 작동 (토큰 갱신 완료)
+- **✅ 개발 플랫폼**: `supabase` - 정상 작동 (RLS 보안 강화됨)
 - **✅ 클라우드 인프라**: `gcp` - 정상 작동 (프로젝트 관리)
 - **✅ 웹 검색**: `tavily` - 정상 작동 (웹 검색, 크롤링)
 - **✅ 브라우저 자동화**: `playwright` - 정상 작동 (브라우저 제어)
 - **✅ AI & 분석**: `sequential-thinking`, `context7` - 정상 작동
-- **✅ 코드 분석**: `serena` - 정상 작동 (프로젝트 활성화 필요)
+- **✅ 코드 분석**: `serena` - 정상 작동 (프로젝트 활성화됨)
 - **✅ 유틸리티**: `time`, `shadcn-ui` - 정상 작동 (시간대 변환, UI 컴포넌트)
 
-### 🔧 해결이 필요한 문제
+### ✅ 최근 해결된 문제들 (2025-08-21)
 
-#### ❌ GitHub MCP 서버 인증 실패 - 근본 원인 발견 (2025-08-20 11:00)
-- **근본 원인**: Claude Code가 시작 시점의 환경변수를 캐시하여 설정 변경이 반영되지 않음
-- **증거**: 실행 중인 GitHub MCP 프로세스가 만료된 토큰 사용 중
-  - 캐시된 토큰: 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 (만료)
-  - 새 토큰: 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 (유효)
-- **해결 방법**:
-  1. Claude Code 완전 종료: `pkill -f claude`
-  2. 프로세스 확인: `ps aux | grep claude`
-  3. Claude Code 재시작
-  4. GitHub MCP 정상 작동 확인
+#### ✅ Config Mismatch 문제 해결
+- **문제**: `/status` 명령 시 "Config mismatch: running npm-global but config says unknown" 에러
+- **원인**: `~/.claude.json`의 `installMethod` 필드가 "unknown"으로 설정됨
+- **해결**: `installMethod`를 "npm-global"로 수정하여 완전 해결
+
+#### ✅ GitHub MCP 서버 복구
+- **문제**: 인증 실패로 GitHub 기능 사용 불가
+- **해결**: 토큰 갱신 및 Claude Code 재시작으로 정상화
+
+#### ✅ Supabase 보안 강화
+- **개선사항**: RLS (Row Level Security) 정책 전체 재검토 및 강화
+- **결과**: 모든 테이블에 적절한 보안 정책 적용됨
+
+#### ✅ MCP 서버 전체 활성화
+- **개선사항**: 12개 MCP 서버 모두 정상 작동 확인
+- **모니터링**: 자동 상태 확인 스크립트 추가 (`scripts/mcp/mcp-health-check.sh`)
+
+### 🚀 시스템 복구 4단계 완료 (2025-08-21)
+
+#### Phase 1: Supabase 보안 강화 ✅
+- RLS 정책 전면 재검토
+- 모든 테이블 보안 정책 적용
+- 보안 취약점 완전 제거
+
+#### Phase 2: AI CLI 도구 정상화 ✅
+- Claude Code v1.0.86 업데이트
+- Config mismatch 문제 해결
+- Statusline 정상 작동 확인
+
+#### Phase 3: MCP 서버 복구 ✅
+- 12개 서버 모두 활성화
+- GitHub 인증 문제 해결
+- 자동 모니터링 시스템 구축
+
+#### Phase 4: 모니터링 체계 구축 ✅
+- `mcp-health-check.sh`: 전체 상태 확인
+- `mcp-auto-monitor.sh`: 자동 모니터링
+- `mcp-recovery.sh`: 자동 복구 시스템
 
 
 ### 🔐 환경변수 보안 설정 (2025-08-20 업데이트)
