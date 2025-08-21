@@ -1,0 +1,181 @@
+{
+  "description": "코드 수정 권한 매트릭스 - 자동/확인/수동 분류",
+  "version": "1.0.0",
+  "updated": "2025-08-21",
+  
+  "auto_fix": [
+    "unused_variables",
+    "unused_imports",
+    "missing_semicolons",
+    "trailing_whitespace",
+    "formatting_issues",
+    "simple_syntax_errors",
+    "missing_types",
+    "duplicate_imports",
+    "console_log_removal",
+    "commented_code_removal",
+    "indentation_fixes",
+    "quote_consistency"
+  ],
+  
+  "confirm_required": [
+    "logic_changes",
+    "function_refactoring",
+    "variable_renaming",
+    "api_modifications",
+    "database_queries",
+    "dependency_updates",
+    "config_changes",
+    "route_modifications",
+    "state_management_changes",
+    "component_restructuring",
+    "error_handling_changes",
+    "async_await_modifications"
+  ],
+  
+  "manual_only": [
+    "security_vulnerabilities",
+    "eval_usage",
+    "dangerouslySetInnerHTML",
+    "innerHTML_manipulation",
+    "hardcoded_credentials",
+    "api_key_exposure",
+    "sql_injection_risk",
+    "xss_vulnerabilities",
+    "breaking_changes",
+    "architecture_refactor",
+    "authentication_changes",
+    "authorization_changes",
+    "encryption_changes",
+    "payment_logic",
+    "data_deletion",
+    "schema_migrations"
+  ],
+  
+  "priority_levels": {
+    "critical": {
+      "description": "즉시 수정 필요 (보안, 크래시)",
+      "auto_trigger": true,
+      "notification": "alert",
+      "examples": [
+        "eval_usage",
+        "sql_injection",
+        "xss_vulnerabilities",
+        "hardcoded_credentials"
+      ]
+    },
+    "high": {
+      "description": "높은 우선순위 (성능, 버그)",
+      "auto_trigger": false,
+      "notification": "warning",
+      "examples": [
+        "memory_leaks",
+        "infinite_loops",
+        "null_pointer_exceptions",
+        "performance_bottlenecks"
+      ]
+    },
+    "medium": {
+      "description": "중간 우선순위 (코드 품질)",
+      "auto_trigger": false,
+      "notification": "info",
+      "examples": [
+        "code_duplication",
+        "complex_functions",
+        "missing_documentation",
+        "test_coverage"
+      ]
+    },
+    "low": {
+      "description": "낮은 우선순위 (스타일, 컨벤션)",
+      "auto_trigger": false,
+      "notification": "none",
+      "examples": [
+        "naming_conventions",
+        "comment_formatting",
+        "file_organization",
+        "import_ordering"
+      ]
+    }
+  },
+  
+  "fix_strategies": {
+    "typescript_issues": {
+      "any_type": {
+        "strategy": "infer_type",
+        "fallback": "unknown",
+        "permission": "auto"
+      },
+      "missing_return_type": {
+        "strategy": "infer_from_implementation",
+        "fallback": "void",
+        "permission": "auto"
+      },
+      "implicit_any": {
+        "strategy": "add_explicit_type",
+        "fallback": "unknown",
+        "permission": "auto"
+      }
+    },
+    "security_issues": {
+      "eval_usage": {
+        "strategy": "replace_with_safe_alternative",
+        "fallback": "comment_and_warn",
+        "permission": "manual"
+      },
+      "hardcoded_key": {
+        "strategy": "move_to_env",
+        "fallback": "encrypt_and_warn",
+        "permission": "manual"
+      }
+    },
+    "performance_issues": {
+      "n3_complexity": {
+        "strategy": "optimize_algorithm",
+        "fallback": "add_warning_comment",
+        "permission": "confirm"
+      },
+      "unnecessary_rerenders": {
+        "strategy": "add_memoization",
+        "fallback": "use_callback",
+        "permission": "confirm"
+      }
+    }
+  },
+  
+  "batch_processing": {
+    "enabled": true,
+    "max_batch_size": 10,
+    "group_by": "file_type",
+    "order_by": "priority",
+    "parallel_fixes": {
+      "enabled": true,
+      "max_parallel": 3,
+      "exclude_types": ["security_issues", "breaking_changes"]
+    }
+  },
+  
+  "audit_trail": {
+    "enabled": true,
+    "log_location": ".claude/fix-audit.log",
+    "include_diff": true,
+    "retention_days": 30,
+    "track_fields": [
+      "timestamp",
+      "file",
+      "issue_type",
+      "fix_applied",
+      "ai_used",
+      "user_confirmation",
+      "result"
+    ]
+  },
+  
+  "rollback": {
+    "enabled": true,
+    "backup_before_fix": true,
+    "backup_location": ".claude/backups/",
+    "max_rollback_history": 10,
+    "auto_rollback_on_error": true
+  }
+}

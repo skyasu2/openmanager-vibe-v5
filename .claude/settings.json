@@ -1,0 +1,31 @@
+{
+  "statusLine": {
+    "type": "command",
+    "command": "ccusage statusline --visual-burn-rate emoji",
+    "padding": 0
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[$(date +\"%Y-%m-%d %H:%M:%S\")] 🔧 파일 변경 감지 - 검증 대기' >> /mnt/d/cursor/openmanager-vibe-v5/.claude/verification.log 2>&1"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "검증|검토|review|verify|교차.*검증|cross.*verif",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[$(date +\"%Y-%m-%d %H:%M:%S\")] 🔍 AI 검증 요청 감지' >> /mnt/d/cursor/openmanager-vibe-v5/.claude/verification.log 2>&1 && echo '💡 Task external-ai-orchestrator \"교차 검증 실행\"' >> /mnt/d/cursor/openmanager-vibe-v5/.claude/verification.log 2>&1"
+          }
+        ]
+      }
+    ]
+  }
+}

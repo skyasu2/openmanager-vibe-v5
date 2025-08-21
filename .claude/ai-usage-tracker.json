@@ -1,0 +1,37 @@
+{
+  "updated": "2025-08-21T14:58:39Z",
+  "daily_usage": {
+    "gemini": {
+      "count": 16,
+      "limit": 1000,
+      "last_used": "2025-08-21T14:58:11Z"
+    },
+    "codex": {
+      "count": 16,
+      "limit": -1,
+      "last_used": "2025-08-21T14:58:39Z"
+    },
+    "qwen": {
+      "count": 16,
+      "limit": 2000,
+      "last_used": "2025-08-21T14:57:48Z"
+    }
+  },
+  "round_robin": {
+    "last_selected": "codex",
+    "sequence": [
+      "gemini",
+      "codex",
+      "qwen"
+    ],
+    "current_index": 2
+  },
+  "statistics": {
+    "total_selections": 48,
+    "selection_distribution": {
+      "gemini": 16,
+      "codex": 16,
+      "qwen": 16
+    }
+  }
+}

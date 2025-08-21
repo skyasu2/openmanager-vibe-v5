@@ -1,0 +1,209 @@
+{
+  "description": "AI 교차 검증 레벨별 할당 매트릭스",
+  "version": "1.0.0",
+  "updated": "2025-08-21",
+  
+  "levels": {
+    "LEVEL_1": {
+      "description": "단일 AI 빠른 검증 (<50줄) - 라운드 로빈",
+      "strategy": "round_robin",
+      "ai_pool": ["gemini", "codex", "qwen"],
+      "selection_method": "random_round_robin",
+      "parallel": false,
+      "timeout": 30,
+      "focus": [
+        "syntax_errors",
+        "basic_logic",
+        "code_formatting",
+        "simple_types"
+      ],
+      "auto_fix_threshold": 7.0,
+      "decision_rule": "score >= 7.0 ? auto_accept : review_required",
+      "round_robin_config": {
+        "track_usage": true,
+        "balance_daily_limits": true,
+        "weights": {
+          "gemini": 0.33,
+          "codex": 0.34,
+          "qwen": 0.33
+        }
+      }
+    },
+    
+    "LEVEL_2": {
+      "description": "2-AI 병렬 검증 (50-200줄)",
+      "primary": ["gemini", "codex"],
+      "fallback": ["qwen"],
+      "parallel": true,
+      "timeout": 60,
+      "focus": {
+        "gemini": [
+          "architecture_patterns",
+          "design_principles",
+          "solid_violations",
+          "code_organization"
+        ],
+        "codex": [
+          "edge_cases",
+          "production_issues",
+          "performance_bottlenecks",
+          "practical_solutions"
+        ]
+      },
+      "consensus_threshold": 0.5,
+      "auto_fix_threshold": 7.5,
+      "decision_rule": "avg_score >= 7.5 && consensus == 'HIGH' ? auto_accept : partial_accept"
+    },
+    
+    "LEVEL_3": {
+      "description": "3-AI 완전 교차 검증 (>200줄 또는 중요 파일)",
+      "required": ["gemini", "codex", "qwen"],
+      "parallel": true,
+      "timeout": 120,
+      "focus": {
+        "gemini": [
+          "system_design",
+          "architectural_integrity",
+          "solid_principles",
+          "scalability_concerns"
+        ],
+        "codex": [
+          "security_vulnerabilities",
+          "production_readiness",
+          "performance_optimization",
+          "error_handling"
+        ],
+        "qwen": [
+          "algorithm_efficiency",
+          "alternative_approaches",
+          "code_complexity",
+          "test_coverage"
+        ]
+      },
+      "consensus_threshold": 1.0,
+      "auto_fix_threshold": 8.5,
+      "security_veto": true,
+      "decision_rule": "has_security_issue ? block : (avg_score >= 8.5 && consensus != 'LOW' ? auto_accept : manual_review)"
+    },
+    
+    "LEVEL_3_CRITICAL": {
+      "description": "보안/인증 관련 중요 파일",
+      "required": ["gemini", "codex", "qwen"],
+      "sequential": true,
+      "timeout": 180,
+      "phases": [
+        {
+          "phase": 1,
+          "ai": "codex",
+          "focus": "security_audit"
+        },
+        {
+          "phase": 2,
+          "ai": ["gemini", "qwen"],
+          "focus": "cross_validation"
+        },
+        {
+          "phase": 3,
+          "ai": "all",
+          "focus": "final_consensus"
+        }
+      ],
+      "security_requirements": {
+        "min_score": 9.0,
+        "unanimous_approval": true,
+        "manual_review": "always"
+      }
+    }
+  },
+  
+  "ai_capabilities": {
+    "gemini": {
+      "strengths": [
+        "architecture_analysis",
+        "design_patterns",
+        "code_quality",
+        "documentation"
+      ],
+      "weaknesses": [
+        "platform_specific",
+        "edge_cases"
+      ],
+      "cost": "free",
+      "limit": "1000/day",
+      "avg_response_time": 3.1
+    },
+    "codex": {
+      "strengths": [
+        "practical_solutions",
+        "security_analysis",
+        "production_experience",
+        "debugging"
+      ],
+      "weaknesses": [
+        "theoretical_concepts",
+        "documentation"
+      ],
+      "cost": "$20/month",
+      "limit": "unlimited",
+      "avg_response_time": 4.8
+    },
+    "qwen": {
+      "strengths": [
+        "algorithm_optimization",
+        "rapid_prototyping",
+        "alternative_solutions",
+        "testing"
+      ],
+      "weaknesses": [
+        "architecture_design",
+        "security_depth"
+      ],
+      "cost": "free",
+      "limit": "2000/day + 60/min",
+      "avg_response_time": 7.6
+    }
+  },
+  
+  "file_patterns": {
+    "critical": [
+      "**/api/**",
+      "**/auth/**",
+      "**/*.config.*",
+      "**/.env*",
+      "**/middleware/**",
+      "**/security/**",
+      "**/payment/**"
+    ],
+    "important": [
+      "**/lib/**",
+      "**/utils/**",
+      "**/hooks/**",
+      "**/services/**"
+    ],
+    "standard": [
+      "**/components/**",
+      "**/pages/**",
+      "**/styles/**"
+    ],
+    "low_priority": [
+      "**/test/**",
+      "**/docs/**",
+      "**/*.md"
+    ]
+  },
+  
+  "usage_optimization": {
+    "strategy": "cost_efficient",
+    "rules": [
+      "Use free AIs (Gemini, Qwen) first",
+      "Reserve Codex for Level 2+ or critical reviews",
+      "Cache results for 15 minutes",
+      "Batch similar files together"
+    ],
+    "daily_budget": {
+      "gemini": 800,
+      "qwen": 1600,
+      "codex": "unlimited"
+    }
+  }
+}

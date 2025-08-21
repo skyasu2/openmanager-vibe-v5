@@ -231,8 +231,24 @@ commit/
 # Claude 세션 정보
 .claude_session.json
 
-# Claude Code settings
-.claude/
+# Claude Code - 개인/보안 설정만 제외 (AI 검증 시스템은 팀 공유)
+.claude/cache/
+.claude/logs/
+.claude/temp/
+.claude/projects/
+.claude/todos/
+.claude/backup/
+.claude/downloads/
+.claude/shell-snapshots/
+.claude/statsig/
+.claude/*-local.json
+.claude/user-preferences.json
+.claude/.claude.json
+.claude/.credentials.json
+.claude/settings.local.json
+.claude/context.env
+.claude/consolidation-*.log
+.claude/hooks.log
 
 # Archive folder (local temporary storage only)
 archive/
