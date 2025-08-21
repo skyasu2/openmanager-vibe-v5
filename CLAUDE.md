@@ -1505,10 +1505,21 @@ return amount \* (1 + taxRate);
 1. **TypeScript**: any 금지, strict mode 필수
 2. **파일 크기**: 500줄 권장, 1500줄 초과 시 분리
 3. **테스트**: 커버리지 70%+, TDD 적용
-4. **문서**: 루트 파일 종류 제한 (JBGE 원칙)
+4. **문서**: 루트 파일 종류 제한 + 리포트 vs 가이드 구분 (JBGE 원칙)
    - **Core**: README.md, CHANGELOG.md, CHANGELOG-LEGACY.md
    - **AI Guides**: CLAUDE.md, GEMINI.md, QWEN.md
-   - **기타 .md**: /docs/ 디렉토리로 이동
+   - **재사용 가능한 가이드**: /docs/ 디렉토리 (Git 추적 포함)
+   - **일회성 리포트**: /reports/ 디렉토리 (Git 추적 제외)
+   
+   **📊 리포트 vs 가이드 구분 규칙**:
+   - **리포트**: 특정 시점 분석, 작업 완료 보고서, 상태 보고서
+     - 경로: `/reports/{category}/` (예: mcp, performance, security, cleanup)  
+     - 파일명: 날짜 포함 (예: `mcp-recovery-report-2025-08-21.md`)
+     - Git: 제외 (.gitignore에서 reports/ 차단)
+   - **가이드**: 재사용 가능한 절차, 문제 해결 방법, 설정 방법
+     - 경로: `/docs/{category}/` (예: claude, mcp, development)
+     - 파일명: 날짜 미포함 (예: `system-recovery-guide.md`)  
+     - Git: 포함 (팀 공유 및 버전 관리)
 5. **커밋**: 이모지 + 간결한 메시지
 
 ## 🎯 현재 상태
