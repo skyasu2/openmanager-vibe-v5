@@ -136,6 +136,23 @@ export class UnifiedCacheService {
   }
 
   /**
+   * 여러 키를 한 번에 조회 (배치 조회)
+   */
+  async mget<T>(
+    keys: string[],
+    namespace: CacheNamespace = CacheNamespace.GENERAL
+  ): Promise<(T | null)[]> {
+    const results: (T | null)[] = [];
+    
+    for (const key of keys) {
+      const value = await this.get<T>(key, namespace);
+      results.push(value);
+    }
+    
+    return results;
+  }
+
+  /**
    * 캐시에 값 저장
    */
   async set<T>(
@@ -430,6 +447,31 @@ export async function invalidateCache(pattern?: string): Promise<void> {
 export function getCacheStats(): CacheStats {
   const cache = UnifiedCacheService.getInstance();
   return cache.getStats();
+}
+
+export async function getCachedDataWithFallback<T>(
+  key: string,
+  fallback: () => Promise<T>,
+  ttlSeconds: number = 300,
+  namespace: CacheNamespace = CacheNamespace.GENERAL
+): Promise<T> {
+  const cache = UnifiedCacheService.getInstance();
+  return cache.getOrFetch(key, fallback, { ttlSeconds, namespace });
+}
+
+export function cacheWrapper<T extends unknown[], R>(
+  key: string,
+  fn: (...args: T) => Promise<R>,
+  ttlSeconds: number = 300
+): (...args: T) => Promise<R> {
+  return async (...args: T): Promise<R> => {
+    const cache = UnifiedCacheService.getInstance();
+    const cacheKey = `${key}:${JSON.stringify(args)}`;
+    return cache.getOrFetch(cacheKey, () => fn(...args), {
+      ttlSeconds,
+      namespace: CacheNamespace.GENERAL,
+    });
+  };
 }
 
 // Next.js Response 헬퍼

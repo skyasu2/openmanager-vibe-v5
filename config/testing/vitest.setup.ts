@@ -4,6 +4,10 @@
  */
 
 import { vi } from 'vitest';
+import React from 'react';
+
+// Make React available globally for JSX in tests
+global.React = React;
 
 // Mock localStorage
 const localStorageMock = {

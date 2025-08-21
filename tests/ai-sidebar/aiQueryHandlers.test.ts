@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { handleAIQuery, formatErrorMessage, validateQuery } from '@/domains/ai-sidebar/utils/aiQueryHandlers';
+import { processRealAIQuery, formatErrorMessage, validateQuery } from '@/domains/ai-sidebar/utils/aiQueryHandlers';
 
 // fetch mock
 global.fetch = vi.fn();
@@ -9,10 +9,13 @@ describe('aiQueryHandlers', () => {
     vi.resetAllMocks();
   });
 
-  describe('handleAIQuery', () => {
+  describe('processRealAIQuery', () => {
     it('sends query to correct endpoint based on engine', async () => {
       const mockResponse = { 
+        success: true,
         response: 'AI 응답입니다',
+        confidence: 0.8,
+        engine: 'GOOGLE_ONLY',
         metadata: { tokens: 100 }
       };
 
@@ -21,38 +24,59 @@ describe('aiQueryHandlers', () => {
         json: () => Promise.resolve(mockResponse)
       });
 
-      const result = await handleAIQuery({
-        query: '서버 상태는 어떤가요?',
-        engine: 'GOOGLE_ONLY',
-        context: []
-      });
+      // Mock functions for onThinkingStart/Stop
+      const onThinkingStart = vi.fn();
+      const onThinkingStop = vi.fn();
+
+      const result = await processRealAIQuery(
+        '서버 상태는 어떤가요?',
+        'GOOGLE_ONLY',
+        'test-session-id',
+        onThinkingStart,
+        onThinkingStop
+      );
 
       expect(fetch).toHaveBeenCalledWith('/api/ai/google-ai/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-AI-Mode': 'google_only'
+        },
         body: JSON.stringify({
           query: '서버 상태는 어떤가요?',
-          engine: 'GOOGLE_ONLY',
-          context: []
+          context: 'ai-sidebar',
+          includeThinking: true,
+          sessionId: 'test-session-id',
+          mode: 'google_only',
+          prompt: '서버 상태는 어떤가요?'
         })
       });
 
-      expect(result).toEqual(mockResponse);
+      expect(result.success).toBe(true);
+      expect(result.content).toBe('AI 응답입니다');
     });
 
     it('handles different engines correctly', async () => {
-      const mockResponse = { response: 'Test response' };
+      const mockResponse = { 
+        success: true,
+        response: 'Test response',
+        confidence: 0.8,
+        engine: 'UNIFIED'
+      };
       (fetch as any).mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockResponse)
       });
 
+      const onThinkingStart = vi.fn();
+      const onThinkingStop = vi.fn();
+
       // UNIFIED engine
-      await handleAIQuery({ query: 'test', engine: 'UNIFIED', context: [] });
+      await processRealAIQuery('test', 'UNIFIED', 'test-session', onThinkingStart, onThinkingStop);
       expect(fetch).toHaveBeenCalledWith('/api/ai/edge-v2', expect.any(Object));
 
       // LOCAL engine  
-      await handleAIQuery({ query: 'test', engine: 'LOCAL', context: [] });
+      await processRealAIQuery('test', 'LOCAL', 'test-session', onThinkingStart, onThinkingStop);
       expect(fetch).toHaveBeenCalledWith('/api/mcp/query', expect.any(Object));
     });
 
@@ -63,26 +87,39 @@ describe('aiQueryHandlers', () => {
         statusText: 'Internal Server Error'
       });
 
-      const result = await handleAIQuery({
-        query: 'test query',
-        engine: 'UNIFIED',
-        context: []
-      });
+      const onThinkingStart = vi.fn();
+      const onThinkingStop = vi.fn();
 
-      expect(result.error).toContain('API 호출 실패');
-      expect(result.error).toContain('500');
+      const result = await processRealAIQuery(
+        'test query',
+        'UNIFIED',
+        'test-session',
+        onThinkingStart,
+        onThinkingStop
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.content).toContain('AI 응답 생성 중 오류가 발생했습니다');
+      expect(result.content).toContain('500');
     });
 
     it('handles network errors', async () => {
       (fetch as any).mockRejectedValueOnce(new Error('Network error'));
 
-      const result = await handleAIQuery({
-        query: 'test query',
-        engine: 'UNIFIED',
-        context: []
-      });
+      const onThinkingStart = vi.fn();
+      const onThinkingStop = vi.fn();
 
-      expect(result.error).toContain('네트워크 오류');
+      const result = await processRealAIQuery(
+        'test query',
+        'UNIFIED',
+        'test-session',
+        onThinkingStart,
+        onThinkingStop
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.content).toContain('AI 응답 생성 중 오류가 발생했습니다');
+      expect(result.content).toContain('Network error');
     });
   });
 

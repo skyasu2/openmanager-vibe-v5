@@ -225,7 +225,7 @@ export class MemoryCacheService {
   }
 
   async mget<T>(keys: string[]): Promise<(T | null)[]> {
-    return Promise.all(keys.map((key) => this.get<T>(key)));
+    return this.unifiedCache.mget<T>(keys, CacheNamespace.GENERAL);
   }
 
   async delete(key: string): Promise<void> {

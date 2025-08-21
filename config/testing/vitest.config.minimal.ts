@@ -16,6 +16,7 @@ export default defineConfig({
       },
     },
     setupFiles: [resolve(process.cwd(), 'config/testing/vitest.setup.ts')],
+    globalSetup: [resolve(process.cwd(), 'config/testing/global-setup.ts')],
   },
   resolve: {
     alias: {
