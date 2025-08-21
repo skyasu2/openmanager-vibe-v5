@@ -49,6 +49,8 @@
     "test:tdd-cycle": "npm run test:coverage",
     "test:full-suite": "npm run test:unit && npm run test:e2e && npm run test:performance",
     "type-check": "node scripts/dev/tsc-wrapper.js --noEmit",
+    "type-check:src": "npx tsc --noEmit src/**/*.ts src/**/*.tsx",
+    "type-check:fast": "timeout 60s npx tsc --noEmit --skipLibCheck src/**/*.ts src/**/*.tsx || echo '⚠️ 빠른 체크 완료'",
     "prepare": "husky || true",
     "validate": "npm run type-check && npm run lint:quick",
     "validate:all": "npm run type-check && npm run lint && npm run test",

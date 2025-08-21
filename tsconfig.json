@@ -52,7 +52,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/**/*",
-    "scripts/**/*"
+    "scripts/**/*.ts"
   ],
   "exclude": [
     "node_modules",
@@ -78,6 +78,12 @@
     "**/*.spec.tsx",
     "src/test/**",
     "tests/**",
-    "vm-ai-backend*/**"
+    "vm-ai-backend*/**",
+    "scripts/**/*.js",
+    "scripts/**/*.mjs",
+    "scripts/**/*.cjs",
+    ".claude/**",
+    "reports/**",
+    ".backups/**"
   ]
 }

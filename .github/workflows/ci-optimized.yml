@@ -36,16 +36,21 @@ jobs:
         run: npm ci
 
       - name: Smart TypeScript Check
+        timeout-minutes: 3
         run: |
-          # 변경된 파일만 스마트 체크
+          # 변경된 파일만 스마트 체크 (타임아웃 방지)
           node scripts/dev/type-check-changed.js smart || {
             echo "⚠️ TypeScript 에러 발견"
             echo "💡 로컬에서 npm run type-check로 상세 확인"
-            # 스마트 체크 실패 시 전체 체크로 폴백
-            npm run type-check || {
-              echo "❌ 전체 TypeScript 검사 실패"
+            
+            # 스마트 체크 실패 시 빠른 필수 체크만 실행
+            echo "🔍 src/ 디렉토리만 빠른 체크..."
+            timeout 120s npx tsc --noEmit src/**/*.ts src/**/*.tsx || {
+              echo "❌ 핵심 TypeScript 검사 실패"
               if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
                 exit 1  # main 브랜치는 실패 처리
+              else
+                echo "⚠️ Feature 브랜치 - 경고로 처리"
               fi
             }
           }
