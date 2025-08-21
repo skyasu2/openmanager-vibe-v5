@@ -59,30 +59,179 @@ const finalScore = (scores: number[], fileType: string) => {
 };
 ```
 
-### 4. **의사결정 로직**
+### 4. **의사결정 로직 (개선된 구현)**
 
-#### 자동 결정 기준
+#### AI별 신뢰도 가중치 시스템
+```typescript
+// AI별 전문성 기반 가중치
+const AI_TRUST_WEIGHTS = {
+  claude: 1.0,    // 기준점 (메인 개발 환경)
+  codex: 0.9,     // 실무 경험 강함
+  gemini: 0.8,    // 아키텍처 전문  
+  qwen: 0.7       // 빠른 검증 특화
+};
+
+// 도메인별 AI 전문성 가중치
+const DOMAIN_EXPERTISE = {
+  security: { codex: 1.1, gemini: 0.9, qwen: 0.8 },
+  performance: { gemini: 1.1, codex: 1.0, qwen: 0.9 },
+  architecture: { gemini: 1.2, codex: 0.9, qwen: 0.8 },
+  algorithms: { qwen: 1.1, codex: 0.9, gemini: 0.8 }
+};
+
+// 가중 평균 계산
+function calculateWeightedScore(results: AIReviewResult[], domain?: string): number {
+  let totalScore = 0;
+  let totalWeight = 0;
+  
+  results.forEach(result => {
+    let weight = AI_TRUST_WEIGHTS[result.ai] || 1.0;
+    
+    // 도메인별 가중치 적용
+    if (domain && DOMAIN_EXPERTISE[domain]) {
+      weight *= DOMAIN_EXPERTISE[domain][result.ai] || 1.0;
+    }
+    
+    totalScore += result.score * weight;
+    totalWeight += weight;
+  });
+  
+  return totalScore / totalWeight;
+}
+```
+
+#### 충돌 해결 로직 (신규)
+```typescript
+interface ConflictResolution {
+  topic: string;
+  conflictingAIs: string[];
+  resolutionStrategy: 'highest_trust' | 'domain_expert' | 'consensus' | 'human_review';
+  finalDecision: string;
+  confidence: number;
+}
+
+function resolveConflicts(results: AIReviewResult[]): ConflictResolution[] {
+  const conflicts: ConflictResolution[] = [];
+  
+  // 1. 보안 이슈 충돌 - 보수적 접근
+  const securityFindings = results.filter(r => r.security.length > 0);
+  const securityNonFindings = results.filter(r => r.security.length === 0);
+  
+  if (securityFindings.length > 0 && securityNonFindings.length > 0) {
+    conflicts.push({
+      topic: 'security_assessment',
+      conflictingAIs: [...securityFindings.map(r => r.ai), ...securityNonFindings.map(r => r.ai)],
+      resolutionStrategy: 'highest_trust', // 보안은 보수적으로
+      finalDecision: '보안 이슈 발견됨 - 추가 검토 필요',
+      confidence: 0.9
+    });
+  }
+  
+  // 2. 성능 점수 충돌 - 도메인 전문가 우선
+  const scores = results.map(r => r.score);
+  const variance = calculateVariance(scores);
+  
+  if (variance > 2.0) {
+    const performanceExpert = results.find(r => r.ai === 'gemini') || results[0];
+    conflicts.push({
+      topic: 'performance_score',
+      conflictingAIs: results.map(r => r.ai),
+      resolutionStrategy: 'domain_expert',
+      finalDecision: `성능 전문가 의견 채택: ${performanceExpert.score}점`,
+      confidence: 0.7
+    });
+  }
+  
+  // 3. 개선사항 충돌 - 합의 가능한 항목만 선택
+  const allImprovements = results.flatMap(r => r.improvements);
+  const improvementFreq = countFrequency(allImprovements);
+  const consensusImprovements = improvementFreq.filter(item => item.count >= 2);
+  
+  conflicts.push({
+    topic: 'improvements_consensus',
+    conflictingAIs: results.map(r => r.ai),
+    resolutionStrategy: 'consensus',
+    finalDecision: `${consensusImprovements.length}개 합의 개선사항 채택`,
+    confidence: 0.8
+  });
+  
+  return conflicts;
+}
+```
+
+#### 자동 결정 기준 (개선됨)
 ```mermaid
 graph TD
     A[AI 결과 수집] --> B{보안 이슈?}
     B -->|있음| C[🚨 즉시 차단]
-    B -->|없음| D{평균 점수}
+    B -->|없음| D[가중 평균 계산]
     
-    D -->|8.5+| E[✅ 자동 수용]
-    D -->|6.0-8.5| F[⚠️ 부분 수용]
-    D -->|<6.0| G[❌ 재작업]
+    D --> E{충돌 해결}
+    E --> F[신뢰도 기반 점수]
     
-    F --> H{합의 수준}
-    H -->|HIGH| I[개선사항 자동 적용]
-    H -->|MEDIUM| J[사용자 확인 필요]
-    H -->|LOW| K[추가 검토 필요]
+    F --> G{점수 구간}
+    G -->|8.5+| H[✅ 자동 수용]
+    G -->|7.0-8.5| I[⚠️ 부분 수용]
+    G -->|5.0-7.0| J[📝 조건부 수용]
+    G -->|<5.0| K[❌ 재작업]
+    
+    I --> L{합의 수준}
+    L -->|HIGH| M[개선사항 자동 적용]
+    L -->|MEDIUM| N[핵심 개선사항만 적용]
+    L -->|LOW| O[추가 AI 검토 요청]
+    
+    J --> P[상세 개선 계획 수립]
 ```
 
-#### 합의 수준 계산
-- **HIGH**: 점수 차이 ≤ 0.5
-- **MEDIUM**: 점수 차이 ≤ 1.0
-- **LOW**: 점수 차이 > 1.0
-- **CRITICAL**: 보안 이슈 발견
+#### 개선된 합의 수준 계산
+```typescript
+function calculateAdvancedConsensus(results: AIReviewResult[]): {
+  level: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'VERY_LOW';
+  score: number;
+  reliability: number;
+} {
+  // 1. 보안 이슈 우선 확인
+  const hasSecurityIssues = results.some(r => r.security.length > 0);
+  if (hasSecurityIssues) {
+    return { level: 'CRITICAL', score: 0, reliability: 1.0 };
+  }
+  
+  // 2. 점수 분산 계산
+  const scores = results.map(r => r.score);
+  const mean = scores.reduce((a, b) => a + b) / scores.length;
+  const variance = scores.reduce((acc, score) => acc + Math.pow(score - mean, 2), 0) / scores.length;
+  const stdDev = Math.sqrt(variance);
+  
+  // 3. 신뢰도 가중 분산 계산 (AI별 신뢰도 반영)
+  const weightedVariance = results.reduce((acc, result) => {
+    const weight = AI_TRUST_WEIGHTS[result.ai] || 1.0;
+    return acc + weight * Math.pow(result.score - mean, 2);
+  }, 0) / results.length;
+  
+  // 4. 합의 수준 결정
+  let level: 'HIGH' | 'MEDIUM' | 'LOW' | 'VERY_LOW';
+  let reliability: number;
+  
+  if (stdDev <= 0.5) {
+    level = 'HIGH';
+    reliability = 0.95;
+  } else if (stdDev <= 1.0) {
+    level = 'MEDIUM';  
+    reliability = 0.80;
+  } else if (stdDev <= 2.0) {
+    level = 'LOW';
+    reliability = 0.60;
+  } else {
+    level = 'VERY_LOW';
+    reliability = 0.30;
+  }
+  
+  return {
+    level,
+    score: mean,
+    reliability
+  };
+}
 
 ### 5. **보고서 생성**
 
@@ -145,23 +294,225 @@ graph TD
 4. 상세 보고서 및 권장사항 생성
 ```
 
-## 병렬 처리 최적화
+## 병렬 처리 최적화 (캐시 통합)
 
+### 캐시 기반 검증 결과 통합
 ```typescript
-// 여러 AI 동시 실행으로 시간 단축
-const runParallelReviews = async (file: string, level: number) => {
-  const aiTools = selectAIForLevel(level);
+interface CachedVerificationResult {
+  fileHash: string;
+  timestamp: number;
+  results: {
+    [aiName: string]: AIReviewResult;
+  };
+  aggregatedScore: number;
+  consensusLevel: string;
+  conflicts: ConflictResolution[];
+  ttl: number;
+}
+
+// external-ai-orchestrator의 parallel_verification 결과 처리
+async function processParallelVerificationResult(cacheResult: string): Promise<CrossVerificationResult> {
+  let parsedResult;
   
-  // Promise.all로 병렬 실행
-  const results = await Promise.all(
-    aiTools.map(ai => Task({
-      subagent_type: `${ai}-wrapper`,
-      prompt: `${file} 검토`
-    }))
+  try {
+    parsedResult = JSON.parse(cacheResult);
+  } catch (error) {
+    // JSON 파싱 실패 시 폴백 처리
+    return handleParsingError(cacheResult);
+  }
+  
+  // 1. 개별 AI 결과 정규화
+  const normalizedResults: AIReviewResult[] = [];
+  
+  if (parsedResult.results) {
+    Object.entries(parsedResult.results).forEach(([aiName, result]: [string, any]) => {
+      if (result.error) {
+        // 타임아웃이나 실행 실패 처리
+        normalizedResults.push({
+          ai: aiName as 'gemini' | 'codex' | 'qwen',
+          score: 5, // 기본값 (중간 점수)
+          strengths: [],
+          improvements: [`${aiName} 검증 실패 - 재검토 필요`],
+          security: [],
+          performance: [],
+          consensus: 'low'
+        });
+      } else {
+        // 정상 결과 정규화
+        normalizedResults.push(normalizeAIResponse(aiName, result));
+      }
+    });
+  }
+  
+  // 2. 교차 검증 분석 실행
+  return performCrossVerificationAnalysis(normalizedResults, parsedResult.timestamp);
+}
+
+// AI 응답 정규화 (각 AI의 다른 형식을 표준화)
+function normalizeAIResponse(aiName: string, rawResult: any): AIReviewResult {
+  // Codex CLI 응답 형식
+  if (aiName === 'codex' && rawResult.includes('Score:')) {
+    return parseCodexResponse(rawResult);
+  }
+  
+  // Gemini CLI 응답 형식
+  if (aiName === 'gemini' && rawResult.includes('Analysis:')) {
+    return parseGeminiResponse(rawResult);
+  }
+  
+  // Qwen CLI 응답 형식  
+  if (aiName === 'qwen' && rawResult.includes('评分:')) {
+    return parseQwenResponse(rawResult);
+  }
+  
+  // 표준 JSON 형식이면 그대로 사용
+  try {
+    return JSON.parse(rawResult);
+  } catch {
+    // 파싱 실패 시 텍스트 분석으로 폴백
+    return parseNaturalLanguageResponse(aiName, rawResult);
+  }
+}
+```
+
+### 병렬 실행 결과 통합 로직
+```typescript
+async function runOptimizedParallelReviews(
+  file: string, 
+  level: number,
+  useCache: boolean = true
+): Promise<CrossVerificationResult> {
+  const fileHash = calculateFileHash(file);
+  const cacheDir = '/mnt/d/cursor/openmanager-vibe-v5/.claude/cache';
+  const cacheFile = `${cacheDir}/${fileHash}.json`;
+  
+  // 1. 캐시 확인 (1시간 TTL)
+  if (useCache && await checkCacheValidity(cacheFile)) {
+    console.log('⚡ 캐시된 검증 결과 사용');
+    const cachedResult = await readFile(cacheFile);
+    return processParallelVerificationResult(cachedResult);
+  }
+  
+  // 2. external-ai-orchestrator 병렬 실행 호출
+  console.log('🔄 병렬 AI 검증 시작...');
+  const orchestratorResult = await Task({
+    subagent_type: 'external-ai-orchestrator',
+    prompt: `parallel_verification "${file}" "Level ${level} 교차 검증 실행"`
+  });
+  
+  // 3. 결과 처리 및 통합
+  const crossVerification = await processParallelVerificationResult(orchestratorResult);
+  
+  // 4. 캐시에 저장
+  if (useCache) {
+    await saveToCacheWithTTL(cacheFile, crossVerification, 3600); // 1시간
+  }
+  
+  return crossVerification;
+}
+
+// 교차 검증 분석 핵심 로직
+async function performCrossVerificationAnalysis(
+  results: AIReviewResult[], 
+  timestamp: string
+): Promise<CrossVerificationResult> {
+  
+  // 1. 가중 평균 계산
+  const weightedScore = calculateWeightedScore(results);
+  
+  // 2. 합의 수준 분석
+  const consensusAnalysis = calculateAdvancedConsensus(results);
+  
+  // 3. 충돌 해결
+  const conflicts = resolveConflicts(results);
+  
+  // 4. 교차 발견사항 식별
+  const crossFindings = identifyCrossFindings(results);
+  
+  // 5. 최종 의사결정
+  const finalDecision = makeAutomatedDecision(
+    weightedScore, 
+    consensusAnalysis, 
+    conflicts
   );
   
-  return aggregateResults(results);
-};
+  return {
+    // AI별 개별 결과
+    individualResults: results,
+    
+    // 교차 검증 분석
+    commonFindings: crossFindings.common,
+    uniqueFindings: crossFindings.unique,
+    conflictingOpinions: conflicts,
+    
+    // 통합 지표  
+    rawScore: results.reduce((sum, r) => sum + r.score, 0) / results.length,
+    weightedScore,
+    consensusLevel: consensusAnalysis.level,
+    reliability: consensusAnalysis.reliability,
+    
+    // 최종 결정
+    recommendation: finalDecision.action,
+    confidence: finalDecision.confidence,
+    reasoning: finalDecision.reasoning,
+    
+    // 메타데이터
+    timestamp,
+    verificationLevel: results.length, // 참여 AI 수
+    executionTime: Date.now() - new Date(timestamp).getTime(),
+    cacheHit: false
+  };
+}
+```
+
+### 지능형 폴백 시스템
+```typescript
+// AI 실행 실패 시 폴백 전략
+async function handleAIFailure(
+  failedAI: string, 
+  remainingResults: AIReviewResult[],
+  file: string
+): Promise<AIReviewResult[]> {
+  
+  console.log(`⚠️ ${failedAI} 실행 실패 - 폴백 전략 실행`);
+  
+  // 1. 최소 AI 수 확인
+  if (remainingResults.length < 1) {
+    // 모든 외부 AI 실패 시 Claude만으로 검증
+    const claudeResult = await Task({
+      subagent_type: 'verification-specialist',
+      prompt: `긴급 검증: ${file} (외부 AI 실패로 인한 단독 검증)`
+    });
+    
+    return [normalizeClaudeResponse(claudeResult)];
+  }
+  
+  // 2. 부족한 AI 역할 보완
+  const missingRoles = identifyMissingExpertise(failedAI);
+  
+  if (missingRoles.includes('security') && remainingResults.length >= 2) {
+    // 보안 전문가 실패 시 다른 AI들에게 보안 중심 재검토 요청
+    const securityReview = await Task({
+      subagent_type: 'external-ai-orchestrator',
+      prompt: `보안 중심 재검토: ${file} (${failedAI} 실패 보완)`
+    });
+    
+    remainingResults.push(normalizeSecurityFocusedResponse(securityReview));
+  }
+  
+  return remainingResults;
+}
+
+// 부족한 전문성 식별
+function identifyMissingExpertise(failedAI: string): string[] {
+  const aiExpertise = {
+    codex: ['security', 'practical'],
+    gemini: ['architecture', 'performance'], 
+    qwen: ['algorithms', 'optimization']
+  };
+  
+  return aiExpertise[failedAI] || [];
+}
 ```
 
 ## 오류 처리

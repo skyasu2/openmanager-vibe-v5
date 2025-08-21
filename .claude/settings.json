@@ -1,6 +1,6 @@
 {
   "statusLine": {
-    "type": "command",
+    "type": "command", 
     "command": "ccusage statusline --visual-burn-rate emoji",
     "padding": 0
   },
@@ -11,7 +11,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '[$(date +\"%Y-%m-%d %H:%M:%S\")] 🔧 파일 변경 감지 - 검증 대기' >> /mnt/d/cursor/openmanager-vibe-v5/.claude/verification.log 2>&1"
+            "command": "bash /mnt/d/cursor/openmanager-vibe-v5/.claude/hooks/smart-verification.sh \"$file\" \"$tool\""
           }
         ]
       }

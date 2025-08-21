@@ -37,13 +37,115 @@ trigger: complex_tasks, multi_ai_needed, verification_level_3
 
 ### 2. 다중 AI 협업 패턴 실행
 
-#### 병렬 분석 패턴
+#### 병렬 분석 패턴 (개선된 구현)
 ```bash
-# 동시에 다각도 분석
-codex-cli "보안 관점에서 코드 분석" &
-gemini "성능 관점에서 코드 분석" &
-qwen "구현 복잡도 관점에서 코드 분석" &
-wait
+# 캐싱 및 타임아웃이 적용된 병렬 실행
+parallel_verification() {
+  local file="$1"
+  local prompt="$2"
+  local timeout=30
+  local cache_dir="/mnt/d/cursor/openmanager-vibe-v5/.claude/cache"
+  local file_hash=$(md5sum "$file" | cut -d' ' -f1)
+  
+  # 1. 캐시 확인 (1시간 TTL)
+  if [ -f "$cache_dir/${file_hash}.json" ]; then
+    local cache_age=$(($(date +%s) - $(stat -c %Y "$cache_dir/${file_hash}.json")))
+    if [ $cache_age -lt 3600 ]; then
+      echo "⚡ 캐시된 검증 결과 사용 (${cache_age}초 전)"
+      cat "$cache_dir/${file_hash}.json"
+      return 0
+    fi
+  fi
+  
+  # 2. 병렬 실행 (각각 타임아웃 적용)
+  echo "🔄 3-AI 병렬 검증 시작..."
+  
+  {
+    timeout $timeout codex-cli "$prompt" 2>/dev/null || echo '{"ai":"codex","error":"timeout","score":0}'
+  } > /tmp/codex_$$.json &
+  local pid_codex=$!
+  
+  {
+    timeout $timeout gemini "$prompt" 2>/dev/null || echo '{"ai":"gemini","error":"timeout","score":0}'
+  } > /tmp/gemini_$$.json &
+  local pid_gemini=$!
+  
+  {
+    timeout $timeout qwen "$prompt" 2>/dev/null || echo '{"ai":"qwen","error":"timeout","score":0}'
+  } > /tmp/qwen_$$.json &
+  local pid_qwen=$!
+  
+  # 3. 진행 상황 표시하며 대기 (최대 30초)
+  local elapsed=0
+  while [ $elapsed -lt $timeout ]; do
+    if ! kill -0 $pid_codex $pid_gemini $pid_qwen 2>/dev/null; then
+      break
+    fi
+    echo -n "."
+    sleep 1
+    elapsed=$((elapsed + 1))
+  done
+  echo ""
+  
+  # 4. 강제 종료 (타임아웃 시)
+  kill $pid_codex $pid_gemini $pid_qwen 2>/dev/null
+  wait 2>/dev/null
+  
+  # 5. 결과 수집 및 통합
+  local results=$(collect_parallel_results /tmp/codex_$$.json /tmp/gemini_$$.json /tmp/qwen_$$.json)
+  
+  # 6. 캐시에 저장
+  mkdir -p "$cache_dir"
+  echo "$results" > "$cache_dir/${file_hash}.json"
+  
+  # 7. 임시 파일 정리
+  rm -f /tmp/codex_$$.json /tmp/gemini_$$.json /tmp/qwen_$$.json
+  
+  echo "$results"
+}
+
+# 결과 수집 헬퍼 함수
+collect_parallel_results() {
+  local codex_file="$1"
+  local gemini_file="$2" 
+  local qwen_file="$3"
+  
+  # JSON 통합 (jq 없이 bash로 처리)
+  echo "{"
+  echo "  \"verification_type\": \"parallel_3ai\","
+  echo "  \"timestamp\": \"$(date -Iseconds)\","
+  echo "  \"results\": {"
+  echo -n "    \"codex\": "; cat "$codex_file" 2>/dev/null || echo '{"error":"failed"}'
+  echo ","
+  echo -n "    \"gemini\": "; cat "$gemini_file" 2>/dev/null || echo '{"error":"failed"}'
+  echo ","
+  echo -n "    \"qwen\": "; cat "$qwen_file" 2>/dev/null || echo '{"error":"failed"}'
+  echo ""
+  echo "  }"
+  echo "}"
+}
+
+# 기존 순차 실행 (폴백용)
+sequential_verification() {
+  local file="$1"
+  local prompt="$2"
+  
+  echo "🔄 순차 검증 실행 (폴백 모드)..."
+  
+  echo "1/3 Codex 검증..."
+  local codex_result=$(codex-cli "$prompt" 2>/dev/null || echo "Codex 실행 실패")
+  
+  echo "2/3 Gemini 검증..."  
+  local gemini_result=$(gemini "$prompt" 2>/dev/null || echo "Gemini 실행 실패")
+  
+  echo "3/3 Qwen 검증..."
+  local qwen_result=$(qwen "$prompt" 2>/dev/null || echo "Qwen 실행 실패")
+  
+  echo "=== 종합 결과 ==="
+  echo "Codex: $codex_result"
+  echo "Gemini: $gemini_result"
+  echo "Qwen: $qwen_result"
+}
 ```
 
 #### 순차 개선 패턴
