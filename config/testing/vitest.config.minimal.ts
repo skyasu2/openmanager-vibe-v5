@@ -4,9 +4,9 @@ import { resolve } from 'path';
 export default defineConfig({
   test: {
     name: 'minimal',
-    environment: 'node',
+    environment: 'jsdom',
     include: ['src/**/*.test.{ts,tsx}', 'src/**/__tests__/**/*.test.{ts,tsx}', 'tests/unit/**/*.test.{ts,tsx}', 'tests/**/*.test.{ts,tsx}'],
-    globals: false,
+    globals: true,
     reporters: ['verbose'],
     pool: 'threads',
     poolOptions: {
@@ -15,6 +15,7 @@ export default defineConfig({
         maxThreads: 2,
       },
     },
+    setupFiles: [resolve(process.cwd(), 'config/testing/vitest.setup.ts')],
   },
   resolve: {
     alias: {

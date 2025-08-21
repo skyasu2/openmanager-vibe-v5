@@ -15,6 +15,11 @@ on:
 env:
   NODE_VERSION: '22.18.0'
   SKIP_ENV_VALIDATION: true # 환경변수 없이도 빌드 가능
+  # Test environment variables
+  NEXT_PUBLIC_SUPABASE_URL: https://test.supabase.co
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
+  GOOGLE_AI_API_KEY: test-google-ai-key
+  NODE_ENV: test
 
 jobs:
   # 🚀 필수 검증 (의미 있는 실패 처리)

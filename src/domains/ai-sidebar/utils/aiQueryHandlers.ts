@@ -209,3 +209,66 @@ export function detectAutoReportTrigger(
 
   return null;
 }
+
+/**
+ * Legacy test API - 테스트 호환성을 위한 wrapper
+ */
+export async function handleAIQuery({
+  query,
+  engine,
+  context
+}: {
+  query: string;
+  engine: AIMode;
+  context: any[];
+}): Promise<any> {
+  const result = await processRealAIQuery(
+    query, 
+    engine, 
+    'test-session',
+    () => {},
+    () => {}
+  );
+  
+  return result.success ? {
+    response: result.content,
+    metadata: result.metadata
+  } : {
+    error: result.content
+  };
+}
+
+/**
+ * Query validation utility
+ */
+export function validateQuery(query: string): boolean {
+  if (!query || query.trim().length === 0) {
+    return false;
+  }
+  
+  if (query.length > 5000) {
+    return false;
+  }
+  
+  return true;
+}
+
+/**
+ * Error message formatting utility
+ */
+export function formatErrorMessage(error: any): string {
+  if (error?.message?.includes('fetch')) {
+    return '네트워크 연결에 문제가 있습니다. 다시 시도해주세요.';
+  }
+  
+  if (error?.status === 429) {
+    return 'API 한도에 도달했습니다. 잠시 후 다시 시도해주세요.';
+  }
+  
+  if (error?.name === 'TimeoutError') {
+    return '요청 시간 초과가 발생했습니다. 다시 시도해주세요.';
+  }
+  
+  const message = error?.message || error?.toString() || '알 수 없는 오류';
+  return `처리 중 오류가 발생했습니다: ${message}`;
+}

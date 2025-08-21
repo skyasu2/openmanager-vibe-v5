@@ -576,11 +576,13 @@ describe('🛡️ AI Security Test Suite', () => {
 });
 
 // Helper function for test assertions
+interface CustomMatchers<R = unknown> {
+  toBeOneOf(expected: unknown[]): R;
+}
+
 declare global {
-  namespace jest {
-    interface Matchers<R> {
-      toBeOneOf(expected: unknown[]): R;
-    }
+  namespace Vi {
+    interface JestAssertion<T = any> extends CustomMatchers<T> {}
   }
 }
 
