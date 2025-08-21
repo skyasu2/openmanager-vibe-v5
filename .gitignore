@@ -36,6 +36,9 @@ npm-debug.log*
 .DS_Store
 *.pem
 
+# backup directories
+.backups/
+
 # gemini dev tools cache
 .cache/gemini/
 
