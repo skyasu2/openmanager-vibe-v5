@@ -26,6 +26,7 @@ import { motion } from 'framer-motion';
 const FeatureCardsGrid = dynamic(
   () => import('@/components/home/FeatureCardsGrid'),
   {
+    ssr: false, // 서버사이드 렌더링 완전 비활성화
     loading: () => (
       <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {[...Array(6)].map((_, i) => (
@@ -491,8 +492,8 @@ function Home() {
 
   // 로그아웃 처리는 UnifiedProfileHeader에서 처리됨
 
-  // 🔄 통합 로딩 상태 - 안정된 환경 감지
-  const shouldShowLoading = !isMounted || authLoading || shouldRedirect;
+  // 🔄 통합 로딩 상태 - 안정된 환경 감지 + SSR 방지 강화
+  const shouldShowLoading = typeof window === 'undefined' || !isMounted || authLoading || shouldRedirect;
   
   if (shouldShowLoading) {
     return (
