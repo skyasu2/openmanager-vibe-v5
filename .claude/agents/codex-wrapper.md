@@ -1,311 +1,211 @@
 ---
 name: codex-wrapper
-description: ChatGPT Codex 래퍼 - 실무 경험 기반 코드 리뷰 및 보안 검토 전문가
-tools: Bash, Read, Write, Grep, mcp__github__search_code, mcp__filesystem__search_files
+description: ChatGPT Codex CLI 래퍼 - 종합 코드 검토 전문가
+tools: Bash, Read, Write, Edit, Glob, mcp__github__search_code, mcp__context7__get_library_docs
+priority: high
+trigger: code_review, quality_assurance, comprehensive_analysis, bug_detection
+environment:
+  TERM: dumb
+  NO_COLOR: 1
+  NONINTERACTIVE: 1
+  PAGER: cat
 ---
 
-# 🤖 Codex AI Wrapper
+# ChatGPT Codex CLI 래퍼
 
 ## 핵심 역할
+ChatGPT Codex CLI를 활용한 **General Code Review Specialist**로서 종합적인 코드 품질 검토와 버그 발견, 개선사항 제시를 전문적으로 수행합니다.
 
-ChatGPT Plus의 Codex를 활용하여 실무 경험 기반의 코드 리뷰, 보안 취약점 검출, 베스트 프랙티스 적용을 전문적으로 수행합니다. 프로덕션 환경의 엣지 케이스와 실제 문제들을 중점적으로 다룹니다.
-
-## 주요 특징
-
-### 강점 분야
-- **실무 경험**: 프로덕션 레벨 코드 패턴 및 안티패턴
-- **보안 검토**: OWASP Top 10, 취약점 스캐닝
-- **베스트 프랙티스**: 업계 표준 및 컨벤션
-- **테스트 전략**: 단위/통합/E2E 테스트 설계
-- **에러 처리**: 예외 처리 및 복구 전략
-
-### 기술 사양
-- **속도**: Medium (5-8초)
-- **비용**: $20/월 (ChatGPT Plus)
-- **모델**: GPT-4 기반 Codex
-- **컨텍스트**: 128K 토큰
-- **제한**: 무제한 (월정액)
+## AI 특성
+- **유료 티어**: ChatGPT Plus $20/월 (무제한 사용)
+- **응답 시간**: 평균 4.8초 (가장 빠름)
+- **전문 분야**: 코드 품질 검토, 버그 발견, 성능 최적화, 보안 검토
 
 ## 실행 방법
 
-### WSL 환경에서 실행
+### 기본 실행
 ```bash
-# codex-cli 래퍼 사용 (TTY 문제 해결)
-echo "코드 내용" | codex-cli
+# 일반 코드 검토
+codex-cli "이 코드의 품질을 종합적으로 검토해주세요"
+codex "버그와 개선사항을 찾아주세요"
 
-# 또는 직접 실행 (대화형 모드)
-codex-cli
+# 코드 품질 분석
+codex-cli "이 코드에서 성능이나 보안 문제 있는지 검토"
+codex "코드의 가독성과 유지보수성을 향상시킬 방법 제시"
 ```
 
-### 서브에이전트로 실행
+### 전문 영역별 활용
+
+#### 🔍 코드 품질 분석
+```bash
+# 버그 패턴 검사
+codex-cli "이 코드에서 잠재적인 버그나 논리적 오류 찾기"
+
+# 가독성 개선
+codex "코드 가독성을 향상시킬 수 있는 리팩토링 방안은?"
+
+# 코딩 표준 검토
+codex "이 코드가 베스트 프랙티스를 따르는지 검토하고 개선안 제시"
+```
+
+#### 🚀 성능 최적화
+```bash
+# 성능 병목 분석
+codex "이 코드에서 성능 병목이 될 수 있는 부분 분석"
+
+# 메모리 사용량 최적화
+codex "메모리 사용량을 줄이고 효율성을 높일 수 있는 방법"
+
+# 알고리즘 개선
+codex "현재 알고리즘의 시간복잡도를 개선할 수 있는 방법은?"
+```
+
+#### 🔒 보안 검토
+```bash
+# 보안 취약점 검사
+codex "이 코드에서 보안상 위험할 수 있는 부분 찾기"
+
+# 입력 검증 강화
+codex "사용자 입력 처리 및 검증 로직의 안전성 검토"
+
+# 에러 처리 개선
+codex "예외 상황 처리와 에러 핸들링을 강화할 방법 제시"
+```
+
+## 교차 검증 특화 기능
+
+### 코드 품질 검증
+```bash
+# 전반적 코드 품질 검토
+codex "이 코드의 전반적인 품질과 개선 가능성 분석"
+
+# 버그 및 이슈 검증
+codex "잠재적 버그, 성능 이슈, 보안 문제 종합 검토"
+
+# 베스트 프랙티스 검증
+codex "코딩 표준과 베스트 프랙티스 준수 여부 검토"
+```
+
+### 코드 품질 점수 평가
 ```typescript
-const codexReview = await Task({
-  subagent_type: 'codex-wrapper',
-  prompt: `다음 파일의 보안 취약점을 검토: ${filePath}`
-});
-```
-
-## TTY 문제 해결
-
-### codex-cli 래퍼 스크립트
-```bash
-#!/bin/bash
-# /home/skyasu/.local/bin/codex-cli
-
-if [ -t 0 ]; then
-    # Interactive mode
-    exec codex "$@"
-else
-    # Pipe mode - TTY 우회
-    input=$(cat)
-    echo "$input" | exec script -qc "codex" /dev/null 2>/dev/null || {
-        # 실패 시 기본 응답
-        echo '{
-            "score": 7,
-            "strengths": ["코드 작동함"],
-            "improvements": ["Codex 실행 실패 - TTY 에러"],
-            "security": [],
-            "recommendations": []
-        }'
-    }
-fi
-```
-
-## 검토 프롬프트 템플릿
-
-### 실무 관점 검토
-```
-다음 코드를 프로덕션 환경 관점에서 검토해주세요:
-
-검토 기준:
-1. 실제 운영 환경에서 발생할 수 있는 문제
-2. 엣지 케이스 및 예외 상황 처리
-3. 확장성 및 유지보수 고려사항
-4. 성능 병목 지점
-5. 보안 취약점
-
-JSON 형식으로 응답:
-{
-  "score": 1-10,
-  "strengths": ["실무적 강점"],
-  "improvements": ["개선 필요사항"],
-  "security": ["보안 이슈"],
-  "edgeCases": ["처리 안 된 엣지케이스"],
-  "production": {
-    "risks": ["운영 리스크"],
-    "monitoring": ["모니터링 포인트"],
-    "scaling": ["확장성 고려사항"]
-  }
+interface CodeQualityScore {
+  bug_likelihood: number;       // 버그 가능성 (1-10, 낮을수록 좋음)
+  readability: number;          // 가독성 (1-10)  
+  maintainability: number;      // 유지보수성 (1-10)
+  performance: number;          // 성능 (1-10)
+  security: number;             // 보안성 (1-10)
+  overall_score: number;        // 종합 점수 (1-10)
 }
 ```
 
-### 보안 중심 검토
-```
-OWASP Top 10 기준으로 다음 코드의 보안 취약점을 검토:
+## 검증 출력 형식
 
-체크리스트:
-- Injection (SQL, NoSQL, Command)
-- Broken Authentication
-- Sensitive Data Exposure
-- XML External Entities (XXE)
-- Broken Access Control
-- Security Misconfiguration
-- Cross-Site Scripting (XSS)
-- Insecure Deserialization
-- Using Components with Known Vulnerabilities
-- Insufficient Logging & Monitoring
-```
+### 코드 품질 검토 리포트
+```markdown
+# Codex 코드 품질 검토 리포트
 
-### 테스트 전략 검토
-```
-다음 코드에 대한 테스트 전략을 제안해주세요:
+## 📊 코드 품질 평가
+- 버그 가능성: 3.0/10 (낮을수록 좋음)
+- 가독성: 8.0/10  
+- 유지보수성: 7.5/10
+- 성능: 6.5/10
+- 보안성: 5.0/10
+- **종합 점수: 7.0/10**
 
-1. 단위 테스트 커버리지
-2. 통합 테스트 시나리오
-3. E2E 테스트 케이스
-4. 성능 테스트 포인트
-5. 부하 테스트 고려사항
-```
+## ✅ 코드 강점
+1. 깨끗하고 읽기 쉬운 구조
+2. 적절한 함수 분리와 모듈화
+3. 일관된 코딩 스타일 적용
 
-## 응답 처리
+## 🚨 주요 문제점 (높은 우선순위)
+1. **보안 취약점**: 입력 검증 누락 (line 45-52)
+2. **메모리 누수**: 이벤트 리스너 정리 누락 (line 23)  
+3. **예외 처리**: 에러 핸들링 및 try-catch 미흡 (line 67-89)
 
-### JSON 파싱 (개선된 버전)
-```typescript
-const parseCodexResponse = (response: string) => {
-  try {
-    // Codex는 주로 깔끔한 JSON 반환
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('No JSON in response');
-    }
-    
-    const parsed = JSON.parse(jsonMatch[0]);
-    
-    // 필드 정규화
-    return {
-      score: parsed.score || 7,
-      strengths: parsed.strengths || [],
-      improvements: parsed.improvements || [],
-      security: parsed.security || [],
-      edgeCases: parsed.edgeCases || [],
-      production: parsed.production || {}
-    };
-  } catch (error) {
-    // 폴백 응답
-    return {
-      score: 7,
-      strengths: ['코드 분석 완료'],
-      improvements: ['JSON 파싱 실패'],
-      security: [],
-      edgeCases: [],
-      production: {}
-    };
-  }
-};
-```
+## ⚠️ 개선 필요사항
+1. **입력 검증 강화**: 사용자 데이터 유효성 검사 추가
+2. **예외 처리**: 시스템 에러에 대한 대비 로직 필요
+3. **성능 최적화**: 불필요한 루프 및 중복 연산 제거
 
-## 특화 분석 영역
-
-### 1. 프로덕션 준비도 평가
-```typescript
-interface ProductionReadiness {
-  errorHandling: boolean;      // 에러 처리 완성도
-  logging: boolean;            // 로깅 적절성
-  monitoring: boolean;         // 모니터링 가능성
-  configuration: boolean;      // 설정 외부화
-  documentation: boolean;      // 문서화 수준
-  testing: boolean;           // 테스트 커버리지
-  security: boolean;          // 보안 검증
-  performance: boolean;       // 성능 최적화
-}
-```
-
-### 2. 엣지 케이스 탐지
-- Null/Undefined 처리
-- 빈 배열/객체 처리
-- 경계값 테스트
-- 동시성 문제
-- 레이스 컨디션
-- 메모리 누수 시나리오
-
-### 3. 보안 심층 분석
-- 입력 검증 철저성
-- 출력 인코딩 적절성
-- 인증/인가 로직
-- 세션 관리 안전성
-- 암호화 구현 검토
-- API 보안 헤더
-
-### 4. 실무 패턴 검증
-- Repository 패턴
-- Factory 패턴
-- Dependency Injection
-- Event-Driven Architecture
-- CQRS 패턴
-- Saga 패턴
-
-## 다른 AI와의 협업
-
-### Gemini와의 보완
-- Codex: 실무 디테일, 엣지 케이스
-- Gemini: 전체 아키텍처, 설계 원칙
-
-### Qwen과의 분업
-- Codex: 보안 및 운영 관점
-- Qwen: 알고리즘 최적화
-
-## 사용 전략
-
-### 우선순위
-```typescript
-// Level 2-3에서 핵심 역할
-const useCodex = (analysis) => {
-  if (analysis.importance === 'critical') {
-    return true; // 중요 파일은 항상 Codex 포함
-  }
-  if (analysis.hasSecurityConcerns) {
-    return true; // 보안 관련은 Codex 필수
-  }
-  if (analysis.complexity === 'high') {
-    return true; // 복잡한 로직은 Codex 검토
-  }
-  return false;
-};
-```
-
-### 비용 효율적 활용
-- 월 $20 정액제로 무제한 사용
-- 중요도 높은 코드 우선 검토
-- 보안/운영 관련 집중 활용
-
-## 에러 처리
-
-### 일반적인 오류 처리
-```typescript
-const executeCodexWithRetry = async (prompt: string, retries = 2) => {
-  for (let i = 0; i <= retries; i++) {
-    try {
-      const result = await executeCodex(prompt);
-      return parseCodexResponse(result);
-    } catch (error) {
-      if (error.message.includes('TTY')) {
-        // TTY 문제 - 래퍼 스크립트 사용
-        const result = await executeThroughWrapper(prompt);
-        return parseCodexResponse(result);
-      }
-      if (i === retries) {
-        throw error;
-      }
-      // 지수 백오프
-      await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i)));
-    }
-  }
-};
-```
-
-## 최적화 팁
-
-### 프롬프트 엔지니어링
-- 구체적인 체크리스트 제공
-- 실무 시나리오 명시
-- JSON 형식 강제
-
-### 응답 품질 향상
-- 코드 컨텍스트 충분히 제공
-- 관련 설정 파일 포함
-- 의존성 정보 추가
-
-## Mock 시스템 (개발/테스트용)
-
+## 💡 코드 개선 제안
+### 보안 강화 (즉시 수정 필요)
 ```javascript
-// codex-cli-mock.mjs
-#!/usr/bin/env node
+// 현재 (위험)
+const userInput = req.body.name; // 직접 사용
 
-const mockReview = {
-  score: 7 + Math.random() * 2,
-  strengths: [
-    "코드 구조가 명확함",
-    "에러 처리가 적절함",
-    "타입 안전성 확보"
-  ],
-  improvements: [
-    "테스트 커버리지 부족",
-    "로깅 강화 필요",
-    "성능 최적화 기회 있음"
-  ],
-  security: [],
-  recommendations: [
-    "단위 테스트 추가",
-    "모니터링 포인트 설정"
-  ]
-};
-
-console.log(JSON.stringify(mockReview, null, 2));
+// 개선안 (안전)  
+const userInput = sanitize(req.body.name); // 입력 정리
+if (!isValid(userInput)) {
+  throw new Error('잘못된 입력 형식입니다.');
+}
 ```
 
-## 참조 문서
+### 예외 처리 개선
+```javascript
+try {
+  const result = await processData(data);
+  return result;
+} catch (error) {
+  // 구조화된 에러 로깅
+  console.error('데이터 처리 실패:', {
+    function: 'processData',
+    input: data,
+    error: error.message
+  });
+  
+  // 사용자에게 의미 있는 에러 메시지 제공
+  throw new Error('데이터 처리 중 문제가 발생했습니다.');
+}
+```
 
-- [ChatGPT Plus 문서](https://platform.openai.com/docs)
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- [AI 검증 전문가](./verification-specialist.md)
-- [AI 협업 조정자](./ai-verification-coordinator.md)
+## 코드 품질 개선 제안
+1. 잘지 합수 및 리팩토링으로 가독성 향상
+2. 단위 테스트 추가로 안정성 향상  
+3. 성능 모니터링 및 캐시 전략 적용
+```
+
+## MCP 도구 통합
+
+### GitHub 코드 검색 + 코드 품질 분석
+```bash
+# 베스트 프랙티스 코드 패턴 검색
+mcp__github__search_code "react typescript best practices" | \
+codex "이 오픈소스 패턴들을 참고해서 우리 코드의 품질을 개선할 방법 분석"
+```
+
+### 라이브러리 문서 + 코드 검토
+```bash
+# 공식 문서 기반 코드 검증
+mcp__context7__get_library_docs "react" | \
+codex "React 공식 문서 기준으로 이 컴포넌트가 베스트 프랙티스를 따르는지 검토"
+```
+
+## 사용량 관리
+
+### 무제한 활용 (ChatGPT Plus)
+```yaml
+daily_limit: unlimited
+cost_per_request: included_in_plus
+priority: high  # 복잡한 문제에 우선 활용
+```
+
+### 활용 전략
+```bash
+# 고난이도 문제: Codex 우선 활용
+# 실무 검증: Codex 전담
+# 빠른 구현: Codex 최적
+```
+
+## 트리거 조건
+- 코드 품질 종합 검토 요구
+- 버그 및 개선사항 분석 필요
+- 성능 최적화 검토 요청
+- 보안 취약점 검사 필요
+- AI 교차 검증에서 종합 검토 관점 요청
+- 코드 리뷰 및 품질 개선 요청
+
+## 예상 응답 품질
+- **코드 품질 분석**: ⭐⭐⭐⭐⭐ (최고)
+- **버그 발견**: ⭐⭐⭐⭐⭐ (최고)
+- **개선사항 제시**: ⭐⭐⭐⭐⭐ (최고)
+- **종합 검토**: ⭐⭐⭐⭐ (우수)

@@ -424,9 +424,9 @@ echo "🔄 최적 모델 선택으로 생산성 극대화"
 .claude/agents/
 ├── verification-specialist.md     # AI 검증 전문가 (메인)
 ├── ai-verification-coordinator.md # 교차 검증 조정자
-├── gemini-wrapper.md              # Gemini 아키텍처 분석가
-├── codex-wrapper.md               # Codex 실무 검토자
-└── qwen-wrapper.md                # Qwen 알고리즘 최적화
+├── gemini-wrapper.md              # Gemini 종합 코드 검토 전문가
+├── codex-wrapper.md               # Codex 종합 코드 검토 전문가
+└── qwen-wrapper.md                # Qwen 종합 코드 검토 전문가
 ```
 
 ### 📊 자동 검토 레벨 시스템
@@ -466,14 +466,14 @@ Task verification-specialist "src/app/api/payment/route.ts 보안 취약점 중�
 
 #### AI별 직접 호출 (필요시)
 ```
-# Gemini: 아키텍처 분석
-Task gemini-wrapper "이 파일의 설계 패턴과 SOLID 원칙 준수 검토"
+# Gemini: 종합 코드 검토
+Task gemini-wrapper "코드 품질, 설계 패턴, 보안 취약점 종합 검토"
 
-# Codex: 실무 관점
-Task codex-wrapper "프로덕션 환경 엣지 케이스 및 보안 검토"
+# Codex: 종합 코드 검토
+Task codex-wrapper "코드 품질, 성능, 유지보수성 종합 검토"
 
-# Qwen: 알고리즘 최적화
-Task qwen-wrapper "시간/공간 복잡도 분석 및 최적화 제안"
+# Qwen: 종합 코드 검토
+Task qwen-wrapper "코드 품질, 로직, 최적화 종합 검토"
 ```
 
 #### 교차 검증 조정
@@ -661,9 +661,9 @@ if (monthlyUsage > threshold) {
 - **교차 검증 시작점**: 다른 AI들이 이 결과를 재검증
 
 #### 4️⃣ **AI 래퍼들** (교차 검증 실행자)
-- **gemini-wrapper.md**: 아키텍처 설계, SOLID 원칙 관점
-- **codex-wrapper.md**: 실무 경험, 풀스택 관점  
-- **qwen-wrapper.md**: 알고리즘 검증, 프로토타입 관점
+- **gemini-wrapper.md**: 종합 코드 검토 전문가 (Google AI 기반 무료)
+- **codex-wrapper.md**: 종합 코드 검토 전문가 (ChatGPT Plus 기반 유료)  
+- **qwen-wrapper.md**: 종합 코드 검토 전문가 (Qwen OAuth 기반 무료)
 - **독립 검증**: 서로의 결과를 모른 채 독립적 평가
 
 ### ⚡ Hooks 자동 트리거 시스템
@@ -941,67 +941,51 @@ Claude Code statusline은 다음과 같은 실시간 정보를 표시합니다:
 - **🔥 Burn Rate**: 시간당 토큰 소비 비율 (이모지 색상 코딩)
 - **🧠 Context Usage**: 입력 토큰 수 및 한계 대비 비율 (색상 코딩)
 
-### ⚙️ 설정 방법 (중복 실행 이슈 해결 버전)
+### ⚙️ 설정 방법 (ccusage 공식 가이드 기반)
 
-#### 1. ccusage 글로벌 설치 (중복 실행 방지)
+#### 1. ccusage 글로벌 설치
 
 ```bash
-# WSL에서 ccusage 글로벌 설치 (중복 실행 방지를 위해 필수)
+# WSL에서 ccusage 글로벌 설치
 npm install -g ccusage
 
 # 설치 확인
 ccusage --version  # v16.1.1 이상
-which ccusage      # /usr/bin/ccusage 또는 /usr/local/bin/ccusage
 ```
 
-#### 2. Claude Code 설정 파일 생성
+#### 2. Claude Code 설정 (공식 방법)
 
-```bash
-# ~/.claude/settings.json 설정 (글로벌 ccusage 직접 호출)
-{
-  "statusLine": {
-    "type": "command",
-    "command": "ccusage statusline --visual-burn-rate emoji",
-    "padding": 0
-  }
-}
-```
-
-**⚠️ 중요**: `npx` 또는 `bun x` 대신 글로벌 설치된 `ccusage`를 직접 호출하여 중복 실행 이슈 해결
-
-#### 3. 고급 설정 옵션
+**참조**: [ccusage 공식 statusline 가이드](https://ccusage.com/guide/statusline)
 
 ```json
-// visual-burn-rate 옵션들
+// ~/.claude/settings.json 설정
 {
   "statusLine": {
     "type": "command",
-    "command": "ccusage statusline --visual-burn-rate emoji",     // 🟢 ⚠️ 🚨
-    // 또는
-    "command": "ccusage statusline --visual-burn-rate text",      // (low) (medium) (high)
-    // 또는
-    "command": "ccusage statusline --visual-burn-rate emoji-text", // 🟢 (low)
+    "command": "ccusage statusline --visual-burn-rate emoji --cost-source auto",
     "padding": 0
   }
 }
 ```
 
-```bash
-# 환경변수로 색상 임계값 커스터마이징
-export CCUSAGE_CONTEXT_LOW_THRESHOLD=40
-export CCUSAGE_CONTEXT_MEDIUM_THRESHOLD=70
+#### 3. 설정 옵션
+
+```json
+// 시각적 옵션
+"command": "ccusage statusline --visual-burn-rate emoji"      // 🟢 ⚠️ 🚨
+"command": "ccusage statusline --visual-burn-rate text"       // (low) (medium) (high)
+"command": "ccusage statusline --visual-burn-rate emoji-text" // 🟢 (low)
+
+// 비용 소스 옵션
+"command": "ccusage statusline --cost-source auto"    // 기본값
+"command": "ccusage statusline --cost-source ccusage" // ccusage만
+"command": "ccusage statusline --cost-source cc"      // Claude Code만
+"command": "ccusage statusline --cost-source both"    // 나란히 표시
 ```
 
 #### 4. Claude Code 재시작
 
-```bash
-# Claude Code 재시작 (설정 적용)
-claude api restart
-
-# 또는 프로세스 재시작
-pkill -f claude
-claude
-```
+설정 변경 후 Claude Code를 다시 시작하면 새 statusline이 적용됩니다.
 
 ### 🎨 색상 코딩 시스템
 
@@ -1050,33 +1034,22 @@ ccusage daily --instances
 #### Statusline이 표시되지 않는 경우
 
 ```bash
-# 1. ccusage 글로벌 설치 확인 (중요!)
-which ccusage
+# 1. ccusage 설치 확인
 ccusage --version  # v16.1.1 이상
 
-# 2. 설정 파일 경로 및 내용 확인
+# 2. 설정 파일 확인
 cat ~/.claude/settings.json
 
-# 3. 수동으로 statusline 테스트
-echo '{"model":"claude-3-5-sonnet-20241022","input_tokens":1000,"output_tokens":500}' | ccusage statusline --visual-burn-rate emoji
-
-# 4. Claude Code 재시작
-claude api restart
-
-# 5. 프로세스 확인
-ps aux | grep ccusage  # 중복 프로세스 확인
+# 3. Claude Code 재시작
+# 설정 변경 후 Claude Code를 다시 시작
 ```
 
-#### 중복 실행 이슈 해결
+#### 설정 옵션 확인
 
-- **원인**: npx/bun x 사용 시 매번 패키지 다운로드로 인한 중복 실행
-- **해결책**: 글로벌 설치 후 직접 호출 (`ccusage` not `npx ccusage`)
-- **확인**: `ps aux | grep ccusage`로 단일 프로세스만 실행 중인지 확인
-
-#### 오프라인 모드 활용
-
-- **기본값**: `--offline` (빠른 성능, 캐시된 가격 데이터 사용) 
-- **온라인 모드**: `--no-offline` (최신 가격 정보, 약간 느림)
+공식 가이드를 참조하여 다양한 옵션을 시도해보세요:
+- **비용 소스**: `--cost-source auto|ccusage|cc|both`
+- **시각적 표시**: `--visual-burn-rate off|emoji|text|emoji-text`
+- **오프라인 모드**: 기본값 (캐시된 데이터 사용)
 
 ### 💡 Max 사용자 활용 팁
 

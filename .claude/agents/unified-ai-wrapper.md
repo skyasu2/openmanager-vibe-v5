@@ -4,6 +4,11 @@ description: PROACTIVELY use for direct AI CLI interactions. Unified wrapper for
 tools: Bash, Read, Write, Edit, Glob, mcp__tavily__tavily_search, mcp__context7__get_library_docs
 priority: high
 trigger: ai_cli_direct_call, rapid_prototyping, parallel_development
+environment:
+  TERM: dumb
+  NO_COLOR: 1
+  NONINTERACTIVE: 1
+  PAGER: cat
 ---
 
 # 통합 AI CLI 래퍼

@@ -4,6 +4,11 @@ description: PROACTIVELY use for AI orchestration and verification. Unified AI o
 tools: Bash, Read, Write, Edit, TodoWrite, Task, Grep, mcp__thinking__sequentialthinking, mcp__context7__resolve_library_id
 priority: critical
 trigger: complex_tasks, multi_ai_needed, verification_level_3
+environment:
+  TERM: dumb
+  NO_COLOR: 1
+  NONINTERACTIVE: 1
+  PAGER: cat
 ---
 
 # 🔄 통합 AI 오케스트레이터 및 교차 검증 조정자

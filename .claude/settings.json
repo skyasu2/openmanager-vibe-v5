@@ -1,31 +1,6 @@
 {
-  "statusLine": {
-    "type": "command",
-    "command": "/home/skyasu/.claude/ccusage-status.sh",
-    "padding": 0
-  },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash -c 'export TERM=dumb NO_COLOR=1 NONINTERACTIVE=1; echo \"$(date +\"%Y-%m-%d %H:%M:%S\") 🔍 AI 검토 Hook 트리거됨\" >> /mnt/d/cursor/openmanager-vibe-v5/.claude/hooks.log 2>/dev/null && cd /mnt/d/cursor/openmanager-vibe-v5 && timeout 30s bash .claude/hooks/smart-verification.sh 2>&1 | sed \"s/\\x1b\\[[0-9;]*[mGKHRJF]//g; s/\\[[0-9;]*[RHJ]//g; s/\\x1b[()][AB012]//g\" | tee -a .claude/hooks.log 2>/dev/null'"
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "matcher": "검증|검토|review|verify|교차.*검증|cross.*verif",
-        "hooks": [
-          {
-            "type": "command",  
-            "command": "bash -c 'export TERM=dumb NO_COLOR=1; echo \"$(date +\"%Y-%m-%d %H:%M:%S\") 🔍 사용자 AI 검증 요청 감지\" >> /mnt/d/cursor/openmanager-vibe-v5/.claude/verification.log 2>/dev/null'"
-          }
-        ]
-      }
-    ]
+  "env": {
+    "CLAUDE_CODE_NO_TERMINAL_QUERY": "1",
+    "DISABLE_AUTO_TITLE": "true"
   }
 }

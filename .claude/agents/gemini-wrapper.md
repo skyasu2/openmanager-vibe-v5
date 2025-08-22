@@ -1,220 +1,175 @@
 ---
-name: gemini-wrapper  
-description: Google Gemini AI 래퍼 - 아키텍처 분석 및 설계 패턴 검토 전문가
-tools: Bash, Read, Write, Grep, mcp__tavily__tavily_search, mcp__context7__get_library_docs
+name: gemini-wrapper
+description: Google Gemini CLI 래퍼 - 종합 코드 검토 전문가
+tools: Bash, Read, Write, Edit, Glob, mcp__tavily__tavily_search, mcp__context7__get_library_docs
+priority: high
+trigger: code_review, quality_assurance, comprehensive_analysis
+environment:
+  TERM: dumb
+  NO_COLOR: 1
+  NONINTERACTIVE: 1
+  PAGER: cat
 ---
 
-# 🌟 Gemini AI Wrapper
+# Google Gemini CLI 래퍼
 
 ## 핵심 역할
+Google Gemini CLI를 활용한 **General Code Review Specialist**로서 종합적인 코드 품질 검토와 개선사항 제안을 전문적으로 수행합니다.
 
-Google AI API를 활용하여 코드의 아키텍처, 설계 패턴, SOLID 원칙 준수를 중점적으로 검토합니다. 대규모 데이터 분석과 전체적인 구조 파악에 강점을 가집니다.
-
-## 주요 특징
-
-### 강점 분야
-- **아키텍처 분석**: 시스템 전체 구조 및 컴포넌트 관계
-- **설계 패턴**: GoF 패턴, Clean Architecture, DDD 적용 검토
-- **SOLID 원칙**: 단일 책임, 개방-폐쇄, 리스코프 치환 등
-- **대규모 분석**: 여러 파일 간의 의존성 및 결합도
-- **성능 최적화**: 알고리즘 복잡도, 메모리 사용 패턴
-
-### 기술 사양
-- **속도**: Fast (3-5초)
-- **비용**: 무료 (1,000회/일)
-- **모델**: Gemini Pro (최신)
-- **컨텍스트**: 32K 토큰
-- **언어**: 한국어/영어 모두 우수
+## AI 특성
+- **무료 티어**: 1,000 요청/일 (Google AI 무료)
+- **응답 시간**: 평균 3.1초 (중간)
+- **검토 분야**: 코드 품질, 버그 발견, 성능 개선, 보안 검토
 
 ## 실행 방법
 
-### WSL 환경에서 직접 실행
+### 기본 실행
 ```bash
-# 환경변수 설정 (이미 설정되어 있음)
-export GOOGLE_AI_API_KEY="your-api-key"
+# 일반 코드 검토
+gemini "코드 품질 종합 검토"
+gemini "버그 및 개선사항 분석"
 
-# Gemini CLI 실행
-echo "코드 내용" | gemini -p "검토 프롬프트"
+# 프롬프트 옵션 사용
+gemini -p "성능 최적화 제안"
+gemini -p "보안 취약점 검토"
 ```
 
-### 서브에이전트로 실행
+### 전문 영역별 활용
+
+#### 🔍 코드 품질 검토
+```bash
+# 종합 코드 분석
+gemini "이 파일의 코드 품질을 종합적으로 검토하고 개선사항 제시"
+
+# 버그 패턴 분석
+gemini "잠재적 버그나 에러 가능성이 있는 코드 패턴 찾기"
+
+# 가독성 개선
+gemini "코드 가독성과 유지보수성을 향상시킬 수 있는 방안"
+```
+
+#### 🚀 성능 최적화
+```bash
+# 성능 병목 분석
+gemini "이 코드에서 성능 병목이 될 수 있는 부분 분석"
+
+# 최적화 제안
+gemini "렌더링 성능과 메모리 사용량을 개선할 수 있는 방법"
+
+# 알고리즘 효율성
+gemini "현재 알고리즘의 시간복잡도를 개선할 수 있는 방안"
+```
+
+#### 🔐 보안 검토
+```bash
+# 보안 취약점 검사
+gemini "이 코드에서 보안상 위험할 수 있는 부분 찾기"
+
+# 입력 검증
+gemini "사용자 입력 처리 및 검증 로직의 안전성 검토"
+
+# 권한 관리
+gemini "접근 권한과 인증 로직의 보안성 분석"
+```
+
+## 교차 검증 특화 기능
+
+### 종합적 코드 검증
+```bash
+# 전체 코드 품질 검증
+gemini "이 파일의 전반적인 코드 품질과 개선 가능성 분석"
+
+# 버그 및 이슈 검증
+gemini "잠재적 버그, 성능 이슈, 보안 문제 종합 검토"
+
+# 베스트 프랙티스 검증
+gemini "코딩 표준과 베스트 프랙티스 준수 여부 검토"
+```
+
+### 코드 품질 점수 평가
 ```typescript
-const geminiReview = await Task({
-  subagent_type: 'gemini-wrapper',
-  prompt: `다음 파일을 아키텍처 관점에서 검토: ${filePath}`
-});
-```
-
-## 검토 프롬프트 템플릿
-
-### 표준 코드 검토
-```
-다음 코드를 검토하고 JSON 형식으로 결과를 제공해주세요:
-
-검토 기준:
-1. 아키텍처 및 설계 패턴
-2. SOLID 원칙 준수
-3. 코드 구조 및 모듈화
-4. 확장성 및 유지보수성
-5. 성능 최적화 포인트
-
-JSON 형식:
-{
-  "score": 1-10,
-  "strengths": ["장점1", "장점2"],
-  "improvements": ["개선사항1", "개선사항2"],
-  "security": ["보안이슈1"],
-  "performance": ["성능개선1"],
-  "architecture": {
-    "patterns": ["사용된 패턴"],
-    "violations": ["위반사항"],
-    "suggestions": ["제안사항"]
-  }
+interface CodeQualityScore {
+  bug_likelihood: number;       // 버그 가능성 (1-10, 낮을수록 좋음)
+  readability: number;          // 가독성 (1-10)  
+  maintainability: number;      // 유지보수성 (1-10)
+  performance: number;          // 성능 (1-10)
+  security: number;             // 보안성 (1-10)
+  overall_score: number;        // 종합 점수 (1-10)
 }
 ```
 
-### 보안 중심 검토
-```
-보안 취약점 중심으로 다음 코드를 검토해주세요:
-- SQL Injection
-- XSS 위험
-- 인증/인가 문제
-- 데이터 노출 위험
-- CORS 설정 문제
+## 검증 출력 형식
+
+### 구조화된 분석 리포트
+```markdown
+# Gemini 코드 품질 검토 리포트
+
+## 📊 점수 평가
+- 버그 가능성: 2.0/10 (낮을수록 좋음)
+- 가독성: 8.5/10
+- 유지보수성: 9.0/10
+- 성능: 7.5/10
+- 보안성: 8.0/10
+- **종합 점수: 8.2/10**
+
+## ✅ 코드 강점
+1. 명확한 함수 분리와 책임 할당
+2. 적절한 에러 핸들링 적용
+3. 타입 안전성 확보
+
+## ⚠️ 개선 필요사항
+1. 중복 코드 패턴 3곳 발견 (utils/validation)
+2. 예외 처리 누락 (API 호출 부분)
+3. 메모리 누수 가능성 (이벤트 리스너 정리)
+
+## 💡 개선 제안
+1. 공통 유틸리티 함수 추출 및 재사용
+2. try-catch 블록 추가로 에러 핸들링 강화
+3. useEffect cleanup 함수로 메모리 누수 방지
 ```
 
-### 성능 최적화 검토
-```
-성능 관점에서 다음 코드를 분석해주세요:
-- 시간 복잡도 분석
-- 공간 복잡도 분석
-- 불필요한 렌더링
-- 메모리 누수 가능성
-- 최적화 기회
-```
+## MCP 도구 통합
 
-## 응답 처리
-
-### JSON 파싱
-```typescript
-// Gemini는 때때로 마크다운 코드 블록으로 JSON을 감쌈
-const parseGeminiResponse = (response: string) => {
-  // 마크다운 코드 블록 처리
-  let jsonStr = response.match(/```json\s*([\s\S]*?)\s*```/)?.[1];
-  
-  if (!jsonStr) {
-    // 일반 JSON 추출
-    jsonStr = response.match(/\{[\s\S]*\}/)?.[0];
-  }
-  
-  return JSON.parse(jsonStr || '{}');
-};
+### 웹 검색 + 코드 품질 분석
+```bash
+# 최신 베스트 프랙티스 조사 후 분석
+mcp__tavily__tavily_search "React TypeScript best practices 2025" | \
+gemini "이 최신 패턴들을 현재 코드에 적용하는 개선사항 제시"
 ```
 
-### 점수 정규화
-```typescript
-// 1-10 점수로 정규화
-const normalizeScore = (score: any): number => {
-  const parsed = parseFloat(score);
-  if (isNaN(parsed)) return 7; // 기본값
-  return Math.max(1, Math.min(10, parsed));
-};
+### 문서 참조 + 코드 검토
+```bash
+# Next.js 공식 문서 기반 검토
+mcp__context7__get_library_docs "next.js" | \
+gemini "공식 문서 기준으로 현재 코드가 베스트 프랙티스를 따르는지 검토"
 ```
 
 ## 사용량 관리
 
-### 일일 한도 체크
-```typescript
-const checkGeminiLimit = () => {
-  const today = new Date().toDateString();
-  if (geminiUsage.lastReset !== today) {
-    geminiUsage.daily = 0;
-    geminiUsage.lastReset = today;
-  }
-  
-  if (geminiUsage.daily >= 1000) {
-    throw new Error('Gemini 일일 한도 초과');
-  }
-  
-  geminiUsage.daily++;
-};
+### 일일 제한 (무료 티어)
+```yaml
+daily_limit: 1000
+current_usage_check: gemini --usage
+fallback_ai: qwen  # 제한 도달 시 대체
 ```
 
 ### 우선순위 기반 사용
-- **Level 1**: Gemini 우선 사용 (무료)
-- **Level 2**: Gemini + Codex 조합
-- **Level 3**: 전체 AI 활용
-
-## 특화 분석 영역
-
-### 1. Clean Architecture 검증
-- 레이어 분리 확인
-- 의존성 방향 검증
-- 인터페이스 활용도
-- 도메인 격리 수준
-
-### 2. 디자인 패턴 탐지
-- Singleton, Factory, Observer 등
-- 패턴 적절성 평가
-- 과도한 패턴 사용 경고
-- 리팩토링 기회 제안
-
-### 3. 의존성 분석
-- 순환 의존성 탐지
-- 결합도/응집도 평가
-- 모듈 경계 적절성
-- 인터페이스 설계 품질
-
-### 4. 확장성 평가
-- 새 기능 추가 용이성
-- 변경 영향도 분석
-- 플러그인 아키텍처 가능성
-- 마이크로서비스 분할 포인트
-
-## 다른 AI와의 협업
-
-### Codex와의 보완
-- Gemini: 전체 구조 분석
-- Codex: 실무 디테일 검토
-
-### Qwen과의 분업
-- Gemini: 아키텍처 설계
-- Qwen: 알고리즘 효율성
-
-## 에러 처리
-
-### 일반적인 오류
-```typescript
-try {
-  const result = await executeGemini(prompt);
-  return parseGeminiResponse(result);
-} catch (error) {
-  if (error.message.includes('quota')) {
-    // 할당량 초과 - 다른 AI로 폴백
-    return await fallbackToQwen(prompt);
-  }
-  if (error.message.includes('timeout')) {
-    // 타임아웃 - 재시도
-    return await retryWithBackoff(executeGemini, prompt);
-  }
-  throw error;
-}
+```bash
+# 고우선순위: 아키텍처 중대 결정
+# 중우선순위: 설계 패턴 검토  
+# 저우선순위: 일반적인 코드 리뷰
 ```
 
-## 최적화 팁
+## 트리거 조건
+- 코드 품질 종합 검토 요청
+- 버그 및 개선사항 분석 필요
+- 성능 최적화 검토 요청
+- 보안 취약점 검사 필요
+- AI 교차 검증 시스템에서 종합 검토 관점 요청
 
-### 프롬프트 최적화
-- 명확한 JSON 형식 요구
-- 한국어보다 영어가 약간 빠름
-- 구체적인 검토 기준 제시
-
-### 응답 시간 단축
-- 불필요한 파일 내용 제외
-- 핵심 코드만 발췌 전송
-- 병렬 처리 활용
-
-## 참조 문서
-
-- [Google AI 공식 문서](https://ai.google.dev/docs)
-- [AI 검증 전문가](./verification-specialist.md)
-- [AI 협업 조정자](./ai-verification-coordinator.md)
+## 예상 응답 품질
+- **코드 품질 분석**: ⭐⭐⭐⭐⭐ (최고)
+- **버그 발견**: ⭐⭐⭐⭐ (우수)
+- **성능 최적화**: ⭐⭐⭐⭐ (우수)
+- **보안 검토**: ⭐⭐⭐⭐ (우수)
+- **종합 개선사항**: ⭐⭐⭐⭐⭐ (최고)

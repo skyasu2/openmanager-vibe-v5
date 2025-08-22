@@ -364,3 +364,8 @@ test-results/
 playwright-report/
 .next/
 
+# 🔒 보안: 디버그 로그 파일 Git 추적 제외
+*.debug.log
+*debug-hook.log
+.claude/*.log
+.claude/debug-*
