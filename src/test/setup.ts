@@ -76,7 +76,108 @@ if (typeof window !== 'undefined') {
 // ===============================
 // 📡 WebAPI Mock
 // ===============================
-global.fetch = vi.fn();
+// Mock fetch with proper Response object and realistic server data
+global.fetch = vi.fn().mockImplementation((url: string) => {
+  // Mock server data matching actual API response format
+  const mockServerData = {
+    success: true,
+    data: [
+      {
+        id: 'server-1',
+        name: 'Test Server 1',
+        status: 'online',
+        host: 'test-host-1.com',
+        hostname: 'test-host-1.com',
+        port: 8080,
+        cpu: 45,
+        memory: 67,
+        disk: 23,
+        network: 12,
+        uptime: 86400,
+        location: 'us-east-1',
+        environment: 'production',
+        provider: 'test',
+        type: 'web',
+        alerts: 0,
+        lastSeen: new Date().toISOString(),
+        metrics: {
+          cpu: { usage: 45, cores: 4, temperature: 45 },
+          memory: { used: 5.4, total: 8, usage: 67 },
+          disk: { used: 23, total: 100, usage: 23 },
+          network: { bytesIn: 7.2, bytesOut: 4.8, packetsIn: 0, packetsOut: 0 },
+          timestamp: new Date().toISOString(),
+          uptime: 86400
+        }
+      }
+    ],
+    servers: [
+      {
+        id: 'server-1',
+        name: 'Test Server 1',
+        status: 'online',
+        host: 'test-host-1.com',
+        hostname: 'test-host-1.com',
+        port: 8080,
+        cpu: 45,
+        memory: 67,
+        disk: 23,
+        network: 12,
+        uptime: 86400,
+        location: 'us-east-1',
+        environment: 'production',
+        provider: 'test',
+        type: 'web',
+        alerts: 0,
+        lastSeen: new Date().toISOString(),
+        metrics: {
+          cpu: { usage: 45, cores: 4, temperature: 45 },
+          memory: { used: 5.4, total: 8, usage: 67 },
+          disk: { used: 23, total: 100, usage: 23 },
+          network: { bytesIn: 7.2, bytesOut: 4.8, packetsIn: 0, packetsOut: 0 },
+          timestamp: new Date().toISOString(),
+          uptime: 86400
+        }
+      }
+    ],
+    summary: {
+      servers: {
+        total: 1,
+        online: 1,
+        warning: 0,
+        offline: 0,
+        avgCpu: 45,
+        avgMemory: 67
+      }
+    },
+    pagination: {
+      currentPage: 1,
+      totalPages: 1,
+      totalItems: 1,
+      itemsPerPage: 10,
+      hasNextPage: false,
+      hasPrevPage: false
+    },
+    count: 1
+  };
+
+  return Promise.resolve({
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    headers: new Headers({
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=60'
+    }),
+    json: () => Promise.resolve(mockServerData),
+    text: () => Promise.resolve(JSON.stringify(mockServerData)),
+    blob: () => Promise.resolve(new Blob([JSON.stringify(mockServerData)])),
+    arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
+    clone: () => ({ 
+      json: () => Promise.resolve(mockServerData),
+      text: () => Promise.resolve(JSON.stringify(mockServerData))
+    })
+  } as Response);
+});
 
 if (typeof window !== 'undefined') {
   interface _MockEventSource extends EventSource {

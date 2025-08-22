@@ -7,7 +7,6 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { performance } from 'perf_hooks';
 
 // Mock Performance API
 const mockPerformance = {
@@ -42,7 +41,7 @@ describe('Core Web Vitals 성능 테스트', () => {
       // Red: LCP 데이터가 없는 상태
       mockPerformance.getEntriesByType.mockReturnValue([]);
       
-      const lcpEntries = performance.getEntriesByType('largest-contentful-paint');
+      const lcpEntries = global.performance.getEntriesByType('largest-contentful-paint');
       expect(lcpEntries).toHaveLength(0);
     });
 
@@ -61,7 +60,7 @@ describe('Core Web Vitals 성능 테스트', () => {
       
       mockPerformance.getEntriesByType.mockReturnValue([mockLcpEntry]);
       
-      const lcpEntries = performance.getEntriesByType('largest-contentful-paint');
+      const lcpEntries = global.performance.getEntriesByType('largest-contentful-paint');
       const lcp = lcpEntries[lcpEntries.length - 1]?.startTime || 0;
       
       expect(lcp).toBeLessThan(2500); // 2.5초 미만
@@ -83,7 +82,7 @@ describe('Core Web Vitals 성능 테스트', () => {
       
       mockPerformance.getEntriesByType.mockReturnValue([optimizedLcpEntry]);
       
-      const lcpEntries = performance.getEntriesByType('largest-contentful-paint');
+      const lcpEntries = global.performance.getEntriesByType('largest-contentful-paint');
       const lcp = lcpEntries[lcpEntries.length - 1]?.startTime || 0;
       
       expect(lcp).toBeLessThan(2000); // 더 엄격한 기준
@@ -107,7 +106,7 @@ describe('Core Web Vitals 성능 테스트', () => {
       
       mockPerformance.getEntriesByType.mockReturnValue([slowFidEntry]);
       
-      const fidEntries = performance.getEntriesByType('first-input');
+      const fidEntries = global.performance.getEntriesByType('first-input');
       const fid = fidEntries[0]?.duration || 0;
       
       expect(fid).toBeGreaterThan(100); // 실패 케이스
@@ -127,7 +126,7 @@ describe('Core Web Vitals 성능 테스트', () => {
       
       mockPerformance.getEntriesByType.mockReturnValue([fastFidEntry]);
       
-      const fidEntries = performance.getEntriesByType('first-input');
+      const fidEntries = global.performance.getEntriesByType('first-input');
       const fid = fidEntries[0]?.duration || 0;
       
       expect(fid).toBeLessThan(100);
@@ -155,7 +154,7 @@ describe('Core Web Vitals 성능 테스트', () => {
         };
         
         mockPerformance.getEntriesByType.mockReturnValue([fidEntry]);
-        const entries = performance.getEntriesByType('first-input');
+        const entries = global.performance.getEntriesByType('first-input');
         fidValues.push(entries[0]?.duration || 0);
       });
       
@@ -189,7 +188,7 @@ describe('Core Web Vitals 성능 테스트', () => {
       
       mockPerformance.getEntriesByType.mockReturnValue(highClsEntries);
       
-      const clsEntries = performance.getEntriesByType('layout-shift');
+      const clsEntries = global.performance.getEntriesByType('layout-shift');
       const cls = clsEntries
         .filter((entry: any) => !entry.hadRecentInput)
         .reduce((sum: number, entry: any) => sum + entry.value, 0);
@@ -214,7 +213,7 @@ describe('Core Web Vitals 성능 테스트', () => {
       
       mockPerformance.getEntriesByType.mockReturnValue(lowClsEntries);
       
-      const clsEntries = performance.getEntriesByType('layout-shift');
+      const clsEntries = global.performance.getEntriesByType('layout-shift');
       const cls = clsEntries
         .filter((entry: any) => !entry.hadRecentInput)
         .reduce((sum: number, entry: any) => sum + entry.value, 0);
@@ -266,7 +265,7 @@ describe('Core Web Vitals 성능 테스트', () => {
         }))
       );
       
-      const entries = performance.getEntriesByType('layout-shift');
+      const entries = global.performance.getEntriesByType('layout-shift');
       expect(entries).toHaveLength(4);
     });
   });

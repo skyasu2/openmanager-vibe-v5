@@ -186,6 +186,30 @@ describe('SimplifiedQueryEngine', () => {
     );
 
     engine = new SimplifiedQueryEngine();
+    
+    // Mock AI Router for CommandQueryProcessor
+    const mockAIRouter = {
+      getCommandRecommendations: vi.fn().mockResolvedValue({
+        recommendations: [
+          {
+            command: 'systemctl status',
+            description: '시스템 서비스 상태 확인',
+            category: 'monitoring',
+            confidence: 0.95,
+          },
+        ],
+        analysis: {
+          intent: 'system-status',
+          complexity: 'low',
+        },
+      }),
+    };
+    
+    // Set the AI router on the processors
+    engine['processors'].setAIRouter(mockAIRouter);
+    
+    // Mock detectCommandQuery to avoid command detection in regular tests
+    vi.spyOn(engine['utils'], 'detectCommandQuery').mockReturnValue(false);
   });
 
   afterEach(() => {

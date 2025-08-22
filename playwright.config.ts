@@ -71,9 +71,20 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        // 최소한의 설정만 유지
+        // MutationObserver 에러 방지를 위한 브라우저 최적화
         launchOptions: {
-          args: ['--disable-web-security'], // CORS 문제 방지만
+          args: [
+            '--disable-web-security', // CORS 문제 방지
+            '--disable-extensions', // 브라우저 확장 비활성화
+            '--disable-dev-shm-usage', // /dev/shm 사용 비활성화
+            '--no-sandbox', // 샌드박스 비활성화 (CI/CD 환경)
+            '--disable-gpu', // GPU 가속 비활성화
+            '--disable-background-timer-throttling', // 백그라운드 타이머 제한 비활성화
+            '--disable-backgrounding-occluded-windows', // 백그라운드 창 제한 비활성화
+            '--disable-renderer-backgrounding', // 렌더러 백그라운드 제한 비활성화
+            '--disable-features=TranslateUI,VizDisplayCompositor', // 불필요한 기능 비활성화
+          ],
+          headless: true, // 헤드리스 모드 강제
         },
       },
     },
@@ -96,6 +107,9 @@ export default defineConfig({
       __NEXT_DISABLE_DEVTOOLS: 'true',
       NEXT_PRIVATE_STANDALONE: 'true', 
       __NEXT_TEST_MODE: 'true',
+      NEXT_DISABLE_DEVTOOLS: 'true',
+      NEXT_PRIVATE_DEBUG: 'false',
+      NEXT_PRIVATE_REPORT_SIZE: 'false',
       
       // dotenv로 로드된 환경변수를 명시적으로 전달 (빈 문자열 대신 실제 값 확인)
       NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL!,

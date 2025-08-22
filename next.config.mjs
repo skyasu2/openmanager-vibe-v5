@@ -48,14 +48,26 @@ const nextConfig = {
       '@heroicons/react',
       'react-hot-toast',
     ],
+    // Playwright E2E 테스트를 위한 devtools 완전 비활성화
+    disableOptimizedLoading: process.env.__NEXT_TEST_MODE === 'true',
+    // 개발 도구 완전 비활성화
+    nextScriptWorkers: false,
+    // 클라이언트 빌드에서 React DevTools 제거
+    skipTrailingSlashRedirect: true,
+  },
+
+  // 🚨 devtools 완전 비활성화 - SSR 호환성
+  devIndicators: {
+    buildActivity: false,
+    buildActivityPosition: 'bottom-right',
   },
 
   // 컴파일러 최적화
   compiler: {
     // 미사용 코드 제거
     removeConsole: process.env.NODE_ENV === 'production',
-    // React DevTools 제거 (프로덕션)
-    reactRemoveProperties: process.env.NODE_ENV === 'production',
+    // React DevTools 제거 (프로덕션 + 테스트 모드)
+    reactRemoveProperties: process.env.NODE_ENV === 'production' || process.env.__NEXT_TEST_MODE === 'true',
   },
 
   // 이미지 최적화 비활성화 (번들 크기 감소)
@@ -267,6 +279,27 @@ const nextConfig = {
 
   // 🔧 웹팩 설정 (번들 최적화)
   webpack: (config, { isServer, dev }) => {
+    // 테스트 모드 또는 devtools 비활성화 시 관련 모듈 완전 제외
+    if (process.env.__NEXT_TEST_MODE === 'true' || process.env.NEXT_DISABLE_DEVTOOLS === '1') {
+      // next-devtools 모듈을 빈 모듈로 대체
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'next/dist/compiled/next-devtools': false,
+        'next/dist/next-devtools': false,
+        '@next/devtools': false,
+        'next/dist/compiled/next-devtools/index.js': false,
+        // MutationObserver 관련 문제 해결을 위해 추가
+        'next/dist/client/dev/dev-build-watcher': false,
+        'next/dist/client/dev/error-overlay': false,
+        'next/dist/client/dev/fouc': false,
+        // layout-router에서 사용하는 segment-explorer 모듈 차단
+        'next/dist/client/components/layout-router': 'next/dist/client/components/layout-router.js',
+      };
+      
+      // 개발 환경에서도 MutationObserver 사용하는 모듈들 교체
+      config.resolve.alias['next/dist/client/dev'] = false;
+    }
+
     // 클라이언트 사이드 최적화
     if (!isServer) {
       config.resolve.fallback = {

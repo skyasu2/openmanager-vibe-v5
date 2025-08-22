@@ -23,11 +23,10 @@ import { motion } from 'framer-motion';
 const FeatureCardsGrid = dynamic(
   () => import('@/components/home/FeatureCardsGrid'),
   {
-    ssr: false,
     loading: () => (
       <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="_animate-pulse h-32 rounded-lg bg-white/10" />
+          <div key={i} className="animate-pulse h-32 rounded-lg bg-white/10" />
         ))}
       </div>
     ),
@@ -863,5 +862,5 @@ function Home() {
   );
 }
 
-// 동적 임포트로 SSR 완전 회피
-export default dynamic(() => Promise.resolve(Home), { ssr: false });
+// SSR 호환성 유지를 위해 일반 export 사용
+export default Home;

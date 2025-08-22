@@ -15,7 +15,7 @@ import type { ChatMessage } from '../types/ai-sidebar-types';
 
 interface ChatMessageItemProps {
   message: ChatMessage;
-  onRegenerateResponse: (messageId: string) => void;
+  onRegenerateResponse?: (messageId: string) => void;
 }
 
 export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
@@ -27,22 +27,23 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
       key={message.id}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`flex ${message?.type === 'user' ? 'justify-end' : 'justify-start'}`}
+      className={`flex ${message?.role === 'user' ? 'justify-end' : 'justify-start'}`}
+      data-testid="message-container"
     >
       <div
         className={`flex max-w-[90%] items-start space-x-2 sm:max-w-[85%] ${
-          message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''
+          message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''
         }`}
       >
         {/* 아바타 */}
         <div
           className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full ${
-            message.type === 'user'
+            message.role === 'user'
               ? 'bg-blue-500 text-white'
               : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
           }`}
         >
-          {message.type === 'user' ? (
+          {message.role === 'user' ? (
             <User className="h-3 w-3" />
           ) : (
             <Bot className="h-3 w-3" />
@@ -52,7 +53,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
         {/* 메시지 내용 */}
         <div
           className={`rounded-lg px-3 py-2 ${
-            message.type === 'user'
+            message.role === 'user'
               ? 'bg-blue-500 text-white'
               : 'border border-gray-200 bg-white text-gray-800'
           }`}
@@ -101,7 +102,7 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
           )}
 
           {/* AI 메시지 액션 버튼 */}
-          {message.type === 'ai' && (
+          {message.role === 'assistant' && (
             <div className="mt-2 flex items-center space-x-2">
               <button
                 onClick={() => onRegenerateResponse(message.id)}

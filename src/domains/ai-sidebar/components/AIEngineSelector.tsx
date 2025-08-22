@@ -26,24 +26,34 @@ interface AIEngine {
 // 사용 가능한 AI 엔진 목록
 export const availableEngines: AIEngine[] = [
   {
-    id: 'LOCAL',
-    name: 'LOCAL 모드',
-    description: '완전 구현된 로컬 AI 시스템 (기본 권장)',
-    icon: Database,
-    color: 'text-green-600',
-    bgColor: 'bg-green-100',
-    features: ['완전 구현', '프라이버시 보장', '오프라인 동작'],
+    id: 'UNIFIED',
+    name: '통합 AI 엔진',
+    description: '모든 AI 엔진 통합 - 최적의 성능과 유연성 제공',
+    icon: Zap,
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-100',
+    features: ['통합 처리', '자동 최적화', '확장성'],
     status: 'ready',
   },
   {
     id: 'GOOGLE_ONLY',
-    name: 'GOOGLE_ONLY 모드',
-    description: '자연어 질의 전용 Google AI (성능 비교용)',
+    name: 'Google AI Only',
+    description: 'Google AI만 사용 - 고급 자연어 처리와 추론 능력',
     icon: Zap,
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
     features: ['자연어 처리 특화', '고급 추론', '확장성 테스트'],
     usage: { used: 45, limit: 100 },
+    status: 'ready',
+  },
+  {
+    id: 'LOCAL',
+    name: '로컬 MCP',
+    description: '로컬 MCP 서버 - 프라이버시 보장과 오프라인 동작',
+    icon: Database,
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    features: ['완전 구현', '프라이버시 보장', '오프라인 동작'],
     status: 'ready',
   },
 ];
@@ -52,19 +62,27 @@ export const availableEngines: AIEngine[] = [
 export const AI_ENGINES = availableEngines;
 
 interface AIEngineSelectorProps {
-  selectedEngine: string;
+  currentEngine: string;
   onEngineChange: (engine: string) => void;
+  disabled?: boolean;
+  // 기존 호환성을 위한 별칭
+  selectedEngine?: string;
 }
 
 export const AIEngineSelector: React.FC<AIEngineSelectorProps> = ({
-  selectedEngine,
+  currentEngine,
   onEngineChange,
+  disabled = false,
+  selectedEngine, // 기존 호환성
 }) => {
   const [showEngineInfo, setShowEngineInfo] = useState(false);
 
+  // props 호환성 처리
+  const activeEngine = currentEngine || selectedEngine || 'UNIFIED';
+
   // 선택된 엔진 데이터 찾기
   const selectedEngineData = availableEngines.find(
-    (engine) => engine.id === selectedEngine
+    (engine) => engine.id === activeEngine
   );
 
   if (!selectedEngineData) return null;
@@ -72,8 +90,16 @@ export const AIEngineSelector: React.FC<AIEngineSelectorProps> = ({
   return (
     <div className="relative">
       <button
-        onClick={() => setShowEngineInfo(!showEngineInfo)}
-        className="flex items-center space-x-2 rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs transition-colors hover:bg-gray-50"
+        onClick={() => !disabled && setShowEngineInfo(!showEngineInfo)}
+        disabled={disabled}
+        role="button"
+        aria-expanded={showEngineInfo}
+        aria-haspopup="true"
+        className={`flex items-center space-x-2 rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs transition-colors ${
+          disabled 
+            ? 'cursor-not-allowed opacity-50' 
+            : 'hover:bg-gray-50'
+        }`}
       >
         {React.createElement(selectedEngineData.icon, {
           className: `w-3 h-3 ${selectedEngineData.color}`,
@@ -107,11 +133,20 @@ export const AIEngineSelector: React.FC<AIEngineSelectorProps> = ({
                 <button
                   key={engine.id}
                   onClick={() => {
-                    onEngineChange(engine.id);
-                    setShowEngineInfo(false);
+                    if (!disabled) {
+                      onEngineChange(engine.id);
+                      setShowEngineInfo(false);
+                    }
                   }}
-                  className={`w-full border-b border-gray-100 p-3 text-left transition-colors last:border-b-0 hover:bg-gray-50 ${
-                    selectedEngine === engine.id ? 'bg-blue-50' : ''
+                  disabled={disabled}
+                  role="button"
+                  aria-pressed={activeEngine === engine.id}
+                  className={`w-full border-b border-gray-100 p-3 text-left transition-colors last:border-b-0 ${
+                    disabled 
+                      ? 'cursor-not-allowed opacity-50' 
+                      : 'hover:bg-gray-50'
+                  } ${
+                    activeEngine === engine.id ? 'bg-blue-50' : ''
                   }`}
                 >
                   <div className="flex items-start space-x-3">

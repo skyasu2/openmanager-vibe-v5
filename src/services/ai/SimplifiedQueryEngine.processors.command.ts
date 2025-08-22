@@ -11,7 +11,7 @@ import type { SupabaseRAGEngine } from './supabase-rag-engine';
 import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
 import { MockContextLoader } from './MockContextLoader';
 import { IntentClassifier } from '@/modules/ai-agent/processors/IntentClassifier';
-import { UnifiedAIEngineRouter } from './UnifiedAIEngineRouter.core';
+// Removed UnifiedAIEngineRouter import to break circular dependency
 import type {
   QueryResponse,
   CommandContext,
@@ -27,7 +27,8 @@ export class CommandQueryProcessor {
     private ragEngine: SupabaseRAGEngine,
     private contextLoader: CloudContextLoader,
     private mockContextLoader: MockContextLoader,
-    private intentClassifier: IntentClassifier
+    private intentClassifier: IntentClassifier,
+    private aiRouter: any // Injected AI router to break circular dependency
   ) {}
 
   /**
@@ -52,8 +53,7 @@ export class CommandQueryProcessor {
     });
 
     try {
-      const aiRouter = UnifiedAIEngineRouter.getInstance();
-      const recommendationResult = await aiRouter.getCommandRecommendations(
+      const recommendationResult = await this.aiRouter.getCommandRecommendations(
         query,
         {
           maxRecommendations: 5,

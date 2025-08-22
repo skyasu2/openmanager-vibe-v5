@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
     plugins: [],
     test: {
       globals: true,
-      environment: 'node', // jsdom → node로 변경하여 성능 향상 (DOM 테스트는 별도 설정 사용)
+      environment: 'jsdom', // React 컴포넌트 테스트를 위해 jsdom 사용
       setupFiles: ['./src/test/setup.ts'],
 
       // 🎯 핵심 테스트만 실행
@@ -22,6 +22,7 @@ export default defineConfig(({ mode }) => {
         // E2E 테스트는 Playwright로 별도 실행
         'tests/performance/**/*.test.{ts,tsx}',
         'tests/api/**/*.test.{ts,tsx}', // API 테스트 추가
+        'tests/ai-sidebar/**/*.test.{ts,tsx}', // AI Sidebar 테스트 추가
       ],
 
       // 🚫 제거된 기능들 테스트 제외

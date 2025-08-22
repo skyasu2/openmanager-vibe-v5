@@ -6,10 +6,14 @@
 import { vi } from 'vitest';
 
 // 브라우저 환경에서만 실행
-if (typeof window === 'undefined') {
+const isBrowser = typeof window !== 'undefined';
+
+if (!isBrowser) {
   console.warn('browser.ts: Skipping browser mocks in Node environment');
-  export {};
-} else {
+}
+
+// 브라우저 환경에서만 Mock 설정
+if (isBrowser) {
   // ===============================
   // 🎯 Media Query Mock
   // ===============================
@@ -304,3 +308,6 @@ if (typeof window === 'undefined') {
 
   global.WebSocket = WebSocketMock as unknown as WebSocketConstructor;
 } // 브라우저 환경 체크 종료
+
+// 기본 export (모든 환경에서 필요)
+export {};

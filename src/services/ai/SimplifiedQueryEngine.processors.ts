@@ -36,14 +36,29 @@ export class SimplifiedQueryEngineProcessors {
   private localAIProcessor: LocalAIModeProcessor;
   private googleAIProcessor: GoogleAIModeProcessor;
   private commandProcessor: CommandQueryProcessor;
+  
+  // Store constructor parameters for later use
+  private utils: SimplifiedQueryEngineUtils;
+  private ragEngine: SupabaseRAGEngine;
+  private contextLoader: CloudContextLoader;
+  private mockContextLoader: MockContextLoader;
+  private intentClassifier: IntentClassifier;
 
   constructor(
     utils: SimplifiedQueryEngineUtils,
     ragEngine: SupabaseRAGEngine,
     contextLoader: CloudContextLoader,
     mockContextLoader: MockContextLoader,
-    intentClassifier: IntentClassifier
+    intentClassifier: IntentClassifier,
+    aiRouter?: any // Optional AI router to break circular dependency
   ) {
+    // Store constructor parameters
+    this.utils = utils;
+    this.ragEngine = ragEngine;
+    this.contextLoader = contextLoader;
+    this.mockContextLoader = mockContextLoader;
+    this.intentClassifier = intentClassifier;
+    
     // Initialize shared helpers
     this.helpers = new SimplifiedQueryEngineHelpers(mockContextLoader);
 
@@ -70,7 +85,28 @@ export class SimplifiedQueryEngineProcessors {
       this.localAIProcessor
     );
 
-    this.commandProcessor = new CommandQueryProcessor(utils);
+    this.commandProcessor = new CommandQueryProcessor(
+      utils,
+      ragEngine,
+      contextLoader,
+      mockContextLoader,
+      intentClassifier,
+      aiRouter
+    );
+  }
+
+  /**
+   * 🔄 AI Router 설정 (순환 종속성 해결용)
+   */
+  setAIRouter(aiRouter: any): void {
+    this.commandProcessor = new CommandQueryProcessor(
+      this.utils,
+      this.ragEngine,
+      this.contextLoader,
+      this.mockContextLoader,
+      this.intentClassifier,
+      aiRouter
+    );
   }
 
   /**

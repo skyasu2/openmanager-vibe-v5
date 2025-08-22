@@ -141,6 +141,10 @@ export class UnifiedAIEngineRouter {
     try {
       // AI 엔진들 초기화
       this.simplifiedEngine = new SimplifiedQueryEngine();
+      
+      // 순환 종속성 해결: SimplifiedQueryEngine에 AI Router 주입
+      (this.simplifiedEngine as any).processors?.setAIRouter?.(this);
+      
       this.performanceEngine = getPerformanceOptimizedQueryEngine();
       this.ragEngine = getSupabaseRAGEngine();
 
