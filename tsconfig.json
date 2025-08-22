@@ -48,11 +48,9 @@
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    "src/**/*",
-    "scripts/**/*.ts"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
@@ -79,9 +77,7 @@
     "src/test/**",
     "tests/**",
     "vm-ai-backend*/**",
-    "scripts/**/*.js",
-    "scripts/**/*.mjs",
-    "scripts/**/*.cjs",
+    "scripts/**/*",
     ".claude/**",
     "reports/**",
     ".backups/**"

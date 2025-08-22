@@ -109,16 +109,21 @@ function validateMetrics(metrics: unknown[]): metrics is ServerMetric[] {
   }
 
   return metrics.every((metric) => {
+    // Check if metric is an object
+    if (typeof metric !== 'object' || metric === null) return false;
+    
+    const m = metric as any; // Type assertion for property access
+    
     // Required string fields
-    if (!metric.server_id || typeof metric.server_id !== 'string') return false;
-    if (!metric.server_name || typeof metric.server_name !== 'string')
+    if (!m.server_id || typeof m.server_id !== 'string') return false;
+    if (!m.server_name || typeof m.server_name !== 'string')
       return false;
-    if (!metric.timestamp || typeof metric.timestamp !== 'string') return false;
+    if (!m.timestamp || typeof m.timestamp !== 'string') return false;
 
     // Required numeric fields (must be numbers, not strings or null)
     const numericFields = ['cpu', 'memory', 'disk', 'network'];
     return numericFields.every((field) => {
-      const value = metric[field];
+      const value = m[field];
       return (
         typeof value === 'number' && !isNaN(value) && value >= 0 && value <= 100
       );

@@ -56,14 +56,13 @@ function convertServerToModalData(server: Server) {
       | 'critical'
       | 'offline'
       | 'online',
-    networkStatus:
-      server.status === 'online' || server.status === 'healthy'
+    networkStatus: (server.status === 'online' || server.status === 'healthy'
         ? 'excellent'
         : server.status === 'warning'
           ? 'good'
           : server.status === 'critical'
             ? 'poor'
-            : 'offline',
+            : 'offline') as 'excellent' | 'good' | 'poor' | 'offline',
   };
 }
 

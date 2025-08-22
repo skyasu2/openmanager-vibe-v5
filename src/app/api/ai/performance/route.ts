@@ -122,7 +122,9 @@ const getHandler = createApiRoute()
         // 시스템 헬스
         health: {
           status: healthStatus.status as 'healthy' | 'degraded' | 'unavailable',
-          engines: healthStatus.engines || {},
+          engines: Array.isArray(healthStatus.engines) 
+            ? healthStatus.engines 
+            : [], // engines should be an array
         },
 
         // 성능 분석 (변환된 메트릭 사용)
