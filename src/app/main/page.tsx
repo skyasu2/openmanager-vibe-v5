@@ -7,6 +7,9 @@
 
 'use client';
 
+// SVGElement SSR 오류 방지: 정적 생성 비활성화
+export const dynamic = 'force-dynamic';
+
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';

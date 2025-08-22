@@ -7,6 +7,9 @@
 
 'use client';
 
+// React Hook SSR 오류 방지: 정적 생성 비활성화
+export const dynamic = 'force-dynamic';
+
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
