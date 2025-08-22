@@ -1,7 +1,7 @@
 {
   "statusLine": {
-    "type": "command", 
-    "command": "ccusage statusline --visual-burn-rate emoji",
+    "type": "command",
+    "command": "/home/skyasu/.claude/ccusage-status.sh",
     "padding": 0
   },
   "hooks": {
@@ -11,7 +11,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash /mnt/d/cursor/openmanager-vibe-v5/.claude/hooks/smart-verification.sh \"$file\" \"$tool\""
+            "command": "bash -c 'export TERM=dumb NO_COLOR=1 NONINTERACTIVE=1; echo \"$(date +\"%Y-%m-%d %H:%M:%S\") 🔍 AI 검토 Hook 트리거됨\" >> /mnt/d/cursor/openmanager-vibe-v5/.claude/hooks.log 2>/dev/null && cd /mnt/d/cursor/openmanager-vibe-v5 && timeout 30s bash .claude/hooks/smart-verification.sh 2>&1 | sed \"s/\\x1b\\[[0-9;]*[mGKHRJF]//g; s/\\[[0-9;]*[RHJ]//g; s/\\x1b[()][AB012]//g\" | tee -a .claude/hooks.log 2>/dev/null'"
           }
         ]
       }
@@ -21,8 +21,8 @@
         "matcher": "검증|검토|review|verify|교차.*검증|cross.*verif",
         "hooks": [
           {
-            "type": "command",
-            "command": "echo '[$(date +\"%Y-%m-%d %H:%M:%S\")] 🔍 AI 검증 요청 감지' >> /mnt/d/cursor/openmanager-vibe-v5/.claude/verification.log 2>&1 && echo '💡 Task external-ai-orchestrator \"교차 검증 실행\"' >> /mnt/d/cursor/openmanager-vibe-v5/.claude/verification.log 2>&1"
+            "type": "command",  
+            "command": "bash -c 'export TERM=dumb NO_COLOR=1; echo \"$(date +\"%Y-%m-%d %H:%M:%S\") 🔍 사용자 AI 검증 요청 감지\" >> /mnt/d/cursor/openmanager-vibe-v5/.claude/verification.log 2>/dev/null'"
           }
         ]
       }

@@ -15,6 +15,18 @@
 
 set -e
 
+# === 터미널 환경 완전 격리 ===
+export TERM=dumb
+export NO_COLOR=1
+export NONINTERACTIVE=1
+export PAGER=cat
+export LESS=""
+
+# TTY 설정 비활성화 (ANSI 시퀀스 차단)
+if command -v stty >/dev/null 2>&1; then
+    stty -echo -icanon 2>/dev/null || true
+fi
+
 # === 설정 ===
 PROJECT_ROOT="/mnt/d/cursor/openmanager-vibe-v5"
 CLAUDE_DIR="$PROJECT_ROOT/.claude"
@@ -32,13 +44,22 @@ RECENT_VERIFICATION_TTL=300  # 5분 (300초)
 CACHE_TTL=3600              # 1시간 (3600초)
 MAX_PARALLEL_VERIFICATIONS=3
 
-# === 색상 코드 ===
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-NC='\033[0m'
+# === 색상 코드 (NO_COLOR 환경변수에 따라 비활성화) ===
+if [ -z "$NO_COLOR" ]; then
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    BLUE='\033[0;34m'
+    PURPLE='\033[0;35m'
+    NC='\033[0m'
+else
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    PURPLE=''
+    NC=''
+fi
 
 # === 유틸리티 함수 ===
 
@@ -46,12 +67,16 @@ log_message() {
     local message="$1"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
     
-    # 로그 파일에는 ANSI 색상 코드 제거하여 기록
-    local clean_message=$(echo -e "$message" | sed 's/\x1b\[[0-9;]*m//g')
-    echo "[$timestamp] $clean_message" >> "$LOG_FILE"
+    # 포괄적인 ANSI 필터링 (색상 + 제어 시퀀스)
+    local clean_message=$(echo -e "$message" | sed 's/\x1b\[[0-9;]*[mGKHRJF]//g; s/\[[0-9;]*[RHJ]//g; s/\x1b[()][AB012]//g')
+    echo "[$timestamp] $clean_message" >> "$LOG_FILE" 2>/dev/null || true
     
-    # 터미널에는 색상 포함하여 출력
-    echo -e "$message"
+    # NO_COLOR가 설정된 경우 터미널 출력도 필터링
+    if [ -n "$NO_COLOR" ]; then
+        echo "$clean_message"
+    else
+        echo -e "$message"
+    fi
 }
 
 # Atomic write 함수 (race condition 방지)
@@ -182,7 +207,10 @@ load_recent_verification_cache() {
     
     if [ -f "$RECENT_VERIFICATIONS" ]; then
         while IFS=':' read -r hash timestamp level; do
-            RECENT_VERIFICATION_CACHE[$hash]="$timestamp:$level"
+            # 빈 줄이나 잘못된 형식 스킵
+            if [ -n "$hash" ] && [ -n "$timestamp" ] && [ -n "$level" ]; then
+                RECENT_VERIFICATION_CACHE[$hash]="$timestamp:$level"
+            fi
         done < "$RECENT_VERIFICATIONS"
     fi
     
