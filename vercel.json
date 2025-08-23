@@ -229,7 +229,10 @@
       "SKIP_SUPABASE_CONNECTION_CHECK": "true",
       "DISABLE_HEALTH_CHECK": "true",
       "HEALTH_CHECK_CONTEXT": "false",
-      "VALIDATE_ENV_ON_BUILD": "true"
+      "VALIDATE_ENV_ON_BUILD": "true",
+      "NEXT_DISABLE_DEVTOOLS": "1",
+      "SKIP_E2E_TESTS": "true",
+      "ENABLE_QA_TESTS": "false"
     }
   },
   "crons": [

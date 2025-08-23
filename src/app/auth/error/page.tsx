@@ -6,7 +6,7 @@
 
 'use client';
 
-import { motion } from 'framer-motion';
+// Removed framer-motion import for SSR compatibility
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 
@@ -72,10 +72,7 @@ function AuthErrorContent() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-50 via-white to-orange-50 p-4">
       <div className="w-full max-w-md">
         {/* 에러 아이콘 */}
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.6 }}
+        <div
           className="mb-8 text-center"
         >
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
@@ -95,13 +92,10 @@ function AuthErrorContent() {
           </div>
           <h1 className="mb-2 text-2xl font-bold text-gray-900">로그인 실패</h1>
           <p className="text-gray-600">GitHub OAuth 인증에 실패했습니다</p>
-        </motion.div>
+        </div>
 
         {/* 에러 메시지 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+        <div
           className="mb-6 rounded-xl border border-red-200 bg-white p-6 shadow-lg"
         >
           <div className="flex items-start space-x-3">
@@ -125,13 +119,10 @@ function AuthErrorContent() {
               <p className="text-sm leading-relaxed text-gray-600">{error}</p>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* 해결 방법 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
+        <div
           className="mb-6 rounded-xl bg-blue-50 p-6"
         >
           <h3 className="mb-3 font-semibold text-blue-900">해결 방법</h3>
@@ -153,13 +144,10 @@ function AuthErrorContent() {
               <span>문제가 계속되면 게스트 로그인을 사용하세요</span>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* 액션 버튼들 */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
+        <div
           className="space-y-3"
         >
           <div className="grid grid-cols-2 gap-3">
@@ -189,13 +177,10 @@ function AuthErrorContent() {
               게스트 모드로 시작하기
             </button>
           </div>
-        </motion.div>
+        </div>
 
         {/* 기술 정보 */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
+        <div
           className="mt-8 text-center"
         >
           <div className="space-y-1 text-xs text-gray-500">
@@ -203,7 +188,7 @@ function AuthErrorContent() {
             <p>🛠️ 문제가 계속되면 관리자에게 문의하세요</p>
             <p>OpenManager Vibe v5.44.3</p>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

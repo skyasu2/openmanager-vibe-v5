@@ -4,7 +4,7 @@ import React from 'react';
 import { AlertTriangle, RefreshCw, Home, Settings, Bug } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
+// Removed framer-motion import for SSR compatibility
 
 interface DashboardErrorProps {
   error: Error & { digest?: string };
@@ -90,23 +90,18 @@ export default function DashboardError({ error, reset }: DashboardErrorProps) {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4 dark:from-slate-900 dark:to-slate-800">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="w-full max-w-2xl"
       >
         <Card className={`${currentError.bgColor} border-2`}>
           <CardHeader className="text-center">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2 }}
+            <div
               className="mb-4 flex justify-center"
             >
               <div className={`rounded-full p-4 ${currentError.bgColor}`}>
                 <IconComponent className={`h-12 w-12 ${currentError.color}`} />
               </div>
-            </motion.div>
+            </div>
             <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
               {currentError.title}
             </CardTitle>
@@ -222,10 +217,7 @@ export default function DashboardError({ error, reset }: DashboardErrorProps) {
         </Card>
 
         {/* 시스템 상태 확인 */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
+        <div
           className="mt-6 text-center"
         >
           <Card className="bg-white/50 backdrop-blur-sm dark:bg-slate-900/50">
@@ -243,8 +235,8 @@ export default function DashboardError({ error, reset }: DashboardErrorProps) {
               </p>
             </CardContent>
           </Card>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   );
 }
