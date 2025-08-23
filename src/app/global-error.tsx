@@ -42,9 +42,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   }, [error]);
 
   return (
-    <html>
-      <body>
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-900 via-gray-900 to-red-900">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-900 via-gray-900 to-red-900">
           <div className="mx-auto max-w-md space-y-6 p-8 text-center">
             {/* 에러 아이콘 */}
             <div className="flex justify-center">
@@ -141,8 +139,6 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
               )}
             </div>
           </div>
-        </div>
-      </body>
-    </html>
+    </div>
   );
 }

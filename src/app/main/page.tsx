@@ -21,7 +21,7 @@ import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import debug from '@/utils/debug';
 import { vercelConfig, debugWithEnv } from '@/utils/vercel-env';
 
-import { motion } from 'framer-motion';
+// Removed framer-motion import for SSR compatibility
 
 const FeatureCardsGrid = dynamic(
   () => import('@/components/home/FeatureCardsGrid'),
@@ -275,23 +275,15 @@ function Home() {
         }
         
         return (
-          <motion.span
+          <span
             key={index}
-            className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text font-bold text-transparent"
-            animate={{
-              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: 'linear',
-            }}
+            className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text font-bold text-transparent animate-gradient-x"
             style={{
               backgroundSize: '200% 200%',
             }}
           >
             {part}
-          </motion.span>
+          </span>
         );
       }
       return part;
@@ -500,12 +492,9 @@ function Home() {
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
         <div className="flex min-h-screen items-center justify-center">
           <div className="text-center">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-            >
-              <Loader2 className="mx-auto mb-4 h-8 w-8 text-white" />
-            </motion.div>
+<div>
+              <Loader2 className="mx-auto mb-4 h-8 w-8 text-white animate-spin" />
+            </div>
             <p className="text-white/90 font-medium">
               {getLoadingMessage()} ({vercelConfig.envLabel} 환경)
             </p>
@@ -554,81 +543,23 @@ function Home() {
       {/* 헤더 */}
       <header className="relative z-50 flex items-center justify-between p-6">
         <div className="flex items-center space-x-3">
-          {/* AI 컨셉 아이콘 - 통합 AI 카드 스타일 애니메이션 적용 */}
-          <motion.div
-            className="relative flex h-10 w-10 items-center justify-center rounded-lg shadow-lg"
-            animate={
+          {/* AI 컨셉 아이콘 - CSS 애니메이션으로 변경 */}
+          <div 
+            className={`relative flex h-10 w-10 items-center justify-center rounded-lg shadow-lg transition-all duration-300 hover:scale-110 ${
               aiAgent.isEnabled
-                ? {
-                    background: [
-                      'linear-gradient(135deg, #a855f7, #ec4899)',
-                      'linear-gradient(135deg, #ec4899, #06b6d4)',
-                      'linear-gradient(135deg, #06b6d4, #a855f7)',
-                    ],
-                    scale: [1, 1.1, 1],
-                    rotate: [0, 360],
-                    boxShadow: [
-                      '0 4px 15px rgba(168, 85, 247, 0.3)',
-                      '0 6px 20px rgba(236, 72, 153, 0.4)',
-                      '0 4px 15px rgba(6, 182, 212, 0.3)',
-                      '0 6px 20px rgba(168, 85, 247, 0.4)',
-                    ],
-                  }
+                ? 'bg-gradient-to-br from-purple-500 to-pink-500 animate-pulse'
                 : isSystemStarted
-                  ? {
-                      background: [
-                        'linear-gradient(135deg, #10b981, #059669)',
-                        'linear-gradient(135deg, #059669, #047857)',
-                        'linear-gradient(135deg, #047857, #10b981)',
-                      ],
-                      scale: [1, 1.05, 1],
-                      boxShadow: [
-                        '0 4px 15px rgba(16, 185, 129, 0.3)',
-                        '0 6px 20px rgba(5, 150, 105, 0.4)',
-                        '0 4px 15px rgba(16, 185, 129, 0.3)',
-                      ],
-                    }
-                  : {
-                      background: 'linear-gradient(135deg, #6b7280, #4b5563)',
-                      scale: 1,
-                      rotate: 0,
-                    }
-            }
-            transition={{
-              duration: aiAgent.isEnabled ? 2 : 3,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-            whileHover={{
-              scale: 1.15,
-              transition: { duration: 0.3 },
-            }}
+                ? 'bg-gradient-to-br from-green-500 to-emerald-600'
+                : 'bg-gradient-to-br from-gray-600 to-gray-700'
+            }`}
           >
-            {/* AI 활성화 시 회전 아이콘 */}
-            {aiAgent.isEnabled ? (
-              <motion.i
-                className="fas fa-server text-lg text-white"
-                animate={{
-                  rotate: [0, 360],
-                  scale: [1, 1.1, 1],
-                }}
-                transition={{
-                  rotate: { duration: 8, repeat: Infinity, ease: 'linear' },
-                  scale: {
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  },
-                }}
-                aria-hidden="true"
-              />
-            ) : (
-              <i
-                className="fas fa-server text-lg text-white"
-                aria-hidden="true"
-              />
-            )}
-          </motion.div>
+            <i
+              className={`fas fa-server text-lg text-white ${
+                aiAgent.isEnabled ? 'animate-spin-slow' : ''
+              }`}
+              aria-hidden="true"
+            />
+          </div>
 
           {/* 브랜드 텍스트 */}
           <div>
@@ -655,12 +586,7 @@ function Home() {
       {/* 메인 콘텐츠 */}
       <div className="container relative z-10 mx-auto px-6 pt-8">
         {/* 타이틀 섹션 */}
-        <motion.div
-          className="mb-12 text-center"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
+        <div className="mb-12 text-center animate-fade-in">
           <h1 className="mb-4 text-3xl font-bold md:text-5xl">
             <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
               {renderTextWithAIGradient('AI')}
@@ -673,15 +599,10 @@ function Home() {
               완전 독립 동작 AI 엔진 | 향후 개발: 선택적 LLM API 연동 확장
             </span>
           </p>
-        </motion.div>
+        </div>
 
         {/* 제어 패널 */}
-        <motion.div
-          className="mb-12"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
+        <div className="mb-12 animate-fade-in-delay">
           {!isSystemStarted ? (
             <div className="mx-auto max-w-2xl text-center">
               {/* 시스템 중지 상태 - 대시보드 버튼 중심으로 변경 */}
@@ -691,47 +612,30 @@ function Home() {
                   <>
                     {/* GitHub 인증 사용자 - 시스템 시작 버튼 표시 */}
                     {/* 현재 사용자: {currentUser?.name || currentUser?.email || 'Unknown'} */}
-                    <motion.button
-                      onClick={handleSystemToggle}
-                      disabled={buttonConfig.disabled}
-                      className={`flex h-16 w-64 items-center justify-center gap-3 rounded-xl border font-semibold shadow-xl transition-all duration-300 ${buttonConfig.className}`}
-                      whileHover={
-                        !buttonConfig.disabled && systemStartCountdown === 0
-                          ? { scale: 1.05 }
-                          : {}
-                      }
-                      whileTap={!buttonConfig.disabled ? { scale: 0.95 } : {}}
-                    >
-                      {/* 카운트다운 진행바 */}
+<button
+                        onClick={handleSystemToggle}
+                        disabled={buttonConfig.disabled}
+                        className={`flex h-16 w-64 items-center justify-center gap-3 rounded-xl border font-semibold shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 ${buttonConfig.className}`}
+                      >
+                      {/* 카운트다운 진행바 - CSS 애니메이션으로 변경 */}
                       {systemStartCountdown > 0 && (
-                        <motion.div
+                        <div
                           className="absolute inset-0 overflow-hidden rounded-xl"
                           style={{ transformOrigin: 'left' }}
                         >
-                          <motion.div
-                            className="h-full bg-gradient-to-r from-red-600/40 via-red-500/40 to-red-400/40"
-                            initial={{ width: '0%' }}
-                            animate={{ width: '100%' }}
-                            transition={{ duration: 3, ease: 'linear' }}
+                          <div
+                            className="h-full bg-gradient-to-r from-red-600/40 via-red-500/40 to-red-400/40 animate-progress-bar"
                           />
-                          <motion.div
-                            className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                            animate={{
-                              x: ['-100%', '100%'],
-                            }}
-                            transition={{
-                              duration: 1,
-                              repeat: Infinity,
-                              ease: 'linear',
-                            }}
+                          <div
+                            className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"
                           />
-                        </motion.div>
+                        </div>
                       )}
                       <div className="relative z-10 flex items-center gap-3">
                         {buttonConfig.icon}
                         <span className="text-lg">{buttonConfig.text}</span>
                       </div>
-                    </motion.button>
+                    </button>
 
                     {/* 상태 안내 - 메모이제이션으로 렌더링 최적화 - 컴포넌트 레벨로 이동 */}
                     <div className="mt-2 flex flex-col items-center gap-1">
@@ -767,14 +671,12 @@ function Home() {
                         시스템 시작 기능은 GitHub 인증된 사용자만 사용할 수
                         있습니다.
                       </p>
-                      <motion.button
+                      <button
                         onClick={() => router.push('/login')}
-                        className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-all hover:bg-blue-700 hover:scale-105 active:scale-95"
                       >
                         로그인 페이지로 이동
-                      </motion.button>
+                      </button>
                     </div>
                     <p className="text-xs text-gray-400">
                       게스트 모드에서는 읽기 전용 기능만 사용 가능합니다
@@ -797,26 +699,19 @@ function Home() {
               </div>
             </div>
           ) : (
-            <motion.div
-              className="mx-auto max-w-4xl text-center"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-            >
+            <div className="mx-auto max-w-4xl text-center animate-fade-in">
               {/* 시스템 활성 상태 */}
               {/* 대시보드 버튼 - 중앙 배치 */}
               <div className="mb-6 flex justify-center">
                 <div className="flex flex-col items-center">
                   {isGitHubUser ? (
-                    <motion.button
+                    <button
                       onClick={handleDashboardClick}
-                      className="flex h-16 w-64 items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-600 font-semibold text-white shadow-xl transition-all duration-200 hover:bg-emerald-700"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                      className="flex h-16 w-64 items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-600 font-semibold text-white shadow-xl transition-all duration-200 hover:bg-emerald-700 hover:scale-105 active:scale-95"
                     >
                       <BarChart3 className="h-5 w-5" />
                       <span className="text-lg">📊 대시보드 열기</span>
-                    </motion.button>
+                    </button>
                   ) : (
                     <div className="text-center">
                       <p className="mb-2 text-sm text-gray-400">
@@ -844,9 +739,9 @@ function Home() {
                 시스템이 활성화되어 있습니다. 대시보드에서 상세 모니터링을
                 확인하세요.
               </p>
-            </motion.div>
+            </div>
           )}
-        </motion.div>
+        </div>
 
         {/* 기능 카드 그리드 */}
         <div className="mb-12">
