@@ -30,6 +30,7 @@ export default function FeatureCardModal({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => {
@@ -306,3 +307,4 @@ export default function FeatureCardModal({
       </div>
     </>
   );
+}
