@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// Removed framer-motion import for SSR compatibility
 import { Crown } from 'lucide-react';
 import { ProfileAvatar, UserTypeIcon } from './ProfileAvatar';
 import { ProfileMenuItem } from './ProfileMenuItem';
@@ -53,14 +53,10 @@ export const ProfileDropdownMenu = React.memo(function ProfileDropdownMenu({
   };
 
   return (
-    <AnimatePresence>
+    <>
       {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -10, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -10, scale: 0.95 }}
-          transition={{ duration: 0.2 }}
-          className="absolute right-0 z-[9999] mt-2 w-64 rounded-xl border border-gray-200 bg-white py-2 shadow-lg"
+        <div
+          className="absolute right-0 z-[9999] mt-2 w-64 rounded-xl border border-gray-200 bg-white py-2 shadow-lg animate-fade-in transition-all duration-200"
           role="menu"
           aria-orientation="vertical"
           aria-labelledby="profile-menu-button"
@@ -141,8 +137,8 @@ export const ProfileDropdownMenu = React.memo(function ProfileDropdownMenu({
               {isAdminMode ? '🔒 관리자 권한으로 실행 중' : '🛡️ 보안 연결됨'}
             </p>
           </div>
-        </motion.div>
+        </div>
       )}
-    </AnimatePresence>
+    </>
   );
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+// Removed framer-motion import for SSR compatibility
 import { X } from 'lucide-react';
 import React, { useEffect } from 'react';
 import type {
@@ -30,7 +30,6 @@ export default function FeatureCardModal({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
-      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => {
@@ -58,11 +57,9 @@ export default function FeatureCardModal({
     const categoryStyle = getCategoryStyle(tech.category);
 
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.1 }}
-        className={`rounded-lg border p-4 ${importanceStyle.bg} transition-all duration-300 hover:scale-105`}
+      <div
+        className={`rounded-lg border p-4 ${importanceStyle.bg} transition-all duration-300 hover:scale-105 animate-fade-in-delay`}
+        style={{ animationDelay: `${index * 100}ms` }}
       >
         <div className="mb-3 flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -138,7 +135,7 @@ export default function FeatureCardModal({
             </span>
           ))}
         </div>
-      </motion.div>
+      </div>
     );
   };
 
@@ -155,9 +152,7 @@ export default function FeatureCardModal({
   const mainContent = (
     <div className="p-6 text-white">
       {/* 헤더 섹션 */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="mb-8 text-center"
       >
         <div
@@ -171,16 +166,13 @@ export default function FeatureCardModal({
         <p className="mx-auto max-w-2xl text-sm text-gray-300">
           {detailedContent.overview}
         </p>
-      </motion.div>
+      </div>
 
       {/* 중요도별 기술 스택 섹션 */}
       <div className="space-y-8">
         {/* 필수 기술 (Critical) */}
         {criticalTech.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+          <div
             className="space-y-4"
           >
             <h4 className="flex items-center gap-2 text-lg font-semibold text-red-300">
@@ -195,15 +187,12 @@ export default function FeatureCardModal({
                 <TechCard key={tech.name} tech={tech} index={index} />
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* 중요 기술 (High) */}
         {highTech.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+          <div
             className="space-y-4"
           >
             <h4 className="flex items-center gap-2 text-lg font-semibold text-orange-300">
@@ -218,15 +207,12 @@ export default function FeatureCardModal({
                 <TechCard key={tech.name} tech={tech} index={index} />
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* 보통 기술 (Medium) */}
         {mediumTech.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+          <div
             className="space-y-4"
           >
             <h4 className="flex items-center gap-2 text-lg font-semibold text-blue-300">
@@ -241,15 +227,12 @@ export default function FeatureCardModal({
                 <TechCard key={tech.name} tech={tech} index={index} />
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* 낮은 우선순위 기술 (Low) */}
         {lowTech.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+          <div
             className="space-y-4"
           >
             <h4 className="flex items-center gap-2 text-lg font-semibold text-gray-300">
@@ -264,18 +247,15 @@ export default function FeatureCardModal({
                 <TechCard key={tech.name} tech={tech} index={index} />
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
       </div>
     </div>
   );
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+    <>
+      <div
         className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
         onClick={onClose}
         data-modal-version="v2.0-unified-scroll"
@@ -284,12 +264,8 @@ export default function FeatureCardModal({
         <div className="absolute inset-0 bg-black/85 backdrop-blur-sm" />
 
         {/* 개선된 모달 컨텐츠 */}
-        <motion.div
+        <div
           ref={modalRef}
-          initial={{ scale: 0.95, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.95, opacity: 0, y: 20 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           className="relative max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-2xl border border-gray-600/50 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl"
           onClick={(e) => e.stopPropagation()}
           data-modal-content="unified-scroll-v2"
@@ -311,15 +287,13 @@ export default function FeatureCardModal({
                 <h2 className="text-lg font-semibold text-white">{title}</h2>
               </div>
 
-              <motion.button
-                whileHover={{ scale: 1.1, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
+              <button
                 onClick={onClose}
                 className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
                 aria-label="Close modal"
               >
                 <X size={20} />
-              </motion.button>
+              </button>
             </header>
             <div
               className="overflow-y-auto scroll-smooth"
@@ -328,8 +302,7 @@ export default function FeatureCardModal({
               {mainContent}
             </div>
           </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+        </div>
+      </div>
+    </>
   );
-}
