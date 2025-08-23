@@ -330,6 +330,25 @@ a {
   animation: fadeIn 0.8s ease-out 0.2s both;
 }
 
+.animate-gradient-shift {
+  animation: gradient-shift 4s ease-in-out infinite;
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background: linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(236,72,153,0.3) 50%, rgba(34,197,94,0.3) 100%);
+  }
+  25% {
+    background: linear-gradient(135deg, rgba(236,72,153,0.3) 0%, rgba(34,197,94,0.3) 50%, rgba(59,130,246,0.3) 100%);
+  }
+  50% {
+    background: linear-gradient(135deg, rgba(34,197,94,0.3) 0%, rgba(59,130,246,0.3) 50%, rgba(236,72,153,0.3) 100%);
+  }
+  75% {
+    background: linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(236,72,153,0.3) 50%, rgba(34,197,94,0.3) 100%);
+  }
+}
+
 /* 유틸리티 클래스 */
 .fade-in {
   animation: fadeIn 0.8s ease-out;

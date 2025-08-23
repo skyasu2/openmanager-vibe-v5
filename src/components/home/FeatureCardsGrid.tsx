@@ -2,32 +2,24 @@
 
 import FeatureCardModal from '@/components/shared/FeatureCardModal';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { motion } from 'framer-motion';
+// Removed framer-motion import for SSR compatibility
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type { FeatureCard, FeatureCardProps } from '@/types/feature-card.types';
 import { FEATURE_CARDS_DATA, CARD_COMPLETION_RATES } from '@/data/feature-cards.data';
 
-// AI 단어에 그라데이션 애니메이션 적용하는 함수 - 컴포넌트 외부로 이동
+// AI 단어에 그라데이션 애니메이션 적용하는 함수 - CSS 애니메이션으로 변경
 const renderTextWithAIGradient = (text: string) => {
   if (!text.includes('AI')) return text;
 
   return text.split(/(AI)/g).map((part, index) => {
     if (part === 'AI') {
       return (
-        <motion.span
+        <span
           key={index}
-          className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-[length:200%_200%] bg-clip-text font-bold text-transparent"
-          animate={{
-            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            ease: 'linear',
-          }}
+          className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-[length:200%_200%] bg-clip-text font-bold text-transparent animate-gradient-x"
         >
           {part}
-        </motion.span>
+        </span>
       );
     }
     return part;
@@ -106,21 +98,14 @@ const FeatureCardItem = memo(
     const iconAnimation = useMemo(() => getIconAnimation(card), [card]);
 
     return (
-      <motion.div
+      <div
         key={card.id}
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: index * 0.1 }}
-        whileHover={{
-          scale: card.isVibeCard ? 1.08 : 1.05,
-          y: card.isVibeCard ? -8 : -5,
-          rotateY: card.isVibeCard ? 5 : 0,
-        }}
-        className={`group relative cursor-pointer ${
+        className={`group relative cursor-pointer animate-fade-in-delay transition-all duration-300 hover:scale-105 hover:-translate-y-2 ${
           card.isVibeCard
-            ? 'transform-gpu hover:shadow-2xl hover:shadow-yellow-500/30'
+            ? 'transform-gpu hover:shadow-2xl hover:shadow-yellow-500/30 hover:scale-110 hover:-translate-y-3'
             : ''
         }`}
+        style={{ animationDelay: `${index * 100}ms` }}
         onClick={() => onCardClick(card.id)}
       >
         <div
@@ -135,23 +120,10 @@ const FeatureCardItem = memo(
             className={`absolute inset-0 bg-gradient-to-br ${card.gradient} rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-10`}
           />
 
-          {/* AI 카드 특별 이색 그라데이션 애니메이션 - landing 버전에서 재활용 */}
+          {/* AI 카드 특별 이색 그라데이션 애니메이션 - CSS 애니메이션으로 변경 */}
           {card.isAICard && (
-            <motion.div
-              className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30"
-              animate={{
-                background: [
-                  'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(236,72,153,0.3) 50%, rgba(34,197,94,0.3) 100%)',
-                  'linear-gradient(135deg, rgba(236,72,153,0.3) 0%, rgba(34,197,94,0.3) 50%, rgba(59,130,246,0.3) 100%)',
-                  'linear-gradient(135deg, rgba(34,197,94,0.3) 0%, rgba(59,130,246,0.3) 50%, rgba(236,72,153,0.3) 100%)',
-                  'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(236,72,153,0.3) 50%, rgba(34,197,94,0.3) 100%)',
-                ],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
+            <div
+              className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30 animate-gradient-shift"
             />
           )}
 
@@ -183,9 +155,11 @@ const FeatureCardItem = memo(
             }`}
           >
             {iconAnimation ? (
-              <motion.div {...iconAnimation}>
+              <div className={`${
+                card.isAICard ? 'animate-spin-slow' : card.isVibeCard ? 'animate-bounce' : ''
+              }`}>
                 <card.icon className={`h-6 w-6 ${cardStyles.iconColor}`} />
-              </motion.div>
+              </div>
             ) : (
               <card.icon className="h-6 w-6 text-white" />
             )}
@@ -217,7 +191,7 @@ const FeatureCardItem = memo(
             className={`absolute inset-0 rounded-2xl ring-2 ring-transparent transition-all duration-300 ${cardStyles.hoverRing}`}
           />
         </div>
-      </motion.div>
+      </div>
     );
   }
 );
