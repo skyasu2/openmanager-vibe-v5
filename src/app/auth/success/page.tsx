@@ -7,9 +7,7 @@
 
 'use client';
 
-// 동적 렌더링 강제 - 인증 페이지는 정적 생성 불가
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// 클라이언트 컴포넌트 - 인증 페이지는 클라이언트에서 처리
 
 import { supabase } from '@/lib/supabase';
 import { CheckCircle, Loader2 } from 'lucide-react';
