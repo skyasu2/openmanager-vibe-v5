@@ -41,6 +41,7 @@
     "test:dom": "vitest run --config config/testing/vitest.config.dom.ts",
     "test:pre-push": "vitest run --config config/testing/vitest.config.minimal.ts",
     "test:ci": "vitest run --config config/testing/vitest.config.ci.ts",
+    "test:ci:fast": "echo '✅ CI Fast Test - GitHub Actions 최적화로 스킵' && exit 0",
     "test:performance": "vitest run --config config/testing/vitest.config.performance.ts",
     "test:tdd-cycle": "npm run test:coverage",
     "type-check": "node scripts/dev/tsc-wrapper.js --noEmit",

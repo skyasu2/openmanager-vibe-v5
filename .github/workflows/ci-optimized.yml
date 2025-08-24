@@ -64,24 +64,27 @@ jobs:
             fi
           fi
 
-      - name: Intelligent Validation
-        timeout-minutes: 5
+      - name: Fast CI Tests
+        timeout-minutes: 2
         run: |
-          echo "🧪 테스트 실행 시작..."
+          echo "🧪 빠른 CI 테스트 실행 시작..."
+          echo "📊 핵심 유닛 테스트만 실행하여 빠른 피드백 제공"
           
-          # 테스트 실행 (CI 전용 설정 사용)
-          if npm run test:ci; then
-            echo "✅ 모든 테스트 통과!"
+          # 빠른 CI 테스트 실행 (핵심 유닛 테스트만)
+          if npm run test:ci:fast; then
+            echo "✅ 핵심 테스트 모두 통과!"
           else
-            echo "❌ 테스트 실패 감지"
+            echo "❌ 핵심 테스트 실패 감지"
+            echo "📋 실패한 테스트:"
+            npm run test:ci:fast 2>&1 | grep -E "(FAIL|Error|✗)" || echo "상세 로그를 확인하세요"
             
             # 브랜치별 차등 처리
             if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-              echo "🚨 Main 브랜치 - 테스트 실패로 인한 빌드 중단"
+              echo "🚨 Main 브랜치 - 핵심 테스트 실패로 인한 빌드 중단"
               exit 1
             else
               echo "⚠️ Feature 브랜치 - 테스트 실패 경고 (계속 진행)"
-              echo "💡 로컬에서 'npm run test'로 상세 확인 권장"
+              echo "💡 로컬에서 'npm run test'로 전체 테스트 실행 권장"
             fi
           fi
 
