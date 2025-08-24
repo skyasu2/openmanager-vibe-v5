@@ -15,44 +15,27 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 🚀 Next.js 15 완전 동적 모드 - Html 에러 우회
+  // 🚀 Next.js 15 기본 설정
   output: 'standalone',
   trailingSlash: false,
   
-  // 빌드 시 404 페이지 생성 건너뛰기
-  generateStaticParams: async () => [],
-  
-  // 이미지 최적화 비활성화
-  images: {
-    unoptimized: true,
-    formats: ['image/webp'],
-    deviceSizes: [640, 828, 1200],
-    imageSizes: [16, 32, 64, 128],
-  },
-  
-  // 정적 생성 완전 비활성화 (Html 에러 해결)
-  generateBuildId: () => 'dynamic-' + Date.now(),
-  
-  // 모든 페이지를 서버 렌더링으로 강제
-  distDir: '.next',
-  
-  // 정적 최적화 완전 비활성화
+  // 실험적 기능 (Next.js 15 호환)
   experimental: {
-    // 기본 패키지 최적화만 유지
     optimizePackageImports: [
       'lucide-react',
       '@radix-ui/react-icons',
       '@heroicons/react',
       'react-hot-toast',
     ],
-    // 정적 생성 관련 모든 기능 비활성화
-    disableOptimizedLoading: true,
-    nextScriptWorkers: false,
-    forceSwcTransforms: true,
-    // Static Generation 완전 비활성화
-    staticWorkerRequestDeduping: false,
   },
   
+  // 이미지 최적화 설정
+  images: {
+    unoptimized: true,
+    formats: ['image/webp'],
+    deviceSizes: [640, 828, 1200],
+    imageSizes: [16, 32, 64, 128],
+  },
   
   // 페이지 확장자 최소화
   pageExtensions: ['tsx', 'ts'],

@@ -5,10 +5,6 @@
  * 최상위 레벨 에러 처리 (500, unhandled errors)
  */
 
-// SSR 호환성 - 동적 렌더링 강제
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { envManager } from '@/lib/environment/EnvironmentManager';
@@ -46,9 +42,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
   }, [error]);
 
   return (
-    <html>
-      <body>
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-900 via-gray-900 to-red-900">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-900 via-gray-900 to-red-900">
           <div className="mx-auto max-w-md space-y-6 p-8 text-center">
             {/* 에러 아이콘 */}
             <div className="flex justify-center">
@@ -145,8 +139,6 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
               )}
             </div>
           </div>
-        </div>
-      </body>
-    </html>
+    </div>
   );
 }

@@ -1,7 +1,12 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["dom", "dom.iterable", "es2022", "webworker"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "es2022",
+      "webworker"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -31,26 +36,49 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/utils/*": ["./src/utils/*"],
-      "@/types/*": ["./src/types/*"],
-      "@/services/*": ["./src/services/*"],
-      "@/core/*": ["./src/core/*"],
-      "@/modules/*": ["./src/modules/*"],
-      "@/test/*": ["./src/test/*"],
-      "@/schemas/*": ["./src/schemas/*"],
-      "~/*": ["./*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@/components/*": [
+        "./src/components/*"
+      ],
+      "@/lib/*": [
+        "./src/lib/*"
+      ],
+      "@/utils/*": [
+        "./src/utils/*"
+      ],
+      "@/types/*": [
+        "./src/types/*"
+      ],
+      "@/services/*": [
+        "./src/services/*"
+      ],
+      "@/core/*": [
+        "./src/core/*"
+      ],
+      "@/modules/*": [
+        "./src/modules/*"
+      ],
+      "@/test/*": [
+        "./src/test/*"
+      ],
+      "@/schemas/*": [
+        "./src/schemas/*"
+      ],
+      "~/*": [
+        "./*"
+      ]
     },
     "tsBuildInfoFile": ".next/cache/tsbuildinfo",
     "assumeChangesOnlyAffectDirectDependencies": true
   },
   "include": [
+    ".next/types/**/*.ts",
     "next-env.d.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
-    ".next/types/**/*.ts"
+    "out/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

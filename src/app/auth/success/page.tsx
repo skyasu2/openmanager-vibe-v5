@@ -7,6 +7,10 @@
 
 'use client';
 
+// 동적 렌더링 강제 - 인증 페이지는 정적 생성 불가
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { supabase } from '@/lib/supabase';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -316,7 +320,7 @@ export default function AuthSuccessPage() {
             <div className="mt-6 rounded-lg bg-gray-800 p-4 text-xs text-gray-400">
               <h3 className="mb-2 font-bold">성능 메트릭:</h3>
               {Object.entries(performanceMetrics).map(([key, value]) => (
-                <div key={key}>
+                <div key={`metric-${key}`}>
                   {key}: {value.toFixed(0)}ms
                 </div>
               ))}

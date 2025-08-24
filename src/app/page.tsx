@@ -5,31 +5,14 @@
  * 인증 체크는 메인 페이지에서 담당합니다.
  */
 
-'use client';
-
-// SSR 호환성 - 동적 렌더링 강제
+// SSR 호환성 - 동적 렌더링 강제 (서버 컴포넌트로 변경)
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation';
 
 export default function RootRedirect() {
-  const router = useRouter();
-
-  useEffect(() => {
-    // 인증 체크 없이 바로 메인 페이지로 리다이렉트
-    // 인증 체크는 /main 페이지의 useInitialAuth에서 담당
-    router.replace('/main');
-  }, [router]);
-
-  // 리다이렉션 중 로딩 화면 표시
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-      <div className="flex items-center space-x-2 text-white">
-        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-        <span>페이지 이동 중...</span>
-      </div>
-    </div>
-  );
+  // 서버에서 바로 리다이렉트 (클라이언트 렌더링 없이)
+  // 인증 체크는 /main 페이지의 useInitialAuth에서 담당
+  redirect('/main');
 }

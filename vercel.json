@@ -221,7 +221,6 @@
   },
   "build": {
     "env": {
-      "NODE_ENV": "production",
       "NODE_OPTIONS": "--max-old-space-size=4096",
       "SKIP_ENV_VALIDATION": "false",
       "ESLINT_NO_DEV_ERRORS": "true",
