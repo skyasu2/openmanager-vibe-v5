@@ -254,7 +254,7 @@ export default function FeatureCardModal({
   );
 
   return (
-    <AnimatePresence>
+    <>
       <div
         className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
         onClick={onClose}
@@ -304,6 +304,6 @@ export default function FeatureCardModal({
           </div>
         </div>
       </div>
-    </AnimatePresence>
+    </>
   );
 }

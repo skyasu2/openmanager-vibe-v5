@@ -53,7 +53,7 @@ export const ProfileDropdownMenu = React.memo(function ProfileDropdownMenu({
   };
 
   return (
-    <AnimatePresence>
+    <>
       {isOpen && (
         <div
           className="absolute right-0 z-[9999] mt-2 w-64 rounded-xl border border-gray-200 bg-white py-2 shadow-lg"
@@ -139,6 +139,6 @@ export const ProfileDropdownMenu = React.memo(function ProfileDropdownMenu({
           </div>
         </div>
       )}
-    </AnimatePresence>
+    </>
   );
 });
