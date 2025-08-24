@@ -12,6 +12,7 @@ import { createStore } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { calculateOptimalUpdateInterval } from '../config/serverConfig';
 import type { EnhancedServerMetrics } from '../types/server';
+import { apiGet } from '@/lib/api-client';
 
 // 사용하지 않는 인터페이스들 제거
 
@@ -103,7 +104,6 @@ export const createServerDataStore = (
           console.log('🚀 최적화된 서버 데이터 가져오기 시작');
 
           // API 클라이언트 사용
-          const { apiGet } = await import('@/lib/api-client');
           const result = await apiGet('/api/servers/all');
 
           if (result.success && result.data) {
