@@ -138,7 +138,11 @@ export default function LoginClient() {
         '✅ 게스트 세션 저장 완료 (localStorage + 쿠키), 페이지 이동:',
         guestSession.user.name
       );
-      router.push('/main');
+      
+      // 강제 페이지 새로고침과 함께 이동 (쿠키가 확실히 적용되도록)
+      setTimeout(() => {
+        window.location.href = '/main';
+      }, 500);
     }
   }, [guestSession, router]);
 

@@ -130,11 +130,11 @@ export const config = {
   matcher: [
     /*
      * 다음을 제외한 모든 요청 경로에 적용:
-     * - login 경로 (리다이렉트 루프 방지)
+     * - login, main 경로 (리다이렉트 루프 방지)
      * - api 경로가 아닌 내부 Next.js 파일 (_next)
      * - 정적 파일 (css, js, images 등)
      * - favicon.ico
      */
-    '/((?!login|api|_next/static|_next/image|favicon.ico|.*\\.(?:css|js|jpg|jpeg|png|gif|svg|ico|woff|woff2)$).*)',
+    '/((?!login|main|api|_next/static|_next/image|favicon.ico|.*\\.(?:css|js|jpg|jpeg|png|gif|svg|ico|woff|woff2)$).*)',
   ],
 };

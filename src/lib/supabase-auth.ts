@@ -156,11 +156,40 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     const session = await getSession();
 
     if (!session?.user) {
-      // 게스트 사용자 확인
-      const guestUser = localStorage.getItem('auth_user');
-      if (guestUser) {
-        return JSON.parse(guestUser);
+      // 클라이언트 환경에서만 localStorage 확인
+      if (typeof window !== 'undefined') {
+        // 게스트 사용자 확인 (localStorage)
+        const guestUser = localStorage.getItem('auth_user');
+        if (guestUser) {
+          return JSON.parse(guestUser);
+        }
       }
+      
+      // 서버 환경 또는 localStorage가 없는 경우 쿠키 확인
+      if (typeof document !== 'undefined') {
+        const cookies = document.cookie.split(';').map(c => c.trim());
+        const guestSessionCookie = cookies.find(c => c.startsWith('guest_session_id='));
+        const authTypeCookie = cookies.find(c => c.startsWith('auth_type=guest'));
+        
+        if (guestSessionCookie && authTypeCookie) {
+          // 쿠키에서 게스트 사용자 정보 복원
+          const sessionId = guestSessionCookie.split('=')[1];
+          
+          // localStorage에서 사용자 정보 확인 (쿠키는 sessionId만 저장)
+          const storedUser = localStorage.getItem('auth_user');
+          if (storedUser) {
+            return JSON.parse(storedUser);
+          }
+          
+          // localStorage가 없으면 기본 게스트 사용자 생성
+          return {
+            id: sessionId,
+            name: 'Guest User',
+            provider: 'guest',
+          };
+        }
+      }
+      
       return null;
     }
 
@@ -187,9 +216,25 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
  */
 export async function isAuthenticated(): Promise<boolean> {
   const session = await getSession();
-  const guestUser = localStorage.getItem('auth_user');
-
-  return !!(session || guestUser);
+  
+  if (session) return true;
+  
+  // 클라이언트 환경에서만 localStorage 확인
+  if (typeof window !== 'undefined') {
+    const guestUser = localStorage.getItem('auth_user');
+    if (guestUser) return true;
+  }
+  
+  // 쿠키에서 게스트 세션 확인
+  if (typeof document !== 'undefined') {
+    const cookies = document.cookie.split(';').map(c => c.trim());
+    const guestSessionCookie = cookies.find(c => c.startsWith('guest_session_id='));
+    const authTypeCookie = cookies.find(c => c.startsWith('auth_type=guest'));
+    
+    if (guestSessionCookie && authTypeCookie) return true;
+  }
+  
+  return false;
 }
 
 /**

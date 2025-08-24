@@ -76,10 +76,19 @@ export function useInitialAuth() {
       // 1단계: 인증 상태 및 사용자 정보 병렬 조회
       updateState({ currentStep: 'auth-check', isLoading: true });
       
+      console.log(debugWithEnv('🔄 인증 상태 확인 중...'));
+      
       const [user, isGitHub] = await Promise.all([
         getCurrentUser(),
         isGitHubAuthenticated()
       ]);
+
+      console.log(debugWithEnv('📊 인증 결과'), {
+        hasUser: !!user,
+        userType: user?.provider,
+        userName: user?.name,
+        isGitHub
+      });
 
       // 2단계: 결과 처리 (단일 상태 업데이트)
       updateState({
@@ -91,9 +100,12 @@ export function useInitialAuth() {
         error: null,
       });
 
-      // 인증되지 않은 경우 로그인 페이지로 리다이렉션 (지연 없이)
+      // 인증되지 않은 경우에만 로그인 페이지로 리다이렉션
       if (!user) {
+        console.log(debugWithEnv('🚫 인증되지 않음 - 로그인 페이지로 이동'));
         safeRedirect('/login');
+      } else {
+        console.log(debugWithEnv('✅ 인증 성공'), user.name, `(${user.provider})`);
       }
 
     } catch (error) {
