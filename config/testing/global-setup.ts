@@ -60,7 +60,7 @@ export async function setup() {
   }
 
   // Start the test server
-  testServer = spawn('npm', ['run', 'test:e2e:server'], {
+  testServer = spawn('npm', ['run', 'dev'], {
     stdio: ['ignore', 'pipe', 'pipe'],
     env: {
       ...process.env,
