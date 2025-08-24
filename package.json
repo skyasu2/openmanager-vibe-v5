@@ -40,7 +40,7 @@
     "test:minimal": "vitest run --config config/testing/vitest.config.minimal.ts",
     "test:dom": "vitest run --config config/testing/vitest.config.dom.ts",
     "test:pre-push": "vitest run --config config/testing/vitest.config.minimal.ts",
-    "test:ci": "vitest run --coverage",
+    "test:ci": "vitest run --config config/testing/vitest.config.ci.ts",
     "test:performance": "vitest run --config config/testing/vitest.config.performance.ts",
     "test:tdd-cycle": "npm run test:coverage",
     "type-check": "node scripts/dev/tsc-wrapper.js --noEmit",
