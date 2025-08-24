@@ -1,7 +1,7 @@
 'use client';
 
 import { type ServerDisplayMode } from '@/config/display-config';
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   BarChart3,
   ChevronLeft,
@@ -318,13 +318,9 @@ export function ServerDashboardServers({
         </div>
       ) : (
         <>
-          <AnimatePresence mode="wait">
-            <motion.div
+          <React.Fragment>
+            <div
               key={`${viewMode}-${currentPage}-${displayMode}`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2 }}
               className={
                 viewMode === 'grid'
                   ? gridLayout?.className ||
@@ -333,23 +329,19 @@ export function ServerDashboardServers({
               }
             >
               {paginatedServers.map((server) => (
-                <motion.div
+                <div
                   key={server.id}
                   layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.2 }}
                 >
                   <ImprovedServerCard
                     server={server}
                     onClick={() => onServerSelect(server)}
                     variant="compact"
                   />
-                </motion.div>
+                </div>
               ))}
-            </motion.div>
-          </AnimatePresence>
+            </div>
+          </React.Fragment>
 
           {paginatedServers.length === 0 && (
             <div className="py-12 text-center">

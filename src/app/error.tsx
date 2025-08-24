@@ -2,6 +2,10 @@
 
 import { useEffect } from 'react';
 
+// 동적 렌더링 강제 - Html 에러 방지
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default function Error({
   error,
   reset,

@@ -10,7 +10,7 @@
 'use client';
 
 import type { AIMode } from '@/types/ai-types';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Brain, Cpu, Zap } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -76,18 +76,16 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
 
       {/* 모드 선택 토글 */}
       <div className="relative rounded-lg bg-gray-100 p-1">
-        <motion.div
-          className={`absolute bottom-1 top-1 rounded-md shadow-sm ${
+        <div
+          className={`absolute bottom-1 top-1 rounded-md shadow-sm transition-all duration-300 ease-in-out ${
             selectedMode === 'LOCAL'
               ? AI_MODE_CONFIG.LOCAL.selectedBg
               : AI_MODE_CONFIG.GOOGLE_ONLY.selectedBg
           }`}
-          initial={false}
-          animate={{
+          style={{
             left: selectedMode === 'LOCAL' ? '4px' : 'calc(50% + 2px)',
             width: 'calc(50% - 4px)',
           }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         />
 
         <div className="relative grid grid-cols-2 gap-1">
@@ -98,35 +96,30 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
             const isDisabled = disabled || isChanging;
 
             return (
-              <motion.button
+              <button
                 key={mode}
                 onClick={() => !isDisabled && handleModeChange(mode)}
                 disabled={isDisabled}
-                className={`relative rounded-md px-3 py-2 text-xs font-medium transition-colors ${
+                className={`relative rounded-md px-3 py-2 text-xs font-medium transition-all duration-200 hover:scale-102 active:scale-98 ${
                   isSelected
                     ? 'text-white'
                     : 'text-gray-600 hover:text-gray-800'
                 } ${isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} `}
-                whileHover={!isDisabled ? { scale: 1.02 } : {}}
-                whileTap={!isDisabled ? { scale: 0.98 } : {}}
               >
                 <div className="flex items-center justify-center space-x-1.5">
                   <Icon className="h-3.5 w-3.5" />
                   <span>{config.label}</span>
                 </div>
-              </motion.button>
+              </button>
             );
           })}
         </div>
       </div>
 
       {/* 선택된 모드 설명 */}
-      <motion.div
+      <div
         key={selectedMode}
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2 }}
-        className={`rounded-lg border px-3 py-2 text-xs ${AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]?.bgColor || 'bg-gray-50'} ${AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]?.borderColor || 'border-gray-200'} ${AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]?.textColor || 'text-gray-700'} `}
+        className={`rounded-lg border px-3 py-2 text-xs animate-fade-in ${AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]?.bgColor || 'bg-gray-50'} ${AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]?.borderColor || 'border-gray-200'} ${AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]?.textColor || 'text-gray-700'} `}
       >
         <div className="flex items-center space-x-2">
           <div className="flex items-center space-x-1">
@@ -160,7 +153,7 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
             ⚡ 빠른 응답과 기본적인 시스템 질의에 최적화
           </div>
         )}
-      </motion.div>
+      </div>
 
       {/* 사용량 표시 (Google AI인 경우) */}
       {selectedMode === 'GOOGLE_ONLY' && (

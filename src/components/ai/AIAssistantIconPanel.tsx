@@ -12,7 +12,7 @@
 
 'use client';
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Brain,
   FileText,
@@ -118,15 +118,14 @@ export default function AIAssistantIconPanel({
           const isSelected = selectedFunction === item.id;
 
           return (
-            <motion.button
+            <button
               key={item.id}
               onClick={() => onFunctionChange(item.id)}
-              className={`group relative h-12 w-12 flex-shrink-0 rounded-xl transition-all duration-200 ${
+              className={`group relative h-12 w-12 flex-shrink-0 rounded-xl transition-all duration-200 active:scale-95 ${
                 isSelected
                   ? `bg-gradient-to-r ${item.gradient} scale-105 text-white shadow-lg`
                   : `${item.bgColor} ${item.color}`
               } `}
-              whileTap={{ scale: 0.95 }}
             >
               <Icon className="mx-auto h-5 w-5" />
 
@@ -137,7 +136,7 @@ export default function AIAssistantIconPanel({
                   <div className="border-2 border-transparent border-t-gray-900"></div>
                 </div>
               </div>
-            </motion.button>
+            </button>
           );
         })}
       </div>
@@ -163,30 +162,23 @@ export default function AIAssistantIconPanel({
           const isSelected = selectedFunction === item.id;
 
           return (
-            <motion.button
+            <button
               key={item.id}
               onClick={() => onFunctionChange(item.id)}
-              className={`group relative h-12 w-12 rounded-xl transition-all duration-200 ${
+              className={`group relative h-12 w-12 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 animate-fade-in ${
                 isSelected
                   ? `bg-gradient-to-r ${item.gradient} scale-105 text-white shadow-lg`
-                  : `${item.bgColor} ${item.color} hover:scale-105`
+                  : `${item.bgColor} ${item.color}`
               } `}
               title={`${item.label}\n${item.description}`}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
               <Icon className="mx-auto h-5 w-5" />
 
               {/* 선택 표시 */}
               {isSelected && (
-                <motion.div
-                  className="absolute -left-1 top-1/2 h-6 w-1 -translate-y-1/2 transform rounded-r-full bg-white"
-                  initial={{ scaleY: 0 }}
-                  animate={{ scaleY: 1 }}
-                  transition={{ duration: 0.2 }}
+                <div
+                  className="absolute -left-1 top-1/2 h-6 w-1 -translate-y-1/2 transform rounded-r-full bg-white animate-scale-y"
                 />
               )}
 
@@ -204,7 +196,7 @@ export default function AIAssistantIconPanel({
                   <div className="border-4 border-transparent border-l-gray-900"></div>
                 </div>
               </div>
-            </motion.button>
+            </button>
           );
         })}
       </div>

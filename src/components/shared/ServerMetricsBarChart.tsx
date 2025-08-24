@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import React, { useEffect, useState } from 'react';
 
 export interface ServerMetricsBarChartProps {
@@ -177,32 +177,20 @@ export default function ServerMetricsBarChart({
                 className="flex max-w-[20px] flex-1 flex-col items-center"
               >
                 {/* 막대 */}
-                <motion.div
+                <div
                   className="relative w-full"
                   style={{ height: '80px' }}
-                  initial={{ height: 0 }}
-                  animate={{ height: '80px' }}
-                  transition={{ delay: index * 0.05, duration: 0.3 }}
                 >
                   {/* 배경 막대 */}
                   <div className="absolute bottom-0 h-full w-full rounded-sm bg-gray-100 opacity-30" />
 
                   {/* 실제 데이터 막대 */}
-                  <motion.div
+                  <div
                     className={`relative w-full overflow-hidden rounded-sm shadow-sm ${config.barColor} ${isCurrentValue ? 'opacity-100 shadow-md' : 'opacity-80'} `}
                     style={{
                       height: `${height}%`,
                       position: 'absolute',
                       bottom: 0,
-                    }}
-                    initial={{ height: 0 }}
-                    animate={{ height: `${height}%` }}
-                    transition={{
-                      delay: index * 0.05,
-                      duration: 0.6,
-                      type: 'spring',
-                      stiffness: 120,
-                      damping: 15,
                     }}
                   >
                     {/* 그라데이션 효과 */}
@@ -210,34 +198,23 @@ export default function ServerMetricsBarChart({
 
                     {/* 현재값 강조 효과 */}
                     {isCurrentValue && showRealTimeUpdates && (
-                      <motion.div
-                        className="absolute inset-0 bg-white/40"
-                        animate={{
-                          opacity: [0, 0.6, 0],
-                        }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: 'easeInOut',
-                        }}
+                      <div
+                        className="absolute inset-0 bg-white/40 animate-pulse"
                       />
                     )}
-                  </motion.div>
+                  </div>
 
                   {/* 값 표시 (현재값과 최고값만) */}
                   {(isCurrentValue ||
                     dataPoint.value ===
                       Math.max(...historicalData.map((d) => d.value))) && (
-                    <motion.div
+                    <div
                       className={`absolute -top-7 left-1/2 -translate-x-1/2 transform rounded-full px-1.5 py-0.5 text-xs font-bold ${config.bgColor} ${config.textColor} whitespace-nowrap shadow-sm`}
-                      initial={{ opacity: 0, y: 10, scale: 0.8 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ delay: 0.3 + index * 0.05 }}
                     >
                       {dataPoint.value}%
-                    </motion.div>
+                    </div>
                   )}
-                </motion.div>
+                </div>
               </div>
             );
           })}
@@ -282,13 +259,11 @@ export default function ServerMetricsBarChart({
         </div>
 
         {showRealTimeUpdates && (
-          <motion.div
+          <div
             className="text-xs text-gray-400"
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity }}
           >
             실시간
-          </motion.div>
+          </div>
         )}
       </div>
     </div>

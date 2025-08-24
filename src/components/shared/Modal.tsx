@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -18,20 +18,13 @@ export const Modal: React.FC<ModalProps> = ({
   children,
 }) => {
   return (
-    <AnimatePresence>
+    <React.Fragment>
       {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm"
           onClick={onClose}
         >
-          <motion.div
-            initial={{ scale: 0.9, y: 20, opacity: 0 }}
-            animate={{ scale: 1, y: 0, opacity: 1 }}
-            exit={{ scale: 0.9, y: 20, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          <div
             className="relative w-full max-w-2xl rounded-xl border border-slate-700 bg-slate-800 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
@@ -46,9 +39,9 @@ export const Modal: React.FC<ModalProps> = ({
               </button>
             </div>
             {children}
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
-    </AnimatePresence>
+    </React.Fragment>
   );
 };

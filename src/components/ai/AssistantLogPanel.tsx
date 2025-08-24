@@ -10,7 +10,7 @@
 'use client';
 
 import { useMockDataLoader } from '@/hooks/useDataLoader';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
   AlertTriangle,
@@ -421,10 +421,8 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
 
             {Array.from(sessionGroups.entries()).map(
               ([sessionId, sessionLogs]) => (
-                <motion.div
+                <div
                   key={sessionId}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
                   className="rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4"
                 >
                   <div className="mb-3 flex items-center justify-between">
@@ -485,7 +483,7 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
                       </p>
                     )}
                   </div>
-                </motion.div>
+                </div>
               )
             )}
           </div>
@@ -493,10 +491,8 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
           // 기존 로그 목록 표시
           <div className="space-y-3">
             {filteredLogs.map((log: LogEntry) => (
-              <motion.div
+              <div
                 key={log.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
                 className="rounded-lg border border-gray-600/30 bg-gray-800/50 p-4 transition-colors hover:bg-gray-700/30"
               >
                 {/* 로그 헤더 */}
@@ -569,7 +565,7 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
                     )}
                   </div>
                 )}
-              </motion.div>
+              </div>
             ))}
           </div>
         )}

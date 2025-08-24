@@ -17,7 +17,6 @@ import { cn } from '@/lib/utils';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import type { Server } from '@/types/server';
-// framer-motion은 필요시에만 동적 로드
 import { AlertTriangle } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import React, { Suspense, useCallback, useEffect, useState } from 'react';
@@ -91,13 +90,10 @@ const FloatingSystemControl = dynamic(
 );
 // EnhancedServerModal은 AnimatedServerModal로 통합됨
 
-// AI Sidebar를 framer-motion과 함께 동적 로드
+// AI Sidebar를 CSS 애니메이션으로 동적 로드
 const AnimatedAISidebar = dynamic(
   async () => {
-    const [{ AnimatePresence, motion }, AISidebarV2] = await Promise.all([
-      import('framer-motion'),
-      import('@/domains/ai-sidebar/components/AISidebarV2'),
-    ]);
+    const AISidebarV2 = await import('@/domains/ai-sidebar/components/AISidebarV2');
 
     return function AnimatedAISidebarWrapper({
       isOpen,
@@ -108,23 +104,22 @@ const AnimatedAISidebar = dynamic(
       onClose: () => void;
     }) {
       return (
-        <AnimatePresence>
+        <>
           {isOpen && (
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="fixed inset-y-0 right-0 z-40 w-96"
+            <div
+              className="fixed inset-y-0 right-0 z-40 w-96 transform transition-transform duration-300 ease-in-out"
+              style={{
+                transform: isOpen ? 'translateX(0)' : 'translateX(100%)'
+              }}
             >
               <AISidebarV2.default
                 onClose={onClose}
                 isOpen={isOpen}
                 {...props}
               />
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </>
       );
     };
   },
@@ -139,13 +134,10 @@ const AnimatedAISidebar = dynamic(
   }
 );
 
-// 서버 모달을 framer-motion과 함께 동적 로드
+// 서버 모달을 CSS 애니메이션으로 동적 로드
 const AnimatedServerModal = dynamic(
   async () => {
-    const [{ AnimatePresence }, EnhancedServerModal] = await Promise.all([
-      import('framer-motion'),
-      import('../../components/dashboard/EnhancedServerModal'),
-    ]);
+    const EnhancedServerModal = await import('../../components/dashboard/EnhancedServerModal');
 
     return function AnimatedServerModalWrapper({
       isOpen,
@@ -160,14 +152,14 @@ const AnimatedServerModal = dynamic(
       const serverData = server ? convertServerToModalData(server) : null;
 
       return (
-        <AnimatePresence>
+        <>
           {isOpen && serverData && (
             <EnhancedServerModal.default
               server={serverData}
               onClose={onClose}
             />
           )}
-        </AnimatePresence>
+        </>
       );
     };
   },

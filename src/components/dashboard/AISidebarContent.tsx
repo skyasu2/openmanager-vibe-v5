@@ -11,7 +11,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Send,
   Bot,
@@ -319,10 +319,8 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
             {/* 채팅 메시지 */}
             <div className="flex-1 space-y-4 overflow-y-auto p-4">
               {messages.map((message) => (
-                <motion.div
+                <div
                   key={message.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
                   className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
@@ -367,13 +365,11 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                       <Bot className="h-4 w-4 text-gray-600" />
                     )}
                   </div>
-                </motion.div>
+                </div>
               ))}
 
               {isLoading && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                <div
                   className="flex justify-start"
                 >
                   <div className="rounded-lg bg-gray-100 p-3">
@@ -390,7 +386,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                       <span className="text-sm">분석 중...</span>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               )}
 
               <div ref={messagesEndRef} />

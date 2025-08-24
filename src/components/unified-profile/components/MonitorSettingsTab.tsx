@@ -6,7 +6,7 @@
 
 'use client';
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Monitor } from 'lucide-react';
 
 interface SettingsData {
@@ -60,9 +60,7 @@ export function MonitorSettingsTab({
           </div>
 
           <div className="grid grid-cols-1 gap-3">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={onMonitorCheck}
               className="rounded-lg border border-cyan-500/30 bg-cyan-500/20 px-4 py-3 text-sm font-medium text-cyan-300 transition-colors hover:bg-cyan-500/30"
             >
@@ -72,7 +70,7 @@ export function MonitorSettingsTab({
                   메트릭 수집 간격과 알림 임계값을 자동으로 최적화합니다
                 </span>
               </div>
-            </motion.button>
+            </button>
           </div>
         </div>
       </div>

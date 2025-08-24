@@ -552,32 +552,46 @@ export class AIReviewSystem {
     
     let command;
     try {
+      // 출력 로그 파일 생성
+      const outputLog = path.join('/tmp', `ai-${aiName}-output-${Date.now()}.log`);
+      
       switch (aiName) {
         case 'gemini':
           // Gemini는 파일 내용을 stdin으로 전달
           // 환경변수 설정 (GOOGLE_AI_API_KEY를 GEMINI_API_KEY로 매핑)
           const geminiApiKey = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY || '';
-          command = `cd ${this.projectRoot} && export GEMINI_API_KEY="${geminiApiKey}" && cat "${tmpFile}" | gemini -p "코드 검토 결과를 JSON 형식으로 출력해주세요"`;
+          command = `cd ${this.projectRoot} && export GEMINI_API_KEY="${geminiApiKey}" && cat "${tmpFile}" | gemini -p "코드 검토 결과를 JSON 형식으로 출력해주세요" > "${outputLog}" 2>&1`;
           break;
         case 'codex':
           // Codex는 직접 프롬프트 전달
-          command = `cd ${this.projectRoot} && cat "${tmpFile}" | codex-cli`;
+          command = `cd ${this.projectRoot} && cat "${tmpFile}" | codex-cli > "${outputLog}" 2>&1`;
           break;
         case 'qwen':
           // Qwen도 stdin으로 전달
-          command = `cd ${this.projectRoot} && cat "${tmpFile}" | qwen`;
+          command = `cd ${this.projectRoot} && cat "${tmpFile}" | qwen > "${outputLog}" 2>&1`;
           break;
         default:
           throw new Error(`Unknown AI: ${aiName}`);
       }
       
-      const { stdout, stderr } = await execAsync(command, { 
+      await execAsync(command, { 
         maxBuffer: 10 * 1024 * 1024, // 10MB 버퍼
         shell: '/bin/bash'
       });
       
+      // 로그 파일에서 결과 읽기
+      const stdout = await fs.readFile(outputLog, 'utf8');
+      
       // 결과 파싱
       const review = this.parseAIResponse(stdout, aiName);
+      
+      // 로그 파일 정리
+      try {
+        await fs.unlink(outputLog);
+      } catch (err) {
+        // 삭제 실패는 무시
+      }
+      
       return review;
       
     } catch (error) {

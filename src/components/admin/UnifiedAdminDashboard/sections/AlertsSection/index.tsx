@@ -4,7 +4,7 @@
  * 시스템 알림 표시 및 관리
  */
 
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { AlertTriangle, CheckCircle, Info, X } from 'lucide-react';
 import type { SystemAlert } from '../../UnifiedAdminDashboard.types';
 import { ALERT_PRIORITIES } from '../../UnifiedAdminDashboard.types';
@@ -41,16 +41,13 @@ export default function AlertsSection({
   }
 
   return (
-    <AnimatePresence>
+    <React.Fragment>
       <div
         className={`space-y-3 ${compact ? '' : 'max-h-[600px] overflow-y-auto'}`}
       >
         {displayAlerts.map((alert) => (
-          <motion.div
+          <div
             key={alert.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
             className={`rounded-lg border p-4 ${getAlertStyles(alert.type)} ${
               alert.acknowledged ? 'opacity-60' : ''
             }`}
@@ -78,10 +75,10 @@ export default function AlertsSection({
                 </button>
               )}
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
-    </AnimatePresence>
+    </React.Fragment>
   );
 }
 

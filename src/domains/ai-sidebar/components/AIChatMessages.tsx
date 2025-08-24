@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Bot, User } from 'lucide-react';
 import type { ChatMessage } from '@/stores/useAISidebarStore';
 import { AIThinkingDisplay } from './AIThinkingDisplay';
@@ -68,9 +68,7 @@ export const AIChatMessages: React.FC<AIChatMessagesProps> = ({
             )}
 
             {/* 메시지 렌더링 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+            <div
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
@@ -98,7 +96,7 @@ export const AIChatMessages: React.FC<AIChatMessagesProps> = ({
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </React.Fragment>
         );
       })}

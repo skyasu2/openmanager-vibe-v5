@@ -2,7 +2,7 @@
 
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { BarChart3, Bot, Loader2, Play, X, LogIn } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMemo, memo } from 'react';
@@ -88,35 +88,26 @@ const SystemControls = memo(function SystemControls({
         <div className="mb-6 flex flex-col items-center space-y-4">
           {isGitHubUser ? (
             <>
-              <motion.button
+              <button
                 onClick={onSystemToggle}
                 disabled={isLoading || isSystemStarting}
                 className={`flex h-16 w-64 items-center justify-center gap-3 rounded-xl border font-semibold shadow-xl transition-all duration-300 ${buttonConfig.className}`}
-                whileHover={
-                  !isLoading && systemStartCountdown === 0
-                    ? { scale: 1.05 }
-                    : {}
-                }
-                whileTap={!isLoading ? { scale: 0.95 } : {}}
               >
                 {systemStartCountdown > 0 && (
-                  <motion.div
+                  <div
                     className="absolute inset-0 overflow-hidden rounded-xl"
                     style={{ transformOrigin: 'left' }}
                   >
-                    <motion.div
+                    <div
                       className="h-full bg-gradient-to-r from-red-600/40 via-red-500/40 to-red-400/40"
-                      initial={{ width: '0%' }}
-                      animate={{ width: '100%' }}
-                      transition={{ duration: 3, ease: 'linear' }}
                     />
-                  </motion.div>
+                  </div>
                 )}
                 <div className="relative z-10 flex items-center gap-3">
                   {buttonConfig.icon}
                   <span className="text-lg">{buttonConfig.text}</span>
                 </div>
-              </motion.button>
+              </button>
 
               <div className="mt-2 flex flex-col items-center gap-1">
                 <span
@@ -150,14 +141,12 @@ const SystemControls = memo(function SystemControls({
                 <p className="mb-4 text-sm text-blue-100">
                   시스템 시작 기능은 GitHub 인증된 사용자만 사용할 수 있습니다.
                 </p>
-                <motion.button
+                <button
                   onClick={() => router.push('/login')}
                   className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                 >
                   로그인 페이지로 이동
-                </motion.button>
+                </button>
               </div>
             </div>
           )}
@@ -180,24 +169,19 @@ const SystemControls = memo(function SystemControls({
 
   // 시스템 활성 상태
   return (
-    <motion.div
+    <div
       className="mx-auto max-w-4xl text-center"
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
     >
       <div className="mb-6 flex justify-center">
         <div className="flex flex-col items-center">
           {isGitHubUser ? (
-            <motion.button
+            <button
               onClick={onDashboardClick}
               className="flex h-16 w-64 items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-600 font-semibold text-white shadow-xl transition-all duration-200 hover:bg-emerald-700"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
             >
               <BarChart3 className="h-5 w-5" />
               <span className="text-lg">📊 대시보드 열기</span>
-            </motion.button>
+            </button>
           ) : (
             <div className="text-center">
               <p className="mb-2 text-sm text-gray-400">
@@ -214,7 +198,7 @@ const SystemControls = memo(function SystemControls({
       <p className="mt-4 text-center text-xs text-white/60">
         시스템이 활성화되어 있습니다. 대시보드에서 상세 모니터링을 확인하세요.
       </p>
-    </motion.div>
+    </div>
   );
 });
 

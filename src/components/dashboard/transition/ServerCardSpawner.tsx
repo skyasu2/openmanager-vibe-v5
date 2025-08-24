@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useEffect, memo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import type { Server } from '../../../types/server';
 
 interface ServerCardSpawnerProps {
@@ -257,7 +257,7 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
             opacity: 0.2,
           }}
         >
-          <motion.div
+          <div
             style={{
               position: 'absolute',
               top: '25%',
@@ -268,13 +268,8 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
               borderRadius: '50%',
               filter: 'blur(48px)',
             }}
-            animate={{
-              scale: [1, 1.3, 1],
-              opacity: [0.3, 0.7, 0.3],
-            }}
-            transition={{ duration: 5, repeat: Infinity }}
           />
-          <motion.div
+          <div
             style={{
               position: 'absolute',
               bottom: '25%',
@@ -285,11 +280,6 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
               borderRadius: '50%',
               filter: 'blur(48px)',
             }}
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.2, 0.6, 0.2],
-            }}
-            transition={{ duration: 4, repeat: Infinity, delay: 1.5 }}
           />
         </div>
 
@@ -304,7 +294,7 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
             padding: '2rem',
           }}
         >
-          <motion.div
+          <div
             style={{
               width: '96px',
               height: '96px',
@@ -317,57 +307,38 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
               margin: '0 auto 1.5rem',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             }}
-            animate={{
-              boxShadow: [
-                '0 0 40px rgba(34, 197, 94, 0.5)',
-                '0 0 80px rgba(34, 197, 94, 0.8)',
-                '0 0 40px rgba(34, 197, 94, 0.5)',
-              ],
-            }}
-            transition={{
-              boxShadow: { duration: 3, repeat: Infinity },
-            }}
           >
-            <motion.span
+            <span
               style={{
                 fontSize: '2.5rem',
                 color: 'white',
               }}
-              animate={{ rotate: [0, 360] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
             >
               🌐
-            </motion.span>
-          </motion.div>
+            </span>
+          </div>
 
-          <motion.h2
+          <h2
             style={{
               fontSize: '2rem',
               fontWeight: 'bold',
               color: 'white',
               marginBottom: '1rem',
             }}
-            animate={{
-              opacity: [0.8, 1, 0.8],
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
           >
             서버 인프라 구동 중
-          </motion.h2>
+          </h2>
 
-          <motion.p
+          <p
             style={{
               fontSize: '1.125rem',
               color: '#bbf7d0',
               marginBottom: '2rem',
             }}
             key={currentGroup.message}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
           >
             {currentGroup.message}
-          </motion.p>
+          </p>
 
           {/* 전체 진행률 */}
           <div
@@ -414,7 +385,7 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
                 border: '1px solid rgba(255, 255, 255, 0.2)',
               }}
             >
-              <motion.div
+              <div
                 style={{
                   height: '100%',
                   borderRadius: '9999px',
@@ -425,12 +396,10 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
                         ? 'linear-gradient(90deg, #f59e0b 0%, #3b82f6 100%)'
                         : 'linear-gradient(90deg, #4ade80 0%, #22c55e 100%)',
                   position: 'relative',
+                  width: `${progress}%`,
                 }}
-                initial={{ width: 0 }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.5, ease: 'easeOut' }}
               >
-                <motion.div
+                <div
                   style={{
                     position: 'absolute',
                     top: 0,
@@ -441,22 +410,16 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
                       'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
                     width: '100%',
                   }}
-                  animate={{ x: ['-100%', '200%'] }}
-                  transition={{ duration: 2.5, repeat: Infinity }}
                 />
-              </motion.div>
+              </div>
             </div>
           </div>
 
           {/* 현재 스포닝 타입 표시 */}
-          <AnimatePresence mode="wait">
+          <React.Fragment>
             {currentGroup && (
-              <motion.div
+              <div
                 key={currentGroup.type}
-                initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                transition={{ duration: 0.4 }}
                 style={{
                   marginTop: '2rem',
                   padding: '1rem',
@@ -484,9 +447,9 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
                 >
                   {currentGroup.servers.length}개 서버 초기화
                 </div>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
+          </React.Fragment>
         </div>
 
         {/* 🚨 강제 표시 확인 메시지 */}
@@ -508,9 +471,7 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
         </div>
       </div>
     );
-  }
-);
-
+  });
 ServerCardSpawner.displayName = 'ServerCardSpawner';
 
 export default ServerCardSpawner;

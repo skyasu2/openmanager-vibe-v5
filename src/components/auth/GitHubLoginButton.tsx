@@ -7,7 +7,7 @@
 
 'use client';
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { useSession, signIn, signOut } from '@/hooks/useSupabaseSession';
 import { useState } from 'react';
 import Image from 'next/image';
@@ -90,9 +90,7 @@ export default function GitHubLoginButton({
       <div className={`space-y-4 ${className}`}>
         {/* 사용자 정보 표시 */}
         {showUserInfo && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+          <div
             className="rounded-lg border border-green-200 bg-green-50 p-4"
           >
             <div className="flex items-center space-x-3">
@@ -115,7 +113,7 @@ export default function GitHubLoginButton({
                 </p>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* 로그아웃 버튼 */}
@@ -162,11 +160,7 @@ export default function GitHubLoginButton({
 
   // 로그인 버튼
   return (
-    <motion.button
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+    <button
       onClick={handleGitHubLogin}
       disabled={isLoading}
       className={`flex w-full items-center justify-center rounded-lg border border-transparent px-4 py-3 text-sm font-medium text-white ${
@@ -211,6 +205,6 @@ export default function GitHubLoginButton({
           {buttonText}
         </>
       )}
-    </motion.button>
+    </button>
   );
 }

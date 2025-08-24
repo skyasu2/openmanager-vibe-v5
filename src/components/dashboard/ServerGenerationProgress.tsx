@@ -7,7 +7,7 @@
  * - 사용자 몰입도 향상을 위한 UX
  */
 
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   BarChart3,
   Box,
@@ -144,22 +144,14 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       className="mb-6 rounded-lg border border-gray-700 bg-gray-900/50 p-6 backdrop-blur-sm"
     >
       {/* 헤더 */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="relative">
-            <motion.div
-              animate={isGenerating ? { rotate: 360 } : {}}
-              transition={{
-                duration: 2,
-                repeat: isGenerating ? Infinity : 0,
-                ease: 'linear',
-              }}
+            <div
               className={`flex h-8 w-8 items-center justify-center rounded-full border-2 ${
                 isComplete
                   ? 'border-green-500 bg-green-500/20'
@@ -169,25 +161,21 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
               }`}
             >
               {isComplete ? (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
+                <div
                   className="text-green-400"
                 >
                   ✓
-                </motion.div>
+                </div>
               ) : error ? (
                 <div className="text-red-400">✗</div>
               ) : (
                 <Cloud className="h-4 w-4 text-blue-400" />
               )}
-            </motion.div>
+            </div>
 
             {isGenerating && (
-              <motion.div
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
-                className="absolute inset-0 rounded-full border-2 border-blue-400/30"
+              <div
+                className="absolute inset-0 rounded-full border-2 border-blue-400/30 animate-spin"
               />
             )}
           </div>
@@ -211,22 +199,14 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
       {/* 진행률 바 */}
       <div className="mb-4">
         <div className="h-3 w-full overflow-hidden rounded-full bg-gray-700">
-          <motion.div
-            className="relative h-full rounded-full bg-gradient-to-r from-blue-500 to-green-500"
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
+          <div
+            style={{ width: `${progress}%` }}
+            className="relative h-full rounded-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-1000 ease-out"
           >
-            <motion.div
-              className="absolute inset-0 rounded-full bg-white/20"
-              animate={{ x: [-100, 100] }}
-              transition={{
-                duration: 2,
-                repeat: isGenerating ? Infinity : 0,
-                ease: 'linear',
-              }}
+            <div
+              className={`absolute inset-0 rounded-full bg-white/20 ${isGenerating ? "animate-pulse" : ""}`}
             />
-          </motion.div>
+          </div>
         </div>
 
         <div className="mt-2 flex justify-between text-xs text-gray-400">
@@ -241,10 +221,8 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
       </div>
 
       {/* 현재 상태 메시지 */}
-      <motion.div
+      <div
         key={currentMessage}
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
         className="mb-4 flex items-center space-x-3"
       >
         <div
@@ -271,9 +249,7 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
         </div>
 
         {isGenerating && nextServerType && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
+          <div
             className="flex items-center space-x-2 text-sm text-gray-400"
           >
             <span>다음:</span>
@@ -283,18 +259,14 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
               {getServerIcon(nextServerType)}
               <span>{nextServerType}</span>
             </div>
-          </motion.div>
+          </div>
         )}
-      </motion.div>
+      </div>
 
       {/* 마지막 생성된 서버 정보 */}
-      <AnimatePresence>
+      <React.Fragment>
         {lastGeneratedServer && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            transition={{ duration: 0.5 }}
+          <div
             className="mb-4 rounded-lg border border-gray-600 bg-gray-800/50 p-4"
           >
             <div className="flex items-center justify-between">
@@ -322,54 +294,45 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </React.Fragment>
 
       {/* 에러 메시지 */}
-      <AnimatePresence>
+      <React.Fragment>
         {error && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+          <div
             className="rounded-lg border border-red-500/30 bg-red-500/20 p-3 text-sm text-red-400"
           >
             <div className="flex items-center space-x-2">
               <span>⚠️</span>
               <span>{error}</span>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </React.Fragment>
 
       {/* 완료 메시지 */}
-      <AnimatePresence>
+      <React.Fragment>
         {isComplete && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
+          <div
             className="py-4 text-center"
           >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.3, type: 'spring', stiffness: 200 }}
+            <div
               className="mb-2 text-4xl"
             >
               🎉
-            </motion.div>
+            </div>
             <h4 className="mb-1 font-medium text-green-400">
               인프라 배포 완료!
             </h4>
             <p className="text-sm text-gray-400">
               총 {totalServers}개 서버가 성공적으로 배포되었습니다
             </p>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
-    </motion.div>
+      </React.Fragment>
+    </div>
   );
 };
 

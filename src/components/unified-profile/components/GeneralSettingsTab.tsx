@@ -7,7 +7,7 @@
 'use client';
 
 import { useInlineFeedback } from '@/components/ui/InlineFeedbackSystem';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Settings } from 'lucide-react';
 
 interface SettingsData {
@@ -56,9 +56,7 @@ export function GeneralSettingsTab({ settingsData }: GeneralSettingsTabProps) {
           </div>
 
           <div className="grid grid-cols-1 gap-3">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={async () => {
                 try {
                   info('settings', '테마를 변경 중...');
@@ -76,10 +74,8 @@ export function GeneralSettingsTab({ settingsData }: GeneralSettingsTabProps) {
                   다크/라이트 모드를 전환하고 UI 색상 테마를 변경합니다
                 </span>
               </div>
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            </button>
+            <button
               onClick={async () => {
                 try {
                   info('backup', '백업을 생성 중...');
@@ -97,7 +93,7 @@ export function GeneralSettingsTab({ settingsData }: GeneralSettingsTabProps) {
                   현재 설정과 데이터를 안전하게 백업 파일로 저장합니다
                 </span>
               </div>
-            </motion.button>
+            </button>
           </div>
         </div>
       </div>

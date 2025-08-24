@@ -50,19 +50,8 @@ import { LogsTab } from './EnhancedServerModal.LogsTab';
 import { NetworkTab } from './EnhancedServerModal.NetworkTab';
 
 // framer-motion을 동적 import로 처리
-const MotionButton = dynamic(
-  () => import('framer-motion').then((mod) => ({ default: mod.motion.button })),
-  { ssr: false }
-);
-const MotionDiv = dynamic(
-  () => import('framer-motion').then((mod) => ({ default: mod.motion.div })),
-  { ssr: false }
-);
-const AnimatePresence = dynamic(
-  () =>
-    import('framer-motion').then((mod) => ({ default: mod.AnimatePresence })),
-  { ssr: false }
-);
+// framer-motion 제거됨
+// framer-motion 제거됨
 
 export default function EnhancedServerModal({
   server,
@@ -225,18 +214,12 @@ export default function EnhancedServerModal({
     console.warn('⚠️ [EnhancedServerModal] 서버 데이터가 없습니다.');
     // 모달을 닫지 않고 오류 상태를 표시
     return (
-      <AnimatePresence>
-        <MotionDiv
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+      <React.Fragment>
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
           onClick={onClose}
         >
-          <MotionDiv
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
+          <div
             className="w-full max-w-md rounded-xl bg-white p-6 text-center"
             onClick={(e) => e.stopPropagation()}
           >
@@ -253,9 +236,9 @@ export default function EnhancedServerModal({
             >
               닫기
             </button>
-          </MotionDiv>
-        </MotionDiv>
-      </AnimatePresence>
+          </div>
+        </div>
+      </React.Fragment>
     );
   }
 
@@ -263,19 +246,12 @@ export default function EnhancedServerModal({
   const statusTheme = getStatusTheme(safeServer?.status);
 
   return (
-    <AnimatePresence>
-      <MotionDiv
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+    <React.Fragment>
+      <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
         onClick={onClose}
       >
-        <MotionDiv
-          initial={{ scale: 0.95, opacity: 0, y: 10 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.95, opacity: 0, y: 10 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        <div
           className="flex h-[90vh] w-full max-w-7xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-black/10"
           onClick={(e) => e.stopPropagation()}
         >
@@ -285,26 +261,21 @@ export default function EnhancedServerModal({
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <MotionDiv
-                  whileHover={{ rotate: 360 }}
-                  transition={{ duration: 0.5 }}
+                <div
                   className="rounded-xl bg-white/25 p-3 shadow-lg backdrop-blur-sm"
                 >
                   <ServerIcon className="h-7 w-7 text-white" />
-                </MotionDiv>
+                </div>
                 <div>
                   <h2 className="flex items-center gap-3 text-2xl font-bold">
                     <span className="drop-shadow-sm">{safeServer.name}</span>
                     <span className="text-3xl">{statusTheme.icon}</span>
                     {safeServer.health?.score !== undefined && (
-                      <MotionDiv
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.2, type: 'spring' }}
+                      <div
                         className="rounded-lg bg-white/30 px-3 py-1 text-sm font-bold backdrop-blur-sm"
                       >
                         점수: {Math.round(safeServer.health.score)}%
-                      </MotionDiv>
+                      </div>
                     )}
                   </h2>
                   <p className="mt-1 flex items-center gap-3 text-white/90">
@@ -312,23 +283,19 @@ export default function EnhancedServerModal({
                     <span>•</span>
                     <span>{safeServer.location}</span>
                     {safeServer.alertsSummary?.total ? (
-                      <MotionDiv
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ repeat: Infinity, duration: 2 }}
+                      <div
                         className="ml-2 inline-flex items-center gap-1 rounded-full bg-red-500/30 px-3 py-1 text-xs font-bold backdrop-blur-sm"
                       >
                         <AlertTriangle className="h-3 w-3" />
                         {safeServer.alertsSummary.total} 알림
-                      </MotionDiv>
+                      </div>
                     ) : null}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <MotionButton
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <button
                   onClick={() => setIsRealtime(!isRealtime)}
                   className={`flex items-center gap-2 rounded-xl px-5 py-2.5 font-medium transition-all duration-300 ${
                     isRealtime
@@ -348,17 +315,15 @@ export default function EnhancedServerModal({
                       <span>일시정지</span>
                     </>
                   )}
-                </MotionButton>
+                </button>
 
-                <MotionButton
-                  whileHover={{ scale: 1.05, rotate: 90 }}
-                  whileTap={{ scale: 0.95 }}
+                <button
                   onClick={onClose}
                   className="rounded-xl bg-white/20 p-2.5 backdrop-blur-sm transition-all duration-300 hover:bg-white/30"
                   title="모달 닫기"
                 >
                   <X className="h-5 w-5" />
-                </MotionButton>
+                </button>
               </div>
             </div>
 
@@ -368,13 +333,8 @@ export default function EnhancedServerModal({
                 const Icon = tab.icon;
                 const isActive = selectedTab === tab.id;
                 return (
-                  <MotionButton
+                  <button
                     key={tab.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedTab(tab.id)}
                     className={`flex items-center gap-2 rounded-xl px-5 py-2.5 font-medium transition-all duration-300 ${
                       isActive
@@ -387,18 +347,12 @@ export default function EnhancedServerModal({
                     />
                     <span>{tab.label}</span>
                     {isActive && (
-                      <MotionDiv
-                        layoutId="activeTab"
+                      <div
                         className="absolute inset-0 rounded-xl bg-white"
                         style={{ zIndex: -1 }}
-                        transition={{
-                          type: 'spring',
-                          bounce: 0.2,
-                          duration: 0.6,
-                        }}
                       />
                     )}
-                  </MotionButton>
+                  </button>
                 );
               })}
             </div>
@@ -406,17 +360,9 @@ export default function EnhancedServerModal({
 
           {/* 콘텐츠 영역 - 모듈화된 탭 컴포넌트 시스템 */}
           <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 via-gray-50 to-gray-100">
-            <AnimatePresence mode="wait">
-              <MotionDiv
+            <React.Fragment>
+              <div
                 key={selectedTab}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{
-                  type: 'spring',
-                  stiffness: 300,
-                  damping: 30,
-                }}
                 className="p-6"
               >
                 {selectedTab === 'overview' && (
@@ -439,26 +385,24 @@ export default function EnhancedServerModal({
                 {selectedTab === 'network' && (
                   <NetworkTab server={safeServer} realtimeData={realtimeData} />
                 )}
-              </MotionDiv>
-            </AnimatePresence>
+              </div>
+            </React.Fragment>
           </div>
 
           {/* 하단 버튼 영역 */}
           <div className="border-t border-gray-200 bg-white px-6 py-4">
             <div className="flex justify-end gap-3">
-              <MotionButton
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <button
                 onClick={onClose}
                 className="flex items-center gap-2 rounded-lg bg-gray-100 px-6 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200"
               >
                 <X className="h-4 w-4" />
                 닫기
-              </MotionButton>
+              </button>
             </div>
           </div>
-        </MotionDiv>
-      </MotionDiv>
-    </AnimatePresence>
+        </div>
+      </div>
+    </React.Fragment>
   );
 }

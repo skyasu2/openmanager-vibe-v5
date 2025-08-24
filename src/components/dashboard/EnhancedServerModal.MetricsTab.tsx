@@ -21,15 +21,7 @@ import {
 import { getMetricColorByStatus } from './EnhancedServerModal.utils';
 import { RealtimeChart } from './EnhancedServerModal.components';
 
-// framer-motion을 동적 import로 처리
-const MotionDiv = dynamic(
-  () => import('framer-motion').then((mod) => ({ default: mod.motion.div })),
-  { ssr: false }
-);
-const MotionButton = dynamic(
-  () => import('framer-motion').then((mod) => ({ default: mod.motion.button })),
-  { ssr: false }
-);
+// framer-motion 제거 - CSS 애니메이션 사용
 
 /**
  * Metrics Tab Props
@@ -110,11 +102,7 @@ export const MetricsTab: React.FC<MetricsTabProps> = ({
 
   return (
     <div className="space-y-6">
-      <MotionDiv
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
+      <div className="animate-fade-in">
         {/* 헤더 섹션 */}
         <div className="mb-6 flex items-center justify-between">
           <h3 className="bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
@@ -122,11 +110,9 @@ export const MetricsTab: React.FC<MetricsTabProps> = ({
           </h3>
 
           {/* 실시간 제어 버튼 */}
-          <MotionButton
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={onToggleRealtime}
-            className={`flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold shadow-lg transition-all ${
+            className={`flex items-center gap-2 rounded-xl px-5 py-2.5 font-semibold shadow-lg transition-all hover:scale-105 active:scale-95 ${
               isRealtime
                 ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-600 hover:to-pink-600'
                 : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:from-green-600 hover:to-emerald-600'
@@ -143,19 +129,16 @@ export const MetricsTab: React.FC<MetricsTabProps> = ({
                 시작하기
               </>
             )}
-          </MotionButton>
+          </button>
         </div>
 
         {/* 메트릭 차트 그리드 */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {chartConfigs.map((chart, idx) => (
-            <MotionDiv
+            <div
               key={idx}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.2 + idx * 0.1 }}
-              whileHover={{ y: -4 }}
-              className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all hover:shadow-2xl"
+              className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all hover:shadow-2xl hover:-translate-y-1 animate-fade-in"
+              style={{ animationDelay: `${0.2 + idx * 0.1}s` }}
             >
               {/* 배경 그라데이션 */}
               <div
@@ -192,16 +175,14 @@ export const MetricsTab: React.FC<MetricsTabProps> = ({
                   <span className="text-xs text-gray-500">실시간</span>
                 </div>
               </div>
-            </MotionDiv>
+            </div>
           ))}
         </div>
 
         {/* 메트릭 요약 정보 */}
-        <MotionDiv
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4"
+        <div
+          className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4 animate-fade-in"
+          style={{ animationDelay: '0.6s' }}
         >
           {chartConfigs.map((chart, idx) => {
             const currentValue = chart.data[chart.data.length - 1] || 0;
@@ -244,8 +225,8 @@ export const MetricsTab: React.FC<MetricsTabProps> = ({
               </div>
             );
           })}
-        </MotionDiv>
-      </MotionDiv>
+        </div>
+      </div>
     </div>
   );
 };

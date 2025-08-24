@@ -4,7 +4,7 @@ import React from 'react';
 import { AlertTriangle, RefreshCw, Home, Settings, Bug } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-// Removed framer-motion import for SSR compatibility
+// framer-motion 제거 - CSS 애니메이션 사용
 
 interface DashboardErrorProps {
   error: Error & { digest?: string };

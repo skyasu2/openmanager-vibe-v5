@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { RefreshCw, Home, HelpCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 
 export interface ErrorMessageProps {
   /** 에러 제목 */
@@ -138,10 +138,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
   const allActions = actions.length > 0 ? actions : defaultActions;
 
   const content = (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+    <div
       className="mx-auto max-w-md space-y-6 text-center"
     >
       {/* 에러 아이콘 */}
@@ -174,7 +171,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
       {/* 액션 버튼들 */}
       <div className="flex flex-col justify-center gap-3 sm:flex-row">
         {allActions.map((action, index) => (
-          <motion.button
+          <button
             key={index}
             onClick={action.onClick}
             className={`inline-flex items-center justify-center rounded-lg px-4 py-2 font-medium transition-all ${
@@ -182,12 +179,10 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
                 ? 'bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl'
                 : 'bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600'
             } `}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
           >
             {action.icon && <span className="mr-2">{action.icon}</span>}
             {action.label}
-          </motion.button>
+          </button>
         ))}
       </div>
 
@@ -202,7 +197,7 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
           </div>
         </details>
       )}
-    </motion.div>
+    </div>
   );
 
   if (fullScreen) {

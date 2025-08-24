@@ -8,8 +8,8 @@
  */
 
 import type { ReactNode } from 'react';
-import React, { memo } from 'react';
-import { motion, AnimatePresence, type Variants } from 'framer-motion';
+import React, { memo, useEffect, useState } from 'react';
+// framer-motion 제거 - CSS 애니메이션 사용
 
 interface SmoothTransitionProps {
   children: ReactNode;
@@ -29,125 +29,76 @@ const SmoothTransition: React.FC<SmoothTransitionProps> = memo(
     onEnterComplete,
     onExitComplete,
   }) => {
-    // 페이지 전환 애니메이션 variants
-    const pageVariants: Variants = {
-      _initial: {
-        opacity: 0,
-        y: 20,
-        scale: 0.98,
-      },
-      enter: {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        transition: {
-          duration: 0.4,
-          ease: [0.25, 0.46, 0.45, 0.94], // 부드러운 easing
-          staggerChildren: 0.1,
-        },
-      },
-      exit: {
-        opacity: 0,
-        y: -20,
-        scale: 1.02,
-        transition: {
-          duration: 0.3,
-          ease: [0.25, 0.46, 0.45, 0.94],
-        },
-      },
-    };
+    const [showContent, setShowContent] = useState(!isLoading);
+    const [animationPhase, setAnimationPhase] = useState<'entering' | 'visible' | 'exiting'>('entering');
 
-    const contentVariants: Variants = {
-      _initial: {
-        opacity: 0,
-        y: 10,
-      },
-      enter: {
-        opacity: 1,
-        y: 0,
-        transition: {
-          duration: 0.3,
-          ease: 'easeOut',
-        },
-      },
-      exit: {
-        opacity: 0,
-        y: -10,
-        transition: {
-          duration: 0.2,
-          ease: 'easeIn',
-        },
-      },
+    useEffect(() => {
+      if (isLoading) {
+        setShowContent(false);
+        setAnimationPhase('exiting');
+      } else {
+        setShowContent(true);
+        setAnimationPhase('entering');
+        
+        // 애니메이션 완료 후 콜백 호출
+        const timer = setTimeout(() => {
+          setAnimationPhase('visible');
+          onEnterComplete?.();
+        }, 400);
+
+        return () => clearTimeout(timer);
+      }
+    }, [isLoading, onEnterComplete]);
+
+    // CSS 클래스 생성
+    const getAnimationClass = () => {
+      switch (animationPhase) {
+        case 'entering':
+          return 'animate-in fade-in slide-in-from-bottom-2 duration-400 ease-out';
+        case 'exiting':
+          return 'animate-out fade-out slide-out-to-top-2 duration-300 ease-in';
+        default:
+          return '';
+      }
     };
 
     // 기본 로딩 컴포넌트
     const defaultLoadingComponent = (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50"
-      >
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-            className="mx-auto mb-4 h-12 w-12 rounded-full border-4 border-blue-200 border-t-blue-500"
-          />
-          <motion.p
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="font-medium text-gray-600"
-          >
-            페이지를 로드하고 있습니다...
-          </motion.p>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-500" />
+          <p className="font-medium text-gray-600">페이지를 로드하고 있습니다...</p>
         </div>
-      </motion.div>
+      </div>
     );
 
     return (
       <div className={`relative ${className}`}>
-        <AnimatePresence mode="wait" onExitComplete={onExitComplete}>
-          {isLoading ? (
-            <motion.div
-              key="loading"
-              variants={pageVariants}
-              initial="_initial"
-              animate="enter"
-              exit="exit"
-              onAnimationComplete={(definition) => {
-                if (definition === 'enter') {
-                  onEnterComplete?.();
-                }
-              }}
-              style={{
-                willChange: 'transform, opacity',
-                transform: 'translate3d(0, 0, 0)',
-              }}
-            >
-              {loadingComponent || defaultLoadingComponent}
-            </motion.div>
-          ) : (
-            <motion.div
-              key="content"
-              variants={pageVariants}
-              initial="_initial"
-              animate="enter"
-              exit="exit"
-              onAnimationComplete={(definition) => {
-                if (definition === 'enter') {
-                  onEnterComplete?.();
-                }
-              }}
-              style={{
-                willChange: 'transform, opacity',
-                transform: 'translate3d(0, 0, 0)',
-              }}
-            >
-              <motion.div variants={contentVariants}>{children}</motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {isLoading ? (
+          <div
+            key="loading"
+            className={`transition-all ${getAnimationClass()}`}
+            style={{
+              willChange: 'transform, opacity',
+              transform: 'translate3d(0, 0, 0)',
+            }}
+          >
+            {loadingComponent || defaultLoadingComponent}
+          </div>
+        ) : (
+          <div
+            key="content"
+            className={`transition-all ${getAnimationClass()}`}
+            style={{
+              willChange: 'transform, opacity',
+              transform: 'translate3d(0, 0, 0)',
+            }}
+          >
+            <div className="animate-in fade-in slide-in-from-bottom-1 duration-300 ease-out">
+              {children}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

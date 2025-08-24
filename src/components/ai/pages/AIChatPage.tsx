@@ -7,7 +7,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Send, User, Bot, Sparkles } from 'lucide-react';
 import { useAIThinking } from '@/stores/useAISidebarStore';
 // import ThinkingView from '../ThinkingView'; // 백업됨
@@ -88,15 +88,13 @@ export default function AIChatPage() {
           <h3 className="mb-2 text-sm font-medium text-gray-700">빠른 질문</h3>
           <div className="grid grid-cols-1 gap-2">
             {QUICK_QUESTIONS.map((question, index) => (
-              <motion.button
+              <button
                 key={index}
                 onClick={() => handleQuickQuestion(question)}
                 className="rounded-lg border border-blue-200 bg-white p-3 text-left text-sm transition-colors hover:border-blue-300 hover:bg-blue-50"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
               >
                 {question}
-              </motion.button>
+              </button>
             ))}
           </div>
         </div>
@@ -105,10 +103,8 @@ export default function AIChatPage() {
       {/* 메시지 영역 */}
       <div className="flex-1 space-y-4 overflow-y-auto p-4">
         {localMessages.map((message) => (
-          <motion.div
+          <div
             key={message.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
             className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
@@ -144,7 +140,7 @@ export default function AIChatPage() {
                 </p>
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
 
         {/* AI 사고 과정 */}
@@ -178,15 +174,13 @@ export default function AIChatPage() {
             placeholder="시스템에 대해 질문해보세요..."
             className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <motion.button
+          <button
             onClick={handleSendMessage}
             disabled={!inputValue.trim()}
             className="rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
             <Send className="h-4 w-4" />
-          </motion.button>
+          </button>
         </div>
       </div>
     </div>

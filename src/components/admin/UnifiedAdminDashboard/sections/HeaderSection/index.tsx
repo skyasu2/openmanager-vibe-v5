@@ -4,7 +4,7 @@
  * 제목, 상태 표시, 새로고침 버튼 등
  */
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
   AlertTriangle,
@@ -42,10 +42,7 @@ export function HeaderSection({
   return (
     <div className="mb-8 flex items-center justify-between">
       <div className="flex items-center gap-4">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 200 }}
+        <div
         >
           <div
             className="rounded-lg p-3"
@@ -53,7 +50,7 @@ export function HeaderSection({
           >
             {statusIcon}
           </div>
-        </motion.div>
+        </div>
 
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -73,16 +70,14 @@ export function HeaderSection({
       <div className="flex items-center gap-3">
         {/* 읽지 않은 알림 표시 */}
         {unreadAlerts > 0 && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
+          <div
             className="relative"
           >
             <AlertTriangle className="h-6 w-6 text-orange-500" />
             <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
               {unreadAlerts}
             </span>
-          </motion.div>
+          </div>
         )}
 
         {/* 자동 새로고침 토글 */}
@@ -103,27 +98,23 @@ export function HeaderSection({
         </button>
 
         {/* 수동 새로고침 */}
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+        <button
           onClick={onRefresh}
           className="rounded-lg bg-blue-100 p-2 text-blue-700 transition-colors hover:bg-blue-200"
           title="새로고침"
         >
           <RefreshCw className="h-5 w-5" />
-        </motion.button>
+        </button>
 
         {/* 설정 버튼 */}
         {onOpenSettings && (
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             onClick={onOpenSettings}
             className="rounded-lg bg-gray-100 p-2 text-gray-700 transition-colors hover:bg-gray-200"
             title="설정"
           >
             <Settings className="h-5 w-5" />
-          </motion.button>
+          </button>
         )}
       </div>
     </div>

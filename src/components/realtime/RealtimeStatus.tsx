@@ -10,7 +10,7 @@
 'use client';
 
 import { useRealtimeData } from '@/hooks/api/useRealtimeQueries';
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { AlertCircle, CheckCircle, RefreshCw, WifiOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -103,10 +103,8 @@ export default function RealtimeStatus({
             className={`h-4 w-4 ${config.color} ${config.spin ? 'animate-spin' : ''}`}
           />
           {config.pulse && (
-            <motion.div
+            <div
               className="absolute inset-0 h-4 w-4 rounded-full bg-green-400 opacity-30"
-              animate={{ scale: [1, 1.5, 1] }}
-              transition={{ repeat: Infinity, duration: 2 }}
             />
           )}
         </div>
@@ -118,11 +116,8 @@ export default function RealtimeStatus({
   }
 
   return (
-    <motion.div
+    <div
       className={`${config.bgColor} ${config.borderColor} rounded-lg border p-4 ${className}`}
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
     >
       {/* 헤더 */}
       <div className="mb-3 flex items-center justify-between">
@@ -132,10 +127,8 @@ export default function RealtimeStatus({
               className={`h-5 w-5 ${config.color} ${config.spin ? 'animate-spin' : ''}`}
             />
             {config.pulse && (
-              <motion.div
+              <div
                 className="absolute inset-0 h-5 w-5 rounded-full bg-green-400 opacity-30"
-                animate={{ scale: [1, 1.8, 1] }}
-                transition={{ repeat: Infinity, duration: 2 }}
               />
             )}
           </div>
@@ -146,21 +139,16 @@ export default function RealtimeStatus({
         </div>
 
         {/* 재연결 버튼 */}
-        <AnimatePresence>
+        <React.Fragment>
           {showReconnectButton && !isFullyConnected && (
-            <motion.button
+            <button
               onClick={reconnectAll}
               className="rounded bg-blue-500 px-3 py-1 text-sm text-white transition-colors hover:bg-blue-600"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
             >
               재연결
-            </motion.button>
+            </button>
           )}
-        </AnimatePresence>
+        </React.Fragment>
       </div>
 
       {/* 상세 정보 */}
@@ -223,7 +211,7 @@ export default function RealtimeStatus({
           )}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 
@@ -232,33 +220,22 @@ export function FloatingRealtimeStatus() {
   const [isMinimized, setIsMinimized] = useState(true);
 
   return (
-    <motion.div
+    <div
       className="fixed bottom-4 right-4 z-50"
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 1, duration: 0.5 }}
     >
-      <AnimatePresence mode="wait">
+      <React.Fragment>
         {isMinimized ? (
-          <motion.button
+          <button
             key="minimized"
             onClick={() => setIsMinimized(false)}
             className="rounded-full bg-white p-3 shadow-lg transition-all hover:shadow-xl"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            exit={{ scale: 0 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
           >
             <RealtimeStatus compact />
-          </motion.button>
+          </button>
         ) : (
-          <motion.div
+          <div
             key="expanded"
             className="rounded-lg border bg-white shadow-xl"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
           >
             <div className="flex items-center justify-between border-b p-2">
               <span className="text-sm font-medium text-gray-700">
@@ -286,9 +263,9 @@ export function FloatingRealtimeStatus() {
             <div className="p-4">
               <RealtimeStatus compact={false} showDetails />
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
-    </motion.div>
+      </React.Fragment>
+    </div>
   );
 }

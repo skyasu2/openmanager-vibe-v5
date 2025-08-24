@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import type { MenuItem } from '../types/profile.types';
 
 interface ProfileMenuItemProps extends MenuItem {
@@ -70,17 +70,12 @@ export const ProfileMenuItem = React.memo(function ProfileMenuItem({
   return (
     <>
       {dividerBefore && <div className="my-1 border-t border-gray-100" />}
-      <motion.button
+      <button
         id={id}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
         disabled={disabled}
         className={`flex w-full cursor-pointer items-center px-4 py-2 text-sm transition-colors ${getColorClasses()}`}
-        initial={{ opacity: 0, x: -10 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: index * 0.05 }}
-        whileHover={!disabled ? { x: 2 } : undefined}
-        whileTap={!disabled ? { scale: 0.98 } : undefined}
         role="menuitem"
         tabIndex={disabled ? -1 : 0}
         aria-disabled={disabled}
@@ -107,7 +102,7 @@ export const ProfileMenuItem = React.memo(function ProfileMenuItem({
             {badge}
           </span>
         )}
-      </motion.button>
+      </button>
     </>
   );
 });

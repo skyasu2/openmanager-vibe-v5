@@ -4,7 +4,7 @@
  * 시스템 성능 차트 및 통계 표시
  */
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Download, TrendingUp, TrendingDown, Activity } from 'lucide-react';
 import type {
   SystemStatus,
@@ -101,10 +101,7 @@ export default function PerformanceMetrics({
       <div className="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
         <h3 className="mb-4 text-lg font-semibold">성능 점수</h3>
         <div className="relative h-20 overflow-hidden rounded-lg bg-gray-200 dark:bg-gray-700">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${performanceData.score}%` }}
-            transition={{ duration: 1, ease: 'easeOut' }}
+          <div
             className={`absolute h-full ${
               performanceData.score >= 90
                 ? 'bg-green-500'

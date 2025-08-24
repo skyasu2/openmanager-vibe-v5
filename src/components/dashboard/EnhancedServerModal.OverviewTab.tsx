@@ -18,10 +18,7 @@ import { ServerData, StatusTheme } from './EnhancedServerModal.types';
 import { StatusLED } from './EnhancedServerModal.components';
 
 // framer-motion을 동적 import로 처리
-const MotionDiv = dynamic(
-  () => import('framer-motion').then((mod) => ({ default: mod.motion.div })),
-  { ssr: false }
-);
+// framer-motion 제거됨
 
 /**
  * Overview Tab Props
@@ -48,10 +45,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   return (
     <div className="space-y-6">
       {/* 3D 게이지들 - 개선된 디자인 */}
-      <MotionDiv
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.1 }}
+      <div
       >
         <div className="mb-4 flex items-center justify-between">
           <h3 className="bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
@@ -69,9 +63,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           className={`grid grid-cols-1 gap-8 rounded-2xl bg-gradient-to-br ${statusTheme.bgLight} border backdrop-blur-sm ${statusTheme.borderColor} p-8 shadow-xl md:grid-cols-3`}
         >
           {/* CPU 게이지 */}
-          <MotionDiv
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: 'spring', stiffness: 400 }}
+          <div
           >
             <ServerModal3DGauge
               value={server.cpu}
@@ -79,12 +71,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               type="cpu"
               size={160}
             />
-          </MotionDiv>
+          </div>
 
           {/* 메모리 게이지 */}
-          <MotionDiv
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: 'spring', stiffness: 400 }}
+          <div
           >
             <ServerModal3DGauge
               value={server.memory}
@@ -92,12 +82,10 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               type="memory"
               size={160}
             />
-          </MotionDiv>
+          </div>
 
           {/* 디스크 게이지 */}
-          <MotionDiv
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: 'spring', stiffness: 400 }}
+          <div
           >
             <ServerModal3DGauge
               value={server.disk}
@@ -105,18 +93,14 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               type="disk"
               size={160}
             />
-          </MotionDiv>
+          </div>
         </div>
-      </MotionDiv>
+      </div>
 
       {/* 시스템 정보 - 개선된 카드 디자인 */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* 시스템 정보 카드 */}
-        <MotionDiv
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-          whileHover={{ scale: 1.02, y: -4 }}
+        <div
           className="group"
         >
           <div className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all duration-300 hover:shadow-2xl">
@@ -154,11 +138,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                     icon: '🔄',
                   },
                 ].map((item, idx) => (
-                  <MotionDiv
+                  <div
                     key={idx}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 + idx * 0.05 }}
                     className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-gray-50"
                   >
                     <div className="flex items-center gap-2">
@@ -176,19 +157,15 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                     >
                       {item.value}
                     </span>
-                  </MotionDiv>
+                  </div>
                 ))}
               </div>
             </div>
           </div>
-        </MotionDiv>
+        </div>
 
         {/* 서비스 상태 카드 */}
-        <MotionDiv
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.25 }}
-          whileHover={{ scale: 1.02, y: -4 }}
+        <div
           className="group"
         >
           <div className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all duration-300 hover:shadow-2xl">
@@ -206,12 +183,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               <div className="space-y-3">
                 {server.services && server.services.length > 0 ? (
                   server.services.map((service, index) => (
-                    <MotionDiv
+                    <div
                       key={index}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.35 + index * 0.05 }}
-                      whileHover={{ x: 4 }}
                       className="flex items-center justify-between rounded-lg bg-gradient-to-r from-gray-50 to-transparent p-3 transition-all hover:from-gray-100"
                     >
                       <div className="flex items-center gap-3">
@@ -242,7 +215,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                             ? '🛑 중지됨'
                             : '⏸️ 대기중'}
                       </span>
-                    </MotionDiv>
+                    </div>
                   ))
                 ) : (
                   <div className="py-8 text-center">
@@ -255,7 +228,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               </div>
             </div>
           </div>
-        </MotionDiv>
+        </div>
       </div>
     </div>
   );

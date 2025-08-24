@@ -15,7 +15,7 @@ import {
   TrendingUp,
   AlertTriangle,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { timerManager } from '../../utils/TimerManager';
 import type { ServerStatusSummary } from '@/types/unified-server';
 
@@ -348,12 +348,9 @@ export default function ChatSection({
       </div>
 
       {/* 중복 질문 알림 */}
-      <AnimatePresence>
+      <React.Fragment>
         {duplicateAlert && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+          <div
             className="mx-4 mt-2 rounded-lg border border-orange-200 bg-orange-50 p-3"
           >
             <div className="flex items-start gap-2">
@@ -362,9 +359,9 @@ export default function ChatSection({
                 <p className="text-sm text-orange-700">{duplicateAlert}</p>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </React.Fragment>
 
       {/* 메인 컨텐츠 */}
       <div
@@ -372,14 +369,11 @@ export default function ChatSection({
         onScroll={handleScroll}
         className="flex-1 overflow-hidden"
       >
-        <AnimatePresence mode="wait">
+        <React.Fragment>
           {showHistory ? (
             // 히스토리 뷰
-            <motion.div
+            <div
               key="history"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
               className="h-full overflow-y-auto p-4"
             >
               <div className="space-y-2">
@@ -387,11 +381,8 @@ export default function ChatSection({
                   질문 히스토리
                 </h3>
                 {qaPages.map((page, index) => (
-                  <motion.button
+                  <button
                     key={page.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
                     onClick={() => goToPage(index)}
                     className={`w-full rounded-lg border p-3 text-left transition-all ${
                       index === currentPageIndex
@@ -414,19 +405,16 @@ export default function ChatSection({
                         </span>
                       )}
                     </div>
-                  </motion.button>
+                  </button>
                 ))}
               </div>
               {/* 스크롤 타겟 */}
               <div ref={contentEndRef} />
-            </motion.div>
+            </div>
           ) : currentPage ? (
             // 개별 Q&A 페이지
-            <motion.div
+            <div
               key={`page-${currentPageIndex}`}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
               className="flex h-full flex-col"
             >
               {/* 네비게이션 */}
@@ -532,14 +520,11 @@ export default function ChatSection({
               </div>
               {/* 스크롤 타겟 */}
               <div ref={contentEndRef} />
-            </motion.div>
+            </div>
           ) : (
             // 홈 화면 - 동적 프리셋 질문
-            <motion.div
+            <div
               key="home"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
               className="h-full overflow-y-auto px-4 py-3"
             >
               <div className="space-y-3 rounded-lg bg-gradient-to-br from-purple-50 to-blue-50 p-4">
@@ -552,11 +537,8 @@ export default function ChatSection({
 
                 <div className="space-y-2">
                   {presets.map((preset, index) => (
-                    <motion.button
+                    <button
                       key={`${preset}-${index}`}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
                       onClick={() => handlePresetSelect(preset)}
                       className="group w-full rounded-lg border bg-white px-3 py-3 text-left text-sm shadow-sm transition-all duration-200 hover:border-purple-200 hover:bg-purple-50 hover:shadow"
                     >
@@ -566,7 +548,7 @@ export default function ChatSection({
                           {preset}
                         </span>
                       </div>
-                    </motion.button>
+                    </button>
                   ))}
                 </div>
 
@@ -576,9 +558,9 @@ export default function ChatSection({
               </div>
               {/* 스크롤 타겟 */}
               <div ref={contentEndRef} />
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </React.Fragment>
       </div>
 
       {/* 입력 영역 */}

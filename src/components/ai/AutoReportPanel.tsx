@@ -10,7 +10,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   FileText,
   Download,
@@ -195,10 +195,8 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({
       <div className="p-4">
         <div className="space-y-3">
           {filteredReports.map((report: ReportData) => (
-            <motion.div
+            <div
               key={report.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
               className="rounded-lg border border-gray-600/30 bg-gray-800/50 p-4 transition-colors hover:bg-gray-700/30"
             >
               {/* 보고서 헤더 */}
@@ -220,14 +218,12 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({
                 </div>
 
                 {report.status === 'completed' && (
-                  <motion.button
+                  <button
                     onClick={() => downloadReport(report.id)}
                     className="rounded-lg border border-green-500/30 bg-green-500/20 p-2 text-green-300 transition-colors hover:bg-green-500/30"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
                   >
                     <Download className="h-4 w-4" />
-                  </motion.button>
+                  </button>
                 )}
               </div>
 
@@ -279,7 +275,7 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({
                   </div>
                 </div>
               )}
-            </motion.div>
+            </div>
           ))}
 
           {filteredReports.length === 0 && (

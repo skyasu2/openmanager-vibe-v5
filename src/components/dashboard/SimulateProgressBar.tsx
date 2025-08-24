@@ -8,7 +8,7 @@
  * - Toast 알림 및 UX 개선
  */
 
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Sparkles } from 'lucide-react';
 import React, { memo, useCallback, useEffect } from 'react';
 import { useToast } from '../ui/ToastNotification';
@@ -133,10 +133,7 @@ const SimulateProgressBar: React.FC<SimulateProgressBarProps> = memo(
     };
 
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
+      <div
         className={`border border-gray-700/50 bg-gradient-to-br from-gray-900/80 to-gray-800/80 shadow-xl backdrop-blur-lg ${getVariantClasses()}`}
       >
         {/* 헤더 섹션 */}
@@ -172,10 +169,8 @@ const SimulateProgressBar: React.FC<SimulateProgressBarProps> = memo(
 
           {/* 진행률 숫자 */}
           {showProgressNumber && (
-            <motion.div
+            <div
               className="text-right"
-              animate={isComplete ? { scale: [1, 1.2, 1] } : {}}
-              transition={{ duration: 0.5 }}
             >
               <div className={`text-3xl font-bold ${getTextColor()}`}>
                 {calculatedProgress}%
@@ -183,7 +178,7 @@ const SimulateProgressBar: React.FC<SimulateProgressBarProps> = memo(
               <div className="text-xs text-gray-400">
                 {isComplete ? '완료' : error ? '오류' : '진행률'}
               </div>
-            </motion.div>
+            </div>
           )}
         </div>
 
@@ -193,39 +188,24 @@ const SimulateProgressBar: React.FC<SimulateProgressBarProps> = memo(
             {/* 배경 바 */}
             <div className="h-4 w-full overflow-hidden rounded-full border border-gray-600/30 bg-gray-700/50 backdrop-blur-sm">
               {/* 진행 바 */}
-              <motion.div
-                className={`h-full bg-gradient-to-r ${getProgressColor()} relative overflow-hidden rounded-full`}
-                initial={{ width: 0 }}
-                animate={{ width: `${calculatedProgress}%` }}
-                transition={{
-                  duration: 0.8,
-                  ease: 'easeOut',
-                  type: 'spring',
-                  damping: 20,
-                }}
+              <div
+                style={{ width: `${calculatedProgress}%` }}
+                className={`h-full bg-gradient-to-r ${getProgressColor()} relative overflow-hidden rounded-full transition-all duration-800 ease-out`}
               >
                 {/* 빛나는 효과 */}
                 {!error && (
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
-                    animate={{ x: ['-100%', '200%'] }}
-                    transition={{
-                      duration: 2,
-                      repeat: isActive && !isComplete ? Infinity : 0,
-                      ease: 'linear',
-                    }}
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent ${isActive && !isComplete ? "animate-pulse" : ""}`}
                   />
                 )}
 
                 {/* 펄스 효과 */}
                 {isActive && !isComplete && !error && (
-                  <motion.div
+                  <div
                     className="absolute inset-0 bg-white/10"
-                    animate={{ opacity: [0.3, 0.7, 0.3] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
                   />
                 )}
-              </motion.div>
+              </div>
             </div>
 
             {/* 단계 표시점들 */}
@@ -245,11 +225,8 @@ const SimulateProgressBar: React.FC<SimulateProgressBarProps> = memo(
 
         {/* 상세 정보 */}
         {showDetailed && variant !== 'compact' && (
-          <motion.div
+          <div
             className="flex justify-between text-xs text-gray-400"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
           >
             <span>시작</span>
             <span>
@@ -260,25 +237,20 @@ const SimulateProgressBar: React.FC<SimulateProgressBarProps> = memo(
                   : `${currentStep + 1}/${totalSteps} 단계`}
             </span>
             <span>완료</span>
-          </motion.div>
+          </div>
         )}
 
         {/* 완료 축하 메시지 */}
-        <AnimatePresence>
+        <React.Fragment>
           {isComplete && !error && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: -20 }}
+            <div
               className="mt-4 rounded-lg border border-green-500/20 bg-green-500/10 p-4"
             >
               <div className="flex items-center space-x-3">
-                <motion.div
-                  animate={{ rotate: [0, 360] }}
-                  transition={{ duration: 1 }}
+                <div
                 >
                   <Sparkles className="h-5 w-5 text-green-400" />
-                </motion.div>
+                </div>
                 <div>
                   <div className="font-medium text-green-400">
                     시뮬레이션 완료!
@@ -288,13 +260,12 @@ const SimulateProgressBar: React.FC<SimulateProgressBarProps> = memo(
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
-      </motion.div>
+        </React.Fragment>
+      </div>
     );
-  }
-);
+  });
 
 SimulateProgressBar.displayName = 'SimulateProgressBar';
 

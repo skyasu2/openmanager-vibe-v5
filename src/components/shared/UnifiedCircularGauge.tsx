@@ -1,7 +1,7 @@
 'use client';
 
 import { formatPercentage } from '@/lib/utils';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 
 export interface UnifiedCircularGaugeProps {
   value: number;
@@ -208,7 +208,7 @@ export default function UnifiedCircularGauge({
           )}
 
           {/* 진행률 원 */}
-          <motion.circle
+          <circle
             cx={currentConfig.size / 2}
             cy={currentConfig.size / 2}
             r={radius}
@@ -227,13 +227,6 @@ export default function UnifiedCircularGauge({
             }
             className={
               showAnimation ? 'transition-all duration-1000 ease-out' : ''
-            }
-            initial={
-              showAnimation ? { strokeDashoffset: circumference } : undefined
-            }
-            animate={showAnimation ? { strokeDashoffset } : undefined}
-            transition={
-              showAnimation ? { duration: 1.5, ease: 'easeOut' } : undefined
             }
             style={{
               filter:
@@ -266,16 +259,7 @@ export default function UnifiedCircularGauge({
 
         {/* 실시간 펄스 효과 (카드 전용) */}
         {showRealTimeUpdates && variant === 'card' && (
-          <motion.div
-            animate={{
-              scale: [1, 1.1, 1],
-              opacity: [0.3, 0.7, 0.3],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
+          <div
             className={`absolute inset-0 rounded-full border-2 ${config.borderColor} opacity-30`}
           />
         )}

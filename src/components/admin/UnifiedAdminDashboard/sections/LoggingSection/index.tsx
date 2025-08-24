@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { FileText, Filter, Download, Search } from 'lucide-react';
 import type { SystemStatus } from '../../UnifiedAdminDashboard.types';
 import { STATUS_COLORS } from '../../UnifiedAdminDashboard.types';
@@ -81,9 +81,7 @@ export default function LoggingSection({ loggingStatus }: LoggingSectionProps) {
               {loggingStatus.errorRate}%
             </p>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-600">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${loggingStatus.errorRate}%` }}
+              <div
                 className={`h-full ${
                   loggingStatus.errorRate < 5
                     ? 'bg-green-500'

@@ -8,7 +8,7 @@
  */
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import type { LucideIcon } from 'lucide-react';
 import {
   Loader2,
@@ -102,32 +102,12 @@ const StatusIcon: React.FC<StatusIconProps> = ({
   return (
     <div className="relative">
       {/* 메인 아이콘 컨테이너 */}
-      <motion.div
+      <div
         className={`${sizeClasses.container} flex items-center justify-center rounded-xl border-2 ${statusClasses.container}`}
-        animate={
-          isActive && !isComplete && !error
-            ? {
-                scale: [1, 1.05, 1],
-                boxShadow: [
-                  '0 0 0 0 rgba(59, 130, 246, 0.4)',
-                  '0 0 0 10px rgba(59, 130, 246, 0)',
-                  '0 0 0 0 rgba(59, 130, 246, 0)',
-                ],
-              }
-            : {}
-        }
-        transition={{
-          duration: 2,
-          repeat: isActive && !isComplete && !error ? Infinity : 0,
-        }}
       >
-        <AnimatePresence mode="wait">
-          <motion.div
+        <React.Fragment>
+          <div
             key={currentStep}
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            exit={{ scale: 0, rotate: 180 }}
-            transition={{ type: 'spring', damping: 15, stiffness: 300 }}
           >
             {error ? (
               <AlertCircle className={`${sizeClasses.icon} text-red-400`} />
@@ -136,20 +116,18 @@ const StatusIcon: React.FC<StatusIconProps> = ({
             ) : (
               <IconComponent
                 className={`${sizeClasses.icon} ${statusClasses.icon} ${
-                  isActive && !isComplete ? '_animate-pulse' : ''
+                  isActive && !isComplete ? "animate-pulse" : ""
                 }`}
               />
             )}
-          </motion.div>
-        </AnimatePresence>
-      </motion.div>
+          </div>
+        </React.Fragment>
+      </div>
 
       {/* 회전 링 (로딩 중일 때) */}
       {isActive && !isComplete && !error && (
-        <motion.div
-          className="absolute inset-0 rounded-xl border-2 border-blue-400/30"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+        <div
+          className="absolute inset-0 rounded-xl border-2 border-blue-400/30 animate-spin"
         />
       )}
     </div>

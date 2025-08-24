@@ -2,12 +2,12 @@
 
 import FeatureCardModal from '@/components/shared/FeatureCardModal';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-// Removed framer-motion import for SSR compatibility
+// framer-motion 제거 - CSS 애니메이션 사용
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type { FeatureCard, FeatureCardProps } from '@/types/feature-card.types';
 import { FEATURE_CARDS_DATA, CARD_COMPLETION_RATES } from '@/data/feature-cards.data';
 
-// AI 단어에 그라데이션 애니메이션 적용하는 함수 - CSS 애니메이션으로 변경
+// AI 단어에 그라데이션 애니메이션 적용하는 함수 - 컴포넌트 외부로 이동
 const renderTextWithAIGradient = (text: string) => {
   if (!text.includes('AI')) return text;
 
@@ -16,7 +16,7 @@ const renderTextWithAIGradient = (text: string) => {
       return (
         <span
           key={index}
-          className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-[length:200%_200%] bg-clip-text font-bold text-transparent animate-gradient-x"
+          className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-[length:200%_200%] bg-clip-text font-bold text-transparent"
         >
           {part}
         </span>
@@ -100,12 +100,11 @@ const FeatureCardItem = memo(
     return (
       <div
         key={card.id}
-        className={`group relative cursor-pointer animate-fade-in-delay transition-all duration-300 hover:scale-105 hover:-translate-y-2 ${
+        className={`group relative cursor-pointer ${
           card.isVibeCard
-            ? 'transform-gpu hover:shadow-2xl hover:shadow-yellow-500/30 hover:scale-110 hover:-translate-y-3'
+            ? 'transform-gpu hover:shadow-2xl hover:shadow-yellow-500/30'
             : ''
         }`}
-        style={{ animationDelay: `${index * 100}ms` }}
         onClick={() => onCardClick(card.id)}
       >
         <div
@@ -120,10 +119,10 @@ const FeatureCardItem = memo(
             className={`absolute inset-0 bg-gradient-to-br ${card.gradient} rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-10`}
           />
 
-          {/* AI 카드 특별 이색 그라데이션 애니메이션 - CSS 애니메이션으로 변경 */}
+          {/* AI 카드 특별 이색 그라데이션 애니메이션 - landing 버전에서 재활용 */}
           {card.isAICard && (
             <div
-              className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30 animate-gradient-shift"
+              className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30"
             />
           )}
 
@@ -155,9 +154,7 @@ const FeatureCardItem = memo(
             }`}
           >
             {iconAnimation ? (
-              <div className={`${
-                card.isAICard ? 'animate-spin-slow' : card.isVibeCard ? 'animate-bounce' : ''
-              }`}>
+              <div {...iconAnimation}>
                 <card.icon className={`h-6 w-6 ${cardStyles.iconColor}`} />
               </div>
             ) : (

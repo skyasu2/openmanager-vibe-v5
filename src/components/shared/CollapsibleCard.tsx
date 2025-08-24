@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -67,27 +67,17 @@ export default function CollapsibleCard({
         </div>
 
         {/* 토글 버튼 */}
-        <motion.div
-          animate={{ rotate: isExpanded ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
+        <div
           className="flex-shrink-0 rounded-full p-1 transition-colors hover:bg-gray-100"
         >
           <ChevronDown className="h-5 w-5 text-gray-500" />
-        </motion.div>
+        </div>
       </div>
 
       {/* 콘텐츠 */}
-      <AnimatePresence initial={false}>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{
-              duration: 0.3,
-              ease: [0.04, 0.62, 0.23, 0.98],
-            }}
-            className="overflow-hidden"
+      {isExpanded && (
+          <div
+            className="overflow-hidden transition-all duration-300 ease-in-out"
           >
             <div
               className={cn(
@@ -97,9 +87,8 @@ export default function CollapsibleCard({
             >
               {children}
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </div>
   );
 }

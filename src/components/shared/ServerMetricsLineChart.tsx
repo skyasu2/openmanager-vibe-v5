@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import React, { useEffect, useState, useRef } from 'react';
 
 export interface ServerMetricsLineChartProps {
@@ -276,25 +276,19 @@ export default function ServerMetricsLineChart({
           </defs>
 
           {/* 영역 채우기 */}
-          <motion.path
+          <path
             d={`${path} L ${points[points.length - 1].x} 70 L ${points[0].x} 70 Z`}
             fill={`url(#gradient-${type})`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
           />
 
           {/* 라인 */}
-          <motion.path
+          <path
             d={path}
             fill="none"
             stroke={config.lineColor}
             strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 1, ease: 'easeInOut' }}
           />
 
           {/* 데이터 포인트 */}
@@ -305,23 +299,17 @@ export default function ServerMetricsLineChart({
             return (
               <g key={index}>
                 {/* 포인트 */}
-                <motion.circle
+                <circle
                   cx={point.x}
                   cy={point.y}
                   r={isLast ? '4' : '3'}
                   fill={config.lineColor}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: index * 0.02, duration: 0.3 }}
                   className={isLast ? 'drop-shadow-md filter' : ''}
                 />
 
                 {/* 현재값 표시 */}
                 {isLast && (
-                  <motion.g
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
+                  <g
                   >
                     <rect
                       x={point.x - 15}
@@ -340,25 +328,22 @@ export default function ServerMetricsLineChart({
                     >
                       {dataValue}%
                     </text>
-                  </motion.g>
+                  </g>
                 )}
 
                 {/* 최고값 표시 */}
                 {dataValue ===
                   Math.max(...historicalData.map((d) => d.value)) &&
                   !isLast && (
-                    <motion.text
+                    <text
                       x={point.x}
                       y={point.y - 8}
                       textAnchor="middle"
                       className="text-xs font-medium"
                       fill={config.lineColor}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.3 }}
                     >
                       {dataValue}
-                    </motion.text>
+                    </text>
                   )}
               </g>
             );
@@ -366,22 +351,13 @@ export default function ServerMetricsLineChart({
 
           {/* 현재값 펄스 효과 */}
           {showRealTimeUpdates && (
-            <motion.circle
+            <circle
               cx={points[points.length - 1].x}
               cy={points[points.length - 1].y}
               r="6"
               fill="none"
               stroke={config.lineColor}
               strokeWidth="2"
-              animate={{
-                r: [6, 12, 6],
-                opacity: [1, 0, 1],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
             />
           )}
         </svg>
@@ -397,29 +373,17 @@ export default function ServerMetricsLineChart({
       {/* 상태 표시 */}
       <div className="mt-2 flex items-center justify-between">
         <div className="flex items-center gap-1">
-          <motion.div
+          <div
             className={`h-2 w-2 rounded-full`}
             style={{ backgroundColor: config.lineColor }}
-            animate={{
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
           />
           <span className="text-xs text-gray-500">{config.status}</span>
         </div>
 
         {showRealTimeUpdates && (
-          <motion.div
-            className="text-xs text-gray-400"
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
+          <div className="text-xs text-gray-400">
             실시간
-          </motion.div>
+          </div>
         )}
       </div>
     </div>

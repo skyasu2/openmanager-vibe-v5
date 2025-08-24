@@ -10,7 +10,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Brain,
   FileSearch,
@@ -345,10 +345,8 @@ export const MLLearningCenter: React.FC = () => {
           const isError = progress.status === 'error';
 
           return (
-            <motion.div
+            <div
               key={button.id}
-              whileHover={{ scale: isRunning ? 1 : 1.02 }}
-              whileTap={{ scale: isRunning ? 1 : 0.98 }}
             >
               <button
                 onClick={() => startLearning(button.id)}
@@ -396,10 +394,7 @@ export const MLLearningCenter: React.FC = () => {
                         <span>{progress.progress}%</span>
                       </div>
                       <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${progress.progress}%` }}
-                          transition={{ duration: 0.3 }}
+                        <div
                           className={`h-full rounded-full ${
                             isError
                               ? 'bg-red-500'
@@ -425,18 +420,15 @@ export const MLLearningCenter: React.FC = () => {
                   )}
                 </div>
               </button>
-            </motion.div>
+            </div>
           );
         })}
       </div>
 
       {/* 학습 결과 표시 */}
-      <AnimatePresence>
+      <React.Fragment>
         {selectedResult && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+          <div
             className="mt-8 rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6"
           >
             <div className="mb-4 flex items-center justify-between">
@@ -500,9 +492,9 @@ export const MLLearningCenter: React.FC = () => {
                 </p>
               </div>
             )}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </React.Fragment>
 
       {/* 학습 히스토리 */}
       {learningResults.length > 0 && (

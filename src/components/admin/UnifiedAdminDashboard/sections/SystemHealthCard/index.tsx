@@ -4,7 +4,7 @@
  * 시스템 전반적인 상태를 한눈에 보여주는 카드
  */
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
   Brain,
@@ -178,9 +178,7 @@ function MetricCard({
   trend,
 }: MetricCardProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       className="rounded-lg bg-white p-6 shadow-md transition-shadow hover:shadow-lg dark:bg-gray-800"
     >
       <div className="mb-4 flex items-center justify-between">
@@ -206,7 +204,7 @@ function MetricCard({
       <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
         {subtitle}
       </p>
-    </motion.div>
+    </div>
   );
 }
 

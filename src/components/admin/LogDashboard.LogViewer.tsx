@@ -8,7 +8,7 @@
  * - Interactive log expansion
  */
 
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Eye, FileText, Filter, Search } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
@@ -197,13 +197,10 @@ export function LogDashboardLogViewer({
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <AnimatePresence>
+            <React.Fragment>
               {data.logs.map((log) => (
-                <motion.div
+                <div
                   key={log.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
                   className="cursor-pointer rounded-lg border p-4 transition-colors hover:bg-gray-50"
                   onClick={() => handleExpandLog(log.id)}
                 >
@@ -237,12 +234,9 @@ export function LogDashboardLogViewer({
                   </div>
 
                   {/* 확장된 로그 상세 정보 */}
-                  <AnimatePresence>
+                  <React.Fragment>
                     {expandedLog === log.id && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
+                      <div
                         className="mt-4 border-t pt-4"
                       >
                         {log.data !== undefined && (
@@ -315,12 +309,12 @@ export function LogDashboardLogViewer({
                             </div>
                           </div>
                         )}
-                      </motion.div>
+                      </div>
                     )}
-                  </AnimatePresence>
-                </motion.div>
+                  </React.Fragment>
+                </div>
               ))}
-            </AnimatePresence>
+            </React.Fragment>
 
             {data.logs.length === 0 && (
               <div className="py-8 text-center text-gray-500">

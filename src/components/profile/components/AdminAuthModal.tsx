@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Lock, AlertTriangle, Clock } from 'lucide-react';
 import type { AdminAuthProps } from '../types/profile.types';
 
@@ -32,25 +32,18 @@ export const AdminAuthModal = React.memo(function AdminAuthModal({
   };
 
   return (
-    <AnimatePresence>
-      <motion.div
+    <React.Fragment>
+      <div
         className="border-t border-gray-100 bg-gray-50 px-4 py-3"
-        initial={{ height: 0, opacity: 0 }}
-        animate={{ height: 'auto', opacity: 1 }}
-        exit={{ height: 0, opacity: 0 }}
-        transition={{ duration: 0.2 }}
       >
         {/* 보안 상태 표시 */}
         {(failedAttempts > 0 || isLocked) && (
-          <motion.div
+          <div
             className={`mb-2 flex items-center gap-2 rounded p-2 text-xs ${
               isLocked
                 ? 'border border-red-200 bg-red-100 text-red-700'
                 : 'border border-yellow-200 bg-yellow-100 text-yellow-700'
             }`}
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 200 }}
           >
             {isLocked ? (
               <>
@@ -63,7 +56,7 @@ export const AdminAuthModal = React.memo(function AdminAuthModal({
                 <span>실패 {failedAttempts}/5회 (3회 실패 시 5분 잠금)</span>
               </>
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* 비밀번호 입력 필드 */}
@@ -98,7 +91,7 @@ export const AdminAuthModal = React.memo(function AdminAuthModal({
 
         {/* 버튼 그룹 */}
         <div className="mt-3 flex gap-2">
-          <motion.button
+          <button
             onClick={onSubmit}
             disabled={isLocked || isProcessing || !adminPassword}
             className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
@@ -106,16 +99,6 @@ export const AdminAuthModal = React.memo(function AdminAuthModal({
                 ? 'cursor-not-allowed bg-gray-300 text-gray-500'
                 : 'bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700'
             }`}
-            whileHover={
-              !isLocked && !isProcessing && adminPassword
-                ? { scale: 1.02 }
-                : undefined
-            }
-            whileTap={
-              !isLocked && !isProcessing && adminPassword
-                ? { scale: 0.98 }
-                : undefined
-            }
           >
             {isProcessing ? (
               <span className="flex items-center justify-center gap-1">
@@ -125,17 +108,15 @@ export const AdminAuthModal = React.memo(function AdminAuthModal({
             ) : (
               '확인'
             )}
-          </motion.button>
+          </button>
 
-          <motion.button
+          <button
             onClick={onCancel}
             disabled={isProcessing}
             className="flex-1 rounded-md bg-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 transition-all hover:bg-gray-400 disabled:opacity-50"
-            whileHover={!isProcessing ? { scale: 1.02 } : undefined}
-            whileTap={!isProcessing ? { scale: 0.98 } : undefined}
           >
             취소
-          </motion.button>
+          </button>
         </div>
 
         {/* 보안 안내 */}
@@ -144,7 +125,7 @@ export const AdminAuthModal = React.memo(function AdminAuthModal({
             🔒 보안을 위해 연속 실패 시 계정이 일시적으로 잠깁니다
           </p>
         </div>
-      </motion.div>
-    </AnimatePresence>
+      </div>
+    </React.Fragment>
   );
 });

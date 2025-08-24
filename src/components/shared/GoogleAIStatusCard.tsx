@@ -8,7 +8,7 @@ import {
   useGoogleAIStatus,
   useRefreshGoogleAIStatus,
 } from '@/hooks/api/useGoogleAIStatus';
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
   AlertTriangle,
@@ -165,9 +165,7 @@ export const GoogleAIStatusCard: React.FC<GoogleAIStatusCardProps> = ({
   // Admin 스타일 렌더링
   if (variant === 'admin') {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className={`rounded-xl border border-gray-200 bg-white shadow-lg ${className}`}
       >
         <div className="border-b border-gray-100 p-6">
@@ -278,7 +276,7 @@ export const GoogleAIStatusCard: React.FC<GoogleAIStatusCardProps> = ({
             </div>
           )}
         </div>
-      </motion.div>
+      </div>
     );
   }
 
@@ -329,11 +327,8 @@ export const GoogleAIStatusCard: React.FC<GoogleAIStatusCardProps> = ({
         </div>
 
         {showDetails && status && (
-          <AnimatePresence>
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
+          <React.Fragment>
+            <div
               className="space-y-3"
             >
               {status.model && (
@@ -395,8 +390,8 @@ export const GoogleAIStatusCard: React.FC<GoogleAIStatusCardProps> = ({
                   </div>
                 </div>
               )}
-            </motion.div>
-          </AnimatePresence>
+            </div>
+          </React.Fragment>
         )}
 
         {error && (

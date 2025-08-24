@@ -15,7 +15,7 @@ import {
   useInlineFeedback,
 } from '@/components/ui/InlineFeedbackSystem';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Bot, Database, Monitor, Settings, X, Zap } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -412,15 +412,11 @@ export function UnifiedSettingsPanel({
   if (!isOpen) return null;
 
   return createPortal(
-    <AnimatePresence>
+    <React.Fragment>
       {isOpen && (
         <>
           {/* 오버레이 */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+          <div
             className="fixed inset-0 z-[9998] bg-black/70"
             onClick={onClose}
             role="button"
@@ -428,12 +424,8 @@ export function UnifiedSettingsPanel({
           />
 
           {/* 설정 패널 - 프로필 버튼 근처에 배치 */}
-          <motion.div
+          <div
             ref={modalRef}
-            initial={{ opacity: 0, scale: 0.9, y: -20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: -20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed z-[10000] flex h-[min(95vh,700px)] max-h-[95vh] min-h-[400px] w-[min(95vw,800px)] min-w-[320px] max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/20 bg-gray-900/95 shadow-2xl backdrop-blur-xl"
             style={{
               top: `${modalPosition.top}px`,
@@ -453,15 +445,13 @@ export function UnifiedSettingsPanel({
                 <Settings className="h-6 w-6" />
                 설정
               </h2>
-              <motion.button
-                whileHover={{ scale: 1.1, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
+              <button
                 onClick={onClose}
                 className="rounded-full p-2 text-gray-400 hover:bg-white/10 hover:text-white"
                 aria-label="Close settings panel"
               >
                 <X className="h-5 w-5" />
-              </motion.button>
+              </button>
             </header>
 
             {/* 탭 네비게이션 */}
@@ -486,14 +476,8 @@ export function UnifiedSettingsPanel({
                     }`}
                   >
                     {activeTab === tabKey && (
-                      <motion.div
-                        layoutId="active-tab-indicator"
+                      <div
                         className="absolute inset-0 z-0 rounded-md bg-purple-500/30"
-                        transition={{
-                          type: 'spring',
-                          damping: 20,
-                          stiffness: 200,
-                        }}
                       />
                     )}
                     <div className="relative z-10 flex items-center justify-center gap-1 sm:gap-2">
@@ -507,17 +491,13 @@ export function UnifiedSettingsPanel({
 
             {/* 탭 콘텐츠 */}
             <main className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800 flex-1 overflow-y-auto p-4">
-              <AnimatePresence mode="wait">
-                <motion.div
+              <React.Fragment>
+                <div
                   key={activeTab}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
                 >
                   {renderTabContent()}
-                </motion.div>
-              </AnimatePresence>
+                </div>
+              </React.Fragment>
             </main>
 
             {/* 피드백 컨테이너 */}
@@ -528,10 +508,10 @@ export function UnifiedSettingsPanel({
               <InlineFeedbackContainer area="optimization-section" />
               <InlineFeedbackContainer area="general-section" />
             </footer>
-          </motion.div>
+          </div>
         </>
       )}
-    </AnimatePresence>,
+    </React.Fragment>,
     document.body
   );
 }

@@ -11,7 +11,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
   Database,
@@ -50,8 +50,8 @@ const StatusIndicator: React.FC<{
       <div className="text-sm font-bold text-gray-900">{value}</div>
     </div>
   </div>
-);
 
+);
 const ServerCountCard: React.FC<{
   count: number;
   label: string;
@@ -78,10 +78,7 @@ export const CompactMonitoringHeader: React.FC<
   }, []);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+    <div
       className={`h-[33vh] border-b border-gray-200 bg-gradient-to-br from-blue-50 to-cyan-50 ${className}`}
     >
       <div className="mx-auto h-full max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
@@ -219,6 +216,6 @@ export const CompactMonitoringHeader: React.FC<
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };

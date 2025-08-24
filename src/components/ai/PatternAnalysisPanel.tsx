@@ -10,7 +10,7 @@
 'use client';
 
 import { useDataLoader } from '@/hooks/useDataLoader';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
   BarChart3,
@@ -320,10 +320,8 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
       <div className="p-4">
         <div className="space-y-3">
           {filteredPatterns.map((pattern: PatternData) => (
-            <motion.div
+            <div
               key={pattern.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
               className="rounded-lg border border-gray-600/30 bg-gray-800/50 p-4 transition-colors hover:bg-gray-700/30"
             >
               {/* 패턴 헤더 */}
@@ -442,7 +440,7 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
                   </span>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
 
           {filteredPatterns.length === 0 && (

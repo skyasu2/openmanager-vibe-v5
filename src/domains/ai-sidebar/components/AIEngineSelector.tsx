@@ -6,7 +6,7 @@
 
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { ChevronDown, Database, Zap, type LucideIcon } from 'lucide-react';
 import React, { useState } from 'react';
 
@@ -111,12 +111,9 @@ export const AIEngineSelector: React.FC<AIEngineSelectorProps> = ({
       </button>
 
       {/* 엔진 선택 드롭다운 */}
-      <AnimatePresence>
+      <React.Fragment>
         {showEngineInfo && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+          <div
             className="absolute right-0 top-full z-50 mt-2 w-60 rounded-lg border border-gray-200 bg-white shadow-lg sm:w-72"
           >
             <div className="border-b border-gray-100 p-3">
@@ -186,9 +183,9 @@ export const AIEngineSelector: React.FC<AIEngineSelectorProps> = ({
                 </button>
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </React.Fragment>
     </div>
   );
 };

@@ -10,7 +10,7 @@
 
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   AlertCircle,
   ChevronDown,
@@ -244,13 +244,9 @@ export function SystemControlPanel() {
         </div>
       </div>
 
-      <AnimatePresence>
+      <React.Fragment>
         {!isCollapsed && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+          <div
             className="space-y-4"
           >
             {/* 수동 제어 버튼들 */}
@@ -315,9 +311,9 @@ export function SystemControlPanel() {
                 ))}
               </div>
             )}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </React.Fragment>
     </div>
   );
 }

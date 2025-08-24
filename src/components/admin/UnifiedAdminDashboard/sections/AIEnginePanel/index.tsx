@@ -4,7 +4,7 @@
  * AI 엔진 상태 관리 및 설정
  */
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Brain, Power, RefreshCw, Settings } from 'lucide-react';
 import type { AIEngineDetail } from '../../hooks/useAIEngineStatus';
 import { STATUS_COLORS } from '../../UnifiedAdminDashboard.types';
@@ -37,9 +37,8 @@ export default function AIEnginePanel({
           <h3 className="mb-4 text-lg font-semibold">AI 엔진 목록</h3>
           <div className="space-y-3">
             {engines.map((engine) => (
-              <motion.div
+              <div
                 key={engine.id}
-                whileHover={{ scale: 1.02 }}
                 className={`cursor-pointer rounded-lg p-4 transition-all ${
                   selectedEngine === engine.id
                     ? 'border-2 border-blue-500 bg-blue-50 dark:bg-blue-900'
@@ -79,7 +78,7 @@ export default function AIEnginePanel({
                     <Power className="h-4 w-4" />
                   </button>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -211,9 +210,7 @@ function HealthBar({ label, value, max = 100, unit = '%' }: HealthBarProps) {
         </span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${percentage}%` }}
+        <div
           className={`h-full ${color}`}
         />
       </div>

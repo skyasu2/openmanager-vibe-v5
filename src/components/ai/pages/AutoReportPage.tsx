@@ -7,7 +7,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   FileText,
   Download,
@@ -143,18 +143,16 @@ export default function AutoReportPage() {
             </div>
           </div>
 
-          <motion.button
+          <button
             onClick={handleGenerateReport}
             disabled={isGenerating}
-            className="flex items-center space-x-2 rounded-lg bg-red-500 px-4 py-2 text-white transition-colors hover:bg-red-600 disabled:opacity-50"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            className="flex items-center space-x-2 rounded-lg bg-red-500 px-4 py-2 text-white transition-all duration-200 hover:bg-red-600 hover:scale-105 active:scale-95 disabled:opacity-50"
           >
             <RefreshCw
               className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`}
             />
             <span>{isGenerating ? '생성 중...' : '새 보고서'}</span>
-          </motion.button>
+          </button>
         </div>
       </div>
 
@@ -197,12 +195,10 @@ export default function AutoReportPage() {
       {/* 보고서 목록 */}
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {filteredReports.map((report, index) => (
-          <motion.div
+          <div
             key={report.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className={`rounded-lg border p-4 ${getSeverityColor(report.severity)} transition-shadow hover:shadow-md`}
+            className={`rounded-lg border p-4 animate-fade-in transition-shadow hover:shadow-md ${getSeverityColor(report.severity)}`}
+            style={{ animationDelay: `${index * 0.1}s` }}
           >
             <div className="mb-2 flex items-start justify-between">
               <div className="flex items-center space-x-2">
@@ -245,17 +241,15 @@ export default function AutoReportPage() {
                       : '해결됨'}
                 </span>
 
-                <motion.button
-                  className="p-1 text-gray-400 transition-colors hover:text-gray-600"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                <button
+                  className="p-1 text-gray-400 transition-all duration-200 hover:text-gray-600 hover:scale-110 active:scale-90"
                   title="보고서 다운로드"
                 >
                   <Download className="h-4 w-4" />
-                </motion.button>
+                </button>
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
 
         {filteredReports.length === 0 && (

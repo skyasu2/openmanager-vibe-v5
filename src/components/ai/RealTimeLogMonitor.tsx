@@ -11,7 +11,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Search,
   Play,
@@ -448,14 +448,10 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
 
       {/* 로그 목록 */}
       <div className="h-96 space-y-2 overflow-y-auto p-4">
-        <AnimatePresence>
+        <React.Fragment>
           {filteredLogs.map((log, index) => (
-            <motion.div
+            <div
               key={log.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ delay: index * 0.02 }}
               className="rounded-lg border p-3 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
             >
               <div className="flex items-start justify-between">
@@ -494,9 +490,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
 
                     {/* 메타데이터 (펼쳐진 경우) */}
                     {showDetails[log.id] && log.metadata && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
+                      <div
                         className="mt-2 overflow-hidden rounded bg-gray-100 p-2 font-mono text-xs dark:bg-gray-600"
                       >
                         <div className="text-gray-700 dark:text-gray-300">
@@ -513,7 +507,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
                             {JSON.stringify(value)}
                           </div>
                         ))}
-                      </motion.div>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -531,9 +525,9 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
                   )}
                 </button>
               </div>
-            </motion.div>
+            </div>
           ))}
-        </AnimatePresence>
+        </React.Fragment>
 
         {filteredLogs.length === 0 && (
           <div className="py-8 text-center text-gray-500 dark:text-gray-400">

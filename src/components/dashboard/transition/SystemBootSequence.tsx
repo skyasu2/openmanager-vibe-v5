@@ -11,7 +11,7 @@
 
 import React, { useState, useCallback, useEffect, memo } from 'react';
 import debug from '@/utils/debug';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { useRouter } from 'next/navigation';
 import type { Server } from '../../../types/server';
 
@@ -194,31 +194,24 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
 
         {/* 메인 로딩 화면 */}
         <div className="relative z-10 flex min-h-screen items-center justify-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
+          <div
             className="space-y-8 text-center"
           >
             {/* 현재 단계 아이콘 */}
-            <motion.div
+            <div
               key={currentStage}
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               className="text-6xl"
             >
               {currentStageData.icon}
-            </motion.div>
+            </div>
 
             {/* 단계 이름 */}
-            <motion.h2
+            <h2
               key={`title-${currentStage}`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
               className="text-2xl font-bold text-white"
             >
               {currentStageData.name}
-            </motion.h2>
+            </h2>
 
             {/* 진행률 바 */}
             <div className="mx-auto w-80">
@@ -229,11 +222,8 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
                 </span>
               </div>
               <div className="h-2 w-full rounded-full bg-gray-700">
-                <motion.div
+                <div
                   className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progress}%` }}
-                  transition={{ duration: 0.3 }}
                 />
               </div>
             </div>
@@ -241,31 +231,23 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
             {/* 로딩 점들 */}
             <div className="flex justify-center space-x-2">
               {[0, 1, 2].map((i) => (
-                <motion.div
+                <div
                   key={i}
-                  className="h-2 w-2 rounded-full bg-white"
-                  animate={{
-                    scale: [1, 1.5, 1],
-                    opacity: [0.5, 1, 0.5],
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    delay: i * 0.2,
+                  className="h-2 w-2 rounded-full bg-white animate-pulse"
+                  style={{
+                    animationDelay: `${i * 0.2}s`,
+                    animationDuration: '1.5s',
                   }}
                 />
               ))}
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* 비상 완료 버튼 */}
-        <AnimatePresence>
+        <React.Fragment>
           {showEmergencyButton && (
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
+            <div
               className="fixed bottom-6 left-1/2 z-[10000] -translate-x-1/2 transform"
             >
               <div className="max-w-sm rounded-lg border border-red-500/30 bg-black/90 p-4 text-white shadow-2xl backdrop-blur-sm">
@@ -291,15 +273,12 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </React.Fragment>
 
         {/* 사용자 안내 */}
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 2 }}
+        <div
           className="fixed bottom-4 left-4 max-w-xs rounded-lg border border-white/30 bg-black/50 p-4 text-sm text-white backdrop-blur-lg"
         >
           <div className="space-y-2">
@@ -308,7 +287,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
             <div>⌨️ Enter, Space, ESC 키</div>
             <div>⏱️ 자동 완료: 약 5초</div>
           </div>
-        </motion.div>
+        </div>
       </div>
     );
   }

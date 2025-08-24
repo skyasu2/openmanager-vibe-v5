@@ -8,7 +8,7 @@
  * - Last update timestamp
  */
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import type { PerformanceData } from './PerformanceDashboard.types';
 
 interface PerformanceDashboardFooterProps {
@@ -21,10 +21,7 @@ export function PerformanceDashboardFooter({
   lastUpdate,
 }: PerformanceDashboardFooterProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.3 }}
+    <div
       className="flex items-center justify-between border-t border-gray-200 pt-4 text-sm text-gray-500"
     >
       <div className="flex items-center gap-4">
@@ -36,6 +33,6 @@ export function PerformanceDashboardFooter({
       {lastUpdate && (
         <span>마지막 업데이트: {lastUpdate.toLocaleTimeString('ko-KR')}</span>
       )}
-    </motion.div>
+    </div>
   );
 }

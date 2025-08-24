@@ -10,7 +10,7 @@
 
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   AlertTriangle,
   CheckCircle,
@@ -227,17 +227,14 @@ function FeedbackDisplay({ feedback, compact = false }: FeedbackDisplayProps) {
   const styles = getStyles();
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95, y: -10 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+    <div
       className={styles.container}
     >
       {styles.icon}
       <span className={compact ? 'text-sm' : 'text-sm font-medium'}>
         {feedback.message}
       </span>
-    </motion.div>
+    </div>
   );
 }
 
@@ -268,13 +265,13 @@ export function InlineFeedbackContainer({
 
   return (
     <div className={`${className}`}>
-      <AnimatePresence mode="wait">
+      <React.Fragment>
         <FeedbackDisplay
           key={feedback.id}
           feedback={feedback}
           compact={compact}
         />
-      </AnimatePresence>
+      </React.Fragment>
     </div>
   );
 }
@@ -318,15 +315,13 @@ export function StatusBadge({
   };
 
   return (
-    <motion.div
+    <div
       key={status}
-      initial={{ scale: 0.9, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
       className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-xs font-medium ${getStatusStyles()} ${className}`}
     >
       {getStatusIcon()}
       {children}
-    </motion.div>
+    </div>
   );
 }
 
@@ -387,17 +382,15 @@ export function ButtonWithFeedback({
 
   return (
     <div className="space-y-2">
-      <motion.button
+      <button
         onClick={handleClick}
         disabled={disabled || status === 'loading'}
         className={`${className} ${
           status === 'loading' ? 'cursor-not-allowed opacity-75' : ''
         }`}
-        whileHover={status !== 'loading' ? { scale: 1.02 } : {}}
-        whileTap={status !== 'loading' ? { scale: 0.98 } : {}}
       >
         {children}
-      </motion.button>
+      </button>
 
       <InlineFeedbackContainer area={feedbackArea} compact />
     </div>

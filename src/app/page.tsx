@@ -7,8 +7,9 @@
 
 'use client';
 
-// React Hook SSR 오류 방지: 정적 생성 비활성화
+// SSR 호환성 - 동적 렌더링 강제
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -17,12 +18,9 @@ export default function RootRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    // SSR 방지: 클라이언트에서만 리다이렉트 실행
-    if (typeof window !== 'undefined') {
-      // 인증 체크 없이 바로 메인 페이지로 리다이렉트
-      // 인증 체크는 /main 페이지의 useInitialAuth에서 담당
-      router.replace('/main');
-    }
+    // 인증 체크 없이 바로 메인 페이지로 리다이렉트
+    // 인증 체크는 /main 페이지의 useInitialAuth에서 담당
+    router.replace('/main');
   }, [router]);
 
   // 리다이렉션 중 로딩 화면 표시

@@ -8,7 +8,7 @@
  * - System status indicator
  */
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { AlertTriangle, CheckCircle, FileText, XCircle } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import type { LogData } from './LogDashboard.types';
@@ -54,21 +54,15 @@ export function LogDashboardStatsCards({ data }: StatsCardsProps) {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
+    <div
       className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4"
     >
       {cards.map((card, index) => {
         const IconComponent = card.icon;
 
         return (
-          <motion.div
+          <div
             key={card.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + index * 0.05 }}
           >
             <Card>
               <CardContent className="p-6">
@@ -83,9 +77,9 @@ export function LogDashboardStatsCards({ data }: StatsCardsProps) {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         );
       })}
-    </motion.div>
+    </div>
   );
 }

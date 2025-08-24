@@ -10,7 +10,22 @@
 
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+// CSS 애니메이션 keyframes 추가
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes shrinkWidth {
+      from { width: 100%; }
+      to { width: 0%; }
+    }
+  `;
+  if (!document.head.querySelector('style[data-notification-animations]')) {
+    style.setAttribute('data-notification-animations', 'true');
+    document.head.appendChild(style);
+  }
+}
+
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
   AlertTriangle,
@@ -296,25 +311,12 @@ function NotificationItem({
   const styles = getTypeStyles();
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 400, scale: 0.9 }}
-      animate={{
-        opacity: 1,
-        x: 0,
-        scale: 1,
-        y: -index * 5, // 스택 효과
-      }}
-      exit={{
-        opacity: 0,
-        x: 400,
-        scale: 0.8,
-        transition: { duration: 0.3 },
-      }}
-      layout
-      className={` ${styles.container} min-w-80 max-w-96 transform rounded-xl shadow-md transition-all duration-300 hover:scale-[1.02] ${notification.dismissible ? 'cursor-pointer' : ''} pointer-events-auto mb-4`}
+    <div
+      className={`${styles.container} min-w-80 max-w-96 transform rounded-xl shadow-md transition-all duration-300 hover:scale-[1.02] ${notification.dismissible ? 'cursor-pointer' : ''} pointer-events-auto mb-4 ${isExiting ? 'animate-out fade-out-0 zoom-out-95 slide-out-to-right-1/2' : 'animate-in fade-in-0 zoom-in-95 slide-in-from-right-1/2'}`}
       style={{
         zIndex: 99990 - index,
         boxShadow: '0 8px 25px -5px rgba(0, 0, 0, 0.2)',
+        transform: `translateY(${-index * 5}px)`,
       }}
       onClick={notification.dismissible ? handleDismiss : undefined}
     >
@@ -392,18 +394,16 @@ function NotificationItem({
 
         {/* 자동 닫힘 프로그레스 바 */}
         {notification.duration && notification.duration > 0 && (
-          <motion.div
-            className="absolute bottom-0 left-0 h-1 rounded-b-xl bg-white/40"
-            initial={{ width: '100%' }}
-            animate={{ width: '0%' }}
-            transition={{
-              duration: notification.duration / 1000,
-              ease: 'linear',
+          <div
+            className="absolute bottom-0 left-0 h-1 rounded-b-xl bg-white/40 transition-all ease-linear"
+            style={{
+              animation: `shrinkWidth ${notification.duration / 1000}s linear`,
+              width: '100%',
             }}
           />
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -439,9 +439,7 @@ export function AdvancedNotificationContainer() {
     <div className="pointer-events-none fixed right-4 top-4 z-[99999]">
       {/* 전체 알림 제어 */}
       {notifications.length > 1 && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
+        <div
           className="pointer-events-auto mb-4"
         >
           <button
@@ -450,12 +448,12 @@ export function AdvancedNotificationContainer() {
           >
             모든 알림 닫기 ({notifications.length})
           </button>
-        </motion.div>
+        </div>
       )}
 
       {/* 알림 목록 */}
       <div className="pointer-events-auto space-y-2">
-        <AnimatePresence mode="popLayout">
+        <React.Fragment>
           {notifications.map((notification, index) => (
             <NotificationItem
               key={notification.id}
@@ -464,7 +462,7 @@ export function AdvancedNotificationContainer() {
               index={index}
             />
           ))}
-        </AnimatePresence>
+        </React.Fragment>
       </div>
     </div>,
     portalContainer

@@ -6,7 +6,7 @@
 
 'use client';
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Database } from 'lucide-react';
 
 interface GeneratorConfig {
@@ -63,9 +63,7 @@ export function GeneratorSettingsTab({
 
           {/* 빠른 액션 버튼들 */}
           <div className="grid grid-cols-1 gap-3">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={() => onServerCountChange(8)}
               className="rounded-lg border border-green-500/30 bg-green-500/20 px-3 py-3 text-sm font-medium text-green-300 transition-colors hover:bg-green-500/30"
             >
@@ -75,10 +73,8 @@ export function GeneratorSettingsTab({
                   Vercel Free 환경 - 8개 서버로 가벼운 테스트 및 개발
                 </span>
               </div>
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            </button>
+            <button
               onClick={() => onServerCountChange(20)}
               className="rounded-lg border border-blue-500/30 bg-blue-500/20 px-3 py-3 text-sm font-medium text-blue-300 transition-colors hover:bg-blue-500/30"
             >
@@ -88,10 +84,8 @@ export function GeneratorSettingsTab({
                   Vercel Pro 환경 - 20개 서버로 실전 운영 환경 시뮬레이션
                 </span>
               </div>
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            </button>
+            <button
               onClick={() => onServerCountChange(30)}
               className="rounded-lg border border-purple-500/30 bg-purple-500/20 px-3 py-3 text-sm font-medium text-purple-300 transition-colors hover:bg-purple-500/30"
             >
@@ -101,10 +95,8 @@ export function GeneratorSettingsTab({
                   로컬 개발 환경 - 30개 서버로 최대 성능 테스트
                 </span>
               </div>
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            </button>
+            <button
               onClick={onGeneratorCheck}
               className="rounded-lg border border-purple-500/30 bg-purple-500/20 px-3 py-3 text-sm font-medium text-purple-300 transition-colors hover:bg-purple-500/30"
             >
@@ -114,7 +106,7 @@ export function GeneratorSettingsTab({
                   데이터 생성기의 현재 상태와 성능 지표를 확인합니다
                 </span>
               </div>
-            </motion.button>
+            </button>
           </div>
         </div>
       </div>

@@ -11,7 +11,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   User,
   FileText,
@@ -154,37 +154,6 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
     return AlertTriangle;
   }, []);
 
-  // 애니메이션 설정
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.4,
-        ease: 'easeOut',
-      },
-    },
-    hover: {
-      scale: 1.02,
-      transition: {
-        duration: 0.2,
-      },
-    },
-  };
-
-  const _itemVariants: unknown = {
-    hidden: { opacity: 0, x: -20 },
-    visible: (index: number) => ({
-      opacity: 1,
-      x: 0,
-      transition: {
-        delay: index * 0.1,
-        duration: 0.3,
-        ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
-      },
-    }),
-  };
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -227,7 +196,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
 
       {/* 6W 원칙 카드들 */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <AnimatePresence>
+        <React.Fragment>
           {principleConfig.map((config, index) => {
             const {
               key,
@@ -241,14 +210,10 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
             const isCopied = copiedItems.has(key);
 
             return (
-              <motion.div
+              <div
                 key={key}
-                custom={index}
-                variants={cardVariants}
-                initial="hidden"
-                animate="visible"
-                whileHover="hover"
-                className={`rounded-lg border-2 p-4 ${color} transition-all duration-200`}
+                className={`rounded-lg border-2 p-4 ${color} transition-all duration-200 hover:scale-102`}
+                style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="space-y-3">
                   {/* 카드 헤더 */}
@@ -277,19 +242,15 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
 
                   {/* 내용 */}
                   <div className="relative">
-                    <motion.p
-                      initial={false}
-                      animate={{
-                        height: isExpanded ? 'auto' : 'auto',
-                      }}
-                      className={`text-sm leading-relaxed ${
+                    <p
+                      className={`text-sm leading-relaxed transition-all duration-300 ${
                         content.length > 100 && !isExpanded
                           ? 'line-clamp-3'
                           : ''
                       }`}
                     >
                       {content}
-                    </motion.p>
+                    </p>
 
                     {/* 확장/축소 버튼 */}
                     {content.length > 100 && (
@@ -303,36 +264,27 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
                   </div>
 
                   {/* 복사 피드백 */}
-                  <AnimatePresence>
+                  <React.Fragment>
                     {isCopied && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className="absolute inset-0 flex items-center justify-center rounded-lg bg-white bg-opacity-90"
-                      >
+                      <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-white bg-opacity-90 transition-all duration-300">
                         <div className="flex items-center space-x-2 text-green-600">
                           <CheckCircle className="h-5 w-5" />
                           <span className="text-sm font-medium">복사됨!</span>
                         </div>
-                      </motion.div>
+                      </div>
                     )}
-                  </AnimatePresence>
+                  </React.Fragment>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
-        </AnimatePresence>
+        </React.Fragment>
       </div>
-
       {/* 추가 정보 */}
       <div className="space-y-3">
         {/* 데이터 출처 */}
         {showSources && response.sources && response.sources.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
+          <div
             className="rounded-lg border border-gray-200 bg-gray-50 p-3"
           >
             <div className="mb-2 flex items-center space-x-2">
@@ -352,14 +304,11 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
                 </span>
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* 응답 요약 */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
+        <div
           className="rounded-lg border border-blue-200 bg-blue-50 p-3"
         >
           <div className="mb-2 flex items-center space-x-2">
@@ -370,7 +319,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
             AI가 제공한 정보를 육하원칙에 따라 구조화하여 표시했습니다. 각
             항목을 개별적으로 복사하거나 전체 내용을 한번에 복사할 수 있습니다.
           </p>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

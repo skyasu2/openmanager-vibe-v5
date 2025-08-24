@@ -18,7 +18,7 @@
 
 'use client';
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Download, FileText, RefreshCw, Settings, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -132,9 +132,7 @@ export default function LogDashboard() {
   return (
     <div className="space-y-6">
       {/* 헤더 및 제어 버튼 */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="flex items-center justify-between"
       >
         <div>
@@ -165,16 +163,13 @@ export default function LogDashboard() {
             로그 삭제
           </Button>
         </div>
-      </motion.div>
+      </div>
 
       {/* 요약 통계 */}
       <LogDashboardStatsCards data={data} />
 
       {/* 메인 대시보드 */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
+      <div
       >
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <TabsList className="grid w-full grid-cols-4">
@@ -268,7 +263,7 @@ export default function LogDashboard() {
             </Card>
           </TabsContent>
         </Tabs>
-      </motion.div>
+      </div>
     </div>
   );
 }

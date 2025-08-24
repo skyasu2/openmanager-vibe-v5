@@ -9,7 +9,7 @@
  */
 
 import React from 'react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 
 interface SkeletonProps {
   /** 스켈레톤 높이 */
@@ -231,13 +231,7 @@ export const ListSkeleton: React.FC<{ items?: number }> = ({ items = 5 }) => (
 
 // 애니메이션이 있는 스켈레톤
 export const AnimatedSkeleton: React.FC<SkeletonProps> = (props) => (
-  <motion.div
-    initial={{ opacity: 0.6 }}
-    animate={{ opacity: [0.6, 1, 0.6] }}
-    transition={{ duration: 1.5, repeat: Infinity }}
-  >
-    <Skeleton {...props} _animate={false} />
-  </motion.div>
+  <Skeleton {...props} _animate={true} />
 );
 
 // 기본 내보내기

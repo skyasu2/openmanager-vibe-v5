@@ -1,7 +1,7 @@
 'use client';
 
 import { useSystemStatus } from '@/hooks/useSystemStatus';
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
   AlertTriangle,
@@ -196,14 +196,10 @@ export function EnhancedProfileStatusDisplay({
       )}
 
       {/* 상세 정보 (토글 가능) */}
-      <AnimatePresence>
+      <React.Fragment>
         {showDetails && !compact && (
-          <motion.div
+          <div
             data-testid="detailed-info"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
             className="mt-3 border-t border-gray-200 pt-3"
           >
             <div className="mb-2 text-xs font-medium text-gray-600">
@@ -263,9 +259,9 @@ export function EnhancedProfileStatusDisplay({
                 </div>
               </div>
             )}
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </React.Fragment>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-// Removed framer-motion import for SSR compatibility
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Crown } from 'lucide-react';
 import { ProfileAvatar, UserTypeIcon } from './ProfileAvatar';
 import { ProfileMenuItem } from './ProfileMenuItem';
@@ -53,10 +53,10 @@ export const ProfileDropdownMenu = React.memo(function ProfileDropdownMenu({
   };
 
   return (
-    <>
+    <AnimatePresence>
       {isOpen && (
         <div
-          className="absolute right-0 z-[9999] mt-2 w-64 rounded-xl border border-gray-200 bg-white py-2 shadow-lg animate-fade-in transition-all duration-200"
+          className="absolute right-0 z-[9999] mt-2 w-64 rounded-xl border border-gray-200 bg-white py-2 shadow-lg"
           role="menu"
           aria-orientation="vertical"
           aria-labelledby="profile-menu-button"
@@ -139,6 +139,6 @@ export const ProfileDropdownMenu = React.memo(function ProfileDropdownMenu({
           </div>
         </div>
       )}
-    </>
+    </AnimatePresence>
   );
 });

@@ -11,7 +11,7 @@
 
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { useEffect, useState } from 'react';
 import debug from '@/utils/debug';
 import {
@@ -90,9 +90,7 @@ const getComponentIcon = (name: string) => {
 const getStatusIcon = (status: ComponentStatus) => {
   if (status.status === 'loading') {
     return (
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+      <div
         className="h-4 w-4 rounded-full border-2 border-blue-400 border-t-transparent"
       />
     );
@@ -101,10 +99,7 @@ const getStatusIcon = (status: ComponentStatus) => {
   switch (status.status) {
     case 'completed':
       return (
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        <div
           className="flex h-4 w-4 items-center justify-center rounded-full bg-green-500"
         >
           <svg
@@ -120,7 +115,7 @@ const getStatusIcon = (status: ComponentStatus) => {
               d="M5 13l4 4L19 7"
             />
           </svg>
-        </motion.div>
+        </div>
       );
     case 'failed':
       return (
@@ -608,28 +603,21 @@ export default function SystemChecklist({
         </div>
       )}
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{
-          opacity: shouldProceed ? 0 : 1,
-          scale: shouldProceed ? 0.9 : 1,
-        }}
-        transition={{ duration: 0.3 }}
-        className="relative z-10 w-full max-w-md"
+      <div
+        className={`relative z-10 w-full max-w-md transition-all duration-300 ${
+          shouldProceed ? 'opacity-0 scale-90' : 'opacity-100 scale-100'
+        }`}
       >
         {/* 로고 섹션 */}
-        <motion.div
+        <div
           className="mb-8 text-center"
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
         >
           <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-2xl">
             <span className="text-2xl font-bold text-white">OM</span>
           </div>
           <h1 className="mb-2 text-2xl font-bold text-white">OpenManager</h1>
           <p className="text-sm text-gray-300">시스템 초기화 중...</p>
-        </motion.div>
+        </div>
 
         {/* 전체 진행률 */}
         <div className="mb-6">
@@ -642,11 +630,9 @@ export default function SystemChecklist({
             </span>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-gray-700/50">
-            <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-blue-500 to-green-500"
-              initial={{ width: 0 }}
-              animate={{ width: `${totalProgress}%` }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-500 ease-out"
+              style={{ width: `${totalProgress}%` }}
             />
           </div>
         </div>
@@ -658,11 +644,8 @@ export default function SystemChecklist({
             if (!status) return null;
 
             return (
-              <motion.div
+              <div
                 key={component.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1 }}
                 className={`flex items-center rounded-xl border p-3 backdrop-blur-sm ${getPriorityBorder(component.priority)} ${
                   status.status === 'completed'
                     ? 'bg-green-500/10'
@@ -706,11 +689,9 @@ export default function SystemChecklist({
                   {/* 진행률 바 (로딩 중일 때만) */}
                   {status.status === 'loading' && (
                     <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-gray-600/30">
-                      <motion.div
-                        className="h-full rounded-full bg-blue-400"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${status.progress}%` }}
-                        transition={{ duration: 0.3 }}
+                      <div
+                        className="h-full rounded-full bg-blue-400 animate-pulse transition-all duration-300"
+                        style={{ width: status.progress ? `${status.progress}%` : '60%' }}
                       />
                     </div>
                   )}
@@ -722,7 +703,7 @@ export default function SystemChecklist({
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>
@@ -741,9 +722,7 @@ export default function SystemChecklist({
 
         {/* 에러 시 재시도 버튼 */}
         {failedCount > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+          <div
             className="mt-4 space-y-2 text-center"
           >
             <button
@@ -766,28 +745,22 @@ export default function SystemChecklist({
                   네트워크 진단
                 </button>
               ))}
-          </motion.div>
+          </div>
         )}
 
         {/* 완료 상태 표시 */}
-        <AnimatePresence>
+        <React.Fragment>
           {showCompleted && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              className="absolute inset-0 flex items-center justify-center rounded-2xl border border-green-500/50 bg-green-500/20 backdrop-blur-sm"
-              onAnimationComplete={() => {
-                // 애니메이션 완료 즉시 다음 단계로 진행
+            <div
+              className="absolute inset-0 flex items-center justify-center rounded-2xl border border-green-500/50 bg-green-500/20 backdrop-blur-sm animate-in fade-in zoom-in duration-500"
+              onClick={() => {
+                // 클릭 시 다음 단계로 진행
                 setShouldProceed(true);
                 setTimeout(onComplete, 100);
               }}
             >
               <div className="text-center">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
+                <div
                   className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500"
                 >
                   <svg
@@ -803,17 +776,14 @@ export default function SystemChecklist({
                       d="M5 13l4 4L19 7"
                     />
                   </svg>
-                </motion.div>
+                </div>
                 <h3 className="mb-2 text-xl font-bold text-white">
                   시스템 초기화 완료
                 </h3>
                 <p className="mb-3 text-sm text-gray-300">
                   다음 단계로 진행합니다...
                 </p>
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1 }}
+                <div
                   className="inline-flex items-center space-x-2 rounded-lg border border-green-400/50 bg-green-500/30 px-4 py-2"
                 >
                   <span className="text-sm text-green-200">클릭하여 계속</span>
@@ -830,19 +800,16 @@ export default function SystemChecklist({
                       d="M13 7l5 5m0 0l-5 5m5-5H6"
                     />
                   </svg>
-                </motion.div>
+                </div>
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </React.Fragment>
 
         {/* 스킵 버튼 (3초 후 표시) */}
-        <AnimatePresence>
+        <React.Fragment>
           {canSkip && !showCompleted && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
+            <div
               className="mt-4 text-center"
             >
               <button
@@ -851,21 +818,18 @@ export default function SystemChecklist({
               >
                 건너뛰기 (ESC)
               </button>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </React.Fragment>
 
         {/* 단축키 안내 */}
         <div className="mt-6 text-center text-xs text-gray-500">
           <p>ESC/Space: 건너뛰기 • R: 재시도 • D: 디버그 패널</p>
         </div>
-      </motion.div>
+      </div>
 
       {/* 돌아가기 버튼 (왼쪽 아래 고정) */}
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.5 }}
+      <div
         className="absolute bottom-6 left-6 z-20"
       >
         <button
@@ -892,7 +856,7 @@ export default function SystemChecklist({
           </svg>
           <span className="text-sm">돌아가기</span>
         </button>
-      </motion.div>
+      </div>
     </div>
   );
 }

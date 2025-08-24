@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import type { TechCategory } from '../../utils/TechStackAnalyzer';
 import { generateTechStackSummary } from '../../utils/TechStackAnalyzer';
 
@@ -65,9 +65,7 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
     <div className={`space-y-6 ${className}`}>
       {/* 헤더 및 요약 정보 */}
       {showHeader && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+        <div
           className="mb-6"
         >
           <div className="mb-4 flex items-center justify-between">
@@ -93,17 +91,14 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
               </span>
             ))}
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* 카테고리별 기술 스택 */}
       <div className="space-y-6">
         {categories.map((category, categoryIndex) => (
-          <motion.div
+          <div
             key={category.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: categoryIndex * 0.1 }}
             className="rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 backdrop-blur-sm"
           >
             {/* 카테고리 헤더 */}
@@ -131,11 +126,8 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
               }`}
             >
               {category.items.map((tech, techIndex) => (
-                <motion.div
+                <div
                   key={`${tech.name}-${techIndex}`}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: categoryIndex * 0.1 + techIndex * 0.05 }}
                   className={`rounded-lg border p-3 transition-all duration-200 hover:scale-105 ${colorMap[category.color as keyof typeof colorMap] || colorMap.gray} ${importanceStyles[tech.importance]} ${tech.isCore ? 'shadow-lg shadow-amber-500/10' : ''} `}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -205,7 +197,7 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
                       />
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
 
@@ -259,16 +251,13 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
 
       {/* 하단 요약 */}
       {!compact && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: categories.length * 0.1 }}
+        <div
           className="mt-6 rounded-xl border border-blue-500/20 bg-gradient-to-r from-blue-900/20 to-purple-900/20 p-4"
         >
           <div className="text-center text-xs text-gray-300">
@@ -297,7 +286,7 @@ const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
               </span>
             </div>
           </div>
-        </motion.div>
+        </div>
       )}
     </div>
   );

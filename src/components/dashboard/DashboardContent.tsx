@@ -6,17 +6,10 @@ import { Suspense, useEffect, useMemo, useState } from 'react';
 
 import { safeConsoleError, safeErrorMessage } from '../../lib/utils-functions';
 import type { Server } from '../../types/server';
-import type { Variants } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import debug from '@/utils/debug';
 
-// framer-motion을 동적 import로 처리 - 프리로드 최적화
-const MotionDiv = dynamic(
-  () => import('framer-motion').then((mod) => ({ default: mod.motion.div })),
-  {
-    ssr: false,
-    loading: () => <div className="h-full w-full" />, // 빈 컨테이너로 레이아웃 시프트 방지
-  }
-);
+// framer-motion 제거됨
 
 interface DashboardStatus {
   isRunning?: boolean;
@@ -55,7 +48,7 @@ interface DashboardContentProps {
     offline: number;
   }) => void;
   onShowSequentialChange: (show: boolean) => void;
-  mainContentVariants: Variants;
+  // mainContentVariants 제거
   isAgentOpen: boolean;
 }
 
@@ -78,7 +71,7 @@ export default function DashboardContent({
   onServerModalClose: _onServerModalClose,
   onStatsUpdate,
   onShowSequentialChange,
-  mainContentVariants: _mainContentVariants,
+  // mainContentVariants 제거
   isAgentOpen,
 }: DashboardContentProps) {
   // 🚀 디버깅 로그
@@ -281,12 +274,7 @@ export default function DashboardContent({
     // 일반 대시보드 모드 - 반응형 그리드 레이아웃
     debug.log('📊 일반 대시보드 모드 렌더링');
     return (
-      <MotionDiv
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="h-full w-full"
-      >
+      <div className="h-full w-full animate-fade-in">
         <div className="mx-auto h-full max-w-none space-y-6 overflow-y-auto px-4 sm:px-6 lg:px-8 2xl:max-w-[1800px]">
           {/* 🎯 목업 데이터 모드 표시 */}
           {servers && servers.length > 0 && (
@@ -425,7 +413,7 @@ export default function DashboardContent({
             </div>
           )}
         </div>
-      </MotionDiv>
+      </div>
     );
   } catch (renderError) {
     debug.error('📱 DashboardContent 렌더링 오류:', renderError);

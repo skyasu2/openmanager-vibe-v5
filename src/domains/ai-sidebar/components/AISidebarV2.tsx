@@ -16,7 +16,7 @@ import {
   useAISidebarStore,
   useAIThinking,
 } from '@/stores/useAISidebarStore';
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   BarChart3,
   Bot,
@@ -599,12 +599,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             </button>
 
             {/* 엔진 선택 드롭다운 */}
-            <AnimatePresence>
+            <React.Fragment>
               {showEngineInfo && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
+                <div
                   className="absolute right-0 top-full z-50 mt-2 w-60 rounded-lg border border-gray-200 bg-white shadow-lg sm:w-72"
                   style={{
                     right: '0',
@@ -675,9 +672,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                       </button>
                     ))}
                   </div>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
+            </React.Fragment>
           </div>
         </div>
       </div>
@@ -686,9 +683,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       <div className="flex-1 space-y-3 overflow-y-auto p-3 sm:space-y-4 sm:p-4">
         {/* 🤖 자동장애보고서 알림 */}
         {autoReportTrigger.shouldGenerate && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
+          <div
             className="rounded-lg border border-red-200 bg-gradient-to-r from-red-50 to-orange-50 p-3"
           >
             <div className="flex items-center justify-between">
@@ -721,7 +716,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                 </button>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {allMessages.length === 0 && (
@@ -740,10 +735,8 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
 
         {/* 채팅 메시지들 렌더링 (간소화) */}
         {allMessages.map((message) => (
-          <motion.div
+          <div
             key={message.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
@@ -794,7 +787,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
 
         <div ref={messagesEndRef} />
@@ -840,17 +833,15 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
           </div>
 
           {/* 전송 버튼 */}
-          <motion.button
+          <button
             onClick={() => handleSendInput()}
             disabled={!inputValue.trim()}
             className="rounded bg-blue-500 p-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
             title="메시지 전송"
             aria-label="메시지 전송"
           >
             <Send className="h-4 w-4" />
-          </motion.button>
+          </button>
         </div>
 
         {/* 키보드 단축키 힌트 */}
@@ -879,13 +870,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   };
 
   return (
-    <AnimatePresence>
+    <React.Fragment>
       {isOpen && (
-        <motion.div
-          initial={{ x: '100%' }}
-          animate={{ x: 0 }}
-          exit={{ x: '100%' }}
-          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        <div
           role="dialog"
           aria-labelledby="ai-sidebar-title"
           aria-modal="true"
@@ -927,9 +914,9 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
               isMobile={true}
             />
           </div>
-        </motion.div>
+        </div>
       )}
-    </AnimatePresence>
+    </React.Fragment>
   );
 };
 

@@ -6,7 +6,7 @@
 
 'use client';
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Bot, RotateCcw, User } from 'lucide-react';
 import React from 'react';
 
@@ -23,10 +23,8 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
   onRegenerateResponse,
 }) => {
   return (
-    <motion.div
+    <div
       key={message.id}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
       className={`flex ${message?.role === 'user' ? 'justify-end' : 'justify-start'}`}
       data-testid="message-container"
     >
@@ -120,6 +118,6 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };

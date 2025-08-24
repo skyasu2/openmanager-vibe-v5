@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Lightbulb, Server, TrendingUp, AlertTriangle } from 'lucide-react';
 import { timerManager } from '../../utils/TimerManager';
 
@@ -98,11 +98,8 @@ export default function DynamicPresets({
 
       <div className="space-y-2">
         {presets.map((preset, index) => (
-          <motion.button
+          <button
             key={`${preset}-${index}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
             onClick={() => onSelect(preset)}
             className="group w-full rounded-lg border bg-white px-3 py-3 text-left text-sm shadow-sm transition-all duration-200 hover:border-purple-200 hover:bg-purple-50 hover:shadow"
           >
@@ -112,7 +109,7 @@ export default function DynamicPresets({
                 {preset}
               </span>
             </div>
-          </motion.button>
+          </button>
         ))}
       </div>
 

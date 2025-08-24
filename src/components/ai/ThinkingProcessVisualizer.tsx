@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Brain,
   Activity,
@@ -100,19 +100,15 @@ export const ThinkingProcessVisualizer: React.FC<
 
       {/* 사고 단계 리스트 */}
       <div className="space-y-2">
-        <AnimatePresence mode="sync">
+        <React.Fragment>
           {displaySteps.map((step, stepIndex) => {
             const config = stepTypeConfig[step.type];
             const Icon = config.icon as React.FC<{ className?: string }>;
             const isCurrentStep = stepIndex === displaySteps.length - 1;
 
             return (
-              <motion.div
+              <div
                 key={step.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3 }}
                 className={`relative ${isCurrentStep && isActive ? 'z-10' : ''}`}
               >
                 <div
@@ -149,10 +145,7 @@ export const ThinkingProcessVisualizer: React.FC<
                     {step.progress > 0 && step.progress < 100 && (
                       <div className="mt-2">
                         <div className="h-1 w-full rounded-full bg-gray-200">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${step.progress}%` }}
-                            transition={{ duration: 0.3 }}
+                          <div
                             className="h-1 rounded-full bg-blue-500"
                           />
                         </div>
@@ -171,16 +164,13 @@ export const ThinkingProcessVisualizer: React.FC<
                     {step.subSteps && step.subSteps.length > 0 && (
                       <div className="mt-2 space-y-1">
                         {step.subSteps.map((subStep, subIndex) => (
-                          <motion.div
+                          <div
                             key={subIndex}
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            transition={{ delay: subIndex * 0.1 }}
                             className="flex items-center border-l-2 border-current border-opacity-20 pl-2 text-xs text-gray-500"
                           >
                             <Eye className="mr-1 h-3 w-3 opacity-50" />
                             {subStep}
-                          </motion.div>
+                          </div>
                         ))}
                       </div>
                     )}
@@ -203,31 +193,27 @@ export const ThinkingProcessVisualizer: React.FC<
                     )}
                   </div>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
-        </AnimatePresence>
+        </React.Fragment>
       </div>
 
       {/* 활성 상태 인디케이터 */}
       {isActive && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+        <div
           className="flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 p-3"
         >
           <Zap className="mr-2 h-4 w-4 text-blue-500" />
           <span className="text-sm font-medium text-blue-700">
             AI가 사고 중입니다...
           </span>
-          <motion.div
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 1, repeat: Infinity }}
+          <div
             className="ml-2"
           >
             <div className="h-2 w-2 rounded-full bg-blue-500" />
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       )}
     </div>
   );

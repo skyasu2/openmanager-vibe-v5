@@ -9,15 +9,7 @@ import React, { useEffect, useState } from 'react';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import debug from '@/utils/debug';
 
-// framer-motion을 동적 import로 처리
-const MotionButton = dynamic(
-  () => import('framer-motion').then((mod) => ({ default: mod.motion.button })),
-  { ssr: false }
-);
-const MotionDiv = dynamic(
-  () => import('framer-motion').then((mod) => ({ default: mod.motion.div })),
-  { ssr: false }
-);
+// framer-motion 제거 - CSS 애니메이션 사용
 
 /**
  * 대시보드 헤더 컴포넌트 Props
@@ -183,9 +175,9 @@ const DashboardHeader = React.memo(function DashboardHeader({
         <div className="flex items-center gap-4">
           {/* AI 어시스턴트 토글 버튼 */}
           <div className="relative">
-            <MotionButton
+            <button
               onClick={handleAIAgentToggle}
-              className={`relative transform rounded-xl p-3 transition-all duration-300 ${
+              className={`relative transform rounded-xl p-3 transition-all duration-300 hover:scale-105 active:scale-95 ${
                 isSidebarOpen || aiAgent.isEnabled
                   ? 'scale-105 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'
@@ -197,21 +189,11 @@ const DashboardHeader = React.memo(function DashboardHeader({
                 isSidebarOpen ? 'AI 어시스턴트 닫기' : 'AI 어시스턴트 열기'
               }
               aria-pressed={isSidebarOpen}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
             >
               {/* AI 활성화 시 그라데이션 테두리 애니메이션 */}
               {aiAgent.isEnabled && (
-                <MotionDiv
+                <div
                   className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 opacity-75"
-                  animate={{
-                    rotate: [0, 360],
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: 'linear',
-                  }}
                   style={{
                     background:
                       'conic-gradient(from 0deg, #a855f7, #ec4899, #06b6d4, #a855f7)',
@@ -220,40 +202,22 @@ const DashboardHeader = React.memo(function DashboardHeader({
                   }}
                 >
                   <div className="h-full w-full rounded-xl bg-gradient-to-r from-purple-500 to-pink-500" />
-                </MotionDiv>
+                </div>
               )}
 
               <div className="relative flex items-center gap-2">
-                <MotionDiv
+                <div
                   className={`h-5 w-5 ${isSidebarOpen || aiAgent.isEnabled ? 'text-white' : 'text-gray-600'}`}
-                  animate={
-                    aiAgent.isEnabled
-                      ? {
-                          rotate: [0, 360],
-                          scale: [1, 1.2, 1],
-                        }
-                      : {}
-                  }
-                  transition={{
-                    rotate: { duration: 3, repeat: Infinity, ease: 'linear' },
-                    scale: {
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                    },
-                  }}
                 >
                   <Bot className="h-5 w-5" />
-                </MotionDiv>
+                </div>
                 <span className="hidden text-sm font-medium sm:inline">
                   {aiAgent.isEnabled ? (
-                    <MotionDiv
+                    <div
                       className="bg-gradient-to-r from-purple-100 via-pink-100 to-cyan-100 bg-clip-text font-bold text-transparent"
-                      animate={{ opacity: [1, 0.7, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
                     >
                       AI 어시스턴트
-                    </MotionDiv>
+                    </div>
                   ) : (
                     'AI 어시스턴트'
                   )}
@@ -262,38 +226,25 @@ const DashboardHeader = React.memo(function DashboardHeader({
 
               {/* 활성화 상태 표시 */}
               {(isSidebarOpen || aiAgent.isEnabled) && (
-                <MotionDiv
+                <div
                   className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-green-400"
-                  animate={{
-                    scale: [1, 1.2, 1],
-                    opacity: [1, 0.7, 1],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
                   aria-hidden="true"
                 />
               )}
-            </MotionButton>
+            </button>
 
             {/* 손가락 아이콘 - AI 비활성화 시에만 표시 */}
             {!aiAgent.isEnabled &&
               !isSidebarOpen &&
               !ui.isSettingsPanelOpen && (
-                <MotionDiv
-                  className="finger-pointer-ai"
+                <div
+                  className="finger-pointer-ai animate-fade-in"
                   style={{
                     zIndex: isSidebarOpen || ui.isSettingsPanelOpen ? 10 : 30,
                   }}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
                 >
                   ��
-                </MotionDiv>
+                </div>
               )}
           </div>
 

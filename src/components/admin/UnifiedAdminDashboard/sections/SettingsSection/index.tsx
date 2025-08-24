@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Save, Bell, Database } from 'lucide-react';
 
 export default function SettingsSection() {
@@ -196,15 +196,13 @@ export default function SettingsSection() {
         <button className="rounded-lg bg-gray-100 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
           취소
         </button>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+        <button
           onClick={handleSave}
           className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
         >
           <Save className="h-4 w-4" />
           설정 저장
-        </motion.button>
+        </button>
       </div>
     </div>
   );

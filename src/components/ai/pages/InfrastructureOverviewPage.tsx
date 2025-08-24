@@ -10,7 +10,7 @@
 'use client';
 
 import { formatPercentage } from '@/lib/utils';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
   Cpu,
@@ -257,21 +257,17 @@ export default function InfrastructureOverviewPage({
             마지막 업데이트: {lastUpdate.toLocaleTimeString()}
           </p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+        <button
           onClick={fetchServerData}
           className="flex items-center gap-1 rounded-lg bg-blue-500 px-3 py-1.5 text-sm text-white transition-colors hover:bg-blue-600"
         >
           <RefreshCw className="h-3 w-3" />
           새로고침
-        </motion.button>
+        </button>
       </div>
 
       {/* 메인 통계 카드 */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="mb-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
       >
         <h3 className="mb-2 text-sm font-semibold text-gray-700">
@@ -315,13 +311,10 @@ export default function InfrastructureOverviewPage({
             <div className="text-xs text-yellow-500">⚠️ Alerts</div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* 리소스 사용률 */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+      <div
         className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
       >
         <h3 className="mb-2 text-sm font-semibold text-gray-700">
@@ -433,7 +426,7 @@ export default function InfrastructureOverviewPage({
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

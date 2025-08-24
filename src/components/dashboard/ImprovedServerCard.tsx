@@ -26,19 +26,8 @@ import type { Server as ServerType } from '../../types/server';
 import { ServerCardLineChart } from '../shared/ServerMetricsLineChart';
 
 // framer-motion을 동적 import로 처리
-const MotionButton = dynamic(
-  () => import('framer-motion').then((mod) => ({ default: mod.motion.button })),
-  { ssr: false }
-);
-const MotionDiv = dynamic(
-  () => import('framer-motion').then((mod) => ({ default: mod.motion.div })),
-  { ssr: false }
-);
-const AnimatePresence = dynamic(
-  () =>
-    import('framer-motion').then((mod) => ({ default: mod.AnimatePresence })),
-  { ssr: false }
-);
+// framer-motion 제거됨
+// framer-motion 제거됨
 
 interface ImprovedServerCardProps {
   server: ServerType;
@@ -307,17 +296,8 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
     }, [onClick, server]);
 
     return (
-      <MotionButton
+      <button
         type="button"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{
-          delay: index * 0.1,
-          type: 'spring',
-          stiffness: 260,
-          damping: 20,
-        }}
         className={`relative cursor-pointer rounded-xl border-2 transition-all duration-300 ${getStatusTheme().cardBg} ${getStatusTheme().border} ${getStatusTheme().hoverBorder} ${getVariantStyles().container} group w-full overflow-hidden text-left hover:shadow-lg hover:shadow-black/5`}
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
@@ -327,16 +307,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
         {/* 실시간 활동 인디케이터 */}
         {showRealTimeUpdates && (
           <div className="absolute right-3 top-3 z-10">
-            <MotionDiv
-              animate={{
-                scale: [1, 1.3, 1],
-                opacity: [0.6, 1, 0.6],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
+            <div
               className={`h-2 w-2 ${getStatusTheme().pulse} rounded-full shadow-lg`}
             />
           </div>
@@ -345,13 +316,11 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
         {/* 헤더 */}
         <div className="mb-4 flex items-start justify-between">
           <div className="flex min-w-0 flex-1 items-center gap-3">
-            <MotionDiv
+            <div
               className={`rounded-lg p-2.5 ${getStatusTheme().statusColor} shadow-sm`}
-              whileHover={{ rotate: 5, scale: 1.1 }}
-              transition={{ duration: 0.2 }}
             >
               {getServerIcon()}
-            </MotionDiv>
+            </div>
             <div className="min-w-0 flex-1">
               <div className="mb-1 flex items-center gap-2">
                 <h3
@@ -375,16 +344,14 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
             </div>
           </div>
 
-          <MotionDiv
+          <div
             className={`flex items-center gap-2 rounded-full px-3 py-1.5 ${getStatusTheme().statusColor} shadow-sm`}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
             {getStatusTheme().statusIcon}
             <span className="text-xs font-semibold">
               {getStatusTheme().statusText}
             </span>
-          </MotionDiv>
+          </div>
         </div>
 
         {/* 메트릭 섹션 - 라인 그래프로 최근 5분간 데이터 표시 */}
@@ -428,7 +395,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
                 {server.services
                   .slice(0, getVariantStyles().maxServices)
                   .map((service, idx) => (
-                    <MotionDiv
+                    <div
                       key={idx}
                       className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium shadow-sm transition-colors ${
                         service.status === 'running'
@@ -437,8 +404,6 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
                             ? 'border-red-300 bg-red-50 text-red-700'
                             : 'border-yellow-300 bg-yellow-50 text-yellow-700'
                       }`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
                     >
                       <div
                         className={`h-1.5 w-1.5 rounded-full ${
@@ -450,7 +415,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
                         }`}
                       />
                       <span>{service.name}</span>
-                    </MotionDiv>
+                    </div>
                   ))}
                 {server.services.length > getVariantStyles().maxServices && (
                   <div className="flex items-center rounded-lg bg-gray-100 px-2.5 py-1 text-xs text-gray-500">
@@ -463,24 +428,19 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
           )}
 
         {/* 호버 효과 */}
-        <AnimatePresence>
+        <React.Fragment>
           {isHovered && (
-            <MotionDiv
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/5 to-purple-500/5"
             />
           )}
-        </AnimatePresence>
+        </React.Fragment>
 
         {/* 클릭 효과 */}
-        <MotionDiv
+        <div
           className="absolute inset-0 rounded-xl bg-blue-500/10 opacity-0"
-          whileTap={{ opacity: 1 }}
-          transition={{ duration: 0.1 }}
         />
-      </MotionButton>
+      </button>
     );
   }
 );

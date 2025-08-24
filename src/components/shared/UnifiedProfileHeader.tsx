@@ -1,7 +1,7 @@
 'use client';
 
 import { useSystemStatus } from '@/hooks/useSystemStatus';
-// Removed framer-motion import for SSR compatibility
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   BarChart3,
   ChevronDown,
@@ -230,13 +230,13 @@ export default function UnifiedProfileHeader({
 
   return (
     <div ref={dropdownRef} className={`relative z-50 ${className}`}>
-      {/* 프로필 버튼 - CSS 애니메이션으로 변경 */}
+      {/* 프로필 버튼 */}
       <button
         onClick={() => {
           console.log('👤 프로필 버튼 클릭됨');
           toggleMenu();
         }}
-        className="group pointer-events-auto relative z-50 flex cursor-pointer items-center space-x-3 rounded-lg p-3 transition-all duration-200 hover:bg-gray-100 hover:scale-105 active:scale-95"
+        className="group pointer-events-auto relative z-50 flex cursor-pointer items-center space-x-3 rounded-lg p-3 transition-all duration-200 hover:bg-gray-100"
         aria-label="프로필 메뉴"
         aria-expanded={menuState.showProfileMenu}
         aria-haspopup="true"

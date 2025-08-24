@@ -22,10 +22,7 @@ import {
 import { RealtimeChart } from './EnhancedServerModal.components';
 
 // framer-motion을 동적 import로 처리
-const MotionDiv = dynamic(
-  () => import('framer-motion').then((mod) => ({ default: mod.motion.div })),
-  { ssr: false }
-);
+// framer-motion 제거됨
 
 /**
  * Network Tab Props
@@ -100,10 +97,7 @@ export const NetworkTab: React.FC<NetworkTabProps> = ({
   return (
     <div className="space-y-6">
       {/* 헤더 섹션 */}
-      <MotionDiv
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+      <div
       >
         <div className="mb-6 flex items-center justify-between">
           <h3 className="bg-gradient-to-r from-emerald-600 to-teal-700 bg-clip-text text-2xl font-bold text-transparent">
@@ -116,19 +110,14 @@ export const NetworkTab: React.FC<NetworkTabProps> = ({
             </span>
           </div>
         </div>
-      </MotionDiv>
+      </div>
 
       {/* 네트워크 상태 카드들 */}
-      <MotionDiv
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.2 }}
+      <div
         className="grid grid-cols-1 gap-6 md:grid-cols-3"
       >
         {/* 네트워크 상태 카드 */}
-        <MotionDiv
-          whileHover={{ scale: 1.02, y: -2 }}
-          transition={{ type: 'spring', stiffness: 300 }}
+        <div
           className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-6 shadow-xl"
         >
           <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
@@ -138,16 +127,7 @@ export const NetworkTab: React.FC<NetworkTabProps> = ({
               <span className="text-2xl">🌍</span>
             </div>
             <div className="mb-4 flex items-center gap-3">
-              <MotionDiv
-                animate={{
-                  scale: [1, 1.2, 1],
-                  opacity: [1, 0.8, 1],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
+              <div
                 className={`h-4 w-4 rounded-full ${networkStatusInfo.color} shadow-lg`}
               />
               <span className="text-xl font-bold text-white">
@@ -161,12 +141,10 @@ export const NetworkTab: React.FC<NetworkTabProps> = ({
               </div>
             </div>
           </div>
-        </MotionDiv>
+        </div>
 
         {/* 실시간 트래픽 카드 */}
-        <MotionDiv
-          whileHover={{ scale: 1.02, y: -2 }}
-          transition={{ type: 'spring', stiffness: 300 }}
+        <div
           className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 p-6 shadow-xl"
         >
           <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
@@ -179,35 +157,29 @@ export const NetworkTab: React.FC<NetworkTabProps> = ({
               <div className="rounded-lg bg-white/20 p-3 backdrop-blur-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-white/80">⬇️ 인바운드</span>
-                  <MotionDiv
-                    animate={{ opacity: [1, 0.7, 1] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
+                  <div
                     className="text-xl font-bold text-green-300"
                   >
                     {latestNetwork.in.toFixed(1)} MB/s
-                  </MotionDiv>
+                  </div>
                 </div>
               </div>
               <div className="rounded-lg bg-white/20 p-3 backdrop-blur-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-white/80">⬆️ 아웃바운드</span>
-                  <MotionDiv
-                    animate={{ opacity: [1, 0.7, 1] }}
-                    transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
+                  <div
                     className="text-xl font-bold text-cyan-300"
                   >
                     {latestNetwork.out.toFixed(1)} MB/s
-                  </MotionDiv>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </MotionDiv>
+        </div>
 
         {/* 지연시간 카드 */}
-        <MotionDiv
-          whileHover={{ scale: 1.02, y: -2 }}
-          transition={{ type: 'spring', stiffness: 300 }}
+        <div
           className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 p-6 shadow-xl"
         >
           <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
@@ -216,19 +188,11 @@ export const NetworkTab: React.FC<NetworkTabProps> = ({
               <h4 className="text-lg font-bold text-white">응답 시간</h4>
               <span className="text-2xl">⚡</span>
             </div>
-            <MotionDiv
-              animate={{
-                scale: [1, 1.05, 1],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
+            <div
               className="mb-2 text-4xl font-bold text-white"
             >
               {latestLatency.toFixed(1)} ms
-            </MotionDiv>
+            </div>
             <div className="rounded-lg bg-white/20 p-3 backdrop-blur-sm">
               <div className="text-sm text-white/80">평균 지연시간</div>
               <div className="mt-1 text-xs text-white/60">
@@ -236,14 +200,11 @@ export const NetworkTab: React.FC<NetworkTabProps> = ({
               </div>
             </div>
           </div>
-        </MotionDiv>
-      </MotionDiv>
+        </div>
+      </div>
 
       {/* 네트워크 트래픽 차트 */}
-      <MotionDiv
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
+      <div
         className="grid grid-cols-1 gap-6 md:grid-cols-2"
       >
         {/* 트래픽 흐름 차트 */}
@@ -386,13 +347,10 @@ export const NetworkTab: React.FC<NetworkTabProps> = ({
           color="#8b5cf6"
           label="네트워크 지연시간 (ms)"
         />
-      </MotionDiv>
+      </div>
 
       {/* 네트워크 연결 정보 */}
-      <MotionDiv
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.4 }}
+      <div
         className="rounded-2xl bg-gradient-to-br from-slate-50 to-gray-100 p-6 shadow-xl transition-shadow hover:shadow-2xl"
       >
         <div className="mb-6 flex items-center justify-between">
@@ -407,8 +365,7 @@ export const NetworkTab: React.FC<NetworkTabProps> = ({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* 왼쪽 컬럼 */}
           <div className="space-y-4">
-            <MotionDiv
-              whileHover={{ x: 5 }}
+            <div
               className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md"
             >
               <span className="flex items-center gap-2 text-sm text-gray-600">
@@ -417,9 +374,8 @@ export const NetworkTab: React.FC<NetworkTabProps> = ({
               <span className="font-mono font-bold text-gray-900">
                 {server.ip || '192.168.1.100'}
               </span>
-            </MotionDiv>
-            <MotionDiv
-              whileHover={{ x: 5 }}
+            </div>
+            <div
               className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md"
             >
               <span className="flex items-center gap-2 text-sm text-gray-600">
@@ -428,9 +384,8 @@ export const NetworkTab: React.FC<NetworkTabProps> = ({
               <span className="font-medium text-gray-900">
                 {server.hostname}
               </span>
-            </MotionDiv>
-            <MotionDiv
-              whileHover={{ x: 5 }}
+            </div>
+            <div
               className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md"
             >
               <span className="flex items-center gap-2 text-sm text-gray-600">
@@ -439,13 +394,12 @@ export const NetworkTab: React.FC<NetworkTabProps> = ({
               <span className="font-medium text-gray-900">
                 {server.location}
               </span>
-            </MotionDiv>
+            </div>
           </div>
 
           {/* 오른쪽 컬럼 */}
           <div className="space-y-4">
-            <MotionDiv
-              whileHover={{ x: 5 }}
+            <div
               className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md"
             >
               <span className="flex items-center gap-2 text-sm text-gray-600">
@@ -454,9 +408,8 @@ export const NetworkTab: React.FC<NetworkTabProps> = ({
               <span className="font-medium text-gray-900">
                 {server.provider}
               </span>
-            </MotionDiv>
-            <MotionDiv
-              whileHover={{ x: 5 }}
+            </div>
+            <div
               className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md"
             >
               <span className="flex items-center gap-2 text-sm text-gray-600">
@@ -465,9 +418,8 @@ export const NetworkTab: React.FC<NetworkTabProps> = ({
               <span className="font-medium capitalize text-gray-900">
                 {server.environment}
               </span>
-            </MotionDiv>
-            <MotionDiv
-              whileHover={{ x: 5 }}
+            </div>
+            <div
               className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md"
             >
               <span className="flex items-center gap-2 text-sm text-gray-600">
@@ -476,10 +428,10 @@ export const NetworkTab: React.FC<NetworkTabProps> = ({
               <span className="font-medium capitalize text-gray-900">
                 {server.type || 'Unknown'}
               </span>
-            </MotionDiv>
+            </div>
           </div>
         </div>
-      </MotionDiv>
+      </div>
     </div>
   );
 };

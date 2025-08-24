@@ -9,10 +9,7 @@ import {
 import dynamic from 'next/dynamic';
 
 // framer-motion을 동적 import로 처리
-const MotionDiv = dynamic(
-  () => import('framer-motion').then((mod) => ({ default: mod.motion.div })),
-  { ssr: false }
-);
+// framer-motion 제거됨
 
 interface UserSessionDisplayProps {
   className?: string;
@@ -151,10 +148,8 @@ export const UserSessionDisplay: React.FC<UserSessionDisplayProps> = ({
           <div className="relative">
             <User className="h-5 w-5" />
             {session?.isActive && (
-              <MotionDiv
+              <div
                 className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full bg-green-500"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
               />
             )}
           </div>
@@ -250,10 +245,7 @@ export const UserSessionDisplay: React.FC<UserSessionDisplayProps> = ({
 
       {/* 경고 메시지 */}
       {showWarning && session && (
-        <MotionDiv
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
+        <div
           className="mt-2 rounded-md border border-yellow-300 bg-yellow-50 p-2"
         >
           <div className="flex items-center gap-2">
@@ -262,14 +254,14 @@ export const UserSessionDisplay: React.FC<UserSessionDisplayProps> = ({
               세션이 곧 종료됩니다. 필요시 갱신해주세요.
             </span>
           </div>
-        </MotionDiv>
+        </div>
       )}
 
       {/* 진행 바 */}
       {session && (
         <div className="mt-2">
           <div className="h-1 overflow-hidden rounded-full bg-gray-200">
-            <MotionDiv
+            <div
               className={`h-full ${
                 sessionInfo.warningLevel === 'high'
                   ? 'bg-red-500'
@@ -279,9 +271,6 @@ export const UserSessionDisplay: React.FC<UserSessionDisplayProps> = ({
                       ? 'bg-yellow-500'
                       : 'bg-blue-500'
               }`}
-              initial={{ width: '0%' }}
-              animate={{ width: `${sessionInfo.progress}` }}
-              transition={{ duration: 0.5 }}
             />
           </div>
         </div>

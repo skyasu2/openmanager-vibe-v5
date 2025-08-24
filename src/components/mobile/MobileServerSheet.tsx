@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   XMarkIcon,
   ServerIcon,
@@ -130,31 +130,20 @@ export default function MobileServerSheet({
       : 0;
 
   return (
-    <AnimatePresence>
+    <React.Fragment>
       {isOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           {/* 배경 오버레이 */}
-          <motion.div
+          <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             variants={backdropVariants}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
             onClick={onClose}
           />
 
           {/* 시트 컨테이너 */}
-          <motion.div
+          <div
             className="absolute bottom-0 left-0 right-0 max-h-[90vh] overflow-hidden rounded-t-2xl bg-white shadow-2xl"
             variants={sheetVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            transition={{
-              type: 'spring',
-              damping: 30,
-              stiffness: 300,
-            }}
           >
             {/* 드래그 핸들 */}
             <div className="flex justify-center p-2">
@@ -163,14 +152,12 @@ export default function MobileServerSheet({
 
             {/* 스크롤 가능한 콘텐츠 */}
             <div className="max-h-[calc(90vh-3rem)] overflow-y-auto">
-              <motion.div
+              <div
                 className="px-6 pb-8"
                 variants={contentVariants}
-                initial="hidden"
-                animate="visible"
               >
                 {/* 헤더 */}
-                <motion.div
+                <div
                   className="flex items-center justify-between border-b border-gray-100 pb-4"
                   variants={itemVariants}
                 >
@@ -199,10 +186,10 @@ export default function MobileServerSheet({
                   >
                     <XMarkIcon className="h-5 w-5" />
                   </Button>
-                </motion.div>
+                </div>
 
                 {/* 서버 상태 */}
-                <motion.div
+                <div
                   className="mt-6 rounded-lg bg-gray-50 p-4"
                   variants={itemVariants}
                 >
@@ -222,10 +209,10 @@ export default function MobileServerSheet({
                       {server.status === 'critical' && '위험'}
                     </span>
                   </div>
-                </motion.div>
+                </div>
 
                 {/* 기본 정보 */}
-                <motion.div
+                <div
                   className="mt-6 grid grid-cols-2 gap-4"
                   variants={itemVariants}
                 >
@@ -260,20 +247,19 @@ export default function MobileServerSheet({
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </div>
 
                 {/* 메트릭 카드들 */}
-                <motion.div className="mt-6 space-y-4" variants={itemVariants}>
+                <div className="mt-6 space-y-4" variants={itemVariants}>
                   <h3 className="text-lg font-semibold text-gray-900">
                     시스템 메트릭
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     {metrics.map((metric, index) => (
-                      <motion.div
+                      <div
                         key={metric.label}
                         className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
                         variants={itemVariants}
-                        transition={{ delay: index * 0.05 }}
                       >
                         <div className="flex items-center space-x-3">
                           <div className={`rounded-lg p-2 ${metric.color}`}>
@@ -309,14 +295,14 @@ export default function MobileServerSheet({
                             />
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
-                </motion.div>
+                </div>
 
                 {/* 알림 정보 */}
                 {alertCount > 0 && (
-                  <motion.div
+                  <div
                     className="mt-6 rounded-lg bg-red-50 p-4"
                     variants={itemVariants}
                   >
@@ -331,12 +317,12 @@ export default function MobileServerSheet({
                         </div>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 )}
 
                 {/* 서비스 상태 */}
                 {server.services && server.services.length > 0 && (
-                  <motion.div
+                  <div
                     className="mt-6 space-y-4"
                     variants={itemVariants}
                   >
@@ -345,11 +331,10 @@ export default function MobileServerSheet({
                     </h3>
                     <div className="space-y-3">
                       {server.services.map((service, index) => (
-                        <motion.div
+                        <div
                           key={`${service.name}-${service.port}`}
                           className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3"
                           variants={itemVariants}
-                          transition={{ delay: index * 0.05 }}
                         >
                           <div>
                             <div className="font-medium text-gray-900">
@@ -370,15 +355,15 @@ export default function MobileServerSheet({
                               ? '실행 중'
                               : '중지됨'}
                           </span>
-                        </motion.div>
+                        </div>
                       ))}
                     </div>
-                  </motion.div>
+                  </div>
                 )}
 
                 {/* 최근 로그 */}
                 {server.logs && server.logs.length > 0 && (
-                  <motion.div
+                  <div
                     className="mt-6 space-y-4"
                     variants={itemVariants}
                   >
@@ -387,11 +372,10 @@ export default function MobileServerSheet({
                     </h3>
                     <div className="space-y-2">
                       {server.logs.slice(0, 5).map((log, index) => (
-                        <motion.div
+                        <div
                           key={index}
                           className="rounded-lg bg-gray-50 p-3"
                           variants={itemVariants}
-                          transition={{ delay: index * 0.05 }}
                         >
                           <div className="flex items-center justify-between">
                             <span
@@ -414,26 +398,26 @@ export default function MobileServerSheet({
                           <p className="mt-2 text-sm text-gray-700">
                             {log.message}
                           </p>
-                        </motion.div>
+                        </div>
                       ))}
                     </div>
-                  </motion.div>
+                  </div>
                 )}
 
                 {/* 액션 버튼들 */}
-                <motion.div className="mt-8 space-y-3" variants={itemVariants}>
+                <div className="mt-8 space-y-3" variants={itemVariants}>
                   <Button className="w-full" size="lg">
                     상세 정보 보기
                   </Button>
                   <Button variant="outline" className="w-full" size="lg">
                     로그 다운로드
                   </Button>
-                </motion.div>
-              </motion.div>
+                </div>
+              </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
-    </AnimatePresence>
+    </React.Fragment>
   );
 }

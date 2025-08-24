@@ -15,10 +15,7 @@ import dynamic from 'next/dynamic';
 import { RealtimeData, ProcessData } from './EnhancedServerModal.types';
 
 // framer-motion을 동적 import로 처리
-const MotionDiv = dynamic(
-  () => import('framer-motion').then((mod) => ({ default: mod.motion.div })),
-  { ssr: false }
-);
+// framer-motion 제거됨
 
 /**
  * Processes Tab Props
@@ -63,10 +60,7 @@ const getMemoryColor = (value: number): string => {
 export const ProcessesTab: React.FC<ProcessesTabProps> = ({ realtimeData }) => {
   return (
     <div className="space-y-6">
-      <MotionDiv
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+      <div
       >
         {/* 헤더 섹션 */}
         <div className="mb-6 flex items-center justify-between">
@@ -100,12 +94,8 @@ export const ProcessesTab: React.FC<ProcessesTabProps> = ({ realtimeData }) => {
             {realtimeData.processes.length > 0 ? (
               realtimeData.processes.map(
                 (process: ProcessData, idx: number) => (
-                  <MotionDiv
+                  <div
                     key={idx}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    whileHover={{ backgroundColor: '#f9fafb' }}
                     className="grid grid-cols-4 gap-4 border-b border-gray-100 p-4 transition-colors hover:bg-gray-50"
                   >
                     {/* 프로세스 이름 */}
@@ -148,7 +138,7 @@ export const ProcessesTab: React.FC<ProcessesTabProps> = ({ realtimeData }) => {
                         {process.memory.toFixed(1)}%
                       </span>
                     </div>
-                  </MotionDiv>
+                  </div>
                 )
               )
             ) : (
@@ -168,10 +158,7 @@ export const ProcessesTab: React.FC<ProcessesTabProps> = ({ realtimeData }) => {
 
         {/* 프로세스 통계 요약 */}
         {realtimeData.processes.length > 0 && (
-          <MotionDiv
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+          <div
             className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3"
           >
             {/* 총 프로세스 수 */}
@@ -236,9 +223,9 @@ export const ProcessesTab: React.FC<ProcessesTabProps> = ({ realtimeData }) => {
                 </div>
               </div>
             </div>
-          </MotionDiv>
+          </div>
         )}
-      </MotionDiv>
+      </div>
     </div>
   );
 };

@@ -3,7 +3,7 @@
 import type { ErrorInfo, ReactNode } from 'react';
 import React, { Component } from 'react';
 import { AlertTriangle, RefreshCw, X } from 'lucide-react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import debug from '@/utils/debug';
 
 interface Props {
@@ -55,9 +55,7 @@ class ServerModalErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+          <div
             className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
           >
             <div className="text-center">
@@ -99,7 +97,7 @@ class ServerModalErrorBoundary extends Component<Props, State> {
                 </button>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       );
     }

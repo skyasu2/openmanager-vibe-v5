@@ -4,7 +4,7 @@
 
 'use client';
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Brain,
   ChevronLeft,
@@ -164,22 +164,16 @@ export const AIPresetQuestions: React.FC<AIPresetQuestionsProps> = ({
         className="relative h-32 overflow-hidden"
         data-testid="preset-questions-grid"
       >
-        <motion.div
+        <div
           key={currentPage}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.2 }}
           className="grid h-full grid-cols-2 gap-2"
         >
           {currentPresets.map((question, index) => (
-            <motion.button
+            <button
               key={question.id}
               onClick={() => onQuestionSelect(question.text)}
               className="group rounded-lg border border-gray-200 p-2 text-left transition-all duration-200 hover:border-blue-300 hover:bg-blue-50"
               data-testid={`preset-question-${index}`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
             >
               <div className="mb-1 flex items-center space-x-1">
                 <div
@@ -196,9 +190,9 @@ export const AIPresetQuestions: React.FC<AIPresetQuestionsProps> = ({
               <p className="line-clamp-2 text-xs text-gray-800">
                 {question.text}
               </p>
-            </motion.button>
+            </button>
           ))}
-        </motion.div>
+        </div>
       </div>
     </div>
   );

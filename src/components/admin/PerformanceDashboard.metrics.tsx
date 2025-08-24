@@ -9,7 +9,7 @@
  * - Fallback rate card
  */
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { BarChart3, CheckCircle, Clock, Target, Zap } from 'lucide-react';
 import { Card, CardContent } from '../ui/card';
 import type { PerformanceData } from './PerformanceDashboard.types';
@@ -24,10 +24,7 @@ export function PerformanceDashboardMetrics({
   performanceScore,
 }: PerformanceDashboardMetricsProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1 }}
+    <div
       className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5"
     >
       {/* 성능 점수 */}
@@ -103,6 +100,6 @@ export function PerformanceDashboardMetrics({
           </div>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 }

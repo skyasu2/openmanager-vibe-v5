@@ -7,7 +7,7 @@
 'use client';
 
 import KoreanTimeUtil from '@/utils/koreanTime';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
   BarChart3,
@@ -108,9 +108,7 @@ export function OptimizationSettingsTab({
               </span>
             </div>
             <div className="grid grid-cols-1 gap-3">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <button
                 onClick={handleOptimizationRun}
                 disabled={isOptimizing}
                 className="rounded-lg border border-yellow-500/30 bg-yellow-500/20 px-4 py-3 text-sm font-medium text-yellow-300 transition-colors hover:bg-yellow-500/30 disabled:opacity-50"
@@ -132,11 +130,9 @@ export function OptimizationSettingsTab({
                     </span>
                   </div>
                 </div>
-              </motion.button>
+              </button>
 
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <button
                 onClick={handlePerformanceAnalysis}
                 disabled={isAnalyzing}
                 className="rounded-lg border border-blue-500/30 bg-blue-500/20 px-4 py-3 text-sm font-medium text-blue-300 transition-colors hover:bg-blue-500/30 disabled:opacity-50"
@@ -156,7 +152,7 @@ export function OptimizationSettingsTab({
                     </span>
                   </div>
                 </div>
-              </motion.button>
+              </button>
             </div>
           </div>
 

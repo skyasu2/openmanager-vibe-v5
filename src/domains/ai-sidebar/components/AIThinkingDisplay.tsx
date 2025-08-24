@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Brain,
   ChevronDown,
@@ -48,11 +48,8 @@ export const AIThinkingDisplay: React.FC<AIThinkingDisplayProps> = ({
   // 실시간 사고 과정 표시
   if (isThinking && currentSteps.length > 0) {
     return (
-      <AnimatePresence>
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
+      <React.Fragment>
+        <div
           className="overflow-hidden rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50"
         >
           <button
@@ -75,20 +72,15 @@ export const AIThinkingDisplay: React.FC<AIThinkingDisplayProps> = ({
             )}
           </button>
 
-          <AnimatePresence>
+          <React.Fragment>
             {isExpanded && (
-              <motion.div
-                initial={{ height: 0 }}
-                animate={{ height: 'auto' }}
-                exit={{ height: 0 }}
+              <div
                 className="px-3 pb-2"
               >
                 <div className="mt-2 space-y-1.5">
                   {currentSteps.map((step) => (
-                    <motion.div
+                    <div
                       key={step.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
                       className="flex items-start space-x-2"
                     >
                       <div className="mt-0.5">
@@ -113,23 +105,21 @@ export const AIThinkingDisplay: React.FC<AIThinkingDisplayProps> = ({
                           </span>
                         )}
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
-        </motion.div>
-      </AnimatePresence>
+          </React.Fragment>
+        </div>
+      </React.Fragment>
     );
   }
 
   // 완료된 사고 과정 표시
   if (completedThinking && onToggleCompleted) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
       >
         <button
@@ -150,12 +140,9 @@ export const AIThinkingDisplay: React.FC<AIThinkingDisplayProps> = ({
           )}
         </button>
 
-        <AnimatePresence>
+        <React.Fragment>
           {completedThinking.isExpanded && (
-            <motion.div
-              initial={{ height: 0 }}
-              animate={{ height: 'auto' }}
-              exit={{ height: 0 }}
+            <div
               className="px-3 pb-2"
             >
               <div className="mt-2 space-y-1">
@@ -183,10 +170,10 @@ export const AIThinkingDisplay: React.FC<AIThinkingDisplayProps> = ({
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
-      </motion.div>
+        </React.Fragment>
+      </div>
     );
   }
 

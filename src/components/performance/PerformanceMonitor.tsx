@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Activity, Clock, Zap, TrendingUp, AlertTriangle } from 'lucide-react';
 
 interface WebVitals {
@@ -205,13 +205,11 @@ export function PerformanceMonitor() {
   const score = calculateScore(metrics.webVitals);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       className="fixed bottom-4 right-4 z-50"
     >
       {/* 토글 버튼 */}
-      <motion.button
+      <button
         onClick={() => setIsVisible(!isVisible)}
         className={`mb-2 flex items-center space-x-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
           score >= 90
@@ -220,19 +218,15 @@ export function PerformanceMonitor() {
               ? 'bg-yellow-500/90 text-white'
               : 'bg-red-500/90 text-white'
         }`}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
       >
         <Activity className="h-4 w-4" />
         <span>성능 점수: {score}</span>
         {score < 70 && <AlertTriangle className="h-4 w-4" />}
-      </motion.button>
+      </button>
 
       {/* 상세 패널 */}
       {isVisible && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
+        <div
           className="w-80 rounded-lg bg-white/95 p-4 shadow-xl backdrop-blur-sm dark:bg-gray-900/95"
         >
           <div className="mb-3 flex items-center justify-between">
@@ -336,9 +330,9 @@ export function PerformanceMonitor() {
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 

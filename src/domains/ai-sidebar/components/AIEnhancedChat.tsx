@@ -10,7 +10,7 @@
 
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Bot,
   ChevronLeft,
@@ -149,12 +149,9 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
       </div>
 
       {/* 자동 장애 보고서 트리거 */}
-      <AnimatePresence>
+      <React.Fragment>
         {autoReportTrigger?.shouldGenerate && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
+          <div
             className="flex-shrink-0 border-b border-amber-200 bg-amber-50 p-3 sm:p-4"
           >
             <div className="flex items-start space-x-3">
@@ -186,9 +183,9 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </React.Fragment>
 
       {/* 메시지 영역 */}
       <div
@@ -220,9 +217,7 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
 
             {/* 생성 중 표시 */}
             {isGenerating && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+              <div
                 className="flex justify-start"
               >
                 <div className="flex items-start space-x-2">
@@ -248,7 +243,7 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             )}
           </>
         )}

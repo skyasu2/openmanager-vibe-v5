@@ -25,7 +25,6 @@ const UnifiedProfileHeader = dynamic(
     ),
   }
 );
-
 const SystemControls = dynamic(
   () => import('@/components/home/SystemControls'),
   {
@@ -37,7 +36,6 @@ const SystemControls = dynamic(
     ),
   }
 );
-
 const FeatureCardsGrid = dynamic(
   () => import('@/components/home/FeatureCardsGrid'),
   {
@@ -51,7 +49,6 @@ const FeatureCardsGrid = dynamic(
     ),
   }
 );
-
 // 헤비한 훅들을 lazy 로딩
 const useSystemHooks = () => {
   const [hooks, setHooks] = useState<unknown>(null);

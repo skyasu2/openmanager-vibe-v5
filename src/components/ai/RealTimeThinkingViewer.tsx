@@ -14,7 +14,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Brain,
   ChevronDown,
@@ -240,15 +240,13 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
     return (
       <div className="mb-3 flex flex-wrap gap-2">
         {Array.from(techStack).map((tech) => (
-          <motion.div
+          <div
             key={tech}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
             className="flex items-center gap-1 rounded-md bg-gray-800 px-2 py-1 text-xs text-gray-300"
           >
             {stackIcons[tech] || <Terminal className="h-4 w-4" />}
             <span>{tech}</span>
-          </motion.div>
+          </div>
         ))}
       </div>
     );
@@ -284,12 +282,9 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
         )}
       </div>
 
-      <AnimatePresence>
+      <React.Fragment>
         {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+          <div
             className="overflow-hidden"
           >
             <div className="p-3">
@@ -311,10 +306,8 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
                   </div>
                 ) : (
                   logs.map((log) => (
-                    <motion.div
+                    <div
                       key={log.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
                       className="mb-2 last:mb-0"
                     >
                       <div className="flex items-start gap-2">
@@ -344,7 +337,7 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
                           <pre>{JSON.stringify(log.details, null, 2)}</pre>
                         </div>
                       )}
-                    </motion.div>
+                    </div>
                   ))
                 )}
               </div>
@@ -363,9 +356,9 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
                 </button>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </React.Fragment>
     </div>
   );
 };

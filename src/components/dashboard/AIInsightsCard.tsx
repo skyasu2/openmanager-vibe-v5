@@ -10,7 +10,7 @@
 'use client';
 
 import { useAIInsights } from '@/hooks/api/useAIInsights';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
   AlertTriangle,
@@ -139,12 +139,10 @@ export default function AIInsightsCard({
           <div className="space-y-3">
             {insights.length > 0 ? (
               insights.slice(0, 3).map((insight, index) => (
-                <motion.div
+                <div
                   key={insight.id || index}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className={`rounded-lg border p-3 ${getInsightColor(insight.type)}`}
+                  className={`rounded-lg border p-3 animate-fade-in ${getInsightColor(insight.type)}`}
+                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="flex items-start gap-3">
                     {getInsightIcon(insight.type)}
@@ -160,7 +158,7 @@ export default function AIInsightsCard({
                       )}
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))
             ) : (
               <div className="py-6 text-center text-gray-500">

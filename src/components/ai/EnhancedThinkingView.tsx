@@ -10,7 +10,7 @@
 
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Brain,
   CheckCircle,
@@ -93,9 +93,7 @@ const TypingText: React.FC<{ text: string; speed?: number }> = ({
     <span className="inline-block">
       {displayText}
       {currentIndex < text.length && (
-        <motion.span
-          animate={{ opacity: [0, 1, 0] }}
-          transition={{ duration: 0.8, repeat: Infinity }}
+        <span
           className="ml-1 inline-block h-4 w-0.5 bg-current"
         />
       )}
@@ -176,37 +174,27 @@ export const EnhancedThinkingView: React.FC<EnhancedThinkingViewProps> = ({
               {visibleSteps.length}단계
             </span>
           )}
-          <motion.div
-            animate={{ rotate: isExpanded ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
+          <div
           >
             <ChevronDown className="h-4 w-4 text-gray-400" />
-          </motion.div>
+          </div>
         </div>
       </button>
 
       {/* 사고 과정 내용 */}
-      <AnimatePresence>
+      <React.Fragment>
         {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
+          <div
             className="border-t border-gray-700/50"
           >
             <div
               ref={scrollRef}
               className="scrollbar-thin scrollbar-track-gray-800 scrollbar-thumb-gray-600 max-h-48 space-y-2 overflow-y-auto p-3"
             >
-              <AnimatePresence>
+              <React.Fragment>
                 {visibleSteps.map((step, index) => (
-                  <motion.div
+                  <div
                     key={step.id}
-                    initial={{ opacity: 0, x: -20, scale: 0.95 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: 20, scale: 0.95 }}
-                    transition={{ delay: index * 0.1, duration: 0.3 }}
                     className={`flex items-start gap-3 rounded-lg border p-2.5 ${getEngineColor(step.engine)}`}
                   >
                     {/* 엔진 아이콘 */}
@@ -243,32 +231,28 @@ export const EnhancedThinkingView: React.FC<EnhancedThinkingViewProps> = ({
                         )}
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
-              </AnimatePresence>
+              </React.Fragment>
 
               {/* 현재 처리 중 표시 */}
               {isThinking && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                <div
                   className="flex items-center justify-center py-2"
                 >
                   <div className="flex items-center gap-2 text-sm text-gray-400">
-                    <motion.div
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
+                    <div
                     >
                       <div className="h-2 w-2 rounded-full bg-blue-400" />
-                    </motion.div>
+                    </div>
                     <span>AI가 분석하고 있습니다...</span>
                   </div>
-                </motion.div>
+                </div>
               )}
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </React.Fragment>
     </div>
   );
 };

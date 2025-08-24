@@ -10,7 +10,7 @@
 
 import type { ReactNode } from 'react';
 import React from 'react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { RefreshCw, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 
@@ -88,30 +88,26 @@ const BasePanelLayout: React.FC<BasePanelLayoutProps> = ({
           <div className="flex items-center gap-2">
             {/* 새로고침 버튼 */}
             {onRefresh && (
-              <motion.button
+              <button
                 onClick={onRefresh}
                 disabled={isLoading}
                 className="rounded-lg border border-gray-600/30 bg-gray-700/50 p-2 text-gray-300 transition-colors hover:bg-gray-600/70 disabled:opacity-50"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
                 <RefreshCw
                   className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
                 />
-              </motion.button>
+              </button>
             )}
 
             {/* 관리 페이지 링크 */}
             {adminPath && (
               <Link href={adminPath} target="_blank">
-                <motion.button
+                <button
                   className="flex items-center gap-1 rounded-lg border border-blue-500/30 bg-blue-500/20 px-2 py-1 text-xs text-blue-300 transition-colors hover:bg-blue-500/30"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                 >
                   <ExternalLink className="h-3 w-3" />
                   {adminLabel}
-                </motion.button>
+                </button>
               </Link>
             )}
           </div>
@@ -123,7 +119,7 @@ const BasePanelLayout: React.FC<BasePanelLayoutProps> = ({
         <div className="border-b border-gray-700/30 p-4">
           <div className="flex flex-wrap gap-2">
             {filters.map((filter) => (
-              <motion.button
+              <button
                 key={filter.id}
                 onClick={() => onFilterChange?.(filter.id)}
                 className={`flex items-center gap-1 rounded-full border px-3 py-1 text-xs transition-all ${
@@ -131,12 +127,10 @@ const BasePanelLayout: React.FC<BasePanelLayoutProps> = ({
                     ? 'border-blue-500/50 bg-blue-500/20 text-blue-300'
                     : 'border-gray-600/30 bg-gray-800/50 text-gray-400 hover:bg-gray-700/70'
                 }`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
               >
                 <span>{filter.icon}</span>
                 {filter.label}
-              </motion.button>
+              </button>
             ))}
           </div>
         </div>

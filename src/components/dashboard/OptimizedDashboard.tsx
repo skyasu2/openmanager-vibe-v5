@@ -17,7 +17,7 @@ import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { useSystemIntegration } from '@/hooks/useSystemIntegration';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import type { Server } from '@/types/server';
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Bot, LogOut, User } from 'lucide-react';
 import { useSession, signOut } from '@/hooks/useSupabaseSession';
 import { useRouter } from 'next/navigation';
@@ -142,7 +142,7 @@ export default function OptimizedDashboard({
   return (
     <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* 자동 로그아웃 경고 */}
-      <AnimatePresence>
+      <React.Fragment>
         {showLogoutWarning && (
           <AutoLogoutWarning
             remainingTime={remainingTime}
@@ -151,7 +151,7 @@ export default function OptimizedDashboard({
             onLogoutNow={handleLogoutNow}
           />
         )}
-      </AnimatePresence>
+      </React.Fragment>
 
       {/* 메인 레이아웃 */}
       <div
@@ -160,9 +160,7 @@ export default function OptimizedDashboard({
         {/* 메인 콘텐츠 */}
         <div className="flex min-h-screen flex-1 flex-col">
           {/* 통합 헤더 */}
-          <motion.header
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
+          <header
             className="border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800"
           >
             <div className="flex items-center justify-between">
@@ -192,9 +190,7 @@ export default function OptimizedDashboard({
                 />
 
                 {/* AI 어시스턴트 토글 */}
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <button
                   onClick={toggleAgent}
                   className={`flex items-center space-x-2 rounded-lg px-4 py-2 transition-all duration-200 ${
                     isAgentOpen
@@ -206,7 +202,7 @@ export default function OptimizedDashboard({
                   <span className="text-sm font-medium">
                     {isAgentOpen ? 'AI 닫기' : 'AI 열기'}
                   </span>
-                </motion.button>
+                </button>
               </div>
 
               {/* 사용자 메뉴 */}
@@ -235,54 +231,43 @@ export default function OptimizedDashboard({
                 </div>
 
                 {/* 로그아웃 버튼 */}
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <button
                   onClick={handleLogout}
                   className="p-2 text-gray-500 transition-colors hover:text-red-600"
                   title="로그아웃"
                 >
                   <LogOut className="h-5 w-5" />
-                </motion.button>
+                </button>
               </div>
             </div>
-          </motion.header>
+          </header>
 
           {/* 대시보드 콘텐츠 */}
           <main className="flex-1 p-6">
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.1 }}
+            <div
             >
               <ServerDashboard onStatsUpdate={() => {}} />
-            </motion.div>
+            </div>
           </main>
         </div>
 
         {/* AI 사이드바 */}
-        <AnimatePresence mode="wait">
+        <React.Fragment>
           {isAgentOpen && (
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'tween', duration: 0.3 }}
+            <div
               className="z-30 w-80 border-l border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
             >
               <AISidebar isOpen={isAgentOpen} onClose={closeAgent} />
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        </React.Fragment>
       </div>
 
       {/* 플로팅 시스템 컨트롤 제거됨 - Vercel 플랫폼 자체 모니터링 사용 */}
 
       {/* AI 에이전트 토글 버튼 (오른쪽 하단) */}
       <div className="fixed bottom-6 right-6 z-20">
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+        <button
           onClick={toggleAgent}
           className={`flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 ${
             isAgentOpen
@@ -320,11 +305,11 @@ export default function OptimizedDashboard({
               />
             </svg>
           )}
-        </motion.button>
+        </button>
       </div>
 
       {/* 서버 상세 모달 */}
-      <AnimatePresence>
+      <React.Fragment>
         {isServerModalOpen && selectedServer && selectedServer.hostname && (
           <EnhancedServerModal
             server={{
@@ -374,7 +359,7 @@ export default function OptimizedDashboard({
             onClose={handleServerModalClose}
           />
         )}
-      </AnimatePresence>
+      </React.Fragment>
     </div>
   );
 }

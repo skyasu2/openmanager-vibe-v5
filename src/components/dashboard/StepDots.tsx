@@ -8,7 +8,7 @@
  */
 
 import React from 'react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 
 interface StepDotsProps {
   currentStep: number;
@@ -74,55 +74,28 @@ const StepDots: React.FC<StepDotsProps> = ({
       {Array.from({ length: totalSteps }, (_, index) => (
         <div key={index} className="relative flex flex-col items-center">
           {/* 점 */}
-          <motion.div
+          <div
             className={`${sizeClasses.dot} relative cursor-pointer rounded-full transition-all duration-300 ${getDotColor(index)}`}
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{
-              delay: index * 0.1,
-              type: 'spring',
-              damping: 15,
-              stiffness: 300,
-            }}
-            whileHover={{
-              scale: onStepClick ? 1.5 : 1.2,
-              transition: { duration: 0.2 },
-            }}
-            whileTap={onStepClick ? { scale: 0.9 } : {}}
             onClick={() => handleDotClick(index)}
           >
             {/* 현재 단계 펄스 효과 */}
             {index === currentStep && !error && (
-              <motion.div
-                className="absolute inset-0 rounded-full bg-blue-400"
-                animate={{
-                  scale: [1, 1.5, 1],
-                  opacity: [0.8, 0.2, 0.8],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
+              <div
+                className="absolute inset-0 rounded-full bg-blue-400 animate-ping opacity-75"
               />
             )}
 
             {/* 완료 체크 표시 */}
             {index < currentStep && (
-              <motion.div
-                className="absolute inset-0 flex items-center justify-center"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2 }}
-              >
+              <div className="absolute inset-0 flex items-center justify-center">
                 <div className="h-1 w-1 rounded-full bg-white" />
-              </motion.div>
+              </div>
             )}
-          </motion.div>
+          </div>
 
           {/* 라벨 (옵션) */}
           {showLabels && (
-            <motion.span
+            <span
               className={`mt-1 text-xs ${
                 index === currentStep
                   ? error
@@ -132,34 +105,25 @@ const StepDots: React.FC<StepDotsProps> = ({
                     ? 'text-green-400'
                     : 'text-gray-500'
               }`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: index * 0.1 + 0.3 }}
             >
               {index + 1}
-            </motion.span>
+            </span>
           )}
 
           {/* 연결선 (마지막 점 제외) */}
           {orientation === 'horizontal' && index < totalSteps - 1 && (
-            <motion.div
+            <div
               className={`absolute left-full top-1/2 h-px w-2 -translate-y-1/2 ${
                 index < currentStep ? 'bg-green-400/50' : 'bg-gray-600/50'
               }`}
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ delay: index * 0.1 + 0.2 }}
             />
           )}
 
           {orientation === 'vertical' && index < totalSteps - 1 && (
-            <motion.div
+            <div
               className={`absolute left-1/2 top-full h-2 w-px -translate-x-1/2 ${
                 index < currentStep ? 'bg-green-400/50' : 'bg-gray-600/50'
               }`}
-              initial={{ scaleY: 0 }}
-              animate={{ scaleY: 1 }}
-              transition={{ delay: index * 0.1 + 0.2 }}
             />
           )}
         </div>

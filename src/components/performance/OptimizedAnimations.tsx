@@ -5,7 +5,7 @@
 
 'use client';
 
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { useState, useEffect, ReactNode, CSSProperties } from 'react';
 
 // 사용자 모션 설정 감지
@@ -123,12 +123,9 @@ export function OptimizedPageTransition({
   }
 
   return (
-    <motion.div
+    <div
       className={className}
       variants={optimizedVariants.pageTransition}
-      initial="initial"
-      animate="animate"
-      exit="exit"
       // GPU 가속 강제 활성화
       style={{
         willChange: 'transform, opacity',
@@ -137,7 +134,7 @@ export function OptimizedPageTransition({
       }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 
@@ -160,12 +157,9 @@ export function OptimizedHoverCard({
   }
 
   return (
-    <motion.div
+    <div
       className={className}
       variants={optimizedVariants.cardHover}
-      initial="rest"
-      whileHover="hover"
-      whileTap={{ scale: 0.98 }}
       onClick={onClick}
       // 성능 최적화
       style={{
@@ -174,7 +168,7 @@ export function OptimizedHoverCard({
       }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 
@@ -192,14 +186,12 @@ export function OptimizedStaggerContainer({
   }
 
   return (
-    <motion.div
+    <div
       className={className}
       variants={optimizedVariants.staggerContainer}
-      initial="initial"
-      animate="animate"
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 
@@ -217,7 +209,7 @@ export function OptimizedStaggerItem({
   }
 
   return (
-    <motion.div
+    <div
       className={className}
       variants={optimizedVariants.staggerItem}
       style={{
@@ -226,7 +218,7 @@ export function OptimizedStaggerItem({
       }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 
@@ -311,19 +303,16 @@ export function BatchAnimation({
   }
 
   return (
-    <AnimatePresence mode="wait">
+    <React.Fragment>
       {children.map((child, index) => (
-        <motion.div
+        <div
           key={index}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: delay + index * 0.05 }}
           style={{ willChange: 'transform, opacity' }}
         >
           {child}
-        </motion.div>
+        </div>
       ))}
-    </AnimatePresence>
+    </React.Fragment>
   );
 }
 

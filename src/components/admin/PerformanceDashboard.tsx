@@ -25,7 +25,7 @@
 
 'use client';
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { useCallback, useEffect, useState } from 'react';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 
@@ -146,10 +146,7 @@ export default function PerformanceDashboard() {
       />
 
       {/* 메인 대시보드 탭 (PerformanceDashboard.tabs 위임) */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
+      <div
       >
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <TabsList className="grid w-full grid-cols-4">
@@ -170,7 +167,7 @@ export default function PerformanceDashboard() {
             setSearchQuery={setSearchQuery}
           />
         </Tabs>
-      </motion.div>
+      </div>
 
       {/* 하단 상태 정보 (PerformanceDashboard.footer 위임) */}
       <PerformanceDashboardFooter data={data} lastUpdate={lastUpdate} />

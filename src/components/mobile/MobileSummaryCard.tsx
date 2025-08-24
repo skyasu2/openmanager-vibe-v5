@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   ChevronRightIcon,
   ExclamationTriangleIcon,
@@ -82,10 +82,7 @@ export default function MobileSummaryCard({
   const StatusIcon = overall.icon;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+    <div
       className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-lg"
     >
       {/* 상단 헤더 - 전체 상태 */}
@@ -126,52 +123,46 @@ export default function MobileSummaryCard({
       {/* 통계 요약 */}
       <div className="p-4">
         <div className="mb-4 grid grid-cols-4 gap-3">
-          <motion.div
-            whileTap={{ scale: 0.95 }}
+          <div
             className="rounded-lg bg-gray-50 p-3 text-center"
           >
             <div className="text-2xl font-bold text-gray-900">
               {stats.total}
             </div>
             <div className="mt-1 text-xs text-gray-500">전체</div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            whileTap={{ scale: 0.95 }}
+          <div
             className="rounded-lg bg-green-50 p-3 text-center"
           >
             <div className="text-2xl font-bold text-green-600">
               {stats.online}
             </div>
             <div className="mt-1 text-xs text-green-500">정상</div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            whileTap={{ scale: 0.95 }}
+          <div
             className="rounded-lg bg-yellow-50 p-3 text-center"
           >
             <div className="text-2xl font-bold text-yellow-600">
               {stats.warning}
             </div>
             <div className="mt-1 text-xs text-yellow-500">주의</div>
-          </motion.div>
+          </div>
 
-          <motion.div
-            whileTap={{ scale: 0.95 }}
+          <div
             className="rounded-lg bg-red-50 p-3 text-center"
           >
             <div className="text-2xl font-bold text-red-600">
               {stats.offline}
             </div>
             <div className="mt-1 text-xs text-red-500">오프라인</div>
-          </motion.div>
+          </div>
         </div>
 
         {/* 중요 알림 */}
         {stats.criticalAlerts > 0 && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
+          <div
             className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3"
           >
             <div className="flex items-center space-x-2">
@@ -180,19 +171,15 @@ export default function MobileSummaryCard({
                 {stats.criticalAlerts}개의 중요 알림
               </span>
             </div>
-          </motion.div>
+          </div>
         )}
 
         {/* 우선순위 서버 목록 */}
         <div className="mb-4 space-y-2">
           <h3 className="mb-2 text-sm font-medium text-gray-700">주요 서버</h3>
           {priorityServers.map((server, index) => (
-            <motion.button
+            <button
               key={server.id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              whileTap={{ scale: 0.98 }}
               onClick={() => onServerSelect(server)}
               className="flex w-full items-center justify-between rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50"
             >
@@ -222,20 +209,19 @@ export default function MobileSummaryCard({
                 </div>
                 <ChevronRightIcon className="h-4 w-4 text-gray-400" />
               </div>
-            </motion.button>
+            </button>
           ))}
         </div>
 
         {/* 전체 보기 버튼 */}
-        <motion.button
-          whileTap={{ scale: 0.98 }}
+        <button
           onClick={onViewAll}
           className="flex w-full items-center justify-center space-x-2 rounded-lg bg-blue-500 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-600"
         >
           <span>모든 서버 보기</span>
           <ChevronRightIcon className="h-4 w-4" />
-        </motion.button>
+        </button>
       </div>
-    </motion.div>
+    </div>
   );
 }

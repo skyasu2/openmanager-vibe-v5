@@ -8,7 +8,7 @@
  * - Alerts tab
  */
 
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   AlertTriangle,
   Brain,
@@ -284,14 +284,10 @@ export function PerformanceDashboardTabs({
           </CardHeader>
           <CardContent>
             <div className="max-h-96 space-y-3 overflow-y-auto">
-              <AnimatePresence>
+              <React.Fragment>
                 {filteredAlerts.map((alert, index) => (
-                  <motion.div
+                  <div
                     key={alert.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    transition={{ delay: index * 0.1 }}
                     className={`rounded-lg border-l-4 p-4 ${
                       alert.type === 'critical'
                         ? 'border-red-500 bg-red-50'
@@ -347,9 +343,9 @@ export function PerformanceDashboardTabs({
                         }`}
                       />
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
-              </AnimatePresence>
+              </React.Fragment>
 
               {filteredAlerts.length === 0 && (
                 <div className="py-8 text-center text-gray-500">

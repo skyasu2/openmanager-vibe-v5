@@ -17,6 +17,8 @@ import debug from '@/utils/debug';
 // Edge Runtime 설정
 export const runtime = 'edge';
 export const preferredRegion = 'icn1'; // 서울
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 // 요청 제한 (무료 티어 보호)
 const RATE_LIMIT = {

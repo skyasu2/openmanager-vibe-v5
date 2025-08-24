@@ -14,7 +14,6 @@ export const MinimalFallback = () => (
     <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
   </div>
 );
-
 /**
  * 🎯 전략 1: 대용량 라이브러리 분리
  */
@@ -130,8 +129,7 @@ export const LazyGCPMonitoring = lazy(() =>
         </div>
       </div>
     ),
-  }))
-);
+  })));
 
 /**
  * 🎯 전략 4: 성능 최적화된 컴포넌트 래퍼

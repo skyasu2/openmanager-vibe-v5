@@ -15,9 +15,44 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 🚀 Next.js 15 완전 동적 모드
+  // 🚀 Next.js 15 완전 동적 모드 - Html 에러 우회
   output: 'standalone',
   trailingSlash: false,
+  
+  // 빌드 시 404 페이지 생성 건너뛰기
+  generateStaticParams: async () => [],
+  
+  // 이미지 최적화 비활성화
+  images: {
+    unoptimized: true,
+    formats: ['image/webp'],
+    deviceSizes: [640, 828, 1200],
+    imageSizes: [16, 32, 64, 128],
+  },
+  
+  // 정적 생성 완전 비활성화 (Html 에러 해결)
+  generateBuildId: () => 'dynamic-' + Date.now(),
+  
+  // 모든 페이지를 서버 렌더링으로 강제
+  distDir: '.next',
+  
+  // 정적 최적화 완전 비활성화
+  experimental: {
+    // 기본 패키지 최적화만 유지
+    optimizePackageImports: [
+      'lucide-react',
+      '@radix-ui/react-icons',
+      '@heroicons/react',
+      'react-hot-toast',
+    ],
+    // 정적 생성 관련 모든 기능 비활성화
+    disableOptimizedLoading: true,
+    nextScriptWorkers: false,
+    forceSwcTransforms: true,
+    // Static Generation 완전 비활성화
+    staticWorkerRequestDeduping: false,
+  },
+  
   
   // 페이지 확장자 최소화
   pageExtensions: ['tsx', 'ts'],
@@ -39,20 +74,6 @@ const nextConfig = {
     'axios',
   ],
 
-  // 실험적 기능 - Next.js 기본 설정 (CSS 문제 해결)
-  experimental: {
-    // 기본 패키지 최적화만 유지
-    optimizePackageImports: [
-      'lucide-react',
-      '@radix-ui/react-icons',
-      '@heroicons/react',
-      'react-hot-toast',
-    ],
-    // Playwright E2E 테스트를 위한 devtools 완전 비활성화
-    disableOptimizedLoading: process.env.__NEXT_TEST_MODE === 'true',
-    // 개발 도구 완전 비활성화
-    nextScriptWorkers: false,
-  },
 
   // skipTrailingSlashRedirect를 root 레벨로 이동
   skipTrailingSlashRedirect: true,
@@ -70,13 +91,6 @@ const nextConfig = {
     reactRemoveProperties: process.env.NODE_ENV === 'production' || process.env.__NEXT_TEST_MODE === 'true',
   },
 
-  // 이미지 최적화 비활성화 (번들 크기 감소)
-  images: {
-    unoptimized: true,
-    formats: ['image/webp'],
-    deviceSizes: [640, 828, 1200],
-    imageSizes: [16, 32, 64, 128],
-  },
 
   // 🚧 리라이트 설정 (개발 환경 전용 파일 보호)
   async rewrites() {
@@ -95,27 +109,10 @@ const nextConfig = {
     ];
   },
 
-  // 🚫 리다이렉트 설정 (프로덕션 환경 보호)
+  // 🚫 리다이렉트 설정 (임시 비활성화 - 빌드 문제 해결)
   async redirects() {
     return [
-      // 프로덕션에서 테스트 파일 접근 시 404로 리다이렉트
-      ...(process.env.NODE_ENV === 'production' ? [
-        {
-          source: '/test-:path*',
-          destination: '/404',
-          permanent: false,
-        },
-        {
-          source: '/tests/:path*',
-          destination: '/404', 
-          permanent: false,
-        },
-        {
-          source: '/dev/:path*',
-          destination: '/404',
-          permanent: false,
-        }
-      ] : []),
+      // 임시로 모든 리다이렉트 비활성화
     ];
   },
 

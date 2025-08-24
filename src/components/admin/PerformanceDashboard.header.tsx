@@ -10,7 +10,7 @@
  * - Export data button
  */
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
   Bell,
@@ -46,9 +46,7 @@ export function PerformanceDashboardHeader({
   loading,
 }: PerformanceDashboardHeaderProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
+    <div
       className="flex items-center justify-between"
     >
       <div>
@@ -121,6 +119,6 @@ export function PerformanceDashboardHeader({
           내보내기
         </Button>
       </div>
-    </motion.div>
+    </div>
   );
 }

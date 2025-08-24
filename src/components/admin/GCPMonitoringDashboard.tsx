@@ -9,7 +9,7 @@
 
 'use client';
 
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   AlertTriangle,
   CheckCircle,
@@ -281,9 +281,7 @@ export default function GCPMonitoringDashboard() {
       </div>
 
       {/* 전체 리스크 레벨 */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+      <div
         className="rounded-lg border bg-gradient-to-r from-blue-50 to-green-50 p-6"
       >
         <div className="mb-4 flex items-center justify-between">
@@ -298,15 +296,12 @@ export default function GCPMonitoringDashboard() {
         <p className="mt-2 text-sm text-gray-600">
           80% 이상 시 주의, 90% 이상 시 위험 상태
         </p>
-      </motion.div>
+      </div>
 
       {/* GCP 서비스별 사용량 */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Compute Engine */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 }}
+        <div
         >
           <Card>
             <CardHeader>
@@ -369,13 +364,10 @@ export default function GCPMonitoringDashboard() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
         {/* Cloud Functions */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
+        <div
         >
           <Card>
             <CardHeader>
@@ -428,13 +420,10 @@ export default function GCPMonitoringDashboard() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
         {/* Cloud Run */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
+        <div
         >
           <Card>
             <CardHeader>
@@ -480,13 +469,10 @@ export default function GCPMonitoringDashboard() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
         {/* Cloud Storage */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
+        <div
         >
           <Card>
             <CardHeader>
@@ -532,14 +518,11 @@ export default function GCPMonitoringDashboard() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       </div>
 
       {/* 배포된 엔드포인트 상태 */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
+      <div
       >
         <Card>
           <CardHeader>
@@ -551,11 +534,8 @@ export default function GCPMonitoringDashboard() {
           <CardContent>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {endpoints.map((endpoint, index) => (
-                <motion.div
+                <div
                   key={endpoint.name}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.1 }}
                   className="rounded-lg border border-gray-200 p-4 transition-shadow hover:shadow-md"
                 >
                   <div className="mb-2 flex items-center justify-between">
@@ -603,12 +583,12 @@ export default function GCPMonitoringDashboard() {
                       </a>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
 
       {/* 마지막 업데이트 정보 */}
       <div className="border-t border-gray-200 pt-4 text-center text-sm text-gray-500">

@@ -1,6 +1,6 @@
 'use client';
 
-// Removed framer-motion import for SSR compatibility
+// framer-motion 제거 - CSS 애니메이션 사용
 import { X } from 'lucide-react';
 import React, { useEffect } from 'react';
 import type {
@@ -59,8 +59,7 @@ export default function FeatureCardModal({
 
     return (
       <div
-        className={`rounded-lg border p-4 ${importanceStyle.bg} transition-all duration-300 hover:scale-105 animate-fade-in-delay`}
-        style={{ animationDelay: `${index * 100}ms` }}
+        className={`rounded-lg border p-4 ${importanceStyle.bg} transition-all duration-300 hover:scale-105`}
       >
         <div className="mb-3 flex items-start justify-between">
           <div className="flex items-center gap-3">
@@ -255,7 +254,7 @@ export default function FeatureCardModal({
   );
 
   return (
-    <>
+    <AnimatePresence>
       <div
         className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
         onClick={onClose}
@@ -305,6 +304,6 @@ export default function FeatureCardModal({
           </div>
         </div>
       </div>
-    </>
+    </AnimatePresence>
   );
 }

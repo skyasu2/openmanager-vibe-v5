@@ -53,13 +53,12 @@ const main = async () => {
   const args = process.argv.slice(2);
   
   if (args.includes('--version')) {
-    console.log('Codex CLI Mock v1.0.0');
+    process.stdout.write('Codex CLI Mock v1.0.0\n');
     process.exit(0);
   }
 
   if (args.includes('--help') || args.length === 0) {
-    console.log(`
-🤖 Codex CLI Mock
+    process.stdout.write(`🤖 Codex CLI Mock
 
 Usage: codex-cli [options] "<prompt>"
 
@@ -90,30 +89,21 @@ Examples:
     // Mock 응답 생성
     const response = await mockCodexResponse(prompt);
     
-    if (isJson) {
-      console.log(JSON.stringify({
-        status: 'success',
-        tool: 'codex-cli-mock',
-        timestamp: new Date().toISOString(),
-        analysis: response,
-        prompt: prompt
-      }, null, 2));
-    } else {
-      console.log(`
-🤖 Codex Analysis Results
-
-📊 Score: ${response.score}/10
-🎯 Priority: ${response.priority}
-
-❌ Issues Found:
-${response.issues.map(issue => `  • ${issue}`).join('\n')}
-
-✅ Recommendations:
-${response.recommendations.map(rec => `  • ${rec}`).join('\n')}
-
-⚠️  Note: This is a mock response. Install actual Codex CLI for real analysis.
-`);
-    }
+    // 항상 JSON 출력으로 통일 (AI 검토 시스템 호환성)
+    const result = {
+      status: 'success',
+      tool: 'codex-cli-mock',
+      timestamp: new Date().toISOString(),
+      analysis: response,
+      prompt: prompt,
+      score: response.score,
+      issues: response.issues,
+      recommendations: response.recommendations,
+      priority: response.priority
+    };
+    
+    // process.stdout.write로 출력하여 채팅창 출력 방지
+    process.stdout.write(JSON.stringify(result, null, 2) + '\n');
 
     process.exit(0);
   } catch (error) {

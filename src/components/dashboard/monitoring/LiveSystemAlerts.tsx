@@ -3,7 +3,7 @@
 import CollapsibleCard from '@/components/shared/CollapsibleCard';
 import type { SystemAlert } from '@/domains/ai-sidebar/types';
 import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
-import { AnimatePresence, motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
   AlertOctagon,
@@ -197,14 +197,10 @@ export default function LiveSystemAlerts() {
         variant="bordered"
       >
         <div className="relative h-32 overflow-hidden">
-          <AnimatePresence mode="wait">
+          <React.Fragment>
             {currentAlert && (
-              <motion.div
+              <div
                 key={currentAlert.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5, ease: 'easeInOut' }}
                 className={`absolute inset-0 rounded-lg border p-4 ${getAlertColor(currentAlert.type)}`}
               >
                 <div className="flex h-full items-start gap-3">
@@ -234,9 +230,9 @@ export default function LiveSystemAlerts() {
                     </p>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
+          </React.Fragment>
         </div>
       </CollapsibleCard>
 

@@ -24,7 +24,6 @@ const LazyFeatureCards = lazy(() =>
     ),
   }))
 );
-
 const LazySystemStatus = lazy(() =>
   import('@/components/system/SystemStatusMinimal').catch(() => ({
     default: () => (
@@ -37,7 +36,6 @@ const LazySystemStatus = lazy(() =>
     ),
   }))
 );
-
 // CSS 애니메이션으로 Framer Motion 대체
 const AnimatedCard = ({
   children,
@@ -56,7 +54,6 @@ const AnimatedCard = ({
     {children}
   </div>
 );
-
 // 경량 웨이브 배경 (CSS만 사용)
 const WaveBackground = () => (
   <div className="absolute inset-0 overflow-hidden">
@@ -64,7 +61,6 @@ const WaveBackground = () => (
     <div className="absolute -bottom-40 -right-40 h-96 w-96 animate-pulse rounded-full bg-purple-500/10 blur-3xl"></div>
   </div>
 );
-
 export default function OptimizedMainPage() {
   const [isClientMounted, setIsClientMounted] = useState(false);
   const [authState, setAuthState] = useState<{

@@ -11,7 +11,7 @@
 'use client';
 
 import AIInsightsCard from '@/components/dashboard/AIInsightsCard';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   AlertTriangle,
   CheckCircle,
@@ -266,21 +266,19 @@ export default function IntelligentMonitoringPage() {
 
           {/* 실행 버튼들 */}
           <div className="flex items-center space-x-2">
-            <motion.button
+            <button
               onClick={resetAnalysis}
               disabled={isAnalyzing}
               className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200 disabled:opacity-50"
-              whileTap={{ scale: 0.95 }}
             >
               <RotateCcw className="mr-1 inline h-4 w-4" />
               초기화
-            </motion.button>
+            </button>
 
-            <motion.button
+            <button
               onClick={runIntelligentAnalysis}
               disabled={isAnalyzing}
               className="rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2 text-sm font-medium text-white transition-all hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50"
-              whileTap={{ scale: 0.95 }}
             >
               {isAnalyzing ? (
                 <>
@@ -293,7 +291,7 @@ export default function IntelligentMonitoringPage() {
                   분석 시작
                 </>
               )}
-            </motion.button>
+            </button>
           </div>
         </div>
         <p className="text-sm text-gray-600">
@@ -304,9 +302,7 @@ export default function IntelligentMonitoringPage() {
 
       {/* AI 인사이트 통합 섹션 (상단) */}
       {showAIInsights && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+        <div
           className="mb-6"
         >
           <div className="rounded-lg border border-orange-200 bg-white p-4 shadow-sm">
@@ -336,14 +332,12 @@ export default function IntelligentMonitoringPage() {
             </div>
             <AIInsightsCard />
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* ML 학습 인사이트 섹션 (신규) */}
       {showMLInsights && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
+        <div
           className="mb-6"
         >
           <div className="rounded-lg border border-purple-200 bg-white p-4 shadow-sm">
@@ -425,7 +419,7 @@ export default function IntelligentMonitoringPage() {
               </p>
             </div>
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* 분석 설정 패널 */}
@@ -557,11 +551,8 @@ export default function IntelligentMonitoringPage() {
 
           {/* 진행률 바 */}
           <div className="mb-6 h-2 w-full rounded-full bg-gray-200">
-            <motion.div
+            <div
               className="h-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.5 }}
             />
           </div>
 
@@ -592,7 +583,7 @@ export default function IntelligentMonitoringPage() {
               const Icon = step.icon;
 
               return (
-                <motion.div
+                <div
                   key={step.id}
                   className={`rounded-lg border-2 p-4 transition-all ${
                     !isEnabled
@@ -603,9 +594,6 @@ export default function IntelligentMonitoringPage() {
                           ? 'border-red-200 bg-red-50'
                           : 'border-gray-200 bg-gray-50'
                   }`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
                 >
                   <div className="mb-2 flex items-center space-x-3">
                     <div className={`rounded-lg p-2 ${step.bgColor}`}>
@@ -656,7 +644,7 @@ export default function IntelligentMonitoringPage() {
                       )}
                     </div>
                   )}
-                </motion.div>
+                </div>
               );
             })}
           </div>
@@ -665,25 +653,21 @@ export default function IntelligentMonitoringPage() {
 
       {/* 오류 표시 */}
       {error && (
-        <motion.div
+        <div
           className="rounded-xl border border-red-200 bg-red-50 p-4"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
         >
           <div className="flex items-center space-x-2">
             <XCircle className="h-5 w-5 text-red-600" />
             <h3 className="font-medium text-red-800">분석 실행 오류</h3>
           </div>
           <p className="mt-2 text-red-700">{error}</p>
-        </motion.div>
+        </div>
       )}
 
       {/* 통합 결과 표시 */}
       {result && (
-        <motion.div
+        <div
           className="rounded-xl border border-gray-200 bg-white p-6"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
         >
           <h3 className="mb-4 text-lg font-semibold text-gray-900">
             통합 분석 결과
@@ -873,7 +857,7 @@ export default function IntelligentMonitoringPage() {
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
       )}
     </div>
   );

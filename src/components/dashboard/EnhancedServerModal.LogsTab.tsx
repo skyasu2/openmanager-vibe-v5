@@ -14,11 +14,7 @@ import React from 'react';
 import dynamic from 'next/dynamic';
 import { RealtimeData, LogEntry, LogLevel } from './EnhancedServerModal.types';
 
-// framer-motion을 동적 import로 처리
-const MotionDiv = dynamic(
-  () => import('framer-motion').then((mod) => ({ default: mod.motion.div })),
-  { ssr: false }
-);
+// framer-motion 제거 - CSS 애니메이션 사용
 
 /**
  * Logs Tab Props
@@ -87,11 +83,7 @@ const formatTimestamp = (timestamp: string): string => {
 export const LogsTab: React.FC<LogsTabProps> = ({ realtimeData }) => {
   return (
     <div className="space-y-6">
-      <MotionDiv
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
+      <div className="animate-fade-in">
         {/* 헤더 섹션 */}
         <div className="mb-6 flex items-center justify-between">
           <h3 className="bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
@@ -127,12 +119,10 @@ export const LogsTab: React.FC<LogsTabProps> = ({ realtimeData }) => {
                 const styles = getLogLevelStyles(log.level);
 
                 return (
-                  <MotionDiv
+                  <div
                     key={idx}
-                    initial={{ opacity: 0, x: -30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.02 }}
-                    className={`mb-3 flex items-start gap-3 rounded-lg p-3 backdrop-blur-sm ${styles.containerClass}`}
+                    className={`mb-3 flex items-start gap-3 rounded-lg p-3 backdrop-blur-sm animate-fade-in ${styles.containerClass}`}
+                    style={{ animationDelay: `${idx * 0.02}s` }}
                   >
                     {/* 로그 레벨 배지 */}
                     <div className="flex-shrink-0">
@@ -158,7 +148,7 @@ export const LogsTab: React.FC<LogsTabProps> = ({ realtimeData }) => {
                       {/* 로그 메시지 */}
                       <div className={styles.textClass}>{log.message}</div>
                     </div>
-                  </MotionDiv>
+                  </div>
                 );
               })
             ) : (
@@ -184,11 +174,9 @@ export const LogsTab: React.FC<LogsTabProps> = ({ realtimeData }) => {
 
         {/* 로그 통계 요약 */}
         {realtimeData.logs.length > 0 && (
-          <MotionDiv
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4"
+          <div
+            className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4 animate-fade-in"
+            style={{ animationDelay: '0.3s' }}
           >
             {/* 총 로그 수 */}
             <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
@@ -260,9 +248,9 @@ export const LogsTab: React.FC<LogsTabProps> = ({ realtimeData }) => {
                 </div>
               </div>
             </div>
-          </MotionDiv>
+          </div>
         )}
-      </MotionDiv>
+      </div>
     </div>
   );
 };

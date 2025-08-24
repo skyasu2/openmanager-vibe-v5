@@ -6,7 +6,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import { Send, Loader2, Brain, CheckCircle, AlertCircle } from 'lucide-react';
 import { MCPQueryResponse, ApiResponse } from '@/types/api-responses';
 
@@ -179,11 +179,8 @@ export default function TestAIPage() {
 
         {/* 응답 표시 */}
         {response && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
+          <div className="space-y-4 animate-fade-in">
+            {/* framer-motion 제거: CSS 애니메이션 사용 */}
             {/* 상태 표시 */}
             <div
               className={`rounded-lg p-4 ${
@@ -298,7 +295,7 @@ export default function TestAIPage() {
                 {JSON.stringify(response, null, 2)}
               </pre>
             </details>
-          </motion.div>
+          </div>
         )}
       </div>
     </div>

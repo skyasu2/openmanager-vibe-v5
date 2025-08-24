@@ -31,8 +31,8 @@ ChartJS.register(
   Tooltip,
   Legend,
   ArcElement
-);
 
+);
 interface PerformanceMonitorProps {
   updateInterval?: number;
   historyLimit?: number;

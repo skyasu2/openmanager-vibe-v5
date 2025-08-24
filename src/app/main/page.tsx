@@ -7,9 +7,6 @@
 
 'use client';
 
-// SVGElement SSR 오류 방지: 정적 생성 비활성화
-export const dynamic = 'force-dynamic';
-
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
@@ -21,16 +18,16 @@ import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import debug from '@/utils/debug';
 import { vercelConfig, debugWithEnv } from '@/utils/vercel-env';
 
-// Removed framer-motion import for SSR compatibility
+// framer-motion 제거 - CSS 애니메이션 사용
 
 const FeatureCardsGrid = dynamic(
   () => import('@/components/home/FeatureCardsGrid'),
   {
-    ssr: false, // 서버사이드 렌더링 완전 비활성화
+    ssr: false,
     loading: () => (
       <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="animate-pulse h-32 rounded-lg bg-white/10" />
+          <div key={i} className="_animate-pulse h-32 rounded-lg bg-white/10" />
         ))}
       </div>
     ),
@@ -277,7 +274,7 @@ function Home() {
         return (
           <span
             key={index}
-            className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text font-bold text-transparent animate-gradient-x"
+            className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text font-bold text-transparent"
             style={{
               backgroundSize: '200% 200%',
             }}
@@ -484,16 +481,17 @@ function Home() {
 
   // 로그아웃 처리는 UnifiedProfileHeader에서 처리됨
 
-  // 🔄 통합 로딩 상태 - 안정된 환경 감지 + SSR 방지 강화
-  const shouldShowLoading = typeof window === 'undefined' || !isMounted || authLoading || shouldRedirect;
+  // 🔄 통합 로딩 상태 - 안정된 환경 감지
+  const shouldShowLoading = !isMounted || authLoading || shouldRedirect;
   
   if (shouldShowLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
         <div className="flex min-h-screen items-center justify-center">
           <div className="text-center">
-<div>
-              <Loader2 className="mx-auto mb-4 h-8 w-8 text-white animate-spin" />
+            <div
+            >
+              <Loader2 className="mx-auto mb-4 h-8 w-8 text-white" />
             </div>
             <p className="text-white/90 font-medium">
               {getLoadingMessage()} ({vercelConfig.envLabel} 환경)
@@ -543,22 +541,29 @@ function Home() {
       {/* 헤더 */}
       <header className="relative z-50 flex items-center justify-between p-6">
         <div className="flex items-center space-x-3">
-          {/* AI 컨셉 아이콘 - CSS 애니메이션으로 변경 */}
-          <div 
-            className={`relative flex h-10 w-10 items-center justify-center rounded-lg shadow-lg transition-all duration-300 hover:scale-110 ${
-              aiAgent.isEnabled
-                ? 'bg-gradient-to-br from-purple-500 to-pink-500 animate-pulse'
+          {/* AI 컨셉 아이콘 - 통합 AI 카드 스타일 애니메이션 적용 */}
+          <div
+            className="relative flex h-10 w-10 items-center justify-center rounded-lg shadow-lg"
+            style={{
+              background: aiAgent.isEnabled 
+                ? 'linear-gradient(135deg, #a855f7, #ec4899)'
                 : isSystemStarted
-                ? 'bg-gradient-to-br from-green-500 to-emerald-600'
-                : 'bg-gradient-to-br from-gray-600 to-gray-700'
-            }`}
+                  ? 'linear-gradient(135deg, #10b981, #059669)'
+                  : 'linear-gradient(135deg, #6b7280, #4b5563)'
+            }}
           >
-            <i
-              className={`fas fa-server text-lg text-white ${
-                aiAgent.isEnabled ? 'animate-spin-slow' : ''
-              }`}
-              aria-hidden="true"
-            />
+            {/* AI 활성화 시 회전 아이콘 */}
+            {aiAgent.isEnabled ? (
+              <i
+                className="fas fa-server text-lg text-white animate-spin"
+                aria-hidden="true"
+              />
+            ) : (
+              <i
+                className="fas fa-server text-lg text-white"
+                aria-hidden="true"
+              />
+            )}
           </div>
 
           {/* 브랜드 텍스트 */}
@@ -586,7 +591,9 @@ function Home() {
       {/* 메인 콘텐츠 */}
       <div className="container relative z-10 mx-auto px-6 pt-8">
         {/* 타이틀 섹션 */}
-        <div className="mb-12 text-center animate-fade-in">
+        <div
+          className="mb-12 text-center"
+        >
           <h1 className="mb-4 text-3xl font-bold md:text-5xl">
             <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
               {renderTextWithAIGradient('AI')}
@@ -602,7 +609,9 @@ function Home() {
         </div>
 
         {/* 제어 패널 */}
-        <div className="mb-12 animate-fade-in-delay">
+        <div
+          className="mb-12"
+        >
           {!isSystemStarted ? (
             <div className="mx-auto max-w-2xl text-center">
               {/* 시스템 중지 상태 - 대시보드 버튼 중심으로 변경 */}
@@ -612,22 +621,22 @@ function Home() {
                   <>
                     {/* GitHub 인증 사용자 - 시스템 시작 버튼 표시 */}
                     {/* 현재 사용자: {currentUser?.name || currentUser?.email || 'Unknown'} */}
-<button
-                        onClick={handleSystemToggle}
-                        disabled={buttonConfig.disabled}
-                        className={`flex h-16 w-64 items-center justify-center gap-3 rounded-xl border font-semibold shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 ${buttonConfig.className}`}
-                      >
-                      {/* 카운트다운 진행바 - CSS 애니메이션으로 변경 */}
+                    <button
+                      onClick={handleSystemToggle}
+                      disabled={buttonConfig.disabled}
+                      className={`flex h-16 w-64 items-center justify-center gap-3 rounded-xl border font-semibold shadow-xl transition-all duration-300 ${buttonConfig.className}`}
+                    >
+                      {/* 카운트다운 진행바 */}
                       {systemStartCountdown > 0 && (
                         <div
                           className="absolute inset-0 overflow-hidden rounded-xl"
                           style={{ transformOrigin: 'left' }}
                         >
                           <div
-                            className="h-full bg-gradient-to-r from-red-600/40 via-red-500/40 to-red-400/40 animate-progress-bar"
+                            className="h-full bg-gradient-to-r from-red-600/40 via-red-500/40 to-red-400/40"
                           />
                           <div
-                            className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"
+                            className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"
                           />
                         </div>
                       )}
@@ -673,7 +682,7 @@ function Home() {
                       </p>
                       <button
                         onClick={() => router.push('/login')}
-                        className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-all hover:bg-blue-700 hover:scale-105 active:scale-95"
+                        className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
                       >
                         로그인 페이지로 이동
                       </button>
@@ -699,7 +708,9 @@ function Home() {
               </div>
             </div>
           ) : (
-            <div className="mx-auto max-w-4xl text-center animate-fade-in">
+            <div
+              className="mx-auto max-w-4xl text-center"
+            >
               {/* 시스템 활성 상태 */}
               {/* 대시보드 버튼 - 중앙 배치 */}
               <div className="mb-6 flex justify-center">
@@ -707,7 +718,7 @@ function Home() {
                   {isGitHubUser ? (
                     <button
                       onClick={handleDashboardClick}
-                      className="flex h-16 w-64 items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-600 font-semibold text-white shadow-xl transition-all duration-200 hover:bg-emerald-700 hover:scale-105 active:scale-95"
+                      className="flex h-16 w-64 items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-600 font-semibold text-white shadow-xl transition-all duration-200 hover:bg-emerald-700"
                     >
                       <BarChart3 className="h-5 w-5" />
                       <span className="text-lg">📊 대시보드 열기</span>
@@ -761,5 +772,5 @@ function Home() {
   );
 }
 
-// SSR 호환성 유지를 위해 일반 export 사용
-export default Home;
+// 동적 임포트로 SSR 완전 회피
+export default dynamic(() => Promise.resolve(Home), { ssr: false });

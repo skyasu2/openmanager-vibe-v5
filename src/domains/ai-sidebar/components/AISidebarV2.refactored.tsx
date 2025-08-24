@@ -6,7 +6,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   X,
   Send,
@@ -261,12 +261,8 @@ export const AISidebarV2Refactored: React.FC = () => {
   if (!isOpen) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ x: '100%' }}
-        animate={{ x: 0 }}
-        exit={{ x: '100%' }}
-        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+    <React.Fragment>
+      <div
         className="fixed right-0 top-0 z-50 flex h-full w-80 flex-col bg-white shadow-xl sm:w-96"
       >
         {/* 헤더 */}
@@ -393,12 +389,10 @@ export const AISidebarV2Refactored: React.FC = () => {
               className="rounded-lg bg-blue-500 p-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-gray-300"
             >
               {isProcessing ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                <div
                 >
                   <RefreshCw className="h-4 w-4" />
-                </motion.div>
+                </div>
               ) : (
                 <Send className="h-4 w-4" />
               )}
@@ -410,7 +404,7 @@ export const AISidebarV2Refactored: React.FC = () => {
             </p>
           )}
         </div>
-      </motion.div>
-    </AnimatePresence>
+      </div>
+    </React.Fragment>
   );
 };

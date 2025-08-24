@@ -7,7 +7,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+// framer-motion 제거 - CSS 애니메이션 사용
 import {
   TrendingUp,
   AlertTriangle,
@@ -160,18 +160,16 @@ export default function PredictionPage() {
             </div>
           </div>
 
-          <motion.button
+          <button
             onClick={handleAnalyze}
             disabled={isAnalyzing}
             className="flex items-center space-x-2 rounded-lg bg-purple-500 px-4 py-2 text-white transition-colors hover:bg-purple-600 disabled:opacity-50"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
             <RefreshCw
               className={`h-4 w-4 ${isAnalyzing ? 'animate-spin' : ''}`}
             />
             <span>{isAnalyzing ? '분석 중...' : '재분석'}</span>
-          </motion.button>
+          </button>
         </div>
       </div>
 
@@ -220,11 +218,8 @@ export default function PredictionPage() {
       {/* 예측 목록 */}
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {filteredPredictions.map((prediction, index) => (
-          <motion.div
+          <div
             key={prediction.serverId}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
             className={`rounded-lg border-2 p-4 ${getRiskColor(prediction.riskLevel)} transition-shadow hover:shadow-lg`}
           >
             <div className="mb-3 flex items-start justify-between">
@@ -255,7 +250,7 @@ export default function PredictionPage() {
                 <span>{prediction.confidence}% 신뢰도</span>
               </div>
               <div className="h-2 w-full rounded-full bg-gray-200">
-                <motion.div
+                <div
                   className={`h-2 rounded-full ${
                     prediction.riskLevel === 'critical'
                       ? 'bg-red-500'
@@ -265,9 +260,6 @@ export default function PredictionPage() {
                           ? 'bg-yellow-500'
                           : 'bg-green-500'
                   }`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${prediction.probability}%` }}
-                  transition={{ duration: 1, delay: index * 0.2 }}
                 />
               </div>
             </div>
@@ -298,7 +290,7 @@ export default function PredictionPage() {
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
 
         {filteredPredictions.length === 0 && (
