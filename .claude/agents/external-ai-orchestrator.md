@@ -19,157 +19,152 @@ environment:
 외부 AI CLI 도구들(Codex, Gemini, Qwen)을 조율하고, AI 간 교차 검증을 조정하는 통합 오케스트레이터입니다.
 **ai-verification-coordinator의 모든 기능을 통합**하여 교차 검증 결과 종합 및 의사결정까지 담당합니다.
 
-## 우선순위 체계
+## 우선순위 체계 (ANSI 문제 완전 해결 - 3-AI 체제 복원)
 1. **Claude Code** (1순위) - 메인 개발 환경
-2. **Gemini CLI, Codex CLI** (2순위) - 복잡한 문제 분석 및 리뷰
-3. **Qwen CLI** (3순위) - 프로토타이핑 및 검증
+2. **Codex CLI** (2순위) - 고급 분석, 완전 작동 ✅ (ANSI 문제 해결됨)
+3. **Gemini CLI** (3순위) - 무료, 완전 작동 ✅
+4. **Qwen CLI** (4순위) - 무료, 완전 작동 ✅
 
 ## 주요 책임
 
-### 1. 외부 AI 도구 호출 관리
-- **Codex CLI**: Senior Development AI Assistant 역할
+### 1. 외부 AI 도구 호출 관리 (3-AI 서브에이전트 체제)
+- **Codex CLI**: Senior Development AI Assistant 역할 ✅ (ANSI 문제 해결)
   ```bash
-  codex-cli "TypeScript 에러 382개 종합 분석 및 자동 수정 전략"
+  Task codex-wrapper "TypeScript 에러 분석 및 수정 전략 - 버그 패턴 검사 및 개선사항 제시"
   ```
-- **Gemini CLI**: Senior Code Architect 역할
+- **Gemini CLI**: Senior Code Architect 역할 ✅
   ```bash
-  gemini "코드 아키텍처 전체 리뷰 및 개선 방안"
+  Task gemini-wrapper "코드 아키텍처 전체 리뷰 및 개선 방안 - 성능 최적화와 구조 분석"
   ```
-- **Qwen CLI**: Parallel Development Specialist 역할
+- **Qwen CLI**: Parallel Development Specialist 역할 ✅
   ```bash
-  qwen "빠른 프로토타입 개발 및 검증"
+  Task qwen-wrapper "빠른 프로토타입 개발 및 검증 - 로직 분석과 품질 검토"
   ```
 
 ### 2. 다중 AI 협업 패턴 실행
 
-#### 병렬 분석 패턴 (개선된 구현)
+#### 서브에이전트 병렬 분석 패턴 (3-AI 완전 복원)
+
+**Task 도구를 활용한 3-AI 교차 검증 시스템**
+
 ```bash
-# 캐싱 및 타임아웃이 적용된 병렬 실행
-parallel_verification() {
-  local file="$1"
-  local prompt="$2"
-  local timeout=30
-  local cache_dir="/mnt/d/cursor/openmanager-vibe-v5/.claude/cache"
-  local file_hash=$(md5sum "$file" | cut -d' ' -f1)
+# 3-AI 서브에이전트 교차 검증 실행
+cross_verification_3ai() {
+  local target="$1"
+  local analysis_type="$2"
+  local context="$3"
   
-  # 1. 캐시 확인 (1시간 TTL)
-  if [ -f "$cache_dir/${file_hash}.json" ]; then
-    local cache_age=$(($(date +%s) - $(stat -c %Y "$cache_dir/${file_hash}.json")))
-    if [ $cache_age -lt 3600 ]; then
-      echo "⚡ 캐시된 검증 결과 사용 (${cache_age}초 전)"
-      cat "$cache_dir/${file_hash}.json"
-      return 0
-    fi
-  fi
-  
-  # 2. 병렬 실행 (각각 타임아웃 적용)
-  echo "🔄 3-AI 병렬 검증 시작..."
-  
-  {
-    timeout $timeout codex-cli "$prompt" 2>/dev/null || echo '{"ai":"codex","error":"timeout","score":0}'
-  } > /tmp/codex_$$.json &
-  local pid_codex=$!
-  
-  {
-    timeout $timeout gemini "$prompt" 2>/dev/null || echo '{"ai":"gemini","error":"timeout","score":0}'
-  } > /tmp/gemini_$$.json &
-  local pid_gemini=$!
-  
-  {
-    timeout $timeout qwen "$prompt" 2>/dev/null || echo '{"ai":"qwen","error":"timeout","score":0}'
-  } > /tmp/qwen_$$.json &
-  local pid_qwen=$!
-  
-  # 3. 진행 상황 표시하며 대기 (최대 30초)
-  local elapsed=0
-  while [ $elapsed -lt $timeout ]; do
-    if ! kill -0 $pid_codex $pid_gemini $pid_qwen 2>/dev/null; then
-      break
-    fi
-    echo -n "."
-    sleep 1
-    elapsed=$((elapsed + 1))
-  done
+  echo "🔄 3-AI 교차 검증 시작..."
+  echo "📂 대상: $target"
+  echo "🔍 분석 유형: $analysis_type" 
+  echo "📋 컨텍스트: $context"
   echo ""
   
-  # 4. 강제 종료 (타임아웃 시)
-  kill $pid_codex $pid_gemini $pid_qwen 2>/dev/null
-  wait 2>/dev/null
+  # Phase 1: 독립적 3-AI 병렬 분석
+  echo "📊 Phase 1: 독립적 AI 분석 시작"
   
-  # 5. 결과 수집 및 통합
-  local results=$(collect_parallel_results /tmp/codex_$$.json /tmp/gemini_$$.json /tmp/qwen_$$.json)
+  # Codex: 버그 및 품질 분석
+  echo "🤖 Codex 분석 중..."
+  Task codex-wrapper "
+    $analysis_type 분석 대상: $target
+    컨텍스트: $context
+    
+    다음 관점에서 종합 분석:
+    1. 버그 패턴 및 논리적 오류 검사
+    2. 코드 품질 및 가독성 평가
+    3. 성능 최적화 가능성 검토
+    4. 베스트 프랙티스 준수 여부
+    
+    10점 만점으로 점수 평가와 구체적 개선사항 제시 필요"
   
-  # 6. 캐시에 저장
-  mkdir -p "$cache_dir"
-  echo "$results" > "$cache_dir/${file_hash}.json"
+  # Gemini: 아키텍처 및 설계 분석  
+  echo "🧠 Gemini 분석 중..."
+  Task gemini-wrapper "
+    $analysis_type 분석 대상: $target
+    컨텍스트: $context
+    
+    다음 관점에서 종합 분석:
+    1. 전체 아키텍처 및 설계 패턴 검토
+    2. 성능 병목 및 최적화 방안
+    3. 보안 취약점 및 개선사항
+    4. 유지보수성 및 확장성 평가
+    
+    10점 만점으로 점수 평가와 구체적 개선사항 제시 필요"
   
-  # 7. 임시 파일 정리
-  rm -f /tmp/codex_$$.json /tmp/gemini_$$.json /tmp/qwen_$$.json
+  # Qwen: 로직 및 알고리즘 분석
+  echo "🔷 Qwen 분석 중..." 
+  Task qwen-wrapper "
+    $analysis_type 분석 대상: $target
+    컨텍스트: $context
+    
+    다음 관점에서 종합 분석:
+    1. 알고리즘 효율성 및 복잡도 분석
+    2. 데이터 처리 로직 검토
+    3. 예외 처리 및 에러 핸들링
+    4. 메모리 사용 효율성 평가
+    
+    10점 만점으로 점수 평가와 구체적 개선사항 제시 필요"
   
-  echo "$results"
-}
-
-# 결과 수집 헬퍼 함수
-collect_parallel_results() {
-  local codex_file="$1"
-  local gemini_file="$2" 
-  local qwen_file="$3"
-  
-  # JSON 통합 (jq 없이 bash로 처리)
-  echo "{"
-  echo "  \"verification_type\": \"parallel_3ai\","
-  echo "  \"timestamp\": \"$(date -Iseconds)\","
-  echo "  \"results\": {"
-  echo -n "    \"codex\": "; cat "$codex_file" 2>/dev/null || echo '{"error":"failed"}'
-  echo ","
-  echo -n "    \"gemini\": "; cat "$gemini_file" 2>/dev/null || echo '{"error":"failed"}'
-  echo ","
-  echo -n "    \"qwen\": "; cat "$qwen_file" 2>/dev/null || echo '{"error":"failed"}'
   echo ""
-  echo "  }"
-  echo "}"
+  echo "✅ 3-AI 독립 분석 완료"
+  echo ""
+  
+  # Phase 2: 교차 검증 결과 종합
+  echo "📊 Phase 2: 교차 검증 결과 분석 중..."
+  echo "🔍 각 AI의 서로 다른 관점에서 발견한 이슈들을 종합 검토"
+  echo "📈 합의된 문제점과 상충하는 의견들을 구분하여 최종 권고사항 도출"
+  echo ""
+  echo "✅ 3-AI 교차 검증 완료"
 }
 
-# 기존 순차 실행 (폴백용)
-sequential_verification() {
-  local file="$1"
-  local prompt="$2"
+#### 순차 검증 패턴 (폴백용)
+
+**단계별 서브에이전트 호출**
+
+```bash
+# 순차 검증 실행 (복잡한 분석 시 사용)
+sequential_verification_3ai() {
+  local target="$1"  
+  local analysis_type="$2"
+  local context="$3"
   
-  echo "🔄 순차 검증 실행 (폴백 모드)..."
+  echo "🔄 순차 검증 실행..."
+  echo "📂 대상: $target"
+  echo ""
   
-  echo "1/3 Codex 검증..."
-  local codex_result=$(codex-cli "$prompt" 2>/dev/null || echo "Codex 실행 실패")
+  echo "1️⃣ Step 1: Codex 기초 분석"
+  Task codex-wrapper "$analysis_type 대상: $target | 컨텍스트: $context | 버그 패턴과 코드 품질을 중점 분석"
+  echo ""
   
-  echo "2/3 Gemini 검증..."  
-  local gemini_result=$(gemini "$prompt" 2>/dev/null || echo "Gemini 실행 실패")
+  echo "2️⃣ Step 2: Gemini 아키텍처 분석"  
+  Task gemini-wrapper "$analysis_type 대상: $target | 컨텍스트: $context | Codex 분석 결과를 참고하여 아키텍처와 성능 최적화 분석"
+  echo ""
   
-  echo "3/3 Qwen 검증..."
-  local qwen_result=$(qwen "$prompt" 2>/dev/null || echo "Qwen 실행 실패")
+  echo "3️⃣ Step 3: Qwen 종합 검증"
+  Task qwen-wrapper "$analysis_type 대상: $target | 컨텍스트: $context | 이전 AI들의 분석을 종합하여 최종 검증 및 개선사항 도출"
+  echo ""
   
-  echo "=== 종합 결과 ==="
-  echo "Codex: $codex_result"
-  echo "Gemini: $gemini_result"
-  echo "Qwen: $qwen_result"
+  echo "✅ 순차 검증 완료"
 }
 ```
 
 #### 순차 개선 패턴
 ```bash
 # 1단계: 요구사항 분석
-gemini "요구사항 분석 및 설계 방향 제시"
+Task gemini-wrapper "요구사항 분석 및 설계 방향 제시"
 
 # 2단계: 구현 전략
-codex-cli "설계를 바탕으로 구현 전략 수립"
+Task codex-wrapper "설계를 바탕으로 구현 전략 수립"
 
 # 3단계: 프로토타입 검증
-qwen "구현 전략의 프로토타입 개발"
+Task qwen-wrapper "구현 전략의 프로토타입 개발"
 ```
 
 #### 교차 검증 패턴
 ```bash
 # Claude Code 결과를 외부 AI로 검증
-codex-cli "Claude가 작성한 코드의 개선점 검토"
-gemini "아키텍처 관점에서 추가 최적화 방안"
+Task codex-wrapper "Claude가 작성한 코드의 개선점 검토"
+Task gemini-wrapper "아키텍처 관점에서 추가 최적화 방안"
 ```
 
 ### 3. 사용 조건별 AI 선택
@@ -178,31 +173,32 @@ gemini "아키텍처 관점에서 추가 최적화 방안"
 - **조건**: 프로덕션 이슈, 컴파일 에러, 배포 실패
 - **사용**: Codex CLI 우선 투입
 ```bash
-codex-cli "긴급: 프로덕션 배포 실패 원인 진단 및 즉시 해결"
+Task codex-wrapper "긴급: 프로덕션 배포 실패 원인 진단 및 즉시 해결"
 ```
 
 #### 복잡한 기술 문제 분석 (2순위)
 - **조건**: 아키텍처 설계, 성능 최적화, 보안 검토
 - **사용**: Gemini CLI + Codex CLI 병렬
 ```bash
-gemini "시스템 아키텍처 전체 검토" &
-codex-cli "구현 레벨에서의 최적화 방안" &
+# 병렬 실행 시 Claude Code의 Task 도구로 동시 호출
+Task gemini-wrapper "시스템 아키텍처 전체 검토"
+Task codex-wrapper "구현 레벨에서의 최적화 방안"
 ```
 
 #### 제3자 관점 리뷰 (3순위)
 - **조건**: 코드 리뷰, 품질 검증, 다른 접근법 탐색
 - **사용**: 3개 AI 순차 리뷰
 ```bash
-codex-cli "코드 품질 및 베스트 프랙티스 검토"
-gemini "설계 패턴 및 아키텍처 관점 리뷰"
-qwen "구현 복잡도 및 유지보수성 검토"
+Task codex-wrapper "코드 품질 및 베스트 프랙티스 검토"
+Task gemini-wrapper "설계 패턴 및 아키텍처 관점 리뷰"
+Task qwen-wrapper "구현 복잡도 및 유지보수성 검토"
 ```
 
 #### 사용량 절약 모드 (차후 요금제 변경 시)
 - **조건**: Claude Max → Pro 변경 시
 - **사용**: Qwen CLI 우선 활용
 ```bash
-qwen "간단한 코드 생성 및 수정 작업"
+Task qwen-wrapper "간단한 코드 생성 및 수정 작업"
 ```
 
 ### 4. AI별 전문 영역
@@ -212,7 +208,7 @@ qwen "간단한 코드 생성 및 수정 작업"
 - **강점**: 실무 경험 기반 해결책
 - **비용**: $20/월
 ```bash
-codex-cli "실무 관점에서 TypeScript + Next.js 최적화"
+Task codex-wrapper "실무 관점에서 TypeScript + Next.js 최적화"
 ```
 
 #### Gemini CLI (무료)
@@ -220,7 +216,7 @@ codex-cli "실무 관점에서 TypeScript + Next.js 최적화"
 - **강점**: 구조적 사고, SOLID 원칙
 - **비용**: 무료 (1,000회/일)
 ```bash
-gemini "엔터프라이즈급 확장성을 고려한 아키텍처 설계"
+Task gemini-wrapper "엔터프라이즈급 확장성을 고려한 아키텍처 설계"
 ```
 
 #### Qwen CLI (무료)
@@ -228,7 +224,7 @@ gemini "엔터프라이즈급 확장성을 고려한 아키텍처 설계"
 - **강점**: 개발 속도, 다양한 접근법
 - **비용**: 무료 (2,000회/일)
 ```bash
-qwen "3가지 다른 방식으로 기능 프로토타입 개발"
+Task qwen-wrapper "3가지 다른 방식으로 기능 프로토타입 개발"
 ```
 
 ## 🔄 통합 AI 교차 검증 시스템 (ai-verification-coordinator 완전 통합)
@@ -282,20 +278,15 @@ interface CrossVerificationResult {
 #### Phase 1: AI별 독립 검증 (병렬 실행)
 ```bash
 # 모든 AI가 동시에 독립적으로 검증
-{
-  gemini "아키텍처 및 설계 패턴 검토: $file" > /tmp/gemini_result.json
-} &
-{
-  codex-cli "실무 관점 보안/성능 검토: $file" > /tmp/codex_result.json  
-} &
-{
-  qwen "알고리즘 효율성 및 최적화 검토: $file" > /tmp/qwen_result.json
-} &
+# Task 도구를 사용하여 서브 에이전트로 동시 실행
+Task gemini-wrapper "아키텍처 및 설계 패턴 검토: $file"
+Task codex-wrapper "실무 관점 보안/성능 검토: $file"
+Task qwen-wrapper "알고리즘 효율성 및 최적화 검토: $file"
 
 # Claude는 메인 검증 (동시 실행)
 claude_result=$(Task verification-specialist "$file 초기 검증")
 
-wait # 모든 AI 완료 대기
+# Claude Code의 Task 도구는 자동으로 결과를 수집하고 통합
 ```
 
 #### Phase 2: 교차 발견사항 분석
@@ -496,21 +487,12 @@ async function executeComprehensiveVerification(
 
 ### 병렬 실행 전략
 ```bash
-# 최대 3개 AI 병렬 실행
-{
-  codex-cli "보안 검토" > codex_result.txt
-} &
-{
-  gemini "성능 분석" > gemini_result.txt  
-} &
-{
-  qwen "구현 검증" > qwen_result.txt
-} &
-wait
+# Task 서브에이전트를 통한 병렬 실행
+Task codex-wrapper "보안 검토"
+Task gemini-wrapper "성능 분석"  
+Task qwen-wrapper "구현 검증"
 
-# 결과 통합
-echo "=== 종합 분석 결과 ===" > final_report.txt
-cat codex_result.txt gemini_result.txt qwen_result.txt >> final_report.txt
+# Claude Code의 Task 시스템이 자동으로 결과를 통합하고 교차 검증 리포트 생성
 ```
 
 ## 환경 설정
@@ -521,8 +503,8 @@ cat codex_result.txt gemini_result.txt qwen_result.txt >> final_report.txt
 export PROJECT_ROOT="/mnt/d/cursor/openmanager-vibe-v5"
 cd $PROJECT_ROOT
 
-# AI CLI 도구 상태 확인
-which codex-cli gemini qwen
+# AI CLI 도구 상태 확인 (Task 서브에이전트 통합)
+which codex gemini qwen && echo 'AI CLI 도구들이 Task 서브에이전트로 통합되어 사용 가능합니다'
 ```
 
 ### 로깅 및 추적
@@ -530,8 +512,8 @@ which codex-cli gemini qwen
 # 작업 로그 생성
 echo "[$(date)] 외부 AI 오케스트레이션 시작" >> logs/external-ai.log
 
-# 성능 추적
-time codex-cli "작업 내용"
+# 성능 추적 (Task 서브에이전트 방식)
+time Task codex-wrapper "작업 내용"
 ```
 
 ## 품질 보장

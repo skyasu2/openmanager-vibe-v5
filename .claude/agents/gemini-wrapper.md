@@ -9,6 +9,11 @@ environment:
   NO_COLOR: 1
   NONINTERACTIVE: 1
   PAGER: cat
+  CI: true
+  NO_TTY: 1
+  NODE_NO_READLINE: 1
+  FORCE_TTY: false
+  DISABLE_AUTO_TITLE: true
 ---
 
 # Google Gemini CLI 래퍼
@@ -24,15 +29,22 @@ AI 교차 검증 시스템의 핵심 구성원으로서, 다른 AI들과 독립�
 
 ## 실행 방법
 
-### 기본 실행
+### 기본 실행 (ANSI 차단 강화)
 ```bash
-# 일반 코드 검토
-gemini "코드 품질 종합 검토"
-gemini "버그 및 개선사항 분석"
+# ANSI escape sequence 완전 차단 실행
+# stdin 차단 + 비대화형 모드 + 출력 필터링
+exec_gemini() {
+    local prompt="$1"
+    gemini -p "$prompt" < /dev/null 2>&1 | sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g' | sed -E 's/\x1b\[[?][0-9]*[A-Za-z]//g'
+}
 
-# 프롬프트 옵션 사용
-gemini -p "성능 최적화 제안"
-gemini -p "보안 취약점 검토"
+# 일반 코드 검토
+exec_gemini "코드 품질 종합 검토"
+exec_gemini "버그 및 개선사항 분석"
+
+# 성능 및 보안 검토
+exec_gemini "성능 최적화 제안"
+exec_gemini "보안 취약점 검토"
 ```
 
 ### 전문 영역별 활용
@@ -40,37 +52,37 @@ gemini -p "보안 취약점 검토"
 #### 🔍 코드 품질 검토
 ```bash
 # 종합 코드 분석
-gemini "이 파일의 코드 품질을 종합적으로 검토하고 개선사항 제시"
+exec_gemini "이 파일의 코드 품질을 종합적으로 검토하고 개선사항 제시"
 
 # 버그 패턴 분석
-gemini "잠재적 버그나 에러 가능성이 있는 코드 패턴 찾기"
+exec_gemini "잠재적 버그나 에러 가능성이 있는 코드 패턴 찾기"
 
 # 가독성 개선
-gemini "코드 가독성과 유지보수성을 향상시킬 수 있는 방안"
+exec_gemini "코드 가독성과 유지보수성을 향상시킬 수 있는 방안"
 ```
 
 #### 🚀 성능 최적화
 ```bash
 # 성능 병목 분석
-gemini "이 코드에서 성능 병목이 될 수 있는 부분 분석"
+exec_gemini "이 코드에서 성능 병목이 될 수 있는 부분 분석"
 
 # 최적화 제안
-gemini "렌더링 성능과 메모리 사용량을 개선할 수 있는 방법"
+exec_gemini "렌더링 성능과 메모리 사용량을 개선할 수 있는 방법"
 
 # 알고리즘 효율성
-gemini "현재 알고리즘의 시간복잡도를 개선할 수 있는 방안"
+exec_gemini "현재 알고리즘의 시간복잡도를 개선할 수 있는 방안"
 ```
 
 #### 🔐 보안 검토
 ```bash
 # 보안 취약점 검사
-gemini "이 코드에서 보안상 위험할 수 있는 부분 찾기"
+exec_gemini "이 코드에서 보안상 위험할 수 있는 부분 찾기"
 
 # 입력 검증
-gemini "사용자 입력 처리 및 검증 로직의 안전성 검토"
+exec_gemini "사용자 입력 처리 및 검증 로직의 안전성 검토"
 
 # 권한 관리
-gemini "접근 권한과 인증 로직의 보안성 분석"
+exec_gemini "접근 권한과 인증 로직의 보안성 분석"
 ```
 
 ## 교차 검증 특화 기능
@@ -78,13 +90,13 @@ gemini "접근 권한과 인증 로직의 보안성 분석"
 ### 종합적 코드 검증
 ```bash
 # 전체 코드 품질 검증
-gemini "이 파일의 전반적인 코드 품질과 개선 가능성 분석"
+exec_gemini "이 파일의 전반적인 코드 품질과 개선 가능성 분석"
 
 # 버그 및 이슈 검증
-gemini "잠재적 버그, 성능 이슈, 보안 문제 종합 검토"
+exec_gemini "잠재적 버그, 성능 이슈, 보안 문제 종합 검토"
 
 # 베스트 프랙티스 검증
-gemini "코딩 표준과 베스트 프랙티스 준수 여부 검토"
+exec_gemini "코딩 표준과 베스트 프랙티스 준수 여부 검토"
 ```
 
 ### 코드 품질 점수 평가

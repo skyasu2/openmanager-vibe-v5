@@ -1,7 +1,16 @@
 {
   "env": {
     "CLAUDE_CODE_NO_TERMINAL_QUERY": "1",
-    "DISABLE_AUTO_TITLE": "true"
+    "DISABLE_AUTO_TITLE": "true",
+    "CLAUDE_CODE_SUPPRESS_ESCAPE_SEQUENCES": "1",
+    "FORCE_COLOR": "0",
+    "CI": "true",
+    "TERM": "dumb",
+    "NONINTERACTIVE": "1",
+    "NO_READLINE": "1",
+    "NODE_NO_READLINE": "1",
+    "NODE_DISABLE_COLORS": "1",
+    "FORCE_TTY": "false"
   },
   "hooks": {
     "PostToolUse": [

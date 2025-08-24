@@ -143,7 +143,15 @@ export async function GET(request: NextRequest) {
     // 현재 시간 계산 (30초 = 1시간 매핑)
     const now = new Date();
     const secondsElapsed = now.getSeconds() + now.getMinutes() * 60;
-    const currentHour = Math.floor(secondsElapsed / 30) % 24; // 30초마다 1시간씩 증가
+    const calculatedHour = Math.floor(secondsElapsed / 30) % 24; // 30초마다 1시간씩 증가
+    
+    // 실제 데이터가 있는 시간대: 0, 4, 8, 12, 16, 20
+    const availableHours = [0, 4, 8, 12, 16, 20];
+    const currentHour = availableHours.reduce((prev, curr) => 
+      Math.abs(curr - calculatedHour) < Math.abs(prev - calculatedHour) ? curr : prev
+    );
+    
+    debug.log(`⏰ 시간 매핑: 계산된=${calculatedHour}, 선택된=${currentHour}`);
 
     // 캐시 키 생성 (현재 시간 포함)
     const cacheKey = `servers:all:hour=${currentHour}:page=${page}:limit=${limit}:search=${search}:status=${status}:env=${environment}:sort=${sortBy}:order=${sortOrder}`;

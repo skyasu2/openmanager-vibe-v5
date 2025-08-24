@@ -117,91 +117,13 @@ wsl claude --version
 
 ## 🐧 WSL 2 개발 환경 특화
 
-### WSL 성능 분석 및 최적화 (2025-08-17 업데이트)
+### WSL 성능 분석 및 최적화
 
-#### 🔍 시스템 사양 분석
+**🎯 최적화 할당**: 메모리 8GB, 프로세서 6개, 스왑 16GB
+**📊 성능 결과**: I/O 4.1GB/s, Claude 1.0초, Gemini 3.1초, Qwen 7.6초
+**⚙️ 주요 효과**: CPU 활용 50%, 메모리 50%, WSL이 Windows 대비 54배 빠른 I/O
 
-**Windows 호스트 시스템:**
-- **CPU**: AMD Ryzen 5 7430U (6코어 12스레드, 2.3GHz)
-- **RAM**: 16GB DDR4 3200MHz (Hynix)
-- **논리 프로세서**: 12개
-
-**WSL2 최적화 할당 (.wslconfig):**
-- **메모리**: 8GB (시스템의 50%, 안정적 성능 보장)
-- **프로세서**: 6개 (논리 프로세서의 50%, 균형잡힌 리소스 배분)
-- **스왑**: 16GB (대규모 AI 작업 지원, 여유로운 스왑 공간)
-- **네트워크**: localhost 포워딩, NAT 모드
-- **성능 옵션**: 메모리 압축 비활성화, 중첩 가상화 지원
-
-#### 📊 성능 벤치마크 결과
-
-**디스크 I/O 성능:**
-- **WSL 네이티브**: 4.1 GB/s (메모리 기반 가상 디스크)
-- **Windows 마운트**: 76.1 MB/s (실제 SSD 성능)
-- **성능 비율**: WSL이 54배 빠름 (파일 시스템 최적화)
-
-**파일 작업 성능:**
-- **TypeScript 파일 검색**: 28초 (15,307개 파일)
-- **대용량 프로젝트**: Windows 마운트 경로 유지 권장
-- **소규모 작업**: WSL 네이티브 경로 활용
-
-**AI CLI 도구 응답시간:**
-- **Claude Code**: 1.0초 (정상)
-- **Gemini CLI**: 3.1초 (보통)
-- **Qwen CLI**: 7.6초 (Qwen OAuth 직접 연결, 안정적 동작)
-- **ccusage**: 0.16초 (우수)
-
-#### ⚙️ 최적화 설정 상세
-
-**C:\Users\skyas\.wslconfig:**
-```ini
-[wsl2]
-memory=8GB               # 50% 메모리 할당 (안정성 우선)
-processors=6             # 50% CPU 할당 (균형잡힌 성능)
-swap=16GB                # 여유로운 스왑 공간 (AI 작업 지원)
-localhostForwarding=true # 네트워크 최적화
-firewall=true            # 보안 강화
-nestedVirtualization=true # 중첩 가상화 지원
-vmIdleTimeout=60000      # AI 작업 고려 연장
-kernelCommandLine=sysctl.vm.swappiness=10
-pageReporting=false      # 성능 우선
-```
-
-**/etc/wsl.conf:**
-```ini
-[automount]
-options="metadata,uid=1000,gid=1000,umask=022,fmask=011,case=off"
-
-[boot]
-command=sysctl -w vm.overcommit_memory=1
-command=sysctl -w vm.vfs_cache_pressure=50
-```
-
-#### 🎯 성능 모니터링 도구
-
-```bash
-# 실시간 성능 모니터링
-./scripts/wsl-performance-monitor.sh
-
-# 특정 영역만 모니터링
-./scripts/wsl-performance-monitor.sh --cpu
-./scripts/wsl-performance-monitor.sh --memory
-./scripts/wsl-performance-monitor.sh --disk
-./scripts/wsl-performance-monitor.sh --ai-tools
-```
-
-#### 💡 최적화 효과
-
-**리소스 활용률 개선:**
-- CPU 활용: 33% → 50% (1.5배 향상)
-- 메모리 활용: 40% → 50% (1.25배 향상)
-- 스왑 용량: 1GB → 16GB (16배 향상)
-
-**예상 성능 향상:**
-- AI CLI 도구 응답속도 15-20% 향상
-- 대용량 컴파일 작업 25% 빨라짐
-- 동시 AI 도구 실행 성능 향상
-- 메모리 부족 현상 해결 (16GB 스왑 활용)
+→ **[상세 분석 및 설정](docs/development/wsl-optimization-analysis-report.md)**
 
 ### 개발 도구 통합
 
@@ -408,215 +330,35 @@ echo "🔄 최적 모델 선택으로 생산성 극대화"
 
 💡 **핵심 철학**: **Max 정액제 + 서브 3개** 체제로 무제한 생산성과 극도의 비용 효율성
 
-## 🤝 AI 협력 검토 시스템 v3.0 (2025-08-21 서브에이전트 전환)
+## 🤝 AI 교차 검증 시스템 v3.0
 
-**Claude Code 네이티브 서브에이전트 기반 AI 검증 시스템**
+**3단계 레벨 기반 자동 AI 교차 검증**
 
-### 🎯 핵심 개선사항 (v3.0)
+### 📊 자동 검증 레벨
+- **Level 1** (< 50줄): Claude 단독 검증
+- **Level 2** (50-200줄): Claude + Gemini 교차 검증  
+- **Level 3** (> 200줄): 4-AI 완전 교차 검증 (Claude, Gemini, Codex, Qwen)
 
-#### 📋 스크립트 → 서브에이전트 전환
-- **이전**: 복잡한 bash/JavaScript 스크립트 오케스트레이션
-- **현재**: Claude Code Task 도구로 자연어 기반 제어
-- **장점**: 안정성 향상, TTY 에러 해결, JSON 파싱 불필요
+### 🔒 중요 파일 자동 Level 3: **/auth/**, **/api/**, **.env*, **/security/**
 
-#### 🤖 새로운 AI 검증 서브에이전트
-```
-.claude/agents/
-├── verification-specialist.md     # AI 검증 전문가 (메인)
-├── ai-verification-coordinator.md # 교차 검증 조정자
-├── gemini-wrapper.md              # Gemini 종합 코드 검토 전문가
-├── codex-wrapper.md               # Codex 종합 코드 검토 전문가
-└── qwen-wrapper.md                # Qwen 종합 코드 검토 전문가
-```
-
-### 📊 자동 검토 레벨 시스템
-
-#### 작업 크기/중요도 자동 평가
-- **Level 1** (< 50줄): Gemini 단독 검토
-- **Level 2** (50-200줄): Gemini + Codex 병렬 검토
-- **Level 3** (> 200줄 또는 중요 파일): 3-AI 완전 검토
-
-#### 🔒 중요 파일 자동 Level 3
-```typescript
-// 항상 Level 3 검토가 적용되는 패턴
-**/auth/**      // 인증 관련
-**/api/**       // API 엔드포인트
-**/*.config.*   // 설정 파일
-.env*           // 환경변수
-**/security/**  // 보안 관련
-**/payment/**   // 결제 관련
-```
-
-### 🚀 사용 방법 (서브에이전트 방식)
-
-#### 기본 검증 명령
-```
-# 파일 검증 (자동 레벨 결정)
-Task verification-specialist "src/app/api/auth/route.ts 검증"
-
-# 커밋 검증
-Task verification-specialist "최근 커밋 변경사항 검증"
-
-# Level 3 강제 실행
-Task verification-specialist "src/lib/utils.ts Level 3 검증 강제 실행"
-
-# 보안 중심 검증
-Task verification-specialist "src/app/api/payment/route.ts 보안 취약점 중심 검증"
-```
-
-#### AI별 직접 호출 (필요시)
-```
-# Gemini: 종합 코드 검토
-Task gemini-wrapper "코드 품질, 설계 패턴, 보안 취약점 종합 검토"
-
-# Codex: 종합 코드 검토
-Task codex-wrapper "코드 품질, 성능, 유지보수성 종합 검토"
-
-# Qwen: 종합 코드 검토
-Task qwen-wrapper "코드 품질, 로직, 최적화 종합 검토"
-```
-
-#### 교차 검증 조정
-```
-# 여러 AI 결과 종합
-Task ai-verification-coordinator "3-AI 검토 결과 종합 및 최종 의사결정"
-```
-
-### 🔄 자동 트리거 (hooks)
-
-**.claude/settings.json** 설정:
-```json
-{
-  "hooks": {
-    "PostToolUse": [{
-      "matcher": "Edit|Write|MultiEdit",
-      "hooks": [{
-        "type": "command",
-        "command": "echo '파일 변경 감지' >> .claude/verification.log"
-      }]
-    }]
-  }
-}
-```
-
-### 📈 검토 프로세스
-
-```mermaid
-graph LR
-    A[Claude Code 개발] --> B[자동 분석]
-    B --> C{검토 레벨 결정}
-    C -->|Level 1| D[1 AI 검토]
-    C -->|Level 2| E[2 AI 병렬 검토]
-    C -->|Level 3| F[3 AI 전체 검토]
-    D --> G[결과 통합]
-    E --> G
-    F --> G
-    G --> H{의사결정}
-    H -->|8.5+점| I[자동 수용]
-    H -->|6-8.5점| J[부분 수용]
-    H -->|<6점| K[재작업]
-    I --> L[보고서 생성]
-    J --> L
-    K --> L
-```
-
-### 🎯 자동 트리거 조건
-
-| 조건 | 자동 동작 |
-|------|-----------|
-| 파일 50줄+ 변경 | Level 1 검토 자동 실행 |
-| 파일 200줄+ 변경 | Level 2 검토 자동 실행 |
-| auth/*, api/* 변경 | Level 3 검토 강제 실행 |
-| Git commit 시 | 변경량 기반 자동 검토 |
-| PR 생성 시 | 전체 3-AI 검토 + PR 코멘트 |
-
-### 📊 검토 결과 및 의사결정
-
-#### 점수 기반 자동 결정
-- **8.5점 이상**: ✅ 자동 수용 (고품질 코드)
-- **6.0-8.5점**: ⚠️ 부분 수용 (개선사항 적용 후)
-- **6.0점 미만**: ❌ 재작업 필요
-- **보안 이슈 발견**: 🚨 즉시 거절 (수정 필수)
-
-#### AI 합의 수준
-- **High**: 🟢 모든 AI 의견 일치 (±0.5점)
-- **Medium**: 🟡 대체로 일치 (±1.0점)
-- **Low**: 🟠 의견 차이 있음 (±2.0점)
-- **Very Low**: 🔴 큰 의견 차이 (수동 검토 필요)
-
-### 📄 검토 보고서
-
-모든 검토는 자동으로 마크다운 보고서로 생성됩니다:
-- **위치**: `reports/ai-reviews/`
-- **형식**: `YYYY-MM-DD_HH-MM-SS_review_ID.md`
-- **내용**: 점수, 개선사항, 보안 이슈, 권장사항
-
+### 🚀 사용 방법
 ```bash
-# 보고서 목록 확인
-./scripts/ai-collaborate.sh report
+# 기본 검증
+Task verification-specialist "파일명 검증"
 
-# 일일 요약 생성
-./scripts/ai-collaborate.sh daily
+# AI별 직접 호출 
+Task gemini-wrapper "코드 검토"
+Task codex-wrapper "성능 검토" 
+Task qwen-wrapper "로직 검토"
 ```
 
-### 💡 효율성 최적화
+### 📊 자동 트리거: 파일 수정 시 hooks로 자동 검증 + 점수 기반 승인 (8.5+점 자동 수용)
 
-#### AI 사용량 관리
-```javascript
-// 일일 제한 (무료 티어)
-Gemini: 1,000회/일
-Qwen: 2,000회/일 + 60회/분 (OAuth)
-Codex: 무제한 (ChatGPT Plus $20/월)
+## 🤖 서브에이전트 최적화 전략
 
-// 우선순위
-1. 무료 AI 우선 사용 (Gemini, Qwen)
-2. 제한 도달 시 Codex 사용
-3. 중요 작업은 Codex 우선
-```
+**22개 핵심 에이전트 완전 구축** - AI 교차 검증 시스템 구축으로 최적화 완성 + MCP 활용률 90% 달성
 
-#### 병렬 처리
-- 2-3개 AI 동시 실행으로 검토 시간 단축
-- 비동기 처리로 대기 시간 최소화
-- 결과 캐싱으로 중복 검토 방지
-
-### 🔄 향후 확장성
-
-#### 교차 검증 모드 (비용 절감 시)
-```javascript
-// Claude Code 사용량 절감 모드
-if (monthlyUsage > threshold) {
-  // A 개발 → B,C 검토
-  Gemini 개발 → Codex, Qwen 검토
-  Codex 개발 → Gemini, Qwen 검토
-  Qwen 개발 → Gemini, Codex 검토
-}
-```
-
-#### 커스텀 규칙 추가
-```javascript
-// .ai-review-config.json
-{
-  "customRules": {
-    "database/*": { "minLevel": 3 },
-    "*.test.ts": { "skip": true },
-    "migrations/*": { "focus": "security" }
-  }
-}
-```
-
-## 🚀 Claude Code 공식 서브에이전트 검증 시스템 v3.0 (2025-08-20 신규)
-
-**Claude Code 네이티브 기능을 최대한 활용한 자동 검증 시스템**
-
-### 🎯 핵심 철학: 프로젝트 내장형 검증
-
-모든 검증 로직이 프로젝트 디렉토리 `.claude/` 내에 위치하여:
-- ✅ 버전 관리 가능 (Git 추적)
-- ✅ 팀 공유 가능 (프로젝트와 함께 배포)
-- ✅ Claude Code 공식 기능 100% 활용
-- ✅ 외부 스크립트 의존도 ZERO
-
-### 📁 프로젝트 내장 구조
+### 🎯 핵심 에이전트 구성 (22개)
 
 ```
 /mnt/d/cursor/openmanager-vibe-v5/
@@ -805,7 +547,7 @@ Task central-supervisor "Claude + Gemini 교차 검증 실행"
 - **Qwen 놓친 문제**: 평균 3-4개/파일
 - **공통 발견**: 80% (모든 AI가 발견하는 주요 문제)
 
-## 🤖 서브에이전트 최적화 전략 (2025-08-24 v3.0 AI 교차 검증 완성)
+## 🤖 서브에이전트 최적화 전략
 
 **22개 핵심 에이전트 완전 구축** - AI 교차 검증 시스템 구축으로 최적화 완성 + MCP 활용률 90% 달성
 
@@ -857,7 +599,7 @@ Task central-supervisor "Claude + Gemini 교차 검증 실행"
 
 - **ai-systems-specialist**: AI 시스템 최적화 [MCP: thinking, context7, tavily]
 
-### ✅ 주요 개선사항 (2025-08-24)
+### ✅ 주요 개선사항
 
 #### 🔄 AI 교차 검증 시스템 완성
 ```
@@ -928,7 +670,7 @@ git_push_failed → auto_trigger("git-cicd-specialist")
 4. **자동화**: hooks 트리거로 즉시 전문가 투입
 5. **의사결정**: 22개 에이전트 체계적 역할 분담
 
-## 📊 Claude Code Statusline (2025-08-20 업데이트)
+## 📊 Claude Code Statusline
 
 **실시간 Claude 효율성 모니터링** - Max 사용자의 작업량 가치 추적 (가상 비용 환산)
 
@@ -949,122 +691,13 @@ Claude Code statusline은 다음과 같은 실시간 정보를 표시합니다:
 - **🔥 Burn Rate**: 시간당 토큰 소비 비율 (이모지 색상 코딩)
 - **🧠 Context Usage**: 입력 토큰 수 및 한계 대비 비율 (색상 코딩)
 
-### ⚙️ 설정 방법 (ccusage 공식 가이드 기반)
+### ⚙️ 설정 방법
 
-#### 1. ccusage 글로벌 설치
+**🔧 빠른 설정**: `npm install -g ccusage` → `~/.claude/settings.json`에 statusline 설정
+**📊 주요 명령어**: `ccusage daily`, `ccusage monthly`, `ccusage session`
+**🎨 시각화**: 🟢(정상) ⚠️(보통) 🚨(높음) burn rate 표시
 
-```bash
-# WSL에서 ccusage 글로벌 설치
-npm install -g ccusage
-
-# 설치 확인
-ccusage --version  # v16.1.1 이상
-```
-
-#### 2. Claude Code 설정 (공식 방법)
-
-**참조**: [ccusage 공식 statusline 가이드](https://ccusage.com/guide/statusline)
-
-```json
-// ~/.claude/settings.json 설정
-{
-  "statusLine": {
-    "type": "command",
-    "command": "ccusage statusline --visual-burn-rate emoji --cost-source auto",
-    "padding": 0
-  }
-}
-```
-
-#### 3. 설정 옵션
-
-```json
-// 시각적 옵션
-"command": "ccusage statusline --visual-burn-rate emoji"      // 🟢 ⚠️ 🚨
-"command": "ccusage statusline --visual-burn-rate text"       // (low) (medium) (high)
-"command": "ccusage statusline --visual-burn-rate emoji-text" // 🟢 (low)
-
-// 비용 소스 옵션
-"command": "ccusage statusline --cost-source auto"    // 기본값
-"command": "ccusage statusline --cost-source ccusage" // ccusage만
-"command": "ccusage statusline --cost-source cc"      // Claude Code만
-"command": "ccusage statusline --cost-source both"    // 나란히 표시
-```
-
-#### 4. Claude Code 재시작
-
-설정 변경 후 Claude Code를 다시 시작하면 새 statusline이 적용됩니다.
-
-### 🎨 색상 코딩 시스템
-
-#### Burn Rate (소각률) 이모지 표시
-
-- **🟢**: 정상 소비율 (효율적 사용)
-- **⚠️**: 보통 소비율 (적정 수준)
-- **🚨**: 높은 소비율 (주의 필요)
-
-#### Context Usage (컨텍스트 사용량) 색상
-
-- **🟢 녹색**: 낮음 (< 50% - 기본값)
-- **🟡 노란색**: 보통 (50-80%)
-- **🔴 빨간색**: 높음 (> 80%)
-
-### 📊 효율성 추적 명령어
-
-```bash
-# 오늘 작업량 확인 (API 가치 환산)
-ccusage daily
-
-# 월별 생산성 분석
-ccusage monthly
-
-# 주별 작업량 패턴 분석
-ccusage weekly
-
-# 세션별 효율성 측정
-ccusage session
-
-# 5시간 블록별 작업량 분석
-ccusage blocks
-
-# JSON 형태로 데이터 출력
-ccusage daily --json
-
-# 특정 프로젝트 사용량 필터링
-ccusage daily --project "openmanager-vibe-v5"
-
-# 인스턴스별 사용량 분석
-ccusage daily --instances
-```
-
-### 🔧 문제 해결
-
-#### Statusline이 표시되지 않는 경우
-
-```bash
-# 1. ccusage 설치 확인
-ccusage --version  # v16.1.1 이상
-
-# 2. 설정 파일 확인
-cat ~/.claude/settings.json
-
-# 3. Claude Code 재시작
-# 설정 변경 후 Claude Code를 다시 시작
-```
-
-#### 설정 옵션 확인
-
-공식 가이드를 참조하여 다양한 옵션을 시도해보세요:
-- **비용 소스**: `--cost-source auto|ccusage|cc|both`
-- **시각적 표시**: `--visual-burn-rate off|emoji|text|emoji-text`
-- **오프라인 모드**: 기본값 (캐시된 데이터 사용)
-
-### 💡 Max 사용자 활용 팁
-
-- **실시간 효율성 모니터링**: statusline으로 작업 패턴 최적화
-- **가상 비용 추적**: API 대비 절약 효과 실시간 확인
-- **컨텍스트 관리**: 토큰 사용량 모니터링으로 대화 효율성 증대
-- **모델 선택 최적화**: Opus vs Sonnet 사용 패턴 분석
+→ **[상세 설정 가이드](https://ccusage.com/guide/statusline)**
 
 ## 🐧 WSL 환경 설정 및 문제 해결
 
@@ -1147,245 +780,29 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 
 ## 🔌 MCP 통합 (Model Context Protocol)
 
-**🎯 MCP 서버 현황: 11/11개 완전 작동** (2025-08-24 역사적 달성!)
+**🎯 MCP 서버 현황: 11/11개 완전 작동** 🏆
 
-Claude Code와 외부 시스템을 직접 연결하는 핵심 기능입니다.
+### 📊 핵심 MCP 서버 (11개)
 
-### 📊 현재 MCP 서버 연결 상태 (2025-08-24)
+**핵심 시스템**: memory (Knowledge Graph), gcp (Cloud 관리), shadcn-ui (46개 UI 컴포넌트), time (시간대 변환)
 
-#### ✅ **완전 정상 작동 (11개)** - 역사적 달성! 🏆
+**AI & 검색**: sequential-thinking (순차 사고), tavily (웹 검색), context7 (라이브러리 문서), serena (코드 분석)
 
-**핵심 시스템**
-- **`memory`**: Knowledge Graph 완전 작동 ✅
-- **`gcp`**: Google Cloud 프로젝트 관리 완전 작동 ✅  
-- **`shadcn-ui`**: 46개 UI 컴포넌트 완전 지원 ✅
-- **`time`**: 시간대 변환 완전 작동 ✅
+**데이터베이스 & 개발**: supabase (SQL 쿼리), playwright (브라우저 자동화), github (저장소 관리)
 
-**AI & 검색 시스템**
-- **`sequential-thinking`**: 순차적 사고 프로세스 완전 작동 ✅
-- **`tavily`**: 웹 검색 완벽 작동 ✅
-- **`context7`**: 라이브러리 문서 검색 완벽 지원 ✅
-- **`serena`**: 코드 분석 완전 작동 ✅
+### 🛠️ 파일 작업 (filesystem MCP 제거됨)
 
-**데이터베이스 & 개발 도구**
-- **`supabase`**: SQL 쿼리, 마이그레이션, 문서 검색 완전 작동 ✅
-- **`playwright`**: 브라우저 자동화 완전 작동 (버전 문제 해결) ✅
-- **`github`**: Repository 검색 및 관리 완전 작동 ✅
+**✅ 기본 도구 완전 대체**: Read, Write, Edit, MultiEdit, Glob, LS 모두 정상 작동
 
-### 🎯 해결된 주요 문제들 (2025-08-24)
+**🎯 제거 이유**: WSL 경로 호환성 문제, 기본 도구가 더 안정적
 
-#### ✅ **Playwright 버전 불일치 해결**
-- **문제**: MCP 서버는 chromium-1179 요구, 시스템은 chromium-1187 설치
-- **해결**: `npx playwright@1.53.1 install chromium`으로 정확한 버전 설치
+### 🔐 환경변수 보안
 
-#### ✅ **Supabase 토큰 제한 대응**  
-- **문제**: `list_tables` 46K tokens > 25K 제한
-- **해결**: 핵심 기능들(`execute_sql`, `list_migrations`, `search_docs`) 정상 확인
+모든 토큰은 `.env.local`에 저장, `.mcp.json`은 환경변수 참조만 사용
 
-### ✅ filesystem MCP 제거 결정 (2025-08-24)
+### 📖 상세 문서
 
-#### 🎯 제거 이유
-- **WSL 경로 호환성 문제**: `/mnt/d/...` 경로를 Windows 경로로 변환하는 과정에서 지속적 연결 실패
-- **불필요한 복잡성**: 기본 Claude Code 도구들이 동일한 기능을 완벽하게 제공
-- **안정성 우선**: 복잡한 MCP 설정보다 검증된 기본 도구 사용이 더 안정적
-
-#### 🚀 제거 후 효과
-- **11개 MCP 서버**로 구성 간소화  
-- **기본 도구 완전 활용**: filesystem 기능 손실 없이 더 안정적 운영
-- **설정 복잡도 감소**: WSL 환경에서 불필요한 경로 문제 해결
-
-### 💡 파일 작업 솔루션 (filesystem MCP 없이도 완벽)
-
-#### ✅ **현재 사용 가능한 파일 작업 (완전 정상)**
-```bash
-# 기본 Claude Code 도구들이 완전 정상 작동
-Read      # 파일 읽기 - filesystem MCP 없이도 완벽 작동
-Write     # 파일 쓰기 - filesystem MCP 없이도 완벽 작동
-Edit      # 파일 편집 - filesystem MCP 없이도 완벽 작동
-MultiEdit # 다중 파일 편집 - filesystem MCP 없이도 완벽 작동
-Glob      # 파일 검색 - filesystem MCP 없이도 완벽 작동  
-LS        # 디렉토리 목록 - filesystem MCP 없이도 완벽 작동
-```
-
-#### 🎯 **MCP 서버 우선순위 재조정 (11개 서버, 2025-08-24)**
-
-**Tier 1 - 즉시 활용 (완전 정상 8개)** - 대폭 확장!
-- **memory**: 지식 그래프 관리, 서브에이전트 메모리 시스템
-- **gcp**: 클라우드 모니터링, VM 백엔드 관리  
-- **shadcn-ui**: UI 컴포넌트 관리, 디자인 시스템
-- **time**: 시간대 변환, 국제화 지원
-- **sequential-thinking**: AI 순차적 사고 과정 지원
-- **tavily**: 실시간 웹 검색, 최신 정보 수집
-- **context7**: 기술 문서 검색, 라이브러리 레퍼런스
-- **serena**: 프로젝트 코드 분석, 심볼 검색
-
-**Tier 2 - 제한적 사용 (부분 정상 1개)**  
-- **supabase**: 간단한 테이블 조회만 사용 (대용량 쿼리 제외)
-
-**Tier 3 - 설치/수정 필요 (연결 실패 2개)**
-- **playwright**: 브라우저 설치 후 E2E 테스트 자동화 가능
-- **github**: API 설정 수정 후 저장소 연동 가능
-
-**✅ 파일 시스템**: Read/Write/Edit/MultiEdit/Glob/LS 기본 도구로 완벽 대체됨
-
-### ✅ 최근 해결된 문제들 (2025-08-21)
-
-#### ✅ Config Mismatch 문제 해결
-- **문제**: `/status` 명령 시 "Config mismatch: running npm-global but config says unknown" 에러
-- **원인**: `~/.claude.json`의 `installMethod` 필드가 "unknown"으로 설정됨
-- **해결**: `installMethod`를 "npm-global"로 수정하여 완전 해결
-
-#### ✅ GitHub MCP 서버 복구
-- **문제**: 인증 실패로 GitHub 기능 사용 불가
-- **해결**: 토큰 갱신 및 Claude Code 재시작으로 정상화
-
-#### ✅ Supabase 보안 강화
-- **개선사항**: RLS (Row Level Security) 정책 전체 재검토 및 강화
-- **결과**: 모든 테이블에 적절한 보안 정책 적용됨
-
-#### ✅ MCP 서버 전체 활성화
-- **개선사항**: 12개 MCP 서버 모두 정상 작동 확인
-- **모니터링**: 자동 상태 확인 스크립트 추가 (`scripts/mcp/mcp-health-check.sh`)
-
-### 🚀 시스템 복구 4단계 완료 (2025-08-21)
-
-#### Phase 1: Supabase 보안 강화 ✅
-- RLS 정책 전면 재검토
-- 모든 테이블 보안 정책 적용
-- 보안 취약점 완전 제거
-
-#### Phase 2: AI CLI 도구 정상화 ✅
-- Claude Code v1.0.86 업데이트
-- Config mismatch 문제 해결
-- Statusline 정상 작동 확인
-
-#### Phase 3: MCP 서버 복구 ✅
-- 12개 서버 모두 활성화
-- GitHub 인증 문제 해결
-- 자동 모니터링 시스템 구축
-
-#### Phase 4: 모니터링 체계 구축 ✅
-- `mcp-health-check.sh`: 전체 상태 확인
-- `mcp-auto-monitor.sh`: 자동 모니터링
-- `mcp-recovery.sh`: 자동 복구 시스템
-
-
-### 🔐 환경변수 보안 설정 (2025-08-20 업데이트)
-
-**중요**: 모든 토큰과 API 키는 `.env.local`에 저장하고, `.mcp.json`에는 환경변수 참조만 사용합니다.
-
-```bash
-# .env.local 파일 설정 (Git에서 제외됨)
-GITHUB_PERSONAL_ACCESS_TOKEN=ghp_xxxxx
-SUPABASE_ACCESS_TOKEN=sbp_xxxxx  
-TAVILY_API_KEY=tvly-xxxxx
-UPSTASH_REDIS_REST_URL=https://xxxxx.upstash.io
-UPSTASH_REDIS_REST_TOKEN=xxxxx
-
-# .mcp.json은 환경변수 참조만 포함
-"env": {
-  "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
-}
-```
-
-**보안 문서**: [MCP 환경변수 보안 가이드](docs/security/mcp-environment-security-guide.md)
-
-### 📝 MCP 서버 재설정 가이드
-
-#### 1단계: 환경변수 설정
-```bash
-# .env.local 파일 확인 및 토큰 설정
-cat .env.local | grep -E "(GITHUB|SUPABASE|TAVILY|UPSTASH)"
-
-# 테스트 스크립트 실행
-./scripts/test-mcp-servers.sh
-```
-
-#### 2단계: MCP 서버 의존성 설치
-```bash
-# npx 기반 서버들 (자동 설치되지만 확인 필요)
-npx -y @modelcontextprotocol/server-filesystem --version
-npx -y @modelcontextprotocol/server-memory --version
-npx -y @modelcontextprotocol/server-github --version
-npx -y @supabase/mcp-server-supabase@latest --version
-npx -y tavily-mcp --version
-npx -y @executeautomation/playwright-mcp-server --version
-npx -y @modelcontextprotocol/server-sequential-thinking@latest --version
-npx -y @upstash/context7-mcp --version
-npx -y @jpisnice/shadcn-ui-mcp-server@latest --version
-
-# uvx 기반 서버들
-uvx mcp-server-time --version
-uvx --from git+https://github.com/oraios/serena serena-mcp-server --version
-
-# GCP MCP는 별도 설치 필요
-npm install -g google-cloud-mcp
-```
-
-#### 3단계: Claude Code 재시작
-```bash
-# Claude Code 완전 재시작
-claude api restart
-
-# MCP 서버 상태 확인
-claude mcp list
-```
-
-### 🌥️ GCP 통합 현황
-
-**❌ GCP MCP**: 연결 안됨 (재설정 필요)
-**✅ VM API**: 정상 동작 가능 (104.154.205.25:10000)
-
-```bash
-# GCP MCP 재설정 필요
-# 1. Google Cloud SDK 설치 확인
-gcloud auth application-default login
-
-# 2. 인증 파일 확인
-ls -la ~/.config/gcloud/application_default_credentials.json
-
-# 3. GCP MCP 재설치
-npm install -g google-cloud-mcp
-
-# VM API 헬스체크 (대체 방법)
-curl http://104.154.205.25:10000/health
-# {"status":"healthy","version":"2.0","port":10000}
-
-# 시스템 모니터링
-curl http://104.154.205.25:10000/api/status
-```
-
-**현재 상태**: VM API만 사용 가능, MCP 재설정 필요
-
-### 📚 현재 사용 가능한 MCP 도구
-
-```bash
-# MCP 서버 상태 확인
-claude mcp list  # 현재 2/12개만 작동
-
-# 현재 사용 가능한 MCP 도구들 (✅ 정상)
-# - mcp__filesystem__* : 파일 시스템 조작
-# - mcp__memory__* : 메모리 그래프 관리
-
-# 현재 사용 불가능한 MCP 도구들 (❌ 재설정 필요)
-# - mcp__github__* : GitHub 토큰 만료
-# - mcp__supabase__* : 서버 미연결
-# - mcp__gcp__* : 서버 미연결
-# - mcp__tavily__* : 서버 미연결
-# - mcp__playwright__* : 서버 미연결
-# - mcp__serena__* : 서버 미연결
-# - mcp__shadcn__* : 서버 미연결
-# - mcp__sequential_thinking__* : 서버 미연결
-# - mcp__context7__* : 서버 미연결
-# - mcp__time__* : 서버 미연결
-```
-
-### 📖 상세 문서 (2025년 8월 업데이트)
-
-- **[MCP 종합 가이드](docs/MCP-GUIDE.md)** - 11개 서버 완전 활용 가이드 (150KB)
-- **[MCP 설치 가이드](docs/mcp/mcp-complete-installation-guide-2025.md)** - 2025년판 완전 설치 가이드 (80KB)
-- **[MCP 도구 레퍼런스](docs/mcp/mcp-tools-reference.md)** - 90+ 도구 완전 레퍼런스 (120KB)
-- **[MCP 필수 서버 가이드](docs/mcp/essential-mcp-servers-guide.md)** - Time, ShadCN UI, Context7 통합 (45KB)
+→ **[MCP 종합 가이드](docs/MCP-GUIDE.md)** | **[설치 가이드](docs/mcp/mcp-complete-installation-guide-2025.md)** | **[도구 레퍼런스](docs/mcp/mcp-tools-reference.md)**
 
 ---
 
@@ -1450,77 +867,20 @@ claude mcp list  # 현재 2/12개만 작동
 
 ## 💰 무료 티어 전략
 
-### 🎯 플랫폼별 최적화 전략
+### 🎯 플랫폼 최적화 성과
 
-#### 🌐 Vercel (100GB/월 대역폭)
-- **현재 사용량**: ~30GB/월 (30% 사용)
-- **최적화 방법**:
-  - 이미지 최적화: Next.js Image 컴포넌트 사용
-  - CDN 활용: 정적 자산 자동 캐싱
-  - 번들 최적화: Tree shaking으로 60% 크기 감소
-  - Edge Functions: 152ms 응답시간 달성
+**🌐 Vercel**: 30GB/월 (30% 사용) | 번들 최적화 60% 감소, 152ms 응답시간
+**🐘 Supabase**: 15MB (3% 사용) | RLS 정책, 쿼리 50ms, pgVector 75% 절약
+**☁️ GCP**: 300K 요청/월 (15% 사용) | e2-micro VM 744시간, 캐싱 전략으로 API 80% 감소
+**🧠 Cache**: 60MB (25% 사용) | LRU 캐시, 5분 TTL 최적화
 
-#### 🐘 Supabase (500MB 데이터베이스)
-- **현재 사용량**: ~15MB (3% 사용)
-- **최적화 방법**:
-  - RLS 정책: 불필요한 데이터 접근 차단
-  - 인덱스 최적화: 쿼리 성능 50ms 달성
-  - 자동 정리: 90일 이상 된 로그 데이터 삭제
-  - pgVector: 384차원으로 75% 저장공간 절약
+### 💡 핵심 성과
 
-#### ☁️ GCP (2M 요청/월)
-- **현재 사용량**: ~300K 요청/월 (15% 사용)
-- **최적화 방법**:
-  - e2-micro VM: 744시간/월 무료 활용
-  - Cloud Functions: Python 3.11로 2-5x 성능 향상
-  - 캐싱 전략: 15초 + 30초 CDN 캐시
-  - 배치 처리: API 호출 80% 감소
-
-#### 🧠 Memory Cache (256MB)
-- **현재 사용량**: ~60MB (25% 사용)
-- **최적화 방법**:
-  - LRU 캐시: 지능형 메모리 관리
-  - 배치 처리: I/O 부하 감소
-  - TTL 최적화: 5분 캐시로 효율성 극대화
-
-### 📊 사용량 모니터링 시스템
-
-```bash
-# 실시간 사용량 확인
-npm run monitor:free-tier
-
-# 플랫폼별 사용량 분석
-npm run analyze:vercel     # 대역폭 사용량
-npm run analyze:supabase   # DB 용량 및 쿼리 수
-npm run analyze:gcp        # VM 시간 및 Functions 호출
-npm run analyze:memory     # 캐시 사용량 및 히트율
-```
-
-### ⚠️ 한계 도달 시 대응 방안
-
-#### 🚨 80% 도달 시 자동 알림
-- **Vercel**: 이미지 압축률 증가, 불필요한 정적 자산 제거
-- **Supabase**: 오래된 데이터 아카이브, 인덱스 재구성
-- **GCP**: 캐시 TTL 연장, 배치 크기 증가
-- **Memory**: 캐시 정책 최적화, 불필요한 데이터 제거
-
-#### 📈 확장성 계획 (95% 도달 시)
-1. **Vercel Pro**: $20/월 (1TB 대역폭)
-2. **Supabase Pro**: $25/월 (8GB 데이터베이스)
-3. **GCP 유료**: $5-10/월 (추가 VM 시간)
-4. **Redis Cloud**: $5/월 (30MB → 30GB)
-
-### 💡 비용 효율성 달성 방법
-
-#### 🎯 현재 성과
 - **월 운영비**: $0 (100% 무료)
-- **절약 효과**: 연간 $1,380-2,280 절약
+- **절약 효과**: 연간 $1,380-2,280
 - **성능**: 엔터프라이즈급 (152ms, 99.95% 가동률)
 
-#### 🔄 지속적 최적화
-- **주간 리뷰**: 사용량 패턴 분석 및 최적화
-- **월간 감사**: 불필요한 리소스 정리
-- **분기별 계획**: 확장성 및 비용 계획 수립
+**📊 모니터링**: `npm run monitor:free-tier` | **📈 확장 계획**: Vercel Pro $20, Supabase Pro $25, GCP $5-10/월
 
 ---
 
@@ -1528,53 +888,16 @@ npm run analyze:memory     # 캐시 사용량 및 히트율
 
 ### 1. 🎨 타입 우선 개발 (Type-First)
 
-**타입 정의 → 구현 → 리팩토링** 순서로 개발
-
-```typescript
-// 1️⃣ 타입 먼저 정의
-interface UserProfile {
-id: string;
-role: 'admin' | 'user';
-metadata?: { lastLogin: Date };
-}
-
-// 2️⃣ 타입 기반 구현
-const updateUser = (id: string, data: Partial<UserProfile>): Promise<UserProfile> => {
-// IDE 자동완성 100% 활용
-return db.users.update(id, data);
-};
-`
+**타입 정의 → 구현 → 리팩토링** 순서로 개발. IDE 자동완성 100% 활용
 
 ### 2. 🧪 TDD (Test-Driven Development)
 
-**Red → Green → Refactor** 사이클 준수
-
-```typescript
-// @tdd-red @created-date: 2025-01-14
-it('should calculate total with tax', () => {
-expect(calculateTotalWithTax(100, 0.1)).toBe(110); // RED: 함수 미구현
-});
-
-// GREEN: 구현
-const calculateTotalWithTax = (amount: number, tax: number) => amount \* (1 + tax);
-
-// REFACTOR: 개선
-const calculateTotalWithTax = (amount: number, taxRate: number): number => {
-if (taxRate < 0) throw new Error('Tax rate cannot be negative');
-return amount \* (1 + taxRate);
-};
-`
+**Red → Green → Refactor** 사이클 준수. 커버리지 70%+ 목표
 
 ### 3. 📝 커밋 컨벤션 (이모지 필수)
 
-| 타입     | 이모지 | 설명      | 예시                       |
-| -------- | ------ | --------- | -------------------------- |
-| feat     | ✨     | 새 기능   | ✨ feat: 사용자 인증 추가  |
-| fix      | 🐛     | 버그 수정 | 🐛 fix: 로그인 오류 해결   |
-| refactor | ♻️     | 리팩토링  | ♻️ refactor: API 구조 개선 |
-| test     | 🧪     | 테스트    | 🧪 test: 인증 테스트 추가  |
-| docs     | 📚     | 문서      | 📚 docs: API 문서 업데이트 |
-| perf     | ⚡     | 성능      | ⚡ perf: 쿼리 최적화       |
+- **✨ feat**: 새 기능 | **🐛 fix**: 버그 수정 | **♻️ refactor**: 리팩토링
+- **🧪 test**: 테스트 | **📚 docs**: 문서 | **⚡ perf**: 성능
 
 ## 📐 핵심 규칙
 
@@ -1587,31 +910,11 @@ return amount \* (1 + taxRate);
    - **재사용 가능한 가이드**: /docs/ 디렉토리 (Git 추적 포함)
    - **일회성 리포트**: /reports/ 디렉토리 (Git 추적 제외)
    
-   **📊 리포트 vs 가이드 구분 규칙**:
-   - **리포트**: 특정 시점 분석, 작업 완료 보고서, 상태 보고서
-     - 경로: `/reports/{category}/` (예: mcp, performance, security, cleanup)  
-     - 파일명: 날짜 포함 (예: `mcp-recovery-report-2025-08-21.md`)
-     - Git: 제외 (.gitignore에서 reports/ 차단)
-   - **가이드**: 재사용 가능한 절차, 문제 해결 방법, 설정 방법
-     - 경로: `/docs/{category}/` (예: claude, mcp, development)
-     - 파일명: 날짜 미포함 (예: `system-recovery-guide.md`)  
-     - Git: 포함 (팀 공유 및 버전 관리)
+   **📊 JBGE 원칙**: 리포트(/reports, Git 제외) vs 가이드(/docs, 팀 공유)
 5. **커밋**: 이모지 + 간결한 메시지
 6. **Git Push 후 필수 점검**: 동기화 상태 완전 확인
 
-   **📋 Push 후 표준 점검 절차** (2025-08-21 확립):
-   ```bash
-   # 1. Push 실행
-   HUSKY=0 git push origin main
-   
-   # 2. 동기화 상태 확인 (필수)
-   git status                    # 로컬 상태
-   git log --oneline -3          # 최근 커밋
-   git log origin/main --oneline -3  # 원격 최신 커밋
-   
-   # 3. 동기화 검증 완료 확인
-   # "Your branch is up to date with 'origin/main'" 메시지 확인
-   ```
+   **📋 Push 후 필수 점검**: `git status` 로 동기화 상태 완전 확인
 
 ## 🎯 현재 상태
 
