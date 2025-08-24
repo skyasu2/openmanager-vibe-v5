@@ -1,38 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
 
-echo "🚀 Pre-push 검증 시작 (Non-blocking v3.0)..."
-
-# Skip if HUSKY is disabled
-if [ "$HUSKY" = "0" ]; then
-    echo "⏭️  Husky가 비활성화되어 있습니다. 검증을 건너뜁니다."
-    exit 0
-fi
-
-# Fast track options
-if [ "$1" = "--fast" ] || [ "$FAST_PUSH" = "1" ]; then
-    echo "⚡ Fast track 모드 - 기본 검증만 실행"
-    npm run test:quick
-    exit $?
-fi
-
-# 단순 동기 실행 (백그라운드 프로세스 제거)
-echo "🧪 핵심 테스트 실행 중..."
-npm run test:quick
-
-TEST_RESULT=$?
-
-# 결과 처리
-if [ $TEST_RESULT -ne 0 ]; then
-    echo "❌ 핵심 테스트 실패!"
-    echo "💡 해결책:"
-    echo "   - npm test (상세 테스트)"
-    echo "   - npm run test:watch (워치 모드)"
-    echo "   - HUSKY=0 git push (긴급 시만)"
-    echo "   - git push --fast (빠른 푸시)"
-    exit 1
-fi
-
-# 성공 메시지
-echo "✅ Pre-push 검증 완료!"
-echo "🚀 Push를 진행합니다..."
-echo "📊 성능: 단순화로 타임아웃 문제 해결"
+npm run validate:quick

@@ -12,26 +12,5 @@
     "NODE_DISABLE_COLORS": "1",
     "FORCE_TTY": "false"
   },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo '${file}' >> .claude/cross-verification-queue.txt"
-          }
-        ]
-      },
-      {
-        "condition": "${file}.match(/\\/(auth|api|security|payment)\\//) || ${file}.includes('.env') || ${file}.includes('config')",
-        "hooks": [
-          {
-            "type": "command", 
-            "command": "echo '${file}|LEVEL_3|SECURITY' >> .claude/high-priority-verification-queue.txt"
-          }
-        ]
-      }
-    ]
-  }
+  "hooks": {}
 }

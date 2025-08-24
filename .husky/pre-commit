@@ -1,34 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
 
-# 🚀 스마트 Pre-commit Hook v2.0
-# 
-# 특징:
-# - 파일 수 기반 자동 모드 선택 (minimal/fast/full)
-# - 단계별 검증 (보안 → 구문 → 품질 → 테스트)
-# - 빠른 실패 패턴으로 효율성 극대화
-# - WSL2 환경 최적화된 캐시 사용
-
-# 환경 변수로 스킵 가능
-if [ "$HUSKY" = "0" ]; then
-    echo "⏭️  HUSKY=0 설정으로 검증을 건너뜁니다."
-    exit 0
-fi
-
-# Node.js 스마트 스크립트 실행
-echo "🚀 스마트 Pre-commit 검증 시작..."
-node scripts/update/smart-pre-commit.js
-
-# 스크립트 결과에 따라 처리
-exit_code=$?
-
-if [ $exit_code -eq 0 ]; then
-    echo "🎉 스마트 Pre-commit 완료!"
-else
-    echo "❌ Pre-commit 검증 실패!"
-    echo "💡 빠른 커밋 옵션:"
-    echo "   - HUSKY=0 git commit (검증 완전 스킵)"
-    echo "   - npm run commit:fast (Husky 비활성화)"
-    echo "   - npm run commit:ultra-fast (즉시 푸시)"
-fi
-
-exit $exit_code
+npm run lint:quick
