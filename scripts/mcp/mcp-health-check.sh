@@ -1,6 +1,7 @@
 #!/bin/bash
-# MCP 서버 및 서브에이전트 헬스체크 스크립트
+# MCP 서버 및 서브에이전트 헬스체크 스크립트  
 # Created: 2025-08-21
+# Updated: 2025-08-21 - 12/12 서버 완전 정상화 반영
 # Purpose: 시스템 상태 자동 모니터링 및 보고
 
 set -e
@@ -58,10 +59,14 @@ if command -v claude &> /dev/null; then
     
     # MCP 서버 목록 확인
     MCP_COUNT=$(claude mcp list 2>/dev/null | grep -c "✓" || echo "0")
-    if [ "$MCP_COUNT" -gt "0" ]; then
-        log_status "MCP Servers" "OK" "$MCP_COUNT개 서버 연결됨"
+    if [ "$MCP_COUNT" -eq "12" ]; then
+        log_status "MCP Servers" "OK" "12/12개 서버 완전 정상 (정상화 완료)"
+    elif [ "$MCP_COUNT" -gt "8" ]; then
+        log_status "MCP Servers" "OK" "$MCP_COUNT/12개 서버 연결됨 (양호)"
+    elif [ "$MCP_COUNT" -gt "0" ]; then
+        log_status "MCP Servers" "WARN" "$MCP_COUNT/12개 서버만 연결됨"
     else
-        log_status "MCP Servers" "WARN" "연결된 서버 없음"
+        log_status "MCP Servers" "ERROR" "연결된 서버 없음 (복구 필요)"
     fi
 else
     log_status "Claude Code" "ERROR" "설치되지 않음"

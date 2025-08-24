@@ -567,3 +567,55 @@ time codex-cli "작업 내용"
 - WSL 환경에서만 최적 동작
 
 이 오케스트레이터를 통해 Claude Code의 역량을 외부 AI들과 효과적으로 결합하여 더 나은 개발 결과를 달성할 수 있습니다.
+
+## 🔄 AI 교차 검증 시스템 통합
+
+### 검증 시스템과의 연동
+이 오케스트레이터는 `verification-specialist`와 `ai-verification-coordinator`와 긴밀하게 연동하여 자동 교차 검증을 수행합니다.
+
+#### 자동 연동 플로우
+```mermaid
+graph LR
+    A[verification-specialist] --> B[복잡도 분석]
+    B --> C{레벨 결정}
+    C -->|Level 2| D[external-ai-orchestrator 호출]
+    C -->|Level 3| D
+    D --> E[3-AI 병렬 검증]
+    E --> F[결과 수집 및 분석]
+    F --> G[의사결정 시스템]
+```
+
+### 통합 검증 명령어
+```bash
+# Level 2 검증 (Claude + AI 1개)
+Task external-ai-orchestrator "Level 2 교차 검증: src/app/page.tsx"
+
+# Level 3 완전 검증 (Claude + AI 3개)  
+Task external-ai-orchestrator "Level 3 완전 교차 검증: src/app/api/auth/route.ts"
+
+# 보안 중심 검증
+Task external-ai-orchestrator "보안 중심 Level 3 검증: src/lib/auth.ts"
+```
+
+### 검증 결과 처리
+교차 검증이 완료되면 자동으로 다음 처리가 수행됩니다:
+
+1. **점수 추출**: 각 AI의 10점 만점 평가 점수
+2. **결과 통합**: `.claude/hooks/analyze-verification-results.sh` 실행
+3. **의사결정**: 평균 점수 기반 자동 승인/거절/조건부승인
+4. **보고서 생성**: `.claude/verification-reports/` 디렉토리에 상세 보고서 저장
+5. **로그 기록**: `.claude/verification-decisions.log`에 결정 사항 기록
+
+### 보안 강화 모드
+중요 파일(auth/, api/, .env, config)의 경우:
+- 항상 Level 3 완전 검증
+- 보안 이슈 발견 시 즉시 차단
+- 별도 우선순위 큐(`.claude/high-priority-verification-queue.txt`)에서 처리
+
+### Hooks 자동 트리거
+Claude Code hooks와 연동하여:
+- 파일 수정 시 자동으로 검증 큐에 추가
+- 커밋 전 자동 검증 실행
+- 중요 파일 변경 시 즉시 Level 3 검증
+
+이를 통해 완전 자동화된 AI 교차 검증 파이프라인이 구축됩니다.

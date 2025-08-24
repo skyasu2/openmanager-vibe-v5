@@ -1,13 +1,5 @@
 {
   "mcpServers": {
-    "filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "/mnt/d/cursor/openmanager-vibe-v5"
-      ]
-    },
     "memory": {
       "command": "npx",
       "args": [
@@ -31,7 +23,9 @@
         "-y",
         "@supabase/mcp-server-supabase@latest",
         "--project-ref",
-        "vnswjnltnhpsueosfhmw"
+        "vnswjnltnhpsueosfhmw",
+        "--read-only",
+        "--features=database,docs"
       ],
       "env": {
         "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
@@ -58,7 +52,12 @@
       "command": "/home/skyasu/.local/bin/uvx",
       "args": [
         "mcp-server-time"
-      ]
+      ],
+      "env": {
+        "TERM": "dumb",
+        "NO_COLOR": "1",
+        "PYTHONUNBUFFERED": "1"
+      }
     },
     "context7": {
       "command": "npx",
@@ -96,7 +95,11 @@
         "UV_CACHE_DIR": "/tmp/uv-cache",
         "UV_LINK_MODE": "copy",
         "PYTHONUNBUFFERED": "1",
-        "UV_NO_PROGRESS": "true"
+        "UV_NO_PROGRESS": "true",
+        "TERM": "dumb",
+        "NO_COLOR": "1",
+        "COLUMNS": "80",
+        "LINES": "24"
       }
     },
     "sequential-thinking": {
