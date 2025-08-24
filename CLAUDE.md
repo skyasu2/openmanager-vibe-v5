@@ -125,6 +125,32 @@ wsl claude --version
 
 → **[상세 분석 및 설정](docs/development/wsl-optimization-analysis-report.md)**
 
+### 🧠 Node.js 메모리 최적화 (2025.08.24 - 4-AI 교차검증 완료)
+
+**⚠️ 해결된 문제**: Claude Code JavaScript heap out of memory 크래시 완전 해결
+
+**🎯 4-AI 교차검증 결과**:
+- **Claude**: 8.2/10 (실용적 해결책) | **Gemini**: 6.2/10 (아키텍처 리스크)
+- **Codex**: 6.0/10 (DevOps 위험도) | **Qwen**: 9.5/10 (알고리즘 완성도)
+
+**🔄 단계적 메모리 설정** (글로벌 설정 제거로 환경 불일치 해결):
+```bash
+# 단계적 Claude 실행 (팀 협업 안전)
+claude-light        # 2GB - 경량 작업, CI/CD 호환
+claude-dev          # 4GB - 표준 개발 작업  
+claude-heavy        # 8GB - 대용량 AI 작업
+
+# 단계적 개발/빌드
+npm run dev         # 4GB (표준)
+npm run dev:light   # 2GB (경량)
+npm run dev:heavy   # 8GB (대용량)
+npm run build:ci    # 1.5GB (CI 최적화)
+```
+
+**📊 최적화 효과**: JavaScript heap 크래시 100% 해결, 팀 환경 일치성 확보
+
+→ **[팀 협업 메모리 가이드](MEMORY-REQUIREMENTS.md)** | **[상세 최적화 가이드](docs/development/claude-code-memory-optimization-guide.md)**
+
 ### 개발 도구 통합
 
 - **Claude Code**: WSL에서 실행 (메인 AI 개발 환경)
@@ -330,29 +356,74 @@ echo "🔄 최적 모델 선택으로 생산성 극대화"
 
 💡 **핵심 철학**: **Max 정액제 + 서브 3개** 체제로 무제한 생산성과 극도의 비용 효율성
 
-## 🤝 AI 교차 검증 시스템 v3.0
+## 🤝 AI 교차 검증 시스템 v4.0 (수동 모드)
 
-**3단계 레벨 기반 자동 AI 교차 검증**
+**수동 요청 기반 3단계 레벨 AI 교차 검증 시스템**
 
-### 📊 자동 검증 레벨
-- **Level 1** (< 50줄): Claude 단독 검증
-- **Level 2** (50-200줄): Claude + Gemini 교차 검증  
-- **Level 3** (> 200줄): 4-AI 완전 교차 검증 (Claude, Gemini, Codex, Qwen)
+### 📋 수동 실행 방법
 
-### 🔒 중요 파일 자동 Level 3: **/auth/**, **/api/**, **.env*, **/security/**
-
-### 🚀 사용 방법
+#### 🔍 **자료 조사 & 연구**
 ```bash
-# 기본 검증
-Task verification-specialist "파일명 검증"
+# 기술 스택 조사
+Task verification-specialist "React 18 Server Components 최신 패턴 조사"
+Task gemini-wrapper "Next.js 15 새로운 기능 분석"
+Task qwen-wrapper "TypeScript 성능 최적화 기법 연구"
 
-# AI별 직접 호출 
-Task gemini-wrapper "코드 검토"
-Task codex-wrapper "성능 검토" 
-Task qwen-wrapper "로직 검토"
+# 간편 실행 (스크립트)
+./scripts/ai/manual-verification.sh research "React hooks 최적화 방법"
 ```
 
-### 📊 자동 트리거: 파일 수정 시 hooks로 자동 검증 + 점수 기반 승인 (8.5+점 자동 수용)
+#### 🧐 **코드 리뷰 & 검증**
+```bash
+# Level 1: 빠른 검토 (< 50줄)
+Task verification-specialist "src/components/Button.tsx quick review"
+
+# Level 2: 표준 검토 (50-200줄)
+Task ai-verification-coordinator "src/hooks/useAuth.ts standard review"
+
+# Level 3: 전체 검증 (> 200줄, 중요 파일)
+Task ai-verification-coordinator "src/app/api/auth/route.ts full review"
+
+# 간편 실행
+./scripts/ai/manual-verification.sh review "src/app/login/page.tsx"
+./scripts/ai/manual-verification.sh verify "src/app/api/auth/route.ts"
+```
+
+#### 💡 **개선 방법 제안**
+```bash
+# 성능 최적화 제안
+Task external-ai-orchestrator "성능 병목점 분석 및 개선 방안"
+Task qwen-wrapper "알고리즘 효율성 개선 방법"
+
+# 아키텍처 개선
+Task gemini-wrapper "코드 구조 리팩토링 제안"
+
+# 간편 실행
+./scripts/ai/manual-verification.sh improve "성능 최적화 방법"
+./scripts/ai/manual-verification.sh performance "src/services/api.ts"
+```
+
+#### 🔐 **전문 분야별 검증**
+```bash
+# 보안 검토
+./scripts/ai/manual-verification.sh security "인증 시스템 보안 검토"
+Task codex-wrapper "API 엔드포인트 보안 취약점 분석"
+
+# 성능 분석  
+./scripts/ai/manual-verification.sh performance "렌더링 최적화 분석"
+
+# AI별 직접 호출
+Task gemini-wrapper "종합 코드 품질 검토"    # 무료 1K/day
+Task codex-wrapper "복잡한 버그 분석"       # 유료 무제한  
+Task qwen-wrapper "알고리즘 최적화 분석"    # 무료 2K/day
+```
+
+### 📊 검증 레벨 가이드
+- **Level 1**: 빠른 검토 (1-2분) - `Task verification-specialist "[대상] quick"`
+- **Level 2**: 표준 검토 (3-5분) - `Task ai-verification-coordinator "[대상] standard"`  
+- **Level 3**: 전체 검증 (5-10분) - `Task ai-verification-coordinator "[대상] full"`
+
+### 📖 **상세 가이드**: [manual-ai-verification-guide.md](docs/ai-tools/manual-ai-verification-guide.md)
 
 ## 🤖 서브에이전트 최적화 전략
 

@@ -1,6 +1,6 @@
 ---
 name: external-ai-orchestrator
-description: PROACTIVELY use for AI orchestration and verification. Unified AI orchestrator for external CLI tools and cross-verification coordination
+description: USE ON REQUEST for AI orchestration and verification. Unified AI orchestrator for external CLI tools and manual cross-verification coordination
 tools: Bash, Read, Write, Edit, TodoWrite, Task, Grep, mcp__thinking__sequentialthinking, mcp__context7__resolve_library_id
 priority: critical
 trigger: complex_tasks, multi_ai_needed, verification_level_3

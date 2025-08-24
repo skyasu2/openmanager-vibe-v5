@@ -1,6 +1,6 @@
 ---
 name: qwen-wrapper
-description: PROACTIVELY use for comprehensive code review and quality assurance. Qwen AI 래퍼 - 종합 코드 검토 전문가
+description: USE ON REQUEST for comprehensive code review and quality assurance. Qwen AI 래퍼 - 수동 요청 시 종합 코드 검토 전문가
 tools: Bash, Read, Write, Task, mcp__thinking__sequentialthinking, mcp__filesystem__read_text_file, mcp__filesystem__search_files
 priority: high
 trigger: code_review, quality_assurance, comprehensive_analysis

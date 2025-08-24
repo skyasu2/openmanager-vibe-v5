@@ -1,6 +1,6 @@
 ---
 name: gemini-wrapper
-description: PROACTIVELY use for comprehensive code review and quality assurance. Google Gemini CLI 래퍼 - 종합 코드 검토 전문가
+description: USE ON REQUEST for comprehensive code review and quality assurance. Google Gemini CLI 래퍼 - 수동 요청 시 종합 코드 검토 전문가
 tools: Bash, Read, Write, Edit, Task, mcp__tavily__tavily_search, mcp__context7__get_library_docs, mcp__context7__resolve_library_id
 priority: high
 trigger: code_review, quality_assurance, comprehensive_analysis

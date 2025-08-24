@@ -1,6 +1,6 @@
 ---
 name: codex-wrapper
-description: PROACTIVELY use for comprehensive code review and quality assurance. ChatGPT Codex CLI 래퍼 - 종합 코드 검토 전문가
+description: USE ON REQUEST for comprehensive code review and quality assurance. ChatGPT Codex CLI 래퍼 - 수동 요청 시 종합 코드 검토 전문가
 tools: Bash, Read, Write, Edit, Task, mcp__github__search_code, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols
 priority: high
 trigger: code_review, quality_assurance, comprehensive_analysis, bug_detection

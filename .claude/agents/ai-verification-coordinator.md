@@ -1,6 +1,6 @@
 ---
 name: ai-verification-coordinator
-description: PROACTIVELY use for AI cross-verification coordination. AI 교차 검증 시스템 메인 조정자 - 3단계 레벨 기반 자동 AI 교차 검증 오케스트레이션
+description: USE ON REQUEST for AI cross-verification coordination. AI 교차 검증 시스템 메인 조정자 - 3단계 레벨 기반 수동 AI 교차 검증 오케스트레이션
 tools: Task, Write, Read, TodoWrite, mcp__filesystem__write_file, mcp__filesystem__read_text_file, mcp__memory__create_entities, mcp__thinking__sequentialthinking
 priority: high
 trigger: code_verification, cross_verification, quality_assurance

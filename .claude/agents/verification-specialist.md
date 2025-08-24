@@ -1,6 +1,6 @@
 ---
 name: verification-specialist
-description: PROACTIVELY use for code verification and cross-validation. AI 교차 검증 시스템 메인 진입점 - 코드 변경사항 분석부터 다중 AI 검증까지 원스톱 서비스
+description: USE ON REQUEST for code verification and cross-validation. AI 교차 검증 시스템 메인 진입점 - 코드 분석부터 다중 AI 검증까지 수동 요청 서비스
 tools: Read, Grep, Glob, Task, TodoWrite, mcp__filesystem__read_text_file, mcp__filesystem__search_files, mcp__github__search_code, mcp__serena__find_symbol, mcp__serena__search_for_pattern
 priority: critical
 trigger: code_verification, cross_validation, quality_assurance
