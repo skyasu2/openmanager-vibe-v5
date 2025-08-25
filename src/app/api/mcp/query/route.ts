@@ -11,6 +11,7 @@ import type {
   QueryRequest,
   QueryResponse,
 } from '@/services/ai/SimplifiedQueryEngine';
+import { executeWithCircuitBreaker, aiCircuitBreaker } from '@/lib/ai/circuit-breaker';
 
 // 동적 import로 빌드 시점 초기화 방지
 async function getQueryEngine() {
@@ -65,9 +66,16 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    const result: QueryResponse = await engine.query(queryRequest);
+    // Circuit Breaker를 통한 안전한 AI 쿼리 실행
+    const result: QueryResponse = await executeWithCircuitBreaker(
+      'MCP-Query-Engine',
+      async () => await engine.query(queryRequest)
+    );
 
     const responseTime = Date.now() - startTime;
+
+    // Circuit Breaker 상태 정보 추가
+    const circuitBreakerStatus = aiCircuitBreaker.getAllStatus();
 
     // 3. 응답 포맷팅
     const response = {
@@ -83,6 +91,9 @@ export async function POST(request: NextRequest) {
         includeThinking,
         thinkingSteps: result.thinkingSteps,
         ...result.metadata,
+      },
+      circuitBreakerStatus: {
+        'MCP-Query-Engine': circuitBreakerStatus['MCP-Query-Engine'] || { state: 'CLOSED', failures: 0 }
       },
     };
 
@@ -123,6 +134,9 @@ export async function GET(_request: NextRequest) {
 
     const cloudContextLoader = CloudContextLoader.getInstance();
     const status = await cloudContextLoader.getIntegratedStatus();
+    
+    // Circuit Breaker 상태 정보 포함
+    const circuitBreakerStatus = aiCircuitBreaker.getAllStatus();
 
     return NextResponse.json(
       {
@@ -135,8 +149,10 @@ export async function GET(_request: NextRequest) {
           aiProcessing: true,
           thinkingMode: true,
           supportedEngines: ['gemini', 'openai', 'local'],
+          circuitBreakerEnabled: true,
         },
         serverStatus: status,
+        circuitBreakerStatus,
       },
       {
         status: 200,

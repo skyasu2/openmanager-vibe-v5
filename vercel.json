@@ -204,7 +204,7 @@
     "NEXT_PUBLIC_FREE_TIER_MODE": "true",
     "VERCEL_HOBBY_PLAN": "true",
     "SERVERLESS_FUNCTION_TIMEOUT": "8",
-    "MEMORY_LIMIT_MB": "40",
+    "MEMORY_LIMIT_MB": "128",
     "DISABLE_BACKGROUND_JOBS": "true",
     "ENABLE_QUOTA_PROTECTION": "true",
     "VERCEL_ANALYTICS_ENABLED": "true",
@@ -244,6 +244,10 @@
     "src/app/api/mcp/route.ts": {
       "maxDuration": 10
     },
+    "src/app/api/mcp/query/route.ts": {
+      "maxDuration": 15,
+      "memory": 512
+    },
     "src/app/api/ai/query/route.ts": {
       "maxDuration": 10
     },
@@ -267,6 +271,10 @@
     },
     "src/app/api/security/csp-report/route.ts": {
       "maxDuration": 5
+    },
+    "src/app/api/debug/env/route.ts": {
+      "maxDuration": 5,
+      "memory": 128
     }
   }
 }
