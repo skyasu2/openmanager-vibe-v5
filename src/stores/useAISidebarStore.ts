@@ -11,6 +11,7 @@
 
 'use client';
 
+import React from 'react';
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
@@ -34,7 +35,7 @@ export interface AgentLog {
 export interface ChatMessage {
   id: string;
   content: string;
-  role: 'user' | 'assistant' | 'system';
+  role: 'user' | 'assistant' | 'system' | 'thinking';
   timestamp: Date;
   engine?: string;
   metadata?: {
@@ -42,6 +43,13 @@ export interface ChatMessage {
     confidence?: number;
     error?: string;
   };
+}
+
+export interface EnhancedChatMessage extends ChatMessage {
+  thinkingSteps?: AIThinkingStep[];
+  isStreaming?: boolean;
+  isCompleted?: boolean;
+  parentMessageId?: string; // thinking 메시지가 속한 원본 메시지 ID
 }
 
 export interface AIResponse {
@@ -55,22 +63,218 @@ export interface ChatHookOptions {
   maxMessages?: number;
 }
 
-// 임시 훅 구현
+// 🧠 AI Thinking 관리 훅 (실제 구현)
 export const useAIThinking = () => {
-  return {
-    steps: [] as AIThinkingStep[],
+  // Thinking 상태를 위한 별도 상태 (persist 제외)
+  const [thinkingState, setThinkingState] = React.useState<{
+    steps: AIThinkingStep[];
+    isThinking: boolean;
+    currentStepIndex: number;
+    startTime?: Date;
+    sessionId?: string;
+  }>({
+    steps: [],
     isThinking: false,
-    addStep: () => {},
-    clearSteps: () => {},
+    currentStepIndex: -1,
+  });
+
+  const addStep = React.useCallback((step: Omit<AIThinkingStep, 'timestamp'>) => {
+    const newStep: AIThinkingStep = {
+      ...step,
+      timestamp: new Date(),
+    };
+    
+    setThinkingState(prev => ({
+      ...prev,
+      steps: [...prev.steps, newStep],
+      isThinking: step.status !== 'complete' && step.status !== 'error',
+      currentStepIndex: prev.steps.length,
+    }));
+  }, []);
+
+  const updateStep = React.useCallback((stepId: string, updates: Partial<AIThinkingStep>) => {
+    setThinkingState(prev => ({
+      ...prev,
+      steps: prev.steps.map(step => 
+        step.id === stepId 
+          ? { ...step, ...updates, timestamp: new Date() }
+          : step
+      ),
+      isThinking: updates.status 
+        ? (updates.status !== 'complete' && updates.status !== 'error')
+        : prev.isThinking,
+    }));
+  }, []);
+
+  const clearSteps = React.useCallback(() => {
+    setThinkingState(prev => ({
+      ...prev,
+      steps: [],
+      isThinking: false,
+      currentStepIndex: -1,
+    }));
+  }, []);
+
+  const startThinking = React.useCallback((initialStep?: string, sessionId?: string) => {
+    const now = new Date();
+    setThinkingState({
+      steps: initialStep ? [{
+        id: crypto.randomUUID(),
+        step: initialStep,
+        status: 'thinking',
+        timestamp: now,
+      }] : [],
+      isThinking: true,
+      currentStepIndex: 0,
+      startTime: now,
+      sessionId,
+    });
+  }, []);
+
+  const completeThinking = React.useCallback(() => {
+    setThinkingState(prev => ({
+      ...prev,
+      isThinking: false,
+      steps: prev.steps.map(step => 
+        step.status === 'thinking' 
+          ? { ...step, status: 'complete', timestamp: new Date() }
+          : step
+      ),
+    }));
+  }, []);
+
+  // 실제 thinking 과정 시뮬레이션
+  const simulateThinkingSteps = React.useCallback((query: string, mode: 'LOCAL' | 'GOOGLE_AI' = 'LOCAL') => {
+    if (mode === 'GOOGLE_AI') {
+      // Google AI는 단순한 처리 과정
+      const steps: Omit<AIThinkingStep, 'timestamp'>[] = [
+        {
+          id: crypto.randomUUID(),
+          step: 'API 호출 중...',
+          status: 'thinking',
+          description: 'Google AI API를 호출하고 있습니다.'
+        }
+      ];
+      
+      steps.forEach(step => addStep(step));
+      
+      // 2초 후 완료
+      setTimeout(() => {
+        updateStep(steps[0].id, { status: 'complete' });
+        completeThinking();
+      }, 2000);
+    } else {
+      // Local AI는 상세한 thinking 과정
+      const steps: Omit<AIThinkingStep, 'timestamp'>[] = [
+        {
+          id: crypto.randomUUID(),
+          step: '질문 분석',
+          status: 'thinking',
+          description: `"${query}" 질문을 이해하고 의도를 파악하고 있습니다...`
+        },
+        {
+          id: crypto.randomUUID(),
+          step: '데이터 수집',
+          status: 'thinking',
+          description: '관련 시스템 데이터와 메트릭을 수집하고 있습니다...'
+        },
+        {
+          id: crypto.randomUUID(),
+          step: '분석 및 추론',
+          status: 'thinking', 
+          description: '수집된 데이터를 분석하고 패턴을 파악하고 있습니다...'
+        },
+        {
+          id: crypto.randomUUID(),
+          step: '답변 생성',
+          status: 'thinking',
+          description: '최적의 답변을 생성하고 검증하고 있습니다...'
+        }
+      ];
+
+      // 첫 번째 단계 시작
+      addStep(steps[0]);
+      
+      // 단계별 진행 시뮬레이션
+      steps.forEach((step, index) => {
+        setTimeout(() => {
+          if (index > 0) addStep(step); // 첫 번째는 이미 추가됨
+          
+          // 이전 단계 완료
+          if (index > 0) {
+            updateStep(steps[index - 1].id, { status: 'complete' });
+          }
+          
+          // 마지막 단계면 전체 완료
+          if (index === steps.length - 1) {
+            setTimeout(() => {
+              updateStep(step.id, { status: 'complete' });
+              completeThinking();
+            }, 1500);
+          }
+        }, (index + 1) * 1500); // 1.5초 간격으로 진행
+      });
+    }
+  }, [addStep, updateStep, completeThinking]);
+
+  return {
+    steps: thinkingState.steps,
+    isThinking: thinkingState.isThinking,
+    currentStepIndex: thinkingState.currentStepIndex,
+    startTime: thinkingState.startTime,
+    sessionId: thinkingState.sessionId,
+    addStep,
+    updateStep,
+    clearSteps,
+    startThinking,
+    completeThinking,
+    simulateThinkingSteps,
   };
 };
 
 export const useAIChat = () => {
+  const messages = useAISidebarStore((state) => state.messages);
+  const addMessage = useAISidebarStore((state) => state.addMessage);
+  const clearMessages = useAISidebarStore((state) => state.clearMessages);
+  
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  const sendMessage = React.useCallback(async (content: string) => {
+    const userMessage: EnhancedChatMessage = {
+      id: crypto.randomUUID(),
+      content,
+      role: 'user',
+      timestamp: new Date(),
+    };
+
+    addMessage(userMessage);
+    setIsLoading(true);
+
+    try {
+      // API 호출 로직 여기에 추가 예정
+      // 현재는 더미 응답
+      const assistantMessage: EnhancedChatMessage = {
+        id: crypto.randomUUID(),
+        content: '응답을 처리 중입니다...',
+        role: 'assistant',
+        timestamp: new Date(),
+        isStreaming: true,
+        isCompleted: false,
+      };
+
+      addMessage(assistantMessage);
+    } catch (error) {
+      console.error('Send message error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [addMessage]);
+
   return {
-    messages: [] as ChatMessage[],
-    sendMessage: async () => {},
-    clearMessages: () => {},
-    isLoading: false,
+    messages,
+    sendMessage,
+    clearMessages,
+    isLoading,
   };
 };
 
@@ -170,7 +374,7 @@ interface AISidebarState {
   activeTab: 'chat' | 'presets' | 'thinking' | 'settings' | 'functions';
 
   // 채팅 관련 상태
-  messages: ChatMessage[];
+  messages: EnhancedChatMessage[];
   sessionId: string;
   currentEngine: string;
 
@@ -191,7 +395,8 @@ interface AISidebarState {
   setSelectedContext: (context: 'basic' | 'advanced' | 'custom') => void;
 
   // 채팅 관련 액션들
-  addMessage: (message: ChatMessage) => void;
+  addMessage: (message: EnhancedChatMessage) => void;
+  updateMessage: (messageId: string, updates: Partial<EnhancedChatMessage>) => void;
   clearMessages: () => void;
   setCurrentEngine: (engine: string) => void;
 
@@ -238,6 +443,13 @@ export const useAISidebarStore = create<AISidebarState>()(
             messages: [...state.messages, message],
           })),
 
+        updateMessage: (messageId, updates) =>
+          set((state) => ({
+            messages: state.messages.map(msg => 
+              msg.id === messageId ? { ...msg, ...updates } : msg
+            ),
+          })),
+
         clearMessages: () => set({ messages: [] }),
 
         setCurrentEngine: (engine) => set({ currentEngine: engine }),
@@ -264,6 +476,10 @@ export const useAISidebarStore = create<AISidebarState>()(
           activeTab: state.activeTab,
           functionTab: state.functionTab,
           selectedContext: state.selectedContext,
+          // 🔥 대화 기록 영속화 추가
+          messages: state.messages,
+          currentEngine: state.currentEngine,
+          sessionId: state.sessionId,
         }),
         // SSR 안전성을 위한 skipHydration 추가
         skipHydration: true,

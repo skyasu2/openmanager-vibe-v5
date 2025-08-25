@@ -5,8 +5,7 @@
 
 // 컴포넌트
 export {
-  AISidebarV2Refactored,
-  AISidebarV2,
+  AISidebarV3,
   AIEngineSelector,
   AIEngineDropdown,
   AIThinkingDisplay,

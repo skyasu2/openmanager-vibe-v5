@@ -143,3 +143,23 @@ export interface UseAISidebarReturn {
     inputRef: React.RefObject<HTMLTextAreaElement>;
   };
 }
+
+/**
+ * AI 사이드바 V2 Props
+ */
+export interface AISidebarV2Props {
+  isOpen: boolean;
+  onClose: () => void;
+  className?: string;
+}
+
+/**
+ * AI 사이드바 V3 Props (확장된 기능)
+ */
+export interface AISidebarV3Props extends AISidebarV2Props {
+  defaultEngine?: AIMode;
+  sessionId?: string;
+  enableRealTimeThinking?: boolean;
+  onEngineChange?: (engine: AIMode) => void;
+  onMessageSend?: (message: string) => void;
+}

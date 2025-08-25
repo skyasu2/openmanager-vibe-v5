@@ -4,13 +4,10 @@
  */
 
 // 메인 컴포넌트
-export { AISidebarV2Refactored } from './AISidebarV2.refactored';
+export { default as AISidebarV3 } from './AISidebarV3';
 
 // UI 컴포넌트
 export { AIEngineSelector } from './AIEngineSelector';
 export { AIEngineDropdown } from './AIEngineDropdown';
 export { AIThinkingDisplay } from './AIThinkingDisplay';
 export { AIChatMessages } from './AIChatMessages';
-
-// 기존 컴포넌트 (하위 호환성)
-export { default as AISidebarV2 } from './AISidebarV2';

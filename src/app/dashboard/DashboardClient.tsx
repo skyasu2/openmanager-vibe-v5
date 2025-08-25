@@ -79,7 +79,7 @@ const FloatingSystemControl = dynamic(
 // AI Sidebar를 CSS 애니메이션으로 동적 로드
 const AnimatedAISidebar = dynamic(
   async () => {
-    const AISidebarV2 = await import('@/domains/ai-sidebar/components/AISidebarV2');
+    const AISidebarV3 = await import('@/domains/ai-sidebar/components/AISidebarV3');
 
     return function AnimatedAISidebarWrapper({
       isOpen,
@@ -98,7 +98,7 @@ const AnimatedAISidebar = dynamic(
                 transform: isOpen ? 'translateX(0)' : 'translateX(100%)'
               }}
             >
-              <AISidebarV2.default
+              <AISidebarV3.default
                 onClose={onClose}
                 isOpen={isOpen}
                 {...props}

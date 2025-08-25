@@ -44,6 +44,7 @@ import type { AISidebarV2Props, ThinkingStep } from '../types/ai-sidebar-types';
 import type { ChatMessage } from '@/stores/useAISidebarStore';
 
 // 새로 분리된 컴포넌트들 import
+import ThinkingProcessVisualizer from '@/components/ai/ThinkingProcessVisualizer';
 
 // AI 기능 아이콘 패널 및 페이지 컴포넌트들
 import type { AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
@@ -92,7 +93,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   const PRESETS_PER_PAGE = 4;
 
   // 도메인 훅들 사용
-  const { setOpen } = useAISidebarStore();
+  const { setOpen, addMessage } = useAISidebarStore();
   const { isThinking, steps, addStep, clearSteps } = useAIThinking();
 
   // 로컬 상태로 관리
@@ -360,7 +361,24 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
     engine: AIMode = 'LOCAL'
   ) => {
     const startTime = Date.now();
-    startThinking(); // 생각중 시작
+
+    // 🎯 모드별 차별화 처리
+    const isGoogleAI = engine === 'GOOGLE_AI';
+
+    // Google AI: 간단한 처리 메시지만 표시
+    if (isGoogleAI) {
+      const googleProcessingMessage: EnhancedChatMessage = {
+        id: `google-processing-${Date.now()}`,
+        content: '🤖 Google AI API 사용중...',
+        role: 'thinking',
+        timestamp: new Date(),
+        isStreaming: true,
+      };
+      addMessage(googleProcessingMessage);
+    } else {
+      // 로컬 AI: 상세한 thinking process 시작
+      startThinking();
+    }
 
     try {
       console.log(`🤖 실제 AI 쿼리 처리 시작: ${query} (엔진: ${engine})`);
@@ -374,7 +392,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
         body: JSON.stringify({
           query,
           context: 'ai-sidebar',
-          includeThinking: true,
+          includeThinking: !isGoogleAI, // Google AI는 thinking 비활성화
           sessionId: chatSessionId,
         }),
       });
@@ -388,11 +406,28 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
       if (data.success && data.response) {
         const processingTime = Date.now() - startTime;
 
-        // 성공 시 생각 과정을 저장하고 실시간 표시 중단
-        setTimeout(
-          () => stopThinking(query, data.engine || engine, processingTime),
-          500
-        );
+        // 🎯 모드별 차별화 응답 처리
+        if (isGoogleAI) {
+          // Google AI: 간단한 처리 메시지 제거하고 최종 응답 표시
+          const finalMessage: EnhancedChatMessage = {
+            id: `assistant-${Date.now()}`,
+            content: data.response,
+            role: 'assistant',
+            timestamp: new Date(),
+            engine: data.engine || engine,
+            metadata: {
+              processingTime,
+              confidence: data.confidence || 0.8,
+            },
+          };
+          addMessage(finalMessage);
+        } else {
+          // 로컬 AI: 상세한 thinking process 완료 후 응답 표시
+          setTimeout(
+            () => stopThinking(query, data.engine || engine, processingTime),
+            500
+          );
+        }
 
         return {
           success: true,
@@ -403,16 +438,36 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
           metadata: data.metadata,
         };
       } else {
-        stopThinking();
+        // 오류 시 thinking 정리
+        if (!isGoogleAI) {
+          stopThinking();
+        }
         throw new Error(data.error || 'AI 응답 생성 실패');
       }
     } catch (error) {
       console.error('❌ 실제 AI 쿼리 실패:', error);
-      stopThinking();
+      
+      // 모드별 에러 처리
+      if (!isGoogleAI) {
+        stopThinking();
+      }
+
+      // 에러 메시지 추가
+      const errorMessage: EnhancedChatMessage = {
+        id: `error-${Date.now()}`,
+        content: `죄송합니다. AI 응답 생성 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+        role: 'assistant',
+        timestamp: new Date(),
+        metadata: {
+          processingTime: Date.now() - startTime,
+          error: error instanceof Error ? error.message : '알 수 없는 오류',
+        },
+      };
+      addMessage(errorMessage);
 
       return {
         success: false,
-        content: `죄송합니다. AI 응답 생성 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`,
+        content: errorMessage.content,
         confidence: 0,
         engine: 'error',
         processingTime: Date.now() - startTime,
@@ -733,62 +788,93 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
           </div>
         )}
 
-        {/* 채팅 메시지들 렌더링 (간소화) */}
-        {allMessages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
+        {/* 채팅 메시지들 렌더링 (thinking role 지원) */}
+        {allMessages.map((message) => {
+          // thinking 메시지일 경우 ThinkingProcessVisualizer 사용
+          if (message.role === 'thinking' && 'thinkingSteps' in message) {
+            return (
+              <div key={message.id} className="my-4">
+                <ThinkingProcessVisualizer
+                  steps={message.thinkingSteps || []}
+                  isActive={message.isStreaming || false}
+                  title="AI가 생각하는 중..."
+                  className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg"
+                />
+              </div>
+            );
+          }
+
+          // 일반 메시지 렌더링
+          return (
             <div
-              className={`flex max-w-[90%] items-start space-x-2 sm:max-w-[85%] ${
-                message.role === 'user'
-                  ? 'flex-row-reverse space-x-reverse'
-                  : ''
-              }`}
+              key={message.id}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              {/* 아바타 */}
               <div
-                className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full ${
+                className={`flex max-w-[90%] items-start space-x-2 sm:max-w-[85%] ${
                   message.role === 'user'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                    ? 'flex-row-reverse space-x-reverse'
+                    : ''
                 }`}
               >
-                {message.role === 'user' ? (
-                  <User className="h-3 w-3" />
-                ) : (
-                  <Bot className="h-3 w-3" />
-                )}
-              </div>
-
-              {/* 메시지 콘텐츠 */}
-              <div className="flex-1">
+                {/* 아바타 */}
                 <div
-                  className={`rounded-lg p-3 ${
+                  className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full ${
                     message.role === 'user'
                       ? 'bg-blue-500 text-white'
-                      : 'border border-gray-200 bg-white'
+                      : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
                   }`}
                 >
-                  <div className="whitespace-pre-wrap break-words text-sm">
-                    {message.content}
-                  </div>
+                  {message.role === 'user' ? (
+                    <User className="h-3 w-3" />
+                  ) : (
+                    <Bot className="h-3 w-3" />
+                  )}
                 </div>
 
-                {/* 타임스탬프 */}
-                <div
-                  className={`mt-1 ${message.role === 'user' ? 'text-right' : 'text-left'}`}
-                >
-                  <p className="text-xs text-gray-500">
-                    {typeof message.timestamp === 'string'
-                      ? new Date(message.timestamp).toLocaleTimeString()
-                      : message.timestamp.toLocaleTimeString()}
-                  </p>
+                {/* 메시지 콘텐츠 */}
+                <div className="flex-1">
+                  <div
+                    className={`rounded-lg p-3 ${
+                      message.role === 'user'
+                        ? 'bg-blue-500 text-white'
+                        : 'border border-gray-200 bg-white'
+                    }`}
+                  >
+                    <div className="whitespace-pre-wrap break-words text-sm">
+                      {message.content}
+                    </div>
+                  </div>
+
+                  {/* 타임스탬프 */}
+                  <div
+                    className={`mt-1 ${message.role === 'user' ? 'text-right' : 'text-left'}`}
+                  >
+                    <p className="text-xs text-gray-500">
+                      {typeof message.timestamp === 'string'
+                        ? new Date(message.timestamp).toLocaleTimeString()
+                        : message.timestamp.toLocaleTimeString()}
+                    </p>
+                  </div>
+
+                  {/* EnhancedChatMessage의 thinking steps 표시 (assistant 메시지에서) */}
+                  {message.role === 'assistant' && 'thinkingSteps' in message && message.thinkingSteps?.length > 0 && (
+                    <div className="mt-3 border-t border-gray-100 pt-3">
+                      <ThinkingProcessVisualizer
+                        steps={message.thinkingSteps}
+                        isActive={false}
+                        title="처리 과정"
+                        className="bg-gray-50 border border-gray-200 rounded"
+                        collapsible={true}
+                        defaultCollapsed={true}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         <div ref={messagesEndRef} />
       </div>
