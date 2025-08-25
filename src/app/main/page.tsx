@@ -7,6 +7,7 @@
 
 'use client';
 
+import React from 'react';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
@@ -527,7 +528,11 @@ function Home() {
 
       {/* 헤더 */}
       <header className="relative z-50 flex items-center justify-between p-6">
-        <div className="flex items-center space-x-3">
+        <button 
+          className="flex items-center space-x-3 cursor-pointer transition-opacity hover:opacity-80"
+          onClick={() => router.push('/')}
+          aria-label="홈으로 이동"
+        >
           {/* AI 컨셉 아이콘 - 통합 AI 카드 스타일 애니메이션 적용 */}
           <div
             className="relative flex h-10 w-10 items-center justify-center rounded-lg shadow-lg"
@@ -539,8 +544,8 @@ function Home() {
                   : 'linear-gradient(135deg, #6b7280, #4b5563)'
             }}
           >
-            {/* AI 활성화 시 회전 아이콘 */}
-            {aiAgent.isEnabled ? (
+            {/* 시스템 활성화 또는 AI 활성화 시 회전 아이콘 */}
+            {(aiAgent.isEnabled || isSystemStarted) ? (
               <i
                 className="fas fa-server text-lg text-white animate-spin"
                 aria-hidden="true"
@@ -566,7 +571,7 @@ function Home() {
                     : '시스템 정지'}
             </p>
           </div>
-        </div>
+        </button>
 
         {/* 오른쪽 헤더 컨트롤 */}
         <div className="flex items-center gap-3">
