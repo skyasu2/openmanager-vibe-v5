@@ -65,27 +65,13 @@ function convertServerToModalData(server: Server) {
   };
 }
 
-// --- Dynamic Imports with Preload ---
-const DashboardHeader = dynamic(
-  () => import('../../components/dashboard/DashboardHeader'),
-  {
-    loading: () => (
-      <div className="h-16 animate-pulse bg-white dark:bg-gray-800" />
-    ),
-    ssr: true, // SSR 활성화로 초기 로딩 개선
-  }
-);
-const DashboardContent = dynamic(
-  () => import('../../components/dashboard/DashboardContent'),
-  {
-    loading: () => <ContentLoadingSkeleton />,
-    ssr: true, // SSR 활성화로 초기 로딩 개선
-  }
-);
+// --- Static Imports for Core Components (SSR bailout 해결) ---
+import DashboardHeader from '../../components/dashboard/DashboardHeader';
+import DashboardContent from '../../components/dashboard/DashboardContent';
 const FloatingSystemControl = dynamic(
   () => import('../../components/system/FloatingSystemControl'),
   {
-    ssr: false, // 클라이언트 전용 컴포넌트
+    ssr: false, // 클라이언트 전용 컴포넌트 (변경 없음)
   }
 );
 // EnhancedServerModal은 AnimatedServerModal로 통합됨
@@ -131,6 +117,7 @@ const AnimatedAISidebar = dynamic(
         </div>
       </div>
     ),
+    ssr: false, // 클라이언트 전용 컴포넌트
   }
 );
 
@@ -169,6 +156,7 @@ const AnimatedServerModal = dynamic(
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
       </div>
     ),
+    ssr: false, // 클라이언트 전용 컴포넌트
   }
 );
 
@@ -251,6 +239,14 @@ function DashboardPageContent() {
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const [_showSystemWarning, setShowSystemWarning] = useState(false);
   const isResizing = false;
+
+  // 🎯 서버 통계 상태 관리 (상단 통계 카드용)
+  const [serverStats, setServerStats] = useState({
+    total: 0,
+    online: 0,
+    warning: 0,
+    offline: 0,
+  });
 
   // 🔄 실제 시스템 상태 확인
   const { status: _systemStatus, isLoading: _systemStatusLoading } =
@@ -358,6 +354,17 @@ function DashboardPageContent() {
     debug.log('🔒 사용자가 즉시 로그아웃을 선택했습니다');
   }, [forceLogout]);
 
+  // 🎯 통계 업데이트 핸들러 (상단 통계 카드 업데이트)
+  const handleStatsUpdate = useCallback((stats: {
+    total: number;
+    online: number;
+    warning: number;
+    offline: number;
+  }) => {
+    console.log('📊 통계 업데이트 수신:', stats);
+    setServerStats(stats);
+  }, []);
+
   // 🎯 서버 클릭 핸들러 - 실제 데이터와 연동
   const handleServerClick = useCallback(
     (server: Server) => {
@@ -423,9 +430,8 @@ function DashboardPageContent() {
               selectedServer={selectedServer || dashboardSelectedServer}
               onServerClick={handleServerClick}
               onServerModalClose={handleServerModalClose}
-              onStatsUpdate={() => {}}
+              onStatsUpdate={handleStatsUpdate}
               onShowSequentialChange={() => {}}
-              mainContentVariants={{}}
               isAgentOpen={isAgentOpen}
             />
           </Suspense>

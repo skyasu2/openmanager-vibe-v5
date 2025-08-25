@@ -56,22 +56,37 @@ export async function apiFetch(
     ...options,
   };
 
-  console.log(`🚀 API 요청: ${options?.method || 'GET'} ${url}`);
+  console.log(`🚀 API 요청 시작: ${options?.method || 'GET'} ${url}`);
+  console.log(`📝 요청 옵션:`, defaultOptions);
 
   try {
     const response = await fetch(url, defaultOptions);
+    
+    console.log(`📡 응답 수신: ${response.status} ${response.statusText}`);
+    console.log(`📋 응답 헤더:`, Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       console.error(
         `❌ API 요청 실패: ${response.status} ${response.statusText} - ${url}`
       );
+      // 에러 응답 본문도 로깅
+      const errorText = await response.clone().text();
+      console.error(`📄 에러 응답 본문:`, errorText.substring(0, 500));
     } else {
       console.log(`✅ API 요청 성공: ${response.status} - ${url}`);
+      // 성공 응답의 크기 확인
+      const contentLength = response.headers.get('content-length');
+      if (contentLength) {
+        console.log(`📊 응답 크기: ${contentLength} bytes`);
+      }
     }
 
     return response;
   } catch (error) {
-    console.error(`❌ API 요청 오류: ${error} - ${url}`);
+    console.error(`❌ 네트워크 오류 발생: ${url}`);
+    console.error(`🔍 오류 상세:`, error);
+    console.error(`🌐 URL 확인:`, url);
+    console.error(`⚙️ 요청 설정:`, defaultOptions);
     throw error;
   }
 }
@@ -89,7 +104,19 @@ export async function apiRequest<T = any>(
     throw new Error(`API 요청 실패: ${response.status} ${response.statusText}`);
   }
 
-  return response.json();
+  try {
+    const responseText = await response.text();
+    console.log(`📄 응답 본문 (첫 200자):`, responseText.substring(0, 200));
+    
+    const jsonData = JSON.parse(responseText);
+    console.log(`✅ JSON 파싱 성공:`, typeof jsonData, Object.keys(jsonData || {}));
+    
+    return jsonData;
+  } catch (error) {
+    console.error(`❌ JSON 파싱 실패:`, error);
+    console.error(`📄 원본 응답:`, await response.clone().text());
+    throw new Error(`응답 JSON 파싱 실패: ${error}`);
+  }
 }
 
 /**

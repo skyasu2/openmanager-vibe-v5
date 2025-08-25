@@ -1,0 +1,368 @@
+{
+  "hour": 12,
+  "timestamp": "2025-08-25T03:00:00.000Z",
+  "scenario": "점심 피크 트래픽",
+  "trafficFactor": 1.5,
+  "servers": {
+    "web-server-1": {
+      "id": "web-server-1",
+      "name": "Web Server #1",
+      "hostname": "web-01.prod.example.com",
+      "status": "healthy",
+      "cpu": 38,
+      "memory": 60,
+      "disk": 35,
+      "network": 90,
+      "uptime": 2592000,
+      "location": "us-east-1a",
+      "environment": "production",
+      "provider": "AWS",
+      "type": "web",
+      "service": "Nginx",
+      "alerts": 0,
+      "alertMessages": [],
+      "lastUpdate": "2025-08-25T03:00:00.000Z",
+      "incidents": [],
+      "metrics": {
+        "cpu": {
+          "usage": 38,
+          "cores": 4,
+          "temperature": 46
+        },
+        "memory": {
+          "used": 5,
+          "total": 8,
+          "usage": 60
+        },
+        "disk": {
+          "used": 35,
+          "total": 100,
+          "usage": 35
+        },
+        "network": {
+          "bytesIn": 54,
+          "bytesOut": 36,
+          "packetsIn": 900,
+          "packetsOut": 720
+        },
+        "timestamp": "2025-08-25T03:00:00.000Z",
+        "uptime": 2592000
+      }
+    },
+    "api-server-1": {
+      "id": "api-server-1",
+      "name": "API Server #1",
+      "hostname": "api-01.prod.example.com",
+      "status": "healthy",
+      "cpu": 53,
+      "memory": 83,
+      "disk": 45,
+      "network": 99,
+      "uptime": 2592000,
+      "location": "us-east-1b",
+      "environment": "production",
+      "provider": "AWS",
+      "type": "application",
+      "service": "Node.js",
+      "alerts": 0,
+      "alertMessages": [],
+      "lastUpdate": "2025-08-25T03:00:00.000Z",
+      "incidents": [],
+      "metrics": {
+        "cpu": {
+          "usage": 53,
+          "cores": 8,
+          "temperature": 51
+        },
+        "memory": {
+          "used": 13,
+          "total": 16,
+          "usage": 83
+        },
+        "disk": {
+          "used": 90,
+          "total": 200,
+          "usage": 45
+        },
+        "network": {
+          "bytesIn": 59,
+          "bytesOut": 40,
+          "packetsIn": 990,
+          "packetsOut": 792
+        },
+        "timestamp": "2025-08-25T03:00:00.000Z",
+        "uptime": 2592000
+      }
+    },
+    "db-master-1": {
+      "id": "db-master-1",
+      "name": "Database Master",
+      "hostname": "db-master-01.prod.example.com",
+      "status": "warning",
+      "cpu": 68,
+      "memory": 95,
+      "disk": 55,
+      "network": 99,
+      "uptime": 2592000,
+      "location": "us-east-1c",
+      "environment": "production",
+      "provider": "AWS",
+      "type": "database",
+      "service": "PostgreSQL",
+      "alerts": 0,
+      "alertMessages": [],
+      "lastUpdate": "2025-08-25T03:00:00.000Z",
+      "incidents": [],
+      "metrics": {
+        "cpu": {
+          "usage": 68,
+          "cores": 16,
+          "temperature": 55
+        },
+        "memory": {
+          "used": 61,
+          "total": 64,
+          "usage": 95
+        },
+        "disk": {
+          "used": 550,
+          "total": 1000,
+          "usage": 55
+        },
+        "network": {
+          "bytesIn": 59,
+          "bytesOut": 40,
+          "packetsIn": 990,
+          "packetsOut": 792
+        },
+        "timestamp": "2025-08-25T03:00:00.000Z",
+        "uptime": 2592000
+      }
+    },
+    "db-replica-1": {
+      "id": "db-replica-1",
+      "name": "Database Replica",
+      "hostname": "db-replica-01.prod.example.com",
+      "status": "healthy",
+      "cpu": 45,
+      "memory": 75,
+      "disk": 55,
+      "network": 99,
+      "uptime": 2592000,
+      "location": "us-east-1d",
+      "environment": "production",
+      "provider": "AWS",
+      "type": "database",
+      "service": "PostgreSQL",
+      "alerts": 0,
+      "alertMessages": [],
+      "lastUpdate": "2025-08-25T03:00:00.000Z",
+      "incidents": [],
+      "metrics": {
+        "cpu": {
+          "usage": 45,
+          "cores": 8,
+          "temperature": 49
+        },
+        "memory": {
+          "used": 24,
+          "total": 32,
+          "usage": 75
+        },
+        "disk": {
+          "used": 550,
+          "total": 1000,
+          "usage": 55
+        },
+        "network": {
+          "bytesIn": 59,
+          "bytesOut": 40,
+          "packetsIn": 990,
+          "packetsOut": 792
+        },
+        "timestamp": "2025-08-25T03:00:00.000Z",
+        "uptime": 2592000
+      }
+    },
+    "cache-server-1": {
+      "id": "cache-server-1",
+      "name": "Cache Server #1",
+      "hostname": "cache-01.prod.example.com",
+      "status": "healthy",
+      "cpu": 30,
+      "memory": 90,
+      "disk": 25,
+      "network": 81,
+      "uptime": 2592000,
+      "location": "us-east-1a",
+      "environment": "production",
+      "provider": "AWS",
+      "type": "cache",
+      "service": "Redis",
+      "alerts": 0,
+      "alertMessages": [],
+      "lastUpdate": "2025-08-25T03:00:00.000Z",
+      "incidents": [],
+      "metrics": {
+        "cpu": {
+          "usage": 30,
+          "cores": 4,
+          "temperature": 44
+        },
+        "memory": {
+          "used": 29,
+          "total": 32,
+          "usage": 90
+        },
+        "disk": {
+          "used": 13,
+          "total": 50,
+          "usage": 25
+        },
+        "network": {
+          "bytesIn": 49,
+          "bytesOut": 32,
+          "packetsIn": 810,
+          "packetsOut": 648
+        },
+        "timestamp": "2025-08-25T03:00:00.000Z",
+        "uptime": 2592000
+      }
+    },
+    "storage-server-1": {
+      "id": "storage-server-1",
+      "name": "Storage Server #1",
+      "hostname": "storage-01.prod.example.com",
+      "status": "healthy",
+      "cpu": 23,
+      "memory": 53,
+      "disk": 70,
+      "network": 99,
+      "uptime": 2592000,
+      "location": "us-east-1b",
+      "environment": "production",
+      "provider": "AWS",
+      "type": "storage",
+      "service": "MinIO",
+      "alerts": 0,
+      "alertMessages": [],
+      "lastUpdate": "2025-08-25T03:00:00.000Z",
+      "incidents": [],
+      "metrics": {
+        "cpu": {
+          "usage": 23,
+          "cores": 8,
+          "temperature": 42
+        },
+        "memory": {
+          "used": 8,
+          "total": 16,
+          "usage": 53
+        },
+        "disk": {
+          "used": 1400,
+          "total": 2000,
+          "usage": 70
+        },
+        "network": {
+          "bytesIn": 59,
+          "bytesOut": 40,
+          "packetsIn": 990,
+          "packetsOut": 792
+        },
+        "timestamp": "2025-08-25T03:00:00.000Z",
+        "uptime": 2592000
+      }
+    },
+    "queue-server-1": {
+      "id": "queue-server-1",
+      "name": "Message Queue #1",
+      "hostname": "queue-01.prod.example.com",
+      "status": "healthy",
+      "cpu": 38,
+      "memory": 68,
+      "disk": 40,
+      "network": 99,
+      "uptime": 2592000,
+      "location": "us-east-1c",
+      "environment": "production",
+      "provider": "AWS",
+      "type": "queue",
+      "service": "RabbitMQ",
+      "alerts": 0,
+      "alertMessages": [],
+      "lastUpdate": "2025-08-25T03:00:00.000Z",
+      "incidents": [],
+      "metrics": {
+        "cpu": {
+          "usage": 38,
+          "cores": 4,
+          "temperature": 46
+        },
+        "memory": {
+          "used": 5,
+          "total": 8,
+          "usage": 68
+        },
+        "disk": {
+          "used": 40,
+          "total": 100,
+          "usage": 40
+        },
+        "network": {
+          "bytesIn": 59,
+          "bytesOut": 40,
+          "packetsIn": 990,
+          "packetsOut": 792
+        },
+        "timestamp": "2025-08-25T03:00:00.000Z",
+        "uptime": 2592000
+      }
+    },
+    "monitoring-server-1": {
+      "id": "monitoring-server-1",
+      "name": "Monitoring Server #1",
+      "hostname": "monitoring-01.prod.example.com",
+      "status": "warning",
+      "cpu": 60,
+      "memory": 95,
+      "disk": 60,
+      "network": 99,
+      "uptime": 2592000,
+      "location": "us-east-1d",
+      "environment": "production",
+      "provider": "AWS",
+      "type": "monitoring",
+      "service": "Prometheus",
+      "alerts": 0,
+      "alertMessages": [],
+      "lastUpdate": "2025-08-25T03:00:00.000Z",
+      "incidents": [],
+      "metrics": {
+        "cpu": {
+          "usage": 60,
+          "cores": 8,
+          "temperature": 53
+        },
+        "memory": {
+          "used": 30,
+          "total": 32,
+          "usage": 95
+        },
+        "disk": {
+          "used": 300,
+          "total": 500,
+          "usage": 60
+        },
+        "network": {
+          "bytesIn": 59,
+          "bytesOut": 40,
+          "packetsIn": 990,
+          "packetsOut": 792
+        },
+        "timestamp": "2025-08-25T03:00:00.000Z",
+        "uptime": 2592000
+      }
+    }
+  }
+}

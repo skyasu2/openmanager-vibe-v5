@@ -52,11 +52,25 @@ interface DashboardServerData {
 
 interface InfrastructureOverviewPageProps {
   className?: string;
+  servers?: unknown[];
+  statsData?: {
+    totalServers?: number;
+    onlineServers?: number;
+    warningServers?: number;
+    criticalServers?: number;
+    avgCpu?: number;
+    avgMemory?: number;
+    avgDisk?: number;
+  };
 }
 
 export default function InfrastructureOverviewPage({
   className = '',
+  servers: propServers,
+  statsData: propStatsData,
 }: InfrastructureOverviewPageProps) {
+  console.log('🎯 [InfrastructureOverviewPage] 컴포넌트 렌더링 시작');
+  
   const [stats, setStats] = useState<InfrastructureStats>({
     totalServers: 0,
     onlineServers: 0,
@@ -72,18 +86,28 @@ export default function InfrastructureOverviewPage({
 
   // 서버 데이터 가져오기 - 대시보드 API와 동일한 소스 사용
   const fetchServerData = async () => {
+    console.log('🚀 [InfrastructureOverviewPage] fetchServerData 함수 시작됨');
     try {
       const response = await fetch('/api/dashboard');
       if (!response.ok) throw new Error('Failed to fetch dashboard data');
 
       /*
        * ✅ 대시보드 API 응답 구조 처리
-       *   - { data: { servers: {}, stats: {} } } 형태
+       *   - { data: { data: { servers: {}, stats: {} } } } 형태 (중첩 구조)
        *   - servers는 객체이므로 Object.values()로 배열 변환
        */
       const response_data = await response.json();
-      const serversObject = response_data?.data?.servers || {};
-      const stats = response_data?.data?.stats || {};
+      console.log('🔍 [InfrastructureOverviewPage] 전체 API 응답:', response_data);
+      
+      const actualData = response_data?.data?.data || {};
+      const serversObject = actualData.servers || {};
+      const stats = actualData.stats || {};
+
+      console.log('🔍 [InfrastructureOverviewPage] 파싱된 데이터:', {
+        actualData,
+        serversObject: Object.keys(serversObject),
+        stats,
+      });
 
       // 서버 객체를 배열로 변환
       const servers = Object.values(serversObject);
@@ -95,11 +119,11 @@ export default function InfrastructureOverviewPage({
         timestamp: new Date().toISOString(),
       });
 
-      // 🎯 대시보드 API의 stats 데이터를 직접 사용
-      const totalServers = stats.total || servers.length;
-      const onlineServers = stats.online || stats.healthy || 0;
-      const warningServers = stats.warning || 0;
-      const offlineServers = stats.offline || stats.critical || 0;
+      // 🎯 대시보드 API의 stats 데이터를 직접 사용 (올바른 필드명)
+      const totalServers = stats.totalServers || servers.length;
+      const onlineServers = stats.onlineServers || 0;
+      const warningServers = stats.warningServers || 0;
+      const offlineServers = stats.criticalServers || 0;
       const alertCount = warningServers + offlineServers;
 
       debug.log('📊 서버 상태 분포 (대시보드 API):', {
@@ -213,13 +237,54 @@ export default function InfrastructureOverviewPage({
     }
   };
 
-  // 30초마다 데이터 업데이트
+  // Props 데이터 우선 사용, 없을 경우에만 API 호출
   useEffect(() => {
+    console.log('🔥 [InfrastructureOverviewPage] useEffect 실행됨', {
+      hasPropServers: !!propServers,
+      hasPropStatsData: !!propStatsData,
+      propServers_length: propServers?.length,
+    });
+
+    // Props로 데이터가 전달된 경우 API 호출 없이 바로 사용
+    if (propServers && propStatsData) {
+      console.log('📊 [InfrastructureOverviewPage] Props 데이터 사용:', {
+        servers: propServers.length,
+        statsData: propStatsData,
+      });
+
+      const calculatedStats = {
+        totalServers: propStatsData.totalServers || propServers.length,
+        onlineServers: propStatsData.onlineServers || 0,
+        offlineServers: propStatsData.criticalServers || 0,
+        alertCount: (propStatsData.warningServers || 0) + (propStatsData.criticalServers || 0),
+        totalCpu: propStatsData.avgCpu || 0,
+        totalRam: propStatsData.avgMemory || 0,
+        totalDisk: propStatsData.avgDisk || 0,
+        bandwidth: 0, // 기본값
+      };
+
+      console.log('✅ [InfrastructureOverviewPage] Props 기반 통계 계산 완료:', calculatedStats);
+      setStats(calculatedStats);
+      setLastUpdate(new Date());
+      setIsLoading(false);
+      return;
+    }
+
+    // Props가 없을 경우에만 API 호출
+    console.log('🚀 [InfrastructureOverviewPage] Props 없음, API 호출 시작');
     fetchServerData();
+    
     // 🎯 데이터 생성기와 동기화: 30초 간격
-    const interval = setInterval(fetchServerData, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    const interval = setInterval(() => {
+      console.log('🔄 [InfrastructureOverviewPage] 30초 간격 데이터 업데이트');
+      fetchServerData();
+    }, 30000);
+    
+    return () => {
+      console.log('🧹 [InfrastructureOverviewPage] cleanup - interval 제거');
+      clearInterval(interval);
+    };
+  }, [propServers, propStatsData]);
 
   const getStatusColor = (value: number) => {
     if (value >= 90) return 'text-red-600';

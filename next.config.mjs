@@ -15,8 +15,8 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // 🚀 Next.js 15 기본 설정
-  output: 'standalone',
+  // 🚀 Next.js 15 기본 설정  
+  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
   trailingSlash: false,
   
   // 실험적 기능 (Next.js 15 호환)
@@ -99,8 +99,12 @@ const nextConfig = {
     ];
   },
 
-  // 🛡️ 보안 헤더 및 CSP 설정 (Vercel 최적화)
+  // 🛡️ 보안 헤더 및 CSP 설정 (개발 환경에서 임시 비활성화)
   async headers() {
+    // 개발 환경에서는 CSP 헤더 비활성화로 MIME type 문제 해결
+    if (process.env.NODE_ENV === 'development') {
+      return [];
+    }
     // Vercel 환경에서 nonce 생성 (Edge Runtime 호환)
     const generateNonce = () => {
       // Edge Runtime에서 안전한 nonce 생성

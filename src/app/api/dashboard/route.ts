@@ -70,58 +70,34 @@ const getHandler = createApiRoute()
 
     debug.log('📊 실시간 대시보드 API 호출...');
 
-    // Supabase에서 실제 서버 데이터 가져오기
-    const supabase = getSupabaseClient();
+    // 🎯 포트폴리오 시나리오 데이터 사용 (/api/servers/all과 동일한 데이터 소스)
+    debug.log('🎭 포트폴리오 모드: 24시간 시나리오 데이터 로드');
+    
     let serverList: SupabaseServer[] = [];
-
+    
     try {
-      const { data: servers, error: serversError } = await supabase
-        .from('servers')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (serversError) {
-        debug.error('❌ 서버 데이터 조회 실패:', serversError);
-        debug.log('📦 Mock 데이터로 폴백...');
-
-        // Mock 데이터 사용
-        const { getMockServers } = await import('@/mock');
-        const mockServers = getMockServers();
-        serverList = mockServers.map((server) => ({
-          id: server.id,
-          name: server.name,
-          type: server.type,
-          status: server.status,
-          cpu: server.cpu,
-          memory: server.memory,
-          disk: server.disk,
-          location: server.location,
-          environment: server.environment,
-          metrics: server.metrics
-            ? {
-                ...server.metrics,
-                network: server.metrics.network
-                  ? {
-                      rx: server.metrics.network.bytesIn || 0,
-                      tx: server.metrics.network.bytesOut || 0,
-                      bytesIn: server.metrics.network.bytesIn,
-                      bytesOut: server.metrics.network.bytesOut,
-                    }
-                  : undefined,
-              }
-            : undefined,
-        }));
-      } else {
-        serverList = servers || [];
-      }
-    } catch (error) {
-      debug.error('❌ Supabase 연결 실패:', error);
-      debug.log('📦 Mock 데이터로 폴백...');
-
-      // Mock 데이터 사용
-      const { getMockServers } = await import('@/mock');
-      const mockServers = getMockServers();
-      serverList = mockServers.map((server) => ({
+      // /api/servers/all의 loadScenarioData() 로직 동일하게 사용
+      const fs = await import('fs');
+      const path = await import('path');
+      
+      const now = new Date();
+      const currentHour = now.getHours();
+      
+      debug.log(`Current time: ${currentHour}h - loading scenario data for dashboard`);
+      
+      const scenarioPath = path.join(
+        process.cwd(),
+        'public',
+        'server-scenarios',
+        'hourly-metrics',
+        `${currentHour.toString().padStart(2, '0')}.json`
+      );
+      
+      const raw = fs.readFileSync(scenarioPath, 'utf8');
+      const scenarioData = JSON.parse(raw);
+      
+      // 포트폴리오 시나리오 데이터를 SupabaseServer 타입으로 변환
+      const portfolioServers = Object.values(scenarioData.servers).map((server: any) => ({
         id: server.id,
         name: server.name,
         type: server.type,
@@ -131,20 +107,53 @@ const getHandler = createApiRoute()
         disk: server.disk,
         location: server.location,
         environment: server.environment,
+        uptime: server.uptime,
+        lastUpdate: server.lastUpdate,
         metrics: server.metrics
-          ? {
-              ...server.metrics,
-              network: server.metrics.network
-                ? {
-                    rx: server.metrics.network.bytesIn || 0,
-                    tx: server.metrics.network.bytesOut || 0,
-                    bytesIn: server.metrics.network.bytesIn,
-                    bytesOut: server.metrics.network.bytesOut,
-                  }
-                : undefined,
-            }
-          : undefined,
       }));
+      
+      serverList = portfolioServers;
+      
+      debug.log(`🎭 포트폴리오 시나리오 데이터 로드 완료: ${serverList.length}개 서버, "${scenarioData.scenario}"`);
+      
+    } catch (error) {
+      debug.error('❌ 포트폴리오 시나리오 데이터 로드 실패:', error);
+      debug.log('📦 폴백 데이터로 전환...');
+
+      // 폴백: 정적 서버 데이터 사용
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+        const fallbackPath = path.join(
+          process.cwd(),
+          'public',
+          'fallback',
+          'servers.json'
+        );
+        const raw = fs.readFileSync(fallbackPath, 'utf8');
+        const parsed = JSON.parse(raw);
+        const servers = Array.isArray(parsed) ? parsed : (parsed.servers || []);
+        
+        serverList = servers.map((server: any) => ({
+          id: server.id,
+          name: server.name,
+          type: server.type,
+          status: server.status,
+          cpu: server.cpu,
+          memory: server.memory,
+          disk: server.disk,
+          location: server.location,
+          environment: server.environment,
+          uptime: server.uptime,
+          lastUpdate: server.lastUpdate,
+          metrics: server.metrics
+        }));
+        
+        debug.log('📦 폴백 데이터 사용 완료');
+      } catch (fallbackError) {
+        debug.error('❌ 폴백 데이터도 로드 실패:', fallbackError);
+        serverList = [];
+      }
     }
 
     // 서버 데이터를 객체 형태로 변환 (기존 API 호환성)
@@ -384,11 +393,22 @@ function calculateServerStats(servers: DatabaseServer[]): DashboardStats {
     };
   }
 
-  const online = servers.filter((s) => s.status === 'online').length;
+  // 🎯 포트폴리오 시나리오 데이터의 실제 상태 매핑
+  const online = servers.filter((s) => 
+    s.status === 'online' || s.status === 'healthy'
+  ).length;
   const warning = servers.filter((s) => s.status === 'warning').length;
   const critical = servers.filter(
     (s) => s.status === 'critical' || s.status === 'offline'
   ).length;
+
+  debug.log('📊 서버 상태 통계 계산:', {
+    total: servers.length,
+    online,
+    warning, 
+    critical,
+    serverStatuses: servers.map(s => ({ id: s.id, status: s.status }))
+  });
 
   const totalCpu = servers.reduce((sum, s) => {
     const cpuValue = s.metrics?.cpu ?? s.cpu ?? 0;

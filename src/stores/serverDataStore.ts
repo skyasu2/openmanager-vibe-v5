@@ -96,22 +96,61 @@ export const createServerDataStore = (
       },
       ..._initialState,
 
-      // 서버 데이터 가져오기 (올바른 API 엔드포인트 사용)
+      // 서버 데이터 가져오기 (강화된 디버깅)
       fetchServers: async () => {
+        console.log('🎯 fetchServers 함수 시작 - 포트폴리오 시나리오 데이터 로드');
+        
         set({ isLoading: true, error: null });
 
         try {
-          console.log('🚀 최적화된 서버 데이터 가져오기 시작');
+          console.log('🚀 정적 시나리오 데이터 API 호출 시작');
+          console.log('🔗 API 엔드포인트:', '/api/servers/all');
 
-          // API 클라이언트 사용
+          // API 클라이언트 사용 (강화된 디버깅과 함께)
           const result = await apiGet('/api/servers/all');
 
-          if (result.success && result.data) {
+          console.log('📡 API 응답 수신 완료');
+          console.log('📋 응답 타입:', typeof result);
+          console.log('🔍 응답 구조:', Object.keys(result || {}));
+          
+          // 응답 구조 상세 분석
+          if (result) {
+            console.log('✨ API 응답 상세 분석:');
+            console.log('  - success:', result.success);
+            console.log('  - data 존재:', !!result.data);
+            console.log('  - data 타입:', Array.isArray(result.data) ? 'array' : typeof result.data);
+            console.log('  - data 길이:', result.data?.length || 0);
+            console.log('  - servers 존재:', !!result.servers);
+            console.log('  - scenario 존재:', !!result.scenario);
+          }
+
+          if (result && result.success && result.data && Array.isArray(result.data)) {
             console.log(
-              '✅ 최적화된 서버 데이터 수신:',
+              '✅ 포트폴리오 시나리오 데이터 수신 성공:',
               result.data.length,
-              '개'
+              '개 서버'
             );
+            
+            // 첫 번째 서버 데이터 샘플 로깅
+            if (result.data.length > 0) {
+              const firstServer = result.data[0];
+              console.log('🔍 첫 번째 서버 데이터 샘플:', {
+                id: firstServer.id,
+                name: firstServer.name,
+                status: firstServer.status,
+                cpu: firstServer.cpu,
+                hasMetrics: !!firstServer.metrics,
+              });
+            }
+
+            // 시나리오 정보 로깅
+            if (result.scenario) {
+              console.log('🎭 현재 시나리오:', {
+                korean: result.scenario.korean,
+                english: result.scenario.current,
+                hour: result.scenario.hour,
+              });
+            }
 
             set({
               servers: result.data,
@@ -119,15 +158,36 @@ export const createServerDataStore = (
               lastUpdate: new Date(),
               error: null,
             });
+
+            console.log('✅ 서버 데이터 Zustand 스토어 업데이트 완료');
+            
           } else {
+            console.error('❌ API 응답 구조 문제:', {
+              hasResult: !!result,
+              hasSuccess: !!result?.success,
+              successValue: result?.success,
+              hasData: !!result?.data,
+              dataType: typeof result?.data,
+              isDataArray: Array.isArray(result?.data),
+            });
+            
             throw new Error(
-              result.message || '서버에서 데이터를 가져오지 못했습니다'
+              result?.message || 
+              `API 응답 형식 오류: ${JSON.stringify(result).substring(0, 200)}`
             );
           }
         } catch (e) {
           const error = e instanceof Error ? e : new Error(String(e));
-          console.error('❌ 최종 서버 데이터 로드 실패:', error.message);
-          set({ isLoading: false, error: error.message });
+          console.error('❌ 서버 데이터 로드 최종 실패:');
+          console.error('  - 오류 메시지:', error.message);
+          console.error('  - 오류 스택:', error.stack);
+          console.error('  - 오류 타입:', error.constructor.name);
+          
+          set({ 
+            isLoading: false, 
+            error: error.message,
+            servers: [] // 실패 시 빈 배열로 초기화
+          });
         }
       },
 

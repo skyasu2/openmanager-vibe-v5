@@ -20,9 +20,12 @@ export interface ServerDataStoreProviderProps {
 export const ServerDataStoreProvider = ({
   children,
 }: ServerDataStoreProviderProps) => {
+  console.log('🚀 ServerDataStoreProvider 렌더링 시작');
   const storeRef = useRef<ServerDataStore | undefined>(undefined);
   if (!storeRef.current) {
+    console.log('📦 새로운 Zustand 스토어 생성 중...');
     storeRef.current = createServerDataStore();
+    console.log('✅ Zustand 스토어 생성 완료');
   }
 
   return (
@@ -35,13 +38,16 @@ export const ServerDataStoreProvider = ({
 export const useServerDataStore = <T,>(
   selector: (store: ServerDataState) => T
 ): T => {
+  console.log('🔍 useServerDataStore 호출됨');
   const serverDataStoreContext = useContext(ServerDataStoreContext);
 
   if (!serverDataStoreContext) {
+    console.error('❌ ServerDataStoreProvider 컨텍스트가 없습니다!');
     throw new Error(
       `useServerDataStore must be use within ServerDataStoreProvider`
     );
   }
 
+  console.log('✅ ServerDataStoreProvider 컨텍스트 사용 가능');
   return useStore(serverDataStoreContext, selector);
 };
