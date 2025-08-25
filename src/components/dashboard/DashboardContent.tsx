@@ -28,8 +28,9 @@ interface DashboardActions {
 interface DashboardStats {
   total: number;
   online: number;
-  warning: number;
   offline: number;
+  warning: number;
+  critical: number;
   servers: unknown[];
 }
 
@@ -44,8 +45,9 @@ interface DashboardContentProps {
   onStatsUpdate: (stats: {
     total: number;
     online: number;
-    warning: number;
     offline: number;
+    warning: number;
+    critical: number;
   }) => void;
   onShowSequentialChange: (show: boolean) => void;
   // mainContentVariants 제거
@@ -87,10 +89,10 @@ export default function DashboardContent({
   // 🎯 서버 데이터에서 직접 통계 계산 (중복 API 호출 제거)
   const [statsLoading, setStatsLoading] = useState(false);
 
-  // 폴백 통계 계산 (기존 로직)
+  // 폴백 통계 계산 (개선된 로직: 가용성과 성능 상태 분리)
   const calculateFallbackStats = () => {
     if (!servers || servers.length === 0) {
-      return { total: 0, online: 0, warning: 0, offline: 0, servers: [] };
+      return { total: 0, online: 0, offline: 0, warning: 0, critical: 0, servers: [] };
     }
 
     const stats = servers.reduce(
@@ -98,31 +100,40 @@ export default function DashboardContent({
         acc.total += 1;
         const normalizedStatus = server.status?.toLowerCase() || 'unknown';
 
-        switch (normalizedStatus) {
-          case 'online':
-          case 'healthy':
-          case 'running':
-          case 'active':
-            acc.online += 1;
-            break;
-          case 'warning':
-          case 'degraded':
-          case 'unstable':
-            acc.warning += 1;
-            break;
-          case 'offline':
-          case 'critical':
-          case 'error':
-          case 'failed':
-          case 'down':
-            acc.offline += 1;
-            break;
-          default:
-            acc.warning += 1;
+        // 가용성 상태 (물리적 연결)
+        if (normalizedStatus === 'offline' || normalizedStatus === 'down' || normalizedStatus === 'disconnected') {
+          acc.offline += 1;
+        } else {
+          acc.online += 1;
+        }
+
+        // 성능 상태 (서비스 품질) - 온라인인 서버만 해당
+        if (acc.online > 0) {
+          switch (normalizedStatus) {
+            case 'critical':
+            case 'error':
+            case 'failed':
+              acc.critical += 1;
+              break;
+            case 'warning':
+            case 'degraded':
+            case 'unstable':
+              acc.warning += 1;
+              break;
+            case 'healthy':
+            case 'running':
+            case 'active':
+            case 'online':
+              // 정상 상태, 카운트 없음
+              break;
+            default:
+              // 알 수 없는 상태는 경고로 분류
+              acc.warning += 1;
+          }
         }
         return acc;
       },
-      { total: 0, online: 0, warning: 0, offline: 0 }
+      { total: 0, online: 0, offline: 0, warning: 0, critical: 0 }
     );
 
     return { ...stats, servers };
@@ -131,7 +142,7 @@ export default function DashboardContent({
   // 최종 서버 통계 (서버 데이터에서 직접 계산)
   const serverStats = useMemo(() => {
     if (statsLoading) {
-      return { total: 0, online: 0, warning: 0, offline: 0 };
+      return { total: 0, online: 0, offline: 0, warning: 0, critical: 0 };
     }
 
     // 서버 데이터에서 직접 통계 계산
@@ -313,6 +324,14 @@ export default function DashboardContent({
                       </span>
                     </div>
                   )}
+                  {serverStats.critical > 0 && (
+                    <div className="flex items-center gap-1">
+                      <div className="h-2 w-2 animate-pulse rounded-full bg-orange-500"></div>
+                      <span className="text-orange-600">
+                        심각 {serverStats.critical}대
+                      </span>
+                    </div>
+                  )}
                   {serverStats.offline > 0 && (
                     <div className="flex items-center gap-1">
                       <div className="h-2 w-2 animate-pulse rounded-full bg-red-500"></div>
@@ -406,22 +425,22 @@ export default function DashboardContent({
                                 <div className="text-xs text-green-500">🟢 Online</div>
                               </div>
 
-                              {/* 오프라인 서버 */}
-                              <div className="rounded-lg border border-red-200 bg-red-50 p-2 text-center">
-                                <div className="mx-auto mb-1 h-5 w-5 text-red-600">❌</div>
-                                <div className="text-lg font-bold text-red-600">
-                                  {serverStats.offline}
+                              {/* 심각한 서버 */}
+                              <div className="rounded-lg border border-orange-200 bg-orange-50 p-2 text-center">
+                                <div className="mx-auto mb-1 h-5 w-5 text-orange-600">🚨</div>
+                                <div className="text-lg font-bold text-orange-600">
+                                  {serverStats.critical}
                                 </div>
-                                <div className="text-xs text-red-500">🔴 Offline</div>
+                                <div className="text-xs text-orange-500">🚨 Critical</div>
                               </div>
 
-                              {/* 알림 수 */}
+                              {/* 총 알림 수 (경고 + 심각 + 오프라인) */}
                               <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-2 text-center">
                                 <div className="mx-auto mb-1 h-5 w-5 text-yellow-600">⚠️</div>
                                 <div className="text-lg font-bold text-yellow-600">
-                                  {serverStats.warning + serverStats.offline}
+                                  {serverStats.warning + serverStats.critical + serverStats.offline}
                                 </div>
-                                <div className="text-xs text-yellow-500">⚠️ Alerts</div>
+                                <div className="text-xs text-yellow-500">⚠️ Total Alerts</div>
                               </div>
                             </div>
                           </div>
