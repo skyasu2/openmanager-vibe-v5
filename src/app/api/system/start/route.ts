@@ -11,10 +11,10 @@ export async function POST(request: NextRequest) {
   try {
     systemLogger.info('🚀 시스템 시작 API 호출됨');
 
-    // 내부적으로 _initialize 엔드포인트 호출
+    // 내부적으로 initialize 엔드포인트 호출
     const baseUrl =
       request.headers.get('origin') || `https://${request.headers.get('host')}`;
-    const initResponse = await fetch(`${baseUrl}/api/system/_initialize`, {
+    const initResponse = await fetch(`${baseUrl}/api/system/initialize`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
