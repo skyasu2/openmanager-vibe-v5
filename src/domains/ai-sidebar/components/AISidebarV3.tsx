@@ -11,7 +11,7 @@
 
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState, memo } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo, memo } from 'react';
 import { useRealTimeAILogs } from '@/hooks/useRealTimeAILogs';
 import {
   useAIChat,
@@ -374,7 +374,7 @@ export const AISidebarV3: React.FC<AISidebarV3Props> = ({
         isCompleted: true,
       };
 
-      setLocalChatMessages((prev) => [...prev, message]);
+      addMessage(message);
       onEngineChange?.(newMode);
     } catch (error) {
       console.error('AI 모드 변경 실패:', error);
@@ -389,7 +389,7 @@ export const AISidebarV3: React.FC<AISidebarV3Props> = ({
         isCompleted: true,
       };
 
-      setLocalChatMessages((prev) => [...prev, errorMessage]);
+      addMessage(errorMessage);
     } finally {
       setIsGenerating(false);
     }
@@ -457,7 +457,7 @@ export const AISidebarV3: React.FC<AISidebarV3Props> = ({
     if (lastUserMessage) {
       processRealAIQuery(lastUserMessage.content, selectedEngine);
     }
-  }, [hookMessages, localChatMessages, selectedEngine, processRealAIQuery]);
+  }, [allMessages, selectedEngine, processRealAIQuery]);
 
   // UnifiedAIEngineRouter와 동기화
   useEffect(() => {

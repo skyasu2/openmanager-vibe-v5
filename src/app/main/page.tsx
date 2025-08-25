@@ -12,7 +12,7 @@ import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useInitialAuth } from '@/hooks/useInitialAuth';
 import { BarChart3, Bot, Loader2, Play, X, LogIn } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import debug from '@/utils/debug';
 import { vercelConfig, debugWithEnv } from '@/utils/vercel-env';
@@ -22,6 +22,7 @@ import FeatureCardsGrid from '@/components/home/FeatureCardsGrid';
 
 function Home() {
   const router = useRouter();
+  const pathname = usePathname();
   
   // 통합 초기화 훅 사용 (5-6초 지연 문제 해결)
   const {
@@ -359,10 +360,10 @@ function Home() {
 
   // 대시보드 클릭 핸들러 (최적화: 현재 경로가 다를 때만 이동)
   const handleDashboardClick = useCallback(() => {
-    if (router.pathname !== '/dashboard') {
+    if (pathname !== '/dashboard') {
       router.push('/dashboard');
     }
-  }, [router]);
+  }, [router, pathname]);
 
   // 시스템 토글 함수 (깜빡임 방지 개선)
   const handleSystemToggle = useCallback(async () => {
