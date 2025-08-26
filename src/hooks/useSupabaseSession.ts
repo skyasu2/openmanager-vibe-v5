@@ -44,12 +44,13 @@ export function useSession(): UseSessionReturn {
           setUser(session.user);
           setStatus('authenticated');
         } else {
-          // 🎯 게스트 세션 확인
-          const guestUser = localStorage.getItem('auth_user');
-          const authType = localStorage.getItem('auth_type');
+          // 🎯 게스트 세션 확인 (Vercel Edge Runtime 안전성 강화)
+          try {
+            const guestUser = localStorage.getItem('auth_user');
+            const authType = localStorage.getItem('auth_type');
 
-          if (guestUser && authType === 'guest') {
-            const guestUserData = JSON.parse(guestUser);
+            if (guestUser && authType === 'guest') {
+              const guestUserData = JSON.parse(guestUser);
             // 게스트 사용자를 Supabase User 형태로 변환
             setUser({
               id: guestUserData.id,
@@ -72,7 +73,12 @@ export function useSession(): UseSessionReturn {
               role: 'authenticated',
             } as User);
             setStatus('authenticated');
-          } else {
+            } else {
+              setUser(null);
+              setStatus('unauthenticated');
+            }
+          } catch (error) {
+            console.warn('게스트 세션 확인 오류 (localStorage 접근 제한):', error);
             setUser(null);
             setStatus('unauthenticated');
           }
@@ -104,7 +110,7 @@ export function useSession(): UseSessionReturn {
     return () => {
       subscription.unsubscribe();
     };
-  }, [router]);
+  }, []);
 
   // NextAuth 호환 세션 객체 생성
   const data: Session | null = user
@@ -146,11 +152,15 @@ export async function signOut(options?: { callbackUrl?: string }) {
   try {
     await supabase.auth.signOut();
 
-    // 🍪 게스트 세션 정리 (localStorage + 쿠키)
+    // 🍪 게스트 세션 정리 (localStorage + 쿠키) - Vercel Edge Runtime 안전성 강화
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_session_id');
-      localStorage.removeItem('auth_type');
-      localStorage.removeItem('auth_user');
+      try {
+        localStorage.removeItem('auth_session_id');
+        localStorage.removeItem('auth_type');
+        localStorage.removeItem('auth_user');
+      } catch (error) {
+        console.warn('localStorage 정리 오류 (무시됨):', error);
+      }
 
       // 게스트 세션 쿠키 정리
       document.cookie =
@@ -180,9 +190,13 @@ export async function signIn(
       const baseUrl = window.location.origin;
       const finalRedirect = options?.callbackUrl || '/main';
 
-      // 최종 목적지를 세션 스토리지에 저장
+      // 최종 목적지를 세션 스토리지에 저장 (Vercel Edge Runtime 안전성 강화)
       if (finalRedirect) {
-        sessionStorage.setItem('auth_redirect_to', finalRedirect);
+        try {
+          sessionStorage.setItem('auth_redirect_to', finalRedirect);
+        } catch (error) {
+          console.warn('sessionStorage 접근 오류 (무시됨):', error);
+        }
       }
 
       // Supabase OAuth는 자체 콜백 URL을 사용

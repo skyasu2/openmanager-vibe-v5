@@ -108,7 +108,7 @@ export function useProfileMenu() {
         handleClickOutside as EventListener
       );
     };
-  }, [menuState.showProfileMenu, closeMenu]);
+  }, [menuState.showProfileMenu]);
 
   // ESC 키로 드롭다운 닫기
   useEffect(() => {
@@ -125,7 +125,7 @@ export function useProfileMenu() {
     return () => {
       document.removeEventListener('keydown', handleEscapeKey);
     };
-  }, [menuState.showProfileMenu, closeMenu]);
+  }, [menuState.showProfileMenu]);
 
   return {
     menuState,
