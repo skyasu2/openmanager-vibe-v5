@@ -293,7 +293,7 @@ const nextConfig = {
         crypto: false,
       };
       
-      // React alias 설정 - Vercel 프로덕션 환경 React is not defined 에러 해결
+      // 강화된 React 모듈 해결 설정
       config.resolve.alias = {
         ...config.resolve.alias,
         'react': 'react',
@@ -301,6 +301,12 @@ const nextConfig = {
         'react/jsx-runtime': 'react/jsx-runtime',
         'react/jsx-dev-runtime': 'react/jsx-dev-runtime'
       };
+
+      // React 모듈 검색 경로 명시적 설정
+      config.resolve.modules = [
+        'node_modules',
+        ...(config.resolve.modules || [])
+      ];
       
       // Next.js 기본 splitChunks 사용 (CSS 문제 해결)
 
