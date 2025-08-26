@@ -95,7 +95,7 @@ export default function UnifiedProfileHeader({
       console.error('❌ 시스템 종료 오류:', error);
       alert('❌ 시스템 종료 중 오류가 발생했습니다.');
     }
-  }, [closeMenu]); // closeMenu 함수 의존성 복구
+  }, []); // closeMenu 함수 의존성 제거 - 안정적 참조 유지
 
   // 관리자 인증 핸들러
   const handleAdminAuth = useCallback(async () => {
@@ -104,7 +104,7 @@ export default function UnifiedProfileHeader({
       cancelAdminInput();
       closeMenu();
     }
-  }, [menuState.adminPassword, authenticateAdmin, cancelAdminInput, closeMenu]); // authenticateAdmin, cancelAdminInput, closeMenu 함수 의존성 복구
+  }, [menuState.adminPassword]); // 함수 의존성 제거 - adminPassword만 유지
 
   // 강화된 로그아웃 핸들러
   const handleEnhancedLogout = useCallback(async () => {
@@ -117,7 +117,7 @@ export default function UnifiedProfileHeader({
     if (success) {
       closeMenu();
     }
-  }, [isAdminMode, disableAdminMode, handleLogout, closeMenu]); // disableAdminMode, handleLogout, closeMenu 함수 의존성 복구
+  }, [isAdminMode]); // 함수 의존성 제거 - isAdminMode만 유지
 
   // 메뉴 아이템 구성
   const menuItems = useMemo<MenuItem[]>(() => {

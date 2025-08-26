@@ -113,15 +113,15 @@ export function useProfileAuth() {
    */
   const navigateToLogin = useCallback(() => {
     router.push('/login');
-  }, [router]);
+  }, []); // router 의존성 제거 - Next.js router stable reference 유지
 
   const navigateToAdmin = useCallback(() => {
     router.push('/admin');
-  }, [router]);
+  }, []); // router 의존성 제거 - Next.js router stable reference 유지
 
   const navigateToDashboard = useCallback(() => {
     router.push('/dashboard');
-  }, [router]);
+  }, []); // router 의존성 제거 - Next.js router stable reference 유지
 
   return {
     userInfo,

@@ -112,7 +112,7 @@ export function useProfileMenu() {
         handleClickOutside as EventListener
       );
     };
-  }, [menuState.showProfileMenu, closeMenu]); // closeMenu 함수 의존성 복구
+  }, [menuState.showProfileMenu]); // closeMenu 함수 의존성 제거 - 안정적 참조 유지
 
   // ESC 키로 드롭다운 닫기
   useEffect(() => {
@@ -133,7 +133,7 @@ export function useProfileMenu() {
     return () => {
       document.removeEventListener('keydown', handleEscapeKey);
     };
-  }, [menuState.showProfileMenu, closeMenu]); // closeMenu 함수 의존성 복구
+  }, [menuState.showProfileMenu]); // closeMenu 함수 의존성 제거 - 안정적 참조 유지
 
   return {
     menuState,

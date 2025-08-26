@@ -110,7 +110,7 @@ export function useSession(): UseSessionReturn {
     return () => {
       subscription.unsubscribe();
     };
-  }, [router]); // router 의존성 복구
+  }, []); // router 의존성 제거 - Next.js router는 불안정한 참조로 무한 리렌더링 유발
 
   // NextAuth 호환 세션 객체 생성
   const data: Session | null = user
