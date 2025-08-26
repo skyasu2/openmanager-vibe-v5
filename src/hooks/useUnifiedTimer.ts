@@ -156,7 +156,7 @@ export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
         clearInterval(timerRef.current);
       }
     };
-  }, [tasks.size, runTimer, baseInterval]);
+  }, [tasks.size, baseInterval]); // runTimer 함수 참조 제거하여 Vercel Edge Runtime 호환성 확보
 
   return {
     registerTask,
