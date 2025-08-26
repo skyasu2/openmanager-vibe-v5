@@ -168,6 +168,7 @@
     "copilot:setup": "npm run ai:context-update && echo 'GitHub Copilot 컨텍스트 설정 완료'",
     "copilot:check": "node scripts/check-ai-context.js",
     "copilot:status": "echo '🤖 AI 도구 상태:' && echo '  📍 메인: Claude Code (WSL)' && echo '  🔧 서브: gemini-cli, codex-cli, qwen-cli' && echo '  💡 보조: GitHub Copilot (VSCode)' && npm run ai:context-check",
+  "copilot:report": "tsx scripts/copilot/generate-copilot-report.ts",
     "security:quick": "npm audit --audit-level=high && claude /security-review",
     "security:report": "npm audit --json > reports/npm-audit-$(date +%Y%m%d).json && claude /security-review > reports/security-review-$(date +%Y%m%d).txt",
     "security:fix": "npm audit fix && eslint --fix src/ --ext .ts,.tsx",
