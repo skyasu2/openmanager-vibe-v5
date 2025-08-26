@@ -261,8 +261,8 @@ function DashboardPageContent() {
     devOnly: true // 개발 환경에서만 활성화 (프로덕션 안전)
   });
 
-  // 🛑 시스템 정지 함수
-  const { stopSystem } = useUnifiedAdminStore();
+  // 🛑 시스템 제어 함수들
+  const { isSystemStarted, startSystem, stopSystem } = useUnifiedAdminStore();
 
   // 🔒 자동 로그아웃 시스템 - 베르셀 사용량 최적화 (1초→10초 최적화 적용)
   const {
@@ -334,6 +334,14 @@ function DashboardPageContent() {
     debug.log('🎯 대시보드 초기화 - Supabase hourly_server_states 테이블 사용');
     // Supabase에서 24시간 데이터를 직접 가져오므로 별도 초기화 불필요
   }, []);
+
+  // 🚀 시스템 자동 시작 로직 - "시스템 종료됨" 문제 해결
+  useEffect(() => {
+    if (!isSystemStarted) {
+      debug.log('🚀 시스템이 종료된 상태입니다. 자동으로 시작합니다.');
+      startSystem();
+    }
+  }, [isSystemStarted, startSystem]);
 
   // 🛡️ 성능 가드 경고 모니터링 (개발 환경에서만)
   useEffect(() => {
