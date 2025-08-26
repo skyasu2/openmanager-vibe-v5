@@ -103,8 +103,8 @@ export function useSession(): UseSessionReturn {
         setStatus('unauthenticated');
       }
 
-      // 페이지 새로고침
-      router.refresh();
+      // 🎯 router.refresh() 제거: 불필요한 전체 페이지 리렌더링 방지
+      // React의 자연스러운 상태 전파를 통해 필요한 컴포넌트만 리렌더링
     });
 
     return () => {

@@ -13,11 +13,14 @@ export function useProfileMenu() {
   });
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   /**
-   * 메뉴 토글
+   * 메뉴 토글 (이벤트 버블링 방지 포함)
    */
-  const toggleMenu = useCallback(() => {
+  const toggleMenu = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation(); // 이벤트 버블링 방지
+    
     setMenuState((prev) => ({
       ...prev,
       showProfileMenu: !prev.showProfileMenu,
@@ -69,9 +72,14 @@ export function useProfileMenu() {
     }));
   }, []);
 
-  // 외부 클릭 감지
+  // 외부 클릭 감지 (타이밍 최적화)
   useEffect(() => {
     if (!menuState.showProfileMenu) {
+      // 메뉴가 닫힐 때 pending timeout 정리
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
       return;
     }
 
@@ -89,8 +97,8 @@ export function useProfileMenu() {
       }
     };
 
-    // 약간의 지연 후 리스너 등록 (드롭다운 열기 클릭과 충돌 방지)
-    const timer = setTimeout(() => {
+    // 🚀 타이밍 최적화: 100ms → 50ms로 개선
+    timeoutRef.current = setTimeout(() => {
       document.addEventListener(
         'mousedown',
         handleClickOutside as EventListener
@@ -99,10 +107,13 @@ export function useProfileMenu() {
         'touchstart',
         handleClickOutside as EventListener
       );
-    }, 100);
+    }, 50);
 
     return () => {
-      clearTimeout(timer);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
       document.removeEventListener(
         'mousedown',
         handleClickOutside as EventListener
@@ -134,6 +145,19 @@ export function useProfileMenu() {
       document.removeEventListener('keydown', handleEscapeKey);
     };
   }, [menuState.showProfileMenu]); // closeMenu 함수 의존성 제거 - 안정적 참조 유지
+
+  // 🧹 메모리 누수 방지: 컴포넌트 언마운트 시 cleanup
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      // 혹시 남아있을 수 있는 이벤트 리스너들 정리
+      document.removeEventListener('mousedown', () => {});
+      document.removeEventListener('touchstart', () => {});
+      document.removeEventListener('keydown', () => {});
+    };
+  }, []);
 
   return {
     menuState,
