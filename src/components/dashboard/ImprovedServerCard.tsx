@@ -88,7 +88,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
       );
 
       return () => clearInterval(interval);
-    }, [showRealTimeUpdates, index]); // server 객체 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+    }, [showRealTimeUpdates, index, server]); // server 객체 의존성 복구
 
     // 🎨 현대적 Glassmorphism + Material You 기반 서버 상태별 테마 (메모이제이션 최적화)
     const getStatusTheme = useMemo(() => {
@@ -301,7 +301,7 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
     // 🚀 클릭 핸들러 메모이제이션 (성능 최적화)
     const handleClick = useCallback(() => {
       onClick(server);
-    }, [server.id, server.name]); // onClick 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+    }, [server.id, server.name, onClick]); // onClick 함수 의존성 복구
 
     return (
       <button
