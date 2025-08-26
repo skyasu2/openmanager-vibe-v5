@@ -165,8 +165,8 @@ export function useAutoLogout({
 
     checkAuthStatus();
 
-    // 주기적으로 상태 확인
-    const interval = setInterval(checkAuthStatus, 1000);
+    // 주기적으로 상태 확인 (1초 → 10초로 최적화)
+    const interval = setInterval(checkAuthStatus, 10000);
 
     return () => clearInterval(interval);
   }, []);

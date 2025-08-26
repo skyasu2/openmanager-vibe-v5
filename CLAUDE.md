@@ -913,6 +913,7 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 | **성능 최적화** | [성능 가이드](docs/performance/performance-optimization-complete-guide.md) • [메모리 최적화](docs/performance/memory-optimization-guide.md) • [번들 최적화](docs/performance/bundle-optimization-report.md) | 90% 성능 향상 달성 |
 | **API 최적화** | [API 최적화](docs/performance/api-optimization-guide.md) • [캐시 마이그레이션](docs/performance/cache-migration-complete-report.md) | 1-5ms 응답시간 |
 | **React 최적화** | [컴포넌트 최적화](docs/performance/react-component-optimization-examples.md) • [Hook 최적화](docs/development/react-hooks-optimization.md) | React 성능 극대화 |
+| **🚨 Vercel 성능 문제** | [베르셀 성능 가이드라인](docs/development/vercel-edge-performance-guidelines.md) • [사후 분석 보고서](docs/development/vercel-dashboard-performance-incident-analysis.md) • [개발 체크리스트](docs/development/performance-development-checklist.md) | Edge Runtime 최적화 |
 
 ### 🔐 보안 & 인프라
 

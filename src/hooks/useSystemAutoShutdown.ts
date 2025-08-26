@@ -73,7 +73,7 @@ export function useSystemAutoShutdown({
       if (remaining <= 0 && isSystemStarted) {
         onShutdown?.();
       }
-    }, 1000);
+    }, 5000); // 1초 → 5초로 최적화
 
     return () => {
       if (updateIntervalRef.current) {

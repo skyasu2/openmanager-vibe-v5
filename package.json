@@ -39,6 +39,8 @@
     "lint:incremental": "eslint . --cache --cache-location /tmp/lint-cache/eslint/ --max-warnings=50",
     "lint:quick": "eslint . --cache --max-warnings=100",
     "lint:ultrafast": "eslint --config config/linting/.eslintrc.fast.json --cache --cache-location /tmp/lint-cache/eslint-fast/ --ext .tsx --max-warnings=10 src/app --quiet",
+    "lint:performance": "eslint --config config/linting/.eslintrc.performance-guard.json --cache --cache-location /tmp/lint-cache/eslint-perf/ --max-warnings=0 src/hooks src/app",
+    "lint:performance:fix": "eslint --config config/linting/.eslintrc.performance-guard.json --fix --cache --cache-location /tmp/lint-cache/eslint-perf/ src/hooks src/app",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "test": "vitest run --config config/testing/vitest.config.main.ts",

@@ -10,6 +10,7 @@ import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
 import { NotificationToast } from '@/components/system/NotificationToast';
 // AISidebarV2는 필요시에만 동적 로드
 import { useAutoLogout } from '@/hooks/useAutoLogout';
+import { usePerformanceGuard } from '@/hooks/usePerformanceGuard'; // 🛡️ 성능 모니터링
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
@@ -252,10 +253,18 @@ function DashboardPageContent() {
   const { status: _systemStatus, isLoading: _systemStatusLoading } =
     useSystemStatus();
 
+  // 🛡️ 성능 가드 - 베르셀 Edge Runtime 최적화 문제 예방
+  const { warningCount, generateReport } = usePerformanceGuard({
+    minTimerInterval: 5000, // 5초 최소값
+    memoryWarningThreshold: 100, // 100MB 경고 임계값
+    localStorageAccessLimit: 60, // 분당 60회 제한
+    devOnly: process.env.NODE_ENV === 'development' // 개발 환경에서만
+  });
+
   // 🛑 시스템 정지 함수
   const { stopSystem } = useUnifiedAdminStore();
 
-  // 🔒 자동 로그아웃 시스템 - 베르셀 사용량 최적화
+  // 🔒 자동 로그아웃 시스템 - 베르셀 사용량 최적화 (1초→10초 최적화 적용)
   const {
     remainingTime,
     isWarning: _isWarning,
@@ -274,7 +283,7 @@ function DashboardPageContent() {
     },
   });
 
-  // 🕐 20분 시스템 자동 종료 - 포트폴리오 최적화
+  // 🕐 20분 시스템 자동 종료 - 포트폴리오 최적화 (1초→5초 최적화 적용)
   const {
     isSystemActive,
     remainingTime: systemRemainingTime,
@@ -325,6 +334,17 @@ function DashboardPageContent() {
     debug.log('🎯 대시보드 초기화 - Supabase hourly_server_states 테이블 사용');
     // Supabase에서 24시간 데이터를 직접 가져오므로 별도 초기화 불필요
   }, []);
+
+  // 🛡️ 성능 가드 경고 모니터링 (개발 환경에서만)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && warningCount > 0) {
+      console.group('🚨 Performance Guard Warnings');
+      console.warn(`성능 경고 ${warningCount}개 발견! 베르셀 Edge Runtime 문제 예방을 위해 확인하세요.`);
+      console.log('성능 리포트 확인:', generateReport());
+      console.log('해결 방법: docs/development/performance-development-checklist.md 참고');
+      console.groupEnd();
+    }
+  }, [warningCount, generateReport]);
 
   // 🕐 시간 포맷팅
   const remainingTimeFormatted = formatTime
