@@ -112,7 +112,7 @@ export function useProfileMenu() {
         handleClickOutside as EventListener
       );
     };
-  }, [menuState.showProfileMenu]); // closeMenu 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [menuState.showProfileMenu, closeMenu]); // closeMenu 함수 의존성 복구
 
   // ESC 키로 드롭다운 닫기
   useEffect(() => {
@@ -133,7 +133,7 @@ export function useProfileMenu() {
     return () => {
       document.removeEventListener('keydown', handleEscapeKey);
     };
-  }, [menuState.showProfileMenu]); // closeMenu 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [menuState.showProfileMenu, closeMenu]); // closeMenu 함수 의존성 복구
 
   return {
     menuState,

@@ -66,7 +66,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
         setIsComplete(true);
         onBootComplete();
       }
-    }, [isComplete]); // onBootComplete 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+    }, [isComplete, onBootComplete]); // onBootComplete 함수 의존성 복구
 
     // 스킵 조건 체크
     useEffect(() => {
@@ -74,7 +74,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
         debug.log('⚡ 애니메이션 스킵 - 즉시 완료');
         handleFinalComplete();
       }
-    }, [skipAnimation]); // handleFinalComplete 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+    }, [skipAnimation, handleFinalComplete]); // handleFinalComplete 함수 의존성 복구
 
     // 자동 진행 로직
     useEffect(() => {
@@ -136,7 +136,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
         clearTimeout(safetyTimer);
         clearTimeout(emergencyTimer);
       };
-    }, [autoStart, skipAnimation, isComplete]); // handleFinalComplete 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+    }, [autoStart, skipAnimation, isComplete, handleFinalComplete]); // handleFinalComplete 함수 의존성 복구
 
     // 키보드 단축키
     useEffect(() => {
@@ -149,7 +149,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
 
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isComplete]); // handleFinalComplete 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+    }, [isComplete, handleFinalComplete]); // handleFinalComplete 함수 의존성 복구
 
     // 개발자 도구
     useEffect(() => {

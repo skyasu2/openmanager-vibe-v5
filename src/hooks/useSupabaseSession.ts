@@ -110,7 +110,7 @@ export function useSession(): UseSessionReturn {
     return () => {
       subscription.unsubscribe();
     };
-  }, []); // router 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [router]); // router 의존성 복구
 
   // NextAuth 호환 세션 객체 생성
   const data: Session | null = user

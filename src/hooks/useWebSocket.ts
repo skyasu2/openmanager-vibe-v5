@@ -224,7 +224,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
             : '알 수 없는 오류가 발생했습니다',
       }));
     }
-  }, [url, reconnectAttempts]); // debug 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [url, reconnectAttempts, debug]); // debug 함수 의존성 복구
 
   /**
    * 🔌 연결 해제
@@ -242,7 +242,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
     }));
 
     if (debug) console.log('🔌 수동 연결 해제');
-  }, []); // debug 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [debug]); // debug 함수 의존성 복구
 
   /**
    * 📝 스트림 구독
@@ -310,7 +310,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
     return () => {
       disconnect();
     };
-  }, [autoConnect]); // connect, disconnect 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [autoConnect, connect, disconnect]); // connect, disconnect 함수 의존성 복구
 
   // 📊 유용한 계산된 값들
   const stats = {
@@ -374,7 +374,7 @@ export const useServerWebSocket = (
       websocket.subscribe('server-metrics');
       websocket.subscribe('alerts');
     }
-  }, []); // websocket 함수 참조 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [websocket]); // websocket 함수 참조 의존성 복구
 
   return {
     ...websocket,

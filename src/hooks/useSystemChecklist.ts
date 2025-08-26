@@ -194,7 +194,7 @@ export const useSystemChecklist = ({
       }
       await checkComponent(comp);
     }
-  }, []); // checkComponent, canStartComponent 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [checkComponent, canStartComponent]); // checkComponent, canStartComponent 함수 의존성 복구
 
   // 통계 계산
   const stats = useMemo(() => {
@@ -234,7 +234,7 @@ export const useSystemChecklist = ({
       console.log('✅ 모든 중요 컴포넌트 완료 - 시스템 준비됨');
       onComplete?.();
     }
-  }, [components, isCompleted]); // onComplete 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [components, isCompleted, onComplete]); // onComplete 함수 의존성 복구
 
   // 스킵 조건 체크 (5초 후 활성화)
   useEffect(() => {
@@ -253,7 +253,7 @@ export const useSystemChecklist = ({
     if (autoStart) {
       startChecklist();
     }
-  }, [autoStart]); // startChecklist 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [autoStart, startChecklist]); // startChecklist 함수 의존성 복구
 
   // 키보드 이벤트 (스킵 기능)
   useEffect(() => {
@@ -267,7 +267,7 @@ export const useSystemChecklist = ({
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [canSkip]); // onComplete 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [canSkip, onComplete]); // onComplete 함수 의존성 복구
 
   return {
     components,

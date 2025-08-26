@@ -236,7 +236,7 @@ export function useSystemControl(): UseSystemControlReturn {
     } finally {
       setIsLoading(false);
     }
-  }, []); // startSystem, stopSystem 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [startSystem, stopSystem]); // startSystem, stopSystem 함수 의존성 복구
 
   /**
    * 🚀 시스템 전체 시작
@@ -525,7 +525,7 @@ export function useSystemControl(): UseSystemControlReturn {
       console.error('❌ [useSystemControl] recordActivity 실패:', error);
       // 에러 발생 시에도 안전하게 계속 진행
     }
-  }, []); // updateActivity 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [updateActivity]); // updateActivity 함수 의존성 복구
 
   return {
     status,

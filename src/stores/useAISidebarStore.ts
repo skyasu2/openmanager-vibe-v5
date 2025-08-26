@@ -215,7 +215,7 @@ export const useAIThinking = () => {
         }, (index + 1) * 1500); // 1.5초 간격으로 진행
       });
     }
-  }, []); // addStep, updateStep, completeThinking 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [addStep, updateStep, completeThinking]); // addStep, updateStep, completeThinking 함수 의존성 복구
 
   return {
     steps: thinkingState.steps,
@@ -268,7 +268,7 @@ export const useAIChat = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []); // addMessage 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [addMessage]); // addMessage 함수 의존성 복구
 
   return {
     messages,
