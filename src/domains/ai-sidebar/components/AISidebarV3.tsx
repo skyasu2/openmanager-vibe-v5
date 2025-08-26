@@ -393,7 +393,7 @@ export const AISidebarV3: React.FC<AISidebarV3Props> = ({
     } finally {
       setIsGenerating(false);
     }
-  }, [onEngineChange]);
+  }, []); // onEngineChange 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 프리셋 질문 핸들러 (성능 최적화)
   const handlePresetQuestion = useCallback(async (question: string) => {
@@ -417,7 +417,7 @@ export const AISidebarV3: React.FC<AISidebarV3Props> = ({
     // AI 처리
     await processRealAIQuery(question, selectedEngine);
     setIsGenerating(false);
-  }, [isGenerating, selectedEngine, processRealAIQuery]);
+  }, [isGenerating, selectedEngine]); // processRealAIQuery 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 🎯 메시지 전송 핸들러 (성능 최적화)
   const handleSendInput = useCallback(async () => {
@@ -443,7 +443,7 @@ export const AISidebarV3: React.FC<AISidebarV3Props> = ({
 
     setInputValue('');
     setIsGenerating(false);
-  }, [inputValue, isGenerating, selectedEngine, processRealAIQuery]);
+  }, [inputValue, isGenerating, selectedEngine]); // processRealAIQuery 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 응답 재생성 (성능 최적화)
   const regenerateResponse = useCallback((messageId: string) => {
@@ -457,7 +457,7 @@ export const AISidebarV3: React.FC<AISidebarV3Props> = ({
     if (lastUserMessage) {
       processRealAIQuery(lastUserMessage.content, selectedEngine);
     }
-  }, [allMessages, selectedEngine, processRealAIQuery]);
+  }, [allMessages, selectedEngine]); // processRealAIQuery 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // UnifiedAIEngineRouter와 동기화
   useEffect(() => {
@@ -732,7 +732,7 @@ export const AISidebarV3: React.FC<AISidebarV3Props> = ({
         onFunctionChange={setSelectedFunction}
       />
     );
-  }, [selectedFunction, renderEnhancedAIChat]);
+  }, [selectedFunction]); // renderEnhancedAIChat 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   return (
     <React.Fragment>
