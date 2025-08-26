@@ -206,7 +206,7 @@ function Home() {
     }
     setSystemStartCountdown(0);
     setIsSystemStarting(false); // 시스템 시작 상태도 초기화
-  }, [countdownTimer]);
+  }, []); // countdownTimer 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 컴포넌트 언마운트 시 카운트다운 정리
   useEffect(() => {
@@ -215,7 +215,7 @@ function Home() {
         clearInterval(countdownTimer);
       }
     };
-  }, [countdownTimer]);
+  }, []); // countdownTimer 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // ESC 키로 카운트다운 취소
   useEffect(() => {
@@ -232,7 +232,7 @@ function Home() {
 
     // 모든 코드 경로에서 값을 반환해야 함
     return undefined;
-  }, [systemStartCountdown, stopSystemCountdown]);
+  }, [systemStartCountdown]); // stopSystemCountdown 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 시간 포맷 함수
   const _formatTime = (ms: number) => {
@@ -313,7 +313,7 @@ function Home() {
       setIsSystemStarting(false); // 실패 시 상태 초기화
       throw error; // 에러를 다시 던져서 호출자가 처리할 수 있도록
     }
-  }, [startMultiUserSystem, startSystem]);
+  }, []); // startMultiUserSystem, startSystem 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 🚀 시스템 시작 카운트다운 함수 (바로 로딩 페이지 이동)
   const startSystemCountdown = useCallback(() => {
@@ -337,7 +337,7 @@ function Home() {
       });
     }, 1000);
     setCountdownTimer(timer);
-  }, [router, handleSystemStartBackground]);
+  }, []); // router, handleSystemStartBackground 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 🚀 기존 시스템 시작 함수 (직접 호출용 - 호환성 유지)
   const _handleSystemStart = useCallback(async () => {
@@ -357,14 +357,14 @@ function Home() {
       debug.error('❌ 시스템 시작 실패:', error);
       setIsSystemStarting(false); // 실패 시 상태 초기화
     }
-  }, [isLoading, isSystemStarting, handleSystemStartBackground, router]);
+  }, [isLoading, isSystemStarting]); // handleSystemStartBackground, router 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 대시보드 클릭 핸들러 (최적화: 현재 경로가 다를 때만 이동)
   const handleDashboardClick = useCallback(() => {
     if (pathname !== '/dashboard') {
       router.push('/dashboard');
     }
-  }, [router, pathname]);
+  }, [pathname]); // router 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 시스템 토글 함수 (깜빡임 방지 개선)
   const handleSystemToggle = useCallback(async () => {
@@ -391,10 +391,8 @@ function Home() {
     systemStartCountdown,
     multiUserStatus?.isRunning,
     isSystemStarted,
-    stopSystemCountdown,
-    startSystemCountdown,
-    handleDashboardClick,
-  ]);
+    // 함수 의존성 제거: stopSystemCountdown, startSystemCountdown, handleDashboardClick
+  ]); // Vercel Edge Runtime 호환성 확보
 
   // 📊 버튼 설정 메모이제이션 최적화 - 렌더링 성능 향상 + SSR 안전성
   const buttonConfig = useMemo(() => {
