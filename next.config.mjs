@@ -74,7 +74,6 @@ const nextConfig = {
     reactRemoveProperties: process.env.NODE_ENV === 'production' || process.env.__NEXT_TEST_MODE === 'true',
   },
 
-
   // 🚧 리라이트 설정 (개발 환경 전용 파일 보호)
   async rewrites() {
     return [
@@ -295,13 +294,13 @@ const nextConfig = {
       };
       
       // React alias 설정 - Vercel 프로덕션 환경 React is not defined 에러 해결
-      if (process.env.NODE_ENV === 'production') {
-        config.resolve.alias = {
-          ...config.resolve.alias,
-          'react': 'react',
-          'react-dom': 'react-dom'
-        };
-      }
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'react': 'react',
+        'react-dom': 'react-dom',
+        'react/jsx-runtime': 'react/jsx-runtime',
+        'react/jsx-dev-runtime': 'react/jsx-dev-runtime'
+      };
       
       // Next.js 기본 splitChunks 사용 (CSS 문제 해결)
 
