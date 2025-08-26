@@ -312,7 +312,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
       console.log('🛑 서버 데이터 자동 갱신 중지');
       stopAutoRefresh();
     };
-  }, [fetchServers, startAutoRefresh, stopAutoRefresh]); // servers 의존성 제거로 무한 루프 방지
+  }, []); // Zustand 함수들을 의존성에서 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 실제 서버 데이터 사용 (메모이제이션 + 🕐 시간 기반 메트릭 변화)
   const actualServers = useMemo(() => {
@@ -514,7 +514,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
       return () => clearTimeout(timeoutId);
     }
     return undefined;
-  }, [stats, onStatsUpdate]);
+  }, [stats]); // onStatsUpdate 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 서버 선택 핸들러 (간단한 상태 업데이트라 useCallback 불필요)
   const handleServerSelect = (server: Server) => {
