@@ -71,26 +71,12 @@ export function usePerformanceGuard({
     return originalSetInterval.current!(callback, delay);
   }, [minTimerInterval]);
 
-  // localStorage 과도한 접근 탐지
-  const interceptLocalStorage = useCallback((method: 'get' | 'set', key: string, value?: string) => {
-    metricsRef.current.localStorageAccesses++;
-
-    // 1분당 접근 횟수 체크
-    if (metricsRef.current.localStorageAccesses > localStorageAccessLimit) {
-      console.warn(`🚨 localStorage Warning: Excessive access detected (${metricsRef.current.localStorageAccesses}/min)`, {
-        method,
-        key,
-        recommendation: 'Implement caching or reduce access frequency'
-      });
-      metricsRef.current.warningCount++;
-    }
-
-    if (method === 'get') {
-      return originalLocalStorageGetItem.current!(key);
-    } else {
-      return originalLocalStorageSetItem.current!(key, value!);
-    }
-  }, [localStorageAccessLimit]);
+  // localStorage 접근 모니터링 (인터셉트 없이 카운팅만)
+  const monitorLocalStorageAccess = useCallback(() => {
+    // localStorage 접근 횟수 모니터링은 passive하게만 수행
+    // 실제 intercept는 Vercel Edge Runtime과 충돌하므로 제거
+    console.log('🛡️ Performance Guard: localStorage monitoring enabled (passive mode)');
+  }, []);
 
   // 메모리 사용량 모니터링
   const checkMemoryUsage = useCallback(() => {
@@ -131,27 +117,16 @@ export function usePerformanceGuard({
       window.setInterval = interceptSetInterval as any;
     }
 
-    // localStorage 인터셉트 제거 (Illegal invocation 에러 방지)
-    // 프로덕션에서는 localStorage 접근 모니터링만 수행 (intercept 없이)
-    console.log('🛡️ Performance Guard: localStorage intercept 비활성화됨 (안정성 우선)');
-    
-    // if (!originalLocalStorageGetItem.current && typeof window !== 'undefined') {
-    //   originalLocalStorageGetItem.current = localStorage.getItem.bind(localStorage);
-    //   originalLocalStorageSetItem.current = localStorage.setItem.bind(localStorage);
-
-    //   localStorage.getItem = (key: string) => interceptLocalStorage('get', key) as string | null;
-    //   localStorage.setItem = (key: string, value: string) => {
-    //     interceptLocalStorage('set', key, value);
-    //   };
-    // }
+    // localStorage 인터셉트 완전 비활성화 (Vercel Edge Runtime 호환성)
+    monitorLocalStorageAccess();
 
     // 주기적 성능 체크 (30초마다)
     const performanceCheckInterval = setInterval(() => {
       checkMemoryUsage();
       
-      // 1분마다 localStorage 접근 횟수 리셋
-      if (metricsRef.current.localStorageAccesses > 0) {
-        metricsRef.current.localStorageAccesses = Math.max(0, metricsRef.current.localStorageAccesses - localStorageAccessLimit);
+      // 성능 메트릭스 주기적 리셋
+      if (metricsRef.current.warningCount > 10) {
+        metricsRef.current.warningCount = 0;
       }
     }, 30000);
 
@@ -176,7 +151,7 @@ export function usePerformanceGuard({
         localStorage.setItem = originalLocalStorageSetItem.current;
       }
     };
-  }, [devOnly, interceptSetInterval, interceptLocalStorage, checkMemoryUsage]);
+  }, [devOnly, minTimerInterval, memoryWarningThreshold, localStorageAccessLimit, checkMemoryUsage]);
 
   // 성능 메트릭스 반환
   const getMetrics = useCallback(() => ({

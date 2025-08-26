@@ -16,7 +16,7 @@ const renderTextWithAIGradient = (text: string) => {
       return (
         <span
           key={index}
-          className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-[length:200%_200%] bg-clip-text font-bold text-transparent"
+          className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-[length:200%_200%] animate-gradient-x bg-clip-text font-bold text-transparent"
         >
           {part}
         </span>
@@ -110,7 +110,7 @@ const FeatureCardItem = memo(
 
               {/* 개선된 배경 그라데이션 - 애니메이션 효과 */}
               <div className="absolute inset-0 overflow-hidden rounded-2xl">
-                <div className="_animate-gradient absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 bg-[length:200%_200%] opacity-90" />
+                <div className="animate-gradient-shift absolute inset-0 bg-gradient-to-br from-amber-500 via-orange-600 to-red-700 bg-[length:200%_200%] opacity-90" />
               </div>
 
               {/* 텍스트 가독성을 위한 오버레이 */}
