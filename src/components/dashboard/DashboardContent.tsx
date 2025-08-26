@@ -222,7 +222,7 @@ export default function DashboardContent({
       safeConsoleError('❌ DashboardContent 마운트 에러', error);
       setRenderError(safeErrorMessage(error, '알 수 없는 마운트 에러'));
     }
-  }, [serverStats, onStatsUpdate]);
+  }, [serverStats]); // onStatsUpdate 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 🛡️ 서버 사이드 렌더링 방지
   if (!isClient) {
