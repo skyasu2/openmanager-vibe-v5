@@ -113,26 +113,37 @@ export function usePerformanceGuard({
 
   // 성능 가드 초기화
   useEffect(() => {
+    // 프로덕션 환경에서는 localStorage intercept 비활성화 (Vercel Edge Runtime 호환성)
     if (devOnly && process.env.NODE_ENV !== 'development') {
       return;
     }
+    
+    // Vercel 프로덕션 환경 감지 추가
+    const isVercelProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+    if (isVercelProduction) {
+      console.log('🛡️ Performance Guard: Vercel 프로덕션 환경에서 localStorage intercept 비활성화');
+      return;
+    }
 
-    // setInterval 인터셉트
-    if (!originalSetInterval.current) {
+    // setInterval 인터셉트 (개발 환경에서만)
+    if (!originalSetInterval.current && typeof window !== 'undefined') {
       originalSetInterval.current = window.setInterval;
       window.setInterval = interceptSetInterval as any;
     }
 
-    // localStorage 인터셉트
-    if (!originalLocalStorageGetItem.current && typeof window !== 'undefined') {
-      originalLocalStorageGetItem.current = localStorage.getItem.bind(localStorage);
-      originalLocalStorageSetItem.current = localStorage.setItem.bind(localStorage);
+    // localStorage 인터셉트 제거 (Illegal invocation 에러 방지)
+    // 프로덕션에서는 localStorage 접근 모니터링만 수행 (intercept 없이)
+    console.log('🛡️ Performance Guard: localStorage intercept 비활성화됨 (안정성 우선)');
+    
+    // if (!originalLocalStorageGetItem.current && typeof window !== 'undefined') {
+    //   originalLocalStorageGetItem.current = localStorage.getItem.bind(localStorage);
+    //   originalLocalStorageSetItem.current = localStorage.setItem.bind(localStorage);
 
-      localStorage.getItem = (key: string) => interceptLocalStorage('get', key) as string | null;
-      localStorage.setItem = (key: string, value: string) => {
-        interceptLocalStorage('set', key, value);
-      };
-    }
+    //   localStorage.getItem = (key: string) => interceptLocalStorage('get', key) as string | null;
+    //   localStorage.setItem = (key: string, value: string) => {
+    //     interceptLocalStorage('set', key, value);
+    //   };
+    // }
 
     // 주기적 성능 체크 (30초마다)
     const performanceCheckInterval = setInterval(() => {

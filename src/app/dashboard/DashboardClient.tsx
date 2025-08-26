@@ -253,12 +253,12 @@ function DashboardPageContent() {
   const { status: _systemStatus, isLoading: _systemStatusLoading } =
     useSystemStatus();
 
-  // 🛡️ 성능 가드 - 베르셀 Edge Runtime 최적화 문제 예방
+  // 🛡️ 성능 가드 - Vercel 프로덕션 환경 안전 설정
   const { warningCount, generateReport } = usePerformanceGuard({
     minTimerInterval: 5000, // 5초 최소값
     memoryWarningThreshold: 100, // 100MB 경고 임계값
     localStorageAccessLimit: 60, // 분당 60회 제한
-    devOnly: process.env.NODE_ENV === 'development' // 개발 환경에서만
+    devOnly: true // 개발 환경에서만 활성화 (프로덕션 안전)
   });
 
   // 🛑 시스템 정지 함수
