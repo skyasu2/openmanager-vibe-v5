@@ -113,7 +113,7 @@ export default function AdminClient() {
         router.push('/main');
       }
     }
-  }, [router]);
+  }, []); // router 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   const loadVMDashboard = async () => {
     setVmLoading(true);

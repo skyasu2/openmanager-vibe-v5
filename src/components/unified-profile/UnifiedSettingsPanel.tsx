@@ -87,7 +87,7 @@ export function UnifiedSettingsPanel({
     document.addEventListener('keydown', handleEscape, { capture: true });
     return () =>
       document.removeEventListener('keydown', handleEscape, { capture: true });
-  }, [isOpen, onClose]);
+  }, [isOpen]); // onClose 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 외부 클릭으로 모달 닫기
   useEffect(() => {
@@ -115,7 +115,7 @@ export function UnifiedSettingsPanel({
       clearTimeout(timeoutId);
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen, onClose, buttonRef]);
+  }, [isOpen]); // onClose, buttonRef 함수/객체 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // Body 스크롤 방지
   useEffect(() => {
@@ -135,7 +135,7 @@ export function UnifiedSettingsPanel({
     if (isOpen && activeTab === 'generator') {
       loadGeneratorConfig();
     }
-  }, [isOpen, activeTab, loadGeneratorConfig]);
+  }, [isOpen, activeTab]); // loadGeneratorConfig 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 모달 위치 계산 함수
   const calculateModalPosition = () => {

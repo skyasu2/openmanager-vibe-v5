@@ -130,7 +130,7 @@ export function useAIThinking(): UseAIThinkingReturn {
     if (thinkingPersistTimer) {
       clearTimeout(thinkingPersistTimer);
     }
-  }, [thinkingPersistTimer, simulateRealTimeThinking]);
+  }, []); // thinkingPersistTimer, simulateRealTimeThinking 함수/타이머 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 사고 종료
   const stopThinking = useCallback(

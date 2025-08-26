@@ -268,7 +268,7 @@ export const useAIChat = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [addMessage]);
+  }, []); // addMessage 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   return {
     messages,

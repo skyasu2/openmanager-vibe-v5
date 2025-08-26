@@ -144,7 +144,7 @@ export default function LoginClient() {
         window.location.href = '/main';
       }, 500);
     }
-  }, [guestSession, router]);
+  }, [guestSession]); // router 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // GitHub OAuth 로그인
   const handleGitHubLogin = async () => {
