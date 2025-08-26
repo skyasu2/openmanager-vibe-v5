@@ -85,10 +85,7 @@ export function useSystemAutoShutdown({
     warningMinutes,
     hasWarned5Min,
     hasWarned1Min,
-    onWarning,
-    onShutdown,
-    getSystemRemainingTime,
-  ]);
+  ]); // 함수 참조들 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 시간 포맷팅 (MM:SS)
   const formatTime = useCallback((milliseconds: number) => {
