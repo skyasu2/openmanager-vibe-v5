@@ -81,7 +81,11 @@ export function useProfileMenu() {
         !dropdownRef.current.contains(event.target as Node)
       ) {
         console.log('🎯 외부 클릭 감지됨, 드롭다운 닫기');
-        closeMenu();
+        setMenuState({
+          showProfileMenu: false,
+          showAdminInput: false,
+          adminPassword: '',
+        });
       }
     };
 
@@ -114,7 +118,11 @@ export function useProfileMenu() {
   useEffect(() => {
     const handleEscapeKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && menuState.showProfileMenu) {
-        closeMenu();
+        setMenuState({
+          showProfileMenu: false,
+          showAdminInput: false,
+          adminPassword: '',
+        });
       }
     };
 
