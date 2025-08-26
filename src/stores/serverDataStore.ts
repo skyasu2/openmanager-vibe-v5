@@ -254,13 +254,15 @@ export const createServerDataStore = (
           `🔄 서버 자동 갱신 시작 (${refreshInterval / 1000}초 주기)`
         );
 
-        // 즉시 한 번 실행
-        get().fetchServers();
+        // 즉시 한 번 실행 - Vercel Edge Runtime 호환성 확보
+        const currentState = get();
+        currentState.fetchServers();
 
-        // 주기적 갱신 설정
-        const intervalId = setInterval(() => {
+        // 주기적 갱신 설정 - Vercel Edge Runtime 호환성 확보
+        const intervalId = setInterval(async () => {
           console.log('🔄 서버 데이터 자동 갱신 중...');
-          get().fetchServers();
+          const currentState = get();
+          await currentState.fetchServers();
         }, refreshInterval);
 
         set({
