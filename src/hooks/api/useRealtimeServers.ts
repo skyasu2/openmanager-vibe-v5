@@ -733,12 +733,12 @@ export function useRealtimeServers(
         clearInterval(intervalRef.current);
       }
     };
-  }, [autoRefresh, refreshInterval]); // refreshServers 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [autoRefresh, refreshInterval, refreshServers]); // refreshServers 함수 의존성 복구
 
   // 초기 데이터 로드
   useEffect(() => {
     refreshServers();
-  }, []); // refreshServers 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [refreshServers]); // refreshServers 함수 의존성 복구
 
   // 컴포넌트 언마운트 시 정리
   useEffect(() => {

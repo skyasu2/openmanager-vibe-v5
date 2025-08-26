@@ -77,7 +77,7 @@ export function useSettingsData(): UseSettingsDataReturn {
     } finally {
       setIsLoadingSettings(false);
     }
-  }, []); // settingsService 객체 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [settingsService]); // settingsService 객체 의존성 복구
 
   /**
    * 제너레이터 설정 로드
@@ -97,7 +97,7 @@ export function useSettingsData(): UseSettingsDataReturn {
     } finally {
       setIsGeneratorLoading(false);
     }
-  }, []); // settingsService 객체 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [settingsService]); // settingsService 객체 의존성 복구
 
   /**
    * 서버 개수 업데이트
@@ -165,7 +165,7 @@ export function useSettingsData(): UseSettingsDataReturn {
     } catch (error) {
       console.error('헬스체크 오류:', error);
     }
-  }, []); // settingsService 객체 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [settingsService]); // settingsService 객체 의존성 복구
 
   /**
    * 전체 설정 새로고침

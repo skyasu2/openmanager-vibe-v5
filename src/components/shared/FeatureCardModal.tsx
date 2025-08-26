@@ -36,7 +36,7 @@ export default function FeatureCardModal({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []); // onClose 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [onClose]); // onClose 함수 의존성 복구
 
   if (!selectedCard) return null;
 

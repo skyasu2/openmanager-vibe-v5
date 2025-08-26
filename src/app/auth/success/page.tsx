@@ -266,7 +266,7 @@ export default function AuthSuccessPage() {
     void checkSessionAndRedirect();
     // performanceMetrics는 의도적으로 의존성에서 제외 (변경될 때마다 재실행 방지)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // router 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [router]); // router 함수 의존성 복구
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">

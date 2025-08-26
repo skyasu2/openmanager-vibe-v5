@@ -140,12 +140,12 @@ export function useAIEngine(
       return;
     }
     setCurrentEngine(engine);
-  }, []); // isEngineAvailable 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [isEngineAvailable]); // isEngineAvailable 함수 의존성 복구
 
   // 기존 호환성을 위한 setSelectedEngine
   const setSelectedEngine = useCallback((engine: ExtendedAIMode) => {
     setEngine(engine);
-  }, []); // setEngine 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [setEngine]); // setEngine 함수 의존성 복구
 
   // 엔진 정보 토글
   const toggleEngineInfo = useCallback(() => {

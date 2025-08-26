@@ -113,7 +113,7 @@ export default function AdminClient() {
         router.push('/main');
       }
     }
-  }, []); // router 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [router]); // router 함수 의존성 복구
 
   const loadVMDashboard = async () => {
     setVmLoading(true);
@@ -156,7 +156,7 @@ export default function AdminClient() {
     }, 30000); // 30초마다 새로고침
 
     return () => clearInterval(interval);
-  }, [autoRefresh]);
+  }, [autoRefresh, loadVMDashboard]); // loadVMDashboard 함수 의존성 복구
 
   const getStatusColor = (health: string) => {
     switch (health) {
