@@ -21,7 +21,7 @@ import {
   Archive,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import React, { memo, useCallback, useEffect, useState } from 'react';
+import React, { memo, useCallback, useEffect, useState, useMemo } from 'react';
 import type { Server as ServerType } from '../../types/server';
 import { ServerCardLineChart } from '../shared/ServerMetricsLineChart';
 
@@ -90,8 +90,8 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
       return () => clearInterval(interval);
     }, [showRealTimeUpdates, index, server]);
 
-    // 서버 상태별 테마 (상태 매핑 포함)
-    const getStatusTheme = () => {
+    // 🎨 현대적 Glassmorphism + Material You 기반 서버 상태별 테마 (메모이제이션 최적화)
+    const getStatusTheme = useMemo(() => {
       // 서버 상태를 표준 상태로 매핑 (Server 타입: 'online' | 'offline' | 'warning' | 'healthy' | 'critical')
       const normalizedStatus =
         server.status === 'healthy'
@@ -103,51 +103,58 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
       switch (normalizedStatus) {
         case 'online':
           return {
-            cardBg: 'bg-gradient-to-br from-white to-green-50/30',
-            border: 'border-green-300',
-            hoverBorder: 'hover:border-green-400',
-            statusColor: 'text-green-700 bg-green-100',
+            // 🌟 Glassmorphism 효과 - 성공 상태 (Material You Green)
+            cardBg: 'bg-gradient-to-br from-white/80 via-green-50/60 to-emerald-50/40 backdrop-blur-sm',
+            border: 'border-emerald-200/60',
+            hoverBorder: 'hover:border-emerald-300/80',
+            glowEffect: 'hover:shadow-emerald-500/20',
+            statusColor: 'text-emerald-800 bg-emerald-100/80 backdrop-blur-sm',
             statusIcon: <CheckCircle2 className="h-4 w-4" />,
             statusText: '정상',
-            pulse: 'bg-green-500',
-            accent: 'text-green-600',
+            pulse: 'bg-emerald-500',
+            accent: 'text-emerald-600',
           };
         case 'warning':
           return {
-            cardBg: 'bg-gradient-to-br from-white to-yellow-50/30',
-            border: 'border-yellow-300',
-            hoverBorder: 'hover:border-yellow-400',
-            statusColor: 'text-yellow-700 bg-yellow-100',
+            // ⚠️ Glassmorphism 효과 - 경고 상태 (Material You Amber)
+            cardBg: 'bg-gradient-to-br from-white/80 via-amber-50/60 to-orange-50/40 backdrop-blur-sm',
+            border: 'border-amber-200/60',
+            hoverBorder: 'hover:border-amber-300/80',
+            glowEffect: 'hover:shadow-amber-500/20',
+            statusColor: 'text-amber-800 bg-amber-100/80 backdrop-blur-sm',
             statusIcon: <AlertCircle className="h-4 w-4" />,
             statusText: '경고',
-            pulse: 'bg-yellow-500',
-            accent: 'text-yellow-600',
+            pulse: 'bg-amber-500',
+            accent: 'text-amber-600',
           };
         case 'offline':
           return {
-            cardBg: 'bg-gradient-to-br from-white to-red-50/30',
-            border: 'border-red-300',
-            hoverBorder: 'hover:border-red-400',
-            statusColor: 'text-red-700 bg-red-100',
+            // 🚨 Glassmorphism 효과 - 심각 상태 (Material You Red)
+            cardBg: 'bg-gradient-to-br from-white/80 via-red-50/60 to-rose-50/40 backdrop-blur-sm',
+            border: 'border-red-200/60',
+            hoverBorder: 'hover:border-red-300/80',
+            glowEffect: 'hover:shadow-red-500/20',
+            statusColor: 'text-red-800 bg-red-100/80 backdrop-blur-sm',
             statusIcon: <AlertCircle className="h-4 w-4" />,
             statusText: '심각',
             pulse: 'bg-red-500',
             accent: 'text-red-600',
           };
         default:
-          // 기본값을 온라인 상태로 처리하여 회색 카드 문제 해결
+          // 🔵 기본값 - 온라인 상태 (Material You Blue)
           return {
-            cardBg: 'bg-gradient-to-br from-white to-green-50/30',
-            border: 'border-green-300',
-            hoverBorder: 'hover:border-green-400',
-            statusColor: 'text-green-700 bg-green-100',
+            cardBg: 'bg-gradient-to-br from-white/80 via-blue-50/60 to-cyan-50/40 backdrop-blur-sm',
+            border: 'border-blue-200/60',
+            hoverBorder: 'hover:border-blue-300/80',
+            glowEffect: 'hover:shadow-blue-500/20',
+            statusColor: 'text-blue-800 bg-blue-100/80 backdrop-blur-sm',
             statusIcon: <CheckCircle2 className="h-4 w-4" />,
             statusText: '정상',
-            pulse: 'bg-green-500',
-            accent: 'text-green-600',
+            pulse: 'bg-blue-500',
+            accent: 'text-blue-600',
           };
       }
-    };
+    }, [server.status]); // 🚀 상태 달라질 때만 재계산
 
     // 서버 타입별 아이콘 가져오기
     const getServerIcon = () => {
@@ -252,8 +259,8 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
       }
     };
 
-    // 배리언트별 스타일 (라인 그래프에 최적화)
-    const getVariantStyles = () => {
+    // 배리언트별 스타일 (라인 그래프에 최적화) - 메모이제이션 최적화
+    const getVariantStyles = useMemo(() => {
       switch (variant) {
         case 'compact':
           return {
@@ -289,16 +296,30 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
             showDetails: true,
           };
       }
-    };
+    }, [variant]); // 🚀 변형이 달라질 때만 재계산
 
+    // 🚀 클릭 핸들러 메모이제이션 (성능 최적화)
     const handleClick = useCallback(() => {
       onClick(server);
-    }, [onClick, server]);
+    }, [onClick, server.id, server.name]); // server 객체 대신 주요 속성만 추적
 
     return (
       <button
         type="button"
-        className={`relative cursor-pointer rounded-xl border-2 transition-all duration-300 ${getStatusTheme().cardBg} ${getStatusTheme().border} ${getStatusTheme().hoverBorder} ${getVariantStyles().container} group w-full overflow-hidden text-left hover:shadow-lg hover:shadow-black/5`}
+        className={`
+          relative cursor-pointer rounded-2xl border-2 w-full overflow-hidden text-left group
+          transition-all duration-300 ease-out
+          ${getStatusTheme().cardBg} 
+          ${getStatusTheme().border} 
+          ${getStatusTheme().hoverBorder}
+          ${getVariantStyles().container}
+          hover:shadow-2xl hover:shadow-black/10 ${getStatusTheme().glowEffect}
+          hover:-translate-y-1 hover:scale-[1.02]
+          active:scale-[0.98] active:translate-y-0
+          focus:outline-none focus:ring-4 focus:ring-blue-500/20
+          before:absolute before:inset-0 before:bg-white/10 before:backdrop-blur-sm before:rounded-2xl before:opacity-0
+          hover:before:opacity-100 before:transition-opacity before:duration-300
+        `}
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -354,36 +375,67 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
           </div>
         </div>
 
-        {/* 메트릭 섹션 - 라인 그래프로 최근 5분간 데이터 표시 */}
-        <div className={`grid grid-cols-2 gap-4 ${getVariantStyles().spacing}`}>
-          <ServerCardLineChart
-            label="CPU"
-            value={realtimeMetrics.cpu}
-            type="cpu"
-            showRealTimeUpdates={showRealTimeUpdates}
-            serverStatus={server.status}
-          />
-          <ServerCardLineChart
-            label="메모리"
-            value={realtimeMetrics.memory}
-            type="memory"
-            showRealTimeUpdates={showRealTimeUpdates}
-            serverStatus={server.status}
-          />
-          <ServerCardLineChart
-            label="디스크"
-            value={realtimeMetrics.disk}
-            type="disk"
-            showRealTimeUpdates={showRealTimeUpdates}
-            serverStatus={server.status}
-          />
-          <ServerCardLineChart
-            label="네트워크"
-            value={Math.min(100, Math.max(0, realtimeMetrics.network))}
-            type="network"
-            showRealTimeUpdates={showRealTimeUpdates}
-            serverStatus={server.status}
-          />
+        {/* 📈 정보 계층화 메트릭 섹션 - 우선순위 기반 레이아웃 */}
+        <div className={`space-y-6 ${getVariantStyles().spacing}`}>
+          {/* 🔴 주요 메트릭 (CPU, 메모리) - 더 큰 크기와 강조 */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-1 w-1 rounded-full bg-red-500"></div>
+              <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                핵심 지표
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="transform transition-transform duration-200 hover:scale-105">
+                <ServerCardLineChart
+                  label="CPU"
+                  value={realtimeMetrics.cpu}
+                  type="cpu"
+                  showRealTimeUpdates={showRealTimeUpdates}
+                  serverStatus={server.status}
+                />
+              </div>
+              <div className="transform transition-transform duration-200 hover:scale-105">
+                <ServerCardLineChart
+                  label="메모리"
+                  value={realtimeMetrics.memory}
+                  type="memory"
+                  showRealTimeUpdates={showRealTimeUpdates}
+                  serverStatus={server.status}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 🟡 보조 메트릭 (디스크, 네트워크) - 작은 크기 */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-1 w-1 rounded-full bg-blue-400"></div>
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                보조 지표
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-4 opacity-90">
+              <div className="transform transition-all duration-200 hover:opacity-100 hover:scale-102">
+                <ServerCardLineChart
+                  label="디스크"
+                  value={realtimeMetrics.disk}
+                  type="disk"
+                  showRealTimeUpdates={showRealTimeUpdates}
+                  serverStatus={server.status}
+                />
+              </div>
+              <div className="transform transition-all duration-200 hover:opacity-100 hover:scale-102">
+                <ServerCardLineChart
+                  label="네트워크"
+                  value={Math.min(100, Math.max(0, realtimeMetrics.network))}
+                  type="network"
+                  showRealTimeUpdates={showRealTimeUpdates}
+                  serverStatus={server.status}
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* 서비스 상태 */}
