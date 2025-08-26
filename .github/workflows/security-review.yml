@@ -37,8 +37,60 @@ jobs:
         npm config set progress false
         echo "✅ NPM 설정 완료"
         
-    - name: Install dependencies
-      run: npm ci
+    - name: Install dependencies (429 Error Resilient)
+      run: |
+        echo "📦 NPM 의존성 설치 시작..."
+        
+        # npm ci에 대한 429 Rate Limit 대응 retry 로직
+        npm_ci_with_retry() {
+          local attempt=1
+          local max_attempts=4
+          local delay=20
+          
+          while [ $attempt -le $max_attempts ]; do
+            echo "🔄 NPM CI 시도 $attempt/$max_attempts..."
+            
+            # timeout을 사용해서 무한 대기 방지
+            if timeout 900 npm ci; then  # 15분 타임아웃
+              echo "✅ NPM CI 성공!"
+              return 0
+            else
+              local exit_code=$?
+              echo "⚠️ NPM CI 실패 (시도 $attempt/$max_attempts)"
+              
+              # 429 에러나 네트워크 문제 확인
+              if npm ci 2>&1 | grep -E "429|Too Many Requests|ENOTFOUND|timeout|network" | head -3; then
+                if [ $attempt -lt $max_attempts ]; then
+                  echo "⏰ ${delay}초 대기 후 재시도..."
+                  sleep $delay
+                  delay=$((delay + 15))  # 점진적 증가: 20s → 35s → 50s
+                  
+                  # npm 캐시 정리 (네트워크 문제 시)
+                  echo "🧹 NPM 캐시 정리 중..."
+                  npm cache clean --force || true
+                  
+                  attempt=$((attempt + 1))
+                else
+                  echo "❌ 모든 재시도 실패"
+                  return $exit_code
+                fi
+              else
+                echo "❌ 429 외 다른 오류 - 즉시 실패"
+                return $exit_code
+              fi
+            fi
+          done
+          
+          return 1
+        }
+        
+        # npm ci 실행
+        if npm_ci_with_retry; then
+          echo "✅ 의존성 설치 완료"
+        else
+          echo "❌ 의존성 설치 실패 - 워크플로우 중단"
+          exit 1
+        fi
       
     - name: NPM Security Audit (429 Error Resilient)
       run: |

@@ -36,9 +36,62 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            .npmrc
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Configure NPM for Rate Limiting Resilience
+        run: |
+          echo "🔧 NPM CI 환경 설정..."
+          npm config set fetch-retries 5
+          npm config set fetch-timeout 300000
+          npm config set maxsockets 12
+          npm config set progress false
+          echo "✅ NPM 설정 완료"
+
+      - name: Install dependencies (429 Error Resilient)
+        run: |
+          echo "📦 CI 환경 NPM 의존성 설치 시작..."
+          
+          # npm ci CI 환경 최적화 retry 로직
+          npm_ci_optimized() {
+            local attempt=1
+            local max_attempts=3
+            local delay=15
+            
+            while [ $attempt -le $max_attempts ]; do
+              echo "🔄 NPM CI 시도 $attempt/$max_attempts..."
+              
+              if timeout 600 npm ci; then  # 10분 타임아웃 (CI 환경 최적화)
+                echo "✅ NPM CI 성공!"
+                return 0
+              else
+                echo "⚠️ NPM CI 실패 (시도 $attempt/$max_attempts)"
+                
+                if [ $attempt -lt $max_attempts ]; then
+                  echo "⏰ ${delay}초 대기 후 재시도..."
+                  sleep $delay
+                  delay=$((delay + 10))  # CI 환경에 맞는 빠른 증가
+                  
+                  # npm 캐시 정리 (CI 환경)
+                  npm cache clean --force || true
+                  
+                  attempt=$((attempt + 1))
+                else
+                  echo "❌ 모든 재시도 실패 - CI 워크플로우 중단"
+                  return 1
+                fi
+              fi
+            done
+          }
+          
+          # npm ci 실행
+          if npm_ci_optimized; then
+            echo "✅ CI 환경 의존성 설치 완료"
+          else
+            echo "❌ CI 환경 의존성 설치 실패"
+            exit 1
+          fi
 
       - name: Smart TypeScript Check
         timeout-minutes: 2

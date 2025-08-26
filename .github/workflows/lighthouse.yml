@@ -23,9 +23,32 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            .npmrc
 
-      - name: Install Dependencies
-        run: npm ci
+      - name: Install Dependencies (429 Error Resilient)
+        run: |
+          echo "📦 Lighthouse NPM 의존성 설치..."
+          
+          # Lighthouse용 retry 로직
+          for attempt in 1 2; do
+            echo "🔄 NPM CI 시도 $attempt/2..."
+            
+            if timeout 400 npm ci; then  # 7분 타임아웃 (Lighthouse 환경)
+              echo "✅ NPM CI 성공!"
+              break
+            else
+              if [ $attempt -eq 2 ]; then
+                echo "❌ NPM CI 최종 실패 - Lighthouse 스킵"
+                exit 1
+              else
+                echo "⏰ 25초 대기 후 재시도..."
+                sleep 25
+                npm cache clean --force || true
+              fi
+            fi
+          done
 
       - name: Wait for Vercel Deployment
         id: vercel-deployment

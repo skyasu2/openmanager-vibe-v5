@@ -23,9 +23,32 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            .npmrc
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install dependencies (429 Error Resilient)
+        run: |
+          echo "📦 Simple Deploy NPM 의존성 설치..."
+          
+          # 배포용 간단한 retry 로직
+          for attempt in 1 2 3; do
+            echo "🔄 NPM CI 시도 $attempt/3..."
+            
+            if timeout 500 npm ci; then  # 8분 타임아웃
+              echo "✅ NPM CI 성공!"
+              break
+            else
+              if [ $attempt -eq 3 ]; then
+                echo "❌ NPM CI 최종 실패 - 배포 중단"
+                exit 1
+              else
+                echo "⏰ 30초 대기 후 재시도..."
+                sleep 30
+                npm cache clean --force || true
+              fi
+            fi
+          done
 
       - name: Build application
         run: npm run build

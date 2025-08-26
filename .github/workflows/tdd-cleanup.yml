@@ -25,9 +25,32 @@ jobs:
         with:
           node-version: '22.18.0'
           cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            .npmrc
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install dependencies (429 Error Resilient)
+        run: |
+          echo "📦 TDD Cleanup NPM 의존성 설치..."
+          
+          # TDD 정리용 retry 로직
+          for attempt in 1 2; do
+            echo "🔄 NPM CI 시도 $attempt/2..."
+            
+            if timeout 350 npm ci; then  # 6분 타임아웃
+              echo "✅ NPM CI 성공!"
+              break
+            else
+              if [ $attempt -eq 2 ]; then
+                echo "❌ NPM CI 최종 실패 - TDD cleanup 스킵"
+                exit 1
+              else
+                echo "⏰ 20초 대기 후 재시도..."
+                sleep 20
+                npm cache clean --force || true
+              fi
+            fi
+          done
 
       - name: Check TDD test transitions
         id: tdd-check
