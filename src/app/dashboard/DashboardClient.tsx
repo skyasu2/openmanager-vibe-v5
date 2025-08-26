@@ -253,13 +253,15 @@ function DashboardPageContent() {
   const { status: _systemStatus, isLoading: _systemStatusLoading } =
     useSystemStatus();
 
-  // 🛡️ 성능 가드 - Vercel 프로덕션 환경 안전 설정
-  const { warningCount, generateReport } = usePerformanceGuard({
-    minTimerInterval: 5000, // 5초 최소값
-    memoryWarningThreshold: 100, // 100MB 경고 임계값
-    localStorageAccessLimit: 60, // 분당 60회 제한
-    devOnly: true // 개발 환경에서만 활성화 (프로덕션 안전)
-  });
+  // 🛡️ 성능 가드 - 임시 비활성화 (TypeError 문제 해결 중)
+  // const { warningCount, generateReport } = usePerformanceGuard({
+  //   minTimerInterval: 5000, // 5초 최소값
+  //   memoryWarningThreshold: 100, // 100MB 경고 임계값
+  //   localStorageAccessLimit: 60, // 분당 60회 제한
+  //   devOnly: true // 개발 환경에서만 활성화 (프로덕션 안전)
+  // });
+  const warningCount = 0;
+  const generateReport = () => ({ warningCount: 0, isEdgeRuntime: false });
 
   // 🛑 시스템 제어 함수들
   const { isSystemStarted, startSystem, stopSystem } = useUnifiedAdminStore();
