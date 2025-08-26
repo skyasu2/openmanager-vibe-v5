@@ -76,7 +76,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
   const refresh = useCallback(async () => {
     setIsLoading(true);
     await fetchStatus();
-  }, [fetchStatus]);
+  }, []); // fetchStatus 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   const startSystem = useCallback(async () => {
     try {
@@ -98,7 +98,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
       setError(errorMessage);
       console.error('시스템 시작 실패:', err);
     }
-  }, [refresh]);
+  }, []); // refresh 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 초기 로드 및 주기적 업데이트
   useEffect(() => {
@@ -108,7 +108,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
     const interval = setInterval(fetchStatus, 300000);
 
     return () => clearInterval(interval);
-  }, [fetchStatus]);
+  }, []); // fetchStatus 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 페이지 포커스 시 상태 새로고침 (2분 throttle)
   useEffect(() => {
@@ -130,7 +130,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
       document.removeEventListener('visibilitychange', handleFocus);
       window.removeEventListener('focus', handleFocus);
     };
-  }, [fetchStatus, lastFocusRefresh]);
+  }, [lastFocusRefresh]); // fetchStatus 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   return {
     status,
