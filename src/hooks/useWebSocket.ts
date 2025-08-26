@@ -310,7 +310,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
     return () => {
       disconnect();
     };
-  }, [autoConnect, connect, disconnect]);
+  }, [autoConnect]); // connect, disconnect 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 📊 유용한 계산된 값들
   const stats = {
@@ -374,7 +374,7 @@ export const useServerWebSocket = (
       websocket.subscribe('server-metrics');
       websocket.subscribe('alerts');
     }
-  }, [websocket.isConnected]);
+  }, []); // websocket 함수 참조 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   return {
     ...websocket,
