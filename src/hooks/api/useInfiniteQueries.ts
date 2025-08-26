@@ -215,7 +215,7 @@ export const useInfiniteScrollManager = () => {
   useEffect(() => {
     const interval = setInterval(optimizeMemory, 10 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [optimizeMemory]);
+  }, []); // optimizeMemory 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   return {
     getAllInfiniteQueries,

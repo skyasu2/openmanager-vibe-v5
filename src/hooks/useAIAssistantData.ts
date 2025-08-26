@@ -345,7 +345,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
   // 초기 데이터 로드
   useEffect(() => {
     refreshData();
-  }, [refreshData]);
+  }, []); // refreshData 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 로그 필터링 (메모이제이션)
   const filteredLogs = useMemo(() => {

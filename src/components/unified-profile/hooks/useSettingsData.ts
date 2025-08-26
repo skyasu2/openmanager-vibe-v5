@@ -77,7 +77,7 @@ export function useSettingsData(): UseSettingsDataReturn {
     } finally {
       setIsLoadingSettings(false);
     }
-  }, [settingsService]);
+  }, []); // settingsService 객체 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   /**
    * 제너레이터 설정 로드
@@ -97,7 +97,7 @@ export function useSettingsData(): UseSettingsDataReturn {
     } finally {
       setIsGeneratorLoading(false);
     }
-  }, [settingsService]);
+  }, []); // settingsService 객체 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   /**
    * 서버 개수 업데이트
@@ -124,7 +124,7 @@ export function useSettingsData(): UseSettingsDataReturn {
         return { success: false, error: errorMessage };
       }
     },
-    [settingsService, loadGeneratorConfig]
+    [] // settingsService, loadGeneratorConfig 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
   );
 
   /**
@@ -152,7 +152,7 @@ export function useSettingsData(): UseSettingsDataReturn {
         return { success: false, error: errorMessage };
       }
     },
-    [settingsService, loadGeneratorConfig]
+    [] // settingsService, loadGeneratorConfig 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
   );
 
   /**
@@ -165,19 +165,19 @@ export function useSettingsData(): UseSettingsDataReturn {
     } catch (error) {
       console.error('헬스체크 오류:', error);
     }
-  }, [settingsService]);
+  }, []); // settingsService 객체 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   /**
    * 전체 설정 새로고침
    */
   const refreshSettings = useCallback(async () => {
     await Promise.all([loadAllSettings(), loadGeneratorConfig()]);
-  }, [loadAllSettings, loadGeneratorConfig]);
+  }, []); // loadAllSettings, loadGeneratorConfig 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 컴포넌트 마운트 시 초기 데이터 로드
   useEffect(() => {
     refreshSettings();
-  }, [refreshSettings]);
+  }, []); // refreshSettings 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 자동 새로고침 (5분마다)
   useEffect(() => {
@@ -189,7 +189,7 @@ export function useSettingsData(): UseSettingsDataReturn {
     ); // 5분
 
     return () => clearInterval(interval);
-  }, [refreshSettings]);
+  }, []); // refreshSettings 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   return {
     // 설정 데이터 상태

@@ -64,7 +64,7 @@ export function useOptimizedRealtime<T = any>({
   const onUpdateRef = useRef(onUpdate);
   useEffect(() => {
     onUpdateRef.current = onUpdate;
-  }, [onUpdate]);
+  }, []); // onUpdate 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 가시성 감지 (옵션)
   const { elementRef, isVisible } = useIntersectionObserver({

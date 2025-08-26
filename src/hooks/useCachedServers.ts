@@ -255,14 +255,14 @@ export function useCachedServers(
       };
     }
     return undefined;
-  }, [autoRefresh, refreshInterval, fetchData]);
+  }, [autoRefresh, refreshInterval]); // fetchData 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   /**
    * 📊 초기 데이터 로드 및 의존성 변경 시 업데이트
    */
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+  }, []); // fetchData 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   /**
    * 🧹 컴포넌트 언마운트 시 정리
