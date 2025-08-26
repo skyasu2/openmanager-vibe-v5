@@ -5,7 +5,8 @@
 
 'use client';
 
-import { Suspense, lazy, ReactNode } from 'react';
+import { Suspense, lazy } from 'react';
+import type { ReactNode } from 'react';;
 import { Loader2 } from 'lucide-react';
 
 // 최소 로딩 컴포넌트 (번들 크기 최소화)

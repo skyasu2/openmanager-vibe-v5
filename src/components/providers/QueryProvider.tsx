@@ -9,7 +9,7 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import React, { ReactNode } from 'react';
+import type { ReactNode } from '@tanstack/react-query';;
 import { ErrorBoundary } from 'react-error-boundary';
 
 // 공유 QueryClient 인스턴스

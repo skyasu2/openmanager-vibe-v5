@@ -1,6 +1,7 @@
 'use client';
 
-import type { ErrorInfo, ReactNode } from 'react';
+import { ErrorInfo } from 'react';
+import type { ReactNode } from 'react';;
 import React, { Component } from 'react';
 import { AlertTriangle, RefreshCw, X } from 'lucide-react';
 // framer-motion 제거 - CSS 애니메이션 사용

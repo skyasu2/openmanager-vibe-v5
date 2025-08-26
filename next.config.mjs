@@ -294,6 +294,15 @@ const nextConfig = {
         crypto: false,
       };
       
+      // React alias 설정 - Vercel 프로덕션 환경 React is not defined 에러 해결
+      if (process.env.NODE_ENV === 'production') {
+        config.resolve.alias = {
+          ...config.resolve.alias,
+          'react': 'react',
+          'react-dom': 'react-dom'
+        };
+      }
+      
       // Next.js 기본 splitChunks 사용 (CSS 문제 해결)
 
     }

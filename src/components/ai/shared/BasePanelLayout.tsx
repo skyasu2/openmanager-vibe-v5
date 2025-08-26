@@ -8,7 +8,7 @@
 
 'use client';
 
-import type { ReactNode } from 'react';
+import type { ReactNode } from 'react';;
 import React from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { RefreshCw, ExternalLink } from 'lucide-react';

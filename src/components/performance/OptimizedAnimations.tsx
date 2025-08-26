@@ -6,7 +6,8 @@
 'use client';
 
 // framer-motion 제거 - CSS 애니메이션 사용
-import { useState, useEffect, ReactNode, CSSProperties } from 'react';
+import { useState, useEffect, CSSProperties } from 'react';
+import type { ReactNode } from 'react';;
 
 // 사용자 모션 설정 감지
 const useOptimizedMotion = () => {

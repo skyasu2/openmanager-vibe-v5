@@ -91,7 +91,7 @@ declare global {
 
 // lucide-react 모듈 타입 선언
 declare module 'lucide-react' {
-  import { FC, SVGProps } from 'react';
+  import type { FC, SVGProps } from 'react';;
 
   export interface IconProps extends SVGProps<SVGSVGElement> {
     size?: number | string;

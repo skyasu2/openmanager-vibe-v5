@@ -1,6 +1,7 @@
 // Temporary type declarations for Next.js modules
 declare module 'next/link' {
-  import { FC, AnchorHTMLAttributes, ReactNode } from 'react';
+  import { AnchorHTMLAttributes } from 'react';
+import type { FC, ReactNode } from 'react';;
 
   interface LinkProps
     extends Omit<

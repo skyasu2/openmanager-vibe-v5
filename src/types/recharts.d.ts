@@ -1,6 +1,6 @@
 // Recharts 타입 정의 (SSR 지원)
 declare module 'recharts' {
-  import { ComponentType, ReactNode } from 'react';
+  import type { ComponentType, ReactNode } from 'react';;
 
   interface BaseChartProps {
     width?: number | string;

@@ -1,6 +1,7 @@
 'use client';
 
-import { type ReactNode, createContext, useContext, useRef } from 'react';
+import { createContext, useContext, useRef } from 'react';
+import type { ReactNode } from 'react';
 import { useStore } from 'zustand';
 
 import {

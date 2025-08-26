@@ -3,7 +3,7 @@
  */
 
 import * as React from 'react';
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from 'react';;
 import { Alert, AlertDescription, AlertTitle } from './alert';
 import {
   AlertCircle,

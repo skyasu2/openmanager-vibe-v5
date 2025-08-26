@@ -11,7 +11,7 @@
 
 'use client';
 
-import React from 'react';
+import { useState, useCallback } from 'react';
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
@@ -66,7 +66,7 @@ export interface ChatHookOptions {
 // 🧠 AI Thinking 관리 훅 (실제 구현)
 export const useAIThinking = () => {
   // Thinking 상태를 위한 별도 상태 (persist 제외)
-  const [thinkingState, setThinkingState] = React.useState<{
+  const [thinkingState, setThinkingState] = useState<{
     steps: AIThinkingStep[];
     isThinking: boolean;
     currentStepIndex: number;
@@ -78,7 +78,7 @@ export const useAIThinking = () => {
     currentStepIndex: -1,
   });
 
-  const addStep = React.useCallback((step: Omit<AIThinkingStep, 'timestamp'>) => {
+  const addStep = useCallback((step: Omit<AIThinkingStep, 'timestamp'>) => {
     const newStep: AIThinkingStep = {
       ...step,
       timestamp: new Date(),
@@ -92,7 +92,7 @@ export const useAIThinking = () => {
     }));
   }, []);
 
-  const updateStep = React.useCallback((stepId: string, updates: Partial<AIThinkingStep>) => {
+  const updateStep = useCallback((stepId: string, updates: Partial<AIThinkingStep>) => {
     setThinkingState(prev => ({
       ...prev,
       steps: prev.steps.map(step => 
@@ -106,7 +106,7 @@ export const useAIThinking = () => {
     }));
   }, []);
 
-  const clearSteps = React.useCallback(() => {
+  const clearSteps = useCallback(() => {
     setThinkingState(prev => ({
       ...prev,
       steps: [],
@@ -115,7 +115,7 @@ export const useAIThinking = () => {
     }));
   }, []);
 
-  const startThinking = React.useCallback((initialStep?: string, sessionId?: string) => {
+  const startThinking = useCallback((initialStep?: string, sessionId?: string) => {
     const now = new Date();
     setThinkingState({
       steps: initialStep ? [{
@@ -131,7 +131,7 @@ export const useAIThinking = () => {
     });
   }, []);
 
-  const completeThinking = React.useCallback(() => {
+  const completeThinking = useCallback(() => {
     setThinkingState(prev => ({
       ...prev,
       isThinking: false,
@@ -144,7 +144,7 @@ export const useAIThinking = () => {
   }, []);
 
   // 실제 thinking 과정 시뮬레이션
-  const simulateThinkingSteps = React.useCallback((query: string, mode: 'LOCAL' | 'GOOGLE_AI' = 'LOCAL') => {
+  const simulateThinkingSteps = useCallback((query: string, mode: 'LOCAL' | 'GOOGLE_AI' = 'LOCAL') => {
     if (mode === 'GOOGLE_AI') {
       // Google AI는 단순한 처리 과정
       const steps: Omit<AIThinkingStep, 'timestamp'>[] = [
@@ -237,9 +237,9 @@ export const useAIChat = () => {
   const addMessage = useAISidebarStore((state) => state.addMessage);
   const clearMessages = useAISidebarStore((state) => state.clearMessages);
   
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const sendMessage = React.useCallback(async (content: string) => {
+  const sendMessage = useCallback(async (content: string) => {
     const userMessage: EnhancedChatMessage = {
       id: crypto.randomUUID(),
       content,

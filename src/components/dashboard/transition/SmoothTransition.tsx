@@ -7,7 +7,7 @@
  * - 로딩 상태 관리
  */
 
-import type { ReactNode } from 'react';
+import type { ReactNode } from 'react';;
 import React, { memo, useEffect, useState } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 

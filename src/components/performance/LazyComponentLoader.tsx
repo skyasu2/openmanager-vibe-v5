@@ -5,7 +5,8 @@
 
 'use client';
 
-import { Suspense, lazy, ComponentType, ReactNode } from 'react';
+import { Suspense, lazy } from 'react';
+import type { ComponentType, ReactNode } from 'react';;
 import { Loader2 } from 'lucide-react';
 
 interface LazyLoadConfig {
