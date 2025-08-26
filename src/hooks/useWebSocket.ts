@@ -224,7 +224,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
             : '알 수 없는 오류가 발생했습니다',
       }));
     }
-  }, [url, debug, reconnectAttempts]);
+  }, [url, reconnectAttempts]); // debug 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   /**
    * 🔌 연결 해제
@@ -242,7 +242,7 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
     }));
 
     if (debug) console.log('🔌 수동 연결 해제');
-  }, [debug]);
+  }, []); // debug 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   /**
    * 📝 스트림 구독

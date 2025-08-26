@@ -436,7 +436,7 @@ export function useVMBackend(options: UseVMBackendOptions = {}) {
 
     // enableHealthCheck가 false이거나 state.isEnabled가 false인 경우 아무것도 반환하지 않음
     return undefined;
-  }, [enableHealthCheck, state.isEnabled, checkHealth, healthCheckInterval]);
+  }, [enableHealthCheck, state.isEnabled, healthCheckInterval]); // checkHealth 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 컴포넌트 언마운트 시 정리
   useEffect(() => {

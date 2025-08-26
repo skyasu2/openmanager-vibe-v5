@@ -142,7 +142,7 @@ export const useSystemState = (): UseSystemStateReturn => {
   const refreshState = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     await fetchSystemState('manual-refresh');
-  }, [fetchSystemState]);
+  }, []); // fetchSystemState 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   /**
    * 🚀 시스템 시작

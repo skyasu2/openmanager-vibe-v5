@@ -101,7 +101,7 @@ export function useSystemIntegration() {
   useEffect(() => {
     const interval = setInterval(updateMetrics, 5000);
     return () => clearInterval(interval);
-  }, [updateMetrics]);
+  }, []); // updateMetrics 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   return {
     ...state,
