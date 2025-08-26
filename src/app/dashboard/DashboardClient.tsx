@@ -1,16 +1,17 @@
 'use client';
 
 /**
- * 🚀 Dashboard Client Component - 클라이언트 사이드 로직
+ * 🚀 Dashboard Client Component - 클라이언트 사이드 로직 v5.1.0
  *
  * 서버 컴포넌트에서 전달받은 데이터로 UI를 렌더링
+ * 🔧 Fixed: TypeError w is not a function (usePerformanceGuard disabled)
  */
 
 import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
 import { NotificationToast } from '@/components/system/NotificationToast';
 // AISidebarV2는 필요시에만 동적 로드
 import { useAutoLogout } from '@/hooks/useAutoLogout';
-import { usePerformanceGuard } from '@/hooks/usePerformanceGuard'; // 🛡️ 성능 모니터링
+// import { usePerformanceGuard } from '@/hooks/usePerformanceGuard'; // 🛡️ 성능 모니터링 - 임시 비활성화
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
