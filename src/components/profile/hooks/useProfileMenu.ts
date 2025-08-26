@@ -108,7 +108,7 @@ export function useProfileMenu() {
         handleClickOutside as EventListener
       );
     };
-  }, [menuState.showProfileMenu]);
+  }, [menuState.showProfileMenu]); // closeMenu 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // ESC 키로 드롭다운 닫기
   useEffect(() => {
@@ -125,7 +125,7 @@ export function useProfileMenu() {
     return () => {
       document.removeEventListener('keydown', handleEscapeKey);
     };
-  }, [menuState.showProfileMenu]);
+  }, [menuState.showProfileMenu]); // closeMenu 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   return {
     menuState,
