@@ -474,7 +474,7 @@ function Home() {
   
   if (shouldShowLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="flex min-h-screen items-center justify-center">
           <div className="text-center">
             <div
@@ -507,7 +507,7 @@ function Home() {
   // 인증이 완료되지 않았으면 대기 - 안정된 환경 처리
   if (!authReady || !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-white text-center">
           <div className="h-4 w-4 mx-auto mb-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
           <div className="text-sm">리다이렉션 중... ({vercelConfig.envLabel})</div>
@@ -520,7 +520,7 @@ function Home() {
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900"
+      className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
       data-system-active={isSystemStarted ? 'true' : 'false'}
     >
       {/* 웨이브 파티클 배경 효과 */}

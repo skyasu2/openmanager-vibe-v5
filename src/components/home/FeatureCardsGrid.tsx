@@ -58,44 +58,19 @@ const FeatureCardItem = memo(
       };
     };
 
-    // 아이콘 애니메이션 설정
-    const getIconAnimation = (card: FeatureCard) => {
+    // 아이콘 CSS 애니메이션 클래스 설정
+    const getIconAnimationClass = (card: FeatureCard) => {
       if (card.isAICard) {
-        return {
-          _animate: {
-            rotate: [0, 360],
-            scale: [1, 1.1, 1],
-          },
-          transition: {
-            rotate: {
-              duration: 8,
-              repeat: Infinity,
-              ease: 'linear' as const,
-            },
-            scale: {
-              duration: 2,
-              repeat: Infinity,
-            },
-          },
-        };
+        return 'animate-ai-icon';
       }
       if (card.isVibeCard) {
-        return {
-          _animate: {
-            scale: [1, 1.2, 1],
-            rotate: [0, 5, -5, 0],
-          },
-          transition: {
-            duration: 2.5,
-            repeat: Infinity,
-          },
-        };
+        return 'animate-vibe-icon';
       }
-      return null;
+      return 'animate-icon-hover';
     };
 
     const cardStyles = useMemo(() => getCardStyles(card), [card]);
-    const iconAnimation = useMemo(() => getIconAnimation(card), [card]);
+    const iconAnimationClass = useMemo(() => getIconAnimationClass(card), [card]);
 
     return (
       <div
@@ -153,13 +128,7 @@ const FeatureCardItem = memo(
               card.isAICard ? 'shadow-lg shadow-pink-500/25' : ''
             }`}
           >
-            {iconAnimation ? (
-              <div {...iconAnimation}>
-                <card.icon className={`h-6 w-6 ${cardStyles.iconColor}`} />
-              </div>
-            ) : (
-              <card.icon className="h-6 w-6 text-white" />
-            )}
+            <card.icon className={`h-6 w-6 ${cardStyles.iconColor} ${iconAnimationClass}`} />
           </div>
 
           {/* 모든 카드들의 통일된 컨텐츠 */}

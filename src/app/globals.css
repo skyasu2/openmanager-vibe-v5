@@ -37,7 +37,7 @@
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
-/* 🌊 웨이브 파티클 배경 효과 - Commit 18a89a4 스타일 */
+/* 🌊 웨이브 파티클 배경 효과 - Material Design 3 최적화 */
 .wave-particles {
   position: fixed;
   top: 0;
@@ -46,38 +46,60 @@
   height: 100%;
   pointer-events: none;
   z-index: 1;
+  /* Material Design 3 색상 팔레트 적용 */
   background:
     radial-gradient(
       ellipse at center,
-      rgba(59, 130, 246, 0.1) 0%,
+      rgba(103, 80, 164, 0.22) 0%, /* MD3 Primary Purple */
+      rgba(121, 134, 203, 0.16) 30%, /* MD3 Secondary Blue */
       transparent 70%
     ),
     radial-gradient(
       ellipse at 80% 20%,
-      rgba(147, 51, 234, 0.1) 0%,
+      rgba(156, 39, 176, 0.24) 0%, /* MD3 Tertiary Purple */
+      rgba(186, 104, 200, 0.18) 30%, /* MD3 Purple Light */
       transparent 70%
     ),
     radial-gradient(
       ellipse at 20% 80%,
-      rgba(236, 72, 153, 0.1) 0%,
+      rgba(233, 30, 99, 0.20) 0%, /* MD3 Accent Pink */
+      rgba(255, 138, 101, 0.14) 30%, /* MD3 Warm Orange */
       transparent 70%
+    ),
+    radial-gradient(
+      ellipse at 60% 40%,
+      rgba(0, 150, 136, 0.12) 0%, /* MD3 Success Teal */
+      transparent 60%
     );
-  animation: wave-drift 20s ease-in-out infinite;
+  animation: wave-drift 25s ease-in-out infinite, wave-glow 15s ease-in-out infinite alternate;
+  filter: blur(0.8px); /* 약간 강화된 블러 */
+  /* GPU 가속 최적화 */
+  transform: translateZ(0);
+  will-change: transform, opacity;
 }
 
 @keyframes wave-drift {
   0%,
   100% {
-    transform: translateX(0%) translateY(0%);
+    transform: translateX(0%) translateY(0%) scale(1);
   }
   25% {
-    transform: translateX(1%) translateY(-1%);
+    transform: translateX(2%) translateY(-1.5%) scale(1.02);
   }
   50% {
-    transform: translateX(-1%) translateY(1%);
+    transform: translateX(-2%) translateY(1.8%) scale(0.98);
   }
   75% {
-    transform: translateX(1%) translateY(-0.5%);
+    transform: translateX(1.5%) translateY(-0.8%) scale(1.01);
+  }
+}
+
+@keyframes wave-glow {
+  0% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
   }
 }
 
@@ -129,6 +151,114 @@
   }
   50% {
     transform: translateY(-50%) translateX(-5px);
+  }
+}
+
+/* 🎨 FeatureCard 아이콘 애니메이션 - framer-motion 대체 */
+
+/* AI 카드 아이콘 애니메이션 - GPU 최적화 통합 버전 */
+.animate-ai-icon {
+  animation: ai-icon-combined 8s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+@keyframes ai-icon-combined {
+  0% { transform: rotate(0deg) scale(1); }
+  12.5% { transform: rotate(45deg) scale(1.05); }
+  25% { transform: rotate(90deg) scale(1.1); }
+  37.5% { transform: rotate(135deg) scale(1.05); }
+  50% { transform: rotate(180deg) scale(1); }
+  62.5% { transform: rotate(225deg) scale(1.05); }
+  75% { transform: rotate(270deg) scale(1.1); }
+  87.5% { transform: rotate(315deg) scale(1.05); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* Vibe 카드 아이콘 애니메이션 - GPU 최적화 */
+.animate-vibe-icon {
+  animation: vibe-icon-wobble 2.5s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+@keyframes vibe-icon-wobble {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.2) rotate(5deg);
+  }
+  50% {
+    transform: scale(1) rotate(0deg);
+  }
+  75% {
+    transform: scale(1.2) rotate(-5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* 일반 호버 애니메이션 강화 - GPU 최적화 */
+.animate-icon-hover {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.animate-icon-hover:hover {
+  transform: scale(1.1) translateZ(0);
+}
+
+/* 🌟 모바일 성능 최적화 - GPU 부하 감소 */
+@media (max-width: 768px) {
+  .wave-particles {
+    background:
+      radial-gradient(ellipse at center, rgba(103, 80, 164, 0.12) 0%, transparent 70%),
+      radial-gradient(ellipse at 80% 20%, rgba(156, 39, 176, 0.08) 0%, transparent 70%);
+    animation: wave-drift-mobile 20s ease-in-out infinite;
+    filter: blur(0.3px);
+  }
+
+  .animate-ai-icon {
+    animation: ai-icon-combined 12s ease-in-out infinite;
+  }
+
+  .animate-vibe-icon {
+    animation: vibe-icon-wobble 3.5s ease-in-out infinite;
+  }
+}
+
+@keyframes wave-drift-mobile {
+  0%, 100% {
+    transform: translateX(0%) scale(1);
+  }
+  50% {
+    transform: translateX(-1%) scale(0.99);
+  }
+}
+
+/* ♿ 접근성 - 모션 민감도 고려 */
+@media (prefers-reduced-motion: reduce) {
+  .animate-ai-icon,
+  .animate-vibe-icon,
+  .wave-particles {
+    animation: none !important;
+  }
+  
+  .wave-particles {
+    opacity: 0.5;
+  }
+  
+  .animate-icon-hover {
+    transition: none;
+  }
+  
+  .animate-icon-hover:hover {
+    transform: none;
   }
 }
 
@@ -609,33 +739,100 @@ a {
   }
 }
 
-/* 🚀 성능 최적화 */
+/* 🚀 성능 최적화 - GPU 가속 및 레이어 최적화 */
 .gpu-accelerated {
   transform: translateZ(0);
   will-change: transform;
+  /* 하드웨어 가속 강제 활성화 */
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 .smooth-transition {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 🎨 접근성 개선 */
+/* 애니메이션 요소들에 GPU 가속 적용 */
+.animate-ai-icon,
+.animate-vibe-icon,
+.finger-pointer-primary,
+.finger-pointer-dashboard,
+.finger-pointer-ai {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* 메인 컨테이너 최적화 */
+.responsive-container {
+  transform: translateZ(0);
+  will-change: scroll-position;
+}
+
+/* 🎨 접근성 개선 - 향상된 모션 감소 지원 */
 @media (prefers-reduced-motion: reduce) {
+  /* 웨이브 파티클 애니메이션 완전 비활성화 */
+  .wave-particles {
+    animation: none !important;
+    opacity: 0.4 !important; /* 정적 상태로 유지 */
+  }
+  
+  /* 모든 회전/흔들림 애니메이션 비활성화 */
+  .animate-ai-icon,
+  .animate-vibe-icon,
+  .animate-spin,
+  .animate-reverse-spin,
+  .animate-spin-slow {
+    animation: none !important;
+    transform: none !important;
+  }
+  
+  /* 기본 전환 효과만 유지 (0.2초 이내) */
   * {
-    animation-duration: 0.01ms !important;
+    animation-duration: 0.2s !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 0.2s !important;
+  }
+  
+  /* 핑거 포인터 애니메이션 제거 */
+  .finger-pointer-primary,
+  .finger-pointer-dashboard,
+  .finger-pointer-ai {
+    animation: none !important;
+    transform: none !important;
   }
 }
 
-/* 고대비 모드 지원 */
+/* 고대비 모드 지원 - WCAG 2.1 AA 준수 */
 @media (prefers-contrast: high) {
   :root {
-    --primary: #0066cc;
-    --secondary: #008800;
-    --accent: #cc0000;
+    --primary: #0056b3; /* 4.5:1 대비비 확보 */
+    --secondary: #006600; /* 4.5:1 대비비 확보 */
+    --accent: #d32f2f; /* 4.5:1 대비비 확보 */
     --text-primary: #000000;
-    --text-secondary: #333333;
+    --text-secondary: #212121; /* 더 진한 회색으로 대비 강화 */
+  }
+  
+  /* 웨이브 파티클 투명도 증가 (고대비 환경에서 가시성 향상) */
+  .wave-particles {
+    opacity: 0.6 !important;
+    filter: blur(0.3px) !important; /* 블러 감소 */
+  }
+  
+  /* 버튼 대비 강화 */
+  .bg-gradient-to-r {
+    background: var(--primary) !important;
+    color: white !important;
+    border: 2px solid var(--primary) !important;
+  }
+  
+  /* 텍스트 대비 강화 */
+  .text-white\/80 {
+    color: rgba(255, 255, 255, 0.95) !important;
+  }
+  
+  .text-white\/70 {
+    color: rgba(255, 255, 255, 0.90) !important;
   }
 }
 
