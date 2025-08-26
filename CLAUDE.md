@@ -290,13 +290,14 @@ qwen -p "이 정렬 알고리즘이 최적인지 검증"
 # 동시에 Gemini CLI: 문서화 진행
 ```
 
-#### 2. **교차 검증 패턴**
+#### 2. **교차 검증 패턴 (Claude 주도 방식)**
 
 ```bash
-# 1단계: Claude Code로 코드 구현
-# 2단계: Codex CLI로 코드 리뷰 및 개선점 제안
-# 3단계: Gemini CLI로 성능 분석
-# 4단계: Qwen CLI로 최종 검증
+# 1단계: Claude Code가 A안 제시 (초기 해결책)
+# 2단계: Gemini/Codex/Qwen이 A안에 대한 교차 검증 & 개선점 제시
+# 3단계: Claude Code가 개선점 검토 → 수용/거절 결정
+# 4단계: Claude Code가 최종 결정 사유와 함께 사용자에게 보고
+# 5단계: Claude Code가 최종안 구현
 ```
 
 #### 3. **제3자 관점 리뷰**
@@ -462,22 +463,22 @@ Task qwen-wrapper "알고리즘 최적화 분석"    # 무료 2K/day
 - **교차 발견**: 각 AI가 놓친 문제를 다른 AI가 발견
 
 #### 2️⃣ **external-ai-orchestrator.md** (외부 AI 통합)
-- **역할**: Gemini, Codex, Qwen CLI 통합 관리
-- **교차 검증 패턴**: Claude 결과를 3개 외부 AI가 독립 재검증
-- **병렬 실행**: 최대 3개 AI 동시 실행으로 시간 단축
-- **강점 활용**: 각 AI의 고유 관점으로 상호 보완
+- **역할**: Claude가 제시한 A안에 대한 외부 AI 교차 검증 관리
+- **교차 검증 패턴**: Claude A안 → 3개 외부 AI 독립 검증 → Claude 최종 판단
+- **병렬 실행**: 최대 3개 AI 동시 실행으로 시간 단축  
+- **피드백 수집**: 각 AI의 개선점을 Claude에게 전달하여 최종 결정 지원
 
-#### 3️⃣ **verification-specialist.md** (Claude 검증자)
-- **역할**: Claude 관점의 초기 검증
+#### 3️⃣ **verification-specialist.md** (Claude A안 제시자)
+- **역할**: Claude가 초기 A안(해결책) 제시 및 최종 의사결정
 - **강점**: TypeScript strict, Next.js 15, Vercel 최적화
-- **점수**: 10점 만점 평가 후 외부 AI에게 전달
-- **교차 검증 시작점**: 다른 AI들이 이 결과를 재검증
+- **A안 제시**: 문제에 대한 구체적 해결 방안 제시
+- **최종 판단**: 외부 AI 피드백을 검토하고 수용/거절 결정 후 사용자에게 보고
 
-#### 4️⃣ **AI 래퍼들** (교차 검증 실행자)
-- **gemini-wrapper.md**: 종합 코드 검토 전문가 (Google AI 기반 무료)
-- **codex-wrapper.md**: 종합 코드 검토 전문가 (ChatGPT Plus 기반 유료)  
-- **qwen-wrapper.md**: 종합 코드 검토 전문가 (Qwen OAuth 기반 무료)
-- **독립 검증**: 서로의 결과를 모른 채 독립적 평가
+#### 4️⃣ **AI 래퍼들** (A안 개선점 제시자)
+- **gemini-wrapper.md**: Claude A안에 대한 구글 AI 관점 개선점 제시 (무료 1K/day)
+- **codex-wrapper.md**: Claude A안에 대한 ChatGPT 관점 개선점 제시 (유료 무제한)
+- **qwen-wrapper.md**: Claude A안에 대한 Qwen 관점 개선점 제시 (무료 2K/day)  
+- **독립 검증**: Claude A안을 각각 독립적으로 분석하여 개선점 제시
 
 ### ⚡ Hooks 자동 트리거 시스템
 
@@ -496,32 +497,34 @@ Task qwen-wrapper "알고리즘 최적화 분석"    # 무료 2K/day
 }
 ```
 
-### 🔄 AI 교차 검증 플로우
+### 🔄 AI 교차 검증 플로우 (Claude 주도 방식)
 
 ```mermaid
 graph TB
-    A[코드 수정] --> B[Hook 트리거]
-    B --> C{검증 레벨}
+    A[문제 발생] --> B[Claude A안 제시]
+    B --> C{교차 검증 필요?}
     
-    C -->|Level 1| D[Claude 단독]
-    C -->|Level 2| E[Claude + Gemini]
-    C -->|Level 3| F[4-AI 교차 검증]
+    C -->|Level 1| D[Claude 단독 구현]
+    C -->|Level 2+| E[외부 AI 교차 검증]
     
-    F --> G[Phase 1: Claude 초기 검증]
-    G --> H[Phase 2: 외부 AI 독립 검증]
-    H --> I[Gemini: 아키텍처 관점]
-    H --> J[Codex: 실무 관점]
-    H --> K[Qwen: 알고리즘 관점]
+    E --> F[Gemini: A안 개선점 제시]
+    E --> G[Codex: A안 개선점 제시]  
+    E --> H[Qwen: A안 개선점 제시]
     
-    I --> L[교차 발견사항]
-    J --> L
-    K --> L
+    F --> I[Claude: 개선점 검토]
+    G --> I
+    H --> I
     
-    L --> M{합의 수준}
-    M -->|HIGH| N[✅ 자동 승인]
-    M -->|MEDIUM| O[⚠️ 조건부]
-    M -->|LOW| P[❓ 추가 검증]
-    M -->|CRITICAL| Q[❌ 즉시 차단]
+    I --> J{Claude 최종 판단}
+    J -->|수용| K[개선점 반영하여 구현]
+    J -->|일부 수용| L[선택적 개선점 반영]
+    J -->|거절| M[원안(A안) 유지]
+    
+    K --> N[사용자에게 결정 사유 보고]
+    L --> N
+    M --> N
+    
+    N --> O[Claude가 최종안 구현]
 ```
 
 ### 📊 실시간 모니터링
@@ -541,35 +544,102 @@ Task verification-specialist "src/app/api/auth/route.ts 검증"
 Task ai-collaboration-coordinator --level 3
 ```
 
-### 💡 AI 교차 검증 사용 예시
+### 💡 AI 교차 검증 사용 예시 (Claude 주도 방식)
 
-#### 자동 교차 검증 (hooks 트리거)
-```bash
-# 보안 파일 수정 시 자동 4-AI 교차 검증
-Edit src/app/api/auth/route.ts
-# → Hook 자동 트리거: "보안 파일 - 4-AI 교차 검증 필수"
-# → Phase 1: Claude가 초기 검증
-# → Phase 2: Gemini, Codex, Qwen이 독립적으로 재검증
-# → Phase 3: 교차 발견사항 종합
-# → 최종 보고서: 각 AI가 놓친 문제 명시
+#### 🎯 **완전한 예시: 서버 카드 UI 개선**
+
+##### Step 1: Claude A안 제시
+```typescript
+// Claude 제안: Glassmorphism 효과 서버 카드
+const ServerCard = () => (
+  <div className="bg-white/80 backdrop-blur-sm border border-white/20 rounded-2xl">
+    {/* A안: 기본적인 Glassmorphism 구현 */}
+  </div>
+);
 ```
 
-#### 수동 교차 검증 요청
+##### Step 2: 외부 AI 교차 검증 요청  
 ```bash
-# Level 3 완전 교차 검증
-Task ai-verification-coordinator "src/app/api/auth/route.ts 4-AI 교차 검증"
-
-# 외부 AI로 Claude 결과 재검증
-Task external-ai-orchestrator "
-  Claude가 검증한 다음 코드를 3개 AI가 독립 재검증:
-  - Gemini: 아키텍처 문제 찾기
-  - Codex: 실무 관점 대안 제시
-  - Qwen: 논리적 오류 발견
-"
-
-# 특정 AI 조합으로 교차 검증
-Task central-supervisor "Claude + Gemini 교차 검증 실행"
+Task gemini-wrapper "Claude의 A안을 검증하고 개선점을 제시해주세요: [A안 코드]"
+Task codex-wrapper "Claude의 A안을 검증하고 개선점을 제시해주세요: [A안 코드]"
+Task qwen-wrapper "Claude의 A안을 검증하고 개선점을 제시해주세요: [A안 코드]"
 ```
+
+##### Step 3: Claude의 개선점 검토 및 최종 판단
+```
+🔍 교차 검증 결과 분석:
+- ✅ Gemini 제안: "Material Design 3 색상 팔레트 적용" → 수용 (디자인 일관성)
+- ✅ Codex 제안: "React.memo + useMemo 성능 최적화" → 수용 (성능 향상)
+- ❌ Qwen 제안: "완전히 다른 카드 레이아웃" → 거절 (기존 디자인 방향성과 불일치)
+
+💡 최종 결정: A안 + Gemini/Codex 개선점 반영으로 진행
+이유: 기존 방향성 유지하면서 색상과 성능 개선 효과 기대
+```
+
+##### Step 4: Claude가 최종안 구현
+```typescript
+// 최종안: A안 + 개선점 반영
+const ServerCard = React.memo(() => {
+  const statusTheme = useMemo(() => getStatusTheme(server.status), [server.status]);
+  
+  return (
+    <div className="bg-gradient-to-br from-emerald-50/80 via-white/90 to-emerald-50/60 backdrop-blur-sm">
+      {/* Gemini 제안 반영: Material You 색상 */}
+      {/* Codex 제안 반영: 메모이제이션 최적화 */}
+    </div>
+  );
+});
+```
+
+#### 📋 **간편 실행 방법**
+```bash
+# 단일 파일 교차 검증
+Task verification-specialist "src/components/Button.tsx A안에 대한 교차 검증 요청"
+
+# 복잡한 기능 교차 검증  
+Task ai-verification-coordinator "인증 시스템 A안에 대한 3-AI 교차 검증"
+
+# 성능 최적화 교차 검증
+Task external-ai-orchestrator "React Hook 최적화 A안에 대한 교차 검증"
+```
+
+### 🎖️ **Claude 주도 AI 교차 검증 핵심 원칙**
+
+#### ✅ **올바른 방식 (Claude 주도)**
+```
+1. 문제 발생 → Claude가 A안(해결책) 제시
+2. 외부 AI들이 A안에 대한 개선점 제시 (독립적)
+3. Claude가 모든 개선점을 검토하고 수용/거절 결정
+4. Claude가 사용자에게 결정 사유와 함께 투명하게 보고
+5. Claude가 최종 개선된 코드 직접 구현
+```
+
+#### ❌ **잘못된 방식 (지양해야 할)**
+```
+❌ Claude가 질문 → AI들이 각자 해답 → Claude가 종합
+❌ AI들이 순차적으로 검토 → 최종 합의
+❌ AI들끼리 토론 → 다수결 결정
+❌ 외부 AI가 주도하고 Claude가 따름
+```
+
+#### 🔄 **핵심 차이점**
+
+| 구분 | ❌ 잘못된 방식 | ✅ 올바른 방식 |
+|------|-------------|-------------|
+| **시작점** | Claude가 질문 | Claude가 해답 제시 |
+| **중간 과정** | AI들이 각자 해답 | AI들이 Claude 해답 검증 |
+| **의사결정** | 합의/다수결 | Claude 단독 판단 |
+| **최종 실행** | Claude가 종합 구현 | Claude가 주도적 구현 |
+| **책임 소재** | 불분명 | Claude 명확 |
+| **품질 보장** | 일관성 부족 | Claude 일관성 유지 |
+
+#### 💡 **왜 Claude 주도여야 하는가?**
+
+1. **일관성 보장**: 프로젝트 컨텍스트와 코딩 스타일 완전 이해
+2. **책임 소재**: 최종 결과물에 대한 명확한 책임
+3. **효율성**: 불필요한 합의 과정 제거, 빠른 의사결정  
+4. **품질**: TypeScript strict, Next.js 15, Vercel 특화 최적화
+5. **투명성**: 모든 결정 과정을 사용자에게 투명하게 공개
 
 ### 🎯 AI 교차 검증의 핵심 가치
 
