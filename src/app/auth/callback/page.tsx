@@ -162,7 +162,7 @@ export default function AuthCallbackPage() {
     };
 
     void handleCallback();
-  }, [router]);
+  }, []); // router 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black">

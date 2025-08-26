@@ -199,7 +199,7 @@ export default function EnhancedServerModal({
     );
 
     return () => clearInterval(interval);
-  }, [safeServer, isRealtime]);
+  }, [isRealtime]); // safeServer 객체 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 탭 설정
   const tabs: TabInfo[] = [

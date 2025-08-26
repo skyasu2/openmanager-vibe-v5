@@ -52,7 +52,7 @@ function AuthErrorContent() {
     };
 
     setError(getErrorMessage(errorParam || null));
-  }, [searchParams]);
+  }, []); // searchParams 객체 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   /**
    * 🔙 로그인 페이지로 돌아가기
