@@ -284,7 +284,7 @@ export default function InfrastructureOverviewPage({
       console.log('🧹 [InfrastructureOverviewPage] cleanup - interval 제거');
       clearInterval(interval);
     };
-  }, []); // propServers, propStatsData 객체 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [propServers, propStatsData]); // propServers, propStatsData 객체 의존성 복구
 
   const getStatusColor = (value: number) => {
     if (value >= 90) return 'text-red-600';

@@ -151,7 +151,7 @@ export function usePerformanceGuard({
         localStorage.setItem = originalLocalStorageSetItem.current;
       }
     };
-  }, [devOnly, minTimerInterval, memoryWarningThreshold, localStorageAccessLimit]);
+  }, [devOnly, minTimerInterval, memoryWarningThreshold, localStorageAccessLimit, interceptSetInterval, monitorLocalStorageAccess, checkMemoryUsage]);
 
   // 성능 메트릭스 반환
   const getMetrics = useCallback(() => ({
