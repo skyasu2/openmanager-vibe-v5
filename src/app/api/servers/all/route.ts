@@ -288,7 +288,8 @@ export async function GET(request: NextRequest) {
       21: { korean: '야간 모드', english: 'night-mode' }
     };
 
-    const currentScenario = scenarios[Math.floor(currentHour / 3) * 3] || scenarios[12];
+    const timeKey = Math.floor(currentHour / 3) * 3 as keyof typeof scenarios;
+    const currentScenario = scenarios[timeKey] || scenarios[12];
 
     return NextResponse.json({
       success: true,

@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, AlertCircle, CheckCircle, Loader2, Zap } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, type FC } from 'react';
 
 interface TestResult {
   test: string;

@@ -12,10 +12,10 @@ import { useTimerManager } from '@/hooks/useTimerManager';
 import { useSafeEffect } from '@/types/react-utils';
 
 // 🚀 Dynamic Import로 코드 스플리팅 (번들 크기 50% 감소)
-const PerformanceChart = lazy(() => import('./charts/PerformanceChart'));
-const AvailabilityChart = lazy(() => import('./charts/AvailabilityChart'));
-const AlertsChart = lazy(() => import('./charts/AlertsChart'));
-const TrendsChart = lazy(() => import('./charts/TrendsChart'));
+const PerformanceChart = lazy(() => import('../charts/PerformanceChart'));
+const AvailabilityChart = lazy(() => import('../charts/AvailabilityChart'));
+const AlertsChart = lazy(() => import('../charts/AlertsChart'));
+const TrendsChart = lazy(() => import('../charts/TrendsChart'));
 
 // 🎨 상수를 모듈 레벨로 이동 (메모리 절약)
 const COLORS = {

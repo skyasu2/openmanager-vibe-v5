@@ -20,6 +20,7 @@ import {
   Monitor,
   Settings,
 } from 'lucide-react';
+import type { ComponentType } from 'react';
 // React import 제거 - Next.js 15 자동 JSX Transform 사용
 
 export type AIAssistantFunction =

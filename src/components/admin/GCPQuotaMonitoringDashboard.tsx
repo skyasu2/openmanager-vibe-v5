@@ -13,6 +13,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import type { FC } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
