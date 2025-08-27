@@ -137,15 +137,20 @@ export function calculateServerConfig(
  * 🎯 생성과 수집 분리 전략: 생성 30-35초, 수집 35-40초
  */
 export function calculateOptimalUpdateInterval(): number {
-  // 서버 사이드에서는 Node.js process.memoryUsage() 사용
-  if (typeof process !== 'undefined' && process.memoryUsage) {
-    const memoryUsage = process.memoryUsage();
-    const usagePercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
+  // Edge Runtime 호환성을 위한 안전한 메모리 체크
+  try {
+    if (typeof process !== 'undefined' && process.memoryUsage) {
+      const memoryUsage = process.memoryUsage();
+      const usagePercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
 
-    // 🎯 데이터 생성 간격 (30-35초 범위)
-    if (usagePercent > 80) return 35000; // 높은 사용률: 35초
-    if (usagePercent > 60) return 33000; // 중간 사용률: 33초
-    return 30000; // 낮은 사용률: 30초
+      // 🎯 데이터 생성 간격 (30-35초 범위)
+      if (usagePercent > 80) return 35000; // 높은 사용률: 35초
+      if (usagePercent > 60) return 33000; // 중간 사용률: 33초
+      return 30000; // 낮은 사용률: 30초
+    }
+  } catch (error) {
+    // Edge Runtime에서는 process.memoryUsage()가 지원되지 않음
+    console.log('🔧 Edge Runtime 환경 - 기본 업데이트 간격 사용');
   }
 
   // 클라이언트 사이드에서는 performance.memory 사용
