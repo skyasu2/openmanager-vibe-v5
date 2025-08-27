@@ -309,11 +309,11 @@ const ImprovedServerCard: FC<ImprovedServerCardProps> = memo(
         className={`
           relative cursor-pointer rounded-2xl border-2 w-full overflow-hidden text-left group
           transition-all duration-300 ease-out
-          ${getStatusTheme().cardBg} 
-          ${getStatusTheme().border} 
-          ${getStatusTheme().hoverBorder}
-          ${getVariantStyles().container}
-          hover:shadow-2xl hover:shadow-black/10 ${getStatusTheme().glowEffect}
+          ${getStatusTheme.cardBg} 
+          ${getStatusTheme.border} 
+          ${getStatusTheme.hoverBorder}
+          ${getVariantStyles.container}
+          hover:shadow-2xl hover:shadow-black/10 ${getStatusTheme.glowEffect}
           hover:-translate-y-1 hover:scale-[1.02]
           active:scale-[0.98] active:translate-y-0
           focus:outline-none focus:ring-4 focus:ring-blue-500/20
@@ -323,13 +323,13 @@ const ImprovedServerCard: FC<ImprovedServerCardProps> = memo(
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        aria-label={`${server.name} 서버 - ${getStatusTheme().statusText}`}
+        aria-label={`${server.name} 서버 - ${getStatusTheme.statusText}`}
       >
         {/* 실시간 활동 인디케이터 */}
         {showRealTimeUpdates && (
           <div className="absolute right-3 top-3 z-10">
             <div
-              className={`h-2 w-2 ${getStatusTheme().pulse} rounded-full shadow-lg`}
+              className={`h-2 w-2 ${getStatusTheme.pulse} rounded-full shadow-lg`}
             />
           </div>
         )}
@@ -338,14 +338,14 @@ const ImprovedServerCard: FC<ImprovedServerCardProps> = memo(
         <div className="mb-4 flex items-start justify-between">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <div
-              className={`rounded-lg p-2.5 ${getStatusTheme().statusColor} shadow-sm`}
+              className={`rounded-lg p-2.5 ${getStatusTheme.statusColor} shadow-sm`}
             >
               {getServerIcon()}
             </div>
             <div className="min-w-0 flex-1">
               <div className="mb-1 flex items-center gap-2">
                 <h3
-                  className={`${getVariantStyles().titleSize} truncate text-gray-900`}
+                  className={`${getVariantStyles.titleSize} truncate text-gray-900`}
                 >
                   {server.name}
                 </h3>
@@ -354,7 +354,7 @@ const ImprovedServerCard: FC<ImprovedServerCardProps> = memo(
               <div className="flex items-center gap-2 text-xs text-gray-500">
                 <MapPin className="h-3 w-3" />
                 <span>{server.location || 'Seoul DC1'}</span>
-                {getVariantStyles().showDetails && (
+                {getVariantStyles.showDetails && (
                   <>
                     <span>•</span>
                     <Clock className="h-3 w-3" />
@@ -366,17 +366,17 @@ const ImprovedServerCard: FC<ImprovedServerCardProps> = memo(
           </div>
 
           <div
-            className={`flex items-center gap-2 rounded-full px-3 py-1.5 ${getStatusTheme().statusColor} shadow-sm`}
+            className={`flex items-center gap-2 rounded-full px-3 py-1.5 ${getStatusTheme.statusColor} shadow-sm`}
           >
-            {getStatusTheme().statusIcon}
+            {getStatusTheme.statusIcon}
             <span className="text-xs font-semibold">
-              {getStatusTheme().statusText}
+              {getStatusTheme.statusText}
             </span>
           </div>
         </div>
 
         {/* 📈 정보 계층화 메트릭 섹션 - 우선순위 기반 레이아웃 */}
-        <div className={`space-y-6 ${getVariantStyles().spacing}`}>
+        <div className={`space-y-6 ${getVariantStyles.spacing}`}>
           {/* 🔴 주요 메트릭 (CPU, 메모리) - 더 큰 크기와 강조 */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 mb-3">
@@ -439,13 +439,13 @@ const ImprovedServerCard: FC<ImprovedServerCardProps> = memo(
         </div>
 
         {/* 서비스 상태 */}
-        {getVariantStyles().showServices &&
+        {getVariantStyles.showServices &&
           server.services &&
           server.services.length > 0 && (
             <div className="mt-4">
               <div className="flex flex-wrap gap-2">
                 {server.services
-                  .slice(0, getVariantStyles().maxServices)
+                  .slice(0, getVariantStyles.maxServices)
                   .map((service, idx) => (
                     <div
                       key={idx}
@@ -469,9 +469,9 @@ const ImprovedServerCard: FC<ImprovedServerCardProps> = memo(
                       <span>{service.name}</span>
                     </div>
                   ))}
-                {server.services.length > getVariantStyles().maxServices && (
+                {server.services.length > getVariantStyles.maxServices && (
                   <div className="flex items-center rounded-lg bg-gray-100 px-2.5 py-1 text-xs text-gray-500">
-                    +{server.services.length - getVariantStyles().maxServices}{' '}
+                    +{server.services.length - getVariantStyles.maxServices}{' '}
                     more
                   </div>
                 )}

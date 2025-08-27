@@ -12,6 +12,7 @@ import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useInitialAuth } from '@/hooks/useInitialAuth';
+import { useProfileSecurity } from '@/components/profile/hooks/useProfileSecurity';
 import { BarChart3, Bot, Loader2, Play, X, LogIn } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
@@ -37,6 +38,9 @@ function Home() {
     getLoadingMessage,
     retry: retryAuth
   } = useInitialAuth();
+  
+  // 관리자 모드 보안 훅 (isAdminMode만 필요)
+  const { isAdminMode } = useProfileSecurity();
   
   const [isMounted, setIsMounted] = useState(false); // 🔄 클라이언트 마운트 상태 (hydration 문제 방지)
 
@@ -611,7 +615,7 @@ function Home() {
               {/* 시스템 중지 상태 - 대시보드 버튼 중심으로 변경 */}
               {/* 메인 제어 버튼들 */}
               <div className="mb-6 flex flex-col items-center space-y-4">
-                {isGitHubUser ? (
+                {isGitHubUser || isAdminMode ? (
                   <>
                     {/* GitHub 인증 사용자 - 시스템 시작 버튼 표시 */}
                     {/* 현재 사용자: {currentUser?.name || currentUser?.email || 'Unknown'} */}
@@ -709,7 +713,7 @@ function Home() {
               {/* 대시보드 버튼 - 중앙 배치 */}
               <div className="mb-6 flex justify-center">
                 <div className="flex flex-col items-center">
-                  {isGitHubUser ? (
+                  {isGitHubUser || isAdminMode ? (
                     <button
                       onClick={handleDashboardClick}
                       className="flex h-16 w-64 items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-600 font-semibold text-white shadow-xl transition-all duration-200 hover:bg-emerald-700"

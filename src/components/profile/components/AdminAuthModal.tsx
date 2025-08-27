@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, Fragment, type KeyboardEvent } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Lock, AlertTriangle, Clock } from 'lucide-react';
 import type { AdminAuthProps } from '../types/profile.types';
