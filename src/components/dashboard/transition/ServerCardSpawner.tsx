@@ -7,7 +7,7 @@
  * - 배경에서 부드러운 등장
  */
 
-import { useState, useEffect, memo, useCallback, type FC } from 'react';
+import { Fragment, useState, useEffect, memo, useCallback, type FC } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import type { Server } from '../../../types/server';
 

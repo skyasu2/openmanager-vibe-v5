@@ -10,7 +10,7 @@
 
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Sparkles } from 'lucide-react';
-import { memo, useCallback, useEffect, type FC } from 'react';
+import { Fragment, memo, useCallback, useEffect, type FC } from 'react';
 import { useToast } from '../ui/ToastNotification';
 import ProgressLabel from './ProgressLabel';
 import StatusIcon from './StatusIcon';

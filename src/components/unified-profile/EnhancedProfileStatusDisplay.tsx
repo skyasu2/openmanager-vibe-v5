@@ -13,7 +13,7 @@ import {
   Server,
   Zap,
 } from 'lucide-react';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 
 interface EnhancedProfileStatusDisplayProps {
   compact?: boolean;

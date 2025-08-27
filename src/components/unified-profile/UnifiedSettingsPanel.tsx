@@ -17,7 +17,7 @@ import {
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Bot, Database, Monitor, Settings, X, Zap } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 // AISettingsTab은 GCP Functions로 이관됨
 import { GeneralSettingsTab } from './components/GeneralSettingsTab';

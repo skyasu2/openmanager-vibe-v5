@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useState, useCallback, useEffect, memo, type FC } from 'react';
+import { Fragment, useState, useCallback, useEffect, memo, type FC } from 'react';
 import debug from '@/utils/debug';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { useRouter } from 'next/navigation';

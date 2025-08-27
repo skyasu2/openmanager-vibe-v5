@@ -12,7 +12,7 @@
 'use client';
 
 // framer-motion 제거 - CSS 애니메이션 사용
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import debug from '@/utils/debug';
 import {
   useSystemChecklist,
