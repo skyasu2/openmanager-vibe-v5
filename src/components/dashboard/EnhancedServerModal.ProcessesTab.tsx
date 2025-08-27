@@ -1,3 +1,4 @@
+import { type FC } from 'react';
 /**
  * ⚙️ Enhanced Server Modal Processes Tab
  *
@@ -10,7 +11,7 @@
 
 'use client';
 
-import React from 'react';
+// React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
 import dynamic from 'next/dynamic';
 import { RealtimeData, ProcessData } from './EnhancedServerModal.types';
 
@@ -57,7 +58,7 @@ const getMemoryColor = (value: number): string => {
  * - 사용률 기반 색상 구분 (정상/경고/위험)
  * - 실시간 애니메이션 및 진행률 바
  */
-export const ProcessesTab: React.FC<ProcessesTabProps> = ({ realtimeData }) => {
+export const ProcessesTab: FC<ProcessesTabProps> = ({ realtimeData }) => {
   return (
     <div className="space-y-6">
       <div

@@ -21,7 +21,7 @@ import {
   TrendingUp,
   Zap,
 } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import BasePanelLayout from './shared/BasePanelLayout';
 
 interface PatternData {
@@ -96,7 +96,7 @@ const generateMockPatterns = (): PatternData[] => [
   },
 ];
 
-const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
+const PatternAnalysisPanel: FC<PatternAnalysisPanelProps> = ({
   className = '',
 }) => {
   // 🔧 자동 장애 보고서 연결 상태
@@ -134,7 +134,7 @@ const PatternAnalysisPanel: React.FC<PatternAnalysisPanelProps> = ({
   });
 
   // 필터 상태 관리
-  const [selectedType, setSelectedType] = React.useState<
+  const [selectedType, setSelectedType] = useState<
     'all' | 'failure' | 'performance' | 'security' | 'trend'
   >('all');
 

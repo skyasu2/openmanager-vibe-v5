@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 // framer-motion 제거 - CSS 애니메이션 사용
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -8,10 +8,10 @@ import { cn } from '@/lib/utils';
 interface CollapsibleCardProps {
   title: string;
   subtitle?: string;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   isExpanded: boolean;
   onToggle: () => void;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
   headerClassName?: string;
   contentClassName?: string;

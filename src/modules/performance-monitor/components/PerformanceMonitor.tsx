@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -41,7 +41,7 @@ interface PerformanceMonitorProps {
   className?: string;
 }
 
-const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
+const PerformanceMonitor: FC<PerformanceMonitorProps> = ({
   updateInterval = 5000,
   historyLimit = 50,
   showAlerts = true,

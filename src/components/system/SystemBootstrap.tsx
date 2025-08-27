@@ -13,7 +13,7 @@ import { useEffect, useState } from 'react';
  * - Google AI 연결 확인
  * - 시스템 초기화 상태 관리
  */
-export function SystemBootstrap(): React.JSX.Element | null {
+export function SystemBootstrap(): JSX.Element | null {
   const { state: systemState, isSessionActive } = useGlobalSystemStore();
 
   const [bootstrapStatus, setBootstrapStatus] = useState({

@@ -10,7 +10,7 @@
 
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   User,
@@ -83,7 +83,7 @@ const principleConfig = [
   },
 ];
 
-export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
+export const SixWPrincipleDisplay: FC<SixWPrincipleDisplayProps> = ({
   response,
   showCopyButtons = true,
   showConfidence = true,
@@ -185,7 +185,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
             <div
               className={`flex items-center space-x-1 rounded-full px-2 py-1 text-xs font-medium ${getConfidenceColor(response.confidence)}`}
             >
-              {React.createElement(getConfidenceIcon(response.confidence), {
+              {createElement(getConfidenceIcon(response.confidence), {
                 className: 'w-3 h-3',
               })}
               <span>신뢰도 {Math.round(response.confidence * 100)}%</span>
@@ -196,7 +196,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
 
       {/* 6W 원칙 카드들 */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <React.Fragment>
+        <Fragment>
           {principleConfig.map((config, index) => {
             const {
               key,
@@ -264,7 +264,7 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
                   </div>
 
                   {/* 복사 피드백 */}
-                  <React.Fragment>
+                  <Fragment>
                     {isCopied && (
                       <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-white bg-opacity-90 transition-all duration-300">
                         <div className="flex items-center space-x-2 text-green-600">
@@ -273,12 +273,12 @@ export const SixWPrincipleDisplay: React.FC<SixWPrincipleDisplayProps> = ({
                         </div>
                       </div>
                     )}
-                  </React.Fragment>
+                  </Fragment>
                 </div>
               </div>
             );
           })}
-        </React.Fragment>
+        </Fragment>
       </div>
       {/* 추가 정보 */}
       <div className="space-y-3">

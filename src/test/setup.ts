@@ -5,7 +5,7 @@
 
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
-import * as React from 'react';
+import { type ReactNode } from 'react';
 import { setupTestEnvironment } from './env.config';
 
 // 환경에 따른 Mock 로딩
@@ -260,7 +260,7 @@ vi.mock('@tanstack/react-query', () => ({
   useMutation: vi.fn(),
   useQueryClient: vi.fn(),
   QueryClient: vi.fn(),
-  QueryClientProvider: ({ children }: { children: React.ReactNode }) =>
+  QueryClientProvider: ({ children }: { children: ReactNode }) =>
     children,
 }));
 
@@ -321,7 +321,7 @@ vi.mock('framer-motion', () => ({
     section: 'section',
     article: 'article',
   },
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
+  AnimatePresence: ({ children }: { children: ReactNode }) => children,
   useAnimation: () => ({
     start: vi.fn(),
     stop: vi.fn(),

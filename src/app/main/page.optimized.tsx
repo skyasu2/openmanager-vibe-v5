@@ -5,7 +5,7 @@
 
 'use client';
 
-import { Suspense, lazy, useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useState, type ReactNode } from 'react';
 import {
   OptimizedLazy,
   MinimalFallback,
@@ -41,7 +41,7 @@ const AnimatedCard = ({
   children,
   delay = 0,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   delay?: number;
 }) => (
   <div

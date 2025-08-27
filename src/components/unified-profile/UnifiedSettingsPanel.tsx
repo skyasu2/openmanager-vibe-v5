@@ -412,7 +412,7 @@ export function UnifiedSettingsPanel({
   if (!isOpen) return null;
 
   return createPortal(
-    <React.Fragment>
+    <Fragment>
       {isOpen && (
         <>
           {/* 오버레이 */}
@@ -491,13 +491,13 @@ export function UnifiedSettingsPanel({
 
             {/* 탭 콘텐츠 */}
             <main className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800 flex-1 overflow-y-auto p-4">
-              <React.Fragment>
+              <Fragment>
                 <div
                   key={activeTab}
                 >
                   {renderTabContent()}
                 </div>
-              </React.Fragment>
+              </Fragment>
             </main>
 
             {/* 피드백 컨테이너 */}
@@ -511,7 +511,7 @@ export function UnifiedSettingsPanel({
           </div>
         </>
       )}
-    </React.Fragment>,
+    </Fragment>,
     document.body
   );
 }

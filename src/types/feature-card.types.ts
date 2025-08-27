@@ -4,6 +4,7 @@
  */
 
 import type { LucideIcon } from 'lucide-react';
+import type { ReactNode, RefObject } from 'react';
 
 /**
  * 메인 Feature Card 인터페이스
@@ -90,8 +91,8 @@ export interface TechItem {
 export interface FeatureCardModalProps {
   selectedCard: FeatureCard | null;
   onClose: () => void;
-  renderTextWithAIGradient: (text: string) => React.ReactNode;
-  modalRef: React.RefObject<HTMLDivElement>;
+  renderTextWithAIGradient: (text: string) => ReactNode;
+  modalRef: RefObject<HTMLDivElement>;
   variant?: 'home' | 'landing';
 }
 

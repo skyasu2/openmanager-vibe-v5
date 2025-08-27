@@ -136,7 +136,7 @@ interface MetricCardProps {
   label: string;
   value: string;
   trend: 'up' | 'down';
-  icon: React.ReactNode;
+  icon: ReactNode;
 }
 
 function MetricCard({ label, value, trend, icon }: MetricCardProps) {

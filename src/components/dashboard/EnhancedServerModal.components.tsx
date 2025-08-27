@@ -6,7 +6,7 @@
  * - Common UI elements and visualizations
  */
 
-import React from 'react';
+import { type FC } from 'react';
 
 /**
  * 📈 실시간 차트 컴포넌트 Props
@@ -34,7 +34,7 @@ interface RealtimeChartProps {
  * @param props RealtimeChartProps
  * @returns JSX.Element
  */
-export const RealtimeChart: React.FC<RealtimeChartProps> = ({
+export const RealtimeChart: FC<RealtimeChartProps> = ({
   data,
   color,
   label,
@@ -146,7 +146,7 @@ interface StatusLEDProps {
   animated?: boolean;
 }
 
-export const StatusLED: React.FC<StatusLEDProps> = ({
+export const StatusLED: FC<StatusLEDProps> = ({
   status,
   size = 8,
   animated = true,
@@ -193,7 +193,7 @@ interface MiniProgressBarProps {
   background?: string;
 }
 
-export const MiniProgressBar: React.FC<MiniProgressBarProps> = ({
+export const MiniProgressBar: FC<MiniProgressBarProps> = ({
   value,
   color = '#3b82f6',
   height = 8,
@@ -229,7 +229,7 @@ interface StatusBadgeProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export const StatusBadge: React.FC<StatusBadgeProps> = ({
+export const StatusBadge: FC<StatusBadgeProps> = ({
   status,
   variant = 'info',
   size = 'sm',

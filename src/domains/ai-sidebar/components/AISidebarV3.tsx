@@ -4,14 +4,14 @@
  * ✅ 실제 useAIThinking 훅 사용
  * ✅ EnhancedChatMessage 완전 통합  
  * ✅ Google AI vs Local AI 완전 차별화
- * ✅ 성능 최적화 (React.memo, useCallback)
+ * ✅ 성능 최적화 (memo, useCallback)
  * ✅ 메시지 영속성 강화
  * ✅ TypeScript 타입 안전성 완전 보장
  */
 
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState, useMemo, memo } from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo, memo, Fragment } from 'react';
 import { useRealTimeAILogs } from '@/hooks/useRealTimeAILogs';
 import {
   useAIChat,
@@ -148,7 +148,7 @@ const MessageComponent = memo<{
 
 MessageComponent.displayName = 'MessageComponent';
 
-export const AISidebarV3: React.FC<AISidebarV3Props> = ({
+export const AISidebarV3: FC<AISidebarV3Props> = ({
   isOpen,
   onClose,
   className = '',
@@ -518,7 +518,7 @@ export const AISidebarV3: React.FC<AISidebarV3Props> = ({
               onClick={() => setShowEngineInfo(!showEngineInfo)}
               className="flex items-center space-x-2 rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs transition-colors hover:bg-gray-50"
             >
-              {React.createElement(
+              {createElement(
                 availableEngines.find((e) => e.id === selectedEngine)?.icon ||
                   Zap,
                 {
@@ -558,7 +558,7 @@ export const AISidebarV3: React.FC<AISidebarV3Props> = ({
                     >
                       <div className="flex items-start space-x-2">
                         <div className={`h-6 w-6 rounded ${engine.bgColor} flex items-center justify-center`}>
-                          {React.createElement(engine.icon, {
+                          {createElement(engine.icon, {
                             className: `w-3 h-3 ${engine.color}`,
                           })}
                         </div>
@@ -735,7 +735,7 @@ export const AISidebarV3: React.FC<AISidebarV3Props> = ({
   }, [selectedFunction, renderEnhancedAIChat]); // renderEnhancedAIChat 함수 의존성 복구
 
   return (
-    <React.Fragment>
+    <Fragment>
       {isOpen && (
         <div
           role="dialog"
@@ -781,7 +781,7 @@ export const AISidebarV3: React.FC<AISidebarV3Props> = ({
           </div>
         </div>
       )}
-    </React.Fragment>
+    </Fragment>
   );
 };
 

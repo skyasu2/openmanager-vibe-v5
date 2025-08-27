@@ -1,3 +1,4 @@
+import { type FC } from 'react';
 /**
  * 🌐 Enhanced Server Modal Network Tab
  *
@@ -11,7 +12,7 @@
 
 'use client';
 
-import React from 'react';
+// React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
 import dynamic from 'next/dynamic';
 import {
   ServerData,
@@ -83,7 +84,7 @@ const getNetworkStatusInfo = (status?: NetworkStatus) => {
  * - 트래픽 흐름 SVG 차트 (인바운드/아웃바운드)
  * - 네트워크 연결 정보 및 서버 상세 사양
  */
-export const NetworkTab: React.FC<NetworkTabProps> = ({
+export const NetworkTab: FC<NetworkTabProps> = ({
   server,
   realtimeData,
 }) => {

@@ -1,3 +1,4 @@
+import { type FC } from 'react';
 /**
  * 🎯 StatusIcon Component
  *
@@ -7,7 +8,7 @@
  * - 상태별 색상 변화
  */
 
-import React from 'react';
+// React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
 // framer-motion 제거 - CSS 애니메이션 사용
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -37,7 +38,7 @@ interface StatusIconProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-const StatusIcon: React.FC<StatusIconProps> = ({
+const StatusIcon: FC<StatusIconProps> = ({
   currentStep,
   isActive,
   isComplete,
@@ -105,7 +106,7 @@ const StatusIcon: React.FC<StatusIconProps> = ({
       <div
         className={`${sizeClasses.container} flex items-center justify-center rounded-xl border-2 ${statusClasses.container}`}
       >
-        <React.Fragment>
+        <Fragment>
           <div
             key={currentStep}
           >
@@ -121,7 +122,7 @@ const StatusIcon: React.FC<StatusIconProps> = ({
               />
             )}
           </div>
-        </React.Fragment>
+        </Fragment>
       </div>
 
       {/* 회전 링 (로딩 중일 때) */}

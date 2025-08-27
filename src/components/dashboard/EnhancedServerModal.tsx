@@ -27,7 +27,7 @@ import {
   X,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Fragment } from 'react';
 import { ServerModal3DGauge } from '../shared/UnifiedCircularGauge';
 
 // 모듈화된 컴포넌트 및 타입 임포트
@@ -214,7 +214,7 @@ export default function EnhancedServerModal({
     console.warn('⚠️ [EnhancedServerModal] 서버 데이터가 없습니다.');
     // 모달을 닫지 않고 오류 상태를 표시
     return (
-      <React.Fragment>
+      <Fragment>
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
           onClick={onClose}
@@ -238,7 +238,7 @@ export default function EnhancedServerModal({
             </button>
           </div>
         </div>
-      </React.Fragment>
+      </Fragment>
     );
   }
 
@@ -246,7 +246,7 @@ export default function EnhancedServerModal({
   const statusTheme = getStatusTheme(safeServer?.status);
 
   return (
-    <React.Fragment>
+    <Fragment>
       <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
         onClick={onClose}
@@ -360,7 +360,7 @@ export default function EnhancedServerModal({
 
           {/* 콘텐츠 영역 - 모듈화된 탭 컴포넌트 시스템 */}
           <div className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 via-gray-50 to-gray-100">
-            <React.Fragment>
+            <Fragment>
               <div
                 key={selectedTab}
                 className="p-6"
@@ -386,7 +386,7 @@ export default function EnhancedServerModal({
                   <NetworkTab server={safeServer} realtimeData={realtimeData} />
                 )}
               </div>
-            </React.Fragment>
+            </Fragment>
           </div>
 
           {/* 하단 버튼 영역 */}
@@ -403,6 +403,6 @@ export default function EnhancedServerModal({
           </div>
         </div>
       </div>
-    </React.Fragment>
+    </Fragment>
   );
 }

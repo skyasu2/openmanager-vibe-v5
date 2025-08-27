@@ -161,7 +161,7 @@ export function SystemHealthCard({ data, gcpQuota }: SystemHealthCardProps) {
 // ============================================================================
 
 interface MetricCardProps {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   value: string;
   subtitle: string;

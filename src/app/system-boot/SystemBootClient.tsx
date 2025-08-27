@@ -11,7 +11,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, type ComponentType, type FC } from 'react';
 import debug from '@/utils/debug';
 
 // 부드러운 로딩 인디케이터 컴포넌트
@@ -94,7 +94,7 @@ export default function SystemBootClient() {
   const [currentStage, setCurrentStage] = useState<string>('시스템 초기화');
   const [progress, setProgress] = useState(0);
   const [currentIcon, setCurrentIcon] =
-    useState<React.ComponentType<unknown>>(Loader2);
+    useState<ComponentType<unknown>>(Loader2);
   const [isClient, setIsClient] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -271,7 +271,7 @@ export default function SystemBootClient() {
       icon: Loader2,
       description: '시스템을 초기화하고 있습니다...',
     };
-  const CurrentIconComponent = currentIcon as React.FC<{ className?: string }>;
+  const CurrentIconComponent = currentIcon as FC<{ className?: string }>;
 
   // 클라이언트 렌더링이 준비되지 않았으면 로딩 표시
   if (!isClient) {

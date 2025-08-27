@@ -20,7 +20,7 @@ import {
   Target,
   Zap,
 } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import BasePanelLayout from './shared/BasePanelLayout';
 
 interface LogEntry {
@@ -152,7 +152,7 @@ const generateMockLogs = (): LogEntry[] => [
   },
 ];
 
-const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
+const AssistantLogPanel: FC<AssistantLogPanelProps> = ({
   className = '',
 }) => {
   // 🔧 관리자 기능 상태
@@ -172,7 +172,7 @@ const AssistantLogPanel: React.FC<AssistantLogPanelProps> = ({
   );
 
   // 필터 상태 관리
-  const [selectedType, setSelectedType] = React.useState<
+  const [selectedType, setSelectedType] = useState<
     | 'all'
     | 'analysis'
     | 'reasoning'

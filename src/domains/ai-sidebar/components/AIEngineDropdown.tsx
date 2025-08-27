@@ -3,9 +3,10 @@
  * AI 모델 선택 및 엔진 정보 표시
  */
 
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 // framer-motion 제거 - CSS 애니메이션 사용
 import { ChevronDown } from 'lucide-react';
+import { Fragment } from 'react';
 import { availableEngines } from './AIEngineSelector';
 import type { AIMode } from '@/types/ai-types';
 
@@ -17,7 +18,7 @@ interface AIEngineDropdownProps {
   currentEngine?: string;
 }
 
-export const AIEngineDropdown: React.FC<AIEngineDropdownProps> = ({
+export const AIEngineDropdown: FC<AIEngineDropdownProps> = ({
   selectedEngine,
   showEngineInfo,
   onEngineSelect,
@@ -39,7 +40,7 @@ export const AIEngineDropdown: React.FC<AIEngineDropdownProps> = ({
         <div
           className={`h-4 w-4 rounded ${selectedEngineInfo.bgColor} flex items-center justify-center`}
         >
-          {React.createElement(selectedEngineInfo.icon, {
+          {createElement(selectedEngineInfo.icon, {
             className: `w-2.5 h-2.5 ${selectedEngineInfo.color}`,
           })}
         </div>
@@ -64,7 +65,7 @@ export const AIEngineDropdown: React.FC<AIEngineDropdownProps> = ({
       )}
 
       {/* 엔진 선택 드롭다운 */}
-      <React.Fragment>
+      <Fragment>
         {showEngineInfo && (
           <div
             className="absolute right-0 top-full z-50 mt-2 w-60 rounded-lg border border-gray-200 bg-white shadow-lg sm:w-72"
@@ -101,7 +102,7 @@ export const AIEngineDropdown: React.FC<AIEngineDropdownProps> = ({
                     <div
                       className={`h-6 w-6 rounded ${engine.bgColor} flex items-center justify-center`}
                     >
-                      {React.createElement(engine.icon, {
+                      {createElement(engine.icon, {
                         className: `w-3 h-3 ${engine.color}`,
                       })}
                     </div>
@@ -136,7 +137,7 @@ export const AIEngineDropdown: React.FC<AIEngineDropdownProps> = ({
             </div>
           </div>
         )}
-      </React.Fragment>
+      </Fragment>
     </div>
   );
 };

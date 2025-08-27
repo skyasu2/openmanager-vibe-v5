@@ -1,7 +1,7 @@
 // 🎨 Font Awesome → Lucide React 아이콘 매핑
 // Vercel CSP 최적화를 위한 완전한 아이콘 마이그레이션
 
-import React from 'react';
+import { createElement, type ReactElement } from 'react';
 import {
   // 시스템 관련
   Settings,
@@ -122,9 +122,9 @@ export const getSeverityIcon = (severity: string): LucideIcon => {
 export const renderIcon = (
   iconName: string,
   className?: string
-): React.ReactElement => {
+): ReactElement => {
   const IconComponent = iconMapping[iconName] || Circle;
-  return React.createElement(IconComponent, { className });
+  return createElement(IconComponent, { className });
 };
 
 // Font Awesome 클래스명에서 Lucide 아이콘 추출

@@ -5,7 +5,7 @@
 
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   X,
@@ -74,7 +74,7 @@ const PRESET_QUESTIONS: PresetQuestion[] = [
   },
 ];
 
-export const AISidebarV2Refactored: React.FC = () => {
+export const AISidebarV2Refactored: FC = () => {
   // Store
   const {
     isOpen,
@@ -249,7 +249,7 @@ export const AISidebarV2Refactored: React.FC = () => {
 
   // Enter 키 핸들러
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    (e: KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         handleSendMessage(inputValue);
@@ -261,7 +261,7 @@ export const AISidebarV2Refactored: React.FC = () => {
   if (!isOpen) return null;
 
   return (
-    <React.Fragment>
+    <>
       <div
         className="fixed right-0 top-0 z-50 flex h-full w-80 flex-col bg-white shadow-xl sm:w-96"
       >
@@ -354,7 +354,7 @@ export const AISidebarV2Refactored: React.FC = () => {
                   disabled={isProcessing}
                   className="flex items-center space-x-2 rounded-lg bg-gray-50 p-2 text-left transition-colors hover:bg-gray-100 disabled:opacity-50"
                 >
-                  {React.createElement(question.icon, {
+                  {createElement(question.icon, {
                     className: 'w-3.5 h-3.5 text-gray-600',
                   })}
                   <span className="line-clamp-2 text-xs text-gray-700">
@@ -405,6 +405,6 @@ export const AISidebarV2Refactored: React.FC = () => {
           )}
         </div>
       </div>
-    </React.Fragment>
+    </>
   );
 };

@@ -13,7 +13,7 @@
  */
 
 import { AlertCircle, AlertTriangle, Clock } from 'lucide-react';
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface CountdownTimerProps {
   endTime: number; // 종료 시간 (Unix timestamp)
@@ -31,7 +31,7 @@ interface TimeLeft {
   total: number;
 }
 
-export const CountdownTimer: React.FC<CountdownTimerProps> = ({
+export const CountdownTimer: FC<CountdownTimerProps> = ({
   endTime,
   onExpired,
   onWarning,

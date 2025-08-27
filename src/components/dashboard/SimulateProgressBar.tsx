@@ -10,7 +10,7 @@
 
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Sparkles } from 'lucide-react';
-import React, { memo, useCallback, useEffect } from 'react';
+import { memo, useCallback, useEffect, type FC } from 'react';
 import { useToast } from '../ui/ToastNotification';
 import ProgressLabel from './ProgressLabel';
 import StatusIcon from './StatusIcon';
@@ -37,7 +37,7 @@ interface SimulateProgressBarProps {
   onStepChange?: (step: number, description: string) => void;
 }
 
-const SimulateProgressBar: React.FC<SimulateProgressBarProps> = memo(
+const SimulateProgressBar: FC<SimulateProgressBarProps> = memo(
   ({
     currentStep,
     totalSteps,
@@ -241,7 +241,7 @@ const SimulateProgressBar: React.FC<SimulateProgressBarProps> = memo(
         )}
 
         {/* 완료 축하 메시지 */}
-        <React.Fragment>
+        <Fragment>
           {isComplete && !error && (
             <div
               className="mt-4 rounded-lg border border-green-500/20 bg-green-500/10 p-4"
@@ -262,7 +262,7 @@ const SimulateProgressBar: React.FC<SimulateProgressBarProps> = memo(
               </div>
             </div>
           )}
-        </React.Fragment>
+        </Fragment>
       </div>
     );
   });

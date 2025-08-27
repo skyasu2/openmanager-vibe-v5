@@ -22,7 +22,7 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 interface GoogleAIStatusCardProps {
   className?: string;
@@ -30,7 +30,7 @@ interface GoogleAIStatusCardProps {
   variant?: 'admin' | 'dashboard';
 }
 
-export const GoogleAIStatusCard: React.FC<GoogleAIStatusCardProps> = ({
+export const GoogleAIStatusCard: FC<GoogleAIStatusCardProps> = ({
   className = '',
   showDetails = true,
   variant = 'dashboard',
@@ -327,7 +327,7 @@ export const GoogleAIStatusCard: React.FC<GoogleAIStatusCardProps> = ({
         </div>
 
         {showDetails && status && (
-          <React.Fragment>
+          <Fragment>
             <div
               className="space-y-3"
             >
@@ -391,7 +391,7 @@ export const GoogleAIStatusCard: React.FC<GoogleAIStatusCardProps> = ({
                 </div>
               )}
             </div>
-          </React.Fragment>
+          </Fragment>
         )}
 
         {error && (

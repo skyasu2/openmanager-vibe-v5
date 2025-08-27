@@ -9,7 +9,7 @@
 
 'use client';
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   FileText,
@@ -47,15 +47,15 @@ interface AutoReportPanelProps {
   className?: string;
 }
 
-const AutoReportPanel: React.FC<AutoReportPanelProps> = ({
+const AutoReportPanel: FC<AutoReportPanelProps> = ({
   className = '',
 }) => {
   // 데이터 로딩 (30초마다 자동 새로고침)
-  const [reports, setReports] = React.useState<ReportData[]>([]);
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [reports, setReports] = useState<ReportData[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // 실제 API에서 데이터 로드
-  const loadReports = React.useCallback(async () => {
+  const loadReports = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch('/api/ai/auto-report');
@@ -97,22 +97,22 @@ const AutoReportPanel: React.FC<AutoReportPanelProps> = ({
   }, []);
 
   // 컴포넌트 마운트 시 데이터 로드
-  React.useEffect(() => {
+  useEffect(() => {
     loadReports();
   }, [loadReports]);
 
   // 30초마다 자동 새로고침
-  React.useEffect(() => {
+  useEffect(() => {
     const interval = setInterval(loadReports, 30000);
     return () => clearInterval(interval);
   }, [loadReports]);
 
-  const reload = React.useCallback(() => {
+  const reload = useCallback(() => {
     loadReports();
   }, [loadReports]);
 
   // 필터 상태 관리
-  const [selectedFilter, setSelectedFilter] = React.useState<
+  const [selectedFilter, setSelectedFilter] = useState<
     'all' | 'daily' | 'incident' | 'performance' | 'security'
   >('all');
 

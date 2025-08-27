@@ -30,7 +30,7 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { RealAISidebarService } from '../services/RealAISidebarService';
 
 // 분리된 컴포넌트들 import
@@ -56,7 +56,7 @@ import type { AIMode } from '@/types/ai-types';
 
 // AI_ENGINES는 이제 AIEngineSelector에서 import됨
 
-export const AISidebarV2: React.FC<AISidebarV2Props> = ({
+export const AISidebarV2: FC<AISidebarV2Props> = ({
   isOpen,
   onClose,
   className = '',
@@ -640,7 +640,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
               onClick={() => setShowEngineInfo(!showEngineInfo)}
               className="flex items-center space-x-2 rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs transition-colors hover:bg-gray-50"
             >
-              {React.createElement(
+              {createElement(
                 availableEngines.find((e) => e.id === selectedEngine)?.icon ||
                   Zap,
                 {
@@ -654,7 +654,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
             </button>
 
             {/* 엔진 선택 드롭다운 */}
-            <React.Fragment>
+            <>
               {showEngineInfo && (
                 <div
                   className="absolute right-0 top-full z-50 mt-2 w-60 rounded-lg border border-gray-200 bg-white shadow-lg sm:w-72"
@@ -692,7 +692,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                           <div
                             className={`h-6 w-6 rounded ${engine.bgColor} flex items-center justify-center`}
                           >
-                            {React.createElement(engine.icon, {
+                            {createElement(engine.icon, {
                               className: `w-3 h-3 ${engine.color}`,
                             })}
                           </div>
@@ -729,7 +729,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
                   </div>
                 </div>
               )}
-            </React.Fragment>
+            </>
           </div>
         </div>
       </div>
@@ -956,7 +956,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
   };
 
   return (
-    <React.Fragment>
+    <>
       {isOpen && (
         <div
           role="dialog"
@@ -1002,7 +1002,7 @@ export const AISidebarV2: React.FC<AISidebarV2Props> = ({
           </div>
         </div>
       )}
-    </React.Fragment>
+    </>
   );
 };
 

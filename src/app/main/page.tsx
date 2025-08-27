@@ -7,7 +7,7 @@
 
 'use client';
 
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';

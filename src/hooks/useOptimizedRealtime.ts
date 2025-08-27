@@ -33,7 +33,7 @@ interface UseOptimizedRealtimeReturn<T = any> {
   error: string | null;
   lastUpdate: Date | null;
   forceUpdate: () => void;
-  elementRef: React.RefObject<HTMLDivElement | null>;
+  elementRef: RefObject<HTMLDivElement | null>;
   isVisible: boolean;
   stats: {
     updateCount: number;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState, type FC } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Modal } from '@/components/shared/Modal'; // 가정: Modal 컴포넌트가 존재
@@ -52,7 +52,7 @@ const createMockDataset = (): AIAnalysisDataset => ({
   },
 });
 
-export const ReportGenerator: React.FC = () => {
+export const ReportGenerator: FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

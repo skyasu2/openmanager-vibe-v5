@@ -1,3 +1,4 @@
+import { type FC } from 'react';
 /**
  * 📋 Enhanced Server Modal Logs Tab
  *
@@ -10,7 +11,7 @@
 
 'use client';
 
-import React from 'react';
+// React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
 import dynamic from 'next/dynamic';
 import { RealtimeData, LogEntry, LogLevel } from './EnhancedServerModal.types';
 
@@ -80,7 +81,7 @@ const formatTimestamp = (timestamp: string): string => {
  * - 타임스탬프 및 소스 정보 표시
  * - 스크롤 가능한 로그 스트림
  */
-export const LogsTab: React.FC<LogsTabProps> = ({ realtimeData }) => {
+export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
   return (
     <div className="space-y-6">
       <div className="animate-fade-in">

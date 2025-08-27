@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import { memo } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Lock, AlertTriangle, Clock } from 'lucide-react';
 import type { AdminAuthProps } from '../types/profile.types';
@@ -9,7 +9,7 @@ import type { AdminAuthProps } from '../types/profile.types';
  * 관리자 인증 모달 컴포넌트
  * 보안 강화된 관리자 비밀번호 입력
  */
-export const AdminAuthModal = React.memo(function AdminAuthModal({
+export const AdminAuthModal = memo(function AdminAuthModal({
   isLocked,
   failedAttempts,
   remainingLockTime,
@@ -19,7 +19,7 @@ export const AdminAuthModal = React.memo(function AdminAuthModal({
   onSubmit,
   onCancel,
 }: AdminAuthProps) {
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !isLocked && !isProcessing && adminPassword) {
       onSubmit();
     }
@@ -32,7 +32,7 @@ export const AdminAuthModal = React.memo(function AdminAuthModal({
   };
 
   return (
-    <React.Fragment>
+    <Fragment>
       <div
         className="border-t border-gray-100 bg-gray-50 px-4 py-3"
       >
@@ -126,6 +126,6 @@ export const AdminAuthModal = React.memo(function AdminAuthModal({
           </p>
         </div>
       </div>
-    </React.Fragment>
+    </Fragment>
   );
 });

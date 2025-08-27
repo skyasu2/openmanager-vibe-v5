@@ -15,7 +15,7 @@ import {
   Wifi,
   WifiOff,
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // 네트워크 메트릭 타입 정의
 interface NetworkMetrics {
@@ -152,7 +152,7 @@ export const NetworkMonitoringCard = () => {
     label: string;
     unit: string;
     color: string;
-    icon: React.ReactNode;
+    icon: ReactNode;
   }) => {
     const points = data
       .map((value, index) => {

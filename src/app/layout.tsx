@@ -1,6 +1,7 @@
 import { ClientProviders } from '@/components/providers/ClientProviders';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import type { ReactNode } from 'react';
 import './globals.css';
 import { EmergencyBanner } from '@/components/emergency/EmergencyBanner';
 import { AuthTokenHandler } from '@/components/auth/AuthTokenHandler';
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <html lang="ko">

@@ -318,7 +318,7 @@ export function ServerDashboardServers({
         </div>
       ) : (
         <>
-          <React.Fragment>
+          <Fragment>
             <div
               key={`${viewMode}-${currentPage}-${displayMode}`}
               className={
@@ -341,7 +341,7 @@ export function ServerDashboardServers({
                 </div>
               ))}
             </div>
-          </React.Fragment>
+          </Fragment>
 
           {paginatedServers.length === 0 && (
             <div className="py-12 text-center">

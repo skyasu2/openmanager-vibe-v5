@@ -12,7 +12,7 @@
 import type { AIMode } from '@/types/ai-types';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Brain, Cpu, Zap } from 'lucide-react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 interface AiModeSelectorProps {
   selectedMode: AIMode;
@@ -44,7 +44,7 @@ const AI_MODE_CONFIG = {
   },
 } as const;
 
-export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
+export const AIModeSelector: FC<AiModeSelectorProps> = ({
   selectedMode,
   onModeChange,
   disabled = false,
@@ -123,7 +123,7 @@ export const AIModeSelector: React.FC<AiModeSelectorProps> = ({
       >
         <div className="flex items-center space-x-2">
           <div className="flex items-center space-x-1">
-            {React.createElement(
+            {createElement(
               AI_MODE_CONFIG[selectedMode as keyof typeof AI_MODE_CONFIG]
                 ?.icon || Zap,
               {

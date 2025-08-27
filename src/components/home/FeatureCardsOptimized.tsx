@@ -18,7 +18,7 @@ interface FeatureCard {
   id: string;
   title: string;
   description: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   color: string;
   stats?: string;
 }

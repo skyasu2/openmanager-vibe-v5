@@ -5,7 +5,7 @@
  * 복구 가이드를 제공하는 컴포넌트
  */
 
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 import { RefreshCw, Home, HelpCircle } from 'lucide-react';
 // framer-motion 제거 - CSS 애니메이션 사용
 
@@ -21,7 +21,7 @@ export interface ErrorMessageProps {
     label: string;
     onClick: () => void;
     variant?: 'primary' | 'secondary';
-    icon?: React.ReactNode;
+    icon?: ReactNode;
   }[];
   /** 전체 화면 표시 여부 */
   fullScreen?: boolean;
@@ -105,7 +105,7 @@ const getErrorInfo = (type: ErrorMessageProps['type']) => {
   }
 };
 
-export const ErrorMessage: React.FC<ErrorMessageProps> = ({
+export const ErrorMessage: FC<ErrorMessageProps> = ({
   title,
   message,
   type = 'unknown',
@@ -218,23 +218,23 @@ export const ErrorMessage: React.FC<ErrorMessageProps> = ({
 };
 
 // 특정 에러 타입별 편의 컴포넌트들
-export const NetworkError: React.FC<Omit<ErrorMessageProps, 'type'>> = (
+export const NetworkError: FC<Omit<ErrorMessageProps, 'type'>> = (
   props
 ) => <ErrorMessage {...props} type="network" />;
 
-export const ServerError: React.FC<Omit<ErrorMessageProps, 'type'>> = (
+export const ServerError: FC<Omit<ErrorMessageProps, 'type'>> = (
   props
 ) => <ErrorMessage {...props} type="server" />;
 
-export const DataError: React.FC<Omit<ErrorMessageProps, 'type'>> = (props) => (
+export const DataError: FC<Omit<ErrorMessageProps, 'type'>> = (props) => (
   <ErrorMessage {...props} type="data" />
 );
 
-export const AIError: React.FC<Omit<ErrorMessageProps, 'type'>> = (props) => (
+export const AIError: FC<Omit<ErrorMessageProps, 'type'>> = (props) => (
   <ErrorMessage {...props} type="ai" />
 );
 
-export const AuthError: React.FC<Omit<ErrorMessageProps, 'type'>> = (props) => (
+export const AuthError: FC<Omit<ErrorMessageProps, 'type'>> = (props) => (
   <ErrorMessage {...props} type="auth" />
 );
 

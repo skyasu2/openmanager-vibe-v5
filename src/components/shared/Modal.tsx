@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 // framer-motion 제거 - CSS 애니메이션 사용
 import { X } from 'lucide-react';
 
@@ -8,17 +8,17 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
-export const Modal: React.FC<ModalProps> = ({
+export const Modal: FC<ModalProps> = ({
   isOpen,
   onClose,
   title,
   children,
 }) => {
   return (
-    <React.Fragment>
+    <Fragment>
       {isOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm"
@@ -42,6 +42,6 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
         </div>
       )}
-    </React.Fragment>
+    </Fragment>
   );
 };

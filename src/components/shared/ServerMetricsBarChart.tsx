@@ -1,7 +1,7 @@
 'use client';
 
 // framer-motion 제거 - CSS 애니메이션 사용
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export interface ServerMetricsBarChartProps {
   value: number;

@@ -1,11 +1,11 @@
 'use client';
 
-import React from 'react';
+import { memo, type MouseEvent } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import type { MenuItem } from '../types/profile.types';
 
 interface ProfileMenuItemProps extends MenuItem {
-  onClick?: (e: React.MouseEvent) => void;
+  onClick?: (e: MouseEvent) => void;
   index?: number;
 }
 
@@ -13,7 +13,7 @@ interface ProfileMenuItemProps extends MenuItem {
  * 프로필 메뉴 아이템 컴포넌트
  * 일관된 메뉴 아이템 UI 제공
  */
-export const ProfileMenuItem = React.memo(function ProfileMenuItem({
+export const ProfileMenuItem = memo(function ProfileMenuItem({
   id,
   label,
   icon: Icon,
@@ -29,7 +29,7 @@ export const ProfileMenuItem = React.memo(function ProfileMenuItem({
 }: ProfileMenuItemProps) {
   if (!visible) return null;
 
-  const handleClick = async (e: React.MouseEvent) => {
+  const handleClick = async (e: MouseEvent) => {
     e.stopPropagation();
 
     if (onClick) {
@@ -42,10 +42,10 @@ export const ProfileMenuItem = React.memo(function ProfileMenuItem({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
     if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
       e.preventDefault();
-      handleClick(e as unknown as React.MouseEvent);
+      handleClick(e as unknown as MouseEvent);
     }
   };
 
@@ -110,14 +110,14 @@ export const ProfileMenuItem = React.memo(function ProfileMenuItem({
 /**
  * 메뉴 구분선 컴포넌트
  */
-export const MenuDivider = React.memo(function MenuDivider() {
+export const MenuDivider = memo(function MenuDivider() {
   return <div className="my-1 border-t border-gray-100" />;
 });
 
 /**
  * 메뉴 섹션 헤더 컴포넌트
  */
-export const MenuSectionHeader = React.memo(function MenuSectionHeader({
+export const MenuSectionHeader = memo(function MenuSectionHeader({
   title,
 }: {
   title: string;

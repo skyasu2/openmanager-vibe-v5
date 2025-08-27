@@ -7,7 +7,7 @@
  * - 배경에서 부드러운 등장
  */
 
-import React, { useState, useEffect, memo, useCallback } from 'react';
+import { useState, useEffect, memo, useCallback, type FC } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import type { Server } from '../../../types/server';
 
@@ -73,7 +73,7 @@ const SERVER_SPAWN_ORDER = [
   },
 ];
 
-const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
+const ServerCardSpawner: FC<ServerCardSpawnerProps> = memo(
   ({
     servers,
     onServerSpawned,
@@ -89,7 +89,7 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
     const [isSpawning, setIsSpawning] = useState(false);
 
     // 서버를 타입별로 그룹화하고 우선순위 정렬
-    const groupedServers = React.useMemo(() => {
+    const groupedServers = useMemo(() => {
       const groups: ServerGroup[] = [];
 
       SERVER_SPAWN_ORDER.forEach((order) => {
@@ -416,7 +416,7 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
           </div>
 
           {/* 현재 스포닝 타입 표시 */}
-          <React.Fragment>
+          <Fragment>
             {currentGroup && (
               <div
                 key={currentGroup.type}
@@ -449,7 +449,7 @@ const ServerCardSpawner: React.FC<ServerCardSpawnerProps> = memo(
                 </div>
               </div>
             )}
-          </React.Fragment>
+          </Fragment>
         </div>
 
         {/* 🚨 강제 표시 확인 메시지 */}

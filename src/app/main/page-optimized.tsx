@@ -9,7 +9,7 @@
 
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, type ReactNode } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
@@ -71,7 +71,7 @@ const useSystemHooks = () => {
 };
 
 // 인증 체크 컴포넌트
-function AuthCheck({ children }: { children: React.ReactNode }) {
+function AuthCheck({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [authState, setAuthState] = useState<{
     isLoading: boolean;

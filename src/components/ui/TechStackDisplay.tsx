@@ -4,7 +4,7 @@
  * 분석된 기술 스택을 역할별로 분류하여 아름답게 표시합니다.
  */
 
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 // framer-motion 제거 - CSS 애니메이션 사용
 import type { TechCategory } from '../../utils/TechStackAnalyzer';
 import { generateTechStackSummary } from '../../utils/TechStackAnalyzer';
@@ -43,7 +43,7 @@ const importanceStyles = {
   low: 'ring-1 ring-gray-400/10',
 };
 
-const TechStackDisplay: React.FC<TechStackDisplayProps> = ({
+const TechStackDisplay: FC<TechStackDisplayProps> = ({
   categories,
   showHeader = true,
   compact = false,

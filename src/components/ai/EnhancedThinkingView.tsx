@@ -20,7 +20,7 @@ import {
   Search,
   Zap,
 } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface EnhancedThinkingStep {
   id: string;
@@ -71,7 +71,7 @@ const getEngineColor = (engine: string) => {
 };
 
 // 타이핑 애니메이션 컴포넌트
-const TypingText: React.FC<{ text: string; speed?: number }> = ({
+const TypingText: FC<{ text: string; speed?: number }> = ({
   text,
   speed = 30,
 }) => {
@@ -101,7 +101,7 @@ const TypingText: React.FC<{ text: string; speed?: number }> = ({
   );
 };
 
-export const EnhancedThinkingView: React.FC<EnhancedThinkingViewProps> = ({
+export const EnhancedThinkingView: FC<EnhancedThinkingViewProps> = ({
   isThinking,
   steps,
   currentQuestion,
@@ -182,7 +182,7 @@ export const EnhancedThinkingView: React.FC<EnhancedThinkingViewProps> = ({
       </button>
 
       {/* 사고 과정 내용 */}
-      <React.Fragment>
+      <Fragment>
         {isExpanded && (
           <div
             className="border-t border-gray-700/50"
@@ -191,7 +191,7 @@ export const EnhancedThinkingView: React.FC<EnhancedThinkingViewProps> = ({
               ref={scrollRef}
               className="scrollbar-thin scrollbar-track-gray-800 scrollbar-thumb-gray-600 max-h-48 space-y-2 overflow-y-auto p-3"
             >
-              <React.Fragment>
+              <Fragment>
                 {visibleSteps.map((step, index) => (
                   <div
                     key={step.id}
@@ -233,7 +233,7 @@ export const EnhancedThinkingView: React.FC<EnhancedThinkingViewProps> = ({
                     </div>
                   </div>
                 ))}
-              </React.Fragment>
+              </Fragment>
 
               {/* 현재 처리 중 표시 */}
               {isThinking && (
@@ -252,7 +252,7 @@ export const EnhancedThinkingView: React.FC<EnhancedThinkingViewProps> = ({
             </div>
           </div>
         )}
-      </React.Fragment>
+      </Fragment>
     </div>
   );
 };

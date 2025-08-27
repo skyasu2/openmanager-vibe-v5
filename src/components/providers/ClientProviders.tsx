@@ -12,7 +12,7 @@ import QueryProvider from './QueryProvider';
 import { ServerDataStoreProvider } from './StoreProvider';
 
 interface ClientProvidersProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 /**

@@ -17,7 +17,7 @@ interface TimerStatus {
   nextRun: number;
 }
 
-export const TimerDebugPanel: React.FC = () => {
+export const TimerDebugPanel: FC = () => {
   // 타이머 디버그 패널 제거됨 (웹 알람 삭제에 따라)
   return null;
 };

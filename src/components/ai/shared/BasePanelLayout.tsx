@@ -9,7 +9,7 @@
 'use client';
 
 import type { ReactNode } from 'react';;
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 // framer-motion 제거 - CSS 애니메이션 사용
 import { RefreshCw, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
@@ -51,7 +51,7 @@ interface BasePanelLayoutProps {
   className?: string;
 }
 
-const BasePanelLayout: React.FC<BasePanelLayoutProps> = ({
+const BasePanelLayout: FC<BasePanelLayoutProps> = ({
   title,
   subtitle,
   icon,

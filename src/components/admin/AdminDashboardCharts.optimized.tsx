@@ -1,9 +1,10 @@
-import React, {
+import {
   memo,
   useMemo,
   useCallback,
   useTransition,
   Suspense,
+  useState,
 } from 'react';
 import { lazy } from 'react';
 import { SystemHealthAPIResponse } from '@/types/api';
@@ -68,11 +69,11 @@ const ChartSkeleton = memo(() => (
 ChartSkeleton.displayName = 'ChartSkeleton';
 
 const AdminDashboardCharts = memo(() => {
-  const [data, setData] = React.useState<SystemHealthAPIResponse | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-  const [lastUpdate, setLastUpdate] = React.useState<Date | null>(null);
-  const [autoRefresh, setAutoRefresh] = React.useState(true);
+  const [data, setData] = useState<SystemHealthAPIResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
   const [isPending, startTransition] = useTransition();
 
   const timerManager = useTimerManager();

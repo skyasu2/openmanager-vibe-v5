@@ -1,3 +1,4 @@
+import { type FC } from 'react';
 /**
  * 🔘 StepDots Component
  *
@@ -7,7 +8,7 @@
  * - 호버 효과 및 애니메이션
  */
 
-import React from 'react';
+// React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
 // framer-motion 제거 - CSS 애니메이션 사용
 
 interface StepDotsProps {
@@ -20,7 +21,7 @@ interface StepDotsProps {
   onStepClick?: (step: number) => void;
 }
 
-const StepDots: React.FC<StepDotsProps> = ({
+const StepDots: FC<StepDotsProps> = ({
   currentStep,
   totalSteps,
   error = null,

@@ -3,6 +3,7 @@
  */
 
 import { vi } from 'vitest';
+import type { ReactNode } from 'react';
 
 vi.mock('framer-motion', () => ({
   motion: {
@@ -16,7 +17,7 @@ vi.mock('framer-motion', () => ({
     section: 'section',
     article: 'article',
   },
-  AnimatePresence: ({ children }: { children: React.ReactNode }) => children,
+  AnimatePresence: ({ children }: { children: ReactNode }) => children,
   useAnimation: () => ({
     start: vi.fn(),
     stop: vi.fn(),

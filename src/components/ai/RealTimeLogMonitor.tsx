@@ -10,7 +10,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Search,
@@ -70,7 +70,7 @@ interface RealTimeLogMonitorProps {
   maxLogs?: number;
 }
 
-export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
+export const RealTimeLogMonitor: FC<RealTimeLogMonitorProps> = ({
   className = '',
   autoStart = true,
   maxLogs = 1000,
@@ -448,7 +448,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
 
       {/* 로그 목록 */}
       <div className="h-96 space-y-2 overflow-y-auto p-4">
-        <React.Fragment>
+        <Fragment>
           {filteredLogs.map((log, index) => (
             <div
               key={log.id}
@@ -527,7 +527,7 @@ export const RealTimeLogMonitor: React.FC<RealTimeLogMonitorProps> = ({
               </div>
             </div>
           ))}
-        </React.Fragment>
+        </Fragment>
 
         {filteredLogs.length === 0 && (
           <div className="py-8 text-center text-gray-500 dark:text-gray-400">

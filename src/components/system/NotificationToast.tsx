@@ -10,7 +10,7 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useGlobalSystemStore } from '@/stores/systemStore';
 import { X, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 
@@ -24,7 +24,7 @@ interface DisplayNotification {
   timestamp: number;
 }
 
-export const NotificationToast: React.FC = () => {
+export const NotificationToast: FC = () => {
   const [notifications, setNotifications] = useState<DisplayNotification[]>([]);
   const { reportServerNotification, isSessionActive } = useGlobalSystemStore();
 

@@ -8,7 +8,7 @@
 
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Bot, RotateCcw, User } from 'lucide-react';
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 
 // 타입 임포트
 import type { ChatMessage } from '../types/ai-sidebar-types';
@@ -18,7 +18,7 @@ interface ChatMessageItemProps {
   onRegenerateResponse?: (messageId: string) => void;
 }
 
-export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
+export const ChatMessageItem: FC<ChatMessageItemProps> = ({
   message,
   onRegenerateResponse,
 }) => {

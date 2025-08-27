@@ -162,7 +162,7 @@ export const Multiple: Story = {
 // 인터랙티브 예제
 export const Interactive: Story = {
   render: () => {
-    const [show, setShow] = React.useState(true);
+    const [show, setShow] = useState(true);
 
     return (
       <div className="space-y-4">

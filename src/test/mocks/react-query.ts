@@ -3,6 +3,7 @@
  */
 
 import { vi } from 'vitest';
+import type { ReactNode } from 'react';
 
 vi.mock('@tanstack/react-query', () => ({
   useQuery: vi.fn(() => ({
@@ -30,6 +31,6 @@ vi.mock('@tanstack/react-query', () => ({
     clear: vi.fn(),
   })),
   QueryClient: vi.fn(),
-  QueryClientProvider: ({ children }: { children: React.ReactNode }) =>
+  QueryClientProvider: ({ children }: { children: ReactNode }) =>
     children,
 }));

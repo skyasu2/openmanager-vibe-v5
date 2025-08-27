@@ -9,7 +9,7 @@
 
 'use client';
 
-import React, { useState, useCallback, useEffect, memo } from 'react';
+import { useState, useCallback, useEffect, memo, type FC } from 'react';
 import debug from '@/utils/debug';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { useRouter } from 'next/navigation';
@@ -40,7 +40,7 @@ const LOADING_STAGES = [
   { name: '완료', icon: '✅', duration: 300 },
 ];
 
-const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
+const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
   ({
     servers,
     onBootComplete,
@@ -245,7 +245,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
         </div>
 
         {/* 비상 완료 버튼 */}
-        <React.Fragment>
+        <Fragment>
           {showEmergencyButton && (
             <div
               className="fixed bottom-6 left-1/2 z-[10000] -translate-x-1/2 transform"
@@ -275,7 +275,7 @@ const SystemBootSequence: React.FC<SystemBootSequenceProps> = memo(
               </div>
             </div>
           )}
-        </React.Fragment>
+        </Fragment>
 
         {/* 사용자 안내 */}
         <div

@@ -26,7 +26,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // 동적 import로 차트 컴포넌트들 로드
 // 타입 정의는 사용하지 않으므로 제거
@@ -136,7 +136,7 @@ interface RouterStatus {
   };
 }
 
-export const GCPQuotaMonitoringDashboard: React.FC = () => {
+export const GCPQuotaMonitoringDashboard: FC = () => {
   const [gcpStats, setGCPStats] = useState<GCPQuotaStats | null>(null);
   const [threeTierStats, setThreeTierStats] = useState<ThreeTierStats | null>(
     null

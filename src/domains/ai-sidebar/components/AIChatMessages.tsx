@@ -3,9 +3,10 @@
  * 채팅 메시지 목록 렌더링 및 관리
  */
 
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Bot, User } from 'lucide-react';
+import { Fragment } from 'react';
 import type { ChatMessage } from '@/stores/useAISidebarStore';
 import { AIThinkingDisplay } from './AIThinkingDisplay';
 import type { CompletedThinking } from '../hooks/useAIThinking';
@@ -14,10 +15,10 @@ interface AIChatMessagesProps {
   messages: ChatMessage[];
   completedThinkingSteps: Record<string, CompletedThinking>;
   onToggleCompletedThinking: (messageId: string) => void;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
+  messagesEndRef: RefObject<HTMLDivElement>;
 }
 
-export const AIChatMessages: React.FC<AIChatMessagesProps> = ({
+export const AIChatMessages: FC<AIChatMessagesProps> = ({
   messages,
   completedThinkingSteps,
   onToggleCompletedThinking,
@@ -49,7 +50,7 @@ export const AIChatMessages: React.FC<AIChatMessagesProps> = ({
         );
 
         return (
-          <React.Fragment key={message.id}>
+          <Fragment key={message.id}>
             {/* 사용자 메시지 다음에 사고 과정 표시 */}
             {message.role === 'user' && thinkingForMessage && (
               <div className="mb-3">
@@ -97,7 +98,7 @@ export const AIChatMessages: React.FC<AIChatMessagesProps> = ({
                 </div>
               </div>
             </div>
-          </React.Fragment>
+          </Fragment>
         );
       })}
       <div ref={messagesEndRef} />

@@ -197,7 +197,7 @@ export function LogDashboardLogViewer({
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <React.Fragment>
+            <Fragment>
               {data.logs.map((log) => (
                 <div
                   key={log.id}
@@ -234,7 +234,7 @@ export function LogDashboardLogViewer({
                   </div>
 
                   {/* 확장된 로그 상세 정보 */}
-                  <React.Fragment>
+                  <Fragment>
                     {expandedLog === log.id && (
                       <div
                         className="mt-4 border-t pt-4"
@@ -311,10 +311,10 @@ export function LogDashboardLogViewer({
                         )}
                       </div>
                     )}
-                  </React.Fragment>
+                  </Fragment>
                 </div>
               ))}
-            </React.Fragment>
+            </Fragment>
 
             {data.logs.length === 0 && (
               <div className="py-8 text-center text-gray-500">

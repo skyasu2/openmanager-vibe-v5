@@ -5,7 +5,7 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { Bot, Clock } from 'lucide-react';
 // 사용자 정보 관련 import는 UnifiedProfileHeader에서 처리됨
 import dynamic from 'next/dynamic';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import debug from '@/utils/debug';
 
@@ -36,7 +36,7 @@ interface DashboardHeaderProps {
 /**
  * 실시간 시간 표시 컴포넌트
  */
-const RealTimeDisplay = React.memo(function RealTimeDisplay() {
+const RealTimeDisplay = memo(function RealTimeDisplay() {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
@@ -87,7 +87,7 @@ const RealTimeDisplay = React.memo(function RealTimeDisplay() {
  * />
  * ```
  */
-const DashboardHeader = React.memo(function DashboardHeader({
+const DashboardHeader = memo(function DashboardHeader({
   onNavigateHome,
   onToggleAgent, // 기존 호환성을 위해 유지
   isAgentOpen: _isAgentOpen = false, // 기존 호환성을 위해 유지

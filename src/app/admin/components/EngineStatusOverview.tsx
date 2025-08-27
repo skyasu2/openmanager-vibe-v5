@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
+import type { FC } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Brain, Zap, CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
@@ -20,7 +21,7 @@ interface EngineStatusOverviewProps {
   isLoading: boolean;
 }
 
-const EngineStatusBadge: React.FC<{ status: EngineStatus['status'] }> = ({
+const EngineStatusBadge: FC<{ status: EngineStatus['status'] }> = ({
   status,
 }) => {
   const statusConfig = {
@@ -57,7 +58,7 @@ const EngineStatusBadge: React.FC<{ status: EngineStatus['status'] }> = ({
   );
 };
 
-export const EngineStatusOverview: React.FC<EngineStatusOverviewProps> = ({
+export const EngineStatusOverview: FC<EngineStatusOverviewProps> = ({
   engines,
   isLoading,
 }) => {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   XMarkIcon,
@@ -130,7 +130,7 @@ export default function MobileServerSheet({
       : 0;
 
   return (
-    <React.Fragment>
+    <Fragment>
       {isOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           {/* 배경 오버레이 */}
@@ -418,6 +418,6 @@ export default function MobileServerSheet({
           </div>
         </div>
       )}
-    </React.Fragment>
+    </Fragment>
   );
 }

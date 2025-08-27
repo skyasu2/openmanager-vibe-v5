@@ -8,7 +8,7 @@
 
 'use client';
 
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 import { X, Brain } from 'lucide-react';
 import BasicTyping from '@/components/ui/BasicTyping';
 
@@ -16,7 +16,7 @@ interface AISidebarHeaderProps {
   onClose: () => void;
 }
 
-export const AISidebarHeader: React.FC<AISidebarHeaderProps> = ({
+export const AISidebarHeader: FC<AISidebarHeaderProps> = ({
   onClose,
 }) => {
   return (

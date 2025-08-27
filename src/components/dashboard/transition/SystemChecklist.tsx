@@ -749,7 +749,7 @@ export default function SystemChecklist({
         )}
 
         {/* 완료 상태 표시 */}
-        <React.Fragment>
+        <Fragment>
           {showCompleted && (
             <div
               className="absolute inset-0 flex items-center justify-center rounded-2xl border border-green-500/50 bg-green-500/20 backdrop-blur-sm animate-in fade-in zoom-in duration-500"
@@ -804,10 +804,10 @@ export default function SystemChecklist({
               </div>
             </div>
           )}
-        </React.Fragment>
+        </Fragment>
 
         {/* 스킵 버튼 (3초 후 표시) */}
-        <React.Fragment>
+        <Fragment>
           {canSkip && !showCompleted && (
             <div
               className="mt-4 text-center"
@@ -820,7 +820,7 @@ export default function SystemChecklist({
               </button>
             </div>
           )}
-        </React.Fragment>
+        </Fragment>
 
         {/* 단축키 안내 */}
         <div className="mt-6 text-center text-xs text-gray-500">

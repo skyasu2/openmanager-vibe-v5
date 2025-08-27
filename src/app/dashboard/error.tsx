@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 import { AlertTriangle, RefreshCw, Home, Settings, Bug } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 // framer-motion 제거 - CSS 애니메이션 사용
@@ -12,7 +13,7 @@ interface DashboardErrorProps {
 }
 
 export default function DashboardError({ error, reset }: DashboardErrorProps) {
-  const [isReporting, setIsReporting] = React.useState(false);
+  const [isReporting, setIsReporting] = useState(false);
 
   const handleReport = async () => {
     setIsReporting(true);
@@ -36,7 +37,7 @@ export default function DashboardError({ error, reset }: DashboardErrorProps) {
     }
   };
 
-  const errorType = React.useMemo(() => {
+  const errorType = useMemo(() => {
     const message = error.message.toLowerCase();
     if (message.includes('network') || message.includes('fetch')) {
       return 'network';

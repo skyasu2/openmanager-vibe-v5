@@ -9,7 +9,7 @@
 
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Brain,
@@ -84,7 +84,7 @@ const LEARNING_BUTTONS = [
   },
 ];
 
-export const MLLearningCenter: React.FC = () => {
+export const MLLearningCenter: FC = () => {
   const [learningProgress, setLearningProgress] = useState<
     Record<LearningType, LearningProgress>
   >({
@@ -365,7 +365,7 @@ export const MLLearningCenter: React.FC = () => {
                   <div
                     className={`rounded-lg bg-gradient-to-br p-3 ${button.color}`}
                   >
-                    {React.createElement(button.icon, {
+                    {createElement(button.icon, {
                       className: 'w-6 h-6 text-white',
                     })}
                   </div>
@@ -426,7 +426,7 @@ export const MLLearningCenter: React.FC = () => {
       </div>
 
       {/* 학습 결과 표시 */}
-      <React.Fragment>
+      <Fragment>
         {selectedResult && (
           <div
             className="mt-8 rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-6"
@@ -494,7 +494,7 @@ export const MLLearningCenter: React.FC = () => {
             )}
           </div>
         )}
-      </React.Fragment>
+      </Fragment>
 
       {/* 학습 히스토리 */}
       {learningResults.length > 0 && (
@@ -515,7 +515,7 @@ export const MLLearningCenter: React.FC = () => {
                     <div
                       className={`rounded-lg p-2 ${LEARNING_BUTTONS.find((b) => b.id === result.type)?.bgColor}`}
                     >
-                      {React.createElement(
+                      {createElement(
                         LEARNING_BUTTONS.find((b) => b.id === result.type)
                           ?.icon || Brain,
                         { className: 'w-4 h-4 text-gray-700' }

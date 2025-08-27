@@ -10,7 +10,7 @@
  * - 고성능 데이터 바인딩
  */
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import * as d3 from 'd3';
 
 interface MetricData {

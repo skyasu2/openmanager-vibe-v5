@@ -1,3 +1,4 @@
+import { type FC } from 'react';
 /**
  * 📝 ProgressLabel Component
  *
@@ -7,7 +8,7 @@
  * - 애니메이션 전환
  */
 
-import React from 'react';
+// React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
 // framer-motion 제거 - CSS 애니메이션 사용
 import { formatPercentage } from '@/lib/utils';
 
@@ -22,7 +23,7 @@ interface ProgressLabelProps {
   showProgress?: boolean;
 }
 
-const ProgressLabel: React.FC<ProgressLabelProps> = ({
+const ProgressLabel: FC<ProgressLabelProps> = ({
   currentStep,
   totalSteps,
   stepDescription,
@@ -79,14 +80,14 @@ const ProgressLabel: React.FC<ProgressLabelProps> = ({
       </h3>
 
       {/* 설명 텍스트 */}
-      <React.Fragment>
+      <Fragment>
         <p
           key={stepDescription || currentStep}
           className={`text-sm ${getTextColor()} mt-1`}
         >
           {getDescriptionText()}
         </p>
-      </React.Fragment>
+      </Fragment>
 
       {/* 진행률 표시 (옵션) */}
       {showProgress && (

@@ -139,7 +139,7 @@ export default function RealtimeStatus({
         </div>
 
         {/* 재연결 버튼 */}
-        <React.Fragment>
+        <Fragment>
           {showReconnectButton && !isFullyConnected && (
             <button
               onClick={reconnectAll}
@@ -148,7 +148,7 @@ export default function RealtimeStatus({
               재연결
             </button>
           )}
-        </React.Fragment>
+        </Fragment>
       </div>
 
       {/* 상세 정보 */}
@@ -223,7 +223,7 @@ export function FloatingRealtimeStatus() {
     <div
       className="fixed bottom-4 right-4 z-50"
     >
-      <React.Fragment>
+      <Fragment>
         {isMinimized ? (
           <button
             key="minimized"
@@ -265,7 +265,7 @@ export function FloatingRealtimeStatus() {
             </div>
           </div>
         )}
-      </React.Fragment>
+      </Fragment>
     </div>
   );
 }

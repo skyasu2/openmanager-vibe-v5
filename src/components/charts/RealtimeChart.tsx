@@ -11,7 +11,7 @@
  * - 이상 감지 마커
  */
 
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 
 interface RealtimeChartProps {
   serverId: string;

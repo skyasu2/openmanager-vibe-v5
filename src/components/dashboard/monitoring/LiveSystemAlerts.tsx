@@ -13,14 +13,14 @@ import {
   Database,
   XCircle,
 } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface SystemEvent {
   id: string;
   time: string;
   action: string;
   server: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }
 
 // 📦 모의 알림 (SSE 실패 시 폴백)
@@ -197,7 +197,7 @@ export default function LiveSystemAlerts() {
         variant="bordered"
       >
         <div className="relative h-32 overflow-hidden">
-          <React.Fragment>
+          <Fragment>
             {currentAlert && (
               <div
                 key={currentAlert.id}
@@ -232,7 +232,7 @@ export default function LiveSystemAlerts() {
                 </div>
               </div>
             )}
-          </React.Fragment>
+          </Fragment>
         </div>
       </CollapsibleCard>
 

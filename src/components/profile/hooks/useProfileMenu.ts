@@ -18,7 +18,7 @@ export function useProfileMenu() {
   /**
    * 메뉴 토글 (이벤트 버블링 방지 포함)
    */
-  const toggleMenu = useCallback((e?: React.MouseEvent) => {
+  const toggleMenu = useCallback((e?: MouseEvent) => {
     e?.stopPropagation(); // 이벤트 버블링 방지
     
     setMenuState((prev) => ({

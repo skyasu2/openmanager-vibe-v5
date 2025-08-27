@@ -1,3 +1,4 @@
+import { type FC } from 'react';
 /**
  * 🚀 Server Generation Progress Component
  *
@@ -26,7 +27,7 @@ import {
   Shield,
   Zap,
 } from 'lucide-react';
-import React from 'react';
+// React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
 import type { Server } from '@/types/server';
 
 interface ServerGenerationProgressProps {
@@ -41,7 +42,7 @@ interface ServerGenerationProgressProps {
   lastGeneratedServer: Partial<Server> | null;
 }
 
-const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
+const ServerGenerationProgress: FC<ServerGenerationProgressProps> = ({
   currentCount,
   totalServers,
   progress,
@@ -264,7 +265,7 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
       </div>
 
       {/* 마지막 생성된 서버 정보 */}
-      <React.Fragment>
+      <Fragment>
         {lastGeneratedServer && (
           <div
             className="mb-4 rounded-lg border border-gray-600 bg-gray-800/50 p-4"
@@ -296,10 +297,10 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
             </div>
           </div>
         )}
-      </React.Fragment>
+      </Fragment>
 
       {/* 에러 메시지 */}
-      <React.Fragment>
+      <Fragment>
         {error && (
           <div
             className="rounded-lg border border-red-500/30 bg-red-500/20 p-3 text-sm text-red-400"
@@ -310,10 +311,10 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
             </div>
           </div>
         )}
-      </React.Fragment>
+      </Fragment>
 
       {/* 완료 메시지 */}
-      <React.Fragment>
+      <Fragment>
         {isComplete && (
           <div
             className="py-4 text-center"
@@ -331,7 +332,7 @@ const ServerGenerationProgress: React.FC<ServerGenerationProgressProps> = ({
             </p>
           </div>
         )}
-      </React.Fragment>
+      </Fragment>
     </div>
   );
 };

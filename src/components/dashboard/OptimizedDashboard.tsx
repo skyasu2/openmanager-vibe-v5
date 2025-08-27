@@ -142,7 +142,7 @@ export default function OptimizedDashboard({
   return (
     <div className="relative min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* 자동 로그아웃 경고 */}
-      <React.Fragment>
+      <Fragment>
         {showLogoutWarning && (
           <AutoLogoutWarning
             remainingTime={remainingTime}
@@ -151,7 +151,7 @@ export default function OptimizedDashboard({
             onLogoutNow={handleLogoutNow}
           />
         )}
-      </React.Fragment>
+      </Fragment>
 
       {/* 메인 레이아웃 */}
       <div
@@ -252,7 +252,7 @@ export default function OptimizedDashboard({
         </div>
 
         {/* AI 사이드바 */}
-        <React.Fragment>
+        <Fragment>
           {isAgentOpen && (
             <div
               className="z-30 w-80 border-l border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
@@ -260,7 +260,7 @@ export default function OptimizedDashboard({
               <AISidebar isOpen={isAgentOpen} onClose={closeAgent} />
             </div>
           )}
-        </React.Fragment>
+        </Fragment>
       </div>
 
       {/* 플로팅 시스템 컨트롤 제거됨 - Vercel 플랫폼 자체 모니터링 사용 */}
@@ -309,7 +309,7 @@ export default function OptimizedDashboard({
       </div>
 
       {/* 서버 상세 모달 */}
-      <React.Fragment>
+      <Fragment>
         {isServerModalOpen && selectedServer && selectedServer.hostname && (
           <EnhancedServerModal
             server={{
@@ -359,7 +359,7 @@ export default function OptimizedDashboard({
             onClose={handleServerModalClose}
           />
         )}
-      </React.Fragment>
+      </Fragment>
     </div>
   );
 }

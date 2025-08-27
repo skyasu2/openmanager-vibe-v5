@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Moon, Sun, Menu, X } from 'lucide-react';
 

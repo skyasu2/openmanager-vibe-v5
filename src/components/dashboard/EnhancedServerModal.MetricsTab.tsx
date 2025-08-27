@@ -1,3 +1,4 @@
+import { type FC } from 'react';
 /**
  * 📊 Enhanced Server Modal Metrics Tab
  *
@@ -10,7 +11,7 @@
 
 'use client';
 
-import React from 'react';
+// React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
 import { Pause, Play } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import {
@@ -45,7 +46,7 @@ interface MetricsTabProps {
  * - 실시간 모니터링 제어
  * - 상태별 색상 구분
  */
-export const MetricsTab: React.FC<MetricsTabProps> = ({
+export const MetricsTab: FC<MetricsTabProps> = ({
   server,
   realtimeData,
   isRealtime,

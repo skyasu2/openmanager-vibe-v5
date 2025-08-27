@@ -7,7 +7,7 @@
  * - 자연스러운 애니메이션과 진행률 표시
  */
 
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 import { cn } from '../../lib/utils';
 
 interface LoadingSpinnerProps {
@@ -27,7 +27,7 @@ interface LoadingSpinnerProps {
  * - 실제 시스템과의 호환성 문제 해결
  * - 자연스러운 애니메이션과 진행률 표시
  */
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+export const LoadingSpinner: FC<LoadingSpinnerProps> = ({
   size = 'md',
   color = 'primary',
   progress = 0,
@@ -126,7 +126,7 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 export const Spinner = LoadingSpinner;
 
 // 전체 화면 로딩 오버레이
-export const LoadingOverlay: React.FC<{
+export const LoadingOverlay: FC<{
   isVisible: boolean;
   progress?: number;
   message?: string;

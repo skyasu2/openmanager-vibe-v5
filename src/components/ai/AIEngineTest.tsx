@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, AlertCircle, CheckCircle, Loader2, Zap } from 'lucide-react';
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 interface TestResult {
   test: string;
@@ -38,7 +38,7 @@ const getDefaultConfig = () => ({
   timeout: 5000,
 });
 
-export const AIEngineTest: React.FC = () => {
+export const AIEngineTest: FC = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<TestResult[]>([]);
   const [config, setConfig] = useState<AIEngineConfig | null>(null);
@@ -193,7 +193,7 @@ export const AIEngineTest: React.FC = () => {
   };
 
   // 컴포넌트 마운트 시 설정 로드
-  React.useEffect(() => {
+  useEffect(() => {
     loadConfig();
   }, []);
 

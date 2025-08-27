@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, Fragment, type FormEvent } from 'react';
 import {
   Send,
   Loader2,
@@ -227,7 +227,7 @@ export default function ChatSection({
     return null;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isProcessing) return;
 
@@ -348,7 +348,7 @@ export default function ChatSection({
       </div>
 
       {/* 중복 질문 알림 */}
-      <React.Fragment>
+      <Fragment>
         {duplicateAlert && (
           <div
             className="mx-4 mt-2 rounded-lg border border-orange-200 bg-orange-50 p-3"
@@ -361,7 +361,7 @@ export default function ChatSection({
             </div>
           </div>
         )}
-      </React.Fragment>
+      </Fragment>
 
       {/* 메인 컨텐츠 */}
       <div
@@ -369,7 +369,7 @@ export default function ChatSection({
         onScroll={handleScroll}
         className="flex-1 overflow-hidden"
       >
-        <React.Fragment>
+        <Fragment>
           {showHistory ? (
             // 히스토리 뷰
             <div
@@ -560,7 +560,7 @@ export default function ChatSection({
               <div ref={contentEndRef} />
             </div>
           )}
-        </React.Fragment>
+        </Fragment>
       </div>
 
       {/* 입력 영역 */}

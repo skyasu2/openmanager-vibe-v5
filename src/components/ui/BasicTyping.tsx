@@ -10,7 +10,7 @@
 
 'use client';
 
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 
 interface BasicTypingProps {
   text: string;
@@ -21,7 +21,7 @@ interface BasicTypingProps {
   delay?: number;
 }
 
-const BasicTyping: React.FC<BasicTypingProps> = ({
+const BasicTyping: FC<BasicTypingProps> = ({
   text,
   speed = 'normal',
   className = '',

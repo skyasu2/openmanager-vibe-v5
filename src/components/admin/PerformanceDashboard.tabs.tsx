@@ -284,7 +284,7 @@ export function PerformanceDashboardTabs({
           </CardHeader>
           <CardContent>
             <div className="max-h-96 space-y-3 overflow-y-auto">
-              <React.Fragment>
+              <Fragment>
                 {filteredAlerts.map((alert, index) => (
                   <div
                     key={alert.id}
@@ -345,7 +345,7 @@ export function PerformanceDashboardTabs({
                     </div>
                   </div>
                 ))}
-              </React.Fragment>
+              </Fragment>
 
               {filteredAlerts.length === 0 && (
                 <div className="py-8 text-center text-gray-500">

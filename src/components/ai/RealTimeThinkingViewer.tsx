@@ -13,7 +13,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Brain,
@@ -67,7 +67,7 @@ const _TECH_STACK_MAP: Record<
   string,
   {
     name: string;
-    icon: React.ComponentType<{ className?: string }>;
+    icon: ComponentType<{ className?: string }>;
     color: string;
   }
 > = {
@@ -112,7 +112,7 @@ interface RealTimeThinkingViewerProps {
   className?: string;
 }
 
-export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
+export const RealTimeThinkingViewer: FC<RealTimeThinkingViewerProps> = ({
   sessionId,
   isExpanded = true,
   onToggle,
@@ -228,7 +228,7 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
 
   // 기술 스택 표시
   const renderTechStack = () => {
-    const stackIcons: { [key: string]: React.ReactNode } = {
+    const stackIcons: { [key: string]: ReactNode } = {
       'AI Engine': <Brain className="h-4 w-4" />,
       Database: <Database className="h-4 w-4" />,
       Cache: <Zap className="h-4 w-4" />,
@@ -282,7 +282,7 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
         )}
       </div>
 
-      <React.Fragment>
+      <Fragment>
         {isExpanded && (
           <div
             className="overflow-hidden"
@@ -358,7 +358,7 @@ export const RealTimeThinkingViewer: React.FC<RealTimeThinkingViewerProps> = ({
             </div>
           </div>
         )}
-      </React.Fragment>
+      </Fragment>
     </div>
   );
 };

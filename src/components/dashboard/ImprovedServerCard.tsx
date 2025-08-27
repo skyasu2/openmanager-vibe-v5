@@ -21,7 +21,7 @@ import {
   Archive,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import React, { memo, useCallback, useEffect, useState, useMemo } from 'react';
+import { memo, useCallback, useEffect, useState, useMemo, type FC, Fragment } from 'react';
 import type { Server as ServerType } from '../../types/server';
 import { ServerCardLineChart } from '../shared/ServerMetricsLineChart';
 
@@ -37,7 +37,7 @@ interface ImprovedServerCardProps {
   index?: number;
 }
 
-const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
+const ImprovedServerCard: FC<ImprovedServerCardProps> = memo(
   ({
     server,
     onClick,
@@ -480,13 +480,13 @@ const ImprovedServerCard: React.FC<ImprovedServerCardProps> = memo(
           )}
 
         {/* 호버 효과 */}
-        <React.Fragment>
+        <Fragment>
           {isHovered && (
             <div
               className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500/5 to-purple-500/5"
             />
           )}
-        </React.Fragment>
+        </Fragment>
 
         {/* 클릭 효과 */}
         <div

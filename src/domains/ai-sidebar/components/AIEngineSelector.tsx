@@ -8,7 +8,7 @@
 
 // framer-motion 제거 - CSS 애니메이션 사용
 import { ChevronDown, Database, Zap, type LucideIcon } from 'lucide-react';
-import React, { useState } from 'react';
+import { Fragment, useState } from 'react';
 
 // 타입 임포트
 interface AIEngine {
@@ -59,7 +59,7 @@ interface AIEngineSelectorProps {
   selectedEngine?: string;
 }
 
-export const AIEngineSelector: React.FC<AIEngineSelectorProps> = ({
+export const AIEngineSelector: FC<AIEngineSelectorProps> = ({
   currentEngine,
   onEngineChange,
   disabled = false,
@@ -91,7 +91,7 @@ export const AIEngineSelector: React.FC<AIEngineSelectorProps> = ({
             : 'hover:bg-gray-50'
         }`}
       >
-        {React.createElement(selectedEngineData.icon, {
+        {createElement(selectedEngineData.icon, {
           className: `w-3 h-3 ${selectedEngineData.color}`,
         })}
         <span className="font-medium">
@@ -101,7 +101,7 @@ export const AIEngineSelector: React.FC<AIEngineSelectorProps> = ({
       </button>
 
       {/* 엔진 선택 드롭다운 */}
-      <React.Fragment>
+      <Fragment>
         {showEngineInfo && (
           <div
             className="absolute right-0 top-full z-50 mt-2 w-60 rounded-lg border border-gray-200 bg-white shadow-lg sm:w-72"
@@ -140,7 +140,7 @@ export const AIEngineSelector: React.FC<AIEngineSelectorProps> = ({
                     <div
                       className={`flex h-8 w-8 items-center justify-center rounded-lg ${engine.bgColor}`}
                     >
-                      {React.createElement(engine.icon, {
+                      {createElement(engine.icon, {
                         className: `w-4 h-4 ${engine.color}`,
                       })}
                     </div>
@@ -175,7 +175,7 @@ export const AIEngineSelector: React.FC<AIEngineSelectorProps> = ({
             </div>
           </div>
         )}
-      </React.Fragment>
+      </Fragment>
     </div>
   );
 };

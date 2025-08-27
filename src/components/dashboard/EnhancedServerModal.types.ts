@@ -106,7 +106,7 @@ export interface EnhancedServerModalProps {
 export interface TabInfo {
   id: TabId;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
 }
 
 export interface StatusTheme {

@@ -8,7 +8,7 @@
  * - 커스텀 스켈레톤
  */
 
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 // framer-motion 제거 - CSS 애니메이션 사용
 
 interface SkeletonProps {
@@ -25,7 +25,7 @@ interface SkeletonProps {
 }
 
 // 기본 스켈레톤 컴포넌트
-export const Skeleton: React.FC<SkeletonProps> = ({
+export const Skeleton: FC<SkeletonProps> = ({
   height = '1rem',
   width = '100%',
   rounded = false,
@@ -50,7 +50,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
 };
 
 // 서버 카드 스켈레톤
-export const ServerCardSkeleton: React.FC = () => (
+export const ServerCardSkeleton: FC = () => (
   <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
     {/* 헤더 */}
     <div className="flex items-center justify-between">
@@ -80,7 +80,7 @@ export const ServerCardSkeleton: React.FC = () => (
 );
 
 // 차트 스켈레톤
-export const ChartSkeleton: React.FC<{ height?: number }> = ({
+export const ChartSkeleton: FC<{ height?: number }> = ({
   height = 200,
 }) => (
   <div className="space-y-4">
@@ -128,7 +128,7 @@ export const ChartSkeleton: React.FC<{ height?: number }> = ({
 );
 
 // 테이블 스켈레톤
-export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({
+export const TableSkeleton: FC<{ rows?: number; columns?: number }> = ({
   rows = 5,
   columns = 4,
 }) => (
@@ -165,7 +165,7 @@ export const TableSkeleton: React.FC<{ rows?: number; columns?: number }> = ({
 );
 
 // 대시보드 전체 스켈레톤
-export const DashboardSkeleton: React.FC = () => (
+export const DashboardSkeleton: FC = () => (
   <div className="space-y-6 p-6">
     {/* 헤더 */}
     <div className="flex items-center justify-between">
@@ -211,7 +211,7 @@ export const DashboardSkeleton: React.FC = () => (
 );
 
 // 리스트 스켈레톤
-export const ListSkeleton: React.FC<{ items?: number }> = ({ items = 5 }) => (
+export const ListSkeleton: FC<{ items?: number }> = ({ items = 5 }) => (
   <div className="space-y-3">
     {[...Array(items)].map((_, i) => (
       <div
@@ -230,7 +230,7 @@ export const ListSkeleton: React.FC<{ items?: number }> = ({ items = 5 }) => (
 );
 
 // 애니메이션이 있는 스켈레톤
-export const AnimatedSkeleton: React.FC<SkeletonProps> = (props) => (
+export const AnimatedSkeleton: FC<SkeletonProps> = (props) => (
   <Skeleton {...props} _animate={true} />
 );
 

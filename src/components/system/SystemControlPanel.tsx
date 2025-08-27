@@ -244,7 +244,7 @@ export function SystemControlPanel() {
         </div>
       </div>
 
-      <React.Fragment>
+      <Fragment>
         {!isCollapsed && (
           <div
             className="space-y-4"
@@ -313,7 +313,7 @@ export function SystemControlPanel() {
             )}
           </div>
         )}
-      </React.Fragment>
+      </Fragment>
     </div>
   );
 }

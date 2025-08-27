@@ -3,7 +3,7 @@
  * AI 사고 과정을 실시간으로 시각화하는 컴포넌트
  */
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Brain,
@@ -29,7 +29,7 @@ interface ThinkingProcessVisualizerProps {
 const stepTypeConfig: Record<
   AIThinkingStep['type'],
   {
-    icon: React.ComponentType<{ className?: string }>;
+    icon: ComponentType<{ className?: string }>;
     color: string;
     label: string;
   }
@@ -66,7 +66,7 @@ const stepTypeConfig: Record<
   },
 };
 
-export const ThinkingProcessVisualizer: React.FC<
+export const ThinkingProcessVisualizer: FC<
   ThinkingProcessVisualizerProps
 > = ({ steps, isActive = false, className = '' }) => {
   const [visibleSteps, setVisibleSteps] = useState<AIThinkingStep[]>([]);
@@ -100,10 +100,10 @@ export const ThinkingProcessVisualizer: React.FC<
 
       {/* 사고 단계 리스트 */}
       <div className="space-y-2">
-        <React.Fragment>
+        <Fragment>
           {displaySteps.map((step, stepIndex) => {
             const config = stepTypeConfig[step.type];
-            const Icon = config.icon as React.FC<{ className?: string }>;
+            const Icon = config.icon as FC<{ className?: string }>;
             const isCurrentStep = stepIndex === displaySteps.length - 1;
 
             return (
@@ -196,7 +196,7 @@ export const ThinkingProcessVisualizer: React.FC<
               </div>
             );
           })}
-        </React.Fragment>
+        </Fragment>
       </div>
 
       {/* 활성 상태 인디케이터 */}

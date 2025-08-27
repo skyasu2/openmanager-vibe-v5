@@ -21,7 +21,7 @@ export interface ThinkingStep {
  */
 export interface PresetQuestion {
   id: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   text: string;
   category: 'monitoring' | 'performance' | 'security' | 'troubleshooting';
   priority?: 'high' | 'medium' | 'low';
@@ -98,7 +98,7 @@ export interface AIEngineInfo {
   id: string;
   name: string;
   description: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   color: string;
   bgColor: string;
   features: string[];
@@ -139,8 +139,8 @@ export interface UseAISidebarReturn {
   state: AISidebarState;
   handlers: AISidebarHandlers;
   refs: {
-    messagesEndRef: React.RefObject<HTMLDivElement>;
-    inputRef: React.RefObject<HTMLTextAreaElement>;
+    messagesEndRef: RefObject<HTMLDivElement>;
+    inputRef: RefObject<HTMLTextAreaElement>;
   };
 }
 

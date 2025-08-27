@@ -3,7 +3,7 @@
  * Mock implementations for Chart.js, React-Chartjs-2, Recharts, and D3.js
  */
 
-import React from 'react';
+import { createElement, type ReactNode } from 'react';
 import { vi } from 'vitest';
 
 // ===============================
@@ -31,64 +31,64 @@ vi.mock('chart.js/auto', () => ({
 // 📊 React-Chartjs-2 Mock
 // ===============================
 vi.mock('react-chartjs-2', () => ({
-  Chart: ({ children }: { children?: React.ReactNode }) => {
-    return React.createElement(
+  Chart: ({ children }: { children?: ReactNode }) => {
+    return createElement(
       'div',
       { 'data-testid': 'mock-chart' },
       children
     );
   },
   Bar: ({ data, options }: { data?: unknown; options?: unknown }) => {
-    return React.createElement(
+    return createElement(
       'div',
       { 'data-testid': 'mock-bar-chart' },
       'Bar Chart Mock'
     );
   },
   Line: ({ data, options }: { data?: unknown; options?: unknown }) => {
-    return React.createElement(
+    return createElement(
       'div',
       { 'data-testid': 'mock-line-chart' },
       'Line Chart Mock'
     );
   },
   Pie: ({ data, options }: { data?: unknown; options?: unknown }) => {
-    return React.createElement(
+    return createElement(
       'div',
       { 'data-testid': 'mock-pie-chart' },
       'Pie Chart Mock'
     );
   },
   Doughnut: ({ data, options }: { data?: unknown; options?: unknown }) => {
-    return React.createElement(
+    return createElement(
       'div',
       { 'data-testid': 'mock-doughnut-chart' },
       'Doughnut Chart Mock'
     );
   },
   Radar: ({ data, options }: { data?: unknown; options?: unknown }) => {
-    return React.createElement(
+    return createElement(
       'div',
       { 'data-testid': 'mock-radar-chart' },
       'Radar Chart Mock'
     );
   },
   PolarArea: ({ data, options }: { data?: unknown; options?: unknown }) => {
-    return React.createElement(
+    return createElement(
       'div',
       { 'data-testid': 'mock-polar-area-chart' },
       'Polar Area Chart Mock'
     );
   },
   Bubble: ({ data, options }: { data?: unknown; options?: unknown }) => {
-    return React.createElement(
+    return createElement(
       'div',
       { 'data-testid': 'mock-bubble-chart' },
       'Bubble Chart Mock'
     );
   },
   Scatter: ({ data, options }: { data?: unknown; options?: unknown }) => {
-    return React.createElement(
+    return createElement(
       'div',
       { 'data-testid': 'mock-scatter-chart' },
       'Scatter Chart Mock'
@@ -100,8 +100,8 @@ vi.mock('react-chartjs-2', () => ({
 // 📈 Recharts Mock
 // ===============================
 vi.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => {
-    return React.createElement(
+  ResponsiveContainer: ({ children }: { children: ReactNode }) => {
+    return createElement(
       'div',
       { 'data-testid': 'mock-responsive-container' },
       children
@@ -111,10 +111,10 @@ vi.mock('recharts', () => ({
     children,
     data,
   }: {
-    children: React.ReactNode;
+    children: ReactNode;
     data?: unknown;
   }) => {
-    return React.createElement(
+    return createElement(
       'div',
       { 'data-testid': 'mock-line-chart' },
       children
@@ -124,10 +124,10 @@ vi.mock('recharts', () => ({
     children,
     data,
   }: {
-    children: React.ReactNode;
+    children: ReactNode;
     data?: unknown;
   }) => {
-    return React.createElement(
+    return createElement(
       'div',
       { 'data-testid': 'mock-bar-chart' },
       children
@@ -137,10 +137,10 @@ vi.mock('recharts', () => ({
     children,
     data,
   }: {
-    children: React.ReactNode;
+    children: ReactNode;
     data?: unknown;
   }) => {
-    return React.createElement(
+    return createElement(
       'div',
       { 'data-testid': 'mock-area-chart' },
       children
@@ -150,10 +150,10 @@ vi.mock('recharts', () => ({
     children,
     data,
   }: {
-    children: React.ReactNode;
+    children: ReactNode;
     data?: unknown;
   }) => {
-    return React.createElement(
+    return createElement(
       'div',
       { 'data-testid': 'mock-pie-chart' },
       children
@@ -163,10 +163,10 @@ vi.mock('recharts', () => ({
     children,
     data,
   }: {
-    children: React.ReactNode;
+    children: ReactNode;
     data?: unknown;
   }) => {
-    return React.createElement(
+    return createElement(
       'div',
       { 'data-testid': 'mock-radar-chart' },
       children
@@ -176,10 +176,10 @@ vi.mock('recharts', () => ({
     children,
     data,
   }: {
-    children: React.ReactNode;
+    children: ReactNode;
     data?: unknown;
   }) => {
-    return React.createElement(
+    return createElement(
       'div',
       { 'data-testid': 'mock-scatter-chart' },
       children
@@ -188,33 +188,33 @@ vi.mock('recharts', () => ({
 
   // Chart components
   XAxis: ({ dataKey }: { dataKey?: string }) => {
-    return React.createElement('div', { 'data-testid': 'mock-x-axis' });
+    return createElement('div', { 'data-testid': 'mock-x-axis' });
   },
   YAxis: ({ dataKey }: { dataKey?: string }) => {
-    return React.createElement('div', { 'data-testid': 'mock-y-axis' });
+    return createElement('div', { 'data-testid': 'mock-y-axis' });
   },
   CartesianGrid: () => {
-    return React.createElement('div', { 'data-testid': 'mock-cartesian-grid' });
+    return createElement('div', { 'data-testid': 'mock-cartesian-grid' });
   },
   Tooltip: () => {
-    return React.createElement('div', { 'data-testid': 'mock-tooltip' });
+    return createElement('div', { 'data-testid': 'mock-tooltip' });
   },
   Legend: () => {
-    return React.createElement('div', { 'data-testid': 'mock-legend' });
+    return createElement('div', { 'data-testid': 'mock-legend' });
   },
 
   // Data components
   Line: ({ dataKey, stroke }: { dataKey: string; stroke?: string }) => {
-    return React.createElement('div', { 'data-testid': 'mock-line' });
+    return createElement('div', { 'data-testid': 'mock-line' });
   },
   Bar: ({ dataKey, fill }: { dataKey: string; fill?: string }) => {
-    return React.createElement('div', { 'data-testid': 'mock-bar' });
+    return createElement('div', { 'data-testid': 'mock-bar' });
   },
   Area: ({ dataKey, fill }: { dataKey: string; fill?: string }) => {
-    return React.createElement('div', { 'data-testid': 'mock-area' });
+    return createElement('div', { 'data-testid': 'mock-area' });
   },
   Cell: ({ fill }: { fill?: string }) => {
-    return React.createElement('div', { 'data-testid': 'mock-cell' });
+    return createElement('div', { 'data-testid': 'mock-cell' });
   },
 
   // Reference components
@@ -227,10 +227,10 @@ vi.mock('recharts', () => ({
     y?: number;
     stroke?: string;
   }) => {
-    return React.createElement('div', { 'data-testid': 'mock-reference-line' });
+    return createElement('div', { 'data-testid': 'mock-reference-line' });
   },
   ReferenceDot: ({ x, y, fill }: { x?: number; y?: number; fill?: string }) => {
-    return React.createElement('div', { 'data-testid': 'mock-reference-dot' });
+    return createElement('div', { 'data-testid': 'mock-reference-dot' });
   },
   ReferenceArea: ({
     x1,
@@ -245,17 +245,17 @@ vi.mock('recharts', () => ({
     y2?: number;
     fill?: string;
   }) => {
-    return React.createElement('div', { 'data-testid': 'mock-reference-area' });
+    return createElement('div', { 'data-testid': 'mock-reference-area' });
   },
 
   // Brush component
   Brush: ({ dataKey }: { dataKey?: string }) => {
-    return React.createElement('div', { 'data-testid': 'mock-brush' });
+    return createElement('div', { 'data-testid': 'mock-brush' });
   },
 
   // Error bar component
   ErrorBar: ({ dataKey }: { dataKey?: string }) => {
-    return React.createElement('div', { 'data-testid': 'mock-error-bar' });
+    return createElement('div', { 'data-testid': 'mock-error-bar' });
   },
 }));
 

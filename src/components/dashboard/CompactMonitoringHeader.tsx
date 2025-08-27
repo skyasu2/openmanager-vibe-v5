@@ -10,7 +10,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, type FC, type ElementType } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
@@ -35,11 +35,11 @@ interface CompactMonitoringHeaderProps {
   className?: string;
 }
 
-const StatusIndicator: React.FC<{
+const StatusIndicator: FC<{
   isActive: boolean;
   label: string;
   value: string | number;
-  icon: React.ElementType;
+  icon: ElementType;
 }> = ({ isActive, label, value, icon: Icon }) => (
   <div className="flex items-center gap-2 rounded-lg bg-white/80 px-3 py-2 shadow-sm backdrop-blur-sm">
     <Icon
@@ -52,7 +52,7 @@ const StatusIndicator: React.FC<{
   </div>
 
 );
-const ServerCountCard: React.FC<{
+const ServerCountCard: FC<{
   count: number;
   label: string;
   color: string;
@@ -63,7 +63,7 @@ const ServerCountCard: React.FC<{
   </div>
 );
 
-export const CompactMonitoringHeader: React.FC<
+export const CompactMonitoringHeader: FC<
   CompactMonitoringHeaderProps
 > = ({ serverStats, onSettingsClick, className = '' }) => {
   const systemIntegration = useSystemIntegration();

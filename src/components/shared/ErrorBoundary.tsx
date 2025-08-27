@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 
 interface ErrorFallbackProps {
   error: Error;
@@ -101,8 +101,8 @@ function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps) {
 }
 
 interface ErrorBoundaryProps {
-  children: React.ReactNode;
-  fallback?: React.ComponentType<ErrorFallbackProps>;
+  children: ReactNode;
+  fallback?: ComponentType<ErrorFallbackProps>;
 }
 
 interface ErrorBoundaryState {
@@ -110,7 +110,7 @@ interface ErrorBoundaryState {
   error?: Error;
 }
 
-export class ErrorBoundary extends React.Component<
+export class ErrorBoundary extends Component<
   ErrorBoundaryProps,
   ErrorBoundaryState
 > {
@@ -123,7 +123,7 @@ export class ErrorBoundary extends React.Component<
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
 
     // 에러 리포팅 서비스에 전송 (선택사항)
@@ -167,8 +167,8 @@ export class ErrorBoundary extends React.Component<
 
 // Hook 기반 에러 바운더리 (함수형 컴포넌트용)
 export function withErrorBoundary<P extends object>(
-  Component: React.ComponentType<P>,
-  fallbackComponent?: React.ComponentType<ErrorFallbackProps>
+  Component: ComponentType<P>,
+  fallbackComponent?: ComponentType<ErrorFallbackProps>
 ) {
   const WrappedComponent = (props: P) => (
     <ErrorBoundary fallback={fallbackComponent}>

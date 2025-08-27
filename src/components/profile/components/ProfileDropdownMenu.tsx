@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import { memo } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Crown } from 'lucide-react';
 import { ProfileAvatar, UserTypeIcon } from './ProfileAvatar';
@@ -12,7 +12,7 @@ import type { ProfileDropdownMenuProps } from '../types/profile.types';
  * 프로필 드롭다운 메뉴 컴포넌트
  * 사용자 정보와 메뉴 아이템들을 표시
  */
-export const ProfileDropdownMenu = React.memo(function ProfileDropdownMenu({
+export const ProfileDropdownMenu = memo(function ProfileDropdownMenu({
   isOpen,
   menuItems,
   userInfo,

@@ -1,3 +1,4 @@
+import { type FC } from 'react';
 /**
  * 📊 Enhanced Server Modal Overview Tab
  *
@@ -10,7 +11,7 @@
 
 'use client';
 
-import React from 'react';
+// React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
 import { Activity, Server as ServerIcon } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { ServerModal3DGauge } from '../shared/UnifiedCircularGauge';
@@ -38,7 +39,7 @@ interface OverviewTabProps {
  * - 시스템 정보 및 서비스 상태
  * - 반응형 디자인 및 부드러운 애니메이션
  */
-export const OverviewTab: React.FC<OverviewTabProps> = ({
+export const OverviewTab: FC<OverviewTabProps> = ({
   server,
   statusTheme,
 }) => {

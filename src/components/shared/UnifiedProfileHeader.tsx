@@ -10,7 +10,7 @@ import {
   Power,
   Shield,
 } from 'lucide-react';
-import React, { useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 // 프로필 컴포넌트 임포트
 import {

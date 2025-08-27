@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Send, Loader2, Brain, CheckCircle, AlertCircle } from 'lucide-react';
 import { MCPQueryResponse, ApiResponse } from '@/types/api-responses';
@@ -55,7 +55,7 @@ export default function TestAIPage() {
     'db-server-01의 상태는?',
   ];
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
 

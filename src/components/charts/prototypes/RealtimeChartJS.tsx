@@ -10,7 +10,7 @@
  * - WebSocket 실시간 업데이트
  */
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,

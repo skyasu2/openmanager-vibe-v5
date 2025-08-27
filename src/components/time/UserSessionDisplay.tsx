@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Clock, Play, Pause, RotateCw, AlertCircle, User } from 'lucide-react';
 import {
   userSessionService,
@@ -21,7 +21,7 @@ interface UserSessionDisplayProps {
  * 🎯 사용자 세션 표시 컴포넌트
  * 30분 세션 타이머 및 제어 UI
  */
-export const UserSessionDisplay: React.FC<UserSessionDisplayProps> = ({
+export const UserSessionDisplay: FC<UserSessionDisplayProps> = ({
   className = '',
   showControls = true,
   compact = false,
@@ -282,7 +282,7 @@ export const UserSessionDisplay: React.FC<UserSessionDisplayProps> = ({
 /**
  * 🎯 헤더용 컴팩트 세션 표시
  */
-export const UserSessionHeader: React.FC<{ className?: string }> = ({
+export const UserSessionHeader: FC<{ className?: string }> = ({
   className = '',
 }) => {
   return (

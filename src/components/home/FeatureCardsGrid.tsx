@@ -3,7 +3,7 @@
 import FeatureCardModal from '@/components/shared/FeatureCardModal';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 // framer-motion 제거 - CSS 애니메이션 사용
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import type { FeatureCard, FeatureCardProps } from '@/types/feature-card.types';
 import { FEATURE_CARDS_DATA, CARD_COMPLETION_RATES } from '@/data/feature-cards.data';
 
@@ -243,7 +243,7 @@ export default function FeatureCardsGrid() {
         selectedCard={selectedCardData}
         onClose={closeModal}
         renderTextWithAIGradient={renderTextWithAIGradient}
-        modalRef={modalRef as React.RefObject<HTMLDivElement>}
+        modalRef={modalRef as RefObject<HTMLDivElement>}
         variant="home"
       />
     </>

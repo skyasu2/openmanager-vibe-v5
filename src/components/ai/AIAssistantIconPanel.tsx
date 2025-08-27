@@ -20,7 +20,7 @@ import {
   Monitor,
   Settings,
 } from 'lucide-react';
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 
 export type AIAssistantFunction =
   | 'chat'
@@ -30,7 +30,7 @@ export type AIAssistantFunction =
 
 interface AIAssistantIcon {
   id: AIAssistantFunction;
-  icon: React.ComponentType<any>;
+  icon: ComponentType<any>;
   label: string;
   description: string;
   color: string;

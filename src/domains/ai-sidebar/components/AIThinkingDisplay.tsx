@@ -3,7 +3,7 @@
  * 실시간 사고 과정 및 완료된 사고 과정 표시
  */
 
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Brain,
@@ -13,6 +13,7 @@ import {
   Loader2,
   Clock,
 } from 'lucide-react';
+import { Fragment } from 'react';
 import type { ThinkingStep } from '../types/ai-sidebar-types';
 import type { CompletedThinking } from '../hooks/useAIThinking';
 
@@ -29,7 +30,7 @@ interface AIThinkingDisplayProps {
   onToggleCompleted?: () => void;
 }
 
-export const AIThinkingDisplay: React.FC<AIThinkingDisplayProps> = ({
+export const AIThinkingDisplay: FC<AIThinkingDisplayProps> = ({
   isThinking,
   currentSteps,
   isExpanded,
@@ -48,7 +49,7 @@ export const AIThinkingDisplay: React.FC<AIThinkingDisplayProps> = ({
   // 실시간 사고 과정 표시
   if (isThinking && currentSteps.length > 0) {
     return (
-      <React.Fragment>
+      <Fragment>
         <div
           className="overflow-hidden rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50"
         >
@@ -72,7 +73,7 @@ export const AIThinkingDisplay: React.FC<AIThinkingDisplayProps> = ({
             )}
           </button>
 
-          <React.Fragment>
+          <Fragment>
             {isExpanded && (
               <div
                 className="px-3 pb-2"
@@ -110,9 +111,9 @@ export const AIThinkingDisplay: React.FC<AIThinkingDisplayProps> = ({
                 </div>
               </div>
             )}
-          </React.Fragment>
+          </Fragment>
         </div>
-      </React.Fragment>
+      </Fragment>
     );
   }
 
@@ -140,7 +141,7 @@ export const AIThinkingDisplay: React.FC<AIThinkingDisplayProps> = ({
           )}
         </button>
 
-        <React.Fragment>
+        <Fragment>
           {completedThinking.isExpanded && (
             <div
               className="px-3 pb-2"
@@ -172,7 +173,7 @@ export const AIThinkingDisplay: React.FC<AIThinkingDisplayProps> = ({
               </div>
             </div>
           )}
-        </React.Fragment>
+        </Fragment>
       </div>
     );
   }

@@ -10,7 +10,7 @@
  * - 간편한 데이터 바인딩
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 // react-vis 제거됨 - React 18 호환성 문제로 임시 비활성화
 // import {
 //   XYPlot,

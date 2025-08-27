@@ -453,7 +453,7 @@ export function AdvancedNotificationContainer() {
 
       {/* 알림 목록 */}
       <div className="pointer-events-auto space-y-2">
-        <React.Fragment>
+        <Fragment>
           {notifications.map((notification, index) => (
             <NotificationItem
               key={notification.id}
@@ -462,7 +462,7 @@ export function AdvancedNotificationContainer() {
               index={index}
             />
           ))}
-        </React.Fragment>
+        </Fragment>
       </div>
     </div>,
     portalContainer

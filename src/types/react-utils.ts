@@ -120,7 +120,7 @@ export function useDebounce<T>(value: T, delay: number): T {
 
 // 🎯 인터섹션 옵저버 훅 (지연 로딩)
 export function useIntersectionObserver(
-  ref: React.RefObject<Element>,
+  ref: RefObject<Element>,
   options?: IntersectionObserverInit
 ): boolean {
   const [isIntersecting, setIsIntersecting] = useState(false);

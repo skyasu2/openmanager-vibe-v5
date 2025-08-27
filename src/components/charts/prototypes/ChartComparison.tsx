@@ -9,7 +9,7 @@
  * - 실시간 FPS 및 렌더링 성능 측정
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { RealtimeChartJS } from './RealtimeChartJS';
 import { RealtimeChartD3 } from './RealtimeChartD3';
 import { RealtimeChartVis } from './RealtimeChartVis';

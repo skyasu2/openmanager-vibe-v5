@@ -18,7 +18,7 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react';
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 
 export interface PresetQuestion {
   id: string;
@@ -97,7 +97,7 @@ const PRESET_QUESTIONS: PresetQuestion[] = [
 
 const PRESETS_PER_PAGE = 4;
 
-export const AIPresetQuestions: React.FC<AIPresetQuestionsProps> = ({
+export const AIPresetQuestions: FC<AIPresetQuestionsProps> = ({
   onQuestionSelect,
   currentPage,
   onPageChange,
@@ -179,7 +179,7 @@ export const AIPresetQuestions: React.FC<AIPresetQuestionsProps> = ({
                 <div
                   className={`h-4 w-4 ${question.color} flex items-center justify-center rounded`}
                 >
-                  {React.createElement(question.icon, {
+                  {createElement(question.icon, {
                     className: 'w-2 h-2 text-white',
                   })}
                 </div>

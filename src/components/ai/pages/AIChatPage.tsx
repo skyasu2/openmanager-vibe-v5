@@ -6,7 +6,7 @@
 
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Send, User, Bot, Sparkles } from 'lucide-react';
 import { useAIThinking } from '@/stores/useAISidebarStore';

@@ -4,6 +4,8 @@
  * Phase 2: 확장된 타입 시스템으로 any 타입 완전 제거
  */
 
+import type { ReactNode } from 'react';
+
 // ===== 기본 타입 =====
 
 // 기본 객체 타입
@@ -115,8 +117,8 @@ export interface TimeSeriesData {
 
 // ===== React/Next.js 관련 타입 =====
 
-export type ReactChildren = React.ReactNode;
-export type ReactProps<T = unknown> = T & { children?: React.ReactNode };
+export type ReactChildren = ReactNode;
+export type ReactProps<T = unknown> = T & { children?: ReactNode };
 export type NextPageProps<T = unknown> = T & {
   params?: Record<string, string>;
   searchParams?: Record<string, string | string[]>;

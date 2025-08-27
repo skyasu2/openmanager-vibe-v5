@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import { memo } from 'react';
 import { Crown, Shield, UserCheck } from 'lucide-react';
 import type { ProfileAvatarProps } from '../types/profile.types';
 
@@ -8,7 +8,7 @@ import type { ProfileAvatarProps } from '../types/profile.types';
  * 프로필 아바타 컴포넌트
  * 사용자 아바타 이미지 또는 이니셜 표시
  */
-export const ProfileAvatar = React.memo(function ProfileAvatar({
+export const ProfileAvatar = memo(function ProfileAvatar({
   userInfo,
   userType,
   isAdminMode,
@@ -124,7 +124,7 @@ export const ProfileAvatar = React.memo(function ProfileAvatar({
 /**
  * 사용자 타입 아이콘 컴포넌트
  */
-export const UserTypeIcon = React.memo(function UserTypeIcon({
+export const UserTypeIcon = memo(function UserTypeIcon({
   userType,
   isAdminMode,
   className = 'w-4 h-4',

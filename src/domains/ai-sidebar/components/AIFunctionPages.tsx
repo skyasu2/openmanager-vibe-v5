@@ -14,7 +14,7 @@ import AIAssistantIconPanel from '@/components/ai/AIAssistantIconPanel';
 import AutoReportPage from '@/components/ai/pages/AutoReportPage';
 import IntelligentMonitoringPage from '@/components/ai/pages/IntelligentMonitoringPage';
 import { MLLearningCenter } from '@/components/ai/pages/MLLearningCenter';
-import React from 'react';
+// React import 제거 - Next.js 15 자동 JSX Transform 사용
 
 interface AIFunctionPagesProps {
   selectedFunction: AIAssistantFunction;
@@ -22,7 +22,7 @@ interface AIFunctionPagesProps {
   className?: string;
 }
 
-export const AIFunctionPages: React.FC<AIFunctionPagesProps> = ({
+export const AIFunctionPages: FC<AIFunctionPagesProps> = ({
   selectedFunction,
   onFunctionChange,
   className = '',

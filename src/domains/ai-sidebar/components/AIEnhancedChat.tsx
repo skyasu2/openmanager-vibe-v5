@@ -20,7 +20,7 @@ import {
   Sparkles,
   StopCircle,
 } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 
 // 타입 임포트
 import type { AutoReportTrigger, ChatMessage } from '../types/ai-sidebar-types';
@@ -53,7 +53,7 @@ interface AIEnhancedChatProps {
   className?: string;
 }
 
-export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
+export const AIEnhancedChat: FC<AIEnhancedChatProps> = ({
   selectedEngine,
   onEngineChange,
   chatMessages,
@@ -109,7 +109,7 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
     }
   }, [chatMessages, isGenerating, isUserScrolled]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (inputValue.trim() && !isGenerating) {
       // 메시지 전송 시 자동 스크롤 모드로 전환
@@ -149,7 +149,7 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
       </div>
 
       {/* 자동 장애 보고서 트리거 */}
-      <React.Fragment>
+      <Fragment>
         {autoReportTrigger?.shouldGenerate && (
           <div
             className="flex-shrink-0 border-b border-amber-200 bg-amber-50 p-3 sm:p-4"
@@ -185,7 +185,7 @@ export const AIEnhancedChat: React.FC<AIEnhancedChatProps> = ({
             </div>
           </div>
         )}
-      </React.Fragment>
+      </Fragment>
 
       {/* 메시지 영역 */}
       <div

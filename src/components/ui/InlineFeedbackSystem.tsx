@@ -18,7 +18,7 @@ import {
   Loader2,
   XCircle,
 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export interface InlineFeedback {
   id: string;
@@ -265,13 +265,13 @@ export function InlineFeedbackContainer({
 
   return (
     <div className={`${className}`}>
-      <React.Fragment>
+      <Fragment>
         <FeedbackDisplay
           key={feedback.id}
           feedback={feedback}
           compact={compact}
         />
-      </React.Fragment>
+      </Fragment>
     </div>
   );
 }
@@ -279,7 +279,7 @@ export function InlineFeedbackContainer({
 // 상태 배지 컴포넌트
 interface StatusBadgeProps {
   status: 'idle' | 'loading' | 'success' | 'error';
-  children?: React.ReactNode;
+  children?: ReactNode;
   className?: string;
 }
 
@@ -327,7 +327,7 @@ export function StatusBadge({
 
 // 버튼 상태 래퍼 컴포넌트
 interface ButtonWithFeedbackProps {
-  children: React.ReactNode;
+  children: ReactNode;
   onClick: () => Promise<void> | void;
   successMessage?: string;
   errorMessage?: string;

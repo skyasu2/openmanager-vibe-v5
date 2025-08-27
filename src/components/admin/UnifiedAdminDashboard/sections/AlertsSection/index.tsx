@@ -41,7 +41,7 @@ export default function AlertsSection({
   }
 
   return (
-    <React.Fragment>
+    <Fragment>
       <div
         className={`space-y-3 ${compact ? '' : 'max-h-[600px] overflow-y-auto'}`}
       >
@@ -78,7 +78,7 @@ export default function AlertsSection({
           </div>
         ))}
       </div>
-    </React.Fragment>
+    </Fragment>
   );
 }
 
@@ -101,7 +101,7 @@ function getAlertStyles(type: SystemAlert['type']): string {
   }
 }
 
-function getAlertIcon(type: SystemAlert['type']): React.ReactNode {
+function getAlertIcon(type: SystemAlert['type']): ReactNode {
   const iconClass = 'w-5 h-5 flex-shrink-0 mt-0.5';
 
   switch (type) {

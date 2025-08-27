@@ -2,7 +2,7 @@
  * AI 어시스턴트 데이터 훅
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'react-hot-toast';
 import type {
   ResponseLogData,
@@ -76,14 +76,14 @@ interface UseAIAssistantDataReturn {
     status: string;
     dateRange: string;
   };
-  setFilters: React.Dispatch<
-    React.SetStateAction<{
+  setFilters: Dispatch<
+    SetStateAction<{
       status: string;
       dateRange: string;
     }>
   >;
   searchTerm: string;
-  setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
+  setSearchTerm: Dispatch<SetStateAction<string>>;
 }
 
 export function useAIAssistantData(): UseAIAssistantDataReturn {

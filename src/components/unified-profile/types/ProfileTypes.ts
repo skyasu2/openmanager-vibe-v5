@@ -7,6 +7,8 @@
  * @author AI Assistant
  */
 
+import type { ReactNode } from 'react';
+
 // 기본 컴포넌트 Props
 export interface UnifiedProfileComponentProps {
   userName?: string;
@@ -70,7 +72,7 @@ export type SettingsTab =
 export interface UnifiedSettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  buttonRef?: React.RefObject<HTMLButtonElement | null>;
+  buttonRef?: RefObject<HTMLButtonElement | null>;
 }
 
 // 인증 관련 인터페이스
@@ -113,8 +115,8 @@ export interface ProfileButtonProps {
   userName: string;
   userAvatar?: string;
   isOpen: boolean;
-  onClick: (e: React.MouseEvent) => void;
-  buttonRef: React.RefObject<HTMLButtonElement>;
+  onClick: (e: MouseEvent) => void;
+  buttonRef: RefObject<HTMLButtonElement>;
 }
 
 // 드롭다운 메뉴 Props
@@ -159,7 +161,7 @@ export type RequiredFields<T, K extends keyof T> = T & Required<Pick<T, K>>;
 export interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  buttonRef?: React.RefObject<HTMLButtonElement | null>;
+  buttonRef?: RefObject<HTMLButtonElement | null>;
 }
 
 export type SettingsAPIResponse = ApiResponse;
@@ -172,7 +174,7 @@ export interface SystemStatus {
 }
 
 export interface MenuItemProps {
-  icon: React.ReactNode;
+  icon: ReactNode;
   title: string;
   description: string;
   onClick: () => void;

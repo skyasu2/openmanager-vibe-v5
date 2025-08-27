@@ -6,7 +6,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   FileText,

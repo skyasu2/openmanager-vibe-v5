@@ -21,7 +21,7 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import type { Server } from '@/types/server';
 import { AlertTriangle } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import React, { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useState, Component, type ReactNode, type ErrorInfo } from 'react';
 import debug from '@/utils/debug';
 
 // 🎯 타입 변환 헬퍼 함수 - 재사용 가능하도록 분리
@@ -192,18 +192,18 @@ const ContentLoadingSkeleton = () => (
 );
 
 // Error Boundary for Dashboard
-class DashboardErrorBoundary extends React.Component<
-  { children: React.ReactNode },
+class DashboardErrorBoundary extends Component<
+  { children: ReactNode },
   { hasError: boolean; error?: Error }
 > {
-  constructor(props: { children: React.ReactNode }) {
+  constructor(props: { children: ReactNode }) {
     super(props);
     this.state = { hasError: false };
   }
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
   }
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     debug.error('🚨 Dashboard Error:', error, errorInfo);
   }
   render() {

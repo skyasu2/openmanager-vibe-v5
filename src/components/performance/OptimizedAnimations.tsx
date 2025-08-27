@@ -304,7 +304,7 @@ export function BatchAnimation({
   }
 
   return (
-    <React.Fragment>
+    <Fragment>
       {children.map((child, index) => (
         <div
           key={index}
@@ -313,7 +313,7 @@ export function BatchAnimation({
           {child}
         </div>
       ))}
-    </React.Fragment>
+    </Fragment>
   );
 }
 

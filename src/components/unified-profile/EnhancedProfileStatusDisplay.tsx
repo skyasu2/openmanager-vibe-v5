@@ -196,7 +196,7 @@ export function EnhancedProfileStatusDisplay({
       )}
 
       {/* 상세 정보 (토글 가능) */}
-      <React.Fragment>
+      <Fragment>
         {showDetails && !compact && (
           <div
             data-testid="detailed-info"
@@ -261,7 +261,7 @@ export function EnhancedProfileStatusDisplay({
             )}
           </div>
         )}
-      </React.Fragment>
+      </Fragment>
     </div>
   );
 }
