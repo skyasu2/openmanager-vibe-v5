@@ -28,15 +28,15 @@ const getMetricConfig = (
       normalizedStatus === 'critical' ||
       normalizedStatus === 'error'
     ) {
-      // 심각 상황 - 빨간색 계열
+      // 심각 상황 - 녹색 계열로 변경
       return {
-        lineColor: '#dc2626', // red-600
-        textColor: 'text-red-700',
-        bgColor: 'bg-red-50',
-        gradientFrom: 'from-red-600',
-        gradientTo: 'to-red-100',
+        lineColor: '#10b981', // emerald-500 (빨간색 → 녹색)
+        textColor: 'text-emerald-700',
+        bgColor: 'bg-emerald-50',
+        gradientFrom: 'from-emerald-500',
+        gradientTo: 'to-emerald-100',
         status: '오프라인',
-        fillColor: 'rgba(220, 38, 38, 0.1)', // 빨간색 투명도
+        fillColor: 'rgba(16, 185, 129, 0.1)', // 녹색 투명도
       };
     } else if (
       normalizedStatus === 'warning' ||
@@ -82,16 +82,16 @@ const getMetricConfig = (
   const isCritical = value >= threshold.critical;
   const isWarning = value >= threshold.warning;
 
-  // 메트릭 값에 따른 색상
+  // 메트릭 값에 따른 색상 - 위험 상태도 녹색으로 변경
   if (isCritical) {
     return {
-      lineColor: '#dc2626', // red-600
-      textColor: 'text-red-700',
-      bgColor: 'bg-red-50',
-      gradientFrom: 'from-red-600',
-      gradientTo: 'to-red-100',
+      lineColor: '#10b981', // emerald-500 (빨간색 → 녹색)
+      textColor: 'text-emerald-700',
+      bgColor: 'bg-emerald-50',
+      gradientFrom: 'from-emerald-500',
+      gradientTo: 'to-emerald-100',
       status: '위험',
-      fillColor: 'rgba(220, 38, 38, 0.1)',
+      fillColor: 'rgba(16, 185, 129, 0.1)', // 녹색 투명도
     };
   } else if (isWarning) {
     return {
