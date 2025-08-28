@@ -121,7 +121,7 @@ export const createServerDataStore = (
             console.log('  - data 타입:', Array.isArray(result.data) ? 'array' : typeof result.data);
             console.log('  - data 길이:', result.data?.length || 0);
             console.log('  - servers 존재:', !!result.servers);
-            console.log('  - scenario 존재:', !!result.scenario);
+            // 시나리오 정보는 AI 분석 순수성을 위해 로깅하지 않음
           }
 
           if (result && result.success && result.data && Array.isArray(result.data)) {
@@ -143,14 +143,7 @@ export const createServerDataStore = (
               });
             }
 
-            // 시나리오 정보 로깅
-            if (result.scenario) {
-              console.log('🎭 현재 시나리오:', {
-                korean: result.scenario.korean,
-                english: result.scenario.current,
-                hour: result.scenario.hour,
-              });
-            }
+            // 시나리오 정보는 AI 분석 순수성을 위해 로깅하지 않음
 
             set({
               servers: result.data,

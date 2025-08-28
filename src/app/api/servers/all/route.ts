@@ -216,14 +216,7 @@ export async function GET(request: NextRequest) {
         dataSource = gcpResponse.source;
         fallbackUsed = gcpResponse.fallback;
         
-        // GCP VM 응답 상세 로깅
-        if (gcpResponse.scenario) {
-          console.log('🎭 [API-ROUTE] GCP VM 시나리오:', {
-            korean: gcpResponse.scenario.korean,
-            english: gcpResponse.scenario.current,
-            hour: gcpResponse.scenario.hour
-          });
-        }
+
         
         // 서버별 상태 요약
         const statusSummary = enhancedServers.reduce((acc, server) => {
@@ -307,36 +300,14 @@ export async function GET(request: NextRequest) {
       totalPages: Math.ceil(total / limit)
     });
 
-    // 현재 시간 기반 시나리오 정보 추가
-    const currentHour = new Date().getHours();
-    const scenarios = {
-      0: { korean: '심야 유지보수', english: 'midnight-maintenance' },
-      6: { korean: '아침 시작', english: 'morning-startup' },
-      9: { korean: '업무 시작', english: 'work-hours-begin' },
-      12: { korean: '점심 피크', english: 'lunch-peak' },
-      14: { korean: '오후 업무', english: 'afternoon-work' },
-      18: { korean: '퇴근 시간', english: 'evening-rush' },
-      21: { korean: '야간 모드', english: 'night-mode' }
-    };
 
-    const timeKey = Math.floor(currentHour / 3) * 3 as keyof typeof scenarios;
-    const currentScenario = scenarios[timeKey] || scenarios[12];
-    
-    console.log('🎭 [API-ROUTE] 시나리오 정보:', { 
-      hour: currentHour, 
-      scenario: currentScenario.korean 
-    });
 
     return NextResponse.json({
       success: true,
       data: paginatedServers, // 페이지네이션된 서버 데이터
       source: dataSource, // 데이터 소스 정보 추가
       fallback: fallbackUsed, // 폴백 사용 여부
-      scenario: {
-        current: currentScenario.english,
-        korean: currentScenario.korean,
-        hour: currentHour
-      },
+
       pagination: {
         page,
         limit,

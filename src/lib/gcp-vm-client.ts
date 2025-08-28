@@ -47,11 +47,7 @@ export interface GCPVMServerResponse {
   source: 'gcp-vm' | 'cache' | 'fallback';
   fallback: boolean;
   cached?: boolean;
-  scenario?: {
-    current: string;
-    korean: string;
-    hour: number;
-  };
+  // 시나리오 정보는 AI 분석 순수성을 위해 제거됨
   pagination?: {
     page: number;
     limit: number;
@@ -168,60 +164,90 @@ export class GCPVMClient {
    * 서버 데이터 가져오기 (3단계 폴백 + Circuit Breaker)
    */
   async getServers(): Promise<GCPVMServerResponse> {
-    const cacheKey = 'servers-data';
+    console.log('🚀 [GCP-VM-CLIENT] VM HTTP API 방식으로 복원 - 서버 데이터 요청 시작');
     
-    console.log('🚀 [GCP-VM-CLIENT] 서버 데이터 가져오기 시작');
-    console.log('🔧 [GCP-VM-CLIENT] 설정:', {
-      enableCache: this.options.enableCache,
-      timeout: this.options.timeout,
-      retryAttempts: this.options.retryAttempts
-    });
-    console.log('🌐 [GCP-VM-CLIENT] 대상 서버:', {
-      external: GCP_VM_EXTERNAL_URL,
-      internal: GCP_VM_INTERNAL_URL
-    });
-    
-    // 🔄 Circuit Breaker로 GCP VM 요청 실행
-    console.log('🔧 [GCP-VM-CLIENT] Circuit Breaker를 통한 요청 실행');
-    const result = await executeWithCircuitBreaker<GCPVMServerResponse>(
-      // 1차: GCP VM 직접 요청
-      () => {
-        console.log('🎯 [GCP-VM-CLIENT] 1차: GCP VM 직접 요청 시도');
-        return this.fetchFromGCPVM();
-      },
-      // 2차: 캐시된 데이터 폴백
-      () => {
-        console.log('🛡️ [GCP-VM-CLIENT] 2차: 캐시/Mock 폴백 실행');
-        return this.getFallbackData(cacheKey);
-      }
-    );
-
-    // Circuit Breaker 결과 분석
-    console.log('⚡ [GCP-VM-CLIENT] Circuit Breaker 결과:', {
-      success: result.success,
-      error: result.error,
-      fallbackUsed: result.fallbackUsed
-    });
-
-    // 최종 응답 데이터 확인
-    const finalResponse = result.data || this.getEmptyResponse();
-    console.log('📊 [GCP-VM-CLIENT] 최종 응답 데이터:', {
-      success: finalResponse.success,
-      source: finalResponse.source || 'unknown',
-      fallback: finalResponse.fallback || false,
-      serverCount: finalResponse.data?.length || 0
-    });
-
-    // 성공한 데이터를 캐시에 저장
-    if (result.success && result.data && !result.data.fallback && this.options.enableCache) {
-      this.cache.set(cacheKey, result.data.data);
-      console.log('💾 [GCP-VM-CLIENT] GCP VM 데이터를 캐시에 저장 완료');
-      console.log('📋 [GCP-VM-CLIENT] 캐시된 서버 목록:', 
-        result.data.data?.map((s: any) => `${s.name}(${s.status})`).join(', ') || '없음'
-      );
+    // 캐시 확인
+    if (this.options.enableCache && this.cache.has('servers-data')) {
+      console.log('⚡ [GCP-VM-CLIENT] 캐시된 데이터 반환');
+      const cachedData = this.cache.get('servers-data');
+      
+      return {
+        success: true,
+        data: cachedData,
+        source: 'cache',
+        timestamp: new Date().toISOString(),
+        error: null,
+        fallbackUsed: false
+      };
     }
 
-    return finalResponse;
+    // 1차: VM API 시도
+    try {
+      console.log('🌐 [GCP-VM-CLIENT] VM API 호출: /api/v3/servers');
+      const vmResponse = await this.fetchFromVMAPI();
+      
+      if (vmResponse && vmResponse.data && Array.isArray(vmResponse.data)) {
+        console.log('✅ [GCP-VM-CLIENT] VM API 성공:', {
+          serverCount: vmResponse.data.length,
+          source: 'vm-api'
+        });
+
+        // 캐시에 저장
+        if (this.options.enableCache) {
+          this.cache.set('servers-data', vmResponse.data);
+          console.log('💾 [GCP-VM-CLIENT] VM 서버 데이터를 캐시에 저장 완료');
+        }
+
+        return {
+          success: true,
+          data: vmResponse.data,
+          source: 'vm-api',
+          timestamp: vmResponse.timestamp || new Date().toISOString(),
+          error: null,
+          fallbackUsed: false
+        };
+      }
+    } catch (error) {
+      console.warn('⚠️ [GCP-VM-CLIENT] VM API 실패:', error instanceof Error ? error.message : 'Unknown error');
+    }
+
+    // 2차: 기존 GCP VM API 폴백 시도
+    try {
+      console.log('🔄 [GCP-VM-CLIENT] 기존 VM API 폴백 시도');
+      const fallbackResponse = await this.fetchFromGCPVM();
+      
+      if (fallbackResponse && fallbackResponse.success && fallbackResponse.data) {
+        console.log('✅ [GCP-VM-CLIENT] 기존 VM API 폴백 성공');
+        
+        // 캐시에 저장
+        if (this.options.enableCache) {
+          this.cache.set('servers-data', fallbackResponse.data);
+        }
+
+        return {
+          ...fallbackResponse,
+          fallbackUsed: true
+        };
+      }
+    } catch (error) {
+      console.warn('⚠️ [GCP-VM-CLIENT] 기존 VM API 폴백도 실패:', error instanceof Error ? error.message : 'Unknown error');
+    }
+
+    // 3차: 최종 Mock 폴백
+    console.log('🎯 [GCP-VM-CLIENT] 최종 폴백: Mock 데이터 사용');
+    try {
+      const mockResponse = await this.getMockData();
+      console.log('✅ [GCP-VM-CLIENT] Mock 데이터 폴백 성공');
+      
+      return {
+        ...mockResponse,
+        fallbackUsed: true,
+        source: 'mock-fallback'
+      };
+    } catch (error) {
+      console.error('❌ [GCP-VM-CLIENT] 모든 데이터 소스 실패:', error);
+      return this.getEmptyResponse();
+    }
   }
 
   /**
@@ -312,6 +338,65 @@ export class GCPVMClient {
   }
 
   /**
+   * VM API에서 JSON 데이터 가져오기 (/api/v3/servers)
+   */
+  private async fetchFromVMAPI(): Promise<any> {
+    const VM_ENDPOINT = `${GCP_VM_EXTERNAL_URL}/api/v3/servers`;
+    const VM_ENDPOINT_INTERNAL = `${GCP_VM_INTERNAL_URL}/api/v3/servers`;
+    
+    console.log('🌐 [GCP-VM-CLIENT] VM API 호출 시작');
+    
+    // 1차: 외부 IP 시도
+    try {
+      console.log(`🌐 외부 VM API: ${VM_ENDPOINT}`);
+      const response = await this.makeRequest<any>(VM_ENDPOINT, {
+        method: 'GET',
+        timeout: this.options.timeout,
+        headers: {
+          'Authorization': `Bearer ${VM_API_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response && response.success && response.data && response.data.servers) {
+        console.log('✅ [GCP-VM-CLIENT] 외부 VM API 성공');
+        return {
+          data: response.data.servers,
+          timestamp: response.timestamp
+        };
+      }
+    } catch (externalError) {
+      console.warn(`⚠️ 외부 VM API 실패: ${externalError instanceof Error ? externalError.message : 'Unknown error'}`);
+    }
+
+    // 2차: 내부 IP 시도 (폴백)
+    try {
+      console.log(`🏠 내부 VM API: ${VM_ENDPOINT_INTERNAL}`);
+      const response = await this.makeRequest<any>(VM_ENDPOINT_INTERNAL, {
+        method: 'GET',
+        timeout: this.options.timeout,
+        headers: {
+          'Authorization': `Bearer ${VM_API_TOKEN}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response && response.success && response.data && response.data.servers) {
+        console.log('✅ [GCP-VM-CLIENT] 내부 VM API 성공');
+        return {
+          data: response.data.servers,
+          timestamp: response.timestamp
+        };
+      }
+    } catch (internalError) {
+      console.error('❌ [GCP-VM-CLIENT] 내부 VM API도 실패:', internalError);
+      throw new Error(`VM API 완전 실패: ${internalError instanceof Error ? internalError.message : 'Unknown error'}`);
+    }
+
+    throw new Error('VM API에서 올바른 응답을 받지 못했습니다');
+  }
+
+  /**
    * 폴백 데이터 가져오기 (캐시 → Mock 순서)
    */
   private async getFallbackData(cacheKey: string): Promise<GCPVMServerResponse> {
@@ -350,441 +435,60 @@ export class GCPVMClient {
   }
 
   /**
-   * Mock 데이터 생성 (10개 서버 - GCP VM 서버와 일관성 유지)
+   * 시간대에 맞는 정적 시나리오 파일 로드 (무료 티어 최적화)
    */
-  private getMockData(): GCPVMServerResponse {
+
+
+  /**
+   * Mock 데이터 생성 (정적 JSON 기반 - 무료 티어 최적화)
+   */
+  private async getMockData(): Promise<GCPVMServerResponse> {
     const timestamp = new Date().toISOString();
-    const mockServers: EnhancedServerMetrics[] = [
-      // 웹 서버들 (3개)
+    const currentHour = new Date().getHours();
+    
+    console.log(`🎯 [GCP-VM-CLIENT] 최종 폴백: Mock 데이터 생성 (${currentHour}시)`);
+    console.log(`⚠️ [GCP-VM-CLIENT] 모든 VM API가 실패하여 Mock 데이터를 사용합니다`);
+    
+    // 간단한 폴백용 Mock 서버 데이터 (최종 안전장치)
+    const fallbackServers: EnhancedServerMetrics[] = [
       {
-        id: `server-${Date.now()}-0`,
-        name: 'web-server-01',
-        hostname: 'web-server-01',
+        id: `mock-${Date.now()}-1`,
+        name: 'web-server-mock',
+        hostname: 'web-server-mock.local',
         status: 'online' as const,
         cpu: 45.2,
         cpu_usage: 45.2,
-        memory: 78.5,
-        memory_usage: 78.5,
-        disk: 65.1,
-        disk_usage: 65.1,
-        network: 12.3,
-        network_in: 7.4,
-        network_out: 4.9,
-        uptime: 359280,
-        location: 'Seoul-DC-01',
-        alerts: 0,
-        ip: '192.168.1.100',
-        os: 'Ubuntu 22.04 LTS',
-        type: 'web',
-        role: 'worker',
-        environment: 'production',
-        provider: 'GCP-Mock-Fallback',
-        specs: { cpu_cores: 2, memory_gb: 8, disk_gb: 260, network_speed: '1Gbps' },
-        lastUpdate: timestamp,
-        services: [],
-        systemInfo: {
-          os: 'Ubuntu 22.04 LTS',
-          uptime: '99h',
-          processes: 120,
-          zombieProcesses: 0,
-          loadAverage: '1.80, 1.75, 1.70',
-          lastUpdate: timestamp
-        },
-        networkInfo: {
-          interface: 'eth0',
-          receivedBytes: '7 MB',
-          sentBytes: '4 MB',
-          receivedErrors: 0,
-          sentErrors: 0,
-          status: 'healthy'
-        }
-      },
-      {
-        id: `server-${Date.now()}-1`,
-        name: 'web-server-02',
-        hostname: 'web-server-02',
-        status: 'online' as const,
-        cpu: 52.8,
-        cpu_usage: 52.8,
-        memory: 68.2,
-        memory_usage: 68.2,
-        disk: 58.9,
-        disk_usage: 58.9,
-        network: 15.7,
-        network_in: 9.4,
-        network_out: 6.3,
-        uptime: 358200,
-        location: 'Seoul-DC-01',
-        alerts: 0,
-        ip: '192.168.1.101',
-        os: 'Ubuntu 22.04 LTS',
-        type: 'web',
-        role: 'worker',
-        environment: 'production',
-        provider: 'GCP-Mock-Fallback',
-        specs: { cpu_cores: 3, memory_gb: 6, disk_gb: 235, network_speed: '1Gbps' },
-        lastUpdate: timestamp,
-        services: [],
-        systemInfo: {
-          os: 'Ubuntu 22.04 LTS',
-          uptime: '99h',
-          processes: 135,
-          zombieProcesses: 1,
-          loadAverage: '2.10, 2.05, 2.00',
-          lastUpdate: timestamp
-        },
-        networkInfo: {
-          interface: 'eth0',
-          receivedBytes: '9 MB',
-          sentBytes: '6 MB',
-          receivedErrors: 0,
-          sentErrors: 0,
-          status: 'healthy'
-        }
-      },
-      {
-        id: `server-${Date.now()}-2`,
-        name: 'web-server-03',
-        hostname: 'web-server-03',
-        status: 'warning' as const,
-        cpu: 78.4,
-        cpu_usage: 78.4,
-        memory: 85.1,
-        memory_usage: 85.1,
-        disk: 72.3,
-        disk_usage: 72.3,
-        network: 25.8,
-        network_in: 15.2,
-        network_out: 10.6,
-        uptime: 325680,
-        location: 'Seoul-DC-02',
-        alerts: 1,
-        ip: '192.168.1.102',
-        os: 'Ubuntu 22.04 LTS',
-        type: 'web',
-        role: 'worker',
-        environment: 'production',
-        provider: 'GCP-Mock-Fallback',
-        specs: { cpu_cores: 4, memory_gb: 8, disk_gb: 320, network_speed: '1Gbps' },
-        lastUpdate: timestamp,
-        services: [],
-        systemInfo: {
-          os: 'Ubuntu 22.04 LTS',
-          uptime: '90h',
-          processes: 187,
-          zombieProcesses: 3,
-          loadAverage: '3.20, 3.15, 3.10',
-          lastUpdate: timestamp
-        },
-        networkInfo: {
-          interface: 'eth0',
-          receivedBytes: '15 MB',
-          sentBytes: '11 MB',
-          receivedErrors: 2,
-          sentErrors: 1,
-          status: 'warning'
-        }
-      },
-      // API 서버들 (3개)
-      {
-        id: `server-${Date.now()}-3`,
-        name: 'api-server-01',
-        hostname: 'api-server-01',
-        status: 'online' as const,
-        cpu: 38.7,
-        cpu_usage: 38.7,
-        memory: 62.4,
-        memory_usage: 62.4,
-        disk: 45.9,
-        disk_usage: 45.9,
-        network: 18.6,
+        memory: 62.8,
+        memory_usage: 62.8,
+        disk: 58.3,
+        disk_usage: 58.3,
+        network: 18.4,
         network_in: 11.2,
-        network_out: 7.4,
-        uptime: 421200,
-        location: 'Seoul-DC-01',
+        network_out: 7.2,
+        uptime: 259200,
+        location: 'Mock-Fallback',
         alerts: 0,
-        ip: '192.168.1.110',
-        os: 'Ubuntu 22.04 LTS',
-        type: 'api',
+        ip: '127.0.0.1',
+        os: 'Mock OS',
+        type: 'web',
         role: 'worker',
-        environment: 'production',
-        provider: 'GCP-Mock-Fallback',
-        specs: { cpu_cores: 4, memory_gb: 8, disk_gb: 280, network_speed: '1Gbps' },
+        environment: 'mock',
+        provider: 'Mock-Provider',
+        specs: { cpu_cores: 2, memory_gb: 4, disk_gb: 100, network_speed: '1Gbps' },
         lastUpdate: timestamp,
-        services: [],
+        services: ['mock-service'],
         systemInfo: {
-          os: 'Ubuntu 22.04 LTS',
-          uptime: '117h',
-          processes: 95,
+          os: 'Mock OS',
+          uptime: '1h',
+          processes: 10,
           zombieProcesses: 0,
-          loadAverage: '1.50, 1.45, 1.40',
+          loadAverage: '0.50, 0.50, 0.50',
           lastUpdate: timestamp
         },
         networkInfo: {
-          interface: 'eth0',
-          receivedBytes: '11 MB',
-          sentBytes: '7 MB',
-          receivedErrors: 0,
-          sentErrors: 0,
-          status: 'healthy'
-        }
-      },
-      {
-        id: `server-${Date.now()}-4`,
-        name: 'api-server-02',
-        hostname: 'api-server-02',
-        status: 'online' as const,
-        cpu: 56.3,
-        cpu_usage: 56.3,
-        memory: 74.8,
-        memory_usage: 74.8,
-        disk: 67.2,
-        disk_usage: 67.2,
-        network: 22.4,
-        network_in: 13.7,
-        network_out: 8.7,
-        uptime: 398760,
-        location: 'Seoul-DC-02',
-        alerts: 0,
-        ip: '192.168.1.111',
-        os: 'Ubuntu 22.04 LTS',
-        type: 'api',
-        role: 'worker',
-        environment: 'production',
-        provider: 'GCP-Mock-Fallback',
-        specs: { cpu_cores: 3, memory_gb: 6, disk_gb: 250, network_speed: '1Gbps' },
-        lastUpdate: timestamp,
-        services: [],
-        systemInfo: {
-          os: 'Ubuntu 22.04 LTS',
-          uptime: '110h',
-          processes: 112,
-          zombieProcesses: 2,
-          loadAverage: '2.00, 1.95, 1.90',
-          lastUpdate: timestamp
-        },
-        networkInfo: {
-          interface: 'eth0',
-          receivedBytes: '14 MB',
-          sentBytes: '9 MB',
-          receivedErrors: 1,
-          sentErrors: 0,
-          status: 'healthy'
-        }
-      },
-      {
-        id: `server-${Date.now()}-5`,
-        name: 'api-server-03',
-        hostname: 'api-server-03',
-        status: 'critical' as const,
-        cpu: 92.4,
-        cpu_usage: 92.4,
-        memory: 95.7,
-        memory_usage: 95.7,
-        disk: 87.3,
-        disk_usage: 87.3,
-        network: 52.1,
-        network_in: 31.3,
-        network_out: 20.8,
-        uptime: 340020,
-        location: 'Seoul-DC-01',
-        alerts: 3,
-        ip: '192.168.1.112',
-        os: 'Ubuntu 22.04 LTS',
-        type: 'api',
-        role: 'worker',
-        environment: 'production',
-        provider: 'GCP-Mock-Fallback',
-        specs: { cpu_cores: 4, memory_gb: 8, disk_gb: 349, network_speed: '1Gbps' },
-        lastUpdate: timestamp,
-        services: [],
-        systemInfo: {
-          os: 'Ubuntu 22.04 LTS',
-          uptime: '94h',
-          processes: 287,
-          zombieProcesses: 12,
-          loadAverage: '4.50, 4.12, 3.98',
-          lastUpdate: timestamp
-        },
-        networkInfo: {
-          interface: 'eth0',
-          receivedBytes: '31 MB',
-          sentBytes: '21 MB',
-          receivedErrors: 8,
-          sentErrors: 5,
-          status: 'critical'
-        }
-      },
-      // DB 서버들 (2개)
-      {
-        id: `server-${Date.now()}-6`,
-        name: 'db-server-01',
-        hostname: 'db-server-01',
-        status: 'online' as const,
-        cpu: 35.1,
-        cpu_usage: 35.1,
-        memory: 82.3,
-        memory_usage: 82.3,
-        disk: 76.8,
-        disk_usage: 76.8,
-        network: 8.4,
-        network_in: 4.9,
-        network_out: 3.5,
-        uptime: 489600,
-        location: 'Seoul-DC-01',
-        alerts: 0,
-        ip: '192.168.1.120',
-        os: 'Ubuntu 22.04 LTS',
-        type: 'database',
-        role: 'master',
-        environment: 'production',
-        provider: 'GCP-Mock-Fallback',
-        specs: { cpu_cores: 6, memory_gb: 16, disk_gb: 500, network_speed: '1Gbps' },
-        lastUpdate: timestamp,
-        services: [],
-        systemInfo: {
-          os: 'Ubuntu 22.04 LTS',
-          uptime: '136h',
-          processes: 67,
-          zombieProcesses: 0,
-          loadAverage: '1.20, 1.15, 1.10',
-          lastUpdate: timestamp
-        },
-        networkInfo: {
-          interface: 'eth0',
-          receivedBytes: '5 MB',
-          sentBytes: '4 MB',
-          receivedErrors: 0,
-          sentErrors: 0,
-          status: 'healthy'
-        }
-      },
-      {
-        id: `server-${Date.now()}-7`,
-        name: 'db-server-02',
-        hostname: 'db-server-02',
-        status: 'warning' as const,
-        cpu: 67.2,
-        cpu_usage: 67.2,
-        memory: 89.6,
-        memory_usage: 89.6,
-        disk: 84.7,
-        disk_usage: 84.7,
-        network: 12.7,
-        network_in: 7.8,
-        network_out: 4.9,
-        uptime: 456720,
-        location: 'Seoul-DC-02',
-        alerts: 2,
-        ip: '192.168.1.121',
-        os: 'Ubuntu 22.04 LTS',
-        type: 'database',
-        role: 'slave',
-        environment: 'production',
-        provider: 'GCP-Mock-Fallback',
-        specs: { cpu_cores: 6, memory_gb: 16, disk_gb: 500, network_speed: '1Gbps' },
-        lastUpdate: timestamp,
-        services: [],
-        systemInfo: {
-          os: 'Ubuntu 22.04 LTS',
-          uptime: '126h',
-          processes: 89,
-          zombieProcesses: 5,
-          loadAverage: '2.80, 2.75, 2.70',
-          lastUpdate: timestamp
-        },
-        networkInfo: {
-          interface: 'eth0',
-          receivedBytes: '8 MB',
-          sentBytes: '5 MB',
-          receivedErrors: 3,
-          sentErrors: 2,
-          status: 'warning'
-        }
-      },
-      // 캐시 서버 (1개)
-      {
-        id: `server-${Date.now()}-8`,
-        name: 'cache-server-01',
-        hostname: 'cache-server-01',
-        status: 'online' as const,
-        cpu: 28.4,
-        cpu_usage: 28.4,
-        memory: 76.2,
-        memory_usage: 76.2,
-        disk: 34.8,
-        disk_usage: 34.8,
-        network: 42.6,
-        network_in: 25.8,
-        network_out: 16.8,
-        uptime: 512400,
-        location: 'Seoul-DC-01',
-        alerts: 0,
-        ip: '192.168.1.130',
-        os: 'Ubuntu 22.04 LTS',
-        type: 'cache',
-        role: 'worker',
-        environment: 'production',
-        provider: 'GCP-Mock-Fallback',
-        specs: { cpu_cores: 4, memory_gb: 16, disk_gb: 200, network_speed: '1Gbps' },
-        lastUpdate: timestamp,
-        services: [],
-        systemInfo: {
-          os: 'Ubuntu 22.04 LTS',
-          uptime: '142h',
-          processes: 45,
-          zombieProcesses: 0,
-          loadAverage: '0.80, 0.75, 0.70',
-          lastUpdate: timestamp
-        },
-        networkInfo: {
-          interface: 'eth0',
-          receivedBytes: '26 MB',
-          sentBytes: '17 MB',
-          receivedErrors: 0,
-          sentErrors: 0,
-          status: 'healthy'
-        }
-      },
-      // 로드 밸런서 (1개)
-      {
-        id: `server-${Date.now()}-9`,
-        name: 'loadbalancer-01',
-        hostname: 'loadbalancer-01',
-        status: 'online' as const,
-        cpu: 22.7,
-        cpu_usage: 22.7,
-        memory: 45.3,
-        memory_usage: 45.3,
-        disk: 18.9,
-        disk_usage: 18.9,
-        network: 85.4,
-        network_in: 52.6,
-        network_out: 32.8,
-        uptime: 623520,
-        location: 'Seoul-DC-01',
-        alerts: 0,
-        ip: '192.168.1.140',
-        os: 'Ubuntu 22.04 LTS',
-        type: 'loadbalancer',
-        role: 'primary',
-        environment: 'production',
-        provider: 'GCP-Mock-Fallback',
-        specs: { cpu_cores: 2, memory_gb: 4, disk_gb: 100, network_speed: '10Gbps' },
-        lastUpdate: timestamp,
-        services: [],
-        systemInfo: {
-          os: 'Ubuntu 22.04 LTS',
-          uptime: '173h',
-          processes: 32,
-          zombieProcesses: 0,
-          loadAverage: '0.50, 0.45, 0.40',
-          lastUpdate: timestamp
-        },
-        networkInfo: {
-          interface: 'eth0',
-          receivedBytes: '53 MB',
-          sentBytes: '33 MB',
+          interface: 'mock0',
+          receivedBytes: '1 MB',
+          sentBytes: '1 MB',
           receivedErrors: 0,
           sentErrors: 0,
           status: 'healthy'
@@ -792,28 +496,26 @@ export class GCPVMClient {
       }
     ];
 
+    console.log(`📋 [GCP-VM-CLIENT] Mock 서버 생성: ${fallbackServers.length}개`);
+
     return {
       success: true,
-      data: mockServers,
-      source: 'fallback',
+      data: fallbackServers,
+      source: 'mock-fallback',
       fallback: true,
-      scenario: {
-        current: 'fallback-mode',
-        korean: '폴백 모드',
-        hour: new Date().getHours()
-      },
+      // 시나리오 정보는 AI 분석 순수성을 위해 제거됨
       pagination: {
         page: 1,
-        limit: mockServers.length,
-        total: mockServers.length,
+        limit: fallbackServers.length,
+        total: fallbackServers.length,
         totalPages: 1,
         hasNext: false,
         hasPrev: false
       },
-      timestamp: new Date().toISOString(),
+      timestamp,
       metadata: {
-        serverCount: mockServers.length,
-        loadMultiplier: 0.3 // 폴백 모드는 낮은 부하로 표시
+        serverCount: fallbackServers.length,
+        loadMultiplier: 0.4
       }
     };
   }

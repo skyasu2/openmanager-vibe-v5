@@ -335,8 +335,7 @@ function generateDynamicServerData() {
   const minute = currentTime.getMinutes();
   const currentScenario = getScenarioByHour(hour);
   
-  console.log(`🎭 현재 시나리오: ${currentScenario.name} (${hour}:${minute.toString().padStart(2, '0')})`);
-  console.log(`📝 설명: ${currentScenario.description}`);
+  // 시나리오 정보는 AI 분석 순수성을 위해 로깅하지 않음
   
   return baseServers.map((server, index) => {
     // 1️⃣ 기본 메트릭 (평상시 상태)
@@ -418,15 +417,8 @@ function generateDynamicServerData() {
         receivedErrors: status === 'critical' ? Math.floor(Math.random() * 50) + 10 : Math.floor(Math.random() * 10),
         sentErrors: status === 'critical' ? Math.floor(Math.random() * 30) + 5 : Math.floor(Math.random() * 10),
         status: status === 'online' ? 'healthy' : status === 'warning' ? 'warning' : 'critical'
-      },
-      // 🎭 시나리오 정보 추가 (디버깅용)
-      scenario: {
-        id: currentScenario.id,
-        name: currentScenario.name,
-        affected: !!failurePattern,
-        phase: failurePattern ? Math.floor(minute / 15) : null,
-        phaseDesc: failurePattern ? ['정상', '경고', '심각', '복구'][Math.floor(minute / 15)] : '정상'
       }
+      // 시나리오 정보는 AI 분석 순수성을 위해 포함하지 않음
     };
   });
 }
@@ -491,10 +483,10 @@ app.get('/api/servers', limiter, validateToken, (req, res) => {
   const currentScenario = getCurrentScenario();
   const currentHour = new Date().getHours();
 
-  // 🚨 현재 장애 상황 요약 생성
+  // 🚨 현재 서버 상태 요약 생성
   const criticalServers = servers.filter(s => s.status === 'critical');
   const warningServers = servers.filter(s => s.status === 'warning');
-  const affectedServers = servers.filter(s => s.scenario.affected);
+  const affectedServers = criticalServers.concat(warningServers);
   
   res.json({
     success: true,
@@ -502,38 +494,20 @@ app.get('/api/servers', limiter, validateToken, (req, res) => {
     source: 'gcp-vm',
     fallback: false,
     cached: wasFromCache,
-    scenario: {
-      // 기존 호환성
-      current: currentScenario.english,
-      korean: currentScenario.korean,
-      hour: currentHour,
-      
-      // 🆕 새로운 상세 시나리오 정보
-      id: currentScenario.id,
-      name: currentScenario.name,
-      description: currentScenario.description,
-      phase: currentScenario.phaseName,
-      phaseId: currentScenario.currentPhase,
-      timeBlock: currentScenario.timeBlock,
-      currentTime: currentScenario.currentTime,
-      timeInPhase: currentScenario.timeInPhase,
-      nextPhaseIn: currentScenario.nextPhaseIn,
-      
-      // 🚨 실시간 장애 상황
-      summary: {
-        criticalCount: criticalServers.length,
-        warningCount: warningServers.length,
-        affectedCount: affectedServers.length,
-        totalServers: servers.length,
-        healthyCount: servers.length - criticalServers.length - warningServers.length,
-        criticalServers: criticalServers.map(s => s.name),
-        warningServers: warningServers.map(s => s.name),
-        affectedServers: affectedServers.map(s => ({ 
-          name: s.name, 
-          phase: s.scenario.phaseDesc,
-          type: s.type 
-        }))
-      }
+    // 시나리오 정보는 AI 분석 순수성을 위해 제거됨
+    summary: {
+      criticalCount: criticalServers.length,
+      warningCount: warningServers.length,
+      affectedCount: affectedServers.length,
+      totalServers: servers.length,
+      healthyCount: servers.length - criticalServers.length - warningServers.length,
+      criticalServers: criticalServers.map(s => s.name),
+      warningServers: warningServers.map(s => s.name),
+      affectedServers: affectedServers.map(s => ({ 
+        name: s.name, 
+        status: s.status,
+        type: s.type 
+      }))
     },
     pagination: {
       page: 1,
