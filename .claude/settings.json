@@ -1,7 +1,11 @@
 {
   "outputStyle": "color",
+  "statusLine": {
+    "type": "command",
+    "command": "ccusage statusline --cost-source auto --visual-burn-rate emoji --no-spinner",
+    "padding": 0
+  },
   "env": {
-    "FORCE_COLOR": "1",
-    "NO_COLOR": "0"
+    "FORCE_COLOR": "1"
   }
 }
