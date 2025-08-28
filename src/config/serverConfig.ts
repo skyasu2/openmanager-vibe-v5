@@ -139,7 +139,13 @@ export function calculateServerConfig(
 export function calculateOptimalUpdateInterval(): number {
   // Edge Runtime 호환성을 위한 안전한 메모리 체크
   try {
-    if (typeof process !== 'undefined' && process.memoryUsage) {
+    // Edge Runtime 완전 호환성 보장 (process 접근 차단)
+    if (typeof window === 'undefined' && 
+        typeof process !== 'undefined' && 
+        process.env?.NODE_ENV !== 'production' &&
+        process.memoryUsage && 
+        typeof process.memoryUsage === 'function') {
+      // Edge Runtime에서는 이 코드에 절대 도달하지 않음
       const memoryUsage = process.memoryUsage();
       const usagePercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
 
@@ -174,15 +180,26 @@ export function calculateOptimalUpdateInterval(): number {
  * 🚨 무료 티어 절약: 기존 35-40초 → 5-10분으로 변경
  */
 export function calculateOptimalCollectionInterval(): number {
-  // 서버 사이드에서는 Node.js process.memoryUsage() 사용
-  if (typeof process !== 'undefined' && process.memoryUsage) {
-    const memoryUsage = process.memoryUsage();
-    const usagePercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
+  // Edge Runtime 호환성을 위한 안전한 메모리 체크
+  try {
+    // Edge Runtime 완전 호환성 보장 (서버 사이드 안전 처리)
+    if (typeof window === 'undefined' && 
+        typeof process !== 'undefined' && 
+        process.env?.NODE_ENV !== 'production' &&
+        process.memoryUsage && 
+        typeof process.memoryUsage === 'function') {
+      // Edge Runtime에서는 이 코드에 절대 도달하지 않음
+      const memoryUsage = process.memoryUsage();
+      const usagePercent = (memoryUsage.heapUsed / memoryUsage.heapTotal) * 100;
 
-    // 🚨 무료 티어 최적화: 5-10분 범위로 대폭 증가
-    if (usagePercent > 80) return 600000; // 높은 사용률: 10분
-    if (usagePercent > 60) return 450000; // 중간 사용률: 7.5분
-    return 300000; // 낮은 사용률: 5분
+      // 🚨 무료 티어 최적화: 5-10분 범위로 대폭 증가
+      if (usagePercent > 80) return 600000; // 높은 사용률: 10분
+      if (usagePercent > 60) return 450000; // 중간 사용률: 7.5분
+      return 300000; // 낮은 사용률: 5분
+    }
+  } catch (error) {
+    // Edge Runtime에서는 process.memoryUsage()가 지원되지 않음
+    console.log('🔧 Edge Runtime 환경 - 데이터 수집 간격 기본값 사용');
   }
 
   // 클라이언트 사이드에서는 performance.memory 사용

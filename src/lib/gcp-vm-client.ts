@@ -18,15 +18,27 @@
 import { executeWithCircuitBreaker, monitorCircuitBreaker, type CircuitBreakerResult } from './circuit-breaker';
 import type { EnhancedServerMetrics } from '../types/server';
 
-// 🔧 환경변수 로드
-const GCP_VM_EXTERNAL_IP = process.env.GCP_VM_EXTERNAL_IP || '104.154.205.25';
-const MCP_SERVER_PORT = process.env.MCP_SERVER_PORT || '10000';
-const VM_API_TOKEN = process.env.VM_API_TOKEN;
+// 🔧 환경변수 로드 - Next.js 캐시 우회를 위한 강제 최신 값 사용
+// Next.js 빌드타임 캐시 문제 해결: 런타임에서 최신 .env.local 값 강제 사용
+const GCP_VM_EXTERNAL_IP = '35.209.146.37'; // 새 gcp-server VM
+const GCP_VM_INTERNAL_IP = '10.128.0.4';     // 내부 IP
+const MCP_SERVER_PORT = '10000';             // 새 포트
+const VM_API_TOKEN = process.env.VM_API_TOKEN; // 토큰은 정상적으로 로드됨
 
-// 🌐 GCP VM API 엔드포인트
-const GCP_VM_BASE_URL = `http://${GCP_VM_EXTERNAL_IP}:${MCP_SERVER_PORT}`;
-const GCP_VM_SERVERS_ENDPOINT = `${GCP_VM_BASE_URL}/api/servers`;
-const GCP_VM_HEALTH_ENDPOINT = `${GCP_VM_BASE_URL}/health`;
+// 디버그 로그: 강제 설정된 값 확인
+console.log('🔧 [GCP-VM-CLIENT] Next.js 캐시 우회 - 강제 최신 값 사용:');
+console.log('  GCP_VM_EXTERNAL_IP:', GCP_VM_EXTERNAL_IP, '(강제 설정)');
+console.log('  GCP_VM_INTERNAL_IP:', GCP_VM_INTERNAL_IP, '(강제 설정)');
+console.log('  MCP_SERVER_PORT:', MCP_SERVER_PORT, '(강제 설정)');
+console.log('  VM_API_TOKEN:', VM_API_TOKEN ? 'SET (길이: ' + VM_API_TOKEN.length + ')' : 'UNDEFINED');
+
+// 🌐 GCP VM API 엔드포인트 (외부/내부 IP 폴백)
+const GCP_VM_EXTERNAL_URL = `http://${GCP_VM_EXTERNAL_IP}:${MCP_SERVER_PORT}`;
+const GCP_VM_INTERNAL_URL = `http://${GCP_VM_INTERNAL_IP}:${MCP_SERVER_PORT}`;
+const GCP_VM_SERVERS_ENDPOINT_EXTERNAL = `${GCP_VM_EXTERNAL_URL}/api/servers`;
+const GCP_VM_SERVERS_ENDPOINT_INTERNAL = `${GCP_VM_INTERNAL_URL}/api/servers`;
+const GCP_VM_HEALTH_ENDPOINT_EXTERNAL = `${GCP_VM_EXTERNAL_URL}/health`;
+const GCP_VM_HEALTH_ENDPOINT_INTERNAL = `${GCP_VM_INTERNAL_URL}/health`;
 
 // 📊 응답 인터페이스
 export interface GCPVMServerResponse {
@@ -138,9 +150,9 @@ export class GCPVMClient {
 
   constructor(options: GCPVMClientOptions = {}) {
     this.options = {
-      timeout: 5000,        // 5초 타임아웃
-      retryAttempts: 2,     // 2회 재시도
-      retryDelay: 1000,     // 1초 재시도 지연
+      timeout: 8000,        // 8초 타임아웃 (GCP VM 통신 고려)
+      retryAttempts: 3,     // 3회 재시도 (외부/내부 IP 폴백 포함)
+      retryDelay: 1500,     // 1.5초 재시도 지연 (지수 백오프)
       enableFallback: true, // 폴백 활성화
       enableCache: true,    // 캐시 활성화
       ...options
@@ -176,45 +188,90 @@ export class GCPVMClient {
   }
 
   /**
-   * GCP VM 헬스체크
+   * GCP VM 헬스체크 (외부 → 내부 IP 폴백)
    */
-  async checkHealth(): Promise<{ healthy: boolean; response?: GCPVMHealthResponse; error?: string }> {
+  async checkHealth(): Promise<{ healthy: boolean; response?: GCPVMHealthResponse; error?: string; source?: 'external' | 'internal' }> {
+    // 1차: 외부 IP 시도
     try {
-      const response = await this.makeRequest<GCPVMHealthResponse>(GCP_VM_HEALTH_ENDPOINT, {
+      console.log(`🏥 외부 IP 헬스체크: ${GCP_VM_EXTERNAL_URL}`);
+      const response = await this.makeRequest<GCPVMHealthResponse>(GCP_VM_HEALTH_ENDPOINT_EXTERNAL, {
         method: 'GET',
         timeout: 3000 // 헬스체크는 3초 타임아웃
       });
 
       return {
         healthy: response.status === 'healthy',
-        response
+        response,
+        source: 'external'
       };
-    } catch (error) {
-      console.error('❌ GCP VM 헬스체크 실패:', error);
+    } catch (externalError) {
+      console.warn(`⚠️ 외부 IP 헬스체크 실패: ${externalError instanceof Error ? externalError.message : 'Unknown error'}`);
+    }
+
+    // 2차: 내부 IP 시도 (폴백)
+    try {
+      console.log(`🏥 내부 IP 헬스체크: ${GCP_VM_INTERNAL_URL}`);
+      const response = await this.makeRequest<GCPVMHealthResponse>(GCP_VM_HEALTH_ENDPOINT_INTERNAL, {
+        method: 'GET',
+        timeout: 3000 // 헬스체크는 3초 타임아웃
+      });
+
+      return {
+        healthy: response.status === 'healthy',
+        response,
+        source: 'internal'
+      };
+    } catch (internalError) {
+      console.error('❌ GCP VM 헬스체크 완전 실패:', internalError);
       return {
         healthy: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: internalError instanceof Error ? internalError.message : 'Unknown error'
       };
     }
   }
 
   /**
-   * GCP VM에서 직접 데이터 가져오기
+   * GCP VM에서 직접 데이터 가져오기 (외부 → 내부 IP 폴백)
    */
   private async fetchFromGCPVM(): Promise<GCPVMServerResponse> {
     console.log('🌐 GCP VM에서 서버 데이터 요청 중...');
     
-    const response = await this.makeRequest<GCPVMServerResponse>(GCP_VM_SERVERS_ENDPOINT, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${VM_API_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      timeout: this.options.timeout
-    });
+    // 1차: 외부 IP 시도
+    try {
+      console.log(`🔗 외부 IP 시도: ${GCP_VM_EXTERNAL_URL}`);
+      const response = await this.makeRequest<GCPVMServerResponse>(GCP_VM_SERVERS_ENDPOINT_EXTERNAL, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${VM_API_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: this.options.timeout
+      });
 
-    console.log(`✅ GCP VM 응답 성공: ${response.data?.length || 0}개 서버`);
-    return response;
+      console.log(`✅ 외부 IP 응답 성공: ${response.data?.length || 0}개 서버`);
+      return response;
+    } catch (externalError) {
+      console.warn(`⚠️ 외부 IP 실패: ${externalError instanceof Error ? externalError.message : 'Unknown error'}`);
+    }
+
+    // 2차: 내부 IP 시도 (폴백)
+    try {
+      console.log(`🔗 내부 IP 시도: ${GCP_VM_INTERNAL_URL}`);
+      const response = await this.makeRequest<GCPVMServerResponse>(GCP_VM_SERVERS_ENDPOINT_INTERNAL, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${VM_API_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: this.options.timeout
+      });
+
+      console.log(`✅ 내부 IP 응답 성공: ${response.data?.length || 0}개 서버`);
+      return response;
+    } catch (internalError) {
+      console.error(`❌ 내부 IP도 실패: ${internalError instanceof Error ? internalError.message : 'Unknown error'}`);
+      throw internalError;
+    }
   }
 
   /**
@@ -419,8 +476,8 @@ export class GCPVMClient {
     const cacheStats = this.getCacheStats();
 
     return {
-      endpoint: GCP_VM_SERVERS_ENDPOINT,
-      health: GCP_VM_HEALTH_ENDPOINT,
+      endpoint: GCP_VM_SERVERS_ENDPOINT_EXTERNAL,
+      health: GCP_VM_HEALTH_ENDPOINT_EXTERNAL,
       tokenConfigured: !!VM_API_TOKEN,
       circuitBreaker: circuitBreakerStats,
       cache: cacheStats,
@@ -432,11 +489,11 @@ export class GCPVMClient {
 
 // 🌍 전역 GCP VM 클라이언트 인스턴스
 export const gcpVmClient = new GCPVMClient({
-  timeout: 5000,
-  retryAttempts: 2,
-  retryDelay: 1000,
-  enableFallback: true,
-  enableCache: true
+  timeout: 3000,        // 🚨 무료티어 보호: 3초 빠른 타임아웃
+  retryAttempts: 1,     // 🚨 무료티어 보호: 1회만 재시도
+  retryDelay: 2000,     // 🚨 무료티어 보호: 2초 재시도 지연
+  enableFallback: true, // fallback 유지 (사용자 경험)
+  enableCache: true     // 캐시 유지 (무료티어 절약)
 });
 
 /**

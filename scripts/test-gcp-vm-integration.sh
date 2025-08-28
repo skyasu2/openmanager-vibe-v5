@@ -18,7 +18,7 @@ readonly BLUE='\033[0;34m'
 readonly NC='\033[0m'
 
 # 📋 설정 변수
-readonly GCP_VM_IP="${GCP_VM_EXTERNAL_IP:-104.154.205.25}"
+readonly GCP_VM_IP="${GCP_VM_EXTERNAL_IP:-35.202.122.78}"
 readonly SERVER_PORT="${MCP_SERVER_PORT:-10000}"
 readonly VM_API_TOKEN="${VM_API_TOKEN:-}"
 readonly NEXT_APP_URL="${NEXT_PUBLIC_APP_URL:-http://localhost:3000}"

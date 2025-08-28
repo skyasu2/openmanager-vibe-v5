@@ -24,20 +24,7 @@ global.fetch = vi.fn().mockImplementation((url: string) => {
     });
   }
 
-  // GCP VM MCP 엔드포인트
-  if (url?.includes('/api/mcp/gcp-vm')) {
-    return Promise.resolve({
-      ok: true,
-      status: 200,
-      statusText: 'OK',
-      json: () =>
-        Promise.resolve({
-          response: 'Mock GCP VM MCP response',
-          confidence: 0.9,
-          engine: 'mock-gcp-vm',
-        }),
-    });
-  }
+  // Removed GCP VM MCP endpoint mock (no longer needed)
 
   // Korean NLP 엔드포인트
   if (url?.includes('korean-nlp')) {

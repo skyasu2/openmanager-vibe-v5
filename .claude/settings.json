@@ -12,5 +12,37 @@
     "NODE_DISABLE_COLORS": "1",
     "FORCE_TTY": "false"
   },
-  "hooks": {}
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[AI 파일 수정 감지] '$(date '+%H:%M:%S')' ${file}' >> .claude/verification-queue.txt"
+          }
+        ]
+      },
+      {
+        "matcher": ".*/(api|auth|security)/.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '[보안 검토 필요] '$(date '+%H:%M:%S')' ${file}' >> .claude/security-review-queue.txt"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command", 
+            "command": "echo '[Claude 세션 시작] '$(date '+%Y-%m-%d %H:%M:%S')' 프로젝트: OpenManager VIBE v5' >> .claude/session.log"
+          }
+        ]
+      }
+    ]
+  }
 }

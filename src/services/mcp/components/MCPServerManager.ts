@@ -142,28 +142,7 @@ export class MCPServerManager {
     // 1. Claude Code용 로컬 MCP 서버 (WSL)
     this.setupDevelopmentServers();
 
-    // 2. GCP VM MCP 서버 (Google AI 자연어 질의용)
-    if (process.env.GCP_MCP_SERVER_URL) {
-      console.log('🌐 GCP VM MCP 서버 감지:', process.env.GCP_MCP_SERVER_URL);
-      this.servers.set('gcp-vm-mcp', {
-        name: 'gcp-vm-mcp',
-        command: 'http', // HTTP 엔드포인트로 통신
-        args: [process.env.GCP_MCP_SERVER_URL],
-        enabled: true,
-        env: {
-          MCP_TYPE: 'google-ai',
-          SERVER_LOCATION: 'gcp-vm',
-        },
-        stats: {
-          totalRequests: 0,
-          successfulRequests: 0,
-          failedRequests: 0,
-          averageResponseTime: 0,
-          lastUsed: Date.now(),
-          healthScore: 100,
-        },
-      });
-    }
+    // Note: GCP VM MCP server removed - VM now serves Express API only
   }
 
   /**

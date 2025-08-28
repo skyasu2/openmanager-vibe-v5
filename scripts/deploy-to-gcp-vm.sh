@@ -24,8 +24,8 @@ readonly SERVER_FILE="$PROJECT_ROOT/scripts/gcp-vm-server.js"
 readonly PACKAGE_FILE="$PROJECT_ROOT/package.json"
 
 # GCP VM 설정 (환경변수에서 로드)
-readonly GCP_VM_IP="${GCP_VM_EXTERNAL_IP:-104.154.205.25}"
-readonly GCP_VM_USER="${GCP_VM_USER:-ubuntu}"
+readonly GCP_VM_IP="${GCP_VM_EXTERNAL_IP:-35.202.122.78}"
+readonly GCP_VM_USER="${GCP_VM_USER:-skyasu2}"
 readonly GCP_VM_PORT="${GCP_VM_SSH_PORT:-22}"
 readonly SERVER_PORT="${MCP_SERVER_PORT:-10000}"
 readonly VM_API_TOKEN="${VM_API_TOKEN:-}"

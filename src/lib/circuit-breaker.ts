@@ -66,11 +66,11 @@ export class CircuitBreaker {
 
   constructor(config: Partial<CircuitBreakerConfig> = {}) {
     this.config = {
-      failureThreshold: 5,           // 5회 연속 실패 시 차단
-      recoveryTimeout: 30 * 1000,    // 30초 후 복구 시도
-      requestTimeout: 5 * 1000,      // 5초 요청 타임아웃
-      halfOpenMaxCalls: 3,           // HALF_OPEN 시 3개 테스트 요청
-      successThreshold: 2,           // 2회 연속 성공 시 복구
+      failureThreshold: 3,           // 🔄 개발 환경 고려: 3회 실패 후 차단 
+      recoveryTimeout: 2 * 60 * 1000, // 🔄 개발 환경 고려: 2분 후 복구 시도
+      requestTimeout: 8 * 1000,      // 🔄 개발 환경 고려: 8초 타임아웃 (gcp-vm-client와 동일)
+      halfOpenMaxCalls: 2,           // 🔄 개발 환경 고려: 2개 테스트 요청
+      successThreshold: 1,           // 🔄 1회 성공으로 복구 (유지)
       ...config
     };
   }
@@ -331,11 +331,11 @@ export class CircuitBreaker {
  * 전역 Circuit Breaker 인스턴스 (GCP VM용)
  */
 export const gcpVmCircuitBreaker = new CircuitBreaker({
-  failureThreshold: 5,        // 5회 연속 실패
-  recoveryTimeout: 30 * 1000, // 30초 복구 대기
-  requestTimeout: 5 * 1000,   // 5초 타임아웃
-  halfOpenMaxCalls: 3,        // 3개 테스트 요청
-  successThreshold: 2         // 2회 성공 시 복구
+  failureThreshold: 2,           // 🚨 무료티어 보호: 2회 연속 실패
+  recoveryTimeout: 10 * 60 * 1000, // 🚨 무료티어 보호: 10분 복구 대기
+  requestTimeout: 3 * 1000,      // 🚨 무료티어 보호: 3초 타임아웃  
+  halfOpenMaxCalls: 1,           // 🚨 무료티어 보호: 1개 테스트 요청
+  successThreshold: 1            // 🚨 무료티어 보호: 1회 성공 시 복구
 });
 
 /**

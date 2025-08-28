@@ -82,58 +82,238 @@ const validateToken = (req, res, next) => {
   next();
 };
 
-// 📊 기본 서버 데이터 (15개 서버 - 기존 API와 동일)
+// 📊 기본 서버 데이터 (10개 온프레미스 서버 - AI 교차 검증 기반 최적화)
 const baseServers = [
-  // 웹 서버들 (5개)
+  // Web Layer (2개) - 고가용성 부하분산
   { id: 'web-01', name: 'web-server-01', type: 'web', baseCpu: 45.2, baseMemory: 78.5, baseDisk: 65.1, baseNetwork: 12.3, baseUptime: 99.8 },
   { id: 'web-02', name: 'web-server-02', type: 'web', baseCpu: 52.8, baseMemory: 68.2, baseDisk: 58.9, baseNetwork: 15.7, baseUptime: 99.5 },
-  { id: 'web-03', name: 'web-server-03', type: 'web', baseCpu: 38.9, baseMemory: 82.1, baseDisk: 71.3, baseNetwork: 9.8, baseUptime: 98.9 },
-  { id: 'web-04', name: 'web-server-04', type: 'web', baseCpu: 67.4, baseMemory: 45.8, baseDisk: 89.2, baseNetwork: 22.1, baseUptime: 97.8 },
-  { id: 'web-05', name: 'web-server-05', type: 'web', baseCpu: 89.3, baseMemory: 91.7, baseDisk: 93.4, baseNetwork: 45.6, baseUptime: 95.2 },
 
-  // 데이터베이스 서버들 (3개)
-  { id: 'db-01', name: 'db-server-01', type: 'database', baseCpu: 23.7, baseMemory: 89.2, baseDisk: 45.8, baseNetwork: 8.5, baseUptime: 99.9 },
-  { id: 'db-02', name: 'db-server-02', type: 'database', baseCpu: 34.2, baseMemory: 76.5, baseDisk: 67.3, baseNetwork: 12.9, baseUptime: 99.7 },
-  { id: 'db-03', name: 'db-server-03', type: 'database', baseCpu: 78.9, baseMemory: 88.4, baseDisk: 89.7, baseNetwork: 25.3, baseUptime: 96.8 },
-
-  // API 서버들 (4개)
+  // API Layer (2개) - 마이크로서비스 부하분산  
   { id: 'api-01', name: 'api-server-01', type: 'api', baseCpu: 67.1, baseMemory: 34.5, baseDisk: 78.2, baseNetwork: 28.7, baseUptime: 98.5 },
   { id: 'api-02', name: 'api-server-02', type: 'api', baseCpu: 45.8, baseMemory: 67.9, baseDisk: 56.4, baseNetwork: 18.2, baseUptime: 99.2 },
-  { id: 'api-03', name: 'api-server-03', type: 'api', baseCpu: 56.7, baseMemory: 78.3, baseDisk: 45.9, baseNetwork: 21.8, baseUptime: 98.8 },
-  { id: 'api-04', name: 'api-server-04', type: 'api', baseCpu: 92.4, baseMemory: 95.7, baseDisk: 87.3, baseNetwork: 52.1, baseUptime: 94.5 },
 
-  // 로드 밸런서 & 캐시 (3개)
-  { id: 'lb-01', name: 'lb-server-01', type: 'loadbalancer', baseCpu: 12.5, baseMemory: 28.9, baseDisk: 35.7, baseNetwork: 67.8, baseUptime: 99.9 },
-  { id: 'lb-02', name: 'lb-server-02', type: 'loadbalancer', baseCpu: 18.2, baseMemory: 34.6, baseDisk: 42.1, baseNetwork: 89.4, baseUptime: 99.8 },
-  { id: 'cache-01', name: 'cache-server-01', type: 'cache', baseCpu: 67.8, baseMemory: 89.5, baseDisk: 23.4, baseNetwork: 45.7, baseUptime: 99.1 }
+  // Data Layer (3개) - Master-Replica + Cache
+  { id: 'db-master', name: 'db-master', type: 'database', baseCpu: 23.7, baseMemory: 89.2, baseDisk: 45.8, baseNetwork: 8.5, baseUptime: 99.9 },
+  { id: 'db-replica', name: 'db-replica', type: 'database', baseCpu: 34.2, baseMemory: 76.5, baseDisk: 67.3, baseNetwork: 12.9, baseUptime: 99.7 },
+  { id: 'cache-01', name: 'redis-cache', type: 'cache', baseCpu: 67.8, baseMemory: 89.5, baseDisk: 23.4, baseNetwork: 45.7, baseUptime: 99.1 },
+
+  // Operations Layer (3개) - 온프레미스 운영 필수
+  { id: 'monitor-01', name: 'monitoring-srv', type: 'monitoring', baseCpu: 38.9, baseMemory: 45.8, baseDisk: 71.3, baseNetwork: 9.8, baseUptime: 98.9 },
+  { id: 'backup-01', name: 'backup-srv', type: 'backup', baseCpu: 18.2, baseMemory: 34.6, baseDisk: 89.2, baseNetwork: 5.4, baseUptime: 99.8 },
+  { id: 'firewall-01', name: 'security-srv', type: 'firewall', baseCpu: 12.5, baseMemory: 28.9, baseDisk: 35.7, baseNetwork: 67.8, baseUptime: 99.9 }
 ];
 
-// 📈 시간대별 부하 패턴 계산
-function getLoadMultiplierByHour(hour) {
-  const patterns = {
-    0: 0.3,  // 심야: 30%
-    3: 0.2,  // 새벽: 20%
-    6: 0.5,  // 아침: 50%
-    9: 0.8,  // 업무시작: 80%
-    12: 1.2, // 점심피크: 120%
-    15: 1.0, // 오후업무: 100%
-    18: 0.9, // 퇴근시간: 90%
-    21: 0.6  // 저녁: 60%
+// 🎭 24시간 순환 장애 시나리오 시스템 (4시간 단위 6가지)
+function getScenarioByHour(hour) {
+  const scenarios = {
+    0: {
+      id: 'backup-crisis',
+      name: '심야 백업 장애',
+      description: '대용량 백업 작업으로 인한 스토리지 및 DB 부하',
+      korean: '심야 백업 장애',
+      english: 'midnight-backup-crisis'
+    },
+    4: {
+      id: 'database-overload', 
+      name: '새벽 DB 장애',
+      description: '배치 작업 및 데이터 동기화로 인한 데이터베이스 과부하',
+      korean: '새벽 DB 장애',
+      english: 'dawn-database-overload'
+    },
+    8: {
+      id: 'api-storm',
+      name: '출근시간 API 폭주',
+      description: '동시 접속자 급증으로 인한 API 서버 과부하',
+      korean: '출근시간 API 폭주',
+      english: 'morning-api-storm'
+    },
+    12: {
+      id: 'web-traffic-peak',
+      name: '점심시간 웹 트래픽 폭주',
+      description: '웹 요청 폭증 및 DDoS 의심 트래픽으로 인한 서버 부하',
+      korean: '점심시간 웹 트래픽 폭주',
+      english: 'lunch-web-traffic-peak'
+    },
+    16: {
+      id: 'cache-failure',
+      name: '오후 캐시 장애',
+      description: '캐시 메모리 포화로 인한 연쇄 DB 부하 발생',
+      korean: '오후 캐시 장애', 
+      english: 'afternoon-cache-failure'
+    },
+    20: {
+      id: 'monitoring-alert',
+      name: '저녁 모니터링 경보',
+      description: '일일 리포트 생성 및 보안 스캔으로 인한 시스템 부하',
+      korean: '저녁 모니터링 경보',
+      english: 'evening-monitoring-alert'
+    }
   };
   
-  // 가장 가까운 시간대 패턴 사용
-  const timeKeys = Object.keys(patterns).map(Number).sort((a, b) => a - b);
-  let closestHour = timeKeys[0];
+  const timeBlock = Math.floor(hour / 4) * 4;
+  return scenarios[timeBlock] || scenarios[0];
+}
+
+// ⚡ 시나리오별 서버 장애 패턴 정의
+function getFailurePattern(scenarioId, serverName, currentMinute) {
+  // 시간 내 진행 패턴: 0-15분(정상) → 15-30분(경고) → 30-45분(심각) → 45-60분(복구)
+  const progressPhase = Math.floor(currentMinute / 15); // 0, 1, 2, 3
   
-  for (const key of timeKeys) {
-    if (hour >= key) {
-      closestHour = key;
-    } else {
-      break;
+  const failurePatterns = {
+    'backup-crisis': {
+      'backup-srv': { 
+        phases: [
+          { cpu: 18, memory: 35, disk: 70 },  // 정상
+          { cpu: 45, memory: 65, disk: 85 },  // 경고
+          { cpu: 67, memory: 78, disk: 92 },  // 심각
+          { cpu: 32, memory: 48, disk: 78 }   // 복구
+        ]
+      },
+      'db-master': {
+        phases: [
+          { cpu: 24, memory: 65, disk: 46 },  // 정상
+          { cpu: 58, memory: 82, disk: 51 },  // 경고
+          { cpu: 72, memory: 89, disk: 58 },  // 심각
+          { cpu: 41, memory: 71, disk: 49 }   // 복구
+        ]
+      }
+    },
+    'database-overload': {
+      'db-master': {
+        phases: [
+          { cpu: 24, memory: 65, disk: 46 },  // 정상
+          { cpu: 67, memory: 87, disk: 52 },  // 경고
+          { cpu: 84, memory: 94, disk: 61 },  // 심각
+          { cpu: 45, memory: 73, disk: 48 }   // 복구
+        ]
+      },
+      'db-replica': {
+        phases: [
+          { cpu: 34, memory: 56, disk: 67 },  // 정상
+          { cpu: 78, memory: 69, disk: 71 },  // 경고
+          { cpu: 85, memory: 74, disk: 76 },  // 심각
+          { cpu: 52, memory: 61, disk: 69 }   // 복구
+        ]
+      },
+      'redis-cache': {
+        phases: [
+          { cpu: 68, memory: 72, disk: 23 },  // 정상
+          { cpu: 72, memory: 87, disk: 28 },  // 경고
+          { cpu: 76, memory: 91, disk: 32 },  // 심각
+          { cpu: 70, memory: 78, disk: 25 }   // 복구
+        ]
+      }
+    },
+    'api-storm': {
+      'api-server-01': {
+        phases: [
+          { cpu: 67, memory: 35, disk: 78 },  // 정상
+          { cpu: 85, memory: 58, disk: 82 },  // 경고
+          { cpu: 94, memory: 71, disk: 89 },  // 심각
+          { cpu: 73, memory: 42, disk: 80 }   // 복구
+        ]
+      },
+      'api-server-02': {
+        phases: [
+          { cpu: 46, memory: 68, disk: 56 },  // 정상
+          { cpu: 78, memory: 79, disk: 61 },  // 경고
+          { cpu: 89, memory: 86, disk: 68 },  // 심각
+          { cpu: 58, memory: 72, disk: 59 }   // 복구
+        ]
+      },
+      'web-server-01': {
+        phases: [
+          { cpu: 45, memory: 78, disk: 65, network: 12 },  // 정상
+          { cpu: 62, memory: 81, disk: 69, network: 67 },  // 경고
+          { cpu: 71, memory: 84, disk: 73, network: 89 },  // 심각
+          { cpu: 52, memory: 79, disk: 67, network: 28 }   // 복구
+        ]
+      }
+    },
+    'web-traffic-peak': {
+      'web-server-01': {
+        phases: [
+          { cpu: 45, memory: 78, disk: 65, network: 12 },  // 정상
+          { cpu: 78, memory: 84, disk: 71, network: 58 },  // 경고
+          { cpu: 92, memory: 89, disk: 78, network: 87 },  // 심각
+          { cpu: 61, memory: 81, disk: 69, network: 34 }   // 복구
+        ]
+      },
+      'web-server-02': {
+        phases: [
+          { cpu: 53, memory: 68, disk: 59, network: 16 },  // 정상
+          { cpu: 71, memory: 82, disk: 64, network: 49 },  // 경고
+          { cpu: 86, memory: 87, disk: 71, network: 78 },  // 심각
+          { cpu: 64, memory: 74, disk: 62, network: 28 }   // 복구
+        ]
+      },
+      'security-srv': {
+        phases: [
+          { cpu: 13, memory: 29, disk: 36, network: 68 },  // 정상
+          { cpu: 45, memory: 52, disk: 41, network: 82 },  // 경고
+          { cpu: 67, memory: 68, disk: 48, network: 91 },  // 심각
+          { cpu: 28, memory: 38, disk: 39, network: 74 }   // 복구
+        ]
+      }
+    },
+    'cache-failure': {
+      'redis-cache': {
+        phases: [
+          { cpu: 68, memory: 72, disk: 23 },  // 정상
+          { cpu: 74, memory: 89, disk: 27 },  // 경고
+          { cpu: 81, memory: 96, disk: 31 },  // 심각
+          { cpu: 71, memory: 79, disk: 25 }   // 복구
+        ]
+      },
+      'db-master': {
+        phases: [
+          { cpu: 24, memory: 65, disk: 46 },  // 정상
+          { cpu: 68, memory: 78, disk: 51 },  // 경고
+          { cpu: 85, memory: 84, disk: 58 },  // 심각
+          { cpu: 42, memory: 69, disk: 48 }   // 복구
+        ]
+      },
+      'monitoring-srv': {
+        phases: [
+          { cpu: 39, memory: 46, disk: 71 },  // 정상
+          { cpu: 52, memory: 61, disk: 81 },  // 경고
+          { cpu: 64, memory: 74, disk: 87 },  // 심각
+          { cpu: 44, memory: 53, disk: 75 }   // 복구
+        ]
+      }
+    },
+    'monitoring-alert': {
+      'monitoring-srv': {
+        phases: [
+          { cpu: 39, memory: 46, disk: 71 },  // 정상
+          { cpu: 65, memory: 67, disk: 86 },  // 경고
+          { cpu: 78, memory: 79, disk: 93 },  // 심각
+          { cpu: 51, memory: 54, disk: 79 }   // 복구
+        ]
+      },
+      'security-srv': {
+        phases: [
+          { cpu: 13, memory: 29, disk: 36, network: 68 },  // 정상
+          { cpu: 67, memory: 58, disk: 42, network: 71 },  // 경고
+          { cpu: 87, memory: 73, disk: 49, network: 76 },  // 심각
+          { cpu: 35, memory: 41, disk: 38, network: 69 }   // 복구
+        ]
+      },
+      'backup-srv': {
+        phases: [
+          { cpu: 18, memory: 35, disk: 70, network: 5 },   // 정상
+          { cpu: 34, memory: 52, disk: 76, network: 58 },  // 경고
+          { cpu: 48, memory: 67, disk: 84, network: 89 },  // 심각
+          { cpu: 25, memory: 43, disk: 73, network: 28 }   // 복구
+        ]
+      }
     }
-  }
+  };
   
-  return patterns[closestHour];
+  const pattern = failurePatterns[scenarioId]?.[serverName];
+  if (!pattern) return null;
+  
+  return pattern.phases[progressPhase] || pattern.phases[0];
 }
 
 // 🎲 랜덤 변동값 생성 (±10% 범위)
@@ -148,26 +328,55 @@ function calculateStatus(cpu, memory) {
   return 'online';
 }
 
-// 📊 동적 서버 데이터 생성 (시간 기반)
+// 📊 24시간 순환 시나리오 기반 동적 서버 데이터 생성
 function generateDynamicServerData() {
   const currentTime = new Date();
   const hour = currentTime.getHours();
-  const loadMultiplier = getLoadMultiplierByHour(hour);
+  const minute = currentTime.getMinutes();
+  const currentScenario = getScenarioByHour(hour);
   
-  console.log(`🕐 현재 시간: ${hour}시, 부하 배수: ${loadMultiplier}`);
+  console.log(`🎭 현재 시나리오: ${currentScenario.name} (${hour}:${minute.toString().padStart(2, '0')})`);
+  console.log(`📝 설명: ${currentScenario.description}`);
   
   return baseServers.map((server, index) => {
-    const cpu = Math.min(95, Math.max(5, server.baseCpu * loadMultiplier + (getRandomVariation() * 100)));
-    const memory = Math.min(95, Math.max(10, server.baseMemory * loadMultiplier + (getRandomVariation() * 100)));
-    const disk = Math.min(95, Math.max(10, server.baseDisk + (getRandomVariation() * 20)));
-    const network = Math.max(0, server.baseNetwork * loadMultiplier + (getRandomVariation() * 50));
-    const uptime = Math.max(90, server.baseUptime + (getRandomVariation() * 5));
+    // 1️⃣ 기본 메트릭 (평상시 상태)
+    let cpu = server.baseCpu;
+    let memory = server.baseMemory; 
+    let disk = server.baseDisk;
+    let network = server.baseNetwork;
+    let uptime = server.baseUptime;
+    
+    // 2️⃣ 시나리오별 장애 패턴 적용 (해당 서버인 경우)
+    const failurePattern = getFailurePattern(currentScenario.id, server.name, minute);
+    if (failurePattern) {
+      console.log(`⚠️  ${server.name} 장애 패턴 적용:`, failurePattern);
+      
+      cpu = failurePattern.cpu || cpu;
+      memory = failurePattern.memory || memory;
+      disk = failurePattern.disk || disk;
+      network = failurePattern.network || network;
+      uptime = Math.max(95, uptime - (failurePattern.cpu > 80 ? 2 : 0)); // 장애 시 uptime 약간 감소
+    }
+    
+    // 3️⃣ 작은 랜덤 변동 추가 (±3% 정도만)
+    const variation = getRandomVariation() * 0.15; // ±1.5% 정도로 축소
+    cpu = Math.min(98, Math.max(5, cpu + (cpu * variation)));
+    memory = Math.min(98, Math.max(10, memory + (memory * variation)));
+    disk = Math.min(98, Math.max(10, disk + (disk * variation)));
+    network = Math.max(0, network + (network * variation));
+    
+    // 4️⃣ 서버 상태 계산 및 알림 개수
+    const status = calculateStatus(cpu, memory);
+    let alerts = 0;
+    if (status === 'critical') alerts = Math.floor(Math.random() * 3) + 2; // 2-4개
+    else if (status === 'warning') alerts = Math.floor(Math.random() * 2) + 1; // 1-2개
+    else alerts = Math.floor(Math.random() * 2); // 0-1개
     
     return {
       id: `server-${Date.now()}-${index}`,
       name: server.name,
       hostname: server.name,
-      status: calculateStatus(cpu, memory),
+      status: status,
       cpu: Math.round(cpu * 100) / 100,
       cpu_usage: Math.round(cpu * 100) / 100,
       memory: Math.round(memory * 100) / 100,
@@ -178,13 +387,13 @@ function generateDynamicServerData() {
       network_in: Math.round(network * 0.6 * 100) / 100,
       network_out: Math.round(network * 0.4 * 100) / 100,
       uptime: uptime * 3600, // 시간을 초로 변환
-      location: 'Seoul-DC-01',
-      alerts: Math.floor(Math.random() * 3),
+      location: 'OnPrem-DC-Main',
+      alerts: alerts,
       ip: `192.168.1.${index + 100}`,
       os: 'Ubuntu 22.04 LTS',
       type: server.type,
       role: 'worker',
-      environment: 'production',
+      environment: 'on-premises',
       provider: 'GCP-VM',
       specs: {
         cpu_cores: Math.ceil(cpu / 25),
@@ -198,7 +407,7 @@ function generateDynamicServerData() {
         os: 'Ubuntu 22.04 LTS',
         uptime: `${Math.floor(uptime)}h`,
         processes: Math.floor(Math.random() * 200) + 50,
-        zombieProcesses: Math.floor(Math.random() * 5),
+        zombieProcesses: status === 'critical' ? Math.floor(Math.random() * 15) + 5 : Math.floor(Math.random() * 5),
         loadAverage: `${(cpu / 100 * 4).toFixed(2)}, ${(cpu / 100 * 3.8).toFixed(2)}, ${(cpu / 100 * 3.5).toFixed(2)}`,
         lastUpdate: currentTime.toISOString()
       },
@@ -206,30 +415,43 @@ function generateDynamicServerData() {
         interface: 'eth0',
         receivedBytes: `${Math.floor(network * 0.6)} MB`,
         sentBytes: `${Math.floor(network * 0.4)} MB`,
-        receivedErrors: Math.floor(Math.random() * 10),
-        sentErrors: Math.floor(Math.random() * 10),
-        status: calculateStatus(cpu, memory) === 'online' ? 'healthy' : 
-                calculateStatus(cpu, memory) === 'warning' ? 'warning' : 'critical'
+        receivedErrors: status === 'critical' ? Math.floor(Math.random() * 50) + 10 : Math.floor(Math.random() * 10),
+        sentErrors: status === 'critical' ? Math.floor(Math.random() * 30) + 5 : Math.floor(Math.random() * 10),
+        status: status === 'online' ? 'healthy' : status === 'warning' ? 'warning' : 'critical'
+      },
+      // 🎭 시나리오 정보 추가 (디버깅용)
+      scenario: {
+        id: currentScenario.id,
+        name: currentScenario.name,
+        affected: !!failurePattern,
+        phase: failurePattern ? Math.floor(minute / 15) : null,
+        phaseDesc: failurePattern ? ['정상', '경고', '심각', '복구'][Math.floor(minute / 15)] : '정상'
       }
     };
   });
 }
 
-// 📊 시나리오 정보 생성
+// 📊 현재 시나리오 정보 생성 (상세 정보 포함)
 function getCurrentScenario() {
-  const currentHour = new Date().getHours();
-  const scenarios = {
-    0: { korean: '심야 유지보수', english: 'midnight-maintenance' },
-    6: { korean: '아침 시작', english: 'morning-startup' },
-    9: { korean: '업무 시작', english: 'work-hours-begin' },
-    12: { korean: '점심 피크', english: 'lunch-peak' },
-    14: { korean: '오후 업무', english: 'afternoon-work' },
-    18: { korean: '퇴근 시간', english: 'evening-rush' },
-    21: { korean: '야간 모드', english: 'night-mode' }
+  const currentTime = new Date();
+  const currentHour = currentTime.getHours();
+  const currentMinute = currentTime.getMinutes();
+  
+  const scenario = getScenarioByHour(currentHour);
+  const progressPhase = Math.floor(currentMinute / 15);
+  const phaseNames = ['정상 상태', '경고 신호', '장애 발생', '복구 진행'];
+  const phaseEnglish = ['normal', 'warning', 'critical', 'recovery'];
+  
+  return {
+    ...scenario,
+    currentPhase: progressPhase,
+    phaseName: phaseNames[progressPhase],
+    phaseEnglish: phaseEnglish[progressPhase],
+    timeInPhase: currentMinute % 15, // 현재 단계에서 몇 분째인지
+    nextPhaseIn: 15 - (currentMinute % 15), // 다음 단계까지 몇 분 남았는지
+    timeBlock: `${Math.floor(currentHour / 4) * 4}:00-${Math.floor(currentHour / 4) * 4 + 3}:59`,
+    currentTime: `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`
   };
-
-  const timeKey = Math.floor(currentHour / 3) * 3;
-  return scenarios[timeKey] || scenarios[12];
 }
 
 // 🔥 헬스 체크 엔드포인트 (토큰 불필요)
@@ -269,6 +491,11 @@ app.get('/api/servers', limiter, validateToken, (req, res) => {
   const currentScenario = getCurrentScenario();
   const currentHour = new Date().getHours();
 
+  // 🚨 현재 장애 상황 요약 생성
+  const criticalServers = servers.filter(s => s.status === 'critical');
+  const warningServers = servers.filter(s => s.status === 'warning');
+  const affectedServers = servers.filter(s => s.scenario.affected);
+  
   res.json({
     success: true,
     data: servers,
@@ -276,9 +503,37 @@ app.get('/api/servers', limiter, validateToken, (req, res) => {
     fallback: false,
     cached: wasFromCache,
     scenario: {
+      // 기존 호환성
       current: currentScenario.english,
       korean: currentScenario.korean,
-      hour: currentHour
+      hour: currentHour,
+      
+      // 🆕 새로운 상세 시나리오 정보
+      id: currentScenario.id,
+      name: currentScenario.name,
+      description: currentScenario.description,
+      phase: currentScenario.phaseName,
+      phaseId: currentScenario.currentPhase,
+      timeBlock: currentScenario.timeBlock,
+      currentTime: currentScenario.currentTime,
+      timeInPhase: currentScenario.timeInPhase,
+      nextPhaseIn: currentScenario.nextPhaseIn,
+      
+      // 🚨 실시간 장애 상황
+      summary: {
+        criticalCount: criticalServers.length,
+        warningCount: warningServers.length,
+        affectedCount: affectedServers.length,
+        totalServers: servers.length,
+        healthyCount: servers.length - criticalServers.length - warningServers.length,
+        criticalServers: criticalServers.map(s => s.name),
+        warningServers: warningServers.map(s => s.name),
+        affectedServers: affectedServers.map(s => ({ 
+          name: s.name, 
+          phase: s.scenario.phaseDesc,
+          type: s.type 
+        }))
+      }
     },
     pagination: {
       page: 1,
@@ -291,7 +546,13 @@ app.get('/api/servers', limiter, validateToken, (req, res) => {
     timestamp: new Date().toISOString(),
     metadata: {
       serverCount: servers.length,
-      loadMultiplier: getLoadMultiplierByHour(currentHour),
+      scenarioSystem: '24h-rotation-v2',
+      cycleInfo: {
+        totalScenarios: 6,
+        scenarioLength: '4 hours',
+        phaseLength: '15 minutes',
+        cycleProgress: `${Math.floor(currentHour / 4) + 1}/6`
+      },
       cacheStats: cache.getStats()
     }
   });

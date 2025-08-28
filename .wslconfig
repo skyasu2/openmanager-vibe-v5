@@ -1,34 +1,52 @@
-# WSL2 최적화 설정
+###############################################
+# OpenManager VIBE v5 WSL2 설정 (2025-08-28) #
+###############################################
 # 경로: %USERPROFILE%\.wslconfig
+# 목적: 호스트 자원 경쟁 최소화 & Node 힙은 npm 스크립트로 가변 제어
+# 적용: 수동 재시작 시만 반영 (지금 즉시 재시작 금지)
 
 [wsl2]
-# 메모리 할당 (32GB 중 24GB 할당 - 개발용 최적화)
-memory=24GB
+# 메모리 상한 (이전 24GB -> 16GB): 호스트 32GB 가정, 50% 선에서 제한
+memory=16GB
 
-# CPU 코어 할당 (16 스레드 모두 활용)
-processors=16
+# CPU 코어 (이전 16 -> 12): Windows / IDE / 브라우저 여유 확보
+processors=12
 
-# 스왑 메모리 (8GB로 증가)
-swap=8GB
+# 스왑 (이전 8GB -> 4GB): 과도한 디스크 I/O 방지, 필요 시 추후 증가
+swap=4GB
 
-# 스왑 파일 경로 (D 드라이브 활용)
+# 스왑 파일 경로 (유지)
 swapFile=D:\\wsl-swap.vhdx
 
-# 로컬호스트 포워딩 활성화
+# 로컬호스트 포워딩
 localhostForwarding=true
 
-# 중첩 가상화 활성화 (Docker 등을 위해)
-nestedVirtualization=true
+# 불명확/비공식 옵션 제거: nestedVirtualization, vmIdleTimeout
 
-# 메모리 회수 모드 (gradual - 점진적 회수로 성능 향상)
-vmIdleTimeout=60000
-
-# 디버그 콘솔 비활성화 (성능 향상)
+# 디버그 콘솔 비활성화 유지
 debugConsole=false
 
 [experimental]
-# 자동 메모리 회수 활성화
+# 점진적 메모리 회수 유지
 autoMemoryReclaim=gradual
 
-# 희소 VHD 활성화 (디스크 공간 절약)
+# 희소 VHD 활성화
 sparseVhd=true
+
+###############################################
+# PREVIOUS CONFIG (REFERENCE ONLY)
+# memory=24GB
+# processors=16
+# swap=8GB
+# nestedVirtualization=true
+# vmIdleTimeout=60000
+###############################################
+
+# 반영 절차 (수동):
+# 1) 모든 WSL 터미널 종료
+# 2) PowerShell: wsl --shutdown
+# 3) 새 WSL 셸: free -h / nproc 확인
+# 4) 필요 시 메모리 모니터링: npm run monitor:memory
+
+# 주간 모니터링 권장:
+#   date >> ~/wsl-mem-samples.log && free -h >> ~/wsl-mem-samples.log
