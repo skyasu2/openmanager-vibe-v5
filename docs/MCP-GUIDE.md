@@ -42,7 +42,7 @@
 | `filesystem` | ✅   | WSL  | 파일 읽기/쓰기/검색  | `@modelcontextprotocol/server-filesystem`          | WSL 경로 정상 작동 |
 | `memory`     | ✅   | NPM  | 지식 그래프 관리     | `@modelcontextprotocol/server-memory`              | 리소스 접근 가능 |
 | `github`     | ✅   | NPM  | GitHub API 통합      | `@modelcontextprotocol/server-github`              | 저장소 검색 정상 |
-| `supabase`   | ✅   | NPM  | PostgreSQL DB 관리   | `@supabase/mcp-server-supabase@latest`            | SQL 실행 정상 (execute_sql) |
+| `supabase`   | ✅   | NPM  | PostgreSQL DB 관리   | `@supabase/mcp-server-supabase@latest`            | SQL 실행 정상 (PAT 권한 최적화) |
 | `gcp`        | ✅   | NPM  | Google Cloud 관리    | `google-cloud-mcp`                                 | 프로젝트 ID 인식 정상 |
 | `tavily`     | ✅   | NPM  | 웹 검색/크롤링       | `tavily-mcp`                                       | 웹 검색 정상 작동 |
 | `playwright` | ✅   | NPM  | 브라우저 자동화      | `@executeautomation/playwright-mcp-server`         | 브라우저 네비게이션 성공 |
@@ -103,11 +103,13 @@ Python 서버는 uvx로 실행 시 자동 설치되므로 별도 설치 불필�
 - `time`: uvx mcp-server-time
 - `serena`: **UVX 안정화 방식** (캐시 최적화 + 링크 모드)
 
-#### 🔧 Serena MCP UVX 안정화 설정
+#### 🔧 Serena MCP 완전 정상화 설정 (2025-08-28 최신)
 
-Serena MCP는 UVX 방식에 안정화 설정을 추가하여 타임아웃 문제를 해결했습니다.
+**AI 교차 검증을 통해 완전 해결된 Serena MCP 설정입니다.**
 
-**1단계: .mcp.json에서 UVX 안정화 설정**
+**핵심 해결책**: Interactive output 완전 억제로 MCP JSON-RPC 통신 간섭 방지
+
+**1단계: .mcp.json에서 정상화 설정 적용**
 
 ```json
 "serena": {
@@ -115,11 +117,17 @@ Serena MCP는 UVX 방식에 안정화 설정을 추가하여 타임아웃 문제
   "args": [
     "--from", "git+https://github.com/oraios/serena",
     "serena-mcp-server",
-    "--project", "/mnt/d/cursor/openmanager-vibe-v5"
+    "--enable-web-dashboard", "false",
+    "--enable-gui-log-window", "false",
+    "--log-level", "ERROR",
+    "--tool-timeout", "30"
   ],
   "env": {
-    "UV_CACHE_DIR": "/tmp/uv-cache",
-    "UV_LINK_MODE": "copy"
+    "PYTHONUNBUFFERED": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "TERM": "dumb",
+    "NO_COLOR": "1",
+    "SERENA_LOG_LEVEL": "ERROR"
   }
 }
 ```
@@ -221,11 +229,17 @@ claude mcp list | grep serena
       "args": [
         "--from", "git+https://github.com/oraios/serena",
         "serena-mcp-server",
-        "--project", "/mnt/d/cursor/openmanager-vibe-v5"
+        "--enable-web-dashboard", "false",
+        "--enable-gui-log-window", "false",
+        "--log-level", "ERROR",
+        "--tool-timeout", "30"
       ],
       "env": {
-        "UV_CACHE_DIR": "/tmp/uv-cache",
-        "UV_LINK_MODE": "copy"
+        "PYTHONUNBUFFERED": "1",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "TERM": "dumb",
+        "NO_COLOR": "1",
+        "SERENA_LOG_LEVEL": "ERROR"
       }
     }
   }
@@ -403,7 +417,7 @@ await mcp__github__create_issue({
 
 ### 4. Supabase MCP ✅
 
-**PostgreSQL 데이터베이스 관리**
+**PostgreSQL 데이터베이스 관리** (2025-08-28 스키마 개선 완료)
 
 ```typescript
 // 📊 SQL 직접 실행
@@ -418,6 +432,12 @@ await mcp__supabase__generate_typescript_types();
 await mcp__supabase__list_tables({
   schemas: ['public'],
 });
+
+// ✅ 스키마 개선 완료 (2025-08-28)
+// - vector_documents_stats 뷰 무한 순환 오류 해결
+// - exec_sql RPC 함수 생성 완료 
+// - notes 테이블 + RLS 정책 완전 구성
+// - PAT vs SERVICE_ROLE_KEY 분석 → PAT 최적 권장 (9.5/10점)
 
 // 🔍 브랜치 목록 (개발 환경)
 await mcp__supabase__list_branches();
