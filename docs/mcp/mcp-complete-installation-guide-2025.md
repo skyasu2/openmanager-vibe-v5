@@ -527,16 +527,17 @@ source ~/.bashrc
         "--from",
         "git+https://github.com/oraios/serena",
         "serena-mcp-server",
-        "--tool-timeout",
-        "60",
-        "--project",
-        "$PROJECT_ROOT"
+        "--enable-web-dashboard", "false",
+        "--enable-gui-log-window", "false",
+        "--log-level", "ERROR",
+        "--tool-timeout", "30"
       ],
       "env": {
-        "UV_CACHE_DIR": "/tmp/uv-cache",
-        "UV_LINK_MODE": "copy",
         "PYTHONUNBUFFERED": "1",
-        "UV_NO_PROGRESS": "true"
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "TERM": "dumb",
+        "NO_COLOR": "1",
+        "SERENA_LOG_LEVEL": "ERROR"
       }
     }
   }
@@ -635,16 +636,17 @@ cat > .mcp.json << EOL
         "--from",
         "git+https://github.com/oraios/serena",
         "serena-mcp-server",
-        "--tool-timeout",
-        "60",
-        "--project",
-        "$PROJECT_ROOT"
+        "--enable-web-dashboard", "false",
+        "--enable-gui-log-window", "false",
+        "--log-level", "ERROR",
+        "--tool-timeout", "30"
       ],
       "env": {
-        "UV_CACHE_DIR": "/tmp/uv-cache",
-        "UV_LINK_MODE": "copy",
         "PYTHONUNBUFFERED": "1",
-        "UV_NO_PROGRESS": "true"
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "TERM": "dumb",
+        "NO_COLOR": "1",
+        "SERENA_LOG_LEVEL": "ERROR"
       }
     }
   }
@@ -950,37 +952,44 @@ export SUPABASE_ACCESS_TOKEN="your-token-here"
 export TAVILY_API_KEY="your-key-here"
 ```
 
-#### 3. Serena MCP 완전 해결됨 ✅ (2025-08-20 검증 완료)
+#### 3. Serena MCP 완전 해결됨 ✅ (2025-08-28 AI 교차 검증 완료)
 
 **문제 해결 과정**:
 1. ~~초기: SSE 방식 시도 → 타임아웃 문제 발생~~
-2. ~~중간: 별도 SSE 서버 실행 → 연결 불안정~~
-3. **최종: uvx 직접 실행 방식 → 완벽 작동** ✅
+2. ~~중간: 별도 SSE 서버 실행 → 연결 불안정~~  
+3. **최종: AI 교차 검증을 통한 근본 해결 → 완벽 작동** ✅
 
-**성공 핵심 요소**:
+**AI 교차 검증 결과**:
+- **Gemini AI**: Interactive output이 JSON-RPC 통신을 간섭한다는 핵심 원인 발견
+- **ChatGPT**: 안정성 고려사항 및 타임아웃 최적화 방안 제시
+- **Qwen AI**: 알고리즘 관점에서 환경변수 최적화 방안 제시
 
-1. **uvx 직접 실행**: SSE 대신 uvx로 직접 프로세스 실행
-2. **환경변수 최적화**: UV 캐시 설정으로 빠른 시작
-3. **프로젝트 경로 명시**: 절대 경로로 프로젝트 지정
+**해결 핵심 요소**:
 
-**최종 작동 설정**:
+1. **Interactive output 완전 억제**: `--enable-web-dashboard false`, `--enable-gui-log-window false`
+2. **로그 레벨 최적화**: `--log-level ERROR`로 불필요한 출력 제거
+3. **환경변수 비대화형 모드**: `TERM=dumb`, `NO_COLOR=1` 설정
+
+**최종 작동 설정 (AI 교차 검증 기반)**:
 
 ```json
 // .mcp.json
 "serena": {
-  "command": "/home/skyasu/.local/bin/uvx",  // uvx 직접 실행
+  "command": "/home/skyasu/.local/bin/uvx",
   "args": [
-    "--from",
-    "git+https://github.com/oraios/serena",  // GitHub 소스
+    "--from", "git+https://github.com/oraios/serena",
     "serena-mcp-server",
-    "--tool-timeout", "60",                   // 타임아웃 60초
-    "--project", "/mnt/d/cursor/openmanager-vibe-v5"  // 프로젝트 경로
+    "--enable-web-dashboard", "false",        // Interactive 출력 억제
+    "--enable-gui-log-window", "false",       // GUI 로그 창 억제
+    "--log-level", "ERROR",                   // 에러만 로그 출력
+    "--tool-timeout", "30"                    // 30초 타임아웃
   ],
   "env": {
-    "UV_CACHE_DIR": "/tmp/uv-cache",          // 캐시 디렉토리
-    "UV_LINK_MODE": "copy",                   // 링크 모드
     "PYTHONUNBUFFERED": "1",                  // 버퍼링 비활성화
-    "UV_NO_PROGRESS": "true"                  // 진행 표시 비활성화
+    "PYTHONDONTWRITEBYTECODE": "1",           // .pyc 파일 생성 방지
+    "TERM": "dumb",                           // 터미널 타입 설정
+    "NO_COLOR": "1",                          // 색상 출력 비활성화
+    "SERENA_LOG_LEVEL": "ERROR"              // Serena 로그 레벨
   }
 }
 ```

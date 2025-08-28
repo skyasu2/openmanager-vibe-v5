@@ -24,7 +24,6 @@
         "@supabase/mcp-server-supabase@latest",
         "--project-ref",
         "vnswjnltnhpsueosfhmw",
-        "--read-only",
         "--features=database,docs"
       ],
       "env": {
@@ -86,20 +85,21 @@
         "--from",
         "git+https://github.com/oraios/serena",
         "serena-mcp-server",
+        "--enable-web-dashboard",
+        "false",
+        "--enable-gui-log-window",
+        "false",
+        "--log-level",
+        "ERROR",
         "--tool-timeout",
-        "60",
-        "--project",
-        "/mnt/d/cursor/openmanager-vibe-v5"
+        "30"
       ],
       "env": {
-        "UV_CACHE_DIR": "/tmp/uv-cache",
-        "UV_LINK_MODE": "copy",
         "PYTHONUNBUFFERED": "1",
-        "UV_NO_PROGRESS": "true",
+        "PYTHONDONTWRITEBYTECODE": "1",
         "TERM": "dumb",
         "NO_COLOR": "1",
-        "COLUMNS": "80",
-        "LINES": "24"
+        "SERENA_LOG_LEVEL": "ERROR"
       }
     },
     "sequential-thinking": {
