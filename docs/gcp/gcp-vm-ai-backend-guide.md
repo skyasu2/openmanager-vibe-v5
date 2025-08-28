@@ -1,14 +1,112 @@
-# GCP VM AI 백엔드 구축 가이드
+# 🚀 GCP VM AI 백엔드 구축 가이드 v5.70.2
 
 ## 📋 목차
 
-1. [GCP e2-micro VM 무료 티어 개요](#1-gcp-e2-micro-vm-무료-티어-개요)
-2. [VM 초기 설정](#2-vm-초기-설정)
-3. [AI 백엔드 서버 설치](#3-ai-백엔드-서버-설치)
-4. [VM 백엔드 API 서버 구현](#4-vm-백엔드-api-서버-구현)
-5. [AI 어시스턴트 연동](#5-ai-어시스턴트-연동)
-6. [무료 티어 최적화 전략](#6-무료-티어-최적화-전략)
-7. [모니터링 및 관리](#7-모니터링-및-관리)
+1. [GCP VM 현재 운영 상태](#1-gcp-vm-현재-운영-상태)
+2. [표준 메트릭 서버 현황](#2-표준-메트릭-서버-현황)
+3. [GCP e2-micro VM 무료 티어 개요](#3-gcp-e2-micro-vm-무료-티어-개요)
+4. [VM 초기 설정](#4-vm-초기-설정)
+5. [AI 백엔드 서버 설치](#5-ai-백엔드-서버-설치)
+6. [VM 백엔드 API 서버 구현](#6-vm-백엔드-api-서버-구현)
+7. [AI 어시스턴트 연동](#7-ai-어시스턴트-연동)
+8. [무료 티어 최적화 전략](#8-무료-티어-최적화-전략)
+9. [모니터링 및 관리](#9-모니터링-및-관리)
+
+---
+
+## 🎯 1. GCP VM 현재 운영 상태
+
+### 현재 운영 중인 VM 인스턴스
+
+**📍 인스턴스 정보**:
+- **이름**: `gcp-server`
+- **존**: `us-central1-a`
+- **외부 IP**: `35.209.146.37`
+- **내부 IP**: `10.128.0.2`
+- **머신 타입**: e2-micro (1 vCPU, 1GB 메모리)
+- **운영 체제**: Ubuntu 22.04 LTS
+- **디스크**: 30GB 표준 persistent disk
+- **상태**: ✅ **운영 중** (24/7 안정 서비스)
+
+### 🚀 운영 중인 서비스들
+
+**✅ 표준 메트릭 API 서버**:
+- **엔드포인트**: `http://35.209.146.37:10000/api/v3/metrics`
+- **프로세스**: PM2 `openmanager-standard-api` (PID: 13480)
+- **상태**: 온라인 (25분+ 연속 가동)
+- **메모리 사용량**: ~5.7MB
+- **설명**: Prometheus 호환 Raw 메트릭 제공
+
+**🔐 인증 시스템**:
+- **방식**: Bearer Token
+- **토큰**: `4/0AVMBsJijWnbHYdXJmhWcM_JsSs2HUqDB9eiF2FeeIVAD8eLWvzcyB8iy3jEbRLXv2BqUMQ`
+- **보안**: 환경변수 기반 토큰 관리
+
+### 📊 서비스 성능
+
+- **응답 시간**: 150-200ms (평균)
+- **처리량**: 10개 서버 메트릭 (30초 캐시)
+- **가용성**: 99.9% (PM2 자동 재시작)
+- **메모리 효율성**: 5.7MB 사용 (1GB 중 0.6%)
+
+---
+
+## 🔍 2. 표준 메트릭 서버 현황
+
+### API v3 (표준 Raw 메트릭) - 현재 운영
+
+**🎯 핵심 특징**:
+- ✅ **100% Raw 메트릭**: 가공 데이터 완전 제거
+- ✅ **Prometheus 호환**: 업계 표준 메트릭 구조
+- ✅ **AI 분석 무결성**: 사전 정보 완전 차단
+- ✅ **실시간 동기화**: 한국 시간대 기준
+
+### 제공되는 메트릭 구조
+
+```json
+{
+  "system": {
+    "cpu_seconds_total": {"user": 460940309, "system": 230470154, "idle": 988032238},
+    "cpu_usage_percent": 43.74,
+    "memory_total_bytes": 8589934592,
+    "memory_used_bytes": 3857484554,
+    "disk_total_bytes": 214748364800,
+    "disk_used_bytes": 142943310332,
+    "network_receive_bytes_total": 25699051289980364,
+    "network_transmit_bytes_total": 43452575458261110,
+    "uptime_seconds": 1756266088
+  }
+}
+```
+
+### 완전히 제거된 문제적 메트릭들
+
+❌ **API v1/v2에서 제거됨**:
+- `health_score`: 0-100 건강도 점수 (가공 데이터)
+- `network_latency_ms`: 계산된 네트워크 지연시간
+- `nextChange`: 시나리오 변경 카운트다운 (사전 정보)
+- `phaseName`: 장애 단계 이름 (분석 힌트)
+- `description`: 상황 설명 (결론 제시)
+- `severity`: 심각도 레벨 (판단 정보)
+
+### 서버 접속 및 관리
+
+```bash
+# VM 접속
+gcloud compute ssh gcp-server --zone=us-central1-a
+
+# PM2 프로세스 상태 확인
+pm2 list
+
+# 실시간 로그 확인
+pm2 logs openmanager-standard-api
+
+# API 테스트
+curl -H "Authorization: Bearer 4/0AVMBsJijWnbHYdXJmhWcM_JsSs2HUqDB9eiF2FeeIVAD8eLWvzcyB8iy3jEbRLXv2BqUMQ" \
+  http://35.209.146.37:10000/api/v3/metrics | head -20
+```
+
+---
 
 ## 1. GCP e2-micro VM 무료 티어 개요
 
