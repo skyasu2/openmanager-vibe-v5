@@ -20,6 +20,265 @@ const ensureNumber = (value: number | undefined, fallback: number = 0): number =
   return typeof value === 'number' && !isNaN(value) ? value : fallback;
 };
 
+/**
+ * 🎯 Box-Muller 변환을 사용한 정규분포 난수 생성기
+ * Math.random() 대체용 - 더 현실적인 서버 메트릭 시뮬레이션
+ * 
+ * @param mean 평균값
+ * @param stdDev 표준편차  
+ * @param min 최솟값 (선택적)
+ * @param max 최댓값 (선택적)
+ * @returns 정규분포를 따르는 난수
+ */
+function generateNormalRandom(mean: number, stdDev: number, min?: number, max?: number): number {
+  // Box-Muller 변환 구현
+  let u = 0, v = 0;
+  while(u === 0) u = Math.random(); // 0 방지
+  while(v === 0) v = Math.random();
+  
+  const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  const result = z * stdDev + mean;
+  
+  // 범위 제한 (선택적)
+  if (min !== undefined && max !== undefined) {
+    return Math.max(min, Math.min(max, result));
+  }
+  
+  return result;
+}
+
+/**
+ * 📋 서버 타입별 특성 및 장애 시나리오 정의
+ * 각 서버 종류의 고유 특성과 장애 패턴 반영
+ */
+interface ServerTypeProfile {
+  type: string;
+  normalRanges: {
+    cpu: [number, number];    // [min, max] 정상 범위
+    memory: [number, number]; 
+    disk: [number, number];
+    network: [number, number];
+  };
+  scenarios: {
+    [key: string]: {
+      name: string;
+      probability: number; // 0-1 확률
+      effects: {
+        cpu?: number;     // 기준값 대비 변화량
+        memory?: number;
+        disk?: number; 
+        network?: number;
+      };
+      status: 'online' | 'warning' | 'critical';
+    };
+  };
+}
+
+/**
+ * 🏗️ 10개 서버별 타입 프로파일 및 시나리오 매핑
+ */
+const serverTypeProfiles: Record<string, ServerTypeProfile> = {
+  // 웹서버 (2개): 트래픽 부하 중심
+  'web': {
+    type: 'web',
+    normalRanges: {
+      cpu: [20, 60],
+      memory: [30, 70], 
+      disk: [40, 80],
+      network: [10, 30]
+    },
+    scenarios: {
+      'traffic_spike': {
+        name: '트래픽 폭증',
+        probability: 0.15,
+        effects: { cpu: +25, memory: +15, network: +40 },
+        status: 'warning'
+      },
+      'ddos_attack': {
+        name: 'DDoS 공격',
+        probability: 0.03,
+        effects: { cpu: +45, memory: +35, network: +80 },
+        status: 'critical'
+      }
+    }
+  },
+  
+  // API서버 (2개): 동시 요청 및 메모리 누수
+  'api': {
+    type: 'api',
+    normalRanges: {
+      cpu: [25, 65],
+      memory: [40, 80],
+      disk: [30, 60], 
+      network: [15, 35]
+    },
+    scenarios: {
+      'memory_leak': {
+        name: '메모리 누수',
+        probability: 0.12,
+        effects: { cpu: +10, memory: +30 },
+        status: 'warning'
+      },
+      'concurrent_overload': {
+        name: '동시요청 폭증',
+        probability: 0.08,
+        effects: { cpu: +35, memory: +25, network: +30 },
+        status: 'critical'
+      }
+    }
+  },
+  
+  // DB서버 (2개): 쿼리 부하 및 디스크 I/O
+  'database': {
+    type: 'database', 
+    normalRanges: {
+      cpu: [15, 40],
+      memory: [50, 85],
+      disk: [60, 90],
+      network: [5, 20]
+    },
+    scenarios: {
+      'slow_query': {
+        name: '느린 쿼리',
+        probability: 0.10,
+        effects: { cpu: +20, memory: +15, disk: +10 },
+        status: 'warning'
+      },
+      'disk_full': {
+        name: '디스크 풀',
+        probability: 0.05,
+        effects: { cpu: +30, memory: +20, disk: +25 },
+        status: 'critical'
+      }
+    }
+  },
+  
+  // 캐시서버 (1개): 메모리 중심
+  'cache': {
+    type: 'cache',
+    normalRanges: {
+      cpu: [10, 50],
+      memory: [40, 90], 
+      disk: [20, 50],
+      network: [20, 60]
+    },
+    scenarios: {
+      'cache_miss_storm': {
+        name: '캐시 미스 폭증',
+        probability: 0.08,
+        effects: { cpu: +30, memory: +20, network: +50 },
+        status: 'warning'
+      }
+    }
+  },
+  
+  // 모니터링서버 (1개): 로그 수집
+  'monitoring': {
+    type: 'monitoring',
+    normalRanges: {
+      cpu: [15, 45],
+      memory: [30, 70],
+      disk: [50, 95], 
+      network: [10, 25]
+    },
+    scenarios: {
+      'log_burst': {
+        name: '로그 폭증',
+        probability: 0.12,
+        effects: { cpu: +20, disk: +15, network: +25 },
+        status: 'warning'
+      }
+    }
+  },
+  
+  // 보안서버 (1개): 스캔 작업
+  'security': {
+    type: 'security',
+    normalRanges: {
+      cpu: [10, 35],
+      memory: [40, 75],
+      disk: [60, 85],
+      network: [5, 15]
+    },
+    scenarios: {
+      'security_scan': {
+        name: '보안 스캔',
+        probability: 0.15,
+        effects: { cpu: +25, memory: +10, disk: +10 },
+        status: 'warning'
+      }
+    }
+  },
+  
+  // 백업서버 (1개): 백업 작업
+  'backup': {
+    type: 'backup',
+    normalRanges: {
+      cpu: [20, 60],
+      memory: [15, 40],
+      disk: [30, 80],
+      network: [10, 40]
+    },
+    scenarios: {
+      'backup_running': {
+        name: '백업 실행 중',
+        probability: 0.20,
+        effects: { cpu: +25, disk: +20, network: +35 },
+        status: 'warning'
+      }
+    }
+  }
+};
+
+/**
+ * 🎯 서버 타입별 현실적인 메트릭 생성 
+ * 장애 시나리오와 상관관계 모두 적용
+ */
+function generateRealisticMetrics(serverType: string, baseCpu: number, baseMemory: number, baseDisk: number) {
+  const profile = serverTypeProfiles[serverType] || serverTypeProfiles['web'];
+  
+  // 1단계: 장애 시나리오 확인
+  let scenarioEffect = { cpu: 0, memory: 0, disk: 0, network: 0 };
+  let currentStatus: 'online' | 'warning' | 'critical' = 'online';
+  
+  for (const [key, scenario] of Object.entries(profile.scenarios)) {
+    if (Math.random() < scenario.probability) {
+      scenarioEffect.cpu += scenario.effects.cpu || 0;
+      scenarioEffect.memory += scenario.effects.memory || 0; 
+      scenarioEffect.disk += scenario.effects.disk || 0;
+      scenarioEffect.network += scenario.effects.network || 0;
+      currentStatus = scenario.status;
+      console.log(`🚨 [${serverType}] ${scenario.name} 시나리오 활성화`);
+      break; // 하나의 시나리오만 활성화
+    }
+  }
+  
+  // 2단계: CPU-Memory 상관관계 적용
+  const correlation = 0.6;
+  const cpuNoise = generateNormalRandom(0, 5, -15, 15);
+  const newCpu = Math.max(1, Math.min(95, baseCpu + cpuNoise + scenarioEffect.cpu));
+  
+  const correlatedMemoryChange = cpuNoise * correlation;  
+  const independentMemoryNoise = generateNormalRandom(0, 3, -10, 10) * Math.sqrt(1 - correlation * correlation);
+  const memoryChange = correlatedMemoryChange + independentMemoryNoise + scenarioEffect.memory;
+  const newMemory = Math.max(5, Math.min(95, baseMemory + memoryChange));
+  
+  // 3단계: 디스크 및 네트워크 독립적 변화
+  const diskNoise = generateNormalRandom(0, 2, -5, 5);
+  const newDisk = Math.max(5, Math.min(98, baseDisk + diskNoise + scenarioEffect.disk));
+  
+  const networkBase = generateNormalRandom(15, 8, 5, 50); // 네트워크는 베이스가 변동적
+  const newNetwork = Math.max(1, networkBase + scenarioEffect.network);
+  
+  return {
+    cpu: newCpu,
+    memory: newMemory, 
+    disk: newDisk,
+    network: newNetwork,
+    status: currentStatus
+  };
+}
+
 // 정렬 키 타입 정의 강화
 type SortableKey = keyof Pick<ServerMetrics, 'cpu' | 'memory' | 'disk' | 'network' | 'uptime' | 'name'>;
 
@@ -295,59 +554,69 @@ function generateStaticServers(): EnhancedServerMetrics[] {
     }
   ];
 
-  // VM 데이터를 EnhancedServerMetrics 형식으로 변환
+  // VM 데이터를 EnhancedServerMetrics 형식으로 변환 - 장애 시나리오 시스템 적용
   return staticVMData.map((vmServer, index) => {
     const memoryUsagePercent = (vmServer.system.memory_used_bytes / vmServer.system.memory_total_bytes) * 100;
     const diskUsagePercent = (vmServer.system.disk_used_bytes / vmServer.system.disk_total_bytes) * 100;
-    const networkIn = Math.random() * 15 + 5; // 5-20 MB/s
-    const networkOut = Math.random() * 10 + 3; // 3-13 MB/s
+    
+    // 🎯 서버 타입별 현실적인 메트릭 생성 (장애 시나리오 포함)
+    const realisticMetrics = generateRealisticMetrics(
+      vmServer.metadata.server_type, 
+      vmServer.system.cpu_usage_percent,
+      memoryUsagePercent,
+      diskUsagePercent
+    );
+    
+    // 🌐 네트워크 메트릭 분리 (IN/OUT)
+    const networkIn = realisticMetrics.network * 0.6;  // 60% IN
+    const networkOut = realisticMetrics.network * 0.4; // 40% OUT
     
     return {
       id: vmServer.server_id,
       name: vmServer.hostname,
       hostname: vmServer.hostname,
-      status: vmServer.status as 'online' | 'offline' | 'warning' | 'critical',
-      cpu: vmServer.system.cpu_usage_percent,
-      cpu_usage: vmServer.system.cpu_usage_percent,
-      memory: memoryUsagePercent,
-      memory_usage: memoryUsagePercent,
-      disk: diskUsagePercent,
-      disk_usage: diskUsagePercent,
-      network: networkIn + networkOut,
+      status: realisticMetrics.status,  // 🚨 시나리오 기반 동적 상태
+      cpu: realisticMetrics.cpu,
+      cpu_usage: realisticMetrics.cpu,
+      memory: realisticMetrics.memory,
+      memory_usage: realisticMetrics.memory,
+      disk: realisticMetrics.disk,
+      disk_usage: realisticMetrics.disk,
+      network: realisticMetrics.network,
       network_in: networkIn,
       network_out: networkOut,
       uptime: vmServer.system.uptime_seconds,
       location: 'Seoul-DC-01',
-      alerts: vmServer.status === 'critical' ? 3 : vmServer.status === 'warning' ? 1 : 0,
+      alerts: realisticMetrics.status === 'critical' ? 3 : realisticMetrics.status === 'warning' ? 1 : 0, // 🚨 동적 알람 수
       ip: vmServer.metadata.ip,
       os: vmServer.metadata.os,
       type: vmServer.metadata.server_type,
       role: vmServer.metadata.role,
       environment: 'production',
-      provider: 'GCP-VM-Static-Integrated',
+      provider: 'GCP-VM-Scenario-Enhanced', // 🎯 시나리오 기반 표시
       specs: {
         cpu_cores: vmServer.specs.cpu_cores,
         memory_gb: vmServer.specs.memory_gb,
         disk_gb: vmServer.specs.disk_gb,
         network_speed: '1Gbps'
       },
-      lastUpdate: vmServer.timestamp,
+      lastUpdate: new Date().toISOString(), // 🔄 실시간 타임스탬프
       services: [],
       systemInfo: {
         os: vmServer.metadata.os,
         uptime: Math.floor(vmServer.system.uptime_seconds / 3600) + 'h',
-        processes: 120 + index * 15,
-        zombieProcesses: vmServer.status === 'critical' ? 5 : 0,
-        loadAverage: `${(vmServer.system.cpu_usage_percent / 20).toFixed(2)}, ${((vmServer.system.cpu_usage_percent - 5) / 20).toFixed(2)}, ${((vmServer.system.cpu_usage_percent - 10) / 20).toFixed(2)}`,
-        lastUpdate: vmServer.timestamp
+        processes: 120 + index * 15 + (realisticMetrics.status === 'critical' ? 50 : 0), // 🚨 장애 시 프로세스 증가
+        zombieProcesses: realisticMetrics.status === 'critical' ? 5 : realisticMetrics.status === 'warning' ? 2 : 0,
+        loadAverage: `${(realisticMetrics.cpu / 20).toFixed(2)}, ${((realisticMetrics.cpu - 5) / 20).toFixed(2)}, ${((realisticMetrics.cpu - 10) / 20).toFixed(2)}`, // 🎯 실제 CPU 기반
+        lastUpdate: new Date().toISOString()
       },
       networkInfo: {
         interface: 'eth0',
         receivedBytes: `${networkIn.toFixed(1)} MB`,
         sentBytes: `${networkOut.toFixed(1)} MB`,
-        receivedErrors: vmServer.status === 'critical' ? 3 : 0,
-        sentErrors: vmServer.status === 'critical' ? 2 : 0,
-        status: vmServer.status === 'online' ? 'healthy' : vmServer.status
+        receivedErrors: realisticMetrics.status === 'critical' ? Math.floor(Math.random() * 10) + 5 : realisticMetrics.status === 'warning' ? Math.floor(Math.random() * 3) + 1 : 0,
+        sentErrors: realisticMetrics.status === 'critical' ? Math.floor(Math.random() * 8) + 3 : realisticMetrics.status === 'warning' ? Math.floor(Math.random() * 2) : 0,
+        status: realisticMetrics.status === 'online' ? 'healthy' : realisticMetrics.status // 🚨 동적 네트워크 상태
       }
     };
   });
@@ -373,11 +642,20 @@ export async function GET(request: NextRequest) {
     let dataSource = 'unknown';
     let fallbackUsed = false;
 
-    try {
-      // 🎯 1차: GCP VM에서 데이터 가져오기 시도
-      console.log('🚀 [API-ROUTE] GCP VM 서버 데이터 요청 중...');
-      console.log('📍 [API-ROUTE] 요청 URL:', request.url);
-      console.log('🔧 [API-ROUTE] 요청 파라미터 상세:', { sortBy, sortOrder, page, limit, search });
+    // 🧪 테스트 모드: 강제로 시나리오 시스템 사용
+    const forceScenarioMode = searchParams.get('test_scenarios') === 'true' || process.env.FORCE_SCENARIO_MODE === 'true';
+    
+    if (forceScenarioMode) {
+      console.log('🎭 [TEST-MODE] 강제 시나리오 모드 활성화 - 새로운 장애 시나리오 시스템 테스트');
+      enhancedServers = generateStaticServers();
+      dataSource = 'scenario-test';
+      fallbackUsed = true;
+    } else {
+      try {
+        // 🎯 1차: GCP VM에서 데이터 가져오기 시도
+        console.log('🚀 [API-ROUTE] GCP VM 서버 데이터 요청 중...');
+        console.log('📍 [API-ROUTE] 요청 URL:', request.url);
+        console.log('🔧 [API-ROUTE] 요청 파라미터 상세:', { sortBy, sortOrder, page, limit, search });
       
       const gcpResponse = await getServersFromGCPVM();
       
@@ -426,6 +704,7 @@ export async function GET(request: NextRequest) {
       
       // 디버깅 정보를 메타데이터에 포함
       global.gcpErrorInfo = errorInfo;
+      }
     }
 
     // 검색 필터 적용 (EnhancedServerMetrics 기준)
