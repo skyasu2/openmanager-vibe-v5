@@ -259,6 +259,11 @@
     "src/app/api/servers/route.ts": {
       "maxDuration": 10
     },
+    "src/app/api/servers/all/route.ts": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 30,
+      "memory": 256
+    },
     "src/app/api/health/route.ts": {
       "maxDuration": 5
     },
