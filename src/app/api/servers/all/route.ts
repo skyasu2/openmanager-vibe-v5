@@ -364,7 +364,9 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)));
     const search = searchParams.get('search') || '';
     
-    console.log('🌐 [VERCEL-DEPLOY-TEST] 서버 데이터 요청 - GCP VM 통합 모드');
+    // 🚨 강제 배포 확인 로그 - 베르셀 캐시 무효화 테스트
+    console.log('🔥 [FORCE-DEPLOY-v2.1] 10개 서버 API 라우트 확정 배포 - 2025.08.29');
+    console.log('🌐 [VERCEL-CACHE-BUST] 서버 데이터 요청 - GCP VM 통합 모드');
     console.log('📊 요청 파라미터:', { sortBy, sortOrder, page, limit, search });
     
     let enhancedServers: EnhancedServerMetrics[] = [];
@@ -508,8 +510,20 @@ export async function GET(request: NextRequest) {
         dataSource,
         fallbackUsed,
         gcpVmIntegration: true, // GCP VM 통합 표시
+        // 🚨 강제 배포 확인 정보
+        forceDeployVersion: 'v2.1-2025.08.29',
+        cacheBreaker: `cache-break-${Date.now()}`,
         // 🔍 디버깅 정보 (에러 발생시만 포함)
         ...(global.gcpErrorInfo && fallbackUsed ? { gcpError: global.gcpErrorInfo } : {})
+      }
+    }, {
+      // 🔥 강력한 캐시 무효화 헤더
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'X-Vercel-Cache': 'MISS',
+        'X-Force-Deploy-Version': 'v2.1-2025.08.29'
       }
     });
       
