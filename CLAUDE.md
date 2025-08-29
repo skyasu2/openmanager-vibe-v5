@@ -239,7 +239,7 @@ ccusage daily # Claude 사용량 확인
 
 **WSL 환경 중심의 핵심 개발 도구**
 - 모든 메인 개발 작업의 중심축
-- MCP 서버 11개 통합으로 종합적 기능 제공
+- MCP 서버 8개 통합으로 종합적 기능 제공 (27% 토큰 절약)
 - 📊 **Max 사용자 장점**: 사용량 한계 내 무제한 사용 (추가 비용 없음)
 - 📈 **현재 효율성**: 일일 $73.59 상당 작업량 (API 환산 시)
 - 🔄 **최적 모델 믹스**: Opus 4 (66.77) + Sonnet 4 (6.81) 병행
@@ -717,7 +717,7 @@ Task external-ai-orchestrator "React Hook 최적화 A안에 대한 교차 검증
 - **gcp-vm-specialist**: GCP VM 백엔드 관리 [MCP: 5개 GCP 도구 완전 활용]
 - **database-administrator**: Supabase PostgreSQL 전문 [MCP: 7개 Supabase 도구]
 - **vercel-platform-specialist**: Vercel 플랫폼 최적화 [MCP: filesystem, github]
-- **mcp-server-administrator**: 11개 MCP 서버 관리 [MCP: 모든 서버 관리]
+- **mcp-server-administrator**: 8개 MCP 서버 관리 [MCP: 모든 서버 관리] (토큰 최적화)
 
 #### **5. 코드 품질 & 보안** (4개)
 
@@ -921,15 +921,20 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 
 ## 🔌 MCP 통합 (Model Context Protocol)
 
-**🎯 MCP 서버 현황: 11/11개 완전 작동** 🏆
+**🎯 MCP 서버 현황: 8/8개 완전 작동** 🏆 **27% 토큰 절약 달성**
 
-### 📊 핵심 MCP 서버 (11개)
+### 📊 핵심 MCP 서버 (8개) - 2025.08.29 최적화
 
-**핵심 시스템**: memory (Knowledge Graph), gcp (Cloud 관리), shadcn-ui (46개 UI 컴포넌트), time (시간대 변환)
+**핵심 시스템**: memory (Knowledge Graph), shadcn-ui (46개 UI 컴포넌트), time (시간대 변환)
 
-**AI & 검색**: sequential-thinking (순차 사고), tavily (웹 검색), context7 (라이브러리 문서), serena (코드 분석)
+**AI & 검색**: sequential-thinking (순차 사고), context7 (라이브러리 문서), serena (코드 분석)
 
-**데이터베이스 & 개발**: supabase (SQL 쿼리), playwright (브라우저 자동화), github (저장소 관리)
+**데이터베이스 & 개발**: supabase (SQL 쿼리), playwright (브라우저 자동화)
+
+### 🗑️ 최적화로 제거된 MCP 서버 (3개)
+
+**제거된 서버**: github (기본 git 대체), gcp (기본 bash 대체), tavily (웹 검색 불필요)
+**토큰 절약 효과**: 27% 감소, 서브에이전트 22개 모두 기본 도구로 완전 대체
 
 ### 🛠️ 파일 작업 (filesystem MCP 제거됨)
 
@@ -964,7 +969,7 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 
 | 카테고리 | 주요 문서 | 설명 |
 |----------|-----------|------|
-| **MCP 서버** | [MCP 종합 가이드](docs/MCP-GUIDE.md) • [MCP 설치 가이드](docs/mcp/mcp-complete-installation-guide-2025.md) • [MCP 도구 레퍼런스](docs/mcp/mcp-tools-reference.md) • [필수 서버 가이드](docs/mcp/essential-mcp-servers-guide.md) | 11개 서버 90+ 도구 완전 활용 |
+| **MCP 서버** | [MCP 종합 가이드](docs/MCP-GUIDE.md) • [MCP 설치 가이드](docs/mcp/mcp-complete-installation-guide-2025.md) • [MCP 도구 레퍼런스](docs/mcp/mcp-tools-reference.md) • [필수 서버 가이드](docs/mcp/essential-mcp-servers-guide.md) | 8개 서버 70+ 도구 완전 활용 (토큰 최적화) |
 | **AI 협업** | [AI 도구 비교](docs/ai-tools/ai-tools-comparison.md) • [AI CLI 비교](docs/ai-tools/AI-CLI-COMPARISON.md) • [AI 컨텍스트](docs/ai-tools/AI-CONTEXT.md) • [Gemini CLI](docs/ai-tools/gemini-cli-guide.md) • [Qwen CLI](docs/ai-tools/qwen-cli-guide.md) | 3-AI 병렬 개발 |
 | **서브 에이전트** | [종합 가이드](docs/claude/sub-agents-comprehensive-guide.md) • [MCP 서버 가이드](docs/claude/mcp-servers-complete-guide.md) | 22개 전문 에이전트 활용 |
 

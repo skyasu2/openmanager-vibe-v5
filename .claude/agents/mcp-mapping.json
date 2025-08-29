@@ -2,7 +2,7 @@
   "_metadata": {
     "version": "2.0.0",
     "created": "2025-08-18",
-    "updated": "2025-08-24",
+    "updated": "2025-08-29",
     "purpose": "Claude Code 서브에이전트와 MCP 서버 최적 매핑",
     "target_utilization": "21.1% → 90% (대폭 초과 달성)",
     "collaboration_systems": {
@@ -13,11 +13,11 @@
       "priority_order": "Claude Code > verification-specialist > external-ai-orchestrator > AI 래퍼들"
     },
     "recent_changes": {
-      "2025-08-24_major_improvement": {
-        "mcp_servers_recovery": ["tavily", "context7", "serena", "time", "sequential-thinking"],
-        "working_servers": "4개 → 8개 (2배 증가)",
-        "utilization_jump": "80% → 90%+",
-        "tier_restructure": "4-tier 시스템으로 재구성"
+      "2025-08-29_optimization": {
+        "removed_mcp_servers": ["github", "gcp", "tavily"],
+        "working_servers": "11개 → 8개 (토큰 절약 최적화)",
+        "utilization_target": "90%+ 유지 (8개 서버로)",
+        "optimization_focus": "20-30% 토큰 절약"
       },
       "restored_agents": ["verification-specialist", "ai-verification-coordinator", "codex-wrapper", "gemini-wrapper", "qwen-wrapper"],
       "archived_agents": ["unified-ai-wrapper"],
@@ -29,32 +29,32 @@
   "mcp_server_priorities": {
     "tier1_essential": [
       "memory", 
-      "gcp",
       "shadcn-ui",
       "time"
     ],
     "tier2_specialized": [
       "sequential-thinking",
-      "tavily",
       "context7",
       "serena"
     ],
     "tier3_database_dev": [
       "supabase",
-      "playwright",
-      "github"
+      "playwright"
     ],
     "tier4_archived": [
-      "filesystem"
+      "filesystem",
+      "github",
+      "gcp", 
+      "tavily"
     ]
   },
 
   "agent_mcp_mapping": {
     "central-supervisor": {
       "mcp_access": "ALL",
-      "primary_tools": ["memory", "github", "supabase", "gcp"],
-      "priority": "highest",
-      "purpose": "전체 시스템 오케스트레이션"
+      "primary_tools": ["memory", "supabase", "serena", "sequential-thinking"],
+      "priority": "highest", 
+      "purpose": "전체 시스템 오케스트레이션 (8개 MCP 서버 관리)"
     },
 
     "database-administrator": {
@@ -72,40 +72,42 @@
     },
 
     "gcp-vm-specialist": {
-      "mcp_access": "FULL", 
-      "primary_tools": ["gcp"],
-      "secondary_tools": ["memory"],
-      "utilization_target": "90%",
+      "mcp_access": "BASIC", 
+      "primary_tools": ["memory"],
+      "secondary_tools": [],
+      "utilization_target": "30%",
+      "status": "ARCHIVED - GCP MCP 제거됨",
       "capabilities": [
-        "mcp__gcp__query_logs",
-        "mcp__gcp__query_metrics", 
-        "mcp__gcp__get_project_id",
-        "mcp__gcp__list_spanner_instances"
-      ]
+        "기본 Bash 도구", 
+        "mcp__memory__create_entities"
+      ],
+      "note": "GCP MCP 서버 제거로 기능 제한됨"
     },
 
     "vercel-platform-specialist": {
-      "mcp_access": "PARTIAL",
-      "primary_tools": ["github"],
-      "secondary_tools": ["memory"],
-      "utilization_target": "85%",
+      "mcp_access": "BASIC",
+      "primary_tools": ["memory"],
+      "secondary_tools": [],
+      "utilization_target": "40%", 
+      "status": "FUNCTIONAL - GitHub MCP 제거됨, 기본 도구 사용",
       "capabilities": [
-        "mcp__github__create_pull_request",
-        "mcp__github__get_file_contents"
-      ]
+        "기본 Git 명령어",
+        "mcp__memory__create_entities"
+      ],
+      "note": "GitHub MCP 제거로 기본 bash git 명령어 사용"
     },
 
     "mcp-server-administrator": {
       "mcp_access": "ADMIN",
-      "primary_tools": ["memory", "github", "supabase", "gcp", "playwright", "tavily", "context7", "thinking", "time", "shadcn", "serena"],
+      "primary_tools": ["memory", "supabase", "playwright", "context7", "sequential-thinking", "time", "shadcn-ui", "serena"],
       "utilization_target": "100%",
-      "purpose": "11개 MCP 서버 완전 관리"
+      "purpose": "8개 MCP 서버 완전 관리 (토큰 최적화)"
     },
 
     "ai-systems-specialist": {
       "mcp_access": "ENHANCED",
-      "primary_tools": ["memory", "thinking", "context7"],
-      "secondary_tools": ["supabase", "tavily"],
+      "primary_tools": ["memory", "sequential-thinking", "context7"],
+      "secondary_tools": ["supabase"],
       "utilization_target": "80%",
       "task_enabled": true,
       "collaboration": {
@@ -118,7 +120,7 @@
     "test-automation-specialist": {
       "mcp_access": "ENHANCED",
       "primary_tools": ["playwright"],
-      "secondary_tools": ["github", "memory"],
+      "secondary_tools": ["memory"],
       "utilization_target": "85%",
       "task_enabled": true,
       "capabilities": [
@@ -129,65 +131,71 @@
     },
 
     "git-cicd-specialist": {
-      "mcp_access": "ENHANCED",
-      "primary_tools": ["github"],
-      "secondary_tools": ["memory"],
-      "utilization_target": "80%",
+      "mcp_access": "BASIC",
+      "primary_tools": ["memory"],
+      "secondary_tools": [],
+      "utilization_target": "40%",
+      "status": "FUNCTIONAL - GitHub MCP 제거됨, 기본 Git 사용",
       "task_enabled": true,
       "capabilities": [
-        "mcp__github__create_pull_request",
-        "mcp__github__list_commits",
-        "mcp__github__create_branch"
-      ]
+        "기본 git 명령어 (commit, push, pull, branch)",
+        "mcp__memory__create_entities"
+      ],
+      "note": "GitHub API 대신 기본 git 명령어로 작업"
     },
 
 
     "code-review-specialist": {
       "mcp_access": "ENHANCED",
-      "primary_tools": ["serena", "github"],
+      "primary_tools": ["serena"],
       "secondary_tools": ["memory", "context7"],
-      "utilization_target": "85%",
+      "utilization_target": "75%",
       "unified_role": "통합 코드 검증 (verification + quality control)",
       "capabilities": [
         "mcp__serena__find_symbol",
         "mcp__serena__find_referencing_symbols",
-        "mcp__github__search_code"
-      ]
+        "mcp__serena__search_for_pattern"
+      ],
+      "note": "GitHub 검색 대신 serena 패턴 검색 사용"
     },
 
     "unified-ai-wrapper": {
-      "mcp_access": "ENHANCED",
-      "primary_tools": ["tavily", "context7"],
+      "mcp_access": "BASIC",
+      "primary_tools": ["context7"],
       "secondary_tools": ["memory"],
-      "utilization_target": "80%",
-      "unified_role": "통합 AI CLI 래퍼 (Codex + Gemini + Qwen)",
+      "utilization_target": "20%",
+      "status": "ARCHIVED - 개별 AI 래퍼로 분리됨",
+      "unified_role": "DEPRECATED - codex-wrapper, gemini-wrapper, qwen-wrapper로 대체",
       "capabilities": [
-        "mcp__tavily__tavily_search",
         "mcp__context7__get_library_docs"
-      ]
+      ],
+      "note": "개별 AI 래퍼가 더 효과적으로 판명"
     },
 
     "external-ai-orchestrator": {
       "mcp_access": "FULL",
-      "primary_tools": ["thinking", "context7"],
-      "secondary_tools": ["tavily", "memory"],
+      "primary_tools": ["sequential-thinking", "context7"],
+      "secondary_tools": ["memory"],
       "utilization_target": "90%",
       "unified_role": "통합 AI 오케스트레이터 + 검증 조정자",
       "capabilities": [
-        "mcp__thinking__sequentialthinking",
+        "mcp__sequential-thinking__sequentialthinking",
         "mcp__context7__resolve_library_id"
-      ]
+      ],
+      "note": "tavily MCP 제거로 sequential-thinking 활용"
     },
 
     "documentation-manager": {
       "mcp_access": "ENHANCED", 
       "primary_tools": ["memory", "context7"],
-      "secondary_tools": ["github"],
+      "secondary_tools": [],
       "utilization_target": "80%",
+      "status": "FUNCTIONAL - GitHub MCP 제거됨",
       "capabilities": [
         "mcp__context7__get_library_docs",
         "mcp__memory__create_entities"
-      ]
+      ],
+      "note": "GitHub MCP 제거로 기본 파일 도구 사용"
     },
 
     "dev-environment-manager": {
@@ -203,36 +211,39 @@
 
     "debugger-specialist": {
       "mcp_access": "ENHANCED",
-      "primary_tools": ["serena", "gcp"],
+      "primary_tools": ["serena"],
       "secondary_tools": ["memory"],
       "utilization_target": "85%",
+      "status": "FUNCTIONAL - GCP MCP 제거됨",
       "capabilities": [
         "mcp__serena__find_referencing_symbols",
-        "mcp__serena__search_for_pattern",
-        "mcp__gcp__query_logs"
-      ]
+        "mcp__serena__search_for_pattern"
+      ],
+      "note": "GCP MCP 제거로 serena 패턴 검색 중심으로 전환"
     },
 
     "security-auditor": {
       "mcp_access": "ENHANCED",
-      "primary_tools": ["github", "supabase"],
+      "primary_tools": ["supabase"],
       "secondary_tools": ["memory"],
       "utilization_target": "85%",
+      "status": "FUNCTIONAL - GitHub MCP 제거됨",
       "capabilities": [
-        "mcp__github__search_code",
         "mcp__supabase__get_advisors"
-      ]
+      ],
+      "note": "GitHub MCP 제거로 Supabase 보안 분석 중심"
     },
 
     "quality-control-specialist": {
       "mcp_access": "ENHANCED",
-      "primary_tools": ["memory", "github"],
+      "primary_tools": ["memory"],
       "secondary_tools": [],
       "utilization_target": "80%",
+      "status": "FUNCTIONAL - GitHub MCP 제거됨",
       "capabilities": [
-        "mcp__memory__read_graph",
-        "mcp__github__list_commits"
-      ]
+        "mcp__memory__read_graph"
+      ],
+      "note": "GitHub MCP 제거로 기본 git 명령어 사용"
     },
 
     "structure-refactor-specialist": {
@@ -248,14 +259,15 @@
 
     "ux-performance-specialist": {
       "mcp_access": "ENHANCED",
-      "primary_tools": ["playwright", "tavily"],
+      "primary_tools": ["playwright"],
       "secondary_tools": ["memory"],
       "utilization_target": "85%",
+      "status": "FUNCTIONAL - tavily MCP 제거됨",
       "capabilities": [
         "mcp__playwright__browser_snapshot",
-        "mcp__playwright__browser_evaluate",
-        "mcp__tavily__tavily_search"
-      ]
+        "mcp__playwright__browser_evaluate"
+      ],
+      "note": "tavily MCP 제거로 Playwright 브라우저 자동화 중심"
     },
 
 
