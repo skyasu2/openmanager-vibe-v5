@@ -192,7 +192,7 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)));
     const search = searchParams.get('search') || '';
     
-    console.log('🌐 서버 데이터 요청 - GCP VM 통합 모드');
+    console.log('🌐 [VERCEL-DEPLOY-TEST] 서버 데이터 요청 - GCP VM 통합 모드');
     console.log('📊 요청 파라미터:', { sortBy, sortOrder, page, limit, search });
     
     let enhancedServers: EnhancedServerMetrics[] = [];
