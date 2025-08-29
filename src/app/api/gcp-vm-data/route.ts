@@ -274,6 +274,7 @@ export async function GET() {
   try {
     console.log('🔄 [GCP-VM-API] 정적 데이터 API 라우트 호출됨');
     console.log(`📊 [GCP-VM-API] ${GCP_VM_STATIC_DATA.data.length}개 서버 데이터 반환`);
+    console.log('✅ [GCP-VM-API] API 라우트 정상 작동 - 베르셀 배포 트리거');
     
     return NextResponse.json(GCP_VM_STATIC_DATA);
   } catch (error) {
