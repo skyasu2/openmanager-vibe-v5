@@ -360,8 +360,11 @@ export class GCPVMClient {
 
       if (response && response.success && response.data) {
         console.log('✅ [GCP-VM-CLIENT] 외부 VM API 성공');
+        console.log('🔄 [GCP-VM-CLIENT] Raw 데이터를 EnhancedServerMetrics로 변환 중...');
+        const convertedData = this.convertRawDataToEnhancedMetrics(response.data);
+        console.log(`✅ [GCP-VM-CLIENT] 변환 완료: ${convertedData.length}개 서버`);
         return {
-          data: response.data,
+          data: convertedData,
           timestamp: response.timestamp
         };
       }
@@ -391,8 +394,11 @@ export class GCPVMClient {
 
       if (response && response.success && response.data) {
         console.log('✅ [GCP-VM-CLIENT] 내부 VM API 성공');
+        console.log('🔄 [GCP-VM-CLIENT] Raw 데이터를 EnhancedServerMetrics로 변환 중...');
+        const convertedData = this.convertRawDataToEnhancedMetrics(response.data);
+        console.log(`✅ [GCP-VM-CLIENT] 변환 완료: ${convertedData.length}개 서버`);
         return {
-          data: response.data,
+          data: convertedData,
           timestamp: response.timestamp
         };
       }
@@ -613,6 +619,103 @@ export class GCPVMClient {
   clearCache(): void {
     this.cache.clear();
     console.log('🗑️ GCP VM 클라이언트 캐시 초기화됨');
+  }
+
+  /**
+   * Raw Prometheus 데이터를 EnhancedServerMetrics로 변환
+   */
+  private convertRawDataToEnhancedMetrics(rawData: any[]): EnhancedServerMetrics[] {
+    const timestamp = new Date().toISOString();
+    
+    return rawData.map((raw, index) => {
+      // Raw 데이터에서 필요한 값들 추출
+      const hostname = raw.hostname || `server-${index + 1}`;
+      const serverId = raw.server_id || `server-${Date.now()}-${index}`;
+      
+      // CPU 사용률 계산 (백분율)
+      const cpuUsagePercent = raw.system?.cpu_usage_percent || 0;
+      
+      // 메모리 사용률 계산 (백분율)
+      const memoryTotal = raw.system?.memory_total_bytes || 1;
+      const memoryUsed = raw.system?.memory_used_bytes || 0;
+      const memoryUsagePercent = ((memoryUsed / memoryTotal) * 100);
+      
+      // 디스크 사용률 계산 (백분율)
+      const diskTotal = raw.system?.disk_total_bytes || 1;
+      const diskUsed = raw.system?.disk_used_bytes || 0;
+      const diskUsagePercent = ((diskUsed / diskTotal) * 100);
+      
+      // 네트워크 사용률 (MB/s로 간주)
+      const networkReceive = raw.system?.network_receive_bytes_total || 0;
+      const networkTransmit = raw.system?.network_transmit_bytes_total || 0;
+      const networkUsage = ((networkReceive + networkTransmit) / (1024 * 1024 * 1024 * 60)).toFixed(2); // GB per minute
+      
+      // 업타임 (초)
+      const uptime = raw.system?.uptime_seconds || 0;
+      
+      // 서버 상태 결정 (CPU/메모리 기준)
+      let status: 'online' | 'warning' | 'critical' | 'offline' = 'online';
+      if (cpuUsagePercent > 90 || memoryUsagePercent > 90) {
+        status = 'critical';
+      } else if (cpuUsagePercent > 70 || memoryUsagePercent > 75) {
+        status = 'warning';
+      }
+      
+      // 알림 수 계산 (상태 기준)
+      const alerts = raw.alerts || (status === 'critical' ? 2 : status === 'warning' ? 1 : 0);
+
+      // EnhancedServerMetrics 구조로 변환
+      const enhancedServer: EnhancedServerMetrics = {
+        id: serverId,
+        name: hostname,
+        hostname: hostname,
+        status,
+        cpu: parseFloat(cpuUsagePercent.toFixed(2)),
+        cpu_usage: parseFloat(cpuUsagePercent.toFixed(2)),
+        memory: parseFloat(memoryUsagePercent.toFixed(2)),
+        memory_usage: parseFloat(memoryUsagePercent.toFixed(2)),
+        disk: parseFloat(diskUsagePercent.toFixed(2)),
+        disk_usage: parseFloat(diskUsagePercent.toFixed(2)),
+        network: parseFloat(networkUsage),
+        network_in: parseFloat((networkReceive / (1024 * 1024 * 1024 * 60)).toFixed(2)),
+        network_out: parseFloat((networkTransmit / (1024 * 1024 * 1024 * 60)).toFixed(2)),
+        uptime,
+        location: raw.metadata?.location || 'GCP-VM',
+        alerts,
+        ip: raw.metadata?.ip || '192.168.1.100',
+        os: raw.metadata?.os || 'Ubuntu 22.04 LTS',
+        type: raw.metadata?.server_type || 'unknown',
+        role: raw.metadata?.role || 'worker',
+        environment: raw.metadata?.environment || 'production',
+        provider: raw.metadata?.provider || 'GCP-VM',
+        specs: {
+          cpu_cores: raw.specs?.cpu_cores || 4,
+          memory_gb: raw.specs?.memory_gb || Math.round(memoryTotal / (1024 ** 3)),
+          disk_gb: raw.specs?.disk_gb || Math.round(diskTotal / (1024 ** 3)),
+          network_speed: raw.specs?.network_speed || '1Gbps'
+        },
+        lastUpdate: timestamp,
+        services: [], // 기본값
+        systemInfo: {
+          os: raw.metadata?.os || 'Ubuntu 22.04 LTS',
+          uptime: `${Math.floor(uptime / 3600)}h`,
+          processes: 120, // 기본값
+          zombieProcesses: 0,
+          loadAverage: `${raw.system?.load_average?.['1m'] || 1.0}, ${raw.system?.load_average?.['5m'] || 0.8}, ${raw.system?.load_average?.['15m'] || 0.6}`,
+          lastUpdate: timestamp
+        },
+        networkInfo: {
+          interface: 'eth0',
+          receivedBytes: `${(networkReceive / (1024 ** 2)).toFixed(0)} MB`,
+          sentBytes: `${(networkTransmit / (1024 ** 2)).toFixed(0)} MB`,
+          receivedErrors: 0,
+          sentErrors: 0,
+          status: status === 'online' ? 'healthy' : status
+        }
+      };
+
+      return enhancedServer;
+    });
   }
 
   /**
