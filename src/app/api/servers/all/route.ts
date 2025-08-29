@@ -24,161 +24,333 @@ const ensureNumber = (value: number | undefined, fallback: number = 0): number =
 type SortableKey = keyof Pick<ServerMetrics, 'cpu' | 'memory' | 'disk' | 'network' | 'uptime' | 'name'>;
 
 /**
- * 폴백용 목업 데이터 생성 함수 (API 라우트 전용)
- * GCP VM 연결 실패 시 사용 - GCP VM 클라이언트와 일관성 유지
+ * 통합된 정적 서버 데이터 (10개 서버)
+ * /api/gcp-vm-data 라우트 우회하여 직접 통합
+ * GCP VM 연결 실패 시 또는 Vercel 프로덕션 환경에서 사용
  */
-function generateMockServers(): EnhancedServerMetrics[] {
+function generateStaticServers(): EnhancedServerMetrics[] {
   const timestamp = new Date().toISOString();
-  return [
-    // 웹 서버 (1개) - 간소화된 API 라우트 폴백
+  
+  // GCP VM 정적 데이터를 EnhancedServerMetrics 형식으로 변환
+  const staticVMData = [
     {
-      id: 'api-mock-web-01',
-      name: 'web-server-01',
-      hostname: 'web-server-01',
-      status: 'online' as const,
-      cpu: 45.2,
-      cpu_usage: 45.2,
-      memory: 78.5,
-      memory_usage: 78.5,
-      disk: 65.1,
-      disk_usage: 65.1,
-      network: 12.3,
-      network_in: 7.4,
-      network_out: 4.9,
-      uptime: 359280,
-      location: 'Seoul-DC-01',
-      alerts: 0,
-      ip: '192.168.1.100',
-      os: 'Ubuntu 22.04 LTS',
-      type: 'web',
-      role: 'worker',
-      environment: 'production',
-      provider: 'API-Route-Mock-Fallback',
-      specs: {
-        cpu_cores: 2,
-        memory_gb: 8,
-        disk_gb: 260,
-        network_speed: '1Gbps'
+      "server_id": "server-1756455178476-0",
+      "hostname": "web-server-01",
+      "timestamp": "2025-08-29T17:12:58.000Z",
+      "system": {
+        "cpu_usage_percent": 34.38,
+        "memory_total_bytes": 8589934592,
+        "memory_used_bytes": 2438209376,
+        "disk_total_bytes": 214748364800,
+        "disk_used_bytes": 115848619254,
+        "uptime_seconds": 1756429123
       },
-      lastUpdate: timestamp,
-      services: [],
-      systemInfo: {
-        os: 'Ubuntu 22.04 LTS',
-        uptime: '99h',
-        processes: 120,
-        zombieProcesses: 0,
-        loadAverage: '1.80, 1.75, 1.70',
-        lastUpdate: timestamp
+      "metadata": {
+        "ip": "192.168.1.100",
+        "os": "Ubuntu 22.04 LTS",
+        "server_type": "web",
+        "role": "worker",
+        "provider": "GCP-VM"
       },
-      networkInfo: {
-        interface: 'eth0',
-        receivedBytes: '7 MB',
-        sentBytes: '4 MB',
-        receivedErrors: 0,
-        sentErrors: 0,
-        status: 'healthy'
-      }
+      "specs": {
+        "cpu_cores": 4,
+        "memory_gb": 8,
+        "disk_gb": 200
+      },
+      "status": "online"
     },
-    // API 서버 (1개)
     {
-      id: 'api-mock-api-01',
-      name: 'api-server-01',
-      hostname: 'api-server-01',
-      status: 'warning' as const,
-      cpu: 78.4,
-      cpu_usage: 78.4,
-      memory: 85.1,
-      memory_usage: 85.1,
-      disk: 72.3,
-      disk_usage: 72.3,
-      network: 25.8,
-      network_in: 15.2,
-      network_out: 10.6,
-      uptime: 325680,
-      location: 'Seoul-DC-01',
-      alerts: 1,
-      ip: '192.168.1.110',
-      os: 'Ubuntu 22.04 LTS',
-      type: 'api',
-      role: 'worker',
-      environment: 'production',
-      provider: 'API-Route-Mock-Fallback',
-      specs: {
-        cpu_cores: 4,
-        memory_gb: 8,
-        disk_gb: 320,
-        network_speed: '1Gbps'
+      "server_id": "server-1756455178476-1",
+      "hostname": "web-server-02",
+      "timestamp": "2025-08-29T17:12:58.000Z",
+      "system": {
+        "cpu_usage_percent": 29.85,
+        "memory_total_bytes": 8589934592,
+        "memory_used_bytes": 3115824828,
+        "disk_total_bytes": 214748364800,
+        "disk_used_bytes": 85787383921,
+        "uptime_seconds": 1754389804
       },
-      lastUpdate: timestamp,
-      services: [],
-      systemInfo: {
-        os: 'Ubuntu 22.04 LTS',
-        uptime: '90h',
-        processes: 187,
-        zombieProcesses: 3,
-        loadAverage: '3.20, 3.15, 3.10',
-        lastUpdate: timestamp
+      "metadata": {
+        "ip": "192.168.1.101",
+        "os": "Ubuntu 22.04 LTS",
+        "server_type": "web",
+        "role": "worker",
+        "provider": "GCP-VM"
       },
-      networkInfo: {
-        interface: 'eth0',
-        receivedBytes: '15 MB',
-        sentBytes: '11 MB',
-        receivedErrors: 2,
-        sentErrors: 1,
-        status: 'warning'
-      }
+      "specs": {
+        "cpu_cores": 4,
+        "memory_gb": 8,
+        "disk_gb": 200
+      },
+      "status": "online"
     },
-    // DB 서버 (1개)
     {
-      id: 'api-mock-db-01',
-      name: 'db-server-01',
-      hostname: 'db-server-01',
-      status: 'critical' as const,
-      cpu: 92.4,
-      cpu_usage: 92.4,
-      memory: 95.7,
-      memory_usage: 95.7,
-      disk: 87.3,
-      disk_usage: 87.3,
-      network: 52.1,
-      network_in: 31.3,
-      network_out: 20.8,
-      uptime: 340020,
-      location: 'Seoul-DC-01',
-      alerts: 3,
-      ip: '192.168.1.120',
-      os: 'Ubuntu 22.04 LTS',
-      type: 'database',
-      role: 'master',
-      environment: 'production',
-      provider: 'API-Route-Mock-Fallback',
-      specs: {
-        cpu_cores: 6,
-        memory_gb: 16,
-        disk_gb: 500,
-        network_speed: '1Gbps'
+      "server_id": "server-1756455178476-2",
+      "hostname": "api-server-01",
+      "timestamp": "2025-08-29T17:12:58.000Z",
+      "system": {
+        "cpu_usage_percent": 47.52,
+        "memory_total_bytes": 17179869184,
+        "memory_used_bytes": 7126592271,
+        "disk_total_bytes": 322122547200,
+        "disk_used_bytes": 95283441851,
+        "uptime_seconds": 1756404615
       },
-      lastUpdate: timestamp,
-      services: [],
-      systemInfo: {
-        os: 'Ubuntu 22.04 LTS',
-        uptime: '94h',
-        processes: 287,
-        zombieProcesses: 12,
-        loadAverage: '4.50, 4.12, 3.98',
-        lastUpdate: timestamp
+      "metadata": {
+        "ip": "192.168.2.100",
+        "os": "Ubuntu 22.04 LTS",
+        "server_type": "api",
+        "role": "primary",
+        "provider": "GCP-VM"
       },
-      networkInfo: {
-        interface: 'eth0',
-        receivedBytes: '31 MB',
-        sentBytes: '21 MB',
-        receivedErrors: 8,
-        sentErrors: 5,
-        status: 'critical'
-      }
+      "specs": {
+        "cpu_cores": 6,
+        "memory_gb": 16,
+        "disk_gb": 300
+      },
+      "status": "online"
+    },
+    {
+      "server_id": "server-1756455178476-3",
+      "hostname": "api-server-02",
+      "timestamp": "2025-08-29T17:12:58.000Z",
+      "system": {
+        "cpu_usage_percent": 43.99,
+        "memory_total_bytes": 17179869184,
+        "memory_used_bytes": 6626593510,
+        "disk_total_bytes": 322122547200,
+        "disk_used_bytes": 100544609153,
+        "uptime_seconds": 1756435387
+      },
+      "metadata": {
+        "ip": "192.168.2.101",
+        "os": "Ubuntu 22.04 LTS",
+        "server_type": "api",
+        "role": "secondary",
+        "provider": "GCP-VM"
+      },
+      "specs": {
+        "cpu_cores": 6,
+        "memory_gb": 16,
+        "disk_gb": 300
+      },
+      "status": "online"
+    },
+    {
+      "server_id": "server-1756455178477-4",
+      "hostname": "db-master-primary",
+      "timestamp": "2025-08-29T17:12:58.000Z",
+      "system": {
+        "cpu_usage_percent": 12.51,
+        "memory_total_bytes": 34359738368,
+        "memory_used_bytes": 19946046061,
+        "disk_total_bytes": 1073741824000,
+        "disk_used_bytes": 435889319904,
+        "uptime_seconds": 1755470558
+      },
+      "metadata": {
+        "ip": "192.168.3.100",
+        "os": "Ubuntu 22.04 LTS",
+        "server_type": "database",
+        "role": "master",
+        "provider": "GCP-VM"
+      },
+      "specs": {
+        "cpu_cores": 8,
+        "memory_gb": 32,
+        "disk_gb": 1000
+      },
+      "status": "online"
+    },
+    {
+      "server_id": "server-1756455178477-5",
+      "hostname": "db-replica-01",
+      "timestamp": "2025-08-29T17:12:58.000Z",
+      "system": {
+        "cpu_usage_percent": 17.46,
+        "memory_total_bytes": 34359738368,
+        "memory_used_bytes": 15177950420,
+        "disk_total_bytes": 1073741824000,
+        "disk_used_bytes": 571328142108,
+        "uptime_seconds": 1754173478
+      },
+      "metadata": {
+        "ip": "192.168.3.101",
+        "os": "Ubuntu 22.04 LTS",
+        "server_type": "database",
+        "role": "replica",
+        "provider": "GCP-VM"
+      },
+      "specs": {
+        "cpu_cores": 8,
+        "memory_gb": 32,
+        "disk_gb": 1000
+      },
+      "status": "online"
+    },
+    {
+      "server_id": "server-1756455178477-6",
+      "hostname": "redis-cache-01",
+      "timestamp": "2025-08-29T17:12:58.000Z",
+      "system": {
+        "cpu_usage_percent": 42.0,
+        "memory_total_bytes": 17179869184,
+        "memory_used_bytes": 9964324126,
+        "disk_total_bytes": 107374182400,
+        "disk_used_bytes": 48318382080,
+        "uptime_seconds": 1754764890
+      },
+      "metadata": {
+        "ip": "192.168.4.100",
+        "os": "Ubuntu 22.04 LTS",
+        "server_type": "cache",
+        "role": "primary",
+        "provider": "GCP-VM"
+      },
+      "specs": {
+        "cpu_cores": 4,
+        "memory_gb": 16,
+        "disk_gb": 100
+      },
+      "status": "online"
+    },
+    {
+      "server_id": "server-1756455178478-7",
+      "hostname": "monitoring-server",
+      "timestamp": "2025-08-29T17:12:58.000Z",
+      "system": {
+        "cpu_usage_percent": 26.24,
+        "memory_total_bytes": 8589934592,
+        "memory_used_bytes": 4120458156,
+        "disk_total_bytes": 536870912000,
+        "disk_used_bytes": 422756725966,
+        "uptime_seconds": 1755894695
+      },
+      "metadata": {
+        "ip": "192.168.5.100",
+        "os": "Ubuntu 22.04 LTS",
+        "server_type": "monitoring",
+        "role": "standalone",
+        "provider": "GCP-VM"
+      },
+      "specs": {
+        "cpu_cores": 2,
+        "memory_gb": 8,
+        "disk_gb": 500
+      },
+      "status": "online"
+    },
+    {
+      "server_id": "server-1756455178478-8",
+      "hostname": "security-server",
+      "timestamp": "2025-08-29T17:12:58.000Z",
+      "system": {
+        "cpu_usage_percent": 13.91,
+        "memory_total_bytes": 8589934592,
+        "memory_used_bytes": 5578614106,
+        "disk_total_bytes": 214748364800,
+        "disk_used_bytes": 156557749037,
+        "uptime_seconds": 1754027553
+      },
+      "metadata": {
+        "ip": "192.168.6.100",
+        "os": "Ubuntu 22.04 LTS",
+        "server_type": "security",
+        "role": "standalone",
+        "provider": "GCP-VM"
+      },
+      "specs": {
+        "cpu_cores": 4,
+        "memory_gb": 8,
+        "disk_gb": 200
+      },
+      "status": "online"
+    },
+    {
+      "server_id": "server-1756455178478-9",
+      "hostname": "backup-server",
+      "timestamp": "2025-08-29T17:12:58.000Z",
+      "system": {
+        "cpu_usage_percent": 38.28,
+        "memory_total_bytes": 4294967296,
+        "memory_used_bytes": 1100128893,
+        "disk_total_bytes": 2147483648000,
+        "disk_used_bytes": 753447563255,
+        "uptime_seconds": 1755171946
+      },
+      "metadata": {
+        "ip": "192.168.7.100",
+        "os": "Ubuntu 22.04 LTS",
+        "server_type": "backup",
+        "role": "standalone",
+        "provider": "GCP-VM"
+      },
+      "specs": {
+        "cpu_cores": 2,
+        "memory_gb": 4,
+        "disk_gb": 2000
+      },
+      "status": "online"
     }
-    // API 라우트 폴백: 3개 서버 유지 (정상 작동 최우선)
   ];
+
+  // VM 데이터를 EnhancedServerMetrics 형식으로 변환
+  return staticVMData.map((vmServer, index) => {
+    const memoryUsagePercent = (vmServer.system.memory_used_bytes / vmServer.system.memory_total_bytes) * 100;
+    const diskUsagePercent = (vmServer.system.disk_used_bytes / vmServer.system.disk_total_bytes) * 100;
+    const networkIn = Math.random() * 15 + 5; // 5-20 MB/s
+    const networkOut = Math.random() * 10 + 3; // 3-13 MB/s
+    
+    return {
+      id: vmServer.server_id,
+      name: vmServer.hostname,
+      hostname: vmServer.hostname,
+      status: vmServer.status as 'online' | 'offline' | 'warning' | 'critical',
+      cpu: vmServer.system.cpu_usage_percent,
+      cpu_usage: vmServer.system.cpu_usage_percent,
+      memory: memoryUsagePercent,
+      memory_usage: memoryUsagePercent,
+      disk: diskUsagePercent,
+      disk_usage: diskUsagePercent,
+      network: networkIn + networkOut,
+      network_in: networkIn,
+      network_out: networkOut,
+      uptime: vmServer.system.uptime_seconds,
+      location: 'Seoul-DC-01',
+      alerts: vmServer.status === 'critical' ? 3 : vmServer.status === 'warning' ? 1 : 0,
+      ip: vmServer.metadata.ip,
+      os: vmServer.metadata.os,
+      type: vmServer.metadata.server_type,
+      role: vmServer.metadata.role,
+      environment: 'production',
+      provider: 'GCP-VM-Static-Integrated',
+      specs: {
+        cpu_cores: vmServer.specs.cpu_cores,
+        memory_gb: vmServer.specs.memory_gb,
+        disk_gb: vmServer.specs.disk_gb,
+        network_speed: '1Gbps'
+      },
+      lastUpdate: vmServer.timestamp,
+      services: [],
+      systemInfo: {
+        os: vmServer.metadata.os,
+        uptime: Math.floor(vmServer.system.uptime_seconds / 3600) + 'h',
+        processes: 120 + index * 15,
+        zombieProcesses: vmServer.status === 'critical' ? 5 : 0,
+        loadAverage: `${(vmServer.system.cpu_usage_percent / 20).toFixed(2)}, ${((vmServer.system.cpu_usage_percent - 5) / 20).toFixed(2)}, ${((vmServer.system.cpu_usage_percent - 10) / 20).toFixed(2)}`,
+        lastUpdate: vmServer.timestamp
+      },
+      networkInfo: {
+        interface: 'eth0',
+        receivedBytes: `${networkIn.toFixed(1)} MB`,
+        sentBytes: `${networkOut.toFixed(1)} MB`,
+        receivedErrors: vmServer.status === 'critical' ? 3 : 0,
+        sentErrors: vmServer.status === 'critical' ? 2 : 0,
+        status: vmServer.status === 'online' ? 'healthy' : vmServer.status
+      }
+    };
+  });
 }
 
 export async function GET(request: NextRequest) {
@@ -232,7 +404,7 @@ export async function GET(request: NextRequest) {
       // 🔄 2차: API 라우트 전용 목업 데이터로 폴백
       console.warn('⚠️ [API-ROUTE] GCP VM 연결 실패, API 라우트 목업 데이터로 폴백');
       console.error('💥 [API-ROUTE] GCP 에러 상세:', gcpError instanceof Error ? gcpError.message : gcpError);
-      console.log('🛡️ [API-ROUTE] 폴백 경로: API 라우트 전용 목업 (3개 서버)');
+      console.log('🛡️ [API-ROUTE] 폴백 경로: 통합된 정적 데이터 (10개 서버)');
       
       // 🔍 디버깅을 위한 에러 정보 저장
       const errorInfo = {
@@ -244,8 +416,8 @@ export async function GET(request: NextRequest) {
         vercelEnv: process.env.VERCEL_ENV
       };
       
-      enhancedServers = generateMockServers();
-      dataSource = 'api-route-mock';
+      enhancedServers = generateStaticServers();
+      dataSource = 'static-integrated';
       fallbackUsed = true;
       
       console.log('📋 [API-ROUTE] 폴백 서버 목록:', enhancedServers.map(s => `${s.name}(${s.status})`).join(', '));
