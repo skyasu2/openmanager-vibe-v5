@@ -279,6 +279,11 @@
     "src/app/api/debug/env/route.ts": {
       "maxDuration": 5,
       "memory": 128
+    },
+    "src/app/api/gcp-vm-data/route.ts": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 10,
+      "memory": 256
     }
   }
 }
