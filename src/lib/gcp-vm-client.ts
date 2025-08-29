@@ -404,15 +404,15 @@ export class GCPVMClient {
       }
     } catch (internalError) {
       console.error('❌ [GCP-VM-CLIENT] 내부 VM API도 실패:', internalError);
-      console.log('🔄 [GCP-VM-CLIENT] 정적 JSON 파일 폴백 시도 중...');
+      console.log('🔄 [GCP-VM-CLIENT] 정적 API 라우트 폴백 시도 중...');
       
-      // 정적 JSON 파일 폴백 시도
+      // 정적 API 라우트 폴백 시도
       try {
-        const staticDataResponse = await fetch('/gcp-vm-data.json');
+        const staticDataResponse = await fetch('/api/gcp-vm-data');
         if (staticDataResponse.ok) {
           const staticData = await staticDataResponse.json();
           if (staticData && staticData.success && staticData.data) {
-            console.log('✅ [GCP-VM-CLIENT] 정적 JSON 파일 로드 성공');
+            console.log('✅ [GCP-VM-CLIENT] 정적 API 라우트 로드 성공');
             console.log('🔄 [GCP-VM-CLIENT] Raw 데이터를 EnhancedServerMetrics로 변환 중...');
             const convertedData = this.convertRawDataToEnhancedMetrics(staticData.data);
             console.log(`✅ [GCP-VM-CLIENT] 변환 완료: ${convertedData.length}개 서버`);
@@ -423,7 +423,7 @@ export class GCPVMClient {
           }
         }
       } catch (staticError) {
-        console.error('❌ [GCP-VM-CLIENT] 정적 파일 로드도 실패:', staticError);
+        console.error('❌ [GCP-VM-CLIENT] 정적 API 라우트 로드도 실패:', staticError);
       }
       
       throw new Error(`VM API 완전 실패: ${internalError instanceof Error ? internalError.message : 'Unknown error'}`);
