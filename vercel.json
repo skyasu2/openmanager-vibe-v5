@@ -260,7 +260,7 @@
       "maxDuration": 10
     },
     "src/app/api/servers/all/route.ts": {
-      "runtime": "nodejs18.x",
+      "runtime": "nodejs20.x",
       "maxDuration": 30,
       "memory": 256
     },
@@ -281,7 +281,7 @@
       "memory": 128
     },
     "src/app/api/gcp-vm-data/route.ts": {
-      "runtime": "nodejs18.x",
+      "runtime": "nodejs20.x",
       "maxDuration": 10,
       "memory": 256
     }
