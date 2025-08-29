@@ -338,11 +338,11 @@ export class GCPVMClient {
   }
 
   /**
-   * VM API에서 JSON 데이터 가져오기 (/api/v3/servers)
+   * VM API에서 JSON 데이터 가져오기 (/api/v3/metrics)
    */
   private async fetchFromVMAPI(): Promise<any> {
-    const VM_ENDPOINT = `${GCP_VM_EXTERNAL_URL}/api/v3/servers`;
-    const VM_ENDPOINT_INTERNAL = `${GCP_VM_INTERNAL_URL}/api/v3/servers`;
+    const VM_ENDPOINT = `${GCP_VM_EXTERNAL_URL}/api/v3/metrics`;
+    const VM_ENDPOINT_INTERNAL = `${GCP_VM_INTERNAL_URL}/api/v3/metrics`;
     
     console.log('🌐 [GCP-VM-CLIENT] VM API 호출 시작');
     
@@ -358,10 +358,10 @@ export class GCPVMClient {
         }
       });
 
-      if (response && response.success && response.data && response.data.servers) {
+      if (response && response.success && response.data) {
         console.log('✅ [GCP-VM-CLIENT] 외부 VM API 성공');
         return {
-          data: response.data.servers,
+          data: response.data,
           timestamp: response.timestamp
         };
       }
@@ -381,10 +381,10 @@ export class GCPVMClient {
         }
       });
 
-      if (response && response.success && response.data && response.data.servers) {
+      if (response && response.success && response.data) {
         console.log('✅ [GCP-VM-CLIENT] 내부 VM API 성공');
         return {
-          data: response.data.servers,
+          data: response.data,
           timestamp: response.timestamp
         };
       }

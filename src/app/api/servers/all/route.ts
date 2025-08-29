@@ -268,7 +268,7 @@ export async function GET(request: NextRequest) {
         case 'uptime':
           return (a.uptime - b.uptime) * dir;
         default:
-          return a.name.localeCompare(b.name) * dir;
+          return (a.name || '').localeCompare(b.name || '') * dir;
       }
     });
 
@@ -280,7 +280,7 @@ export async function GET(request: NextRequest) {
     console.log(`📋 [API-ROUTE] 최종 응답: ${paginatedServers.length}개 서버 (전체: ${total}개)`);
     console.log('📡 [API-ROUTE] 데이터 소스 최종:', { dataSource, fallbackUsed });
     console.log('🔍 [API-ROUTE] 최종 서버 목록:', paginatedServers.map(s => 
-      `${s.name}(${s.type}/${s.status}/${s.cpu_usage.toFixed(1)}%)`
+      `${s.name || 'unknown'}(${s.type || 'unknown'}/${s.status || 'unknown'}/${(s.cpu_usage || s.cpu || 0).toFixed(1)}%)`
     ).join(', '));
     
     // 검색/필터링 통계
