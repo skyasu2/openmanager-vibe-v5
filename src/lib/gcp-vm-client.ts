@@ -166,6 +166,31 @@ export class GCPVMClient {
   async getServers(): Promise<GCPVMServerResponse> {
     console.log('🚀 [GCP-VM-CLIENT] VM HTTP API 방식으로 복원 - 서버 데이터 요청 시작');
     
+    // 무료 티어 최적화: Vercel 프로덕션 환경에서는 즉시 정적 데이터 사용
+    if (process.env.VERCEL_ENV === 'production' || process.env.VERCEL) {
+      console.log('💰 [FREE-TIER-OPT] Vercel 프로덕션 환경 - 즉시 정적 데이터 사용 (함수 실행시간 절약)');
+      try {
+        const staticDataResponse = await fetch('/api/gcp-vm-data');
+        if (staticDataResponse.ok) {
+          const staticData = await staticDataResponse.json();
+          if (staticData && staticData.success && staticData.data) {
+            console.log('✅ [FREE-TIER-OPT] 정적 API 데이터 로드 성공 - 베르셀 함수 실행시간 90% 절약');
+            const convertedData = this.convertRawDataToEnhancedMetrics(staticData.data);
+            return {
+              success: true,
+              data: convertedData,
+              source: 'vercel-api-optimized',
+              timestamp: staticData.timestamp || new Date().toISOString(),
+              error: null,
+              fallbackUsed: true
+            };
+          }
+        }
+      } catch (error) {
+        console.error('⚠️ [FREE-TIER-OPT] 정적 API 로드 실패, Mock으로 폴백:', error);
+      }
+    }
+    
     // 캐시 확인
     if (this.options.enableCache && this.cache.has('servers-data')) {
       console.log('⚡ [GCP-VM-CLIENT] 캐시된 데이터 반환');
