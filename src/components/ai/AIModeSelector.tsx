@@ -12,7 +12,7 @@
 import type { AIMode } from '@/types/ai-types';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Brain, Cpu, Zap } from 'lucide-react';
-import { useState } from 'react';
+import React, { useState, createElement } from 'react';
 
 interface AiModeSelectorProps {
   selectedMode: AIMode;

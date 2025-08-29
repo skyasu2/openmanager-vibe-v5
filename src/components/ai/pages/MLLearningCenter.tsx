@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useState, useCallback } from 'react';
+import React, { useState, useCallback, createElement } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Brain,

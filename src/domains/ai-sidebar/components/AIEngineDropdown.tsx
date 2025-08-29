@@ -3,10 +3,10 @@
  * AI 모델 선택 및 엔진 정보 표시
  */
 
-// React import 제거 - Next.js 15 자동 JSX Transform 사용
+// React import 필요 - createElement 사용으로 인해
 // framer-motion 제거 - CSS 애니메이션 사용
+import React, { Fragment, createElement } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { Fragment } from 'react';
 import { availableEngines } from './AIEngineSelector';
 import type { AIMode } from '@/types/ai-types';
 

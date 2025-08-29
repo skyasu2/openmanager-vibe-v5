@@ -11,7 +11,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useRef, useState, useMemo, memo, Fragment } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo, memo, Fragment, createElement } from 'react';
 import { useRealTimeAILogs } from '@/hooks/useRealTimeAILogs';
 import {
   useAIChat,
