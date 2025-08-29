@@ -46,7 +46,7 @@ export async function processRealAIQuery(
       engine === 'GOOGLE_ONLY'
         ? '/api/ai/google-ai/generate'
         : engine === 'LOCAL'
-          ? '/api/mcp/query'
+          ? '/api/ai/query'
           : '/api/ai/edge-v2';
 
     // API 엔드포인트 호출

@@ -15,7 +15,7 @@ import type { EdgeRouterRequest } from '@/services/ai/interfaces/distributed-ai.
 import debug from '@/utils/debug';
 
 // Edge Runtime 설정
-export const runtime = 'edge';
+// Edge Runtime 제거 - 안정성 우선 (AI 교차 검증 결과)
 export const preferredRegion = 'icn1'; // 서울
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

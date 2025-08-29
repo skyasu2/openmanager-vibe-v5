@@ -244,8 +244,7 @@
       "maxDuration": 10
     },
     "src/app/api/mcp/query/route.ts": {
-      "maxDuration": 15,
-      "memory": 512
+      "maxDuration": 15
     },
     "src/app/api/ai/query/route.ts": {
       "maxDuration": 10
@@ -260,8 +259,7 @@
       "maxDuration": 10
     },
     "src/app/api/servers/all/route.ts": {
-      "maxDuration": 30,
-      "memory": 256
+      "maxDuration": 30
     },
     "src/app/api/health/route.ts": {
       "maxDuration": 5
@@ -276,12 +274,10 @@
       "maxDuration": 5
     },
     "src/app/api/debug/env/route.ts": {
-      "maxDuration": 5,
-      "memory": 128
+      "maxDuration": 5
     },
     "src/app/api/gcp-vm-data/route.ts": {
-      "maxDuration": 10,
-      "memory": 256
+      "maxDuration": 10
     }
   }
 }

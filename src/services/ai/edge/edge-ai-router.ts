@@ -28,8 +28,8 @@ import { edgeCache } from './edge-cache';
 import { distributedErrorHandler } from '../errors/distributed-error-handler';
 import { unifiedResponseFormatter } from '../formatters/unified-response-formatter';
 
-// Edge Runtime 설정
-export const runtime = 'edge';
+// Node.js Runtime 사용 (안정성 우선)
+// Edge Runtime 제거: Vercel 경고 해결 및 안정성 확보
 export const preferredRegion = 'icn1'; // 서울 리전
 
 /**

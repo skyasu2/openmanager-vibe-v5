@@ -70,9 +70,9 @@ const ENGINE_CONFIG = {
     endpoint: '/api/ai/google-ai/generate'
   },
   LOCAL: {
-    displayName: '로컬 MCP',
-    description: '로컬 MCP 서버 - 프라이버시 보장과 오프라인 동작',
-    endpoint: '/api/mcp/query'
+    displayName: '로컬 RAG',
+    description: 'Supabase RAG 엔진 - 빠른 응답과 프라이버시 보장',
+    endpoint: '/api/ai/query'
   },
   GOOGLE_AI: {
     displayName: 'Google AI',

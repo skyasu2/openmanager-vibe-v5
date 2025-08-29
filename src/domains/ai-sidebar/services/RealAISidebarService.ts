@@ -65,31 +65,35 @@ export class RealAISidebarService {
         },
       ];
 
-      // MCP 쿼리 API 호출
-      const response = await fetch(`${this.baseUrl}/api/mcp/query`, {
+      // AI 쿼리 API 호출 (MCP 제거 버전)
+      const response = await fetch(`${this.baseUrl}/api/ai/query`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           query: question,
+          temperature: 0.7,
+          maxTokens: 1000,
           context: 'ai-sidebar',
           includeThinking: true,
+          mode: 'local-ai',
+          timeoutMs: 450,
         }),
       });
 
-      const mcpData = await response.json();
+      const aiData = await response.json();
 
       return {
         id: `response_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         query: question,
         response:
-          mcpData.response || '죄송합니다. 현재 AI 시스템에 문제가 있습니다.',
-        confidence: mcpData.confidence || 0.5,
+          aiData.response || '죄송합니다. 현재 AI 시스템에 문제가 있습니다.',
+        confidence: aiData.confidence || 0.5,
         timestamp: new Date(),
-        thinkingSteps: thinkingSteps,
-        processingTime: mcpData.responseTime || 1000,
-        source: 'mcp' as const,
+        thinkingSteps: aiData.metadata?.thinkingSteps || thinkingSteps,
+        processingTime: aiData.responseTime || 1000,
+        source: 'supabase-rag' as const,
       };
     } catch (error) {
       console.error('AI 질의 처리 오류:', error);

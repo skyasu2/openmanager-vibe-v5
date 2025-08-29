@@ -16,8 +16,7 @@ import { aiLogger } from '@/lib/logger';
 import type { QueryRequest, QueryResponse } from './SimplifiedQueryEngine';
 import type { RouterConfig, RouteResult } from './UnifiedAIEngineRouter.types';
 
-// Edge Runtime 최적화
-export const runtime = 'edge';
+// Node.js Runtime 사용 - 안정성 우선 (AI 교차 검증 결과)
 
 interface UltraFastConfig extends Partial<RouterConfig> {
   enableStreamingEngine: boolean;

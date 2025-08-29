@@ -1,10 +1,10 @@
 /**
- * 🤖 AI 쿼리 API (최적화됨)
+ * 🤖 AI 쿼리 API (MCP 제거 버전)
  *
- * 목표: 응답 시간 500ms 이하
- * - 쿼리 복잡도 자동 분석
- * - 적절한 엔진 자동 선택
- * - 병렬 처리 및 캐싱
+ * 목표: 응답 시간 500ms 이하, 무료 티어 최적화
+ * - Supabase RAG + Google AI + GCP Functions 직접 연동
+ * - MCP 의존성 완전 제거
+ * - 무료 티어 친화적 설계
  * POST /api/ai/query
  */
 
@@ -170,10 +170,9 @@ async function postHandler(request: NextRequest) {
       debug.log(`✅ 캐시 HIT: ${cacheKey}, 응답 시간: ${responseTime}ms`);
     } else {
       // 새로운 쿼리 실행
-      // 모드별 기능 설정
+      // 모드별 기능 설정 (MCP 제거)
       const finalMode = mode || preferredMode || 'local-ai';
       const enableGoogleAI = finalMode === 'google-ai';
-      const enableAIAssistantMCP = finalMode === 'google-ai';
 
       const queryRequest: QueryRequest = {
         query,
@@ -187,13 +186,12 @@ async function postHandler(request: NextRequest) {
           temperature,
           maxTokens,
           includeThinking,
-          includeMCPContext: enableAIAssistantMCP && query.length > 100,
+          // MCP 컨텍스트 비활성화
           category: context,
           timeoutMs,
         },
-        // 모드별 기능 제어 옵션 추가
+        // 모드별 기능 제어 옵션 (MCP 제거)
         enableGoogleAI,
-        enableAIAssistantMCP,
         enableKoreanNLP: true, // 두 모드 모두 한국어 NLP 활성화
         enableVMBackend: true, // 두 모드 모두 VM 백엔드 활성화
       };

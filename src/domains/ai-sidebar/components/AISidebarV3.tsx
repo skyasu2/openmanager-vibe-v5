@@ -255,17 +255,19 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
       const abortController = new AbortController();
       const timeoutId = setTimeout(() => abortController.abort(), 30000); // 30초 timeout
       
-      const response = await fetch('/api/mcp/query', {
+      const response = await fetch('/api/ai/query', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           query,
+          temperature: 0.7,
+          maxTokens: 1000,
           context: 'ai-sidebar-v3',
           includeThinking: enableRealTimeThinking && engine !== 'GOOGLE_AI',
-          sessionId: chatSessionId,
-          engine,
+          mode: engine === 'GOOGLE_AI' ? 'google-ai' : 'local-ai',
+          timeoutMs: 450,
         }),
         signal: abortController.signal,
       });

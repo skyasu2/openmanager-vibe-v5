@@ -16,8 +16,8 @@ import { getQueryCacheManager } from './query-cache-manager';
 import { aiLogger } from '@/lib/logger';
 import type { QueryRequest, QueryResponse } from './SimplifiedQueryEngine';
 
-// Edge Runtime 설정
-export const runtime = 'edge';
+// Node.js Runtime 사용 (안정성 우선)
+// Edge Runtime 제거: Vercel 경고 해결 및 안정성 확보
 
 interface StreamingConfig {
   enableStreaming: boolean;

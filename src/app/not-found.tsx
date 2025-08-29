@@ -5,10 +5,9 @@
  * 서버 사이드 렌더링으로 작동 (SSG 비활성화)
  */
 
-// 동적 렌더링 강제 - Html import 에러 우회
-export const dynamic = 'force-dynamic';
+// 정적 생성 활성화 - 404 페이지 최적화
+export const dynamic = 'force-static';
 export const revalidate = 0;
-export const runtime = 'edge';
 
 import Link from 'next/link';
 import { Home, Search, ArrowLeft, AlertCircle } from 'lucide-react';
