@@ -1,4 +1,8 @@
+import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+
+// Next.js 동적 렌더링 강제
+export const dynamic = 'force-dynamic';
 
 // GCP VM 정적 데이터 (10개 서버)
 const GCP_VM_STATIC_DATA = {
@@ -270,7 +274,7 @@ const GCP_VM_STATIC_DATA = {
   "timestamp": "2025-08-29T17:12:58.000Z"
 };
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     console.log('🔄 [GCP-VM-API] 정적 데이터 API 라우트 호출됨');
     console.log(`📊 [GCP-VM-API] ${GCP_VM_STATIC_DATA.data.length}개 서버 데이터 반환`);
