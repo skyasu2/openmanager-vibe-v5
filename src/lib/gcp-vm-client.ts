@@ -366,7 +366,15 @@ export class GCPVMClient {
         };
       }
     } catch (externalError) {
-      console.warn(`⚠️ 외부 VM API 실패: ${externalError instanceof Error ? externalError.message : 'Unknown error'}`);
+      console.error('❌ [GCP-VM-CLIENT] 외부 VM API 실패 상세:');
+      console.error('🔍 에러 타입:', externalError?.constructor?.name || 'Unknown');
+      console.error('📝 에러 메시지:', externalError instanceof Error ? externalError.message : String(externalError));
+      console.error('🌐 요청 URL:', VM_ENDPOINT);
+      console.error('🔑 토큰 길이:', VM_API_TOKEN?.length || 0);
+      console.error('⏱️ 타임아웃 설정:', this.options.timeout);
+      if (externalError instanceof Error && externalError.stack) {
+        console.error('📚 스택 트레이스:', externalError.stack.split('\n').slice(0, 5).join('\n'));
+      }
     }
 
     // 2차: 내부 IP 시도 (폴백)
