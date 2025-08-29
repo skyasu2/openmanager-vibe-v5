@@ -510,52 +510,136 @@ export class GCPVMClient {
     console.log(`🎯 [GCP-VM-CLIENT] 최종 폴백: Mock 데이터 생성 (${currentHour}시)`);
     console.log(`⚠️ [GCP-VM-CLIENT] 모든 VM API가 실패하여 Mock 데이터를 사용합니다`);
     
-    // 간단한 폴백용 Mock 서버 데이터 (최종 안전장치)
-    const fallbackServers: EnhancedServerMetrics[] = [
+    // 10개 서버 정적 데이터 (GCP VM 데이터 통합 - 최종 폴백)
+    const staticVMData = [
       {
-        id: `mock-${Date.now()}-1`,
-        name: 'web-server-mock',
-        hostname: 'web-server-mock.local',
-        status: 'online' as const,
-        cpu: 45.2,
-        cpu_usage: 45.2,
-        memory: 62.8,
-        memory_usage: 62.8,
-        disk: 58.3,
-        disk_usage: 58.3,
-        network: 18.4,
-        network_in: 11.2,
-        network_out: 7.2,
-        uptime: 259200,
-        location: 'Mock-Fallback',
-        alerts: 0,
-        ip: '127.0.0.1',
-        os: 'Mock OS',
-        type: 'web',
-        role: 'worker',
-        environment: 'mock',
-        provider: 'Mock-Provider',
-        specs: { cpu_cores: 2, memory_gb: 4, disk_gb: 100, network_speed: '1Gbps' },
+        "server_id": "server-1756455178476-0",
+        "hostname": "web-server-01",
+        "system": { "cpu_usage_percent": 34.38, "memory_total_bytes": 8589934592, "memory_used_bytes": 2438209376, "disk_total_bytes": 214748364800, "disk_used_bytes": 115848619254, "uptime_seconds": 1756429123 },
+        "metadata": { "ip": "192.168.1.100", "os": "Ubuntu 22.04 LTS", "server_type": "web", "role": "worker" },
+        "specs": { "cpu_cores": 4, "memory_gb": 8, "disk_gb": 200 }, "status": "online"
+      },
+      {
+        "server_id": "server-1756455178476-1",
+        "hostname": "web-server-02",
+        "system": { "cpu_usage_percent": 29.85, "memory_total_bytes": 8589934592, "memory_used_bytes": 3115824828, "disk_total_bytes": 214748364800, "disk_used_bytes": 85787383921, "uptime_seconds": 1754389804 },
+        "metadata": { "ip": "192.168.1.101", "os": "Ubuntu 22.04 LTS", "server_type": "web", "role": "worker" },
+        "specs": { "cpu_cores": 4, "memory_gb": 8, "disk_gb": 200 }, "status": "online"
+      },
+      {
+        "server_id": "server-1756455178476-2",
+        "hostname": "api-server-01",
+        "system": { "cpu_usage_percent": 47.52, "memory_total_bytes": 17179869184, "memory_used_bytes": 7126592271, "disk_total_bytes": 322122547200, "disk_used_bytes": 95283441851, "uptime_seconds": 1756404615 },
+        "metadata": { "ip": "192.168.2.100", "os": "Ubuntu 22.04 LTS", "server_type": "api", "role": "primary" },
+        "specs": { "cpu_cores": 6, "memory_gb": 16, "disk_gb": 300 }, "status": "online"
+      },
+      {
+        "server_id": "server-1756455178476-3",
+        "hostname": "api-server-02",
+        "system": { "cpu_usage_percent": 43.99, "memory_total_bytes": 17179869184, "memory_used_bytes": 6626593510, "disk_total_bytes": 322122547200, "disk_used_bytes": 100544609153, "uptime_seconds": 1756435387 },
+        "metadata": { "ip": "192.168.2.101", "os": "Ubuntu 22.04 LTS", "server_type": "api", "role": "secondary" },
+        "specs": { "cpu_cores": 6, "memory_gb": 16, "disk_gb": 300 }, "status": "online"
+      },
+      {
+        "server_id": "server-1756455178477-4",
+        "hostname": "db-master-primary",
+        "system": { "cpu_usage_percent": 12.51, "memory_total_bytes": 34359738368, "memory_used_bytes": 19946046061, "disk_total_bytes": 1073741824000, "disk_used_bytes": 435889319904, "uptime_seconds": 1755470558 },
+        "metadata": { "ip": "192.168.3.100", "os": "Ubuntu 22.04 LTS", "server_type": "database", "role": "master" },
+        "specs": { "cpu_cores": 8, "memory_gb": 32, "disk_gb": 1000 }, "status": "online"
+      },
+      {
+        "server_id": "server-1756455178477-5",
+        "hostname": "db-replica-01",
+        "system": { "cpu_usage_percent": 17.46, "memory_total_bytes": 34359738368, "memory_used_bytes": 15177950420, "disk_total_bytes": 1073741824000, "disk_used_bytes": 571328142108, "uptime_seconds": 1754173478 },
+        "metadata": { "ip": "192.168.3.101", "os": "Ubuntu 22.04 LTS", "server_type": "database", "role": "replica" },
+        "specs": { "cpu_cores": 8, "memory_gb": 32, "disk_gb": 1000 }, "status": "online"
+      },
+      {
+        "server_id": "server-1756455178477-6",
+        "hostname": "redis-cache-01",
+        "system": { "cpu_usage_percent": 42.0, "memory_total_bytes": 17179869184, "memory_used_bytes": 9964324126, "disk_total_bytes": 107374182400, "disk_used_bytes": 48318382080, "uptime_seconds": 1754764890 },
+        "metadata": { "ip": "192.168.4.100", "os": "Ubuntu 22.04 LTS", "server_type": "cache", "role": "primary" },
+        "specs": { "cpu_cores": 4, "memory_gb": 16, "disk_gb": 100 }, "status": "online"
+      },
+      {
+        "server_id": "server-1756455178478-7",
+        "hostname": "monitoring-server",
+        "system": { "cpu_usage_percent": 26.24, "memory_total_bytes": 8589934592, "memory_used_bytes": 4120458156, "disk_total_bytes": 536870912000, "disk_used_bytes": 422756725966, "uptime_seconds": 1755894695 },
+        "metadata": { "ip": "192.168.5.100", "os": "Ubuntu 22.04 LTS", "server_type": "monitoring", "role": "standalone" },
+        "specs": { "cpu_cores": 2, "memory_gb": 8, "disk_gb": 500 }, "status": "online"
+      },
+      {
+        "server_id": "server-1756455178478-8",
+        "hostname": "security-server",
+        "system": { "cpu_usage_percent": 13.91, "memory_total_bytes": 8589934592, "memory_used_bytes": 5578614106, "disk_total_bytes": 214748364800, "disk_used_bytes": 156557749037, "uptime_seconds": 1754027553 },
+        "metadata": { "ip": "192.168.6.100", "os": "Ubuntu 22.04 LTS", "server_type": "security", "role": "standalone" },
+        "specs": { "cpu_cores": 4, "memory_gb": 8, "disk_gb": 200 }, "status": "online"
+      },
+      {
+        "server_id": "server-1756455178478-9",
+        "hostname": "backup-server",
+        "system": { "cpu_usage_percent": 38.28, "memory_total_bytes": 4294967296, "memory_used_bytes": 1100128893, "disk_total_bytes": 2147483648000, "disk_used_bytes": 753447563255, "uptime_seconds": 1755171946 },
+        "metadata": { "ip": "192.168.7.100", "os": "Ubuntu 22.04 LTS", "server_type": "backup", "role": "standalone" },
+        "specs": { "cpu_cores": 2, "memory_gb": 4, "disk_gb": 2000 }, "status": "online"
+      }
+    ];
+
+    // VM 데이터를 EnhancedServerMetrics 형식으로 변환
+    const fallbackServers: EnhancedServerMetrics[] = staticVMData.map((vmServer, index) => {
+      const memoryUsagePercent = (vmServer.system.memory_used_bytes / vmServer.system.memory_total_bytes) * 100;
+      const diskUsagePercent = (vmServer.system.disk_used_bytes / vmServer.system.disk_total_bytes) * 100;
+      const networkIn = Math.random() * 15 + 5; // 5-20 MB/s
+      const networkOut = Math.random() * 10 + 3; // 3-13 MB/s
+      
+      return {
+        id: vmServer.server_id,
+        name: vmServer.hostname,
+        hostname: vmServer.hostname,
+        status: vmServer.status as 'online' | 'offline' | 'warning' | 'critical',
+        cpu: vmServer.system.cpu_usage_percent,
+        cpu_usage: vmServer.system.cpu_usage_percent,
+        memory: memoryUsagePercent,
+        memory_usage: memoryUsagePercent,
+        disk: diskUsagePercent,
+        disk_usage: diskUsagePercent,
+        network: networkIn + networkOut,
+        network_in: networkIn,
+        network_out: networkOut,
+        uptime: vmServer.system.uptime_seconds,
+        location: 'Seoul-DC-01',
+        alerts: vmServer.status === 'critical' ? 3 : vmServer.status === 'warning' ? 1 : 0,
+        ip: vmServer.metadata.ip,
+        os: vmServer.metadata.os,
+        type: vmServer.metadata.server_type,
+        role: vmServer.metadata.role,
+        environment: 'production',
+        provider: 'GCP-VM-Mock-Integrated',
+        specs: {
+          cpu_cores: vmServer.specs.cpu_cores,
+          memory_gb: vmServer.specs.memory_gb,
+          disk_gb: vmServer.specs.disk_gb,
+          network_speed: '1Gbps'
+        },
         lastUpdate: timestamp,
-        services: ['mock-service'],
+        services: [],
         systemInfo: {
-          os: 'Mock OS',
-          uptime: '1h',
-          processes: 10,
-          zombieProcesses: 0,
-          loadAverage: '0.50, 0.50, 0.50',
+          os: vmServer.metadata.os,
+          uptime: Math.floor(vmServer.system.uptime_seconds / 3600) + 'h',
+          processes: 120 + index * 15,
+          zombieProcesses: vmServer.status === 'critical' ? 5 : 0,
+          loadAverage: `${(vmServer.system.cpu_usage_percent / 20).toFixed(2)}, ${((vmServer.system.cpu_usage_percent - 5) / 20).toFixed(2)}, ${((vmServer.system.cpu_usage_percent - 10) / 20).toFixed(2)}`,
           lastUpdate: timestamp
         },
         networkInfo: {
-          interface: 'mock0',
-          receivedBytes: '1 MB',
-          sentBytes: '1 MB',
-          receivedErrors: 0,
-          sentErrors: 0,
-          status: 'healthy'
+          interface: 'eth0',
+          receivedBytes: `${networkIn.toFixed(1)} MB`,
+          sentBytes: `${networkOut.toFixed(1)} MB`,
+          receivedErrors: vmServer.status === 'critical' ? 3 : 0,
+          sentErrors: vmServer.status === 'critical' ? 2 : 0,
+          status: vmServer.status === 'online' ? 'healthy' : vmServer.status
         }
-      }
-    ];
+      };
+    });
 
     console.log(`📋 [GCP-VM-CLIENT] Mock 서버 생성: ${fallbackServers.length}개`);
 
