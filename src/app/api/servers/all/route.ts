@@ -234,11 +234,24 @@ export async function GET(request: NextRequest) {
       console.error('💥 [API-ROUTE] GCP 에러 상세:', gcpError instanceof Error ? gcpError.message : gcpError);
       console.log('🛡️ [API-ROUTE] 폴백 경로: API 라우트 전용 목업 (3개 서버)');
       
+      // 🔍 디버깅을 위한 에러 정보 저장
+      const errorInfo = {
+        errorType: gcpError?.constructor?.name || 'Unknown',
+        errorMessage: gcpError instanceof Error ? gcpError.message : String(gcpError),
+        stack: gcpError instanceof Error ? gcpError.stack?.split('\n').slice(0, 3).join('\n') : undefined,
+        timestamp: new Date().toISOString(),
+        nodeEnv: process.env.NODE_ENV,
+        vercelEnv: process.env.VERCEL_ENV
+      };
+      
       enhancedServers = generateMockServers();
       dataSource = 'api-route-mock';
       fallbackUsed = true;
       
       console.log('📋 [API-ROUTE] 폴백 서버 목록:', enhancedServers.map(s => `${s.name}(${s.status})`).join(', '));
+      
+      // 디버깅 정보를 메타데이터에 포함
+      global.gcpErrorInfo = errorInfo;
     }
 
     // 검색 필터 적용 (EnhancedServerMetrics 기준)
@@ -322,7 +335,9 @@ export async function GET(request: NextRequest) {
         totalServers: total,
         dataSource,
         fallbackUsed,
-        gcpVmIntegration: true // GCP VM 통합 표시
+        gcpVmIntegration: true, // GCP VM 통합 표시
+        // 🔍 디버깅 정보 (에러 발생시만 포함)
+        ...(global.gcpErrorInfo && fallbackUsed ? { gcpError: global.gcpErrorInfo } : {})
       }
     });
       
