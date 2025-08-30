@@ -105,11 +105,11 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       switch (normalizedStatus) {
         case 'online':
           return {
-            cardBg: 'bg-gradient-to-br from-white/80 via-green-50/60 to-emerald-50/40 backdrop-blur-sm',
+            cardBg: 'bg-gradient-to-br from-white/95 via-green-50/80 to-emerald-50/60',
             border: 'border-emerald-200/60',
             hoverBorder: 'hover:border-emerald-300/80',
             glowEffect: 'hover:shadow-emerald-500/20',
-            statusColor: 'text-emerald-800 bg-emerald-100/80 backdrop-blur-sm',
+            statusColor: 'text-emerald-800 bg-emerald-100/80',
             statusIcon: <CheckCircle2 className="h-4 w-4" aria-hidden="true" />,
             statusText: '정상',
             pulse: 'bg-emerald-500',
@@ -117,11 +117,11 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           };
         case 'warning':
           return {
-            cardBg: 'bg-gradient-to-br from-white/80 via-amber-50/60 to-orange-50/40 backdrop-blur-sm',
+            cardBg: 'bg-gradient-to-br from-white/95 via-amber-50/80 to-orange-50/60',
             border: 'border-amber-200/60',
             hoverBorder: 'hover:border-amber-300/80',
             glowEffect: 'hover:shadow-amber-500/20',
-            statusColor: 'text-amber-800 bg-amber-100/80 backdrop-blur-sm',
+            statusColor: 'text-amber-800 bg-amber-100/80',
             statusIcon: <AlertCircle className="h-4 w-4" aria-hidden="true" />,
             statusText: '경고',
             pulse: 'bg-amber-500',
@@ -129,11 +129,11 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           };
         case 'offline':
           return {
-            cardBg: 'bg-gradient-to-br from-white/80 via-red-50/60 to-rose-50/40 backdrop-blur-sm',
+            cardBg: 'bg-gradient-to-br from-white/95 via-red-50/80 to-rose-50/60',
             border: 'border-red-200/60',
             hoverBorder: 'hover:border-red-300/80',
             glowEffect: 'hover:shadow-red-500/20',
-            statusColor: 'text-red-800 bg-red-100/80 backdrop-blur-sm',
+            statusColor: 'text-red-800 bg-red-100/80',
             statusIcon: <AlertCircle className="h-4 w-4" aria-hidden="true" />,
             statusText: '심각',
             pulse: 'bg-red-500',
@@ -141,11 +141,11 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           };
         default:
           return {
-            cardBg: 'bg-gradient-to-br from-white/80 via-blue-50/60 to-cyan-50/40 backdrop-blur-sm',
+            cardBg: 'bg-gradient-to-br from-white/95 via-blue-50/80 to-cyan-50/60',
             border: 'border-blue-200/60',
             hoverBorder: 'hover:border-blue-300/80',
             glowEffect: 'hover:shadow-blue-500/20',
-            statusColor: 'text-blue-800 bg-blue-100/80 backdrop-blur-sm',
+            statusColor: 'text-blue-800 bg-blue-100/80',
             statusIcon: <CheckCircle2 className="h-4 w-4" aria-hidden="true" />,
             statusText: '정상',
             pulse: 'bg-blue-500',
