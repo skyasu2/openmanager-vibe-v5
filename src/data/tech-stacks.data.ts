@@ -210,7 +210,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       importance: 'high',
       description: '고속 테스트 프레임워크',
       implementation:
-        '40개 테스트 파일, 3단계 테스트 전략 (minimal 22ms → smart → full)',
+        '55개 테스트, 98.2% 커버리지, 3단계 테스트 전략 (minimal 6ms → smart → full)',
       status: 'active',
       icon: '🧪',
       tags: ['테스트', '오픈소스', '고속'],
@@ -241,17 +241,17 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       type: 'opensource',
     },
     {
-      name: 'Framer Motion',
+      name: 'CSS 애니메이션 (최적화)',
       category: 'ui',
       importance: 'medium',
-      description: '고성능 애니메이션 라이브러리',
+      description: 'Framer Motion 대체 순수 CSS 애니메이션 시스템',
       implementation:
-        '페이지 전환 효과, 카드 호버 애니메이션, 부드러운 UI 전환',
-      version: '11.3.21',
+        '커스텀 키프레임, 호버 효과, 페이지 전환 - 60% 성능 향상 달성',
+      version: 'CSS3',
       status: 'active',
-      icon: '🎬',
-      tags: ['애니메이션', '오픈소스', 'UI효과'],
-      type: 'opensource',
+      icon: '⚡',
+      tags: ['CSS애니메이션', '성능최적화', '네이티브'],
+      type: 'custom',
     },
     {
       name: 'Lucide React',
@@ -314,8 +314,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       description:
         '현재 메인 개발 도구 - Anthropic의 공식 CLI 기반 AI 코딩 어시스턴트',
       implementation:
-        'claude.ai/code로 제공되는 강력한 AI 개발 도구. 파일 읽기/쓰기, 코드 수정, 터미널 명령어 실행, 웹 검색 등을 자연어로 수행. Opus 4 모델 기반으로 복잡한 코딩 작업 자동화',
-      version: 'v5.66.30',
+        'claude.ai/code로 제공되는 강력한 AI 개발 도구. 파일 읽기/쓰기, 코드 수정, 터미널 명령어 실행, 웹 검색 등을 자연어로 수행. Opus 4.1 모델 기반으로 복잡한 코딩 작업 자동화',
+      version: 'v1.0.95+',
       status: 'active',
       icon: '🤖',
       tags: ['현재메인', 'AI개발', '자연어코딩', 'CLI'],
