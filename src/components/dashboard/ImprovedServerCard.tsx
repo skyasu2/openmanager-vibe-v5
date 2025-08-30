@@ -317,8 +317,6 @@ const ImprovedServerCard: FC<ImprovedServerCardProps> = memo(
           hover:-translate-y-1 hover:scale-[1.02]
           active:scale-[0.98] active:translate-y-0
           focus:outline-none focus:ring-4 focus:ring-blue-500/20
-          before:absolute before:inset-0 before:bg-white/10 before:backdrop-blur-sm before:rounded-2xl before:opacity-0
-          hover:before:opacity-100 before:transition-opacity before:duration-300
         `}
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
@@ -358,7 +356,7 @@ const ImprovedServerCard: FC<ImprovedServerCardProps> = memo(
                   <>
                     <span>•</span>
                     <Clock className="h-3 w-3" />
-                    <span>{server.uptime}</span>
+                    <span>{new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' })}</span>
                   </>
                 )}
               </div>
