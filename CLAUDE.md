@@ -21,8 +21,8 @@
 - **Shell**: bash (WSL 내부), PowerShell (개인 도구만)
 - **Node.js**: v22.18.0 (WSL 내부 설치)
 - **Package Manager**: npm (WSL 전역 패키지 관리)
-- **Memory**: 8GB allocated to WSL (7.8GB available)
-- **Swap**: 8GB configured
+- **Memory**: 16GB allocated to WSL (15GB available)
+- **Swap**: 4GB configured
 
 ### 🏆 메인 개발: WSL + Claude Code
 - **용도**: 모든 개발 작업의 중심축
@@ -119,9 +119,9 @@ wsl claude --version
 
 ### WSL 성능 분석 및 최적화
 
-**🎯 최적화 할당**: 메모리 8GB, 프로세서 6개, 스왑 16GB
+**🎯 최적화 할당**: 메모리 16GB, 프로세서 12개, 스왑 4GB
 **📊 성능 결과**: I/O 4.1GB/s, Claude 1.0초, Gemini 3.1초, Qwen 7.6초
-**⚙️ 주요 효과**: CPU 활용 50%, 메모리 50%, WSL이 Windows 대비 54배 빠른 I/O
+**⚙️ 주요 효과**: CPU 활용 6.4% (매우 안정), 메모리 31.8% (최적화됨), WSL이 Windows 대비 54배 빠른 I/O
 
 → **[상세 분석 및 설정](docs/development/wsl-optimization-analysis-report.md)**
 
@@ -869,8 +869,8 @@ qwen --version # Qwen CLI v0.0.9
 
 # WSL 메모리 및 리소스 확인
 
-wsl -e bash -c "free -h" # 메모리: 9.7GB 사용 가능
-wsl -e bash -c "df -h /" # 디스크: 1TB 사용 가능
+wsl -e bash -c "free -h" # 메모리: 15GB 할당, 10GB 사용 가능
+wsl -e bash -c "df -h /" # 디스크: 1TB 사용 가능 (2% 사용)
 
 # sudo 비밀번호 없이 사용 확인
 
@@ -988,7 +988,7 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 | **성능 최적화** | [성능 가이드](docs/performance/performance-optimization-complete-guide.md) • [메모리 최적화](docs/performance/memory-optimization-guide.md) • [번들 최적화](docs/performance/bundle-optimization-report.md) | 90% 성능 향상 달성 |
 | **API 최적화** | [API 최적화](docs/performance/api-optimization-guide.md) • [캐시 마이그레이션](docs/performance/cache-migration-complete-report.md) | 1-5ms 응답시간 |
 | **React 최적화** | [컴포넌트 최적화](docs/performance/react-component-optimization-examples.md) • [Hook 최적화](docs/development/react-hooks-optimization.md) | React 성능 극대화 |
-| **🚨 Vercel 성능 문제** | [베르셀 성능 가이드라인](docs/development/vercel-edge-performance-guidelines.md) • [사후 분석 보고서](docs/development/vercel-dashboard-performance-incident-analysis.md) • [개발 체크리스트](docs/development/performance-development-checklist.md) | Edge Runtime 최적화 |
+| **✅ Vercel 배포 안정화** | [베르셀 성능 가이드라인](docs/development/vercel-edge-performance-guidelines.md) • [사후 분석 보고서](docs/development/vercel-dashboard-performance-incident-analysis.md) • [개발 체크리스트](docs/development/performance-development-checklist.md) | Zero Warnings 달성, CLI 46.1.0 호환 |
 
 ### 🔐 보안 & 인프라
 
@@ -1087,11 +1087,19 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 - **코드 커버리지**: 98.2% (목표 70% 초과 달성)
 - **CI/CD**: Push 성공률 99%, 평균 배포 시간 5분
 
-### WSL 환경 상태
+### Vercel 배포 현황
 
-- **메모리**: 8GB 할당, 7.8GB 사용 가능
-- **프로세서**: 6개 할당 (균형잡힌 성능)
-- **스왑**: 16GB 설정 (여유로운 AI 작업 지원)
+- **배포 상태**: ✅ 완전 성공 (Zero Warnings 달성)
+- **Vercel CLI 호환성**: ✅ 46.1.0 Breaking Changes 완전 대응
+- **Node.js 버전**: ✅ 22.x 통합 (package.json + Vercel 설정 동기화)
+- **Runtime 최적화**: ✅ Edge Runtime 정리, Next.js 자동 감지 활용
+- **배포 성과**: 경고 4개 → 0개, 프로덕션 안정성 100% 확보
+
+### WSL 환경 상태 (2025-08-30 최신 확인)
+
+- **메모리**: 16GB 할당, 15GB 사용 가능 (현재 31.8% 사용 - 매우 안정)
+- **프로세서**: 12개 할당 (AMD Ryzen 7, 현재 로드 0.77/12 - 6.4% 사용률)
+- **스왑**: 4GB 설정 (현재 3.5% 사용 - 거의 미사용, 최적화됨)
 - **AI CLI 도구**: 6개 모두 완벽 작동 (Claude, Codex, Gemini, Qwen, OpenAI, ccusage)
 - **멀티 AI 협업**: Max 정액제 + 서브 3개 체제 ($220/월로 $2,200+ 가치)
 - **Claude 사용량 모니터링**: ccusage v16.1.1 statusline 실시간 표시 활성화 (중복 실행 이슈 해결)
