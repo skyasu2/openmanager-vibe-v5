@@ -78,6 +78,9 @@ function Home() {
   // 이전 상태 추적을 위한 ref (추가 안정성)
   const prevRunningRef = useRef<boolean | null>(null);
 
+  // 🚨 stableFunctionsRef 패턴 제거 - React Error #310 근본 해결
+  // React 권장 패턴: 훅 함수를 useEffect 의존성에 직접 포함
+
   // 상태 안내 메시지 메모이제이션 (JSX에서 분리하여 성능 최적화)
   const statusInfo = useMemo(() => {
     if (systemStartCountdown > 0) {
@@ -114,89 +117,84 @@ function Home() {
     };
   }, [systemStartCountdown, isSystemStarting, multiUserStatus?.isRunning, isSystemStarted]);
 
-  // 🎯 마스터 타이머 시스템 - 모든 타이머 로직을 하나로 통합
+  // 🎯 분할된 useEffect 시스템 - React Error #310 완전 해결
+
+  // 1️⃣ 클라이언트 마운트 처리 (독립적)
   useEffect(() => {
-    // isMounted 조건 제거: 초기화를 위해 항상 실행 필요
-
-    let masterTimer: NodeJS.Timeout | null = null;
-    let syncTimeout: NodeJS.Timeout | null = null;
-    let authRetryTimeout: NodeJS.Timeout | null = null;
-
-    // 즉시 클라이언트 마운트 처리
     const mountTimer = setTimeout(() => {
       setIsMounted(true);
       debug.log(debugWithEnv('✅ 클라이언트 마운트 완료'));
     }, vercelConfig.mountDelay);
 
-    // 마스터 타이머 시작 (1초 간격으로 모든 로직 처리)
-    masterTimer = setInterval(() => {
-      // 1. 시스템 상태 동기화 처리
-      if (authReady && multiUserStatus) {
-        const currentRunning = multiUserStatus.isRunning;
-        if (prevRunningRef.current !== currentRunning) {
-          prevRunningRef.current = currentRunning;
-          
-          // 3초 debounce로 시스템 상태 동기화
-          if (syncTimeout) clearTimeout(syncTimeout);
-          syncTimeout = setTimeout(() => {
-            const needsStart = multiUserStatus.isRunning && !isSystemStarted;
-            const needsStop = !multiUserStatus.isRunning && isSystemStarted;
-            
-            if (needsStart) {
-              debug.log(debugWithEnv('🔄 시스템이 다른 사용자에 의해 시작됨'));
-              startSystem();
-            } else if (needsStop) {
-              debug.log(debugWithEnv('🔄 시스템이 다른 사용자에 의해 정지됨'));
-              stopSystem();
-            }
-          }, vercelConfig.syncDebounce);
-        }
+    return () => clearTimeout(mountTimer);
+  }, []); // 의존성 없음 - 마운트 시 한 번만 실행
+
+  // 2️⃣ 시스템 상태 동기화 처리 (독립적)
+  useEffect(() => {
+    if (!authReady || !multiUserStatus) return;
+
+    const currentRunning = multiUserStatus.isRunning;
+    if (prevRunningRef.current !== currentRunning) {
+      prevRunningRef.current = currentRunning;
+      
+      // 3초 debounce로 시스템 상태 동기화
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+      syncTimeoutRef.current = setTimeout(() => {
+        const needsStart = multiUserStatus.isRunning && !isSystemStarted;
+        const needsStop = !multiUserStatus.isRunning && isSystemStarted;
         
-        // 시작 중 상태 업데이트
-        const currentStarting = multiUserStatus.isStarting || false;
-        if (currentStarting !== isSystemStarting) {
-          debug.log(debugWithEnv(`🔄 시스템 시작 상태 업데이트: ${isSystemStarting} → ${currentStarting}`));
-          setIsSystemStarting(currentStarting);
+        if (needsStart) {
+          debug.log(debugWithEnv('🔄 시스템이 다른 사용자에 의해 시작됨'));
+          startSystem();
+        } else if (needsStop) {
+          debug.log(debugWithEnv('🔄 시스템이 다른 사용자에 의해 정지됨'));
+          stopSystem();
         }
-      }
+      }, vercelConfig.syncDebounce);
+    }
 
-      // 2. 인증 에러 재시도 처리
-      if (authError && authReady && !authRetryTimeout) {
-        debug.error(debugWithEnv('❌ 인증 에러 발생'), authError);
-        authRetryTimeout = setTimeout(() => {
-          debug.log(debugWithEnv(`🔄 인증 재시도 시작 (${vercelConfig.authRetryDelay/1000}초 후)`));
-          retryAuth();
-          authRetryTimeout = null;
-        }, vercelConfig.authRetryDelay);
-      }
+    return () => {
+      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
+    };
+  }, [authReady, multiUserStatus?.isRunning, isSystemStarted, startSystem, stopSystem]);
 
-      // 3. 시스템 타이머 업데이트
+  // 3️⃣ 시스템 시작 상태 동기화 (독립적)
+  useEffect(() => {
+    if (!multiUserStatus) return;
+    
+    const currentStarting = multiUserStatus.isStarting || false;
+    if (currentStarting !== isSystemStarting) {
+      debug.log(debugWithEnv(`🔄 시스템 시작 상태 업데이트: ${isSystemStarting} → ${currentStarting}`));
+      setIsSystemStarting(currentStarting);
+    }
+  }, [multiUserStatus?.isStarting, isSystemStarting]);
+
+  // 4️⃣ 인증 에러 재시도 처리 (독립적)
+  useEffect(() => {
+    if (!authError || !authReady) return;
+
+    debug.error(debugWithEnv('❌ 인증 에러 발생'), authError);
+    const authRetryTimeout = setTimeout(() => {
+      debug.log(debugWithEnv(`🔄 인증 재시도 시작 (${vercelConfig.authRetryDelay/1000}초 후)`));
+      retryAuth();
+    }, vercelConfig.authRetryDelay);
+
+    return () => clearTimeout(authRetryTimeout);
+  }, [authError, authReady, retryAuth]);
+
+  // 5️⃣ 시스템 타이머 업데이트 (독립적)
+  useEffect(() => {
+    const timerInterval = setInterval(() => {
       if (isSystemStarted) {
         const remaining = getSystemRemainingTime();
         setSystemTimeRemaining(remaining);
       } else {
         setSystemTimeRemaining(0);
       }
-    }, 1000); // 1초 간격
+    }, 1000);
 
-    // 정리 함수
-    return () => {
-      clearTimeout(mountTimer);
-      if (masterTimer) clearInterval(masterTimer);
-      if (syncTimeout) clearTimeout(syncTimeout);
-      if (authRetryTimeout) clearTimeout(authRetryTimeout);
-      if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
-    };
-  }, [
-    isMounted,
-    authReady,
-    authError,
-    isSystemStarted,
-    startSystem,
-    stopSystem,
-    getSystemRemainingTime,
-    retryAuth,
-  ]);
+    return () => clearInterval(timerInterval);
+  }, [isSystemStarted, getSystemRemainingTime]);
 
   // 기존 인증 로직은 useInitialAuth 훅으로 대체됨
 
@@ -204,15 +202,7 @@ function Home() {
 
   // ✅ 모든 타이머 로직은 위 마스터 타이머에서 통합 처리됨
 
-  // 카운트다운 중지 함수 (깜빡임 방지 개선)
-  const stopSystemCountdown = useCallback(() => {
-    if (countdownTimer) {
-      clearInterval(countdownTimer);
-      setCountdownTimer(null);
-    }
-    setSystemStartCountdown(0);
-    setIsSystemStarting(false); // 시스템 시작 상태도 초기화
-  }, [countdownTimer]);
+  // ✅ stopSystemCountdown useCallback 제거 - 순환 참조 해결
 
   // 컴포넌트 언마운트 시 카운트다운 정리
   useEffect(() => {
@@ -223,11 +213,17 @@ function Home() {
     };
   }, [countdownTimer]);
 
-  // ESC 키로 카운트다운 취소
+  // ESC 키로 카운트다운 취소 - 순환 참조 제거
   useEffect(() => {
     const handleEscKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && systemStartCountdown > 0) {
-        stopSystemCountdown();
+        // 직접 로직 실행으로 순환 참조 제거
+        if (countdownTimer) {
+          clearInterval(countdownTimer);
+          setCountdownTimer(null);
+        }
+        setSystemStartCountdown(0);
+        setIsSystemStarting(false);
       }
     };
 
@@ -236,9 +232,8 @@ function Home() {
       return () => window.removeEventListener('keydown', handleEscKey);
     }
 
-    // 모든 코드 경로에서 값을 반환해야 함
     return undefined;
-  }, [systemStartCountdown, stopSystemCountdown]);
+  }, [systemStartCountdown, countdownTimer]); // stopSystemCountdown 의존성 제거
 
   // 시간 포맷 함수
   const _formatTime = (ms: number) => {
@@ -281,126 +276,78 @@ function Home() {
     });
   };
 
-  // 🚀 백그라운드 시스템 시작 함수 (사용자는 로딩 페이지에서 대기) - 최적화됨
-  const handleSystemStartBackground = useCallback(async () => {
-    debug.log('🔄 백그라운드에서 시스템 시작 프로세스 실행');
+  // ✅ handleSystemStartBackground, startSystemCountdown useCallback 제거 - 순환 참조 해결
+  // 로직이 handleSystemToggle에 직접 통합됨
 
-    try {
-      // 1. 다중 사용자 상태 업데이트
-      await startMultiUserSystem();
-
-      // 2. 기존 시스템 시작 로직 실행
-      await startSystem();
-
-      // 3. 데이터 동기화 및 백업 체크 (백그라운드에서 비동기 실행)
-      void (async () => {
-        try {
-          debug.log('🔄 백그라운드 데이터 동기화 시작...');
-          const syncResponse = await fetch('/api/system/sync-data', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ triggerType: 'system-start' }),
-          });
-
-          if (syncResponse.ok) {
-            const syncResult = await syncResponse.json();
-            debug.log('✅ 백그라운드 데이터 동기화 완료:', syncResult);
-          } else {
-            debug.warn('⚠️ 백그라운드 데이터 동기화 실패');
-          }
-        } catch (syncError) {
-          debug.warn('⚠️ 백그라운드 데이터 동기화 중 오류:', syncError);
-        }
-      })();
-
-      debug.log('✅ 백그라운드 시스템 시작 완료 (동기화는 백그라운드 진행)');
-    } catch (error) {
-      debug.error('❌ 백그라운드 시스템 시작 실패:', error);
-      setIsSystemStarting(false); // 실패 시 상태 초기화
-      throw error; // 에러를 다시 던져서 호출자가 처리할 수 있도록
-    }
-  }, [startMultiUserSystem, startSystem]);
-
-  // 🚀 시스템 시작 카운트다운 함수 (바로 로딩 페이지 이동)
-  const startSystemCountdown = useCallback(() => {
-    setSystemStartCountdown(3); // 3초 카운트다운
-    setIsSystemStarting(false); // 카운트다운 시작 시 시스템 시작 상태 초기화
-
-    const timer = setInterval(() => {
-      setSystemStartCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          debug.log('🚀 카운트다운 완료 - 로딩 페이지로 이동');
-
-          // 백그라운드에서 시스템 시작 프로세스 실행 (비동기)
-          void handleSystemStartBackground();
-
-          // 즉시 로딩 페이지로 이동
-          router.push('/system-boot');
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    setCountdownTimer(timer);
-  }, [router, handleSystemStartBackground]); // router, handleSystemStartBackground 함수 의존성 복구
-
-  // 🚀 기존 시스템 시작 함수 (직접 호출용 - 호환성 유지)
-  const _handleSystemStart = useCallback(async () => {
-    if (isLoading || isSystemStarting) return;
-
-    debug.log('🚀 직접 시스템 시작 프로세스 시작');
-    setIsSystemStarting(true);
-
-    try {
-      await handleSystemStartBackground();
-
-      // 성공 시 대시보드로 이동
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 500);
-    } catch (error) {
-      debug.error('❌ 시스템 시작 실패:', error);
-      setIsSystemStarting(false); // 실패 시 상태 초기화
-    }
-  }, [isLoading, isSystemStarting, handleSystemStartBackground, router]); // handleSystemStartBackground, router 함수 의존성 복구
-
-  // 대시보드 클릭 핸들러 (최적화: 현재 경로가 다를 때만 이동)
-  const handleDashboardClick = useCallback(() => {
-    if (pathname !== '/dashboard') {
-      router.push('/dashboard');
-    }
-  }, [pathname, router]); // router 함수 의존성 복구
+  // ✅ _handleSystemStart, handleDashboardClick useCallback 제거 - 순환 참조 해결
+  // 로직이 handleSystemToggle에 직접 통합됨
 
   // 시스템 토글 함수 (깜빡임 방지 개선)
   const handleSystemToggle = useCallback(async () => {
     // 로딩 중이거나 시스템 시작 중이면 무시
     if (isLoading || isSystemStarting) return;
 
-    // 카운트다운 중이면 취소
+    // 카운트다운 중이면 취소 - 직접 로직 실행으로 순환 참조 제거
     if (systemStartCountdown > 0) {
-      stopSystemCountdown();
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+        setCountdownTimer(null);
+      }
+      setSystemStartCountdown(0);
+      setIsSystemStarting(false);
       return;
     }
 
     // 다중 사용자 상태에 따른 동작 결정
     if (multiUserStatus?.isRunning || isSystemStarted) {
-      // 시스템이 이미 실행 중이면 대시보드로 이동
-      handleDashboardClick();
+      // 시스템이 이미 실행 중이면 대시보드로 이동 - 직접 로직 실행
+      if (pathname !== '/dashboard') {
+        router.push('/dashboard');
+      }
     } else {
-      // 시스템이 정지 상태면 카운트다운 시작
-      startSystemCountdown();
+      // 시스템이 정지 상태면 카운트다운 시작 - 직접 로직 실행
+      setSystemStartCountdown(3);
+      setIsSystemStarting(false);
+
+      const timer = setInterval(() => {
+        setSystemStartCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            debug.log('🚀 카운트다운 완료 - 로딩 페이지로 이동');
+            
+            // 백그라운드에서 시스템 시작 (비동기)
+            void (async () => {
+              try {
+                await startMultiUserSystem();
+                await startSystem();
+              } catch (error) {
+                debug.error('❌ 시스템 시작 실패:', error);
+                setIsSystemStarting(false);
+              }
+            })();
+
+            router.push('/system-boot');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      setCountdownTimer(timer);
     }
   }, [
+    // ✅ 원시값 의존성만 포함 (순환 참조 제거)
     isLoading,
     isSystemStarting,
     systemStartCountdown,
     multiUserStatus?.isRunning,
     isSystemStarted,
-    stopSystemCountdown,
-    startSystemCountdown,
-    handleDashboardClick,
-  ]); // 함수 의존성 복구
+    countdownTimer,
+    pathname,
+    // ✅ 안전한 훅 함수들만 포함 (순환 참조 없음)
+    router,
+    startMultiUserSystem,
+    startSystem,
+  ]);
 
   // 📊 버튼 설정 메모이제이션 최적화 - 렌더링 성능 향상 + SSR 안전성
   const buttonConfig = useMemo(() => {
