@@ -2,7 +2,7 @@
  * 🚀 Ultra-Fast AI API Endpoint
  *
  * 152ms 목표 달성을 위한 최적화된 AI API 엔드포인트
- * - Edge Runtime 완전 활용
+ * - Node.js Runtime 최적화 (Vercel 호환)
  * - 스트리밍 응답 지원
  * - 메모리 기반 초고속 캐싱
  * - 병렬 처리 최적화
@@ -18,8 +18,8 @@ import { createCachedResponse } from '@/lib/unified-cache';
 import { aiLogger } from '@/lib/logger';
 import { isBoolean, extractProperty } from '@/types/type-utils';
 
-// Edge Runtime 설정으로 최대 성능 확보
-export const runtime = 'edge';
+// Node.js Runtime 사용 (Vercel 경고 해결)
+export const runtime = 'nodejs';
 export const preferredRegion = 'icn1'; // 서울 리전
 
 interface AIRequest {
