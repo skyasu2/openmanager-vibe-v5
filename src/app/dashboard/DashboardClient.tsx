@@ -338,7 +338,7 @@ function DashboardPageContent() {
       debug.log('🚀 시스템이 종료된 상태입니다. 자동으로 시작합니다.');
       startSystem();
     }
-  }, [isSystemStarted, startSystem]); // startSystem 함수 의존성 복구
+  }, [isSystemStarted]); // ✅ startSystem 함수 의존성 제거하여 순환 의존성 해결
 
   // 🛡️ 성능 가드 경고 모니터링 (개발 환경에서만)
   useEffect(() => {
@@ -349,7 +349,7 @@ function DashboardPageContent() {
       console.log('해결 방법: docs/development/performance-development-checklist.md 참고');
       console.groupEnd();
     }
-  }, [warningCount, generateReport]); // generateReport 함수 의존성 복구
+  }, [warningCount]); // ✅ generateReport 함수 의존성 제거하여 순환 의존성 해결
 
   // 🕐 시간 포맷팅
   const remainingTimeFormatted = formatTime
@@ -370,14 +370,14 @@ function DashboardPageContent() {
     setShowLogoutWarning(false);
     systemInactivityService.resumeSystem();
     debug.log('🔄 사용자가 세션을 연장했습니다 - 베르셀 사용량 최적화');
-  }, [resetTimer]); // resetTimer 함수 의존성 복구
+  }, []); // ✅ resetTimer 함수 의존성 제거하여 순환 의존성 해결
 
   // 🔒 즉시 로그아웃 처리
   const handleLogoutNow = useCallback(() => {
     forceLogout();
     setShowLogoutWarning(false);
     debug.log('🔒 사용자가 즉시 로그아웃을 선택했습니다');
-  }, [forceLogout]); // forceLogout 함수 의존성 복구
+  }, []); // ✅ forceLogout 함수 의존성 제거하여 순환 의존성 해결
 
   // 🎯 통계 업데이트 핸들러 (상단 통계 카드 업데이트)
   const handleStatsUpdate = useCallback((stats: {
@@ -414,7 +414,7 @@ function DashboardPageContent() {
     dashboardModalClose();
     setSelectedServer(null);
     setIsServerModalOpen(false);
-  }, [dashboardModalClose]); // dashboardModalClose 함수 의존성 복구
+  }, []); // ✅ dashboardModalClose 함수 의존성 제거하여 순환 의존성 해결
 
   // 🚀 시스템 제어 더미 데이터 최적화
   const dummySystemControl = {

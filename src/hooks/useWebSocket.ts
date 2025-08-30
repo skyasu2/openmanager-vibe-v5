@@ -432,7 +432,7 @@ export const useServerWebSocket = (
       websocket.subscribe('server-metrics');
       websocket.subscribe('alerts');
     }
-  }, [websocket]); // websocket 함수 참조 의존성 복구
+  }, [websocket.isConnected]); // ✅ websocket 객체 의존성을 isConnected 원시값으로 변경하여 순환 의존성 해결
 
   return {
     ...websocket,

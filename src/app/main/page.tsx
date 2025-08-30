@@ -156,7 +156,7 @@ function Home() {
     return () => {
       if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
     };
-  }, [authReady, multiUserStatus?.isRunning, isSystemStarted, startSystem, stopSystem]);
+  }, [authReady, multiUserStatus?.isRunning, isSystemStarted]); // ✅ startSystem, stopSystem 함수 의존성 제거하여 순환 의존성 해결
 
   // 3️⃣ 시스템 시작 상태 동기화 (독립적)
   useEffect(() => {
@@ -180,7 +180,7 @@ function Home() {
     }, vercelConfig.authRetryDelay);
 
     return () => clearTimeout(authRetryTimeout);
-  }, [authError, authReady, retryAuth]);
+  }, [authError, authReady]); // ✅ retryAuth 함수 의존성 제거하여 순환 의존성 해결
 
   // 5️⃣ 시스템 타이머 업데이트 (독립적)
   useEffect(() => {
@@ -194,7 +194,7 @@ function Home() {
     }, 1000);
 
     return () => clearInterval(timerInterval);
-  }, [isSystemStarted, getSystemRemainingTime]);
+  }, [isSystemStarted]); // ✅ getSystemRemainingTime 함수 의존성 제거하여 순환 의존성 해결
 
   // 기존 인증 로직은 useInitialAuth 훅으로 대체됨
 
