@@ -870,9 +870,9 @@ export class GCPVMClient {
 
 // 🌍 전역 GCP VM 클라이언트 인스턴스
 export const gcpVmClient = new GCPVMClient({
-  timeout: 3000,        // 🚨 무료티어 보호: 3초 빠른 타임아웃
-  retryAttempts: 1,     // 🚨 무료티어 보호: 1회만 재시도
-  retryDelay: 2000,     // 🚨 무료티어 보호: 2초 재시도 지연
+  timeout: process.env.VERCEL ? 1000 : 3000,  // 🚨 Vercel: 1초, 로컬: 3초
+  retryAttempts: process.env.VERCEL ? 0 : 1,   // 🚨 Vercel: 재시도 없음, 로컬: 1회
+  retryDelay: 500,      // 🚨 재시도 지연 단축: 2초 → 0.5초
   enableFallback: true, // fallback 유지 (사용자 경험)
   enableCache: true     // 캐시 유지 (무료티어 절약)
 });

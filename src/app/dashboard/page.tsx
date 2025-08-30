@@ -6,8 +6,8 @@
  * SSR bailout 문제를 해결하기 위해 전체 페이지를 클라이언트 렌더링으로 전환
  */
 
+import React, { useEffect, useState } from 'react';
 import DashboardClient from './DashboardClient';
-import { useEffect, useState } from 'react';
 
 // 🎯 대시보드 페이지 - 클라이언트 컴포넌트
 export default function DashboardPage() {

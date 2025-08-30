@@ -7,8 +7,8 @@
 
 'use client';
 
+import React, { useEffect, useState } from 'react';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Card,

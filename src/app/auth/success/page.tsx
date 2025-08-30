@@ -9,10 +9,10 @@
 
 // 클라이언트 컴포넌트 - 인증 페이지는 클라이언트에서 처리
 
+import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import debug from '@/utils/debug';
 
 export default function AuthSuccessPage() {

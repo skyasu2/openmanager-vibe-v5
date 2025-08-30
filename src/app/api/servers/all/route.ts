@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServersFromGCPVM } from '@/lib/gcp-vm-client';
 import type { EnhancedServerMetrics } from '@/types/server';
 // TODO: 누락된 모듈들 - 추후 구현 필요
 // import { createServerSideAction } from '@/core/security/server-side-action';
@@ -638,74 +637,23 @@ export async function GET(request: NextRequest) {
     console.log('🌐 [VERCEL-CACHE-BUST] 서버 데이터 요청 - GCP VM 통합 모드');
     console.log('📊 요청 파라미터:', { sortBy, sortOrder, page, limit, search });
     
-    let enhancedServers: EnhancedServerMetrics[] = [];
-    let dataSource = 'unknown';
-    let fallbackUsed = false;
-
-    // 🧪 테스트 모드: 강제로 시나리오 시스템 사용
-    const forceScenarioMode = searchParams.get('test_scenarios') === 'true' || process.env.FORCE_SCENARIO_MODE === 'true';
+    // 🚨 GCP VM 제거됨: 즉시 Mock 데이터 사용 (504 타임아웃 완전 해결)
+    console.log('🎯 [API-ROUTE] GCP VM 제거로 인해 즉시 Mock 데이터 사용');
+    console.log('📍 [API-ROUTE] 요청 URL:', request.url);
+    console.log('🔧 [API-ROUTE] 요청 파라미터:', { sortBy, sortOrder, page, limit, search });
     
-    if (forceScenarioMode) {
-      console.log('🎭 [TEST-MODE] 강제 시나리오 모드 활성화 - 새로운 장애 시나리오 시스템 테스트');
-      enhancedServers = generateStaticServers();
-      dataSource = 'scenario-test';
-      fallbackUsed = true;
-    } else {
-      try {
-        // 🎯 1차: GCP VM에서 데이터 가져오기 시도
-        console.log('🚀 [API-ROUTE] GCP VM 서버 데이터 요청 중...');
-        console.log('📍 [API-ROUTE] 요청 URL:', request.url);
-        console.log('🔧 [API-ROUTE] 요청 파라미터 상세:', { sortBy, sortOrder, page, limit, search });
-      
-      const gcpResponse = await getServersFromGCPVM();
-      
-      if (gcpResponse.success && gcpResponse.data && gcpResponse.data.length > 0) {
-        console.log(`✅ [API-ROUTE] GCP VM 응답 성공: ${gcpResponse.data.length}개 서버`);
-        console.log('📊 [API-ROUTE] GCP VM 데이터 소스:', gcpResponse.source);
-        console.log('🔄 [API-ROUTE] GCP VM 폴백 여부:', gcpResponse.fallback ? '예' : '아니오');
-        
-        enhancedServers = gcpResponse.data;
-        dataSource = gcpResponse.source;
-        fallbackUsed = gcpResponse.fallback;
-        
-
-        
-        // 서버별 상태 요약
-        const statusSummary = enhancedServers.reduce((acc, server) => {
-          acc[server.status] = (acc[server.status] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>);
-        console.log('📈 [API-ROUTE] 서버 상태 요약:', statusSummary);
-        
-      } else {
-        throw new Error(`GCP VM 응답 실패: ${JSON.stringify(gcpResponse)}`);
-      }
-    } catch (gcpError) {
-      // 🔄 2차: API 라우트 전용 목업 데이터로 폴백
-      console.warn('⚠️ [API-ROUTE] GCP VM 연결 실패, API 라우트 목업 데이터로 폴백');
-      console.error('💥 [API-ROUTE] GCP 에러 상세:', gcpError instanceof Error ? gcpError.message : gcpError);
-      console.log('🛡️ [API-ROUTE] 폴백 경로: 통합된 정적 데이터 (10개 서버)');
-      
-      // 🔍 디버깅을 위한 에러 정보 저장
-      const errorInfo = {
-        errorType: gcpError?.constructor?.name || 'Unknown',
-        errorMessage: gcpError instanceof Error ? gcpError.message : String(gcpError),
-        stack: gcpError instanceof Error ? gcpError.stack?.split('\n').slice(0, 3).join('\n') : undefined,
-        timestamp: new Date().toISOString(),
-        nodeEnv: process.env.NODE_ENV,
-        vercelEnv: process.env.VERCEL_ENV
-      };
-      
-      enhancedServers = generateStaticServers();
-      dataSource = 'static-integrated';
-      fallbackUsed = true;
-      
-      console.log('📋 [API-ROUTE] 폴백 서버 목록:', enhancedServers.map(s => `${s.name}(${s.status})`).join(', '));
-      
-      // 디버깅 정보를 메타데이터에 포함
-      global.gcpErrorInfo = errorInfo;
-      }
-    }
+    const enhancedServers = generateStaticServers();
+    const dataSource = 'static-mock';
+    const fallbackUsed = false; // Mock 데이터가 메인 데이터 소스
+    
+    console.log(`✅ [API-ROUTE] Mock 데이터 생성 성공: ${enhancedServers.length}개 서버`);
+    
+    // 서버별 상태 요약
+    const statusSummary = enhancedServers.reduce((acc, server) => {
+      acc[server.status] = (acc[server.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    console.log('📈 [API-ROUTE] 서버 상태 요약:', statusSummary);
 
     // 검색 필터 적용 (EnhancedServerMetrics 기준)
     let filteredServers = enhancedServers;
