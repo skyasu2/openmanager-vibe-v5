@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react';
+import React, { memo } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Crown } from 'lucide-react';
 import { ProfileAvatar, UserTypeIcon } from './ProfileAvatar';

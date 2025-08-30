@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useCallback, useMemo } from 'react';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
@@ -10,7 +11,6 @@ import {
   Power,
   Shield,
 } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
 
 // 프로필 컴포넌트 임포트
 import {

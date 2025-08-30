@@ -1,8 +1,8 @@
 'use client';
 
+import React, { useEffect } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { X } from 'lucide-react';
-import { useEffect } from 'react';
 import type {
   FeatureCardModalProps,
   TechItem,
