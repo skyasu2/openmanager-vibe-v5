@@ -242,79 +242,82 @@ export default function AdminClient() {
         </div>
 
         {/* 상태 요약 카드 */}
-        {vmStatus && (
-          <div className="mb-8 grid gap-6 md:grid-cols-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <Server className="h-4 w-4" />
-                  VM 상태
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className={`flex items-center gap-2 ${getStatusColor(vmStatus.health)}`}>
-                  {getStatusIcon(vmStatus.health)}
-                  <span className="font-semibold capitalize">
-                    {vmStatus.health}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+        <div className="mb-8 grid gap-6 md:grid-cols-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <Server className="h-4 w-4" />
+                시스템 상태
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className={`flex items-center gap-2 ${getStatusColor(vmStatus?.health || 'healthy')}`}>
+                {getStatusIcon(vmStatus?.health || 'healthy')}
+                <span className="font-semibold capitalize">
+                  {vmStatus?.health || 'Healthy'}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <HardDrive className="h-4 w-4" />
-                  메모리 사용량
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="text-2xl font-bold">
-                    {vmStatus.memory.percentage.toFixed(1)}%
-                  </div>
-                  <Progress value={vmStatus.memory.percentage} className="h-2" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <Clock className="h-4 w-4" />
-                  업타임
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <HardDrive className="h-4 w-4" />
+                메모리 사용량
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
                 <div className="text-2xl font-bold">
-                  {Math.floor(vmStatus.uptime / 24)}일
+                  {vmStatus?.memory?.percentage?.toFixed(1) || '75.2'}%
                 </div>
-                <div className="text-sm text-gray-500">
-                  {(vmStatus.uptime % 24).toFixed(1)}시간
-                </div>
-              </CardContent>
-            </Card>
+                <Progress value={vmStatus?.memory?.percentage || 75.2} className="h-2" />
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <RefreshCw className="h-4 w-4" />
-                  마지막 업데이트
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm">
-                  {lastUpdate.toLocaleTimeString('ko-KR')}
-                </div>
-                {vmStatus.fromCache && (
-                  <Badge variant="secondary" className="mt-1 text-xs">
-                    캐시됨 ({vmStatus.cacheAge}초 전)
-                  </Badge>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        )}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <Clock className="h-4 w-4" />
+                업타임
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {Math.floor((vmStatus?.uptime || 168) / 24)}일
+              </div>
+              <div className="text-sm text-gray-500">
+                {((vmStatus?.uptime || 168) % 24).toFixed(1)}시간
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <RefreshCw className="h-4 w-4" />
+                마지막 업데이트
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm">
+                {lastUpdate.toLocaleTimeString('ko-KR')}
+              </div>
+              {vmStatus?.fromCache && (
+                <Badge variant="secondary" className="mt-1 text-xs">
+                  캐시됨 ({vmStatus.cacheAge}초 전)
+                </Badge>
+              )}
+              {!vmStatus && (
+                <Badge variant="outline" className="mt-1 text-xs">
+                  Mock 데이터
+                </Badge>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* 상세 탭 */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -326,51 +329,60 @@ export default function AdminClient() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            {vmStatus && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Monitor className="h-5 w-5" />
-                    VM 상세 정보
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <h4 className="mb-2 font-semibold">메모리 상세</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span>사용중:</span>
-                          <span>{(vmStatus.memory.used / 1024 / 1024).toFixed(0)}MB</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>전체:</span>
-                          <span>{(vmStatus.memory.total / 1024 / 1024).toFixed(0)}MB</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>사용 가능:</span>
-                          <span>{(vmStatus.memory.free / 1024 / 1024).toFixed(0)}MB</span>
-                        </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Monitor className="h-5 w-5" />
+                  시스템 상세 정보
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <h4 className="mb-2 font-semibold">메모리 상세</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>사용중:</span>
+                        <span>{((vmStatus?.memory?.used || 3072) / 1024 / 1024).toFixed(0)}MB</span>
                       </div>
-                    </div>
-                    
-                    <div>
-                      <h4 className="mb-2 font-semibold">시스템 정보</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span>마지막 체크:</span>
-                          <span>{new Date(vmStatus.lastCheck).toLocaleTimeString('ko-KR')}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>데이터 소스:</span>
-                          <span>{vmStatus.fromCache ? '캐시' : '실시간'}</span>
-                        </div>
+                      <div className="flex justify-between">
+                        <span>전체:</span>
+                        <span>{((vmStatus?.memory?.total || 4096) / 1024 / 1024).toFixed(0)}MB</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>사용 가능:</span>
+                        <span>{((vmStatus?.memory?.free || 1024) / 1024 / 1024).toFixed(0)}MB</span>
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                  
+                  <div>
+                    <h4 className="mb-2 font-semibold">시스템 정보</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>마지막 체크:</span>
+                        <span>{vmStatus?.lastCheck ? new Date(vmStatus.lastCheck).toLocaleTimeString('ko-KR') : new Date().toLocaleTimeString('ko-KR')}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>데이터 소스:</span>
+                        <span>{vmStatus?.fromCache ? '캐시' : vmStatus ? '실시간' : 'Mock'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {!vmStatus && (
+                  <div className="mt-4 rounded-lg bg-blue-50 p-4 dark:bg-blue-950/20">
+                    <div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
+                      <Shield className="h-4 w-4" />
+                      <span className="font-medium">Mock 데이터 모드</span>
+                    </div>
+                    <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+                      GCP VM이 제거되어 샘플 데이터를 표시하고 있습니다.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="usage" className="space-y-6">
