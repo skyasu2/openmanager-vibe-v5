@@ -98,10 +98,26 @@ export function useSystemIntegration() {
     return true;
   }, []);
 
+  // 메트릭 업데이트 - 순환 의존성 해결  
   useEffect(() => {
-    const interval = setInterval(updateMetrics, 5000);
+    const interval = setInterval(() => {
+      // updateMetrics 로직 직접 구현 - 함수 의존성 제거
+      setState((prev) => ({
+        ...prev,
+        metrics: {
+          cpu: Math.random() * 100,
+          memory: Math.random() * 100,
+          network: Math.random() * 100,
+        },
+        eventStats: {
+          total: prev.eventStats.total + Math.floor(Math.random() * 10),
+          processed: prev.eventStats.processed + Math.floor(Math.random() * 8),
+          failed: prev.eventStats.failed + Math.floor(Math.random() * 2),
+        },
+      }));
+    }, 5000);
     return () => clearInterval(interval);
-  }, [updateMetrics]); // updateMetrics 함수 의존성 복구
+  }, []); // ✅ 의존성 없음 (함수 참조 제거)
 
   return {
     ...state,

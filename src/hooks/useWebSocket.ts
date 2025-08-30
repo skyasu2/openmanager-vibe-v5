@@ -299,18 +299,76 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
     setLatestMetric(null);
   }, []);
 
-  // 🎬 컴포넌트 마운트/언마운트 처리
+  // 🎬 컴포넌트 마운트/언마운트 처리 - 순환 의존성 해결
   useEffect(() => {
     if (autoConnect) {
-      connect();
+      // connect() 로직 직접 구현 - 함수 의존성 제거
+      if (socketRef.current?.connected) {
+        if (debug) console.log('🔗 이미 연결됨');
+        return;
+      }
+      setConnectionState((prev) => ({
+        ...prev,
+        isConnecting: true,
+        error: null,
+      }));
+      try {
+        socketRef.current = io(url, {
+          transports: ['websocket', 'polling'],
+          timeout: 10000,
+          forceNew: true,
+        });
+        const socket = socketRef.current;
+        
+        // 연결 이벤트 바인딩 (connect 함수와 동일한 로직)
+        socket.on('connect', () => {
+          setConnectionState((prev) => ({
+            ...prev,
+            isConnected: true,
+            isConnecting: false,
+            error: null,
+          }));
+        });
+
+        socket.on('disconnect', () => {
+          setConnectionState((prev) => ({
+            ...prev,
+            isConnected: false,
+            isConnecting: false,
+          }));
+        });
+
+        socket.on('error', (error: any) => {
+          setConnectionState((prev) => ({
+            ...prev,
+            isConnected: false,
+            isConnecting: false,
+            error: error.message || 'WebSocket 연결 오류',
+          }));
+        });
+      } catch (error: any) {
+        setConnectionState((prev) => ({
+          ...prev,
+          isConnected: false,
+          isConnecting: false,
+          error: error.message || '연결 실패',
+        }));
+      }
     }
 
-    // 브라우저 웹 알림 기능 제거됨
-
     return () => {
-      disconnect();
+      // disconnect() 로직 직접 구현 - 함수 의존성 제거
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+      setConnectionState({
+        isConnected: false,
+        isConnecting: false,
+        error: null,
+      });
     };
-  }, [autoConnect, connect, disconnect]); // connect, disconnect 함수 의존성 복구
+  }, [autoConnect, url, debug]); // ✅ 원시값 의존성만 포함 (함수 참조 제거)
 
   // 📊 유용한 계산된 값들
   const stats = {
