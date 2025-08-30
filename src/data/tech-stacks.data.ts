@@ -8,21 +8,6 @@ import type { TechItem } from '@/types/feature-card.types';
 export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
   'mcp-ai-engine': [
     {
-      name: 'GCP VM MCP 서버',
-      category: 'ai',
-      importance: 'critical',
-      description:
-        'Google Cloud VM에서 실행되는 Google AI 자연어 처리 전용 MCP 서버',
-      implementation:
-        'e2-micro VM 포트 10000에서 Google AI 자연어 쿼리 처리 전담',
-      version: 'v5.66.33',
-      status: 'active',
-      icon: '🌐',
-      tags: ['Google AI', 'MCP', 'VM백엔드', '자연어처리'],
-      type: 'custom',
-      aiType: 'google-api',
-    },
-    {
       name: 'AI 사이드바 어시스턴트',
       category: 'ai',
       importance: 'critical',
@@ -142,18 +127,6 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       status: 'active',
       icon: '🐘',
       tags: ['데이터베이스', 'pgVector', '500MB무료'],
-      type: 'commercial',
-    },
-    {
-      name: 'GCP Compute Engine VM',
-      category: 'deployment',
-      importance: 'critical',
-      description: 'e2-micro VM 무료 티어 - 통합 백엔드 호스팅',
-      implementation:
-        'e2-micro (1vCPU, 1GB RAM, 30GB SSD) - MCP 서버, AI API, 캐싱, 스케줄러 등 다중 서비스 실행',
-      status: 'active',
-      icon: '🖥️',
-      tags: ['VM', '무료티어', '통합백엔드', 'MCP+AI'],
       type: 'commercial',
     },
     {
@@ -349,7 +322,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
       type: 'commercial',
     },
     {
-      name: 'MCP 서버 11개 (보조 도구)',
+      name: 'MCP 서버 8개 (보조 도구)',
       category: 'ai',
       importance: 'high',
       description:
@@ -367,7 +340,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[]> = {
 • shadcn-ui: UI 컴포넌트 개발 지원`,
       status: 'active',
       icon: '🔌',
-      tags: ['MCP서버', '자동화도구', '확장기능', '11개서버'],
+      tags: ['MCP서버', '자동화도구', '확장기능', '8개서버'],
       type: 'opensource',
     },
     {
