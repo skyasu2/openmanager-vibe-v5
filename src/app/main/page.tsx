@@ -342,11 +342,8 @@ function Home() {
     multiUserStatus?.isRunning,
     isSystemStarted,
     countdownTimer,
-    pathname,
-    // ✅ 안전한 훅 함수들만 포함 (순환 참조 없음)
-    router,
-    startMultiUserSystem,
-    startSystem,
+    pathname
+    // ✅ router, startMultiUserSystem, startSystem 함수 의존성 제거하여 순환 의존성 해결
   ]);
 
   // 📊 버튼 설정 메모이제이션 최적화 - 렌더링 성능 향상 + SSR 안전성
@@ -662,7 +659,7 @@ function Home() {
                 <div className="flex flex-col items-center">
                   {isGitHubUser || isAdminMode ? (
                     <button
-                      onClick={handleDashboardClick}
+                      onClick={() => router.push('/dashboard')}
                       className="flex h-16 w-64 items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-600 font-semibold text-white shadow-xl transition-all duration-200 hover:bg-emerald-700"
                     >
                       <BarChart3 className="h-5 w-5" />
