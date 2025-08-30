@@ -6,11 +6,11 @@
 
 ## 🎯 프로젝트 개요
 
-**OpenManager VIBE v5**: AI 기반 실시간 서버 모니터링 플랫폼
+**OpenManager VIBE v5.70.4+**: AI 기반 실시간 서버 모니터링 플랫폼
 
-- **아키텍처**: Next.js 15 + TypeScript (strict) + Vercel Edge + Supabase
-- **무료 티어**: 100% 무료로 운영 (Vercel 100GB/월, GCP 2M req/월, Supabase 500MB)
-- **성능**: 152ms 응답, 99.95% 가동률
+- **아키텍처**: Next.js 15.4.5 + React 18.3.1 + TypeScript 5.7.2 (strict) + Vercel + Supabase
+- **무료 티어**: 100% 무료로 운영 (Vercel 30GB/월 중 30% 사용, Supabase 500MB 중 3% 사용)
+- **성능**: 152ms 응답, 99.95% 가동률, MCP 통합으로 27% 토큰 절약
 
 ## 💻 개발 환경
 
@@ -970,8 +970,8 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 | 카테고리 | 주요 문서 | 설명 |
 |----------|-----------|------|
 | **MCP 서버** | [MCP 종합 가이드](docs/MCP-GUIDE.md) • [MCP 설치 가이드](docs/mcp/mcp-complete-installation-guide-2025.md) • [MCP 도구 레퍼런스](docs/mcp/mcp-tools-reference.md) • [필수 서버 가이드](docs/mcp/essential-mcp-servers-guide.md) | 8개 서버 70+ 도구 완전 활용 (토큰 최적화) |
-| **AI 협업** | [AI 도구 비교](docs/ai-tools/ai-tools-comparison.md) • [AI CLI 비교](docs/ai-tools/AI-CLI-COMPARISON.md) • [AI 컨텍스트](docs/ai-tools/AI-CONTEXT.md) • [Gemini CLI](docs/ai-tools/gemini-cli-guide.md) • [Qwen CLI](docs/ai-tools/qwen-cli-guide.md) | 3-AI 병렬 개발 |
-| **서브 에이전트** | [종합 가이드](docs/claude/sub-agents-comprehensive-guide.md) • [MCP 서버 가이드](docs/claude/mcp-servers-complete-guide.md) | 22개 전문 에이전트 활용 |
+| **AI 협업** | [AI CLI 비교](docs/ai-tools/AI-CLI-COMPARISON.md) • [AI 컨텍스트](docs/ai-tools/AI-CONTEXT.md) • [Gemini CLI](docs/ai-tools/gemini-cli-guide.md) • [Qwen CLI](docs/ai-tools/qwen-cli-guide.md) | 3-AI 병렬 개발 |
+| **서브 에이전트** | [종합 가이드](docs/claude/sub-agents-complete-guide.md) • [MCP 통합 가이드](docs/MCP-GUIDE.md) | 22개 전문 에이전트 활용 |
 
 ### 🛠️ 개발 환경 & 워크플로우
 
@@ -1097,13 +1097,14 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 
 ### WSL 환경 상태 (2025-08-30 최신 확인)
 
-- **메모리**: 16GB 할당, 15GB 사용 가능 (현재 31.8% 사용 - 매우 안정)
-- **프로세서**: 12개 할당 (AMD Ryzen 7, 현재 로드 0.77/12 - 6.4% 사용률)
-- **스왑**: 4GB 설정 (현재 3.5% 사용 - 거의 미사용, 최적화됨)
-- **AI CLI 도구**: 6개 모두 완벽 작동 (Claude, Codex, Gemini, Qwen, OpenAI, ccusage)
+- **메모리**: 16GB 할당, 10.9GB 사용 가능 (현재 31.8% 사용 - 매우 안정)
+- **프로세서**: 12개 할당 (AMD Ryzen 7, 로드평균 2.89 - 24% 사용률, 여유로움)
+- **스왑**: 4GB 설정 (현재 6.8% 사용 - 280MB, 정상 범위)
+- **I/O 성능**: WSL이 Windows 대비 54배 빠른 I/O 처리량
+- **AI CLI 도구**: 6개 모두 완벽 작동 (Claude v1.0.95, Codex, Gemini, Qwen, OpenAI, ccusage)
 - **멀티 AI 협업**: Max 정액제 + 서브 3개 체제 ($220/월로 $2,200+ 가치)
-- **Claude 사용량 모니터링**: ccusage v16.1.1 statusline 실시간 표시 활성화 (중복 실행 이슈 해결)
-- **sudo**: 비밀번호 없이 사용 가능
+- **Claude 사용량 모니터링**: ccusage v16.1.1 statusline 실시간 표시 활성화
+- **개발 도구**: sudo 비밀번호 없이 사용, bash 별칭 최적화 완료
 
 ---
 

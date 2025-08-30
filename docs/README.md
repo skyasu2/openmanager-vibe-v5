@@ -50,7 +50,7 @@ deployment/
 ```
 ai-tools/
 ├── ai-systems-guide.md              # AI 시스템 통합 가이드
-├── ai-tools-comparison.md           # AI 도구 비교
+├── AI-CLI-COMPARISON.md             # AI CLI 도구 종합 비교
 ├── gemini-cli-guide.md              # Gemini CLI 활용
 └── qwen-cli-guide.md                # Qwen CLI 활용
 ```

@@ -35,7 +35,7 @@ docs/
 mcp-best-practices-guide.md              # MCP 베스트 프랙티스
 mcp-development-guide-2025.md            # 2025 MCP 개발 가이드
 mcp-usage-guide-2025.md                  # MCP 사용법 가이드
-mcp-servers-complete-guide.md            # MCP 서버 완전 가이드
+# mcp-servers-complete-guide.md            # (제거됨: MCP-GUIDE.md로 통합)
 windows-mcp-complete-installation-guide.md # Windows MCP 설치
 mcp-environment-variables-guide.md       # MCP 환경변수 가이드
 mcp-subagent-integration-guide.md        # 서브에이전트 통합
@@ -52,13 +52,13 @@ time-mcp-usage-guide.md                  # Time MCP 활용법
 ##### 📁 technical/ai-engines/ (10+ 문서)
 
 ```
-ai-complete-guide.md                     # AI 시스템 완전 가이드
+# ai-complete-guide.md                     # (제거됨: ai-systems-guide.md가 더 포괄적)
 ai-cli-collaboration-strategy.md         # AI CLI 협업 전략
 ai-tools-token-usage-analysis.md         # AI 도구 토큰 분석
 aitmpl-comparison-analysis.md            # aitmpl 비교 분석
 aitmpl-reference-guide.md                # aitmpl 참조 가이드
 aitmpl-usage-patterns.md                 # aitmpl 사용 패턴
-sub-agents-comprehensive-guide.md        # 서브에이전트 종합 가이드
+# sub-agents-comprehensive-guide.md        # (제거됨: sub-agents-complete-guide.md로 리다이렉트)
 sub-agents-mcp-mapping-guide.md          # 서브에이전트 MCP 매핑
 subagents-mcp-usage-summary.md           # 서브에이전트 사용 요약
 gemini-cli-wsl-setup-guide.md            # Gemini CLI 설정
