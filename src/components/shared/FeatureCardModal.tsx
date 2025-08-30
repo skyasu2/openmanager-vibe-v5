@@ -26,8 +26,14 @@ export default function FeatureCardModal({
   variant = 'home',
 }: FeatureCardModalProps) {
   // 모달은 항상 다크 테마로 고정
-  // 바이브 코딩 카드 전용 히스토리 뷰 상태
+  // 바이브 코딩 카드 전용 히스토리 뷰 상태 (hydration mismatch 방지)
   const [isHistoryView, setIsHistoryView] = React.useState(false);
+  const [isMounted, setIsMounted] = React.useState(false);
+
+  // 마운트 상태 추적 (hydration 이슈 방지)
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -41,7 +47,7 @@ export default function FeatureCardModal({
     };
   }, [onClose]); // onClose 함수 의존성 복구
 
-  if (!selectedCard) return null;
+  if (!selectedCard || !isMounted) return null;
 
   const { title, icon: Icon, gradient, detailedContent } = selectedCard;
 
@@ -144,37 +150,58 @@ export default function FeatureCardModal({
 
   // 바이브 코딩 카드는 현재/3단계 히스토리 구분, 다른 카드는 기존 방식
   const techCards = React.useMemo(() => {
-    const data = TECH_STACKS_DATA[selectedCard.id];
-    if (!data) return [];
-    
-    // 바이브 코딩 카드인 경우 현재/히스토리 구분
-    if (selectedCard.id === 'cursor-ai' && 'current' in data) {
-      const vibeData = data as VibeCodeData;
-      if (isHistoryView) {
-        // 히스토리 뷰: 3단계 모두 합쳐서 반환 (단계별 구분은 렌더링에서 처리)
-        return [
-          ...vibeData.history.stage1,
-          ...vibeData.history.stage2, 
-          ...vibeData.history.stage3
-        ];
+    try {
+      const data = TECH_STACKS_DATA[selectedCard?.id];
+      if (!data || !selectedCard?.id) return [];
+      
+      // 바이브 코딩 카드인 경우 현재/히스토리 구분
+      if (selectedCard.id === 'cursor-ai' && typeof data === 'object' && 'current' in data) {
+        const vibeData = data as VibeCodeData;
+        
+        // 안전한 데이터 검증
+        if (!vibeData.current || !vibeData.history) return [];
+        if (!vibeData.history.stage1 || !vibeData.history.stage2 || !vibeData.history.stage3) return [];
+        
+        if (isHistoryView) {
+          // 히스토리 뷰: 3단계 모두 합쳐서 반환 (단계별 구분은 렌더링에서 처리)
+          return [
+            ...(vibeData.history.stage1 || []),
+            ...(vibeData.history.stage2 || []),
+            ...(vibeData.history.stage3 || [])
+          ];
+        }
+        return vibeData.current || [];
       }
-      return vibeData.current;
+      
+      // 다른 카드들은 기존 방식
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.error('Error in techCards useMemo:', error);
+      return [];
     }
-    
-    // 다른 카드들은 기존 방식
-    return Array.isArray(data) ? data : [];
-  }, [selectedCard.id, isHistoryView]);
+  }, [selectedCard?.id, isHistoryView]);
 
   // 바이브 코딩 히스토리 3단계 데이터 (히스토리 뷰에서만 사용)
   const vibeHistoryStages = React.useMemo(() => {
-    if (selectedCard.id !== 'cursor-ai' || !isHistoryView) return null;
-    
-    const data = TECH_STACKS_DATA[selectedCard.id];
-    if (!data || !('current' in data)) return null;
-    
-    const vibeData = data as VibeCodeData;
-    return vibeData.history;
-  }, [selectedCard.id, isHistoryView]);
+    try {
+      if (selectedCard?.id !== 'cursor-ai' || !isHistoryView) return null;
+      
+      const data = TECH_STACKS_DATA[selectedCard.id];
+      if (!data || typeof data !== 'object' || !('current' in data)) return null;
+      
+      const vibeData = data as VibeCodeData;
+      
+      // 안전한 히스토리 데이터 검증
+      if (!vibeData.history || !vibeData.history.stage1 || !vibeData.history.stage2 || !vibeData.history.stage3) {
+        return null;
+      }
+      
+      return vibeData.history;
+    } catch (error) {
+      console.error('Error in vibeHistoryStages useMemo:', error);
+      return null;
+    }
+  }, [selectedCard?.id, isHistoryView]);
 
   // 중요도별 기술 분류
   const criticalTech = techCards.filter(

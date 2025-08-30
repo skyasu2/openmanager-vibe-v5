@@ -6,6 +6,28 @@
 > - [CHANGELOG-LEGACY-1.md](./CHANGELOG-LEGACY-1.md): v5.66.40 ~ v5.67.21 (2025-08-12 ~ 2025-08-17)
 > - [CHANGELOG-LEGACY.md](./CHANGELOG-LEGACY.md): v5.0.0 ~ v5.65.6 (2025-05 ~ 2025-08)
 
+## [5.70.6]
+
+### 🐛 FeatureCardModal React Error #310 해결
+
+#### 💡 Fixed
+
+- **🚨 React Error #310 완전 해결**: 모달 클릭 시 `useMemo` 훅에서 발생하는 minified React 에러 완전 차단
+  - **원인**: Server/Client hydration mismatch + useMemo 의존성 배열에서 타입 안전성 부족
+  - **해결**: 안전한 데이터 검증 + try-catch 블록 + isMounted 상태 추가로 hydration 안정성 확보
+  - **영향**: 모든 Feature Card 모달 클릭 시 JavaScript 런타임 에러 0개 달성
+
+- **🛡️ 안전한 데이터 접근**: `selectedCard?.id` 옵셔널 체이닝으로 undefined 에러 방지
+- **⚡ 성능 향상**: try-catch로 에러 발생 시에도 빈 배열 반환하여 렌더링 중단 방지
+- **🔒 타입 안전성**: `VibeCodeData` 타입 캐스팅에 안전한 타입 가드 추가
+
+#### 🔧 Technical Details
+
+- `techCards` useMemo: 8개 안전성 검증 단계 추가
+- `vibeHistoryStages` useMemo: 6개 데이터 검증 단계 추가
+- hydration 안정성: `isMounted` 상태로 클라이언트 렌더링 보장
+- 에러 핸들링: console.error로 디버깅 정보 유지하면서 안정성 확보
+
 ## [5.70.5]
 
 ### ✨ 메인 페이지 카드 설명 개선 - 기능 중심 표현으로 전환
