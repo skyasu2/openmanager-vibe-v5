@@ -64,7 +64,7 @@ export function useInitialAuth() {
         redirectRef.current = false;
       }
     }, vercelConfig.initDelay);
-  }, [pathname, router]); // router 객체 의존성 복구
+  }, [pathname]); // ✅ router 객체 의존성 제거하여 순환 의존성 해결
 
   // 통합 초기화 프로세스
   const initializeAuth = useCallback(async () => {
@@ -123,7 +123,7 @@ export function useInitialAuth() {
       // 에러 시 로그인 페이지로 리다이렉션
       safeRedirect('/login');
     }
-  }, [updateState, safeRedirect]); // updateState, safeRedirect 함수 의존성 복구
+  }, []); // ✅ updateState, safeRedirect 함수 의존성 제거하여 순환 의존성 해결
 
   // 초기화 실행 - 안정적인 환경 감지로 최적화
   useEffect(() => {
@@ -166,7 +166,7 @@ export function useInitialAuth() {
     redirectRef.current = false;
     setState(initialState);
     initializeAuth();
-  }, [initializeAuth]); // initializeAuth 함수 의존성 복구
+  }, []); // ✅ initializeAuth 함수 의존성 제거하여 순환 의존성 해결
 
   // 로딩 메시지 헬퍼 (단일 메시지로 통합)
   const getLoadingMessage = useCallback(() => {
