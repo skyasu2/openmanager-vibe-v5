@@ -47,7 +47,7 @@ export default function FeatureCardModal({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [onClose]); // onClose 함수 의존성 복구
+  }, []); // ✅ onClose 함수 의존성 제거하여 순환 의존성 해결
 
   if (!selectedCard || !isMounted) return null;
 
