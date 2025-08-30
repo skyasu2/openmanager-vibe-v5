@@ -137,12 +137,65 @@ export const useSystemState = (): UseSystemStateReturn => {
   );
 
   /**
-   * 🔄 수동 새로고침
+   * 🔄 수동 새로고침 - fetchSystemState 로직 직접 구현
    */
   const refreshState = useCallback(async (): Promise<void> => {
     setIsLoading(true);
-    await fetchSystemState('manual-refresh');
-  }, [fetchSystemState]); // fetchSystemState 함수 의존성 복구
+    
+    // fetchSystemState 로직 직접 구현
+    const source = 'manual-refresh';
+    
+    // 중복 요청 방지
+    if (isRequestingRef.current) {
+      console.log('⏸️ 이미 요청 중이므로 스킵');
+      return;
+    }
+
+    try {
+      isRequestingRef.current = true;
+      setError(null);
+
+      const url = `/api/system/status?userId=${encodeURIComponent(userId)}&source=${encodeURIComponent(source)}`;
+
+      console.log(`🔄 시스템 상태 요청 - 소스: ${source}`);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': userId,
+        },
+        cache: 'no-store', // 캐시 비활성화
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.state) {
+        setSystemState(data.state);
+        console.log(
+          `✅ 상태 업데이트 - 실행중: ${data.state.isRunning}, 사용자: ${data.state.activeUsers}명`
+        );
+      } else {
+        throw new Error(data.error || '상태 조회 실패');
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : '알 수 없는 오류';
+      setError(errorMessage);
+      console.error(`❌ 시스템 상태 확인 실패 (${source}):`, errorMessage);
+
+      // 오류 시 기본 상태 설정
+      const defaultState = getDefaultState();
+      setSystemState(defaultState);
+    } finally {
+      isRequestingRef.current = false;
+      setIsLoading(false);
+    }
+  }, [userId]); // ✅ fetchSystemState 함수 의존성 제거하여 순환 의존성 해결
 
   /**
    * 🚀 시스템 시작

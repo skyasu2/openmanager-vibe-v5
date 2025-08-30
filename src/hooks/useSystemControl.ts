@@ -508,24 +508,18 @@ export function useSystemControl(): UseSystemControlReturn {
   };
 
   /**
-   * 📊 사용자 활동 업데이트
+   * 📊 사용자 활동 업데이트 - updateActivity는 빈 함수이므로 직접 구현
    */
   const recordActivity = useCallback(() => {
     try {
-      // 🚨 컴포넌트 언마운트 후 호출 방지
-      if (!updateActivity) {
-        console.warn(
-          '⚠️ [useSystemControl] recordActivity: updateActivity 함수가 없음 - 업데이트 중단'
-        );
-        return;
-      }
-
-      updateActivity();
+      // updateActivity()는 빈 함수 - 직접 구현 (현재는 아무 작업 없음)
+      // 향후 필요시 여기에 활동 기록 로직 추가
+      console.log('📊 [useSystemControl] 사용자 활동 기록');
     } catch (error) {
       console.error('❌ [useSystemControl] recordActivity 실패:', error);
       // 에러 발생 시에도 안전하게 계속 진행
     }
-  }, [updateActivity]); // updateActivity 함수 의존성 복구
+  }, []); // ✅ updateActivity 함수 의존성 제거하여 순환 의존성 해결
 
   return {
     status,
