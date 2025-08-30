@@ -97,7 +97,7 @@ const FeatureCardItem = memo(
           {/* AI 카드 특별 이색 그라데이션 애니메이션 - landing 버전에서 재활용 */}
           {card.isAICard && (
             <div
-              className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30"
+              className="animate-gradient-shift absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/30 via-pink-500/30 to-cyan-400/30 bg-[length:200%_200%] opacity-90"
             />
           )}
 

@@ -117,14 +117,14 @@ const getMetricConfig = (
   }
 };
 
-// 5분간 데이터 생성 함수 (10초 간격으로 30개 포인트)
+// 30분간 데이터 생성 함수 (20초 간격으로 90개 포인트)
 const generateHistoricalData = (currentValue: number, type: string) => {
   const data = [];
   const now = Date.now();
 
-  // 5분간 10초 간격으로 30개 데이터 포인트 생성
-  for (let i = 29; i >= 0; i--) {
-    const timestamp = now - i * 10 * 1000; // 10초 간격
+  // 30분간 20초 간격으로 90개 데이터 포인트 생성
+  for (let i = 89; i >= 0; i--) {
+    const timestamp = now - i * 20 * 1000; // 20초 간격
     let value = currentValue;
 
     // 과거 데이터는 현재값 기준으로 약간의 변동 추가
@@ -136,7 +136,7 @@ const generateHistoricalData = (currentValue: number, type: string) => {
     data.push({
       timestamp,
       value: Math.round(value),
-      x: 29 - i, // x 좌표 (0-29)
+      x: 89 - i, // x 좌표 (0-89)
     });
   }
 
@@ -179,12 +179,12 @@ export default function ServerMetricsLineChart({
         newData.push({
           timestamp: Date.now(),
           value: Math.round(newValue),
-          x: 29,
+          x: 89,
         });
 
         return newData;
       });
-    }, 10000); // 10초마다 업데이트
+    }, 20000); // 20초마다 업데이트
 
     return () => clearInterval(interval);
   }, [showRealTimeUpdates]);
@@ -195,7 +195,7 @@ export default function ServerMetricsLineChart({
     const height = 80;
     const padding = 10;
 
-    const xScale = (x: number) => (x / 29) * (width - 2 * padding) + padding;
+    const xScale = (x: number) => (x / 89) * (width - 2 * padding) + padding;
     const yScale = (y: number) =>
       height - (y / 100) * (height - 2 * padding) - padding;
 
@@ -364,8 +364,8 @@ export default function ServerMetricsLineChart({
 
         {/* 시간 라벨 */}
         <div className="mt-1 flex justify-between px-2 text-xs text-gray-400">
-          <span>-5분</span>
-          <span>-2.5분</span>
+          <span>-30분</span>
+          <span>-15분</span>
           <span className="font-medium text-gray-600">현재</span>
         </div>
       </div>
