@@ -123,16 +123,7 @@ export interface MockContext {
   metadata?: Record<string, string | number | boolean>;
 }
 
-// GCP VM MCP 결과 타입 정의 - any 타입 제거
-export interface GCPVMMCPResult {
-  success: boolean;
-  data?: {
-    response: string;
-    confidence?: number;
-    metadata?: Record<string, string | number | boolean>;
-  };
-  error?: string;
-}
+// GCP VM MCP 타입 제거됨 - Cloud Functions 전용으로 단순화
 
 // Thinking step type definition
 export interface ThinkingStep {

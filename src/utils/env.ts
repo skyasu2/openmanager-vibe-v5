@@ -22,9 +22,8 @@ const envSchema = z.object({
   MEMORY_CACHE_MAX_SIZE: z.string().transform(val => parseInt(val) || 100).optional(),
   MEMORY_CACHE_TTL_SECONDS: z.string().transform(val => parseInt(val) || 900).optional(),
   
-  // GCP Configuration
+  // GCP Configuration (Cloud Functions only)
   GCP_PROJECT_ID: z.string().min(1, 'GCP Project ID가 필요합니다').optional(),
-  VM_API_TOKEN: z.string().optional(),
   GCP_MCP_SERVER_URL: z.string().url().optional(),
   
   // GitHub OAuth & API

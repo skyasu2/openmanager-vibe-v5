@@ -12,7 +12,6 @@
 
 import type { SupabaseRAGEngine } from './supabase-rag-engine';
 import { MockContextLoader } from './MockContextLoader';
-import { vmBackendConnector } from '@/services/vm/VMBackendConnector';
 import {
   IntentClassifier,
   IntentResult,
@@ -285,59 +284,7 @@ export class LocalAIModeProcessor {
       };
     }
 
-    // 3단계: VM 백엔드 연동 (활성화된 경우)
-    let vmBackendResult = null;
-    if (enableVMBackend) {
-      const vmStepStart = Date.now();
-      thinkingSteps.push({
-        step: 'VM 백엔드 연동',
-        description: 'GCP VM의 고급 AI 서비스 연동',
-        status: 'pending',
-        timestamp: vmStepStart,
-      });
-
-      try {
-        // VM 백엔드 실제 연동 구현
-        if (vmBackendConnector.isEnabled) {
-          // 세션 기반 컨텍스트 관리
-          const session = await vmBackendConnector.createSession(
-            'local-ai-user',
-            {
-              query,
-              mode: 'local-ai',
-              ragResults: ragResult.totalResults,
-            }
-          );
-
-          if (session) {
-            await vmBackendConnector.addMessage(session.id, {
-              role: 'user',
-              content: query,
-              metadata: {
-                ragResults: ragResult.totalResults,
-                mode: 'local-ai',
-              },
-            });
-
-            vmBackendResult = {
-              sessionId: session.id,
-              contextEnhanced: true,
-            };
-          }
-        }
-
-        thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-        thinkingSteps[thinkingSteps.length - 1].description =
-          'VM 백엔드 연동 완료';
-        thinkingSteps[thinkingSteps.length - 1].duration =
-          Date.now() - vmStepStart;
-      } catch (error) {
-        console.warn('VM 백엔드 연동 실패:', error);
-        thinkingSteps[thinkingSteps.length - 1].status = 'failed';
-        thinkingSteps[thinkingSteps.length - 1].duration =
-          Date.now() - vmStepStart;
-      }
-    }
+    // VM 백엔드 연동 제거됨 (GCP VM 제거로 인해)
 
     // 4단계: 응답 생성
     const responseStepStart = Date.now();
@@ -371,11 +318,9 @@ export class LocalAIModeProcessor {
         mcpUsed: !!mcpContext,
         mockMode: !!this.mockContextLoader.getMockContext(),
         koreanNLPUsed: enableKoreanNLP,
-        vmBackendUsed: enableVMBackend && !!vmBackendResult,
         mode: 'local-ai',
       } as AIMetadata & {
         koreanNLPUsed?: boolean;
-        vmBackendUsed?: boolean;
         mockMode?: boolean;
       },
       processingTime: Date.now() - startTime,

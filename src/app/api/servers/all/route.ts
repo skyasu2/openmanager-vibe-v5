@@ -324,8 +324,8 @@ async function loadHourlyScenarioData(): Promise<EnhancedServerMetrics[]> {
     
   } catch (error) {
     console.error('❌ [FIXED-ROTATION] 24시간 고정 데이터 로드 실패:', error);
-    console.log('🔄 [FIXED-ROTATION] 기본 정적 데이터로 폴백');
-    return generateStaticServers();
+    // 24시간 고정 데이터 시스템이 안정적이므로 폴백 없이 예외 처리
+    throw new Error(`24시간 고정 데이터 시스템 오류: ${error}`);
   }
 }
 
@@ -340,6 +340,44 @@ function convertFixedRotationData(hourlyData: any, currentHour: number, rotation
   
   console.log(`🔧 [FIXED-CONVERT] ${Object.keys(servers).length}개 서버 데이터 변환 (${currentHour}:${rotationMinute.toString().padStart(2, '0')} 고정 데이터)`);
   console.log(`📋 [FIXED-CONVERT] ${segmentInHour}번째 구간 → 고정 패턴 적용`);
+  
+  // 🎯 10개 서버 보장: JSON에 8개만 있으면 2개 자동 생성
+  if (Object.keys(servers).length < 10) {
+    const missingCount = 10 - Object.keys(servers).length;
+    console.log(`🔄 [AUTO-GENERATE] JSON에 ${Object.keys(servers).length}개 서버 → ${missingCount}개 자동 생성하여 10개 보장`);
+    
+    // 부족한 서버 자동 생성
+    for (let i = 0; i < missingCount; i++) {
+      const serverIndex = Object.keys(servers).length + i + 1;
+      const serverTypes = ['security', 'backup', 'proxy', 'gateway'];
+      const serverType = serverTypes[i % serverTypes.length];
+      const serverId = `${serverType}-server-${serverIndex}`;
+      
+      servers[serverId] = {
+        id: serverId,
+        name: `${serverType.charAt(0).toUpperCase() + serverType.slice(1)} Server #${serverIndex}`,
+        hostname: `${serverType}-${serverIndex.toString().padStart(2, '0')}.prod.example.com`,
+        status: 'healthy',
+        type: serverType,
+        service: serverType === 'security' ? 'Security Scanner' : serverType === 'backup' ? 'Backup Service' : 'Service Gateway',
+        location: 'us-east-1a',
+        environment: 'production',
+        provider: 'Auto-Generated',
+        uptime: 2592000 + Math.floor(Math.random() * 86400),
+        cpu: Math.floor(15 + Math.random() * 25), // 15-40% CPU
+        memory: Math.floor(20 + Math.random() * 35), // 20-55% Memory
+        disk: Math.floor(25 + Math.random() * 40), // 25-65% Disk
+        network: Math.floor(5 + Math.random() * 20), // 5-25% Network
+        specs: {
+          cpu_cores: 4,
+          memory_gb: 8,
+          disk_gb: 200
+        }
+      };
+      
+      console.log(`✅ [AUTO-GENERATE] ${serverId} 생성 완료 (${serverType} 타입)`);
+    }
+  }
   
   return Object.values(servers).map((serverData: any, index) => {
     // 🔒 고정 데이터 그대로 사용 (변동 없음)
@@ -434,7 +472,7 @@ function generateStaticServers(): EnhancedServerMetrics[] {
         "os": "Ubuntu 22.04 LTS",
         "server_type": "web",
         "role": "worker",
-        "provider": "GCP-VM"
+        "provider": "Mock-Simulation"
       },
       "specs": {
         "cpu_cores": 4,
@@ -460,7 +498,7 @@ function generateStaticServers(): EnhancedServerMetrics[] {
         "os": "Ubuntu 22.04 LTS",
         "server_type": "web",
         "role": "worker",
-        "provider": "GCP-VM"
+        "provider": "Mock-Simulation"
       },
       "specs": {
         "cpu_cores": 4,
@@ -486,7 +524,7 @@ function generateStaticServers(): EnhancedServerMetrics[] {
         "os": "Ubuntu 22.04 LTS",
         "server_type": "api",
         "role": "primary",
-        "provider": "GCP-VM"
+        "provider": "Mock-Simulation"
       },
       "specs": {
         "cpu_cores": 6,
@@ -512,7 +550,7 @@ function generateStaticServers(): EnhancedServerMetrics[] {
         "os": "Ubuntu 22.04 LTS",
         "server_type": "api",
         "role": "secondary",
-        "provider": "GCP-VM"
+        "provider": "Mock-Simulation"
       },
       "specs": {
         "cpu_cores": 6,
@@ -538,7 +576,7 @@ function generateStaticServers(): EnhancedServerMetrics[] {
         "os": "Ubuntu 22.04 LTS",
         "server_type": "database",
         "role": "master",
-        "provider": "GCP-VM"
+        "provider": "Mock-Simulation"
       },
       "specs": {
         "cpu_cores": 8,
@@ -564,7 +602,7 @@ function generateStaticServers(): EnhancedServerMetrics[] {
         "os": "Ubuntu 22.04 LTS",
         "server_type": "database",
         "role": "replica",
-        "provider": "GCP-VM"
+        "provider": "Mock-Simulation"
       },
       "specs": {
         "cpu_cores": 8,
@@ -590,7 +628,7 @@ function generateStaticServers(): EnhancedServerMetrics[] {
         "os": "Ubuntu 22.04 LTS",
         "server_type": "cache",
         "role": "primary",
-        "provider": "GCP-VM"
+        "provider": "Mock-Simulation"
       },
       "specs": {
         "cpu_cores": 4,
@@ -616,7 +654,7 @@ function generateStaticServers(): EnhancedServerMetrics[] {
         "os": "Ubuntu 22.04 LTS",
         "server_type": "monitoring",
         "role": "standalone",
-        "provider": "GCP-VM"
+        "provider": "Mock-Simulation"
       },
       "specs": {
         "cpu_cores": 2,
@@ -642,7 +680,7 @@ function generateStaticServers(): EnhancedServerMetrics[] {
         "os": "Ubuntu 22.04 LTS",
         "server_type": "security",
         "role": "standalone",
-        "provider": "GCP-VM"
+        "provider": "Mock-Simulation"
       },
       "specs": {
         "cpu_cores": 4,
@@ -668,7 +706,7 @@ function generateStaticServers(): EnhancedServerMetrics[] {
         "os": "Ubuntu 22.04 LTS",
         "server_type": "backup",
         "role": "standalone",
-        "provider": "GCP-VM"
+        "provider": "Mock-Simulation"
       },
       "specs": {
         "cpu_cores": 2,
@@ -718,7 +756,7 @@ function generateStaticServers(): EnhancedServerMetrics[] {
       type: vmServer.metadata.server_type,
       role: vmServer.metadata.role,
       environment: 'production',
-      provider: 'GCP-VM-Scenario-Enhanced', // 🎯 시나리오 기반 표시
+      provider: 'Mock-Scenario-Enhanced', // 🎯 시나리오 기반 표시
       specs: {
         cpu_cores: vmServer.specs.cpu_cores,
         memory_gb: vmServer.specs.memory_gb,
@@ -760,7 +798,7 @@ export async function GET(request: NextRequest) {
     
     // 🚨 강제 배포 확인 로그 - 베르셀 캐시 무효화 테스트
     console.log('🔥 [FORCE-DEPLOY-v2.1] 10개 서버 API 라우트 확정 배포 - 2025.08.29');
-    console.log('🌐 [VERCEL-CACHE-BUST] 서버 데이터 요청 - GCP VM 통합 모드');
+    console.log('🌐 [VERCEL-CACHE-BUST] 서버 데이터 요청 - Mock 시뮬레이션 모드');
     console.log('📊 요청 파라미터:', { sortBy, sortOrder, page, limit, search });
     
     // 🕒 24시간 시나리오 데이터 사용 (현실적 패턴 제공)
@@ -770,7 +808,6 @@ export async function GET(request: NextRequest) {
     
     const enhancedServers = await loadHourlyScenarioData();
     const dataSource = 'hourly-scenario';
-    const fallbackUsed = false; // 24시간 데이터가 메인 데이터 소스
     
     console.log(`✅ [API-ROUTE] Mock 데이터 생성 성공: ${enhancedServers.length}개 서버`);
     
@@ -818,7 +855,7 @@ export async function GET(request: NextRequest) {
     const paginatedServers = filteredServers.slice(startIndex, startIndex + limit);
 
     console.log(`📋 [API-ROUTE] 최종 응답: ${paginatedServers.length}개 서버 (전체: ${total}개)`);
-    console.log('📡 [API-ROUTE] 데이터 소스 최종:', { dataSource, fallbackUsed });
+    console.log('📡 [API-ROUTE] 데이터 소스 최종:', { dataSource });
     console.log('🔍 [API-ROUTE] 최종 서버 목록:', paginatedServers.map(s => 
       `${s.name || 'unknown'}(${s.type || 'unknown'}/${s.status || 'unknown'}/${(s.cpu_usage || s.cpu || 0).toFixed(1)}%)`
     ).join(', '));
@@ -846,7 +883,6 @@ export async function GET(request: NextRequest) {
       success: true,
       data: paginatedServers, // 페이지네이션된 서버 데이터
       source: dataSource, // 데이터 소스 정보 추가
-      fallback: fallbackUsed, // 폴백 사용 여부
 
       pagination: {
         page,
@@ -861,13 +897,12 @@ export async function GET(request: NextRequest) {
         serverCount: paginatedServers.length,
         totalServers: total,
         dataSource,
-        fallbackUsed,
-        gcpVmIntegration: true, // GCP VM 통합 표시
+        mockSimulationMode: true, // Mock 시뮬레이션 모드 표시
         // 🚨 강제 배포 확인 정보
         forceDeployVersion: 'v2.1-2025.08.29',
         cacheBreaker: `cache-break-${Date.now()}`,
-        // 🔍 디버깅 정보 (에러 발생시만 포함)
-        ...(global.gcpErrorInfo && fallbackUsed ? { gcpError: global.gcpErrorInfo } : {})
+        // 🔍 디버깅 정보 (필요시 포함)
+        ...(global.gcpErrorInfo ? { gcpError: global.gcpErrorInfo } : {})
       }
     }, {
       // 🔥 강력한 캐시 무효화 헤더
@@ -876,7 +911,8 @@ export async function GET(request: NextRequest) {
         'Pragma': 'no-cache',
         'Expires': '0',
         'X-Vercel-Cache': 'MISS',
-        'X-Force-Deploy-Version': 'v2.1-2025.08.29'
+        'X-Force-Deploy-Version': 'v2.1-2025.08.29',
+        'X-Mock-Mode': 'simulation'
       }
     });
       

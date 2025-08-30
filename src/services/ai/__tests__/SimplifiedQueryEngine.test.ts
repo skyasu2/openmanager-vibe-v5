@@ -40,29 +40,10 @@ vi.mock('@/lib/env-safe', () => ({
         maxTokens: 2000,
         temperature: 0.7,
       },
-      gcpVMMCP: {
-        isValid: true,
-        url: 'http://localhost:10000',
-        apiUrl: 'http://localhost:10001',
-        serverUrl: 'http://localhost:10000/mcp',
-        integrationEnabled: false,
-        timeout: 5000,
-        vmIP: 'localhost',
-        port: 10000,
-        isVMIPValid: true,
-      },
+      // GCP VM MCP 테스트 목 제거됨 - Cloud Functions 전용
     },
   })),
-  getGCPVMMCPEnv: vi.fn(() => ({
-    url: 'http://localhost:10000',
-    apiUrl: 'http://localhost:10001',
-  })),
-}));
-vi.mock('@/services/vm/VMBackendConnector', () => ({
-  vmBackendConnector: {
-    ping: vi.fn().mockResolvedValue({ success: true }),
-    checkHealth: vi.fn().mockResolvedValue({ healthy: true }),
-  },
+  // getGCPVMMCPEnv 테스트 목 제거됨
 }));
 vi.mock('../MockContextLoader', () => ({
   MockContextLoader: {

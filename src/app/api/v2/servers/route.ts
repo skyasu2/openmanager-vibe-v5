@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       cpu: 34.38,
       memory: 28.41,
       disk: 53.92,
-      provider: "GCP-VM-V2-Direct",
+      provider: "Mock-Direct-V2",
       location: "Seoul-DC-01",
       ip: "192.168.1.100"
     },
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       cpu: 29.85,
       memory: 36.28,
       disk: 39.95,
-      provider: "GCP-VM-V2-Direct",
+      provider: "Mock-Direct-V2",
       location: "Seoul-DC-01", 
       ip: "192.168.1.101"
     },
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       cpu: 47.52,
       memory: 41.49,
       disk: 29.58,
-      provider: "GCP-VM-V2-Direct", 
+      provider: "Mock-Direct-V2", 
       location: "Seoul-DC-02",
       ip: "192.168.2.100"
     },
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       cpu: 43.99,
       memory: 38.59,
       disk: 31.22,
-      provider: "GCP-VM-V2-Direct",
+      provider: "Mock-Direct-V2",
       location: "Seoul-DC-02",
       ip: "192.168.2.101"
     },
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
       cpu: 12.51,
       memory: 58.05,
       disk: 40.58,
-      provider: "GCP-VM-V2-Direct",
+      provider: "Mock-Direct-V2",
       location: "Seoul-DC-03", 
       ip: "192.168.3.100"
     },
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
       cpu: 17.46,
       memory: 44.16,
       disk: 53.22,
-      provider: "GCP-VM-V2-Direct",
+      provider: "Mock-Direct-V2",
       location: "Seoul-DC-03",
       ip: "192.168.3.101"
     },
@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
       cpu: 42.0,
       memory: 58.01,
       disk: 45.0,
-      provider: "GCP-VM-V2-Direct",
+      provider: "Mock-Direct-V2",
       location: "Seoul-DC-04",
       ip: "192.168.4.100"
     },
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
       cpu: 26.24,
       memory: 47.98,
       disk: 78.77,
-      provider: "GCP-VM-V2-Direct",
+      provider: "Mock-Direct-V2",
       location: "Seoul-DC-05",
       ip: "192.168.5.100"
     },
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
       cpu: 13.91,
       memory: 64.96,
       disk: 72.89,
-      provider: "GCP-VM-V2-Direct",
+      provider: "Mock-Direct-V2",
       location: "Seoul-DC-06",
       ip: "192.168.6.100"
     },
@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
       cpu: 38.28,
       memory: 25.62,
       disk: 35.07,
-      provider: "GCP-VM-V2-Direct",
+      provider: "Mock-Direct-V2",
       location: "Seoul-DC-07",
       ip: "192.168.7.100"
     }

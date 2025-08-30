@@ -15,17 +15,17 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     icon: Bot,
     gradient: 'from-purple-500 via-indigo-500 to-cyan-400',
     detailedContent: {
-      overview: `v5.66.33 - GCP VM MCP 시스템으로 구동되는 AI 어시스턴트! Google Cloud VM에서 실행되는 Google AI 자연어 처리 전용 서버가 강력한 AI 기능을 제공합니다.`,
+      overview: `v5.70.4+ - GCP Cloud Functions 기반 AI 어시스턴트! 서버리스 Google AI 자연어 처리로 안정적이고 확장 가능한 AI 기능을 제공합니다.`,
       features: [
-        '🌐 GCP VM MCP (클라우드): Google AI 자연어 질의 처리 전용 서버 (포트 10000)',
+        '🌐 GCP Cloud Functions: 서버리스 Google AI 자연어 질의 처리 시스템',
         '🤖 하이브리드 AI 엔진: Supabase pgVector + GCP Functions + Google AI 통합',
         '📊 서버 상태 분석: 실시간 메트릭 분석 및 자연어 답변 제공',
         '🇰🇷 한국어 자연어 질의: "CPU 높은 서버?", "메모리 부족한 서버?" 등',
         '🗄️ pgVector 벡터 검색: 126ms 응답 속도, 7.5x 성능 향상 달성',
-        '🆓 완전 무료 운영: Supabase + GCP 무료 티어 100% 활용',
+        '🆓 완전 무료 운영: Supabase + GCP Cloud Functions 무료 티어 활용',
       ],
       technologies: [
-        'GCP VM MCP 서버',
+        'GCP Cloud Functions',
         'Supabase pgVector',
         'GCP Cloud Functions',
         'Korean NLP Engine',

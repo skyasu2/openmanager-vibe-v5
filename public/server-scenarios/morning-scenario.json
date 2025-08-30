@@ -36,7 +36,7 @@
       "type": "web",
       "role": "worker",
       "environment": "production",
-      "provider": "GCP-Scenario-Morning",
+      "provider": "Mock-Scenario-Morning",
       "specs": {
         "cpu_cores": 2,
         "memory_gb": 8,
@@ -84,7 +84,7 @@
       "type": "web",
       "role": "worker",
       "environment": "production",
-      "provider": "GCP-Scenario-Morning",
+      "provider": "Mock-Scenario-Morning",
       "specs": {
         "cpu_cores": 3,
         "memory_gb": 6,
@@ -132,7 +132,7 @@
       "type": "web",
       "role": "worker",
       "environment": "production",
-      "provider": "GCP-Scenario-Morning",
+      "provider": "Mock-Scenario-Morning",
       "specs": {
         "cpu_cores": 4,
         "memory_gb": 8,
@@ -180,7 +180,7 @@
       "type": "api",
       "role": "worker",
       "environment": "production",
-      "provider": "GCP-Scenario-Morning",
+      "provider": "Mock-Scenario-Morning",
       "specs": {
         "cpu_cores": 4,
         "memory_gb": 8,
@@ -228,7 +228,7 @@
       "type": "api",
       "role": "worker",
       "environment": "production",
-      "provider": "GCP-Scenario-Morning",
+      "provider": "Mock-Scenario-Morning",
       "specs": {
         "cpu_cores": 4,
         "memory_gb": 8,
@@ -276,7 +276,7 @@
       "type": "api",
       "role": "worker",
       "environment": "production",
-      "provider": "GCP-Scenario-Morning",
+      "provider": "Mock-Scenario-Morning",
       "specs": {
         "cpu_cores": 6,
         "memory_gb": 16,
@@ -324,7 +324,7 @@
       "type": "database",
       "role": "master",
       "environment": "production",
-      "provider": "GCP-Scenario-Morning",
+      "provider": "Mock-Scenario-Morning",
       "specs": {
         "cpu_cores": 8,
         "memory_gb": 32,
@@ -372,7 +372,7 @@
       "type": "database",
       "role": "worker",
       "environment": "production",
-      "provider": "GCP-Scenario-Morning",
+      "provider": "Mock-Scenario-Morning",
       "specs": {
         "cpu_cores": 6,
         "memory_gb": 16,
@@ -420,7 +420,7 @@
       "type": "cache",
       "role": "worker",
       "environment": "production",
-      "provider": "GCP-Scenario-Morning",
+      "provider": "Mock-Scenario-Morning",
       "specs": {
         "cpu_cores": 2,
         "memory_gb": 16,
@@ -468,7 +468,7 @@
       "type": "loadbalancer",
       "role": "worker",
       "environment": "production",
-      "provider": "GCP-Scenario-Morning",
+      "provider": "Mock-Scenario-Morning",
       "specs": {
         "cpu_cores": 4,
         "memory_gb": 8,

@@ -43,7 +43,6 @@ export type {
   NLPResult,
   CommandContext,
   MockContext,
-  GCPVMMCPResult,
   ThinkingStep,
   CacheEntry,
   HealthCheckResult,

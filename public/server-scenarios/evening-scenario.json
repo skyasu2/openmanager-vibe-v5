@@ -14,9 +14,9 @@
   },
   "servers": [
     {
-      "id": "gcp-web-01",
+      "id": "mock-web-01",
       "name": "web-server-01",
-      "hostname": "web-server-01.gcp.internal",
+      "hostname": "web-server-01.mock.internal",
       "status": "online",
       "cpu": 34.2,
       "cpu_usage": 34.2,
@@ -35,7 +35,7 @@
       "type": "web",
       "role": "worker",
       "environment": "production",
-      "provider": "GCP-VM-Static-Data",
+      "provider": "Mock-Scenario-Data",
       "specs": {
         "cpu_cores": 2,
         "memory_gb": 8,
@@ -62,9 +62,9 @@
       }
     },
     {
-      "id": "gcp-api-01",
+      "id": "mock-api-01",
       "name": "api-server-01",
-      "hostname": "api-server-01.gcp.internal",
+      "hostname": "api-server-01.mock.internal",
       "status": "online",
       "cpu": 28.7,
       "cpu_usage": 28.7,
@@ -83,7 +83,7 @@
       "type": "api",
       "role": "worker",
       "environment": "production",
-      "provider": "GCP-VM-Static-Data",
+      "provider": "Mock-Scenario-Data",
       "specs": {
         "cpu_cores": 4,
         "memory_gb": 8,
@@ -110,9 +110,9 @@
       }
     },
     {
-      "id": "gcp-db-master-01",
+      "id": "mock-db-master-01",
       "name": "db-master-01",
-      "hostname": "db-master-01.gcp.internal",
+      "hostname": "db-master-01.mock.internal",
       "status": "online",
       "cpu": 51.8,
       "cpu_usage": 51.8,
@@ -131,7 +131,7 @@
       "type": "database",
       "role": "master",
       "environment": "production",
-      "provider": "GCP-VM-Static-Data",
+      "provider": "Mock-Scenario-Data",
       "specs": {
         "cpu_cores": 6,
         "memory_gb": 16,
@@ -158,9 +158,9 @@
       }
     },
     {
-      "id": "gcp-cache-01",
+      "id": "mock-cache-01",
       "name": "cache-server-01",
-      "hostname": "cache-server-01.gcp.internal",
+      "hostname": "cache-server-01.mock.internal",
       "status": "online",
       "cpu": 35.7,
       "cpu_usage": 35.7,
@@ -179,7 +179,7 @@
       "type": "cache",
       "role": "worker",
       "environment": "production",
-      "provider": "GCP-VM-Static-Data",
+      "provider": "Mock-Scenario-Data",
       "specs": {
         "cpu_cores": 2,
         "memory_gb": 8,
@@ -206,9 +206,9 @@
       }
     },
     {
-      "id": "gcp-lb-01",
+      "id": "mock-lb-01",
       "name": "load-balancer-01",
-      "hostname": "lb-01.gcp.internal",
+      "hostname": "lb-01.mock.internal",
       "status": "online",
       "cpu": 31.4,
       "cpu_usage": 31.4,
@@ -227,7 +227,7 @@
       "type": "loadbalancer",
       "role": "master",
       "environment": "production",
-      "provider": "GCP-VM-Static-Data",
+      "provider": "Mock-Scenario-Data",
       "specs": {
         "cpu_cores": 4,
         "memory_gb": 8,
@@ -254,9 +254,9 @@
       }
     },
     {
-      "id": "gcp-web-02",
+      "id": "mock-web-02",
       "name": "web-server-02",
-      "hostname": "web-server-02.gcp.internal",
+      "hostname": "web-server-02.mock.internal",
       "status": "online",
       "cpu": 32.1,
       "cpu_usage": 32.1,
@@ -275,7 +275,7 @@
       "type": "web",
       "role": "worker",
       "environment": "production",
-      "provider": "GCP-VM-Static-Data",
+      "provider": "Mock-Scenario-Data",
       "specs": {
         "cpu_cores": 2,
         "memory_gb": 8,
@@ -302,9 +302,9 @@
       }
     },
     {
-      "id": "gcp-api-02",
+      "id": "mock-api-02",
       "name": "api-server-02",
-      "hostname": "api-server-02.gcp.internal",
+      "hostname": "api-server-02.mock.internal",
       "status": "online",
       "cpu": 27.3,
       "cpu_usage": 27.3,
@@ -323,7 +323,7 @@
       "type": "api",
       "role": "worker",
       "environment": "production",
-      "provider": "GCP-VM-Static-Data",
+      "provider": "Mock-Scenario-Data",
       "specs": {
         "cpu_cores": 4,
         "memory_gb": 8,
@@ -350,9 +350,9 @@
       }
     },
     {
-      "id": "gcp-monitoring-01",
+      "id": "mock-monitoring-01",
       "name": "monitoring-server-01",
-      "hostname": "monitoring-01.gcp.internal",
+      "hostname": "monitoring-01.mock.internal",
       "status": "online",
       "cpu": 38.4,
       "cpu_usage": 38.4,
@@ -371,7 +371,7 @@
       "type": "monitoring",
       "role": "master",
       "environment": "production",
-      "provider": "GCP-VM-Static-Data",
+      "provider": "Mock-Scenario-Data",
       "specs": {
         "cpu_cores": 2,
         "memory_gb": 4,
@@ -398,9 +398,9 @@
       }
     },
     {
-      "id": "gcp-worker-01",
+      "id": "mock-worker-01",
       "name": "worker-server-01",
-      "hostname": "worker-01.gcp.internal",
+      "hostname": "worker-01.mock.internal",
       "status": "warning",
       "cpu": 82.5,
       "cpu_usage": 82.5,
@@ -419,7 +419,7 @@
       "type": "worker",
       "role": "worker",
       "environment": "production",
-      "provider": "GCP-VM-Static-Data",
+      "provider": "Mock-Scenario-Data",
       "specs": {
         "cpu_cores": 4,
         "memory_gb": 16,
@@ -446,9 +446,9 @@
       }
     },
     {
-      "id": "gcp-backup-01",
+      "id": "mock-backup-01",
       "name": "backup-server-01",
-      "hostname": "backup-01.gcp.internal",
+      "hostname": "backup-01.mock.internal",
       "status": "online",
       "cpu": 45.2,
       "cpu_usage": 45.2,
@@ -467,7 +467,7 @@
       "type": "backup",
       "role": "master",
       "environment": "production",
-      "provider": "GCP-VM-Static-Data",
+      "provider": "Mock-Scenario-Data",
       "specs": {
         "cpu_cores": 2,
         "memory_gb": 4,
