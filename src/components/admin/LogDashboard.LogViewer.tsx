@@ -9,8 +9,8 @@
  */
 
 // framer-motion 제거 - CSS 애니메이션 사용
+import React, { Fragment, useCallback, useState } from 'react';
 import { Eye, FileText, Filter, Search } from 'lucide-react';
-import { useCallback, useState } from 'react';
 
 import { Badge } from '../ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';

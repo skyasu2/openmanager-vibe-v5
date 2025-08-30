@@ -221,6 +221,21 @@ export interface EnhancedServerMetrics {
 
   // 🔧 호환성을 위한 추가 속성들
   network?: number; // network_in/network_out의 합계 또는 평균
+  cpu?: number; // cpu_usage 호환성
+  memory?: number; // memory_usage 호환성  
+  disk?: number; // disk_usage 호환성
+
+  // 🔧 서버 기본 정보 (API route에서 사용)
+  location?: string; // 서버 위치
+  ip?: string; // IP 주소
+  os?: string; // 운영체제
+  type?: string; // 서버 타입 (role과 중복되지만 호환성)
+  provider?: string; // 클라우드 제공자
+  specs?: ServerSpecs; // 서버 사양
+  lastUpdate?: string; // 마지막 업데이트 (ISO 문자열)
+  services?: Service[]; // 서비스 목록
+  systemInfo?: SystemInfo; // 시스템 정보
+  networkInfo?: NetworkInfo; // 네트워크 정보
 
   // 🔧 기존 Server 타입과의 호환성을 위한 metrics 속성
   metrics?: {
