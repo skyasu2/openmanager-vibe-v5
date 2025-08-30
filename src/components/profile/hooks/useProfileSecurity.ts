@@ -181,7 +181,7 @@ export function useProfileSecurity() {
         setSecurityState((prev) => ({ ...prev, isProcessing: false }));
       }
     },
-    [] // securityState 객체 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+    [securityState] // ✅ securityState 의존성 복구 - stale closure 방지하여 React Error #310 해결
   );
 
   /**
