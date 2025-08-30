@@ -247,7 +247,7 @@ function generateRealisticMetrics(serverType: string, baseCpu: number, baseMemor
       scenarioEffect.disk += scenario.effects.disk || 0;
       scenarioEffect.network += scenario.effects.network || 0;
       currentStatus = scenario.status;
-      console.log(`🚨 [${serverType}] ${scenario.name} 시나리오 활성화`);
+      // 시나리오 활성화 (AI 분석 무결성을 위해 상세 정보는 로그하지 않음)
       break; // 하나의 시나리오만 활성화
     }
   }
@@ -307,25 +307,23 @@ async function loadHourlyScenarioData(): Promise<any[]> { // 임시 any 타입
     const filePath = path.join(process.cwd(), 'public', 'server-scenarios', 'hourly-metrics', `${currentHour.toString().padStart(2, '0')}.json`);
     
     if (!fs.existsSync(filePath)) {
-      console.warn(`⚠️ [FIXED-ROTATION] 시간별 데이터 파일 없음: ${filePath}`);
-      console.log(`🔄 [FIXED-ROTATION] 기본값으로 17시 데이터 사용`);
-      const fallbackPath = path.join(process.cwd(), 'public', 'server-scenarios', 'hourly-metrics', '17.json');
-      const fallbackData = JSON.parse(fs.readFileSync(fallbackPath, 'utf8'));
-      return convertFixedRotationData(fallbackData, currentHour, rotationMinute, segmentInHour);
+      console.error(`❌ [VERCEL-ONLY] 시간별 데이터 파일 없음: ${filePath}`);
+      console.error(`🚫 [VERCEL-ONLY] 폴백 시스템 비활성화 - 베르셀 JSON 파일 전용 모드`);
+      throw new Error(`베르셀 시간별 데이터 파일 누락: ${currentHour.toString().padStart(2, '0')}.json`);
     }
     
     const rawData = fs.readFileSync(filePath, 'utf8');
     const hourlyData = JSON.parse(rawData);
     
     console.log(`✅ [FIXED-ROTATION] ${currentHour}시 데이터 로드 성공 (${segmentInHour}→${rotationMinute}분 데이터)`);
-    console.log(`📊 [FIXED-ROTATION] 시나리오: ${hourlyData.scenario?.name || hourlyData.scenario || '고정 패턴'}`);
+    // AI 분석 무결성을 위해 시나리오 정보는 로그하지 않음
     
     return convertFixedRotationData(hourlyData, currentHour, rotationMinute, segmentInHour);
     
   } catch (error) {
-    console.error('❌ [FIXED-ROTATION] 24시간 고정 데이터 로드 실패:', error);
-    // 24시간 고정 데이터 시스템이 안정적이므로 폴백 없이 예외 처리
-    throw new Error(`24시간 고정 데이터 시스템 오류: ${error}`);
+    console.error('❌ [VERCEL-ONLY] 베르셀 JSON 데이터 로드 실패:', error);
+    console.error('🚫 [VERCEL-ONLY] 폴백 시스템 비활성화 - 오류 발생 시 명시적 실패');
+    throw new Error(`베르셀 JSON 데이터 시스템 오류: ${error}`);
   }
 }
 
@@ -417,7 +415,7 @@ function convertFixedRotationData(hourlyData: any, currentHour: number, rotation
       type: serverData.type || 'web',
       role: serverData.role || 'worker',
       environment: serverData.environment || 'production',
-      provider: `Fixed-Pattern-${currentHour}h${rotationMinute.toString().padStart(2, '0')}m`, // 고정 패턴 표시
+      provider: `DataCenter-${currentHour.toString().padStart(2, '0')}${rotationMinute.toString().padStart(2, '0')}`, // 데이터센터 표시 (AI 분석 무결성 보장)
       specs: {
         cpu_cores: serverData.specs?.cpu_cores || 4,
         memory_gb: serverData.specs?.memory_gb || 8,
@@ -449,10 +447,12 @@ function convertFixedRotationData(hourlyData: any, currentHour: number, rotation
 }
 
 /**
- * 기존 정적 서버 데이터 (폴백용) - 랜덤 생성 방식 유지
- * 24시간 데이터 로드 실패 시에만 사용
+ * 🚫 [DEPRECATED] 정적 서버 데이터 (폴백용) - 사용 중단
+ * 베르셀 JSON 전용 모드로 전환하여 더 이상 사용하지 않음
+ * 
+ * @deprecated 베르셀 JSON 파일 전용 시스템으로 전환됨
  */
-function generateStaticServers(): any[] { // 임시 any 타입으로 빌드 성공 유도
+function generateStaticServers_DEPRECATED(): any[] { // 임시 any 타입으로 빌드 성공 유도
   const timestamp = new Date().toISOString();
   
   // GCP VM 정적 데이터를 EnhancedServerMetrics 형식으로 변환
@@ -758,7 +758,7 @@ function generateStaticServers(): any[] { // 임시 any 타입으로 빌드 성�
       type: vmServer.metadata.server_type,
       role: vmServer.metadata.role,
       environment: 'production',
-      provider: 'Mock-Scenario-Enhanced', // 🎯 시나리오 기반 표시
+      provider: 'DataCenter-Primary', // 데이터센터 기본 정보 (AI 분석 무결성 보장)
       specs: {
         cpu_cores: vmServer.specs.cpu_cores,
         memory_gb: vmServer.specs.memory_gb,
@@ -800,9 +800,9 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)));
     const search = searchParams.get('search') || '';
     
-    // 🚨 강제 배포 확인 로그 - 베르셀 캐시 무효화 테스트
-    console.log('🔥 [FORCE-DEPLOY-v2.1] 10개 서버 API 라우트 확정 배포 - 2025.08.29');
-    console.log('🌐 [VERCEL-CACHE-BUST] 서버 데이터 요청 - Mock 시뮬레이션 모드');
+    // 🚨 베르셀 전용 모드 확인 로그
+    console.log('🔥 [VERCEL-ONLY-v3.0] 베르셀 JSON 파일 전용 모드 - 폴백 시스템 완전 제거');
+    console.log('🌐 [VERCEL-JSON-ONLY] 서버 데이터 요청 - 베르셀 시간별 JSON 파일 전용');
     console.log('📊 요청 파라미터:', { sortBy, sortOrder, page, limit, search });
     
     // 🕒 24시간 시나리오 데이터 사용 (현실적 패턴 제공)
@@ -811,7 +811,7 @@ export async function GET(request: NextRequest) {
     console.log('🔧 [API-ROUTE] 요청 파라미터:', { sortBy, sortOrder, page, limit, search });
     
     const enhancedServers = await loadHourlyScenarioData();
-    const dataSource = 'hourly-scenario';
+    const dataSource = 'vercel-json-only';
     
     console.log(`✅ [API-ROUTE] Mock 데이터 생성 성공: ${enhancedServers.length}개 서버`);
     
@@ -901,22 +901,23 @@ export async function GET(request: NextRequest) {
         serverCount: paginatedServers.length,
         totalServers: total,
         dataSource,
-        mockSimulationMode: true, // Mock 시뮬레이션 모드 표시
-        // 🚨 강제 배포 확인 정보
-        forceDeployVersion: 'v2.1-2025.08.29',
-        cacheBreaker: `cache-break-${Date.now()}`,
-        // 🔍 디버깅 정보 (필요시 포함)
-        ...((global as any).gcpErrorInfo ? { gcpError: (global as any).gcpErrorInfo } : {})
+        vercelJsonOnlyMode: true, // 베르셀 JSON 전용 모드
+        fallbackSystemDisabled: true, // 폴백 시스템 비활성화
+        // 🚨 베르셀 전용 모드 정보
+        systemVersion: 'vercel-only-v3.0-2025.08.30',
+        cacheBreaker: `vercel-json-${Date.now()}`,
+        dataLocation: 'public/server-scenarios/hourly-metrics/'
       }
     }, {
-      // 🔥 강력한 캐시 무효화 헤더
+      // 🔥 베르셀 전용 모드 헤더
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
         'Pragma': 'no-cache',
         'Expires': '0',
         'X-Vercel-Cache': 'MISS',
-        'X-Force-Deploy-Version': 'v2.1-2025.08.29',
-        'X-Mock-Mode': 'simulation'
+        'X-Data-Source': 'vercel-json-only',
+        'X-System-Version': 'vercel-only-v3.0-2025.08.30',
+        'X-Fallback-Disabled': 'true'
       }
     });
       
