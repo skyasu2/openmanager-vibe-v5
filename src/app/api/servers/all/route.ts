@@ -282,9 +282,135 @@ function generateRealisticMetrics(serverType: string, baseCpu: number, baseMemor
 type SortableKey = keyof Pick<ServerMetrics, 'cpu' | 'memory' | 'disk' | 'network' | 'uptime' | 'name'>;
 
 /**
- * 통합된 정적 서버 데이터 (10개 서버)
- * /api/gcp-vm-data 라우트 우회하여 직접 통합
- * GCP VM 연결 실패 시 또는 Vercel 프로덕션 환경에서 사용
+ * 🎯 24시간 고정 데이터 순차 회전 시스템
+ * 미리 정의된 24시간 데이터를 30초마다 순차적으로 회전시키며 사용
+ * 하루가 끝나면 다시 처음부터 순환 (고정 패턴의 연속 회전)
+ */
+async function loadHourlyScenarioData(): Promise<EnhancedServerMetrics[]> {
+  try {
+    const now = new Date();
+    const currentHour = now.getHours(); // 0-23
+    const currentMinute = now.getMinutes(); // 0-59  
+    const currentSecond = now.getSeconds(); // 0-59
+    
+    // 🔄 30초 단위로 시간별 데이터를 순차 회전 (120개 구간 = 60분)
+    // 각 시간대 내에서 30초마다 다른 분(minute) 데이터 포인트 사용
+    const segmentInHour = Math.floor((currentMinute * 60 + currentSecond) / 30); // 0-119 (60분을 30초 구간으로 나눔)
+    const rotationMinute = segmentInHour % 60; // 0-59분 순환 사용
+    
+    console.log(`🕒 [FIXED-ROTATION] ${currentHour}:${currentMinute.toString().padStart(2, '0')}:${currentSecond.toString().padStart(2, '0')}`);
+    console.log(`🔄 [FIXED-ROTATION] ${currentHour}시대 ${segmentInHour}번째 구간 → ${rotationMinute}분 데이터 사용`);
+    
+    // 현재 시간대 데이터 로드
+    const fs = require('fs');
+    const path = require('path');
+    const filePath = path.join(process.cwd(), 'public', 'server-scenarios', 'hourly-metrics', `${currentHour.toString().padStart(2, '0')}.json`);
+    
+    if (!fs.existsSync(filePath)) {
+      console.warn(`⚠️ [FIXED-ROTATION] 시간별 데이터 파일 없음: ${filePath}`);
+      console.log(`🔄 [FIXED-ROTATION] 기본값으로 17시 데이터 사용`);
+      const fallbackPath = path.join(process.cwd(), 'public', 'server-scenarios', 'hourly-metrics', '17.json');
+      const fallbackData = JSON.parse(fs.readFileSync(fallbackPath, 'utf8'));
+      return convertFixedRotationData(fallbackData, currentHour, rotationMinute, segmentInHour);
+    }
+    
+    const rawData = fs.readFileSync(filePath, 'utf8');
+    const hourlyData = JSON.parse(rawData);
+    
+    console.log(`✅ [FIXED-ROTATION] ${currentHour}시 데이터 로드 성공 (${segmentInHour}→${rotationMinute}분 데이터)`);
+    console.log(`📊 [FIXED-ROTATION] 시나리오: ${hourlyData.scenario?.name || hourlyData.scenario || '고정 패턴'}`);
+    
+    return convertFixedRotationData(hourlyData, currentHour, rotationMinute, segmentInHour);
+    
+  } catch (error) {
+    console.error('❌ [FIXED-ROTATION] 24시간 고정 데이터 로드 실패:', error);
+    console.log('🔄 [FIXED-ROTATION] 기본 정적 데이터로 폴백');
+    return generateStaticServers();
+  }
+}
+
+/**
+ * 🎯 고정 데이터 회전 변환기 
+ * 24시간 미리 정의된 데이터를 순차적으로 회전시키며 고정 패턴 유지
+ * 동적 변화 없이 정확한 시간대별 고정 메트릭 제공
+ */
+function convertFixedRotationData(hourlyData: any, currentHour: number, rotationMinute: number, segmentInHour: number): EnhancedServerMetrics[] {
+  const servers = hourlyData.servers || {};
+  const scenario = hourlyData.scenario || `${currentHour}시 고정 패턴`;
+  
+  console.log(`🔧 [FIXED-CONVERT] ${Object.keys(servers).length}개 서버 데이터 변환 (${currentHour}:${rotationMinute.toString().padStart(2, '0')} 고정 데이터)`);
+  console.log(`📋 [FIXED-CONVERT] ${segmentInHour}번째 구간 → 고정 패턴 적용`);
+  
+  return Object.values(servers).map((serverData: any, index) => {
+    // 🔒 고정 데이터 그대로 사용 (변동 없음)
+    // rotationMinute를 사용하여 시간 내 분별 고정 패턴 적용
+    const minuteFactor = rotationMinute / 59; // 0-1 사이 고정 팩터
+    const fixedOffset = Math.sin(minuteFactor * 2 * Math.PI) * 2; // 고정된 2% 오프셋 (시간 내 패턴)
+    
+    // 서버별 고정 특성 (항상 동일한 패턴)
+    const serverOffset = (index * 3.7) % 10; // 서버별 고정 오프셋 (0-10)
+    
+    console.log(`🔒 [FIXED-SERVER-${index}] ${serverData.name || `서버${index}`} 고정 오프셋: ${fixedOffset.toFixed(1)}% + 서버특성: ${serverOffset.toFixed(1)}%`);
+    
+    // 🎯 고정 데이터에 패턴만 적용 (랜덤 요소 제거)
+    const fixedVariation = 1 + (fixedOffset + serverOffset) / 100; // 고정된 변화율
+    
+    const enhanced: EnhancedServerMetrics = {
+      id: serverData.id || `server-${index}`,
+      name: serverData.name || `Unknown Server ${index + 1}`,
+      hostname: serverData.hostname || serverData.name || `server-${index}`,
+      status: serverData.status || 'online',
+      cpu: Math.round((serverData.cpu || 0) * fixedVariation),
+      cpu_usage: Math.round((serverData.cpu || 0) * fixedVariation),
+      memory: Math.round((serverData.memory || 0) * fixedVariation),
+      memory_usage: Math.round((serverData.memory || 0) * fixedVariation),
+      disk: Math.round((serverData.disk || 0) * fixedVariation),
+      disk_usage: Math.round((serverData.disk || 0) * fixedVariation),
+      network: Math.round((serverData.network || 20) * fixedVariation),
+      network_in: Math.round((serverData.network || 20) * 0.6 * fixedVariation),
+      network_out: Math.round((serverData.network || 20) * 0.4 * fixedVariation),
+      uptime: serverData.uptime || 86400,
+      location: serverData.location || 'Seoul-DC-01',
+      alerts: serverData.status === 'critical' ? 3 : serverData.status === 'warning' ? 1 : 0,
+      ip: serverData.ip || `192.168.1.${100 + index}`,
+      os: serverData.os || 'Ubuntu 22.04 LTS',
+      type: serverData.type || 'web',
+      role: serverData.role || 'worker',
+      environment: serverData.environment || 'production',
+      provider: `Fixed-Pattern-${currentHour}h${rotationMinute.toString().padStart(2, '0')}m`, // 고정 패턴 표시
+      specs: {
+        cpu_cores: serverData.specs?.cpu_cores || 4,
+        memory_gb: serverData.specs?.memory_gb || 8,
+        disk_gb: serverData.specs?.disk_gb || 200,
+        network_speed: '1Gbps'
+      },
+      lastUpdate: new Date().toISOString(),
+      services: serverData.services || [],
+      systemInfo: {
+        os: serverData.os || 'Ubuntu 22.04 LTS',
+        uptime: Math.floor((serverData.uptime || 86400) / 3600) + 'h',
+        processes: (serverData.processes || 120) + Math.floor(serverOffset), // 고정된 서버별 프로세스 수
+        zombieProcesses: serverData.status === 'critical' ? 3 : serverData.status === 'warning' ? 1 : 0,
+        loadAverage: `${((serverData.cpu || 0) * fixedVariation / 20).toFixed(2)}, ${(((serverData.cpu || 0) * fixedVariation - 5) / 20).toFixed(2)}, ${(((serverData.cpu || 0) * fixedVariation - 10) / 20).toFixed(2)}`,
+        lastUpdate: new Date().toISOString()
+      },
+      networkInfo: {
+        interface: 'eth0',
+        receivedBytes: `${((serverData.network || 20) * 0.6 * fixedVariation).toFixed(1)} MB`,
+        sentBytes: `${((serverData.network || 20) * 0.4 * fixedVariation).toFixed(1)} MB`,
+        receivedErrors: serverData.status === 'critical' ? Math.floor(serverOffset % 5) + 1 : 0, // 고정된 오류 수
+        sentErrors: serverData.status === 'critical' ? Math.floor(serverOffset % 3) + 1 : 0, // 고정된 오류 수
+        status: serverData.status === 'online' ? 'healthy' : serverData.status
+      }
+    };
+    
+    return enhanced;
+  });
+}
+
+/**
+ * 기존 정적 서버 데이터 (폴백용) - 랜덤 생성 방식 유지
+ * 24시간 데이터 로드 실패 시에만 사용
  */
 function generateStaticServers(): EnhancedServerMetrics[] {
   const timestamp = new Date().toISOString();
@@ -637,14 +763,14 @@ export async function GET(request: NextRequest) {
     console.log('🌐 [VERCEL-CACHE-BUST] 서버 데이터 요청 - GCP VM 통합 모드');
     console.log('📊 요청 파라미터:', { sortBy, sortOrder, page, limit, search });
     
-    // 🚨 GCP VM 제거됨: 즉시 Mock 데이터 사용 (504 타임아웃 완전 해결)
-    console.log('🎯 [API-ROUTE] GCP VM 제거로 인해 즉시 Mock 데이터 사용');
+    // 🕒 24시간 시나리오 데이터 사용 (현실적 패턴 제공)
+    console.log('🎯 [API-ROUTE] 24시간 시나리오 데이터 시스템 - 시간별 회전 로딩');
     console.log('📍 [API-ROUTE] 요청 URL:', request.url);
     console.log('🔧 [API-ROUTE] 요청 파라미터:', { sortBy, sortOrder, page, limit, search });
     
-    const enhancedServers = generateStaticServers();
-    const dataSource = 'static-mock';
-    const fallbackUsed = false; // Mock 데이터가 메인 데이터 소스
+    const enhancedServers = await loadHourlyScenarioData();
+    const dataSource = 'hourly-scenario';
+    const fallbackUsed = false; // 24시간 데이터가 메인 데이터 소스
     
     console.log(`✅ [API-ROUTE] Mock 데이터 생성 성공: ${enhancedServers.length}개 서버`);
     

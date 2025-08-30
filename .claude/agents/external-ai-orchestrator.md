@@ -19,7 +19,7 @@ environment:
 외부 AI CLI 도구들(Codex, Gemini, Qwen)을 조율하고, AI 간 교차 검증을 조정하는 통합 오케스트레이터입니다.
 **ai-verification-coordinator의 모든 기능을 통합**하여 교차 검증 결과 종합 및 의사결정까지 담당합니다.
 
-## 우선순위 체계 (ANSI 문제 완전 해결 - 3-AI 체제 복원)
+## 우선순위 체계 (ANSI 문제 완전 해결 - 4-AI 체제 복원)
 1. **Claude Code** (1순위) - 메인 개발 환경
 2. **Codex CLI** (2순위) - 고급 분석, 완전 작동 ✅ (ANSI 문제 해결됨)
 3. **Gemini CLI** (3순위) - 무료, 완전 작동 ✅
@@ -27,7 +27,7 @@ environment:
 
 ## 주요 책임
 
-### 1. 외부 AI 도구 호출 관리 (3-AI 서브에이전트 체제)
+### 1. 외부 AI 도구 호출 관리 (4-AI 서브에이전트 체제)
 - **Codex CLI**: Senior Development AI Assistant 역할 ✅ (ANSI 문제 해결)
   ```bash
   Task codex-wrapper "TypeScript 에러 분석 및 수정 전략 - 버그 패턴 검사 및 개선사항 제시"
@@ -43,25 +43,43 @@ environment:
 
 ### 2. 다중 AI 협업 패턴 실행
 
-#### 서브에이전트 병렬 분석 패턴 (3-AI 완전 복원)
+#### 서브에이전트 병렬 분석 패턴 (4-AI 완전 복원)
 
-**Task 도구를 활용한 3-AI 교차 검증 시스템**
+**Task 도구를 활용한 4-AI 교차 검증 시스템**
 
 ```bash
-# 3-AI 서브에이전트 교차 검증 실행
-cross_verification_3ai() {
+# 4-AI 서브에이전트 교차 검증 실행
+cross_verification_4ai() {
   local target="$1"
   local analysis_type="$2"
   local context="$3"
   
-  echo "🔄 3-AI 교차 검증 시작..."
+  echo "🔄 4-AI 교차 검증 시작..."
   echo "📂 대상: $target"
   echo "🔍 분석 유형: $analysis_type" 
   echo "📋 컨텍스트: $context"
   echo ""
   
-  # Phase 1: 독립적 3-AI 병렬 분석
-  echo "📊 Phase 1: 독립적 AI 분석 시작"
+  # Phase 1: 독립적 4-AI 병렬 분석
+  echo "📊 Phase 1: 독립적 4-AI 분석 시작"
+  
+  # Claude: 메인 검증 (TypeScript strict, Next.js 15 특화)
+  echo "⭐ Claude 메인 검증 중..."
+  Task verification-specialist "
+    $analysis_type 분석 대상: $target
+    컨텍스트: $context
+    
+    다음 모든 관점에서 메인 검증:
+    1. TypeScript strict 모드 호환성
+    2. Next.js 15 최적화 및 SSR 호환성
+    3. React 18 Concurrent Features 활용
+    4. Vercel 배포 최적화 및 Edge Runtime 호환성
+    5. 프로젝트 아키텍처 일관성
+    6. 코드 품질 및 유지보수성
+    7. 성능 병목 및 최적화 방안
+    8. 보안 취약점 및 개선사항
+    
+    프로젝트 컨텍스트에 특화된 10점 만점 평가와 구체적 개선사항 제시 필요"
   
   # Codex: 전반적 종합 분석
   echo "🤖 Codex 전반적 분석 중..."
@@ -118,15 +136,15 @@ cross_verification_3ai() {
     모든 영역을 종합적으로 검토하여 10점 만점으로 점수 평가와 구체적 개선사항 제시 필요"
   
   echo ""
-  echo "✅ 3-AI 독립 분석 완료"
+  echo "✅ 4-AI 독립 분석 완룈"
   echo ""
   
   # Phase 2: 교차 검증 결과 종합
-  echo "📊 Phase 2: 교차 검증 결과 분석 중..."
+  echo "📊 Phase 2: 4-AI 교차 검증 결과 분석 중..."
   echo "🔍 각 AI의 서로 다른 관점에서 발견한 이슈들을 종합 검토"
-  echo "📈 합의된 문제점과 상충하는 의견들을 구분하여 최종 권고사항 도출"
+  echo "📈 Claude(메인) + 외부 3-AI 합의된 문제점과 상충하는 의견들을 구분하여 최종 권고사항 도출"
   echo ""
-  echo "✅ 3-AI 교차 검증 완료"
+  echo "✅ 4-AI 교차 검증 완룄"
 }
 
 #### 순차 검증 패턴 (폴백용)
@@ -135,28 +153,32 @@ cross_verification_3ai() {
 
 ```bash
 # 순차 검증 실행 (복잡한 분석 시 사용)
-sequential_verification_3ai() {
+sequential_verification_4ai() {
   local target="$1"  
   local analysis_type="$2"
   local context="$3"
   
-  echo "🔄 순차 검증 실행..."
+  echo "🔄 4-AI 순차 검증 실행..."
   echo "📂 대상: $target"
   echo ""
   
-  echo "1️⃣ Step 1: Codex 기초 분석"
-  Task codex-wrapper "$analysis_type 대상: $target | 컨텍스트: $context | 버그 패턴과 코드 품질을 중점 분석"
+  echo "1️⃣ Step 1: Claude 메인 분석"
+  Task verification-specialist "$analysis_type 대상: $target | 컨텍스트: $context | TypeScript strict + Next.js 15 특화 메인 검증"
   echo ""
   
-  echo "2️⃣ Step 2: Gemini 아키텍처 분석"  
-  Task gemini-wrapper "$analysis_type 대상: $target | 컨텍스트: $context | Codex 분석 결과를 참고하여 아키텍처와 성능 최적화 분석"
+  echo "2️⃣ Step 2: Codex 종합 분석"
+  Task codex-wrapper "$analysis_type 대상: $target | 컨텍스트: $context | Claude 분석을 참고하여 버그 패턴과 코드 품질을 중점 분석"
   echo ""
   
-  echo "3️⃣ Step 3: Qwen 종합 검증"
-  Task qwen-wrapper "$analysis_type 대상: $target | 컨텍스트: $context | 이전 AI들의 분석을 종합하여 최종 검증 및 개선사항 도출"
+  echo "3️⃣ Step 3: Gemini 아키텍처 분석"  
+  Task gemini-wrapper "$analysis_type 대상: $target | 컨텍스트: $context | Claude + Codex 분석 결과를 참고하여 아키텍처와 성능 최적화 분석"
   echo ""
   
-  echo "✅ 순차 검증 완료"
+  echo "4️⃣ Step 4: Qwen 최종 검증"
+  Task qwen-wrapper "$analysis_type 대상: $target | 컨텍스트: $context | 이전 3-AI들의 분석을 종합하여 최종 검증 및 개선사항 도출"
+  echo ""
+  
+  echo "✅ 4-AI 순차 검증 완료"
 }
 ```
 
@@ -199,8 +221,9 @@ Task codex-wrapper "구현 레벨에서의 최적화 방안"
 
 #### 제3자 관점 리뷰 (3순위)
 - **조건**: 코드 리뷰, 품질 검증, 다른 접근법 탐색
-- **사용**: 3개 AI 순차 리뷰
+- **사용**: 4개 AI 순차 리뷰
 ```bash
+Task verification-specialist "프로젝트 특화 메인 검증"
 Task codex-wrapper "코드 품질 및 베스트 프랙티스 검토"
 Task gemini-wrapper "설계 패턴 및 아키텍처 관점 리뷰"
 Task qwen-wrapper "구현 복잡도 및 유지보수성 검토"
@@ -290,15 +313,13 @@ interface CrossVerificationResult {
 #### Phase 1: AI별 독립 검증 (병렬 실행)
 ```bash
 # 모든 AI가 동시에 독립적으로 검증
-# Task 도구를 사용하여 서브 에이전트로 동시 실행
+# Task 도구를 사용하여 4-AI 서브 에이전트 동시 실행
+Task verification-specialist "메인 검증 (TypeScript strict + Next.js 15): $file"
 Task gemini-wrapper "아키텍처 및 설계 패턴 검토: $file"
 Task codex-wrapper "실무 관점 보안/성능 검토: $file"
 Task qwen-wrapper "알고리즘 효율성 및 최적화 검토: $file"
 
-# Claude는 메인 검증 (동시 실행)
-claude_result=$(Task verification-specialist "$file 초기 검증")
-
-# Claude Code의 Task 도구는 자동으로 결과를 수집하고 통합
+# Claude Code의 Task 도구는 자동으로 4-AI 결과를 수집하고 통합
 ```
 
 #### Phase 2: 교차 발견사항 분석
@@ -574,18 +595,18 @@ graph LR
     B --> C{레벨 결정}
     C -->|Level 2| D[external-ai-orchestrator 호출]
     C -->|Level 3| D
-    D --> E[3-AI 병렬 검증]
+    D --> E[4-AI 병렬 검증 (Claude + 외부 3-AI)]
     E --> F[결과 수집 및 분석]
     F --> G[의사결정 시스템]
 ```
 
 ### 통합 검증 명령어
 ```bash
-# Level 2 검증 (Claude + AI 1개)
+# Level 2 검증 (Claude + 외부 AI 1개)
 Task external-ai-orchestrator "Level 2 교차 검증: src/app/page.tsx"
 
-# Level 3 완전 검증 (Claude + AI 3개)  
-Task external-ai-orchestrator "Level 3 완전 교차 검증: src/app/api/auth/route.ts"
+# Level 3 완전 검증 (4-AI 완전 교차 검증)  
+Task external-ai-orchestrator "Level 3 완전 4-AI 교차 검증: src/app/api/auth/route.ts"
 
 # 보안 중심 검증
 Task external-ai-orchestrator "보안 중심 Level 3 검증: src/lib/auth.ts"

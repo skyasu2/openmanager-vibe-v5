@@ -1,6 +1,6 @@
 ---
 name: ai-verification-coordinator
-description: USE ON REQUEST for AI cross-verification coordination. AI 교차 검증 시스템 메인 조정자 - 3단계 레벨 기반 수동 AI 교차 검증 오케스트레이션
+description: USE ON REQUEST for AI cross-verification coordination. AI 교차 검증 시스템 메인 조정자 - 3단계 레벨 기반 4-AI 교차 검증 오케스트레이션
 tools: Task, Write, Read, TodoWrite, mcp__filesystem__write_file, mcp__filesystem__read_text_file, mcp__memory__create_entities, mcp__thinking__sequentialthinking
 priority: high
 trigger: code_verification, cross_verification, quality_assurance
@@ -14,7 +14,7 @@ environment:
 # AI 교차 검증 조정자
 
 ## 핵심 역할
-**AI Cross-Verification Coordinator**로서 Claude Code + 3개 외부 AI(Gemini, Codex, Qwen)를 활용한 3단계 교차 검증 시스템의 중앙 조정자입니다.
+**AI Cross-Verification Coordinator**로서 4-AI 시스템(Claude + Gemini + Codex + Qwen)을 활용한 3단계 교차 검증 시스템의 중앙 조정자입니다.
 
 ## 시스템 아키텍처
 
@@ -44,7 +44,7 @@ Task ai-verification-coordinator "파일경로 [레벨] [옵션]"
 - 훅 로직 리팩토링
 ```
 
-#### Level 3: Claude + All 3 AIs
+#### Level 3: 4-AI 완전 교차 검증
 **대상**: 복잡한 변경 (> 200줄, 고복잡도, 보안 중요)
 ```typescript
 - 인증/인가 시스템
@@ -145,21 +145,17 @@ const executeLevel2 = async (filePath: string): Promise<VerificationResult> => {
 };
 ```
 
-#### Level 3 실행 (완전 교차 검증)
+#### Level 3 실행 (4-AI 완전 교차 검증)
 ```typescript
 const executeLevel3 = async (filePath: string): Promise<VerificationResult> => {
-  console.log(`🔍 Level 3 완전 교차 검증 시작: ${filePath}`);
+  console.log(`🔍 Level 3: 4-AI 완전 교차 검증 시작: ${filePath}`);
   
-  // Claude 검토
-  const claudeResult = await Task('code-review-specialist',
-    `${filePath} 파일 완전 검토 - 보안, 성능, 아키텍처 종합 분석`
-  );
-  
-  // 3개 AI 병렬 실행
-  const [geminiResult, codexResult, qwenResult] = await Promise.all([
-    Task('gemini-wrapper', `아키텍처 관점: ${filePath} SOLID 원칙 및 설계 패턴 검토`),
-    Task('codex-wrapper', `실무 관점: ${filePath} 프로덕션 환경 보안 취약점 및 엣지 케이스 검토`),
-    Task('qwen-wrapper', `성능 관점: ${filePath} 알고리즘 효율성 및 최적화 방안 검토`)
+  // 4-AI 완전 병렬 실행 (Claude는 code-review-specialist로)
+  const [claudeResult, geminiResult, codexResult, qwenResult] = await Promise.all([
+    Task('code-review-specialist', `Claude 관점: ${filePath} Next.js/TypeScript 최적화 및 프레임워크 호환성 검토`),
+    Task('gemini-wrapper', `Gemini 관점: ${filePath} SOLID 원칙, 아키텍처 설계 패턴 검토`),
+    Task('codex-wrapper', `Codex 관점: ${filePath} 프로덕션 환경 보안 취약점 및 실무 엣지 케이스 검토`),
+    Task('qwen-wrapper', `Qwen 관점: ${filePath} 알고리즘 효율성, 성능 최적화 및 메모리 관리 검토`)
   ]);
   
   const allReviews = [claudeResult, geminiResult, codexResult, qwenResult];
