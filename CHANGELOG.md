@@ -6,6 +6,25 @@
 > - [CHANGELOG-LEGACY-1.md](./CHANGELOG-LEGACY-1.md): v5.66.40 ~ v5.67.21 (2025-08-12 ~ 2025-08-17)
 > - [CHANGELOG-LEGACY.md](./CHANGELOG-LEGACY.md): v5.0.0 ~ v5.65.6 (2025-05 ~ 2025-08)
 
+## [5.70.7]
+
+### 🚨 React Error #310 완전 해결 - 안정적 상태 관리 전환
+
+#### 🐛 Fixed
+
+- **🚨 React Error #310 근본 해결**: FeatureCardModal에서 `useMemo` 훅 순환 의존성으로 인한 "Maximum update depth exceeded" 에러 완전 제거
+  - **원인**: useMemo 훅이 렌더링 중에 상태 변경을 유발하여 순환 의존성 발생
+  - **해결 전략**: useMemo → useEffect + state 패턴으로 안전한 비동기 데이터 로딩 구현
+  - **기술적 개선**: 렌더링 후 useEffect 실행으로 순환 의존성 원천 차단
+  - **성능 최적화**: 중요도별 기술 분류 작업을 단일 useMemo로 메모이제이션
+
+#### ⚡ Technical Improvements
+
+- **안전한 상태 관리**: `techCards`, `vibeHistoryStages`를 useState + useEffect 패턴으로 전환
+- **비동기 데이터 로딩**: 컴포넌트 마운트 후 안전하게 데이터 로딩하여 hydration 이슈 방지  
+- **메모이제이션 최적화**: 중요도별 기술 분류를 단일 useMemo로 통합하여 성능 향상
+- **에러 처리 강화**: 각 단계별 안전한 fallback 처리로 런타임 안정성 확보
+
 ## [5.70.6]
 
 ### 🐛 FeatureCardModal React Error #310 해결
