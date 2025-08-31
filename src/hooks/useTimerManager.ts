@@ -195,10 +195,12 @@ export function getGlobalTimerManager(): TimerManager {
   if (!globalTimerManager) {
     globalTimerManager = new TimerManager();
 
-    // 페이지 언로드 시 자동 정리
+    // BF-Cache 친화적 자동 정리 (Page Visibility API 사용)
     if (typeof window !== 'undefined') {
-      window.addEventListener('beforeunload', () => {
-        globalTimerManager?.cleanup();
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          globalTimerManager?.cleanup();
+        }
       });
     }
   }

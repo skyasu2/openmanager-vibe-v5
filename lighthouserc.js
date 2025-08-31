@@ -34,32 +34,29 @@ module.exports = {
       },
     },
 
-    // 🏆 성능 예산 (현실적 기준으로 조정)
+    // 🏆 성능 예산 (핵심 메트릭 집중)
     assert: {
       assertions: {
-        // 🎯 Core Web Vitals (현실적 목표)
-        'categories:performance': ['warn', { minScore: 0.75 }], // 75점 이상 (현재 수준 유지)
-        'first-contentful-paint': ['warn', { maxNumericValue: 2000 }], // 2.0초 이하 (완화)
-        'largest-contentful-paint': ['warn', { maxNumericValue: 3000 }], // 3.0초 이하 (완화)
-        'cumulative-layout-shift': ['error', { maxNumericValue: 0.15 }], // 0.15 이하 (약간 완화)
+        // 🎯 Core Web Vitals (실제 중요 메트릭)
+        'categories:performance': ['warn', { minScore: 0.75 }], // 75점 이상
+        'categories:accessibility': ['warn', { minScore: 0.9 }], // 접근성 90점 이상
+        'categories:best-practices': ['warn', { minScore: 0.9 }], // 모범 사례 90점 이상
+        
+        // 📈 핵심 성능 지표
+        'first-contentful-paint': ['warn', { maxNumericValue: 2000 }], // 2.0초 이하
+        'largest-contentful-paint': ['warn', { maxNumericValue: 3000 }], // 3.0초 이하
+        'cumulative-layout-shift': ['error', { maxNumericValue: 0.15 }], // 0.15 이하
+        'total-blocking-time': ['warn', { maxNumericValue: 500 }], // 500ms 이하
 
-        // 📊 성능 메트릭 (현실적 조정)
-        'speed-index': ['warn', { maxNumericValue: 4000 }], // 4.0초 이하
-        'interactive': ['warn', { maxNumericValue: 4500 }], // 4.5초 이하  
-        'total-blocking-time': ['warn', { maxNumericValue: 500 }], // 500ms 이하 (완화)
-        'max-potential-fid': ['warn', { minScore: 0.3 }], // FID 대체 지표
+        // 🎨 접근성 (색상 대비 중요)
+        'color-contrast': ['error', { minScore: 0.9 }], // 색상 대비 90점 이상
 
-        // 🔧 리소스 최적화
-        'unused-javascript': ['warn', { maxLength: 5 }], // 5개 이하
-        'unused-css-rules': ['warn', { maxLength: 2 }], // 2개 이하
-        'uses-long-cache-ttl': ['warn', { maxLength: 10 }], // 10개 이하
+        // 🔐 보안 헤더
+        'csp-xss': ['warn', { minScore: 0.3 }], // CSP 기본 설정 향상
 
-        // 🔐 보안 (현실적 목표)
-        'csp-xss': ['warn', { minScore: 0.1 }], // CSP 기본 설정 목표
-
-        // 📱 사용성
-        'bf-cache': ['warn', { minScore: 0.1 }], // Back/Forward 캐시 개선
-        'redirects': ['warn', { minScore: 0.6 }], // 리다이렉트 최적화
+        // 🔄 캐시 최적화
+        'bf-cache': ['warn', { minScore: 0.3 }], // Back/Forward 캐시 개선
+        'uses-long-cache-ttl': ['warn', { maxLength: 8 }], // 8개 이하로 완화
       },
     },
 

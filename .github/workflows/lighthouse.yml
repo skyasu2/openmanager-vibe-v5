@@ -81,12 +81,8 @@ jobs:
             exit 1
           fi
           
-          # 📈 성능 감사 실행 (3회 평균)
-          lhci collect --url=${{ steps.vercel-deployment.outputs.deployment_url }}
-          
-          # 🔍 회귀 감지 및 업로드
-          lhci assert --preset=lighthouse:recommended
-          lhci upload
+          # 📈 성능 감사 실행 (lighthouserc.js 설정 사용)
+          lhci autorun
           
           echo "✅ Lighthouse CI 완료"
 

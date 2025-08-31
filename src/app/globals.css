@@ -21,9 +21,10 @@
   --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   --bg-gradient-alt: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 
-  /* 텍스트 */
+  /* 텍스트 (WCAG 4.5:1 대비 기준 적용) */
   --text-primary: #1f2937;
-  --text-secondary: #6b7280;
+  --text-secondary: #4b5563; /* #6b7280 → #4b5563 (대비 향상: 7.0:1) */
+  --text-muted: #6b7280; /* 기존 색상을 muted로 이동 */
   --text-white: #ffffff;
 
   /* 카드 스타일 */
