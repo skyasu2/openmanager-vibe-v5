@@ -95,7 +95,7 @@ export default function UnifiedProfileHeader({
       console.error('❌ 시스템 종료 오류:', error);
       alert('❌ 시스템 종료 중 오류가 발생했습니다.');
     }
-  }, [closeMenu]); // ✅ closeMenu 의존성 복구 - stale closure 방지하여 React Error #310 해결
+  }, []); // ✅ closeMenu 함수 의존성 제거 - React Error #310 무한 리렌더링 방지
 
   // 관리자 인증 핸들러
   const handleAdminAuth = useCallback(async () => {
@@ -104,7 +104,7 @@ export default function UnifiedProfileHeader({
       cancelAdminInput();
       closeMenu();
     }
-  }, [menuState.adminPassword, authenticateAdmin, cancelAdminInput, closeMenu]); // ✅ 함수 의존성 복구 - stale closure 방지
+  }, [menuState.adminPassword]); // ✅ 함수 의존성 제거, primitive 값만 유지 - React Error #310 방지
 
   // 강화된 로그아웃 핸들러
   const handleEnhancedLogout = useCallback(async () => {
@@ -117,7 +117,7 @@ export default function UnifiedProfileHeader({
     if (success) {
       closeMenu();
     }
-  }, [isAdminMode, disableAdminMode, handleLogout, closeMenu]); // ✅ 함수 의존성 복구 - stale closure 방지
+  }, [isAdminMode]); // ✅ 함수 의존성 제거, primitive 값만 유지 - React Error #310 방지
 
   // 메뉴 아이템 구성
   const menuItems = useMemo<MenuItem[]>(() => {
