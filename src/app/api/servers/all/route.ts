@@ -358,10 +358,10 @@ function convertFixedRotationData(hourlyData: any, currentHour: number, rotation
         environment: 'production',
         provider: 'Auto-Generated',
         uptime: 2592000 + Math.floor(Math.random() * 86400),
-        cpu: Math.floor(15 + Math.random() * 25), // 15-40% CPU
-        memory: Math.floor(20 + Math.random() * 35), // 20-55% Memory
-        disk: Math.floor(25 + Math.random() * 40), // 25-65% Disk
-        network: Math.floor(5 + Math.random() * 20), // 5-25% Network
+        cpu: Math.floor(15 + generateCachedNormalRandom(12, 8, 0, 25)), // Box-Muller 기반 CPU
+        memory: Math.floor(20 + generateCachedNormalRandom(17, 10, 0, 35)), // Box-Muller 기반 Memory 
+        disk: Math.floor(25 + generateCachedNormalRandom(20, 12, 0, 40)), // Box-Muller 기반 Disk
+        network: Math.floor(5 + generateCachedNormalRandom(12, 6, 0, 20)), // Box-Muller 기반 Network
         specs: {
           cpu_cores: 4,
           memory_gb: 8,
@@ -374,6 +374,8 @@ function convertFixedRotationData(hourlyData: any, currentHour: number, rotation
   }
   
   return Object.values(servers).map((serverData: any, index) => {
+    console.log(`🔍 [MAP-DEBUG] 서버 ${index}: ${serverData.name || serverData.id} 처리 시작`);
+    
     // 🔒 고정 데이터 그대로 사용 (변동 없음)
     // rotationMinute를 사용하여 시간 내 분별 고정 패턴 적용
     const minuteFactor = rotationMinute / 59; // 0-1 사이 고정 팩터
@@ -384,8 +386,10 @@ function convertFixedRotationData(hourlyData: any, currentHour: number, rotation
     
     console.log(`🔒 [FIXED-SERVER-${index}] ${serverData.name || `서버${index}`} 고정 오프셋: ${fixedOffset.toFixed(1)}% + 서버특성: ${serverOffset.toFixed(1)}%`);
     
-    // 🎯 고정 데이터에 패턴만 적용 (랜덤 요소 제거)
-    const fixedVariation = 1 + (fixedOffset + serverOffset) / 100; // 고정된 변화율
+    // 🚀 Box-Muller Transform 적용 (LRU 캐시 활용)
+    const boxMullerNoise = generateCachedNormalRandom(0, 2, -5, 5); // 정규분포 노이즈 (-5~5%)
+    console.log(`🎯 [BOX-MULLER] 서버${index} Box-Muller 노이즈: ${boxMullerNoise.toFixed(2)}%`);
+    const fixedVariation = 1 + (fixedOffset + serverOffset + boxMullerNoise) / 100; // Box-Muller 노이즈 추가
     
     const enhanced: EnhancedServerMetrics = {
       id: serverData.id || `server-${index}`,
@@ -892,7 +896,9 @@ export async function GET(request: NextRequest) {
       totalPages: Math.ceil(total / limit)
     });
 
-
+    // 🚀 Box-Muller LRU 캐시 통계 수집
+    const finalCacheStats = getBoxMullerCacheStats();
+    diagnoseBoxMullerCache(); // 콘솔 진단 출력
 
     return NextResponse.json({
       success: true,
@@ -921,10 +927,10 @@ export async function GET(request: NextRequest) {
         // 🚀 Box-Muller LRU 캐시 성능 정보
         performance: {
           boxMullerCache: {
-            hitRate: `${cacheStats.hitRate}%`,
-            cacheSize: `${cacheStats.size}/${cacheStats.maxSize}`,
-            totalRequests: cacheStats.totalRequests,
-            memoryUsage: cacheStats.memoryUsage,
+            hitRate: `${finalCacheStats.hitRate}%`,
+            cacheSize: `${finalCacheStats.size}/${finalCacheStats.maxSize}`,
+            totalRequests: finalCacheStats.totalRequests,
+            memoryUsage: finalCacheStats.memoryUsage,
             optimizationEnabled: true
           }
         }
