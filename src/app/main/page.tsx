@@ -156,7 +156,7 @@ function Home() {
     return () => {
       if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
     };
-  }, [authReady, multiUserStatus?.isRunning, isSystemStarted, startSystem, stopSystem]); // 함수 의존성 복원하여 stale closure 방지
+  }, [authReady, multiUserStatus?.isRunning, isSystemStarted]); // ✅ 함수 의존성 제거하여 React Error #310 해결
 
   // 3️⃣ 시스템 시작 상태 동기화 (독립적)
   useEffect(() => {
@@ -343,10 +343,8 @@ function Home() {
     isSystemStarted,
     countdownTimer,
     pathname,
-    router,
-    startMultiUserSystem,
-    startSystem
-    // ✅ multiUserStatus primitive 값만 의존성으로 사용하여 React Error #310 해결
+    router
+    // ✅ 함수 의존성 제거하여 React Error #310 완전 해결
   ]);
 
   // 📊 버튼 설정 메모이제이션 최적화 - 렌더링 성능 향상 + SSR 안전성
