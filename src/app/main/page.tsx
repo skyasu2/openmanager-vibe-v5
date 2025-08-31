@@ -156,7 +156,7 @@ function Home() {
     return () => {
       if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
     };
-  }, [authReady, multiUserStatus?.isRunning, isSystemStarted]); // ✅ startSystem, stopSystem 함수 의존성 제거하여 순환 의존성 해결
+  }, [authReady, multiUserStatus?.isRunning, isSystemStarted, startSystem, stopSystem]); // 함수 의존성 복원하여 stale closure 방지
 
   // 3️⃣ 시스템 시작 상태 동기화 (독립적)
   useEffect(() => {
@@ -180,7 +180,7 @@ function Home() {
     }, vercelConfig.authRetryDelay);
 
     return () => clearTimeout(authRetryTimeout);
-  }, [authError, authReady]); // ✅ retryAuth 함수 의존성 제거하여 순환 의존성 해결
+  }, [authError, authReady, retryAuth]); // 함수 의존성 복원하여 stale closure 방지
 
   // 5️⃣ 시스템 타이머 업데이트 (독립적)
   useEffect(() => {
@@ -194,7 +194,7 @@ function Home() {
     }, 1000);
 
     return () => clearInterval(timerInterval);
-  }, [isSystemStarted]); // ✅ getSystemRemainingTime 함수 의존성 제거하여 순환 의존성 해결
+  }, [isSystemStarted, getSystemRemainingTime]); // 함수 의존성 복원하여 stale closure 방지
 
   // 기존 인증 로직은 useInitialAuth 훅으로 대체됨
 
@@ -335,15 +335,17 @@ function Home() {
       setCountdownTimer(timer);
     }
   }, [
-    // ✅ 원시값 의존성만 포함 (순환 참조 제거)
     isLoading,
     isSystemStarting,
     systemStartCountdown,
     multiUserStatus?.isRunning,
     isSystemStarted,
     countdownTimer,
-    pathname
-    // ✅ router, startMultiUserSystem, startSystem 함수 의존성 제거하여 순환 의존성 해결
+    pathname,
+    router,
+    startMultiUserSystem,
+    startSystem
+    // 함수 의존성 복원하여 stale closure 방지 - React Error #310 근본 해결
   ]);
 
   // 📊 버튼 설정 메모이제이션 최적화 - 렌더링 성능 향상 + SSR 안전성
