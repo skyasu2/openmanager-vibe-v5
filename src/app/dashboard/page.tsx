@@ -1,13 +1,26 @@
 'use client';
 
 /**
- * 🚀 Dashboard Page - 클라이언트 컴포넌트로 전환 (SSR bailout 해결)
+ * 🚀 Dashboard Page - Dynamic Import로 번들 크기 최적화 (205kB → 150kB 목표)
  *
- * SSR bailout 문제를 해결하기 위해 전체 페이지를 클라이언트 렌더링으로 전환
+ * DashboardClient를 lazy loading하여 First Load JS 크기 감소
  */
 
 import React, { useEffect, useState } from 'react';
-import DashboardClient from './DashboardClient';
+import dynamic from 'next/dynamic';
+
+// 🎯 Dynamic Import로 DashboardClient lazy loading
+const DashboardClient = dynamic(() => import('./DashboardClient'), {
+  loading: () => (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="space-y-4 text-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent mx-auto" />
+        <p className="text-gray-600">대시보드 로딩 중...</p>
+      </div>
+    </div>
+  ),
+  ssr: false
+});
 
 // 🎯 대시보드 페이지 - 클라이언트 컴포넌트
 export default function DashboardPage() {
