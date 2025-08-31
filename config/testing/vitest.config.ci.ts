@@ -1,7 +1,13 @@
 import { defineConfig } from 'vitest/config';
+import path from 'path';
 
 // 최소한의 CI 테스트 설정 - 빠른 실행을 위한 단순화
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, '../../src'),
+    },
+  },
   test: {
     name: 'ci-minimal',
     environment: 'node', // jsdom 대신 node 사용으로 빠른 실행

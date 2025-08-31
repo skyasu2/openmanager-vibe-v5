@@ -285,8 +285,16 @@ function Home() {
 
   // 시스템 토글 함수 (깜빡임 방지 개선)
   const handleSystemToggle = useCallback(async () => {
-    // 로딩 중이거나 시스템 시작 중이면 무시
-    if (isLoading || isSystemStarting) return;
+    // 🔧 GitHub 인증 완료 후에는 authLoading 체크 완화
+    const isActuallyLoading = statusLoading || isSystemStarting || 
+      (authLoading && !isAuthenticated); // GitHub 인증 완료시 authLoading 무시
+    
+    if (isActuallyLoading) {
+      console.log('🚫 시스템 토글 차단:', { statusLoading, isSystemStarting, authLoading, isAuthenticated });
+      return;
+    }
+    
+    console.log('✅ 시스템 토글 실행 - GitHub 사용자:', isGitHubUser);
 
     // 카운트다운 중이면 취소 - 직접 로직 실행으로 순환 참조 제거
     if (systemStartCountdown > 0) {
@@ -376,8 +384,11 @@ function Home() {
       };
     }
 
-    // 3. 일반 로딩 상태
-    if (isLoading || statusLoading) {
+    // 3. 일반 로딩 상태 - 🔧 GitHub 인증 완료 후에는 authLoading 체크 완화
+    const isActuallyLoading = statusLoading || isSystemStarting || 
+      (authLoading && !isAuthenticated); // GitHub 인증 완료시 authLoading 무시
+    
+    if (isActuallyLoading) {
       return {
         text: '시스템 초기화 중...',
         icon: getIcon(Loader2, "h-5 w-5 animate-spin"),
@@ -410,7 +421,8 @@ function Home() {
     isMounted, // SSR 안전성을 위한 의존성 추가
     systemStartCountdown,
     isSystemStarting,
-    isLoading,
+    authLoading, // 🔧 GitHub 인증 로딩 상태 추가
+    isAuthenticated, // 🔧 GitHub 인증 완료 상태 추가
     statusLoading,
     multiUserStatus?.isRunning,
     multiUserStatus?.userCount,
