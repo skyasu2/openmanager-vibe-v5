@@ -75,8 +75,23 @@ export function useSystemStatus(): UseSystemStatusReturn {
 
   const refresh = useCallback(async () => {
     setIsLoading(true);
-    await fetchStatus();
-  }, [fetchStatus]); // 함수 의존성 복원하여 stale closure 방지 - React Error #310 해결
+    try {
+      const response = await fetch('/api/system/status');
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      setStatus(data);
+      setError(null);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '시스템 상태 조회 실패';
+      setError(errorMessage);
+      console.error('시스템 상태 조회 실패:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []); // 함수 의존성 제거하여 React Error #310 해결
 
   const startSystem = useCallback(async () => {
     try {
@@ -90,30 +105,51 @@ export function useSystemStatus(): UseSystemStatusReturn {
         throw new Error(`시스템 시작 실패: ${response.statusText}`);
       }
 
-      // 시스템 시작 후 상태 새로고침 - fetchStatus 함수 직접 호출
-      await fetchStatus();
+      // 시스템 시작 후 상태 새로고침 - 인라인 구현
+      const statusResponse = await fetch('/api/system/status');
+      if (statusResponse.ok) {
+        const data = await statusResponse.json();
+        setStatus(data);
+      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : '시스템 시작에 실패했습니다';
       setError(errorMessage);
       console.error('시스템 시작 실패:', err);
     }
-  }, [fetchStatus]); // ✅ fetchStatus 의존성 복구하여 stale closure 방지 - React Error #310 해결
+  }, []); // fetchStatus 의존성 제거하여 React Error #310 해결
 
-  // 초기 로드 및 주기적 업데이트 - fetchStatus 함수 직접 호출
+  // 초기 로드 및 주기적 업데이트 - 인라인 구현
   useEffect(() => {
-    // 초기 로드 - fetchStatus 함수 호출
-    fetchStatus();
+    const performFetch = async () => {
+      try {
+        const response = await fetch('/api/system/status');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
 
-    // 5분마다 상태 업데이트 (30초 → 300초로 10배 감소) - fetchStatus 함수 직접 호출
+        const data = await response.json();
+        setStatus(data);
+        setError(null);
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : '시스템 상태 조회 실패';
+        setError(errorMessage);
+        console.error('시스템 상태 조회 실패:', err);
+      }
+    };
+
+    // 초기 로드
+    performFetch();
+
+    // 5분마다 상태 업데이트 (30초 → 300초로 10배 감소)
     const interval = setInterval(() => {
-      fetchStatus();
+      performFetch();
     }, 300000);
 
     return () => clearInterval(interval);
-  }, [fetchStatus]); // ✅ fetchStatus 의존성 복구하여 stale closure 방지 - React Error #310 해결
+  }, []); // fetchStatus 함수 의존성 제거하여 React Error #310 해결
 
-  // 페이지 포커스 시 상태 새로고침 (2분 throttle) - fetchStatus 함수 직접 호출
+  // 페이지 포커스 시 상태 새로고침 (2분 throttle) - 인라인 구현
   useEffect(() => {
     const handleFocus = () => {
       if (!document.hidden) {
@@ -121,8 +157,23 @@ export function useSystemStatus(): UseSystemStatusReturn {
         // 2분(120초) 이내 중복 호출 방지
         if (now - lastFocusRefresh > 120000) {
           setLastFocusRefresh(now);
-          // fetchStatus 함수 직접 호출
-          fetchStatus();
+          // 인라인 상태 조회 함수
+          (async () => {
+            try {
+              const response = await fetch('/api/system/status');
+              if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+              }
+
+              const data = await response.json();
+              setStatus(data);
+              setError(null);
+            } catch (err) {
+              const errorMessage = err instanceof Error ? err.message : '시스템 상태 조회 실패';
+              setError(errorMessage);
+              console.error('시스템 상태 조회 실패:', err);
+            }
+          })();
         }
       }
     };
@@ -134,7 +185,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
       document.removeEventListener('visibilitychange', handleFocus);
       window.removeEventListener('focus', handleFocus);
     };
-  }, [lastFocusRefresh, fetchStatus]); // ✅ fetchStatus 의존성 복구하여 stale closure 방지 - React Error #310 해결
+  }, [lastFocusRefresh]); // fetchStatus 함수 의존성 제거하여 React Error #310 해결
 
   return {
     status,

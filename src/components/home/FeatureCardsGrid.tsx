@@ -168,7 +168,7 @@ export default function FeatureCardsGrid() {
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement | null>(null);
 
-  const { aiAgent } = useUnifiedAdminStore();
+  const aiAgentEnabled = useUnifiedAdminStore(state => state.aiAgent.isEnabled);
 
   // 모달 외부 클릭 시 닫기 처리 - React Error #310 무한 루프 해결
   useEffect(() => {
@@ -200,12 +200,12 @@ export default function FeatureCardsGrid() {
     };
   }, [selectedCard]); // selectedCard 의존성 유지하지만 조건부 실행으로 무한 루프 방지
 
-  // ✅ 핵심 수정: useMemo → useCallback으로 변경 (React Error #310 근본 해결)
+  // ✅ 핵심 수정: aiAgent.isEnabled primitive 값으로 의존성 변경 (React Error #310 근본 해결)
   const handleCardClick = useCallback(
     (cardId: string) => {
       const card = FEATURE_CARDS_DATA.find((c) => c.id === cardId);
 
-      if (card?.requiresAI && !aiAgent.isEnabled) {
+      if (card?.requiresAI && !aiAgentEnabled) {
         // AI 엔진이 필요한 기능에 일반 사용자가 접근할 때
         console.warn(
           '🚧 이 기능은 AI 엔진 모드에서만 사용 가능합니다. 홈 화면에서 AI 모드를 활성화해주세요.'
@@ -215,7 +215,7 @@ export default function FeatureCardsGrid() {
 
       setSelectedCard(cardId);
     },
-    [aiAgent.isEnabled] // 함수 의존성은 useCallback에서 정확하게 추적
+    [aiAgentEnabled] // primitive 값 의존성으로 React Error #310 완전 해결
   );
 
   const closeModal = useCallback(() => {
@@ -236,7 +236,7 @@ export default function FeatureCardsGrid() {
             card={card}
             index={index}
             onCardClick={handleCardClick}
-            isAIDisabled={!aiAgent.isEnabled}
+            isAIDisabled={!aiAgentEnabled}
           />
         ))}
       </div>
