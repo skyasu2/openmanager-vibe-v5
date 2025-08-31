@@ -341,10 +341,8 @@ function Home() {
     multiUserStatus?.isRunning,
     multiUserStatus?.userCount,
     isSystemStarted,
-    countdownTimer,
-    pathname,
-    router
-    // ✅ 함수 의존성 제거하여 React Error #310 완전 해결
+    pathname
+    // ✅ countdownTimer 객체 의존성 제거하여 React Error #310 완전 해결 - 타이머 객체는 불안정한 참조
   ]);
 
   // 📊 버튼 설정 메모이제이션 최적화 - 렌더링 성능 향상 + SSR 안전성
