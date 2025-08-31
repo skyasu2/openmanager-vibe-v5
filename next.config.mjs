@@ -91,10 +91,21 @@ const nextConfig = {
     ];
   },
 
-  // 🚫 리다이렉트 설정 (임시 비활성화 - 빌드 문제 해결)
+  // 🔄 리다이렉트 설정 (BF-Cache 최적화)
   async redirects() {
     return [
-      // 임시로 모든 리다이렉트 비활성화
+      // 루트 경로를 login으로 리다이렉트 (BF-Cache 친화적)
+      {
+        source: '/',
+        destination: '/login',
+        permanent: false, // 302 리다이렉트로 BF-Cache 호환성 향상
+      },
+      // www -> non-www 리다이렉트 (SEO 최적화)
+      {
+        source: '/www/:path*',
+        destination: '/:path*',
+        permanent: true,
+      },
     ];
   },
 
@@ -213,12 +224,15 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: csp,
           },
-          // ⚡ 성능 최적화
+          // ⚡ 성능 최적화 (BF-Cache 친화적)
           {
             key: 'Cache-Control',
-            value: isVercel 
-              ? 'public, max-age=31536000, immutable'
-              : 'public, max-age=3600',
+            value: 'public, max-age=0, must-revalidate, stale-while-revalidate=86400',
+          },
+          // 📄 페이지별 BF-Cache 설정
+          {
+            key: 'Vary',
+            value: 'Accept-Encoding, User-Agent',
           },
           // 🚀 Vercel 전용 최적화 헤더
           ...(isVercel ? [
