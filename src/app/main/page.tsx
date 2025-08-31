@@ -115,7 +115,7 @@ function Home() {
       message: '클릭하여 시작하기',
       showEscHint: false
     };
-  }, [systemStartCountdown, isSystemStarting, multiUserStatus, isSystemStarted]); // ✅ multiUserStatus 전체 객체 의존성 복구하여 stale closure 방지 - React Error #310 해결
+  }, [systemStartCountdown, isSystemStarting, multiUserStatus?.isRunning, multiUserStatus?.userCount, isSystemStarted]); // ✅ multiUserStatus primitive 값만 의존성으로 사용하여 React Error #310 해결
 
   // 🎯 분할된 useEffect 시스템 - React Error #310 완전 해결
 
@@ -338,14 +338,15 @@ function Home() {
     isLoading,
     isSystemStarting,
     systemStartCountdown,
-    multiUserStatus,
+    multiUserStatus?.isRunning,
+    multiUserStatus?.userCount,
     isSystemStarted,
     countdownTimer,
     pathname,
     router,
     startMultiUserSystem,
     startSystem
-    // ✅ multiUserStatus 전체 객체 의존성 복구하여 stale closure 방지 - React Error #310 근본 해결
+    // ✅ multiUserStatus primitive 값만 의존성으로 사용하여 React Error #310 해결
   ]);
 
   // 📊 버튼 설정 메모이제이션 최적화 - 렌더링 성능 향상 + SSR 안전성
