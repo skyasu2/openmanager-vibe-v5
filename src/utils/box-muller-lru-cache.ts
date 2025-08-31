@@ -45,11 +45,12 @@ class BoxMullerLRUCache {
    */
   private generateCacheKey(params: BoxMullerParams): string {
     const { mean, stdDev, min, max, seed } = params;
-    // 부동소수점 정밀도 문제를 해결하기 위해 반올림
-    const roundedMean = Math.round(mean * 1000) / 1000;
-    const roundedStdDev = Math.round(stdDev * 1000) / 1000;
-    const roundedMin = min !== undefined ? Math.round(min * 1000) / 1000 : 'none';
-    const roundedMax = max !== undefined ? Math.round(max * 1000) / 1000 : 'none';
+    // 부동소수점 정밀도 문제를 해결하기 위해 10자리까지 반올림 (성능 테스트 호환)
+    const precision = 10000000000; // 소수점 10자리 정밀도
+    const roundedMean = Math.round(mean * precision) / precision;
+    const roundedStdDev = Math.round(stdDev * precision) / precision;
+    const roundedMin = min !== undefined ? Math.round(min * precision) / precision : 'none';
+    const roundedMax = max !== undefined ? Math.round(max * precision) / precision : 'none';
     const seedStr = seed !== undefined ? seed.toString() : 'random';
     
     return `${roundedMean}:${roundedStdDev}:${roundedMin}:${roundedMax}:${seedStr}`;

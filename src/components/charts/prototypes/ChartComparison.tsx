@@ -9,10 +9,12 @@
  * - 실시간 FPS 및 렌더링 성능 측정
  */
 
-import { useState, useEffect, useRef } from 'react';
-import { RealtimeChartJS } from './RealtimeChartJS';
-import { RealtimeChartD3 } from './RealtimeChartD3';
-import { RealtimeChartVis } from './RealtimeChartVis';
+import { useState, useEffect, useRef, Suspense, lazy } from 'react';
+
+// 동적 import로 차트 라이브러리 번들 크기 최적화
+const RealtimeChartJS = lazy(() => import('./RealtimeChartJS').then(m => ({ default: m.RealtimeChartJS })));
+const RealtimeChartD3 = lazy(() => import('./RealtimeChartD3').then(m => ({ default: m.RealtimeChartD3 })));
+const RealtimeChartVis = lazy(() => import('./RealtimeChartVis').then(m => ({ default: m.RealtimeChartVis })));
 
 interface PerformanceBenchmark {
   library: string;
@@ -391,15 +393,21 @@ export function ChartComparison() {
 
       {/* 개별 차트 탭 */}
       {activeTab === 'chartjs' && (
-        <RealtimeChartJS serverId="server-001" />
+        <Suspense fallback={<div className="text-center py-8">Chart.js 로딩 중...</div>}>
+          <RealtimeChartJS serverId="server-001" />
+        </Suspense>
       )}
       
       {activeTab === 'd3js' && (
-        <RealtimeChartD3 serverId="server-001" />
+        <Suspense fallback={<div className="text-center py-8">D3.js 로딩 중...</div>}>
+          <RealtimeChartD3 serverId="server-001" />
+        </Suspense>
       )}
       
       {activeTab === 'reactvis' && (
-        <RealtimeChartVis serverId="server-001" />
+        <Suspense fallback={<div className="text-center py-8">React-vis 로딩 중...</div>}>
+          <RealtimeChartVis serverId="server-001" />
+        </Suspense>
       )}
     </div>
   );

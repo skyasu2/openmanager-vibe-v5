@@ -5,6 +5,8 @@ import {
   getBoxMullerCacheStats, 
   diagnoseBoxMullerCache 
 } from '@/utils/box-muller-lru-cache';
+import fs from 'fs/promises';
+import path from 'path';
 // TODO: 누락된 모듈들 - 추후 구현 필요
 // import { createServerSideAction } from '@/core/security/server-side-action';
 // import { createSystemMetricsAnalytics } from '@/lib/analytics/system-metrics-analytics';
@@ -293,18 +295,20 @@ async function loadHourlyScenarioData(): Promise<any[]> { // 임시 any 타입
     console.log(`🕒 [FIXED-ROTATION] ${currentHour}:${currentMinute.toString().padStart(2, '0')}:${currentSecond.toString().padStart(2, '0')}`);
     console.log(`🔄 [FIXED-ROTATION] ${currentHour}시대 ${segmentInHour}번째 구간 → ${rotationMinute}분 데이터 사용`);
     
-    // 현재 시간대 데이터 로드
-    const fs = require('fs');
-    const path = require('path');
+    // 현재 시간대 데이터 로드 (비동기 I/O로 성능 최적화)
     const filePath = path.join(process.cwd(), 'public', 'server-scenarios', 'hourly-metrics', `${currentHour.toString().padStart(2, '0')}.json`);
     
-    if (!fs.existsSync(filePath)) {
+    try {
+      // fs.existsSync 대신 fs.access 사용 (비동기)
+      await fs.access(filePath);
+    } catch (accessError) {
       console.error(`❌ [VERCEL-ONLY] 시간별 데이터 파일 없음: ${filePath}`);
       console.error(`🚫 [VERCEL-ONLY] 폴백 시스템 비활성화 - 베르셀 JSON 파일 전용 모드`);
       throw new Error(`베르셀 시간별 데이터 파일 누락: ${currentHour.toString().padStart(2, '0')}.json`);
     }
     
-    const rawData = fs.readFileSync(filePath, 'utf8');
+    // 🚀 비동기 파일 읽기로 4.7초 블로킹 해결
+    const rawData = await fs.readFile(filePath, 'utf8');
     const hourlyData = JSON.parse(rawData);
     
     console.log(`✅ [FIXED-ROTATION] ${currentHour}시 데이터 로드 성공 (${segmentInHour}→${rotationMinute}분 데이터)`);

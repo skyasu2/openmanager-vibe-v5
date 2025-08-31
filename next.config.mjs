@@ -26,15 +26,23 @@ const nextConfig = {
       '@radix-ui/react-icons',
       '@heroicons/react',
       'react-hot-toast',
+      'chart.js',
+      'react-chartjs-2',
+      'recharts',
+      'd3',
     ],
   },
   
-  // 이미지 최적화 설정
+  // 이미지 최적화 설정 (성능 우선)
   images: {
-    unoptimized: true,
-    formats: ['image/webp'],
-    deviceSizes: [640, 828, 1200],
-    imageSizes: [16, 32, 64, 128],
+    unoptimized: false, // Next.js 이미지 최적화 활성화
+    formats: ['image/webp', 'image/avif'], // AVIF 추가 (더 나은 압축)
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920], // 반응형 최적화
+    imageSizes: [16, 32, 48, 64, 96, 128, 256], // 아이콘 최적화
+    minimumCacheTTL: 86400, // 24시간 캐시 (성능 향상)
+    dangerouslyAllowSVG: true, // SVG 허용
+    contentDispositionType: 'attachment', // 보안 강화
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;", // SVG 보안
   },
   
   // 페이지 확장자 최소화
