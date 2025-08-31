@@ -170,8 +170,10 @@ export default function FeatureCardsGrid() {
 
   const { aiAgent } = useUnifiedAdminStore();
 
-  // 모달 외부 클릭 시 닫기 처리
+  // 모달 외부 클릭 시 닫기 처리 - React Error #310 무한 루프 해결
   useEffect(() => {
+    if (!selectedCard) return; // selectedCard가 없으면 이벤트 추가 안함
+    
     const handleClickOutside = (event: MouseEvent) => {
       if (
         modalRef.current &&
@@ -187,18 +189,16 @@ export default function FeatureCardsGrid() {
       }
     };
 
-    if (selectedCard) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleEscapeKey);
-      document.body.style.overflow = 'hidden';
-    }
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscapeKey);
+    document.body.style.overflow = 'hidden';
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscapeKey);
       document.body.style.overflow = 'unset';
     };
-  }, [selectedCard]);
+  }, [selectedCard]); // selectedCard 의존성 유지하지만 조건부 실행으로 무한 루프 방지
 
   // ✅ 핵심 수정: useMemo → useCallback으로 변경 (React Error #310 근본 해결)
   const handleCardClick = useCallback(
