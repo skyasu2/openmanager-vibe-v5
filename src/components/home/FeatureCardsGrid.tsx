@@ -201,8 +201,8 @@ export default function FeatureCardsGrid() {
   }, [selectedCard]);
 
   // handleCardClick을 useCallback으로 메모이제이션
-  const handleCardClick = useMemo(
-    () => (cardId: string) => {
+  const handleCardClick = useCallback(
+    (cardId: string) => {
       const card = FEATURE_CARDS_DATA.find((c) => c.id === cardId);
 
       if (card?.requiresAI && !aiAgent.isEnabled) {
@@ -215,7 +215,7 @@ export default function FeatureCardsGrid() {
 
       setSelectedCard(cardId);
     },
-    [aiAgent.isEnabled]
+    [aiAgent.isEnabled] // ✅ useCallback으로 변경하고 의존성 유지 - stale closure 방지하여 React Error #310 해결
   );
 
   const closeModal = () => {
