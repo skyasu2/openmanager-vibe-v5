@@ -8,6 +8,7 @@ import { safeConsoleError, safeErrorMessage } from '../../lib/utils-functions';
 import type { Server } from '../../types/server';
 // framer-motion 제거 - CSS 애니메이션 사용
 import debug from '@/utils/debug';
+import RealTimePerformanceWidget from './RealTimePerformanceWidget';
 
 // framer-motion 제거됨
 
@@ -523,6 +524,25 @@ export default function DashboardContent({
                           </div>
                         </div>
                       </div>
+                    </Suspense>
+                  </div>
+
+                  {/* 🚀 실시간 성능 위젯 - 우측 컬럼 */}
+                  <div className="lg:col-span-1 xl:col-span-1 2xl:col-span-1">
+                    <Suspense
+                      fallback={
+                        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
+                          <div className="animate-pulse">
+                            <div className="mb-4 h-6 w-1/2 rounded bg-gray-200"></div>
+                            <div className="space-y-3">
+                              <div className="h-4 rounded bg-gray-200"></div>
+                              <div className="h-4 w-2/3 rounded bg-gray-200"></div>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    >
+                      <RealTimePerformanceWidget />
                     </Suspense>
                   </div>
                 </div>

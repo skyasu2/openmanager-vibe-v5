@@ -94,6 +94,7 @@ export interface FeatureCardModalProps {
   renderTextWithAIGradient: (text: string) => ReactNode;
   modalRef: RefObject<HTMLDivElement>;
   variant?: 'home' | 'landing';
+  isVisible: boolean; // Portal 기반 모달 가시성 제어 (AI 교차검증 기반 개선)
 }
 
 /**

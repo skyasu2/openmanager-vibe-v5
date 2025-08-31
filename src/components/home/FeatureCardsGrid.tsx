@@ -1,6 +1,7 @@
 'use client';
 
 import FeatureCardModal from '@/components/shared/FeatureCardModal';
+import PerformanceErrorBoundary from '@/components/error/PerformanceErrorBoundary';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { memo, useEffect, useMemo, useRef, useState, useCallback, type RefObject } from 'react';
@@ -203,17 +204,20 @@ export default function FeatureCardsGrid() {
   // ✅ 핵심 수정: aiAgent.isEnabled primitive 값으로 의존성 변경 (React Error #310 근본 해결)
   const handleCardClick = useCallback(
     (cardId: string) => {
+      console.log('🎯 [FeatureCard] 카드 클릭됨:', cardId);
       const card = FEATURE_CARDS_DATA.find((c) => c.id === cardId);
+      console.log('🎯 [FeatureCard] 찾은 카드:', card?.title);
 
-      if (card?.requiresAI && !aiAgentEnabled) {
-        // AI 엔진이 필요한 기능에 일반 사용자가 접근할 때
-        console.warn(
-          '🚧 이 기능은 AI 엔진 모드에서만 사용 가능합니다. 홈 화면에서 AI 모드를 활성화해주세요.'
-        );
-        return;
-      }
-
+      // 모달을 항상 렌더링하고, AI 제한은 모달 내부에서 처리
       setSelectedCard(cardId);
+      console.log('🎯 [FeatureCard] selectedCard 설정됨:', cardId);
+      
+      // AI 필요한 기능에 대한 로그는 유지 (디버깅용)
+      if (card?.requiresAI && !aiAgentEnabled) {
+        console.warn(
+          '🚧 이 기능은 AI 엔진 모드에서만 사용 가능합니다. 모달에서 AI 활성화 안내가 표시됩니다.'
+        );
+      }
     },
     [aiAgentEnabled] // primitive 값 의존성으로 React Error #310 완전 해결
   );
@@ -228,7 +232,14 @@ export default function FeatureCardsGrid() {
   );
 
   return (
-    <>
+    <PerformanceErrorBoundary
+      onError={(error, errorInfo) => {
+        console.error('🚨 FeatureCardsGrid 에러:', error.message);
+        console.error('📍 컴포넌트 스택:', errorInfo.componentStack);
+      }}
+      maxRetries={2}
+      retryDelay={1500}
+    >
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
         {FEATURE_CARDS_DATA.map((card, index) => (
           <FeatureCardItem
@@ -241,14 +252,17 @@ export default function FeatureCardsGrid() {
         ))}
       </div>
 
-      {/* Feature Card Modal */}
-      <FeatureCardModal
-        selectedCard={selectedCardData}
-        onClose={closeModal}
-        renderTextWithAIGradient={renderTextWithAIGradient}
-        modalRef={modalRef as RefObject<HTMLDivElement>}
-        variant="home"
-      />
-    </>
+      {/* Feature Card Modal - 조건부 렌더링으로 Hook 순서 일관성 보장 */}
+      {selectedCard && (
+        <FeatureCardModal
+          selectedCard={selectedCardData}
+          onClose={closeModal}
+          renderTextWithAIGradient={renderTextWithAIGradient}
+          modalRef={modalRef as RefObject<HTMLDivElement>}
+          variant="home"
+          isVisible={true}
+        />
+      )}
+    </PerformanceErrorBoundary>
   );
 }

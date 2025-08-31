@@ -5,7 +5,7 @@
 
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
-import { type ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 import { setupTestEnvironment } from './env.config';
 
 // 환경에 따른 Mock 로딩

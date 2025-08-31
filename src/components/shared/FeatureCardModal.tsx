@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 // framer-motion 제거 - CSS 애니메이션 사용
-import { X } from 'lucide-react';
+import { X, Bot, Zap } from 'lucide-react';
 import type {
   FeatureCardModalProps,
   TechItem,
@@ -17,6 +18,25 @@ import {
   CATEGORY_STYLES,
   type VibeCodeData,
 } from '@/data/tech-stacks.data';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+
+// 🛡️ Codex 제안: 타입 가드 함수 (프로덕션 안정성 강화)
+const isValidCard = (card: unknown): card is NonNullable<FeatureCardModalProps['selectedCard']> => {
+  return (
+    typeof card === 'object' &&
+    card !== null &&
+    'id' in card &&
+    'title' in card &&
+    'icon' in card &&
+    'gradient' in card
+  );
+};
+
+// 🛡️ Codex 제안: XSS 방지를 위한 텍스트 검증
+const sanitizeText = (text: string): string => {
+  if (typeof text !== 'string') return '';
+  return text.replace(/<script[^>]*>.*?<\/script>/gi, '').substring(0, 1000); // 길이 제한
+};
 
 export default function FeatureCardModal({
   selectedCard,
@@ -24,10 +44,14 @@ export default function FeatureCardModal({
   renderTextWithAIGradient,
   modalRef,
   variant = 'home',
+  isVisible,
 }: FeatureCardModalProps) {
   // 모달은 항상 다크 테마로 고정
   // 바이브 코딩 카드 전용 히스토리 뷰 상태
   const [isHistoryView, setIsHistoryView] = React.useState(false);
+
+  // AI 상태 확인 (AI 제한 처리용)
+  const aiAgentEnabled = useUnifiedAdminStore(state => state.aiAgent.isEnabled);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -41,9 +65,32 @@ export default function FeatureCardModal({
     };
   }, [onClose]); // ✅ onClose 의존성 복원 - stale closure 방지
 
-  if (!selectedCard) return null;
+  // 🎯 Gemini 제안: 타입 안전성 강화 + 의존성 최적화
+  const cardData = React.useMemo(() => {
+    // 🛡️ Codex 제안: 런타임 검증 추가
+    if (!isValidCard(selectedCard)) {
+      return {
+        title: '',
+        icon: Bot,
+        gradient: 'from-blue-500 to-purple-600',
+        detailedContent: { overview: '', features: [], technologies: [] },
+        id: null,
+        requiresAI: false
+      };
+    }
 
-  const { title, icon: Icon, gradient, detailedContent } = selectedCard;
+    return {
+      title: sanitizeText(selectedCard.title),
+      icon: selectedCard.icon || Bot,
+      gradient: selectedCard.gradient || 'from-blue-500 to-purple-600',
+      detailedContent: selectedCard.detailedContent || { overview: '', features: [], technologies: [] },
+      id: selectedCard.id,
+      requiresAI: selectedCard.requiresAI || false
+    };
+  }, [selectedCard?.id]); // 🎯 Gemini 제안: ID만 의존성으로 하여 불필요한 리렌더링 방지
+
+  // 일관된 구조분해 할당 (Hook 순서에 영향 없음)
+  const { title, icon: Icon, gradient, detailedContent, requiresAI } = cardData;
 
   // 중요도별 스타일 가져오기
   const getImportanceStyle = (importance: ImportanceLevel): ImportanceStyle => {
@@ -56,7 +103,7 @@ export default function FeatureCardModal({
   };
 
   // 기술 카드 컴포넌트 (과거 구현 참조)
-  const TechCard = ({ tech, index }: { tech: TechItem; index: number }) => {
+  const TechCard = React.memo(({ tech, index }: { tech: TechItem; index: number }) => {
     const importanceStyle = getImportanceStyle(tech.importance);
     const categoryStyle = getCategoryStyle(tech.category);
 
@@ -68,9 +115,9 @@ export default function FeatureCardModal({
           <div className="flex items-center gap-3">
             <span className="text-2xl">{tech.icon}</span>
             <div>
-              <h4 className="text-sm font-semibold text-white">{tech.name}</h4>
+              <h4 className="text-sm font-semibold text-white">{sanitizeText(tech.name)}</h4>
               {tech.version && (
-                <span className="text-xs text-gray-400">v{tech.version}</span>
+                <span className="text-xs text-gray-400">v{sanitizeText(tech.version)}</span>
               )}
             </div>
           </div>
@@ -89,11 +136,11 @@ export default function FeatureCardModal({
         </div>
 
         <p className="mb-2 text-xs leading-relaxed text-gray-300">
-          {tech.description}
+          {sanitizeText(tech.description)}
         </p>
 
         <div className="mb-3 rounded bg-gray-800/50 p-2 text-xs text-gray-400">
-          <strong className="text-gray-300">구현:</strong> {tech.implementation}
+          <strong className="text-gray-300">구현:</strong> {sanitizeText(tech.implementation)}
         </div>
 
         {/* 제품 타입 및 AI 엔진 타입 배지 */}
@@ -129,60 +176,115 @@ export default function FeatureCardModal({
         </div>
 
         <div className="flex flex-wrap gap-1">
-          {tech.tags.map((tag, tagIndex) => (
+          {tech.tags?.map((tag, tagIndex) => (
             <span
               key={tagIndex}
               className="rounded bg-gray-700/50 px-2 py-1 text-xs text-gray-300"
             >
-              {tag}
+              {sanitizeText(tag)}
             </span>
-          ))}
+          )) || null}
         </div>
       </div>
     );
-  };
+  });
 
-  // 바이브 코딩 카드는 현재/3단계 히스토리 구분, 다른 카드는 기존 방식
-  const techCards = React.useMemo(() => {
-    const data = TECH_STACKS_DATA[selectedCard.id];
-    if (!data) return [];
+  TechCard.displayName = 'TechCard';
+
+  // 🎯 Qwen 제안: 메모리 효율성 개선 - 단일 순회로 모든 중요도별 분류 처리
+  const categorizedTechData = React.useMemo(() => {
+    const selectedCardId = cardData.id;
     
-    // 바이브 코딩 카드인 경우 현재/히스토리 구분
-    if (selectedCard.id === 'cursor-ai' && 'current' in data) {
-      const vibeData = data as VibeCodeData;
-      if (isHistoryView) {
-        // 히스토리 뷰: 3단계 모두 합쳐서 반환 (단계별 구분은 렌더링에서 처리)
-        return [
-          ...vibeData.history.stage1,
-          ...vibeData.history.stage2, 
-          ...vibeData.history.stage3
-        ];
+    // 항상 동일한 구조 반환 (배열 + 메타데이터)
+    const result = {
+      allCards: [] as TechItem[],
+      hasData: false,
+      isVibeCard: false,
+      historyStages: null as any,
+      categorized: {
+        critical: [] as TechItem[],
+        high: [] as TechItem[],
+        medium: [] as TechItem[],
+        low: [] as TechItem[]
       }
-      return vibeData.current;
+    };
+    
+    if (!selectedCardId) {
+      return result; // 빈 구조체 반환
     }
     
-    // 다른 카드들은 기존 방식
-    return Array.isArray(data) ? data : [];
-  }, [selectedCard.id, isHistoryView]);
-
-  // 바이브 코딩 히스토리 3단계 데이터 (히스토리 뷰에서만 사용)
-  const vibeHistoryStages = React.useMemo(() => {
-    if (selectedCard.id !== 'cursor-ai' || !isHistoryView) return null;
+    const data = TECH_STACKS_DATA[selectedCardId] || null;
+    if (!data) {
+      return result; // 빈 구조체 반환
+    }
     
-    const data = TECH_STACKS_DATA[selectedCard.id];
-    if (!data || !('current' in data)) return null;
+    // 바이브 코딩 카드 처리
+    if (selectedCardId === 'cursor-ai' && 'current' in data) {
+      const vibeData = data as VibeCodeData;
+      result.isVibeCard = true;
+      result.historyStages = vibeData.history || null;
+      
+      if (isHistoryView && vibeData.history) {
+        // 🎯 Qwen 제안: O(n²) → O(n) 최적화 - concat 체인 사용
+        result.allCards = [].concat(
+          vibeData.history.stage1 || [],
+          vibeData.history.stage2 || [], 
+          vibeData.history.stage3 || []
+        );
+      } else {
+        result.allCards = vibeData.current || [];
+      }
+    } else {
+      // 일반 카드 처리
+      result.allCards = Array.isArray(data) ? data : [];
+    }
     
-    const vibeData = data as VibeCodeData;
-    return vibeData.history;
-  }, [selectedCard.id, isHistoryView]);
+    // 🎯 Qwen 제안: 단일 순회로 모든 중요도별 분류 처리 (O(n) 복잡도)
+    result.allCards.forEach(tech => {
+      const importance = tech.importance;
+      if (result.categorized[importance]) {
+        result.categorized[importance].push(tech);
+      }
+    });
+    
+    result.hasData = result.allCards.length > 0;
+    return result;
+  }, [cardData.id, isHistoryView]);
 
-  // 중요도별 기술 분류
-  const criticalTech = techCards.filter(
-    (tech) => tech.importance === 'critical'
-  );
-  const highTech = techCards.filter((tech) => tech.importance === 'high');
-  const mediumTech = techCards.filter((tech) => tech.importance === 'medium');
-  const lowTech = techCards.filter((tech) => tech.importance === 'low');
+  // 기술 스택 배열 추출 (항상 배열)
+  const techCards = categorizedTechData.allCards;
+  const { critical: criticalTech, high: highTech, medium: mediumTech, low: lowTech } = categorizedTechData.categorized;
+
+  // 바이브 히스토리 스테이지 추출
+  const vibeHistoryStages = categorizedTechData.historyStages;
+
+
+  // 🛡️ Codex 제안: 런타임 안전성 검증
+  const renderModalSafely = () => {
+    try {
+      if (!cardData.id && isVisible) {
+        return (
+          <div className="p-6 text-center text-white">
+            <p>모달을 불러올 수 없습니다.</p>
+            <button onClick={onClose} className="mt-4 px-4 py-2 bg-red-600 rounded">
+              닫기
+            </button>
+          </div>
+        );
+      }
+      return mainContent;
+    } catch (error) {
+      console.error('Modal rendering error:', error);
+      return (
+        <div className="p-6 text-center text-white">
+          <p>모달을 불러오는 중 오류가 발생했습니다.</p>
+          <button onClick={onClose} className="mt-4 px-4 py-2 bg-red-600 rounded">
+            닫기
+          </button>
+        </div>
+      );
+    }
+  };
 
   const mainContent = (
     <div className="p-6 text-white">
@@ -198,22 +300,48 @@ export default function FeatureCardModal({
         <h3 className="mb-3 text-2xl font-bold">
           {renderTextWithAIGradient(title)}
           {/* 바이브 코딩 카드 전용 뷰 표시 */}
-          {selectedCard.id === 'cursor-ai' && (
+          {cardData.id === 'cursor-ai' && (
             <span className="ml-2 text-lg font-medium text-amber-400">
               {isHistoryView ? '• 발전 히스토리' : '• 현재 도구'}
             </span>
           )}
         </h3>
         <p className="mx-auto max-w-2xl text-sm text-gray-300">
-          {selectedCard.id === 'cursor-ai' && isHistoryView 
+          {cardData.id === 'cursor-ai' && isHistoryView 
             ? '바이브 코딩의 3단계 발전 과정을 시간 순서대로 보여줍니다. 초기(ChatGPT 개별 페이지) → 중기(Cursor + Vercel + Supabase) → 후기(Claude Code + WSL + 멀티 AI CLI)로 진화한 개발 도구들의 역사를 확인할 수 있습니다.'
-            : detailedContent.overview
+            : sanitizeText(detailedContent.overview)
           }
         </p>
       </div>
 
+      {/* AI 제한 경고 배너 */}
+      {requiresAI && !aiAgentEnabled && (
+        <div className="mb-8 rounded-xl border-2 border-orange-500/30 bg-gradient-to-r from-orange-500/20 via-amber-500/15 to-orange-500/20 p-4">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-500/30">
+                <Bot className="h-5 w-5 text-orange-300" />
+              </div>
+            </div>
+            <div className="flex-1">
+              <h4 className="mb-2 font-semibold text-orange-300">
+                🤖 AI 어시스턴트 모드 필요
+              </h4>
+              <p className="text-sm text-orange-200/90 leading-relaxed">
+                이 기능을 사용하려면 AI 어시스턴트 모드를 활성화해야 합니다.
+                메인 페이지로 돌아가서 AI 모드를 켜주세요.
+              </p>
+              <div className="mt-3 flex items-center gap-2 text-xs text-orange-300/80">
+                <Zap className="h-4 w-4" />
+                <span>AI 모드는 항상 무료로 사용할 수 있습니다</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 바이브 코딩 히스토리 3단계 섹션 또는 중요도별 기술 스택 섹션 */}
-      {selectedCard.id === 'cursor-ai' && isHistoryView && vibeHistoryStages ? (
+      {cardData.id === 'cursor-ai' && isHistoryView && vibeHistoryStages ? (
         <div className="space-y-10">
           {/* 1단계: 초기 */}
           <div className="space-y-4">
@@ -222,7 +350,7 @@ export default function FeatureCardModal({
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-sm font-bold text-emerald-300">1</div>
                 초기 단계 (2025.05~06)
                 <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-sm text-emerald-300">
-                  {vibeHistoryStages.stage1.length}개 도구
+                  {vibeHistoryStages.stage1?.length || 0}개 도구
                 </span>
               </h4>
               <p className="text-sm text-emerald-200/80">
@@ -230,9 +358,9 @@ export default function FeatureCardModal({
               </p>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {vibeHistoryStages.stage1.map((tech, index) => (
+              {vibeHistoryStages.stage1?.map((tech, index) => (
                 <TechCard key={tech.name} tech={tech} index={index} />
-              ))}
+              )) || null}
             </div>
           </div>
 
@@ -243,7 +371,7 @@ export default function FeatureCardModal({
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/20 text-sm font-bold text-amber-300">2</div>
                 중기 단계 (2025.06~07)
                 <span className="rounded-full bg-amber-500/20 px-3 py-1 text-sm text-amber-300">
-                  {vibeHistoryStages.stage2.length}개 도구
+                  {vibeHistoryStages.stage2?.length || 0}개 도구
                 </span>
               </h4>
               <p className="text-sm text-amber-200/80">
@@ -251,9 +379,9 @@ export default function FeatureCardModal({
               </p>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {vibeHistoryStages.stage2.map((tech, index) => (
+              {vibeHistoryStages.stage2?.map((tech, index) => (
                 <TechCard key={tech.name} tech={tech} index={index} />
-              ))}
+              )) || null}
             </div>
           </div>
 
@@ -264,7 +392,7 @@ export default function FeatureCardModal({
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-500/20 text-sm font-bold text-purple-300">3</div>
                 후기 단계 (2025.07~현재)
                 <span className="rounded-full bg-purple-500/20 px-3 py-1 text-sm text-purple-300">
-                  {vibeHistoryStages.stage3.length}개 도구
+                  {vibeHistoryStages.stage3?.length || 0}개 도구
                 </span>
               </h4>
               <p className="text-sm text-purple-200/80">
@@ -272,9 +400,9 @@ export default function FeatureCardModal({
               </p>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {vibeHistoryStages.stage3.map((tech, index) => (
+              {vibeHistoryStages.stage3?.map((tech, index) => (
                 <TechCard key={tech.name} tech={tech} index={index} />
-              ))}
+              )) || null}
             </div>
           </div>
         </div>
@@ -357,70 +485,83 @@ export default function FeatureCardModal({
     </div>
   );
 
-  return (
-    <>
+  // ✅ Portal 기반 모달 렌더링 (AI 교차검증 기반 개선)
+  // 클라이언트 사이드에서만 Portal 렌더링하고, isVisible과 selectedCard로 가시성 제어
+  
+  return createPortal(
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 transition-opacity duration-300 ${
+        isVisible && selectedCard ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      }`}
+      onClick={onClose}
+      data-modal-version="v4.0-ai-cross-verified"
+      aria-hidden={!isVisible || !selectedCard}
+    >
+      {/* 개선된 배경 블러 효과 */}
+      <div className="absolute inset-0 bg-black/85 backdrop-blur-sm" />
+
+      {/* 모달 컨텐츠 - Hook 안정화를 위해 항상 렌더링 */}
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
-        onClick={onClose}
-        data-modal-version="v2.0-unified-scroll"
+        ref={modalRef}
+        className={`relative max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-2xl border border-gray-600/50 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl transform transition-transform duration-300 ${
+          !cardData.id ? 'hidden' : ''
+        }`}
+        onClick={(e) => e.stopPropagation()}
+        data-modal-content="portal-unified-v4-ai-cross-verified"
+        style={{
+          transform: isVisible && cardData.id ? 'scale(1)' : 'scale(0.95)',
+        }}
       >
-        {/* 개선된 배경 블러 효과 */}
-        <div className="absolute inset-0 bg-black/85 backdrop-blur-sm" />
-
-        {/* 개선된 모달 컨텐츠 */}
-        <div
-          ref={modalRef}
-          className="relative max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-2xl border border-gray-600/50 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl"
-          onClick={(e) => e.stopPropagation()}
-          data-modal-content="unified-scroll-v2"
-        >
-          <div
-            className={`absolute left-0 right-0 top-0 h-48 bg-gradient-to-b ${gradient} opacity-20 blur-3xl`}
-          ></div>
-          <div className="relative z-10 flex h-full flex-col">
-            <header className="flex flex-shrink-0 items-center justify-between border-b border-gray-700/50 p-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-800">
-                  <Icon
-                    className="h-5 w-5"
-                    style={{
-                      color: variant === 'home' ? 'white' : 'currentColor',
-                    }}
-                  />
-                </div>
-                <h2 className="text-lg font-semibold text-white">{title}</h2>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {/* 바이브 코딩 카드 전용 히스토리 전환 버튼 */}
-                {selectedCard.id === 'cursor-ai' && (
-                  <button
-                    onClick={() => setIsHistoryView(!isHistoryView)}
-                    className="rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:from-amber-500 hover:to-orange-500 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                    aria-label={isHistoryView ? "현재 도구 보기" : "히스토리 보기"}
-                  >
-                    {isHistoryView ? '🔄 현재 도구' : '📚 발전 히스토리'}
-                  </button>
-                )}
-                
-                <button
-                  onClick={onClose}
-                  className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
-                  aria-label="Close modal"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-            </header>
+        {/* Hook 안정화: 조건부 렌더링 제거, CSS로 가시성 제어 */}
+        <>
             <div
-              className="overflow-y-auto scroll-smooth"
-              style={{ maxHeight: 'calc(85vh - 80px)' }}
-            >
-              {mainContent}
+              className={`absolute left-0 right-0 top-0 h-48 bg-gradient-to-b ${gradient} opacity-20 blur-3xl`}
+            ></div>
+            <div className="relative z-10 flex h-full flex-col">
+              <header className="flex flex-shrink-0 items-center justify-between border-b border-gray-700/50 p-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-800">
+                    <Icon
+                      className="h-5 w-5"
+                      style={{
+                        color: variant === 'home' ? 'white' : 'currentColor',
+                      }}
+                    />
+                  </div>
+                  <h2 className="text-lg font-semibold text-white">{title}</h2>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {/* 바이브 코딩 카드 전용 히스토리 전환 버튼 */}
+                  {cardData.id === 'cursor-ai' && (
+                    <button
+                      onClick={() => setIsHistoryView(!isHistoryView)}
+                      className="rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:from-amber-500 hover:to-orange-500 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                      aria-label={isHistoryView ? "현재 도구 보기" : "히스토리 보기"}
+                    >
+                      {isHistoryView ? '🔄 현재 도구' : '📚 발전 히스토리'}
+                    </button>
+                  )}
+                  
+                  <button
+                    onClick={onClose}
+                    className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
+                    aria-label="Close modal"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              </header>
+              <div
+                className="overflow-y-auto scroll-smooth"
+                style={{ maxHeight: 'calc(85vh - 80px)' }}
+              >
+                {renderModalSafely()}
+              </div>
             </div>
-          </div>
-        </div>
+        </>
       </div>
-    </>
+    </div>,
+    document.body
   );
 }
