@@ -76,7 +76,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
   const refresh = useCallback(async () => {
     setIsLoading(true);
     await fetchStatus();
-  }, []); // ✅ fetchStatus 함수 의존성 제거하여 순환 의존성 해결
+  }, [fetchStatus]); // 함수 의존성 복원하여 stale closure 방지 - React Error #310 해결
 
   const startSystem = useCallback(async () => {
     try {
