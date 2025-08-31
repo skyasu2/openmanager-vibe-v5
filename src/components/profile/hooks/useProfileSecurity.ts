@@ -181,7 +181,7 @@ export function useProfileSecurity() {
         setSecurityState((prev) => ({ ...prev, isProcessing: false }));
       }
     },
-    [securityState] // ✅ securityState 의존성 복구 - stale closure 방지하여 React Error #310 해결
+    [securityState.isLocked, securityState.failedAttempts] // ✅ 객체 참조 → primitive 값으로 변경하여 React Error #310 해결
   );
 
   /**
