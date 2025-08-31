@@ -3,7 +3,7 @@
 import FeatureCardModal from '@/components/shared/FeatureCardModal';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 // framer-motion 제거 - CSS 애니메이션 사용
-import { memo, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
+import { memo, useEffect, useMemo, useRef, useState, useCallback, type RefObject } from 'react';
 import type { FeatureCard, FeatureCardProps } from '@/types/feature-card.types';
 import { FEATURE_CARDS_DATA, CARD_COMPLETION_RATES } from '@/data/feature-cards.data';
 
@@ -200,9 +200,9 @@ export default function FeatureCardsGrid() {
     };
   }, [selectedCard]);
 
-  // handleCardClick을 useCallback으로 메모이제이션
-  const handleCardClick = useMemo(
-    () => (cardId: string) => {
+  // ✅ 핵심 수정: useMemo → useCallback으로 변경 (React Error #310 근본 해결)
+  const handleCardClick = useCallback(
+    (cardId: string) => {
       const card = FEATURE_CARDS_DATA.find((c) => c.id === cardId);
 
       if (card?.requiresAI && !aiAgent.isEnabled) {
@@ -215,14 +215,17 @@ export default function FeatureCardsGrid() {
 
       setSelectedCard(cardId);
     },
-    [aiAgent.isEnabled]
+    [aiAgent.isEnabled] // 함수 의존성은 useCallback에서 정확하게 추적
   );
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setSelectedCard(null);
-  };
+  }, []);
 
-  const selectedCardData = FEATURE_CARDS_DATA.find((card) => card.id === selectedCard) || null;
+  const selectedCardData = useMemo(
+    () => FEATURE_CARDS_DATA.find((card) => card.id === selectedCard) || null,
+    [selectedCard]
+  );
 
   return (
     <>
