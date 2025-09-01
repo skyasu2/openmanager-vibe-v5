@@ -13,6 +13,9 @@ import type {
   AIMetadata,
 } from '@/types/core-types';
 
+// Re-export for external use
+export type { ComplexityScore };
+
 // 기존 ComplexityScore와 호환성을 위한 확장 (임시)
 export interface LegacyComplexityScore extends ComplexityScore {
   score: number;

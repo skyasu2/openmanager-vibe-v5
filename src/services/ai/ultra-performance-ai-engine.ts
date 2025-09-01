@@ -249,7 +249,7 @@ export class UltraPerformanceAIEngine {
         {
           success: false,
           response: '시스템 처리 중 오류가 발생했습니다.',
-          engine: 'ultra-performance',
+          engine: 'ultra-performance' as const,
           confidence: 0,
           thinkingSteps: [
             {
@@ -421,7 +421,7 @@ export class UltraPerformanceAIEngine {
         success: true,
         response:
           '빠른 응답: 현재 요청을 처리하고 있습니다. 잠시 후 다시 시도해주세요.',
-        engine: 'ultra-fallback',
+        engine: 'ultra-fallback' as const,
         confidence: 0.5,
         thinkingSteps: [
           {

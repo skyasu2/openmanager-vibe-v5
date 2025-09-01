@@ -51,7 +51,22 @@ export interface QueryRequest {
 export interface QueryResponse {
   success: boolean;
   response: string;
-  engine: 'local-rag' | 'local-ai' | 'google-ai' | 'fallback';
+  engine: 
+    | 'local-rag' 
+    | 'local-ai' 
+    | 'google-ai' 
+    | 'fallback'
+    | 'pattern-matched'
+    | 'streaming-initial'
+    | 'streaming-fallback'
+    | 'ultra-performance'
+    | 'ultra-fallback'
+    | 'pattern-based'
+    | 'keyword-based'
+    | 'basic-keyword'
+    | 'quick-${string}'
+    | 'error-fallback'
+    | 'preloaded';
   confidence: number;
   thinkingSteps: Array<{
     step: string;

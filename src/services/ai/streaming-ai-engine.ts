@@ -308,7 +308,7 @@ export class StreamingAIEngine {
             request.query,
             knownPattern
           ),
-          engine: 'pattern-matched',
+          engine: 'pattern-matched' as const,
           confidence: Math.min(0.8, knownPattern.frequency / 100),
           thinkingSteps: [
             {
@@ -347,7 +347,7 @@ export class StreamingAIEngine {
     return {
       success: true,
       response,
-      engine: 'basic-keyword',
+      engine: 'basic-keyword' as const,
       confidence: 0.6,
       thinkingSteps: [
         {
@@ -374,7 +374,7 @@ export class StreamingAIEngine {
     return {
       success: true,
       response: '분석 중입니다...',
-      engine: 'streaming-initial',
+      engine: 'streaming-initial' as const,
       confidence: 0.1,
       metadata: {
         streaming: true,
@@ -580,7 +580,7 @@ export class StreamingAIEngine {
       success: true,
       response:
         '현재 시스템이 최적화 모드로 동작중입니다. 기본 정보를 제공해드릴 수 있습니다.',
-      engine: 'streaming-fallback',
+      engine: 'streaming-fallback' as const,
       confidence: 0.3,
       thinkingSteps: [
         {

@@ -128,7 +128,7 @@ export function LogDashboardAnalytics({ data }: AnalyticsTabProps) {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={categoryData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  {/* @ts-ignore - recharts type issue */}
+                  {/* @ts-expect-error - Recharts XAxis angle prop type definition issue */}
                   <XAxis
                     dataKey="name"
                     angle={-45}
@@ -139,6 +139,7 @@ export function LogDashboardAnalytics({ data }: AnalyticsTabProps) {
                   <YAxis />
                   {/* @ts-ignore - recharts type issue */}
                 <Tooltip content={<CustomTooltip />} />
+                  {/* @ts-expect-error - Recharts Bar children prop type definition issue */}
                   <Bar dataKey="value" fill="#8884d8">
                     {categoryData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -168,7 +169,9 @@ export function LogDashboardAnalytics({ data }: AnalyticsTabProps) {
                 <YAxis />
                 {/* @ts-ignore - recharts type issue */}
                 <Tooltip content={<CustomTooltip />} />
+                {/* @ts-expect-error - Recharts Bar name prop type definition issue */}
                 <Bar dataKey="logs" fill="#3B82F6" name="총 로그" />
+                {/* @ts-expect-error - Recharts Bar name prop type definition issue */}
                 <Bar dataKey="errors" fill="#EF4444" name="에러" />
               </BarChart>
             </ResponsiveContainer>

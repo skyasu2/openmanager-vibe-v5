@@ -7,7 +7,7 @@
 
 import type { Server } from './server';
 import type { MCPServerInfo } from './mcp';
-import type { ComplexityScore } from '@/services/ai/core/AIEngineInterface';
+import type { ComplexityScore } from '@/types/core-types';
 
 // ============================================================================
 // 📋 컨텍스트 관련 타입

@@ -19,13 +19,13 @@ import type { RouterConfig, RouteResult } from './UnifiedAIEngineRouter.types';
 // Node.js Runtime 사용 - 안정성 우선 (AI 교차 검증 결과)
 
 interface UltraFastConfig extends Partial<RouterConfig> {
-  enableStreamingEngine: boolean;
-  enableInstantCache: boolean;
-  enablePredictiveLoading: boolean;
-  maxParallelOperations: number;
-  targetResponseTime: number;
-  aggressiveCaching: boolean;
-  skipSecurityForSpeed: boolean;
+  enableStreamingEngine?: boolean;
+  enableInstantCache?: boolean;
+  enablePredictiveLoading?: boolean;
+  maxParallelOperations?: number;
+  targetResponseTime?: number;
+  aggressiveCaching?: boolean;
+  skipSecurityForSpeed?: boolean;
 }
 
 interface PerformanceTracker {
@@ -262,7 +262,7 @@ export class UltraFastAIRouter {
         resolve({
           success: true,
           response,
-          engine: 'pattern-based',
+          engine: 'pattern-based' as const,
           confidence: 0.75,
           thinkingSteps: [
             {
@@ -339,7 +339,7 @@ export class UltraFastAIRouter {
         resolve({
           success: true,
           response,
-          engine: 'keyword-based',
+          engine: 'keyword-based' as const,
           confidence: 0.6,
           thinkingSteps: [
             {
@@ -391,7 +391,7 @@ export class UltraFastAIRouter {
     return {
       success: true,
       response: templates[Math.floor(Math.random() * templates.length)],
-      engine: `quick-${source}`,
+      engine: `quick-${source}` as const,
       confidence: 0.5,
       thinkingSteps: [
         {
@@ -663,7 +663,7 @@ export class UltraFastAIRouter {
       success: true,
       response:
         '시스템이 초고속 모드로 동작중입니다. 빠른 응답을 제공해드리겠습니다.',
-      engine: 'error-fallback',
+      engine: 'error-fallback' as const,
       confidence: 0.3,
       thinkingSteps: [
         {
@@ -760,7 +760,7 @@ export class UltraFastAIRouter {
       this.predictiveCache.set(cacheKey, {
         success: true,
         response: `${query}에 대한 정보를 제공합니다.`,
-        engine: 'preloaded',
+        engine: 'preloaded' as const,
         confidence: 0.8,
         thinkingSteps: [],
         metadata: { preloaded: true },

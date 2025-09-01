@@ -4,6 +4,7 @@ import {
   useState,
   DependencyList,
   EffectCallback,
+  RefObject,
 } from 'react';
 
 // 🛡️ 안전한 useEffect (자동 cleanup)

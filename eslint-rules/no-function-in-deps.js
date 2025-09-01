@@ -47,7 +47,7 @@ module.exports = {
     function isFunctionReference(node) {
       // 1. 직접 함수 참조: myFunction
       if (node.type === 'Identifier') {
-        const scope = context.getScope();
+        const scope = sourceCode.getScope(node);
         const variable = scope.set.get(node.name) || findVariableInScope(scope, node.name);
         
         if (variable) {

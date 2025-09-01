@@ -589,7 +589,7 @@ export default function AdminDashboardCharts() {
                 {/* @ts-ignore - recharts type issue */}
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                {/* @ts-ignore - recharts type issue */}
+                {/* @ts-expect-error - Recharts Line component dot prop type definition issue */}
                 <Line
                   type="monotone"
                   dataKey="CPU"
@@ -597,7 +597,7 @@ export default function AdminDashboardCharts() {
                   strokeWidth={2}
                   dot={{ r: 4 }}
                 />
-                {/* @ts-ignore - recharts type issue */}
+                {/* @ts-expect-error - Recharts Line component dot prop type definition issue */}
                 <Line
                   type="monotone"
                   dataKey="Memory"
@@ -605,7 +605,7 @@ export default function AdminDashboardCharts() {
                   strokeWidth={2}
                   dot={{ r: 4 }}
                 />
-                {/* @ts-ignore - recharts type issue */}
+                {/* @ts-expect-error - Recharts Line component dot prop type definition issue */}
                 <Line
                   type="monotone"
                   dataKey="Alerts"
