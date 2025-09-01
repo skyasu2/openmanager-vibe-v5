@@ -1,31 +1,69 @@
 #!/usr/bin/env node
+
 /**
  * Memory Monitor Script
+ * 
  * Created based on Codex AI recommendations from 4-AI cross-validation
  * Monitors Node.js memory usage patterns and provides optimization recommendations
  */
 
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+import { getHeapStatistics } from 'v8';
 
-class MemoryMonitor {
+interface MemoryStats {
+  timestamp: string;
+  rss: number;
+  heapUsed: number;
+  heapTotal: number;
+  external: number;
+  heapSizeLimit: number;
+  heapUsagePercent: number;
+}
+
+interface SystemInfo {
+  platform: string;
+  totalMemory?: number;
+  freeMemory?: number;
+  usedMemory?: number;
+  nodeVersion: string;
+  error?: string;
+}
+
+interface MemoryAnalysis {
+  memoryEfficiency: 'HIGH' | 'MEDIUM' | 'LOW';
+  recommendedHeapSize: number;
+  riskLevel: 'HIGH' | 'MEDIUM' | 'LOW';
+}
+
+interface MemoryReport {
+  stats: MemoryStats;
+  system: SystemInfo;
+  recommendations: string[];
+  analysis: MemoryAnalysis;
+}
+
+export default class MemoryMonitor {
+  private startTime: number;
+  private logFile: string;
+
   constructor() {
     this.startTime = Date.now();
     this.logFile = path.join(__dirname, '..', 'logs', 'memory-usage.log');
     this.ensureLogDirectory();
   }
 
-  ensureLogDirectory() {
+  private ensureLogDirectory(): void {
     const logDir = path.dirname(this.logFile);
     if (!fs.existsSync(logDir)) {
       fs.mkdirSync(logDir, { recursive: true });
     }
   }
 
-  getMemoryStats() {
+  private getMemoryStats(): MemoryStats {
     const memUsage = process.memoryUsage();
-    const heapStats = require('v8').getHeapStatistics();
+    const heapStats = getHeapStatistics();
     
     return {
       timestamp: new Date().toISOString(),
@@ -38,7 +76,7 @@ class MemoryMonitor {
     };
   }
 
-  getSystemInfo() {
+  private getSystemInfo(): SystemInfo {
     try {
       const isWSL = fs.existsSync('/proc/version') && 
         fs.readFileSync('/proc/version', 'utf8').includes('microsoft');
@@ -71,11 +109,11 @@ class MemoryMonitor {
     }
   }
 
-  analyzeMemoryPattern() {
+  private analyzeMemoryPattern(): MemoryReport {
     const stats = this.getMemoryStats();
     const system = this.getSystemInfo();
     
-    const recommendations = [];
+    const recommendations: string[] = [];
     
     // Memory usage analysis based on 4-AI cross-validation findings
     if (stats.heapUsagePercent > 90) {
@@ -108,7 +146,7 @@ class MemoryMonitor {
     };
   }
 
-  calculateOptimalHeapSize(stats) {
+  private calculateOptimalHeapSize(stats: MemoryStats): number {
     // Algorithm based on Qwen AI mathematical model
     const currentUsage = stats.heapUsed;
     const safetyMargin = 1.5; // 50% buffer
@@ -118,24 +156,25 @@ class MemoryMonitor {
     return Math.max(1024, Math.min(8192, optimalSize));
   }
 
-  assessRiskLevel(stats, system) {
+  private assessRiskLevel(stats: MemoryStats, system: SystemInfo): 'HIGH' | 'MEDIUM' | 'LOW' {
     if (stats.heapUsagePercent > 90) return 'HIGH';
     if (stats.heapUsagePercent > 70) return 'MEDIUM';
-    if (system.platform === 'WSL' && stats.heapSizeLimit > system.totalMemory * 0.5) return 'MEDIUM';
+    if (system.platform === 'WSL' && system.totalMemory && stats.heapSizeLimit > system.totalMemory * 0.5) return 'MEDIUM';
     return 'LOW';
   }
 
-  logToFile(data) {
+  private logToFile(data: MemoryReport): void {
     const logEntry = `${data.stats.timestamp} | RSS: ${data.stats.rss}MB | Heap: ${data.stats.heapUsed}MB/${data.stats.heapTotal}MB (${data.stats.heapUsagePercent}%) | Limit: ${data.stats.heapSizeLimit}MB | Risk: ${data.analysis.riskLevel}\n`;
     
     try {
       fs.appendFileSync(this.logFile, logEntry);
     } catch (error) {
-      console.warn('Unable to write to log file:', error.message);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.warn('Unable to write to log file:', errorMessage);
     }
   }
 
-  displayReport(data) {
+  private displayReport(data: MemoryReport): void {
     console.log('\n🧠 Memory Monitor Report - 4-AI Cross-Validation Based');
     console.log('='.repeat(60));
     
@@ -149,7 +188,7 @@ class MemoryMonitor {
     console.log('\n💻 System Information:');
     console.log(`  Platform: ${data.system.platform}`);
     console.log(`  Node.js: ${data.system.nodeVersion}`);
-    if (data.system.totalMemory) {
+    if (data.system.totalMemory && data.system.usedMemory) {
       console.log(`  System Memory: ${data.system.usedMemory}/${data.system.totalMemory} MB (${Math.round(data.system.usedMemory/data.system.totalMemory*100)}%)`);
     }
     
@@ -172,7 +211,7 @@ class MemoryMonitor {
     console.log('='.repeat(60));
   }
 
-  run() {
+  run(): void {
     console.log('🚀 Starting Memory Monitor...');
     
     const data = this.analyzeMemoryPattern();
@@ -196,5 +235,3 @@ if (require.main === module) {
   const monitor = new MemoryMonitor();
   monitor.run();
 }
-
-module.exports = MemoryMonitor;

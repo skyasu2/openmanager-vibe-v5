@@ -1,14 +1,30 @@
 #!/usr/bin/env node
+
 /**
+ * TypeScript Type-only Import Optimizer
+ * 
  * 🎯 TypeScript Type-only Import 최적화
  * Vercel Edge Runtime에서 타입만 사용하는 import를 type-only로 변경
  */
 
-const fs = require('fs');
-const { execSync } = require('child_process');
+import fs from 'fs';
+import { execSync } from 'child_process';
+
+interface ImportImprovement {
+  original: string;
+  types: string[];
+  values: string[];
+  fromModule: string;
+}
+
+interface OptimizationResult {
+  optimized: string;
+  changed: boolean;
+  improvements: number;
+}
 
 // React 타입들만 사용하는 패턴
-const TYPE_ONLY_PATTERNS = [
+const TYPE_ONLY_PATTERNS: RegExp[] = [
   // React 타입들
   /import.*\{ ([^}]*(?:ReactNode|ReactElement|ComponentType|FC|PropsWithChildren)[^}]*) \}.*from ['"]react['"]/g,
   
@@ -16,8 +32,8 @@ const TYPE_ONLY_PATTERNS = [
   /import.*\{ ([^}]*(?:Meta|StoryObj|ComponentProps)[^}]*) \}.*from ['"]@storybook\/react['"]/g,
 ];
 
-function analyzeTypeImports(content) {
-  const improvements = [];
+export function analyzeTypeImports(content: string): ImportImprovement[] {
+  const improvements: ImportImprovement[] = [];
   
   TYPE_ONLY_PATTERNS.forEach(pattern => {
     const matches = content.matchAll(pattern);
@@ -40,12 +56,15 @@ function analyzeTypeImports(content) {
       const values = imports.filter(imp => !types.includes(imp));
       
       if (types.length > 0) {
-        improvements.push({
-          original: fullImport,
-          types,
-          values,
-          fromModule: match.input.match(/from ['"]([^'"]+)['"]/)?.[1]
-        });
+        const fromModule = match.input?.match(/from ['"]([^'"]+)['"]/)?.[1];
+        if (fromModule) {
+          improvements.push({
+            original: fullImport,
+            types,
+            values,
+            fromModule
+          });
+        }
       }
     }
   });
@@ -53,7 +72,7 @@ function analyzeTypeImports(content) {
   return improvements;
 }
 
-function optimizeTypeImports(content) {
+export function optimizeTypeImports(content: string): OptimizationResult {
   let optimized = content;
   let changed = false;
   
@@ -79,7 +98,7 @@ function optimizeTypeImports(content) {
   return { optimized, changed, improvements: improvements.length };
 }
 
-function processFile(filePath) {
+function processFile(filePath: string): boolean {
   try {
     const content = fs.readFileSync(filePath, 'utf8');
     const { optimized, changed, improvements } = optimizeTypeImports(content);
@@ -92,19 +111,20 @@ function processFile(filePath) {
     
     return false;
   } catch (error) {
-    console.error(`❌ ${filePath}: ${error.message}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`❌ ${filePath}: ${errorMessage}`);
     return false;
   }
 }
 
-function main() {
+function main(): void {
   console.log('🎯 TypeScript Type-only Import 최적화 시작...\n');
   
   const files = execSync('find src -name "*.tsx" -o -name "*.ts"', { encoding: 'utf8' })
     .split('\n')
     .filter(Boolean);
 
-  let totalFiles = files.length;
+  const totalFiles = files.length;
   let optimizedFiles = 0;
 
   files.forEach(file => {
@@ -128,5 +148,3 @@ function main() {
 if (require.main === module) {
   main();
 }
-
-module.exports = { analyzeTypeImports, optimizeTypeImports };

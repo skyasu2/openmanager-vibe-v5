@@ -1,12 +1,20 @@
 #!/usr/bin/env node
+
 /**
+ * Smart TypeScript File Checker
+ * 
  * 변경된 파일만 TypeScript 검사하는 스마트 검사기
  * Git 기반으로 변경된 TypeScript 파일만 선별하여 빠른 타입 체크 수행
  */
 
-const { execSync, spawn } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+
+interface ExecError extends Error {
+  stdout?: Buffer;
+  stderr?: Buffer;
+}
 
 const SMART_MODE = process.argv.includes('smart');
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -14,7 +22,7 @@ const DRY_RUN = process.argv.includes('--dry-run');
 /**
  * Git에서 변경된 TypeScript 파일 목록 가져오기
  */
-function getChangedTsFiles() {
+export function getChangedTsFiles(): string[] {
   try {
     // Staged와 unstaged 파일 모두 포함
     const stagedFiles = execSync('git diff --cached --name-only', { encoding: 'utf8' }).trim();
@@ -35,7 +43,7 @@ function getChangedTsFiles() {
 /**
  * TypeScript 컴파일러 실행
  */
-function runTypeCheck(files = []) {
+export function runTypeCheck(files: string[] = []): boolean {
   const isSmartMode = SMART_MODE && files.length > 0;
   
   console.log(isSmartMode 
@@ -61,8 +69,9 @@ function runTypeCheck(files = []) {
     }
     return true;
   } catch (error) {
+    const execError = error as ExecError;
     console.error('❌ TypeScript 에러 발견:');
-    console.error(error.stdout?.toString() || error.message);
+    console.error(execError.stdout?.toString() || execError.message);
     return false;
   }
 }
@@ -70,7 +79,7 @@ function runTypeCheck(files = []) {
 /**
  * 메인 실행 로직
  */
-function main() {
+function main(): void {
   console.log('🔧 TypeScript 스마트 검사기 시작...');
   
   const changedFiles = getChangedTsFiles();
@@ -97,5 +106,3 @@ function main() {
 if (require.main === module) {
   main();
 }
-
-module.exports = { getChangedTsFiles, runTypeCheck };

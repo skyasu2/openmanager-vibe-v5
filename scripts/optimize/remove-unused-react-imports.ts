@@ -1,12 +1,24 @@
 #!/usr/bin/env node
+
 /**
+ * React Import Optimizer
+ * 
  * 🚀 불필요한 React Import 제거 스크립트
  * jsx: "react-jsx" 설정으로 인해 불필요해진 React import들을 자동 제거
  */
 
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+
+interface FileAnalysis {
+  filePath: string;
+  content: string;
+  hasReactImport: boolean;
+  needsReact: boolean;
+  hookOnlyMatch: RegExpMatchArray | null;
+  canOptimize: boolean;
+}
 
 // 제거 대상 패턴들
 const REMOVE_PATTERNS = [
@@ -35,7 +47,7 @@ const REACT_USAGE_PATTERNS = [
 
 const HOOK_ONLY_PATTERN = /^import React, \{ ([^}]+) \} from ['"]react['"];/;
 
-function analyzeFile(filePath) {
+export function analyzeFile(filePath: string): FileAnalysis | null {
   const content = fs.readFileSync(filePath, 'utf8');
   
   // React import 찾기
@@ -58,7 +70,7 @@ function analyzeFile(filePath) {
   };
 }
 
-function optimizeFile(analysis) {
+export function optimizeFile(analysis: FileAnalysis): boolean {
   if (!analysis.canOptimize) return false;
   
   let optimizedContent = analysis.content;
@@ -88,7 +100,7 @@ function optimizeFile(analysis) {
   return false;
 }
 
-function main() {
+function main(): void {
   console.log('🚀 React Import 최적화 시작...\n');
   
   // TypeScript/React 파일들 찾기
@@ -111,7 +123,8 @@ function main() {
         if (optimized) optimizedFiles++;
       }
     } catch (error) {
-      console.error(`❌ ${file}: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`❌ ${file}: ${errorMessage}`);
       errors++;
     }
   }
@@ -130,5 +143,3 @@ function main() {
 if (require.main === module) {
   main();
 }
-
-module.exports = { analyzeFile, optimizeFile };

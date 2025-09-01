@@ -1,15 +1,21 @@
 #!/usr/bin/env node
 
-// Wrapper script to debug and fix the mysterious "2" argument issue
-const spawn = require('child_process').spawn;
-const path = require('path');
+/**
+ * TypeScript Compiler Wrapper
+ * 
+ * Wrapper script to debug and fix the mysterious "2" argument issue
+ * Filters out unwanted "2" arguments and provides debug information
+ */
+
+import { spawn } from 'child_process';
+import path from 'path';
 
 // Get the actual tsc.js path from project root
 const projectRoot = path.join(__dirname, '..', '..');
 const tscPath = path.join(projectRoot, 'node_modules', 'typescript', 'lib', 'tsc.js');
 
 // Filter out any "2" argument that shouldn't be there
-const args = process.argv.slice(2).filter(arg => arg !== '2');
+const args: string[] = process.argv.slice(2).filter(arg => arg !== '2');
 
 // Only show debug logs if there was a "2" argument
 if (process.argv.slice(2).includes('2')) {
@@ -23,6 +29,6 @@ const tsc = spawn('node', [tscPath, ...args], {
   cwd: process.cwd()
 });
 
-tsc.on('exit', (code) => {
-  process.exit(code);
+tsc.on('exit', (code: number | null) => {
+  process.exit(code || 0);
 });

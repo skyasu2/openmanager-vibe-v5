@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 /**
+ * Smart Commit Push System v1.0
+ * 
  * 🚀 스마트 커밋 푸시 시스템 v1.0
  * 
  * 기능:
@@ -11,12 +13,29 @@
  * - 스마트 문제 해결
  */
 
-const { execSync, spawn } = require('child_process');
-const fs = require('fs');
-const path = require('path');
+import { execSync, spawn } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+
+interface ExecutionResult {
+  success: boolean;
+  error?: string;
+}
+
+interface WorkflowRun {
+  status: string;
+  conclusion: string;
+}
+
+interface Config {
+  MAX_RETRY_ATTEMPTS: number;
+  TIMEOUT_SECONDS: number;
+  LOG_FILE: string;
+  BACKUP_COMMIT_MSG: string;
+}
 
 // 설정
-const CONFIG = {
+const CONFIG: Config = {
   MAX_RETRY_ATTEMPTS: 3,
   TIMEOUT_SECONDS: 300,
   LOG_FILE: path.join(process.cwd(), '.smart-commit.log'),
@@ -33,27 +52,25 @@ const colors = {
   magenta: '\x1b[35m',
   cyan: '\x1b[36m',
   bold: '\x1b[1m',
-};
+} as const;
 
 const log = {
-  info: (msg) => console.log(`${colors.blue}ℹ️  ${msg}${colors.reset}`),
-  success: (msg) => console.log(`${colors.green}✅ ${msg}${colors.reset}`),
-  warning: (msg) => console.log(`${colors.yellow}⚠️  ${msg}${colors.reset}`),
-  error: (msg) => console.log(`${colors.red}❌ ${msg}${colors.reset}`),
-  step: (step, msg) => console.log(`${colors.cyan}🔄 [단계 ${step}] ${msg}${colors.reset}`),
-  fix: (attempt, msg) => console.log(`${colors.magenta}🔧 [수정 시도 ${attempt}] ${msg}${colors.reset}`),
+  info: (msg: string) => console.log(`${colors.blue}ℹ️  ${msg}${colors.reset}`),
+  success: (msg: string) => console.log(`${colors.green}✅ ${msg}${colors.reset}`),
+  warning: (msg: string) => console.log(`${colors.yellow}⚠️  ${msg}${colors.reset}`),
+  error: (msg: string) => console.log(`${colors.red}❌ ${msg}${colors.reset}`),
+  step: (step: number, msg: string) => console.log(`${colors.cyan}🔄 [단계 ${step}] ${msg}${colors.reset}`),
+  fix: (attempt: number, msg: string) => console.log(`${colors.magenta}🔧 [수정 시도 ${attempt}] ${msg}${colors.reset}`),
 };
 
-class SmartCommitPush {
-  constructor() {
-    this.attemptCount = 0;
-    this.lastError = null;
-    this.commitMessage = null;
-    this.isAmending = false;
-  }
+export default class SmartCommitPush {
+  private attemptCount: number = 0;
+  private lastError: string | null = null;
+  private commitMessage: string | null = null;
+  private isAmending: boolean = false;
 
   // 메인 실행 함수
-  async run() {
+  async run(): Promise<void> {
     try {
       log.info('스마트 커밋 푸시 시스템 시작');
       
@@ -71,13 +88,14 @@ class SmartCommitPush {
       await this.attemptCommitPush();
       
     } catch (error) {
-      log.error(`예상치 못한 오류: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      log.error(`예상치 못한 오류: ${errorMessage}`);
       process.exit(1);
     }
   }
 
   // 커밋 메시지 가져오기
-  getCommitMessage() {
+  getCommitMessage(): string | null {
     const args = process.argv.slice(2);
     
     // -m 플래그로 메시지 전달된 경우
@@ -100,16 +118,18 @@ class SmartCommitPush {
   }
 
   // 커밋 메시지 백업
-  backupCommitMessage() {
-    fs.writeFileSync(CONFIG.BACKUP_COMMIT_MSG, this.commitMessage);
-    log.info('커밋 메시지 백업 완료');
+  backupCommitMessage(): void {
+    if (this.commitMessage) {
+      fs.writeFileSync(CONFIG.BACKUP_COMMIT_MSG, this.commitMessage);
+      log.info('커밋 메시지 백업 완료');
+    }
   }
 
   // 커밋 푸시 시도
-  async attemptCommitPush() {
+  async attemptCommitPush(): Promise<void> {
     while (this.attemptCount < CONFIG.MAX_RETRY_ATTEMPTS) {
       this.attemptCount++;
-      log.step(this.attemptCount, `커밋 푸시 시도 중...`);
+      log.step(this.attemptCount, '커밋 푸시 시도 중...');
       
       try {
         // 1. 커밋 실행
@@ -131,11 +151,12 @@ class SmartCommitPush {
         return;
         
       } catch (error) {
-        this.lastError = error.message;
-        log.error(`시도 ${this.attemptCount} 실패: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.lastError = errorMessage;
+        log.error(`시도 ${this.attemptCount} 실패: ${errorMessage}`);
         
         if (this.attemptCount < CONFIG.MAX_RETRY_ATTEMPTS) {
-          log.info(`수정 시도 후 재시도합니다...`);
+          log.info('수정 시도 후 재시도합니다...');
           
           // 자동 수정 시도
           const fixApplied = await this.attemptAutoFix();
@@ -157,7 +178,7 @@ class SmartCommitPush {
   }
 
   // 커밋 실행
-  async executeCommit() {
+  async executeCommit(): Promise<ExecutionResult> {
     try {
       log.info('커밋 실행 중...');
       
@@ -184,14 +205,14 @@ class SmartCommitPush {
       log.success('커밋 완료');
       return { success: true };
       
-    } catch (error) {
+    } catch (error: any) {
       const errorMsg = error.stderr ? error.stderr.toString() : error.message;
       return { success: false, error: errorMsg };
     }
   }
 
   // 푸시 실행 및 CI/CD 모니터링
-  async executePush() {
+  async executePush(): Promise<ExecutionResult> {
     try {
       log.info('푸시 실행 중...');
       
@@ -208,7 +229,7 @@ class SmartCommitPush {
       
       return { success: true };
       
-    } catch (error) {
+    } catch (error: any) {
       const errorMsg = error.stderr ? error.stderr.toString() : error.message;
       
       // 푸시 거부 패턴 감지
@@ -221,7 +242,7 @@ class SmartCommitPush {
   }
 
   // CI/CD 모니터링 (GitHub Actions)
-  async monitorCI() {
+  async monitorCI(): Promise<ExecutionResult> {
     try {
       // GitHub CLI가 설치되어 있는지 확인
       execSync('gh --version', { stdio: 'pipe' });
@@ -234,7 +255,7 @@ class SmartCommitPush {
       const workflowStatus = execSync('gh run list --limit 1 --json status,conclusion', 
         { encoding: 'utf8' });
       
-      const workflows = JSON.parse(workflowStatus);
+      const workflows: WorkflowRun[] = JSON.parse(workflowStatus);
       if (workflows.length > 0) {
         const latest = workflows[0];
         if (latest.status === 'completed' && latest.conclusion === 'failure') {
@@ -251,7 +272,7 @@ class SmartCommitPush {
   }
 
   // 자동 수정 시도
-  async attemptAutoFix() {
+  async attemptAutoFix(): Promise<boolean> {
     const strategies = [
       () => this.quickFix(),      // 1단계: 빠른 수정
       () => this.autoTypeFix(),   // 2단계: TypeScript 자동 수정
@@ -268,7 +289,7 @@ class SmartCommitPush {
   }
 
   // 1단계: 빠른 수정
-  async quickFix() {
+  async quickFix(): Promise<boolean> {
     try {
       log.info('빠른 수정 시도...');
       
@@ -294,7 +315,7 @@ class SmartCommitPush {
         
         // Git hooks 스킵 모드로 재시도
         () => {
-          if (this.lastError.includes('pre-commit')) {
+          if (this.lastError && this.lastError.includes('pre-commit')) {
             log.info('Pre-commit hook 스킵 모드로 전환');
             process.env.HUSKY = '0';
             return true;
@@ -319,18 +340,19 @@ class SmartCommitPush {
       return fixApplied;
       
     } catch (error) {
-      log.warning(`빠른 수정 실패: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      log.warning(`빠른 수정 실패: ${errorMessage}`);
       return false;
     }
   }
 
   // 2단계: TypeScript 자동 수정
-  async autoTypeFix() {
+  async autoTypeFix(): Promise<boolean> {
     try {
       log.info('TypeScript 자동 수정 시도...');
       
       // TypeScript 오류 확인
-      if (!this.lastError.includes('TypeScript') && !this.lastError.includes('tsc')) {
+      if (!this.lastError || (!this.lastError.includes('TypeScript') && !this.lastError.includes('tsc'))) {
         return false;
       }
       
@@ -344,13 +366,13 @@ class SmartCommitPush {
         this.isAmending = true;
         return true;
         
-      } catch (typeError) {
+      } catch (typeError: any) {
         log.warning('TypeScript 자동 수정 실패');
         
         // 대안: 기본 type-check로 문제 영역 식별
         try {
           execSync('npm run type-check', { stdio: 'pipe' });
-        } catch (checkError) {
+        } catch (checkError: any) {
           const errorOutput = checkError.stderr ? checkError.stderr.toString() : '';
           log.info('TypeScript 오류 상세 정보:');
           console.log(errorOutput.slice(0, 1000)); // 첫 1000자만 출력
@@ -360,13 +382,14 @@ class SmartCommitPush {
       }
       
     } catch (error) {
-      log.warning(`TypeScript 수정 실패: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      log.warning(`TypeScript 수정 실패: ${errorMessage}`);
       return false;
     }
   }
 
   // 3단계: 수동 검토 가이드
-  async manualReview() {
+  async manualReview(): Promise<boolean> {
     log.info('수동 검토 가이드 제공...');
     
     console.log(`
@@ -403,7 +426,7 @@ ${colors.cyan}━━━━━━━━━━━━━━━━━━━━━━
   }
 
   // CI/CD 모니터링 결과 표시
-  showManualInstructions() {
+  showManualInstructions(): void {
     console.log(`
 ${colors.red}🚨 자동 수정 실패${colors.reset}
 ${colors.cyan}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${colors.reset}
@@ -432,7 +455,7 @@ ${colors.cyan}━━━━━━━━━━━━━━━━━━━━━━
   }
 
   // 정리 작업
-  cleanup() {
+  cleanup(): void {
     try {
       if (fs.existsSync(CONFIG.BACKUP_COMMIT_MSG)) {
         fs.unlinkSync(CONFIG.BACKUP_COMMIT_MSG);
@@ -446,7 +469,7 @@ ${colors.cyan}━━━━━━━━━━━━━━━━━━━━━━
   }
 
   // 지연 함수
-  delay(ms) {
+  delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
@@ -459,5 +482,3 @@ if (require.main === module) {
     process.exit(1);
   });
 }
-
-module.exports = SmartCommitPush;

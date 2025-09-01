@@ -1,12 +1,12 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 
 /**
- * 환경변수 검증 스크립트 - OpenManager VIBE v5
+ * 환경변수 검증 스크립트 - OpenManager VIBE v5 (TypeScript 버전)
  * 프로덕션 배포 전 필수 환경변수 검증
  */
 
-const fs = require('fs');
-const path = require('path');
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 
 // 색상 출력을 위한 ANSI 코드
 const colors = {
@@ -18,14 +18,44 @@ const colors = {
   blue: '\x1b[34m',
   magenta: '\x1b[35m',
   cyan: '\x1b[36m',
-};
+} as const;
 
 console.log(`${colors.cyan}${colors.bright}
 🔍 OpenManager VIBE v5 - 환경변수 검증
 ======================================${colors.reset}\n`);
 
+// 타입 정의
+interface EnvConfig {
+  description: string;
+  example: string;
+  required: boolean;
+  category: string;
+}
+
+interface ValidationResult {
+  key: string;
+  status: 'success' | 'warning' | 'error' | 'unknown';
+  message: string;
+  category: string;
+}
+
+interface CategoryItem {
+  key: string;
+  config: EnvConfig;
+  result: ValidationResult;
+  value: string;
+}
+
+interface Categories {
+  [key: string]: CategoryItem[];
+}
+
+interface EnvVars {
+  [key: string]: string | undefined;
+}
+
 // 필수 환경변수 정의
-const requiredEnvVars = {
+const requiredEnvVars: Record<string, EnvConfig> = {
   // Next.js & Vercel 설정
   'NEXT_PUBLIC_APP_URL': {
     description: 'Next.js 애플리케이션 URL',
@@ -110,17 +140,17 @@ const requiredEnvVars = {
 };
 
 // 환경변수 로드 함수
-function loadEnvironmentVariables() {
+function loadEnvironmentVariables(): EnvVars {
   const envFiles = ['.env.local', '.env.production', '.env'];
-  const envVars = { ...process.env };
+  const envVars: EnvVars = { ...process.env };
 
   for (const file of envFiles) {
-    const filePath = path.join(process.cwd(), file);
-    if (fs.existsSync(filePath)) {
+    const filePath = join(process.cwd(), file);
+    if (existsSync(filePath)) {
       console.log(`📄 ${file} 파일 발견 - 로딩 중...`);
       
       try {
-        const content = fs.readFileSync(filePath, 'utf8');
+        const content = readFileSync(filePath, 'utf8');
         const lines = content.split('\n');
         
         for (const line of lines) {
@@ -132,7 +162,8 @@ function loadEnvironmentVariables() {
           }
         }
       } catch (error) {
-        console.warn(`⚠️  ${file} 읽기 실패:`, error.message);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.warn(`⚠️  ${file} 읽기 실패:`, errorMessage);
       }
     }
   }
@@ -141,8 +172,8 @@ function loadEnvironmentVariables() {
 }
 
 // 환경변수 검증 함수
-function validateEnvironmentVariable(key, config, value) {
-  const result = {
+function validateEnvironmentVariable(key: string, config: EnvConfig, value?: string): ValidationResult {
+  const result: ValidationResult = {
     key,
     status: 'unknown',
     message: '',
@@ -200,20 +231,19 @@ function validateEnvironmentVariable(key, config, value) {
 }
 
 // 메인 검증 함수
-function validateEnvironment() {
+function validateEnvironment(): void {
   console.log('환경변수 로딩 중...\n');
   const envVars = loadEnvironmentVariables();
   
   console.log('검증 시작...\n');
   
-  const results = {};
   let totalChecks = 0;
   let successCount = 0;
   let warningCount = 0;
   let errorCount = 0;
   
   // 카테고리별로 그룹화
-  const categories = {};
+  const categories: Categories = {};
   
   for (const [key, config] of Object.entries(requiredEnvVars)) {
     if (!categories[config.category]) {
@@ -242,7 +272,8 @@ function validateEnvironment() {
     console.log('─'.repeat(50));
     
     for (const item of items) {
-      let statusIcon, statusColor;
+      let statusIcon: string;
+      let statusColor: string;
       
       switch (item.result.status) {
         case 'success':
@@ -312,9 +343,10 @@ if (require.main === module) {
   try {
     validateEnvironment();
   } catch (error) {
-    console.error(`${colors.red}❌ 환경변수 검증 중 오류 발생:${colors.reset}`, error.message);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`${colors.red}❌ 환경변수 검증 중 오류 발생:${colors.reset}`, errorMessage);
     process.exit(1);
   }
 }
 
-module.exports = { validateEnvironment, loadEnvironmentVariables };
+export { validateEnvironment, loadEnvironmentVariables };
