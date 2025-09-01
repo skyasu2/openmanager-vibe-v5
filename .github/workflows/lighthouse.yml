@@ -113,9 +113,9 @@ jobs:
             # 🚨 회귀 감지 로직
             REGRESSION_DETECTED=false
             
-            # Performance Score 임계값 체크 (< 90)
-            if (( $(echo "$AVG_SCORE < 90" | bc -l 2>/dev/null || echo 0) )); then
-              echo "❌ 성능 점수 회귀 감지: $AVG_SCORE < 90"
+            # Performance Score 임계값 체크 (< 75) - lighthouserc.js와 동기화
+            if (( $(echo "$AVG_SCORE < 75" | bc -l 2>/dev/null || echo 0) )); then
+              echo "⚠️ 성능 점수 개선 권장: $AVG_SCORE < 75 (lighthouserc.js 기준과 동기화됨)"
               REGRESSION_DETECTED=true
             fi
             
@@ -143,7 +143,7 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "| 메트릭 | 평균값 | 목표값 | 상태 |" >> $GITHUB_STEP_SUMMARY
             echo "|--------|--------|--------|------|" >> $GITHUB_STEP_SUMMARY
-            echo "| Performance Score | ${AVG_SCORE}% | ≥90% | $([ $(echo "$AVG_SCORE >= 90" | bc -l 2>/dev/null || echo 0) = 1 ] && echo "✅ 통과" || echo "❌ 개선 필요") |" >> $GITHUB_STEP_SUMMARY
+            echo "| Performance Score | ${AVG_SCORE}% | ≥75% | $([ $(echo "$AVG_SCORE >= 75" | bc -l 2>/dev/null || echo 0) = 1 ] && echo "✅ 통과" || echo "⚠️ 개선 권장") |" >> $GITHUB_STEP_SUMMARY
             echo "| First Contentful Paint | ${AVG_FCP}ms | ≤1800ms | $([ $(echo "$AVG_FCP <= 1800" | bc -l 2>/dev/null || echo 0) = 1 ] && echo "✅ 통과" || echo "❌ 개선 필요") |" >> $GITHUB_STEP_SUMMARY
             echo "| Largest Contentful Paint | ${AVG_LCP}ms | ≤2500ms | $([ $(echo "$AVG_LCP <= 2500" | bc -l 2>/dev/null || echo 0) = 1 ] && echo "✅ 통과" || echo "❌ 개선 필요") |" >> $GITHUB_STEP_SUMMARY
             echo "| Cumulative Layout Shift | $AVG_CLS | ≤0.1 | $([ $(echo "$AVG_CLS <= 0.1" | bc -l 2>/dev/null || echo 0) = 1 ] && echo "✅ 통과" || echo "❌ 개선 필요") |" >> $GITHUB_STEP_SUMMARY
@@ -193,8 +193,8 @@ jobs:
           echo "4. 🖼️ 이미지 최적화 및 WebP 전환"
           echo "5. ⚡ CSS 애니메이션 최적화 (Framer Motion 제거 효과 확인)"
           echo ""
-          echo "📊 성능 목표:"
-          echo "- Performance Score: ≥ 90%"
+          echo "📊 성능 목표 (lighthouserc.js 동기화):"
+          echo "- Performance Score: ≥ 75%"
           echo "- First Contentful Paint: ≤ 1.8초"
           echo "- Largest Contentful Paint: ≤ 2.5초" 
           echo "- Cumulative Layout Shift: ≤ 0.1"

@@ -18,26 +18,9 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import debug from '@/utils/debug';
 import { vercelConfig, debugWithEnv } from '@/utils/vercel-env';
-import dynamic from 'next/dynamic';
-
-// 🎯 Dynamic Import로 큰 컴포넌트들 lazy loading (194kB → 목표 <150kB)
-const UnifiedProfileHeader = dynamic(() => import('@/components/shared/UnifiedProfileHeader'), {
-  loading: () => (
-    <div className="h-10 w-32 animate-pulse rounded bg-white/20" />
-  ),
-  ssr: false
-});
-
-const FeatureCardsGrid = dynamic(() => import('@/components/home/FeatureCardsGrid'), {
-  loading: () => (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {[...Array(6)].map((_, i) => (
-        <div key={i} className="h-32 animate-pulse rounded-xl bg-white/10" />
-      ))}
-    </div>
-  ),
-  ssr: false
-});
+// 🎯 Performance Score 최적화 - Dynamic Import 롤백하여 SSR 활성화
+import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
+import FeatureCardsGrid from '@/components/home/FeatureCardsGrid';
 
 // framer-motion 제거 - CSS 애니메이션 사용
 
