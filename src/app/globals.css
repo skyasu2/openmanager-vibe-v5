@@ -157,23 +157,17 @@
 
 /* 🎨 FeatureCard 아이콘 애니메이션 - framer-motion 대체 */
 
-/* AI 카드 아이콘 애니메이션 - GPU 최적화 통합 버전 */
+/* AI 카드 아이콘 애니메이션 - 성능 최적화된 단순 버전 */
 .animate-ai-icon {
-  animation: ai-icon-combined 8s ease-in-out infinite;
+  animation: ai-icon-simple 6s linear infinite;
   will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
 }
 
-@keyframes ai-icon-combined {
+@keyframes ai-icon-simple {
   0% { transform: rotate(0deg) scale(1); }
-  12.5% { transform: rotate(45deg) scale(1.05); }
-  25% { transform: rotate(90deg) scale(1.1); }
-  37.5% { transform: rotate(135deg) scale(1.05); }
-  50% { transform: rotate(180deg) scale(1); }
-  62.5% { transform: rotate(225deg) scale(1.05); }
-  75% { transform: rotate(270deg) scale(1.1); }
-  87.5% { transform: rotate(315deg) scale(1.05); }
+  50% { transform: rotate(180deg) scale(1.05); }
   100% { transform: rotate(360deg) scale(1); }
 }
 
@@ -345,20 +339,6 @@ a {
   }
 }
 
-@keyframes gradientShift {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
 @keyframes gradient-shift {
   0% {
     background-position: 0% 50%;
@@ -413,34 +393,7 @@ a {
   }
 }
 
-@keyframes fade-in-delay {
-  from { 
-    opacity: 0; 
-    transform: translateY(20px); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
-}
-
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes progress-bar {
-  0% {
-    width: 0%;
-  }
-  100% {
-    width: 100%;
-  }
-}
+/* Removed unused keyframes: fade-in-delay, spin-slow, progress-bar */
 
 .animate-reverse-spin {
   animation: reverse-spin 2s linear infinite;
@@ -454,20 +407,9 @@ a {
   animation: gradient-x 3s ease infinite;
 }
 
-.animate-fade-in-delay {
-  animation: fade-in-delay 0.5s ease forwards;
-}
-
+/* Removed unused animation classes: animate-fade-in-delay, animate-spin-slow, animate-progress-bar */
 .animate-gradient-shift {
   animation: gradient-shift 4s ease-in-out infinite;
-}
-
-.animate-spin-slow {
-  animation: spin-slow 3s linear infinite;
-}
-
-.animate-progress-bar {
-  animation: progress-bar 2s ease-out forwards;
 }
 
 /* 유틸리티 클래스 */
@@ -482,50 +424,9 @@ a {
   background-clip: text;
 }
 
-/* Glassmorphism 카드 스타일 */
-.glass-card {
-  background: rgba(255, 255, 255, 0.1);
-  /* backdrop-filter: blur(10px); */
-  /* -webkit-backdrop-filter: blur(10px); */
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-}
-
-.glass-card:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-4px);
-  transition: all 0.3s ease;
-}
-
-/* 서버 카드 스타일 */
-.server-card {
-  background: rgba(255, 255, 255, 0.95);
-  /* backdrop-filter: blur(8px); */
-  /* -webkit-backdrop-filter: blur(8px); */
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.server-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-}
-
-/* AI 패널 스타일 */
-.ai-panel {
-  background: rgba(255, 255, 255, 0.98);
-  /* backdrop-filter: blur(12px); */
-  /* -webkit-backdrop-filter: blur(12px); */
-}
-
-/* 그라데이션 배경 */
-.gradient-bg {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
-}
+/* Note: Removed unused CSS classes: glass-card, server-card, ai-panel, gradient-bg */
+/* These classes were not found in actual component usage */
+/* Commented-out backdrop-filter lines were also removed for cleaner code */
 
 /* 🎨 반응형 디자인 개선 */
 

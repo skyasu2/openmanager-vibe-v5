@@ -1,9 +1,9 @@
 'use client';
 
-import { forwardRef, type ComponentProps, type ReactElement, type ReactNode, type HTMLAttributes, type ButtonHTMLAttributes, type ElementRef } from 'react';
+import { forwardRef, type ComponentProps, type ReactElement, type ReactNode, type HTMLAttributes, type ButtonHTMLAttributes, type ElementRef, type ComponentPropsWithoutRef } from 'react';
 import * as AccordionPrimitive from '@radix-ui/react-accordion';
 import { cn } from '@/lib/utils';
-import { ChevronDownIcon } from '@radix-ui/react-icons';
+import { ChevronDown } from 'lucide-react';
 
 const Accordion = AccordionPrimitive.Root;
 
@@ -33,7 +33,7 @@ const AccordionTrigger = forwardRef<
       {...props}
     >
       {children}
-      <ChevronDownIcon className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200" />
+      <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200" />
     </AccordionPrimitive.Trigger>
   </AccordionPrimitive.Header>
 ));

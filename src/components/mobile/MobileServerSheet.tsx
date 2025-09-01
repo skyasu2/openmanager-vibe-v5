@@ -1,18 +1,18 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, Fragment } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
-  XMarkIcon,
-  ServerIcon,
-  ExclamationTriangleIcon,
-  SignalIcon,
-  ClockIcon,
-  MapPinIcon,
-  CpuChipIcon,
-  CircleStackIcon,
-  BuildingOffice2Icon,
-} from '@heroicons/react/24/outline';
+  X,
+  Server,
+  AlertTriangle,
+  Signal,
+  Clock,
+  MapPin,
+  Cpu,
+  Database,
+  Building2,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Server } from '@/types/server';
 
@@ -54,7 +54,7 @@ export default function MobileServerSheet({
         label: 'CPU 사용률',
         value: server.cpu,
         unit: '%',
-        icon: CpuChipIcon,
+        icon: Cpu,
         color: metricColors.cpu,
         status:
           server.cpu > 80 ? 'warning' : server.cpu > 60 ? 'medium' : 'good',
@@ -63,7 +63,7 @@ export default function MobileServerSheet({
         label: '메모리 사용률',
         value: server.memory,
         unit: '%',
-        icon: CircleStackIcon,
+        icon: Database,
         color: metricColors.memory,
         status:
           server.memory > 85
@@ -76,7 +76,7 @@ export default function MobileServerSheet({
         label: '디스크 사용률',
         value: server.disk,
         unit: '%',
-        icon: BuildingOffice2Icon,
+        icon: Building2,
         color: metricColors.disk,
         status:
           server.disk > 90 ? 'warning' : server.disk > 75 ? 'medium' : 'good',
@@ -85,7 +85,7 @@ export default function MobileServerSheet({
         label: '네트워크',
         value: server.network || 0,
         unit: 'Mbps',
-        icon: SignalIcon,
+        icon: Signal,
         color: metricColors.network,
         status: 'good',
       },
@@ -167,7 +167,7 @@ export default function MobileServerSheet({
                         statusColors[server.status] || statusColors.offline
                       }`}
                     >
-                      <ServerIcon className="h-6 w-6" />
+                      <Server className="h-6 w-6" />
                     </div>
                     <div>
                       <h2 className="text-xl font-bold text-gray-900">
@@ -184,7 +184,7 @@ export default function MobileServerSheet({
                     onClick={onClose}
                     className="rounded-full p-2 hover:bg-gray-100"
                   >
-                    <XMarkIcon className="h-5 w-5" />
+                    <X className="h-5 w-5" />
                   </Button>
                 </div>
 
@@ -218,7 +218,7 @@ export default function MobileServerSheet({
                 >
                   <div className="rounded-lg bg-gray-50 p-4">
                     <div className="flex items-center space-x-3">
-                      <ClockIcon className="h-5 w-5 text-gray-500" />
+                      <Clock className="h-5 w-5 text-gray-500" />
                       <div>
                         <div className="text-sm font-medium text-gray-700">
                           업타임
@@ -236,7 +236,7 @@ export default function MobileServerSheet({
 
                   <div className="rounded-lg bg-gray-50 p-4">
                     <div className="flex items-center space-x-3">
-                      <MapPinIcon className="h-5 w-5 text-gray-500" />
+                      <MapPin className="h-5 w-5 text-gray-500" />
                       <div>
                         <div className="text-sm font-medium text-gray-700">
                           위치
@@ -307,7 +307,7 @@ export default function MobileServerSheet({
                     variants={itemVariants}
                   >
                     <div className="flex items-center space-x-3">
-                      <ExclamationTriangleIcon className="h-5 w-5 text-red-500" />
+                      <AlertTriangle className="h-5 w-5 text-red-500" />
                       <div>
                         <div className="text-sm font-medium text-red-700">
                           활성 알림

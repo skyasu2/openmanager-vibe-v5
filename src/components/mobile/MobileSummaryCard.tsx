@@ -2,12 +2,12 @@
 
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
-  ChevronRightIcon,
-  ExclamationTriangleIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  ClockIcon,
-} from '@heroicons/react/24/outline';
+  ChevronRight,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  Clock,
+} from 'lucide-react';
 import type { Server } from '../../types/server';
 
 interface MobileSummaryCardProps {
@@ -68,14 +68,14 @@ export default function MobileSummaryCard({
   // 전체 상태 결정
   const getOverallStatus = () => {
     if (stats.offline > 0)
-      return { status: 'critical', color: 'red', icon: XCircleIcon };
+      return { status: 'critical', color: 'red', icon: XCircle };
     if (stats.warning > 0)
       return {
         status: 'warning',
         color: 'yellow',
-        icon: ExclamationTriangleIcon,
+        icon: AlertTriangle,
       };
-    return { status: 'healthy', color: 'green', icon: CheckCircleIcon };
+    return { status: 'healthy', color: 'green', icon: CheckCircle2 };
   };
 
   const overall = getOverallStatus();
@@ -112,7 +112,7 @@ export default function MobileSummaryCard({
           {lastUpdate && (
             <div className="text-right">
               <div className="flex items-center space-x-1 text-xs opacity-75">
-                <ClockIcon className="h-3 w-3" />
+                <Clock className="h-3 w-3" />
                 <span>{lastUpdate.toLocaleTimeString()}</span>
               </div>
             </div>
@@ -166,7 +166,7 @@ export default function MobileSummaryCard({
             className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3"
           >
             <div className="flex items-center space-x-2">
-              <ExclamationTriangleIcon className="h-5 w-5 text-red-500" />
+              <AlertTriangle className="h-5 w-5 text-red-500" />
               <span className="text-sm font-medium text-red-700">
                 {stats.criticalAlerts}개의 중요 알림
               </span>
@@ -207,7 +207,7 @@ export default function MobileSummaryCard({
                     MEM {server.memory}%
                   </div>
                 </div>
-                <ChevronRightIcon className="h-4 w-4 text-gray-400" />
+                <ChevronRight className="h-4 w-4 text-gray-400" />
               </div>
             </button>
           ))}
@@ -219,7 +219,7 @@ export default function MobileSummaryCard({
           className="flex w-full items-center justify-center space-x-2 rounded-lg bg-blue-500 px-4 py-3 font-medium text-white transition-colors hover:bg-blue-600"
         >
           <span>모든 서버 보기</span>
-          <ChevronRightIcon className="h-4 w-4" />
+          <ChevronRight className="h-4 w-4" />
         </button>
       </div>
     </div>

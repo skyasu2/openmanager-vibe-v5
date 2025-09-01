@@ -3,7 +3,7 @@
   min-height: 100vh;
   background: var(--bg-gradient);
   background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
+  animation: gradient-shift 15s ease infinite;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -152,20 +152,14 @@
 
 .featureTitle {
   font-size: 1.4rem;
-  font-weight: 600;
-  color: var(--text-white);
-  margin-bottom: 0.5rem;
-  /* 🆕 가독성 개선 */
-  color: rgba(255, 255, 255, 0.95);
-  line-height: 1.5;
   font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
 }
 
 .featureDescription {
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.8);
-  line-height: 1.5;
-  /* 🆕 가독성 개선 */
   color: rgba(255, 255, 255, 0.8);
   line-height: 1.5;
   font-weight: 500;
@@ -232,7 +226,6 @@
 
 .statCard {
   background: var(--glass-bg);
-  /* backdrop-filter: blur(10px); */
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   padding: 1.5rem;
