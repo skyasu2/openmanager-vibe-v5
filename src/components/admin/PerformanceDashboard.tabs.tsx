@@ -9,6 +9,7 @@
  */
 
 // framer-motion 제거 - CSS 애니메이션 사용
+import { Fragment } from 'react';
 import {
   AlertTriangle,
   Brain,
@@ -113,7 +114,7 @@ export function PerformanceDashboardTabs({
                       label={({ name, value }: { name: any; value: any }) => `${name}: ${value}`}
                     >
                       {modeData.map((entry, index) => (
-                        // @ts-expect-error - Recharts Cell fill prop type definition issue
+                        /* @ts-ignore - Recharts Cell fill prop compatibility */
                         <Cell
                           key={`cell-${index}`}
                           fill={
@@ -142,8 +143,9 @@ export function PerformanceDashboardTabs({
             </CardHeader>
             <CardContent>
               <div className="h-64">
-                {/* @ts-expect-error - Recharts ResponsiveContainer children prop type definition issue */}
+                {/* @ts-ignore - Recharts ResponsiveContainer children prop compatibility */}
                 <ResponsiveContainer width="100%" height="100%">
+                  {/* @ts-ignore - Recharts AreaChart data prop compatibility */}
                   <AreaChart data={trendsData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="time" />

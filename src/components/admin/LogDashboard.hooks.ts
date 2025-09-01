@@ -130,8 +130,8 @@ export const useLogExport = () => {
         const filteredLogs = options.dateRange
           ? logs.filter((log) => {
               const logTime = new Date(log.timestamp);
-              const startTime = new Date(options.dateRange.start);
-              const endTime = new Date(options.dateRange.end);
+              const startTime = new Date(options.dateRange!.start);
+              const endTime = new Date(options.dateRange!.end);
               return logTime >= startTime && logTime <= endTime;
             })
           : logs;

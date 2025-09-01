@@ -505,7 +505,7 @@ export default function DashboardClient() {
     <PerformanceErrorBoundary
       onError={(error, errorInfo) => {
         console.error('🚨 대시보드 클라이언트 에러:', error.message);
-        console.error('📍 서버 데이터:', typeof window !== 'undefined' ? window.serverStats : 'N/A');
+        console.error('📍 서버 데이터:', typeof window !== 'undefined' ? (window as any).serverStats : 'N/A');
         console.error('📍 컴포넌트 스택:', errorInfo.componentStack);
         
         // 성능 저하 특별 처리

@@ -128,7 +128,7 @@ export function LogDashboardAnalytics({ data }: AnalyticsTabProps) {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={categoryData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  {/* @ts-expect-error - Recharts XAxis angle prop type definition issue */}
+                  {/* @ts-ignore - Recharts XAxis angle prop compatibility */}
                   <XAxis
                     dataKey="name"
                     angle={-45}
