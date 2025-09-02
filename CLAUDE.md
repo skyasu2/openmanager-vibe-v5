@@ -6,7 +6,7 @@
 
 ## 🎯 프로젝트 개요
 
-**OpenManager VIBE v5.70.8**: AI 기반 실시간 서버 모니터링 플랫폼
+**OpenManager VIBE v5.70.9**: AI 기반 실시간 서버 모니터링 플랫폼
 
 - **아키텍처**: Next.js 15.4.5 + React 18.3.1 + TypeScript 5.7.2 (strict) + Vercel + Supabase
 - **데이터 시뮬레이션**: Box-Muller Transform 정규분포 기반 Mock 서버 메트릭 (15개 서버, 10개 타입별 프로필)
@@ -28,7 +28,7 @@
 ### 🏆 메인 개발: WSL + Claude Code
 - **용도**: 모든 개발 작업의 중심축
 - **장점**: Linux 네이티브 성능, MCP 서버 완전 통합
-- **도구**: Claude Code v1.0.95, Node.js v22.18.0
+- **도구**: Claude Code v1.0.100, Node.js v22.18.0
 
 ### 🔧 보조 개발 환경: Windows + VSCode + GitHub Copilot
 - **용도**: 이미지 처리, WSL 터미널 호스팅, 보조 코드 제안
@@ -75,7 +75,7 @@ npm run validate:all # 린트 + 타입 + 테스트
 npm run git:status # Git 상태 확인
 
 # AI CLI 도구들 (WSL에서 실행)
-claude --version # Claude Code v1.0.95
+claude --version # Claude Code v1.0.100
 gemini --version # Google Gemini CLI v0.2.1
 qwen --version # Qwen CLI v0.0.9
 
@@ -197,7 +197,7 @@ npm run build:ci    # 1.5GB (CI 최적화)
 
 | 도구                  | 버전    | 요금제              | 역할 구분                   | WSL 실행                   | Windows 네이티브           |
 | --------------------- | ------- | ------------------- | --------------------------- | -------------------------- | -------------------------- |
-| **Claude Code**       | v1.0.95 | Max ($200/월) | 🏆 **메인 개발 환경**       | .\claude-wsl-optimized.bat | ✅ 완벽 지원                |
+| **Claude Code**       | v1.0.100 | Max ($200/월) | 🏆 **메인 개발 환경**       | .\claude-wsl-optimized.bat | ✅ 완벽 지원                |
 | **Codex CLI**         | v0.25.0 | Plus ($20/월)       | 🤝 **서브 에이전트** (유료)  | codex (WSL 직접 실행)      | ✅ **완벽 지원**           |
 | **Google Gemini CLI** | v0.2.1  | 무료 (1K req/day)   | 👨‍💻 **코드 아키텍트** (무료) | .\gemini-wsl.bat           | ✅ 완벽 지원                |
 | **Qwen Code**         | v0.0.9  | 무료 (Qwen OAuth 2K/day)   | 🔷 **병렬 모듈 개발** (무료) | .\qwen-wsl.bat             | ✅ 완벽 지원                |
@@ -878,7 +878,7 @@ WSL에서 모든 AI CLI 도구가 완벽하게 작동합니다:
 # WSL 내부에서 직접 실행
 
 wsl
-claude --version # Claude Code v1.0.95
+claude --version # Claude Code v1.0.100
 gemini --version # Google Gemini CLI v0.2.1
 qwen --version # Qwen CLI v0.0.9
 
