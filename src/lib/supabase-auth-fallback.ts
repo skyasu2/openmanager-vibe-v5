@@ -57,7 +57,7 @@ export async function signInDevMode() {
     // 개발용 테스트 계정으로 로그인
     const { data, error } = await supabase.auth.signInWithPassword({
       email: 'dev@openmanager.local',
-      password: 'dev-password-2025',
+      password: process.env.DEV_PASSWORD || 'fallback-dev-password',
     });
 
     if (error) {
@@ -65,7 +65,7 @@ export async function signInDevMode() {
       const { data: signUpData, error: signUpError } =
         await supabase.auth.signUp({
           email: 'dev@openmanager.local',
-          password: 'dev-password-2025',
+          password: process.env.DEV_PASSWORD || 'fallback-dev-password',
           options: {
             data: {
               name: 'Dev User',

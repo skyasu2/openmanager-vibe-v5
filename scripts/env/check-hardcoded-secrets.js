@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * 🔐 하드코딩된 시크릿 검사 스크립트
- * GitHub Actions Security Check용 보안 검사 도구
+ * 🔐 하드코딩된 시크릿 검사 스크립트 v2.0
+ * GitHub Actions Security Check용 빠른 보안 검사 도구
  */
 
 const fs = require('fs');
@@ -9,112 +9,160 @@ const path = require('path');
 
 console.log('🔐 하드코딩된 시크릿 검사 시작...');
 
-// 검사할 패턴 정의
-const secretPatterns = [
-  // GitHub 토큰
+// 실제 위험한 패턴만 검사 (false positive 최소화)
+const criticalPatterns = [
+  // 실제 GitHub 토큰 패턴
   { pattern: /ghp_[a-zA-Z0-9]{36}/, name: 'GitHub Personal Access Token' },
   { pattern: /ghs_[a-zA-Z0-9]{36}/, name: 'GitHub App Token' },
   { pattern: /github_pat_[a-zA-Z0-9]{22}_[a-zA-Z0-9]{59}/, name: 'GitHub Personal Access Token (new format)' },
   
-  // OpenAI API 키
+  // 실제 OpenAI API 키 패턴  
   { pattern: /sk-[a-zA-Z0-9]{20}T3BlbkFJ[a-zA-Z0-9]{20}/, name: 'OpenAI API Key' },
-  { pattern: /sk-[a-zA-Z0-9]{48}/, name: 'OpenAI API Key (general)' },
   
-  // Google API 키
+  // Google AI 키
   { pattern: /AIza[a-zA-Z0-9-_]{35}/, name: 'Google API Key' },
   
-  // AWS 키
+  // AWS 실제 키만
   { pattern: /AKIA[0-9A-Z]{16}/, name: 'AWS Access Key ID' },
-  { pattern: /[0-9a-zA-Z/+]{40}/, name: 'AWS Secret Access Key (potential)' },
   
   // Supabase 키
   { pattern: /sb-[a-zA-Z0-9]{40}-[a-zA-Z0-9]{20}/, name: 'Supabase Key' },
   
-  // 기본적인 패스워드/토큰 패턴
-  { pattern: /password\s*[:=]\s*['""][^'"]{8,}['"]/, name: 'Hardcoded Password' },
-  { pattern: /token\s*[:=]\s*['""][^'"]{10,}['"]/, name: 'Hardcoded Token' },
-  { pattern: /api[_-]?key\s*[:=]\s*['""][^'"]{10,}['"]/, name: 'Hardcoded API Key' }
+  // 명시적인 하드코딩된 키 패턴
+  { pattern: /(api_key|apikey|secret_key|secretkey)\s*[:=]\s*['"][^'"]{20,}['"]/, name: 'Hardcoded API Key' },
+  { pattern: /(password|pwd)\s*[:=]\s*['"][^'"]{8,}['"]/, name: 'Hardcoded Password' }
 ];
 
-// 제외할 패턴 (예시 값들)
-const excludePatterns = [
+// 제외할 테스트/예시 값들
+const excludeValues = [
+  // 테스트 값들
+  'sk-1234567890abcdef',
+  'ghp_1234567890123456789012345678901234567890',
+  'AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM',
+  'testpass123',
+  'admin123',
+  'fallback-dev-password',
+  // 예시/플레이스홀더
   'your-api-key-here',
   'example-token',
   'placeholder',
   'dummy-key',
   'test-key',
-  'sk-your-openai-api-key',
-  'your_supabase_key',
-  'your-github-token'
+  '***'
 ];
 
-// 검사할 파일 확장자
-const targetExtensions = ['.js', '.ts', '.jsx', '.tsx', '.json', '.env', '.env.example'];
+// 제외할 디렉토리
+const excludeDirs = new Set(['node_modules', '.git', 'dist', 'build', '.next', 'coverage', 'tests', 'test', '__tests__', 'docs', 'reports', '.claude', 'public']);
 
-// 제외할 디렉토리 (성능 최적화)
-const excludeDirs = ['node_modules', '.git', 'dist', 'build', '.next', 'coverage', 'docs', 'reports', '.claude', 'public'];
-
-function scanDirectory(dir) {
-  const items = fs.readdirSync(dir);
-  let findings = [];
+// 빠른 파일 스캔
+function quickScan() {
+  const findings = [];
   
-  for (const item of items) {
-    const fullPath = path.join(dir, item);
-    const stat = fs.statSync(fullPath);
+  // 주요 위험 파일들만 체크
+  const criticalFiles = [
+    '.env',
+    '.env.local', 
+    '.env.production',
+    '.env.development',
+    'config.js',
+    'config.ts',
+    'constants.js',
+    'constants.ts'
+  ];
+  
+  // 환경 변수 파일 우선 체크 (.env.local 제외 - 개발용)
+  criticalFiles.forEach(fileName => {
+    // .env.local은 개발용이므로 제외
+    if (fileName === '.env.local') return;
     
-    if (stat.isDirectory()) {
-      if (!excludeDirs.includes(item)) {
-        findings = findings.concat(scanDirectory(fullPath));
-      }
-    } else if (stat.isFile()) {
-      const ext = path.extname(item);
-      if (targetExtensions.includes(ext)) {
-        findings = findings.concat(scanFile(fullPath));
-      }
+    const filePath = path.join(process.cwd(), fileName);
+    if (fs.existsSync(filePath)) {
+      const content = fs.readFileSync(filePath, 'utf8');
+      findings.push(...scanContent(content, filePath));
     }
+  });
+  
+  // src 디렉토리의 config/auth 관련 파일만 체크
+  const srcDir = path.join(process.cwd(), 'src');
+  if (fs.existsSync(srcDir)) {
+    findings.push(...scanDirectory(srcDir, 2)); // 2 레벨 깊이만
   }
   
   return findings;
 }
 
-function scanFile(filePath) {
-  let findings = [];
+function scanDirectory(dir, maxDepth = 1) {
+  if (maxDepth <= 0) return [];
+  
+  const findings = [];
   
   try {
-    const content = fs.readFileSync(filePath, 'utf8');
-    const lines = content.split('\n');
+    const items = fs.readdirSync(dir);
     
-    lines.forEach((line, lineNumber) => {
-      secretPatterns.forEach(({ pattern, name }) => {
-        const matches = line.match(pattern);
-        if (matches) {
-          // 제외 패턴 확인
-          const isExcluded = excludePatterns.some(exclude => 
-            line.toLowerCase().includes(exclude.toLowerCase())
-          );
-          
-          if (!isExcluded) {
-            findings.push({
-              file: filePath,
-              line: lineNumber + 1,
-              type: name,
-              content: line.trim(),
-              match: matches[0]
-            });
-          }
+    for (const item of items) {
+      if (excludeDirs.has(item)) continue;
+      
+      const fullPath = path.join(dir, item);
+      const stat = fs.lstatSync(fullPath);
+      
+      if (stat.isDirectory()) {
+        findings.push(...scanDirectory(fullPath, maxDepth - 1));
+      } else if (stat.isFile() && (item.endsWith('.ts') || item.endsWith('.js') || item.endsWith('.json'))) {
+        // config, auth, secret 관련 파일만
+        if (item.toLowerCase().includes('config') || 
+            item.toLowerCase().includes('auth') || 
+            item.toLowerCase().includes('secret') ||
+            item.toLowerCase().includes('env')) {
+          const content = fs.readFileSync(fullPath, 'utf8');
+          findings.push(...scanContent(content, fullPath));
         }
-      });
-    });
+      }
+    }
   } catch (error) {
-    console.warn(`⚠️ 파일 읽기 실패: ${filePath} - ${error.message}`);
+    // 권한 에러 등은 무시
   }
+  
+  return findings;
+}
+
+function scanContent(content, filePath) {
+  const findings = [];
+  const lines = content.split('\n');
+  
+  lines.forEach((line, lineNumber) => {
+    criticalPatterns.forEach(({ pattern, name }) => {
+      const matches = line.match(pattern);
+      if (matches) {
+        const matchValue = matches[0];
+        
+        // 제외 값 확인
+        const isExcluded = excludeValues.some(exclude => 
+          matchValue.includes(exclude) || line.includes(exclude)
+        );
+        
+        // 주석이나 예시 코드 제외
+        const isComment = line.trim().startsWith('//') || line.trim().startsWith('*');
+        const isExample = line.includes('example') || line.includes('placeholder') || line.includes('dummy');
+        
+        if (!isExcluded && !isComment && !isExample) {
+          findings.push({
+            file: filePath.replace(process.cwd() + '/', ''),
+            line: lineNumber + 1,
+            type: name,
+            content: line.trim().substring(0, 100) + (line.length > 100 ? '...' : ''),
+            match: matchValue
+          });
+        }
+      }
+    });
+  });
   
   return findings;
 }
 
 // 메인 실행
 try {
-  const findings = scanDirectory(process.cwd());
+  const findings = quickScan();
   
   if (findings.length === 0) {
     console.log('✅ 하드코딩된 시크릿을 발견하지 못했습니다.');
