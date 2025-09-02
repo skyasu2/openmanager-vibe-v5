@@ -15,6 +15,7 @@ import AutoReportPage from '@/components/ai/pages/AutoReportPage';
 import IntelligentMonitoringPage from '@/components/ai/pages/IntelligentMonitoringPage';
 import { MLLearningCenter } from '@/components/ai/pages/MLLearningCenter';
 // React import 제거 - Next.js 15 자동 JSX Transform 사용
+import { type FC } from 'react';
 
 interface AIFunctionPagesProps {
   selectedFunction: AIAssistantFunction;
@@ -26,7 +27,7 @@ export const AIFunctionPages: FC<AIFunctionPagesProps> = ({
   selectedFunction,
   onFunctionChange,
   className = '',
-}) => {
+}: AIFunctionPagesProps) => {
   const renderFunctionPage = () => {
     switch (selectedFunction) {
       case 'chat':

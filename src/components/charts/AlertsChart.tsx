@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
+import { SafeBarProps, ExtendedTooltipProps, ExtendedXAxisProps, ExtendedYAxisProps, SafeCartesianGridProps } from '@/types/CustomRechartsTypes';
 
 interface ChartDataPoint {
   name: string;
@@ -79,25 +80,30 @@ const AlertsChart = memo<AlertsChartProps>(({ data }) => {
       {/* 차트 */}
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={data}
-            margin={{
-              top: 5,
-              right: 30,
-              left: 20,
-              bottom: 5,
-            }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <BarChart data={data}>
+            <CartesianGrid {...({ strokeDasharray: "3 3", stroke: "#f0f0f0" } as SafeCartesianGridProps)} />
             <XAxis
-              dataKey="name"
-              tick={{ fontSize: 12 }}
-              tickLine={false}
-              axisLine={false}
+              {...({
+                dataKey: "name",
+                tick: { fontSize: 12 },
+                tickLine: false,
+                axisLine: false
+              } as ExtendedXAxisProps)}
             />
-            <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
-            <Tooltip content={<AlertsTooltip />} />
-            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+            <YAxis 
+              {...({
+                tick: { fontSize: 12 },
+                tickLine: false,
+                axisLine: false
+              } as ExtendedYAxisProps)}
+            />
+            <Tooltip {...({ content: <AlertsTooltip /> } as ExtendedTooltipProps)} />
+            <Bar 
+              {...({
+                dataKey: "value",
+                radius: [4, 4, 0, 0]
+              } as SafeBarProps)}
+            >
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}

@@ -44,6 +44,7 @@ import {
   Cell,
   Pie,
 } from './PerformanceDashboard.charts';
+import { SafeTooltipProps, SafeLineProps, SafeBarProps, SafePieProps, SafeAxisProps, ExtendedTooltipProps, ExtendedYAxisProps } from '@/types/CustomRechartsTypes';
 
 interface ModeDataItem {
   name: string;
@@ -100,21 +101,19 @@ export function PerformanceDashboardTabs({
             </CardHeader>
             <CardContent>
               <div className="h-64">
-                {/* @ts-expect-error - Recharts ResponsiveContainer children prop type definition issue */}
                 <ResponsiveContainer width="100%" height="100%">
-                  {/* @ts-expect-error - Recharts PieChart children prop type definition issue */}
                   <PieChart>
-                    {/* @ts-expect-error - Recharts Pie children and label prop type definition issue */}
                     <Pie
-                      data={modeData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      dataKey="value"
-                      label={({ name, value }: { name: any; value: any }) => `${name}: ${value}`}
+                      {...({
+                        data: modeData,
+                        cx: "50%",
+                        cy: "50%",
+                        outerRadius: 80,
+                        dataKey: "value",
+                        label: ({ name, value }: { name: string; value: number }) => `${name}: ${value}`
+                      } as SafePieProps)}
                     >
                       {modeData.map((entry, index) => (
-                        /* @ts-ignore - Recharts Cell fill prop compatibility */
                         <Cell
                           key={`cell-${index}`}
                           fill={
@@ -125,8 +124,7 @@ export function PerformanceDashboardTabs({
                         />
                       ))}
                     </Pie>
-                    {/* @ts-expect-error - Recharts Tooltip content prop type definition issue */}
-                    <Tooltip content={<CustomTooltip />} />
+                    <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -143,14 +141,12 @@ export function PerformanceDashboardTabs({
             </CardHeader>
             <CardContent>
               <div className="h-64">
-                {/* @ts-ignore - Recharts ResponsiveContainer children prop compatibility */}
                 <ResponsiveContainer width="100%" height="100%">
-                  {/* @ts-ignore - Recharts AreaChart data prop compatibility */}
                   <AreaChart data={trendsData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="time" />
                     <YAxis />
-                    <Tooltip content={<CustomTooltip />} />
+                    <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
                     <Area
                       type="monotone"
                       dataKey="requests"
@@ -181,26 +177,32 @@ export function PerformanceDashboardTabs({
                 <BarChart data={engineData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
-                  <YAxis yAxisId="left" />
-                  <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip content={<CustomTooltip />} />
+                  <YAxis {...({ yAxisId: "left" } as ExtendedYAxisProps)} />
+                  <YAxis {...({ yAxisId: "right", orientation: "right" } as ExtendedYAxisProps)} />
+                  <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
                   <Bar
-                    yAxisId="left"
-                    dataKey="requests"
-                    fill={COLORS.primary}
-                    name="요청 수"
+                    {...({
+                      yAxisId: "left",
+                      dataKey: "requests",
+                      fill: COLORS.primary,
+                      name: "요청 수"
+                    } as SafeBarProps)}
                   />
                   <Bar
-                    yAxisId="left"
-                    dataKey="responseTime"
-                    fill={COLORS.warning}
-                    name="응답시간(ms)"
+                    {...({
+                      yAxisId: "left",
+                      dataKey: "responseTime",
+                      fill: COLORS.warning,
+                      name: "응답시간(ms)"
+                    } as SafeBarProps)}
                   />
                   <Bar
-                    yAxisId="right"
-                    dataKey="successRate"
-                    fill={COLORS.success}
-                    name="성공률(%)"
+                    {...({
+                      yAxisId: "right",
+                      dataKey: "successRate",
+                      fill: COLORS.success,
+                      name: "성공률(%)"
+                    } as SafeBarProps)}
                   />
                 </BarChart>
               </ResponsiveContainer>
@@ -224,24 +226,26 @@ export function PerformanceDashboardTabs({
                 <LineChart data={trendsData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="time" />
-                  <YAxis yAxisId="left" />
-                  <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip content={<CustomTooltip />} />
+                  <YAxis {...({ yAxisId: "left" } as ExtendedYAxisProps)} />
+                  <YAxis {...({ yAxisId: "right", orientation: "right" } as ExtendedYAxisProps)} />
+                  <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
                   <Line
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="responseTime"
-                    stroke={COLORS.warning}
-                    strokeWidth={2}
-                    name="응답시간(ms)"
+                    {...({
+                      yAxisId: "left",
+                      type: "monotone",
+                      dataKey: "responseTime",
+                      stroke: COLORS.warning,
+                      strokeWidth: 2
+                    } as SafeLineProps)}
                   />
                   <Line
-                    yAxisId="right"
-                    type="monotone"
-                    dataKey="successRate"
-                    stroke={COLORS.success}
-                    strokeWidth={2}
-                    name="성공률(%)"
+                    {...({
+                      yAxisId: "right",
+                      type: "monotone",
+                      dataKey: "successRate",
+                      stroke: COLORS.success,
+                      strokeWidth: 2
+                    } as SafeLineProps)}
                   />
                 </LineChart>
               </ResponsiveContainer>

@@ -12,7 +12,7 @@
 import type { AIMode } from '@/types/ai-types';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Brain, Cpu, Zap } from 'lucide-react';
-import React, { useState, createElement } from 'react';
+import React, { useState, createElement, type FC } from 'react';
 
 interface AiModeSelectorProps {
   selectedMode: AIMode;
@@ -32,7 +32,7 @@ const AI_MODE_CONFIG = {
     textColor: 'text-blue-700',
     selectedBg: 'bg-blue-500',
   },
-  GOOGLE_ONLY: {
+  GOOGLE_AI: {
     label: 'Google AI',
     description: '고급 추론, 자연어 질의',
     icon: Brain,
@@ -80,7 +80,7 @@ export const AIModeSelector: FC<AiModeSelectorProps> = ({
           className={`absolute bottom-1 top-1 rounded-md shadow-sm transition-all duration-300 ease-in-out ${
             selectedMode === 'LOCAL'
               ? AI_MODE_CONFIG.LOCAL.selectedBg
-              : AI_MODE_CONFIG.GOOGLE_ONLY.selectedBg
+              : AI_MODE_CONFIG.GOOGLE_AI.selectedBg
           }`}
           style={{
             left: selectedMode === 'LOCAL' ? '4px' : 'calc(50% + 2px)',
@@ -143,7 +143,7 @@ export const AIModeSelector: FC<AiModeSelectorProps> = ({
         </div>
 
         {/* 추가 정보 */}
-        {selectedMode === 'GOOGLE_ONLY' && (
+        {selectedMode === 'GOOGLE_AI' && (
           <div className="mt-1 text-xs text-gray-500">
             💡 복잡한 질문이나 자연어 대화에 최적화
           </div>
@@ -156,7 +156,7 @@ export const AIModeSelector: FC<AiModeSelectorProps> = ({
       </div>
 
       {/* 사용량 표시 (Google AI인 경우) */}
-      {selectedMode === 'GOOGLE_ONLY' && (
+      {selectedMode === 'GOOGLE_AI' && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
           <div className="flex items-center justify-between text-xs">
             <span className="font-medium text-amber-700">Google AI 사용량</span>

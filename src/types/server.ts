@@ -7,6 +7,36 @@ import type {
   ServerStatus,
 } from './server-common';
 
+// 🏗️ AI 교차검증 기반 새로운 타입 시스템 통합
+import type {
+  ServerStatus as EnumServerStatus,
+  ServerEnvironment as EnumServerEnvironment,
+  ServerRole as EnumServerRole,
+  isValidServerStatus,
+  isValidServerEnvironment,
+  isValidServerRole,
+  getDefaultServerStatus,
+  getDefaultServerEnvironment,
+  getDefaultServerRole,
+} from './server-enums';
+
+// 새로운 enum 기반 타입들을 기본으로 사용
+export type { 
+  EnumServerStatus as ServerStatusEnum,
+  EnumServerEnvironment as ServerEnvironmentEnum, 
+  EnumServerRole as ServerRoleEnum
+};
+
+// 타입 가드와 기본값 함수들 re-export
+export {
+  isValidServerStatus,
+  isValidServerEnvironment, 
+  isValidServerRole,
+  getDefaultServerStatus,
+  getDefaultServerEnvironment,
+  getDefaultServerRole,
+};
+
 // 다른 파일에서 사용할 수 있도록 재export
 export type {
   AlertSeverity,
@@ -174,23 +204,10 @@ export interface SystemInfo {
   lastUpdate: string;
 }
 
-export type ServerEnvironment =
-  | 'production'
-  | 'staging'
-  | 'development'
-  | 'on-premise'
-  | 'aws'
-  | 'gcp'
-  | 'azure';
-export type ServerRole =
-  | 'web'
-  | 'app'
-  | 'api'
-  | 'database'
-  | 'cache'
-  | 'storage'
-  | 'load-balancer'
-  | 'backup';
+// ⚠️ DEPRECATED: 기존 타입들 - server-enums.ts 사용 권장
+// 호환성을 위해 유지하되, 새 코드에서는 ServerEnvironmentEnum, ServerRoleEnum 사용
+export type ServerEnvironment = EnumServerEnvironment | 'on-premise' | 'aws' | 'gcp' | 'azure';
+export type ServerRole = EnumServerRole | 'app';
 
 export interface EnhancedServerMetrics {
   // 🔧 기본 ServerMetrics 속성들 (완전 포함)
@@ -199,6 +216,8 @@ export interface EnhancedServerMetrics {
   environment: ServerEnvironment;
   role: ServerRole;
   status: ServerStatus;
+  
+  // 🔧 호환성 확장을 위한 추가 필드들 (AI 교차검증 결과 반영)
   cpu_usage: number;
   memory_usage: number;
   disk_usage: number;
@@ -225,15 +244,19 @@ export interface EnhancedServerMetrics {
   memory?: number; // memory_usage 호환성  
   disk?: number; // disk_usage 호환성
 
+  // 🔧 추가 호환성 필드들
+  ip?: string; // IP 주소
+  os?: string; // 운영체제 
+  connections?: number; // 연결 수
+  services?: Service[]; // 서비스 목록
+  processes?: ProcessInfo[]; // 프로세스 정보
+
   // 🔧 서버 기본 정보 (API route에서 사용)
   location?: string; // 서버 위치
-  ip?: string; // IP 주소
-  os?: string; // 운영체제
   type?: string; // 서버 타입 (role과 중복되지만 호환성)
   provider?: string; // 클라우드 제공자
   specs?: ServerSpecs; // 서버 사양
   lastUpdate?: string; // 마지막 업데이트 (ISO 문자열)
-  services?: Service[]; // 서비스 목록
   systemInfo?: SystemInfo; // 시스템 정보
   networkInfo?: NetworkInfo; // 네트워크 정보
 
@@ -341,27 +364,6 @@ export const SERVER_TYPE_DEFINITIONS: Record<ServerRole, ServerTypeDefinition> =
       failureProne: ['high_traffic', 'ssl_issues', 'frontend_errors'],
       dependencies: ['api', 'cache'],
     },
-    app: {
-      type: 'app',
-      tags: [
-        'node',
-        'nginx',
-        'java',
-        'dotnet',
-        'application',
-        'business-logic',
-      ],
-      characteristics: {
-        cpuWeight: 0.9,
-        memoryWeight: 0.8,
-        diskWeight: 0.5,
-        networkWeight: 0.9,
-        responseTimeBase: 150,
-        stabilityFactor: 0.75,
-      },
-      failureProne: ['memory_leak', 'thread_pool_exhausted', 'gc_pressure'],
-      dependencies: ['database', 'cache', 'api'],
-    },
     api: {
       type: 'api',
       tags: ['node', 'nginx', 'express', 'fastapi', 'rest', 'graphql'],
@@ -446,6 +448,62 @@ export const SERVER_TYPE_DEFINITIONS: Record<ServerRole, ServerTypeDefinition> =
       failureProne: ['backup_failure', 'storage_corruption'],
       dependencies: ['storage', 'database'],
     },
+    monitoring: {
+      type: 'monitoring',
+      tags: ['prometheus', 'grafana', 'metrics', 'logging'],
+      characteristics: {
+        cpuWeight: 0.5,
+        memoryWeight: 0.6,
+        diskWeight: 0.8,
+        networkWeight: 0.9,
+        responseTimeBase: 300,
+        stabilityFactor: 0.85,
+      },
+      failureProne: ['disk_space', 'network_issues'],
+      dependencies: [],
+    },
+    security: {
+      type: 'security',
+      tags: ['firewall', 'auth', 'ssl', 'security'],
+      characteristics: {
+        cpuWeight: 0.3,
+        memoryWeight: 0.4,
+        diskWeight: 0.5,
+        networkWeight: 1.1,
+        responseTimeBase: 100,
+        stabilityFactor: 0.9,
+      },
+      failureProne: ['cert_expiry', 'auth_failure'],
+      dependencies: [],
+    },
+    queue: {
+      type: 'queue',
+      tags: ['redis', 'rabbitmq', 'queue', 'jobs'],
+      characteristics: {
+        cpuWeight: 0.6,
+        memoryWeight: 0.7,
+        diskWeight: 0.4,
+        networkWeight: 0.8,
+        responseTimeBase: 50,
+        stabilityFactor: 0.8,
+      },
+      failureProne: ['queue_overflow', 'worker_timeout'],
+      dependencies: [],
+    },
+    app: {
+      type: 'app',
+      tags: ['application', 'service', 'microservice', 'app'],
+      characteristics: {
+        cpuWeight: 0.7,
+        memoryWeight: 0.6,
+        diskWeight: 0.5,
+        networkWeight: 0.9,
+        responseTimeBase: 150,
+        stabilityFactor: 0.7,
+      },
+      failureProne: ['application_crash', 'memory_leak', 'timeout'],
+      dependencies: ['api', 'database'],
+    },
   };
 
 export interface RealisticFailureScenario {
@@ -473,14 +531,17 @@ export interface RealisticFailureScenario {
 }
 
 export const FAILURE_IMPACT_GRAPH: Record<ServerRole, ServerRole[]> = {
-  app: ['database', 'cache', 'api'],
-  api: ['database', 'cache'],
   web: ['api', 'load-balancer'],
-  storage: ['database', 'backup'],
-  database: ['api', 'backup', 'app'],
-  cache: ['api', 'app'],
-  'load-balancer': ['web'],
+  api: ['database', 'cache'],
+  database: ['api', 'backup'],
+  cache: ['api', 'web'],
+  monitoring: ['security'],
+  security: ['web', 'api'],
   backup: ['storage'],
+  'load-balancer': ['web'],
+  queue: ['api', 'database'],
+  storage: ['database', 'backup'],
+  app: ['api', 'database', 'queue'],
 };
 
 export interface SystemOverview {

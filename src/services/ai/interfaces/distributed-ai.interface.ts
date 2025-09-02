@@ -7,7 +7,7 @@
  * - 분산 트랜잭션 패턴
  */
 
-import type { AIMetadata } from '@/types/ai-service-types';
+import type { AIMetadata } from '../../../types/ai-service-types';
 
 // ============ 공통 타입 정의 ============
 

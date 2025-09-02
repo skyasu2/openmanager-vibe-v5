@@ -6,19 +6,18 @@
 
 'use client';
 
-// framer-motion 제거 - CSS 애니메이션 사용
+import React from 'react';
 import { Bot, RotateCcw, User } from 'lucide-react';
-// React import 제거 - Next.js 15 자동 JSX Transform 사용
 
 // 타입 임포트
-import type { ChatMessage } from '../types/ai-sidebar-types';
+import type { ChatMessage, ThinkingStep } from '../types/ai-sidebar-types';
 
 interface ChatMessageItemProps {
   message: ChatMessage;
   onRegenerateResponse?: (messageId: string) => void;
 }
 
-export const ChatMessageItem: FC<ChatMessageItemProps> = ({
+export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
   message,
   onRegenerateResponse,
 }) => {
@@ -76,7 +75,7 @@ export const ChatMessageItem: FC<ChatMessageItemProps> = ({
                 💭 생각 과정
               </div>
               <div className="space-y-1">
-                {message.thinking.map((step) => (
+                {message.thinking.map((step: ThinkingStep) => (
                   <div key={step.id} className="flex items-center space-x-2">
                     <div
                       className={`h-2 w-2 rounded-full ${
@@ -103,7 +102,7 @@ export const ChatMessageItem: FC<ChatMessageItemProps> = ({
           {message.role === 'assistant' && (
             <div className="mt-2 flex items-center space-x-2">
               <button
-                onClick={() => onRegenerateResponse(message.id)}
+                onClick={() => onRegenerateResponse?.(message.id)}
                 className="flex items-center space-x-1 rounded px-2 py-1 text-xs text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-800"
               >
                 <RotateCcw className="h-3 w-3" />

@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import React, { useMemo, useState, useCallback, useEffect, type FC } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   FileText,
@@ -183,7 +183,7 @@ const AutoReportPanel: FC<AutoReportPanelProps> = ({
       adminLabel="관리"
       filters={reportTypes}
       selectedFilter={selectedFilter}
-      onFilterChange={(filterId) => setSelectedFilter(filterId as any)}
+      onFilterChange={(filterId: string) => setSelectedFilter(filterId as any)}
       bottomInfo={{
         primary: '🤖 보고서는 AI가 자동으로 분석하여 생성합니다',
         secondary:

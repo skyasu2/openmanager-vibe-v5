@@ -47,7 +47,7 @@ export const getHealthStatusColor = (status: string): string => {
 };
 
 export const calculatePerformanceScore = (
-  metrics: PerformanceMetric
+  metrics: import('./types/performance').PerformanceMetric
 ): number => {
   const scores = [
     Math.max(0, 100 - metrics.cpu),

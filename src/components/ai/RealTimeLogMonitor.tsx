@@ -10,7 +10,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Fragment, type FC } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Search,

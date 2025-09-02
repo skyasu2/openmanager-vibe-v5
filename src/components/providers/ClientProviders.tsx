@@ -7,6 +7,7 @@
 
 'use client';
 
+import { ReactNode } from 'react';
 import SupabaseAuthProvider from './SupabaseAuthProvider';
 import QueryProvider from './QueryProvider';
 import { ServerDataStoreProvider } from './StoreProvider';

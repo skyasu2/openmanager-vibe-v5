@@ -7,7 +7,7 @@
  * - 빈도 기반 캐시 최적화
  */
 
-import { aiLogger } from '@/lib/logger';
+import { aiLogger } from '../../lib/logger';
 import type { QueryResponse } from './SimplifiedQueryEngine';
 
 interface QueryPattern {
@@ -103,7 +103,7 @@ export class QueryCacheManager {
       const patternKey = pattern.id;
 
       // 패턴으로 캐시된 응답 찾기
-      for (const [, cachedResponse] of this.responseCache.entries()) {
+      for (const [, cachedResponse] of Array.from(this.responseCache.entries())) {
         if (
           cachedResponse.patternId === patternKey &&
           this.isValidCache(cachedResponse)

@@ -7,6 +7,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
+import { SafePieProps, ExtendedTooltipProps } from '@/types/CustomRechartsTypes';
 
 interface ChartDataPoint {
   name: string;
@@ -88,23 +89,25 @@ const AvailabilityChart = memo<AvailabilityChartProps>(({ data }) => {
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              innerRadius={30}
-              outerRadius={60}
-              paddingAngle={1}
-              dataKey="value"
+              {...({
+                data: data,
+                cx: "50%",
+                cy: "50%",
+                innerRadius: 30,
+                outerRadius: 60,
+                paddingAngle: 1,
+                dataKey: "value"
+              } as SafePieProps)}
             >
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
-            <Tooltip content={<AvailabilityTooltip />} />
+            <Tooltip {...({ content: <AvailabilityTooltip /> } as ExtendedTooltipProps)} />
             <Legend
               verticalAlign="bottom"
               height={24}
-              formatter={(value, entry) => (
+              formatter={(value: string, entry: { color: string }) => (
                 <span style={{ color: entry.color }} className="text-sm">
                   {value}
                 </span>

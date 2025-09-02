@@ -11,6 +11,7 @@ export interface SystemComponent {
   id: string;
   name: string;
   description: string;
+  category?: string; // 컴포넌트 카테고리 (backend, frontend, database, etc.)
   icon: string;
   priority: 'critical' | 'high' | 'medium' | 'low';
   estimatedTime: number; // 예상 완료 시간 (ms)

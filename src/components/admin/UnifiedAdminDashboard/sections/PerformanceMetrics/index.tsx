@@ -5,6 +5,7 @@
  */
 
 // framer-motion 제거 - CSS 애니메이션 사용
+import React, { type ReactNode } from 'react';
 import { Download, TrendingUp, TrendingDown, Activity } from 'lucide-react';
 import type {
   SystemStatus,

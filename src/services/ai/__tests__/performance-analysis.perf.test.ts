@@ -129,8 +129,8 @@ describe('SimplifiedQueryEngine 성능 분석', () => {
 
       // 워밍업 수행 - performWarmup을 직접 호출
       await optimizedEngine._initialize();
-      // @ts-ignore - private 메서드 테스트를 위한 접근
-      await optimizedEngine.performWarmup();
+      // private 메서드 접근을 위한 타입 캐스팅
+      await (optimizedEngine as any).performWarmup();
 
       const warmupTime = Date.now() - startTime;
       const stats = optimizedEngine.getPerformanceStats();

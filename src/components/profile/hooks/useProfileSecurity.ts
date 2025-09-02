@@ -68,7 +68,7 @@ export function useProfileSecurity() {
       timer = setInterval(() => {
         const remaining = Math.max(
           0,
-          Math.ceil((securityState.lockEndTime - Date.now()) / 1000)
+          Math.ceil((securityState.lockEndTime! - Date.now()) / 1000)
         );
 
         setSecurityState((prev) => ({

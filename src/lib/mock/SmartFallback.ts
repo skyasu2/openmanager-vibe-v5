@@ -77,7 +77,7 @@ export class SmartFallback {
       console.log(`🔄 ${serviceName}: Mock으로 자동 전환`);
       this.recordFallback(serviceName);
 
-      if (onFallback) {
+      if (onFallback && lastError) {
         onFallback(lastError);
       }
 

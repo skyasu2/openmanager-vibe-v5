@@ -8,7 +8,7 @@ import type { ComplexityScore } from './query-complexity-analyzer';
 import type {
   Entity,
   IntentResult,
-} from '@/modules/ai-agent/processors/IntentClassifier';
+} from '../../modules/ai-agent/processors/IntentClassifier';
 import type {
   AIQueryContext,
   AIQueryOptions,
@@ -16,7 +16,7 @@ import type {
   RAGSearchResult,
   AIMetadata,
   ServerArray,
-} from '@/types/ai-service-types';
+} from '../../types/ai-service-types';
 
 export interface QueryRequest {
   query: string;
@@ -140,13 +140,24 @@ export interface MockContext {
 
 // GCP VM MCP 타입 제거됨 - Cloud Functions 전용으로 단순화
 
-// Thinking step type definition
+// Thinking step type definition - ai-sidebar-types.ts와 완전 호환
 export interface ThinkingStep {
+  id?: string;
   step: string;
+  title?: string;
   description?: string;
-  status: 'pending' | 'completed' | 'failed';
+  status: 'pending' | 'processing' | 'completed' | 'failed';
   timestamp: number;
   duration?: number;
+  content?: string;
+  // AI 사고 과정의 모든 type 값들을 지원하도록 확장
+  type?: 
+    | 'analysis' | 'data_processing' | 'pattern_matching' | 'reasoning' | 'response_generation'
+    | 'analyzing' | 'processing' | 'generating' | 'completed' | 'error';
+  progress?: number;
+  confidence?: number;
+  subSteps?: string[];
+  metadata?: Record<string, any>;
 }
 
 // Cache entry type definition

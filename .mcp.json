@@ -55,21 +55,23 @@
         "--from",
         "git+https://github.com/oraios/serena",
         "serena-mcp-server",
+        "--project",
+        "/mnt/d/cursor/openmanager-vibe-v5",
         "--enable-web-dashboard",
         "false",
         "--enable-gui-log-window",
         "false",
         "--log-level",
-        "ERROR",
+        "WARNING",
         "--tool-timeout",
-        "15"
+        "30"
       ],
       "env": {
         "PYTHONUNBUFFERED": "1",
         "PYTHONDONTWRITEBYTECODE": "1",
         "TERM": "dumb",
         "NO_COLOR": "1",
-        "SERENA_LOG_LEVEL": "ERROR"
+        "SERENA_LOG_LEVEL": "WARNING"
       }
     },
     "sequential-thinking": {

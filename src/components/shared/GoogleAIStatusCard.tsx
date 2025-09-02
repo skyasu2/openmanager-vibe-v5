@@ -4,6 +4,7 @@
 
 'use client';
 
+import { FC } from 'react';
 import {
   useGoogleAIStatus,
   useRefreshGoogleAIStatus,
@@ -22,7 +23,7 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
-import { useState } from 'react';
+import React, { Fragment, useState } from 'react';
 
 interface GoogleAIStatusCardProps {
   className?: string;
@@ -376,7 +377,7 @@ export const GoogleAIStatusCard: FC<GoogleAIStatusCardProps> = ({
                 <div className="mt-3">
                   <div className="mb-2 text-sm text-gray-600">활성 기능:</div>
                   <div className="flex flex-wrap gap-1">
-                    {Object.entries(status.features).map(
+                    {Object.entries(status.features as Record<string, boolean>).map(
                       ([feature, enabled]) =>
                         enabled && (
                           <span

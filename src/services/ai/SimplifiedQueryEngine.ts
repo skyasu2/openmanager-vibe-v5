@@ -11,10 +11,10 @@
 
 import type { SupabaseRAGEngine } from './supabase-rag-engine';
 import { getSupabaseRAGEngine } from './supabase-rag-engine';
-import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
+import { CloudContextLoader } from '../mcp/CloudContextLoader';
 import { MockContextLoader } from './MockContextLoader';
-import { IntentClassifier } from '@/modules/ai-agent/processors/IntentClassifier';
-import type { Entity } from '@/modules/ai-agent/processors/IntentClassifier';
+import { IntentClassifier } from '../../modules/ai-agent/processors/IntentClassifier';
+import type { Entity } from '../../modules/ai-agent/processors/IntentClassifier';
 
 // Import extracted modules
 import { SimplifiedQueryEngineUtils } from './SimplifiedQueryEngine.utils';
@@ -33,7 +33,7 @@ import type {
   AIQueryOptions,
   MCPContext,
   AIMetadata,
-} from '@/types/ai-service-types';
+} from '../../types/ai-service-types';
 
 // Re-export types from the types module for backward compatibility
 export type {
@@ -49,7 +49,7 @@ export type {
 } from './SimplifiedQueryEngine.types';
 
 // Re-export AIMetadata for modules that expect it from this location
-export type { AIMetadata } from '@/types/ai-service-types';
+export type { AIMetadata } from '../../types/ai-service-types';
 
 export class SimplifiedQueryEngine {
   protected ragEngine: SupabaseRAGEngine;

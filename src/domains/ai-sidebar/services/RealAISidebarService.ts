@@ -87,8 +87,9 @@ export class RealAISidebarService {
       return {
         id: `response_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         query: question,
-        response:
-          aiData.response || '죄송합니다. 현재 AI 시스템에 문제가 있습니다.',
+        content: aiData.response || '죄송합니다. 현재 AI 시스템에 문제가 있습니다.',
+        response: aiData.response || '죄송합니다. 현재 AI 시스템에 문제가 있습니다.',
+        engine: 'supabase-rag',
         confidence: aiData.confidence || 0.5,
         timestamp: new Date(),
         thinkingSteps: aiData.metadata?.thinkingSteps || thinkingSteps,
@@ -101,8 +102,9 @@ export class RealAISidebarService {
       return {
         id: `error_${Date.now()}`,
         query: question,
-        response:
-          '죄송합니다. 현재 AI 시스템에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요.',
+        content: '죄송합니다. 현재 AI 시스템에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요.',
+        response: '죄송합니다. 현재 AI 시스템에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요.',
+        engine: 'local',
         confidence: 0.1,
         timestamp: new Date(),
         thinkingSteps: [],
@@ -177,6 +179,7 @@ export class RealAISidebarService {
       {
         id: 'server-status',
         question: '서버 상태는 어떤가요?',
+        text: '서버 상태는 어떤가요?',
         category: 'server',
         icon: 'Server',
         color: 'text-blue-500',
@@ -185,6 +188,7 @@ export class RealAISidebarService {
       {
         id: 'log-analysis',
         question: '최근 로그를 분석해주세요',
+        text: '최근 로그를 분석해주세요',
         category: 'logs',
         icon: 'Search',
         color: 'text-green-500',
@@ -193,6 +197,7 @@ export class RealAISidebarService {
       {
         id: 'performance-analysis',
         question: '성능 지표를 분석해주세요',
+        text: '성능 지표를 분석해주세요',
         category: 'analysis',
         icon: 'BarChart3',
         color: 'text-purple-500',
@@ -201,6 +206,7 @@ export class RealAISidebarService {
       {
         id: 'prediction-analysis',
         question: '향후 예측을 해주세요',
+        text: '향후 예측을 해주세요',
         category: 'prediction',
         icon: 'Target',
         color: 'text-orange-500',
@@ -254,7 +260,8 @@ export class RealAISidebarService {
       },
     ];
 
-    for (const [index, step] of steps.entries()) {
+    for (let index = 0; index < steps.length; index++) {
+      const step = steps[index];
       await new Promise((resolve) =>
         setTimeout(resolve, 800 + Math.random() * 400)
       );

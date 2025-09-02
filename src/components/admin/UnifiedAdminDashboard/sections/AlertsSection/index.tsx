@@ -5,6 +5,7 @@
  */
 
 // framer-motion 제거 - CSS 애니메이션 사용
+import React, { Fragment, type ReactNode } from 'react';
 import { AlertTriangle, CheckCircle, Info, X } from 'lucide-react';
 import type { SystemAlert } from '../../UnifiedAdminDashboard.types';
 import { ALERT_PRIORITIES } from '../../UnifiedAdminDashboard.types';
@@ -22,7 +23,7 @@ export default function AlertsSection({
 }: AlertsSectionProps) {
   // 우선순위에 따라 정렬
   const sortedAlerts = [...alerts].sort((a, b) => {
-    const priorityDiff = ALERT_PRIORITIES[b.type] - ALERT_PRIORITIES[a.type];
+    const priorityDiff = (ALERT_PRIORITIES[b.type] ?? 0) - (ALERT_PRIORITIES[a.type] ?? 0);
     if (priorityDiff !== 0) return priorityDiff;
 
     // 같은 우선순위면 시간순

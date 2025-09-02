@@ -127,7 +127,8 @@ export class EdgeCache {
   size(): number {
     // 만료된 항목들 정리
     const now = Date.now();
-    for (const [key, item] of this.cache.entries()) {
+    const entries = Array.from(this.cache.entries());
+    for (const [key, item] of entries) {
       if (now > item.expires) {
         this.cache.delete(key);
       }
@@ -330,11 +331,13 @@ export class EdgePerformanceMonitor {
     }
 
     const values = this.metrics.get(name);
-    values.push(value);
+    if (values) {
+      values.push(value);
 
-    // 최대 100개의 측정값만 유지
-    if (values.length > 100) {
-      values.shift();
+      // 최대 100개의 측정값만 유지
+      if (values.length > 100) {
+        values.shift();
+      }
     }
   }
 
@@ -358,7 +361,8 @@ export class EdgePerformanceMonitor {
 
   getAllMetrics() {
     const result: Record<string, any> = {};
-    for (const [name] of this.metrics) {
+    const entries = Array.from(this.metrics.entries());
+    for (const [name] of entries) {
       result[name] = this.getMetrics(name);
     }
     return result;

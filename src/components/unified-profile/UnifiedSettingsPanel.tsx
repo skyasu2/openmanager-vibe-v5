@@ -468,7 +468,7 @@ export function UnifiedSettingsPanel({
                 ).map(([tabKey, tabName, Icon]) => (
                   <button
                     key={tabKey}
-                    onClick={() => setActiveTab(tabKey)}
+                    onClick={() => setActiveTab(tabKey as SettingsTab)}
                     className={`relative min-w-0 flex-shrink-0 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                       activeTab === tabKey
                         ? 'text-white'

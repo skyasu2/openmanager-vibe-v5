@@ -84,7 +84,7 @@ const AnimatedAISidebar = dynamic(
   async () => {
     const AISidebarV3 = await import('@/domains/ai-sidebar/components/AISidebarV3');
 
-    return function AnimatedAISidebarWrapper(props: any) {
+    return function AnimatedAISidebarWrapper(props: { isOpen: boolean; onClose: () => void; [key: string]: unknown }) {
       const { isOpen, onClose, ...otherProps } = props;
       return (
         <>

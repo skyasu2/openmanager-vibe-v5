@@ -4,7 +4,7 @@ import { useMemo, Fragment } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   X,
-  Server,
+  Server as ServerIcon,
   AlertTriangle,
   Signal,
   Clock,
@@ -92,34 +92,7 @@ export default function MobileServerSheet({
     ];
   }, [server]);
 
-  // 🎨 애니메이션 변형
-  const backdropVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1 },
-  };
-
-  const sheetVariants = {
-    hidden: { y: '100%' },
-    visible: { y: 0 },
-    exit: { y: '100%' },
-  };
-
-  const contentVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: 0.1,
-        staggerChildren: 0.05,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: { opacity: 1, x: 0 },
-  };
+  // 애니메이션 변형 제거 (framer-motion → CSS)
 
   if (!server) return null;
 
@@ -136,14 +109,12 @@ export default function MobileServerSheet({
           {/* 배경 오버레이 */}
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            variants={backdropVariants}
             onClick={onClose}
           />
 
           {/* 시트 컨테이너 */}
           <div
             className="absolute bottom-0 left-0 right-0 max-h-[90vh] overflow-hidden rounded-t-2xl bg-white shadow-2xl"
-            variants={sheetVariants}
           >
             {/* 드래그 핸들 */}
             <div className="flex justify-center p-2">
@@ -154,12 +125,10 @@ export default function MobileServerSheet({
             <div className="max-h-[calc(90vh-3rem)] overflow-y-auto">
               <div
                 className="px-6 pb-8"
-                variants={contentVariants}
               >
                 {/* 헤더 */}
                 <div
                   className="flex items-center justify-between border-b border-gray-100 pb-4"
-                  variants={itemVariants}
                 >
                   <div className="flex items-center space-x-3">
                     <div
@@ -167,7 +136,7 @@ export default function MobileServerSheet({
                         statusColors[server.status] || statusColors.offline
                       }`}
                     >
-                      <Server className="h-6 w-6" />
+                      <ServerIcon className="h-6 w-6" />
                     </div>
                     <div>
                       <h2 className="text-xl font-bold text-gray-900">
@@ -191,7 +160,6 @@ export default function MobileServerSheet({
                 {/* 서버 상태 */}
                 <div
                   className="mt-6 rounded-lg bg-gray-50 p-4"
-                  variants={itemVariants}
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-gray-700">
@@ -214,7 +182,6 @@ export default function MobileServerSheet({
                 {/* 기본 정보 */}
                 <div
                   className="mt-6 grid grid-cols-2 gap-4"
-                  variants={itemVariants}
                 >
                   <div className="rounded-lg bg-gray-50 p-4">
                     <div className="flex items-center space-x-3">
@@ -250,7 +217,7 @@ export default function MobileServerSheet({
                 </div>
 
                 {/* 메트릭 카드들 */}
-                <div className="mt-6 space-y-4" variants={itemVariants}>
+                <div className="mt-6 space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900">
                     시스템 메트릭
                   </h3>
@@ -259,7 +226,6 @@ export default function MobileServerSheet({
                       <div
                         key={metric.label}
                         className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
-                        variants={itemVariants}
                       >
                         <div className="flex items-center space-x-3">
                           <div className={`rounded-lg p-2 ${metric.color}`}>
@@ -304,7 +270,6 @@ export default function MobileServerSheet({
                 {alertCount > 0 && (
                   <div
                     className="mt-6 rounded-lg bg-red-50 p-4"
-                    variants={itemVariants}
                   >
                     <div className="flex items-center space-x-3">
                       <AlertTriangle className="h-5 w-5 text-red-500" />
@@ -324,7 +289,6 @@ export default function MobileServerSheet({
                 {server.services && server.services.length > 0 && (
                   <div
                     className="mt-6 space-y-4"
-                    variants={itemVariants}
                   >
                     <h3 className="text-lg font-semibold text-gray-900">
                       실행 중인 서비스
@@ -334,7 +298,6 @@ export default function MobileServerSheet({
                         <div
                           key={`${service.name}-${service.port}`}
                           className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3"
-                          variants={itemVariants}
                         >
                           <div>
                             <div className="font-medium text-gray-900">
@@ -365,7 +328,6 @@ export default function MobileServerSheet({
                 {server.logs && server.logs.length > 0 && (
                   <div
                     className="mt-6 space-y-4"
-                    variants={itemVariants}
                   >
                     <h3 className="text-lg font-semibold text-gray-900">
                       최근 로그
@@ -375,7 +337,6 @@ export default function MobileServerSheet({
                         <div
                           key={index}
                           className="rounded-lg bg-gray-50 p-3"
-                          variants={itemVariants}
                         >
                           <div className="flex items-center justify-between">
                             <span
@@ -405,7 +366,7 @@ export default function MobileServerSheet({
                 )}
 
                 {/* 액션 버튼들 */}
-                <div className="mt-8 space-y-3" variants={itemVariants}>
+                <div className="mt-8 space-y-3">
                   <Button className="w-full" size="lg">
                     상세 정보 보기
                   </Button>

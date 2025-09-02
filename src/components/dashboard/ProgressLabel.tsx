@@ -1,4 +1,4 @@
-import { type FC } from 'react';
+import React, { Fragment, type FC } from 'react';
 /**
  * 📝 ProgressLabel Component
  *
@@ -73,7 +73,6 @@ const ProgressLabel: FC<ProgressLabelProps> = ({
       {/* 제목 */}
       <h3
         className="text-lg font-semibold text-white"
-        layout
         key={`title-${currentStep}`}
       >
         {getTitleText()}

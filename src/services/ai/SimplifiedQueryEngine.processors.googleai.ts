@@ -9,14 +9,14 @@
  * - All advanced features included
  */
 
-import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
+import { CloudContextLoader } from '../mcp/CloudContextLoader';
 import { MockContextLoader } from './MockContextLoader';
-import { validateGoogleAIMCPConfig } from '@/lib/env-safe';
+import { validateGoogleAIMCPConfig } from '../../lib/env-safe';
 import type {
   AIQueryContext,
   MCPContext,
   AIMetadata,
-} from '@/types/ai-service-types';
+} from '../../types/ai-service-types';
 import type {
   QueryRequest,
   QueryResponse,

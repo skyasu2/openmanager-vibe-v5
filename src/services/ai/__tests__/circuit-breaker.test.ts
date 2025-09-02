@@ -43,8 +43,13 @@ const CIRCUIT_BREAKER_CONFIG = {
 };
 
 describe('⚡ 회로 차단기 패턴 테스트', () => {
-  // @ts-expect-error - Testing private methods
-  let engine: ReturnType<typeof getPerformanceOptimizedQueryEngine>;
+  let engine: ReturnType<typeof getPerformanceOptimizedQueryEngine> & {
+    _initialize: () => Promise<void>;
+    clearOptimizationCache: () => void;
+    ragEngine: any;
+    circuitBreakers: Map<string, any>;
+    generateLocalResponse: any;
+  };
 
   beforeEach(async () => {
     // 새로운 엔진 인스턴스 생성

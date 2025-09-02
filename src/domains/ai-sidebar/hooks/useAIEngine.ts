@@ -3,37 +3,12 @@
  * AI 모드 선택 및 엔진 상태 관리
  */
 
-import { useCallback, useState } from 'react';
-import type { AIMode } from '@/types/ai-types';
-import type { ChatMessage } from '@/stores/useAISidebarStore';
-
-export interface UseAIEngineReturn {
-  // 상태
-  selectedEngine: AIMode;
-  showEngineInfo: boolean;
-  isChangingEngine: boolean;
-
-  // 액션
-  setSelectedEngine: (engine: AIMode) => void;
-  toggleEngineInfo: () => void;
-  handleModeChange: (newMode: AIMode) => Promise<ChatMessage | null>;
-  
-  // 테스트 호환성을 위한 추가 메서드
-  setEngine: (engine: AIMode) => void;
-  isEngineAvailable: (engine: AIMode) => boolean;
-}
-
-/**
- * AI 엔진 관리 Custom Hook
- * AI 모드 선택 및 엔진 상태 관리
- */
-
 import { useCallback, useState, useEffect } from 'react';
-import type { AIMode } from '@/types/ai-types';
-import type { ChatMessage } from '@/stores/useAISidebarStore';
+import type { AIMode } from '../../../types/ai-types';
+import type { ChatMessage } from '../../../stores/useAISidebarStore';
 
 // 테스트 호환성을 위한 엔진 타입 확장
-type ExtendedAIMode = AIMode | 'UNIFIED' | 'GOOGLE_ONLY';
+type ExtendedAIMode = AIMode | 'UNIFIED';
 
 export interface UseAIEngineReturn {
   // 상태 (테스트 호환성)
@@ -63,11 +38,6 @@ const ENGINE_CONFIG = {
     displayName: '통합 AI 엔진',
     description: '모든 AI 엔진 통합 - 최적의 성능과 유연성 제공',
     endpoint: '/api/ai/edge-v2'
-  },
-  GOOGLE_ONLY: {
-    displayName: 'Google AI Only', 
-    description: 'Google AI만 사용 - 고급 자연어 처리와 추론 능력',
-    endpoint: '/api/ai/google-ai/generate'
   },
   LOCAL: {
     displayName: '로컬 RAG',
@@ -161,7 +131,7 @@ export function useAIEngine(
         // AIMode를 ExtendedAIMode로 매핑
         let mappedEngine: ExtendedAIMode = newMode;
         if (newMode === 'GOOGLE_AI') {
-          mappedEngine = 'GOOGLE_ONLY';
+          mappedEngine = 'GOOGLE_AI';
         }
         
         setEngine(mappedEngine);

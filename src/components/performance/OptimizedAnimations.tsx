@@ -6,10 +6,26 @@
 'use client';
 
 // framer-motion 제거 - CSS 애니메이션 사용
-import { useState, useEffect, CSSProperties } from 'react';
+import React, { Fragment, useState, useEffect, CSSProperties } from 'react';
 import type { ReactNode } from 'react';;
 
-// 사용자 모션 설정 감지
+// 사용자 모션 설정 감지 (CSS 기반)
+const useReducedMotion = () => {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const handleChange = () => setPrefersReducedMotion(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  return prefersReducedMotion;
+};
+
 const useOptimizedMotion = () => {
   const prefersReducedMotion = useReducedMotion();
   const [performanceMode, setPerformanceMode] = useState(false);
@@ -125,8 +141,7 @@ export function OptimizedPageTransition({
 
   return (
     <div
-      className={className}
-      variants={optimizedVariants.pageTransition}
+      className={`${className} animate-fade-in`}
       // GPU 가속 강제 활성화
       style={{
         willChange: 'transform, opacity',
@@ -159,8 +174,7 @@ export function OptimizedHoverCard({
 
   return (
     <div
-      className={className}
-      variants={optimizedVariants.cardHover}
+      className={`${className} hover:scale-105 hover:-translate-y-1 transition-transform duration-200`}
       onClick={onClick}
       // 성능 최적화
       style={{
@@ -188,8 +202,7 @@ export function OptimizedStaggerContainer({
 
   return (
     <div
-      className={className}
-      variants={optimizedVariants.staggerContainer}
+      className={`${className} space-y-2`}
     >
       {children}
     </div>
@@ -211,8 +224,7 @@ export function OptimizedStaggerItem({
 
   return (
     <div
-      className={className}
-      variants={optimizedVariants.staggerItem}
+      className={`${className} animate-fade-in-delay`}
       style={{
         willChange: 'transform, opacity',
         backfaceVisibility: 'hidden',

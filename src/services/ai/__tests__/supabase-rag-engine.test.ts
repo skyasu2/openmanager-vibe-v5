@@ -20,10 +20,10 @@ vi.mock('../embedding-service');
 
 describe('SupabaseRAGEngine', () => {
   let engine: SupabaseRAGEngine;
-  // @ts-expect-error - Mock object for testing
-  let mockVectorDB: PostgresVectorDB;
-  // @ts-expect-error - Mock object for testing
-  let mockContextLoader: CloudContextLoader;
+  // Mock 객체를 위한 타입 단언
+  let mockVectorDB: PostgresVectorDB & Record<string, any>;
+  // Mock 객체를 위한 타입 단언
+  let mockContextLoader: CloudContextLoader & Record<string, any>;
 
   beforeEach(() => {
     vi.clearAllMocks();

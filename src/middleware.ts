@@ -35,7 +35,7 @@ export function middleware(request: NextRequest) {
       console.warn(
         `🚨 Security Alert: Blocked access to ${pathname} in production`,
         {
-          ip: request.ip,
+          ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
           userAgent: request.headers.get('user-agent'),
           referer: request.headers.get('referer'),
           timestamp: new Date().toISOString(),

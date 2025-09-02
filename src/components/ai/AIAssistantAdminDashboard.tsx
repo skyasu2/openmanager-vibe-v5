@@ -98,7 +98,7 @@ export default function AIAssistantAdminDashboard() {
   return (
     <div className="min-h-screen space-y-6 bg-gray-50 p-6">
       {/* 상단 통계 카드 */}
-      <AIAssistantStatsCards stats={stats} />
+      <AIAssistantStatsCards stats={stats as any} />
 
       {/* 탭 네비게이션 */}
       <Tabs

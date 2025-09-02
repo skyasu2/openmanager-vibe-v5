@@ -8,14 +8,14 @@
  */
 
 import type { SupabaseRAGEngine } from './supabase-rag-engine';
-import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
+import { CloudContextLoader } from '../mcp/CloudContextLoader';
 import { MockContextLoader } from './MockContextLoader';
-import { IntentClassifier } from '@/modules/ai-agent/processors/IntentClassifier';
+import { IntentClassifier } from '../../modules/ai-agent/processors/IntentClassifier';
 import type {
   AIQueryContext,
   AIQueryOptions,
   MCPContext,
-} from '@/types/ai-service-types';
+} from '../../types/ai-service-types';
 import type { QueryResponse } from './SimplifiedQueryEngine.types';
 import { SimplifiedQueryEngineUtils } from './SimplifiedQueryEngine.utils';
 import { SimplifiedQueryEngineHelpers } from './SimplifiedQueryEngine.processors.helpers';
@@ -33,13 +33,7 @@ export class LocalQueryProcessor {
     private mockContextLoader: MockContextLoader,
     private intentClassifier: IntentClassifier
   ) {
-    this.helpers = new SimplifiedQueryEngineHelpers(
-      utils,
-      ragEngine,
-      contextLoader,
-      mockContextLoader,
-      intentClassifier
-    );
+    this.helpers = new SimplifiedQueryEngineHelpers(mockContextLoader);
   }
 
   /**
@@ -131,7 +125,7 @@ export class LocalQueryProcessor {
       success: true,
       response,
       engine: 'local-rag',
-      confidence: this.helpers.calculateConfidence(ragResult, query),
+      confidence: this.helpers.calculateConfidence(ragResult),
       thinkingSteps,
       metadata: {
         ragResults: ragResult.totalResults,

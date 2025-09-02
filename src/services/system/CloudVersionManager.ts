@@ -483,8 +483,9 @@ export class CloudVersionManager {
 
   private getEnvironment(): 'production' | 'staging' | 'development' {
     const env = process.env.NODE_ENV;
+    const envStage = process.env.VERCEL_ENV as string | undefined;
     if (env === 'production') return 'production';
-    if (env === 'staging') return 'staging';
+    if (envStage === 'preview' || envStage === 'staging') return 'staging';
     return 'development';
   }
 

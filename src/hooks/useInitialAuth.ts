@@ -2,15 +2,14 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { getCurrentUser, isGitHubAuthenticated } from '@/lib/supabase-auth';
+import { getCurrentUser, isGitHubAuthenticated, type AuthUser } from '@/lib/supabase-auth';
 import { vercelConfig, debugWithEnv } from '@/utils/vercel-env';
-import { User } from '@supabase/supabase-js';
 
 // 초기화 상태 타입 정의
 export interface InitialAuthState {
   isLoading: boolean;
   isAuthenticated: boolean;
-  user: User | null;
+  user: AuthUser | null;
   isGitHubConnected: boolean;
   error: string | null;
   currentStep: 'init' | 'auth-check' | 'user-fetch' | 'github-check' | 'complete';

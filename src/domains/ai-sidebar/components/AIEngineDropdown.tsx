@@ -5,7 +5,7 @@
 
 // React import 필요 - createElement 사용으로 인해
 // framer-motion 제거 - CSS 애니메이션 사용
-import React, { Fragment, createElement } from 'react';
+import React, { Fragment, createElement, type FC } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { availableEngines } from './AIEngineSelector';
 import type { AIMode } from '@/types/ai-types';
@@ -24,7 +24,7 @@ export const AIEngineDropdown: FC<AIEngineDropdownProps> = ({
   onEngineSelect,
   onToggleEngineInfo,
   currentEngine,
-}) => {
+}: AIEngineDropdownProps) => {
   // 현재 선택된 엔진 정보 가져오기
   const selectedEngineInfo =
     availableEngines.find((e) => e.id === selectedEngine) ||

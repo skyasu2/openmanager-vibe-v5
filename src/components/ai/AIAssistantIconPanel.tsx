@@ -31,7 +31,7 @@ export type AIAssistantFunction =
 
 interface AIAssistantIcon {
   id: AIAssistantFunction;
-  icon: ComponentType<any>;
+  icon: ComponentType<{ className?: string }>;
   label: string;
   description: string;
   color: string;

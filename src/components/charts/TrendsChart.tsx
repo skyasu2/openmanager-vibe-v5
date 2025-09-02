@@ -9,6 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { SafeTooltipProps, SafeLineProps, ExtendedTooltipProps, SafeCartesianGridProps, ExtendedXAxisProps, ExtendedYAxisProps } from '@/types/CustomRechartsTypes';
 
 interface TrendDataPoint {
   time: string;
@@ -21,18 +22,8 @@ interface TrendsChartProps {
   data: TrendDataPoint[];
 }
 
-// 📈 트렌드 전용 툴팁
-interface TooltipProps {
-  active?: boolean;
-  payload?: Array<{
-    value: number;
-    name?: string;
-    color?: string;
-  }>;
-  label?: string;
-}
-
-const TrendsTooltip = memo(({ active, payload, label }: TooltipProps) => {
+// 📈 트렌드 전용 툴팁 (타입 안전성 확보)
+const TrendsTooltip = memo(({ active, payload, label }: SafeTooltipProps<number, string>) => {
   if (active && payload && payload.length) {
     return (
       <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
@@ -98,52 +89,58 @@ const TrendsChart = memo<TrendsChartProps>(({ data }) => {
       {/* 차트 */}
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={data}
-            margin={{
-              top: 5,
-              right: 30,
-              left: 20,
-              bottom: 5,
-            }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <LineChart data={data}>
+            <CartesianGrid {...({ strokeDasharray: "3 3", stroke: "#f0f0f0" } as SafeCartesianGridProps)} />
             <XAxis
-              dataKey="time"
-              tick={{ fontSize: 10 }}
-              tickLine={false}
-              axisLine={false}
+              {...({
+                dataKey: "time",
+                tick: { fontSize: 10 },
+                tickLine: false,
+                axisLine: false
+              } as ExtendedXAxisProps)}
             />
-            <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-            <Tooltip content={<TrendsTooltip />} />
+            <YAxis 
+              {...({
+                tick: { fontSize: 10 },
+                tickLine: false,
+                axisLine: false
+              } as ExtendedYAxisProps)}
+            />
+            <Tooltip {...({ content: <TrendsTooltip /> } as ExtendedTooltipProps)} />
             <Legend
               wrapperStyle={{ fontSize: '12px' }}
-              formatter={(value) => <span className="text-xs">{value}</span>}
+              formatter={(value: string) => <span className="text-xs">{value}</span>}
             />
             <Line
-              type="monotone"
-              dataKey="CPU"
-              stroke="#ef4444"
-              strokeWidth={2}
-              dot={{ fill: '#ef4444', strokeWidth: 2, r: 3 }}
-              activeDot={{ r: 5, fill: '#ef4444' }}
+              {...({
+                type: "monotone",
+                dataKey: "CPU",
+                stroke: "#ef4444",
+                strokeWidth: 2,
+                dot: { fill: '#ef4444', strokeWidth: 2, r: 3 },
+                activeDot: { r: 5, fill: '#ef4444' }
+              } as SafeLineProps)}
             />
             <Line
-              type="monotone"
-              dataKey="Memory"
-              stroke="#f59e0b"
-              strokeWidth={2}
-              dot={{ fill: '#f59e0b', strokeWidth: 2, r: 3 }}
-              activeDot={{ r: 5, fill: '#f59e0b' }}
+              {...({
+                type: "monotone",
+                dataKey: "Memory",
+                stroke: "#f59e0b",
+                strokeWidth: 2,
+                dot: { fill: '#f59e0b', strokeWidth: 2, r: 3 },
+                activeDot: { r: 5, fill: '#f59e0b' }
+              } as SafeLineProps)}
             />
             <Line
-              type="monotone"
-              dataKey="Alerts"
-              stroke="#06b6d4"
-              strokeWidth={2}
-              dot={{ fill: '#06b6d4', strokeWidth: 2, r: 3 }}
-              activeDot={{ r: 5, fill: '#06b6d4' }}
-              yAxisId="right"
+              {...({
+                type: "monotone",
+                dataKey: "Alerts",
+                stroke: "#06b6d4",
+                strokeWidth: 2,
+                dot: { fill: '#06b6d4', strokeWidth: 2, r: 3 },
+                activeDot: { r: 5, fill: '#06b6d4' },
+                yAxisId: "right"
+              } as SafeLineProps)}
             />
           </LineChart>
         </ResponsiveContainer>

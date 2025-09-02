@@ -8,11 +8,11 @@
 
 'use client';
 
+import React from 'react';
 import { useMCPStatus } from '@/hooks/api/useMCPQuery';
 import { AlertCircle, CheckCircle, XCircle } from 'lucide-react';
-// React import 제거 - Next.js 15 자동 JSX Transform 사용
 
-export const MCPServerStatusPanel: FC = () => {
+export const MCPServerStatusPanel: React.FC = () => {
   const { data: mcpStatus, isLoading, error } = useMCPStatus();
 
   // 로딩 상태

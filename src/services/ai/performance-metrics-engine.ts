@@ -471,7 +471,7 @@ export class PerformanceMetricsEngine {
       cacheHitRate < 0.8 ? '캐시 효율성 개선' : null,
       avgAccuracy < 0.9 ? '정확도 향상' : null,
       peakMemoryUsage > 100 ? '메모리 사용량 최적화' : null,
-    ].filter(Boolean);
+    ].filter(Boolean) as string[];
 
     return {
       totalRequests,

@@ -10,7 +10,7 @@
  * - 데이터 일관성 100% 보장
  */
 
-import type { EnhancedServerMetrics } from '@/types/server';
+import type { EnhancedServerMetrics } from '../types/server';
 
 export interface UnifiedDataResponse {
   // 서버 모니터링용 데이터

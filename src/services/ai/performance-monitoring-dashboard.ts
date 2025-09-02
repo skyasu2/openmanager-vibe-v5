@@ -12,7 +12,7 @@ import type {
   OptimizationInfo,
   PerformanceAlert,
   ComplexityScore,
-} from '@/types/performance';
+} from '../../types/performance';
 
 interface PerformanceOptimizationResult {
   success: boolean;
@@ -224,7 +224,9 @@ export class PerformanceMonitoringDashboard {
       return {
         achievementRate:
           (successfulTests / (successfulTests + failedTests)) * 100,
-        averageTime: this.calculateAverage(testDetails, 'responseTime'),
+        averageTime: testDetails.length > 0 
+          ? testDetails.reduce((sum, detail) => sum + detail.responseTime, 0) / testDetails.length 
+          : 0,
         successfulTests,
         failedTests,
         details: testDetails,
@@ -393,7 +395,7 @@ export class PerformanceMonitoringDashboard {
       if (!groups.has(hourKey)) {
         groups.set(hourKey, []);
       }
-      groups.get(hourKey).push(metric);
+      groups.get(hourKey)!.push(metric);
     });
 
     return groups;

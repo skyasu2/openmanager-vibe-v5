@@ -7,7 +7,7 @@ import { mockServers, serverInitialStates } from './mockServerConfig';
 import type { ScenarioPoint } from './mockScenarios';
 import { generate24HourData, scenarioAlerts } from './mockScenarios';
 export type { ScenarioPoint };
-import type { Server } from '@/types/server';
+import type { Server } from '../types/server';
 
 export interface TimeSeriesData {
   timestamp: number;

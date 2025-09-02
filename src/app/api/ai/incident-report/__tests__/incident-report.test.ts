@@ -6,6 +6,14 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { GET, POST, _testHelpers } from '../route';
 
+// Test type definitions
+interface Anomaly {
+  severity: 'critical' | 'warning' | 'normal';
+  metric: string;
+  value: number;
+  description: string;
+}
+
 // Mock setup
 vi.mock('@/lib/cache-helper', () => ({
   getCachedData: vi.fn(),
@@ -13,7 +21,7 @@ vi.mock('@/lib/cache-helper', () => ({
 }));
 
 vi.mock('@/lib/api-auth', () => ({
-  withAuth: (handler: any) => handler, // 인증 미들웨어를 바이패스
+  withAuth: (handler: Function) => handler, // 인증 미들웨어를 바이패스
   checkAPIAuth: vi.fn(() => null), // 인증 성공으로 Mock
 }));
 
@@ -112,7 +120,7 @@ describe('Automatic Incident Report API', () => {
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
       expect(data.anomalies).toBeDefined();
-      expect(data.anomalies.some((a: any) => a.severity === 'critical')).toBe(
+      expect(data.anomalies.some((a: Anomaly) => a.severity === 'critical')).toBe(
         true
       );
     });
@@ -145,7 +153,7 @@ describe('Automatic Incident Report API', () => {
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
       expect(data.anomalies).toBeDefined();
-      expect(data.anomalies.some((a: any) => a.severity === 'warning')).toBe(
+      expect(data.anomalies.some((a: Anomaly) => a.severity === 'warning')).toBe(
         true
       );
     });
@@ -181,7 +189,7 @@ describe('Automatic Incident Report API', () => {
       expect(data.anomalies.length).toBeGreaterThan(0);
 
       const critical_anomalies = data.anomalies.filter(
-        (a: any) => a.severity === 'critical'
+        (a: Anomaly) => a.severity === 'critical'
       );
       expect(critical_anomalies.length).toBeGreaterThan(0);
     });

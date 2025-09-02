@@ -7,7 +7,7 @@
  * - 배치 처리 지원
  */
 
-import { aiLogger } from '@/lib/logger';
+import { aiLogger } from '../../lib/logger';
 
 interface EmbeddingCache {
   embedding: number[];
@@ -63,6 +63,10 @@ class EmbeddingService {
 
     try {
       // Google AI API 호출
+      if (!process.env.GOOGLE_AI_API_KEY) {
+        throw new Error('GOOGLE_AI_API_KEY environment variable is not set');
+      }
+      
       const response = await fetch(
         `${this.API_ENDPOINT}/${model}:embedContent`,
         {
@@ -143,6 +147,10 @@ class EmbeddingService {
     // 새로 생성이 필요한 텍스트만 처리
     if (toProcess.length > 0) {
       try {
+        if (!process.env.GOOGLE_AI_API_KEY) {
+          throw new Error('GOOGLE_AI_API_KEY environment variable is not set');
+        }
+        
         const response = await fetch(
           `${this.API_ENDPOINT}/${model}:batchEmbedContents`,
           {

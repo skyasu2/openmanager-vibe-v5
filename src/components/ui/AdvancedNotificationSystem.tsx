@@ -36,7 +36,7 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 export interface AdvancedNotification {
@@ -362,7 +362,7 @@ function NotificationItem({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                notification.action.onClick();
+                notification.action?.onClick();
                 handleDismiss();
               }}
               className="rounded-lg bg-white/20 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-white/30"

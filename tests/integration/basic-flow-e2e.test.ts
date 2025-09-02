@@ -64,11 +64,11 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
       
       if (url.includes('/api/ai/query')) {
         // Parse request body to get the engine
-        let requestEngine = 'GOOGLE_ONLY';
+        let requestEngine = 'GOOGLE_AI';
         if (options?.body) {
           try {
             const bodyData = JSON.parse(options.body as string);
-            requestEngine = bodyData.engine || 'GOOGLE_ONLY';
+            requestEngine = bodyData.engine || 'GOOGLE_AI';
           } catch (e) {
             // If parsing fails, use default
           }
@@ -180,19 +180,19 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query: '현재 서버 상태는 어떤가요?',
-          engine: 'GOOGLE_ONLY'
+          engine: 'GOOGLE_AI'
         })
       });
       
       const aiData = await aiResponse.json();
       expect(aiData.success).toBe(true);
       expect(aiData.response).toContain('서버 상태');
-      expect(aiData.metadata.engine).toBe('GOOGLE_ONLY');
+      expect(aiData.metadata.engine).toBe('GOOGLE_AI');
     });
 
     it('should handle AI engine selection', async () => {
       // Test different AI engines
-      const engines = ['GOOGLE_ONLY', 'CLAUDE_ONLY', 'UNIFIED'];
+      const engines = ['GOOGLE_AI', 'LOCAL', 'GOOGLE_AI'];
       
       for (const engine of engines) {
         const response = await fetch('/api/ai/query', {
@@ -267,7 +267,7 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query: '',
-          engine: 'GOOGLE_ONLY'
+          engine: 'GOOGLE_AI'
         })
       });
       
@@ -296,7 +296,7 @@ describe('OpenManager VIBE v5 - E2E Mock Flow', () => {
         fetch('/api/servers'),
         fetch('/api/ai/query', {
           method: 'POST',
-          body: JSON.stringify({ query: 'test', engine: 'GOOGLE_ONLY' })
+          body: JSON.stringify({ query: 'test', engine: 'GOOGLE_AI' })
         })
       ];
       

@@ -6,7 +6,7 @@
 // React import 제거 - Next.js 15 자동 JSX Transform 사용
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Bot, User } from 'lucide-react';
-import { Fragment } from 'react';
+import { Fragment, type FC, type RefObject } from 'react';
 import type { ChatMessage } from '@/stores/useAISidebarStore';
 import { AIThinkingDisplay } from './AIThinkingDisplay';
 import type { CompletedThinking } from '../hooks/useAIThinking';
@@ -23,7 +23,7 @@ export const AIChatMessages: FC<AIChatMessagesProps> = ({
   completedThinkingSteps,
   onToggleCompletedThinking,
   messagesEndRef,
-}) => {
+}: AIChatMessagesProps) => {
   if (messages.length === 0) {
     return (
       <div className="py-8 text-center">
@@ -42,7 +42,7 @@ export const AIChatMessages: FC<AIChatMessagesProps> = ({
 
   return (
     <>
-      {messages.map((message, index) => {
+      {messages.map((message: ChatMessage, index: number) => {
         // 메시지 ID로 완료된 사고 과정 찾기
         const thinkingForMessage = Object.entries(completedThinkingSteps).find(
           ([_, thinking]) =>

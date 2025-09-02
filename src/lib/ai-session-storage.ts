@@ -19,7 +19,7 @@ export interface AISessionData {
   session_id: string;
   user_id?: string;
   query: string;
-  mode: 'LOCAL' | 'GOOGLE_ONLY';
+  mode: 'LOCAL' | 'GOOGLE_AI';
   response: {
     success: boolean;
     response: string;
@@ -57,7 +57,7 @@ export interface AISession {
   sessionId: string;
   query: string;
   response: string;
-  mode: 'LOCAL' | 'GOOGLE_ONLY';
+  mode: 'LOCAL' | 'GOOGLE_AI';
   timestamp: string;
   duration?: number;
   confidence?: number;
@@ -67,7 +67,7 @@ export interface AISession {
 
 export interface AISessionRequest {
   query: string;
-  mode: 'LOCAL' | 'GOOGLE_ONLY';
+  mode: 'LOCAL' | 'GOOGLE_AI';
   context?: Record<string, any>;
 }
 
@@ -347,7 +347,7 @@ export function getAISessionStorage(): AISessionStorage {
 export async function saveAIResponse(
   sessionId: string,
   query: string,
-  mode: 'LOCAL' | 'GOOGLE_ONLY',
+  mode: 'LOCAL' | 'GOOGLE_AI',
   response: unknown,
   thinkingProcess?: unknown[],
   reasoningSteps?: string[]

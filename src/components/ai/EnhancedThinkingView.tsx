@@ -20,7 +20,7 @@ import {
   Search,
   Zap,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, Fragment, type FC } from 'react';
 
 interface EnhancedThinkingStep {
   id: string;

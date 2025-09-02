@@ -16,12 +16,12 @@ import {
 } from './SimplifiedQueryEngine';
 import { getQueryCacheManager } from './query-cache-manager';
 import { getVectorSearchOptimizer } from './vector-search-optimizer';
-import { aiLogger } from '@/lib/logger';
+import { aiLogger } from '../../lib/logger';
 import type {
   MCPContext,
   AIQueryContext,
   AIQueryOptions,
-} from '@/types/ai-service-types';
+} from '../../types/ai-service-types';
 
 interface PerformanceConfig {
   enableParallelProcessing: boolean;
@@ -298,7 +298,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     for (const [
       preloadedQuery,
       embedding,
-    ] of this.preloadedEmbeddings.entries()) {
+    ] of Array.from(this.preloadedEmbeddings.entries())) {
       const similarity = this.calculateQuerySimilarity(query, preloadedQuery);
       if (similarity > 0.8) {
         aiLogger.debug('유사 쿼리 임베딩 재사용', {
@@ -325,8 +325,8 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     const words1 = new Set(query1.toLowerCase().split(/\s+/));
     const words2 = new Set(query2.toLowerCase().split(/\s+/));
 
-    const intersection = new Set([...words1].filter((x) => words2.has(x)));
-    const union = new Set([...words1, ...words2]);
+    const intersection = new Set(Array.from(words1).filter((x) => words2.has(x)));
+    const union = new Set([...Array.from(words1), ...Array.from(words2)]);
 
     return intersection.size / union.size;
   }
@@ -655,7 +655,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       if (resultCount > 0) confidence += 0.2;
       if (resultCount > 3) confidence += 0.1;
       if (hasHighQualityResults) confidence += 0.2;
-      if (ragResult.cached) confidence += 0.05;
+      if ((ragResult as any).cached) confidence += 0.05;
 
       return Math.min(confidence, 0.95); // 최대 0.95
     } catch (error) {

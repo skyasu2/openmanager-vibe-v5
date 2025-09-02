@@ -20,7 +20,7 @@ import {
   Shield,
   Square,
 } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import React, { Fragment, useCallback, useState } from 'react';
 
 interface SystemStatus {
   isRunning: boolean;

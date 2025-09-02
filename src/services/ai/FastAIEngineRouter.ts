@@ -27,7 +27,7 @@ import {
   type QueryAnalysis,
 } from './QueryComplexityAnalyzer';
 import { getQueryCacheManager } from './query-cache-manager';
-import type { AIMetadata } from '@/types/ai-service-types';
+import type { AIMetadata } from '../../types/ai-service-types';
 
 interface FastRouterConfig {
   enablePredictiveRouting: boolean;

@@ -6,6 +6,7 @@
 
 // React import 제거 - Next.js 15 자동 JSX Transform 사용
 // framer-motion 제거 - CSS 애니메이션 사용
+import { FC } from 'react';
 import type { TechCategory } from '../../utils/TechStackAnalyzer';
 import { generateTechStackSummary } from '../../utils/TechStackAnalyzer';
 
@@ -84,7 +85,7 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
           {/* 상위 카테고리 요약 */}
           <div className="flex flex-wrap gap-2 text-xs">
             <span className="text-gray-400">주요 분야:</span>
-            {summary.topCategories.map((category, index) => (
+            {summary.topCategories.map((category: string, index: number) => (
               <span key={category} className="text-blue-300">
                 {category}
                 {index < summary.topCategories.length - 1 && ', '}
@@ -96,7 +97,7 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
 
       {/* 카테고리별 기술 스택 */}
       <div className="space-y-6">
-        {categories.map((category, categoryIndex) => (
+        {categories.map((category: any, categoryIndex: number) => (
           <div
             key={category.id}
             className="rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 backdrop-blur-sm"
@@ -125,10 +126,10 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
                   : 'grid-cols-1 lg:grid-cols-2'
               }`}
             >
-              {category.items.map((tech, techIndex) => (
+              {category.items.map((tech: any, techIndex: number) => (
                 <div
                   key={`${tech.name}-${techIndex}`}
-                  className={`rounded-lg border p-3 transition-all duration-200 hover:scale-105 ${colorMap[category.color as keyof typeof colorMap] || colorMap.gray} ${importanceStyles[tech.importance]} ${tech.isCore ? 'shadow-lg shadow-amber-500/10' : ''} `}
+                  className={`rounded-lg border p-3 transition-all duration-200 hover:scale-105 ${colorMap[category.color as keyof typeof colorMap] || colorMap.gray} ${importanceStyles[tech.importance as keyof typeof importanceStyles] || importanceStyles.medium} ${tech.isCore ? 'shadow-lg shadow-amber-500/10' : ''} `}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
@@ -153,7 +154,7 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
                             여러 영역:{' '}
                           </span>
                           <div className="mt-1 flex flex-wrap gap-1">
-                            {tech.categories.map((cat, idx) => {
+                            {tech.categories.map((cat: string, idx: number) => {
                               const categoryInfo = categories.find(
                                 (c) => c.id === cat
                               );
@@ -205,13 +206,13 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
             <div className="mt-4 flex items-center justify-between border-t border-gray-700/30 pt-3 text-xs text-gray-400">
               <div className="flex gap-4">
                 <span>
-                  핵심: {category.items.filter((item) => item.isCore).length}개
+                  핵심: {category.items.filter((item: any) => item.isCore).length}개
                 </span>
                 <span>
                   고중요도:{' '}
                   {
                     category.items.filter(
-                      (item) =>
+                      (item: any) =>
                         item.importance === 'critical' ||
                         item.importance === 'high'
                     ).length
@@ -225,7 +226,7 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
                   {['critical', 'high', 'showcase', 'medium', 'low'].map(
                     (level) => {
                       const count = category.items.filter(
-                        (item) => item.importance === level
+                        (item: any) => item.importance === level
                       ).length;
                       return count > 0 ? (
                         <div

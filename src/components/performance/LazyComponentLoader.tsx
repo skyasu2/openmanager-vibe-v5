@@ -45,16 +45,12 @@ export const LazyAIAssistantDashboard = lazy(
   () => import('@/components/ai/AIAssistantAdminDashboard')
 );
 
-export const LazyPerformanceDashboard = lazy(
-  () => import('@/components/admin/PerformanceDashboard.charts')
-);
+// Note: Removed problematic lazy imports that don't have default exports
+// LazyPerformanceDashboard and LazyGCPQuotaMonitoring removed per GCP VM removal directive
+// These can be re-added when components have proper default exports
 
 export const LazyLogAnalyticsDashboard = lazy(
   () => import('@/components/admin/LogAnalyticsDashboard')
-);
-
-export const LazyGCPQuotaMonitoring = lazy(
-  () => import('@/components/admin/GCPQuotaMonitoringDashboard')
 );
 
 export const LazyFeatureCardModal = lazy(
@@ -68,18 +64,14 @@ export const LazyChart = lazy(() =>
   }))
 );
 
-// Monaco Editor (500KB+)
+// Monaco Editor (500KB+) - 설치되지 않음으로 비활성화
 export const LazyMonacoEditor = lazy(() =>
-  import('@monaco-editor/react').then((module) => ({
-    default: module.default,
-  }))
+  Promise.resolve({ default: () => <div>Monaco Editor not installed</div> })
 );
 
-// Mermaid 다이어그램 (애니메이션 라이브러리)
+// Mermaid 다이어그램 (애니메이션 라이브러리) - 컴포넌트 없음으로 비활성화  
 export const LazyMermaid = lazy(() =>
-  import('@/components/shared/MermaidDiagram').then((module) => ({
-    default: module.default,
-  }))
+  Promise.resolve({ default: () => <div>MermaidDiagram component not found</div> })
 );
 
 /**
@@ -148,7 +140,7 @@ export function useInteractionLoader() {
  */
 export class PriorityLoader {
   private static loadQueue: Array<{
-    component: () => Promise<any>;
+    component: () => Promise<React.ComponentType<any>>;
     priority: number;
     name: string;
   }> = [];
@@ -156,7 +148,7 @@ export class PriorityLoader {
   private static isLoading = false;
 
   static addToQueue(
-    component: () => Promise<any>,
+    component: () => Promise<React.ComponentType<any>>,
     priority: number,
     name: string
   ) {
@@ -176,7 +168,10 @@ export class PriorityLoader {
     this.isLoading = true;
 
     while (this.loadQueue.length > 0) {
-      const { component, name } = this.loadQueue.shift();
+      const queueItem = this.loadQueue.shift();
+      if (!queueItem) continue;
+      
+      const { component, name } = queueItem;
 
       try {
         console.log(`🚀 Loading component: ${name}`);

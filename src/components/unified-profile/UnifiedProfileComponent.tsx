@@ -11,7 +11,7 @@
 
 'use client';
 
-import UnifiedProfileHeader from './shared/UnifiedProfileHeader';
+import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 
 interface UnifiedProfileComponentProps {
   userName?: string;

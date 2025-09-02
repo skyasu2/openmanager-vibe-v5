@@ -3,50 +3,57 @@
  * 서버사이드 렌더링에서 브라우저 전용 API 에러 방지
  */
 
-// self 객체 폴리필 (웹 워커용)
-if (typeof globalThis !== 'undefined') {
-  // @ts-ignore
-  globalThis.self = globalThis.self || globalThis;
-}
+// SSR 환경에서 브라우저 API 접근 시 에러 방지를 위한 타입 확장
+// 빈 객체로 대체되어 undefined 에러를 방지합니다.
 
-// window 객체 폴리필 (서버사이드용)
+// SSR 환경에서 브라우저 전용 API 폴리필 구현
 if (typeof window === 'undefined') {
-  // @ts-ignore
-  global.window = {};
-}
+  // 전역 객체에 any 타입으로 안전하게 할당
+  const globalAny = global as any;
 
-// document 객체 폴리필 (서버사이드용)
-if (typeof document === 'undefined') {
-  // @ts-ignore
-  global.document = {};
-}
+  // window 객체 폴리필
+  if (!globalAny.window) {
+    globalAny.window = {};
+  }
 
-// navigator 객체 폴리필 (서버사이드용)
-if (typeof navigator === 'undefined') {
-  // @ts-ignore
-  global.navigator = {};
-}
+  // document 객체 폴리필
+  if (!globalAny.document) {
+    globalAny.document = {};
+  }
 
-// localStorage 폴리필 (서버사이드용)
-if (typeof localStorage === 'undefined') {
-  // @ts-ignore
-  global.localStorage = {
-    getItem: () => null,
-    setItem: () => {},
-    removeItem: () => {},
-    clear: () => {},
-  };
-}
+  // navigator 객체 폴리필
+  if (!globalAny.navigator) {
+    globalAny.navigator = {};
+  }
 
-// sessionStorage 폴리필 (서버사이드용)
-if (typeof sessionStorage === 'undefined') {
-  // @ts-ignore
-  global.sessionStorage = {
-    getItem: () => null,
-    setItem: () => {},
-    removeItem: () => {},
-    clear: () => {},
-  };
+  // localStorage 폴리필
+  if (!globalAny.localStorage) {
+    globalAny.localStorage = {
+      getItem: (): string | null => null,
+      setItem: (): void => {},
+      removeItem: (): void => {},
+      clear: (): void => {},
+      key: (): string | null => null,
+      length: 0,
+    };
+  }
+
+  // sessionStorage 폴리필
+  if (!globalAny.sessionStorage) {
+    globalAny.sessionStorage = {
+      getItem: (): string | null => null,
+      setItem: (): void => {},
+      removeItem: (): void => {},
+      clear: (): void => {},
+      key: (): string | null => null,
+      length: 0,
+    };
+  }
+
+  // self 객체 폴리필 (웹 워커용)
+  if (typeof globalThis !== 'undefined' && !globalAny.self) {
+    globalAny.self = globalThis;
+  }
 }
 
 export {};

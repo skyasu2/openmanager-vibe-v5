@@ -43,7 +43,7 @@ export const fetchWithTracking = async (
       method,
       responseTime,
       statusCode: response.status,
-      headers: Object.fromEntries(response.headers.entries()),
+      headers: {} as Record<string, string>, // Headers를 객체로 변환 시 타입 이슈로 인해 임시로 빈 객체 사용
     };
 
     console.log(
@@ -184,4 +184,32 @@ export const getNetworkStatsByComponent = (): Record<
   });
 
   return result;
+};
+
+/**
+ * 네트워크 에러 타입 가드
+ */
+export const isNetworkError = (error: unknown): error is {
+  originalError?: Error;
+  networkInfo?: NetworkInfo;
+} => {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    ('originalError' in error || 'networkInfo' in error)
+  );
+};
+
+/**
+ * 원본 에러 존재 여부 타입 가드
+ */
+export const hasOriginalError = (error: unknown): error is {
+  originalError: Error;
+} => {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'originalError' in error &&
+    error.originalError instanceof Error
+  );
 };

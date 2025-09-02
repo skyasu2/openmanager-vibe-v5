@@ -13,9 +13,9 @@
 /**
  * AI 모드 정의 v2.0 (단순화)
  * - LOCAL: 로컬 AI 엔진들만 사용 (기본값)
- * - GOOGLE_ONLY: Google AI만 사용 (자연어 처리용)
+ * - GOOGLE_AI: Google AI만 사용 (자연어 처리용)
  */
-export type AIMode = 'LOCAL' | 'GOOGLE_ONLY';
+export type AIMode = 'LOCAL' | 'GOOGLE_AI';
 
 /**
  * AI 엔진 타입 정의

@@ -120,6 +120,10 @@ export interface AIQueryOptions {
   category?: string;
   /** 캐시 사용 여부 */
   cached?: boolean;
+  /** 최대 결과 개수 (RAG 검색용) */
+  maxResults?: number;
+  /** 유사도 임계값 (RAG 검색용) */
+  threshold?: number;
 }
 
 /**

@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, type ComponentProps, type ReactElement, type ReactNode, type HTMLAttributes, type ButtonHTMLAttributes, type ElementRef } from 'react';
+import { forwardRef, type ComponentProps, type ComponentPropsWithoutRef, type ReactElement, type ReactNode, type HTMLAttributes, type ButtonHTMLAttributes, type ElementRef } from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import { cn } from '@/lib/utils';
 import {

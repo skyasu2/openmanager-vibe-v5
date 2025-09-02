@@ -12,7 +12,7 @@
  */
 
 import { QueryRequest, QueryResponse } from './SimplifiedQueryEngine';
-import type { AIMetadata } from '@/types/ai-service-types';
+import type { AIMetadata } from '../../types/ai-service-types';
 import {
   CacheEntry,
   ResponseCache,
@@ -135,7 +135,7 @@ export class UnifiedAIEngineRouterCache {
     const now = Date.now();
     let removedCount = 0;
 
-    for (const [key, entry] of this.cache.entries()) {
+    for (const [key, entry] of Array.from(this.cache.entries())) {
       if (now - entry.timestamp > entry.ttl) {
         this.cache.delete(key);
         removedCount++;
@@ -183,7 +183,7 @@ export class UnifiedAIEngineRouterCache {
     let removedCount = 0;
     const keysToDelete: string[] = [];
 
-    for (const key of this.cache.keys()) {
+    for (const key of Array.from(this.cache.keys())) {
       try {
         // Base64 디코딩하여 패턴 매칭
         const decodedKey = Buffer.from(key, 'base64').toString();

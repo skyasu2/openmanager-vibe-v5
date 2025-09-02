@@ -23,7 +23,7 @@ export default function Header({ isDark, onThemeToggle }: HeaderProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navItems = [
+  const navItems: { name: string; href: string }[] = [
     { name: '홈', href: '#home' },
     { name: '기능', href: '#features' },
     { name: '문서', href: '/docs' },

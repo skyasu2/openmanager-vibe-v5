@@ -129,7 +129,11 @@ export class StreamingAIEngine {
 
       if (
         cached &&
-        Date.now() - ((cached.metadata?.timestamp as number) || 0) < 300000
+        Date.now() - (typeof cached.metadata?.timestamp === 'number' 
+          ? cached.metadata.timestamp 
+          : cached.metadata?.timestamp instanceof Date 
+            ? cached.metadata.timestamp.getTime() 
+            : 0) < 300000
       ) {
         // 5분 TTL
         return {
@@ -706,7 +710,11 @@ export class StreamingAIEngine {
     // 오래된 예측적 응답 정리
     const cutoff = Date.now() - 600000; // 10분
     for (const [key, response] of this.preloadedResponses.entries()) {
-      const timestamp = (response.metadata?.timestamp as number) || 0;
+      const timestamp = typeof response.metadata?.timestamp === 'number' 
+        ? response.metadata.timestamp 
+        : response.metadata?.timestamp instanceof Date 
+          ? response.metadata.timestamp.getTime() 
+          : 0;
       if (timestamp < cutoff) {
         this.preloadedResponses.delete(key);
       }

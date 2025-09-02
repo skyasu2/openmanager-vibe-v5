@@ -15,14 +15,8 @@ import { useState, useCallback } from 'react';
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
-// 임시 타입 정의 (modules/ai-sidebar가 제거됨)
-export interface AIThinkingStep {
-  id: string;
-  step: string;
-  status: 'thinking' | 'complete' | 'error';
-  description?: string;
-  timestamp: Date;
-}
+// AI Thinking Step 타입 import (중복 정의 제거)
+import type { AIThinkingStep } from '../types/ai-thinking';
 
 export interface AgentLog {
   id: string;
@@ -87,7 +81,7 @@ export const useAIThinking = () => {
     setThinkingState(prev => ({
       ...prev,
       steps: [...prev.steps, newStep],
-      isThinking: step.status !== 'complete' && step.status !== 'error',
+      isThinking: step.status !== 'completed',
       currentStepIndex: prev.steps.length,
     }));
   }, []);
@@ -101,7 +95,7 @@ export const useAIThinking = () => {
           : step
       ),
       isThinking: updates.status 
-        ? (updates.status !== 'complete' && updates.status !== 'error')
+        ? (updates.status !== 'completed')
         : prev.isThinking,
     }));
   }, []);
@@ -121,7 +115,7 @@ export const useAIThinking = () => {
       steps: initialStep ? [{
         id: crypto.randomUUID(),
         step: initialStep,
-        status: 'thinking',
+        status: 'processing',
         timestamp: now,
       }] : [],
       isThinking: true,
@@ -136,8 +130,8 @@ export const useAIThinking = () => {
       ...prev,
       isThinking: false,
       steps: prev.steps.map(step => 
-        step.status === 'thinking' 
-          ? { ...step, status: 'complete', timestamp: new Date() }
+        step.status === 'processing' 
+          ? { ...step, status: 'completed', timestamp: new Date() }
           : step
       ),
     }));
@@ -151,7 +145,7 @@ export const useAIThinking = () => {
         {
           id: crypto.randomUUID(),
           step: 'API 호출 중...',
-          status: 'thinking',
+          status: 'processing',
           description: 'Google AI API를 호출하고 있습니다.'
         }
       ];
@@ -160,7 +154,7 @@ export const useAIThinking = () => {
       
       // 2초 후 완료
       setTimeout(() => {
-        updateStep(steps[0].id, { status: 'complete' });
+        updateStep(steps[0].id, { status: 'completed' });
         completeThinking();
       }, 2000);
     } else {
@@ -169,25 +163,25 @@ export const useAIThinking = () => {
         {
           id: crypto.randomUUID(),
           step: '질문 분석',
-          status: 'thinking',
+          status: 'processing',
           description: `"${query}" 질문을 이해하고 의도를 파악하고 있습니다...`
         },
         {
           id: crypto.randomUUID(),
           step: '데이터 수집',
-          status: 'thinking',
+          status: 'processing',
           description: '관련 시스템 데이터와 메트릭을 수집하고 있습니다...'
         },
         {
           id: crypto.randomUUID(),
           step: '분석 및 추론',
-          status: 'thinking', 
+          status: 'processing', 
           description: '수집된 데이터를 분석하고 패턴을 파악하고 있습니다...'
         },
         {
           id: crypto.randomUUID(),
           step: '답변 생성',
-          status: 'thinking',
+          status: 'processing',
           description: '최적의 답변을 생성하고 검증하고 있습니다...'
         }
       ];
@@ -202,13 +196,13 @@ export const useAIThinking = () => {
           
           // 이전 단계 완료
           if (index > 0) {
-            updateStep(steps[index - 1].id, { status: 'complete' });
+            updateStep(steps[index - 1].id, { status: 'completed' });
           }
           
           // 마지막 단계면 전체 완료
           if (index === steps.length - 1) {
             setTimeout(() => {
-              updateStep(step.id, { status: 'complete' });
+              updateStep(step.id, { status: 'completed' });
               completeThinking();
             }, 1500);
           }

@@ -14,8 +14,8 @@ import type {
   SafeEnvironmentAccess,
   SecurityEnvConfig,
   SupabaseEnvConfig,
-} from '@/types/environment';
-import { isValidEnvironmentName } from '@/types/environment';
+} from '../types/environment';
+import { isValidEnvironmentName } from '../types/environment';
 
 class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
   private readonly _isBuildTime: boolean;

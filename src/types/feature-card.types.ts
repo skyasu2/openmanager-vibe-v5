@@ -78,7 +78,7 @@ export interface TechItem {
   description: string;
   implementation: string;
   version?: string;
-  status: 'active' | 'ready' | 'planned';
+  status: 'active' | 'ready' | 'planned' | 'history';
   icon: string;
   tags: string[];
   type?: ProductType; // 커스텀 개발인지 상용 제품인지 구분

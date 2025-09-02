@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, type MouseEvent } from 'react';
+import { memo, type MouseEvent, type KeyboardEvent } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import type { MenuItem } from '../types/profile.types';
 
@@ -42,7 +42,7 @@ export const ProfileMenuItem = memo(function ProfileMenuItem({
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
     if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
       e.preventDefault();
       handleClick(e as unknown as MouseEvent);

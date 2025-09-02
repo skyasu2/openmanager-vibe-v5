@@ -21,7 +21,7 @@ import {
   TrendingUp,
   Zap,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState, type FC } from 'react';
 import BasePanelLayout from './shared/BasePanelLayout';
 
 interface PatternData {
@@ -309,7 +309,7 @@ const PatternAnalysisPanel: FC<PatternAnalysisPanelProps> = ({
       adminLabel="상세분석"
       filters={patternTypes}
       selectedFilter={selectedType}
-      onFilterChange={(filterId) => setSelectedType(filterId as any)}
+      onFilterChange={(filterId: string) => setSelectedType(filterId as any)}
       bottomInfo={{
         primary: '🤖 AI가 실시간으로 시스템 패턴을 분석합니다',
         secondary: '상세 패턴 분석 및 대응 전략은 관리자 페이지에서 확인하세요',

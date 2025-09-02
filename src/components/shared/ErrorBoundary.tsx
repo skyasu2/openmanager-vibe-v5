@@ -1,6 +1,7 @@
 'use client';
 
 // React import 제거 - Next.js 15 자동 JSX Transform 사용
+import { ReactNode, Component, ComponentType, ErrorInfo } from 'react';
 
 interface ErrorFallbackProps {
   error: Error;

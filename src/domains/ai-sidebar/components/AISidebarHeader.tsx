@@ -10,6 +10,7 @@
 
 // React import 제거 - Next.js 15 자동 JSX Transform 사용
 import { X, Brain } from 'lucide-react';
+import { type FC } from 'react';
 import BasicTyping from '@/components/ui/BasicTyping';
 
 interface AISidebarHeaderProps {
@@ -18,7 +19,7 @@ interface AISidebarHeaderProps {
 
 export const AISidebarHeader: FC<AISidebarHeaderProps> = ({
   onClose,
-}) => {
+}: AISidebarHeaderProps) => {
   return (
     <header className="flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50 p-3 sm:p-4">
       <div className="flex min-w-0 items-center space-x-2 sm:space-x-3">

@@ -10,7 +10,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, FC } from 'react';
 import { useGlobalSystemStore } from '@/stores/systemStore';
 import { X, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 

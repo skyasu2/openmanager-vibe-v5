@@ -344,11 +344,12 @@ export function logServerConfig(
   // 8개 서버 타입 정보 추가 로깅
   if (config.serverTypes) {
     console.log('  🏢 서버 타입 할당:');
-    config.serverTypes.orderedTypes.forEach((type, index) => {
+    const { serverTypes } = config;
+    serverTypes.orderedTypes.forEach((type, index) => {
       let status = '🟢 정상';
-      if (config.serverTypes.statusMapping.critical.includes(index)) {
+      if (serverTypes.statusMapping.critical.includes(index)) {
         status = '🔴 심각';
-      } else if (config.serverTypes.statusMapping.warning.includes(index)) {
+      } else if (serverTypes.statusMapping.warning.includes(index)) {
         status = '🟡 경고';
       }
       console.log(`    ${index + 1}. ${type} (${status})`);

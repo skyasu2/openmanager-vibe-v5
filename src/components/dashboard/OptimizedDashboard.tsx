@@ -21,7 +21,7 @@ import type { Server } from '@/types/server';
 import { Bot, LogOut, User } from 'lucide-react';
 import { useSession, signOut } from '@/hooks/useSupabaseSession';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 
 // 컴포넌트 import
 import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
@@ -29,8 +29,8 @@ import EnhancedServerModal from './EnhancedServerModal';
 import ServerDashboard from './ServerDashboard';
 import { RealtimeClock } from '@/components/shared/RealtimeClock';
 
-// AI 사이드바 import (Phase 2-5 구조)
-import { AISidebar } from '@/presentation/ai-sidebar';
+// AI 사이드바 import (직접 import로 타입 문제 해결)
+import AISidebarV3 from '@/domains/ai-sidebar/components/AISidebarV3';
 
 interface OptimizedDashboardProps {
   servers?: Server[];
@@ -246,7 +246,12 @@ export default function OptimizedDashboard({
           <main className="flex-1 p-6">
             <div
             >
-              <ServerDashboard onStatsUpdate={() => {}} />
+              <ServerDashboard onStatsUpdate={(stats: {
+                total: number;
+                online: number;
+                warning: number;
+                offline: number;
+              }) => {}} />
             </div>
           </main>
         </div>
@@ -257,7 +262,7 @@ export default function OptimizedDashboard({
             <div
               className="z-30 w-80 border-l border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
             >
-              <AISidebar isOpen={isAgentOpen} onClose={closeAgent} />
+              <AISidebarV3 isOpen={isAgentOpen} onClose={closeAgent} />
             </div>
           )}
         </Fragment>

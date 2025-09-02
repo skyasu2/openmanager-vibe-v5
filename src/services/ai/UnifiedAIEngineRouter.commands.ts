@@ -24,7 +24,7 @@ import {
   serverCommandsMap,
   recommendCommands,
   type OSCommand,
-} from '@/config/serverCommandsConfig';
+} from '../../config/serverCommandsConfig';
 
 export class UnifiedAIEngineRouterCommands {
   private config: RouterConfig;
@@ -188,8 +188,8 @@ export class UnifiedAIEngineRouterCommands {
 
     return {
       isCommandRequest,
-      detectedCategories: [...new Set(detectedCategories)], // 중복 제거
-      specificCommands: [...new Set(specificCommands)], // 중복 제거
+      detectedCategories: Array.from(new Set(detectedCategories)), // 중복 제거
+      specificCommands: Array.from(new Set(specificCommands)), // 중복 제거
       confidence,
       requestType,
     };

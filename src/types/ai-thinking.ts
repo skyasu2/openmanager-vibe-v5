@@ -6,21 +6,23 @@
 
 export interface AIThinkingStep {
   id: string;
-  timestamp: string;
-  type:
-    | 'analyzing'
-    | 'processing'
-    | 'reasoning'
-    | 'generating'
-    | 'completed'
-    | 'error';
-  title: string;
-  description: string;
-  progress: number; // 0-100
+  timestamp?: string | Date;
+  // ai-sidebar-types.ts ThinkingStep과 완전 호환 - 모든 type 값 지원
+  type?: 
+    | 'analysis' | 'data_processing' | 'pattern_matching' | 'reasoning' | 'response_generation'
+    | 'analyzing' | 'processing' | 'generating' | 'completed' | 'error';
+  title?: string;
+  description?: string;
+  progress?: number; // 0-100
   duration?: number; // 밀리초
   metadata?: Record<string, any>;
   subSteps?: string[]; // 세부 단계 로그
   icon?: string; // 아이콘 이름
+  // useAISidebarStore 호환성을 위한 추가 속성들
+  status?: 'pending' | 'processing' | 'completed';
+  step?: string;
+  content?: string;
+  confidence?: number;
 }
 
 export interface SixWPrincipleResponse {

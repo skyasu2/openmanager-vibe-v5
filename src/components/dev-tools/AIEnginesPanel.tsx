@@ -257,7 +257,7 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="LOCAL">LOCAL (로컬)</SelectItem>
-                <SelectItem value="GOOGLE_ONLY">GOOGLE_ONLY (고급)</SelectItem>
+                <SelectItem value="GOOGLE_AI">GOOGLE_AI (고급)</SelectItem>
               </SelectContent>
             </Select>
           </div>

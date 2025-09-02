@@ -3,7 +3,7 @@
  * Next.js 15 Edge Runtime 최적화 버전
  */
 
-import { SystemComponent } from '@/types/system-checklist';
+import { SystemComponent } from '../types/system-checklist';
 import {
   isNetworkError,
   hasOriginalError,
@@ -28,25 +28,7 @@ interface NetworkError extends Error {
   originalError?: Error;
 }
 
-// 🔧 타입 가드 함수들 (강화된 타입 안전성)
-const isNetworkError = (error: unknown): error is NetworkError => {
-  return (
-    error instanceof Error &&
-    'networkInfo' in error &&
-    typeof (error as NetworkError).networkInfo === 'object'
-  );
-};
-
-const hasOriginalError = (
-  error: unknown
-): error is { originalError: Error } => {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'originalError' in error &&
-    error.originalError instanceof Error
-  );
-};
+// 타입 가드 함수들은 network-tracking utils에서 import됨
 
 // 🔧 네트워크 정보 검증 헬퍼
 const getResponseTime = (networkInfo?: NetworkInfo): string => {

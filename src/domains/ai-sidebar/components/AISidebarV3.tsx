@@ -11,14 +11,14 @@
 
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState, useMemo, memo, Fragment, createElement } from 'react';
-import { useRealTimeAILogs } from '@/hooks/useRealTimeAILogs';
+import React, { useCallback, useEffect, useRef, useState, useMemo, memo, Fragment, createElement, type FC } from 'react';
+import { useRealTimeAILogs } from '../../../hooks/useRealTimeAILogs';
 import {
   useAIChat,
   useAISidebarStore,
   useAIThinking,
   EnhancedChatMessage,
-} from '@/stores/useAISidebarStore';
+} from '../../../stores/useAISidebarStore';
 
 // Icons
 import {
@@ -40,15 +40,15 @@ import { availableEngines } from './AIEngineSelector';
 import { AIFunctionPages } from './AIFunctionPages';
 import { AIPresetQuestions } from './AIPresetQuestions';
 import { AISidebarHeader } from './AISidebarHeader';
-import ThinkingProcessVisualizer from '@/components/ai/ThinkingProcessVisualizer';
-import type { AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
-import AIAssistantIconPanel from '@/components/ai/AIAssistantIconPanel';
-import { AIModeSelector } from '@/components/ai/AIModeSelector';
+import ThinkingProcessVisualizer from '../../../components/ai/ThinkingProcessVisualizer';
+import type { AIAssistantFunction } from '../../../components/ai/AIAssistantIconPanel';
+import AIAssistantIconPanel from '../../../components/ai/AIAssistantIconPanel';
+import { AIModeSelector } from '../../../components/ai/AIModeSelector';
 
 // Types
-import type { AISidebarV3Props } from '../types/ai-sidebar-types';
-import type { ChatMessage } from '@/stores/useAISidebarStore';
-import type { AIMode } from '@/types/ai-types';
+import type { AISidebarV3Props, AIThinkingStep } from '../types/ai-sidebar-types';
+import type { ChatMessage } from '../../../stores/useAISidebarStore';
+import type { AIMode } from '../../../types/ai-types';
 import { RealAISidebarService } from '../services/RealAISidebarService';
 
 // 🎯 ThinkingProcessVisualizer 성능 최적화
@@ -64,9 +64,8 @@ const MessageComponent = memo<{
     return (
       <div className="my-4">
         <MemoizedThinkingProcessVisualizer
-          steps={message.thinkingSteps}
+          steps={message.thinkingSteps as AIThinkingStep[]}
           isActive={message.isStreaming || false}
-          title="AI가 생각하는 중..."
           className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4"
         />
       </div>
@@ -130,12 +129,12 @@ const MessageComponent = memo<{
 
           {/* EnhancedChatMessage의 thinking steps 표시 (assistant 메시지에서) */}
           {message.role === 'assistant' && 
-           message.thinkingSteps?.length > 0 && (
+           message.thinkingSteps && 
+           message.thinkingSteps.length > 0 && (
             <div className="mt-3 border-t border-gray-100 pt-3">
               <MemoizedThinkingProcessVisualizer
                 steps={message.thinkingSteps}
                 isActive={false}
-                title="처리 과정"
                 className="bg-gray-50 border border-gray-200 rounded"
               />
             </div>
@@ -653,7 +652,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
         <AIPresetQuestions
           onQuestionSelect={handlePresetQuestion}
           currentPage={Math.floor(currentPresetIndex / PRESETS_PER_PAGE)}
-          onPageChange={(page) =>
+          onPageChange={(page: number) =>
             setCurrentPresetIndex(page * PRESETS_PER_PAGE)
           }
         />
@@ -787,4 +786,4 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
   );
 };
 
-export default memo(AISidebarV3);
+export default memo(AISidebarV3) as FC<AISidebarV3Props>;

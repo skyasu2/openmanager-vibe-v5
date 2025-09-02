@@ -144,10 +144,10 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
           result.data.map((suggestion: Partial<SuggestionData>) => ({
             id: suggestion.id || Math.random().toString(36).substr(2, 9),
             originalQuery:
-              suggestion?.originalQuery || suggestion?.query || '쿼리 없음',
+              suggestion?.originalQuery || (suggestion as any)?.query || '쿼리 없음',
             suggestedPattern:
               suggestion.suggestedPattern ||
-              suggestion.pattern ||
+              (suggestion as any).pattern ||
               '제안 패턴 없음',
             confidence: suggestion.confidence || 0.5,
             category: suggestion.category || 'general',
@@ -358,7 +358,7 @@ export function useAIAssistantData(): UseAIAssistantDataReturn {
       // 검색어 필터
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
-        const queryMatch = log.query?.toLowerCase().includes(searchLower);
+        const queryMatch = (log as any).query?.toLowerCase().includes(searchLower);
         const responseMatch = log.response?.toLowerCase().includes(searchLower);
         return queryMatch || responseMatch;
       }

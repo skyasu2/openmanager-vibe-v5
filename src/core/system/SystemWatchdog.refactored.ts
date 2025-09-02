@@ -37,6 +37,9 @@ interface ProcessStatus {
 interface SystemStatus {
   processes?: ProcessStatus[];
   metrics?: {
+    uptime: number;
+    totalProcesses: number;
+    activeConnections: number;
     totalRestarts?: number;
   };
   [key: string]: unknown;
@@ -204,6 +207,7 @@ export class SystemWatchdog {
           source: 'SystemWatchdog',
           payload: {
             alertType: 'metrics-update',
+            severity: 'info',
             message: 'System metrics updated',
             metrics: {
               cpuUsage: cpuEstimate,
@@ -350,6 +354,7 @@ export class SystemWatchdog {
         source: 'SystemWatchdog',
         payload: {
           alertType: 'memory-leak',
+          severity: 'critical',
           message: '메모리 누수 패턴 감지됨',
           metrics: {
             memoryUsage: this.getLatestMemory(),
@@ -370,6 +375,7 @@ export class SystemWatchdog {
         source: 'SystemWatchdog',
         payload: {
           alertType: 'high-error-rate',
+          severity: 'warning',
           message: `높은 오류율 감지 (${this.metrics.errorRate.toFixed(1)}%)`,
           metrics: {
             errorRate: this.metrics.errorRate,
@@ -387,6 +393,7 @@ export class SystemWatchdog {
         source: 'SystemWatchdog',
         payload: {
           alertType: 'performance-degradation',
+          severity: 'warning',
           message: '시스템 성능 저하 감지',
           metrics: {
             performanceScore: this.metrics.performanceScore,
@@ -407,6 +414,7 @@ export class SystemWatchdog {
         source: 'SystemWatchdog',
         payload: {
           alertType: 'frequent-restarts',
+          severity: 'warning',
           message: `빈번한 프로세스 재시작 감지 (${this.metrics.restartCount}회)`,
           metrics: {
             restartCount: this.metrics.restartCount,

@@ -133,10 +133,10 @@ export const useRealTimeAILogs = (
 
         // 기술 스택 업데이트
         if (log.metadata?.technology) {
-          setTechStack((prev) => new Set([...prev, log.metadata.technology]));
+          setTechStack((prev) => new Set([...prev, log.metadata!.technology!]));
         }
         if (log.metadata?.openSource) {
-          setTechStack((prev) => new Set([...prev, log.metadata.openSource]));
+          setTechStack((prev) => new Set([...prev, log.metadata!.openSource!]));
         }
 
         // 처리 상태 업데이트

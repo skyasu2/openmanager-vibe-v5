@@ -36,6 +36,7 @@ const SmoothTransition: FC<SmoothTransitionProps> = memo(
       if (isLoading) {
         setShowContent(false);
         setAnimationPhase('exiting');
+        return;
       } else {
         setShowContent(true);
         setAnimationPhase('entering');

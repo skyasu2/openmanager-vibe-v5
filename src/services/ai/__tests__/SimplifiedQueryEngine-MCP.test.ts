@@ -29,10 +29,10 @@ global.fetch = vi.fn();
 
 describe('SimplifiedQueryEngine - MCP Integration', () => {
   let engine: SimplifiedQueryEngine;
-  // @ts-expect-error - Mock object for testing
-  let mockRAGEngine: ReturnType<typeof getSupabaseRAGEngine>;
-  // @ts-expect-error - Mock object for testing
-  let mockContextLoader: CloudContextLoader;
+  // Mock 객체를 위한 타입 단언
+  let mockRAGEngine: ReturnType<typeof getSupabaseRAGEngine> & Record<string, any>;
+  // Mock 객체를 위한 타입 단언
+  let mockContextLoader: CloudContextLoader & Record<string, any>;
 
   beforeEach(() => {
     vi.clearAllMocks();

@@ -7,7 +7,7 @@
  * - RLS 보안 적용
  */
 
-import { supabase } from '@/lib/supabase/supabase-client';
+import { supabase } from '../../../lib/supabase/supabase-client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import type {
   ThinkingStep,
@@ -154,7 +154,7 @@ export class SupabaseRealtimeAdapter {
       // 기존 채널이 있으면 재사용
       if (this.channels.has(sessionId)) {
         const existingChannel = this.channels.get(sessionId);
-        existingChannel.unsubscribe();
+        existingChannel?.unsubscribe();
       }
 
       // 새 채널 생성

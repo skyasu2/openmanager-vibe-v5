@@ -8,7 +8,7 @@
 
 // framer-motion 제거 - CSS 애니메이션 사용
 import { ChevronDown, Database, Zap, type LucideIcon } from 'lucide-react';
-import React, { Fragment, useState, createElement } from 'react';
+import React, { Fragment, useState, createElement, type FC } from 'react';
 
 // 타입 임포트
 interface AIEngine {
@@ -64,7 +64,7 @@ export const AIEngineSelector: FC<AIEngineSelectorProps> = ({
   onEngineChange,
   disabled = false,
   selectedEngine, // 기존 호환성
-}) => {
+}: AIEngineSelectorProps) => {
   const [showEngineInfo, setShowEngineInfo] = useState(false);
 
   // props 호환성 처리

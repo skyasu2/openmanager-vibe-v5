@@ -15,7 +15,7 @@ import {
   Wifi,
   WifiOff,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ReactNode } from 'react';
 
 // 네트워크 메트릭 타입 정의
 interface NetworkMetrics {

@@ -41,7 +41,7 @@ const postHandler = createApiRoute()
     const isValidAIAssistant = 
       aiAssistantHeader === 'true' ||
       aiModeHeader === 'google-ai' ||
-      aiModeHeader === 'google_only' || // AI Sidebar에서 GOOGLE_ONLY 모드로 전송
+      aiModeHeader === 'google_ai' || // AI Sidebar에서 GOOGLE_AI 모드로 전송
       userAgent.includes('AI-Assistant');
       
     if (!isValidAIAssistant) {

@@ -83,15 +83,17 @@ class PerformanceMonitor {
     }
 
     const metrics = storage.get(key);
-    metrics.push({
-      timestamp: Date.now(),
-      duration,
-      metadata,
-    });
+    if (metrics) {
+      metrics.push({
+        timestamp: Date.now(),
+        duration,
+        metadata,
+      });
 
-    // 최대 개수 유지
-    if (metrics.length > this.maxMetricsPerType) {
-      metrics.shift();
+      // 최대 개수 유지
+      if (metrics.length > this.maxMetricsPerType) {
+        metrics.shift();
+      }
     }
   }
 
@@ -183,7 +185,7 @@ class PerformanceMonitor {
     if (thresholds.queryTimeMs) {
       this.queryTimes.forEach((metrics, queryType) => {
         const avg = this.calculateAverage(metrics);
-        if (avg > thresholds.queryTimeMs) {
+        if (thresholds.queryTimeMs && avg > thresholds.queryTimeMs) {
           violations.push({
             type: 'query',
             name: queryType,
@@ -198,7 +200,7 @@ class PerformanceMonitor {
     if (thresholds.apiLatencyMs) {
       this.apiLatencies.forEach((metrics, endpoint) => {
         const avg = this.calculateAverage(metrics);
-        if (avg > thresholds.apiLatencyMs) {
+        if (thresholds.apiLatencyMs && avg > thresholds.apiLatencyMs) {
           violations.push({
             type: 'api',
             name: endpoint,

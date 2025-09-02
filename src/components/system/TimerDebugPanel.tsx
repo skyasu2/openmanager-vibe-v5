@@ -6,7 +6,7 @@
 
 'use client';
 
-import type React from 'react';
+import React, { type FC } from 'react';
 
 interface TimerStatus {
   id: string;

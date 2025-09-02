@@ -7,8 +7,8 @@
  * - 검색 쿼리 최적화
  */
 
-import { getSupabaseClient } from '@/lib/supabase-singleton';
-import { aiLogger } from '@/lib/logger';
+import { getSupabaseClient } from '../../lib/supabase-singleton';
+import { aiLogger } from '../../lib/logger';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 interface IndexInfo {

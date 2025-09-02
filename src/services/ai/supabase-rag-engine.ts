@@ -8,8 +8,8 @@
  * ✅ MCP 컨텍스트 통합
  */
 
-import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
-import type { AIMetadata, MCPContext } from '@/types/ai-service-types';
+import { CloudContextLoader } from '../mcp/CloudContextLoader';
+import type { AIMetadata, MCPContext } from '../../types/ai-service-types';
 import { embeddingService } from './embedding-service';
 import { PostgresVectorDB } from './postgres-vector-db';
 
@@ -629,7 +629,7 @@ export class SupabaseRAGEngine {
           const result = await this.vectorDB.store(
             doc.id,
             doc.content,
-            doc.embedding,
+            doc.embedding!,
             convertAIMetadataToDocumentMetadata(doc.metadata)
           );
 

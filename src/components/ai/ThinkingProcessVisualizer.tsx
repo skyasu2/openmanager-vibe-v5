@@ -3,7 +3,7 @@
  * AI 사고 과정을 실시간으로 시각화하는 컴포넌트
  */
 
-import { useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useState, ComponentType, FC } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Brain,
@@ -17,7 +17,7 @@ import {
   Zap,
   ChevronRight,
 } from 'lucide-react';
-import { AIThinkingStep } from '@/types/ai-thinking';
+import type { ThinkingStep as AIThinkingStep } from '@/domains/ai-sidebar/types/ai-sidebar-types';
 
 interface ThinkingProcessVisualizerProps {
   steps: AIThinkingStep[];
@@ -25,50 +25,35 @@ interface ThinkingProcessVisualizerProps {
   className?: string;
 }
 
-// 단계 타입별 스타일 매핑
-const stepTypeConfig: Record<
-  AIThinkingStep['type'],
+// 단계 status별 스타일 매핑
+const stepStatusConfig: Record<
+  NonNullable<AIThinkingStep['status']>,
   {
     icon: ComponentType<{ className?: string }>;
     color: string;
     label: string;
   }
 > = {
-  analyzing: {
-    icon: Eye,
-    color: 'text-blue-500 bg-blue-50',
-    label: '분석 중',
+  pending: {
+    icon: Loader2,
+    color: 'text-gray-500 bg-gray-50',
+    label: '대기 중',
   },
   processing: {
     icon: Cpu,
     color: 'text-purple-500 bg-purple-50',
     label: '처리 중',
   },
-  reasoning: {
-    icon: Brain,
-    color: 'text-indigo-500 bg-indigo-50',
-    label: '추론 중',
-  },
-  generating: {
-    icon: Sparkles,
-    color: 'text-yellow-500 bg-yellow-50',
-    label: '생성 중',
-  },
   completed: {
     icon: CheckCircle2,
     color: 'text-green-500 bg-green-50',
     label: '완료',
   },
-  error: {
-    icon: AlertCircle,
-    color: 'text-red-500 bg-red-50',
-    label: '오류',
-  },
 };
 
 export const ThinkingProcessVisualizer: FC<
   ThinkingProcessVisualizerProps
-> = ({ steps, isActive = false, className = '' }) => {
+> = ({ steps, isActive = false, className = '' }: ThinkingProcessVisualizerProps) => {
   const [visibleSteps, setVisibleSteps] = useState<AIThinkingStep[]>([]);
 
   useEffect(() => {
@@ -102,7 +87,7 @@ export const ThinkingProcessVisualizer: FC<
       <div className="space-y-2">
         <Fragment>
           {displaySteps.map((step, stepIndex) => {
-            const config = stepTypeConfig[step.type];
+            const config = stepStatusConfig[step.status || 'pending'];
             const Icon = config.icon as FC<{ className?: string }>;
             const isCurrentStep = stepIndex === displaySteps.length - 1;
 
@@ -142,7 +127,7 @@ export const ThinkingProcessVisualizer: FC<
                     </div>
 
                     {/* 진행률 표시 */}
-                    {step.progress > 0 && step.progress < 100 && (
+                    {step.progress && step.progress > 0 && step.progress < 100 && (
                       <div className="mt-2">
                         <div className="h-1 w-full rounded-full bg-gray-200">
                           <div

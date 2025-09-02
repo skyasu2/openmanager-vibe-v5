@@ -24,6 +24,7 @@ import {
   Cell,
   CustomTooltip,
 } from './LogDashboard.charts';
+import { ExtendedTooltipProps, SafeBarProps, ExtendedXAxisProps } from '@/types/CustomRechartsTypes';
 import type { LogData } from './LogDashboard.types';
 import { LEVEL_COLORS, CATEGORY_COLORS } from './LogDashboard.types';
 import type { ChartDataPoint } from '@/types/core-types';
@@ -107,8 +108,7 @@ export function LogDashboardAnalytics({ data }: AnalyticsTabProps) {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  {/* @ts-ignore - recharts type issue */}
-                <Tooltip content={<CustomTooltip />} />
+                  <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -128,19 +128,23 @@ export function LogDashboardAnalytics({ data }: AnalyticsTabProps) {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={categoryData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  {/* @ts-ignore - Recharts XAxis angle prop compatibility */}
                   <XAxis
-                    dataKey="name"
-                    angle={-45}
-                    textAnchor="end"
-                    height={80}
-                    fontSize={12}
+                    {...({
+                      dataKey: "name",
+                      angle: -45,
+                      textAnchor: "end",
+                      height: 80,
+                      fontSize: 12
+                    } as ExtendedXAxisProps)}
                   />
                   <YAxis />
-                  {/* @ts-ignore - recharts type issue */}
-                <Tooltip content={<CustomTooltip />} />
-                  {/* @ts-expect-error - Recharts Bar children prop type definition issue */}
-                  <Bar dataKey="value" fill="#8884d8">
+                  <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
+                  <Bar
+                    {...({
+                      dataKey: "value",
+                      fill: "#8884d8"
+                    } as SafeBarProps)}
+                  >
                     {categoryData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
@@ -167,12 +171,19 @@ export function LogDashboardAnalytics({ data }: AnalyticsTabProps) {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="time" />
                 <YAxis />
-                {/* @ts-ignore - recharts type issue */}
-                <Tooltip content={<CustomTooltip />} />
-                {/* @ts-expect-error - Recharts Bar name prop type definition issue */}
-                <Bar dataKey="logs" fill="#3B82F6" name="총 로그" />
-                {/* @ts-expect-error - Recharts Bar name prop type definition issue */}
-                <Bar dataKey="errors" fill="#EF4444" name="에러" />
+                <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
+                <Bar
+                  {...({
+                    dataKey: "logs",
+                    fill: "#3B82F6"
+                  } as SafeBarProps)}
+                />
+                <Bar
+                  {...({
+                    dataKey: "errors",
+                    fill: "#EF4444"
+                  } as SafeBarProps)}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>

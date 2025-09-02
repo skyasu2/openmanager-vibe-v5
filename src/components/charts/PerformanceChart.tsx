@@ -7,6 +7,7 @@ import {
   Tooltip,
   Legend,
 } from 'recharts';
+import { SafePieProps, ExtendedTooltipProps } from '@/types/CustomRechartsTypes';
 
 interface ChartDataPoint {
   name: string;
@@ -62,23 +63,25 @@ const PerformanceChart = memo<PerformanceChartProps>(({ data }) => {
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
-            data={data}
-            cx="50%"
-            cy="50%"
-            innerRadius={40}
-            outerRadius={80}
-            paddingAngle={2}
-            dataKey="value"
+            {...({
+              data: data,
+              cx: "50%",
+              cy: "50%",
+              innerRadius: 40,
+              outerRadius: 80,
+              paddingAngle: 2,
+              dataKey: "value"
+            } as SafePieProps)}
           >
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
           </Pie>
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
           <Legend
             verticalAlign="bottom"
             height={36}
-            formatter={(value, entry) => (
+            formatter={(value: string, entry: { color: string }) => (
               <span style={{ color: entry.color }}>{value}</span>
             )}
           />

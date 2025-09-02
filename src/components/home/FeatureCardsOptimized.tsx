@@ -5,6 +5,7 @@
 
 'use client';
 
+import { type ComponentType } from 'react';
 import {
   BarChart3,
   Bot,

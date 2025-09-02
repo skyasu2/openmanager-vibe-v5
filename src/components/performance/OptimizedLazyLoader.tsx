@@ -94,9 +94,9 @@ export const LazyLightChart = lazy(() =>
  * 🎯 전략 3: 관리자 대시보드 분리
  */
 
-// AI 어시스턴트 대시보드 (200KB+)
+// AI 어시스턴트 대시보드 (200KB+) - 컴포넌트 없음으로 대체
 export const LazyAIAssistantDashboard = lazy(() =>
-  import('@/components/ai/AIAssistantMinimal').catch(() => ({
+  Promise.resolve({
     default: () => (
       <div className="rounded-lg bg-gradient-to-br from-purple-50 to-pink-50 p-6">
         <h3 className="mb-2 text-lg font-semibold text-gray-900">
@@ -107,12 +107,12 @@ export const LazyAIAssistantDashboard = lazy(() =>
         </p>
       </div>
     ),
-  }))
+  })
 );
 
 // GCP 모니터링 대시보드 (150KB+)
 export const LazyGCPMonitoring = lazy(() =>
-  import('@/components/admin/GCPMonitoringMinimal').catch(() => ({
+  Promise.resolve({
     default: () => (
       <div className="rounded-lg bg-gradient-to-br from-green-50 to-emerald-50 p-6">
         <h3 className="mb-2 text-lg font-semibold text-gray-900">
@@ -130,7 +130,8 @@ export const LazyGCPMonitoring = lazy(() =>
         </div>
       </div>
     ),
-  })));
+  })
+);
 
 /**
  * 🎯 전략 4: 성능 최적화된 컴포넌트 래퍼

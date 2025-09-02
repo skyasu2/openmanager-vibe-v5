@@ -3,7 +3,7 @@
  * 각 Feature Card의 모달에서 표시되는 상세 기술 스택 정보
  */
 
-import type { TechItem } from '@/types/feature-card.types';
+import type { TechItem } from '../types/feature-card.types';
 
 // 바이브 코딩 전용 현재/3단계 히스토리 구분 타입
 export interface VibeCodeData {

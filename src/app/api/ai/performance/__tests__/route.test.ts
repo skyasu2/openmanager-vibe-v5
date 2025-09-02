@@ -18,7 +18,7 @@ vi.mock('@/services/ai/SimplifiedQueryEngine');
 vi.mock('@/lib/logger');
 
 // 테스트 헬퍼 함수
-function createMockRequest(method: string, body?: any): NextRequest {
+function createMockRequest(method: string, body?: Record<string, unknown>): NextRequest {
   const url = 'http://localhost:3000/api/ai/performance';
   const options: RequestInit = {
     method,

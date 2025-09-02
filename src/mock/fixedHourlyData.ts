@@ -8,7 +8,7 @@
  * - 장애 시나리오는 AI가 직접 분석
  */
 
-import type { Server } from '@/types/server';
+import type { Server } from '../types/server';
 
 export interface HourlyServerState {
   serverId: string;

@@ -237,8 +237,10 @@ export function useSequentialServerGeneration(
           onServerAdded?.(newServer);
 
           if (result.isComplete) {
-            clearInterval(intervalRef.current);
-            intervalRef.current = null;
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current);
+              intervalRef.current = null;
+            }
 
             setStatus((prev) => ({
               ...prev,
@@ -250,8 +252,10 @@ export function useSequentialServerGeneration(
           }
         } else {
           // 오류 발생 시 중지
-          clearInterval(intervalRef.current);
-          intervalRef.current = null;
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
 
           setStatus((prev) => ({
             ...prev,
@@ -263,8 +267,10 @@ export function useSequentialServerGeneration(
           onError?.(result.error || '서버 생성 중 오류 발생');
         }
       } catch (error) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
 
         const errorMessage =
           error instanceof Error ? error.message : 'Unknown error';

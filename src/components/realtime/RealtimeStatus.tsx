@@ -12,7 +12,7 @@
 import { useRealtimeData } from '@/hooks/api/useRealtimeQueries';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { AlertCircle, CheckCircle, RefreshCw, WifiOff } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 
 interface RealtimeStatusProps {
   compact?: boolean;

@@ -20,7 +20,7 @@ import {
   Target,
   Zap,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState, type FC } from 'react';
 import BasePanelLayout from './shared/BasePanelLayout';
 
 interface LogEntry {
@@ -205,7 +205,7 @@ const AssistantLogPanel: FC<AssistantLogPanelProps> = ({
         if (!groups.has(log.sessionId)) {
           groups.set(log.sessionId, []);
         }
-        groups.get(log.sessionId).push(log);
+        groups.get(log.sessionId)!.push(log);
       }
     });
 
@@ -362,7 +362,7 @@ const AssistantLogPanel: FC<AssistantLogPanelProps> = ({
       adminLabel="상세 관리"
       filters={logTypes}
       selectedFilter={selectedType}
-      onFilterChange={(filterId) => setSelectedType(filterId as any)}
+      onFilterChange={(filterId: string) => setSelectedType(filterId as any)}
       bottomInfo={{
         primary: '🧠 AI 사고 과정과 질의응답 로그를 실시간으로 추적합니다',
         secondary: `🎯 패턴 감지: ${logStats.patterns}건 | 🤔 질의: ${logStats.queries}건 | 🧠 사고: ${logStats.thinking}건`,

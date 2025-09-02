@@ -7,7 +7,7 @@
  * @author AI Assistant
  */
 
-import type { ReactNode } from 'react';
+import type { ReactNode, RefObject } from 'react';
 
 // 기본 컴포넌트 Props
 export interface UnifiedProfileComponentProps {

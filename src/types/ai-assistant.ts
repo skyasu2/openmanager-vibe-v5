@@ -6,6 +6,7 @@ export interface ResponseLogData {
   id: string;
   timestamp: string;
   question: string;
+  query?: string; // useAIAssistantData.ts 호환성을 위한 별칭
   response: string;
   status: 'success' | 'fallback' | 'failed';
   confidence: number;
@@ -18,7 +19,9 @@ export interface ResponseLogData {
 export interface PatternSuggestion {
   id: string;
   originalQuery: string;
+  query?: string; // useAIAssistantData.ts 호환성을 위한 별칭
   suggestedPattern: string;
+  pattern?: string; // useAIAssistantData.ts 호환성을 위한 별칭
   confidence: number;
   category: string;
   status: 'pending' | 'approved' | 'rejected';

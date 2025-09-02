@@ -10,11 +10,11 @@
  */
 
 import type { SupabaseRAGEngine } from './supabase-rag-engine';
-import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
+import { CloudContextLoader } from '../mcp/CloudContextLoader';
 import { MockContextLoader } from './MockContextLoader';
-import { IntentClassifier } from '@/modules/ai-agent/processors/IntentClassifier';
+import { IntentClassifier } from '../../modules/ai-agent/processors/IntentClassifier';
 import type { ComplexityScore } from './query-complexity-analyzer';
-import type { AIQueryContext, MCPContext } from '@/types/ai-service-types';
+import type { AIQueryContext, MCPContext } from '../../types/ai-service-types';
 import type {
   QueryRequest,
   QueryResponse,
@@ -64,9 +64,11 @@ export class SimplifiedQueryEngineProcessors {
 
     // Initialize specialized processors
     this.localProcessor = new LocalQueryProcessor(
+      utils,
       ragEngine,
+      contextLoader,
       mockContextLoader,
-      this.helpers
+      intentClassifier
     );
 
     this.localAIProcessor = new LocalAIModeProcessor(
@@ -121,14 +123,17 @@ export class SimplifiedQueryEngineProcessors {
     startTime: number,
     complexity?: ComplexityScore
   ): Promise<QueryResponse> {
+    if (!context) {
+      throw new Error('AIQueryContext is required for local processing');
+    }
+    
     return this.localProcessor.processLocalQuery(
       query,
       context,
-      options,
+      options || {},
       mcpContext,
       thinkingSteps,
-      startTime,
-      complexity
+      startTime
     );
   }
 

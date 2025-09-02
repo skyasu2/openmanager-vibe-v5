@@ -12,7 +12,7 @@ import {
   centralDataManager,
   updateDataVisibility,
 } from '@/services/realtime/CentralizedDataManager';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useIntersectionObserver } from './useIntersectionObserver';
 
 type DataType = 'servers' | 'network' | 'system' | 'metrics';

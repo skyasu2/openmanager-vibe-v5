@@ -15,7 +15,7 @@ import type {
   MCPContext,
   AIMetadata,
   ServerArray,
-} from '@/types/ai-service-types';
+} from '../../types/ai-service-types';
 import type { MockContext } from './SimplifiedQueryEngine.types';
 
 /**

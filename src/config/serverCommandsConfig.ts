@@ -5,8 +5,9 @@
  * @deprecated 새로운 코드에서는 './commands' 디렉토리의 개별 모듈을 직접 import하세요
  */
 
-// 타입 re-export
-export type { OSCommand, ServerCommands } from './commands/types';
+// 타입 import 및 re-export
+import type { OSCommand, ServerCommands } from './commands/types.js';
+export type { OSCommand, ServerCommands };
 
 // 공통 명령어 import
 import {

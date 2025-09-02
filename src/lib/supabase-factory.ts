@@ -20,9 +20,9 @@ import { supabaseAdmin } from './supabase-server';
 import { createMiddlewareSupabaseClient } from './supabase-middleware';
 
 // 환경 타입 정의
-export type SupabaseEnvironment = 'client' | 'server' | 'middleware' | 'script';
+type SupabaseEnvironment = 'client' | 'server' | 'middleware' | 'script';
 
-export interface SupabaseFactoryOptions {
+interface SupabaseFactoryOptions {
   environment: SupabaseEnvironment;
   serviceRoleKey?: string;
   request?: NextRequest;

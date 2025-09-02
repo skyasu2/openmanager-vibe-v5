@@ -62,17 +62,18 @@ export function PerformanceMonitor() {
       // FID 측정
       new PerformanceObserver((entryList) => {
         const entries = entryList.getEntries();
-        entries.forEach((entry: any) => {
-          vitals.fid = entry.processingStart - entry.startTime;
+        entries.forEach((entry: PerformanceEntry) => {
+          vitals.fid = (entry as PerformanceEventTiming).processingStart - entry.startTime;
         });
       }).observe({ entryTypes: ['first-input'] });
 
       // CLS 측정
       new PerformanceObserver((entryList) => {
         let clsValue = 0;
-        entryList.getEntries().forEach((entry: any) => {
-          if (!entry.hadRecentInput) {
-            clsValue += entry.value;
+        entryList.getEntries().forEach((entry: PerformanceEntry) => {
+          const layoutShiftEntry = entry as any; // Layout Shift 전용 타입
+          if (!layoutShiftEntry.hadRecentInput) {
+            clsValue += layoutShiftEntry.value || 0;
           }
         });
         vitals.cls = clsValue;
@@ -111,12 +112,12 @@ export function PerformanceMonitor() {
       'navigation'
     )[0] as PerformanceNavigationTiming;
     const loadTime = navigation
-      ? navigation.loadEventEnd - navigation.navigationStart
+      ? navigation.loadEventEnd - (navigation.fetchStart || navigation.startTime)
       : 0;
 
     // 렌더 시간
     const renderTime = navigation
-      ? navigation.domContentLoadedEventEnd - navigation.navigationStart
+      ? navigation.domContentLoadedEventEnd - (navigation.fetchStart || navigation.startTime)
       : 0;
 
     const newMetrics: PerformanceMetrics = {

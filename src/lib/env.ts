@@ -1,4 +1,4 @@
-import { safeEnv } from '@/utils/safe-environment';
+import { safeEnv } from '../utils/safe-environment';
 import { z } from 'zod';
 
 const EnvironmentSchema = z.object({
@@ -157,7 +157,7 @@ export {
   isVercel,
   logEnvironmentStatus,
   safeEnv,
-} from '@/utils/safe-environment';
+} from '../utils/safe-environment';
 
 // 🎯 타입 재export
 export type {
@@ -169,4 +169,4 @@ export type {
   SafeEnvironmentAccess,
   SecurityEnvConfig,
   SupabaseEnvConfig,
-} from '@/types/environment';
+} from '../types/environment';

@@ -59,28 +59,28 @@ export function useAIThinking(): UseAIThinkingReturn {
     const steps: ThinkingStep[] = [
       {
         id: '1',
-        step: 1,
+        step: '1',
         title: '질문 분석',
         description: '사용자의 질문을 이해하고 의도를 파악하고 있습니다...',
         status: 'processing',
       },
       {
         id: '2',
-        step: 2,
+        step: '2',
         title: '데이터 수집',
         description: '관련 정보를 수집하고 있습니다...',
         status: 'pending',
       },
       {
         id: '3',
-        step: 3,
+        step: '3',
         title: '분석 및 추론',
         description: '수집된 데이터를 분석하고 있습니다...',
         status: 'pending',
       },
       {
         id: '4',
-        step: 4,
+        step: '4',
         title: '답변 생성',
         description: '최적의 답변을 생성하고 있습니다...',
         status: 'pending',

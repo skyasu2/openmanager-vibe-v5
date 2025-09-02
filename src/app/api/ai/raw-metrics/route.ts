@@ -1,4 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { 
+  safeServerStatus,
+  safeServerEnvironment, 
+  safeServerRole,
+  safeMetricValue,
+  safeResponseTime,
+  safeConnections 
+} from '@/lib/type-converters';
 
 /**
  * 🤖 AI 분석 무결성 보장 API
@@ -21,7 +29,7 @@ interface RawServerMetric {
   id: string;
   name: string;
   hostname: string;
-  status: 'online' | 'offline' | 'warning' | 'critical';
+  status: 'online' | 'offline' | 'warning' | 'critical' | 'maintenance';
   
   // 📊 Pure Raw Metrics (AI 분석용)
   cpu: number;
@@ -42,6 +50,29 @@ interface RawServerMetric {
   responseTime?: number;
   connections?: number;
   load?: number;
+}
+
+// 시간별 데이터 구조 타입 정의
+interface HourlyDataStructure {
+  servers: Record<string, ServerDataStructure>;
+  scenario?: string;
+}
+
+interface ServerDataStructure {
+  id: string;
+  name: string;
+  hostname: string;
+  status: string;
+  type: string;
+  location: string;
+  environment: string;
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: number;
+  uptime: number;
+  responseTime?: number;
+  connections?: number;
 }
 
 /**
@@ -84,7 +115,7 @@ async function loadPureRawMetrics(): Promise<RawServerMetric[]> {
 /**
  * 🧹 순수 메트릭 변환기 - 모든 시나리오 힌트 제거
  */
-function convertToPureMetrics(hourlyData: any, currentHour: number, rotationMinute: number, segmentInHour: number): RawServerMetric[] {
+function convertToPureMetrics(hourlyData: HourlyDataStructure, currentHour: number, rotationMinute: number, segmentInHour: number): RawServerMetric[] {
   const servers = hourlyData.servers || {};
   
   // 🔒 시나리오 정보를 로그하지 않음 - AI 분석 무결성 유지
@@ -116,7 +147,7 @@ function convertToPureMetrics(hourlyData: any, currentHour: number, rotationMinu
     }
   }
   
-  return Object.values(servers).map((serverData: any, index) => {
+  return Object.values(servers).map((serverData: ServerDataStructure, index) => {
     // 🔄 시간 내 고정 패턴 (시나리오 힌트 없이)
     const minuteFactor = rotationMinute / 59;
     const fixedOffset = Math.sin(minuteFactor * 2 * Math.PI) * 2;
@@ -128,7 +159,7 @@ function convertToPureMetrics(hourlyData: any, currentHour: number, rotationMinu
       id: serverData.id || `server-${index}`,
       name: serverData.name || `Server ${index + 1}`,
       hostname: serverData.hostname || `server-${index}.internal`,
-      status: serverData.status || 'online',
+      status: safeServerStatus(serverData.status) || 'online',
       
       // 🎯 Pure Raw Metrics (시나리오 정보 없이)
       cpu: Math.round((serverData.cpu || 0) * fixedVariation),
@@ -146,8 +177,8 @@ function convertToPureMetrics(hourlyData: any, currentHour: number, rotationMinu
       environment: serverData.environment || 'production',
       
       // 📈 Additional Metrics
-      responseTime: Math.round((serverData.responseTime || 200) * fixedVariation),
-      connections: Math.round((serverData.connections || 150) * fixedVariation),
+      responseTime: safeResponseTime((serverData.responseTime || 200) * fixedVariation),
+      connections: safeConnections((serverData.connections || 150) * fixedVariation),
       load: Math.round(((serverData.cpu || 0) / 25) * fixedVariation * 100) / 100
     };
     
@@ -193,7 +224,7 @@ function generateFallbackMetrics(): RawServerMetric[] {
  * 📊 서버 타입별 기본 메트릭 (시나리오 정보 없이)
  */
 function getBaseMetricsForType(type: string): { cpu: number; memory: number; disk: number; network: number } {
-  const profiles: Record<string, any> = {
+  const profiles: Record<string, { cpu: number; memory: number; disk: number; network: number }> = {
     web: { cpu: 40, memory: 50, disk: 60, network: 20 },
     api: { cpu: 45, memory: 60, disk: 45, network: 25 },
     database: { cpu: 27, memory: 67, disk: 75, network: 12 },

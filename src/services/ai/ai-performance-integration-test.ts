@@ -157,7 +157,7 @@ export class AIPerformanceIntegrationTest {
         details: {
           cacheHitRate: routerStats.cacheHitRate,
           streamingEfficiency: streamingStats.targetAchievementRate,
-          parallelEfficiency: routerStats.parallelEfficiency,
+          parallelEfficiency: routerStats.streamingEfficiency, // streamingEfficiency 사용
           memoryUsage: routerStats.currentResponseTime, // 임시로 응답시간 사용
         },
       };

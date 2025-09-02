@@ -127,6 +127,9 @@ export class UnifiedResponseFormatter {
     startTime: number
   ): UnifiedAIResponse {
     const data = response.data;
+    if (!data) {
+      throw new Error('RAG response data is missing');
+    }
     const topResults = data.results.slice(0, 3);
 
     return {
@@ -176,6 +179,9 @@ export class UnifiedResponseFormatter {
     startTime: number
   ): UnifiedAIResponse {
     const data = response.data;
+    if (!data) {
+      throw new Error('GCP response data is missing');
+    }
 
     return {
       id: response.id,

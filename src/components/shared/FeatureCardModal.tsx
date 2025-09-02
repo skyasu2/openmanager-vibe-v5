@@ -226,7 +226,7 @@ export default function FeatureCardModal({
       
       if (isHistoryView && vibeData.history) {
         // 🎯 Qwen 제안: O(n²) → O(n) 최적화 - concat 체인 사용
-        result.allCards = [].concat(
+        result.allCards = ([] as TechItem[]).concat(
           vibeData.history.stage1 || [],
           vibeData.history.stage2 || [], 
           vibeData.history.stage3 || []
@@ -358,7 +358,7 @@ export default function FeatureCardModal({
               </p>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {vibeHistoryStages.stage1?.map((tech, index) => (
+              {vibeHistoryStages.stage1?.map((tech: TechItem, index: number) => (
                 <TechCard key={tech.name} tech={tech} index={index} />
               )) || null}
             </div>
@@ -379,7 +379,7 @@ export default function FeatureCardModal({
               </p>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {vibeHistoryStages.stage2?.map((tech, index) => (
+              {vibeHistoryStages.stage2?.map((tech: TechItem, index: number) => (
                 <TechCard key={tech.name} tech={tech} index={index} />
               )) || null}
             </div>
@@ -400,7 +400,7 @@ export default function FeatureCardModal({
               </p>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {vibeHistoryStages.stage3?.map((tech, index) => (
+              {vibeHistoryStages.stage3?.map((tech: TechItem, index: number) => (
                 <TechCard key={tech.name} tech={tech} index={index} />
               )) || null}
             </div>

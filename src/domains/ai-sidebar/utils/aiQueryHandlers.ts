@@ -43,7 +43,7 @@ export async function processRealAIQuery(
 
     // 엔진별 API 엔드포인트 선택
     const apiEndpoint =
-      engine === 'GOOGLE_ONLY'
+      engine === 'GOOGLE_AI'
         ? '/api/ai/google-ai/generate'
         : engine === 'LOCAL'
           ? '/api/ai/query'

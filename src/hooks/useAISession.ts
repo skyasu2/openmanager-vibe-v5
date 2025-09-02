@@ -19,7 +19,7 @@ export interface AISessionState {
   sessionId: string | null;
   currentQuery: string;
   currentResponse: string;
-  mode: 'LOCAL' | 'GOOGLE_ONLY';
+  mode: 'LOCAL' | 'GOOGLE_AI';
   isLoading: boolean;
   error: string | null;
   confidence: number;
@@ -178,7 +178,7 @@ export function useAISession(
    * 🔄 AI 쿼리 시작
    */
   const startQuery = useCallback(
-    (query: string, mode: 'LOCAL' | 'GOOGLE_ONLY' = 'LOCAL') => {
+    (query: string, mode: 'LOCAL' | 'GOOGLE_AI' = 'LOCAL') => {
       let sessionId = sessionState.sessionId;
 
       // 세션이 없으면 새로 생성

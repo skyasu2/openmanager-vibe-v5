@@ -8,14 +8,14 @@
 import type {
   Entity,
   IntentResult,
-} from '@/modules/ai-agent/processors/IntentClassifier';
+} from '../../modules/ai-agent/processors/IntentClassifier';
 import type { CommandRequestContext } from './UnifiedAIEngineRouter';
-import type { AIQueryContext } from '@/types/ai-service-types';
+import type { AIQueryContext } from '../../types/ai-service-types';
 import {
   createCacheKey,
   getTTL,
   validateDataSize,
-} from '@/config/free-tier-cache-config';
+} from '../../config/free-tier-cache-config';
 import type {
   QueryResponse,
   CacheEntry,
@@ -79,8 +79,8 @@ export class SimplifiedQueryEngineUtils {
     }
 
     // 응답 크기 검증
-    const responseSize = JSON.stringify(response).length;
-    if (!validateDataSize(responseSize, 'medium')) {
+    if (!validateDataSize(response, 'aiResponse')) {
+      const responseSize = JSON.stringify(response).length;
       console.warn('응답이 너무 커서 캐시하지 않음:', responseSize);
       return;
     }
@@ -99,7 +99,7 @@ export class SimplifiedQueryEngineUtils {
     const ttl = getTTL('aiResponse');
     const now = Date.now();
 
-    for (const [key, entry] of this.responseCache.entries()) {
+    for (const [key, entry] of Array.from(this.responseCache.entries())) {
       const age = now - entry.timestamp;
       if (age > ttl * 1000) {
         this.responseCache.delete(key);
@@ -283,7 +283,7 @@ export class SimplifiedQueryEngineUtils {
   /**
    * 📊 한국어 비율 계산
    */
-  private calculateKoreanRatio(text: string): number {
+  public calculateKoreanRatio(text: string): number {
     if (!text) return 0;
 
     const koreanCharCount = (text.match(/[가-힣]/g) || []).length;

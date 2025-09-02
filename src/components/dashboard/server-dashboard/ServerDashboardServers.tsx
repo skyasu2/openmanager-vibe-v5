@@ -1,5 +1,6 @@
 'use client';
 
+import React, { Fragment } from 'react';
 import { type ServerDisplayMode } from '@/config/display-config';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
@@ -331,7 +332,6 @@ export function ServerDashboardServers({
               {paginatedServers.map((server) => (
                 <div
                   key={server.id}
-                  layout
                 >
                   <ImprovedServerCard
                     server={server}

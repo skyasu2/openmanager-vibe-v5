@@ -9,8 +9,9 @@
 
 'use client';
 
-// React import 제거 - Next.js 15 자동 JSX Transform 사용
+// React import 추가 - FC 타입을 위해 필요
 // framer-motion 제거 - CSS 애니메이션 사용
+import React, { type FC } from 'react';
 
 export type FunctionTabType = 'qa' | 'report' | 'patterns' | 'logs' | 'context';
 

@@ -365,6 +365,8 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
       setConnectionState({
         isConnected: false,
         isConnecting: false,
+        connectionCount: 0,
+        lastPing: null,
         error: null,
       });
     };

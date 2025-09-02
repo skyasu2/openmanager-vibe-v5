@@ -23,6 +23,8 @@ const DEFAULT_CONFIG: Partial<AIEngineConfig> = {
   timeout: 30000,
   retryConfig: {
     maxRetries: 3,
+    backoffFactor: 2,
+    initialDelay: 1000,
     retryDelay: 1000,
     exponentialBackoff: true,
   },
@@ -38,8 +40,13 @@ const DEFAULT_CONFIG: Partial<AIEngineConfig> = {
  */
 export abstract class QueryProcessorBase implements IAIProcessor {
   protected config: AIEngineConfig;
-  protected status: AIEngineStatus;
+  public status: AIEngineStatus;
   protected initialized: boolean = false;
+
+  // IAIProcessor interface properties
+  public get engineType(): AIEngineType {
+    return this.type;
+  }
 
   constructor(
     public readonly type: AIEngineType,
@@ -52,7 +59,12 @@ export abstract class QueryProcessorBase implements IAIProcessor {
     } as AIEngineConfig;
 
     this.status = {
+      name: `${this.type} Processor`,
       type: this.type,
+      available: false,
+      responseTime: 0,
+      successRate: 0,
+      capabilities: [],
       healthy: false,
       lastCheck: new Date(),
       metrics: {
@@ -86,6 +98,20 @@ export abstract class QueryProcessorBase implements IAIProcessor {
   }
 
   /**
+   * IAIProcessor 인터페이스 구현 - processQuery
+   */
+  async processQuery(query: string, options?: AIQueryOptions): Promise<AIResponse> {
+    return this.process(query, options);
+  }
+
+  /**
+   * IAIProcessor 인터페이스 구현 - updateStatus
+   */
+  updateStatus(status: Partial<AIEngineStatus>): void {
+    this.status = { ...this.status, ...status };
+  }
+
+  /**
    * 쿼리 처리
    */
   async process(query: string, options?: AIQueryOptions): Promise<AIResponse> {
@@ -94,7 +120,7 @@ export abstract class QueryProcessorBase implements IAIProcessor {
     }
 
     const startTime = Date.now();
-    this.status.metrics.totalRequests++;
+    this.status.metrics!.totalRequests++;
 
     try {
       // 옵션 병합
@@ -245,12 +271,12 @@ export abstract class QueryProcessorBase implements IAIProcessor {
    * 성공 메트릭 업데이트
    */
   protected updateSuccessMetrics(responseTime: number): void {
-    this.status.metrics.successfulRequests++;
+    this.status.metrics!.successfulRequests++;
 
     // 평균 응답 시간 계산 (이동 평균)
-    const totalRequests = this.status.metrics.successfulRequests;
-    const currentAvg = this.status.metrics.averageResponseTime;
-    this.status.metrics.averageResponseTime =
+    const totalRequests = this.status.metrics!.successfulRequests;
+    const currentAvg = this.status.metrics!.averageResponseTime;
+    this.status.metrics!.averageResponseTime =
       (currentAvg * (totalRequests - 1) + responseTime) / totalRequests;
   }
 
@@ -258,13 +284,13 @@ export abstract class QueryProcessorBase implements IAIProcessor {
    * 실패 메트릭 업데이트
    */
   protected updateFailureMetrics(responseTime: number): void {
-    this.status.metrics.failedRequests++;
+    this.status.metrics!.failedRequests++;
 
     // 에러가 있어도 응답 시간은 기록
     if (responseTime > 0) {
-      const totalRequests = this.status.metrics.totalRequests;
-      const currentAvg = this.status.metrics.averageResponseTime;
-      this.status.metrics.averageResponseTime =
+      const totalRequests = this.status.metrics!.totalRequests;
+      const currentAvg = this.status.metrics!.averageResponseTime;
+      this.status.metrics!.averageResponseTime =
         (currentAvg * (totalRequests - 1) + responseTime) / totalRequests;
     }
   }
@@ -321,7 +347,14 @@ export abstract class QueryProcessorBase implements IAIProcessor {
       category = 'complex';
     }
 
-    return { score, factors, category };
+    // ComplexityScore 인터페이스에 맞게 반환
+    return {
+      overall: Math.min(10, score),
+      queryLength: Math.min(10, wordCount > 50 ? 8 : wordCount > 20 ? 5 : 2),
+      conceptCount: Math.min(10, factors.length),
+      technicalDepth: Math.min(10, hasCode ? 6 : hasSpecialChars ? 3 : 1),
+      contextDependency: Math.min(10, wordCount > 30 ? 5 : 2)
+    };
   }
 
   /**

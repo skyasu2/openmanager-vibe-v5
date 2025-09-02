@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, type FC } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,

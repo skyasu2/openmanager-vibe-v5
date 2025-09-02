@@ -5,11 +5,11 @@
  * 컨텍스트 정보를 제공
  */
 
-import { getMockSystem } from '@/mock';
-import type { Server } from '@/types/server';
-import type { EnhancedServerMetrics } from '@/types/server';
-import { isMockMode } from '@/config/mock-config';
-import { unifiedDataService } from '@/services/unified-data-service';
+import { getMockSystem } from '../../mock';
+import type { Server } from '../../types/server';
+import type { EnhancedServerMetrics } from '../../types/server';
+import { isMockMode } from '../../config/mock-config';
+import { unifiedDataService } from '../unified-data-service';
 
 export interface MockContext {
   enabled: boolean;
@@ -57,7 +57,7 @@ export class MockContextLoader {
 
     try {
       // 🔄 통합 데이터 서비스를 통해 실시간 24시간 데이터 사용
-      return this.getUnifiedContext();
+      return this.getUnifiedContextSync();
     } catch (error) {
       console.error('❌ 통합 데이터 조회 실패, 기존 Mock 시스템 사용:', error);
       
@@ -211,7 +211,72 @@ export class MockContextLoader {
   }
 
   /**
-   * 🔄 통합 데이터 서비스 기반 컨텍스트 생성
+   * 🔄 통합 데이터 서비스 기반 컨텍스트 생성 (동기 버전)
+   * 서버 모니터링과 동일한 24시간 고정 데이터를 AI 분석용으로 변환
+   */
+  private getUnifiedContextSync(): MockContext | null {
+    try {
+      console.log('🔄 통합 데이터 서비스에서 AI 분석용 데이터 조회 중... (동기)');
+      
+      // 동기 방식으로 통합 데이터 서비스 호출 (현재는 Mock 시스템으로 폴백)
+      // TODO: 통합 데이터 서비스의 동기 메서드 구현 필요
+      const mockSystem = getMockSystem();
+      const servers = mockSystem.getServers();
+      const systemInfo = mockSystem.getSystemInfo();
+
+      // 메트릭 계산
+      const criticalServers = servers.filter(
+        (s) => s.status === 'critical' || s.status === 'warning'
+      );
+      const warningServers = servers.filter((s) => s.status === 'warning');
+      const healthyServers = servers.filter(
+        (s) => s.status === 'online' || s.status === 'healthy'
+      );
+
+      const avgCpu = servers.reduce((sum, s) => sum + s.cpu, 0) / servers.length;
+      const avgMemory = servers.reduce((sum, s) => sum + s.memory, 0) / servers.length;
+      const avgDisk = servers.reduce((sum, s) => sum + s.disk, 0) / servers.length;
+
+      // 트렌드 분석 (간단한 휴리스틱)
+      const cpuTrend = avgCpu > 70 ? 'increasing' : avgCpu < 30 ? 'decreasing' : 'stable';
+      const memoryTrend = avgMemory > 75 ? 'increasing' : avgMemory < 40 ? 'decreasing' : 'stable';
+      const alertTrend = criticalServers.length > servers.length * 0.3 ? 'increasing' : 
+                        criticalServers.length === 0 ? 'decreasing' : 'stable';
+
+      return {
+        enabled: true,
+        currentTime: systemInfo.rotatorStatus?.simulationTime || '00:00:00',
+        scenario: {
+          name: systemInfo.scenario.scenario,
+          description: systemInfo.scenario.description,
+          severity: this.calculateSeverity(criticalServers.length, warningServers.length, servers.length),
+          startHour: systemInfo.scenario.startHour,
+        },
+        metrics: {
+          serverCount: servers.length,
+          criticalCount: systemInfo.criticalCount,
+          warningCount: systemInfo.warningCount,
+          healthyCount: healthyServers.length,
+          avgCpu: Math.round(avgCpu * 10) / 10,
+          avgMemory: Math.round(avgMemory * 10) / 10,
+          avgDisk: Math.round(avgDisk * 10) / 10,
+        },
+        servers: servers.slice(0, 10), // 상위 10개 서버
+        trends: {
+          cpuTrend,
+          memoryTrend,
+          alertTrend,
+        },
+      };
+
+    } catch (error) {
+      console.error('❌ 동기 통합 데이터 컨텍스트 생성 실패:', error);
+      throw error; // 상위에서 폴백 처리
+    }
+  }
+
+  /**
+   * 🔄 통합 데이터 서비스 기반 컨텍스트 생성 (비동기 버전)
    * 서버 모니터링과 동일한 24시간 고정 데이터를 AI 분석용으로 변환
    */
   private async getUnifiedContext(): Promise<MockContext | null> {
@@ -247,7 +312,7 @@ export class MockContextLoader {
         role: server.role || 'worker',
         environment: server.environment || 'production',
         provider: server.provider || 'Unified-Data-Service',
-        lastUpdate: server.lastUpdate || new Date().toISOString(),
+        lastUpdate: server.lastUpdate ? new Date(server.lastUpdate) : new Date(),
       }));
 
       // 서버 상태별 분류 및 통계 계산

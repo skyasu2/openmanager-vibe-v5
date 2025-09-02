@@ -3,7 +3,7 @@
  * 24시간 데이터를 순환시켜 실시간 모니터링 효과 생성
  */
 
-import type { Server } from '@/types/server';
+import type { Server } from '../types/server';
 import type { ScenarioPoint, ServerTimeSeriesData } from './mockDataGenerator';
 import { decompressTimeSeriesData } from './mockDataGenerator';
 

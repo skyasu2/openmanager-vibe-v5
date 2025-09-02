@@ -153,8 +153,11 @@ export default function SafePerformanceScript() {
             clearInterval(performanceInterval);
           };
         }
+        
+        return undefined;
       } catch (error) {
         console.warn('⚠️ Performance monitoring initialization failed:', error);
+        return undefined;
       }
     };
 

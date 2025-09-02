@@ -8,9 +8,9 @@
  */
 
 import type { SupabaseRAGEngine } from './supabase-rag-engine';
-import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
+import { CloudContextLoader } from '../mcp/CloudContextLoader';
 import { MockContextLoader } from './MockContextLoader';
-import { IntentClassifier } from '@/modules/ai-agent/processors/IntentClassifier';
+import { IntentClassifier } from '../../modules/ai-agent/processors/IntentClassifier';
 // Removed UnifiedAIEngineRouter import to break circular dependency
 import type {
   QueryResponse,

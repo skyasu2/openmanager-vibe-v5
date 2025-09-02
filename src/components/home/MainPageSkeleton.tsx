@@ -43,7 +43,7 @@ export default function MainPageSkeleton() {
 
         {/* 기능 카드 그리드 스켈레톤 */}
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
+          {[...Array(4)].map((_: undefined, i: number) => (
             <div
               key={i}
               className="_animate-pulse rounded-2xl bg-white/10 p-4"

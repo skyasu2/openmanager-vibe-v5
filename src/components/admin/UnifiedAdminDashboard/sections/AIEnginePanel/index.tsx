@@ -86,13 +86,22 @@ export default function AIEnginePanel({
 
       {/* 엔진 상세 정보 */}
       <div className="lg:col-span-2">
-        {selectedEngine ? (
-          <EngineDetails
-            engine={engines.find((e) => e.id === selectedEngine)}
-            onUpdateConfig={(config) => onUpdateConfig(selectedEngine, config)}
-            onRestart={() => onRestartEngine(selectedEngine)}
-          />
-        ) : (
+        {selectedEngine ? (() => {
+          const engine = engines.find((e) => e.id === selectedEngine);
+          return engine ? (
+            <EngineDetails
+              engine={engine}
+              onUpdateConfig={(config) => onUpdateConfig(selectedEngine, config)}
+              onRestart={() => onRestartEngine(selectedEngine)}
+            />
+          ) : (
+            <div className="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
+              <div className="text-center text-gray-500 dark:text-gray-400">
+                선택된 엔진 정보를 찾을 수 없습니다
+              </div>
+            </div>
+          );
+        })() : (
           <div className="rounded-lg bg-white p-6 shadow-md dark:bg-gray-800">
             <div className="text-center text-gray-500 dark:text-gray-400">
               엔진을 선택하여 상세 정보를 확인하세요

@@ -10,7 +10,7 @@
 
 import type { SupabaseRAGEngine } from './supabase-rag-engine';
 import { getSupabaseRAGEngine } from './supabase-rag-engine';
-import { CloudContextLoader } from '@/services/mcp/CloudContextLoader';
+import { CloudContextLoader } from '../mcp/CloudContextLoader';
 import { QueryComplexityAnalyzer } from './QueryComplexityAnalyzer';
 // Google AI import removed - only accessible through AI Assistant
 import type {
@@ -18,7 +18,7 @@ import type {
   AIQueryOptions,
   MCPContext,
   AIMetadata,
-} from '@/types/ai-service-types';
+} from '../../types/ai-service-types';
 
 // AI 엔진 응답 타입
 interface AIEngineResponse {

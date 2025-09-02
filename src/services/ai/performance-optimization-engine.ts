@@ -32,9 +32,16 @@ interface PredictiveCache {
 interface OptimizationInfo {
   optimizationSteps: string[];
   totalTime: number;
+  targetAchieved: boolean;
   cacheType?: string;
   parallelTasks?: string[];
   engineUsed?: string;
+  breakdown?: {
+    cacheCheck: number;
+    routing: number;
+    execution: number;
+    postProcess: number;
+  };
 }
 
 export class AIPerformanceOptimizer {
@@ -89,6 +96,7 @@ export class AIPerformanceOptimizer {
         optimizationInfo: {
           optimizationSteps,
           totalTime: Date.now() - startTime,
+          targetAchieved: true, // Predictive cache always achieves target
           cacheType: 'predictive',
         },
       };

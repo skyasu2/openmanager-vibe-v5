@@ -22,6 +22,7 @@ export enum SystemEventType {
   SYSTEM_HEALTHY = 'system:healthy',
   SYSTEM_DEGRADED = 'system:degraded',
   SYSTEM_CRITICAL = 'system:critical',
+  SYSTEM_ERROR = 'system:error',
 
   // Resource Events
   MEMORY_HIGH = 'resource:memory_high',
@@ -57,13 +58,19 @@ export interface ProcessEventPayload {
 
 // Watchdog 관련 페이로드
 export interface WatchdogEventPayload {
+  alertType?: 'memory-leak' | 'high-error-rate' | 'performance-degradation' | 'frequent-restarts' | 'metrics-update';
   severity: 'info' | 'warning' | 'error' | 'critical';
   message: string;
   metrics?: {
-    cpu: number;
-    memory: number;
-    disk: number;
-    network: number;
+    cpu?: number;
+    memory?: number;
+    disk?: number;
+    network?: number;
+    cpuUsage?: number;
+    memoryUsage?: number;
+    errorRate?: number;
+    performanceScore?: number;
+    restartCount?: number;
   };
   threshold?: {
     name: string;

@@ -18,7 +18,7 @@ import {
   Loader2,
   XCircle,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import React, { Fragment, useEffect, useState, ReactNode } from 'react';
 
 export interface InlineFeedback {
   id: string;

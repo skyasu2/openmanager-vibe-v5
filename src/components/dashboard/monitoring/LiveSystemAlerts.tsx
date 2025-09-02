@@ -1,7 +1,7 @@
 'use client';
 
 import CollapsibleCard from '@/components/shared/CollapsibleCard';
-import type { SystemAlert } from '@/domains/ai-sidebar/types';
+import type { SystemAlert } from '@/components/admin/UnifiedAdminDashboard/UnifiedAdminDashboard.types';
 import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
@@ -13,7 +13,7 @@ import {
   Database,
   XCircle,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import React, { Fragment, useEffect, useRef, useState, ReactNode } from 'react';
 
 interface SystemEvent {
   id: string;
@@ -56,8 +56,9 @@ const getAlertIcon = (type: SystemAlert['type']) => {
   }
 };
 
-const formatTimeAgo = (date: Date): string => {
-  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+const formatTimeAgo = (date: string | Date): string => {
+  const targetDate = date instanceof Date ? date : new Date(date);
+  const seconds = Math.floor((new Date().getTime() - targetDate.getTime()) / 1000);
   if (seconds < 60) return `${seconds}초 전`;
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes}분 전`;
@@ -130,7 +131,8 @@ export default function LiveSystemAlerts() {
                     type: 'error',
                     title: `서버 ${s.name} 오류`,
                     message: `서버 ${s.name}에 심각한 문제가 발생했습니다`,
-                    timestamp: new Date(),
+                    timestamp: new Date().toISOString(),
+                    source: 'system',
                     isClosable: true,
                   });
                 } else if (s.status === 'warning') {
@@ -139,7 +141,8 @@ export default function LiveSystemAlerts() {
                     type: 'warning',
                     title: `서버 ${s.name} 경고`,
                     message: `서버 ${s.name}에 주의가 필요합니다`,
-                    timestamp: new Date(),
+                    timestamp: new Date().toISOString(),
+                    source: 'system',
                     isClosable: true,
                   });
                 }

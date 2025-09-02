@@ -162,8 +162,8 @@ export function checkCSPSupport(userAgent?: string): {
     supportsCSP: true,
     supportsNonce: true,
     supportsTrustedTypes:
-      userAgent?.includes('Chrome/') &&
-      parseInt(userAgent.match(/Chrome\/(\d+)/)?.[1] || '0') >= 83,
+      (userAgent?.includes('Chrome/') &&
+      parseInt(userAgent.match(/Chrome\/(\d+)/)?.[1] || '0') >= 83) || false,
   };
 }
 

@@ -67,6 +67,10 @@ export {
   AlertCircle,
   CheckCircle,
   Info,
+  Shield,
+  Zap,
+  Globe,
+  Clock,
 } from 'lucide-react';
 
 /**
@@ -152,7 +156,9 @@ export const createMemoCache = <T,>() => {
       // 캐시 크기 제한 (메모리 최적화)
       if (cache.size >= 100) {
         const firstKey = cache.keys().next().value;
-        cache.delete(firstKey);
+        if (firstKey !== undefined) {
+          cache.delete(firstKey);
+        }
       }
       cache.set(key, value);
     },

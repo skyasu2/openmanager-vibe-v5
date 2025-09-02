@@ -15,12 +15,12 @@ import { MockContextLoader } from './MockContextLoader';
 import {
   IntentClassifier,
   IntentResult,
-} from '@/modules/ai-agent/processors/IntentClassifier';
+} from '../../modules/ai-agent/processors/IntentClassifier';
 import type {
   AIQueryContext,
   MCPContext,
   AIMetadata,
-} from '@/types/ai-service-types';
+} from '../../types/ai-service-types';
 import type {
   QueryRequest,
   QueryResponse,
@@ -91,7 +91,21 @@ export class LocalAIModeProcessor {
 
         if (koreanRatio > 0.3) {
           // 한국어가 30% 이상인 경우 NLP 처리
-          nlpResult = await this.utils.callKoreanNLPFunction(query);
+          const nlpAnalysis = await this.utils.callKoreanNLPFunction(query);
+          
+          // NLPAnalysis를 NLPResult로 변환
+          if (nlpAnalysis) {
+            nlpResult = {
+              success: true,
+              intent: nlpAnalysis.intent,
+              confidence: 0.8, // 기본 신뢰도
+              analysis: nlpAnalysis
+            };
+          } else {
+            nlpResult = {
+              success: false
+            };
+          }
 
           // IntentClassifier로 의도 분류 (NLP 결과와 통합)
           intentResult = await this.intentClassifier.classify(query, nlpResult);

@@ -132,7 +132,7 @@ export class UltraFastAIRouter {
         ...parallelTasks,
         this.createTimeoutFallback(
           request,
-          startTime + this.config.targetResponseTime
+          startTime + (this.config.targetResponseTime || 152)
         ),
       ]);
 
@@ -233,7 +233,7 @@ export class UltraFastAIRouter {
     tasks.push(this.checkUnifiedCache(request, processingPath));
 
     // Task 4: 키워드 기반 빠른 응답 (폴백)
-    if (tasks.length < this.config.maxParallelOperations) {
+    if (tasks.length < (this.config.maxParallelOperations || 4)) {
       tasks.push(this.generateKeywordResponse(request, processingPath));
     }
 
@@ -391,7 +391,7 @@ export class UltraFastAIRouter {
     return {
       success: true,
       response: templates[Math.floor(Math.random() * templates.length)],
-      engine: `quick-${source}` as const,
+      engine: ('quick-' + source) as any,
       confidence: 0.5,
       thinkingSteps: [
         {
@@ -449,7 +449,7 @@ export class UltraFastAIRouter {
       const cacheKey = this.generateFastCacheKey(request);
 
       // 즉시 캐시 업데이트 (메모리)
-      if (response.processingTime < this.config.targetResponseTime) {
+      if (response.processingTime < (this.config.targetResponseTime || 152)) {
         this.instantCache.set(cacheKey, {
           data: response,
           expires: Date.now() + 300000, // 5분
@@ -486,7 +486,7 @@ export class UltraFastAIRouter {
     this.performanceTracker.avgResponseTime =
       (this.performanceTracker.avgResponseTime + responseTime) / 2;
 
-    if (responseTime <= this.config.targetResponseTime) {
+    if (responseTime <= (this.config.targetResponseTime || 152)) {
       this.performanceTracker.targetAchievementRate = Math.min(
         this.performanceTracker.targetAchievementRate + 0.1,
         1.0
@@ -611,7 +611,7 @@ export class UltraFastAIRouter {
   private learnFromQuery(request: QueryRequest, response: QueryResponse): void {
     // 성공한 빠른 응답 패턴 학습
     if (
-      response.processingTime < this.config.targetResponseTime &&
+      response.processingTime < (this.config.targetResponseTime || 152) &&
       response.confidence > 0.7
     ) {
       const pattern = this.extractQueryPatterns(request.query).join('_');
@@ -646,8 +646,8 @@ export class UltraFastAIRouter {
       metadata: {
         ...response.metadata,
         ultraFast: true,
-        targetTime: this.config.targetResponseTime,
-        achieved: processingTime <= this.config.targetResponseTime,
+        targetTime: this.config.targetResponseTime || 152,
+        achieved: processingTime <= (this.config.targetResponseTime || 152),
       },
     };
   }

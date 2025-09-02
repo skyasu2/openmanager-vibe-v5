@@ -27,7 +27,7 @@ interface State {
   errorInfo?: ErrorInfo;
   retryCount: number;
   isRecovering: boolean;
-  lastStableState?: any;
+  lastStableState?: Record<string, unknown>;
   performanceMetrics: {
     renderTime: number;
     memoryUsage: number;
@@ -218,7 +218,7 @@ class PerformanceErrorBoundary extends Component<Props, State> {
 - 무한 리렌더링 루프 발생 가능성
 - useEffect 의존성 배열 확인 필요  
 - 함수 참조 의존성 제거 권장
-- 컴포넌트: ${errorInfo.componentStack.split('\n')[1]?.trim()}
+- 컴포넌트: ${errorInfo.componentStack?.split('\n')[1]?.trim() || 'Unknown'}
     `);
   }
   
@@ -341,7 +341,11 @@ class PerformanceErrorBoundary extends Component<Props, State> {
                     <div><strong>에러:</strong> {this.state.error.message}</div>
                     <div><strong>재시도:</strong> {this.state.retryCount}/{maxRetries}</div>
                     {this.state.lastStableState && (
-                      <div><strong>마지막 안정:</strong> {new Date(this.state.lastStableState.timestamp).toLocaleTimeString()}</div>
+                      <div><strong>마지막 안정:</strong> {
+                        typeof this.state.lastStableState.timestamp === 'string' || typeof this.state.lastStableState.timestamp === 'number' 
+                          ? new Date(this.state.lastStableState.timestamp).toLocaleTimeString()
+                          : 'Unknown'
+                      }</div>
                     )}
                   </div>
                 </details>

@@ -20,7 +20,7 @@ import {
   Sparkles,
   StopCircle,
 } from 'lucide-react';
-import { Fragment, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState, type FC, type FormEvent } from 'react';
 
 // 타입 임포트
 import type { AutoReportTrigger, ChatMessage } from '../types/ai-sidebar-types';
@@ -31,6 +31,7 @@ import { ChatMessageItem } from './ChatMessageItem';
 
 interface AIEnhancedChatProps {
   selectedEngine: string;
+  currentEngine?: string;
   onEngineChange: (engine: string) => void;
   chatMessages: ChatMessage[];
   isGenerating: boolean;
@@ -55,6 +56,7 @@ interface AIEnhancedChatProps {
 
 export const AIEnhancedChat: FC<AIEnhancedChatProps> = ({
   selectedEngine,
+  currentEngine,
   onEngineChange,
   chatMessages,
   isGenerating,
@@ -75,7 +77,7 @@ export const AIEnhancedChat: FC<AIEnhancedChatProps> = ({
   canGoPrevious,
   canGoNext,
   className = '',
-}) => {
+}: AIEnhancedChatProps) => {
   // 스크롤 관리를 위한 ref와 상태
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -143,6 +145,7 @@ export const AIEnhancedChat: FC<AIEnhancedChatProps> = ({
           {/* 엔진 선택 버튼 */}
           <AIEngineSelector
             selectedEngine={selectedEngine}
+            currentEngine={currentEngine || selectedEngine}
             onEngineChange={onEngineChange}
           />
         </div>

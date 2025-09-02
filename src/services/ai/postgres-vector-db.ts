@@ -8,7 +8,7 @@
  * ✅ 하이브리드 검색 (벡터 + 텍스트)
  */
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../../lib/supabase/supabase-client';
 
 interface DocumentMetadata {
   category?: string;

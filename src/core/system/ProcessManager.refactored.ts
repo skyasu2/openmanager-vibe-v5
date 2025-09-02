@@ -609,7 +609,7 @@ export class ProcessManager
       order.push(id);
     };
 
-    for (const id of this.processes.keys()) {
+    for (const id of Array.from(this.processes.keys())) {
       visit(id);
     }
 
@@ -654,7 +654,7 @@ export class ProcessManager
     }
 
     this.healthCheckInterval = setInterval(async () => {
-      for (const processId of this.processes.keys()) {
+      for (const processId of Array.from(this.processes.keys())) {
         await this.performHealthCheck(processId);
       }
     }, this.healthCheckIntervalMs);

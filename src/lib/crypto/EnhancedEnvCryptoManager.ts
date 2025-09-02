@@ -7,7 +7,7 @@
  * - Vercel 배포 환경 최적화
  */
 
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 export interface EncryptedEnvData {
   encrypted: string;
@@ -124,8 +124,9 @@ export class EnhancedEnvCryptoManager {
   decryptVariable(encryptedData: EncryptedEnvData, password?: string): string {
     // 캐시 확인
     const cacheKey = encryptedData.encrypted;
-    if (this.decryptedCache.has(cacheKey)) {
-      return this.decryptedCache.get(cacheKey);
+    const cachedValue = this.decryptedCache.get(cacheKey);
+    if (cachedValue !== undefined) {
+      return cachedValue;
     }
 
     // 버전 호환성 체크

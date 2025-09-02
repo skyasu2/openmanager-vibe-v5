@@ -8,7 +8,7 @@
  */
 
 import { z } from 'zod';
-import type { Environment } from '@/types/common';
+import type { Environment } from '../types/common';
 
 // 설정 스키마 정의
 export const ConfigSchema = z.object({

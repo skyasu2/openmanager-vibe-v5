@@ -142,12 +142,12 @@ export class DIContainer {
     }
 
     const scopeMap = this.scopedInstances.get(scopeId);
-    if (scopeMap.has(service.token)) {
+    if (scopeMap?.has(service.token)) {
       return scopeMap.get(service.token);
     }
 
     const instance = this.createInstance(service);
-    scopeMap.set(service.token, instance);
+    scopeMap?.set(service.token, instance);
     return instance;
   }
 

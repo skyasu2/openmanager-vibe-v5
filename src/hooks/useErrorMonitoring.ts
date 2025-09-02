@@ -295,8 +295,8 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
     ).length;
     const averageDuration =
       performanceMetrics
-        .filter((m) => m.duration)
-        .reduce((sum, m) => sum + m.duration, 0) / totalOperations;
+        .filter((m) => m.duration !== undefined)
+        .reduce((sum, m) => sum + (m.duration || 0), 0) / totalOperations;
 
     return {
       totalOperations,

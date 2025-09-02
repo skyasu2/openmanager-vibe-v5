@@ -50,12 +50,13 @@ export interface SystemStatus {
 
 export interface SystemAlert {
   id: string;
-  type: 'info' | 'warning' | 'error' | 'critical';
+  type: 'info' | 'warning' | 'error' | 'critical' | 'success';
   title: string;
   message: string;
   timestamp: string;
   source: 'performance' | 'logging' | 'engine' | 'system';
   acknowledged?: boolean;
+  isClosable?: boolean;
 }
 
 // ============================================================================
@@ -148,8 +149,9 @@ export const REFRESH_INTERVALS = {
   slow: 30000, // 30초
 } as const;
 
-export const ALERT_PRIORITIES = {
+export const ALERT_PRIORITIES: Record<'info' | 'success' | 'warning' | 'error' | 'critical', number> = {
   info: 0,
+  success: 0, // success는 info와 동일한 우선순위
   warning: 1,
   error: 2,
   critical: 3,

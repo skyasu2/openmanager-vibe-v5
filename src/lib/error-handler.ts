@@ -450,7 +450,7 @@ export async function withErrorRecovery<T>(
   } = options;
 
   let attempts = 0;
-  let lastError: SafeError;
+  let lastError: SafeError | undefined;
 
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -481,7 +481,7 @@ export async function withErrorRecovery<T>(
     attempts: number;
   } = {
     success: false,
-    error: lastError,
+    error: lastError || createSafeError(new Error('Operation failed without retries')),
     attempts,
   };
 

@@ -3,8 +3,9 @@
  * 실시간 사고 과정 및 완료된 사고 과정 표시
  */
 
-// React import 제거 - Next.js 15 자동 JSX Transform 사용
+// React import 복원 - FC 타입 필요
 // framer-motion 제거 - CSS 애니메이션 사용
+import React, { Fragment } from 'react';
 import {
   Brain,
   ChevronDown,
@@ -13,7 +14,6 @@ import {
   Loader2,
   Clock,
 } from 'lucide-react';
-import { Fragment } from 'react';
 import type { ThinkingStep } from '../types/ai-sidebar-types';
 import type { CompletedThinking } from '../hooks/useAIThinking';
 
@@ -30,7 +30,7 @@ interface AIThinkingDisplayProps {
   onToggleCompleted?: () => void;
 }
 
-export const AIThinkingDisplay: FC<AIThinkingDisplayProps> = ({
+export const AIThinkingDisplay: React.FC<AIThinkingDisplayProps> = ({
   isThinking,
   currentSteps,
   isExpanded,
@@ -38,7 +38,7 @@ export const AIThinkingDisplay: FC<AIThinkingDisplayProps> = ({
   onToggleExpanded,
   completedThinking,
   onToggleCompleted,
-}) => {
+}: AIThinkingDisplayProps) => {
   // 경과 시간 계산
   const getElapsedTime = () => {
     if (!startTime) return '0.0';

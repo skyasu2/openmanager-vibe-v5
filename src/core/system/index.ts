@@ -15,6 +15,9 @@ export {
   type SystemBootstrapConfig,
 } from './SystemBootstrapper';
 
+// 내부 사용을 위한 import
+import { getSystemBootstrapper, type SystemBootstrapConfig } from './SystemBootstrapper';
+
 // 기존 버전도 export (임시 - 점진적 마이그레이션용)
 export { ProcessManager } from './ProcessManager';
 export { SystemWatchdog } from './SystemWatchdog';

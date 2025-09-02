@@ -13,26 +13,10 @@ import {
 } from './mockDataGenerator';
 import type { MockDataRotator } from './mockDataRotator';
 import { getRotatorInstance } from './mockDataRotator';
-import type { Server } from '@/types/server';
-import { getCurrentServersData } from './fixedHourlyData';
+import type { Server } from '../types/server';
+import { getCurrentServersData, type HourlyServerState } from './fixedHourlyData';
 
-// 고정 시간별 데이터 타입 정의 (any 타입 제거)
-interface FixedHourlyData {
-  id: string;
-  name: string;
-  hostname: string;
-  status: string;
-  metrics: {
-    cpu: number;
-    memory: number;
-    disk: number;
-    network: number;
-  };
-  uptime: number;
-  location: string;
-  environment: string;
-  type: string;
-}
+// HourlyServerState는 fixedHourlyData.ts에서 import함
 
 export interface MockSystemConfig {
   autoRotate?: boolean;
@@ -176,36 +160,36 @@ export function getMockServers(): Server[] {
       서버_수: hourlyServersData.length,
       현재_시뮬레이션_시간: new Date().toLocaleTimeString(),
       장애_서버: hourlyServersData.filter(
-        (s: FixedHourlyData) => s.status === 'critical'
+        (s) => s.status === 'critical'
       ).length,
       경고_서버: hourlyServersData.filter(
-        (s: FixedHourlyData) => s.status === 'warning'
+        (s) => s.status === 'warning'
       ).length,
       정상_서버: hourlyServersData.filter(
-        (s: FixedHourlyData) => s.status === 'online'
+        (s) => s.status === 'online'
       ).length,
     });
 
-    // FixedHourlyData를 Server 타입으로 변환
+    // HourlyServerState를 Server 타입으로 변환
     return hourlyServersData.map(
-      (hourlyData: FixedHourlyData, index: number): Server => ({
-        id: hourlyData.id,
-        name: hourlyData.name,
-        hostname: hourlyData.hostname,
+      (hourlyData: HourlyServerState, index: number): Server => ({
+        id: hourlyData.serverId,
+        name: hourlyData.serverId, // serverId를 name으로 사용
+        hostname: `${hourlyData.serverId}.internal`,
         status: hourlyData.status as
           | 'online'
           | 'offline'
           | 'warning'
           | 'healthy'
           | 'critical',
-        cpu: hourlyData.metrics.cpu,
-        memory: hourlyData.metrics.memory,
-        disk: hourlyData.metrics.disk,
-        network: hourlyData.metrics.network,
-        uptime: hourlyData.uptime,
-        location: hourlyData.location,
-        environment: hourlyData.environment,
-        type: hourlyData.type,
+        cpu: hourlyData.cpu,
+        memory: hourlyData.memory,
+        disk: hourlyData.disk,
+        network: hourlyData.network,
+        uptime: Math.floor(Math.random() * 3600 * 24 * 30), // 임의의 uptime
+        location: 'Seoul DC-1',
+        environment: 'Production',
+        type: 'Server',
         provider: 'On-Premise',
         alerts:
           hourlyData.status === 'critical'
@@ -231,7 +215,7 @@ export function getMockServers(): Server[] {
               : 'critical',
         systemInfo: {
           os: 'Ubuntu 22.04 LTS',
-          uptime: `${Math.floor(hourlyData.uptime / 3600)}h`,
+          uptime: `${Math.floor((hourlyData.hour + 1) * 3600)}s`, // hour를 이용한 uptime 계산
           processes: Math.floor(Math.random() * 200) + 50,
           zombieProcesses:
             hourlyData.status === 'critical'
@@ -247,8 +231,8 @@ export function getMockServers(): Server[] {
         },
         networkInfo: {
           interface: 'eth0',
-          receivedBytes: `${Math.floor(hourlyData.metrics.network * 0.6)} MB`,
-          sentBytes: `${Math.floor(hourlyData.metrics.network * 0.4)} MB`,
+          receivedBytes: `${Math.floor(hourlyData.network * 0.6)} MB`,
+          sentBytes: `${Math.floor(hourlyData.network * 0.4)} MB`,
           receivedErrors:
             hourlyData.status === 'critical'
               ? Math.floor(Math.random() * 20) + 10

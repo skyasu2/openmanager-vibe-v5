@@ -165,7 +165,7 @@ export default function TestAIPage() {
         <div className="mb-8">
           <p className="mb-2 text-sm text-gray-400">예시 질의:</p>
           <div className="flex flex-wrap gap-2">
-            {exampleQueries.map((example, idx) => (
+            {exampleQueries.map((example: string, idx: number) => (
               <button
                 key={idx}
                 onClick={() => setQuery(example)}

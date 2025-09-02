@@ -15,7 +15,7 @@ describe('aiQueryHandlers', () => {
         success: true,
         response: 'AI 응답입니다',
         confidence: 0.8,
-        engine: 'GOOGLE_ONLY',
+        engine: 'GOOGLE_AI',
         metadata: { tokens: 100 }
       };
 
@@ -30,7 +30,7 @@ describe('aiQueryHandlers', () => {
 
       const result = await processRealAIQuery(
         '서버 상태는 어떤가요?',
-        'GOOGLE_ONLY',
+        'GOOGLE_AI',
         'test-session-id',
         onThinkingStart,
         onThinkingStop

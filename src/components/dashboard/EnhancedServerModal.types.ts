@@ -8,6 +8,8 @@
  * - Tab navigation types
  */
 
+import { ComponentType } from 'react';
+
 export type ServerStatus =
   | 'healthy'
   | 'warning'

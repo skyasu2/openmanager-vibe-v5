@@ -248,7 +248,7 @@ function Home() {
   const renderTextWithAIGradient = (text: string) => {
     if (!text.includes('AI')) return text;
 
-    return text.split(/(AI)/g).map((part, index) => {
+    return text.split(/(AI)/g).map((part: string, index: number) => {
       if (part === 'AI') {
         // SSR에서는 정적 스타일, 클라이언트에서는 애니메이션 적용
         if (!isMounted) {
@@ -358,7 +358,7 @@ function Home() {
   // 📊 버튼 설정 메모이제이션 최적화 - 렌더링 성능 향상 + SSR 안전성
   const buttonConfig = useMemo(() => {
     // SSR 안전성: 클라이언트 마운트 전에는 아이콘 없이 렌더링
-    const getIcon = (IconComponent: any, className: string) => {
+    const getIcon = (IconComponent: React.ComponentType<{ className?: string }>, className: string) => {
       if (!isMounted) return null;
       return <IconComponent className={className} />;
     };

@@ -8,7 +8,7 @@
  * - 커스텀 스켈레톤
  */
 
-// React import 제거 - Next.js 15 자동 JSX Transform 사용
+import React, { FC } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 
 interface SkeletonProps {
@@ -66,7 +66,7 @@ export const ServerCardSkeleton: FC = () => (
 
     {/* 메트릭스 */}
     <div className="grid grid-cols-2 gap-4">
-      {[1, 2, 3, 4].map((i) => (
+      {[1, 2, 3, 4].map((i: number) => (
         <div key={i} className="space-y-2 text-center">
           <Skeleton width={40} height={12} className="mx-auto" />
           <Skeleton width={60} height={20} className="mx-auto" />
@@ -96,13 +96,13 @@ export const ChartSkeleton: FC<{ height?: number }> = ({
 
       {/* 차트 내부 요소들 */}
       <div className="absolute inset-4 space-y-2">
-        {[...Array(5)].map((_, i) => (
+        {[...Array(5)].map((_: undefined, i: number) => (
           <div
             key={i}
             className="flex items-end space-x-2"
             style={{ height: `${20 + i * 10}%` }}
           >
-            {[...Array(7)].map((_, j) => (
+            {[...Array(7)].map((_: undefined, j: number) => (
               <Skeleton
                 key={j}
                 width={`${100 / 7 - 2}%`}
@@ -117,7 +117,7 @@ export const ChartSkeleton: FC<{ height?: number }> = ({
 
     {/* 범례 */}
     <div className="flex justify-center space-x-4">
-      {[1, 2, 3].map((i) => (
+      {[1, 2, 3].map((i: number) => (
         <div key={i} className="flex items-center space-x-2">
           <Skeleton width={12} height={12} rounded />
           <Skeleton width={60} height={12} />
@@ -138,20 +138,20 @@ export const TableSkeleton: FC<{ rows?: number; columns?: number }> = ({
       className="grid gap-4"
       style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
     >
-      {[...Array(columns)].map((_, i) => (
+      {[...Array(columns)].map((_: undefined, i: number) => (
         <Skeleton key={i} width="80%" height={16} />
       ))}
     </div>
 
     {/* 테이블 행들 */}
     <div className="space-y-3">
-      {[...Array(rows)].map((_, rowIndex) => (
+      {[...Array(rows)].map((_: undefined, rowIndex: number) => (
         <div
           key={rowIndex}
           className="grid gap-4"
           style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
         >
-          {[...Array(columns)].map((_, colIndex) => (
+          {[...Array(columns)].map((_: undefined, colIndex: number) => (
             <Skeleton
               key={colIndex}
               width={colIndex === 0 ? '90%' : '70%'}
@@ -181,7 +181,7 @@ export const DashboardSkeleton: FC = () => (
 
     {/* 통계 카드들 */}
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {[1, 2, 3, 4].map((i) => (
+      {[1, 2, 3, 4].map((i: number) => (
         <div
           key={i}
           className="space-y-3 rounded-lg border bg-white p-4 dark:bg-gray-800"
@@ -203,7 +203,7 @@ export const DashboardSkeleton: FC = () => (
 
     {/* 서버 카드 그리드 */}
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+      {[1, 2, 3, 4, 5, 6, 7, 8].map((i: number) => (
         <ServerCardSkeleton key={i} />
       ))}
     </div>
@@ -213,7 +213,7 @@ export const DashboardSkeleton: FC = () => (
 // 리스트 스켈레톤
 export const ListSkeleton: FC<{ items?: number }> = ({ items = 5 }) => (
   <div className="space-y-3">
-    {[...Array(items)].map((_, i) => (
+    {[...Array(items)].map((_: undefined, i: number) => (
       <div
         key={i}
         className="flex items-center space-x-3 rounded-lg border p-3"

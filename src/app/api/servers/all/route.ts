@@ -5,6 +5,14 @@ import {
   getBoxMullerCacheStats, 
   diagnoseBoxMullerCache 
 } from '@/utils/box-muller-lru-cache';
+import { 
+  safeServerStatus,
+  safeServerEnvironment, 
+  safeServerRole,
+  safeMetricValue,
+  safeResponseTime,
+  safeConnections 
+} from '@/lib/type-converters';
 import fs from 'fs/promises';
 import path from 'path';
 // TODO: 누락된 모듈들 - 추후 구현 필요
@@ -19,6 +27,48 @@ interface ServerMetrics {
   network?: number; // 선택적 속성으로 명시
   uptime: number;
   status: 'online' | 'offline' | 'warning' | 'critical';
+}
+
+// JSON 데이터 구조 타입 정의
+interface HourlyServerData {
+  servers: Record<string, RawServerData>;
+  scenario?: string;
+  summary?: {
+    total: number;
+    online: number;
+    warning: number;
+    critical: number;
+  };
+}
+
+interface RawServerData {
+  id: string;
+  name: string;
+  hostname: string;
+  status: string;
+  type: string;
+  service: string;
+  location: string;
+  environment: string;
+  provider: string;
+  uptime: number;
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: number;
+  specs: {
+    cpu_cores: number;
+    memory_gb: number;
+    disk_gb: number;
+  };
+  // 누락된 속성들 추가 (TypeScript 에러 해결)
+  responseTime?: number;
+  connections?: number;
+  ip?: string;
+  os?: string;
+  role?: string;
+  processes?: number;
+  services?: any[]; // 임시로 any[]로 설정
 }
 
 // 타입 가드 함수 추가 (Codex 제안)
@@ -328,7 +378,7 @@ async function loadHourlyScenarioData(): Promise<any[]> { // 임시 any 타입
  * 24시간 미리 정의된 데이터를 순차적으로 회전시키며 고정 패턴 유지
  * 동적 변화 없이 정확한 시간대별 고정 메트릭 제공
  */
-function convertFixedRotationData(hourlyData: any, currentHour: number, rotationMinute: number, segmentInHour: number): any[] { // 임시 any 타입
+function convertFixedRotationData(hourlyData: HourlyServerData, currentHour: number, rotationMinute: number, segmentInHour: number): EnhancedServerMetrics[] {
   const servers = hourlyData.servers || {};
   const scenario = hourlyData.scenario || `${currentHour}시 고정 패턴`;
   
@@ -373,7 +423,7 @@ function convertFixedRotationData(hourlyData: any, currentHour: number, rotation
     }
   }
   
-  return Object.values(servers).map((serverData: any, index) => {
+  return Object.values(servers).map((serverData: RawServerData, index) => {
     console.log(`🔍 [MAP-DEBUG] 서버 ${index}: ${serverData.name || serverData.id} 처리 시작`);
     
     // 🔒 고정 데이터 그대로 사용 (변동 없음)
@@ -395,7 +445,7 @@ function convertFixedRotationData(hourlyData: any, currentHour: number, rotation
       id: serverData.id || `server-${index}`,
       name: serverData.name || `Unknown Server ${index + 1}`,
       hostname: serverData.hostname || serverData.name || `server-${index}`,
-      status: serverData.status || 'online',
+      status: safeServerStatus(serverData.status),
       cpu: Math.round((serverData.cpu || 0) * fixedVariation),
       cpu_usage: Math.round((serverData.cpu || 0) * fixedVariation),
       memory: Math.round((serverData.memory || 0) * fixedVariation),
@@ -413,8 +463,8 @@ function convertFixedRotationData(hourlyData: any, currentHour: number, rotation
       ip: serverData.ip || `192.168.1.${100 + index}`,
       os: serverData.os || 'Ubuntu 22.04 LTS',
       type: serverData.type || 'web',
-      role: serverData.role || 'worker',
-      environment: serverData.environment || 'production',
+      role: safeServerRole(serverData.role || serverData.type),
+      environment: safeServerEnvironment(serverData.environment),
       provider: `DataCenter-${currentHour.toString().padStart(2, '0')}${rotationMinute.toString().padStart(2, '0')}`, // 데이터센터 표시 (AI 분석 무결성 보장)
       specs: {
         cpu_cores: serverData.specs?.cpu_cores || 4,
@@ -438,7 +488,7 @@ function convertFixedRotationData(hourlyData: any, currentHour: number, rotation
         sentBytes: `${((serverData.network || 20) * 0.4 * fixedVariation).toFixed(1)} MB`,
         receivedErrors: serverData.status === 'critical' ? Math.floor(serverOffset % 5) + 1 : 0, // 고정된 오류 수
         sentErrors: serverData.status === 'critical' ? Math.floor(serverOffset % 3) + 1 : 0, // 고정된 오류 수
-        status: serverData.status === 'online' ? 'healthy' : serverData.status
+        status: safeServerStatus(serverData.status === 'online' ? 'healthy' : serverData.status)
       }
     };
     
@@ -452,7 +502,7 @@ function convertFixedRotationData(hourlyData: any, currentHour: number, rotation
  * 
  * @deprecated 베르셀 JSON 파일 전용 시스템으로 전환됨
  */
-function generateStaticServers_DEPRECATED(): any[] { // 임시 any 타입으로 빌드 성공 유도
+function generateStaticServers_DEPRECATED(): EnhancedServerMetrics[] {
   const timestamp = new Date().toISOString();
   
   // GCP VM 정적 데이터를 EnhancedServerMetrics 형식으로 변환
@@ -756,7 +806,7 @@ function generateStaticServers_DEPRECATED(): any[] { // 임시 any 타입으로 
       ip: vmServer.metadata.ip,
       os: vmServer.metadata.os,
       type: vmServer.metadata.server_type,
-      role: vmServer.metadata.role,
+      role: safeServerRole(vmServer.metadata.role),
       environment: 'production',
       provider: 'DataCenter-Primary', // 데이터센터 기본 정보 (AI 분석 무결성 보장)
       specs: {

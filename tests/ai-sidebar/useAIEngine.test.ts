@@ -11,18 +11,18 @@ describe('useAIEngine', () => {
   it('initializes with default engine', () => {
     const { result } = renderHook(() => useAIEngine());
 
-    expect(result.current.currentEngine).toBe('UNIFIED');
-    expect(result.current.isEngineAvailable('UNIFIED')).toBe(true);
+    expect(result.current.currentEngine).toBe('LOCAL');
+    expect(result.current.isEngineAvailable('LOCAL')).toBe(true);
   });
 
   it('changes engine correctly', () => {
     const { result } = renderHook(() => useAIEngine());
 
     act(() => {
-      result.current.setEngine('GOOGLE_ONLY');
+      result.current.setEngine('GOOGLE_AI');
     });
 
-    expect(result.current.currentEngine).toBe('GOOGLE_ONLY');
+    expect(result.current.currentEngine).toBe('GOOGLE_AI');
   });
 
   it('persists engine selection in localStorage', () => {
@@ -36,18 +36,18 @@ describe('useAIEngine', () => {
   });
 
   it('restores engine from localStorage', () => {
-    localStorage.setItem('selected-ai-engine', 'GOOGLE_ONLY');
+    localStorage.setItem('selected-ai-engine', 'GOOGLE_AI');
     
     const { result } = renderHook(() => useAIEngine());
 
-    expect(result.current.currentEngine).toBe('GOOGLE_ONLY');
+    expect(result.current.currentEngine).toBe('GOOGLE_AI');
   });
 
   it('validates engine availability', () => {
     const { result } = renderHook(() => useAIEngine());
 
-    expect(result.current.isEngineAvailable('UNIFIED')).toBe(true);
-    expect(result.current.isEngineAvailable('GOOGLE_ONLY')).toBe(true);
+    expect(result.current.isEngineAvailable('LOCAL')).toBe(true);
+    expect(result.current.isEngineAvailable('GOOGLE_AI')).toBe(true);
     expect(result.current.isEngineAvailable('LOCAL')).toBe(true);
     expect(result.current.isEngineAvailable('INVALID_ENGINE' as any)).toBe(false);
   });
@@ -55,18 +55,18 @@ describe('useAIEngine', () => {
   it('returns correct engine display names', () => {
     const { result } = renderHook(() => useAIEngine());
 
-    expect(result.current.getEngineDisplayName('UNIFIED')).toBe('통합 AI 엔진');
-    expect(result.current.getEngineDisplayName('GOOGLE_ONLY')).toBe('Google AI Only');
+    expect(result.current.getEngineDisplayName('LOCAL')).toBe('통합 AI 엔진');
+    expect(result.current.getEngineDisplayName('GOOGLE_AI')).toBe('Google AI Only');
     expect(result.current.getEngineDisplayName('LOCAL')).toBe('로컬 MCP');
   });
 
   it('returns correct engine descriptions', () => {
     const { result } = renderHook(() => useAIEngine());
 
-    const unifiedDesc = result.current.getEngineDescription('UNIFIED');
+    const unifiedDesc = result.current.getEngineDescription('LOCAL');
     expect(unifiedDesc).toContain('모든 AI 엔진 통합');
 
-    const googleDesc = result.current.getEngineDescription('GOOGLE_ONLY');
+    const googleDesc = result.current.getEngineDescription('GOOGLE_AI');
     expect(googleDesc).toContain('Google AI만 사용');
 
     const localDesc = result.current.getEngineDescription('LOCAL');
@@ -82,14 +82,14 @@ describe('useAIEngine', () => {
     });
 
     // Invalid engine이면 기본값으로 되돌아감
-    expect(result.current.currentEngine).toBe('UNIFIED');
+    expect(result.current.currentEngine).toBe('LOCAL');
   });
 
   it('provides correct API endpoints for engines', () => {
     const { result } = renderHook(() => useAIEngine());
 
-    expect(result.current.getEngineEndpoint('UNIFIED')).toBe('/api/ai/edge-v2');
-    expect(result.current.getEngineEndpoint('GOOGLE_ONLY')).toBe('/api/ai/google-ai/generate');
+    expect(result.current.getEngineEndpoint('LOCAL')).toBe('/api/ai/edge-v2');
+    expect(result.current.getEngineEndpoint('GOOGLE_AI')).toBe('/api/ai/google-ai/generate');
     expect(result.current.getEngineEndpoint('LOCAL')).toBe('/api/mcp/query');
   });
 });
