@@ -120,7 +120,8 @@ const nextConfig = {
   // 🛡️ 보안 헤더 및 CSP 설정 (개발 환경에서 임시 비활성화)
   async headers() {
     // 개발 환경에서는 CSP 헤더 비활성화로 MIME type 문제 해결
-    if (process.env.NODE_ENV === 'development') {
+    // Vercel 배포에서도 임시 비활성화 (애니메이션 CSP 문제 해결)
+    if (process.env.NODE_ENV === 'development' || process.env.VERCEL === '1') {
       return [];
     }
     // Vercel 환경에서 nonce 생성 (Edge Runtime 호환)
