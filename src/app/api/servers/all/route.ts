@@ -1,10 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { EnhancedServerMetrics } from '@/types/server';
-import { 
-  generateCachedNormalRandom, 
-  getBoxMullerCacheStats, 
-  diagnoseBoxMullerCache 
-} from '@/utils/box-muller-lru-cache';
+// Box-Muller Transform 간단한 구현 (캐시 없음)
+function generateNormalRandom(mean: number = 0, stdDev: number = 1, min: number = -Infinity, max: number = Infinity): number {
+  let u = 0, v = 0;
+  while(u === 0) u = Math.random(); // 0 방지
+  while(v === 0) v = Math.random();
+  
+  const z = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  const value = z * stdDev + mean;
+  
+  // min, max 범위 제한
+  return Math.max(min, Math.min(max, value));
+}
+
+// 캐시 없는 간단한 대체 함수
+function generateCachedNormalRandom(mean: number = 0, stdDev: number = 1, min: number = -Infinity, max: number = Infinity, useCache: boolean = true): number {
+  return generateNormalRandom(mean, stdDev, min, max);
+}
+
+// Mock 캐시 통계 (기존 호환성용)
+function getBoxMullerCacheStats() {
+  return {
+    hitRate: 0, // 숫자로 변경
+    size: 0,
+    maxSize: 0,
+    totalRequests: 0,
+    memoryUsage: '0 KB'
+  };
+}
+
+// Mock 캐시 진단 (기존 호환성용)
+function diagnoseBoxMullerCache() {
+  // 아무것도 하지 않음
+}
 import { 
   safeServerStatus,
   safeServerEnvironment, 

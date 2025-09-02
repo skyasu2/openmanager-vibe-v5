@@ -8,7 +8,6 @@
 'use client';
 
 // React import 제거 - Next.js 15 자동 JSX Transform 사용
-import PerformanceErrorBoundary from '@/components/error/PerformanceErrorBoundary';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useInitialAuth } from '@/hooks/useInitialAuth';
@@ -482,16 +481,7 @@ function Home() {
   // buttonConfig is now directly available as a memoized object
 
   return (
-    <PerformanceErrorBoundary
-      onError={(error, errorInfo) => {
-        console.error('🚨 메인 페이지 에러:', error.message);
-        console.error('📍 에러 발생 경로:', window.location.pathname);
-        console.error('📍 컴포넌트 스택:', errorInfo.componentStack);
-      }}
-      maxRetries={3}
-      retryDelay={2000}
-    >
-      <div
+    <div
         className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
         data-system-active={isSystemStarted ? 'true' : 'false'}
       >
@@ -732,8 +722,7 @@ function Home() {
       </div>
 
       {/* 왼쪽 하단 실행중 기능들과 토스트 알람 제거됨 */}
-      </div>
-    </PerformanceErrorBoundary>
+    </div>
   );
 }
 

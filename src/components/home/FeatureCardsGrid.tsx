@@ -1,7 +1,6 @@
 'use client';
 
 import FeatureCardModal from '@/components/shared/FeatureCardModal';
-import PerformanceErrorBoundary from '@/components/error/PerformanceErrorBoundary';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { memo, useEffect, useMemo, useRef, useState, useCallback, type RefObject } from 'react';
@@ -232,14 +231,7 @@ export default function FeatureCardsGrid() {
   );
 
   return (
-    <PerformanceErrorBoundary
-      onError={(error, errorInfo) => {
-        console.error('🚨 FeatureCardsGrid 에러:', error.message);
-        console.error('📍 컴포넌트 스택:', errorInfo.componentStack);
-      }}
-      maxRetries={2}
-      retryDelay={1500}
-    >
+    <>
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
         {FEATURE_CARDS_DATA.map((card, index) => (
           <FeatureCardItem
@@ -263,6 +255,6 @@ export default function FeatureCardsGrid() {
           isVisible={true}
         />
       )}
-    </PerformanceErrorBoundary>
+    </>
   );
 }

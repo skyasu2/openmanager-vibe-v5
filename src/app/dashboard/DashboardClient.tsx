@@ -8,7 +8,6 @@
  */
 
 import { AutoLogoutWarning } from '@/components/auth/AutoLogoutWarning';
-import PerformanceErrorBoundary from '@/components/error/PerformanceErrorBoundary';
 import { NotificationToast } from '@/components/system/NotificationToast';
 // AISidebarV2는 필요시에만 동적 로드
 import { useAutoLogout } from '@/hooks/useAutoLogout';
@@ -502,24 +501,8 @@ function DashboardPageContent() {
 // 🎯 대시보드 클라이언트 컴포넌트
 export default function DashboardClient() {
   return (
-    <PerformanceErrorBoundary
-      onError={(error, errorInfo) => {
-        console.error('🚨 대시보드 클라이언트 에러:', error.message);
-        console.error('📍 서버 데이터:', typeof window !== 'undefined' ? (window as any).serverStats : 'N/A');
-        console.error('📍 컴포넌트 스택:', errorInfo.componentStack);
-        
-        // 성능 저하 특별 처리
-        if (error.message.includes('Maximum update depth') || 
-            error.message.includes('w is not a function')) {
-          console.warn('⚠️ React Error #310 또는 함수 참조 문제 감지됨');
-        }
-      }}
-      maxRetries={2}
-      retryDelay={3000}
-    >
-      <Suspense fallback={<ContentLoadingSkeleton />}>
-        <DashboardPageContent />
-      </Suspense>
-    </PerformanceErrorBoundary>
+    <Suspense fallback={<ContentLoadingSkeleton />}>
+      <DashboardPageContent />
+    </Suspense>
   );
 }

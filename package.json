@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.66.40",
+  "version": "5.70.8",
   "private": true,
   "scripts": {
     "check:claude": "wsl ./scripts/windows-support/utils/run-claude.sh",
@@ -52,6 +52,12 @@
     "test:dom": "vitest run --config config/testing/vitest.config.dom.ts",
     "test:pre-push": "vitest run --config config/testing/vitest.config.minimal.ts",
     "test:ci": "vitest run --config config/testing/vitest.config.ci.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:chrome": "playwright test --project=chromium",
+    "test:e2e:quick": "playwright test tests/e2e/quick-check.spec.ts --project=chromium --reporter=line",
+    "test:e2e:detailed": "playwright test tests/e2e/detailed-frontend-check.spec.ts --project=chromium --reporter=line",
     "lighthouse:local": "cross-env NODE_ENV=production npm run build && npm run start & sleep 5 && lhci collect --url=http://localhost:3000 && kill %1",
     "lighthouse:dev": "lhci collect --url=http://localhost:3000",
     "lighthouse:analyze": "lhci collect --url=http://localhost:3000 && node -e \"console.log('📊 Lighthouse 결과 분석...'); const fs=require('fs'); const results=JSON.parse(fs.readFileSync('.lighthouseci/lhr-localhost_3000_-2024-12-31_00-00-00.json')); console.log('⚡ Performance:', Math.round(results.categories.performance.score*100)+'%'); console.log('🎯 LCP:', Math.round(results.audits['largest-contentful-paint'].numericValue)+'ms'); console.log('📈 CLS:', results.audits['cumulative-layout-shift'].numericValue);\"",

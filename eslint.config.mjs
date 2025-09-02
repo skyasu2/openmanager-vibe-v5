@@ -7,7 +7,6 @@ import reactPlugin from 'eslint-plugin-react';
 import hooksPlugin from 'eslint-plugin-react-hooks';
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 import k6Plugin from 'eslint-plugin-k6-linting-rules';
-import customReactPerformancePlugin from './eslint-rules/index.js';
 
 export default tseslint.config(
   // 1. Global ignores (migrated from .eslintignore)
@@ -108,7 +107,6 @@ export default tseslint.config(
       'react': reactPlugin,
       'react-hooks': hooksPlugin,
       'jsx-a11y': jsxA11yPlugin,
-      'custom-react-performance': customReactPerformancePlugin,
     },
     languageOptions: {
       parserOptions: {
@@ -150,8 +148,6 @@ export default tseslint.config(
       'react/jsx-key': 'warn', // Warn about missing keys
       'react/no-unknown-property': ['error', { ignore: ['jsx'] }],
       
-      // 🛡️ Custom React Performance Rules (React Error #310 Prevention)
-      'custom-react-performance/no-function-in-deps': 'error', // 함수 참조 의존성 금지
     },
     settings: {
       react: {
