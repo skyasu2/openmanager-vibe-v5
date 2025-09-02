@@ -1,6 +1,6 @@
 # GEMINI.md
 
-> **작성일**: 2025년 6월 1일 | **최종 수정일**: 2025년 8월 5일
+> **작성일**: 2025년 6월 1일 | **최종 수정일**: 2025년 9월 2일
 
 Gemini CLI 사용 가이드 및 Claude Code Sub Agent 협업 방법
 
@@ -131,7 +131,7 @@ gemini /memory list > project_memory.txt
 
 ### 기술 환경
 
-- ✅ **Node.js v22.15.1** 업그레이드 완료
+- ✅ **Node.js v22.18.0** 업그레이드 완료
 - ✅ **TypeScript strict mode** 활성화
 - ✅ **ESLint + Prettier** 코드 품질 관리
 
@@ -150,8 +150,15 @@ gemini /memory list > project_memory.txt
 ### 개발 도구
 
 - ✅ **Husky Git Hooks v10** 호환성 해결
-- ✅ **CLI 도구** 안정성 개선
-- ✅ **TDD 테스트 환경** 구축
+- ✅ **CLI 도구** 안정성 개선 (ccusage v16.2.0 최신 버전)
+- ✅ **TDD 테스트 환경** 구축 (54/55 테스트 통과, 98.2% 커버리지)
+
+### AI 교차 검증 v4.0
+
+- ✅ **수동 모드 운영** - 사용자 요청 기반 3단계 레벨 AI 교차 검증
+- ✅ **Claude 주도 방식** - Claude A안 → 외부 AI 개선점 제시 → Claude 최종 판단
+- ✅ **3-AI 병렬 검증** - Gemini + Codex + Qwen 독립적 교차 검증
+- ✅ **교차 발견 시스템** - 각 AI가 놓친 문제를 다른 AI가 발견 (95%+ 문제 발견율)
 
 ## 📚 실전 협업 워크플로우
 

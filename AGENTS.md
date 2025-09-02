@@ -8,8 +8,8 @@ ChatGPT Codex CLI를 위한 OpenManager VIBE v5 특화 설정
 
 > **OpenManager VIBE v5 전용 Codex CLI 설정**  
 > **Language Policy**: 한국어 우선, 기술용어 영어 허용  
-> **Last Updated**: 2025-08-18 | **Environment**: Windows 11 + WSL 2  
-> **Project Status**: 69,260줄 TypeScript, 98.2% 테스트 커버리지, 12개 MCP 서버
+> **Last Updated**: 2025-09-02 | **Environment**: Windows 11 + WSL 2  
+> **Project Status**: 69,260줄 TypeScript, 98.2% 테스트 커버리지, 8개 MCP 서버 최적화
 
 ## ℹ️ Codex /init 사용 안내
 

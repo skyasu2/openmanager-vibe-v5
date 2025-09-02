@@ -6,7 +6,7 @@
 
 ## 🎯 프로젝트 개요
 
-**OpenManager VIBE v5.70.4+**: AI 기반 실시간 서버 모니터링 플랫폼
+**OpenManager VIBE v5.70.8**: AI 기반 실시간 서버 모니터링 플랫폼
 
 - **아키텍처**: Next.js 15.4.5 + React 18.3.1 + TypeScript 5.7.2 (strict) + Vercel + Supabase
 - **데이터 시뮬레이션**: Box-Muller Transform 정규분포 기반 Mock 서버 메트릭 (15개 서버, 10개 타입별 프로필)
@@ -28,7 +28,7 @@
 ### 🏆 메인 개발: WSL + Claude Code
 - **용도**: 모든 개발 작업의 중심축
 - **장점**: Linux 네이티브 성능, MCP 서버 완전 통합
-- **도구**: Claude Code v1.0.81, Node.js v22.18.0
+- **도구**: Claude Code v1.0.95, Node.js v22.18.0
 
 ### 🔧 보조 개발 환경: Windows + VSCode + GitHub Copilot
 - **용도**: 이미지 처리, WSL 터미널 호스팅, 보조 코드 제안
@@ -75,8 +75,8 @@ npm run validate:all # 린트 + 타입 + 테스트
 npm run git:status # Git 상태 확인
 
 # AI CLI 도구들 (WSL에서 실행)
-claude --version # Claude Code v1.0.81
-gemini --version # Google Gemini CLI v0.1.21
+claude --version # Claude Code v1.0.95
+gemini --version # Google Gemini CLI v0.2.1
 qwen --version # Qwen CLI v0.0.9
 
 # Windows에서 WSL AI 도구 실행
@@ -202,7 +202,7 @@ npm run build:ci    # 1.5GB (CI 최적화)
 | **Google Gemini CLI** | v0.2.1  | 무료 (1K req/day)   | 👨‍💻 **코드 아키텍트** (무료) | .\gemini-wsl.bat           | ✅ 완벽 지원                |
 | **Qwen Code**         | v0.0.9  | 무료 (Qwen OAuth 2K/day)   | 🔷 **병렬 모듈 개발** (무료) | .\qwen-wsl.bat             | ✅ 완벽 지원                |
 | **OpenAI CLI**        | 설치됨  | -                   | 🔧 **SDK 도구**             | .\openai-wsl.bat           | ✅ 완벽 지원                |
-| **ccusage**           | v16.1.1 | 무료                | 📊 **사용량 모니터링**      | ccusage daily              | ✅ 완벽 지원                |
+| **ccusage**           | v16.2.0 | 무료                | 📊 **사용량 모니터링**      | ccusage daily              | ✅ 완벽 지원                |
 
 > ✅ **최적화**: **Codex CLI는 WSL 환경에서 완벽 작동**합니다. 직접 `codex` 명령어로 실행하거나 `scripts/platform/ai-cli-wsl.bat codex`로 Windows에서도 호출 가능합니다.
 
