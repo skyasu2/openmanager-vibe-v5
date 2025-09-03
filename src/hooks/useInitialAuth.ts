@@ -86,7 +86,10 @@ export function useInitialAuth() {
         hasUser: !!user,
         userType: user?.provider,
         userName: user?.name,
-        isGitHub
+        userEmail: user?.email,
+        userId: user?.id,
+        isGitHub,
+        currentPath: pathname
       });
 
       // 2단계: 결과 처리 (단일 상태 업데이트) - 🔧 GitHub 인증 감지 로직 개선

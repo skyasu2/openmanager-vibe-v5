@@ -70,6 +70,20 @@ export function useProfileAuth(): ProfileAuthHook {
           isGitHubAuthenticated(),
         ]);
         const isGuest = isGuestUser(); // 동기 함수이므로 별도 처리
+        
+        // 🔍 디버깅: 상세한 인증 상태 로그
+        console.log('🔍 상세 인증 상태 디버깅:', {
+          user: user ? {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            provider: user.provider
+          } : null,
+          isGitHub,
+          isGuest,
+          localStorage_authType: typeof window !== 'undefined' ? localStorage.getItem('auth_type') : 'N/A',
+          sessionStatus: status
+        });
 
         // 🔒 컴포넌트가 언마운트된 경우 상태 업데이트 중단 (메모리 누수 방지)
         if (!mountedRef.current) {
