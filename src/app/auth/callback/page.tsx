@@ -69,11 +69,11 @@ export default function AuthCallbackPage() {
         const initialWait = isVercel ? 3000 : 2000; // Vercel에서 더 긴 초기 대기
         await new Promise((resolve) => setTimeout(resolve, initialWait));
 
-        // 세션 확인 (개선된 재시도 로직 - 점진적 대기 시간)
+        // 세션 확인 (Qwen 권장: 지수 백오프 알고리즘 적용)
         let session = null;
         let sessionError = null;
         let attempts = 0;
-        const maxAttempts = 10; // 더 많은 재시도 (최대 10회)
+        const maxAttempts = isVercel ? 8 : 6; // 환경별 최적화
 
         do {
           const result = await supabase.auth.getSession();
@@ -81,8 +81,16 @@ export default function AuthCallbackPage() {
           sessionError = result.error;
 
           if (!session && attempts < maxAttempts - 1) {
-            const retryDelay = Math.min(800 + (attempts * 400), 2500); // 더 빠른 점진적 증가 (0.8초→1.2초→1.6초→2초→2.4초→2.5초)
-            debug.log(`🔄 세션 확인 재시도 ${attempts + 1}/${maxAttempts} (${retryDelay}ms 대기)`);
+            // 지수 백오프 알고리즘 (300ms → 540ms → 972ms → 1750ms → 3000ms → 4000ms)
+            const baseDelay = 300;
+            const maxDelay = 4000;
+            const jitter = Math.random() * 0.1; // 10% 지터로 thundering herd 방지
+            const retryDelay = Math.min(
+              baseDelay * Math.pow(1.8, attempts) * (1 + jitter), 
+              maxDelay
+            );
+            
+            debug.log(`🔄 세션 확인 재시도 ${attempts + 1}/${maxAttempts} (${Math.round(retryDelay)}ms 대기, 지수 백오프)`);
             await new Promise((resolve) => setTimeout(resolve, retryDelay));
           }
           attempts++;

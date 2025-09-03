@@ -44,7 +44,7 @@ export async function signInWithGitHub() {
       isVercel: origin.includes('vercel.app'),
       isLocal: origin.includes('localhost'),
       redirectUrl,
-      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      supabaseConfigured: !!process.env.NEXT_PUBLIC_SUPABASE_URL, // 민감정보 마스킹
     });
 
     // GitHub OAuth App 설정 확인을 위한 로그
