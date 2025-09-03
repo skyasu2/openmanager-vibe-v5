@@ -64,14 +64,16 @@ export default function AuthCallbackPage() {
         document.cookie = `auth_in_progress=true; path=/; max-age=60; SameSite=Lax`;
         document.cookie = `auth_redirect_to=/main; path=/; max-age=60; SameSite=Lax`;
 
-        // Supabase가 URL에서 코드를 감지하고 처리할 시간을 줌
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // Supabase가 URL에서 코드를 감지하고 처리할 시간 증가 (Vercel 환경 대응)
+        const isVercel = window.location.origin.includes('vercel.app');
+        const initialWait = isVercel ? 2000 : 1500; // Vercel에서 더 긴 대기
+        await new Promise((resolve) => setTimeout(resolve, initialWait));
 
-        // 세션 확인 (재시도 로직 포함)
+        // 세션 확인 (개선된 재시도 로직 - 점진적 대기 시간)
         let session = null;
         let sessionError = null;
         let attempts = 0;
-        const maxAttempts = 5; // 더 많은 재시도 허용
+        const maxAttempts = 7; // 더 많은 재시도 (최대 7회)
 
         do {
           const result = await supabase.auth.getSession();
@@ -79,8 +81,9 @@ export default function AuthCallbackPage() {
           sessionError = result.error;
 
           if (!session && attempts < maxAttempts - 1) {
-            debug.log(`🔄 세션 확인 재시도 ${attempts + 1}/${maxAttempts}`);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            const retryDelay = Math.min(1000 + (attempts * 500), 3000); // 점진적 증가 (1초→1.5초→2초→2.5초→3초)
+            debug.log(`🔄 세션 확인 재시도 ${attempts + 1}/${maxAttempts} (${retryDelay}ms 대기)`);
+            await new Promise((resolve) => setTimeout(resolve, retryDelay));
           }
           attempts++;
         } while (!session && !sessionError && attempts < maxAttempts);
@@ -105,18 +108,35 @@ export default function AuthCallbackPage() {
           // 바로 메인으로 이동
           debug.log('🚀 메인 페이지로 이동!');
 
-          // 세션이 완전히 설정될 때까지 충분히 대기 (중요!)
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          // 세션 완전 설정 대기 (환경별 최적화)
+          const sessionWait = isVercel ? 1500 : 1000; // Vercel에서 더 긴 대기
+          await new Promise((resolve) => setTimeout(resolve, sessionWait));
 
-          // 세션 쿠키가 제대로 설정되었는지 확인
+          // 세션 쿠키 설정 확인 및 검증
           const cookies = document.cookie.split(';').map((c) => c.trim());
           const hasAuthToken = cookies.some(
             (c) => c.startsWith('sb-') && c.includes('auth-token')
           );
-          debug.log('🍪 Auth 토큰 쿠키 확인:', hasAuthToken);
+          
+          // 추가 세션 유효성 검증
+          const finalSessionCheck = await supabase.auth.getSession();
+          const sessionValid = !!finalSessionCheck.data.session?.access_token;
+          
+          debug.log('🍪 세션 완전성 검증:', {
+            hasAuthToken,
+            sessionValid,
+            userId: finalSessionCheck.data.session?.user?.id,
+            environment: isVercel ? 'Vercel' : 'Local'
+          });
 
-          // 하드 리다이렉트로 쿠키가 제대로 전송되도록 보장
-          window.location.href = '/main';
+          // 검증 통과 후 리다이렉트
+          if (hasAuthToken && sessionValid) {
+            window.location.href = '/main';
+          } else {
+            debug.log('⚠️ 세션 검증 실패 - 추가 대기 후 리다이렉트');
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            window.location.href = '/main'; // 실패해도 진행 (클라이언트에서 재처리)
+          }
         } else {
           // 세션이 없는 경우
           if (sessionError) {
@@ -136,22 +156,34 @@ export default function AuthCallbackPage() {
                 encodeURIComponent(userMessage)
             );
           } else {
-            debug.log('⏳ PKCE 처리 중, 추가 대기...');
+            debug.log('⏳ PKCE 처리 중, 최종 재시도...');
 
-            // Vercel 환경에서는 더 긴 대기
-            const isVercel = window.location.origin.includes('vercel.app');
-            await new Promise((resolve) =>
-              setTimeout(resolve, isVercel ? 3000 : 2000)
-            );
+            // 최종 재시도 대기 시간 (환경별 최적화)
+            const finalRetryWait = isVercel ? 4000 : 3000; // 더 긴 대기 시간
+            await new Promise((resolve) => setTimeout(resolve, finalRetryWait));
 
-            // 한 번 더 세션 확인
+            // 최종 세션 확인 (더 엄격한 검증)
             const finalCheck = await supabase.auth.getSession();
-            if (finalCheck.data.session) {
-              debug.log('✅ 최종 세션 확인 성공!');
+            const finalSession = finalCheck.data.session;
+            
+            debug.log('🔍 최종 세션 검증:', {
+              hasSession: !!finalSession,
+              hasAccessToken: !!finalSession?.access_token,
+              hasUser: !!finalSession?.user?.id,
+              userEmail: finalSession?.user?.email,
+              expiresAt: finalSession?.expires_at
+            });
+            
+            if (finalSession?.access_token && finalSession?.user) {
+              debug.log('✅ 최종 세션 검증 성공!');
+              
+              // 세션 유효성 재확인 후 리다이렉트
+              await new Promise((resolve) => setTimeout(resolve, 500));
               window.location.href = '/main';
             } else {
-              debug.log('⚠️ 세션 생성 실패, 로그인 페이지로 이동');
-              router.push('/login?error=no_session&warning=no_session');
+              debug.log('⚠️ 최종 세션 생성 실패 - 관리자 모드 안내');
+              router.push('/login?error=session_timeout&message=' + 
+                encodeURIComponent('세션 생성 시간 초과. 관리자 모드(4231)를 이용하거나 다시 시도해주세요.'));
             }
           }
         }

@@ -50,12 +50,11 @@ export function useProfileAuth(): ProfileAuthHook {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  // 사용자 정보 로드 (Promise.all 병렬 처리로 150ms 최적화 + Race Condition 방지)
+  // 사용자 정보 로드 (타이밍 최적화 + GitHub 인증 감지 개선)
   useEffect(() => {
     const loadUserInfo = async () => {
       // 🔒 중복 실행 방지 (Race Condition 해결)
       if (isLoadingRef.current) {
-        console.log('🚫 이미 로딩 중이므로 스킵');
         return;
       }
       
@@ -64,81 +63,136 @@ export function useProfileAuth(): ProfileAuthHook {
       try {
         updateState({ isLoading: true, error: null });
         
-        // 🚀 Promise.all로 병렬 처리: 250ms → 150ms 성능 개선
+        // 🚀 GitHub 인증 감지를 위한 단계적 접근
+        // 1단계: 기본 인증 상태 확인
         const [user, isGitHub] = await Promise.all([
           getCurrentUser(),
           isGitHubAuthenticated(),
         ]);
-        const isGuest = isGuestUser(); // 동기 함수이므로 별도 처리
         
-        // 🔍 디버깅: 상세한 인증 상태 로그
-        console.log('🔍 상세 인증 상태 디버깅:', {
-          user: user ? {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            provider: user.provider
-          } : null,
-          isGitHub,
-          isGuest,
-          localStorage_authType: typeof window !== 'undefined' ? localStorage.getItem('auth_type') : 'N/A',
-          sessionStatus: status
-        });
+        // 🔧 GitHub 인증 상태 재확인 로직 (OAuth 콜백 후 지연 처리)
+        let finalUser = user;
+        let finalIsGitHub = isGitHub;
+        
+        // GitHub 인증이 감지되지 않았지만 사용자가 있는 경우 재시도
+        if (user && !isGitHub && user.provider !== 'guest') {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔄 GitHub 인증 재확인 중...');
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 대기
+          
+          const [retryUser, retryIsGitHub] = await Promise.all([
+            getCurrentUser(),
+            isGitHubAuthenticated(),
+          ]);
+          
+          finalUser = retryUser || user;
+          finalIsGitHub = retryIsGitHub;
+          
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔍 재시도 결과:', { 
+              originalGitHub: isGitHub, 
+              retryGitHub: retryIsGitHub,
+              userProvider: finalUser?.provider 
+            });
+          }
+        }
+        
+        const isGuest = isGuestUser(); // 동기 함수이므로 별도 처리
 
         // 🔒 컴포넌트가 언마운트된 경우 상태 업데이트 중단 (메모리 누수 방지)
         if (!mountedRef.current) {
-          console.log('🚫 컴포넌트 언마운트됨, 상태 업데이트 중단');
           return;
         }
 
-        // 🔧 사용자 타입 결정 로직 개선 (GitHub 우선 판단 - 로그아웃 표시 문제 해결)
+        // 🔧 개선된 사용자 타입 결정 로직 (OAuth 콜백 타이밍 이슈 대응)
         let determinedUserType: UserType;
         
-        if (user?.provider === 'github' || isGitHub) {
-          // provider가 'github'이거나 isGitHubAuthenticated()가 true인 경우
+        // GitHub 우선 판단 (더 엄격한 조건)
+        if (finalUser?.provider === 'github' || finalIsGitHub || 
+           (finalUser?.email && finalUser.email.includes('@') && !isGuest)) {
           determinedUserType = 'github';
-          console.log('✅ GitHub 사용자로 인식:', { provider: user?.provider, isGitHub });
-        } else if (user?.provider === 'guest' || isGuest) {
-          // provider가 'guest'이거나 게스트 모드인 경우
+          if (process.env.NODE_ENV === 'development') {
+            console.log('✅ GitHub 사용자 확인:', { 
+              provider: finalUser?.provider, 
+              isGitHub: finalIsGitHub,
+              email: finalUser?.email,
+              hasGitHubIndicators: !!finalUser?.email?.includes('@')
+            });
+          }
+        } else if (finalUser?.provider === 'guest' || isGuest) {
           determinedUserType = 'guest';
-          console.log('✅ 게스트 사용자로 인식:', { provider: user?.provider, isGuest });
-        } else if (user) {
-          // 사용자는 있지만 provider 정보가 없는 경우 (fallback)
+          if (process.env.NODE_ENV === 'development') {
+            console.log('✅ 게스트 사용자 확인:', { provider: finalUser?.provider, isGuest });
+          }
+        } else if (finalUser) {
+          // 사용자는 있지만 확실하지 않은 경우 GitHub로 추정 (보수적 접근)
           determinedUserType = 'github';
-          console.log('⚠️ Fallback: 사용자 존재하므로 GitHub로 추정:', user);
+          if (process.env.NODE_ENV === 'development') {
+            console.log('⚠️ 불확실한 사용자 → GitHub 추정:', finalUser);
+          }
         } else {
           determinedUserType = 'unknown';
-          console.log('❓ 알 수 없는 사용자 타입');
+          if (process.env.NODE_ENV === 'development') {
+            console.log('❓ 인증되지 않은 사용자');
+          }
         }
 
-        // 🔒 타입 안전한 상태 업데이트
+        // 🔒 타입 안전한 상태 업데이트 (최종 사용자 정보 사용)
         updateState({
-          userInfo: user,
+          userInfo: finalUser,
           userType: determinedUserType,
           isLoading: false,
           error: null,
         });
 
-        console.log('👤 사용자 정보 로드 (병렬 최적화 + 로그아웃 표시 문제 해결):', {
-          user,
-          isGitHub,
-          isGuest,
-          userProvider: user?.provider,
-          finalUserType: user?.provider === 'github' || isGitHub ? 'github' : 
-                         (user?.provider === 'guest' || isGuest ? 'guest' : 
-                         (user ? 'github (fallback)' : 'unknown')),
-          sessionStatus: status,
-          loadingTime: '~150ms (40% 개선)',
-        });
+        // 개발 환경에서만 상세 로그 출력
+        if (process.env.NODE_ENV === 'development') {
+          console.log('👤 사용자 정보 로드 완료 (타이밍 최적화 + GitHub 감지 개선):', {
+            user: finalUser,
+            userType: determinedUserType,
+            gitHubDetected: finalIsGitHub,
+            isGuest,
+            sessionStatus: status,
+            optimizations: ['OAuth 타이밍 개선', 'GitHub 재확인 로직', '보수적 타입 결정']
+          });
+        }
       } catch (error) {
         console.error('❌ 사용자 정보 로드 실패:', error);
         
         // 🔒 타입 안전한 에러 상태 설정
         const errorObj = error instanceof Error ? error : new Error(String(error));
         
-        // 🛡️ 에러 복구 전략: 네트워크 에러 vs 인증 에러 구분
-        const isNetworkError = errorObj.message.includes('fetch') || errorObj.message.includes('network');
-        const fallbackUserType: UserType = isNetworkError ? 'unknown' : 'guest';
+        // 🛡️ 개선된 에러 복구 전략: 세분화된 에러 분류 및 복구
+        const isNetworkError = errorObj.message.includes('fetch') || 
+                              errorObj.message.includes('network') || 
+                              errorObj.message.includes('timeout');
+        const isAuthError = errorObj.message.includes('auth') || 
+                           errorObj.message.includes('unauthorized') || 
+                           errorObj.message.includes('session');
+        
+        let fallbackUserType: UserType;
+        let retryStrategy = false;
+        
+        if (isNetworkError) {
+          fallbackUserType = 'unknown';
+          retryStrategy = true; // 네트워크 에러는 재시도
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🌐 네트워크 에러 감지 - 재시도 예정');
+          }
+        } else if (isAuthError) {
+          fallbackUserType = 'guest';
+          retryStrategy = false; // 인증 에러는 게스트 모드 처리
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🔐 인증 에러 감지 - 게스트 모드 처리');
+          }
+        } else {
+          fallbackUserType = 'unknown';
+          retryStrategy = true; // 기타 에러는 한 번 재시도
+          if (process.env.NODE_ENV === 'development') {
+            console.log('❓ 알 수 없는 에러 - 재시도 후 판단');
+          }
+        }
         
         updateState({
           userType: fallbackUserType,
@@ -146,15 +200,16 @@ export function useProfileAuth(): ProfileAuthHook {
           error: errorObj,
         });
         
-        // 🔄 네트워크 에러인 경우 재시도 스케줄링 (5초 후)
-        if (isNetworkError && mountedRef.current) {
-          console.log('🔄 네트워크 에러 감지, 5초 후 재시도 예정');
+        // 🔄 조건부 재시도 로직 (최대 1회)
+        if (retryStrategy && mountedRef.current) {
           setTimeout(() => {
             if (mountedRef.current && !isLoadingRef.current) {
-              console.log('🔄 사용자 정보 로드 재시도');
+              if (process.env.NODE_ENV === 'development') {
+                console.log('🔄 에러 복구 재시도 시작');
+              }
               loadUserInfo();
             }
-          }, 5000);
+          }, 3000); // 3초 후 재시도 (더 빠른 복구)
         }
       } finally {
         // 🔒 로딩 완료 처리

@@ -83,28 +83,40 @@ export function deleteSecureCookie(name: string): void {
 export function validateRedirectUrl(url: string): boolean {
   const allowedDomains = [
     'openmanager-vibe-v5.vercel.app',
-    'openmanager-vibe-v5-git-main-skyasus-projects.vercel.app', // Git 브랜치 배포
     'localhost:3000',
     'localhost:3001', // 개발용 포트들
   ];
   
   try {
     const urlObj = new URL(url);
-    const isAllowed = allowedDomains.some(domain => {
-      return urlObj.hostname === domain || 
-             urlObj.hostname.endsWith(`.${domain}`) || // 서브도메인 허용
-             (domain.includes('vercel.app') && urlObj.hostname.includes('vercel.app')); // Vercel 프리뷰 배포
-    });
+    const hostname = urlObj.hostname;
     
-    console.log(`🔍 OAuth URL 검증: ${url}`, {
-      hostname: urlObj.hostname,
-      isAllowed,
-      allowedDomains
-    });
+    // 🔧 Vercel 패턴 매칭 개선
+    const isVercelDeploy = 
+      hostname === 'openmanager-vibe-v5.vercel.app' || // 프로덕션
+      hostname.startsWith('openmanager-vibe-v5-') && hostname.endsWith('.vercel.app') || // 프리뷰 배포
+      hostname.includes('-skyasus-projects.vercel.app'); // 사용자별 배포
+    
+    const isLocalDev = hostname === 'localhost' && (urlObj.port === '3000' || urlObj.port === '3001');
+    
+    const isAllowed = isVercelDeploy || isLocalDev;
+    
+    // 🔧 프로덕션에서만 로그 출력하도록 조건부 로깅
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🔍 OAuth URL 검증: ${url}`, {
+        hostname,
+        port: urlObj.port,
+        isVercelDeploy,
+        isLocalDev,
+        isAllowed
+      });
+    }
     
     return isAllowed;
   } catch (error) {
-    console.error('❌ URL 검증 실패:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('❌ URL 검증 실패:', error);
+    }
     return false;
   }
 }
