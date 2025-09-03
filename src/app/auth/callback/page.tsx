@@ -66,14 +66,14 @@ export default function AuthCallbackPage() {
 
         // Supabase가 URL에서 코드를 감지하고 처리할 시간 증가 (Vercel 환경 대응)
         const isVercel = window.location.origin.includes('vercel.app');
-        const initialWait = isVercel ? 2000 : 1500; // Vercel에서 더 긴 대기
+        const initialWait = isVercel ? 3000 : 2000; // Vercel에서 더 긴 초기 대기
         await new Promise((resolve) => setTimeout(resolve, initialWait));
 
         // 세션 확인 (개선된 재시도 로직 - 점진적 대기 시간)
         let session = null;
         let sessionError = null;
         let attempts = 0;
-        const maxAttempts = 7; // 더 많은 재시도 (최대 7회)
+        const maxAttempts = 10; // 더 많은 재시도 (최대 10회)
 
         do {
           const result = await supabase.auth.getSession();
@@ -81,7 +81,7 @@ export default function AuthCallbackPage() {
           sessionError = result.error;
 
           if (!session && attempts < maxAttempts - 1) {
-            const retryDelay = Math.min(1000 + (attempts * 500), 3000); // 점진적 증가 (1초→1.5초→2초→2.5초→3초)
+            const retryDelay = Math.min(800 + (attempts * 400), 2500); // 더 빠른 점진적 증가 (0.8초→1.2초→1.6초→2초→2.4초→2.5초)
             debug.log(`🔄 세션 확인 재시도 ${attempts + 1}/${maxAttempts} (${retryDelay}ms 대기)`);
             await new Promise((resolve) => setTimeout(resolve, retryDelay));
           }
@@ -108,8 +108,8 @@ export default function AuthCallbackPage() {
           // 바로 메인으로 이동
           debug.log('🚀 메인 페이지로 이동!');
 
-          // 세션 완전 설정 대기 (환경별 최적화)
-          const sessionWait = isVercel ? 1500 : 1000; // Vercel에서 더 긴 대기
+          // 세션 완전 설정 대기 (환경별 최적화)  
+          const sessionWait = isVercel ? 2000 : 1200; // Vercel에서 더 긴 대기
           await new Promise((resolve) => setTimeout(resolve, sessionWait));
 
           // 세션 쿠키 설정 확인 및 검증
@@ -158,8 +158,9 @@ export default function AuthCallbackPage() {
           } else {
             debug.log('⏳ PKCE 처리 중, 최종 재시도...');
 
-            // 최종 재시도 대기 시간 (환경별 최적화)
-            const finalRetryWait = isVercel ? 4000 : 3000; // 더 긴 대기 시간
+            // 최종 재시도 대기 시간 (환경별 최적화) - 더 충분한 시간 확보
+            const finalRetryWait = isVercel ? 6000 : 4000; // 더 긴 대기 시간 (Vercel 6초)
+            debug.log(`⏱️ 최종 재시도 대기 중... (${finalRetryWait}ms)`);
             await new Promise((resolve) => setTimeout(resolve, finalRetryWait));
 
             // 최종 세션 확인 (더 엄격한 검증)
@@ -181,9 +182,16 @@ export default function AuthCallbackPage() {
               await new Promise((resolve) => setTimeout(resolve, 500));
               window.location.href = '/main';
             } else {
-              debug.log('⚠️ 최종 세션 생성 실패 - 관리자 모드 안내');
-              router.push('/login?error=session_timeout&message=' + 
-                encodeURIComponent('세션 생성 시간 초과. 관리자 모드를 이용하거나 다시 시도해주세요.'));
+              debug.log('⚠️ 최종 세션 생성 실패 - 메인 페이지에서 재인증 시도');
+              
+              // 메인 페이지로 이동하여 useInitialAuth에서 재처리하도록 함
+              // 완전한 실패보다는 메인에서 한 번 더 시도하는 것이 사용자 경험상 좋음
+              document.cookie = `auth_retry_needed=true; path=/; max-age=60; SameSite=Lax${window.location.protocol === 'https:' ? '; Secure' : ''}`;
+              debug.log('🔄 메인 페이지에서 재인증 시도를 위해 쿠키 설정 완료');
+              
+              setTimeout(() => {
+                window.location.href = '/main';
+              }, 1000);
             }
           }
         }
