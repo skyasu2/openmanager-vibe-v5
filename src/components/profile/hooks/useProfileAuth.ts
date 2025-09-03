@@ -35,25 +35,32 @@ export function useProfileAuth() {
 
         setUserInfo(user);
 
-        // 🔧 사용자 타입 결정 로직 개선 (GitHub 우선 판단)
-        if (isGitHub && user?.provider === 'github') {
+        // 🔧 사용자 타입 결정 로직 개선 (GitHub 우선 판단 - 로그아웃 표시 문제 해결)
+        if (user?.provider === 'github' || isGitHub) {
+          // provider가 'github'이거나 isGitHubAuthenticated()가 true인 경우
           setUserType('github');
-        } else if (user?.provider === 'github') {
-          // getCurrentUser에서 GitHub 사용자로 판단된 경우
-          setUserType('github');
-        } else if (isGuest || user?.provider === 'guest') {
+          console.log('✅ GitHub 사용자로 인식:', { provider: user?.provider, isGitHub });
+        } else if (user?.provider === 'guest' || isGuest) {
+          // provider가 'guest'이거나 게스트 모드인 경우
           setUserType('guest');
+          console.log('✅ 게스트 사용자로 인식:', { provider: user?.provider, isGuest });
+        } else if (user) {
+          // 사용자는 있지만 provider 정보가 없는 경우 (fallback)
+          setUserType('github');
+          console.log('⚠️ Fallback: 사용자 존재하므로 GitHub로 추정:', user);
         } else {
           setUserType('unknown');
+          console.log('❓ 알 수 없는 사용자 타입');
         }
 
-        console.log('👤 사용자 정보 로드 (병렬 최적화 + 인증 개선):', {
+        console.log('👤 사용자 정보 로드 (병렬 최적화 + 로그아웃 표시 문제 해결):', {
           user,
           isGitHub,
           isGuest,
           userProvider: user?.provider,
-          finalUserType: isGitHub || user?.provider === 'github' ? 'github' : 
-                         (isGuest || user?.provider === 'guest' ? 'guest' : 'unknown'),
+          finalUserType: user?.provider === 'github' || isGitHub ? 'github' : 
+                         (user?.provider === 'guest' || isGuest ? 'guest' : 
+                         (user ? 'github (fallback)' : 'unknown')),
           sessionStatus: status,
           loadingTime: '~150ms (40% 개선)',
         });
