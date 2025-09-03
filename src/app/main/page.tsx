@@ -288,12 +288,12 @@ function Home() {
 
   // 시스템 토글 함수 (깜빡임 방지 개선)
   const handleSystemToggle = useCallback(async () => {
-    // 🔧 GitHub 인증 완료 후에는 authLoading 체크 완화
+    // 🔧 GitHub 인증 완료 후에는 authLoading 체크 완화 - GitHub 사용자는 즉시 활성화
     const isActuallyLoading = statusLoading || isSystemStarting || 
-      (authLoading && !isAuthenticated); // GitHub 인증 완료시 authLoading 무시
+      (authLoading && !isAuthenticated && !isGitHubUser);
     
     if (isActuallyLoading) {
-      console.log('🚫 시스템 토글 차단:', { statusLoading, isSystemStarting, authLoading, isAuthenticated });
+      console.log('🚫 시스템 토글 차단:', { statusLoading, isSystemStarting, authLoading, isAuthenticated, isGitHubUser });
       return;
     }
     
@@ -359,6 +359,18 @@ function Home() {
 
   // 📊 버튼 설정 메모이제이션 최적화 - 렌더링 성능 향상 + SSR 안전성
   const buttonConfig = useMemo(() => {
+    // 🔧 디버깅: 버튼 상태 추적을 위한 로그
+    console.log('🔧 buttonConfig 상태 분석:', {
+      authLoading,
+      isAuthenticated,
+      isGitHubUser,
+      statusLoading,
+      isSystemStarting,
+      systemStartCountdown,
+      multiUserStatusRunning: multiUserStatus?.isRunning,
+      isSystemStarted
+    });
+
     // SSR 안전성: 클라이언트 마운트 전에는 아이콘 없이 렌더링
     const getIcon = (IconComponent: React.ComponentType<{ className?: string }>, className: string) => {
       if (!isMounted) return null;
@@ -387,9 +399,9 @@ function Home() {
       };
     }
 
-    // 3. 일반 로딩 상태 - 🔧 GitHub 인증 완료 후에는 authLoading 체크 완화
+    // 3. 일반 로딩 상태 - 🔧 GitHub 인증 완료 후에는 authLoading 체크 완화 - GitHub 사용자는 즉시 활성화
     const isActuallyLoading = statusLoading || isSystemStarting || 
-      (authLoading && !isAuthenticated); // GitHub 인증 완료시 authLoading 무시
+      (authLoading && !isAuthenticated && !isGitHubUser);
     
     if (isActuallyLoading) {
       return {
