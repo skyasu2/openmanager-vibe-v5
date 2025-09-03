@@ -116,7 +116,7 @@ export function getSupabaseClient(): SupabaseClient {
               : undefined,
           storageKey:
             typeof window !== 'undefined' && !isBuildTime
-              ? 'sb-auth-token'
+              ? 'sb-vnswjnltnhpsueosfhmw-auth-token'
               : undefined,
           cookieOptions: {
             ...(typeof window !== 'undefined' ? {} : { sameSite: 'lax' }),

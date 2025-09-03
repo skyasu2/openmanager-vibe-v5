@@ -263,25 +263,14 @@ function Home() {
 
     return text.split(/(AI)/g).map((part: string, index: number) => {
       if (part === 'AI') {
-        // SSR에서는 정적 스타일, 클라이언트에서는 애니메이션 적용
-        if (!isMounted) {
-          return (
-            <span
-              key={index}
-              className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text font-bold text-transparent"
-            >
-              {part}
-            </span>
-          );
-        }
-        
+        // SSR과 클라이언트에서 동일한 마크업 렌더링 (Hydration 에러 방지)
         return (
           <span
             key={index}
             className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text font-bold text-transparent"
-            style={{
+            style={isMounted ? {
               backgroundSize: '200% 200%',
-            }}
+            } : undefined}
           >
             {part}
           </span>

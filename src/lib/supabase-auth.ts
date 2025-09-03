@@ -154,7 +154,22 @@ export async function getSession(): Promise<Session | null> {
  */
 export async function getCurrentUser(): Promise<AuthUser | null> {
   try {
-    const session = await getSession();
+    // 세션 상태 확인 (재시도 로직 포함)
+    let session = null;
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    // GitHub OAuth 콜백 후 세션이 설정되는 데 시간이 걸릴 수 있으므로 재시도
+    do {
+      const sessionResult = await getSession();
+      session = sessionResult;
+      
+      if (!session?.user && attempts < maxAttempts - 1) {
+        // 짧은 지연 후 재시도 (OAuth 콜백 직후 세션 설정 대기)
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+      attempts++;
+    } while (!session?.user && attempts < maxAttempts);
 
     if (!session?.user) {
       // 클라이언트 환경에서만 localStorage 확인
@@ -163,6 +178,35 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
         const guestUser = localStorage.getItem('auth_user');
         if (guestUser) {
           return JSON.parse(guestUser);
+        }
+
+        // Supabase 세션 토큰 직접 확인 (fallback)
+        const supabaseAuthToken = localStorage.getItem('sb-vnswjnltnhpsueosfhmw-auth-token');
+        if (supabaseAuthToken) {
+          try {
+            const tokenData = JSON.parse(supabaseAuthToken);
+            if (tokenData?.access_token && tokenData?.user) {
+              console.log('🔄 Supabase 토큰에서 세션 복원 시도');
+              // 세션을 한 번 더 시도해보기
+              const retrySession = await getSession();
+              if (retrySession?.user) {
+                const user = retrySession.user;
+                return {
+                  id: user.id,
+                  email: user.email,
+                  name:
+                    user.user_metadata?.full_name ||
+                    user.user_metadata?.user_name ||
+                    user.email?.split('@')[0] ||
+                    'GitHub User',
+                  avatar: user.user_metadata?.avatar_url,
+                  provider: 'github',
+                };
+              }
+            }
+          } catch (e) {
+            console.warn('⚠️ Supabase 토큰 파싱 실패:', e);
+          }
         }
       }
       
@@ -177,9 +221,11 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
           const sessionId = guestSessionCookie.split('=')[1];
           
           // localStorage에서 사용자 정보 확인 (쿠키는 sessionId만 저장)
-          const storedUser = localStorage.getItem('auth_user');
-          if (storedUser) {
-            return JSON.parse(storedUser);
+          if (typeof window !== 'undefined') {
+            const storedUser = localStorage.getItem('auth_user');
+            if (storedUser) {
+              return JSON.parse(storedUser);
+            }
           }
           
           // localStorage가 없으면 기본 게스트 사용자 생성
