@@ -29,7 +29,19 @@ export default function AuthCallbackPage() {
           origin: window.location.origin,
           pathname: window.location.pathname,
           search: window.location.search,
+          hash: window.location.hash,
           isVercel: window.location.origin.includes('vercel.app'),
+        });
+        
+        // 🔍 상세 디버깅: URL 파라미터 및 기존 토큰 상태 확인
+        console.log('🔍 OAuth 콜백 상세 디버깅:', {
+          urlParams: Object.fromEntries(new URLSearchParams(window.location.search)),
+          existingTokens: {
+            codeVerifier: localStorage.getItem('sb-vnswjnltnhpsueosfhmw-auth-token-code-verifier'),
+            authToken: localStorage.getItem('sb-vnswjnltnhpsueosfhmw-auth-token'),
+            hasAuthCookie: document.cookie.includes('sb-vnswjnltnhpsueosfhmw-auth-token')
+          },
+          cookies: document.cookie
         });
 
         // URL에서 에러 파라미터 확인
