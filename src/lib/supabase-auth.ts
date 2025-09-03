@@ -7,6 +7,7 @@
 
 import type { AuthError, Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
+import { validateRedirectUrl, guestSessionCookies } from '@/utils/secure-cookies';
 
 export interface AuthUser {
   id: string;
@@ -31,6 +32,11 @@ export async function signInWithGitHub() {
 
     // Authorization Code Flow를 위해 콜백 라우트로 리다이렉트
     const redirectUrl = `${origin}/auth/callback`;
+
+    // 🔒 OAuth 리다이렉트 URL 보안 검증
+    if (!validateRedirectUrl(redirectUrl)) {
+      throw new Error(`보안상 허용되지 않은 리다이렉트 URL입니다: ${redirectUrl}`);
+    }
 
     console.log('🔗 OAuth 리다이렉트 URL:', redirectUrl);
     console.log('🌍 현재 환경:', {
@@ -110,13 +116,8 @@ export async function signOut() {
     localStorage.removeItem('auth_type');
     localStorage.removeItem('auth_user');
 
-    // 🍪 게스트 세션 쿠키 정리
-    if (typeof document !== 'undefined') {
-      document.cookie =
-        'guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
-      document.cookie =
-        'auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
-    }
+    // 🍪 보안 강화된 게스트 세션 쿠키 정리
+    guestSessionCookies.clearGuestSession();
 
     console.log('✅ 로그아웃 성공');
     return { error: null };

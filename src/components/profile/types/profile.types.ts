@@ -112,3 +112,18 @@ export interface SystemStatus {
   remainingTime?: number;
   formattedTime?: string;
 }
+
+/**
+ * 프로필 인증 훅 반환 타입
+ */
+export interface ProfileAuthHook {
+  userInfo: UserInfo | null;
+  userType: UserType;
+  isLoading: boolean;
+  error: Error | null;
+  status: 'loading' | 'authenticated' | 'unauthenticated';
+  handleLogout: () => Promise<boolean>;
+  navigateToLogin: () => void;
+  navigateToAdmin: () => void;
+  navigateToDashboard: () => void;
+}

@@ -17,6 +17,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import debug from '@/utils/debug';
 import { vercelConfig, debugWithEnv } from '@/utils/vercel-env';
+import { performanceTracker, preloadCriticalResources, getVercelEnvironment } from '@/utils/vercel-optimization';
 // 🎯 Performance Score 최적화 - Dynamic Import 롤백하여 SSR 활성화
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import FeatureCardsGrid from '@/components/home/FeatureCardsGrid';
@@ -120,11 +121,24 @@ function Home() {
 
   // 🎯 분할된 useEffect 시스템 - React Error #310 완전 해결
 
-  // 1️⃣ 클라이언트 마운트 처리 (독립적)
+  // 1️⃣ 클라이언트 마운트 처리 + Vercel 최적화 (독립적)
   useEffect(() => {
+    const vercelEnv = getVercelEnvironment();
+    
+    // 🚀 Vercel 성능 추적 시작
+    if (vercelEnv.isVercel) {
+      performanceTracker.start('page-mount');
+    }
+    
     const mountTimer = setTimeout(() => {
       setIsMounted(true);
-      debug.log(debugWithEnv('✅ 클라이언트 마운트 완료'));
+      debug.log(debugWithEnv('✅ 클라이언트 마운트 완료'), vercelEnv);
+      
+      // 🚀 사전 로딩 실행 (Vercel Cold Start 최소화)
+      if (vercelEnv.isVercel) {
+        void preloadCriticalResources();
+        performanceTracker.end('page-mount');
+      }
     }, vercelConfig.mountDelay);
 
     return () => clearTimeout(mountTimer);
