@@ -2,7 +2,7 @@
  * 🎯 관리자 페이지 클라이언트 컴포넌트 v4.0
  *
  * 통합 관리자 대시보드 (VM 모니터링 포함)
- * 비밀번호 4231로 접근 가능
+ * 환경변수로 설정된 관리자 비밀번호로 접근 가능
  */
 
 'use client';
@@ -10,6 +10,7 @@
 import React, { useEffect, useState } from 'react';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import { useRouter } from 'next/navigation';
+import { ADMIN_PASSWORD } from '@/config/system-constants';
 import {
   Card,
   CardContent,
@@ -103,7 +104,7 @@ export default function AdminClient() {
     } else {
       // 비밀번호 입력 요청
       const password = prompt('관리자 비밀번호를 입력하세요:');
-      if (password === '4231') {
+      if (password === ADMIN_PASSWORD) {
         localStorage.setItem('admin_mode', 'true');
         setIsAuthorized(true);
         setIsLoading(false);

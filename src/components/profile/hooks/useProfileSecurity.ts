@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ProfileSecurityState } from '../types/profile.types';
-
-const ADMIN_PASSWORD = '4231';
+import { ADMIN_PASSWORD } from '@/config/system-constants';
 const MAX_ATTEMPTS = 5;
 const WARNING_ATTEMPTS = 3;
 const LOCKOUT_TIME_WARNING = 5 * 60 * 1000; // 5분

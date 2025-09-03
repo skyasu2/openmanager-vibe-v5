@@ -183,7 +183,7 @@ export default function AuthCallbackPage() {
             } else {
               debug.log('⚠️ 최종 세션 생성 실패 - 관리자 모드 안내');
               router.push('/login?error=session_timeout&message=' + 
-                encodeURIComponent('세션 생성 시간 초과. 관리자 모드(4231)를 이용하거나 다시 시도해주세요.'));
+                encodeURIComponent('세션 생성 시간 초과. 관리자 모드를 이용하거나 다시 시도해주세요.'));
             }
           }
         }
