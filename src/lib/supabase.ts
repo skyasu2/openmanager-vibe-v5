@@ -8,16 +8,18 @@ import {
   supabase,
   browserSupabase,
   getSupabaseUser,
-  signInWithGitHub,
   signOut,
 } from '@/lib/supabase/supabase-client';
 
-// Re-export from supabase-client
+// GitHub OAuth는 supabase-auth.ts에서 import
+import { signInWithGitHub } from '@/lib/supabase-auth';
+
+// Re-export
 export {
   supabase,
   browserSupabase,
   getSupabaseUser,
-  signInWithGitHub,
+  signInWithGitHub, // supabase-auth.ts에서 제공
   signOut,
 };
 

@@ -67,22 +67,8 @@ export async function getSupabaseUser() {
   }
 }
 
-export async function signInWithGitHub() {
-  try {
-    const client = getSingletonClient();
-    const { error } = await client.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (error) throw error;
-  } catch (error) {
-    console.error('GitHub 로그인 실패:', error);
-    throw error;
-  }
-}
+// GitHub OAuth 함수는 supabase-auth.ts에서 제공
+// 중복 제거: 상태 토큰 충돌 방지
 
 export async function signOut() {
   try {

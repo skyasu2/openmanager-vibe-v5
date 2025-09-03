@@ -121,8 +121,8 @@ export function getSupabaseClient(): SupabaseClient {
           cookieOptions: {
             ...(typeof window !== 'undefined' ? {} : { sameSite: 'lax' }),
           },
-          // 빌드 시 세션 플로우 타입 설정
-          flowType: isBuildTime ? ('implicit' as const) : ('pkce' as const),
+          // PKCE 플로우 강제 사용 (상태 토큰 일관성 보장)
+          flowType: 'pkce' as const,
         },
         global: {
           headers: {
