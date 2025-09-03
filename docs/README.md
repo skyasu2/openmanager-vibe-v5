@@ -24,16 +24,27 @@
 | **[🚨 TROUBLESHOOTING.md](./TROUBLESHOOTING.md)**         | 통합 문제해결 가이드               | 상황별    | ✅   |
 | **[📋 DOCUMENT-INDEX.md](./DOCUMENT-INDEX.md)**           | 전체 문서 색인                     | 5분       | ✅   |
 
+### 🔄 **최신 개선사항 (2025-09-03)**
+
+**🎯 AI 교차검증 기반 문서 모듈화 완료**:
+- **대형 문서 분할**: mcp-tools-reference.md (1,953줄) → 6개 모듈
+- **서비스 통합 분할**: services-integration-setup.md (1,605줄) → 4개 모듈  
+- **사용자 의도 기반 네비게이션**: 빠른 탐색 경로 제공
+- **300-500줄 가이드라인**: 모든 새 문서가 읽기 최적화 크기
+
 ## 📂 최적화된 문서 구조 (JBGE 원칙)
 
-### 📁 setup/ - 모든 설정 가이드 통합
+### 📁 guides/ - 설정 및 통합 가이드 (모듈화 완료)
 
 ```
-setup/
-├── environment-setup-complete.md    # 환경 설정 완전 가이드
-├── auth-security-setup.md           # 인증 및 보안 설정
-├── platform-deployment-setup.md     # 플랫폼 배포 설정
-└── services-integration-setup.md    # 서비스 통합 설정
+guides/
+├── services-integration-setup-index.md  # 📋 서비스 통합 메인 인덱스  
+├── services-database-setup.md           # 🗃️ Supabase PostgreSQL + RLS
+├── services-mock-setup.md               # 🎲 Mock 시뮬레이션 시스템
+├── services-mcp-integration.md          # 🔌 MCP 서버 통합 관리
+├── services-testing-setup.md            # 🧪 테스트 환경 구성
+├── services-integration-setup.md        # 📁 레거시 통합 가이드 (아카이브)
+└── setup/ - 기존 설정 가이드들 (유지)
 ```
 
 ### 📁 deployment/ - 배포 및 인프라
@@ -69,14 +80,20 @@ development/
 └── project-structure.md             # 프로젝트 구조
 ```
 
-### 📁 mcp/ - MCP 기술 문서 (평면화)
+### 📁 mcp/ - MCP 기술 문서 (모듈화 완료)
 
 ```
 mcp/
-├── mcp-best-practices.md            # MCP 베스트 프랙티스
-├── mcp-servers-guide.md             # 개별 서버 가이드
-├── mcp-troubleshooting.md           # MCP 문제 해결
-└── mcp-advanced-usage.md            # 고급 사용법
+├── mcp-tools-reference-index.md     # 📋 MCP 도구 메인 인덱스
+├── mcp-tools-memory.md              # 🧠 Memory MCP (지식 관리)
+├── mcp-tools-shadcn.md              # 🎨 ShadCN UI MCP (46개 컴포넌트)
+├── mcp-tools-time.md                # ⏰ Time MCP (시간대 변환)
+├── mcp-tools-thinking.md            # 🤔 Thinking MCP (AI 사고)
+├── mcp-tools-context7.md            # 📚 Context7 MCP (문서 검색)
+├── mcp-tools-serena.md              # 🔧 Serena MCP (코드 분석)
+├── mcp-tools-supabase.md            # 🐘 Supabase MCP (데이터베이스)
+├── mcp-tools-playwright.md          # 🎭 Playwright MCP (브라우저)
+└── mcp-tools-reference.md           # 📁 레거시 통합 문서 (아카이브)
 ```
 
 ### 📁 archive/ - 아카이브된 문서들
@@ -142,8 +159,9 @@ docs/
 #### 🏁 처음 시작하는 경우
 
 1. **[⚡ 빠른 시작](./QUICK-START.md)** - 5분 내 개발 환경 설정
-2. **[🛠️ 환경 설정](./setup/environment-setup-complete.md)** - 완전한 환경 설정
+2. **[🗃️ 데이터베이스 설정](./guides/services-database-setup.md)** - Supabase PostgreSQL 설정
 3. **[🔌 MCP 가이드](./MCP-GUIDE.md)** - MCP 서버 연결
+4. **[📋 MCP 도구 레퍼런스](./mcp/mcp-tools-reference-index.md)** - 105개 도구 완전 활용
 
 #### 🔧 문제가 발생한 경우
 

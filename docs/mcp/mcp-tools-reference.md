@@ -1,8 +1,26 @@
-# 🛠️ MCP 도구 완전 레퍼런스 (2025년판)
+# 🛠️ MCP 도구 레퍼런스 (레거시)
 
-> **2025년 8월 17일 기준**  
-> **환경**: Claude Code v1.0.81 + 12개 MCP 서버  
-> **상태**: 모든 도구 실제 테스트 완료 ✅
+> **⚠️ 이 문서는 아카이브되었습니다**  
+> **새로운 모듈화된 문서**: [MCP 도구 레퍼런스 인덱스](./mcp-tools-reference-index.md)  
+> **업데이트**: 2025-09-03 - AI 교차검증 결과로 모듈화 완료
+
+## 📋 새로운 문서 구조
+
+이 문서는 1,953줄의 대형 문서로 사용성이 떨어져 다음과 같이 모듈화되었습니다:
+
+- **[📋 메인 인덱스](./mcp-tools-reference-index.md)** - 전체 개요 및 탐색
+- **[🧠 Memory MCP](./mcp-tools-memory.md)** - 지식 관리 시스템
+- **[🎨 ShadCN UI MCP](./mcp-tools-shadcn.md)** - UI 컴포넌트 46개
+- **[⏰ Time MCP](./mcp-tools-time.md)** - 시간대 변환 도구
+- **[🔧 Serena MCP](./mcp-tools-serena.md)** - 코드 분석 25개 도구
+- **[🐘 Supabase MCP](./mcp-tools-supabase.md)** - 데이터베이스 도구
+- **[🎭 Playwright MCP](./mcp-tools-playwright.md)** - 브라우저 자동화
+
+**↗️ [새로운 문서로 이동하기](./mcp-tools-reference-index.md)**
+
+---
+
+## 레거시 내용 (참조용)
 
 ## 📋 목차
 

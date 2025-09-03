@@ -24,13 +24,16 @@ test.describe('OpenManager VIBE v5 - 종합 프론트엔드 테스트', () => {
     });
   });
 
+  // Vercel 프로덕션 URL 사용
+  const BASE_URL = 'https://openmanager-vibe-v5.vercel.app';
+
   test('1. 로그인 페이지 종합 테스트', async ({ page }) => {
     console.log('🔑 === 로그인 페이지 종합 테스트 시작 ===');
     
     // 1. 페이지 접속 및 리다이렉트 확인
     console.log('📍 Step 1: 홈페이지 → 로그인 페이지 리다이렉트 테스트');
     const startTime = Date.now();
-    await page.goto('/');
+    await page.goto(BASE_URL);
     
     // 리다이렉트 대기 (최대 10초)
     await page.waitForURL('**/login', { timeout: 10000 });
@@ -43,7 +46,7 @@ test.describe('OpenManager VIBE v5 - 종합 프론트엔드 테스트', () => {
     console.log(`📄 페이지 제목: ${title}`);
 
     // 3. CSP 및 보안 헤더 확인 (네트워크 요청 모니터링)
-    const response = await page.goto('/login');
+    const response = await page.goto(`${BASE_URL}/login`);
     expect(response?.status()).toBeLessThan(400);
     console.log(`📊 HTTP 상태: ${response?.status()}`);
 
@@ -106,53 +109,199 @@ test.describe('OpenManager VIBE v5 - 종합 프론트엔드 테스트', () => {
     console.log('🎯 로그인 페이지 종합 테스트 완료\n');
   });
 
-  test('2. 게스트 로그인 및 대시보드 접속', async ({ page }) => {
-    console.log('👤 === 게스트 로그인 및 대시보드 테스트 시작 ===');
+  test('2. 게스트 로그인 및 메인 페이지 접속', async ({ page }) => {
+    console.log('👤 === 게스트 로그인 및 메인 페이지 테스트 시작 ===');
     
-    await page.goto('/login');
+    await page.goto(`${BASE_URL}/login`);
     
-    // 게스트 로그인 버튼 찾기 및 클릭
-    const guestButton = page.locator('button:has-text("게스트"), button:has-text("Guest"), button:has-text("guest")').first();
+    // 게스트 로그인 버튼 찾기 및 클릭 - 현재 구현에 맞는 텍스트 사용
+    const guestButton = page.locator('button:has-text("게스트로 체험하기"), button:has-text("게스트"), button:has-text("Guest")').first();
     
     if (await guestButton.count() > 0) {
       console.log('🔄 게스트 로그인 진행 중...');
       await guestButton.click();
       
-      // 대시보드로 리다이렉트 대기
+      // 메인 페이지로 리다이렉트 대기
       try {
-        await page.waitForURL('**/dashboard', { timeout: 10000 });
-        console.log('✅ 대시보드 접속 성공');
+        await page.waitForURL('**/main', { timeout: 10000 });
+        console.log('✅ 메인 페이지 접속 성공');
         
-        // 대시보드 기본 요소 확인
+        // 메인 페이지 기본 요소 확인
         await page.waitForTimeout(2000); // 데이터 로딩 대기
         
-        // 서버 카드들 확인
-        const serverCards = await page.locator('[data-testid="server-card"], .server-card, [class*="card"]').count();
-        console.log(`📊 서버 카드 수: ${serverCards}개`);
+        // 게스트 모드 제한 메시지 확인
+        await expect(page.locator('text=GitHub 로그인이 필요합니다')).toBeVisible();
+        await expect(page.locator('text=게스트 모드에서는 읽기 전용 기능만 사용 가능합니다')).toBeVisible();
         
-        if (serverCards > 0) {
-          console.log('✅ 서버 카드들이 정상적으로 렌더링됨');
-        }
+        console.log('✅ 게스트 모드 제한 메시지 확인됨');
+        
+        // 프로필 버튼 확인
+        const profileButton = page.locator('button[aria-label="프로필 메뉴"]');
+        await expect(profileButton).toBeVisible();
+        console.log('✅ 프로필 버튼 표시됨');
+        
+        // 프로필 드롭다운 확인
+        await profileButton.click();
+        await expect(page.locator('text=게스트 로그인')).toBeVisible();
+        await expect(page.locator('text=관리자 모드')).toBeVisible();
+        console.log('✅ 프로필 드롭다운 정상 작동');
         
       } catch (error) {
-        console.log('⚠️ 대시보드 리다이렉트 실패 또는 지연:', error);
+        console.log('⚠️ 메인 페이지 리다이렉트 실패 또는 지연:', error);
       }
     } else {
-      console.log('⚠️ 게스트 로그인 버튼을 찾을 수 없어 대시보드 테스트 생략');
+      console.log('⚠️ 게스트 로그인 버튼을 찾을 수 없어 메인 페이지 테스트 생략');
       
-      // 직접 대시보드 URL 접속 시도
-      await page.goto('/dashboard');
-      console.log('🔄 대시보드 직접 접속 시도...');
+      // 직접 메인 페이지 URL 접속 시도
+      await page.goto(`${BASE_URL}/main`);
+      console.log('🔄 메인 페이지 직접 접속 시도...');
     }
     
     console.log('🎯 게스트 로그인 테스트 완료\n');
   });
 
+  test('2-1. 관리자 모드 인증 테스트', async ({ page }) => {
+    console.log('🔐 === 관리자 모드 인증 테스트 시작 ===');
+    
+    // 게스트 모드로 로그인
+    await page.goto(`${BASE_URL}/login`);
+    const guestButton = page.locator('button:has-text("게스트로 체험하기")').first();
+    
+    if (await guestButton.count() > 0) {
+      await guestButton.click();
+      await page.waitForURL('**/main', { timeout: 10000 });
+      
+      console.log('🔄 관리자 모드 인증 진행...');
+      
+      // 프로필 드롭다운 열기
+      const profileButton = page.locator('button[aria-label="프로필 메뉴"]');
+      await profileButton.click();
+      
+      // 관리자 모드 버튼 클릭
+      await page.click('text=관리자 모드');
+      console.log('✅ 관리자 모드 메뉴 클릭됨');
+      
+      // 비밀번호 입력 (4231)
+      const passwordInput = page.locator('input[type="password"]');
+      await passwordInput.fill('4231');
+      await passwordInput.press('Enter');
+      console.log('✅ 관리자 비밀번호 입력 완료');
+      
+      // 관리자 모드 활성화 확인
+      await page.waitForTimeout(1000);
+      await profileButton.click();
+      
+      // 관리자 상태 확인
+      const adminStatus = page.locator('text=관리자');
+      const adminRights = page.locator('text=🔒 관리자 권한으로 실행 중');
+      const adminPage = page.locator('text=관리자 페이지');
+      
+      await expect(adminStatus).toBeVisible();
+      await expect(adminRights).toBeVisible();
+      await expect(adminPage).toBeVisible();
+      
+      console.log('✅ 관리자 모드 정상 활성화 확인');
+      
+      // 관리자 페이지 접근 테스트
+      await page.click('text=관리자 페이지');
+      await page.waitForURL('**/admin', { timeout: 5000 });
+      
+      // 관리자 페이지 요소 확인
+      await expect(page.locator('text=관리자 대시보드')).toBeVisible();
+      await expect(page.locator('text=ADMIN')).toBeVisible();
+      console.log('✅ 관리자 페이지 정상 접근');
+      
+    } else {
+      console.log('⚠️ 게스트 로그인 버튼을 찾을 수 없어 관리자 모드 테스트 생략');
+    }
+    
+    console.log('🎯 관리자 모드 인증 테스트 완료\n');
+  });
+
+  test('2-2. 관리자 모드에서 시스템 시작 및 대시보드 접근', async ({ page }) => {
+    console.log('🚀 === 시스템 시작 및 대시보드 접근 테스트 시작 ===');
+    
+    // 관리자 모드 활성화
+    await page.goto(`${BASE_URL}/login`);
+    const guestButton = page.locator('button:has-text("게스트로 체험하기")').first();
+    
+    if (await guestButton.count() > 0) {
+      await guestButton.click();
+      await page.waitForURL('**/main', { timeout: 10000 });
+      
+      // 관리자 모드 인증
+      const profileButton = page.locator('button[aria-label="프로필 메뉴"]');
+      await profileButton.click();
+      await page.click('text=관리자 모드');
+      await page.fill('input[type="password"]', '4231');
+      await page.press('input[type="password"]', 'Enter');
+      
+      console.log('✅ 관리자 모드 활성화 완료');
+      
+      // 대시보드 직접 접근 테스트
+      await page.goto(`${BASE_URL}/dashboard`);
+      await page.waitForLoadState('networkidle', { timeout: 10000 });
+      
+      // 대시보드 핵심 요소 확인
+      await expect(page.locator('text=OpenManager')).toBeVisible();
+      await expect(page.locator('text=AI 서버 모니터링')).toBeVisible();
+      
+      // DEMO MODE 표시 확인
+      const demoMode = page.locator('text=🎭 DEMO MODE');
+      if (await demoMode.count() > 0) {
+        await expect(demoMode).toBeVisible();
+        console.log('✅ DEMO MODE 표시 확인됨');
+      }
+      
+      // 서버 상태 요약 확인
+      const serverSummary = page.locator('text=/총.*대|Total.*Servers/');
+      if (await serverSummary.count() > 0) {
+        await expect(serverSummary.first()).toBeVisible();
+        console.log('✅ 서버 상태 요약 표시됨');
+      }
+      
+      // 실시간 시간 표시 확인
+      const timeDisplay = page.locator('text=/오후|오전|AM|PM/').first();
+      if (await timeDisplay.count() > 0) {
+        await expect(timeDisplay).toBeVisible();
+        console.log('✅ 실시간 시간 표시됨');
+      }
+      
+      console.log('✅ 대시보드 정상 로드됨');
+      
+    } else {
+      console.log('⚠️ 게스트 로그인 불가로 시스템 시작 테스트 생략');
+      
+      // 대시보드 직접 접근 시도
+      await page.goto(`${BASE_URL}/dashboard`);
+      console.log('🔄 대시보드 직접 접근 시도...');
+    }
+    
+    console.log('🎯 시스템 시작 및 대시보드 테스트 완료\n');
+  });
+
   test('3. 메인 대시보드 UI/UX 테스트', async ({ page }) => {
     console.log('📊 === 메인 대시보드 UI/UX 테스트 시작 ===');
     
-    // 대시보드 접속 (게스트 또는 직접)
-    await page.goto('/dashboard');
+    // 관리자 모드로 대시보드 접속
+    await page.goto(`${BASE_URL}/login`);
+    const guestButton = page.locator('button:has-text("게스트로 체험하기")').first();
+    
+    if (await guestButton.count() > 0) {
+      await guestButton.click();
+      await page.waitForURL('**/main', { timeout: 10000 });
+      
+      // 관리자 모드 활성화
+      const profileButton = page.locator('button[aria-label="프로필 메뉴"]');
+      await profileButton.click();
+      await page.click('text=관리자 모드');
+      await page.fill('input[type="password"]', '4231');
+      await page.press('input[type="password"]', 'Enter');
+      await page.waitForTimeout(1000);
+    }
+    
+    // 대시보드 접속
+    await page.goto(`${BASE_URL}/dashboard`);
     
     try {
       await page.waitForLoadState('networkidle', { timeout: 5000 });
@@ -227,7 +376,7 @@ test.describe('OpenManager VIBE v5 - 종합 프론트엔드 테스트', () => {
   test('4. AI 어시스턴트 모달 테스트', async ({ page }) => {
     console.log('🤖 === AI 어시스턴트 모달 테스트 시작 ===');
     
-    await page.goto('/dashboard');
+    await page.goto(`${BASE_URL}/dashboard`);
     await page.waitForTimeout(2000);
     
     // AI 어시스턴트 버튼 찾기
@@ -306,7 +455,7 @@ test.describe('OpenManager VIBE v5 - 종합 프론트엔드 테스트', () => {
     
     // 성능 측정 시작
     const startTime = Date.now();
-    await page.goto('/dashboard');
+    await page.goto(`${BASE_URL}/dashboard`);
     
     // 네트워크 idle 대기
     try {
@@ -362,7 +511,7 @@ test.describe('OpenManager VIBE v5 - 종합 프론트엔드 테스트', () => {
   test('6. 접근성 (Accessibility) 기본 테스트', async ({ page }) => {
     console.log('♿ === 접근성 기본 테스트 시작 ===');
     
-    await page.goto('/login');
+    await page.goto(`${BASE_URL}/login`);
     await page.waitForTimeout(1000);
     
     // 1. 키보드 네비게이션 테스트
@@ -403,7 +552,7 @@ test.describe('OpenManager VIBE v5 - 종합 프론트엔드 테스트', () => {
   test('7. 종합 결과 리포트', async ({ page }) => {
     console.log('📊 === 종합 테스트 결과 리포트 ===');
     
-    await page.goto('/dashboard');
+    await page.goto(`${BASE_URL}/dashboard`);
     await page.waitForTimeout(2000);
     
     // 최종 상태 수집
