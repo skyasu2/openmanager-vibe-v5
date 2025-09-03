@@ -89,14 +89,22 @@ export function useInitialAuth() {
         isGitHub
       });
 
-      // 2단계: 결과 처리 (단일 상태 업데이트)
+      // 2단계: 결과 처리 (단일 상태 업데이트) - 🔧 GitHub 인증 감지 로직 개선
+      const isActuallyGitHubUser = isGitHub || user?.provider === 'github';
+      
       updateState({
         currentStep: 'complete',
         isLoading: false,
         isAuthenticated: !!user,
         user,
-        isGitHubConnected: isGitHub,
+        isGitHubConnected: isActuallyGitHubUser,
         error: null,
+      });
+
+      console.log(debugWithEnv('🔧 GitHub 인증 상태 개선:'), {
+        isGitHubFromSession: isGitHub,
+        userProvider: user?.provider,
+        finalGitHubStatus: isActuallyGitHubUser
       });
 
       // 인증되지 않은 경우에만 로그인 페이지로 리다이렉션

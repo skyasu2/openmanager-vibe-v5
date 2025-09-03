@@ -261,7 +261,10 @@ export default function UnifiedProfileHeader({
             />
           </div>
           <div className="flex items-center gap-1 text-xs text-gray-500">
-            {getUserTypeLabel()} 로그인
+            {/* 🔧 GitHub 사용자 표시 개선: "GitHub 로그인"으로 정확히 표시 */}
+            {userType === 'github' ? 'GitHub 로그인' : 
+             userType === 'guest' ? '게스트 로그인' : 
+             status === 'loading' ? '확인 중...' : '알 수 없음'}
             {status === 'loading' && (
               <div className="_animate-pulse h-2 w-2 rounded-full bg-gray-400" />
             )}

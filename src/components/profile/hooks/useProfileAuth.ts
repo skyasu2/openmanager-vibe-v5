@@ -35,19 +35,25 @@ export function useProfileAuth() {
 
         setUserInfo(user);
 
-        // 사용자 타입 결정
-        if (isGitHub) {
+        // 🔧 사용자 타입 결정 로직 개선 (GitHub 우선 판단)
+        if (isGitHub && user?.provider === 'github') {
           setUserType('github');
-        } else if (isGuest) {
+        } else if (user?.provider === 'github') {
+          // getCurrentUser에서 GitHub 사용자로 판단된 경우
+          setUserType('github');
+        } else if (isGuest || user?.provider === 'guest') {
           setUserType('guest');
         } else {
           setUserType('unknown');
         }
 
-        console.log('👤 사용자 정보 로드 (병렬 최적화):', {
+        console.log('👤 사용자 정보 로드 (병렬 최적화 + 인증 개선):', {
           user,
           isGitHub,
           isGuest,
+          userProvider: user?.provider,
+          finalUserType: isGitHub || user?.provider === 'github' ? 'github' : 
+                         (isGuest || user?.provider === 'guest' ? 'guest' : 'unknown'),
           sessionStatus: status,
           loadingTime: '~150ms (40% 개선)',
         });
