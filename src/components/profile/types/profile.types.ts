@@ -120,7 +120,6 @@ export interface ProfileAuthHook {
   userInfo: UserInfo | null;
   userType: UserType;
   isLoading: boolean;
-  error: Error | null;
   status: 'loading' | 'authenticated' | 'unauthenticated';
   handleLogout: () => Promise<boolean>;
   navigateToLogin: () => void;
