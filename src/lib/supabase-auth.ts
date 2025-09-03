@@ -289,7 +289,11 @@ export async function isAuthenticated(): Promise<boolean> {
  */
 export async function isGitHubAuthenticated(): Promise<boolean> {
   const session = await getSession();
-  return !!session;
+  // GitHub OAuth 로그인 확인: 세션이 있고 GitHub 프로바이더인지 확인
+  return !!(session && 
+    session.user && 
+    (session.user.app_metadata?.provider === 'github' || 
+     session.user.user_metadata?.provider === 'github'));
 }
 
 /**

@@ -46,22 +46,6 @@ function Home() {
   
   const [isMounted, setIsMounted] = useState(false); // 🔄 클라이언트 마운트 상태 (hydration 문제 방지)
 
-  // 🔍 디버깅: 사용자 인증 상태 로깅
-  useEffect(() => {
-    if (isMounted && authReady) {
-      console.log('🔍 메인페이지 인증 상태 디버깅:', {
-        isAuthenticated,
-        isGitHubUser,
-        isAdminMode,
-        currentUser: currentUser ? {
-          name: currentUser.name,
-          email: currentUser.email,
-          provider: currentUser.provider
-        } : null
-      });
-    }
-  }, [isMounted, authReady, isAuthenticated, isGitHubUser, isAdminMode, currentUser]);
-
   const {
     isSystemStarted,
     aiAgent,
