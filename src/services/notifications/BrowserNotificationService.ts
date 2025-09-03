@@ -41,18 +41,14 @@ class BrowserNotificationService {
   }
 
   /**
-   * 🔔 권한 초기화
+   * 🔔 권한 초기화 (SSR 최적화)
    */
   private async _initializePermission(): Promise<void> {
-    // 서버사이드 렌더링 환경 체크
-    if (typeof window === 'undefined') {
-      // 🚨 빌드 시에는 경고 메시지 출력하지 않음 (Vercel 최적화)
-      if (
-        process.env.NODE_ENV !== 'production' &&
-        process.env.BUILD_TIME_OPTIMIZATION !== 'true'
-      ) {
-        console.warn('⚠️ 서버 환경에서는 브라우저 알림을 사용할 수 없습니다');
-      }
+    // 🚀 서버사이드 렌더링 환경 체크 (로그 스팸 완전 제거)
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      // SSR 환경에서는 조용히 비활성화 (로그 없음)
+      this.isEnabled = false;
+      this.permission = 'default';
       return;
     }
 
@@ -131,17 +127,16 @@ class BrowserNotificationService {
   }
 
   /**
-   * 🔔 웹 알림 발송
+   * 🔔 웹 알림 발송 (SSR 최적화)
    */
   private sendNotification(
     message: string,
     type: 'critical' | 'warning' | 'info',
     serverId?: string
   ): void {
-    // 브라우저 환경 체크
-    if (typeof window === 'undefined') {
-      console.warn('⚠️ 서버 환경에서는 웹 알림을 발송할 수 없습니다');
-      return;
+    // 🚀 브라우저 환경 체크 (로그 스팸 제거)
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return; // SSR에서는 조용히 무시
     }
 
     if (!this.isEnabled) return;

@@ -1,0 +1,52 @@
+{
+  "timestamp": "2025-09-03T00:58:00.000Z",
+  "interval": "30s",
+  "servers": {
+    "api-server-1": {
+      "cpu": 63,
+      "memory": 78,
+      "disk": 45,
+      "network": 82,
+      "status": "online",
+      "events": [],
+      "trend": "stable"
+    },
+    "web-server-1": {
+      "cpu": 25,
+      "memory": 45,
+      "disk": 30,
+      "network": 72,
+      "status": "online", 
+      "events": [],
+      "trend": "stable"
+    },
+    "db-master-1": {
+      "cpu": 47,
+      "memory": 76,
+      "disk": 64,
+      "network": 96,
+      "status": "online",
+      "events": [],
+      "trend": "increasing"
+    },
+    "cache-server-1": {
+      "cpu": 35,
+      "memory": 104,
+      "disk": 16,
+      "network": 73,
+      "status": "warning",
+      "events": [{"type": "memory_high", "severity": "warning", "message": "메모리 사용률 100% 초과"}],
+      "trend": "concerning"
+    }
+  },
+  "globalMetrics": {
+    "totalServers": 10,
+    "healthyServers": 9,
+    "warningServers": 1,
+    "criticalServers": 0,
+    "avgCpu": 41.2,
+    "avgMemory": 65.8,
+    "networkLoad": "medium",
+    "activeIncidents": 0
+  }
+}
