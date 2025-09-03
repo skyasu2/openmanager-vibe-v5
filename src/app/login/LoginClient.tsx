@@ -98,6 +98,20 @@ export default function LoginClient() {
     const message = searchParams.get('message');
     const warning = searchParams.get('warning');
     const redirectTo = searchParams.get('redirectTo');
+    const code = searchParams.get('code'); // OAuth 콜백 코드
+
+    // OAuth 콜백 코드가 있으면 /auth/callback으로 리다이렉트
+    if (code) {
+      debug.log('🔐 OAuth 콜백 코드 감지:', code);
+      debug.log('🔄 /auth/callback으로 리다이렉트 중...');
+      
+      // 현재 URL에서 code 파라미터를 유지하면서 /auth/callback으로 이동
+      const callbackUrl = new URL('/auth/callback', window.location.origin);
+      callbackUrl.search = window.location.search; // 모든 파라미터 유지
+      
+      window.location.href = callbackUrl.toString();
+      return;
+    }
 
     // redirectTo 파라미터가 있으면 세션 스토리지에 저장
     if (redirectTo && redirectTo !== '/main') {
