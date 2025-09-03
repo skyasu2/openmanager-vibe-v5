@@ -35,10 +35,10 @@ export function useProfileAuth(): ProfileAuthHook {
 
         setUserInfo(user);
 
-        // 사용자 타입 결정
-        if (isGitHub) {
+        // 사용자 타입 결정 (user 객체의 provider로 우선 판단)
+        if (user?.provider === 'github' || isGitHub) {
           setUserType('github');
-        } else if (isGuest) {
+        } else if (user?.provider === 'guest' || isGuest) {
           setUserType('guest');
         } else {
           setUserType('unknown');

@@ -259,29 +259,11 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
 }
 
 /**
- * 인증 상태 확인
+ * 인증 상태 확인 (getCurrentUser() 재사용으로 DRY 원칙 준수)
  */
 export async function isAuthenticated(): Promise<boolean> {
-  const session = await getSession();
-  
-  if (session) return true;
-  
-  // 클라이언트 환경에서만 localStorage 확인
-  if (typeof window !== 'undefined') {
-    const guestUser = localStorage.getItem('auth_user');
-    if (guestUser) return true;
-  }
-  
-  // 쿠키에서 게스트 세션 확인
-  if (typeof document !== 'undefined') {
-    const cookies = document.cookie.split(';').map(c => c.trim());
-    const guestSessionCookie = cookies.find(c => c.startsWith('guest_session_id='));
-    const authTypeCookie = cookies.find(c => c.startsWith('auth_type=guest'));
-    
-    if (guestSessionCookie && authTypeCookie) return true;
-  }
-  
-  return false;
+  const user = await getCurrentUser();
+  return !!user; // getCurrentUser가 이미 모든 체크를 수행
 }
 
 /**
@@ -300,8 +282,22 @@ export async function isGitHubAuthenticated(): Promise<boolean> {
  * 게스트 사용자인지 확인
  */
 export function isGuestUser(): boolean {
-  const authType = localStorage.getItem('auth_type');
-  return authType === 'guest';
+  // 클라이언트 환경에서만 localStorage 확인
+  if (typeof window !== 'undefined') {
+    const authType = localStorage.getItem('auth_type');
+    if (authType === 'guest') return true;
+  }
+  
+  // 쿠키에서 게스트 세션 확인 (getCurrentUser와 동일한 로직)
+  if (typeof document !== 'undefined') {
+    const cookies = document.cookie.split(';').map(c => c.trim());
+    const guestSessionCookie = cookies.find(c => c.startsWith('guest_session_id='));
+    const authTypeCookie = cookies.find(c => c.startsWith('auth_type=guest'));
+    
+    if (guestSessionCookie && authTypeCookie) return true;
+  }
+  
+  return false;
 }
 
 /**
