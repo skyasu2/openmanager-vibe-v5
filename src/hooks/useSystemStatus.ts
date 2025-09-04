@@ -143,10 +143,10 @@ export function useSystemStatus(): UseSystemStatusReturn {
     // 초기 로드
     performFetch();
 
-    // 5분마다 상태 업데이트 (30초 → 300초로 10배 감소)
+    // 30초마다 상태 업데이트 - 실시간성과 성능 균형
     const interval = setInterval(() => {
       performFetch();
-    }, 300000);
+    }, 30000); // 🎯 300초 → 30초로 개선 (실시간 상태 동기화)
 
     return () => clearInterval(interval);
   }, []); // fetchStatus 함수 의존성 제거하여 React Error #310 해결

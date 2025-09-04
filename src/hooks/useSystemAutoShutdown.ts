@@ -73,7 +73,7 @@ export function useSystemAutoShutdown({
       if (remaining <= 0 && isSystemStarted) {
         onShutdown?.();
       }
-    }, 5000); // 1초 → 5초로 최적화
+    }, 1000); // 🎯 1초 간격으로 복원 - 부드러운 카운트다운 UX
 
     return () => {
       if (updateIntervalRef.current) {

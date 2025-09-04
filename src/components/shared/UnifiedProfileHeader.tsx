@@ -2,6 +2,7 @@
 
 import React, { useCallback, useMemo } from 'react';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   BarChart3,
@@ -65,6 +66,7 @@ export default function UnifiedProfileHeader({
   } = useProfileMenu();
 
   const { status: systemStatus } = useSystemStatus();
+  const { isSystemStarted } = useUnifiedAdminStore(); // 🎯 로컬 상태 직접 접근으로 즉시 동기화
 
   // 시스템 종료 핸들러
   const handleSystemStop = useCallback(async () => {
@@ -142,7 +144,8 @@ export default function UnifiedProfileHeader({
     if (userType === 'github') {
       // 시스템 상태 표시는 별도로 처리됨
 
-      if (systemStatus?.isRunning) {
+      // 🎯 로컬 상태 우선 + 서버 상태 보조로 즉시 반영 (논리합 사용)
+      if (isSystemStarted || systemStatus?.isRunning) {
         items.push({
           id: 'dashboard',
           label: '대시보드 열기',
@@ -200,6 +203,7 @@ export default function UnifiedProfileHeader({
     isAdminMode,
     userType,
     systemStatus,
+    isSystemStarted, // 🎯 로컬 시스템 상태 의존성 추가
     closeMenu,
     navigateToAdmin,
     navigateToDashboard,
