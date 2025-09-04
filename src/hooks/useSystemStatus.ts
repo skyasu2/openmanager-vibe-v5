@@ -135,6 +135,8 @@ export function useSystemStatus(): UseSystemStatusReturn {
         const errorMessage = err instanceof Error ? err.message : '시스템 상태 조회 실패';
         setError(errorMessage);
         console.error('시스템 상태 조회 실패:', err);
+      } finally {
+        setIsLoading(false); // 🔧 누락된 setIsLoading(false) 추가 - 시스템 초기화중 상태 해결
       }
     };
 
@@ -172,6 +174,8 @@ export function useSystemStatus(): UseSystemStatusReturn {
               const errorMessage = err instanceof Error ? err.message : '시스템 상태 조회 실패';
               setError(errorMessage);
               console.error('시스템 상태 조회 실패:', err);
+            } finally {
+              setIsLoading(false); // 🔧 누락된 setIsLoading(false) 추가 - 포커스 시에도 로딩 상태 해제
             }
           })();
         }
