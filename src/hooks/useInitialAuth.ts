@@ -72,17 +72,6 @@ export function useInitialAuth() {
     initRef.current = true;
 
     try {
-      // OAuth 콜백에서 재시도 요청 확인
-      const authRetryNeeded = document.cookie.includes('auth_retry_needed=true');
-      if (authRetryNeeded) {
-        console.log(debugWithEnv('🔄 OAuth 콜백 재시도 모드 감지'));
-        // 재시도 쿠키 제거
-        document.cookie = 'auth_retry_needed=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        
-        // 추가 대기 시간 (OAuth 토큰 완전 처리 대기)
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-      
       // 1단계: 인증 상태 및 사용자 정보 병렬 조회
       updateState({ currentStep: 'auth-check', isLoading: true });
       

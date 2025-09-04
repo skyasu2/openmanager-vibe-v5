@@ -202,16 +202,11 @@ export default function AuthCallbackPage() {
               await new Promise((resolve) => setTimeout(resolve, 500));
               window.location.href = '/main';
             } else {
-              debug.log('⚠️ 최종 세션 생성 실패 - 메인 페이지에서 재인증 시도');
+              debug.log('❌ 최종 세션 생성 실패 - 로그인 페이지로 이동');
               
-              // 메인 페이지로 이동하여 useInitialAuth에서 재처리하도록 함
-              // 완전한 실패보다는 메인에서 한 번 더 시도하는 것이 사용자 경험상 좋음
-              document.cookie = `auth_retry_needed=true; path=/; max-age=60; SameSite=Lax${window.location.protocol === 'https:' ? '; Secure' : ''}`;
-              debug.log('🔄 메인 페이지에서 재인증 시도를 위해 쿠키 설정 완료');
-              
-              setTimeout(() => {
-                window.location.href = '/main';
-              }, 1000);
+              // 무한 리다이렉션 루프 방지: 메인 페이지 대신 로그인 페이지로 직접 이동
+              router.push('/login?error=session_timeout&message=' + 
+                encodeURIComponent('세션 생성에 실패했습니다. 다시 로그인해주세요.'));
             }
           }
         }
