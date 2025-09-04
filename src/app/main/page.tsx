@@ -438,6 +438,7 @@ function Home() {
     isSystemStarting,
     authLoading, // 🔧 GitHub 인증 로딩 상태 추가
     isAuthenticated, // 🔧 GitHub 인증 완료 상태 추가
+    isGitHubUser, // 🔧 GitHub 사용자 상태 추가 - 버튼 상태 올바른 업데이트를 위해 필수
     statusLoading,
     multiUserStatus?.isRunning,
     multiUserStatus?.userCount,

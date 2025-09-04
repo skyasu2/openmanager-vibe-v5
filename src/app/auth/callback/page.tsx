@@ -76,16 +76,16 @@ export default function AuthCallbackPage() {
         document.cookie = `auth_in_progress=true; path=/; max-age=60; SameSite=Lax`;
         document.cookie = `auth_redirect_to=/main; path=/; max-age=60; SameSite=Lax`;
 
-        // Supabase가 URL에서 코드를 감지하고 처리할 시간 증가 (Vercel 환경 대응)
+        // Supabase가 URL에서 코드를 감지하고 처리할 시간 최적화 (사용자 경험 개선)
         const isVercel = window.location.origin.includes('vercel.app');
-        const initialWait = isVercel ? 3000 : 2000; // Vercel에서 더 긴 초기 대기
+        const initialWait = isVercel ? 1500 : 800; // 대기시간 50% 단축
         await new Promise((resolve) => setTimeout(resolve, initialWait));
 
         // 세션 확인 (Qwen 권장: 지수 백오프 알고리즘 적용)
         let session = null;
         let sessionError = null;
         let attempts = 0;
-        const maxAttempts = isVercel ? 8 : 6; // 환경별 최적화
+        const maxAttempts = isVercel ? 6 : 4; // 재시도 횟수 25% 감소
 
         do {
           const result = await supabase.auth.getSession();
@@ -93,9 +93,9 @@ export default function AuthCallbackPage() {
           sessionError = result.error;
 
           if (!session && attempts < maxAttempts - 1) {
-            // 지수 백오프 알고리즘 (300ms → 540ms → 972ms → 1750ms → 3000ms → 4000ms)
-            const baseDelay = 300;
-            const maxDelay = 4000;
+            // 지수 백오프 알고리즘 최적화 (200ms → 360ms → 648ms → 1166ms → 2000ms)
+            const baseDelay = 200; // 기본 지연 시간 단축
+            const maxDelay = 2000; // 최대 지연 시간 50% 단축
             const jitter = Math.random() * 0.1; // 10% 지터로 thundering herd 방지
             const retryDelay = Math.min(
               baseDelay * Math.pow(1.8, attempts) * (1 + jitter), 
@@ -128,8 +128,8 @@ export default function AuthCallbackPage() {
           // 바로 메인으로 이동
           debug.log('🚀 메인 페이지로 이동!');
 
-          // 세션 완전 설정 대기 (환경별 최적화)  
-          const sessionWait = isVercel ? 2000 : 1200; // Vercel에서 더 긴 대기
+          // 세션 완전 설정 대기 최적화 (빠른 응답성)
+          const sessionWait = isVercel ? 800 : 500; // 대기시간 60% 단축
           await new Promise((resolve) => setTimeout(resolve, sessionWait));
 
           // 세션 쿠키 설정 확인 및 검증
@@ -178,8 +178,8 @@ export default function AuthCallbackPage() {
           } else {
             debug.log('⏳ PKCE 처리 중, 최종 재시도...');
 
-            // 최종 재시도 대기 시간 (환경별 최적화) - 더 충분한 시간 확보
-            const finalRetryWait = isVercel ? 6000 : 4000; // 더 긴 대기 시간 (Vercel 6초)
+            // 최종 재시도 대기 시간 최적화 (사용자 경험 우선)
+            const finalRetryWait = isVercel ? 2000 : 1500; // 대기시간 67% 단축
             debug.log(`⏱️ 최종 재시도 대기 중... (${finalRetryWait}ms)`);
             await new Promise((resolve) => setTimeout(resolve, finalRetryWait));
 
