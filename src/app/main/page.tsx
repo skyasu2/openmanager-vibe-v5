@@ -587,7 +587,7 @@ function Home() {
               {/* 시스템 중지 상태 - 대시보드 버튼 중심으로 변경 */}
               {/* 메인 제어 버튼들 */}
               <div className="mb-6 flex flex-col items-center space-y-4">
-                {isAuthenticated || isGitHubUser || isAdminMode ? (
+                {isGitHubUser || isAdminMode ? (
                   <>
                     {/* GitHub 인증 사용자 - 시스템 시작 버튼 표시 */}
                     {/* 현재 사용자: {currentUser?.name || currentUser?.email || 'Unknown'} */}
@@ -685,7 +685,7 @@ function Home() {
               {/* 대시보드 버튼 - 중앙 배치 */}
               <div className="mb-6 flex justify-center">
                 <div className="flex flex-col items-center">
-                  {isAuthenticated || isGitHubUser || isAdminMode ? (
+                  {isGitHubUser || isAdminMode ? (
                     <button
                       onClick={() => router.push('/dashboard')}
                       className="flex h-16 w-64 items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-600 font-semibold text-white shadow-xl transition-all duration-200 hover:bg-emerald-700"
