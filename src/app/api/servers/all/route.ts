@@ -354,7 +354,7 @@ interface RawServerData {
   id: string;
   name: string;
   hostname: string;
-  status: string;
+  status: "warning" | "critical" | "online";
   type: string;
   service: string;
   location: string;
@@ -758,7 +758,7 @@ function convertFixedRotationData(hourlyData: HourlyServerData, currentHour: num
         id: serverId,
         name: `${serverType.charAt(0).toUpperCase() + serverType.slice(1)} Server #${serverIndex}`,
         hostname: `${serverType}-${serverIndex.toString().padStart(2, '0')}.prod.example.com`,
-        status: 'healthy' as const,
+        status: 'online' as const,
         type: serverType,
         service: serverType === 'security' ? 'Security Scanner' : serverType === 'backup' ? 'Backup Service' : 'Service Gateway',
         location: 'us-east-1a',

@@ -211,7 +211,8 @@ export function useSystemControl(): UseSystemControlReturn {
     }
   }, []);
 
-  const restartSystem = async () => {
+  // ✅ restartSystem useCallback으로 래핑하여 stale closure 방지
+  const restartSystem = useCallback(async () => {
     try {
       setIsLoading(true);
       console.log('🔄 시스템 재시작 시도...');
@@ -236,7 +237,7 @@ export function useSystemControl(): UseSystemControlReturn {
     } finally {
       setIsLoading(false);
     }
-  }; // ✅ useCallback 제거하여 순환 의존성 해결
+  }, [stopSystem, startSystem]); // ✅ stopSystem, startSystem 함수 의존성 추가
 
   /**
    * 🚀 시스템 전체 시작

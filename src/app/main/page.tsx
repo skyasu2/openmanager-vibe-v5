@@ -144,7 +144,7 @@ function Home() {
     return () => clearTimeout(mountTimer);
   }, []); // 의존성 없음 - 마운트 시 한 번만 실행
 
-  // 2️⃣ 시스템 상태 동기화 처리 (독립적)
+  // 2️⃣ 시스템 상태 동기화 처리 (독립적) - ✅ 함수 의존성 추가하여 React Error #310 해결
   useEffect(() => {
     if (!authReady || !multiUserStatus) return;
 
@@ -171,7 +171,7 @@ function Home() {
     return () => {
       if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
     };
-  }, [authReady, multiUserStatus?.isRunning, isSystemStarted]); // ✅ 함수 의존성 제거하여 React Error #310 해결
+  }, [authReady, multiUserStatus?.isRunning, isSystemStarted, startSystem, stopSystem]); // ✅ startSystem, stopSystem 함수 의존성 추가
 
   // 3️⃣ 시스템 시작 상태 동기화 (독립적)
   useEffect(() => {
@@ -353,7 +353,11 @@ function Home() {
     multiUserStatus?.isRunning,
     multiUserStatus?.userCount,
     isSystemStarted,
-    pathname
+    pathname,
+    isAuthenticated,  // 🔧 추가: GitHub 인증 상태 - stale closure 방지
+    isGitHubUser,     // 🔧 추가: GitHub 사용자 여부 - 토글 로직에서 사용
+    authLoading,      // 🔧 추가: 인증 로딩 상태 - 토글 차단 로직에서 사용
+    statusLoading     // 🔧 추가: 상태 로딩 - 토글 차단 로직에서 사용
     // ✅ countdownTimer 객체 의존성 제거하여 React Error #310 완전 해결 - 타이머 객체는 불안정한 참조
   ]);
 

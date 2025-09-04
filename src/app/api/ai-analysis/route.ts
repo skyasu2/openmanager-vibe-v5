@@ -654,16 +654,27 @@ export async function POST(request: NextRequest) {
         throw new Error(`지원하지 않는 분석 타입: ${analysisType}`);
     }
     
+    // 🔧 타입 가드 추가: results가 NextResponse인 경우 처리
+    if (results instanceof NextResponse || !results || typeof results !== 'object') {
+      throw new Error('분석 엔진에서 잘못된 결과를 반환했습니다');
+    }
+
+    // 🔧 안전한 타입 체크: findings 속성 존재 확인
+    const safeResults = results as any;
+    if (!safeResults.findings || !Array.isArray(safeResults.findings)) {
+      throw new Error('분석 결과에 findings 배열이 없습니다');
+    }
+    
     const executionTime = Date.now() - startTime;
-    const confidenceLevel = results.findings.length > 0 
-      ? results.findings.reduce((sum: number, finding: any) => sum + finding.confidence, 0) / results.findings.length
+    const confidenceLevel = safeResults.findings.length > 0 
+      ? safeResults.findings.reduce((sum: number, finding: any) => sum + finding.confidence, 0) / safeResults.findings.length
       : 0.5;
     
     const response: AIAnalysisResponse = {
       success: true,
       analysisType,
       query,
-      results,
+      results: safeResults,
       metadata: {
         executionTime,
         dataSourcesUsed,
