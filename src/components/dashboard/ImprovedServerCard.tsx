@@ -35,7 +35,33 @@ import type { Server as ServerType } from '../../types/server';
 import { ServerCardLineChart } from '../shared/ServerMetricsLineChart';
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
 import { validateMetricValue, validateServerMetrics, generateSafeMetricValue, type MetricType } from '../../utils/metricValidation';
-import { designTokens, getStatusTheme, getTypography, type ServerStatus } from '../../styles/design-tokens';
+// 임시 타입 정의 (Vercel 빌드 호환성을 위해)
+type ServerStatus = 'healthy' | 'warning' | 'critical';
+
+// 임시 유틸리티 함수 (design-tokens 대체)
+const getStatusTheme = (status: ServerStatus) => {
+  const themes = {
+    healthy: {
+      background: 'bg-gradient-to-br from-white/95 via-emerald-50/80 to-emerald-50/60',
+      border: 'border-emerald-200/60 hover:border-emerald-300/80',
+      text: 'text-emerald-800',
+      animation: 'hover:-translate-y-1 hover:scale-[1.02]'
+    },
+    warning: {
+      background: 'bg-gradient-to-br from-white/95 via-amber-50/80 to-amber-50/60',
+      border: 'border-amber-200/60 hover:border-amber-300/80', 
+      text: 'text-amber-800',
+      animation: 'hover:-translate-y-1 hover:scale-[1.02]'
+    },
+    critical: {
+      background: 'bg-gradient-to-br from-white/95 via-red-50/80 to-red-50/60',
+      border: 'border-red-200/60 hover:border-red-300/80',
+      text: 'text-red-800', 
+      animation: 'hover:-translate-y-1 hover:scale-[1.02]'
+    }
+  };
+  return themes[status] || themes.healthy;
+};
 
 interface ImprovedServerCardProps {
   server: ServerType;
@@ -113,27 +139,27 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               ? 'warning'
               : 'healthy'; // 기본값
 
-      const statusColors = designTokens.colors.status[normalizedStatus];
+      const theme = getStatusTheme(normalizedStatus);
       
       return {
         // Material Design 3 Surface 기반 배경
         cardBg: 'md3-glass-surface',
         cardStyle: {
-          backgroundColor: statusColors.surface,
-          borderColor: statusColors.outline,
-          color: statusColors.onPrimaryContainer,
+          backgroundColor: 'transparent', // Tailwind로 처리
+          borderColor: 'transparent', // Tailwind로 처리
+          color: 'inherit', // Tailwind로 처리
         },
         
         // 호버 효과
         hoverStyle: {
-          borderColor: statusColors.outlineVariant,
-          boxShadow: `0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px ${statusColors.primary}20`,
+          borderColor: 'transparent',
+          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(59, 130, 246, 0.125)',
         },
         
         // 상태 표시
         statusColor: {
-          backgroundColor: statusColors.primaryContainer,
-          color: statusColors.onPrimaryContainer,
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          color: 'inherit', // Tailwind로 처리
         },
         statusIcon: normalizedStatus === 'healthy' 
           ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
@@ -146,12 +172,12 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             
         // 실시간 펄스
         pulse: {
-          backgroundColor: statusColors.primary,
+          backgroundColor: 'rgb(59, 130, 246)',
         },
         
         // 액센트 색상
         accent: {
-          color: statusColors.accent,
+          color: 'rgb(59, 130, 246)',
         },
       };
     }, [server.status]); // 상태별 의존성 최적화 (Gemini 제안 반영)
@@ -212,33 +238,33 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       switch (variant) {
         case 'compact':
           return {
-            container: `${designTokens.layout.spacing.card.padding.mobile} min-h-[300px]`,
-            titleSize: designTokens.typography.title.small.className,
-            metricSize: designTokens.typography.label.medium.className,
+            container: `${'p-4'} min-h-[300px]`,
+            titleSize: 'text-lg font-medium',
+            metricSize: 'text-sm font-medium',
             progressHeight: 'h-2',
-            spacing: designTokens.layout.spacing.element.normal,
+            spacing: 'space-y-3',
             showServices: true,
             maxServices: 2,
             showDetails: false,
           };
         case 'detailed':
           return {
-            container: `${designTokens.layout.spacing.card.padding.desktop} min-h-[380px]`,
-            titleSize: designTokens.typography.headline.small.className,
-            metricSize: designTokens.typography.body.medium.className,
+            container: `${'p-6'} min-h-[380px]`,
+            titleSize: 'text-xl font-semibold',
+            metricSize: 'text-base font-normal',
             progressHeight: 'h-3',
-            spacing: designTokens.layout.spacing.element.relaxed,
+            spacing: 'space-y-4',
             showServices: true,
             maxServices: 4,
             showDetails: true,
           };
         default: // standard
           return {
-            container: `${designTokens.layout.spacing.card.padding.tablet} min-h-[340px]`,
-            titleSize: designTokens.typography.title.medium.className,
-            metricSize: designTokens.typography.body.medium.className,
+            container: `${'p-5'} min-h-[340px]`,
+            titleSize: 'text-lg font-semibold',
+            metricSize: 'text-base font-normal',
             progressHeight: 'h-2.5',
-            spacing: designTokens.layout.spacing.element.normal,
+            spacing: 'space-y-3',
             showServices: true,
             maxServices: 3,
             showDetails: true,
@@ -295,7 +321,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         `}
         style={{
           ...statusTheme.cardStyle,
-          transition: `all ${designTokens.motion.duration.normal} ${designTokens.motion.easing.emphasized}`,
+          transition: `all ${'300ms'} ${'cubic-bezier(0.2, 0.0, 0, 1.0)'}`,
         }}
         onMouseEnter={(e) => {
           handleMouseEnter();
@@ -345,7 +371,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                 {getOSIcon()}
               </div>
               <div 
-                className={`flex items-center gap-2 ${designTokens.typography.label.medium.className}`}
+                className={`flex items-center gap-2 ${'text-sm font-medium'}`}
                 style={statusTheme.accent}
               >
                 <MapPin className="h-3 w-3" aria-hidden="true" />
@@ -369,7 +395,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
 
           <div className="flex items-center gap-2">
             <div
-              className={`flex items-center gap-2 rounded-full px-3 py-1.5 shadow-sm ${designTokens.typography.label.medium.className}`}
+              className={`flex items-center gap-2 rounded-full px-3 py-1.5 shadow-sm ${'text-sm font-medium'}`}
               style={statusTheme.statusColor}
               role="status"
               aria-label={`서버 상태: ${statusTheme.statusText}`}
