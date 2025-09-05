@@ -35,7 +35,7 @@ import type { Server as ServerType } from '../../types/server';
 import { ServerCardLineChart } from '../shared/ServerMetricsLineChart';
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
 import { validateMetricValue, validateServerMetrics, generateSafeMetricValue, type MetricType } from '../../utils/metricValidation';
-import { designTokens, getStatusTheme, getTypography, type ServerStatus } from '../../styles/design-tokens';
+import { designTokens, getStatusTheme, getTypography, type ServerStatus } from '@/styles/design-tokens';
 
 interface ImprovedServerCardProps {
   server: ServerType;
