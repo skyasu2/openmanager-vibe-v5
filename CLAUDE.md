@@ -198,13 +198,13 @@ npm run build:ci    # 1.5GB (CI 최적화)
 | 도구                  | 버전    | 요금제              | 역할 구분                   | WSL 실행                   | Windows 네이티브           |
 | --------------------- | ------- | ------------------- | --------------------------- | -------------------------- | -------------------------- |
 | **Claude Code**       | v1.0.100 | Max ($200/월) | 🏆 **메인 개발 환경**       | .\claude-wsl-optimized.bat | ✅ 완벽 지원                |
-| **Codex CLI**         | v0.25.0 | Plus ($20/월)       | 🤝 **서브 에이전트** (유료)  | codex (WSL 직접 실행)      | ✅ **완벽 지원**           |
+| **Codex CLI**         | v0.29.0 | Plus ($20/월)       | 🤝 **GPT-5 서브 에이전트** ✅ | codex exec (WSL 해결완료)  | ✅ **완벽 지원**           |
 | **Google Gemini CLI** | v0.2.1  | 무료 (1K req/day)   | 👨‍💻 **코드 아키텍트** (무료) | .\gemini-wsl.bat           | ✅ 완벽 지원                |
 | **Qwen Code**         | v0.0.9  | 무료 (Qwen OAuth 2K/day)   | 🔷 **병렬 모듈 개발** (무료) | .\qwen-wsl.bat             | ✅ 완벽 지원                |
 | **OpenAI CLI**        | 설치됨  | -                   | 🔧 **SDK 도구**             | .\openai-wsl.bat           | ✅ 완벽 지원                |
 | **ccusage**           | v16.2.0 | 무료                | 📊 **사용량 모니터링**      | ccusage daily              | ✅ 완벽 지원                |
 
-> ✅ **최적화**: **Codex CLI는 WSL 환경에서 완벽 작동**합니다. 직접 `codex` 명령어로 실행하거나 `scripts/platform/ai-cli-wsl.bat codex`로 Windows에서도 호출 가능합니다.
+> ✅ **2025년 해결완료**: **Codex CLI WSL 네트워크 문제 완전 해결**됨. DNS 설정 수정으로 `codex exec` 명령어 정상 작동. ChatGPT Plus 계정으로 GPT-5 모델 추가 과금 없이 사용 가능.
 
 ### 통합 실행
 
@@ -229,8 +229,9 @@ cd /mnt/d/cursor/openmanager-vibe-v5
 # AI 도구들 직접 실행
 
 claude /status
-gemini -p "코드를 최적화해주세요"
-qwen -p "이 함수를 설명해주세요"
+codex exec "코드를 최적화해주세요" # ✅ GPT-5 정상 작동
+gemini -p "이 함수를 설명해주세요"
+qwen -p "이 알고리즘 최적화 분석해줘"
 ccusage daily # Claude 사용량 확인
 `
 
@@ -247,15 +248,30 @@ ccusage daily # Claude 사용량 확인
 
 ### 🤝 서브 에이전트 라인: 3-AI 협업 시스템
 
-#### 💰 Codex CLI (ChatGPT Plus $20/월)
-**고성능 유료 서브 에이전트**
-```bash
-# 복잡한 로직 구현 시 병렬 개발
-codex-cli "복잡한 알고리즘 최적화 필요"
+#### 💰 Codex CLI (ChatGPT Plus $20/월) ✅ **완전 해결**
+**GPT-5 기반 고성능 서브 에이전트 - WSL 네트워크 문제 해결됨**
 
-# Claude와 다른 관점의 코드 리뷰
-codex-cli "이 코드의 보안 취약점 분석해줘"
-````
+**📊 2025년 공식 사용량 제한 (OpenAI 발표)**:
+- **Plus 사용자**: 30-150 메시지/5시간 (1-2시간 코딩 세션 주간 가능)
+- **Pro 사용자**: 300-1,500 메시지/5시간 (기본적으로 제한 없음)
+- **보너스 크레딧**: Plus $5, Pro $50 (30일 만료)
+- **초기 관대한 접근**: 첫 몇 주 동안 무제한에 가까운 사용량 제공
+
+**🔧 WSL 환경 해결 완료**:
+```bash
+# DNS 설정 수정으로 네트워크 문제 해결
+echo 'nameserver 8.8.8.8' | sudo tee -a /etc/resolv.conf
+echo 'nameserver 1.1.1.1' | sudo tee -a /etc/resolv.conf
+
+# WSL 영구 설정
+echo -e "[network]\ngenerateResolvConf = false" | sudo tee -a /etc/wsl.conf
+
+# 정상 작동 확인
+codex exec "복잡한 알고리즘 최적화 필요"  # ✅ 작동
+codex exec "이 코드의 보안 취약점 분석해줘"  # ✅ 작동
+```
+
+**🎯 현재 상태**: ChatGPT Plus 계정으로 추가 과금 없이 GPT-5 모델 정상 사용 중
 
 #### 🆓 Gemini CLI (Google AI 무료)
 
@@ -345,13 +361,20 @@ echo "🔄 최적 모델 선택으로 생산성 극대화"
 # 예: 교차 검증 필요 시 다중 AI 의견 수렴
 ```
 
-### 📈 효율성 지표 (Max 사용자 특화)
+### 📈 효율성 지표 (Max 사용자 특화) - 2025년 업데이트
 
-- **총 월 투자**: $220 (Claude Max $200 + Codex $20)
+**🎯 현재 투자 대비 효과**:
+- **총 월 투자**: $220 (Claude Max $200 + ChatGPT Plus $20)
 - **실제 작업 가치**: $2,200+ (API 환산 시)
 - **비용 효율성**: 10배 이상 절약 효과
 - **무료 보조 도구**: Gemini (1K/day) + Qwen (OAuth 2K/day) 병렬 처리
 - **개발 생산성**: 4배 증가 (멀티 AI 협업)
+
+**📊 Codex CLI 추가 혜택 (2025년 공식 확인)**:
+- **GPT-5 모델 접근**: Plus 요금제 내 무료 사용 (API 대비 절약 효과)
+- **보너스 크레딧**: Plus 사용자 $5 추가 제공 (30일)
+- **사용량 제한**: 30-150 메시지/5시간 (일반 개발 작업 충분)
+- **초기 관대 기간**: 첫 몇 주 무제한에 가까운 사용량
 - **코드 품질**: 교차 검증으로 버그 90% 감소
 
 ---
