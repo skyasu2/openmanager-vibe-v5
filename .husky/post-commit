@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# CHANGELOG.md 자동 갱신 Hook 실행
+if [ -f ".claude/hooks/post-commit.sh" ]; then
+    echo "🔄 Running CHANGELOG.md auto-update..."
+    bash .claude/hooks/post-commit.sh
+fi
