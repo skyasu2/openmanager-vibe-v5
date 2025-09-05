@@ -475,8 +475,15 @@ export const useAISidebarStore = create<AISidebarState>()(
           currentEngine: state.currentEngine,
           sessionId: state.sessionId,
         }),
-        // SSR 안전성을 위한 skipHydration 추가
+        // SSR 안전성을 위한 완전한 hydration 제어
         skipHydration: true,
+        // Hydration 불일치 방지를 위한 추가 옵션
+        onRehydrateStorage: () => (state) => {
+          // Hydration 후 초기 상태 정규화
+          if (state) {
+            state.isOpen = false; // 초기에는 항상 닫힌 상태로 시작
+          }
+        },
       }
     ),
     { name: 'AISidebarStore' }

@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Material Design 3 토큰 시스템 Import */
+@import './material-tokens.css';
+
 @layer base {
   :root {
     --background: 0 0% 100%;

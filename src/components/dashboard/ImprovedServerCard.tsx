@@ -24,6 +24,10 @@ import {
   Globe,
   HardDrive,
   Archive,
+  ChevronDown,
+  ChevronUp,
+  Activity,
+  Zap,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { memo, useCallback, useEffect, useState, useMemo, useRef, type FC, Fragment } from 'react';
@@ -31,6 +35,7 @@ import type { Server as ServerType } from '../../types/server';
 import { ServerCardLineChart } from '../shared/ServerMetricsLineChart';
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
 import { validateMetricValue, validateServerMetrics, generateSafeMetricValue, type MetricType } from '../../utils/metricValidation';
+import { designTokens, getStatusTheme, getTypography, type ServerStatus } from '../../styles/design-tokens';
 
 interface ImprovedServerCardProps {
   server: ServerType;
@@ -38,6 +43,7 @@ interface ImprovedServerCardProps {
   variant?: 'compact' | 'standard' | 'detailed';
   showRealTimeUpdates?: boolean;
   index?: number;
+  enableProgressiveDisclosure?: boolean;
 }
 
 const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
@@ -47,8 +53,11 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     variant = 'standard',
     showRealTimeUpdates = true,
     index = 0,
+    enableProgressiveDisclosure = true,
   }) => {
     const [isHovered, setIsHovered] = useState(false);
+    const [showSecondaryInfo, setShowSecondaryInfo] = useState(false);
+    const [showTertiaryInfo, setShowTertiaryInfo] = useState(false);
     const isMountedRef = useRef(true); // 비동기 상태 관리 개선 (Codex 제안)
     
     // 초기 메트릭 값 검증 적용
@@ -92,66 +101,59 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       return () => clearInterval(interval);
     }, [showRealTimeUpdates, index]);
 
-    // 🎨 현대적 Glassmorphism + Material You 기반 서버 상태별 테마 (메모이제이션 최적화)
-    const getStatusTheme = useMemo(() => {
-      // 서버 상태를 표준 상태로 매핑
-      const normalizedStatus =
-        server.status === 'healthy'
-          ? 'online'
-          : server.status === 'critical'
-            ? 'offline'
-            : server.status;
+    // 🎨 Material Design 3 토큰 기반 서버 상태별 테마 (메모이제이션 최적화)
+    const statusTheme = useMemo(() => {
+      // 서버 상태를 Material Design 3 표준 상태로 매핑
+      const normalizedStatus: ServerStatus =
+        server.status === 'online' || server.status === 'healthy'
+          ? 'healthy'
+          : server.status === 'critical' || server.status === 'offline'
+            ? 'critical'
+            : server.status === 'warning'
+              ? 'warning'
+              : 'healthy'; // 기본값
 
-      switch (normalizedStatus) {
-        case 'online':
-          return {
-            cardBg: 'bg-gradient-to-br from-white/95 via-green-50/80 to-emerald-50/60',
-            border: 'border-emerald-200/60',
-            hoverBorder: 'hover:border-emerald-300/80',
-            glowEffect: 'hover:shadow-emerald-500/20',
-            statusColor: 'text-emerald-800 bg-emerald-100/80',
-            statusIcon: <CheckCircle2 className="h-4 w-4" aria-hidden="true" />,
-            statusText: '정상',
-            pulse: 'bg-emerald-500',
-            accent: 'text-emerald-600',
-          };
-        case 'warning':
-          return {
-            cardBg: 'bg-gradient-to-br from-white/95 via-amber-50/80 to-orange-50/60',
-            border: 'border-amber-200/60',
-            hoverBorder: 'hover:border-amber-300/80',
-            glowEffect: 'hover:shadow-amber-500/20',
-            statusColor: 'text-amber-800 bg-amber-100/80',
-            statusIcon: <AlertCircle className="h-4 w-4" aria-hidden="true" />,
-            statusText: '경고',
-            pulse: 'bg-amber-500',
-            accent: 'text-amber-600',
-          };
-        case 'offline':
-          return {
-            cardBg: 'bg-gradient-to-br from-white/95 via-red-50/80 to-rose-50/60',
-            border: 'border-red-200/60',
-            hoverBorder: 'hover:border-red-300/80',
-            glowEffect: 'hover:shadow-red-500/20',
-            statusColor: 'text-red-800 bg-red-100/80',
-            statusIcon: <AlertCircle className="h-4 w-4" aria-hidden="true" />,
-            statusText: '심각',
-            pulse: 'bg-red-500',
-            accent: 'text-red-600',
-          };
-        default:
-          return {
-            cardBg: 'bg-gradient-to-br from-white/95 via-blue-50/80 to-cyan-50/60',
-            border: 'border-blue-200/60',
-            hoverBorder: 'hover:border-blue-300/80',
-            glowEffect: 'hover:shadow-blue-500/20',
-            statusColor: 'text-blue-800 bg-blue-100/80',
-            statusIcon: <CheckCircle2 className="h-4 w-4" aria-hidden="true" />,
-            statusText: '정상',
-            pulse: 'bg-blue-500',
-            accent: 'text-blue-600',
-          };
-      }
+      const statusColors = designTokens.colors.status[normalizedStatus];
+      
+      return {
+        // Material Design 3 Surface 기반 배경
+        cardBg: 'md3-glass-surface',
+        cardStyle: {
+          backgroundColor: statusColors.surface,
+          borderColor: statusColors.outline,
+          color: statusColors.onPrimaryContainer,
+        },
+        
+        // 호버 효과
+        hoverStyle: {
+          borderColor: statusColors.outlineVariant,
+          boxShadow: `0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px ${statusColors.primary}20`,
+        },
+        
+        // 상태 표시
+        statusColor: {
+          backgroundColor: statusColors.primaryContainer,
+          color: statusColors.onPrimaryContainer,
+        },
+        statusIcon: normalizedStatus === 'healthy' 
+          ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+          : <AlertCircle className="h-4 w-4" aria-hidden="true" />,
+        statusText: normalizedStatus === 'healthy' 
+          ? '정상' 
+          : normalizedStatus === 'warning' 
+            ? '경고' 
+            : '심각',
+            
+        // 실시간 펄스
+        pulse: {
+          backgroundColor: statusColors.primary,
+        },
+        
+        // 액센트 색상
+        accent: {
+          color: statusColors.accent,
+        },
+      };
     }, [server.status]); // 상태별 의존성 최적화 (Gemini 제안 반영)
 
     // 서버 타입별 아이콘 가져오기
@@ -205,44 +207,68 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       return null;
     };
 
-    // 배리언트별 스타일 (라인 그래프에 최적화) - 메모이제이션 최적화
-    const getVariantStyles = useMemo(() => {
+    // Material Design 3 배리언트별 스타일 (Typography 토큰 기반) - 메모이제이션 최적화
+    const variantStyles = useMemo(() => {
       switch (variant) {
         case 'compact':
           return {
-            container: 'p-4 min-h-[300px]',
-            titleSize: 'text-sm font-semibold',
-            metricSize: 'text-xs',
+            container: `${designTokens.layout.spacing.card.padding.mobile} min-h-[300px]`,
+            titleSize: designTokens.typography.title.small.className,
+            metricSize: designTokens.typography.label.medium.className,
             progressHeight: 'h-2',
-            spacing: 'space-y-4',
+            spacing: designTokens.layout.spacing.element.normal,
             showServices: true,
             maxServices: 2,
             showDetails: false,
           };
         case 'detailed':
           return {
-            container: 'p-6 min-h-[380px]',
-            titleSize: 'text-lg font-bold',
-            metricSize: 'text-sm',
+            container: `${designTokens.layout.spacing.card.padding.desktop} min-h-[380px]`,
+            titleSize: designTokens.typography.headline.small.className,
+            metricSize: designTokens.typography.body.medium.className,
             progressHeight: 'h-3',
-            spacing: 'space-y-5',
+            spacing: designTokens.layout.spacing.element.relaxed,
             showServices: true,
             maxServices: 4,
             showDetails: true,
           };
         default: // standard
           return {
-            container: 'p-5 min-h-[340px]',
-            titleSize: 'text-base font-semibold',
-            metricSize: 'text-sm',
+            container: `${designTokens.layout.spacing.card.padding.tablet} min-h-[340px]`,
+            titleSize: designTokens.typography.title.medium.className,
+            metricSize: designTokens.typography.body.medium.className,
             progressHeight: 'h-2.5',
-            spacing: 'space-y-4',
+            spacing: designTokens.layout.spacing.element.normal,
             showServices: true,
             maxServices: 3,
             showDetails: true,
           };
       }
     }, [variant]);
+
+    // 🔄 Progressive Disclosure 호버 핸들러
+    const handleMouseEnter = useCallback(() => {
+      setIsHovered(true);
+      if (enableProgressiveDisclosure) {
+        setShowSecondaryInfo(true);
+      }
+    }, [enableProgressiveDisclosure]);
+
+    const handleMouseLeave = useCallback(() => {
+      setIsHovered(false);
+      if (enableProgressiveDisclosure && !showTertiaryInfo) {
+        setShowSecondaryInfo(false);
+      }
+    }, [enableProgressiveDisclosure, showTertiaryInfo]);
+
+    // 🎯 Progressive Disclosure 클릭 토글
+    const handleExpandToggle = useCallback((e: React.MouseEvent) => {
+      e.stopPropagation();
+      setShowTertiaryInfo(prev => !prev);
+      if (!showTertiaryInfo) {
+        setShowSecondaryInfo(true);
+      }
+    }, [showTertiaryInfo]);
 
     // 🚀 클릭 핸들러 메모이제이션 (성능 최적화)
     const handleClick = useCallback(() => {
@@ -262,21 +288,26 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         type="button"
         className={`
           relative cursor-pointer rounded-2xl border-2 w-full overflow-hidden text-left group
-          transition-all duration-300 ease-out
-          ${getStatusTheme.cardBg} 
-          ${getStatusTheme.border} 
-          ${getStatusTheme.hoverBorder}
-          ${getVariantStyles.container}
-          hover:shadow-2xl hover:shadow-black/10 ${getStatusTheme.glowEffect}
-          hover:-translate-y-1 hover:scale-[1.02]
-          active:scale-[0.98] active:translate-y-0
+          md3-state-layer md3-card-hover
+          ${statusTheme.cardBg}
+          ${variantStyles.container}
           focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:ring-offset-2
         `}
+        style={{
+          ...statusTheme.cardStyle,
+          transition: `all ${designTokens.motion.duration.normal} ${designTokens.motion.easing.emphasized}`,
+        }}
+        onMouseEnter={(e) => {
+          handleMouseEnter();
+          Object.assign(e.currentTarget.style, statusTheme.hoverStyle);
+        }}
+        onMouseLeave={(e) => {
+          handleMouseLeave();
+          Object.assign(e.currentTarget.style, statusTheme.cardStyle);
+        }}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        aria-label={`${server.name} 서버 - ${getStatusTheme.statusText} 상태. CPU ${Math.round(realtimeMetrics.cpu)}%, 메모리 ${Math.round(realtimeMetrics.memory)}% 사용 중`}
+        aria-label={`${server.name} 서버 - ${statusTheme.statusText} 상태. CPU ${Math.round(realtimeMetrics.cpu)}%, 메모리 ${Math.round(realtimeMetrics.memory)}% 사용 중`}
         role="button"
         tabIndex={0}
       >
@@ -284,17 +315,19 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         {showRealTimeUpdates && (
           <div className="absolute right-3 top-3 z-10" aria-hidden="true">
             <div
-              className={`h-2 w-2 ${getStatusTheme.pulse} rounded-full shadow-lg`}
+              className="h-2 w-2 rounded-full shadow-lg animate-pulse"
+              style={statusTheme.pulse}
               title="실시간 업데이트 중"
             />
           </div>
         )}
 
-        {/* 헤더 */}
+        {/* 헤더 - Progressive Disclosure 컨트롤 추가 */}
         <header className="mb-4 flex items-start justify-between">
           <div className="flex min-w-0 flex-1 items-center gap-3">
             <div
-              className={`rounded-lg p-2.5 ${getStatusTheme.statusColor} shadow-sm`}
+              className="rounded-lg p-2.5 shadow-sm"
+              style={statusTheme.statusColor}
               role="img"
               aria-label={`서버 타입: ${server.type}`}
             >
@@ -303,17 +336,21 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             <div className="min-w-0 flex-1">
               <div className="mb-1 flex items-center gap-2">
                 <h3
-                  className={`${getVariantStyles.titleSize} truncate text-gray-900`}
+                  className={`${variantStyles.titleSize} truncate`}
+                  style={{ color: statusTheme.cardStyle.color }}
                   id={`server-${server.id}-title`}
                 >
                   {server.name}
                 </h3>
                 {getOSIcon()}
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
+              <div 
+                className={`flex items-center gap-2 ${designTokens.typography.label.medium.className}`}
+                style={statusTheme.accent}
+              >
                 <MapPin className="h-3 w-3" aria-hidden="true" />
                 <span aria-label="서버 위치">{server.location || 'Seoul DC1'}</span>
-                {getVariantStyles.showDetails && (
+                {variantStyles.showDetails && (
                   <>
                     <span aria-hidden="true">•</span>
                     <Clock className="h-3 w-3" aria-hidden="true" />
@@ -330,33 +367,54 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             </div>
           </div>
 
-          <div
-            className={`flex items-center gap-2 rounded-full px-3 py-1.5 ${getStatusTheme.statusColor} shadow-sm`}
-            role="status"
-            aria-label={`서버 상태: ${getStatusTheme.statusText}`}
-          >
-            {getStatusTheme.statusIcon}
-            <span className="text-xs font-semibold">
-              {getStatusTheme.statusText}
-            </span>
+          <div className="flex items-center gap-2">
+            <div
+              className={`flex items-center gap-2 rounded-full px-3 py-1.5 shadow-sm ${designTokens.typography.label.medium.className}`}
+              style={statusTheme.statusColor}
+              role="status"
+              aria-label={`서버 상태: ${statusTheme.statusText}`}
+            >
+              {statusTheme.statusIcon}
+              <span className="font-semibold">
+                {statusTheme.statusText}
+              </span>
+            </div>
+            
+            {/* Progressive Disclosure 확장/축소 버튼 */}
+            {enableProgressiveDisclosure && (
+              <button
+                type="button"
+                onClick={handleExpandToggle}
+                className="flex items-center justify-center w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                aria-label={showTertiaryInfo ? '상세 정보 숨기기' : '상세 정보 보기'}
+                title={showTertiaryInfo ? '상세 정보 숨기기' : '상세 정보 보기'}
+              >
+                {showTertiaryInfo ? (
+                  <ChevronUp className="h-4 w-4 text-gray-600" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-gray-600" />
+                )}
+              </button>
+            )}
           </div>
         </header>
 
-        {/* 📈 정보 계층화 메트릭 섹션 - 우선순위 기반 레이아웃 */}
+        {/* 📈 Progressive Disclosure 메트릭 섹션 - 3단계 정보 공개 */}
         <section 
-          className={`space-y-6 ${getVariantStyles.spacing}`}
+          className={variantStyles.spacing}
           aria-labelledby={`server-${server.id}-title`}
         >
-          {/* 🔴 주요 메트릭 (CPU, 메모리) */}
+          {/* 🎯 Level 1: 핵심 메트릭 (CPU, 메모리) - 상시 표시 */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 mb-3">
-              <div className="h-1 w-1 rounded-full bg-red-500" aria-hidden="true"></div>
+              <Activity className="h-3 w-3 text-red-500" aria-hidden="true" />
               <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                 핵심 지표
               </h4>
+              <div className="ml-auto text-xs text-gray-500">Level 1</div>
             </div>
             <div className="grid grid-cols-2 gap-6" role="group" aria-label="주요 서버 메트릭">
-              <div className="transform transition-transform duration-200 hover:scale-105">
+              <div className="transform transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1 hover:shadow-lg">
                 <ServerCardLineChart
                   label="CPU"
                   value={realtimeMetrics.cpu}
@@ -365,7 +423,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   serverStatus={server.status}
                 />
               </div>
-              <div className="transform transition-transform duration-200 hover:scale-105">
+              <div className="transform transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1 hover:shadow-lg">
                 <ServerCardLineChart
                   label="메모리"
                   value={realtimeMetrics.memory}
@@ -377,16 +435,23 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             </div>
           </div>
 
-          {/* 🟡 보조 메트릭 (디스크, 네트워크) */}
-          <div className="space-y-3">
+          {/* 🔹 Level 2: 보조 메트릭 (디스크, 네트워크) - 호버 시 표시 */}
+          <div 
+            className={`space-y-3 transition-all duration-300 overflow-hidden ${
+              showSecondaryInfo 
+                ? 'max-h-96 opacity-100 transform translate-y-0' 
+                : 'max-h-0 opacity-0 transform -translate-y-4'
+            }`}
+          >
             <div className="flex items-center gap-2 mb-2">
-              <div className="h-1 w-1 rounded-full bg-blue-400" aria-hidden="true"></div>
+              <HardDrive className="h-3 w-3 text-blue-400" aria-hidden="true" />
               <h4 className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                 보조 지표
               </h4>
+              <div className="ml-auto text-xs text-gray-500">Level 2</div>
             </div>
             <div className="grid grid-cols-2 gap-4 opacity-90" role="group" aria-label="보조 서버 메트릭">
-              <div className="transform transition-all duration-200 hover:opacity-100 hover:scale-102">
+              <div className="transform transition-all duration-300 ease-out hover:opacity-100 hover:scale-105 hover:-translate-y-0.5 hover:shadow-md">
                 <ServerCardLineChart
                   label="디스크"
                   value={realtimeMetrics.disk}
@@ -395,7 +460,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   serverStatus={server.status}
                 />
               </div>
-              <div className="transform transition-all duration-200 hover:opacity-100 hover:scale-102">
+              <div className="transform transition-all duration-300 ease-out hover:opacity-100 hover:scale-105 hover:-translate-y-0.5 hover:shadow-md">
                 <ServerCardLineChart
                   label="네트워크"
                   value={realtimeMetrics.network}
@@ -406,16 +471,104 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               </div>
             </div>
           </div>
+
+          {/* 🔸 Level 3: 상세 정보 (운영체제, 업타임, IP 등) - 클릭 시 표시 */}
+          <div 
+            className={`space-y-4 transition-all duration-500 overflow-hidden ${
+              showTertiaryInfo 
+                ? 'max-h-96 opacity-100 transform translate-y-0' 
+                : 'max-h-0 opacity-0 transform -translate-y-8'
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-3 pt-4 border-t border-gray-200/50">
+              <Zap className="h-3 w-3 text-purple-400" aria-hidden="true" />
+              <h4 className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                상세 정보
+              </h4>
+              <div className="ml-auto text-xs text-gray-500">Level 3</div>
+            </div>
+            
+            {/* 운영체제 및 기본 정보 */}
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+                <Globe className="h-4 w-4 text-gray-500" />
+                <div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">OS</div>
+                  <div className="font-medium text-gray-700">{server.os || 'Ubuntu 22.04'}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+                <Clock className="h-4 w-4 text-gray-500" />
+                <div>
+                  <div className="text-xs text-gray-500 uppercase tracking-wide">업타임</div>
+                  <div className="font-medium text-gray-700">{server.uptime || '72d 14h 23m'}</div>
+                </div>
+              </div>
+            </div>
+            
+            {/* IP 및 네트워크 정보 */}
+            <div className="grid grid-cols-1 gap-2 text-sm">
+              <div className="flex justify-between items-center px-3 py-2 bg-gray-50 rounded-lg">
+                <span className="text-xs text-gray-500 uppercase tracking-wide">IP 주소</span>
+                <span className="font-mono font-medium text-gray-700">
+                  {server.ip || `192.168.1.${10 + (parseInt(server.id) % 240)}`}
+                </span>
+              </div>
+              <div className="flex justify-between items-center px-3 py-2 bg-gray-50 rounded-lg">
+                <span className="text-xs text-gray-500 uppercase tracking-wide">마지막 업데이트</span>
+                <span className="font-medium text-gray-700">
+                  {new Date().toLocaleString('ko-KR', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </span>
+              </div>
+            </div>
+            
+            {/* 성능 요약 */}
+            <div className="px-3 py-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
+              <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">성능 요약</div>
+              <div className="grid grid-cols-4 gap-4 text-center">
+                <div>
+                  <div className="text-lg font-bold text-blue-600">{Math.round(realtimeMetrics.cpu)}%</div>
+                  <div className="text-xs text-gray-500">CPU</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-green-600">{Math.round(realtimeMetrics.memory)}%</div>
+                  <div className="text-xs text-gray-500">RAM</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-orange-600">{Math.round(realtimeMetrics.disk)}%</div>
+                  <div className="text-xs text-gray-500">DISK</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-purple-600">{Math.round(realtimeMetrics.network)}%</div>
+                  <div className="text-xs text-gray-500">NET</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
-        {/* 서비스 상태 */}
-        {getVariantStyles.showServices &&
+        {/* 서비스 상태 - Progressive Disclosure Level 2에 포함 */}
+        {variantStyles.showServices &&
           server.services &&
-          server.services.length > 0 && (
-            <footer className="mt-4" role="complementary" aria-label="서비스 상태 목록">
+          server.services.length > 0 &&
+          (showSecondaryInfo || !enableProgressiveDisclosure) && (
+            <footer 
+              className={`mt-4 transition-all duration-300 ${
+                showSecondaryInfo || !enableProgressiveDisclosure
+                  ? 'opacity-100 transform translate-y-0'
+                  : 'opacity-0 transform -translate-y-2'
+              }`} 
+              role="complementary" 
+              aria-label="서비스 상태 목록"
+            >
               <div className="flex flex-wrap gap-2">
                 {server.services
-                  .slice(0, getVariantStyles.maxServices)
+                  .slice(0, variantStyles.maxServices)
                   .map((service, idx) => (
                     <div
                       key={idx}
@@ -445,12 +598,12 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                       <span>{service.name}</span>
                     </div>
                   ))}
-                {server.services.length > getVariantStyles.maxServices && (
+                {server.services.length > variantStyles.maxServices && (
                   <div 
                     className="flex items-center rounded-lg bg-gray-100 px-2.5 py-1 text-xs text-gray-500"
-                    aria-label={`${server.services.length - getVariantStyles.maxServices}개 서비스 더 있음`}
+                    aria-label={`${server.services.length - variantStyles.maxServices}개 서비스 더 있음`}
                   >
-                    +{server.services.length - getVariantStyles.maxServices} more
+                    +{server.services.length - variantStyles.maxServices} more
                   </div>
                 )}
               </div>

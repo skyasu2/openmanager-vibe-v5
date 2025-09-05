@@ -5,7 +5,7 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { Bot, Clock } from 'lucide-react';
 // 사용자 정보 관련 import는 UnifiedProfileHeader에서 처리됨
 import dynamic from 'next/dynamic';
-import { useEffect, useState, memo } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import debug from '@/utils/debug';
 
@@ -98,6 +98,13 @@ const DashboardHeader = memo(function DashboardHeader({
   onSystemStop,
   remainingTimeFormatted,
 }: DashboardHeaderProps) {
+  // 🔒 Hydration 불일치 방지를 위한 클라이언트 전용 상태
+  const [isMounted, setIsMounted] = React.useState(false);
+  
+  React.useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const { aiAgent, ui } = useUnifiedAdminStore();
   // 새로운 AI 사이드바 상태
   const { isOpen: isSidebarOpen, setOpen: setSidebarOpen } =
@@ -174,21 +181,22 @@ const DashboardHeader = memo(function DashboardHeader({
         {/* 오른쪽: AI 어시스턴트 & 프로필 */}
         <div className="flex items-center gap-4">
           {/* AI 어시스턴트 토글 버튼 */}
-          <div className="relative">
+          <div className="relative" suppressHydrationWarning>
             <button
               onClick={handleAIAgentToggle}
               className={`relative transform rounded-xl p-3 transition-all duration-300 hover:scale-105 active:scale-95 ${
-                isSidebarOpen || aiAgent.isEnabled
+                isMounted && (isSidebarOpen || aiAgent.isEnabled)
                   ? 'scale-105 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'
               } `}
               title={
-                isSidebarOpen ? 'AI 어시스턴트 닫기' : 'AI 어시스턴트 열기'
+                isMounted && isSidebarOpen ? 'AI 어시스턴트 닫기' : 'AI 어시스턴트 열기'
               }
               aria-label={
-                isSidebarOpen ? 'AI 어시스턴트 닫기' : 'AI 어시스턴트 열기'
+                isMounted && isSidebarOpen ? 'AI 어시스턴트 닫기' : 'AI 어시스턴트 열기'
               }
-              aria-pressed={isSidebarOpen}
+              aria-pressed={isMounted ? isSidebarOpen : false}
+              suppressHydrationWarning
             >
               {/* AI 활성화 시 그라데이션 테두리 애니메이션 */}
               {aiAgent.isEnabled && (

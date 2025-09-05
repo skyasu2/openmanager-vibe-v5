@@ -15,10 +15,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { useSystemIntegration } from '@/hooks/useSystemIntegration';
-import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import type { Server } from '@/types/server';
 // framer-motion 제거 - CSS 애니메이션 사용
-import { Bot, LogOut, User } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
 import { useSession, signOut } from '@/hooks/useSupabaseSession';
 import { useRouter } from 'next/navigation';
 import React, { Fragment, useEffect, useState } from 'react';
@@ -29,8 +28,7 @@ import EnhancedServerModal from './EnhancedServerModal';
 import ServerDashboard from './ServerDashboard';
 import { RealtimeClock } from '@/components/shared/RealtimeClock';
 
-// AI 사이드바 import (직접 import로 타입 문제 해결)
-import AISidebarV3 from '@/domains/ai-sidebar/components/AISidebarV3';
+// AI 사이드바 제거 - DashboardClient에서 관리
 
 interface OptimizedDashboardProps {
   servers?: Server[];
@@ -47,10 +45,7 @@ export default function OptimizedDashboard({
   const router = useRouter();
   const { toast } = useToast();
 
-  // AI 사이드바 스토어
-  const { isOpen: isAgentOpen, setOpen } = useAISidebarStore();
-  const toggleAgent = () => setOpen(!isAgentOpen);
-  const closeAgent = () => setOpen(false);
+  // AI 사이드바 제거 - DashboardClient에서 관리
 
   // 서버 모달 상태
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
@@ -154,9 +149,7 @@ export default function OptimizedDashboard({
       </Fragment>
 
       {/* 메인 레이아웃 */}
-      <div
-        className={`flex transition-all duration-300 ${isAgentOpen ? 'mr-80' : ''}`}
-      >
+      <div className="flex transition-all duration-300">
         {/* 메인 콘텐츠 */}
         <div className="flex min-h-screen flex-1 flex-col">
           {/* 통합 헤더 */}
@@ -189,20 +182,7 @@ export default function OptimizedDashboard({
                   className="text-gray-600 dark:text-gray-300"
                 />
 
-                {/* AI 어시스턴트 토글 */}
-                <button
-                  onClick={toggleAgent}
-                  className={`flex items-center space-x-2 rounded-lg px-4 py-2 transition-all duration-200 ${
-                    isAgentOpen
-                      ? 'bg-red-500 text-white hover:bg-red-600'
-                      : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:from-purple-600 hover:to-indigo-700'
-                  }`}
-                >
-                  <Bot className="h-4 w-4" />
-                  <span className="text-sm font-medium">
-                    {isAgentOpen ? 'AI 닫기' : 'AI 열기'}
-                  </span>
-                </button>
+                {/* AI 어시스턴트 토글 제거 - DashboardClient에서 관리 */}
               </div>
 
               {/* 사용자 메뉴 */}
@@ -256,62 +236,12 @@ export default function OptimizedDashboard({
           </main>
         </div>
 
-        {/* AI 사이드바 */}
-        <Fragment>
-          {isAgentOpen && (
-            <div
-              className="z-30 w-80 border-l border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-800"
-            >
-              <AISidebarV3 isOpen={isAgentOpen} onClose={closeAgent} />
-            </div>
-          )}
-        </Fragment>
+        {/* AI 사이드바 제거 - DashboardClient에서 관리 */}
       </div>
 
       {/* 플로팅 시스템 컨트롤 제거됨 - Vercel 플랫폼 자체 모니터링 사용 */}
 
-      {/* AI 에이전트 토글 버튼 (오른쪽 하단) */}
-      <div className="fixed bottom-6 right-6 z-20">
-        <button
-          onClick={toggleAgent}
-          className={`flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 ${
-            isAgentOpen
-              ? 'bg-red-500 text-white hover:bg-red-600'
-              : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:from-purple-600 hover:to-indigo-700'
-          }`}
-          aria-label={isAgentOpen ? 'AI 에이전트 닫기' : 'AI 에이전트 열기'}
-        >
-          {isAgentOpen ? (
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          ) : (
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-4l-4 4z"
-              />
-            </svg>
-          )}
-        </button>
-      </div>
+      {/* AI 에이전트 토글 버튼 제거 - DashboardClient에서 관리 */}
 
       {/* 서버 상세 모달 */}
       <Fragment>

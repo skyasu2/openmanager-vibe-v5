@@ -147,6 +147,7 @@ const MessageComponent = memo<{
 
 MessageComponent.displayName = 'MessageComponent';
 
+// 🔒 완전 Client-Only AI 사이드바 컴포넌트
 export const AISidebarV3: FC<AISidebarV3Props> = ({
   isOpen,
   onClose,
@@ -157,10 +158,11 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
   onEngineChange,
   onMessageSend,
 }) => {
+  
   // 실제 AI 서비스 인스턴스
   const aiService = new RealAISidebarService();
 
-  // 🔧 상태 관리 (성능 최적화된 그룹)
+  // 🔧 상태 관리 (성능 최적화된 그룹) - hooks 순서 일관성 보장
   const [selectedFunction, setSelectedFunction] = useState<AIAssistantFunction>('chat');
   const [selectedEngine, setSelectedEngine] = useState<AIMode>(defaultEngine);
   const [inputValue, setInputValue] = useState('');
@@ -737,13 +739,15 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
 
   return (
     <Fragment>
-      {isOpen && (
-        <div
-          role="dialog"
-          aria-labelledby="ai-sidebar-v3-title"
-          aria-modal="true"
-          className={`fixed right-0 top-0 z-30 flex h-full w-full max-w-[90vw] bg-white shadow-2xl sm:w-[90vw] md:w-[600px] lg:w-[700px] xl:w-[800px] ${className}`}
-        >
+      <div
+        role="dialog"
+        aria-labelledby="ai-sidebar-v3-title"
+        aria-modal="true"
+        aria-hidden={!isOpen}
+        className={`fixed right-0 top-0 z-30 flex h-full w-full max-w-[90vw] bg-white shadow-2xl transition-transform duration-300 ease-in-out sm:w-[90vw] md:w-[600px] lg:w-[700px] xl:w-[800px] ${
+          isOpen ? 'translate-x-0' : 'translate-x-full'
+        } ${className}`}
+      >
           {/* 메인 콘텐츠 영역 */}
           <div className="flex min-w-0 flex-1 flex-col">
             {/* 헤더 */}
@@ -781,9 +785,9 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
             />
           </div>
         </div>
-      )}
     </Fragment>
   );
 };
 
+// 메모이제이션된 클라이언트 전용 컴포넌트로 export
 export default memo(AISidebarV3) as FC<AISidebarV3Props>;

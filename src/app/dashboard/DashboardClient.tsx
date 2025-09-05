@@ -229,12 +229,18 @@ class DashboardErrorBoundary extends Component<
 }
 
 function DashboardPageContent() {
+  // 🔒 Hydration 불일치 방지를 위한 클라이언트 전용 상태
+  const [isMounted, setIsMounted] = useState(false);
   const [isAgentOpen, setIsAgentOpen] = useState(false);
   const [selectedServer, setSelectedServer] = useState<Server | null>(null); // eslint-disable-line @typescript-eslint/no-redundant-type-constituents
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const [_showSystemWarning, setShowSystemWarning] = useState(false);
   const isResizing = false;
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // 🎯 서버 통계 상태 관리 (상단 통계 카드용)
   const [serverStats, setServerStats] = useState({
@@ -462,8 +468,8 @@ function DashboardPageContent() {
           </Suspense>
         </div>
 
-        {/* 🎯 AI 에이전트 - 동적 로딩으로 최적화 */}
-        <AnimatedAISidebar isOpen={isAgentOpen} onClose={closeAgent} />
+        {/* 🎯 AI 에이전트 - 동적 로딩으로 최적화 (Hydration 안전성) */}
+        {isMounted && <AnimatedAISidebar isOpen={isAgentOpen} onClose={closeAgent} />}
 
         {/* 🎯 서버 모달 - 동적 로딩으로 최적화 */}
         <AnimatedServerModal
