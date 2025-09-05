@@ -7,11 +7,11 @@ export AUTO_COMMIT_CHANGELOG=false
 
 # 버전 증가 규칙 설정
 export VERSION_MAJOR_KEYWORDS="breaking|major|BREAKING"
-export VERSION_MINOR_KEYWORDS="feat|✨|🚀|feature"
+export VERSION_MINOR_KEYWORDS="feat|✨|🚀|🤖|feature"
 export VERSION_PATCH_KEYWORDS="fix|🐛|🔧|⚡|docs|📚|refactor|♻️|style|🎨|perf|test|🧪"
 
 # 커밋 타입별 카테고리 매핑
-export CATEGORY_ADDED="feat|✨|🚀|feature"
+export CATEGORY_ADDED="feat|✨|🚀|🤖|feature"
 export CATEGORY_FIXED="fix|🐛|🔧"
 export CATEGORY_PERFORMANCE="perf|⚡"
 export CATEGORY_DOCS="docs|📚"

@@ -6,6 +6,46 @@
 > - [CHANGELOG-LEGACY-1.md](./CHANGELOG-LEGACY-1.md): v5.66.40 ~ v5.67.21 (2025-08-12 ~ 2025-08-17)
 > - [CHANGELOG-LEGACY.md](./CHANGELOG-LEGACY.md): v5.0.0 ~ v5.65.6 (2025-05 ~ 2025-08)
 
+
+## [5.70.11] - 2025-09-05
+
+### 🤖 feat: 자동 CHANGELOG 갱신 시스템 구축 완료
+
+#### ✨ Added
+
+- **🤖 자동 CHANGELOG 갱신 시스템**: 커밋 시 자동으로 CHANGELOG.md 업데이트 및 문서 관리
+  - `.claude/hooks/post-commit.sh`: Husky post-commit 훅을 통한 자동 실행
+  - `.claude/changelog.config.sh`: 버전 증가 키워드 설정 및 환경변수 관리
+  - `scripts/update-changelog.sh`: 수동 CHANGELOG 업데이트 도구
+  - `scripts/auto-documentation-update.sh`: documentation-manager 자동 호출
+  - 커밋 메시지 기반 자동 버전 증가 (Major/Minor/Patch)
+  - 커밋 타입별 카테고리 자동 분류 (✨Added, 🐛Fixed, ⚡Performance 등)
+
+- **📚 종합 문서 관리 연동**: documentation-manager 서브에이전트 완전 통합
+  - CHANGELOG.md 품질 검증 및 마크다운 문법 검사
+  - README.md 버전 동기화 (package.json과 일치)
+  - 관련 문서 자동 업데이트 및 링크 무결성 검사
+  - JBGE 원칙 검증 (루트 .md 파일 6개 이하 유지)
+  - 중복 문서 식별 및 정리 권장사항 제공
+
+#### 🔧 Technical Implementation
+
+- **자동화 플로우**: Git Commit → Husky → 버전 분석 → CHANGELOG 업데이트 → 문서 관리
+- **버전 증가 규칙**: 
+  - Major: `breaking`, `major`, `BREAKING` 키워드
+  - Minor: `feat`, `✨`, `🚀`, `feature` 키워드
+  - Patch: `fix`, `🐛`, `🔧`, `⚡`, `docs`, `refactor` 등
+- **문서 관리 자동화**: 5가지 검증 작업 (품질, 동기화, 업데이트, 구조, 링크)
+- **설정 가능한 옵션**: 자동 커밋, 키워드 커스터마이징, 디버그 모드
+
+#### 📊 완성된 가이드 문서
+
+- **[자동 CHANGELOG 가이드](docs/development/auto-changelog-guide.md)**: 277줄 완전 가이드
+  - 설정 방법, 사용법, 트러블슈팅 완비
+  - 커밋 메시지 규칙 및 베스트 프랙티스
+  - 고급 기능 (커스텀 키워드, 배치 모드) 포함
+  - 통계 및 모니터링 방법 상세 설명
+
 ## [5.70.10]
 
 ### 🤖 AI 교차검증 자동 로깅 시스템 완성 - 성과 추적 완전 자동화

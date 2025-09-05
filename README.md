@@ -1,11 +1,11 @@
 # 🌐 OpenManager VIBE v5
 
-> **작성일**: 2025년 5월 25일 | **최종 수정일**: 2025년 8월 17일
+> **작성일**: 2025년 5월 25일 | **최종 수정일**: 2025년 9월 5일
 
 > **AI 기반 실시간 서버 모니터링 플랫폼** - 포트폴리오 프로젝트 | 바이브 코딩 대회 출품작 (2025.06)
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Next.js](https://img.shields.io/badge/Next.js%2014.2.4-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js%2015-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![GCP Functions](https://img.shields.io/badge/GCP%20Functions-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)](https://cloud.google.com/functions)
 [![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
 
@@ -279,6 +279,24 @@ npm run analyze:bundle
 ## 🤖 Claude Code + MCP 통합 개발 환경
 
 **OpenManager VIBE v5**는 Claude Code의 서브 에이전트 시스템과 MCP(Model Context Protocol) 서버를 활용하여 복잡한 작업을 효율적으로 처리합니다. 18개의 전문화된 에이전트와 11개의 MCP 서버가 협업하여 개발, 디버깅, 문서화, 배포까지 전 과정을 자동화합니다.
+
+### 🤖 자동 CHANGELOG 갱신 시스템 (v5.70.11 ✨ 최신)
+
+커밋할 때마다 자동으로 CHANGELOG.md를 업데이트하고 문서 품질을 관리하는 시스템:
+
+- **자동 버전 증가**: 커밋 메시지 기반 Major/Minor/Patch 자동 결정
+- **카테고리 자동 분류**: ✨Added, 🐛Fixed, ⚡Performance 등 자동 분류  
+- **문서 관리 연동**: documentation-manager 서브에이전트 자동 호출
+- **품질 검증**: CHANGELOG 품질, README 버전 동기화, 링크 무결성 검사
+- **JBGE 원칙**: 루트 .md 파일 6개 이하 유지, 중복 문서 자동 정리
+
+**사용법**: 일반적인 커밋을 하면 자동으로 동작합니다.
+```bash
+git commit -m "✨ feat: 새로운 기능 추가"
+# → 자동으로 CHANGELOG.md 업데이트 및 문서 품질 관리
+```
+
+상세한 설정 방법은 [자동 CHANGELOG 가이드](docs/development/auto-changelog-guide.md)를 참조하세요.
 
 ### 📊 Claude Code Statusline 통합
 
