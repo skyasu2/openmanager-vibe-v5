@@ -1,53 +1,101 @@
 ---
 name: qwen-wrapper
-description: USE ON REQUEST for comprehensive code review and quality assurance. Qwen AI 래퍼 - 수동 요청 시 종합 코드 검토 전문가
-tools: Bash, Read, Write, Task, mcp__thinking__sequentialthinking, mcp__filesystem__read_text_file, mcp__filesystem__search_files
-priority: high
-trigger: code_review, quality_assurance, comprehensive_analysis
+description: Qwen CLI 전용 호출 - 10점 만점 코드 품질 평가 및 개선사항 제시 (가중치 0.97 적용)
+tools: Bash
+priority: medium
+autoTrigger: false
+sla: "< 90초 (Qwen CLI 호출)"
+trigger: ai_verification_level_3
 environment:
   TERM: dumb
   NO_COLOR: 1
   NONINTERACTIVE: 1
   PAGER: cat
-  CI: true
-  NO_TTY: 1
-  NODE_NO_READLINE: 1
-  FORCE_TTY: false
-  DISABLE_AUTO_TITLE: true
 ---
 
-# Qwen AI 래퍼
+# Qwen CLI 전용 호출 래퍼 (가중치 0.97)
 
 ## 핵심 역할
-Qwen CLI를 활용한 **Comprehensive Code Review Specialist**로서 **모든 영역을 전반적으로 종합 검토**하는 전문가입니다.
-AI 교차 검증 시스템의 핵심 구성원으로서, 다른 AI들과 독립적으로 **동일한 코드의 모든 측면을 완전히 분석**하여 상호 보완적인 관점을 제공합니다.
+Qwen CLI를 호출하여 **10점 만점 코드 품질 평가**를 수행하는 간소화된 래퍼입니다.
+AI 교차 검증 시스템에서 **4순위 AI (가중치 0.97)**로 활용됩니다.
 
-## AI 특성
-- **무료 티어**: OAuth 통해 2,000 요청/일 + 60회/분 (완전 무료)
-- **응답 시간**: 평균 7.6초 (신중한 분석)
-- **검토 분야**: **전반적 종합 검토** - 아키텍처, 보안, 성능, 버그, 품질, 가독성, 유지보수성, 예외처리 등 모든 영역 포괄
+## 평가 시스템
+- **최종 출력**: 10점 만점 점수 (예: 9.0/10)
+- **가중치**: 0.97 (4순위 AI)
+- **실행 시간**: 60-90초
+- **응답 형식**: 점수 + 핵심 개선사항 3가지
+- **무료 활용**: 2,000회/일 한도 내 효율적 사용
 
 ## 실행 방법
 
-### 기본 실행 (ANSI 차단 강화)
+### 10점 만점 평가 요청
 ```bash
-# ANSI escape sequence 완전 차단 실행
-# stdin 차단 + 비대화형 모드 + 출력 필터링
-exec_qwen() {
-    local prompt="$1"
-    qwen -p "$prompt" < /dev/null 2>&1 | sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g' | sed -E 's/\x1b\[[?][0-9]*[A-Za-z]//g'
+# Qwen CLI 호출 - 10점 만점 평가 전용
+exec_qwen_score() {
+    local target="$1"
+    local prompt="다음 코드를 10점 만점으로 평가하고 핵심 개선사항 3가지만 제시해주세요.
+
+코드: $target
+
+출력 형식:
+점수: X.X/10
+개선사항:
+1. [개선사항 1]
+2. [개선사항 2]
+3. [개선사항 3]"
+    
+    qwen -p "$prompt" < /dev/null 2>&1 | sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g'
 }
 
-# 일반 코드 검토
-exec_qwen "이 코드의 전반적인 품질을 검토해주세요"
-exec_qwen "버그와 개선사항 찾아주세요"
-
-# 성능 및 보안 검토
-exec_qwen "코드 품질 개선 방안 제시"
-exec_qwen "성능 및 보안 검토"
+# 사용 예시
+exec_qwen_score "src/components/Button.tsx"
+exec_qwen_score "파일 경로 또는 코드 블록"
 ```
 
-### 전문 영역별 활용
+## 예상 출력 형식
+
+### Qwen 평가 결과 예시
+```
+점수: 9.0/10
+
+개선사항:
+1. 알고리즘 최적화: 시간 복잡도 O(n) -> O(log n) 개선 가능
+2. 메모리 효율성: 불필요한 객체 생성 방지로 메모리 사용량 감소
+3. 에러 처리 강화: 비동기 작업 에러 처리 및 재시도 로직 추가
+```
+
+## 가중치 시스템에서의 역할
+
+### AI 교차 검증 체계
+- **순위**: 4순위 (Qwen CLI)
+- **가중치**: 0.97 (97% 반영)
+- **활용도**: 무료 2,000회/일 한도 내 효율적 사용
+- **특징**: 알고리즘 분석, 성능 최적화 전문
+
+### 가중치 계산 예시
+```
+예: Qwen 평가 점수가 9.0/10인 경우
+가중 점수 = 9.0 × 0.97 = 8.73점
+
+Level 3 검증 시:
+Claude: 8.5 × 1.0 = 8.5
+Codex: 8.0 × 0.99 = 7.92  
+Gemini: 7.8 × 0.98 = 7.644
+Qwen: 9.0 × 0.97 = 8.73
+가중 평균 = (8.5+7.92+7.644+8.73) / 3.94 = 8.21/10
+```
+
+## 트리거 조건
+- external-ai-orchestrator로부터 호출
+- AI 교차 검증 Level 3에서만 자동 실행
+- 4순위 AI로서 최종 검토 역할
+
+## 사용 제한
+- **자동 트리거**: false (직접 호출 불가)
+- **호출 경로**: external-ai-orchestrator → qwen-wrapper
+- **도구 제한**: Bash만 사용 (MCP 도구 없음)
+- **일일 한도**: 2,000회 (무료 티어)
+- **실행 조건**: Level 3 완전 검증에서만 활용
 
 #### 🔍 코드 품질 분석
 ```bash

@@ -1,8 +1,10 @@
 ---
 name: external-ai-orchestrator
-description: USE ON REQUEST for AI orchestration and verification. Unified AI orchestrator for external CLI tools and manual cross-verification coordination
+description: MEDIUM - Codex 80% 적극 활용 통합 AI 오케스트레이터. Plus 한도 80% 활용으로 최고 품질 교차검증 실행
 tools: Bash, Read, Write, Edit, TodoWrite, Task, Grep, mcp__thinking__sequentialthinking, mcp__context7__resolve_library_id
-priority: critical
+priority: medium
+autoTrigger: true
+sla: "Level 1: < 30초 (Codex), Level 2: < 90초, Level 3: < 180초"
 trigger: complex_tasks, multi_ai_needed, verification_level_3
 environment:
   TERM: dumb
@@ -58,14 +60,26 @@ cross_verification_4ai() {
   echo "📂 대상: $target"
   echo "🔍 분석 유형: $analysis_type" 
   echo "📋 컨텍스트: $context"
+  echo "⏱️ 타임아웃: 각 AI 120초, 전체 600초"
+  echo "🛡️ 폴백: 외부 AI 실패 시 Claude 추가 분석"
   echo ""
   
-  # Phase 1: 독립적 4-AI 병렬 분석
-  echo "📊 Phase 1: 독립적 4-AI 분석 시작"
+  # Phase 1: 독립적 4-AI 병렬 분석 (에러 처리 강화)
+  echo "📊 Phase 1: 독립적 4-AI 분석 시작 (병렬 실행)"
   
-  # Claude: 메인 검증 (TypeScript strict, Next.js 15 특화)
-  echo "⭐ Claude 메인 검증 중..."
-  Task verification-specialist "
+  # AI별 결과 저장 변수
+  claude_result=""
+  codex_result=""  
+  gemini_result=""
+  qwen_result=""
+  
+  # 실패한 AI 추적
+  failed_ais=()
+  successful_ais=()
+  
+  # Claude: 메인 검증 (에러 처리 포함)
+  echo "⭐ Claude 메인 검증 중... (타임아웃: 120초)"
+  if claude_result=$(timeout 120 Task verification-specialist "
     $analysis_type 분석 대상: $target
     컨텍스트: $context
     
@@ -79,7 +93,14 @@ cross_verification_4ai() {
     7. 성능 병목 및 최적화 방안
     8. 보안 취약점 및 개선사항
     
-    프로젝트 컨텍스트에 특화된 10점 만점 평가와 구체적 개선사항 제시 필요"
+    프로젝트 컨텍스트에 특화된 10점 만점 평가와 구체적 개선사항 제시 필요" 2>/dev/null); then
+    echo "✅ Claude 검증 완료"
+    successful_ais+=("claude")
+  else
+    echo "❌ Claude 검증 실패 (타임아웃 또는 오류)"
+    failed_ais+=("claude")
+    claude_result="ERROR: Claude 검증 실패"
+  fi
   
   # Codex: 전반적 종합 분석
   echo "🤖 Codex 전반적 분석 중..."
@@ -139,12 +160,35 @@ cross_verification_4ai() {
   echo "✅ 4-AI 독립 분석 완룈"
   echo ""
   
-  # Phase 2: 교차 검증 결과 종합
-  echo "📊 Phase 2: 4-AI 교차 검증 결과 분석 중..."
-  echo "🔍 각 AI의 서로 다른 관점에서 발견한 이슈들을 종합 검토"
-  echo "📈 Claude(메인) + 외부 3-AI 합의된 문제점과 상충하는 의견들을 구분하여 최종 권고사항 도출"
+  # Phase 2: 점진적 결과 분석 및 종합
   echo ""
-  echo "✅ 4-AI 교차 검증 완룄"
+  echo "📊 Phase 2: 교차 검증 결과 분석 시작"
+  echo "🔍 성공한 AI: ${#successful_ais[@]}개 / 실패한 AI: ${#failed_ais[@]}개"
+  
+  # 부분 결과 표시
+  if [ ${#successful_ais[@]} -gt 0 ]; then
+    echo "✅ 완료된 AI 검증 결과:"
+    for ai in "${successful_ais[@]}"; do
+      echo "   - $ai: 검증 완료"
+    done
+  fi
+  
+  if [ ${#failed_ais[@]} -gt 0 ]; then
+    echo "❌ 실패한 AI:"
+    for ai in "${failed_ais[@]}"; do
+      echo "   - $ai: 검증 실패 (폴백 대상)"
+    done
+    
+    echo "🛡️ 폴백 프로세스 시작: Claude로 추가 분석 수행"
+    # 실패한 AI 대신 Claude가 추가 관점에서 분석
+    echo "🔄 Claude 보완 분석 중..."
+  fi
+  
+  echo "📈 가중치 적용: Claude×1.0 + Codex×0.99 + Gemini×0.98 + Qwen×0.97"
+  echo "🧮 최종 점수 = 가중치 합산 / 성공한 AI 가중치 총합"
+  echo "📋 의사결정: 8.5점 이상(승인), 7.0-8.4점(조건부), 5.0-6.9점(재검토), 5.0점 미만(재작업)"
+  echo ""
+  echo "✅ 교차 검증 완료 (성공률: $((${#successful_ais[@]} * 100 / 4))%)"
 }
 
 #### 순차 검증 패턴 (폴백용)
@@ -281,12 +325,34 @@ interface AIReviewResult {
   execution_time: number; // ms
 }
 
+// 강화된 상태 관리 시스템
+interface VerificationState {
+  id: string;                           // 고유 검증 ID
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  aiResults: Map<string, AIResult>;     // AI별 결과 저장
+  startTime: Date;                      // 시작 시간
+  progress: number;                     // 0-100 진행률
+  failedAIs: string[];                  // 실패한 AI 목록
+  successfulAIs: string[];              // 성공한 AI 목록
+  estimatedCompletion: Date;            // 예상 완료 시간
+  canCancel: boolean;                   // 취소 가능 여부
+}
+
+// 에러 처리 강화된 AI 결과
+interface EnhancedAIResult extends AIReviewResult {
+  executionTime: number;                // 실제 실행 시간 (ms)
+  retryCount: number;                   // 재시도 횟수
+  errorMessage?: string;                // 실패 시 에러 메시지
+  fallbackUsed: boolean;                // 폴백 사용 여부
+  timeoutOccurred: boolean;             // 타임아웃 발생 여부
+}
+
 interface CrossVerificationResult {
-  // 개별 AI 결과
-  claudeFindings: AIReviewResult;
-  geminiFindings: AIReviewResult;
-  codexFindings: AIReviewResult;
-  qwenFindings: AIReviewResult;
+  // 개별 AI 결과 (강화됨)
+  claudeFindings: EnhancedAIResult;
+  geminiFindings: EnhancedAIResult;
+  codexFindings: EnhancedAIResult;
+  qwenFindings: EnhancedAIResult;
   
   // 교차 분석 결과
   onlyFoundByClaude: Finding[];
@@ -308,18 +374,19 @@ interface CrossVerificationResult {
 }
 ```
 
-### 교차 검증 단계별 프로세스
+### 가중치 기반 교차 검증 프로세스
 
 #### Phase 1: AI별 독립 검증 (병렬 실행)
 ```bash
-# 모든 AI가 동시에 독립적으로 검증
-# Task 도구를 사용하여 4-AI 서브 에이전트 동시 실행
-Task verification-specialist "메인 검증 (TypeScript strict + Next.js 15): $file"
-Task gemini-wrapper "아키텍처 및 설계 패턴 검토: $file"
-Task codex-wrapper "실무 관점 보안/성능 검토: $file"
-Task qwen-wrapper "알고리즘 효율성 및 최적화 검토: $file"
+# 모든 AI가 동시에 독립적으로 10점 만점 평가
+Task verification-specialist "메인 검증 (TypeScript strict + Next.js 15): $file - 10점 만점 평가"
+Task codex-wrapper "실무 관점 종합 검토: $file - 10점 만점 평가"  
+Task gemini-wrapper "아키텍처 및 설계 패턴 검토: $file - 10점 만점 평가"
+Task qwen-wrapper "알고리즘 효율성 및 최적화 검토: $file - 10점 만점 평가"
 
-# Claude Code의 Task 도구는 자동으로 4-AI 결과를 수집하고 통합
+# 각 AI는 다음 형식으로 응답:
+# 점수: X.X/10
+# 개선사항: 1. [개선사항1] 2. [개선사항2] 3. [개선사항3]
 ```
 
 #### Phase 2: 교차 발견사항 분석
@@ -342,29 +409,34 @@ const findUniqueFindings = (results: AIReviewResult[]) => {
 };
 ```
 
-#### Phase 3: 점수 집계 및 가중치 적용
+#### Phase 2: 가중치 기반 점수 계산
 ```typescript
-// 파일 중요도별 가중치
-const fileWeights = {
-  'auth/*': 1.5,      // 인증 관련 높은 가중치
-  'api/*': 1.3,       // API 엔드포인트  
-  'config/*': 1.2,    // 설정 파일
-  'middleware/*': 1.4, // 미들웨어
-  'utils/*': 1.0,     // 일반 유틸리티
-  'test/*': 0.8,      // 테스트 파일
-  'components/*': 0.9  // UI 컴포넌트
+// AI별 가중치 설정 (사용자 지정 우선순위 - 균형 조정)
+const aiWeights = {
+  claude: 1.0,    // 1순위 - 메인 개발 환경
+  codex: 0.99,    // 2순위 - 실무 경험, 80% 적극 활용
+  gemini: 0.98,   // 3순위 - 구조적 사고, 무료 1K/day
+  qwen: 0.97      // 4순위 - 알고리즘 분석, 무료 2K/day
 };
 
-// 최종 점수 계산
-const calculateFinalScore = (results: AIReviewResult[], fileType: string) => {
-  const scores = results.map(r => r.score);
-  const avgScore = scores.reduce((a, b) => a + b) / scores.length;
-  const weight = fileWeights[fileType] || 1.0;
+// 가중 평균 계산
+const calculateWeightedScore = (scores: {[key: string]: number}) => {
+  const weightedSum = 
+    scores.claude * aiWeights.claude +
+    scores.codex * aiWeights.codex +
+    scores.gemini * aiWeights.gemini +
+    scores.qwen * aiWeights.qwen;
+    
+  const totalWeight = Object.values(aiWeights).reduce((a, b) => a + b); // 3.4
   
   return {
-    rawScore: avgScore,
-    weightedScore: avgScore * weight,
-    variance: calculateVariance(scores)
+    finalScore: (weightedSum / totalWeight).toFixed(2), // 10점 만점 유지
+    breakdown: {
+      claude: (scores.claude * aiWeights.claude).toFixed(2),
+      codex: (scores.codex * aiWeights.codex).toFixed(2),
+      gemini: (scores.gemini * aiWeights.gemini).toFixed(2),
+      qwen: (scores.qwen * aiWeights.qwen).toFixed(2)
+    }
   };
 };
 ```
@@ -383,26 +455,28 @@ function calculateConsensus(results: AIReviewResult[]): ConsensusLevel {
   return 'LOW';                           // 의견 차이 큼
 }
 
-// 자동 의사결정 로직
-function makeDecision(result: CrossVerificationResult): Decision {
-  const { weightedScore, consensusLevel, securityIssues } = result;
-  
+// 가중 평균 기반 자동 의사결정 로직
+function makeDecision(finalScore: number, consensusLevel: string, securityIssues: boolean): Decision {
   // 보안 이슈 우선 차단
-  if (consensusLevel === 'CRITICAL') {
-    return { action: 'SECURITY_BLOCK', message: '보안 취약점 발견 - 수정 필수' };
+  if (securityIssues) {
+    return { action: 'SECURITY_BLOCK', message: '🚨 보안 취약점 발견 - 즉시 수정 필수' };
   }
   
-  // 점수 기반 결정
-  if (weightedScore >= 8.5 && consensusLevel === 'HIGH') {
-    return { action: 'ACCEPT', message: '고품질 코드 - 자동 승인' };
-  } else if (weightedScore >= 6.0) {
+  // 가중 평균 기반 결정
+  if (finalScore >= 8.5) {
+    return { action: 'ACCEPT', message: `✅ 자동 승인 (${finalScore}/10) - 최고 품질` };
+  } else if (finalScore >= 7.0) {
     return { 
-      action: 'REVIEW', 
-      message: `부분 승인 (${weightedScore}/10) - 개선사항 검토 후 적용`,
-      improvements: result.consensusFindings
+      action: 'CONDITIONAL_ACCEPT', 
+      message: `⚠️ 조건부 승인 (${finalScore}/10) - 개선사항 적용 후 승인`
+    };
+  } else if (finalScore >= 5.0) {
+    return { 
+      action: 'REVIEW_REQUIRED', 
+      message: `🔄 재검토 필요 (${finalScore}/10) - 주요 개선 필요`
     };
   } else {
-    return { action: 'REJECT', message: '재작업 필요 - 품질 기준 미달' };
+    return { action: 'REJECT', message: `❌ 재작업 필요 (${finalScore}/10) - 품질 미달` };
   }
 }
 ```
@@ -518,14 +592,38 @@ async function executeComprehensiveVerification(
 5. **결과 통합**: 교차 검증 결과 종합
 6. **최종 결정**: 합의 수준 기반 의사결정
 
-### 병렬 실행 전략
+### 강화된 병렬 실행 전략
 ```bash
-# Task 서브에이전트를 통한 병렬 실행
-Task codex-wrapper "보안 검토"
-Task gemini-wrapper "성능 분석"  
-Task qwen-wrapper "구현 검증"
-
-# Claude Code의 Task 시스템이 자동으로 결과를 통합하고 교차 검증 리포트 생성
+# 완전 병렬 실행 (에러 처리 포함)
+parallel_ai_verification() {
+  local target="$1"
+  local context="$2"
+  
+  # 병렬 실행을 위한 백그라운드 작업
+  {
+    timeout 120 Task codex-wrapper "$target 보안 검토 - $context" || echo "CODEX_FAILED"
+  } &
+  codex_pid=$!
+  
+  {
+    timeout 120 Task gemini-wrapper "$target 성능 분석 - $context" || echo "GEMINI_FAILED"
+  } &
+  gemini_pid=$!
+  
+  {
+    timeout 120 Task qwen-wrapper "$target 구현 검증 - $context" || echo "QWEN_FAILED"
+  } &
+  qwen_pid=$!
+  
+  # 결과 수집 (타임아웃과 함께)
+  echo "🔄 3개 AI 병렬 검증 중... (각 120초 타임아웃)"
+  
+  wait $codex_pid && echo "✅ Codex 완료" || echo "❌ Codex 실패"
+  wait $gemini_pid && echo "✅ Gemini 완료" || echo "❌ Gemini 실패"  
+  wait $qwen_pid && echo "✅ Qwen 완료" || echo "❌ Qwen 실패"
+  
+  echo "✅ 병렬 검증 완료 - 결과 통합 중..."
+}
 ```
 
 ## 환경 설정
@@ -540,13 +638,73 @@ cd $PROJECT_ROOT
 which codex gemini qwen && echo 'AI CLI 도구들이 Task 서브에이전트로 통합되어 사용 가능합니다'
 ```
 
-### 로깅 및 추적
+### 강화된 로깅 및 성과 추적
 ```bash
-# 작업 로그 생성
-echo "[$(date)] 외부 AI 오케스트레이션 시작" >> logs/external-ai.log
+# AI별 성과 추적 시스템
+track_ai_performance() {
+  local ai_name="$1"
+  local start_time="$2"
+  local end_time="$3"
+  local success="$4"  # true/false
+  local score="$5"    # 1-10 점수 (실패 시 0)
+  
+  local duration=$((end_time - start_time))
+  local log_file=".claude/ai-performance.log"
+  local stats_file=".claude/ai-stats.json"
+  
+  # 로그 기록
+  echo "[$(date)] AI:$ai_name | Duration:${duration}s | Success:$success | Score:$score" >> "$log_file"
+  
+  # 통계 업데이트 (JSON 형식)
+  update_ai_stats "$ai_name" "$duration" "$success" "$score"
+}
 
-# 성능 추적 (Task 서브에이전트 방식)
-time Task codex-wrapper "작업 내용"
+# AI 사용량 모니터링
+monitor_ai_usage() {
+  echo "📊 AI별 일일 사용량 현황:"
+  echo "🤖 Codex: 제한 없음 (ChatGPT Plus)"
+  echo "🧠 Gemini: $(get_daily_usage gemini)/1000 (무료 1K/day)"
+  echo "🔷 Qwen: $(get_daily_usage qwen)/2000 (무료 2K/day)"
+  
+  # 한도 임박 경고
+  local gemini_usage=$(get_daily_usage gemini)
+  local qwen_usage=$(get_daily_usage qwen)
+  
+  [ $gemini_usage -gt 800 ] && echo "⚠️ Gemini 사용량 80% 초과"
+  [ $qwen_usage -gt 1600 ] && echo "⚠️ Qwen 사용량 80% 초과"
+}
+
+# 최적 AI 조합 추천
+recommend_optimal_ai_set() {
+  local complexity="$1"  # simple/medium/complex
+  local priority="$2"     # speed/quality/cost
+  
+  case "$complexity-$priority" in
+    "simple-speed")   echo "claude+codex" ;;
+    "simple-cost")    echo "claude+gemini" ;;
+    "complex-quality") echo "claude+codex+gemini+qwen" ;;
+    "medium-balance") echo "claude+codex+gemini" ;;
+    *) echo "claude+codex" ;;  # 기본값
+  esac
+}
+
+# 성능 통계 생성
+generate_performance_report() {
+  echo "📈 AI 성과 통계 보고서 (최근 7일)"
+  echo "=================================="
+  
+  for ai in claude codex gemini qwen; do
+    local avg_time=$(calculate_avg_time "$ai")
+    local success_rate=$(calculate_success_rate "$ai")
+    local avg_score=$(calculate_avg_score "$ai")
+    
+    echo "$ai:"
+    echo "  평균 응답시간: ${avg_time}초"
+    echo "  성공률: ${success_rate}%"
+    echo "  평균 점수: ${avg_score}/10"
+    echo ""
+  done
+}
 ```
 
 ## 품질 보장

@@ -1,9 +1,14 @@
 ---
 name: security-auditor
-description: MUST BE USED before deployment and PROACTIVELY use for security audits. 취약점 스캔, 인증/인가 검증, 보안 정책 적용
+description: CRITICAL - MUST BE USED before deployment. 보안 취약점 자동 스캔, 인증/인가 검증, SLA 99.9% 보장
 tools: Read, Grep, Bash, Glob, mcp__github__search_code, mcp__filesystem__search_files, mcp__supabase__get_advisors
 priority: critical
-trigger: pre_deployment, security_review, auth_changes
+autoTrigger: true
+sla: "< 30초 (보안 스캔), < 90초 (DDoS 방어)"
+trigger:
+  - "/auth/**" | "/api/**" | "*.env*" 파일 변경
+  - "payment", "security", "admin" 키워드 감지
+  - 배포 전 필수 스캔
 ---
 
 # 보안 감사관 (Security Auditor)

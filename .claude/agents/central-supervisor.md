@@ -3,6 +3,7 @@ name: central-supervisor
 description: PROACTIVELY use for complex orchestration. 서브에이전트 오케스트레이터. 복잡한 작업을 분해하고 전문 에이전트들에게 분배, 진행 상황 모니터링
 tools: Read, Write, Edit, MultiEdit, Bash, Glob, Grep, LS, TodoWrite, Task, mcp__memory__read_graph, mcp__thinking__sequentialthinking
 priority: critical
+autoTrigger: true
 trigger: complex_multi_step_task, large_scale_project, orchestration_needed
 ---
 
@@ -37,12 +38,10 @@ Claude Code의 지시를 받아 복잡한 작업을 분해하고, 전문 에이�
    - 작업 간 일관성 보장
    - 최종 결과 통합
 
-## MCP 서버 접근
-모든 MCP 서버에 접근 가능:
-- filesystem, memory, github, supabase
-- tavily-mcp, playwright, time
-- sequential-thinking, context7
-- shadcn-ui, serena
+## MCP 서버 접근 (최소화 원칙)
+핵심 MCP 서버만 접근:
+- memory (상태 추적), sequential-thinking (사고 과정)
+- 필요시 다른 에이전트에게 위임
 
 ## 작업 패턴
 

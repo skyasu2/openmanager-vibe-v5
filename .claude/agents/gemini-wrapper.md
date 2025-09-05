@@ -1,53 +1,100 @@
 ---
 name: gemini-wrapper
-description: USE ON REQUEST for comprehensive code review and quality assurance. Google Gemini CLI 래퍼 - 수동 요청 시 종합 코드 검토 전문가
-tools: Bash, Read, Write, Edit, Task, mcp__tavily__tavily_search, mcp__context7__get_library_docs, mcp__context7__resolve_library_id
-priority: high
-trigger: code_review, quality_assurance, comprehensive_analysis
+description: Gemini CLI 전용 호출 - 10점 만점 코드 품질 평가 및 개선사항 제시 (가중치 0.98 적용)
+tools: Bash
+priority: medium
+autoTrigger: false
+sla: "< 60초 (Gemini CLI 호출)"
+trigger: ai_verification_level_2, ai_verification_level_3
 environment:
   TERM: dumb
   NO_COLOR: 1
   NONINTERACTIVE: 1
   PAGER: cat
-  CI: true
-  NO_TTY: 1
-  NODE_NO_READLINE: 1
-  FORCE_TTY: false
-  DISABLE_AUTO_TITLE: true
 ---
 
-# Google Gemini CLI 래퍼
+# Gemini CLI 전용 호출 래퍼 (가중치 0.98)
 
 ## 핵심 역할
-Google Gemini CLI를 활용한 **Comprehensive Code Review Specialist**로서 **모든 영역을 전반적으로 종합 검토**하는 전문가입니다.
-AI 교차 검증 시스템의 핵심 구성원으로서, 다른 AI들과 독립적으로 **동일한 코드의 모든 측면을 완전히 분석**하여 상호 보완적인 관점을 제공합니다.
+Google Gemini CLI를 호출하여 **10점 만점 코드 품질 평가**를 수행하는 간소화된 래퍼입니다.
+AI 교차 검증 시스템에서 **3순위 AI (가중치 0.98)**로 활용됩니다.
 
-## AI 특성
-- **무료 티어**: 1,000 요청/일 (Google AI 무료)
-- **응답 시간**: 평균 3.1초 (중간)
-- **검토 분야**: **전반적 종합 검토** - 아키텍처, 보안, 성능, 버그, 품질, 가독성, 유지보수성, 예외처리 등 모든 영역 포괄
+## 평가 시스템
+- **최종 출력**: 10점 만점 점수 (예: 7.8/10)
+- **가중치**: 0.98 (3순위 AI)
+- **실행 시간**: 45-60초
+- **응답 형식**: 점수 + 핵심 개선사항 3가지
+- **무료 활용**: 1,000회/일 한도 내 효율적 사용
 
 ## 실행 방법
 
-### 기본 실행 (ANSI 차단 강화)
+### 10점 만점 평가 요청
 ```bash
-# ANSI escape sequence 완전 차단 실행
-# stdin 차단 + 비대화형 모드 + 출력 필터링
-exec_gemini() {
-    local prompt="$1"
-    gemini -p "$prompt" < /dev/null 2>&1 | sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g' | sed -E 's/\x1b\[[?][0-9]*[A-Za-z]//g'
+# Gemini CLI 호출 - 10점 만점 평가 전용
+exec_gemini_score() {
+    local target="$1"
+    local prompt="다음 코드를 10점 만점으로 평가하고 핵심 개선사항 3가지만 제시해주세요.
+
+코드: $target
+
+출력 형식:
+점수: X.X/10
+개선사항:
+1. [개선사항 1]
+2. [개선사항 2]
+3. [개선사항 3]"
+    
+    gemini -p "$prompt" < /dev/null 2>&1 | sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g'
 }
 
-# 일반 코드 검토
-exec_gemini "코드 품질 종합 검토"
-exec_gemini "버그 및 개선사항 분석"
-
-# 성능 및 보안 검토
-exec_gemini "성능 최적화 제안"
-exec_gemini "보안 취약점 검토"
+# 사용 예시
+exec_gemini_score "src/components/Button.tsx"
+exec_gemini_score "파일 경로 또는 코드 블록"
 ```
 
-### 전문 영역별 활용
+## 예상 출력 형식
+
+### Gemini 평가 결과 예시
+```
+점수: 7.8/10
+
+개선사항:
+1. 컴포넌트 구조 개선: 단일 책임 원칙 적용으로 역할 분리
+2. 접근성 강화: ARIA 속성 추가로 스크린 리더 지원
+3. 상태 관리 최적화: useCallback으로 함수 메모이제이션
+```
+
+## 가중치 시스템에서의 역할
+
+### AI 교차 검증 체계
+- **순위**: 3순위 (Gemini CLI)
+- **가중치**: 0.98 (98% 반영)
+- **활용도**: 무료 1,000회/일 한도 내 효율적 사용
+- **특징**: 구조적 사고, 아키텍처 중심 검토
+
+### 가중치 계산 예시
+```
+예: Gemini 평가 점수가 7.8/10인 경우
+가중 점수 = 7.8 × 0.98 = 7.644점
+
+Level 3 검증 시:
+Claude: 8.5 × 1.0 = 8.5
+Codex: 8.0 × 0.99 = 7.92  
+Gemini: 7.8 × 0.98 = 7.644
+Qwen: 9.0 × 0.97 = 8.73
+가중 평균 = (8.5+7.92+7.644+8.73) / 3.94 = 8.21/10
+```
+
+## 트리거 조건
+- external-ai-orchestrator로부터 호출
+- AI 교차 검증 Level 2, Level 3에서 자동 실행
+- 3순위 AI로서 무료 리소스 활용
+
+## 사용 제한
+- **자동 트리거**: false (직접 호출 불가)
+- **호출 경로**: external-ai-orchestrator → gemini-wrapper
+- **도구 제한**: Bash만 사용 (MCP 도구 없음)
+- **일일 한도**: 1,000회 (무료 티어)
 
 #### 🔍 코드 품질 검토
 ```bash
