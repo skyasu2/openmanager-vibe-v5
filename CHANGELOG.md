@@ -7,6 +7,15 @@
 > - [CHANGELOG-LEGACY.md](./CHANGELOG-LEGACY.md): v5.0.0 ~ v5.65.6 (2025-05 ~ 2025-08)
 
 
+## [5.76.32] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
 ## [5.76.31] - 2025-09-06
 
 ### 🔧 fix
