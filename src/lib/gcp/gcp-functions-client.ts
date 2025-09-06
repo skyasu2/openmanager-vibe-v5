@@ -1,13 +1,21 @@
 /**
- * GCP Functions 클라이언트 - 실제 GCP Functions 사용
+ * GCP Functions 클라이언트 - 탄력적 장애 대응 시스템
  *
- * 실제 GCP Functions를 직접 사용하여 일관된 처리 결과 보장
+ * ResilientAIClient를 사용하여 Circuit Breaker, 재시도, 캐시 기능 제공
+ * Vercel 라우트를 fallback으로 활용하여 높은 가용성 보장
  */
 
-// GCP Functions URL
+import { 
+  getResilientAIClient,
+  analyzeKoreanNLPResilient,
+  analyzeMLMetricsResilient,
+  processUnifiedAIResilient
+} from './resilient-ai-client';
+
+// GCP Functions URL (레거시 지원)
 const GCP_FUNCTIONS_BASE_URL =
   process.env.NEXT_PUBLIC_GCP_FUNCTIONS_URL ||
-  'https://us-central1-your-project.cloudfunctions.net';
+  'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net';
 
 /**
  * GCP Functions 클라이언트
@@ -70,27 +78,35 @@ export function getGCPFunctionsClient(): GCPFunctionsClient {
 }
 
 /**
- * Korean NLP 분석 헬퍼
+ * Korean NLP 분석 헬퍼 (탄력적 버전)
  */
 export async function analyzeKoreanNLP(query: string, context?: unknown) {
-  const client = getGCPFunctionsClient();
-  return client.callFunction('enhanced-korean-nlp', { query, context });
+  return analyzeKoreanNLPResilient(query, context);
 }
 
 /**
- * ML Analytics 분석 헬퍼
+ * ML Analytics 분석 헬퍼 (탄력적 버전)
  */
 export async function analyzeMLMetrics(metrics: unknown[], context?: unknown) {
-  const client = getGCPFunctionsClient();
-  return client.callFunction('ml-analytics-engine', { metrics, context });
+  return analyzeMLMetricsResilient(metrics, context);
 }
 
 /**
- * 통합 AI 처리 헬퍼
+ * 통합 AI 처리 헬퍼 (탄력적 버전)
  */
 export async function processUnifiedAI(request: unknown) {
-  const client = getGCPFunctionsClient();
-  return client.callFunction('unified-ai-processor', request);
+  return processUnifiedAIResilient(request);
+}
+
+/**
+ * 모니터링 및 상태 조회 헬퍼
+ */
+export function getAIClientStats() {
+  const client = getResilientAIClient();
+  return {
+    circuitBreakers: client.getCircuitBreakerStatus(),
+    cache: client.getCacheStats(),
+  };
 }
 
 // 환경 정보 로깅
