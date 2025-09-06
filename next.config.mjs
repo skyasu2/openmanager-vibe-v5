@@ -34,7 +34,7 @@ const nextConfig = {
     // Vercel 무료 티어 최적화
     serverMinification: true,
     serverSourceMaps: false,
-    optimizeCss: true,
+    optimizeCss: false, // critters 의존성 문제로 비활성화
     // Next.js 15에서 runtime, swcMinify 제거됨 - 기본 제공
   },
   
