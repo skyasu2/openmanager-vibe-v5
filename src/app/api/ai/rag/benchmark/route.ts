@@ -94,8 +94,8 @@ export async function GET(request: NextRequest) {
       },
       cachePerformance: {
         tests: cacheTests,
-        cacheSpeedup: cacheTests[1].cached
-          ? `${Math.round(cacheTests[0].time / cacheTests[1].time)}x`
+        cacheSpeedup: cacheTests[1]?.cached
+          ? `${Math.round((cacheTests[0]?.time ?? 0) / (cacheTests[1]?.time ?? 1))}x`
           : 'N/A',
       },
       statistics: {

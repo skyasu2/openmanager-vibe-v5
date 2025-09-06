@@ -40,8 +40,8 @@ function readUsageData() {
       const networkLimit = 1.0; // 1GB 무료
 
       // API 호출 통계
-      const today = new Date().toISOString().split('T')[0];
-      const todayUsage = data.currentMonth.daily[today] || { api_calls: 0 };
+      const today = new Date().toISOString().split('T')[0] ?? '';
+      const todayUsage = data.currentMonth.daily?.[today] ?? { api_calls: 0 };
 
       return {
         network: {

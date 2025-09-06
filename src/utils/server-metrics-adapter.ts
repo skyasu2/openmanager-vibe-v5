@@ -177,7 +177,11 @@ export function adaptGCPMetricsToServerInstances(
 export function adaptSingleGCPMetricToServerInstance(
   gcpMetric: GCPServerMetrics
 ): ServerInstance {
-  return adaptGCPMetricsToServerInstances([gcpMetric])[0];
+  const result = adaptGCPMetricsToServerInstances([gcpMetric])[0];
+  if (!result) {
+    throw new Error('Failed to adapt GCP metric to ServerInstance');
+  }
+  return result;
 }
 
 /**

@@ -83,7 +83,7 @@ export function identifyBottlenecks(metrics: SystemMetrics): Bottleneck[] {
       medium: 2,
       low: 3,
     };
-    return severityOrder[a.severity] - severityOrder[b.severity];
+    return (severityOrder[a.severity] ?? 999) - (severityOrder[b.severity] ?? 999);
   });
 }
 

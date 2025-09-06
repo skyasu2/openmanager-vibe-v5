@@ -409,7 +409,7 @@ async function runLoadBenchmark(
   for (let i = 0; i < iterations; i += concurrency) {
     const batch = [];
     for (let j = i; j < Math.min(i + concurrency, iterations); j++) {
-      const query = queries[j % queries.length];
+      const query = queries[j % queries.length] || '';
       batch.push(
         engine
           .query({

@@ -78,7 +78,7 @@ function linearRegression(data: number[]): {
   const x = Array.from({ length: n }, (_, i) => i);
   const sumX = x.reduce((a, b) => a + b, 0);
   const sumY = data.reduce((a, b) => a + b, 0);
-  const sumXY = x.reduce((sum, xi, i) => sum + xi * data[i], 0);
+  const sumXY = x.reduce((sum, xi, i) => sum + xi * (data[i] ?? 0), 0);
   const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
 
   const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
@@ -266,8 +266,8 @@ function calculateAdaptiveThresholds(
 
   return {
     metric: metricType,
-    warning: Math.min(90, Math.max(60, p75 + std)),
-    critical: Math.min(95, Math.max(80, p95 + std)),
+    warning: Math.min(90, Math.max(60, (p75 ?? 60) + std)),
+    critical: Math.min(95, Math.max(80, (p95 ?? 80) + std)),
     confidence_interval: [
       Math.max(0, mean - 2 * std),
       Math.min(100, mean + 2 * std),

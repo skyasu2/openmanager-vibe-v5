@@ -127,7 +127,7 @@ function convertToPureMetrics(hourlyData: HourlyDataStructure, currentHour: numb
     for (let i = 0; i < missingCount; i++) {
       const serverIndex = Object.keys(servers).length + i + 1;
       const serverTypes = ['security', 'backup', 'proxy', 'gateway'];
-      const serverType = serverTypes[i % serverTypes.length];
+      const serverType = serverTypes[i % serverTypes.length] ?? 'worker';
       const serverId = `${serverType}-server-${serverIndex}`;
       
       servers[serverId] = {
@@ -193,12 +193,13 @@ function generateFallbackMetrics(): RawServerMetric[] {
   const serverTypes = ['web', 'api', 'database', 'cache', 'monitoring', 'security', 'backup', 'proxy', 'gateway', 'worker'];
   
   return Array.from({ length: 10 }, (_, index) => {
-    const serverType = serverTypes[index];
+    const serverType = serverTypes[index] ?? 'worker';
     const baseMetrics = getBaseMetricsForType(serverType);
     
     return {
       id: `server-${index + 1}`,
       name: `${serverType.charAt(0).toUpperCase() + serverType.slice(1)} Server #${index + 1}`,
+      type: serverType,
       hostname: `${serverType}-${(index + 1).toString().padStart(2, '0')}.internal`,
       status: Math.random() > 0.85 ? (Math.random() > 0.5 ? 'warning' : 'critical') : 'online',
       
@@ -210,7 +211,6 @@ function generateFallbackMetrics(): RawServerMetric[] {
       uptime: 86400 + Math.floor(Math.random() * 2592000),
       timestamp: new Date().toISOString(),
       location: 'datacenter-east',
-      type: serverType,
       environment: 'production',
       
       responseTime: 150 + Math.floor(Math.random() * 100),
@@ -237,7 +237,7 @@ function getBaseMetricsForType(type: string): { cpu: number; memory: number; dis
     worker: { cpu: 40, memory: 50, disk: 50, network: 25 }
   };
   
-  return profiles[type] || profiles['worker'];
+  return profiles[type] ?? profiles['worker'] ?? { cpu: 40, memory: 50, disk: 50, network: 25 };
 }
 
 /**

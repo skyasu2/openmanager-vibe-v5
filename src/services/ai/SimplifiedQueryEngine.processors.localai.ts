@@ -111,9 +111,11 @@ export class LocalAIModeProcessor {
           intentResult = await this.intentClassifier.classify(query, nlpResult);
 
           if (nlpResult.success) {
-            thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-            thinkingSteps[thinkingSteps.length - 1].description =
-              `한국어 비율 ${Math.round(koreanRatio * 100)}% - NLP 처리 완료 (의도: ${intentResult.intent || nlpResult.intent || 'general'}, 신뢰도: ${Math.round((intentResult.confidence || 0) * 100)}%)`;
+            const lastStep = thinkingSteps[thinkingSteps.length - 1];
+            if (lastStep) {
+              lastStep.status = 'completed';
+              lastStep.description = `한국어 비율 ${Math.round(koreanRatio * 100)}% - NLP 처리 완료 (의도: ${intentResult.intent || nlpResult.intent || 'general'}, 신뢰도: ${Math.round((intentResult.confidence || 0) * 100)}%)`;
+            }
 
             // NLP 결과와 Intent 분류 결과를 컨텍스트의 metadata에 추가
             if (context) {
@@ -169,9 +171,11 @@ export class LocalAIModeProcessor {
             // NLP 실패해도 IntentClassifier는 실행
             intentResult = await this.intentClassifier.classify(query);
 
-            thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-            thinkingSteps[thinkingSteps.length - 1].description =
-              `한국어 NLP 처리 실패 - IntentClassifier로 의도 분류 (의도: ${intentResult.intent}, 신뢰도: ${Math.round(intentResult.confidence * 100)}%)`;
+            const lastStep = thinkingSteps[thinkingSteps.length - 1];
+            if (lastStep) {
+              lastStep.status = 'completed';
+              lastStep.description = `한국어 NLP 처리 실패 - IntentClassifier로 의도 분류 (의도: ${intentResult.intent}, 신뢰도: ${Math.round(intentResult.confidence * 100)}%)`;
+            }
 
             // IntentClassifier 결과만 저장
             if (context) {
@@ -190,9 +194,11 @@ export class LocalAIModeProcessor {
           // 영어 쿼리도 IntentClassifier로 분류
           intentResult = await this.intentClassifier.classify(query);
 
-          thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-          thinkingSteps[thinkingSteps.length - 1].description =
-            `영어 쿼리 감지 - IntentClassifier로 의도 분류 (의도: ${intentResult.intent}, 신뢰도: ${Math.round(intentResult.confidence * 100)}%)`;
+          const lastStep = thinkingSteps[thinkingSteps.length - 1];
+          if (lastStep) {
+            lastStep.status = 'completed';
+            lastStep.description = `영어 쿼리 감지 - IntentClassifier로 의도 분류 (의도: ${intentResult.intent}, 신뢰도: ${Math.round(intentResult.confidence * 100)}%)`;
+          }
 
           // IntentClassifier 결과 저장
           if (context) {

@@ -191,8 +191,8 @@ class RealisticVariationGenerator {
         { impact: 50, type: 'CPU 과부하', description: '비정상적인 CPU 사용률 급증' },
         { impact: 35, type: '디스크 I/O 병목', description: '디스크 읽기/쓰기 지연 발생' }
       ];
-      const selected = severEvents[Math.floor(this.seededRandom(timeSeed * 2) * severEvents.length)];
-      return { hasEvent: true, ...selected };
+      const selected = severEvents[Math.floor(this.seededRandom(timeSeed * 2) * severEvents.length)] ?? severEvents[0];
+      return { hasEvent: true, impact: selected?.impact ?? 50, type: selected?.type ?? 'Unknown Event', description: selected?.description };
     }
     
     // 중간 이벤트 (8-12% 확률)
@@ -203,8 +203,8 @@ class RealisticVariationGenerator {
         { impact: 25, type: '네트워크 지연', description: '외부 API 응답 시간 증가' },
         { impact: 20, type: '가비지 컬렉션', description: 'GC 실행으로 인한 일시적 부하' }
       ];
-      const selected = mediumEvents[Math.floor(this.seededRandom(timeSeed * 3) * mediumEvents.length)];
-      return { hasEvent: true, ...selected };
+      const selected = mediumEvents[Math.floor(this.seededRandom(timeSeed * 3) * mediumEvents.length)] ?? mediumEvents[0];
+      return { hasEvent: true, impact: selected?.impact ?? 25, type: selected?.type ?? 'Unknown Event', description: selected?.description };
     }
     
     // 소규모 변동 (15-25% 확률)
@@ -215,8 +215,8 @@ class RealisticVariationGenerator {
         { impact: 10, type: '세션 정리', description: '만료된 세션 정리 작업' },
         { impact: 6, type: '로그 로테이션', description: '로그 파일 순환 처리' }
       ];
-      const selected = minorEvents[Math.floor(this.seededRandom(timeSeed * 4) * minorEvents.length)];
-      return { hasEvent: true, ...selected };
+      const selected = minorEvents[Math.floor(this.seededRandom(timeSeed * 4) * minorEvents.length)] ?? minorEvents[0];
+      return { hasEvent: true, impact: selected?.impact ?? 10, type: selected?.type ?? 'Unknown Event', description: selected?.description };
     }
     
     return { hasEvent: false, impact: 0, type: '정상', description: '모든 시스템 정상 동작 중' };
@@ -581,13 +581,13 @@ const serverTypeProfiles: Record<string, ServerTypeProfile> = {
  * 장애 시나리오와 상관관계 모두 적용
  */
 function generateRealisticMetrics(serverType: string, baseCpu: number, baseMemory: number, baseDisk: number, index: number = 0, baseNetwork: number = 25) {
-  const profile = serverTypeProfiles[serverType] || serverTypeProfiles['web'];
+  const profile = serverTypeProfiles[serverType] ?? serverTypeProfiles['web'];
   
   // 1단계: 장애 시나리오 확인
   let scenarioEffect = { cpu: 0, memory: 0, disk: 0, network: 0 };
   let currentStatus: 'online' | 'warning' | 'critical' = 'online';
   
-  for (const [key, scenario] of Object.entries(profile.scenarios)) {
+  for (const [key, scenario] of Object.entries(profile?.scenarios ?? {})) {
     if (Math.random() < scenario.probability) {
       scenarioEffect.cpu += scenario.effects.cpu || 0;
       scenarioEffect.memory += scenario.effects.memory || 0; 
@@ -751,7 +751,7 @@ function convertFixedRotationData(hourlyData: HourlyServerData, currentHour: num
     for (let i = 0; i < missingCount; i++) {
       const serverIndex = Object.keys(servers).length + i + 1;
       const serverTypes = ['security', 'backup', 'proxy', 'gateway'];
-      const serverType = serverTypes[i % serverTypes.length];
+      const serverType = serverTypes[i % serverTypes.length] ?? 'gateway';
       const serverId = `${serverType}-server-${serverIndex}`;
       
       servers[serverId] = {

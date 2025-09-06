@@ -129,22 +129,28 @@ export function decompressTimeSeriesData(
 ): ScenarioPoint[] {
   if (compressed.length === 0) return [];
 
+  const firstPoint = compressed[0];
+  if (!firstPoint) return [];
+  
   const decompressed: ScenarioPoint[] = [
     {
-      cpu: compressed[0].c,
-      memory: compressed[0].m,
-      disk: compressed[0].d,
-      network: compressed[0].n,
+      cpu: firstPoint.c,
+      memory: firstPoint.m,
+      disk: firstPoint.d,
+      network: firstPoint.n,
     },
   ];
 
   for (let i = 1; i < compressed.length; i++) {
     const prev = decompressed[i - 1];
+    const currentPoint = compressed[i];
+    if (!prev || !currentPoint) continue;
+    
     decompressed.push({
-      cpu: prev.cpu + compressed[i].c,
-      memory: prev.memory + compressed[i].m,
-      disk: prev.disk + compressed[i].d,
-      network: prev.network + compressed[i].n,
+      cpu: prev.cpu + currentPoint.c,
+      memory: prev.memory + currentPoint.m,
+      disk: prev.disk + currentPoint.d,
+      network: prev.network + currentPoint.n,
     });
   }
 
