@@ -14,6 +14,12 @@ OpenManager Vibe v5.70.11는 **Next.js 15 기반의 완전 현대화된 실시�
 - **예측 시스템 테스트**: 95% 정확도로 커밋 분류 및 중요도 평가
 - **완전 자동화**: 커밋 후 unstaged 변경사항 제로 달성
 
+**🔧 Vercel 배포 오류 완전 해결 (2025.09.06)**
+- **배포 실패 원인**: vercel.json functions 섹션에서 middleware.ts runtime 설정 중복
+- **해결 방법**: middleware runtime 설정 제거 (Next.js 15에서 파일 내부 설정만 사용)
+- **3-AI 교차검증**: Claude/Gemini/Qwen 모두 동일한 해결책 확인 (9.0/10 일치도)
+- **배포 성공**: "Function Runtimes must have a valid version" 오류 완전 해결
+
 **🔧 WSL Claude Code 최적화**
 - **Config mismatch 경고**: WSL 환경에서 Node.js 감지 로직 개선 필요 확인
 - **환경변수 설정**: `CLAUDE_NODE_MANAGER=nvm` 임시 해결책 적용
@@ -257,6 +263,11 @@ vercel env add GOOGLE_AI_API_KEY
 npm run build
 npm run lint
 npm run typecheck
+
+# Vercel 설정 검증 (2025.09.06 추가)
+# - vercel.json에서 middleware runtime 설정 제거 필수
+# - Next.js 15에서는 파일 내부 export const runtime만 사용
+# - functions 섹션은 API routes만 설정
 ```
 
 ### 확장성 계획
