@@ -25,7 +25,7 @@ export IGNORE_COMMIT_PATTERNS="chore(changelog)|docs(changelog)|Merge|merge|upda
 export DATE_FORMAT='+%Y-%m-%d'
 
 # 디버그 모드 (true/false)
-export DEBUG_CHANGELOG=false
+export DEBUG_CHANGELOG=true
 
 echo "✅ CHANGELOG 설정 로드 완료"
 echo "📝 자동 커밋: $AUTO_COMMIT_CHANGELOG"

@@ -1,3 +1,0 @@
-이 파일은 CHANGELOG 자동 업데이트 pre-commit hook 테스트용입니다.
-
-테스트 시간: $(date)
