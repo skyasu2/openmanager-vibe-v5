@@ -245,9 +245,6 @@
     },
     "src/app/api/servers/all/route.ts": {
       "maxDuration": 30
-    },
-    "src/middleware.ts": {
-      "runtime": "edge"
     }
   }
 }
