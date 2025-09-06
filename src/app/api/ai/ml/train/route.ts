@@ -58,14 +58,15 @@ async function getServerMetrics(serverId?: string, timeRange = '24h') {
     
     // 시간 범위 필터링
     const now = new Date();
-    const timeRangeMs = {
+    const timeRangeMs: Record<string, number> = {
       '1h': 60 * 60 * 1000,
       '6h': 6 * 60 * 60 * 1000,
       '24h': 24 * 60 * 60 * 1000,
       '7d': 7 * 24 * 60 * 60 * 1000,
     };
     
-    const startTime = new Date(now.getTime() - timeRangeMs[timeRange]);
+    const duration = timeRangeMs[timeRange] || timeRangeMs['24h']!;
+    const startTime = new Date(now.getTime() - duration);
     query = query.gte('timestamp', startTime.toISOString());
     
     const { data, error } = await query.limit(1000);
@@ -112,6 +113,7 @@ async function trainPatterns(metrics: any[]): Promise<Partial<TrainingResult>> {
     insights,
     nextRecommendation: '네트워크 I/O 패턴 분석 추가 권장',
     metadata: {
+      processingTime: Date.now() - Date.now(), // Will be set properly in main function
       dataPoints: metrics.length,
       algorithm: 'correlation_analysis',
       version: '1.0',
@@ -150,6 +152,7 @@ async function trainAnomalyDetection(metrics: any[]): Promise<Partial<TrainingRe
     insights,
     nextRecommendation: '임계값 자동 조정 알고리즘 도입 권장',
     metadata: {
+      processingTime: 0, // Will be set properly in main function
       dataPoints: metrics.length,
       algorithm: 'threshold_based_anomaly',
       version: '1.1',
@@ -194,6 +197,7 @@ async function trainIncidentLearning(metrics: any[]): Promise<Partial<TrainingRe
     insights,
     nextRecommendation: '예방적 스케일링 정책 수립 권장',
     metadata: {
+      processingTime: 0, // Will be set properly in main function
       dataPoints: metrics.length,
       algorithm: 'incident_pattern_recognition',
       version: '1.2',
@@ -228,6 +232,7 @@ async function trainPredictionModel(metrics: any[]): Promise<Partial<TrainingRes
     insights,
     nextRecommendation: '계절적 변동 데이터 추가 학습 필요',
     metadata: {
+      processingTime: 0, // Will be set properly in main function
       dataPoints: metrics.length,
       algorithm: 'linear_regression_trend',
       version: '1.3',

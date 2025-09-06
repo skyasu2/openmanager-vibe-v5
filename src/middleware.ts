@@ -121,7 +121,7 @@ export function middleware(request: NextRequest) {
 }
 
 // Edge Runtime 활성화 (성능 최적화)
-export const runtime = 'edge';
+export const runtime = 'experimental-edge';
 
 /**
  * 미들웨어 적용 경로 설정

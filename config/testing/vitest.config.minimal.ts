@@ -8,11 +8,12 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}', 'src/**/__tests__/**/*.test.{ts,tsx}', 'tests/unit/**/*.test.{ts,tsx}', 'tests/**/*.test.{ts,tsx}'],
     globals: true,
     reporters: ['verbose'],
-    pool: 'threads',
+    pool: 'forks',
+    isolate: true,
     poolOptions: {
-      threads: {
-        minThreads: 1,
-        maxThreads: 2,
+      forks: {
+        minForks: 1,
+        maxForks: 2,
       },
     },
     setupFiles: [resolve(process.cwd(), 'config/testing/vitest.setup.ts')],

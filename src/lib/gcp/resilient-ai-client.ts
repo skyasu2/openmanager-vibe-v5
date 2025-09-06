@@ -270,7 +270,9 @@ export class ResilientAIClient {
     // 캐시 크기 제한 (최대 1000개)
     if (this.cache.size > 1000) {
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey !== undefined) {
+        this.cache.delete(firstKey);
+      }
     }
   }
 

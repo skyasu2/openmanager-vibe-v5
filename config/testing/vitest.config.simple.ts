@@ -26,12 +26,13 @@ export default defineConfig({
     // 단순한 리포터
     reporters: [['default', { summary: false }]],
     
-    // 성능 최적화
-    pool: 'threads',
+    // 성능 및 메모리 최적화
+    pool: 'forks',
+    isolate: true,
     poolOptions: {
-      threads: {
-        minThreads: 1,
-        maxThreads: 1,
+      forks: {
+        minForks: 1,
+        maxForks: 2,
       },
     },
     
