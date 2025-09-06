@@ -31,6 +31,11 @@ const nextConfig = {
       'recharts',
       'd3',
     ],
+    // Vercel 무료 티어 최적화
+    serverMinification: true,
+    serverSourceMaps: false,
+    optimizeCss: true,
+    // Next.js 15에서 runtime, swcMinify 제거됨 - 기본 제공
   },
   
   // 이미지 최적화 설정 (성능 우선)
@@ -285,6 +290,13 @@ const nextConfig = {
 
   // 🔧 웹팩 설정 (번들 최적화)
   webpack: (config, { isServer, dev }) => {
+    // ✅ 2-AI 교차검증 개선 - @/ 경로 해석 안정화
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': join(process.cwd(), 'src'),
+      // 기존 alias 유지
+    };
+    
     // 테스트 모드 또는 devtools 비활성화 시 관련 모듈 완전 제외
     if (process.env.__NEXT_TEST_MODE === 'true' || process.env.NEXT_DISABLE_DEVTOOLS === '1') {
       // next-devtools 모듈을 빈 모듈로 대체
@@ -367,10 +379,10 @@ const nextConfig = {
       ] : [])
     );
 
-    // 경고 억제
+    // ✅ 2-AI 교차검증 개선 - 경고 무시 제거 (조기 문제 탐지)
     config.ignoreWarnings = [
       /Critical dependency: the request of a dependency is an expression/,
-      /Module not found: Can't resolve/,
+      // Module not found 경고 제거로 경로 문제 조기 발견 
       /Can't resolve '\.\/.*\.node'/,
     ];
 

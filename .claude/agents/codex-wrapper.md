@@ -27,11 +27,42 @@ AI 교차 검증 시스템에서 **2순위 AI (가중치 0.99)**로 활용됩니
 
 ## 실행 방법
 
-### 10점 만점 평가 요청
+### OAuth 인증 상태 확인 함수
 ```bash
-# Codex CLI 호출 - 10점 만점 평가 전용
+# OAuth 로그인 상태 확인
+check_codex_auth() {
+    echo "🔍 Codex CLI OAuth 인증 상태 확인 중..."
+    
+    # 간단한 테스트 명령어로 인증 상태 확인
+    local auth_test=$(timeout 10s codex exec "Hello" 2>&1)
+    
+    if echo "$auth_test" | grep -q "model: gpt-5\|provider: openai"; then
+        echo "✅ Codex CLI OAuth 인증 정상 (GPT-5 모델 접근 가능)"
+        return 0
+    elif echo "$auth_test" | grep -q "authentication\|login\|unauthorized"; then
+        echo "❌ Codex CLI OAuth 인증 실패: 재로그인 필요"
+        echo "💡 해결방법: codex login 명령어로 ChatGPT 계정 재인증"
+        return 1
+    else
+        echo "⚠️ Codex CLI 응답 지연 또는 네트워크 문제"
+        echo "📊 응답 내용: ${auth_test:0:200}..."
+        return 2
+    fi
+}
+```
+
+### 10점 만점 평가 요청 (OAuth 안전 버전)
+```bash
+# Codex CLI 호출 - OAuth 인증 확인 + 10점 만점 평가
 exec_codex_score() {
     local target="$1"
+    
+    # OAuth 인증 상태 먼저 확인
+    if ! check_codex_auth; then
+        echo "🚫 Codex CLI 인증 문제로 평가 불가. OAuth 재로그인 후 재시도하세요."
+        return 1
+    fi
+    
     local prompt="다음 코드를 10점 만점으로 평가하고 핵심 개선사항 3가지만 제시해주세요.
 
 코드: $target
@@ -43,7 +74,8 @@ exec_codex_score() {
 2. [개선사항 2] 
 3. [개선사항 3]"
     
-    codex exec --full-auto "$prompt" < /dev/null 2>&1 | sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g'
+    echo "🤖 Codex CLI (GPT-5) 코드 품질 평가 시작..."
+    timeout 60s codex exec --full-auto "$prompt" < /dev/null 2>&1 | sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g'
 }
 
 # 사용 예시

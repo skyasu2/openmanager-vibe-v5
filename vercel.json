@@ -216,7 +216,13 @@
     "VERCEL_INIT_DELAY": "1000",
     "VERCEL_SYNC_DEBOUNCE": "3000",
     "PREVENT_AUTO_REFRESH": "true",
-    "STABLE_ENVIRONMENT_DETECTION": "true"
+    "STABLE_ENVIRONMENT_DETECTION": "true",
+    "VERCEL_EDGE_MIDDLEWARE": "true",
+    "VERCEL_BUILD_OPTIMIZATION": "true",
+    "NEXT_OPTIMIZE_FONTS": "true",
+    "NEXT_OPTIMIZE_IMAGES": "true",
+    "VERCEL_ANALYTICS_DEBUG": "false",
+    "SPEED_INSIGHTS_DEBUG": "false"
   },
   "build": {
     "env": {
@@ -278,6 +284,9 @@
     },
     "src/app/api/gcp-vm-data/route.ts": {
       "maxDuration": 10
+    },
+    "src/middleware.ts": {
+      "runtime": "edge"
     }
   }
 }

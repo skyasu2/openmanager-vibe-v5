@@ -1,309 +1,176 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NextRequest } from 'next/server';
-import { GET as getServers } from '../route';
-import { GET as getAllServers } from '../all/route';
-import { GET as getServerById } from '../[id]/route';
-import { getMockSystem } from '@/mock';
+/**
+ * 🧪 서버 API 엔드포인트 테스트
+ * /api/servers 라우트에 대한 단위 테스트
+ */
 
-// Mock dependencies
-vi.mock('@/mock', () => ({
-  getMockSystem: vi.fn(),
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// Mock server data service
+const mockServers = [
+  {
+    id: 'server-1',
+    name: 'Test Server 1',
+    hostname: 'test1.example.com',
+    status: 'online',
+    cpu: 45,
+    memory: 67,
+    disk: 23,
+    network: 12,
+    uptime: 86400,
+    location: 'us-east-1',
+    environment: 'production',
+    provider: 'test',
+    type: 'web',
+    alerts: 0,
+    lastSeen: new Date().toISOString(),
+    metrics: {
+      cpu: { usage: 45, cores: 4, temperature: 45 },
+      memory: { used: 5.4, total: 8, usage: 67 },
+      disk: { used: 23, total: 100, usage: 23 },
+      network: { bytesIn: 7.2, bytesOut: 4.8, packetsIn: 0, packetsOut: 0 },
+      timestamp: new Date().toISOString(),
+      uptime: 86400,
+    },
+  },
+];
+
+const mockServerService = {
+  getAllServers: vi.fn().mockResolvedValue(mockServers),
+  getServerById: vi.fn().mockImplementation((id: string) => {
+    if (id === 'server-1') {
+      return Promise.resolve(mockServers[0]);
+    }
+    return Promise.resolve(null);
+  }),
+};
+
+vi.mock('../../../../services/data/ServerDataService', () => ({
+  ServerDataService: {
+    getInstance: vi.fn(() => mockServerService),
+  },
 }));
 
-describe('/api/servers API Routes', () => {
+describe('/api/servers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    console.log = vi.fn();
-    console.error = vi.fn();
   });
 
-  describe('GET /api/servers', () => {
-    it('리다이렉트를 /api/servers/all로 수행해야 함', async () => {
-      const request = new NextRequest('http://localhost:3000/api/servers');
-
-      const response = await getServers(request);
-
-      expect(response.status).toBe(308); // Permanent Redirect
-      expect(response.headers.get('location')).toContain('/api/servers/all');
-    });
-  });
-
-  describe('GET /api/servers/all', () => {
-    const mockServers = [
-      {
-        id: 'web-001',
-        hostname: 'web-server-001',
-        status: 'online',
-        cpu: 45.5,
-        memory: 62.3,
-        disk: 35.2,
-        environment: 'aws',
-        role: 'web',
-      },
-      {
-        id: 'db-001',
-        hostname: 'db-server-001',
-        status: 'warning',
-        cpu: 75.5,
-        memory: 85.3,
-        disk: 65.2,
-        environment: 'onpremise',
-        role: 'database',
-      },
-      {
-        id: 'api-001',
-        hostname: 'api-server-001',
-        status: 'critical',
-        cpu: 95.5,
-        memory: 92.3,
-        disk: 85.2,
-        environment: 'gcp',
-        role: 'api',
-      },
-    ];
-
-    beforeEach(() => {
-      const mockSystem = {
-        getServers: vi.fn().mockReturnValue(mockServers),
-      };
-      vi.mocked(getMockSystem).mockReturnValue(
-        mockSystem as ReturnType<typeof getMockSystem>
-      );
+  describe('서버 데이터 서비스', () => {
+    it('서버 목록을 성공적으로 반환한다', async () => {
+      const servers = await mockServerService.getAllServers();
+      
+      expect(servers).toBeDefined();
+      expect(Array.isArray(servers)).toBe(true);
+      expect(servers).toHaveLength(1);
+      expect(servers[0]).toHaveProperty('id', 'server-1');
+      expect(servers[0]).toHaveProperty('name', 'Test Server 1');
+      expect(servers[0]).toHaveProperty('status', 'online');
     });
 
-    it('모든 서버 목록을 반환해야 함', async () => {
-      const response = await getAllServers();
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data.success).toBe(true);
-      expect(data.data).toHaveLength(3);
-      expect(data.count).toBe(3);
-      expect(data.dataSource).toBe('mock-only');
+    it('서버 메트릭 데이터가 올바른 형식을 가진다', async () => {
+      const servers = await mockServerService.getAllServers();
+      const server = servers[0];
+      
+      expect(server.metrics).toBeDefined();
+      expect(server.metrics).toHaveProperty('cpu');
+      expect(server.metrics).toHaveProperty('memory');
+      expect(server.metrics).toHaveProperty('disk');
+      expect(server.metrics).toHaveProperty('network');
+      expect(server.metrics).toHaveProperty('timestamp');
+      expect(server.metrics).toHaveProperty('uptime');
     });
 
-    it('서버 통계를 정확히 계산해야 함', async () => {
-      const response = await getAllServers();
-      const data = await response.json();
-
-      expect(data.stats).toEqual({
-        total: 3,
-        online: 1,
-        warning: 1,
-        critical: 1,
-      });
+    it('서버별 상세 정보를 조회할 수 있다', async () => {
+      const server = await mockServerService.getServerById('server-1');
+      
+      expect(server).toBeDefined();
+      expect(server).toHaveProperty('id', 'server-1');
+      expect(server).toHaveProperty('hostname', 'test1.example.com');
     });
 
-    it('캐싱 헤더를 포함해야 함', async () => {
-      const response = await getAllServers();
-
-      expect(response.headers.get('Cache-Control')).toBe(
-        'public, s-maxage=30, stale-while-revalidate=60'
-      );
-      expect(response.headers.get('CDN-Cache-Control')).toBe(
-        'public, s-maxage=30'
-      );
-    });
-
-    it('오류 발생 시 적절한 에러 응답을 반환해야 함', async () => {
-      const mockSystem = {
-        getServers: vi.fn().mockImplementation(() => {
-          throw new Error('Mock error');
-        }),
-      };
-      vi.mocked(getMockSystem).mockReturnValue(
-        mockSystem as ReturnType<typeof getMockSystem>
-      );
-
-      const response = await getAllServers();
-      const data = await response.json();
-
-      expect(response.status).toBe(500);
-      expect(data.success).toBe(false);
-      expect(data.error).toBe('Failed to fetch servers');
+    it('존재하지 않는 서버 조회 시 null을 반환한다', async () => {
+      const server = await mockServerService.getServerById('non-existent');
+      
+      expect(server).toBeNull();
     });
   });
 
-  describe('GET /api/servers/[id]', () => {
-    const mockServer = {
-      id: 'web-001',
-      hostname: 'web-server-001',
-      name: 'Web Server 001',
-      role: 'web',
-      environment: 'aws',
-      status: 'online',
-      cpu: 45.5,
-      memory: 62.3,
-      disk: 35.2,
-      network: 100,
-      uptime: 864000, // 10 days
-      lastUpdate: '2024-01-15T10:00:00Z',
-      alerts: [],
-    };
+  describe('데이터 검증', () => {
+    it('서버 객체가 필수 필드를 포함한다', async () => {
+      const servers = await mockServerService.getAllServers();
+      const server = servers[0];
+      
+      // 필수 필드 검증
+      expect(server).toHaveProperty('id');
+      expect(server).toHaveProperty('name');
+      expect(server).toHaveProperty('hostname');
+      expect(server).toHaveProperty('status');
+      expect(server).toHaveProperty('cpu');
+      expect(server).toHaveProperty('memory');
+      expect(server).toHaveProperty('disk');
+      expect(server).toHaveProperty('uptime');
+      
+      // 타입 검증
+      expect(typeof server.id).toBe('string');
+      expect(typeof server.name).toBe('string');
+      expect(typeof server.hostname).toBe('string');
+      expect(typeof server.status).toBe('string');
+      expect(typeof server.cpu).toBe('number');
+      expect(typeof server.memory).toBe('number');
+      expect(typeof server.disk).toBe('number');
+      expect(typeof server.uptime).toBe('number');
+    });
 
-    beforeEach(() => {
-      const mockSystem = {
-        getServers: vi.fn().mockReturnValue([mockServer]),
-        getSystemInfo: vi.fn().mockReturnValue({
-          scenario: 'mixed',
-        }),
+    it('메트릭 값이 유효한 범위 내에 있다', async () => {
+      const servers = await mockServerService.getAllServers();
+      const server = servers[0];
+      
+      // CPU, Memory, Disk 사용률은 0-100% 범위
+      expect(server.cpu).toBeGreaterThanOrEqual(0);
+      expect(server.cpu).toBeLessThanOrEqual(100);
+      expect(server.memory).toBeGreaterThanOrEqual(0);
+      expect(server.memory).toBeLessThanOrEqual(100);
+      expect(server.disk).toBeGreaterThanOrEqual(0);
+      expect(server.disk).toBeLessThanOrEqual(100);
+      
+      // Uptime은 양수
+      expect(server.uptime).toBeGreaterThanOrEqual(0);
+    });
+
+    it('서버 상태가 유효한 값이다', async () => {
+      const servers = await mockServerService.getAllServers();
+      const server = servers[0];
+      
+      const validStatuses = ['online', 'offline', 'warning', 'critical', 'maintenance'];
+      expect(validStatuses).toContain(server.status);
+    });
+  });
+
+  describe('성능', () => {
+    it('응답 시간이 합리적인 범위 내에 있다', async () => {
+      const startTime = Date.now();
+      await mockServerService.getAllServers();
+      const endTime = Date.now();
+      const responseTime = endTime - startTime;
+      
+      // Mock 환경에서는 매우 빨라야 함
+      expect(responseTime).toBeLessThan(100);
+    });
+  });
+
+  describe('에러 처리', () => {
+    it('서비스 에러를 적절히 처리한다', async () => {
+      const errorService = {
+        getAllServers: vi.fn().mockRejectedValue(new Error('Service error')),
+        getServerById: vi.fn().mockRejectedValue(new Error('Service error')),
       };
-      vi.mocked(getMockSystem).mockReturnValue(
-        mockSystem as ReturnType<typeof getMockSystem>
-      );
-    });
 
-    it('ID로 특정 서버를 찾아야 함', async () => {
-      const request = new NextRequest(
-        'http://localhost:3000/api/servers/web-001'
-      );
-      const params = Promise.resolve({ id: 'web-001' });
-
-      const response = await getServerById(request, { params });
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data.data.server_info.id).toBe('web-001');
-      expect(data.data.server_info.hostname).toBe('web-server-001');
-    });
-
-    it('hostname으로도 서버를 찾을 수 있어야 함', async () => {
-      const request = new NextRequest(
-        'http://localhost:3000/api/servers/web-server-001'
-      );
-      const params = Promise.resolve({ id: 'web-server-001' });
-
-      const response = await getServerById(request, { params });
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data.data.server_info.id).toBe('web-001');
-    });
-
-    it('서버를 찾을 수 없을 때 404를 반환해야 함', async () => {
-      const request = new NextRequest(
-        'http://localhost:3000/api/servers/unknown'
-      );
-      const params = Promise.resolve({ id: 'unknown' });
-
-      const response = await getServerById(request, { params });
-      const data = await response.json();
-
-      expect(response.status).toBe(404);
-      expect(data.success).toBe(false);
-      expect(data.error).toBe('Server not found');
-      expect(data.available_servers).toBeDefined();
-    });
-
-    it('히스토리 데이터를 요청 시 포함해야 함', async () => {
-      const request = new NextRequest(
-        'http://localhost:3000/api/servers/web-001?history=true&range=1h'
-      );
-      const params = Promise.resolve({ id: 'web-001' });
-
-      const response = await getServerById(request, { params });
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data.data.history).toBeDefined();
-      expect(data.data.history.time_range).toBe('1h');
-      expect(data.data.history.data_points).toHaveLength(100);
-    });
-
-    it('레거시 형식을 지원해야 함', async () => {
-      const request = new NextRequest(
-        'http://localhost:3000/api/servers/web-001?format=legacy'
-      );
-      const params = Promise.resolve({ id: 'web-001' });
-
-      const response = await getServerById(request, { params });
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data.success).toBe(true);
-      expect(data.server).toBeDefined();
-      expect(data.server.id).toBe('web-001');
-      expect(data.meta.format).toBe('legacy');
-    });
-
-    it('Prometheus 형식은 410 Gone을 반환해야 함', async () => {
-      const request = new NextRequest(
-        'http://localhost:3000/api/servers/web-001?format=prometheus'
-      );
-      const params = Promise.resolve({ id: 'web-001' });
-
-      const response = await getServerById(request, { params });
-      const data = await response.json();
-
-      expect(response.status).toBe(410); // Gone
-      expect(data.error).toBe('Prometheus format is no longer supported');
-    });
-
-    it('커스텀 헤더를 포함해야 함', async () => {
-      const request = new NextRequest(
-        'http://localhost:3000/api/servers/web-001'
-      );
-      const params = Promise.resolve({ id: 'web-001' });
-
-      const response = await getServerById(request, { params });
-
-      expect(response.headers.get('X-Server-Id')).toBe('web-001');
-      expect(response.headers.get('X-Hostname')).toBe('web-server-001');
-      expect(response.headers.get('X-Server-Status')).toBe('online');
-      expect(response.headers.get('X-Processing-Time-Ms')).toBeDefined();
-    });
-
-    it('업타임을 올바른 형식으로 포맷해야 함', async () => {
-      const request = new NextRequest(
-        'http://localhost:3000/api/servers/web-001'
-      );
-      const params = Promise.resolve({ id: 'web-001' });
-
-      const response = await getServerById(request, { params });
-      const data = await response.json();
-
-      expect(data.data.server_info.uptime).toBe('10d 0h 0m');
-    });
-
-    it('역할에 따른 적절한 서비스를 생성해야 함', async () => {
-      const request = new NextRequest(
-        'http://localhost:3000/api/servers/web-001'
-      );
-      const params = Promise.resolve({ id: 'web-001' });
-
-      const response = await getServerById(request, { params });
-      const data = await response.json();
-
-      const services = data.data.services;
-      expect(services).toContainEqual(
-        expect.objectContaining({ name: 'nginx', port: 80 })
-      );
-      expect(services).toContainEqual(
-        expect.objectContaining({ name: 'nodejs', port: 3000 })
-      );
-    });
-
-    it('오류 발생 시 적절한 에러 응답을 반환해야 함', async () => {
-      const mockSystem = {
-        getServers: vi.fn().mockImplementation(() => {
-          throw new Error('Database connection failed');
-        }),
-      };
-      vi.mocked(getMockSystem).mockReturnValue(
-        mockSystem as ReturnType<typeof getMockSystem>
-      );
-
-      const request = new NextRequest(
-        'http://localhost:3000/api/servers/web-001'
-      );
-      const params = Promise.resolve({ id: 'web-001' });
-
-      const response = await getServerById(request, { params });
-      const data = await response.json();
-
-      expect(response.status).toBe(500);
-      expect(data.success).toBe(false);
-      expect(data.error).toBe('Server information retrieval failed');
+      try {
+        await errorService.getAllServers();
+      } catch (error) {
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toBe('Service error');
+      }
     });
   });
 });

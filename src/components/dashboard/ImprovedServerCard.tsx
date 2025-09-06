@@ -35,33 +35,7 @@ import type { Server as ServerType } from '../../types/server';
 import { ServerCardLineChart } from '../shared/ServerMetricsLineChart';
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
 import { validateMetricValue, validateServerMetrics, generateSafeMetricValue, type MetricType } from '../../utils/metricValidation';
-// 임시 타입 정의 (Vercel 빌드 호환성을 위해)
-type ServerStatus = 'healthy' | 'warning' | 'critical';
-
-// 임시 유틸리티 함수 (design-tokens 대체)
-const getStatusTheme = (status: ServerStatus) => {
-  const themes = {
-    healthy: {
-      background: 'bg-gradient-to-br from-white/95 via-emerald-50/80 to-emerald-50/60',
-      border: 'border-emerald-200/60 hover:border-emerald-300/80',
-      text: 'text-emerald-800',
-      animation: 'hover:-translate-y-1 hover:scale-[1.02]'
-    },
-    warning: {
-      background: 'bg-gradient-to-br from-white/95 via-amber-50/80 to-amber-50/60',
-      border: 'border-amber-200/60 hover:border-amber-300/80', 
-      text: 'text-amber-800',
-      animation: 'hover:-translate-y-1 hover:scale-[1.02]'
-    },
-    critical: {
-      background: 'bg-gradient-to-br from-white/95 via-red-50/80 to-red-50/60',
-      border: 'border-red-200/60 hover:border-red-300/80',
-      text: 'text-red-800', 
-      animation: 'hover:-translate-y-1 hover:scale-[1.02]'
-    }
-  };
-  return themes[status] || themes.healthy;
-};
+import { getServerStatusTheme, getTypographyClass, COMMON_ANIMATIONS, LAYOUT, type ServerStatus } from '../../styles/design-constants';
 
 interface ImprovedServerCardProps {
   server: ServerType;
@@ -139,7 +113,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               ? 'warning'
               : 'healthy'; // 기본값
 
-      const theme = getStatusTheme(normalizedStatus);
+      const theme = getServerStatusTheme(normalizedStatus);
       
       return {
         // Material Design 3 Surface 기반 배경
@@ -238,7 +212,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       switch (variant) {
         case 'compact':
           return {
-            container: `${'p-4'} min-h-[300px]`,
+            container: `${LAYOUT.padding.card.mobile} min-h-[300px]`,
             titleSize: 'text-lg font-medium',
             metricSize: 'text-sm font-medium',
             progressHeight: 'h-2',
@@ -249,7 +223,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           };
         case 'detailed':
           return {
-            container: `${'p-6'} min-h-[380px]`,
+            container: `${LAYOUT.padding.card.desktop} min-h-[380px]`,
             titleSize: 'text-xl font-semibold',
             metricSize: 'text-base font-normal',
             progressHeight: 'h-3',
@@ -260,7 +234,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           };
         default: // standard
           return {
-            container: `${'p-5'} min-h-[340px]`,
+            container: `${LAYOUT.padding.card.tablet} min-h-[340px]`,
             titleSize: 'text-lg font-semibold',
             metricSize: 'text-base font-normal',
             progressHeight: 'h-2.5',

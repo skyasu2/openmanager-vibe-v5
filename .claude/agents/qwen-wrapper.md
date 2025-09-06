@@ -4,7 +4,7 @@ description: Qwen CLI 전용 호출 - 10점 만점 코드 품질 평가 및 개�
 tools: Bash
 priority: medium
 autoTrigger: false
-sla: "< 90초 (Qwen CLI 호출)"
+sla: "< 180초 (Qwen CLI 호출 - 중국 서버 레이턴시 고려)"
 trigger: ai_verification_level_3
 environment:
   TERM: dumb
@@ -28,11 +28,52 @@ AI 교차 검증 시스템에서 **4순위 AI (가중치 0.97)**로 활용됩니
 
 ## 실행 방법
 
-### 10점 만점 평가 요청
+### OAuth 인증 상태 확인 함수 (개선된 타임아웃 설정)
 ```bash
-# Qwen CLI 호출 - 10점 만점 평가 전용
+# OAuth 로그인 상태 확인 (타임아웃 최적화)
+check_qwen_auth() {
+    echo "🔍 Qwen CLI OAuth 인증 상태 확인 중... (최대 30초 대기)"
+    
+    # 간단한 테스트 명령어로 인증 상태 확인 (타임아웃 증가: 15s → 30s)
+    local auth_test=$(timeout 30s qwen -p "Hello test" 2>&1)
+    
+    if echo "$auth_test" | grep -q "Hello\|connection\|assist\|help"; then
+        echo "✅ Qwen CLI OAuth 인증 정상 (Qwen 모델 접근 가능)"
+        return 0
+    elif echo "$auth_test" | grep -q "authentication\|login\|unauthorized\|credentials"; then
+        echo "❌ Qwen CLI OAuth 인증 실패: 재로그인 필요"
+        echo "💡 해결방법: qwen login 명령어로 Qwen 계정 재인증"
+        return 1
+    elif echo "$auth_test" | grep -q "timeout\|Terminated"; then
+        echo "⚠️ Qwen CLI 응답 시간 초과 (30초)"
+        echo "💡 해결방법: 네트워크 연결 확인 후 재시도, 또는 Gemini/Codex 사용 권장"
+        return 2
+    else
+        echo "⚠️ Qwen CLI 예상하지 못한 응답"
+        echo "📊 응답 내용: ${auth_test:0:300}..."
+        # 응답이 있다면 일단 정상으로 간주 (부분적 성공)
+        if [[ -n "$auth_test" && ! "$auth_test" =~ ^[[:space:]]*$ ]]; then
+            echo "🟡 부분적 성공으로 간주하여 계속 진행"
+            return 0
+        fi
+        return 3
+    fi
+}
+```
+
+### 10점 만점 평가 요청 (OAuth 안전 버전)
+```bash
+# Qwen CLI 호출 - OAuth 인증 확인 + 10점 만점 평가
 exec_qwen_score() {
     local target="$1"
+    
+    # OAuth 인증 상태 먼저 확인
+    if ! check_qwen_auth; then
+        echo "🚫 Qwen CLI 인증 또는 네트워크 문제로 평가 불가."
+        echo "💡 대안: Gemini CLI 또는 Codex CLI 사용 권장"
+        return 1
+    fi
+    
     local prompt="다음 코드를 10점 만점으로 평가하고 핵심 개선사항 3가지만 제시해주세요.
 
 코드: $target
@@ -44,7 +85,8 @@ exec_qwen_score() {
 2. [개선사항 2]
 3. [개선사항 3]"
     
-    qwen -p "$prompt" < /dev/null 2>&1 | sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g'
+    echo "🤖 Qwen CLI 코드 품질 평가 시작... (최대 180초 대기)"
+    timeout 180s qwen -p "$prompt" < /dev/null 2>&1 | sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g'
 }
 
 # 사용 예시

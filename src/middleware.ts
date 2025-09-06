@@ -120,6 +120,9 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
+// Edge Runtime 활성화 (성능 최적화)
+export const runtime = 'edge';
+
 /**
  * 미들웨어 적용 경로 설정
  *
