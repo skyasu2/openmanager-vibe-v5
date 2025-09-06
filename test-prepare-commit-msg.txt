@@ -1,0 +1,4 @@
+prepare-commit-msg hook 테스트 파일
+생성 시간: $(date +"%Y-%m-%d %H:%M:%S")
+
+이 커밋으로 CHANGELOG가 자동 업데이트되는지 확인합니다.
