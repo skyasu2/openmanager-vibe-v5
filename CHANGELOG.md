@@ -7,6 +7,285 @@
 > - [CHANGELOG-LEGACY.md](./CHANGELOG-LEGACY.md): v5.0.0 ~ v5.65.6 (2025-05 ~ 2025-08)
 
 
+## [5.76.31] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.30] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.29] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.28] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.27] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.26] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.25] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.24] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.23] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.22] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.21] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.20] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.19] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.18] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.17] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.16] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.15] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.14] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.13] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.12] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.11] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.10] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.9] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.8] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.7] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.6] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.5] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.4] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.3] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.2] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
+## [5.76.1] - 2025-09-06
+
+### 🔧 fix
+
+#### 🐛 Fixed
+
+- **post-commit hook으로 CHANGELOG amend 시스템 구현 - 완전한 자동화**
+
+
 ## [5.76.0] - 2025-09-06
 
 ### ✨ feat
