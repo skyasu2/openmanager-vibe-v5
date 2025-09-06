@@ -7,6 +7,15 @@
 > - [CHANGELOG-LEGACY.md](./CHANGELOG-LEGACY.md): v5.0.0 ~ v5.65.6 (2025-05 ~ 2025-08)
 
 
+## [5.75.2] - 2025-09-06
+
+### 📚 docs
+
+#### 📚 Documentation
+
+- **CHANGELOG.md v5.75.1 자동 업데이트 완료** (commit: b4cf5548)
+
+
 ## [5.75.1] - 2025-09-06
 
 ### 📚 docs
