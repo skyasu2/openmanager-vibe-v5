@@ -365,6 +365,137 @@ export class PostgresVectorDB {
   }
 
   /**
+   * 🔤 키워드 기반 검색 (PostgreSQL Full-Text Search)
+   */
+  async searchByKeywords(
+    keywords: string[],
+    options: {
+      limit?: number;
+      category?: string;
+    } = {}
+  ): Promise<Array<{
+    id: string;
+    content: string;
+    metadata?: DocumentMetadata;
+    score?: number;
+  }>> {
+    try {
+      await this._initialize();
+
+      const { limit = 5, category } = options;
+
+      if (keywords.length === 0) {
+        return [];
+      }
+
+      // PostgreSQL Full-Text Search 쿼리 구성
+      // to_tsvector를 사용하여 텍스트를 tsvector로 변환하고
+      // to_tsquery로 검색 조건을 만들어 검색
+      const tsquery = keywords.map(keyword => keyword.replace(/[^\w가-힣]/g, '')).join(' | ');
+      
+      let query = supabase
+        .from(this.tableName)
+        .select('id, content, metadata')
+        .textSearch('content', tsquery, {
+          type: 'websearch', // 자연어 검색 지원
+        })
+        .limit(limit);
+
+      // 카테고리 필터 적용
+      if (category) {
+        query = query.eq('metadata->category', category);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('키워드 검색 오류:', error);
+        
+        // Fallback: ILIKE 연산자로 부분 문자열 검색
+        return await this.fallbackKeywordSearch(keywords, options);
+      }
+
+      if (!data || data.length === 0) {
+        // Full-Text Search로 결과가 없으면 ILIKE로 폴백
+        return await this.fallbackKeywordSearch(keywords, options);
+      }
+
+      return data.map((row, index) => ({
+        id: row.id,
+        content: row.content,
+        metadata: row.metadata,
+        score: 0.8 - (index * 0.1), // 순서에 따라 점수 부여
+      }));
+    } catch (error) {
+      console.error('❌ 키워드 검색 실패:', error);
+      return await this.fallbackKeywordSearch(keywords, options);
+    }
+  }
+
+  /**
+   * 🔤 키워드 검색 폴백 (ILIKE 연산자 사용)
+   */
+  private async fallbackKeywordSearch(
+    keywords: string[],
+    options: {
+      limit?: number;
+      category?: string;
+    } = {}
+  ): Promise<Array<{
+    id: string;
+    content: string;
+    metadata?: DocumentMetadata;
+    score?: number;
+  }>> {
+    try {
+      const { limit = 5, category } = options;
+
+      // ILIKE 조건 구성 (대소문자 무시 부분 검색)
+      let query = supabase
+        .from(this.tableName)
+        .select('id, content, metadata');
+
+      // 각 키워드에 대해 OR 조건으로 검색
+      if (keywords.length > 0) {
+        const conditions = keywords.map(keyword => `content.ilike.%${keyword}%`);
+        query = query.or(conditions.join(','));
+      }
+
+      // 카테고리 필터 적용
+      if (category) {
+        query = query.eq('metadata->category', category);
+      }
+
+      query = query.limit(limit);
+
+      const { data, error } = await query;
+
+      if (error || !data) {
+        console.error('폴백 키워드 검색 오류:', error);
+        return [];
+      }
+
+      // 매칭된 키워드 수에 따라 점수 계산
+      return data.map(row => {
+        const content = (row.content || '').toLowerCase();
+        const matchCount = keywords.filter(keyword => 
+          content.includes(keyword.toLowerCase())
+        ).length;
+        
+        return {
+          id: row.id,
+          content: row.content,
+          metadata: row.metadata,
+          score: 0.5 + (matchCount / keywords.length) * 0.3, // 0.5 ~ 0.8
+        };
+      }).sort((a, b) => (b.score || 0) - (a.score || 0));
+    } catch (error) {
+      console.error('❌ 폴백 키워드 검색 실패:', error);
+      return [];
+    }
+  }
+
+  /**
    * 📊 문서 가져오기
    */
   async getDocument(id: string): Promise<VectorDocument | null> {

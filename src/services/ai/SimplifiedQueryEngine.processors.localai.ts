@@ -271,6 +271,8 @@ export class LocalAIModeProcessor {
         threshold: 0.5,
         category: options?.category,
         enableMCP: false, // AI 어시스턴트 MCP는 로컬 AI 모드에서 사용하지 않음
+        useLocalEmbeddings: true, // 로컬 AI 모드에서는 항상 로컬 임베딩 사용
+        enableKeywordFallback: true, // 키워드 기반 fallback 활성화
       });
 
       thinkingSteps[thinkingSteps.length - 1].status = 'completed';

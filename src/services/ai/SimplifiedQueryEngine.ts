@@ -350,29 +350,23 @@ export class SimplifiedQueryEngine {
         }
 
         return response;
-      } catch (_timeoutError) {
-        // 타임아웃 시 빠른 폴백
-        console.warn('쿼리 타임아웃, 폴백 모드로 전환');
+      } catch (timeoutError) {
+        // 각 모드 독립적으로 실패 처리 (폴백 제거)
+        const errorMessage = mode === 'google-ai' || enableGoogleAI 
+          ? 'Google AI 모드에서 처리 시간 초과입니다.'
+          : '로컬 AI 모드에서 처리 시간 초과입니다.';
+        
+        console.warn(`${errorMessage} 모드 독립 실패 처리`);
 
-        if (mode === 'google-ai' || enableGoogleAI) {
-          // Google AI timeout fallback to local (delegated to processors)
-          return await this.processors.processLocalAIModeQuery(
-            query,
-            context,
-            options,
-            null, // MCP context skip
-            thinkingSteps,
-            startTime,
-            { enableKoreanNLP: true, enableVMBackend: true }
-          );
-        } else {
-          // Local also failed, generate fallback (delegated to utils)
-          return this.utils.generateFallbackResponse(
-            query,
-            thinkingSteps,
-            startTime
-          );
-        }
+        return {
+          success: false,
+          response: errorMessage,
+          engine: mode === 'local' || mode === 'local-ai' ? 'local-ai' : 'google-ai',
+          confidence: 0,
+          thinkingSteps,
+          error: timeoutError instanceof Error ? timeoutError.message : '타임아웃',
+          processingTime: Date.now() - startTime,
+        };
       }
     } catch (error) {
       console.error('❌ 쿼리 처리 실패:', error);

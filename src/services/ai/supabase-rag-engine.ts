@@ -32,6 +32,8 @@ interface RAGSearchOptions {
   includeContext?: boolean;
   enableMCP?: boolean;
   cached?: boolean;
+  enableKeywordFallback?: boolean; // 키워드 기반 fallback 활성화
+  useLocalEmbeddings?: boolean; // 로컬 임베딩 강제 사용
 }
 
 interface RAGEngineSearchResult {
@@ -193,7 +195,7 @@ class MemoryRAGCache {
 
   private maxEmbeddingSize = 500; // 최대 500개 임베딩 (성능 최적화)
   private maxSearchSize = 100; // 최대 100개 검색 결과 (캐시 히트율 향상)
-  private ttlSeconds = 1800; // 30분 TTL (무료 티어 최적화)
+  private ttlSeconds = 10800; // 3시간 TTL (성능 최적화)
 
   // 임베딩 캐시 관리
   getEmbedding(key: string): number[] | null {
@@ -391,6 +393,153 @@ export class SupabaseRAGEngine {
   }
 
   /**
+   * 🔤 키워드 기반 검색 (벡터 검색 fallback)
+   */
+  async searchByKeywords(
+    query: string,
+    options: {
+      maxResults?: number;
+      category?: string;
+    } = {}
+  ): Promise<RAGSearchResult[]> {
+    const { maxResults = 5, category } = options;
+
+    try {
+      await this._initialize();
+      
+      // 쿼리에서 키워드 추출
+      const keywords = this.extractKeywords(query);
+      if (keywords.length === 0) {
+        return [];
+      }
+
+      // PostgreSQL Full-Text Search 사용
+      const searchResults = await this.vectorDB.searchByKeywords(keywords, {
+        limit: maxResults,
+        category,
+      });
+
+      return searchResults.map((result) => ({
+        id: result.id,
+        content: result.content,
+        similarity: result.score || 0.7, // 키워드 검색은 기본 점수 부여
+        metadata: convertDocumentMetadataToAIMetadata(result.metadata),
+      }));
+    } catch (error) {
+      console.error('❌ 키워드 검색 실패:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 📝 쿼리에서 키워드 추출
+   */
+  private extractKeywords(query: string): string[] {
+    // 한국어와 영어 키워드 추출
+    const normalizedQuery = query.toLowerCase().trim();
+    
+    // 불용어 제거
+    const stopWords = new Set([
+      // 영어 불용어
+      'the', 'is', 'at', 'which', 'on', 'and', 'or', 'but', 'in', 'with', 'a', 'an',
+      'as', 'are', 'was', 'were', 'been', 'be', 'have', 'has', 'had', 'do', 'does', 'did',
+      'will', 'would', 'should', 'could', 'can', 'may', 'might', 'must', 'shall',
+      'to', 'of', 'for', 'by', 'from', 'up', 'about', 'into', 'through', 'during',
+      'before', 'after', 'above', 'below', 'between', 'among', 'this', 'that', 'these', 'those',
+      'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours',
+      'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers',
+      'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves',
+      
+      // 한국어 불용어
+      '이', '그', '저', '의', '가', '이가', '에서', '으로', '로', '에', '과', '와', '을', '를',
+      '은', '는', '도', '만', '까지', '부터', '에게', '에게서', '한테', '한테서', '께', '께서',
+      '이다', '있다', '없다', '하다', '되다', '같다', '다르다', '크다', '작다', '많다', '적다',
+      '좋다', '나쁘다', '새롭다', '오래되다', '높다', '낮다', '빠르다', '느리다',
+      '그리고', '하지만', '그러나', '또한', '그래서', '따라서', '그런데', '또는', '혹은',
+      '어떤', '무엇', '누구', '어디', '언제', '왜', '어떻게', '얼마나',
+    ]);
+
+    // 단어 분리 및 정제
+    const words = normalizedQuery
+      .replace(/[^\w\s가-힣]/g, ' ') // 특수문자 제거
+      .split(/\s+/)
+      .filter(word => 
+        word.length > 1 && // 1글자 이상
+        word.length < 20 && // 20글자 미만
+        !stopWords.has(word) && // 불용어 제외
+        !/^\d+$/.test(word) // 순수 숫자 제외
+      )
+      .slice(0, 10); // 최대 10개 키워드
+
+    return [...new Set(words)]; // 중복 제거
+  }
+
+  /**
+   * 🔍 하이브리드 검색 (벡터 + 키워드)
+   */
+  async searchHybrid(
+    query: string,
+    options: RAGSearchOptions = {}
+  ): Promise<RAGEngineSearchResult> {
+    const startTime = Date.now();
+    
+    try {
+      const { maxResults = 5, enableKeywordFallback = true } = options;
+      
+      // 1차: 벡터 검색 시도
+      const vectorResults = await this.searchSimilar(query, {
+        ...options,
+        enableKeywordFallback: false, // 무한 루프 방지
+      });
+
+      // 벡터 검색 결과가 충분하면 반환
+      if (vectorResults.success && vectorResults.results.length >= Math.ceil(maxResults / 2)) {
+        return vectorResults;
+      }
+
+      // 2차: 키워드 검색으로 보완
+      if (enableKeywordFallback) {
+        const keywordResults = await this.searchByKeywords(query, {
+          maxResults: Math.max(maxResults - vectorResults.results.length, 2),
+          category: options.category,
+        });
+
+        // 결과 합성 (중복 제거)
+        const combinedResults = [...vectorResults.results];
+        const existingIds = new Set(vectorResults.results.map(r => r.id));
+
+        for (const keywordResult of keywordResults) {
+          if (!existingIds.has(keywordResult.id) && combinedResults.length < maxResults) {
+            combinedResults.push(keywordResult);
+          }
+        }
+
+        return {
+          success: true,
+          results: combinedResults,
+          totalResults: combinedResults.length,
+          processingTime: Date.now() - startTime,
+          cached: false,
+          context: vectorResults.context,
+          mcpContext: vectorResults.mcpContext,
+        };
+      }
+
+      return vectorResults;
+    } catch (error) {
+      console.error('❌ 하이브리드 검색 실패:', error);
+      return {
+        success: false,
+        results: [],
+        totalResults: 0,
+        processingTime: Date.now() - startTime,
+        cached: false,
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
+      };
+    }
+  }
+
+  /**
    * 🔍 유사 문서 검색
    */
   async searchSimilar(
@@ -435,8 +584,8 @@ export class SupabaseRAGEngine {
         }
       }
 
-      // 1. 쿼리 임베딩 생성
-      const queryEmbedding = await this.generateEmbedding(query);
+      // 1. 쿼리 임베딩 생성 (로컬 임베딩 옵션 전달)
+      const queryEmbedding = await this.generateEmbedding(query, options.useLocalEmbeddings);
       if (!queryEmbedding) {
         throw new Error('임베딩 생성 실패');
       }
@@ -527,20 +676,21 @@ export class SupabaseRAGEngine {
   }
 
   /**
-   * 🧠 임베딩 생성
+   * 🧠 임베딩 생성 (로컬/클라우드 모드 지원)
    */
-  async generateEmbedding(text: string): Promise<number[] | null> {
-    // 메모리 캐시 확인
-    const cacheKey = `embed:${text}`;
+  async generateEmbedding(text: string, useLocalEmbeddings?: boolean): Promise<number[] | null> {
+    // 메모리 캐시 확인 (로컬/클라우드 구분)
+    const cacheKey = `embed:${useLocalEmbeddings ? 'local:' : 'cloud:'}${text}`;
     const cached = this.memoryCache.getEmbedding(cacheKey);
     if (cached) {
       return cached;
     }
 
     try {
-      // 실제 임베딩 서비스 사용
+      // 실제 임베딩 서비스 사용 (로컬 옵션 전달)
       const embedding = await embeddingService.createEmbedding(text, {
         dimension: this.EMBEDDING_DIMENSION,
+        useLocal: useLocalEmbeddings,
       });
 
       // 메모리 캐시 저장

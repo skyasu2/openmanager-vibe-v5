@@ -239,51 +239,12 @@
       "ENABLE_QA_TESTS": "false"
     }
   },
-  "crons": [
-    {
-      "path": "/api/cron/cleanup",
-      "schedule": "0 0 * * *"
-    }
-  ],
   "functions": {
-    "src/app/api/mcp/route.ts": {
-      "maxDuration": 10
-    },
-    "src/app/api/mcp/query/route.ts": {
-      "maxDuration": 15
-    },
-    "src/app/api/ai/query/route.ts": {
-      "maxDuration": 10
-    },
-    "src/app/api/ai/edge-v2/route.ts": {
-      "maxDuration": 10
-    },
-    "src/app/api/ai/google-ai/generate/route.ts": {
-      "maxDuration": 10
-    },
-    "src/app/api/servers/route.ts": {
+    "src/app/api/*/route.ts": {
       "maxDuration": 10
     },
     "src/app/api/servers/all/route.ts": {
       "maxDuration": 30
-    },
-    "src/app/api/health/route.ts": {
-      "maxDuration": 5
-    },
-    "src/app/api/cache/*/route.ts": {
-      "maxDuration": 5
-    },
-    "src/app/api/version/*/route.ts": {
-      "maxDuration": 5
-    },
-    "src/app/api/security/csp-report/route.ts": {
-      "maxDuration": 5
-    },
-    "src/app/api/debug/env/route.ts": {
-      "maxDuration": 5
-    },
-    "src/app/api/gcp-vm-data/route.ts": {
-      "maxDuration": 10
     },
     "src/middleware.ts": {
       "runtime": "edge"
