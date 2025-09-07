@@ -296,7 +296,7 @@ export function validateIpRange(
 ): boolean {
   const ipToNumber = (ip: string) => {
     const parts = ip.split('.').map(Number);
-    return (parts[0] << 24) + (parts[1] << 16) + (parts[2] << 8) + parts[3];
+    return ((parts[0] ?? 0) << 24) + ((parts[1] ?? 0) << 16) + ((parts[2] ?? 0) << 8) + (parts[3] ?? 0);
   };
 
   const ipNum = ipToNumber(ip);

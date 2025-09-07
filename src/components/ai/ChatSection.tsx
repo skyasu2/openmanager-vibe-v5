@@ -77,24 +77,43 @@ const levenshteinDistance = (str1: string, str2: string): number => {
     .fill(null)
     .map(() => Array(str1.length + 1).fill(null));
 
-  for (let i = 0; i <= str1.length; i++) matrix[0][i] = i;
-  for (let j = 0; j <= str2.length; j++) matrix[j][0] = j;
+  for (let i = 0; i <= str1.length; i++) {
+    const row = matrix[0];
+    if (row) row[i] = i;
+  }
+  for (let j = 0; j <= str2.length; j++) {
+    const row = matrix[j];
+    if (row) row[0] = j;
+  }
 
   for (let j = 1; j <= str2.length; j++) {
     for (let i = 1; i <= str1.length; i++) {
+      const currentRow = matrix[j];
+      const prevRow = matrix[j - 1];
+      
+      if (!currentRow || !prevRow) continue;
+      
       if (str1[i - 1] === str2[j - 1]) {
-        matrix[j][i] = matrix[j - 1][i - 1];
+        const prevValue = prevRow[i - 1];
+        if (prevValue !== undefined) {
+          currentRow[i] = prevValue;
+        }
       } else {
-        matrix[j][i] = Math.min(
-          matrix[j - 1][i - 1] + 1,
-          matrix[j][i - 1] + 1,
-          matrix[j - 1][i] + 1
+        const diag = prevRow[i - 1] ?? 0;
+        const left = currentRow[i - 1] ?? 0;
+        const up = prevRow[i] ?? 0;
+        
+        currentRow[i] = Math.min(
+          diag + 1,
+          left + 1,
+          up + 1
         );
       }
     }
   }
 
-  return matrix[str2.length][str1.length];
+  const lastRow = matrix[str2.length];
+  return lastRow?.[str1.length] ?? 0;
 };
 
 interface _Message {

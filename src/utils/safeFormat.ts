@@ -58,7 +58,7 @@ export function extractDaysFromUptime(uptime: unknown): number {
       // "5 days", "3일" 등의 패턴 매칭
       const dayMatch = uptime.match(/(\d+)\s*(day|일)/i);
       if (dayMatch) {
-        return parseInt(dayMatch[1]) || 0;
+        return parseInt(dayMatch[1] ?? '0') || 0;
       }
 
       // 순수 숫자 문자열인 경우

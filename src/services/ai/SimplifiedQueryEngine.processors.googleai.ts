@@ -92,22 +92,30 @@ export class GoogleAIModeProcessor {
 
         if (koreanRatio > 0.3) {
           // Korean NLP 엔진 (Google AI mode에서는 Gemini API가 자체 처리)
-          thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-          thinkingSteps[thinkingSteps.length - 1].description =
-            `한국어 비율 ${Math.round(koreanRatio * 100)}% - NLP 처리 완료`;
+          const nlpStep = thinkingSteps[thinkingSteps.length - 1];
+          if (nlpStep) {
+            nlpStep.status = 'completed';
+            nlpStep.description = `한국어 비율 ${Math.round(koreanRatio * 100)}% - NLP 처리 완료`;
+          }
         } else {
-          thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-          thinkingSteps[thinkingSteps.length - 1].description =
-            `영어 쿼리 감지 - NLP 건너뛰기`;
+          const nlpEnglishStep = thinkingSteps[thinkingSteps.length - 1];
+          if (nlpEnglishStep) {
+            nlpEnglishStep.status = 'completed';
+            nlpEnglishStep.description = `영어 쿼리 감지 - NLP 건너뛰기`;
+          }
         }
 
-        thinkingSteps[thinkingSteps.length - 1].duration =
-          Date.now() - nlpStepStart;
+        const nlpDurationStep = thinkingSteps[thinkingSteps.length - 1];
+        if (nlpDurationStep) {
+          nlpDurationStep.duration = Date.now() - nlpStepStart;
+        }
       } catch (error) {
         console.warn('한국어 NLP 처리 실패:', error);
-        thinkingSteps[thinkingSteps.length - 1].status = 'failed';
-        thinkingSteps[thinkingSteps.length - 1].duration =
-          Date.now() - nlpStepStart;
+        const nlpFailedStep = thinkingSteps[thinkingSteps.length - 1];
+        if (nlpFailedStep) {
+          nlpFailedStep.status = 'failed';
+          nlpFailedStep.duration = Date.now() - nlpStepStart;
+        }
       }
     }
 
@@ -155,11 +163,12 @@ export class GoogleAIModeProcessor {
 
       const data = await response.json();
 
-      thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-      thinkingSteps[thinkingSteps.length - 1].description =
-        'Gemini API 응답 수신';
-      thinkingSteps[thinkingSteps.length - 1].duration =
-        Date.now() - googleStepStart;
+      const googleStep = thinkingSteps[thinkingSteps.length - 1];
+      if (googleStep) {
+        googleStep.status = 'completed';
+        googleStep.description = 'Gemini API 응답 수신';
+        googleStep.duration = Date.now() - googleStepStart;
+      }
 
       // GCP VM MCP 제거됨 (VM 제거로 인해 불필요)
 
@@ -197,11 +206,12 @@ export class GoogleAIModeProcessor {
       console.error('Google AI 처리 오류:', error);
 
       // 폴백: 로컬 AI 모드로 전환
-      thinkingSteps[thinkingSteps.length - 1].status = 'failed';
-      thinkingSteps[thinkingSteps.length - 1].description =
-        'Google AI 실패, 로컬 AI 모드로 전환';
-      thinkingSteps[thinkingSteps.length - 1].duration =
-        Date.now() - googleStepStart;
+      const googleFailedStep = thinkingSteps[thinkingSteps.length - 1];
+      if (googleFailedStep) {
+        googleFailedStep.status = 'failed';
+        googleFailedStep.description = 'Google AI 실패, 로컬 AI 모드로 전환';
+        googleFailedStep.duration = Date.now() - googleStepStart;
+      }
 
       return await this.localAIProcessor.processLocalAIModeQuery(
         query,

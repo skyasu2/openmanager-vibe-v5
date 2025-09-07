@@ -154,7 +154,10 @@ export const useAIThinking = () => {
       
       // 2초 후 완료
       setTimeout(() => {
-        updateStep(steps[0].id, { status: 'completed' });
+        const firstStep = steps[0];
+        if (firstStep) {
+          updateStep(firstStep.id, { status: 'completed' });
+        }
         completeThinking();
       }, 2000);
     } else {
@@ -187,7 +190,10 @@ export const useAIThinking = () => {
       ];
 
       // 첫 번째 단계 시작
-      addStep(steps[0]);
+      const firstStep = steps[0];
+      if (firstStep) {
+        addStep(firstStep);
+      }
       
       // 단계별 진행 시뮬레이션
       steps.forEach((step, index) => {
@@ -196,7 +202,10 @@ export const useAIThinking = () => {
           
           // 이전 단계 완료
           if (index > 0) {
-            updateStep(steps[index - 1].id, { status: 'completed' });
+            const prevStep = steps[index - 1];
+            if (prevStep) {
+              updateStep(prevStep.id, { status: 'completed' });
+            }
           }
           
           // 마지막 단계면 전체 완료

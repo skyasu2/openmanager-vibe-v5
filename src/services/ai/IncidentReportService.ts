@@ -255,9 +255,10 @@ export class IncidentReportService {
     // 심각도 우선순위
     const severityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
 
-    return incidents.sort(
+    const sortedIncidents = incidents.sort(
       (a, b) => severityOrder[b.severity] - severityOrder[a.severity]
-    )[0];
+    );
+    return sortedIncidents[0] ?? null;
   }
 
   /**
@@ -533,15 +534,15 @@ export class IncidentReportService {
 
     for (const metric of metrics) {
       if (metric.cpu > 90 || metric.memory > 90) {
-        groups.critical.push(metric);
+        groups.critical?.push(metric);
       } else if (metric.cpu > 80 || metric.memory > 80) {
-        groups.high.push(metric);
+        groups.high?.push(metric);
       } else if (metric.cpu > 70 || metric.memory > 70) {
-        groups.medium.push(metric);
+        groups.medium?.push(metric);
       } else if (metric.cpu > 60 || metric.memory > 60) {
-        groups.low.push(metric);
+        groups.low?.push(metric);
       } else {
-        groups.normal.push(metric);
+        groups.normal?.push(metric);
       }
     }
 

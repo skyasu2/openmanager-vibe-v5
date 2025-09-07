@@ -435,6 +435,14 @@ export class PerformanceMonitor {
     const first = measurements[0];
     const last = measurements[measurements.length - 1];
 
+    if (!first || !last) {
+      return {
+        responseTime: '0%',
+        memory: '0%',
+        accuracy: '0%',
+      };
+    }
+
     const responseTimeImprovement = Math.round(
       ((first.responseTime.responseTime - last.responseTime.responseTime) /
         first.responseTime.responseTime) *

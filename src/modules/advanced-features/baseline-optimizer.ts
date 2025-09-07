@@ -239,6 +239,18 @@ export class BaselineOptimizer {
     const config =
       this.HIGH_LOAD_CONFIGS[role] || this.HIGH_LOAD_CONFIGS['web'];
 
+    if (!config) {
+      // 기본값 반환
+      return {
+        cpu: 50,
+        memory: 60,
+        disk: 40,
+        networkIn: 100,
+        networkOut: 80,
+        responseTime: 200,
+      };
+    }
+
     // 상태별 조정
     const statusMultiplier =
       status === 'critical' ? 0.3 : status === 'warning' ? 0.7 : 1.0;

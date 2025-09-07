@@ -48,7 +48,11 @@ export const ProfileAvatar = memo(function ProfileAvatar({
 
     const words = name.split(' ');
     if (words.length >= 2) {
-      return (words[0][0] + words[1][0]).toUpperCase();
+      const firstWord = words[0];
+      const secondWord = words[1];
+      if (firstWord && secondWord && firstWord[0] && secondWord[0]) {
+        return (firstWord[0] + secondWord[0]).toUpperCase();
+      }
     }
     return name.substring(0, 2).toUpperCase();
   };

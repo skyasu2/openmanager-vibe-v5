@@ -178,6 +178,9 @@ export function generateMockServerData(): MockServerData {
     // 현재 시점의 메트릭 (랜덤 시작점)
     const currentIndex = Math.floor(Math.random() * fullData.length);
     const currentMetrics = fullData[currentIndex];
+    if (!currentMetrics) {
+      return; // forEach에서는 return 사용
+    }
 
     // Server 객체 생성
     servers.push(convertToServerType(mockServer, currentMetrics));
@@ -253,6 +256,14 @@ export function selectRandomScenario(): {
 
   const selected =
     scenarioGroups[Math.floor(Math.random() * scenarioGroups.length)];
+
+  if (!selected) {
+    return {
+      scenario: 'normal',
+      startHour: 0,
+      description: '정상 운영 상태',
+    };
+  }
 
   // 선택된 시나리오 적용
   Object.entries(selected.servers).forEach(([serverId, scenario]) => {

@@ -335,6 +335,9 @@ export function generateFixedHourlyData(): HourlyServerState[] {
 
   for (let hour = 0; hour < 24; hour++) {
     const hourPattern = HOURLY_INCIDENT_ROTATION[hour];
+    if (!hourPattern) {
+      continue; // Skip hours without pattern data
+    }
 
     for (const serverId of allServerIds) {
       let status: 'online' | 'warning' | 'critical' = 'online';
@@ -360,6 +363,9 @@ export function generateFixedHourlyData(): HourlyServerState[] {
 
       // 메트릭 계산
       const baseline = SERVER_BASELINES[serverId];
+      if (!baseline) {
+        continue; // Skip servers without baseline data
+      }
       const metrics = adjustMetricsForIncident(baseline, status, hour);
 
       data.push({

@@ -175,13 +175,16 @@ export class ImprovedQueryEngine {
         });
 
         if (result.results.length > 0) {
-          this.memoryCache.set(cacheKey, {
-            response: result.results[0].content,
-            engine: 'local-rag',
-            confidence: 0.8,
-            timestamp: Date.now(),
-            ttl: this.DEFAULT_TTL * 2, // 더 긴 TTL
-          });
+          const firstResult = result.results[0];
+          if (firstResult) {
+            this.memoryCache.set(cacheKey, {
+              response: firstResult.content,
+              engine: 'local-rag',
+              confidence: 0.8,
+              timestamp: Date.now(),
+              ttl: this.DEFAULT_TTL * 2, // 더 긴 TTL
+            });
+          }
         }
       }
     } catch {
@@ -396,10 +399,13 @@ export class ImprovedQueryEngine {
   ): void {
     if (this.memoryCache.size >= this.MAX_CACHE_SIZE) {
       // LRU 정책: 가장 오래된 항목 제거
-      const oldestKey = Array.from(this.memoryCache.entries()).sort(
+      const sortedEntries = Array.from(this.memoryCache.entries()).sort(
         (a, b) => a[1].timestamp - b[1].timestamp
-      )[0][0];
-      this.memoryCache.delete(oldestKey);
+      );
+      const oldestEntry = sortedEntries[0];
+      if (oldestEntry) {
+        this.memoryCache.delete(oldestEntry[0]);
+      }
     }
 
     const cacheKey = this.getCacheKey(query, mode);
@@ -500,7 +506,11 @@ export class ImprovedQueryEngine {
       return '관련된 정보를 찾을 수 없습니다.';
     }
 
-    let response = ragResult.results[0].content;
+    const firstResult = ragResult.results[0];
+    if (!firstResult) {
+      return '관련된 정보를 찾을 수 없습니다.';
+    }
+    let response = firstResult.content;
 
     if (ragResult.results.length > 1) {
       response += '\n\n추가 정보:\n';
@@ -526,7 +536,9 @@ export class ImprovedQueryEngine {
   }): number {
     if (ragResult.results.length === 0) return 0.1;
 
-    const topSimilarity = ragResult.results[0].similarity;
+    const firstResult = ragResult.results[0];
+    if (!firstResult) return 0.1;
+    const topSimilarity = firstResult.similarity;
     const resultCount = ragResult.results.length;
 
     const confidence =

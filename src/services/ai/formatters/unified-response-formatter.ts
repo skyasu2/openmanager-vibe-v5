@@ -307,6 +307,9 @@ export class UnifiedResponseFormatter {
     }
 
     const topResult = results[0];
+    if (!topResult) {
+      return '관련된 정보를 찾을 수 없습니다.';
+    }
     const answer = topResult.content;
 
     if (results.length > 1) {
@@ -351,7 +354,10 @@ export class UnifiedResponseFormatter {
         ) {
           const data = response.data as SupabaseRAGResponse;
           if (data.results.length > 0) {
-            confidences.push(data.results[0].similarity);
+            const firstResult = data.results[0];
+            if (firstResult) {
+              confidences.push(firstResult.similarity);
+            }
           }
         }
         // GCP 응답
@@ -385,7 +391,11 @@ export class UnifiedResponseFormatter {
     let confidence = 0;
 
     for (let i = 0; i < Math.min(results.length, weights.length); i++) {
-      confidence += results[i].similarity * weights[i];
+      const result = results[i];
+      const weight = weights[i];
+      if (result && weight !== undefined) {
+        confidence += result.similarity * weight;
+      }
     }
 
     return confidence;

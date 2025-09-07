@@ -271,19 +271,19 @@ export class AIPerformanceBenchmark {
           : 0,
       medianResponseTime:
         sortedTimes.length > 0
-          ? sortedTimes[Math.floor(sortedTimes.length / 2)]
+          ? sortedTimes[Math.floor(sortedTimes.length / 2)] ?? 0
           : 0,
       p95ResponseTime:
         sortedTimes.length > 0
-          ? sortedTimes[Math.floor(sortedTimes.length * 0.95)]
+          ? sortedTimes[Math.floor(sortedTimes.length * 0.95)] ?? 0
           : 0,
       p99ResponseTime:
         sortedTimes.length > 0
-          ? sortedTimes[Math.floor(sortedTimes.length * 0.99)]
+          ? sortedTimes[Math.floor(sortedTimes.length * 0.99)] ?? 0
           : 0,
-      minResponseTime: sortedTimes.length > 0 ? sortedTimes[0] : 0,
+      minResponseTime: sortedTimes.length > 0 ? sortedTimes[0] ?? 0 : 0,
       maxResponseTime:
-        sortedTimes.length > 0 ? sortedTimes[sortedTimes.length - 1] : 0,
+        sortedTimes.length > 0 ? sortedTimes[sortedTimes.length - 1] ?? 0 : 0,
       cacheHitRate: results.length > 0 ? cachedTests / results.length : 0,
       targetAchieved,
       targetAchievedRate:
@@ -647,7 +647,8 @@ export class AIPerformanceBenchmark {
     const responseTimes: number[] = [];
 
     for (let i = 0; i < testCount; i++) {
-      const query = testQueries[i % testQueries.length];
+      const queryIndex = i % testQueries.length;
+      const query = testQueries[queryIndex] ?? 'default test query';
       const startTime = performance.now();
 
       try {

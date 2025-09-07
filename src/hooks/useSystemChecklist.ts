@@ -57,15 +57,23 @@ export const useSystemChecklist = ({
       const componentId = componentDef.id;
 
       // 로딩 상태 시작
-      setComponents((prev) => ({
-        ...prev,
-        [componentId]: {
-          ...prev[componentId],
-          status: 'loading',
-          startTime: Date.now(),
-          progress: 0,
-        },
-      }));
+      setComponents((prev) => {
+        const existing = prev[componentId];
+        return {
+          ...prev,
+          [componentId]: {
+            id: componentId,
+            status: 'loading' as const,
+            startTime: Date.now(),
+            progress: 0,
+            ...(existing && {
+              completedTime: existing.completedTime,
+              error: existing.error,
+              networkInfo: existing.networkInfo,
+            }),
+          },
+        };
+      });
 
       console.log(`🔄 ${componentDef.name} 체크 시작...`);
 
@@ -75,21 +83,22 @@ export const useSystemChecklist = ({
       const _animateProgress = () => {
         setComponents((prev) => {
           const current = prev[componentId];
-          if (current.status === 'loading' && current.progress < 90) {
-            const increment = Math.random() * 15 + 5; // 5-20% 증가
-            const newProgress = Math.min(current.progress + increment, 90);
-
-            animationFrame = requestAnimationFrame(_animateProgress);
-
-            return {
-              ...prev,
-              [componentId]: {
-                ...current,
-                progress: newProgress,
-              },
-            };
+          if (!current || current.status !== 'loading' || current.progress >= 90) {
+            return prev;
           }
-          return prev;
+          
+          const increment = Math.random() * 15 + 5; // 5-20% 증가
+          const newProgress = Math.min(current.progress + increment, 90);
+
+          animationFrame = requestAnimationFrame(_animateProgress);
+
+          return {
+            ...prev,
+            [componentId]: {
+              ...current,
+              progress: newProgress,
+            },
+          };
         });
       };
 
@@ -110,15 +119,23 @@ export const useSystemChecklist = ({
         }
 
         if (checkResult) {
-          setComponents((prev) => ({
-            ...prev,
-            [componentId]: {
-              ...prev[componentId],
-              status: 'completed',
-              progress: 100,
-              completedTime: Date.now(),
-            },
-          }));
+          setComponents((prev) => {
+            const existing = prev[componentId];
+            return {
+              ...prev,
+              [componentId]: {
+                id: componentId,
+                status: 'completed' as const,
+                progress: 100,
+                completedTime: Date.now(),
+                ...(existing && {
+                  startTime: existing.startTime,
+                  error: existing.error,
+                  networkInfo: existing.networkInfo,
+                }),
+              },
+            };
+          });
           console.log(
             `✅ ${componentDef.name} 완료 (${Date.now() - (components[componentId]?.startTime || Date.now())}ms)`
           );
@@ -133,15 +150,23 @@ export const useSystemChecklist = ({
         const errorMessage =
           error instanceof Error ? error.message : '알 수 없는 오류';
 
-        setComponents((prev) => ({
-          ...prev,
-          [componentId]: {
-            ...prev[componentId],
-            status: 'failed',
-            progress: 0,
-            error: errorMessage,
-          },
-        }));
+        setComponents((prev) => {
+          const existing = prev[componentId];
+          return {
+            ...prev,
+            [componentId]: {
+              id: componentId,
+              status: 'failed' as const,
+              progress: 0,
+              error: errorMessage,
+              ...(existing && {
+                startTime: existing.startTime,
+                completedTime: existing.completedTime,
+                networkInfo: existing.networkInfo,
+              }),
+            },
+          };
+        });
 
         console.error(`❌ ${componentDef.name} 실패:`, errorMessage);
         return; // Ensure all code paths return a value

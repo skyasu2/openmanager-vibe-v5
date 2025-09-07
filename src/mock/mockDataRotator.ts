@@ -74,10 +74,27 @@ export class MockDataRotator {
 
     this.currentIndex = this.calculateCurrentIndex();
     const current = data[this.currentIndex];
+    
+    // 데이터 안전성 확인
+    if (!current) {
+      return { cpu: 0, memory: 0, disk: 0, network: 0 };
+    }
 
     // 다음 포인트와 보간하여 부드러운 전환
     const nextIndex = (this.currentIndex + 1) % data.length;
     const next = data[nextIndex];
+    
+    // next가 없으면 current 값 그대로 사용
+    if (!next) {
+      return {
+        cpu: current.cpu,
+        memory: current.memory,
+        disk: current.disk,
+        network: current.network,
+        responseTime: current.responseTime ?? 0,
+        errorRate: current.errorRate ?? 0,
+      };
+    }
 
     // 시간 내 위치 계산 (0-1)
     const elapsed = Date.now() - this.startTime;
@@ -93,8 +110,8 @@ export class MockDataRotator {
       disk: current.disk + (next.disk - current.disk) * intervalProgress,
       network:
         current.network + (next.network - current.network) * intervalProgress,
-      responseTime: current.responseTime,
-      errorRate: current.errorRate,
+      responseTime: current.responseTime ?? 0,
+      errorRate: current.errorRate ?? 0,
     };
   }
 

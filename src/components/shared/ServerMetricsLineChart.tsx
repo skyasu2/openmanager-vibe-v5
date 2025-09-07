@@ -205,15 +205,25 @@ export default function ServerMetricsLineChart({
     }));
 
     // Create smooth path using cubic bezier curves
-    let path = `M ${points[0].x} ${points[0].y}`;
+    if (points.length === 0) return { path: '', points: [] };
+    
+    const firstPoint = points[0];
+    if (!firstPoint) return { path: '', points: [] };
+    
+    let path = `M ${firstPoint.x} ${firstPoint.y}`;
 
     for (let i = 1; i < points.length; i++) {
-      const cp1x = (points[i - 1].x + points[i].x) / 2;
-      const cp1y = points[i - 1].y;
+      const prevPoint = points[i - 1];
+      const currentPoint = points[i];
+      
+      if (!prevPoint || !currentPoint) continue;
+      
+      const cp1x = (prevPoint.x + currentPoint.x) / 2;
+      const cp1y = prevPoint.y;
       const cp2x = cp1x;
-      const cp2y = points[i].y;
+      const cp2y = currentPoint.y;
 
-      path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${points[i].x} ${points[i].y}`;
+      path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${currentPoint.x} ${currentPoint.y}`;
     }
 
     return { path, points };
@@ -277,7 +287,7 @@ export default function ServerMetricsLineChart({
 
           {/* 영역 채우기 */}
           <path
-            d={`${path} L ${points[points.length - 1].x} 70 L ${points[0].x} 70 Z`}
+            d={`${path} L ${points[points.length - 1]?.x ?? 0} 70 L ${points[0]?.x ?? 0} 70 Z`}
             fill={`url(#gradient-${type})`}
           />
 
@@ -294,7 +304,7 @@ export default function ServerMetricsLineChart({
           {/* 데이터 포인트 */}
           {points.map((point, index) => {
             const isLast = index === points.length - 1;
-            const dataValue = historicalData[index].value;
+            const dataValue = historicalData[index]?.value ?? 0;
 
             return (
               <g key={index}>
@@ -350,10 +360,10 @@ export default function ServerMetricsLineChart({
           })}
 
           {/* 현재값 펄스 효과 */}
-          {showRealTimeUpdates && (
+          {showRealTimeUpdates && points.length > 0 && (
             <circle
-              cx={points[points.length - 1].x}
-              cy={points[points.length - 1].y}
+              cx={points[points.length - 1]?.x ?? 0}
+              cy={points[points.length - 1]?.y ?? 0}
               r="6"
               fill="none"
               stroke={config.lineColor}

@@ -241,8 +241,8 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
 
     // 4. 결과 처리
     const mcpContext = mcpContextPromise
-      ? taskResults[0].status === 'fulfilled'
-        ? taskResults[0].value
+      ? taskResults[0]?.status === 'fulfilled'
+        ? (taskResults[0] as PromiseFulfilledResult<unknown>).value
         : null
       : null;
 
@@ -621,7 +621,9 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       // RAG 결과가 있으면 그를 기반으로 응답 생성
       if (ragResult && ragResult.results && ragResult.results.length > 0) {
         const topResult = ragResult.results[0];
-        return `질문에 대한 답변: ${topResult.content || topResult.text || '관련 정보를 찾았습니다.'}`;
+        if (topResult) {
+          return `질문에 대한 답변: ${(topResult as any).content || (topResult as any).text || '관련 정보를 찾았습니다.'}`;
+        }
       }
 
       // MCP 컨텍스트가 있으면 활용

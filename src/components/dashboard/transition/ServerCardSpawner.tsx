@@ -172,6 +172,9 @@ const ServerCardSpawner: FC<ServerCardSpawnerProps> = memo(
       }
 
       const currentGroup = groupedServers[currentGroupIndex];
+      if (!currentGroup) {
+        return;
+      }
 
       if (currentServerInGroup >= currentGroup.servers.length) {
         // 현재 그룹 완료, 다음 그룹으로
@@ -181,6 +184,9 @@ const ServerCardSpawner: FC<ServerCardSpawnerProps> = memo(
       }
 
       const serverToSpawn = currentGroup.servers[currentServerInGroup];
+      if (!serverToSpawn) {
+        return;
+      }
 
       // 서버 스폰 처리
       setSpawnedServers((prev) => new Set([...prev, serverToSpawn.id]));
@@ -335,9 +341,9 @@ const ServerCardSpawner: FC<ServerCardSpawnerProps> = memo(
               color: '#bbf7d0',
               marginBottom: '2rem',
             }}
-            key={currentGroup.message}
+            key={currentGroup?.message}
           >
-            {currentGroup.message}
+            {currentGroup?.message ?? '서버를 초기화하고 있습니다...'}
           </p>
 
           {/* 전체 진행률 */}

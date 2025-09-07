@@ -42,7 +42,7 @@ export class TokenUsageManager {
       total: 0,
       byUser: new Map<string, number>(),
     };
-    this.lastResetDate = new Date().toISOString().split('T')[0];
+    this.lastResetDate = new Date().toISOString().split('T')[0] ?? new Date().toDateString();
   }
 
   /**
@@ -138,7 +138,7 @@ export class TokenUsageManager {
    * 일일 리셋 확인 및 수행
    */
   private checkDailyReset(): void {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0] ?? new Date().toDateString();
     
     if (today !== this.lastResetDate) {
       this.resetDailyLimits();
@@ -189,6 +189,6 @@ export class TokenUsageManager {
       total: 0,
       byUser: new Map<string, number>(),
     };
-    this.lastResetDate = new Date().toISOString().split('T')[0];
+    this.lastResetDate = new Date().toISOString().split('T')[0] ?? new Date().toDateString();
   }
 }

@@ -221,11 +221,12 @@ export class SimplifiedQueryEngine {
       );
 
       if (isCommandQuery) {
-        thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-        thinkingSteps[thinkingSteps.length - 1].description =
-          '명령어 쿼리로 감지됨';
-        thinkingSteps[thinkingSteps.length - 1].duration =
-          Date.now() - commandStepStart;
+        const commandStep = thinkingSteps[thinkingSteps.length - 1];
+        if (commandStep) {
+          commandStep.status = 'completed';
+          commandStep.description = '명령어 쿼리로 감지됨';
+          commandStep.duration = Date.now() - commandStepStart;
+        }
 
         // Command-specific processing (delegated to processors)
         return await this.processors.processCommandQuery(
@@ -235,11 +236,12 @@ export class SimplifiedQueryEngine {
           startTime
         );
       } else {
-        thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-        thinkingSteps[thinkingSteps.length - 1].description =
-          '일반 쿼리로 판단';
-        thinkingSteps[thinkingSteps.length - 1].duration =
-          Date.now() - commandStepStart;
+        const generalStep = thinkingSteps[thinkingSteps.length - 1];
+        if (generalStep) {
+          generalStep.status = 'completed';
+          generalStep.description = '일반 쿼리로 판단';
+          generalStep.duration = Date.now() - commandStepStart;
+        }
       }
 
       // 모드별 처리 전환
@@ -271,17 +273,20 @@ export class SimplifiedQueryEngine {
             })
             .then((result) => {
               mcpContext = result;
-              thinkingSteps[mcpStepIndex].status = 'completed';
-              thinkingSteps[mcpStepIndex].description =
-                `${result?.files?.length || 0}개 파일 수집`;
-              thinkingSteps[mcpStepIndex].duration =
-                Date.now() - thinkingSteps[mcpStepIndex].timestamp;
+              const mcpStep = thinkingSteps[mcpStepIndex];
+              if (mcpStep) {
+                mcpStep.status = 'completed';
+                mcpStep.description = `${result?.files?.length || 0}개 파일 수집`;
+                mcpStep.duration = Date.now() - mcpStep.timestamp;
+              }
             })
             .catch((error) => {
               console.warn('MCP 컨텍스트 수집 실패:', error);
-              thinkingSteps[mcpStepIndex].status = 'failed';
-              thinkingSteps[mcpStepIndex].duration =
-                Date.now() - thinkingSteps[mcpStepIndex].timestamp;
+              const mcpFailedStep = thinkingSteps[mcpStepIndex];
+              if (mcpFailedStep) {
+                mcpFailedStep.status = 'failed';
+                mcpFailedStep.duration = Date.now() - mcpFailedStep.timestamp;
+              }
             })
         );
       } else if (options.includeMCPContext && !enableAIAssistantMCP) {

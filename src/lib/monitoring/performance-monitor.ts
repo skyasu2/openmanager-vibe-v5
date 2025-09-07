@@ -113,7 +113,8 @@ class PerformanceMonitor {
     if (metrics.length === 0) return 0;
     const sorted = [...metrics].sort((a, b) => a.duration - b.duration);
     const index = Math.ceil(metrics.length * 0.95) - 1;
-    return sorted[index].duration;
+    const metric = sorted[index];
+    return metric?.duration ?? 0;
   }
 
   /**

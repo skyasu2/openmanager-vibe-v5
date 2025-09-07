@@ -53,8 +53,11 @@ export class SupabaseRAGAdapter {
       });
 
       // 생각중 단계 완료
-      thinkingSteps[0].status = 'completed';
-      thinkingSteps[0].duration = Date.now() - thinkingSteps[0].timestamp;
+      const firstStep = thinkingSteps[0];
+      if (firstStep) {
+        firstStep.status = 'completed';
+        firstStep.duration = Date.now() - firstStep.timestamp;
+      }
 
       // 응답 변환
       const response: DistributedResponse<SupabaseRAGResponse> = {
@@ -89,8 +92,11 @@ export class SupabaseRAGAdapter {
 
       return response;
     } catch (error) {
-      thinkingSteps[0].status = 'failed';
-      thinkingSteps[0].duration = Date.now() - thinkingSteps[0].timestamp;
+      const failedStep = thinkingSteps[0];
+      if (failedStep) {
+        failedStep.status = 'failed';
+        failedStep.duration = Date.now() - failedStep.timestamp;
+      }
 
       return {
         id: request.id,
@@ -157,8 +163,11 @@ export class GCPFunctionsAdapter {
       const data = await response.json();
 
       // 생각중 단계 완료
-      thinkingSteps[0].status = 'completed';
-      thinkingSteps[0].duration = Date.now() - thinkingSteps[0].timestamp;
+      const firstStep = thinkingSteps[0];
+      if (firstStep) {
+        firstStep.status = 'completed';
+        firstStep.duration = Date.now() - firstStep.timestamp;
+      }
 
       // 응답 변환
       const result: DistributedResponse<GCPFunctionResponse> = {
@@ -180,8 +189,11 @@ export class GCPFunctionsAdapter {
 
       return result;
     } catch (error) {
-      thinkingSteps[0].status = 'failed';
-      thinkingSteps[0].duration = Date.now() - thinkingSteps[0].timestamp;
+      const failedStep = thinkingSteps[0];
+      if (failedStep) {
+        failedStep.status = 'failed';
+        failedStep.duration = Date.now() - failedStep.timestamp;
+      }
 
       return {
         id: request.id,

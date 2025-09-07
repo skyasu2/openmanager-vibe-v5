@@ -33,16 +33,18 @@ interface TooltipProps {
 const AvailabilityTooltip = memo(({ active, payload }: TooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0];
-    const total = payload[0].payload.value + (payload[1]?.payload.value || 0);
+    if (!data) return null;
+    
+    const total = (payload[0]?.payload?.value ?? 0) + (payload[1]?.payload?.value ?? 0);
     const percentage =
       total > 0 ? ((data.value / total) * 100).toFixed(1) : '0.0';
 
     return (
       <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
-        <p className="font-semibold text-gray-800">{data.name}</p>
+        <p className="font-semibold text-gray-800">{data.name ?? '알 수 없음'}</p>
         <div className="space-y-1">
           <p style={{ color: data.color }} className="text-sm">
-            서버 수: {data.value}개
+            서버 수: {data.value ?? 0}개
           </p>
           <p className="text-xs text-gray-600">비율: {percentage}%</p>
         </div>

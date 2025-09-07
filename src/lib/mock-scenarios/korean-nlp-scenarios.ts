@@ -416,21 +416,35 @@ export function generateRandomKoreanQuery(): KoreanNLPScenario {
   const problems = ['응답 지연', '연결 거부', '메모리 부족', '높은 부하'];
 
   const template = templates[Math.floor(Math.random() * templates.length)];
+  if (!template) {
+    return {
+      id: `generated-${Date.now()}`,
+      category: 'technical',
+      input: '시스템 상태 확인 요청',
+      expectedIntent: 'generated_query',
+      expectedEntities: {},
+      difficulty: 'easy',
+    };
+  }
+
+  const serverItem = servers[Math.floor(Math.random() * servers.length)] ?? '웹서버';
+  const metricItem = metrics[Math.floor(Math.random() * metrics.length)] ?? 'CPU';
+  const timeItem = times[Math.floor(Math.random() * times.length)] ?? '지난 시간';
+  const issueItem = issues[Math.floor(Math.random() * issues.length)] ?? '성능 저하';
+  const thresholdItem = thresholds[Math.floor(Math.random() * thresholds.length)] ?? '80%';
+  const actionItem = actions[Math.floor(Math.random() * actions.length)] ?? '확인';
+  const serviceItem = services[Math.floor(Math.random() * services.length)] ?? 'Redis';
+  const problemItem = problems[Math.floor(Math.random() * problems.length)] ?? '응답 지연';
+
   const input = template
-    .replace('{server}', servers[Math.floor(Math.random() * servers.length)])
-    .replace('{metric}', metrics[Math.floor(Math.random() * metrics.length)])
-    .replace('{time}', times[Math.floor(Math.random() * times.length)])
-    .replace('{issue}', issues[Math.floor(Math.random() * issues.length)])
-    .replace(
-      '{threshold}',
-      thresholds[Math.floor(Math.random() * thresholds.length)]
-    )
-    .replace('{action}', actions[Math.floor(Math.random() * actions.length)])
-    .replace('{service}', services[Math.floor(Math.random() * services.length)])
-    .replace(
-      '{problem}',
-      problems[Math.floor(Math.random() * problems.length)]
-    );
+    .replace('{server}', serverItem)
+    .replace('{metric}', metricItem)
+    .replace('{time}', timeItem)
+    .replace('{issue}', issueItem)
+    .replace('{threshold}', thresholdItem)
+    .replace('{action}', actionItem)
+    .replace('{service}', serviceItem)
+    .replace('{problem}', problemItem);
 
   return {
     id: `generated-${Date.now()}`,

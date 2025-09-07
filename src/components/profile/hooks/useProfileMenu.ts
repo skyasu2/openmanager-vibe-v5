@@ -197,7 +197,7 @@ export function useProfileMenuKeyboard(
           setFocusedIndex((prev) => {
             const currentPos = visibleIndices.indexOf(prev);
             const nextPos = (currentPos + 1) % visibleIndices.length;
-            return visibleIndices[nextPos];
+            return visibleIndices[nextPos] ?? 0;
           });
           break;
 
@@ -207,18 +207,18 @@ export function useProfileMenuKeyboard(
             const currentPos = visibleIndices.indexOf(prev);
             const nextPos =
               currentPos <= 0 ? visibleIndices.length - 1 : currentPos - 1;
-            return visibleIndices[nextPos];
+            return visibleIndices[nextPos] ?? 0;
           });
           break;
 
         case 'Home':
           e.preventDefault();
-          setFocusedIndex(visibleIndices[0]);
+          setFocusedIndex(visibleIndices[0] ?? 0);
           break;
 
         case 'End':
           e.preventDefault();
-          setFocusedIndex(visibleIndices[visibleIndices.length - 1]);
+          setFocusedIndex(visibleIndices[visibleIndices.length - 1] ?? 0);
           break;
       }
     };
@@ -230,8 +230,11 @@ export function useProfileMenuKeyboard(
   // 포커스 설정
   useEffect(() => {
     if (focusedIndex >= 0 && focusedIndex < menuItems.length) {
-      const element = document.getElementById(menuItems[focusedIndex].id);
-      element?.focus();
+      const menuItem = menuItems[focusedIndex];
+      if (menuItem) {
+        const element = document.getElementById(menuItem.id);
+        element?.focus();
+      }
     }
   }, [focusedIndex, menuItems]);
 

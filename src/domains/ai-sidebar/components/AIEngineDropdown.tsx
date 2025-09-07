@@ -29,6 +29,11 @@ export const AIEngineDropdown: FC<AIEngineDropdownProps> = ({
   const selectedEngineInfo =
     availableEngines.find((e) => e.id === selectedEngine) ||
     availableEngines[0];
+  
+  // TypeScript를 위한 안전장치
+  if (!selectedEngineInfo) {
+    return null; // 엔진 정보가 없으면 렌더링하지 않음
+  }
 
   return (
     <div className="relative flex items-center">

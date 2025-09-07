@@ -92,6 +92,11 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
         }
 
         const stage = LOADING_STAGES[stageIndex];
+        if (!stage) {
+          handleFinalComplete();
+          return;
+        }
+        
         debug.log(`📊 ${stage.name} 시작`);
         setCurrentStage(stageIndex);
 
@@ -202,7 +207,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
               key={currentStage}
               className="text-6xl"
             >
-              {currentStageData.icon}
+              {currentStageData?.icon ?? '🚀'}
             </div>
 
             {/* 단계 이름 */}
@@ -210,7 +215,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
               key={`title-${currentStage}`}
               className="text-2xl font-bold text-white"
             >
-              {currentStageData.name}
+              {currentStageData?.name ?? '시스템 시작'}
             </h2>
 
             {/* 진행률 바 */}

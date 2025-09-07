@@ -579,6 +579,8 @@ export function detectAnomalies(
     );
 
     const current = metrics[i];
+    if (!current) continue;
+    
     const zScore = Math.abs((current.value - avg) / stdDev);
 
     // Z-score 기반 이상 감지
@@ -588,12 +590,13 @@ export function detectAnomalies(
       );
 
       if (anomalyPattern) {
+        const firstIndicator = anomalyPattern.indicators[0] ?? '이상';
         anomalies.push({
           timestamp: current.timestamp,
           type: anomalyPattern.type,
           severity: anomalyPattern.severity,
           confidence: Math.min(0.95, zScore / 5),
-          description: `${anomalyPattern.indicators[0]} 감지됨 (Z-score: ${zScore.toFixed(2)})`,
+          description: `${firstIndicator} 감지됨 (Z-score: ${zScore.toFixed(2)})`,
         });
       }
     }
@@ -642,13 +645,22 @@ export function generatePredictions(
 
   // 간단한 이동 평균 기반 예측
   const recentMetrics = historicalMetrics.slice(-24); // 최근 24개 데이터
-  const trend =
-    (recentMetrics[recentMetrics.length - 1].value - recentMetrics[0].value) /
-    recentMetrics.length;
+  const firstMetric = recentMetrics[0];
+  const lastMetric = recentMetrics[recentMetrics.length - 1];
+  
+  if (!firstMetric || !lastMetric) {
+    return [];
+  }
+  
+  const trend = (lastMetric.value - firstMetric.value) / recentMetrics.length;
 
-  const lastTimestamp =
-    historicalMetrics[historicalMetrics.length - 1].timestamp;
-  const lastValue = historicalMetrics[historicalMetrics.length - 1].value;
+  const lastHistoricalMetric = historicalMetrics[historicalMetrics.length - 1];
+  if (!lastHistoricalMetric) {
+    return [];
+  }
+  
+  const lastTimestamp = lastHistoricalMetric.timestamp;
+  const lastValue = lastHistoricalMetric.value;
 
   for (let h = 1; h <= horizonHours; h++) {
     const futureTimestamp = new Date(

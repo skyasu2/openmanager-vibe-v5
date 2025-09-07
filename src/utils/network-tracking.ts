@@ -150,13 +150,16 @@ export const getNetworkStatsByComponent = (): Record<
       };
     }
 
-    stats[request.component].totalRequests++;
-    if (request.success) {
-      stats[request.component].successfulRequests++;
-    } else {
-      stats[request.component].failedRequests++;
+    const componentStat = stats[request.component];
+    if (componentStat) {
+      componentStat.totalRequests++;
+      if (request.success) {
+        componentStat.successfulRequests++;
+      } else {
+        componentStat.failedRequests++;
+      }
+      componentStat.totalResponseTime += request.responseTime;
     }
-    stats[request.component].totalResponseTime += request.responseTime;
   });
 
   // 평균 응답 시간 계산
@@ -172,15 +175,17 @@ export const getNetworkStatsByComponent = (): Record<
 
   Object.keys(stats).forEach((component) => {
     const componentStats = stats[component];
-    result[component] = {
-      totalRequests: componentStats.totalRequests,
-      successfulRequests: componentStats.successfulRequests,
-      failedRequests: componentStats.failedRequests,
-      averageResponseTime:
-        componentStats.totalRequests > 0
-          ? componentStats.totalResponseTime / componentStats.totalRequests
-          : 0,
-    };
+    if (componentStats) {
+      result[component] = {
+        totalRequests: componentStats.totalRequests,
+        successfulRequests: componentStats.successfulRequests,
+        failedRequests: componentStats.failedRequests,
+        averageResponseTime:
+          componentStats.totalRequests > 0
+            ? componentStats.totalResponseTime / componentStats.totalRequests
+            : 0,
+      };
+    }
   });
 
   return result;

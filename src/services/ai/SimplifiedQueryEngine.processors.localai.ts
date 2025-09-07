@@ -214,13 +214,17 @@ export class LocalAIModeProcessor {
           }
         }
 
-        thinkingSteps[thinkingSteps.length - 1].duration =
-          Date.now() - nlpStepStart;
+        const currentStep = thinkingSteps[thinkingSteps.length - 1];
+        if (currentStep) {
+          currentStep.duration = Date.now() - nlpStepStart;
+        }
       } catch (error) {
         console.warn('한국어 NLP 처리 및 의도 분류 실패:', error);
-        thinkingSteps[thinkingSteps.length - 1].status = 'failed';
-        thinkingSteps[thinkingSteps.length - 1].duration =
-          Date.now() - nlpStepStart;
+        const failedStep = thinkingSteps[thinkingSteps.length - 1];
+        if (failedStep) {
+          failedStep.status = 'failed';
+          failedStep.duration = Date.now() - nlpStepStart;
+        }
       }
     } else {
       // NLP 비활성화 시에도 IntentClassifier는 실행
@@ -235,11 +239,12 @@ export class LocalAIModeProcessor {
       try {
         intentResult = await this.intentClassifier.classify(query);
 
-        thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-        thinkingSteps[thinkingSteps.length - 1].description =
-          `의도 분류 완료 (의도: ${intentResult.intent}, 카테고리: ${intentResult.category}, 신뢰도: ${Math.round(intentResult.confidence * 100)}%)`;
-        thinkingSteps[thinkingSteps.length - 1].duration =
-          Date.now() - intentStepStart;
+        const intentStep = thinkingSteps[thinkingSteps.length - 1];
+        if (intentStep) {
+          intentStep.status = 'completed';
+          intentStep.description = `의도 분류 완료 (의도: ${intentResult.intent}, 카테고리: ${intentResult.category}, 신뢰도: ${Math.round(intentResult.confidence * 100)}%)`;
+          intentStep.duration = Date.now() - intentStepStart;
+        }
 
         // IntentClassifier 결과 저장
         if (context) {
@@ -255,9 +260,11 @@ export class LocalAIModeProcessor {
         }
       } catch (error) {
         console.warn('의도 분류 실패:', error);
-        thinkingSteps[thinkingSteps.length - 1].status = 'failed';
-        thinkingSteps[thinkingSteps.length - 1].duration =
-          Date.now() - intentStepStart;
+        const intentFailedStep = thinkingSteps[thinkingSteps.length - 1];
+        if (intentFailedStep) {
+          intentFailedStep.status = 'failed';
+          intentFailedStep.duration = Date.now() - intentStepStart;
+        }
       }
     }
 
@@ -281,18 +288,21 @@ export class LocalAIModeProcessor {
         enableKeywordFallback: true, // 키워드 기반 fallback 활성화
       });
 
-      thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-      thinkingSteps[thinkingSteps.length - 1].description =
-        `${ragResult.totalResults}개 관련 문서 발견`;
-      thinkingSteps[thinkingSteps.length - 1].duration =
-        Date.now() - ragStepStart;
+      const ragStep = thinkingSteps[thinkingSteps.length - 1];
+      if (ragStep) {
+        ragStep.status = 'completed';
+        ragStep.description = `${ragResult.totalResults}개 관련 문서 발견`;
+        ragStep.duration = Date.now() - ragStepStart;
+      }
     } catch (ragError) {
       // RAG 검색 실패 시 에러 처리
       console.error('RAG 검색 실패:', ragError);
-      thinkingSteps[thinkingSteps.length - 1].status = 'failed';
-      thinkingSteps[thinkingSteps.length - 1].description = 'RAG 검색 실패';
-      thinkingSteps[thinkingSteps.length - 1].duration =
-        Date.now() - ragStepStart;
+      const ragFailedStep = thinkingSteps[thinkingSteps.length - 1];
+      if (ragFailedStep) {
+        ragFailedStep.status = 'failed';
+        ragFailedStep.description = 'RAG 검색 실패';
+        ragFailedStep.duration = Date.now() - ragStepStart;
+      }
 
       // RAG 실패 시 에러 응답 반환
       return {
@@ -324,9 +334,11 @@ export class LocalAIModeProcessor {
       context
     );
 
-    thinkingSteps[thinkingSteps.length - 1].status = 'completed';
-    thinkingSteps[thinkingSteps.length - 1].duration =
-      Date.now() - responseStepStart;
+    const responseStep = thinkingSteps[thinkingSteps.length - 1];
+    if (responseStep) {
+      responseStep.status = 'completed';
+      responseStep.duration = Date.now() - responseStepStart;
+    }
 
     return {
       success: true,

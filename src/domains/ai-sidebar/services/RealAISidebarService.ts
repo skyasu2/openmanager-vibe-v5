@@ -143,7 +143,7 @@ export class RealAISidebarService {
 
       const alertTypes = ['warning', 'error', 'info', 'success'] as const;
       const randomType =
-        alertTypes[Math.floor(Math.random() * alertTypes.length)];
+        alertTypes[Math.floor(Math.random() * alertTypes.length)] ?? 'info';
 
       return {
         id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -262,6 +262,10 @@ export class RealAISidebarService {
 
     for (let index = 0; index < steps.length; index++) {
       const step = steps[index];
+      if (!step) {
+        continue; // Skip undefined steps
+      }
+      
       await new Promise((resolve) =>
         setTimeout(resolve, 800 + Math.random() * 400)
       );

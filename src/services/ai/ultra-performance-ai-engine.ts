@@ -523,10 +523,12 @@ export class UltraPerformanceAIEngine {
 
     // 캐시 크기 제한
     if (this.predictiveCache.size > 50) {
-      const oldestKey = Array.from(this.predictiveCache.entries()).sort(
+      const oldestEntry = Array.from(this.predictiveCache.entries()).sort(
         ([, a], [, b]) => a.createdAt - b.createdAt
-      )[0][0];
-      this.predictiveCache.delete(oldestKey);
+      )[0];
+      if (oldestEntry) {
+        this.predictiveCache.delete(oldestEntry[0]);
+      }
     }
 
     this.predictiveCache.set(key, {
@@ -766,7 +768,7 @@ export class UltraPerformanceAIEngine {
     return {
       totalTests: results.length,
       averageTime: Math.round(avgTime * 100) / 100,
-      p95Time: Math.round(p95Time * 100) / 100,
+      p95Time: p95Time ? Math.round(p95Time * 100) / 100 : 0,
       targetAchieved: targetsAchieved,
       detailedResults: results,
     };
@@ -787,10 +789,14 @@ export class UltraPerformanceAIEngine {
     if (config.predictiveCacheSize) {
       // 예측 캐시 크기 조정
       while (this.predictiveCache.size > config.predictiveCacheSize) {
-        const oldestKey = Array.from(this.predictiveCache.entries()).sort(
+        const oldestEntry = Array.from(this.predictiveCache.entries()).sort(
           ([, a], [, b]) => a.createdAt - b.createdAt
-        )[0][0];
-        this.predictiveCache.delete(oldestKey);
+        )[0];
+        if (oldestEntry) {
+          this.predictiveCache.delete(oldestEntry[0]);
+        } else {
+          break;
+        }
       }
     }
   }

@@ -186,7 +186,7 @@ class EmbeddingService {
     // 간단한 TF-IDF 시뮬레이션
     const tf = tokens.filter(t => t === term).length / tokens.length;
     // IDF는 고정값으로 시뮬레이션 (실제로는 문서 집합이 필요)
-    const idf = Math.log(100 / (1 + Math.abs(term.charCodeAt(0) % 20)));
+    const idf = Math.log(100 / (1 + Math.abs((term ?? '').charCodeAt(0) % 20)));
     
     return tf * idf;
   }
@@ -205,8 +205,10 @@ class EmbeddingService {
     const word2 = tokens[idx2];
     
     // 단어 길이와 첫 글자 기반 관련성 시뮬레이션
-    const lengthSimilarity = 1 - Math.abs(word1.length - word2.length) / Math.max(word1.length, word2.length);
-    const charSimilarity = word1.charCodeAt(0) === word2.charCodeAt(0) ? 0.5 : 0;
+    const safeWord1 = word1 ?? '';
+    const safeWord2 = word2 ?? '';
+    const lengthSimilarity = 1 - Math.abs(safeWord1.length - safeWord2.length) / Math.max(safeWord1.length, safeWord2.length || 1);
+    const charSimilarity = safeWord1.charCodeAt(0) === safeWord2.charCodeAt(0) ? 0.5 : 0;
     
     return (lengthSimilarity + charSimilarity) / 2;
   }
@@ -447,8 +449,9 @@ class EmbeddingService {
             data.embeddings.forEach(
               (embedding: { values: number[] }, i: number) => {
                 const item = toProcess[i];
+                if (!item) return;
+                
                 const values = embedding.values;
-
                 const cacheKey = `${model}_${dimension}_${item.text}`;
                 this.saveToCache(cacheKey, values);
 

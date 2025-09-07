@@ -200,12 +200,17 @@ export class PerformanceTester {
     const sorted = [...recentTimes].sort((a, b) => a - b);
     const len = sorted.length;
 
+    const minValue = sorted[0] ?? 0;
+    const maxValue = sorted[len - 1] ?? 0;
+    const p95Value = sorted[Math.floor(len * 0.95)] ?? maxValue;
+    const p99Value = sorted[Math.floor(len * 0.99)] ?? maxValue;
+
     return {
       average: sorted.reduce((a, b) => a + b, 0) / len,
-      min: sorted[0],
-      max: sorted[len - 1],
-      p95: sorted[Math.floor(len * 0.95)] || sorted[len - 1],
-      p99: sorted[Math.floor(len * 0.99)] || sorted[len - 1],
+      min: minValue,
+      max: maxValue,
+      p95: p95Value,
+      p99: p99Value,
     };
   }
 
@@ -326,8 +331,12 @@ export class PerformanceTester {
 
       try {
         // 랜덤 엔드포인트 선택
-        const endpoint =
-          config.endpoints[Math.floor(Math.random() * config.endpoints.length)];
+        const endpointIndex = Math.floor(Math.random() * config.endpoints.length);
+        const endpoint = config.endpoints[endpointIndex];
+        
+        if (!endpoint) {
+          throw new Error('No valid endpoint found');
+        }
 
         // API 요청 실행
         const response = await fetch(endpoint, {
@@ -404,6 +413,7 @@ export class PerformanceTester {
     if (metrics.length > 0) {
       const recentMetric = metrics[metrics.length - 1];
       if (
+        recentMetric &&
         recentMetric.systemMetrics &&
         recentMetric.systemMetrics.cpuUsage > 80
       ) {
@@ -486,8 +496,8 @@ export class PerformanceTester {
   generatePerformanceReport(testResult: LoadTestResult): string {
     const { config, summary, recommendations, metrics } = testResult;
 
-    const memoryStats =
-      metrics.length > 0 ? metrics[metrics.length - 1].memoryUsage : null;
+    const lastMetric = metrics.length > 0 ? metrics[metrics.length - 1] : undefined;
+    const memoryStats = lastMetric?.memoryUsage ?? null;
 
     return `
 # 🚀 OpenManager 성능 테스트 리포트
@@ -569,7 +579,8 @@ ${this.calculatePerformanceGrade(summary)}
    */
   getCurrentMetrics(): PerformanceMetrics | null {
     const metrics = this.metricsStore.getAllMetrics();
-    return metrics.length > 0 ? metrics[metrics.length - 1] : null;
+    const lastMetric = metrics.length > 0 ? metrics[metrics.length - 1] : undefined;
+    return lastMetric ?? null;
   }
 
   /**

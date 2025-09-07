@@ -502,11 +502,11 @@ export class KoreanTimeUtil {
 
     switch (type) {
       case 'major':
-        return `${major + 1}.0.0`;
+        return `${(major ?? 0) + 1}.0.0`;
       case 'minor':
-        return `${major}.${minor + 1}.0`;
+        return `${major ?? 0}.${(minor ?? 0) + 1}.0`;
       case 'patch':
-        return `${major}.${minor}.${patch + 1}`;
+        return `${major ?? 0}.${minor ?? 0}.${(patch ?? 0) + 1}`;
       default:
         return currentVersion;
     }

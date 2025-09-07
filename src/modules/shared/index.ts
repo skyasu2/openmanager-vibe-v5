@@ -39,8 +39,13 @@ export const checkModuleCompatibility = (
   requiredVersion: string,
   currentVersion: string
 ): boolean => {
-  const [reqMajor, reqMinor] = requiredVersion.split('.').map(Number);
-  const [curMajor, curMinor] = currentVersion.split('.').map(Number);
+  const reqParts = requiredVersion.split('.').map(Number);
+  const curParts = currentVersion.split('.').map(Number);
+  
+  const reqMajor = reqParts[0] ?? 0;
+  const reqMinor = reqParts[1] ?? 0;
+  const curMajor = curParts[0] ?? 0;
+  const curMinor = curParts[1] ?? 0;
 
   return curMajor >= reqMajor && curMinor >= reqMinor;
 };

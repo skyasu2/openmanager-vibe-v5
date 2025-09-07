@@ -307,9 +307,12 @@ export class VercelPlanDetector {
     results.forEach((result) => {
       if (result.plan && result.confidence && result.detectionMethods) {
         const plan = result.plan;
-        planVotes[plan].count++;
-        planVotes[plan].totalConfidence += result.confidence;
-        planVotes[plan].methods.push(...result.detectionMethods);
+        const vote = planVotes[plan];
+        if (vote) {
+          vote.count++;
+          vote.totalConfidence += result.confidence;
+          vote.methods.push(...result.detectionMethods);
+        }
       }
     });
 

@@ -219,6 +219,9 @@ export class AIPerformanceBenchmark {
     // 테스트 실행
     for (let i = 0; i < this.config.sampleSize; i++) {
       const testCase = this.testCases[i % this.testCases.length];
+      if (!testCase) {
+        continue;
+      }
 
       try {
         const startTime = performance.now();
@@ -238,7 +241,9 @@ export class AIPerformanceBenchmark {
 
           // 복잡도별 분류
           const complexity = testCase.expectedComplexity;
-          complexityTimes[complexity].push(responseTime);
+          if (complexityTimes[complexity]) {
+            complexityTimes[complexity].push(responseTime);
+          }
           metrics.complexityBreakdown[complexity].count++;
 
           // 캐시 히트 확인
@@ -589,6 +594,13 @@ export class AIPerformanceBenchmark {
     try {
       const result = await this.runBenchmark();
       const fastRouterResult = result.engineResults[0];
+      if (!fastRouterResult) {
+        return {
+          avgResponseTime: 0,
+          targetAchieved: false,
+          recommendation: '벤치마크 실행 실패',
+        };
+      }
 
       return {
         avgResponseTime: fastRouterResult.avgResponseTime,

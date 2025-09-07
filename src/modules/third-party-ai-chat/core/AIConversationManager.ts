@@ -254,6 +254,9 @@ export class AIConversationManager {
     confidence: number;
   }> {
     const lastMessage = messages[messages.length - 1];
+    if (!lastMessage) {
+      throw new Error('메시지가 없습니다.');
+    }
     const url = `${provider.baseUrl}/models/${provider.model}:generateContent?key=${provider.apiKey}`;
 
     const response = await fetch(url, {
@@ -364,6 +367,9 @@ export class AIConversationManager {
   }> {
     const url = `${provider.baseUrl}/messages`;
     const lastMessage = messages[messages.length - 1];
+    if (!lastMessage) {
+      throw new Error('메시지가 없습니다.');
+    }
 
     const response = await fetch(url, {
       method: 'POST',
@@ -416,6 +422,9 @@ export class AIConversationManager {
   }> {
     const url = `${provider.baseUrl}/generate`;
     const lastMessage = messages[messages.length - 1];
+    if (!lastMessage) {
+      throw new Error('메시지가 없습니다.');
+    }
 
     const response = await fetch(url, {
       method: 'POST',
