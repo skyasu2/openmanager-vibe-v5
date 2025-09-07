@@ -102,7 +102,7 @@ export function useIntersectionLoader(threshold = 0.1) {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && !hasLoaded) {
+        if (entry?.isIntersecting && !hasLoaded) {
           setIsVisible(true);
           setHasLoaded(true);
         }

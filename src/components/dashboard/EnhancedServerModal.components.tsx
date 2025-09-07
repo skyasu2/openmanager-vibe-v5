@@ -108,7 +108,7 @@ export const RealtimeChart: FC<RealtimeChartProps> = ({
           {data.length > 0 && (
             <circle
               cx={((data.length - 1) / Math.max(data.length - 1, 1)) * 100}
-              cy={100 - Math.max(0, Math.min(100, data[data.length - 1]))}
+              cy={100 - Math.max(0, Math.min(100, data[data.length - 1] ?? 0))}
               r="2"
               fill={color}
               className="drop-shadow-sm"

@@ -56,7 +56,9 @@ export function PerformanceMonitor() {
       new PerformanceObserver((entryList) => {
         const entries = entryList.getEntries();
         const lastEntry = entries[entries.length - 1];
-        vitals.lcp = lastEntry.startTime;
+        if (lastEntry) {
+          vitals.lcp = lastEntry.startTime;
+        }
       }).observe({ entryTypes: ['largest-contentful-paint'] });
 
       // FID 측정

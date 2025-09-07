@@ -178,7 +178,9 @@ export class MockScenarioManager {
         >;
         const randomServerScenario =
           serverScenarios[Math.floor(Math.random() * serverScenarios.length)];
-        this.startServerScenario(randomServerScenario);
+        if (randomServerScenario) {
+          this.startServerScenario(randomServerScenario);
+        }
         break;
 
       case 'nlp':
@@ -189,7 +191,9 @@ export class MockScenarioManager {
         const serverTypes = ['web', 'api', 'database', 'cache', 'ml'] as const;
         const randomServerType =
           serverTypes[Math.floor(Math.random() * serverTypes.length)];
-        this.applyMLAnalyticsPattern(randomServerType);
+        if (randomServerType) {
+          this.applyMLAnalyticsPattern(randomServerType);
+        }
         break;
     }
   }

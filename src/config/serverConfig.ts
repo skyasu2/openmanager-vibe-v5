@@ -267,7 +267,7 @@ export function getServerTypeByIndex(index: number): string {
     index >= 0 &&
     index < config.serverTypes.orderedTypes.length
   ) {
-    return config.serverTypes.orderedTypes[index];
+    return config.serverTypes.orderedTypes[index] ?? 'web';
   }
   // 폴백: 기본 타입
   const fallbackTypes = [
@@ -280,7 +280,7 @@ export function getServerTypeByIndex(index: number): string {
     'load-balancer',
     'backup',
   ];
-  return fallbackTypes[index % fallbackTypes.length];
+  return fallbackTypes[index % fallbackTypes.length] ?? 'web';
 }
 
 /**

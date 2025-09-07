@@ -125,8 +125,8 @@ export function getDecryptedRedisConfig(): {
     // 캐시된 결과가 있으면 반환
     if (decryptedCache) {
       return {
-        url: decryptedCache.UPSTASH_REDIS_REST_URL,
-        token: decryptedCache.UPSTASH_REDIS_REST_TOKEN,
+        url: decryptedCache.UPSTASH_REDIS_REST_URL ?? '',
+        token: decryptedCache.UPSTASH_REDIS_REST_TOKEN ?? '',
       };
     }
 

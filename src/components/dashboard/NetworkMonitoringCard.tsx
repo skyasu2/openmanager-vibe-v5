@@ -94,7 +94,7 @@ export const NetworkMonitoringCard = () => {
       return { ...data, timestamp: new Date(Date.now() - (20 - i) * 5000) };
     });
     setHistory(initialData);
-    setCurrentData(initialData[initialData.length - 1]);
+    setCurrentData(initialData[initialData.length - 1] ?? null);
 
     // 5초마다 데이터 업데이트
     const interval = setInterval(() => {

@@ -196,22 +196,28 @@ export const RealTimeLogMonitor: FC<RealTimeLogMonitorProps> = ({
       if (existingIndex !== -1) {
         // 기존 세션 업데이트
         const updated = [...prev];
-        updated[existingIndex] = {
-          ...updated[existingIndex],
-          logCount: updated[existingIndex].logCount + 1,
-          status: log.metadata.sessionEnd
-            ? log.level === 'SUCCESS'
-              ? 'completed'
-              : 'failed'
-            : 'active',
-        };
+        const existingSession = updated[existingIndex];
+        if (existingSession) {
+          updated[existingIndex] = {
+            ...existingSession,
+            logCount: existingSession.logCount + 1,
+            status: log.metadata?.sessionEnd
+              ? log.level === 'SUCCESS'
+                ? 'completed'
+                : 'failed'
+              : 'active',
+          };
+        }
         return updated;
       } else {
+        // sessionId가 없으면 스킵
+        if (!log.sessionId) return prev;
+        
         // 새 세션 추가
         const newSession: SessionInfo = {
           sessionId: log.sessionId,
-          questionId: log.metadata.questionId || 'unknown',
-          question: log.metadata.question || log.message,
+          questionId: log.metadata?.questionId || 'unknown',
+          question: log.metadata?.question || log.message,
           startTime: Date.now(),
           status: 'active',
           logCount: 1,

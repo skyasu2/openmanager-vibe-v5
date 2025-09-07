@@ -140,12 +140,12 @@ export class LoggingService implements ILogger {
       if (line && !line.includes('LoggingService')) {
         const match = line.match(/at\s+(.+?)\s+\(/);
         if (match) {
-          return match[1];
+          return match[1] ?? 'unknown';
         }
         // 파일 경로에서 모듈명 추출
         const fileMatch = line.match(/\/([^/]+)\.ts:/);
         if (fileMatch) {
-          return fileMatch[1];
+          return fileMatch[1] ?? 'unknown';
         }
       }
     }

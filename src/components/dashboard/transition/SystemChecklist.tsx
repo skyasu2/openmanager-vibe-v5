@@ -417,7 +417,7 @@ export default function SystemChecklist({
             ) / debugInfo.networkRequests.length,
           slowestRequest: debugInfo.networkRequests.reduce(
             (slowest, current) =>
-              current.responseTime > slowest.responseTime ? current : slowest,
+              current.responseTime > (slowest?.responseTime ?? 0) ? current : slowest,
             debugInfo.networkRequests[0]
           ),
           failedRequests: debugInfo.networkRequests.filter((r) => !r.success),

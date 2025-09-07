@@ -149,8 +149,10 @@ export function getServerStatistics() {
       stats.byType[info.type]++;
 
       // OS별 통계
-      const osType = info.os.split(' ')[0]; // 첫 단어만 추출
-      stats.byOS[osType] = (stats.byOS[osType] || 0) + 1;
+      const osType = info.os?.split(' ')[0]; // 첫 단어만 추출
+      if (osType) {
+        stats.byOS[osType] = (stats.byOS[osType] || 0) + 1;
+      }
 
       // 전체 명령어 수
       stats.totalCommands += info.commandCount.total;

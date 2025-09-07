@@ -150,9 +150,9 @@ export default function EnhancedServerModal({
             ...prev.logs.slice(-19),
             {
               timestamp: now.toISOString(),
-              level: ['info', 'warn', 'error'][
+              level: (['info', 'warn', 'error'][
                 Math.floor(Math.random() * 3)
-              ] as 'info' | 'warn' | 'error',
+              ] ?? 'info') as 'info' | 'warn' | 'error',
               message: [
                 `${safeServer.name} - HTTP request processed successfully`,
                 `${safeServer.name} - Memory usage above threshold`,
@@ -160,7 +160,7 @@ export default function EnhancedServerModal({
                 `${safeServer.name} - Cache invalidated`,
                 `${safeServer.name} - Backup completed`,
                 `${safeServer.name} - SSL certificate renewed`,
-              ][Math.floor(Math.random() * 6)],
+              ][Math.floor(Math.random() * 6)] ?? `${safeServer.name} - System status normal`,
               source:
                 safeServer.services?.[
                   Math.floor(Math.random() * safeServer.services.length)

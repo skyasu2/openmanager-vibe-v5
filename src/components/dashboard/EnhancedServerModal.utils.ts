@@ -173,8 +173,8 @@ export const formatUptime = (uptimeString: string): string => {
     const hourMatch = uptimeString.match(/(\d+)h/);
     const minuteMatch = uptimeString.match(/(\d+)m/);
 
-    const hours = hourMatch ? parseInt(hourMatch[1], 10) : 0;
-    const minutes = minuteMatch ? parseInt(minuteMatch[1], 10) : 0;
+    const hours = hourMatch ? parseInt(hourMatch[1] ?? '0', 10) : 0;
+    const minutes = minuteMatch ? parseInt(minuteMatch[1] ?? '0', 10) : 0;
 
     // 일 단위로 변환
     const days = Math.floor(hours / 24);

@@ -163,7 +163,7 @@ export function getMetricColorConfig(
   // 서버 상태가 없으면 메트릭 값 기반 판단
   const threshold = METRIC_THRESHOLDS[type];
 
-  if (value >= threshold.critical) {
+  if (threshold && value >= threshold.critical) {
     const colors = SERVER_STATUS_COLORS.critical;
     return {
       lineColor: colors.lineColor,
@@ -176,7 +176,7 @@ export function getMetricColorConfig(
     };
   }
 
-  if (value >= threshold.warning) {
+  if (threshold && value >= threshold.warning) {
     const colors = SERVER_STATUS_COLORS.warning;
     return {
       lineColor: colors.lineColor,
