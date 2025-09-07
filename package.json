@@ -31,7 +31,6 @@
     "build:fallback": "cross-env NODE_OPTIONS='--max-old-space-size=4096' next build || cross-env NODE_OPTIONS='--max-old-space-size=8192' next build",
     "build:vercel": "./.vercel-deploy-check.sh && npm run build:ci && npm run validate:quick",
     "deploy:safe": "./.vercel-deploy-check.sh && npx vercel --prod",
-    "deploy:check": "node scripts/vercel-safe-deploy.js",
     "build:vercel:optimized": "cross-env NODE_OPTIONS='--max-old-space-size=1536' NEXT_DISABLE_DEVTOOLS=1 VERCEL_BUILD_OPTIMIZATION=true next build",
     "start": "next start",
     "start:prod": "cross-env NODE_ENV=production next start",
