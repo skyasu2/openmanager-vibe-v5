@@ -104,10 +104,10 @@ export const createServerDataStore = (
 
         try {
           console.log('🚀 정적 시나리오 데이터 API 호출 시작');
-          console.log('🔗 API 엔드포인트:', '/api/servers/all');
+          console.log('🔗 통합 메트릭 API 엔드포인트:', '/api/metrics/current');
 
           // API 클라이언트 사용 (강화된 디버깅과 함께)
-          const result = await apiGet('/api/servers/all');
+          const result = await apiGet('/api/metrics/current');
 
           console.log('📡 API 응답 수신 완료');
           console.log('📋 응답 타입:', typeof result);
@@ -124,44 +124,56 @@ export const createServerDataStore = (
             // 시나리오 정보는 AI 분석 순수성을 위해 로깅하지 않음
           }
 
-          if (result && result.success && result.data && Array.isArray(result.data)) {
+          if (result && result.success && result.servers && Array.isArray(result.servers)) {
             console.log(
-              '✅ 포트폴리오 시나리오 데이터 수신 성공:',
-              result.data.length,
+              '✅ 통합 메트릭 데이터 수신 성공:',
+              result.servers.length,
               '개 서버'
             );
+            console.log('🕐 데이터 타임스탬프:', new Date(result.timestamp));
+            console.log('⏱️ 24시간 순환 위치:', Math.round(result.metadata?.timeInfo?.hour || 0) + '시');
             
             // 첫 번째 서버 데이터 샘플 로깅
-            if (result.data.length > 0) {
-              const firstServer = result.data[0];
+            if (result.servers.length > 0) {
+              const firstServer = result.servers[0];
               console.log('🔍 첫 번째 서버 데이터 샘플:', {
                 id: firstServer.id,
                 name: firstServer.name,
                 status: firstServer.status,
                 cpu: firstServer.cpu,
-                hasMetrics: !!firstServer.metrics,
+                memory: firstServer.memory,
+                timeSlot: firstServer.metadata?.timeSlot,
+                hasScenarios: !!(firstServer.metadata?.scenarios?.length),
               });
             }
 
-            // 시나리오 정보는 AI 분석 순수성을 위해 로깅하지 않음
+            // 시간 컨텍스트 정보 추가
+            const timeContext = result.metadata?.timeInfo;
+            if (timeContext) {
+              console.log('🔄 24시간 순환 정보:', {
+                hour: timeContext.hour,
+                slot: timeContext.slot10min,
+                validUntil: new Date(timeContext.validUntil)
+              });
+            }
 
             set({
-              servers: result.data,
+              servers: result.servers, // 통합 API는 servers 필드 사용
               isLoading: false,
-              lastUpdate: new Date(),
+              lastUpdate: new Date(result.timestamp), // 정규화된 타임스탬프 사용
               error: null,
             });
 
             console.log('✅ 서버 데이터 Zustand 스토어 업데이트 완료');
             
           } else {
-            console.error('❌ API 응답 구조 문제:', {
+            console.error('❌ 통합 메트릭 API 응답 구조 문제:', {
               hasResult: !!result,
               hasSuccess: !!result?.success,
               successValue: result?.success,
-              hasData: !!result?.data,
-              dataType: typeof result?.data,
-              isDataArray: Array.isArray(result?.data),
+              hasServers: !!result?.servers,
+              serversType: typeof result?.servers,
+              isServersArray: Array.isArray(result?.servers),
             });
             
             throw new Error(

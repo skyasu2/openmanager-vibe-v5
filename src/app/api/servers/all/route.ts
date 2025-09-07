@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { EnhancedServerMetrics } from '@/types/server';
 
-// 🚀 현실적 서버 시뮬레이션 - Box-Muller 캐시 완전 제거
+// 🚀 현실적 서버 시뮬레이션 - FNV-1a 해시 기반 결정론적 메트릭 생성
 // 실제 서버처럼 동작하는 확률적 이벤트 시스템
 
 // 🛡️ 타입 안전성 강화 - any 타입 제거

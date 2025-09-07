@@ -28,6 +28,7 @@ import type {
 } from './SimplifiedQueryEngine.types';
 import { SimplifiedQueryEngineUtils } from './SimplifiedQueryEngine.utils';
 import { SimplifiedQueryEngineHelpers } from './SimplifiedQueryEngine.processors.helpers';
+import { unifiedMetricsService } from './UnifiedMetricsService';
 
 /**
  * 🤖 로컬 AI 모드 프로세서
@@ -327,7 +328,7 @@ export class LocalAIModeProcessor {
       timestamp: responseStepStart,
     });
 
-    const response = this.helpers.generateLocalResponse(
+    const response = await this.helpers.generateLocalResponse(
       query,
       ragResult,
       mcpContext,

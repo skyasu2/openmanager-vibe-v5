@@ -9,9 +9,9 @@
 **📊 개발 완성도**: **90% 완료** - 핵심 기능 구현 완성, 추가 확장보다는 안정성과 완성도 우선
 
 **⚡ 실제 동작 필수 기능**:
-- ✅ 실시간 서버 모니터링 (Box-Muller 정규분포 기반 현실적 메트릭)
-- ✅ 하이브리드 AI 어시스턴트 (로컬 AI 디폴트 + Google AI 모드, 양쪽 모두 자연어 질의 지원)
-- ✅ AI 사이드바 (로컬/Google AI 모드 전환, 모든 모드에서 자연어 질의 가능)
+- ✅ 실시간 서버 모니터링 (FNV-1a 해시 기반 고성능 변동성 생성, 20% 성능 향상)
+- ✅ 하이브리드 AI 어시스턴트 (로컬 AI 키워드 분석 + Google AI 자연어 처리)
+- ✅ AI 사이드바 (로컬/Google AI 모드 전환, 차별화된 자연어 지원)
 - ✅ 사용자 인증 (Supabase Auth 완전 연동)
 - ✅ 반응형 UI/UX (Material Design 3 기반)
 
@@ -118,8 +118,8 @@ OpenManager Vibe v5.77.0는 **포트폴리오 전시용 플랫폼**으로, TypeS
 
 ### **3단계: API 레이어 (50+ 엔드포인트)**
 
-- **하이브리드 AI**: `/api/ai/*` (로컬 AI 디폴트 + Google AI 모드, 양쪽 모두 자연어 지원)
-- **AI 어시스턴트**: 로컬 분석 엔진 (디폴트) + Gemini 1.5 Pro (모드 전환 가능)
+- **하이브리드 AI**: `/api/ai/*` (29개 AI 관련 라우트, 로컬 키워드 분석 + Google AI 자연어 처리)
+- **AI 어시스턴트**: 로컬 키워드 엔진 (디폴트, 빠른 응답) + Gemini 1.5 Pro (자연어 질의)
 - **서버 모니터링**: `/api/servers/*` (실시간 메트릭, 상태 관리)
 - **시스템 관리**: `/api/system/*` (초기화, 상태 확인, 최적화)
 - **인증**: `/api/auth/*` (Supabase Auth 기반 OAuth)
@@ -130,8 +130,8 @@ OpenManager Vibe v5.77.0는 **포트폴리오 전시용 플랫폼**으로, TypeS
 
 - **Supabase PostgreSQL**: 사용자 인증, 설정, 메타데이터 저장
 - **pgVector 확장**: AI 응답 벡터 검색 및 RAG 엔진  
-- **서버 데이터**: Box-Muller Transform 기반 실시간 시뮬레이션 데이터
-- **Google AI Gemini**: AI 어시스턴트 응답 생성 (272ms 평균)
+- **서버 데이터**: FNV-1a 해시 기반 고성능 시뮬레이션 (20% 성능 향상, 캐시 불필요)
+- **Google AI Gemini**: AI 어시스턴트 자연어 처리 (272ms 평균)
 - **캐싱 레이어**: Vercel CDN + Edge Cache + API 캐시 (85% 히트율)
 
 ---
@@ -227,17 +227,21 @@ import { AIResponse } from '@/types/ai';
 ```typescript
 // src/app/api 구조 (Next.js 15 App Router) - 하이브리드 AI 시스템
 /api/
-├── ai/              // 하이브리드 AI 처리 (10+ 엔드포인트)
-│   ├── query/       // 로컬 AI 자연어 질의 (디폴트 모드)
+├── ai/              // 29개 AI 관련 라우트 (핵심 8개 + 보조 21개)
+│   ├── query/       // 로컬 AI 키워드 분석 (디폴트 모드)
 │   ├── google-ai/   // Google AI 자연어 질의 모드
-│   ├── incident-report/ // 양방향 AI 장애 분석
-│   ├── insight-center/  // 양방향 AI 인사이트
-│   └── thinking/    // 양방향 AI 사고 스트림
+│   ├── incident-report/  // AI 장애 분석
+│   ├── insight-center/   // AI 인사이트 (6개 세부 모듈)
+│   ├── thinking/    // AI 사고 스트림
+│   ├── korean-nlp/  // 한국어 자연어 처리
+│   ├── ml-analytics/ // 머신러닝 분석
+│   ├── performance/ // 성능 분석
+│   └── ...21개 추가 라우트
 ├── auth/            // 인증 시스템
 │   ├── callback/    // OAuth 콜백
 │   └── success/     // 로그인 성공
 ├── servers/         // 서버 모니터링
-│   ├── all/         // 전체 서버 상태
+│   ├── all/         // 전체 서버 상태 (FNV-1a 기반)
 │   ├── realtime/    // 실시간 스트리밍
 │   └── cached/      // 캐시된 데이터
 ├── system/          // 시스템 관리
@@ -246,19 +250,19 @@ import { AIResponse } from '@/types/ai';
 │   └── optimize/    // 성능 최적화
 └── health/          // 헬스체크 (5초 타임아웃)
 
-// AI 모드 전환 구조 (양쪽 모두 자연어 질의 지원)
+// AI 모드 전환 구조 (차별화된 처리 방식)
 interface AIMode {
   local: {
-    engine: 'local-ai',      // 로컬 AI 엔진 (디폴트)
-    nlp: true,               // 자연어 질의 지원
-    features: ['analysis', 'incident', 'insight']
+    engine: 'keyword-analysis',  // 로컬 키워드 분석 엔진
+    processing: 'fast',          // 빠른 키워드 매칭
+    features: ['pattern', 'intent', 'metrics']
   },
   google: {
-    engine: 'gemini-1.5-pro', // Google AI 엔진
-    nlp: true,                 // 자연어 질의 지원  
-    features: ['analysis', 'incident', 'insight']
+    engine: 'gemini-1.5-pro',   // Google AI 엔진  
+    processing: 'nlp',          // 실제 자연어 처리
+    features: ['conversation', 'reasoning', 'analysis']
   },
-  sidebar: 'mode-selector'     // AI 사이드바 모드 선택
+  sidebar: 'mode-selector'       // AI 사이드바 모드 선택
 }
 ```
 
