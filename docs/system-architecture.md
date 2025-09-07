@@ -9,9 +9,9 @@
 **📊 개발 완성도**: **90% 완료** - 핵심 기능 구현 완성, 추가 확장보다는 안정성과 완성도 우선
 
 **⚡ 실제 동작 필수 기능**:
-- ✅ 실시간 서버 모니터링 (Box-Muller 정규분부 기반 현실적 메트릭)
-- ✅ 하이브리드 AI 어시스턴트 (로컬 AI 기본 + Google AI 자연어 질의)
-- ✅ AI 사이드바 (로컬 분석 디폴트, 구글 AI 모드 선택 가능)
+- ✅ 실시간 서버 모니터링 (Box-Muller 정규분포 기반 현실적 메트릭)
+- ✅ 하이브리드 AI 어시스턴트 (로컬 AI 디폴트 + Google AI 모드, 양쪽 모두 자연어 질의 지원)
+- ✅ AI 사이드바 (로컬/Google AI 모드 전환, 모든 모드에서 자연어 질의 가능)
 - ✅ 사용자 인증 (Supabase Auth 완전 연동)
 - ✅ 반응형 UI/UX (Material Design 3 기반)
 
@@ -65,8 +65,8 @@ OpenManager Vibe v5.77.0는 **포트폴리오 전시용 플랫폼**으로, TypeS
                         ┌──────────────────┐     ┌─────────────────┐
                         │  하이브리드 AI   │     │  Google AI      │
                         │ 로컬 AI (디폴트) │     │  Gemini 1.5 Pro │
-                        │ + Google AI 모드 │     │  (자연어 질의만) │
-                        │                  │     │                 │
+                        │ + Google AI 모드 │     │ (양쪽 모두 자연어│
+                        │ 양방향 자연어 지원│     │  질의 가능)     │
                         │ 152ms 응답시간   │     │ 272ms AI 처리   │
                         └──────────────────┘     └─────────────────┘
 ```
@@ -118,8 +118,8 @@ OpenManager Vibe v5.77.0는 **포트폴리오 전시용 플랫폼**으로, TypeS
 
 ### **3단계: API 레이어 (50+ 엔드포인트)**
 
-- **하이브리드 AI**: `/api/ai/*` (로컬 AI 기본 + Google AI 자연어 질의 모드)
-- **AI 어시스턴트**: 로컬 분석 엔진 (디폴트) + Gemini 1.5 Pro (자연어 질의)
+- **하이브리드 AI**: `/api/ai/*` (로컬 AI 디폴트 + Google AI 모드, 양쪽 모두 자연어 지원)
+- **AI 어시스턴트**: 로컬 분석 엔진 (디폴트) + Gemini 1.5 Pro (모드 전환 가능)
 - **서버 모니터링**: `/api/servers/*` (실시간 메트릭, 상태 관리)
 - **시스템 관리**: `/api/system/*` (초기화, 상태 확인, 최적화)
 - **인증**: `/api/auth/*` (Supabase Auth 기반 OAuth)
@@ -228,11 +228,11 @@ import { AIResponse } from '@/types/ai';
 // src/app/api 구조 (Next.js 15 App Router) - 하이브리드 AI 시스템
 /api/
 ├── ai/              // 하이브리드 AI 처리 (10+ 엔드포인트)
-│   ├── query/       // 로컬 AI 분석 (디폴트)
+│   ├── query/       // 로컬 AI 자연어 질의 (디폴트 모드)
 │   ├── google-ai/   // Google AI 자연어 질의 모드
-│   ├── incident-report/ // 로컬 AI 장애 분석
-│   ├── insight-center/  // 로컬 AI 인사이트
-│   └── thinking/    // 로컬 AI 사고 스트림
+│   ├── incident-report/ // 양방향 AI 장애 분석
+│   ├── insight-center/  // 양방향 AI 인사이트
+│   └── thinking/    // 양방향 AI 사고 스트림
 ├── auth/            // 인증 시스템
 │   ├── callback/    // OAuth 콜백
 │   └── success/     // 로그인 성공
@@ -246,11 +246,19 @@ import { AIResponse } from '@/types/ai';
 │   └── optimize/    // 성능 최적화
 └── health/          // 헬스체크 (5초 타임아웃)
 
-// AI 모드 전환 구조
+// AI 모드 전환 구조 (양쪽 모두 자연어 질의 지원)
 interface AIMode {
-  default: 'local';     // 로컬 AI 분석 엔진 (디폴트)
-  nlp: 'google-ai';     // 자연어 질의용 Google AI
-  sidebar: 'hybrid';    // AI 사이드바 모드 선택
+  local: {
+    engine: 'local-ai',      // 로컬 AI 엔진 (디폴트)
+    nlp: true,               // 자연어 질의 지원
+    features: ['analysis', 'incident', 'insight']
+  },
+  google: {
+    engine: 'gemini-1.5-pro', // Google AI 엔진
+    nlp: true,                 // 자연어 질의 지원  
+    features: ['analysis', 'incident', 'insight']
+  },
+  sidebar: 'mode-selector'     // AI 사이드바 모드 선택
 }
 ```
 
