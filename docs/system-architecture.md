@@ -32,7 +32,9 @@ OpenManager Vibe v5.70.11는 **Next.js 15 기반의 완전 현대화된 실시�
 - **테스트 환경 최적화**: middleware edge runtime 경고 해결, Vitest 메모리 최적화
 - **3-AI 교차검증**: Claude(4.5/10) → Gemini(7.2/10) → Qwen(6.8/10) → 종합(6.2/10 → 9.0/10)
 
-### 아키텍처 다이어그램
+### 🚀 배포 환경 아키텍처 (프로덕션)
+
+**사용자가 실제로 접근하는 시스템 구조**
 
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
@@ -44,47 +46,121 @@ OpenManager Vibe v5.70.11는 **Next.js 15 기반의 완전 현대화된 실시�
                               │                         │
                               ▼                         ▼
                         ┌──────────────────┐     ┌─────────────────┐
-                        │  50+ API 경로    │     │  스마트 시스템   │
-                        │ /ai/*, /servers/*│     │  Google AI +    │
-                        │ /system/*, ...   │     │  CHANGELOG 자동  │
-                        │                  │     │  업데이트 시스템 │
-                        │ 152ms 응답시간   │     │ AI 예측 95% 정확도│
+                        │  50+ API 경로    │     │  Google AI      │
+                        │ /ai/*, /servers/*│     │  Gemini 1.5 Pro │
+                        │ /system/*, ...   │     │  AI 응답 처리   │
+                        │                  │     │                 │
+                        │ 152ms 응답시간   │     │ 272ms AI 처리   │
                         └──────────────────┘     └─────────────────┘
 ```
 
-### 핵심 구성 요소
+### 🛠️ 개발 환경 (로컬 전용)
 
-#### **1단계: Frontend (Vercel)**
+**개발자가 사용하는 도구들 - 배포와 완전 분리**
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│  개발자 로컬    │     │   WSL 2 환경     │     │  MCP 서버들     │
+│  Windows 11     │────▶│ Ubuntu 24.04 LTS │────▶│ 8개 MCP 도구    │
+│                 │     │ Node.js 22.18.0  │     │ Memory, Supabase│
+└─────────────────┘     │ bash 환경        │     │ Playwright, etc │
+                        └──────────────────┘     └─────────────────┘
+                              │                         │
+                              ▼                         ▼
+                        ┌──────────────────┐     ┌─────────────────┐
+                        │   AI CLI 도구들   │     │  개발 지원도구  │
+                        │ Claude Code v1.0.107  │  │ Git, npm, WSL   │
+                        │ Gemini CLI v0.2.1│     │ VS Code (보조)  │
+                        │ Qwen CLI v0.0.9  │     │ 서브에이전트 22개│
+                        │ 멀티 AI 협업     │     │ AI 교차검증     │
+                        └──────────────────┘     └─────────────────┘
+```
+
+**⚠️ 중요**: 개발 도구들은 배포에 포함되지 않으며 로컬 개발 환경에서만 사용됩니다.
+
+## 🏗️ 배포 환경 구성 요소 (프로덕션)
+
+**사용자가 접근하는 실제 시스템 - 개발 도구와 완전 분리**
+
+### **1단계: Frontend (Vercel Edge)**
 
 - **Next.js 15.4.5**: App Router + 최신 React 서버 컴포넌트
 - **React 18.3.1**: Concurrent Features + Suspense
-- **TypeScript 5.7.2 strict**: 완전한 타입 안전성 (382개 오류 → 목표 0개)
+- **TypeScript 5.7.2 strict**: 완전한 타입 안전성 (0개 오류 달성)
 - **Tailwind CSS 3.4.17**: 모던 UI/UX + 성능 최적화
 - **Radix UI**: 접근성 우선 컴포넌트 라이브러리
+- **빌드 최적화**: Bundle 2.1MB, Zero Warnings
 
-#### **2단계: Backend API (Vercel Functions)**
+### **2단계: Backend API (Vercel Functions)**
 
 - **API 아키텍처**: Serverless Functions 기반 50+ 엔드포인트
 - **실시간 처리**: WebSocket 지원 + Server-Sent Events
 - **캐싱 전략**: Vercel Edge Cache + API 레벨 캐싱
 - **타입 안전성**: TypeScript strict mode + Zod 스키마 검증
+- **함수 런타임**: Node.js 22.x (Edge Runtime에서 전환)
 
-#### **3단계: API 레이어 (50+ 엔드포인트)**
+### **3단계: API 레이어 (50+ 엔드포인트)**
 
-- **AI 어시스턴트**: `/api/ai/*` (Google AI 기반 인텔리전트 분석)
+- **AI 어시스턴트**: `/api/ai/*` (Google AI Gemini 1.5 Pro)
 - **서버 모니터링**: `/api/servers/*` (실시간 메트릭, 상태 관리)
 - **시스템 관리**: `/api/system/*` (초기화, 상태 확인, 최적화)
-- **인증**: `/api/auth/*` (Supabase Auth 기반)
-- **헬스체크**: `/api/health` (시스템 상태 모니터링)
+- **인증**: `/api/auth/*` (Supabase Auth 기반 OAuth)
+- **헬스체크**: `/api/health` (시스템 상태 모니터링, 5초 타임아웃)
 - **평균 응답시간**: 152ms (99.95% 가동률)
 
-#### **4단계: 데이터 & 외부 서비스**
+### **4단계: 데이터 & 외부 서비스**
 
 - **Supabase PostgreSQL**: 사용자 인증, 설정, 메타데이터 저장
 - **pgVector 확장**: AI 응답 벡터 검색 및 RAG 엔진  
 - **서버 데이터**: Box-Muller Transform 기반 실시간 시뮬레이션 데이터
-- **Google AI Gemini**: AI 어시스턴트 응답 생성
-- **캐싱 레이어**: Vercel CDN + Edge Cache + API 캐시
+- **Google AI Gemini**: AI 어시스턴트 응답 생성 (272ms 평균)
+- **캐싱 레이어**: Vercel CDN + Edge Cache + API 캐시 (85% 히트율)
+
+---
+
+## 🛠️ 개발 환경 구성 (로컬 전용)
+
+**개발자가 사용하는 도구들 - 배포에는 포함되지 않음**
+
+### **WSL 2 개발 환경**
+
+- **OS**: Ubuntu 24.04 LTS (WSL 2)
+- **메모리**: 16GB 할당 (31.8% 사용)
+- **프로세서**: 12개 코어 (AMD Ryzen 7)
+- **Node.js**: v22.18.0 (WSL 네이티브)
+- **Shell**: bash + 최적화 별칭
+
+### **AI CLI 도구 스택**
+
+- **Claude Code**: v1.0.107 (메인 개발 도구, Max $200/월)
+- **Gemini CLI**: v0.2.1 (무료 1K/day, 코드 아키텍트)
+- **Qwen CLI**: v0.0.9 (무료 OAuth 2K/day, 병렬 개발)
+- **OpenAI Codex**: ChatGPT Plus 연동 GPT-5 (서브 에이전트)
+- **ccusage**: v16.2.0 (Claude 사용량 모니터링)
+
+### **MCP 서버 통합 (8개)**
+
+- **memory**: Knowledge Graph 관리
+- **supabase**: 7개 DB 도구 (execute-sql, list-tables 등)
+- **playwright**: 브라우저 자동화 15개 도구
+- **sequential-thinking**: 순차적 사고 패턴
+- **context7**: 라이브러리 문서 검색
+- **serena**: 코드 심볼 분석 3개 도구
+- **time**: 시간대 변환
+- **shadcn-ui**: 46개 UI 컴포넌트 + 블록
+
+### **서브에이전트 시스템 (22개)**
+
+- **central-supervisor**: 복잡한 작업 오케스트레이션
+- **verification-specialist**: AI 교차 검증 메인 진입점
+- **ai-verification-coordinator**: 3단계 레벨 기반 검증 조정자
+- **external-ai-orchestrator**: 외부 AI 오케스트레이션
+- **코드 품질**: code-review-specialist, debugger-specialist
+- **인프라**: database-administrator, vercel-platform-specialist
+- **테스트**: test-automation-specialist
+- **기타 전문 에이전트**: 15개
+
+**⚠️ 개발/배포 분리 원칙**: 개발 도구들은 로컬에서만 사용되며 프로덕션 배포에는 영향을 주지 않습니다.
 
 ### 성능 최적화
 
@@ -246,85 +322,164 @@ async function checkSystemHealth() {
 - **Error Tracking**: 자동 에러 수집 및 알림
 - **Browser Console**: 클라이언트 사이드 에러 추적
 
-### 배포 아키텍처
+## 🚀 배포 아키텍처 (프로덕션 전용)
 
-#### **Vercel 배포**
+### **Vercel 배포 환경**
 
 ```bash
 # 프로덕션 배포
 vercel --prod
 
-# 환경변수 설정
+# 환경변수 설정 (프로덕션)
 vercel env add NEXT_PUBLIC_SUPABASE_URL
 vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
 vercel env add GOOGLE_AI_API_KEY
 
-# 빌드 최적화
+# 배포 전 빌드 검증
 npm run build
 npm run lint
 npm run typecheck
 
-# Vercel 설정 검증 (2025.09.06 추가)
-# - vercel.json에서 middleware runtime 설정 제거 필수
-# - Next.js 15에서는 파일 내부 export const runtime만 사용
-# - functions 섹션은 API routes만 설정
+# Vercel 설정 최적화 (2025.09.06)
+# - vercel.json: functions 섹션만 사용
+# - middleware runtime: 파일 내부 export const runtime
+# - Node.js 22.x 런타임 고정
 ```
 
-### 확장성 계획
+### **배포 환경 구성 파일들**
 
-#### **단기 목표 (v5.71.0)**
+```json
+// vercel.json (프로덕션 설정)
+{
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "runtime": "nodejs22.x"
+    }
+  }
+}
 
-- [x] 스마트 CHANGELOG 자동 업데이트 시스템 완성 ✅
-- [x] post-commit hook 무한 루프 문제 해결 ✅  
-- [x] AI 예측 기반 커밋 분류 시스템 (95% 정확도) ✅
+// next.config.mjs (빌드 최적화)
+export default {
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['@radix-ui/react-icons']
+  }
+}
+```
+
+### **환경 분리 정책**
+
+| 구분 | 개발 환경 | 배포 환경 |
+|------|-----------|-----------|
+| **운영체제** | WSL 2 Ubuntu | Vercel Edge Network |
+| **Node.js** | v22.18.0 (WSL) | v22.x (Vercel Functions) |
+| **AI 도구** | Claude/Gemini/Qwen CLI | 없음 (배포 제외) |
+| **MCP 서버** | 8개 로컬 서버 | 없음 (개발 전용) |
+| **서브에이전트** | 22개 전문 AI | 없음 (개발 전용) |
+| **빌드 도구** | 개발용 + AI 통합 | 프로덕션 최적화만 |
+
+## 📈 배포 환경 확장성 계획
+
+### **단기 배포 목표 (v5.71.0)**
+
+**프로덕션 환경 개선 (개발 도구와 분리)**
+
 - [x] TypeScript strict mode 완전 적용 (0개 오류 달성) ✅
-- [x] AI 교차검증 시스템 구축 (3-AI 검증) ✅
-- [x] package.json 구조 정리 및 테스트 최적화 ✅
-- [ ] WSL Claude Code Config mismatch 경고 해결
+- [x] Vercel 배포 최적화 완료 (Zero Warnings) ✅
+- [x] Next.js 15 + Node.js 22.x 런타임 안정화 ✅
 - [ ] AI 어시스턴트 응답 성능 최적화 (272ms → 200ms)
 - [ ] 실시간 서버 모니터링 확장 (더 많은 메트릭)
 - [ ] 모바일 반응형 UI 개선
+- [ ] Supabase 쿼리 최적화 (50ms → 30ms)
+- [ ] Vercel Edge Cache 히트율 향상 (85% → 90%)
 
-#### **장기 목표 (v6.0)**
+### **장기 배포 목표 (v6.0)**
 
-- [ ] Kubernetes 전환
+**엔터프라이즈급 배포 환경**
+
+- [ ] Kubernetes 전환 (Vercel에서 독립)
 - [ ] 멀티 테넌트 지원
-- [ ] 글로벌 확장
-- [ ] AI 모델 학습 시스템
-- [ ] 엔터프라이즈 기능
+- [ ] 글로벌 CDN 확장
+- [ ] AI 모델 학습 시스템 (배포 환경)
+- [ ] 엔터프라이즈 보안 강화
 
-### 성능 벤치마크
+---
 
-#### **현재 성능 (v5.70.11)**
+## 🛠️ 개발 환경 개선 계획 (로컬 전용)
 
-| 지표                | 값       | 목표      | 달성 |
-| ------------------- | -------- | --------- | ---- |
-| API 평균 응답       | 152ms    | <200ms    | ✅   |
-| AI 처리             | 272ms    | <300ms    | ✅   |
-| DB 쿼리             | 50ms     | <100ms    | ✅   |
-| 가동률              | 99.95%   | 99.95%    | ✅   |
-| 캐시 히트율         | 85%      | >80%      | ✅   |
-| 번들 크기           | 2.1MB    | <3MB      | ✅   |
-| CHANGELOG 자동화    | 95%      | >90%      | ✅   |
-| AI 예측 정확도      | 95%      | >90%      | ✅   |
-| **TypeScript 에러** | **0개**  | **0개**   | ✅   |
-| **AI 교차검증**     | **9.0/10** | **>8.0/10** | ✅   |
-| **테스트 안정성**   | **100%** | **>95%**  | ✅   |
+### **개발 도구 최적화**
 
-#### **최적화 성과**
+- [x] Claude Code + MCP 서버 8개 완전 통합 ✅
+- [x] AI 교차검증 시스템 구축 (22개 서브에이전트) ✅
+- [x] 멀티 AI 협업 시스템 완성 ✅
+- [ ] WSL Claude Code Config mismatch 경고 해결
+- [ ] MCP 서버 추가 통합 검토
+- [ ] AI 교차검증 정확도 향상 (9.0/10 → 9.5/10)
+
+**⚠️ 중요**: 개발 도구 개선은 배포 환경에 영향을 주지 않습니다.
+
+## 📊 성능 벤치마크
+
+### **배포 환경 성능 (프로덕션)**
+
+**사용자가 체감하는 실제 성능 지표**
+
+| 지표 | 현재 값 | 목표 | 달성 |
+|------|---------|------|------|
+| **API 평균 응답** | 152ms | <200ms | ✅ |
+| **AI 처리 (Gemini)** | 272ms | <300ms | ✅ |
+| **DB 쿼리 (Supabase)** | 50ms | <100ms | ✅ |
+| **가동률** | 99.95% | 99.95% | ✅ |
+| **캐시 히트율** | 85% | >80% | ✅ |
+| **번들 크기** | 2.1MB | <3MB | ✅ |
+| **TypeScript 에러** | 0개 | 0개 | ✅ |
+| **Vercel 빌드 경고** | 0개 | 0개 | ✅ |
+
+### **개발 환경 효율성 (로컬)**
+
+**개발 도구와 AI 협업 성능 지표**
+
+| 지표 | 현재 값 | 목표 | 달성 |
+|------|---------|------|------|
+| **AI 교차검증 점수** | 9.0/10 | >8.0/10 | ✅ |
+| **Claude Code 응답** | 1-3초 | <5초 | ✅ |
+| **MCP 서버 가동률** | 8/8개 | 8/8개 | ✅ |
+| **서브에이전트 활성** | 22/22개 | >20개 | ✅ |
+| **멀티 AI 협업** | 4개 도구 | 4개 | ✅ |
+| **WSL 메모리 사용** | 31.8% | <50% | ✅ |
+| **개발 환경 안정성** | 100% | >95% | ✅ |
+
+**⚠️ 성능 분리**: 배포 성능과 개발 효율성은 독립적으로 측정됩니다.
+
+## 🎯 최적화 성과
+
+### **배포 환경 개선 (프로덕션)**
+
+**사용자에게 직접적인 영향을 주는 개선사항**
+
+- **🔧 TypeScript 완전성**: strict mode + 에러 0개 달성 (런타임 안정성)
+- **💾 캐싱 전략**: 다층 캐시로 응답시간 60% 개선 (152ms 달성)
+- **🌐 Next.js 15**: Bundle 최적화 + 서버 컴포넌트 (2.1MB)
+- **☁️ Vercel 배포**: Zero Warnings 달성 (CLI 46.1.0 호환)
+- **🛡️ 타입 안전성**: TypeScript strict mode 완전 적용
+- **💰 무료 티어**: 100% 무료 운영 지속 (Vercel + Supabase)
+- **🚀 API 성능**: 50+ 엔드포인트 평균 152ms 응답
+- **🔐 보안 강화**: Supabase Auth + RLS 정책 완전 적용
+
+### **개발 환경 개선 (로컬)**
+
+**개발 효율성과 코드 품질 향상**
 
 - **🎯 AI 교차검증 시스템**: 3-AI 검증으로 코드 품질 6.2/10 → 9.0/10 향상
-- **🔧 TypeScript 완전성**: strict mode + 에러 0개 달성 (목표 100% 완수)
 - **📦 package.json 정리**: 중복 스크립트 제거로 빌드 시스템 안정화
 - **⚡ 테스트 최적화**: Vitest 메모리 최적화로 109% → 95% 사용량 개선
 - **🚀 스마트 자동화**: CHANGELOG 자동 업데이트 시스템 95% 정확도
 - **🔄 개발 효율성**: post-commit hook 최적화로 무한 루프 완전 해결
 - **📈 AI 예측 시스템**: 커밋 분류 및 중요도 평가 95% 정확도
-- **💾 캐싱 전략**: 다층 캐시로 응답시간 60% 개선
-- **🌐 Next.js 15**: Bundle 최적화 + 서버 컴포넌트
-- **☁️ Vercel 배포**: Zero Warnings 달성 (CLI 46.1.0 호환)
-- **🛡️ 타입 안전성**: TypeScript strict mode 완전 적용
-- **💰 무료 티어**: 100% 무료 운영 지속
+- **🤖 멀티 AI 협업**: Claude + Gemini + Qwen + Codex 4-AI 체제
+- **🔌 MCP 통합**: 8개 서버 완전 통합으로 27% 토큰 절약
+
+**⚠️ 성과 분리**: 배포 성과는 사용자 경험 개선, 개발 성과는 코드 품질 향상입니다.
 
 ---
 
