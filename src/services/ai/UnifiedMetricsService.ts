@@ -14,6 +14,16 @@ export interface UnifiedMetricsResponse {
   timestamp: number;
   actualTimestamp: number;
   servers: EnhancedServerMetrics[];
+  currentCycle?: {
+    timeSlot: number;
+    scenario: string;
+    description: string;
+    phase: string;
+    intensity: number;
+    progress: number;
+    expectedResolution: any;
+    affectedServers: string[];
+  };
   metadata: {
     timeInfo: {
       normalized: number;
@@ -163,10 +173,14 @@ export class UnifiedMetricsService {
       return diff > 0 ? 'rising' : 'falling';
     };
     
+    const cpuValue = server.cpu || server.cpu_usage || 0;
+    const memoryValue = server.memory || server.memory_usage || 0;
+    const networkValue = server.network || server.network_in || 0;
+    
     const trends = {
-      cpu: { current: server.cpu, baseline: baseline.cpu, trend: analyzeTrend(server.cpu, baseline.cpu) },
-      memory: { current: server.memory, baseline: baseline.memory, trend: analyzeTrend(server.memory, baseline.memory) },
-      network: { current: server.network, baseline: baseline.network, trend: analyzeTrend(server.network, baseline.network) }
+      cpu: { current: cpuValue, baseline: baseline.cpu, trend: analyzeTrend(cpuValue, baseline.cpu) },
+      memory: { current: memoryValue, baseline: baseline.memory, trend: analyzeTrend(memoryValue, baseline.memory) },
+      network: { current: networkValue, baseline: baseline.network, trend: analyzeTrend(networkValue, baseline.network) }
     } as const;
     
     // 추천사항 생성
@@ -211,11 +225,14 @@ export class UnifiedMetricsService {
   ): string[] {
     const recommendations: string[] = [];
     
-    if (server.cpu > 80) {
+    const cpuValue = server.cpu || server.cpu_usage || 0;
+    const memoryValue = server.memory || server.memory_usage || 0;
+    
+    if (cpuValue > 80) {
       recommendations.push('CPU 사용률이 높습니다. 프로세스 최적화를 고려해보세요.');
     }
     
-    if (server.memory > 85) {
+    if (memoryValue > 85) {
       recommendations.push('메모리 사용률이 높습니다. 메모리 누수 확인이 필요합니다.');
     }
     
@@ -223,7 +240,7 @@ export class UnifiedMetricsService {
       recommendations.push('응답 시간이 느립니다. 데이터베이스 쿼리를 최적화해보세요.');
     }
     
-    if (trends.cpu.trend === 'rising' && server.cpu > 70) {
+    if (trends.cpu.trend === 'rising' && cpuValue > 70) {
       recommendations.push('CPU 사용률이 지속적으로 증가하고 있습니다. 모니터링을 강화하세요.');
     }
     
@@ -257,14 +274,27 @@ export class UnifiedMetricsService {
       {
         id: 'web-01',
         name: 'Web 01',
+        hostname: 'web-01.local',
+        environment: 'production' as const,
+        role: 'web' as const,
         status: 'warning',
+        
+        // Enhanced metrics
+        cpu_usage: 75,
+        memory_usage: 68,
+        disk_usage: 45,
+        network_in: 52,
+        network_out: 48,
+        responseTime: 180,
+        uptime: 99.95,
+        last_updated: new Date(timestamp).toISOString(),
+        alerts: [],
+        
+        // Compatibility fields
         cpu: 75,
         memory: 68,
         disk: 45,
         network: 52,
-        responseTime: 180,
-        uptime: 99.95,
-        lastUpdated: timestamp,
         metadata: {
           serverType: 'web',
           scenarios: [{ type: 'fallback', severity: 'low', description: 'API 폴백 모드' }]

@@ -47,24 +47,6 @@ export interface SystemAlert {
   autoClose?: boolean | number;
 }
 
-/**
- * 빠른 질문 (PresetQuestion 별칭)
- */
-export type QuickQuestion = PresetQuestion;
-
-/**
- * 프리셋 질문
- */
-export interface PresetQuestion {
-  id: string;
-  icon: ComponentType<{ className?: string }> | string;
-  text: string;
-  category: 'monitoring' | 'performance' | 'security' | 'troubleshooting' | 'server' | 'logs' | 'analysis' | 'prediction';
-  priority?: 'high' | 'medium' | 'low';
-  question?: string;
-  color?: string;
-  description?: string;
-}
 
 /**
  * AI 쿼리 응답
@@ -181,7 +163,6 @@ export interface AISidebarProps {
  */
 export interface AISidebarHandlers {
   handleSendMessage: (message: string) => Promise<void>;
-  handlePresetQuestion: (question: PresetQuestion) => Promise<void>;
   handleEngineChange: (engine: AIMode) => Promise<void>;
   handleClearChat: () => void;
   handleExportChat: () => void;

@@ -377,8 +377,8 @@ export class SimplifiedQueryEngineHelpers {
     const metrics = await unifiedMetricsService.getCurrentMetrics();
     const servers = metrics.servers;
     
-    const highCPUServers = servers.filter(s => s.cpu > 70);
-    const avgCPU = servers.reduce((sum, s) => sum + s.cpu, 0) / servers.length;
+    const highCPUServers = servers.filter(s => (s.cpu || s.cpu_usage || 0) > 70);
+    const avgCPU = servers.reduce((sum, s) => sum + (s.cpu || s.cpu_usage || 0), 0) / servers.length;
     
     let response = `💻 **CPU 사용률 현황**\n\n`;
     response += `📊 전체 평균 CPU 사용률: ${Math.round(avgCPU)}%\n\n`;
@@ -386,8 +386,9 @@ export class SimplifiedQueryEngineHelpers {
     if (highCPUServers.length > 0) {
       response += `🔥 **높은 CPU 사용률 서버:**\n`;
       highCPUServers.forEach(server => {
-        const trend = server.cpu > (server.metadata?.baseline?.cpu || 50) ? '↗️' : '↘️';
-        response += `• ${server.name}: ${server.cpu}% ${trend}\n`;
+        const cpuValue = server.cpu || server.cpu_usage || 0;
+        const trend = cpuValue > (server.metadata?.baseline?.cpu || 50) ? '↗️' : '↘️';
+        response += `• ${server.name}: ${cpuValue}% ${trend}\n`;
       });
     } else {
       response += `✅ 모든 서버의 CPU 사용률이 정상 범위 내에 있습니다.\n`;
@@ -403,8 +404,8 @@ export class SimplifiedQueryEngineHelpers {
     const metrics = await unifiedMetricsService.getCurrentMetrics();
     const servers = metrics.servers;
     
-    const highMemoryServers = servers.filter(s => s.memory > 80);
-    const avgMemory = servers.reduce((sum, s) => sum + s.memory, 0) / servers.length;
+    const highMemoryServers = servers.filter(s => (s.memory || s.memory_usage || 0) > 80);
+    const avgMemory = servers.reduce((sum, s) => sum + (s.memory || s.memory_usage || 0), 0) / servers.length;
     
     let response = `💾 **메모리 사용률 현황**\n\n`;
     response += `📊 전체 평균 메모리 사용률: ${Math.round(avgMemory)}%\n\n`;
@@ -412,9 +413,10 @@ export class SimplifiedQueryEngineHelpers {
     if (highMemoryServers.length > 0) {
       response += `⚠️ **높은 메모리 사용률 서버:**\n`;
       highMemoryServers.forEach(server => {
-        response += `• ${server.name}: ${server.memory}%`;
-        if (server.memory > 90) response += ` 🚨 위험`;
-        else if (server.memory > 80) response += ` ⚠️ 주의`;
+        const memoryValue = server.memory || server.memory_usage || 0;
+        response += `• ${server.name}: ${memoryValue}%`;
+        if (memoryValue > 90) response += ` 🚨 위험`;
+        else if (memoryValue > 80) response += ` ⚠️ 주의`;
         response += `\n`;
       });
       
@@ -696,7 +698,7 @@ export class SimplifiedQueryEngineHelpers {
       // 통합 메트릭 API에서 현재 사이클 정보 포함된 데이터 가져오기
       const unifiedResponse = await unifiedMetricsService.getCurrentMetrics();
       
-      if (unifiedResponse?.metadata?.currentCycle) {
+      if ((unifiedResponse as any)?.currentCycle) {
         return this.generateCycleAnalysisResponse(unifiedResponse);
       } else {
         return '❌ 현재 사이클 정보를 가져올 수 없습니다. 통합 메트릭 API를 확인해주세요.';

@@ -7,8 +7,6 @@ export type {
   ThinkingStep,
   AIThinkingStep,
   SystemAlert,
-  QuickQuestion,
-  PresetQuestion,
   AIResponse,
   SessionInfo,
   AISidebarState,

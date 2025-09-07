@@ -117,7 +117,7 @@ function getIncidentCycleInfo(hour: number, minute: number) {
     phase: phaseInfo.phase,
     intensity: phaseInfo.intensity,
     progress: progressInSlot,
-    description: `${scenario.description} - ${phaseInfo.description}`,
+    description: `${scenario?.description || 'Unknown scenario'} - ${phaseInfo.description}`,
     expectedResolution: phaseInfo.phase === 'resolved' ? null : 
       new Date(Date.now() + ((1 - progressInSlot) * 4 * 60 * 60 * 1000)) // 해결 예상 시간
   };
@@ -337,14 +337,27 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
     return {
       id: serverId,
       name: serverId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      hostname: `${serverId}.local`,
+      environment: 'production' as const,
+      role: serverId.split('-')[0] as any,
       status,
+      
+      // Enhanced metrics with required naming
+      cpu_usage: Math.round(cpu * 10) / 10,
+      memory_usage: Math.round(memory * 10) / 10,
+      disk_usage: Math.round(disk * 10) / 10,
+      network_in: Math.round(network * 10) / 10,
+      network_out: Math.round(network * 10) / 10,
+      responseTime: Math.round(responseTime),
+      uptime: 99.95,
+      last_updated: new Date(normalizedTimestamp).toISOString(),
+      alerts: [],
+      
+      // Compatibility fields
       cpu: Math.round(cpu * 10) / 10,
       memory: Math.round(memory * 10) / 10,
       disk: Math.round(disk * 10) / 10,
       network: Math.round(network * 10) / 10,
-      responseTime: Math.round(responseTime),
-      uptime: 99.95, // 고정값
-      lastUpdated: normalizedTimestamp,
       
       // AI 어시스턴트를 위한 추가 메타데이터
       metadata: {
@@ -354,7 +367,7 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
         minute,
         cycleInfo: {
           timeSlot: cycleInfo.timeSlot,
-          scenario: cycleInfo.scenario.name,
+          scenario: cycleInfo.scenario?.name || 'normal',
           phase: cycleInfo.phase,
           intensity: cycleInfo.intensity,
           description: cycleInfo.description,
@@ -367,7 +380,7 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
           disk: diskBaseline,
           network: networkBaseline
         },
-        isAffectedByCurrentCycle: cycleInfo.scenario.affectedServers.includes(serverId)
+        isAffectedByCurrentCycle: cycleInfo.scenario?.affectedServers.includes(serverId) || false
       }
     };
   });
@@ -416,13 +429,13 @@ export async function GET(request: NextRequest) {
         },
         currentCycle: {
           timeSlot: currentCycleInfo.timeSlot,
-          scenario: currentCycleInfo.scenario.name,
+          scenario: currentCycleInfo.scenario?.name || 'normal',
           description: currentCycleInfo.description,
           phase: currentCycleInfo.phase,
           intensity: currentCycleInfo.intensity,
           progress: Math.round(currentCycleInfo.progress * 100),
           expectedResolution: currentCycleInfo.expectedResolution,
-          affectedServers: currentCycleInfo.scenario.affectedServers
+          affectedServers: currentCycleInfo.scenario?.affectedServers || []
         },
         systemInfo: {
           totalServers: servers.length,

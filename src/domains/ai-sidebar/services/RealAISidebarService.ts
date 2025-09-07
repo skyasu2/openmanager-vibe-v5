@@ -13,7 +13,6 @@ import type {
   ChatMessage,
   SystemAlert,
   AIThinkingStep,
-  QuickQuestion,
 } from '../types';
 
 export class RealAISidebarService {
@@ -171,49 +170,6 @@ export class RealAISidebarService {
     }
   }
 
-  /**
-   * ⚡ 빠른 질문 템플릿 (서버 상태 기반 동적 생성)
-   */
-  getQuickQuestions(): QuickQuestion[] {
-    return [
-      {
-        id: 'server-status',
-        question: '서버 상태는 어떤가요?',
-        text: '서버 상태는 어떤가요?',
-        category: 'server',
-        icon: 'Server',
-        color: 'text-blue-500',
-        description: '전체 서버 상태 확인',
-      },
-      {
-        id: 'log-analysis',
-        question: '최근 로그를 분석해주세요',
-        text: '최근 로그를 분석해주세요',
-        category: 'logs',
-        icon: 'Search',
-        color: 'text-green-500',
-        description: '최근 로그 패턴 분석',
-      },
-      {
-        id: 'performance-analysis',
-        question: '성능 지표를 분석해주세요',
-        text: '성능 지표를 분석해주세요',
-        category: 'analysis',
-        icon: 'BarChart3',
-        color: 'text-purple-500',
-        description: '시스템 성능 분석',
-      },
-      {
-        id: 'prediction-analysis',
-        question: '향후 예측을 해주세요',
-        text: '향후 예측을 해주세요',
-        category: 'prediction',
-        icon: 'Target',
-        color: 'text-orange-500',
-        description: '시스템 예측 분석',
-      },
-    ];
-  }
 
   /**
    * 🧠 AI 사고 과정 스트리밍

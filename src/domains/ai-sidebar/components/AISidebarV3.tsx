@@ -35,7 +35,6 @@ import {
 
 // Components
 import { AIFunctionPages } from './AIFunctionPages';
-import { AIPresetQuestions } from './AIPresetQuestions';
 import { AISidebarHeader } from './AISidebarHeader';
 import ThinkingProcessVisualizer from '../../../components/ai/ThinkingProcessVisualizer';
 import type { AIAssistantFunction } from '../../../components/ai/AIAssistantIconPanel';
@@ -165,7 +164,6 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
   const [selectedEngine, setSelectedEngine] = useState<AIMode>(defaultEngine);
   const [inputValue, setInputValue] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [currentPresetIndex, setCurrentPresetIndex] = useState(0);
 
   // 자동 보고서 트리거 상태
   const [autoReportTrigger, setAutoReportTrigger] = useState<{
@@ -176,8 +174,6 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
     shouldGenerate: false,
   });
 
-  // 프리셋 질문 네비게이션 상태
-  const PRESETS_PER_PAGE = 2; // 한 번에 2개씩만 표시하여 UI 간소화
   const MAX_MESSAGES = 50; // 메모리 누수 방지
 
   // 통합 상태 관리 (Single Source of Truth)
@@ -218,8 +214,6 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
     maxLogs: 30,
   });
 
-  // 빠른 질문 가져오기 (실제 서비스에서)
-  const quickQuestions = aiService.getQuickQuestions();
 
   // 🎯 실제 AI 쿼리 처리 함수 (완전히 새로워진 구현)
   const processRealAIQuery = useCallback(async (
@@ -395,29 +389,6 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
     }
   }, [onEngineChange]); // onEngineChange 함수 의존성 복구
 
-  // 프리셋 질문 핸들러 (성능 최적화)
-  const handlePresetQuestion = useCallback(async (question: string) => {
-    if (isGenerating) return;
-
-    setInputValue(question);
-    setIsGenerating(true);
-
-    // 사용자 메시지 추가
-    const userMessage: EnhancedChatMessage = {
-      id: `user_${Date.now()}`,
-      role: 'user',
-      content: question,
-      timestamp: new Date(),
-      isCompleted: true,
-    };
-
-    // 통합 상태에 메시지 추가
-    addMessage(userMessage);
-
-    // AI 처리
-    await processRealAIQuery(question, selectedEngine);
-    setIsGenerating(false);
-  }, [isGenerating, selectedEngine, processRealAIQuery]); // processRealAIQuery 함수 의존성 복구
 
   // 🎯 메시지 전송 핸들러 (성능 최적화)
   const handleSendInput = useCallback(async () => {
@@ -505,7 +476,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
               <Bot className="h-4 w-4 text-white" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-gray-800">자연어 질의 V3</h3>
+              <h3 className="text-sm font-bold text-gray-800">자연어 질의</h3>
               <p className="text-xs text-gray-600">
                 {enableRealTimeThinking ? '실시간 thinking 지원' : 'AI 기반 대화형 인터페이스'}
               </p>
@@ -543,12 +514,12 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
               <Bot className="h-6 w-6 text-white" />
             </div>
             <h3 className="mb-2 text-lg font-medium text-gray-900">
-              안녕하세요! V3 업그레이드 완료! 👋
+              안녕하세요! AI 어시스턴트입니다 👋
             </h3>
             <p className="mx-auto max-w-[280px] text-sm text-gray-500">
               {enableRealTimeThinking 
-                ? '실시간 thinking process를 지원하는 새로운 AI 사이드바입니다.'
-                : '아래 프리셋 질문을 선택하거나 직접 질문을 입력해보세요.'
+                ? '실시간 thinking process를 지원하는 AI 사이드바입니다.'
+                : '질문을 입력하시면 AI가 도움을 드리겠습니다.'
               }
             </p>
           </div>
@@ -566,16 +537,6 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* 프리셋 질문 - 분리된 컴포넌트 사용 */}
-      <div className="px-3">
-        <AIPresetQuestions
-          onQuestionSelect={handlePresetQuestion}
-          currentPage={Math.floor(currentPresetIndex / PRESETS_PER_PAGE)}
-          onPageChange={(page: number) =>
-            setCurrentPresetIndex(page * PRESETS_PER_PAGE)
-          }
-        />
-      </div>
 
       {/* 입력 영역 */}
       <div className="border-t border-gray-200 bg-white/80 p-3 backdrop-blur-sm">
@@ -586,7 +547,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
               value={inputValue}
               onValueChange={setInputValue}
               onKeyboardShortcut={() => handleSendInput()}
-              placeholder="시스템에 대해 질문해보세요... (V3 - 실시간 thinking 지원)"
+              placeholder="시스템에 대해 질문해보세요..."
               className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
               minHeight={56}
               maxHeight={300}
@@ -637,9 +598,6 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
     inputValue,
     isGenerating,
     handleModeChange,
-    handlePresetQuestion,
-    currentPresetIndex,
-    PRESETS_PER_PAGE,
     handleSendInput,
     regenerateResponse,
   ]);

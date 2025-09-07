@@ -260,6 +260,19 @@ export interface EnhancedServerMetrics {
   systemInfo?: SystemInfo; // 시스템 정보
   networkInfo?: NetworkInfo; // 네트워크 정보
 
+  // 🔧 메타데이터 정보 (API route에서 사용)
+  metadata?: {
+    serverType?: string;
+    timeSlot?: number;
+    hour?: number;
+    minute?: number;
+    cycleInfo?: any;
+    scenarios?: any[];
+    baseline?: any;
+    isAffectedByCurrentCycle?: boolean;
+    [key: string]: any;
+  };
+
   // 🔧 기존 Server 타입과의 호환성을 위한 metrics 속성
   metrics?: {
     cpu?: {

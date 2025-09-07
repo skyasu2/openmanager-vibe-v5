@@ -93,7 +93,7 @@ export const ChatExport: FC<ChatExportProps> = ({
   onClose,
   className = '',
 }) => {
-  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>(() => EXPORT_FORMATS[0]);
+  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>(EXPORT_FORMATS[0]!);
   const [showPreview, setShowPreview] = useState(false);
   const [filters, setFilters] = useState<ExportFilter>({
     roles: ['user', 'assistant'],
