@@ -277,7 +277,7 @@ export class AIPerformanceOptimizer {
       success: result.success,
       response:
         result.results.length > 0
-          ? `${result.results[0].content}`
+          ? `${result.results[0]?.content ?? '내용을 찾을 수 없습니다.'}`
           : '관련 정보를 찾을 수 없습니다.',
       engine: 'local-rag',
       confidence: result.results.length > 0 ? 0.8 : 0.3,

@@ -132,7 +132,9 @@ export function useIntersectionObserver(
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        setIsIntersecting(entry.isIntersecting);
+        if (entry) {
+          setIsIntersecting(entry.isIntersecting);
+        }
       },
       {
         threshold: 0.1,

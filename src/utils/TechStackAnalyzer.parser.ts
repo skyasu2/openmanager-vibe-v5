@@ -29,7 +29,8 @@ export function parseTechString(techString: string): string[] {
   patterns.forEach((pattern) => {
     let match;
     while ((match = pattern.exec(techString)) !== null) {
-      const tech = match[1].trim().toLowerCase();
+      const tech = match[1]?.trim().toLowerCase();
+      if (!tech) continue;
       if (
         tech.length > 2 &&
         !['and', 'with', 'using', 'based', 'for'].includes(tech)

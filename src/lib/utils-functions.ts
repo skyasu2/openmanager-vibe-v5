@@ -73,7 +73,14 @@ export function generateSessionId(prefix?: string): string {
 
     // 바이트 배열을 Base58로 변환
     for (let i = 0; i < array.length; i++) {
-      result += base58Chars[array[i] % base58Chars.length];
+      const arrayValue = array[i];
+      if (arrayValue !== undefined) {
+        const charIndex = arrayValue % base58Chars.length;
+        const char = base58Chars[charIndex];
+        if (char !== undefined) {
+          result += char;
+        }
+      }
     }
 
     // 타임스탬프 추가 (충돌 방지 및 정렬 가능)

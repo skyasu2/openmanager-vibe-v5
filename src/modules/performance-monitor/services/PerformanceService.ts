@@ -272,7 +272,7 @@ export class PerformanceService {
    */
   public getCurrentMetrics(): PerformanceMetric | null {
     return this.metrics.length > 0
-      ? this.metrics[this.metrics.length - 1]
+      ? this.metrics[this.metrics.length - 1] ?? null
       : null;
   }
 

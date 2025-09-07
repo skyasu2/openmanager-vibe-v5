@@ -273,13 +273,13 @@ export class VercelStatusService {
       const cpuMatch = metrics.match(
         /node_cpu_usage_percent{[^}]*}\s+([\d.]+)/
       );
-      const avgCpu = cpuMatch ? parseFloat(cpuMatch[1]) : 0;
+      const avgCpu = cpuMatch && cpuMatch[1] ? parseFloat(cpuMatch[1]) : 0;
 
       // 메모리 사용률 파싱
       const memMatch = metrics.match(
         /node_memory_usage_percent{[^}]*}\s+([\d.]+)/
       );
-      const avgMemory = memMatch ? parseFloat(memMatch[1]) : 0;
+      const avgMemory = memMatch && memMatch[1] ? parseFloat(memMatch[1]) : 0;
 
       // 부하 기반 동적 조절
       if (avgCpu > 80 || avgMemory > 80) {

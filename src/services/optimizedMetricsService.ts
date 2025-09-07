@@ -40,7 +40,14 @@ function parseTimeRange(range: string): number {
   const match = range.match(/^(\d+)([mhdw])$/);
   if (!match) return 60 * 60 * 1000; // 기본 1시간
 
-  return parseInt(match[1]) * (units[match[2]] || units.h);
+  const value = match[1];
+  const unit = match[2];
+  if (!value || !unit) return 60 * 60 * 1000;
+  
+  const multiplier = units[unit as keyof typeof units];
+  if (!multiplier) return 60 * 60 * 1000; // 기본 1시간
+  
+  return parseInt(value) * multiplier;
 }
 
 /**

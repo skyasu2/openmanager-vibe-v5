@@ -327,10 +327,10 @@ export class UnifiedCacheService {
 
     if (leastUsedKey) {
       const item = this.cache.get(leastUsedKey);
-      if (item?.namespace) {
+      if (item?.namespace && typeof item.namespace === 'string') {
         const currentCount = this.stats.namespaces[item.namespace];
         if (currentCount !== undefined && currentCount > 0) {
-          this.stats.namespaces[item.namespace]--;
+          this.stats.namespaces[item.namespace] = currentCount - 1;
         }
       }
       this.cache.delete(leastUsedKey);
@@ -348,10 +348,10 @@ export class UnifiedCacheService {
     for (const [key, item] of this.cache.entries()) {
       if (item?.expires <= now) {
         expiredKeys.push(key);
-        if (item?.namespace) {
+        if (item?.namespace && typeof item.namespace === 'string') {
           const currentCount = this.stats.namespaces[item.namespace];
           if (currentCount !== undefined && currentCount > 0) {
-            this.stats.namespaces[item.namespace]--;
+            this.stats.namespaces[item.namespace] = currentCount - 1;
           }
         }
       }

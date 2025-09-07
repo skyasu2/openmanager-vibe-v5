@@ -296,7 +296,9 @@ export class DistributedErrorHandler {
     for (const [key, count] of this.errorCounts) {
       if (key.startsWith(`${service}:`)) {
         const code = key.split(':')[1];
-        counts[code] = count;
+        if (code !== undefined) {
+          counts[code] = count;
+        }
       }
     }
     return counts;

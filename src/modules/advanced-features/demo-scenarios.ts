@@ -394,7 +394,10 @@ export class DemoScenariosGenerator {
     const currentIndex = scenarios.indexOf(this.currentScenario);
     const nextIndex = (currentIndex + 1) % scenarios.length;
 
-    this.setScenario(scenarios[nextIndex]);
+    const nextScenario = scenarios[nextIndex];
+    if (nextScenario) {
+      this.setScenario(nextScenario);
+    }
   }
 }
 

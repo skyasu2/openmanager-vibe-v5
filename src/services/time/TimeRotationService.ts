@@ -435,7 +435,15 @@ export class TimeRotationService {
     const pattern = TIME_OF_DAY_PATTERNS.find(
       (p) => p.hour === this.state.simulatedHour
     );
-    return pattern ?? TIME_OF_DAY_PATTERNS[0];
+    return pattern ?? TIME_OF_DAY_PATTERNS[0] ?? { 
+      hour: 0, 
+      label: 'default', 
+      cpuMultiplier: 1, 
+      memoryMultiplier: 1, 
+      diskMultiplier: 1, 
+      networkMultiplier: 1, 
+      alertProbability: 0.1 
+    };
   }
 
   /**
@@ -492,7 +500,15 @@ export class TimeRotationService {
   public getUpcomingPattern(): TimeOfDayPattern {
     const nextHour = (this.state.simulatedHour + 1) % 24;
     const pattern = TIME_OF_DAY_PATTERNS.find((p) => p.hour === nextHour);
-    return pattern ?? TIME_OF_DAY_PATTERNS[0];
+    return pattern ?? TIME_OF_DAY_PATTERNS[0] ?? { 
+      hour: 0, 
+      label: 'default', 
+      cpuMultiplier: 1, 
+      memoryMultiplier: 1, 
+      diskMultiplier: 1, 
+      networkMultiplier: 1, 
+      alertProbability: 0.1 
+    };
   }
 
   /**

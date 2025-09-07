@@ -558,7 +558,7 @@ export class SupabaseTimeSeriesManager {
     const errorRates = records.map((r) => r.error_rate);
 
     return {
-      sessionId: sessionId || records[0].session_id,
+      sessionId: sessionId || records[0]?.session_id || 'unknown',
       serverId,
       timeRange: timeRange || {
         start: new Date(

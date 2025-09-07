@@ -555,7 +555,8 @@ export class StreamingAIEngine {
       `${query}에 대해 ${pattern.frequency}회의 이전 분석을 바탕으로 답변드립니다.`,
     ];
 
-    return templates[Math.floor(Math.random() * templates.length)];
+    const randomIndex = Math.floor(Math.random() * templates.length);
+    return templates[randomIndex] ?? templates[0] ?? `${query}에 대한 분석을 시작합니다.`;
   }
 
   /**

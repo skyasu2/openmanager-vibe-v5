@@ -103,7 +103,10 @@ export class Autoscaler {
         // Remove oldest server
         const serverIds = Array.from(servers.keys());
         if (serverIds.length > config.autoscaling.min_servers) {
-          servers.delete(serverIds[serverIds.length - 1]);
+          const lastServerId = serverIds[serverIds.length - 1];
+          if (lastServerId !== undefined) {
+            servers.delete(lastServerId);
+          }
         }
       }
     }

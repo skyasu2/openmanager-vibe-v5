@@ -72,10 +72,13 @@ export class SimplifiedQueryEngineUtils {
     // 캐시 크기 제한 체크
     if (this.responseCache.size >= 100) {
       // 가장 오래된 항목 삭제
-      const oldestKey = Array.from(this.responseCache.entries()).sort(
+      const sorted = Array.from(this.responseCache.entries()).sort(
         (a, b) => a[1].timestamp - b[1].timestamp
-      )[0][0];
-      this.responseCache.delete(oldestKey);
+      );
+      const oldestEntry = sorted[0];
+      if (oldestEntry) {
+        this.responseCache.delete(oldestEntry[0]);
+      }
     }
 
     // 응답 크기 검증

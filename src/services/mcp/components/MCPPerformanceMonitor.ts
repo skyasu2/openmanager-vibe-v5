@@ -122,7 +122,10 @@ export class MCPPerformanceMonitor {
       return scoreB - scoreA;
     });
 
-    const selectedServer = sortedServers[0][0];
+    const selectedServer = sortedServers[0]?.[0];
+    if (!selectedServer) {
+      throw new Error('No available servers for load balancing');
+    }
 
     // 로드 밸런싱 통계 업데이트
     const currentLoad =

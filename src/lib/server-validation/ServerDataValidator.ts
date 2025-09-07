@@ -32,7 +32,7 @@ export class ServerDataValidator {
     return fallback;
   }
   
-  static validateBatchServerInfo(info: any): BatchServerInfo | null {
+  static validateBatchServerInfo(info: any): Partial<BatchServerInfo> | null {
     if (!info || typeof info !== 'object') {
       return null;
     }
@@ -53,7 +53,12 @@ export class ServerDataValidator {
         cpu: this.sanitizeMetricValue(baseMetrics.cpu),
         memory: this.sanitizeMetricValue(baseMetrics.memory),
         disk: this.sanitizeMetricValue(baseMetrics.disk),
-        network: this.sanitizeMetricValue(baseMetrics.network)
+        network: {
+          in: this.sanitizeMetricValue(baseMetrics.network?.in),
+          out: this.sanitizeMetricValue(baseMetrics.network?.out)
+        },
+        responseTime: this.sanitizeMetricValue(baseMetrics.responseTime),
+        activeConnections: this.sanitizeMetricValue(baseMetrics.activeConnections)
       }
     };
   }

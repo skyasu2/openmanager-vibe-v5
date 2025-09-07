@@ -532,8 +532,11 @@ export class AIQualityAssuranceEngine {
         if (!acc[entry.engine]) {
           acc[entry.engine] = { total: 0, count: 0 };
         }
-        acc[entry.engine].total += entry.qualityScore;
-        acc[entry.engine].count++;
+        const engineStats = acc[entry.engine];
+        if (engineStats) {
+          engineStats.total += entry.qualityScore;
+          engineStats.count++;
+        }
         return acc;
       },
       {} as Record<string, { total: number; count: number }>

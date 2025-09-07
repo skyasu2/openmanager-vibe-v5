@@ -114,8 +114,8 @@ class MemoryLogStream {
 
     return {
       length: this.logs.length,
-      oldestTimestamp: this.logs[0].timestamp,
-      newestTimestamp: this.logs[this.logs.length - 1].timestamp,
+      oldestTimestamp: this.logs[0]?.timestamp ?? Date.now(),
+      newestTimestamp: this.logs[this.logs.length - 1]?.timestamp ?? Date.now(),
     };
   }
 

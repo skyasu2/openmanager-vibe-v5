@@ -113,7 +113,7 @@ export class UnifiedAIEngineRouterCircuitBreaker {
     if (fallbackIndex >= 0 && fallbackIndex < fallbackChain.length - 1) {
       const nextEngine = fallbackChain[fallbackIndex + 1];
       // 다음 엔진도 Circuit이 열려있지 않은지 확인
-      if (!this.isCircuitOpen(nextEngine)) {
+      if (nextEngine && !this.isCircuitOpen(nextEngine)) {
         return nextEngine;
       }
     }

@@ -82,7 +82,9 @@ export class SimplifiedQueryEngineHelpers {
 
     // RAG 결과 기반 응답
     const topResult = ragResult.results[0];
-    response += topResult.content;
+    if (topResult) {
+      response += topResult.content;
+    }
 
     // 추가 정보가 있으면 포함
     if (ragResult.results.length > 1) {
@@ -261,7 +263,7 @@ export class SimplifiedQueryEngineHelpers {
     if (ragResult.results.length === 0) return 0.1;
 
     // 최고 유사도 점수 기반 신뢰도
-    const topSimilarity = ragResult.results[0].similarity;
+    const topSimilarity = ragResult.results[0]?.similarity ?? 0;
     const resultCount = ragResult.results.length;
 
     // 유사도와 결과 개수를 종합한 신뢰도

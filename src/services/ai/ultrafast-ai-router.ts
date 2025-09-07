@@ -554,7 +554,7 @@ export class UltraFastAIRouter {
 
     const primaryPattern = patterns[0];
     return (
-      patternResponses[primaryPattern] ||
+      (primaryPattern && patternResponses[primaryPattern]) ||
       `${query}에 대한 상세 분석을 수행합니다.`
     );
   }
