@@ -101,7 +101,9 @@ export default function UnifiedProfileHeader({
 
   // 관리자 인증 핸들러
   const handleAdminAuth = useCallback(async () => {
+    console.log('🔐 handleAdminAuth 함수 호출됨:', menuState.adminPassword); // 디버그 로그
     const success = await authenticateAdmin(menuState.adminPassword);
+    console.log('🔐 인증 결과:', success); // 디버그 로그
     if (success) {
       cancelAdminInput();
       closeMenu();

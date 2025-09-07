@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ProfileSecurityState } from '../types/profile.types';
 import { ADMIN_PASSWORD } from '@/config/system-constants';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 const MAX_ATTEMPTS = 5;
 const WARNING_ATTEMPTS = 3;
 const LOCKOUT_TIME_WARNING = 5 * 60 * 1000; // 5분
@@ -11,6 +12,10 @@ const LOCKOUT_TIME_MAX = 30 * 60 * 1000; // 30분
  * 관리자 인증, 잠금 상태 관리
  */
 export function useProfileSecurity() {
+  // Zustand 스토어의 관리자 상태 사용
+  const { adminMode } = useUnifiedAdminStore();
+  const isAdminMode = adminMode.isAuthenticated;
+
   const [securityState, setSecurityState] = useState<ProfileSecurityState>({
     failedAttempts: 0,
     isLocked: false,
@@ -18,8 +23,6 @@ export function useProfileSecurity() {
     remainingLockTime: 0,
     isProcessing: false,
   });
-
-  const [isAdminMode, setIsAdminMode] = useState(false);
 
   // 초기 상태 로드
   useEffect(() => {
@@ -30,9 +33,7 @@ export function useProfileSecurity() {
       const storedLockEndTime = parseInt(
         localStorage.getItem('admin_lock_end_time') || '0'
       );
-      const adminMode = localStorage.getItem('admin_mode') === 'true';
-
-      setIsAdminMode(adminMode);
+      // adminMode는 Zustand에서 관리하므로 localStorage 확인 제거
 
       if (storedLockEndTime > Date.now()) {
         setSecurityState((prev) => ({
@@ -94,8 +95,9 @@ export function useProfileSecurity() {
   }, [securityState.isLocked, securityState.lockEndTime]);
 
   /**
-   * 관리자 인증 처리
+   * 관리자 인증 처리 - Zustand 스토어 사용
    */
+  const { authenticateAdmin: zustandAuth } = useUnifiedAdminStore();
   const authenticateAdmin = useCallback(
     async (password: string): Promise<boolean> => {
       // 잠금 상태 확인
@@ -120,12 +122,15 @@ export function useProfileSecurity() {
           await new Promise((resolve) => setTimeout(resolve, delay));
         }
 
-        if (password === ADMIN_PASSWORD) {
-          // 인증 성공
-          setIsAdminMode(true);
-          localStorage.setItem('admin_mode', 'true');
+        console.log('🔐 관리자 인증 시도:', password); // 디버그 로그
+        
+        // Zustand 스토어의 인증 함수 사용
+        const result = await zustandAuth(password);
+        
+        console.log('🔐 Zustand 인증 결과:', result); // 디버그 로그
 
-          // 실패 기록 초기화
+        if (result.success) {
+          // 인증 성공 - 실패 기록 초기화
           setSecurityState((prev) => ({
             ...prev,
             failedAttempts: 0,
@@ -180,17 +185,17 @@ export function useProfileSecurity() {
         setSecurityState((prev) => ({ ...prev, isProcessing: false }));
       }
     },
-    [securityState.isLocked, securityState.failedAttempts] // ✅ 객체 참조 → primitive 값으로 변경하여 React Error #310 해결
+    [zustandAuth, securityState.isLocked, securityState.failedAttempts] // Zustand 함수 의존성 추가
   );
 
   /**
-   * 관리자 모드 해제
+   * 관리자 모드 해제 - Zustand 스토어 사용
    */
+  const { logoutAdmin } = useUnifiedAdminStore();
   const disableAdminMode = useCallback(() => {
-    setIsAdminMode(false);
-    localStorage.removeItem('admin_mode');
+    logoutAdmin();
     console.log('🔒 관리자 모드 해제');
-  }, []);
+  }, [logoutAdmin]);
 
   return {
     securityState,
