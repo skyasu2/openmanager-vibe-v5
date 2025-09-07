@@ -56,6 +56,9 @@ function Home() {
     getSystemRemainingTime,
   } = useUnifiedAdminStore();
 
+  // 관리자 모드 상태 변수
+  const adminMode = _adminMode;
+
   // 📊 다중 사용자 시스템 상태 관리 - 개선된 동기화
   const {
     status: multiUserStatus,
@@ -662,7 +665,10 @@ function Home() {
                       </button>
                     </div>
                     <p className="text-xs text-gray-400">
-                      게스트 모드에서는 읽기 전용 기능만 사용 가능합니다
+                      {adminMode.isAuthenticated 
+                        ? '👑 관리자 권한: 모든 기능 사용 가능합니다'
+                        : '게스트 모드에서는 읽기 전용 기능만 사용 가능합니다'
+                      }
                     </p>
                   </div>
                 )}
