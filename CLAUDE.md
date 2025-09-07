@@ -199,12 +199,11 @@ npm run build:ci    # 1.5GB (CI 최적화)
 
 | 도구                  | 버전    | 요금제              | 역할 구분                   | WSL 실행                   | Windows 네이티브           |
 | --------------------- | ------- | ------------------- | --------------------------- | -------------------------- | -------------------------- |
-| **Claude Code**       | v1.0.100 | Max ($200/월) | 🏆 **메인 개발 환경**       | .\claude-wsl-optimized.bat | ✅ 완벽 지원                |
-| **Codex CLI**         | v0.29.0 | Plus ($20/월)       | 🤝 **GPT-5 서브 에이전트** ✅ | codex exec (WSL 해결완료)  | ✅ **완벽 지원**           |
+| **Claude Code**       | v1.0.107 | Max ($200/월) | 🏆 **메인 개발 환경**       | .\claude-wsl-optimized.bat | ✅ 완벽 지원                |
+| **OpenAI CLI (Codex)** | v0.29.0 | Plus ($20/월)       | 🤝 **GPT-5 서브 에이전트** ✅ | codex exec (WSL 해결완료)  | ✅ **완벽 지원**           |
 | **Google Gemini CLI** | v0.2.1  | 무료 (1K req/day)   | 👨‍💻 **코드 아키텍트** (무료) | .\gemini-wsl.bat           | ✅ 완벽 지원                |
 | **Qwen Code**         | v0.0.9  | 무료 (Qwen OAuth 2K/day)   | 🔷 **병렬 모듈 개발** (무료) | .\qwen-wsl.bat             | ✅ 완벽 지원                |
-| **OpenAI CLI**        | 설치됨  | -                   | 🔧 **SDK 도구**             | .\openai-wsl.bat           | ✅ 완벽 지원                |
-| **ccusage**           | v16.2.0 | 무료                | 📊 **사용량 모니터링**      | ccusage daily              | ✅ 완벽 지원                |
+| **ccusage**           | v16.2.0 | 무료                | 📊 **Claude 사용량 모니터링** | ccusage daily              | ✅ 완벽 지원                |
 
 > ✅ **2025년 해결완료**: **Codex CLI WSL 네트워크 문제 완전 해결**됨. DNS 설정 수정으로 `codex exec` 명령어 정상 작동. ChatGPT Plus 계정으로 GPT-5 모델 추가 과금 없이 사용 가능.
 
@@ -1379,7 +1378,7 @@ const safeMetrics = validateServerMetrics({
 - **프로세서**: 12개 할당 (AMD Ryzen 7, 로드평균 2.89 - 24% 사용률, 여유로움)
 - **스왑**: 4GB 설정 (현재 6.8% 사용 - 280MB, 정상 범위)
 - **I/O 성능**: WSL이 Windows 대비 54배 빠른 I/O 처리량
-- **AI CLI 도구**: 6개 모두 완벽 작동 (Claude v1.0.107, Codex, Gemini, Qwen, OpenAI, ccusage)
+- **AI CLI 도구**: 5개 모두 완벽 작동 (Claude v1.0.107, OpenAI/Codex, Gemini, Qwen) + ccusage (사용량 모니터링)
 - **멀티 AI 협업**: Max 정액제 + 서브 3개 체제 ($220/월로 $2,200+ 가치)
 - **Claude 사용량 모니터링**: ccusage v16.1.1 statusline 실시간 표시 활성화
 - **개발 도구**: sudo 비밀번호 없이 사용, bash 별칭 최적화 완료
