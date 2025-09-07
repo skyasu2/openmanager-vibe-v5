@@ -62,11 +62,11 @@ export default function LoginClient() {
 
     const currentMessages = messages[loadingType];
     let messageIndex = 0;
-    setLoadingMessage(currentMessages[0]);
+    setLoadingMessage(currentMessages[0] ?? '로딩 중...');
 
     const interval = setInterval(() => {
       messageIndex = (messageIndex + 1) % currentMessages.length;
-      setLoadingMessage(currentMessages[messageIndex]);
+      setLoadingMessage(currentMessages[messageIndex] ?? '로딩 중...');
     }, 1500); // 1.5초마다 메시지 변경
 
     return () => clearInterval(interval);

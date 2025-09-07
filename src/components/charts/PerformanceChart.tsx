@@ -32,11 +32,12 @@ interface TooltipProps {
 const CustomTooltip = memo(({ active, payload }: TooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0];
+    if (!data) return null;
     return (
       <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
         <p className="font-semibold text-gray-800">{data.name}</p>
         <p style={{ color: data.color }} className="text-sm">
-          사용률: {data.value.toFixed(1)}%
+          사용률: {(data.value ?? 0).toFixed(1)}%
         </p>
       </div>
     );

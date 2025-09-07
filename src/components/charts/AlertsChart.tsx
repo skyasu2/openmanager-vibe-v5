@@ -35,11 +35,12 @@ interface TooltipProps {
 const AlertsTooltip = memo(({ active, payload, label }: TooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0];
+    if (!data) return null;
     return (
       <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
         <p className="font-semibold text-gray-800">{label} 알림</p>
         <p style={{ color: data.color }} className="text-sm">
-          개수: {data.value}건
+          개수: {data.value ?? 0}건
         </p>
       </div>
     );

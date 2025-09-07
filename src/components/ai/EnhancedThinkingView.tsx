@@ -115,7 +115,10 @@ export const EnhancedThinkingView: FC<EnhancedThinkingViewProps> = ({
   useEffect(() => {
     if (steps.length > visibleSteps.length) {
       const timer = setTimeout(() => {
-        setVisibleSteps((prev) => [...prev, steps[prev.length]]);
+        setVisibleSteps((prev) => {
+          const nextStep = steps[prev.length];
+          return nextStep ? [...prev, nextStep] : prev;
+        });
       }, 500);
       return () => clearTimeout(timer);
     }
