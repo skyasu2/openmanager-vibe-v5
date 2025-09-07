@@ -24,26 +24,24 @@ import {
 import {
   BarChart3,
   Bot,
-  ChevronDown,
   FileText,
   Search,
   Send,
   Server,
   Target,
   User,
-  Zap,
   type LucideIcon,
 } from 'lucide-react';
 
 // Components
-import { availableEngines } from './AIEngineSelector';
 import { AIFunctionPages } from './AIFunctionPages';
 import { AIPresetQuestions } from './AIPresetQuestions';
 import { AISidebarHeader } from './AISidebarHeader';
 import ThinkingProcessVisualizer from '../../../components/ai/ThinkingProcessVisualizer';
 import type { AIAssistantFunction } from '../../../components/ai/AIAssistantIconPanel';
 import AIAssistantIconPanel from '../../../components/ai/AIAssistantIconPanel';
-import { AIModeSelector } from '../../../components/ai/AIModeSelector';
+import { CompactModeSelector } from '../../../components/ui/CompactModeSelector';
+import { AutoResizeTextarea } from '../../../components/ui/AutoResizeTextarea';
 
 // Types
 import type { AISidebarV3Props, AIThinkingStep } from '../types/ai-sidebar-types';
@@ -168,7 +166,6 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
   const [inputValue, setInputValue] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentPresetIndex, setCurrentPresetIndex] = useState(0);
-  const [showEngineInfo, setShowEngineInfo] = useState(false);
 
   // 자동 보고서 트리거 상태
   const [autoReportTrigger, setAutoReportTrigger] = useState<{
@@ -180,7 +177,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
   });
 
   // 프리셋 질문 네비게이션 상태
-  const PRESETS_PER_PAGE = 4;
+  const PRESETS_PER_PAGE = 2; // 한 번에 2개씩만 표시하여 UI 간소화
   const MAX_MESSAGES = 50; // 메모리 누수 방지
 
   // 통합 상태 관리 (Single Source of Truth)
@@ -515,78 +512,6 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
             </div>
           </div>
 
-          {/* 모델 선택 드롭다운 */}
-          <div className="relative">
-            <button
-              onClick={() => setShowEngineInfo(!showEngineInfo)}
-              className="flex items-center space-x-2 rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs transition-colors hover:bg-gray-50"
-            >
-              {createElement(
-                availableEngines.find((e) => e.id === selectedEngine)?.icon ||
-                  Zap,
-                {
-                  className: `w-3 h-3 ${availableEngines.find((e) => e.id === selectedEngine)?.color}`,
-                }
-              )}
-              <span className="font-medium">
-                {availableEngines.find((e) => e.id === selectedEngine)?.name}
-              </span>
-              <ChevronDown className="h-3 w-3 text-gray-500" />
-            </button>
-
-            {/* 엔진 선택 드롭다운 */}
-            {showEngineInfo && (
-              <div className="absolute right-0 top-full z-50 mt-2 w-60 rounded-lg border border-gray-200 bg-white shadow-lg sm:w-72">
-                <div className="border-b border-gray-100 p-3">
-                  <h4 className="text-xs font-semibold text-gray-800">
-                    AI 모델 선택 (V3)
-                  </h4>
-                  <p className="text-xs text-gray-600">
-                    {enableRealTimeThinking ? 'Thinking 지원 모드' : '표준 모드'}
-                  </p>
-                </div>
-
-                <div className="max-h-48 overflow-y-auto">
-                  {availableEngines.map((engine) => (
-                    <button
-                      key={engine.id}
-                      onClick={() => {
-                        console.log(`🔧 AI 모드 변경: ${selectedEngine} → ${engine.id}`);
-                        handleModeChange(engine.id as AIMode);
-                        setShowEngineInfo(false);
-                      }}
-                      className={`w-full border-b border-gray-50 p-2 text-left transition-colors last:border-b-0 hover:bg-gray-50 ${
-                        selectedEngine === engine.id ? 'bg-blue-50' : ''
-                      }`}
-                    >
-                      <div className="flex items-start space-x-2">
-                        <div className={`h-6 w-6 rounded ${engine.bgColor} flex items-center justify-center`}>
-                          {createElement(engine.icon, {
-                            className: `w-3 h-3 ${engine.color}`,
-                          })}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <h5 className="text-xs font-medium text-gray-800">
-                              {engine.name}
-                            </h5>
-                            {engine.usage && (
-                              <span className="text-xs text-gray-500">
-                                {engine.usage.used}/{engine.usage.limit}
-                              </span>
-                            )}
-                          </div>
-                          <p className="mt-1 text-xs text-gray-600">
-                            {engine.description}
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
@@ -642,15 +567,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
       </div>
 
       {/* 프리셋 질문 - 분리된 컴포넌트 사용 */}
-      <div className="space-y-3 px-3">
-        {/* AI 모드 선택기 */}
-        <AIModeSelector
-          selectedMode={selectedEngine}
-          onModeChange={handleModeChange}
-          disabled={isGenerating}
-          className="mb-3"
-        />
-
+      <div className="px-3">
         <AIPresetQuestions
           onQuestionSelect={handlePresetQuestion}
           currentPage={Math.floor(currentPresetIndex / PRESETS_PER_PAGE)}
@@ -665,18 +582,17 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
         <div className="flex items-end space-x-2">
           {/* 텍스트 입력 */}
           <div className="relative flex-1">
-            <textarea
+            <AutoResizeTextarea
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendInput();
-                }
-              }}
+              onValueChange={setInputValue}
+              onKeyboardShortcut={() => handleSendInput()}
               placeholder="시스템에 대해 질문해보세요... (V3 - 실시간 thinking 지원)"
-              className="max-h-24 min-h-[36px] w-full resize-none rounded border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows={1}
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+              minHeight={56}
+              maxHeight={300}
+              maxHeightVh={40}
+              aria-label="AI 질문 입력"
+              disabled={isGenerating}
             />
           </div>
 
@@ -692,23 +608,28 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
           </button>
         </div>
 
-        {/* 키보드 단축키 힌트 */}
-        <div className="mt-1 flex items-center justify-between text-xs text-gray-500">
-          <span>
-            Enter로 전송, Shift+Enter로 줄바꿈 
-            {enableRealTimeThinking && ' | 실시간 thinking 활성화'}
-          </span>
-          <span>
-            {selectedEngine === 'GOOGLE_AI' && <>Google AI 모드</>}
-            {selectedEngine === 'LOCAL' && <>Local AI 모드</>}
-          </span>
+        {/* 하단 컨트롤 영역 */}
+        <div className="mt-2 flex items-center justify-between">
+          {/* 왼쪽: AI 모드 선택기 (Cursor 스타일) */}
+          <CompactModeSelector
+            selectedMode={selectedEngine}
+            onModeChange={handleModeChange}
+            disabled={isGenerating}
+          />
+
+          {/* 오른쪽: 키보드 단축키 힌트 */}
+          <div className="text-xs text-gray-500">
+            <span>Ctrl+Enter로 전송</span>
+            {enableRealTimeThinking && (
+              <span className="ml-2 text-emerald-600">• Thinking 활성</span>
+            )}
+          </div>
         </div>
       </div>
     </div>
   ), [
     enableRealTimeThinking,
     selectedEngine,
-    showEngineInfo,
     autoReportTrigger.shouldGenerate,
     autoReportTrigger.lastQuery,
     autoReportTrigger.severity,

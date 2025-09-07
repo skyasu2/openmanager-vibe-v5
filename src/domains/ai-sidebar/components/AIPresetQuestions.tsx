@@ -1,12 +1,13 @@
 /**
- * 🎯 AI 프리셋 질문 컴포넌트 (최적화됨)
+ * 🎯 AI 프리셋 질문 컴포넌트 v2.0 - PresetChips 통합
  */
 
 'use client';
 
-import React, { type FC, createElement } from 'react';
+import React, { type FC, useMemo } from 'react';
+import { PresetChips, type PresetChip } from '../../../components/ui/PresetChips';
 
-// framer-motion 제거 - CSS 애니메이션 사용
+// Icons - PresetChips에서 사용
 import {
   Brain,
   ChevronLeft,
@@ -20,7 +21,6 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react';
-// React import 제거 - Next.js 15 자동 JSX Transform 사용
 
 export interface PresetQuestion {
   id: string;
@@ -37,14 +37,15 @@ interface AIPresetQuestionsProps {
   className?: string;
 }
 
-// 프리셋 질문 목록
-const PRESET_QUESTIONS: PresetQuestion[] = [
+// 프리셋 질문 목록 - PresetChip 형식으로 확장
+const PRESET_QUESTIONS: PresetChip[] = [
   {
     id: '1',
     text: '현재 서버 상태는 어떤가요?',
     category: '상태 확인',
     icon: Cpu,
     color: 'bg-blue-500',
+    keywords: ['서버', '상태', '현황', '모니터링'],
   },
   {
     id: '2',
@@ -52,6 +53,7 @@ const PRESET_QUESTIONS: PresetQuestion[] = [
     category: '성능 분석',
     icon: Zap,
     color: 'bg-red-500',
+    keywords: ['cpu', '사용률', '높은', '성능', '부하'],
   },
   {
     id: '3',
@@ -59,6 +61,7 @@ const PRESET_QUESTIONS: PresetQuestion[] = [
     category: '리소스 모니터링',
     icon: Brain,
     color: 'bg-yellow-500',
+    keywords: ['메모리', '램', 'ram', '부족', '경고'],
   },
   {
     id: '4',
@@ -66,6 +69,7 @@ const PRESET_QUESTIONS: PresetQuestion[] = [
     category: '네트워크 진단',
     icon: Globe,
     color: 'bg-green-500',
+    keywords: ['네트워크', '지연', '레이턴시', '연결', '통신'],
   },
   {
     id: '5',
@@ -73,6 +77,7 @@ const PRESET_QUESTIONS: PresetQuestion[] = [
     category: '로그 분석',
     icon: FileText,
     color: 'bg-purple-500',
+    keywords: ['로그', '에러', '오류', '분석', '문제'],
   },
   {
     id: '6',
@@ -80,6 +85,7 @@ const PRESET_QUESTIONS: PresetQuestion[] = [
     category: '최적화',
     icon: Sparkles,
     color: 'bg-pink-500',
+    keywords: ['최적화', '개선', '튜닝', '성능향상'],
   },
   {
     id: '7',
@@ -87,6 +93,7 @@ const PRESET_QUESTIONS: PresetQuestion[] = [
     category: '스토리지',
     icon: HardDrive,
     color: 'bg-indigo-500',
+    keywords: ['디스크', '스토리지', '용량', '임계치', '공간'],
   },
   {
     id: '8',
@@ -94,10 +101,12 @@ const PRESET_QUESTIONS: PresetQuestion[] = [
     category: '데이터베이스',
     icon: Database,
     color: 'bg-teal-500',
+    keywords: ['데이터베이스', 'db', '연결', '커넥션', '상태'],
   },
 ];
 
-const PRESETS_PER_PAGE = 4;
+const PRESETS_PER_PAGE = 2; // UI 간소화를 위해 2개씩 표시
+const DEFAULT_VISIBLE_PRESETS = 2;
 
 export const AIPresetQuestions: FC<AIPresetQuestionsProps> = ({
   onQuestionSelect,
@@ -105,97 +114,28 @@ export const AIPresetQuestions: FC<AIPresetQuestionsProps> = ({
   onPageChange,
   className = '',
 }) => {
-  const totalPages = Math.ceil(PRESET_QUESTIONS.length / PRESETS_PER_PAGE);
-
-  const getCurrentPresets = () => {
-    const startIndex = currentPage * PRESETS_PER_PAGE;
-    return PRESET_QUESTIONS.slice(startIndex, startIndex + PRESETS_PER_PAGE);
-  };
-
-  const goToPreviousPresets = () => {
-    if (currentPage > 0) {
-      onPageChange?.(currentPage - 1);
-    }
-  };
-
-  const goToNextPresets = () => {
-    if ((currentPage + 1) * PRESETS_PER_PAGE < PRESET_QUESTIONS.length) {
-      onPageChange?.(currentPage + 1);
-    }
-  };
-
-  const currentPresets = getCurrentPresets();
+  // PresetChips 사용으로 페이지 관리 로직 간소화
+  const presetChips = useMemo(() => PRESET_QUESTIONS, []);
 
   return (
     <div className={`border-t border-gray-200 bg-white p-4 ${className}`}>
       {/* 헤더 */}
       <div className="mb-3 flex items-center justify-between">
-        <h4 className="text-sm font-semibold text-gray-700">빠른 질문</h4>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={goToPreviousPresets}
-            disabled={currentPage === 0}
-            className="rounded p-1 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-            data-testid="preset-prev-button"
-            aria-label="이전 페이지"
-          >
-            <ChevronLeft className="h-4 w-4 text-gray-600" />
-          </button>
-          <span
-            className="text-xs text-gray-500"
-            data-testid="preset-page-indicator"
-          >
-            {currentPage + 1}/{totalPages}
-          </span>
-          <button
-            onClick={goToNextPresets}
-            disabled={
-              (currentPage + 1) * PRESETS_PER_PAGE >= PRESET_QUESTIONS.length
-            }
-            className="rounded p-1 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-            data-testid="preset-next-button"
-            aria-label="다음 페이지"
-          >
-            <ChevronRight className="h-4 w-4 text-gray-600" />
-          </button>
-        </div>
+        <h4 className="text-sm font-semibold text-gray-700">💡 빠른 질문</h4>
+        <span className="text-xs text-gray-500">
+          검색 또는 클릭으로 선택
+        </span>
       </div>
 
-      {/* 질문 그리드 */}
-      <div
-        className="relative h-32 overflow-hidden"
-        data-testid="preset-questions-grid"
-      >
-        <div
-          key={currentPage}
-          className="grid h-full grid-cols-2 gap-2"
-        >
-          {currentPresets.map((question, index) => (
-            <button
-              key={question.id}
-              onClick={() => onQuestionSelect(question.text)}
-              className="group rounded-lg border border-gray-200 p-2 text-left transition-all duration-200 hover:border-blue-300 hover:bg-blue-50"
-              data-testid={`preset-question-${index}`}
-            >
-              <div className="mb-1 flex items-center space-x-1">
-                <div
-                  className={`h-4 w-4 ${question.color} flex items-center justify-center rounded`}
-                >
-                  {createElement(question.icon, {
-                    className: 'w-2 h-2 text-white',
-                  })}
-                </div>
-                <span className="text-xs text-gray-500">
-                  {question.category}
-                </span>
-              </div>
-              <p className="line-clamp-2 text-xs text-gray-800">
-                {question.text}
-              </p>
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* PresetChips 통합 */}
+      <PresetChips
+        presets={presetChips}
+        onChipSelect={onQuestionSelect}
+        maxVisible={4}
+        showSearch={true}
+        showCategories={false}
+        className="min-h-[120px]"
+      />
     </div>
   );
 };
