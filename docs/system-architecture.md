@@ -9,8 +9,9 @@
 **📊 개발 완성도**: **90% 완료** - 핵심 기능 구현 완성, 추가 확장보다는 안정성과 완성도 우선
 
 **⚡ 실제 동작 필수 기능**:
-- ✅ 실시간 서버 모니터링 (Box-Muller 정규분포 기반 현실적 메트릭)
-- ✅ AI 장애 분석 시스템 (Google Gemini가 실제 메트릭 데이터 분석)
+- ✅ 실시간 서버 모니터링 (Box-Muller 정규분부 기반 현실적 메트릭)
+- ✅ 하이브리드 AI 어시스턴트 (로컬 AI 기본 + Google AI 자연어 질의)
+- ✅ AI 사이드바 (로컬 분석 디폴트, 구글 AI 모드 선택 가능)
 - ✅ 사용자 인증 (Supabase Auth 완전 연동)
 - ✅ 반응형 UI/UX (Material Design 3 기반)
 
@@ -55,16 +56,16 @@ OpenManager Vibe v5.77.0는 **포트폴리오 전시용 플랫폼**으로, TypeS
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
 │   사용자        │────▶│     Vercel       │────▶│   Supabase      │
-│   브라우저       │     │ Next.js 15.4.5   │     │ PostgreSQL +    │
-│                 │     │ React 18.3.1     │     │ pgVector        │
+│   AI 사이드바    │     │ Next.js 15.4.5   │     │ PostgreSQL +    │
+│   (모드 선택)    │     │ React 18.3.1     │     │ pgVector        │
 └─────────────────┘     │ Node.js 22.x     │     │                 │
                         └──────────────────┘     └─────────────────┘
                               │                         │
                               ▼                         ▼
                         ┌──────────────────┐     ┌─────────────────┐
-                        │  50+ API 경로    │     │  Google AI      │
-                        │ /ai/*, /servers/*│     │  Gemini 1.5 Pro │
-                        │ /system/*, ...   │     │  AI 응답 처리   │
+                        │  하이브리드 AI   │     │  Google AI      │
+                        │ 로컬 AI (디폴트) │     │  Gemini 1.5 Pro │
+                        │ + Google AI 모드 │     │  (자연어 질의만) │
                         │                  │     │                 │
                         │ 152ms 응답시간   │     │ 272ms AI 처리   │
                         └──────────────────┘     └─────────────────┘
@@ -117,7 +118,8 @@ OpenManager Vibe v5.77.0는 **포트폴리오 전시용 플랫폼**으로, TypeS
 
 ### **3단계: API 레이어 (50+ 엔드포인트)**
 
-- **AI 어시스턴트**: `/api/ai/*` (Google AI Gemini 1.5 Pro)
+- **하이브리드 AI**: `/api/ai/*` (로컬 AI 기본 + Google AI 자연어 질의 모드)
+- **AI 어시스턴트**: 로컬 분석 엔진 (디폴트) + Gemini 1.5 Pro (자연어 질의)
 - **서버 모니터링**: `/api/servers/*` (실시간 메트릭, 상태 관리)
 - **시스템 관리**: `/api/system/*` (초기화, 상태 확인, 최적화)
 - **인증**: `/api/auth/*` (Supabase Auth 기반 OAuth)
@@ -223,14 +225,14 @@ import { AIResponse } from '@/types/ai';
 #### **API 아키텍처 (50+ 엔드포인트)**
 
 ```typescript
-// src/app/api 구조 (Next.js 15 App Router)
+// src/app/api 구조 (Next.js 15 App Router) - 하이브리드 AI 시스템
 /api/
-├── ai/              // AI 처리 (10+ 엔드포인트)
-│   ├── query/       // 통합 AI 쿼리
-│   ├── google-ai/   // Google AI 전용
-│   ├── incident-report/
-│   ├── insight-center/
-│   └── thinking/    // 사고 스트림
+├── ai/              // 하이브리드 AI 처리 (10+ 엔드포인트)
+│   ├── query/       // 로컬 AI 분석 (디폴트)
+│   ├── google-ai/   // Google AI 자연어 질의 모드
+│   ├── incident-report/ // 로컬 AI 장애 분석
+│   ├── insight-center/  // 로컬 AI 인사이트
+│   └── thinking/    // 로컬 AI 사고 스트림
 ├── auth/            // 인증 시스템
 │   ├── callback/    // OAuth 콜백
 │   └── success/     // 로그인 성공
@@ -243,6 +245,13 @@ import { AIResponse } from '@/types/ai';
 │   ├── initialize/  // 시스템 초기화
 │   └── optimize/    // 성능 최적화
 └── health/          // 헬스체크 (5초 타임아웃)
+
+// AI 모드 전환 구조
+interface AIMode {
+  default: 'local';     // 로컬 AI 분석 엔진 (디폴트)
+  nlp: 'google-ai';     // 자연어 질의용 Google AI
+  sidebar: 'hybrid';    // AI 사이드바 모드 선택
+}
 ```
 
 #### **서버 모니터링 데이터 구조**
