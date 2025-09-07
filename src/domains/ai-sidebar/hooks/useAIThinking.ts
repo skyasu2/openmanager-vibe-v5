@@ -176,7 +176,10 @@ export function useAIThinking(): UseAIThinkingReturn {
     setCompletedThinkingSteps((prev) => ({
       ...prev,
       [messageId]: {
-        ...prev[messageId],
+        steps: prev[messageId]?.steps ?? [],
+        query: prev[messageId]?.query ?? '',
+        engine: prev[messageId]?.engine ?? '',
+        processingTime: prev[messageId]?.processingTime ?? 0,
         isExpanded: !prev[messageId]?.isExpanded,
       },
     }));

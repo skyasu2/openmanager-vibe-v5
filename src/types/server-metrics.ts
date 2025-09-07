@@ -35,3 +35,35 @@ export interface ServerMetric {
 export type ServerMetricData = Omit<ServerMetric, 'timestamp'> & {
   timestamp: string;
 };
+
+// ServerDataValidator에서 사용하는 타입들
+export interface RawServerData {
+  id: string;
+  name: string;
+  status: string;
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: {
+    in: number;
+    out: number;
+  };
+  responseTime: number;
+  activeConnections: number;
+}
+
+export interface BatchServerInfo {
+  id?: string;
+  type?: string;
+  servers: RawServerData[];
+  timestamp: string;
+  totalCount: number;
+  baseMetrics?: {
+    cpu: number;
+    memory: number;
+    disk: number;
+    network: { in: number; out: number };
+    responseTime: number;
+    activeConnections: number;
+  };
+}

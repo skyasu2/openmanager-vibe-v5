@@ -47,7 +47,7 @@ export function validateEnvironmentVariables(): string[] {
 
   // Redis 환경변수 체크 (둘 중 하나 세트만 있으면 됨)
   const hasRedis = REDIS_ENV_VARS.some(
-    ([url, token]) => process.env[url] && process.env[token]
+    ([url, token]) => url && token && process.env[url] && process.env[token]
   );
 
   if (!hasRedis) {

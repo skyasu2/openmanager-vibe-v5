@@ -160,7 +160,7 @@ export function translateCommand(
 
   // Linux -> Windows
   if (isWindowsTarget && translations[command]) {
-    return translations[command]['windows'];
+    return translations[command]['windows'] ?? null;
   }
 
   // Windows -> Linux
@@ -263,7 +263,7 @@ export function parseCommandOutput(
       const lines = output.split('\n').filter((line) => line.trim());
       if (lines.length < 2) return [];
 
-      const headers = lines[0].split(/\s+/);
+      const headers = lines[0]?.split(/\s+/) ?? [];
       return lines.slice(1).map((line) => {
         const values = line.split(/\s+/);
         const row: Record<string, string> = {};

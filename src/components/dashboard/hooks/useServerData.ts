@@ -194,7 +194,10 @@ export const useServerData = (): UseServerDataReturn => {
         acc.total++;
         // 안전한 인덱스 접근
         if (server.status in acc) {
-          (acc as Record<string, number>)[server.status]++;
+          const accRecord = acc as Record<string, number>;
+          if (accRecord[server.status] !== undefined) {
+            accRecord[server.status] = (accRecord[server.status] ?? 0) + 1;
+          }
         } else {
           // 미지원 상태는 warning으로 분류
           acc.warning++;

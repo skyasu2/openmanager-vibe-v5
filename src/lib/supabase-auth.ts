@@ -218,7 +218,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
         
         if (guestSessionCookie && authTypeCookie) {
           // 쿠키에서 게스트 사용자 정보 복원
-          const sessionId = guestSessionCookie.split('=')[1];
+          const sessionId = guestSessionCookie.split('=')[1] ?? crypto.randomUUID();
           
           // localStorage에서 사용자 정보 확인 (쿠키는 sessionId만 저장)
           if (typeof window !== 'undefined') {

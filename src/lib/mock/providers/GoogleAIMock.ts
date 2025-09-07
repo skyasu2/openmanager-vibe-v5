@@ -76,7 +76,7 @@ export class GoogleAIMock extends MockBase {
         const randomIndex = Math.floor(
           Math.random() * scenario.responses.length
         );
-        return scenario.responses[randomIndex];
+        return scenario.responses[randomIndex] ?? this.generateDefaultResponse(prompt);
       }
     }
 

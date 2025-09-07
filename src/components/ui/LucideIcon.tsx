@@ -5,6 +5,7 @@
 import { type FC, type CSSProperties } from 'react';
 import { getLucideIcon, iconMapping } from '@/lib/icon-mapping';
 import type { LucideIcon as LucideIconType } from 'lucide-react';
+import { Circle } from 'lucide-react';
 
 interface LucideIconProps {
   /** Font Awesome 클래스명 (예: "fas fa-cog") 또는 Lucide 아이콘명 */
@@ -54,7 +55,12 @@ export const LucideIcon: FC<LucideIconProps> = ({
     IconComponent = getLucideIcon(icon);
   } else {
     // 직접 Lucide 아이콘명 사용
-    IconComponent = iconMapping[icon] || iconMapping['fas fa-circle'];
+    IconComponent = iconMapping[icon] ?? iconMapping['fas fa-circle'] ?? Circle;
+  }
+
+  // 최종 안전 체크 - Gemini 제안 반영
+  if (!IconComponent) {
+    IconComponent = Circle;
   }
 
   return (

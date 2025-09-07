@@ -106,6 +106,11 @@ export const useSequentialLoadingTime = ({
       }
 
       const stage = phases[stageIndex];
+      if (!stage) {
+        handleComplete();
+        return;
+      }
+      
       console.log(`📊 ${stage.name} 단계 시작: ${stage.description}`);
       setCurrentStage(stageIndex);
 
@@ -118,7 +123,7 @@ export const useSequentialLoadingTime = ({
         if (isCleanedUp) return;
 
         const elapsed = Date.now() - startTime;
-        const stageProgress = Math.min(elapsed / stage.duration, 1);
+        const stageProgress = Math.min(elapsed / (stage?.duration ?? 1000), 1);
         const totalProgress = baseProgress + stageProgress * stageProgressRange;
 
         setProgress(Math.round(totalProgress));

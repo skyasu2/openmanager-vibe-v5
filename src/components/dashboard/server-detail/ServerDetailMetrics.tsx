@@ -290,19 +290,19 @@ export function ServerDetailMetrics({
                       <g key={index}>
                         <circle
                           cx={`${x}%`}
-                          cy={140 - (metricsHistory[index].cpu / 100) * 140}
+                          cy={140 - ((metricsHistory[index]?.cpu ?? 0) / 100) * 140}
                           r="2"
                           fill="#ef4444"
                         />
                         <circle
                           cx={`${x}%`}
-                          cy={140 - (metricsHistory[index].memory / 100) * 140}
+                          cy={140 - ((metricsHistory[index]?.memory ?? 0) / 100) * 140}
                           r="2"
                           fill="#3b82f6"
                         />
                         <circle
                           cx={`${x}%`}
-                          cy={140 - (metricsHistory[index].disk / 100) * 140}
+                          cy={140 - ((metricsHistory[index]?.disk ?? 0) / 100) * 140}
                           r="2"
                           fill="#8b5cf6"
                         />

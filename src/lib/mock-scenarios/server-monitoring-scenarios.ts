@@ -643,7 +643,21 @@ export const SCENARIO_LIBRARY = {
 // 랜덤 시나리오 선택
 export function getRandomScenario(): ServerScenario {
   const scenarios = Object.values(SCENARIO_LIBRARY);
-  return scenarios[Math.floor(Math.random() * scenarios.length)];
+  const randomScenario = scenarios[Math.floor(Math.random() * scenarios.length)];
+  
+  if (!randomScenario) {
+    // Fallback scenario - Gemini 제안 반영
+    return {
+      id: 'fallback',
+      name: '기본 시나리오',
+      description: '기본 정상 상태',
+      duration: 60,
+      servers: [],
+      events: []
+    };
+  }
+  
+  return randomScenario;
 }
 
 // 서버 타입별 시나리오 필터링

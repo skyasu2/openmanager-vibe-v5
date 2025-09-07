@@ -980,7 +980,7 @@ function _translateCommand(
   const isLinux = !isWindows;
 
   if (isWindows && translations[command]) {
-    return translations[command]['windows'];
+    return translations[command]['windows'] ?? null;
   }
 
   // Windows에서 Linux로의 역변환은 구현 필요시 추가

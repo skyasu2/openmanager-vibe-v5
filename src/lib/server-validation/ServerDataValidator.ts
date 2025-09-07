@@ -4,7 +4,7 @@
  * servers/all/route.ts에서 추출된 검증 로직
  */
 
-import type { RawServerData, BatchServerInfo } from '@/types/server-metrics';
+import type { ServerMetric as RawServerData, BatchServerInfo } from '@/types/server-metrics';
 
 export class ServerDataValidator {
   static isValidNumber(value: any): value is number {

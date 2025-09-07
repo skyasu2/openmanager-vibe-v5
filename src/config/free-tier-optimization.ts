@@ -275,8 +275,12 @@ export class FreeTierUsageTracker {
     }
 
     // 사용량 기록
-    if (this.usage[service] && metric in this.usage[service]) {
-      (this.usage[service] as Record<string, number>)[metric] += value;
+    const serviceUsage = this.usage[service];
+    if (serviceUsage && metric in serviceUsage) {
+      const usageRecord = serviceUsage as Record<string, number>;
+      if (usageRecord[metric] !== undefined) {
+        usageRecord[metric] += value;
+      }
     }
   }
 

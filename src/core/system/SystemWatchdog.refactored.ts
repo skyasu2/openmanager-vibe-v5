@@ -450,7 +450,7 @@ export class SystemWatchdog {
     // 지속적인 증가 패턴 확인
     let increasingCount = 0;
     for (let i = 1; i < recentMemory.length; i++) {
-      if (recentMemory[i].value > recentMemory[i - 1].value) {
+      if (recentMemory[i]?.value > (recentMemory[i - 1]?.value ?? 0)) {
         increasingCount++;
       }
     }
@@ -498,7 +498,7 @@ export class SystemWatchdog {
    */
   private getLatestMemory(): number {
     if (this.metrics.memory.length === 0) return 0;
-    return this.metrics.memory[this.metrics.memory.length - 1].value;
+    return this.metrics.memory[this.metrics.memory.length - 1]?.value ?? 0;
   }
 
   /**
