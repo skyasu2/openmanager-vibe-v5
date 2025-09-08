@@ -815,7 +815,7 @@ function convertFixedRotationData(hourlyData: HourlyServerData, currentHour: num
       uptime: serverData.uptime || 86400,
       responseTime: Math.round((serverData.responseTime || 200) * fixedVariation), // 응답시간
       last_updated: new Date().toISOString(), // 마지막 업데이트
-      location: serverData.location || 'Seoul-DC-01',
+      location: serverData.location || '서울',
       alerts: [], // ServerAlert[] 타입에 맞게 빈 배열로 초기화
       ip: serverData.ip || `192.168.1.${100 + index}`,
       os: serverData.os || 'Ubuntu 22.04 LTS',
@@ -1160,7 +1160,7 @@ function generateStaticServers_DEPRECATED(): EnhancedServerMetrics[] {
       network_in: networkIn,
       network_out: networkOut,
       uptime: vmServer.system.uptime_seconds,
-      location: 'Seoul-DC-01',
+      location: '서울',
       alerts: [], // ServerAlert[] 타입에 맞게 빈 배열로 수정
       ip: vmServer.metadata.ip,
       os: vmServer.metadata.os,

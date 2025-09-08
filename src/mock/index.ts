@@ -187,7 +187,7 @@ export function getMockServers(): Server[] {
         disk: hourlyData.disk,
         network: hourlyData.network,
         uptime: Math.floor(Math.random() * 3600 * 24 * 30), // 임의의 uptime
-        location: 'Seoul DC-1',
+        location: '서울',
         environment: 'Production',
         type: 'Server',
         provider: 'On-Premise',

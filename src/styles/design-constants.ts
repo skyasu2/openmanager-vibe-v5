@@ -8,22 +8,43 @@
 // ===== 서버 상태별 색상 시스템 =====
 export const SERVER_STATUS_COLORS = {
   healthy: {
-    background: 'bg-gradient-to-br from-white/95 via-emerald-50/80 to-emerald-50/60',
-    border: 'border-emerald-200/60 hover:border-emerald-300/80',
+    // 정상 상태 - 녹색 계열
+    background: 'bg-gradient-to-br from-white/95 via-emerald-50/90 to-emerald-100/70',
+    border: 'border-emerald-300/60 hover:border-emerald-400/80',
     text: 'text-emerald-800',
-    badge: 'bg-emerald-100 text-emerald-800'
+    badge: 'bg-emerald-100 text-emerald-800',
+    graphColor: '#10b981', // emerald-500
+    accentColor: 'rgb(16, 185, 129)', // emerald-500
+    statusColor: {
+      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+      color: 'inherit'
+    }
   },
   warning: {
-    background: 'bg-gradient-to-br from-white/95 via-amber-50/80 to-amber-50/60',
-    border: 'border-amber-200/60 hover:border-amber-300/80',
+    // 경고 상태 - 노랑/주황 계열
+    background: 'bg-gradient-to-br from-white/95 via-amber-50/90 to-amber-100/70',
+    border: 'border-amber-300/60 hover:border-amber-400/80',
     text: 'text-amber-800',
-    badge: 'bg-amber-100 text-amber-800'
+    badge: 'bg-amber-100 text-amber-800',
+    graphColor: '#f59e0b', // amber-500
+    accentColor: 'rgb(245, 158, 11)', // amber-500
+    statusColor: {
+      backgroundColor: 'rgba(245, 158, 11, 0.1)',
+      color: 'inherit'
+    }
   },
   critical: {
-    background: 'bg-gradient-to-br from-white/95 via-red-50/80 to-red-50/60',
-    border: 'border-red-200/60 hover:border-red-300/80',
+    // 심각 상태 - 빨간색 계열
+    background: 'bg-gradient-to-br from-white/95 via-red-50/90 to-red-100/70',
+    border: 'border-red-300/60 hover:border-red-400/80',
     text: 'text-red-800',
-    badge: 'bg-red-100 text-red-800'
+    badge: 'bg-red-100 text-red-800',
+    graphColor: '#ef4444', // red-500
+    accentColor: 'rgb(239, 68, 68)', // red-500
+    statusColor: {
+      backgroundColor: 'rgba(239, 68, 68, 0.1)',
+      color: 'inherit'
+    }
   }
 } as const;
 

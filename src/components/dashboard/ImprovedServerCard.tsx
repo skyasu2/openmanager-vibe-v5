@@ -116,25 +116,27 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       const theme = getServerStatusTheme(normalizedStatus);
       
       return {
-        // Material Design 3 Surface 기반 배경
-        cardBg: 'md3-glass-surface',
+        // Material Design 3 Surface 기반 배경 - 상태별 색상 적용
+        cardBg: theme.background, // 상태별 배경 그라데이션
+        cardBorder: theme.border, // 상태별 테두리
         cardStyle: {
-          backgroundColor: 'transparent', // Tailwind로 처리
-          borderColor: 'transparent', // Tailwind로 처리
-          color: 'inherit', // Tailwind로 처리
+          backgroundColor: 'transparent', // Tailwind CSS로 배경 처리
+          borderColor: 'transparent', // Tailwind CSS로 테두리 처리
+          color: 'inherit',
         },
         
-        // 호버 효과
+        // 호버 효과 - 상태별 색상 반영
         hoverStyle: {
           borderColor: 'transparent',
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(59, 130, 246, 0.125)',
+          boxShadow: normalizedStatus === 'healthy' 
+            ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(16, 185, 129, 0.125)'
+            : normalizedStatus === 'warning'
+              ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(245, 158, 11, 0.125)'
+              : '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(239, 68, 68, 0.125)',
         },
         
-        // 상태 표시
-        statusColor: {
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          color: 'inherit', // Tailwind로 처리
-        },
+        // 상태 표시 - design-constants 사용
+        statusColor: theme.statusColor,
         statusIcon: normalizedStatus === 'healthy' 
           ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
           : <AlertCircle className="h-4 w-4" aria-hidden="true" />,
@@ -144,14 +146,14 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             ? '경고' 
             : '심각',
             
-        // 실시간 펄스
+        // 실시간 펄스 - 상태별 색상
         pulse: {
-          backgroundColor: 'rgb(59, 130, 246)',
+          backgroundColor: theme.accentColor,
         },
         
-        // 액센트 색상
+        // 액센트 색상 - 상태별 색상
         accent: {
-          color: 'rgb(59, 130, 246)',
+          color: theme.accentColor,
         },
       };
     }, [server.status]); // 상태별 의존성 최적화 (Gemini 제안 반영)
@@ -289,7 +291,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         className={`
           relative cursor-pointer rounded-2xl border-2 w-full overflow-hidden text-left group
           md3-state-layer md3-card-hover
-          ${statusTheme.cardBg}
+          ${statusTheme.cardBg} ${statusTheme.cardBorder}
           ${variantStyles.container}
           focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:ring-offset-2
         `}
@@ -349,7 +351,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                 style={statusTheme.accent}
               >
                 <MapPin className="h-3 w-3" aria-hidden="true" />
-                <span aria-label="서버 위치">{server.location || 'Seoul DC1'}</span>
+                <span aria-label="서버 위치">{server.location || '서울'}</span>
                 {variantStyles.showDetails && (
                   <>
                     <span aria-hidden="true">•</span>

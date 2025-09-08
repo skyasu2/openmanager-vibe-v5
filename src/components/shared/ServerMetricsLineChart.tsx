@@ -12,13 +12,15 @@ export interface ServerMetricsLineChartProps {
   serverStatus?: 'online' | 'offline' | 'warning' | 'critical' | string;
 }
 
+import { SERVER_STATUS_COLORS } from '../../styles/design-constants';
+
 // 메트릭 타입별 색상 설정
 const getMetricConfig = (
   value: number,
   type: 'cpu' | 'memory' | 'disk' | 'network',
   serverStatus?: string
 ) => {
-  // 서버 상태 우선 확인
+  // 서버 상태 우선 확인 - design-constants 사용
   if (serverStatus) {
     const normalizedStatus = serverStatus.toLowerCase();
 
@@ -30,12 +32,12 @@ const getMetricConfig = (
     ) {
       // 심각 상황 - 빨간색 계열
       return {
-        lineColor: '#ef4444', // red-500
-        textColor: 'text-red-700',
+        lineColor: SERVER_STATUS_COLORS.critical.graphColor, // #ef4444
+        textColor: SERVER_STATUS_COLORS.critical.text, // text-red-800
         bgColor: 'bg-red-50',
         gradientFrom: 'from-red-500',
         gradientTo: 'to-red-100',
-        status: '오프라인',
+        status: '심각',
         fillColor: 'rgba(239, 68, 68, 0.1)', // 빨간색 투명도
       };
     } else if (
@@ -44,8 +46,8 @@ const getMetricConfig = (
     ) {
       // 경고 상황 - 노랑/주황 계열
       return {
-        lineColor: '#f59e0b', // amber-500
-        textColor: 'text-amber-700',
+        lineColor: SERVER_STATUS_COLORS.warning.graphColor, // #f59e0b
+        textColor: SERVER_STATUS_COLORS.warning.text, // text-amber-800
         bgColor: 'bg-amber-50',
         gradientFrom: 'from-amber-500',
         gradientTo: 'to-amber-100',
@@ -59,8 +61,8 @@ const getMetricConfig = (
     ) {
       // 정상 상황 - 녹색 계열
       return {
-        lineColor: '#10b981', // emerald-500
-        textColor: 'text-emerald-700',
+        lineColor: SERVER_STATUS_COLORS.healthy.graphColor, // #10b981
+        textColor: SERVER_STATUS_COLORS.healthy.text, // text-emerald-800
         bgColor: 'bg-emerald-50',
         gradientFrom: 'from-emerald-500',
         gradientTo: 'to-emerald-100',
@@ -82,11 +84,11 @@ const getMetricConfig = (
   const isCritical = value >= threshold.critical;
   const isWarning = value >= threshold.warning;
 
-  // 메트릭 값에 따른 색상 - 위험 상태는 빨간색
+  // 메트릭 값에 따른 색상 - design-constants 사용
   if (isCritical) {
     return {
-      lineColor: '#ef4444', // red-500
-      textColor: 'text-red-700',
+      lineColor: SERVER_STATUS_COLORS.critical.graphColor, // #ef4444
+      textColor: SERVER_STATUS_COLORS.critical.text, // text-red-800
       bgColor: 'bg-red-50',
       gradientFrom: 'from-red-500',
       gradientTo: 'to-red-100',
@@ -95,8 +97,8 @@ const getMetricConfig = (
     };
   } else if (isWarning) {
     return {
-      lineColor: '#f59e0b', // amber-500
-      textColor: 'text-amber-700',
+      lineColor: SERVER_STATUS_COLORS.warning.graphColor, // #f59e0b
+      textColor: SERVER_STATUS_COLORS.warning.text, // text-amber-800
       bgColor: 'bg-amber-50',
       gradientFrom: 'from-amber-500',
       gradientTo: 'to-amber-100',
@@ -106,8 +108,8 @@ const getMetricConfig = (
   } else {
     // 정상 상태 - 녹색
     return {
-      lineColor: '#10b981', // emerald-500
-      textColor: 'text-emerald-700',
+      lineColor: SERVER_STATUS_COLORS.healthy.graphColor, // #10b981
+      textColor: SERVER_STATUS_COLORS.healthy.text, // text-emerald-800
       bgColor: 'bg-emerald-50',
       gradientFrom: 'from-emerald-500',
       gradientTo: 'to-emerald-100',
