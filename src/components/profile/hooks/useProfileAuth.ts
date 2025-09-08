@@ -69,11 +69,14 @@ export function useProfileAuth(): ProfileAuthHook {
    */
   const handleLogout = useCallback(async () => {
     const userTypeLabel = userType === 'github' ? 'GitHub' : '게스트';
+    console.log('🚪 handleLogout 호출됨:', { userType, userTypeLabel });
+    
     const confirmed = confirm(
       `🚪 ${userTypeLabel} 계정에서 로그아웃하시겠습니까?`
     );
 
     if (!confirmed) {
+      console.log('🚪 사용자가 로그아웃 취소');
       return false;
     }
 
@@ -86,6 +89,7 @@ export function useProfileAuth(): ProfileAuthHook {
       setIsLoading(true);
 
       // AuthStateManager를 통한 통합 로그아웃
+      console.log('🔄 AuthStateManager clearAuthData 호출 중...');
       const { clearAuthData } = await import('@/lib/auth-state-manager');
       await clearAuthData(userType === 'github' ? 'github' : 'guest');
 

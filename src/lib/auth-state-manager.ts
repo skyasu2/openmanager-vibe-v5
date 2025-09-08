@@ -53,7 +53,16 @@ export class AuthStateManager {
     }
 
     try {
-      // 1. Supabase 세션 우선 확인 (GitHub OAuth)
+      // 1. 게스트 세션 우선 확인 (명시적 로그인 우선)
+      // 게스트로 로그인한 경우 GitHub 세션보다 우선 적용
+      const guestState = await this.getGuestState();
+      if (guestState.isAuthenticated) {
+        this.setCachedState(guestState);
+        console.log('✅ 게스트 세션 확인 (GitHub 세션보다 우선):', { userId: guestState.user?.id });
+        return guestState;
+      }
+
+      // 2. Supabase 세션 확인 (GitHub OAuth) - 게스트 세션이 없을 때만
       const session = await this.getSupabaseSession();
       if (session?.user) {
         const githubUser = this.extractGitHubUser(session);
@@ -67,14 +76,6 @@ export class AuthStateManager {
         this.setCachedState(state);
         console.log('✅ GitHub 세션 확인:', { userId: githubUser.id, name: githubUser.name });
         return state;
-      }
-
-      // 2. 게스트 세션 확인
-      const guestState = await this.getGuestState();
-      if (guestState.isAuthenticated) {
-        this.setCachedState(guestState);
-        console.log('✅ 게스트 세션 확인:', { userId: guestState.user?.id });
-        return guestState;
       }
 
       // 3. 인증되지 않은 상태
@@ -147,14 +148,16 @@ export class AuthStateManager {
    * 원자적 로그아웃 처리 (모든 인증 데이터 정리)
    */
   async clearAllAuthData(authType?: 'github' | 'guest'): Promise<void> {
-    console.log('🚪 인증 데이터 정리 시작:', authType || 'all');
+    console.log('🚪 AuthStateManager.clearAllAuthData 시작:', authType || 'all');
 
     try {
       // 1. React 상태 캐시 즉시 무효화
+      console.log('🔄 캐시 무효화 중...');
       this.invalidateCache();
 
       // 2. Supabase 세션 정리 (GitHub OAuth)
       if (!authType || authType === 'github') {
+        console.log('🔄 Supabase 세션 정리 중...');
         try {
           const { error } = await supabase.auth.signOut();
           if (error) {
@@ -205,9 +208,24 @@ export class AuthStateManager {
   }
 
   /**
-   * 게스트 로그인 설정
+   * 게스트 로그인 설정 (기존 GitHub 세션 자동 정리)
    */
-  setGuestAuth(guestUser: AuthUser): void {
+  async setGuestAuth(guestUser: AuthUser): Promise<void> {
+    console.log('🔄 게스트 로그인 설정 시작 - 기존 세션 정리 중...');
+    
+    // 1. 기존 GitHub 세션이 있으면 먼저 정리
+    try {
+      const existingSession = await this.getSupabaseSession();
+      if (existingSession?.user) {
+        console.log('🔄 기존 GitHub 세션 발견 - 정리 중...');
+        await supabase.auth.signOut();
+        console.log('✅ 기존 GitHub 세션 정리 완료');
+      }
+    } catch (error) {
+      console.warn('⚠️ 기존 세션 정리 실패 (계속 진행):', error);
+    }
+
+    // 2. 게스트 세션 설정
     if (typeof window !== 'undefined') {
       const sessionId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 12)}`;
       
@@ -325,16 +343,36 @@ export class AuthStateManager {
   private clearGitHubLocalStorage(): void {
     if (typeof window === 'undefined') return;
     
-    // GitHub 관련 키들 정리
+    // GitHub 관련 키들 정리 (더 포괄적으로)
     const keysToRemove = Object.keys(localStorage)
-      .filter(key => key.startsWith(GITHUB_PREFIX) || 
-                     key.startsWith('sb-') || // Supabase 토큰
-                     key.includes('supabase'));
+      .filter(key => 
+        key.startsWith(GITHUB_PREFIX) || 
+        key.startsWith('sb-') || // Supabase 토큰
+        key.includes('supabase') ||
+        key.includes('github') ||
+        key.startsWith('supabase.auth.') ||
+        key.includes('access_token') ||
+        key.includes('refresh_token')
+      );
                      
     keysToRemove.forEach(key => {
       localStorage.removeItem(key);
-      console.log(`🧹 localStorage 정리: ${key}`);
+      console.log(`🧹 GitHub localStorage 정리: ${key}`);
     });
+    
+    // sessionStorage도 정리
+    if (typeof sessionStorage !== 'undefined') {
+      Object.keys(sessionStorage)
+        .filter(key => 
+          key.includes('supabase') || 
+          key.includes('github') ||
+          key.includes('auth')
+        )
+        .forEach(key => {
+          sessionStorage.removeItem(key);
+          console.log(`🧹 GitHub sessionStorage 정리: ${key}`);
+        });
+    }
   }
 
   private clearGuestLocalStorage(): void {

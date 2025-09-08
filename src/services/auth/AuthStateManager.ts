@@ -73,6 +73,21 @@ export class AuthStateManager {
 
       this.sessions.set(sessionId, session);
 
+      // 통합 AuthStateManager에 게스트 상태 설정
+      try {
+        const { authStateManager } = await import('@/lib/auth-state-manager');
+        await authStateManager.setGuestAuth({
+          id: user.id,
+          name: user.name,
+          email: undefined,
+          avatar: undefined,
+          provider: 'guest',
+        });
+        console.log('✅ 통합 AuthStateManager에 게스트 상태 설정 완료');
+      } catch (error) {
+        console.warn('⚠️ 통합 AuthStateManager 설정 실패 (계속 진행):', error);
+      }
+
       // 시스템 자동 시작
       const systemResult = await this.autoStartSystem(user);
 
