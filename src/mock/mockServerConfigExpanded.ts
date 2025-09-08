@@ -36,7 +36,7 @@ export interface MockServerInfo {
 }
 
 export const mockServersExpanded: MockServerInfo[] = [
-  // 로드밸런서 (1대)
+  // 로드밸런서 (1대) - CRITICAL
   {
     id: 'lb-main-01',
     hostname: 'LB-MAIN-01',
@@ -53,7 +53,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     dependencies: [],
   },
 
-  // 웹 서버 (3대)
+  // 웹 서버 (3대) - 1 CRITICAL, 1 WARNING, 1 ONLINE
   {
     id: 'web-prd-01',
     hostname: 'WEB-PRD-01',
@@ -65,8 +65,8 @@ export const mockServersExpanded: MockServerInfo[] = [
     cpu: { cores: 8, model: 'Intel Xeon E5-2680' },
     memory: { total: 16 },
     disk: { total: 500 },
-    status: 'warning',
-    description: '프로덕션 웹 서버 #1 - 응답 지연',
+    status: 'critical',
+    description: '프로덕션 웹 서버 #1 - 메모리 부족 심각',
     dependencies: ['lb-main-01'],
   },
   {
@@ -80,8 +80,8 @@ export const mockServersExpanded: MockServerInfo[] = [
     cpu: { cores: 8, model: 'Intel Xeon E5-2680' },
     memory: { total: 16 },
     disk: { total: 500 },
-    status: 'online',
-    description: '프로덕션 웹 서버 #2',
+    status: 'warning',
+    description: '프로덕션 웹 서버 #2 - CPU 사용률 높음',
     dependencies: ['lb-main-01'],
   },
   {
@@ -100,7 +100,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     dependencies: ['lb-main-01'],
   },
 
-  // API 서버 (2대)
+  // API 서버 (2대) - 1 WARNING, 1 ONLINE
   {
     id: 'api-prd-01',
     hostname: 'API-PRD-01',
@@ -113,7 +113,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     memory: { total: 24 },
     disk: { total: 750 },
     status: 'warning',
-    description: 'REST API 서버 #1 - 높은 지연시간',
+    description: 'REST API 서버 #1 - 응답 지연시간 증가',
     dependencies: ['web-prd-01', 'web-prd-02', 'web-prd-03'],
   },
   {
@@ -132,7 +132,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     dependencies: ['web-prd-01', 'web-prd-02', 'web-prd-03'],
   },
 
-  // 애플리케이션 서버 (3대)
+  // 애플리케이션 서버 (3대) - 1 CRITICAL, 1 WARNING, 1 ONLINE
   {
     id: 'app-prd-01',
     hostname: 'APP-PRD-01',
@@ -159,8 +159,8 @@ export const mockServersExpanded: MockServerInfo[] = [
     cpu: { cores: 16, model: 'Intel Xeon Gold 6130' },
     memory: { total: 32 },
     disk: { total: 1000 },
-    status: 'warning',
-    description: 'Python 애플리케이션 서버 #2 - CPU 높음',
+    status: 'online',
+    description: 'Python 애플리케이션 서버 #2',
     dependencies: ['api-prd-01', 'api-prd-02'],
   },
   {
@@ -179,7 +179,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     dependencies: ['api-prd-01', 'api-prd-02'],
   },
 
-  // 캐시 서버 (1대)
+  // 캐시 서버 (1대) - ONLINE
   {
     id: 'cache-prd-01',
     hostname: 'CACHE-PRD-01',
@@ -196,7 +196,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     dependencies: ['app-prd-01', 'app-prd-02', 'app-prd-03'],
   },
 
-  // 데이터베이스 서버 (3대)
+  // 데이터베이스 서버 (3대) - 1 CRITICAL (이미), 2 ONLINE
   {
     id: 'db-main-01',
     hostname: 'DB-MAIN-01',
@@ -209,7 +209,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     memory: { total: 128 },
     disk: { total: 4000 },
     status: 'critical',
-    description: '메인 데이터베이스 서버 - 디스크 96% 사용',
+    description: '메인 데이터베이스 서버 - 메모리 부족으로 성능 저하',
     dependencies: ['cache-prd-01'],
   },
   {
@@ -223,8 +223,8 @@ export const mockServersExpanded: MockServerInfo[] = [
     cpu: { cores: 32, model: 'AMD EPYC 7543' },
     memory: { total: 128 },
     disk: { total: 4000 },
-    status: 'warning',
-    description: '읽기 전용 복제 DB - 동기화 지연',
+    status: 'online',
+    description: '읽기 전용 복제 데이터베이스',
     dependencies: ['db-main-01'],
   },
   {
@@ -243,7 +243,7 @@ export const mockServersExpanded: MockServerInfo[] = [
     dependencies: ['db-main-01'],
   },
 
-  // 스토리지 서버 (1대)
+  // 스토리지 서버 (1대) - WARNING (마지막 WARNING)
   {
     id: 'storage-nas-01',
     hostname: 'STORAGE-NAS-01',
@@ -256,11 +256,11 @@ export const mockServersExpanded: MockServerInfo[] = [
     memory: { total: 96 },
     disk: { total: 50000 }, // 50TB
     status: 'warning',
-    description: 'NAS 스토리지 - 백업 큐 지연',
+    description: 'NAS 스토리지 - CPU 사용률 증가',
     dependencies: ['db-main-01', 'db-repl-01', 'db-arch-01'],
   },
 
-  // 모니터링 서버 (1대)
+  // 모니터링 서버 (1대) - ONLINE
   {
     id: 'mon-prd-01',
     hostname: 'MON-PRD-01',
@@ -278,22 +278,27 @@ export const mockServersExpanded: MockServerInfo[] = [
   },
 ];
 
-// 서버별 초기 시나리오 정의 (15개 서버)
+// 서버별 초기 시나리오 정의 (15개 서버) - 40% 장애 상황 반영
 export const serverInitialStatesExpanded = {
+  // Critical 서버들 (4개, 26.7%)
   'lb-main-01': { scenario: 'load_balancer_failure' },
-  'web-prd-01': { scenario: 'response_time_degradation' },
-  'web-prd-02': { scenario: 'normal' },
-  'web-prd-03': { scenario: 'normal' },
-  'api-prd-01': { scenario: 'high_latency' },
-  'api-prd-02': { scenario: 'normal' },
+  'web-prd-01': { scenario: 'memory_critical' },
   'app-prd-01': { scenario: 'memory_leak' },
-  'app-prd-02': { scenario: 'cpu_spike' },
+  'db-main-01': { scenario: 'memory_shortage' },
+  
+  // Warning 서버들 (3개, 20%)
+  'web-prd-02': { scenario: 'cpu_spike' },
+  'api-prd-01': { scenario: 'high_latency' },
+  'storage-nas-01': { scenario: 'cpu_high' },
+  
+  // Online 서버들 (8개, 53.3%)
+  'web-prd-03': { scenario: 'normal' },
+  'api-prd-02': { scenario: 'normal' },
+  'app-prd-02': { scenario: 'normal' },
   'app-prd-03': { scenario: 'normal' },
   'cache-prd-01': { scenario: 'normal' },
-  'db-main-01': { scenario: 'disk_full' },
-  'db-repl-01': { scenario: 'replication_lag' },
+  'db-repl-01': { scenario: 'normal' },
   'db-arch-01': { scenario: 'normal' },
-  'storage-nas-01': { scenario: 'backup_delay' },
   'mon-prd-01': { scenario: 'normal' },
 };
 

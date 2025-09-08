@@ -10,6 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import type { EnhancedServerMetrics } from '@/types/server';
+import { mockServersExpanded, serverInitialStatesExpanded } from '@/mock/mockServerConfigExpanded';
 
 // 🕐 시간 정규화 - 1분 단위로 통일
 function normalizeTimestamp(timestamp: number): number {
@@ -300,13 +301,9 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
   // 현재 시간의 사이클 정보 계산
   const cycleInfo = getIncidentCycleInfo(hour, minute);
   
-  const serverIds = [
-    'web-01', 'web-02', 'api-01', 'api-02', 'database-01',
-    'cache-01', 'monitoring-01', 'security-01', 'backup-01',
-    'load_balancer-01', 'file-01', 'mail-01', 'web-03', 'api-03', 'database-02'
-  ];
-  
-  return serverIds.map(serverId => {
+  // 📊 mockServersExpanded에서 서버 정보 가져오기 (15개 서버)
+  return mockServersExpanded.map(serverInfo => {
+    const serverId = serverInfo.id;
     // 6개 사이클 기반 메트릭 생성
     const cpuBaseline = generateCycleBasedMetric(serverId, 'cpu', slot, cycleInfo);
     const memoryBaseline = generateCycleBasedMetric(serverId, 'memory', slot, cycleInfo);
@@ -325,26 +322,45 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
     const responseTime = baseResponseTime * cycleResponseMultiplier * 
       (0.8 + fnv1aHash(normalizedTimestamp + serverId.charCodeAt(0)) * 0.4);
     
-    // 상태 결정 (사이클 영향 반영)
-    const criticalThreshold = 85 - (cycleInfo.intensity * 10); // 장애 시 더 민감하게
-    const warningThreshold = 70 - (cycleInfo.intensity * 5);
-    const status = cpu > criticalThreshold || memory > 90 ? 'critical' :
-                  cpu > warningThreshold || memory > 80 ? 'warning' : 'online';
+    // 📊 초기 상태 기반 상태 결정 (mockServersExpanded 반영)
+    const initialStatus = serverInfo.status; // 'critical', 'warning', 'online'
+    
+    // 초기 상태에 따라 메트릭 값 조정하여 임계값에 맞춤
+    let adjustedCpu = cpu;
+    let adjustedMemory = memory;
+    
+    if (initialStatus === 'critical') {
+      // Critical 서버: CPU 85%+ 또는 Memory 90%+ 되도록 조정
+      adjustedCpu = Math.max(cpu, 87 + (cycleInfo.intensity * 8)); // 87-95% 범위
+      adjustedMemory = Math.max(memory, 91 + (cycleInfo.intensity * 5)); // 91-96% 범위
+    } else if (initialStatus === 'warning') {
+      // Warning 서버: CPU 70-84% 또는 Memory 80-89% 범위
+      adjustedCpu = Math.max(cpu, 72 + (cycleInfo.intensity * 12)); // 72-84% 범위
+      adjustedMemory = Math.max(memory, 82 + (cycleInfo.intensity * 7)); // 82-89% 범위
+    } else {
+      // Online 서버: 낮은 값 유지 (CPU <70%, Memory <80%)
+      adjustedCpu = Math.min(cpu, 65); // 최대 65%
+      adjustedMemory = Math.min(memory, 75); // 최대 75%
+    }
+    
+    // 최종 상태 결정 (기존 임계값 유지)
+    const status = adjustedCpu > 85 || adjustedMemory > 90 ? 'critical' :
+                  adjustedCpu > 70 || adjustedMemory > 80 ? 'warning' : 'online';
     
     // 현재 사이클 기반 시나리오 생성
     const scenarios = generateCycleScenarios(cycleInfo, serverId);
     
     return {
       id: serverId,
-      name: serverId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
-      hostname: `${serverId}.local`,
+      name: serverInfo.hostname || serverId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      hostname: serverInfo.hostname || `${serverId}.local`,
       environment: 'production' as const,
-      role: serverId.split('-')[0] as any,
+      role: serverInfo.type || serverId.split('-')[0] as any,
       status,
       
-      // Enhanced metrics with required naming
-      cpu_usage: Math.round(cpu * 10) / 10,
-      memory_usage: Math.round(memory * 10) / 10,
+      // Enhanced metrics with required naming (조정된 값 사용)
+      cpu_usage: Math.round(adjustedCpu * 10) / 10,
+      memory_usage: Math.round(adjustedMemory * 10) / 10,
       disk_usage: Math.round(disk * 10) / 10,
       network_in: Math.round(network * 10) / 10,
       network_out: Math.round(network * 10) / 10,
@@ -353,9 +369,9 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
       last_updated: new Date(normalizedTimestamp).toISOString(),
       alerts: [],
       
-      // Compatibility fields
-      cpu: Math.round(cpu * 10) / 10,
-      memory: Math.round(memory * 10) / 10,
+      // Compatibility fields (조정된 값 사용)
+      cpu: Math.round(adjustedCpu * 10) / 10,
+      memory: Math.round(adjustedMemory * 10) / 10,
       disk: Math.round(disk * 10) / 10,
       network: Math.round(network * 10) / 10,
       
@@ -379,6 +395,18 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
           memory: memoryBaseline,
           disk: diskBaseline,
           network: networkBaseline
+        },
+        adjustedMetrics: {
+          cpu: adjustedCpu,
+          memory: adjustedMemory,
+          originalCpu: cpu,
+          originalMemory: memory
+        },
+        initialServerInfo: {
+          type: serverInfo.type,
+          description: serverInfo.description,
+          location: serverInfo.location,
+          initialStatus: serverInfo.status
         },
         isAffectedByCurrentCycle: cycleInfo.scenario?.affectedServers.includes(serverId) || false
       }
