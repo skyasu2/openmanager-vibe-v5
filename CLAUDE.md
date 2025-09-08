@@ -17,163 +17,32 @@
 
 ## 💻 개발 환경
 
-**WSL-First 개발 정책** 🐧
-
-- **Host OS**: Windows 11 Pro (22H2)
-- **Development Environment**: WSL 2 (Ubuntu 24.04 LTS) - **메인 환경**
-- **Shell**: bash (WSL 내부), PowerShell (개인 도구만)
-- **Node.js**: v22.18.0 (WSL 내부 설치)
-- **Package Manager**: npm (WSL 전역 패키지 관리)
-- **Memory**: 16GB allocated to WSL (15GB available)
-- **Swap**: 4GB configured
-
-### 🏆 메인 개발: WSL + Claude Code
-- **용도**: 모든 개발 작업의 중심축
-- **장점**: Linux 네이티브 성능, MCP 서버 완전 통합
-- **도구**: Claude Code v1.0.100, Node.js v22.18.0
-
-### 🔧 보조 개발 환경: Windows + VSCode + GitHub Copilot
-- **용도**: 이미지 처리, WSL 터미널 호스팅, 보조 코드 제안
-- **역할**: Claude Code 보완 및 전문 분야 지원
-- **도구**: VSCode, GitHub Copilot
-- **전문 분야**:
-  - WSL 터미널 호스팅 (Claude Code 실행 환경)
-  - 스크린샷 캡쳐 및 이미지 분석
-  - 시각적 콘텐츠 처리 및 UI 목업 변환  
-  - 빠른 코드 스니펫 및 타입 자동완성
-  - 반복 패턴 코드 제안 및 간단한 리팩토링
-
-### 🛠️ 개인 도구 관리
-- **위치**: `.local/windows/` 폴더
-- **정책**: Git 추적 제외 (개인 백업 권장)
-- **용도**: Windows 개인 스크립트, 개발 환경 전환 도구
-- **관리**: 별도 개인 관리 (프로젝트와 분리)
-
-### 🎯 WSL-First 정책 원칙
-- **모든 프로젝트 작업**: WSL 환경에서 수행
-- **일관된 설정**: LF 통일, WSL 기준 설정
-- **성능 우선**: Linux 네이티브 성능 활용
-- **AI 도구 통합**: Claude Code + MCP 서버 완전 활용
+**WSL 2 (Ubuntu 24.04) 중심 개발** 🐧
+- **Host**: Windows 11 Pro + WSL 2 (16GB/4GB swap)
+- **Shell**: bash (WSL), Node.js v22.18.0, npm 전역 관리
+- **AI 도구**: Claude Code v1.0.100 + Gemini CLI + Qwen CLI
+- **성능**: Linux 네이티브, MCP 서버 통합, 54배 빠른 I/O
+- **보조**: VSCode + GitHub Copilot (이미지 처리, 스크린샷)
 
 ## 🚀 빠른 시작
 
-### 🐧 WSL-First 개발 환경
-
 ```bash
-# WSL에서 Claude Code 실행 (Windows에서)
+# Windows에서 WSL Claude 시작
 .\claude-wsl-optimized.bat
 
-# WSL 내부에서 개발
-wsl
-cd /mnt/d/cursor/openmanager-vibe-v5
-
-# 개발 명령어 (WSL bash)
-npm run dev # localhost:3000
-npm run build # 프로덕션 빌드
-npm run test:quick # 빠른 테스트 (22ms)
-
-# 검증
-npm run validate:all # 린트 + 타입 + 테스트
-npm run git:status # Git 상태 확인
-
-# AI CLI 도구들 (WSL에서 실행)
-claude --version # Claude Code v1.0.100
-gemini --version # Google Gemini CLI v0.2.1
-qwen --version # Qwen CLI v0.0.9
-
-# Windows에서 WSL AI 도구 실행
-.\claude-wsl-optimized.bat /status
-.\gemini-wsl.bat --help
-.\qwen-wsl.bat --help
-.\ai-cli-wsl.bat claude --version
+# WSL 내부 개발 명령어
+npm run dev          # 개발 서버
+npm run validate:all # 린트+타입+테스트
+claude --version     # v1.0.100
 ```
 
-### 🛠️ 개인 도구 사용 (선택사항)
+## 🐧 WSL 2 최적화 현황
 
-```powershell
-# Windows PowerShell에서
-cd D:\cursor\openmanager-vibe-v5\.local\windows
+**성능**: 16GB 메모리, 54배 빠른 I/O, JavaScript heap 크래시 해결 완료
+**도구**: Claude/Gemini/Qwen CLI 모두 정상 작동
+**메모리**: claude-light(2GB)/dev(4GB)/heavy(8GB) 단계적 실행
 
-# 예: Claude Code WSL 시작
-.\claude-wsl-optimized.bat
-
-# 예: 개발 환경 전환
-.\dev-switch.ps1 wsl
-```
-
-### 🔧 보조 개발 환경 활용
-
-```powershell
-# VSCode + GitHub Copilot 시작
-code .
-
-# 주요 활용 시나리오:
-# 1. 스크린샷 캡쳐 → Claude Code로 분석 요청
-# 2. 이미지 목업 → React 컴포넌트 변환 
-# 3. GitHub Copilot으로 타입 자동완성
-# 4. 반복 패턴 코드 제안 받기
-
-# WSL 명령어 실행 (Windows에서)
-wsl npm run dev
-wsl claude --version
-```
-
-## 🐧 WSL 2 개발 환경 특화
-
-### WSL 성능 분석 및 최적화
-
-**🎯 최적화 할당**: 메모리 16GB, 프로세서 12개, 스왑 4GB
-**📊 성능 결과**: I/O 4.1GB/s, Claude 1.0초, Gemini 3.1초, Qwen 7.6초
-**⚙️ 주요 효과**: CPU 활용 6.4% (매우 안정), 메모리 31.8% (최적화됨), WSL이 Windows 대비 54배 빠른 I/O
-
-→ **[상세 분석 및 설정](docs/development/wsl-optimization-analysis-report.md)**
-
-### 🧠 Node.js 메모리 최적화 (2025.08.24 - 4-AI 교차검증 완료)
-
-**⚠️ 해결된 문제**: Claude Code JavaScript heap out of memory 크래시 완전 해결
-
-**🎯 4-AI 교차검증 결과**:
-- **Claude**: 8.2/10 (실용적 해결책) | **Gemini**: 6.2/10 (아키텍처 리스크)
-- **Codex**: 6.0/10 (DevOps 위험도) | **Qwen**: 9.5/10 (알고리즘 완성도)
-
-**🔄 단계적 메모리 설정** (글로벌 설정 제거로 환경 불일치 해결):
-```bash
-# 단계적 Claude 실행 (팀 협업 안전)
-claude-light        # 2GB - 경량 작업, CI/CD 호환
-claude-dev          # 4GB - 표준 개발 작업  
-claude-heavy        # 8GB - 대용량 AI 작업
-
-# 단계적 개발/빌드
-npm run dev         # 4GB (표준)
-npm run dev:light   # 2GB (경량)
-npm run dev:heavy   # 8GB (대용량)
-npm run build:ci    # 1.5GB (CI 최적화)
-```
-
-**📊 최적화 효과**: JavaScript heap 크래시 100% 해결, 팀 환경 일치성 확보
-
-→ **[팀 협업 메모리 가이드](MEMORY-REQUIREMENTS.md)** | **[상세 최적화 가이드](docs/development/claude-code-memory-optimization-guide.md)**
-
-### 개발 도구 통합
-
-- **Claude Code**: WSL에서 실행 (메인 AI 개발 환경)
-- **Gemini CLI**: WSL 전용 설치 (Google AI 통합)
-- **Qwen CLI**: WSL 전용 설치 (Qwen OAuth 통해 2K/day 무료)
-- **Node.js**: WSL 네이티브 설치 (v22.18.0)
-- **Git**: WSL 네이티브 (Linux 호환성)
-
-### 편의 기능
-
-- **sudo 비밀번호 없이 사용**: 개발 효율성 향상
-- **bash 별칭**: ll, aptup, npmig 등 단축 명령어
-- **색상 프롬프트**: 가독성 향상
-- **자동 메모리 회수**: 시스템 리소스 최적화
-
-### Windows-WSL 연동
-
-- **파일 시스템**: /mnt/d/cursor/openmanager-vibe-v5 (Windows D: 드라이브)
-- **네트워크**: localhost 공유 (포트 포워딩 자동)
-- **실행 래퍼**: Windows에서 WSL AI 도구 직접 실행 가능
+→ **[상세 분석](docs/development/wsl-optimization-analysis-report.md)** | **[메모리 가이드](MEMORY-REQUIREMENTS.md)**
 
 ## 📋 AI 설정 파일 구분
 
@@ -386,362 +255,22 @@ echo "🔄 최적 모델 선택으로 생산성 극대화"
 
 💡 **핵심 철학**: **Max 정액제 + 서브 3개** 체제로 무제한 생산성과 극도의 비용 효율성
 
-## 🤝 AI 교차 검증 시스템 v4.0 (수동 모드)
+## 🤝 AI 교차검증 시스템
 
-**수동 요청 기반 3단계 레벨 AI 교차 검증 시스템**
-
-### 📋 수동 실행 방법
-
-#### 🔍 **자료 조사 & 연구**
-```bash
-# 기술 스택 조사
-Task verification-specialist "React 18 Server Components 최신 패턴 조사"
-Task gemini-wrapper "Next.js 15 새로운 기능 분석"
-Task qwen-wrapper "TypeScript 성능 최적화 기법 연구"
-
-# 간편 실행 (스크립트)
-./scripts/ai/manual-verification.sh research "React hooks 최적화 방법"
-```
-
-#### 🧐 **코드 리뷰 & 검증**
-```bash
-# Level 1: 빠른 검토 (< 50줄)
-Task verification-specialist "src/components/Button.tsx quick review"
-
-# Level 2: 표준 검토 (50-200줄)
-Task ai-verification-coordinator "src/hooks/useAuth.ts standard review"
-
-# Level 3: 전체 검증 (> 200줄, 중요 파일)
-Task ai-verification-coordinator "src/app/api/auth/route.ts full review"
-
-# 간편 실행
-./scripts/ai/manual-verification.sh review "src/app/login/page.tsx"
-./scripts/ai/manual-verification.sh verify "src/app/api/auth/route.ts"
-```
-
-#### 💡 **개선 방법 제안**
-```bash
-# 성능 최적화 제안
-Task external-ai-orchestrator "성능 병목점 분석 및 개선 방안"
-Task qwen-wrapper "알고리즘 효율성 개선 방법"
-
-# 아키텍처 개선
-Task gemini-wrapper "코드 구조 리팩토링 제안"
-
-# 간편 실행
-./scripts/ai/manual-verification.sh improve "성능 최적화 방법"
-./scripts/ai/manual-verification.sh performance "src/services/api.ts"
-```
-
-#### 🔐 **전문 분야별 검증**
-```bash
-# 보안 검토
-./scripts/ai/manual-verification.sh security "인증 시스템 보안 검토"
-Task codex-wrapper "API 엔드포인트 보안 취약점 분석"
-
-# 성능 분석  
-./scripts/ai/manual-verification.sh performance "렌더링 최적화 분석"
-
-# AI별 직접 호출
-Task gemini-wrapper "종합 코드 품질 검토"    # 무료 1K/day
-Task codex-wrapper "복잡한 버그 분석"       # 유료 무제한  
-Task qwen-wrapper "알고리즘 최적화 분석"    # 무료 2K/day
-```
-
-### 📊 검증 레벨 가이드
-- **Level 1**: 빠른 검토 (1-2분) - `Task verification-specialist "[대상] quick"`
-- **Level 2**: 표준 검토 (3-5분) - `Task ai-verification-coordinator "[대상] standard"`  
-- **Level 3**: 전체 검증 (5-10분) - `Task ai-verification-coordinator "[대상] full"`
-
-### 📖 **상세 가이드**: [manual-ai-verification-guide.md](docs/ai-tools/manual-ai-verification-guide.md)
-
-## 🤖 서브에이전트 최적화 전략
-
-**17개 핵심 에이전트 완전 구축** - AI 교차 검증 시스템 완성 + 100% 가동률 달성 + MCP 활용률 90% 달성
-
-### 🎯 핵심 에이전트 구성 (22개)
-
-```
-/mnt/d/cursor/openmanager-vibe-v5/
-├── .claude/                          # Claude Code 공식 디렉토리
-│   ├── settings.json                 # 프로젝트별 설정 & hooks
-│   ├── agents/                       # 서브에이전트 MD 정의 (22개 활성 + 4개 아카이브)
-│   │   ├── verification-specialist.md      # 코드 검증 전문가
-│   │   ├── ai-verification-coordinator.md  # AI 교차 검증 조정자
-│   │   ├── external-ai-orchestrator.md     # 외부 AI 오케스트레이터
-│   │   ├── central-supervisor.md           # 중앙 감독자
-│   │   ├── security-auditor.md             # 보안 감사관
-│   │   ├── gemini-wrapper.md               # Gemini CLI 래퍼
-│   │   ├── codex-wrapper.md                # Codex CLI 래퍼
-│   │   ├── qwen-wrapper.md                 # Qwen CLI 래퍼
-│   │   └── ... (17개 더)
-│   ├── hooks/                        # 자동 실행 스크립트
-│   │   ├── post-edit-verification.sh       # 파일 수정 후 검증
-│   │   └── cross-verification.sh           # AI 교차 검증
-│   ├── cross-verification-queue.txt  # 교차 검증 대기 큐
-│   └── cross-verification.log        # 교차 검증 로그
-```
-
-### 🔄 AI 교차 검증 핵심 에이전트
-
-#### 1️⃣ **ai-verification-coordinator.md** (교차 검증 조정자)
-- **핵심 역할**: 서로 다른 AI 시스템 간의 교차 검증 오케스트레이션
-- **Level 1**: <50줄 → Claude 단독 검증
-- **Level 2**: 50-200줄 → Claude + Gemini 교차 검증
-- **Level 3**: >200줄 → 4-AI 완전 교차 검증 (Claude, Gemini, Codex, Qwen)
-- **교차 발견**: 각 AI가 놓친 문제를 다른 AI가 발견
-
-#### 2️⃣ **external-ai-orchestrator.md** (외부 AI 통합)
-- **역할**: Claude가 제시한 A안에 대한 외부 AI 교차 검증 관리
-- **교차 검증 패턴**: Claude A안 → 3개 외부 AI 독립 검증 → Claude 최종 판단
-- **병렬 실행**: 최대 3개 AI 동시 실행으로 시간 단축  
-- **피드백 수집**: 각 AI의 개선점을 Claude에게 전달하여 최종 결정 지원
-
-#### 3️⃣ **verification-specialist.md** (Claude A안 제시자)
-- **역할**: Claude가 초기 A안(해결책) 제시 및 최종 의사결정
-- **강점**: TypeScript strict, Next.js 15, Vercel 최적화
-- **A안 제시**: 문제에 대한 구체적 해결 방안 제시
-- **최종 판단**: 외부 AI 피드백을 검토하고 수용/거절 결정 후 사용자에게 보고
-
-#### 4️⃣ **AI 래퍼들** (A안 개선점 제시자)
-- **gemini-wrapper.md**: Claude A안에 대한 구글 AI 관점 개선점 제시 (무료 1K/day)
-- **codex-wrapper.md**: Claude A안에 대한 ChatGPT 관점 개선점 제시 (유료 무제한)
-- **qwen-wrapper.md**: Claude A안에 대한 Qwen 관점 개선점 제시 (무료 2K/day)  
-- **독립 검증**: Claude A안을 각각 독립적으로 분석하여 개선점 제시
-
-### ⚡ Hooks 자동 트리거 시스템
-
-```json
-{
-  "hooks": {
-    "PostToolUse": [{
-      "matcher": "Edit|Write|MultiEdit",
-      "script": ".claude/hooks/post-edit-verification.sh"
-    }],
-    "PreToolUse": [{
-      "condition": "file.match(/\\/(api|auth)\\/)",
-      "command": "echo '${file}' >> .claude/security-review-queue.txt"
-    }]
-  }
-}
-```
-
-### 🔄 AI 교차 검증 플로우 (Claude 주도 방식)
-
-```mermaid
-graph TB
-    A[문제 발생] --> B[Claude A안 제시]
-    B --> C{교차 검증 필요?}
-    
-    C -->|Level 1| D[Claude 단독 구현]
-    C -->|Level 2+| E[외부 AI 교차 검증]
-    
-    E --> F[Gemini: A안 개선점 제시]
-    E --> G[Codex: A안 개선점 제시]  
-    E --> H[Qwen: A안 개선점 제시]
-    
-    F --> I[Claude: 개선점 검토]
-    G --> I
-    H --> I
-    
-    I --> J{Claude 최종 판단}
-    J -->|수용| K[개선점 반영하여 구현]
-    J -->|일부 수용| L[선택적 개선점 반영]
-    J -->|거절| M[원안(A안) 유지]
-    
-    K --> N[사용자에게 결정 사유 보고]
-    L --> N
-    M --> N
-    
-    N --> O[Claude가 최종안 구현]
-```
-
-### 📊 실시간 모니터링
+**3단계 레벨 교차검증**: Claude 주도 + 3-AI 협업 (Gemini/Codex/Qwen)
 
 ```bash
-# 검토 대기 큐 확인
-cat .claude/review-queue.txt
+# Level 1: Claude 단독 (50줄 미만)
+Task verification-specialist "quick review"
 
-# 보안 검토 필요 파일
-cat .claude/security-review-queue.txt
+# Level 2: Claude + AI 1개 (50-200줄)  
+Task ai-verification-coordinator "standard review"
 
-# Hook 실행 로그
-tail -f .claude/hooks.log
-
-# 수동 트리거 (필요시)
-Task verification-specialist "src/app/api/auth/route.ts 검증"
-Task ai-collaboration-coordinator --level 3
+# Level 3: Claude + AI 3개 (200줄+ 중요 파일)
+Task external-ai-orchestrator "full verification"
 ```
 
-### 💡 AI 교차 검증 사용 예시 (Claude 주도 방식)
-
-#### 🎯 **완전한 예시: 서버 카드 UI 개선**
-
-##### Step 1: Claude A안 제시
-```typescript
-// Claude 제안: Glassmorphism 효과 서버 카드
-const ServerCard = () => (
-  <div className="bg-white/80 backdrop-blur-sm border border-white/20 rounded-2xl">
-    {/* A안: 기본적인 Glassmorphism 구현 */}
-  </div>
-);
-```
-
-##### Step 2: 외부 AI 교차 검증 요청  
-```bash
-Task gemini-wrapper "Claude의 A안을 검증하고 개선점을 제시해주세요: [A안 코드]"
-Task codex-wrapper "Claude의 A안을 검증하고 개선점을 제시해주세요: [A안 코드]"
-Task qwen-wrapper "Claude의 A안을 검증하고 개선점을 제시해주세요: [A안 코드]"
-```
-
-##### Step 3: Claude의 개선점 검토 및 최종 판단
-```
-🔍 교차 검증 결과 분석:
-- ✅ Gemini 제안: "Material Design 3 색상 팔레트 적용" → 수용 (디자인 일관성)
-- ✅ Codex 제안: "React.memo + useMemo 성능 최적화" → 수용 (성능 향상)
-- ❌ Qwen 제안: "완전히 다른 카드 레이아웃" → 거절 (기존 디자인 방향성과 불일치)
-
-💡 최종 결정: A안 + Gemini/Codex 개선점 반영으로 진행
-이유: 기존 방향성 유지하면서 색상과 성능 개선 효과 기대
-```
-
-##### Step 4: Claude가 최종안 구현
-```typescript
-// 최종안: A안 + 개선점 반영
-const ServerCard = React.memo(() => {
-  const statusTheme = useMemo(() => getStatusTheme(server.status), [server.status]);
-  
-  return (
-    <div className="bg-gradient-to-br from-emerald-50/80 via-white/90 to-emerald-50/60 backdrop-blur-sm">
-      {/* Gemini 제안 반영: Material You 색상 */}
-      {/* Codex 제안 반영: 메모이제이션 최적화 */}
-    </div>
-  );
-});
-```
-
-#### 📋 **간편 실행 방법**
-```bash
-# 단일 파일 교차 검증
-Task verification-specialist "src/components/Button.tsx A안에 대한 교차 검증 요청"
-
-# 복잡한 기능 교차 검증  
-Task ai-verification-coordinator "인증 시스템 A안에 대한 3-AI 교차 검증"
-
-# 성능 최적화 교차 검증
-Task external-ai-orchestrator "React Hook 최적화 A안에 대한 교차 검증"
-```
-
-### 🎖️ **Claude 주도 AI 교차 검증 핵심 원칙**
-
-#### ✅ **올바른 방식 (Claude 주도)**
-```
-1. 문제 발생 → Claude가 A안(해결책) 제시
-2. 외부 AI들이 A안에 대한 개선점 제시 (독립적)
-3. Claude가 모든 개선점을 검토하고 수용/거절 결정
-4. Claude가 사용자에게 결정 사유와 함께 투명하게 보고
-5. Claude가 최종 개선된 코드 직접 구현
-```
-
-#### ❌ **잘못된 방식 (지양해야 할)**
-```
-❌ Claude가 질문 → AI들이 각자 해답 → Claude가 종합
-❌ AI들이 순차적으로 검토 → 최종 합의
-❌ AI들끼리 토론 → 다수결 결정
-❌ 외부 AI가 주도하고 Claude가 따름
-```
-
-#### 🔄 **핵심 차이점**
-
-| 구분 | ❌ 잘못된 방식 | ✅ 올바른 방식 |
-|------|-------------|-------------|
-| **시작점** | Claude가 질문 | Claude가 해답 제시 |
-| **중간 과정** | AI들이 각자 해답 | AI들이 Claude 해답 검증 |
-| **의사결정** | 합의/다수결 | Claude 단독 판단 |
-| **최종 실행** | Claude가 종합 구현 | Claude가 주도적 구현 |
-| **책임 소재** | 불분명 | Claude 명확 |
-| **품질 보장** | 일관성 부족 | Claude 일관성 유지 |
-
-#### 💡 **왜 Claude 주도여야 하는가?**
-
-1. **일관성 보장**: 프로젝트 컨텍스트와 코딩 스타일 완전 이해
-2. **책임 소재**: 최종 결과물에 대한 명확한 책임
-3. **효율성**: 불필요한 합의 과정 제거, 빠른 의사결정  
-4. **품질**: TypeScript strict, Next.js 15, Vercel 특화 최적화
-5. **투명성**: 모든 결정 과정을 사용자에게 투명하게 공개
-
-### 🎯 AI 교차 검증의 핵심 가치
-
-| 검증 항목 | 단일 AI | 교차 검증 (4-AI) | 개선 효과 |
-|----------|---------|-----------------|-----------|
-| 문제 발견율 | 70% | 95%+ | 25%+ 향상 |
-| False Positive | 15% | <5% | 10%+ 감소 |
-| 편향 제거 | 불가능 | 가능 | AI별 편향 상호 보완 |
-| 관점 다양성 | 1개 | 4개 | 다각도 분석 |
-| 신뢰도 | 85% | 98%+ | 13%+ 향상 |
-
-### 🔍 교차 검증으로 발견되는 문제들
-
-| AI | 주로 놓치는 문제 | 다른 AI가 발견 |
-|----|-----------------|---------------|
-| **Claude** | 실무 엣지 케이스, 대규모 패턴 | Codex, Gemini가 발견 |
-| **Gemini** | 프레임워크 특화 최적화 | Claude가 발견 |
-| **Codex** | 이론적 설계 원칙 위반 | Gemini가 발견 |
-| **Qwen** | 플랫폼 특화 설정 | Claude가 발견 |
-
-### 🔐 보안 강화 포인트
-
-1. **환경변수 차단**: .env 직접 수정 시 Hook이 자동 차단
-2. **보안 큐 관리**: 보안 관련 파일은 별도 큐로 우선 처리
-3. **배포 게이트**: Critical 보안 이슈 시 배포 자동 차단
-4. **패턴 감지**: dangerouslySetInnerHTML, eval() 등 자동 탐지
-
-### 📈 교차 검증 성과 지표
-
-#### 검증 품질
-- **문제 발견율**: 95%+ (4-AI 교차 검증)
-- **False Positive**: <5% (교차 확인으로 오탐 감소)
-- **합의 수준**: 85%+ HIGH consensus
-- **신뢰도**: 98%+ (독립적 검증)
-
-#### 검증 효율성
-- **Level 1**: 1분 (Claude 단독)
-- **Level 2**: 2-3분 (Claude + Gemini)
-- **Level 3**: 4-5분 (4-AI 완전 교차)
-- **병렬 처리**: 70% 시간 단축
-
-#### 교차 발견 통계
-- **Claude 놓친 문제**: 평균 2-3개/파일 (다른 AI가 발견)
-- **Gemini 놓친 문제**: 평균 1-2개/파일
-- **Codex 놓친 문제**: 평균 1개/파일
-- **Qwen 놓친 문제**: 평균 3-4개/파일
-- **공통 발견**: 80% (모든 AI가 발견하는 주요 문제)
-
-### 🏆 실제 교차 검증 성공 사례 (2025-08-30)
-
-#### 📊 **서버 카드 UI 개선 프로젝트**
-**Claude A안**: Glassmorphism + Material You 디자인 시스템 → **3-AI 교차 검증 완료**
-
-```
-🔍 AI별 검증 결과:
-- 🟢 **Gemini**: 8.7/10 (Material Design 3 색상 팔레트 + 접근성 강화)
-- 🟡 **Codex**: 8.3/10 (에러 바운더리 + 메트릭 검증 강화)  
-- 🟡 **Claude**: 8.2/10 (실용적 해결책 + 마이크로 인터랙션)
-
-📈 최종 결과: 8.1/10 HIGH 합의 수준 달성
-```
-
-**🎯 Claude 최종 의사결정**:
-- ✅ **Gemini 제안 수용**: WCAG 2.1 접근성 + Material You 색상 시스템
-- ✅ **Codex 제안 수용**: ServerCardErrorBoundary + metricValidation.ts 유틸리티
-- ✅ **성능 최적화**: React.memo + useMemo 메모이제이션 패턴
-- ✅ **사용자 피드백 반영**: 호버 블러 효과 제거 (UX 개선)
-
-**📊 개선 성과**:
-- 🎨 **시각적 현대화**: Glassmorphism + 16px→20px radius + 글로우 효과
-- ⚡ **성능 향상**: 메모이제이션으로 렌더링 속도 40-60% 향상  
-- 🔧 **접근성**: 키보드 네비게이션 + ARIA 라벨 완전 준수
-- 🛡️ **안정성**: 에러 바운더리로 런타임 안정성 확보
+→ **[수동 가이드](docs/ai-tools/manual-ai-verification-guide.md)** | **단순 실행**: `Task verification-specialist "코드 검증"`
 
 ## 🤖 서브에이전트 최적화 전략
 
@@ -1049,63 +578,15 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 - **무료 운영 최적화**: Mock 시뮬레이션으로 연간 $684+ 절약
 - **개발 환경 혁신**: WSL + 멀티 AI CLI 완전 통합
 
-## 📚 프로젝트 문서 아카이브
+## 📚 프로젝트 문서
 
-**체계적으로 정리된 전체 문서 구조** - JBGE 원칙 기반 docs 폴더 연결
+**체계적 문서 구조**: JBGE 원칙 기반 /docs 폴더 완전 체계화  
 
-### 🚀 핵심 가이드 (빠른 시작)
+**🚀 핵심 가이드**: [빠른 시작](docs/QUICK-START.md) • [시스템 아키텍처](docs/system-architecture.md) • [AI 시스템](docs/AI-SYSTEMS.md) • [문제 해결](docs/TROUBLESHOOTING.md)
 
-| 문서 | 설명 | 소요시간 |
-|------|------|----------|
-| **[⚡ 빠른 시작](docs/QUICK-START.md)** | 5분 내 개발 환경 완전 설정 | 5분 |
-| **[🏗️ 시스템 아키텍처](docs/system-architecture.md)** | 전체 아키텍처와 기술 명세 | 15분 |
-| **[🤖 AI 시스템](docs/AI-SYSTEMS.md)** | Claude + Gemini + Qwen 협업 | 15분 |
-| **[🚨 문제 해결](docs/TROUBLESHOOTING.md)** | 주요 문제들의 빠른 해결법 | 상황별 |
+**⚙️ 전문 도구**: MCP 8개 서버 • AI CLI 4개 • 서브에이전트 22개 • 성능 최적화 • 보안 • 배포  
 
-### 🔌 MCP & AI 도구 통합
-
-| 카테고리 | 주요 문서 | 설명 |
-|----------|-----------|------|
-| **MCP 서버** | [MCP 종합 가이드](docs/MCP-GUIDE.md) • [MCP 설치 가이드](docs/mcp/mcp-complete-installation-guide-2025.md) • [MCP 도구 레퍼런스](docs/mcp/mcp-tools-reference.md) • [필수 서버 가이드](docs/mcp/essential-mcp-servers-guide.md) | 8개 서버 70+ 도구 완전 활용 (토큰 최적화) |
-| **AI 협업** | [AI CLI 비교](docs/ai-tools/AI-CLI-COMPARISON.md) • [AI 컨텍스트](docs/ai-tools/AI-CONTEXT.md) • [Gemini CLI](docs/ai-tools/gemini-cli-guide.md) • [Qwen CLI](docs/ai-tools/qwen-cli-guide.md) | 3-AI 병렬 개발 |
-| **서브 에이전트** | [종합 가이드](docs/claude/sub-agents-complete-guide.md) • [MCP 통합 가이드](docs/MCP-GUIDE.md) | 22개 전문 에이전트 활용 |
-
-### 🛠️ 개발 환경 & 워크플로우
-
-| 카테고리 | 주요 문서 | 설명 |
-|----------|-----------|------|
-| **개발 환경** | [개발 가이드](docs/development/development-guide.md) • [환경 설정](docs/development/development-environment.md) • [WSL 최적화](docs/development/wsl-optimization-analysis-report.md) | 개발 환경 완전 설정 |
-| **타입 시스템** | [TypeScript 설정](docs/development/typescript-configuration-guide.md) • [타입 안전성](docs/development/type-safety-utilities.md) • [타입 우선 개발](docs/claude/type-first-development-guide.md) | TypeScript strict 모드 |
-| **테스트 & 품질** | [TDD 가이드](docs/claude/tdd-practical-guide.md) • [테스트 가이드](docs/testing/testing-guide.md) • [E2E 테스트](docs/testing/e2e-test-guide.md) | 테스트 주도 개발 |
-
-### ⚡ 성능 & 최적화
-
-| 카테고리 | 주요 문서 | 설명 |
-|----------|-----------|------|
-| **성능 최적화** | [성능 가이드](docs/performance/performance-optimization-complete-guide.md) • [메모리 최적화](docs/performance/memory-optimization-guide.md) • [번들 최적화](docs/performance/bundle-optimization-report.md) | 90% 성능 향상 달성 |
-| **API 최적화** | [API 최적화](docs/performance/api-optimization-guide.md) • [캐시 마이그레이션](docs/performance/cache-migration-complete-report.md) | 1-5ms 응답시간 |
-| **React 최적화** | [컴포넌트 최적화](docs/performance/react-component-optimization-examples.md) • [Hook 최적화](docs/development/react-hooks-optimization.md) | React 성능 극대화 |
-| **✅ Vercel 배포 안정화** | [베르셀 성능 가이드라인](docs/development/vercel-edge-performance-guidelines.md) • [사후 분석 보고서](docs/development/vercel-dashboard-performance-incident-analysis.md) • [개발 체크리스트](docs/development/performance-development-checklist.md) | Zero Warnings 달성, CLI 46.1.0 호환 |
-
-### 🔐 보안 & 인프라
-
-| 카테고리 | 주요 문서 | 설명 |
-|----------|-----------|------|
-| **보안** | [보안 가이드](docs/security/security-complete-guide.md) • [환경변수 보안](docs/security/env-security-guide.md) • [CSP 구현](docs/security/csp-implementation.md) | AES-256 암호화 |
-| **GCP 통합** | [GCP 가이드](docs/gcp/gcp-complete-guide.md) • [Cloud Functions](docs/quick-start/gcp-functions.md) • [서버리스 배포](docs/gcp/gcp-cloud-functions-guide.md) | 무료 티어 최적화 |
-| **배포** | [Vercel 배포](docs/technical/vercel-deployment/vercel-env-setup-guide.md) • [Supabase 인증](docs/quick-start/supabase-auth.md) | 무료 플랫폼 활용 |
-
-### 📊 모니터링 & 분석
-
-| 카테고리 | 주요 문서 | 설명 |
-|----------|-----------|------|
-| **시스템 모니터링** | [상태 모니터링](docs/monitoring/system-status-monitoring-guide.md) • [성능 엔진 테스트](docs/performance/performance-engine-testing-guide.md) | 실시간 모니터링 |
-| **AI 성능** | [AI 엔진 최적화](docs/technical/ai-engines/ai-performance-optimization-summary-2025-08-10.md) • [토큰 사용량 분석](docs/technical/ai-engines/ai-tools-token-usage-analysis.md) | AI 성능 분석 |
-
-### 📖 전체 문서 인덱스
-
-- **[📚 문서 README](docs/README.md)** - JBGE 원칙 기반 전체 문서 구조
-- **[📋 기술 문서 인덱스](docs/technical/DOCUMENT-INDEX.md)** - Claude 참조용 기술 문서 목록
+→ **[📚 전체 문서 인덱스](docs/README.md)** | **[📋 기술 문서](docs/technical/DOCUMENT-INDEX.md)**
 
 ---
 
@@ -1127,34 +608,11 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 - **💰 베르셀 호환**: 추가 비용 없이 무료 티어 100% 활용
 - **🎯 현실성**: 10개 서버 동시 시뮬레이션으로 실제 인프라와 유사
 
-### 🔬 기술적 세부사항
+### 🔬 핵심 구현
 
-```typescript
-// FNV-1a 해시 기반 결정론적 메트릭 생성
-function fnv1aHash(seed: number): number {
-  let hash = 0x811c9dc5;
-  const str = seed.toString();
-  for (let i = 0; i < str.length; i++) {
-    hash ^= str.charCodeAt(i);
-    hash = (hash * 0x01000193) >>> 0;
-  }
-  return hash / 0xFFFFFFFF;
-}
-
-// 서버별 정상 범위 (타입별 차별화)
-const serverProfiles = {
-  web: { cpu: [20,60], memory: [30,70] },     // 웹서버: 트래픽 부하
-  database: { cpu: [10,50], memory: [40,85] }, // DB: 메모리 집약적
-  cache: { cpu: [5,30], memory: [60,90] }     // 캐시: 메모리 중심
-};
-
-// 장애 시나리오 (확률 기반)
-scenarios: {
-  traffic_spike: { probability: 0.15, effects: { cpu: +25 } },
-  ddos_attack: { probability: 0.03, effects: { cpu: +45 } },
-  memory_leak: { probability: 0.08, effects: { memory: +35 } }
-}
-```
+**FNV-1a 해시**: Math.random() 대체로 현실적 패턴 생성
+**서버 프로필**: 10개 타입별 CPU/Memory 범위 (web 20-60%, DB 40-85%)  
+**장애 시나리오**: 15개 확률 기반 (트래픽 폭증 15%, DDoS 3%, 메모리 누수 8%)
 
 ### 📁 데이터 구조
 
@@ -1185,51 +643,15 @@ scenarios: {
 **⏰ 실시간 표시**: 고정된 업타임 → 24시간 현재 시간 표시로 개선
 **🛡️ 에러 안정성**: ServerCardErrorBoundary로 런타임 안정성 100% 보장
 
-### 🤖 AI 교차검증 결과 반영
+### 🤖 AI 교차검증 완료: **8.8/10 HIGH 합의**
 
-#### **Claude 제안 (8.2/10)**: Glassmorphism + 마이크로 인터랙션
-- **적용**: `bg-gradient-to-br from-white/95 via-emerald-50/80` 반투명 그라데이션
-- **적용**: `hover:-translate-y-1 hover:scale-[1.02]` 부상 효과
-- **적용**: `transition-all duration-300 ease-out` 부드러운 전환
-
-#### **Gemini 제안 (8.7/10)**: Material Design 3 + 접근성 강화
-- **적용**: WCAG 준수 ARIA 속성 대폭 추가
-- **적용**: semantic HTML 구조 (header, section, footer)
-- **적용**: 키보드 접근성 (Space/Enter 키 지원)
-- **적용**: Material You 색상 팔레트 (emerald/amber/red 현대적 색상)
-
-#### **Codex 제안 (8.3/10)**: 에러 바운더리 + 메트릭 검증
-- **적용**: ServerCardErrorBoundary 컴포넌트 추가
-- **적용**: metricValidation.ts 유틸리티 (안전한 메트릭 값 생성)
-- **적용**: 비동기 상태 관리 개선 (isMountedRef)
-- **적용**: React.memo + useMemo 성능 최적화
-
-### 📊 최종 AI 합의 점수: **8.8/10 HIGH**
+**Claude (8.2)**: Glassmorphism + 부상 효과 | **Gemini (8.7)**: Material Design 3 + WCAG 접근성 | **Codex (8.3)**: 에러 바운더리 + 성능 최적화
 
 ### 🎨 현대적 디자인 특징
 
-```typescript
-// 1. Glassmorphism 효과 (블러 제거, 그라데이션 유지)
-const cardStyle = `
-  bg-gradient-to-br from-white/95 via-emerald-50/80 to-emerald-50/60
-  border-emerald-200/60 hover:border-emerald-300/80
-  hover:shadow-2xl hover:shadow-emerald-500/20
-`;
-
-// 2. Material You 색상 시스템
-const statusColors = {
-  online: 'emerald-500',    // 녹색 (정상)
-  warning: 'amber-500',     // 주황색 (경고) 
-  critical: 'red-500'       // 빨간색 (심각)
-};
-
-// 3. 현대적 인터랙션
-const hoverEffects = `
-  hover:-translate-y-1 hover:scale-[1.02]
-  active:scale-[0.98] active:translate-y-0
-  focus:ring-4 focus:ring-blue-500/20
-`;
-```
+**Glassmorphism**: 그라데이션 + 투명도 (블러 효과 제거)  
+**Material You**: emerald/amber/red 색상 시스템  
+**인터랙션**: hover 부상 효과 + focus ring 접근성
 
 ### 🔧 성능 최적화
 
@@ -1248,18 +670,8 @@ const hoverEffects = `
 
 ### 🛡️ 에러 안정성 시스템
 
-```typescript
-// ServerCardErrorBoundary: 런타임 에러 완전 차단
-<ServerCardErrorBoundary fallback={<ErrorFallback />}>
-  <ImprovedServerCard />
-</ServerCardErrorBoundary>
-
-// 메트릭 검증: 안전한 값만 표시
-const safeMetrics = validateServerMetrics({
-  cpu: generateSafeMetricValue(prev.cpu, 3, 'cpu'),
-  memory: generateSafeMetricValue(prev.memory, 2, 'memory')
-});
-```
+**에러 바운더리**: ServerCardErrorBoundary로 런타임 에러 완전 차단  
+**메트릭 검증**: validateServerMetrics로 안전한 값만 표시
 
 ### 📈 UX 개선 효과
 
