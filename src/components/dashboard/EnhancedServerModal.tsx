@@ -294,32 +294,67 @@ export default function EnhancedServerModal({
                 </div>
               </div>
 
+              {/* 우측 액션 버튼들 - AI 교차검증 개선사항 적용 */}
               <div className="flex items-center gap-3">
+                {/* 빠른 액션 버튼들 (AI 제안 반영) */}
+                <div className="flex items-center gap-2">
+                  {/* 알림 상태 토글 */}
+                  <button
+                    onClick={() => {
+                      // 알림 토글 로직 (향후 구현)
+                      console.log('알림 설정 토글');
+                    }}
+                    className="rounded-xl bg-white/20 p-2 backdrop-blur-sm transition-all duration-300 hover:bg-white/30 hover:scale-110"
+                    title={`${safeServer.status === 'critical' ? '긴급' : '일반'} 알림 설정`}
+                  >
+                    <AlertTriangle className={`h-4 w-4 ${
+                      safeServer.status === 'critical' ? 'text-red-300 animate-pulse' : 
+                      safeServer.status === 'warning' ? 'text-amber-300' : 'text-white/70'
+                    }`} />
+                  </button>
+
+                  {/* 서버 재시작 (모의) */}
+                  <button
+                    onClick={() => {
+                      // 서버 재시작 모의 (향후 구현)
+                      console.log(`${safeServer.name} 재시작 요청`);
+                    }}
+                    className="rounded-xl bg-white/20 p-2 backdrop-blur-sm transition-all duration-300 hover:bg-white/30 hover:scale-110"
+                    title="서버 재시작"
+                  >
+                    <ServerIcon className="h-4 w-4 text-white/70" />
+                  </button>
+                </div>
+
+                {/* 실시간 모니터링 토글 */}
                 <button
                   onClick={() => setIsRealtime(!isRealtime)}
                   className={`flex items-center gap-2 rounded-xl px-5 py-2.5 font-medium transition-all duration-300 ${
                     isRealtime
-                      ? 'bg-white text-green-600 shadow-xl'
+                      ? 'bg-white text-green-600 shadow-xl scale-105'
                       : 'bg-white/20 text-white backdrop-blur-sm hover:bg-white/30'
                   }`}
                 >
                   {isRealtime ? (
                     <>
                       <Play className="h-4 w-4" />
-                      <span>실시간 모니터링 중</span>
+                      <span className="hidden sm:inline">실시간 모니터링 중</span>
+                      <span className="sm:hidden">실시간</span>
                       <span className="animate-pulse">●</span>
                     </>
                   ) : (
                     <>
                       <Pause className="h-4 w-4" />
-                      <span>일시정지</span>
+                      <span className="hidden sm:inline">일시정지</span>
+                      <span className="sm:hidden">정지</span>
                     </>
                   )}
                 </button>
 
+                {/* 모달 닫기 */}
                 <button
                   onClick={onClose}
-                  className="rounded-xl bg-white/20 p-2.5 backdrop-blur-sm transition-all duration-300 hover:bg-white/30"
+                  className="rounded-xl bg-white/20 p-2.5 backdrop-blur-sm transition-all duration-300 hover:bg-white/30 hover:scale-110 hover:rotate-90"
                   title="모달 닫기"
                 >
                   <X className="h-5 w-5" />
@@ -327,30 +362,72 @@ export default function EnhancedServerModal({
               </div>
             </div>
 
-            {/* 탭 네비게이션 - 개선된 디자인 */}
+            {/* 탭 네비게이션 - AI 교차검증 개선사항 적용 */}
             <div className="mt-6 flex gap-2 overflow-x-auto">
               {tabs.map((tab, index) => {
                 const Icon = tab.icon;
                 const isActive = selectedTab === tab.id;
+                
+                // 탭별 미니 인디케이터 (AI 제안 반영)
+                const getTabIndicator = (tabId: TabId) => {
+                  switch (tabId) {
+                    case 'metrics':
+                      const avgCpu = (safeServer.cpu + safeServer.memory) / 2;
+                      return (
+                        <div className={`h-2 w-2 rounded-full ${
+                          avgCpu > 80 ? 'bg-red-400' : avgCpu > 60 ? 'bg-amber-400' : 'bg-green-400'
+                        } ${isActive ? 'opacity-100' : 'opacity-70'}`} />
+                      );
+                    case 'processes':
+                      const processCount = safeServer.services?.length || 0;
+                      return (
+                        <span className={`text-xs font-bold ${
+                          isActive ? 'text-gray-600' : 'text-white/70'
+                        }`}>
+                          {processCount}
+                        </span>
+                      );
+                    case 'network':
+                      return (
+                        <div className={`h-2 w-2 rounded-full ${
+                          safeServer.status === 'online' ? 'bg-green-400 animate-pulse' : 'bg-gray-400'
+                        } ${isActive ? 'opacity-100' : 'opacity-70'}`} />
+                      );
+                    case 'logs':
+                      return (
+                        <div className={`h-2 w-2 rounded-full ${
+                          realtimeData.logs.some(log => log.level === 'error') ? 'bg-red-400' :
+                          realtimeData.logs.some(log => log.level === 'warn') ? 'bg-amber-400' : 'bg-blue-400'
+                        } ${isActive ? 'opacity-100' : 'opacity-70'}`} />
+                      );
+                    default:
+                      return null;
+                  }
+                };
+                
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setSelectedTab(tab.id)}
-                    className={`flex items-center gap-2 rounded-xl px-5 py-2.5 font-medium transition-all duration-300 ${
+                    className={`relative flex items-center gap-2 rounded-xl px-5 py-2.5 font-medium transition-all duration-300 ${
                       isActive
-                        ? 'bg-white text-gray-800 shadow-xl'
-                        : 'bg-white/10 text-white/90 backdrop-blur-sm hover:bg-white/20'
+                        ? 'bg-white text-gray-800 shadow-xl scale-105'
+                        : 'bg-white/10 text-white/90 backdrop-blur-sm hover:bg-white/20 hover:scale-102'
                     }`}
                   >
                     <Icon
                       className={`h-4 w-4 ${isActive ? 'text-gray-700' : 'text-white/90'}`}
                     />
                     <span>{tab.label}</span>
+                    
+                    {/* 탭별 상태 인디케이터 */}
+                    <div className="flex items-center gap-1">
+                      {getTabIndicator(tab.id)}
+                    </div>
+                    
+                    {/* 활성 탭 하이라이트 */}
                     {isActive && (
-                      <div
-                        className="absolute inset-0 rounded-xl bg-white"
-                        style={{ zIndex: -1 }}
-                      />
+                      <div className="absolute bottom-0 left-1/2 h-1 w-8 -translate-x-1/2 rounded-t-full bg-blue-500" />
                     )}
                   </button>
                 );
@@ -389,16 +466,68 @@ export default function EnhancedServerModal({
             </Fragment>
           </div>
 
-          {/* 하단 버튼 영역 */}
-          <div className="border-t border-gray-200 bg-white px-6 py-4">
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={onClose}
-                className="flex items-center gap-2 rounded-lg bg-gray-100 px-6 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200"
-              >
-                <X className="h-4 w-4" />
-                닫기
-              </button>
+          {/* 하단 액션 영역 - AI 교차검증 개선사항 적용 */}
+          <div className="border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4">
+            <div className="flex items-center justify-between">
+              {/* 왼쪽: 서버 상태 요약 */}
+              <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className={`h-3 w-3 rounded-full ${
+                    safeServer.status === 'online' ? 'bg-green-500' :
+                    safeServer.status === 'warning' ? 'bg-amber-500' : 'bg-red-500'
+                  }`} />
+                  <span className="font-medium capitalize text-gray-700">
+                    {safeServer.status}
+                  </span>
+                </div>
+                <div className="text-gray-500">
+                  CPU: {Math.round(safeServer.cpu)}% | 메모리: {Math.round(safeServer.memory)}%
+                </div>
+                {safeServer.alertsSummary?.total ? (
+                  <div className="flex items-center gap-1 text-red-600">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span className="font-medium">{safeServer.alertsSummary.total}개 알림</span>
+                  </div>
+                ) : null}
+              </div>
+              
+              {/* 오른쪽: 액션 버튼들 */}
+              <div className="flex items-center gap-3">
+                {/* 새로고침 */}
+                <button
+                  onClick={() => {
+                    // 데이터 새로고침 로직 (향후 구현)
+                    console.log(`${safeServer.name} 데이터 새로고침`);
+                  }}
+                  className="flex items-center gap-2 rounded-lg bg-blue-100 px-4 py-2 font-medium text-blue-700 transition-colors hover:bg-blue-200"
+                  title="데이터 새로고침"
+                >
+                  <Activity className="h-4 w-4" />
+                  <span className="hidden sm:inline">새로고침</span>
+                </button>
+
+                {/* 상세 보고서 */}
+                <button
+                  onClick={() => {
+                    // 보고서 생성 로직 (향후 구현)
+                    console.log(`${safeServer.name} 상세 보고서 생성`);
+                  }}
+                  className="flex items-center gap-2 rounded-lg bg-green-100 px-4 py-2 font-medium text-green-700 transition-colors hover:bg-green-200"
+                  title="상세 보고서 생성"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  <span className="hidden sm:inline">보고서</span>
+                </button>
+
+                {/* 닫기 */}
+                <button
+                  onClick={onClose}
+                  className="flex items-center gap-2 rounded-lg bg-gray-100 px-6 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200"
+                >
+                  <X className="h-4 w-4" />
+                  <span>닫기</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

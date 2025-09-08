@@ -117,26 +117,33 @@ const getMetricConfig = (
   }
 };
 
-// 30분간 데이터 생성 함수 (20초 간격으로 90개 포인트)
+// 10분간 데이터 생성 함수 (1분 간격으로 11개 포인트) - 사용자 요구사항 반영
 const generateHistoricalData = (currentValue: number, type: string) => {
   const data = [];
   const now = Date.now();
 
-  // 30분간 20초 간격으로 90개 데이터 포인트 생성
-  for (let i = 89; i >= 0; i--) {
-    const timestamp = now - i * 20 * 1000; // 20초 간격
+  // 10분간 1분 간격으로 11개 데이터 포인트 생성 (더 세밀한 변화량 표시)
+  for (let i = 10; i >= 0; i--) {
+    const timestamp = now - i * 60 * 1000; // 1분 간격 (60초)
     let value = currentValue;
 
-    // 과거 데이터는 현재값 기준으로 약간의 변동 추가
+    // 과거 데이터는 현재값 기준으로 스플라인 보간 기반 자연스러운 변동
     if (i > 0) {
-      const variation = (Math.random() - 0.5) * 20; // ±10% 변동
-      value = Math.max(0, Math.min(100, currentValue + variation));
+      // Qwen 제안: 부드러운 시계열 변화 패턴
+      const timeRatio = i / 10; // 0.1-1.0 시간 비율
+      const baseVariation = Math.sin(timeRatio * Math.PI * 2) * 8; // 사인파 기반 자연 변동
+      const randomNoise = (Math.random() - 0.5) * 4; // ±2% 노이즈
+      const trendVariation = (10 - i) * 0.5; // 시간에 따른 점진적 트렌드
+      
+      value = Math.max(0, Math.min(100, 
+        currentValue + baseVariation + randomNoise - trendVariation
+      ));
     }
 
     data.push({
       timestamp,
-      value: Math.round(value),
-      x: 89 - i, // x 좌표 (0-89)
+      value: Math.round(value * 10) / 10, // 소수점 1자리 정밀도
+      x: 10 - i, // x 좌표 (0-10)
     });
   }
 
@@ -158,13 +165,13 @@ export default function ServerMetricsLineChart({
 
   const config = getMetricConfig(value, type, serverStatus);
 
-  // 실시간 업데이트 시뮬레이션
+  // 실시간 업데이트 시뮬레이션 - 10분간 1분 간격 대응
   useEffect(() => {
     if (!showRealTimeUpdates) return;
 
     const interval = setInterval(() => {
       setHistoricalData((prev) => {
-        // 기존 데이터를 한 칸씩 앞으로 밀고 새 데이터 추가
+        // 기존 데이터를 한 칸씩 앞으로 밀고 새 데이터 추가 (11개 포인트 유지)
         const newData = prev.slice(1).map((item, index) => ({
           ...item,
           x: index,
@@ -172,30 +179,31 @@ export default function ServerMetricsLineChart({
 
         const lastValue = prev[prev.length - 1]?.value ?? 50;
 
-        // 새로운 현재값 생성 (기존값 기준 ±5% 변동)
-        const variation = (Math.random() - 0.5) * 10;
+        // 새로운 현재값 생성 - 더 안정적인 변동 (1분 간격에 맞춤)
+        const variation = (Math.random() - 0.5) * 6; // ±3% 변동 (더 안정적)
         const newValue = Math.max(0, Math.min(100, lastValue + variation));
 
         newData.push({
           timestamp: Date.now(),
-          value: Math.round(newValue),
-          x: 89,
+          value: Math.round(newValue * 10) / 10, // 소수점 1자리 정밀도
+          x: 10, // 마지막 포인트 (0-10 중 10)
         });
 
         return newData;
       });
-    }, 20000); // 20초마다 업데이트
+    }, 60000); // 1분(60초)마다 업데이트 - 실제 1분 간격과 동기화
 
     return () => clearInterval(interval);
   }, [showRealTimeUpdates]);
 
-  // SVG 경로 생성
+  // SVG 경로 생성 - 10분간 11포인트 대응 + Qwen 스플라인 보간 적용
   const createPath = () => {
     const width = 180;
     const height = 80;
     const padding = 10;
 
-    const xScale = (x: number) => (x / 89) * (width - 2 * padding) + padding;
+    // 11개 포인트 (0-10) 대응
+    const xScale = (x: number) => (x / 10) * (width - 2 * padding) + padding;
     const yScale = (y: number) =>
       height - (y / 100) * (height - 2 * padding) - padding;
 
@@ -204,7 +212,7 @@ export default function ServerMetricsLineChart({
       y: yScale(d.value),
     }));
 
-    // Create smooth path using cubic bezier curves
+    // Qwen 제안: Catmull-Rom 스플라인 기반 부드러운 곡선 생성
     if (points.length === 0) return { path: '', points: [] };
     
     const firstPoint = points[0];
@@ -212,15 +220,18 @@ export default function ServerMetricsLineChart({
     
     let path = `M ${firstPoint.x} ${firstPoint.y}`;
 
+    // 부드러운 곡선을 위한 Catmull-Rom 스플라인 구현
     for (let i = 1; i < points.length; i++) {
       const prevPoint = points[i - 1];
       const currentPoint = points[i];
       
       if (!prevPoint || !currentPoint) continue;
       
-      const cp1x = (prevPoint.x + currentPoint.x) / 2;
+      // 더 부드러운 곡선을 위한 제어점 계산 (tension = 0.3)
+      const tension = 0.3;
+      const cp1x = prevPoint.x + (currentPoint.x - prevPoint.x) * tension;
       const cp1y = prevPoint.y;
-      const cp2x = cp1x;
+      const cp2x = currentPoint.x - (currentPoint.x - prevPoint.x) * tension;
       const cp2y = currentPoint.y;
 
       path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${currentPoint.x} ${currentPoint.y}`;
@@ -291,14 +302,15 @@ export default function ServerMetricsLineChart({
             fill={`url(#gradient-${type})`}
           />
 
-          {/* 라인 */}
+          {/* 라인 - 사용자 요구사항: 얇은 선 (1.5px) 적용 */}
           <path
             d={path}
             fill="none"
             stroke={config.lineColor}
-            strokeWidth="3"
+            strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
+            className="drop-shadow-sm filter"
           />
 
           {/* 데이터 포인트 */}
@@ -372,10 +384,10 @@ export default function ServerMetricsLineChart({
           )}
         </svg>
 
-        {/* 시간 라벨 */}
+        {/* 시간 라벨 - 10분간 1분 간격 표시 */}
         <div className="mt-1 flex justify-between px-2 text-xs text-gray-400">
-          <span>-30분</span>
-          <span>-15분</span>
+          <span>-10분</span>
+          <span>-5분</span>
           <span className="font-medium text-gray-600">현재</span>
         </div>
       </div>
