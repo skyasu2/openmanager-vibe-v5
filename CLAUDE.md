@@ -270,19 +270,22 @@ Task external-ai-orchestrator "full verification"
 
 ## 🤖 서브에이전트 최적화 전략
 
-**12개 핵심 에이전트 최적화 완료** - AI 교차 검증 시스템 완성 + 실제 구현 95%+ 일치
+**15개 핵심 에이전트 최적화 완료** - AI 교차 검증 시스템 완성 + AI CLI 래퍼 복구
 
-### 🎯 핵심 에이전트 구성 (12개)
+### 🎯 핵심 에이전트 구성 (15개)
 
 #### **1. 메인 조정자** (1개)
 
 - **central-supervisor**: 복잡한 작업 분해 및 서브에이전트 오케스트레이션 [MCP 강화]
 
-#### **2. AI 교차 검증 시스템** (3개)
+#### **2. AI 교차 검증 시스템** (6개)
 
 - **verification-specialist**: AI 교차 검증 메인 진입점 [MCP: serena, memory]
 - **ai-verification-coordinator**: 3단계 레벨 기반 검증 조정자 [MCP: sequential-thinking, memory]  
 - **external-ai-orchestrator**: 외부 AI 오케스트레이션 [MCP: sequential-thinking, context7]
+- **codex-wrapper**: ChatGPT Codex CLI 전용 래퍼 [Bash 도구로 codex CLI 호출]
+- **gemini-wrapper**: Google Gemini CLI 전용 래퍼 [Bash 도구로 gemini CLI 호출]
+- **qwen-wrapper**: Qwen CLI 전용 래퍼 [Bash 도구로 qwen CLI 호출]
 
 #### **3. 개발 환경 & 구조** (2개)
 
@@ -327,14 +330,15 @@ MCP 활용률: 12개 에이전트 모두 실제 서버 활용
 - **의사결정 시스템**: 10점 만점 평가 후 자동 승인/거절/조건부승인
 - **보안 강화 모드**: 중요 파일 자동 Level 3 검증
 
-### 📁 아카이브된 에이전트 (10개)
+### 📁 아카이브된 에이전트 (7개)
 
 ```
-📁 AI CLI 래퍼: codex/gemini/qwen-wrapper (개별 CLI 직접 사용)
 📁 존재하지 않음: mcp-server-administrator, quality-control-specialist, git-cicd-specialist
 📁 기능 중복: ai-systems-specialist, ux-performance-specialist, gcp-cloud-functions-specialist
-📁 MCP 참조 오류: 제거된 서버 참조하는 에이전트들
+📁 MCP 참조 오류: unified-ai-wrapper (개별 래퍼가 더 효과적)
 ```
+
+**✅ 복구된 AI CLI 래퍼**: codex/gemini/qwen-wrapper (Bash 도구로 CLI 직접 호출)
 
 → **[아카이브 상세](docs/archive/sub-agents/README.md)**
 
@@ -353,6 +357,22 @@ large_task → codex-cli + gemini-cli + qwen-cli (동시 실행)
 
 # 교차 검증 필요 시
 critical_feature → multi_ai_review_process()
+```
+
+#### **AI CLI 래퍼 자동 활용**
+
+```bash
+# ChatGPT Codex 활용 (Plus $20/월)
+Task codex-wrapper "복잡한 알고리즘 최적화 필요"
+Task codex-wrapper "이 코드의 보안 취약점 분석해줘"
+
+# Google Gemini 활용 (무료 1K/day)
+Task gemini-wrapper "대용량 로그 분석 및 성능 병목 찾기" 
+Task gemini-wrapper "API 문서 자동 생성해줘"
+
+# Qwen 활용 (OAuth 2K/day)
+Task qwen-wrapper "React Hook 패턴 구현"
+Task qwen-wrapper "이 정렬 알고리즘이 최적인지 검증"
 ```
 
 #### **전문 에이전트 자동 호출**
@@ -375,9 +395,10 @@ docs_update → auto_trigger("documentation-manager")
 
 1. **복잡한 작업**: central-supervisor로 시작 → 전문 에이전트 분배
 2. **AI 교차 검증**: 3단계 복잡도 기반 자동 검증
-3. **병렬 개발**: AI CLI 도구 동시 활용 (claude, gemini, qwen, codex)
-4. **자동화**: hooks 트리거로 즉시 전문가 투입
-5. **의사결정**: 12개 에이전트 체계적 역할 분담
+3. **AI CLI 래퍼**: codex/gemini/qwen-wrapper를 통한 외부 AI 활용
+4. **병렬 개발**: AI CLI 도구 동시 활용 (claude, gemini, qwen, codex)
+5. **자동화**: hooks 트리거로 즉시 전문가 투입
+6. **의사결정**: 15개 에이전트 체계적 역할 분담
 
 ## 📊 Claude Code Statusline
 
