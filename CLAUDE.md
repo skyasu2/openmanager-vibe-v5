@@ -68,24 +68,23 @@ claude --version     # v1.0.100
 
 | 도구                  | 버전    | 요금제              | 역할 구분                   | WSL 실행                   | Windows 네이티브           |
 | --------------------- | ------- | ------------------- | --------------------------- | -------------------------- | -------------------------- |
-| **Claude Code**       | v1.0.107 | Max ($200/월) | 🏆 **메인 개발 환경**       | .\claude-wsl-optimized.bat | ✅ 완벽 지원                |
-| **OpenAI CLI (Codex)** | v0.29.0 | Plus ($20/월)       | 🤝 **계정 로그인 전용** ⚠️ | codex exec (WSL 해결완료)  | ✅ **API 사용 금지**           |
-| **Google Gemini CLI** | v0.2.1  | 무료 (1K/day 한도)   | 👨‍💻 **계정 로그인 전용** ⚠️ | .\gemini-wsl.bat           | ✅ 무료 한도 준수                |
-| **Qwen Code**         | v0.0.9  | 무료 (OAuth 2K/day)   | 🔷 **계정 인증 전용** ⚠️ | .\qwen-wsl.bat             | ✅ OAuth 전용                |
+| **Claude Code**       | v1.0.107 | Max ($200/월) | 🏆 **메인 개발 환경**       | WSL 직접 실행 | ✅ 완벽 지원                |
+| **OpenAI CLI (Codex)** | v0.29.0 | Plus ($20/월)       | 🤝 **계정 로그인 전용** ⚠️ | codex exec (WSL)  | ✅ **API 사용 금지**           |
+| **Google Gemini CLI** | v0.2.1  | 무료 (1K/day 한도)   | 👨‍💻 **계정 로그인 전용** ⚠️ | gemini (WSL)           | ✅ 무료 한도 준수                |
+| **Qwen Code**         | v0.0.9  | 무료 (OAuth 2K/day)   | 🔷 **계정 인증 전용** ⚠️ | qwen (WSL)             | ✅ OAuth 전용                |
 | **ccusage**           | v16.2.0 | 무료                | 📊 **Claude 사용량 모니터링** | ccusage daily              | ✅ 완벽 지원                |
 
 > ✅ **2025년 해결완료**: **Codex CLI WSL 네트워크 문제 완전 해결**됨. DNS 설정 수정으로 `codex exec` 명령어 정상 작동. ChatGPT Plus 계정으로 GPT-5 모델 추가 과금 없이 사용 가능.
 
-### 통합 실행
+### WSL 통합 실행
 
 ```bash
-
-# 통합 AI CLI 실행기
-
-.\ai-cli-wsl.bat claude --version
-.\ai-cli-wsl.bat gemini --help
-.\ai-cli-wsl.bat qwen --help
-`
+# WSL 내부에서 AI CLI 도구 사용
+claude --version
+gemini --help  
+qwen --help
+codex exec "명령어"
+```
 
 ### WSL 내부에서 직접 실행
 
@@ -441,10 +440,9 @@ qwen --version # Qwen CLI v0.0.9
 
 # Windows에서 WSL 도구 실행
 
-.\claude-wsl-optimized.bat /status
-.\gemini-wsl.bat --help
-.\qwen-wsl.bat --help
-.\ai-cli-wsl.bat claude --version
+scripts\platform\claude-wsl-optimized.bat
+scripts\platform\ai-cli-wsl.bat claude --version
+# WSL 내부에서 직접 사용 권장
 `
 
 ### WSL 최적화 상태 확인
@@ -491,12 +489,12 @@ sudo npm install -g @google/gemini-cli
 sudo npm install -g @qwen-code/qwen-code
 `
 
-### 생성된 WSL 도구들
+### 개발 환경 스크립트
 
-- **claude-wsl-optimized.bat**: 최적화된 Claude Code 실행
-- **gemini-wsl.bat**: Google Gemini CLI 실행
-- **qwen-wsl.bat**: Qwen CLI 실행
-- **ai-cli-wsl.bat**: 통합 AI CLI 실행기
+**실제 사용 중인 도구들**:
+- **scripts/platform/claude-wsl-optimized.bat**: Claude Code WSL 실행
+- **scripts/platform/ai-cli-wsl.bat**: 통합 AI CLI 실행기
+- **WSL 직접 실행**: claude, gemini, qwen 명령어 WSL 내부에서 직접 사용
 
 ### Windows 레거시 스크립트
 
@@ -544,7 +542,7 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 
 | 문서 | 설명 | 상태 | 특징 |
 |------|------|------|------|
-| **[📊 실제 시스템 아키텍처 v5.77](docs/architecture/actual-system-architecture-v5.77.md)** | 현재 운영 중인 실제 시스템 완전 분석 | 2024-09-07 작성 | ✅ **실제 구현** |
+| **[📊 실제 시스템 아키텍처 v5.70.11](docs/architecture/actual-system-architecture-v5.70.11.md)** | 현재 운영 중인 실제 시스템 완전 분석 | 2024-09-07 작성 | ✅ **실제 구현** |
 | **[📊 시스템 아키텍처](docs/system-architecture.md)** | 현재 운영 상태 요약 문서 | 2024-09-07 최신 | ✅ 운영 요약 |
 
 ### 🔌 **MCP 통합 기록 (실용 문서)**
@@ -831,7 +829,7 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 | 구분 | 현재 상태 (v5.70.11) | 미래 계획 (v6.0) |
 |------|----------------------|-------------------|
 | **아키텍처** | 레이어드 구조 (실용적) | Domain-Driven Design |
-| **API** | 50+ 기능별 엔드포인트 | 12개 RESTful 통합 목표 |
+| **API** | 75개 기능별 엔드포인트 | 12개 RESTful 통합 목표 |
 | **타입 안전성** | ✅ 100% strict 달성 | Type-First 목표 |
 | **코드베이스** | 226,356줄 (최적화 완료) | 69,260줄 목표 |
 | **TypeScript 파일** | 873개 (효율적 구조) | 1,512개 예상 |
