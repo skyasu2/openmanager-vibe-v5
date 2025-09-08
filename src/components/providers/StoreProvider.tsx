@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useMemo } from 'react';
+import { createContext, useContext, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { useStore } from 'zustand';
 
@@ -18,26 +18,20 @@ export interface ServerDataStoreProviderProps {
   children: ReactNode;
 }
 
-// 🚀 싱글톤 패턴: 전역 스토어 인스턴스 (메모리 누수 완전 방지)
-let globalServerDataStore: ServerDataStore | null = null;
-
 export const ServerDataStoreProvider = ({
   children,
 }: ServerDataStoreProviderProps) => {
-  // 🎯 useMemo + 싱글톤으로 중복 생성 완전 차단
-  const store = useMemo(() => {
-    if (!globalServerDataStore) {
-      console.log('📦 전역 Zustand 스토어 최초 생성...');
-      globalServerDataStore = createServerDataStore();
-      console.log('✅ 전역 Zustand 스토어 생성 완료 (싱글톤)');
-    } else {
-      console.log('🔄 기존 전역 Zustand 스토어 재사용');
-    }
-    return globalServerDataStore;
-  }, []);
+  // 🎯 useRef로 완전한 싱글톤 패턴 보장 - 메모리 누수 완전 해결
+  const storeRef = useRef<ServerDataStore>();
+  
+  if (!storeRef.current) {
+    console.log('📦 Zustand 스토어 최초 생성 (useRef 싱글톤)');
+    storeRef.current = createServerDataStore();
+    console.log('✅ Zustand 스토어 생성 완료 - 메모리 안전');
+  }
 
   return (
-    <ServerDataStoreContext.Provider value={store}>
+    <ServerDataStoreContext.Provider value={storeRef.current}>
       {children}
     </ServerDataStoreContext.Provider>
   );

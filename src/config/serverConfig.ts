@@ -85,9 +85,9 @@ export function calculateServerConfig(
   const batchSize = Math.min(100, Math.max(10, Math.ceil(serverCount / 2)));
   const bufferSize = Math.min(1000, serverCount * 10);
 
-  // 캐시 설정 (30-40초 갱신 주기 최적화)
-  const updateInterval = calculateOptimalUpdateInterval(); // 동적 계산
-  const expireTime = 60000; // 1분 고정
+  // 캐시 설정 (5-10분 갱신 주기 최적화 - Vercel 무료 티어 절약)
+  const updateInterval = calculateOptimalCollectionInterval(); // 5-10분 동적 계산
+  const expireTime = 300000; // 5분 고정
 
   return {
     maxServers: serverCount,

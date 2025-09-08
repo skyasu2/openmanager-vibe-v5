@@ -178,6 +178,15 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   );
   const stopAutoRefresh = useServerDataStore((state) => state.stopAutoRefresh);
 
+  // 즉시 fetchServers 실행 (조건부)
+  if (servers.length === 0 && !isLoading && fetchServers) {
+    console.log('🚀 즉시 fetchServers 실행 - 서버 데이터 없음');
+    setTimeout(() => {
+      console.log('⏰ setTimeout으로 fetchServers 호출');
+      fetchServers();
+    }, 100);
+  }
+
   // 페이지네이션 상태 - 설정 기반으로 동적 조정
   const [currentPage, setCurrentPage] = useState(1);
   // 🚀 화면 크기에 따른 초기 페이지 크기 설정
@@ -269,42 +278,22 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
   // 🚀 최적화된 서버 데이터 로드 및 자동 갱신 설정
   useEffect(() => {
-    // 상세한 디버깅 로그 추가
-    console.log('🔧 useEffect 실행됨:', {
-      servers_type: typeof servers,
-      servers_array: Array.isArray(servers),
+    console.log('🔧 useServerDashboard useEffect 실행됨');
+    console.log('📊 현재 서버 상태:', {
       servers_length: servers?.length || 0,
-      servers_truthy: !!servers,
+      servers_exists: !!servers,
       fetchServers_type: typeof fetchServers,
-      fetchServers_exists: !!fetchServers
+      startAutoRefresh_type: typeof startAutoRefresh
     });
     
-    // 데이터가 없을 때 최초 로드
-    if (!servers || servers.length === 0) {
-      console.log('📊 서버 데이터 최초 로드 - fetchServers 호출 예정');
-      console.log('🎯 fetchServers 함수 직접 호출 시작');
-      
-      // fetchServers 호출 시점 명확히 로깅
-      try {
-        console.log('⚡ fetchServers() 함수 실행 중...');
-        const result = fetchServers();
-        console.log('🔄 fetchServers() 호출 결과:', typeof result, result instanceof Promise ? 'Promise' : 'Other');
-        
-        if (result instanceof Promise) {
-          result
-            .then(() => console.log('✅ fetchServers Promise resolved'))
-            .catch((err) => console.error('❌ fetchServers Promise rejected:', err));
-        }
-      } catch (error) {
-        console.error('🚨 fetchServers 호출 중 동기 오류:', error);
-      }
-      
-    } else {
-      console.log('🔍 서버 데이터 이미 존재, fetchServers 건너뜀:', servers.length, '개');
-    }
+    // 즉시 한 번 fetchServers 호출 (조건 없이)
+    console.log('⚡ fetchServers 즉시 호출 시작');
+    fetchServers()
+      .then(() => console.log('✅ fetchServers 호출 성공'))
+      .catch((err) => console.error('❌ fetchServers 호출 실패:', err));
 
-    // 자동 갱신 시작 (30-60초 주기)
-    console.log('🔄 서버 데이터 자동 갱신 활성화');
+    // 자동 갱신 시작 (5-10분 주기로 최적화됨)
+    console.log('🔄 서버 데이터 자동 갱신 시작 (5-10분 주기)');
     startAutoRefresh();
 
     // 컴포넌트 언마운트 시 자동 갱신 중지
@@ -312,7 +301,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
       console.log('🛑 서버 데이터 자동 갱신 중지');
       stopAutoRefresh();
     };
-  }, [fetchServers, startAutoRefresh, stopAutoRefresh]); // Zustand 함수들 의존성 복구
+  }, []); // 빈 의존성 배열로 마운트 시 한 번만 실행
 
   // 실제 서버 데이터 사용 (메모이제이션 + 🕐 시간 기반 메트릭 변화)
   const actualServers = useMemo(() => {
