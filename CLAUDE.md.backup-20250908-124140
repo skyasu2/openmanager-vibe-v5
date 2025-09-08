@@ -270,202 +270,75 @@ Task external-ai-orchestrator "full verification"
 
 ## 🤖 서브에이전트 최적화 전략
 
-**22개 핵심 에이전트 최적화 완료** - Codex 협업으로 베스트 프랙티스 적용 (7.2→9.1점)
+**15개 핵심 에이전트 최적화 완료** - AI 교차 검증 시스템 완성 + AI CLI 래퍼 복구
 
-### 🎯 핵심 에이전트 구성 (22개)
+### 🎯 핵심 에이전트 구성 (15개)
 
 #### **1. 메인 조정자** (1개)
 
-**central-supervisor**: 복잡한 작업 분해 및 서브에이전트 오케스트레이션
-- **proactive**: true (복잡도 높은 작업 자동 감지)
-- **주요 도구**: memory, sequential-thinking, serena
-- **트리거 조건**: 500줄+ 코드, 다중 파일 작업, 아키텍처 변경
-- **Task 예시**: `Task central-supervisor "전체 인증 시스템 리팩토링"`
+- **central-supervisor**: 복잡한 작업 분해 및 서브에이전트 오케스트레이션 [MCP 강화]
 
 #### **2. AI 교차 검증 시스템** (6개)
 
-**verification-specialist**: AI 교차검증 메인 진입점, Level 1-3 복잡도 자동 판단
-- **proactive**: true (코드 파일 변경 시 자동 실행)
-- **주요 도구**: serena (코드 분석), memory (컨텍스트), sequential-thinking (사고)
-- **트리거 조건**: 코드 파일 수정, git commit hooks, 중요 함수 변경
-- **Task 예시**: `Task verification-specialist "src/components/Button.tsx quick review"`
-
-**verification-coordinator**: 3단계 레벨 기반 검증 조정자, AI 1개 추가 호출  
-- **proactive**: false (verification-specialist에서 자동 호출)
-- **주요 도구**: sequential-thinking, memory
-- **트리거 조건**: Level 2 검증 필요 (50-200줄 또는 중간 복잡도)
-- **Task 예시**: `Task verification-coordinator "src/hooks/useAuth.ts standard review"`
-
-**verification-orchestrator**: 외부 AI 3개 병렬 실행 오케스트레이션
-- **proactive**: false (verification-coordinator에서 자동 호출)
-- **주요 도구**: sequential-thinking, context7, memory
-- **트리거 조건**: Level 3 검증 (200줄+ 또는 중요 파일)  
-- **Task 예시**: `Task verification-orchestrator "src/app/api/auth/route.ts full verification"`
-
-**codex-wrapper**: ChatGPT Codex CLI 전용 래퍼 (10점 만점 평가, 가중치 0.99)
-- **proactive**: false (orchestrator에서만 호출)
-- **주요 도구**: Bash (codex exec 명령어)
-- **트리거 조건**: verification-orchestrator 호출, 60초 timeout
-- **특징**: 실무 경험 기반 코드 검토, Plus $20/월 요금제
-- **호출**: 직접 호출 불가, orchestrator 통해서만
-
-**gemini-wrapper**: Google Gemini CLI 전용 래퍼 (10점 만점 평가, 가중치 0.98)
-- **proactive**: false (orchestrator에서만 호출)  
-- **주요 도구**: Bash (gemini CLI)
-- **트리거 조건**: verification-orchestrator 호출
-- **특징**: 대규모 데이터 분석, 1,000회/일 무료 한도
-- **호출**: 직접 호출 불가, orchestrator 통해서만
-
-**qwen-wrapper**: Qwen CLI 전용 래퍼 (10점 만점 평가, 가중치 0.97)
-- **proactive**: false (orchestrator에서만 호출)
-- **주요 도구**: Bash (qwen CLI)  
-- **트리거 조건**: verification-orchestrator 호출
-- **특징**: 알고리즘 최적화, OAuth 2,000회/일 무료
-- **호출**: 직접 호출 불가, orchestrator 통해서만
+- **verification-specialist**: AI 교차 검증 메인 진입점 [MCP: serena, memory]
+- **ai-verification-coordinator**: 3단계 레벨 기반 검증 조정자 [MCP: sequential-thinking, memory]  
+- **external-ai-orchestrator**: 외부 AI 오케스트레이션 [MCP: sequential-thinking, context7]
+- **codex-wrapper**: ChatGPT Codex CLI 전용 래퍼 [Bash 도구로 codex CLI 호출]
+- **gemini-wrapper**: Google Gemini CLI 전용 래퍼 [Bash 도구로 gemini CLI 호출]
+- **qwen-wrapper**: Qwen CLI 전용 래퍼 [Bash 도구로 qwen CLI 호출]
 
 #### **3. 개발 환경 & 구조** (2개)
 
-**environment-manager**: WSL 최적화, Node.js 버전 관리, 개발 환경 통합 관리
-- **proactive**: false (환경 문제 발생 시에만 호출)
-- **주요 도구**: time (시간대 관리), memory (환경 설정 기록)
-- **트리거 조건**: Node.js 버전 충돌, WSL 성능 문제, 개발 도구 설치
-- **Task 예시**: `Task environment-manager "Node.js 22.x 환경 최적화"`
+- **dev-environment-manager**: WSL 최적화, Node.js 버전 관리 [MCP: time]
+- **structure-refactor-specialist**: 프로젝트 구조 정리 [MCP: serena 심볼 조작]
 
-**structure-specialist**: 프로젝트 구조 정리, 아키텍처 리팩토링 전문
-- **proactive**: false (구조 변경 요청 시에만)
-- **주요 도구**: serena (심볼 조작), memory (구조 히스토리)
-- **트리거 조건**: 대규모 리팩토링, 폴더 구조 변경, 모듈 재구성
-- **Task 예시**: `Task structure-specialist "컴포넌트 디렉토리 재구조화"`
+#### **4. 백엔드 & 인프라** (2개)
 
-#### **4. 백엔드 & 인프라** (4개)
+- **database-administrator**: Supabase PostgreSQL 전문 [MCP: supabase 도구]
+- **vercel-platform-specialist**: Vercel 플랫폼 최적화 [기본 도구 활용]
 
-**database-administrator**: Supabase PostgreSQL 전문, RLS 정책, 쿼리 최적화
-- **proactive**: true (쿼리 성능 이슈 자동 감지)
-- **주요 도구**: supabase (모든 DB 도구), memory (최적화 히스토리)
-- **트리거 조건**: 쿼리 2초+ 소요, DB 에러, RLS 정책 변경
-- **Task 예시**: `Task database-administrator "사용자 인증 테이블 성능 최적화"`
+#### **5. 코드 품질 & 보안** (3개)
 
-**deployment-specialist**: Vercel 플랫폼 최적화, 배포 자동화, Edge Functions
-- **proactive**: false (배포 관련 작업만)
-- **주요 도구**: 기본 도구 (Bash, Read, Write), memory
-- **트리거 조건**: 배포 실패, 성능 문제, Edge Runtime 이슈  
-- **Task 예시**: `Task deployment-specialist "Next.js 15 Vercel 최적화"`
+- **code-review-specialist**: 통합 코드 품질 검토 [MCP: serena]
+- **debugger-specialist**: 버그 해결 및 근본 분석 [MCP: serena]
+- **security-auditor**: 보안 감사 및 취약점 스캔 [MCP: supabase]
 
-**cloud-functions-specialist**: GCP Cloud Functions 전문가, 서버리스 아키텍처
-- **proactive**: false (GCP 관련 작업만)
-- **주요 도구**: 기본 도구, memory (GCP 설정)
-- **트리거 조건**: Cloud Functions 배포, 무료 티어 관리
-- **Task 예시**: `Task cloud-functions-specialist "AI Gateway 함수 최적화"`
+#### **6. 테스트 & 문서화** (2개)
 
-**mcp-administrator**: 8개 MCP 서버 관리, 연결 상태 모니터링
-- **proactive**: true (MCP 서버 장애 자동 감지)  
-- **주요 도구**: 모든 MCP 서버 관리, memory (연결 상태)
-- **트리거 조건**: MCP 서버 오프라인, 연결 오류, 성능 저하
-- **Task 예시**: `Task mcp-administrator "serena MCP 서버 재연결"`
+- **test-automation-specialist**: 테스트 자동화 [MCP: playwright 전체 도구]
+- **documentation-manager**: 문서 관리 [MCP: context7, shadcn-ui]
 
-#### **5. 코드 품질 & 보안** (4개)
+### ✅ 주요 개선사항 (2025-01-09)
 
-**code-reviewer**: 통합 코드 품질 검토, TypeScript strict 모드 준수
-- **proactive**: false (리뷰 요청 시에만)
-- **주요 도구**: serena (코드 분석), shadcn-ui (UI 컴포넌트)
-- **트리거 조건**: PR 생성, 코드 리뷰 요청, 품질 검사
-- **Task 예시**: `Task code-reviewer "Button 컴포넌트 접근성 검토"`
-
-**debugger-specialist**: 버그 해결 및 근본 원인 분석, 스택 트레이스 해석
-- **proactive**: false (버그 발생 시에만)
-- **주요 도구**: serena (코드 추적), memory (버그 패턴)
-- **트리거 조건**: 런타임 에러, 테스트 실패, 성능 병목
-- **Task 예시**: `Task debugger-specialist "React 18 hydration 에러 해결"`
-
-**security-auditor**: 보안 감사 및 취약점 스캔, OWASP 준수
-- **proactive**: true (보안 관련 코드 변경 자동 감지)
-- **주요 도구**: supabase (DB 보안), memory (보안 규칙)
-- **트리거 조건**: 인증 코드 변경, API 키 노출, 권한 설정
-- **Task 예시**: `Task security-auditor "JWT 토큰 보안 검토"`
-
-**quality-guardian**: 프로젝트 규칙 감시, 코딩 컨벤션 강제
-- **proactive**: true (규칙 위반 자동 감지)
-- **주요 도구**: memory (규칙 설정), serena (코드 검사)
-- **트리거 조건**: 네이밍 규칙 위반, 파일 구조 위반, 스타일 가이드 위반
-- **Task 예시**: `Task quality-guardian "TypeScript any 사용 검사"`
-
-#### **6. 테스트 & UX** (2개)
-
-**test-specialist**: 테스트 자동화, Vitest + Playwright E2E 전문
-- **proactive**: false (테스트 관련 작업만)
-- **주요 도구**: playwright (모든 브라우저 도구), serena (테스트 코드)
-- **트리거 조건**: 테스트 실패, 새 컴포넌트 생성, 커버리지 저하
-- **Task 예시**: `Task test-specialist "서버 카드 컴포넌트 E2E 테스트"`
-
-**ux-optimizer**: UX/성능 최적화, 접근성 준수, Core Web Vitals
-- **proactive**: false (성능 이슈 발견 시에만)
-- **주요 도구**: playwright (성능 측정), shadcn-ui (UI 최적화)
-- **트리거 조건**: 페이지 로딩 3초+, 접근성 점수 저하, UX 개선 요청
-- **Task 예시**: `Task ux-optimizer "대시보드 로딩 성능 최적화"`
-
-#### **7. 문서화 & Git** (2개)
-
-**documentation-manager**: 문서 관리, API 문서 자동 생성, 가이드 작성
-- **proactive**: false (문서 작업 요청 시에만)
-- **주요 도구**: context7 (최신 문서), shadcn-ui (컴포넌트 문서)
-- **트리거 조건**: 새 API 추가, 컴포넌트 변경, 가이드 요청
-- **Task 예시**: `Task documentation-manager "서브에이전트 가이드 업데이트"`
-
-**git-specialist**: Git/CI/CD 관리, hooks 설정, 브랜치 전략
-- **proactive**: false (Git 관련 작업만)
-- **주요 도구**: 기본 Git 도구, memory (브랜치 히스토리)
-- **트리거 조건**: merge 충돌, hooks 실패, 브랜치 정리
-- **Task 예시**: `Task git-specialist "pre-commit hooks 최적화"`
-
-#### **8. AI 시스템 전문** (1개)
-
-**ai-systems-specialist**: AI 시스템 최적화, MCP 통합, 서브에이전트 조율
-- **proactive**: false (AI 시스템 개선 요청 시)
-- **주요 도구**: sequential-thinking (AI 사고), context7 (AI 문서)
-- **트리거 조건**: AI 성능 저하, MCP 연동 문제, 서브에이전트 오류
-- **Task 예시**: `Task ai-systems-specialist "교차검증 시스템 성능 분석"`
-
-### ✅ 주요 개선사항 (2025-01-09 Codex 협업)
-
-#### 🎯 서브에이전트 베스트 프랙티스 적용
+#### 🎯 서브에이전트 최적화 완료
 ```
-평가 점수: 7.2/10 → 9.1/10 (Codex 평가 기준)
-15개 → 22개 전문화된 에이전트로 확장
-proactive 설정: 6개 자동 실행, 16개 수동 호출
-설명 구조: 표준화된 템플릿 100% 적용
+22개 → 12개 핵심 에이전트로 축소
+실제 구현과 95%+ 일치도 달성
+MCP 참조 현실화 (8개 실제 서버만)
 ```
 
-#### 📈 MCP 통합 현황 (최적화 완료)
+#### 📈 MCP 통합 현황
 ```
 활성 MCP 서버: 8개 (memory, supabase, playwright, time, context7, serena, sequential-thinking, shadcn-ui)
-에이전트별 최적 매핑: 핵심 3개 이하로 제한
-도구 할당 효율성: 80% → 95% 향상
-중복 도구 할당 제거: 완료
+제거된 참조: filesystem, tavily, gcp, github (기본 도구로 대체)
+MCP 활용률: 12개 에이전트 모두 실제 서버 활용
 ```
 
-#### 🚀 교차 검증 시스템 특징 (완전 자동화)
+#### 🚀 교차 검증 시스템 특징
 - **3단계 복잡도 기반**: Level 1 (Claude만) → Level 2 (AI 1개) → Level 3 (AI 3개 모두)
-- **자동 hooks 트리거**: 파일 수정 시 verification-specialist 자동 실행
-- **가중치 시스템**: codex(0.99) > gemini(0.98) > qwen(0.97) 신뢰도 반영
-- **의사결정 알고리즘**: 10점 만점 평가 후 자동 승인/거절/조건부승인
-- **보안 강화 모드**: 인증/결제 코드 자동 Level 3 검증
+- **자동 hooks 트리거**: 파일 수정 시 자동 검증 큐 추가
+- **의사결정 시스템**: 10점 만점 평가 후 자동 승인/거절/조건부승인
+- **보안 강화 모드**: 중요 파일 자동 Level 3 검증
 
-#### 🔄 proactive 설정 최적화
-**자동 실행 (6개):**
-- central-supervisor, verification-specialist, database-administrator
-- security-auditor, quality-guardian, mcp-administrator
-
-**수동 실행 (16개):**
-- AI CLI 래퍼 3개 (orchestrator 전용)
-- 전문 도구 13개 (요청 시에만)
-
-### 📁 아카이브 정리 (v2.2)
+### 📁 아카이브된 에이전트 (7개)
 
 ```
-✅ 복구 완료: codex/gemini/qwen-wrapper (orchestrator 연동)
-✅ 신규 추가: cloud-functions-specialist, mcp-administrator, quality-guardian, ux-optimizer, git-specialist, ai-systems-specialist, deployment-specialist
-📁 아카이브 유지: unified-ai-wrapper, ai-verification-system-design
+📁 존재하지 않음: mcp-server-administrator, quality-control-specialist, git-cicd-specialist
+📁 기능 중복: ai-systems-specialist, ux-performance-specialist, gcp-cloud-functions-specialist
+📁 MCP 참조 오류: unified-ai-wrapper (개별 래퍼가 더 효과적)
 ```
+
+**✅ 복구된 AI CLI 래퍼**: codex/gemini/qwen-wrapper (Bash 도구로 CLI 직접 호출)
 
 → **[아카이브 상세](docs/archive/sub-agents/README.md)**
 
