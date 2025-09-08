@@ -44,10 +44,19 @@ export function useSession(): UseSessionReturn {
           setUser(session.user);
           setStatus('authenticated');
         } else {
-          // 🎯 게스트 세션 확인 (Vercel Edge Runtime 안전성 강화)
+          // 🎯 게스트 세션 확인 (AuthStateManager 키 체계 일치)
           try {
-            const guestUser = localStorage.getItem('auth_user');
-            const authType = localStorage.getItem('auth_type');
+            // 새 키 체계 우선 확인
+            let guestUser = localStorage.getItem('guest_user');
+            let authType = localStorage.getItem('guest_auth_type');
+            
+            // 레거시 호환성 fallback
+            if (!guestUser) {
+              guestUser = localStorage.getItem('auth_user');
+            }
+            if (!authType) {
+              authType = localStorage.getItem('auth_type');
+            }
 
             if (guestUser && authType === 'guest') {
               const guestUserData = JSON.parse(guestUser);
@@ -165,6 +174,12 @@ export async function signOut(options?: { callbackUrl?: string }) {
     // 🍪 게스트 세션 정리 (localStorage + 쿠키) - Vercel Edge Runtime 안전성 강화
     if (typeof window !== 'undefined') {
       try {
+        // 새 키 체계 정리
+        localStorage.removeItem('guest_session_id');
+        localStorage.removeItem('guest_auth_type');
+        localStorage.removeItem('guest_user');
+        
+        // 레거시 키 정리 (하위 호환성)
         localStorage.removeItem('auth_session_id');
         localStorage.removeItem('auth_type');
         localStorage.removeItem('auth_user');
@@ -176,10 +191,15 @@ export async function signOut(options?: { callbackUrl?: string }) {
         console.warn('localStorage 정리 오류 (무시됨):', error);
       }
 
-      // 모든 인증 관련 쿠키 정리
+      // 모든 인증 관련 쿠키 정리 (새 키 체계 + 레거시)
       const cookiesToClear = [
+        // 새 키 체계
         'guest_session_id',
+        'guest_auth_type',
+        // 레거시 키
         'auth_type',
+        'session_id',
+        // Supabase 키
         'sb-access-token', 
         'sb-refresh-token'
       ];

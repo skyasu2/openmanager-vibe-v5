@@ -34,7 +34,6 @@ export {
 // Types
 export type {
   ThinkingStep,
-  PresetQuestion,
   AIResponse,
   SessionInfo,
   AISidebarState,

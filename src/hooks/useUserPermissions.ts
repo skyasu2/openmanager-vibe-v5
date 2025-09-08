@@ -8,8 +8,9 @@
 import { useSession } from '@/hooks/useSupabaseSession';
 import { useAuth } from '@/hooks/useAuth';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { authStateManager } from '@/lib/auth-state-manager';
 import type { UserPermissions, UserType } from '@/types/permissions.types';
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 
 /**
  * 안전한 기본 권한 생성 함수
@@ -43,85 +44,137 @@ function createSafeDefaultPermissions(
 }
 
 /**
- * 사용자 권한을 관리하는 훅
+ * 사용자 권한을 관리하는 훅 - AuthStateManager 기반으로 최적화
  * Vercel 무료 티어 최적화: 모든 로직이 클라이언트에서 처리됨
  */
 export function useUserPermissions(): UserPermissions {
-  // 기존 인증 훅들 사용 (오류 처리 포함)
+  // AuthStateManager 기반 상태 관리
+  const [authState, setAuthState] = useState<{
+    user: any | null;
+    type: 'github' | 'guest' | 'unknown';
+    isAuthenticated: boolean;
+  } | null>(null);
+  
+  // 레거시 호환성을 위한 fallback
   const { data: session, status } = useSession();
   const { user: guestUser, isAuthenticated: isGuestAuth } = useAuth();
   const adminStore = useUnifiedAdminStore();
 
-  // 권한 계산 (메모이제이션으로 성능 최적화)
+  // AuthStateManager에서 통합 상태 가져오기
+  useEffect(() => {
+    let isMounted = true;
+    
+    const getAuthState = async () => {
+      try {
+        const state = await authStateManager.getAuthState();
+        if (isMounted) {
+          setAuthState(state);
+        }
+      } catch (error) {
+        console.error('🔐 [Permissions] AuthStateManager 오류:', error);
+        if (isMounted) {
+          setAuthState(null); // fallback으로 null 설정
+        }
+      }
+    };
+
+    getAuthState();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // 권한 계산 (AuthStateManager 우선, 레거시 fallback)
   const permissions = useMemo(() => {
     try {
-      // 로딩 중인 경우 - 안전한 기본값 반환
+      // AuthStateManager 상태 우선 사용
+      if (authState) {
+        const { user, type, isAuthenticated } = authState;
+        
+        if (!isAuthenticated || !user) {
+          return createSafeDefaultPermissions('guest', '일반사용자');
+        }
+
+        // 사용자 정보 추출
+        const userName = user.name || user.email?.split('@')[0] || (type === 'github' ? 'GitHub 사용자' : '일반사용자');
+        const userAvatar = user.avatar;
+        const userType: UserType = type === 'unknown' ? 'guest' : type;
+
+        // 권한 매트릭스 적용
+        const isAdmin = type === 'github';
+        const isGeneral = !isAdmin;
+
+        return {
+          // 시스템 제어 권한 (관리자만)
+          canControlSystem: isAdmin,
+          canAccessSettings: isAdmin,
+          canToggleAdminMode: isAdmin,
+          canLogout: true, // 인증된 사용자는 모두 로그아웃 가능
+
+          // 사용자 유형
+          isGeneralUser: isGeneral,
+          isAdmin: isAdmin,
+          isGitHubAuthenticated: isAdmin,
+
+          // AI 권한 (모든 사용자)
+          canToggleAI: true,
+
+          // 사용자 정보
+          userType,
+          userName,
+          userAvatar,
+        };
+      }
+
+      // 레거시 fallback 로직
       if (status === 'loading') {
         return createSafeDefaultPermissions('loading', '로딩 중...');
       }
 
-      // GitHub 인증 사용자 확인 (안전한 체크)
       const isGitHubUser = Boolean(session?.user && status === 'authenticated');
       const isGuestUser = Boolean(!isGitHubUser && isGuestAuth && guestUser);
 
-      // 사용자 정보 추출 (안전한 기본값 포함)
+      if (!isGitHubUser && !isGuestUser) {
+        return createSafeDefaultPermissions('guest', '일반사용자');
+      }
+
+      // 사용자 정보 추출
       let userName = '사용자';
       let userAvatar: string | undefined;
       let userType: UserType = 'loading';
 
       if (isGitHubUser && session?.user) {
-        // GitHub 사용자 - 안전한 정보 추출
-        userName =
-          session.user.name ||
-          session.user.email?.split('@')[0] ||
-          'GitHub 사용자';
+        userName = session.user.name || session.user.email?.split('@')[0] || 'GitHub 사용자';
         userAvatar = session.user.image || undefined;
         userType = 'github';
       } else if (isGuestUser && guestUser) {
-        // 게스트 사용자 - 안전한 정보 추출
         userName = guestUser.name || '일반사용자';
         userAvatar = guestUser.picture;
         userType = 'guest';
-      } else {
-        // 인증 상태를 확인할 수 없는 경우 - 일반 사용자로 폴백
-        console.warn(
-          '🔐 [Permissions] 사용자 인증 상태 불명확 - 일반 사용자 권한으로 폴백'
-        );
-        return createSafeDefaultPermissions('guest', '일반사용자');
       }
 
-      // 권한 매트릭스 적용
-      const isAdmin = isGitHubUser; // GitHub 인증 사용자 = 관리자
-      const isGeneral = !isAdmin; // 게스트 사용자 = 일반 사용자
+      const isAdmin = isGitHubUser;
+      const isGeneral = !isAdmin;
 
       return {
-        // 시스템 제어 권한 (관리자만)
         canControlSystem: isAdmin,
         canAccessSettings: isAdmin,
         canToggleAdminMode: isAdmin,
-        canLogout: isAdmin,
-
-        // 사용자 유형
+        canLogout: isAdmin || isGuestUser,
         isGeneralUser: isGeneral,
         isAdmin: isAdmin,
         isGitHubAuthenticated: isGitHubUser,
-
-        // AI 권한 (모든 사용자)
         canToggleAI: true,
-
-        // 사용자 정보
         userType,
         userName,
         userAvatar,
       };
     } catch (error) {
-      // 권한 계산 중 오류 발생 시 안전한 폴백
       console.error('🔐 [Permissions] 권한 계산 중 오류 발생:', error);
-      console.warn('🔐 [Permissions] 일반 사용자 권한으로 폴백');
-
       return createSafeDefaultPermissions('guest', '일반사용자');
     }
-  }, [session, status, guestUser, isGuestAuth]);
+  }, [authState, session, status, guestUser, isGuestAuth]);
 
   return permissions;
 }

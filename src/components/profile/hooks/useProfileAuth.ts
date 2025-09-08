@@ -65,7 +65,7 @@ export function useProfileAuth(): ProfileAuthHook {
   }, [status]); // session 제거하여 무한 루프 방지
 
   /**
-   * 로그아웃 처리
+   * 통합 로그아웃 처리 (AuthStateManager 사용)
    */
   const handleLogout = useCallback(async () => {
     const userTypeLabel = userType === 'github' ? 'GitHub' : '게스트';
@@ -78,33 +78,51 @@ export function useProfileAuth(): ProfileAuthHook {
     }
 
     try {
-      console.log('🚪 로그아웃 시작:', { userType });
+      console.log('🚪 통합 로그아웃 시작:', { userType });
 
-      // 관리자 모드 해제
-      localStorage.removeItem('admin_mode');
+      // React 상태 즉시 업데이트 (UI 반응성 향상)
+      setUserInfo(null);
+      setUserType('unknown');
+      setIsLoading(true);
 
-      // 모든 인증 관련 데이터 정리
-      localStorage.removeItem('auth_session_id');
-      localStorage.removeItem('auth_type');
-      localStorage.removeItem('auth_user');
+      // AuthStateManager를 통한 통합 로그아웃
+      const { clearAuthData } = await import('@/lib/auth-state-manager');
+      await clearAuthData(userType === 'github' ? 'github' : 'guest');
 
-      // 쿠키 정리
-      document.cookie =
-        'guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      document.cookie =
-        'auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      console.log('✅ 통합 로그아웃 완료 - 리다이렉트 진행');
 
-      if (userType === 'github') {
-        // GitHub OAuth 로그아웃
-        await signOut({ callbackUrl: '/login' });
-      } else {
-        // 게스트 모드 로그아웃
-        window.location.href = '/login';
+      // 로그인 페이지로 리다이렉트
+      window.location.href = '/login';
+      return true;
+
+    } catch (error) {
+      console.error('❌ 통합 로그아웃 실패:', error);
+
+      // Fallback: 레거시 로그아웃 로직
+      console.warn('⚠️ 레거시 로그아웃으로 fallback');
+      
+      try {
+        // Supabase 로그아웃 (GitHub)
+        if (userType === 'github') {
+          await signOut({ callbackUrl: '/login' });
+        } else {
+          // 게스트 로그아웃은 AuthStateManager가 실패했으므로 수동 정리
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('admin_mode');
+            localStorage.removeItem('auth_session_id');
+            localStorage.removeItem('auth_type');
+            localStorage.removeItem('auth_user');
+          }
+          
+          if (typeof document !== 'undefined') {
+            document.cookie = 'guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            document.cookie = 'auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          }
+        }
+      } catch (fallbackError) {
+        console.error('❌ 레거시 로그아웃도 실패:', fallbackError);
       }
 
-      return true;
-    } catch (error) {
-      console.error('❌ 로그아웃 실패:', error);
       // 실패해도 로그인 페이지로 강제 이동
       window.location.href = '/login';
       return false;
