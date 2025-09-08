@@ -1,25 +1,25 @@
 # CHANGELOG-LEGACY.md
 
-> **아카이브 기간**: 2024년 이전 버전 히스토리  
+> **아카이브 기간**: v5.0.0 이전 초기 개발 단계 (2025년 5월 23일 ~ 6월)  
 > **현재 활성 CHANGELOG**: [CHANGELOG.md](/CHANGELOG.md)  
-> **상세 아카이브**: [docs/archive/CHANGELOG-ARCHIVE.md](/docs/archive/CHANGELOG-ARCHIVE.md)
+> **프로젝트 시작**: 2025년 5월 23일 (실제 커밋 히스토리 기준)
 
 ## 개요
 
-이 파일은 프로젝트의 레거시 버전 히스토리를 관리합니다. JBGE (Just Barely Good Enough) 원칙에 따라 핵심 정보만 포함합니다.
+이 파일은 프로젝트 초기 개발 단계의 레거시 버전 히스토리를 관리합니다. JBGE (Just Barely Good Enough) 원칙에 따라 핵심 정보만 포함합니다.
 
 ### 참조 링크
 
-- **현재 버전**: [CHANGELOG.md](/CHANGELOG.md) - v5.0.0 이후
-- **상세 아카이브**: [docs/archive/CHANGELOG-ARCHIVE.md](/docs/archive/CHANGELOG-ARCHIVE.md) - 전체 히스토리
+- **현재 버전**: [CHANGELOG.md](/CHANGELOG.md) - v5.0.0 이후  
+- **프로젝트 실제 시작**: 2025년 5월 23일 (Initial commit)
 
-### 주요 마일스톤
+### 주요 마일스톤 (실제 커밋 히스토리 기반)
 
-- **v5.64.x** (2025-01-27): 코드 품질 시스템 + JBGE 문서 관리 + pgvector 통합
-- **v4.x**: React 18 + Next.js 13 기반 구조
-- **v3.x**: TypeScript 마이그레이션
-- **v2.x**: 서버 모니터링 기본 기능
-- **v1.x**: 초기 프로토타입
+- **v1.0** (2025-05-23): 초기 프로젝트 구조 및 TypeScript strict 설정
+- **v2.x** (2025-05-24): OpenManager V4→V5 변환, API 백엔드 시스템  
+- **v3.x** (2025-05-25~): React 18 + Next.js 15 기반 구조 안정화
+- **v4.x** (2025-06월~): 서버 모니터링 핵심 기능 구현
+- **v5.0** (2025-07월~): 현재 운영 중인 안정 버전
 
 ---
 

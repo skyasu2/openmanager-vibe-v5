@@ -270,9 +270,9 @@ Task external-ai-orchestrator "full verification"
 
 ## 🤖 서브에이전트 최적화 전략
 
-**22개 핵심 에이전트 최적화 완료** - Codex 협업으로 베스트 프랙티스 적용 (7.2→9.1점)
+**17개 핵심 에이전트 최적화 완료** - 아카이브 정리로 중복 제거 (2025.09.08)
 
-### 🎯 핵심 에이전트 구성 (22개)
+### 🎯 핵심 에이전트 구성 (17개)
 
 #### **1. 메인 조정자** (1개)
 
@@ -290,54 +290,54 @@ Task external-ai-orchestrator "full verification"
 - **트리거 조건**: 코드 파일 수정, git commit hooks, 중요 함수 변경
 - **Task 예시**: `Task verification-specialist "src/components/Button.tsx quick review"`
 
-**verification-coordinator**: 3단계 레벨 기반 검증 조정자, AI 1개 추가 호출  
+**ai-verification-coordinator**: 3단계 레벨 기반 검증 조정자, AI 1개 추가 호출  
 - **proactive**: false (verification-specialist에서 자동 호출)
 - **주요 도구**: sequential-thinking, memory
 - **트리거 조건**: Level 2 검증 필요 (50-200줄 또는 중간 복잡도)
-- **Task 예시**: `Task verification-coordinator "src/hooks/useAuth.ts standard review"`
+- **Task 예시**: `Task ai-verification-coordinator "src/hooks/useAuth.ts standard review"`
 
-**verification-orchestrator**: 외부 AI 3개 병렬 실행 오케스트레이션
-- **proactive**: false (verification-coordinator에서 자동 호출)
+**external-ai-orchestrator**: 외부 AI 3개 병렬 실행 오케스트레이션
+- **proactive**: false (ai-verification-coordinator에서 자동 호출)
 - **주요 도구**: sequential-thinking, context7, memory
 - **트리거 조건**: Level 3 검증 (200줄+ 또는 중요 파일)  
-- **Task 예시**: `Task verification-orchestrator "src/app/api/auth/route.ts full verification"`
+- **Task 예시**: `Task external-ai-orchestrator "src/app/api/auth/route.ts full verification"`
 
 **codex-wrapper**: ChatGPT Codex CLI 전용 래퍼 (10점 만점 평가, 가중치 0.99)
-- **proactive**: false (orchestrator에서만 호출)
+- **proactive**: false (external-ai-orchestrator에서만 호출)
 - **주요 도구**: Bash (codex exec 명령어)
-- **트리거 조건**: verification-orchestrator 호출, 60초 timeout
+- **트리거 조건**: external-ai-orchestrator 호출, 60초 timeout
 - **특징**: 실무 경험 기반 코드 검토, Plus $20/월 요금제
 - **호출**: 직접 호출 불가, orchestrator 통해서만
 
 **gemini-wrapper**: Google Gemini CLI 전용 래퍼 (10점 만점 평가, 가중치 0.98)
-- **proactive**: false (orchestrator에서만 호출)  
+- **proactive**: false (external-ai-orchestrator에서만 호출)  
 - **주요 도구**: Bash (gemini CLI)
-- **트리거 조건**: verification-orchestrator 호출
+- **트리거 조건**: external-ai-orchestrator 호출
 - **특징**: 대규모 데이터 분석, 1,000회/일 무료 한도
 - **호출**: 직접 호출 불가, orchestrator 통해서만
 
 **qwen-wrapper**: Qwen CLI 전용 래퍼 (10점 만점 평가, 가중치 0.97)
-- **proactive**: false (orchestrator에서만 호출)
+- **proactive**: false (external-ai-orchestrator에서만 호출)
 - **주요 도구**: Bash (qwen CLI)  
-- **트리거 조건**: verification-orchestrator 호출
+- **트리거 조건**: external-ai-orchestrator 호출
 - **특징**: 알고리즘 최적화, OAuth 2,000회/일 무료
 - **호출**: 직접 호출 불가, orchestrator 통해서만
 
 #### **3. 개발 환경 & 구조** (2개)
 
-**environment-manager**: WSL 최적화, Node.js 버전 관리, 개발 환경 통합 관리
+**dev-environment-manager**: WSL 최적화, Node.js 버전 관리, 개발 환경 통합 관리
 - **proactive**: false (환경 문제 발생 시에만 호출)
 - **주요 도구**: time (시간대 관리), memory (환경 설정 기록)
 - **트리거 조건**: Node.js 버전 충돌, WSL 성능 문제, 개발 도구 설치
-- **Task 예시**: `Task environment-manager "Node.js 22.x 환경 최적화"`
+- **Task 예시**: `Task dev-environment-manager "Node.js 22.x 환경 최적화"`
 
-**structure-specialist**: 프로젝트 구조 정리, 아키텍처 리팩토링 전문
+**structure-refactor-specialist**: 프로젝트 구조 정리, 아키텍처 리팩토링 전문
 - **proactive**: false (구조 변경 요청 시에만)
 - **주요 도구**: serena (심볼 조작), memory (구조 히스토리)
 - **트리거 조건**: 대규모 리팩토링, 폴더 구조 변경, 모듈 재구성
-- **Task 예시**: `Task structure-specialist "컴포넌트 디렉토리 재구조화"`
+- **Task 예시**: `Task structure-refactor-specialist "컴포넌트 디렉토리 재구조화"`
 
-#### **4. 백엔드 & 인프라** (4개)
+#### **4. 백엔드 & 인프라** (3개)
 
 **database-administrator**: Supabase PostgreSQL 전문, RLS 정책, 쿼리 최적화
 - **proactive**: true (쿼리 성능 이슈 자동 감지)
@@ -345,31 +345,25 @@ Task external-ai-orchestrator "full verification"
 - **트리거 조건**: 쿼리 2초+ 소요, DB 에러, RLS 정책 변경
 - **Task 예시**: `Task database-administrator "사용자 인증 테이블 성능 최적화"`
 
-**deployment-specialist**: Vercel 플랫폼 최적화, 배포 자동화, Edge Functions
+**vercel-platform-specialist**: Vercel 플랫폼 최적화, 배포 자동화, Edge Functions
 - **proactive**: false (배포 관련 작업만)
 - **주요 도구**: 기본 도구 (Bash, Read, Write), memory
 - **트리거 조건**: 배포 실패, 성능 문제, Edge Runtime 이슈  
-- **Task 예시**: `Task deployment-specialist "Next.js 15 Vercel 최적화"`
+- **Task 예시**: `Task vercel-platform-specialist "Next.js 15 Vercel 최적화"`
 
-**cloud-functions-specialist**: GCP Cloud Functions 전문가, 서버리스 아키텍처
+**gcp-cloud-functions-specialist**: GCP Cloud Functions 전문가, 서버리스 아키텍처
 - **proactive**: false (GCP 관련 작업만)
 - **주요 도구**: 기본 도구, memory (GCP 설정)
 - **트리거 조건**: Cloud Functions 배포, 무료 티어 관리
-- **Task 예시**: `Task cloud-functions-specialist "AI Gateway 함수 최적화"`
+- **Task 예시**: `Task gcp-cloud-functions-specialist "AI Gateway 함수 최적화"`
 
-**mcp-administrator**: 8개 MCP 서버 관리, 연결 상태 모니터링
-- **proactive**: true (MCP 서버 장애 자동 감지)  
-- **주요 도구**: 모든 MCP 서버 관리, memory (연결 상태)
-- **트리거 조건**: MCP 서버 오프라인, 연결 오류, 성능 저하
-- **Task 예시**: `Task mcp-administrator "serena MCP 서버 재연결"`
+#### **5. 코드 품질 & 보안** (3개)
 
-#### **5. 코드 품질 & 보안** (4개)
-
-**code-reviewer**: 통합 코드 품질 검토, TypeScript strict 모드 준수
+**code-review-specialist**: 통합 코드 품질 검토, TypeScript strict 모드 준수
 - **proactive**: false (리뷰 요청 시에만)
 - **주요 도구**: serena (코드 분석), shadcn-ui (UI 컴포넌트)
 - **트리거 조건**: PR 생성, 코드 리뷰 요청, 품질 검사
-- **Task 예시**: `Task code-reviewer "Button 컴포넌트 접근성 검토"`
+- **Task 예시**: `Task code-review-specialist "Button 컴포넌트 접근성 검토"`
 
 **debugger-specialist**: 버그 해결 및 근본 원인 분석, 스택 트레이스 해석
 - **proactive**: false (버그 발생 시에만)
@@ -383,27 +377,13 @@ Task external-ai-orchestrator "full verification"
 - **트리거 조건**: 인증 코드 변경, API 키 노출, 권한 설정
 - **Task 예시**: `Task security-auditor "JWT 토큰 보안 검토"`
 
-**quality-guardian**: 프로젝트 규칙 감시, 코딩 컨벤션 강제
-- **proactive**: true (규칙 위반 자동 감지)
-- **주요 도구**: memory (규칙 설정), serena (코드 검사)
-- **트리거 조건**: 네이밍 규칙 위반, 파일 구조 위반, 스타일 가이드 위반
-- **Task 예시**: `Task quality-guardian "TypeScript any 사용 검사"`
+#### **6. 테스트 & 문서화** (2개)
 
-#### **6. 테스트 & UX** (2개)
-
-**test-specialist**: 테스트 자동화, Vitest + Playwright E2E 전문
+**test-automation-specialist**: 테스트 자동화, Vitest + Playwright E2E 전문
 - **proactive**: false (테스트 관련 작업만)
 - **주요 도구**: playwright (모든 브라우저 도구), serena (테스트 코드)
 - **트리거 조건**: 테스트 실패, 새 컴포넌트 생성, 커버리지 저하
-- **Task 예시**: `Task test-specialist "서버 카드 컴포넌트 E2E 테스트"`
-
-**ux-optimizer**: UX/성능 최적화, 접근성 준수, Core Web Vitals
-- **proactive**: false (성능 이슈 발견 시에만)
-- **주요 도구**: playwright (성능 측정), shadcn-ui (UI 최적화)
-- **트리거 조건**: 페이지 로딩 3초+, 접근성 점수 저하, UX 개선 요청
-- **Task 예시**: `Task ux-optimizer "대시보드 로딩 성능 최적화"`
-
-#### **7. 문서화 & Git** (2개)
+- **Task 예시**: `Task test-automation-specialist "서버 카드 컴포넌트 E2E 테스트"`
 
 **documentation-manager**: 문서 관리, API 문서 자동 생성, 가이드 작성
 - **proactive**: false (문서 작업 요청 시에만)
@@ -411,28 +391,14 @@ Task external-ai-orchestrator "full verification"
 - **트리거 조건**: 새 API 추가, 컴포넌트 변경, 가이드 요청
 - **Task 예시**: `Task documentation-manager "서브에이전트 가이드 업데이트"`
 
-**git-specialist**: Git/CI/CD 관리, hooks 설정, 브랜치 전략
-- **proactive**: false (Git 관련 작업만)
-- **주요 도구**: 기본 Git 도구, memory (브랜치 히스토리)
-- **트리거 조건**: merge 충돌, hooks 실패, 브랜치 정리
-- **Task 예시**: `Task git-specialist "pre-commit hooks 최적화"`
+### ✅ 주요 개선사항 (2025-09-08 아카이브 정리)
 
-#### **8. AI 시스템 전문** (1개)
-
-**ai-systems-specialist**: AI 시스템 최적화, MCP 통합, 서브에이전트 조율
-- **proactive**: false (AI 시스템 개선 요청 시)
-- **주요 도구**: sequential-thinking (AI 사고), context7 (AI 문서)
-- **트리거 조건**: AI 성능 저하, MCP 연동 문제, 서브에이전트 오류
-- **Task 예시**: `Task ai-systems-specialist "교차검증 시스템 성능 분석"`
-
-### ✅ 주요 개선사항 (2025-01-09 Codex 협업)
-
-#### 🎯 서브에이전트 베스트 프랙티스 적용
+#### 🎯 서브에이전트 아카이브 정리 완료
 ```
-평가 점수: 7.2/10 → 9.1/10 (Codex 평가 기준)
-15개 → 22개 전문화된 에이전트로 확장
-proactive 설정: 6개 자동 실행, 16개 수동 호출
-설명 구조: 표준화된 템플릿 100% 적용
+17개 핵심 에이전트 확정 (중복 제거)
+아카이브된 5개 에이전트 완전 삭제
+proactive 설정: 4개 자동 실행, 13개 수동 호출  
+AI 교차검증 시스템: 6개 에이전트 완전 구축
 ```
 
 #### 📈 MCP 통합 현황 (최적화 완료)
@@ -451,23 +417,22 @@ proactive 설정: 6개 자동 실행, 16개 수동 호출
 - **보안 강화 모드**: 인증/결제 코드 자동 Level 3 검증
 
 #### 🔄 proactive 설정 최적화
-**자동 실행 (6개):**
-- central-supervisor, verification-specialist, database-administrator
-- security-auditor, quality-guardian, mcp-administrator
+**자동 실행 (4개):**
+- central-supervisor, verification-specialist, database-administrator, security-auditor
 
-**수동 실행 (16개):**
-- AI CLI 래퍼 3개 (orchestrator 전용)
-- 전문 도구 13개 (요청 시에만)
+**수동 실행 (13개):**
+- AI CLI 래퍼 3개 (orchestrator 전용)  
+- 전문 도구 10개 (요청 시에만)
 
-### 📁 아카이브 정리 (v2.2)
+### 📁 아카이브 정리 완료 (2025-09-08)
 
 ```
-✅ 복구 완료: codex/gemini/qwen-wrapper (orchestrator 연동)
-✅ 신규 추가: cloud-functions-specialist, mcp-administrator, quality-guardian, ux-optimizer, git-specialist, ai-systems-specialist, deployment-specialist
-📁 아카이브 유지: unified-ai-wrapper, ai-verification-system-design
+✅ 17개 핵심 에이전트 확정 (중복 제거 완료)
+🗑️ 삭제된 아카이브: ai-systems-specialist, git-cicd-specialist, mcp-server-administrator, quality-control-specialist, ux-performance-specialist
+🎯 최종 구성: AI 교차검증 6개 + 전문 도구 11개
 ```
 
-→ **[아카이브 상세](docs/archive/sub-agents/README.md)**
+→ **[아카이브 문서](docs/archive/sub-agents/README.md)**
 
 ### 🚀 자동 트리거 조건
 
@@ -669,26 +634,26 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 
 ## 📋 아키텍처 문서 구조
 
-**현재 운영 시스템 vs 미래 계획 설계도 구분** - 2024-09-07 완전 재정리
+**현재 운영 시스템 vs 미래 계획 설계도 구분** - 2025-09-07 완전 재정리
 
 ### 🏗️ 현재 운영 시스템 (메인)
 
 | 문서 | 설명 | 상태 | 특징 |
 |------|------|------|------|
-| **[📊 실제 시스템 아키텍처 v5.70.11](docs/architecture/actual-system-architecture-v5.70.11.md)** | 현재 운영 중인 실제 시스템 완전 분석 | 2024-09-07 작성 | ✅ **실제 구현** |
-| **[📊 시스템 아키텍처](docs/system-architecture.md)** | 현재 운영 상태 요약 문서 | 2024-09-07 최신 | ✅ 운영 요약 |
+| **[📊 실제 시스템 아키텍처 v5.70.11](docs/architecture/actual-system-architecture-v5.70.11.md)** | 현재 운영 중인 실제 시스템 완전 분석 | 2025-09-07 작성 | ✅ **실제 구현** |
+| **[📊 시스템 아키텍처](docs/system-architecture.md)** | 현재 운영 상태 요약 문서 | 2025-09-07 최신 | ✅ 운영 요약 |
 
 ### 🔌 **MCP 통합 기록 (실용 문서)**
 
 | 문서 | 설명 | 상태 | 특징 |
 |------|------|------|------|
-| **[🔌 MCP 통합 가이드](docs/mcp/mcp-integration-summary.md)** | 8개 MCP 서버 통합 과정 및 현재 운영 상태 | 2024-09-07 최신 | ✅ **실제 활용** |
+| **[🔌 MCP 통합 가이드](docs/mcp/mcp-integration-summary.md)** | 8개 MCP 서버 통합 과정 및 현재 운영 상태 | 2025-09-07 최신 | ✅ **실제 활용** |
 
 ### 🔄 **아키텍처 진화: 설계도 vs 현실**
 
 #### 📊 **핵심 차이점 분석**
 
-| 구분 | 이론적 목표 | 실제 구현 (2024.09) | 평가 |
+| 구분 | 이론적 목표 | 실제 구현 (2025.09) | 평가 |
 |------|-------------|-------------------|------|
 | **코드베이스 규모** | 69,260줄 계획 | 227,590줄 실제 | 🔄 **기능 완성도 우선** |
 | **API 구조** | 12개 통합 계획 | 90개 기능별 구조 | 🎯 **실용성 우선** |
