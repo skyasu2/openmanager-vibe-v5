@@ -471,12 +471,14 @@ function DashboardPageContent() {
         {/* 🎯 AI 에이전트 - 동적 로딩으로 최적화 (Hydration 안전성) */}
         {isMounted && <AnimatedAISidebar isOpen={isAgentOpen} onClose={closeAgent} />}
 
-        {/* 🎯 서버 모달 - 동적 로딩으로 최적화 */}
-        <AnimatedServerModal
-          isOpen={isServerModalOpen}
-          server={selectedServer}
-          onClose={handleServerModalClose}
-        />
+        {/* 🎯 서버 모달 - 동적 로딩으로 최적화 (Hydration 안전성 추가) */}
+        {isMounted && (
+          <AnimatedServerModal
+            isOpen={isServerModalOpen}
+            server={selectedServer}
+            onClose={handleServerModalClose}
+          />
+        )}
 
         {/* 🔒 자동 로그아웃 경고 모달 - 베르셀 사용량 최적화 */}
         <AutoLogoutWarning
