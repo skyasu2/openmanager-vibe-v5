@@ -270,70 +270,55 @@ Task external-ai-orchestrator "full verification"
 
 ## 🤖 서브에이전트 최적화 전략
 
-**17개 핵심 에이전트 완전 구축** - AI 교차 검증 시스템 완성 + 100% 가동률 달성 + MCP 활용률 90% 달성
+**12개 핵심 에이전트 최적화 완료** - AI 교차 검증 시스템 완성 + 실제 구현 95%+ 일치
 
-### 🎯 핵심 에이전트 구성 (22개)
+### 🎯 핵심 에이전트 구성 (12개)
 
 #### **1. 메인 조정자** (1개)
 
 - **central-supervisor**: 복잡한 작업 분해 및 서브에이전트 오케스트레이션 [MCP 강화]
 
-#### **2. AI 교차 검증 시스템** (6개)
+#### **2. AI 교차 검증 시스템** (3개)
 
-- **verification-specialist**: AI 교차 검증 메인 진입점 [MCP: filesystem, github, serena]
-- **ai-verification-coordinator**: 3단계 레벨 기반 검증 조정자 [MCP: thinking, memory]  
-- **external-ai-orchestrator**: 외부 AI 오케스트레이션 [MCP: thinking, context7]
-- **codex-wrapper**: 종합 코드 검토 전문가 (ChatGPT) [MCP: github, serena]
-- **gemini-wrapper**: 종합 코드 검토 전문가 (Google AI) [MCP: tavily, context7]
-- **qwen-wrapper**: 종합 코드 검토 전문가 (Qwen AI) [MCP: thinking, filesystem]
+- **verification-specialist**: AI 교차 검증 메인 진입점 [MCP: serena, memory]
+- **ai-verification-coordinator**: 3단계 레벨 기반 검증 조정자 [MCP: sequential-thinking, memory]  
+- **external-ai-orchestrator**: 외부 AI 오케스트레이션 [MCP: sequential-thinking, context7]
 
 #### **3. 개발 환경 & 구조** (2개)
 
-- **dev-environment-manager**: WSL 최적화, Node.js 버전 관리 [MCP: time, filesystem]
+- **dev-environment-manager**: WSL 최적화, Node.js 버전 관리 [MCP: time]
 - **structure-refactor-specialist**: 프로젝트 구조 정리 [MCP: serena 심볼 조작]
 
-#### **4. 백엔드 & 인프라** (4개)
+#### **4. 백엔드 & 인프라** (2개)
 
-- **gcp-cloud-functions-specialist**: GCP Cloud Functions 전문가. 서버리스 함수 배포, 최적화, 무료 티어 관리 [MCP: 5개 GCP 도구 완전 활용]
-- **database-administrator**: Supabase PostgreSQL 전문 [MCP: 7개 Supabase 도구]
-- **vercel-platform-specialist**: Vercel 플랫폼 최적화 [MCP: filesystem, github]
-- **mcp-server-administrator**: 8개 MCP 서버 관리 [MCP: 모든 서버 관리] (토큰 최적화)
+- **database-administrator**: Supabase PostgreSQL 전문 [MCP: supabase 도구]
+- **vercel-platform-specialist**: Vercel 플랫폼 최적화 [기본 도구 활용]
 
-#### **5. 코드 품질 & 보안** (4개)
+#### **5. 코드 품질 & 보안** (3개)
 
-- **code-review-specialist**: 통합 코드 품질 검토 [MCP: serena, github]
-- **debugger-specialist**: 버그 해결 및 근본 분석 [MCP: serena, gcp 로그]
-- **security-auditor**: 보안 감사 및 취약점 스캔 [MCP: github, supabase]
-- **quality-control-specialist**: 프로젝트 규칙 감시 [MCP: filesystem, memory]
+- **code-review-specialist**: 통합 코드 품질 검토 [MCP: serena]
+- **debugger-specialist**: 버그 해결 및 근본 분석 [MCP: serena]
+- **security-auditor**: 보안 감사 및 취약점 스캔 [MCP: supabase]
 
-#### **6. 테스트 & UX** (2개)
+#### **6. 테스트 & 문서화** (2개)
 
 - **test-automation-specialist**: 테스트 자동화 [MCP: playwright 전체 도구]
-- **ux-performance-specialist**: UX/성능 최적화 [MCP: playwright, tavily]
+- **documentation-manager**: 문서 관리 [MCP: context7, shadcn-ui]
 
-#### **7. 문서화 & Git** (2개)
+### ✅ 주요 개선사항 (2025-01-09)
 
-- **documentation-manager**: 문서 관리 [MCP: context7, filesystem tree]
-- **git-cicd-specialist**: Git/CI/CD 관리 [MCP: github PR/commit 도구]
-
-#### **8. AI 시스템 전문** (1개)
-
-- **ai-systems-specialist**: AI 시스템 최적화 [MCP: thinking, context7, tavily]
-
-### ✅ 주요 개선사항
-
-#### 🔄 AI 교차 검증 시스템 완성
+#### 🎯 서브에이전트 최적화 완료
 ```
-✅ verification-specialist 복원: AI 교차 검증 메인 진입점
-✅ ai-verification-coordinator 복원: 3단계 레벨 기반 조정자
-✅ codex/gemini/qwen-wrapper 복원: 개별 전문 AI CLI 래퍼
-✅ unified-ai-wrapper 아카이브: 개별 방식이 더 효과적
+22개 → 12개 핵심 에이전트로 축소
+실제 구현과 95%+ 일치도 달성
+MCP 참조 현실화 (8개 실제 서버만)
 ```
 
-#### 📈 MCP 활용률 극대화
+#### 📈 MCP 통합 현황
 ```
-이전: 80% (18개 에이전트 MCP 사용)
-현재: 90%+ (22개 모든 에이전트가 MCP 도구 적극 활용)
+활성 MCP 서버: 8개 (memory, supabase, playwright, time, context7, serena, sequential-thinking, shadcn-ui)
+제거된 참조: filesystem, tavily, gcp, github (기본 도구로 대체)
+MCP 활용률: 12개 에이전트 모두 실제 서버 활용
 ```
 
 #### 🚀 교차 검증 시스템 특징
@@ -342,13 +327,16 @@ Task external-ai-orchestrator "full verification"
 - **의사결정 시스템**: 10점 만점 평가 후 자동 승인/거절/조건부승인
 - **보안 강화 모드**: 중요 파일 자동 Level 3 검증
 
-### 📁 아카이브된 에이전트 (4개)
+### 📁 아카이브된 에이전트 (10개)
 
 ```
-📁 unified-ai-wrapper (개별 AI 래퍼가 더 효과적)
-📁 ai-verification-system-design (설계 완료로 불필요)
-📁 기타 구식 설계 파일들
+📁 AI CLI 래퍼: codex/gemini/qwen-wrapper (개별 CLI 직접 사용)
+📁 존재하지 않음: mcp-server-administrator, quality-control-specialist, git-cicd-specialist
+📁 기능 중복: ai-systems-specialist, ux-performance-specialist, gcp-cloud-functions-specialist
+📁 MCP 참조 오류: 제거된 서버 참조하는 에이전트들
 ```
+
+→ **[아카이브 상세](docs/archive/sub-agents/README.md)**
 
 ### 🚀 자동 트리거 조건
 
@@ -379,17 +367,17 @@ auth|payment|api_key → auto_trigger("security-auditor")
 # DB 성능 이슈 → database-administrator
 query_time > 2s → auto_trigger("database-administrator")
 
-# Git 문제 → git-cicd-specialist
-git_push_failed → auto_trigger("git-cicd-specialist")
+# 문서 작업 → documentation-manager
+docs_update → auto_trigger("documentation-manager")
 ```
 
 ### 💡 활용 전략
 
 1. **복잡한 작업**: central-supervisor로 시작 → 전문 에이전트 분배
 2. **AI 교차 검증**: 3단계 복잡도 기반 자동 검증
-3. **병렬 개발**: AI 협업 3종 세트 동시 활용  
+3. **병렬 개발**: AI CLI 도구 동시 활용 (claude, gemini, qwen, codex)
 4. **자동화**: hooks 트리거로 즉시 전문가 투입
-5. **의사결정**: 22개 에이전트 체계적 역할 분담
+5. **의사결정**: 12개 에이전트 체계적 역할 분담
 
 ## 📊 Claude Code Statusline
 
