@@ -155,94 +155,37 @@ export function useSession(): UseSessionReturn {
 
 /**
  * NextAuth의 signOut을 대체하는 Supabase 기반 함수
- * 게스트 세션도 함께 정리, GitHub OAuth 토큰 완전 무효화
+ * 초기 성공 버전으로 단순화 - 직접적인 Supabase 호출
  */
 export async function signOut(options?: { callbackUrl?: string }) {
   try {
-    // 현재 세션 정보 확인
-    const { data: { session } } = await supabase.auth.getSession();
-    const isGitHubUser = session?.user?.app_metadata?.provider === 'github';
-
-    console.log('🚪 로그아웃 시작:', {
-      provider: session?.user?.app_metadata?.provider,
-      isGitHub: isGitHubUser,
-    });
-
-    // Supabase 세션 종료
+    console.log('🚪 Supabase 로그아웃 시작');
+    
+    // Supabase 세션 종료 (핵심 동작)
     await supabase.auth.signOut();
 
-    // 🍪 게스트 세션 정리 (localStorage + 쿠키) - Vercel Edge Runtime 안전성 강화
+    // AuthStateManager를 통한 통합 세션 정리
     if (typeof window !== 'undefined') {
       try {
-        // 새 키 체계 정리
-        localStorage.removeItem('guest_session_id');
-        localStorage.removeItem('guest_auth_type');
-        localStorage.removeItem('guest_user');
-        
-        // 레거시 키 정리 (하위 호환성)
-        localStorage.removeItem('auth_session_id');
-        localStorage.removeItem('auth_type');
-        localStorage.removeItem('auth_user');
-        localStorage.removeItem('admin_mode');
-        
-        // 🎯 세션 스토리지도 정리
-        sessionStorage.removeItem('auth_redirect_to');
+        const { clearAuthData } = await import('@/lib/auth-state-manager');
+        await clearAuthData(); // 모든 인증 데이터 정리
+        console.log('✅ AuthStateManager를 통한 세션 정리 완료');
       } catch (error) {
-        console.warn('localStorage 정리 오류 (무시됨):', error);
-      }
-
-      // 모든 인증 관련 쿠키 정리 (새 키 체계 + 레거시)
-      const cookiesToClear = [
-        // 새 키 체계
-        'guest_session_id',
-        'guest_auth_type',
-        // 레거시 키
-        'auth_type',
-        'session_id',
-        // Supabase 키
-        'sb-access-token', 
-        'sb-refresh-token'
-      ];
-      
-      cookiesToClear.forEach(cookieName => {
-        document.cookie = `${cookieName}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
-        // 도메인별로도 정리 (서브도메인 포함)
-        document.cookie = `${cookieName}=; path=/; domain=${window.location.hostname}; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
-      });
-
-      // 🚨 GitHub OAuth 토큰 완전 무효화
-      if (isGitHubUser && session?.access_token) {
-        console.log('🔐 GitHub OAuth 토큰 무효화 시작');
+        console.warn('⚠️ AuthStateManager 정리 실패 (계속 진행):', error);
         
-        try {
-          // GitHub OAuth 앱의 토큰을 서버측에서 취소하도록 API 호출
-          const response = await fetch('/api/auth/revoke-github-token', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              access_token: session.access_token,
-            }),
-          });
-
-          if (response.ok) {
-            console.log('✅ GitHub OAuth 토큰 무효화 성공');
-          } else {
-            console.warn('⚠️ GitHub OAuth 토큰 무효화 실패 (앱에서는 정상 로그아웃)');
-          }
-        } catch (error) {
-          console.warn('⚠️ GitHub OAuth 토큰 무효화 오류 (앱에서는 정상 로그아웃):', error);
-        }
+        // Fallback: 기본 localStorage 정리
+        ['auth_session_id', 'auth_type', 'auth_user', 'guest_session_id', 'guest_auth_type', 'guest_user'].forEach(key => {
+          localStorage.removeItem(key);
+        });
       }
     }
 
-    // 콜백 URL이 제공되면 해당 URL로, 아니면 홈으로 리다이렉트
-    if (typeof window !== 'undefined') {
-      window.location.href = options?.callbackUrl || '/';
-    }
-    
     console.log('✅ 로그아웃 완료');
+    
+    // 페이지 이동
+    if (typeof window !== 'undefined') {
+      window.location.href = options?.callbackUrl || '/login';
+    }
   } catch (error) {
     console.error('❌ 로그아웃 오류:', error);
     // 실패해도 강제로 로그인 페이지로 이동
