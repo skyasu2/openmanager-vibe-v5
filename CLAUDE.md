@@ -68,11 +68,11 @@ claude --version     # v1.0.100
 
 | 도구                  | 버전    | 요금제              | 역할 구분                   | WSL 실행                   | Windows 네이티브           |
 | --------------------- | ------- | ------------------- | --------------------------- | -------------------------- | -------------------------- |
-| **Claude Code**       | v1.0.107 | Max ($200/월) | 🏆 **메인 개발 환경**       | WSL 직접 실행 | ✅ 완벽 지원                |
+| **Claude Code**       | v1.0.108 | Max ($200/월) | 🏆 **메인 개발 환경**       | WSL 직접 실행 | ✅ 완벽 지원                |
 | **OpenAI CLI (Codex)** | v0.29.0 | Plus ($20/월)       | 🤝 **계정 로그인 전용** ⚠️ | codex exec (WSL)  | ✅ **API 사용 금지**           |
-| **Google Gemini CLI** | v0.2.1  | 무료 (1K/day 한도)   | 👨‍💻 **계정 로그인 전용** ⚠️ | gemini (WSL)           | ✅ 무료 한도 준수                |
-| **Qwen Code**         | v0.0.9  | 무료 (OAuth 2K/day)   | 🔷 **계정 인증 전용** ⚠️ | qwen (WSL)             | ✅ OAuth 전용                |
-| **ccusage**           | v16.2.0 | 무료                | 📊 **Claude 사용량 모니터링** | ccusage daily              | ✅ 완벽 지원                |
+| **Google Gemini CLI** | v0.3.4  | 무료 (1K/day 한도)   | 👨‍💻 **계정 로그인 전용** ⚠️ | gemini (WSL)           | ✅ 무료 한도 준수                |
+| **Qwen Code**         | v0.0.10  | 무료 (OAuth 2K/day)   | 🔷 **계정 인증 전용** ⚠️ | qwen (WSL)             | ✅ OAuth 전용                |
+| **ccusage**           | v16.2.3 | 무료                | 📊 **Claude 사용량 모니터링** | ccusage daily              | ✅ 완벽 지원                |
 
 > ✅ **2025년 해결완료**: **Codex CLI WSL 네트워크 문제 완전 해결**됨. DNS 설정 수정으로 `codex exec` 명령어 정상 작동. ChatGPT Plus 계정으로 GPT-5 모델 추가 과금 없이 사용 가능.
 
@@ -86,23 +86,20 @@ qwen --help
 codex exec "명령어"
 ```
 
-### WSL 내부에서 직접 실행
+##### WSL 내부에서 직접 실행
 
 ```bash
-
 # WSL 접속
-
 wsl
 cd /mnt/d/cursor/openmanager-vibe-v5
 
-# AI 도구들 직접 실행
-
-claude /status
-codex exec "코드를 최적화해주세요" # ✅ GPT-5 정상 작동
-gemini -p "이 함수를 설명해주세요"
-qwen -p "이 알고리즘 최적화 분석해줘"
-ccusage daily # Claude 사용량 확인
-`
+# AI 도구들 직접 실행 (최신 버전)
+claude --version     # v1.0.108 ✅ 업데이트 완료
+gemini --version     # v0.3.4 ✅ 업데이트 완료  
+qwen --version       # v0.0.10 ✅ 최신 버전
+codex --version      # v0.29.0 ✅ 최신 버전
+ccusage --version    # v16.2.3 ✅ 최신 버전
+```
 
 ## 🎯 멀티 AI 전략적 활용 방안
 
