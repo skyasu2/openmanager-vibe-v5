@@ -22,6 +22,7 @@ import type { Server } from '@/types/server';
 import { AlertTriangle } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { Suspense, useCallback, useEffect, useState, Component, type ReactNode, type ErrorInfo } from 'react';
+import { useRouter } from 'next/navigation';
 import debug from '@/utils/debug';
 
 // 🎯 타입 변환 헬퍼 함수 - 재사용 가능하도록 분리
@@ -237,10 +238,42 @@ function DashboardPageContent() {
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const [_showSystemWarning, setShowSystemWarning] = useState(false);
   const isResizing = false;
+  
+  // 🔒 게스트 사용자 접근 제한
+  const router = useRouter();
+  const [authState, setAuthState] = useState<{ type: string; isAuthenticated: boolean } | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // 🔒 인증 상태 확인 - 게스트 사용자 차단
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { authStateManager } = await import('@/lib/auth-state-manager');
+        const state = await authStateManager.getAuthState();
+        setAuthState(state);
+        
+        // 게스트 사용자인 경우 로그인 페이지로 리다이렉트
+        if (state.type === 'guest' || state.type === 'unknown') {
+          console.log('🚫 게스트 사용자 대시보드 접근 차단 - 로그인 페이지로 이동');
+          router.push('/login?message=dashboard_access_required');
+          return;
+        }
+        
+        setAuthLoading(false);
+      } catch (error) {
+        console.error('❌ 인증 상태 확인 실패:', error);
+        router.push('/login?message=auth_error');
+      }
+    };
+
+    if (isMounted) {
+      checkAuth();
+    }
+  }, [isMounted, router]);
 
   // 🎯 서버 통계 상태 관리 (상단 통계 카드용)
   const [serverStats, setServerStats] = useState({
@@ -363,8 +396,14 @@ function DashboardPageContent() {
     : '00:00';
 
   const toggleAgent = useCallback(() => {
+    // 🔒 게스트 사용자는 AI 기능 사용 불가
+    if (!authState || authState.type !== 'github') {
+      console.log('🚫 게스트 사용자 AI 사이드바 접근 차단');
+      // 토스트 메시지로 안내 (선택사항)
+      return;
+    }
     setIsAgentOpen((prev) => !prev);
-  }, []);
+  }, [authState]);
 
   const closeAgent = useCallback(() => {
     setIsAgentOpen(false);
@@ -433,6 +472,45 @@ function DashboardPageContent() {
     onResumeSystem: () => Promise.resolve(),
   };
 
+  // 🔒 게스트 사용자 접근 차단 - 로딩 중이거나 인증되지 않은 경우
+  if (!isMounted || authLoading || !authState || authState.type === 'guest' || authState.type === 'unknown') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="mb-6">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+              <i className="fas fa-shield-alt text-white text-2xl"></i>
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">접근 권한 필요</h2>
+            <p className="text-gray-300 mb-6">
+              대시보드는 GitHub 인증된 사용자만 접근할 수 있습니다.
+            </p>
+          </div>
+          
+          <div className="space-y-3">
+            <button
+              onClick={() => router.push('/login')}
+              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-200"
+            >
+              GitHub 로그인
+            </button>
+            
+            <button
+              onClick={() => router.push('/main')}
+              className="w-full bg-gray-700 hover:bg-gray-600 text-gray-200 py-3 px-6 rounded-lg font-medium transition-all duration-200"
+            >
+              메인 페이지로 돌아가기
+            </button>
+          </div>
+          
+          <p className="text-xs text-gray-500 mt-4">
+            게스트 모드에서는 읽기 전용 기능만 이용 가능합니다
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
@@ -468,8 +546,14 @@ function DashboardPageContent() {
           </Suspense>
         </div>
 
-        {/* 🎯 AI 에이전트 - 동적 로딩으로 최적화 (Hydration 안전성) */}
-        {isMounted && <AnimatedAISidebar isOpen={isAgentOpen} onClose={closeAgent} />}
+        {/* 🎯 AI 에이전트 - 동적 로딩으로 최적화 (Hydration 안전성) - GitHub 사용자만 접근 가능 */}
+        {isMounted && authState && authState.type === 'github' && (
+          <AnimatedAISidebar 
+            isOpen={isAgentOpen} 
+            onClose={closeAgent}
+            userType={authState.type}
+          />
+        )}
 
         {/* 🎯 서버 모달 - 동적 로딩으로 최적화 (Hydration 안전성 추가) */}
         {isMounted && (
