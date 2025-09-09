@@ -28,6 +28,9 @@ export function useProfileAuth(): ProfileAuthHook {
         
         // 🚀 AuthStateManager를 통한 통합 인증 상태 확인 - 정확한 타입 감지
         const { authStateManager } = await import('@/lib/auth-state-manager');
+        
+        // 🔄 캐시 무효화 후 최신 상태 확인 (GitHub 로그인 후 즉시 반영)
+        authStateManager.invalidateCache();
         const authState = await authStateManager.getAuthState();
 
         // AuthStateManager의 결과를 직접 사용 (더 정확함)
