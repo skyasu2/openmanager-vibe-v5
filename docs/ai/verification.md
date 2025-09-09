@@ -2,9 +2,17 @@
 id: ai-verification
 title: "AI Cross Verification"
 keywords: ["ai", "verification", "claude", "gemini", "codex", "qwen"]
-priority: high
+priority: critical
 ai_optimized: true
 updated: "2025-09-09"
+cache_hint: "frequently_accessed"
+load_priority: "critical"
+token_estimate: 650
+read_time: "3분"
+related_weight: 0.95
+dependencies: ["workflow.md", "verification-history.md"]
+cache_ttl: 300
+preload: true
 ---
 
 # 🤖 AI Cross Verification

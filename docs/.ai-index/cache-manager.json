@@ -1,0 +1,114 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2025-09-09T12:00:00Z",
+  "cache_management": {
+    "auto_invalidation": {
+      "enabled": true,
+      "triggers": [
+        {
+          "type": "file_modified",
+          "pattern": "docs/**/*.md",
+          "action": "invalidate_related_cache",
+          "delay": 60
+        },
+        {
+          "type": "git_commit",
+          "pattern": "docs/",
+          "action": "regenerate_indexes",
+          "delay": 300
+        },
+        {
+          "type": "timestamp_check",
+          "interval": 3600,
+          "action": "validate_freshness"
+        }
+      ]
+    },
+    "cache_hierarchy": {
+      "L1": {
+        "name": "Hot Cache",
+        "ttl": 300,
+        "size": "5MB",
+        "files": ["system.md", "verification.md", "architecture.md", "api.md"]
+      },
+      "L2": {
+        "name": "Warm Cache", 
+        "ttl": 1800,
+        "size": "15MB",
+        "files": ["database.md", "security.md", "monitoring.md", "workflow.md"]
+      },
+      "L3": {
+        "name": "Cold Cache",
+        "ttl": 7200,
+        "size": "30MB", 
+        "files": ["setup.md", "tools.md", "integration.md", "advanced.md"]
+      }
+    },
+    "dependency_tracking": {
+      "system.md": {
+        "dependencies": ["architecture.md", "api.md", "database.md"],
+        "dependents": ["verification.md", "workflow.md"],
+        "cache_weight": 1.0
+      },
+      "verification.md": {
+        "dependencies": ["system.md", "workflow.md"],
+        "dependents": ["verification-history.md"],
+        "cache_weight": 0.9
+      },
+      "api.md": {
+        "dependencies": ["system.md", "security.md"],
+        "dependents": ["database.md", "deployment.md"],
+        "cache_weight": 0.8
+      },
+      "database.md": {
+        "dependencies": ["api.md", "security.md"],
+        "dependents": ["consistency.md"],
+        "cache_weight": 0.8
+      }
+    },
+    "performance_monitoring": {
+      "metrics": {
+        "cache_hit_ratio": {
+          "target": 95,
+          "current": 0,
+          "measurement": "percentage"
+        },
+        "average_load_time": {
+          "target": 1.0,
+          "current": 0,
+          "measurement": "seconds"
+        },
+        "memory_usage": {
+          "target": 50,
+          "current": 0,
+          "measurement": "MB"
+        },
+        "token_efficiency": {
+          "target": 90,
+          "current": 0,
+          "measurement": "percentage"
+        }
+      },
+      "optimization_rules": [
+        "캐시 히트율 90% 미만 시 preload 목록 확장",
+        "로드 타임 2초 초과 시 캐시 계층 재조정",
+        "메모리 사용량 80MB 초과 시 L3 캐시 정리",
+        "토큰 효율성 80% 미만 시 문서 분할 검토"
+      ]
+    }
+  },
+  "git_hooks": {
+    "pre_commit": {
+      "script": "scripts/cache-validation.sh",
+      "checks": ["문서 메타데이터 검증", "캐시 일관성 확인"]
+    },
+    "post_commit": {
+      "script": "scripts/cache-regeneration.sh", 
+      "actions": ["변경된 문서 캐시 무효화", "관련 인덱스 재생성"]
+    },
+    "pre_push": {
+      "script": "scripts/cache-optimization.sh",
+      "actions": ["캐시 성능 분석", "최적화 제안 생성"]
+    }
+  }
+}

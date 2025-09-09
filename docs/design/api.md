@@ -5,7 +5,15 @@ title: "API Architecture Design"
 version: "v5.77"
 updated: "2025-09-09"
 type: "api-design"
-ai_priority: "high"
+ai_priority: "critical"
+cache_hint: "frequently_accessed"
+load_priority: "critical"
+token_estimate: 690
+read_time: "3분"
+related_weight: 0.9
+dependencies: ["security.md", "database.md"]
+cache_ttl: 300
+preload: true
 ```
 
 ## 🔌 API 구조 (76개 엔드포인트)

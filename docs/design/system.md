@@ -5,7 +5,15 @@ title: "OpenManager VIBE System Architecture"
 version: "v5.77"
 updated: "2025-09-09"
 type: "core-system"
-ai_priority: "high"
+ai_priority: "critical"
+cache_hint: "frequently_accessed"
+load_priority: "critical"
+token_estimate: 850
+read_time: "4분"
+related_weight: 1.0
+dependencies: ["architecture.md", "api.md"]
+cache_ttl: 300
+preload: true
 ```
 
 ## 🏗️ 현재 운영 아키텍처

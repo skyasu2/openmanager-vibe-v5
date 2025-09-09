@@ -4,6 +4,8 @@ title: API Routes Reference
 keywords: [api, routes, endpoints, rest]
 priority: high
 ai_optimized: true
+related_docs: ["../README.md", "../db/schema.md", "../design/api.md", "validation.md", "../testing/README.md"]
+updated: "2025-09-09"
 ---
 
 # API Routes Reference

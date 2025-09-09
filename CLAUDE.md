@@ -56,7 +56,7 @@ claude --version     # 버전 확인
 
 ### 📄 docs/claude/sub-agents-complete-guide.md (Claude 서브에이전트 완전 가이드)
 - **용도**: Claude Code 서브에이전트 실전 활용 가이드
-- **내용**: 22개 Claude 서브에이전트 (central-supervisor, verification-specialist 등)
+- **내용**: 17개 Claude 서브에이전트 (central-supervisor, verification-specialist 등)
 - **대상**: Claude Code 사용자
 - **위치**: docs/claude/ 디렉토리 (체계적 관리)
 
@@ -619,7 +619,7 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 ### 🗑️ 최적화로 제거된 MCP 서버 (3개)
 
 **제거된 서버**: github (기본 git 대체), gcp (기본 bash 대체), tavily (웹 검색 불필요)
-**토큰 절약 효과**: 27% 감소, 서브에이전트 22개 모두 기본 도구로 완전 대체
+**토큰 절약 효과**: 27% 감소, 서브에이전트 17개 모두 기본 도구로 완전 대체
 
 ### 🛠️ 파일 작업 (filesystem MCP 제거됨)
 
@@ -633,7 +633,7 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 
 ### 📖 상세 문서
 
-→ **[MCP 종합 가이드](docs/MCP-GUIDE.md)** | **[설치 가이드](docs/mcp/mcp-complete-installation-guide-2025.md)** | **[도구 레퍼런스](docs/mcp/mcp-tools-reference.md)**
+→ **[MCP 종합 가이드](docs/MCP-GUIDE.md)** | **[MCP 실전 가이드](docs/mcp/advanced.md)** | **[도구 레퍼런스](docs/mcp/mcp-tools-reference.md)**
 
 ---
 
@@ -700,7 +700,7 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 
 **🚀 핵심 가이드**: [빠른 시작](docs/QUICK-START.md) • [시스템 아키텍처](docs/system-architecture.md) • [AI 시스템](docs/AI-SYSTEMS.md) • [문제 해결](docs/TROUBLESHOOTING.md)
 
-**⚙️ 전문 도구**: MCP 8개 서버 • AI CLI 4개 • 서브에이전트 22개 • 성능 최적화 • 보안 • 배포  
+**⚙️ 전문 도구**: MCP 8개 서버 • AI CLI 4개 • 서브에이전트 17개 • 성능 최적화 • 보안 • 배포  
 
 → **[📚 전체 문서 인덱스](docs/README.md)** | **[📋 기술 문서](docs/technical/DOCUMENT-INDEX.md)**
 

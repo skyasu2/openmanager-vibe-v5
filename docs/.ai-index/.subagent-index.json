@@ -1,0 +1,65 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2025-09-09T12:00:00Z",
+  "subagent_mappings": {
+    "verification-specialist": {
+      "primary_docs": ["verification.md", "verification-history.md"],
+      "secondary_docs": ["workflow.md", "system.md"],
+      "token_budget": 1500,
+      "specialization": "코드 검증 및 품질 보장"
+    },
+    "central-supervisor": {
+      "primary_docs": ["system.md", "architecture.md", "workflow.md"],
+      "secondary_docs": ["sub-agents.md", "agents-mcp.md"],
+      "token_budget": 2500,
+      "specialization": "복잡한 작업 분해 및 오케스트레이션"
+    },
+    "database-administrator": {
+      "primary_docs": ["database.md", "consistency.md"],
+      "secondary_docs": ["security.md", "api.md"],
+      "token_budget": 1800,
+      "specialization": "데이터베이스 설계 및 최적화"
+    },
+    "security-auditor": {
+      "primary_docs": ["security.md", "database.md"],
+      "secondary_docs": ["api.md", "deployment.md"],
+      "token_budget": 1600,
+      "specialization": "보안 검토 및 취약점 분석"
+    },
+    "structure-refactor-specialist": {
+      "primary_docs": ["architecture.md", "system.md"],
+      "secondary_docs": ["data-flow.md", "consistency.md"],
+      "token_budget": 2000,
+      "specialization": "아키텍처 리팩토링"
+    },
+    "documentation-manager": {
+      "primary_docs": ["README.md"],
+      "secondary_docs": ["system.md", "api.md"],
+      "token_budget": 1200,
+      "specialization": "AI 친화적 문서 관리"
+    }
+  },
+  "agent_workflows": {
+    "verification_chain": {
+      "agents": ["verification-specialist", "ai-verification-coordinator", "external-ai-orchestrator"],
+      "docs_flow": ["verification.md", "workflow.md", "verification-history.md"],
+      "estimated_tokens": 2200
+    },
+    "architecture_review": {
+      "agents": ["central-supervisor", "structure-refactor-specialist"],
+      "docs_flow": ["system.md", "architecture.md", "data-flow.md"],
+      "estimated_tokens": 3000
+    },
+    "security_audit": {
+      "agents": ["security-auditor", "database-administrator"],
+      "docs_flow": ["security.md", "database.md", "api.md"],
+      "estimated_tokens": 2400
+    }
+  },
+  "optimization_rules": {
+    "doc_preloading": "에이전트 특화 문서 우선 캐시",
+    "context_sharing": "관련 에이전트 간 컨텍스트 공유",
+    "token_efficiency": "에이전트별 토큰 예산 관리",
+    "cascade_loading": "주 → 보조 문서 순차 로딩"
+  }
+}

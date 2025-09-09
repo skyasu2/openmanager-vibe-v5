@@ -4,6 +4,7 @@ title: "Performance Optimization Guide"
 keywords: ["performance", "optimization", "web-vitals", "bundle", "cache"]
 priority: high
 ai_optimized: true
+related_docs: ["../README.md", "../guides/wsl.md", "../simulation/README.md", "bundle.md", "../testing/README.md"]
 updated: "2025-09-09"
 ---
 

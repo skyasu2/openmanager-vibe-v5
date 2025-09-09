@@ -1,0 +1,35 @@
+{
+  "last_updated": "2025-09-09T12:00:00Z",
+  "directory": "ai",
+  "total_docs": 6,
+  "high_priority": ["verification.md", "workflow.md", "ai-system.md"],
+  "medium_priority": ["agents-mcp.md", "cli-strategy.md"],
+  "low_priority": ["verification-history.md"],
+  "quick_refs": {
+    "verification": "verification.md",
+    "workflow": "workflow.md", 
+    "ai-system": "ai-system.md",
+    "agents": "agents-mcp.md",
+    "cli": "cli-strategy.md",
+    "history": "verification-history.md"
+  },
+  "common_tasks": [
+    "코드 검증 → verification.md → workflow.md",
+    "AI 워크플로우 → workflow.md → agents-mcp.md", 
+    "서브에이전트 → agents-mcp.md → verification.md",
+    "CLI 도구 → cli-strategy.md → agents-mcp.md"
+  ],
+  "token_estimates": {
+    "verification.md": 650,
+    "workflow.md": 580,
+    "ai-system.md": 720,
+    "agents-mcp.md": 480,
+    "cli-strategy.md": 420,
+    "verification-history.md": 360
+  },
+  "cache_hints": {
+    "preload": ["verification.md", "workflow.md"],
+    "lazy_load": ["verification-history.md"],
+    "frequently_accessed": ["verification.md", "workflow.md", "ai-system.md"]
+  }
+}

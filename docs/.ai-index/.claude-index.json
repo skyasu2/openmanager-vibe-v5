@@ -1,0 +1,55 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2025-09-09T12:00:00Z",
+  "claude_optimized": {
+    "primary_docs": [
+      {
+        "file": "system.md",
+        "load_priority": 1,
+        "claude_score": 9.8,
+        "optimization": "코드 분석 및 아키텍처 리뷰에 최적화"
+      },
+      {
+        "file": "verification.md", 
+        "load_priority": 2,
+        "claude_score": 9.6,
+        "optimization": "AI 교차검증 프로세스 - Claude의 핵심 역할"
+      },
+      {
+        "file": "api.md",
+        "load_priority": 3,
+        "claude_score": 9.4,
+        "optimization": "API 설계 리뷰 및 최적화 제안"
+      }
+    ],
+    "context_windows": {
+      "small_context": {
+        "files": ["system.md", "api.md"],
+        "token_limit": 2000,
+        "use_case": "빠른 참조 및 간단한 질문"
+      },
+      "medium_context": {
+        "files": ["system.md", "verification.md", "architecture.md", "api.md"],
+        "token_limit": 8000,
+        "use_case": "일반적인 개발 작업"
+      },
+      "large_context": {
+        "files": "*",
+        "token_limit": 20000,
+        "use_case": "복잡한 아키텍처 분석 및 전체 시스템 리뷰"
+      }
+    },
+    "claude_specialties": {
+      "code_review": ["verification.md", "system.md", "architecture.md"],
+      "api_design": ["api.md", "security.md", "database.md"],
+      "architecture_analysis": ["architecture.md", "system.md", "data-flow.md"],
+      "workflow_optimization": ["workflow.md", "verification.md", "sub-agents.md"]
+    },
+    "efficient_patterns": {
+      "incremental_loading": "우선순위 순서로 문서 점진적 로딩",
+      "context_switching": "작업 유형에 따른 최적 문서 조합 선택",
+      "cache_warming": "자주 사용하는 문서 사전 로딩",
+      "token_budgeting": "컨텍스트 윈도우 효율적 관리"
+    }
+  }
+}

@@ -1,12 +1,15 @@
-# AI 친화적 설계도 센터
-
-```yaml
+---
+id: design-index
 title: "AI-Friendly Design Documentation Center"
-version: "v5.77"
+keywords: ["design", "architecture", "system", "database", "security"]
+priority: medium
+ai_optimized: true
+related_docs: ["../README.md", "../guides/architecture.md", "../db/schema.md", "system.md", "api.md"]
 updated: "2025-09-09"
-type: "design-index"
-ai_priority: "critical"
-```
+version: "v5.77"
+---
+
+# 🏗️ AI 친화적 설계도 센터
 
 ## 🎯 설계도 구조 (13개 핵심 문서)
 

@@ -1,0 +1,174 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2025-09-09T12:00:00Z",
+  "workflow_scenarios": {
+    "new-feature-development": {
+      "priority": "critical",
+      "steps": [
+        {
+          "step": 1,
+          "action": "시스템 아키텍처 확인",
+          "files": ["system.md", "architecture.md"],
+          "estimated_tokens": 800,
+          "time_estimate": "2분"
+        },
+        {
+          "step": 2,
+          "action": "API 설계 및 엔드포인트 정의",
+          "files": ["api.md", "security.md"],
+          "estimated_tokens": 600,
+          "time_estimate": "3분"
+        },
+        {
+          "step": 3,
+          "action": "데이터베이스 스키마 설계",
+          "files": ["database.md", "consistency.md"],
+          "estimated_tokens": 500,
+          "time_estimate": "2분"
+        },
+        {
+          "step": 4,
+          "action": "보안 정책 검토",
+          "files": ["security.md", "database.md"],
+          "estimated_tokens": 400,
+          "time_estimate": "2분"
+        }
+      ],
+      "total_tokens": 2300,
+      "total_time": "9분",
+      "frequency": "daily"
+    },
+    "ai-verification-process": {
+      "priority": "critical",
+      "steps": [
+        {
+          "step": 1,
+          "action": "검증 프로세스 이해",
+          "files": ["verification.md", "verification-history.md"],
+          "estimated_tokens": 600,
+          "time_estimate": "2분"
+        },
+        {
+          "step": 2,
+          "action": "워크플로우 실행",
+          "files": ["workflow.md", "agents-mcp.md"],
+          "estimated_tokens": 700,
+          "time_estimate": "3분"
+        },
+        {
+          "step": 3,
+          "action": "AI 시스템 설정",
+          "files": ["ai-system.md", "cli-strategy.md"],
+          "estimated_tokens": 500,
+          "time_estimate": "2분"
+        }
+      ],
+      "total_tokens": 1800,
+      "total_time": "7분",
+      "frequency": "daily"
+    },
+    "mcp-server-setup": {
+      "priority": "high",
+      "steps": [
+        {
+          "step": 1,
+          "action": "MCP 기본 설정",
+          "files": ["mcp.md", "setup.md"],
+          "estimated_tokens": 400,
+          "time_estimate": "2분"
+        },
+        {
+          "step": 2,
+          "action": "서버 구성 및 도구 연결",
+          "files": ["servers.md", "tools.md"],
+          "estimated_tokens": 600,
+          "time_estimate": "3분"
+        },
+        {
+          "step": 3,
+          "action": "고급 통합 및 최적화",
+          "files": ["integration.md", "advanced.md"],
+          "estimated_tokens": 500,
+          "time_estimate": "3분"
+        }
+      ],
+      "total_tokens": 1500,
+      "total_time": "8분",
+      "frequency": "weekly"
+    },
+    "monitoring-debug": {
+      "priority": "high",
+      "steps": [
+        {
+          "step": 1,
+          "action": "모니터링 시스템 확인",
+          "files": ["monitoring.md", "fnv-hash.md"],
+          "estimated_tokens": 500,
+          "time_estimate": "2분"
+        },
+        {
+          "step": 2,
+          "action": "데이터 흐름 분석",
+          "files": ["data-flow.md", "system.md"],
+          "estimated_tokens": 400,
+          "time_estimate": "2분"
+        },
+        {
+          "step": 3,
+          "action": "일관성 검증",
+          "files": ["consistency.md", "verification.md"],
+          "estimated_tokens": 350,
+          "time_estimate": "2분"
+        }
+      ],
+      "total_tokens": 1250,
+      "total_time": "6분",
+      "frequency": "frequent"
+    },
+    "deployment-process": {
+      "priority": "medium",
+      "steps": [
+        {
+          "step": 1,
+          "action": "배포 전략 확인",
+          "files": ["deployment.md", "system.md"],
+          "estimated_tokens": 400,
+          "time_estimate": "2분"
+        },
+        {
+          "step": 2,
+          "action": "보안 체크리스트",
+          "files": ["security.md", "api.md"],
+          "estimated_tokens": 350,
+          "time_estimate": "2분"
+        },
+        {
+          "step": 3,
+          "action": "모니터링 설정",
+          "files": ["monitoring.md", "data-flow.md"],
+          "estimated_tokens": 300,
+          "time_estimate": "2분"
+        }
+      ],
+      "total_tokens": 1050,
+      "total_time": "6분",
+      "frequency": "weekly"
+    }
+  },
+  "common_task_patterns": {
+    "quick_reference": {
+      "architecture": "system.md",
+      "api": "api.md", 
+      "database": "database.md",
+      "ai": "verification.md",
+      "mcp": "mcp.md",
+      "monitoring": "monitoring.md"
+    },
+    "troubleshooting": {
+      "system_issues": ["system.md", "monitoring.md", "consistency.md"],
+      "api_problems": ["api.md", "security.md", "database.md"],
+      "ai_verification": ["verification.md", "workflow.md", "verification-history.md"],
+      "mcp_errors": ["servers.md", "tools.md", "integration.md"]
+    }
+  }
+}

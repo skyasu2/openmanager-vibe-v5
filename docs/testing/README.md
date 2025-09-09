@@ -2,8 +2,9 @@
 id: testing-guide
 title: "Testing System Guide"
 keywords: ["testing", "vitest", "playwright", "e2e", "tdd", "coverage"]
-priority: medium
+priority: high
 ai_optimized: true
+related_docs: ["../README.md", "../ai/workflow.md", "../performance/README.md", "e2e.md", "../ui/components.md"]
 updated: "2025-09-09"
 ---
 
