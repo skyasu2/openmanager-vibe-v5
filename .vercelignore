@@ -74,6 +74,15 @@ node_modules/
 .cache/
 .parcel-cache/
 
+# 📦 통합 아카이브/백업 시스템 (배포 완전 제외)
+archive/
+docs/.backup/
+src/.backup/
+src/app/api/.backup/
+*/.backup/
+*.tar.gz
+archive/*.tar.gz
+
 # 백업 및 임시 파일
 *.backup
 *.backup.*
@@ -90,6 +99,7 @@ config/env-backup*
 docs/
 scripts/
 .github/
+FOLDER-STRUCTURE.md
 
 # MCP 설정 스크립트만 예외 처리
 !scripts/conditional-mcp-setup.mjs

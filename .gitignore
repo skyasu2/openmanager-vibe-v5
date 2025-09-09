@@ -370,6 +370,14 @@ playwright-report/
 .claude/*.log
 .claude/debug-*
 
-# 📦 백업 시스템 (아카이브 분리 운용)
+# 📦 통합 아카이브/백업 시스템 (프로젝트 내부 관리)
+# 아카이브 폴더들 (문서+코드+API)
+archive/
 docs/.backup/
-docs/archive/
+src/.backup/
+src/app/api/.backup/
+*/.backup/
+
+# 압축 파일들 (필요시 생성)
+*.tar.gz
+archive/*.tar.gz
