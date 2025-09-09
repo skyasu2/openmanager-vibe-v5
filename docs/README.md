@@ -11,12 +11,15 @@ ai_optimized: true
 ## 🚀 Quick Navigation
 
 ### 🏆 High Priority (Daily Use)
+- **[AI Tools](ai/README.md)** - 4-AI verification system ⭐ **NEW**
 - **[API Routes](api/routes.md)** - 76 endpoint reference
 - **[System Architecture](guides/architecture.md)** - Current stack overview
 - **[Common Issues](troubleshoot/common.md)** - Debug solutions
 - **[React Hooks](snippets/hooks.md)** - Reusable hooks
 
 ### 📊 Technical Reference
+- **[Testing](testing/README.md)** - 98.2% coverage, Vitest + Playwright ⭐ **NEW**
+- **[Performance](performance/README.md)** - 152ms response, 60% bundle optimization ⭐ **NEW**
 - **[Database Schema](db/schema.md)** - Supabase tables & indexes
 - **[UI Components](ui/components.md)** - shadcn/ui components
 - **[Vercel Deploy](deploy/vercel.md)** - Production deployment
@@ -26,6 +29,9 @@ ai_optimized: true
 
 ```
 docs/
+├── testing/       # Testing guides (2 files) ⭐ NEW
+├── ai/            # AI tools & verification (5 files) ⭐ NEW
+├── performance/   # Optimization guides (3 files) ⭐ NEW
 ├── api/           # API endpoints & schemas (11 files)
 ├── guides/        # Architecture & systems (9 files) 
 ├── db/            # Database & queries (8 files)
@@ -64,6 +70,6 @@ npm run docs:toc
 
 ---
 
-**Total**: 64 AI-optimized documents  
+**Total**: 74 AI-optimized documents  
 **Last Updated**: 2025-09-09  
 **AI Compatibility**: 100% token-optimized

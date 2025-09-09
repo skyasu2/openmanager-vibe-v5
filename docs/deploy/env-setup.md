@@ -17,6 +17,31 @@ ai_optimized: true
 .env.production     # Production environment
 ```
 
+## 🚀 Vercel Production Setup
+
+### Quick Vercel Environment Setup
+
+1. **Vercel Dashboard**: https://vercel.com/dashboard
+2. **Select Project**: `openmanager-vibe-v5`
+3. **Settings** → **Environment Variables**
+4. **Add Variables**: All environments (Production, Preview, Development)
+
+### Critical Production Variables
+
+```bash
+# Supabase (Required for GitHub Auth)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIs...
+
+# Redis Cache (Optional)
+UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
+UPSTASH_REDIS_REST_TOKEN=AY0lASQ...
+
+# Google AI (Optional)
+GOOGLE_AI_API_KEY=AIzaSy...
+```
+
 ## 🔧 Required Variables (.env.local)
 
 ```bash
@@ -131,17 +156,68 @@ const secureMethods = {
 export const freetierLimits = {
   supabase: {
     database: '500MB',
-    requests: '50,000/month',
+    requests: '50,000/month', 
     realtime: '2 concurrent'
   },
   vercel: {
+    bandwidth: '30GB/month',
     memory: '50MB per function',
-    execution: '10s timeout',
-    requests: '100,000/month'
+    execution: '10s timeout'
   },
   upstash: {
     memory: '256MB',
-    commands: '500,000/month'
+    commands: '10,000/day'
   }
 }
+```
+
+## 🔧 Deployment Verification
+
+```bash
+# After Vercel deployment
+# 1. Check console for confirmation
+console.log('🌐 Real Supabase in use')
+
+# 2. Test GitHub login
+# Should redirect to GitHub OAuth
+
+# 3. Monitor free tier usage
+npm run monitor:free-tier
+```
+
+## ⚡ Production Optimizations
+
+```typescript
+// Vercel-specific optimizations
+export const productionConfig = {
+  // Memory management
+  maxMemoryUsage: 40, // MB (80% of 50MB limit)
+  
+  // Function timeout
+  maxExecutionTime: 8000, // ms (80% of 10s limit)
+  
+  // Free tier protection
+  enableQuotaProtection: true,
+  disableBackgroundJobs: true,
+  forceGarbageCollection: true
+}
+```
+
+## 🚨 Troubleshooting
+
+```bash
+# "Mock mode" message appears
+1. Verify environment variables in Vercel dashboard
+2. Redeploy without cache
+3. Check Vercel function logs
+
+# GitHub OAuth fails
+1. Check Supabase Auth providers
+2. Verify redirect URLs
+3. Test environment variables
+
+# Free tier exceeded
+1. Check usage: vercel inspect --scope=bandwidth
+2. Optimize queries and caching
+3. Consider upgrade triggers
 ```
