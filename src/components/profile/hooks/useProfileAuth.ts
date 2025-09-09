@@ -26,30 +26,20 @@ export function useProfileAuth(): ProfileAuthHook {
       try {
         setIsLoading(true);
         
-        // 🚀 Promise.all로 병렬 처리: 250ms → 150ms 성능 개선
-        const [user, isGitHub] = await Promise.all([
-          getCurrentUser(),
-          isGitHubAuthenticated(),
-        ]);
-        const isGuest = isGuestUser(); // 동기 함수이므로 별도 처리
+        // 🚀 AuthStateManager를 통한 통합 인증 상태 확인 - 정확한 타입 감지
+        const { authStateManager } = await import('@/lib/auth-state-manager');
+        const authState = await authStateManager.getAuthState();
 
-        setUserInfo(user);
+        // AuthStateManager의 결과를 직접 사용 (더 정확함)
+        setUserInfo(authState.user);
+        setUserType(authState.type === 'github' ? 'github' : 
+                   authState.type === 'guest' ? 'guest' : 'unknown');
 
-        // 사용자 타입 결정 (user 객체의 provider로 우선 판단)
-        if (user?.provider === 'github' || isGitHub) {
-          setUserType('github');
-        } else if (user?.provider === 'guest' || isGuest) {
-          setUserType('guest');
-        } else {
-          setUserType('unknown');
-        }
-
-        console.log('👤 사용자 정보 로드 (병렬 최적화):', {
-          user,
-          isGitHub,
-          isGuest,
+        console.log('👤 사용자 정보 로드 (AuthStateManager 통합):', {
+          user: authState.user,
+          type: authState.type,
+          isAuthenticated: authState.isAuthenticated,
           sessionStatus: status,
-          loadingTime: '~150ms (40% 개선)',
         });
       } catch (error) {
         console.error('❌ 사용자 정보 로드 실패:', error);

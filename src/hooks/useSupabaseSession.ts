@@ -12,6 +12,7 @@ interface Session {
     email?: string | null;
     name?: string | null;
     image?: string | null;
+    provider?: string | null;
   } | null;
   expires?: string;
 }
@@ -129,6 +130,7 @@ export function useSession(): UseSessionReturn {
           email: user.email,
           name: user.user_metadata?.name || user.email?.split('@')[0] || null,
           image: user.user_metadata?.avatar_url || null,
+          provider: user.app_metadata?.provider || 'unknown',
         },
         expires: new Date(Date.now() + 60 * 60 * 24 * 30 * 1000).toISOString(), // 30일
       }

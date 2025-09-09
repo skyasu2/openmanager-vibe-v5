@@ -53,16 +53,7 @@ export class AuthStateManager {
     }
 
     try {
-      // 1. 게스트 세션 우선 확인 (명시적 로그인 우선)
-      // 게스트로 로그인한 경우 GitHub 세션보다 우선 적용
-      const guestState = await this.getGuestState();
-      if (guestState.isAuthenticated) {
-        this.setCachedState(guestState);
-        console.log('✅ 게스트 세션 확인 (GitHub 세션보다 우선):', { userId: guestState.user?.id });
-        return guestState;
-      }
-
-      // 2. Supabase 세션 확인 (GitHub OAuth) - 게스트 세션이 없을 때만
+      // 1. Supabase 세션 확인 (GitHub OAuth) 우선 - GitHub 로그인 정확한 감지
       const session = await this.getSupabaseSession();
       if (session?.user) {
         const githubUser = this.extractGitHubUser(session);
@@ -74,8 +65,16 @@ export class AuthStateManager {
         };
         
         this.setCachedState(state);
-        console.log('✅ GitHub 세션 확인:', { userId: githubUser.id, name: githubUser.name });
+        console.log('✅ GitHub 세션 확인 (우선순위):', { userId: githubUser.id, name: githubUser.name });
         return state;
+      }
+
+      // 2. 게스트 세션 확인 - GitHub 세션이 없을 때만
+      const guestState = await this.getGuestState();
+      if (guestState.isAuthenticated) {
+        this.setCachedState(guestState);
+        console.log('✅ 게스트 세션 확인 (GitHub 세션 없음):', { userId: guestState.user?.id });
+        return guestState;
       }
 
       // 3. 인증되지 않은 상태
