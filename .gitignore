@@ -369,3 +369,7 @@ playwright-report/
 *debug-hook.log
 .claude/*.log
 .claude/debug-*
+
+# 📦 백업 시스템 (아카이브 분리 운용)
+docs/.backup/
+docs/archive/
