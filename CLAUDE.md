@@ -6,22 +6,22 @@
 
 ## 🎯 프로젝트 개요
 
-**OpenManager VIBE v5.70.11**: AI 기반 실시간 서버 모니터링 플랫폼
+**OpenManager VIBE**: AI 기반 실시간 서버 모니터링 플랫폼
 
-- **아키텍처**: Next.js 15.4.5 + React 18.3.1 + TypeScript 5.7.2 (strict) + Vercel + Supabase
-- **코드베이스**: 93개 TypeScript 파일 (JBGE 원칙으로 94% 간소화 달성)
-- **데이터 시뮬레이션**: FNV-1a 해시 정규분포 기반 Mock 서버 메트릭 (15개 서버, 10개 타입별 프로필)
-- **무료 티어**: 100% 무료로 운영 (Vercel 30GB/월 중 30% 사용, Supabase 500MB 중 3% 사용)  
-- **성능**: 152ms API 응답, 272ms AI 응답, 99.95% 가동률, MCP 통합으로 27% 토큰 절약
+- **아키텍처**: Next.js 15+ + React 18+ + TypeScript (strict) + Vercel + Supabase
+- **코드베이스**: TypeScript 기반 대규모 코드베이스 (JBGE 원칙으로 간소화 달성)
+- **데이터 시뮬레이션**: FNV-1a 해시 정규분포 기반 Mock 서버 메트릭 생성
+- **무료 티어**: 100% 무료로 운영 (Vercel/Supabase 무료 계정 최적화)
+- **성능**: 빠른 API 응답, 고가용성, MCP 통합으로 토큰 절약
 - **AI 시스템**: 4-AI 통합 (Claude Max + Gemini + Codex + Qwen) 교차검증 시스템
 
 ## 💻 개발 환경
 
-**WSL 2 (Ubuntu 24.04) 중심 개발** 🐧
-- **Host**: Windows 11 Pro + WSL 2 (16GB/4GB swap)
-- **Shell**: bash (WSL), Node.js v22.18.0, npm 전역 관리
-- **AI 도구**: Claude Code v1.0.100 + Gemini CLI + Qwen CLI
-- **성능**: Linux 네이티브, MCP 서버 통합, 54배 빠른 I/O
+**WSL 2 (Ubuntu) 중심 개발** 🐧
+- **Host**: Windows + WSL 2 (최적화된 메모리/스왑 설정)
+- **Shell**: bash (WSL), Node.js 최신 LTS, npm 전역 관리
+- **AI 도구**: Claude Code + Gemini CLI + Qwen CLI
+- **성능**: Linux 네이티브, MCP 서버 통합, 빠른 I/O
 - **보조**: VSCode + GitHub Copilot (이미지 처리, 스크린샷)
 
 ## 🚀 빠른 시작
@@ -33,14 +33,14 @@
 # WSL 내부 개발 명령어
 npm run dev          # 개발 서버
 npm run validate:all # 린트+타입+테스트
-claude --version     # v1.0.100
+claude --version     # 버전 확인
 ```
 
 ## 🐧 WSL 2 최적화 현황
 
-**성능**: 16GB 메모리, 54배 빠른 I/O, JavaScript heap 크래시 해결 완료
+**성능**: 최적화된 메모리 설정, 빠른 I/O, JavaScript heap 안정성
 **도구**: Claude/Gemini/Qwen CLI 모두 정상 작동
-**메모리**: claude-light(2GB)/dev(4GB)/heavy(8GB) 단계적 실행
+**메모리**: 단계적 메모리 할당 프로필 지원
 
 → **[상세 분석](docs/development/wsl-optimization-analysis-report.md)** | **[메모리 가이드](MEMORY-REQUIREMENTS.md)**
 
@@ -74,7 +74,7 @@ claude --version     # v1.0.100
 | **Qwen Code**         | v0.0.10  | 무료 (OAuth 2K/day)   | 🔷 **계정 인증 전용** ⚠️ | qwen (WSL)             | ✅ OAuth 전용                |
 | **ccusage**           | v16.2.3 | 무료                | 📊 **Claude 사용량 모니터링** | ccusage daily              | ✅ 완벽 지원                |
 
-> ✅ **2025년 해결완료**: **Codex CLI WSL 네트워크 문제 완전 해결**됨. DNS 설정 수정으로 `codex exec` 명령어 정상 작동. ChatGPT Plus 계정으로 GPT-5 모델 추가 과금 없이 사용 가능.
+> ✅ **해결완료**: **Codex CLI WSL 네트워크 문제 완전 해결**됨. DNS 설정 수정으로 `codex exec` 명령어 정상 작동. ChatGPT Plus 계정으로 GPT-5 모델 추가 과금 없이 사용 가능.
 
 ### WSL 통합 실행
 
@@ -93,12 +93,12 @@ codex exec "명령어"
 wsl
 cd /mnt/d/cursor/openmanager-vibe-v5
 
-# AI 도구들 직접 실행 (최신 버전)
-claude --version     # v1.0.108 ✅ 업데이트 완료
-gemini --version     # v0.3.4 ✅ 업데이트 완료  
-qwen --version       # v0.0.10 ✅ 최신 버전
-codex --version      # v0.29.0 ✅ 최신 버전
-ccusage --version    # v16.2.3 ✅ 최신 버전
+# AI 도구들 직접 실행 (버전 확인)
+claude --version     # Claude Code 버전 확인
+gemini --version     # Gemini CLI 버전 확인
+qwen --version       # Qwen CLI 버전 확인
+codex --version      # Codex CLI 버전 확인
+ccusage --version    # ccusage 버전 확인
 ```
 
 ## 🎯 멀티 AI 전략적 활용 방안
@@ -109,8 +109,8 @@ ccusage --version    # v16.2.3 ✅ 최신 버전
 - 모든 메인 개발 작업의 중심축
 - MCP 서버 8개 통합으로 종합적 기능 제공 (27% 토큰 절약)
 - 📊 **Max 사용자 장점**: 사용량 한계 내 무제한 사용 (추가 비용 없음)
-- 📈 **현재 효율성**: 일일 $73.59 상당 작업량 (API 환산 시)
-- 🔄 **최적 모델 믹스**: Opus 4 (66.77) + Sonnet 4 (6.81) 병행
+- 📈 **효율성**: 높은 일일 작업량 처리 (API 대비 절약 효과)
+- 🔄 **최적 모델 믹스**: Opus 4 + Sonnet 4 병행 사용
 
 ### 🤝 서브 에이전트 라인: 3-AI 협업 시스템
 
@@ -632,22 +632,37 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 
 ---
 
-## 📋 아키텍처 문서 구조
+## 📋 설계도 관리 체계
 
-**현재 운영 시스템 vs 미래 계획 설계도 구분** - 2025-09-07 완전 재정리
+**체계적 설계도 관리**: current (운영 중) + future (계획) + archive (완료/폐기) - 2025-09-09 완전 재정리
 
-### 🏗️ 현재 운영 시스템 (메인)
+### 🎯 **설계도 관리 센터** ⭐ **메인 참조**
+- **[🏗️ 설계도 관리 센터](docs/design/README.md)**: 체계적 설계도 관리 구조
+- **관리 철학**: 현실 기반 설계 + 미래 확장성 고려
+- **폴더 구조**: current/ (운영 중) + future/ (계획) + archive/ (완료/폐기)
 
-| 문서 | 설명 | 상태 | 특징 |
+### 📊 **현재 운영 시스템 설계도** (docs/design/current/)
+
+| 설계도 | 설명 | 상태 | 특징 |
 |------|------|------|------|
-| **[📊 실제 시스템 아키텍처 v5.70.11](docs/architecture/actual-system-architecture-v5.70.11.md)** | 현재 운영 중인 실제 시스템 완전 분석 | 2025-09-07 작성 | ✅ **실제 구현** |
-| **[📊 시스템 아키텍처](docs/system-architecture.md)** | 현재 운영 상태 요약 문서 | 2025-09-07 최신 | ✅ 운영 요약 |
+| **[📊 시스템 아키텍처](docs/design/current/system-architecture.md)** | v5.70.11 현재 운영 상태 | ✅ 운영 중 | 레이어드 구조, TypeScript strict 100% |
+| **[🔌 API 설계](docs/design/current/api-design.md)** | 76개 기능별 API 구조 | ✅ 운영 중 | RESTful, 152ms 응답시간 |
+| **[📈 실시간 모니터링](docs/design/current/realtime-monitoring.md)** | FNV-1a 해시 시스템 | ✅ 운영 중 | 24시간 순환 + 10분 기준 보간 |
+| **[🤖 AI 교차검증](docs/design/current/ai-system-design.md)** | 4-AI 협업 시스템 | ✅ 운영 중 | Claude+Gemini+Codex+Qwen |
+| **[🔄 데이터 흐름](docs/design/current/data-flow-design.md)** | 실시간 데이터 파이프라인 | ✅ 운영 중 | Mock 시뮬레이션 → AI 분석 |
+| **[🛡️ 보안 아키텍처](docs/design/current/security-design.md)** | 다층 보안 방어 체계 | ✅ 운영 중 | Zero Trust + Defense in Depth |
 
-### 🔌 **MCP 통합 기록 (실용 문서)**
+### 🚀 **미래 확장 계획** (docs/design/future/)
 
-| 문서 | 설명 | 상태 | 특징 |
-|------|------|------|------|
-| **[🔌 MCP 통합 가이드](docs/mcp/mcp-integration-summary.md)** | 8개 MCP 서버 통합 과정 및 현재 운영 상태 | 2025-09-07 최신 | ✅ **실제 활용** |
+| 계획 | 설명 | 우선순위 | 예상 일정 |
+|------|------|----------|----------|
+| **[🔄 AI 라우터 리팩토링](docs/design/future/unified-ai-router-refactoring-plan.md)** | 통합 AI 라우팅 시스템 | Medium | Q1 2025 |
+
+### 🗂️ **과거 설계도 보관** (docs/design/archive/)
+
+| 설계도 | 설명 | 완료일 | 상태 |
+|------|------|--------|------|
+| **[⏰ 6시간 장애 사이클](docs/design/archive/6-timeslot-incident-cycles.md)** | 초기 장애 시나리오 설계 | 2025-08-30 | 대체됨 (24시간 시스템) |
 
 ### 🔄 **아키텍처 진화: 설계도 vs 현실**
 
@@ -688,7 +703,7 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 
 ## 🎲 Mock 시뮬레이션 시스템
 
-**FNV-1a 해시 기반 현실적 서버 메트릭 생성** - GCP VM 완전 대체
+**FNV-1a 해시 기반 현실적 서버 메트릭 생성** - 비용 절감 + 포트폴리오 데모
 
 ### 🎯 핵심 아키텍처
 
@@ -789,7 +804,7 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 
 **🌐 Vercel**: 30GB/월 (30% 사용) | 번들 최적화 60% 감소, 152ms 응답시간
 **🐘 Supabase**: 15MB (3% 사용) | RLS 정책, 쿼리 50ms, pgVector 75% 절약
-**☁️ GCP**: Cloud Functions 200만 호출/월 (5% 사용) | 서버리스 아키텍처, Mock 시뮬레이션으로 완전 전환
+**☁️ GCP**: Cloud Functions 200만 호출/월 (5% 사용) | AI 기능은 실제 운영, 서버 메트릭은 Mock 시뮬레이션
 **🧠 Cache**: 60MB (25% 사용) | LRU 캐시, 5분 TTL 최적화
 
 ### 💡 핵심 성과
@@ -870,7 +885,7 @@ Windows 환경에서 사용되던 모든 스크립트들은 scripts/windows-lega
 ### 🚀 주요 아키텍처 전환 (2025-08-30)
 
 #### **Mock 시뮬레이션 시스템 완성**
-- **GCP VM 완전 제거**: $57/월 비용 → $0 무료 운영
+- **서버 메트릭 Mock 전환**: GCP VM $57/월 → $0 무료 운영 (비용 절감 + 포트폴리오 데모)
 - **FNV-1a 해시 도입**: Math.random() → 결정론적 해시 기반 현실적 메트릭 생성
 - **15개 장애 시나리오**: 트래픽 폭증, DDoS 공격, 메모리 누수 등 확률적 장애 시뮬레이션
 - **10개 서버 타입 프로필**: 웹서버, API, DB, 캐시 등 서버별 특성 완전 구현
