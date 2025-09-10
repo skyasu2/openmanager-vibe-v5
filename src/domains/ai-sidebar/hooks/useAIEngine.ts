@@ -41,8 +41,8 @@ const ENGINE_CONFIG = {
   },
   LOCAL: {
     displayName: '로컬 AI',
-    description: '오프라인 패턴 매칭 엔진 - 빠른 응답, 외부 연결 불필요',
-    endpoint: '/api/ai/ultra-fast'
+    description: 'Supabase RAG + NLP 통합 엔진 - Vercel + GCP + 자연어 처리',
+    endpoint: '/api/ai/query'
   },
   GOOGLE_AI: {
     displayName: 'Google AI',
