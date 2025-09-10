@@ -1,11 +1,18 @@
 /**
- * 실시간 서버 데이터 관리 훅
- * 서버 상태, 메트릭, 실시간 업데이트를 처리
+ * 🚀 Vercel 최적화 실시간 서버 데이터 관리 훅
+ * 
+ * Vercel 무료 티어 최적화:
+ * - API 배칭으로 동시 요청 수 최소화
+ * - 메모리 효율적 상태 관리
+ * - Edge Runtime 호환성
+ * - 콜드 스타트 지연 최소화
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import type { Server } from '@/types/server';
+import { getAPIBatcher } from '@/lib/api-batcher';
+import type { APIRequest } from '@/lib/api-batcher';
 
 // 타입 정의
 interface UseRealtimeServersOptions {
@@ -577,38 +584,78 @@ export function useRealtimeServers(
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
 
-  // 서버 데이터 패치 함수
+  // Vercel 최적화 서버 데이터 패치 함수
   const fetchServers = useCallback(async (): Promise<Server[]> => {
+    const batcher = getAPIBatcher();
+    
     try {
-      // 실제 API 호출 (현재는 목업 사용)
-      const response = await fetch('/api/servers');
+      // API 배칭을 통한 최적화된 요청
+      const batchedRequests: APIRequest[] = [
+        {
+          id: 'servers-all',
+          endpoint: '/api/servers/all',
+          priority: 'high', // 서버 목록은 고우선순위
+          options: {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache',
+            },
+          },
+        },
+        {
+          id: 'servers-status',
+          endpoint: '/api/system/status',
+          priority: 'normal',
+          options: {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        },
+      ];
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
+      // 배칭된 요청 실행
+      const [serversResponse, statusResponse] = await Promise.all([
+        batchedRequests[0] ? batcher.request(batchedRequests[0]) : Promise.resolve({ id: 'servers-all', data: null, status: 400, timing: { queued: 0, executed: Date.now(), duration: 0 } }),
+        batchedRequests[1] ? batcher.request(batchedRequests[1]) : Promise.resolve({ id: 'servers-status', data: null, status: 400, timing: { queued: 0, executed: Date.now(), duration: 0 } }),
+      ]);
 
-      const data = await response.json();
-
-      // 데이터 구조 검증 및 변환
-      if (data?.servers && Array.isArray(data.servers)) {
-        const transformedServers = data.servers.map(
-          (s: { status?: string; [key: string]: unknown }) => {
-            if (typeof s === 'object' && s !== null) {
-              return {
-                ...s,
-                status: mapStatus(s.status),
-              };
+      // 서버 데이터 처리
+      if (serversResponse.status === 200 && serversResponse.data) {
+        const data = serversResponse.data;
+        
+        // 데이터 구조 검증 및 변환
+        if (data?.servers && Array.isArray(data.servers)) {
+          const transformedServers = data.servers.map(
+            (s: { status?: string; [key: string]: unknown }) => {
+              if (typeof s === 'object' && s !== null) {
+                return {
+                  ...s,
+                  status: mapStatus(s.status),
+                  lastUpdate: new Date(), // 실시간 타임스탬프
+                };
+              }
+              return s;
             }
-            return s;
+          );
+          
+          // 시스템 상태 정보와 결합 (선택적)
+          if (statusResponse.status === 200 && statusResponse.data) {
+            console.log('🔄 시스템 상태 동기화:', statusResponse.data);
           }
-        );
-        return transformedServers as Server[];
+          
+          return transformedServers as Server[];
+        }
       }
 
-      // 실제 API가 없으면 목업 데이터 반환
+      // API 응답이 실패했거나 데이터가 없으면 목업 데이터 반환
+      console.warn('🔄 API 응답 실패, 목업 데이터 사용');
       return mockServers;
+      
     } catch (fetchError) {
-      console.warn('API 호출 실패, 목업 데이터 사용:', fetchError);
+      console.warn('🚨 API 배칭 실패, 목업 데이터 사용:', fetchError);
 
       // 목업 데이터에 랜덤 업데이트 적용
       return mockServers.map((server) => {
@@ -740,13 +787,17 @@ export function useRealtimeServers(
     refreshServers();
   }, [refreshServers]); // refreshServers 함수 의존성 복구
 
-  // 컴포넌트 언마운트 시 정리
+  // Vercel 최적화: 컴포넌트 언마운트 시 정리
   useEffect(() => {
     return () => {
       mountedRef.current = false;
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
+      
+      // API 배처 정리 (메모리 누수 방지)
+      // 전역 배처는 정리하지 않고, 개별 요청만 취소
+      // getAPIBatcher().cleanup(); // 전역이므로 정리하지 않음
     };
   }, []);
 

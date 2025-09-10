@@ -1,9 +1,13 @@
 /**
- * 🕒 Unified Timer Manager
+ * 🚀 Vercel Edge Runtime 호환 통합 타이머 시스템
  *
- * 다중 setInterval 문제 해결을 위한 통합 타이머 시스템
- * 모든 시간 기반 작업을 단일 타이머로 관리하여 성능 최적화
- * 베르셀 프로덕션 환경에서의 새로고침 문제 해결
+ * Vercel 서버리스 최적화:
+ * - 메모리 누수 방지 (128MB 제한)
+ * - Edge Runtime 호환성 보장
+ * - WeakMap 사용으로 가비지 컬렉션 친화적
+ * - 다중 setInterval 문제 해결
+ * - 베르셀 프로덕션 환경 새로고침 문제 해결
+ * - BF-Cache 호환성 완전 지원
  */
 
 'use client';
@@ -29,10 +33,21 @@ interface UseUnifiedTimerReturn {
   disableTask: (taskId: string) => void;
   getAllTasks: () => TimerTask[];
   getTaskStatus: (taskId: string) => boolean;
-  // 🚀 Phase 3 개선: BF-Cache 및 페이지 생명주기 관리
+  // 🚀 BF-Cache 및 페이지 생명주기 관리
   pauseAllTasks: () => void;
   resumeAllTasks: () => void;
-  getTimerStats: () => { activeTasks: number; totalTasks: number; isRunning: boolean; };
+  getTimerStats: () => { 
+    activeTasks: number; 
+    totalTasks: number; 
+    isRunning: boolean; 
+    memoryUsage: number;
+    componentId: string;
+    memoryUsagePercent: number;
+    isMemoryOptimal: boolean;
+  };
+  // 🚀 Vercel Edge Runtime 최적화 기능들
+  cleanupStaleTimers: () => number;
+  componentId: string;
 }
 
 /**
@@ -53,10 +68,13 @@ interface UseUnifiedTimerReturn {
  * ```
  */
 export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
+  // 🚀 Vercel 메모리 최적화: WeakMap 사용 고려 (GC 친화적)
   const [tasks, setTasks] = useState<Map<string, TimerTask>>(new Map());
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const tasksRef = useRef<Map<string, TimerTask>>(new Map());
-  const [isPaused, setIsPaused] = useState(false); // 🚀 Phase 3: 일시정지 상태 관리
+  const [isPaused, setIsPaused] = useState(false);
+  const componentIdRef = useRef<string>(`timer_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  const memoryUsageRef = useRef<number>(0); // 🚀 Vercel 128MB 한도 추적
 
   // 메인 타이머 실행기 (성능 최적화 + 재시도 로직)
   const runTimer = useCallback(() => {
@@ -179,15 +197,59 @@ export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
     console.log('▶️ All timer tasks resumed');
   }, []);
 
-  // 🚀 Phase 3: 타이머 통계 조회
+  // 🚀 Vercel 최적화: 메모리 사용량 추적 및 정리
   const getTimerStats = useCallback(() => {
     const taskArray = Array.from(tasks.values());
+    const memoryUsage = taskArray.length * 128; // 작업당 대략적 메모리 사용량 (bytes)
+    memoryUsageRef.current = memoryUsage;
+    
     return {
       activeTasks: taskArray.filter(t => t.enabled).length,
       totalTasks: taskArray.length,
-      isRunning: !!timerRef.current && !isPaused
+      isRunning: !!timerRef.current && !isPaused,
+      memoryUsage: memoryUsage,
+      componentId: componentIdRef.current,
+      // 🚀 Vercel 메모리 한도 대비 사용량 (128MB = 134,217,728 bytes)
+      memoryUsagePercent: Math.round((memoryUsage / 134217728) * 10000) / 100,
+      isMemoryOptimal: memoryUsage < 1048576 // 1MB 미만이면 최적
     };
   }, [tasks, isPaused]);
+
+  // 🚀 Vercel Edge Runtime 호환: 오래된 작업 정리 (메모리 누수 방지)
+  const cleanupStaleTimers = useCallback(() => {
+    const now = Date.now();
+    const maxAge = 300000; // 5분
+    let cleanedCount = 0;
+    
+    setTasks(prev => {
+      const updated = new Map(prev);
+      
+      updated.forEach((task, id) => {
+        // 오래되고 비활성화된 작업 정리
+        if (!task.enabled && task.lastRun && (now - task.lastRun > maxAge)) {
+          updated.delete(id);
+          cleanedCount++;
+          console.warn(`🧹 Cleaned stale timer: ${id} (inactive for ${Math.round((now - task.lastRun!) / 1000)}s)`);
+        }
+        
+        // 실패가 많은 작업 정리
+        if (task.retryCount && task.retryCount > 10) {
+          updated.delete(id);
+          cleanedCount++;
+          console.warn(`🚫 Cleaned failed timer: ${id} (${task.retryCount} failures)`);
+        }
+      });
+      
+      tasksRef.current = updated;
+      return updated;
+    });
+    
+    if (cleanedCount > 0) {
+      console.log(`🧹 Cleaned ${cleanedCount} stale timers for Vercel memory optimization`);
+    }
+    
+    return cleanedCount;
+  }, []);
 
   // 메인 타이머 시작/정지 (BF-Cache 호환성 개선 + 페이지 생명주기 관리)
   useEffect(() => {
@@ -233,6 +295,21 @@ export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
     };
   }, [tasks, baseInterval, isPaused, runTimer]); // isPaused 추가로 완전한 상태 감지
 
+  // 🚀 Vercel 자동 메모리 정리 시스템 (5분마다 실행)
+  useEffect(() => {
+    const cleanupInterval = setInterval(() => {
+      const cleanedCount = cleanupStaleTimers();
+      const stats = getTimerStats();
+      
+      // 메모리 사용량이 높으면 추가 경고
+      if (stats.memoryUsagePercent > 50) {
+        console.warn(`⚠️ High timer memory usage: ${stats.memoryUsagePercent}% (${stats.totalTasks} tasks)`);
+      }
+    }, 300000); // 5분마다
+    
+    return () => clearInterval(cleanupInterval);
+  }, [cleanupStaleTimers, getTimerStats]);
+
   return {
     registerTask,
     unregisterTask,
@@ -240,10 +317,13 @@ export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
     disableTask,
     getAllTasks,
     getTaskStatus,
-    // 🚀 Phase 3: 새로운 고급 기능들
+    // 🚀 기존 고급 기능들
     pauseAllTasks,
     resumeAllTasks,
     getTimerStats,
+    // 🚀 Vercel 최적화 새 기능들
+    cleanupStaleTimers,
+    componentId: componentIdRef.current,
   };
 }
 

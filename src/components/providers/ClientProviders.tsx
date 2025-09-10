@@ -11,6 +11,8 @@ import { ReactNode } from 'react';
 import SupabaseAuthProvider from './SupabaseAuthProvider';
 import QueryProvider from './QueryProvider';
 import { ServerDataStoreProvider } from './StoreProvider';
+// 🚀 Vercel 호환 접근성 Provider 추가
+import { AccessibilityProvider } from '@/context/AccessibilityProvider';
 
 interface ClientProvidersProps {
   children: ReactNode;
@@ -25,15 +27,18 @@ interface ClientProvidersProps {
  *
  * Provider 계층 구조:
  * 1. ServerDataStoreProvider (Zustand 상태 관리)
- * 2. SupabaseAuthProvider (Supabase Auth 세션 관리)
- * 3. QueryProvider (TanStack Query)
+ * 2. AccessibilityProvider (WCAG 2.1 호환, SSR 안전)
+ * 3. SupabaseAuthProvider (Supabase Auth 세션 관리)
+ * 4. QueryProvider (TanStack Query)
  */
 export function ClientProviders({ children }: ClientProvidersProps) {
   return (
     <ServerDataStoreProvider>
-      <SupabaseAuthProvider>
-        <QueryProvider>{children}</QueryProvider>
-      </SupabaseAuthProvider>
+      <AccessibilityProvider>
+        <SupabaseAuthProvider>
+          <QueryProvider>{children}</QueryProvider>
+        </SupabaseAuthProvider>
+      </AccessibilityProvider>
     </ServerDataStoreProvider>
   );
 }

@@ -36,6 +36,9 @@ import { ServerCardLineChart } from '../shared/ServerMetricsLineChart';
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
 import { validateMetricValue, validateServerMetrics, generateSafeMetricValue, type MetricType } from '../../utils/metricValidation';
 import { getServerStatusTheme, getTypographyClass, COMMON_ANIMATIONS, LAYOUT, type ServerStatus } from '../../styles/design-constants';
+// 🚀 Vercel 호환 접근성 기능 추가
+import { useAccessibilityOptional } from '@/context/AccessibilityProvider';
+import { useServerCardAria } from '../accessibility/AriaLabels';
 
 interface ImprovedServerCardProps {
   server: ServerType;
@@ -69,6 +72,26 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         network: server.network || 25,
       })
     );
+    
+    // 🚀 Vercel 호환 접근성 Hook (선택적 사용)
+    const accessibility = useAccessibilityOptional();
+    const isAccessibilityEnabled = !!accessibility?.isClient;
+    
+    // ARIA 속성 생성 (접근성 활성화 시에만)
+    const ariaProps = useMemo(() => {
+      if (!isAccessibilityEnabled) return {};
+      
+      return useServerCardAria({
+        serverId: server.id,
+        serverName: server.name,
+        status: server.status as 'online' | 'offline' | 'warning' | 'critical',
+        cpu: realtimeMetrics.cpu,
+        memory: realtimeMetrics.memory,
+        disk: realtimeMetrics.disk,
+        alerts: typeof server.alerts === 'number' ? server.alerts : 0,
+        uptime: `${server.uptime || 0}시간`,
+      });
+    }, [isAccessibilityEnabled, server, realtimeMetrics]);
 
     // 컴포넌트 언마운트 추적
     useEffect(() => {

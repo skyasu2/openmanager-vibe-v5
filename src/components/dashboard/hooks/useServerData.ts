@@ -26,6 +26,9 @@ import { useRealtimeServers } from '@/hooks/api/useRealtimeServers';
 import type { Server } from '@/types/server';
 import { useCallback, useEffect, useState } from 'react';
 import type { DashboardStats, ServerFilters } from '../types/dashboard.types';
+// 🚀 Vercel 최적화: API 배칭 + 통합 타이머 시스템 통합
+import { getAPIBatcher } from '@/lib/api-batcher';
+import { useUnifiedTimer, createTimerTask } from '@/hooks/useUnifiedTimer';
 
 // 🎯 통합된 폴백 서버 데이터 사용 (하드코딩 제거)
 const fallbackServers: Server[] = STATIC_ERROR_SERVERS;
@@ -45,6 +48,18 @@ export interface UseServerDataReturn {
   isLoading?: boolean;
   sortedServers?: Server[];
   filteredServers?: Server[];
+
+  // 🚀 Vercel 최적화: 실시간 업데이트 배칭 상태 정보
+  timerStats?: {
+    activeTasks: number;
+    totalTasks: number;
+    isRunning: boolean;
+    memoryUsage: number;
+    componentId: string;
+    memoryUsagePercent: number;
+    isMemoryOptimal: boolean;
+  };
+  batchedRefreshData?: () => Promise<void>;
 }
 
 export const useServerData = (): UseServerDataReturn => {
@@ -53,7 +68,10 @@ export const useServerData = (): UseServerDataReturn => {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
-  // 실시간 서버 데이터 훅 사용
+  // 🚀 Vercel 최적화: 통합 타이머 시스템 사용
+  const timer = useUnifiedTimer(2000); // 2초 기본 간격으로 배칭 최적화
+
+  // 실시간 서버 데이터 훅 사용 (기존 호환성 유지)
   const { servers: realtimeData, isLoading: realtimeLoading } =
     useRealtimeServers();
 
@@ -249,15 +267,120 @@ export const useServerData = (): UseServerDataReturn => {
     []
   );
 
-  // 데이터 새로고침 함수
-  const refreshData = useCallback(() => {
-    _initializeData();
-  }, [_initializeData]);
+  // 🚀 Vercel 최적화: API 배칭을 사용한 실시간 업데이트
+  const batchedRefreshData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-  // 초기 데이터 로드
+      const batcher = getAPIBatcher();
+      
+      // 다중 API 엔드포인트를 배칭으로 호출
+      const [serversResponse, statusResponse, metricsResponse] = await Promise.allSettled([
+        batcher.request({
+          id: 'servers-all',
+          endpoint: '/api/servers/all',
+          priority: 'high', // 서버 데이터는 높은 우선순위
+        }),
+        batcher.request({
+          id: 'system-status', 
+          endpoint: '/api/system/status',
+          priority: 'normal',
+        }),
+        batcher.request({
+          id: 'server-metrics',
+          endpoint: '/api/servers/metrics', 
+          priority: 'normal',
+        })
+      ]);
+
+      // 서버 데이터 처리
+      if (serversResponse.status === 'fulfilled' && serversResponse.value.data) {
+        const serverData = Array.isArray(serversResponse.value.data) 
+          ? serversResponse.value.data 
+          : fallbackServers;
+        
+        const mappedServers = serverData.map((server: any) => ({
+          ...server,
+          status: mapStatus(server.status || 'unknown'),
+          lastUpdate: new Date(),
+        }));
+        
+        setServers(mappedServers);
+        setLastUpdate(new Date());
+      } else {
+        // API 실패 시 폴백 데이터 사용 (기존 호환성)
+        if (realtimeData && Array.isArray(realtimeData)) {
+          const mappedServers = realtimeData.map((server: any) => ({
+            ...server,
+            status: mapStatus(server.status || 'unknown'),
+            lastUpdate: new Date(),
+          }));
+          setServers(mappedServers);
+        } else {
+          setServers(fallbackServers);
+        }
+      }
+
+    } catch (error) {
+      console.error('🚨 Batched data refresh failed:', error);
+      setError('서버 데이터를 불러올 수 없습니다.');
+      // 에러 시에도 폴백 데이터 유지
+      setServers(fallbackServers);
+    } finally {
+      setLoading(false);
+    }
+  }, [realtimeData, mapStatus]);
+
+  // 기존 호환성을 위한 refreshData 함수 (통합 타이머 사용)
+  const refreshData = useCallback(() => {
+    // 즉시 실행이 아닌 타이머 기반 배칭 업데이트 트리거
+    timer.registerTask(createTimerTask.customTask(
+      'manual-refresh',
+      100, // 100ms 후 실행
+      batchedRefreshData,
+      { priority: 'high' }
+    ));
+  }, [timer, batchedRefreshData]);
+
+  // 🚀 Vercel 최적화: 통합 타이머 시스템으로 실시간 업데이트 관리
   useEffect(() => {
+    // 초기 데이터 로드 (기존 호환성)
     _initializeData();
-  }, [_initializeData]);
+
+    // 실시간 배칭 업데이트 타이머 등록 (5초마다)
+    timer.registerTask(createTimerTask.customTask(
+      'realtime-batch-update',
+      5000, // 5초마다 실행 (Vercel 무료 티어 고려)
+      batchedRefreshData,
+      { 
+        priority: 'normal',
+        maxRetries: 3
+      }
+    ));
+
+    // 시스템 상태 체크 (30초마다)
+    timer.registerTask(createTimerTask.systemStatus(async () => {
+      try {
+        const batcher = getAPIBatcher();
+        await batcher.request({
+          id: 'health-check',
+          endpoint: '/api/health',
+          priority: 'low',
+        });
+        console.log('✅ System health check completed');
+      } catch (error) {
+        console.warn('⚠️ System health check failed:', error);
+      }
+    }));
+
+    // 컴포넌트 언마운트 시 타이머 정리
+    return () => {
+      timer.unregisterTask('realtime-batch-update');
+      timer.unregisterTask('system-status');
+      console.log(`🧹 Cleaned up timers for component ${timer.componentId}`);
+    };
+  }, [_initializeData, timer, batchedRefreshData]);
 
   // 정렬된 서버 목록
   const sortedServers = sortServersByPriority(servers);
@@ -279,5 +402,9 @@ export const useServerData = (): UseServerDataReturn => {
     isLoading: loading || realtimeLoading,
     sortedServers,
     filteredServers: sortedServers, // 기본적으로 정렬된 서버 반환
+
+    // 🚀 Vercel 최적화: 실시간 배칭 업데이트 정보
+    timerStats: timer.getTimerStats(),
+    batchedRefreshData,
   };
 };
