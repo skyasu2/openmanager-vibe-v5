@@ -33,6 +33,7 @@ import dynamic from 'next/dynamic';
 import { memo, useCallback, useEffect, useState, useMemo, useRef, type FC, Fragment } from 'react';
 import type { Server as ServerType } from '../../types/server';
 import { ServerCardLineChart } from '../shared/ServerMetricsLineChart';
+import { usePerformanceTracking } from '@/utils/performance';
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
 import { validateMetricValue, validateServerMetrics, generateSafeMetricValue, type MetricType } from '../../utils/metricValidation';
 import { getServerStatusTheme, getTypographyClass, COMMON_ANIMATIONS, LAYOUT, type ServerStatus } from '../../styles/design-constants';
@@ -58,6 +59,9 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     index = 0,
     enableProgressiveDisclosure = true,
   }) => {
+    // 🚀 성능 추적 활성화 (개발환경 전용)
+    const performanceStats = usePerformanceTracking(`ImprovedServerCard-${server.id}`);
+    
     const [isHovered, setIsHovered] = useState(false);
     const [showSecondaryInfo, setShowSecondaryInfo] = useState(false);
     const [showTertiaryInfo, setShowTertiaryInfo] = useState(false);
@@ -181,8 +185,8 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       };
     }, [server.status]); // 상태별 의존성 최적화 (Gemini 제안 반영)
 
-    // 서버 타입별 아이콘 가져오기
-    const getServerIcon = () => {
+    // 🚀 서버 타입별 아이콘 메모이제이션 최적화
+    const serverIcon = useMemo(() => {
       switch (server.type) {
         case 'web':
           return <Globe className="h-5 w-5" aria-hidden="true" />;
@@ -196,10 +200,10 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         default:
           return <Server className="h-5 w-5" aria-hidden="true" />;
       }
-    };
+    }, [server.type]);
 
-    // OS별 아이콘/이모지 가져오기
-    const getOSIcon = () => {
+    // 🚀 OS별 아이콘/이모지 메모이제이션 최적화
+    const osIcon = useMemo(() => {
       const os = server.os?.toLowerCase() || '';
 
       if (
@@ -230,7 +234,14 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         );
       }
       return null;
-    };
+    }, [server.os]);
+
+    // 🚀 알림 수 계산 메모이제이션 최적화
+    const alertCount = useMemo(() => {
+      if (typeof server.alerts === 'number') return server.alerts;
+      if (Array.isArray(server.alerts)) return server.alerts.length;
+      return 0;
+    }, [server.alerts]);
 
     // Material Design 3 배리언트별 스타일 (Typography 토큰 기반) - 메모이제이션 최적화
     const variantStyles = useMemo(() => {
@@ -356,7 +367,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               role="img"
               aria-label={`서버 타입: ${server.type}`}
             >
-              {getServerIcon()}
+              {serverIcon}
             </div>
             <div className="min-w-0 flex-1">
               <div className="mb-1 flex items-center gap-2">
@@ -367,7 +378,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                 >
                   {server.name}
                 </h3>
-                {getOSIcon()}
+                {osIcon}
               </div>
               <div 
                 className={`flex items-center gap-2 ${'text-sm font-medium'}`}

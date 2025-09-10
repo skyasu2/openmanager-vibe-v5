@@ -21,9 +21,27 @@ import type { DashboardTab } from '@/hooks/useServerDashboard';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
+import { usePerformanceTracking } from '@/utils/performance';
 import { formatUptime, getAlertsCount } from './types/server-dashboard.types';
 import { serverTypeGuards } from '@/utils/serverUtils';
 import type { Server } from '@/types/server';
+
+// 🚀 성능 최적화: statusPriority를 컴포넌트 외부로 이동 (매번 새로 생성 방지)
+const STATUS_PRIORITY = {
+  critical: 0,
+  offline: 0,
+  warning: 1,
+  healthy: 2,
+  online: 2,
+} as const;
+
+// 🚀 성능 최적화: 알림 수 계산 로직 분리 및 메모이제이션
+const getAlertsCountOptimized = (alerts: unknown): number => {
+  if (typeof alerts === 'number') return alerts;
+  if (Array.isArray(alerts)) return alerts.length;
+  return 0;
+};
+
 interface ServerDashboardProps {
   servers?: Server[];
   onServerClick?: (server: Server) => void;
@@ -46,6 +64,9 @@ export default function ServerDashboard({
   selectedServerId: _selectedServerId,
   onStatsUpdate,
 }: ServerDashboardProps) {
+  // 🚀 성능 추적 활성화
+  const performanceStats = usePerformanceTracking('ServerDashboard');
+
   const [activeTab] = useState<DashboardTab>('servers');
   const {
     paginatedServers,
@@ -66,39 +87,21 @@ export default function ServerDashboard({
     setIsClient(true);
   }, []);
 
-  // 서버를 심각→주의→정상 순으로 정렬 (CLS 방지를 위해 메모이제이션 적용)
+  // 🚀 서버 정렬 최적화: 외부 상수와 최적화된 함수 사용
   const sortedServers = useMemo(() => {
-    return [...paginatedServers].sort((a, b) => {
-      const statusPriority = {
-        critical: 0,
-        offline: 0,
-        warning: 1,
-        healthy: 2,
-        online: 2,
-      };
-
-      const priorityA =
-        statusPriority[a.status as keyof typeof statusPriority] ?? 3;
-      const priorityB =
-        statusPriority[b.status as keyof typeof statusPriority] ?? 3;
+    // 불필요한 배열 복사 제거: paginatedServers가 이미 새 배열이므로 직접 정렬
+    return paginatedServers.sort((a, b) => {
+      // 🎯 외부 상수 사용으로 객체 생성 오버헤드 제거
+      const priorityA = STATUS_PRIORITY[a.status as keyof typeof STATUS_PRIORITY] ?? 3;
+      const priorityB = STATUS_PRIORITY[b.status as keyof typeof STATUS_PRIORITY] ?? 3;
 
       if (priorityA !== priorityB) {
         return priorityA - priorityB;
       }
 
-      // 같은 우선순위면 알림 수로 정렬 (많은 순)
-      const alertsA =
-        typeof a.alerts === 'number'
-          ? a.alerts
-          : Array.isArray(a.alerts)
-            ? a.alerts.length
-            : 0;
-      const alertsB =
-        typeof b.alerts === 'number'
-          ? b.alerts
-          : Array.isArray(b.alerts)
-            ? b.alerts.length
-            : 0;
+      // 🎯 최적화된 알림 수 계산 함수 사용
+      const alertsA = getAlertsCountOptimized(a.alerts);
+      const alertsB = getAlertsCountOptimized(b.alerts);
 
       return alertsB - alertsA;
     });
@@ -446,6 +449,19 @@ export default function ServerDashboard({
           }}
           onClose={handleModalClose}
         />
+      )}
+
+      {/* 🚀 개발 환경 전용: 성능 통계 표시 */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed bottom-4 right-4 z-50 max-w-xs rounded-lg border border-gray-300 bg-white/90 p-3 text-xs shadow-lg backdrop-blur-sm">
+          <div className="mb-2 font-semibold text-gray-800">📊 성능 통계</div>
+          <div className="space-y-1 text-gray-600">
+            <div>렌더링: {performanceStats.getRenderCount()}회</div>
+            <div>평균 시간: {performanceStats.getAverageRenderTime().toFixed(1)}ms</div>
+            <div>서버 수: {sortedServers.length}개</div>
+            <div>페이지: {currentPage}/{totalPages}</div>
+          </div>
+        </div>
       )}
     </div>
   );
