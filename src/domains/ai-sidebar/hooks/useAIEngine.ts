@@ -35,14 +35,14 @@ const STORAGE_KEY = 'selected-ai-engine';
 // 엔진 설정 맵
 const ENGINE_CONFIG = {
   UNIFIED: {
-    displayName: '통합 AI 엔진',
-    description: '모든 AI 엔진 통합 - 최적의 성능과 유연성 제공',
+    displayName: 'Google AI 모드',
+    description: '순수 Google AI (Gemini Pro) - 고급 추론과 자연어 질의',
     endpoint: '/api/ai/edge-v2'
   },
   LOCAL: {
-    displayName: '로컬 RAG',
-    description: 'Supabase RAG 엔진 - 빠른 응답과 프라이버시 보장',
-    endpoint: '/api/ai/query'
+    displayName: '로컬 AI',
+    description: '오프라인 패턴 매칭 엔진 - 빠른 응답, 외부 연결 불필요',
+    endpoint: '/api/ai/ultra-fast'
   },
   GOOGLE_AI: {
     displayName: 'Google AI',

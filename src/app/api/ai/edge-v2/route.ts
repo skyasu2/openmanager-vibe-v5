@@ -1,17 +1,15 @@
 /**
- * 🚀 Edge AI API Route v2
+ * 🚀 Edge AI API Route v2 - Google AI Only
  *
- * Supabase Realtime 기반 Edge Runtime API
- * - Supabase로 생각중 상태 저장
- * - 캐시 우선 전략으로 Edge Runtime 시간 절약
- * - 스마트 폴백으로 안정성 확보
+ * 순수 Google AI API만 사용
+ * - 구글 AI 모드 전용 엔드포인트
+ * - RAG나 다른 서비스 사용 안함
+ * - 빠르고 직접적인 Google AI 호출
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { edgeAIRouter } from '@/services/ai/edge/edge-ai-router';
-import { unifiedResponseFormatter } from '@/services/ai/formatters/unified-response-formatter';
+import { getGoogleAIModel } from '@/lib/ai/google-ai-client';
 import { supabaseRealtimeAdapter } from '@/services/ai/adapters/service-adapters';
-import type { EdgeRouterRequest } from '@/services/ai/interfaces/distributed-ai.interface';
 import debug from '@/utils/debug';
 
 // Edge Runtime 설정
@@ -57,92 +55,102 @@ export async function POST(req: NextRequest) {
 
     // 2. 요청 파싱
     const body = await req.json();
-    const { query, userId, sessionId, services, parallel, metadata } = body;
+    const { query, userId, sessionId } = body;
 
     if (!query) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
-    // 3. Edge Router 요청 구성
-    const routerRequest: EdgeRouterRequest = {
-      id: crypto.randomUUID(),
-      query,
-      userId,
-      sessionId: sessionId || crypto.randomUUID(),
-      services: services || ['redis-cache', 'supabase-rag', 'gcp-korean-nlp'],
-      parallel: parallel ?? true,
-      metadata,
-      fallbackChain: ['gcp-ml-analytics'], // 무료 폴백
-    };
+    const sessionIdString = sessionId || crypto.randomUUID();
+    const startTime = Date.now();
 
-    // 4. 생각중 상태 시작 (비동기)
-    const sessionIdString = routerRequest.sessionId || crypto.randomUUID();
+    // 3. 생각중 상태 시작 (비동기)
     const thinkingPromise = supabaseRealtimeAdapter
       .addThinkingStep(
         sessionIdString,
         {
-          step: 'AI 처리 시작',
+          step: 'Google AI 처리 시작',
           description: query.substring(0, 100),
           status: 'processing',
           timestamp: Date.now(),
         },
         userId
       )
-      .catch(debug.warn); // 실패해도 계속 진행
+      .catch(debug.warn);
 
-    // 5. Edge Router 실행
-    const startTime = Date.now();
-    const response = await edgeAIRouter.route(routerRequest);
+    // 4. Google AI 직접 호출
+    const generativeModel = getGoogleAIModel('gemini-pro');
+    
+    const result = await generativeModel.generateContent({
+      contents: [{ role: 'user', parts: [{ text: query }] }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 1000,
+        topK: 40,
+        topP: 0.95,
+      },
+    });
 
-    // 6. 통합 응답 포맷팅
-    const unifiedResponse = unifiedResponseFormatter.formatEdgeRouterResponse(
-      response,
-      { id: routerRequest.id, query },
-      startTime
-    );
+    const response = result.response;
+    const text = response.text();
+    const processingTime = Date.now() - startTime;
 
-    // 7. 생각중 상태 완료 (비동기)
+    // 5. 통합 응답 포맷 (기존 형식 유지)
+    const unifiedResponse = {
+      success: true,
+      response: text,
+      engine: 'google-ai',
+      confidence: 0.9,
+      metadata: {
+        model: 'gemini-pro',
+        processingTime,
+        actualTokens: response.usageMetadata?.totalTokenCount || 0,
+        promptTokens: response.usageMetadata?.promptTokenCount || 0,
+        completionTokens: response.usageMetadata?.candidatesTokenCount || 0,
+      },
+      processing: {
+        totalTime: processingTime,
+        services: ['google-ai'],
+        cacheHit: false,
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    // 6. 생각중 상태 완료 (비동기)
     thinkingPromise.then(() =>
       supabaseRealtimeAdapter
         .addThinkingStep(
           sessionIdString,
           {
-            step: 'AI 처리 완료',
+            step: 'Google AI 처리 완료',
             status: 'completed',
             timestamp: Date.now(),
-            duration: Date.now() - startTime,
+            duration: processingTime,
           },
           userId
         )
         .catch(debug.warn)
     );
 
-    // 8. 응답 헤더 설정 (캐시 제어)
+    // 7. 응답 반환
     const headers = new Headers({
       'Content-Type': 'application/json',
-      'X-Processing-Time': String(unifiedResponse.processing.totalTime),
-      'X-Cache-Status': unifiedResponse.metadata.cacheHit ? 'HIT' : 'MISS',
+      'X-Processing-Time': `${processingTime}ms`,
+      'X-AI-Engine': 'google-ai',
+      'Cache-Control': 'no-cache', // Google AI는 캐싱 안함
     });
-
-    // 캐시 히트인 경우 브라우저 캐싱 허용
-    if (unifiedResponse.metadata.cacheHit) {
-      headers.set(
-        'Cache-Control',
-        'public, s-maxage=300, stale-while-revalidate=600'
-      );
-    } else {
-      headers.set('Cache-Control', 'no-cache');
-    }
 
     return NextResponse.json(unifiedResponse, { headers });
   } catch (error) {
-    debug.error('Edge AI Route v2 Error:', error);
+    debug.error('Google AI API Error:', error);
 
     // 에러 응답
     return NextResponse.json(
       {
-        error: 'Internal server error',
+        success: false,
+        error: 'Google AI request failed',
         message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString(),
       },
       { status: 500 }
     );
@@ -153,21 +161,18 @@ export async function POST(req: NextRequest) {
 export async function GET(_req: NextRequest) {
   return NextResponse.json({
     status: 'active',
-    version: 'v2',
-    description: 'Edge AI API v2 - Supabase Realtime 기반',
-    runtime: 'edge',
+    version: 'v2-google-ai',
+    description: 'Edge AI API v2 - 순수 Google AI 전용',
+    runtime: 'nodejs',
     region: 'icn1 (Seoul)',
     features: {
+      aiEngine: '순수 Google AI (Gemini Pro)',
       realtime: 'Supabase Realtime 기반 생각중 상태',
-      caching: '캐시 우선 전략으로 Edge Runtime 최적화',
-      fallback: '스마트 폴백으로 안정성 확보',
       rateLimit: '무료 티어 보호 (10req/min)',
+      noRAG: 'RAG나 다른 서비스 사용 안함',
     },
     services: [
-      'redis-cache',
-      'supabase-rag',
-      'gcp-korean-nlp',
-      'gcp-ml-analytics',
+      'google-ai-only'
     ],
     usage: {
       method: 'POST',
@@ -176,21 +181,14 @@ export async function GET(_req: NextRequest) {
         query: 'string (required) - 처리할 질의',
         userId: 'string (optional) - 사용자 ID',
         sessionId: 'string (optional) - 세션 ID (자동 생성)',
-        services: 'array (optional) - 사용할 서비스 목록',
-        parallel: 'boolean (optional) - 병렬 처리 여부 (기본: true)',
-        metadata: 'object (optional) - 추가 메타데이터',
       },
     },
-    migration: {
-      status: 'completed',
-      from: 'Redis Streams',
-      to: 'Supabase Realtime',
-      benefits: [
-        '실시간성: 1초 폴링 → 즉시 (WebSocket)',
-        '네트워크: SSE + 폴링 → WebSocket 단일',
-        '저장 기간: 1시간 TTL → 영구 저장',
-        '쿼리 기능: 제한적 → Full SQL',
-      ],
+    aiModel: {
+      provider: 'Google AI',
+      model: 'gemini-pro',
+      temperature: 0.7,
+      maxTokens: 1000,
+      constraints: 'Google AI 무료 한도 (1,000 요청/일)',
     },
     timestamp: new Date().toISOString(),
   });
