@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
       .catch(debug.warn);
 
     // 4. Google AI 직접 호출
-    const generativeModel = getGoogleAIModel('gemini-pro');
+    const generativeModel = getGoogleAIModel('gemini-1.5-flash');
     
     const result = await generativeModel.generateContent({
       contents: [{ role: 'user', parts: [{ text: query }] }],
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
       engine: 'google-ai',
       confidence: 0.9,
       metadata: {
-        model: 'gemini-pro',
+        model: 'gemini-1.5-flash',
         processingTime,
         actualTokens: response.usageMetadata?.totalTokenCount || 0,
         promptTokens: response.usageMetadata?.promptTokenCount || 0,
@@ -185,7 +185,7 @@ export async function GET(_req: NextRequest) {
     },
     aiModel: {
       provider: 'Google AI',
-      model: 'gemini-pro',
+      model: 'gemini-1.5-flash',
       temperature: 0.7,
       maxTokens: 1000,
       constraints: 'Google AI 무료 한도 (1,000 요청/일)',

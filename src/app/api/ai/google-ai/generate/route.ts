@@ -61,7 +61,7 @@ const postHandler = createApiRoute()
     const startTime = Date.now();
 
     // Google AI 모델 가져오기
-    const generativeModel = getGoogleAIModel(model || 'gemini-pro');
+    const generativeModel = getGoogleAIModel(model || 'gemini-1.5-flash');
 
     // 생성 설정
     const generationConfig = {
@@ -88,7 +88,7 @@ const postHandler = createApiRoute()
       success: true,
       response: text,
       text, // 호환성을 위해 둘 다 제공
-      model: model || 'gemini-pro',
+      model: model || 'gemini-1.5-flash',
       confidence: 0.9, // Google AI는 일반적으로 높은 신뢰도
       metadata: {
         temperature: temperature || 0.7,
@@ -166,7 +166,7 @@ const getHandler = createApiRoute()
       service: 'google-ai-generate',
       status: isConfigured ? 'active' : 'not_configured',
       configured: isConfigured,
-      models: ['gemini-pro', 'gemini-pro-vision'],
+      models: ['gemini-1.5-flash', 'gemini-1.5-pro'],
       capabilities: {
         textGeneration: true,
         streaming: false,
