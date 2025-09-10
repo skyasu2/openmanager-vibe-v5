@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { processRealAIQuery, formatErrorMessage, validateQuery } from '@/domains/ai-sidebar/utils/aiQueryHandlers';
+import { processRealAIQuery, formatErrorMessage, validateQuery } from '../../src/domains/ai-sidebar/utils/aiQueryHandlers';
 
 // fetch mock
 global.fetch = vi.fn();
@@ -77,7 +77,7 @@ describe('aiQueryHandlers', () => {
 
       // LOCAL engine  
       await processRealAIQuery('test', 'LOCAL', 'test-session', onThinkingStart, onThinkingStop);
-      expect(fetch).toHaveBeenCalledWith('/api/mcp/query', expect.any(Object));
+      expect(fetch).toHaveBeenCalledWith('/api/ai/query', expect.any(Object));
     });
 
     it('handles API errors gracefully', async () => {

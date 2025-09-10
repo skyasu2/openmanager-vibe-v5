@@ -167,6 +167,9 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({
         mediaHighContrast.removeEventListener('change', handleHighContrastChange);
       };
     }
+    
+    // window가 undefined인 경우의 cleanup 함수
+    return () => {};
   }, []);
 
   // 🔧 키보드 네비게이션 관리
