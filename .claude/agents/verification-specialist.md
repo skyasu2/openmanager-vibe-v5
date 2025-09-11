@@ -265,9 +265,9 @@ Task verification-specialist "전체 프로젝트 보안 및 성능 검증"
 ## 보고서 생성
 
 검증 완료 후 자동으로 다음 위치에 히스토리 및 보고서 생성:
-- **히스토리 로그**: `reports/verification-history/YYYY-MM-DD/sessionID.json`
-- **상세 리포트**: `reports/verification-history/YYYY-MM-DD/sessionID_report.md`
-- **일별 통계**: `reports/verification-history/YYYY-MM-DD/daily_stats.json`
+- **히스토리 로그**: `docs/verification-history/YYYY-MM-DD/sessionID.json`
+- **상세 리포트**: `docs/verification-history/YYYY-MM-DD/sessionID_report.md`
+- **일별 통계**: `docs/verification-history/YYYY-MM-DD/daily_stats.json`
 - 내용: AI별 점수, 역할, 성과, 트렌드 분석, 개선사항
 
 ### 히스토리 로깅 시스템 🔍

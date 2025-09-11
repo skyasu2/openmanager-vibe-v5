@@ -10,7 +10,7 @@ const path = require('path');
 
 class HistoryAnalyzer {
   constructor() {
-    this.baseDir = path.join(process.cwd(), 'reports', 'verification-history');
+    this.baseDir = path.join(process.cwd(), 'docs', 'verification-history');
   }
 
   /**

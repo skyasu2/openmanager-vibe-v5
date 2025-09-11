@@ -10,7 +10,7 @@ const path = require('path');
 
 class VerificationLogger {
   constructor() {
-    this.baseDir = path.join(process.cwd(), 'reports', 'verification-history');
+    this.baseDir = path.join(process.cwd(), 'docs', 'verification-history');
     this.currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     this.todayDir = path.join(this.baseDir, this.currentDate);
     

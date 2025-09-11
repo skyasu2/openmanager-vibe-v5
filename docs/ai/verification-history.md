@@ -147,9 +147,9 @@ node scripts/verification/history-analyzer.js report
 ```
 
 ### 📁 저장 위치
-- **히스토리 로그**: `reports/verification-history/YYYY-MM-DD/`
-- **분석 리포트**: `reports/verification-history/analysis/`
-- **Git 제외**: 로컬에서만 관리 (.gitignore 적용)
+- **히스토리 로그**: `docs/verification-history/YYYY-MM-DD/`
+- **분석 리포트**: `docs/verification-history/analysis/`
+- **배포 제외**: Git + Vercel 모두 제외 (개발용 로컬 데이터)
 
 ### 🛠️ 상세 사용법
 
