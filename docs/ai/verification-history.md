@@ -124,6 +124,59 @@ Task codex-wrapper "Next.js 15 호환성 문제 해결"
 Task external-ai-orchestrator "시스템 전체 성능 최적화"
 ```
 
+## 🔍 자동 히스토리 로깅 시스템 (2025-09-11 신규)
+
+**모든 AI 교차검증 결과를 자동으로 기록하여 장기적인 성과 추적**
+
+### 📊 자동 기록 항목
+- **AI별 점수**: codex(9.0/10), gemini(9.33/10), qwen(8.5/10) 
+- **역할과 성과**: 각 AI의 전문 영역별 기여도
+- **세션 메타데이터**: 검증 레벨, 소요시간, 합의 결과
+- **트렌드 분석**: 일관성, 효율성, 개선 권장사항
+
+### 🛠️ 사용법
+```bash
+# 자동 로깅 (일반적 사용)
+Task verification-specialist "파일경로 검토 내용"  # 자동 기록됨
+
+# 히스토리 분석
+node scripts/verification/history-analyzer.js summary
+
+# 상세 리포트 생성
+node scripts/verification/history-analyzer.js report
+```
+
+### 📁 저장 위치
+- **히스토리 로그**: `reports/verification-history/YYYY-MM-DD/`
+- **분석 리포트**: `reports/verification-history/analysis/`
+- **Git 제외**: 로컬에서만 관리 (.gitignore 적용)
+
+### 🛠️ 상세 사용법
+
+#### 수동 로깅 (고급 사용자용)
+```bash
+# 1. 세션 시작
+sessionId=$(node scripts/verification/verification-logger.js start verification-specialist 3 "src/components/Modal.tsx" "모달 성능 최적화")
+
+# 2. AI 결과 기록  
+node scripts/verification/verification-logger.js log $sessionId '{"ai":"codex","role":"실무검증","score":9.0,"weight":0.99,"insights":["타입 안전성 우수"]}'
+
+# 3. 세션 완료
+node scripts/verification/verification-logger.js complete $sessionId '{"consensus":"조건부승인","actionsTaken":["React.memo 적용"]}'
+```
+
+#### 분석 도구
+```bash
+# 텍스트 요약
+node scripts/verification/history-analyzer.js summary
+
+# JSON 분석 데이터  
+node scripts/verification/history-analyzer.js analyze
+
+# 파일로 리포트 저장
+node scripts/verification/history-analyzer.js report
+```
+
 ---
 
-💡 **핵심 가치**: **수동 요청 기반**으로 **98% 정확도**와 **실용성** 극대화
+💡 **핵심 가치**: **데이터 기반 AI 성과 추적**으로 **지속적 품질 개선** 달성

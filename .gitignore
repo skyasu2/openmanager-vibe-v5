@@ -381,3 +381,6 @@ src/app/api/.backup/
 # 압축 파일들 (필요시 생성)
 *.tar.gz
 archive/*.tar.gz
+# AI 교차검증 히스토리
+reports/verification-history/
+!reports/verification-history/.gitkeep

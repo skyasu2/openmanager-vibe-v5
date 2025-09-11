@@ -22,7 +22,7 @@ updated: "2025-09-09"
 | **[verification.md](verification.md)** | AI 교차검증 시스템 | **HIGH** | [Testing](../testing/README.md) → [Troubleshoot](../troubleshoot/common.md) | ✅ 완료 |
 | **[agents-mcp.md](agents-mcp.md)** | 서브에이전트-MCP 매핑 | Medium | [Design Sub-Agents](../design/sub-agents.md) → [MCP Integration](../mcp/integration.md) | ✅ 완료 |
 | **[cli-strategy.md](cli-strategy.md)** | CLI 협업 전략 | Medium | [WSL Guide](../guides/wsl.md) → [Performance](../performance/README.md) | ✅ 완료 |
-| **[verification-history.md](verification-history.md)** | 검증 성공 히스토리 | Low | [AI Workflow](workflow.md) → [MCP Advanced](../mcp/advanced.md) | ✅ 완료 |
+| **[verification-history.md](verification-history.md)** | 검증 성공 히스토리 + 자동 로깅 | Medium | [AI Workflow](workflow.md) → [MCP Advanced](../mcp/advanced.md) | ✅ 완료 |
 
 ## 🚀 빠른 시작
 

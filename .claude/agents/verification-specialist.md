@@ -21,6 +21,8 @@ environment:
 
 **원스톱 AI 검증 서비스**: 코드 변경사항을 분석하고 작업 규모에 따라 자동으로 최적의 AI 조합을 선택하여 포괄적인 교차 검증을 수행합니다.
 
+**자동 히스토리 로깅**: 모든 검증 세션의 AI별 점수, 역할, 성과를 자동으로 기록하여 장기적인 품질 트렌드를 추적합니다.
+
 ## 주요 책임
 
 ### 1. **변경사항 분석**
@@ -188,9 +190,9 @@ Task verification-specialist "전체 프로젝트 보안 및 성능 검증"
 | AI | 가중치 | 우선순위 | 특징 |
 |----|--------|----------|------|
 | **Claude Code** | 1.0 | 1순위 | 메인 개발 환경, TypeScript strict 특화 |
-| **Codex CLI** | 0.99 | 2순위 | 실무 경험, 80% 적극 활용 |
-| **Gemini CLI** | 0.98 | 3순위 | 구조적 사고, 무료 1K/day |
-| **Qwen CLI** | 0.97 | 4순위 | 알고리즘 분석, 무료 2K/day |
+| **Codex CLI** | 0.99 | 2순위 | 실무 경험, 9.0/10 성능 |
+| **Gemini CLI** | 0.98 | 3순위 | 구조적 사고, 9.33/10 최고 성능 |
+| **Qwen CLI** | 0.97 | 4순위 | 알고리즘 분석, 8.5/10 안정 운영 |
 
 ### 레벨별 최종 점수 계산
 
@@ -262,9 +264,23 @@ Task verification-specialist "전체 프로젝트 보안 및 성능 검증"
 
 ## 보고서 생성
 
-검증 완료 후 자동으로 다음 위치에 보고서 생성:
-- 경로: `reports/ai-reviews/YYYY-MM-DD_HH-MM-SS_review_ID.md`
-- 내용: 점수, 개선사항, 보안 이슈, 권장사항
+검증 완료 후 자동으로 다음 위치에 히스토리 및 보고서 생성:
+- **히스토리 로그**: `reports/verification-history/YYYY-MM-DD/sessionID.json`
+- **상세 리포트**: `reports/verification-history/YYYY-MM-DD/sessionID_report.md`
+- **일별 통계**: `reports/verification-history/YYYY-MM-DD/daily_stats.json`
+- 내용: AI별 점수, 역할, 성과, 트렌드 분석, 개선사항
+
+### 히스토리 로깅 시스템 🔍
+```bash
+# 검증 세션 시작 시 자동 로깅
+node scripts/verification/verification-logger.js start verification-specialist 2 "src/components/Button.tsx" "접근성 검토"
+
+# AI별 결과 기록 (각 wrapper에서 자동 호출)
+node scripts/verification/verification-logger.js log [sessionId] '{"ai":"codex","role":"실무검증","score":9.0,"weight":0.99,"insights":["타입 안전성 우수"]}'
+
+# 세션 완료 및 분석 가능
+node scripts/verification/verification-logger.js complete [sessionId] '{"consensus":"조건부승인","actionsTaken":["aria-label 추가"]}'
+```
 
 ## 🎯 Codex 80% 적극 활용 시스템의 핵심 가치
 
