@@ -9,8 +9,10 @@ trigger: ai_verification_level_3
 environment:
   TERM: dumb
   NO_COLOR: 1
+  FORCE_COLOR: 0
   NONINTERACTIVE: 1
   PAGER: cat
+  NODE_NO_WARNINGS: 1
 ---
 
 # Qwen CLI 전용 호출 래퍼 (가중치 0.97)
@@ -61,11 +63,16 @@ check_qwen_auth() {
 }
 ```
 
-### 10점 만점 평가 요청 (OAuth 안전 버전)
+### 10점 만점 평가 요청 (개선된 안정성 버전)
 ```bash
-# Qwen CLI 호출 - OAuth 인증 확인 + 10점 만점 평가
+# Qwen CLI 호출 - OAuth 인증 확인 + 10점 만점 평가 (개선됨)
 exec_qwen_score() {
     local target="$1"
+    
+    # 실행 환경 디버깅 정보
+    echo "🔍 Qwen 실행 환경 체크:"
+    echo "- Working Dir: $(pwd)"
+    echo "- Qwen Version: $(qwen --version 2>/dev/null || echo 'ERROR')"
     
     # OAuth 인증 상태 먼저 확인
     if ! check_qwen_auth; then
@@ -85,8 +92,47 @@ exec_qwen_score() {
 2. [개선사항 2]
 3. [개선사항 3]"
     
-    echo "🤖 Qwen CLI 코드 품질 평가 시작... (최대 180초 대기)"
-    timeout 180s qwen -p "$prompt" < /dev/null 2>&1 | sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g'
+    echo "🤖 Qwen CLI 코드 품질 평가 시작... (프롬프트 길이: ${#prompt})"
+    echo "🔄 단계적 타임아웃 시도: 60초 → 120초 → 180초"
+    
+    # 단계적 타임아웃으로 안정성 개선
+    local result=""
+    
+    # 1단계: 60초 시도
+    echo "⏱️ 1단계 시도 (60초)..."
+    result=$(timeout 60s qwen -p "$prompt" < /dev/null 2>&1 | sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g')
+    
+    if [[ -n "$result" && "$result" =~ "점수:" ]]; then
+        echo "✅ 1단계 성공 (60초 내 완료)"
+        echo "$result"
+        return 0
+    fi
+    
+    # 2단계: 120초 시도
+    echo "⏱️ 2단계 시도 (120초)..."
+    result=$(timeout 120s qwen -p "$prompt" < /dev/null 2>&1 | sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g')
+    
+    if [[ -n "$result" && "$result" =~ "점수:" ]]; then
+        echo "✅ 2단계 성공 (120초 내 완료)"
+        echo "$result"
+        return 0
+    fi
+    
+    # 3단계: 180초 최종 시도
+    echo "⏱️ 3단계 최종 시도 (180초)..."
+    result=$(timeout 180s qwen -p "$prompt" < /dev/null 2>&1 | sed -E 's/\x1b\[[0-9;]*[A-Za-z]//g')
+    
+    if [[ -n "$result" && "$result" =~ "점수:" ]]; then
+        echo "✅ 3단계 성공 (180초 내 완료)"
+        echo "$result"
+        return 0
+    fi
+    
+    # 모든 시도 실패
+    echo "🚫 모든 타임아웃 시도 실패. 결과 길이: ${#result}"
+    echo "📊 마지막 응답: ${result:0:200}..."
+    echo "💡 권장: Gemini 또는 Codex 래퍼 사용"
+    return 1
 }
 
 # 사용 예시
