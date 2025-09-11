@@ -118,10 +118,10 @@ ccusage --version    # ccusage 버전 확인
 **GPT-5 기반 고성능 서브 에이전트 - WSL 네트워크 문제 해결됨**
 
 **📊 2025년 공식 사용량 제한 (OpenAI 발표)**:
-- **Plus 사용자**: 30-150 메시지/5시간 (1-2시간 코딩 세션 주간 가능)
+- **Plus 사용자**: 30-150 메시지/5시간 (현재 여유 사용량 확보)
 - **Pro 사용자**: 300-1,500 메시지/5시간 (기본적으로 제한 없음)
 - **보너스 크레딧**: Plus $5, Pro $50 (30일 만료)
-- **초기 관대한 접근**: 첫 몇 주 동안 무제한에 가까운 사용량 제공
+- **실제 사용 현황**: codex-wrapper 적극 활용 가능한 수준
 
 **🔧 WSL 환경 해결 완료**:
 ```bash
@@ -456,20 +456,21 @@ large_task → codex-cli + gemini-cli + qwen-cli (동시 실행)
 critical_feature → multi_ai_review_process()
 ```
 
-#### **AI CLI 래퍼 자동 활용**
+#### **AI CLI 래퍼 균형적 활용** (Plus 사용량 여유)
 
 ```bash
-# ChatGPT Codex 래퍼 활용 (Plus $20/월, GPT-5)
+# ChatGPT Codex 래퍼 적극 활용 (Plus $20/월, GPT-5, 가중치 0.99)
 Task codex-wrapper "복잡한 알고리즘 최적화 필요"
 Task codex-wrapper "이 코드의 보안 취약점 분석해줘"
+Task codex-wrapper "실무 중심 코드 검토 및 개선사항 제시"
 
-# Google Gemini 래퍼 활용 (무료 1K/day, OAuth 캐시 정상)
+# Google Gemini 래퍼 활용 (무료 1K/day, OAuth 캐시 정상, 가중치 0.98)
 Task gemini-wrapper "대용량 로그 분석 및 성능 병목 찾기" 
-Task gemini-wrapper "API 문서 자동 생성해줘"
+Task gemini-wrapper "시스템 아키텍처 설계 검토"
 
-# Qwen 래퍼 활용 (OAuth 2K/day, 정상 작동)
+# Qwen 래퍼 활용 (OAuth 2K/day, 정상 작동, 가중치 0.97)
 Task qwen-wrapper "React Hook 패턴 구현"
-Task qwen-wrapper "이 정렬 알고리즘이 최적인지 검증"
+Task qwen-wrapper "알고리즘 성능 최적화 분석"
 ```
 
 #### **전문 에이전트 자동 호출**

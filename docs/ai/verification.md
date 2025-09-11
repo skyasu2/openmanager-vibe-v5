@@ -71,17 +71,23 @@ Task ai-verification-coordinator "로그인 시스템 전체 검증 Level 3"
 
 ## 💡 효율성 전략
 
-### 무료 AI 래퍼 우선
+### 균형적 AI 래퍼 활용
 ```bash
-Task gemini-wrapper "기본 코드 검토"  # 1K/day 무료
-Task qwen-wrapper "성능 분석"         # 2K/day 무료 (정상 작동)
-Task codex-wrapper "복잡한 버그 분석"  # ChatGPT Plus $20/월
+# 가중치 순서로 적극 활용 (Plus 사용량 여유 있음)
+Task codex-wrapper "실무 중심 코드 검토"  # ChatGPT Plus $20/월, 가중치 0.99
+Task gemini-wrapper "아키텍처 분석"      # 1K/day 무료, 가중치 0.98
+Task qwen-wrapper "성능 최적화"          # 2K/day 무료, 가중치 0.97
 ```
 
-### 래퍼별 특화 활용
-- **codex-wrapper**: 실무 경험 기반 호환성 문제 (가중치 0.99)
+### 래퍼별 특화 활용 (Plus 사용량 여유 활용)
+- **codex-wrapper**: 실무 경험 기반 호환성 문제 (가중치 0.99) ← **적극 활용 권장**
 - **gemini-wrapper**: 대규모 시스템 아키텍처 분석 (가중치 0.98)  
-- **qwen-wrapper**: 알고리즘 최적화 전문 (가중치 0.97, OAuth 정상 작동)
+- **qwen-wrapper**: 알고리즘 최적화 전문 (가중치 0.97)
+
+### 사용량 기반 우선순위
+1. **codex-wrapper**: ChatGPT Plus 여유 → 실무 검토에 적극 활용
+2. **gemini-wrapper**: 1K/day 무료 → 구조적 분석 우선
+3. **qwen-wrapper**: 2K/day 무료 → 성능 최적화 전담
 
 ## 📊 성과 지표
 

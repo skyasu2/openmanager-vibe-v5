@@ -83,14 +83,14 @@ Task qwen-wrapper "정렬 알고리즘 시간복잡도 분석"
 
 ## 💰 비용 효율성
 
-### 무료 래퍼 우선 활용
+### 균형적 래퍼 활용 (Plus 사용량 여유)
 ```bash
-# 1단계: 무료 AI 래퍼 활용
-Task gemini-wrapper "기본 검토"  # 1K/day 무료, OAuth 캐시 정상
-Task qwen-wrapper "성능 분석"    # 2K/day 무료, OAuth 정상 작동
+# 가중치와 전문성 기준으로 적극 활용
+Task codex-wrapper "실무 코드 검토"     # ChatGPT Plus $20/월, GPT-5, 1순위
+Task gemini-wrapper "시스템 분석"       # 1K/day 무료, 2순위  
+Task qwen-wrapper "알고리즘 최적화"     # 2K/day 무료, 3순위
 
-# 2단계: 복잡한 문제만 유료 AI 래퍼
-Task codex-wrapper "고급 버그 분석"  # ChatGPT Plus $20/월, GPT-5 사용
+# Plus 사용량 여유로 codex-wrapper 적극 활용 권장
 ```
 
 ### 효율성 지표
@@ -105,7 +105,8 @@ Task codex-wrapper "고급 버그 분석"  # ChatGPT Plus $20/월, GPT-5 사용
 - ✅ 서브에이전트 래퍼 통한 체계적 활용
 - ✅ 명확한 역할 분담 (가중치 시스템)
 - ✅ 병렬 처리로 시간 단축
-- ✅ 무료 AI 래퍼 우선 활용
+- ✅ codex-wrapper 적극 활용 (Plus 사용량 여유)
+- ✅ 가중치 순서대로 균형적 활용
 
 ### DON'T (직접 CLI 호출 지양)
 - ❌ CLI 직접 호출 (`codex exec`, `gemini -p`, `qwen -p`)
