@@ -467,7 +467,7 @@ Task codex-wrapper "이 코드의 보안 취약점 분석해줘"
 Task gemini-wrapper "대용량 로그 분석 및 성능 병목 찾기" 
 Task gemini-wrapper "API 문서 자동 생성해줘"
 
-# Qwen 래퍼 활용 (OAuth 2K/day, 재인증 필요시 배제)
+# Qwen 래퍼 활용 (OAuth 2K/day, 정상 작동)
 Task qwen-wrapper "React Hook 패턴 구현"
 Task qwen-wrapper "이 정렬 알고리즘이 최적인지 검증"
 ```

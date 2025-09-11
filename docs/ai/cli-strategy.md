@@ -87,7 +87,7 @@ Task qwen-wrapper "정렬 알고리즘 시간복잡도 분석"
 ```bash
 # 1단계: 무료 AI 래퍼 활용
 Task gemini-wrapper "기본 검토"  # 1K/day 무료, OAuth 캐시 정상
-Task qwen-wrapper "성능 분석"    # 2K/day 무료, OAuth 재인증 필요시 배제
+Task qwen-wrapper "성능 분석"    # 2K/day 무료, OAuth 정상 작동
 
 # 2단계: 복잡한 문제만 유료 AI 래퍼
 Task codex-wrapper "고급 버그 분석"  # ChatGPT Plus $20/월, GPT-5 사용
