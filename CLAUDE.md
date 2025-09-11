@@ -459,15 +459,15 @@ critical_feature → multi_ai_review_process()
 #### **AI CLI 래퍼 자동 활용**
 
 ```bash
-# ChatGPT Codex 활용 (Plus $20/월)
+# ChatGPT Codex 래퍼 활용 (Plus $20/월, GPT-5)
 Task codex-wrapper "복잡한 알고리즘 최적화 필요"
 Task codex-wrapper "이 코드의 보안 취약점 분석해줘"
 
-# Google Gemini 활용 (무료 1K/day)
+# Google Gemini 래퍼 활용 (무료 1K/day, OAuth 캐시 정상)
 Task gemini-wrapper "대용량 로그 분석 및 성능 병목 찾기" 
 Task gemini-wrapper "API 문서 자동 생성해줘"
 
-# Qwen 활용 (OAuth 2K/day)
+# Qwen 래퍼 활용 (OAuth 2K/day, 재인증 필요시 배제)
 Task qwen-wrapper "React Hook 패턴 구현"
 Task qwen-wrapper "이 정렬 알고리즘이 최적인지 검증"
 ```

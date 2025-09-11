@@ -56,12 +56,12 @@ qwen --version       # Qwen CLI
 codex --version      # Codex CLI
 ```
 
-### 서브에이전트 활용
+### 서브에이전트 래퍼 활용 (권장 방식)
 ```bash
-# 체계적 협업
-Task gemini-wrapper "gemini '대용량 로그 분석 패턴 찾기'"
-Task codex-wrapper "codex exec '복잡한 알고리즘 최적화'"
-Task qwen-wrapper "qwen '정렬 알고리즘 시간복잡도 분석'"
+# 체계적 래퍼 기반 협업
+Task gemini-wrapper "대용량 로그 분석 패턴 찾기"
+Task codex-wrapper "복잡한 알고리즘 최적화"
+Task qwen-wrapper "정렬 알고리즘 시간복잡도 분석"
 ```
 
 ## 📊 활용 시나리오
@@ -83,14 +83,14 @@ Task qwen-wrapper "qwen '정렬 알고리즘 시간복잡도 분석'"
 
 ## 💰 비용 효율성
 
-### 무료 티어 우선 활용
+### 무료 래퍼 우선 활용
 ```bash
-# 1단계: 무료 AI 활용
-Task gemini-wrapper "기본 검토"  # 1K/day 무료
-Task qwen-wrapper "성능 분석"    # 2K/day 무료
+# 1단계: 무료 AI 래퍼 활용
+Task gemini-wrapper "기본 검토"  # 1K/day 무료, OAuth 캐시 정상
+Task qwen-wrapper "성능 분석"    # 2K/day 무료, OAuth 재인증 필요시 배제
 
-# 2단계: 복잡한 문제만 유료 AI
-Task codex-wrapper "고급 버그 분석"  # Plus $20/월
+# 2단계: 복잡한 문제만 유료 AI 래퍼
+Task codex-wrapper "고급 버그 분석"  # ChatGPT Plus $20/월, GPT-5 사용
 ```
 
 ### 효율성 지표
@@ -101,14 +101,15 @@ Task codex-wrapper "고급 버그 분석"  # Plus $20/월
 
 ## ✅ 베스트 프랙티스
 
-### DO
-- ✅ 서브에이전트 통한 체계적 활용
-- ✅ 명확한 역할 분담
+### DO (래퍼 방식 권장)
+- ✅ 서브에이전트 래퍼 통한 체계적 활용
+- ✅ 명확한 역할 분담 (가중치 시스템)
 - ✅ 병렬 처리로 시간 단축
-- ✅ 무료 AI 우선 활용
+- ✅ 무료 AI 래퍼 우선 활용
 
-### DON'T
-- ❌ CLI 직접 호출 (서브에이전트 우회)
+### DON'T (직접 CLI 호출 지양)
+- ❌ CLI 직접 호출 (`codex exec`, `gemini -p`, `qwen -p`)
+- ❌ 서브에이전트 래퍼 우회
 - ❌ 무분별한 병렬 처리
 - ❌ 단순 작업에 과도한 협업
 - ❌ 무료 한도 초과
