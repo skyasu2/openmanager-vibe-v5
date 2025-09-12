@@ -3,7 +3,10 @@
   "version": "5.70.11",
   "private": true,
   "scripts": {
+    "scan:unicode": "node scripts/dev/find-invalid-unicode.js",
     "check:claude": "wsl ./scripts/windows-support/utils/run-claude.sh",
+    "claude:launch": "bash scripts/ai/launch-claude-wsl.sh",
+    "claude:sanitize": "node scripts/diagnostics/claude-json-sanitize.js --write",
     "windows:dev": "powershell -ExecutionPolicy Bypass -File scripts/windows-support/env-setup/quick-dev-start.ps1",
     "windows:dev:fast": "powershell -ExecutionPolicy Bypass -File scripts/windows-support/env-setup/quick-dev-start.ps1 -Fast",
     "windows:dev:full": "powershell -ExecutionPolicy Bypass -File scripts/windows-support/env-setup/quick-dev-start.ps1 -Full",

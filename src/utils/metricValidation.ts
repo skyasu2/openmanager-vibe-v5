@@ -15,29 +15,30 @@ export function validateMetricValue(
   type: MetricType,
   fallbackValue: number = 0
 ): number {
-  // NaN 처리
-  if (Number.isNaN(value)) {
+  // 비숫자 타입을 숫자로 변환 후 NaN 처리
+  const numValue = Number(value);
+  if (Number.isNaN(numValue)) {
     console.warn(`Invalid ${type} metric value:`, value, 'Using fallback:', fallbackValue);
     return Math.max(0, Math.min(100, fallbackValue));
   }
   
   // Infinity 처리 - 양의 무한대는 100, 음의 무한대는 0
-  if (value === Infinity) {
+  if (numValue === Infinity) {
     console.warn(`${type} metric value is Infinity, using 100`);
     return 100;
   }
   
-  if (value === -Infinity) {
+  if (numValue === -Infinity) {
     console.warn(`${type} metric value is -Infinity, using 0`);
     return 0;
   }
 
   // 0-100 범위로 제한
-  const clampedValue = Math.max(0, Math.min(100, value));
+  const clampedValue = Math.max(0, Math.min(100, numValue));
   
   // 원본 값이 범위를 벗어났으면 경고 로그
-  if (value !== clampedValue) {
-    console.warn(`${type} metric value ${value} clamped to ${clampedValue}`);
+  if (numValue !== clampedValue) {
+    console.warn(`${type} metric value ${numValue} clamped to ${clampedValue}`);
   }
 
   return Math.round(clampedValue * 100) / 100; // 소수점 2자리까지 반올림

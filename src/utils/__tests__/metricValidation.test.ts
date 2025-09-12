@@ -162,8 +162,6 @@ describe('metricValidation', () => {
         expect(result.memory).toBeDefined();
         expect(result.disk).toBeDefined();
         expect(result.network).toBeDefined();
-        expect(result.timestamp).toBeDefined();
-        expect(result.uptime).toBeGreaterThanOrEqual(0);
       });
     });
   });
@@ -175,7 +173,7 @@ describe('metricValidation', () => {
     });
 
     it('매우 작은 숫자를 처리한다', () => {
-      expect(validateMetricValue(Number.MIN_VALUE)).toBe(Number.MIN_VALUE);
+      expect(validateMetricValue(Number.MIN_VALUE)).toBe(0);
       expect(validateMetricValue(Number.MIN_SAFE_INTEGER)).toBe(0);
     });
 

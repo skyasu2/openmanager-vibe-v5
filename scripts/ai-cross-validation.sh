@@ -83,60 +83,101 @@ get_file_summary() {
     fi
 }
 
-# Codex CLI 분석 (ChatGPT Plus)
+# Codex CLI 분석 (ChatGPT Plus) - 개선된 버전
 analyze_with_codex() {
     local file_path="$1"
-    local summary_file
-    summary_file=$(get_file_summary "$file_path")
+    local file_content
     
-    log_info "Codex CLI (ChatGPT Plus)로 분석 중..."
+    log_info "🤖 Codex CLI (GPT-5) 분석 중... (90초 타임아웃)"
     
-    # 간단한 프롬프트로 시간 초과 방지
-    timeout 20s codex exec "
-다음 TypeScript 코드 파일을 간단히 분석하세요:
+    # 파일 내용 직접 읽어서 전달 (더 안정적)
+    if [ -f "$file_path" ]; then
+        file_content=$(head -c 8000 "$file_path" 2>/dev/null)
+        
+        timeout 90s codex exec "
+실무 관점에서 다음 TypeScript 코드를 10점 만점으로 평가해주세요:
+
 파일: $(basename "$file_path")
+---
+$file_content
+---
 
-다음 형식으로 답변해주세요:
-점수: X/10
-주요 장점: (2개)
-개선사항: (2개)
-보안 이슈: (있다면 1개)
-
-파일 내용은 직접 읽어서 분석해주세요.
+다음 형식으로 답변:
+점수: X.X/10
+장점: [주요 장점 2개]
+개선사항: [구체적 개선사항 2개] 
+보안/성능: [발견된 이슈 또는 '없음']
 " 2>/dev/null || {
-        log_warning "Codex CLI 시간 초과 또는 오류 발생"
-        echo "Codex 분석 실패: 시간 초과 또는 연결 오류"
-    }
+            log_warning "⚠️ Codex CLI 타임아웃 (90초 초과)"
+            echo "🤖 Codex 분석: 타임아웃 발생 - 파일이 너무 크거나 네트워크 문제"
+        }
+    else
+        echo "❌ Codex 분석: 파일을 찾을 수 없음 ($file_path)"
+    fi
 }
 
-# Gemini CLI 분석 (Google AI 무료)
+# Gemini CLI 분석 (Google AI 무료 1K/day) - CLAUDE.md 기준 45초
 analyze_with_gemini() {
     local file_path="$1"
+    local file_content
     
-    log_info "Gemini CLI (Google AI)로 분석 중..."
+    log_info "🤖 Gemini CLI (구조+아키텍처) 분석 중... (45초 타임아웃)"
     
-    timeout 15s gemini -p "
-$(basename "$file_path") 파일을 빠르게 분석:
-- 점수: /10
-- 장점 2개
-- 개선점 2개
-간결하게 답변해주세요.
+    if [ -f "$file_path" ]; then
+        file_content=$(head -c 6000 "$file_path" 2>/dev/null)
+        
+        timeout 45s gemini -p "
+구조적 관점에서 TypeScript 코드를 분석해주세요:
+
+파일: $(basename "$file_path")
+---
+$file_content
+---
+
+분석 형식:
+점수: X.X/10
+구조적 장점: [아키텍처 관점 2개]
+리팩토링 제안: [구조 개선사항 2개]
+확장성: [확장성 평가]
 " 2>/dev/null || {
-        log_warning "Gemini CLI 시간 초과 또는 오류 발생"
-        echo "Gemini 분석 실패: 시간 초과 또는 연결 오류"
-    }
+            log_warning "⚠️ Gemini CLI 타임아웃 (45초) - 무료 한도 1K/day 초과 가능"
+            echo "🤖 Gemini 분석: 45초 타임아웃 또는 무료 한도 초과"
+        }
+    else
+        echo "❌ Gemini 분석: 파일 찾을 수 없음"
+    fi
 }
 
-# Qwen CLI 분석 (Qwen OAuth 무료)
+# Qwen CLI 분석 (OAuth 무료 2K/day) - CLAUDE.md 기준 60초
 analyze_with_qwen() {
     local file_path="$1"
+    local file_content
     
-    log_info "Qwen CLI (OAuth)로 분석 중..."
+    log_info "🤖 Qwen CLI (성능+알고리즘) 분석 중... (60초 타임아웃)"
     
-    timeout 15s qwen -p "TypeScript 코드 품질 평가: $(basename "$file_path") 파일을 점수(X/10)와 핵심 개선사항 2개로 요약해주세요." 2>/dev/null || {
-        log_warning "Qwen CLI 시간 초과 또는 오류 발생"
-        echo "Qwen 분석 실패: 시간 초과 또는 연결 오류"
-    }
+    if [ -f "$file_path" ]; then
+        file_content=$(head -c 5000 "$file_path" 2>/dev/null)
+        
+        timeout 60s qwen -p "
+알고리즘 관점에서 TypeScript 코드를 분석해주세요:
+
+파일: $(basename "$file_path")
+---
+$file_content
+---
+
+분석 형식:
+점수: X.X/10
+알고리즘 장점: [효율성 관점 2개]
+최적화 제안: [성능 개선방안 2개]
+복잡도: [시간/공간 복잡도 평가]
+" 2>/dev/null || {
+            log_warning "⚠️ Qwen CLI 타임아웃 (60초) - OAuth 2K/day 한도 초과 가능"
+            echo "🤖 Qwen 분석: 60초 타임아웃 또는 OAuth 한도 초과"
+        }
+    else
+        echo "❌ Qwen 분석: 파일 찾을 수 없음"
+    fi
 }
 
 # Claude Code 자체 분석 (기본 분석)

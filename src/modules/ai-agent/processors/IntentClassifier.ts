@@ -81,6 +81,8 @@ export class IntentClassifier {
         /네트워크.*트래픽/i,
         /리소스.*사용/i,
         /performance.*metrics/i,
+        /서버.*성능.*예측/i,
+        /성능.*예측/i,
       ],
       intent: 'performance_metrics',
       name: '성능 메트릭 조회',

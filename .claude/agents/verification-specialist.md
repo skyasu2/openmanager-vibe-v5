@@ -1,6 +1,6 @@
 ---
 name: verification-specialist
-description: 코드 품질 검증 전문가 - 파일을 분석하고 품질 점수 및 개선사항 제시
+description: PROACTIVELY analyze code quality, security, and performance for TypeScript files. Use me for quality scoring, vulnerability detection, and improvement recommendations. MUST BE USED for code reviews and file analysis.
 tools: Read, Grep, Glob, Bash, TodoWrite, mcp__memory__create_entities, mcp__sequential-thinking__sequentialthinking, mcp__serena__find_symbol, mcp__serena__search_for_pattern, mcp__serena__get_symbols_overview, mcp__serena__read_file
 priority: medium
 ---
@@ -48,15 +48,15 @@ priority: medium
 **자동 AI 선택**: 파일 크기와 중요도에 따라 최적의 AI 조합을 자동 선택하여 `external-ai-orchestrator`를 통해 실행합니다.
 
 ```typescript
-// 통합된 AI 검증 플로우
+// 자연어 기반 AI 검증 플로우 (Claude Code v1.0.108+)
 const orchestrateVerification = (level: number, filePath: string) => {
   switch(level) {
     case 1:
-      return 'Task external-ai-orchestrator "Level 1 단일 AI 검증"';
+      return 'Claude Code performs single AI verification with full context';
     case 2: 
-      return 'Task external-ai-orchestrator "Level 2 병렬 검증: Claude + Codex"';
+      return 'Execute parallel verification using Claude Code + Codex CLI';
     case 3:
-      return 'Task external-ai-orchestrator "Level 3 완전 교차 검증: Claude + Codex + Gemini + Qwen"';
+      return 'Perform complete cross-verification with Claude + Codex + Gemini + Qwen CLIs';
   }
 };
 ```
@@ -105,43 +105,43 @@ graph TD
 - 🤖 **통합**: `external-ai-orchestrator`로 모든 외부 AI 관리
 - 📊 **투명성**: 실시간 진행 상황 및 상세 보고서 제공
 
-## 🚀 사용법 (단일 진입점)
+## 🚀 사용법 (자연어 기반 호출)
 
-> **💡 핵심**: 모든 AI 검증은 `verification-specialist`로 시작하세요!
+> **💡 핵심**: Claude Code v1.0.108부터 자연어로 서브에이전트를 호출합니다!
 
 ### 🎯 파일 자동 검증 (가장 일반적)
-```bash
-Task verification-specialist "src/app/api/auth/route.ts 검증"
+```
+"Use the verification-specialist to analyze src/app/api/auth/route.ts for code quality and security"
 ```
 **결과**: 파일 크기와 중요도를 자동 분석하여 최적 AI 조합 선택
 
 ### 📋 커밋 전체 검증
-```bash
-Task verification-specialist "최근 커밋 변경사항 검증"
+```
+"Have the verification-specialist review all recent commit changes"
 ```
 **결과**: 모든 변경된 파일을 분석하여 각각 최적 레벨로 검증
 
 ### ⚡ 레벨 강제 지정 (필요시)
-```bash
-Task verification-specialist "src/lib/utils.ts Level 3 검증 강제 실행"
+```
+"Ask the verification-specialist to perform Level 3 complete verification on src/lib/utils.ts"
 ```
 **결과**: 파일 크기 무관하게 4-AI 완전 교차 검증 강제 수행
 
 ### 🔐 보안 중심 검증
-```bash
-Task verification-specialist "src/app/api/payment/route.ts 보안 취약점 중심 검증"
+```
+"Use verification-specialist for security-focused analysis of src/app/api/payment/route.ts"
 ```
 **결과**: 보안 관점 우선으로 모든 AI가 집중 검토
 
 ### 🎨 아키텍처 중심 검증
-```bash
-Task verification-specialist "src/components/unified-profile/ 아키텍처 설계 검토"
 ```
-**결과**: Gemini 우선으로 SOLID 원칙 및 설계 패턴 중심 검토
+"Have verification-specialist review architecture design of src/components/unified-profile/"
+```
+**결과**: SOLID 원칙 및 설계 패턴 중심 검토
 
 ### 📊 전체 프로젝트 검증
-```bash
-Task verification-specialist "전체 프로젝트 보안 및 성능 검증"
+```
+"Ask verification-specialist to perform comprehensive security and performance review"
 ```
 **결과**: 중요 파일들을 자동 식별하여 포괄적 검증 수행
 

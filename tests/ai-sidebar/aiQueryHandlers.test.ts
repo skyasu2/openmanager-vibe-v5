@@ -40,14 +40,14 @@ describe('aiQueryHandlers', () => {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'X-AI-Mode': 'google_only'
+          'X-AI-Mode': 'google_ai'
         },
         body: JSON.stringify({
           query: '서버 상태는 어떤가요?',
           context: 'ai-sidebar',
           includeThinking: true,
           sessionId: 'test-session-id',
-          mode: 'google_only',
+          mode: 'google_ai',
           prompt: '서버 상태는 어떤가요?'
         })
       });
