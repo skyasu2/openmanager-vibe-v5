@@ -38,9 +38,8 @@ export function useSession(): UseSessionReturn {
     // 초기 세션 확인
     const checkSession = async () => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
+        const response = await supabase.auth.getSession();
+        const session = response?.data?.session;
         if (session?.user) {
           setUser(session.user);
           setStatus('authenticated');
@@ -102,9 +101,7 @@ export function useSession(): UseSessionReturn {
     checkSession();
 
     // 세션 변경 감지
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const response = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         setUser(session.user);
         setStatus('authenticated');
@@ -118,7 +115,9 @@ export function useSession(): UseSessionReturn {
     });
 
     return () => {
-      subscription.unsubscribe();
+      if (response?.data?.subscription) {
+        response.data.subscription.unsubscribe();
+      }
     };
   }, []); // router 의존성 제거 - Next.js router는 불안정한 참조로 무한 리렌더링 유발
 
@@ -138,9 +137,8 @@ export function useSession(): UseSessionReturn {
 
   // 세션 업데이트 함수
   const update = async (): Promise<Session | null> => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const response = await supabase.auth.getSession();
+    const session = response?.data?.session;
     if (session?.user) {
       setUser(session.user);
       setStatus('authenticated');
