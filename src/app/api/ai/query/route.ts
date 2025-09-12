@@ -108,11 +108,110 @@ async function logQuery(
   }
 }
 
+// 🔍 에러 분류 시스템
+interface ErrorAnalysis {
+  type: 'timeout' | 'network' | 'api' | 'memory' | 'validation' | 'unknown';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  retryable: boolean;
+  confidence: number;
+  userFriendly: boolean;
+}
+
+function classifyError(error: Error, responseTime: number): ErrorAnalysis {
+  const message = error.message?.toLowerCase() || '';
+  const stack = error.stack?.toLowerCase() || '';
+  
+  // 타임아웃 에러
+  if (message.includes('timeout') || responseTime > 30000) {
+    return {
+      type: 'timeout',
+      severity: 'medium',
+      retryable: true,
+      confidence: 0.3,
+      userFriendly: true
+    };
+  }
+  
+  // 네트워크 에러
+  if (message.includes('fetch') || message.includes('connection') || message.includes('network')) {
+    return {
+      type: 'network',
+      severity: 'high',
+      retryable: true,
+      confidence: 0.2,
+      userFriendly: true
+    };
+  }
+  
+  // API 관련 에러
+  if (message.includes('api') || message.includes('400') || message.includes('401') || message.includes('403')) {
+    return {
+      type: 'api',
+      severity: 'high',
+      retryable: false,
+      confidence: 0.1,
+      userFriendly: true
+    };
+  }
+  
+  // 메모리 관련 에러
+  if (message.includes('memory') || message.includes('heap')) {
+    return {
+      type: 'memory',
+      severity: 'critical',
+      retryable: false,
+      confidence: 0.1,
+      userFriendly: false
+    };
+  }
+  
+  // 유효성 검사 에러
+  if (message.includes('validation') || message.includes('required') || message.includes('invalid')) {
+    return {
+      type: 'validation',
+      severity: 'low',
+      retryable: false,
+      confidence: 0.4,
+      userFriendly: true
+    };
+  }
+  
+  // 알 수 없는 에러
+  return {
+    type: 'unknown',
+    severity: 'medium',
+    retryable: true,
+    confidence: 0.2,
+    userFriendly: true
+  };
+}
+
+// 🎯 에러 타입별 맞춤형 메시지 생성
+function generateErrorMessage(analysis: ErrorAnalysis): string {
+  const messages = {
+    timeout: '⏱️ 요청 처리 시간이 초과되었습니다. 네트워크 상태를 확인하고 다시 시도해주세요.',
+    network: '🌐 네트워크 연결에 문제가 있습니다. 잠시 후 다시 시도해주세요.',
+    api: '🔧 API 서비스에 일시적인 문제가 있습니다. 몇 분 후 다시 시도해주세요.',
+    memory: '💾 시스템 리소스가 부족합니다. 관리자에게 문의하거나 잠시 후 시도해주세요.',
+    validation: '📝 입력하신 내용을 확인해주세요. 질문을 다시 작성해보시겠어요?',
+    unknown: '🤖 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.'
+  };
+  
+  let baseMessage = messages[analysis.type];
+  
+  // 재시도 가능한 경우 추가 안내
+  if (analysis.retryable) {
+    baseMessage += '\n\n💡 팁: 질문을 좀 더 간단하게 바꿔서 시도해보세요.';
+  }
+  
+  return baseMessage;
+}
+
 async function postHandler(request: NextRequest) {
   let query = ''; // 에러 처리를 위해 query를 외부에서 선언
+  const startTime = Date.now(); // startTime을 최상위로 이동
 
   try {
-    const startTime = Date.now();
 
     const body: AIQueryRequest = await request.json();
     query = body.query; // query 저장
@@ -278,25 +377,35 @@ async function postHandler(request: NextRequest) {
       headers,
     });
   } catch (error) {
-    debug.error('❌ AI 쿼리 처리 실패:', error);
+    const finalResponseTime = Date.now() - startTime;
+    
+    // 🔍 에러 분류 및 처리
+    const errorAnalysis = classifyError(error as Error, finalResponseTime);
+    debug.error(`❌ AI 쿼리 처리 실패 [${errorAnalysis.type}]:`, error);
 
-    // 타임아웃이나 에러 시 폴백 응답 제공
+    // 📊 에러 로깅 (의도와 함께)
+    const intent = analyzeQueryIntent(query);
+    await logQuery(query, finalResponseTime, false, `error:${errorAnalysis.type}:${intent}`);
+
+    // 🎯 에러 타입별 맞춤형 폴백 응답
+    const fallbackMessage = generateErrorMessage(errorAnalysis);
     const fallbackResponse = {
-      success: true, // 폴백도 성공으로 처리
-      query: query || '', // 이미 저장된 query 사용
-      answer:
-        '죄송합니다. 일시적인 문제로 쿼리를 처리할 수 없습니다. 잠시 후 다시 시도해주세요.',
-      response:
-        '죄송합니다. 일시적인 문제로 쿼리를 처리할 수 없습니다. 잠시 후 다시 시도해주세요.',
-      confidence: 0.5,
-      engine: 'fallback',
-      responseTime: 0,
+      success: true, // 폴백도 성공으로 처리 (사용자 경험)
+      query: query || '',
+      answer: fallbackMessage,
+      response: fallbackMessage,
+      confidence: errorAnalysis.confidence,
+      engine: 'error-fallback',
+      responseTime: finalResponseTime,
       timestamp: new Date().toISOString(),
       metadata: {
         mode: 'fallback',
         cacheHit: false,
-        intent: 'general',
-        responseTime: 0,
+        intent,
+        responseTime: finalResponseTime,
+        errorType: errorAnalysis.type,
+        errorSeverity: errorAnalysis.severity,
+        retryable: errorAnalysis.retryable,
         queryId: crypto.randomUUID(),
         fallback: true, // 폴백 응답 표시
         error: error instanceof Error ? error.message : 'Unknown error',

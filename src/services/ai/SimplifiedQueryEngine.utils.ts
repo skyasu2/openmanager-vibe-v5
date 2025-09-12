@@ -31,36 +31,162 @@ import type {
  */
 export class SimplifiedQueryEngineUtils {
   private responseCache: Map<string, CacheEntry> = new Map();
+  
+  // 📊 캐시 통계 추적
+  private cacheStats = {
+    hits: 0,
+    misses: 0,
+    evictions: 0,
+    totalRequests: 0,
+    lastReset: Date.now(),
+  };
 
   /**
-   * 🔑 캐시 키 생성
+   * 🔑 의미론적 캐시 키 생성 (히트율 30% → 60% 목표)
    */
   generateCacheKey(
     query: string,
     mode: string,
     context?: AIQueryContext
   ): string {
-    const normalizedQuery = query.toLowerCase().trim();
-    const contextKey = context?.servers ? 'with-servers' : 'no-context';
-    return createCacheKey('ai', `${mode}:${normalizedQuery}:${contextKey}`);
+    // 1. 기본 정규화
+    let normalizedQuery = query.toLowerCase().trim();
+    
+    // 2. 의미론적 정규화 - 유사한 질의를 같은 키로 매핑
+    normalizedQuery = this.normalizeQuerySemantics(normalizedQuery);
+    
+    // 3. 컨텍스트 기반 키 생성
+    const contextKey = this.generateContextKey(context);
+    
+    // 4. 캐시 키 생성 (의미론적 해시 포함)
+    const semanticHash = this.generateSemanticHash(normalizedQuery);
+    return createCacheKey('ai', `${mode}:${semanticHash}:${contextKey}`);
   }
 
   /**
-   * 📦 캐시된 응답 가져오기
+   * 🧠 의미론적 쿼리 정규화
+   */
+  private normalizeQuerySemantics(query: string): string {
+    // 동의어 및 유사 표현 매핑
+    const synonymMap = new Map([
+      // 서버 상태 관련
+      ['서버 상태', '상태'],
+      ['시스템 상태', '상태'],
+      ['현재 상태', '상태'],
+      ['서버들의 상태', '상태'],
+      
+      // 성능 관련
+      ['cpu 사용률', 'cpu'],
+      ['cpu 사용량', 'cpu'],
+      ['프로세서 사용률', 'cpu'],
+      ['메모리 사용률', '메모리'],
+      ['메모리 사용량', '메모리'],
+      ['램 사용률', '메모리'],
+      
+      // 문제 관련
+      ['에러', '오류'],
+      ['문제점', '문제'],
+      ['장애', '문제'],
+      ['이슈', '문제'],
+      
+      // 명령어 관련
+      ['명령어', '명령'],
+      ['커맨드', '명령'],
+      ['실행 방법', '방법'],
+      ['어떻게', '방법'],
+    ]);
+
+    // 불용어 제거
+    const stopWords = ['은', '는', '이', '가', '을', '를', '에', '의', '로', '으로', '와', '과', '하는', '있는', '된', '되는'];
+    
+    let normalized = query;
+    
+    // 동의어 치환
+    for (const [original, replacement] of synonymMap) {
+      const regex = new RegExp(original, 'gi');
+      normalized = normalized.replace(regex, replacement);
+    }
+    
+    // 불용어 제거 (한국어)
+    for (const stopWord of stopWords) {
+      const regex = new RegExp(`\\b${stopWord}\\b`, 'g');
+      normalized = normalized.replace(regex, '');
+    }
+    
+    // 중복 공백 제거 및 정리
+    return normalized.replace(/\s+/g, ' ').trim();
+  }
+
+  /**
+   * 🎯 컨텍스트 키 생성
+   */
+  private generateContextKey(context?: AIQueryContext): string {
+    if (!context) return 'no-context';
+    
+    const parts = [];
+    
+    if (context.servers && context.servers.length > 0) {
+      // 서버 수와 타입에 따른 키 생성
+      const serverTypes = [...new Set(context.servers.map(s => s.type))].sort();
+      parts.push(`servers-${context.servers.length}-${serverTypes.join(',')}`);
+    }
+    
+    // Optional context properties (타입 안전성을 위해 체크)
+    if ('timeRange' in context && context.timeRange) {
+      parts.push(`time-${context.timeRange}`);
+    }
+    
+    if ('alertLevel' in context && context.alertLevel) {
+      parts.push(`alert-${context.alertLevel}`);
+    }
+    
+    return parts.length > 0 ? parts.join('|') : 'no-context';
+  }
+
+  /**
+   * 🔐 의미론적 해시 생성
+   */
+  private generateSemanticHash(query: string): string {
+    // 키워드 추출 및 정렬 (순서 독립적)
+    const keywords = query.split(' ')
+      .filter(word => word.length > 1)
+      .sort()
+      .join('|');
+    
+    // 간단한 해시 생성 (FNV-1a 알고리즘 기반)
+    let hash = 2166136261;
+    for (let i = 0; i < keywords.length; i++) {
+      hash ^= keywords.charCodeAt(i);
+      hash *= 16777619;
+    }
+    
+    return (hash >>> 0).toString(16).substring(0, 8);
+  }
+
+  /**
+   * 📦 캐시된 응답 가져오기 (통계 추적 포함)
    */
   getCachedResponse(key: string): QueryResponse | null {
+    this.cacheStats.totalRequests++;
+    
     const cached = this.responseCache.get(key);
-    if (!cached) return null;
+    if (!cached) {
+      this.cacheStats.misses++;
+      return null;
+    }
 
     const ttl = getTTL('aiResponse'); // 15분
     const age = Date.now() - cached.timestamp;
 
     if (age > ttl * 1000) {
       this.responseCache.delete(key);
+      this.cacheStats.evictions++;
+      this.cacheStats.misses++;
       return null;
     }
 
     // 캐시 히트 카운트 증가
+    this.cacheStats.hits++;
     cached.hits++;
     return cached.response;
   }
@@ -330,21 +456,57 @@ export class SimplifiedQueryEngineUtils {
   }
 
   /**
-   * 📈 캐시 통계
+   * 📈 향상된 캐시 통계 (의미론적 캐시 성능 포함)
    */
   getCacheStats() {
     const entries = Array.from(this.responseCache.values());
+    const hitRate = this.cacheStats.totalRequests > 0 
+      ? (this.cacheStats.hits / this.cacheStats.totalRequests) * 100 
+      : 0;
+    
     return {
+      // 기본 통계
       totalEntries: this.responseCache.size,
+      totalRequests: this.cacheStats.totalRequests,
+      
+      // 성능 지표
+      hitRate: Math.round(hitRate * 100) / 100, // 소수점 2자리
+      hitRateImprovement: hitRate >= 60 ? '🎯 목표 달성!' : `📈 목표까지 ${Math.round(60 - hitRate)}% 부족`,
+      hits: this.cacheStats.hits,
+      misses: this.cacheStats.misses,
+      evictions: this.cacheStats.evictions,
+      
+      // 상세 통계
       totalHits: entries.reduce((sum, entry) => sum + entry.hits, 0),
-      avgHits:
-        entries.length > 0
-          ? entries.reduce((sum, entry) => sum + entry.hits, 0) / entries.length
-          : 0,
-      oldestEntry:
-        entries.length > 0
-          ? Math.min(...entries.map((e) => e.timestamp))
-          : null,
+      avgHitsPerEntry: entries.length > 0
+        ? Math.round((entries.reduce((sum, entry) => sum + entry.hits, 0) / entries.length) * 100) / 100
+        : 0,
+      
+      // 시간 정보
+      uptime: Date.now() - this.cacheStats.lastReset,
+      oldestEntry: entries.length > 0
+        ? new Date(Math.min(...entries.map((e) => e.timestamp))).toISOString()
+        : null,
+      
+      // 메모리 효율성
+      memoryUsage: {
+        entriesCount: this.responseCache.size,
+        maxEntries: 100,
+        utilizationRate: Math.round((this.responseCache.size / 100) * 100)
+      }
+    };
+  }
+
+  /**
+   * 🔄 캐시 통계 초기화
+   */
+  resetCacheStats(): void {
+    this.cacheStats = {
+      hits: 0,
+      misses: 0,
+      evictions: 0,
+      totalRequests: 0,
+      lastReset: Date.now(),
     };
   }
 

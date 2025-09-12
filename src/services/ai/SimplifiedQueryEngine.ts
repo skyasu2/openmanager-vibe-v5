@@ -60,7 +60,7 @@ export class SimplifiedQueryEngine {
   private initPromise: Promise<void> | null = null;
 
   // Extracted utility and processor classes
-  private utils: SimplifiedQueryEngineUtils;
+  public utils: SimplifiedQueryEngineUtils;
   private processors: SimplifiedQueryEngineProcessors;
 
   constructor() {
