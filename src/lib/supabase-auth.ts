@@ -8,6 +8,7 @@
 import type { AuthError, Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import { validateRedirectUrl, guestSessionCookies } from '@/utils/secure-cookies';
+import { authStateManager } from './auth-state-manager';
 
 export interface AuthUser {
   id: string;
@@ -108,7 +109,7 @@ export async function signOut(options?: { authType?: 'github' | 'guest' }) {
     console.log('🚪 통합 로그아웃 시작:', options);
 
     // AuthStateManager를 통한 통합 로그아웃 처리
-    const { authStateManager } = await import('./auth-state-manager');
+    // authStateManager는 이미 import됨
     await authStateManager.clearAllAuthData(options?.authType);
 
     console.log('✅ 통합 로그아웃 성공');
@@ -199,7 +200,7 @@ export async function getSession(): Promise<Session | null> {
 export async function getCurrentUser(): Promise<AuthUser | null> {
   try {
     // AuthStateManager를 통한 통합 상태 관리로 리팩토링
-    const { authStateManager } = await import('./auth-state-manager');
+    // authStateManager는 이미 import됨
     const authState = await authStateManager.getAuthState();
     
     console.log('🔄 getCurrentUser -> AuthStateManager 위임:', {
@@ -335,7 +336,7 @@ async function getCurrentUserLegacy(): Promise<AuthUser | null> {
 export async function isAuthenticated(): Promise<boolean> {
   try {
     // AuthStateManager를 통한 통합 상태 확인
-    const { authStateManager } = await import('./auth-state-manager');
+    // authStateManager는 이미 import됨
     const authState = await authStateManager.getAuthState();
     
     console.log('🔄 isAuthenticated -> AuthStateManager 위임:', {
@@ -360,7 +361,7 @@ export async function isAuthenticated(): Promise<boolean> {
 export async function isGitHubAuthenticated(): Promise<boolean> {
   try {
     // AuthStateManager를 통한 GitHub 인증 확인
-    const { authStateManager } = await import('./auth-state-manager');
+    // authStateManager는 이미 import됨
     const isGitHub = await authStateManager.isGitHubAuthenticated();
     
     console.log('🔄 isGitHubAuthenticated -> AuthStateManager 위임:', { isGitHub });
@@ -376,23 +377,23 @@ export async function isGitHubAuthenticated(): Promise<boolean> {
 
 /**
  * 게스트 사용자인지 확인 (AuthStateManager 사용)
- * @deprecated - 새로운 코드에서는 authStateManager.isGuestAuthenticated() 사용 권장
+ * @deprecated - 새로운 코드에서는 authStateManager.getAuthState() 사용 권장
  */
 export function isGuestUser(): boolean {
   try {
-    // AuthStateManager를 통한 게스트 인증 확인 (동기 함수)
-    // 동적 import를 사용할 수 없으므로 require 사용
-    const authStateManagerModule = require('./auth-state-manager');
-    const isGuest = authStateManagerModule.authStateManager.isGuestAuthenticated();
-    
-    console.log('🔄 isGuestUser -> AuthStateManager 위임:', { isGuest });
-    
-    return isGuest;
+    // 간단한 localStorage 확인으로 최적화
+    if (typeof window !== 'undefined') {
+      const authType = localStorage.getItem('auth_type');
+      const sessionId = localStorage.getItem('auth_session_id');
+      const isGuest = authType === 'guest' && !!sessionId;
+      
+      console.log('🔄 isGuestUser 간단 확인:', { isGuest });
+      return isGuest;
+    }
+    return false;
   } catch (error) {
-    console.error('❌ isGuestUser 에러 (AuthStateManager 위임 실패):', error);
-    
-    // Fallback: 레거시 로직 사용
-    return isGuestUserLegacy();
+    console.error('❌ isGuestUser 에러:', error);
+    return false;
   }
 }
 

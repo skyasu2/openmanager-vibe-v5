@@ -4,8 +4,8 @@
  * OpenManager Vibe v5 게스트 인증 시스템 (Google OAuth 제거됨)
  */
 
-import type { AuthUser } from '@/services/auth/AuthStateManager';
-import { AuthStateManager } from '@/services/auth/AuthStateManager';
+import type { AuthUser } from '@/lib/auth-state-manager';
+import { authStateManager } from '@/lib/auth-state-manager';
 import { useEffect, useState } from 'react';
 
 export interface UseAuthResult {
@@ -24,27 +24,31 @@ export function useAuth(): UseAuthResult {
   const [isLoading, setIsLoading] = useState(true);
   const [sessionId, setSessionId] = useState<string | null>(null);
 
-  const authManager = new AuthStateManager();
+  // AuthStateManager 싱글톤 사용
 
   // 로그인 함수 (게스트 모드만 지원)
   const login = async (): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
 
-      const result = await authManager.loginAsGuest();
+      // 게스트 사용자 생성
+      const guestUser: AuthUser = {
+        id: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        name: '게스트 사용자',
+        email: `guest_${Date.now()}@example.com`,
+        provider: 'guest',
+      };
 
-      if (result.success && result.user && result.sessionId) {
-        setUser(result.user);
-        setSessionId(result.sessionId);
+      // AuthStateManager를 통한 게스트 인증 설정
+      await authStateManager.setGuestAuth(guestUser);
+      
+      // 세션 ID 가져오기
+      const newSessionId = localStorage.getItem('auth_session_id') || `guest_${Date.now()}`;
+      
+      setUser(guestUser);
+      setSessionId(newSessionId);
 
-        // 로컬 스토리지에 세션 정보 저장
-        localStorage.setItem('auth_session_id', result.sessionId);
-        localStorage.setItem('auth_type', 'guest');
-
-        return { success: true };
-      } else {
-        return { success: false, error: result.error || '로그인 실패' };
-      }
+      return { success: true };
     } catch (error) {
       console.error('로그인 실패:', error);
       return { success: false, error: '로그인 중 오류가 발생했습니다.' };

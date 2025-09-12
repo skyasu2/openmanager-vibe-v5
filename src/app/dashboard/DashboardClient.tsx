@@ -13,6 +13,7 @@ import { NotificationToast } from '@/components/system/NotificationToast';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
 // import { usePerformanceGuard } from '@/hooks/usePerformanceGuard'; // 🛡️ 성능 모니터링 - 임시 비활성화
 import { useServerDashboard } from '@/hooks/useServerDashboard';
+import { authStateManager } from '@/lib/auth-state-manager';
 import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { cn } from '@/lib/utils';
@@ -252,7 +253,6 @@ function DashboardPageContent() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const { authStateManager } = await import('@/lib/auth-state-manager');
         const state = await authStateManager.getAuthState();
         setAuthState(state);
         

@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { clearAuthData } from '@/lib/auth-state-manager';
 
 // NextAuth 호환 세션 타입
 interface Session {
@@ -44,19 +45,10 @@ export function useSession(): UseSessionReturn {
           setUser(session.user);
           setStatus('authenticated');
         } else {
-          // 🎯 게스트 세션 확인 (AuthStateManager 키 체계 일치)
+          // 🎯 게스트 세션 확인 (AuthStateManager 키 체계 통일)
           try {
-            // 새 키 체계 우선 확인
-            let guestUser = localStorage.getItem('guest_user');
-            let authType = localStorage.getItem('guest_auth_type');
-            
-            // 레거시 호환성 fallback
-            if (!guestUser) {
-              guestUser = localStorage.getItem('auth_user');
-            }
-            if (!authType) {
-              authType = localStorage.getItem('auth_type');
-            }
+            const guestUser = localStorage.getItem('auth_user');
+            const authType = localStorage.getItem('auth_type');
 
             if (guestUser && authType === 'guest') {
               const guestUserData = JSON.parse(guestUser);
@@ -167,14 +159,13 @@ export async function signOut(options?: { callbackUrl?: string }) {
     // AuthStateManager를 통한 통합 세션 정리
     if (typeof window !== 'undefined') {
       try {
-        const { clearAuthData } = await import('@/lib/auth-state-manager');
         await clearAuthData(); // 모든 인증 데이터 정리
         console.log('✅ AuthStateManager를 통한 세션 정리 완료');
       } catch (error) {
         console.warn('⚠️ AuthStateManager 정리 실패 (계속 진행):', error);
         
         // Fallback: 기본 localStorage 정리
-        ['auth_session_id', 'auth_type', 'auth_user', 'guest_session_id', 'guest_auth_type', 'guest_user'].forEach(key => {
+        ['auth_session_id', 'auth_type', 'auth_user'].forEach(key => {
           localStorage.removeItem(key);
         });
       }

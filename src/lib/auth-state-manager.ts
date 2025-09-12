@@ -10,10 +10,8 @@
 import { supabase } from './supabase';
 import type { Session } from '@supabase/supabase-js';
 
-// 저장소 키 접두사
-const GITHUB_PREFIX = 'github_';
-const GUEST_PREFIX = 'guest_';
-const COMMON_PREFIX = 'auth_';
+// 통일된 키 접두사
+const AUTH_PREFIX = 'auth_';
 
 export interface AuthUser {
   id: string;
@@ -44,9 +42,35 @@ export class AuthStateManager {
   }
 
   /**
+   * 레거시 키 마이그레이션 (기존 사용자 자동 전환)
+   */
+  private migrateLegacyKeys(): void {
+    try {
+      if (typeof document !== 'undefined') {
+        // 쿠키 마이그레이션: guest_session_id → auth_session_id
+        const cookies = document.cookie.split(';').map(c => c.trim());
+        const legacySessionCookie = cookies.find(c => c.startsWith('guest_session_id='));
+        
+        if (legacySessionCookie && !cookies.find(c => c.startsWith('auth_session_id='))) {
+          const sessionId = legacySessionCookie.split('=')[1];
+          const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24시간
+          document.cookie = `auth_session_id=${sessionId}; path=/; expires=${expires.toUTCString()}; Secure; SameSite=Strict`;
+          document.cookie = `guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=Strict`;
+          console.log('🔄 쿠키 마이그레이션: guest_session_id → auth_session_id');
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ 레거시 키 마이그레이션 실패:', error);
+    }
+  }
+
+  /**
    * 통합 인증 상태 확인 (캐싱 포함)
    */
   async getAuthState(): Promise<AuthState> {
+    // 레거시 키 자동 마이그레이션
+    this.migrateLegacyKeys();
+    
     // 캐시된 상태가 유효하면 반환
     if (this.cachedState && Date.now() < this.cacheExpiry) {
       return this.cachedState;
@@ -113,35 +137,6 @@ export class AuthStateManager {
     }
   }
 
-  /**
-   * 게스트 인증 전용 상태 확인
-   */
-  isGuestAuthenticated(): boolean {
-    try {
-      // localStorage 확인
-      if (typeof window !== 'undefined') {
-        const authType = localStorage.getItem(`${GUEST_PREFIX}auth_type`);
-        if (authType === 'guest') {
-          const sessionId = localStorage.getItem(`${GUEST_PREFIX}session_id`);
-          return !!sessionId;
-        }
-      }
-
-      // 쿠키 fallback 확인
-      if (typeof document !== 'undefined') {
-        const cookies = document.cookie.split(';').map(c => c.trim());
-        const guestSession = cookies.find(c => c.startsWith(`${GUEST_PREFIX}session_id=`));
-        const authType = cookies.find(c => c.startsWith(`${GUEST_PREFIX}auth_type=guest`));
-        
-        return !!(guestSession && authType);
-      }
-
-      return false;
-    } catch (error) {
-      console.error('❌ 게스트 인증 상태 확인 실패:', error);
-      return false;
-    }
-  }
 
   /**
    * 원자적 로그아웃 처리 (모든 인증 데이터 정리)
@@ -169,27 +164,8 @@ export class AuthStateManager {
         }
       }
 
-      // 3. localStorage 정리
-      if (typeof window !== 'undefined') {
-        if (!authType || authType === 'github') {
-          this.clearGitHubLocalStorage();
-        }
-        if (!authType || authType === 'guest') {
-          this.clearGuestLocalStorage();
-        }
-        // 공통 데이터 정리
-        this.clearCommonLocalStorage();
-      }
-
-      // 4. 쿠키 정리
-      if (typeof document !== 'undefined') {
-        if (!authType || authType === 'github') {
-          this.clearGitHubCookies();
-        }
-        if (!authType || authType === 'guest') {
-          this.clearGuestCookies();
-        }
-      }
+      // 3. 통합 저장소 정리 (localStorage + sessionStorage + 쿠키)
+      this.clearStorage(authType);
 
       console.log('✅ 인증 데이터 정리 완료');
     } catch (error) {
@@ -229,15 +205,14 @@ export class AuthStateManager {
       const sessionId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 12)}`;
       
       // localStorage에 게스트 정보 저장
-      localStorage.setItem(`${GUEST_PREFIX}auth_type`, 'guest');
-      localStorage.setItem(`${GUEST_PREFIX}session_id`, sessionId);
-      localStorage.setItem(`${GUEST_PREFIX}user`, JSON.stringify(guestUser));
-      localStorage.setItem(`${COMMON_PREFIX}user`, JSON.stringify(guestUser));
+      localStorage.setItem('auth_type', 'guest');
+      localStorage.setItem('auth_session_id', sessionId);
+      localStorage.setItem('auth_user', JSON.stringify(guestUser));
 
       // 쿠키에 세션 ID 저장 (HttpOnly는 서버에서 설정)
       const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24시간
-      document.cookie = `${GUEST_PREFIX}session_id=${sessionId}; path=/; expires=${expires.toUTCString()}; Secure; SameSite=Strict`;
-      document.cookie = `${GUEST_PREFIX}auth_type=guest; path=/; expires=${expires.toUTCString()}; Secure; SameSite=Strict`;
+      document.cookie = `auth_session_id=${sessionId}; path=/; expires=${expires.toUTCString()}; Secure; SameSite=Strict`;
+      document.cookie = `auth_type=guest; path=/; expires=${expires.toUTCString()}; Secure; SameSite=Strict`;
 
       console.log('✅ 게스트 로그인 설정 완료:', { sessionId, userId: guestUser.id });
     }
@@ -268,9 +243,9 @@ export class AuthStateManager {
   private async getGuestState(): Promise<AuthState> {
     // localStorage 우선 확인
     if (typeof window !== 'undefined') {
-      const authType = localStorage.getItem(`${GUEST_PREFIX}auth_type`);
-      const sessionId = localStorage.getItem(`${GUEST_PREFIX}session_id`);
-      const userStr = localStorage.getItem(`${GUEST_PREFIX}user`);
+      const authType = localStorage.getItem('auth_type');
+      const sessionId = localStorage.getItem('auth_session_id');
+      const userStr = localStorage.getItem('auth_user');
 
       if (authType === 'guest' && sessionId && userStr) {
         try {
@@ -290,8 +265,8 @@ export class AuthStateManager {
     // 쿠키 fallback 확인
     if (typeof document !== 'undefined') {
       const cookies = document.cookie.split(';').map(c => c.trim());
-      const sessionCookie = cookies.find(c => c.startsWith(`${GUEST_PREFIX}session_id=`));
-      const authTypeCookie = cookies.find(c => c.startsWith(`${GUEST_PREFIX}auth_type=guest`));
+      const sessionCookie = cookies.find(c => c.startsWith('auth_session_id='));
+      const authTypeCookie = cookies.find(c => c.startsWith('auth_type=guest'));
 
       if (sessionCookie && authTypeCookie) {
         const sessionId = sessionCookie.split('=')[1];
@@ -341,28 +316,41 @@ export class AuthStateManager {
     this.cacheExpiry = Date.now() + this.CACHE_DURATION;
   }
 
-  private clearGitHubLocalStorage(): void {
+  /**
+   * 통합 저장소 정리 (localStorage + sessionStorage + 쿠키)
+   */
+  private clearStorage(authType?: 'github' | 'guest'): void {
     if (typeof window === 'undefined') return;
-    
-    // GitHub 관련 키들 정리 (더 포괄적으로)
+
+    // localStorage 정리
     const keysToRemove = Object.keys(localStorage)
-      .filter(key => 
-        key.startsWith(GITHUB_PREFIX) || 
-        key.startsWith('sb-') || // Supabase 토큰
-        key.includes('supabase') ||
-        key.includes('github') ||
-        key.startsWith('supabase.auth.') ||
-        key.includes('access_token') ||
-        key.includes('refresh_token')
-      );
-                     
+      .filter(key => {
+        // 기본 auth_ 키들
+        if (key.startsWith(AUTH_PREFIX)) return true;
+        
+        // GitHub 관련 (모든 인증 타입 또는 GitHub 전용일 때)
+        if (!authType || authType === 'github') {
+          if (key.startsWith('sb-') || // Supabase 토큰
+              key.includes('supabase') ||
+              key.includes('github') ||
+              key.startsWith('supabase.auth.') ||
+              key.includes('access_token') ||
+              key.includes('refresh_token')) return true;
+        }
+        
+        // 공통 키들
+        if (key === 'admin_mode') return true;
+        
+        return false;
+      });
+      
     keysToRemove.forEach(key => {
       localStorage.removeItem(key);
-      console.log(`🧹 GitHub localStorage 정리: ${key}`);
+      console.log(`🧹 localStorage 정리: ${key}`);
     });
-    
-    // sessionStorage도 정리
-    if (typeof sessionStorage !== 'undefined') {
+
+    // sessionStorage 정리
+    if (typeof sessionStorage !== 'undefined' && (!authType || authType === 'github')) {
       Object.keys(sessionStorage)
         .filter(key => 
           key.includes('supabase') || 
@@ -371,69 +359,22 @@ export class AuthStateManager {
         )
         .forEach(key => {
           sessionStorage.removeItem(key);
-          console.log(`🧹 GitHub sessionStorage 정리: ${key}`);
+          console.log(`🧹 sessionStorage 정리: ${key}`);
         });
     }
-  }
 
-  private clearGuestLocalStorage(): void {
-    if (typeof window === 'undefined') return;
-    
-    // 게스트 관련 키들 정리
-    const keysToRemove = Object.keys(localStorage)
-      .filter(key => key.startsWith(GUEST_PREFIX));
+    // 쿠키 정리
+    if (typeof document !== 'undefined') {
+      const cookiesToClear = [
+        'auth_session_id',
+        'auth_type',
+      ];
       
-    keysToRemove.forEach(key => {
-      localStorage.removeItem(key);
-      console.log(`🧹 localStorage 정리: ${key}`);
-    });
-  }
-
-  private clearCommonLocalStorage(): void {
-    if (typeof window === 'undefined') return;
-    
-    // 공통 인증 관련 키들 정리
-    const commonKeys = [
-      `${COMMON_PREFIX}session_id`,
-      `${COMMON_PREFIX}type`,
-      `${COMMON_PREFIX}user`,
-      'admin_mode',
-    ];
-    
-    commonKeys.forEach(key => {
-      localStorage.removeItem(key);
-      console.log(`🧹 localStorage 정리: ${key}`);
-    });
-  }
-
-  private clearGitHubCookies(): void {
-    if (typeof document === 'undefined') return;
-    
-    const githubCookies = [
-      `${GITHUB_PREFIX}session_id`,
-      `${GITHUB_PREFIX}auth_type`,
-    ];
-    
-    githubCookies.forEach(cookie => {
-      document.cookie = `${cookie}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=Strict`;
-      console.log(`🧹 쿠키 정리: ${cookie}`);
-    });
-  }
-
-  private clearGuestCookies(): void {
-    if (typeof document === 'undefined') return;
-    
-    const guestCookies = [
-      `${GUEST_PREFIX}session_id`,
-      `${GUEST_PREFIX}auth_type`,
-      'guest_session_id', // 레거시 호환
-      'auth_type', // 레거시 호환
-    ];
-    
-    guestCookies.forEach(cookie => {
-      document.cookie = `${cookie}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=Strict`;
-      console.log(`🧹 쿠키 정리: ${cookie}`);
-    });
+      cookiesToClear.forEach(cookie => {
+        document.cookie = `${cookie}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=Strict`;
+        console.log(`🧹 쿠키 정리: ${cookie}`);
+      });
+    }
   }
 }
 
@@ -443,7 +384,6 @@ export const authStateManager = AuthStateManager.getInstance();
 // 편의 함수들
 export const getAuthState = () => authStateManager.getAuthState();
 export const isGitHubAuthenticated = () => authStateManager.isGitHubAuthenticated();
-export const isGuestAuthenticated = () => authStateManager.isGuestAuthenticated();
 export const clearAuthData = (authType?: 'github' | 'guest') => authStateManager.clearAllAuthData(authType);
 export const invalidateAuthCache = () => authStateManager.invalidateCache();
 

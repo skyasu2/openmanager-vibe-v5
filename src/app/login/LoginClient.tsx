@@ -15,9 +15,9 @@ import debug from '@/utils/debug';
 // Supabase Auth 관련 임포트
 import { signInWithGitHub } from '@/lib/supabase-auth';
 
-// 게스트 로그인 관련 임포트
-import type { AuthUser } from '@/services/auth/AuthStateManager';
-import { AuthStateManager } from '@/services/auth/AuthStateManager';
+// 게스트 로그인 관련 임포트 (lib/auth-state-manager로 통합)
+import type { AuthUser } from '@/lib/auth-state-manager';
+import { authStateManager } from '@/lib/auth-state-manager';
 
 interface GuestSessionData {
   sessionId: string;
@@ -39,7 +39,7 @@ export default function LoginClient() {
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [showPulse, setShowPulse] = useState<'github' | 'guest' | null>(null);
 
-  const authManager = new AuthStateManager();
+  // AuthStateManager 싱글톤 사용
 
   // 단계별 로딩 메시지 효과
   useEffect(() => {
@@ -234,16 +234,22 @@ export default function LoginClient() {
 
       debug.log('👤 게스트 로그인 시작...');
 
-      // 게스트 인증 처리
-      const result = await authManager.authenticateGuest();
+      // 게스트 사용자 생성
+      const guestUser: AuthUser = {
+        id: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        name: '게스트 사용자',
+        email: `guest_${Date.now()}@example.com`,
+        provider: 'guest',
+      };
 
-      if (result.success && result.user && result.sessionId) {
-        // localStorage에 직접 접근하는 대신 상태를 업데이트
-        setGuestSession({ sessionId: result.sessionId, user: result.user });
-      } else {
-        debug.error('게스트 로그인 실패:', result.error);
-        alert('게스트 로그인에 실패했습니다. 다시 시도해주세요.');
-      }
+      // AuthStateManager를 통한 게스트 인증 설정
+      await authStateManager.setGuestAuth(guestUser);
+      
+      // 세션 ID 생성 (localStorage에서 가져옴)
+      const sessionId = localStorage.getItem('auth_session_id') || `guest_${Date.now()}`;
+      
+      // 상태 업데이트
+      setGuestSession({ sessionId, user: guestUser });
     } catch (error) {
       debug.error('게스트 로그인 실패:', error);
       alert('게스트 로그인에 실패했습니다. 다시 시도해주세요.');

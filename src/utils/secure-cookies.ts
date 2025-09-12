@@ -126,49 +126,32 @@ export function validateRedirectUrl(url: string): boolean {
  */
 export const guestSessionCookies = {
   /**
-   * 게스트 세션 ID 설정 (guest_ 접두사 적용)
+   * 게스트 세션 ID 설정 (auth_* 통일 체계)
    */
   setGuestSession(sessionId: string): void {
-    setSecureCookie('guest_session_id', sessionId, 24 * 60 * 60); // 24시간
-    setSecureCookie('guest_auth_type', 'guest', 24 * 60 * 60); // guest_ 접두사 추가
-    
-    // 레거시 호환성을 위한 기존 키도 유지
-    setSecureCookie('auth_type', 'guest', 24 * 60 * 60);
+    setSecureCookie('auth_session_id', sessionId, 24 * 60 * 60); // 24시간
+    setSecureCookie('auth_type', 'guest', 24 * 60 * 60); // 통일 체계
   },
   
   /**
-   * 게스트 세션 삭제 (모든 관련 쿠키 정리)
+   * 게스트 세션 삭제 (통일 체계 쿠키 정리)
    */
   clearGuestSession(): void {
-    // 새 키 체계
-    deleteSecureCookie('guest_session_id');
-    deleteSecureCookie('guest_auth_type');
-    
-    // 레거시 호환성
+    deleteSecureCookie('auth_session_id');
     deleteSecureCookie('auth_type');
-    deleteSecureCookie('session_id'); // 혹시 있을 수 있는 레거시 키
   },
   
   /**
-   * 게스트 세션 확인 (새 키 체계 우선, 레거시 fallback)
+   * 게스트 세션 확인 (통일 체계)
    */
   hasGuestSession(): boolean {
     if (typeof document === 'undefined') return false;
     
     const cookies = document.cookie.split(';').map(c => c.trim());
     
-    // 새 키 체계 우선 확인
-    const hasNewSessionId = cookies.some(c => c.startsWith('guest_session_id='));
-    const hasNewAuthType = cookies.some(c => c.startsWith('guest_auth_type=guest'));
+    const hasSessionId = cookies.some(c => c.startsWith('auth_session_id='));
+    const hasAuthType = cookies.some(c => c.startsWith('auth_type=guest'));
     
-    if (hasNewSessionId && hasNewAuthType) {
-      return true;
-    }
-    
-    // 레거시 키 체계 fallback
-    const hasLegacySessionId = cookies.some(c => c.startsWith('guest_session_id='));
-    const hasLegacyAuthType = cookies.some(c => c.startsWith('auth_type=guest'));
-    
-    return hasLegacySessionId && hasLegacyAuthType;
+    return hasSessionId && hasAuthType;
   }
 };

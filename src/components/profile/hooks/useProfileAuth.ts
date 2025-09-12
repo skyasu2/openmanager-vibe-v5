@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signOut } from '@/hooks/useSupabaseSession';
+import { authStateManager, clearAuthData } from '@/lib/auth-state-manager';
 import {
   getCurrentUser,
   isGitHubAuthenticated,
@@ -27,7 +28,6 @@ export function useProfileAuth(): ProfileAuthHook {
         setIsLoading(true);
         
         // 🚀 AuthStateManager를 통한 통합 인증 상태 확인 - 정확한 타입 감지
-        const { authStateManager } = await import('@/lib/auth-state-manager');
         
         // 🔄 캐시 무효화 후 최신 상태 확인 (GitHub 로그인 후 즉시 반영)
         authStateManager.invalidateCache();
@@ -83,7 +83,6 @@ export function useProfileAuth(): ProfileAuthHook {
 
       // AuthStateManager를 통한 통합 로그아웃
       console.log('🔄 AuthStateManager clearAuthData 호출 중...');
-      const { clearAuthData } = await import('@/lib/auth-state-manager');
       await clearAuthData(userType === 'github' ? 'github' : 'guest');
 
       console.log('✅ 통합 로그아웃 완료 - 리다이렉트 진행');
@@ -112,7 +111,7 @@ export function useProfileAuth(): ProfileAuthHook {
           }
           
           if (typeof document !== 'undefined') {
-            document.cookie = 'guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            document.cookie = 'auth_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
             document.cookie = 'auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
           }
         }
