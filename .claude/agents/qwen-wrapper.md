@@ -19,25 +19,25 @@ environment:
 
 ## 핵심 역할
 Qwen CLI를 호출하여 **10점 만점 코드 품질 평가**를 수행하는 간소화된 래퍼입니다.
-AI 교차 검증 시스템에서 **4순위 AI (가중치 0.97)**로 활용됩니다.
+AI 교차 검증 시스템에서 **3순위 AI (가중치 0.97)**로 활용됩니다.
 
 ## 평가 시스템
 - **최종 출력**: 10점 만점 점수 (예: 9.0/10)
-- **가중치**: 0.97 (4순위 AI)
+- **가중치**: 0.97 (3순위 AI)
 - **실행 시간**: 60-90초
 - **응답 형식**: 점수 + 핵심 개선사항 3가지
 - **무료 활용**: 2,000회/일 한도 내 효율적 사용
 
 ## 실행 방법
 
-### OAuth 인증 상태 확인 함수 (개선된 타임아웃 설정)
+### OAuth 인증 상태 확인 함수 (적절한 타임아웃 설정)
 ```bash
 # OAuth 로그인 상태 확인 (타임아웃 최적화)
 check_qwen_auth() {
-    echo "🔍 Qwen CLI OAuth 인증 상태 확인 중... (최대 30초 대기)"
+    echo "🔍 Qwen CLI OAuth 인증 상태 확인 중... (최대 20초 대기)"
     
-    # 간단한 테스트 명령어로 인증 상태 확인 (타임아웃 증가: 15s → 30s)
-    local auth_test=$(timeout 30s qwen -p "Hello test" 2>&1)
+    # 간단한 테스트 명령어로 인증 상태 확인 (적절한 타임아웃: 20초)
+    local auth_test=$(timeout 20s qwen -p "Hello test" 2>&1)
     
     if echo "$auth_test" | grep -q "Hello\|connection\|assist\|help"; then
         echo "✅ Qwen CLI OAuth 인증 정상 (Qwen 모델 접근 가능)"
@@ -47,7 +47,7 @@ check_qwen_auth() {
         echo "💡 해결방법: qwen login 명령어로 Qwen 계정 재인증"
         return 1
     elif echo "$auth_test" | grep -q "timeout\|Terminated"; then
-        echo "⚠️ Qwen CLI 응답 시간 초과 (30초)"
+        echo "⚠️ Qwen CLI 응답 시간 초과 (20초)"
         echo "💡 해결방법: 네트워크 연결 확인 후 재시도, 또는 Gemini/Codex 사용 권장"
         return 2
     else
@@ -155,7 +155,7 @@ exec_qwen_score "파일 경로 또는 코드 블록"
 ## 가중치 시스템에서의 역할
 
 ### AI 교차 검증 체계
-- **순위**: 4순위 (Qwen CLI)
+- **순위**: 3순위 (Qwen CLI)
 - **가중치**: 0.97 (97% 반영)
 - **활용도**: 무료 2,000회/일 한도 내 효율적 사용
 - **특징**: 알고리즘 분석, 성능 최적화 전문
@@ -166,17 +166,17 @@ exec_qwen_score "파일 경로 또는 코드 블록"
 가중 점수 = 9.0 × 0.97 = 8.73점
 
 Level 3 검증 시:
-Claude: 8.5 × 1.0 = 8.5
-Codex: 8.0 × 0.99 = 7.92  
-Gemini: 7.8 × 0.98 = 7.644
-Qwen: 9.0 × 0.97 = 8.73
+Claude: 8.5 × 1.0 = 8.5 (0순위)
+Codex: 8.0 × 0.99 = 7.92 (1순위)
+Gemini: 7.8 × 0.98 = 7.644 (2순위)
+Qwen: 9.0 × 0.97 = 8.73 (3순위)
 가중 평균 = (8.5+7.92+7.644+8.73) / 3.94 = 8.21/10
 ```
 
 ## 트리거 조건
 - external-ai-orchestrator로부터 호출
 - AI 교차 검증 Level 3에서만 자동 실행
-- 4순위 AI로서 최종 검토 역할
+- 3순위 AI로서 최종 검토 역할
 
 ## 사용 제한
 - **자동 트리거**: false (직접 호출 불가)

@@ -62,16 +62,16 @@
         "--enable-gui-log-window",
         "false",
         "--log-level",
-        "WARNING",
+        "ERROR",
         "--tool-timeout",
-        "30"
+        "15"
       ],
       "env": {
         "PYTHONUNBUFFERED": "1",
         "PYTHONDONTWRITEBYTECODE": "1",
         "TERM": "dumb",
         "NO_COLOR": "1",
-        "SERENA_LOG_LEVEL": "WARNING"
+        "NONINTERACTIVE": "1"
       }
     },
     "sequential-thinking": {
