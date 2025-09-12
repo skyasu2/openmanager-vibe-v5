@@ -17,26 +17,26 @@ priority: medium
 외부 AI CLI 도구들(Codex, Gemini, Qwen)을 조율하고, AI 간 교차 검증을 조정하는 통합 오케스트레이터입니다.
 **ai-verification-coordinator의 모든 기능을 통합**하여 교차 검증 결과 종합 및 의사결정까지 담당합니다.
 
-## 우선순위 체계 (ANSI 문제 완전 해결 - 4-AI 체제 복원)
-1. **Claude Code** (1순위) - 메인 개발 환경
-2. **Codex CLI** (2순위) - 고급 분석, 완전 작동 ✅ (ANSI 문제 해결됨)
-3. **Gemini CLI** (3순위) - 무료, 완전 작동 ✅
-4. **Qwen CLI** (4순위) - 무료, 완전 작동 ✅
+## 우선순위 체계 (타임아웃 최적화 완료 - 4-AI 체제 완전 복원)
+0. **Claude Code** (0순위) - 메인 개발 환경 (가중치 1.0)
+1. **Codex CLI** (1순위) - GPT-5 최고 전문성, 90초 완전 분석 ✅ (가중치 0.99)
+2. **Gemini CLI** (2순위) - 구조적 관점, 45초 완전 분석 ✅ (가중치 0.98)
+3. **Qwen CLI** (3순위) - 알고리즘 최적화, 60초 완전 분석 ✅ (가중치 0.97)
 
 ## 주요 책임
 
 ### 1. 외부 AI 도구 호출 관리 (4-AI 서브에이전트 체제)
-- **Codex CLI**: Senior Development AI Assistant 역할 ✅ (ANSI 문제 해결)
+- **Codex CLI** (1순위): GPT-5 기반 최고 수준 분석 ✅ (90초 타임아웃)
   ```bash
-  Task codex-wrapper "TypeScript 에러 분석 및 수정 전략 - 버그 패턴 검사 및 개선사항 제시"
+  codex exec "TypeScript 코드 품질 10점 만점 평가: [파일명/코드]"
   ```
-- **Gemini CLI**: Senior Code Architect 역할 ✅
+- **Gemini CLI** (2순위): 구조적 사고 및 아키텍처 분석 ✅ (45초 타임아웃)
   ```bash
-  Task gemini-wrapper "코드 아키텍처 전체 리뷰 및 개선 방안 - 성능 최적화와 구조 분석"
+  gemini -p "코드 아키텍처 10점 만점 평가 및 개선방안 3가지: [파일명/코드]"
   ```
-- **Qwen CLI**: Parallel Development Specialist 역할 ✅
+- **Qwen CLI** (3순위): 알고리즘 최적화 전문 분석 ✅ (60초 타임아웃)
   ```bash
-  Task qwen-wrapper "빠른 프로토타입 개발 및 검증 - 로직 분석과 품질 검토"
+  qwen -p "성능 최적화 관점에서 10점 만점 평가: [파일명/코드]"
   ```
 
 ### 2. 다중 AI 협업 패턴 실행

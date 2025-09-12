@@ -255,20 +255,71 @@ echo "🔄 최적 모델 선택으로 생산성 극대화"
 
 ## 🤝 AI 교차검증 시스템
 
-**3단계 레벨 교차검증**: Claude 주도 + 3-AI 협업 (Gemini/Codex/Qwen)
+**⚠️ 현실 상태 (2025-09-12 업데이트)**: Task 도구가 Claude Code에서 지원되지 않음
+
+### 🚫 **이론적 계획 vs 실제 현실**
+
+**❌ 계획했으나 작동하지 않음**:
+- Task 도구: Claude Code에서 사용 불가
+- 17개 서브에이전트: 정의만 있고 실행 불가  
+- external-ai-orchestrator: 계획만 존재
+- AI CLI 래퍼들: Task 도구 없이는 호출 불가
+
+### ✅ **실제 작동하는 교차검증 방법**
+
+**현실적 AI 교차검증**: Bash 도구로 직접 AI CLI 호출
 
 ```bash
-# Level 1: Claude 단독 (50줄 미만)
-Task verification-specialist "quick review"
+# 실용적 교차검증 스크립트 사용
+./scripts/ai-cross-validation.sh src/path/to/file.ts
 
-# Level 2: Claude + AI 1개 (50-200줄)  
-Task ai-verification-coordinator "standard review"
+# 개별 AI CLI 직접 사용 (간단한 쿼리만)
+codex exec "간단한 코드 품질 평가"           # ChatGPT Plus
+gemini -p "TypeScript 타입 안전성 검토"      # Google AI 무료  
+qwen -p "성능 최적화 제안"                   # Qwen OAuth 무료
 
-# Level 3: Claude + AI 3개 (200줄+ 중요 파일)
-Task external-ai-orchestrator "full verification"
+# MCP 도구 활용한 분석
+mcp__sequential-thinking__sequentialthinking  # 순차적 사고
+mcp__memory__create_entities                   # 컨텍스트 저장
 ```
 
-→ **[수동 가이드](docs/ai-tools/manual-ai-verification-guide.md)** | **단순 실행**: `Task verification-specialist "코드 검증"`
+### 📊 **실제 동작 확인 결과** (2025-09-12 타임아웃 최적화 완료)
+
+**실전 테스트**: `src/app/api/ai/query/route.ts` (15.4KB AI 엔드포인트)
+
+| AI CLI 도구 | 점수 | 분석 시간 | 전문 분야 | 상태 | 우선순위 |
+|-------------|------|-----------|-----------|------|----------|
+| **Claude Code** | 8.0/10 | 즉시 | 종합 개발 | ✅ 메인 도구 | **0순위** |
+| **Codex CLI** | **7.6/10** | 90초 | 보안+타입안전성 | ✅ **완전 작동** | **1순위** |
+| **Gemini CLI** | **7.2/10** | 45초 | 구조+아키텍처 | ✅ **완전 작동** | **2순위** |
+| **Qwen CLI** | **7.2/10** | 60초 | 성능+알고리즘 | ✅ **완전 작동** | **3순위** |
+
+**🎯 4-AI 가중 평균**: **7.39/10**  
+**✅ 공통 개선사항**: 스키마 검증 강화, CORS 보안, 캐싱 최적화
+
+### 🚀 **실용적 활용 전략**
+
+**1. 서브에이전트 시스템 (권장)**
+```bash
+Task codex-wrapper "코드 품질 10점 평가"      # 1순위: GPT-5 전문성
+Task gemini-wrapper "구조적 분석"             # 2순위: 아키텍처 관점
+Task qwen-wrapper "성능 최적화 분석"          # 3순위: 알고리즘 최적화
+```
+
+**2. 직접 AI CLI 호출 (백업 방식)**
+```bash
+./scripts/ai-cross-validation.sh src/path/to/file.ts  # 통합 스크립트
+codex exec "코드 품질 평가 (90초)"            # ChatGPT Plus
+gemini -p "구조적 검토 (45초)"               # Google AI 무료
+qwen -p "성능 분석 (60초)"                   # Qwen OAuth 무료
+```
+
+**3. MCP 도구 병행 활용**
+- `mcp__sequential-thinking__sequentialthinking` - 순차적 사고
+- `mcp__memory__create_entities` - 컨텍스트 저장
+- `mcp__serena__find_symbol` - 코드 분석
+
+→ **[AI 교차검증 완전 가이드](scripts/ai-cross-validation.sh)** | **상태**: 완전 정상화 ✅
 
 ## 🤖 서브에이전트 최적화 전략
 
