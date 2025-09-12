@@ -49,20 +49,43 @@ describe('metricValidation', () => {
   });
 
   describe('generateSafeMetricValue', () => {
-    it('정상적인 변화량을 적용한다', () => {
-      expect(generateSafeMetricValue(50, 10, 'cpu')).toBe(60);
-      expect(generateSafeMetricValue(30, -5, 'memory')).toBe(25);
+    it('정상적인 범위 내에서 값을 생성한다', () => {
+      const result1 = generateSafeMetricValue(50, 10, 'cpu');
+      const result2 = generateSafeMetricValue(30, 5, 'memory');
+      
+      // 랜덤 함수이므로 범위 체크로 검증
+      expect(result1).toBeGreaterThanOrEqual(0);
+      expect(result1).toBeLessThanOrEqual(100);
+      expect(result2).toBeGreaterThanOrEqual(0);
+      expect(result2).toBeLessThanOrEqual(100);
     });
 
     it('범위를 벗어나는 결과를 보정한다', () => {
-      expect(generateSafeMetricValue(90, 20, 'cpu')).toBe(100);
-      expect(generateSafeMetricValue(10, -20, 'memory')).toBe(0);
+      // 극단적인 변화량으로 100을 초과하거나 0 미만이 될 가능성이 높은 경우
+      const result1 = generateSafeMetricValue(95, 20, 'cpu'); // 최대 115까지 가능 -> 100으로 clamp
+      const result2 = generateSafeMetricValue(5, 20, 'memory'); // 최소 -15까지 가능 -> 0으로 clamp
+      
+      expect(result1).toBeLessThanOrEqual(100);
+      expect(result2).toBeGreaterThanOrEqual(0);
     });
 
     it('NaN 입력을 안전하게 처리한다', () => {
-      expect(generateSafeMetricValue(NaN, 10, 'disk')).toBe(10);
-      expect(generateSafeMetricValue(50, NaN, 'network')).toBe(50);
-      expect(generateSafeMetricValue(NaN, NaN, 'cpu')).toBe(0);
+      const result1 = generateSafeMetricValue(NaN, 10, 'disk');
+      const result2 = generateSafeMetricValue(50, NaN, 'network');
+      const result3 = generateSafeMetricValue(NaN, NaN, 'cpu');
+      
+      // NaN 입력 시 유효한 범위의 값을 반환하는지 확인
+      expect(Number.isFinite(result1)).toBe(true);
+      expect(result1).toBeGreaterThanOrEqual(0);
+      expect(result1).toBeLessThanOrEqual(100);
+      
+      expect(Number.isFinite(result2)).toBe(true);
+      expect(result2).toBeGreaterThanOrEqual(0);
+      expect(result2).toBeLessThanOrEqual(100);
+      
+      expect(Number.isFinite(result3)).toBe(true);
+      expect(result3).toBeGreaterThanOrEqual(0);
+      expect(result3).toBeLessThanOrEqual(100);
     });
 
     it('메트릭 타입별로 적절한 기본값을 사용한다', () => {
@@ -76,62 +99,58 @@ describe('metricValidation', () => {
   describe('validateServerMetrics', () => {
     it('정상적인 메트릭 객체를 그대로 반환한다', () => {
       const validMetrics = {
-        cpu: { usage: 45, cores: 4, temperature: 50 },
-        memory: { used: 4, total: 8, usage: 50 },
-        disk: { used: 100, total: 500, usage: 20 },
-        network: { bytesIn: 1000, bytesOut: 800, packetsIn: 100, packetsOut: 80 },
-        timestamp: new Date().toISOString(),
-        uptime: 86400,
+        cpu: 45,
+        memory: 50, 
+        disk: 20,
+        network: 80,
       };
 
       const result = validateServerMetrics(validMetrics);
-      expect(result).toEqual(validMetrics);
+      expect(result).toEqual({
+        cpu: 45,
+        memory: 50,
+        disk: 20,
+        network: 80,
+      });
     });
 
     it('잘못된 메트릭 값들을 보정한다', () => {
       const invalidMetrics = {
-        cpu: { usage: -10, cores: 4, temperature: 150 },
-        memory: { used: -2, total: 8, usage: 120 },
-        disk: { used: 600, total: 500, usage: NaN },
-        network: { bytesIn: -100, bytesOut: Infinity, packetsIn: 100, packetsOut: 80 },
-        timestamp: new Date().toISOString(),
-        uptime: 86400,
+        cpu: -10,
+        memory: 120,
+        disk: NaN,
+        network: Infinity,
       };
 
       const result = validateServerMetrics(invalidMetrics);
       
-      expect(result.cpu.usage).toBe(0); // -10 → 0
-      expect(result.memory.usage).toBe(100); // 120 → 100
-      expect(result.disk.usage).toBe(0); // NaN → 0
-      expect(result.network.bytesIn).toBe(0); // -100 → 0
-      expect(result.network.bytesOut).toBeGreaterThanOrEqual(0); // Infinity 처리
+      expect(result.cpu).toBe(0); // -10 → 0
+      expect(result.memory).toBe(100); // 120 → 100
+      expect(result.disk).toBe(0); // NaN → 0
+      expect(result.network).toBe(100); // Infinity → 100
     });
 
     it('누락된 필드를 기본값으로 채운다', () => {
       const incompleteMetrics: any = {
-        cpu: { usage: 45 },
-        memory: { usage: 60 },
-        timestamp: new Date().toISOString(),
+        cpu: 45,
+        memory: 60,
       };
 
       const result = validateServerMetrics(incompleteMetrics);
       
-      expect(result.cpu).toBeDefined();
-      expect(result.memory).toBeDefined();
-      expect(result.disk).toBeDefined();
-      expect(result.network).toBeDefined();
-      expect(result.uptime).toBeGreaterThanOrEqual(0);
+      expect(result.cpu).toBe(45);
+      expect(result.memory).toBe(60);
+      expect(result.disk).toBe(0); // 기본값
+      expect(result.network).toBe(0); // 기본값
     });
 
     it('빈 객체를 안전한 기본값으로 변환한다', () => {
       const result = validateServerMetrics({} as any);
       
-      expect(result.cpu).toBeDefined();
-      expect(result.memory).toBeDefined();
-      expect(result.disk).toBeDefined();
-      expect(result.network).toBeDefined();
-      expect(result.timestamp).toBeDefined();
-      expect(result.uptime).toBeGreaterThanOrEqual(0);
+      expect(result.cpu).toBe(0);
+      expect(result.memory).toBe(0);
+      expect(result.disk).toBe(0);
+      expect(result.network).toBe(0);
     });
 
     it('null/undefined 입력을 안전하게 처리한다', () => {

@@ -14,7 +14,7 @@ export interface UseAuthResult {
   isAuthenticated: boolean;
   sessionId: string | null;
   login: () => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
   hasPermission: (permission: string) => boolean;
 }
@@ -58,10 +58,10 @@ export function useAuth(): UseAuthResult {
   };
 
   // 로그아웃 함수
-  const logout = (): void => {
+  const logout = async (): Promise<void> => {
     try {
       if (sessionId) {
-        authManager.logout(sessionId);
+        await authStateManager.clearAllAuthData();
       }
 
       // 상태 초기화
@@ -93,10 +93,10 @@ export function useAuth(): UseAuthResult {
       }
 
       // 세션 유효성 확인
-      const session = authManager.getSession(storedSessionId);
-
-      if (session) {
-        setUser(session.user);
+      const currentState = await authStateManager.getAuthState();
+      
+      if (currentState.isAuthenticated && currentState.sessionId === storedSessionId) {
+        setUser(currentState.user);
         setSessionId(storedSessionId);
       } else {
         // 세션이 만료된 경우 로컬 스토리지 정리

@@ -15,10 +15,21 @@ export function validateMetricValue(
   type: MetricType,
   fallbackValue: number = 0
 ): number {
-  // NaN, null, undefined 처리
-  if (!Number.isFinite(value)) {
+  // NaN 처리
+  if (Number.isNaN(value)) {
     console.warn(`Invalid ${type} metric value:`, value, 'Using fallback:', fallbackValue);
     return Math.max(0, Math.min(100, fallbackValue));
+  }
+  
+  // Infinity 처리 - 양의 무한대는 100, 음의 무한대는 0
+  if (value === Infinity) {
+    console.warn(`${type} metric value is Infinity, using 100`);
+    return 100;
+  }
+  
+  if (value === -Infinity) {
+    console.warn(`${type} metric value is -Infinity, using 0`);
+    return 0;
   }
 
   // 0-100 범위로 제한
@@ -40,10 +51,14 @@ export function generateSafeMetricValue(
   maxVariation: number = 5,
   type: MetricType
 ): number {
-  const variation = (Math.random() - 0.5) * maxVariation * 2;
-  const newValue = previousValue + variation;
+  // NaN 입력 처리
+  const safePreviousValue = Number.isFinite(previousValue) ? previousValue : 50; // 기본값 50
+  const safeMaxVariation = Number.isFinite(maxVariation) ? maxVariation : 5; // 기본값 5
   
-  return validateMetricValue(newValue, type, previousValue);
+  const variation = (Math.random() - 0.5) * safeMaxVariation * 2;
+  const newValue = safePreviousValue + variation;
+  
+  return validateMetricValue(newValue, type, safePreviousValue);
 }
 
 /**
@@ -56,12 +71,15 @@ export interface ServerMetrics {
   network: number;
 }
 
-export function validateServerMetrics(metrics: Partial<ServerMetrics>): ServerMetrics {
+export function validateServerMetrics(metrics: Partial<ServerMetrics> | null | undefined): ServerMetrics {
+  // null/undefined 입력 처리
+  const safeMetrics = metrics || {};
+  
   return {
-    cpu: validateMetricValue(metrics.cpu ?? 0, 'cpu', 0),
-    memory: validateMetricValue(metrics.memory ?? 0, 'memory', 0),
-    disk: validateMetricValue(metrics.disk ?? 0, 'disk', 0),
-    network: validateMetricValue(metrics.network ?? 0, 'network', 0),
+    cpu: validateMetricValue(safeMetrics.cpu ?? 0, 'cpu', 0),
+    memory: validateMetricValue(safeMetrics.memory ?? 0, 'memory', 0),
+    disk: validateMetricValue(safeMetrics.disk ?? 0, 'disk', 0),
+    network: validateMetricValue(safeMetrics.network ?? 0, 'network', 0),
   };
 }
 
