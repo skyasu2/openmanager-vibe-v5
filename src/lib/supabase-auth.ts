@@ -176,10 +176,9 @@ async function signOutLegacy(authType?: 'github' | 'guest') {
  */
 export async function getSession(): Promise<Session | null> {
   try {
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession();
+    const response = await supabase.auth.getSession();
+    const session = response?.data?.session;
+    const error = response?.error;
 
     if (error) {
       console.error('❌ 세션 가져오기 실패:', error);
@@ -454,10 +453,9 @@ export function onAuthStateChange(callback: (session: Session | null) => void) {
  */
 export async function handleAuthCallback(): Promise<AuthCallbackResult> {
   try {
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession();
+    const response = await supabase.auth.getSession();
+    const session = response?.data?.session;
+    const error = response?.error;
 
     if (error) {
       console.error('❌ Auth 콜백 처리 실패:', error);
@@ -483,10 +481,9 @@ export async function handleAuthCallback(): Promise<AuthCallbackResult> {
  */
 export async function refreshSession() {
   try {
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.refreshSession();
+    const response = await supabase.auth.refreshSession();
+    const session = response?.data?.session;
+    const error = response?.error;
 
     if (error) {
       console.error('❌ 세션 새로고침 실패:', error);

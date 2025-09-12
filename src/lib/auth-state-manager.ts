@@ -251,12 +251,14 @@ export class AuthStateManager {
    */
   private async getSupabaseSession(): Promise<Session | null> {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      const response = await supabase.auth.getSession();
+      const session = response?.data?.session;
+      const error = response?.error;
       if (error) {
         console.warn('⚠️ Supabase 세션 가져오기 실패:', error.message);
         return null;
       }
-      return session;
+      return session || null;
     } catch (error) {
       console.error('❌ Supabase 세션 에러:', error);
       return null;
