@@ -1,0 +1,59 @@
+{
+  "buildConfig": {
+    "automaticUpdatePolicy": {},
+    "build": "projects/490817238363/locations/asia-northeast3/builds/aa743e28-dc34-4c6f-974d-6b386b54b233",
+    "dockerRegistry": "ARTIFACT_REGISTRY",
+    "dockerRepository": "projects/openmanager-free-tier/locations/asia-northeast3/repositories/gcf-artifacts",
+    "entryPoint": "ml_analytics_engine",
+    "runtime": "python311",
+    "serviceAccount": "projects/openmanager-free-tier/serviceAccounts/490817238363-compute@developer.gserviceaccount.com",
+    "source": {
+      "storageSource": {
+        "bucket": "gcf-v2-sources-490817238363-asia-northeast3",
+        "generation": "1753709740255863",
+        "object": "ml-analytics-engine/function-source.zip"
+      }
+    },
+    "sourceProvenance": {
+      "resolvedStorageSource": {
+        "bucket": "gcf-v2-sources-490817238363-asia-northeast3",
+        "generation": "1753709740255863",
+        "object": "ml-analytics-engine/function-source.zip"
+      }
+    }
+  },
+  "createTime": "2025-07-28T13:35:40.763994676Z",
+  "environment": "GEN_2",
+  "labels": {
+    "deployment-tool": "cli-gcloud"
+  },
+  "name": "projects/openmanager-free-tier/locations/asia-northeast3/functions/ml-analytics-engine",
+  "satisfiesPzi": true,
+  "satisfiesPzs": true,
+  "serviceConfig": {
+    "allTrafficOnLatestRevision": true,
+    "availableCpu": "0.3333",
+    "availableMemory": "512M",
+    "environmentVariables": {
+      "GCP_PROJECT_ID": "openmanager-free-tier",
+      "GOOGLE_AI_API_KEY": "AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM",
+      "LOG_EXECUTION_ID": "true",
+      "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU",
+      "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8\r",
+      "SUPABASE_URL": "https://vnswjnltnhpsueosfhmw.supabase.co\r",
+      "UPSTASH_REDIS_REST_TOKEN": "AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA",
+      "UPSTASH_REDIS_REST_URL": "https://charming-condor-46598.upstash.io"
+    },
+    "ingressSettings": "ALLOW_ALL",
+    "maxInstanceCount": 60,
+    "maxInstanceRequestConcurrency": 1,
+    "revision": "ml-analytics-engine-00001-suv",
+    "service": "projects/openmanager-free-tier/locations/asia-northeast3/services/ml-analytics-engine",
+    "serviceAccountEmail": "490817238363-compute@developer.gserviceaccount.com",
+    "timeoutSeconds": 120,
+    "uri": "https://ml-analytics-engine-jdhrhws7ia-du.a.run.app"
+  },
+  "state": "ACTIVE",
+  "updateTime": "2025-08-27T11:59:32.662174578Z",
+  "url": "https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/ml-analytics-engine"
+}
