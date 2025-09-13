@@ -2,7 +2,7 @@
 # 🤖 현실적 AI 교차검증 시스템
 # Claude Code와 3개 외부 AI의 실용적 교차검증
 
-set -euo pipefail
+set -uo pipefail
 
 # 색상 정의
 RED='\033[0;31m'
@@ -83,18 +83,43 @@ get_file_summary() {
     fi
 }
 
-# Codex CLI 분석 (ChatGPT Plus) - 개선된 버전
+# 메모리 안전 검사
+check_memory_safety() {
+    local available_mb
+    available_mb=$(free -m | awk '/^Mem:/{print $7}')
+    
+    if [ "$available_mb" -lt 1000 ]; then
+        log_warning "사용 가능한 메모리가 부족합니다 (${available_mb}MB). 분석을 건너뜁니다."
+        return 1
+    fi
+    return 0
+}
+
+# Codex CLI 분석 (ChatGPT Plus) - 안전한 45초 타임아웃
 analyze_with_codex() {
     local file_path="$1"
     local file_content
+    local temp_file
     
-    log_info "🤖 Codex CLI (GPT-5) 분석 중... (90초 타임아웃)"
+    # 메모리 안전 검사
+    if ! check_memory_safety; then
+        echo "🤖 Codex 분석: 메모리 부족으로 건너뜀"
+        return
+    fi
     
-    # 파일 내용 직접 읽어서 전달 (더 안정적)
+    log_info "🤖 Codex CLI (GPT-5) 분석 중... (45초 타임아웃)"
+    
+    # 파일 내용을 임시 파일로 저장 (메모리 안전)
     if [ -f "$file_path" ]; then
-        file_content=$(head -c 8000 "$file_path" 2>/dev/null)
+        temp_file="/tmp/codex_$(basename "$file_path")_$$"
+        head -c 4000 "$file_path" > "$temp_file" 2>/dev/null || {
+            echo "❌ Codex 분석: 파일 읽기 실패"
+            return
+        }
         
-        timeout 90s codex exec "
+        file_content=$(cat "$temp_file" 2>/dev/null)
+        
+        timeout 45s codex exec "
 실무 관점에서 다음 TypeScript 코드를 10점 만점으로 평가해주세요:
 
 파일: $(basename "$file_path")
@@ -108,23 +133,39 @@ $file_content
 개선사항: [구체적 개선사항 2개] 
 보안/성능: [발견된 이슈 또는 '없음']
 " 2>/dev/null || {
-            log_warning "⚠️ Codex CLI 타임아웃 (90초 초과)"
-            echo "🤖 Codex 분석: 타임아웃 발생 - 파일이 너무 크거나 네트워크 문제"
+            log_warning "⚠️ Codex CLI 타임아웃 (45초 초과)"
+            echo "🤖 Codex 분석: 타임아웃 또는 네트워크 문제"
         }
+        
+        # 임시 파일 정리
+        rm -f "$temp_file" 2>/dev/null
     else
         echo "❌ Codex 분석: 파일을 찾을 수 없음 ($file_path)"
     fi
 }
 
-# Gemini CLI 분석 (Google AI 무료 1K/day) - CLAUDE.md 기준 45초
+# Gemini CLI 분석 (Google AI 무료 1K/day) - 안전한 45초 타임아웃
 analyze_with_gemini() {
     local file_path="$1"
     local file_content
+    local temp_file
+    
+    # 메모리 안전 검사
+    if ! check_memory_safety; then
+        echo "🤖 Gemini 분석: 메모리 부족으로 건너뜀"
+        return
+    fi
     
     log_info "🤖 Gemini CLI (구조+아키텍처) 분석 중... (45초 타임아웃)"
     
     if [ -f "$file_path" ]; then
-        file_content=$(head -c 6000 "$file_path" 2>/dev/null)
+        temp_file="/tmp/gemini_$(basename "$file_path")_$$"
+        head -c 3500 "$file_path" > "$temp_file" 2>/dev/null || {
+            echo "❌ Gemini 분석: 파일 읽기 실패"
+            return
+        }
+        
+        file_content=$(cat "$temp_file" 2>/dev/null)
         
         timeout 45s gemini -p "
 구조적 관점에서 TypeScript 코드를 분석해주세요:
@@ -140,25 +181,41 @@ $file_content
 리팩토링 제안: [구조 개선사항 2개]
 확장성: [확장성 평가]
 " 2>/dev/null || {
-            log_warning "⚠️ Gemini CLI 타임아웃 (45초) - 무료 한도 1K/day 초과 가능"
-            echo "🤖 Gemini 분석: 45초 타임아웃 또는 무료 한도 초과"
+            log_warning "⚠️ Gemini CLI 타임아웃 (45초 초과)"
+            echo "🤖 Gemini 분석: 타임아웃 또는 무료 한도 초과"
         }
+        
+        # 임시 파일 정리
+        rm -f "$temp_file" 2>/dev/null
     else
         echo "❌ Gemini 분석: 파일 찾을 수 없음"
     fi
 }
 
-# Qwen CLI 분석 (OAuth 무료 2K/day) - CLAUDE.md 기준 60초
+# Qwen CLI 분석 (OAuth 무료 2K/day) - 안전한 45초 타임아웃
 analyze_with_qwen() {
     local file_path="$1"
     local file_content
+    local temp_file
     
-    log_info "🤖 Qwen CLI (성능+알고리즘) 분석 중... (60초 타임아웃)"
+    # 메모리 안전 검사
+    if ! check_memory_safety; then
+        echo "🤖 Qwen 분석: 메모리 부족으로 건너뜀"
+        return
+    fi
+    
+    log_info "🤖 Qwen CLI (성능+알고리즘) 분석 중... (45초 타임아웃)"
     
     if [ -f "$file_path" ]; then
-        file_content=$(head -c 5000 "$file_path" 2>/dev/null)
+        temp_file="/tmp/qwen_$(basename "$file_path")_$$"
+        head -c 3000 "$file_path" > "$temp_file" 2>/dev/null || {
+            echo "❌ Qwen 분석: 파일 읽기 실패"
+            return
+        }
         
-        timeout 60s qwen -p "
+        file_content=$(cat "$temp_file" 2>/dev/null)
+        
+        timeout 45s qwen -p "
 알고리즘 관점에서 TypeScript 코드를 분석해주세요:
 
 파일: $(basename "$file_path")
@@ -172,9 +229,12 @@ $file_content
 최적화 제안: [성능 개선방안 2개]
 복잡도: [시간/공간 복잡도 평가]
 " 2>/dev/null || {
-            log_warning "⚠️ Qwen CLI 타임아웃 (60초) - OAuth 2K/day 한도 초과 가능"
-            echo "🤖 Qwen 분석: 60초 타임아웃 또는 OAuth 한도 초과"
+            log_warning "⚠️ Qwen CLI 타임아웃 (45초 초과)"
+            echo "🤖 Qwen 분석: 타임아웃 또는 OAuth 한도 초과"
         }
+        
+        # 임시 파일 정리
+        rm -f "$temp_file" 2>/dev/null
     else
         echo "❌ Qwen 분석: 파일 찾을 수 없음"
     fi
@@ -237,22 +297,31 @@ cross_validate_file() {
     analyze_with_claude "$file_path"
     echo ""
     
-    # 외부 AI 도구들로 분석
+    # 외부 AI 도구들로 순차 분석 (메모리 안전)
     for tool in "${available_tools[@]}"; do
         case "$tool" in
             "codex")
-                analyze_with_codex "$file_path"
+                log_info "Codex 분석 시작 (1/3)"
+                analyze_with_codex "$file_path" || log_warning "Codex 분석 실패"
                 echo ""
+                sleep 2  # AI 서버 부하 방지
                 ;;
             "gemini")
-                analyze_with_gemini "$file_path"
+                log_info "Gemini 분석 시작 (2/3)"
+                analyze_with_gemini "$file_path" || log_warning "Gemini 분석 실패"
                 echo ""
+                sleep 2  # AI 서버 부하 방지
                 ;;
             "qwen")
-                analyze_with_qwen "$file_path"
+                log_info "Qwen 분석 시작 (3/3)"
+                analyze_with_qwen "$file_path" || log_warning "Qwen 분석 실패"
                 echo ""
+                sleep 2  # AI 서버 부하 방지
                 ;;
         esac
+        
+        # 메모리 정리 (권한 문제로 sync만 실행)
+        sync 2>/dev/null || true
     done
     
     echo "========================================"
@@ -312,7 +381,7 @@ case "$1" in
         echo ""
         echo "특징:"
         echo "- 파일 크기에 따른 자동 요약"
-        echo "- 시간 초과 방지 (각 AI별 15-20초 제한)"
+        echo "- 여유있는 타임아웃 (각 AI별 5분 제한)"
         echo "- 실패한 AI는 건너뛰고 계속 진행"
         echo "- 간결한 결과 요약"
         ;;

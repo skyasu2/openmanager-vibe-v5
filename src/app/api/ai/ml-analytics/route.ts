@@ -11,7 +11,29 @@ import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';
 
 interface MLAnalysisData {
-  anomalies?: unknown[];
+  analysis_type: string;
+  metrics_count: number;
+  summary: {
+    cpu_average: number;
+    memory_average: number;
+    trend: string;
+    health_score: number;
+  };
+  anomalies: Array<{
+    type: string;
+    severity: string;
+    value: number;
+    threshold: number;
+  }>;
+  prediction: {
+    next_hour_cpu: number;
+    next_hour_memory: number;
+    confidence: number;
+  };
+  processed_at: string;
+  processing_time_ms: number;
+  region: string;
+  country: string;
   [key: string]: unknown;
 }
 
