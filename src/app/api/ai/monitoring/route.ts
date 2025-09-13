@@ -148,7 +148,7 @@ async function getHandler() {
       q.intent?.includes('google-ai') || q.response_time > 1000
     ) || [];
     const dailyGoogleAIRequests = googleAIQueries.length;
-    const dailyLimit = 1500; // Google AI 일일 한도
+    const dailyLimit = 1500; // ✅ Google AI 무료 티어 gemini-1.5-flash 한도: 1500회/일 (2025년 최신 정보)
 
     // 🎯 모니터링 데이터 구성
     const monitoringData: MonitoringData = {

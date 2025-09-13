@@ -84,23 +84,10 @@ export class SimplifiedQueryEngine {
   }
 
   private initCleanupScheduler() {
-    try {
-      // Edge Runtime 감지 (setInterval 제한 여부 확인)
-      if (
-        typeof setInterval === 'function' &&
-        typeof process !== 'undefined' &&
-        process.env.NODE_ENV !== 'test'
-      ) {
-        // Node.js Runtime: 5분마다 자동 정리
-        setInterval(() => this.utils.cleanupCache(), 5 * 60 * 1000);
-      } else {
-        // Edge Runtime: 수동 cleanup만 사용
-        // 빌드 시에는 아무것도 하지 않음
-      }
-    } catch (error) {
-      // setInterval 사용 불가 환경: 수동 cleanup만 사용
-      console.warn('SimplifiedQueryEngine: Automatic cache cleanup disabled');
-    }
+    // 🚀 AI 교차검증 개선: setInterval 제거 (Vercel 서버리스 호환성)
+    // Lazy cleanup 전략: 캐시 접근 시 TTL 검사로 대체
+    // Vercel Cron을 통한 정기 정리는 별도 API 엔드포인트에서 처리
+    console.log('✅ SimplifiedQueryEngine: Lazy cache cleanup 전략 적용');
   }
 
   /**
@@ -127,9 +114,9 @@ export class SimplifiedQueryEngine {
     try {
       console.log('🚀 SimplifiedQueryEngine 초기화 중...');
 
-      // RAG 엔진 초기화 (타임아웃 설정)
+      // RAG 엔진 초기화 (타임아웃 설정) - 🚀 AI 교차검증: 안정성 우선 3초로 조정
       const initTimeout = new Promise<void>((_, reject) =>
-        setTimeout(() => reject(new Error('초기화 타임아웃')), 5000)
+        setTimeout(() => reject(new Error('초기화 타임아웃')), 3000)
       );
 
       await Promise.race([this.ragEngine._initialize(), initTimeout]);
@@ -165,7 +152,8 @@ export class SimplifiedQueryEngine {
     } = request;
 
     const thinkingSteps: QueryResponse['thinkingSteps'] = [];
-    const timeoutMs = options.timeoutMs || 450; // 기본 450ms (목표: 500ms 이하)
+    // 🚀 AI 교차검증 개선: 안정성 우선 타임아웃 (Gemini 검증 결과)
+    const timeoutMs = options.timeoutMs || 700; // 기본 700ms (안정성 vs 성능 균형)
 
     // Cache check (delegated to utils)
     const cacheKey = this.utils.generateCacheKey(query, mode, context);
@@ -356,12 +344,12 @@ export class SimplifiedQueryEngine {
 
         return response;
       } catch (timeoutError) {
-        // 각 모드 독립적으로 실패 처리 (폴백 제거)
+        // 🚨 폴백 제거: 각 모드에서 타임아웃 시 에러 직접 반환
         const errorMessage = mode === 'google-ai' || enableGoogleAI 
           ? 'Google AI 모드에서 처리 시간 초과입니다.'
           : '로컬 AI 모드에서 처리 시간 초과입니다.';
         
-        console.warn(`${errorMessage} 모드 독립 실패 처리`);
+        console.warn(`${errorMessage} (폴백 없음 - 에러 직접 반환)`);
 
         return {
           success: false,
@@ -374,7 +362,7 @@ export class SimplifiedQueryEngine {
         };
       }
     } catch (error) {
-      console.error('❌ 쿼리 처리 실패:', error);
+      console.error('❌ 쿼리 처리 실패 (폴백 없음):', error);
 
       return {
         success: false,

@@ -188,10 +188,10 @@ export class VectorSearchOptimizer {
         }
       }
 
-      // 4. 메타데이터 인덱스 (JSON 필드)
+      // 4. 메타데이터 인덱스 (JSON 필드) - 스키마 오타 수정
       const createMetadataIndexSQL = `
         CREATE INDEX IF NOT EXISTS idx_metadata_gin
-        ON command_vectors USING gin (meta_data);
+        ON command_vectors USING gin (metadata);
       `;
 
       const { error: metadataError } = await this.supabase.rpc('execute_sql', {

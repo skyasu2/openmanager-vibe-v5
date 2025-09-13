@@ -24,6 +24,8 @@ import type {
 import { SimplifiedQueryEngineUtils } from './SimplifiedQueryEngine.utils';
 import { SimplifiedQueryEngineHelpers } from './SimplifiedQueryEngine.processors.helpers';
 import { LocalAIModeProcessor } from './SimplifiedQueryEngine.processors.localai';
+import { getQueryDifficultyAnalyzer, type GoogleAIModel } from './QueryDifficultyAnalyzer';
+import { getGoogleAIUsageTracker } from './GoogleAIUsageTracker';
 
 /**
  * 🤖 구글 AI 모드 프로세서
@@ -119,11 +121,69 @@ export class GoogleAIModeProcessor {
       }
     }
 
-    // 2단계: Google AI API 처리 (핵심 기능)
+    // 2단계: 쿼리 난이도 분석 및 모델 선택
+    const difficultyStepStart = Date.now();
+    thinkingSteps.push({
+      step: '쿼리 난이도 분석',
+      description: '난이도 기반 최적 모델 선택',
+      status: 'pending',
+      timestamp: difficultyStepStart,
+    });
+
+    let selectedModel: GoogleAIModel = 'gemini-2.5-flash'; // 기본값
+    let difficultyScore = 0;
+    let difficultyLevel = 'medium';
+
+    try {
+      const difficultyAnalyzer = getQueryDifficultyAnalyzer();
+      const usageTracker = getGoogleAIUsageTracker();
+      
+      // 실제 사용량 데이터 조회
+      const currentUsage = usageTracker.getCurrentUsage();
+      const usageQuota = {
+        'gemini-2.5-pro': { 
+          daily: currentUsage['gemini-2.5-pro'].daily - currentUsage['gemini-2.5-pro'].remaining.daily,
+          rpm: currentUsage['gemini-2.5-pro'].rpm - currentUsage['gemini-2.5-pro'].remaining.rpm,
+        },
+        'gemini-2.5-flash': { 
+          daily: currentUsage['gemini-2.5-flash'].daily - currentUsage['gemini-2.5-flash'].remaining.daily,
+          rpm: currentUsage['gemini-2.5-flash'].rpm - currentUsage['gemini-2.5-flash'].remaining.rpm,
+        },
+        'gemini-2.5-flash-lite': { 
+          daily: currentUsage['gemini-2.5-flash-lite'].daily - currentUsage['gemini-2.5-flash-lite'].remaining.daily,
+          rpm: currentUsage['gemini-2.5-flash-lite'].rpm - currentUsage['gemini-2.5-flash-lite'].remaining.rpm,
+        },
+      };
+
+      const analysis = difficultyAnalyzer.analyze(query, context, mcpContext, usageQuota);
+      
+      selectedModel = analysis.recommendedModel;
+      difficultyScore = analysis.score;
+      difficultyLevel = analysis.level;
+
+      const difficultyStep = thinkingSteps[thinkingSteps.length - 1];
+      if (difficultyStep) {
+        difficultyStep.status = 'completed';
+        difficultyStep.description = `${analysis.level} (${analysis.score}점) → ${selectedModel} 선택`;
+        difficultyStep.duration = Date.now() - difficultyStepStart;
+      }
+
+      console.log(`🎯 난이도 분석 완료: ${analysis.reasoning}`);
+    } catch (error) {
+      console.warn('난이도 분석 실패, 기본 모델 사용:', error);
+      const difficultyFailedStep = thinkingSteps[thinkingSteps.length - 1];
+      if (difficultyFailedStep) {
+        difficultyFailedStep.status = 'failed';
+        difficultyFailedStep.description = '기본 모델(gemini-2.5-flash) 사용';
+        difficultyFailedStep.duration = Date.now() - difficultyStepStart;
+      }
+    }
+
+    // 3단계: Google AI API 처리 (선택된 모델 사용)
     const googleStepStart = Date.now();
     thinkingSteps.push({
       step: 'Google AI 처리',
-      description: 'Gemini API 호출 및 응답 생성',
+      description: `${selectedModel} 모델로 API 호출`,
       status: 'pending',
       timestamp: googleStepStart,
     });
@@ -144,13 +204,24 @@ export class GoogleAIModeProcessor {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 400); // 400ms 타임아웃
 
+      // 난이도 기반 동적 파라미터 설정
+      const dynamicTemperature = difficultyLevel === 'simple' ? 0.5 : 
+                                 difficultyLevel === 'medium' ? 0.7 : 0.9;
+      const dynamicMaxTokens = difficultyLevel === 'simple' ? 500 : 
+                              difficultyLevel === 'medium' ? 1000 : 2000;
+
       const response = await fetch('/api/ai/google-ai/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-AI-Assistant': 'true',
+          'X-AI-Mode': 'google-ai'
+        },
         body: JSON.stringify({
           prompt,
-          temperature: 0.7, // 고정값 (복잡도 분석 없음)
-          maxTokens: 1000, // 고정값
+          model: selectedModel,
+          temperature: dynamicTemperature,
+          maxTokens: dynamicMaxTokens,
         }),
         signal: controller.signal,
       });
@@ -170,6 +241,18 @@ export class GoogleAIModeProcessor {
         googleStep.duration = Date.now() - googleStepStart;
       }
 
+      // 🔄 사용량 추적: 성공한 API 호출 기록
+      const usageTracker = getGoogleAIUsageTracker();
+      usageTracker.recordUsage({
+        model: selectedModel,
+        timestamp: Date.now(),
+        requestCount: 1,
+        tokenCount: data.metadata?.actualTokens || data.metadata?.promptTokens || 0,
+        latency: Date.now() - googleStepStart,
+        success: true,
+        difficultyScore,
+      });
+
       // GCP VM MCP 제거됨 (VM 제거로 인해 불필요)
 
       // VM 백엔드 연동 제거됨 (GCP VM 제거로 인해)
@@ -186,7 +269,7 @@ export class GoogleAIModeProcessor {
         confidence: finalConfidence,
         thinkingSteps,
         metadata: {
-          model: data.model || 'gemini-pro',
+          model: selectedModel,
           tokensUsed: data.tokensUsed,
           mcpUsed: !!(mcpContext && enableAIAssistantMCP),
           aiAssistantMCPUsed: enableAIAssistantMCP,
@@ -194,34 +277,89 @@ export class GoogleAIModeProcessor {
           // GCP VM MCP 제거됨 - Cloud Functions 전용으로 단순화
           mockMode: !!this.mockContextLoader.getMockContext(),
           mode: 'google-ai',
+          // 난이도 분석 정보 추가
+          difficultyAnalysis: {
+            score: difficultyScore,
+            level: difficultyLevel,
+            selectedModel,
+            temperature: dynamicTemperature,
+            maxTokens: dynamicMaxTokens,
+          },
         } as unknown as AIMetadata & {
           aiAssistantMCPUsed?: boolean;
           koreanNLPUsed?: boolean;
-          // GCP VM MCP 타입 제거됨
           mockMode?: boolean;
+          difficultyAnalysis?: {
+            score: number;
+            level: string;
+            selectedModel: GoogleAIModel;
+            temperature: number;
+            maxTokens: number;
+          };
         },
         processingTime: Date.now() - startTime,
       };
     } catch (error) {
       console.error('Google AI 처리 오류:', error);
 
-      // 폴백: 로컬 AI 모드로 전환
+      // 🔄 사용량 추적: 실패한 API 호출 기록
+      const usageTracker = getGoogleAIUsageTracker();
+      usageTracker.recordUsage({
+        model: selectedModel,
+        timestamp: Date.now(),
+        requestCount: 1,
+        tokenCount: 0,
+        latency: Date.now() - googleStepStart,
+        success: false,
+        difficultyScore,
+      });
+
+      // 🚨 폴백 제거: 에러 직접 반환
       const googleFailedStep = thinkingSteps[thinkingSteps.length - 1];
       if (googleFailedStep) {
         googleFailedStep.status = 'failed';
-        googleFailedStep.description = 'Google AI 실패, 로컬 AI 모드로 전환';
+        googleFailedStep.description = 'Google AI 처리 실패';
         googleFailedStep.duration = Date.now() - googleStepStart;
       }
 
-      return await this.localAIProcessor.processLocalAIModeQuery(
-        query,
-        context,
-        options,
-        mcpContext,
+      // Google AI 실패 시 에러 응답 반환 (폴백 없음)
+      return {
+        success: false,
+        response: 'Google AI 모드에서 쿼리 처리 중 오류가 발생했습니다.',
+        engine: 'google-ai',
+        confidence: 0,
         thinkingSteps,
-        startTime,
-        { enableKoreanNLP: true, enableVMBackend: false }
-      );
+        error: error instanceof Error ? error.message : '알 수 없는 오류',
+        metadata: {
+          model: selectedModel,
+          aiAssistantMCPUsed: enableAIAssistantMCP,
+          koreanNLPUsed: enableKoreanNLP,
+          mockMode: !!this.mockContextLoader.getMockContext(),
+          mode: 'google-ai',
+          // 난이도 분석 정보 추가 (에러 시에도 포함)
+          difficultyAnalysis: {
+            score: difficultyScore,
+            level: difficultyLevel,
+            selectedModel,
+            temperature: difficultyLevel === 'simple' ? 0.5 : 
+                        difficultyLevel === 'medium' ? 0.7 : 0.9,
+            maxTokens: difficultyLevel === 'simple' ? 500 : 
+                      difficultyLevel === 'medium' ? 1000 : 2000,
+          },
+        } as AIMetadata & {
+          aiAssistantMCPUsed?: boolean;
+          koreanNLPUsed?: boolean;
+          mockMode?: boolean;
+          difficultyAnalysis?: {
+            score: number;
+            level: string;
+            selectedModel: GoogleAIModel;
+            temperature: number;
+            maxTokens: number;
+          };
+        },
+        processingTime: Date.now() - startTime,
+      };
     }
   }
 }

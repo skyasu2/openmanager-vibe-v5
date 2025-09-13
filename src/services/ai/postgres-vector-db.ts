@@ -242,14 +242,16 @@ export class PostgresVectorDB {
   }
 
   /**
-   * 🔄 폴백 검색 (클라이언트 사이드)
+   * 🔄 폴백 검색 (클라이언트 사이드) - 2단계 최적화
+   * 1단계: id + embedding만 조회하여 유사도 계산
+   * 2단계: 상위 K개에 대해서만 content + metadata 조회
    */
   private async fallbackSearch(
     queryEmbedding: number[],
     options: SearchOptions = {}
   ): Promise<SearchResult[]> {
     console.warn(
-      '⚠️ pgvector 네이티브 함수 실패, 클라이언트 사이드 검색으로 폴백'
+      '⚠️ pgvector 네이티브 함수 실패, 2단계 최적화 폴백 검색 시작'
     );
 
     const {
@@ -259,73 +261,124 @@ export class PostgresVectorDB {
       category,
     } = options;
 
-    let query = supabase
-      .from(this.tableName)
-      .select('id, content, metadata, embedding')
-      .not('embedding', 'is', null);
+    try {
+      // ===== 1단계: ID + 임베딩만 조회 (전송량 최소화) =====
+      let embedQuery = supabase
+        .from(this.tableName)
+        .select('id, embedding')
+        .not('embedding', 'is', null);
 
-    if (category) {
-      query = query.eq('metadata->category', category);
-    }
-
-    if (Object.keys(metadata_filter).length > 0) {
-      query = query.contains('metadata', metadata_filter);
-    }
-
-    const { data, error } = await query.limit(100);
-
-    if (error || !data || data.length === 0) {
-      return [];
-    }
-
-    const results: SearchResult[] = [];
-
-    for (const row of data) {
-      if (!row.embedding) {
-        console.warn(`문서 ${row.id}에 임베딩이 없습니다`);
-        continue;
+      if (category) {
+        embedQuery = embedQuery.eq('metadata->category', category);
       }
 
-      // pgvector 타입을 배열로 변환 (Supabase는 vector를 문자열로 반환할 수 있음)
-      let embeddingArray: number[];
-      if (typeof row.embedding === 'string') {
-        // "[0.1,0.2,0.3]" 형태의 문자열을 배열로 변환
-        try {
-          embeddingArray = JSON.parse(row.embedding);
-        } catch (e) {
-          console.error(`임베딩 파싱 오류 (${row.id}):`, e);
+      // 메타데이터 필터가 있으면 여기서 적용
+      if (Object.keys(metadata_filter).length > 0) {
+        embedQuery = embedQuery.contains('metadata', metadata_filter);
+      }
+
+      const { data: embedData, error: embedError } = await embedQuery.limit(100);
+
+      if (embedError || !embedData || embedData.length === 0) {
+        console.error('1단계 조회 실패:', embedError?.message);
+        return [];
+      }
+
+      console.log(`📊 1단계: ${embedData.length}개 문서의 임베딩 조회 완료`);
+
+      // ===== 클라이언트 사이드 유사도 계산 =====
+      const candidatesWithSimilarity: Array<{
+        id: string;
+        similarity: number;
+      }> = [];
+
+      for (const row of embedData) {
+        if (!row.embedding) {
+          console.warn(`문서 ${row.id}에 임베딩이 없습니다`);
           continue;
         }
-      } else if (Array.isArray(row.embedding)) {
-        embeddingArray = row.embedding;
-      } else {
-        console.warn(
-          `알 수 없는 임베딩 형식 (${row.id}):`,
-          typeof row.embedding
-        );
-        continue;
+
+        // pgvector 타입을 배열로 변환
+        let embeddingArray: number[];
+        try {
+          if (typeof row.embedding === 'string') {
+            embeddingArray = JSON.parse(row.embedding);
+          } else if (Array.isArray(row.embedding)) {
+            embeddingArray = row.embedding;
+          } else {
+            console.warn(
+              `알 수 없는 임베딩 형식 (${row.id}):`,
+              typeof row.embedding
+            );
+            continue;
+          }
+
+          const similarity = this.cosineSimilarity(
+            queryEmbedding,
+            embeddingArray
+          );
+
+          if (similarity > threshold) {
+            candidatesWithSimilarity.push({
+              id: row.id,
+              similarity,
+            });
+          }
+        } catch (e) {
+          console.error(`임베딩 처리 오류 (${row.id}):`, e);
+          continue;
+        }
       }
 
-      try {
-        const similarity = this.cosineSimilarity(
-          queryEmbedding,
-          embeddingArray
-        );
+      // 유사도 기준 정렬 후 상위 K개만 선택
+      const topCandidates = candidatesWithSimilarity
+        .sort((a, b) => b.similarity - a.similarity)
+        .slice(0, topK);
 
-        if (similarity > threshold) {
+      if (topCandidates.length === 0) {
+        console.warn('임계값을 넘는 유사 문서가 없습니다');
+        return [];
+      }
+
+      console.log(`🎯 2단계 대상: ${topCandidates.length}개 문서 선별`);
+
+      // ===== 2단계: 상위 K개에 대해서만 content + metadata 조회 =====
+      const selectedIds = topCandidates.map(c => c.id);
+      
+      const { data: contentData, error: contentError } = await supabase
+        .from(this.tableName)
+        .select('id, content, metadata')
+        .in('id', selectedIds);
+
+      if (contentError || !contentData) {
+        console.error('2단계 조회 실패:', contentError?.message);
+        return [];
+      }
+
+      console.log(`✅ 2단계: ${contentData.length}개 문서의 내용 조회 완료`);
+
+      // ===== 결과 조합 및 반환 =====
+      const results: SearchResult[] = [];
+      
+      for (const candidate of topCandidates) {
+        const contentDoc = contentData.find(doc => doc.id === candidate.id);
+        if (contentDoc) {
           results.push({
-            id: row.id,
-            content: row.content,
-            metadata: row.metadata || {},
-            similarity,
+            id: candidate.id,
+            content: contentDoc.content,
+            metadata: contentDoc.metadata || {},
+            similarity: candidate.similarity,
           });
         }
-      } catch (e) {
-        console.error(`유사도 계산 오류 (${row.id}):`, e);
       }
-    }
 
-    return results.sort((a, b) => b.similarity - a.similarity).slice(0, topK);
+      console.log(`🎉 폴백 검색 완료: ${results.length}개 결과 반환`);
+      return results;
+
+    } catch (error) {
+      console.error('❌ 폴백 검색 전체 실패:', error);
+      return [];
+    }
   }
 
   /**
