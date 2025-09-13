@@ -17,7 +17,7 @@ export const HEALTH_CHECK_INTERVAL =
     : 30 * 1000; // 운영: 30초
 
 // 🔒 관리자 모드 설정
-export const ADMIN_PASSWORD = '4231';
+export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'default-fallback';
 export const MAX_LOGIN_ATTEMPTS = 5;
 export const LOCKOUT_DURATION = 10 * 1000; // 10초
 
