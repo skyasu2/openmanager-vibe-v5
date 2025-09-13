@@ -1,7 +1,7 @@
 /**
  * 📊 ML Analytics API Route
  *
- * GCP Functions의 ml-analytics-engine을 호출하는 API
+ * Google Cloud Functions 100% 사용 (실제 클라우드 환경)
  */
 
 import type { NextRequest } from 'next/server';
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    debug.log('📊 ML Analytics 요청 처리 중...');
+    debug.log('🌐 ML Analytics 요청 처리 중... (GCP Functions 100%)');
 
     // GCP Functions 호출
     const result = await analyzeMLMetrics(metrics, context);

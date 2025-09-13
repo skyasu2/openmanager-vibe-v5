@@ -1,16 +1,8 @@
 /**
- * GCP Functions 클라이언트 - 탄력적 장애 대응 시스템
+ * GCP Functions 클라이언트 - 직접 호출 방식
  *
- * ResilientAIClient를 사용하여 Circuit Breaker, 재시도, 캐시 기능 제공
- * Vercel 라우트를 fallback으로 활용하여 높은 가용성 보장
+ * Google Cloud Functions에 직접 연결하여 실제 클라우드 환경 활용
  */
-
-import { 
-  getResilientAIClient,
-  analyzeKoreanNLPResilient,
-  analyzeMLMetricsResilient,
-  processUnifiedAIResilient
-} from './resilient-ai-client';
 
 // GCP Functions URL (레거시 지원)
 const GCP_FUNCTIONS_BASE_URL =
@@ -78,41 +70,46 @@ export function getGCPFunctionsClient(): GCPFunctionsClient {
 }
 
 /**
- * Korean NLP 분석 헬퍼 (탄력적 버전)
+ * Korean NLP 분석 헬퍼 (직접 호출)
  */
 export async function analyzeKoreanNLP(query: string, context?: unknown) {
-  return analyzeKoreanNLPResilient(query, context);
+  const client = getGCPFunctionsClient();
+  return client.callFunction('enhanced-korean-nlp', { query, context });
 }
 
 /**
- * ML Analytics 분석 헬퍼 (탄력적 버전)
+ * ML Analytics 분석 헬퍼 (직접 호출)
  */
 export async function analyzeMLMetrics(metrics: unknown[], context?: unknown) {
-  return analyzeMLMetricsResilient(metrics, context);
+  const client = getGCPFunctionsClient();
+  return client.callFunction('ml-analytics-engine', { metrics, context });
 }
 
 /**
- * 통합 AI 처리 헬퍼 (탄력적 버전)
+ * 통합 AI 처리 헬퍼 (직접 호출)
  */
 export async function processUnifiedAI(request: unknown) {
-  return processUnifiedAIResilient(request);
+  const client = getGCPFunctionsClient();
+  return client.callFunction('unified-ai-processor', request);
 }
 
 /**
- * 모니터링 및 상태 조회 헬퍼
+ * GCP Functions 상태 조회 (단순화)
  */
-export function getAIClientStats() {
-  const client = getResilientAIClient();
+export function getGCPFunctionsStatus() {
   return {
-    circuitBreakers: client.getCircuitBreakerStatus(),
-    cache: client.getCacheStats(),
+    baseUrl: GCP_FUNCTIONS_BASE_URL,
+    environment: process.env.NODE_ENV,
+    directCall: true, // Circuit Breaker 비활성화
   };
 }
 
 // 환경 정보 로깅
 if (process.env.NODE_ENV === 'development') {
-  console.log('🔍 GCP Functions 환경 설정:');
+  console.log('🌐 GCP Functions 직접 호출 모드:');
   console.log(`  - NODE_ENV: ${process.env.NODE_ENV}`);
   console.log(`  - Base URL: ${GCP_FUNCTIONS_BASE_URL}`);
-  console.log(`  - 실제 GCP Functions 사용`);
+  console.log(`  - Circuit Breaker: 비활성화`);
+  console.log(`  - Mock Fallback: 비활성화`);
+  console.log(`  - 100% GCP Functions 사용`);
 }
