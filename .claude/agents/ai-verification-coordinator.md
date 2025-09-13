@@ -1,7 +1,7 @@
 ---
 name: ai-verification-coordinator
 description: USE ON REQUEST for AI cross-verification coordination. AI 교차 검증 시스템 메인 조정자 - 3단계 레벨 기반 4-AI 교차 검증 오케스트레이션
-tools: Task, Write, Read, TodoWrite, mcp__filesystem__write_file, mcp__filesystem__read_text_file, mcp__memory__create_entities, mcp__thinking__sequentialthinking
+tools: Task, Write, Read, TodoWrite, mcp__memory__create_entities, mcp__sequential-thinking__sequentialthinking
 priority: high
 autoTrigger: false
 trigger: code_verification, cross_verification, quality_assurance
@@ -79,12 +79,12 @@ interface FileAnalysis {
 
 const analyzeFile = async (filePath: string): Promise<FileAnalysis> => {
   // 파일 내용 읽기 및 분석
-  const content = await mcp__filesystem__read_text_file(filePath);
+  const content = await (filePath);
   const lineCount = content.split('\n').length;
   
   // 중요 파일 패턴 검사
   const criticalPatterns = [
-    '**/auth/**', '**/api/payment/**', '**/security/**',
+    '**/auth/**', '**/api/payment/**', '**/security/**'
     '**/*.config.*', '.env*', '**/middleware/**'
   ];
   const isCritical = criticalPatterns.some(pattern => 
@@ -106,13 +106,13 @@ const executeLevel1 = async (filePath: string): Promise<VerificationResult> => {
   console.log(`🔍 Level 1 검증 시작: ${filePath}`);
   
   // Claude 자체 검토
-  const claudeResult = await Task('code-review-specialist', 
+  const claudeResult = await Task('code-review-specialist'
     `${filePath} 파일 자체 검토 - 기본 품질 및 타입 안전성 확인`
   );
   
   return {
-    level: 1,
-    reviews: [claudeResult],
+    level: 1
+    reviews: [claudeResult]
     consensus: 'high', // 단일 AI이므로 항상 high
     timestamp: new Date()
   };
@@ -125,7 +125,7 @@ const executeLevel2 = async (filePath: string): Promise<VerificationResult> => {
   console.log(`🔍 Level 2 검증 시작: ${filePath}`);
   
   // Claude 검토
-  const claudeResult = await Task('code-review-specialist',
+  const claudeResult = await Task('code-review-specialist'
     `${filePath} 파일 종합 검토`
   );
   
@@ -133,14 +133,14 @@ const executeLevel2 = async (filePath: string): Promise<VerificationResult> => {
   const selectedAI = selectRandomAI();
   console.log(`🎲 선택된 AI: ${selectedAI}`);
   
-  const aiResult = await Task(selectedAI, 
+  const aiResult = await Task(selectedAI
     `${filePath} 파일을 ${getAISpecialty(selectedAI)} 관점에서 교차 검토`
   );
   
   return {
-    level: 2,
-    reviews: [claudeResult, aiResult],
-    consensus: calculateConsensus([claudeResult, aiResult]),
+    level: 2
+    reviews: [claudeResult, aiResult]
+    consensus: calculateConsensus([claudeResult, aiResult])
     timestamp: new Date()
   };
 };
@@ -153,18 +153,18 @@ const executeLevel3 = async (filePath: string): Promise<VerificationResult> => {
   
   // 4-AI 완전 병렬 실행 (Claude는 code-review-specialist로)
   const [claudeResult, geminiResult, codexResult, qwenResult] = await Promise.all([
-    Task('code-review-specialist', `Claude 관점: ${filePath} Next.js/TypeScript 최적화 및 프레임워크 호환성 검토`),
-    Task('gemini-wrapper', `Gemini 관점: ${filePath} SOLID 원칙, 아키텍처 설계 패턴 검토`),
-    Task('codex-wrapper', `Codex 관점: ${filePath} 프로덕션 환경 보안 취약점 및 실무 엣지 케이스 검토`),
+    Task('code-review-specialist', `Claude 관점: ${filePath} Next.js/TypeScript 최적화 및 프레임워크 호환성 검토`)
+    Task('gemini-wrapper', `Gemini 관점: ${filePath} SOLID 원칙, 아키텍처 설계 패턴 검토`)
+    Task('codex-wrapper', `Codex 관점: ${filePath} 프로덕션 환경 보안 취약점 및 실무 엣지 케이스 검토`)
     Task('qwen-wrapper', `Qwen 관점: ${filePath} 알고리즘 효율성, 성능 최적화 및 메모리 관리 검토`)
   ]);
   
   const allReviews = [claudeResult, geminiResult, codexResult, qwenResult];
   
   return {
-    level: 3,
-    reviews: allReviews,
-    consensus: calculateConsensus(allReviews),
+    level: 3
+    reviews: allReviews
+    consensus: calculateConsensus(allReviews)
     timestamp: new Date()
   };
 };
@@ -316,7 +316,7 @@ ${result.improvements.map(imp => `- ${imp.description} (예상 효과: ${imp.imp
 *AI 교차 검증 시스템 v4.0 - 생성일: ${new Date().toISOString()}*
 `;
 
-  await mcp__filesystem__write_file(reportPath, reportContent);
+  await (reportPath, reportContent);
   return reportPath;
 };
 ```
@@ -384,20 +384,20 @@ interface SystemStatus {
 
 const getSystemStatus = (): SystemStatus => {
   return {
-    activeVerifications: getActiveVerificationCount(),
-    queuedVerifications: getQueueLength(),
+    activeVerifications: getActiveVerificationCount()
+    queuedVerifications: getQueueLength()
     aiUsageToday: {
-      gemini: getCurrentUsage('gemini'),
-      qwen: getCurrentUsage('qwen'),
+      gemini: getCurrentUsage('gemini')
+      qwen: getCurrentUsage('qwen')
       codex: getCurrentUsage('codex')
-    },
+    }
     averageResponseTime: {
-      claude: 3.0,
-      gemini: 3.1, 
-      codex: 4.8,
+      claude: 3.0
+      gemini: 3.1
+      codex: 4.8
       qwen: 7.6
-    },
-    successRate: calculateSuccessRate(),
+    }
+    successRate: calculateSuccessRate()
     consensusRate: calculateConsensusRate()
   };
 };
@@ -408,12 +408,12 @@ const getSystemStatus = (): SystemStatus => {
 ### 임계값 조정
 ```typescript
 const verificationThresholds = {
-  level1: { minScore: 7.0, requiredConsensus: 'any' },
-  level2: { minScore: 8.0, requiredConsensus: 'medium' },
-  level3: { minScore: 8.5, requiredConsensus: 'high' },
+  level1: { minScore: 7.0, requiredConsensus: 'any' }
+  level2: { minScore: 8.0, requiredConsensus: 'medium' }
+  level3: { minScore: 8.5, requiredConsensus: 'high' }
   
-  criticalFiles: { forceLevel3: true, minScore: 9.0 },
-  securityFiles: { requireCodex: true, minScore: 8.5 },
+  criticalFiles: { forceLevel3: true, minScore: 9.0 }
+  securityFiles: { requireCodex: true, minScore: 8.5 }
   
   consensusThresholds: {
     high: 0.5,    // ±0.7점 이내

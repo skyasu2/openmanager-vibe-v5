@@ -1,6 +1,6 @@
 ---
 name: simple-test-agent
-description: 간단한 테스트용 에이전트 - 기본 파일 분석 및 요약
+description: 🧪 실험용 테스트 에이전트. 새로운 기능 프로토타입, 간단한 파일 분석 실험 - test-automation-specialist와 완전 분리된 실험 도구
 tools: Read, Bash, TodoWrite
 priority: low
 ---

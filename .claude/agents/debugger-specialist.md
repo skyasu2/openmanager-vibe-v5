@@ -2,7 +2,7 @@
 name: debugger-specialist
 description: PROACTIVELY use for debugging complex issues. 디버깅 및 근본 원인 분석 전문가. 복잡한 버그 해결, 스택 트레이스 분석, 성능 문제 진단
 tools: Read, Grep, Bash, LS, Glob, mcp__serena__find_referencing_symbols, mcp__serena__search_for_pattern, mcp__gcp__query_logs
-priority: high
+priority: medium
 trigger: bug_report, performance_issue, stack_trace_error
 ---
 

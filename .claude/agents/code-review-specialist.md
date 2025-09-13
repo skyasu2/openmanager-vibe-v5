@@ -1,7 +1,7 @@
 ---
 name: code-review-specialist
-description: PROACTIVELY use for code review and verification. Unified code quality specialist for reviews, security checks, and quality control
-tools: Read, Grep, Glob, Bash, Task, TodoWrite, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__github__search_code, mcp__filesystem__search_files
+description: 📋 통합 코드 품질 검토 전문가. PR 리뷰, TypeScript strict 모드, shadcn/ui 컴포넌트 품질 관리 - AI 교차검증과 독립적인 일반 코드 리뷰
+tools: Read, Grep, Glob, Bash, Task, TodoWrite, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols
 priority: high
 trigger: code_changes, PR_creation, pre_deployment
 ---
@@ -42,26 +42,26 @@ trigger: code_changes, PR_creation, pre_deployment
 // 코드 리뷰 포인트
 const reviewPoints = {
   structure: [
-    '파일당 500줄 이하',
-    '함수당 50줄 이하',
-    '순환 의존성 없음',
+    '파일당 500줄 이하'
+    '함수당 50줄 이하'
+    '순환 의존성 없음'
     '적절한 모듈화'
-  ],
+  ]
   naming: [
-    '의미있는 변수명',
-    '일관된 네이밍 컨벤션',
+    '의미있는 변수명'
+    '일관된 네이밍 컨벤션'
     '불필요한 약어 사용 금지'
-  ],
+  ]
   typescript: [
-    'strict mode 활성화',
-    'any 타입 사용 금지',
-    '타입 가드 활용',
+    'strict mode 활성화'
+    'any 타입 사용 금지'
+    '타입 가드 활용'
     '인터페이스 우선 사용'
-  ],
+  ]
   performance: [
-    '불필요한 리렌더링 방지',
-    'useMemo/useCallback 적절 사용',
-    '비동기 처리 최적화',
+    '불필요한 리렌더링 방지'
+    'useMemo/useCallback 적절 사용'
+    '비동기 처리 최적화'
     '번들 크기 고려'
   ]
 };
@@ -72,7 +72,7 @@ const reviewPoints = {
 // 좋은 예시
 const UserProfile: FC<UserProps> = memo(({ user }) => {
   const formattedDate = useMemo(
-    () => formatDate(user.createdAt),
+    () => formatDate(user.createdAt)
     [user.createdAt]
   );
   

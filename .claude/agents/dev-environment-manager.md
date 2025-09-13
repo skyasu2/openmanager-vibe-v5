@@ -1,7 +1,7 @@
 ---
 name: dev-environment-manager
 description: PROACTIVELY use for environment setup. 개발 환경 관리 전문가. WSL 최적화, Node.js 버전 관리, 도구 통합
-tools: Read, Write, Edit, Bash, Glob, LS, mcp__filesystem__list_allowed_directories, mcp__memory__create_entities, mcp__time__get_current_time
+tools: Read, Write, Edit, Bash, Glob, LS, mcp__memory__create_entities, mcp__time__get_current_time
 priority: normal
 trigger: environment_setup, tool_installation, wsl_optimization
 ---
@@ -95,14 +95,14 @@ cd $PROJECT_ROOT && nvm use
 // package.json scripts
 {
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "test": "vitest",
-    "lint": "eslint . --cache",
-    "type-check": "tsc --noEmit",
-    "clean": "rm -rf .next node_modules",
-    "reinstall": "npm run clean && npm install",
+    "dev": "next dev"
+    "build": "next build"
+    "start": "next start"
+    "test": "vitest"
+    "lint": "eslint . --cache"
+    "type-check": "tsc --noEmit"
+    "clean": "rm -rf .next node_modules"
+    "reinstall": "npm run clean && npm install"
     "validate": "npm run lint && npm run type-check && npm test"
   }
 }

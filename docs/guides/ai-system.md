@@ -15,9 +15,9 @@ ai_optimized: true
 claude --version  # v1.0.108 ($200/month)
 
 # Sub Agents: 3-AI Collaboration  
-codex exec "code review"    # GPT-5 ($20/month)
-gemini -p "analyze"         # Free 1K/day
-qwen -p "optimize"          # OAuth 2K/day
+Task codex-specialist "code review"    # GPT-5 ($20/month)
+Task gemini-specialist "analyze"       # Free 1K/day
+Task qwen-specialist "optimize"        # OAuth 2K/day
 ```
 
 ## 🎯 3-Level Verification

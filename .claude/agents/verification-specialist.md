@@ -1,6 +1,6 @@
 ---
 name: verification-specialist
-description: PROACTIVELY analyze code quality, security, and performance for TypeScript files. Use me for quality scoring, vulnerability detection, and improvement recommendations. MUST BE USED for code reviews and file analysis.
+description: ⭐ AI 교차검증 메인 진입점. Level 1-3 복잡도 기반 자동 검증 시스템 - 파일 수정 시 자동 트리거되는 품질 검증 전문가
 tools: Read, Grep, Glob, Bash, TodoWrite, mcp__memory__create_entities, mcp__sequential-thinking__sequentialthinking, mcp__serena__find_symbol, mcp__serena__search_for_pattern, mcp__serena__get_symbols_overview, mcp__serena__read_file
 priority: medium
 ---

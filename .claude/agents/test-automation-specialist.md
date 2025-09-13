@@ -2,7 +2,7 @@
 name: test-automation-specialist
 description: PROACTIVELY run after code changes. 테스트 자동화 전문가. Vitest, Playwright E2E, 테스트 커버리지 관리
 tools: Read, Write, Edit, Bash, Glob, Grep, Task, mcp__playwright__browser_navigate, mcp__playwright__browser_snapshot, mcp__playwright__browser_click
-priority: high
+priority: normal
 trigger: post_code_change, test_failure, coverage_drop
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: central-supervisor
-description: PROACTIVELY use for complex orchestration. 서브에이전트 오케스트레이터. 복잡한 작업을 분해하고 전문 에이전트들에게 분배, 진행 상황 모니터링
+description: 🎯 복잡한 작업 오케스트레이션 전문가. 500줄+ 코드, 다중 파일 작업, 아키텍처 변경 시 자동 분해 및 전문 에이전트 분배 - AI 교차검증과 독립적인 작업 관리
 tools: Read, Write, Edit, MultiEdit, Bash, Glob, Grep, LS, TodoWrite, Task, mcp__memory__read_graph, mcp__thinking__sequentialthinking
 priority: critical
 autoTrigger: true

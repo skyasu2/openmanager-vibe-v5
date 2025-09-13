@@ -1,7 +1,7 @@
 ---
 name: security-auditor
 description: CRITICAL - MUST BE USED before deployment. 보안 취약점 자동 스캔, 인증/인가 검증, SLA 99.9% 보장
-tools: Read, Grep, Bash, Glob, mcp__github__search_code, mcp__filesystem__search_files, mcp__supabase__get_advisors
+tools: Read, Grep, Bash, Glob, mcp__supabase__get_advisors
 priority: critical
 autoTrigger: true
 sla: "< 30초 (보안 스캔), < 90초 (DDoS 방어)"
