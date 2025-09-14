@@ -312,7 +312,7 @@ describe('⚡ 회로 차단기 패턴 테스트', () => {
             response: 'Google AI response',
             text: 'Google AI response',
             confidence: 0.9,
-            model: 'gemini-pro',
+            model: 'gemini-1.5-flash',
           }),
       }) as any;
 

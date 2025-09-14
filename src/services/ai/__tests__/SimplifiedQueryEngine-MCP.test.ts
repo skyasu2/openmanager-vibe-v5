@@ -110,7 +110,7 @@ describe('SimplifiedQueryEngine - MCP Integration', () => {
       json: async () => ({
         response: 'Google AI 응답 with MCP 컨텍스트',
         confidence: 0.92,
-        model: 'gemini-pro',
+        model: 'gemini-1.5-flash',
         tokensUsed: 150,
       }),
     } as Response);

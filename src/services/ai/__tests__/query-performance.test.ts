@@ -77,7 +77,7 @@ describe('SimplifiedQueryEngine Performance', () => {
         json: async () => ({
           response: 'Google AI 응답',
           confidence: 0.9,
-          model: 'gemini-pro',
+          model: 'gemini-1.5-flash',
         }),
       });
 

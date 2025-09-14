@@ -146,7 +146,6 @@ export async function POST(request: NextRequest) {
             success: false,
             error: 'Access denied',
             message: errorDetails.message,
-            details: errorDetails,
             timestamp: new Date().toISOString(),
           } satisfies GoogleAIErrorResponse,
           { status: 403 }

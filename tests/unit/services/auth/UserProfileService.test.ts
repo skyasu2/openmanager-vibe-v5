@@ -422,7 +422,7 @@ describe('UserProfileService', () => {
   describe('🔴 logUserActivity', () => {
     const mockMetadata: AIMetadata = {
       aiEngine: 'google-ai',
-      model: 'gemini-pro',
+      model: 'gemini-1.5-flash',
       usage: { promptTokens: 100, completionTokens: 50 },
     };
 

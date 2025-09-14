@@ -8,7 +8,7 @@ import { MockBase } from '../core/MockBase';
 import scenarios from '../data/scenarios.json';
 
 export class GoogleAIMock extends MockBase {
-  private currentModel: string = 'gemini-pro';
+  private currentModel: string = 'gemini-1.5-flash';
 
   constructor() {
     super('GoogleAI', {
@@ -109,7 +109,7 @@ export class GoogleAIMock extends MockBase {
    * Mock 리셋
    */
   reset(): void {
-    this.currentModel = 'gemini-pro';
+    this.currentModel = 'gemini-1.5-flash';
     this.stats.reset();
     this.logger.info('Google AI Mock 리셋됨');
   }

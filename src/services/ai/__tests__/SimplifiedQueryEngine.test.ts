@@ -36,7 +36,7 @@ vi.mock('@/lib/env-safe', () => ({
       googleAI: {
         isValid: true,
         apiKey: 'test-api-key',
-        modelName: 'gemini-pro',
+        modelName: 'gemini-1.5-flash',
         maxTokens: 2000,
         temperature: 0.7,
       },
@@ -464,7 +464,7 @@ describe('SimplifiedQueryEngine', () => {
           json: async () => ({
             response: 'Google AI response',
             confidence: 0.95,
-            model: 'gemini-pro',
+            model: 'gemini-1.5-flash',
             tokensUsed: 100,
           }),
         } as Response);
@@ -484,7 +484,7 @@ describe('SimplifiedQueryEngine', () => {
         expect(response.response).toBe('Google AI response');
         expect(response.engine).toBe('google-ai');
         expect(response.confidence).toBe(0.95);
-        expect(response.metadata?.model).toBe('gemini-pro');
+        expect(response.metadata?.model).toBe('gemini-1.5-flash');
       },
       TEST_TIMEOUT
     );

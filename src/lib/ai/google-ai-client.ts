@@ -28,10 +28,10 @@ export function getGoogleAIClient(): GoogleGenerativeAI {
 /**
  * 모델 가져오기 헬퍼
  *
- * @param modelName 모델 이름 (기본값: gemini-pro)
+ * @param modelName 모델 이름 (기본값: gemini-1.5-flash)
  * @returns 생성 모델 인스턴스
  */
-export function getGoogleAIModel(modelName: string = 'gemini-pro') {
+export function getGoogleAIModel(modelName: string = 'gemini-1.5-flash') {
   const client = getGoogleAIClient();
   return client.getGenerativeModel({ model: modelName });
 }
