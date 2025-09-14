@@ -53,9 +53,10 @@ claude --version     # 버전 확인 (v1.0.112)
 - **계층 구조**: Enterprise → Project (이 파일) → User 순 우선순위
 - **공식 문서**: [Claude Code Memory System](https://docs.anthropic.com/en/docs/claude-code/memory)
 
-### 📄 AGENTS.md (Codex CLI 설정 파일)
-- **정확한 역할**: OpenAI Codex CLI의 **에이전트 행동 설정 파일**
+### 📄 AGENTS.md (Codex 전용 설정 및 메모리 파일)
+- **정확한 역할**: OpenAI Codex CLI의 **전용 설정 및 메모리 파일**
 - **목적**: Codex CLI 에이전트의 코딩 스타일, PR 가이드라인, 테스트 방법 지정
+- **기능**: Codex 전용 컨텍스트 및 프로젝트별 메모리 제공
 - **내용**: 12개 Codex 전문 에이전트 구성 (TypeScript 엔지니어, Next.js 최적화 등)
 - **위치**: 루트 디렉토리 (`/init` 명령으로 생성)
 
