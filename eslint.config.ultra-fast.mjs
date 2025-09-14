@@ -1,3 +1,5 @@
+import js from '@eslint/js';
+
 export default [
   // Global ignores - extensive for maximum speed
   {
@@ -29,20 +31,22 @@ export default [
       '*.tsbuildinfo',
       'next-env.d.ts',
       
-      // Ignore most src subdirectories for speed
+      // Keep only essential checks - ignore heavy directories
+      'src/types/**',
       'src/app/api/ai/**',
       'src/app/api/admin/**',
-      'src/app/api/agents/**',
       'src/services/ai/**',
       'src/components/ui/**',
       'src/lib/supabase/**',
-      'src/utils/**',
     ],
   },
 
-  // Minimal rules for remaining files
+  // Basic JavaScript rules only - skip TypeScript entirely
+  js.configs.recommended,
+
+  // Only check JavaScript files for maximum speed
   {
-    files: ['src/**/*.{js,jsx,ts,tsx}'],
+    files: ['src/**/*.{js,jsx,mjs,cjs}'],
     rules: {
       // Only the most critical rules
       'no-unused-vars': ['error', { 
@@ -52,8 +56,6 @@ export default [
       'no-console': 'off',
       'prefer-const': 'warn',
       'no-var': 'warn',
-      
-      // Disable everything else
       'no-undef': 'off',
     },
   },

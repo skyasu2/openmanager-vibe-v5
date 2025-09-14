@@ -1,5 +1,28 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-echo "✅ Pre-push hook executed successfully"
-echo "🚀 Basic pre-push checks passed"
+echo "🔍 Pre-push validation started..."
+
+# 기본 JSON 문법 검사
+echo "📋 Checking package.json syntax..."
+node -e "JSON.parse(require('fs').readFileSync('package.json', 'utf8'))" > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "❌ package.json has syntax errors"
+  exit 1
+fi
+
+# 민감한 파일 체크
+echo "🔒 Checking for sensitive files..."
+if git diff --cached --name-only | grep -E '\.(env|key|pem)$'; then
+  echo "❌ 민감한 파일들(.env, .key, .pem)은 커밋할 수 없습니다"
+  exit 1
+fi
+
+# Git 상태 확인
+if [ -z "$(git status --porcelain)" ]; then
+  echo "⚠️  Working directory is clean - nothing to push"
+fi
+
+echo "✅ Pre-push validation completed in $(date +'%H:%M:%S')"
+echo "🚀 Basic security checks passed"
+echo "🔄 Full TypeScript/ESLint validation will run in CI/CD"
