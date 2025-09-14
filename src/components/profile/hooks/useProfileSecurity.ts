@@ -158,7 +158,7 @@ export function useProfileSecurity() {
         console.log('🔐 Zustand 인증 결과:', result); // 디버그 로그
 
         if (result.success) {
-          // 인증 성공 - 실패 기록 초기화
+          // 인증 성공 - 실패 기록 초기화 및 localStorage에 admin_mode 설정
           setSecurityState((prev) => ({
             ...prev,
             failedAttempts: 0,
@@ -166,8 +166,11 @@ export function useProfileSecurity() {
           }));
           localStorage.removeItem('admin_failed_attempts');
           localStorage.removeItem('admin_lock_end_time');
+          
+          // 🔧 FIX: localStorage에 admin_mode 설정 (대시보드 접근용)
+          localStorage.setItem('admin_mode', 'true');
 
-          console.log('🔑 관리자 모드 활성화');
+          console.log('🔑 관리자 모드 활성화 (localStorage + Zustand)');
           return true;
         } else {
           // 인증 실패
@@ -222,7 +225,9 @@ export function useProfileSecurity() {
   const { logoutAdmin } = useUnifiedAdminStore();
   const disableAdminMode = useCallback(() => {
     logoutAdmin();
-    console.log('🔒 관리자 모드 해제');
+    // 🔧 FIX: localStorage admin_mode도 정리
+    localStorage.removeItem('admin_mode');
+    console.log('🔒 관리자 모드 해제 (localStorage + Zustand)');
   }, [logoutAdmin]);
 
   return {
