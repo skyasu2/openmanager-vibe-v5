@@ -40,7 +40,7 @@ export interface DailyUsageSummary {
 }
 
 // 사용량 제한 상태
-export interface UsageLimits {
+export type UsageLimits = {
   [K in GoogleAIModel]: {
     daily: number;
     rpm: number;
