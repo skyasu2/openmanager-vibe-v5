@@ -144,14 +144,26 @@ export async function resetAdminState(page: Page): Promise<void> {
   try {
     console.log('🧹 [Admin Helper] 관리자 상태 초기화 시작');
 
+    // 페이지가 로드되어 있지 않으면 먼저 로드
+    try {
+      await page.goto('/');
+      await page.waitForLoadState('domcontentloaded');
+    } catch {
+      // 이미 페이지가 로드되어 있는 경우 무시
+    }
+
     await page.evaluate(() => {
       // localStorage 정리
-      localStorage.removeItem('admin_mode');
-      localStorage.removeItem('admin_failed_attempts');
-      localStorage.removeItem('admin_lock_end_time');
-      localStorage.removeItem('unified-admin-storage');
-      
-      console.log('🧹 localStorage 정리 완료');
+      try {
+        localStorage.removeItem('admin_mode');
+        localStorage.removeItem('admin_failed_attempts');
+        localStorage.removeItem('admin_lock_end_time');
+        localStorage.removeItem('unified-admin-storage');
+        
+        console.log('🧹 localStorage 정리 완료');
+      } catch (error) {
+        console.warn('localStorage 정리 중 오류:', error);
+      }
     });
 
     console.log('✅ [Admin Helper] 관리자 상태 초기화 완료');
