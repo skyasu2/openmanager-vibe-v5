@@ -51,7 +51,8 @@ export function useSession(): UseSessionReturn {
             const authType = localStorage.getItem('auth_type');
 
             if (guestUser && authType === 'guest') {
-              const guestUserData = JSON.parse(guestUser);
+              try {
+                const guestUserData = JSON.parse(guestUser);
             // 게스트 사용자를 Supabase User 형태로 변환
             setUser({
               id: guestUserData.id,
@@ -74,6 +75,15 @@ export function useSession(): UseSessionReturn {
               role: 'authenticated',
             } as User);
             setStatus('authenticated');
+              } catch (parseError) {
+                console.warn('게스트 사용자 정보 JSON 파싱 실패:', parseError);
+                // localStorage에서 잘못된 데이터 제거
+                localStorage.removeItem('auth_user');
+                localStorage.removeItem('auth_type');
+                localStorage.removeItem('auth_session_id');
+                setUser(null);
+                setStatus('unauthenticated');
+              }
             } else {
               setUser(null);
               setStatus('unauthenticated');

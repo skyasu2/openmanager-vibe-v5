@@ -14,7 +14,35 @@ const LOCKOUT_TIME_MAX = 30 * 60 * 1000; // 30분
 export function useProfileSecurity() {
   // Zustand 스토어의 관리자 상태 사용
   const { adminMode } = useUnifiedAdminStore();
-  const isAdminMode = adminMode.isAuthenticated;
+  
+  // localStorage와 Zustand 스토어 모두 확인하여 관리자 모드 판단
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  
+  useEffect(() => {
+    const checkAdminMode = () => {
+      const localStorageAdmin = localStorage.getItem('admin_mode') === 'true';
+      const zustandAdmin = adminMode.isAuthenticated;
+      
+      // localStorage 또는 Zustand 중 하나라도 true이면 관리자 모드
+      const adminModeActive = localStorageAdmin || zustandAdmin;
+      setIsAdminMode(adminModeActive);
+      
+      console.log('🔐 관리자 모드 상태 체크:', {
+        localStorage: localStorageAdmin,
+        zustand: zustandAdmin,
+        final: adminModeActive
+      });
+    };
+    
+    checkAdminMode();
+    
+    // storage 이벤트 리스너 추가 (localStorage 변경 감지)
+    window.addEventListener('storage', checkAdminMode);
+    
+    return () => {
+      window.removeEventListener('storage', checkAdminMode);
+    };
+  }, [adminMode.isAuthenticated]);
 
   const [securityState, setSecurityState] = useState<ProfileSecurityState>({
     failedAttempts: 0,

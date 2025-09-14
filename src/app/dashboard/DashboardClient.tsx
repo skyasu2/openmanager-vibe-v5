@@ -256,11 +256,18 @@ function DashboardPageContent() {
         const state = await authStateManager.getAuthState();
         setAuthState(state);
         
-        // 게스트 사용자인 경우 로그인 페이지로 리다이렉트
+        // 게스트 사용자인 경우 관리자 모드 확인
         if (state.type === 'guest' || state.type === 'unknown') {
-          console.log('🚫 게스트 사용자 대시보드 접근 차단 - 로그인 페이지로 이동');
-          router.push('/login?message=dashboard_access_required');
-          return;
+          // 관리자 모드가 활성화되어 있는지 확인
+          const isAdminMode = localStorage.getItem('admin_mode') === 'true';
+          
+          if (isAdminMode) {
+            console.log('✅ 관리자 모드 활성화됨 - 게스트 사용자 대시보드 접근 허용');
+          } else {
+            console.log('🚫 게스트 사용자 대시보드 접근 차단 - 로그인 페이지로 이동');
+            router.push('/login?message=dashboard_access_required');
+            return;
+          }
         }
         
         setAuthLoading(false);
