@@ -10,6 +10,7 @@ import { useState, useRef, useEffect } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Send, User, Bot, Sparkles } from 'lucide-react';
 import { useAIThinking } from '@/stores/useAISidebarStore';
+import debug from '@/utils/debug';
 // import ThinkingView from '../ThinkingView'; // 백업됨
 
 interface Message {
@@ -38,6 +39,30 @@ export default function AIChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [localMessages]);
 
+  // Google AI API 호출 함수
+  const callGoogleAI = async (prompt: string): Promise<GoogleAIResponse> => {
+    const response = await fetch('/api/ai/google-ai/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-AI-Assistant': 'true',
+        'X-AI-Mode': 'google-ai',
+      },
+      body: JSON.stringify({
+        prompt,
+        temperature: 0.7,
+        maxTokens: 1000,
+        model: 'gemini-1.5-flash'
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`API 호출 실패: ${response.status}`);
+    }
+
+    return await response.json();
+  };
+
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
@@ -49,18 +74,45 @@ export default function AIChatPage() {
     };
 
     setLocalMessages((prev) => [...prev, userMessage]);
+    const currentPrompt = inputValue;
     setInputValue('');
 
-    // AI 응답 시뮬레이션
-    setTimeout(() => {
-      const aiMessage: Message = {
+    try {
+      debug.log('🤖 Google AI 요청 시작:', currentPrompt);
+      
+      // AI 응답 처리
+      const startTime = Date.now();
+      const apiResponse = await callGoogleAI(currentPrompt);
+      const processingTime = Date.now() - startTime;
+
+      if (apiResponse.success && (apiResponse.response || apiResponse.text)) {
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: 'ai',
+          content: apiResponse.response || apiResponse.text || '응답을 받을 수 없습니다.',
+          timestamp: new Date(),
+          metadata: {
+            processingTime,
+            ...(apiResponse.metadata || {})
+          }
+        };
+        
+        setLocalMessages((prev) => [...prev, aiMessage]);
+        debug.log(`✅ Google AI 응답 성공: ${processingTime}ms`);
+      } else {
+        throw new Error(apiResponse.message || 'AI 응답에서 오류가 발생했습니다.');
+      }
+    } catch (error) {
+      debug.error('❌ Google AI 오류:', error);
+      
+      const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        type: 'ai',
-        content: `현재 시스템 상태를 분석한 결과, 8개 서버 중 7개가 정상 작동 중입니다. CPU 사용률은 평균 45%이며, 메모리 사용률은 68%입니다. 특별한 이상 징후는 발견되지 않았습니다.`,
+        type: 'error',
+        content: `죄송합니다. AI 서비스에 일시적인 문제가 발생했습니다. ${error instanceof Error ? error.message : '알 수 없는 오류'}가 발생했습니다. 잠시 후 다시 시도해 주세요.`,
         timestamp: new Date(),
       };
-      setLocalMessages((prev) => [...prev, aiMessage]);
-    }, 2000);
+      setLocalMessages((prev) => [...prev, errorMessage]);
+    }
   };
 
   const handleQuickQuestion = (question: string) => {
@@ -114,11 +166,15 @@ export default function AIChatPage() {
                 className={`flex h-8 w-8 items-center justify-center rounded-full ${
                   message.type === 'user'
                     ? 'bg-blue-500 text-white'
+                    : message.type === 'error'
+                    ? 'bg-red-500 text-white'
                     : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
                 }`}
               >
                 {message.type === 'user' ? (
                   <User className="h-4 w-4" />
+                ) : message.type === 'error' ? (
+                  <AlertCircle className="h-4 w-4" />
                 ) : (
                   <Bot className="h-4 w-4" />
                 )}
@@ -127,17 +183,30 @@ export default function AIChatPage() {
                 className={`rounded-lg p-3 ${
                   message.type === 'user'
                     ? 'bg-blue-500 text-white'
+                    : message.type === 'error'
+                    ? 'border border-red-200 bg-red-50 text-red-800'
                     : 'border border-gray-200 bg-white text-gray-800'
                 }`}
               >
-                <p className="text-sm">{message.content}</p>
-                <p
-                  className={`mt-1 text-xs ${
-                    message.type === 'user' ? 'text-blue-100' : 'text-gray-500'
-                  }`}
-                >
-                  {message.timestamp.toLocaleTimeString()}
-                </p>
+                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                <div className="mt-1 flex items-center justify-between">
+                  <p
+                    className={`text-xs ${
+                      message.type === 'user' 
+                        ? 'text-blue-100' 
+                        : message.type === 'error'
+                        ? 'text-red-500'
+                        : 'text-gray-500'
+                    }`}
+                  >
+                    {message.timestamp.toLocaleTimeString()}
+                  </p>
+                  {message.metadata?.processingTime && (
+                    <p className="text-xs text-gray-400">
+                      {message.metadata.processingTime}ms
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -148,12 +217,14 @@ export default function AIChatPage() {
           <div className="flex justify-start">
             <div className="flex max-w-[80%] items-start space-x-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500">
-                <Sparkles className="_animate-pulse h-4 w-4 text-white" />
+                <Sparkles className="animate-pulse h-4 w-4 text-white" />
               </div>
               <div className="rounded-lg border border-gray-200 bg-white p-3">
-                {/* <ThinkingView isThinking={true} logs={[]} /> */}
-                <div className="py-4 text-center text-gray-500">
-                  AI가 생각하고 있습니다...
+                <div className="flex items-center space-x-2">
+                  <div className="h-2 w-2 animate-bounce rounded-full bg-purple-500"></div>
+                  <div className="h-2 w-2 animate-bounce rounded-full bg-purple-500" style={{animationDelay: '0.1s'}}></div>
+                  <div className="h-2 w-2 animate-bounce rounded-full bg-purple-500" style={{animationDelay: '0.2s'}}></div>
+                  <span className="text-sm text-gray-500 ml-2">Google AI가 질의를 분석하고 있습니다...</span>
                 </div>
               </div>
             </div>
@@ -176,10 +247,14 @@ export default function AIChatPage() {
           />
           <button
             onClick={handleSendMessage}
-            disabled={!inputValue.trim()}
+            disabled={!inputValue.trim() || isThinking}
             className="rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Send className="h-4 w-4" />
+            {isThinking ? (
+              <Sparkles className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
           </button>
         </div>
       </div>

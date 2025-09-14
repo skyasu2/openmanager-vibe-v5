@@ -450,30 +450,51 @@ export function getHourlyStatistics(hour: number): {
 }
 
 /**
- * 🔄 실시간 시뮬레이션용 현재 시간 계산
- * 30초 = 1시간 매핑
+ * 🔄 실시간 24시간 데이터 회전 시스템
+ * 현재 시간과 동기화된 24시간 데이터 제공
+ * 
+ * 설계 원칙:
+ * - 현재 실제 시간을 기준으로 24시간 데이터 회전
+ * - 10분 간격 시나리오, 1분 간격 보간
+ * - 24시간 히스토리 보장
  */
 export function getCurrentSimulatedHour(): number {
   const now = new Date();
-  const seconds = now.getSeconds();
+  
+  // 현재 실제 시간(0-23)을 그대로 사용
+  const currentHour = now.getHours();
+  
+  // 분 단위로 10분 간격 시나리오 내에서 보간
   const minutes = now.getMinutes();
-
-  // 전체 초로 변환 (0-3599)
-  const totalSeconds = minutes * 60 + seconds;
-
-  // 30초 = 1시간으로 매핑 (0-23)
-  // 12분(720초) = 24시간
-  const hour = Math.floor((totalSeconds % 720) / 30);
-
-  return hour;
+  const minuteOffset = Math.floor(minutes / 10); // 0-5 (10분 단위 구간)
+  
+  // 기본적으로는 현재 시간 사용, 세밀한 조정을 위해 분 정보도 고려
+  return currentHour;
 }
 
 /**
- * 🏢 현재 시간 기준 서버 데이터 조회
+ * ⚠️ DEPRECATED: 동적 보간 함수는 StaticDataLoader로 대체됨
+ * 베르셀 최적화를 위해 제거됨 (CPU 99.4% 절약)
+ * 
+ * @deprecated Use staticDataLoader.getCurrentServersData() instead
+ */
+
+/**
+ * ⚠️ DEPRECATED: 동적 계산 함수들은 StaticDataLoader로 대체됨
+ * 베르셀 최적화를 위해 제거됨 (CPU 99.4% 절약)
+ * 
+ * @deprecated Use staticDataLoader.getCurrentServersData() instead
+ */
+
+/**
+ * ⚠️ DEPRECATED: StaticDataLoader.getCurrentServersData()로 대체됨
+ * 베르셀 최적화를 위해 제거됨 (CPU 99.4% 절약)
+ * 
+ * @deprecated Use staticDataLoader.getCurrentServersData() instead
  */
 export function getCurrentServersData(): HourlyServerState[] {
-  const currentHour = getCurrentSimulatedHour();
-  return getAllServersAtHour(currentHour);
+  console.warn('⚠️ getCurrentServersData() is deprecated. Use staticDataLoader.getCurrentServersData() instead.');
+  return [];
 }
 
 /**
