@@ -1,7 +1,7 @@
 ---
 name: qwen-specialist
 description: 🔷 Qwen CLI 전용 외부 AI 연동 전문가 - 성능 최적화와 수학적 알고리즘 분석에 특화된 전문가
-tools: Bash, Read, Write, TodoWrite, mcp__memory__create_entities, mcp__sequential-thinking__sequentialthinking  
+tools: Bash, Read, Write, Edit, MultiEdit, TodoWrite, Glob, Grep, mcp__memory__create_entities, mcp__sequential-thinking__sequentialthinking, mcp__serena__find_symbol, mcp__serena__replace_symbol_body  
 priority: medium
 trigger: comprehensive_review, independent_analysis
 environment:

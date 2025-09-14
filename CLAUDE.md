@@ -456,68 +456,63 @@ async function verifyRealAIConnection() {
 - **주요 도구**: Bash (qwen CLI), memory, sequential-thinking
 - **Task 예시**: `Task qwen-specialist "알고리즘 성능 최적화 분석"`
 
-### 🎯 **개별 AI 직접 요청 가이드** (실제 강점 기반)
+### 🎯 **AI 서브에이전트 직접 지정 사용법** (사용자 주도)
 
 **사용자의 정확한 지적에 따라 각 AI의 실제 강점에 맞는 역할 재분배 완료**
 
-#### **1. Codex (GPT-5) - 논리적 분석 & 실무 코딩 전문가** 🤖
-**언제 사용**: 버그 찾기, 코드 리뷰, 논리적 문제 해결이 필요할 때
+#### **🔧 직접 서브에이전트 호출** (사용자가 원할 때만)
+
+**⚠️ 중요**: 자동 AI 선택 없음. **사용자가 직접 지정할 때만** 서브에이전트 사용
+
 ```bash
-# 논리적 분석 (최고 강점)
-Task codex-specialist "이 함수에서 메모리 누수 가능성 있는지 논리적으로 분석"
-Task codex-specialist "Race Condition 발생 가능한 부분 찾아서 안전하게 수정"
+# 🤖 Codex (GPT-5) - 논리적 분석 & 실무 코딩 전문가
+Task codex-specialist "이 함수에서 메모리 누수 가능성 있는지 논리적으로 분석하고 수정"
 Task codex-specialist "TypeScript strict 모드 에러 해결하고 타입 안전성 보장"
+Task codex-specialist "Race Condition 발생 가능한 부분 찾아서 안전하게 수정"
 
-# 실무 코딩 (검증된 강점)  
-Task codex-specialist "이 로직에서 버그 찾아서 실무에서 안정적으로 동작하도록 수정"
-Task codex-specialist "베스트 프랙티스 적용해서 이 컴포넌트 개선"
-Task codex-specialist "단위 테스트 작성해서 이 함수 안정성 보장"
+# 🧠 Gemini - 아키텍처 설계 & 시스템 전략가 (UI/UX 포함)
+Task gemini-specialist "서버 카드 UI/UX 개선해서 실제 파일 수정해줘"
+Task gemini-specialist "대시보드 레이아웃을 Material Design 3로 개선해서 구현"
+Task gemini-specialist "이 시스템을 확장 가능하게 아키텍처 리팩토링해서 실제 적용"
+
+# 🔷 Qwen - 성능 최적화 & 알고리즘 전문가
+Task qwen-specialist "이 알고리즘 복잡도 O(log n)으로 최적화해서 실제 코드 수정"
+Task qwen-specialist "메모리 사용량 85% 감소시키는 방법으로 실제 구현"
+Task qwen-specialist "WebWorker 활용해서 메인 스레드 부하 60% 감소시키는 코드 구현"
+
+# 🔍 AI 교차검증 (사용자가 원할 때)
+Task verification-specialist "src/components/Button.tsx"  # Level 1-3 자동 판단
+Task external-ai-orchestrator "src/app/api/auth/route.ts"  # Level 3 강제 실행
 ```
 
-#### **2. Gemini - 아키텍처 설계 & 시스템 전략가** 🧠  
-**언제 사용**: 전체 시스템 관점, 확장성, 사용자 경험 개선이 필요할 때
+#### **🎯 AI별 전문 분야**
+
+| AI | 전문 분야 | 언제 사용하는가 |
+|----|-----------|----------------|
+| **Codex (GPT-5)** | 논리적 분석, 버그 발견, 실무 코딩 | 버그 수정, 에러 해결, 논리적 검토 필요 시 |
+| **Gemini** | 아키텍처 설계, UI/UX, 시스템 전략 | UI 개선, 아키텍처 리팩토링, 사용자 경험 개선 시 |
+| **Qwen** | 성능 최적화, 알고리즘, 수학적 분석 | 성능 병목, 알고리즘 최적화, 메모리 효율성 개선 시 |
+
+#### **💡 사용 가이드라인**
+
+**✅ 기본 작업**: Claude Code가 직접 수행
+- 일반적인 개발 작업은 Claude Code가 처리
+- 특별한 전문성이 필요하지 않은 경우
+
+**🔧 전문 작업**: 사용자가 직접 서브에이전트 지정
+- 특정 AI의 전문성이 필요한 경우만
+- Task [ai-name] "구체적 작업 내용" 형태로 요청
+
+**📝 예시**:
 ```bash
-# 아키텍처 설계 (최고 강점)
-Task gemini-specialist "이 시스템을 확장 가능하도록 아키텍처 재설계"
-Task gemini-specialist "마이크로서비스로 분해할 때 모듈 경계 어떻게 나눌지 제안"
-Task gemini-specialist "대규모 리팩토링 전략 수립하고 단계별 계획 제시"
+# 일반 요청 → Claude Code가 직접 처리
+"이 컴포넌트 수정해줘"
 
-# 시스템 전략 (검증된 강점)
-Task gemini-specialist "사용자 경험 개선을 위한 전체적 UX 전략 제안"  
-Task gemini-specialist "기술 부채 해결 우선순위와 전략 수립"
-Task gemini-specialist "미래 확장성 고려한 데이터베이스 스키마 설계"
+# 전문 요청 → 사용자가 직접 AI 지정
+Task gemini-specialist "이 컴포넌트 UI/UX 관점에서 개선해줘"
+Task codex-specialist "이 함수에서 논리적 오류 찾아서 수정해줘"
+Task qwen-specialist "이 알고리즘 성능 최적화해줘"
 ```
-
-#### **3. Qwen - 성능 최적화 & 알고리즘 전문가** 🔷
-**언제 사용**: 성능 병목, 알고리즘 최적화, 수학적 계산이 필요할 때  
-```bash
-# 성능 최적화 (최고 강점)
-Task qwen-specialist "이 알고리즘 복잡도 분석하고 O(log n)으로 최적화"
-Task qwen-specialist "메모리 사용량 85% 감소시킬 수 있는 방법 찾아줘"
-Task qwen-specialist "WebWorker 활용해서 메인 스레드 부하 60% 감소시켜"
-
-# 수학적 분석 (검증된 강점)
-Task qwen-specialist "이 함수 성능 병목 찾아서 수학적으로 최적화" 
-Task qwen-specialist "캐시 적중률 90%까지 올릴 수 있는 알고리즘 설계"
-Task qwen-specialist "동적 polling 간격 조정 알고리즘 구현"
-```
-
-#### **🚀 실제 사용 예시 시나리오**
-
-**시나리오 1**: React Hook에서 문제 발생
-1. **Codex**: "논리적 오류나 버그 있는지 분석" → 즉시 문제점 발견  
-2. **Gemini**: "전체 상태 관리 아키텍처 관점에서 검토" → 시스템 레벨 개선
-3. **Qwen**: "성능 최적화 및 메모리 효율성 개선" → 수학적 최적화
-
-**시나리오 2**: 새 기능 개발
-1. **Gemini**: "확장 가능한 아키텍처 설계" → 전체 구조 제안
-2. **Codex**: "안전하고 실용적인 코드 구현" → 실무 코딩  
-3. **Qwen**: "성능 최적화 및 병목 사전 방지" → 알고리즘 최적화
-
-**⚠️ 주의사항**:
-- **창의적 아이디어**가 필요하면 → **Gemini** (아키텍처 혁신)
-- **논리적 분석**이 필요하면 → **Codex** (버그 발견, 논리 검증)  
-- **성능 최적화**가 필요하면 → **Qwen** (수학적 최적화)
 
 #### **3. 개발 환경 & 구조** (2개)
 

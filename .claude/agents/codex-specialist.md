@@ -1,7 +1,7 @@
 ---
 name: codex-specialist
 description: 🤖 ChatGPT Codex CLI 전용 외부 AI 연동 전문가 - 논리적 분석과 실무 코딩에 특화된 GPT-5 기반 전문가
-tools: Bash, Read, Write, TodoWrite, mcp__memory__create_entities, mcp__sequential-thinking__sequentialthinking
+tools: Bash, Read, Write, Edit, MultiEdit, TodoWrite, Glob, Grep, mcp__memory__create_entities, mcp__sequential-thinking__sequentialthinking, mcp__serena__find_symbol, mcp__serena__replace_symbol_body
 priority: medium
 trigger: comprehensive_review, independent_analysis
 environment:
