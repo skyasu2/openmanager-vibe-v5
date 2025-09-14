@@ -42,23 +42,29 @@ npm run validate:all # 린트+타입+테스트
 claude --version     # 버전 확인 (v1.0.112)
 ```
 
-## 📋 AI 설정 파일 구분
+## 📋 AI 시스템별 파일 구분
 
-**프로젝트에는 AI 관련 설정 파일 2개가 있습니다:**
+**프로젝트에는 서로 다른 AI 시스템을 위한 파일들이 있습니다:**
 
-### 📄 AGENTS.md (Codex CLI 설정)
-- **용도**: ChatGPT Codex CLI 전용 설정 파일
-- **내용**: 12개 Codex 전문 에이전트 (TypeScript 엔지니어, Next.js 최적화 등)
-- **대상**: Codex CLI 사용자
-- **위치**: 루트 디렉토리 (Codex CLI 요구사항)
+### 📄 CLAUDE.md (Claude Code 메모리 파일) ⭐ **현재 파일**
+- **정확한 역할**: Claude Code의 **메모리 시스템 파일** (설정 + 컨텍스트)
+- **공식 위치**: `./CLAUDE.md` (프로젝트 메모리 - 팀 공유용)
+- **자동 로드**: Claude Code 실행 시 자동으로 메모리에 로드
+- **계층 구조**: Enterprise → Project (이 파일) → User 순 우선순위
+- **공식 문서**: [Claude Code Memory System](https://docs.anthropic.com/en/docs/claude-code/memory)
 
-### 📄 docs/claude/sub-agents-complete-guide.md (Claude 서브에이전트 완전 가이드)
-- **용도**: Claude Code 서브에이전트 실전 활용 가이드
-- **내용**: 17개 Claude 서브에이전트 (central-supervisor, verification-specialist 등)
-- **대상**: Claude Code 사용자
-- **위치**: docs/claude/ 디렉토리 (체계적 관리)
+### 📄 AGENTS.md (Codex CLI 설정 파일)
+- **정확한 역할**: OpenAI Codex CLI의 **에이전트 행동 설정 파일**
+- **목적**: Codex CLI 에이전트의 코딩 스타일, PR 가이드라인, 테스트 방법 지정
+- **내용**: 12개 Codex 전문 에이전트 구성 (TypeScript 엔지니어, Next.js 최적화 등)
+- **위치**: 루트 디렉토리 (`/init` 명령으로 생성)
 
-**⚠️ 중요**: 이 두 파일은 서로 다른 AI 시스템을 위한 것이므로 혼동하지 마세요!
+### 📄 docs/claude/sub-agents-complete-guide.md (Claude 서브에이전트 가이드)
+- **용도**: Claude Code 서브에이전트 실전 활용 가이드 
+- **내용**: 18개 Claude 서브에이전트 (central-supervisor, verification-specialist 등)
+- **위치**: docs/claude/ 디렉토리 (문서 체계)
+
+**⚠️ 중요**: 각 파일은 완전히 다른 AI 시스템을 위한 것입니다!
 
 ## 🤖 AI CLI 도구 통합 (WSL 환경)
 
