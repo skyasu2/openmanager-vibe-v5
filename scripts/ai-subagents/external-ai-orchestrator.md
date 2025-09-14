@@ -104,11 +104,32 @@ const partialScore = calculatePartialScore(validResults);
 
 ## 🔧 설정 및 최적화
 
-### AI별 전문 분야 할당
+### AI별 전문 분야 할당 (실제 강점 기반 재설정)
 ```yaml
-codex_focus: "실무 코드 리뷰, 버그 발견, 베스트 프랙티스"
-gemini_focus: "아키텍처 분석, 구조적 개선, 확장성"
-qwen_focus: "알고리즘 최적화, 성능 개선, 복잡도 분석"
+codex_focus: "논리적 분석, 버그 발견, Race Condition 진단, 실무 코딩"
+gemini_focus: "아키텍처 설계, 시스템 전략, 사용자 경험, 확장성"
+qwen_focus: "성능 최적화, 수학적 알고리즘, 메모리 효율성, 복잡도 개선"
+```
+
+### 최적화된 역할별 검증 방식
+```typescript
+const SPECIALIZED_ANALYSIS = {
+  codex: {
+    prompt: "논리적 오류, 메모리 누수, Race Condition, 타입 안전성을 중점 분석",
+    weight: 0.99,
+    strengths: ["논리적 분석", "버그 발견", "실무 안정성"]
+  },
+  gemini: {
+    prompt: "전체 시스템 관점, 아키텍처 확장성, 사용자 경험을 중점 분석", 
+    weight: 0.98,
+    strengths: ["시스템 설계", "아키텍처", "전략적 개선"]
+  },
+  qwen: {
+    prompt: "성능 병목, 알고리즘 최적화, 메모리 효율성을 중점 분석",
+    weight: 0.97,
+    strengths: ["성능 최적화", "수학적 분석", "알고리즘 혁신"]
+  }
+};
 ```
 
 ### 의사결정 임계값

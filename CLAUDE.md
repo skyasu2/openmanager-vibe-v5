@@ -456,6 +456,69 @@ async function verifyRealAIConnection() {
 - **주요 도구**: Bash (qwen CLI), memory, sequential-thinking
 - **Task 예시**: `Task qwen-specialist "알고리즘 성능 최적화 분석"`
 
+### 🎯 **개별 AI 직접 요청 가이드** (실제 강점 기반)
+
+**사용자의 정확한 지적에 따라 각 AI의 실제 강점에 맞는 역할 재분배 완료**
+
+#### **1. Codex (GPT-5) - 논리적 분석 & 실무 코딩 전문가** 🤖
+**언제 사용**: 버그 찾기, 코드 리뷰, 논리적 문제 해결이 필요할 때
+```bash
+# 논리적 분석 (최고 강점)
+Task codex-specialist "이 함수에서 메모리 누수 가능성 있는지 논리적으로 분석"
+Task codex-specialist "Race Condition 발생 가능한 부분 찾아서 안전하게 수정"
+Task codex-specialist "TypeScript strict 모드 에러 해결하고 타입 안전성 보장"
+
+# 실무 코딩 (검증된 강점)  
+Task codex-specialist "이 로직에서 버그 찾아서 실무에서 안정적으로 동작하도록 수정"
+Task codex-specialist "베스트 프랙티스 적용해서 이 컴포넌트 개선"
+Task codex-specialist "단위 테스트 작성해서 이 함수 안정성 보장"
+```
+
+#### **2. Gemini - 아키텍처 설계 & 시스템 전략가** 🧠  
+**언제 사용**: 전체 시스템 관점, 확장성, 사용자 경험 개선이 필요할 때
+```bash
+# 아키텍처 설계 (최고 강점)
+Task gemini-specialist "이 시스템을 확장 가능하도록 아키텍처 재설계"
+Task gemini-specialist "마이크로서비스로 분해할 때 모듈 경계 어떻게 나눌지 제안"
+Task gemini-specialist "대규모 리팩토링 전략 수립하고 단계별 계획 제시"
+
+# 시스템 전략 (검증된 강점)
+Task gemini-specialist "사용자 경험 개선을 위한 전체적 UX 전략 제안"  
+Task gemini-specialist "기술 부채 해결 우선순위와 전략 수립"
+Task gemini-specialist "미래 확장성 고려한 데이터베이스 스키마 설계"
+```
+
+#### **3. Qwen - 성능 최적화 & 알고리즘 전문가** 🔷
+**언제 사용**: 성능 병목, 알고리즘 최적화, 수학적 계산이 필요할 때  
+```bash
+# 성능 최적화 (최고 강점)
+Task qwen-specialist "이 알고리즘 복잡도 분석하고 O(log n)으로 최적화"
+Task qwen-specialist "메모리 사용량 85% 감소시킬 수 있는 방법 찾아줘"
+Task qwen-specialist "WebWorker 활용해서 메인 스레드 부하 60% 감소시켜"
+
+# 수학적 분석 (검증된 강점)
+Task qwen-specialist "이 함수 성능 병목 찾아서 수학적으로 최적화" 
+Task qwen-specialist "캐시 적중률 90%까지 올릴 수 있는 알고리즘 설계"
+Task qwen-specialist "동적 polling 간격 조정 알고리즘 구현"
+```
+
+#### **🚀 실제 사용 예시 시나리오**
+
+**시나리오 1**: React Hook에서 문제 발생
+1. **Codex**: "논리적 오류나 버그 있는지 분석" → 즉시 문제점 발견  
+2. **Gemini**: "전체 상태 관리 아키텍처 관점에서 검토" → 시스템 레벨 개선
+3. **Qwen**: "성능 최적화 및 메모리 효율성 개선" → 수학적 최적화
+
+**시나리오 2**: 새 기능 개발
+1. **Gemini**: "확장 가능한 아키텍처 설계" → 전체 구조 제안
+2. **Codex**: "안전하고 실용적인 코드 구현" → 실무 코딩  
+3. **Qwen**: "성능 최적화 및 병목 사전 방지" → 알고리즘 최적화
+
+**⚠️ 주의사항**:
+- **창의적 아이디어**가 필요하면 → **Gemini** (아키텍처 혁신)
+- **논리적 분석**이 필요하면 → **Codex** (버그 발견, 논리 검증)  
+- **성능 최적화**가 필요하면 → **Qwen** (수학적 최적화)
+
 #### **3. 개발 환경 & 구조** (2개)
 
 **dev-environment-manager**: WSL 최적화, Node.js 버전 관리, 개발 환경 통합 관리
