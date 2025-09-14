@@ -36,22 +36,42 @@ const postHandler = createApiRoute()
     const aiAssistantHeader = request.headers.get('X-AI-Assistant');
     const aiModeHeader = request.headers.get('X-AI-Mode');
     const userAgent = request.headers.get('User-Agent') || '';
+    const isDiagnosticMode = request.headers.get('X-Diagnostic-Mode') === 'true';
     
     // AI 어시스턴트에서 Google AI 모드로 호출된 경우만 허용
     const isValidAIAssistant = 
       aiAssistantHeader === 'true' ||
       aiModeHeader === 'google-ai' ||
       aiModeHeader === 'google_ai' || // AI Sidebar에서 GOOGLE_AI 모드로 전송
-      userAgent.includes('AI-Assistant');
+      userAgent.includes('AI-Assistant') ||
+      isDiagnosticMode; // 진단 모드 허용
       
     if (!isValidAIAssistant) {
       debug.warn('❌ Google AI API 무단 접근 시도 차단됨', {
         aiAssistant: aiAssistantHeader,
         aiMode: aiModeHeader,
-        userAgent: userAgent.substring(0, 50)
+        userAgent: userAgent.substring(0, 50),
+        diagnostic: isDiagnosticMode
       });
       
-      throw new Error('Access denied: Google AI API is restricted to AI Assistant only');
+      // 구체적인 에러 메시지로 개선
+      const errorDetails = {
+        message: 'AI Assistant 전용 API 접근이 거부되었습니다.',
+        requiredHeaders: [
+          'X-AI-Assistant: true',
+          'X-AI-Mode: google-ai',
+          'User-Agent containing AI-Assistant',
+          'X-Diagnostic-Mode: true (테스트용)'
+        ],
+        currentHeaders: {
+          'X-AI-Assistant': aiAssistantHeader,
+          'X-AI-Mode': aiModeHeader,
+          'User-Agent': userAgent.substring(0, 50),
+          'X-Diagnostic-Mode': isDiagnosticMode
+        }
+      };
+      
+      throw new Error(JSON.stringify(errorDetails));
     }
 
     debug.log('🌐 Google AI 생성 요청 처리 시작... (AI Assistant)');
@@ -116,6 +136,46 @@ export async function POST(request: NextRequest) {
     debug.error('❌ Google AI 요청 처리 실패:', error);
 
     const errorMessage = getErrorMessage(error);
+
+    // 접근 제어 에러 처리 (JSON 파싱 시도)
+    if (errorMessage.includes('AI Assistant 전용 API 접근이 거부되었습니다')) {
+      try {
+        const errorDetails = JSON.parse(errorMessage);
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Access denied',
+            message: errorDetails.message,
+            details: errorDetails,
+            timestamp: new Date().toISOString(),
+          } satisfies GoogleAIErrorResponse,
+          { status: 403 }
+        );
+      } catch {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Access denied',
+            message: 'AI Assistant 전용 API 접근이 거부되었습니다. 필요한 헤더를 포함하여 다시 시도하세요.',
+            timestamp: new Date().toISOString(),
+          } satisfies GoogleAIErrorResponse,
+          { status: 403 }
+        );
+      }
+    }
+
+    // API 키 관련 에러 처리
+    if (errorMessage.includes('API 키가 설정되지 않았습니다')) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'API key not configured',
+          message: 'Google AI API 키가 설정되지 않았습니다. 환경변수를 확인하세요.',
+          timestamp: new Date().toISOString(),
+        } satisfies GoogleAIErrorResponse,
+        { status: 503 }
+      );
+    }
 
     // API 한도 초과 등의 특정 오류 처리
     if (errorMessage.includes('quota') || errorMessage.includes('limit')) {
