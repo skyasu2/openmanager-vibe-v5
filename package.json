@@ -1,6 +1,6 @@
 {
   "name": "openmanager-vibe-v5",
-  "version": "5.70.11",
+  "version": "5.71.0",
   "private": true,
   "scripts": {
     "scan:unicode": "node scripts/dev/find-invalid-unicode.js",

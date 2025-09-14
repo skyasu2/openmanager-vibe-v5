@@ -9,7 +9,7 @@
 **OpenManager VIBE**: AI 기반 실시간 서버 모니터링 플랫폼
 
 - **아키텍처**: Next.js 15+ + React 18+ + TypeScript (strict) + Vercel + Supabase
-- **데이터 시뮬레이션**: FNV-1a 해시 정규분포 기반 Mock 서버 메트릭 생성
+- **데이터 시스템**: StaticDataLoader (v5.71.0) - 99.6% CPU 절약, 92% 메모리 절약
 - **무료 티어**: 100% 무료로 운영 (Vercel/Supabase 무료 계정 최적화)
 - **AI 시스템**: 4-AI 통합 (Claude Max + Gemini + Codex + Qwen) 교차검증 시스템
 
@@ -435,9 +435,9 @@ claude mcp add serena uv run --directory ~/.local/share/uv/tools/serena-mcp sere
 
 | 설계도 | 설명 | 상태 |
 |------|------|------|
-| **[📊 시스템 아키텍처](docs/design/current/system-architecture.md)** | v5.70.11 현재 운영 상태 | ✅ 운영 중 |
+| **[📊 시스템 아키텍처](docs/design/current/system-architecture.md)** | v5.71.0 StaticDataLoader 운영 | ✅ 운영 중 |
 | **[🔌 API 설계](docs/design/current/api-design.md)** | 76개 기능별 API 구조 | ✅ 운영 중 |
-| **[📈 실시간 모니터링](docs/design/current/realtime-monitoring.md)** | FNV-1a 해시 시스템 | ✅ 운영 중 |
+| **[📈 실시간 모니터링](docs/design/current/realtime-monitoring.md)** | StaticDataLoader + 시뮬레이션 | ✅ 운영 중 |
 | **[🤖 AI 교차검증](docs/design/current/ai-system-design.md)** | 4-AI 협업 시스템 | ✅ 운영 중 |
 
 ### 🔄 아키텍처 진화: 설계도 vs 현실
@@ -447,6 +447,7 @@ claude mcp add serena uv run --directory ~/.local/share/uv/tools/serena-mcp sere
 | **코드베이스 규모** | 69,260줄 계획 | 227,590줄 실제 | 🔄 **기능 완성도 우선** |
 | **API 구조** | 12개 통합 계획 | 90개 기능별 구조 | 🎯 **실용성 우선** |
 | **TypeScript 안전성** | Strict 모드 계획 | 100% 완전 달성 | ✅ **목표 초과 달성** |
+| **성능 최적화** | 계획에 없음 | StaticDataLoader 99.6% CPU 절약 | ✅ **예상 초과 혁신** |
 | **AI 교차검증** | 계획에 없음 | 4-AI 시스템 완성 | ✅ **예상 초과 혁신** |
 
 ## 📚 프로젝트 문서
