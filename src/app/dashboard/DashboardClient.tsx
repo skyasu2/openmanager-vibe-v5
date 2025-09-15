@@ -14,7 +14,6 @@ import { useAutoLogout } from '@/hooks/useAutoLogout';
 // import { usePerformanceGuard } from '@/hooks/usePerformanceGuard'; // 🛡️ 성능 모니터링 - 임시 비활성화
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
-import { authStateManager } from '@/lib/auth-state-manager';
 import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { cn } from '@/lib/utils';
@@ -399,13 +398,13 @@ function DashboardPageContent() {
 
   const toggleAgent = useCallback(() => {
     // 🔒 게스트 사용자는 AI 기능 사용 불가
-    if (!authState || authState.type !== 'github') {
+    if (permissions.userType !== 'github') {
       console.log('🚫 게스트 사용자 AI 사이드바 접근 차단');
       // 토스트 메시지로 안내 (선택사항)
       return;
     }
     setIsAgentOpen((prev) => !prev);
-  }, [authState]);
+  }, [permissions.userType]);
 
   const closeAgent = useCallback(() => {
     setIsAgentOpen(false);
@@ -475,7 +474,7 @@ function DashboardPageContent() {
   };
 
   // 🔒 게스트 사용자 접근 차단 - 로딩 중이거나 인증되지 않은 경우
-  if (!isMounted || authLoading || !authState || authState.type === 'guest' || authState.type === 'unknown') {
+  if (!isMounted || authLoading || permissions.userType === 'guest' || permissions.userType === 'unknown' || permissions.userType === 'loading') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
@@ -549,11 +548,11 @@ function DashboardPageContent() {
         </div>
 
         {/* 🎯 AI 에이전트 - 동적 로딩으로 최적화 (Hydration 안전성) - GitHub 사용자만 접근 가능 */}
-        {isMounted && authState && authState.type === 'github' && (
+        {isMounted && permissions.userType === 'github' && (
           <AnimatedAISidebar 
             isOpen={isAgentOpen} 
             onClose={closeAgent}
-            userType={authState.type}
+            userType={permissions.userType}
           />
         )}
 
