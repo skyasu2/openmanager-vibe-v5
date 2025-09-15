@@ -36,12 +36,12 @@
     "availableMemory": "512M",
     "environmentVariables": {
       "GCP_PROJECT_ID": "openmanager-free-tier",
-      "GOOGLE_AI_API_KEY": "AIzaSyABC2WATlHIG0Kd-Oj4JSL6wJoqMd3FhvM",
+      "GOOGLE_AI_API_KEY": "[GOOGLE_AI_API_KEY_REDACTED]",
       "LOG_EXECUTION_ID": "true",
-      "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjMzMjcsImV4cCI6MjA2MzQ5OTMyN30.09ApSnuXNv_yYVJWQWGpOFWw3tkLbxSA21k5sroChGU",
-      "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZuc3dqbmx0bmhwc3Vlb3NmaG13Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzkyMzMyNywiZXhwIjoyMDYzNDk5MzI3fQ.xk2DUcqBZnaF-iuO7sbeXS-H43h8D5gppIlsJYw7xi8\r",
+      "SUPABASE_ANON_KEY": "[SUPABASE_ANON_KEY_REDACTED]",
+      "SUPABASE_SERVICE_ROLE_KEY": "[SUPABASE_SERVICE_ROLE_KEY_REDACTED]\r",
       "SUPABASE_URL": "https://vnswjnltnhpsueosfhmw.supabase.co\r",
-      "UPSTASH_REDIS_REST_TOKEN": "AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA",
+      "UPSTASH_REDIS_REST_TOKEN": "[UPSTASH_REDIS_TOKEN_REDACTED]",
       "UPSTASH_REDIS_REST_URL": "https://charming-condor-46598.upstash.io"
     },
     "ingressSettings": "ALLOW_ALL",
