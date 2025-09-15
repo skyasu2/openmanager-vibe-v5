@@ -390,6 +390,14 @@ archive/*.tar.gz
 reports/verification-history/
 !reports/verification-history/.gitkeep
 
+# 🚫 백업 파일들 (Git 추적 금지)
+# GCP 함수 백업 (민감한 API 키 포함)
+scripts/backup/
+**/backup/
+*.backup.json
+**/gcp-functions-*/
+**/gcp-backup-*/
+
 # 일회성 분석 리포트 (reports/ 폴더로 이동 예정)
 docs/gcp-analysis-report.md
 docs/gcp-free-tier-analysis.md  
