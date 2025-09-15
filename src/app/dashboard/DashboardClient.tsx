@@ -13,6 +13,7 @@ import { NotificationToast } from '@/components/system/NotificationToast';
 import { useAutoLogout } from '@/hooks/useAutoLogout';
 // import { usePerformanceGuard } from '@/hooks/usePerformanceGuard'; // 🛡️ 성능 모니터링 - 임시 비활성화
 import { useServerDashboard } from '@/hooks/useServerDashboard';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { authStateManager } from '@/lib/auth-state-manager';
 import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
@@ -240,47 +241,41 @@ function DashboardPageContent() {
   const [_showSystemWarning, setShowSystemWarning] = useState(false);
   const isResizing = false;
   
-  // 🔒 게스트 사용자 접근 제한
+  // 🔒 새로운 권한 시스템 사용
   const router = useRouter();
-  const [authState, setAuthState] = useState<{ type: string; isAuthenticated: boolean } | null>(null);
+  const permissions = useUserPermissions();
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // 🔒 인증 상태 확인 - 게스트 사용자 차단
+  // 🔒 새로운 권한 시스템: 대시보드 접근 권한 확인
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const state = await authStateManager.getAuthState();
-        setAuthState(state);
-        
-        // 게스트 사용자인 경우 관리자 모드 확인
-        if (state.type === 'guest' || state.type === 'unknown') {
-          // 관리자 모드가 활성화되어 있는지 확인
-          const isAdminMode = localStorage.getItem('admin_mode') === 'true';
-          
-          if (isAdminMode) {
-            console.log('✅ 관리자 모드 활성화됨 - 게스트 사용자 대시보드 접근 허용');
-          } else {
-            console.log('🚫 게스트 사용자 대시보드 접근 차단 - 로그인 페이지로 이동');
-            router.push('/login?message=dashboard_access_required');
-            return;
-          }
-        }
-        
-        setAuthLoading(false);
-      } catch (error) {
-        console.error('❌ 인증 상태 확인 실패:', error);
-        router.push('/login?message=auth_error');
-      }
-    };
-
-    if (isMounted) {
-      checkAuth();
+    if (!isMounted) return;
+    
+    if (permissions.userType === 'loading') {
+      // 아직 권한 로딩 중
+      return;
     }
-  }, [isMounted, router]);
+    
+    if (!permissions.canAccessDashboard) {
+      console.log('🚫 대시보드 접근 권한 없음 - 메인 페이지로 이동');
+      alert('대시보드 접근 권한이 없습니다. GitHub 로그인 또는 관리자 모드 인증이 필요합니다.');
+      router.push('/main');
+      return;
+    }
+    
+    console.log('✅ 대시보드 접근 권한 확인됨:', {
+      userType: permissions.userType,
+      userName: permissions.userName,
+      canAccessDashboard: permissions.canAccessDashboard,
+      isPinAuthenticated: permissions.isPinAuthenticated,
+      isGitHubAuthenticated: permissions.isGitHubAuthenticated,
+    });
+    
+    setAuthLoading(false);
+  }, [isMounted, permissions, router]);
 
   // 🎯 서버 통계 상태 관리 (상단 통계 카드용)
   const [serverStats, setServerStats] = useState({

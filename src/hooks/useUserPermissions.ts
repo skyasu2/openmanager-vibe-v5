@@ -28,10 +28,16 @@ function createSafeDefaultPermissions(
     canToggleAdminMode: false,
     canLogout: false,
 
+    // 페이지 접근 권한 (기본적으로 메인 페이지만 접근 가능)
+    canAccessMainPage: true,
+    canAccessDashboard: false,
+    canAccessAdminPage: false,
+
     // 사용자 유형 (일반 사용자로 기본 설정)
     isGeneralUser: true,
     isAdmin: false,
     isGitHubAuthenticated: false,
+    isPinAuthenticated: false,
 
     // AI 권한 (모든 사용자가 사용 가능)
     canToggleAI: true,
@@ -101,21 +107,33 @@ export function useUserPermissions(): UserPermissions {
         const userAvatar = user.avatar;
         const userType: UserType = type === 'unknown' ? 'guest' : type;
 
-        // 권한 매트릭스 적용
-        const isAdmin = type === 'github';
-        const isGeneral = !isAdmin;
+        // PIN 인증 상태 확인 (adminStore에서 가져옴)
+        const isPinAuth = adminStore?.adminMode?.isAuthenticated || false;
+
+        // 새로운 권한 매트릭스 적용
+        // GitHub 사용자 = 일반 사용자 (관리자 페이지 제외)
+        // Guest + PIN = 최고 권한 (관리자 페이지 포함)
+        const isGitHub = type === 'github';
+        const isGuest = type === 'guest';
+        const isGuestWithPin = isGuest && isPinAuth;
 
         return {
-          // 시스템 제어 권한 (관리자만)
-          canControlSystem: isAdmin,
-          canAccessSettings: isAdmin,
-          canToggleAdminMode: isAdmin,
+          // 시스템 제어 권한 (PIN 인증 시에만)
+          canControlSystem: isPinAuth,
+          canAccessSettings: isPinAuth,
+          canToggleAdminMode: true, // 모든 사용자가 PIN 입력 시도 가능
           canLogout: true, // 인증된 사용자는 모두 로그아웃 가능
 
+          // 페이지 접근 권한 (새로운 3단계 시스템)
+          canAccessMainPage: true, // 모든 사용자
+          canAccessDashboard: isGitHub || isPinAuth, // GitHub 사용자 또는 PIN 인증
+          canAccessAdminPage: isPinAuth, // PIN 인증한 사용자만
+
           // 사용자 유형
-          isGeneralUser: isGeneral,
-          isAdmin: isAdmin,
-          isGitHubAuthenticated: isAdmin,
+          isGeneralUser: isGitHub || (isGuest && !isPinAuth),
+          isAdmin: isPinAuth, // PIN 인증한 사용자가 진짜 관리자
+          isGitHubAuthenticated: isGitHub,
+          isPinAuthenticated: isPinAuth,
 
           // AI 권한 (모든 사용자)
           canToggleAI: true,
@@ -154,17 +172,28 @@ export function useUserPermissions(): UserPermissions {
         userType = 'guest';
       }
 
-      const isAdmin = isGitHubUser;
-      const isGeneral = !isAdmin;
+      // PIN 인증 상태 확인 (레거시 fallback)
+      const isPinAuth = adminStore?.adminMode?.isAuthenticated || false;
+
+      // 새로운 권한 매트릭스 적용 (레거시 호환)
+      const isGitHub = isGitHubUser;
+      const isGuest = isGuestUser;
 
       return {
-        canControlSystem: isAdmin,
-        canAccessSettings: isAdmin,
-        canToggleAdminMode: isAdmin,
-        canLogout: isAdmin || isGuestUser,
-        isGeneralUser: isGeneral,
-        isAdmin: isAdmin,
-        isGitHubAuthenticated: isGitHubUser,
+        canControlSystem: isPinAuth,
+        canAccessSettings: isPinAuth,
+        canToggleAdminMode: true, // 모든 사용자가 PIN 입력 시도 가능
+        canLogout: isGitHub || isGuest,
+
+        // 페이지 접근 권한 (새로운 3단계 시스템)
+        canAccessMainPage: true, // 모든 사용자
+        canAccessDashboard: isGitHub || isPinAuth, // GitHub 사용자 또는 PIN 인증
+        canAccessAdminPage: isPinAuth, // PIN 인증한 사용자만
+
+        isGeneralUser: isGitHub || (isGuest && !isPinAuth),
+        isAdmin: isPinAuth, // PIN 인증한 사용자가 진짜 관리자
+        isGitHubAuthenticated: isGitHub,
+        isPinAuthenticated: isPinAuth,
         canToggleAI: true,
         userType,
         userName,
@@ -174,7 +203,7 @@ export function useUserPermissions(): UserPermissions {
       console.error('🔐 [Permissions] 권한 계산 중 오류 발생:', error);
       return createSafeDefaultPermissions('guest', '일반사용자');
     }
-  }, [authState, session, status, guestUser, isGuestAuth]);
+  }, [authState, session, status, guestUser, isGuestAuth, adminStore?.adminMode?.isAuthenticated]);
 
   return permissions;
 }
@@ -227,6 +256,10 @@ export const PermissionUtils = {
         canToggleAdminMode: permissions.canToggleAdminMode,
         canLogout: permissions.canLogout,
         canToggleAI: permissions.canToggleAI,
+        canAccessMainPage: permissions.canAccessMainPage,
+        canAccessDashboard: permissions.canAccessDashboard,
+        canAccessAdminPage: permissions.canAccessAdminPage,
+        isPinAuthenticated: permissions.isPinAuthenticated,
       });
       console.groupEnd();
     }

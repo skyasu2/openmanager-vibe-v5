@@ -11,6 +11,7 @@ import React, { useEffect, useState } from 'react';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import { useRouter } from 'next/navigation';
 import { ADMIN_PASSWORD } from '@/config/system-constants';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
 import {
   Card,
   CardContent,
@@ -79,6 +80,7 @@ interface CacheStats {
 
 export default function AdminClient() {
   const router = useRouter();
+  const permissions = useUserPermissions();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
@@ -94,27 +96,18 @@ export default function AdminClient() {
   const [vmLoading, setVmLoading] = useState(false);
 
   useEffect(() => {
-    // 관리자 모드 확인
-    const adminMode = localStorage.getItem('admin_mode') === 'true';
-    
-    if (adminMode) {
+    // 새로운 권한 시스템: PIN 인증한 사용자만 관리자 페이지 접근 가능
+    if (permissions.canAccessAdminPage) {
       setIsAuthorized(true);
       setIsLoading(false);
       loadVMDashboard();
     } else {
-      // 비밀번호 입력 요청
-      const password = prompt('관리자 비밀번호를 입력하세요:');
-      if (password === ADMIN_PASSWORD) {
-        localStorage.setItem('admin_mode', 'true');
-        setIsAuthorized(true);
-        setIsLoading(false);
-        loadVMDashboard();
-      } else {
-        alert('잘못된 비밀번호입니다.');
-        router.push('/main');
-      }
+      // 권한 없음 - 대시보드로 리다이렉트 (PIN 인증 가능)
+      alert('관리자 페이지 접근 권한이 없습니다. 관리자 모드 인증이 필요합니다.');
+      router.push('/dashboard');
     }
-  }, [router]); // router 함수 의존성 복구
+    setIsLoading(false);
+  }, [permissions.canAccessAdminPage, router]);
 
   const loadVMDashboard = async () => {
     setVmLoading(true);

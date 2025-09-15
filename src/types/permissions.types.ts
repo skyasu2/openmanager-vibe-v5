@@ -13,10 +13,16 @@ export interface UserPermissions {
   canToggleAdminMode: boolean;
   canLogout: boolean;
 
+  // 페이지 접근 권한 (새로운 3단계 시스템)
+  canAccessMainPage: boolean;
+  canAccessDashboard: boolean;
+  canAccessAdminPage: boolean;
+
   // 사용자 유형
   isGeneralUser: boolean;
   isAdmin: boolean;
   isGitHubAuthenticated: boolean;
+  isPinAuthenticated: boolean; // PIN 인증 상태
 
   // AI 관련 권한 (모든 사용자 가능)
   canToggleAI: boolean;
@@ -45,6 +51,19 @@ export interface PermissionConfig {
     requiredPermission: keyof UserPermissions;
     fallbackBehavior: 'hide' | 'disable' | 'redirect';
   };
+  // 새로운 페이지 접근 권한
+  mainPage: {
+    requiredPermission: keyof UserPermissions;
+    fallbackBehavior: 'hide' | 'disable' | 'redirect';
+  };
+  dashboard: {
+    requiredPermission: keyof UserPermissions;
+    fallbackBehavior: 'hide' | 'disable' | 'redirect';
+  };
+  adminPage: {
+    requiredPermission: keyof UserPermissions;
+    fallbackBehavior: 'hide' | 'disable' | 'redirect';
+  };
 }
 
 // 기본 권한 설정
@@ -64,5 +83,18 @@ export const DEFAULT_PERMISSION_CONFIG: PermissionConfig = {
   logout: {
     requiredPermission: 'canLogout',
     fallbackBehavior: 'hide',
+  },
+  // 새로운 페이지 접근 권한 설정
+  mainPage: {
+    requiredPermission: 'canAccessMainPage',
+    fallbackBehavior: 'redirect',
+  },
+  dashboard: {
+    requiredPermission: 'canAccessDashboard',
+    fallbackBehavior: 'redirect',
+  },
+  adminPage: {
+    requiredPermission: 'canAccessAdminPage',
+    fallbackBehavior: 'redirect',
   },
 };
