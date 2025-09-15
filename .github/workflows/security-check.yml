@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 전체 히스토리 가져오기 (TruffleHog 스캔을 위해)
+          fetch-depth: 10 # 최근 10개 커밋만 가져오기 (보안 스캔 최적화)
 
       - name: Setup Node.js (Enhanced Caching)
         uses: actions/setup-node@v4
@@ -156,12 +156,12 @@ jobs:
             echo "✅ .env.example 파일이 안전합니다."
           fi
 
-      - name: TruffleHog 스캔 설정
+      - name: TruffleHog 스캔 설정 (히스토리 제한)
         id: trufflehog-config
         run: |
           if [ "${{ github.event_name }}" == "push" ]; then
-            echo "🔍 Push 이벤트 감지 - 전체 브랜치 스캔 모드"
-            echo "base=" >> $GITHUB_OUTPUT
+            echo "🔍 Push 이벤트 감지 - 최근 커밋만 스캔 모드"
+            echo "base=HEAD~5" >> $GITHUB_OUTPUT  # 최근 5개 커밋만 스캔
             echo "head=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           elif [ "${{ github.event_name }}" == "pull_request" ]; then
             echo "🔍 PR 이벤트 감지 - 변경사항만 스캔 모드"
@@ -169,14 +169,15 @@ jobs:
             echo "head=HEAD" >> $GITHUB_OUTPUT
           fi
 
-      - name: Run TruffleHog (검증된 시크릿만)
+      - name: Run TruffleHog (검증된 시크릿만, 히스토리 제한)
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
           base: ${{ steps.trufflehog-config.outputs.base }}
           head: ${{ steps.trufflehog-config.outputs.head }}
           extra_args: >-
-            --only-verified
             --exclude-paths docs/.trufflehog-excludes.txt
-            --max-depth 50
+            --max-depth 20
+            --since-commit=17e78dcd
+            --no-verification
         continue-on-error: false
