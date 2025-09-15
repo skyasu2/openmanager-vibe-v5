@@ -73,10 +73,10 @@ claude --version     # 버전 확인 (v1.0.112)
 
 | 도구                  | 버전    | 요금제              | 역할 구분                   | WSL 실행                   | Windows 네이티브           | 최근 업데이트 |
 | --------------------- | ------- | ------------------- | --------------------------- | -------------------------- | -------------------------- | ------------- |
-| **Claude Code**       | v1.0.112 | Max ($200/월) | 🏆 **메인 개발 환경**       | WSL 직접 실행 | ✅ 완벽 지원                | 2025-09-13 최신 |
-| **OpenAI CLI (Codex)** | v0.29.0 | Plus ($20/월)       | 🤝 **서브에이전트 전용** ⚠️ | Task codex-specialist | ✅ **서브에이전트만 사용**    | 2025-09-13 최신 |
-| **Google Gemini CLI** | **v0.4.1** 🆕 | 무료 (60 RPM/1K RPD)   | 👨‍💻 **서브에이전트 전용** ⚠️ | Task gemini-specialist | ✅ **Google OAuth 브라우저 인증**    | **2025-09-13 업그레이드** |
-| **Qwen Code**         | v0.0.10  | 무료 (60 RPM/2K RPD)   | 🔷 **서브에이전트 전용** ⚠️ | Task qwen-specialist   | ✅ **Qwen OAuth 브라우저 인증**    | 2025-09-13 최신 |
+| **Claude Code**       | v1.0.112 | Max ($200/월) | 🏆 **메인 개발 환경**       | WSL 직접 실행 | ✅ 완벽 지원                | 2025-09-15 최신 |
+| **OpenAI CLI (Codex)** | v0.29.0 | Plus ($20/월)       | 🤝 **서브에이전트 전용** ⚠️ | Task codex-specialist | ✅ **서브에이전트만 사용**    | 2025-09-15 최신 |
+| **Google Gemini CLI** | **v0.4.1** 🆕 | 무료 (60 RPM/1K RPD)   | 👨‍💻 **서브에이전트 전용** ⚠️ | Task gemini-specialist | ✅ **Google OAuth 브라우저 인증**    | **2025-09-15 업그레이드** |
+| **Qwen Code**         | v0.0.10  | 무료 (60 RPM/2K RPD)   | 🔷 **서브에이전트 전용** ⚠️ | Task qwen-specialist   | ✅ **Qwen OAuth 브라우저 인증**    | 2025-09-15 최신 |
 | **ccusage**           | **v16.2.4** 🆕 | 무료                | 📊 **Claude 사용량 모니터링** | ccusage daily              | ✅ 완벽 지원                | **2025-09-12 업그레이드** |
 
 > ✅ **해결완료**: **Codex CLI WSL 네트워크 문제 완전 해결**됨. DNS 설정 수정으로 서브에이전트 정상 작동. ChatGPT Plus 계정으로 GPT-5 모델 추가 과금 없이 사용 가능.
@@ -119,7 +119,7 @@ ccusage --version    # ccusage 버전 확인
 | **context7** | ✅ | 라이브러리 문서 |
 | **sequential-thinking** | ✅ | 순차 사고 |
 | **shadcn-ui** | ✅ | UI 컴포넌트 (46개) |
-| **serena** | ✅ | 25개 코드 분석 도구 |
+| **serena** | ✅ | 26개 코드 분석 도구 |
 | **🆕 vercel** | ✅ | AI-베르셀 플랫폼 브릿지 |
 
 ### 🌐 베르셀 MCP - AI 플랫폼 브릿지 (2025.09.15 업데이트)
@@ -148,7 +148,7 @@ claude mcp add --transport http vercel https://mcp.vercel.com
 
 ## 🤖 서브에이전트 최적화 전략
 
-**18개 핵심 에이전트 최적화 완료** - v1.0.112 호환성 확인 (2025.09.13)
+**18개 핵심 에이전트 최적화 완료** - v1.0.112 호환성 확인 (2025.09.15)
 
 ### 🎯 핵심 에이전트 구성 (18개)
 
@@ -220,7 +220,7 @@ Task verification-specialist "src/components/Button.tsx"  # Level 1-3 자동 판
 ### 🏆 메인 개발 라인: Claude Code (Max $200/월)
 
 **WSL 환경 중심의 핵심 개발 도구**
-- MCP 서버 8개 통합으로 종합적 기능 제공 (27% 토큰 절약)
+- MCP 서버 9개 통합으로 종합적 기능 제공 (27% 토큰 절약)
 - **Max 사용 한계**: 5시간당 200-800 프롬프트
 - **효율적 사용**: Opus는 Plan Mode 전용, 기본은 Sonnet 4 사용
 
@@ -273,7 +273,7 @@ Task codex-specialist "이 코드의 보안 취약점 분석해줘"
 
 ## 🤝 AI 교차검증 시스템
 
-**✅ 실용적 해결책 구축 완료 (2025-09-13 업데이트)**
+**✅ 실용적 해결책 구축 완료 (2025-09-15 업데이트)**
 
 ### 🚀 구축된 실용적 시스템
 
@@ -470,7 +470,7 @@ claude mcp add serena uv run --directory ~/.local/share/uv/tools/serena-mcp sere
 
 **🚀 핵심 가이드**: [빠른 시작](docs/QUICK-START.md) • [시스템 아키텍처](docs/system-architecture.md) • [AI 시스템](docs/AI-SYSTEMS.md)
 
-**⚙️ 전문 도구**: MCP 8개 서버 • AI CLI 4개 • 서브에이전트 17개
+**⚙️ 전문 도구**: MCP 9개 서버 • AI CLI 4개 • 서브에이전트 18개
 
 → **[📚 전체 문서 인덱스](docs/README.md)**
 

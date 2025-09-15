@@ -2,13 +2,13 @@
 
 ```yaml
 title: "Model Context Protocol Integration"
-version: "v5.77"
-updated: "2025-09-09"
+version: "v5.78"
+updated: "2025-09-15"
 type: "mcp-architecture"
 ai_priority: "high"
 ```
 
-## 🔌 MCP 서버 통합 (8개)
+## 🔌 MCP 서버 통합 (9개)
 
 ### 핵심 시스템 (3개)
 ```typescript
@@ -52,15 +52,17 @@ interface Context7MCP {
   purpose: 'api_reference';
 }
 
-// 6. serena - 코드 분석
+// 6. serena - 코드 분석 (26개 도구)
 interface SerenaMCP {
   analyze: 'code_analysis';
   symbols: 'symbol_manipulation';
-  purpose: 'code_understanding';
+  memory: 'context_management';
+  lsp: 'typescript_language_server';
+  purpose: 'advanced_code_understanding';
 }
 ```
 
-### 개발 & 테스트 (2개)
+### 개발 & 테스트 (3개)
 ```typescript
 // 7. supabase - SQL 쿼리
 interface SupabaseMCP {
@@ -77,11 +79,20 @@ interface PlaywrightMCP {
   interact: 'element_interaction';
   purpose: 'e2e_testing';
 }
+
+// 9. vercel - 플랫폼 최적화
+interface VercelMCP {
+  deploy: 'deployment_management';
+  analytics: 'performance_monitoring';
+  domains: 'domain_management';
+  purpose: 'platform_optimization';
+}
 ```
 
 ### MCP 최적화 성과
 - **토큰 절약**: 27% 감소
-- **활성 서버**: 8/8개 완전 작동
+- **활성 서버**: 9/9개 완전 작동 ✅
+- **serena 복구**: 26개 도구 모두 사용 가능
 - **도구 매핑**: 서브에이전트별 최적 할당
 - **중복 제거**: github, gcp, tavily 제거 완료
 
@@ -108,6 +119,8 @@ GITHUB_TOKEN="ghp_xxx"
 
 ### 서브에이전트 매핑
 - **central-supervisor**: memory, sequential-thinking, serena
-- **verification-specialist**: serena, memory, sequential-thinking
+- **verification-specialist**: serena (26개 도구), memory, sequential-thinking
 - **database-administrator**: supabase (모든 도구)
 - **test-automation-specialist**: playwright (모든 도구)
+- **vercel-platform-specialist**: vercel (플랫폼 최적화)
+- **debugger-specialist**: serena (코드 분석), memory

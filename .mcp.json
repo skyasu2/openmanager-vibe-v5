@@ -17,7 +17,7 @@
         "--features=database,docs"
       ],
       "env": {
-        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
+        "SUPABASE_ACCESS_TOKEN": "sbp_90532bce7e5713a964686d52b254175e8c5c32b9"
       }
     },
     "playwright": {
@@ -45,37 +45,8 @@
         "@upstash/context7-mcp"
       ],
       "env": {
-        "UPSTASH_REDIS_REST_URL": "${UPSTASH_REDIS_REST_URL}",
-        "UPSTASH_REDIS_REST_TOKEN": "${UPSTASH_REDIS_REST_TOKEN}"
-      }
-    },
-    "serena": {
-      "command": "/home/skyasu/.local/bin/uvx",
-      "args": [
-        "--from",
-        "git+https://github.com/oraios/serena",
-        "serena-mcp-server",
-        "--project",
-        "/mnt/d/cursor/openmanager-vibe-v5",
-        "--enable-web-dashboard",
-        "false",
-        "--enable-gui-log-window",
-        "false",
-        "--log-level",
-        "INFO",
-        "--tool-timeout",
-        "45"
-      ],
-      "env": {
-        "PYTHONUNBUFFERED": "1",
-        "PYTHONDONTWRITEBYTECODE": "1",
-        "TERM": "dumb",
-        "NO_COLOR": "1",
-        "NONINTERACTIVE": "1",
-        "PYTHONHASHSEED": "0",
-        "MALLOC_ARENA_MAX": "2",
-        "SERENA_MAX_WORKERS": "2",
-        "SERENA_CACHE_SIZE": "100"
+        "UPSTASH_REDIS_REST_URL": "https://charming-condor-46598.upstash.io",
+        "UPSTASH_REDIS_REST_TOKEN": "AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA"
       }
     },
     "sequential-thinking": {
@@ -91,6 +62,22 @@
         "-y",
         "@jpisnice/shadcn-ui-mcp-server@latest"
       ]
+    },
+    "serena": {
+      "command": "/home/skyasu/.local/bin/serena-mcp-server",
+      "args": [
+        "--project",
+        "/mnt/d/cursor/openmanager-vibe-v5",
+        "--log-level",
+        "DEBUG",
+        "--tool-timeout",
+        "180"
+      ],
+      "env": {
+        "TERM": "dumb",
+        "NO_COLOR": "1",
+        "PYTHONUNBUFFERED": "1"
+      }
     }
   }
 }
