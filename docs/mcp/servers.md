@@ -4,16 +4,16 @@ title: "MCP 서버 관리 가이드"
 keywords: ["mcp", "servers", "management", "configuration"]
 priority: high
 ai_optimized: true
-updated: "2025-09-09"
+updated: "2025-09-15"
 ---
 
 # 🔧 MCP 서버 관리 가이드
 
-**8개 서버 완전 관리**: 설정, 최적화, 문제 해결
+**9개 서버 완전 관리**: 설정, 최적화, 문제 해결
 
 ## 📊 활성 서버 현황
 
-### 🏆 Tier 1: 핵심 서버 (4개)
+### 🏆 Tier 1: 핵심 서버 (5개)
 
 | 서버 | 유형 | 상태 | 특징 |
 |------|------|------|------|
@@ -21,6 +21,7 @@ updated: "2025-09-09"
 | **supabase** | NPM | ✅ | PostgreSQL, RLS, 실시간 DB |
 | **serena** | UVX | ✅ | 25개 코드 분석 도구 |
 | **shadcn-ui** | NPM | ✅ | 46개 UI 컴포넌트 |
+| **vercel** | HTTP | ✅ | 배포 관리, 사용량 모니터링 |
 
 ### 🥈 Tier 2: 전문 서버 (4개)
 
@@ -141,6 +142,18 @@ updated: "2025-09-09"
 }
 ```
 **특징**: 환경변수 불필요, 순차적 사고 처리
+
+### Vercel MCP (신규 추가 2025-09-14)
+```json
+{
+  "vercel": {
+    "transport": "http",
+    "url": "https://mcp.vercel.com"
+  }
+}
+```
+**특징**: HTTP 기반, OAuth 인증, 베르셀 프로젝트 관리
+**기능**: 배포 상태 모니터링, 로그 분석, 사용량 추적
 
 ## 🚫 제거된 서버 (4개)
 
