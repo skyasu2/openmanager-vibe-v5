@@ -1,6 +1,6 @@
 #!/bin/bash
-# 🚀 개선된 AI 교차검증 시스템 (Task 도구 없이 작동)
-# Claude Code + 3개 외부 AI CLI의 현실적 교차검증
+# 🚀 개선된 AI 교차검증 시스템 v3.0 (복잡도 무관 병렬 최적화)
+# Claude Code + 3개 외부 AI CLI 동시 실행 (복잡도 제한 제거)
 
 set -euo pipefail
 
@@ -20,7 +20,7 @@ log_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
 log_error() { echo -e "${RED}❌ $1${NC}"; }
 log_ai() { echo -e "${PURPLE}🤖 $1${NC}"; }
 
-# AI 도구 가중치 (CLAUDE.md 기준)
+# AI 도구 가중치 (CLAUDE.md 기준) - 복잡도 무관 전체 실행
 declare -A AI_WEIGHTS=(
     ["claude"]=1.0
     ["codex"]=0.99
@@ -44,8 +44,8 @@ check_ai_tools() {
         fi
     done
     
-    if [ ${#available_tools[@]} -lt 2 ]; then
-        log_error "최소 2개 AI CLI 도구가 필요합니다"
+    if [ ${#available_tools[@]} -lt 3 ]; then
+        log_error "최소 3개 AI CLI 도구가 필요합니다 (Codex, Gemini, Qwen)"
         exit 1
     fi
     
@@ -186,23 +186,57 @@ cross_validate_file() {
     log_info "🎯 AI 교차검증 시작: $(basename "$file_path")"
     echo "=" | head -c 60; echo
     
-    # 병렬 AI 분석 시작
-    log_info "3개 AI CLI 병렬 분석 시작..."
+    # 3개 AI CLI 병렬 분석 시작 (복잡도 무관)
+    log_info "3개 AI CLI 병렬 분석 시작 - 복잡도 체크 없이 전체 실행..."
     
     local codex_result gemini_result qwen_result
+    local codex_pid gemini_pid qwen_pid
     
-    # Codex 분석
-    codex_result=$(analyze_with_codex "$file_path")
+    # 병렬 백그라운드 실행
+    {
+        codex_result=$(analyze_with_codex "$file_path")
+        echo "CODEX_DONE:$codex_result" > "/tmp/codex_result_$$"
+    } &
+    codex_pid=$!
+    
+    {
+        gemini_result=$(analyze_with_gemini "$file_path")
+        echo "GEMINI_DONE:$gemini_result" > "/tmp/gemini_result_$$"
+    } &
+    gemini_pid=$!
+    
+    {
+        qwen_result=$(analyze_with_qwen "$file_path")
+        echo "QWEN_DONE:$qwen_result" > "/tmp/qwen_result_$$"
+    } &
+    qwen_pid=$!
+    
+    # 병렬 실행 대기
+    wait $codex_pid $gemini_pid $qwen_pid
+    
+    # 결과 읽기
+    if [ -f "/tmp/codex_result_$$" ]; then
+        codex_result=$(cat "/tmp/codex_result_$$" | sed 's/^CODEX_DONE://')
+        rm -f "/tmp/codex_result_$$"
+    fi
+    
+    if [ -f "/tmp/gemini_result_$$" ]; then
+        gemini_result=$(cat "/tmp/gemini_result_$$" | sed 's/^GEMINI_DONE://')
+        rm -f "/tmp/gemini_result_$$"
+    fi
+    
+    if [ -f "/tmp/qwen_result_$$" ]; then
+        qwen_result=$(cat "/tmp/qwen_result_$$" | sed 's/^QWEN_DONE://')
+        rm -f "/tmp/qwen_result_$$"
+    fi
+    
+    # 결과 출력
     echo -e "\n${PURPLE}🤖 Codex (GPT-5) 결과:${NC}"
     echo "$codex_result"
     
-    # Gemini 분석  
-    gemini_result=$(analyze_with_gemini "$file_path")
     echo -e "\n${CYAN}🤖 Gemini 결과:${NC}"
     echo "$gemini_result"
     
-    # Qwen 분석
-    qwen_result=$(analyze_with_qwen "$file_path")  
     echo -e "\n${BLUE}🤖 Qwen 결과:${NC}"
     echo "$qwen_result"
     
@@ -245,16 +279,17 @@ show_usage() {
     echo "  $0 src/hooks/useAuth.ts"
     echo
     echo "기능:"
-    echo "  • 3개 AI CLI 병렬 분석 (Codex, Gemini, Qwen)"
+    echo "  • 3개 AI CLI 병렬 분석 (Codex, Gemini, Qwen) - 복잡도 무관"
     echo "  • 가중평균 기반 종합 점수 (0.99, 0.98, 0.97)"  
     echo "  • 실무/구조/알고리즘 다각도 분석"
     echo "  • HIGH/MEDIUM/LOW 품질 등급"
+    echo "  • 복잡도 체크 제거 - 모든 파일에 대해 전체 AI 검증"
 }
 
 # 메인 실행
 main() {
-    echo -e "${PURPLE}🚀 개선된 AI 교차검증 시스템 v2.0${NC}"
-    echo -e "${BLUE}Task 도구 없이 작동하는 현실적 교차검증${NC}"
+    echo -e "${PURPLE}🚀 개선된 AI 교차검증 시스템 v3.0${NC}"
+    echo -e "${BLUE}복잡도 제한 제거 + 병렬 최적화 버전${NC}"
     echo
     
     if [ $# -eq 0 ]; then
@@ -269,8 +304,11 @@ main() {
     available_tools=($(check_ai_tools))
     
     if [ ${#available_tools[@]} -lt 3 ]; then
-        log_warning "최적 성능을 위해 3개 이상 AI CLI 권장 (현재: ${#available_tools[@]}개)"
+        log_warning "3개 AI CLI 필수 (현재: ${#available_tools[@]}개) - Codex, Gemini, Qwen 모두 필요"
+        exit 1
     fi
+    
+    log_success "3개 AI CLI 모두 사용 가능 - 병렬 최적화 실행"
     
     # 파일 교차검증 실행
     cross_validate_file "$file_path"
