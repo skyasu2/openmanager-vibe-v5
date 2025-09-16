@@ -107,10 +107,10 @@ export function useUserPermissions(): UserPermissions {
         const userAvatar = user.avatar;
         const userType: UserType = type === 'unknown' ? 'guest' : type;
 
-        // PIN 인증 상태 확인 (adminStore + localStorage fallback)
-        const adminStoreAuth = adminStore?.adminMode?.isAuthenticated || false;
+        // PIN 인증 상태 확인 (localStorage 우선, adminStore fallback)
         const localStorageAuth = typeof window !== 'undefined' ? localStorage.getItem('admin_mode') === 'true' : false;
-        const isPinAuth = adminStoreAuth || localStorageAuth;
+        const adminStoreAuth = adminStore?.adminMode?.isAuthenticated || false;
+        const isPinAuth = localStorageAuth || adminStoreAuth; // localStorage 우선
         
         // 🔍 디버깅: 모든 인증 상태 확인
         console.log('🔍 [Debug] useUserPermissions - 전체 인증 상태:', {
@@ -155,9 +155,9 @@ export function useUserPermissions(): UserPermissions {
       
       if (legacySessionAuth) {
         // GitHub 사용자 (레거시 session 기반)
-        const adminStoreAuth = adminStore?.adminMode?.isAuthenticated || false;
         const localStorageAuth = typeof window !== 'undefined' ? localStorage.getItem('admin_mode') === 'true' : false;
-        const isPinAuth = adminStoreAuth || localStorageAuth;
+        const adminStoreAuth = adminStore?.adminMode?.isAuthenticated || false;
+        const isPinAuth = localStorageAuth || adminStoreAuth; // localStorage 우선
         
         return {
           canControlSystem: isPinAuth,
@@ -180,9 +180,9 @@ export function useUserPermissions(): UserPermissions {
       
       if (legacyGuestAuth) {
         // 게스트 사용자 (레거시 guestUser 기반)  
-        const adminStoreAuth = adminStore?.adminMode?.isAuthenticated || false;
         const localStorageAuth = typeof window !== 'undefined' ? localStorage.getItem('admin_mode') === 'true' : false;
-        const isPinAuth = adminStoreAuth || localStorageAuth;
+        const adminStoreAuth = adminStore?.adminMode?.isAuthenticated || false;
+        const isPinAuth = localStorageAuth || adminStoreAuth; // localStorage 우선
         
         return {
           canControlSystem: isPinAuth,
