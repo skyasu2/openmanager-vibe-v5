@@ -92,15 +92,16 @@ Status:
 AI_Integration:
   MCP_Servers: 12개 (12개 정상 동작)
   AI_Engines: 4개 (Google AI, Supabase RAG, Korean NLP, ML Analytics)
-  Claude_SubAgents: 17개 전문 에이전트 (AI 교차검증 9.17/10 최적화 완료)
+  Claude_Code_SubAgents: 17개 전문 에이전트 (Claude Code 전용, AI 교차검증 9.17/10 최적화 완료)
   Multi_AI: 'Claude + Gemini + Qwen + Codex 병렬 협업'
 ```
 
 ## 💡 주요 활용 시나리오
 
-**Claude Code 서브에이전트로 통합 완료** - Task 도구로 호출 가능
+**Claude Code 서브에이전트 17개 체계** - Claude Code 내장 Task 도구 전용
 
-**우선순위**: Claude Code > Gemini CLI, Codex CLI > Qwen CLI
+**중요**: 서브에이전트는 Claude Code 전용 기능이며, Codex CLI에서는 직접 활용 불가
+**Codex 역할**: 독립적인 GPT-5 기반 코드 분석 및 리뷰 전문가
 
 ### 1️⃣ 긴급 문제 해결 (최우선)
 ```bash
