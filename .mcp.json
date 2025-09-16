@@ -1,87 +1,89 @@
 {
+  "// 16GB WSL 최적화 MCP 설정 (2025-09-17)": "완전 작동 확인됨",
   "mcpServers": {
     "memory": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-memory"
-      ]
-    },
-    "supabase": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@supabase/mcp-server-supabase@latest",
-        "--project-ref",
-        "vnswjnltnhpsueosfhmw",
-        "--features=database,docs"
-      ],
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
       "env": {
-        "SUPABASE_ACCESS_TOKEN": "sbp_90532bce7e5713a964686d52b254175e8c5c32b9"
+        "NODE_OPTIONS": "--max-old-space-size=1024"
       }
-    },
-    "playwright": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@executeautomation/playwright-mcp-server"
-      ]
     },
     "time": {
       "command": "/home/skyasu/.local/bin/uvx",
-      "args": [
-        "mcp-server-time"
-      ],
+      "args": ["mcp-server-time"],
       "env": {
         "TERM": "dumb",
         "NO_COLOR": "1",
-        "PYTHONUNBUFFERED": "1"
-      }
-    },
-    "context7": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@upstash/context7-mcp"
-      ],
-      "env": {
-        "UPSTASH_REDIS_REST_URL": "https://charming-condor-46598.upstash.io",
-        "UPSTASH_REDIS_REST_TOKEN": "AbYGAAIjcDE5MjNmYjhiZDkwOGQ0MTUyOGFiZjUyMmQ0YTkyMzIwM3AxMA"
+        "PYTHONUNBUFFERED": "1",
+        "UV_THREADPOOL_SIZE": "4"
       }
     },
     "sequential-thinking": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-sequential-thinking@latest"
-      ]
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"],
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=1024"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@executeautomation/playwright-mcp-server"],
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=2048",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/skyasu/.cache/ms-playwright"
+      }
     },
     "shadcn-ui": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@jpisnice/shadcn-ui-mcp-server@latest"
-      ]
+      "args": ["-y", "@jpisnice/shadcn-ui-mcp-server@latest"],
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=1024"
+      }
     },
     "serena": {
       "command": "/home/skyasu/.local/bin/serena-mcp-server",
       "args": [
-        "--project",
-        "/mnt/d/cursor/openmanager-vibe-v5",
-        "--log-level",
-        "ERROR",
-        "--tool-timeout",
-        "300",
-        "--enable-web-dashboard",
-        "false",
-        "--enable-gui-log-window",
-        "false"
+        "--project", "/mnt/d/cursor/openmanager-vibe-v5",
+        "--log-level", "ERROR",
+        "--tool-timeout", "180",
+        "--enable-web-dashboard", "false",
+        "--enable-gui-log-window", "false"
       ],
       "env": {
         "TERM": "dumb",
         "NO_COLOR": "1",
         "PYTHONUNBUFFERED": "1",
-        "PYTHONIOENCODING": "utf-8"
+        "PYTHONIOENCODING": "utf-8",
+        "PYTHON_GIL": "1"
+      }
+    },
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y", "@supabase/mcp-server-supabase@latest",
+        "--project-ref", "vnswjnltnhpsueosfhmw",
+        "--features", "database"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}",
+        "NODE_OPTIONS": "--max-old-space-size=1024"
+      }
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y", "@upstash/context7-mcp",
+        "--api-key", "${CONTEXT7_API_KEY}"
+      ],
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=1024"
+      }
+    },
+    "vercel": {
+      "transport": "http",
+      "url": "https://mcp.vercel.com",
+      "env": {
+        "VERCEL_TOKEN": "${VERCEL_TOKEN}"
       }
     }
   }

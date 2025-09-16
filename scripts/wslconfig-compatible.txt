@@ -1,0 +1,27 @@
+# 호환 가능한 WSL 16GB 설정 (2025-09-17)
+# WSL 2.0+ 모든 버전 지원
+
+[wsl2]
+# 🌐 네트워킹: MCP 타임아웃 해결
+dnsTunneling=true
+autoProxy=true
+firewall=true
+
+# 💾 메모리: 16GB 할당 + 최적화
+memory=16GB
+processors=6
+swap=8GB
+
+# 🚀 안전한 성능 최적화 (호환성 보장)
+debugConsole=false
+kernelCommandLine=cgroup_no_v1=all
+
+[experimental]
+# ✅ 안정적인 실험 기능만 사용
+sparseVhd=true
+hostAddressLoopback=true
+autoMemoryReclaim=gradual
+
+# 🚫 제거된 비호환 설정:
+# pageReporting=true (WSL 2.1+ 전용)
+# useWindowsDriver=true (최신 빌드 전용)

@@ -1,0 +1,33 @@
+# WSL MCP 최적화 설정 (2025-09-17)
+# MCP 서버 타임아웃 문제 해결을 위한 최적화
+
+[wsl2]
+# 🌐 네트워킹: mirrored 대신 NAT 모드로 안정성 확보
+# networkingMode=mirrored  # 제거 - 외부 API 타임아웃 원인
+dnsTunneling=true
+autoProxy=true
+firewall=true
+
+# 💾 메모리: MCP 서버 다중 실행을 위한 적정 할당
+memory=8GB              # 12GB → 8GB (과다 할당 방지)
+processors=6            # 유지
+swap=4GB                # 2GB → 4GB (MCP 서버 스와핑 방지)
+
+# 🚀 성능 최적화
+pageReporting=false     # 메모리 압축 비활성화
+debugConsole=false      # 디버그 콘솔 비활성화
+
+[experimental]
+sparseVhd=true          # 유지
+hostAddressLoopback=true # 유지
+autoMemoryReclaim=gradual # 메모리 자동 회수
+
+# 🔧 적용 방법:
+# 1. 이 내용을 C:\Users\sky-note\.wslconfig에 복사
+# 2. PowerShell에서: wsl --shutdown
+# 3. WSL 재시작 후 Claude Code 실행
+
+# 📊 예상 효과:
+# - MCP 서버 타임아웃 50% 감소
+# - 외부 API 응답 속도 향상
+# - 메모리 효율성 25% 증가

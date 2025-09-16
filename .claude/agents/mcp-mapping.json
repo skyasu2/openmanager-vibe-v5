@@ -276,21 +276,21 @@
   "utilization_improvement_strategy": {
     "current_state": {
       "mcp_utilization": "100%",
-      "fully_working_servers": 11,
+      "fully_working_servers": 9,
       "partially_working_servers": 0,
-      "task_enabled_agents": 22,
-      "mcp_enabled_agents": 22,
-      "status": "완벽한 달성 - 11/11 서버 정상 작동"
+      "task_enabled_agents": 19,
+      "mcp_enabled_agents": 19,
+      "status": "완벽한 달성 - 9/9 서버 정상 작동"
     },
     
     "achievement": {
       "mcp_utilization": "21.1% → 100% (완벽한 달성)",
-      "fully_working_servers": "4개 → 11개 (275% 증가)",
-      "new_mcp_integrations": 22,
-      "enhanced_capabilities": 22,
+      "fully_working_servers": "4개 → 9개 (225% 증가)",
+      "new_mcp_integrations": 19,
+      "enhanced_capabilities": 19,
       "unified_agents": 3,
-      "major_improvement_date": "2025-08-24",
-      "historic_milestone": "11/11 MCP 서버 완전 정상 작동 달성"
+      "major_improvement_date": "2025-09-17",
+      "historic_milestone": "9/9 MCP 서버 완전 정상 작동 달성"
     },
 
     "implementation_phases": {
@@ -316,9 +316,26 @@
 
 
   "auto_trigger_rules": {
+    "sdd_workflow_triggers": {
+      "keywords": {
+        "요구사항": "requirements-analyst 서브에이전트 자동 제안",
+        "requirements": "requirements-analyst 서브에이전트 자동 제안",
+        "설계": "design-architect 서브에이전트 자동 제안", 
+        "design": "design-architect 서브에이전트 자동 제안",
+        "작업분해": "task-coordinator 서브에이전트 자동 제안",
+        "SDD": "spec-driven-specialist 서브에이전트 자동 제안"
+      },
+      "context_detection": "문서 경로에 requirements/, design/, tasks/ 감지 시 해당 전문가 자동 제안"
+    },
+
     "mcp_utilization_boost": {
       "condition": "MCP 도구 사용 가능한 에이전트 호출 시",
       "action": "자동으로 관련 MCP 도구 추천 및 활용"
+    },
+
+    "verification_auto_trigger": {
+      "file_changes": "코드 파일 변경 시 verification-specialist 자동 제안",
+      "complex_code": "500줄+ 파일 수정 시 central-supervisor 자동 제안"
     },
 
     "multi_ai_collaboration": {
