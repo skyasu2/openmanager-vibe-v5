@@ -15,6 +15,8 @@ updated: "2025-09-09"
 ### 🏆 High Priority (Daily Use) - AI 도구 우선 참조
 
 #### 🤖 AI 개발 워크플로우 (최우선)
+- **[🤖 Claude Code 서브에이전트 공식 가이드](claude/sub-agents-official.md)** - Anthropic 공식 문서 기반 ⭐ **신규**
+  - *관련*: [AI 교차검증 v4](claude/ai-cross-verification-v4.md) → [AI 시스템](guides/ai-system.md)
 - **[🤖 AI Workflow](ai/workflow.md)** - 4-AI 교차검증 실무 가이드 ⭐ **핵심**
   - *관련*: [MCP Advanced](mcp/advanced.md) → [WSL Guide](guides/wsl.md) → [Testing](testing/README.md)
 - **[🔧 MCP Advanced](mcp/advanced.md)** - 12 MCP 서버 완전 설치 ⭐ **필수**

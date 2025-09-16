@@ -1,15 +1,26 @@
 ---
 id: agents-mcp
-title: "Sub-Agents & MCP Mapping"
+title: "Sub-Agents & MCP Mapping (DEPRECATED)"
 keywords: ["subagent", "mcp", "tools", "mapping"]
-priority: medium
-ai_optimized: true
-updated: "2025-09-09"
+priority: low
+ai_optimized: false
+updated: "2025-09-16"
+status: "deprecated"
+replacement: "../claude/sub-agents-official.md"
+deprecation_reason: "Task 도구 사용법이 잘못됨 - 공식 표준으로 교체"
 ---
 
-# 🤖 Sub-Agents & MCP Mapping
+# 🤖 Sub-Agents & MCP Mapping (DEPRECATED)
 
-**17개 서브에이전트와 8개 MCP 서버 최적 매핑**
+⚠️ **이 문서는 더 이상 사용되지 않습니다**
+
+**📚 새로운 공식 가이드**: [Claude Code 서브에이전트 공식 가이드](../claude/sub-agents-official.md)
+
+**❌ 이 문서의 문제점**: 
+- Task 도구 사용법 기재 (실제로는 존재하지 않음)
+- 잘못된 호출 방식 안내
+
+**✅ 올바른 정보는 새 문서 참조**
 
 ## 🎯 핵심 서브에이전트
 

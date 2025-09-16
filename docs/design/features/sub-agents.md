@@ -1,17 +1,29 @@
 ---
 id: sub-agents-architecture
-title: "Sub-Agents Architecture"
+title: "Sub-Agents Architecture (DEPRECATED)"
 keywords: ["sub-agents", "ai", "agents", "orchestration", "verification"]
-priority: high
-ai_optimized: true
-related_docs: ["ai-system.md", "mcp.md", "../../ai/workflow.md"]
+priority: low
+ai_optimized: false
+related_docs: ["../../claude/sub-agents-official.md"]
 updated: "2025-09-16"
-version: "v5.77"
+version: "v5.78"
+status: "deprecated"
+replacement: "../../claude/sub-agents-official.md"
+deprecation_reason: "공식 문서 기반으로 새로운 가이드 작성됨"
 ---
 
-# 서브에이전트 설계
+# 서브에이전트 설계 (DEPRECATED)
 
-## 🤖 17개 서브에이전트 체계
+⚠️ **이 문서는 더 이상 사용되지 않습니다**
+
+**📚 새로운 공식 가이드**: [Claude Code 서브에이전트 공식 가이드](../../claude/sub-agents-official.md)
+
+**❌ 잘못된 정보**: Task 도구가 존재하지 않음을 확인 (공식 문서 검증)
+**✅ 올바른 방식**: 명시적 호출 + 자동 위임 (공식 표준)
+
+---
+
+## 🤖 17개 서브에이전트 체계 (LEGACY)
 
 ### 계층 구조
 ```typescript
@@ -45,26 +57,29 @@ external-ai-orchestrator: {
   ai_count: 3
 }
 
-// AI CLI 래퍼 (3개)
+// AI CLI 래퍼 (3개) - DEPRECATED: 직접 CLI 실행으로 대체
 codex-wrapper: {
-  ai: 'ChatGPT Plus',
-  weight: 0.99,
-  specialty: 'practical_code_review',
-  timeout: '60s'
+  // DEPRECATED: `codex exec` 직접 사용
+  ai: 'ChatGPT Plus v0.34.0',
+  status: 'deprecated',
+  replacement: 'codex exec "task"',
+  actual_performance: '27초 응답'
 }
 
 gemini-wrapper: {
-  ai: 'Google Gemini',
-  weight: 0.98,
-  specialty: 'large_data_analysis',
-  limit: '1K/day'
+  // DEPRECATED: `gemini` 직접 사용
+  ai: 'Google Gemini v0.4.1',
+  status: 'deprecated', 
+  replacement: 'gemini "task"',
+  actual_performance: '즉시 응답'
 }
 
 qwen-wrapper: {
-  ai: 'Qwen OAuth',
-  weight: 0.97,
-  specialty: 'algorithm_optimization',
-  limit: '2K/day'
+  // DEPRECATED: `qwen -p` 직접 사용 (조건부)
+  ai: 'Qwen v0.0.11',
+  status: 'deprecated',
+  replacement: 'qwen -p "simple_task"',
+  actual_performance: '조건부 사용 (복잡한 요청 시 타임아웃)'
 }
 ```
 
