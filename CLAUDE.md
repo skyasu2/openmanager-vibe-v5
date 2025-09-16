@@ -148,9 +148,9 @@ claude mcp add --transport http vercel https://mcp.vercel.com
 
 ## 🤖 서브에이전트 최적화 전략
 
-**18개 핵심 에이전트 최적화 완료** - v1.0.112 호환성 확인 (2025.09.15)
+**23개 핵심 에이전트 최적화 완료** - v1.0.112 호환성 확인 (2025.09.16)
 
-### 🎯 핵심 에이전트 구성 (18개)
+### 🎯 핵심 에이전트 구성 (23개)
 
 #### 1. 메인 조정자 (1개)
 
@@ -176,7 +176,7 @@ claude mcp add --transport http vercel https://mcp.vercel.com
 - **특화**: 알고리즘 최적화, 성능 분석, 수학적 복잡도 개선
 - **Task 예시**: `Task qwen-specialist "알고리즘 성능 최적화 분석"`
 
-#### 3. 전문 도구 (11개)
+#### 3. 전문 도구 (16개)
 
 **개발 환경 & 구조 (2개)**:
 - **dev-environment-manager**: WSL 최적화, Node.js 버전 관리
@@ -192,10 +192,17 @@ claude mcp add --transport http vercel https://mcp.vercel.com
 - **debugger-specialist**: 버그 해결 및 근본 원인 분석
 - **security-auditor**: 보안 감사 및 취약점 스캔
 
-**테스트 & 문서화 (3개)**:
+**테스트 & 문서화 (4개)**:
 - **test-automation-specialist**: 테스트 자동화, Vitest + Playwright E2E 전문
 - **simple-test-agent**: 실험용 테스트 에이전트 
 - **documentation-manager**: AI 친화적 문서 관리
+- **spec-driven-specialist**: SDD 워크플로우 전문가 (Requirements → Design → Tasks → Implementation 4단계 관리)
+
+**SDD 방법론 전문가 (4개)** 🆕:
+- **requirements-analyst**: Phase 1 전문가 - 요구사항 분석 및 명확화
+- **design-architect**: Phase 2 전문가 - 시스템 설계 및 아키텍처
+- **task-coordinator**: Phase 3 전문가 - 작업 분해 및 실행 계획
+- **spec-driven-specialist**: Phase 4 조정자 - 전체 SDD 워크플로우 관리
 
 ### 🎯 AI 서브에이전트 직접 지정 사용법
 
@@ -210,6 +217,12 @@ Task gemini-specialist "서버 카드 UI/UX 개선해서 실제 파일 수정해
 
 # Qwen - 성능 최적화 & 알고리즘 전문가
 Task qwen-specialist "이 알고리즘 복잡도 O(log n)으로 최적화해서 코드 수정"
+
+# SDD 워크플로우 - 명세 기반 체계적 개발 🆕
+Task requirements-analyst "사용자 요구사항을 명확한 Requirements 문서로 작성"
+Task design-architect "Requirements를 기술 설계로 변환"
+Task task-coordinator "Design을 구현 가능한 작업으로 분해"
+Task spec-driven-specialist "SDD 전체 워크플로우 조정 및 품질 검증"
 
 # AI 교차검증 (사용자가 원할 때)
 Task verification-specialist "src/components/Button.tsx"  # Level 1-3 자동 판단
@@ -373,6 +386,126 @@ Task codex-specialist "이 코드의 보안 취약점 분석해줘"
 - **테스트 우선**: 변경 전 기존 기능 테스트, 변경 후 회귀 테스트 필수
 - **단계적 적용**: 큰 변경은 단계별로 나누어 각 단계마다 검증
 - **롤백 계획**: 모든 변경에 대해 즉시 되돌릴 수 있는 방법 사전 준비
+
+## 🎯 Spec-Driven Development (SDD)
+
+**Kiro IDE 방식의 체계적 개발 프로세스** - 명세 기반으로 AI와 협업하여 품질 높은 코드 생산
+
+> **배경**: AWS Kiro IDE (2025년 7월 출시)의 spec-driven 접근법을 OpenManager VIBE에 적용  
+> **목표**: "vibe coding"에서 "viable code"로 전환하는 체계적 개발 문화 구축
+
+### 📋 SDD 4단계 프로세스
+
+#### 1️⃣ 요구사항 정의 (requirements.md)
+- **목적**: 누구를 위해, 어떤 문제를 해결하는지 명확히 정의
+- **입출력**: 정확한 입력(input)과 출력(output) 명세
+- **경계 조건**: Edge cases, 예외 상황, 실패 조건 포함
+- **제약사항**: 성능/보안/호환성/환경 제약 명시
+
+#### 2️⃣ 시스템 설계 (design.md)
+- **기술 스택**: 언어, 프레임워크, 라이브러리 선택
+- **아키텍처**: 모듈 구조, 데이터 흐름, API 계약
+- **외부 연계**: 외부 시스템과의 상호작용 명시
+- **다이어그램**: 시스템 구조 시각화
+
+#### 3️⃣ 작업 분할 (tasks.md)
+- **단위 분할**: 독립적으로 리뷰 가능한 작은 작업으로 분할
+- **작업 정의**: 각 작업의 생성/수정 대상 명확히 지정
+- **성공 기준**: 테스트 가능한 완료 기준과 예시
+- **우선순위**: 작업 간 의존성과 순서 정의
+
+#### 4️⃣ 구현 (Implementation)
+- **단위별 구현**: 각 작업 단위로 코드 생성
+- **코드 표준**: 스타일 가이드, 명명 규칙 준수
+- **검증**: 보안, 오류 처리, 테스트 포함
+- **문서화**: 코드와 함께 문서 동시 업데이트
+
+### 🔄 SDD 워크플로우 예시
+
+**예제: PIN 인증 시스템 개발**
+
+1. **requirements/pin-auth.md** 작성:
+   ```markdown
+   # PIN 인증 시스템 요구사항
+   - 사용자: 관리자 권한이 필요한 게스트
+   - 문제: GitHub 로그인 없이 관리자 기능 접근
+   - 입력: 4자리 PIN 코드
+   - 출력: 인증 성공/실패, 세션 생성
+   - 제약: 환경변수 기반, 3회 실패 시 잠금
+   ```
+
+2. **design/pin-auth-design.md** 작성:
+   ```markdown
+   # PIN 인증 시스템 설계
+   - 기술: Next.js API Routes + localStorage
+   - 플로우: UI → API → 검증 → 세션
+   - 보안: bcrypt 해싱, rate limiting
+   ```
+
+3. **tasks/pin-auth-tasks.md** 작성:
+   ```markdown
+   # PIN 인증 구현 작업
+   - [ ] API 엔드포인트 생성
+   - [ ] PIN 입력 UI 컴포넌트
+   - [ ] 세션 관리 로직
+   - [ ] 테스트 케이스 작성
+   ```
+
+### 🤖 AI 도구와의 SDD 연계
+
+#### Claude Code 활용
+```bash
+# SDD 문서 기반 개발 요청
+claude "docs/specs/requirements/feature-x.md 기반으로 API 구현"
+claude "design/feature-x-design.md 참조하여 컴포넌트 생성"
+
+# 작업 단위별 구현
+claude "tasks/feature-x-tasks.md의 3번 작업 구현해줘"
+```
+
+#### 서브에이전트 연계
+```bash
+# 설계 검토
+Task verification-specialist "design/feature-x-design.md 기준으로 검증"
+Task structure-refactor-specialist "요구사항에 맞는 아키텍처 개선"
+
+# 품질 보증
+Task code-review-specialist "tasks/feature-x-tasks.md 완료 기준 확인"
+Task test-automation-specialist "requirements.md 기반 테스트 케이스 생성"
+```
+
+### 📁 SDD 파일 구조
+
+```
+docs/specs/                        # SDD 문서 저장소
+├── requirements/                  # 요구사항 문서
+│   ├── feature-x.md
+│   ├── feature-y.md
+│   └── template.md
+├── design/                        # 설계 문서
+│   ├── feature-x-design.md
+│   ├── feature-y-design.md
+│   └── template.md
+└── tasks/                         # 작업 분할 문서
+    ├── feature-x-tasks.md
+    ├── feature-y-tasks.md
+    └── template.md
+```
+
+### 🔗 기존 개발 철학과의 연계
+
+- **타입 우선 개발** ↔ SDD 설계 단계에서 타입 정의 우선
+- **사이드 이펙트 우선 개발** ↔ SDD 요구사항에서 영향 분석 포함
+- **테스트 커버리지 70%+** ↔ SDD 작업 분할에서 테스트 기준 명시
+- **커밋 컨벤션** ↔ SDD 작업 단위별 명확한 커밋 메시지
+
+### ✅ SDD 도입 효과
+
+1. **체계적 접근**: Kiro와 같은 선진 방법론으로 개발 품질 향상
+2. **명확한 소통**: 요구사항과 설계로 팀원 간 이해도 통일
+3. **AI 협업 최적화**: Claude Code가 명확한 컨텍스트로 정확한 코드 생성
+4. **유지보수성**: 문서와 코드의 일관성으로 장기 유지보수 용이
+5. **품질 보증**: 명세 기반 개발로 누락 없는 완성도 달성
 
 ## 🎯 현재 상태
 
