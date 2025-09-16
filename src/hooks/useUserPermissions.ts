@@ -123,30 +123,88 @@ export function useUserPermissions(): UserPermissions {
           isAuthenticated
         });
 
-      // 새로운 권한 매트릭스 적용 (레거시 호환)
-      const isGitHub = isGitHubUser;
-      const isGuest = isGuestUser;
+        // 새로운 권한 매트릭스 적용 (레거시 호환)
+        const isGitHub = type === 'github';
+        const isGuest = type === 'guest';
 
-      return {
-        canControlSystem: isPinAuth,
-        canAccessSettings: isPinAuth,
-        canToggleAdminMode: true, // 모든 사용자가 PIN 입력 시도 가능
-        canLogout: isGitHub || isGuest,
+        return {
+          canControlSystem: isPinAuth,
+          canAccessSettings: isPinAuth,
+          canToggleAdminMode: true, // 모든 사용자가 PIN 입력 시도 가능
+          canLogout: isGitHub || isGuest,
 
-        // 페이지 접근 권한 (새로운 3단계 시스템)
-        canAccessMainPage: true, // 모든 사용자
-        canAccessDashboard: isGitHub || isPinAuth, // GitHub 사용자 또는 PIN 인증
-        canAccessAdminPage: isPinAuth, // PIN 인증한 사용자만
+          // 페이지 접근 권한 (새로운 3단계 시스템)
+          canAccessMainPage: true, // 모든 사용자
+          canAccessDashboard: isGitHub || isPinAuth, // GitHub 사용자 또는 PIN 인증
+          canAccessAdminPage: isPinAuth, // PIN 인증한 사용자만
 
-        isGeneralUser: isGitHub || (isGuest && !isPinAuth),
-        isAdmin: isPinAuth, // PIN 인증한 사용자가 진짜 관리자
-        isGitHubAuthenticated: isGitHub,
-        isPinAuthenticated: isPinAuth,
-        canToggleAI: true,
-        userType,
-        userName,
-        userAvatar,
-      };
+          isGeneralUser: isGitHub || (isGuest && !isPinAuth),
+          isAdmin: isPinAuth, // PIN 인증한 사용자가 진짜 관리자
+          isGitHubAuthenticated: isGitHub,
+          isPinAuthenticated: isPinAuth,
+          canToggleAI: true,
+          userType,
+          userName,
+          userAvatar,
+        };
+      }
+
+      // AuthStateManager 실패 시 레거시 fallback (session, guestUser 사용)
+      const legacyGuestAuth = guestUser && isGuestAuth;
+      const legacySessionAuth = session?.user;
+      
+      if (legacySessionAuth) {
+        // GitHub 사용자 (레거시 session 기반)
+        const adminStoreAuth = adminStore?.adminMode?.isAuthenticated || false;
+        const localStorageAuth = typeof window !== 'undefined' ? localStorage.getItem('admin_mode') === 'true' : false;
+        const isPinAuth = adminStoreAuth || localStorageAuth;
+        
+        return {
+          canControlSystem: isPinAuth,
+          canAccessSettings: isPinAuth,
+          canToggleAdminMode: true,
+          canLogout: true,
+          canAccessMainPage: true,
+          canAccessDashboard: true, // GitHub 사용자는 대시보드 접근 가능
+          canAccessAdminPage: isPinAuth,
+          isGeneralUser: !isPinAuth,
+          isAdmin: isPinAuth,
+          isGitHubAuthenticated: true,
+          isPinAuthenticated: isPinAuth,
+          canToggleAI: true,
+          userType: 'github' as UserType,
+          userName: session.user.name || 'GitHub 사용자',
+          userAvatar: session.user.image,
+        };
+      }
+      
+      if (legacyGuestAuth) {
+        // 게스트 사용자 (레거시 guestUser 기반)  
+        const adminStoreAuth = adminStore?.adminMode?.isAuthenticated || false;
+        const localStorageAuth = typeof window !== 'undefined' ? localStorage.getItem('admin_mode') === 'true' : false;
+        const isPinAuth = adminStoreAuth || localStorageAuth;
+        
+        return {
+          canControlSystem: isPinAuth,
+          canAccessSettings: isPinAuth,
+          canToggleAdminMode: true,
+          canLogout: true,
+          canAccessMainPage: true,
+          canAccessDashboard: isPinAuth, // 게스트는 PIN 인증해야 대시보드 접근
+          canAccessAdminPage: isPinAuth,
+          isGeneralUser: !isPinAuth,
+          isAdmin: isPinAuth,
+          isGitHubAuthenticated: false,
+          isPinAuthenticated: isPinAuth,
+          canToggleAI: true,
+          userType: 'guest' as UserType,
+          userName: guestUser.name || '일반사용자',
+          userAvatar: guestUser.avatar,
+        };
+      }
+
+      // 모든 인증 실패 시 안전한 기본값
+      return createSafeDefaultPermissions('guest', '일반사용자');
     } catch (error) {
       console.error('🔐 [Permissions] 권한 계산 중 오류 발생:', error);
       return createSafeDefaultPermissions('guest', '일반사용자');
