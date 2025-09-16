@@ -96,15 +96,15 @@ gemini /memory list > project_memory.txt
 
 ## 👨‍💻 Senior Code Architect 역할 (2025-09-16 업데이트)
 
-### 🔄 **혼합 사용 전략** - 17개 서브에이전트 체계
+### 🔄 **공식 서브에이전트 호출 방식** - 17개 서브에이전트 체계
 
 **Gemini는 두 가지 방식으로 활용 가능합니다:**
 
-#### **1. Task 서브에이전트 방식** (복잡한 작업)
-```bash
+#### **1. 명시적 서브에이전트 호출** (복잡한 작업)
+```
 # 프로젝트 컨텍스트가 필요한 전문적 분석
-Task gemini-specialist "시스템 아키텍처 전체 검토"
-Task gemini-specialist "17개 서브에이전트 구조 분석"
+"gemini-specialist 서브에이전트를 사용하여 시스템 아키텍처를 전체 검토해주세요"
+"gemini-specialist 서브에이전트를 사용하여 17개 서브에이전트 구조를 분석해주세요"
 ```
 
 #### **2. 직접 CLI 방식** (간단한 작업)

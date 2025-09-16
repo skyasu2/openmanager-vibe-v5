@@ -79,7 +79,7 @@ claude --version     # 버전 확인 (v1.0.112)
 | **Qwen Code**         | v0.0.11  | 무료 (60 RPM/2K RPD)   | 🔷 **5분 타임아웃 사용** ✅ | `timeout 300 qwen -p`   | ✅ **알고리즘 최적화 전문**    | 2025-09-16 성능 확인 |
 | **ccusage**           | **v16.2.4** 🆕 | 무료                | 📊 **Claude 사용량 모니터링** | ccusage daily              | ✅ 완벽 지원                | **2025-09-12 업그레이드** |
 
-> ✅ **2025-09-16 업데이트**: **직접 CLI 실행 방식 채택**. Task 서브에이전트는 작동하지 않으므로 모든 AI 도구를 직접 CLI 명령어로 실행. Claude Code가 필요 시 자율적으로 다른 AI 활용.
+> ✅ **2025-09-16 업데이트**: **공식 서브에이전트 호출 방식 적용**. 명시적 호출(`"서브에이전트명 서브에이전트를 사용하여"`) 및 자동 위임 방식 지원. 외부 AI 도구는 직접 CLI 명령어로 실행.
 
 ### WSL 통합 실행
 
@@ -161,25 +161,25 @@ claude mcp add --transport http vercel https://mcp.vercel.com
 
 **central-supervisor**: 복잡한 작업 오케스트레이션 전문가
 - **역할**: 500줄+ 코드, 다중 파일 작업 자동 분해 및 전문 에이전트 분배
-- **Task 예시**: `Task central-supervisor "전체 인증 시스템 리팩토링"`
+- **호출 예시**: `"central-supervisor 서브에이전트를 사용하여 전체 인증 시스템을 리팩토링해주세요"`
 
 #### 2. AI 교차 검증 시스템 (4개)
 
 **verification-specialist**: AI 교차검증 메인 진입점 ⭐ **강화됨**
 - **역할**: Level 1-3 복잡도 기반 자동 검증 시스템 + ai-verification-coordinator 기능 통합
-- **Task 예시**: `Task verification-specialist "src/components/Button.tsx 자동 검증"`
+- **호출 예시**: `"verification-specialist 서브에이전트를 사용하여 src/components/Button.tsx를 자동 검증해주세요"`
 
 **codex-specialist**: ChatGPT Codex CLI 전용 외부 AI 연동
 - **특화**: 실무 중심 코드 리뷰, 버그 발견, GPT-5 기반 분석
-- **Task 예시**: `Task codex-specialist "복잡한 알고리즘 최적화 분석"`
+- **호출 예시**: `"codex-specialist 서브에이전트를 사용하여 복잡한 알고리즘을 최적화 분석해주세요"`
 
 **gemini-specialist**: Google Gemini CLI 전용 외부 AI 연동  
 - **특화**: 시스템 아키텍처 분석, 구조적 개선사항 제안
-- **Task 예시**: `Task gemini-specialist "시스템 아키텍처 설계 검토"`
+- **호출 예시**: `"gemini-specialist 서브에이전트를 사용하여 시스템 아키텍처 설계를 검토해주세요"`
 
 **qwen-specialist**: Qwen CLI 전용 외부 AI 연동
 - **특화**: 알고리즘 최적화, 성능 분석, 수학적 복잡도 개선
-- **Task 예시**: `Task qwen-specialist "알고리즘 성능 최적화 분석"`
+- **호출 예시**: `"qwen-specialist 서브에이전트를 사용하여 알고리즘 성능을 최적화 분석해주세요"`
 
 #### 3. 전문 도구 (12개)
 
@@ -217,26 +217,26 @@ claude mcp add --transport http vercel https://mcp.vercel.com
 
 **단계적 제거 예정**:
 - ⚠️ **ai-verification-coordinator**: verification-specialist 기능 강화 후 제거
-- ⚠️ **debugger-specialist**: code-review-specialist 디버깅 기능 통합 후 제거
+- ✅ **debugger-specialist**: 공식 표준에 포함되므로 유지 결정
 
 ### 🎯 AI 활용 방법 - 혼합 전략 (2025-09-16 확정)
 
-**✅ 중요 발견**: Task 서브에이전트와 직접 CLI 모두 완전 정상 작동!
+**✅ 공식 문서 확인**: 서브에이전트는 명시적 호출 방식과 자동 위임 방식을 지원합니다!
 
-#### **🔄 시나리오별 최적 사용법**
+#### **🔄 공식 서브에이전트 호출 방법**
 
-**복잡한 작업 → Task 서브에이전트**
-```bash
+**복잡한 작업 → 명시적 서브에이전트 호출**
+```
 # 프로젝트 컨텍스트가 필요한 전문적 분석
-Task codex-specialist "타입스크립트 안전성 전체 분석"
-Task gemini-specialist "시스템 아키텍처 설계 검토"
-Task qwen-specialist "알고리즘 성능 최적화 분석"
+"codex-specialist 서브에이전트를 사용하여 타입스크립트 안전성을 전체 분석해주세요"
+"gemini-specialist 서브에이전트를 사용하여 시스템 아키텍처 설계를 검토해주세요"  
+"qwen-specialist 서브에이전트를 사용하여 알고리즘 성능을 최적화 분석해주세요"
 
 # SDD 워크플로우 - 명세 기반 체계적 개발
-Task requirements-analyst "사용자 요구사항을 명확한 Requirements 문서로 작성"
-Task design-architect "Requirements를 기술 설계로 변환"
-Task task-coordinator "Design을 구현 가능한 작업으로 분해"
-Task spec-driven-specialist "SDD 전체 워크플로우 조정 및 품질 검증"
+"requirements-analyst 서브에이전트를 사용하여 사용자 요구사항을 명확한 Requirements 문서로 작성해주세요"
+"design-architect 서브에이전트를 사용하여 Requirements를 기술 설계로 변환해주세요"
+"task-coordinator 서브에이전트를 사용하여 Design을 구현 가능한 작업으로 분해해주세요"
+"spec-driven-specialist 서브에이전트를 사용하여 SDD 전체 워크플로우를 조정하고 품질 검증해주세요"
 ```
 
 **간단한 작업 → 직접 CLI**
@@ -489,12 +489,12 @@ claude "tasks/feature-x-tasks.md의 3번 작업 구현해줘"
 #### 서브에이전트 연계
 ```bash
 # 설계 검토
-Task verification-specialist "design/feature-x-design.md 기준으로 검증"
-Task structure-refactor-specialist "요구사항에 맞는 아키텍처 개선"
+"verification-specialist 서브에이전트를 사용하여 design/feature-x-design.md 기준으로 검증해주세요"
+"structure-refactor-specialist 서브에이전트를 사용하여 요구사항에 맞는 아키텍처를 개선해주세요"
 
 # 품질 보증
-Task code-review-specialist "tasks/feature-x-tasks.md 완료 기준 확인"
-Task test-automation-specialist "requirements.md 기반 테스트 케이스 생성"
+"code-review-specialist 서브에이전트를 사용하여 tasks/feature-x-tasks.md 완료 기준을 확인해주세요"
+"test-automation-specialist 서브에이전트를 사용하여 requirements.md 기반 테스트 케이스를 생성해주세요"
 ```
 
 ### 📁 SDD 파일 구조

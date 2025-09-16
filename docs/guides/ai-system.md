@@ -15,22 +15,22 @@ ai_optimized: true
 claude --version  # v1.0.108 ($200/month)
 
 # Sub Agents: 3-AI Collaboration  
-Task codex-specialist "code review"    # GPT-5 ($20/month)
-Task gemini-specialist "analyze"       # Free 1K/day
-Task qwen-specialist "optimize"        # OAuth 2K/day
+"codex-specialist 서브에이전트를 사용하여 코드를 리뷰해주세요"    # GPT-5 ($20/month)
+"gemini-specialist 서브에이전트를 사용하여 분석해주세요"       # Free 1K/day
+"qwen-specialist 서브에이전트를 사용하여 최적화해주세요"        # OAuth 2K/day
 ```
 
 ## 🎯 3-Level Verification
 
 ```typescript
 // Level 1: Claude Only (<50 lines)
-Task verification-specialist "quick review"
+"verification-specialist 서브에이전트를 사용하여 빠른 리뷰를 해주세요"
 
 // Level 2: Claude + AI 1개 (50-200 lines)
-Task ai-verification-coordinator "standard review"
+"ai-verification-coordinator 서브에이전트를 사용하여 표준 리뷰를 해주세요"
 
 // Level 3: Claude + AI 3개 (200+ lines)
-Task external-ai-orchestrator "full verification"
+자동 위임 방식으로 전체 검증 실행
 ```
 
 ## 🏆 Quality Scoring System
