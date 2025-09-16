@@ -397,14 +397,14 @@ function DashboardPageContent() {
     : '00:00';
 
   const toggleAgent = useCallback(() => {
-    // 🔒 게스트 사용자는 AI 기능 사용 불가
-    if (permissions.userType !== 'github') {
-      console.log('🚫 게스트 사용자 AI 사이드바 접근 차단');
+    // 🔒 AI 기능은 PIN 인증된 사용자만 사용 가능
+    if (!permissions.canToggleAI || !permissions.isPinAuthenticated) {
+      console.log('🚫 AI 사이드바 접근 차단 - PIN 인증 필요');
       // 토스트 메시지로 안내 (선택사항)
       return;
     }
     setIsAgentOpen((prev) => !prev);
-  }, [permissions.userType]);
+  }, [permissions.canToggleAI, permissions.isPinAuthenticated]);
 
   const closeAgent = useCallback(() => {
     setIsAgentOpen(false);
@@ -473,8 +473,27 @@ function DashboardPageContent() {
     onResumeSystem: () => Promise.resolve(),
   };
 
-  // 🔒 게스트 사용자 접근 차단 - 로딩 중이거나 인증되지 않은 경우
-  if (!isMounted || authLoading || permissions.userType === 'guest' || permissions.userType === 'unknown' || permissions.userType === 'loading') {
+  // 🔒 대시보드 접근 권한 확인 - PIN 인증한 게스트도 접근 가능
+  if (!isMounted || authLoading || permissions.userType === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="mb-6">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+              <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">로딩 중...</h2>
+            <p className="text-gray-300 mb-6">
+              권한을 확인하고 있습니다.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 🔒 대시보드 접근 권한이 없는 경우 (GitHub 로그인 또는 PIN 인증 필요)
+  if (!permissions.canAccessDashboard) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
@@ -484,7 +503,7 @@ function DashboardPageContent() {
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">접근 권한 필요</h2>
             <p className="text-gray-300 mb-6">
-              대시보드는 GitHub 인증된 사용자만 접근할 수 있습니다.
+              대시보드 접근을 위해 GitHub 로그인 또는 관리자 PIN 인증이 필요합니다.
             </p>
           </div>
           
@@ -505,7 +524,7 @@ function DashboardPageContent() {
           </div>
           
           <p className="text-xs text-gray-500 mt-4">
-            게스트 모드에서는 읽기 전용 기능만 이용 가능합니다
+            게스트 모드에서는 관리자 PIN 인증으로 대시보드 접근이 가능합니다
           </p>
         </div>
       </div>
@@ -547,8 +566,8 @@ function DashboardPageContent() {
           </Suspense>
         </div>
 
-        {/* 🎯 AI 에이전트 - 동적 로딩으로 최적화 (Hydration 안전성) - GitHub 사용자만 접근 가능 */}
-        {isMounted && permissions.userType === 'github' && (
+        {/* 🎯 AI 에이전트 - 동적 로딩으로 최적화 (Hydration 안전성) - PIN 인증된 사용자 접근 가능 */}
+        {isMounted && permissions.isPinAuthenticated && (
           <AnimatedAISidebar 
             isOpen={isAgentOpen} 
             onClose={closeAgent}
