@@ -1,12 +1,15 @@
-# AI 시스템 설계
-
-```yaml
+---
+id: ai-system-architecture
 title: "4-AI Cross Verification System"
+keywords: ["ai", "cross-verification", "claude", "gemini", "codex", "qwen"]
+priority: critical
+ai_optimized: true
+related_docs: ["sub-agents.md", "mcp.md", "../../ai/workflow.md", "../../ai/verification.md"]
+updated: "2025-09-16"
 version: "v5.77"
-updated: "2025-09-09"
-type: "ai-architecture"
-ai_priority: "critical"
-```
+---
+
+# AI 시스템 설계
 
 ## 🤖 4-AI 교차검증 시스템
 

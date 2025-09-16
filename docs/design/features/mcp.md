@@ -1,12 +1,15 @@
-# MCP 서버 설계
-
-```yaml
+---
+id: mcp-architecture
 title: "Model Context Protocol Integration"
+keywords: ["mcp", "protocol", "servers", "integration", "ai"]
+priority: high
+ai_optimized: true
+related_docs: ["ai-system.md", "sub-agents.md", "../../mcp/advanced.md"]
+updated: "2025-09-16"
 version: "v5.78"
-updated: "2025-09-15"
-type: "mcp-architecture"
-ai_priority: "high"
-```
+---
+
+# MCP 서버 설계
 
 ## 🔌 MCP 서버 통합 (9개)
 

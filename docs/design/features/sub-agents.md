@@ -1,12 +1,15 @@
-# 서브에이전트 설계
-
-```yaml
+---
+id: sub-agents-architecture
 title: "Sub-Agents Architecture"
+keywords: ["sub-agents", "ai", "agents", "orchestration", "verification"]
+priority: high
+ai_optimized: true
+related_docs: ["ai-system.md", "mcp.md", "../../ai/workflow.md"]
+updated: "2025-09-16"
 version: "v5.77"
-updated: "2025-09-09"
-type: "sub-agents-design"
-ai_priority: "high"
-```
+---
+
+# 서브에이전트 설계
 
 ## 🤖 17개 서브에이전트 체계
 

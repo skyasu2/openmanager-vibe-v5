@@ -1,7 +1,12 @@
 ---
-title: Claude Code 400 invalid_request_error (JSON) 해결
-description: WSL에서 Claude Code 사용 시 "no low surrogate in string" 오류 원인과 해결
-updated: 2025-09-13
+id: claude-400-json-error
+title: "Claude Code 400 invalid_request_error (JSON) 해결"
+description: "WSL에서 Claude Code 사용 시 'no low surrogate in string' 오류 원인과 해결"
+keywords: ["claude", "error", "json", "wsl", "unicode", "troubleshoot"]
+priority: medium
+ai_optimized: true
+related_docs: ["../guides/wsl.md", "common.md"]
+updated: "2025-09-16"
 ---
 
 증상

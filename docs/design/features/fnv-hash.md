@@ -1,10 +1,11 @@
 ---
 id: design-fnv-hash
 title: "FNV-1a Hash Algorithm"
-keywords: ["fnv1a", "hash", "simulation", "performance"]
+keywords: ["fnv1a", "hash", "simulation", "performance", "adr"]
 priority: medium
 ai_optimized: true
-updated: "2025-09-09"
+related_docs: ["monitoring.md", "../core/data-flow.md", "../../simulation/setup.md"]
+updated: "2025-09-16"
 ---
 
 # FNV-1a Hash Algorithm

@@ -1,3 +1,14 @@
+---
+id: realtime-monitoring-v5-71-0
+title: "StaticDataLoader 실시간 모니터링 아키텍처 v5.71.0"
+keywords: ["static-data-loader", "monitoring", "real-time", "architecture", "v5.71.0"]
+priority: medium
+ai_optimized: true
+related_docs: ["../features/monitoring.md", "../core/data-flow.md"]
+updated: "2025-09-16"
+version: "v5.71.0"
+---
+
 # StaticDataLoader 실시간 모니터링 아키텍처 v5.71.0
 
 ## 🎯 24시간 고정 데이터 + 실시간 시뮬레이션 시스템

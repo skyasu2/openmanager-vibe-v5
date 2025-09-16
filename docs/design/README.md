@@ -11,32 +11,32 @@ version: "v5.77"
 
 # 🏗️ AI 친화적 설계도 센터
 
-## 🎯 설계도 구조 (13개 핵심 문서)
+## 🎯 3-카테고리 구조 설계도 (13개 핵심 문서)
 
-### 시스템 설계 (8개)
+### 📦 core/ - 핵심 시스템 설계 (4개)
 | 설계도 | 설명 | AI 활용도 | 토큰 효율성 |
 |--------|------|-----------|------------|
-| **[system.md](system.md)** | 현재 운영 시스템 아키텍처 | ⭐⭐⭐ | 높음 |
-| **[architecture.md](architecture.md)** | 상세 시스템 아키텍처 v5.77 | ⭐⭐⭐ | 최고 |
-| **[api.md](api.md)** | 76개 API 엔드포인트 설계 | ⭐⭐⭐ | 높음 |
-| **[database.md](database.md)** | Supabase PostgreSQL 스키마 | ⭐⭐⭐ | 높음 |
-| **[security.md](security.md)** | Zero Trust 보안 아키텍처 | ⭐⭐⭐ | 높음 |
-| **[data-flow.md](data-flow.md)** | 실시간 데이터 파이프라인 | ⭐⭐⭐ | 최고 |
-| **[consistency.md](consistency.md)** | 데이터 일관성 전략 | ⭐⭐ | 높음 |
-| **[fnv-hash.md](fnv-hash.md)** | FNV-1a 해시 알고리즘 ADR | ⭐⭐ | 중간 |
+| **[core/system.md](core/system.md)** | 현재 운영 시스템 아키텍처 | ⭐⭐⭐ | 높음 |
+| **[core/architecture.md](core/architecture.md)** | 상세 시스템 아키텍처 v5.77 | ⭐⭐⭐ | 최고 |
+| **[core/data-flow.md](core/data-flow.md)** | 실시간 데이터 파이프라인 | ⭐⭐⭐ | 최고 |
+| **[core/consistency.md](core/consistency.md)** | 데이터 일관성 전략 | ⭐⭐ | 높음 |
 
-### AI 시스템 설계 (3개)
+### 🚀 features/ - 기능별 설계 (5개)
 | 설계도 | 설명 | AI 활용도 | 토큰 효율성 |
 |--------|------|-----------|------------|
-| **[ai-system.md](ai-system.md)** | 4-AI 교차검증 시스템 | ⭐⭐⭐ | 최고 |
-| **[mcp.md](mcp.md)** | 8개 MCP 서버 통합 구조 | ⭐⭐⭐ | 최고 |
-| **[sub-agents.md](sub-agents.md)** | 17개 서브에이전트 체계 | ⭐⭐⭐ | 최고 |
+| **[features/ai-system.md](features/ai-system.md)** | 4-AI 교차검증 시스템 | ⭐⭐⭐ | 최고 |
+| **[features/sub-agents.md](features/sub-agents.md)** | 17개 서브에이전트 체계 | ⭐⭐⭐ | 최고 |
+| **[features/mcp.md](features/mcp.md)** | 8개 MCP 서버 통합 구조 | ⭐⭐⭐ | 최고 |
+| **[features/monitoring.md](features/monitoring.md)** | FNV-1a 해시 모니터링 | ⭐⭐⭐ | 높음 |
+| **[features/fnv-hash.md](features/fnv-hash.md)** | FNV-1a 해시 알고리즘 ADR | ⭐⭐ | 중간 |
 
-### 배포 & 운영 (2개)
+### 🏗️ infrastructure/ - 인프라 설계 (4개)
 | 설계도 | 설명 | AI 활용도 | 토큰 효율성 |
 |--------|------|-----------|------------|
-| **[deployment.md](deployment.md)** | Vercel 배포 아키텍처 | ⭐⭐ | 중간 |
-| **[monitoring.md](monitoring.md)** | FNV-1a 해시 모니터링 | ⭐⭐⭐ | 높음 |
+| **[infrastructure/api.md](infrastructure/api.md)** | 76개 API 엔드포인트 설계 | ⭐⭐⭐ | 높음 |
+| **[infrastructure/database.md](infrastructure/database.md)** | Supabase PostgreSQL 스키마 | ⭐⭐⭐ | 높음 |
+| **[infrastructure/security.md](infrastructure/security.md)** | Zero Trust 보안 아키텍처 | ⭐⭐⭐ | 높음 |
+| **[infrastructure/deployment.md](infrastructure/deployment.md)** | Vercel 배포 아키텍처 | ⭐⭐ | 중간 |
 
 ## 🤖 AI 친화적 설계 원칙
 
@@ -81,9 +81,9 @@ interface DesignDoc {
 - **다이어그램 중심**: mermaid 차트 과다
 - **이론적 접근**: 실제 구현과 괴리
 
-### AI 친화적 개선 (단순함)
+### AI 친화적 개선 (체계적 구조)
 - **13개 핵심 문서**: 중복 제거, 핵심만
-- **Flat 구조**: docs/design/ 직접 접근
+- **3-카테고리 구조**: core/features/infrastructure 명확 분리
 - **코드 중심**: 구현 가능한 TypeScript 예시
 - **실무 중심**: 현재 운영 상태 반영
 
@@ -121,27 +121,36 @@ interface DesignDoc {
 
 ### Claude Code (메인)
 ```bash
-# 기존 설계도 기반 개발
-claude "system.md 참조하여 새 API 엔드포인트 구현"
-claude "security.md 기준으로 인증 미들웨어 강화"
+# 핵심 시스템 설계도 기반 개발
+claude "core/system.md 참조하여 새 API 엔드포인트 구현"
+claude "core/architecture.md 기준으로 레이어드 구조 리팩토링"
+claude "core/data-flow.md 참조하여 실시간 파이프라인 최적화"
+claude "core/consistency.md 기반 통합 API 엔드포인트 구현"
 
-# 새로 추가된 설계도 활용
-claude "architecture.md 기준으로 레이어드 구조 리팩토링"
-claude "data-flow.md 참조하여 실시간 파이프라인 최적화"
-claude "consistency.md 기반 통합 API 엔드포인트 구현"
-claude "fnv-hash.md ADR 근거로 해시 알고리즘 개선"
+# 인프라 설계도 기반 개발
+claude "infrastructure/security.md 기준으로 인증 미들웨어 강화"
+claude "infrastructure/database.md 스키마 최적화"
+claude "infrastructure/api.md 기반 RESTful API 구현"
+
+# 기능 설계도 기반 개발
+claude "features/fnv-hash.md ADR 근거로 해시 알고리즘 개선"
+claude "features/monitoring.md 기반 실시간 모니터링 구현"
 ```
 
 ### 서브에이전트 활용
 ```bash
-# 기존 서브에이전트 설계도 참조
-Task verification-specialist "ai-system.md 기준으로 검증"
-Task database-administrator "database.md 스키마 최적화"
+# 핵심 시스템 설계도와 서브에이전트 연계
+Task verification-specialist "features/ai-system.md 기준으로 검증"
+Task structure-refactor-specialist "core/architecture.md 기반 구조 개선"
+Task debugger-specialist "core/consistency.md 일관성 문제 해결"
 
-# 새로운 설계도와 서브에이전트 연계
-Task structure-refactor-specialist "architecture.md 기반 구조 개선"
-Task debugger-specialist "consistency.md 일관성 문제 해결"
-Task code-review-specialist "fnv-hash.md ADR 준수 확인"
+# 인프라 설계도와 서브에이전트 연계
+Task database-administrator "infrastructure/database.md 스키마 최적화"
+Task security-auditor "infrastructure/security.md 보안 감사"
+Task vercel-platform-specialist "infrastructure/deployment.md 배포 최적화"
+
+# 기능 설계도와 서브에이전트 연계
+Task code-review-specialist "features/fnv-hash.md ADR 준수 확인"
 ```
 
 ### MCP 도구 연동

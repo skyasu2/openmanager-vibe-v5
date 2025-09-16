@@ -1,20 +1,17 @@
-# 시스템 아키텍처
-
-```yaml
+---
+id: system-architecture
 title: "OpenManager VIBE System Architecture"
+keywords: ["system", "architecture", "design", "overview", "structure"]
+priority: critical
+ai_optimized: true
+related_docs: ["api.md", "database.md", "security.md", "current/system-architecture-overview.md"]
+updated: "2025-09-16"
 version: "v5.77"
-updated: "2025-09-09"
-type: "core-system"
-ai_priority: "critical"
 cache_hint: "frequently_accessed"
-load_priority: "critical"
 token_estimate: 850
-read_time: "4분"
-related_weight: 1.0
-dependencies: ["architecture.md", "api.md"]
-cache_ttl: 300
-preload: true
-```
+---
+
+# 🏗️ 시스템 아키텍처
 
 ## 🏗️ 현재 운영 아키텍처
 

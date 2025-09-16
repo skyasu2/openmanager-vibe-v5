@@ -1,12 +1,15 @@
-# 모니터링 아키텍처
-
-```yaml
+---
+id: monitoring-architecture
 title: "Real-time Monitoring Architecture"
+keywords: ["monitoring", "fnv1a", "real-time", "hash", "simulation"]
+priority: high
+ai_optimized: true
+related_docs: ["fnv-hash.md", "../core/data-flow.md", "../infrastructure/api.md"]
+updated: "2025-09-16"
 version: "v5.77"
-updated: "2025-09-09"
-type: "monitoring-design"
-ai_priority: "high"
-```
+---
+
+# 모니터링 아키텍처
 
 ## 📊 FNV-1a 해시 실시간 모니터링
 
