@@ -219,29 +219,35 @@ claude mcp add --transport http vercel https://mcp.vercel.com
 - ⚠️ **ai-verification-coordinator**: verification-specialist 기능 강화 후 제거
 - ⚠️ **debugger-specialist**: code-review-specialist 디버깅 기능 통합 후 제거
 
-### 🎯 AI 서브에이전트 직접 지정 사용법
+### 🎯 AI 활용 방법 - 혼합 전략 (2025-09-16 확정)
 
-**✅ 새로운 방식 (2025-09-16)**: Claude Code가 필요 시 자율적으로 다른 AI 활용 또는 사용자 직접 요청
+**✅ 중요 발견**: Task 서브에이전트와 직접 CLI 모두 완전 정상 작동!
 
+#### **🔄 시나리오별 최적 사용법**
+
+**복잡한 작업 → Task 서브에이전트**
 ```bash
-# 사용자 직접 요청 시
-"Codex로 이 함수 메모리 누수 분석해줘"
-"Gemini로 서버 아키텍처 설계 검토해줘"
-"Qwen으로 React 최적화 분석해줘 (단순 요청만)"
+# 프로젝트 컨텍스트가 필요한 전문적 분석
+Task codex-specialist "타입스크립트 안전성 전체 분석"
+Task gemini-specialist "시스템 아키텍처 설계 검토"
+Task qwen-specialist "알고리즘 성능 최적화 분석"
 
-# Claude가 실제 실행
-codex exec "메모리 누수 분석"
-gemini "아키텍처 설계 검토"
-qwen -p "React 최적화 방법"
-
-# SDD 워크플로우 - 명세 기반 체계적 개발 🆕
+# SDD 워크플로우 - 명세 기반 체계적 개발
 Task requirements-analyst "사용자 요구사항을 명확한 Requirements 문서로 작성"
 Task design-architect "Requirements를 기술 설계로 변환"
 Task task-coordinator "Design을 구현 가능한 작업으로 분해"
 Task spec-driven-specialist "SDD 전체 워크플로우 조정 및 품질 검증"
+```
 
-# AI 교차검증 (사용자 요청 시 Claude가 직접 실행)
-"이 코드를 3개 AI로 교차검증해줘" # Claude가 codex, gemini, qwen 순차 실행
+**간단한 작업 → 직접 CLI**
+```bash
+# 빠른 확인이나 간단한 질문
+codex exec "이 함수에 버그 있나요?"
+gemini "이 구조가 SOLID 원칙에 맞나요?"
+qwen -p "시간복잡도는?"
+
+# AI 교차검증 (사용자 요청 시)
+"이 코드를 3개 AI로 교차검증해줘" # Claude가 적절한 방식 선택하여 실행
 ```
 
 ## 🎯 멀티 AI 전략적 활용 방안

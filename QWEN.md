@@ -1,10 +1,10 @@
 # QWEN.md
 
-**Qwen Code CLI 병렬 개발 가이드** | Alibaba Cloud Agentic 코딩 도구
+**Qwen Code CLI 사용 가이드** | 17개 서브에이전트 체계 통합 (2025-09-16 업데이트)
 
 ## 🔷 개요
 
-**Qwen Code CLI**는 Alibaba의 **Qwen3-Coder 모델**에 최적화된 오픈소스 CLI로, **병렬 개발과 제3의 시선**을 제공하는 agentic 코딩 도구입니다.
+**Qwen Code CLI**는 **qwen-specialist** 서브에이전트와 직접 CLI 호출 두 방식으로 활용 가능한 성능 최적화 전문 AI 도구입니다.
 
 ### 핵심 특징
 
@@ -15,21 +15,30 @@
 - **Gemini CLI 포크/개조** - Qwen-Coder 특화 파서/툴 지원
 - **멀티 API 백엔드** - 다양한 API 엔드포인트 선택 가능
 
-## 🚀 사용 시점
+## 🚀 사용 방식 (혼합 전략)
 
-### 언제 사용하나요?
+### 🔄 **두 가지 활용 방법**
 
+#### **1. Task 서브에이전트 방식** (복잡한 분석)
 ```bash
-# 사용자가 명시적으로 요청할 때만
-"Qwen으로" 또는 "use Qwen" 명령 시
+# 알고리즘 최적화나 성능 분석이 필요한 경우
+Task qwen-specialist "시스템 성능 최적화 전체 분석"
+Task qwen-specialist "알고리즘 복잡도 개선 방안"
+```
+
+#### **2. 직접 CLI 방식** (간단한 질문)
+```bash
+# 빠른 확인이나 단순 계산
+qwen -p "이 함수의 시간복잡도는?"
+timeout 60 qwen -p "메모리 사용량 최적화 방법"
 ```
 
 ### 주요 활용 시나리오
 
-1. **병렬 모듈 개발** - Claude가 메인 작업 중 독립 모듈 개발
-2. **제3의 시선** - 대안적 접근법과 검증
-3. **민감한 코드** - 로컬 실행으로 프라이버시 보장
-4. **비용 효율성** - 무료 오픈소스로 API 비용 절감
+1. **성능 최적화** - 알고리즘 효율성 분석 및 개선
+2. **수학적 복잡도** - BigO 분석 및 최적화 제안
+3. **메모리 관리** - 메모리 누수 및 사용량 최적화
+4. **AI 교차검증** - 3-AI 병렬 검증에서 성능 관점 제시
 
 ## 📊 무료 티어 제한
 
@@ -121,24 +130,31 @@ qwen-code refactor --analyze "./src" --suggest-patterns
 }
 ```
 
-## ⚠️ 중국어 차단 정책
+## ⚠️ 중국어 및 한자 사용 금지 정책 (Zero Tolerance)
 
 ### 프로젝트 규칙 (엄격 적용)
 
 ```javascript
-// 모든 Qwen 출력 자동 검사
-const CHINESE_REGEX = /[\u4e00-\u9fff\u3400-\u4dbf]/g;
+// 모든 Qwen 출력 자동 검사 (중국어 및 한자 포함 여부)
+const CHINESE_HANJA_REGEX = /[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\u31f0-\u31ff\u3200-\u32ff]/g;
 
 function validateQwenOutput(output) {
-  if (CHINESE_REGEX.test(output)) {
-    throw new Error("Chinese characters detected! Converting to English/Korean...");
+  if (CHINESE_HANJA_REGEX.test(output)) {
+    throw new Error("Chinese characters or Hanja detected! Converting to English/Korean...");
   }
   return output;
 }
 
 // package.json 스크립트
-"check:chinese": "node scripts/check-chinese-characters.js"
+"check:chinese-hanja": "node scripts/check-chinese-hanja-characters.js"
 ```
+
+### 🇰🇷 한국어 우선 원칙
+
+1. **모든 출력은 한국어 또는 영어로만 작성**
+2. **중국어, 한자, 일본어 등 다른 언어 사용 절대 금지**
+3. **기술 용어는 영어 사용 허용** (예: API, UI, CLI 등)
+4. **한국어가 기본 언어이며, 필요한 경우에만 영어 사용**
 
 ## 🔧 고급 기능
 
@@ -242,18 +258,26 @@ const roi = {
 };
 ```
 
-## 🤖 AI 교차검증 v4.0 통합
+## 🤖 AI 교차검증 v4.1 통합 (2025-09-16 업데이트)
 
-### 🎯 Claude 주도 검증 시스템
+### 🎯 17개 서브에이전트 체계에서 Qwen 역할
 
-**역할**: Claude A안에 대한 Qwen 관점 개선점 제시자
+**역할**: 성능 최적화 및 알고리즘 분석 전문가 (AI 교차검증 9.17/10 승인)
 
+#### **서브에이전트 방식**
 ```bash
-# Claude가 A안 제시 → Qwen이 독립적 개선점 분석
-Task qwen-wrapper "Claude의 A안을 검증하고 개선점을 제시해주세요: [A안 코드]"
+# 복잡한 성능 분석 (프로젝트 컨텍스트 포함)
+Task qwen-specialist "알고리즘 성능 최적화 분석"
 
-# 3-AI 병렬 교차검증에서 Qwen의 전문성 발휘
-Task external-ai-orchestrator "알고리즘 효율성 검증 (Qwen 전문 영역)"
+# AI 교차검증에서 성능 관점 제시
+Task qwen-specialist "Claude A안의 성능 및 효율성 검증"
+```
+
+#### **직접 CLI 방식**
+```bash
+# 간단한 성능 질문
+qwen -p "이 알고리즘 시간복잡도는?"
+timeout 120 qwen -p "메모리 최적화 방법"
 ```
 
 ### 📊 Qwen 교차검증 특징

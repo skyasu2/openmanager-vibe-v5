@@ -94,19 +94,37 @@ gemini /export > gemini_session_$(date +%Y%m%d).txt
 gemini /memory list > project_memory.txt
 ```
 
-## 👨‍💻 Senior Code Architect Sub Agent 역할
+## 👨‍💻 Senior Code Architect 역할 (2025-09-16 업데이트)
+
+### 🔄 **혼합 사용 전략** - 17개 서브에이전트 체계
+
+**Gemini는 두 가지 방식으로 활용 가능합니다:**
+
+#### **1. Task 서브에이전트 방식** (복잡한 작업)
+```bash
+# 프로젝트 컨텍스트가 필요한 전문적 분석
+Task gemini-specialist "시스템 아키텍처 전체 검토"
+Task gemini-specialist "17개 서브에이전트 구조 분석"
+```
+
+#### **2. 직접 CLI 방식** (간단한 작업)
+```bash
+# 빠른 확인이나 간단한 질문
+gemini "이 함수 구조 괜찮나요?"
+gemini "SOLID 원칙 위반 여부 확인"
+```
 
 ### 현재 개발 환경
 
 - **OS**: WSL (Windows Subsystem for Linux)
 - **터미널**: WSL 터미널 (예: Ubuntu)
-- **참고**: 개발 환경이 Windows에서 다시 WSL (Windows Subsystem for Linux)로 전환되었습니다. 모든 명령어는 WSL 환경에 맞춰 실행해야 합니다.
+- **서브에이전트**: 17개 체계 (23개→17개 최적화 완료)
 
 ### Gemini 역할 및 책임
 
 - **메인 개발 도구**: Claude Code가 주도적으로 작업
-- **Gemini CLI 역할**: **Senior Code Architect** sub agent로 통합
-- **협업 방식**: 아키텍처 리뷰 및 코드 품질 검토 전담
+- **Gemini CLI 역할**: **gemini-specialist** 서브에이전트 + 직접 CLI
+- **협업 방식**: 시스템 아키텍처 분석 및 구조적 개선사항 제안 전담
 
 ### Senior Code Architect가 전문적으로 담당하는 업무
 
@@ -153,9 +171,10 @@ gemini /memory list > project_memory.txt
 - ✅ **CLI 도구** 안정성 개선 (ccusage v16.2.0 최신 버전)
 - ✅ **TDD 테스트 환경** 구축 (54/55 테스트 통과, 98.2% 커버리지)
 
-### AI 교차 검증 v4.0
+### AI 교차 검증 v4.1 (2025-09-16 업데이트)
 
-- ✅ **수동 모드 운영** - 사용자 요청 기반 3단계 레벨 AI 교차 검증
+- ✅ **17개 서브에이전트 최적화** - AI 교차검증 9.17/10 승인 완료
+- ✅ **혼합 사용 전략** - Task 서브에이전트 + 직접 CLI 모두 정상 작동
 - ✅ **Claude 주도 방식** - Claude A안 → 외부 AI 개선점 제시 → Claude 최종 판단
 - ✅ **3-AI 병렬 검증** - Gemini + Codex + Qwen 독립적 교차 검증
 - ✅ **교차 발견 시스템** - 각 AI가 놓친 문제를 다른 AI가 발견 (95%+ 문제 발견율)
