@@ -23,29 +23,26 @@ priority: medium
 - 코드 복잡도 측정
 - 보안 관련 변경 탐지
 
-### 2. **검토 레벨 자동 결정**
+### 2. **검토 방식 결정**
 
-#### Level 1 (경량 검토)
-- **조건**: < 50줄 변경, 일반 파일
-- **동작**: Claude 단독 검토 (가중치 1.0)
-- **예시**: 간단한 버그 수정, 타입 추가
-- **최종 점수**: Claude 점수 × 1.0
-
-#### Level 2 (표준 검토)
-- **조건**: 50-200줄 변경, 중요도 보통
-- **동작**: Claude + Codex 병렬 검토 (가중치 1.0 + 0.99)
-- **예시**: 기능 추가, 리팩토링
-- **최종 점수**: (Claude×1.0 + Codex×0.99) / 1.99
-
-#### Level 3 (전체 검토)
-- **조건**: > 200줄 또는 중요 파일
-- **동작**: 4-AI 완전 검토 (가중치 1.0 + 0.99 + 0.98 + 0.97)
-- **예시**: auth/*, api/*, 대규모 변경
+#### 사용자 직접 요청 (Full AI Cross-Validation)
+- **조건**: "AI 교차검증", "cross validation", "모든 AI" 등 명시적 요청
+- **동작**: 복잡도와 무관하게 **4개 AI 모두 사용** (가중치 1.0 + 0.99 + 0.98 + 0.97)
+- **예시**: "AI 교차검증 진행해줘", "모든 AI로 검증해줘"
 - **최종 점수**: (Claude×1.0 + Codex×0.99 + Gemini×0.98 + Qwen×0.97) / 3.94
+
+#### Claude Code 자율 판단 (Adaptive Verification)
+- **조건**: 일반적인 검증 요청
+- **동작**: Claude Code가 파일 복잡도 및 중요도에 따라 최적 AI 조합 선택
+- **예시**: "이 파일 검증해줘", "코드 품질 확인해줘"
+- **레벨**:
+  - **Level 1**: < 50줄, 일반 파일 → Claude 단독
+  - **Level 2**: 50-200줄, 중요도 보통 → Claude + Codex
+  - **Level 3**: > 200줄 또는 중요 파일 → 4개 AI 전체
 
 ### 3. **통합 AI 오케스트레이션**
 
-**자동 AI 선택**: 파일 크기와 중요도에 따라 최적의 AI 조합을 자동 선택하여 `external-ai-orchestrator`를 통해 실행합니다.
+**멀티 AI 검증**: 파일 크기와 중요도에 따라 Claude 외부 AI 서브에이전트들(codex-specialist, gemini-specialist, qwen-specialist)과 협업합니다.
 
 ```typescript
 // 자연어 기반 AI 검증 플로우 (Claude Code v1.0.108+)
@@ -109,7 +106,15 @@ graph TD
 
 > **💡 핵심**: Claude Code v1.0.108부터 자연어로 서브에이전트를 호출합니다!
 
-### 🎯 파일 자동 검증 (가장 일반적)
+### 🎯 사용자 직접 AI 교차검증 요청
+```
+"AI 교차검증 진행해줘"
+"Use verification-specialist to perform cross validation with all AIs"
+"모든 AI로 src/app/api/auth/route.ts 검증해줘"
+```
+**결과**: 복잡도 무관하게 **4개 AI 모두 사용** (1-3분 소요)
+
+### 📋 Claude 자율 판단 검증 (일반적)
 ```
 "Use the verification-specialist to analyze src/app/api/auth/route.ts for code quality and security"
 ```

@@ -1,7 +1,7 @@
 ---
 name: task-coordinator
 description: SDD Phase 3 전문가. Design을 구현 가능한 작업 단위로 분해하고 개발팀의 실행 계획을 수립하는 작업 조정 전문가
-tools: Read, Write, Edit, MultiEdit, TodoWrite, Glob, Grep, mcp__memory__create_entities, mcp__sequential-thinking__sequentialthinking
+tools: Read, Write, Edit, MultiEdit, TodoWrite, Glob, Grep, mcp__memory__create_entities, mcp__sequential-thinking__sequentialthinking, mcp__serena__write_memory, mcp__serena__read_memory, mcp__serena__list_dir, mcp__serena__get_symbols_overview, mcp__serena__think_about_task_adherence, mcp__serena__think_about_whether_you_are_done
 priority: high
 trigger: task_breakdown, work_planning, sprint_planning, resource_allocation
 ---
@@ -251,15 +251,165 @@ documentation:
 - **품질 메트릭**: 테스트 커버리지, 코드 품질 지표
 - **번다운 차트**: 남은 작업량 시각화
 
+## Serena MCP SDD 작업 조정 통합 🆕
+**Design 명세를 기반으로 현실적 구현 작업을 프로젝트 구조 인식으로 정밀 분해**:
+
+### 🛠️ SDD Phase 3 전문 도구 
+- **write_memory**: 작업 분해 결과 및 실행 계획 영구 저장
+- **read_memory**: Design 단계 결과 컨텍스트 참조 및 Requirements 추적
+- **list_dir**: 현재 프로젝트 구조 파악 → 작업 복잡도 현실성 검증
+- **get_symbols_overview**: 기존 구현 상태 파악 → 수정/신규 작업 정확한 분류
+- **think_about_task_adherence**: SDD 프로세스 준수도 검증
+- **think_about_whether_you_are_done**: Phase 3 완료 기준 달성 확인
+
+## 구조 기반 작업 분해 프로세스 🆕
+```typescript
+// Phase 1: Design 컨텍스트 및 프로젝트 현황 로드
+const designContext = await read_memory("sdd-design-" + projectId);
+const requirementsContext = await read_memory("sdd-requirements-" + projectId);
+const projectStructure = await list_dir(".", {recursive: true});
+
+// Phase 2: 기존 구현 상태 완전 분석
+const implementationTargets = identifyImplementationTargets(designContext);
+const existingImplementation = await Promise.all(
+  implementationTargets.map(target =>
+    get_symbols_overview(target.filePath)
+  )
+);
+
+// Phase 3: 현실적 작업 분해 (기존 vs 신규 구분)
+const taskBreakdown = createRealisticTasks({
+  design: designContext.architecturalDecisions,
+  existing: existingImplementation,
+  structure: projectStructure,
+  requirements: requirementsContext.acceptanceCriteria
+});
+
+const workPlan = {
+  existingModifications: taskBreakdown.modificationTasks.map(task => ({
+    taskId: `MOD-${task.fileId}`,
+    type: "MODIFY_EXISTING",
+    target: task.existingComponent,
+    description: `기존 ${task.componentName} 확장/수정`,
+    complexity: assessModificationComplexity(task.existingCode, task.newRequirements),
+    effort: estimateModificationEffort(task),
+    dependencies: findModificationDependencies(task, existingImplementation),
+    acceptanceCriteria: mapRequirementsToTasks(task, requirementsContext)
+  })),
+  
+  newImplementations: taskBreakdown.newTasks.map(task => ({
+    taskId: `NEW-${task.componentId}`,
+    type: "CREATE_NEW",
+    target: task.newFilePath,
+    description: `새로운 ${task.componentName} 구현`,
+    complexity: assessNewImplementationComplexity(task.designSpec),
+    effort: estimateNewImplementationEffort(task),
+    dependencies: findNewImplementationDependencies(task, projectStructure),
+    acceptanceCriteria: mapDesignToAcceptanceCriteria(task, designContext)
+  })),
+  
+  integrationTasks: taskBreakdown.integrationTasks.map(task => ({
+    taskId: `INT-${task.integrationId}`,
+    type: "INTEGRATION",
+    description: `${task.component1}와 ${task.component2} 통합`,
+    complexity: "HIGH", // 통합 작업은 일반적으로 복잡
+    effort: "4-8시간",
+    dependencies: [task.component1Task, task.component2Task],
+    acceptanceCriteria: defineIntegrationCriteria(task)
+  }))
+};
+
+// Phase 4: 실행 계획 수립 (의존성 기반)
+const executionPlan = {
+  phase1_foundation: workPlan.existingModifications.filter(task => 
+    task.target.includes('types/') || task.target.includes('config/')
+  ),
+  phase2_core: workPlan.newImplementations.filter(task =>
+    !task.dependencies.some(dep => dep.phase > 2)
+  ),
+  phase3_integration: workPlan.integrationTasks.concat(
+    workPlan.existingModifications.filter(task => task.complexity === 'HIGH')
+  ),
+  
+  parallelizableGroups: identifyParallelizableGroups(workPlan),
+  criticalPath: findCriticalPath(workPlan),
+  riskMitigation: assessTaskRisks(workPlan, projectStructure)
+};
+
+// Phase 5: SDD 작업 계획 영구 저장
+await write_memory("sdd-tasks-" + projectId, JSON.stringify({
+  designReference: designContext.summary,
+  requirementsSource: requirementsContext.summary,
+  projectSnapshot: projectStructure.summary,
+  workPlan: workPlan,
+  executionPlan: executionPlan,
+  qualityGates: defineQualityGates(requirementsContext, designContext),
+  timestamp: new Date().toISOString()
+}));
+
+// Phase 6: SDD 프로세스 준수도 및 완료도 검증
+await think_about_task_adherence(); // Phase 3 프로세스 준수 확인
+await think_about_whether_you_are_done(); // 작업 분해 완성도 검증
+```
+
+### 📊 구조 인식 작업 분해 매트릭스
+```typescript
+const structuralTaskAnalysis = {
+  modificationComplexity: [
+    '기존 함수 확장 (Low): 2-4시간',
+    '기존 컴포넌트 구조 변경 (Medium): 4-8시간', 
+    '기존 아키텍처 리팩토링 (High): 1-2일',
+    '기존 API 계약 변경 (Critical): 2-3일'
+  ],
+  newImplementationComplexity: [
+    '새로운 유틸리티 함수 (Low): 1-2시간',
+    '새로운 React 컴포넌트 (Medium): 4-6시간',
+    '새로운 API 엔드포인트 (High): 6-12시간',
+    '새로운 서비스/모듈 (Critical): 1-3일'
+  ],
+  integrationComplexity: [
+    '컴포넌트 간 단순 연결 (Medium): 2-4시간',
+    '서비스 간 데이터 흐름 (High): 4-8시간',
+    '외부 시스템 연동 (Critical): 1-2일',
+    '아키텍처 레벨 통합 (Expert): 2-5일'
+  ]
+};
+```
+
+### 🎯 현실성 검증 작업 분해 (기존 구현 고려)
+```typescript
+// 기존 코드 분석 기반 현실적 작업 계획
+const realisticTaskPlanning = {
+  codebaseAnalysis: [
+    '기존 227,590줄 코드베이스 영향 분석',
+    '873개 TypeScript 파일 중 수정 대상 식별',
+    'strict 모드 100% 유지하는 작업 방식',
+    '98.2% 테스트 통과율 보장하는 작업 순서'
+  ],
+  practicalConstraints: [
+    'Vercel 무료 티어 빌드 시간 제약 고려',
+    'WSL 환경 메모리 10.9GB 가용량 내 작업',
+    'AI 도구 협업 시 MCP 서버 안정성 확보',
+    'Side-Effect First 철학 기반 연관 작업 동시 계획'
+  ],
+  qualityAssurance: [
+    '각 작업 완료 시 TypeScript 에러 0개 유지',
+    '테스트 커버리지 70%+ 달성 작업 포함',
+    'AI 교차검증 필요 작업 사전 식별',
+    'CLAUDE.md 업데이트 필요 작업 추가'
+  ]
+};
+```
+
 ## 트리거 예시
 
 ```bash
-# Design을 Tasks로 변환
-Task task-coordinator "docs/specs/design/user-profile.md를 기반으로 구현 가능한 작업 목록을 작성해주세요"
+# Design을 구조 인식 Tasks로 변환
+Task task-coordinator "docs/specs/design/user-profile.md를 기반으로 현재 프로젝트 구조를 분석하여 구현 가능한 작업 목록을 작성해주세요"
 
-# 작업 우선순위 재조정
-Task task-coordinator "현재 진행 중인 작업들의 우선순위를 재검토하고 최적화된 실행 계획을 제안해주세요"
+# 작업 우선순위 재조정 (구조 기반)
+Task task-coordinator "현재 진행 중인 작업들의 우선순위를 기존 코드 구조와 의존성을 고려하여 재검토하고 최적화된 실행 계획을 제안해주세요"
 
-# 리스크 분석 및 대응
-Task task-coordinator "프로젝트 일정에 영향을 줄 수 있는 리스크를 분석하고 대응 방안을 수립해주세요"
+# 리스크 분석 및 대응 (현실 기반)
+Task task-coordinator "프로젝트 일정에 영향을 줄 수 있는 리스크를 현재 227,590줄 코드베이스와 WSL 환경 제약을 고려하여 분석하고 대응 방안을 수립해주세요"
 ```

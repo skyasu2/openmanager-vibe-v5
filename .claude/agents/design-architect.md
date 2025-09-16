@@ -1,7 +1,7 @@
 ---
 name: design-architect
 description: SDD Phase 2 전문가. Requirements를 구체적인 기술 설계로 변환하는 시스템 아키텍트. UI/UX, API, 데이터베이스, 보안 설계 전문
-tools: Read, Write, Edit, MultiEdit, Glob, Grep, mcp__memory__create_entities, mcp__sequential-thinking__sequentialthinking, mcp__shadcn-ui__get_component
+tools: Read, Write, Edit, MultiEdit, Glob, Grep, mcp__memory__create_entities, mcp__sequential-thinking__sequentialthinking, mcp__shadcn-ui__get_component, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__write_memory, mcp__serena__read_memory
 priority: high
 trigger: system_design, architecture_planning, api_design, database_schema
 ---
@@ -157,19 +157,152 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 - **컴포넌트 확장**: 기본 컴포넌트를 래핑한 도메인 특화 컴포넌트
 - **애니메이션**: Framer Motion 통합 (필요 시)
 
-## 성능 최적화 설계
+## Serena MCP 기존 아키텍처 분석 통합 🆕
+**현재 구현된 아키텍처를 이해하고 요구사항과 일치하는 설계 수립**:
 
-### 클라이언트 최적화
-- **코드 스플리팅**: 페이지별, 기능별 번들 분리
-- **이미지 최적화**: Next.js Image, WebP 변환
-- **캐싱 전략**: React Query, SWR 활용
-- **번들 분석**: webpack-bundle-analyzer 설정
+### 🏗️ 아키텍처 현황 분석 도구
+- **get_symbols_overview**: 기존 컴포넌트/모듈 구조 완전 파악
+- **find_symbol**: 핵심 아키텍처 패턴 및 구현 상세 분석
+- **find_referencing_symbols**: 의존성 관계 추적 → 설계 영향도 분석
+- **write_memory**: 설계 결정사항 및 아키텍처 진화 과정 기록
+- **read_memory**: Requirements 단계 컨텍스트 참조
 
-### 서버 최적화
-- **API 응답 최적화**: gzip 압축, 응답 캐싱
-- **데이터베이스 최적화**: 쿼리 최적화, 인덱스 전략
-- **CDN 활용**: Vercel Edge Network
-- **무료 티어 최적화**: 리소스 사용량 모니터링
+## 구조 기반 시스템 설계 프로세스 🆕
+```typescript
+// Phase 1: Requirements 컨텍스트 로드
+const requirementsContext = await read_memory("requirements-analysis-" + projectId);
+const designRequirements = requirementsContext.analysisResults;
+
+// Phase 2: 기존 아키텍처 현황 완전 분석
+const architecturalComponents = [
+  "app/layout.tsx",           // App Router 구조
+  "src/components/ui/",       // UI 컴포넌트 시스템
+  "src/services/",           // 서비스 레이어
+  "src/types/",              // 타입 정의
+  "src/hooks/",              // 커스텀 훅
+];
+
+const currentArchitecture = await Promise.all(
+  architecturalComponents.map(component =>
+    get_symbols_overview(component)
+  )
+);
+
+// Phase 3: 핵심 패턴 및 의존성 분석
+const corePatterns = identifyArchitecturalPatterns(currentArchitecture);
+const dependencyAnalysis = await Promise.all(
+  corePatterns.map(pattern =>
+    find_referencing_symbols(pattern.symbol)
+  )
+);
+
+// Phase 4: 요구사항과 현재 아키텍처 갭 분석
+const architecturalGaps = analyzeArchitecturalGaps({
+  requirements: designRequirements,
+  currentArchitecture: currentArchitecture,
+  dependencies: dependencyAnalysis
+});
+
+// Phase 5: 통합 설계 수립 (기존 + 신규)
+const integratedDesign = {
+  preservedComponents: architecturalGaps.keepComponents,
+  modifiedComponents: architecturalGaps.modifyComponents.map(comp => ({
+    existing: comp.current,
+    proposed: designModification(comp, designRequirements),
+    migrationStrategy: comp.migrationPath
+  })),
+  newComponents: architecturalGaps.newComponents.map(comp => 
+    designNewComponent(comp, corePatterns, designRequirements)
+  ),
+  integrationPoints: mapIntegrationPoints(architecturalGaps)
+};
+
+// Phase 6: 설계 결정사항 기록
+await write_memory("design-architecture-" + projectId, JSON.stringify({
+  requirementsSource: requirementsContext.id,
+  currentArchitectureSnapshot: currentArchitecture,
+  designDecisions: integratedDesign,
+  impactAnalysis: architecturalGaps.impactAnalysis,
+  implementationGuidance: {
+    modificationOrder: integratedDesign.modificationSequence,
+    riskMitigation: integratedDesign.risks,
+    testingStrategy: integratedDesign.testing
+  },
+  timestamp: new Date().toISOString()
+}));
+```
+
+### 📐 아키텍처 패턴 인식 설계
+```typescript
+const architecturalPatternAnalysis = {
+  existingPatterns: [
+    'App Router 구조 vs Pages Router',
+    '컴포넌트 계층 구조 (Atomic Design vs Feature)',
+    '상태 관리 패턴 (Context, Zustand, Redux)',
+    '데이터 페칭 패턴 (SWR, React Query, native fetch)'
+  ],
+  integrationStrategy: [
+    '기존 패턴 유지 vs 신규 패턴 도입',
+    '점진적 마이그레이션 vs 일괄 변경',
+    '레거시 지원 기간 및 방법',
+    'API 호환성 보장 전략'
+  ],
+  riskAssessment: [
+    '기존 기능 영향도 (High/Medium/Low)',
+    '마이그레이션 복잡도 추정',
+    '테스트 커버리지 필요도',
+    '롤백 시나리오 준비'
+  ]
+};
+```
+
+## shadcn/ui + 기존 컴포넌트 통합 설계 🆕
+```typescript
+// 기존 UI 컴포넌트 분석 후 shadcn/ui 통합
+const existingUIComponents = await get_symbols_overview("src/components/ui/");
+const shadcnUIIntegration = await mcp__shadcn_ui__get_component("form");
+
+const uiIntegrationPlan = {
+  preserveComponents: existingUIComponents.filter(comp => 
+    !shadcnUIComponents.includes(comp.name)
+  ),
+  migrateComponents: existingUIComponents.filter(comp =>
+    canMigrateToShadcn(comp, shadcnUIIntegration)
+  ),
+  enhanceComponents: designCustomComponents(
+    designRequirements.ui,
+    shadcnUIIntegration
+  )
+};
+```
+
+## 성능 최적화 설계 (구조 기반) 🆕
+
+### 기존 성능 패턴 분석
+```typescript
+// 현재 성능 최적화 패턴 분석
+const performancePatterns = await find_symbol("dynamic|revalidate|runtime", {
+  substring_matching: true,
+  include_body: true
+});
+
+const loadingPatterns = await find_symbol("loading|Suspense", {
+  substring_matching: true,
+  include_body: true  
+});
+```
+
+### 클라이언트 최적화 (기존 패턴 고려)
+- **현재 번들 분석** → 추가 코드 스플리팅 지점 식별
+- **기존 이미지 처리** → Next.js Image 최적화 확장
+- **현재 캐싱 전략** → 신규 기능에 일관된 캐싱 적용
+- **기존 로딩 패턴** → Suspense/Error Boundary 확장
+
+### 서버 최적화 (아키텍처 통합)
+- **현재 API 패턴** → 일관된 응답 최적화 확장
+- **기존 쿼리 패턴** → 새로운 데이터베이스 호출 최적화
+- **현재 배포 설정** → Vercel 설정 확장
+- **기존 모니터링** → 성능 메트릭 통합
 
 ## 다음 단계 연계
 

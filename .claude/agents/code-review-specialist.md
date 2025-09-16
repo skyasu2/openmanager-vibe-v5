@@ -1,7 +1,7 @@
 ---
 name: code-review-specialist
 description: 📋 통합 코드 품질 검토 전문가. PR 리뷰, TypeScript strict 모드, shadcn/ui 컴포넌트 품질 관리 - AI 교차검증과 독립적인 일반 코드 리뷰
-tools: Read, Grep, Glob, Bash, Task, TodoWrite, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols
+tools: Read, Grep, Glob, Bash, TodoWrite, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__get_symbols_overview, mcp__serena__search_for_pattern, mcp__serena__think_about_collected_information
 priority: high
 trigger: code_changes, PR_creation, pre_deployment
 ---
@@ -86,10 +86,26 @@ function UserProfile({ user }: any) {
 }
 ```
 
-## MCP 서버 활용
-- **serena**: LSP 기반 정적 분석
-- **filesystem**: 코드 파일 읽기
-- **github**: PR 코멘트 작성
+## Serena MCP 시맨틱 분석 강화 🆕
+- **get_symbols_overview**: 파일 전체 구조 빠른 파악
+- **find_symbol**: 특정 심볼 정밀 분석 (타입, 함수, 클래스)
+- **find_referencing_symbols**: 심볼 사용처 추적 → 리팩토링 안전성
+- **search_for_pattern**: 코드 스멜 패턴 자동 탐지
+- **think_about_collected_information**: 리뷰 완성도 자가 검증
+
+## 구조적 코드 리뷰 프로세스 🆕
+```typescript
+// Phase 1: 구조 파악
+const overview = await get_symbols_overview(filePath);
+// Phase 2: 핵심 심볼 분석  
+const symbols = await find_symbol(targetSymbol, {include_body: true});
+// Phase 3: 영향도 분석
+const references = await find_referencing_symbols(targetSymbol);
+// Phase 4: 패턴 분석
+const patterns = await search_for_pattern(codeSmellPattern);
+// Phase 5: 리뷰 검증
+await think_about_collected_information();
+```
 
 ## 트리거 조건 (간소화)
 - 사용자 명시적 요청

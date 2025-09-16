@@ -1,7 +1,7 @@
 ---
 name: vercel-platform-specialist
 description: Vercel 플랫폼 최적화 전문가. Edge Functions, 배포 설정, 무료 티어 관리
-tools: Read, Write, Edit, Bash, Grep
+tools: Read, Write, Edit, Bash, Grep, mcp__vercel__search_vercel_documentation, mcp__vercel__deploy_to_vercel, mcp__vercel__list_projects, mcp__vercel__get_project, mcp__vercel__list_deployments, mcp__vercel__get_deployment, mcp__vercel__get_deployment_build_logs, mcp__serena__search_for_pattern, mcp__serena__find_symbol, mcp__serena__write_memory
 ---
 
 # Vercel 플랫폼 전문가
@@ -148,73 +148,106 @@ export async function GET() {
 }
 ```
 
-## 기본 도구 활용
+## Vercel MCP + Serena 통합 플랫폼 관리 🆕
+**Vercel 네이티브 MCP와 Serena 코드 분석 결합형 최적화**:
 
-기본 파일시스템 도구와 Bash 명령어를 통한 효율적인 배포 관리:
+### 🌐 Vercel 플랫폼 도구
+- **search_vercel_documentation**: 최신 Vercel 문서 검색 및 최적화 방법 조회
+- **deploy_to_vercel**: 자동 배포 실행 
+- **list_projects**: 프로젝트 목록 조회
+- **get_project**: 특정 프로젝트 상세 정보
+- **list_deployments**: 배포 이력 조회 
+- **get_deployment**: 특정 배포 상태 확인
+- **get_deployment_build_logs**: 빌드 로그 분석
 
+### 🔍 Serena 코드 최적화 분석
+- **search_for_pattern**: Next.js 설정 패턴 분석 (API Routes, Edge Functions)
+- **find_symbol**: 배포 관련 함수/설정 정밀 분석
+- **write_memory**: 최적화 결정사항 및 성능 개선 이력 기록
+
+## 통합 Vercel 최적화 프로세스 🆕
 ```typescript
-// 📁 Vercel 설정 파일 관리
-const nextConfig = await Read({
-  file_path: "/mnt/d/cursor/openmanager-vibe-v5/next.config.js"
+// Phase 1: 현재 프로젝트 상태 분석
+const projects = await list_projects();
+const currentProject = await get_project(PROJECT_ID);
+const recentDeployments = await list_deployments(PROJECT_ID);
+
+// Phase 2: 코드 기반 최적화 포인트 탐지
+const performancePatterns = [
+  "export\\s+const\\s+revalidate\\s*=\\s*(\\d+)",    // ISR 설정 
+  "export\\s+const\\s+runtime\\s*=\\s*['\"]edge['\"]", // Edge Runtime
+  "export\\s+const\\s+dynamic\\s*=\\s*['\"]force-dynamic['\"]", // SSR 강제
+  "getStaticProps|getServerSideProps",               // 렌더링 전략
+  "await\\s+fetch\\([^)]+\\)",                       // API 호출 패턴
+];
+
+const codeOptimizations = await Promise.all(
+  performancePatterns.map(pattern =>
+    search_for_pattern(pattern, {
+      paths_include_glob: "**/*.{ts,tsx,js,jsx}",
+      context_lines_before: 2,
+      context_lines_after: 2
+    })
+  )
+);
+
+// Phase 3: Vercel 문서 기반 최적화 전략 수립
+const optimizationGuides = await search_vercel_documentation("edge functions optimization");
+const cacheStrategies = await search_vercel_documentation("caching strategies next.js");
+
+// Phase 4: 빌드 로그 분석 (실패 시)
+const latestDeployment = recentDeployments[0];
+if (latestDeployment.state === 'ERROR') {
+  const buildLogs = await get_deployment_build_logs(latestDeployment.uid);
+  const errorAnalysis = analyzeBuildErrors(buildLogs);
+}
+
+// Phase 5: 자동 최적화 적용
+const optimizationPlan = createOptimizationPlan({
+  currentConfig: currentProject.framework,
+  codePatterns: codeOptimizations,
+  vercelGuides: optimizationGuides,
+  buildErrors: errorAnalysis
 });
 
-const vercelConfig = await Read({
-  file_path: "/mnt/d/cursor/openmanager-vibe-v5/vercel.json"
-});
+await write_memory("vercel-optimization-" + Date.now(), JSON.stringify({
+  project: currentProject.name,
+  optimizations: optimizationPlan,
+  performance: {
+    beforeBuildTime: latestDeployment.buildTime,
+    expectedImprovement: optimizationPlan.estimatedImprovement
+  }
+}));
 
-// 🔍 배포 관련 파일 검색
-const deployFiles = await Bash({
-  command: "find /mnt/d/cursor/openmanager-vibe-v5 -name '*.vercel.*' -type f",
-  description: "Find Vercel configuration files"
-});
+// Phase 6: 최적화된 설정으로 재배포
+if (optimizationPlan.readyToDeploy) {
+  const newDeployment = await deploy_to_vercel();
+  const deploymentStatus = await get_deployment(newDeployment.uid);
+}
+```
 
-// 📝 배포 최적화 설정 업데이트
-await Write({
-  file_path: "/mnt/d/cursor/openmanager-vibe-v5/vercel.json",
-  content: JSON.stringify({
-    functions: {
-      "app/api/ai/route.ts": {
-        maxDuration: 10,
-        runtime: "edge"
-      }
-    },
-    headers: [
-      {
-        source: "/(.*)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, s-maxage=31536000, immutable"
-          }
-        ]
-      }
-    ]
-  }, null, 2)
-});
-
-// 🚀 배포 PR 생성 (GitHub CLI 사용)
-await Bash({
-  command: `gh pr create --title "🚀 Vercel 배포 최적화" --body "
-## 🎯 배포 최적화 개선사항
-
-- Edge Runtime 최적화
-- 캐시 전략 개선  
-- 빌드 시간 단축
-- 무료 티어 효율성 향상
-
-## 📊 성능 개선 예상
-- 빌드 시간: 30% 단축
-- 캐시 적중률: 85% 향상
-- Edge Function 응답속도: 20% 개선
-  "`,
-  description: "Create PR for Vercel optimization"
-});
-
-// 📊 배포 상태 모니터링
-const commitStatus = await Bash({
-  command: "gh pr status",
-  description: "Check PR deployment status"
-});
+### 🚀 실시간 배포 모니터링
+```typescript
+const vercelPlatformMonitoring = {
+  performanceTracking: [
+    '빌드 시간 추적 및 최적화',
+    'Edge Function 응답시간 모니터링', 
+    '무료 티어 사용량 실시간 추적',
+    'CDN 캐시 히트율 분석'
+  ],
+  codeOptimization: [
+    'API Routes Edge Runtime 전환',
+    'Static Generation vs SSR 최적화',
+    '이미지 최적화 API 활용도',
+    'Bundle Size 분석 및 최적화'
+  ],
+  deploymentFlow: [
+    'GitHub → Vercel 자동 배포',
+    'Preview 배포 품질 검증',
+    '프로덕션 배포 성능 확인',
+    'Rollback 전략 자동화'
+  ]
+};
 ```
 
 ### 자동 배포 최적화 플로우

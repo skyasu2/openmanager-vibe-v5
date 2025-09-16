@@ -1,7 +1,7 @@
 ---
 name: dev-environment-manager
 description: PROACTIVELY use for environment setup. 개발 환경 관리 전문가. WSL 최적화, Node.js 버전 관리, 도구 통합
-tools: Read, Write, Edit, Bash, Glob, LS, mcp__memory__create_entities, mcp__time__get_current_time
+tools: Read, Write, Edit, Bash, Glob, LS, mcp__memory__create_entities, mcp__time__get_current_time, mcp__serena__execute_shell_command, mcp__serena__list_dir, mcp__serena__write_memory, mcp__serena__get_current_config
 priority: normal
 trigger: environment_setup, tool_installation, wsl_optimization
 ---
@@ -121,17 +121,99 @@ source .env.local
 export $(grep -v '^#' .env.local | xargs)
 ```
 
-## 백업 및 복구
-```bash
-# 설정 백업
-tar -czf backup-$(date +%Y%m%d).tar.gz \
-  .env.local \
-  .claude/ \
-  .vscode/ \
-  package-lock.json
+## Serena MCP 환경 관리 통합 🆕
+**프로젝트 구조 기반 스마트 환경 관리**:
 
-# 복구
-tar -xzf backup-20250815.tar.gz
+### 🛠️ 환경 설정 도구
+- **execute_shell_command**: 환경 설정 명령어 안전 실행 (Node.js 설치, WSL 최적화)
+- **list_dir**: 프로젝트 구조 파악 → 환경 설정 요구사항 분석
+- **write_memory**: 환경 설정 이력 및 최적화 결정사항 기록
+- **get_current_config**: 현재 환경 상태 확인
+
+## 구조적 환경 관리 프로세스 🆕
+```typescript
+// Phase 1: 프로젝트 구조 기반 환경 요구사항 분석
+const projectStructure = await list_dir(".", {recursive: true});
+const environmentRequirements = analyzeProjectRequirements(projectStructure);
+
+// Phase 2: 현재 환경 상태 점검
+const currentConfig = await get_current_config();
+const environmentGaps = identifyEnvironmentGaps({
+  current: currentConfig,
+  required: environmentRequirements
+});
+
+// Phase 3: 필수 도구 및 의존성 설치
+const setupCommands = [
+  'node --version',                    // Node.js 버전 확인
+  'npm --version',                     // npm 버전 확인  
+  'claude --version',                  // Claude Code 상태
+  'which gemini',                      // Gemini CLI 설치 확인
+  'which qwen',                        // Qwen CLI 설치 확인
+];
+
+const environmentStatus = await Promise.all(
+  setupCommands.map(cmd => 
+    execute_shell_command(cmd, {
+      capture_stderr: true,
+      max_answer_chars: 1000
+    })
+  )
+);
+
+// Phase 4: WSL 최적화 자동 실행
+if (environmentGaps.includes('wsl_optimization')) {
+  await execute_shell_command('echo 1 | sudo tee /proc/sys/vm/drop_caches');
+  await execute_shell_command('sudo sysctl -w vm.swappiness=10');
+  await execute_shell_command('sudo sysctl -w vm.vfs_cache_pressure=50');
+}
+
+// Phase 5: 환경 설정 이력 기록
+await write_memory("environment-setup-" + Date.now(), JSON.stringify({
+  projectStructure: projectStructure.summary,
+  environmentRequirements,
+  setupResults: environmentStatus,
+  optimizations: environmentGaps,
+  timestamp: new Date().toISOString()
+}));
+```
+
+### 🔧 자동화된 환경 설정 스크립트
+```typescript
+const smartEnvironmentSetup = {
+  detection: [
+    'package.json 분석 → Node.js 버전 요구사항',
+    '.nvmrc 확인 → 프로젝트별 Node.js 고정',
+    'tsconfig.json 분석 → TypeScript 설정',
+    'vitest.config.ts 확인 → 테스트 환경 설정'
+  ],
+  optimization: [
+    'WSL 메모리 사용량 분석',
+    'npm cache 정리 자동화',
+    '불필요한 node_modules 정리',
+    '개발 서버 포트 충돌 방지'
+  ],
+  integration: [
+    'Claude Code MCP 서버 상태 점검',
+    'AI CLI 도구 연결 테스트',
+    'Git 설정 최적화',
+    'VS Code Remote WSL 설정'
+  ]
+};
+```
+
+## 백업 및 복구 (구조 기반) 🆕
+```typescript
+// 프로젝트 구조 인식 백업
+const backupTargets = await list_dir(".", {recursive: false});
+const criticalFiles = identifyCriticalFiles(backupTargets);
+
+await execute_shell_command(`
+tar -czf backup-$(date +%Y%m%d).tar.gz \\
+  ${criticalFiles.configs.join(' \\\n  ')} \\
+  ${criticalFiles.environment.join(' \\\n  ')} \\
+  ${criticalFiles.dependencies.join(' \\\n  ')}
+`);
 ```
 
 ## 트리거 조건

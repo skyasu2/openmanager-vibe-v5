@@ -1,7 +1,7 @@
 ---
 name: security-auditor
 description: CRITICAL - MUST BE USED before deployment. 보안 취약점 자동 스캔, 인증/인가 검증, SLA 99.9% 보장
-tools: Read, Grep, Bash, Glob, mcp__supabase__get_advisors
+tools: Read, Grep, Bash, Glob, mcp__supabase__get_advisors, mcp__serena__search_for_pattern, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__think_about_collected_information
 priority: critical
 autoTrigger: true
 sla: "< 30초 (보안 스캔), < 90초 (DDoS 방어)"
@@ -100,11 +100,96 @@ USING (
 );
 ```
 
-## 보안 스캔 도구
-- npm audit
-- OWASP Dependency Check
-- ESLint 보안 규칙
-- GitHub Security Alerts
+## Serena MCP 구조적 보안 분석 🆕
+**시맨틱 코드 분석 기반 정밀 보안 감사**:
+
+### 🔍 보안 패턴 탐지 도구
+- **search_for_pattern**: 보안 취약점 패턴 자동 탐지 (SQL injection, XSS, 하드코딩된 시크릿 등)
+- **find_symbol**: 보안 관련 함수/클래스 정밀 분석 (인증, 암호화 함수)
+- **find_referencing_symbols**: 인증/인가 흐름 완전 추적 → 권한 우회 방지
+- **think_about_collected_information**: 보안 분석 완성도 검증
+
+## 구조적 보안 감사 프로세스 🆕
+```typescript
+// Phase 1: 고위험 보안 패턴 자동 스캔
+const criticalPatterns = [
+  "password.*=.*['\"].*['\"]",           // 하드코딩된 비밀번호
+  "SELECT.*FROM.*WHERE.*=.*\\$",        // SQL Injection 위험
+  "innerHTML.*=.*\\+",                   // XSS 취약점
+  "eval\\(.*\\)",                        // Code Injection
+  "process\\.env\\.[A-Z_]+.*console",    // 환경변수 노출
+];
+
+const vulnerabilities = await Promise.all(
+  criticalPatterns.map(pattern =>
+    search_for_pattern(pattern, {
+      paths_include_glob: "**/*.{ts,tsx,js,jsx}",
+      context_lines_before: 2,
+      context_lines_after: 2
+    })
+  )
+);
+
+// Phase 2: 인증/인가 함수 구조 분석
+const authFunctions = [
+  "authenticate", "authorize", "validateToken", 
+  "checkPermission", "verifyUser", "login", "logout"
+];
+
+const authAnalysis = await Promise.all(
+  authFunctions.map(func =>
+    find_symbol(func, {
+      include_body: true,
+      substring_matching: true
+    })
+  )
+);
+
+// Phase 3: 권한 흐름 완전 추적
+const permissionFlow = await Promise.all(
+  authAnalysis.map(auth =>
+    find_referencing_symbols(auth.name_path)
+  )
+);
+
+// Phase 4: Supabase RLS 정책 검증
+const rlsAdvisors = await mcp__supabase__get_advisors();
+const securityCompliance = validateRLSPolicies(rlsAdvisors);
+
+// Phase 5: 보안 분석 완성도 검증
+await think_about_collected_information();
+```
+
+### 🛡️ 자동화된 보안 체크리스트
+```typescript
+const structuralSecurityChecks = {
+  codeInjection: [
+    'eval() 사용 탐지',
+    'Function() 생성자 검사',
+    'innerHTML 직접 할당 확인',
+    '동적 import() 검증'
+  ],
+  dataLeakage: [
+    '하드코딩된 API 키',
+    'console.log에 민감정보',
+    '환경변수 노출 패턴',
+    'Error 메시지 정보 노출'
+  ],
+  authenticationFlaws: [
+    'JWT 검증 로직 추적',
+    '권한 체크 우회 경로',
+    '세션 관리 취약점',
+    'CSRF 토큰 누락'
+  ]
+};
+```
+
+## 기존 + 구조적 보안 스캔 도구 🆕
+**기존 도구** + **Serena 구조 분석**:
+- npm audit + **search_for_pattern** (의존성 + 코드 패턴)
+- OWASP Dependency Check + **find_symbol** (보안 함수 분석)  
+- ESLint 보안 규칙 + **find_referencing_symbols** (권한 흐름 추적)
+- GitHub Security Alerts + **구조적 취약점 탐지**
 
 ## 트리거 조건
 - 인증 플로우 변경
