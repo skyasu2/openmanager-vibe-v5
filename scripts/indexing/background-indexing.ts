@@ -8,10 +8,9 @@
  * - GitHub Actions, 로컬 스크립트 등에서 실행 가능
  */
 
-import fs from 'fs/promises';
-import path from 'path';
+import { promises as fs } from 'fs';
+import * as path from 'path';
 import { createHash } from 'crypto';
-import { fileURLToPath } from 'url';
 
 // 환경 설정
 const PROJECT_ROOT = path.resolve(process.cwd());
@@ -78,6 +77,9 @@ class BackgroundIndexingService {
       
       for (let i = 0; i < batches.length; i++) {
         const batch = batches[i];
+        if (!batch || batch.length === 0) {
+          continue;
+        }
         console.log(`\n📦 배치 ${i + 1}/${batches.length} 처리 중... (${batch.length}개 문서)`);
         
         await this.processBatch(batch);
@@ -219,13 +221,13 @@ class BackgroundIndexingService {
   private extractTitle(content: string, fileName: string): string {
     // 마크다운 H1 태그에서 제목 추출
     const h1Match = content.match(/^#\s+(.+)$/m);
-    if (h1Match) {
+    if (h1Match && h1Match[1]) {
       return h1Match[1].trim();
     }
     
     // YAML frontmatter에서 title 추출
     const titleMatch = content.match(/^title:\s*(.+)$/m);
-    if (titleMatch) {
+    if (titleMatch && titleMatch[1]) {
       return titleMatch[1].replace(/['"]/g, '').trim();
     }
     
@@ -442,10 +444,8 @@ async function main() {
   }
 }
 
-// 직접 실행 시에만 main 함수 호출
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch(error => {
-    console.error('❌ 스크립트 실행 실패:', error);
-    process.exit(1);
-  });
-}
+// 스크립트 실행부 - 항상 실행
+main().catch(error => {
+  console.error('❌ 스크립트 실행 실패:', error);
+  process.exit(1);
+});
