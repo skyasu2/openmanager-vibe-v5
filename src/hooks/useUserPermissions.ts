@@ -107,73 +107,21 @@ export function useUserPermissions(): UserPermissions {
         const userAvatar = user.avatar;
         const userType: UserType = type === 'unknown' ? 'guest' : type;
 
-        // PIN 인증 상태 확인 (adminStore에서 가져옴)
-        const isPinAuth = adminStore?.adminMode?.isAuthenticated || false;
-
-        // 새로운 권한 매트릭스 적용
-        // GitHub 사용자 = 일반 사용자 (관리자 페이지 제외)
-        // Guest + PIN = 최고 권한 (관리자 페이지 포함)
-        const isGitHub = type === 'github';
-        const isGuest = type === 'guest';
-        const isGuestWithPin = isGuest && isPinAuth;
-
-        return {
-          // 시스템 제어 권한 (PIN 인증 시에만)
-          canControlSystem: isPinAuth,
-          canAccessSettings: isPinAuth,
-          canToggleAdminMode: true, // 모든 사용자가 PIN 입력 시도 가능
-          canLogout: true, // 인증된 사용자는 모두 로그아웃 가능
-
-          // 페이지 접근 권한 (새로운 3단계 시스템)
-          canAccessMainPage: true, // 모든 사용자
-          canAccessDashboard: isGitHub || isPinAuth, // GitHub 사용자 또는 PIN 인증
-          canAccessAdminPage: isPinAuth, // PIN 인증한 사용자만
-
-          // 사용자 유형
-          isGeneralUser: isGitHub || (isGuest && !isPinAuth),
-          isAdmin: isPinAuth, // PIN 인증한 사용자가 진짜 관리자
-          isGitHubAuthenticated: isGitHub,
-          isPinAuthenticated: isPinAuth,
-
-          // AI 권한 (모든 사용자)
-          canToggleAI: true,
-
-          // 사용자 정보
-          userType,
-          userName,
-          userAvatar,
-        };
-      }
-
-      // 레거시 fallback 로직
-      if (status === 'loading') {
-        return createSafeDefaultPermissions('loading', '로딩 중...');
-      }
-
-      const isGitHubUser = Boolean(session?.user && status === 'authenticated');
-      const isGuestUser = Boolean(!isGitHubUser && isGuestAuth && guestUser);
-
-      if (!isGitHubUser && !isGuestUser) {
-        return createSafeDefaultPermissions('guest', '일반사용자');
-      }
-
-      // 사용자 정보 추출
-      let userName = '사용자';
-      let userAvatar: string | undefined;
-      let userType: UserType = 'loading';
-
-      if (isGitHubUser && session?.user) {
-        userName = session.user.name || session.user.email?.split('@')[0] || 'GitHub 사용자';
-        userAvatar = session.user.image || undefined;
-        userType = 'github';
-      } else if (isGuestUser && guestUser) {
-        userName = guestUser.name || '일반사용자';
-        userAvatar = guestUser.picture;
-        userType = 'guest';
-      }
-
-      // PIN 인증 상태 확인 (레거시 fallback)
-      const isPinAuth = adminStore?.adminMode?.isAuthenticated || false;
+        // PIN 인증 상태 확인 (adminStore + localStorage fallback)
+        const adminStoreAuth = adminStore?.adminMode?.isAuthenticated || false;
+        const localStorageAuth = typeof window !== 'undefined' ? localStorage.getItem('admin_mode') === 'true' : false;
+        const isPinAuth = adminStoreAuth || localStorageAuth;
+        
+        // 🔍 디버깅: 모든 인증 상태 확인
+        console.log('🔍 [Debug] useUserPermissions - 전체 인증 상태:', {
+          adminStore: !!adminStore,
+          adminStoreAuth,
+          localStorageAuth,
+          isPinAuth,
+          user,
+          type,
+          isAuthenticated
+        });
 
       // 새로운 권한 매트릭스 적용 (레거시 호환)
       const isGitHub = isGitHubUser;
