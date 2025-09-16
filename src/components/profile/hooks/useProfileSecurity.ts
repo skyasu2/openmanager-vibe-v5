@@ -169,8 +169,13 @@ export function useProfileSecurity() {
           
           // 🔧 FIX: localStorage에 admin_mode 설정 (대시보드 접근용)
           localStorage.setItem('admin_mode', 'true');
+          
+          // 🔥 수동 storage 이벤트 발생 (AI 교차검증 해결책)
+          window.dispatchEvent(new CustomEvent('local-storage-changed', {
+            detail: { key: 'admin_mode', value: 'true' }
+          }));
 
-          console.log('🔑 관리자 모드 활성화 (localStorage + Zustand)');
+          console.log('🔑 관리자 모드 활성화 (localStorage + Zustand + 이벤트 발생)');
           return true;
         } else {
           // 인증 실패
@@ -227,7 +232,13 @@ export function useProfileSecurity() {
     logoutAdmin();
     // 🔧 FIX: localStorage admin_mode도 정리
     localStorage.removeItem('admin_mode');
-    console.log('🔒 관리자 모드 해제 (localStorage + Zustand)');
+    
+    // 🔥 수동 storage 이벤트 발생 (AI 교차검증 해결책)
+    window.dispatchEvent(new CustomEvent('local-storage-changed', {
+      detail: { key: 'admin_mode', value: null }
+    }));
+    
+    console.log('🔒 관리자 모드 해제 (localStorage + Zustand + 이벤트 발생)');
   }, [logoutAdmin]);
 
   return {

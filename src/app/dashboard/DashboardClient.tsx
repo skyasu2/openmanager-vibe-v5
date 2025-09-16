@@ -249,31 +249,52 @@ function DashboardPageContent() {
     setIsMounted(true);
   }, []);
 
-  // 🔒 새로운 권한 시스템: 대시보드 접근 권한 확인
+  // 🔥 강화된 권한 체크 (AI 교차검증 해결책 - 이중화)
   useEffect(() => {
     if (!isMounted) return;
     
-    if (permissions.userType === 'loading') {
-      // 아직 권한 로딩 중
-      return;
-    }
+    const checkPermissions = () => {
+      // 1차: localStorage 직접 확인 (즉시 반영)
+      const isLocalStorageAuth = typeof window !== 'undefined' ? localStorage.getItem('admin_mode') === 'true' : false;
+      
+      // 2차: useUserPermissions 훅 결과 확인
+      const isHookAuth = permissions.canAccessDashboard;
+      
+      // 권한 상태 결합 (OR 조건: 둘 중 하나라도 true면 접근 허용)
+      const canAccess = isLocalStorageAuth || isHookAuth;
+      
+      console.log('🔍 대시보드 권한 이중 체크:', {
+        localStorage: isLocalStorageAuth,
+        hook: isHookAuth,
+        combined: canAccess,
+        userType: permissions.userType,
+        loading: permissions.userType === 'loading'
+      });
+      
+      if (permissions.userType === 'loading') {
+        // 아직 권한 로딩 중
+        return;
+      }
+      
+      if (!canAccess) {
+        console.log('🚫 대시보드 접근 권한 없음 - 메인 페이지로 이동');
+        alert('대시보드 접근 권한이 없습니다. GitHub 로그인 또는 관리자 모드 인증이 필요합니다.');
+        router.push('/main');
+        return;
+      }
+      
+      console.log('✅ 대시보드 접근 권한 확인됨:', {
+        userType: permissions.userType,
+        userName: permissions.userName,
+        canAccessDashboard: permissions.canAccessDashboard,
+        isPinAuthenticated: permissions.isPinAuthenticated,
+        isGitHubAuthenticated: permissions.isGitHubAuthenticated,
+      });
+      
+      setAuthLoading(false);
+    };
     
-    if (!permissions.canAccessDashboard) {
-      console.log('🚫 대시보드 접근 권한 없음 - 메인 페이지로 이동');
-      alert('대시보드 접근 권한이 없습니다. GitHub 로그인 또는 관리자 모드 인증이 필요합니다.');
-      router.push('/main');
-      return;
-    }
-    
-    console.log('✅ 대시보드 접근 권한 확인됨:', {
-      userType: permissions.userType,
-      userName: permissions.userName,
-      canAccessDashboard: permissions.canAccessDashboard,
-      isPinAuthenticated: permissions.isPinAuthenticated,
-      isGitHubAuthenticated: permissions.isGitHubAuthenticated,
-    });
-    
-    setAuthLoading(false);
+    checkPermissions();
   }, [isMounted, permissions, router]);
 
   // 🎯 서버 통계 상태 관리 (상단 통계 카드용)

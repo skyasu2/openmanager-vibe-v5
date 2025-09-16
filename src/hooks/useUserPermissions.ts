@@ -65,6 +65,9 @@ export function useUserPermissions(): UserPermissions {
   const { data: session, status } = useSession();
   const { user: guestUser, isAuthenticated: isGuestAuth } = useAuth();
   const adminStore = useUnifiedAdminStore();
+  
+  // 🔥 localStorage 변경 감지를 위한 강제 리렌더링 상태
+  const [storageUpdateTrigger, setStorageUpdateTrigger] = useState(0);
 
   // AuthStateManager에서 통합 상태 가져오기
   useEffect(() => {
@@ -88,6 +91,36 @@ export function useUserPermissions(): UserPermissions {
     
     return () => {
       isMounted = false;
+    };
+  }, []);
+  
+  // 🔥 localStorage 변경 감지 시스템 (AI 교차검증 해결책)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'admin_mode') {
+        console.log('🔄 PIN 인증 상태 변경 감지:', e.newValue);
+        // AuthStateManager 캐시 무효화
+        authStateManager.invalidateCache?.();
+        // 강제 리렌더링 트리거
+        setStorageUpdateTrigger(prev => prev + 1);
+      }
+    };
+    
+    // 수동 storage 이벤트도 감지 (동일 탭 내 변경)
+    const handleManualStorageChange = () => {
+      const adminMode = localStorage.getItem('admin_mode');
+      console.log('🔄 localStorage 수동 변경 감지:', adminMode);
+      authStateManager.invalidateCache?.();
+      setStorageUpdateTrigger(prev => prev + 1);
+    };
+    
+    // 이벤트 리스너 등록
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('local-storage-changed', handleManualStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('local-storage-changed', handleManualStorageChange);
     };
   }, []);
 
@@ -209,7 +242,7 @@ export function useUserPermissions(): UserPermissions {
       console.error('🔐 [Permissions] 권한 계산 중 오류 발생:', error);
       return createSafeDefaultPermissions('guest', '일반사용자');
     }
-  }, [authState, session, status, guestUser, isGuestAuth, adminStore?.adminMode?.isAuthenticated]);
+  }, [authState, session, status, guestUser, isGuestAuth, adminStore?.adminMode?.isAuthenticated, storageUpdateTrigger]); // storageUpdateTrigger 추가로 localStorage 변경 감지
 
   return permissions;
 }

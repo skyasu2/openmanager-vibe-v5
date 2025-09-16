@@ -404,3 +404,7 @@ docs/gcp-free-tier-analysis.md
 docs/gcp-functions-deduplication-analysis.md
 docs/rag-system-optimization-complete.md
 docs/supabase-cleanup-guide.md
+
+# PIN 인증 테스트 리포트 (임시 테스트 파일, 커밋 제외)
+docs/testing/pin-authentication-*.md
+**/pin-authentication-*.md
