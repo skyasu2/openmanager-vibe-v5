@@ -592,12 +592,16 @@ export default function IntelligentMonitoringPage() {
 
                   {stepResult && stepResult.status === 'completed' && (
                     <div className="space-y-2">
-                      <div className="text-xs text-gray-500">
-                        처리 시간: {stepResult.processingTime}ms
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        신뢰도: {Math.round(stepResult.confidence * 100)}%
-                      </div>
+                      {'processingTime' in stepResult && (
+                        <div className="text-xs text-gray-500">
+                          처리 시간: {(stepResult as any).processingTime}ms
+                        </div>
+                      )}
+                      {'confidence' in stepResult && (
+                        <div className="text-xs text-gray-500">
+                          신뢰도: {Math.round((stepResult as any).confidence * 100)}%
+                        </div>
+                      )}
                       {stepResult.summary && (
                         <div className="rounded bg-gray-50 p-2 text-sm text-gray-700">
                           {stepResult.summary}
