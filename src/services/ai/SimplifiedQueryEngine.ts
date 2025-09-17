@@ -12,6 +12,7 @@
 import type { SupabaseRAGEngine } from './supabase-rag-engine';
 import { getSupabaseRAGEngine } from './supabase-rag-engine';
 import { CloudContextLoader } from '../mcp/CloudContextLoader';
+import type { RAGEngineContext } from '../mcp/CloudContextLoader.types';
 import { MockContextLoader } from './MockContextLoader';
 import { IntentClassifier } from '../../modules/ai-agent/processors/IntentClassifier';
 import type { Entity } from '../../modules/ai-agent/processors/IntentClassifier';
@@ -260,7 +261,7 @@ export class SimplifiedQueryEngine {
               includeSystemContext: true,
             })
             .then((result) => {
-              mcpContext = result;
+              mcpContext = result ? this.convertRAGContextToMCPContext(result) : null;
               const mcpStep = thinkingSteps[mcpStepIndex];
               if (mcpStep) {
                 mcpStep.status = 'completed';
@@ -433,6 +434,26 @@ export class SimplifiedQueryEngine {
         googleAI: true, // API 엔드포인트 존재 여부로 판단
         mcp: mcpStatus.mcpServer.status === 'online',
       },
+    };
+  }
+
+  /**
+   * RAGEngineContext를 MCPContext로 변환
+   */
+  private convertRAGContextToMCPContext(ragContext: RAGEngineContext): MCPContext {
+    return {
+      files: ragContext.files.map(file => ({
+        path: file.path,
+        content: file.content,
+        language: file.path.split('.').pop(),
+        size: file.content.length
+      })),
+      systemContext: JSON.stringify(ragContext.systemContext),
+      additionalContext: {
+        query: ragContext.query,
+        contextType: ragContext.contextType,
+        relevantPaths: ragContext.relevantPaths
+      }
     };
   }
 }

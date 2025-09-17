@@ -6,7 +6,7 @@
 import { spawn, ChildProcess } from 'child_process';
 
 let testServer: ChildProcess | null = null;
-const TEST_PORT = 3002;
+const TEST_PORT = 3005;
 const TEST_TIMEOUT = 30000; // 30 seconds
 
 function waitForServer(port: number, timeout: number): Promise<boolean> {

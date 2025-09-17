@@ -11,6 +11,7 @@
 import type { SupabaseRAGEngine } from './supabase-rag-engine';
 import { getSupabaseRAGEngine } from './supabase-rag-engine';
 import { CloudContextLoader } from '../mcp/CloudContextLoader';
+import type { RAGEngineContext } from '../mcp/CloudContextLoader.types';
 import { QueryComplexityAnalyzer } from './QueryComplexityAnalyzer';
 // Google AI import removed - only accessible through AI Assistant
 import type {
@@ -253,6 +254,7 @@ export class ImprovedQueryEngine {
           maxFiles: 5,
           includeSystemContext: true,
         })
+        .then(ragContext => ragContext ? this.convertRAGContextToMCPContext(ragContext) : null)
         .catch(() => null);
     }
 
@@ -544,6 +546,26 @@ export class ImprovedQueryEngine {
     const confidence =
       topSimilarity * 0.7 + Math.min(resultCount / 10, 1) * 0.3;
     return Math.min(confidence, 0.95);
+  }
+
+  /**
+   * RAGEngineContext를 MCPContext로 변환
+   */
+  private convertRAGContextToMCPContext(ragContext: RAGEngineContext): MCPContext {
+    return {
+      files: ragContext.files.map(file => ({
+        path: file.path,
+        content: file.content,
+        language: file.path.split('.').pop(),
+        size: file.content.length
+      })),
+      systemContext: JSON.stringify(ragContext.systemContext),
+      additionalContext: {
+        query: ragContext.query,
+        contextType: ragContext.contextType,
+        relevantPaths: ragContext.relevantPaths
+      }
+    };
   }
 }
 

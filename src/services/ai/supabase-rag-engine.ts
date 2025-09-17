@@ -9,6 +9,7 @@
  */
 
 import { CloudContextLoader } from '../mcp/CloudContextLoader';
+import type { RAGEngineContext } from '../mcp/CloudContextLoader.types';
 import type { AIMetadata, MCPContext } from '../../types/ai-service-types';
 import { embeddingService } from './embedding-service';
 import { PostgresVectorDB } from './postgres-vector-db';
@@ -638,7 +639,7 @@ export class SupabaseRAGEngine {
           totalResults: searchResults.length,
           processingTime: Date.now() - startTime,
           cached: false,
-          mcpContext: mcpContext || undefined,
+          mcpContext: mcpContext ? this.convertRAGContextToMCPContext(mcpContext) : undefined,
         };
 
         // 메모리 캐시 저장
@@ -955,6 +956,26 @@ export class SupabaseRAGEngine {
     }
     this.memoryCache.invalidateSearchCache();
     console.log('🛑 RAG 엔진 리소스 정리 완료');
+  }
+
+  /**
+   * RAGEngineContext를 MCPContext로 변환
+   */
+  private convertRAGContextToMCPContext(ragContext: RAGEngineContext): MCPContext {
+    return {
+      files: ragContext.files.map(file => ({
+        path: file.path,
+        content: file.content,
+        language: file.path.split('.').pop(),
+        size: file.content.length
+      })),
+      systemContext: JSON.stringify(ragContext.systemContext),
+      additionalContext: {
+        query: ragContext.query,
+        contextType: ragContext.contextType,
+        relevantPaths: ragContext.relevantPaths
+      }
+    };
   }
 }
 
