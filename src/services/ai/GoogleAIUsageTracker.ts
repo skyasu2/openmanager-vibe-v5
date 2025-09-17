@@ -132,7 +132,7 @@ export class GoogleAIUsageTracker {
    * 일일 사용량 요약 생성
    */
   getDailySummary(date?: string): DailyUsageSummary {
-    const targetDate = date || new Date().toISOString().split('T')[0];
+    const targetDate = (date ?? new Date().toISOString().split('T')[0]) as string;
     const dayStart = new Date(targetDate).getTime();
     const dayEnd = dayStart + 24 * 60 * 60 * 1000;
 
@@ -217,11 +217,11 @@ export class GoogleAIUsageTracker {
     const analysisResults = this.analyzeFeedback(feedbackData);
 
     // 통계적 조정 (베이지안 최적화 간소화 버전)
-    if (analysisResults.simpleOverload > 0.2) {
-      newThresholds[0] = Math.max(25, newThresholds[0] - 5); // simple 임계값 낮추기
+    if (analysisResults?.simpleOverload && analysisResults.simpleOverload > 0.2) {
+      newThresholds[0] = Math.max(25, newThresholds[0]! - 5); // simple 임계값 낮추기
     }
-    if (analysisResults.complexUnderload > 0.2) {
-      newThresholds[1] = Math.min(80, newThresholds[1] + 5); // complex 임계값 높이기
+    if (analysisResults?.complexUnderload && analysisResults.complexUnderload > 0.2) {
+      newThresholds[1] = Math.min(80, newThresholds[1]! + 5); // complex 임계값 높이기
     }
 
     // 개선도 계산 (예상 효율성 향상)
@@ -445,8 +445,8 @@ export class GoogleAIUsageTracker {
     analysis: any
   ): number {
     // 예상 개선도 계산 (간소화된 버전)
-    const thresholdChange = Math.abs(newThresholds[0] - oldThresholds[0]) + 
-                           Math.abs(newThresholds[1] - oldThresholds[1]);
+    const thresholdChange = Math.abs((newThresholds?.[0] ?? 0) - (oldThresholds?.[0] ?? 0)) + 
+                           Math.abs((newThresholds?.[1] ?? 0) - (oldThresholds?.[1] ?? 0));
     return Math.min(thresholdChange * 2, 25); // 최대 25% 개선
   }
 

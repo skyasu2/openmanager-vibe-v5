@@ -105,7 +105,7 @@ export default function AIChatPage() {
         setLocalMessages((prev) => [...prev, aiMessage]);
         debug.log(`✅ Google AI 응답 성공: ${processingTime}ms`);
       } else {
-        throw new Error('message' in apiResponse ? apiResponse.message : 'AI 응답에서 오류가 발생했습니다.');
+        throw new Error('message' in apiResponse ? String(apiResponse.message) : 'AI 응답에서 오류가 발생했습니다.');
       }
     } catch (error) {
       debug.error('❌ Google AI 오류:', error);

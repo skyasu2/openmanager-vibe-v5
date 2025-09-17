@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
   }
 
   // 🛡️ 보안 계층 3: Rate Limiting
-  const clientIP = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
+  const clientIP =  request.headers.get('x-forwarded-for') || 'unknown';
   
   if (isRateLimited(clientIP)) {
     console.warn('🚨 [Security] Rate limit 초과:', clientIP);

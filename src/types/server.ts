@@ -104,6 +104,7 @@ export interface Server {
   memory: number;
   disk: number;
   network?: number; // 네트워크 사용률 추가
+  responseTime?: number; // 응답 시간 (ms)
   uptime: string | number;
   location: string;
   alerts?: number | ServerAlert[];
@@ -207,7 +208,7 @@ export interface SystemInfo {
 // ⚠️ DEPRECATED: 기존 타입들 - server-enums.ts 사용 권장
 // 호환성을 위해 유지하되, 새 코드에서는 ServerEnvironmentEnum, ServerRoleEnum 사용
 export type ServerEnvironment = EnumServerEnvironment | 'on-premise' | 'aws' | 'gcp' | 'azure';
-export type ServerRole = EnumServerRole | 'app';
+export type ServerRole = EnumServerRole | 'app' | 'fallback';
 
 export interface EnhancedServerMetrics {
   // 🔧 기본 ServerMetrics 속성들 (완전 포함)
@@ -517,6 +518,20 @@ export const SERVER_TYPE_DEFINITIONS: Record<ServerRole, ServerTypeDefinition> =
       failureProne: ['application_crash', 'memory_leak', 'timeout'],
       dependencies: ['api', 'database'],
     },
+    fallback: {
+      type: 'fallback',
+      tags: ['backup', 'secondary', 'emergency', 'fallback'],
+      characteristics: {
+        cpuWeight: 0.8,
+        memoryWeight: 0.7,
+        diskWeight: 0.6,
+        networkWeight: 1.0,
+        responseTimeBase: 250,
+        stabilityFactor: 0.9,
+      },
+      failureProne: ['backup_system_overload', 'fallback_activation'],
+      dependencies: ['api', 'database'],
+    },
   };
 
 export interface RealisticFailureScenario {
@@ -555,6 +570,7 @@ export const FAILURE_IMPACT_GRAPH: Record<ServerRole, ServerRole[]> = {
   queue: ['api', 'database'],
   storage: ['database', 'backup'],
   app: ['api', 'database', 'queue'],
+  fallback: ['api', 'database'],
 };
 
 export interface SystemOverview {

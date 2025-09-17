@@ -415,7 +415,7 @@ function filterAndSortServers(
       server.name.toLowerCase().includes(searchLower) ||
       server.hostname.toLowerCase().includes(searchLower) ||
       server.status.toLowerCase().includes(searchLower) ||
-      server.type.toLowerCase().includes(searchLower)
+      (server.type?.toLowerCase() || "").includes(searchLower)
     );
   }
 
@@ -445,10 +445,10 @@ function filterAndSortServers(
  * 🎯 메인 핸들러
  */
 async function handleServersUnified(
-  request: ServersUnifiedRequest,
-  context: any
-): Promise<NextResponse> {
-  const { action, serverId, page, limit, search, sortBy, sortOrder, enableRealtime } = request;
+  request: NextRequest,
+  context: { body: { action: ServersUnifiedRequest["action"]; serverId?: string; page?: number; limit?: number; search?: string; sortBy?: ServersUnifiedRequest["sortBy"]; sortOrder?: ServersUnifiedRequest["sortOrder"]; enableRealtime?: boolean; includeProcesses?: boolean; includeMetrics?: boolean; }; query: unknown; params: Record<string, string> }
+): Promise<any> {
+  const { action, serverId, page = 1, limit = 10, search, sortBy = "name", sortOrder = "asc", enableRealtime = false } = context.body;
 
   try {
     debug.log(`🎯 통합 서버 API - 액션: ${action}`, { serverId, page, limit });
@@ -493,51 +493,36 @@ async function handleServersUnified(
 
       case 'detail':
         if (!serverId) {
-          return NextResponse.json(
-            { success: false, error: 'serverId required for detail action' },
-            { status: 400 }
-          );
+          return { success: false, error: 'serverId required for detail action' };
         }
         const serverDetail = await getServerDetail(serverId);
         if (!serverDetail) {
-          return NextResponse.json(
-            { success: false, error: 'Server not found' },
-            { status: 404 }
-          );
+          return { success: false, error: 'Server not found' };
         }
-        return NextResponse.json({
+        return {
           success: true,
           data: serverDetail,
           action: 'detail',
           serverId
-        });
+        };
 
       case 'processes':
         if (!serverId) {
-          return NextResponse.json(
-            { success: false, error: 'serverId required for processes action' },
-            { status: 400 }
-          );
+          return { success: false, error: 'serverId required for processes action' };
         }
         const processData = await getServerProcesses(serverId);
         if (!processData) {
-          return NextResponse.json(
-            { success: false, error: 'Server not found' },
-            { status: 404 }
-          );
+          return { success: false, error: 'Server not found' };
         }
-        return NextResponse.json({
+        return {
           success: true,
           data: processData,
           action: 'processes',
           serverId
-        });
+        };
 
       default:
-        return NextResponse.json(
-          { success: false, error: `Unknown action: ${action}` },
-          { status: 400 }
-        );
+        throw new Error(`Unknown action: ${action}`);
     }
 
     // 필터링 및 정렬
@@ -556,7 +541,7 @@ async function handleServersUnified(
 
     debug.log(`✅ 통합 서버 API 응답: ${paginatedServers.length}개 서버`);
 
-    return NextResponse.json({
+    return {
       success: true,
       action,
       data: paginatedServers,
@@ -583,19 +568,19 @@ async function handleServersUnified(
         systemVersion: 'servers-unified-v1.0'
       },
       timestamp: new Date().toISOString()
-    });
+    };
 
   } catch (error) {
     console.error(`❌ 통합 서버 API 오류 (${action}):`, error);
 
-    return NextResponse.json({
+    return {
       success: false,
       action,
       error: error instanceof Error ? error.message : 'Unknown error',
       fallback: true,
       data: action === 'detail' || action === 'processes' ? null : generateFallbackServers().slice(0, limit),
       timestamp: new Date().toISOString()
-    }, { status: 500 });
+    };
   }
 }
 
@@ -624,7 +609,7 @@ export async function GET(request: NextRequest) {
     includeMetrics: true
   };
 
-  return handleServersUnified(defaultRequest, {});
+  return NextResponse.json(await handleServersUnified(request, { body: defaultRequest, query: {}, params: {} }));
 }
 
 export const dynamic = 'force-dynamic';

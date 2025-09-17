@@ -29,6 +29,7 @@ export interface MockContext {
     cpuTrend: 'increasing' | 'decreasing' | 'stable';
     memoryTrend: 'increasing' | 'decreasing' | 'stable';
     alertTrend: 'increasing' | 'decreasing' | 'stable';
+  scenario: { name: string; }; 
   };
 }
 
@@ -183,6 +184,7 @@ export class MockContextLoader {
           cpuTrend,
           memoryTrend,
           alertTrend,
+          scenario: { name: "normal" },
         },
       };
 
@@ -324,6 +326,7 @@ export class MockContextLoader {
           cpuTrend,
           memoryTrend,
           alertTrend,
+          scenario: { name: "unified" },
         },
       };
 
@@ -404,13 +407,14 @@ export class MockContextLoader {
         trends: {
           cpuTrend,
           memoryTrend,
+          scenario: { name: "dynamic" },
           alertTrend,
         },
       };
 
       console.log('🤖 AI 분석용 통합 컨텍스트 생성 완료:', {
         serverCount: mockContext.servers.length,
-        scenario: mockContext.scenario.name,
+        scenario: mockContext.trends.scenario.name,
         criticalCount: mockContext.metrics.criticalCount,
         warningCount: mockContext.metrics.warningCount,
       });
@@ -455,6 +459,7 @@ export class MockContextLoader {
         servers: [], // AI API에서 staticDataLoader.getCurrentServersData(true) 직접 호출
         trends: {
           cpuTrend: 'stable',
+          scenario: { name: "static" },
           memoryTrend: 'stable',
           alertTrend: 'stable',
         },

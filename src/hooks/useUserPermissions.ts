@@ -211,8 +211,8 @@ export function useUserPermissions(): UserPermissions {
           isPinAuthenticated: isPinAuth,
           canToggleAI: true,
           userType: 'github' as UserType,
-          userName: session.user.name || 'GitHub 사용자',
-          userAvatar: session.user.image,
+          userName: session.user?.name || 'GitHub 사용자',
+          userAvatar: session.user?.image || undefined,
         };
       }
       

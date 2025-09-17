@@ -170,7 +170,7 @@ function buildEnhancedPrompt(originalPrompt: string): { prompt: string; analysis
       enhancedPrompt += `${index + 1}. ${server.name} (${server.type})\n`;
       enhancedPrompt += `   - 상태: ${server.status}\n`;
       enhancedPrompt += `   - CPU: ${server.cpu}%, 메모리: ${server.memory}%, 디스크: ${server.disk}%\n`;
-      enhancedPrompt += `   - 응답시간: ${server.responseTime}ms\n\n`;
+      enhancedPrompt += `   - 응답시간: ${server.responseTime || 'N/A'}ms\n\n`;
     });
   }
   

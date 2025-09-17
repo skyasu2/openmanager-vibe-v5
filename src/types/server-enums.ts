@@ -26,7 +26,7 @@ export type ServerRole =
   | 'load-balancer'
   | 'queue'
   | 'storage'
-  | 'app';
+  | 'app' | 'fallback';
 
 // 서버 타입 (기존 호환성 유지)
 export type ServerType = ServerRole;
@@ -49,7 +49,7 @@ export function isValidServerEnvironment(env: string): env is ServerEnvironment 
 export function isValidServerRole(role: string): role is ServerRole {
   return [
     'web', 'api', 'database', 'cache', 'monitoring', 
-    'security', 'backup', 'load-balancer', 'queue', 'storage', 'app'
+    'security', 'backup', 'load-balancer', 'queue', 'storage', 'app', 'fallback'
   ].includes(role);
 }
 
@@ -71,5 +71,5 @@ export const SERVER_STATUSES: ServerStatus[] = ['online', 'offline', 'warning', 
 export const SERVER_ENVIRONMENTS: ServerEnvironment[] = ['production', 'staging', 'development', 'testing'];
 export const SERVER_ROLES: ServerRole[] = [
   'web', 'api', 'database', 'cache', 'monitoring',
-  'security', 'backup', 'load-balancer', 'queue', 'storage'
+  'security', 'backup', 'load-balancer', 'queue', 'storage', 'app', 'fallback'
 ];

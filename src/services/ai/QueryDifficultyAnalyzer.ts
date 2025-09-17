@@ -336,17 +336,17 @@ export class QueryDifficultyAnalyzer {
     // 사용량 할당량 확인하여 조정
     if (usageQuota) {
       // Pro 모델 할당량 부족 시 Flash로 다운그레이드
-      if (baseModel === 'gemini-2.5-pro' && usageQuota['gemini-2.5-pro']?.daily >= 90) {
+      if (baseModel === 'gemini-2.5-pro' && (usageQuota['gemini-2.5-pro']?.daily ?? 0) >= 90) {
         baseModel = 'gemini-2.5-flash';
       }
 
       // Flash 모델 할당량 부족 시 Flash-Lite로 다운그레이드
-      if (baseModel === 'gemini-2.5-flash' && usageQuota['gemini-2.5-flash']?.daily >= 225) {
+      if (baseModel === 'gemini-2.5-flash' && (usageQuota['gemini-2.5-flash']?.daily ?? 0) >= 225) {
         baseModel = 'gemini-2.5-flash-lite';
       }
 
       // Flash-Lite도 할당량 부족 시 Flash 사용 (더 높은 성능 필요)
-      if (baseModel === 'gemini-2.5-flash-lite' && usageQuota['gemini-2.5-flash-lite']?.daily >= 950) {
+      if (baseModel === 'gemini-2.5-flash-lite' && (usageQuota['gemini-2.5-flash-lite']?.daily ?? 0) >= 950) {
         baseModel = 'gemini-2.5-flash';
       }
     }

@@ -27,6 +27,8 @@ export interface StaticServerData {
       executionTimeSavings: string;
       cacheHitImprovement: string;
     };
+      rotationApplied?: boolean;
+      historyRange?: string;
   };
   servers: Array<{
     id: string;
@@ -196,7 +198,6 @@ export class StaticDataLoader {
     const stats = staticData.hourlyStatistics.find(s => s.hour === currentHour);
     
     return stats || {
-      hour: currentHour,
       totalServers: 15,
       online: 12,
       warning: 2,
@@ -272,7 +273,6 @@ export class StaticDataLoader {
       metadata: {
         ...staticData.metadata,
         description: `현재 시간(${currentHour}시) 기준 24시간 히스토리`,
-        currentHour,
         rotationApplied: true,
         historyRange: `${new Date(currentDate.getTime() - (23 * 60 * 60 * 1000)).toLocaleString()} ~ ${currentDate.toLocaleString()}`
       },

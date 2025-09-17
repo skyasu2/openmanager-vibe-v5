@@ -41,6 +41,10 @@ export interface AIQueryContext {
   previousQueries?: string[];
   /** 추가 메타데이터 */
   metadata?: AIMetadata;
+  /** 도메인 정보 */
+  domain?: string;
+  /** 기술 스택 정보 */
+  techStack?: string[];
 }
 
 /**
@@ -65,6 +69,8 @@ export interface MCPContext {
   servers?: MCPServerInfo[];
   /** 추가 컨텍스트 데이터 */
   additionalContext?: Record<string, unknown>;
+  /** 시스템 컨텍스트 */
+  systemContext?: string;
 }
 
 // ============================================================================

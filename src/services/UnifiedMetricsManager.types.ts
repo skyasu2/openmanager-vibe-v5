@@ -13,6 +13,7 @@ export type ServerEnvironment =
   | 'production'
   | 'staging'
   | 'development'
+  | 'fallback'
   | 'error';
 
 // Server role type
@@ -22,6 +23,7 @@ export type ServerRole =
   | 'database'
   | 'cache'
   | 'worker'
+  | 'fallback'
   | 'error';
 
 // Server status type
