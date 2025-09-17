@@ -26,11 +26,20 @@
       }
     },
     "playwright": {
-      "command": "npx",
-      "args": ["-y", "@executeautomation/playwright-mcp-server"],
+      "command": "node",
+      "args": [
+        "/mnt/d/cursor/openmanager-vibe-v5/node_modules/@executeautomation/playwright-mcp-server/dist/index.js"
+      ],
       "env": {
-        "NODE_OPTIONS": "--max-old-space-size=2048",
-        "PLAYWRIGHT_BROWSERS_PATH": "/home/skyasu/.cache/ms-playwright"
+        "NODE_OPTIONS": "--max-old-space-size=2048 --no-warnings --dns-result-order=ipv4first",
+        "PLAYWRIGHT_BROWSERS_PATH": "/home/skyasu/.cache/ms-playwright",
+        "PLAYWRIGHT_HEADLESS": "true",
+        "PLAYWRIGHT_DISABLE_GPU": "false", 
+        "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1",
+        "DEBUG": "",
+        "PWDEBUG": "0",
+        "MCP_REQUEST_TIMEOUT": "60000",
+        "UV_THREADPOOL_SIZE": "8"
       }
     },
     "shadcn-ui": {
