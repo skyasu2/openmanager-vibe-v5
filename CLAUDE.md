@@ -91,7 +91,7 @@ claude --version     # 버전 확인 (v1.0.112)
 | **Claude Code**       | v1.0.112 | Max ($200/월) | 🏆 **메인 개발 환경**       | WSL 직접 실행 | ✅ 완벽 지원                | 2025-09-15 최신 |
 | **OpenAI CLI (Codex)** | v0.34.0 | Plus ($20/월)       | 🤝 **직접 CLI 실행** ✅ | `codex exec` | ✅ **GPT-5 실무 코드 리뷰**    | 2025-09-16 검증 완료 |
 | **Google Gemini CLI** | **v0.4.1** 🆕 | 무료 (60 RPM/1K RPD)   | 👨‍💻 **직접 CLI 실행** ✅ | `gemini` | ✅ **시스템 아키텍처 설계**    | **2025-09-16 검증 완료** |
-| **Qwen Code**         | v0.0.11  | 무료 (60 RPM/2K RPD)   | 🔷 **5분 타임아웃 사용** ✅ | `timeout 300 qwen -p`   | ✅ **알고리즘 최적화 전문**    | 2025-09-16 성능 확인 |
+| **Qwen Code**         | v0.0.11  | 무료 (60 RPM/2K RPD)   | 🔷 **1분 타임아웃 최적화** ✅ | `timeout 60 qwen -p`   | ✅ **알고리즘 최적화 전문**    | 2025-09-17 타임아웃 해결 |
 | **ccusage**           | **v16.2.4** 🆕 | 무료                | 📊 **Claude 사용량 모니터링** | ccusage daily              | ✅ 완벽 지원                | **2025-09-12 업그레이드** |
 
 > ✅ **2025-09-16 업데이트**: **공식 서브에이전트 호출 방식 적용**. 명시적 호출(`"서브에이전트명 서브에이전트를 사용하여"`) 및 자동 위임 방식 지원. 외부 AI 도구는 직접 CLI 명령어로 실행.
@@ -103,7 +103,7 @@ claude --version     # 버전 확인 (v1.0.112)
 claude --version        # Claude Code v1.0.112
 codex exec "작업 요청"   # Codex CLI 직접 실행
 gemini "작업 요청"       # Gemini CLI 직접 실행  
-timeout 300 qwen -p "작업 요청"  # Qwen CLI 5분 타임아웃
+timeout 60 qwen -p "작업 요청"   # Qwen CLI 1분 타임아웃
 ```
 
 ##### WSL 내부에서 서브에이전트 실행
@@ -117,7 +117,7 @@ cd /mnt/d/cursor/openmanager-vibe-v5
 claude --version               # Claude Code v1.0.112 버전 확인
 codex exec "간단한 테스트"      # Codex CLI 직접 실행 (27초)
 gemini "간단한 테스트"          # Gemini CLI 직접 실행 (즉시)
-timeout 300 qwen -p "복잡한 알고리즘"  # Qwen CLI 5분 타임아웃
+timeout 60 qwen -p "복잡한 알고리즘"   # Qwen CLI 1분 타임아웃
 ccusage --version              # ccusage 버전 확인
 ```
 
@@ -446,7 +446,7 @@ codex exec "이 코드의 보안 취약점 분석"
 #### 🆓 Qwen CLI (Qwen OAuth 무료)
 **Qwen OAuth 브라우저 인증**
 - **한도**: 60 RPM / 2,000 RPD
-- **현재 상태**: qwen-wrapper 8.5/10 안정적 운영
+- **현재 상태**: qwen-wrapper 9.2/10 타임아웃 해결 완료
 
 ### 🔄 협업 시나리오
 
