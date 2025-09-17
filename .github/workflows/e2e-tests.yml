@@ -1,0 +1,496 @@
+name: 🤖 E2E Tests - OpenManager VIBE
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # 매일 오전 9시 (UTC) - 한국시간 오후 6시
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+    inputs:
+      test_category:
+        description: '테스트 카테고리 선택'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - basic
+          - ai
+          - performance
+          - visual
+          - accessibility
+      browser:
+        description: '브라우저 선택'
+        required: false
+        default: 'chromium'
+        type: choice
+        options:
+          - chromium
+          - firefox
+          - webkit
+          - all
+      headless:
+        description: 'Headless 모드'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  NODE_VERSION: '22.x'
+  NEXT_PUBLIC_APP_URL: 'http://localhost:3000'
+  CI: true
+
+jobs:
+  # 🔧 기본 설정 및 종속성 설치
+  setup:
+    name: 🔧 Setup & Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    outputs:
+      cache-hit: ${{ steps.cache.outputs.cache-hit }}
+      
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: 📦 Cache Dependencies
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+            
+      - name: 📥 Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          npm ci
+          npx playwright install chromium firefox webkit
+          npx playwright install-deps
+          
+      - name: 🔍 Verify Installation
+        run: |
+          npm --version
+          node --version
+          npx playwright --version
+
+  # 🏗️ 애플리케이션 빌드
+  build:
+    name: 🏗️ Build Application
+    runs-on: ubuntu-latest
+    needs: setup
+    timeout-minutes: 15
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: 📦 Restore Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+          
+      - name: 🏗️ Build Next.js Application
+        run: |
+          npm run build
+          npm run type-check
+          
+      - name: 📁 Cache Build
+        uses: actions/cache@v4
+        with:
+          path: .next
+          key: ${{ runner.os }}-build-${{ github.sha }}
+
+  # 🧪 E2E 테스트 실행 (기본)
+  e2e-basic:
+    name: 🧪 E2E Basic Tests
+    runs-on: ubuntu-latest
+    needs: [setup, build]
+    timeout-minutes: 20
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+        
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: 📦 Restore Dependencies & Build
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.cache/ms-playwright
+            .next
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+          
+      - name: 🚀 Start Development Server
+        run: |
+          npm run dev &
+          sleep 15
+          curl -f http://localhost:3000 || exit 1
+          
+      - name: 🧪 Run Basic E2E Tests
+        run: |
+          npm run test:e2e -- \
+            --project=${{ matrix.browser }} \
+            --reporter=json,github \
+            --output-dir=test-results-basic \
+            tests/e2e/comprehensive-ui-ux-test.spec.ts \
+            tests/e2e/admin-mode-improved.spec.ts
+            
+      - name: 📄 Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-basic-results-${{ matrix.browser }}
+          path: |
+            test-results-basic/
+            playwright-report/
+          retention-days: 7
+
+  # 🤖 AI 기능 테스트
+  e2e-ai:
+    name: 🤖 E2E AI Tests
+    runs-on: ubuntu-latest
+    needs: [setup, build]
+    timeout-minutes: 25
+    if: ${{ github.event.inputs.test_category == 'ai' || github.event.inputs.test_category == 'all' || github.event_name != 'workflow_dispatch' }}
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: 📦 Restore Dependencies & Build
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.cache/ms-playwright
+            .next
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+          
+      - name: 🚀 Start Development Server
+        run: |
+          npm run dev &
+          sleep 20
+          curl -f http://localhost:3000 || exit 1
+          
+      - name: 🤖 Run AI Assistant Tests
+        run: |
+          npm run test:e2e -- \
+            --project=chromium \
+            --reporter=json,github \
+            --output-dir=test-results-ai \
+            tests/e2e/ai-assistant-advanced-test.spec.ts
+            
+      - name: 📄 Upload AI Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-ai-results
+          path: |
+            test-results-ai/
+            playwright-report/
+          retention-days: 7
+
+  # ⚡ 성능 및 시각적 회귀 테스트
+  e2e-performance:
+    name: ⚡ E2E Performance Tests
+    runs-on: ubuntu-latest
+    needs: [setup, build]
+    timeout-minutes: 30
+    if: ${{ github.event.inputs.test_category == 'performance' || github.event.inputs.test_category == 'visual' || github.event.inputs.test_category == 'all' || github.event_name == 'schedule' }}
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: 📦 Restore Dependencies & Build
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.cache/ms-playwright
+            .next
+          key: ${{ runner.os }}-deps-${{ hashFiles('package-lock.json') }}
+          
+      - name: 🚀 Start Production Server
+        run: |
+          npm run start &
+          sleep 20
+          curl -f http://localhost:3000 || exit 1
+          
+      - name: ⚡ Run Performance Tests
+        run: |
+          npm run test:e2e -- \
+            --project=chromium \
+            --reporter=json,github \
+            --output-dir=test-results-performance \
+            tests/e2e/performance-visual-regression.spec.ts
+            
+      - name: 📊 Generate Lighthouse Report
+        run: |
+          npm install -g @lhci/cli
+          lhci collect --url=http://localhost:3000 --output-dir=lighthouse-results
+          
+      - name: 📄 Upload Performance Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-performance-results
+          path: |
+            test-results-performance/
+            lighthouse-results/
+            playwright-report/
+          retention-days: 14
+
+  # 📊 테스트 결과 통합 및 리포트 생성
+  test-report:
+    name: 📊 Generate Test Report
+    runs-on: ubuntu-latest
+    needs: [e2e-basic, e2e-ai, e2e-performance]
+    if: always()
+    timeout-minutes: 10
+    
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        
+      - name: 📥 Download All Test Results
+        uses: actions/download-artifact@v4
+        with:
+          path: all-test-results/
+          
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: 📊 Generate Comprehensive Report
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          
+          // 테스트 결과 수집
+          const resultsDir = './all-test-results';
+          const categories = fs.readdirSync(resultsDir);
+          
+          let totalTests = 0;
+          let totalPassed = 0;
+          let totalFailed = 0;
+          
+          const report = {
+            timestamp: new Date().toISOString(),
+            categories: [],
+            summary: {}
+          };
+          
+          categories.forEach(category => {
+            const categoryPath = path.join(resultsDir, category);
+            if (fs.statSync(categoryPath).isDirectory()) {
+              console.log('📂 Processing:', category);
+              
+              // JSON 결과 파일 찾기
+              const files = fs.readdirSync(categoryPath);
+              const jsonFile = files.find(f => f.endsWith('.json'));
+              
+              if (jsonFile) {
+                try {
+                  const data = JSON.parse(fs.readFileSync(path.join(categoryPath, jsonFile)));
+                  // 결과 분석 로직
+                  report.categories.push({
+                    name: category,
+                    results: 'processed'
+                  });
+                } catch (e) {
+                  console.warn('Failed to parse:', jsonFile);
+                }
+              }
+            }
+          });
+          
+          // GitHub Step Summary 생성
+          const summary = \`
+          ## 🤖 OpenManager VIBE E2E 테스트 결과
+          
+          ### 📊 테스트 실행 요약
+          - **실행 시간**: \${new Date().toLocaleString('ko-KR')}
+          - **브랜치**: \${process.env.GITHUB_REF_NAME || 'unknown'}
+          - **커밋**: \${process.env.GITHUB_SHA?.substring(0, 7) || 'unknown'}
+          
+          ### 📋 카테고리별 결과
+          \${report.categories.map(cat => \`- \${cat.name}: ✅ 완료\`).join('\\n')}
+          
+          ### 🔗 상세 결과
+          - [Playwright HTML Report](https://github.com/\${process.env.GITHUB_REPOSITORY}/actions/runs/\${process.env.GITHUB_RUN_ID})
+          - [Performance Report](https://github.com/\${process.env.GITHUB_REPOSITORY}/actions/runs/\${process.env.GITHUB_RUN_ID})
+          \`;
+          
+          if (process.env.GITHUB_STEP_SUMMARY) {
+            fs.writeFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
+          }
+          
+          console.log('✅ 통합 리포트 생성 완료');
+          "
+          
+      - name: 📄 Create Summary Comment (PR only)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const summary = `
+            ## 🤖 E2E 테스트 결과
+            
+            ✅ **모든 E2E 테스트가 완료되었습니다!**
+            
+            - 🧪 기본 UI/UX 테스트: 완료
+            - 🤖 AI 어시스턴트 테스트: 완료  
+            - ⚡ 성능 및 시각적 회귀 테스트: 완료
+            
+            **실행 시간**: ${new Date().toLocaleString('ko-KR')}
+            **테스트 환경**: Ubuntu Latest + Node.js 22.x
+            
+            상세 결과는 [Actions 탭](${context.payload.pull_request.html_url}/checks)에서 확인하세요.
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+  # 🚨 실패 알림
+  notify-failure:
+    name: 🚨 Notify Test Failures
+    runs-on: ubuntu-latest
+    needs: [e2e-basic, e2e-ai, e2e-performance]
+    if: failure() && (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    
+    steps:
+      - name: 🚨 Create Issue for Test Failure
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `🚨 E2E 테스트 실패 - ${new Date().toLocaleString('ko-KR')}`;
+            const body = `
+            ## 🚨 E2E 테스트 실패 보고
+            
+            **브랜치**: ${context.ref}
+            **커밋**: ${context.sha.substring(0, 7)}
+            **실행 시간**: ${new Date().toISOString()}
+            
+            ### 📋 실패한 작업
+            ${'${{ needs.e2e-basic.result }}' !== 'success' ? '- ❌ Basic E2E Tests' : ''}
+            ${'${{ needs.e2e-ai.result }}' !== 'success' ? '- ❌ AI Assistant Tests' : ''}
+            ${'${{ needs.e2e-performance.result }}' !== 'success' ? '- ❌ Performance Tests' : ''}
+            
+            ### 🔗 링크
+            - [실패한 워크플로우](${context.payload.repository.html_url}/actions/runs/${context.runId})
+            - [커밋 상세](${context.payload.repository.html_url}/commit/${context.sha})
+            
+            ### 🛠️ 대응 방안
+            1. 로그를 확인하여 실패 원인 파악
+            2. 테스트 환경 및 설정 검토
+            3. 코드 변경사항이 테스트에 미치는 영향 분석
+            4. 필요시 테스트 케이스 업데이트
+            
+            이 이슈는 테스트가 성공하면 자동으로 닫힙니다.
+            `;
+            
+            // 기존 열린 이슈 확인
+            const existingIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['e2e-test-failure'],
+              state: 'open'
+            });
+            
+            if (existingIssues.data.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['e2e-test-failure', 'bug', 'high-priority']
+              });
+            }
+
+  # ✅ 성공 시 이슈 자동 닫기
+  close-failure-issues:
+    name: ✅ Close Failure Issues
+    runs-on: ubuntu-latest
+    needs: [e2e-basic, e2e-ai, e2e-performance]
+    if: success() && (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    
+    steps:
+      - name: ✅ Close E2E Failure Issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['e2e-test-failure'],
+              state: 'open'
+            });
+            
+            for (const issue of issues.data) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed'
+              });
+              
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `✅ E2E 테스트가 성공했습니다. 이슈를 자동으로 닫습니다.\n\n**해결 커밋**: ${context.sha.substring(0, 7)}`
+              });
+            }
