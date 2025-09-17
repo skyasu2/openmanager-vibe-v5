@@ -10,7 +10,47 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { authStateManager } from '@/lib/auth-state-manager';
 import type { UserPermissions, UserType } from '@/types/permissions.types';
-import { useMemo, useEffect, useState } from 'react';
+import { useMemo, useEffect, useState, useSyncExternalStore } from 'react';
+
+/**
+ * localStorage 기반 PIN 인증 상태 store
+ * React 18 useSyncExternalStore를 위한 최적화된 스토어
+ */
+const createAdminModeStore = () => {
+  let listeners: (() => void)[] = [];
+  
+  const getSnapshot = () => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('admin_mode') === 'true';
+  };
+  
+  const subscribe = (listener: () => void) => {
+    listeners.push(listener);
+    
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'admin_mode') {
+        listeners.forEach(l => l());
+      }
+    };
+    
+    const handleManualChange = () => {
+      listeners.forEach(l => l());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('local-storage-changed', handleManualChange);
+    
+    return () => {
+      listeners = listeners.filter(l => l !== listener);
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('local-storage-changed', handleManualChange);
+    };
+  };
+  
+  return { getSnapshot, subscribe };
+};
+
+const adminModeStore = createAdminModeStore();
 
 /**
  * 안전한 기본 권한 생성 함수
@@ -54,6 +94,13 @@ function createSafeDefaultPermissions(
  * Vercel 무료 티어 최적화: 모든 로직이 클라이언트에서 처리됨
  */
 export function useUserPermissions(): UserPermissions {
+  // React 18 useSyncExternalStore로 최적화된 PIN 인증 상태
+  const isPinAuth = useSyncExternalStore(
+    adminModeStore.subscribe,
+    adminModeStore.getSnapshot,
+    () => false // SSR에서 기본값
+  );
+  
   // AuthStateManager 기반 상태 관리
   const [authState, setAuthState] = useState<{
     user: any | null;
@@ -64,10 +111,6 @@ export function useUserPermissions(): UserPermissions {
   // 레거시 호환성을 위한 fallback
   const { data: session, status } = useSession();
   const { user: guestUser, isAuthenticated: isGuestAuth } = useAuth();
-  const adminStore = useUnifiedAdminStore();
-  
-  // 🔥 localStorage 변경 감지를 위한 강제 리렌더링 상태
-  const [storageUpdateTrigger, setStorageUpdateTrigger] = useState(0);
 
   // AuthStateManager에서 통합 상태 가져오기
   useEffect(() => {
@@ -93,36 +136,6 @@ export function useUserPermissions(): UserPermissions {
       isMounted = false;
     };
   }, []);
-  
-  // 🔥 localStorage 변경 감지 시스템 (AI 교차검증 해결책)
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'admin_mode') {
-        console.log('🔄 PIN 인증 상태 변경 감지:', e.newValue);
-        // AuthStateManager 캐시 무효화
-        authStateManager.invalidateCache?.();
-        // 강제 리렌더링 트리거
-        setStorageUpdateTrigger(prev => prev + 1);
-      }
-    };
-    
-    // 수동 storage 이벤트도 감지 (동일 탭 내 변경)
-    const handleManualStorageChange = () => {
-      const adminMode = localStorage.getItem('admin_mode');
-      console.log('🔄 localStorage 수동 변경 감지:', adminMode);
-      authStateManager.invalidateCache?.();
-      setStorageUpdateTrigger(prev => prev + 1);
-    };
-    
-    // 이벤트 리스너 등록
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('local-storage-changed', handleManualStorageChange);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('local-storage-changed', handleManualStorageChange);
-    };
-  }, []);
 
   // 권한 계산 (AuthStateManager 우선, 레거시 fallback)
   const permissions = useMemo(() => {
@@ -140,20 +153,15 @@ export function useUserPermissions(): UserPermissions {
         const userAvatar = user.avatar;
         const userType: UserType = type === 'unknown' ? 'guest' : type;
 
-        // PIN 인증 상태 확인 (localStorage 우선, adminStore fallback)
-        const localStorageAuth = typeof window !== 'undefined' ? localStorage.getItem('admin_mode') === 'true' : false;
-        const adminStoreAuth = adminStore?.adminMode?.isAuthenticated || false;
-        const isPinAuth = localStorageAuth || adminStoreAuth; // localStorage 우선
+        // PIN 인증 상태는 상단의 useSyncExternalStore에서 관리됨
         
-        // 🔍 디버깅: 모든 인증 상태 확인
-        console.log('🔍 [Debug] useUserPermissions - 전체 인증 상태:', {
-          adminStore: !!adminStore,
-          adminStoreAuth,
-          localStorageAuth,
+        // 🔍 디버깅: 통합된 인증 상태 확인
+        console.log('🔍 [Debug] useUserPermissions - 통합 인증 상태:', {
           isPinAuth,
           user,
           type,
-          isAuthenticated
+          isAuthenticated,
+          source: 'localStorage'
         });
 
         // 새로운 권한 매트릭스 적용 (레거시 호환)
@@ -187,10 +195,7 @@ export function useUserPermissions(): UserPermissions {
       const legacySessionAuth = session?.user;
       
       if (legacySessionAuth) {
-        // GitHub 사용자 (레거시 session 기반)
-        const localStorageAuth = typeof window !== 'undefined' ? localStorage.getItem('admin_mode') === 'true' : false;
-        const adminStoreAuth = adminStore?.adminMode?.isAuthenticated || false;
-        const isPinAuth = localStorageAuth || adminStoreAuth; // localStorage 우선
+        // GitHub 사용자 (레거시 session 기반) - PIN 인증은 글로벌 상태 사용
         
         return {
           canControlSystem: isPinAuth,
@@ -212,10 +217,7 @@ export function useUserPermissions(): UserPermissions {
       }
       
       if (legacyGuestAuth) {
-        // 게스트 사용자 (레거시 guestUser 기반)  
-        const localStorageAuth = typeof window !== 'undefined' ? localStorage.getItem('admin_mode') === 'true' : false;
-        const adminStoreAuth = adminStore?.adminMode?.isAuthenticated || false;
-        const isPinAuth = localStorageAuth || adminStoreAuth; // localStorage 우선
+        // 게스트 사용자 (레거시 guestUser 기반) - PIN 인증은 글로벌 상태 사용
         
         return {
           canControlSystem: isPinAuth,
@@ -242,7 +244,7 @@ export function useUserPermissions(): UserPermissions {
       console.error('🔐 [Permissions] 권한 계산 중 오류 발생:', error);
       return createSafeDefaultPermissions('guest', '일반사용자');
     }
-  }, [authState, session, status, guestUser, isGuestAuth, adminStore?.adminMode?.isAuthenticated, storageUpdateTrigger]); // storageUpdateTrigger 추가로 localStorage 변경 감지
+  }, [authState, session, status, guestUser, isGuestAuth, isPinAuth]); // useSyncExternalStore로 최적화된 PIN 인증 상태
 
   return permissions;
 }

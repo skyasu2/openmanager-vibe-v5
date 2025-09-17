@@ -23,13 +23,6 @@ const REQUIRED_ENV_VARS = [
   'GOOGLE_AI_API_KEY',
 ];
 
-/**
- * Redis 환경변수 (둘 중 하나만 있으면 됨)
- */
-const REDIS_ENV_VARS = [
-  ['UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN'],
-  ['KV_REST_API_URL', 'KV_REST_API_TOKEN'],
-];
 
 /**
  * 환경변수 검증 함수
@@ -45,14 +38,7 @@ export function validateEnvironmentVariables(): string[] {
     }
   }
 
-  // Redis 환경변수 체크 (둘 중 하나 세트만 있으면 됨)
-  const hasRedis = REDIS_ENV_VARS.some(
-    ([url, token]) => url && token && process.env[url] && process.env[token]
-  );
-
-  if (!hasRedis) {
-    missing.push('Redis 환경변수 (UPSTASH_REDIS_* 또는 KV_*)');
-  }
+  // Redis 제거됨 - localStorage 기반 상태 관리 사용
 
   return missing;
 }

@@ -2,9 +2,9 @@ import { z } from 'zod';
 import { TimestampSchema } from './common.schema';
 
 /**
- * 💾 캐시 및 Redis 통계 스키마
+ * 💾 캐시 통계 스키마
  *
- * 캐시 성능 지표, Redis 정보, 메모리 사용량, 캐시 통계
+ * 캐시 성능 지표, 메모리 사용량, 캐시 통계 (localStorage 기반)
  */
 
 // ===== 캐시 기본 통계 =====
@@ -32,8 +32,9 @@ export const CachePerformanceSchema = z.object({
   recommendations: z.array(z.string()),
 });
 
-// ===== Redis 서버 정보 =====
+// ===== Redis 제거됨 - localStorage 기반 상태 관리로 대체 =====
 
+/*
 export const RedisInfoSchema = z.object({
   connected: z.boolean(),
   memory: z.string(),
@@ -59,6 +60,7 @@ export const RedisInfoSchema = z.object({
   replBacklogFirstByteOffset: z.number(),
   replBacklogHistlen: z.number(),
 });
+*/
 
 // ===== 메모리 사용량 =====
 
@@ -85,7 +87,7 @@ export const CacheStatsResponseSchema = z.object({
     memoryUsageMB: z.number().nonnegative(),
     performance: CachePerformanceSchema,
   }),
-  redis: RedisInfoSchema,
+  // redis: RedisInfoSchema, // 제거됨
   memory: MemoryUsageSchema,
 });
 
@@ -160,7 +162,7 @@ export const ServerMetricsDetailSchema = z.object({
 
 export type CacheStats = z.infer<typeof CacheStatsSchema>;
 export type CachePerformance = z.infer<typeof CachePerformanceSchema>;
-export type RedisInfo = z.infer<typeof RedisInfoSchema>;
+// export type RedisInfo = z.infer<typeof RedisInfoSchema>; // 제거됨
 export type MemoryUsage = z.infer<typeof MemoryUsageSchema>;
 export type CacheStatsResponse = z.infer<typeof CacheStatsResponseSchema>;
 export type CacheOptimizeRequest = z.infer<typeof CacheOptimizeRequestSchema>;

@@ -8,16 +8,21 @@
 
 import { useState, useRef, useEffect } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
-import { Send, User, Bot, Sparkles } from 'lucide-react';
+import { Send, User, Bot, Sparkles, AlertCircle } from 'lucide-react';
 import { useAIThinking } from '@/stores/useAISidebarStore';
 import debug from '@/utils/debug';
+import type { GoogleAIGenerateResponse } from '@/schemas/api.ai.schema';
 // import ThinkingView from '../ThinkingView'; // 백업됨
 
 interface Message {
   id: string;
-  type: 'user' | 'ai';
+  type: 'user' | 'ai' | 'error';
   content: string;
   timestamp: Date;
+  metadata?: {
+    processingTime?: number;
+    [key: string]: any;
+  };
 }
 
 const QUICK_QUESTIONS = [
@@ -40,7 +45,7 @@ export default function AIChatPage() {
   }, [localMessages]);
 
   // Google AI API 호출 함수
-  const callGoogleAI = async (prompt: string): Promise<GoogleAIResponse> => {
+  const callGoogleAI = async (prompt: string): Promise<GoogleAIGenerateResponse> => {
     const response = await fetch('/api/ai/google-ai/generate', {
       method: 'POST',
       headers: {
@@ -92,15 +97,15 @@ export default function AIChatPage() {
           content: apiResponse.response || apiResponse.text || '응답을 받을 수 없습니다.',
           timestamp: new Date(),
           metadata: {
-            processingTime,
-            ...(apiResponse.metadata || {})
+            ...apiResponse.metadata,
+            processingTime
           }
         };
         
         setLocalMessages((prev) => [...prev, aiMessage]);
         debug.log(`✅ Google AI 응답 성공: ${processingTime}ms`);
       } else {
-        throw new Error(apiResponse.message || 'AI 응답에서 오류가 발생했습니다.');
+        throw new Error('message' in apiResponse ? apiResponse.message : 'AI 응답에서 오류가 발생했습니다.');
       }
     } catch (error) {
       debug.error('❌ Google AI 오류:', error);

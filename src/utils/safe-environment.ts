@@ -184,27 +184,6 @@ class SafeEnvironmentAccessImpl implements SafeEnvironmentAccess {
     };
   }
 
-  getRedisConfig(): { isConfigured: boolean; url: string; token: string } {
-    if (this._isBuildTime) {
-      return {
-        url: '',
-        token: '',
-        isConfigured: false,
-      };
-    }
-
-    const url =
-      this.get('UPSTASH_REDIS_REST_URL', '') || this.get('KV_REST_API_URL', '');
-    const token =
-      this.get('UPSTASH_REDIS_REST_TOKEN', '') ||
-      this.get('KV_REST_API_TOKEN', '');
-
-    return {
-      url,
-      token,
-      isConfigured: !!(url && token),
-    };
-  }
 
   getGoogleAIConfig(): GoogleAIEnvConfig {
     if (this._isBuildTime) {

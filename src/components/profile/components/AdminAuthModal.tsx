@@ -94,6 +94,7 @@ export const AdminAuthModal = memo(function AdminAuthModal({
           <button
             onClick={onSubmit}
             disabled={isLocked || isProcessing || !adminPassword}
+            data-testid="admin-auth-confirm-button"
             className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
               isLocked || isProcessing || !adminPassword
                 ? 'cursor-not-allowed bg-gray-300 text-gray-500'
@@ -113,6 +114,7 @@ export const AdminAuthModal = memo(function AdminAuthModal({
           <button
             onClick={onCancel}
             disabled={isProcessing}
+            data-testid="admin-auth-cancel-button"
             className="flex-1 rounded-md bg-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 transition-all hover:bg-gray-400 disabled:opacity-50"
           >
             취소
