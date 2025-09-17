@@ -35,6 +35,9 @@ updated: "2025-09-09"
   - *관련*: [Design System](design/system.md) → [Database](db/schema.md) → [Security](design/security.md)
 - **[🔧 Common Issues](troubleshoot/common.md)** - 디버그 솔루션
   - *관련*: [MCP Advanced](mcp/advanced.md) → [WSL Guide](guides/wsl.md) → [Build Issues](troubleshoot/build.md)
+- **[🖥️ WSL 모니터링 가이드](troubleshooting/wsl-monitoring-guide.md)** - WSL 문제 해결 통합 도구 ⭐ **신규 (개발 전용)**
+  - *관련*: [WSL Guide](guides/wsl.md) → [Common Issues](troubleshoot/common.md) → [MCP Advanced](mcp/advanced.md)
+  - *용도*: 개발 환경 진단, MCP 서버 상태 추적, 시스템 성능 분석
 
 ### 📊 Technical Reference - 전문 영역별 워크플로우
 
@@ -94,9 +97,10 @@ docs/ - AI 도구 최적화 구조 (크로스 레퍼런스 완비)
 ├── ui/            # UI (3 files) - shadcn/ui 컴포넌트
 │   ├── components.md       → testing/e2e.md → design/system.md
 │   └── styling.md          → performance/bundle.md → design/consistency.md
-├── troubleshoot/  # 문제해결 (2 files) - 디버그 솔루션
+├── troubleshoot/  # 문제해결 (3 files) - 디버그 솔루션
 │   ├── common.md           → mcp/advanced.md → guides/wsl.md
-│   └── build.md            → testing/README.md → deploy/vercel.md
+│   ├── build.md            → testing/README.md → deploy/vercel.md
+│   └── wsl-monitoring-guide.md → WSL 통합 모니터링 도구 활용법 ⭐ **신규**
 ├── auth/          # 인증 (1 file) - GitHub OAuth
 │   └── github-oauth.md     → api/routes.md → design/security.md
 ├── snippets/      # 코드 (4 files) - 재사용 코드
