@@ -52,9 +52,9 @@ class StreamingManager {
     return new ReadableStream({
       start(controller) {
         // 초기 데이터 전송
-        const initialLogs = this.generateMockLogs(10);
+        const initialLogs = StreamingManager.generateMockLogs(10);
         initialLogs.forEach(log => {
-          if (this.matchesFilter(log, filters)) {
+          if (StreamingManager.matchesFilter(log, filters)) {
             const data = `data: ${JSON.stringify(log)}\n\n`;
             controller.enqueue(new TextEncoder().encode(data));
           }
@@ -62,9 +62,9 @@ class StreamingManager {
 
         // 주기적 업데이트
         const interval = setInterval(() => {
-          const newLogs = this.generateMockLogs(2);
+          const newLogs = StreamingManager.generateMockLogs(2);
           newLogs.forEach(log => {
-            if (this.matchesFilter(log, filters)) {
+            if (StreamingManager.matchesFilter(log, filters)) {
               const data = `data: ${JSON.stringify(log)}\n\n`;
               controller.enqueue(new TextEncoder().encode(data));
             }
