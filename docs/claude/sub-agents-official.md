@@ -4,7 +4,7 @@ title: "Claude Code 서브에이전트 공식 가이드"
 keywords: ["claude-code", "sub-agents", "official", "anthropic"]
 priority: high
 ai_optimized: true
-related_docs: ["ai-cross-verification-v4.md", "../ai/agents-mcp.md"]
+related_docs: ["ai-cross-verification-v4.md", "../ai/agents-mcp.md", "../../archive/docs/current/ai-tools/ai-cross-verification-index.md"]
 updated: "2025-09-16"
 version: "v1.0"
 status: "active"
