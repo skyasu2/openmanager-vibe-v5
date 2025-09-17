@@ -13,7 +13,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createApiRoute } from '@/lib/api/zod-middleware';
-import { withAuth } from '@/lib/api-auth';
 import debug from '@/utils/debug';
 
 // 통합 요청 스키마
@@ -166,26 +165,37 @@ async function handleAICoreRequest(request: AICoreRequest) {
 }
 
 // API 라우트 정의
-export const POST = createApiRoute(
-  aiCoreRequestSchema,
-  withAuth(async (validatedData: AICoreRequest, request: NextRequest) => {
+export const POST = createApiRoute()
+  .body(aiCoreRequestSchema)
+  .configure({
+    showDetailedErrors: process.env.NODE_ENV === 'development',
+    enableLogging: true,
+  })
+  .build(async (request, context) => {
+    const validatedData = context.body;
+    
     debug.log('AI Core Engine Request:', {
       engine: validatedData.engine,
       promptLength: validatedData.prompt.length,
       model: validatedData.model
     });
 
-    const result = await handleAICoreRequest(validatedData);
+    // Default values for required fields
+    const requestWithDefaults: AICoreRequest = {
+      engine: validatedData.engine || 'query',
+      prompt: validatedData.prompt,
+      model: validatedData.model,
+      temperature: validatedData.temperature,
+      maxTokens: validatedData.maxTokens,
+      stream: validatedData.stream || false,
+      systemPrompt: validatedData.systemPrompt,
+      context: validatedData.context
+    };
+
+    const result = await handleAICoreRequest(requestWithDefaults);
     
-    return NextResponse.json(result, {
-      status: result.success ? 200 : 500,
-      headers: {
-        'Cache-Control': 'no-cache',
-        'Content-Type': 'application/json'
-      }
-    });
-  })
-);
+    return result;
+  });
 
 // GET 엔드포인트 - 엔진 상태 조회
 export async function GET() {

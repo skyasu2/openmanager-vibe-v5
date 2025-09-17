@@ -16,7 +16,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createApiRoute } from '@/lib/api/zod-middleware';
-import { withAuth } from '@/lib/api-auth';
 import { supabase } from '@/lib/supabase/supabase-client';
 import debug from '@/utils/debug';
 
@@ -253,62 +252,70 @@ export async function GET(request: NextRequest) {
 }
 
 // POST 핸들러 - 분석 실행
-export const POST = createApiRoute(
-  monitoringRequestSchema,
-  withAuth(async (validatedData: MonitoringRequest, request: NextRequest) => {
+export const POST = createApiRoute()
+  .body(monitoringRequestSchema)
+  .configure({
+    showDetailedErrors: process.env.NODE_ENV === 'development',
+    enableLogging: true,
+  })
+  .build(async (request, context) => {
+    const validatedData = context.body;
+    
     debug.log('AI Monitoring POST Request:', validatedData);
 
     const startTime = Date.now();
     let result;
 
     try {
-      switch (validatedData.type) {
+      // Default values for required fields
+      const requestWithDefaults: MonitoringRequest = {
+        type: validatedData.type,
+        timeRange: validatedData.timeRange || '1h',
+        serverId: validatedData.serverId,
+        metrics: validatedData.metrics,
+        analysisDepth: validatedData.analysisDepth || 'standard'
+      };
+
+      switch (requestWithDefaults.type) {
         case 'intelligent':
-          result = await AIMonitoringCollector.getIntelligentMonitoring(validatedData);
+          result = await AIMonitoringCollector.getIntelligentMonitoring(requestWithDefaults);
           break;
         case 'incident':
-          result = await AIMonitoringCollector.getIncidentReport(validatedData.serverId);
+          result = await AIMonitoringCollector.getIncidentReport(requestWithDefaults.serverId);
           break;
         default:
           // GET 방식으로 처리
-          switch (validatedData.type) {
+          switch (requestWithDefaults.type) {
             case 'system':
-              result = await AIMonitoringCollector.getSystemMetrics(validatedData.timeRange);
+              result = await AIMonitoringCollector.getSystemMetrics(requestWithDefaults.timeRange);
               break;
             case 'performance':
-              result = await AIMonitoringCollector.getPerformanceMetrics(validatedData.timeRange);
+              result = await AIMonitoringCollector.getPerformanceMetrics(requestWithDefaults.timeRange);
               break;
             case 'cache':
-              result = await AIMonitoringCollector.getCacheStats(validatedData.timeRange);
+              result = await AIMonitoringCollector.getCacheStats(requestWithDefaults.timeRange);
               break;
             case 'raw':
-              result = await AIMonitoringCollector.getRawMetrics(validatedData.timeRange);
+              result = await AIMonitoringCollector.getRawMetrics(requestWithDefaults.timeRange);
               break;
           }
       }
 
       const responseTime = Date.now() - startTime;
 
-      return NextResponse.json({
+      return {
         success: true,
-        type: validatedData.type,
+        type: requestWithDefaults.type,
         responseTime,
         timestamp: new Date().toISOString(),
-        request: validatedData,
+        request: requestWithDefaults,
         result
-      });
+      };
 
     } catch (error) {
       const responseTime = Date.now() - startTime;
       debug.error('AI Monitoring Analysis Error:', error);
       
-      return NextResponse.json({
-        success: false,
-        type: validatedData.type,
-        responseTime,
-        timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }, { status: 500 });
+      throw error;
     }
-  })
-);
+  });

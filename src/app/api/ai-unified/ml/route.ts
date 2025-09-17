@@ -14,7 +14,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createApiRoute } from '@/lib/api/zod-middleware';
-import { withAuth } from '@/lib/api-auth';
 import debug from '@/utils/debug';
 
 // ML 작업 타입 정의
@@ -209,9 +208,15 @@ class MLProcessor {
 }
 
 // POST 핸들러 - ML 작업 실행
-export const POST = createApiRoute(
-  mlRequestSchema,
-  withAuth(async (validatedData: MLRequest, request: NextRequest) => {
+export const POST = createApiRoute()
+  .body(mlRequestSchema)
+  .configure({
+    showDetailedErrors: process.env.NODE_ENV === 'development',
+    enableLogging: true,
+  })
+  .build(async (request, context) => {
+    const validatedData = context.body;
+    
     debug.log('ML Operation Request:', {
       operation: validatedData.operation,
       type: validatedData.type,
@@ -247,29 +252,22 @@ export const POST = createApiRoute(
 
       const responseTime = Date.now() - startTime;
 
-      return NextResponse.json({
+      return {
         success: true,
         operation: validatedData.operation,
         responseTime,
         timestamp: new Date().toISOString(),
         request: validatedData,
         result
-      });
+      };
 
     } catch (error) {
       const responseTime = Date.now() - startTime;
       debug.error('ML Operation Error:', error);
       
-      return NextResponse.json({
-        success: false,
-        operation: validatedData.operation,
-        responseTime,
-        timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }, { status: 500 });
+      throw error;
     }
-  })
-);
+  });
 
 // GET 핸들러 - ML 상태 및 정보 조회
 export async function GET(request: NextRequest) {

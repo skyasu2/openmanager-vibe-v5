@@ -12,7 +12,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createApiRoute } from '@/lib/api/zod-middleware';
-import { withAuth } from '@/lib/api-auth';
 import debug from '@/utils/debug';
 
 // 스트리밍 타입 정의
@@ -284,9 +283,15 @@ export async function GET(request: NextRequest) {
 }
 
 // POST 핸들러 - 스트리밍 설정
-export const POST = createApiRoute(
-  streamingRequestSchema,
-  withAuth(async (validatedData: StreamingRequest, request: NextRequest) => {
+export const POST = createApiRoute()
+  .body(streamingRequestSchema)
+  .configure({
+    showDetailedErrors: process.env.NODE_ENV === 'development',
+    enableLogging: true,
+  })
+  .build(async (request, context) => {
+    const validatedData = context.body;
+    
     debug.log('Streaming POST Request:', validatedData);
 
     try {
@@ -301,20 +306,16 @@ export const POST = createApiRoute(
         createdAt: new Date().toISOString()
       };
 
-      return NextResponse.json({
+      return {
         success: true,
         streamingConfig,
         streamUrl: `/api/ai-unified/streaming?type=${validatedData.type}&format=${validatedData.format}`,
         message: 'Streaming configuration saved. Use GET endpoint to start streaming.'
-      });
+      };
 
     } catch (error) {
       debug.error('Streaming Configuration Error:', error);
       
-      return NextResponse.json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }, { status: 500 });
+      throw error;
     }
-  })
-);
+  });
