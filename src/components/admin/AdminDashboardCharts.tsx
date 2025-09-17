@@ -16,7 +16,16 @@ import {
   Line,
   Legend,
 } from 'recharts';
-import { SafeTooltipProps, SafeLineProps, SafeBarProps, SafePieProps, ExtendedTooltipProps, ExtendedYAxisProps, SafeCartesianGridProps } from '@/types/CustomRechartsTypes';
+import { SafeLineProps, SafeBarProps, SafePieProps, ExtendedTooltipProps, ExtendedYAxisProps, SafeCartesianGridProps } from '@/types/CustomRechartsTypes';
+import type { SystemHealthAPIResponse } from '@/types/admin-dashboard.types';
+import { COLORS, SEVERITY_COLORS } from '@/constants/chart-colors';
+import {
+  getPerformanceChartData,
+  getAvailabilityChartData,
+  getAlertsChartData,
+  getTrendsChartData,
+} from '@/utils/admin-chart-data';
+import CustomTooltip from './charts/CustomTooltip';
 import {
   Activity,
   Server,
@@ -28,103 +37,6 @@ import {
 } from 'lucide-react';
 import { timerManager } from '@/utils/TimerManager';
 
-// 📊 API 응답 타입 정의
-interface SystemHealthAPIResponse {
-  success: boolean;
-  timestamp: string;
-  summary: {
-    overallStatus: 'healthy' | 'warning' | 'critical';
-    healthScore: number;
-    serverCount: number;
-    criticalIssues: number;
-    warnings: number;
-    dataSource: 'api' | 'fallback' | 'none';
-  };
-  metrics: {
-    current: {
-      avgCpuUsage: number;
-      avgMemoryUsage: number;
-      avgDiskUsage: number;
-      avgResponseTime: number;
-      totalAlerts: number;
-      serverStatusDistribution: Record<string, number>;
-      providerDistribution: Record<string, number>;
-      healthScore: number;
-    };
-    trends: Record<
-      string,
-      {
-        trend: 'increasing' | 'decreasing' | 'stable';
-        changeRate: number;
-        volatility: number;
-      }
-    >;
-    movingAverages: Record<string, number>;
-    predictions: Record<string, { nextValue: number; confidence: number }>;
-  };
-  anomalies: Array<{
-    id: string;
-    type: 'performance' | 'availability' | 'resource' | 'pattern';
-    severity: 'low' | 'medium' | 'high' | 'critical';
-    description: string;
-    recommendation: string;
-    detectedAt: string;
-  }>;
-  recommendations: string[];
-  charts: {
-    performanceChart: {
-      labels: string[];
-      datasets: Array<{
-        label: string;
-        data: number[];
-        status: string;
-        trend: string;
-      }>;
-    };
-    availabilityChart: {
-      rate: number;
-      status: string;
-      online: number;
-      total: number;
-    };
-    alertsChart: {
-      total: number;
-      bySeverity: Record<string, number>;
-      trend: string;
-    };
-    trendsChart: {
-      timePoints: string[];
-      metrics: Record<string, number[]>;
-    };
-  };
-}
-
-// 🎨 색상 팔레트
-const COLORS = {
-  primary: '#3B82F6',
-  success: '#10B981',
-  warning: '#F59E0B',
-  danger: '#EF4444',
-  info: '#06B6D4',
-  purple: '#8B5CF6',
-  pink: '#EC4899',
-  indigo: '#6366F1',
-};
-
-const _STATUS_COLORS = {
-  healthy: COLORS.success,
-  warning: COLORS.warning,
-  critical: COLORS.danger,
-  good: COLORS.success,
-  excellent: COLORS.success,
-};
-
-const SEVERITY_COLORS = {
-  critical: COLORS.danger,
-  high: '#FF6B6B',
-  medium: COLORS.warning,
-  low: '#FFA726',
-};
 
 export default function AdminDashboardCharts() {
   const [data, setData] = useState<SystemHealthAPIResponse | null>(null);
@@ -183,92 +95,6 @@ export default function AdminDashboardCharts() {
     };
   }, [autoRefresh, fetchHealthData]);
 
-  // 📊 성능 차트 데이터 변환
-  const getPerformanceChartData = () => {
-    if (!data?.charts.performanceChart) return [];
-
-    const { labels, datasets } = data.charts.performanceChart;
-    return labels.map((label, index) => ({
-      name: label,
-      value: datasets[0]?.data[index] || 0,
-      color:
-        label === 'CPU'
-          ? COLORS.danger
-          : label === 'Memory'
-            ? COLORS.warning
-            : label === 'Disk'
-              ? COLORS.info
-              : COLORS.primary,
-    }));
-  };
-
-  // 🥧 가용성 도넛 차트 데이터
-  const getAvailabilityChartData = () => {
-    if (!data?.charts.availabilityChart) return [];
-
-    const { online, total } = data.charts.availabilityChart;
-    const offline = total - online;
-
-    return [
-      { name: '온라인', value: online, color: COLORS.success },
-      { name: '오프라인', value: offline, color: COLORS.danger },
-    ];
-  };
-
-  // 📢 알림 분포 차트 데이터
-  const getAlertsChartData = () => {
-    if (!data?.charts.alertsChart.bySeverity) return [];
-
-    const { bySeverity } = data.charts.alertsChart;
-
-    return Object.entries(bySeverity)
-      .map(([severity, count]) => ({
-        name: severity.charAt(0).toUpperCase() + severity.slice(1),
-        value: count,
-        color:
-          SEVERITY_COLORS[severity as keyof typeof SEVERITY_COLORS] ||
-          COLORS.info,
-      }))
-      .filter((item) => item.value > 0);
-  };
-
-  // 📈 트렌드 라인 차트 데이터
-  const getTrendsChartData = () => {
-    if (!data?.charts.trendsChart) return [];
-
-    const { timePoints, metrics } = data.charts.trendsChart;
-
-    return timePoints.map((timePoint, index) => ({
-      time: new Date(timePoint).toLocaleTimeString('ko-KR', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-      CPU: metrics.cpu?.[index] || 0,
-      Memory: metrics.memory?.[index] || 0,
-      Alerts: metrics.alerts?.[index] || 0,
-    }));
-  };
-
-  // 🎨 커스텀 툴팁 컴포넌트 (타입 안전성 확보)
-  const CustomTooltip = ({ active, payload, label }: SafeTooltipProps<number, string>) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
-          <p className="font-semibold text-gray-800">{label}</p>
-          {payload.map((entry, index: number) => (
-            <p key={index} style={{ color: entry.color }} className="text-sm">
-              {entry.name}:{' '}
-              {typeof entry.value === 'number'
-                ? entry.value.toFixed(1)
-                : entry.value}
-              {entry.name !== 'Alerts' && '%'}
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
 
   // 🔄 수동 새로고침
   const handleManualRefresh = () => {
@@ -330,10 +156,10 @@ export default function AdminDashboardCharts() {
 
   if (!data) return null;
 
-  const performanceData = getPerformanceChartData();
-  const availabilityData = getAvailabilityChartData();
-  const alertsData = getAlertsChartData();
-  const trendsData = getTrendsChartData();
+  const performanceData = getPerformanceChartData(data);
+  const availabilityData = getAvailabilityChartData(data);
+  const alertsData = getAlertsChartData(data);
+  const trendsData = getTrendsChartData(data);
 
   return (
     <div className="min-h-screen space-y-6 bg-gray-50 p-6">

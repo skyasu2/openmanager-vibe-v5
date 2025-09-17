@@ -11,6 +11,14 @@
 'use client';
 
 import AIInsightsCard from '@/components/dashboard/AIInsightsCard';
+import type {
+  IntelligentAnalysisRequest,
+  ExtendedIntelligentAnalysisResult,
+  StepResult,
+  AnomalyDetectionResult,
+  RootCauseAnalysisResult,
+  PredictiveMonitoringResult,
+} from '@/types/intelligent-monitoring.types';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   AlertTriangle,
@@ -35,59 +43,12 @@ import {
 import { useState, useEffect } from 'react';
 // MLDataManager 제거 - 클라이언트에서 Redis 사용 불가
 
-interface IntelligentAnalysisRequest {
-  serverId?: string;
-  analysisDepth: 'quick' | 'standard' | 'deep';
-  includeSteps: {
-    anomalyDetection: boolean;
-    rootCauseAnalysis: boolean;
-    predictiveMonitoring: boolean;
-  };
-}
-
-interface StepResult {
-  status: 'completed' | 'failed' | 'skipped';
-  summary: string;
-  confidence: number;
-  processingTime: number;
-}
-
-interface AnomalyDetectionResult extends StepResult {
-  anomalies: unknown[];
-}
-
-interface RootCauseAnalysisResult extends StepResult {
-  causes: unknown[];
-  aiInsights: unknown[];
-}
-
-interface PredictiveMonitoringResult extends StepResult {
-  predictions: unknown[];
-  recommendations: string[];
-}
-
-interface IntelligentAnalysisResult {
-  analysisId: string;
-  timestamp: string;
-  request: IntelligentAnalysisRequest;
-  anomalyDetection: AnomalyDetectionResult;
-  rootCauseAnalysis: RootCauseAnalysisResult;
-  predictiveMonitoring: PredictiveMonitoringResult;
-  overallResult: {
-    severity: 'low' | 'medium' | 'high' | 'critical';
-    actionRequired: boolean;
-    priorityActions: string[];
-    summary: string;
-    confidence: number;
-    totalProcessingTime: number;
-  };
-}
 
 export default function IntelligentMonitoringPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentStep, setCurrentStep] = useState<string>('준비');
   const [progress, setProgress] = useState(0);
-  const [result, setResult] = useState<IntelligentAnalysisResult | null>(null);
+  const [result, setResult] = useState<ExtendedIntelligentAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showAIInsights, setShowAIInsights] = useState(true);
   const [_lastInsightsRefresh, _setLastInsightsRefresh] = useState<number>(0);
@@ -863,51 +824,3 @@ export default function IntelligentMonitoringPage() {
   );
 }
 
-/**
- * 🎯 사이드바용 이상감지/예측 모달 컴포넌트
- */
-interface IntelligentMonitoringModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export function IntelligentMonitoringModal({
-  isOpen,
-  onClose,
-}: IntelligentMonitoringModalProps) {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="h-[90vh] w-full max-w-6xl overflow-hidden rounded-xl bg-white shadow-2xl">
-        {/* 모달 헤더 */}
-        <div className="flex items-center justify-between border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-teal-50 p-4">
-          <div className="flex items-center space-x-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500">
-              <Monitor className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">이상감지/예측</h2>
-              <p className="text-sm text-gray-600">
-                통합 AI 분석: 이상탐지 → 근본원인 → 예측모니터링
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-2 transition-colors hover:bg-gray-100"
-            title="모달 닫기"
-            aria-label="모달 닫기"
-          >
-            <X className="h-5 w-5 text-gray-500" />
-          </button>
-        </div>
-
-        {/* 모달 내용 */}
-        <div className="h-full overflow-auto p-4">
-          <IntelligentMonitoringPage />
-        </div>
-      </div>
-    </div>
-  );
-}

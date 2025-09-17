@@ -11,11 +11,23 @@
 
 import type { AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
 import AIAssistantIconPanel from '@/components/ai/AIAssistantIconPanel';
-import AutoReportPage from '@/components/ai/pages/AutoReportPage';
-import IntelligentMonitoringPage from '@/components/ai/pages/IntelligentMonitoringPage';
-import { MLLearningCenter } from '@/components/ai/pages/MLLearningCenter';
 // React import 제거 - Next.js 15 자동 JSX Transform 사용
-import { type FC } from 'react';
+import { type FC, Suspense, lazy } from 'react';
+
+// 📦 동적 임포트로 초기 로딩 최적화
+const AutoReportPage = lazy(() => import('@/components/ai/pages/AutoReportPage'));
+const IntelligentMonitoringPage = lazy(() => import('@/components/ai/pages/IntelligentMonitoringPage'));
+const MLLearningCenter = lazy(() => import('@/components/ai/pages/MLLearningCenter').then(module => ({ default: module.MLLearningCenter })));
+
+// 🔄 로딩 스피너 컴포넌트
+const LoadingSpinner = () => (
+  <div className="flex h-full items-center justify-center">
+    <div className="flex flex-col items-center space-y-4">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
+      <span className="text-sm text-white/70">로딩 중...</span>
+    </div>
+  </div>
+);
 
 interface AIFunctionPagesProps {
   selectedFunction: AIAssistantFunction;
@@ -45,21 +57,27 @@ export const AIFunctionPages: FC<AIFunctionPagesProps> = ({
       case 'auto-report':
         return (
           <div data-testid="auto-report-page">
-            <AutoReportPage />
+            <Suspense fallback={<LoadingSpinner />}>
+              <AutoReportPage />
+            </Suspense>
           </div>
         );
 
       case 'intelligent-monitoring':
         return (
           <div data-testid="intelligent-monitoring-page">
-            <IntelligentMonitoringPage />
+            <Suspense fallback={<LoadingSpinner />}>
+              <IntelligentMonitoringPage />
+            </Suspense>
           </div>
         );
 
       case 'advanced-management':
         return (
           <div data-testid="advanced-management-page">
-            <MLLearningCenter />
+            <Suspense fallback={<LoadingSpinner />}>
+              <MLLearningCenter />
+            </Suspense>
           </div>
         );
 
