@@ -38,7 +38,7 @@ alias mcp-test="cd $PROJECT_ROOT && source scripts/test-mcp-servers.sh"
 # GCP 환경변수 추가
 export GCP_PROJECT_ID="openmanager-free-tier"
 export GOOGLE_CLOUD_PROJECT="openmanager-free-tier"
-export PATH="$PATH:/home/skyasu/google-cloud-sdk/bin"
+export PATH="$PATH:$HOME/google-cloud-sdk/bin"
 
 # MCP 환경변수 끝
 EOF

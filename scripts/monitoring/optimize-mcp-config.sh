@@ -9,6 +9,32 @@ PROJECT_ROOT="/mnt/d/cursor/openmanager-vibe-v5"
 MCP_CONFIG="$PROJECT_ROOT/.mcp.json"
 LOG_FILE="/tmp/mcp-config-optimize.log"
 
+# 사용자 홈 경로 및 공통 실행 파일 경로 계산
+USER_HOME="${HOME:-$(getent passwd "$USER" | cut -d: -f6)}"
+CLAUDE_DIR="$USER_HOME/.claude"
+DEFAULT_UVX_PATH="$USER_HOME/.local/bin/uvx"
+
+if command -v uvx >/dev/null 2>&1; then
+    UVX_BIN="$(command -v uvx)"
+else
+    UVX_BIN="$DEFAULT_UVX_PATH"
+fi
+
+if command -v npm >/dev/null 2>&1; then
+    NODE_MODULES_GLOBAL="$(npm root -g 2>/dev/null || true)"
+fi
+
+if [ -z "$NODE_MODULES_GLOBAL" ]; then
+    NODE_VERSION="$(node -v 2>/dev/null)"
+    if [ -n "$NODE_VERSION" ]; then
+        NODE_MODULES_GLOBAL="$USER_HOME/.nvm/versions/node/$NODE_VERSION/lib/node_modules"
+    else
+        NODE_MODULES_GLOBAL="$USER_HOME/.nvm/versions/node"
+    fi
+fi
+
+GOOGLE_CLOUD_MCP_PATH="${GOOGLE_CLOUD_MCP_PATH:-$NODE_MODULES_GLOBAL/google-cloud-mcp/dist/index.js}"
+
 # 버전 정보
 SCRIPT_VERSION="2.0.0"
 UPDATE_DATE="2025-08-17"
@@ -51,7 +77,7 @@ optimize_mcp_config() {
     local temp_config=$(mktemp)
     
     # 최적화된 12개 서버 설정 생성
-    cat > "$temp_config" << 'EOF'
+    cat > "$temp_config" <<EOF
 {
   "mcpServers": {
     "filesystem": {
@@ -76,7 +102,7 @@ optimize_mcp_config() {
         "@modelcontextprotocol/server-github"
       ],
       "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "\${GITHUB_PERSONAL_ACCESS_TOKEN}"
       }
     },
     "supabase": {
@@ -85,16 +111,16 @@ optimize_mcp_config() {
         "-y",
         "@supabase/mcp-server-supabase@latest",
         "--project-ref",
-        "${SUPABASE_PROJECT_ID}"
+        "\${SUPABASE_PROJECT_ID}"
       ],
       "env": {
-        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
+        "SUPABASE_ACCESS_TOKEN": "\${SUPABASE_ACCESS_TOKEN}"
       }
     },
     "gcp": {
       "command": "node",
       "args": [
-        "/home/skyasu/.nvm/versions/node/v22.18.0/lib/node_modules/google-cloud-mcp/dist/index.js"
+        "$GOOGLE_CLOUD_MCP_PATH"
       ],
       "env": {
         "GOOGLE_CLOUD_PROJECT": "openmanager-free-tier"
@@ -131,8 +157,8 @@ optimize_mcp_config() {
         "@upstash/context7-mcp"
       ],
       "env": {
-        "UPSTASH_REDIS_REST_URL": "${UPSTASH_REDIS_REST_URL}",
-        "UPSTASH_REDIS_REST_TOKEN": "${UPSTASH_REDIS_REST_TOKEN}"
+        "UPSTASH_REDIS_REST_URL": "\${UPSTASH_REDIS_REST_URL}",
+        "UPSTASH_REDIS_REST_TOKEN": "\${UPSTASH_REDIS_REST_TOKEN}"
       }
     },
     "shadcn": {
@@ -143,7 +169,7 @@ optimize_mcp_config() {
       ]
     },
     "time": {
-      "command": "/home/skyasu/.local/bin/uvx",
+      "command": "$UVX_BIN",
       "args": [
         "mcp-server-time"
       ]
@@ -263,7 +289,7 @@ EOF
 
 # Claude Code 설정 최적화 권장사항 생성
 create_claude_settings_optimization() {
-    local claude_settings_dir="/home/skyasu/.claude"
+    local claude_settings_dir="$CLAUDE_DIR"
     local claude_settings="$claude_settings_dir/settings.json"
     
     # 디렉토리가 없으면 생성
@@ -300,7 +326,14 @@ verify_mcp_servers() {
     log_info "MCP 서버 상태 검증 중 (12개 서버)..."
     
     # 필수 명령어들 확인
-    local commands=("npx" "node" "/home/skyasu/.local/bin/uvx" "curl" "jq")
+    local uvx_command
+    if command -v uvx >/dev/null 2>&1; then
+        uvx_command="uvx"
+    else
+        uvx_command="$UVX_BIN"
+    fi
+
+    local commands=("npx" "node" "$uvx_command" "curl" "jq")
     for cmd in "${commands[@]}"; do
         if command -v "$cmd" > /dev/null 2>&1; then
             log_success "$cmd 사용 가능"
@@ -395,7 +428,7 @@ show_performance_recommendations() {
     echo "   • $MCP_CONFIG (12개 서버 최적화 설정)"
     echo "   • ./scripts/start-serena-sse.sh (Serena SSE 시작)"
     echo "   • ./scripts/check-serena-sse.sh (Serena 상태 확인)"
-    echo "   • /home/skyasu/.claude/settings.json (Claude 설정)"
+    echo "   • $CLAUDE_DIR/settings.json (Claude 설정)"
     echo
     echo -e "${BLUE}💡 주요 개선사항 (v$SCRIPT_VERSION):${NC}"
     echo "   • 12개 서버 완전 통합 설정"

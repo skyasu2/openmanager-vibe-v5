@@ -33,7 +33,7 @@ autoMemoryReclaim=gradual
 hostAddressLoopback=true
 
 [user]
-default=skyasu
+default=sky-note
 "@
 
 try {

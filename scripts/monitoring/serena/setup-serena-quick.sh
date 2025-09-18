@@ -8,6 +8,15 @@ set -e
 PROJECT_ROOT="/mnt/d/cursor/openmanager-vibe-v5"
 LOG_FILE="/tmp/serena-setup.log"
 
+USER_HOME="${HOME:-$(getent passwd "$USER" | cut -d: -f6)}"
+DEFAULT_UVX_PATH="$USER_HOME/.local/bin/uvx"
+
+if command -v uvx >/dev/null 2>&1; then
+    UVX_BIN="$(command -v uvx)"
+else
+    UVX_BIN="$DEFAULT_UVX_PATH"
+fi
+
 # 로그 함수
 log() {
     echo "[$(date '+%H:%M:%S')] $1" | tee -a "$LOG_FILE"
@@ -17,11 +26,11 @@ log() {
 log "🔍 Serena 캐시 상태 확인 중..."
 
 # Serena가 이미 캐시되어 있는지 확인
-if /home/skyasu/.local/bin/uvx --from git+https://github.com/oraios/serena serena-mcp-server --help > /dev/null 2>&1; then
+if "$UVX_BIN" --from git+https://github.com/oraios/serena serena-mcp-server --help > /dev/null 2>&1; then
     log "✅ Serena가 이미 캐시되어 있습니다"
 else
     log "⏳ Serena 캐시 생성 중... (최초 1회만 소요)"
-    /home/skyasu/.local/bin/uvx --from git+https://github.com/oraios/serena serena-mcp-server --help > "$LOG_FILE" 2>&1
+    "$UVX_BIN" --from git+https://github.com/oraios/serena serena-mcp-server --help > "$LOG_FILE" 2>&1
     log "✅ Serena 캐시 생성 완료"
 fi
 
@@ -29,7 +38,7 @@ fi
 log "🧪 빠른 연결 테스트 중..."
 
 # timeout으로 빠른 테스트 (30초 내 응답 확인)
-timeout 30s /home/skyasu/.local/bin/uvx --from git+https://github.com/oraios/serena serena-mcp-server --project "$PROJECT_ROOT" &
+timeout 30s "$UVX_BIN" --from git+https://github.com/oraios/serena serena-mcp-server --project "$PROJECT_ROOT" &
 TEST_PID=$!
 
 # 프로세스가 시작되는지 확인

@@ -38,7 +38,7 @@
       "args": ["-y", "@executeautomation/playwright-mcp-server"]
     },
     "time": {
-      "command": "/home/skyasu/.local/bin/uvx",
+      "command": "/home/sky-note/.local/bin/uvx",
       "args": ["mcp-server-time"]
     },
     "thinking": {
@@ -54,7 +54,7 @@
       "args": ["-y", "@magnusrodseth/shadcn-mcp-server"]
     },
     "serena": {
-      "command": "/home/skyasu/.local/bin/uvx",
+      "command": "/home/sky-note/.local/bin/uvx",
       "args": ["--from", "git+https://github.com/oraios/serena", "serena-mcp-server"]
     }
   }

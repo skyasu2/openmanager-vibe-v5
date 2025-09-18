@@ -29,6 +29,18 @@ echo -e "${GREEN}✅ .env.local 파일 발견: $ENV_LOCAL_FILE${NC}"
 # MCP 관련 환경변수 추출 및 export
 echo -e "${BLUE}📋 환경변수 로드 중...${NC}"
 
+# Context7 API 키 로드
+export_context7() {
+    local api_key=$(grep "^CONTEXT7_API_KEY=" "$ENV_LOCAL_FILE" | cut -d'=' -f2-)
+
+    if [ -n "$api_key" ]; then
+        export CONTEXT7_API_KEY="$api_key"
+        echo -e "${GREEN}  ✅ CONTEXT7_API_KEY 설정됨${NC}"
+    else
+        echo -e "${YELLOW}  ⚠️  CONTEXT7_API_KEY 없음${NC}"
+    fi
+}
+
 # Context7 (Upstash) 환경변수
 export_upstash() {
     local url_val=$(grep "^UPSTASH_REDIS_REST_URL=" "$ENV_LOCAL_FILE" | cut -d'=' -f2-)
@@ -112,6 +124,9 @@ export_vercel() {
 }
 
 # 환경변수 로드 실행
+echo -e "${BLUE}🔧 Context7 API 키:${NC}"
+export_context7
+
 echo -e "${BLUE}🔧 Context7 (Upstash) 환경변수:${NC}"
 export_upstash
 

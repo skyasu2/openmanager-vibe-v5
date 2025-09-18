@@ -123,9 +123,9 @@ ccusage --version              # ccusage 버전 확인
 
 ## 🔌 MCP & 베르셀 통합
 
-### 📊 MCP 현황: 9/9개 완전 작동 🏆 100% 성공률 달성 (2025-09-17 업데이트)
+### 📊 MCP 현황: 9/9개 완전 작동 🏆 100% 성공률 달성 (2025-09-18 업데이트)
 
-| MCP 서버 | 연결 | 16GB WSL 성능 | 기능 테스트 | 상태 |
+| MCP 서버 | 연결 | 19GB WSL 성능 | 기능 테스트 | 상태 |
 |----------|------|---------------|-------------|------|
 | **memory** | ✅ | ✅ 즉시 응답 | ✅ 엔티티 생성 | 완전 작동 |
 | **time** | ✅ | ✅ 즉시 응답 | ✅ 시간대 조회 | 완전 작동 |
@@ -137,7 +137,7 @@ ccusage --version              # ccusage 버전 확인
 | **🎉 serena** | ✅ | ✅ 즉시 응답 | ✅ 코드베이스 구조 | **완전 해결** |
 | **🎉 playwright** | ✅ | ✅ 즉시 응답 | ✅ 브라우저 자동화 | **완전 해결** |
 
-### 🚀 19GB WSL 최적화 성과 (2025-09-17 업데이트)
+### 🚀 19GB WSL 최적화 성과 (2025-09-18 업데이트)
 
 **메모리 현황**: 19GB 할당, 15GB 사용 가능 (여유도 79%)
 **프로세스 현황**: MCP/AI 관련 프로세스 20개 안정 실행
@@ -191,7 +191,7 @@ useWindowsDriver=true    # 실험적 기능으로 불안정
       "args": ["-y", "@modelcontextprotocol/server-memory"]
     },
     "time": {
-      "command": "/home/skyasu/.local/bin/uvx",
+      "command": "$HOME/.local/bin/uvx",
       "args": ["mcp-server-time"],
       "env": {
         "TERM": "dumb",
@@ -212,7 +212,7 @@ useWindowsDriver=true    # 실험적 기능으로 불안정
       "args": ["-y", "@jpisnice/shadcn-ui-mcp-server@latest"]
     },
     "serena": {
-      "command": "/home/skyasu/.local/bin/serena-mcp-server",
+      "command": "$HOME/.local/bin/serena-mcp-server",
       "args": [
         "--project", "/mnt/d/cursor/openmanager-vibe-v5",
         "--log-level", "ERROR",
@@ -334,9 +334,10 @@ claude mcp add --transport http vercel https://mcp.vercel.com
 
 #### 2. AI 교차 검증 시스템 (4개)
 
-**verification-specialist**: AI 교차검증 메인 진입점 ⭐ **강화됨**
-- **역할**: Level 1-3 복잡도 기반 자동 검증 시스템 + ai-verification-coordinator 기능 통합
-- **호출 예시**: `"verification-specialist 서브에이전트를 사용하여 src/components/Button.tsx를 자동 검증해주세요"`
+**verification-specialist**: AI 교차검증 코디네이터 ⭐ **역할 명확화**
+- **역할**: 각 AI 서브에이전트에 개별 요청 후 결과 종합 (직접 분석 금지)
+- **프로세스**: codex-specialist + gemini-specialist + qwen-specialist 호출 → 결과 종합
+- **호출 예시**: `"verification-specialist 서브에이전트를 사용하여 src/components/Button.tsx를 AI 교차검증해주세요"`
 
 **codex-specialist**: ChatGPT Codex CLI 전용 외부 AI 연동
 - **특화**: 실무 중심 코드 리뷰, 버그 발견, GPT-5 기반 분석
@@ -480,15 +481,20 @@ codex exec "이 코드의 보안 취약점 분석"
 
 **✅ 실용적 해결책 구축 완료 (2025-09-15 업데이트)**
 
-### 🚀 구축된 실용적 시스템
+### 🚀 표준화된 서브에이전트 기반 시스템
+
+**AI 교차검증 v2.0 - 서브에이전트 전용 방식**
 
 ```bash
-# AI 교차검증 v3.0 (완전 구현)
-./scripts/ai-cross-validation-v3.sh src/path/to/file.ts [level]
+# 올바른 방식: verification-specialist 서브에이전트 사용
+"verification-specialist 서브에이전트를 사용하여 [대상] 을 AI 교차검증해주세요"
 
-# Claude 통합 스크립트 (다목적)
-./scripts/claude-ai-integration.sh verify src/components/Button.tsx auto
+# 예시
+"verification-specialist 서브에이전트를 사용하여 현재 프로젝트 상태를 교차검증해주세요"
+"verification-specialist 서브에이전트를 사용하여 src/components/Button.tsx를 검증해주세요"
 ```
+
+**⚠️ 폐기된 방식**: 스크립트 기반 교차검증 (혼동 방지를 위해 사용 중단)
 
 ### 📊 3단계 레벨 시스템
 

@@ -11,15 +11,37 @@
  * 5. 즉시 사용 가능한 인스턴스 제공
  */
 
-import { spawn } from 'child_process';
+import { spawn, spawnSync } from 'child_process';
 import { promises as fs } from 'fs';
 import { createServer } from 'http';
 import { EventEmitter } from 'events';
 import path from 'path';
 import url from 'url';
+import os from 'os';
 
 const __filename = url.fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const userHome = process.env.HOME ?? os.homedir();
+const defaultUvxPath = path.join(userHome, '.local', 'bin', 'uvx');
+
+const resolvedUvx = (() => {
+  const override = process.env.UVX_BIN_OVERRIDE || process.env.UVX_BIN;
+  if (override) {
+    return override;
+  }
+
+  try {
+    const whichResult = spawnSync('which', ['uvx'], { encoding: 'utf-8' });
+    if (whichResult.status === 0 && whichResult.stdout.trim()) {
+      return whichResult.stdout.trim();
+    }
+  } catch (error) {
+    // ignore resolution errors and use fallback
+  }
+
+  return defaultUvxPath;
+})();
 
 class SerenaPrewarmingService extends EventEmitter {
   constructor() {
@@ -164,7 +186,7 @@ class SerenaPrewarmingService extends EventEmitter {
     await this.log('info', `   📦 인스턴스 ${instanceId} 시작 중...`);
     
     return new Promise((resolve, reject) => {
-      const serenaProcess = spawn('/home/skyasu/.local/bin/uvx', [
+      const serenaProcess = spawn(resolvedUvx, [
         '--from', 'git+https://github.com/oraios/serena',
         'serena-mcp-server',
         '--project', this.projectRoot

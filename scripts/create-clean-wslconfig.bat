@@ -27,7 +27,7 @@ echo useWindowsDriver=true>> "%USERPROFILE%\.wslconfig"
 echo hostAddressLoopback=true>> "%USERPROFILE%\.wslconfig"
 echo.>> "%USERPROFILE%\.wslconfig"
 echo [user]>> "%USERPROFILE%\.wslconfig"
-echo default=skyasu>> "%USERPROFILE%\.wslconfig"
+echo default=sky-note>> "%USERPROFILE%\.wslconfig"
 
 echo ✅ 새로운 .wslconfig 파일 생성 완료!
 echo 📄 파일 위치: %USERPROFILE%\.wslconfig

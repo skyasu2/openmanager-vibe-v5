@@ -19,6 +19,8 @@ updated: "2025-09-09"
   - *관련*: [AI 교차검증 v4](claude/ai-cross-verification-v4.md) → [AI 시스템](guides/ai-system.md)
 - **[🤖 AI Workflow](ai/workflow.md)** - 4-AI 교차검증 실무 가이드 ⭐ **핵심**
   - *관련*: [MCP Advanced](mcp/advanced.md) → [WSL Guide](guides/wsl.md) → [Testing](testing/README.md)
+- **[📚 MCP 서버 완전 가이드](MCP-SERVERS-GUIDE.md)** - 9개 MCP 서버 통합 시스템 ⭐ **최신**
+  - *관련*: [MCP Advanced](mcp/advanced.md) → [AI Workflow](ai/workflow.md) → [Troubleshoot](troubleshoot/common.md)
 - **[🔧 MCP Advanced](mcp/advanced.md)** - 12 MCP 서버 완전 설치 ⭐ **필수**
   - *관련*: [AI Workflow](ai/workflow.md) → [Design MCP](design/mcp.md) → [Troubleshoot](troubleshoot/common.md)
 - **[🐧 WSL Guide](guides/wsl.md)** - WSL 최적화 + AI CLI 통합 ⭐ **환경**

@@ -10,11 +10,33 @@
  * 4. 진행 상황 실시간 알림
  */
 
-import { spawn } from 'child_process';
+import { spawn, spawnSync } from 'child_process';
 import { promises as fs } from 'fs';
 import { EventEmitter } from 'events';
 import { createWriteStream } from 'fs';
 import path from 'path';
+import os from 'os';
+
+const userHome = process.env.HOME ?? os.homedir();
+const defaultUvxPath = path.join(userHome, '.local', 'bin', 'uvx');
+
+const resolvedUvx = (() => {
+  const override = process.env.UVX_BIN_OVERRIDE || process.env.UVX_BIN;
+  if (override) {
+    return override;
+  }
+
+  try {
+    const whichResult = spawnSync('which', ['uvx'], { encoding: 'utf-8' });
+    if (whichResult.status === 0 && whichResult.stdout.trim()) {
+      return whichResult.stdout.trim();
+    }
+  } catch (error) {
+    // ignore, use fallback
+  }
+
+  return defaultUvxPath;
+})();
 
 class SerenaLightweightProxy extends EventEmitter {
   constructor() {
@@ -415,7 +437,7 @@ class SerenaLightweightProxy extends EventEmitter {
       await this.saveState('connecting', 'Serena 프로세스 시작 중');
       
       // Serena 프로세스 시작
-      this.serenaProcess = spawn('/home/skyasu/.local/bin/uvx', [
+      this.serenaProcess = spawn(resolvedUvx, [
         '--from', 'git+https://github.com/oraios/serena',
         'serena-mcp-server',
         '--project', this.projectRoot

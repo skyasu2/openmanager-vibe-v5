@@ -31,7 +31,7 @@ useWindowsDriver=true
 hostAddressLoopback=true
 
 [user]
-default=skyasu
+default=sky-note
 "@
 
 try {

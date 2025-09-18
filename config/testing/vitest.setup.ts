@@ -101,6 +101,8 @@ global.console = {
 
 // Mock environment variables
 process.env.NODE_ENV = 'test';
+process.env.MOCK_MODE = 'force';
+process.env.SKIP_ENV_VALIDATION = 'true';
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
 process.env.GOOGLE_AI_API_KEY = 'test-google-ai-key';

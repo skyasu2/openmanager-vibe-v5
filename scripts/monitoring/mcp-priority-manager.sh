@@ -39,6 +39,17 @@ MEMORY_WARNING_THRESHOLD=80
 CPU_CRITICAL_THRESHOLD=85
 CPU_WARNING_THRESHOLD=70
 
+USER_HOME="${HOME:-$(getent passwd "$USER" | cut -d: -f6)}"
+DEFAULT_UVX_PATH="$USER_HOME/.local/bin/uvx"
+
+if command -v uvx >/dev/null 2>&1; then
+    UVX_BIN_COMMAND="uvx"
+    UVX_BIN_PATH="$(command -v uvx)"
+else
+    UVX_BIN_COMMAND="$DEFAULT_UVX_PATH"
+    UVX_BIN_PATH="$DEFAULT_UVX_PATH"
+fi
+
 # 로그 함수
 log_message() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
@@ -164,7 +175,7 @@ manage_servers_by_resources() {
                 # 서버별 재활성화 명령어 (실제 환경에 맞게 조정)
                 case "$server" in
                     "time")
-                        claude mcp add time "/home/skyasu/.local/bin/uvx mcp-server-time" 2>/dev/null || true
+                        claude mcp add time "$UVX_BIN_PATH mcp-server-time" 2>/dev/null || true
                         ;;
                     "sequential-thinking")
                         claude mcp add sequential-thinking "npx -y @modelcontextprotocol/server-sequential-thinking@latest" 2>/dev/null || true

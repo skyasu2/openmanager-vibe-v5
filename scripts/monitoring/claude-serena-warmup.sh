@@ -13,6 +13,15 @@ PID_FILE="/tmp/serena-warmup.pid"
 STATE_FILE="/tmp/serena-warmup-state.json"
 TIMEOUT=240  # 4분으로 증가
 
+USER_HOME="${HOME:-$(getent passwd "$USER" | cut -d: -f6)}"
+DEFAULT_UVX_PATH="$USER_HOME/.local/bin/uvx"
+
+if command -v uvx >/dev/null 2>&1; then
+    UVX_BIN="$(command -v uvx)"
+else
+    UVX_BIN="$DEFAULT_UVX_PATH"
+fi
+
 # 로그 함수
 log_info() {
     echo "[$(date '+%H:%M:%S')] ℹ️  $1"
@@ -193,8 +202,8 @@ main() {
         exit 1
     fi
     
-    if ! command -v uvx > /dev/null; then
-        log_error "uvx 명령을 찾을 수 없습니다"
+    if [ ! -x "$UVX_BIN" ]; then
+        log_error "uvx 실행 파일을 찾을 수 없습니다: $UVX_BIN"
         exit 1
     fi
     
@@ -211,7 +220,7 @@ main() {
     > "$LOG_FILE"
     
     # Serena 시작
-    nohup /home/skyasu/.local/bin/uvx --from git+https://github.com/oraios/serena serena-mcp-server --project "$PROJECT_ROOT" > "$LOG_FILE" 2>&1 &
+    nohup "$UVX_BIN" --from git+https://github.com/oraios/serena serena-mcp-server --project "$PROJECT_ROOT" > "$LOG_FILE" 2>&1 &
     SERENA_PID=$!
     
     # PID 저장

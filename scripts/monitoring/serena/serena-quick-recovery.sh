@@ -10,6 +10,15 @@ set -euo pipefail
 PROJECT_ROOT="/mnt/d/cursor/openmanager-vibe-v5"
 LOG_FILE="$PROJECT_ROOT/logs/serena-quick.log"
 
+USER_HOME="${HOME:-$(getent passwd "$USER" | cut -d: -f6)}"
+DEFAULT_UVX_PATH="$USER_HOME/.local/bin/uvx"
+
+if command -v uvx >/dev/null 2>&1; then
+    UVX_BIN="$(command -v uvx)"
+else
+    UVX_BIN="$DEFAULT_UVX_PATH"
+fi
+
 # 색상 코드
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -63,7 +72,7 @@ quick_recovery() {
     
     # 3. 환경 체크
     log "3️⃣ 환경 체크..."
-    if command -v /home/skyasu/.local/bin/uvx >/dev/null; then
+    if command -v "$UVX_BIN" >/dev/null 2>&1; then
         log "${GREEN}✅ uvx 사용 가능${NC}"
     else
         log "${RED}❌ uvx 없음${NC}"
@@ -89,8 +98,8 @@ fix_serena_config() {
     
     # Serena 설정을 stdio 모드로 수정
     if command -v jq >/dev/null 2>&1; then
-        jq '.mcpServers.serena = {
-            "command": "/home/skyasu/.local/bin/uvx",
+        jq --arg uvx "$UVX_BIN" '.mcpServers.serena = {
+            "command": $uvx,
             "args": [
                 "--from", "git+https://github.com/oraios/serena",
                 "serena-mcp-server", 
@@ -110,7 +119,9 @@ status_report() {
     echo "=== 시스템 정보 ==="
     echo "메모리: $(free -h | grep Mem: | awk '{print $3"/"$2}')"
     echo "Claude Code: $(claude --version 2>/dev/null | head -1 || echo 'ERROR')"
-    echo "uvx: $(/home/skyasu/.local/bin/uvx --version 2>/dev/null || echo 'ERROR')"
+    local uvx_version
+    uvx_version="$("$UVX_BIN" --version 2>/dev/null || echo 'ERROR')"
+    echo "uvx: $uvx_version"
     
     echo ""
     echo "=== MCP 상태 ==="

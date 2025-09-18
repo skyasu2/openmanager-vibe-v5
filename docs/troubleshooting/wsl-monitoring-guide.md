@@ -128,7 +128,7 @@ ps aux | grep serena-mcp-server  # 메모리 사용량 확인
 
 # 2. 응답시간 200ms 이상 시
 claude mcp remove serena
-claude mcp add serena /home/skyasu/.local/bin/serena-mcp-server \
+claude mcp add serena $HOME/.local/bin/serena-mcp-server \
   --project /mnt/d/cursor/openmanager-vibe-v5 \
   --log-level INFO \
   --tool-timeout 300
