@@ -77,7 +77,7 @@ claude --version     # 버전 확인 (v1.0.112)
 
 ### 📄 docs/claude/sub-agents-complete-guide.md (Claude 서브에이전트 가이드)
 - **용도**: Claude Code 서브에이전트 실전 활용 가이드 
-- **내용**: 18개 Claude 서브에이전트 (central-supervisor, verification-specialist 등)
+- **내용**: 19개 Claude 서브에이전트 (central-supervisor, verification-specialist 등)
 - **위치**: docs/claude/ 디렉토리 (문서 체계)
 
 **⚠️ 중요**: 각 파일은 완전히 다른 AI 시스템을 위한 것입니다!
@@ -99,25 +99,15 @@ claude --version     # 버전 확인 (v1.0.112)
 ### WSL 통합 실행
 
 ```bash
-# WSL 내부에서 직접 CLI 실행
-claude --version        # Claude Code v1.0.112
-codex exec "작업 요청"   # Codex CLI 직접 실행
-gemini "작업 요청"       # Gemini CLI 직접 실행  
-timeout 60 qwen -p "작업 요청"   # Qwen CLI 1분 타임아웃
-```
-
-##### WSL 내부에서 서브에이전트 실행
-
-```bash
-# WSL 접속
+# WSL 접속 및 프로젝트 이동
 wsl
 cd /mnt/d/cursor/openmanager-vibe-v5
 
 # AI 도구들 직접 CLI 실행 (2025-09-16 업데이트)
 claude --version               # Claude Code v1.0.112 버전 확인
-codex exec "간단한 테스트"      # Codex CLI 직접 실행 (27초)
-gemini "간단한 테스트"          # Gemini CLI 직접 실행 (즉시)
-timeout 60 qwen -p "복잡한 알고리즘"   # Qwen CLI 1분 타임아웃
+codex exec "작업 요청"         # Codex CLI 직접 실행 (27초)
+gemini "작업 요청"             # Gemini CLI 직접 실행 (즉시)
+timeout 60 qwen -p "작업 요청" # Qwen CLI 1분 타임아웃 (복잡한 작업용)
 ccusage --version              # ccusage 버전 확인
 ```
 
@@ -799,7 +789,7 @@ claude mcp add serena uv run --directory ~/.local/share/uv/tools/serena-mcp sere
 | 설계도 | 설명 | 상태 |
 |------|------|------|
 | **[📊 시스템 아키텍처](docs/design/current/system-architecture.md)** | v5.71.0 StaticDataLoader 운영 | ✅ 운영 중 |
-| **[🔌 API 설계](docs/design/current/api-design.md)** | 76개 기능별 API 구조 | ✅ 운영 중 |
+| **[🔌 API 설계](docs/design/current/api-design.md)** | 90개 기능별 API 구조 | ✅ 운영 중 |
 | **[📈 실시간 모니터링](docs/design/current/realtime-monitoring.md)** | StaticDataLoader + 시뮬레이션 | ✅ 운영 중 |
 | **[🤖 AI 교차검증](docs/design/current/ai-system-design.md)** | 4-AI 협업 시스템 | ✅ 운영 중 |
 
@@ -819,7 +809,7 @@ claude mcp add serena uv run --directory ~/.local/share/uv/tools/serena-mcp sere
 
 **🚀 핵심 가이드**: [빠른 시작](docs/QUICK-START.md) • [시스템 아키텍처](docs/system-architecture.md) • [AI 시스템](docs/AI-SYSTEMS.md)
 
-**⚙️ 전문 도구**: MCP 9개 서버 • AI CLI 4개 • 서브에이전트 18개
+**⚙️ 전문 도구**: MCP 9개 서버 • AI CLI 4개 • 서브에이전트 19개
 
 → **[📚 전체 문서 인덱스](docs/README.md)**
 
