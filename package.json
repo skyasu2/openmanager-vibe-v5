@@ -333,12 +333,6 @@
       "prettier --write"
     ]
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "npm run validate"
-    }
-  },
   "browserslist": {
     "production": [
       ">0.2%",
