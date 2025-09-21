@@ -7,7 +7,7 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import { useRouter } from 'next/navigation';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
@@ -37,7 +37,6 @@ import {
   Database,
   Zap,
   ExternalLink,
-  Clock,
 } from 'lucide-react';
 
 // 플랫폼 사용량 타입
@@ -81,24 +80,24 @@ export default function AdminClient() {
   useEffect(() => {
     if (permissions.canAccessAdminPage) {
       setIsAuthorized(true);
-      loadInitialData();
+      void loadInitialData();
     } else {
       setIsAuthorized(false);
       router.push('/main');
     }
     setIsLoading(false);
-  }, [permissions.canAccessAdminPage, router]);
+  }, [permissions.canAccessAdminPage, router, loadInitialData]);
 
   // 초기 데이터 로드
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     await Promise.all([
       loadPlatformUsage(),
       loadSystemStatus()
     ]);
-  };
+  }, [loadPlatformUsage, loadSystemStatus]);
 
   // 플랫폼 사용량 로드
-  const loadPlatformUsage = async () => {
+  const loadPlatformUsage = useCallback(async () => {
     setUsageLoading(true);
     try {
       // 실제 API 호출로 베르셀/Supabase 사용량 확인
@@ -127,10 +126,10 @@ export default function AdminClient() {
     } finally {
       setUsageLoading(false);
     }
-  };
+  }, []);
 
   // 시스템 상태 로드
-  const loadSystemStatus = async () => {
+  const loadSystemStatus = useCallback(async () => {
     setStatusLoading(true);
     try {
       const response = await fetch('/api/admin/system-status');
@@ -155,13 +154,13 @@ export default function AdminClient() {
     } finally {
       setStatusLoading(false);
     }
-  };
+  }, []);
 
   // 새로고침
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setLastRefresh(new Date());
     await loadInitialData();
-  };
+  }, [loadInitialData]);
 
   // 데이터 정리 작업
   const handleCleanup = async (type: 'logs' | 'cache' | 'temp') => {
