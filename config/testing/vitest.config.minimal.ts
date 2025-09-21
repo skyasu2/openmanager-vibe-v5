@@ -23,8 +23,10 @@ export default defineConfig({
       '@': resolve(process.cwd(), 'src'),
       '@/components': resolve(process.cwd(), 'src/components'),
       '@/lib': resolve(process.cwd(), 'src/lib'),
+      '@/lib/api': resolve(process.cwd(), 'src/lib/api'),
       '@/hooks': resolve(process.cwd(), 'src/hooks'),
       '@/types': resolve(process.cwd(), 'src/types'),
+      '@/app': resolve(process.cwd(), 'src/app'),
     },
   },
 });
