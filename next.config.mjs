@@ -297,25 +297,36 @@ const nextConfig = {
       // 기존 alias 유지
     };
     
-    // 테스트 모드 또는 devtools 비활성화 시 관련 모듈 완전 제외
-    if (process.env.__NEXT_TEST_MODE === 'true' || process.env.NEXT_DISABLE_DEVTOOLS === '1') {
-      // next-devtools 모듈을 빈 모듈로 대체
+    // 🔧 강화된 devtools 완전 비활성화 (segment-explorer 버그 해결)
+    if (process.env.__NEXT_TEST_MODE === 'true' || process.env.NEXT_DISABLE_DEVTOOLS === '1' || process.env.NODE_ENV === 'development') {
+      // next-devtools 관련 모든 모듈 완전 차단
       config.resolve.alias = {
         ...config.resolve.alias,
+        // Core devtools 모듈들
         'next/dist/compiled/next-devtools': false,
         'next/dist/next-devtools': false,
         '@next/devtools': false,
         'next/dist/compiled/next-devtools/index.js': false,
-        // MutationObserver 관련 문제 해결을 위해 추가
+
+        // 🎯 segment-explorer 버그 해결 - 핵심 모듈 차단
+        'next/dist/next-devtools/userspace/app/segment-explorer-node.js': false,
+        'next/dist/next-devtools/userspace/app/segment-explorer': false,
+        'next/dist/next-devtools/userspace/app': false,
+        'next/dist/next-devtools/userspace': false,
+
+        // React Server Components bundler 관련
+        'next/dist/server/dev/hot-reloader-webpack-plugin': false,
+        'next/dist/server/dev/on-demand-entry-handler': false,
+
+        // 개발 환경 모니터링 모듈들
         'next/dist/client/dev/dev-build-watcher': false,
         'next/dist/client/dev/error-overlay': false,
         'next/dist/client/dev/fouc': false,
-        // layout-router에서 사용하는 segment-explorer 모듈 차단
+        'next/dist/client/dev': false,
+
+        // layout-router 안전 교체
         'next/dist/client/components/layout-router': 'next/dist/client/components/layout-router.js',
       };
-      
-      // 개발 환경에서도 MutationObserver 사용하는 모듈들 교체
-      config.resolve.alias['next/dist/client/dev'] = false;
     }
 
     // 클라이언트 사이드 최적화

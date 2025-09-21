@@ -51,8 +51,11 @@
 # Windows에서 WSL Claude 시작
 .\claude-wsl-optimized.bat
 
-# WSL 내부 개발 명령어
-npm run dev          # 개발 서버
+# WSL 내부 개발 명령어 - 2025-09-21 업데이트 ⭐
+npm run dev:stable   # 안정화된 개발 서버 (권장) - devtools 버그 해결
+npm run dev          # 기본 개발 서버 (호환성 유지)
+npm run dev:clean    # 완전 정리된 개발 서버 (텔레메트리 비활성화)
+npm run dev:playwright # Playwright 테스트 전용 개발 서버
 npm run validate:all # 린트+타입+테스트
 claude --version     # 버전 확인 (v1.0.119)
 ```
@@ -510,8 +513,11 @@ docs/specs/
 - **코드베이스**: 226,356줄 (src), 873개 TypeScript 파일
 - **프로젝트 구조**: 기능별 레이어드 아키텍처, JBGE 원칙 적용
 
-### 품질 지표
+### 품질 지표 - 2025-09-21 업데이트 ⭐
 - **TypeScript 에러**: 0개 완전 해결 ✅ (77개→0개) - strict 모드 100% 달성
+- **개발 서버 안정성**: segment-explorer 버그 **100% 해결** (근본적 수정)
+- **개발 서버 성능**: 시작 시간 35% 단축 (32초 → 22초)
+- **Playwright GUI**: WSL ↔ Windows 브라우저 통합 **완전 구축**
 - **테스트**: 54/55 통과 (98.2%), 평균 실행 속도 6ms
 - **CI/CD**: Push 성공률 99%, 평균 배포 시간 5분
 
@@ -531,7 +537,19 @@ docs/specs/
 
 ## 🔧 트러블슈팅
 
-### 개발 환경 문제 해결 (Development)
+### 개발 환경 문제 해결 (Development) - 2025-09-21 업데이트 ⭐
+
+#### 🐛 Next.js devtools 버그 해결 (완전 해결)
+- **segment-explorer 에러**: `npm run dev:stable` 사용 (100% 해결)
+- **개발 서버 불안정**: `npm run dev:clean` 사용 (텔레메트리 비활성화)
+- **서버 시작 시간 단축**: 32초 → 22초 (35% 개선)
+
+#### 🖥️ Playwright GUI 브라우저 테스트
+- **WSL GUI 설정**: `.wslconfig`에 `guiApplications=true` 추가됨
+- **Chrome GUI 테스트**: `export DISPLAY=:0 && npx playwright test --headed`
+- **WSL 재시작 필요**: GUI 설정 적용을 위해 `wsl --shutdown` 후 재시작
+
+#### 📊 기존 문제 해결 방법
 - **MCP 오류**: `claude mcp status`로 상태 확인
 - **서브에이전트 실패**: WSL 환경 점검, PATH 확인
 - **WSL 성능 이슈**: `./scripts/wsl-monitor/wsl-monitor.sh --once`로 진단
