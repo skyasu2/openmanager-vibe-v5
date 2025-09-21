@@ -17,6 +17,8 @@ claude mcp add shadcn-ui -s local -- npx -y @jpisnice/shadcn-ui-mcp-server@lates
 claude mcp add playwright -s local -- npx -y @executeautomation/playwright-mcp-server
 ```
 
+**🎭 Playwright MCP 상세 설정**: WSL 환경에서 윈도우 크롬 브라우저 연동이 필요한 경우 [Playwright MCP 설정 가이드](../development/playwright-mcp-setup-guide.md)를 참조하세요.
+
 ### 환경변수가 필요한 서버
 ```bash
 # Time 서버

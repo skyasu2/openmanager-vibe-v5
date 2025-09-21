@@ -19,9 +19,9 @@ MCP(Model Context Protocol)는 Claude Code의 기능을 확장하는 플러그�
 | **sequential-thinking** | ✅ | ⏳ 연결됨 | 단계적 사고 프로세스 |
 | **shadcn-ui** | ✅ | ⏳ 연결됨 | UI 컴포넌트 제공 |
 | **serena** | ✅ | ⏳ 연결됨 | 코드베이스 분석 |
-| **playwright** | ✅ | ⏳ 연결됨 | 브라우저 자동화 |
+| **🎉 playwright** | ✅ | ✅ 완전 작동 | WSL+윈도우 크롬 E2E 테스트 |
 
-**9개 서버 연결** | **CLI-only 방식** | **3개 완전 작동**
+**9개 서버 연결** | **CLI-only 방식** | **4개 완전 작동**
 
 ## 🚀 빠른 시작
 
