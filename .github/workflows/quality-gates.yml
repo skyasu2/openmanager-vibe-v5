@@ -4,10 +4,19 @@ name: Quality Gates (Type-Safe CI/CD)
 # 목표: TypeScript 에러 0개 강제, 자동 상태 보고
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
+  # Manual trigger only - to avoid conflicts with existing workflows
+  workflow_dispatch:
+    inputs:
+      strict_mode:
+        description: 'Enable strict TypeScript checking'
+        required: false
+        default: 'true'
+        type: boolean
+  # Optional: enable for specific branches only
+  # push:
+  #   branches: [quality-check]
+  # pull_request:
+  #   branches: [quality-check]
 
 env:
   NODE_VERSION: '22.x'
