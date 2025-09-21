@@ -1,10 +1,10 @@
 # GEMINI.md
 
-> **작성일**: 2025년 6월 1일 | **최종 수정일**: 2025년 9월 2일
+> **작성일**: 2025년 6월 1일 | **최종 수정일**: 2025년 9월 18일
 
 Gemini CLI 사용 가이드 및 Claude Code Sub Agent 협업 방법
 
-> **🔄 2025년 7월 업데이트**: Gemini CLI는 Claude Code의 **👨‍💻 Senior Code Architect** Sub Agent로 통합되어 아키텍처 리뷰와 코드 품질 검토를 담당합니다.
+> **🔄 2025년 9월 업데이트**: Gemini CLI는 Claude Code의 **gemini-specialist** 서브에이전트로 통합되어 아키텍처 설계, UI/UX 개선, 그리고 직접 구현까지 담당합니다.
 
 ## 🎯 핵심 원칙
 
@@ -14,17 +14,17 @@ Gemini CLI 사용 가이드 및 Claude Code Sub Agent 협업 방법
 - **일일 한도 관리**: 1,000회 제한 내에서 최대 가치 창출
 - **적시 적소**: Claude와 역할 분담으로 생산성 극대화
 
-### 2. 코드 품질 수호자
+### 2. 아키텍처 설계 & 직접 구현자
 
-- **SOLID 원칙 검토**: 대규모 파일과 부적절한 구조 감지
-- **타입 안전성 강화**: any 타입 사용 지적 및 개선 제안
-- **중복 코드 방지**: 기존 코드 검색으로 재사용성 향상
+- **SOLID 원칙 적용**: 대규모 파일 구조 개선 및 직접 리팩토링
+- **타입 안전성 구현**: any 타입 제거 및 실제 타입 정의 작성
+- **중복 코드 해결**: 기존 코드 분석 후 재사용 가능한 모듈로 직접 추출
 
-### 3. TDD 워크플로우 파트너
+### 3. TDD 워크플로우 실행자
 
-- **Red 단계**: 문제 분석 및 원인 파악
-- **Green 단계**: 최소 구현 가이드
-- **Refactor 단계**: 품질 개선 제안
+- **Red 단계**: 실패하는 테스트 케이스 직접 작성
+- **Green 단계**: 최소 구현 코드 직접 작성 및 적용
+- **Refactor 단계**: 코드 품질 개선을 실제 파일에 직접 적용
 
 ## 효율적인 사용 전략
 
@@ -40,14 +40,16 @@ Gemini CLI 사용 가이드 및 Claude Code Sub Agent 협업 방법
 #### 사용량 명령어 (WSL 환경)
 
 ```bash
-# WSL 환경에서 직접 실행
-gemini /stats      # 사용량 확인
-gemini /compress   # 대화 압축 (토큰 절약)
-gemini /clear      # 컨텍스트 초기화
-gemini /memory list # 저장된 메모리 확인
+# WSL 환경에서 직접 실행 (2025-09-18 업데이트)
+# 주의: Gemini CLI는 프롬프트 기반으로 동작, 슬래시 명령어는 인터랙티브 모드에서만 작동
+echo "Show usage stats" | gemini -p "Current usage"  # 사용량 확인 대체
+echo "Compress conversation" | gemini -p "Summarize"  # 대화 압축 대체
+# 인터랙티브 모드 진입 후 사용 가능한 명령어
+gemini  # 인터랙티브 모드 진입
+# /stats, /compress, /clear, /memory 등 사용 가능
 ```
 
-> **참고**: Windows 환경에서 WSL의 Gemini CLI를 실행해야 할 경우, `gemini-wsl.bat` 스크립트를 사용할 수 있습니다. (예: `.\gemini-wsl.bat /stats`)
+> **⚠️ 중요**: Gemini CLI v0.5.3는 `-p` 플래그로 프롬프트 모드 실행 권장. 인터랙티브 모드는 타임아웃 이슈 가능성 있음.
 
 #### 사용량 임계값 가이드
 
@@ -60,65 +62,65 @@ gemini /memory list # 저장된 메모리 확인
 #### 효율적 사용 패턴
 
 ```bash
-# ❌ 비효율적 (토큰 낭비)
-gemini  # 장시간 대화형 모드
+# ❌ 비효율적 (타임아웃 위험)
+gemini  # 인터랙티브 모드 - WSL에서 타임아웃 가능
 
-# ✅ 효율적 (토큰 절약)
-echo "질문" | gemini -p "3줄로 답변"
-cat 파일명.js | gemini -p "핵심만 요약"
+# ✅ 효율적 (안정적 실행)
+echo "질문" | gemini -p "3줄로 답변"  # 프롬프트 모드 권장
+cat 파일명.js | gemini -p "핵심만 요약"  # 파일 분석에 최적
 ```
 
 #### 일일 워크플로우 예시
 
 ```bash
 # 아침 (사용량 0%)
-gemini /stats  # 사용량 확인
-gemini /memory list  # 컨텍스트 확인
+echo "Show my usage" | gemini -p "Usage stats"  # 사용량 확인 대체
 
 # 개발 중 (사용량 ~50%)
 git diff | gemini -p "변경사항 리뷰"  # 간단한 리뷰
 echo "버그 분석 요청" | gemini -p "원인 분석"  # 로그 분석
 
 # 오후 (사용량 ~80%)
-gemini /stats  # 남은 사용량 확인
-gemini /compress  # 대화 압축으로 토큰 절약
+echo "Remaining quota check" | gemini -p "Check limit"  # 남은 사용량 확인
 ```
 
 #### 백업 전략
 
 ```bash
-# 중요 대화 내용 저장
-gemini /export > gemini_session_$(date +%Y%m%d).txt
+# 중요 대화 내용 저장 (프롬프트 모드 활용)
+echo "Summarize our conversation" | gemini -p "Key points" > gemini_session_$(date +%Y%m%d).txt
 
-# 메모리 백업
-gemini /memory list > project_memory.txt
+# 컨텍스트 정리
+echo "Clear context" | gemini -p "Reset"  # 새 세션 시작
 ```
 
-## 👨‍💻 Senior Code Architect 역할 (2025-09-16 업데이트)
+## 🏗️ 아키텍처 설계 & 직접 구현 역할 (2025-09-16 업데이트)
 
-### 🔄 **공식 서브에이전트 호출 방식** - 17개 서브에이전트 체계
+### 🔄 **공식 서브에이전트 호출 방식** - 14개 서브에이전트 체계
 
 **Gemini는 두 가지 방식으로 활용 가능합니다:**
 
-#### **1. 명시적 서브에이전트 호출** (복잡한 작업)
+#### **1. 명시적 서브에이전트 호출** (직접 구현 작업)
 ```
-# 프로젝트 컨텍스트가 필요한 전문적 분석
-"gemini-specialist 서브에이전트를 사용하여 시스템 아키텍처를 전체 검토해주세요"
-"gemini-specialist 서브에이전트를 사용하여 17개 서브에이전트 구조를 분석해주세요"
+# 아키텍처 설계 및 실제 구현
+"gemini-specialist 서브에이전트를 사용하여 컴포넌트 구조를 개선하고 실제 파일에 적용해주세요"
+"gemini-specialist 서브에이전트를 사용하여 UI/UX를 설계하고 shadcn/ui로 직접 구현해주세요"
+"gemini-specialist 서브에이전트를 사용하여 API 아키텍처를 설계하고 실제 엔드포인트를 생성해주세요"
 ```
 
-#### **2. 직접 CLI 방식** (간단한 작업)
+#### **2. 직접 CLI 방식** (빠른 분석)
 ```bash
-# 빠른 확인이나 간단한 질문
-gemini "이 함수 구조 괜찮나요?"
-gemini "SOLID 원칙 위반 여부 확인"
+# 구조 분석이나 간단한 제안
+gemini "이 컴포넌트 구조를 Material Design 3로 개선 방법"
+gemini "SOLID 원칙 적용해서 실제 리팩토링 코드 생성"
 ```
 
 ### 현재 개발 환경
 
-- **OS**: WSL (Windows Subsystem for Linux)
-- **터미널**: WSL 터미널 (예: Ubuntu)
-- **서브에이전트**: 17개 체계 (23개→17개 최적화 완료)
+- **OS**: WSL 2 (Ubuntu 24.04.3 LTS)
+- **터미널**: WSL 터미널 (bash)
+- **서브에이전트**: 14개 체계 (Claude Code 공식 지원)
+- **Gemini CLI**: v0.5.3 (npm 전역 설치)
 
 ### Gemini 역할 및 책임
 
@@ -142,7 +144,7 @@ gemini "SOLID 원칙 위반 여부 확인"
 "이 코드의 아키텍처 문제점을 분석해줘"
 
 # 명시적 요청
-"Senior Code Architect를 사용해서 기술 부채 분석해줘"
+"gemini-specialist 서브에이전트를 사용해서 기술 부채를 분석하고 실제 개선해줘"
 ```
 
 ## 현재 프로젝트 상태
@@ -171,9 +173,9 @@ gemini "SOLID 원칙 위반 여부 확인"
 - ✅ **CLI 도구** 안정성 개선 (ccusage v16.2.0 최신 버전)
 - ✅ **TDD 테스트 환경** 구축 (54/55 테스트 통과, 98.2% 커버리지)
 
-### AI 교차 검증 v4.1 (2025-09-16 업데이트)
+### AI 교차 검증 v4.1 (2025-09-18 업데이트)
 
-- ✅ **17개 서브에이전트 최적화** - AI 교차검증 9.17/10 승인 완료
+- ✅ **14개 서브에이전트 최적화** - SDD 서브에이전트 3개 통합 완료
 - ✅ **혼합 사용 전략** - Task 서브에이전트 + 직접 CLI 모두 정상 작동
 - ✅ **Claude 주도 방식** - Claude A안 → 외부 AI 개선점 제시 → Claude 최종 판단
 - ✅ **3-AI 병렬 검증** - Gemini + Codex + Qwen 독립적 교차 검증
@@ -251,26 +253,46 @@ echo "결제 프로세스 E2E 테스트" | gemini -p "중요 검증 포인트 �
 ### 프로젝트 기본 정보
 
 ```bash
-gemini /memory add "OpenManager VIBE v5 - AI 서버 모니터링 플랫폼"
-gemini /memory add "Next.js 15, TypeScript strict mode, Node.js v22.15.1"
-gemini /memory add "Vercel 무료 티어 최적화, Edge Runtime 사용"
+# 메모리 기능은 현재 버전에서 미지원
+# 대신 프로젝트 컨텍스트를 프롬프트에 포함
+echo "Project: OpenManager VIBE v5" | gemini -p "OpenManager VIBE v5 - AI 서버 모니터링 플랫폼"
+# 메모리 기능은 현재 버전에서 미지원
+# 대신 프로젝트 컨텍스트를 프롬프트에 포함
+echo "Project: OpenManager VIBE v5" | gemini -p "Next.js 15, TypeScript strict mode, Node.js v22.15.1"
+# 메모리 기능은 현재 버전에서 미지원
+# 대신 프로젝트 컨텍스트를 프롬프트에 포함
+echo "Project: OpenManager VIBE v5" | gemini -p "Vercel 무료 티어 최적화, Edge Runtime 사용"
 ```
 
 ### 개발 규칙
 
 ```bash
-gemini /memory add "SOLID 원칙 준수, 1500줄 초과 시 파일 분리"
-gemini /memory add "any 타입 사용 금지, 타입 안전성 필수"
-gemini /memory add "기존 코드 우선 재사용, 중복 코드 방지"
-gemini /memory add "TDD 접근: Red-Green-Refactor 사이클"
+# 메모리 기능은 현재 버전에서 미지원
+# 대신 프로젝트 컨텍스트를 프롬프트에 포함
+echo "Project: OpenManager VIBE v5" | gemini -p "SOLID 원칙 준수, 1500줄 초과 시 파일 분리"
+# 메모리 기능은 현재 버전에서 미지원
+# 대신 프로젝트 컨텍스트를 프롬프트에 포함
+echo "Project: OpenManager VIBE v5" | gemini -p "any 타입 사용 금지, 타입 안전성 필수"
+# 메모리 기능은 현재 버전에서 미지원
+# 대신 프로젝트 컨텍스트를 프롬프트에 포함
+echo "Project: OpenManager VIBE v5" | gemini -p "기존 코드 우선 재사용, 중복 코드 방지"
+# 메모리 기능은 현재 버전에서 미지원
+# 대신 프로젝트 컨텍스트를 프롬프트에 포함
+echo "Project: OpenManager VIBE v5" | gemini -p "TDD 접근: Red-Green-Refactor 사이클"
 ```
 
 ### 주요 기능
 
 ```bash
-gemini /memory add "UnifiedAIEngineRouter: 다중 AI 엔진 통합 시스템"
-gemini /memory add "Supabase Auth: GitHub OAuth 인증"
-gemini /memory add "실시간 서버 모니터링 및 AI 분석"
+# 메모리 기능은 현재 버전에서 미지원
+# 대신 프로젝트 컨텍스트를 프롬프트에 포함
+echo "Project: OpenManager VIBE v5" | gemini -p "UnifiedAIEngineRouter: 다중 AI 엔진 통합 시스템"
+# 메모리 기능은 현재 버전에서 미지원
+# 대신 프로젝트 컨텍스트를 프롬프트에 포함
+echo "Project: OpenManager VIBE v5" | gemini -p "Supabase Auth: GitHub OAuth 인증"
+# 메모리 기능은 현재 버전에서 미지원
+# 대신 프로젝트 컨텍스트를 프롬프트에 포함
+echo "Project: OpenManager VIBE v5" | gemini -p "실시간 서버 모니터링 및 AI 분석"
 ```
 
 ---

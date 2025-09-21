@@ -4,6 +4,7 @@ description: PROACTIVELY use for architecture refactoring. 구조 설계 및 리
 tools: Read, Write, Edit, MultiEdit, Glob, Grep, TodoWrite, mcp__serena__list_dir, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__replace_symbol_body, mcp__serena__insert_after_symbol, mcp__serena__insert_before_symbol, mcp__serena__replace_regex, mcp__serena__write_memory, mcp__serena__think_about_collected_information, mcp__serena__think_about_task_adherence, Bash
 priority: medium
 trigger: architecture_change, refactoring_needed, module_reorganization
+model: inherit
 ---
 
 # 구조 리팩토링 에이전트

@@ -4,6 +4,7 @@ description: 🧠 Google Gemini CLI 전용 외부 AI 연동 전문가 - 전체 �
 tools: Bash, Read, Write, Edit, MultiEdit, TodoWrite, Glob, Grep, mcp__memory__create_entities, mcp__sequential-thinking__sequentialthinking, mcp__serena__find_symbol, mcp__serena__replace_symbol_body, mcp__shadcn-ui__get_component, mcp__serena__get_symbols_overview, mcp__serena__find_referencing_symbols, mcp__serena__search_for_pattern, mcp__serena__list_dir
 priority: medium
 trigger: comprehensive_review, independent_analysis
+model: inherit
 environment:
   TERM: dumb
   NO_COLOR: 1

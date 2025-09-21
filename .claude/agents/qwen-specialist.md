@@ -4,6 +4,7 @@ description: 🔷 Qwen CLI 전용 외부 AI 연동 전문가 - 성능 최적화�
 tools: Bash, Read, Write, Edit, MultiEdit, TodoWrite, Glob, Grep, mcp__memory__create_entities, mcp__sequential-thinking__sequentialthinking, mcp__serena__find_symbol, mcp__serena__replace_symbol_body, mcp__serena__get_symbols_overview, mcp__serena__search_for_pattern, mcp__serena__find_referencing_symbols  
 priority: medium
 trigger: comprehensive_review, independent_analysis
+model: inherit
 environment:
   TERM: dumb
   NO_COLOR: 1

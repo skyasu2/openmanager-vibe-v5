@@ -26,7 +26,7 @@ version: "v5.77"
 |--------|------|-----------|------------|
 | **[features/ai-system.md](features/ai-system.md)** | 4-AI 교차검증 시스템 | ⭐⭐⭐ | 최고 |
 | **[features/sub-agents.md](features/sub-agents.md)** | 17개 서브에이전트 체계 | ⭐⭐⭐ | 최고 |
-| **[features/mcp.md](features/mcp.md)** | 8개 MCP 서버 통합 구조 | ⭐⭐⭐ | 최고 |
+| **[features/mcp.md](features/mcp.md)** | 9개 MCP 서버 통합 구조 | ⭐⭐⭐ | 최고 |
 | **[features/monitoring.md](features/monitoring.md)** | FNV-1a 해시 모니터링 | ⭐⭐⭐ | 높음 |
 | **[features/fnv-hash.md](features/fnv-hash.md)** | FNV-1a 해시 알고리즘 ADR | ⭐⭐ | 중간 |
 

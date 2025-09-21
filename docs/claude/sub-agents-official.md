@@ -133,11 +133,9 @@ model: "claude-3-5-sonnet-20241022"
 - **test-automation-specialist**: Vitest + Playwright E2E
 - **documentation-manager**: 문서 관리
 
-**SDD 워크플로우**:
-- **spec-driven-specialist**: SDD 전체 조정
-- **requirements-analyst**: 요구사항 분석
-- **design-architect**: 시스템 설계
-- **task-coordinator**: 작업 분해
+**문서화 & UI/UX 전문가**:
+- **spec-driven-specialist**: 계획 대비 결과 분석 평가 전문가
+- **ui-ux-specialist**: 내장 UI/UX 전문가 (사용자 인터페이스 개선, 디자인 시스템 구축)
 
 ## 🔄 실제 사용 예시
 

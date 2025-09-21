@@ -1,201 +1,109 @@
----
-id: mcp-guide
-title: "MCP 통합 가이드"
-keywords: ["mcp", "claude", "integration", "servers", "tools", "cross-reference"]
-priority: high
-ai_optimized: true
-related_docs: ["../README.md", "../ai/workflow.md", "../guides/wsl.md", "advanced.md", "setup.md"]
-updated: "2025-09-09"
----
+# 🔌 MCP 시스템 가이드
 
-# 🔌 MCP 통합 가이드
+**OpenManager VIBE v5** - 9개 MCP 서버 통합 개발 환경
 
-**Model Context Protocol**: 8개 서버, 70+ 도구로 Claude 27% 토큰 절약
+## 🎯 개요
 
-## 📊 현재 상태 (8개 서버)
+MCP(Model Context Protocol)는 Claude Code의 기능을 확장하는 플러그인 시스템입니다.
+현재 **CLI-only 방식**으로 9개 서버가 안정적으로 운영되고 있습니다.
 
-| 서버 | 도구 수 | 상태 | 주요 기능 |
-|------|---------|------|----------|
-| **memory** | 6개 | ✅ | 지식 그래프, 컨텍스트 관리 |
-| **supabase** | 12개 | ✅ | PostgreSQL, RLS, 실시간 DB |
-| **playwright** | 15개 | ✅ | 브라우저 자동화, E2E 테스트 |
-| **time** | 2개 | ✅ | 시간대 변환, 타임스탬프 |
-| **context7** | 3개 | ✅ | 라이브러리 문서 검색 |
-| **serena** | 25개 | ✅ | 코드 분석, 심볼 조작 |
-| **sequential-thinking** | 1개 | ✅ | 순차적 사고 처리 |
-| **shadcn-ui** | 46개 | ✅ | UI 컴포넌트 라이브러리 |
+## 📊 현재 상태 (2025-09-21)
 
-**총 110개 도구** | **27% 토큰 절약** | **8개 서버 완전 작동**
+| MCP 서버 | 연결 | 기능 테스트 | 주요 기능 |
+|----------|------|-------------|----------|
+| **🎉 context7** | ✅ | ✅ 완전 작동 | 라이브러리 문서 검색 |
+| **🎉 supabase** | ✅ | ✅ 완전 작동 | PostgreSQL DB 관리 |
+| **🎉 vercel** | ✅ | ✅ 완전 작동 | 프로젝트 배포 관리 |
+| **memory** | ✅ | ⏳ 연결됨 | 지식 그래프 관리 |
+| **time** | ✅ | ⏳ 연결됨 | 시간대 변환 |
+| **sequential-thinking** | ✅ | ⏳ 연결됨 | 단계적 사고 프로세스 |
+| **shadcn-ui** | ✅ | ⏳ 연결됨 | UI 컴포넌트 제공 |
+| **serena** | ✅ | ⏳ 연결됨 | 코드베이스 분석 |
+| **playwright** | ✅ | ⏳ 연결됨 | 브라우저 자동화 |
+
+**9개 서버 연결** | **CLI-only 방식** | **3개 완전 작동**
 
 ## 🚀 빠른 시작
 
-### 설치 확인
+### 1. MCP 서버 상태 확인
 ```bash
-# MCP 서버 상태 확인
 claude mcp list
-
-# 환경변수 확인
-echo $SUPABASE_ACCESS_TOKEN
-echo $UPSTASH_REDIS_REST_URL
 ```
 
-### 주요 도구 테스트
-```typescript
-// Knowledge Graph
-await mcp__memory__create_entities({
-  entities: [{ name: 'Test', entityType: 'Demo', observations: ['MCP 테스트'] }]
-});
-
-// Database
-await mcp__supabase__list_tables();
-
-// Time
-await mcp__time__get_current_time({ timezone: 'Asia/Seoul' });
-
-// UI Components  
-await mcp__shadcn_ui__list_components();
-```
-
-## 📋 핵심 서버별 활용
-
-### 🧠 Memory (지식 관리)
-- `create_entities`: 프로젝트 지식 저장
-- `search`: 컨텍스트 기반 검색
-- `add_relations`: 엔티티 간 관계 설정
-
-### 🐘 Supabase (데이터베이스)
-- `run_sql`: 직접 SQL 실행
-- `list_tables`: 테이블 구조 확인
-- `search_tables`: 스키마 검색
-
-### 🎭 Playwright (브라우저)
-- `navigate`: 페이지 이동
-- `screenshot`: 스크린샷 촬영
-- `get_page_content`: DOM 내용 추출
-
-### ⏰ Time (시간 처리)
-- `get_current_time`: 특정 시간대 현재 시간
-- `convert_time`: 시간대 간 변환
-
-### 🔍 Serena (코드 분석)
-- `activate_project`: 프로젝트 활성화 (필수)
-- `find_file`: 파일 패턴 검색
-- `get_symbols_overview`: 코드 심볼 분석
-
-### 🎨 ShadCN UI (컴포넌트)
-- `list_components`: 46개 컴포넌트 목록
-- `get_component`: 컴포넌트 소스 코드
-- `list_blocks`: 55개 블록 템플릿
-
-## ⚠️ 제거된 서버
-
-다음 서버들은 최적화를 위해 제거되었습니다:
-
-- **filesystem**: 기본 파일 도구 (Read, Write)로 대체
-- **github**: 기본 git 명령어로 대체  
-- **gcp**: 기본 bash 도구로 대체
-- **tavily**: 웹 검색 불필요
-
-**결과**: 27% 토큰 절약, 안정성 향상
-
-## 🔧 문제 해결
-
-### 연결 실패
+### 2. 환경변수 로드
 ```bash
-# Claude Code 재시작
-claude --reload
-
-# 환경변수 재로드  
-source .env.local
+source ./scripts/setup-mcp-env.sh
 ```
 
-### Serena 사용법
-```typescript
-// 1. 반드시 프로젝트 활성화 필요
-await mcp__serena__activate_project({ project: 'openmanager-vibe-v5' });
-
-// 2. 이후 25개 도구 사용 가능
-await mcp__serena__list_dir({ relative_path: '.', recursive: false });
+### 3. 자동 건강 체크
+```bash
+./scripts/mcp-health-check.sh
 ```
 
-### 성능 최적화
-- 필요한 서버만 활성화
-- 환경변수 올바른 설정
-- Claude Code 정기 재시작
+### 4. 핵심 서버 테스트
+```bash
+# Context7 - 라이브러리 검색
+mcp__context7__resolve-library-id "react"
 
-## 🔗 상호 참조 시스템
+# Supabase - 테이블 목록
+mcp__supabase__list_tables
 
-### 🚀 실무 워크플로우 연결
-
-#### MCP 설정 체인
-```
-1. [MCP Setup](setup.md) - 환경별 설치
-   ↓
-2. [WSL Guide](../guides/wsl.md) - WSL 환경 최적화
-   ↓
-3. [MCP Advanced](advanced.md) - 12개 서버 완전 설치
-   ↓
-4. [AI Workflow](../ai/workflow.md) - 4-AI 교차검증 활용
+# Vercel - 팀 정보
+mcp__vercel__list_teams
 ```
 
-#### MCP 문제 해결 체인
-```
-1. [MCP Troubleshoot](../troubleshoot/common.md) - 일반 MCP 문제
-   ↓
-2. [MCP Advanced](advanced.md) - Serena 복구 가이드
-   ↓
-3. [WSL Guide](../guides/wsl.md) - 환경 변수 점검
-   ↓
-4. [AI Verification](../ai/verification.md) - 도구 검증
+## 🔧 핵심 서버 활용법
+
+### Context7 - 라이브러리 문서
+```bash
+# React 관련 문서 검색
+mcp__context7__resolve-library-id "react"
 ```
 
-#### MCP-서브에이전트 연동 체인
-```
-1. [MCP Integration](integration.md) - 서브에이전트 ↔ MCP 매핑
-   ↓
-2. [AI Agents-MCP](../ai/agents-mcp.md) - 에이전트별 MCP 도구
-   ↓
-3. [Design Sub-Agents](../design/sub-agents.md) - 17개 에이전트 설계
-   ↓
-4. [Testing](../testing/README.md) - MCP 도구 테스트
+### Supabase - 데이터베이스
+```bash
+# 테이블 목록 확인
+mcp__supabase__list_tables
 ```
 
-### 📚 상세 가이드 (상호 참조 완비)
+### Vercel - 배포 관리
+```bash
+# 팀 정보 확인
+mcp__vercel__list_teams
+```
 
-#### 🔧 핵심 가이드 (5개)
-- **[⭐ MCP Advanced](advanced.md)**: **12개 서버 완전 설치** → [AI Workflow](../ai/workflow.md) → [WSL Guide](../guides/wsl.md)
-- **[MCP Setup](setup.md)**: 환경별 설치 방법 → [Environment Setup](../deploy/env-setup.md) → [Troubleshoot](../troubleshoot/common.md)
-- **[MCP Tools](tools.md)**: 110개 도구 완전 레퍼런스 → [AI Agents-MCP](../ai/agents-mcp.md)
-- **[MCP Servers](servers.md)**: 8개 서버 상세 설정 → [Performance](../performance/README.md)
-- **[MCP Integration](integration.md)**: 17개 에이전트 ↔ MCP 연동 → [Design MCP](../design/mcp.md)
+## ⚡ 자동화 도구
 
-### 📚 메인 참조
-- **[📋 문서 인덱스](../README.md)**: 전체 문서 네비게이션 허브
-- **[🤖 AI 워크플로우](../ai/workflow.md)**: 4-AI 교차검증 실무 가이드
-- **[🐧 WSL 환경](../guides/wsl.md)**: AI CLI + MCP 통합 환경
+| 스크립트 | 기능 | 실행 시간 |
+|----------|------|----------|
+| `setup-mcp-env.sh` | 토큰 관리 자동화 | 2-3분 |
+| `mcp-health-check.sh` | 상태 모니터링 | 30초 |
+| `mcp-complete-recovery.sh` | 완전 복구 | 5-10분 |
 
-### 📁 전문 영역 연결
-- **[📊 Testing](../testing/README.md)**: MCP 도구 테스트 가이드
-- **[⚡ Performance](../performance/README.md)**: MCP 서버 성능 최적화
-- **[🛠️ Troubleshoot](../troubleshoot/common.md)**: MCP 문제 해결 가이드
+## 🎯 권장 설정 방식
 
-## 🎯 다음 추천 참조
+**Claude Code v1.0.119 이후 권장: CLI-only 방식**
 
-### MCP 초기 설치자용
-1. **[🔧 MCP Setup](setup.md)** - 환경별 설치 가이드
-2. **[🐧 WSL Guide](../guides/wsl.md)** - WSL 환경 최적화
-3. **[⭐ MCP Advanced](advanced.md)** - 12개 서버 완전 설치
+```bash
+# 기본 서버 추가
+claude mcp add SERVER_NAME -s local -- COMMAND
 
-### MCP 고급 사용자용
-1. **[🤖 MCP Integration](integration.md)** - 서브에이전트 연동
-2. **[📋 MCP Tools](tools.md)** - 110개 도구 마스터
-3. **[🚀 AI Workflow](../ai/workflow.md)** - 4-AI 교차검증 활용
+# 환경변수 포함 서버 추가
+claude mcp add SERVER_NAME -s local -e VAR=value -- COMMAND
+```
 
-### MCP 문제 해결 중심용
-1. **[🔧 Troubleshoot Common](../troubleshoot/common.md)** - 일반 MCP 문제
-2. **[🔍 MCP Servers](servers.md)** - 8개 서버 상세 설정
-3. **[⚡ Performance](../performance/README.md)** - MCP 성능 최적화
+## 🛡️ 보안 관리
+
+- 모든 API 키는 `.env.local`에서 관리
+- 파일 권한: `chmod 600 .env.local`
+- 정기적 보안 검사: `./scripts/setup-mcp-env.sh --security-check`
+
+## 📚 추가 가이드
+
+- **[설정 가이드](setup-guide.md)** - CLI 설정 및 환경변수 관리
+- **[트러블슈팅](setup-guide.md#5%EF%B8%8F%E2%83%A3-mcp-%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85-%EA%B0%80%EC%9D%B4%EB%93%9C)** - 문제 해결 가이드
+- **[서버 레퍼런스](servers.md)** - 각 서버별 상세 기능
 
 ---
 
-💡 **핵심**: **27% 토큰 절약 + 상호 참조 체계**로 **MCP 탐색 효율성 95% 향상**
+**📋 마지막 업데이트**: 2025-09-21 | **연결 성공률**: 100% (9/9)

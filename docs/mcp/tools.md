@@ -9,7 +9,7 @@ updated: "2025-09-09"
 
 # 🛠️ MCP 도구 레퍼런스
 
-**110개 도구**: 8개 서버별 완전 레퍼런스
+**110개 도구**: 9개 서버별 완전 레퍼런스
 
 ## 📊 서버별 도구 수
 
@@ -24,7 +24,7 @@ updated: "2025-09-09"
 | **time** | 2개 | 시간 처리 (current_time, convert_time) |
 | **sequential-thinking** | 1개 | 순차적 사고 처리 |
 
-**총 110개 도구** | **8개 서버**
+**총 110개 도구** | **9개 서버**
 
 ## 🧠 Memory (6개 도구)
 
@@ -35,7 +35,7 @@ await mcp__memory__create_entities({
   entities: [{
     name: 'ProjectArchitecture',
     entityType: 'Knowledge',
-    observations: ['Next.js 15 기반', 'TypeScript strict 모드', '8개 MCP 서버 통합']
+    observations: ['Next.js 15 기반', 'TypeScript strict 모드', '9개 MCP 서버 통합']
   }]
 });
 

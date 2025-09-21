@@ -1,6 +1,15 @@
 #!/bin/bash
 # 🎯 AI Verification Coordinator Wrapper - 3단계 레벨 기반 검증 조정자
 # Level 2+ 검증에서 다중 AI 결과 수집 및 의사결정
+#
+# ⚠️  DEPRECATED (2025-09-19): ai-verification-coordinator 시스템이 제거됨
+# ⚠️  대신 AI 교차검증 v3.0 서브에이전트 기반 시스템 사용
+# ⚠️  개별 AI CLI 직접 실행: codex exec, gemini, timeout 60 qwen -p
+#
+echo "⚠️  DEPRECATED: 이 스크립트는 더 이상 사용되지 않습니다."
+echo "⚠️  AI 교차검증 v3.0 서브에이전트 기반 시스템을 사용하세요."
+echo "⚠️  개별 AI CLI: codex exec, gemini, timeout 60 qwen -p"
+exit 1
 
 set -uo pipefail
 

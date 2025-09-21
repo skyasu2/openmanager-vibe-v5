@@ -4,6 +4,7 @@ description: 📋 통합 코드 품질 검토 전문가. PR 리뷰, TypeScript s
 tools: Read, Grep, Glob, Bash, TodoWrite, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__get_symbols_overview, mcp__serena__search_for_pattern, mcp__serena__think_about_collected_information
 priority: high
 trigger: code_changes, PR_creation, pre_deployment
+model: inherit
 ---
 
 # 통합 코드 리뷰 및 검증 전문가

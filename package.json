@@ -65,6 +65,8 @@
     "test:e2e:headed": "tsx tests/e2e/test-runner.ts --category=basic --browser=chromium --headed",
     "test:e2e:cross-browser": "tsx tests/e2e/test-runner.ts --category=basic --browser=all",
     "test:e2e:ci": "playwright test tests/e2e/ --reporter=json,github --output-dir=test-results",
+    "test:automation": "node scripts/test/test-automation-optimizer.js",
+    "test:automation:quick": "npm run test:quick && npm run test:e2e:quick",
     "lighthouse:local": "cross-env NODE_ENV=production npm run build && npm run start & sleep 5 && lhci collect --url=http://localhost:3000 && kill %1",
     "lighthouse:dev": "lhci collect --url=http://localhost:3000",
     "lighthouse:analyze": "lhci collect --url=http://localhost:3000 && node -e \"console.log('📊 Lighthouse 결과 분석...'); const fs=require('fs'); const results=JSON.parse(fs.readFileSync('.lighthouseci/lhr-localhost_3000_-2024-12-31_00-00-00.json')); console.log('⚡ Performance:', Math.round(results.categories.performance.score*100)+'%'); console.log('🎯 LCP:', Math.round(results.audits['largest-contentful-paint'].numericValue)+'ms'); console.log('📈 CLS:', results.audits['cumulative-layout-shift'].numericValue);\"",

@@ -111,10 +111,10 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
     icon: Zap,
     gradient: 'from-amber-600 via-orange-600 to-amber-700',
     detailedContent: {
-      overview: `v5.71.0+ - 4-AI 교차 검증 시스템 완성! Claude Code 중심의 8개 MCP 서버 + Codex CLI + Gemini CLI + Qwen CLI로 95%+ 문제 발견율을 달성하며, AI 교차 검증으로 코드 품질을 극대화했습니다.`,
+      overview: `v5.71.0+ - 4-AI 교차 검증 시스템 완성! Claude Code 중심의 9개 MCP 서버 + Codex CLI + Gemini CLI + Qwen CLI로 95%+ 문제 발견율을 달성하며, AI 교차 검증으로 코드 품질을 극대화했습니다.`,
       features: [
         '🏆 4-AI 교차 검증: Claude(메인) + Codex + Gemini + Qwen 병렬 개발로 95%+ 문제 발견',
-        '🤖 Claude Code (메인): 8개 MCP 서버로 파일, Git, DB, AI 도구 등 통합 자동화 (27% 토큰 절약)',
+        '🤖 Claude Code (메인): 9개 MCP 서버로 파일, Git, DB, AI 도구 등 통합 자동화 (27% 토큰 절약)',
         '💎 Codex CLI: ChatGPT Plus 기반 고급 코드 리뷰 및 복잡한 알고리즘 분석 전문가',
         '🌐 Gemini CLI: Google AI 1M 토큰 컨텍스트로 대규모 코드베이스 분석',
         '🧠 Qwen CLI: 480B MoE 모델, 256K-1M 토큰으로 빠른 프로토타이핑과 알고리즘 검증',
@@ -123,7 +123,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
       ],
       technologies: [
         'Claude Code (Main)',
-        '8개 MCP 서버 (최적화)',
+        '9개 MCP 서버 (최적화)',
         'Codex CLI (유료)',
         'Gemini CLI',
         'Qwen CLI',

@@ -201,7 +201,6 @@ npm run docs:toc
 5. **[Performance](performance/README.md)** → 성능 최적화
 
 ### 서브에이전트별 전문 문서 매핑
-- **verification-specialist** → [AI Verification](ai/verification.md)
 - **database-administrator** → [DB Schema](db/schema.md) + [DB Optimization](db/optimization.md)
 - **security-auditor** → [Security Design](design/security.md)
 - **test-automation-specialist** → [Testing E2E](testing/e2e.md)

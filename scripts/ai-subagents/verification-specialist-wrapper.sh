@@ -1,6 +1,15 @@
 #!/bin/bash
 # 🔍 Verification Specialist Wrapper - AI 교차검증 메인 진입점
 # Task 도구와 독립 스크립트 브릿지 역할
+#
+# ⚠️  DEPRECATED (2025-09-19): verification-specialist 서브에이전트가 제거됨
+# ⚠️  대신 AI 교차검증 v3.0 서브에이전트 기반 시스템 사용
+# ⚠️  사용법: "verification-specialist 서브에이전트를 사용하여 [파일] 검증"
+#
+echo "⚠️  DEPRECATED: 이 스크립트는 더 이상 사용되지 않습니다."
+echo "⚠️  AI 교차검증 v3.0 서브에이전트 기반 시스템을 사용하세요."
+echo "⚠️  사용법: Task verification-specialist \"[파일] 검증\""
+exit 1
 
 set -uo pipefail
 

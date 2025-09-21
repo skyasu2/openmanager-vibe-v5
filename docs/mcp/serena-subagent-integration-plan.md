@@ -179,7 +179,7 @@ tools: [...기존 도구...,
 ]
 ```
 
-#### **design-architect** → 설계 기반 구조 분석
+#### **ui-ux-specialist** → UI/UX 기반 구조 분석
 **추가할 Serena 도구**:
 ```yaml
 tools: [...기존 도구...,
@@ -227,9 +227,7 @@ tools: [...기존 도구...,
 ### Phase 3: SDD 워크플로우 통합 (우선순위 Medium)
 ```bash
 12. spec-driven-specialist
-13. requirements-analyst
-14. design-architect
-15. task-coordinator
+13. ui-ux-specialist
 ```
 
 ### Phase 4: 외부 AI 연동 강화 (우선순위 Low)

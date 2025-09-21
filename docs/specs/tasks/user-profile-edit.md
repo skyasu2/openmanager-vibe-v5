@@ -328,7 +328,7 @@ PROF-018: vercel-platform    # 배포 준비
   - 사용자 요구사항 재검토
   - 비즈니스 가치 검증
 
-개발자: design-architect + task-coordinator
+개발자: ui-ux-specialist
   - 기술적 실현 가능성 확인
   - 구현 복잡도 평가
 

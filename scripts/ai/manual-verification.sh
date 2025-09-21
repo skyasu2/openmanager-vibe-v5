@@ -2,6 +2,16 @@
 
 # 🤖 수동 AI 교차 검증 스크립트
 # 사용법: ./manual-verification.sh [모드] [대상]
+#
+# ⚠️  DEPRECATED (2025-09-19): 기존 AI 교차검증 시스템이 제거됨
+# ⚠️  대신 AI 교차검증 v3.0 서브에이전트 기반 시스템 사용
+# ⚠️  개별 AI CLI 직접 실행: codex exec, gemini, timeout 60 qwen -p
+#
+echo "⚠️  DEPRECATED: 이 스크립트는 더 이상 사용되지 않습니다."
+echo "⚠️  AI 교차검증 v3.0 서브에이전트 기반 시스템을 사용하세요."
+echo "⚠️  개별 AI CLI: codex exec, gemini, timeout 60 qwen -p"
+echo "⚠️  또는 token-save-codex.sh 사용 (Claude 토큰 절약)"
+exit 1
 
 set -e
 

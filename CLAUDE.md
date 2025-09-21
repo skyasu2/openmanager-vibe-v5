@@ -77,7 +77,7 @@ claude --version     # 버전 확인 (v1.0.112)
 
 ### 📄 docs/claude/sub-agents-complete-guide.md (Claude 서브에이전트 가이드)
 - **용도**: Claude Code 서브에이전트 실전 활용 가이드 
-- **내용**: 19개 Claude 서브에이전트 (central-supervisor, verification-specialist 등)
+- **내용**: 15개 Claude 서브에이전트 (codex-specialist, gemini-specialist, qwen-specialist 등)
 - **위치**: docs/claude/ 디렉토리 (문서 체계)
 
 **⚠️ 중요**: 각 파일은 완전히 다른 AI 시스템을 위한 것입니다!
@@ -92,7 +92,7 @@ claude --version     # 버전 확인 (v1.0.112)
 | **OpenAI CLI (Codex)** | v0.34.0 | Plus ($20/월)       | 🤝 **직접 CLI 실행** ✅ | `codex exec` | ✅ **GPT-5 실무 통합 전문가**   | 2025-09-17 역할 확장 |
 | **Google Gemini CLI** | **v0.4.1** 🆕 | 무료 (60 RPM/1K RPD)   | 👨‍💻 **직접 CLI 실행** ✅ | `gemini` | ✅ **아키텍처 + 디자인 시스템** | **2025-09-17 역할 세분화** |
 | **Qwen Code**         | v0.0.11  | 무료 (60 RPM/2K RPD)   | 🔷 **1분 타임아웃 최적화** ✅ | `timeout 60 qwen -p`   | ✅ **알고리즘 최적화 전문**    | 2025-09-17 타임아웃 해결 |
-| **ccusage**           | **v16.2.4** 🆕 | 무료                | 📊 **Claude 사용량 모니터링** | ccusage daily              | ✅ 완벽 지원                | **2025-09-12 업그레이드** |
+| **ccusage**           | **v16.2.5** 🆕 | 무료                | 📊 **Claude 사용량 모니터링** | npx ccusage daily          | ✅ npx 실행 전용            | **npx 권장 (CPU 이슈 방지)** |
 
 > ✅ **2025-09-16 업데이트**: **공식 서브에이전트 호출 방식 적용**. 명시적 호출(`"서브에이전트명 서브에이전트를 사용하여"`) 및 자동 위임 방식 지원. 외부 AI 도구는 직접 CLI 명령어로 실행.
 
@@ -104,37 +104,37 @@ wsl
 cd /mnt/d/cursor/openmanager-vibe-v5
 
 # AI 도구들 직접 CLI 실행 (2025-09-16 업데이트)
-claude --version               # Claude Code v1.0.112 버전 확인
+claude --version               # Claude Code v1.0.117 버전 확인
 codex exec "작업 요청"         # Codex CLI 직접 실행 (27초)
 gemini "작업 요청"             # Gemini CLI 직접 실행 (즉시)
 timeout 60 qwen -p "작업 요청" # Qwen CLI 1분 타임아웃 (복잡한 작업용)
-ccusage --version              # ccusage 버전 확인
+npx ccusage daily              # ccusage 일일 사용량 (npx로만 실행)
 ```
 
 ## 🔌 MCP & 베르셀 통합
 
-### 📊 MCP 현황: 9/9개 완전 작동 🏆 100% 성공률 달성 (2025-09-18 업데이트)
+### 📊 MCP 현황: 9/9개 연결, 3개 완전 작동 🏆 CLI-only 방식 (2025-09-21 업데이트)
 
-| MCP 서버 | 연결 | 19GB WSL 성능 | 기능 테스트 | 상태 |
-|----------|------|---------------|-------------|------|
-| **memory** | ✅ | ✅ 즉시 응답 | ✅ 엔티티 생성 | 완전 작동 |
-| **time** | ✅ | ✅ 즉시 응답 | ✅ 시간대 조회 | 완전 작동 |
-| **sequential-thinking** | ✅ | ✅ 즉시 응답 | ✅ 사고 프로세스 | 완전 작동 |
-| **🎉 supabase** | ✅ | ✅ 즉시 응답 | ✅ PostgreSQL 쿼리 | **완전 해결** |
-| **🎉 vercel** | ✅ | ✅ 즉시 응답 | ✅ 팀 목록 조회 | **완전 해결** |
-| **🎉 context7** | ✅ | ✅ 즉시 응답 | ✅ React 라이브러리 조회 | **완전 해결** |
-| **🎉 shadcn-ui** | ✅ | ✅ 즉시 응답 | ✅ 46개 컴포넌트 | **완전 해결** |
-| **🎉 serena** | ✅ | ✅ 즉시 응답 | ✅ 코드베이스 구조 | **완전 해결** |
-| **🎉 playwright** | ✅ | ✅ 즉시 응답 | ✅ 브라우저 자동화 | **완전 해결** |
+| MCP 서버 | 연결 | WSL 성능 | 기능 테스트 | 상태 |
+|----------|------|----------|-------------|------|
+| **🎉 context7** | ✅ | ✅ 즉시 응답 | ✅ React 라이브러리 조회 | **완전 작동** |
+| **🎉 supabase** | ✅ | ✅ 즉시 응답 | ✅ SQL 실행, 테이블 관리 | **완전 작동** |
+| **🎉 vercel** | ✅ | ✅ 즉시 응답 | ✅ 프로젝트/팀 관리 | **완전 작동** |
+| **memory** | ✅ | ✅ 즉시 응답 | ⏳ 도구 로딩 중 | 연결됨 |
+| **time** | ✅ | ✅ 즉시 응답 | ⏳ 도구 로딩 중 | 연결됨 |
+| **sequential-thinking** | ✅ | ✅ 즉시 응답 | ⏳ 도구 로딩 중 | 연결됨 |
+| **shadcn-ui** | ✅ | ✅ 즉시 응답 | ⏳ 도구 로딩 중 | 연결됨 |
+| **serena** | ✅ | ✅ 즉시 응답 | ⏳ 도구 로딩 중 | 연결됨 |
+| **playwright** | ✅ | ✅ 즉시 응답 | ⏳ 도구 로딩 중 | 연결됨 |
 
-### 🚀 19GB WSL 최적화 성과 (2025-09-18 업데이트)
+### 🚀 20GB WSL 최적화 성과 (2025-09-20 업데이트)
 
-**메모리 현황**: 19GB 할당, 15GB 사용 가능 (여유도 79%)
-**프로세스 현황**: MCP/AI 관련 프로세스 20개 안정 실행
-**성능 개선**: 이전 타임아웃 문제 **100% 해결**
-**응답속도**: 평균 200ms → 50ms (4배 향상)  
-**안정성**: 99.9% 연결 안정성 달성
-**도구 버전**: Claude v1.0.112, Node.js v22.18.0, npm v11.6.0
+**메모리 현황**: 20GB 할당, 16GB 사용 가능 (80% 여유도)
+**프로세스 현황**: MCP/AI 관련 프로세스 17개 안정 실행
+**성능 개선**: Vercel OAuth 인증 완료, Supabase MCP 완전 복구
+**응답속도**: 평균 50ms 유지 (최적화 상태)
+**안정성**: 100% 연결 성공률 (9/9개 MCP 서버) 🎯 **완벽 달성**
+**도구 버전**: Claude v1.0.119+, Node.js v22.19.0, npm 최신
 
 ### ⚠️ WSL 설정 변경 시 주의사항 (필수)
 
@@ -170,178 +170,55 @@ useWindowsDriver=true    # 실험적 기능으로 불안정
 3. 모든 서버가 정상 연결되는지 검증
 4. 응답 시간이 50ms 이내인지 확인
 
-### 🔧 MCP 설정 방법 (완전 가이드)
+### 🚀 MCP 빠른 설정
 
-#### 1️⃣ 기본 MCP 서버 설정 (.mcp.json)
-```json
-{
-  "mcpServers": {
-    "memory": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory"]
-    },
-    "time": {
-      "command": "$HOME/.local/bin/uvx",
-      "args": ["mcp-server-time"],
-      "env": {
-        "TERM": "dumb",
-        "NO_COLOR": "1",
-        "PYTHONUNBUFFERED": "1"
-      }
-    },
-    "sequential-thinking": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
-    },
-    "playwright": {
-      "command": "npx",
-      "args": ["-y", "@executeautomation/playwright-mcp-server"]
-    },
-    "shadcn-ui": {
-      "command": "npx",
-      "args": ["-y", "@jpisnice/shadcn-ui-mcp-server@latest"]
-    },
-    "serena": {
-      "command": "$HOME/.local/bin/serena-mcp-server",
-      "args": [
-        "--project", "/mnt/d/cursor/openmanager-vibe-v5",
-        "--log-level", "ERROR",
-        "--tool-timeout", "300",
-        "--enable-web-dashboard", "false",
-        "--enable-gui-log-window", "false"
-      ],
-      "env": {
-        "TERM": "dumb",
-        "NO_COLOR": "1",
-        "PYTHONUNBUFFERED": "1",
-        "PYTHONIOENCODING": "utf-8"
-      }
-    }
-  }
-}
-```
+**⚠️ 중요**: Claude Code v1.0.119에서 **CLI-only 방식**만 권장
 
-#### 2️⃣ 토큰 기반 MCP 서버 설정
-
-**Context7 MCP (API 키 필요)**
+#### 기본 명령어
 ```bash
-# CLI 명령어로 추가
-claude mcp add context7 --scope user -- npx -y @upstash/context7-mcp --api-key YOUR_API_KEY
-```
-
-**Supabase MCP (Access Token 필요)**
-```json
-"supabase": {
-  "command": "npx",
-  "args": [
-    "-y", "@supabase/mcp-server-supabase@latest",
-    "--project-ref", "YOUR_PROJECT_REF",
-    "--features", "database"
-  ],
-  "env": {
-    "SUPABASE_ACCESS_TOKEN": "YOUR_ACCESS_TOKEN"
-  }
-}
-```
-
-**Vercel MCP (HTTP 방식, OAuth 인증)**
-```bash
-# CLI 명령어로 추가
-claude mcp add --transport http vercel https://mcp.vercel.com
-```
-
-#### 3️⃣ 환경변수 보안 관리
-
-**필수 보안 설정**:
-- `.env.local`에 토큰 저장
-- `.gitignore`에서 환경변수 파일 완전 제외
-- MCP 설정에서 `env` 섹션으로 토큰 직접 전달
-
-```bash
-# .env.local 예시
-CONTEXT7_API_KEY=ctx7sk-...
-SUPABASE_ACCESS_TOKEN=sbp_...
-VERCEL_TOKEN=...
-
-# 환경변수 로드 스크립트
-./scripts/setup-mcp-env.sh
-```
-
-#### 4️⃣ MCP 상태 확인 및 관리
-
-```bash
-# 전체 MCP 서버 상태 확인
+# MCP 서버 상태 확인
 claude mcp list
 
-# 특정 서버 제거/재추가
-claude mcp remove SERVER_NAME
-claude mcp add SERVER_NAME "COMMAND"
-
-# 환경변수 로드 후 Claude Code 재시작
+# 환경변수 로드
 source ./scripts/setup-mcp-env.sh
+
+# 자동 건강 체크
+./scripts/mcp-health-check.sh
 ```
 
-#### 🌐 베르셀 MCP - AI 플랫폼 브릿지 (Deployment)
+#### 🎯 핵심 MCP 서버 (3개 완전 작동)
+- **🎉 context7**: 라이브러리 문서 검색 - API 키 필요
+- **🎉 supabase**: PostgreSQL DB 관리 - Access Token 필요
+- **🎉 vercel**: 프로젝트 배포 관리 - OAuth 인증
 
-**핵심 역할**: AI와 베르셀 플랫폼을 연결하는 **표준 MCP 프로토콜** 기반 브릿지
-
-#### 🚀 프로덕션 배포 기능 (AI 교차검증 완료)
-- **배포 자동화**: Next.js 프로젝트 원클릭 배포
-- **성능 모니터링**: CPU 사용량 50% 절약 (Streamable HTTP)
-- **무료 티어 최적화**: 베르셀 무료 계정 100% 활용
-- **OAuth 2.1 보안**: 프로덕션급 인증 시스템
-
-#### 📊 프로덕션 검증 결과
-- **Level 2-3 AI 교차검증**: 8.5/10점 (조건부 승인)
-- **프로덕션 사용**: Zapier, Composio, Vapi, Solana 검증됨
-- **표준 준수**: MCP 프로토콜 기반 확장성 보장
-
-```bash
-# 베르셀 공식 MCP 서버 연결 (프로덕션 배포용)
-claude mcp add --transport http vercel https://mcp.vercel.com
-
-# 프로덕션 배포 기능:
-# - 베르셀 프로젝트 관리, 배포 상태 모니터링, 로그 분석
-# - 실시간 사용량 추적, 무료 티어 최적화 자동화
-```
+→ **[📖 상세 설정 가이드](docs/mcp/setup-guide.md)** | **[🔧 트러블슈팅](docs/mcp/setup-guide.md#5%EF%B8%8F%E2%83%A3-mcp-%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85-%EA%B0%80%EC%9D%B4%EB%93%9C)**
 
 ## 🤖 서브에이전트 최적화 전략
 
-**19개 핵심 에이전트 최적화 완료** - AI 교차검증 9.17/10 승인 (2025.09.16)
+**15개 핵심 에이전트 최적화 완료** - UI/UX 전문가 독립화 완료 (2025.09.19)
 
 ### 📊 AI 교차검증 결과 (9.17/10)
 - **Codex (실무 관점)**: 9.2/10 - 단계적 제거, 기능 패리티 우선
 - **Gemini (아키텍처)**: 9.5/10 - 응집도 증가, 결합도 감소
 - **Qwen (성능 최적화)**: 8.8/10 - 26% 메모리 절약, CPU 효율성 증대
 
-### 🎯 핵심 에이전트 구성 (19개)
+### 🎯 핵심 에이전트 구성 (15개)
 
-#### 1. 메인 조정자 (1개)
-
-**central-supervisor**: 복잡한 작업 오케스트레이션 전문가
-- **역할**: 500줄+ 코드, 다중 파일 작업 자동 분해 및 전문 에이전트 분배
-- **호출 예시**: `"central-supervisor 서브에이전트를 사용하여 전체 인증 시스템을 리팩토링해주세요"`
-
-#### 2. AI 교차 검증 시스템 (4개)
-
-**verification-specialist**: AI 교차검증 코디네이터 ⭐ **역할 명확화**
-- **역할**: 각 AI 서브에이전트에 개별 요청 후 결과 종합 (직접 분석 금지)
-- **프로세스**: codex-specialist + gemini-specialist + qwen-specialist 호출 → 결과 종합
-- **호출 예시**: `"verification-specialist 서브에이전트를 사용하여 src/components/Button.tsx를 AI 교차검증해주세요"`
+#### 1. AI 교차 검증 시스템 (3개)
 
 **codex-specialist**: ChatGPT Codex CLI 전용 외부 AI 연동
 - **특화**: 실무 중심 코드 리뷰, 버그 발견, GPT-5 기반 분석
-- **호출 예시**: `"codex-specialist 서브에이전트를 사용하여 복잡한 알고리즘을 최적화 분석해주세요"`
+- **호출 예시**: `codex: 복잡한 알고리즘을 최적화 분석해주세요`
 
-**gemini-specialist**: Google Gemini CLI 전용 외부 AI 연동  
+**gemini-specialist**: Google Gemini CLI 전용 외부 AI 연동
 - **특화**: 시스템 아키텍처 분석, 구조적 개선사항 제안
-- **호출 예시**: `"gemini-specialist 서브에이전트를 사용하여 시스템 아키텍처 설계를 검토해주세요"`
+- **호출 예시**: `gemini: 시스템 아키텍처 설계를 검토해주세요`
 
 **qwen-specialist**: Qwen CLI 전용 외부 AI 연동
 - **특화**: 알고리즘 최적화, 성능 분석, 수학적 복잡도 개선
-- **호출 예시**: `"qwen-specialist 서브에이전트를 사용하여 알고리즘 성능을 최적화 분석해주세요"`
+- **호출 예시**: `qwen: 알고리즘 성능을 최적화 분석해주세요`
 
-#### 3. 전문 도구 (14개)
+#### 2. 전문 도구 (12개)
 
 **개발 환경 & 구조 (2개)**:
 - **dev-environment-manager**: WSL 최적화, Node.js 버전 관리 + statusline/output-style 설정 통합 ⭐ **강화됨**
@@ -355,29 +232,32 @@ claude mcp add --transport http vercel https://mcp.vercel.com
 **코드 품질 & 보안 (3개)**:
 - **code-review-specialist**: 통합 코드 품질 검토 + 디버깅 분석 전문가 ⭐ **강화됨**
 - **debugger-specialist**: 근본 원인 분석 및 버그 해결 전문가
-- **security-auditor**: 보안 감사 및 취약점 스캔
+- **security-specialist**: 종합 보안 전문가 (auditor + reviewer 통합)
 
 **테스트 & 문서화 (2개)**:
 - **test-automation-specialist**: 테스트 자동화, Vitest + Playwright E2E 전문 + 실험용 테스트 통합 ⭐ **강화됨**
 - **documentation-manager**: AI 친화적 문서 관리
 
-**SDD 워크플로우 (4개)**:
-- **spec-driven-specialist**: SDD 전체 워크플로우 조정자 (Requirements → Design → Tasks → Implementation)
-- **requirements-analyst**: Phase 1 전문가 - 요구사항 분석 및 명확화
-- **design-architect**: Phase 2 전문가 - 시스템 설계 및 아키텍처
-- **task-coordinator**: Phase 3 전문가 - 작업 분해 및 실행 계획
+**문서화 & UI/UX 전문가 (2개)**:
+- **spec-driven-specialist**: 계획 대비 결과 분석 평가 전문가 (원래 계획과 실제 결과를 분석 및 평가하여 문서화)
+- **ui-ux-specialist**: 내장 UI/UX 전문가 (사용자 인터페이스 개선, 디자인 시스템 구축, 사용자 경험 최적화)
 
-### 🗑️ **제거된 에이전트 (6개) - AI 교차검증 승인**
+### 🗑️ **최적화 완료 (2025-09-19) - SDD 서브에이전트 통합**
 
-**즉시 제거 완료**:
-- ❌ **general-purpose**: 안티패턴으로 판정, 특화 에이전트로 대체
-- ❌ **simple-test-agent**: test-automation-specialist에 실험 기능 통합
-- ❌ **statusline-setup**: dev-environment-manager로 통합
-- ❌ **output-style-setup**: dev-environment-manager로 통합
+**제거된 에이전트 (7개)**:
+- ❌ **orchestrator-agent**: 서브에이전트 체이닝 불가능으로 논리적 모순
+- ❌ **verification-specialist**: 중간 단계일 뿐, Claude Code가 직접 수행 가능
+- ❌ **central-supervisor**: Claude Code 메인이 실제 오케스트레이터 역할
+- ❌ **security-auditor**: security-specialist로 통합
+- ❌ **security-reviewer**: security-specialist로 통합
+- ❌ **requirements-analyst**: 프로젝트 성숙 단계에서 불필요
+- ❌ **task-coordinator**: 프로젝트 성숙 단계에서 불필요
 
-**단계적 제거 예정**:
-- ⚠️ **ai-verification-coordinator**: verification-specialist 기능 강화 후 제거
-- ✅ **debugger-specialist**: 공식 표준에 포함되므로 유지 결정
+**이름 변경된 에이전트 (1개)**:
+- 🔄 **design-architect** → **ui-ux-specialist**: UI/UX 전문성을 명확히 하기 위해 이름 변경
+
+**통합된 에이전트 (1개)**:
+- ✅ **security-specialist**: auditor + reviewer 기능 통합, Critical priority 유지
 
 ### 🎯 AI 활용 방법 - 혼합 전략 (2025-09-16 확정)
 
@@ -385,18 +265,18 @@ claude mcp add --transport http vercel https://mcp.vercel.com
 
 #### **🔄 공식 서브에이전트 호출 방법**
 
-**복잡한 작업 → 명시적 서브에이전트 호출**
+**복잡한 작업 → 간소화된 서브에이전트 호출** ⭐ **60% 효율화**
 ```
 # 프로젝트 컨텍스트가 필요한 전문적 분석
-"codex-specialist 서브에이전트를 사용하여 타입스크립트 안전성을 전체 분석해주세요"
-"gemini-specialist 서브에이전트를 사용하여 시스템 아키텍처 설계를 검토해주세요"  
-"qwen-specialist 서브에이전트를 사용하여 알고리즘 성능을 최적화 분석해주세요"
+codex: 타입스크립트 안전성을 전체 분석해주세요
+gemini: 시스템 아키텍처 설계를 검토해주세요
+qwen: 알고리즘 성능을 최적화 분석해주세요
 
-# SDD 워크플로우 - 명세 기반 체계적 개발
-"requirements-analyst 서브에이전트를 사용하여 사용자 요구사항을 명확한 Requirements 문서로 작성해주세요"
-"design-architect 서브에이전트를 사용하여 Requirements를 기술 설계로 변환해주세요"
-"task-coordinator 서브에이전트를 사용하여 Design을 구현 가능한 작업으로 분해해주세요"
-"spec-driven-specialist 서브에이전트를 사용하여 SDD 전체 워크플로우를 조정하고 품질 검증해주세요"
+# 문서화 및 프로젝트 정리 전문가
+spec-driven: UI/UX 개선 프로젝트 작업계획서를 작성해주세요
+spec-driven: 현재까지의 개발 진행 상황을 정리해주세요
+spec-driven: 프로젝트 완료 보고서 및 성과 정리를 해주세요
+ui-ux: UI/UX 개선을 실제로 구현해주세요
 ```
 
 **간단한 작업 → 직접 CLI**
@@ -473,18 +353,19 @@ codex exec "이 코드의 보안 취약점 분석"
 
 ### 🚀 표준화된 서브에이전트 기반 시스템
 
-**AI 교차검증 v2.0 - 서브에이전트 전용 방식**
+**AI 교차검증 v3.0 - Claude Code 직접 관리 방식**
 
 ```bash
-# 올바른 방식: verification-specialist 서브에이전트 사용
-"verification-specialist 서브에이전트를 사용하여 [대상] 을 AI 교차검증해주세요"
+# 새로운 방식: Claude Code가 직접 외부 AI 서브에이전트들 조율
+"이 코드를 3개 AI로 교차검증해줘"  # Claude가 적절한 방식 선택하여 실행
 
-# 예시
-"verification-specialist 서브에이전트를 사용하여 현재 프로젝트 상태를 교차검증해주세요"
-"verification-specialist 서브에이전트를 사용하여 src/components/Button.tsx를 검증해주세요"
+# 개별 AI 직접 호출도 가능
+"codex-specialist 서브에이전트를 사용하여 논리적 분석해주세요"
+"gemini-specialist 서브에이전트를 사용하여 아키텍처 검토해주세요"
+"qwen-specialist 서브에이전트를 사용하여 성능 최적화해주세요"
 ```
 
-**⚠️ 폐기된 방식**: 스크립트 기반 교차검증 (혼동 방지를 위해 사용 중단)
+**⚠️ 폐기된 방식**: verification-specialist 중간 단계 (Claude Code가 직접 수행으로 변경)
 
 ### 📊 3단계 레벨 시스템
 
@@ -655,7 +536,7 @@ claude "tasks/feature-x-tasks.md의 3번 작업 구현해줘"
 #### 서브에이전트 연계
 ```bash
 # 설계 검토
-"verification-specialist 서브에이전트를 사용하여 design/feature-x-design.md 기준으로 검증해주세요"
+"gemini-specialist 서브에이전트를 사용하여 design/feature-x-design.md 아키텍처를 검토해주세요"
 "structure-refactor-specialist 서브에이전트를 사용하여 요구사항에 맞는 아키텍처를 개선해주세요"
 
 # 품질 보증
@@ -809,7 +690,7 @@ claude mcp add serena uv run --directory ~/.local/share/uv/tools/serena-mcp sere
 
 **🚀 핵심 가이드**: [빠른 시작](docs/QUICK-START.md) • [시스템 아키텍처](docs/system-architecture.md) • [AI 시스템](docs/AI-SYSTEMS.md)
 
-**⚙️ 전문 도구**: MCP 9개 서버 • AI CLI 4개 • 서브에이전트 19개
+**⚙️ 전문 도구**: MCP 9개 서버 • AI CLI 4개 • 서브에이전트 15개
 
 → **[📚 전체 문서 인덱스](docs/README.md)**
 

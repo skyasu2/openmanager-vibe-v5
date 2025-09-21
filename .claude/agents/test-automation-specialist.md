@@ -4,6 +4,7 @@ description: PROACTIVELY run after code changes. 테스트 자동화 전문가. 
 tools: Read, Write, Edit, Bash, Glob, Grep, mcp__playwright__browser_navigate, mcp__playwright__browser_snapshot, mcp__playwright__browser_click, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__execute_shell_command, mcp__serena__think_about_collected_information
 priority: normal
 trigger: post_code_change, test_failure, coverage_drop
+model: inherit
 ---
 
 # 테스트 자동화 전문가
@@ -45,10 +46,10 @@ trigger: post_code_change, test_failure, coverage_drop
 ## 전문가 협업 테스트
 다른 서브에이전트와 협업하여 종합적 테스트 수행:
 
-- **보안 테스트**: security-auditor와 협업하여 인증/인가 테스트
+- **보안 테스트**: security-specialist와 협업하여 인증/인가 테스트
 - **성능 테스트**: Core Web Vitals 및 로드 테스트  
 - **DB 테스트**: database-administrator와 협업하여 데이터 무결성 검증
-- **UI 테스트**: design-architect와 협업하여 UX 시나리오 검증
+- **UI 테스트**: spec-driven-specialist와 협업하여 UX 시나리오 검증
 
 ## Serena MCP 구조적 테스트 분석 🆕
 **테스트 대상의 구조적 이해 기반 정밀 테스트 설계**:

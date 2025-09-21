@@ -46,16 +46,7 @@ export default defineConfig(({ mode }) => {
       ],
 
       // 🎯 테스트 실행 최적화 - 개선된 설정
-      maxConcurrency: 20, // 병렬 실행 증가
-      pool: 'threads', // threads 사용
-      poolOptions: {
-        threads: {
-          isolate: true, // 테스트 격리 활성화 (안정성 향상)
-          minThreads: 2,
-          maxThreads: 4, // CPU 코어에 맞게 조정
-        }
-      },
-      isolate: true, // 테스트 격리 활성화로 안정성 향상
+      maxConcurrency: 10, // 병렬 실행 감소로 안정성 향상
       
       // 🚀 성능 최적화 추가 옵션
       css: false, // CSS 처리 비활성화
@@ -108,9 +99,19 @@ export default defineConfig(({ mode }) => {
       bail: 1, // 첫 번째 실패에서 중단
 
       // 📝 리포터 설정 - Hanging 프로세스 감지 추가
-      reporters: process.env.CI 
-        ? ['github-actions'] 
+      reporters: process.env.CI
+        ? ['github-actions']
         : ['default', 'hanging-process'],
+
+      // 🚀 Hanging Process 방지 설정
+      pool: 'forks', // threads → forks로 변경하여 프로세스 격리 강화
+      poolOptions: {
+        forks: {
+          isolate: false, // 메모리 절약을 위해 격리 비활성화
+          minForks: 1,
+          maxForks: 2, // 포크 수 제한으로 메모리 사용량 최적화
+        }
+      },
       outputFile: {
         json: './test-results/results.json',
         html: './test-results/index.html',

@@ -4,6 +4,7 @@ description: PROACTIVELY use for debugging complex issues. 디버깅 및 근본 
 tools: Read, Grep, Bash, LS, Glob, mcp__serena__find_referencing_symbols, mcp__serena__search_for_pattern, mcp__gcp__query_logs, mcp__serena__find_symbol, mcp__serena__get_symbols_overview, mcp__serena__think_about_collected_information
 priority: medium
 trigger: bug_report, performance_issue, stack_trace_error
+model: inherit
 ---
 
 # 디버거 전문가 (Debugger Specialist)

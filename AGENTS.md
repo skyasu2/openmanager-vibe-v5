@@ -9,7 +9,7 @@ ChatGPT Codex CLI를 위한 OpenManager VIBE v5 특화 설정
 > **OpenManager VIBE v5 전용 Codex CLI 설정**  
 > **Language Policy**: 한국어 우선, 기술용어 영어 허용  
 > **Last Updated**: 2025-09-02 | **Environment**: Windows 11 + WSL 2  
-> **Project Status**: 69,260줄 TypeScript, 98.2% 테스트 커버리지, 8개 MCP 서버 최적화
+> **Project Status**: 234,290줄 TypeScript, 98.2% 테스트 커버리지, 9개 MCP 서버 최적화
 
 ## ℹ️ Codex /init 사용 안내
 
@@ -81,7 +81,7 @@ alias cx="codex-cli"
 Project:
   Name: 'OpenManager VIBE v5'
   Architecture: 'Next.js 15 + TypeScript (strict) + Supabase + Vercel Edge'
-  Scale: '69,260줄 TypeScript, 1,512개 파일, 253개 디렉토리'
+  Scale: '234,290줄 TypeScript, 883개 파일, 253개 디렉토리'
 
 Status:
   TypeScript_Errors: 382개 (개선 대상)
@@ -90,15 +90,15 @@ Status:
   Free_Tier: '100% 무료 운영 (Vercel 100GB + GCP 2M req + Supabase 500MB)'
 
 AI_Integration:
-  MCP_Servers: 12개 (12개 정상 동작)
+  MCP_Servers: 9개 (9개 정상 동작)
   AI_Engines: 4개 (Google AI, Supabase RAG, Korean NLP, ML Analytics)
-  Claude_Code_SubAgents: 17개 전문 에이전트 (Claude Code 전용, AI 교차검증 9.17/10 최적화 완료)
+  Claude_Code_SubAgents: 14개 전문 에이전트 (Claude Code 전용, SDD 서브에이전트 3개 통합 완료)
   Multi_AI: 'Claude + Gemini + Qwen + Codex 병렬 협업'
 ```
 
 ## 💡 주요 활용 시나리오
 
-**Claude Code 서브에이전트 17개 체계** - Claude Code 내장 Task 도구 전용
+**Claude Code 서브에이전트 14개 체계** - Claude Code 내장 Task 도구 전용
 
 **중요**: 서브에이전트는 Claude Code 전용 기능이며, Codex CLI에서는 직접 활용 불가
 **Codex 역할**: 독립적인 GPT-5 기반 코드 분석 및 리뷰 전문가
@@ -114,7 +114,7 @@ codex-cli "성능 급저하 병목점 탐지 및 응급 최적화"
 ```bash
 codex-cli "Next.js 15 App Router 아키텍처 성능 병목점 종합 진단"
 codex-cli "Supabase RLS 정책 보안 취약점 전체 감사"
-codex-cli "MCP 서버 12개 통합 아키텍처 최적화 방안"
+codex-cli "MCP 서버 9개 통합 아키텍처 최적화 방안"
 ```
 
 ### 3️⃣ 제3자 관점 코드 리뷰 (3순위)
@@ -228,7 +228,7 @@ performance_optimizer:
 ```yaml
 mcp_integrator:
   name: 'MCP Server Integration Expert'
-  description: '12개 MCP 서버 관리 및 최적화'
+  description: '9개 MCP 서버 관리 및 최적화'
   commands:
     - 'codex mcp-health-check --all --report'
     - 'codex mcp-optimize --connection --performance'
@@ -460,7 +460,7 @@ XSS, CSRF 공격을 완벽히 차단해줘"
 
 ```bash
 # MCP 서버 헬스체크
-codex-cli "12개 MCP 서버의 상태를 점검하고 연결 불안정한
+codex-cli "9개 MCP 서버의 상태를 점검하고 연결 불안정한
 serena 서버를 완전히 복구해줘"
 
 # MCP 성능 최적화
