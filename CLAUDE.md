@@ -564,6 +564,24 @@ claude mcp remove serena
 claude mcp add serena uv run --directory ~/.local/share/uv/tools/serena-mcp serena-mcp
 ```
 
+### Git 인증 문제 해결 (Development)
+```bash
+# GitHub Personal Access Token 기반 인증 설정
+# 1. .env.local에 GIT_TOKEN 환경변수 설정
+source .env.local
+
+# 2. HTTPS 토큰 인증으로 원격 저장소 URL 설정
+git remote set-url origin https://username:$GIT_TOKEN@github.com/username/repository.git
+
+# 3. 정상 푸시
+git push
+
+# 토큰 기반 인증의 장점:
+# - SSH 키 설정 불필요
+# - WSL 환경에서 안정적 작동
+# - 환경변수 기반 보안 관리
+```
+
 ### 프로덕션 배포 문제 해결 (Deployment)
 - **타입 오류**: `npx tsc --noEmit`으로 strict 설정 확인
 - **배포 실패**: `npm run build` 로컬 테스트 후 Vercel 배포

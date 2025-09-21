@@ -103,7 +103,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:3001',
+    baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
   },
   projects: [
@@ -111,6 +111,74 @@ export default defineConfig({
     { name: 'firefox', use: devices['Desktop Firefox'] },
     { name: 'webkit', use: devices['Desktop Safari'] },
   ],
+});
+```
+
+## 🚀 환경별 테스트 전략
+
+### 🎯 베르셀 프로덕션 환경 테스트의 핵심 가치
+
+| 환경 | URL | 성능 | 테스트 가치 | 권장도 |
+|------|-----|------|-------------|--------|
+| **개발 서버** | localhost:3000 | 24.1s 초기로드 | 개발 중 빠른 피드백 | ⭐⭐⭐ |
+| **로컬 프로덕션** | localhost:3000 (빌드) | 최적화된 빌드 | 배포 전 검증 | ⭐⭐⭐⭐ |
+| **베르셀 프로덕션** | vercel.app | 152ms 응답 | 실제 사용자 환경 | ⭐⭐⭐⭐⭐ |
+
+**✅ 베르셀 환경에서만 발견 가능한 이슈들:**
+- **프로덕션 빌드 최적화** 관련 버그
+- **CDN 캐싱** 및 Edge 최적화 문제
+- **베르셀 환경변수** 적용 오류 (ADMIN_PASSWORD="4231" 등)
+- **SSR/SSG** 렌더링 차이점
+- **실제 네트워크 지연** 및 응답 시간
+
+### 🧪 베르셀 환경 테스트 추가 시나리오
+
+#### 1. 프로덕션 성능 검증
+```typescript
+test('베르셀 프로덕션 성능 측정', async ({ page }) => {
+  // 베르셀 환경 접속
+  await page.goto('https://openmanager-vibe-v5.vercel.app');
+
+  // 페이지 로드 시간 측정
+  const loadTime = await page.evaluate(() => {
+    return performance.timing.loadEventEnd - performance.timing.navigationStart;
+  });
+
+  expect(loadTime).toBeLessThan(3000); // 3초 이내
+});
+```
+
+#### 2. 환경변수 검증
+```typescript
+test('베르셀 환경변수 적용 확인', async ({ page }) => {
+  await page.goto('https://openmanager-vibe-v5.vercel.app');
+
+  // 관리자 모드 접근
+  await page.click('button:has-text("게스트로 체험하기")');
+  await page.click('[data-testid="admin-mode"]');
+
+  // PIN 4231 인증 (베르셀 환경변수 확인)
+  await page.fill('[data-testid="pin-input"]', '4231');
+  await page.click('[data-testid="pin-submit"]');
+
+  // 인증 성공 확인
+  await expect(page.locator('text=시스템 시작')).toBeVisible();
+});
+```
+
+#### 3. CDN 캐싱 효과 확인
+```typescript
+test('베르셀 CDN 캐싱 성능', async ({ page }) => {
+  // 첫 방문
+  const firstLoad = await page.goto('https://openmanager-vibe-v5.vercel.app');
+  const firstTime = await firstLoad.request().timing();
+
+  // 페이지 새로고침 (캐시 활용)
+  await page.reload();
+  const secondTime = await page.evaluate(() => performance.now());
+
+  // 캐시 효과로 두 번째 로드가 더 빨라야 함
+  console.log(`캐시 효과: ${firstTime.responseEnd - firstTime.requestStart}ms → ${secondTime}ms`);
 });
 ```
 

@@ -227,6 +227,111 @@ mcp__playwright__playwright_get_visible_text 함수 사용
    - 로그인 페이지로 돌아가기 성공
    - 페이지 간 이동 정상 작동
 
+## 🚀 베르셀 프로덕션 환경 테스트 (권장)
+
+### 🎯 왜 베르셀 환경에서 테스트해야 할까?
+
+**개발 서버 vs 베르셀 프로덕션의 핵심 차이점:**
+
+| 구분 | 개발 서버 (localhost:3000) | 베르셀 프로덕션 |
+|------|---------------------------|-----------------|
+| **빌드 타입** | 개발 모드 (Hot Reload) | 프로덕션 빌드 (최적화) |
+| **성능** | 느림 (24.1s 초기 로드) | 빠름 (152ms 응답) |
+| **캐싱** | 캐싱 없음 | CDN + Edge 캐싱 |
+| **환경변수** | .env.local | 베르셀 환경변수 |
+| **SSR/SSG** | 개발 모드 | 프로덕션 최적화 |
+| **실제성** | 개발 환경 | 실제 사용자 환경 |
+
+### 🧪 베르셀 환경 테스트 시나리오
+
+**베르셀 프로덕션 URL**: `https://openmanager-vibe-v5.vercel.app`
+
+#### 1. 프로덕션 빌드 검증 테스트
+```
+mcp__playwright__playwright_navigate 함수 사용:
+- url: https://openmanager-vibe-v5.vercel.app
+- browserType: chromium
+- 목적: 프로덕션 빌드의 안정성 확인
+```
+
+#### 2. 실제 성능 측정 테스트
+```
+성능 지표 확인:
+- 초기 로드 시간: 152ms 목표
+- API 응답 시간: /api/system/status 측정
+- CDN 캐싱 효과 확인
+- lighthouse 점수 측정
+```
+
+#### 3. 프로덕션 환경변수 검증
+```
+테스트 항목:
+- Supabase 연결 상태
+- Google AI API 연동
+- GitHub OAuth 인증
+- 베르셀 환경변수 적용 여부
+```
+
+#### 4. 실제 사용자 플로우 검증
+```
+완전한 E2E 시나리오:
+1. 프로덕션 로그인 페이지 접속
+2. GitHub OAuth 로그인 테스트
+3. 게스트 체험 플로우 확인
+4. 메인 대시보드 모든 기능 테스트
+5. 시스템 모니터링 데이터 로드 확인
+```
+
+### 🎭 베르셀 환경 MCP 테스트 예시
+
+```bash
+# Claude Code에서 베르셀 프로덕션 테스트
+mcp__playwright__playwright_navigate:
+  url: "https://openmanager-vibe-v5.vercel.app"
+  browserType: "chromium"
+  headless: false
+
+# 성능 측정을 위한 스크린샷
+mcp__playwright__playwright_screenshot:
+  name: "vercel-production-test"
+  fullPage: true
+  storeBase64: true
+
+# 실제 API 응답 시간 측정
+mcp__playwright__playwright_evaluate:
+  script: |
+    performance.mark('api-start');
+    fetch('/api/system/status')
+      .then(() => {
+        performance.mark('api-end');
+        const measure = performance.measure('api-duration', 'api-start', 'api-end');
+        console.log('API Response Time:', measure.duration + 'ms');
+      });
+```
+
+### ✅ 베르셀 환경 테스트의 핵심 장점
+
+1. **실제 버그 발견**: 프로덕션 빌드에서만 나타나는 이슈 확인
+2. **성능 검증**: 실제 CDN 및 Edge 최적화 효과 측정
+3. **환경 호환성**: 베르셀 환경변수 및 설정 검증
+4. **사용자 경험**: 실제 사용자가 경험할 성능과 동일
+5. **배포 신뢰성**: 배포 전 최종 검증 단계
+
+### 🔄 권장 테스트 워크플로우
+
+```bash
+# 1단계: 로컬 개발 서버 테스트 (개발 중)
+npm run dev
+# localhost:3000에서 기본 기능 테스트
+
+# 2단계: 로컬 프로덕션 빌드 테스트 (배포 전)
+npm run build && npm run start
+# localhost:3000에서 프로덕션 빌드 테스트
+
+# 3단계: 베르셀 프로덕션 테스트 (배포 후)
+# https://openmanager-vibe-v5.vercel.app에서 최종 검증
+```
+
 ## 🚨 트러블슈팅
 
 ### 브라우저 실행 오류
@@ -304,6 +409,12 @@ wsl --shutdown
 
 ## 🔗 관련 문서
 
+### 📖 플레이라이트 테스트 가이드
+- **[E2E 테스트 가이드](../testing/e2e.md)** - 기본 E2E 테스트 실행 방법
+- **[종합 E2E 테스트 가이드](../testing/e2e-testing-guide.md)** - 베르셀 환경 테스트 전략 포함
+- **[PIN 인증 테스트 시나리오](../testing/pin-authentication-ai-assistant-test-scenario.md)** - 실제 베르셀 테스트 사례
+
+### 🛠️ 환경 설정 문서
 - **[WSL 안전 가이드](./wsl-safety-guide.md)** - WSL 설정 변경 시 주의사항
 - **[현재 환경 가이드](./current-environment-guide.md)** - 실제 운영 환경 상태
 - **[MCP 서버 설정](../mcp/setup-guide.md)** - 9개 MCP 서버 완전 가이드
