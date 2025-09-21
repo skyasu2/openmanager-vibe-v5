@@ -648,7 +648,7 @@ interface FileCache {
 }
 
 const fileCache = new Map<string, FileCache>();
-const FILE_CACHE_TTL = 60000; // 1분 캐시 TTL
+const FILE_CACHE_TTL = 300000; // 5분 캐시 TTL (성능 최적화)
 
 /**
  * 🚀 캐시된 파일 읽기 (I/O 성능 극대화)
@@ -657,9 +657,9 @@ async function readCachedHourlyFile(hour: number): Promise<any> {
   const cacheKey = hour.toString().padStart(2, '0');
   const cached = fileCache.get(cacheKey);
   
-  // 캐시 히트 (1분 내)
+  // 캐시 히트 (5분 내)
   if (cached && Date.now() - cached.timestamp < FILE_CACHE_TTL) {
-    console.log(`🎯 [FILE-CACHE-HIT] ${hour}시 데이터 캐시 사용 (${Date.now() - cached.timestamp}ms 전)`);
+    // 프로덕션 성능 최적화: 캐시 히트 로그 간소화
     return cached.data;
   }
   
@@ -667,26 +667,21 @@ async function readCachedHourlyFile(hour: number): Promise<any> {
   const filePath = path.join(process.cwd(), 'public', 'server-scenarios', 'hourly-metrics', `${cacheKey}.json`);
   
   try {
-    console.log(`📁 [FILE-CACHE-MISS] ${hour}시 데이터 파일 읽기 시작`);
-    const startTime = Date.now();
-    
-    // 🚀 병렬 파일 체크 및 읽기
+    // 🚀 병렬 파일 체크 및 읽기 (로그 최적화)
     const [, rawData] = await Promise.all([
       fs.access(filePath), // 파일 존재 확인
       fs.readFile(filePath, 'utf8') // 파일 읽기
     ]);
-    
+
     const hourlyData = JSON.parse(rawData);
-    const readTime = Date.now() - startTime;
-    
+
     // 캐시 저장
     fileCache.set(cacheKey, {
       data: hourlyData,
       timestamp: Date.now(),
       hour
     });
-    
-    console.log(`✅ [FILE-CACHE-STORE] ${hour}시 데이터 읽기 완료 (${readTime}ms) - 캐시 저장됨`);
+
     return hourlyData;
     
   } catch (accessError) {
@@ -712,14 +707,8 @@ async function loadHourlyScenarioData(): Promise<any[]> { // 임시 any 타입
     const segmentInHour = Math.floor((currentMinute * 60 + currentSecond) / 30); // 0-119 (60분을 30초 구간으로 나눔)
     const rotationMinute = segmentInHour % 60; // 0-59분 순환 사용
     
-    console.log(`🕒 [FIXED-ROTATION] ${currentHour}:${currentMinute.toString().padStart(2, '0')}:${currentSecond.toString().padStart(2, '0')}`);
-    console.log(`🔄 [FIXED-ROTATION] ${currentHour}시대 ${segmentInHour}번째 구간 → ${rotationMinute}분 데이터 사용`);
-    
-    // 🚀 캐시된 파일 읽기 (4.7초 → 50ms 성능 최적화)
+    // 🚀 캐시된 파일 읽기 (성능 최적화: 로그 간소화)
     const hourlyData = await readCachedHourlyFile(currentHour);
-    
-    console.log(`✅ [FIXED-ROTATION] ${currentHour}시 데이터 로드 성공 (${segmentInHour}→${rotationMinute}분 데이터)`);
-    // AI 분석 무결성을 위해 시나리오 정보는 로그하지 않음
     
     return convertFixedRotationData(hourlyData, currentHour, rotationMinute, segmentInHour);
     
@@ -739,13 +728,9 @@ function convertFixedRotationData(hourlyData: HourlyServerData, currentHour: num
   const servers = hourlyData.servers || {};
   const scenario = hourlyData.scenario || `${currentHour}시 고정 패턴`;
   
-  console.log(`🔧 [FIXED-CONVERT] ${Object.keys(servers).length}개 서버 데이터 변환 (${currentHour}:${rotationMinute.toString().padStart(2, '0')} 고정 데이터)`);
-  console.log(`📋 [FIXED-CONVERT] ${segmentInHour}번째 구간 → 고정 패턴 적용`);
-  
-  // 🎯 10개 서버 보장: JSON에 8개만 있으면 2개 자동 생성
+  // 🎯 10개 서버 보장: JSON에 8개만 있으면 2개 자동 생성 (성능 최적화)
   if (Object.keys(servers).length < 10) {
     const missingCount = 10 - Object.keys(servers).length;
-    console.log(`🔄 [AUTO-GENERATE] JSON에 ${Object.keys(servers).length}개 서버 → ${missingCount}개 자동 생성하여 10개 보장`);
     
     // 부족한 서버 자동 생성
     for (let i = 0; i < missingCount; i++) {
@@ -775,13 +760,10 @@ function convertFixedRotationData(hourlyData: HourlyServerData, currentHour: num
           disk_gb: 200
         }
       };
-      
-      console.log(`✅ [AUTO-GENERATE] ${serverId} 생성 완료 (${serverType} 타입)`);
     }
   }
-  
+
   return Object.values(servers).map((serverData: RawServerData, index) => {
-    console.log(`🔍 [MAP-DEBUG] 서버 ${index}: ${serverData.name || serverData.id} 처리 시작`);
     
     // 🔒 고정 데이터 그대로 사용 (변동 없음)
     // rotationMinute를 사용하여 시간 내 분별 고정 패턴 적용
@@ -790,12 +772,9 @@ function convertFixedRotationData(hourlyData: HourlyServerData, currentHour: num
     
     // 서버별 고정 특성 (항상 동일한 패턴)
     const serverOffset = (index * 3.7) % 10; // 서버별 고정 오프셋 (0-10)
-    
-    console.log(`🔒 [FIXED-SERVER-${index}] ${serverData.name || `서버${index}`} 고정 오프셋: ${fixedOffset.toFixed(1)}% + 서버특성: ${serverOffset.toFixed(1)}%`);
-    
-    // 🎯 결정론적 변동성 적용 (일관성 보장)
+
+    // 🎯 결정론적 변동성 적용 (성능 최적화: 로그 제거)
     const deterministicNoise = RealisticVariationGenerator.generateNaturalVariance(0, `server-${index}-noise`) * 0.05; // ±5% 노이즈
-    console.log(`🎯 [DETERMINISTIC] 서버${index} 결정론적 노이즈: ${deterministicNoise.toFixed(2)}%`);
     const fixedVariation = 1 + (fixedOffset + serverOffset + deterministicNoise) / 100; // 결정론적 노이즈 추가
     
     const enhanced: EnhancedServerMetrics = {
@@ -1209,34 +1188,16 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)));
     const search = searchParams.get('search') || '';
     
-    // 🚨 베르셀 전용 모드 확인 로그
-    console.log('🔥 [VERCEL-ONLY-v3.0] 베르셀 JSON 파일 전용 모드 - 폴백 시스템 완전 제거');
-    console.log('🌐 [VERCEL-JSON-ONLY] 서버 데이터 요청 - 베르셀 시간별 JSON 파일 전용');
-    console.log('📊 요청 파라미터:', { sortBy, sortOrder, page, limit, search });
-    
-    // 🕒 24시간 시나리오 데이터 사용 (현실적 패턴 제공)
-    console.log('🎯 [API-ROUTE] 24시간 시나리오 데이터 시스템 - 시간별 회전 로딩');
-    console.log('📍 [API-ROUTE] 요청 URL:', request.url);
-    console.log('🔧 [API-ROUTE] 요청 파라미터:', { sortBy, sortOrder, page, limit, search });
+    // 프로덕션 성능 최적화: 로그 간소화 (152ms → 100ms 목표)
     
     const enhancedServers = await loadHourlyScenarioData();
     const dataSource = 'vercel-json-only';
-    
-    console.log(`✅ [API-ROUTE] Mock 데이터 생성 성공: ${enhancedServers.length}개 서버`);
-    
-    // 🎯 결정론적 시스템 성능 모니터링
+
+    // 🎯 결정론적 시스템 성능 모니터링 (로그 최적화)
     const performanceStats = getPerformanceStats();
-    console.log('⚡ [DETERMINISTIC-SYSTEM] 성능 통계:', performanceStats);
-    
+
     // 데이터 일관성 확인
     ensureDataConsistency();
-    
-    // 서버별 상태 요약
-    const statusSummary = enhancedServers.reduce((acc, server) => {
-      acc[server.status] = (acc[server.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    console.log('📈 [API-ROUTE] 서버 상태 요약:', statusSummary);
 
     // 검색 필터 적용 (EnhancedServerMetrics 기준)
     let filteredServers = enhancedServers;
@@ -1274,32 +1235,8 @@ export async function GET(request: NextRequest) {
     const startIndex = (page - 1) * limit;
     const paginatedServers = filteredServers.slice(startIndex, startIndex + limit);
 
-    console.log(`📋 [API-ROUTE] 최종 응답: ${paginatedServers.length}개 서버 (전체: ${total}개)`);
-    console.log('📡 [API-ROUTE] 데이터 소스 최종:', { dataSource });
-    console.log('🔍 [API-ROUTE] 최종 서버 목록:', paginatedServers.map(s => 
-      `${s.name || 'unknown'}(${s.type || 'unknown'}/${s.status || 'unknown'}/${(s.cpu_usage || s.cpu || 0).toFixed(1)}%)`
-    ).join(', '));
-    
-    // 검색/필터링 통계
-    if (search) {
-      console.log('🔍 [API-ROUTE] 검색 통계:', { 
-        searchTerm: search, 
-        originalCount: enhancedServers.length, 
-        filteredCount: filteredServers.length 
-      });
-    }
-    
-    // 페이지네이션 통계
-    console.log('📃 [API-ROUTE] 페이지네이션:', { 
-      page, 
-      limit, 
-      startIndex: (page - 1) * limit,
-      totalPages: Math.ceil(total / limit)
-    });
-
-    // 🎯 최종 성능 통계 수집
+    // 🎯 최종 성능 통계 수집 (로그 최적화)
     const finalPerformanceStats = getPerformanceStats();
-    console.log('📊 [FINAL-STATS] 최종 성능 통계:', finalPerformanceStats);
 
     return NextResponse.json({
       success: true,
@@ -1319,33 +1256,17 @@ export async function GET(request: NextRequest) {
         serverCount: paginatedServers.length,
         totalServers: total,
         dataSource,
-        vercelJsonOnlyMode: true, // 베르셀 JSON 전용 모드
-        fallbackSystemDisabled: true, // 폴백 시스템 비활성화
-        // 🚨 베르셀 전용 모드 정보
-        systemVersion: 'vercel-only-v3.0-2025.08.30',
-        cacheBreaker: `vercel-json-${Date.now()}`,
-        dataLocation: 'public/server-scenarios/hourly-metrics/',
-        // 🎯 결정론적 시스템 성능 정보
+        // 프로덕션 성능 최적화: 메타데이터 간소화
         performance: {
-          deterministicSystem: {
-            variationMode: finalPerformanceStats.variationMode,
-            cacheOptimization: finalPerformanceStats.cacheOptimization,
-            responseTime: finalPerformanceStats.responseTime,
-            dataSource: finalPerformanceStats.dataSource,
-            optimizationEnabled: true
-          }
+          responseTime: finalPerformanceStats.responseTime,
+          optimizationEnabled: true
         }
       }
     }, {
-      // 🔥 베르셀 전용 모드 헤더
+      // 프로덕션 성능 최적화: 헤더 간소화
       headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-        'X-Vercel-Cache': 'MISS',
-        'X-Data-Source': 'vercel-json-only',
-        'X-System-Version': 'vercel-only-v3.0-2025.08.30',
-        'X-Fallback-Disabled': 'true'
+        'Cache-Control': 'public, max-age=60, s-maxage=300', // 5분 캐시 활용
+        'X-Data-Source': 'vercel-optimized'
       }
     });
       
