@@ -182,4 +182,7 @@ sudo apt-get install -y libnspr4 libnss3 libasound2t64
 
 **서브에이전트 활용**: `Task test-automation-specialist "E2E 테스트 최적화"`
 **MCP 통합**: playwright (브라우저 자동화), memory (테스트 히스토리)
+
+### 🎭 Playwright MCP 설정
+**WSL 환경 전용 설정 가이드**: [📖 Playwright MCP 설정 가이드](../development/playwright-mcp-setup-guide.md)
 **AI 교차검증**: Level 2 (50-200줄 테스트 코드)

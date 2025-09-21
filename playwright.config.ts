@@ -29,7 +29,26 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        // WSL 환경에서 윈도우 크롬 브라우저 사용
+        launchOptions: {
+          executablePath: '/mnt/c/Program Files/Google/Chrome/Application/chrome.exe',
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor',
+            // WSL-Windows 연동 최적화
+            '--disable-gpu',
+            '--no-first-run',
+            '--disable-default-apps',
+            '--disable-background-timer-throttling',
+            '--disable-renderer-backgrounding',
+            '--disable-backgrounding-occluded-windows',
+          ],
+        },
+      },
     },
 
     {
@@ -64,9 +83,10 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run dev',
-  //   url: 'http://127.0.0.1:3000',
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000, // 2분 타임아웃
+  },
 });

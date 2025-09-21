@@ -24,7 +24,9 @@ updated: "2025-09-09"
 - **[🔧 MCP Advanced](mcp/advanced.md)** - 12 MCP 서버 완전 설치 ⭐ **필수**
   - *관련*: [AI Workflow](ai/workflow.md) → [Design MCP](design/mcp.md) → [Troubleshoot](troubleshoot/common.md)
 - **[🐧 WSL Guide](guides/wsl.md)** - WSL 최적화 + AI CLI 통합 ⭐ **환경**
-  - *관련*: [AI Workflow](ai/workflow.md) → [Performance](performance/README.md) → [Dev Environment](guides/development.md)
+  - *관련*: [AI Workflow](ai/workflow.md) → [Performance](performance/README.md) → [Dev Environment](development/README.md)
+- **[🚀 개발환경 완전 가이드](development/README.md)** - WSL + 멀티 AI 통합 환경 ⭐ **신규**
+  - *관련*: [현재 환경 상태](development/current-environment-guide.md) → [자동 설정](development/environment-setup.md) → [WSL 안전 가이드](development/wsl-safety-guide.md)
 
 #### 📊 시스템 참조 (일상 개발)
 - **[📊 Testing](testing/README.md)** - 98.2% 커버리지, E2E 자동화 ⭐ **품질**
