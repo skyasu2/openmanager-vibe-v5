@@ -457,125 +457,51 @@ codex exec "이 코드의 보안 취약점 분석"
 - **단계적 적용**: 큰 변경은 단계별로 나누어 각 단계마다 검증
 - **롤백 계획**: 모든 변경에 대해 즉시 되돌릴 수 있는 방법 사전 준비
 
-## 🎯 Spec-Driven Development (SDD)
+## 🤖 AI 개발 히스토리 관리
 
-**Kiro IDE 방식의 체계적 개발 프로세스** - 명세 기반으로 AI와 협업하여 품질 높은 코드 생산
+**1인 AI 개발 환경** - spec-driven-specialist 서브에이전트를 통한 선택적 기록 관리
 
-> **배경**: AWS Kiro IDE (2025년 7월 출시)의 spec-driven 접근법을 OpenManager VIBE에 적용  
-> **목표**: "vibe coding"에서 "viable code"로 전환하는 체계적 개발 문화 구축
+> **목적**: 90% 완성 프로젝트에서 필요할 때만 사용하는 실용적 히스토리 추적
+> **방식**: 복잡한 강제 프로세스 대신 AI 서브에이전트 활용
 
-### 📋 SDD 4단계 프로세스
+### 🎯 실용적 사용법
 
-#### 1️⃣ 요구사항 정의 (requirements.md)
-- **목적**: 누구를 위해, 어떤 문제를 해결하는지 명확히 정의
-- **입출력**: 정확한 입력(input)과 출력(output) 명세
-- **경계 조건**: Edge cases, 예외 상황, 실패 조건 포함
-- **제약사항**: 성능/보안/호환성/환경 제약 명시
-
-#### 2️⃣ 시스템 설계 (design.md)
-- **기술 스택**: 언어, 프레임워크, 라이브러리 선택
-- **아키텍처**: 모듈 구조, 데이터 흐름, API 계약
-- **외부 연계**: 외부 시스템과의 상호작용 명시
-- **다이어그램**: 시스템 구조 시각화
-
-#### 3️⃣ 작업 분할 (tasks.md)
-- **단위 분할**: 독립적으로 리뷰 가능한 작은 작업으로 분할
-- **작업 정의**: 각 작업의 생성/수정 대상 명확히 지정
-- **성공 기준**: 테스트 가능한 완료 기준과 예시
-- **우선순위**: 작업 간 의존성과 순서 정의
-
-#### 4️⃣ 구현 (Implementation)
-- **단위별 구현**: 각 작업 단위로 코드 생성
-- **코드 표준**: 스타일 가이드, 명명 규칙 준수
-- **검증**: 보안, 오류 처리, 테스트 포함
-- **문서화**: 코드와 함께 문서 동시 업데이트
-
-### 🔄 SDD 워크플로우 예시
-
-**예제: PIN 인증 시스템 개발**
-
-1. **requirements/pin-auth.md** 작성:
-   ```markdown
-   # PIN 인증 시스템 요구사항
-   - 사용자: 관리자 권한이 필요한 게스트
-   - 문제: GitHub 로그인 없이 관리자 기능 접근
-   - 입력: 4자리 PIN 코드
-   - 출력: 인증 성공/실패, 세션 생성
-   - 제약: 환경변수 기반, 3회 실패 시 잠금
-   ```
-
-2. **design/pin-auth-design.md** 작성:
-   ```markdown
-   # PIN 인증 시스템 설계
-   - 기술: Next.js API Routes + localStorage
-   - 플로우: UI → API → 검증 → 세션
-   - 보안: bcrypt 해싱, rate limiting
-   ```
-
-3. **tasks/pin-auth-tasks.md** 작성:
-   ```markdown
-   # PIN 인증 구현 작업
-   - [ ] API 엔드포인트 생성
-   - [ ] PIN 입력 UI 컴포넌트
-   - [ ] 세션 관리 로직
-   - [ ] 테스트 케이스 작성
-   ```
-
-### 🤖 AI 도구와의 SDD 연계
-
-#### Claude Code 활용
 ```bash
-# SDD 문서 기반 개발 요청
-claude "docs/specs/requirements/feature-x.md 기반으로 API 구현"
-claude "design/feature-x-design.md 참조하여 컴포넌트 생성"
+# 💡 아이디어 정리
+Task spec-driven-specialist "오늘 떠오른 아이디어를 정리해줘: [내용]"
 
-# 작업 단위별 구현
-claude "tasks/feature-x-tasks.md의 3번 작업 구현해줘"
+# ✅ 작업 완료 기록
+Task spec-driven-specialist "방금 [기능명] 완성했는데 어떻게 됐는지 정리해줘"
+
+# 📊 프로젝트 분석
+Task spec-driven-specialist "프로젝트 현재 상태 분석하고 다음 할 일 정리해줘"
+
+# 🔄 막바지 정리
+Task spec-driven-specialist "마무리 단계에서 뭘 했고 뭘 배웠는지 정리해줘"
 ```
 
-#### 서브에이전트 연계
-```bash
-# 설계 검토
-"gemini-specialist 서브에이전트를 사용하여 design/feature-x-design.md 아키텍처를 검토해주세요"
-"structure-refactor-specialist 서브에이전트를 사용하여 요구사항에 맞는 아키텍처를 개선해주세요"
+## 📁 간소화된 구조
 
-# 품질 보증
-"code-review-specialist 서브에이전트를 사용하여 tasks/feature-x-tasks.md 완료 기준을 확인해주세요"
-"test-automation-specialist 서브에이전트를 사용하여 requirements.md 기반 테스트 케이스를 생성해주세요"
-```
-
-### 📁 SDD 파일 구조
+현재 **90% 완성** 프로젝트 마무리 단계에 맞는 최소한의 기록 체계:
 
 ```
-docs/specs/                        # SDD 문서 저장소
-├── requirements/                  # 요구사항 문서
-│   ├── feature-x.md
-│   ├── feature-y.md
-│   └── template.md
-├── design/                        # 설계 문서
-│   ├── feature-x-design.md
-│   ├── feature-y-design.md
-│   └── template.md
-└── tasks/                         # 작업 분할 문서
-    ├── feature-x-tasks.md
-    ├── feature-y-tasks.md
-    └── template.md
+docs/specs/
+├── README.md                    # 이 파일 (사용법)
+├── dev-notes/                   # AI와 함께한 개발 기록들
+├── ideas/                       # 떠오른 아이디어들
+└── archived/                    # 옛날 복잡한 템플릿들
 ```
 
-### 🔗 기존 개발 철학과의 연계
+## ✅ 1인 AI 개발의 현실
 
-- **타입 우선 개발** ↔ SDD 설계 단계에서 타입 정의 우선
-- **사이드 이펙트 우선 개발** ↔ SDD 요구사항에서 영향 분석 포함
-- **테스트 커버리지 70%+** ↔ SDD 작업 분할에서 테스트 기준 명시
-- **커밋 컨벤션** ↔ SDD 작업 단위별 명확한 커밋 메시지
+- **🧠 기억 보조**: 개발 과정에서 놓친 것들 기록
+- **🔄 연결성**: 흩어진 아이디어들의 연결고리 발견
+- **📈 성장 추적**: "아 내가 이렇게 발전했구나" 실감
+- **⚡ 즉석 정리**: 생각 정리하는 시간도 아까운 1인 개발자용
 
-### ✅ SDD 도입 효과
+---
 
-1. **체계적 접근**: Kiro와 같은 선진 방법론으로 개발 품질 향상
-2. **명확한 소통**: 요구사항과 설계로 팀원 간 이해도 통일
-3. **AI 협업 최적화**: Claude Code가 명확한 컨텍스트로 정확한 코드 생성
-4. **유지보수성**: 문서와 코드의 일관성으로 장기 유지보수 용이
-5. **품질 보증**: 명세 기반 개발로 누락 없는 완성도 달성
+**💡 진짜 핵심**: 완벽한 문서보다는 **"어? 이거 기록해둬야겠다"** 싶을 때 바로 AI에게 맡기기
 
 ## 🎯 현재 상태
 

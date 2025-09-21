@@ -49,25 +49,33 @@ tests/e2e/              # Playwright E2E (2개)
 tests/integration/      # 시스템 통합 (15개)
 ```
 
-## 🤖 TDD 워크플로우
+## 🤖 표준 테스트 워크플로우
 
-### Type-First + TDD 사이클
+### Type-First 개발 사이클
 ```typescript
-// 1. RED: 실패 테스트 작성
-it('@tdd-red should implement auth', () => {
-  expect(authenticate(token)).toBe(true);
+// 1. 타입 정의
+interface AuthResult {
+  success: boolean;
+  token?: string;
+}
+
+// 2. 테스트 작성
+it('should authenticate with valid credentials', () => {
+  expect(authenticate(validToken)).toEqual({
+    success: true,
+    token: expect.any(String)
+  });
 });
 
-// 2. GREEN: 최소 구현
-// 3. REFACTOR: 개선
-// 4. 자동 정리: npm run test:tdd-cleanup
+// 3. 구현
+// 4. 리팩토링
 ```
 
-### 자동화 스크립트
+### 테스트 품질 관리
 ```bash
-npm run test:tdd-check      # TDD 상태 확인
-npm run test:tdd-cleanup    # @tdd-red 태그 정리
 npm run test:metadata       # 실행 시간/성공률 추적
+npm run test:coverage       # 커버리지 확인
+npm run test:smart          # 변경된 부분만 테스트
 ```
 
 ## 🔧 Vitest 설정
