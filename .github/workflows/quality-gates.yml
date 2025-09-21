@@ -1,0 +1,150 @@
+name: Quality Gates (Type-Safe CI/CD)
+
+# 🎯 타입 안전성 우선 CI/CD - 프로젝트 중단 방지
+# 목표: TypeScript 에러 0개 강제, 자동 상태 보고
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: '22.x'
+  FAIL_ON_TYPE_ERROR: true
+
+jobs:
+  # 🔒 TypeScript 무결성 검증 (차단 가능)
+  typescript-integrity:
+    name: TypeScript Zero-Error Gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript Strict Check
+        run: |
+          echo "🔍 TypeScript 무결성 검증 시작..."
+
+          # 실제 TypeScript 컴파일 체크
+          npx tsc --noEmit --strict --exactOptionalPropertyTypes
+
+          if [ $? -eq 0 ]; then
+            echo "✅ TypeScript 에러 0개 확인!"
+            echo "typescript_errors=0" >> $GITHUB_OUTPUT
+          else
+            echo "❌ TypeScript 에러 발견 - 빌드 중단"
+            echo "💡 로컬에서 'npx tsc --noEmit'로 확인하세요"
+            exit 1
+          fi
+
+      - name: Hook Dependencies Check
+        run: |
+          echo "🔄 React Hook 의존성 검증..."
+
+          # useCallback/useEffect 의존성 체크
+          npm run lint:hooks
+
+          if [ $? -eq 0 ]; then
+            echo "✅ Hook 의존성 모두 올바름"
+          else
+            echo "❌ Hook 의존성 문제 발견"
+            echo "💡 'npm run lint:hooks'로 상세 확인"
+            exit 1
+          fi
+
+  # 📊 자동 상태 보고 업데이트
+  auto-status-report:
+    name: Auto Status Report
+    runs-on: ubuntu-latest
+    needs: [typescript-integrity]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update CLAUDE.md Status
+        run: |
+          echo "📝 CLAUDE.md 자동 상태 업데이트..."
+
+          # TypeScript 상태 업데이트
+          if [ "${{ needs.typescript-integrity.result }}" == "success" ]; then
+            sed -i 's/TypeScript 에러: [0-9]*/TypeScript 에러: 0개 완전 해결/' CLAUDE.md
+            echo "✅ TypeScript 상태: 0개 에러"
+          else
+            # 실제 에러 개수 계산
+            error_count=$(npx tsc --noEmit 2>&1 | grep -c "error TS" || echo "확인 필요")
+            sed -i "s/TypeScript 에러: [0-9]*/TypeScript 에러: ${error_count}개 발견/" CLAUDE.md
+            echo "⚠️ TypeScript 상태: ${error_count}개 에러"
+          fi
+
+          # 타임스탬프 업데이트
+          current_date=$(date '+%Y-%m-%d %H:%M:%S')
+          sed -i "s/마지막 업데이트: .*/마지막 업데이트: ${current_date} (자동)/" CLAUDE.md
+
+      - name: Commit Status Update
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          if git diff --quiet; then
+            echo "📊 상태 변경 없음"
+          else
+            git add CLAUDE.md
+            git commit -m "🤖 auto: 프로젝트 상태 자동 업데이트 [skip ci]"
+            git push
+            echo "✅ CLAUDE.md 자동 업데이트 완료"
+          fi
+
+  # 🔍 아키텍처 건강성 체크
+  architecture-health:
+    name: Architecture Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Component Complexity Analysis
+        run: |
+          echo "🏗️ 컴포넌트 복잡도 분석..."
+
+          # 대형 컴포넌트 탐지 (500줄 이상)
+          large_components=$(find src/components -name "*.tsx" -exec wc -l {} + | awk '$1 > 500 {print $2 " (" $1 " lines)"}')
+
+          if [ -n "$large_components" ]; then
+            echo "⚠️ 대형 컴포넌트 발견:"
+            echo "$large_components"
+            echo "💡 리팩토링 권장: 500줄 이하로 분리"
+          else
+            echo "✅ 모든 컴포넌트가 적절한 크기"
+          fi
+
+      - name: Circular Dependencies Check
+        run: |
+          echo "🔄 순환 의존성 검사..."
+
+          if command -v madge >/dev/null 2>&1; then
+            madge --circular --extensions ts,tsx src/
+            if [ $? -eq 0 ]; then
+              echo "✅ 순환 의존성 없음"
+            else
+              echo "⚠️ 순환 의존성 발견 - 아키텍처 검토 필요"
+            fi
+          else
+            echo "ℹ️ madge 설치되지 않음 - 순환 의존성 검사 스킵"
+          fi

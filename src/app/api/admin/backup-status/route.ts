@@ -15,9 +15,9 @@ import debug from '@/utils/debug';
 /**
  * 🔄 관리자 백업 상태 API (인증 필요)
  */
-function getBackupStatus(
+async function getBackupStatus(
   request: AuthenticatedRequest
-): Response {
+): Promise<Response> {
   try {
     // 백업 상태 확인
     const backupStatus = {

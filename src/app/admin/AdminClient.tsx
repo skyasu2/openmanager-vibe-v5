@@ -76,26 +76,6 @@ export default function AdminClient() {
   const [statusLoading, setStatusLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
 
-  // 인증 체크
-  useEffect(() => {
-    if (permissions.canAccessAdminPage) {
-      setIsAuthorized(true);
-      void loadInitialData();
-    } else {
-      setIsAuthorized(false);
-      router.push('/main');
-    }
-    setIsLoading(false);
-  }, [permissions.canAccessAdminPage, router, loadInitialData]);
-
-  // 초기 데이터 로드
-  const loadInitialData = useCallback(async () => {
-    await Promise.all([
-      loadPlatformUsage(),
-      loadSystemStatus()
-    ]);
-  }, [loadPlatformUsage, loadSystemStatus]);
-
   // 플랫폼 사용량 로드
   const loadPlatformUsage = useCallback(async () => {
     setUsageLoading(true);
@@ -155,6 +135,26 @@ export default function AdminClient() {
       setStatusLoading(false);
     }
   }, []);
+
+  // 초기 데이터 로드
+  const loadInitialData = useCallback(async () => {
+    await Promise.all([
+      loadPlatformUsage(),
+      loadSystemStatus()
+    ]);
+  }, [loadPlatformUsage, loadSystemStatus]);
+
+  // 인증 체크
+  useEffect(() => {
+    if (permissions.canAccessAdminPage) {
+      setIsAuthorized(true);
+      void loadInitialData();
+    } else {
+      setIsAuthorized(false);
+      router.push('/main');
+    }
+    setIsLoading(false);
+  }, [permissions.canAccessAdminPage, router, loadInitialData]);
 
   // 새로고침
   const handleRefresh = useCallback(async () => {
