@@ -54,6 +54,7 @@
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "test": "vitest run --config config/testing/vitest.config.main.ts",
+    "test:ci:fast": "vitest run --config config/testing/vitest.config.main.ts --reporter=basic --run",
     "test:quick": "vitest run --config config/testing/vitest.config.minimal.ts",
     "test:single": "vitest run --config config/testing/vitest.config.minimal.ts --run",
     "test:coverage": "vitest run --config config/testing/vitest.config.simple.ts --coverage",
