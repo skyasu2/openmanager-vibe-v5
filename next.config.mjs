@@ -298,7 +298,7 @@ const nextConfig = {
     };
     
     // 🔧 강화된 devtools 완전 비활성화 (segment-explorer 버그 해결)
-    if (process.env.__NEXT_TEST_MODE === 'true' || process.env.NEXT_DISABLE_DEVTOOLS === '1' || process.env.NODE_ENV === 'development') {
+    if (process.env.__NEXT_TEST_MODE === 'true' || process.env.NEXT_DISABLE_DEVTOOLS === '1') {
       // next-devtools 관련 모든 모듈 완전 차단
       config.resolve.alias = {
         ...config.resolve.alias,
@@ -314,6 +314,11 @@ const nextConfig = {
         'next/dist/next-devtools/userspace/app': false,
         'next/dist/next-devtools/userspace': false,
 
+        // HMR 클라이언트 관련 (타임아웃 에러 해결)
+        'next/dist/client/dev/hot-reloader/app/use-websocket.js': false,
+        'next/dist/client/dev/hot-reloader/app/hot-reloader-app.js': false,
+        '@vercel/turbopack-ecmascript-runtime/browser/dev/hmr-client/hmr-client.ts': false,
+
         // React Server Components bundler 관련
         'next/dist/server/dev/hot-reloader-webpack-plugin': false,
         'next/dist/server/dev/on-demand-entry-handler': false,
@@ -323,6 +328,16 @@ const nextConfig = {
         'next/dist/client/dev/error-overlay': false,
         'next/dist/client/dev/fouc': false,
         'next/dist/client/dev': false,
+
+        // 🚨 renderAppDevOverlay 에러 해결 - 핵심 차단
+        'next/dist/client/dev/error-overlay/app/app-dev-overlay': false,
+        'next/dist/client/dev/error-overlay/app': false,
+        'next/dist/client/dev/app-dev-error-overlay': false,
+        'next/dist/client/components/react-dev-overlay': false,
+
+        // 🚨 onUnhandledError 에러 해결 - HotReload 모듈 차단
+        'next/dist/client/dev/hot-reloader': false,
+        'next/dist/client/dev/app-hot-reloader': false,
 
         // layout-router 안전 교체
         'next/dist/client/components/layout-router': 'next/dist/client/components/layout-router.js',

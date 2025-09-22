@@ -550,7 +550,8 @@ docs/specs/
 - **WSL 재시작 필요**: GUI 설정 적용을 위해 `wsl --shutdown` 후 재시작
 
 #### 📊 기존 문제 해결 방법
-- **MCP 오류**: `claude mcp status`로 상태 확인
+- **MCP 오류**: `claude mcp list`로 상태 확인
+- **Playwright MCP 실패**: [📋 Playwright MCP 복구 가이드](docs/troubleshooting/playwright-mcp-recovery-guide.md) ⭐ **2025-09-22 신규**
 - **서브에이전트 실패**: WSL 환경 점검, PATH 확인
 - **WSL 성능 이슈**: `./scripts/wsl-monitor/wsl-monitor.sh --once`로 진단
 - **메모리 부족**: `./scripts/emergency-recovery.sh`로 응급 복구
