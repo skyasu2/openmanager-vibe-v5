@@ -24,6 +24,18 @@ npm-debug.log*
 **/playwright-report/
 **/unit-test-results/
 
+# Playwright 관련 생성 파일들 (2025-09-22 추가)
+.playwright-mcp/
+**/traces/
+# 테스트 스크린샷 (용량 큰 파일들)
+*-test.png
+*-test-*.png
+openmanager-*.png
+playwright-*.png
+# E2E 테스트 결과물
+test-output/
+screenshots/
+
 # next.js
 /.next/
 /out/
