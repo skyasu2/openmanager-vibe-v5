@@ -25,6 +25,7 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
 
+
   /* Configure projects for major browsers */
   projects: [
     {
@@ -86,7 +87,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev',
     url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     timeout: 120 * 1000, // 2분 타임아웃
   },
 });

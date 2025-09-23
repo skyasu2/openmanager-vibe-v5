@@ -10,7 +10,7 @@ environment:
   NO_COLOR: 1
   NONINTERACTIVE: 1
   PAGER: cat
-  QWEN_TIMEOUT: 120
+  QWEN_TIMEOUT: 600
 ---
 
 # 🔷 Qwen CLI Specialist
@@ -210,10 +210,10 @@ const performanceBottleneck = await find_symbol("processServerData", {
   include_body: true
 });
 
-// 2. Qwen으로 수학적 최적화 (CLI 직접 호출) 
+// 2. Qwen으로 수학적 최적화 (CLI 직접 호출)
 const optimizationStrategy = await Bash({
-  command: `timeout 300 qwen -p "이 함수 ${JSON.stringify(performanceBottleneck)} 를 O(n²)에서 O(log n)으로 복잡도 혁신하고 메모리 사용량 90% 감소시키는 알고리즘 제시"`,
-  description: "Qwen 수학적 최적화 5분 분석"
+  command: `timeout 600 qwen -p "이 함수 ${JSON.stringify(performanceBottleneck)} 를 O(n²)에서 O(log n)으로 복잡도 혁신하고 메모리 사용량 90% 감소시키는 알고리즘 제시"`,
+  description: "Qwen 수학적 최적화 10분 분석"
 });
 
 // 3. Serena로 최적화된 알고리즘 실제 적용
