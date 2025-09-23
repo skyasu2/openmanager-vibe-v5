@@ -137,6 +137,14 @@ export class SimplifiedQueryEngine {
   async query(request: QueryRequest): Promise<QueryResponse> {
     const startTime = Date.now();
 
+    // 🐛 디버그 로그: SimplifiedQueryEngine에서 받은 request 값들 확인
+    console.log('🔍 [DEBUG] SimplifiedQueryEngine received:', {
+      mode: request.mode,
+      enableGoogleAI: request.enableGoogleAI,
+      enableAIAssistantMCP: request.enableAIAssistantMCP,
+      query: request.query?.substring(0, 50) + '...'
+    });
+
     // 초기화 병렬 실행
     const initPromise = this._initialize();
 
@@ -303,7 +311,23 @@ export class SimplifiedQueryEngine {
       let response: QueryResponse;
 
       try {
-        if (mode === 'local-ai' || (mode === 'local' && !enableGoogleAI)) {
+        // 🔧 라우팅 조건 강화: LOCAL 모드를 더 명확하게 처리
+        const shouldUseLocalMode = (
+          mode === 'local-ai' || 
+          mode === 'local' || 
+          (mode?.toLowerCase() === 'local') ||
+          (mode === 'LOCAL') ||
+          !enableGoogleAI
+        );
+        
+        console.log('🔍 [DEBUG] Routing decision:', {
+          mode,
+          enableGoogleAI,
+          shouldUseLocalMode,
+          finalDecision: shouldUseLocalMode ? 'LOCAL' : 'GOOGLE_AI'
+        });
+        
+        if (shouldUseLocalMode) {
           // Local AI mode (delegated to processors)
           response = await Promise.race([
             this.processors.processLocalAIModeQuery(

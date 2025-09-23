@@ -270,8 +270,21 @@ async function postHandler(request: NextRequest) {
     } else {
       // 새로운 쿼리 실행
       // 모드별 기능 설정 (MCP 제거)
-      const finalMode = mode || preferredMode || 'local-ai';
+      // 🔧 Mode 대소문자 정규화 (LOCAL → local, GOOGLE_AI → google-ai)
+      const normalizedMode = (mode || preferredMode || 'local-ai')
+        .toLowerCase()
+        .replace(/_/g, '-') as 'local' | 'google-ai' | 'local-ai';
+      const finalMode = normalizedMode;
       const enableGoogleAI = finalMode === 'google-ai';
+      
+      // 🐛 디버그 로그: 라우팅 확인
+      console.log('🔍 [DEBUG] Mode routing:', {
+        original: mode,
+        normalized: normalizedMode,
+        final: finalMode,
+        enableGoogleAI,
+        preferredMode
+      });
 
       const queryRequest: QueryRequest = {
         query,

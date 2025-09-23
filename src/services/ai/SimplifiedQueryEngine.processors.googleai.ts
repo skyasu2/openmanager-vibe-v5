@@ -202,7 +202,7 @@ export class GoogleAIModeProcessor {
 
       // Google AI API 호출 (타임아웃 설정)
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 400); // 400ms 타임아웃
+      const timeout = setTimeout(() => controller.abort(), 5000); // 5초 타임아웃 (Google AI 응답 시간 고려)
 
       // 난이도 기반 동적 파라미터 설정
       const dynamicTemperature = difficultyLevel === 'simple' ? 0.5 : 
@@ -216,10 +216,12 @@ export class GoogleAIModeProcessor {
 
       const response = await fetch(apiUrl, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'X-AI-Assistant': 'true',
-          'X-AI-Mode': 'google-ai'
+          'X-AI-Mode': 'google-ai',
+          'User-Agent': 'AI-Assistant',
+          'X-Diagnostic-Mode': 'true'
         },
         body: JSON.stringify({
           prompt,
