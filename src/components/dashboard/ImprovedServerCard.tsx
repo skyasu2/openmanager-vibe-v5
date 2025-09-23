@@ -590,7 +590,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
 
         {/* 서비스 상태 - Progressive Disclosure Level 2에 포함 */}
         {variantStyles.showServices &&
-          server.services &&
+          Array.isArray(server.services) &&
           server.services.length > 0 &&
           (showSecondaryInfo || !enableProgressiveDisclosure) && (
             <footer 
@@ -603,8 +603,9 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               aria-label="서비스 상태 목록"
             >
               <div className="flex flex-wrap gap-2">
-                {server.services
+                {(server.services || [])
                   .slice(0, variantStyles.maxServices)
+                  .filter((service) => service && typeof service === 'object' && service.name)
                   .map((service, idx) => (
                     <div
                       key={idx}
@@ -634,12 +635,12 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                       <span>{service.name}</span>
                     </div>
                   ))}
-                {server.services.length > variantStyles.maxServices && (
-                  <div 
+                {(server.services?.length || 0) > variantStyles.maxServices && (
+                  <div
                     className="flex items-center rounded-lg bg-gray-100 px-2.5 py-1 text-xs text-gray-500"
-                    aria-label={`${server.services.length - variantStyles.maxServices}개 서비스 더 있음`}
+                    aria-label={`${(server.services?.length || 0) - variantStyles.maxServices}개 서비스 더 있음`}
                   >
-                    +{server.services.length - variantStyles.maxServices} more
+                    +{(server.services?.length || 0) - variantStyles.maxServices} more
                   </div>
                 )}
               </div>

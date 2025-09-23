@@ -192,11 +192,11 @@ test.describe('OpenManager VIBE v5 - 종합 프론트엔드 테스트', () => {
       await profileButton.click();
       
       // 관리자 상태 확인
-      const adminStatus = page.locator('text=관리자');
+      // 더 구체적인 selector 사용하여 모호성 방지
       const adminRights = page.locator('text=🔒 관리자 권한으로 실행 중');
       const adminPage = page.locator('text=관리자 페이지');
-      
-      await expect(adminStatus).toBeVisible();
+
+      // 관리자 권한 메시지로 상태 확인 (더 명확한 selector)
       await expect(adminRights).toBeVisible();
       await expect(adminPage).toBeVisible();
       
