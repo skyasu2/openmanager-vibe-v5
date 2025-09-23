@@ -83,35 +83,46 @@ class CacheManager {
 
 ---
 
-## 🤖 **AI 시스템 아키텍처 (설계도 초과 달성)**
+## 🤖 **AI 시스템 아키텍처 (이중 구조)**
 
-### 🧠 **4-AI 교차검증 시스템**
+### 🏗️ **AI 시스템 이중 구조**
 
 ```mermaid
 graph TB
-    subgraph "AI 교차검증 프로세스"
-        CLAUDE[Claude: A안 제시]
-        GEMINI[Gemini: A안 검증]
-        CODEX[Codex: A안 검증] 
-        QWEN[Qwen: A안 검증]
-        
-        CLAUDE --> GEMINI
+    subgraph "🤖 애플리케이션 AI 엔진 (제품 내장)"
+        LOCAL[LOCAL 모드: GCP Functions + Supabase RAG]
+        GOOGLE[GOOGLE_AI 모드: Gemini 1.5 Pro]
+        USER[최종 사용자] --> LOCAL
+        USER --> GOOGLE
+    end
+
+    subgraph "🛠️ 개발 도구 AI CLI (개발 환경)"
+        CLAUDE[Claude Code: 메인 개발]
+        CODEX[Codex CLI: 실무 검증]
+        GEMINI_CLI[Gemini CLI: 아키텍처 분석]
+        QWEN[Qwen CLI: 알고리즘 최적화]
+
+        DEV[개발자] --> CLAUDE
         CLAUDE --> CODEX
+        CLAUDE --> GEMINI_CLI
         CLAUDE --> QWEN
-        
-        GEMINI --> DECISION[Claude 최종 판단]
-        CODEX --> DECISION
-        QWEN --> DECISION
-        
-        DECISION --> IMPLEMENTATION[Claude 구현]
     end
 ```
 
-**혁신적 성과:**
+### 🎯 **각 시스템별 특징**
+
+#### 🤖 **애플리케이션 AI 엔진** (제품 내장)
+- **2-AI 모드**: LOCAL (무료) + GOOGLE_AI (유료)
+- **독립성**: RAG 모드는 Google AI 의존성 없음
+- **용도**: 자연어 질의는 GOOGLE_AI, 기타 기능은 LOCAL
+- **사용자**: 최종 사용자가 앱 UI에서 직접 사용
+
+#### 🛠️ **개발 도구 AI CLI** (개발 환경)
+- **4-AI 협업**: Claude + Codex + Gemini + Qwen
 - **품질 향상**: 단일 AI 6.2/10 → 교차검증 9.0/10
 - **편향 제거**: AI별 편향을 상호 보완
 - **신뢰성**: 98%+ 합의 기반 결정
-- **비용 효율성**: Max $200 + Plus $20 = 월 $220으로 $2,200+ 가치
+- **비용 효율성**: 월 $220으로 $2,200+ 가치
 
 ### 🎯 **하이브리드 AI 엔진**
 ```typescript

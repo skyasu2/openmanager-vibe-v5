@@ -85,7 +85,66 @@ claude --version     # 버전 확인 (v1.0.119)
 
 **⚠️ 중요**: 각 파일은 완전히 다른 AI 시스템을 위한 것입니다!
 
-## 🤖 AI CLI 도구 통합 (WSL 환경)
+## 🤖 OpenManager VIBE 애플리케이션 AI 엔진
+
+**2-AI 모드 시스템**: 사용자가 애플리케이션에서 직접 사용하는 AI 기능
+
+### 🎯 애플리케이션 AI 모드 구성
+
+| AI 모드 | 설명 | 기술 스택 | 비용 | 용도 |
+|---------|------|----------|------|------|
+| **LOCAL** | 로컬 AI 엔진 | GCP Functions + Supabase RAG | 무료 | 기본 쿼리, 빠른 응답 |
+| **GOOGLE_AI** | Google AI | Gemini 1.5 Pro API | 유료 | 자연어 질의, 고급 추론 |
+
+### 🏗️ 핵심 아키텍처
+
+```typescript
+// 애플리케이션 내부 AI 엔진 구조
+class UnifiedAIEngineRouter {
+  // LOCAL 모드: GCP Functions + Supabase RAG (완전 독립)
+  private gcpEngine: GCPQueryEngine;
+  private ragEngine: SupabaseRAGEngine;
+
+  // GOOGLE_AI 모드: Google Gemini API (완전 독립)
+  private googleAIService: GoogleAIService;
+}
+
+// 사용자 인터페이스
+type AIMode = 'LOCAL' | 'GOOGLE_AI';
+```
+
+### ✅ 독립성 확보 (사용자 요구사항 충족)
+
+- **RAG 모드**: Supabase 벡터 검색만 사용, Google AI 의존성 완전 제거 ✅
+- **Google AI 모드**: Gemini API만 사용, 완전 독립적 동작 ✅
+- **자연어 질의**: Google AI 모드 전용 ✅
+- **기타 기능**: LOCAL 모드만 사용 ✅
+- **비용 효율**: LOCAL 모드 100% 무료, GOOGLE_AI 모드만 유료 ✅
+
+### 🔗 관련 파일
+- `src/services/ai/UnifiedAIEngineRouter.ts` - 메인 AI 라우터
+- `src/services/ai/SimplifiedQueryEngine.ts` - 쿼리 처리 엔진
+- `src/types/ai-types.ts` - AI 모드 타입 정의
+- `src/components/ai/AIModeSelector.tsx` - UI 모드 선택기
+
+### ⚡ 두 AI 시스템의 명확한 구분
+
+| 구분 | 🤖 **애플리케이션 AI 엔진** | 🛠️ **개발 도구 AI CLI** |
+|------|---------------------------|------------------------|
+| **목적** | 사용자가 앱에서 사용 | 개발자가 코딩할 때 사용 |
+| **위치** | OpenManager VIBE 내부 | WSL 환경 CLI 도구 |
+| **AI 수** | 2개 모드 (LOCAL, GOOGLE_AI) | 4개 도구 (Claude, Codex, Gemini, Qwen) |
+| **동작** | 앱 UI에서 모드 선택 | 터미널에서 직접 실행 |
+| **예시** | "서버 상태 분석해줘" | `codex exec "코드 리뷰해줘"` |
+| **사용자** | 최종 사용자 | 개발자 (나) |
+
+**🎯 핵심 차이점**:
+- **애플리케이션 AI**: 제품에 내장된 기능 (최종 사용자용)
+- **개발 도구 AI**: 코딩 작업 보조 도구 (개발자용)
+
+---
+
+## 🛠️ 개발 도구 AI CLI 통합 (WSL 환경)
 
 ### 설치된 AI CLI 도구들
 
