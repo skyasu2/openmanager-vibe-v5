@@ -19,7 +19,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: 'http://localhost:3000',
+    baseURL: 'https://openmanager-vibe-v5-skyasus-projects.vercel.app',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -32,21 +32,17 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        // WSL 환경에서 윈도우 크롬 브라우저 사용
+        // WSL 네이티브 Chromium 사용
         launchOptions: {
-          executablePath: '/mnt/c/Program Files/Google/Chrome/Application/chrome.exe',
+          executablePath: '/usr/bin/chromium-browser',
           args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-web-security',
-            '--disable-features=VizDisplayCompositor',
-            // WSL-Windows 연동 최적화
+            '--disable-dev-shm-usage',
             '--disable-gpu',
             '--no-first-run',
             '--disable-default-apps',
-            '--disable-background-timer-throttling',
-            '--disable-renderer-backgrounding',
-            '--disable-backgrounding-occluded-windows',
           ],
         },
       },
@@ -83,11 +79,11 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: true,
-    timeout: 120 * 1000, // 2분 타임아웃
-  },
+  /* 베르셀 프로덕션 환경 사용으로 로컬 서버 시작 비활성화 */
+  // webServer: {
+  //   command: 'npm run dev',
+  //   url: 'http://localhost:3000',
+  //   reuseExistingServer: true,
+  //   timeout: 120 * 1000, // 2분 타임아웃
+  // },
 });

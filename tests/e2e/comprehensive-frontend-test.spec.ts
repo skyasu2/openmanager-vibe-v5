@@ -24,8 +24,8 @@ test.describe('OpenManager VIBE v5 - 종합 프론트엔드 테스트', () => {
     });
   });
 
-  // Vercel 프로덕션 URL 사용
-  const BASE_URL = 'https://openmanager-vibe-v5.vercel.app';
+  // Vercel 프로덕션 URL 사용 (실제 배포된 URL)
+  const BASE_URL = 'https://openmanager-vibe-v5-skyasus-projects.vercel.app';
 
   test('1. 로그인 페이지 종합 테스트', async ({ page }) => {
     console.log('🔑 === 로그인 페이지 종합 테스트 시작 ===');
@@ -53,8 +53,8 @@ test.describe('OpenManager VIBE v5 - 종합 프론트엔드 테스트', () => {
     // 4. 로그인 페이지 UI 요소 확인
     console.log('🎨 Step 2: UI 요소 검증');
     
-    // 중요한 텍스트 요소들 확인
-    await expect(page.getByText('OpenManager')).toBeVisible();
+    // 중요한 텍스트 요소들 확인 (더 구체적인 셀렉터 사용)
+    await expect(page.getByRole('heading', { name: 'OpenManager' })).toBeVisible();
     await expect(page.getByText('VIBE')).toBeVisible();
     
     // 5. GitHub OAuth 버튼 확인
@@ -92,7 +92,7 @@ test.describe('OpenManager VIBE v5 - 종합 프론트엔드 테스트', () => {
     await page.waitForTimeout(500);
     
     // 기본 요소들이 여전히 보이는지 확인
-    await expect(page.getByText('OpenManager')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'OpenManager' })).toBeVisible();
     console.log('✅ 모바일 뷰: 기본 요소 표시됨');
     
     // 데스크톱으로 복원
