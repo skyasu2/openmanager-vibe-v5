@@ -195,10 +195,10 @@ export class PostgresVectorDB {
         const { data, error } = await supabase.rpc(
           'search_vectors_by_category',
           {
-            query_embedding: queryEmbedding,
-            category: category,
-            similarity_threshold: threshold,
             max_results: topK,
+            query_embedding: queryEmbedding,
+            search_category: category,
+            similarity_threshold: threshold,
           }
         );
 

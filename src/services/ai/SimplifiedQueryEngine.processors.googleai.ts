@@ -210,7 +210,11 @@ export class GoogleAIModeProcessor {
       const dynamicMaxTokens = difficultyLevel === 'simple' ? 500 : 
                               difficultyLevel === 'medium' ? 1000 : 2000;
 
-      const response = await fetch('/api/ai/google-ai/generate', {
+      // 서버 사이드 환경에서는 절대 URL 필요
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+      const apiUrl = `${baseUrl}/api/ai/google-ai/generate`;
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

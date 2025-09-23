@@ -70,8 +70,12 @@ export class UnifiedMetricsService {
     }
     
     try {
+      // 서버 사이드 환경에서는 절대 URL 필요
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+      const apiUrl = `${baseUrl}/api/metrics/current`;
+
       // 통합 메트릭 API 호출
-      const response = await fetch('/api/metrics/current');
+      const response = await fetch(apiUrl);
       
       if (!response.ok) {
         throw new Error(`API 호출 실패: ${response.status} ${response.statusText}`);
