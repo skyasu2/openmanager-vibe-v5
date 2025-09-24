@@ -239,7 +239,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     // 🚀 알림 수 계산 메모이제이션 최적화
     const alertCount = useMemo(() => {
       if (typeof server.alerts === 'number') return server.alerts;
-      if (Array.isArray(server.alerts)) return server.alerts.length;
+      if (Array.isArray(server.alerts) && server.alerts) return server.alerts.length;
       return 0;
     }, [server.alerts]);
 
@@ -590,8 +590,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
 
         {/* 서비스 상태 - Progressive Disclosure Level 2에 포함 */}
         {variantStyles.showServices &&
-          Array.isArray(server.services) &&
-          server.services.length > 0 &&
+          Array.isArray(server.services) && server.services && server.services.length > 0 &&
           (showSecondaryInfo || !enableProgressiveDisclosure) && (
             <footer 
               className={`mt-4 transition-all duration-300 ${
@@ -635,12 +634,12 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                       <span>{service.name}</span>
                     </div>
                   ))}
-                {(server.services?.length || 0) > variantStyles.maxServices && (
+                {(Array.isArray(server.services) ? server.services.length : 0) > variantStyles.maxServices && (
                   <div
                     className="flex items-center rounded-lg bg-gray-100 px-2.5 py-1 text-xs text-gray-500"
-                    aria-label={`${(server.services?.length || 0) - variantStyles.maxServices}개 서비스 더 있음`}
+                    aria-label={`${(Array.isArray(server.services) ? server.services.length : 0) - variantStyles.maxServices}개 서비스 더 있음`}
                   >
-                    +{(server.services?.length || 0) - variantStyles.maxServices} more
+                    +{(Array.isArray(server.services) ? server.services.length : 0) - variantStyles.maxServices} more
                   </div>
                 )}
               </div>
