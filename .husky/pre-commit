@@ -1,9 +1,9 @@
 echo "✅ Pre-commit hook executed successfully"
 echo "🔍 Running basic checks..."
 
-# 기본적인 검사만 수행
-if git diff --cached --name-only | grep -q '\.env'; then
-  echo "❌ .env 파일은 커밋할 수 없습니다"
+# 기본적인 검사만 수행 - .env 파일 차단 (단, .env.example은 허용)
+if git diff --cached --name-only | grep -E '^\.env$|^\.env\.|\.env$' | grep -v '\.env\.example$'; then
+  echo "❌ .env 파일은 커밋할 수 없습니다 (.env.example 제외)"
   exit 1
 fi
 
