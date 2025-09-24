@@ -33,6 +33,49 @@ export interface SafeServerCardProps extends Omit<ImprovedServerCardProps, 'serv
 export const SafeServerCard: React.FC<SafeServerCardProps> = ({ server, index = 0, onClick, ...props }) => {
   // 🛡️ 안전한 서버 데이터 생성 - 모든 undefined 케이스 처리
   const safeServer = useMemo((): ServerType => {
+    // 🛡️ 최우선 안전성 처리: server prop 자체가 undefined/null인 경우
+    if (!server || typeof server !== 'object') {
+      console.warn(`🛡️ SafeServerCard: server prop이 ${server}입니다. 기본값을 사용합니다. (index: ${index})`);
+      return {
+        // 기본 식별 정보
+        id: `fallback-server-${index}`,
+        name: `서버 ${index + 1}`,
+        type: 'app',
+        
+        // 상태 정보
+        status: 'online',
+        location: '서울',
+        
+        // 메트릭 데이터 - 안전한 숫자값
+        cpu: Math.random() * 80 + 10,
+        memory: Math.random() * 70 + 15,
+        disk: Math.random() * 60 + 20,
+        network: Math.random() * 50 + 25,
+        
+        // 시스템 정보
+        os: 'Ubuntu 22.04 LTS',
+        uptime: `${Math.floor(Math.random() * 100 + 50)}d ${Math.floor(Math.random() * 24)}h`,
+        ip: `192.168.1.${10 + (index % 240)}`,
+        
+        // 배열 속성들 - 빈 배열 기본값
+        metrics: [],
+        cpuHistory: Array.from({ length: 10 }, () => Math.random() * 80 + 10),
+        memoryHistory: Array.from({ length: 10 }, () => Math.random() * 70 + 15),
+        services: [
+          { name: 'nginx', status: 'running' as const },
+          { name: 'node', status: 'running' as const },
+          { name: 'redis', status: 'running' as const },
+        ],
+        alerts: 0,
+        tags: [],
+        
+        // 추가 메타데이터
+        lastUpdated: new Date().toISOString(),
+        responseTime: Math.floor(Math.random() * 100 + 50),
+        description: 'Application 서버',
+      };
+    }
+
     const serverId = server.id || `server-${index}`;
     
     return {
@@ -56,23 +99,23 @@ export const SafeServerCard: React.FC<SafeServerCardProps> = ({ server, index = 
       uptime: server.uptime || `${Math.floor(Math.random() * 100 + 50)}d ${Math.floor(Math.random() * 24)}h`,
       ip: server.ip || `192.168.1.${10 + (index % 240)}`,
       
-      // 배열 속성들 - 안전한 배열 보장 ⭐ 핵심 수정
-      metrics: Array.isArray(server.metrics) ? server.metrics : [],
-      cpuHistory: Array.isArray(server.cpuHistory) ? server.cpuHistory : [
+      // 배열 속성들 - 안전한 배열 보장 ⭐ 핵심 수정 + 추가 방어 로직
+      metrics: (server.metrics && Array.isArray(server.metrics)) ? server.metrics : [],
+      cpuHistory: (server.cpuHistory && Array.isArray(server.cpuHistory)) ? server.cpuHistory : [
         // 기본 CPU 히스토리 데이터 생성
         ...Array.from({ length: 10 }, (_, i) => 
           Math.max(0, Math.min(100, (server.cpu || 45) + (Math.random() - 0.5) * 20))
         )
       ],
-      memoryHistory: Array.isArray(server.memoryHistory) ? server.memoryHistory : [
+      memoryHistory: (server.memoryHistory && Array.isArray(server.memoryHistory)) ? server.memoryHistory : [
         // 기본 메모리 히스토리 데이터 생성
         ...Array.from({ length: 10 }, (_, i) => 
           Math.max(0, Math.min(100, (server.memory || 60) + (Math.random() - 0.5) * 15))
         )
       ],
       
-      // 서비스 배열 - 안전한 서비스 객체 배열 보장 ⭐ 핵심 수정
-      services: Array.isArray(server.services) 
+      // 서비스 배열 - 안전한 서비스 객체 배열 보장 ⭐ 핵심 수정 + 추가 방어 로직
+      services: (server.services && Array.isArray(server.services)) 
         ? server.services.filter((service: any) => 
             service && 
             typeof service === 'object' && 
@@ -92,12 +135,12 @@ export const SafeServerCard: React.FC<SafeServerCardProps> = ({ server, index = 
           { name: 'redis', status: 'running' as const },
         ],
       
-      // 알림 시스템 - 안전한 숫자 또는 배열 보장 ⭐ 핵심 수정
+      // 알림 시스템 - 안전한 숫자 또는 배열 보장 ⭐ 핵심 수정 + 추가 방어 로직
       alerts: (() => {
         if (typeof server.alerts === 'number') {
           return Math.max(0, server.alerts);
         }
-        if (Array.isArray(server.alerts)) {
+        if (server.alerts && Array.isArray(server.alerts)) {
           return server.alerts.filter((alert: any) => 
             alert && 
             typeof alert === 'object' && 
@@ -114,8 +157,10 @@ export const SafeServerCard: React.FC<SafeServerCardProps> = ({ server, index = 
         ? server.responseTime 
         : Math.floor(Math.random() * 100 + 50),
       
-      // 선택적 속성들
-      tags: Array.isArray(server.tags) ? server.tags.filter((tag: any) => typeof tag === 'string') : [],
+      // 선택적 속성들 - 추가 방어 로직
+      tags: (server.tags && Array.isArray(server.tags)) 
+        ? server.tags.filter((tag: any) => typeof tag === 'string') 
+        : [],
       description: server.description || `${server.type || 'Application'} 서버`,
     };
   }, [server, index]);
@@ -123,7 +168,9 @@ export const SafeServerCard: React.FC<SafeServerCardProps> = ({ server, index = 
   // 🔍 개발 환경에서만 안전성 검증 로그
   if (process.env.NODE_ENV === 'development') {
     // 원본 server와 safeServer 비교 로그 (필요시에만)
-    const hasUndefinedProps = Object.values(server).some(value => value === undefined || value === null);
+    const hasUndefinedProps = server && typeof server === 'object' 
+      ? Object.values(server).some(value => value === undefined || value === null)
+      : true; // server 자체가 undefined/null이면 true
     if (hasUndefinedProps) {
       console.debug(`🛡️ SafeServerCard: ${server.name || `서버 ${index}`}의 undefined 속성들을 안전하게 처리했습니다.`);
     }
