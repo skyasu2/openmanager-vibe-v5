@@ -27,8 +27,10 @@ import { getCachedData, setCachedData } from '@/lib/cache-helper';
 import { supabase } from '@/lib/supabase/supabase-client';
 import crypto from 'crypto';
 import debug from '@/utils/debug';
-
 export const runtime = 'nodejs';
+
+// 🔧 타임아웃 설정 (통합 유틸리티 사용)
+import { getEnvironmentTimeouts } from '@/utils/timeout-config';
 
 interface AIQueryRequest {
   query: string;
@@ -221,8 +223,24 @@ async function postHandler(request: NextRequest) {
       context = 'general',
       includeThinking = true,
       mode = 'local-ai',
-      timeoutMs = 800, // 🚀 AI 교차검증 결과: 450ms는 너무 짧음, 800ms로 조정
+      timeoutMs, // 환경변수 기반 타임아웃 사용
     } = body;
+
+    // 🔧 환경변수 기반 타임아웃 설정 (Google AI/Local AI 모드 구분)
+    const timeouts = getEnvironmentTimeouts();
+    const normalizedModeForTimeout = mode.toLowerCase().replace(/_/g, '-');
+    const finalTimeoutMs = timeoutMs || (
+      normalizedModeForTimeout === 'google-ai'
+        ? timeouts.GOOGLE_AI  // 3000ms (Google AI 모드)
+        : timeouts.LOCAL_AI   // 1500ms (Local AI 모드)
+    );
+
+    console.log('🔍 [DEBUG] API Route timeout configuration:', {
+      mode,
+      providedTimeout: timeoutMs,
+      calculatedTimeout: finalTimeoutMs,
+      environmentTimeouts: timeouts
+    });
 
     if (!query || typeof query !== 'string') {
       return NextResponse.json(
@@ -300,7 +318,7 @@ async function postHandler(request: NextRequest) {
           includeThinking,
           // MCP 컨텍스트 비활성화
           category: context,
-          timeoutMs,
+          timeoutMs: finalTimeoutMs,
         },
         // 모드별 기능 제어 옵션 (MCP 제거)
         enableGoogleAI,

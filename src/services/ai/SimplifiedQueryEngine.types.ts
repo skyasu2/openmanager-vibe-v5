@@ -17,10 +17,11 @@ import type {
   AIMetadata,
   ServerArray,
 } from '../../types/ai-service-types';
+import type { AIMode } from '../../types/ai-types';
 
 export interface QueryRequest {
   query: string;
-  mode?: 'local' | 'google-ai' | 'local-ai'; // 'auto' 제거, 'local-ai' 추가
+  mode?: AIMode | 'local' | 'local-ai'; // AIMode와 하위 호환성을 위한 추가 값들
   context?: AIQueryContext;
 
   // 모드별 기능 제어 옵션 (UnifiedAIEngineRouter에서 설정)

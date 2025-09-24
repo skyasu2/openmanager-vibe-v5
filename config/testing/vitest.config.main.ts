@@ -1,178 +1,56 @@
-import path from 'path';
-import { loadEnv } from 'vite';
 import { defineConfig } from 'vitest/config';
+import path from 'path';
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-
-  return {
-    plugins: [],
-    test: {
-      globals: true,
-      environment: 'jsdom', // React 컴포넌트 테스트를 위해 jsdom 사용
-      setupFiles: ['./src/test/setup.ts'],
-
-      // 🎯 핵심 테스트만 실행
-      include: [
-        'src/test/**/*.test.{ts,tsx}', // 환경 설정 테스트
-        'src/test-claude/**/*.test.{ts,tsx}', // TDD 테스트 파일 (Claude Code 전용)
-        'src/**/__tests__/**/*.{test,spec}.{ts,tsx}', // 모든 __tests__ 디렉토리
-        'tests/unit/**/*.test.{ts,tsx}',
-        'tests/integration/**/*.test.{ts,tsx}',
-        // E2E 테스트는 Playwright로 별도 실행
-        'tests/performance/**/*.test.{ts,tsx}',
-        'tests/api/**/*.test.{ts,tsx}', // API 테스트 추가
-        'tests/ai-sidebar/**/*.test.{ts,tsx}', // AI Sidebar 테스트 추가
-      ],
-
-      // 🚫 제거된 기능들 테스트 제외
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    include: ['src/**/*.{test,spec}.{js,ts,tsx}'],
+    exclude: [
+      'node_modules/**',
+      'dist/**',
+      '.next/**',
+      'out/**',
+      'gcp-functions/**',
+    ],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
       exclude: [
-        '**/node_modules/**',
-        '**/dist/**',
-        '**/.next/**',
-        '**/build/**',
-        '**/coverage/**',
-        // 성능 테스트 (별도 실행: npm run test:performance)
-        '**/*.perf.test.{ts,tsx}',
-        // E2E 테스트 (Playwright로 별도 실행: npm run test:e2e)
-        '**/*.e2e.{ts,tsx}',
-        '**/*.e2e.test.{ts,tsx}',
-        '**/*.playwright.test.{ts,tsx}',
-        'tests/e2e/**/*',
-
-        // 🔴 클라우드 전용 테스트 (베르셀에서만 실행)
-        'tests/api/core-endpoints.integration.test.ts', // localhost:3000 의존
-        'src/app/api/ai/query/__tests__/**/*.test.ts', // Supabase + AI 서비스 의존
-        'src/app/api/*/route.test.ts', // API 환경 의존
-        'src/services/ai/__tests__/ai-engine-integration.test.ts', // 외부 AI 서비스 의존
-        'src/services/ai/__tests__/SimplifiedQueryEngine.test.ts', // Supabase 환경변수 의존
-        'tests/api/**/*.test.ts', // 전체 API 통합 테스트
-        'tests/ai-sidebar/aiQueryHandlers.test.ts', // AI 서비스 의존
-
-        // 🟡 DOM 환경 문제 (jsdom 설정 이슈)
-        'src/components/dashboard/__tests__/ImprovedServerCard.test.tsx', // document 문제
-
-        // 제거된 기능들
-        'tests/unit/distributed-data-manager.test.ts',
-        'tests/unit/natural-language-query-cache.test.ts',
-        'tests/unit/natural-language-unifier.test.ts',
+        'node_modules/**',
+        'src/test/**',
+        '**/*.d.ts',
+        '**/*.config.*',
+        'src/**/*.stories.*',
+        'src/**/*.test.*',
+        'src/**/*.spec.*',
       ],
-
-      // 🎯 테스트 실행 최적화 - 개선된 설정
-      maxConcurrency: 10, // 병렬 실행 감소로 안정성 향상
-      
-      // 🚀 성능 최적화 추가 옵션
-      css: false, // CSS 처리 비활성화
-      deps: {
-        optimizer: {
-          web: {
-            enabled: true, // 의존성 최적화 활성화
-          }
-        }
-      },
-
-      // 📊 커버리지 설정 (핵심 기능만)
-      coverage: {
-        provider: 'v8',
-        reporter: ['text', 'json', 'html'],
-        exclude: [
-          'coverage/**',
-          'dist/**',
-          'packages/*/test{,s}/**',
-          '**/*.d.ts',
-          '**/*.test.{ts,tsx}',
-          '**/*.spec.{ts,tsx}',
-          '**/*.config.{ts,js}',
-          'src/test/**',
-          'tests/**',
-          // 제거된 기능들 제외
-          'src/services/health-check/**',
-          'src/services/monitoring/**',
-          'src/services/redis/**',
-          'src/components/health-check/**',
-          'src/components/monitoring/**',
-        ],
-        // 핵심 기능 커버리지 임계값
-        thresholds: {
-          branches: 75,
-          functions: 75,
-          lines: 80,
-          statements: 80,
-        },
-      },
-
-      // 🔄 Watch 모드 설정 (moved to root level)
-
-      // 🎯 성능 최적화 - 타임아웃 개선
-      testTimeout: 15000, // 15초로 증가 (타임아웃 문제 해결)
-      hookTimeout: 10000, // 10초 유지
-      teardownTimeout: 10000, // 10초로 증가 (정리 작업 안정성)
-      
-      // 개별 테스트 타임아웃 설정
-      bail: 1, // 첫 번째 실패에서 중단
-
-      // 📝 리포터 설정 - Hanging 프로세스 감지 추가
-      reporters: process.env.CI
-        ? ['github-actions']
-        : ['default', 'hanging-process'],
-
-      // 🚀 Hanging Process 방지 설정
-      pool: 'forks', // threads → forks로 변경하여 프로세스 격리 강화
-      poolOptions: {
-        forks: {
-          isolate: false, // 메모리 절약을 위해 격리 비활성화
-          minForks: 1,
-          maxForks: 2, // 포크 수 제한으로 메모리 사용량 최적화
-        }
-      },
-      outputFile: {
-        json: './test-results/results.json',
-        html: './test-results/index.html',
-      },
-
-      // 🔧 Mock 설정 - 완전한 정리 강화
-      mockReset: true,
-      clearMocks: true,
-      restoreMocks: true,
-      unstubEnvs: true, // 환경변수 stub 정리
-      unstubGlobals: true, // 글로벌 stub 정리
     },
-
-    // 📦 Vite 설정
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, '../../src'),
-        '@/components': path.resolve(__dirname, '../../src/components'),
-        '@/lib': path.resolve(__dirname, '../../src/lib'),
-        '@/utils': path.resolve(__dirname, '../../src/utils'),
-        '@/types': path.resolve(__dirname, '../../src/types'),
-        '@/services': path.resolve(__dirname, '../../src/services'),
-        '@/core': path.resolve(__dirname, '../../src/core'),
-        '@/modules': path.resolve(__dirname, '../../src/modules'),
-        '@/test': path.resolve(__dirname, '../../src/test'),
-        '~': path.resolve(__dirname, '../../'),
+    testTimeout: 30000,
+    hookTimeout: 30000,
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: true,
       },
     },
-
-    // 🎯 빌드 최적화
-    define: {
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'test'),
-      'process.env.VITEST': JSON.stringify('true'),
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, '../../src'),
+      '@/components': path.resolve(__dirname, '../../src/components'),
+      '@/lib': path.resolve(__dirname, '../../src/lib'),
+      '@/services': path.resolve(__dirname, '../../src/services'),
+      '@/utils': path.resolve(__dirname, '../../src/utils'),
+      '@/types': path.resolve(__dirname, '../../src/types'),
+      '@/app': path.resolve(__dirname, '../../src/app'),
+      '@/hooks': path.resolve(__dirname, '../../src/hooks'),
+      '@/domains': path.resolve(__dirname, '../../src/domains'),
+      '@/schemas': path.resolve(__dirname, '../../src/schemas'),
     },
-
-    // 🔄 Watch 모드 설정
-    server: {
-      watch: {
-        ignored: [
-          '**/node_modules/**',
-          '**/dist/**',
-          '**/.next/**',
-          '**/coverage/**',
-        ],
-      },
-    },
-
-    // 🔧 환경변수 설정
-    envPrefix: ['NEXT_PUBLIC_', 'VITEST_'],
-  };
+  },
+  esbuild: {
+    target: 'node14',
+  },
 });

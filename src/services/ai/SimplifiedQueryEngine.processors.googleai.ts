@@ -26,6 +26,8 @@ import { SimplifiedQueryEngineHelpers } from './SimplifiedQueryEngine.processors
 import { LocalAIModeProcessor } from './SimplifiedQueryEngine.processors.localai';
 import { getQueryDifficultyAnalyzer, type GoogleAIModel } from './QueryDifficultyAnalyzer';
 import { getGoogleAIUsageTracker } from './GoogleAIUsageTracker';
+// 🔧 타임아웃 설정 (통합 유틸리티 사용)
+import { getEnvironmentTimeouts } from '@/utils/timeout-config';
 
 /**
  * 🤖 구글 AI 모드 프로세서
@@ -201,8 +203,9 @@ export class GoogleAIModeProcessor {
       );
 
       // Google AI API 호출 (타임아웃 설정)
+      const timeouts = getEnvironmentTimeouts();
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5000); // 5초 타임아웃 (Google AI 응답 시간 고려)
+      const timeout = setTimeout(() => controller.abort(), timeouts.GOOGLE_AI); // 환경변수 기반 타임아웃
 
       // 난이도 기반 동적 파라미터 설정
       const dynamicTemperature = difficultyLevel === 'simple' ? 0.5 : 
@@ -247,13 +250,16 @@ export class GoogleAIModeProcessor {
         googleStep.duration = Date.now() - googleStepStart;
       }
 
+      // 🔄 응답 구조 분석 및 데이터 추출
+      const apiData = data.data || data; // 중첩 구조 대응
+
       // 🔄 사용량 추적: 성공한 API 호출 기록
       const usageTracker = getGoogleAIUsageTracker();
       usageTracker.recordUsage({
         model: selectedModel,
         timestamp: Date.now(),
         requestCount: 1,
-        tokenCount: data.metadata?.actualTokens || data.metadata?.promptTokens || 0,
+        tokenCount: apiData.metadata?.actualTokens || apiData.metadata?.promptTokens || data.metadata?.actualTokens || 0,
         latency: Date.now() - googleStepStart,
         success: true,
         difficultyScore,
@@ -264,9 +270,10 @@ export class GoogleAIModeProcessor {
       // VM 백엔드 연동 제거됨 (GCP VM 제거로 인해)
 
       // Google AI 직접 응답 (VM MCP 제거로 인해 단순화)
+      // 🔧 응답 구조 수정: data.data.response 경로로 접근
       const finalResponse =
-        data.response || data.text || '응답을 생성할 수 없습니다.';
-      const finalConfidence = data.confidence || 0.9;
+        apiData.response || apiData.text || data.response || data.text || '응답을 생성할 수 없습니다.';
+      const finalConfidence = apiData.confidence || data.confidence || 0.9;
 
       return {
         success: true,
@@ -276,7 +283,7 @@ export class GoogleAIModeProcessor {
         thinkingSteps,
         metadata: {
           model: selectedModel,
-          tokensUsed: data.tokensUsed,
+          tokensUsed: apiData.metadata?.actualTokens || data.tokensUsed || 0,
           mcpUsed: !!(mcpContext && enableAIAssistantMCP),
           aiAssistantMCPUsed: enableAIAssistantMCP,
           koreanNLPUsed: enableKoreanNLP,

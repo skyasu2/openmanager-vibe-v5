@@ -7,6 +7,15 @@
 export async function register() {
   // 서버 사이드에서만 실행
   if (process.env.NEXT_RUNTIME === 'nodejs') {
+    // 🎯 통합 설정 관리자 초기화 (사이드 이펙트 최적화)
+    try {
+      const { initializeConfig } = await import('./config/index.js');
+      await initializeConfig();
+      console.log('🚀 통합 설정 관리자 초기화 완료');
+    } catch (error) {
+      console.error('❌ 통합 설정 관리자 초기화 실패:', error.message);
+    }
+
     // 테스트 모드에서 브라우저 API polyfill 로드
     if (process.env.__NEXT_TEST_MODE === 'true') {
       try {
@@ -18,7 +27,7 @@ export async function register() {
     }
 
     const { checkRequiredEnvVars } = await import('@/lib/validate-env');
-    
+
     // 환경변수 검증
     try {
       checkRequiredEnvVars();

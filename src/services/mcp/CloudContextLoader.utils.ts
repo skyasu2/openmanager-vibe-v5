@@ -181,7 +181,7 @@ export function createDefaultConfig(): {
   return {
     enableMemoryCache: true,
     enableFirestore: true,
-    enableMCPIntegration: true,
+    enableMCPIntegration: false, // 🚨 앱용 API에서 MCP 비활성화 (사용자 요구사항)
     enableRAGIntegration: true,
     memoryPrefix: 'openmanager:context:',
     memoryTTL: 3600, // 1시간

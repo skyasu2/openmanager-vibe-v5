@@ -94,7 +94,7 @@ claude --version     # 버전 확인 (v1.0.119)
 | AI 모드 | 설명 | 기술 스택 | 비용 | 용도 |
 |---------|------|----------|------|------|
 | **LOCAL** | 로컬 AI 엔진 | GCP Functions + Supabase RAG | 무료 | 기본 쿼리, 빠른 응답 |
-| **GOOGLE_AI** | Google AI | Gemini 1.5 Pro API | 유료 | 자연어 질의, 고급 추론 |
+| **GOOGLE_AI** | Google AI | Gemini 2.5 모델군 (Flash-Lite/Flash/Pro) | 무료/유료 | 자연어 질의, 고급 추론 |
 
 ### 🏗️ 핵심 아키텍처
 
@@ -121,9 +121,22 @@ type AIMode = 'LOCAL' | 'GOOGLE_AI';
 - **기타 기능**: LOCAL 모드만 사용 ✅
 - **비용 효율**: LOCAL 모드 100% 무료, GOOGLE_AI 모드만 유료 ✅
 
+### 📊 Google AI API 무료 티어 제한사항 (2025-09-23 최신)
+
+**모델별 무료 사용량**:
+- **Gemini 2.5 Flash-Lite**: RPM 15, RPD 1,000 ⭐ **권장** (가장 관대한 제한)
+- **Gemini 2.5 Flash**: RPM 10, RPD 250 (균형잡힌 성능)
+- **Gemini 2.5 Pro**: RPM 5, RPD 100 (고성능, 제한적)
+
+**실제 사용 가이드**:
+- **개발/테스트**: Flash-Lite 모델로 충분 (RPD 1,000)
+- **프로덕션**: 유료 티어 권장 (무제한 사용량)
+- **분당 제한**: RPM 한도 주의 (짧은 시간 내 여러 요청 시)
+
 ### 🔗 관련 파일
 - `src/services/ai/UnifiedAIEngineRouter.ts` - 메인 AI 라우터
 - `src/services/ai/SimplifiedQueryEngine.ts` - 쿼리 처리 엔진
+- `src/services/ai/QueryDifficultyAnalyzer.ts` - 모델 자동 선택 로직
 - `src/types/ai-types.ts` - AI 모드 타입 정의
 - `src/components/ai/AIModeSelector.tsx` - UI 모드 선택기
 
@@ -375,9 +388,11 @@ codex exec "복잡한 알고리즘 최적화 분석"
 codex exec "이 코드의 보안 취약점 분석"
 ```
 
-#### 🆓 Gemini CLI (Google AI 무료)
-**Google OAuth 브라우저 인증**
-- **한도**: 60 RPM / 1,000 RPD
+#### 🆓 Gemini CLI (개발 도구 전용)
+**Google OAuth 브라우저 인증** - 애플리케이션 Google AI API와 별개 시스템
+- **한도**: 60 RPM / 1,000 RPD (OAuth 기반 개발자 계정)
+- **용도**: 코딩 보조, 아키텍처 분석 전용 (개발자 CLI 도구)
+- **구분**: 애플리케이션의 Google AI API (API 키 기반)와 완전히 분리됨
 - **현재 성능**: gemini-specialist 9.33/10 최고 성능
 
 #### 🆓 Qwen CLI (Qwen OAuth 무료)

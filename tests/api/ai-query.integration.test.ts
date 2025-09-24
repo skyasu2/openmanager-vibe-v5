@@ -113,7 +113,7 @@ describe('AI Query API Integration Tests', () => {
     });
   });
 
-  describe('/api/mcp/query - 로컬 MCP 쿼리', () => {
+  describe.skip('/api/mcp/query - 로컬 MCP 쿼리 (MCP API 삭제됨)', () => {
     it('should handle MCP queries', async () => {
       const response = await fetch(`${baseUrl}/api/mcp/query`, {
         method: 'POST',

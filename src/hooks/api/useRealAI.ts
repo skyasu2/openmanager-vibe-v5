@@ -155,7 +155,6 @@ export function useRealAI(options: UseRealAIOptions = {}) {
               includeMetrics: request.includeMetrics !== false,
               includeLogs: request.includeLogs || false,
               usePython: options.enablePython || false,
-              useMCP: options.enableMCP !== false,
               aiModel: options.aiModel || 'local-analyzer',
               realTime: options.realTime !== false,
               adminMode: true, // 관리자 모드 명시
