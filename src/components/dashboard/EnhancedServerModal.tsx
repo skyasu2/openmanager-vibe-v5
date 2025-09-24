@@ -163,7 +163,7 @@ export default function EnhancedServerModal({
               ][Math.floor(Math.random() * 6)] ?? `${safeServer.name} - System status normal`,
               source:
                 safeServer.services?.[
-                  Math.floor(Math.random() * safeServer.services.length)
+                  Math.floor(Math.random() * (safeServer.services?.length || 1))
                 ]?.name || safeServer.name,
             },
           ].slice(-20),
