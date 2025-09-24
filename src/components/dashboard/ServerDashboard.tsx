@@ -1,7 +1,7 @@
 'use client';
 
 import EnhancedServerModal from '@/components/dashboard/EnhancedServerModal';
-import ImprovedServerCard from '@/components/dashboard/ImprovedServerCard';
+import SafeServerCard from '@/components/dashboard/SafeServerCard';
 import {
   Pagination,
   PaginationContent,
@@ -208,7 +208,7 @@ export default function ServerDashboard({
               }`}
             >
               {sortedServers.map((server, index) => (
-                <ImprovedServerCard
+                <SafeServerCard
                   key={server.id}
                   server={{
                     id: server.id,

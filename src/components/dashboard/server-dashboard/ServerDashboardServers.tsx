@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import type { ViewMode } from '@/hooks/useServerDashboard';
 import type { Server } from '@/types/server';
-import ImprovedServerCard from '../ImprovedServerCard';
+import SafeServerCard from '../SafeServerCard';
 
 interface ServerDashboardServersProps {
   servers: Server[];
@@ -333,7 +333,7 @@ export function ServerDashboardServers({
                 <div
                   key={server.id}
                 >
-                  <ImprovedServerCard
+                  <SafeServerCard
                     server={server}
                     onClick={() => onServerSelect(server)}
                     variant="compact"
