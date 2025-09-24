@@ -198,7 +198,7 @@ export default function ServerMetricsLineChart({
     return () => clearInterval(interval);
   }, [showRealTimeUpdates]);
 
-  // SVG 경로 생성 - 10분간 11포인트 대응 + Qwen 스플라인 보간 적용
+  // SVG 경로 생성 - 10분간 11포인트 대응 + Qwen 스플라인 보간 적용 + AI 교차검증 기반 이중 안전장치 ⭐⭐
   const createPath = () => {
     const width = 180;
     const height = 80;
@@ -209,26 +209,48 @@ export default function ServerMetricsLineChart({
     const yScale = (y: number) =>
       height - (y / 100) * (height - 2 * padding) - padding;
 
-    const points = historicalData.map((d) => ({
-      x: xScale(d.x),
-      y: yScale(d.value),
-    }));
+    // 🛡️ AI 교차검증 기반 이중 안전장치: historicalData 배열 안전성 검증
+    if (!historicalData || !Array.isArray(historicalData) || historicalData.length === 0) {
+      console.warn('🛡️ ServerMetricsLineChart: historicalData가 비어있거나 유효하지 않음');
+      return { path: '', points: [] };
+    }
+
+    // 🛡️ 안전한 points 배열 생성
+    const points = historicalData
+      .filter((d) => d && typeof d === 'object' && typeof d.x === 'number' && typeof d.value === 'number')
+      .map((d) => ({
+        x: xScale(d.x),
+        y: yScale(d.value),
+      }));
 
     // Qwen 제안: Catmull-Rom 스플라인 기반 부드러운 곡선 생성
-    if (points.length === 0) return { path: '', points: [] };
-    
+    if (!points || !Array.isArray(points) || points.length === 0) {
+      console.warn('🛡️ ServerMetricsLineChart: points 배열이 비어있음');
+      return { path: '', points: [] };
+    }
+
     const firstPoint = points[0];
-    if (!firstPoint) return { path: '', points: [] };
-    
+    if (!firstPoint || typeof firstPoint.x !== 'number' || typeof firstPoint.y !== 'number') {
+      console.warn('🛡️ ServerMetricsLineChart: firstPoint가 유효하지 않음');
+      return { path: '', points: [] };
+    }
+
     let path = `M ${firstPoint.x} ${firstPoint.y}`;
 
-    // 부드러운 곡선을 위한 Catmull-Rom 스플라인 구현
+    // 부드러운 곡선을 위한 Catmull-Rom 스플라인 구현 - AI 교차검증 기반 안전성 강화 ⭐⭐
     for (let i = 1; i < points.length; i++) {
+      // 🛡️ 이중 안전장치: 배열 경계 검사 + 객체 유효성 검증
+      if (i >= points.length || i - 1 < 0) continue;
+
       const prevPoint = points[i - 1];
       const currentPoint = points[i];
-      
+
+      // 🛡️ Triple-check: 존재성 → 객체 타입 → 속성 유효성
       if (!prevPoint || !currentPoint) continue;
-      
+      if (typeof prevPoint !== 'object' || typeof currentPoint !== 'object') continue;
+      if (typeof prevPoint.x !== 'number' || typeof prevPoint.y !== 'number') continue;
+      if (typeof currentPoint.x !== 'number' || typeof currentPoint.y !== 'number') continue;
+
       // 더 부드러운 곡선을 위한 제어점 계산 (tension = 0.3)
       const tension = 0.3;
       const cp1x = prevPoint.x + (currentPoint.x - prevPoint.x) * tension;
@@ -315,50 +337,86 @@ export default function ServerMetricsLineChart({
             className="drop-shadow-sm filter"
           />
 
-          {/* 데이터 포인트 */}
-          {points.map((point, index) => {
-            const isLast = index === points.length - 1;
-            const dataValue = historicalData[index]?.value ?? 0;
+          {/* 데이터 포인트 - AI 교차검증 기반 이중 안전장치 ⭐⭐ */}
+          {(() => {
+            // 🛡️ points 배열 안전성 재검증 (createPath에서 이미 검증했지만 Race Condition 방지)
+            if (!points || !Array.isArray(points) || points.length === 0) {
+              return null;
+            }
 
-            return (
-              <g key={index}>
-                {/* 포인트 */}
-                <circle
-                  cx={point.x}
-                  cy={point.y}
-                  r={isLast ? '4' : '3'}
-                  fill={config.lineColor}
-                  className={isLast ? 'drop-shadow-md filter' : ''}
-                />
+            // 🛡️ historicalData 최고값 계산 - 안전한 방식
+            const getMaxValue = () => {
+              if (!historicalData || !Array.isArray(historicalData) || historicalData.length === 0) {
+                return 0;
+              }
 
-                {/* 현재값 표시 */}
-                {isLast && (
-                  <g
-                  >
-                    <rect
-                      x={point.x - 15}
-                      y={point.y - 25}
-                      width="30"
-                      height="18"
-                      rx="3"
-                      fill={config.lineColor}
-                      className="drop-shadow-sm filter"
-                    />
-                    <text
-                      x={point.x}
-                      y={point.y - 12}
-                      textAnchor="middle"
-                      className="fill-white text-xs font-bold"
-                    >
-                      {dataValue}%
-                    </text>
-                  </g>
-                )}
+              const validValues = historicalData
+                .filter((d) => d && typeof d === 'object' && typeof d.value === 'number' && !isNaN(d.value))
+                .map((d) => d.value);
 
-                {/* 최고값 표시 */}
-                {dataValue ===
-                  Math.max(...historicalData.map((d) => d.value)) &&
-                  !isLast && (
+              return validValues.length > 0 ? Math.max(...validValues) : 0;
+            };
+
+            const maxValue = getMaxValue();
+
+            return points.map((point, index) => {
+              // 🛡️ Triple-check: point 객체 검증
+              if (!point || typeof point !== 'object') return null;
+              if (typeof point.x !== 'number' || typeof point.y !== 'number') return null;
+              if (isNaN(point.x) || isNaN(point.y)) return null;
+
+              // 🛡️ 배열 경계 검사 및 안전한 접근
+              const isValidIndex = typeof index === 'number' && index >= 0 && index < points.length;
+              if (!isValidIndex) return null;
+
+              const isLast = index === points.length - 1;
+
+              // 🛡️ historicalData 인덱스 안전 접근
+              const dataValue = (() => {
+                if (!historicalData || !Array.isArray(historicalData)) return 0;
+                if (index < 0 || index >= historicalData.length) return 0;
+                const dataPoint = historicalData[index];
+                if (!dataPoint || typeof dataPoint !== 'object') return 0;
+                if (typeof dataPoint.value !== 'number' || isNaN(dataPoint.value)) return 0;
+                return dataPoint.value;
+              })();
+
+              return (
+                <g key={`point-${index}-${point.x}-${point.y}`}>
+                  {/* 포인트 */}
+                  <circle
+                    cx={point.x}
+                    cy={point.y}
+                    r={isLast ? '4' : '3'}
+                    fill={config.lineColor}
+                    className={isLast ? 'drop-shadow-md filter' : ''}
+                  />
+
+                  {/* 현재값 표시 */}
+                  {isLast && (
+                    <g>
+                      <rect
+                        x={point.x - 15}
+                        y={point.y - 25}
+                        width="30"
+                        height="18"
+                        rx="3"
+                        fill={config.lineColor}
+                        className="drop-shadow-sm filter"
+                      />
+                      <text
+                        x={point.x}
+                        y={point.y - 12}
+                        textAnchor="middle"
+                        className="fill-white text-xs font-bold"
+                      >
+                        {Math.round(dataValue)}%
+                      </text>
+                    </g>
+                  )}
+
+                  {/* 최고값 표시 - AI 교차검증 기반 안전한 비교 */}
+                  {maxValue > 0 && dataValue === maxValue && !isLast && (
                     <text
                       x={point.x}
                       y={point.y - 8}
@@ -366,24 +424,41 @@ export default function ServerMetricsLineChart({
                       className="text-xs font-medium"
                       fill={config.lineColor}
                     >
-                      {dataValue}
+                      {Math.round(dataValue)}
                     </text>
                   )}
-              </g>
-            );
-          })}
+                </g>
+              );
+            }).filter(Boolean); // null 제거
+          })()}
 
-          {/* 현재값 펄스 효과 */}
-          {showRealTimeUpdates && points.length > 0 && (
-            <circle
-              cx={points[points.length - 1]?.x ?? 0}
-              cy={points[points.length - 1]?.y ?? 0}
-              r="6"
-              fill="none"
-              stroke={config.lineColor}
-              strokeWidth="2"
-            />
-          )}
+          {/* 현재값 펄스 효과 - AI 교차검증 기반 이중 안전장치 ⭐⭐ */}
+          {(() => {
+            // 🛡️ 실시간 업데이트 조건 및 points 배열 안전성 검증
+            if (!showRealTimeUpdates) return null;
+            if (!points || !Array.isArray(points) || points.length === 0) return null;
+
+            // 🛡️ 마지막 point 안전 접근
+            const lastIndex = points.length - 1;
+            if (lastIndex < 0) return null;
+
+            const lastPoint = points[lastIndex];
+            if (!lastPoint || typeof lastPoint !== 'object') return null;
+            if (typeof lastPoint.x !== 'number' || typeof lastPoint.y !== 'number') return null;
+            if (isNaN(lastPoint.x) || isNaN(lastPoint.y)) return null;
+
+            return (
+              <circle
+                cx={lastPoint.x}
+                cy={lastPoint.y}
+                r="6"
+                fill="none"
+                stroke={config.lineColor}
+                strokeWidth="2"
+                className="animate-ping"
+              />
+            );
+          })()}
         </svg>
 
         {/* 시간 라벨 - 10분간 1분 간격 표시 */}

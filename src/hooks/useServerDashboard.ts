@@ -9,7 +9,7 @@ import {
 } from '@/config/display-config';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
 import type { Server, Service } from '@/types/server';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';
 import debug from '@/utils/debug';
 
@@ -160,10 +160,35 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const { onStatsUpdate } = options;
 
   // Zustand 스토어에서 서버 데이터 가져오기
-  const servers = useServerDataStore((state) => {
+  const rawServers = useServerDataStore((state) => {
     console.log('🔍 스토어에서 servers 선택:', state.servers?.length || 0, '개');
     return state.servers;
   });
+
+  // 🛡️ AI 교차검증 기반: previousServers 캐시로 Race Condition 방지
+  const previousServersRef = useRef<EnhancedServerData[]>([]);
+
+  // Double-check null safety: 스토어 데이터가 유효한 경우에만 캐시 업데이트
+  const servers = useMemo(() => {
+    console.log('🛡️ 서버 데이터 안전성 검사:', {
+      rawServers_exists: !!rawServers,
+      rawServers_length: rawServers?.length || 0,
+      rawServers_isArray: Array.isArray(rawServers),
+      cache_length: previousServersRef.current.length
+    });
+
+    // AI 사이드바 오픈 시 빈 배열이 되는 Race Condition 방지
+    if (!rawServers || !Array.isArray(rawServers) || rawServers.length === 0) {
+      console.log('⚠️ 서버 데이터 없음 - 캐시된 데이터 사용:', previousServersRef.current.length, '개');
+      return previousServersRef.current;
+    }
+
+    // 유효한 데이터인 경우 캐시 업데이트
+    console.log('✅ 서버 데이터 유효 - 캐시 업데이트:', rawServers.length, '개');
+    previousServersRef.current = rawServers;
+    return rawServers;
+  }, [rawServers]);
+
   const isLoading = useServerDataStore((state) => {
     console.log('🔍 스토어에서 isLoading 선택:', state.isLoading);
     return state.isLoading;
