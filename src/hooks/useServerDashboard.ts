@@ -204,7 +204,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const stopAutoRefresh = useServerDataStore((state) => state.stopAutoRefresh);
 
   // 즉시 fetchServers 실행 (조건부)
-  if (servers.length === 0 && !isLoading && fetchServers) {
+  if ((!servers || servers.length === 0) && !isLoading && fetchServers) {
     console.log('🚀 즉시 fetchServers 실행 - 서버 데이터 없음');
     setTimeout(() => {
       console.log('⏰ setTimeout으로 fetchServers 호출');
@@ -722,7 +722,7 @@ export function useEnhancedServerDashboard({
   // 📊 디버깅 로그
   useEffect(() => {
     debug.log('🎯 Enhanced 서버 대시보드 상태:', {
-      전체_서버_수: servers.length,
+      전체_서버_수: servers?.length || 0,
       필터링된_서버_수: filteredServers.length,
       현재_페이지: currentPage,
       총_페이지: totalPages,
@@ -732,7 +732,7 @@ export function useEnhancedServerDashboard({
       표시_정보: displayInfo,
     });
   }, [
-    servers.length,
+    servers?.length || 0,
     filteredServers.length,
     currentPage,
     totalPages,
