@@ -140,8 +140,8 @@ curl https://openmanager-vibe-v5.vercel.app/api/health
 ```bash
 # vitest.config.main.ts에서 exclude 처리
 tests/api/core-endpoints.integration.test.ts
-src/app/api/ai/query/__tests__/**/*.test.ts
-src/services/ai/__tests__/SimplifiedQueryEngine.test.ts
+❌ 삭제됨: src/app/api/ai/query/__tests__/**/*.test.ts (복잡한 Mock 체인)
+❌ 삭제됨: src/services/ai/__tests__/SimplifiedQueryEngine.test.ts (외부 API Mock 복잡)
 ```
 
 **제거 이유**:
