@@ -78,6 +78,8 @@
     "test:automation": "node scripts/test/test-automation-optimizer.js",
     "test:automation:quick": "npm run test:quick && npm run test:e2e:quick",
     "test:ai": "npm run test:vercel",
+    "test:ai-friendly": "vitest run --config config/testing/vitest.config.main.ts --include='**/*.ai-test.{ts,tsx}'",
+    "test:dev-only": "vitest run --config config/testing/vitest.config.main.ts --exclude='**/*.ai-test.{ts,tsx}'",
     "test:fast": "vitest run --config config/testing/vitest.config.main.ts",
     "test:dev": "npm-run-all --parallel test:quick test:vercel",
     "test:super-fast": "npm run test:quick",
