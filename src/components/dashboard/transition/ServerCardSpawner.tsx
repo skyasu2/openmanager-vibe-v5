@@ -231,7 +231,7 @@ const ServerCardSpawner: FC<ServerCardSpawnerProps> = memo(
     ]);
 
     const currentGroup = groupedServers[currentGroupIndex];
-    const totalServers = servers.length;
+    const totalServers = servers?.length || 0;
     const spawnedCount = spawnedServers.size;
     const progress = totalServers > 0 ? (spawnedCount / totalServers) * 100 : 0;
 

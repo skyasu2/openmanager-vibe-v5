@@ -164,7 +164,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
           currentStage,
           isComplete,
           progress,
-          serversCount: servers.length,
+          serversCount: servers?.length || 0,
         }),
       };
 
@@ -174,7 +174,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
       currentStage,
       isComplete,
       progress,
-      servers.length,
+      servers?.length || 0,
     ]);
 
     if (skipAnimation || isComplete) {

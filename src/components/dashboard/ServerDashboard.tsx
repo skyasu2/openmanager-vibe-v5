@@ -109,13 +109,13 @@ export default function ServerDashboard({
 
   // 페이지네이션 정보 계산 (메모이제이션으로 최적화)
   const paginationInfo = useMemo(() => {
-    const pageSize = Math.ceil(servers.length / totalPages) || 8;
+    const pageSize = Math.ceil(((servers?.length || 0) / totalPages)) || 8;
     const startIndex = (currentPage - 1) * pageSize + 1;
-    const endIndex = Math.min(currentPage * pageSize, servers.length);
-    const totalServers = servers.length;
+    const endIndex = Math.min(currentPage * pageSize, servers?.length || 0);
+    const totalServers = servers?.length || 0;
 
     return { pageSize, startIndex, endIndex, totalServers };
-  }, [servers.length, totalPages, currentPage]);
+  }, [servers?.length || 0, totalPages, currentPage]);
 
   if (!isClient) {
     return (
@@ -398,8 +398,8 @@ export default function ServerDashboard({
 
           {/* 현재 페이지 정보 */}
           <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-            {servers.length}개 서버 중 {(currentPage - 1) * pageSize + 1}-
-            {Math.min(currentPage * pageSize, servers.length)}번째 표시 중
+            {servers?.length || 0}개 서버 중 {(currentPage - 1) * pageSize + 1}-
+            {Math.min(currentPage * pageSize, servers?.length || 0)}번째 표시 중
           </div>
         </div>
       )}
