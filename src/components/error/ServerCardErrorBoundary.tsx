@@ -31,6 +31,21 @@ class ServerCardErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // 🛡️ AI 교차검증: TypeError 특별 처리 - 30+ TypeError 원인 추적
+    const isTypeError = error.message.includes('.length') ||
+                       error.message.includes('undefined') ||
+                       error.message.includes('Cannot read property') ||
+                       error.message.includes('Cannot read properties');
+
+    if (isTypeError) {
+      console.error('🚨 ServerCard Race Condition TypeError 캐치됨:', {
+        message: error.message,
+        stack: error.stack?.split('\n').slice(0, 3).join('\n'),
+        componentStack: errorInfo.componentStack.split('\n').slice(0, 5).join('\n'),
+        timestamp: new Date().toISOString()
+      });
+    }
+
     // 프로덕션 환경에서는 에러 로깅 서비스로 전송
     if (process.env.NODE_ENV === 'production') {
       console.error('ServerCard Error:', error, errorInfo);

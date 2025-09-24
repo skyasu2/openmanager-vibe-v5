@@ -660,11 +660,21 @@ export function useEnhancedServerDashboard({
 
   // 🌍 고유 위치 목록
   const uniqueLocations = useMemo(() => {
+    // 🛡️ AI 교차검증: servers 배열 안전성 검증
+    if (!servers || !Array.isArray(servers) || servers.length === 0) {
+      return [];
+    }
     return Array.from(new Set(servers.map((server) => server.location))).sort();
   }, [servers]);
 
   // 🔍 필터링된 서버
   const filteredServers = useMemo(() => {
+    // 🛡️ AI 교차검증: servers 배열 안전성 검증
+    if (!servers || !Array.isArray(servers) || servers.length === 0) {
+      console.warn('⚠️ useEnhancedServerDashboard: servers 배열이 비어있거나 유효하지 않음');
+      return [];
+    }
+
     return servers.filter((server) => {
       const matchesSearch =
         server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -680,11 +690,18 @@ export function useEnhancedServerDashboard({
 
   // 📄 페이지네이션 계산
   const totalPages = useMemo(() => {
-    return Math.ceil(filteredServers.length / displayConfig.cardsPerPage);
-  }, [filteredServers.length, displayConfig.cardsPerPage]);
+    // 🛡️ AI 교차검증: filteredServers 안전성 검증
+    const safeLength = (filteredServers && Array.isArray(filteredServers)) ? filteredServers.length : 0;
+    return Math.ceil(safeLength / displayConfig.cardsPerPage);
+  }, [filteredServers, displayConfig.cardsPerPage]);
 
   // 📊 페이지네이션된 서버
   const paginatedServers = useMemo(() => {
+    // 🛡️ AI 교차검증: filteredServers 안전성 검증
+    if (!filteredServers || !Array.isArray(filteredServers) || filteredServers.length === 0) {
+      return [];
+    }
+
     const startIndex = (currentPage - 1) * displayConfig.cardsPerPage;
     const endIndex = startIndex + displayConfig.cardsPerPage;
     return filteredServers.slice(startIndex, endIndex);
@@ -692,12 +709,14 @@ export function useEnhancedServerDashboard({
 
   // 📊 표시 정보 생성 (UI/UX 개선)
   const displayInfo = useMemo(() => {
+    // 🛡️ AI 교차검증: filteredServers.length 안전성 검증
+    const safeFilteredLength = (filteredServers && Array.isArray(filteredServers)) ? filteredServers.length : 0;
     return generateDisplayInfo(
       displayMode,
       currentPage,
-      filteredServers.length
+      safeFilteredLength
     );
-  }, [displayMode, currentPage, filteredServers.length]);
+  }, [displayMode, currentPage, filteredServers]);
 
   // 🔄 페이지 리셋 (필터 변경 시)
   useEffect(() => {
@@ -724,7 +743,7 @@ export function useEnhancedServerDashboard({
   useEffect(() => {
     debug.log('🎯 Enhanced 서버 대시보드 상태:', {
       전체_서버_수: Array.isArray(servers) ? servers.length : 0,
-      필터링된_서버_수: filteredServers.length,
+      필터링된_서버_수: (filteredServers && Array.isArray(filteredServers)) ? filteredServers.length : 0,
       현재_페이지: currentPage,
       총_페이지: totalPages,
       표시_모드: displayMode,
@@ -734,7 +753,7 @@ export function useEnhancedServerDashboard({
     });
   }, [
     Array.isArray(servers) ? servers.length : 0,
-    filteredServers.length,
+    (filteredServers && Array.isArray(filteredServers)) ? filteredServers.length : 0,
     currentPage,
     totalPages,
     displayMode,

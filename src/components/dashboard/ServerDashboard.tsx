@@ -2,6 +2,7 @@
 
 import EnhancedServerModal from '@/components/dashboard/EnhancedServerModal';
 import SafeServerCard from '@/components/dashboard/SafeServerCard';
+import ServerCardErrorBoundary from '@/components/error/ServerCardErrorBoundary';
 import {
   Pagination,
   PaginationContent,
@@ -89,6 +90,12 @@ export default function ServerDashboard({
 
   // 🚀 서버 정렬 최적화: 외부 상수와 최적화된 함수 사용
   const sortedServers = useMemo(() => {
+    // 🛡️ AI 교차검증: paginatedServers 안전성 검증 추가
+    if (!paginatedServers || !Array.isArray(paginatedServers) || paginatedServers.length === 0) {
+      console.warn('⚠️ ServerDashboard: paginatedServers가 비어있거나 유효하지 않음');
+      return [];
+    }
+
     // 불필요한 배열 복사 제거: paginatedServers가 이미 새 배열이므로 직접 정렬
     return paginatedServers.sort((a, b) => {
       // 🎯 외부 상수 사용으로 객체 생성 오버헤드 제거
@@ -109,13 +116,15 @@ export default function ServerDashboard({
 
   // 페이지네이션 정보 계산 (메모이제이션으로 최적화)
   const paginationInfo = useMemo(() => {
-    const pageSize = Math.ceil(((servers?.length || 0) / totalPages)) || 8;
+    // 🛡️ AI 교차검증: servers 안전성 검증
+    const safeServersLength = (servers && Array.isArray(servers)) ? servers.length : 0;
+    const pageSize = Math.ceil((safeServersLength / totalPages)) || 8;
     const startIndex = (currentPage - 1) * pageSize + 1;
-    const endIndex = Math.min(currentPage * pageSize, servers?.length || 0);
-    const totalServers = servers?.length || 0;
+    const endIndex = Math.min(currentPage * pageSize, safeServersLength);
+    const totalServers = safeServersLength;
 
     return { pageSize, startIndex, endIndex, totalServers };
-  }, [servers?.length || 0, totalPages, currentPage]);
+  }, [servers, totalPages, currentPage]);
 
   if (!isClient) {
     return (
@@ -208,9 +217,10 @@ export default function ServerDashboard({
               }`}
             >
               {sortedServers.map((server, index) => (
-                <SafeServerCard
-                  key={server.id}
-                  server={{
+                <ServerCardErrorBoundary key={`boundary-${server.id}`}>
+                  <SafeServerCard
+                    key={server.id}
+                    server={{
                     id: server.id,
                     name: server.name,
                     status:
@@ -227,11 +237,12 @@ export default function ServerDashboard({
                     lastUpdate: server.lastUpdate || new Date(),
                     services: server.services || [],
                   }}
-                  variant="compact"
-                  showRealTimeUpdates={true}
-                  index={index}
-                  onClick={() => handleServerSelect(server)}
-                />
+                    variant="compact"
+                    showRealTimeUpdates={true}
+                    index={index}
+                    onClick={() => handleServerSelect(server)}
+                  />
+                </ServerCardErrorBoundary>
               ))}
             </div>
           </div>

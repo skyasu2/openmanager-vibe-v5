@@ -2,6 +2,7 @@
 
 import React, { Fragment } from 'react';
 import { type ServerDisplayMode } from '@/config/display-config';
+import ServerCardErrorBoundary from '@/components/error/ServerCardErrorBoundary';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   BarChart3,
@@ -330,20 +331,20 @@ export function ServerDashboardServers({
               }
             >
               {paginatedServers.map((server) => (
-                <div
-                  key={server.id}
-                >
-                  <SafeServerCard
-                    server={server}
-                    onClick={() => onServerSelect(server)}
-                    variant="compact"
-                  />
+                <div key={server.id}>
+                  <ServerCardErrorBoundary key={`boundary-dashboard-${server.id}`}>
+                    <SafeServerCard
+                      server={server}
+                      onClick={() => onServerSelect(server)}
+                      variant="compact"
+                    />
+                  </ServerCardErrorBoundary>
                 </div>
               ))}
             </div>
           </Fragment>
 
-          {paginatedServers.length === 0 && (
+          {(!paginatedServers || !Array.isArray(paginatedServers) || paginatedServers.length === 0) && (
             <div className="py-12 text-center">
               <div className="text-lg text-gray-500">검색 결과가 없습니다</div>
               <div className="mt-2 text-sm text-gray-400">
