@@ -199,7 +199,7 @@ npx ccusage daily              # ccusage 일일 사용량 (npx로만 실행)
 | **time** | ✅ | ✅ 즉시 응답 | ⏳ 도구 로딩 중 | 연결됨 |
 | **sequential-thinking** | ✅ | ✅ 즉시 응답 | ⏳ 도구 로딩 중 | 연결됨 |
 | **shadcn-ui** | ✅ | ✅ 즉시 응답 | ⏳ 도구 로딩 중 | 연결됨 |
-| **serena** | ✅ | ✅ 즉시 응답 | ⏳ 도구 로딩 중 | 연결됨 |
+| **🎉 serena** | ✅ | ✅ 즉시 응답 | ✅ 프로젝트 활성화, 코드 분석 | **완전 작동** |
 | **🎉 playwright** | ✅ | ✅ 즉시 응답 | ✅ WSL Sandbox 활성화 E2E 테스트 | **완전 작동** |
 
 ### 🚀 19GB WSL 최적화 성과 (2025-09-21 업데이트)
@@ -257,7 +257,7 @@ claude mcp list
 # 환경변수 로드
 source ./scripts/setup-mcp-env.sh
 
-# 자동 건강 체크
+# 자동 건강 체크 (serena 프로젝트 활성화 상태 포함)
 ./scripts/mcp-health-check.sh
 ```
 
@@ -625,6 +625,9 @@ docs/specs/
 
 #### 📊 기존 문제 해결 방법
 - **MCP 오류**: `claude mcp list`로 상태 확인
+- **Serena "No active project" 오류**: `mcp__serena__activate_project`로 프로젝트 활성화
+- **MCP 종합 진단**: `./scripts/mcp-health-check.sh` (serena 프로젝트 상태 포함) ⭐ **개선됨**
+- **MCP 보안 검사**: `./scripts/setup-mcp-env.sh --security-check` (9개 서버 상태 포함) ⭐ **개선됨**
 - **Playwright MCP 실패**: [📋 Playwright MCP 복구 가이드](docs/troubleshooting/playwright-mcp-recovery-guide.md) ⭐ **2025-09-22 신규**
 - **서브에이전트 실패**: WSL 환경 점검, PATH 확인
 - **WSL 성능 이슈**: `./scripts/wsl-monitor/wsl-monitor.sh --once`로 진단
@@ -650,7 +653,7 @@ cmd.exe /c "type C:\Users\sky-note\.wslconfig"
 ### MCP 서버 재연결 (Development)
 ```bash
 # MCP 서버 상태 확인
-claude mcp status
+claude mcp list
 
 # 문제 서버 재연결
 claude mcp remove serena

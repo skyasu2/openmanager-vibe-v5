@@ -13,6 +13,8 @@ import {
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';
+import { getServerMetricsFromUnifiedSource } from '@/services/data/UnifiedServerDataSource';
+import { getSystemConfig } from '@/config/SystemConfiguration';
 
 /**
  * 📊 실시간 대시보드 API
@@ -33,6 +35,7 @@ interface SupabaseServer {
   cpu?: number;
   memory?: number;
   disk?: number;
+  network?: number;
   location?: string;
   environment?: string;
   uptime?: string | number;
@@ -70,34 +73,25 @@ const getHandler = createApiRoute()
 
     debug.log('📊 실시간 대시보드 API 호출...');
 
-    // 🎯 포트폴리오 시나리오 데이터 사용 (/api/servers/all과 동일한 데이터 소스)
-    debug.log('🎭 포트폴리오 모드: 24시간 시나리오 데이터 로드');
+    // 🎯 통합 데이터 소스 사용 (Single Source of Truth)
+    debug.log('🚀 중앙집중식 설정 시스템으로 데이터 로드');
     
     let serverList: SupabaseServer[] = [];
     
     try {
-      // /api/servers/all의 loadScenarioData() 로직 동일하게 사용
-      const fs = await import('fs');
-      const path = await import('path');
+      // 🎯 통합 서버 메트릭 조회 (중앙집중식 설정)
+      const metrics = await getServerMetricsFromUnifiedSource();
+      const config = getSystemConfig();
       
-      const now = new Date();
-      const currentHour = now.getHours();
+      debug.log(`🎯 통합 데이터 소스에서 ${metrics.totalServers}개 서버 로드 완료`);
       
-      debug.log(`Current time: ${currentHour}h - loading scenario data for dashboard`);
+      // 실제 서버 리스트 가져오기
+      const { getUnifiedServerDataSource } = await import('@/services/data/UnifiedServerDataSource');
+      const dataSource = getUnifiedServerDataSource();
+      const servers = await dataSource.getServers();
       
-      const scenarioPath = path.join(
-        process.cwd(),
-        'public',
-        'server-scenarios',
-        'hourly-metrics',
-        `${currentHour.toString().padStart(2, '0')}.json`
-      );
-      
-      const raw = fs.readFileSync(scenarioPath, 'utf8');
-      const scenarioData = JSON.parse(raw);
-      
-      // 포트폴리오 시나리오 데이터를 SupabaseServer 타입으로 변환
-      const portfolioServers = Object.values(scenarioData.servers).map((server: any) => ({
+      // 서버 데이터를 SupabaseServer 형태로 변환 (기존 호환성 유지)
+      serverList = servers.map((server: any) => ({
         id: server.id,
         name: server.name,
         type: server.type,
@@ -105,55 +99,24 @@ const getHandler = createApiRoute()
         cpu: server.cpu,
         memory: server.memory,
         disk: server.disk,
-        location: server.location,
-        environment: server.environment,
-        uptime: server.uptime,
-        lastUpdate: server.lastUpdate,
-        metrics: server.metrics
-      }));
-      
-      serverList = portfolioServers;
-      
-      debug.log(`🎭 포트폴리오 시나리오 데이터 로드 완료: ${serverList.length}개 서버, "${scenarioData.scenario}"`);
-      
-    } catch (error) {
-      debug.error('❌ 포트폴리오 시나리오 데이터 로드 실패:', error);
-      debug.log('📦 폴백 데이터로 전환...');
-
-      // 폴백: 정적 서버 데이터 사용
-      try {
-        const fs = await import('fs');
-        const path = await import('path');
-        const fallbackPath = path.join(
-          process.cwd(),
-          'public',
-          'fallback',
-          'servers.json'
-        );
-        const raw = fs.readFileSync(fallbackPath, 'utf8');
-        const parsed = JSON.parse(raw);
-        const servers = Array.isArray(parsed) ? parsed : (parsed.servers || []);
-        
-        serverList = servers.map((server: any) => ({
-          id: server.id,
-          name: server.name,
-          type: server.type,
-          status: server.status,
+        location: server.location || 'us-east-1',
+        environment: server.environment || 'production',
+        uptime: server.uptime || 99.9,
+        lastUpdate: server.last_updated || new Date().toISOString(),
+        metrics: {
           cpu: server.cpu,
           memory: server.memory,
           disk: server.disk,
-          location: server.location,
-          environment: server.environment,
-          uptime: server.uptime,
-          lastUpdate: server.lastUpdate,
-          metrics: server.metrics
-        }));
-        
-        debug.log('📦 폴백 데이터 사용 완료');
-      } catch (fallbackError) {
-        debug.error('❌ 폴백 데이터도 로드 실패:', fallbackError);
-        serverList = [];
-      }
+          network: server.network
+        }
+      }));
+      
+      debug.log(`✅ 통합 데이터 소스 로드 완료: ${serverList.length}개 서버, ${config.environment.mode} 환경`);
+      
+    } catch (error) {
+      debug.error('❌ 통합 데이터 소스 로드 실패:', error);
+      debug.log('🔄 응급 복구 모드로 전환...');
+      serverList = [];
     }
 
     // 서버 데이터를 객체 형태로 변환 (기존 API 호환성)
@@ -185,38 +148,43 @@ const getHandler = createApiRoute()
         environment: server.environment,
         metrics: {
           cpu: server.metrics?.cpu,
-          memory:
-            typeof server.metrics?.memory === 'object' &&
-            'usage' in server.metrics.memory
+          memory: typeof server.metrics?.memory === 'number'
+            ? {
+                usage: server.metrics.memory,
+                used: Math.round(server.metrics.memory * 0.8),
+                total: 100
+              }
+            : server.metrics?.memory
+            ? {
+                usage: server.metrics.memory.usage || 0,
+                used: server.metrics.memory.used || Math.round((server.metrics.memory.usage || 0) * 0.8),
+                total: server.metrics.memory.total || 100
+              }
+            : undefined,
+          disk: typeof server.metrics?.disk === 'number'
+            ? {
+                usage: server.metrics.disk,
+                used: Math.round(server.metrics.disk * 0.8),
+                total: 100
+              }
+            : server.metrics?.disk
+            ? {
+                usage: server.metrics.disk.usage || 0,
+                used: server.metrics.disk.used || Math.round((server.metrics.disk.usage || 0) * 0.8),
+                total: server.metrics.disk.total || 100
+              }
+            : undefined,
+          network: (() => {
+            const networkValue = server.network || server.metrics?.network || 0;
+            return typeof networkValue === 'number'
               ? {
-                  usage: server.metrics.memory.usage,
-                  used:
-                    'used' in server.metrics.memory
-                      ? (server.metrics.memory.used ??
-                        server.metrics.memory.usage)
-                      : server.metrics.memory.usage,
-                  total:
-                    'total' in server.metrics.memory
-                      ? (server.metrics.memory.total ?? 100)
-                      : 100,
+                  rx: Math.round(networkValue * 0.6), // 60% inbound
+                  tx: Math.round(networkValue * 0.4), // 40% outbound
+                  bytesIn: Math.round(networkValue * 1024 * 1024), // MB 단위
+                  bytesOut: Math.round(networkValue * 512 * 1024), // MB 단위
                 }
-              : server.metrics?.memory,
-          disk:
-            typeof server.metrics?.disk === 'object' &&
-            'usage' in server.metrics.disk
-              ? {
-                  usage: server.metrics.disk.usage,
-                  used:
-                    'used' in server.metrics.disk
-                      ? (server.metrics.disk.used ?? server.metrics.disk.usage)
-                      : server.metrics.disk.usage,
-                  total:
-                    'total' in server.metrics.disk
-                      ? (server.metrics.disk.total ?? 100)
-                      : 100,
-                }
-              : server.metrics?.disk,
-          network: server.metrics?.network,
+              : networkValue;
+          })(),
         },
       };
       serversMap[server.id] = dashboardServer;
@@ -230,23 +198,15 @@ const getHandler = createApiRoute()
       cpu: server.cpu,
       memory: server.memory,
       disk: server.disk,
-      metrics: server.metrics
-        ? {
-            cpu:
-              typeof server.metrics.cpu === 'object'
-                ? server.metrics.cpu.usage
-                : server.metrics.cpu,
-            memory:
-              typeof server.metrics.memory === 'object'
-                ? server.metrics.memory.usage
-                : server.metrics.memory,
-            disk:
-              typeof server.metrics.disk === 'object'
-                ? server.metrics.disk.usage
-                : server.metrics.disk,
-            network: server.metrics.network || undefined,
-          }
-        : undefined,
+      metrics: {
+        cpu: server.cpu,
+        memory: server.memory,
+        disk: server.disk,
+        network: {
+          rx: Math.round((server.network || 0) * 0.6),
+          tx: Math.round((server.network || 0) * 0.4),
+        },
+      },
       type: server.type,
       location: server.location,
       environment: server.environment,

@@ -51,6 +51,29 @@ check_mcp_status() {
     echo "[$TIMESTAMP] Connected: $CONNECTED_COUNT, Failed: $FAILED_COUNT" >> "$LOG_FILE"
 }
 
+# 함수: Serena 프로젝트 활성화 상태 체크
+check_serena_project_status() {
+    echo -e "\n${YELLOW}🔧 Serena 프로젝트 활성화 상태 체크${NC}"
+
+    # Claude Code에서 serena MCP 도구 사용 가능 여부 확인
+    if ! claude --verbose 2>&1 | grep -q "mcp__serena__get_current_config"; then
+        echo -e "${RED}❌ Serena MCP 도구 사용 불가${NC}"
+        echo "[$TIMESTAMP] Serena MCP: Tools not available" >> "$LOG_FILE"
+        return 1
+    fi
+
+    echo -e "${GREEN}✅ Serena MCP 도구 사용 가능${NC}"
+    echo "[$TIMESTAMP] Serena MCP: Tools available" >> "$LOG_FILE"
+
+    # 실제 프로젝트 활성화 상태 체크는 Claude Code 내에서만 가능
+    echo -e "${BLUE}💡 Serena 프로젝트 활성화 상태 확인 방법:${NC}"
+    echo "   Claude Code에서: mcp__serena__get_current_config 실행"
+    echo "   오류 발생 시: mcp__serena__activate_project openmanager-vibe-v5 실행"
+
+    echo "[$TIMESTAMP] Serena MCP: Project activation check info provided" >> "$LOG_FILE"
+    return 0
+}
+
 # 함수: 개별 서버 테스트
 test_individual_servers() {
     echo -e "\n${YELLOW}🧪 개별 서버 기능 테스트${NC}"
@@ -74,6 +97,9 @@ test_individual_servers() {
         echo -e "${RED}❌ Vercel MCP 도구 사용 불가${NC}"
         echo "[$TIMESTAMP] Vercel MCP: Failed" >> "$LOG_FILE"
     fi
+
+    # Serena 테스트
+    check_serena_project_status
 }
 
 # 함수: 메모리 사용량 체크
@@ -118,9 +144,18 @@ diagnose_issues() {
 suggest_recovery() {
     echo -e "\n${YELLOW}🚑 자동 복구 명령어${NC}"
 
-    echo -e "${BLUE}MCP 서버 재시작:${NC}"
+    echo -e "${BLUE}Serena 프로젝트 활성화 복구:${NC}"
+    echo "  Claude Code에서 실행:"
+    echo "    mcp__serena__activate_project openmanager-vibe-v5"
+    echo "    mcp__serena__get_current_config  # 확인"
+
+    echo -e "\n${BLUE}MCP 서버 재시작:${NC}"
     echo "  claude mcp remove supabase -s local"
     echo "  claude mcp add supabase -s local -e SUPABASE_ACCESS_TOKEN=\$TOKEN -- npx -y @supabase/mcp-server-supabase@latest --read-only --project-ref=\$PROJECT_REF"
+
+    echo -e "\n${BLUE}Serena MCP 서버 재시작:${NC}"
+    echo "  claude mcp remove serena -s local"
+    echo "  claude mcp add serena -s local -- /home/\$(whoami)/.local/bin/serena-mcp-server --project /mnt/d/cursor/openmanager-vibe-v5"
 
     echo -e "\n${BLUE}시스템 정리:${NC}"
     echo "  pkill -f 'mcp-server'"
@@ -128,6 +163,9 @@ suggest_recovery() {
 
     echo -e "\n${BLUE}메모리 정리:${NC}"
     echo "  sudo sysctl vm.drop_caches=1"
+
+    echo -e "\n${BLUE}완전 복구:${NC}"
+    echo "  ./scripts/mcp-complete-recovery.sh  # 전체 MCP 환경 복구"
 }
 
 # 메인 실행

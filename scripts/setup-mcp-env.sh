@@ -478,13 +478,35 @@ security_check() {
     # 4. MCP 설정에서 보안 문제 검사
     log_info "🔍 MCP 설정 보안 검사..."
     if command -v claude &> /dev/null; then
-        if claude mcp list | grep -q "api-key"; then
+        local mcp_output
+        mcp_output=$(claude mcp list 2>/dev/null || echo "MCP 조회 실패")
+
+        # API 키 노출 검사
+        if echo "$mcp_output" | grep -q "api-key"; then
             log_error "⚠️ MCP 설정에서 API 키가 명령줄 인수로 노출됨"
             log_info "💡 환경변수 방식으로 변경을 권장합니다"
             ((security_issues++))
         else
             log_success "MCP 설정 API 키 노출 없음"
         fi
+
+        # MCP 서버 연결 상태 검사 (9개 서버)
+        local expected_servers=("supabase" "vercel" "context7" "memory" "time" "sequential-thinking" "shadcn-ui" "serena" "playwright")
+        local connected_count
+        connected_count=$(echo "$mcp_output" | grep -c "✓ Connected" 2>/dev/null || echo "0")
+
+        log_info "연결된 MCP 서버: $connected_count/${#expected_servers[@]}개"
+
+        # 각 서버별 상태 확인
+        for server in "${expected_servers[@]}"; do
+            if echo "$mcp_output" | grep -q "$server.*✓ Connected"; then
+                log_success "$server MCP: 연결됨"
+            elif echo "$mcp_output" | grep -q "$server"; then
+                log_warning "$server MCP: 연결 문제 있음"
+            else
+                log_warning "$server MCP: 설정되지 않음"
+            fi
+        done
     fi
 
     # 보안 검사 결과

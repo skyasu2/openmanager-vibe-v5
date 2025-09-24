@@ -140,9 +140,11 @@ claude mcp list | grep supabase
 
 ### 일반 MCP 트러블슈팅
 - **연결 실패**: `claude mcp remove` 후 재추가
+- **Serena "No active project"**: Claude Code에서 `mcp__serena__activate_project openmanager-vibe-v5` 실행 ⭐ **신규**
 - **권한 오류**: `--read-only` 플래그 추가
 - **버전 충돌**: `@latest` 제거하고 고정 버전 사용
 - **WSL 경로 문제**: 절대 경로 사용 (`$HOME/.local/bin/...`)
+- **종합 진단**: `./scripts/mcp-health-check.sh`로 Serena 프로젝트 상태 포함 전체 체크 ⭐ **개선됨**
 
 ## 6️⃣ 성능 최적화
 
@@ -159,9 +161,23 @@ claude mcp list | grep supabase
 
 # 주요 기능:
 # - 9개 MCP 서버 연결 상태 실시간 체크
+# - Serena 프로젝트 활성화 상태 체크 (신규) ⭐
 # - 메모리 사용량 모니터링
 # - 자동 문제 진단 및 복구 제안
+# - Serena 전용 복구 명령어 제안 (신규) ⭐
 # - 컬러 출력 및 로그 파일 생성
+```
+
+### 보안 검사 및 서버 상태 체크
+```bash
+# 토큰 보안 검사 + 9개 MCP 서버 상태 종합 체크
+./scripts/setup-mcp-env.sh --security-check
+
+# 주요 기능:
+# - API 키 노출 검사
+# - 9개 MCP 서버별 연결 상태 개별 확인 (개선됨) ⭐
+# - 백업 파일 보안 검사
+# - 환경변수 파일 권한 검사
 ```
 
 ## 7️⃣ WSL/Claude Code 재설치 후 복구

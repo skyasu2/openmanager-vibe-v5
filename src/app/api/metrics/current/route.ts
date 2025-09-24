@@ -11,6 +11,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { EnhancedServerMetrics } from '@/types/server';
 import { mockServersExpanded, serverInitialStatesExpanded } from '@/mock/mockServerConfigExpanded';
+import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
+import { getSystemConfig } from '@/config/SystemConfiguration';
 
 // 🕐 시간 정규화 - 1분 단위로 통일
 function normalizeTimestamp(timestamp: number): number {
@@ -301,8 +303,12 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
   // 현재 시간의 사이클 정보 계산
   const cycleInfo = getIncidentCycleInfo(hour, minute);
   
-  // 📊 mockServersExpanded에서 서버 정보 가져오기 (15개 서버)
-  return mockServersExpanded.map(serverInfo => {
+  // 🎯 통합 데이터 소스에서 서버 정보 가져오기 (중앙집중식 관리)
+  const dataSource = getUnifiedServerDataSource();
+  const servers = await dataSource.getServers();
+  const config = getSystemConfig();
+  
+  return servers.map(serverInfo => {
     const serverId = serverInfo.id;
     // 6개 사이클 기반 메트릭 생성
     const cpuBaseline = generateCycleBasedMetric(serverId, 'cpu', slot, cycleInfo);
@@ -404,7 +410,7 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
         },
         initialServerInfo: {
           type: serverInfo.type,
-          description: serverInfo.description,
+          description: (serverInfo as any).description || 'Server description',
           location: serverInfo.location,
           initialStatus: serverInfo.status
         },
@@ -468,9 +474,11 @@ export async function GET(request: NextRequest) {
         systemInfo: {
           totalServers: servers.length,
           processingTime,
-          dataConsistency: true, // 모든 시스템 동일 데이터 보장
-          version: 'unified-v2.0-cycles',
-          cycleSystemEnabled: true
+          dataConsistency: true, // 통합 데이터 소스 보장
+          version: 'unified-v3.0-centralized',
+          cycleSystemEnabled: true,
+          configSource: 'centralized-system',
+          dataSourceType: getSystemConfig().mockSystem.dataSource
         }
       }
     };

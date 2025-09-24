@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import type { EnhancedServerMetrics } from '@/types/server';
+import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
+import { getApiConfig, getSystemConfig } from '@/config/SystemConfiguration';
 
 // 🚀 현실적 서버 시뮬레이션 - FNV-1a 해시 기반 결정론적 메트릭 생성
 // 실제 서버처럼 동작하는 확률적 이벤트 시스템
@@ -1181,17 +1183,23 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // 파라미터 검증 강화 (Codex 제안)
+    // 파라미터 검증 강화 (통합 설정 기반)
+    const apiConfig = getApiConfig();
     const sortBy = (searchParams.get('sortBy') || 'name') as SortableKey;
     const sortOrder = searchParams.get('sortOrder') === 'desc' ? 'desc' : 'asc';
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)));
+    // /api/servers/all은 모든 서버를 반환해야 함 (Single Source of Truth)
+    const systemConfig = getSystemConfig();
+    const limit = Math.min(
+      apiConfig.maxPageSize,
+      Math.max(1, parseInt(searchParams.get('limit') || systemConfig.totalServers.toString(), 10))
+    );
     const search = searchParams.get('search') || '';
     
-    // 프로덕션 성능 최적화: 로그 간소화 (152ms → 100ms 목표)
-    
-    const enhancedServers = await loadHourlyScenarioData();
-    const dataSource = 'vercel-json-only';
+    // 🎯 통합 데이터 소스 사용 (Single Source of Truth)
+    const dataSource = getUnifiedServerDataSource();
+    const enhancedServers = await dataSource.getServers();
+    const sourceInfo = 'unified-data-source';
 
     // 🎯 결정론적 시스템 성능 모니터링 (로그 최적화)
     const performanceStats = getPerformanceStats();
@@ -1205,9 +1213,9 @@ export async function GET(request: NextRequest) {
       const searchLower = search.toLowerCase();
       filteredServers = enhancedServers.filter(server =>
         server.name.toLowerCase().includes(searchLower) ||
-        server.hostname.toLowerCase().includes(searchLower) ||
+        (server.hostname || '').toLowerCase().includes(searchLower) ||
         server.status.toLowerCase().includes(searchLower) ||
-        server.type.toLowerCase().includes(searchLower)
+        (server.type || '').toLowerCase().includes(searchLower)
       );
     }
 
@@ -1216,15 +1224,19 @@ export async function GET(request: NextRequest) {
       const dir = sortOrder === 'asc' ? 1 : -1;
       switch (sortBy) {
         case 'cpu':
-          return (a.cpu_usage - b.cpu_usage) * dir;
+          return (a.cpu - b.cpu) * dir;
         case 'memory':
-          return (a.memory_usage - b.memory_usage) * dir;
+          return (a.memory - b.memory) * dir;
         case 'disk':
-          return (a.disk_usage - b.disk_usage) * dir;
+          return (a.disk - b.disk) * dir;
         case 'network':
-          return ((a.network || 0) - (b.network || 0)) * dir;
+          const aNetwork = typeof a.network === 'number' ? a.network : 0;
+          const bNetwork = typeof b.network === 'number' ? b.network : 0;
+          return (aNetwork - bNetwork) * dir;
         case 'uptime':
-          return (a.uptime - b.uptime) * dir;
+          const aUptime = typeof a.uptime === 'number' ? a.uptime : 0;
+          const bUptime = typeof b.uptime === 'number' ? b.uptime : 0;
+          return (aUptime - bUptime) * dir;
         default:
           return (a.name || '').localeCompare(b.name || '') * dir;
       }
@@ -1240,33 +1252,28 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: paginatedServers, // 페이지네이션된 서버 데이터
-      source: dataSource, // 데이터 소스 정보 추가
-
+      data: paginatedServers,
       pagination: {
         page,
         limit,
         total,
         totalPages: Math.ceil(total / limit),
         hasNext: startIndex + limit < total,
-        hasPrev: page > 1
+        hasPrev: page > 1,
       },
       timestamp: new Date().toISOString(),
       metadata: {
         serverCount: paginatedServers.length,
         totalServers: total,
-        dataSource,
-        // 프로덕션 성능 최적화: 메타데이터 간소화
-        performance: {
-          responseTime: finalPerformanceStats.responseTime,
-          optimizationEnabled: true
-        }
-      }
+        dataSource: sourceInfo,
+        dataConsistency: true,
+        version: 'unified-v3.0',
+      },
     }, {
-      // 프로덕션 성능 최적화: 헤더 간소화
       headers: {
-        'Cache-Control': 'public, max-age=60, s-maxage=300', // 5분 캐시 활용
-        'X-Data-Source': 'vercel-optimized'
+        'Cache-Control': `public, max-age=60, s-maxage=${apiConfig.timeoutMs / 1000}`,
+        'X-Data-Source': 'unified-system',
+        'X-Server-Count': total.toString(),
       }
     });
       
