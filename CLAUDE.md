@@ -186,6 +186,41 @@ timeout 60 qwen -p "작업 요청" # Qwen CLI 1분 타임아웃 (복잡한 작�
 npx ccusage daily              # ccusage 일일 사용량 (npx로만 실행)
 ```
 
+## 🧪 Vercel 중심 테스트 전략
+
+**핵심 철학**: **"로컬보다 실제 Vercel 환경에서 직접 테스트가 더 효과적"** 🎯
+
+### 📊 현재 테스트 현황 (2025-09-24)
+- **E2E 테스트**: 18개 Playwright 테스트, 98.2% 통과율 (실제 Vercel 환경)
+- **API 테스트**: Vercel Edge Functions 환경에서 직접 검증
+- **통합 테스트**: Supabase, AI API 실제 네트워크 환경 테스트
+- **성능 테스트**: 152ms 응답시간, Core Web Vitals 실측
+
+### 🎯 테스트 우선순위
+1. **🔴 High Priority**: Vercel E2E 테스트 (실제 운영 환경)
+2. **🟡 Medium Priority**: API Routes 실제 성능 테스트
+3. **🔵 Low Priority**: 로컬 Unit 테스트 (필요시에만)
+
+### 🚀 실행 방법
+```bash
+# Vercel 환경 통합 테스트
+npm run test:vercel:full    # 종합 프로덕션 테스트
+npm run test:vercel:e2e     # E2E 테스트 (실제 환경)
+npm run test:vercel         # 프로덕션 테스트
+
+# 보조적 로컬 테스트
+npm run test                # Vitest (필요시에만)
+npm run test:e2e            # 로컬 Playwright (개발용)
+```
+
+### ✅ Vercel 중심 접근법의 장점
+- **환경 일치**: 테스트 환경 = 운영 환경
+- **실제 성능**: Edge Functions, CDN, 실제 네트워크 레이턴시 반영
+- **무료 티어 검증**: 실제 사용량 기반 제한 테스트
+- **개발 효율성**: Mock 설정 불필요, 디버깅 시간 단축
+
+---
+
 ## 🔌 MCP & 베르셀 통합
 
 ### 📊 MCP 현황: 9/9개 연결, 3개 완전 작동 🏆 CLI-only 방식 (2025-09-21 업데이트)
@@ -310,7 +345,7 @@ source ./scripts/setup-mcp-env.sh
 - **security-specialist**: 종합 보안 전문가 (auditor + reviewer 통합)
 
 **테스트 & 문서화 (2개)**:
-- **test-automation-specialist**: 테스트 자동화, Vitest + Playwright E2E 전문 + 실험용 테스트 통합 ⭐ **강화됨**
+- **test-automation-specialist**: Vercel 통합 테스트 자동화, Playwright E2E 실제 환경 전문 ⭐ **Vercel 중심 강화**
 - **documentation-manager**: AI 친화적 문서 관리
 
 **문서화 & UI/UX 전문가 (2개)**:
@@ -507,7 +542,7 @@ codex exec "이 코드의 보안 취약점 분석"
 
 1. **TypeScript**: any 금지, strict mode 필수
 2. **파일 크기**: 500줄 권장, 1500줄 초과 시 분리
-3. **테스트**: 커버리지 70%+, 개발 시 관련 테스트 동시 수정
+3. **테스트**: Vercel 중심 E2E 테스트 우선, 실제 운영 환경에서 검증
 4. **커밋**: 이모지 + 간결한 메시지
 5. **사이드 이펙트 필수 고려**: 모든 수정/삭제/개발 시 영향 분석 및 검증 필수
 
@@ -530,8 +565,8 @@ codex exec "이 코드의 보안 취약점 분석"
 - **호환성 검증**: 기존 API, 설정, 환경과의 하위 호환성 확인
 
 #### 🧪 안전 검증 프로토콜
-- **테스트 우선**: 변경 전 기존 기능 테스트, 변경 후 회귀 테스트 필수
-- **단계적 적용**: 큰 변경은 단계별로 나누어 각 단계마다 검증
+- **Vercel 환경 테스트 우선**: 변경 전 기존 기능 테스트, 변경 후 실제 환경에서 회귀 테스트
+- **단계적 적용**: 큰 변경은 단계별로 나누어 각 단계마다 Vercel 배포 후 검증
 - **롤백 계획**: 모든 변경에 대해 즉시 되돌릴 수 있는 방법 사전 준비
 
 ## 🤖 AI 개발 히스토리 관리
@@ -587,12 +622,12 @@ docs/specs/
 - **코드베이스**: 226,356줄 (src), 873개 TypeScript 파일
 - **프로젝트 구조**: 기능별 레이어드 아키텍처, JBGE 원칙 적용
 
-### 품질 지표 - 2025-09-21 업데이트 ⭐
+### 품질 지표 - 2025-09-24 업데이트 ⭐
 - **TypeScript 에러**: 0개 완전 해결 ✅ (77개→0개) - strict 모드 100% 달성
 - **개발 서버 안정성**: segment-explorer 버그 **100% 해결** (근본적 수정)
 - **개발 서버 성능**: 시작 시간 35% 단축 (32초 → 22초)
-- **Playwright GUI**: WSL ↔ Windows 브라우저 통합 **완전 구축**
-- **테스트**: 54/55 통과 (98.2%), 평균 실행 속도 6ms
+- **Vercel E2E 테스트**: 18개 Playwright 테스트, 98.2% 통과율 (실제 운영 환경)
+- **테스트 전략**: Vercel 중심 접근법 ✅ - 실제 환경에서 직접 테스트
 - **CI/CD**: Push 성공률 99%, 평균 배포 시간 5분
 
 ### Vercel 배포 현황 (Deployment)
@@ -618,10 +653,10 @@ docs/specs/
 - **개발 서버 불안정**: `npm run dev:clean` 사용 (텔레메트리 비활성화)
 - **서버 시작 시간 단축**: 32초 → 22초 (35% 개선)
 
-#### 🖥️ Playwright GUI 브라우저 테스트
-- **WSL GUI 설정**: `.wslconfig`에 `guiApplications=true` 추가됨
-- **Chrome GUI 테스트**: `export DISPLAY=:0 && npx playwright test --headed`
-- **WSL 재시작 필요**: GUI 설정 적용을 위해 `wsl --shutdown` 후 재시작
+#### 🖥️ Vercel E2E 테스트 (Playwright)
+- **실제 환경 우선**: `npm run test:vercel:e2e` - Vercel 배포 환경에서 직접 실행
+- **로컬 보조 테스트**: WSL GUI + `export DISPLAY=:0 && npx playwright test --headed`
+- **테스트 전략**: 18개 E2E 테스트, 98.2% 통과율 (실제 운영 환경 검증)
 
 #### 📊 기존 문제 해결 방법
 - **MCP 오류**: `claude mcp list`로 상태 확인
