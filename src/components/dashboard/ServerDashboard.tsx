@@ -2,7 +2,7 @@
 
 import EnhancedServerModal from '@/components/dashboard/EnhancedServerModal';
 import SafeServerCard from '@/components/dashboard/SafeServerCard';
-import ServerCardErrorBoundary from '@/components/error/ServerCardErrorBoundary';
+import { ServerCardErrorBoundary } from '@/components/debug/ComponentErrorBoundary';
 import {
   Pagination,
   PaginationContent,
@@ -217,7 +217,7 @@ export default function ServerDashboard({
               }`}
             >
               {sortedServers.map((server, index) => (
-                <ServerCardErrorBoundary key={`boundary-${server.id}`}>
+                <ServerCardErrorBoundary key={`boundary-${server.id}`} serverId={server.id}>
                   <SafeServerCard
                     key={server.id}
                     server={{
