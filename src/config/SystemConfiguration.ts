@@ -112,6 +112,20 @@ export class SystemConfigurationManager {
       }
     }
 
+    // 🛡️ 기본 객체 구조 보장 (베르셀 배포 안정성)
+    if (!rawConfig.mockSystem) {
+      rawConfig.mockSystem = {};
+    }
+    if (!rawConfig.api) {
+      rawConfig.api = {};
+    }
+    if (!rawConfig.performance) {
+      rawConfig.performance = {};
+    }
+    if (!rawConfig.environment) {
+      rawConfig.environment = {};
+    }
+
     // 기본값과 병합
     const result = ServerConfigSchema.parse(rawConfig);
 
