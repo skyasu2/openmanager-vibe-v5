@@ -5,7 +5,7 @@
  * Codex (실무) + Gemini (아키텍처) + Qwen (성능) 최적화 통합
  */
 
-const { getAvailablePort, createPortManager } = require('./utils/dynamic-port');
+// const { getAvailablePort, createPortManager } = require('./utils/dynamic-port'); // 주석처리: TypeScript 파일 참조 문제
 
 module.exports = {
   apps: [

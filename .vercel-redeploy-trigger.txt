@@ -1,4 +1,0 @@
-🔥 강제 배포 트리거 v2.1 - 10개 서버 데이터 확정 적용
-🚨 베르셀 캐시 무효화 강제 실행 - 2025.08.29 14:30
-📊 10개 서버: web-server-01, web-server-02, api-server-01, api-server-02, db-master-primary, db-replica-01, redis-cache-01, monitoring-server, security-server, backup-server
-⚡ GCP VM 정적 데이터 완전 통합 완료

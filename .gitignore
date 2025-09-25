@@ -36,6 +36,27 @@ playwright-*.png
 test-output/
 screenshots/
 
+# 🧹 정리된 임시/테스트 파일들
+*.log
+test-*.txt
+test-*.png
+.temp-*
+verification.log
+setup.log
+build-before.log
+dev.log
+
+# 테스트 결과
+test-results.json
+playwright-test.png
+
+# 오래된 백업
+bundle-before.txt
+project-structure.txt
+
+# 스크린샷 파일들
+openmanager-*.png
+
 # next.js
 /.next/
 /out/

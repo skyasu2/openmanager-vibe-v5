@@ -44,18 +44,18 @@
 - Node.js v22 이상 (WSL 내부 설치)
 - npm 10.x 이상
 - Git
-- **Claude Code v1.0.112** (메인 AI 개발 도구)
+- **Claude Code v1.0.119** (메인 AI 개발 도구)
 
 ### Quick Start
 
 ```bash
 # 1. 저장소 클론
-git clone https://github.com/skyasu2/openmanager-vibe-v5.git
+git clone <your-repository-url>
 cd openmanager-vibe-v5
 
 # 2. WSL 환경에서 개발 (권장)
 wsl
-cd /mnt/d/cursor/openmanager-vibe-v5
+cd /path/to/your/project
 
 # 3. 의존성 설치
 npm install
@@ -100,7 +100,7 @@ VM_API_TOKEN=your_vm_api_token
 
 ```bash
 # WSL 터미널에서 실행 (메인 개발 환경)
-claude --version  # v1.0.112
+claude --version  # v1.0.119
 claude /status    # 상태 확인
 ```
 
