@@ -42,7 +42,7 @@ interface EnhancedServerData {
     cpu_cores: number;
     memory_gb: number;
     disk_gb: number;
-    network_speed: string;
+    network_speed?: string;
   };
   lastUpdate?: Date | string;
   services?: Array<unknown>;
@@ -352,7 +352,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
         id: s.id,
         name: s.name || s.hostname || 'Unknown',
         hostname: s.hostname || s.name || 'Unknown',
-        status: s.status,
+        status: s.status === 'running' ? 'online' : s.status as 'healthy' | 'warning' | 'critical' | 'offline' | 'online',
         // 고정 시간별 데이터의 메트릭 그대로 사용
         cpu: cpu,
         memory: memory,

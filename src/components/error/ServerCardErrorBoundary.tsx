@@ -41,7 +41,7 @@ class ServerCardErrorBoundary extends Component<Props, State> {
       console.error('🚨 ServerCard Race Condition TypeError 캐치됨:', {
         message: error.message,
         stack: error.stack?.split('\n').slice(0, 3).join('\n'),
-        componentStack: errorInfo.componentStack.split('\n').slice(0, 5).join('\n'),
+        componentStack: errorInfo.componentStack?.split('\n').slice(0, 5).join('\n') || 'No component stack available',
         timestamp: new Date().toISOString()
       });
     }

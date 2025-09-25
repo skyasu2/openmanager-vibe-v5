@@ -3,8 +3,8 @@ import ImprovedServerCard from './ImprovedServerCard';
 import type { Server, ServerInstance } from '@/types/server';
 
 interface ImprovedServerCardProps {
-  server: ServerInstance;
-  onClick: (server: ServerInstance) => void;
+  server: Server;
+  onClick: (server: Server) => void;
   variant?: 'compact' | 'standard' | 'detailed';
   showRealTimeUpdates?: boolean;
   index?: number;
