@@ -155,9 +155,7 @@ scripts/test-gemini-mcp.js
 scripts/test-adaptive-gemini.js
 scripts/mcp-secure-loader.ts
 
-# 🚨 Node.js 전용 서비스 (브라우저 런타임 에러 방지)
-services/
-services/**/*
+# 🚨 Node.js 전용 서비스 (브라우저 런타임 에러 방지) - 선별적 차단
 services/BitmapPortAllocator.ts
 services/bitmap-allocator-demo.ts
 
