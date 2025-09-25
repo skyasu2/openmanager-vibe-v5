@@ -52,7 +52,7 @@ analyze_with_qwen() {
         return
     fi
     
-    log_info "🤖 Qwen CLI (성능+알고리즘) 분석 중... (600초 타임아웃)"
+    log_info "🤖 Qwen CLI (성능+알고리즘) 분석 중... (300초 타임아웃)"
     
     if [ -f "$file_path" ]; then
         temp_file="/tmp/qwen_$(basename "$file_path")_$$"
@@ -63,8 +63,8 @@ analyze_with_qwen() {
         
         file_content=$(cat "$temp_file" 2>/dev/null)
         
-        timeout 600s qwen -p "TypeScript $(basename "$file_path") 성능 점수(10점)와 최적화 제안 1개" 2>/dev/null || {
-            log_warning "⚠️ Qwen CLI 타임아웃 (600초 초과)"
+        timeout 300s qwen -p "TypeScript $(basename "$file_path") 성능 점수(10점)와 최적화 제안 1개" 2>/dev/null || {
+            log_warning "⚠️ Qwen CLI 타임아웃 (300초 초과)"
             echo "🤖 Qwen 분석: 타임아웃 또는 OAuth 한도 초과"
         }
         
@@ -93,7 +93,7 @@ show_help() {
   • 가중치: 0.97 (알고리즘 분석)
   • 2,000회/일 무료 한도
   • 성능 최적화 전문
-  • 600초 타임아웃
+  • 300초 타임아웃
   • 1.5KB 파일 크기 제한
 
 분석 영역:
@@ -123,7 +123,7 @@ main() {
     # Qwen CLI 확인
     if ! command -v qwen >/dev/null 2>&1; then
         log_error "Qwen CLI를 찾을 수 없습니다"
-        echo "설치: npm install -g qwen-cli"
+        echo "설치: npm install -g @qwen-code/qwen-code"
         echo "인증: qwen auth (OAuth 계정 필요)"
         exit 1
     fi

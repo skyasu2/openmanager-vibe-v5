@@ -220,7 +220,7 @@ main() {
     # Codex CLI 확인
     if ! command -v codex >/dev/null 2>&1; then
         log_error "Codex CLI를 찾을 수 없습니다"
-        echo "설치: npm install -g @chatgpt/cli"
+        echo "설치: npm install -g @openai/codex"
         echo "인증: codex auth"
         exit 1
     fi
