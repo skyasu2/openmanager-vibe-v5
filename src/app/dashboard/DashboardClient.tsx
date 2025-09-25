@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import type { Server } from '@/types/server';
+import type { ServerData } from '@/components/dashboard/EnhancedServerModal.types';
 import { AlertTriangle } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { Suspense, useCallback, useEffect, useState, Component, type ReactNode, type ErrorInfo } from 'react';
@@ -27,7 +28,7 @@ import { useRouter } from 'next/navigation';
 import debug from '@/utils/debug';
 
 // 🎯 타입 변환 헬퍼 함수 - 재사용 가능하도록 분리
-function convertServerToModalData(server: Server) {
+function convertServerToModalData(server: Server): ServerData {
   return {
     ...server,
     hostname: server.hostname || server.name,
@@ -37,7 +38,11 @@ function convertServerToModalData(server: Server) {
     alerts: Array.isArray(server.alerts)
       ? server.alerts.length
       : server.alerts || 0,
-    services: server.services || [],
+    services: (server.services || []).map(service => ({
+      name: service.name,
+      status: service.status,
+      port: service.port || 80
+    })),
     lastUpdate: server.lastUpdate || new Date(),
     uptime:
       typeof server.uptime === 'number'

@@ -8,7 +8,7 @@ import {
   type ServerDisplayMode,
 } from '@/config/display-config';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
-import type { Server, Service } from '@/types/server';
+import type { Server, Service, EnhancedServerMetrics } from '@/types/server';
 import type { ServerStatus } from '@/types/server-common';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';
@@ -167,7 +167,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   });
 
   // 🛡️ AI 교차검증 기반: previousServers 캐시로 Race Condition 방지
-  const previousServersRef = useRef<EnhancedServerData[]>([]);
+  const previousServersRef = useRef<EnhancedServerMetrics[]>([]);
 
   // Double-check null safety: 스토어 데이터가 유효한 경우에만 캐시 업데이트
   const servers = useMemo(() => {

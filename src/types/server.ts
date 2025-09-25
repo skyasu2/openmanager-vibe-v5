@@ -1,5 +1,5 @@
 // 🔄 중복 제거: common.ts의 타입들 재사용
-import type { AlertSeverity } from './common';
+import type { AlertSeverity, ServiceStatus } from './common';
 import type {
   ServerHealth,
   ServerMetrics,
@@ -179,7 +179,7 @@ export interface Server {
 
 export interface Service {
   name: string;
-  status: 'running' | 'stopped' | 'warning';
+  status: ServiceStatus;
   port?: number; // optional로 변경
 }
 

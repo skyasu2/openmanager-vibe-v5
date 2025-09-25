@@ -41,7 +41,7 @@ import { getServerStatusTheme, getTypographyClass, COMMON_ANIMATIONS, LAYOUT, ty
 import { useAccessibilityOptional } from '@/context/AccessibilityProvider';
 import { useServerCardAria } from '../accessibility/AriaLabels';
 
-interface ImprovedServerCardProps {
+export interface ImprovedServerCardProps {
   server: ServerType;
   onClick: (server: ServerType) => void;
   variant?: 'compact' | 'standard' | 'detailed';

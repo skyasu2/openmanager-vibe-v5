@@ -1,21 +1,14 @@
 import React, { useMemo } from 'react';
 import ImprovedServerCard from './ImprovedServerCard';
-import type { Server, ServerInstance } from '@/types/server';
+import type { Server } from '@/types/server';
 
-interface ImprovedServerCardProps {
+export interface SafeServerCardProps {
   server: Server;
-  onClick: (server: Server) => void;
+  onClick?: (server: Server) => void;
   variant?: 'compact' | 'standard' | 'detailed';
   showRealTimeUpdates?: boolean;
   index?: number;
   enableProgressiveDisclosure?: boolean;
-}
-
-export interface SafeServerCardProps extends Omit<ImprovedServerCardProps, 'server' | 'onClick'> {
-  server: Server | (Partial<Server> & {
-    alerts?: number | any[]; // alerts는 숫자나 배열 둘 다 허용
-  });
-  onClick?: (server: Server) => void;
 }
 
 /**

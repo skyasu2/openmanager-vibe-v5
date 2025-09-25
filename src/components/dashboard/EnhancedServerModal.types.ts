@@ -18,7 +18,7 @@ export type ServerStatus =
   | 'online';
 export type NetworkStatus = 'excellent' | 'good' | 'poor' | 'offline';
 export type LogLevel = 'info' | 'warn' | 'error';
-export type ServiceStatus = 'running' | 'stopped';
+export type ServiceStatus = 'running' | 'stopped' | 'warning' | 'failed' | 'starting' | 'stopping' | 'error' | 'unknown';
 export type TabId = 'overview' | 'metrics' | 'processes' | 'logs' | 'network';
 export type TimeRange = '5m' | '1h' | '6h' | '24h' | '7d';
 

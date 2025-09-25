@@ -289,7 +289,11 @@ export default function OptimizedDashboard({
               memory: selectedServer.memory || 0,
               disk: selectedServer.disk || 0,
               network: selectedServer.network || 0,
-              services: selectedServer.services || [],
+              services: (selectedServer.services || []).map(service => ({
+                name: service.name,
+                status: service.status as 'running' | 'stopped' | 'error' | 'starting' | 'stopping' | 'failed' | 'unknown',
+                port: service.port || 80
+              })),
             }}
             onClose={handleServerModalClose}
           />
