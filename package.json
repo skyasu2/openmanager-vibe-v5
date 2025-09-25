@@ -186,7 +186,19 @@
     "dev:tmux:enhanced": "bash scripts/dev-tmux-enhanced.sh",
     "dev:tmux:test": "AUTO_START_TEST_SERVER=true bash scripts/dev-tmux-enhanced.sh",
     "dev:tmux:clean": "tmux kill-session -t openmanager-dev",
-    "commit:v3": "node scripts/smart-commit.js"
+    "commit:v3": "node scripts/smart-commit.js",
+    "clean:ports": "node scripts/cleanup-ports.js",
+    "clean:ports:status": "node scripts/cleanup-ports.js --status",
+    "clean:ports:help": "node scripts/cleanup-ports.js --help",
+    "dev:ai-safe": "bash scripts/dev-safe.sh && cross-env NODE_OPTIONS='--max-old-space-size=4096' next dev",
+    "dev:ai-safe:port": "bash scripts/dev-safe.sh npm run dev:ai-port",
+    "dev:ai-port": "node -e \"const { getAvailablePort } = require('./utils/dynamic-port'); getAvailablePort().then(port => { process.env.PORT = port; require('child_process').spawn('npm', ['run', 'dev'], { env: { ...process.env, PORT: port }, stdio: 'inherit' }); });\"",
+    "port:check": "node -e \"const { healthCheckPorts } = require('./utils/dynamic-port'); healthCheckPorts([3000, 3001, 3002, 3003, 3004]).then(result => console.log('포트 상태:', result));\"",
+    "port:find": "node -e \"const { getAvailablePort } = require('./utils/dynamic-port'); getAvailablePort().then(port => console.log('사용 가능한 포트:', port));\"",
+    "port:find-multi": "node -e \"const { allocateMultiplePorts } = require('./utils/dynamic-port'); allocateMultiplePorts(5).then(ports => console.log('할당된 포트들:', ports));\"",
+    "wsl:port-monitor": "watch -n 2 'ss -tlnp | grep -E \":(300[0-9])\"'",
+    "wsl:port-cleanup": "bash scripts/dev-safe.sh",
+    "wsl:dev": "bash scripts/dev-safe.sh && npm run dev:stable"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "^1.3.1",

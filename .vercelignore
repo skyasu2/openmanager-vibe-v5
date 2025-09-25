@@ -154,3 +154,19 @@ SECURITY-SUMMARY.md
 scripts/test-gemini-mcp.js
 scripts/test-adaptive-gemini.js
 scripts/mcp-secure-loader.ts
+
+# 🚨 Node.js 전용 서비스 (브라우저 런타임 에러 방지)
+services/
+services/**/*
+services/BitmapPortAllocator.ts
+services/bitmap-allocator-demo.ts
+
+# 🚨 PM2 프로세스 관리자 설정 (Vercel 비호환)
+ecosystem.config.js
+pm2.config.js
+**/*ecosystem*.js
+**/*pm2*.js
+
+# 🔧 WSL 포트 관리 유틸리티 (Node.js 전용)
+utils/dynamic-port.ts
+utils/dynamic-port.js
