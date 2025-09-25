@@ -54,7 +54,7 @@ export interface ServerInstance {
   memory: number;
   disk: number;
   network: number;
-  uptime: number;
+  uptime: number | string;
   lastCheck: string;
   type: string;
   environment: string;
@@ -67,6 +67,15 @@ export interface ServerInstance {
   location: string;
   lastUpdated: string;
   provider: string;
+
+  // 🔧 SafeServerCard 호환성을 위한 추가 속성들
+  os?: string; // 운영체제 정보
+  ip?: string; // IP 주소
+  cpuHistory?: number[]; // CPU 사용률 히스토리
+  memoryHistory?: number[]; // 메모리 사용률 히스토리
+  services?: Service[]; // 서비스 목록
+  responseTime?: number; // 응답 시간
+  description?: string; // 서버 설명
 
   // 🔧 확장된 속성들 - 누락된 속성 오류 해결
   health?: ServerHealth;
@@ -170,8 +179,8 @@ export interface Server {
 
 export interface Service {
   name: string;
-  status: 'running' | 'stopped';
-  port: number;
+  status: 'running' | 'stopped' | 'warning';
+  port?: number; // optional로 변경
 }
 
 export interface LogEntry {

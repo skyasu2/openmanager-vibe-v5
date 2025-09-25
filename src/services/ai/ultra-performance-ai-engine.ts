@@ -327,23 +327,26 @@ export class UltraPerformanceAIEngine {
       .toLowerCase();
 
     // 의도 분류 (간단한 패턴 매칭)
-    let mode = request.mode || 'local';
+    let mode = request.mode || 'LOCAL';
     const patterns = {
-      'google-ai': /복잡한|분석|예측|상세한|자세한/,
-      'local-ai': /상태|확인|간단한|빠른|기본/,
+      'GOOGLE_AI': /복잡한|분석|예측|상세한|자세한/,
+      'LOCAL': /상태|확인|간단한|빠른|기본/,
     };
 
     for (const [patternMode, regex] of Object.entries(patterns)) {
       if (regex.test(normalizedQuery)) {
-        mode = patternMode as 'google-ai' | 'local-ai';
+        mode = patternMode as 'GOOGLE_AI' | 'LOCAL';
         break;
       }
     }
 
+    // Mode는 이미 올바른 형태
+    const convertedMode = mode;
+
     const processed: QueryRequest = {
       ...request,
       query: request.query, // 원본 유지
-      mode,
+      mode: convertedMode,
       options: {
         ...request.options,
         timeoutMs: request.options?.timeoutMs || 120, // 120ms 제한
@@ -378,7 +381,7 @@ export class UltraPerformanceAIEngine {
     });
 
     // 2. 기본 엔진 (안정성 중심)
-    if (request.mode !== 'google-ai') {
+    if (request.mode !== 'GOOGLE_AI') {
       engines.push(async () => {
         optimizationsApplied.push('simplified_engine_tried');
         return await this.simplifiedEngine.query({
@@ -389,12 +392,12 @@ export class UltraPerformanceAIEngine {
     }
 
     // 3. Google AI (복잡한 쿼리용)
-    if (request.mode === 'google-ai' || request.query.length > 50) {
+    if (request.mode === 'GOOGLE_AI' || request.query.length > 50) {
       engines.push(async () => {
         optimizationsApplied.push('google_ai_engine_tried');
         return await this.simplifiedEngine.query({
           ...request,
-          mode: 'google-ai',
+          mode: 'GOOGLE_AI',
           enableGoogleAI: true,
           options: { ...request.options, timeoutMs: 100 },
         });
@@ -811,14 +814,16 @@ export function getUltraPerformanceAIEngine(): UltraPerformanceAIEngine {
 export async function executeUltraQuery(
   query: string,
   options?: {
-    mode?: 'local' | 'google-ai';
+    mode?: 'LOCAL' | 'GOOGLE_AI';
     priority?: number;
   }
 ): Promise<OptimizationResult> {
   const engine = getUltraPerformanceAIEngine();
+  const mode = options?.mode || 'LOCAL';
+
   return engine.query({
     query,
-    mode: options?.mode || 'local',
+    mode,
     options: {
       timeoutMs: 152,
       cached: true,

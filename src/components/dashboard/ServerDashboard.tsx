@@ -234,7 +234,7 @@ export default function ServerDashboard({
                     ip: server.ip || '192.168.1.100',
                     os: server.os || 'Ubuntu 22.04',
                     alerts: getAlertsCount(server.alerts),
-                    lastUpdate: server.lastUpdate || new Date(),
+                    lastUpdate: new Date(),
                     services: server.services || [],
                   }}
                     variant="compact"
@@ -434,7 +434,11 @@ export default function ServerDashboard({
             uptime: formatUptime(selectedServer.uptime),
             lastUpdate: selectedServer.lastUpdate || new Date(),
             alerts: getAlertsCount(selectedServer.alerts),
-            services: selectedServer.services || [],
+            services: (selectedServer.services || []).map(service => ({
+              name: service.name,
+              status: service.status === 'warning' ? 'stopped' : service.status as 'running' | 'stopped',
+              port: service.port || 80,
+            })),
             specs: serverTypeGuards.getSpecs(selectedServer),
             os: selectedServer.os || 'Ubuntu 22.04',
             ip: selectedServer.ip || '192.168.1.100',

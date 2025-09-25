@@ -431,7 +431,7 @@ export class UnifiedAIEngineRouter {
         // 구글 AI 모드: 모든 기능 포함
         response = await this.simplifiedEngine.query({
           ...request,
-          mode: 'google-ai',
+          mode: 'GOOGLE_AI',
           enableGoogleAI: true, // Google AI API 활성화
           enableAIAssistantMCP: true, // AI 어시스턴트 MCP 활성화
           enableKoreanNLP: true, // 한국어 NLP 활성화

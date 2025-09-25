@@ -77,10 +77,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const {
       query,
       userId,
-      mode = 'local-ai',
+      mode: rawMode = 'local-ai',
       enableStreaming = true,
       maxResponseTime = 152,
     } = body;
+
+    // Mode 타입 변환
+    const mode = rawMode === 'google-ai' ? 'GOOGLE_AI' : 'LOCAL';
 
     // 입력 검증 (최소한으로)
     if (!query || typeof query !== 'string' || query.trim().length === 0) {

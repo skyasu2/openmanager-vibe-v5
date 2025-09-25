@@ -292,8 +292,11 @@ async function postHandler(request: NextRequest) {
       const normalizedMode = (mode || preferredMode || 'local-ai')
         .toLowerCase()
         .replace(/_/g, '-') as 'local' | 'google-ai' | 'local-ai';
-      const finalMode = normalizedMode;
-      const enableGoogleAI = finalMode === 'google-ai';
+
+      // AIMode 타입으로 변환
+      const finalMode = normalizedMode === 'google-ai' ? 'GOOGLE_AI' :
+                       normalizedMode === 'local' ? 'LOCAL' : 'LOCAL';
+      const enableGoogleAI = finalMode === 'GOOGLE_AI';
       
       // 🐛 디버그 로그: 라우팅 확인
       console.log('🔍 [DEBUG] Mode routing:', {

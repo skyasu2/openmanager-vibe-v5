@@ -281,7 +281,7 @@ export class FastAIEngineRouter {
       case 'google-ai':
         executionPromise = this.localEngine.query({
           ...request,
-          mode: 'google-ai',
+          mode: 'GOOGLE_AI',
           enableGoogleAI: true,
           options: {
             ...request.options,
@@ -700,9 +700,13 @@ export async function fastAIQuery(
 ): Promise<QueryResponse> {
   const router = getFastAIEngineRouter();
 
+  const rawMode = options?.mode || 'local';
+  const mode = rawMode === 'google-ai' ? 'GOOGLE_AI' :
+               rawMode === 'local' ? 'LOCAL' : 'LOCAL';
+
   const request: QueryRequest = {
     query,
-    mode: options?.mode || 'local',
+    mode,
     options: {
       timeoutMs: options?.timeoutMs || 150,
       cached: options?.enableCache !== false,
