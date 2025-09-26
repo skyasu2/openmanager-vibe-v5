@@ -143,14 +143,15 @@ export function useUserPermissions(): UserPermissions {
       // AuthStateManager 상태 우선 사용
       if (authState) {
         const { user, type, isAuthenticated } = authState;
-        
-        if (!isAuthenticated || !user) {
+
+        // 🚀 FIX: PIN 인증된 사용자는 authState가 불완전해도 권한 계산 진행
+        if ((!isAuthenticated || !user) && !isPinAuth) {
           return createSafeDefaultPermissions('guest', '일반사용자');
         }
 
-        // 사용자 정보 추출
-        const userName = user.name || user.email?.split('@')[0] || (type === 'github' ? 'GitHub 사용자' : '일반사용자');
-        const userAvatar = user.avatar;
+        // 사용자 정보 추출 (PIN 인증 시 user null 대비 fallback)
+        const userName = user?.name || user?.email?.split('@')[0] || (type === 'github' ? 'GitHub 사용자' : isPinAuth ? '관리자' : '일반사용자');
+        const userAvatar = user?.avatar;
         const userType: UserType = type === 'unknown' ? 'guest' : type;
 
         // PIN 인증 상태는 상단의 useSyncExternalStore에서 관리됨
