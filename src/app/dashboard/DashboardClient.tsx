@@ -259,9 +259,11 @@ function DashboardPageContent() {
     if (!isMounted) return;
     
     const checkPermissions = () => {
-      // 🛡️ 보안 강화: Hook 기반 권한 검증만 사용 (localStorage 오염 방지)
+      // 🛡️ 보안 강화: Hook 기반 권한 검증 + PIN 인증 직접 체크
       // useUserPermissions 훅이 단일 진실 소스 (Single Source of Truth)
-      const canAccess = permissions.canAccessDashboard;
+      const canAccess = permissions.canAccessDashboard ||
+        // 🚀 PIN 인증 사용자 직접 체크 (localStorage admin_mode=true)
+        (typeof window !== 'undefined' && localStorage.getItem('admin_mode') === 'true');
       
       console.log('🔍 대시보드 권한 체크:', {
         hookAuth: permissions.canAccessDashboard,
