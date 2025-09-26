@@ -114,13 +114,23 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           // 컴포넌트가 언마운트된 경우 setState 방지 (Codex 제안)
           if (!isMountedRef.current) return;
 
-          setRealtimeMetrics((prev) => ({
-            // 안전한 메트릭 값 생성 함수 사용
-            cpu: generateSafeMetricValue(prev.cpu, 3, 'cpu'),
-            memory: generateSafeMetricValue(prev.memory, 2, 'memory'),
-            disk: generateSafeMetricValue(prev.disk, 0.5, 'disk'),
-            network: generateSafeMetricValue(prev.network, 5, 'network'),
-          }));
+          setRealtimeMetrics((prev) => {
+            // 🛡️ prev 객체가 undefined인 경우 방어 코드
+            const safePrev = prev || {
+              cpu: server.cpu || 50,
+              memory: server.memory || 50,
+              disk: server.disk || 50,
+              network: server.network || 25,
+            };
+
+            return {
+              // 안전한 메트릭 값 생성 함수 사용
+              cpu: generateSafeMetricValue(safePrev.cpu, 3, 'cpu'),
+              memory: generateSafeMetricValue(safePrev.memory, 2, 'memory'),
+              disk: generateSafeMetricValue(safePrev.disk, 0.5, 'disk'),
+              network: generateSafeMetricValue(safePrev.network, 5, 'network'),
+            };
+          });
         },
         45000 + index * 1000 // 🎯 데이터 수집 간격 최적화 (45초 + 서버별 지연)
       );
