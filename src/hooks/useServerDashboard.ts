@@ -451,11 +451,24 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     return result;
   }, [actualServers, currentPage, ITEMS_PER_PAGE]);
 
-  // 총 페이지 수 계산
-  const totalPages = Math.ceil(actualServers.length / ITEMS_PER_PAGE);
+  // 총 페이지 수 계산 (방어 코드 추가)
+  const totalPages = Math.ceil((actualServers?.length || 0) / ITEMS_PER_PAGE);
 
-  // 통계 계산 (메모이제이션)
+  // 통계 계산 (메모이제이션) - 방어 코드 추가
   const stats = useMemo(() => {
+    // 🛡️ actualServers 방어 코드
+    if (!actualServers || !Array.isArray(actualServers)) {
+      return {
+        total: 0,
+        online: 0,
+        offline: 0,
+        warning: 0,
+        avgCpu: 0,
+        avgMemory: 0,
+        avgDisk: 0,
+      };
+    }
+
     const total = actualServers.length;
 
     if (total === 0) {
