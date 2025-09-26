@@ -110,26 +110,50 @@ export const isVercelEnvironment = (): boolean => {
  */
 export const getSafeArrayLength = (arr: unknown): number => {
   try {
-    // 🛡️ 완전 null/undefined 방어
+    // 🛡️ Vercel 환경 Race Condition 완전 방어 - 5중 검증
     if (arr === null || arr === undefined) return 0;
 
-    // 🛡️ 타입 체크 강화
-    if (typeof arr !== 'object') return 0;
+    // 🛡️ typeof 체크 (이 시점에서 arr이 변경될 수 있음)
+    const arrType = typeof arr;
+    if (arrType !== 'object') return 0;
 
-    // 🛡️ Array.isArray 이중 체크
-    if (!Array.isArray(arr)) return 0;
+    // 🛡️ 재검증: arr이 여전히 존재하는지 확인
+    if (arr === null || arr === undefined) return 0;
 
-    // 🛡️ length 속성 존재 여부 체크
-    if (typeof arr.length !== 'number') return 0;
+    // 🛡️ Array.isArray 체크 (이 시점에서 arr이 변경될 수 있음)
+    const isArrayResult = Array.isArray(arr);
+    if (!isArrayResult) return 0;
 
-    // 🛡️ length 값 유효성 체크
-    const length = arr.length;
-    if (isNaN(length) || length < 0) return 0;
+    // 🛡️ 재검증: arr이 여전히 배열인지 확인
+    if (!arr || !Array.isArray(arr)) return 0;
 
-    return Math.floor(length); // 정수 보장
+    // 🛡️ length 속성 안전 접근 - hasOwnProperty 사용
+    if (!Object.prototype.hasOwnProperty.call(arr, 'length')) return 0;
+
+    // 🛡️ 최종 length 접근 - 완전 방어적 접근
+    const lengthValue = (() => {
+      try {
+        // 임시 변수에 저장하여 Race Condition 방지
+        const tempArr = arr as any[];
+        if (!tempArr || !Array.isArray(tempArr)) return 0;
+        const tempLength = tempArr.length;
+        if (typeof tempLength !== 'number') return 0;
+        return tempLength;
+      } catch {
+        return 0;
+      }
+    })();
+
+    // 🛡️ 최종 유효성 검증
+    if (isNaN(lengthValue) || lengthValue < 0) return 0;
+
+    return Math.floor(lengthValue);
   } catch (error) {
-    console.error('🛡️ getSafeArrayLength ULTRA SAFE error:', error);
-    vercelSafeLog('getSafeArrayLength 캐시 무효화', { arr, error });
+    // 🛡️ 모든 오류를 0으로 처리 (Vercel 환경 안전성 우선)
+    if (typeof console !== 'undefined' && console.error) {
+      console.error('🛡️ getSafeArrayLength VERCEL RACE CONDITION SAFE error:', error);
+    }
+    vercelSafeLog('getSafeArrayLength Race Condition 방어', { arr, error });
     return 0;
   }
 };
