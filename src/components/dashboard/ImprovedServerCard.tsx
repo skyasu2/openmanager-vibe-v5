@@ -248,27 +248,40 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
 
     // 🚀 알림 수 계산 메모이제이션 최적화
     const alertCount = useMemo(() => {
-      // AI 교차검증 기반 이중 안전장치 ⭐⭐ 핵심 보강
-      if (typeof server.alerts === 'number') {
-        return isNaN(server.alerts) ? 0 : Math.max(0, Math.floor(server.alerts));
-      }
+      try {
+        // AI 교차검증 기반 이중 안전장치 ⭐⭐ 핵심 보강 + 완전 방어 코드
+        if (!server || server.alerts === null || server.alerts === undefined) {
+          return 0;
+        }
 
-      if (Array.isArray(server.alerts)) {
-        // Triple-check: 배열 → 객체 → 속성 검증
-        const validAlerts = server.alerts.filter((alert: any) => {
-          // 1차: null/undefined 체크
-          if (!alert || typeof alert !== 'object') return false;
-          // 2차: message 속성 검증
-          if (!alert.message || typeof alert.message !== 'string') return false;
-          // 3차: message 내용 검증
-          if (alert.message.trim().length === 0) return false;
-          return true;
-        });
-        return validAlerts.length;
-      }
+        if (typeof server.alerts === 'number') {
+          return isNaN(server.alerts) ? 0 : Math.max(0, Math.floor(server.alerts));
+        }
 
-      return 0;
-    }, [server.alerts]);
+        if (Array.isArray(server.alerts)) {
+          // Triple-check: 배열 → 객체 → 속성 검증
+          const validAlerts = server.alerts.filter((alert: any) => {
+            // 1차: null/undefined 체크
+            if (!alert || typeof alert !== 'object') return false;
+            // 2차: message 속성 검증
+            if (!alert.message || typeof alert.message !== 'string') return false;
+            // 3차: message 내용 검증 - 안전한 방식으로 길이 체크
+            try {
+              if (!alert.message.trim || alert.message.trim().length === 0) return false;
+            } catch (e) {
+              return false;
+            }
+            return true;
+          });
+          return validAlerts ? validAlerts.length : 0;
+        }
+
+        return 0;
+      } catch (error) {
+        console.error('❌ alertCount 계산 중 에러:', error);
+        return 0;
+      }
+    }, [server?.alerts]);
 
     // Material Design 3 배리언트별 스타일 (Typography 토큰 기반) - 메모이제이션 최적화
     const variantStyles = useMemo(() => {
@@ -618,16 +631,21 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         {/* 서비스 상태 - Progressive Disclosure Level 2에 포함 */}
         {variantStyles.showServices &&
           (() => {
-            // AI 교차검증 기반 이중 안전장치 ⭐⭐ 핵심 보강
-            if (!Array.isArray(server.services)) return false;
-            const validServices = server.services.filter((service: any) => {
-              // 1차: null/undefined 체크
-              if (!service || typeof service !== 'object') return false;
-              // 2차: name 속성 검증
-              if (!service.name || typeof service.name !== 'string') return false;
-              return true;
-            });
-            return validServices.length > 0;
+            try {
+              // AI 교차검증 기반 이중 안전장치 ⭐⭐ 핵심 보강 + 완전 방어 코드
+              if (!server || !server.services || !Array.isArray(server.services)) return false;
+              const validServices = server.services.filter((service: any) => {
+                // 1차: null/undefined 체크
+                if (!service || typeof service !== 'object') return false;
+                // 2차: name 속성 검증
+                if (!service.name || typeof service.name !== 'string') return false;
+                return true;
+              });
+              return validServices && validServices.length > 0;
+            } catch (error) {
+              console.error('❌ validServices 체크 중 에러:', error);
+              return false;
+            }
           })() &&
           (showSecondaryInfo || !enableProgressiveDisclosure) && (
             <footer 
@@ -673,29 +691,34 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                     </div>
                   ))}
                 {(() => {
-                  // AI 교차검증 기반 이중 안전장치 ⭐⭐ 핵심 보강
-                  if (!Array.isArray(server.services)) return null;
+                  try {
+                    // AI 교차검증 기반 이중 안전장치 ⭐⭐ 핵심 보강 + 완전 방어 코드
+                    if (!server || !server.services || !Array.isArray(server.services)) return null;
 
-                  const validServicesCount = server.services.filter((service: any) => {
-                    // 1차: null/undefined 체크
-                    if (!service || typeof service !== 'object') return false;
-                    // 2차: name 속성 검증
-                    if (!service.name || typeof service.name !== 'string') return false;
-                    return true;
-                  }).length;
+                    const validServicesCount = server.services.filter((service: any) => {
+                      // 1차: null/undefined 체크
+                      if (!service || typeof service !== 'object') return false;
+                      // 2차: name 속성 검증
+                      if (!service.name || typeof service.name !== 'string') return false;
+                      return true;
+                    }).length;
 
-                  const remainingCount = validServicesCount - variantStyles.maxServices;
+                    const remainingCount = validServicesCount - variantStyles.maxServices;
 
-                  if (remainingCount <= 0) return null;
+                    if (remainingCount <= 0) return null;
 
-                  return (
-                    <div
-                      className="flex items-center rounded-lg bg-gray-100 px-2.5 py-1 text-xs text-gray-500"
-                      aria-label={`${remainingCount}개 서비스 더 있음`}
-                    >
-                      +{remainingCount} more
-                    </div>
-                  );
+                    return (
+                      <div
+                        className="flex items-center rounded-lg bg-gray-100 px-2.5 py-1 text-xs text-gray-500"
+                        aria-label={`${remainingCount}개 서비스 더 있음`}
+                      >
+                        +{remainingCount} more
+                      </div>
+                    );
+                  } catch (error) {
+                    console.error('❌ remainingServices 렌더링 중 에러:', error);
+                    return null;
+                  }
                 })()}
               </div>
             </footer>
