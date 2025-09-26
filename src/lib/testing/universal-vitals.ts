@@ -6,7 +6,8 @@
  * @integration Vitest + Playwright + API + Build + Infrastructure
  */
 
-import { performance } from 'node:perf_hooks';
+// Performance API is available globally in both browser and Node.js environments
+// No import needed - using global performance object
 
 // 🎯 Universal Vitals 메트릭 타입 정의
 export interface UniversalVital {
