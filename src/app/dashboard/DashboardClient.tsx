@@ -26,6 +26,8 @@ import dynamic from 'next/dynamic';
 import { Suspense, useCallback, useEffect, useState, Component, type ReactNode, type ErrorInfo } from 'react';
 import { useRouter } from 'next/navigation';
 import debug from '@/utils/debug';
+// 🛡️ 베르셀 안전 유틸리티 import 추가 (l6 TypeError 완전 해결)
+import { getSafeArrayLength, handleVercelError, vercelSafeLog } from '@/lib/vercel-safe-utils';
 
 // 🎯 타입 변환 헬퍼 함수 - 재사용 가능하도록 분리
 function convertServerToModalData(server: Server): ServerData {
@@ -35,14 +37,38 @@ function convertServerToModalData(server: Server): ServerData {
     type: server.type || 'server',
     environment: server.environment || 'production',
     provider: server.provider || 'Unknown',
-    alerts: Array.isArray(server.alerts)
-      ? server.alerts.length
-      : server.alerts || 0,
-    services: (server.services || []).map(service => ({
-      name: service.name,
-      status: service.status,
-      port: service.port || 80
-    })),
+        // 🚀 FIX: getSafeArrayLength로 베르셀 안전성 보장 (l6 TypeError 완전 해결)
+        alerts: (() => {
+          try {
+            if (Array.isArray(server.alerts)) {
+              return getSafeArrayLength(server.alerts);
+            }
+            if (typeof server.alerts === 'number') {
+              return Math.max(0, server.alerts);
+            }
+            return 0;
+          } catch (error) {
+            vercelSafeLog('convertServerToModalData alerts 처리 오류:', error);
+            return 0;
+          }
+        })(),
+        // 🛡️ services 배열도 베르셀 안전 처리
+        services: (() => {
+          try {
+            const serverServices = server.services || [];
+            if (!Array.isArray(serverServices)) {
+              return [];
+            }
+            return serverServices.map(service => ({
+              name: service?.name || 'Unknown Service',
+              status: service?.status || 'running',
+              port: service?.port || 80
+            }));
+          } catch (error) {
+            vercelSafeLog('convertServerToModalData services 처리 오류:', error);
+            return [];
+          }
+        })(),
     lastUpdate: server.lastUpdate || new Date(),
     uptime:
       typeof server.uptime === 'number'
