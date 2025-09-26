@@ -185,15 +185,20 @@ const ServerCardSpawner: FC<ServerCardSpawnerProps> = memo(
         return;
       }
 
-      if (currentServerInGroup >= currentGroup.servers.length) {
+      if (currentServerInGroup >= (currentGroup.servers?.length || 0)) {
         // 현재 그룹 완료, 다음 그룹으로
         setCurrentGroupIndex((prev) => prev + 1);
         setCurrentServerInGroup(0);
         return;
       }
 
-      const serverToSpawn = currentGroup.servers[currentServerInGroup];
+      const serverToSpawn = currentGroup.servers?.[currentServerInGroup];
       if (!serverToSpawn) {
+        console.warn('⚠️ ServerCardSpawner: serverToSpawn이 유효하지 않음:', {
+          currentGroup: currentGroup?.type,
+          currentServerInGroup,
+          serversLength: currentGroup.servers?.length
+        });
         return;
       }
 
@@ -460,7 +465,7 @@ const ServerCardSpawner: FC<ServerCardSpawnerProps> = memo(
                     marginTop: '0.25rem',
                   }}
                 >
-                  {currentGroup.servers.length}개 서버 초기화
+                  {currentGroup?.servers?.length || 0}개 서버 초기화
                 </div>
               </div>
             )}
