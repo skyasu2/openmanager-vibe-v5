@@ -174,9 +174,9 @@ export function useUserPermissions(): UserPermissions {
           canToggleAdminMode: true, // 모든 사용자가 PIN 입력 시도 가능
           canLogout: isGitHub || isGuest,
 
-          // 페이지 접근 권한 (🛡️ 보안 강화: 게스트 대시보드 접근 완전 차단)
+          // 페이지 접근 권한 (🛡️ 보안 강화: PIN 인증한 관리자는 GitHub와 동등한 권한)
           canAccessMainPage: true, // 모든 사용자
-          canAccessDashboard: isGitHub, // GitHub 사용자만 (게스트는 PIN 인증해도 불가)
+          canAccessDashboard: isGitHub || isPinAuth, // GitHub 사용자 또는 PIN 인증한 관리자
           canAccessAdminPage: isPinAuth, // PIN 인증한 사용자만
 
           isGeneralUser: isGitHub || (isGuest && !isPinAuth),
@@ -225,7 +225,7 @@ export function useUserPermissions(): UserPermissions {
           canToggleAdminMode: true,
           canLogout: true,
           canAccessMainPage: true,
-          canAccessDashboard: false, // 🛡️ 보안 강화: 게스트는 PIN 인증해도 대시보드 접근 불가
+          canAccessDashboard: isPinAuth, // 🛡️ PIN 인증한 관리자 게스트는 GitHub와 동등한 대시보드 접근 권한
           canAccessAdminPage: isPinAuth,
           isGeneralUser: !isPinAuth,
           isAdmin: isPinAuth,
