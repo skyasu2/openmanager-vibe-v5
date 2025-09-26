@@ -79,8 +79,8 @@ function createSafeDefaultPermissions(
     isGitHubAuthenticated: false,
     isPinAuthenticated: false,
 
-    // AI 권한 (모든 사용자가 사용 가능)
-    canToggleAI: true,
+    // AI 권한 (기본적으로 제한, GitHub/PIN 인증 사용자만 가능)
+    canToggleAI: false,
 
     // 사용자 정보
     userType,
@@ -183,7 +183,7 @@ export function useUserPermissions(): UserPermissions {
           isAdmin: isPinAuth, // PIN 인증한 사용자가 진짜 관리자
           isGitHubAuthenticated: isGitHub,
           isPinAuthenticated: isPinAuth,
-          canToggleAI: true,
+          canToggleAI: isGitHub || isPinAuth, // GitHub 사용자 또는 PIN 인증한 관리자만 AI 사용 가능
           userType,
           userName,
           userAvatar,
@@ -209,7 +209,7 @@ export function useUserPermissions(): UserPermissions {
           isAdmin: isPinAuth,
           isGitHubAuthenticated: true,
           isPinAuthenticated: isPinAuth,
-          canToggleAI: true,
+          canToggleAI: true, // GitHub 사용자는 항상 AI 사용 가능
           userType: 'github' as UserType,
           userName: session.user?.name || 'GitHub 사용자',
           userAvatar: session.user?.image || undefined,
@@ -231,7 +231,7 @@ export function useUserPermissions(): UserPermissions {
           isAdmin: isPinAuth,
           isGitHubAuthenticated: false,
           isPinAuthenticated: isPinAuth,
-          canToggleAI: true,
+          canToggleAI: isPinAuth, // PIN 인증한 게스트만 AI 사용 가능
           userType: 'guest' as UserType,
           userName: guestUser.name || '일반사용자',
           userAvatar: guestUser.avatar,
