@@ -1,9 +1,0 @@
-🧪 test: 스마트 커밋 푸시 시스템 테스트
-
-- TypeScript 오류 의도적 생성
-- 자동 수정 시스템 검증
-- 3단계 재시도 로직 테스트
-
-🤖 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude <noreply@anthropic.com>
