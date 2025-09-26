@@ -59,6 +59,26 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     index = 0,
     enableProgressiveDisclosure = true,
   }) => {
+    // 🛡️ Vercel 환경 전용 서버 객체 보호 가드 클래스 (베르셀 서버리스 환경 대응)
+    // TypeError: Cannot read properties of undefined (reading 'length') 완전 방지
+    if (!server || typeof server !== 'object' || !server.id) {
+      console.warn('⚠️ ImprovedServerCard: 서버 객체가 유효하지 않음 - 로딩 카드 표시', server);
+      return (
+        <div className="animate-pulse rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+          <div className="flex items-center space-x-3">
+            <div className="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+            <div className="flex-1 space-y-2">
+              <div className="h-4 w-3/4 rounded bg-gray-300 dark:bg-gray-600"></div>
+              <div className="h-3 w-1/2 rounded bg-gray-300 dark:bg-gray-600"></div>
+            </div>
+          </div>
+          <div className="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
+            서버 데이터 로딩 중...
+          </div>
+        </div>
+      );
+    }
+
     // 🚀 성능 추적 활성화 (개발환경 전용)
     const performanceStats = usePerformanceTracking(`ImprovedServerCard-${server.id}`);
     
@@ -67,13 +87,13 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     const [showTertiaryInfo, setShowTertiaryInfo] = useState(false);
     const isMountedRef = useRef(true); // 비동기 상태 관리 개선 (Codex 제안)
     
-    // 초기 메트릭 값 검증 적용
-    const [realtimeMetrics, setRealtimeMetrics] = useState(() => 
+    // 초기 메트릭 값 검증 적용 (베르셀 환경 안전성 강화)
+    const [realtimeMetrics, setRealtimeMetrics] = useState(() =>
       validateServerMetrics({
-        cpu: server.cpu,
-        memory: server.memory,
-        disk: server.disk,
-        network: server.network || 25,
+        cpu: server?.cpu ?? 50,
+        memory: server?.memory ?? 50,
+        disk: server?.disk ?? 30,
+        network: server?.network ?? 25,
       })
     );
     
@@ -81,19 +101,19 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     const accessibility = useAccessibilityOptional();
     const isAccessibilityEnabled = !!accessibility?.isClient;
     
-    // ARIA 속성 생성 (접근성 활성화 시에만)
+    // ARIA 속성 생성 (접근성 활성화 시에만) - 베르셀 환경 안전성 강화
     const ariaProps = useMemo(() => {
       if (!isAccessibilityEnabled) return {};
-      
+
       return useServerCardAria({
-        serverId: server.id,
-        serverName: server.name,
-        status: server.status as 'online' | 'offline' | 'warning' | 'critical',
-        cpu: realtimeMetrics.cpu,
-        memory: realtimeMetrics.memory,
-        disk: realtimeMetrics.disk,
-        alerts: typeof server.alerts === 'number' ? server.alerts : 0,
-        uptime: `${server.uptime || 0}시간`,
+        serverId: server?.id ?? 'unknown',
+        serverName: server?.name ?? '알 수 없는 서버',
+        status: (server?.status ?? 'offline') as 'online' | 'offline' | 'warning' | 'critical',
+        cpu: realtimeMetrics?.cpu ?? 0,
+        memory: realtimeMetrics?.memory ?? 0,
+        disk: realtimeMetrics?.disk ?? 0,
+        alerts: typeof server?.alerts === 'number' ? server.alerts : 0,
+        uptime: `${server?.uptime ?? 0}시간`,
       });
     }, [isAccessibilityEnabled, server, realtimeMetrics]);
 
@@ -115,12 +135,12 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           if (!isMountedRef.current) return;
 
           setRealtimeMetrics((prev) => {
-            // 🛡️ prev 객체가 undefined인 경우 방어 코드
+            // 🛡️ prev 객체가 undefined인 경우 방어 코드 (베르셀 환경 강화)
             const safePrev = prev || {
-              cpu: server.cpu || 50,
-              memory: server.memory || 50,
-              disk: server.disk || 50,
-              network: server.network || 25,
+              cpu: server?.cpu ?? 50,
+              memory: server?.memory ?? 50,
+              disk: server?.disk ?? 50,
+              network: server?.network ?? 25,
             };
 
             return {
@@ -138,15 +158,16 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       return () => clearInterval(interval);
     }, [showRealTimeUpdates, index]);
 
-    // 🎨 Material Design 3 토큰 기반 서버 상태별 테마 (메모이제이션 최적화)
+    // 🎨 Material Design 3 토큰 기반 서버 상태별 테마 (메모이제이션 최적화 + 베르셀 환경 강화)
     const statusTheme = useMemo(() => {
-      // 서버 상태를 Material Design 3 표준 상태로 매핑
+      // 서버 상태를 Material Design 3 표준 상태로 매핑 (베르셀 환경 안전성)
+      const serverStatus = server?.status ?? 'offline';
       const normalizedStatus: ServerStatus =
-        server.status === 'online' || server.status === 'healthy'
+        serverStatus === 'online' || serverStatus === 'healthy'
           ? 'healthy'
-          : server.status === 'critical' || server.status === 'offline'
+          : serverStatus === 'critical' || serverStatus === 'offline'
             ? 'critical'
-            : server.status === 'warning'
+            : serverStatus === 'warning'
               ? 'warning'
               : 'healthy'; // 기본값
 
@@ -193,11 +214,11 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           color: theme.accentColor,
         },
       };
-    }, [server.status]); // 상태별 의존성 최적화 (Gemini 제안 반영)
+    }, [server?.status]); // 상태별 의존성 최적화 (Gemini 제안 반영 + 베르셀 환경 강화)
 
-    // 🚀 서버 타입별 아이콘 메모이제이션 최적화
+    // 🚀 서버 타입별 아이콘 메모이제이션 최적화 (베르셀 환경 강화)
     const serverIcon = useMemo(() => {
-      switch (server.type) {
+      switch (server?.type ?? 'server') {
         case 'web':
           return <Globe className="h-5 w-5" aria-hidden="true" />;
         case 'database':
@@ -210,11 +231,11 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         default:
           return <Server className="h-5 w-5" aria-hidden="true" />;
       }
-    }, [server.type]);
+    }, [server?.type]);
 
-    // 🚀 OS별 아이콘/이모지 메모이제이션 최적화
+    // 🚀 OS별 아이콘/이모지 메모이제이션 최적화 (베르셀 환경 강화)
     const osIcon = useMemo(() => {
-      const os = server.os?.toLowerCase() || '';
+      const os = server?.os?.toLowerCase() || '';
 
       if (
         os.includes('ubuntu') ||
@@ -232,19 +253,19 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         os.includes('rhel')
       ) {
         return (
-          <span className="text-base" title={server.os} aria-label={`운영체제: ${server.os}`}>
+          <span className="text-base" title={server?.os ?? 'Unknown OS'} aria-label={`운영체제: ${server?.os ?? 'Unknown OS'}`}>
             🎩
           </span>
         );
       } else if (os.includes('windows')) {
         return (
-          <span className="text-base" title={server.os} aria-label={`운영체제: ${server.os}`}>
+          <span className="text-base" title={server?.os ?? 'Unknown OS'} aria-label={`운영체제: ${server?.os ?? 'Unknown OS'}`}>
             🪟
           </span>
         );
       }
       return null;
-    }, [server.os]);
+    }, [server?.os]);
 
     // 🚀 알림 수 계산 메모이제이션 최적화
     const alertCount = useMemo(() => {
