@@ -2,6 +2,7 @@
 
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { Bot, Clock } from 'lucide-react';
 // 사용자 정보 관련 import는 UnifiedProfileHeader에서 처리됨
 import dynamic from 'next/dynamic';
@@ -106,6 +107,8 @@ const DashboardHeader = memo(function DashboardHeader({
   }, []);
 
   const { aiAgent, ui } = useUnifiedAdminStore();
+  // 🔐 사용자 권한 확인
+  const permissions = useUserPermissions();
   // 새로운 AI 사이드바 상태
   const { isOpen: isSidebarOpen, setOpen: setSidebarOpen } =
     useAISidebarStore();
@@ -180,7 +183,8 @@ const DashboardHeader = memo(function DashboardHeader({
 
         {/* 오른쪽: AI 어시스턴트 & 프로필 */}
         <div className="flex items-center gap-4">
-          {/* AI 어시스턴트 토글 버튼 */}
+          {/* 🔐 권한이 있는 사용자만 AI 어시스턴트 토글 버튼 표시 */}
+          {permissions.canToggleAI && (
           <div className="relative" suppressHydrationWarning>
             <button
               onClick={handleAIAgentToggle}
@@ -255,6 +259,7 @@ const DashboardHeader = memo(function DashboardHeader({
                 </div>
               )}
           </div>
+          )}
 
           {/* 🎯 UnifiedProfileHeader 사용 - 통합된 프로필 헤더 */}
           <UnifiedProfileHeader

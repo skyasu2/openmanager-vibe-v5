@@ -12,6 +12,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState, useMemo, memo, Fragment, createElement, type FC } from 'react';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { useRealTimeAILogs } from '../../../hooks/useRealTimeAILogs';
 import {
   useAIChat,
@@ -155,7 +156,10 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
   onEngineChange,
   onMessageSend,
 }) => {
-  
+
+  // 🔐 권한 확인 (모든 hooks보다 먼저 호출)
+  const permissions = useUserPermissions();
+
   // 실제 AI 서비스 인스턴스
   const aiService = new RealAISidebarService();
 
@@ -615,6 +619,11 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
       />
     );
   }, [selectedFunction, renderEnhancedAIChat]); // renderEnhancedAIChat 함수 의존성 복구
+
+  // 🔐 권한이 없으면 사이드바 렌더링하지 않음
+  if (!permissions.canToggleAI) {
+    return null;
+  }
 
   return (
     <Fragment>
