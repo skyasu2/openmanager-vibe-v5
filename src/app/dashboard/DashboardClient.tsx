@@ -26,8 +26,50 @@ import dynamic from 'next/dynamic';
 import { Suspense, useCallback, useEffect, useState, Component, type ReactNode, type ErrorInfo } from 'react';
 import { useRouter } from 'next/navigation';
 import debug from '@/utils/debug';
-// 🛡️ 베르셀 안전 유틸리티 import 추가 (l6 TypeError 완전 해결)
-import { getSafeArrayLength, handleVercelError, vercelSafeLog } from '@/lib/vercel-safe-utils';
+// 🛡️ 베르셀 안전 유틸리티 import 추가 (Bundle-Safe Inline으로 l6 압축 방지)
+import { handleVercelError } from '@/lib/vercel-safe-utils';
+
+// 🎯 Bundle-Safe Inline 매크로 - getSafeArrayLength (압축 방지)
+const getSafeArrayLength = (arr: unknown): number => {
+  try {
+    // 🛡️ Vercel 환경 Race Condition 완전 방어 - 5중 검증
+    if (arr === null || arr === undefined) return 0;
+    const arrType = typeof arr;
+    if (arrType !== 'object') return 0;
+    if (arr === null || arr === undefined) return 0;
+    const isArrayResult = Array.isArray(arr);
+    if (!isArrayResult) return 0;
+    if (!arr || !Array.isArray(arr)) return 0;
+    if (!Object.prototype.hasOwnProperty.call(arr, 'length')) return 0;
+
+    const lengthValue = (() => {
+      try {
+        const tempArr = arr as any[];
+        if (!tempArr || !Array.isArray(tempArr)) return 0;
+        const tempLength = tempArr.length;
+        if (typeof tempLength !== 'number') return 0;
+        return tempLength;
+      } catch {
+        return 0;
+      }
+    })();
+
+    if (isNaN(lengthValue) || lengthValue < 0) return 0;
+    return Math.floor(lengthValue);
+  } catch (error) {
+    console.error('🛡️ getSafeArrayLength Bundle-Safe error:', error);
+    return 0;
+  }
+};
+
+// 🎯 Bundle-Safe Inline 매크로 - vercelSafeLog (압축 방지)
+const vercelSafeLog = (message: string, data?: unknown): void => {
+  if (typeof process !== 'undefined' && process.env &&
+      (process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined) &&
+      process.env.NODE_ENV === 'development') {
+    console.log(`🛡️ [Vercel Safe] ${message}`, data);
+  }
+};
 
 // 🎯 타입 변환 헬퍼 함수 - 재사용 가능하도록 분리
 function convertServerToModalData(server: Server): ServerData {
