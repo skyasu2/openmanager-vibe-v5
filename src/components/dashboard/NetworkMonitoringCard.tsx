@@ -16,7 +16,7 @@ import {
   WifiOff,
 } from 'lucide-react';
 import { useEffect, useState, ReactNode } from 'react';
-import { getSafeLastArrayItem } from "../../lib/vercel-safe-utils";
+import { getSafeLastArrayItem, getSafeArrayLength } from "../../lib/vercel-safe-utils";
 
 // 네트워크 메트릭 타입 정의
 interface NetworkMetrics {
@@ -155,10 +155,16 @@ export const NetworkMonitoringCard = () => {
     color: string;
     icon: ReactNode;
   }) => {
+    // 🛡️ 베르셀 환경 안전 배열 처리
+    if (!data || !Array.isArray(data) || getSafeArrayLength(data) === 0) {
+      return <div className="h-16 flex items-center justify-center text-gray-400 text-xs">데이터 없음</div>;
+    }
+
+    const safeDataLength = getSafeArrayLength(data);
     const points = data
       .map((value, index) => {
-        const x = (index / (data.length - 1)) * 100;
-        const maxValue = Math.max(...data) || 1; // Prevent division by zero
+        const x = safeDataLength > 1 ? (index / (safeDataLength - 1)) * 100 : 50;
+        const maxValue = data.length > 0 ? Math.max(...data.filter(v => typeof v === 'number' && !isNaN(v))) || 1 : 1;
         const y = 100 - Math.max(0, Math.min(100, (value / maxValue) * 100));
         return `${x},${y}`;
       })
