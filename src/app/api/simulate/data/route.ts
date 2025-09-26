@@ -2,7 +2,8 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import debug from '@/utils/debug';
 
-// 이 라우트는 동적이므로 정적 생성을 비활성화
+// ⚡ Edge Runtime으로 전환 - 무료 티어 친화적 최적화
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 
 /**

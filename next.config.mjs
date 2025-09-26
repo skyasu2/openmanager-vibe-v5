@@ -38,16 +38,35 @@ const nextConfig = {
     // Next.js 15에서 runtime, swcMinify 제거됨 - 기본 제공
   },
   
-  // 이미지 최적화 설정 (성능 우선)
+  // 🚀 이미지 최적화 설정 (무료 티어 친화적 + 성능 우선)
   images: {
     unoptimized: false, // Next.js 이미지 최적화 활성화
-    formats: ['image/webp', 'image/avif'], // AVIF 추가 (더 나은 압축)
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920], // 반응형 최적화
-    imageSizes: [16, 32, 48, 64, 96, 128, 256], // 아이콘 최적화
-    minimumCacheTTL: 86400, // 24시간 캐시 (성능 향상)
+    formats: ['image/webp', 'image/avif'], // AVIF 우선 (40% 더 작은 파일 크기)
+
+    // 📱 디바이스 최적화 - 불필요한 크기 제거로 대역폭 절약
+    deviceSizes: [640, 750, 828, 1080, 1200], // 1920px 제거로 대역폭 절약
+    imageSizes: [16, 32, 48, 64, 96, 128], // 256px 제거로 대역폭 절약
+
+    // ⚡ 캐싱 최적화 - 함수 호출 감소
+    minimumCacheTTL: 86400 * 7, // 7일 캐시 (기존 1일 → 7일로 연장)
+
+    // 🛡️ 보안 설정 유지
     dangerouslyAllowSVG: true, // SVG 허용
     contentDispositionType: 'attachment', // 보안 강화
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;", // SVG 보안
+
+    // 🚀 무료 티어 최적화 추가 설정
+    loader: 'default', // Vercel 기본 로더 사용 (최적화됨)
+    domains: [], // 외부 도메인 제한으로 보안 강화
+    remotePatterns: [
+      // 필요한 외부 이미지만 허용
+      {
+        protocol: 'https',
+        hostname: '**.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      }
+    ]
   },
   
   // 페이지 확장자 최소화
