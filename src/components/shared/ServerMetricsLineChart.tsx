@@ -1,7 +1,8 @@
 'use client';
 
 // framer-motion 제거 - CSS 애니메이션 사용
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
+import { getSafeChartData, getSafeLastArrayItem, getSafeFirstArrayItem, getSafeArrayLength } from '../../lib/vercel-safe-utils';
 
 export interface ServerMetricsLineChartProps {
   value: number;
@@ -119,7 +120,28 @@ const getMetricConfig = (
   }
 };
 
-// 10분간 데이터 생성 함수 (1분 간격으로 11개 포인트) - 사용자 요구사항 반영
+// 🛡️ 베르셀 환경 감지 유틸리티
+const isVercelEnvironment = () => {
+  try {
+    return typeof process !== 'undefined' &&
+           process.env && (
+             process.env.VERCEL === '1' ||
+             process.env.VERCEL_ENV !== undefined ||
+             process.env.NEXT_RUNTIME === 'edge'
+           );
+  } catch {
+    return false;
+  }
+};
+
+// 🛡️ 베르셀 안전 로깅
+const vercelSafeLog = (message: string, data?: any) => {
+  if (isVercelEnvironment() && process.env.NODE_ENV === 'development') {
+    console.log(`🛡️ [Vercel Safe] ${message}`, data);
+  }
+};
+
+// 10분간 데이터 생성 함수 - 베르셀 환경 안전성 강화
 const generateHistoricalData = (currentValue: number, type: string) => {
   const data = [];
   const now = Date.now();
@@ -160,19 +182,32 @@ export default function ServerMetricsLineChart({
   className = '',
   serverStatus,
 }: ServerMetricsLineChartProps) {
-  const [historicalData, setHistoricalData] = useState(() =>
-    generateHistoricalData(value, type)
-  );
+  // 🛡️ 베르셀 환경 안전 초기화
+  const [historicalData, setHistoricalData] = useState(() => {
+    try {
+      const initialData = generateHistoricalData(value || 0, type);
+      vercelSafeLog('historicalData 초기화 성공', { value, type, dataLength: getSafeArrayLength(initialData) });
+      return initialData;
+    } catch (error) {
+      vercelSafeLog('historicalData 초기화 실패, 기본값 사용', { error, value, type });
+      return [];
+    }
+  });
   const svgRef = useRef<SVGSVGElement>(null);
 
   const config = getMetricConfig(value, type, serverStatus);
 
-  // 실시간 업데이트 시뮬레이션 - 10분간 1분 간격 대응
+  // 🛡️ 베르셀 환경 안전 실시간 업데이트
   useEffect(() => {
     if (!showRealTimeUpdates) return;
 
     const interval = setInterval(() => {
       setHistoricalData((prev) => {
+        // 🛡️ 베르셀 Race Condition 방지
+        if (!prev || !Array.isArray(prev)) {
+          vercelSafeLog('실시간 업데이트 중 prev 데이터 손실, 재생성', { prev });
+          return generateHistoricalData(value || 0, type);
+        }
         // 기존 데이터를 한 칸씩 앞으로 밀고 새 데이터 추가 (11개 포인트 유지)
         const newData = prev.slice(1).map((item, index) => ({
           ...item,
@@ -198,7 +233,16 @@ export default function ServerMetricsLineChart({
     return () => clearInterval(interval);
   }, [showRealTimeUpdates]);
 
-  // SVG 경로 생성 - 10분간 11포인트 대응 + Qwen 스플라인 보간 적용 + AI 교차검증 기반 이중 안전장치 ⭐⭐
+  // 🛡️ 베르셀 환경 완전 방어: historicalData 초기화 강화
+  const safeHistoricalData = useMemo(() => {
+    if (!historicalData || !Array.isArray(historicalData)) {
+      console.warn('🛡️ ServerMetricsLineChart: historicalData 초기화 - 기본값 생성');
+      return generateHistoricalData(value || 0, type);
+    }
+    return historicalData;
+  }, [historicalData, value, type]);
+
+  // SVG 경로 생성 - 베르셀 환경 완전 방어 강화 ⭐⭐⭐
   const createPath = () => {
     const width = 180;
     const height = 80;
@@ -209,27 +253,46 @@ export default function ServerMetricsLineChart({
     const yScale = (y: number) =>
       height - (y / 100) * (height - 2 * padding) - padding;
 
-    // 🛡️ AI 교차검증 기반 이중 안전장치: historicalData 배열 안전성 검증
-    if (!historicalData || !Array.isArray(historicalData) || historicalData.length === 0) {
-      console.warn('🛡️ ServerMetricsLineChart: historicalData가 비어있거나 유효하지 않음');
-      return { path: '', points: [] };
+    // 🛡️ 베르셀 Triple-Guard: historicalData 다층 안전성 검증
+    let workingData = safeHistoricalData;
+
+    if (!workingData) {
+      console.warn('🚨 베르셀 방어: safeHistoricalData가 null');
+      workingData = generateHistoricalData(value || 0, type);
     }
 
-    // 🛡️ 안전한 points 배열 생성
-    const points = historicalData
-      .filter((d) => d && typeof d === 'object' && typeof d.x === 'number' && typeof d.value === 'number')
-      .map((d) => ({
-        x: xScale(d.x),
-        y: yScale(d.value),
-      }));
+    if (!Array.isArray(workingData)) {
+      console.warn('🚨 베르셀 방어: workingData가 배열이 아님:', typeof workingData);
+      workingData = generateHistoricalData(value || 0, type);
+    }
+
+    if (getSafeArrayLength(workingData) === 0) {
+      console.warn('🚨 베르셀 방어: workingData가 빈 배열');
+      workingData = generateHistoricalData(value || 0, type);
+    }
+
+    // 🛡️ 베르셀 안전 필터링: try-catch로 감쌈
+    let points: Array<{x: number, y: number}> = [];
+    try {
+      points = workingData
+        .filter((d) => d && typeof d === 'object' && typeof d.x === 'number' && typeof d.value === 'number')
+        .map((d) => ({
+          x: xScale(d.x),
+          y: yScale(d.value),
+        }));
+    } catch (error) {
+      console.error('🚨 베르셀 방어: points 생성 중 오류:', error);
+      // 완전 폴백: 기본 점들 생성
+      points = [{ x: padding, y: height - padding }];
+    }
 
     // Qwen 제안: Catmull-Rom 스플라인 기반 부드러운 곡선 생성
-    if (!points || !Array.isArray(points) || points.length === 0) {
+    if (!points || !Array.isArray(points) || getSafeArrayLength(points) === 0) {
       console.warn('🛡️ ServerMetricsLineChart: points 배열이 비어있음');
       return { path: '', points: [] };
     }
 
-    const firstPoint = points[0];
+    const firstPoint = getSafeFirstArrayItem(points, { x: 0, y: 0 });
     if (!firstPoint || typeof firstPoint.x !== 'number' || typeof firstPoint.y !== 'number') {
       console.warn('🛡️ ServerMetricsLineChart: firstPoint가 유효하지 않음');
       return { path: '', points: [] };
@@ -238,9 +301,9 @@ export default function ServerMetricsLineChart({
     let path = `M ${firstPoint.x} ${firstPoint.y}`;
 
     // 부드러운 곡선을 위한 Catmull-Rom 스플라인 구현 - AI 교차검증 기반 안전성 강화 ⭐⭐
-    for (let i = 1; i < points.length; i++) {
+    for (let i = 1; i < getSafeArrayLength(points); i++) {
       // 🛡️ 이중 안전장치: 배열 경계 검사 + 객체 유효성 검증
-      if (i >= points.length || i - 1 < 0) continue;
+      if (i >= getSafeArrayLength(points) || i - 1 < 0) continue;
 
       const prevPoint = points[i - 1];
       const currentPoint = points[i];
@@ -320,9 +383,26 @@ export default function ServerMetricsLineChart({
             </linearGradient>
           </defs>
 
-          {/* 영역 채우기 */}
+          {/* 영역 채우기 - 베르셀 안전 접근 */}
           <path
-            d={`${path} L ${points[points.length - 1]?.x ?? 0} 70 L ${points[0]?.x ?? 0} 70 Z`}
+            d={(() => {
+              // 🛡️ 베르셀 Triple-Guard: points 배열 안전 접근
+              if (!points || !Array.isArray(points) || getSafeArrayLength(points) === 0) {
+                return 'M 10 70 L 170 70 L 170 70 L 10 70 Z'; // 기본 사각형
+              }
+
+              const lastPoint = getSafeLastArrayItem(points, { x: 0, y: 0 });
+              const firstPoint = getSafeFirstArrayItem(points, { x: 0, y: 0 });
+
+              if (!lastPoint || !firstPoint) {
+                return 'M 10 70 L 170 70 L 170 70 L 10 70 Z';
+              }
+
+              // 🛡️ 베르셀 안전 접근 사용
+              const safeLastX = getSafeLastArrayItem(points, { x: 0 }).x ?? 0;
+              const safeFirstX = getSafeFirstArrayItem(points, { x: 0 }).x ?? 0;
+              return `${path} L ${safeLastX} 70 L ${safeFirstX} 70 Z`;
+            })()}
             fill={`url(#gradient-${type})`}
           />
 
@@ -340,13 +420,13 @@ export default function ServerMetricsLineChart({
           {/* 데이터 포인트 - AI 교차검증 기반 이중 안전장치 ⭐⭐ */}
           {(() => {
             // 🛡️ points 배열 안전성 재검증 (createPath에서 이미 검증했지만 Race Condition 방지)
-            if (!points || !Array.isArray(points) || points.length === 0) {
+            if (!points || !Array.isArray(points) || getSafeArrayLength(points) === 0) {
               return null;
             }
 
             // 🛡️ historicalData 최고값 계산 - 안전한 방식
             const getMaxValue = () => {
-              if (!historicalData || !Array.isArray(historicalData) || historicalData.length === 0) {
+              if (!historicalData || !Array.isArray(historicalData) || getSafeArrayLength(historicalData) === 0) {
                 return 0;
               }
 
@@ -354,7 +434,7 @@ export default function ServerMetricsLineChart({
                 .filter((d) => d && typeof d === 'object' && typeof d.value === 'number' && !isNaN(d.value))
                 .map((d) => d.value);
 
-              return validValues.length > 0 ? Math.max(...validValues) : 0;
+              return getSafeArrayLength(validValues) > 0 ? Math.max(...validValues) : 0;
             };
 
             const maxValue = getMaxValue();
@@ -366,15 +446,15 @@ export default function ServerMetricsLineChart({
               if (isNaN(point.x) || isNaN(point.y)) return null;
 
               // 🛡️ 배열 경계 검사 및 안전한 접근
-              const isValidIndex = typeof index === 'number' && index >= 0 && index < points.length;
+              const isValidIndex = typeof index === 'number' && index >= 0 && index < getSafeArrayLength(points);
               if (!isValidIndex) return null;
 
-              const isLast = index === points.length - 1;
+              const isLast = index === getSafeArrayLength(points) - 1;
 
               // 🛡️ historicalData 인덱스 안전 접근
               const dataValue = (() => {
                 if (!historicalData || !Array.isArray(historicalData)) return 0;
-                if (index < 0 || index >= historicalData.length) return 0;
+                if (index < 0 || index >= getSafeArrayLength(historicalData)) return 0;
                 const dataPoint = historicalData[index];
                 if (!dataPoint || typeof dataPoint !== 'object') return 0;
                 if (typeof dataPoint.value !== 'number' || isNaN(dataPoint.value)) return 0;
@@ -438,9 +518,10 @@ export default function ServerMetricsLineChart({
             if (!showRealTimeUpdates) return null;
             if (!points || !Array.isArray(points) || points.length === 0) return null;
 
-            // 🛡️ 마지막 point 안전 접근
-            const lastIndex = points.length - 1;
-            if (lastIndex < 0) return null;
+            // 🛡️ 베르셀 Triple-Guard: 마지막 point 완전 안전 접근
+            const safeLength = getSafeArrayLength(points);
+            const lastIndex = safeLength - 1;
+            if (lastIndex < 0 || safeLength === 0) return null;
 
             const lastPoint = points[lastIndex];
             if (!lastPoint || typeof lastPoint !== 'object') return null;
