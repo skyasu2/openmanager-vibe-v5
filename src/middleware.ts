@@ -36,10 +36,11 @@ export function middleware(request: NextRequest) {
   try {
     const startTime = Date.now();
 
-    // 🌐 지리적 정보 추출
-    const country = request.geo?.country || 'unknown';
-    const region = request.geo?.region || 'unknown';
-    const city = request.geo?.city || 'unknown';
+    // 🌐 지리적 정보 추출 (Vercel Edge Runtime에서만 사용 가능)
+    const geo = (request as any).geo;
+    const country = geo?.country || 'unknown';
+    const region = geo?.region || 'unknown';
+    const city = geo?.city || 'unknown';
 
     // 📱 디바이스 정보 추출
     const userAgent = request.headers.get('user-agent') || '';

@@ -16,9 +16,9 @@ test.describe('AI 어시스턴트 버튼 클릭 테스트', () => {
 
     // 메인 페이지 접속 (대시보드가 404이므로)
     console.log('📍 메인 페이지 접속 중...');
-    await page.goto('http://localhost:3000', { 
+    await page.goto('/', {
       waitUntil: 'networkidle',
-      timeout: 15000 
+      timeout: 15000
     });
 
     // 초기 페이지 상태 스크린샷

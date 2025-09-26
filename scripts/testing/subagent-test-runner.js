@@ -122,7 +122,9 @@ async function runTests() {
 function buildTestCommand() {
   // TypeScript 컨트롤러 실행을 위한 Node.js 스크립트
   const controllerScript = `
-const { subagentTesting } = require('./src/lib/testing/subagent-test-controller.ts');
+// TypeScript 파일을 직접 실행하기 위해 ts-node 사용
+const tsNodePath = path.resolve(__dirname, '../../node_modules/.bin/ts-node');
+const controllerPath = path.resolve(__dirname, '../../src/lib/testing/subagent-test-controller.ts');
 
 (async function() {
   try {

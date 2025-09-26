@@ -193,7 +193,7 @@ export class SubagentTestController {
         success: false,
         exitCode: 1,
         command: 'failed-to-execute',
-        profile: SUBAGENT_TEST_PROFILES['ultra-fast'],
+        profile: this.getProfileOrFallback('ultra-fast'),
         stats: { total: 0, passed: 0, failed: 1, skipped: 0 },
         vitals: [],
         analysis: {
@@ -228,6 +228,17 @@ export class SubagentTestController {
     }
   }
 
+  // Helper function to ensure we always return a TestProfile
+  private getProfileOrFallback(profileKey: string): TestProfile {
+    return SUBAGENT_TEST_PROFILES[profileKey] || {
+      name: 'Default Fast',
+      command: 'npm run test:fast',
+      expectedDuration: '8초',
+      coverage: '기본',
+      description: '기본 빠른 테스트'
+    };
+  }
+
   // 🧠 컨텍스트 기반 프로필 선택
   private analyzeAndSelectProfile(context?: {
     priority?: 'fast' | 'thorough' | 'comprehensive';
@@ -236,29 +247,29 @@ export class SubagentTestController {
   }): TestProfile {
     // 우선순위 기반 선택
     if (context?.priority === 'fast') {
-      return SUBAGENT_TEST_PROFILES['ultra-fast'];
+      return this.getProfileOrFallback('ultra-fast');
     }
     if (context?.priority === 'comprehensive') {
-      return SUBAGENT_TEST_PROFILES['comprehensive'];
+      return this.getProfileOrFallback('comprehensive');
     }
 
     // 포커스 영역 기반 선택
     if (context?.focus) {
       if (context.focus.includes('e2e') || context.focus.includes('playwright')) {
-        return SUBAGENT_TEST_PROFILES['playwright-visual'];
+        return this.getProfileOrFallback('playwright-visual');
       }
       if (context.focus.includes('api') || context.focus.includes('integration')) {
-        return SUBAGENT_TEST_PROFILES['e2e-critical'];
+        return this.getProfileOrFallback('e2e-critical');
       }
     }
 
     // 타임아웃 기반 선택
     if (context?.timeout && context.timeout < 10000) { // 10초 미만
-      return SUBAGENT_TEST_PROFILES['ultra-fast'];
+      return this.getProfileOrFallback('ultra-fast');
     }
 
     // 기본값: 스마트 빠른 테스트
-    return SUBAGENT_TEST_PROFILES['smart-fast'];
+    return this.getProfileOrFallback('smart-fast');
   }
 
   // ⚡ 테스트 실행
@@ -437,18 +448,20 @@ export class SubagentTestController {
 
     // 우선순위 높은 권장사항 기반
     const criticalRecs = recommendations.filter(r => r.priority === 'critical');
-    if (criticalRecs.length > 0) {
-      actions.push(`1. 즉시 조치: ${criticalRecs[0].title}`);
-      criticalRecs[0].commands.forEach(cmd => {
+    const firstCritical = criticalRecs[0];
+    if (firstCritical) {
+      actions.push(`1. 즉시 조치: ${firstCritical.title}`);
+      firstCritical.commands.forEach(cmd => {
         actions.push(`   → ${cmd}`);
       });
     }
 
     // 성능 개선
     const highRecs = recommendations.filter(r => r.priority === 'high');
-    if (highRecs.length > 0) {
-      actions.push(`2. 성능 개선: ${highRecs[0].title}`);
-      actions.push(`   → ${highRecs[0].commands[0]}`);
+    const firstHigh = highRecs[0];
+    if (firstHigh && firstHigh.commands.length > 0) {
+      actions.push(`2. 성능 개선: ${firstHigh.title}`);
+      actions.push(`   → ${firstHigh.commands[0]}`);
     }
 
     // 일반적인 다음 단계
@@ -478,25 +491,25 @@ export class SubagentTestController {
 
     // Vitest 출력 파싱
     const vitestMatch = output.match(/Test Files\s+(\d+) passed.*?Tests\s+(\d+) passed.*?(\d+) failed.*?(\d+) skipped/s);
-    if (vitestMatch) {
-      stats.passed = parseInt(vitestMatch[2]);
-      stats.failed = parseInt(vitestMatch[3]);
-      stats.skipped = parseInt(vitestMatch[4]);
+    if (vitestMatch && vitestMatch.length >= 5) {
+      stats.passed = parseInt(vitestMatch[2] || '0');
+      stats.failed = parseInt(vitestMatch[3] || '0');
+      stats.skipped = parseInt(vitestMatch[4] || '0');
       stats.total = stats.passed + stats.failed + stats.skipped;
     }
 
     // Jest/Vitest coverage 파싱
     const coverageMatch = output.match(/All files.*?(\d+\.?\d*)%/);
-    if (coverageMatch) {
+    if (coverageMatch && coverageMatch[1]) {
       stats.coverage = parseFloat(coverageMatch[1]);
     }
 
     // Playwright 출력 파싱
     const playwrightMatch = output.match(/(\d+) passed.*?(\d+) failed.*?(\d+) skipped/);
-    if (playwrightMatch && stats.total === 0) {
-      stats.passed = parseInt(playwrightMatch[1]);
-      stats.failed = parseInt(playwrightMatch[2]) || 0;
-      stats.skipped = parseInt(playwrightMatch[3]) || 0;
+    if (playwrightMatch && playwrightMatch.length >= 4 && stats.total === 0) {
+      stats.passed = parseInt(playwrightMatch[1] || '0');
+      stats.failed = parseInt(playwrightMatch[2] || '0');
+      stats.skipped = parseInt(playwrightMatch[3] || '0');
       stats.total = stats.passed + stats.failed + stats.skipped;
     }
 
@@ -657,12 +670,12 @@ export class SubagentTestController {
     const { readdirSync } = require('fs');
     try {
       const logFiles = readdirSync(this.logDir)
-        .filter(file => file.endsWith('.json'))
+        .filter((file: string) => file.endsWith('.json'))
         .sort()
         .reverse()
         .slice(0, limit);
 
-      return logFiles.map(file => {
+      return logFiles.map((file: string) => {
         const content = readFileSync(join(this.logDir, file), 'utf8');
         return JSON.parse(content);
       });

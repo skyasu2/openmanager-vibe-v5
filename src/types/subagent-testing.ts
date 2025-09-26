@@ -6,6 +6,16 @@
  */
 
 // 기존 AI 친화적 Vitals 타입 재사용
+import type {
+  AIFriendlyMetric,
+  VitalsAnalysisResult,
+  MetricCollector,
+  MetricAnalyzer,
+  RegressionAlert,
+  ActionRecommendation
+} from '../lib/testing/ai-friendly-vitals';
+
+// Re-export imported types for use in other modules
 export type {
   AIFriendlyMetric,
   VitalsAnalysisResult,
@@ -13,7 +23,7 @@ export type {
   MetricAnalyzer,
   RegressionAlert,
   ActionRecommendation
-} from '@/lib/testing/ai-friendly-vitals';
+};
 
 // 서브에이전트 전용 확장 타입들
 export interface SubagentTestContext {
@@ -316,9 +326,9 @@ export const SubagentTestHelpers = {
 
   // 권장사항 우선순위 정렬
   sortRecommendations: (recommendations: ActionRecommendation[]): ActionRecommendation[] => {
-    const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
+    const priorityOrder: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
     return [...recommendations].sort((a, b) =>
-      priorityOrder[a.priority] - priorityOrder[b.priority] ||
+      (priorityOrder[a.priority] ?? 999) - (priorityOrder[b.priority] ?? 999) ||
       b.estimatedImpact - a.estimatedImpact
     );
   },

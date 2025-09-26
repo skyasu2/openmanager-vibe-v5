@@ -178,9 +178,13 @@ export class UniversalVitalsCollector {
 
   // ⚖️ 메트릭 등급 계산
   private calculateRating(name: string, category: VitalCategory, value: number): 'good' | 'needs-improvement' | 'poor' {
-    const thresholds = UNIVERSAL_THRESHOLDS[category]?.[name as keyof typeof UNIVERSAL_THRESHOLDS[typeof category]];
+    const categoryThresholds = UNIVERSAL_THRESHOLDS[category];
+    if (!categoryThresholds) {
+      return 'good';
+    }
 
-    if (!thresholds) {
+    const thresholds = (categoryThresholds as any)[name];
+    if (!thresholds || typeof thresholds !== 'object' || !('good' in thresholds) || !('poor' in thresholds)) {
       // 임계값이 없는 경우 기본 판정
       return 'good';
     }
@@ -193,9 +197,13 @@ export class UniversalVitalsCollector {
   // 💡 자동 권장사항 생성
   private generateRecommendations(name: string, category: VitalCategory, value: number): string[] {
     const recommendations: string[] = [];
-    const thresholds = UNIVERSAL_THRESHOLDS[category]?.[name as keyof typeof UNIVERSAL_THRESHOLDS[typeof category]];
+    const categoryThresholds = UNIVERSAL_THRESHOLDS[category];
+    if (!categoryThresholds) {
+      return recommendations;
+    }
 
-    if (!thresholds || value <= thresholds.good) return recommendations;
+    const thresholds = (categoryThresholds as any)[name];
+    if (!thresholds || typeof thresholds !== 'object' || !('good' in thresholds) || value <= thresholds.good) return recommendations;
 
     // 카테고리별 권장사항
     switch (category) {

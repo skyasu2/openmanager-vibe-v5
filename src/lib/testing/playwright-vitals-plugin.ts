@@ -167,7 +167,7 @@ export const PlaywrightVitals = {
       });
 
       // Web Vitals를 Universal Vitals로 수집
-      for (const [metricName, value] of Object.entries(webVitals)) {
+      for (const [metricName, value] of Object.entries(webVitals as Record<string, number>)) {
         if (typeof value === 'number' && value > 0) {
           universalVitals.collectVital(
             metricName,
@@ -457,7 +457,9 @@ export function setupPlaywrightVitals(options: {
     if (testInfo.status === 'passed') {
       PlaywrightVitals.passTest(testName);
     } else if (testInfo.status === 'failed') {
-      PlaywrightVitals.failTest(testName, testInfo.errors?.[0]);
+      const testError = testInfo.errors?.[0];
+      const errorToPass = testError ? new Error(testError.message || 'Test failed') : undefined;
+      PlaywrightVitals.failTest(testName, errorToPass);
     }
   });
 
