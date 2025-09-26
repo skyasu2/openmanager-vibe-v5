@@ -214,7 +214,7 @@ export default function ServerMetricsLineChart({
           x: index,
         }));
 
-        const lastValue = prev[prev.length - 1]?.value ?? 50;
+        const lastValue = getSafeLastArrayItem(prev, { value: 50 })?.value ?? 50;
 
         // 새로운 현재값 생성 - 더 안정적인 변동 (1분 간격에 맞춤)
         const variation = (Math.random() - 0.5) * 6; // ±3% 변동 (더 안정적)
