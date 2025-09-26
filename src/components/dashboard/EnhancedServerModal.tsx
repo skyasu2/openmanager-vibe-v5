@@ -42,6 +42,7 @@ import {
   getMetricColorByStatus,
   getStatusTheme,
 } from './EnhancedServerModal.utils';
+import { getSafeServicesLength, getSafeValidServices, isValidServer, vercelSafeLog } from '@/lib/vercel-safe-utils';
 import { RealtimeChart } from './EnhancedServerModal.components';
 import { OverviewTab } from './EnhancedServerModal.OverviewTab';
 import { MetricsTab } from './EnhancedServerModal.MetricsTab';
@@ -162,9 +163,9 @@ export default function EnhancedServerModal({
                 `${safeServer.name} - SSL certificate renewed`,
               ][Math.floor(Math.random() * 6)] ?? `${safeServer.name} - System status normal`,
               source:
-                safeServer.services?.[
-                  Math.floor(Math.random() * (safeServer.services?.length || 1))
-                ]?.name || safeServer.name,
+                ((safeServer?.services && Array.isArray(safeServer.services) && safeServer.services.length > 0)
+                  ? safeServer.services[Math.floor(Math.random() * safeServer.services.length)]?.name
+                  : safeServer?.name) || safeServer?.name,
             },
           ].slice(-20),
         }));
@@ -350,7 +351,7 @@ export default function EnhancedServerModal({
                     case 'metrics':
                       // 🎯 성능 상태 + 프로세스 수 통합
                       const avgCpu = (safeServer.cpu + safeServer.memory) / 2;
-                      const processCount = safeServer.services?.length || 0;
+                      const processCount = (safeServer?.services && Array.isArray(safeServer.services)) ? safeServer.services.length : 0;
                       return (
                         <div className="flex items-center gap-1">
                           <div className={`h-2 w-2 rounded-full ${
@@ -460,7 +461,7 @@ export default function EnhancedServerModal({
                         </div>
                         <div className="text-center">
                           <div className="text-2xl font-bold text-blue-600">
-                            {safeServer.services?.length || 0}
+                            {(safeServer?.services && Array.isArray(safeServer.services)) ? safeServer.services.length : 0}
                           </div>
                           <div className="text-sm text-gray-500">서비스</div>
                         </div>

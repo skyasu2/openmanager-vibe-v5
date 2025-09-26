@@ -34,6 +34,14 @@ import { memo, useCallback, useEffect, useState, useMemo, useRef, type FC, Fragm
 import type { Server as ServerType } from '../../types/server';
 import { ServerCardLineChart } from '../shared/ServerMetricsLineChart';
 import { usePerformanceTracking } from '@/utils/performance';
+import {
+  getSafeServicesLength,
+  getSafeValidServices,
+  getSafeAlertsCount,
+  vercelSafeLog,
+  handleVercelError,
+  isValidServer
+} from '@/lib/vercel-safe-utils';
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
 import { validateMetricValue, validateServerMetrics, generateSafeMetricValue, type MetricType } from '../../utils/metricValidation';
 import { getServerStatusTheme, getTypographyClass, COMMON_ANIMATIONS, LAYOUT, type ServerStatus } from '../../styles/design-constants';
@@ -267,41 +275,13 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       return null;
     }, [server?.os]);
 
-    // 🚀 알림 수 계산 메모이제이션 최적화
+    // 🚀 알림 수 계산 - 베르셀 안전 유틸리티 사용
     const alertCount = useMemo(() => {
-      try {
-        // AI 교차검증 기반 이중 안전장치 ⭐⭐ 핵심 보강 + 완전 방어 코드
-        if (!server || server.alerts === null || server.alerts === undefined) {
-          return 0;
-        }
-
-        if (typeof server.alerts === 'number') {
-          return isNaN(server.alerts) ? 0 : Math.max(0, Math.floor(server.alerts));
-        }
-
-        if (Array.isArray(server.alerts)) {
-          // Triple-check: 배열 → 객체 → 속성 검증
-          const validAlerts = server.alerts.filter((alert: any) => {
-            // 1차: null/undefined 체크
-            if (!alert || typeof alert !== 'object') return false;
-            // 2차: message 속성 검증
-            if (!alert.message || typeof alert.message !== 'string') return false;
-            // 3차: message 내용 검증 - 안전한 방식으로 길이 체크
-            try {
-              if (!alert.message.trim || alert.message.trim().length === 0) return false;
-            } catch (e) {
-              return false;
-            }
-            return true;
-          });
-          return validAlerts ? validAlerts.length : 0;
-        }
-
-        return 0;
-      } catch (error) {
-        console.error('❌ alertCount 계산 중 에러:', error);
-        return 0;
-      }
+      return handleVercelError(
+        () => getSafeAlertsCount(server?.alerts),
+        'ImprovedServerCard alertCount calculation',
+        () => 0
+      ) as number;
     }, [server?.alerts]);
 
     // Material Design 3 배리언트별 스타일 (Typography 토큰 기반) - 메모이제이션 최적화
@@ -653,17 +633,10 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         {variantStyles.showServices &&
           (() => {
             try {
-              // AI 교차검증 기반 이중 안전장치 ⭐⭐ 핵심 보강 + 완전 방어 코드
-              if (!server || !server.services || !Array.isArray(server.services)) return false;
-              // 🚀 FIX: optional chaining으로 안전한 배열 접근 (렌더링 오류 해결)
-              const validServices = (server.services ?? []).filter((service: any) => {
-                // 1차: null/undefined 체크
-                if (!service || typeof service !== 'object') return false;
-                // 2차: name 속성 검증
-                if (!service.name || typeof service.name !== 'string') return false;
-                return true;
-              });
-              return validServices && validServices.length > 0;
+              // 🛡️ 베르셀 안전 서비스 검증 - vercel-safe-utils 사용
+              if (!isValidServer(server)) return false;
+              const validServices = getSafeValidServices(server);
+              return validServices.length > 0;
             } catch (error) {
               console.error('❌ validServices 체크 중 에러:', error);
               return false;
@@ -680,9 +653,8 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               aria-label="서비스 상태 목록"
             >
               <div className="flex flex-wrap gap-2">
-                {(server.services || [])
+                {getSafeValidServices(server)
                   .slice(0, variantStyles.maxServices)
-                  .filter((service) => service && typeof service === 'object' && service.name)
                   .map((service, idx) => (
                     <div
                       key={idx}
@@ -714,17 +686,14 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   ))}
                 {(() => {
                   try {
-                    // AI 교차검증 기반 이중 안전장치 ⭐⭐ 핵심 보강 + 완전 방어 코드
-                    if (!server || !server.services || !Array.isArray(server.services)) return null;
+                    // 🛡️ 베르셀 환경 완전 방어 코드 - vercel-safe-utils 사용
+                    if (!isValidServer(server)) {
+                      vercelSafeLog('Invalid server object in ImprovedServerCard', server);
+                      return null;
+                    }
 
-                    // 🚀 FIX: optional chaining으로 안전한 배열 접근 (렌더링 오류 해결)
-                    const validServicesCount = (server.services ?? []).filter((service: any) => {
-                      // 1차: null/undefined 체크
-                      if (!service || typeof service !== 'object') return false;
-                      // 2차: name 속성 검증
-                      if (!service.name || typeof service.name !== 'string') return false;
-                      return true;
-                    }).length;
+                    // 🚀 FIX: 베르셀 안전 유틸리티 함수 사용 (l6 함수 오류 완전 해결)
+                    const validServicesCount = getSafeServicesLength(server);
 
                     const remainingCount = validServicesCount - variantStyles.maxServices;
 
