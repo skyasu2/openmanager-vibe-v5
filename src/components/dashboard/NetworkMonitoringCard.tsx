@@ -164,7 +164,8 @@ export const NetworkMonitoringCard = () => {
     const points = data
       .map((value, index) => {
         const x = safeDataLength > 1 ? (index / (safeDataLength - 1)) * 100 : 50;
-        const maxValue = data.length > 0 ? Math.max(...data.filter(v => typeof v === 'number' && !isNaN(v))) || 1 : 1;
+        const safeValidData = data.filter(v => typeof v === 'number' && !isNaN(v));
+        const maxValue = getSafeArrayLength(safeValidData) > 0 ? Math.max(...safeValidData) || 1 : 1;
         const y = 100 - Math.max(0, Math.min(100, (value / maxValue) * 100));
         return `${x},${y}`;
       })
