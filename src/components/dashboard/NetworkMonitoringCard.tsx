@@ -16,6 +16,7 @@ import {
   WifiOff,
 } from 'lucide-react';
 import { useEffect, useState, ReactNode } from 'react';
+import { getSafeLastArrayItem } from "../../lib/vercel-safe-utils";
 
 // 네트워크 메트릭 타입 정의
 interface NetworkMetrics {
@@ -94,12 +95,12 @@ export const NetworkMonitoringCard = () => {
       return { ...data, timestamp: new Date(Date.now() - (20 - i) * 5000) };
     });
     setHistory(initialData);
-    setCurrentData(initialData[initialData.length - 1] ?? null);
+    setCurrentData(getSafeLastArrayItem(initialData, null) ?? null);
 
     // 5초마다 데이터 업데이트
     const interval = setInterval(() => {
       setHistory((prev) => {
-        const newData = generateNetworkData(prev[prev.length - 1]);
+        const newData = generateNetworkData(getSafeLastArrayItem(prev, undefined));
         setCurrentData(newData);
         return [...prev.slice(-19), newData];
       });
@@ -163,7 +164,7 @@ export const NetworkMonitoringCard = () => {
       })
       .join(' ');
 
-    const currentValue = data[data.length - 1] || 0;
+    const currentValue = getSafeLastArrayItem(data, 0) || 0;
     const gradientId = `network-gradient-${label}-${Math.random()}`;
 
     return (

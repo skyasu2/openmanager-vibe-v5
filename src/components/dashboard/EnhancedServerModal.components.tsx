@@ -7,6 +7,7 @@
  */
 
 import { type FC } from 'react';
+import { getSafeArrayLength, getSafeLastArrayItem } from '../../lib/vercel-safe-utils';
 
 /**
  * 📈 실시간 차트 컴포넌트 Props
@@ -40,14 +41,20 @@ export const RealtimeChart: FC<RealtimeChartProps> = ({
   label,
   height = 100,
 }) => {
-  // 데이터 포인트를 SVG 좌표로 변환
+  // 🛡️ 베르셀 안전 데이터 길이 확인
+  const safeDataLength = getSafeArrayLength(data);
+  
+  // 데이터 포인트를 SVG 좌표로 변환 - 베르셀 안전 방식
   const points = data
     .map((value, index) => {
-      const x = (index / Math.max(data.length - 1, 1)) * 100;
+      const x = (index / Math.max(safeDataLength - 1, 1)) * 100;
       const y = 100 - Math.max(0, Math.min(100, value));
       return `${x},${y}`;
     })
     .join(' ');
+
+  // 🛡️ 베르셀 안전 마지막 값 추출
+  const lastValue = getSafeLastArrayItem(data, 0);
 
   return (
     <div className="rounded-lg border bg-white p-4 shadow-sm">
@@ -104,11 +111,11 @@ export const RealtimeChart: FC<RealtimeChartProps> = ({
             className="drop-shadow-sm"
           />
 
-          {/* 최신 값 포인트 강조 */}
-          {data.length > 0 && (
+          {/* 최신 값 포인트 강조 - 🛡️ 베르셀 완전 안전 수정 */}
+          {safeDataLength > 0 && (
             <circle
-              cx={((data.length - 1) / Math.max(data.length - 1, 1)) * 100}
-              cy={100 - Math.max(0, Math.min(100, data[data.length - 1] ?? 0))}
+              cx={((safeDataLength - 1) / Math.max(safeDataLength - 1, 1)) * 100}
+              cy={100 - Math.max(0, Math.min(100, lastValue))}
               r="2"
               fill={color}
               className="drop-shadow-sm"
@@ -124,10 +131,10 @@ export const RealtimeChart: FC<RealtimeChartProps> = ({
         </div>
       </div>
 
-      {/* 현재 값 표시 */}
+      {/* 현재 값 표시 - 🛡️ 베르셀 완전 안전 수정 */}
       <div className="mt-1 text-right">
         <span className="text-sm font-bold" style={{ color }}>
-          {data[data.length - 1]?.toFixed(1) || '0'}%
+          {typeof lastValue === 'number' ? lastValue.toFixed(1) : '0'}%
         </span>
       </div>
     </div>

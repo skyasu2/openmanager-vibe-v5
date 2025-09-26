@@ -21,6 +21,7 @@ import {
 } from './EnhancedServerModal.types';
 import { getMetricColorByStatus } from './EnhancedServerModal.utils';
 import { RealtimeChart } from './EnhancedServerModal.components';
+import { getSafeLastArrayItem } from "../../lib/vercel-safe-utils";
 
 // framer-motion 제거 - CSS 애니메이션 사용
 
@@ -158,7 +159,7 @@ export const MetricsTab: FC<MetricsTabProps> = ({
                   <div
                     className={`bg-gradient-to-r text-2xl font-bold ${chart.gradient} bg-clip-text text-transparent`}
                   >
-                    {chart.data[chart.data.length - 1]?.toFixed(1) || '0'}%
+                    {getSafeLastArrayItem(chart.data, 0).toFixed(1) || '0'}%
                   </div>
                 </div>
 
@@ -186,7 +187,7 @@ export const MetricsTab: FC<MetricsTabProps> = ({
           style={{ animationDelay: '0.6s' }}
         >
           {chartConfigs.map((chart, idx) => {
-            const currentValue = chart.data[chart.data.length - 1] || 0;
+            const currentValue = getSafeLastArrayItem(chart.data, 0) || 0;
             const avgValue =
               chart.data.length > 0
                 ? chart.data.reduce((sum, val) => sum + val, 0) /

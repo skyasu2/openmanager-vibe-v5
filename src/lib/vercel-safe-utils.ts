@@ -331,7 +331,7 @@ export const normalizeServerForVercel = (server: unknown): Server | null => {
       networkStatus: getSafeProperty(s, 'networkStatus', 'offline'),
       systemInfo: getSafeProperty(s, 'systemInfo', {
         os: s.os || 'Ubuntu 22.04 LTS',
-        uptime: `${Math.floor((s.uptime || 0) / 3600)}h`,
+        uptime: `${Math.floor(((typeof s.uptime === "number" ? s.uptime : 0)) / 3600)}h`,
         processes: 50,
         zombieProcesses: 0,
         loadAverage: '1.0, 1.0, 1.0',
