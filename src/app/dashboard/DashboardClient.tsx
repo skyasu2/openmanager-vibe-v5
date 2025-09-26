@@ -259,19 +259,13 @@ function DashboardPageContent() {
     if (!isMounted) return;
     
     const checkPermissions = () => {
-      // 1차: localStorage 직접 확인 (즉시 반영)
-      const isLocalStorageAuth = typeof window !== 'undefined' ? localStorage.getItem('admin_mode') === 'true' : false;
+      // 🛡️ 보안 강화: Hook 기반 권한 검증만 사용 (localStorage 오염 방지)
+      // useUserPermissions 훅이 단일 진실 소스 (Single Source of Truth)
+      const canAccess = permissions.canAccessDashboard;
       
-      // 2차: useUserPermissions 훅 결과 확인
-      const isHookAuth = permissions.canAccessDashboard;
-      
-      // 권한 상태 결합 (OR 조건: 둘 중 하나라도 true면 접근 허용)
-      const canAccess = isLocalStorageAuth || isHookAuth;
-      
-      console.log('🔍 대시보드 권한 이중 체크:', {
-        localStorage: isLocalStorageAuth,
-        hook: isHookAuth,
-        combined: canAccess,
+      console.log('🔍 대시보드 권한 체크:', {
+        hookAuth: permissions.canAccessDashboard,
+        canAccess: canAccess,
         userType: permissions.userType,
         loading: permissions.userType === 'loading'
       });

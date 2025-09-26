@@ -200,6 +200,10 @@ export class AuthStateManager {
       console.warn('⚠️ 기존 세션 정리 실패 (계속 진행):', error);
     }
 
+    // 1.5. 🛡️ localStorage 완전 정리 (admin_mode 등 관리자 데이터 포함)
+    console.log('🧹 게스트 모드 전환을 위한 localStorage 완전 정리 중...');
+    this.clearStorage(); // 모든 인증 관련 데이터 정리
+
     // 2. 게스트 세션 설정
     if (typeof window !== 'undefined') {
       const sessionId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 12)}`;
@@ -338,8 +342,10 @@ export class AuthStateManager {
               key.includes('refresh_token')) return true;
         }
         
-        // 공통 키들
-        if (key === 'admin_mode') return true;
+        // 관리자 관련 키들 (보안 강화)
+        if (key === 'admin_mode' ||
+            key === 'admin_failed_attempts' ||
+            key === 'admin_lock_end_time') return true;
         
         return false;
       });
