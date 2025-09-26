@@ -88,8 +88,14 @@ const ServerCardSpawner: FC<ServerCardSpawnerProps> = memo(
     const [currentServerInGroup, setCurrentServerInGroup] = useState(0);
     const [isSpawning, setIsSpawning] = useState(false);
 
-    // 서버를 타입별로 그룹화하고 우선순위 정렬
+    // 서버를 타입별로 그룹화하고 우선순위 정렬 (방어 코드 추가)
     const groupedServers = useMemo(() => {
+      // 🛡️ servers 배열 방어 코드 - undefined 방지
+      if (!servers || !Array.isArray(servers) || servers.length === 0) {
+        console.warn('⚠️ ServerCardSpawner: servers가 비어있거나 유효하지 않음:', servers);
+        return [];
+      }
+
       const groups: ServerGroup[] = [];
 
       SERVER_SPAWN_ORDER.forEach((order) => {
@@ -144,9 +150,10 @@ const ServerCardSpawner: FC<ServerCardSpawnerProps> = memo(
       const categorizedServerIds = new Set(
         groups.flatMap((group) => group.servers.map((s) => s.id))
       );
-      const uncategorizedServers = servers.filter(
+      // 🛡️ servers 재검증 - useMemo 내에서 servers가 변경될 수도 있음
+      const uncategorizedServers = servers && Array.isArray(servers) ? servers.filter(
         (s) => !categorizedServerIds.has(s.id)
-      );
+      ) : [];
 
       if (uncategorizedServers.length > 0) {
         groups.push({
@@ -172,7 +179,9 @@ const ServerCardSpawner: FC<ServerCardSpawnerProps> = memo(
       }
 
       const currentGroup = groupedServers[currentGroupIndex];
-      if (!currentGroup) {
+      if (!currentGroup || !currentGroup.servers || !Array.isArray(currentGroup.servers)) {
+        // 🛡️ currentGroup.servers 방어 코드 추가
+        console.warn('⚠️ ServerCardSpawner: currentGroup 또는 servers 배열이 유효하지 않음:', currentGroup);
         return;
       }
 
