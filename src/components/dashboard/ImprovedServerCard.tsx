@@ -634,7 +634,8 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             try {
               // AI 교차검증 기반 이중 안전장치 ⭐⭐ 핵심 보강 + 완전 방어 코드
               if (!server || !server.services || !Array.isArray(server.services)) return false;
-              const validServices = server.services.filter((service: any) => {
+              // 🚀 FIX: optional chaining으로 안전한 배열 접근 (렌더링 오류 해결)
+              const validServices = (server.services ?? []).filter((service: any) => {
                 // 1차: null/undefined 체크
                 if (!service || typeof service !== 'object') return false;
                 // 2차: name 속성 검증
@@ -695,7 +696,8 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                     // AI 교차검증 기반 이중 안전장치 ⭐⭐ 핵심 보강 + 완전 방어 코드
                     if (!server || !server.services || !Array.isArray(server.services)) return null;
 
-                    const validServicesCount = server.services.filter((service: any) => {
+                    // 🚀 FIX: optional chaining으로 안전한 배열 접근 (렌더링 오류 해결)
+                    const validServicesCount = (server.services ?? []).filter((service: any) => {
                       // 1차: null/undefined 체크
                       if (!service || typeof service !== 'object') return false;
                       // 2차: name 속성 검증
