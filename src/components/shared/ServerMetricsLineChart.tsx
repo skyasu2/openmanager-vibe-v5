@@ -198,12 +198,7 @@ const isVercelEnvironment = () => {
   }
 };
 
-// 🛡️ 베르셀 안전 로깅
-const vercelSafeLog = (message: string, data?: any) => {
-  if (isVercelEnvironment() && process.env.NODE_ENV === 'development') {
-    console.log(`🛡️ [Vercel Safe] ${message}`, data);
-  }
-};
+// 🛡️ 베르셀 안전 로깅 (중복 제거됨 - 이미 63번째 줄에 정의됨)
 
 // 10분간 데이터 생성 함수 - 베르셀 환경 안전성 강화
 const generateHistoricalData = (currentValue: number, type: string) => {

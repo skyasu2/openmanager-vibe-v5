@@ -7,7 +7,51 @@
  */
 
 import { type FC } from 'react';
-import { getSafeArrayLength, getSafeLastArrayItem } from '../../lib/vercel-safe-utils';
+
+// 🎯 Bundle-Safe Inline 매크로 - getSafe 함수들 (압축 방지)
+const getSafeArrayLength = (arr: unknown): number => {
+  try {
+    if (arr === null || arr === undefined) return 0;
+    const arrType = typeof arr;
+    if (arrType !== 'object') return 0;
+    if (arr === null || arr === undefined) return 0;
+    const isArrayResult = Array.isArray(arr);
+    if (!isArrayResult) return 0;
+    if (!arr || !Array.isArray(arr)) return 0;
+    if (!Object.prototype.hasOwnProperty.call(arr, 'length')) return 0;
+
+    const lengthValue = (() => {
+      try {
+        const tempArr = arr as any[];
+        if (!tempArr || !Array.isArray(tempArr)) return 0;
+        const tempLength = tempArr.length;
+        if (typeof tempLength !== 'number') return 0;
+        return tempLength;
+      } catch {
+        return 0;
+      }
+    })();
+
+    if (isNaN(lengthValue) || lengthValue < 0) return 0;
+    return Math.floor(lengthValue);
+  } catch (error) {
+    console.error('🛡️ getSafeArrayLength Bundle-Safe error:', error);
+    return 0;
+  }
+};
+
+const getSafeLastArrayItem = <T>(arr: unknown, fallback: T): T => {
+  try {
+    if (!arr || !Array.isArray(arr) || arr.length === 0) {
+      return fallback;
+    }
+    const lastItem = arr[arr.length - 1];
+    return lastItem !== undefined && lastItem !== null ? lastItem : fallback;
+  } catch (error) {
+    console.error('🛡️ getSafeLastArrayItem Bundle-Safe error:', error);
+    return fallback;
+  }
+};
 
 /**
  * 📈 실시간 차트 컴포넌트 Props
