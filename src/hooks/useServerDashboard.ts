@@ -12,6 +12,7 @@ import type { Server, Service, EnhancedServerMetrics } from '@/types/server';
 import type { ServerStatus } from '@/types/server-common';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';
+import { useWorkerStats, calculateServerStatsFallback } from './useWorkerStats';
 import debug from '@/utils/debug';
 
 // 🛡️ 2025 모던 Type Guard 함수들 (Best Practices)
@@ -45,9 +46,19 @@ interface ServerStats {
   online: number;
   offline: number;
   warning: number;
+  critical: number;
   avgCpu: number;
   avgMemory: number;
   avgDisk: number;
+  averageCpu?: number; // 🚀 Web Worker 호환성
+  averageMemory?: number; // 🚀 Web Worker 호환성
+  averageUptime?: number; // 🚀 Web Worker 추가 메트릭
+  totalBandwidth?: number; // 🚀 Web Worker 추가 메트릭
+  typeDistribution?: Record<string, number>; // 🚀 Web Worker 추가 메트릭
+  performanceMetrics?: {
+    calculationTime: number;
+    serversProcessed: number;
+  };
 }
 
 // 🚀 성능 최적화: Map 기반 캐싱 시스템
@@ -74,9 +85,39 @@ const groupServersByStatus = (servers: EnhancedServerData[]): Map<string, Enhanc
   return groups;
 };
 
+// 🚀 Web Worker 결과를 레거시 포맷으로 변환하는 어댑터 함수
+const adaptWorkerStatsToLegacy = (workerStats: any): ServerStats => {
+  return {
+    total: workerStats.total || 0,
+    online: workerStats.online || 0,
+    offline: workerStats.offline || 0,
+    warning: workerStats.warning || 0,
+    critical: workerStats.critical || 0,
+    avgCpu: Math.round(workerStats.averageCpu || 0),
+    avgMemory: Math.round(workerStats.averageMemory || 0),
+    avgDisk: 0, // Web Worker에서는 disk 메트릭 미지원, fallback 사용
+    // Web Worker 추가 정보 유지
+    averageCpu: workerStats.averageCpu,
+    averageMemory: workerStats.averageMemory,
+    averageUptime: workerStats.averageUptime,
+    totalBandwidth: workerStats.totalBandwidth,
+    typeDistribution: workerStats.typeDistribution,
+    performanceMetrics: workerStats.performanceMetrics,
+  };
+};
+
 const calculateServerStats = (servers: EnhancedServerData[]): ServerStats => {
   if (!isValidArray<EnhancedServerData>(servers)) {
-    return { total: 0, online: 0, offline: 0, warning: 0, avgCpu: 0, avgMemory: 0, avgDisk: 0 };
+    return {
+      total: 0,
+      online: 0,
+      offline: 0,
+      warning: 0,
+      critical: 0,
+      avgCpu: 0,
+      avgMemory: 0,
+      avgDisk: 0
+    };
   }
 
   // 🚀 캐시 키 생성 및 캐시 확인
@@ -85,54 +126,11 @@ const calculateServerStats = (servers: EnhancedServerData[]): ServerStats => {
     return statsCache.get(cacheKey)!;
   }
 
-  // 🚀 Map 기반 상태별 그룹핑
-  const statusGroups = groupServersByStatus(servers);
+  // 🚀 Fallback 계산 사용 (Web Worker 미지원 환경용)
+  const fallbackStats = calculateServerStatsFallback(servers);
 
-  const total = servers.length;
-  const online = statusGroups.get('online')?.length ?? 0;
-  const warning = statusGroups.get('warning')?.length ?? 0;
-  const offline = statusGroups.get('critical')?.length ?? 0;
-  const unknownCount = statusGroups.get('unknown')?.length ?? 0;
-
-  // 🚀 병렬 메트릭 수집 (Map 기반)
-  const metricsMap = new Map<'cpu' | 'memory' | 'disk', number[]>();
-  metricsMap.set('cpu', []);
-  metricsMap.set('memory', []);
-  metricsMap.set('disk', []);
-
-  for (const server of servers) {
-    if (!isValidServer(server)) continue;
-
-    const cpuValue = (server as any).cpu;
-    if (isValidNumber(cpuValue)) {
-      metricsMap.get('cpu')!.push(cpuValue);
-    }
-
-    const memoryValue = (server as any).memory;
-    if (isValidNumber(memoryValue)) {
-      metricsMap.get('memory')!.push(memoryValue);
-    }
-
-    const diskValue = (server as any).disk;
-    if (isValidNumber(diskValue)) {
-      metricsMap.get('disk')!.push(diskValue);
-    }
-  }
-
-  // 🚀 고속 평균 계산
-  const calculateAverage = (values: number[]): number => {
-    return values.length > 0 ? Math.round(values.reduce((sum, val) => sum + val, 0) / values.length) : 0;
-  };
-
-  const result: ServerStats = {
-    total,
-    online,
-    offline,
-    warning: warning + unknownCount, // unknown도 warning으로 포함
-    avgCpu: calculateAverage(metricsMap.get('cpu')!),
-    avgMemory: calculateAverage(metricsMap.get('memory')!),
-    avgDisk: calculateAverage(metricsMap.get('disk')!),
-  };
+  // 레거시 포맷으로 변환
+  const result: ServerStats = adaptWorkerStatsToLegacy(fallbackStats);
 
   // 🚀 결과 캐싱 (최대 100개 엔트리로 제한)
   if (statsCache.size >= 100) {
@@ -306,6 +304,9 @@ const formatUptime = (uptime: number): string => {
 export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   console.log('🔥 useServerDashboard 훅이 실행되었습니다!');
   const { onStatsUpdate } = options;
+
+  // 🚀 Web Worker 통계 계산 Hook (비동기 성능 최적화)
+  const { calculateStats: calculateStatsWorker, isWorkerReady } = useWorkerStats();
 
   // Zustand 스토어에서 서버 데이터 가져오기
   const rawServers = useServerDataStore((state) => {
@@ -576,10 +577,45 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     return calculatePagination(actualServers as Server[], currentPage, ITEMS_PER_PAGE);
   }, [actualServers, currentPage, ITEMS_PER_PAGE]);
 
-  // 🏗️ Clean Architecture: 도메인 로직 호출 (순수 함수)
+  // 🚀 Web Worker 기반 비동기 통계 계산 상태
+  const [workerStats, setWorkerStats] = useState<ServerStats | null>(null);
+  const [isCalculatingStats, setIsCalculatingStats] = useState(false);
+
+  // 🏗️ Clean Architecture: 도메인 로직 호출 (순수 함수 + Web Worker)
   const stats = useMemo(() => {
-    return calculateServerStats(actualServers as EnhancedServerData[]);
-  }, [actualServers]);
+    // Web Worker가 준비되지 않았거나 서버 데이터가 적으면 동기 계산 사용
+    if (!isWorkerReady() || !actualServers || actualServers.length < 50) {
+      console.log('🔄 Fallback 동기 계산 사용:', {
+        workerReady: isWorkerReady(),
+        serverCount: actualServers?.length || 0,
+        reason: !isWorkerReady() ? 'Worker not ready' : 'Small dataset'
+      });
+      return calculateServerStats(actualServers as EnhancedServerData[]);
+    }
+
+    // Web Worker 비동기 계산 사용 (대용량 데이터용)
+    if (!isCalculatingStats) {
+      console.log('🚀 Web Worker 비동기 계산 시작:', actualServers.length, '개 서버');
+      setIsCalculatingStats(true);
+
+      calculateStatsWorker(actualServers as EnhancedServerData[])
+        .then((workerResult) => {
+          console.log('✅ Web Worker 계산 완료:', workerResult.performanceMetrics);
+          const adaptedStats = adaptWorkerStatsToLegacy(workerResult);
+          setWorkerStats(adaptedStats);
+          setIsCalculatingStats(false);
+        })
+        .catch((error) => {
+          console.error('❌ Web Worker 계산 실패, Fallback 사용:', error);
+          const fallbackStats = calculateServerStats(actualServers as EnhancedServerData[]);
+          setWorkerStats(fallbackStats);
+          setIsCalculatingStats(false);
+        });
+    }
+
+    // Web Worker 결과가 있으면 사용, 없으면 임시 fallback
+    return workerStats || calculateServerStats(actualServers as EnhancedServerData[]);
+  }, [actualServers, isWorkerReady, calculateStatsWorker, workerStats, isCalculatingStats]);
 
   // 🚀 통계 업데이트 콜백 호출 (디바운싱 적용)
   useEffect(() => {
