@@ -14,6 +14,153 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';
 import debug from '@/utils/debug';
 
+// 🛡️ 2025 모던 Type Guard 함수들 (Best Practices)
+const isValidArray = <T>(value: unknown): value is T[] => {
+  return Array.isArray(value) && value.length > 0;
+};
+
+const isValidServer = (value: unknown): value is EnhancedServerData => {
+  return value !== null &&
+         typeof value === 'object' &&
+         typeof (value as any).id === 'string';
+};
+
+const isValidNumber = (value: unknown): value is number => {
+  return typeof value === 'number' &&
+         !Number.isNaN(value) &&
+         Number.isFinite(value) &&
+         value >= 0;
+};
+
+const hasValidLength = (value: unknown): value is { length: number } => {
+  return value !== null &&
+         typeof value === 'object' &&
+         Object.hasOwn(value as object, 'length') &&
+         isValidNumber((value as any).length);
+};
+
+// 🏗️ Clean Architecture: 도메인 레이어 - 순수 비즈니스 로직
+interface ServerStats {
+  total: number;
+  online: number;
+  offline: number;
+  warning: number;
+  avgCpu: number;
+  avgMemory: number;
+  avgDisk: number;
+}
+
+// 🚀 성능 최적화: Map 기반 캐싱 시스템
+const statsCache = new Map<string, ServerStats>();
+const serverGroupCache = new Map<string, Map<string, EnhancedServerData[]>>();
+
+const getServerGroupKey = (servers: EnhancedServerData[]): string => {
+  return servers.map(s => `${s.id}:${s.status}:${(s as any).cpu}:${(s as any).memory}:${(s as any).disk}`).join('|');
+};
+
+const groupServersByStatus = (servers: EnhancedServerData[]): Map<string, EnhancedServerData[]> => {
+  const groups = new Map<string, EnhancedServerData[]>();
+
+  for (const server of servers) {
+    if (!isValidServer(server)) continue;
+
+    const status = server.status || 'unknown';
+    if (!groups.has(status)) {
+      groups.set(status, []);
+    }
+    groups.get(status)!.push(server);
+  }
+
+  return groups;
+};
+
+const calculateServerStats = (servers: EnhancedServerData[]): ServerStats => {
+  if (!isValidArray<EnhancedServerData>(servers)) {
+    return { total: 0, online: 0, offline: 0, warning: 0, avgCpu: 0, avgMemory: 0, avgDisk: 0 };
+  }
+
+  // 🚀 캐시 키 생성 및 캐시 확인
+  const cacheKey = getServerGroupKey(servers);
+  if (statsCache.has(cacheKey)) {
+    return statsCache.get(cacheKey)!;
+  }
+
+  // 🚀 Map 기반 상태별 그룹핑
+  const statusGroups = groupServersByStatus(servers);
+
+  const total = servers.length;
+  const online = statusGroups.get('online')?.length ?? 0;
+  const warning = statusGroups.get('warning')?.length ?? 0;
+  const offline = statusGroups.get('critical')?.length ?? 0;
+  const unknownCount = statusGroups.get('unknown')?.length ?? 0;
+
+  // 🚀 병렬 메트릭 수집 (Map 기반)
+  const metricsMap = new Map<'cpu' | 'memory' | 'disk', number[]>();
+  metricsMap.set('cpu', []);
+  metricsMap.set('memory', []);
+  metricsMap.set('disk', []);
+
+  for (const server of servers) {
+    if (!isValidServer(server)) continue;
+
+    const cpuValue = (server as any).cpu;
+    if (isValidNumber(cpuValue)) {
+      metricsMap.get('cpu')!.push(cpuValue);
+    }
+
+    const memoryValue = (server as any).memory;
+    if (isValidNumber(memoryValue)) {
+      metricsMap.get('memory')!.push(memoryValue);
+    }
+
+    const diskValue = (server as any).disk;
+    if (isValidNumber(diskValue)) {
+      metricsMap.get('disk')!.push(diskValue);
+    }
+  }
+
+  // 🚀 고속 평균 계산
+  const calculateAverage = (values: number[]): number => {
+    return values.length > 0 ? Math.round(values.reduce((sum, val) => sum + val, 0) / values.length) : 0;
+  };
+
+  const result: ServerStats = {
+    total,
+    online,
+    offline,
+    warning: warning + unknownCount, // unknown도 warning으로 포함
+    avgCpu: calculateAverage(metricsMap.get('cpu')!),
+    avgMemory: calculateAverage(metricsMap.get('memory')!),
+    avgDisk: calculateAverage(metricsMap.get('disk')!),
+  };
+
+  // 🚀 결과 캐싱 (최대 100개 엔트리로 제한)
+  if (statsCache.size >= 100) {
+    const firstKey = statsCache.keys().next().value;
+    statsCache.delete(firstKey);
+  }
+  statsCache.set(cacheKey, result);
+
+  return result;
+};
+
+const calculatePagination = <T>(
+  items: T[],
+  currentPage: number,
+  itemsPerPage: number
+): { paginatedItems: T[]; totalPages: number } => {
+  if (!isValidArray<T>(items)) {
+    return { paginatedItems: [], totalPages: 0 };
+  }
+
+  const totalPages = Math.ceil(items.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedItems = items.slice(startIndex, endIndex);
+
+  return { paginatedItems, totalPages };
+};
+
 // Type interfaces for server data transformation
 interface EnhancedServerData {
   id: string;
@@ -315,8 +462,16 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     // 즉시 한 번 fetchServers 호출 (조건 없이)
     console.log('⚡ fetchServers 즉시 호출 시작');
     fetchServers()
-      .then(() => console.log('✅ fetchServers 호출 성공'))
-      .catch((err) => console.error('❌ fetchServers 호출 실패:', err));
+      .then(() => {
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('✅ fetchServers 호출 성공');
+        }
+      })
+      .catch((err) => {
+        if (process.env.NODE_ENV !== 'production') {
+          console.error('❌ fetchServers 호출 실패:', err);
+        }
+      });
 
     // 자동 갱신 시작 (5-10분 주기로 최적화됨)
     console.log('🔄 서버 데이터 자동 갱신 시작 (5-10분 주기)');
@@ -416,209 +571,14 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     });
   }, [servers]); // 고정 시간별 데이터 사용으로 시간 회전 의존성 제거
 
-  // 🛡️ AI 교차검증 기반: 페이지네이션된 서버 데이터 (완전한 안전장치)
-  const paginatedServers = useMemo(() => {
-    // 🚨 Codex 권장: 완전한 방어 코드 (94.1% 개선)
-    if (!actualServers) {
-      console.warn('⚠️ actualServers가 undefined입니다.');
-      return [];
-    }
-
-    if (!Array.isArray(actualServers)) {
-      console.warn('⚠️ actualServers가 배열이 아닙니다:', typeof actualServers);
-      return [];
-    }
-
-    if (actualServers.length === 0) {
-      console.warn('⚠️ actualServers가 빈 배열입니다.');
-      return [];
-    }
-
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    const result = actualServers.slice(startIndex, endIndex);
-
-    debug.log('📊 페이지네이션 결과:', {
-      totalServers: actualServers.length,
-      itemsPerPage: ITEMS_PER_PAGE,
-      currentPage,
-      startIndex,
-      endIndex,
-      paginatedCount: result.length,
-      totalPages: Math.ceil(actualServers.length / ITEMS_PER_PAGE),
-    });
-
-    return result;
+  // 🏗️ Clean Architecture: 페이지네이션 도메인 로직 (순수 함수)
+  const { paginatedItems: paginatedServers, totalPages } = useMemo(() => {
+    return calculatePagination(actualServers as Server[], currentPage, ITEMS_PER_PAGE);
   }, [actualServers, currentPage, ITEMS_PER_PAGE]);
 
-  // 총 페이지 수 계산 (방어 코드 추가)
-  const totalPages = Math.ceil((actualServers?.length || 0) / ITEMS_PER_PAGE);
-
-  // 통계 계산 (메모이제이션) - 방어 코드 추가
+  // 🏗️ Clean Architecture: 도메인 로직 호출 (순수 함수)
   const stats = useMemo(() => {
-    // 🛡️ actualServers 방어 코드
-    if (!actualServers || !Array.isArray(actualServers)) {
-      return {
-        total: 0,
-        online: 0,
-        offline: 0,
-        warning: 0,
-        avgCpu: 0,
-        avgMemory: 0,
-        avgDisk: 0,
-      };
-    }
-
-    // 🛡️ Vercel Race Condition 완전 방어 - length 접근 안전성 검증
-    let total = 0;
-    try {
-      if (!Object.prototype.hasOwnProperty.call(actualServers, 'length')) {
-        console.warn('🛡️ actualServers has no length property');
-        return { total: 0, online: 0, offline: 0, warning: 0, avgCpu: 0, avgMemory: 0, avgDisk: 0 };
-      }
-      
-      const lengthValue = actualServers.length;
-      if (typeof lengthValue !== 'number' || isNaN(lengthValue) || lengthValue < 0) {
-        console.warn('🛡️ invalid length value:', lengthValue);
-        return { total: 0, online: 0, offline: 0, warning: 0, avgCpu: 0, avgMemory: 0, avgDisk: 0 };
-      }
-      
-      total = Math.floor(lengthValue);
-    } catch (lengthError) {
-      console.error('🛡️ Error accessing actualServers.length:', lengthError);
-      return { total: 0, online: 0, offline: 0, warning: 0, avgCpu: 0, avgMemory: 0, avgDisk: 0 };
-    }
-
-    if (total === 0) {
-      return { total: 0, online: 0, offline: 0, warning: 0, avgCpu: 0, avgMemory: 0, avgDisk: 0 };
-    }
-
-    let online = 0;
-    let offline = 0;
-    let warning = 0;
-
-    // 🛡️ forEach 대신 안전한 for 루프 사용 - Race Condition 방지
-    try {
-      for (let i = 0; i < total; i++) {
-        try {
-          const server = actualServers[i];
-          if (!server || typeof server !== 'object') {
-            warning += 1; // 유효하지 않은 서버는 경고로 분류
-            continue;
-          }
-          
-          const s = server as EnhancedServerData;
-          // 목업 시스템의 상태 그대로 사용
-          switch (s.status) {
-            case 'online':
-              online += 1;
-              break;
-            case 'warning':
-              warning += 1;
-              break;
-            case 'critical':
-              offline += 1; // critical을 offline으로 매핑
-              break;
-            default:
-              // 알 수 없는 상태는 경고로 분류
-              warning += 1;
-          }
-        } catch (serverError) {
-          console.error('🛡️ Error processing server at index', i, serverError);
-          warning += 1; // 처리 오류 시 경고로 분류
-        }
-      }
-    } catch (forLoopError) {
-      console.error('🛡️ Error in server status processing loop:', forLoopError);
-      // 루프 오류 시 안전한 기본값 반환
-      return { total: 0, online: 0, offline: 0, warning: 0, avgCpu: 0, avgMemory: 0, avgDisk: 0 };
-    }
-
-    // 🛡️ reduce 대신 안전한 계산 로직 - TypeError 완전 차단
-    let cpuSum = 0;
-    let memorySum = 0;
-    let diskSum = 0;
-    
-    try {
-      for (let i = 0; i < total; i++) {
-        try {
-          const server = actualServers[i];
-          if (server && typeof server === 'object') {
-            const s = server as ServerWithMetrics;
-            
-            // 🛡️ 각 메트릭 값 안전성 검증
-            const cpuValue = s.cpu;
-            if (typeof cpuValue === 'number' && !isNaN(cpuValue) && cpuValue >= 0) {
-              cpuSum += cpuValue;
-            }
-            
-            const memoryValue = s.memory;
-            if (typeof memoryValue === 'number' && !isNaN(memoryValue) && memoryValue >= 0) {
-              memorySum += memoryValue;
-            }
-            
-            const diskValue = s.disk;
-            if (typeof diskValue === 'number' && !isNaN(diskValue) && diskValue >= 0) {
-              diskSum += diskValue;
-            }
-          }
-        } catch (metricError) {
-          console.error('🛡️ Error calculating metrics at index', i, metricError);
-          // 오류 시 0으로 처리하여 계속 진행
-        }
-      }
-    } catch (metricLoopError) {
-      console.error('🛡️ Error in metric calculation loop:', metricLoopError);
-      // 메트릭 계산 오류 시 0으로 설정
-      cpuSum = 0;
-      memorySum = 0;
-      diskSum = 0;
-    }
-
-    const avgCpu = total > 0 ? Math.round(cpuSum / total) : 0;
-    const avgMemory = total > 0 ? Math.round(memorySum / total) : 0;
-    const avgDisk = total > 0 ? Math.round(diskSum / total) : 0;
-
-    const result = {
-      total,
-      online,
-      offline,
-      warning,
-      avgCpu,
-      avgMemory,
-      avgDisk,
-    };
-
-    // 🛡️ actualServers.map 안전성 검증 후 디버그 로그
-    let 서버_상태_분포: Array<{ 이름: string; 상태: string }> = [];
-    try {
-      if (actualServers && Array.isArray(actualServers) && actualServers.length > 0) {
-        서버_상태_분포 = [];
-        for (let i = 0; i < actualServers.length; i++) {
-          try {
-            const s = actualServers[i];
-            if (s && typeof s === 'object') {
-              서버_상태_분포.push({
-                이름: s.name || s.id || `server-${i}`,
-                상태: s.status || 'unknown',
-              });
-            }
-          } catch (mapError) {
-            console.error('🛡️ Error mapping server for debug at index', i, mapError);
-          }
-        }
-      }
-    } catch (debugMapError) {
-      console.error('🛡️ Error creating debug server map:', debugMapError);
-      서버_상태_분포 = [];
-    }
-
-    debug.log('📊 useServerDashboard 통계:', {
-      ...result,
-      서버_상태_분포,
-    });
-
-    return result;
+    return calculateServerStats(actualServers as EnhancedServerData[]);
   }, [actualServers]);
 
   // 🚀 통계 업데이트 콜백 호출 (디바운싱 적용)
@@ -774,7 +734,9 @@ export function useEnhancedServerDashboard({
   const filteredServers = useMemo(() => {
     // 🛡️ AI 교차검증: servers 배열 안전성 검증
     if (!servers || !Array.isArray(servers) || servers.length === 0) {
-      console.warn('⚠️ useEnhancedServerDashboard: servers 배열이 비어있거나 유효하지 않음');
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('⚠️ useEnhancedServerDashboard: servers 배열이 비어있거나 유효하지 않음');
+      }
       return [];
     }
 
