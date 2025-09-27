@@ -171,10 +171,10 @@ const nextConfig = {
       'default-src': ["'self'"],
       'script-src': [
         "'self'",
-        isDev ? "'unsafe-eval'" : '', // 개발 환경에서만 eval 허용
+        "'unsafe-eval'", // React 18 하이드레이션 필수 (포트폴리오 프로젝트)
         // 'unsafe-inline' 제거하여 XSS 보호 강화
         'https://vercel.live', // Vercel Toolbar
-        'https://va.vercel-scripts.com', // Vercel Analytics  
+        'https://va.vercel-scripts.com', // Vercel Analytics
         'https://vitals.vercel-insights.com', // Speed Insights
         'blob:', // 동적 스크립트 허용
       ].filter(Boolean),
