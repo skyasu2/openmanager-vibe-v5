@@ -117,25 +117,25 @@ export const createServerDataStore = (
           if (result) {
             console.log('✨ API 응답 상세 분석:');
             console.log('  - success:', result.success);
-            console.log('  - data 존재:', !!result.data);
-            console.log('  - data 타입:', Array.isArray(result.data) ? 'array' : typeof result.data);
-            console.log('  - data 길이:', result.data?.length || 0);
             console.log('  - servers 존재:', !!result.servers);
+            console.log('  - servers 타입:', Array.isArray(result.servers) ? 'array' : typeof result.servers);
+            console.log('  - servers 길이:', result.servers?.length || 0);
+            console.log('  - data 존재:', !!result.data);
             // 시나리오 정보는 AI 분석 순수성을 위해 로깅하지 않음
           }
 
-          if (result && result.success && result.data && Array.isArray(result.data)) {
+          if (result && result.success && result.servers && Array.isArray(result.servers)) {
             console.log(
               '✅ 통합 메트릭 데이터 수신 성공:',
-              result.data.length,
+              result.servers.length,
               '개 서버'
             );
             console.log('🕐 데이터 타임스탬프:', new Date(result.timestamp));
             console.log('⏱️ 24시간 순환 위치:', Math.round(result.metadata?.timeInfo?.hour || 0) + '시');
 
             // 첫 번째 서버 데이터 샘플 로깅
-            if (result.data.length > 0) {
-              const firstServer = result.data[0];
+            if (result.servers.length > 0) {
+              const firstServer = result.servers[0];
               console.log('🔍 첫 번째 서버 데이터 샘플:', {
                 id: firstServer.id,
                 name: firstServer.name,
@@ -158,7 +158,7 @@ export const createServerDataStore = (
             }
 
             set({
-              servers: result.data, // API 응답 구조 수정: data 필드 사용
+              servers: result.servers, // API 응답 구조: servers 필드 사용
               isLoading: false,
               lastUpdate: new Date(result.timestamp), // 정규화된 타임스탬프 사용
               error: null,
@@ -171,9 +171,9 @@ export const createServerDataStore = (
               hasResult: !!result,
               hasSuccess: !!result?.success,
               successValue: result?.success,
-              hasData: !!result?.data,
-              dataType: typeof result?.data,
-              isDataArray: Array.isArray(result?.data),
+              hasServers: !!result?.servers,
+              serversType: typeof result?.servers,
+              isServersArray: Array.isArray(result?.servers),
             });
             
             throw new Error(
