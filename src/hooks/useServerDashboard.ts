@@ -584,11 +584,11 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   // 🏗️ Clean Architecture: 도메인 로직 호출 (순수 함수 + Web Worker)
   const stats = useMemo(() => {
     // Web Worker가 준비되지 않았거나 서버 데이터가 적으면 동기 계산 사용
-    if (!isWorkerReady() || !actualServers || actualServers.length < 50) {
+    if (!isWorkerReady() || !actualServers || actualServers.length < 10) {
       console.log('🔄 Fallback 동기 계산 사용:', {
         workerReady: isWorkerReady(),
         serverCount: actualServers?.length || 0,
-        reason: !isWorkerReady() ? 'Worker not ready' : 'Small dataset'
+        reason: !isWorkerReady() ? 'Worker not ready' : 'Small dataset (<10 servers)'
       });
       return calculateServerStats(actualServers as EnhancedServerData[]);
     }
