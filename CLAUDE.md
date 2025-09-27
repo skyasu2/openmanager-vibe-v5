@@ -503,12 +503,13 @@ test-automation-specialist: "E2E 테스트를 실행해주세요"
 - **Gemini (아키텍처)**: 9.5/10 - 응집도 증가, 결합도 감소
 - **Qwen (성능 최적화)**: 8.8/10 - 26% 메모리 절약, CPU 효율성 증대
 
-### 🎯 핵심 에이전트 구성 (15개)
+### 🎯 핵심 에이전트 구성 (18개)
 
 #### 1. AI 교차 검증 시스템 (3개)
 
 **codex-specialist**: ChatGPT Codex CLI 전용 외부 AI 연동
-- **특화**: 실무 중심 코드 리뷰, 버그 발견, GPT-5 기반 분석
+- **특화**: 구현·버그스캔·PR 제안 전문가, GPT-5 기반 분석
+- **출력**: 디프 기반 버그 포인트 3개 + 리팩토링 포인트 3개 + PR 초안
 - **호출 예시**: `codex: 복잡한 알고리즘을 최적화 분석해주세요`
 
 **gemini-specialist**: Google Gemini CLI 전용 외부 AI 연동
@@ -519,10 +520,24 @@ test-automation-specialist: "E2E 테스트를 실행해주세요"
 - **특화**: 알고리즘 최적화, 성능 분석, 수학적 복잡도 개선
 - **호출 예시**: `qwen: 알고리즘 성능을 최적화 분석해주세요`
 
-#### 2. 전문 도구 (12개)
+#### 2. 시스템 설정 & 범용 (3개)
+
+**general-purpose**: 범용 목적 에이전트
+- **특화**: 복잡한 다단계 작업 자율 처리, 코드 검색 및 연구
+- **도구**: 모든 도구 접근 가능 (*)
+
+**statusline-setup**: Claude Code 상태표시줄 설정 전용
+- **특화**: Claude Code 상태표시줄 설정 구성
+- **도구**: Read, Edit
+
+**output-style-setup**: Claude Code 출력 스타일 생성 전용
+- **특화**: Claude Code 출력 스타일 생성
+- **도구**: Read, Write, Edit, Glob, Grep
+
+#### 3. 전문 도구 (12개)
 
 **개발 환경 & 구조 (2개)**:
-- **dev-environment-manager**: WSL 최적화, Node.js 버전 관리 + statusline/output-style 설정 통합 ⭐ **강화됨**
+- **dev-environment-manager**: WSL 최적화, Node.js 버전 관리, 도구 통합
 - **structure-refactor-specialist**: 프로젝트 구조 정리, 아키텍처 리팩토링
 
 **백엔드 & 인프라 (3개)**:
@@ -539,7 +554,7 @@ test-automation-specialist: "E2E 테스트를 실행해주세요"
 - **test-automation-specialist**: Vercel 통합 테스트 자동화, Playwright E2E 실제 환경 전문 ⭐ **Vercel 중심 강화**
 - **documentation-manager**: AI 친화적 문서 관리
 
-**문서화 & UI/UX 전문가 (2개)**:
+**분석 & UI/UX 전문가 (2개)**:
 - **spec-driven-specialist**: 계획 대비 결과 분석 평가 전문가 (원래 계획과 실제 결과를 분석 및 평가하여 문서화)
 - **ui-ux-specialist**: 내장 UI/UX 전문가 (사용자 인터페이스 개선, 디자인 시스템 구축, 사용자 경험 최적화)
 
