@@ -172,7 +172,7 @@ const nextConfig = {
       'script-src': [
         "'self'",
         "'unsafe-eval'", // React 18 하이드레이션 필수 (포트폴리오 프로젝트)
-        // 'unsafe-inline' 제거하여 XSS 보호 강화
+        "'unsafe-inline'", // React SSR/하이드레이션 inline 스크립트 허용 (포트폴리오 프로젝트)
         'https://vercel.live', // Vercel Toolbar
         'https://va.vercel-scripts.com', // Vercel Analytics
         'https://vitals.vercel-insights.com', // Speed Insights
