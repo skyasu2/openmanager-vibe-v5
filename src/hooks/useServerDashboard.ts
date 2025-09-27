@@ -581,41 +581,56 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const [workerStats, setWorkerStats] = useState<ServerStats | null>(null);
   const [isCalculatingStats, setIsCalculatingStats] = useState(false);
 
-  // 🏗️ Clean Architecture: 도메인 로직 호출 (순수 함수 + Web Worker)
-  const stats = useMemo(() => {
-    // Web Worker가 준비되지 않았거나 서버 데이터가 적으면 동기 계산 사용
-    if (!isWorkerReady() || !actualServers || actualServers.length < 10) {
-      console.log('🔄 Fallback 동기 계산 사용:', {
+  // 🛡️ 안전한 Web Worker 계산 관리 (useEffect로 분리)
+  useEffect(() => {
+    if (!actualServers || actualServers.length === 0) {
+      setWorkerStats(null);
+      return;
+    }
+
+    // Web Worker 사용 조건: 준비 완료 + 10개 이상 서버
+    if (isWorkerReady() && actualServers.length >= 10) {
+      if (!isCalculatingStats) {
+        console.log('🚀 Web Worker 비동기 계산 시작:', actualServers.length, '개 서버');
+        setIsCalculatingStats(true);
+
+        calculateStatsWorker(actualServers as EnhancedServerData[])
+          .then((workerResult) => {
+            console.log('✅ Web Worker 계산 완료:', workerResult.performanceMetrics);
+            const adaptedStats = adaptWorkerStatsToLegacy(workerResult);
+            setWorkerStats(adaptedStats);
+            setIsCalculatingStats(false);
+          })
+          .catch((error) => {
+            console.error('❌ Web Worker 계산 실패, Fallback으로 대체:', error);
+            const fallbackStats = calculateServerStats(actualServers as EnhancedServerData[]);
+            setWorkerStats(fallbackStats);
+            setIsCalculatingStats(false);
+          });
+      }
+    } else {
+      // 조건 미충족 시 동기 계산 결과 저장
+      console.log('🔄 동기 계산 사용 (Worker 미준비 또는 서버 <10개):', {
         workerReady: isWorkerReady(),
-        serverCount: actualServers?.length || 0,
-        reason: !isWorkerReady() ? 'Worker not ready' : 'Small dataset (<10 servers)'
+        serverCount: actualServers.length
       });
-      return calculateServerStats(actualServers as EnhancedServerData[]);
+      const syncStats = calculateServerStats(actualServers as EnhancedServerData[]);
+      setWorkerStats(syncStats);
+    }
+  }, [actualServers, isWorkerReady, calculateStatsWorker, isCalculatingStats]);
+
+  // 🏗️ Clean Architecture: 순수 동기 stats 반환 (useMemo)
+  const stats = useMemo(() => {
+    if (!actualServers || actualServers.length === 0) {
+      return {
+        total: 0, online: 0, offline: 0, warning: 0, critical: 0,
+        avgCpu: 0, avgMemory: 0, avgDisk: 0
+      };
     }
 
-    // Web Worker 비동기 계산 사용 (대용량 데이터용)
-    if (!isCalculatingStats) {
-      console.log('🚀 Web Worker 비동기 계산 시작:', actualServers.length, '개 서버');
-      setIsCalculatingStats(true);
-
-      calculateStatsWorker(actualServers as EnhancedServerData[])
-        .then((workerResult) => {
-          console.log('✅ Web Worker 계산 완료:', workerResult.performanceMetrics);
-          const adaptedStats = adaptWorkerStatsToLegacy(workerResult);
-          setWorkerStats(adaptedStats);
-          setIsCalculatingStats(false);
-        })
-        .catch((error) => {
-          console.error('❌ Web Worker 계산 실패, Fallback 사용:', error);
-          const fallbackStats = calculateServerStats(actualServers as EnhancedServerData[]);
-          setWorkerStats(fallbackStats);
-          setIsCalculatingStats(false);
-        });
-    }
-
-    // Web Worker 결과가 있으면 사용, 없으면 임시 fallback
+    // Web Worker 결과 우선, 없으면 즉시 동기 계산
     return workerStats || calculateServerStats(actualServers as EnhancedServerData[]);
-  }, [actualServers, isWorkerReady, calculateStatsWorker, workerStats, isCalculatingStats]);
+  }, [actualServers, workerStats]);
 
   // 🚀 통계 업데이트 콜백 호출 (디바운싱 적용)
   useEffect(() => {
