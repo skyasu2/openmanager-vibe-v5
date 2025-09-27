@@ -469,62 +469,115 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
       };
     }
 
-    const total = actualServers.length;
+    // 🛡️ Vercel Race Condition 완전 방어 - length 접근 안전성 검증
+    let total = 0;
+    try {
+      if (!Object.prototype.hasOwnProperty.call(actualServers, 'length')) {
+        console.warn('🛡️ actualServers has no length property');
+        return { total: 0, online: 0, offline: 0, warning: 0, avgCpu: 0, avgMemory: 0, avgDisk: 0 };
+      }
+      
+      const lengthValue = actualServers.length;
+      if (typeof lengthValue !== 'number' || isNaN(lengthValue) || lengthValue < 0) {
+        console.warn('🛡️ invalid length value:', lengthValue);
+        return { total: 0, online: 0, offline: 0, warning: 0, avgCpu: 0, avgMemory: 0, avgDisk: 0 };
+      }
+      
+      total = Math.floor(lengthValue);
+    } catch (lengthError) {
+      console.error('🛡️ Error accessing actualServers.length:', lengthError);
+      return { total: 0, online: 0, offline: 0, warning: 0, avgCpu: 0, avgMemory: 0, avgDisk: 0 };
+    }
 
     if (total === 0) {
-      return {
-        total: 0,
-        online: 0,
-        offline: 0,
-        warning: 0,
-        avgCpu: 0,
-        avgMemory: 0,
-        avgDisk: 0,
-      };
+      return { total: 0, online: 0, offline: 0, warning: 0, avgCpu: 0, avgMemory: 0, avgDisk: 0 };
     }
 
     let online = 0;
     let offline = 0;
     let warning = 0;
 
-    actualServers.forEach((server: unknown) => {
-      const s = server as EnhancedServerData;
-      // 목업 시스템의 상태 그대로 사용
-      switch (s.status) {
-        case 'online':
-          online += 1;
-          break;
-        case 'warning':
-          warning += 1;
-          break;
-        case 'critical':
-          offline += 1; // critical을 offline으로 매핑
-          break;
-        default:
-          // 알 수 없는 상태는 경고로 분류
-          warning += 1;
+    // 🛡️ forEach 대신 안전한 for 루프 사용 - Race Condition 방지
+    try {
+      for (let i = 0; i < total; i++) {
+        try {
+          const server = actualServers[i];
+          if (!server || typeof server !== 'object') {
+            warning += 1; // 유효하지 않은 서버는 경고로 분류
+            continue;
+          }
+          
+          const s = server as EnhancedServerData;
+          // 목업 시스템의 상태 그대로 사용
+          switch (s.status) {
+            case 'online':
+              online += 1;
+              break;
+            case 'warning':
+              warning += 1;
+              break;
+            case 'critical':
+              offline += 1; // critical을 offline으로 매핑
+              break;
+            default:
+              // 알 수 없는 상태는 경고로 분류
+              warning += 1;
+          }
+        } catch (serverError) {
+          console.error('🛡️ Error processing server at index', i, serverError);
+          warning += 1; // 처리 오류 시 경고로 분류
+        }
       }
-    });
+    } catch (forLoopError) {
+      console.error('🛡️ Error in server status processing loop:', forLoopError);
+      // 루프 오류 시 안전한 기본값 반환
+      return { total: 0, online: 0, offline: 0, warning: 0, avgCpu: 0, avgMemory: 0, avgDisk: 0 };
+    }
 
-    const avgCpu = Math.round(
-      actualServers.reduce(
-        (sum: number, s: unknown) => sum + ((s as ServerWithMetrics).cpu || 0),
-        0
-      ) / total
-    );
-    const avgMemory = Math.round(
-      actualServers.reduce(
-        (sum: number, s: unknown) =>
-          sum + ((s as ServerWithMetrics).memory || 0),
-        0
-      ) / total
-    );
-    const avgDisk = Math.round(
-      actualServers.reduce(
-        (sum: number, s: unknown) => sum + ((s as ServerWithMetrics).disk || 0),
-        0
-      ) / total
-    );
+    // 🛡️ reduce 대신 안전한 계산 로직 - TypeError 완전 차단
+    let cpuSum = 0;
+    let memorySum = 0;
+    let diskSum = 0;
+    
+    try {
+      for (let i = 0; i < total; i++) {
+        try {
+          const server = actualServers[i];
+          if (server && typeof server === 'object') {
+            const s = server as ServerWithMetrics;
+            
+            // 🛡️ 각 메트릭 값 안전성 검증
+            const cpuValue = s.cpu;
+            if (typeof cpuValue === 'number' && !isNaN(cpuValue) && cpuValue >= 0) {
+              cpuSum += cpuValue;
+            }
+            
+            const memoryValue = s.memory;
+            if (typeof memoryValue === 'number' && !isNaN(memoryValue) && memoryValue >= 0) {
+              memorySum += memoryValue;
+            }
+            
+            const diskValue = s.disk;
+            if (typeof diskValue === 'number' && !isNaN(diskValue) && diskValue >= 0) {
+              diskSum += diskValue;
+            }
+          }
+        } catch (metricError) {
+          console.error('🛡️ Error calculating metrics at index', i, metricError);
+          // 오류 시 0으로 처리하여 계속 진행
+        }
+      }
+    } catch (metricLoopError) {
+      console.error('🛡️ Error in metric calculation loop:', metricLoopError);
+      // 메트릭 계산 오류 시 0으로 설정
+      cpuSum = 0;
+      memorySum = 0;
+      diskSum = 0;
+    }
+
+    const avgCpu = total > 0 ? Math.round(cpuSum / total) : 0;
+    const avgMemory = total > 0 ? Math.round(memorySum / total) : 0;
+    const avgDisk = total > 0 ? Math.round(diskSum / total) : 0;
 
     const result = {
       total,
@@ -536,12 +589,33 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
       avgDisk,
     };
 
+    // 🛡️ actualServers.map 안전성 검증 후 디버그 로그
+    let 서버_상태_분포: Array<{ 이름: string; 상태: string }> = [];
+    try {
+      if (actualServers && Array.isArray(actualServers) && actualServers.length > 0) {
+        서버_상태_분포 = [];
+        for (let i = 0; i < actualServers.length; i++) {
+          try {
+            const s = actualServers[i];
+            if (s && typeof s === 'object') {
+              서버_상태_분포.push({
+                이름: s.name || s.id || `server-${i}`,
+                상태: s.status || 'unknown',
+              });
+            }
+          } catch (mapError) {
+            console.error('🛡️ Error mapping server for debug at index', i, mapError);
+          }
+        }
+      }
+    } catch (debugMapError) {
+      console.error('🛡️ Error creating debug server map:', debugMapError);
+      서버_상태_분포 = [];
+    }
+
     debug.log('📊 useServerDashboard 통계:', {
       ...result,
-      서버_상태_분포: actualServers.map((s) => ({
-        이름: s.name || s.id,
-        상태: s.status,
-      })),
+      서버_상태_분포,
     });
 
     return result;
