@@ -275,13 +275,13 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       return null;
     }, [server?.os]);
 
-    // 🚀 알림 수 계산 - 베르셀 안전 유틸리티 사용
+    // 🚀 알림 수 계산 - 베르셀 안전 유틸리티 올바른 사용법
     const alertCount = useMemo(() => {
-      return handleVercelError(
-        () => getSafeAlertsCount(server?.alerts),
-        'ImprovedServerCard alertCount calculation',
-        () => 0
-      ) as number;
+      try {
+        return getSafeAlertsCount(server?.alerts);
+      } catch (error) {
+        return handleVercelError(error, 'ImprovedServerCard alertCount', () => 0) as number;
+      }
     }, [server?.alerts]);
 
     // Material Design 3 배리언트별 스타일 (Typography 토큰 기반) - 메모이제이션 최적화
@@ -635,8 +635,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             try {
               // 🛡️ 베르셀 안전 서비스 검증 - vercel-safe-utils 사용
               if (!isValidServer(server)) return false;
-              const validServices = getSafeValidServices(server);
-              return validServices.length > 0;
+              return getSafeServicesLength(server) > 0;
             } catch (error) {
               console.error('❌ validServices 체크 중 에러:', error);
               return false;
