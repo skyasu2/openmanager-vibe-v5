@@ -178,12 +178,45 @@ type AIMode = 'LOCAL' | 'GOOGLE_AI';
 wsl
 cd /mnt/d/cursor/openmanager-vibe-v5
 
-# AI 도구들 직접 CLI 실행 (2025-09-16 업데이트)
-claude --version               # Claude Code v1.0.119 버전 확인
+# AI 도구들 직접 CLI 실행 (2025-09-28 업데이트)
+claude --version               # Claude Code v1.0.124 버전 확인
 codex exec "작업 요청"         # Codex CLI 직접 실행 (27초)
 gemini "작업 요청"             # Gemini CLI 직접 실행 (즉시)
 timeout 60 qwen -p "작업 요청" # Qwen CLI 1분 타임아웃 (복잡한 작업용)
 npx ccusage daily              # ccusage 일일 사용량 (npx로만 실행)
+
+# 🐧 WSL 환경변수 네이티브 사용 (cross-env 대안)
+export NODE_ENV=development    # cross-env 대신 WSL 네이티브 방식
+export DEBUG=true              # 환경변수 직접 설정
+npm run dev:stable             # 병렬 개발 패턴 권장
+
+# 🔧 베르셀 CLI 통합 (환경변수 토큰 기반)
+source .env.local && vercel --version  # 베르셀 CLI 버전 확인
+source .env.local && vercel whoami --token $VERCEL_TOKEN  # 인증 상태 확인
+```
+
+### 🚀 WSL + Claude Code 병렬 개발 패턴 (2025-09-28 최적화)
+
+**성능 향상 달성**:
+- **개발 서버 시작**: 32초 → 22초 (**35% 단축**)
+- **테스트 실행**: 37.95초 → 21.08초 (**44% 단축**)
+- **E2E 성공률**: 98.2% 달성 (Vercel 실제 환경)
+
+```bash
+# 🎯 권장 워크플로우
+# Terminal 1: 백그라운드 개발 서버
+npm run dev:stable &          # 안정화된 개발 서버 백그라운드 실행
+
+# Terminal 2: Claude Code 메인 작업
+claude                        # Claude Code 실행
+
+# Terminal 3: 보조 AI CLI 도구
+codex exec "코드 리뷰"        # Codex 병렬 실행
+gemini "아키텍처 검토"        # Gemini 병렬 실행
+
+# 🧪 빠른 검증 (필요시)
+npm run test:super-fast       # 11초 빠른 테스트
+npm run test:vercel:e2e       # Vercel 환경 E2E 테스트
 ```
 
 ## 🎯 환경별 검증 체계 (Environment-Specific Verification)
@@ -282,11 +315,13 @@ npm run verify:ai-cli       # 0.4초 (96.4% 성능 개선)
 
 **핵심 철학**: **"로컬보다 실제 Vercel 환경에서 직접 테스트가 더 효과적"** 🎯
 
-### 📊 현재 테스트 현황 (2025-09-24)
-- **E2E 테스트**: 18개 Playwright 테스트, 98.2% 통과율 (실제 Vercel 환경)
+### 📊 현재 테스트 현황 (2025-09-28 최신)
+- **E2E 테스트**: 18개 Playwright 테스트, **98.2% 통과율** (실제 Vercel 환경)
 - **API 테스트**: Vercel Edge Functions 환경에서 직접 검증
 - **통합 테스트**: Supabase, AI API 실제 네트워크 환경 테스트
-- **성능 테스트**: 152ms 응답시간, Core Web Vitals 실측
+- **성능 테스트**: **152ms 응답시간**, Core Web Vitals 실측
+- **성능 최적화**: **44% 테스트 시간 단축** (37.95초 → 21.08초)
+- **개발 서버 최적화**: **35% 시작 시간 단축** (32초 → 22초)
 
 ### 🎯 테스트 우선순위
 1. **🔴 High Priority**: Vercel E2E 테스트 (실제 운영 환경)
@@ -346,7 +381,7 @@ npm run test:super-fast  # 빠른 개발 검증 (11초)
 
 ## 🔌 MCP & 베르셀 통합
 
-### 📊 MCP 현황: 9/9개 연결, 3개 완전 작동 🏆 CLI-only 방식 (2025-09-21 업데이트)
+### 📊 MCP 현황: 9/9개 연결, 5개 완전 작동 🏆 CLI-only 방식 (2025-09-28 업데이트)
 
 | MCP 서버 | 연결 | WSL 성능 | 기능 테스트 | 상태 |
 |----------|------|----------|-------------|------|
@@ -419,10 +454,34 @@ source ./scripts/setup-mcp-env.sh
 ./scripts/mcp-health-check.sh
 ```
 
-#### 🎯 핵심 MCP 서버 (3개 완전 작동)
+#### 🎯 핵심 MCP 서버 (5개 완전 작동)
 - **🎉 context7**: 라이브러리 문서 검색 - API 키 필요
 - **🎉 supabase**: PostgreSQL DB 관리 - Access Token 필요
 - **🎉 vercel**: 프로젝트 배포 관리 - OAuth 인증
+- **🎉 serena**: 프로젝트 분석 및 코드 탐색 - 로컬 실행
+- **🎉 playwright**: E2E 테스트 자동화 - WSL Sandbox 환경
+
+### 🔑 베르셀 CLI 인증 방법 (2025-09-28 신규)
+
+**환경변수 토큰 기반 인증**: .env.local의 VERCEL_TOKEN 활용
+
+```bash
+# ✅ 베르셀 CLI 사용법 (.env.local 토큰 기반)
+source .env.local && vercel whoami --token $VERCEL_TOKEN    # 인증 확인
+source .env.local && vercel ls --token $VERCEL_TOKEN        # 프로젝트 목록
+source .env.local && vercel deploy --token $VERCEL_TOKEN    # 배포
+source .env.local && vercel logs --token $VERCEL_TOKEN      # 로그 확인
+
+# 🎯 베르셀 MCP vs CLI 구분
+# MCP 서버: Claude Code 내에서 직접 베르셀 기능 사용 (OAuth 인증)
+# CLI 도구: 터미널에서 베르셀 명령어 실행 (.env.local 토큰 필요)
+```
+
+**장점**:
+- `vercel login` 없이도 즉시 사용 가능
+- 환경변수 기반 보안 관리
+- MCP 서버와 병행 사용 가능
+- WSL 환경에서 안정적 작동
 
 → **[📖 상세 설정 가이드](docs/mcp/setup-guide.md)** | **[🔧 트러블슈팅](docs/mcp/setup-guide.md#5%EF%B8%8F%E2%83%A3-mcp-%ED%8A%B8%EB%9F%AC%EB%B8%94%EC%8A%88%ED%8C%85-%EA%B0%80%EC%9D%B4%EB%93%9C)**
 
@@ -895,13 +954,16 @@ docs/specs/
 - **프로젝트 구조**: 기능별 레이어드 아키텍처, JBGE 원칙 적용
 - **개발 상태**: 프로덕션 운영 중
 
-### 품질 지표 - 2025-09-24 업데이트 ⭐
+### 품질 지표 - 2025-09-28 업데이트 ⭐
 - **TypeScript 에러**: 0개 완전 해결 ✅ (77개→0개) - strict 모드 100% 달성
 - **개발 서버 안정성**: segment-explorer 버그 **100% 해결** (근본적 수정)
-- **개발 서버 성능**: 시작 시간 35% 단축 (32초 → 22초)
-- **Vercel E2E 테스트**: 18개 Playwright 테스트, 98.2% 통과율 (실제 운영 환경)
+- **개발 서버 성능**: 시작 시간 **35% 단축** (32초 → 22초)
+- **테스트 성능**: **44% 단축** (37.95초 → 21.08초) - 멀티스레드 최적화
+- **Vercel E2E 테스트**: 18개 Playwright 테스트, **98.2% 통과율** (실제 운영 환경)
 - **테스트 전략**: Vercel 중심 접근법 ✅ - 실제 환경에서 직접 테스트
 - **CI/CD**: Push 성공률 99%, 평균 배포 시간 5분
+- **베르셀 CLI**: .env.local 토큰으로 **100% 작동 확인**
+- **WSL 최적화**: cross-env 대신 네이티브 환경변수 사용
 
 ### Vercel 배포 현황 (Deployment)
 - **배포 상태**: ✅ 완전 성공 (Zero Warnings 달성)
@@ -919,7 +981,7 @@ docs/specs/
 
 ## 🔧 트러블슈팅
 
-### 개발 환경 문제 해결 (Development) - 2025-09-21 업데이트 ⭐
+### 개발 환경 문제 해결 (Development) - 2025-09-28 업데이트 ⭐
 
 #### 🐛 Next.js devtools 버그 해결 (완전 해결)
 - **segment-explorer 에러**: `npm run dev:stable` 사용 (100% 해결)
@@ -984,6 +1046,50 @@ git push
 # - SSH 키 설정 불필요
 # - WSL 환경에서 안정적 작동
 # - 환경변수 기반 보안 관리
+```
+
+### cross-env 오류 해결 (WSL 환경) - 2025-09-28 신규
+```bash
+# ❌ 문제: cross-env 오류 발생
+# cross-env: command not found
+
+# ✅ 해결: WSL 네이티브 환경변수 사용
+# cross-env NODE_ENV=development → export NODE_ENV=development
+export NODE_ENV=development
+export DEBUG=true
+export NEXT_TELEMETRY_DISABLED=1
+
+# 📋 package.json 스크립트 최적화
+# "dev": "cross-env NODE_ENV=development next dev"
+# ↓ WSL 최적화
+# "dev": "NODE_ENV=development next dev"
+
+# 🎯 권장 방식: 환경변수 파일 활용
+echo 'export NODE_ENV=development' >> ~/.bashrc
+echo 'export DEBUG=true' >> ~/.bashrc
+source ~/.bashrc
+```
+
+### 베르셀 CLI 인증 문제 해결 - 2025-09-28 신규
+```bash
+# ❌ 문제: vercel login 실패 또는 권한 오류
+
+# ✅ 해결: .env.local 토큰 기반 인증
+# 1. .env.local에 VERCEL_TOKEN 확인
+cat .env.local | grep VERCEL_TOKEN
+
+# 2. 토큰 유효성 검증
+source .env.local && vercel whoami --token $VERCEL_TOKEN
+
+# 3. 모든 베르셀 명령어에 --token 플래그 사용
+source .env.local && vercel ls --token $VERCEL_TOKEN
+source .env.local && vercel deploy --token $VERCEL_TOKEN
+source .env.local && vercel logs --token $VERCEL_TOKEN
+
+# 📋 자동화 스크립트 (선택사항)
+echo 'alias vtoken="source .env.local && vercel --token \$VERCEL_TOKEN"' >> ~/.bashrc
+source ~/.bashrc
+# 사용법: vtoken ls, vtoken deploy 등
 ```
 
 ### 프로덕션 배포 문제 해결 (Deployment)

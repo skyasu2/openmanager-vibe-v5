@@ -105,7 +105,14 @@
     "dev:ai-safe": "bash scripts/dev-safe.sh && cross-env NODE_OPTIONS='--max-old-space-size=4096' next dev",
     "dev:ai-safe:port": "bash scripts/dev-safe.sh npm run dev:ai-port",
     "dev:ai-port": "node -e \"const { getAvailablePort } = require('./utils/dynamic-port'); getAvailablePort().then(port => { process.env.PORT = port; require('child_process').spawn('npm', ['run', 'dev'], { env: { ...process.env, PORT: port }, stdio: 'inherit' }); });\"",
-    "wsl:dev": "bash scripts/dev-safe.sh && npm run dev:stable"
+    "wsl:dev": "bash scripts/dev-safe.sh && npm run dev:stable",
+    "wsl:stable": "./scripts/wsl-native-dev.sh stable",
+    "wsl:clean": "./scripts/wsl-native-dev.sh clean",
+    "wsl:claude": "./scripts/wsl-native-dev.sh claude",
+    "wsl:playwright": "./scripts/wsl-native-dev.sh playwright",
+    "wsl:build": "./scripts/wsl-native-dev.sh build",
+    "wsl:status": "./scripts/wsl-native-dev.sh status",
+    "wsl:stop": "./scripts/wsl-native-dev.sh stop"
   },
   "dependencies": {
     "@faker-js/faker": "^9.9.0",
