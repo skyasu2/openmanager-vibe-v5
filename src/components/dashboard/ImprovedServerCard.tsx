@@ -67,10 +67,14 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     index = 0,
     enableProgressiveDisclosure = true,
   }) => {
-    // 🛡️ Vercel 환경 전용 서버 객체 보호 가드 클래스 (베르셀 서버리스 환경 대응)
+    // 🛡️ 5층 방어 시스템 Layer 1: 서버 객체 존재성 검증 (베르셀 서버리스 환경 대응)
     // TypeError: Cannot read properties of undefined (reading 'length') 완전 방지
     if (!server || typeof server !== 'object' || !server.id) {
-      console.warn('⚠️ ImprovedServerCard: 서버 객체가 유효하지 않음 - 로딩 카드 표시', server);
+      console.warn('⚠️ ImprovedServerCard Layer 1: 서버 객체가 유효하지 않음 - 안전한 로딩 카드 표시', {
+        server: server ? 'exists' : 'null/undefined',
+        type: typeof server,
+        hasId: server?.id ? 'yes' : 'no'
+      });
       return (
         <div className="animate-pulse rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center space-x-3">
@@ -81,11 +85,30 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             </div>
           </div>
           <div className="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
-            서버 데이터 로딩 중...
+            서버 데이터 로딩 중... (Layer 1 Safe Mode)
           </div>
         </div>
       );
     }
+
+    // 🛡️ 5층 방어 시스템 Layer 2: 필수 서버 속성 안전성 검증
+    const safeServer = {
+      id: server.id || 'unknown',
+      name: server.name || '알 수 없는 서버',
+      status: server.status || 'offline',
+      type: server.type || 'server',
+      location: server.location || '서울',
+      os: server.os || 'Ubuntu 22.04',
+      ip: server.ip || '192.168.1.1',
+      uptime: server.uptime || 0,
+      cpu: typeof server.cpu === 'number' ? server.cpu : 50,
+      memory: typeof server.memory === 'number' ? server.memory : 50,
+      disk: typeof server.disk === 'number' ? server.disk : 30,
+      network: typeof server.network === 'number' ? server.network : 25,
+      alerts: server.alerts || 0,
+      services: Array.isArray(server.services) ? server.services : [],
+      lastUpdate: server.lastUpdate || new Date()
+    };
 
     // 🚀 성능 추적 활성화 (개발환경 전용)
     const performanceStats = usePerformanceTracking(`ImprovedServerCard-${server.id}`);
@@ -95,35 +118,54 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     const [showTertiaryInfo, setShowTertiaryInfo] = useState(false);
     const isMountedRef = useRef(true); // 비동기 상태 관리 개선 (Codex 제안)
     
-    // 초기 메트릭 값 검증 적용 (베르셀 환경 안전성 강화)
-    const [realtimeMetrics, setRealtimeMetrics] = useState(() =>
-      validateServerMetrics({
-        cpu: server?.cpu ?? 50,
-        memory: server?.memory ?? 50,
-        disk: server?.disk ?? 30,
-        network: server?.network ?? 25,
-      })
-    );
+    // 🛡️ 5층 방어 시스템 Layer 3: 실시간 메트릭 안전성 검증 (베르셀 환경 강화)
+    const [realtimeMetrics, setRealtimeMetrics] = useState(() => {
+      try {
+        const safeMetrics = {
+          cpu: safeServer.cpu,
+          memory: safeServer.memory,
+          disk: safeServer.disk,
+          network: safeServer.network,
+        };
+        return validateServerMetrics(safeMetrics);
+      } catch (error) {
+        console.error('⚠️ ImprovedServerCard Layer 3: 메트릭 초기화 실패, 안전한 기본값 사용', error);
+        return {
+          cpu: 50,
+          memory: 50,
+          disk: 30,
+          network: 25
+        };
+      }
+    });
     
     // 🚀 Vercel 호환 접근성 Hook (선택적 사용)
     const accessibility = useAccessibilityOptional();
     const isAccessibilityEnabled = !!accessibility?.isClient;
     
-    // ARIA 속성 생성 (접근성 활성화 시에만) - 베르셀 환경 안전성 강화
+    // 🛡️ 5층 방어 시스템 Layer 4: ARIA 속성 안전 생성 (접근성 활성화 시에만)
     const ariaProps = useMemo(() => {
-      if (!isAccessibilityEnabled) return {};
+      try {
+        if (!isAccessibilityEnabled) return {};
 
-      return useServerCardAria({
-        serverId: server?.id ?? 'unknown',
-        serverName: server?.name ?? '알 수 없는 서버',
-        status: (server?.status ?? 'offline') as 'online' | 'offline' | 'warning' | 'critical',
-        cpu: realtimeMetrics?.cpu ?? 0,
-        memory: realtimeMetrics?.memory ?? 0,
-        disk: realtimeMetrics?.disk ?? 0,
-        alerts: typeof server?.alerts === 'number' ? server.alerts : 0,
-        uptime: `${server?.uptime ?? 0}시간`,
-      });
-    }, [isAccessibilityEnabled, server, realtimeMetrics]);
+        // 안전한 메트릭 접근
+        const safeMetrics = realtimeMetrics || { cpu: 0, memory: 0, disk: 0, network: 0 };
+
+        return useServerCardAria({
+          serverId: safeServer.id,
+          serverName: safeServer.name,
+          status: safeServer.status as 'online' | 'offline' | 'warning' | 'critical',
+          cpu: safeMetrics.cpu,
+          memory: safeMetrics.memory,
+          disk: safeMetrics.disk,
+          alerts: typeof safeServer.alerts === 'number' ? safeServer.alerts : 0,
+          uptime: `${safeServer.uptime}시간`,
+        });
+      } catch (error) {
+        console.error('⚠️ ImprovedServerCard Layer 4: ARIA 속성 생성 실패, 빈 객체 반환', error);
+        return {};
+      }
+    }, [isAccessibilityEnabled, safeServer, realtimeMetrics]);
 
     // 컴포넌트 언마운트 추적
     useEffect(() => {
@@ -139,26 +181,55 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
 
       const interval = setInterval(
         () => {
-          // 컴포넌트가 언마운트된 경우 setState 방지 (Codex 제안)
-          if (!isMountedRef.current) return;
+          try {
+            // 컴포넌트가 언마운트된 경우 setState 방지 (Codex 제안)
+            if (!isMountedRef.current) return;
 
-          setRealtimeMetrics((prev) => {
-            // 🛡️ prev 객체가 undefined인 경우 방어 코드 (베르셀 환경 강화)
-            const safePrev = prev || {
-              cpu: server?.cpu ?? 50,
-              memory: server?.memory ?? 50,
-              disk: server?.disk ?? 50,
-              network: server?.network ?? 25,
-            };
+            setRealtimeMetrics((prev) => {
+              try {
+                // 🛡️ 5층 방어 시스템 Layer 5: prev 객체 완전 안전성 검증 (베르셀 환경 강화)
+                const safePrev = prev || {
+                  cpu: safeServer.cpu,
+                  memory: safeServer.memory,
+                  disk: safeServer.disk,
+                  network: safeServer.network,
+                };
 
-            return {
-              // 안전한 메트릭 값 생성 함수 사용
-              cpu: generateSafeMetricValue(safePrev.cpu, 3, 'cpu'),
-              memory: generateSafeMetricValue(safePrev.memory, 2, 'memory'),
-              disk: generateSafeMetricValue(safePrev.disk, 0.5, 'disk'),
-              network: generateSafeMetricValue(safePrev.network, 5, 'network'),
-            };
-          });
+                // 각 메트릭 값 안전성 검증
+                const newMetrics = {
+                  cpu: generateSafeMetricValue(safePrev.cpu || 50, 3, 'cpu'),
+                  memory: generateSafeMetricValue(safePrev.memory || 50, 2, 'memory'),
+                  disk: generateSafeMetricValue(safePrev.disk || 30, 0.5, 'disk'),
+                  network: generateSafeMetricValue(safePrev.network || 25, 5, 'network'),
+                };
+
+                // 생성된 메트릭 검증
+                if (typeof newMetrics.cpu !== 'number' || isNaN(newMetrics.cpu)) {
+                  console.warn('⚠️ Layer 5: CPU 메트릭 오류 감지, 안전값 사용');
+                  newMetrics.cpu = 50;
+                }
+                if (typeof newMetrics.memory !== 'number' || isNaN(newMetrics.memory)) {
+                  console.warn('⚠️ Layer 5: Memory 메트릭 오류 감지, 안전값 사용');
+                  newMetrics.memory = 50;
+                }
+                if (typeof newMetrics.disk !== 'number' || isNaN(newMetrics.disk)) {
+                  console.warn('⚠️ Layer 5: Disk 메트릭 오류 감지, 안전값 사용');
+                  newMetrics.disk = 30;
+                }
+                if (typeof newMetrics.network !== 'number' || isNaN(newMetrics.network)) {
+                  console.warn('⚠️ Layer 5: Network 메트릭 오류 감지, 안전값 사용');
+                  newMetrics.network = 25;
+                }
+
+                return newMetrics;
+              } catch (innerError) {
+                console.error('⚠️ Layer 5: setState 내부 처리 실패, 이전 값 유지', innerError);
+                return prev || { cpu: 50, memory: 50, disk: 30, network: 25 };
+              }
+            });
+          } catch (outerError) {
+            console.error('⚠️ Layer 5: 실시간 메트릭 업데이트 완전 실패', outerError);
+          }
         },
         45000 + index * 1000 // 🎯 데이터 수집 간격 최적화 (45초 + 서버별 지연)
       );
@@ -166,20 +237,21 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       return () => clearInterval(interval);
     }, [showRealTimeUpdates, index]);
 
-    // 🎨 Material Design 3 토큰 기반 서버 상태별 테마 (메모이제이션 최적화 + 베르셀 환경 강화)
+    // 🎨 Material Design 3 토큰 기반 서버 상태별 테마 (5층 방어 시스템 적용)
     const statusTheme = useMemo(() => {
-      // 서버 상태를 Material Design 3 표준 상태로 매핑 (베르셀 환경 안전성)
-      const serverStatus = server?.status ?? 'offline';
-      const normalizedStatus: ServerStatus =
-        serverStatus === 'online' || serverStatus === 'healthy'
-          ? 'healthy'
-          : serverStatus === 'critical' || serverStatus === 'offline'
-            ? 'critical'
-            : serverStatus === 'warning'
-              ? 'warning'
-              : 'healthy'; // 기본값
+      try {
+        // 서버 상태를 Material Design 3 표준 상태로 매핑 (베르셀 환경 안전성)
+        const serverStatus = safeServer.status;
+        const normalizedStatus: ServerStatus =
+          serverStatus === 'online' || serverStatus === 'healthy'
+            ? 'healthy'
+            : serverStatus === 'critical' || serverStatus === 'offline'
+              ? 'critical'
+              : serverStatus === 'warning'
+                ? 'warning'
+                : 'healthy'; // 기본값
 
-      const theme = getServerStatusTheme(normalizedStatus);
+        const theme = getServerStatusTheme(normalizedStatus);
       
       return {
         // Material Design 3 Surface 기반 배경 - 상태별 색상 적용
@@ -222,67 +294,105 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           color: theme.accentColor,
         },
       };
-    }, [server?.status]); // 상태별 의존성 최적화 (Gemini 제안 반영 + 베르셀 환경 강화)
-
-    // 🚀 서버 타입별 아이콘 메모이제이션 최적화 (베르셀 환경 강화)
-    const serverIcon = useMemo(() => {
-      switch (server?.type ?? 'server') {
-        case 'web':
-          return <Globe className="h-5 w-5" aria-hidden="true" />;
-        case 'database':
-          return <Database className="h-5 w-5" aria-hidden="true" />;
-        case 'storage':
-          return <HardDrive className="h-5 w-5" aria-hidden="true" />;
-        case 'backup':
-          return <Archive className="h-5 w-5" aria-hidden="true" />;
-        case 'app':
-        default:
-          return <Server className="h-5 w-5" aria-hidden="true" />;
+      } catch (error) {
+        console.error('⚠️ statusTheme 생성 실패, 기본 테마 사용', error);
+        return {
+          cardBg: 'bg-gray-50',
+          cardBorder: 'border-gray-200',
+          cardStyle: { backgroundColor: 'transparent', borderColor: 'transparent', color: 'inherit' },
+          hoverStyle: { borderColor: 'transparent', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' },
+          statusColor: { backgroundColor: '#f3f4f6', color: '#374151' },
+          statusIcon: <AlertCircle className="h-4 w-4" aria-hidden="true" />,
+          statusText: '오류',
+          pulse: { backgroundColor: '#6b7280' },
+          accent: { color: '#6b7280' }
+        };
       }
-    }, [server?.type]);
+    }, [safeServer.status]); // 상태별 의존성 최적화 (5층 방어 시스템 적용)
 
-    // 🚀 OS별 아이콘/이모지 메모이제이션 최적화 (베르셀 환경 강화)
+    // 🚀 서버 타입별 아이콘 메모이제이션 최적화 (5층 방어 시스템 적용)
+    const serverIcon = useMemo(() => {
+      try {
+        switch (safeServer.type) {
+          case 'web':
+            return <Globe className="h-5 w-5" aria-hidden="true" />;
+          case 'database':
+            return <Database className="h-5 w-5" aria-hidden="true" />;
+          case 'storage':
+            return <HardDrive className="h-5 w-5" aria-hidden="true" />;
+          case 'backup':
+            return <Archive className="h-5 w-5" aria-hidden="true" />;
+          case 'app':
+          default:
+            return <Server className="h-5 w-5" aria-hidden="true" />;
+        }
+      } catch (error) {
+        console.error('⚠️ serverIcon 생성 실패, 기본 아이콘 사용', error);
+        return <Server className="h-5 w-5" aria-hidden="true" />;
+      }
+    }, [safeServer.type]);
+
+    // 🚀 OS별 아이콘/이모지 메모이제이션 최적화 (5층 방어 시스템 적용)
     const osIcon = useMemo(() => {
-      const os = server?.os?.toLowerCase() || '';
+      try {
+        const os = (safeServer.os || '').toLowerCase();
 
       if (
         os.includes('ubuntu') ||
         os.includes('debian') ||
         os.includes('linux')
       ) {
-        return (
-          <span className="text-base" title={server.os} aria-label={`운영체제: ${server.os}`}>
-            🐧
-          </span>
-        );
-      } else if (
-        os.includes('centos') ||
-        os.includes('red hat') ||
-        os.includes('rhel')
-      ) {
-        return (
-          <span className="text-base" title={server?.os ?? 'Unknown OS'} aria-label={`운영체제: ${server?.os ?? 'Unknown OS'}`}>
-            🎩
-          </span>
-        );
-      } else if (os.includes('windows')) {
-        return (
-          <span className="text-base" title={server?.os ?? 'Unknown OS'} aria-label={`운영체제: ${server?.os ?? 'Unknown OS'}`}>
-            🪟
-          </span>
-        );
+          return (
+            <span className="text-base" title={safeServer.os} aria-label={`운영체제: ${safeServer.os}`}>
+              🐧
+            </span>
+          );
+        } else if (
+          os.includes('centos') ||
+          os.includes('red hat') ||
+          os.includes('rhel')
+        ) {
+          return (
+            <span className="text-base" title={safeServer.os} aria-label={`운영체제: ${safeServer.os}`}>
+              🎩
+            </span>
+          );
+        } else if (os.includes('windows')) {
+          return (
+            <span className="text-base" title={safeServer.os} aria-label={`운영체제: ${safeServer.os}`}>
+              🪟
+            </span>
+          );
+        }
+        return null;
+      } catch (error) {
+        console.error('⚠️ osIcon 생성 실패', error);
+        return null;
       }
-      return null;
-    }, [server?.os]);
+    }, [safeServer.os]);
 
-    // 🚀 알림 수 계산 - 베르셀 안전 유틸리티 올바른 사용법
+    // 🚀 알림 수 계산 - 5층 방어 시스템 완전 적용
     const alertCount = useMemo(() => {
       try {
-        return getSafeAlertsCount(server?.alerts);
+        // 안전한 서버 객체에서 알림 수 계산
+        const alertsValue = safeServer.alerts;
+
+        // 추가 타입 검증
+        if (typeof alertsValue === 'number') {
+          return Math.max(0, alertsValue); // 음수 방지
+        }
+
+        if (Array.isArray(alertsValue)) {
+          return alertsValue.length || 0;
+        }
+
+        // 베르셀 안전 유틸리티 사용
+        return getSafeAlertsCount(alertsValue);
       } catch (error) {
-        return handleVercelError(error, 'ImprovedServerCard alertCount', () => 0) as number;
+        console.error('⚠️ alertCount 계산 실패, 기본값 0 사용', error);
+        return 0;
       }
-    }, [server?.alerts]);
+    }, [safeServer.alerts]);
 
     // Material Design 3 배리언트별 스타일 (Typography 토큰 기반) - 메모이제이션 최적화
     const variantStyles = useMemo(() => {
@@ -347,10 +457,15 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       }
     }, [showTertiaryInfo]);
 
-    // 🚀 클릭 핸들러 메모이제이션 (성능 최적화)
+    // 🚀 클릭 핸들러 메모이제이션 (5층 방어 시스템 적용)
     const handleClick = useCallback(() => {
-      onClick(server);
-    }, [server.id, onClick]); // 의존성 최적화
+      try {
+        // 안전한 서버 객체로 콜백 호출
+        onClick(safeServer);
+      } catch (error) {
+        console.error('⚠️ handleClick 실행 실패', error);
+      }
+    }, [safeServer.id, onClick]); // 의존성 최적화
 
     // 🎯 키보드 접근성 개선 (Gemini 제안)
     const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
@@ -384,7 +499,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         }}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
-        aria-label={`${server.name} 서버 - ${statusTheme.statusText} 상태. CPU ${Math.round(realtimeMetrics.cpu)}%, 메모리 ${Math.round(realtimeMetrics.memory)}% 사용 중`}
+        aria-label={`${safeServer.name} 서버 - ${statusTheme.statusText} 상태. CPU ${Math.round((realtimeMetrics && realtimeMetrics.cpu) || 50)}%, 메모리 ${Math.round((realtimeMetrics && realtimeMetrics.memory) || 50)}% 사용 중`}
         role="button"
         tabIndex={0}
       >
@@ -406,7 +521,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               className="rounded-lg p-2.5 shadow-sm"
               style={statusTheme.statusColor}
               role="img"
-              aria-label={`서버 타입: ${server.type}`}
+              aria-label={`서버 타입: ${safeServer.type}`}
             >
               {serverIcon}
             </div>
@@ -415,9 +530,9 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                 <h3
                   className={`${variantStyles.titleSize} truncate`}
                   style={{ color: statusTheme.cardStyle.color }}
-                  id={`server-${server.id}-title`}
+                  id={`server-${safeServer.id}-title`}
                 >
-                  {server.name}
+                  {safeServer.name}
                 </h3>
                 {osIcon}
               </div>
@@ -426,7 +541,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                 style={statusTheme.accent}
               >
                 <MapPin className="h-3 w-3" aria-hidden="true" />
-                <span aria-label="서버 위치">{server.location || '서울'}</span>
+                <span aria-label="서버 위치">{safeServer.location}</span>
                 {variantStyles.showDetails && (
                   <>
                     <span aria-hidden="true">•</span>
@@ -479,7 +594,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         {/* 📈 Progressive Disclosure 메트릭 섹션 - 3단계 정보 공개 */}
         <section 
           className={variantStyles.spacing}
-          aria-labelledby={`server-${server.id}-title`}
+          aria-labelledby={`server-${safeServer.id}-title`}
         >
           {/* 🎯 Level 1: 핵심 메트릭 (CPU, 메모리) - 상시 표시 */}
           <div className="space-y-3">
@@ -494,19 +609,19 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               <div className="transform transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1 hover:shadow-lg">
                 <ServerCardLineChart
                   label="CPU"
-                  value={realtimeMetrics.cpu}
+                  value={(realtimeMetrics && realtimeMetrics.cpu) || 50}
                   type="cpu"
                   showRealTimeUpdates={showRealTimeUpdates}
-                  serverStatus={server.status}
+                  serverStatus={safeServer.status}
                 />
               </div>
               <div className="transform transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1 hover:shadow-lg">
                 <ServerCardLineChart
                   label="메모리"
-                  value={realtimeMetrics.memory}
+                  value={(realtimeMetrics && realtimeMetrics.memory) || 50}
                   type="memory"
                   showRealTimeUpdates={showRealTimeUpdates}
-                  serverStatus={server.status}
+                  serverStatus={safeServer.status}
                 />
               </div>
             </div>
@@ -531,19 +646,19 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               <div className="transform transition-all duration-300 ease-out hover:opacity-100 hover:scale-105 hover:-translate-y-0.5 hover:shadow-md">
                 <ServerCardLineChart
                   label="디스크"
-                  value={realtimeMetrics.disk}
+                  value={(realtimeMetrics && realtimeMetrics.disk) || 30}
                   type="disk"
                   showRealTimeUpdates={showRealTimeUpdates}
-                  serverStatus={server.status}
+                  serverStatus={safeServer.status}
                 />
               </div>
               <div className="transform transition-all duration-300 ease-out hover:opacity-100 hover:scale-105 hover:-translate-y-0.5 hover:shadow-md">
                 <ServerCardLineChart
                   label="네트워크"
-                  value={realtimeMetrics.network}
+                  value={(realtimeMetrics && realtimeMetrics.network) || 25}
                   type="network"
                   showRealTimeUpdates={showRealTimeUpdates}
-                  serverStatus={server.status}
+                  serverStatus={safeServer.status}
                 />
               </div>
             </div>
@@ -609,19 +724,19 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">성능 요약</div>
               <div className="grid grid-cols-4 gap-4 text-center">
                 <div>
-                  <div className="text-lg font-bold text-blue-600">{Math.round(realtimeMetrics.cpu)}%</div>
+                  <div className="text-lg font-bold text-blue-600">{Math.round((realtimeMetrics && realtimeMetrics.cpu) || 50)}%</div>
                   <div className="text-xs text-gray-500">CPU</div>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-green-600">{Math.round(realtimeMetrics.memory)}%</div>
+                  <div className="text-lg font-bold text-green-600">{Math.round((realtimeMetrics && realtimeMetrics.memory) || 50)}%</div>
                   <div className="text-xs text-gray-500">RAM</div>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-orange-600">{Math.round(realtimeMetrics.disk)}%</div>
+                  <div className="text-lg font-bold text-orange-600">{Math.round((realtimeMetrics && realtimeMetrics.disk) || 30)}%</div>
                   <div className="text-xs text-gray-500">DISK</div>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-purple-600">{Math.round(realtimeMetrics.network)}%</div>
+                  <div className="text-lg font-bold text-purple-600">{Math.round((realtimeMetrics && realtimeMetrics.network) || 25)}%</div>
                   <div className="text-xs text-gray-500">NET</div>
                 </div>
               </div>
@@ -629,15 +744,23 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           </div>
         </section>
 
-        {/* 서비스 상태 - Progressive Disclosure Level 2에 포함 */}
+        {/* 서비스 상태 - Progressive Disclosure Level 2에 포함 (5층 방어 시스템 완전 적용) */}
         {variantStyles.showServices &&
           (() => {
             try {
-              // 🛡️ 베르셀 안전 서비스 검증 - vercel-safe-utils 사용
-              if (!isValidServer(server)) return false;
-              return getSafeServicesLength(server) > 0;
+              // 🛡️ 5층 방어 시스템 완전 적용 - safeServer 사용
+              if (!isValidServer(safeServer)) {
+                console.warn('⚠️ Layer 5: safeServer 객체가 유효하지 않음');
+                return false;
+              }
+              const servicesLength = getSafeServicesLength(safeServer);
+              if (typeof servicesLength !== 'number') {
+                console.warn('⚠️ Layer 5: servicesLength가 숫자가 아님');
+                return false;
+              }
+              return servicesLength > 0;
             } catch (error) {
-              console.error('❌ validServices 체크 중 에러:', error);
+              console.error('❌ Layer 5: validServices 체크 중 에러:', error);
               return false;
             }
           })() &&
@@ -652,49 +775,78 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               aria-label="서비스 상태 목록"
             >
               <div className="flex flex-wrap gap-2">
-                {getSafeValidServices(server)
-                  .slice(0, variantStyles.maxServices)
-                  .map((service, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium shadow-sm transition-colors ${
-                        service.status === 'running'
-                          ? 'border-green-300 bg-green-50 text-green-700'
-                          : service.status === 'stopped'
-                            ? 'border-red-300 bg-red-50 text-red-700'
-                            : 'border-yellow-300 bg-yellow-50 text-yellow-700'
-                      }`}
-                      role="status"
-                      aria-label={`${service.name} 서비스: ${
-                        service.status === 'running' ? '실행중' : 
-                        service.status === 'stopped' ? '중단' : '경고'
-                      }`}
-                    >
-                      <div
-                        className={`h-1.5 w-1.5 rounded-full ${
-                          service.status === 'running'
-                            ? 'bg-green-500'
-                            : service.status === 'stopped'
-                              ? 'bg-red-500'
-                              : 'bg-yellow-500'
-                        }`}
-                        aria-hidden="true"
-                      />
-                      <span>{service.name}</span>
-                    </div>
-                  ))}
                 {(() => {
                   try {
-                    // 🛡️ 베르셀 환경 완전 방어 코드 - vercel-safe-utils 사용
-                    if (!isValidServer(server)) {
-                      vercelSafeLog('Invalid server object in ImprovedServerCard', server);
+                    // 🛡️ 5층 방어 시스템 완전 적용 - 서비스 리스트 안전 생성
+                    const validServices = getSafeValidServices(safeServer);
+                    if (!Array.isArray(validServices)) {
+                      console.error('⚠️ Layer 5: validServices가 배열이 아님');
+                      return [];
+                    }
+
+                    const slicedServices = validServices.slice(0, variantStyles.maxServices);
+                    return slicedServices.map((service, idx) => {
+                      // 각 서비스 객체 안전성 검증
+                      if (!service || typeof service !== 'object') {
+                        console.warn(`⚠️ Layer 5: 서비스 ${idx} 유효하지 않음`);
+                        return null;
+                      }
+
+                      const serviceName = service.name || `서비스 ${idx + 1}`;
+                      const serviceStatus = service.status || 'unknown';
+
+                      return (
+                        <div
+                          key={`${safeServer.id}-service-${idx}`}
+                          className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium shadow-sm transition-colors ${
+                            serviceStatus === 'running'
+                              ? 'border-green-300 bg-green-50 text-green-700'
+                              : serviceStatus === 'stopped'
+                                ? 'border-red-300 bg-red-50 text-red-700'
+                                : 'border-yellow-300 bg-yellow-50 text-yellow-700'
+                          }`}
+                          role="status"
+                          aria-label={`${serviceName} 서비스: ${
+                            serviceStatus === 'running' ? '실행중' :
+                            serviceStatus === 'stopped' ? '중단' : '경고'
+                          }`}
+                        >
+                          <div
+                            className={`h-1.5 w-1.5 rounded-full ${
+                              serviceStatus === 'running'
+                                ? 'bg-green-500'
+                                : serviceStatus === 'stopped'
+                                  ? 'bg-red-500'
+                                  : 'bg-yellow-500'
+                            }`}
+                            aria-hidden="true"
+                          />
+                          <span>{serviceName}</span>
+                        </div>
+                      );
+                    }).filter(Boolean); // null 요소 제거
+                  } catch (error) {
+                    console.error('⚠️ Layer 5: 서비스 렌더링 실패', error);
+                    return [];
+                  }
+                })()}
+                {(() => {
+                  try {
+                    // 🛡️ 5층 방어 시스템 완전 적용 - remainingServices 안전 계산
+                    if (!isValidServer(safeServer)) {
+                      vercelSafeLog('Invalid safeServer object in ImprovedServerCard', safeServer);
                       return null;
                     }
 
-                    // 🚀 FIX: 베르셀 안전 유틸리티 함수 사용 (l6 함수 오류 완전 해결)
-                    const validServicesCount = getSafeServicesLength(server);
+                    // 서비스 수 안전 계산
+                    const validServicesCount = getSafeServicesLength(safeServer);
+                    if (typeof validServicesCount !== 'number' || isNaN(validServicesCount)) {
+                      console.warn('⚠️ Layer 5: validServicesCount가 유효한 숫자가 아님');
+                      return null;
+                    }
 
-                    const remainingCount = validServicesCount - variantStyles.maxServices;
+                    const maxServices = variantStyles.maxServices || 3;
+                    const remainingCount = validServicesCount - maxServices;
 
                     if (remainingCount <= 0) return null;
 
@@ -703,11 +855,11 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                         className="flex items-center rounded-lg bg-gray-100 px-2.5 py-1 text-xs text-gray-500"
                         aria-label={`${remainingCount}개 서비스 더 있음`}
                       >
-                        +{remainingCount} more
+                        +{Math.max(0, remainingCount)} more
                       </div>
                     );
                   } catch (error) {
-                    console.error('❌ remainingServices 렌더링 중 에러:', error);
+                    console.error('❌ Layer 5: remainingServices 렌더링 중 에러:', error);
                     return null;
                   }
                 })()}
