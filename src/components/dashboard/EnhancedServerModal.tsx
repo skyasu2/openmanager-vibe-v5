@@ -83,7 +83,7 @@ export default function EnhancedServerModal({
             environment: server.environment || 'unknown',
             location: server.location || 'Unknown Location',
             provider: server.provider || 'Unknown Provider',
-            status: server.status || 'offline',
+            status: server.status || 'unknown', // 🔧 수정: 'offline' → 'unknown' (기본값 변경)
             cpu: typeof server.cpu === 'number' ? server.cpu : 0,
             memory: typeof server.memory === 'number' ? server.memory : 0,
             disk: typeof server.disk === 'number' ? server.disk : 0,

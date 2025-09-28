@@ -9,7 +9,7 @@
  */
 
 // 서버 상태 Enum
-export type ServerStatus = 'online' | 'offline' | 'warning' | 'critical' | 'maintenance';
+export type ServerStatus = 'online' | 'offline' | 'warning' | 'critical' | 'maintenance' | 'unknown'; // 🔧 수정: 'unknown' 추가 (일관성)
 
 // 서버 환경 Enum  
 export type ServerEnvironment = 'production' | 'staging' | 'development' | 'testing';
@@ -39,7 +39,7 @@ export type AlertSeverity = 'info' | 'warning' | 'critical' | 'emergency';
 
 // 타입 가드 함수들
 export function isValidServerStatus(status: string): status is ServerStatus {
-  return ['online', 'offline', 'warning', 'critical', 'maintenance'].includes(status);
+  return ['online', 'offline', 'warning', 'critical', 'maintenance', 'unknown'].includes(status); // 🔧 수정: 'unknown' 추가
 }
 
 export function isValidServerEnvironment(env: string): env is ServerEnvironment {
@@ -55,7 +55,7 @@ export function isValidServerRole(role: string): role is ServerRole {
 
 // 기본값 제공 함수들
 export function getDefaultServerStatus(): ServerStatus {
-  return 'offline';
+  return 'unknown'; // 🔧 수정: 'offline' → 'unknown' (기본값 변경)
 }
 
 export function getDefaultServerEnvironment(): ServerEnvironment {
@@ -67,7 +67,7 @@ export function getDefaultServerRole(): ServerRole {
 }
 
 // Enum 배열 (옵션 리스트용)
-export const SERVER_STATUSES: ServerStatus[] = ['online', 'offline', 'warning', 'critical', 'maintenance'];
+export const SERVER_STATUSES: ServerStatus[] = ['online', 'offline', 'warning', 'critical', 'maintenance', 'unknown']; // 🔧 수정: 'unknown' 추가
 export const SERVER_ENVIRONMENTS: ServerEnvironment[] = ['production', 'staging', 'development', 'testing'];
 export const SERVER_ROLES: ServerRole[] = [
   'web', 'api', 'database', 'cache', 'monitoring',

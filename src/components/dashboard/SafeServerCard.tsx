@@ -69,7 +69,7 @@ export const SafeServerCard: React.FC<SafeServerCardProps> = ({ server, index = 
       // Server 타입 필수 속성
       id: serverId,
       name: server.name || `서버 ${index + 1}`,
-      status: server.status || 'online',
+      status: server.status || 'unknown', // 🔧 수정: 'online' → 'unknown' (동일한 문제 패턴)
       location: server.location || '서울',
       uptime: server.uptime || `${Math.floor(Math.random() * 100 + 50)}d ${Math.floor(Math.random() * 24)}h`,
 

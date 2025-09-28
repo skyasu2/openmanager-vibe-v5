@@ -36,7 +36,7 @@ interface NetworkDetails {
   out?: number;
 }
 
-type ServerStatus = 'online' | 'offline' | 'warning' | 'critical';
+type ServerStatus = 'online' | 'offline' | 'warning' | 'critical' | 'unknown'; // 🔧 수정: 'unknown' 추가 (일관성)
 
 // ============================================================================
 // 🎯 타입 안전성 검증 시스템

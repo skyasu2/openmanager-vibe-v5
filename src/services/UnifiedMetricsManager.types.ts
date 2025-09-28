@@ -27,7 +27,7 @@ export type ServerRole =
   | 'error';
 
 // Server status type
-export type ServerStatus = 'healthy' | 'warning' | 'critical' | 'offline';
+export type ServerStatus = 'healthy' | 'warning' | 'critical' | 'unknown'; // 🔧 수정: 'offline' → 'unknown' (다른 파일과 일관성)
 
 // Unified server metrics interface (Prometheus standard)
 export interface UnifiedServerMetrics {
