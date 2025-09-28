@@ -28,7 +28,7 @@ export const METRIC_THRESHOLDS: Record<string, MetricThreshold> = {
   cpu: { warning: 70, critical: 85 },
   memory: { warning: 80, critical: 90 },
   disk: { warning: 80, critical: 95 },
-  network: { warning: 60, critical: 80 },
+  network: { warning: 70, critical: 85 }, // 🔧 수정: 60→70, 80→85 (다른 메트릭과 일관성)
 };
 
 // 서버 상태별 색상 테마

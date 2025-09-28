@@ -78,7 +78,7 @@ function fnvHashToGaussian(
 ### API 서버 (api) - 4개
 ```typescript
 'api': {
-  normalRanges: { cpu: [30,70], memory: [25,60], network: [20,45] },
+  normalRanges: { cpu: [30,70], memory: [25,60], network: [20,65] }, // 🔧 수정: network 상한 45→65 (새로운 임계값 70%에 맞춤)
   scenarios: {
     'memory_leak': { probability: 0.08, effects: { memory: +35, cpu: +10 }},
     'rate_limit_exceeded': { probability: 0.10, effects: { cpu: +25, network: +30 }}
