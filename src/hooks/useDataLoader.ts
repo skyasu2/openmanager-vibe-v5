@@ -107,7 +107,7 @@ export function useDataLoader<T>({
 }
 
 // 특정 타입별 데이터 로더들
-export const useMockDataLoader = <T>(
+export const useMockDataLoader = <T,>(
   mockDataGenerator: () => T,
   delay: number = 1000,
   refreshInterval?: number

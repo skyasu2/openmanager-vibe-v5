@@ -40,7 +40,7 @@ const getSafeArrayLength = (arr: unknown): number => {
   }
 };
 
-const getSafeLastArrayItem = <T>(arr: unknown, fallback: T): T => {
+const getSafeLastArrayItem = <T,>(arr: unknown, fallback: T): T => {
   try {
     if (!arr || !Array.isArray(arr) || arr.length === 0) {
       return fallback;

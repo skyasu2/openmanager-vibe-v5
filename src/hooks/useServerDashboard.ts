@@ -17,7 +17,7 @@ import { serverTypeGuards } from '@/utils/serverUtils';
 import debug from '@/utils/debug';
 
 // 🛡️ 2025 모던 Type Guard 함수들 (Best Practices)
-const isValidArray = <T>(value: unknown): value is T[] => {
+const isValidArray = <T,>(value: unknown): value is T[] => {
   return Array.isArray(value) && value.length > 0;
 };
 

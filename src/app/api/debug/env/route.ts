@@ -7,17 +7,45 @@
  * GET /api/debug/env
  */
 
+import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { env, features, isProduction, isVercelProduction } from '@/utils/env';
+import { authManager } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    // 프로덕션에서는 민감한 정보 숨김
+    // SECURITY: Admin 인증 필수
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Authentication required',
+          message: '이 엔드포인트는 관리자 인증이 필요합니다.',
+        },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
+    const session = authManager.validateBrowserToken(token);
+    if (!session || !authManager.hasPermission(session.sessionId, 'system:admin')) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Insufficient permissions',
+          message: '관리자 권한이 필요합니다.',
+        },
+        { status: 403 }
+      );
+    }
+
+    // SECURITY: 민감한 정보 완전 제거 - 존재 여부만 확인
     const sanitizedEnv = {
       NODE_ENV: env.NODE_ENV,
       VERCEL_ENV: env.VERCEL_ENV,
       
-      // 필수 환경변수 존재 여부만 확인
+      // 필수 환경변수 존재 여부만 확인 (값 노출 금지)
       hasSupabaseUrl: !!env.NEXT_PUBLIC_SUPABASE_URL,
       hasSupabaseAnonKey: !!env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       hasSupabaseServiceKey: !!env.SUPABASE_SERVICE_ROLE_KEY,
@@ -29,12 +57,8 @@ export async function GET() {
       hasGithubToken: !!env.GITHUB_TOKEN,
       hasGcpProjectId: !!env.GCP_PROJECT_ID,
       
-      // 개발 환경에서만 실제 값 표시 (앞 10자만)
-      ...(isProduction ? {} : {
-        supabaseUrlPreview: env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) + '...',
-        googleAiKeyPreview: env.GOOGLE_AI_API_KEY?.substring(0, 10) + '...',
-        gcpProjectId: env.GCP_PROJECT_ID,
-      }),
+      // SECURITY: 민감한 데이터 미리보기 완전 제거
+      // 개발/프로덕션 구분 없이 값 노출 금지
     };
 
     const diagnostics = {
@@ -51,9 +75,9 @@ export async function GET() {
       
       // AI API 관련 핵심 환경변수 체크
       aiReadiness: {
-        localAiReady: features.supabase, // 로컬 AI는 Supabase 기반
-        googleAiReady: features.ai, // Google AI는 API 키 필요
-        searchReady: features.search, // 검색은 Tavily 기반
+        localAiReady: features.supabase,
+        googleAiReady: features.ai,
+        searchReady: features.search,
         overallReady: features.supabase && (features.ai || features.search),
       },
       
@@ -63,6 +87,11 @@ export async function GET() {
       ],
       
       timestamp: new Date().toISOString(),
+      auditInfo: {
+        accessedBy: session.userId,
+        sessionId: session.sessionId,
+        userRole: session.userRole,
+      },
     };
 
     // 진단 결과에 따른 HTTP 상태 코드
@@ -80,13 +109,15 @@ export async function GET() {
     return NextResponse.json(response, { 
       status,
       headers: {
-        'Cache-Control': 'no-store', // 환경변수 상태는 캐시하지 않음
+        'Cache-Control': 'no-store',
         'X-Environment': isProduction ? 'production' : 'development',
         'X-AI-Ready': hasAnyAiService ? 'true' : 'false',
+        'X-Access-Level': 'admin',
       }
     });
 
   } catch (error) {
+    console.error('❌ Environment diagnostics error:', error);
     return NextResponse.json({
       success: false,
       error: 'Environment diagnostics failed',
