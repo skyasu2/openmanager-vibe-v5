@@ -23,6 +23,16 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+
+    /* 타임아웃 설정 최적화 (2025-09-28) */
+    actionTimeout: 30000, // 30초 (기존 15초에서 증가)
+    navigationTimeout: 60000, // 60초 (네트워크 지연 고려)
+  },
+
+  /* 전역 타임아웃 설정 */
+  timeout: 120000, // 2분 (전체 테스트 타임아웃)
+  expect: {
+    timeout: 10000, // assertion 타임아웃 10초
   },
 
 
