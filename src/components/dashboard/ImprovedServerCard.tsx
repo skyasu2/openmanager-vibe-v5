@@ -95,7 +95,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     const safeServer = {
       id: server.id || 'unknown',
       name: server.name || '알 수 없는 서버',
-      status: server.status || 'offline',
+      status: server.status || 'unknown', // 🔧 수정: 'offline' → 'unknown' (기본값 변경)
       type: server.type || 'server',
       location: server.location || '서울',
       os: server.os || 'Ubuntu 22.04',
@@ -249,7 +249,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               ? 'critical'
               : serverStatus === 'warning'
                 ? 'warning'
-                : 'healthy'; // 기본값
+                : 'unknown'; // 🔧 수정: 'healthy' → 'unknown' (기본값 변경)
 
         const theme = getServerStatusTheme(normalizedStatus);
       

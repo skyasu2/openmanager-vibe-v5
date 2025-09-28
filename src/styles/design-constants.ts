@@ -45,6 +45,19 @@ export const SERVER_STATUS_COLORS = {
       backgroundColor: 'rgba(239, 68, 68, 0.1)',
       color: 'inherit'
     }
+  },
+  unknown: {
+    // 알 수 없는 상태 - 회색 계열
+    background: 'bg-gradient-to-br from-white/95 via-gray-50/90 to-gray-100/70',
+    border: 'border-gray-300/60 hover:border-gray-400/80',
+    text: 'text-gray-800',
+    badge: 'bg-gray-100 text-gray-800',
+    graphColor: '#6b7280', // gray-500
+    accentColor: 'rgb(107, 114, 128)', // gray-500
+    statusColor: {
+      backgroundColor: 'rgba(107, 114, 128, 0.1)',
+      color: 'inherit'
+    }
   }
 } as const;
 
@@ -93,10 +106,10 @@ export const LAYOUT = {
 } as const;
 
 // ===== 유틸리티 함수 =====
-export type ServerStatus = 'healthy' | 'warning' | 'critical';
+export type ServerStatus = 'healthy' | 'warning' | 'critical' | 'unknown';
 
 export const getServerStatusTheme = (status: ServerStatus) => {
-  return SERVER_STATUS_COLORS[status] || SERVER_STATUS_COLORS.healthy;
+  return SERVER_STATUS_COLORS[status] || SERVER_STATUS_COLORS.unknown; // 🔧 수정: 기본값 'healthy' → 'unknown'
 };
 
 export const getTypographyClass = (
