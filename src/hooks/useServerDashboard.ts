@@ -13,6 +13,7 @@ import type { ServerStatus } from '@/types/server-common';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';
 import { useWorkerStats, calculateServerStatsFallback } from './useWorkerStats';
+import { serverTypeGuards } from '@/utils/serverUtils';
 import debug from '@/utils/debug';
 
 // 🛡️ 2025 모던 Type Guard 함수들 (Best Practices)
@@ -516,7 +517,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
         network: network,
         uptime: s.uptime || 0,
         location: s.location || 'Unknown',
-        alerts: Array.isArray(s.alerts) ? s.alerts.length : s.alerts || 0,
+        alerts: serverTypeGuards.getAlerts(s?.alerts),
         ip: s.ip || '192.168.1.1',
         os: s.os || 'Ubuntu 22.04 LTS',
         type: s.type || s.role || 'worker',
