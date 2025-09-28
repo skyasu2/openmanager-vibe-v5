@@ -1,9 +1,10 @@
 /**
- * 🚀 캐시 최적화 API
+ * 🚀 캐시 최적화 API (Mock 시스템 기반)
  *
  * 캐시 워밍업 및 최적화 작업 실행
  * POST /api/cache/optimize
  * - Zod 스키마로 타입 안전성 보장
+ * - Mock 시스템 기반 서버 데이터 활용
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -12,7 +13,7 @@ import {
   invalidateCache,
   getCacheService,
 } from '@/lib/cache-helper';
-import { supabase as createClient } from '@/lib/supabase';
+import { getMockSystem } from '@/mock';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import debug from '@/utils/debug';
 import {
@@ -78,13 +79,13 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * 캐시 워밍업 처리
+ * 캐시 워밍업 처리 (Mock 시스템 기반)
  */
 async function handleWarmup(options?: {
   targets?: string[];
   pattern?: string;
 }): Promise<CacheWarmupResponse> {
-  const supabaseClient = createClient;
+  const mockSystem = getMockSystem();
   const warmupItems = [];
 
   // 서버 목록 워밍업
@@ -92,11 +93,9 @@ async function handleWarmup(options?: {
     warmupItems.push({
       key: 'servers:list',
       fetcher: async () => {
-        const { data } = await supabaseClient
-          .from('servers')
-          .select('*')
-          .order('created_at', { ascending: false });
-        return data || [];
+        const servers = mockSystem.getServers();
+        debug.log(`📋 Mock 시스템에서 ${servers.length}개 서버 로드됨 (캐시 워밍업)`);
+        return servers;
       },
       ttl: 300, // 5분
     });
@@ -107,22 +106,20 @@ async function handleWarmup(options?: {
     warmupItems.push({
       key: 'servers:summary',
       fetcher: async () => {
-        const { data: servers } = await supabaseClient
-          .from('servers')
-          .select('id, status, metrics');
+        const servers = mockSystem.getServers();
 
-        if (!servers) return null;
+        if (!servers || servers.length === 0) return null;
 
-        return {
+        const summary = {
           totalServers: servers.length,
           onlineServers: servers.filter((s) => s.status === 'online').length,
           avgCpuUsage:
-            servers.reduce((sum, s) => {
-              const metrics = s.metrics as ServerMetricsDetail;
-              return sum + (metrics?.cpu?.usage || 0);
-            }, 0) / servers.length,
+            servers.reduce((sum, s) => sum + (s.cpu || 0), 0) / servers.length,
           timestamp: Date.now(),
         };
+
+        debug.log(`📊 Mock 시스템 서버 요약: 총 ${summary.totalServers}개, 온라인 ${summary.onlineServers}개`);
+        return summary;
       },
       ttl: 900, // 15분
     });
@@ -130,27 +127,23 @@ async function handleWarmup(options?: {
 
   // 개별 서버 데이터 워밍업
   if (!options?.targets || options.targets.includes('server-details')) {
-    const { data: serverIds } = await supabaseClient
-      .from('servers')
-      .select('id')
-      .limit(10); // 상위 10개만
+    const servers = mockSystem.getServers();
+    const topServers = servers.slice(0, 10); // 상위 10개만
 
-    if (serverIds) {
-      serverIds.forEach(({ id }) => {
-        warmupItems.push({
-          key: `server:${id}`,
-          fetcher: async () => {
-            const { data } = await supabaseClient
-              .from('servers')
-              .select('*')
-              .eq('id', id)
-              .single();
-            return data;
-          },
-          ttl: 300, // 5분
-        });
+    topServers.forEach((server) => {
+      warmupItems.push({
+        key: `server:${server.id}`,
+        fetcher: async () => {
+          // Mock 시스템에서 특정 서버 ID 찾기
+          const foundServer = mockSystem.getServers().find(s => s.id === server.id);
+          debug.log(`🔍 서버 [${server.id}] 캐시 워밍업: ${foundServer ? '성공' : '실패'}`);
+          return foundServer || null;
+        },
+        ttl: 300, // 5분
       });
-    }
+    });
+
+    debug.log(`🔥 ${topServers.length}개 개별 서버 데이터 캐시 워밍업 준비 완료`);
   }
 
   await warmupCache(warmupItems);

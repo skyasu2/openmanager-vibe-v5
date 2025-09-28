@@ -40,8 +40,8 @@ log_header() {
 setup_wsl_environment() {
     log_header "🐧 WSL 네이티브 환경변수 설정"
 
-    # Node.js 메모리 최적화 (19GB WSL 환경 최적화)
-    export NODE_OPTIONS="--max-old-space-size=4096 --gc-interval=100 --optimize-for-size"
+    # Node.js 메모리 최적화 (19GB WSL 환경 최적화) - 호환성 개선
+    export NODE_OPTIONS="--max-old-space-size=4096 --optimize-for-size"
 
     # Next.js 최적화 설정
     export NEXT_TELEMETRY_DISABLED=1

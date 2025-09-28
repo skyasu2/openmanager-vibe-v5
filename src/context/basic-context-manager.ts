@@ -1,14 +1,13 @@
 /**
- * 🗂️ 기본 컨텍스트 관리자 (Level 1)
+ * 🗂️ 기본 컨텍스트 관리자 (Level 1) - Mock 시스템 기반
  *
  * ✅ 서버 목록, 기본 설정, FAQ, 가이드 수집
- * ✅ Memory + Supabase 하이브리드 캐싱
+ * ✅ Memory + Mock 시스템 하이브리드 캐싱
  * ✅ 실시간 업데이트 (5분 간격)
  * ✅ 자동 컨텍스트 최적화
  */
 
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { getSupabaseClient } from '@/lib/supabase-singleton';
+import { getMockSystem } from '@/mock';
 
 // 컨텍스트 인터페이스
 export interface BasicContextData {
@@ -114,7 +113,7 @@ class MemoryCache {
 
 export class BasicContextManager {
   private memoryCache: MemoryCache;
-  private supabase: SupabaseClient | null = null;
+  private mockSystem: ReturnType<typeof getMockSystem>;
   private updateInterval: NodeJS.Timeout | null = null;
   private readonly CACHE_KEY = 'openmanager:basic_context';
   private readonly TTL = 300; // 5분
@@ -124,19 +123,21 @@ export class BasicContextManager {
     // 메모리 캐시 초기화
     this.memoryCache = new MemoryCache();
 
-    // 통합 Supabase 싱글톤 사용
+    // Mock 시스템 초기화
     try {
-      this.supabase = getSupabaseClient();
-      console.log('✅ BasicContextManager - Supabase 싱글톤 연결 성공');
+      this.mockSystem = getMockSystem();
+      console.log('✅ BasicContextManager - Mock 시스템 연결 성공');
     } catch (error) {
       console.warn(
-        '⚠️ BasicContextManager - Supabase 연결 실패, 메모리 캐시만 사용:',
+        '⚠️ BasicContextManager - Mock 시스템 초기화 실패, 기본 데이터 사용:',
         error
       );
+      // 폴백으로 다시 시도
+      this.mockSystem = getMockSystem();
     }
 
     console.log('🔧 BasicContextManager 초기화 완료');
-    console.log(`📦 캐시: Memory${this.supabase ? ' + Supabase' : ' Only'}`);
+    console.log('📦 캐시: Memory + Mock System');
   }
 
   /**
@@ -194,19 +195,7 @@ export class BasicContextManager {
       // 캐시에 저장
       this.memoryCache.set(this.CACHE_KEY, context, this.TTL);
 
-      // Supabase에도 저장 (실패해도 계속 진행)
-      if (this.supabase) {
-        try {
-          await this.saveContextToSupabase(context);
-        } catch (supabaseError) {
-          console.warn(
-            '⚠️ Supabase 저장 실패, 메모리 캐시는 유지:',
-            supabaseError
-          );
-        }
-      }
-
-      console.log('✅ 기본 컨텍스트 수집 완료');
+      console.log('✅ 기본 컨텍스트 수집 완료 (Mock 시스템 기반)');
       return context;
     } catch (error) {
       console.error('❌ 기본 컨텍스트 수집 실패:', error);
@@ -257,18 +246,13 @@ export class BasicContextManager {
   }
 
   /**
-   * 🖥️ 서버 데이터 수집
+   * 🖥️ 서버 데이터 수집 (Mock 시스템 기반)
    */
   private async collectServersData() {
-    if (this.supabase) {
-      const { data, error } = await this.supabase
-        .from('servers')
-        .select('id, name, status, ip, os, updated_at')
-        .limit(100);
+    try {
+      const servers = this.mockSystem.getServers();
+      console.log(`📊 Mock 시스템에서 ${servers.length}개 서버 데이터 로드됨`);
 
-      if (error) throw error;
-
-      const servers = data || [];
       const statusCounts = {
         online: servers.filter((s) => s.status === 'online').length,
         offline: servers.filter((s) => s.status === 'offline').length,
@@ -279,197 +263,132 @@ export class BasicContextManager {
       return {
         total: servers.length,
         ...statusCounts,
-        list: servers.map((server) => ({
+        list: servers.slice(0, 100).map((server) => ({  // 최대 100개만
           id: server.id,
           name: server.name || 'Unknown',
           status: server.status || 'offline',
           ip: server.ip || 'N/A',
           os: server.os || 'Unknown',
-          lastUpdate: new Date(server.updated_at || Date.now()).getTime(),
+          lastUpdate: server.lastUpdate ? new Date(server.lastUpdate).getTime() : Date.now(),
         })),
       };
+    } catch (error) {
+      console.warn('⚠️ Mock 시스템 서버 데이터 수집 실패, 기본 데이터 사용:', error);
+      return this.getDefaultServersData();
     }
-
-    return this.getDefaultServersData();
   }
 
   /**
-   * 🚨 알림 데이터 수집
+   * 🚨 알림 데이터 수집 (Mock 데이터 기반)
    */
   private async collectAlertsData() {
-    if (this.supabase) {
-      // 최근 24시간 알림만 조회
-      const yesterday = new Date(
-        Date.now() - 24 * 60 * 60 * 1000
-      ).toISOString();
+    try {
+      // Mock 시스템에서 critical/warning 서버를 기반으로 알림 생성
+      const servers = this.mockSystem.getServers();
+      const problematicServers = servers.filter(s =>
+        s.status === 'critical' || s.status === 'warning'
+      );
 
-      const { data, error } = await this.supabase
-        .from('alerts')
-        .select('id, type, severity, message, server_name, created_at')
-        .gte('created_at', yesterday)
-        .order('created_at', { ascending: false })
-        .limit(50);
+      const mockAlerts = problematicServers.slice(0, 10).map((server, index) => ({
+        id: `alert-${server.id}-${Date.now()}-${index}`,
+        type: ['cpu', 'memory', 'disk', 'network'][Math.floor(Math.random() * 4)] as 'cpu' | 'memory' | 'disk' | 'network',
+        severity: server.status === 'critical' ? 'critical' as const : 'warning' as const,
+        message: server.status === 'critical'
+          ? `${server.name} 서버에서 심각한 성능 문제 감지됨`
+          : `${server.name} 서버 성능 경고`,
+        server: server.name,
+        timestamp: Date.now() - Math.random() * 24 * 60 * 60 * 1000, // 최근 24시간 내
+      }));
 
-      if (error) throw error;
-
-      const alerts = data || [];
+      console.log(`🚨 ${mockAlerts.length}개 모의 알림 생성됨`);
 
       return {
-        total: alerts.length,
-        recent: alerts.map((alert) => ({
-          id: alert.id,
-          type: alert.type || 'cpu',
-          severity: alert.severity || 'warning',
-          message: alert.message || '알림 메시지 없음',
-          server: alert.server_name || 'Unknown',
-          timestamp: new Date(alert.created_at || Date.now()).getTime(),
-        })),
+        total: mockAlerts.length,
+        recent: mockAlerts,
       };
+    } catch (error) {
+      console.warn('⚠️ Mock 알림 데이터 생성 실패, 기본 데이터 사용:', error);
+      return this.getDefaultAlertsData();
     }
-
-    return this.getDefaultAlertsData();
   }
 
   /**
-   * 📚 가이드 데이터 수집
+   * 📚 가이드 데이터 수집 (정적 Mock 데이터)
    */
   private async collectGuidesData() {
-    if (this.supabase) {
-      const { data, error } = await this.supabase
-        .from('guides')
-        .select('id, title, content, category, priority, updated_at')
-        .eq('active', true)
-        .order('priority', { ascending: false })
-        .limit(20);
+    const mockGuides = [
+      {
+        id: 'guide-1',
+        title: 'OpenManager VIBE 서버 모니터링 시작하기',
+        content: 'Mock 시스템을 활용한 실시간 서버 모니터링 방법을 안내합니다.',
+        category: 'getting-started',
+        priority: 10,
+        lastUpdate: Date.now(),
+      },
+      {
+        id: 'guide-2',
+        title: '알림 설정 및 관리',
+        content: '서버 알림을 효과적으로 설정하고 관리하는 방법을 설명합니다.',
+        category: 'alerts',
+        priority: 8,
+        lastUpdate: Date.now(),
+      },
+      {
+        id: 'guide-3',
+        title: '대시보드 사용법',
+        content: '대시보드의 각 기능과 활용 방법을 상세히 안내합니다.',
+        category: 'dashboard',
+        priority: 7,
+        lastUpdate: Date.now(),
+      },
+    ];
 
-      if (error) throw error;
-
-      return (data || []).map((guide) => ({
-        id: guide.id,
-        title: guide.title || '제목 없음',
-        content: guide.content || '',
-        category: guide.category || 'general',
-        priority: guide.priority || 0,
-        lastUpdate: new Date(guide.updated_at || Date.now()).getTime(),
-      }));
-    }
-
-    return [];
+    console.log(`📚 ${mockGuides.length}개 모의 가이드 로드됨`);
+    return mockGuides;
   }
 
   /**
-   * ❓ FAQ 데이터 수집
+   * ❓ FAQ 데이터 수집 (정적 Mock 데이터)
    */
   private async collectFaqsData() {
-    if (this.supabase) {
-      const { data, error } = await this.supabase
-        .from('faqs')
-        .select('id, question, answer, category, view_count')
-        .eq('active', true)
-        .order('view_count', { ascending: false })
-        .limit(15);
+    const mockFaqs = [
+      {
+        id: 'faq-1',
+        question: 'Mock 시스템은 어떻게 작동하나요?',
+        answer: 'FNV-1a 해시 기반으로 현실적인 서버 메트릭을 시뮬레이션합니다.',
+        category: 'system',
+        popularity: 25,
+      },
+      {
+        id: 'faq-2',
+        question: '서버 상태가 Critical일 때 어떻게 해야 하나요?',
+        answer: '서버 로그를 확인하고 필요시 재시작을 고려해보세요.',
+        category: 'troubleshooting',
+        popularity: 18,
+      },
+      {
+        id: 'faq-3',
+        question: '실시간 데이터 업데이트 주기는 얼마나 되나요?',
+        answer: 'Mock 시스템은 30초마다 자동으로 메트릭을 업데이트합니다.',
+        category: 'monitoring',
+        popularity: 12,
+      },
+    ];
 
-      if (error) throw error;
-
-      return (data || []).map((faq) => ({
-        id: faq.id,
-        question: faq.question || '질문 없음',
-        answer: faq.answer || '답변 없음',
-        category: faq.category || 'general',
-        popularity: faq.view_count || 0,
-      }));
-    }
-
-    return [];
+    console.log(`❓ ${mockFaqs.length}개 모의 FAQ 로드됨`);
+    return mockFaqs;
   }
 
   /**
-   * ⚙️ 설정 데이터 수집
+   * ⚙️ 설정 데이터 수집 (기본 설정 사용)
    */
   private async collectSettingsData() {
-    if (this.supabase) {
-      const { data, error } = await this.supabase
-        .from('user_settings')
-        .select('settings_data')
-        .eq('user_id', 'default')
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
-
-      const settings = data?.settings_data || {};
-      return {
-        theme: settings.theme || 'auto',
-        language: settings.language || 'ko',
-        notifications: settings.notifications ?? true,
-        refreshInterval: settings.refreshInterval || 300,
-      };
-    }
-
-    return this.getDefaultSettings();
+    // Mock 환경에서는 기본 설정 사용
+    const settings = this.getDefaultSettings();
+    console.log('⚙️ 기본 설정 로드됨');
+    return settings;
   }
 
-  /**
-   * 💾 Supabase에 컨텍스트 저장
-   */
-  private async saveContextToSupabase(
-    context: BasicContextData
-  ): Promise<void> {
-    if (!this.supabase) return;
-
-    try {
-      const contextCache = {
-        cache_key: this.CACHE_KEY,
-        data: context,
-        expires_at: new Date(Date.now() + this.TTL * 1000).toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      const { error } = await this.supabase
-        .from('context_cache')
-        .upsert(contextCache);
-
-      if (error) {
-        console.warn('⚠️ Supabase 컨텍스트 저장 실패:', error);
-      }
-
-      // 히스토리 관리 (최대 MAX_HISTORY개만 유지)
-      await this.cleanupContextHistory();
-    } catch (error) {
-      console.warn('⚠️ Supabase 컨텍스트 저장 중 오류:', error);
-    }
-  }
-
-  /**
-   * 🧹 컨텍스트 히스토리 정리
-   */
-  private async cleanupContextHistory(): Promise<void> {
-    if (!this.supabase) return;
-
-    try {
-      // 오래된 컨텍스트 삭제 (MAX_HISTORY개 초과하는 것들)
-      const { data, error } = await this.supabase
-        .from('context_cache')
-        .select('id')
-        .order('updated_at', { ascending: false })
-        .range(this.MAX_HISTORY, this.MAX_HISTORY + 50);
-
-      if (error) return;
-
-      if (data && data.length > 0) {
-        const idsToDelete = data.map((item) => item.id);
-        await this.supabase
-          .from('context_cache')
-          .delete()
-          .in('id', idsToDelete);
-
-        console.log(`🧹 컨텍스트 히스토리 정리: ${idsToDelete.length}개 삭제`);
-      }
-    } catch (error) {
-      console.warn('⚠️ 컨텍스트 히스토리 정리 실패:', error);
-    }
-  }
 
   /**
    * 📊 현재 컨텍스트 조회
@@ -534,7 +453,7 @@ export class BasicContextManager {
             faqsTotal: currentContext.faqs.length,
           }
         : null,
-      supabaseConnected: this.supabase !== null,
+      mockSystemConnected: this.mockSystem !== null,
       updateInterval: this.updateInterval !== null,
     };
   }

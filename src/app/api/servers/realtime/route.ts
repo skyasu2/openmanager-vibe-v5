@@ -1,14 +1,14 @@
 /**
- * 🚀 목업 전용 실시간 서버 데이터 API
+ * 🚀 Mock 시스템 기반 실시간 서버 데이터 API
  *
  * 기능:
- * - 실시간 서버 메트릭 제공
+ * - 실시간 서버 메트릭 제공 (Mock 시스템 자동 로테이션)
  * - 클러스터 상태 정보
  * - 애플리케이션 성능 지표
  * - 대시보드용 요약 데이터
  */
 
-import { getSupabaseClient } from '@/lib/supabase/supabase-client';
+import { getMockSystem } from '@/mock';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import debug from '@/utils/debug';
@@ -43,42 +43,23 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get('limit') || '8', 10);
 
   try {
-    debug.log('🚀 실시간 서버 데이터 API - Supabase 실시간 모드');
+    debug.log('🚀 실시간 서버 데이터 API - Mock 시스템 실시간 모드');
 
-    // Supabase에서 서버 데이터 가져오기
-    const supabase = getSupabaseClient();
-    const { data: allServers, error } = await supabase
-      .from('servers')
-      .select('*')
-      .order('created_at', { ascending: false });
+    // Mock 시스템에서 실시간 서버 데이터 가져오기 (자동 로테이션 포함)
+    const mockSystem = getMockSystem({
+      autoRotate: true,
+      rotationInterval: 30000, // 30초마다 데이터 업데이트
+      speed: 1, // 실시간 속도
+    });
 
-    if (error) {
-      debug.error('❌ Supabase 실시간 서버 데이터 조회 실패:', error);
-      throw new Error(`Failed to fetch realtime servers: ${error.message}`);
-    }
+    const allServers = mockSystem.getServers();
+    debug.log(`📊 Mock 시스템에서 ${allServers.length}개 서버 로드됨`);
 
-    // 서버 필터링 및 변환
-    const validServers = (allServers || []).filter(
-      (server) => server && server.id && server.name
-    );
-
-    // 실시간 데이터 시뮬레이션 (약간의 변동 추가)
-    const realtimeServers = validServers.map((server) => ({
+    // 실시간 업데이트 타임스탬프 추가
+    const realtimeServers = allServers.map((server) => ({
       ...server,
-      cpu: Math.min(
-        100,
-        Math.max(0, (server.cpu || 50) + (Math.random() - 0.5) * 10)
-      ),
-      memory: Math.min(
-        100,
-        Math.max(0, (server.memory || 50) + (Math.random() - 0.5) * 5)
-      ),
-      disk: server.disk || 50,
-      network: {
-        in: (server.network || 100) + (Math.random() - 0.5) * 20,
-        out: (server.network || 100) + (Math.random() - 0.5) * 15,
-      },
       lastUpdate: new Date().toISOString(),
+      // Mock 시스템이 이미 실시간 변동을 처리하므로 추가 시뮬레이션 불필요
     }));
 
     // 요약 통계 계산
@@ -151,11 +132,11 @@ export async function GET(request: NextRequest) {
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    debug.error('❌ 실시간 서버 데이터 API 오류:', errorMessage);
+    debug.error('❌ Mock 시스템 실시간 서버 데이터 API 오류:', errorMessage);
     return NextResponse.json(
       {
         success: false,
-        message: 'Internal Server Error',
+        message: 'Mock System Error',
         error: errorMessage,
         servers: [],
         summary: {},
@@ -202,11 +183,13 @@ export async function POST(request: NextRequest) {
         });
 
       case 'refresh': {
-        // Supabase 데이터 새로고침 (캐시 정리)
-        debug.log('🔄 실시간 서버 데이터 새로고침 요청');
+        // Mock 시스템 데이터 새로고침 (시스템 리셋)
+        debug.log('🔄 Mock 시스템 실시간 서버 데이터 새로고침 요청');
+        const mockSystem = getMockSystem();
+        mockSystem.reset(); // Mock 시스템 리셋으로 새로운 데이터 생성
         return NextResponse.json({
           success: true,
-          message: '실시간 서버 데이터가 새로고침되었습니다.',
+          message: 'Mock 시스템 실시간 서버 데이터가 새로고침되었습니다.',
           status: { status: 'active' },
         });
       }
@@ -217,7 +200,7 @@ export async function POST(request: NextRequest) {
         );
     }
   } catch (error) {
-    debug.error('❌ 실시간 서버 데이터 POST API 오류:', error);
+    debug.error('❌ Mock 시스템 실시간 서버 데이터 POST API 오류:', error);
     return NextResponse.json(
       {
         success: false,

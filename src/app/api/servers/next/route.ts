@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase/supabase-client';
+import { getMockSystem } from '@/mock';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
   ServerPaginationQuerySchema,
@@ -17,21 +17,21 @@ import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';
 
 /**
- * 🖥️ Sequential Server Generation API (실제 서버데이터 생성기 연동)
+ * 🖥️ Mock 시스템 기반 서버 데이터 생성 API
  *
- * ✅ 개선: GCPRealDataService를 사용하여 정교한 서버 데이터 제공
- * - 24시간 베이스라인 패턴 기반 데이터
- * - 실제 서버 스펙 및 메트릭
+ * ✅ 개선: Mock 시스템을 사용하여 정교한 서버 데이터 제공
+ * - 24시간 시뮬레이션 패턴 기반 데이터
+ * - 현실적인 서버 스펙 및 메트릭
  * - 시간대별 부하 패턴 반영
  * - 서버 타입별 특성화된 데이터
  *
  * GET: 다음 서버 정보 조회 (Rate Limited: 1분에 20회)
  * POST: 서버 생성 요청 (Rate Limited: 1분에 20회)
  *
- * 실제 서버 데이터를 받으려면:
- * 1. 실제 서버 모니터링 에이전트 설치
- * 2. 데이터베이스 연결 설정
- * 3. 실제 메트릭 수집 로직 구현
+ * Mock 시스템 기능:
+ * 1. FNV-1a 해시 기반 안정적 데이터 생성
+ * 2. 실시간 변동 시뮬레이션
+ * 3. 장애 시나리오 포함 현실적 메트릭
  */
 
 // 순차 생성을 위한 상태 관리
@@ -127,21 +127,13 @@ const getHandler = createApiRoute()
       status,
     } = context.query;
 
-    // Supabase에서 서버 데이터 가져오기
-    const supabase = getSupabaseClient();
-    const { data: supabaseServers, error } = await supabase
-      .from('servers')
-      .select('*')
-      .order('created_at', { ascending: false });
+    // Mock 시스템에서 서버 데이터 가져오기
+    const mockSystem = getMockSystem();
+    const mockServers = mockSystem.getServers();
 
-    if (error) {
-      debug.error('❌ Supabase 서버 데이터 조회 실패:', error);
-      throw new Error(`Failed to fetch paginated servers: ${error.message}`);
-    }
+    debug.log(`📊 Mock 시스템에서 ${mockServers.length}개 서버 로드됨`);
 
-    const mockServers = supabaseServers || [];
-
-    // 서버 데이터를 API 형식으로 변환
+    // Mock 시스템 서버 데이터를 API 형식으로 변환
     const allServers: PaginatedServer[] = mockServers.map((server) => ({
       id: server.id,
       name: server.name,
@@ -151,14 +143,14 @@ const getHandler = createApiRoute()
       lastUpdate:
         server.lastUpdate instanceof Date
           ? server.lastUpdate.toISOString()
-          : server.lastUpdate || new Date().toISOString(),
+          : new Date().toISOString(),
       metrics: {
-        cpu: Math.round(server.metrics?.cpu ?? server.cpu ?? 0),
-        memory: Math.round(server.metrics?.memory ?? server.memory ?? 0),
-        disk: Math.round(server.metrics?.disk ?? server.disk ?? 0),
+        cpu: Math.round(server.cpu ?? 0),
+        memory: Math.round(server.memory ?? 0),
+        disk: Math.round(server.disk ?? 0),
         network: {
-          bytesIn: Math.round(server.metrics?.network ?? server.network ?? 0),
-          bytesOut: Math.round(server.metrics?.network ?? server.network ?? 0),
+          bytesIn: Math.round(server.network ?? 0),
+          bytesOut: Math.round(server.network ?? 0),
           packetsIn: 0,
           packetsOut: 0,
           latency: 0,
@@ -169,7 +161,7 @@ const getHandler = createApiRoute()
       },
       tags: [],
       metadata: {
-        type: server.type || server.role || 'unknown',
+        type: server.type || 'unknown',
         environment: server.environment || 'production',
       },
     }));

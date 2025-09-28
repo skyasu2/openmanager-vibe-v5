@@ -32,22 +32,33 @@ async function checkDatabaseStatus(): Promise<
     const startTime = Date.now();
     const supabase = getSupabaseClient();
 
-    // Supabase 연결 체크 - 간단한 쿼리 실행
-    const { error } = await supabase
-      .from('servers')
-      .select('id')
-      .limit(1)
-      .single();
+    // 타임아웃 설정 (2초)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
 
-    const latency = Date.now() - startTime;
+    try {
+      // Supabase 연결 체크 - 실제 존재하는 테이블 사용
+      const { data, error } = await supabase
+        .from('command_vectors')
+        .select('id')
+        .limit(1);
 
-    if (error) {
-      debug.error('❌ Database check failed:', error.message);
+      clearTimeout(timeoutId);
+      const latency = Date.now() - startTime;
+
+      if (error) {
+        debug.error('❌ Database check failed:', error.message);
+        return 'error';
+      }
+
+      // 데이터 존재 여부와 관계없이 쿼리가 성공하면 연결됨
+      debug.log(`✅ Database connected (latency: ${latency}ms, records: ${data?.length || 0})`);
+      return 'connected';
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      debug.error('❌ Database fetch timeout or error:', fetchError);
       return 'error';
     }
-
-    debug.log(`✅ Database connected (latency: ${latency}ms)`);
-    return 'connected';
   } catch (error) {
     debug.error('❌ Database check error:', error);
     return 'error';

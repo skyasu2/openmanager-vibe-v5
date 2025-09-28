@@ -177,7 +177,7 @@ export async function checkSupabaseConnection(): Promise<{
       };
     }
 
-    const { error } = await client.from('servers').select('count').limit(1);
+    const { error } = await client.from('command_vectors').select('id').limit(1);
 
     return {
       status: error ? 'error' : 'connected',
