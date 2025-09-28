@@ -45,7 +45,7 @@ const hasValidLength = (value: unknown): value is { length: number } => {
 interface ServerStats {
   total: number;
   online: number;
-  offline: number;
+  unknown: number; // 🔧 수정: 'offline' → 'unknown' (일관성)
   warning: number;
   critical: number;
   avgCpu: number;
@@ -91,7 +91,7 @@ const adaptWorkerStatsToLegacy = (workerStats: any): ServerStats => {
   return {
     total: workerStats.total || 0,
     online: workerStats.online || 0,
-    offline: workerStats.offline || 0,
+    unknown: workerStats.unknown || workerStats.offline || 0, // 🔧 수정: 'offline' → 'unknown' (호환성)
     warning: workerStats.warning || 0,
     critical: workerStats.critical || 0,
     avgCpu: Math.round(workerStats.averageCpu || 0),
@@ -112,7 +112,7 @@ const calculateServerStats = (servers: EnhancedServerData[]): ServerStats => {
     return {
       total: 0,
       online: 0,
-      offline: 0,
+      unknown: 0, // 🔧 수정: 'offline' → 'unknown' (일관성)
       warning: 0,
       critical: 0,
       avgCpu: 0,
@@ -227,7 +227,7 @@ interface UseServerDashboardOptions {
     total: number;
     online: number;
     warning: number;
-    offline: number;
+    unknown: number; // 🔧 수정: 'offline' → 'unknown' (일관성)
   }) => void;
 }
 
@@ -509,7 +509,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
         id: s.id,
         name: s.name || s.hostname || 'Unknown',
         hostname: s.hostname || s.name || 'Unknown',
-        status: s.status === 'running' ? 'online' : s.status as 'healthy' | 'warning' | 'critical' | 'offline' | 'online',
+        status: s.status === 'running' ? 'online' : s.status as 'online' | 'warning' | 'critical' | 'unknown', // 🔧 수정: 'offline' → 'unknown' (일관성)
         // 고정 시간별 데이터의 메트릭 그대로 사용
         cpu: cpu,
         memory: memory,
@@ -624,7 +624,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const stats = useMemo(() => {
     if (!actualServers || actualServers.length === 0) {
       return {
-        total: 0, online: 0, offline: 0, warning: 0, critical: 0,
+        total: 0, online: 0, unknown: 0, warning: 0, critical: 0, // 🔧 수정: 'offline' → 'unknown' (일관성)
         avgCpu: 0, avgMemory: 0, avgDisk: 0
       };
     }

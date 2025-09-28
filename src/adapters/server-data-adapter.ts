@@ -94,7 +94,7 @@ function _validateServer(
     typeof serverCandidate.id === 'string' &&
     typeof serverCandidate.name === 'string' &&
     typeof serverCandidate.status === 'string' &&
-    ['online', 'offline', 'warning'].includes(serverCandidate.status) &&
+    ['online', 'unknown', 'warning', 'critical'].includes(serverCandidate.status) && // 🔧 수정: 'offline' → 'unknown' + 'critical' 추가 (일관성)
     typeof serverCandidate.cpu === 'number' &&
     typeof serverCandidate.memory === 'number' &&
     typeof serverCandidate.disk === 'number' &&

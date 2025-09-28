@@ -43,11 +43,11 @@ export const serverTypeGuards = {
 
   getStatus: (
     status: Server['status']
-  ): 'healthy' | 'warning' | 'critical' | 'offline' => {
-    if (status === 'online' || status === 'healthy') return 'healthy';
+  ): 'online' | 'warning' | 'critical' | 'unknown' => {
+    if (status === 'online') return 'online';
     if (status === 'warning') return 'warning';
     if (status === 'critical') return 'critical';
-    return 'offline';
+    return 'unknown'; // 🔧 수정: 'offline' → 'unknown' (일관성)
   },
 
   getAlerts: (alerts: Server['alerts']): number => {
@@ -78,10 +78,9 @@ export function formatUptime(uptime?: number | string): string {
  */
 export const SERVER_STATUS_PRIORITY = {
   critical: 0,
-  offline: 0,
+  unknown: 0, // 🔧 수정: 'offline' → 'unknown' (일관성)
   warning: 1,
-  healthy: 2,
-  online: 2,
+  online: 2, // 🔧 수정: 'healthy' → 'online' (일관성)
 } as const;
 
 /**
