@@ -150,7 +150,7 @@ export function useProfileSecurity() {
           await new Promise((resolve) => setTimeout(resolve, delay));
         }
 
-        console.log('🔐 관리자 인증 시도:', password); // 디버그 로그
+        console.log('🔐 관리자 인증 시도'); // 디버그 로그
         
         // Zustand 스토어의 인증 함수 사용
         const result = await zustandAuth(password);

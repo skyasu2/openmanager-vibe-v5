@@ -39,17 +39,16 @@ export default function AuthCallbackPage() {
         const state = urlParams.get('state');
         const error_param = urlParams.get('error');
         
-        console.log('🔍 OAuth 콜백 상세 디버깅:', {
-          urlParams: Object.fromEntries(urlParams),
-          authCode: authCode ? `${authCode.slice(0, 10)}...` : null,
-          state: state ? `${state.slice(0, 10)}...` : null,
-          error_param,
-          existingTokens: {
-            codeVerifier: localStorage.getItem('sb-vnswjnltnhpsueosfhmw-auth-token-code-verifier'),
-            authToken: localStorage.getItem('sb-vnswjnltnhpsueosfhmw-auth-token'),
+        // ✅ 보안 개선: 민감정보 로깅 제거, 필요한 상태만 기록
+        debug.log('🔍 OAuth 콜백 처리 시작:', {
+          hasAuthCode: !!authCode,
+          hasState: !!state,
+          hasError: !!error_param,
+          hasExistingTokens: {
+            codeVerifier: !!localStorage.getItem('sb-vnswjnltnhpsueosfhmw-auth-token-code-verifier'),
+            authToken: !!localStorage.getItem('sb-vnswjnltnhpsueosfhmw-auth-token'),
             hasAuthCookie: document.cookie.includes('sb-vnswjnltnhpsueosfhmw-auth-token')
           },
-          cookies: document.cookie,
           timestamp: new Date().toISOString()
         });
 
@@ -124,7 +123,7 @@ export default function AuthCallbackPage() {
         });
 
         if (session?.user) {
-          debug.log('✅ 세션 확인됨:', session.user.email);
+          debug.log('✅ 세션 확인됨, userId:', session.user.id);
           debug.log(
             `⏱️ 콜백 처리 시간: ${(performance.now() - startTime).toFixed(0)}ms`
           );

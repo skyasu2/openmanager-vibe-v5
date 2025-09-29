@@ -25,7 +25,7 @@ export function AuthTokenHandler() {
           const { data, error } = await supabase.auth.getSession();
 
           if (data.session) {
-            console.log('✅ 세션 생성 성공:', data.session.user.email);
+            console.log('✅ 세션 생성 성공, userId:', data.session.user.id);
 
             // URL 해시 제거
             window.history.replaceState(

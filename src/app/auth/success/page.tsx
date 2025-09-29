@@ -171,7 +171,7 @@ export default function AuthSuccessPage() {
           return;
         }
 
-        debug.log('✅ 사용자 인증 완료:', user.email);
+        debug.log('✅ 사용자 인증 완료, userId:', user.id);
         setStatus('success');
 
         // 라우터 캐시 갱신 여러 번

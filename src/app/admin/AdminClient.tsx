@@ -1,8 +1,11 @@
 /**
- * 🛠️ 관리자 도구 페이지 v5.0 - 0베이스 재설계
+ * 🛠️ 관리자 대시보드 v6.0 - 완전 재설계
  *
- * 무료티어 범위 내 시스템 관리 필수 도구만 포함
- * PIN 인증 기반 보안 접근 제어
+ * 핵심 기능:
+ * - AI 대화 히스토리 뷰어
+ * - 시스템 로그 관리
+ * - 무료 티어 최적화 도구
+ * - 관리자 전용 모니터링
  */
 
 'use client';
@@ -19,47 +22,57 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import {
   Shield,
+  MessageSquare,
   Activity,
   AlertTriangle,
   CheckCircle,
-  Trash2,
   RefreshCw,
-  Server,
-  DollarSign,
+  Search,
+  Clock,
+  User,
   Settings,
-  Key,
   Database,
-  Zap,
-  ExternalLink,
+  Trash2,
+  Download,
+  Filter,
+  Eye,
 } from 'lucide-react';
 
-// 플랫폼 사용량 타입
-interface PlatformUsage {
-  vercel: {
-    bandwidth: { used: number; limit: number; percentage: number };
-    buildTime: { used: number; limit: number; percentage: number };
-    functions: { executions: number; limit: number };
-  };
-  supabase: {
-    database: { size: number; limit: number; percentage: number };
-    auth: { users: number; limit: number };
-    storage: { size: number; limit: number; percentage: number };
-  };
-  lastUpdated: Date;
+// 대화 히스토리 타입
+interface ConversationEntry {
+  id: string;
+  userId: string;
+  query: string;
+  response: string;
+  aiMode: 'LOCAL' | 'GOOGLE_AI';
+  timestamp: Date;
+  responseTime: number;
+  status: 'success' | 'error';
 }
 
-// 시스템 상태 타입
-interface SystemStatus {
-  api: { status: 'healthy' | 'error'; responseTime: number };
-  database: { status: 'healthy' | 'error'; connectionTime: number };
-  auth: { status: 'healthy' | 'error'; lastLogin: Date | null };
-  deployment: { version: string; buildTime: Date; status: string };
+// 시스템 로그 타입
+interface SystemLog {
+  id: string;
+  level: 'info' | 'warn' | 'error';
+  message: string;
+  source: string;
+  timestamp: Date;
+  metadata?: Record<string, unknown>;
+}
+
+// 관리자 통계 타입
+interface AdminStats {
+  totalQueries: number;
+  activeUsers: number;
+  errorRate: number;
+  avgResponseTime: number;
+  lastUpdated: Date;
 }
 
 export default function AdminClient() {
@@ -67,82 +80,154 @@ export default function AdminClient() {
   const permissions = useUserPermissions();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('usage');
+  const [activeTab, setActiveTab] = useState('conversations');
 
   // 상태 관리
-  const [platformUsage, setPlatformUsage] = useState<PlatformUsage | null>(null);
-  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
-  const [usageLoading, setUsageLoading] = useState(false);
-  const [statusLoading, setStatusLoading] = useState(false);
-  const [lastRefresh, setLastRefresh] = useState(new Date());
+  const [conversations, setConversations] = useState<ConversationEntry[]>([]);
+  const [systemLogs, setSystemLogs] = useState<SystemLog[]>([]);
+  const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
-  // 플랫폼 사용량 로드
-  const loadPlatformUsage = useCallback(async () => {
-    setUsageLoading(true);
+  // 필터 상태
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateFilter, setDateFilter] = useState('today');
+  const [logLevelFilter, setLogLevelFilter] = useState('all');
+
+  // 대화 히스토리 로드
+  const loadConversations = useCallback(async () => {
+    setIsLoadingData(true);
     try {
-      // 실제 API 호출로 베르셀/Supabase 사용량 확인
-      const response = await fetch('/api/admin/platform-usage');
+      const response = await fetch('/api/admin/conversations', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
       if (response.ok) {
         const data = await response.json();
-        setPlatformUsage(data);
+        setConversations(data.conversations || []);
       } else {
         // Fallback: Mock 데이터
-        setPlatformUsage({
-          vercel: {
-            bandwidth: { used: 8500, limit: 30000, percentage: 28.3 },
-            buildTime: { used: 120, limit: 400, percentage: 30.0 },
-            functions: { executions: 25000, limit: 1000000 },
+        const mockConversations: ConversationEntry[] = [
+          {
+            id: '1',
+            userId: 'guest_1234',
+            query: '서버 상태가 어떻게 되나요?',
+            response: '현재 모든 서버가 정상 작동 중입니다...',
+            aiMode: 'LOCAL',
+            timestamp: new Date(Date.now() - 1000 * 60 * 10), // 10분 전
+            responseTime: 850,
+            status: 'success',
           },
-          supabase: {
-            database: { size: 45, limit: 500, percentage: 9.0 },
-            auth: { users: 150, limit: 50000 },
-            storage: { size: 120, limit: 1000, percentage: 12.0 },
+          {
+            id: '2',
+            userId: 'guest_5678',
+            query: 'CPU 사용률이 높은 이유가 뭔가요?',
+            response: 'CPU 사용률 증가의 주요 원인을 분석해보겠습니다...',
+            aiMode: 'GOOGLE_AI',
+            timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30분 전
+            responseTime: 1200,
+            status: 'success',
           },
+          {
+            id: '3',
+            userId: 'github_user123',
+            query: '에러가 발생했는데 해결 방법이 있나요?',
+            response: '오류가 발생했습니다. 관리자에게 문의하세요.',
+            aiMode: 'LOCAL',
+            timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1시간 전
+            responseTime: 500,
+            status: 'error',
+          },
+        ];
+        setConversations(mockConversations);
+      }
+    } catch (error) {
+      console.error('Failed to load conversations:', error);
+    } finally {
+      setIsLoadingData(false);
+    }
+  }, []);
+
+  // 시스템 로그 로드
+  const loadSystemLogs = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/logs', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSystemLogs(data.logs || []);
+      } else {
+        // Fallback: Mock 데이터
+        const mockLogs: SystemLog[] = [
+          {
+            id: '1',
+            level: 'info',
+            message: '사용자 로그인 성공',
+            source: 'auth',
+            timestamp: new Date(Date.now() - 1000 * 60 * 5),
+            metadata: { userId: 'guest_1234' },
+          },
+          {
+            id: '2',
+            level: 'warn',
+            message: 'AI API 응답 시간 지연',
+            source: 'ai-engine',
+            timestamp: new Date(Date.now() - 1000 * 60 * 15),
+            metadata: { responseTime: 3500, threshold: 3000 },
+          },
+          {
+            id: '3',
+            level: 'error',
+            message: 'Database 연결 재시도',
+            source: 'database',
+            timestamp: new Date(Date.now() - 1000 * 60 * 45),
+            metadata: { retryCount: 3, maxRetries: 5 },
+          },
+        ];
+        setSystemLogs(mockLogs);
+      }
+    } catch (error) {
+      console.error('Failed to load system logs:', error);
+    }
+  }, []);
+
+  // 관리자 통계 로드
+  const loadAdminStats = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/stats');
+      if (response.ok) {
+        const data = await response.json();
+        setAdminStats(data);
+      } else {
+        // Fallback: Mock 데이터
+        setAdminStats({
+          totalQueries: 247,
+          activeUsers: 12,
+          errorRate: 2.3,
+          avgResponseTime: 890,
           lastUpdated: new Date(),
         });
       }
     } catch (error) {
-      console.error('Failed to load platform usage:', error);
-    } finally {
-      setUsageLoading(false);
-    }
-  }, []);
-
-  // 시스템 상태 로드
-  const loadSystemStatus = useCallback(async () => {
-    setStatusLoading(true);
-    try {
-      const response = await fetch('/api/admin/system-status');
-      if (response.ok) {
-        const data = await response.json();
-        setSystemStatus(data);
-      } else {
-        // Fallback: Mock 데이터
-        setSystemStatus({
-          api: { status: 'healthy', responseTime: 120 },
-          database: { status: 'healthy', connectionTime: 45 },
-          auth: { status: 'healthy', lastLogin: new Date() },
-          deployment: { 
-            version: 'v5.71.0', 
-            buildTime: new Date(), 
-            status: 'READY' 
-          },
-        });
-      }
-    } catch (error) {
-      console.error('Failed to load system status:', error);
-    } finally {
-      setStatusLoading(false);
+      console.error('Failed to load admin stats:', error);
     }
   }, []);
 
   // 초기 데이터 로드
   const loadInitialData = useCallback(async () => {
     await Promise.all([
-      loadPlatformUsage(),
-      loadSystemStatus()
+      loadConversations(),
+      loadSystemLogs(),
+      loadAdminStats(),
     ]);
-  }, [loadPlatformUsage, loadSystemStatus]);
+  }, [loadConversations, loadSystemLogs, loadAdminStats]);
 
   // 인증 체크
   useEffect(() => {
@@ -158,82 +243,69 @@ export default function AdminClient() {
 
   // 새로고침
   const handleRefresh = useCallback(async () => {
-    setLastRefresh(new Date());
     await loadInitialData();
   }, [loadInitialData]);
 
-  // 데이터 정리 작업
-  const handleCleanup = async (type: 'logs' | 'cache' | 'temp') => {
-    try {
-      const response = await fetch(`/api/admin/cleanup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type }),
-      });
-      
-      if (response.ok) {
-        alert(`${type} 정리가 완료되었습니다.`);
-        await loadInitialData();
-      } else {
-        alert(`${type} 정리 중 오류가 발생했습니다.`);
-      }
-    } catch (error) {
-      console.error(`Failed to cleanup ${type}:`, error);
-      alert(`${type} 정리 중 오류가 발생했습니다.`);
+  // 로그 레벨 색상
+  const getLogLevelColor = (level: string) => {
+    switch (level) {
+      case 'error': return 'text-red-400';
+      case 'warn': return 'text-yellow-400';
+      case 'info': return 'text-green-400';
+      default: return 'text-gray-400';
     }
   };
 
-  // 긴급 복구 작업
-  const handleEmergencyAction = async (action: 'reset-cache' | 'reset-sessions' | 'emergency-mode') => {
-    const confirmMessage = `정말로 ${action}을 실행하시겠습니까?`;
-    if (!confirm(confirmMessage)) return;
-
-    try {
-      const response = await fetch(`/api/admin/emergency`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action }),
-      });
-      
-      if (response.ok) {
-        alert(`${action} 작업이 완료되었습니다.`);
-        await loadInitialData();
-      } else {
-        alert(`${action} 작업 중 오류가 발생했습니다.`);
-      }
-    } catch (error) {
-      console.error(`Failed to execute ${action}:`, error);
-      alert(`${action} 작업 중 오류가 발생했습니다.`);
-    }
-  };
-
-  // 상태 색상 반환
-  const getStatusColor = (status: string, percentage?: number) => {
-    if (status === 'error') return 'text-red-400';
-    if (percentage && percentage > 80) return 'text-yellow-400';
-    return 'text-green-400';
-  };
-
-  // 상태 아이콘 반환
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'healthy': return <CheckCircle className="h-4 w-4" />;
+  // 로그 레벨 아이콘
+  const getLogLevelIcon = (level: string) => {
+    switch (level) {
       case 'error': return <AlertTriangle className="h-4 w-4" />;
+      case 'warn': return <Activity className="h-4 w-4" />;
+      case 'info': return <CheckCircle className="h-4 w-4" />;
       default: return <Activity className="h-4 w-4" />;
     }
   };
 
+  // 필터된 대화 목록
+  const filteredConversations = conversations.filter(conv => {
+    const matchesSearch = conv.query.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         conv.response.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const now = new Date();
+    const convDate = new Date(conv.timestamp);
+    let matchesDate = true;
+
+    if (dateFilter === 'today') {
+      matchesDate = convDate.toDateString() === now.toDateString();
+    } else if (dateFilter === 'week') {
+      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      matchesDate = convDate >= weekAgo;
+    }
+
+    return matchesSearch && matchesDate;
+  });
+
+  // 필터된 로그 목록
+  const filteredLogs = systemLogs.filter(log => {
+    const matchesSearch = log.message.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesLevel = logLevelFilter === 'all' || log.level === logLevelFilter;
+
+    return matchesSearch && matchesLevel;
+  });
+
+  // 로딩 상태
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-950">
         <div className="text-center">
           <RefreshCw className="mx-auto h-8 w-8 animate-spin text-blue-400" />
-          <p className="mt-2 text-gray-400">관리자 페이지 로딩 중...</p>
+          <p className="mt-2 text-gray-400">관리자 대시보드 로딩 중...</p>
         </div>
       </div>
     );
   }
 
+  // 권한 없음
   if (!isAuthorized) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-950">
@@ -246,7 +318,7 @@ export default function AdminClient() {
           </CardHeader>
           <CardContent>
             <p className="text-gray-400 mb-4">
-              관리자 페이지에 접근할 권한이 없습니다.
+              관리자 대시보드에 접근할 권한이 없습니다.
             </p>
             <Button onClick={() => router.push('/main')} className="w-full">
               메인으로 돌아가기
@@ -260,7 +332,7 @@ export default function AdminClient() {
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <UnifiedProfileHeader />
-      
+
       <div className="container mx-auto px-4 py-8">
         {/* 헤더 */}
         <div className="mb-8">
@@ -268,223 +340,246 @@ export default function AdminClient() {
             <div>
               <h1 className="text-3xl font-bold text-white flex items-center gap-2">
                 <Settings className="h-8 w-8 text-blue-400" />
-                관리자 도구
+                관리자 대시보드
               </h1>
               <p className="text-gray-400 mt-2">
-                시스템 관리 및 무료티어 최적화 도구
+                AI 대화 히스토리, 시스템 로그 및 관리 도구
               </p>
             </div>
             <div className="flex items-center gap-4">
-              <Badge variant="outline" className="text-gray-400">
-                마지막 업데이트: {lastRefresh.toLocaleTimeString('ko-KR')}
-              </Badge>
-              <Button onClick={handleRefresh} size="sm" disabled={usageLoading || statusLoading}>
-                <RefreshCw className={`h-4 w-4 mr-2 ${(usageLoading || statusLoading) ? 'animate-spin' : ''}`} />
+              {adminStats && (
+                <div className="flex items-center gap-4 text-sm">
+                  <Badge variant="outline" className="text-green-400">
+                    활성 사용자: {adminStats.activeUsers}
+                  </Badge>
+                  <Badge variant="outline" className="text-blue-400">
+                    총 쿼리: {adminStats.totalQueries}
+                  </Badge>
+                  <Badge variant="outline" className={adminStats.errorRate > 5 ? "text-red-400" : "text-green-400"}>
+                    오류율: {adminStats.errorRate}%
+                  </Badge>
+                </div>
+              )}
+              <Button onClick={handleRefresh} size="sm" disabled={isLoadingData}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingData ? 'animate-spin' : ''}`} />
                 새로고침
               </Button>
             </div>
           </div>
         </div>
 
+        {/* 검색 및 필터 */}
+        <div className="mb-6 flex flex-wrap items-center gap-4">
+          <div className="relative flex-1 min-w-80">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="대화 내용이나 로그 메시지 검색..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-gray-900 border-gray-700 text-white"
+            />
+          </div>
+          <select
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-white"
+          >
+            <option value="today">오늘</option>
+            <option value="week">지난 7일</option>
+            <option value="all">전체</option>
+          </select>
+        </div>
+
         {/* 메인 탭 */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <TabsList className="bg-gray-900 border-gray-700">
-            <TabsTrigger value="usage" className="data-[state=active]:bg-blue-600">
-              <DollarSign className="h-4 w-4 mr-2" />
-              플랫폼 사용량
+            <TabsTrigger value="conversations" className="data-[state=active]:bg-blue-600">
+              <MessageSquare className="h-4 w-4 mr-2" />
+              AI 대화 히스토리
             </TabsTrigger>
-            <TabsTrigger value="security" className="data-[state=active]:bg-blue-600">
-              <Key className="h-4 w-4 mr-2" />
-              보안 관리
+            <TabsTrigger value="logs" className="data-[state=active]:bg-blue-600">
+              <Activity className="h-4 w-4 mr-2" />
+              시스템 로그
             </TabsTrigger>
-            <TabsTrigger value="cleanup" className="data-[state=active]:bg-blue-600">
-              <Trash2 className="h-4 w-4 mr-2" />
-              시스템 정리
-            </TabsTrigger>
-            <TabsTrigger value="emergency" className="data-[state=active]:bg-blue-600">
-              <Zap className="h-4 w-4 mr-2" />
-              긴급 도구
-            </TabsTrigger>
-            <TabsTrigger value="status" className="data-[state=active]:bg-blue-600">
-              <Server className="h-4 w-4 mr-2" />
-              시스템 상태
+            <TabsTrigger value="management" className="data-[state=active]:bg-blue-600">
+              <Database className="h-4 w-4 mr-2" />
+              데이터 관리
             </TabsTrigger>
           </TabsList>
 
-          {/* 플랫폼 사용량 탭 */}
-          <TabsContent value="usage" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* 베르셀 사용량 */}
-              <Card className="bg-gray-900 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <ExternalLink className="h-5 w-5 text-blue-400" />
-                    베르셀 무료티어
-                  </CardTitle>
-                  <CardDescription>베르셀 플랫폼 사용량 모니터링</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {platformUsage ? (
-                    <>
-                      <div>
-                        <div className="flex justify-between mb-2">
-                          <span>대역폭</span>
-                          <span className={getStatusColor('healthy', platformUsage.vercel.bandwidth.percentage)}>
-                            {platformUsage.vercel.bandwidth.used}MB / {platformUsage.vercel.bandwidth.limit}MB
-                          </span>
+          {/* AI 대화 히스토리 탭 */}
+          <TabsContent value="conversations" className="space-y-4">
+            <Card className="bg-gray-900 border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-blue-400" />
+                  AI 대화 히스토리 ({filteredConversations.length}개)
+                </CardTitle>
+                <CardDescription>
+                  사용자와 AI 간의 모든 대화를 실시간으로 모니터링합니다.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {filteredConversations.length > 0 ? (
+                    filteredConversations.map((conv) => (
+                      <div key={conv.id} className="border border-gray-700 rounded-lg p-4 bg-gray-800">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-gray-400" />
+                            <span className="text-sm text-gray-400">{conv.userId}</span>
+                            <Badge
+                              variant={conv.aiMode === 'GOOGLE_AI' ? "default" : "secondary"}
+                              className="text-xs"
+                            >
+                              {conv.aiMode}
+                            </Badge>
+                            <Badge
+                              variant={conv.status === 'success' ? "secondary" : "destructive"}
+                              className="text-xs"
+                            >
+                              {conv.status}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-gray-400">
+                            <Clock className="h-3 w-3" />
+                            {new Date(conv.timestamp).toLocaleString('ko-KR')}
+                            <span>({conv.responseTime}ms)</span>
+                          </div>
                         </div>
-                        <Progress value={platformUsage.vercel.bandwidth.percentage} className="h-2" />
-                      </div>
-                      <div>
-                        <div className="flex justify-between mb-2">
-                          <span>빌드 시간</span>
-                          <span className={getStatusColor('healthy', platformUsage.vercel.buildTime.percentage)}>
-                            {platformUsage.vercel.buildTime.used}분 / {platformUsage.vercel.buildTime.limit}분
-                          </span>
+                        <div className="space-y-2">
+                          <div>
+                            <span className="text-xs text-blue-400 font-medium">질문:</span>
+                            <p className="text-sm text-gray-200 mt-1">{conv.query}</p>
+                          </div>
+                          <div>
+                            <span className="text-xs text-green-400 font-medium">답변:</span>
+                            <p className="text-sm text-gray-300 mt-1">
+                              {conv.response.length > 200
+                                ? `${conv.response.substring(0, 200)}...`
+                                : conv.response
+                              }
+                            </p>
+                          </div>
                         </div>
-                        <Progress value={platformUsage.vercel.buildTime.percentage} className="h-2" />
                       </div>
-                      <div className="flex justify-between">
-                        <span>함수 실행</span>
-                        <span className="text-green-400">
-                          {platformUsage.vercel.functions.executions.toLocaleString()} / 1M
-                        </span>
-                      </div>
-                    </>
+                    ))
                   ) : (
-                    <div className="text-center py-4">
-                      <RefreshCw className="h-6 w-6 animate-spin mx-auto text-gray-400" />
-                      <p className="text-gray-400 mt-2">로딩 중...</p>
+                    <div className="text-center py-8 text-gray-400">
+                      검색 조건에 맞는 대화가 없습니다.
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-              {/* Supabase 사용량 */}
-              <Card className="bg-gray-900 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Database className="h-5 w-5 text-green-400" />
-                    Supabase 무료티어
-                  </CardTitle>
-                  <CardDescription>Supabase 플랫폼 사용량 모니터링</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {platformUsage ? (
-                    <>
-                      <div>
-                        <div className="flex justify-between mb-2">
-                          <span>데이터베이스</span>
-                          <span className={getStatusColor('healthy', platformUsage.supabase.database.percentage)}>
-                            {platformUsage.supabase.database.size}MB / {platformUsage.supabase.database.limit}MB
-                          </span>
+          {/* 시스템 로그 탭 */}
+          <TabsContent value="logs" className="space-y-4">
+            <div className="flex items-center gap-4 mb-4">
+              <select
+                value={logLevelFilter}
+                onChange={(e) => setLogLevelFilter(e.target.value)}
+                className="px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-white"
+              >
+                <option value="all">모든 레벨</option>
+                <option value="info">정보</option>
+                <option value="warn">경고</option>
+                <option value="error">오류</option>
+              </select>
+            </div>
+
+            <Card className="bg-gray-900 border-gray-700">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-green-400" />
+                  시스템 로그 ({filteredLogs.length}개)
+                </CardTitle>
+                <CardDescription>
+                  시스템 전체의 로그를 실시간으로 모니터링합니다.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {filteredLogs.length > 0 ? (
+                    filteredLogs.map((log) => (
+                      <div key={log.id} className="border border-gray-700 rounded-lg p-3 bg-gray-800">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className={getLogLevelColor(log.level)}>
+                              {getLogLevelIcon(log.level)}
+                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {log.source}
+                            </Badge>
+                            <span className={`text-sm font-medium ${getLogLevelColor(log.level)}`}>
+                              {log.level.toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-gray-400">
+                            <Clock className="h-3 w-3" />
+                            {new Date(log.timestamp).toLocaleString('ko-KR')}
+                          </div>
                         </div>
-                        <Progress value={platformUsage.supabase.database.percentage} className="h-2" />
+                        <p className="text-sm text-gray-200 mb-2">{log.message}</p>
+                        {log.metadata && (
+                          <details className="text-xs text-gray-400">
+                            <summary className="cursor-pointer">메타데이터</summary>
+                            <pre className="mt-1 bg-gray-700 p-2 rounded text-xs overflow-x-auto">
+                              {JSON.stringify(log.metadata, null, 2)}
+                            </pre>
+                          </details>
+                        )}
                       </div>
-                      <div>
-                        <div className="flex justify-between mb-2">
-                          <span>스토리지</span>
-                          <span className={getStatusColor('healthy', platformUsage.supabase.storage.percentage)}>
-                            {platformUsage.supabase.storage.size}MB / {platformUsage.supabase.storage.limit}MB
-                          </span>
-                        </div>
-                        <Progress value={platformUsage.supabase.storage.percentage} className="h-2" />
-                      </div>
-                      <div className="flex justify-between">
-                        <span>인증 사용자</span>
-                        <span className="text-green-400">
-                          {platformUsage.supabase.auth.users} / 50K
-                        </span>
-                      </div>
-                    </>
+                    ))
                   ) : (
-                    <div className="text-center py-4">
-                      <RefreshCw className="h-6 w-6 animate-spin mx-auto text-gray-400" />
-                      <p className="text-gray-400 mt-2">로딩 중...</p>
+                    <div className="text-center py-8 text-gray-400">
+                      검색 조건에 맞는 로그가 없습니다.
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* 사용량 알림 */}
-            {platformUsage && (
-              <Alert className="bg-blue-900/20 border-blue-800">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  무료티어 한계에 근접한 항목이 있으면 여기에 경고가 표시됩니다.
-                  현재 모든 플랫폼이 안전한 사용량을 유지하고 있습니다.
-                </AlertDescription>
-              </Alert>
-            )}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          {/* 보안 관리 탭 */}
-          <TabsContent value="security" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* 데이터 관리 탭 */}
+          <TabsContent value="management" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card className="bg-gray-900 border-gray-700">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Key className="h-5 w-5 text-yellow-400" />
-                    PIN 인증 관리
+                    <Download className="h-5 w-5 text-blue-400" />
+                    데이터 내보내기
                   </CardTitle>
-                  <CardDescription>관리자 PIN 비밀번호 관리</CardDescription>
+                  <CardDescription>대화 히스토리와 로그를 내보냅니다.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button 
-                    onClick={() => alert('PIN 변경 기능은 환경변수에서 직접 관리하세요.')}
-                    className="w-full"
-                    variant="outline"
-                  >
-                    PIN 비밀번호 변경
+                <CardContent className="space-y-3">
+                  <Button className="w-full" variant="outline">
+                    <Download className="h-4 w-4 mr-2" />
+                    대화 히스토리 내보내기 (CSV)
                   </Button>
-                  <p className="text-sm text-gray-400">
-                    현재 PIN은 환경변수 ADMIN_PASSWORD로 관리됩니다.
-                  </p>
+                  <Button className="w-full" variant="outline">
+                    <Download className="h-4 w-4 mr-2" />
+                    시스템 로그 내보내기 (JSON)
+                  </Button>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-900 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-green-400" />
-                    환경변수 검증
-                  </CardTitle>
-                  <CardDescription>필수 환경변수 상태 확인</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button 
-                    onClick={() => alert('환경변수 검증 완료: 모든 필수 변수가 설정되어 있습니다.')}
-                    className="w-full"
-                    variant="outline"
-                  >
-                    환경변수 검증
-                  </Button>
-                  <p className="text-sm text-gray-400">
-                    Supabase, Google AI API 등 필수 환경변수 상태를 확인합니다.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* 시스템 정리 탭 */}
-          <TabsContent value="cleanup" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <Card className="bg-gray-900 border-gray-700">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Trash2 className="h-5 w-5 text-red-400" />
-                    로그 정리
+                    데이터 정리
                   </CardTitle>
-                  <CardDescription>오래된 로그 파일 삭제</CardDescription>
+                  <CardDescription>오래된 데이터를 정리합니다.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <Button 
-                    onClick={() => handleCleanup('logs')}
-                    className="w-full"
-                    variant="destructive"
-                  >
+                <CardContent className="space-y-3">
+                  <Button className="w-full" variant="destructive">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    30일 이전 대화 삭제
+                  </Button>
+                  <Button className="w-full" variant="destructive">
+                    <Trash2 className="h-4 w-4 mr-2" />
                     30일 이전 로그 삭제
                   </Button>
                 </CardContent>
@@ -493,209 +588,65 @@ export default function AdminClient() {
               <Card className="bg-gray-900 border-gray-700">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <RefreshCw className="h-5 w-5 text-blue-400" />
-                    캐시 초기화
+                    <Eye className="h-5 w-5 text-green-400" />
+                    실시간 모니터링
                   </CardTitle>
-                  <CardDescription>시스템 캐시 완전 삭제</CardDescription>
+                  <CardDescription>시스템 상태를 실시간으로 모니터링합니다.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button 
-                    onClick={() => handleCleanup('cache')}
-                    className="w-full"
-                    variant="destructive"
-                  >
-                    전체 캐시 삭제
-                  </Button>
+                  {adminStats && (
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>평균 응답시간:</span>
+                        <span className="text-blue-400">{adminStats.avgResponseTime}ms</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>총 쿼리 수:</span>
+                        <span className="text-green-400">{adminStats.totalQueries}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>오류율:</span>
+                        <span className={adminStats.errorRate > 5 ? "text-red-400" : "text-green-400"}>
+                          {adminStats.errorRate}%
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>마지막 업데이트:</span>
+                        <span className="text-gray-400">
+                          {adminStats.lastUpdated.toLocaleTimeString('ko-KR')}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
               <Card className="bg-gray-900 border-gray-700">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Database className="h-5 w-5 text-green-400" />
-                    임시파일 정리
+                    <Settings className="h-5 w-5 text-yellow-400" />
+                    시스템 설정
                   </CardTitle>
-                  <CardDescription>임시 파일 및 업로드 정리</CardDescription>
+                  <CardDescription>관리자 도구 설정을 관리합니다.</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <Button 
-                    onClick={() => handleCleanup('temp')}
-                    className="w-full"
-                    variant="destructive"
-                  >
-                    임시파일 삭제
+                <CardContent className="space-y-3">
+                  <Button className="w-full" variant="outline">
+                    로그 보관 기간 설정
+                  </Button>
+                  <Button className="w-full" variant="outline">
+                    알림 설정 관리
                   </Button>
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
 
-          {/* 긴급 도구 탭 */}
-          <TabsContent value="emergency" className="space-y-6">
-            <Alert className="bg-red-900/20 border-red-800">
+            <Alert className="bg-blue-900/20 border-blue-800">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                아래 도구들은 시스템에 중대한 영향을 줄 수 있습니다. 신중하게 사용하세요.
+                모든 데이터는 무료 티어 범위 내에서 관리됩니다.
+                대화 히스토리는 Supabase에, 시스템 로그는 GCP Functions에 저장됩니다.
               </AlertDescription>
             </Alert>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <Card className="bg-gray-900 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-yellow-400" />
-                    캐시 리셋
-                  </CardTitle>
-                  <CardDescription>모든 캐시 강제 초기화</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    onClick={() => handleEmergencyAction('reset-cache')}
-                    className="w-full"
-                    variant="destructive"
-                  >
-                    캐시 강제 리셋
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-900 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <RefreshCw className="h-5 w-5 text-red-400" />
-                    세션 초기화
-                  </CardTitle>
-                  <CardDescription>모든 사용자 세션 무효화</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    onClick={() => handleEmergencyAction('reset-sessions')}
-                    className="w-full"
-                    variant="destructive"
-                  >
-                    모든 세션 리셋
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-900 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5 text-red-500" />
-                    응급 모드
-                  </CardTitle>
-                  <CardDescription>시스템 응급 모드 활성화</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button 
-                    onClick={() => handleEmergencyAction('emergency-mode')}
-                    className="w-full"
-                    variant="destructive"
-                  >
-                    응급 모드 활성화
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* 시스템 상태 탭 */}
-          <TabsContent value="status" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="bg-gray-900 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-green-400" />
-                    서비스 상태
-                  </CardTitle>
-                  <CardDescription>핵심 서비스 헬스체크</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {systemStatus ? (
-                    <>
-                      <div className="flex justify-between items-center">
-                        <span>API 서버</span>
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(systemStatus.api.status)}
-                          <span className={getStatusColor(systemStatus.api.status)}>
-                            {systemStatus.api.responseTime}ms
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span>데이터베이스</span>
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(systemStatus.database.status)}
-                          <span className={getStatusColor(systemStatus.database.status)}>
-                            {systemStatus.database.connectionTime}ms
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span>인증 시스템</span>
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(systemStatus.auth.status)}
-                          <span className={getStatusColor(systemStatus.auth.status)}>
-                            정상
-                          </span>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-4">
-                      <RefreshCw className="h-6 w-6 animate-spin mx-auto text-gray-400" />
-                      <p className="text-gray-400 mt-2">상태 확인 중...</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gray-900 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Server className="h-5 w-5 text-blue-400" />
-                    배포 정보
-                  </CardTitle>
-                  <CardDescription>현재 배포 버전 및 상태</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {systemStatus ? (
-                    <>
-                      <div className="flex justify-between">
-                        <span>버전</span>
-                        <span className="text-blue-400">{systemStatus.deployment.version}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>빌드 시간</span>
-                        <span className="text-gray-400">
-                          {systemStatus.deployment.buildTime.toLocaleDateString('ko-KR')}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>배포 상태</span>
-                        <Badge className="bg-green-600">
-                          {systemStatus.deployment.status}
-                        </Badge>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>마지막 로그인</span>
-                        <span className="text-gray-400">
-                          {systemStatus.auth.lastLogin ? 
-                            systemStatus.auth.lastLogin.toLocaleString('ko-KR') : 
-                            '없음'
-                          }
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-4">
-                      <RefreshCw className="h-6 w-6 animate-spin mx-auto text-gray-400" />
-                      <p className="text-gray-400 mt-2">정보 로딩 중...</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
           </TabsContent>
         </Tabs>
       </div>
