@@ -242,31 +242,54 @@ export class SimplifiedQueryEngineUtils {
   detectCommandQuery(query: string, commandContext?: CommandContext): boolean {
     const lowerQuery = query.toLowerCase().trim();
 
-    // 명령어 키워드 패턴
+    // 🔧 더 구체적인 명령어 키워드 패턴 (자연어 질의와 구분)
     const commandKeywords = [
-      'command',
-      '명령어',
-      '명령',
-      'cmd',
-      'how to',
-      '어떻게',
-      '방법',
-      'help',
-      '도움',
-      '도움말',
-      'list',
-      '목록',
-      '리스트',
-      'show',
-      '보여',
-      '표시',
+      'command list',     // "command list" 같은 구체적 명령어
+      '명령어 목록',      // "명령어 목록" 같은 구체적 요청
+      '명령어 리스트',    // "명령어 리스트" 같은 구체적 요청
+      'cmd help',         // "cmd help" 같은 구체적 명령어
+      'help command',     // "help command" 같은 구체적 요청
+      '도움말 보기',      // "도움말 보기" 같은 구체적 요청
+      '사용법',           // "사용법" - 명령어 사용법 요청
+      'usage',            // "usage" - 영어 사용법 요청
+    ];
+
+    // 🚫 자연어 질의 패턴 (명령어가 아님을 명시적으로 체크)
+    const naturalLanguagePatterns = [
+      '상태가 어떻게',     // "서버 상태가 어떻게 되나요?"
+      '어떻게 되나',       // "시스템이 어떻게 되나요?"
+      '무엇인가요',        // "현재 상태가 무엇인가요?"
+      '분석해',           // "성능을 분석해줘"
+      '알려줘',           // "서버 상태 알려줘"
+      '확인해',           // "시스템을 확인해줘"
+      '보고서',           // "월간 보고서 생성해줘"
     ];
 
     // 명시적 명령어 요청
-    if (commandContext?.isCommandRequest) return true;
+    if (commandContext?.isCommandRequest) {
+      console.log('🔍 [DEBUG] Command detected by context:', { isCommandRequest: true, query });
+      return true;
+    }
 
-    // 키워드 기반 감지
-    return commandKeywords.some((keyword) => lowerQuery.includes(keyword));
+    // 🛡️ 자연어 질의 패턴 먼저 체크 (우선순위)
+    const foundNaturalPattern = naturalLanguagePatterns.find((pattern) => lowerQuery.includes(pattern));
+    if (foundNaturalPattern) {
+      console.log('🔍 [DEBUG] Natural language detected:', { query, foundPattern: foundNaturalPattern, isCommand: false });
+      return false; // 자연어 질의로 판단
+    }
+
+    // 구체적인 명령어 키워드 기반 감지 (더 엄격한 기준)
+    const foundCommandKeyword = commandKeywords.find((keyword) => lowerQuery.includes(keyword));
+    const isCommand = !!foundCommandKeyword;
+
+    console.log('🔍 [DEBUG] Command detection result:', {
+      query,
+      foundCommandKeyword,
+      isCommand,
+      availablePatterns: { commandKeywords: commandKeywords.length, naturalPatterns: naturalLanguagePatterns.length }
+    });
+
+    return isCommand;
   }
 
   /**

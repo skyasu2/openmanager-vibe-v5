@@ -173,7 +173,7 @@ class GoogleAIManager {
     for (const password of defaultPasswords) {
       const result = await this.unlockTeamKey(password);
       if (result.success) {
-        console.log(`🔓 자동 잠금 해제 성공: ${password.substring(0, 3)}***`);
+        console.log('🔓 자동 잠금 해제 성공');
         return true;
       }
     }

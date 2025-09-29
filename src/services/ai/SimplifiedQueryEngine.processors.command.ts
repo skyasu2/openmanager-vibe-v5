@@ -53,6 +53,66 @@ export class CommandQueryProcessor {
     });
 
     try {
+      // 🛡️ aiRouter 안전성 검증
+      if (!this.aiRouter || typeof this.aiRouter.getCommandRecommendations !== 'function') {
+        console.warn('⚠️ aiRouter 또는 getCommandRecommendations 메서드가 사용 불가능합니다.');
+
+        // 폴백: 기본 명령어 추천 제공
+        const fallbackRecommendations = {
+          recommendations: [
+            '• 서버 목록 확인',
+            '• 시스템 상태 조회',
+            '• 성능 모니터링',
+            '• 알림 설정',
+            '• 로그 분석'
+          ],
+          analysis: {
+            queryType: 'status_check',
+            complexity: 'simple'
+          }
+        };
+
+        // ✅ 안전한 배열 접근
+        this.utils.safeUpdateLastThinkingStep(thinkingSteps, {
+          status: 'completed',
+          description: `기본 명령어 추천 제공 (aiRouter 비활성화)`,
+          duration: Date.now() - commandStepStart,
+        });
+
+        const responseStepStart = Date.now();
+        thinkingSteps.push({
+          step: '명령어 응답 생성',
+          description: '기본 명령어 추천 응답 포맷팅',
+          status: 'pending',
+          timestamp: responseStepStart,
+        });
+
+        const response = this.utils.generateFormattedResponse(
+          fallbackRecommendations.recommendations,
+          fallbackRecommendations.analysis,
+          query,
+          0.7
+        );
+
+        this.utils.safeUpdateLastThinkingStep(thinkingSteps, {
+          status: 'completed',
+          duration: Date.now() - responseStepStart,
+        });
+
+        return {
+          success: true,
+          response,
+          engine: 'local-fallback',
+          confidence: 0.7,
+          thinkingSteps,
+          metadata: {
+            source: 'fallback-command-recommendations',
+            processingTime: Date.now() - startTime,
+            fallbackReason: 'aiRouter unavailable'
+          },
+        };
+      }
+
       const recommendationResult = await this.aiRouter.getCommandRecommendations(
         query,
         {
