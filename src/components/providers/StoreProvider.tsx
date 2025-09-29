@@ -21,11 +21,35 @@ export interface ServerDataStoreProviderProps {
 // 🎯 모듈 레벨 싱글톤 - SSR/CSR 환경에서 진정한 싱글톤 보장
 let globalStore: ServerDataStore | null = null;
 
+// 🧪 테스트 격리를 위한 리셋 함수 (Critical 사이드 이펙트 해결)
+export const resetGlobalStore = () => {
+  globalStore = null;
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔄 Zustand 스토어 리셋 완료 (테스트 격리)');
+  }
+};
+
+// 🛡️ 에러 처리 강화된 스토어 생성 함수 (High Priority 사이드 이펙트 해결)
 const getStore = (): ServerDataStore => {
   if (!globalStore) {
-    console.log('📦 Zustand 스토어 최초 생성 (모듈 싱글톤)');
-    globalStore = createServerDataStore();
-    console.log('✅ Zustand 스토어 생성 완료 - 메모리 안전');
+    try {
+      globalStore = createServerDataStore();
+
+      // 🔧 환경별 로깅 분리 (Medium Priority 사이드 이펙트 해결)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('📦 Zustand 스토어 최초 생성 (모듈 싱글톤)');
+        console.log('✅ Zustand 스토어 생성 완료 - 메모리 안전');
+
+        // 🛠️ 개발자 도구 연동 (개발 편의성 향상)
+        if (typeof window !== 'undefined') {
+          (window as any).__ZUSTAND_STORE__ = globalStore;
+        }
+      }
+    } catch (error) {
+      // 🚨 프로덕션 에러 처리 (앱 크래시 방지)
+      console.error('❌ Zustand 스토어 생성 실패:', error);
+      throw new Error('스토어 초기화에 실패했습니다. 페이지를 새로고침 해주세요.');
+    }
   }
   return globalStore;
 };
@@ -45,7 +69,10 @@ export const ServerDataStoreProvider = ({
 export const useServerDataStore = <T,>(
   selector: (store: ServerDataState) => T
 ): T => {
-  console.log('🔍 useServerDataStore 호출됨');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 useServerDataStore 호출됨');
+  }
+
   const serverDataStoreContext = useContext(ServerDataStoreContext);
 
   if (!serverDataStoreContext) {
@@ -55,6 +82,9 @@ export const useServerDataStore = <T,>(
     );
   }
 
-  console.log('✅ ServerDataStoreProvider 컨텍스트 사용 가능');
+  if (process.env.NODE_ENV === 'development') {
+    console.log('✅ ServerDataStoreProvider 컨텍스트 사용 가능');
+  }
+
   return useStore(serverDataStoreContext, selector);
 };
