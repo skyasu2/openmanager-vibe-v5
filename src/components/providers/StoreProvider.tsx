@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useRef } from 'react';
+import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 import { useStore } from 'zustand';
 
@@ -18,20 +18,25 @@ export interface ServerDataStoreProviderProps {
   children: ReactNode;
 }
 
+// 🎯 모듈 레벨 싱글톤 - SSR/CSR 환경에서 진정한 싱글톤 보장
+let globalStore: ServerDataStore | null = null;
+
+const getStore = (): ServerDataStore => {
+  if (!globalStore) {
+    console.log('📦 Zustand 스토어 최초 생성 (모듈 싱글톤)');
+    globalStore = createServerDataStore();
+    console.log('✅ Zustand 스토어 생성 완료 - 메모리 안전');
+  }
+  return globalStore;
+};
+
 export const ServerDataStoreProvider = ({
   children,
 }: ServerDataStoreProviderProps) => {
-  // 🎯 useRef로 완전한 싱글톤 패턴 보장 - 메모리 누수 완전 해결
-  const storeRef = useRef<ServerDataStore>();
-  
-  if (!storeRef.current) {
-    console.log('📦 Zustand 스토어 최초 생성 (useRef 싱글톤)');
-    storeRef.current = createServerDataStore();
-    console.log('✅ Zustand 스토어 생성 완료 - 메모리 안전');
-  }
+  const store = getStore();
 
   return (
-    <ServerDataStoreContext.Provider value={storeRef.current}>
+    <ServerDataStoreContext.Provider value={store}>
       {children}
     </ServerDataStoreContext.Provider>
   );
