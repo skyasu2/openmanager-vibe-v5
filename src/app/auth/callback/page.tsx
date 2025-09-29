@@ -34,19 +34,27 @@ export default function AuthCallbackPage() {
         });
         
         // 🔍 상세 디버깅: URL 파라미터 및 기존 토큰 상태 확인
+        const urlParams = new URLSearchParams(window.location.search);
+        const authCode = urlParams.get('code');
+        const state = urlParams.get('state');
+        const error_param = urlParams.get('error');
+        
         console.log('🔍 OAuth 콜백 상세 디버깅:', {
-          urlParams: Object.fromEntries(new URLSearchParams(window.location.search)),
+          urlParams: Object.fromEntries(urlParams),
+          authCode: authCode ? `${authCode.slice(0, 10)}...` : null,
+          state: state ? `${state.slice(0, 10)}...` : null,
+          error_param,
           existingTokens: {
             codeVerifier: localStorage.getItem('sb-vnswjnltnhpsueosfhmw-auth-token-code-verifier'),
             authToken: localStorage.getItem('sb-vnswjnltnhpsueosfhmw-auth-token'),
             hasAuthCookie: document.cookie.includes('sb-vnswjnltnhpsueosfhmw-auth-token')
           },
-          cookies: document.cookie
+          cookies: document.cookie,
+          timestamp: new Date().toISOString()
         });
 
-        // URL에서 에러 파라미터 확인
-        const urlParams = new URLSearchParams(window.location.search);
-        const error = urlParams.get('error');
+        // URL에서 에러 파라미터 확인 (이미 위에서 정의됨)
+        const error = error_param;
 
         if (error) {
           debug.error('❌ OAuth 에러:', error);
@@ -85,7 +93,7 @@ export default function AuthCallbackPage() {
         let session = null;
         let sessionError = null;
         let attempts = 0;
-        const maxAttempts = isVercel ? 6 : 4; // 재시도 횟수 25% 감소
+        const maxAttempts = isVercel ? 10 : 8; // 재시도 횟수 증가 (6→10, 4→8)
 
         do {
           const result = await supabase.auth.getSession();
@@ -178,8 +186,8 @@ export default function AuthCallbackPage() {
           } else {
             debug.log('⏳ PKCE 처리 중, 최종 재시도...');
 
-            // 최종 재시도 대기 시간 최적화 (사용자 경험 우선)
-            const finalRetryWait = isVercel ? 2000 : 1500; // 대기시간 67% 단축
+            // 최종 재시도 대기 시간 증가 (세션 생성 안정성 우선)
+            const finalRetryWait = isVercel ? 4000 : 3000; // 대기시간 증가 (2000→4000ms, 1500→3000ms)
             debug.log(`⏱️ 최종 재시도 대기 중... (${finalRetryWait}ms)`);
             await new Promise((resolve) => setTimeout(resolve, finalRetryWait));
 
