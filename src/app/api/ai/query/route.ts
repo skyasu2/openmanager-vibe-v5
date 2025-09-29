@@ -89,19 +89,30 @@ function analyzeQueryIntent(query: string): string {
   return 'general';
 }
 
-// 쿼리 로깅 함수
+// 쿼리 로깅 함수 (대화 히스토리 포함)
 async function logQuery(
   query: string,
   responseTime: number,
   cacheHit: boolean,
-  intent: string
+  intent: string,
+  response?: string,
+  aiMode?: string,
+  status?: string,
+  userId?: string,
+  sessionId?: string
 ): Promise<void> {
   try {
     await supabase.from('query_logs').insert({
       query,
+      response: response || null,
       response_time: responseTime,
       cache_hit: cacheHit,
       intent,
+      ai_mode: aiMode || 'LOCAL',
+      status: status || 'success',
+      user_id: userId || null,
+      guest_user_id: !userId ? `guest_${Date.now()}_${Math.random().toString(36).substr(2, 8)}` : null,
+      session_id: sessionId || null,
       created_at: new Date().toISOString(),
     });
   } catch (error) {
@@ -231,8 +242,8 @@ async function postHandler(request: NextRequest) {
     const normalizedModeForTimeout = mode.toLowerCase().replace(/_/g, '-');
     const finalTimeoutMs = timeoutMs || (
       normalizedModeForTimeout === 'google-ai'
-        ? timeouts.GOOGLE_AI  // 3000ms (Google AI 모드)
-        : timeouts.LOCAL_AI   // 1500ms (Local AI 모드)
+        ? timeouts.GOOGLE_AI  // 8000ms (Google AI 모드)
+        : timeouts.LOCAL_AI   // 3000ms (Local AI 모드)
     );
 
     console.log('🔍 [DEBUG] API Route timeout configuration:', {
@@ -343,8 +354,25 @@ async function postHandler(request: NextRequest) {
     // 쿼리 의도 분석
     const intent = analyzeQueryIntent(query);
 
-    // 쿼리 로그 저장 (비동기, 응답을 기다리지 않음)
-    logQuery(query, responseTime, cacheHit, intent);
+    // 사용자/세션 정보 추출 (게스트 사용자 지원)
+    const sessionId = request.headers.get('x-session-id') || `guest_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+    const userId = request.headers.get('x-user-id') || null;
+
+    // AI 모드 결정 (LOCAL vs GOOGLE_AI)
+    const aiMode = (mode === 'google-ai' || preferredMode === 'google-ai') ? 'GOOGLE_AI' : 'LOCAL';
+
+    // 쿼리 로그 저장 (비동기, 응답을 기다리지 않음) - 대화 히스토리 포함
+    logQuery(
+      query,
+      responseTime,
+      cacheHit,
+      intent,
+      result.response, // AI 응답 텍스트
+      aiMode,         // AI 모드
+      'success',      // 상태
+      userId,         // 사용자 ID
+      sessionId       // 세션 ID
+    );
 
     // 응답 포맷팅
     const response = {
@@ -417,9 +445,27 @@ async function postHandler(request: NextRequest) {
     const errorAnalysis = classifyError(error as Error, finalResponseTime);
     debug.error(`❌ AI 쿼리 처리 실패 [${errorAnalysis.type}]:`, error);
 
-    // 📊 에러 로깅 (의도와 함께)
+    // 📊 에러 로깅 (의도와 함께) - 대화 히스토리 포함
     const intent = analyzeQueryIntent(query);
-    await logQuery(query, finalResponseTime, false, `error:${errorAnalysis.type}:${intent}`);
+
+    // 사용자/세션 정보 추출 (에러 케이스)
+    const sessionId = request.headers.get('x-session-id') || `guest_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+    const userId = request.headers.get('x-user-id') || null;
+
+    // 에러 응답 메시지 생성
+    const errorMessage = generateErrorMessage(errorAnalysis);
+
+    await logQuery(
+      query,
+      finalResponseTime,
+      false,
+      `error:${errorAnalysis.type}:${intent}`,
+      errorMessage, // 에러 응답 텍스트
+      'LOCAL',      // 에러 시 기본 모드
+      'error',      // 상태
+      userId,       // 사용자 ID
+      sessionId     // 세션 ID
+    );
 
     // 🎯 에러 타입별 맞춤형 폴백 응답
     const fallbackMessage = generateErrorMessage(errorAnalysis);

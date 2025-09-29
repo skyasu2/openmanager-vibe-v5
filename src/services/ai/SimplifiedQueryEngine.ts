@@ -180,8 +180,8 @@ export class SimplifiedQueryEngine {
     const isGoogleAIMode = (mode as string) === 'GOOGLE_AI' || (mode as string) === 'google-ai' || enableGoogleAI;
     const timeoutMs = options.timeoutMs || (
       isGoogleAIMode
-        ? timeouts.GOOGLE_AI  // 3000ms (Google AI 모드)
-        : timeouts.LOCAL_AI   // 1500ms (Local AI 모드)
+        ? timeouts.GOOGLE_AI  // 8000ms (Google AI 모드)
+        : timeouts.LOCAL_AI   // 3000ms (Local AI 모드)
     );
 
     console.log('🔍 [DEBUG] Final timeout selected:', timeoutMs);

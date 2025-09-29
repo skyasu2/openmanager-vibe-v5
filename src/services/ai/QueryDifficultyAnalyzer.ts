@@ -320,42 +320,20 @@ export class QueryDifficultyAnalyzer {
   }
 
   /**
-   * 사용량 기반 모델 추천
+   * 고정 모델 추천 (무료 티어 안정성 우선)
+   * 🎯 2025년 무료 티어 최적화: Flash-Lite 고정 사용
    */
   private recommendModel(
     score: number,
     level: DifficultyLevel,
     usageQuota?: { [model: string]: { daily: number; rpm: number } }
   ): GoogleAIModel {
-    // 서버 모니터링 특화 모델 선택
-    let baseModel: GoogleAIModel;
-    if (score <= 20) baseModel = 'gemini-2.5-flash-lite';  // 단순 조회 (서버 개수, 상태)
-    else if (score <= 50) baseModel = 'gemini-2.5-flash';  // 목록, 확인, 메트릭 조회
-    else baseModel = 'gemini-2.5-pro';                     // 분석, 예측, 보고서
-
-    // 사용량 할당량 확인하여 조정
-    if (usageQuota) {
-      // Pro 모델 할당량 부족 시 Flash로 다운그레이드
-      if (baseModel === 'gemini-2.5-pro' && (usageQuota['gemini-2.5-pro']?.daily ?? 0) >= 90) {
-        baseModel = 'gemini-2.5-flash';
-      }
-
-      // Flash 모델 할당량 부족 시 Flash-Lite로 다운그레이드
-      if (baseModel === 'gemini-2.5-flash' && (usageQuota['gemini-2.5-flash']?.daily ?? 0) >= 225) {
-        baseModel = 'gemini-2.5-flash-lite';
-      }
-
-      // Flash-Lite도 할당량 부족 시 Flash 사용 (더 높은 성능 필요)
-      if (baseModel === 'gemini-2.5-flash-lite' && (usageQuota['gemini-2.5-flash-lite']?.daily ?? 0) >= 950) {
-        baseModel = 'gemini-2.5-flash';
-      }
-    }
-
-    return baseModel;
+    // 🚀 무료 티어 안정성 우선: Flash-Lite 고정 사용 (RPD 1,000개, 가장 관대한 제한)
+    return 'gemini-2.5-flash-lite';
   }
 
   /**
-   * 선택 이유 생성
+   * 고정 모델 선택 이유 생성 (단순화)
    */
   private generateReasoning(
     score: number,
@@ -363,25 +341,8 @@ export class QueryDifficultyAnalyzer {
     model: GoogleAIModel,
     factors: { linguistic: number; technical: number; reasoning: number; response: number }
   ): string {
-    const modelInfo = MODEL_CHARACTERISTICS[model];
-    const topFactor = Object.entries(factors).reduce((a, b) => (factors[a[0] as keyof typeof factors] > factors[b[0] as keyof typeof factors] ? a : b));
-
-    let reasoning = `난이도 ${score}점 (${level}) → ${model} 선택. `;
-
-    // 주요 요인 설명
-    const factorNames = {
-      linguistic: '언어적 복잡도',
-      technical: '기술적 복잡도',
-      reasoning: '추론 복잡도',
-      response: '응답 복잡도',
-    };
-
-    reasoning += `주요 요인: ${factorNames[topFactor[0] as keyof typeof factorNames]} (${topFactor[1]}점). `;
-
-    // 모델 특성 설명
-    reasoning += `${model}는 ${modelInfo.strengths.join(', ')}에 최적화됨.`;
-
-    return reasoning;
+    // 🎯 무료 티어 안정성 우선: 단순한 설명
+    return `무료 티어 최적화: Flash-Lite 고정 사용 (RPD 1,000개, 안정성 우선)`;
   }
 
   /**
