@@ -13,7 +13,7 @@
     "dev:check": "./scripts/dev-server-manager.sh status",
     "dev:stop": "./scripts/dev-server-manager.sh stop",
     "dev:restart": "./scripts/dev-server-manager.sh restart",
-    "dev:stable": "cross-env NEXT_DISABLE_DEVTOOLS=1 NODE_OPTIONS='--max-old-space-size=4096' next dev -p 3000",
+    "dev:stable": "cross-env NEXT_DISABLE_DEVTOOLS=1 NODE_OPTIONS='--max-old-space-size=4096' next dev",
     "dev:clean": "cross-env NEXT_DISABLE_DEVTOOLS=1 NEXT_TELEMETRY_DISABLED=1 NODE_OPTIONS='--max-old-space-size=4096' next dev -p 3000",
     "dev:playwright": "cross-env NEXT_DISABLE_DEVTOOLS=1 NODE_OPTIONS='--max-old-space-size=4096' next dev -p 3000",
     "index:background": "ts-node scripts/indexing/background-indexing.ts",
