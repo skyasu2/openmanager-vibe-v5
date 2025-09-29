@@ -441,7 +441,7 @@ function isGuestUserLegacy(): boolean {
 export function onAuthStateChange(callback: (session: Session | null) => void) {
   const { data: authListener } = supabase.auth.onAuthStateChange(
     (event, session) => {
-      console.log('🔄 Auth 상태 변경:', event, session?.user?.email);
+      console.log('🔄 Auth 상태 변경:', event, 'userId:', session?.user?.id);
       callback(session);
     }
   );
@@ -464,7 +464,7 @@ export async function handleAuthCallback(): Promise<AuthCallbackResult> {
     }
 
     if (session) {
-      console.log('✅ Auth 콜백 처리 성공:', session.user.email);
+      console.log('✅ Auth 콜백 처리 성공, userId:', session.user.id);
     }
 
     return { session, error: null };

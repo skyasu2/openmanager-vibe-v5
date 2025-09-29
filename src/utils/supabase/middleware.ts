@@ -26,30 +26,45 @@ export async function updateSession(
           return cookie;
         },
         set(name: string, value: string, options: Record<string, unknown>) {
-          // 응답 쿠키에만 설정 (request.cookies는 읽기 전용)
-          // Next.js 15에서는 NextResponse.cookies 대신 headers 사용
-          const cookieValue = `${name}=${value}; Path=/; ${Object.entries(
-            options
-          )
-            .map(
-              ([k, v]) =>
-                `${k}=${typeof v === 'object' ? JSON.stringify(v) : String(v)}`
+          // ✅ 개선: 여러 쿠키 공존을 위해 response.cookies.set 사용
+          try {
+            supabaseResponse.cookies.set(name, value, {
+              path: '/',
+              ...options,
+            });
+          } catch (error) {
+            // Fallback: Headers.append 사용 (여러 쿠키 지원)
+            const cookieValue = `${name}=${value}; Path=/; ${Object.entries(
+              options
             )
-            .join('; ')}`;
-          supabaseResponse.headers.set('Set-Cookie', cookieValue);
+              .map(
+                ([k, v]) =>
+                  `${k}=${typeof v === 'object' ? JSON.stringify(v) : String(v)}`
+              )
+              .join('; ')}`;
+            supabaseResponse.headers.append('Set-Cookie', cookieValue);
+          }
         },
         remove(name: string, options: Record<string, unknown>) {
-          // 응답 쿠키에서만 제거 (request.cookies는 읽기 전용)
-          // Next.js 15에서는 NextResponse.cookies 대신 headers 사용
-          const cookieValue = `${name}=; Path=/; Max-Age=0; ${Object.entries(
-            options
-          )
-            .map(
-              ([k, v]) =>
-                `${k}=${typeof v === 'object' ? JSON.stringify(v) : String(v)}`
+          // ✅ 개선: 여러 쿠키 공존을 위해 response.cookies.set 사용
+          try {
+            supabaseResponse.cookies.set(name, '', {
+              path: '/',
+              maxAge: 0,
+              ...options,
+            });
+          } catch (error) {
+            // Fallback: Headers.append 사용 (여러 쿠키 지원)
+            const cookieValue = `${name}=; Path=/; Max-Age=0; ${Object.entries(
+              options
             )
-            .join('; ')}`;
-          supabaseResponse.headers.set('Set-Cookie', cookieValue);
+              .map(
+                ([k, v]) =>
+                  `${k}=${typeof v === 'object' ? JSON.stringify(v) : String(v)}`
+              )
+              .join('; ')}`;
+            supabaseResponse.headers.append('Set-Cookie', cookieValue);
+          }
         },
       },
     }
@@ -66,14 +81,15 @@ export async function updateSession(
   } = await (supabase as SupabaseClient).auth.getSession();
 
   if (session) {
-    console.log('✅ updateSession: 세션 복원됨', session.user.email);
+    // ✅ 보안 개선: 이메일 로깅 제거, 세션 존재 여부만 기록
+    console.log('✅ updateSession: 세션 복원됨', 'userId:', session.user.id);
 
     // 세션이 있으면 사용자 정보도 확인 (토큰 유효성 검증)
     const {
       data: { user },
     } = await (supabase as SupabaseClient).auth.getUser();
     if (user) {
-      console.log('✅ updateSession: 사용자 확인됨', user.email);
+      console.log('✅ updateSession: 사용자 확인됨', 'userId:', user.id);
     }
   } else {
     console.log('⚠️ updateSession: 세션 없음', error?.message);

@@ -178,7 +178,7 @@ export async function getMiddlewareSession(
     } = await client.auth.getSession();
 
     if (session) {
-      console.log('✅ 미들웨어 세션 확인됨:', session.user?.email);
+      console.log('✅ 미들웨어 세션 확인됨, userId:', session.user?.id);
     }
 
     return { session, error };
