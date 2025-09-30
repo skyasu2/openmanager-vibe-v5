@@ -28,47 +28,25 @@ Gemini CLI 사용 가이드 및 Claude Code Sub Agent 협업 방법
 
 ## 효율적인 사용 전략
 
-### 💊 사용량 관리
+### 💊 CLI 사용 가이드 (WSL 환경)
 
-#### 일일 제한 (Google 계정 OAuth 인증 시)
-
-- **무료 제한**: 1,000회/일, 60회/분 (2025년 8월 현재)
-- **리셋 시간**: 태평양 표준시(PST) 자정 = 한국 시간 오후 4-5시경
-- **인증 방법**: Google 계정 OAuth 로그인 (이메일 인증)
-- **Code Assist**: Google의 무료 Code Assist 라이선스 (미리보기 단계)
-
-#### 사용량 명령어 (WSL 환경)
+Claude Code 서브에이전트로 동작할 때의 표준 명령어 형식은 `echo`와 파이프(`|`)를 사용합니다. 이는 프로그램 간 입력을 안정적으로 전달하기 위한 가장 안정적인 방법입니다.
 
 ```bash
-# WSL 환경에서 직접 실행 (2025-09-18 업데이트)
-# 주의: Gemini CLI는 프롬프트 기반으로 동작, 슬래시 명령어는 인터랙티브 모드에서만 작동
-echo "Show usage stats" | gemini -p "Current usage"  # 사용량 확인 대체
-echo "Compress conversation" | gemini -p "Summarize"  # 대화 압축 대체
-# 인터랙티브 모드 진입 후 사용 가능한 명령어
-gemini  # 인터랙티브 모드 진입
-# /stats, /compress, /clear, /memory 등 사용 가능
+# 📖 표준 사용법 (2025-09-18 업데이트)
+# 1. 프롬프트를 echo로 전달하여 gemini CLI의 표준 입력으로 제공
+echo "Show usage stats" | gemini -p "Current usage"
+
+# 2. 파일 내용을 파이프로 전달하여 분석
+cat 파일명.js | gemini -p "핵심만 요약"
+
+# 3. 다른 명령어 결과물을 파이프로 전달
+git diff | gemini -p "변경사항 리뷰"
 ```
 
-> **⚠️ 중요**: Gemini CLI v0.5.3는 `-p` 플래그로 프롬프트 모드 실행 권장. 인터랙티브 모드는 타임아웃 이슈 가능성 있음.
+> **⚠️ 중요**: 인터랙티브 모드(`gemini`)는 WSL 환경에서 타임아웃 이슈가 발생할 수 있어 권장하지 않습니다.
 
-#### 사용량 임계값 가이드
-
-- **0-50%**: 자유롭게 사용
-- **50-80%**: 중요한 작업 위주
-- **80-100%**: 복잡한 작업은 Claude Code에게 요청
-
-### 🎯 토큰 절약 전략
-
-#### 효율적 사용 패턴
-
-```bash
-# ❌ 비효율적 (타임아웃 위험)
-gemini  # 인터랙티브 모드 - WSL에서 타임아웃 가능
-
-# ✅ 효율적 (안정적 실행)
-echo "질문" | gemini -p "3줄로 답변"  # 프롬프트 모드 권장
-cat 파일명.js | gemini -p "핵심만 요약"  # 파일 분석에 최적
-```
+> **💡 Tip**: `gemini --version` 이나 `node -v` 같은 명령어로 현재 설치된 도구들의 버전을 확인할 수 있습니다. 문서의 버전 정보가 실제와 다를 수 있으니, 주기적으로 확인하는 것이 좋습니다.
 
 #### 일일 워크플로우 예시
 
@@ -108,11 +86,17 @@ echo "Clear context" | gemini -p "Reset"  # 새 세션 시작
 "gemini-specialist 서브에이전트를 사용하여 API 아키텍처를 설계하고 실제 엔드포인트를 생성해주세요"
 ```
 
-#### **2. 직접 CLI 방식** (빠른 분석)
+#### **2. 직접 CLI 방식** (빠른 분석 및 파이프라인 연동)
+
+Claude Code 서브에이전트가 아닌, 터미널에서 직접 사용하거나 쉘 스크립트 파이프라인에 연동할 때 사용합니다.
+
 ```bash
-# 구조 분석이나 간단한 제안
-gemini "이 컴포넌트 구조를 Material Design 3로 개선 방법"
-gemini "SOLID 원칙 적용해서 실제 리팩토링 코드 생성"
+# 표준 방식: echo와 파이프라인을 통해 입력을 전달
+# 이는 Claude Code와 같은 다른 에이전트와의 연동성을 보장하는 안정적인 방법입니다.
+echo "이 컴포넌트 구조를 Material Design 3로 개선하는 방법 제안" | gemini -p "Analyze and suggest"
+
+# 파일 내용 분석
+cat src/components/MyComponent.tsx | gemini -p "SOLID 원칙에 따라 리팩토링 코드 생성"
 ```
 
 ### 현재 개발 환경
@@ -248,52 +232,35 @@ cat coverage/lcov.info | gemini -p "테스트 부족 영역 우선순위"
 echo "결제 프로세스 E2E 테스트" | gemini -p "중요 검증 포인트 목록"
 ```
 
-## 메모리 저장 권장사항
+## 💡 컨텍스트 관리 자동화 (구 '메모리 저장 권장사항')
 
-### 프로젝트 기본 정보
+Gemini CLI는 현재 상태 저장(stateful) 메모리 기능을 지원하지 않으므로, 모든 요청에 핵심 컨텍스트를 함께 제공해야 합니다. 특히 Claude Code의 서브에이전트로 동작할 때 이는 중요합니다.
 
+이러한 반복 작업을 줄이기 위해, 주요 컨텍스트를 포함하는 래퍼 스크립트(예: `gcli.sh`)를 사용하는 것을 권장합니다.
+
+**래퍼 스크립트 예시 (`scripts/gcli.sh`):**
 ```bash
-# 메모리 기능은 현재 버전에서 미지원
-# 대신 프로젝트 컨텍스트를 프롬프트에 포함
-echo "Project: OpenManager VIBE v5" | gemini -p "OpenManager VIBE v5 - AI 서버 모니터링 플랫폼"
-# 메모리 기능은 현재 버전에서 미지원
-# 대신 프로젝트 컨텍스트를 프롬프트에 포함
-echo "Project: OpenManager VIBE v5" | gemini -p "Next.js 15, TypeScript strict mode, Node.js v22.15.1"
-# 메모리 기능은 현재 버전에서 미지원
-# 대신 프로젝트 컨텍스트를 프롬프트에 포함
-echo "Project: OpenManager VIBE v5" | gemini -p "Vercel 무료 티어 최적화, Edge Runtime 사용"
+#!/bin/bash
+#
+# Gemini CLI 컨텍스트 래퍼 스크립트
+# 사용법: ./scripts/gcli.sh "분석해줘"
+
+# 1. 핵심 컨텍스트 정의
+CONTEXT="
+- Project: OpenManager VIBE v5 (AI 서버 모니터링 플랫폼)
+- Tech Stack: Next.js 15, TypeScript strict mode, Node.js v22.x
+- Environment: Vercel (Edge Runtime 최적화)
+- Key Rules: SOLID, No 'any' type, TDD, Reuse existing code
+- Core Feature: UnifiedAIEngineRouter (다중 AI 엔진 통합)
+"
+
+# 2. 사용자 입력을 컨텍스트와 결합하여 Gemini CLI에 전달
+echo "$CONTEXT
+---
+User Request: $1" | gemini -p "Process the following request"
 ```
 
-### 개발 규칙
-
-```bash
-# 메모리 기능은 현재 버전에서 미지원
-# 대신 프로젝트 컨텍스트를 프롬프트에 포함
-echo "Project: OpenManager VIBE v5" | gemini -p "SOLID 원칙 준수, 1500줄 초과 시 파일 분리"
-# 메모리 기능은 현재 버전에서 미지원
-# 대신 프로젝트 컨텍스트를 프롬프트에 포함
-echo "Project: OpenManager VIBE v5" | gemini -p "any 타입 사용 금지, 타입 안전성 필수"
-# 메모리 기능은 현재 버전에서 미지원
-# 대신 프로젝트 컨텍스트를 프롬프트에 포함
-echo "Project: OpenManager VIBE v5" | gemini -p "기존 코드 우선 재사용, 중복 코드 방지"
-# 메모리 기능은 현재 버전에서 미지원
-# 대신 프로젝트 컨텍스트를 프롬프트에 포함
-echo "Project: OpenManager VIBE v5" | gemini -p "TDD 접근: Red-Green-Refactor 사이클"
-```
-
-### 주요 기능
-
-```bash
-# 메모리 기능은 현재 버전에서 미지원
-# 대신 프로젝트 컨텍스트를 프롬프트에 포함
-echo "Project: OpenManager VIBE v5" | gemini -p "UnifiedAIEngineRouter: 다중 AI 엔진 통합 시스템"
-# 메모리 기능은 현재 버전에서 미지원
-# 대신 프로젝트 컨텍스트를 프롬프트에 포함
-echo "Project: OpenManager VIBE v5" | gemini -p "Supabase Auth: GitHub OAuth 인증"
-# 메모리 기능은 현재 버전에서 미지원
-# 대신 프로젝트 컨텍스트를 프롬프트에 포함
-echo "Project: OpenManager VIBE v5" | gemini -p "실시간 서버 모니터링 및 AI 분석"
-```
+> **사용법**: 위 스크립트를 생성하고 실행 권한을 부여(`chmod +x scripts/gcli.sh`)한 뒤, Claude Code 에이전트가 `gemini` 대신 `./scripts/gcli.sh`를 호출하도록 설정할 수 있습니다.
 
 ---
 

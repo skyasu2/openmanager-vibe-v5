@@ -11,6 +11,11 @@ ChatGPT Codex CLI를 위한 OpenManager VIBE v5 특화 설정
 > **Last Updated**: 2025-09-02 | **Environment**: Windows 11 + WSL 2  
 > **Project Status**: 234,290줄 TypeScript, 98.2% 테스트 커버리지, 9개 MCP 서버 최적화
 
+**현재 운영 워크플로우**
+- WSL 환경에서 Claude Code를 메인 IDE로 사용하며, Claude의 서브에이전트가 Codex CLI와 직접 통신해 자동화 작업을 실행합니다.
+- Codex CLI는 보조 분석·자동화 엔진으로 동작하며, Claude Code에서 트리거된 지시에 따라 테스트·리팩토링·감사 업무를 수행합니다.
+- 로컬 수동 실행이 필요한 경우에만 WSL 터미널에서 직접 Codex CLI 명령을 입력합니다.
+
 ## ℹ️ Codex /init 사용 안내
 
 - Codex CLI에서 `/init` 실행 시 루트에 `AGENTS.md`가 생성/갱신됩니다.
@@ -100,8 +105,8 @@ AI_Integration:
 
 **Claude Code 서브에이전트 14개 체계** - Claude Code 내장 Task 도구 전용
 
-**중요**: 서브에이전트는 Claude Code 전용 기능이며, Codex CLI에서는 직접 활용 불가
-**Codex 역할**: 독립적인 GPT-5 기반 코드 분석 및 리뷰 전문가
+**중요**: Claude Code의 서브에이전트가 Codex CLI와 연동되어 자동으로 명령을 실행합니다.
+**Codex 역할**: Claude Code 메인 작업을 보완하는 GPT-5 기반 코드 분석·리뷰·자동화 전문가
 
 ### 1️⃣ 긴급 문제 해결 (최우선)
 ```bash
@@ -478,16 +483,16 @@ codex-cli "프로젝트에 유용한 새로운 MCP 서버를 추천하고
 
 ```bash
 # 병렬 작업 시나리오
-Claude: "메인 기능 구현 진행"
-Codex: "codex-cli '동시에 해당 기능의 테스트 코드 생성해줘'"
+Claude(메인): "메인 기능 구현 진행"
+Codex 서브에이전트(WSL): "codex-cli '동시에 해당 기능의 테스트 코드 생성해줘'"
 
 # 교차 검증
-Claude: "코드 작성 완료"
-Codex: "codex-cli '작성된 코드를 보안 관점에서 검토하고 개선점 제안해줘'"
+Claude(메인): "코드 작성 완료"
+Codex 서브에이전트(WSL): "codex-cli '작성된 코드를 보안 관점에서 검토하고 개선점 제안해줘'"
 
 # 자동화 보완
-Claude: "수동 배포 완료"
-Codex: "codex-cli '배포 과정을 GitHub Actions로 자동화해줘'"
+Claude(메인): "수동 배포 완료"
+Codex 서브에이전트(WSL): "codex-cli '배포 과정을 GitHub Actions로 자동화해줘'"
 ```
 
 ### Gemini와 협업
