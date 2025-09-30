@@ -144,7 +144,7 @@ export class SimplifiedQueryEngineHelpers {
     if (lowerQuery.includes('상태') || lowerQuery.includes('요약')) {
       const statusCount = {
         정상: servers.filter(
-          (s) => s.status === 'healthy' || s.status === 'online'
+          (s) => s.status === 'online' // 🔧 수정: 'healthy' 제거 (타입 통합)
         ).length,
         주의: servers.filter((s) => s.status === 'warning').length,
         위험: servers.filter(

@@ -323,7 +323,9 @@ export const calculateServerStatsFallback = (servers: EnhancedServerData[]): Ser
     if (isValidNumber(server.cpu)) cpuSum += server.cpu;
     if (isValidNumber(server.memory)) memorySum += server.memory;
     if (isValidNumber(server.uptime)) uptimeSum += server.uptime;
-    if (isValidNumber(server.bandwidth)) bandwidthSum += server.bandwidth;
+    // 🔧 수정: bandwidth 속성 안전 접근 (optional)
+    const bandwidth = (server as any).bandwidth;
+    if (isValidNumber(bandwidth)) bandwidthSum += bandwidth;
   }
 
   const safeAverage = (sum: number, count: number) => count > 0 ? sum / count : 0;

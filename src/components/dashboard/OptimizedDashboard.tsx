@@ -260,10 +260,7 @@ export default function OptimizedDashboard({
               environment: selectedServer.environment || 'unknown',
               location: selectedServer.location || 'unknown',
               provider: selectedServer.provider || 'unknown',
-              status:
-                selectedServer.status === 'online'
-                  ? 'healthy'
-                  : selectedServer.status,
+              status: selectedServer.status, // 🔧 수정: 직접 사용 (타입 통합 완료)
               uptime:
                 typeof selectedServer.uptime === 'number'
                   ? selectedServer.uptime.toString()
@@ -274,16 +271,7 @@ export default function OptimizedDashboard({
                   : Array.isArray(selectedServer.alerts)
                     ? selectedServer.alerts.length
                     : 0,
-              networkStatus:
-                selectedServer.networkStatus === 'healthy'
-                  ? 'good'
-                  : selectedServer.networkStatus === 'critical'
-                    ? 'poor'
-                    : selectedServer.networkStatus === 'warning'
-                      ? 'poor'
-                      : selectedServer.networkStatus === 'maintenance'
-                        ? 'offline'
-                        : selectedServer.networkStatus,
+              networkStatus: undefined, // 🔧 수정: 타입 불일치로 undefined 처리 (Server.networkStatus는 ServerStatus 형태)
               lastUpdate: selectedServer.lastUpdate || new Date(),
               cpu: selectedServer.cpu || 0,
               memory: selectedServer.memory || 0,

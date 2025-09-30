@@ -51,15 +51,19 @@ interface GCPServerMetrics {
 function convertGCPStatusToServerStatus(gcpStatus: string): ServerStatus {
   switch (gcpStatus) {
     case 'healthy':
-      return 'running';
+    case 'running': // 🔧 추가: GCP 'running' 상태 지원
+      return 'online'; // 🔧 수정: 'running' → 'online' (타입 통합)
     case 'warning':
       return 'warning';
     case 'critical':
-      return 'error';
     case 'ERROR':
-      return 'error';
+    case 'error': // 🔧 추가: 소문자 'error' 상태 지원
+      return 'critical'; // 🔧 수정: 'error' → 'critical' (타입 통합)
+    case 'stopped':
+    case 'offline': // 🔧 추가: 'offline' 상태 지원
+      return 'offline'; // 🔧 수정: 'stopped' → 'offline' (타입 통합)
     default:
-      return 'stopped';
+      return 'unknown'; // 🔧 수정: 'stopped' → 'unknown' (알 수 없는 상태)
   }
 }
 
@@ -197,8 +201,8 @@ export function adaptServerInstanceToGCPMetrics(
     zone: serverInstance.region,
     projectId: 'default-project', // 기본값
     status:
-      serverInstance.status === 'running'
-        ? 'healthy'
+      serverInstance.status === 'online' // 🔧 수정: 'running' → 'online' (타입 통합)
+        ? 'online' // 🔧 수정: 'healthy' → 'online' (타입 통합)
         : serverInstance.status === 'warning'
           ? 'warning'
           : 'critical',
@@ -227,7 +231,7 @@ export function adaptServerInstanceToGCPMetrics(
       },
     },
     timestamp: serverInstance.lastUpdated,
-    isErrorState: serverInstance.status === 'error',
+    isErrorState: serverInstance.status === 'critical', // 🔧 수정: 'error' → 'critical' (타입 통합)
     errorMessage: serverInstance.errors?.lastError,
   };
 }

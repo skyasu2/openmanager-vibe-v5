@@ -9,13 +9,9 @@
  */
 
 import { ComponentType } from 'react';
+import type { ServerStatus } from '@/types/server-enums'; // 🔧 수정: Single Source of Truth
 
-export type ServerStatus =
-  | 'healthy'
-  | 'warning'
-  | 'critical'
-  | 'offline'
-  | 'online';
+// 🔧 수정: re-export 제거, 직접 사용
 export type NetworkStatus = 'excellent' | 'good' | 'poor' | 'offline';
 export type LogLevel = 'info' | 'warn' | 'error';
 export type ServiceStatus = 'running' | 'stopped' | 'warning' | 'failed' | 'starting' | 'stopping' | 'error' | 'unknown';

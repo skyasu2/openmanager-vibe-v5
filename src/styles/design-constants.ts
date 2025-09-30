@@ -1,13 +1,16 @@
 /**
  * 🎨 디자인 상수 - design-tokens 대체 시스템
- * 
+ *
  * Vercel 배포 호환성을 위해 import 의존성 없는 단순한 상수 시스템
  * Material Design 3 색상 체계 유지하면서 번들 크기 최소화
  */
 
+import type { ServerStatus } from '@/types/server-enums'; // 🔧 추가: Single Source of Truth
+export type { ServerStatus }; // 🔧 re-export (타입 통합)
+
 // ===== 서버 상태별 색상 시스템 =====
 export const SERVER_STATUS_COLORS = {
-  healthy: {
+  online: { // 🔧 수정: 'healthy' → 'online' (타입 통합)
     // 정상 상태 - 녹색 계열
     background: 'bg-gradient-to-br from-white/95 via-emerald-50/90 to-emerald-100/70',
     border: 'border-emerald-300/60 hover:border-emerald-400/80',
@@ -43,6 +46,32 @@ export const SERVER_STATUS_COLORS = {
     accentColor: 'rgb(239, 68, 68)', // red-500
     statusColor: {
       backgroundColor: 'rgba(239, 68, 68, 0.1)',
+      color: 'inherit'
+    }
+  },
+  offline: { // 🔧 추가: offline 상태 (타입 통합)
+    // 오프라인 상태 - 회색 계열 (어두움)
+    background: 'bg-gradient-to-br from-white/95 via-gray-100/90 to-gray-200/70',
+    border: 'border-gray-400/60 hover:border-gray-500/80',
+    text: 'text-gray-900',
+    badge: 'bg-gray-200 text-gray-900',
+    graphColor: '#9ca3af', // gray-400
+    accentColor: 'rgb(156, 163, 175)', // gray-400
+    statusColor: {
+      backgroundColor: 'rgba(156, 163, 175, 0.1)',
+      color: 'inherit'
+    }
+  },
+  maintenance: { // 🔧 추가: maintenance 상태 (타입 통합)
+    // 점검 상태 - 파란색 계열
+    background: 'bg-gradient-to-br from-white/95 via-blue-50/90 to-blue-100/70',
+    border: 'border-blue-300/60 hover:border-blue-400/80',
+    text: 'text-blue-800',
+    badge: 'bg-blue-100 text-blue-800',
+    graphColor: '#3b82f6', // blue-500
+    accentColor: 'rgb(59, 130, 246)', // blue-500
+    statusColor: {
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
       color: 'inherit'
     }
   },
@@ -106,7 +135,7 @@ export const LAYOUT = {
 } as const;
 
 // ===== 유틸리티 함수 =====
-export type ServerStatus = 'healthy' | 'warning' | 'critical' | 'unknown';
+// 🔧 수정: ServerStatus 타입은 server-enums에서 import (타입 통합)
 
 export const getServerStatusTheme = (status: ServerStatus) => {
   return SERVER_STATUS_COLORS[status] || SERVER_STATUS_COLORS.unknown; // 🔧 수정: 기본값 'healthy' → 'unknown'

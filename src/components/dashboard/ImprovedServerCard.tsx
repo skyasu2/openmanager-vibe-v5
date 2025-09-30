@@ -241,17 +241,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     const statusTheme = useMemo(() => {
       try {
         // 서버 상태를 Material Design 3 표준 상태로 매핑 (베르셀 환경 안전성)
-        const serverStatus = safeServer.status;
-        const normalizedStatus: ServerStatus =
-          serverStatus === 'online' || serverStatus === 'healthy'
-            ? 'healthy'
-            : serverStatus === 'critical' || serverStatus === 'offline'
-              ? 'critical'
-              : serverStatus === 'warning'
-                ? 'warning'
-                : 'unknown'; // 🔧 수정: 'healthy' → 'unknown' (기본값 변경)
-
-        const theme = getServerStatusTheme(normalizedStatus);
+        const theme = getServerStatusTheme(safeServer.status as any); // 🔧 수정: 타입 어설션 (타입 통합 호환성)
       
       return {
         // Material Design 3 Surface 기반 배경 - 상태별 색상 적용
@@ -266,22 +256,22 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         // 호버 효과 - 상태별 색상 반영
         hoverStyle: {
           borderColor: 'transparent',
-          boxShadow: normalizedStatus === 'healthy' 
+          boxShadow: safeServer.status === 'online' // 🔧 수정: normalizedStatus → safeServer.status
             ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(16, 185, 129, 0.125)'
-            : normalizedStatus === 'warning'
+            : safeServer.status === 'warning'
               ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(245, 158, 11, 0.125)'
               : '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(239, 68, 68, 0.125)',
         },
-        
+
         // 상태 표시 - design-constants 사용
         statusColor: theme.statusColor,
-        statusIcon: normalizedStatus === 'healthy' 
+        statusIcon: safeServer.status === 'online' // 🔧 수정: normalizedStatus → safeServer.status
           ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
           : <AlertCircle className="h-4 w-4" aria-hidden="true" />,
-        statusText: normalizedStatus === 'healthy' 
-          ? '정상' 
-          : normalizedStatus === 'warning' 
-            ? '경고' 
+        statusText: safeServer.status === 'online' // 🔧 수정: normalizedStatus → safeServer.status
+          ? '정상'
+          : safeServer.status === 'warning'
+            ? '경고'
             : '심각',
             
         // 실시간 펄스 - 상태별 색상

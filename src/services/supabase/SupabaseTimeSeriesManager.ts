@@ -518,7 +518,7 @@ export class SupabaseTimeSeriesManager {
         in: record.network_usage / 2,
         out: record.network_usage / 2,
       },
-      status: 'healthy' as const,
+      status: 'online' as const, // 🔧 수정: 'healthy' → 'online' (타입 통합)
       responseTime: record.response_time,
       activeConnections: record.request_count,
       // 선택적 필드들

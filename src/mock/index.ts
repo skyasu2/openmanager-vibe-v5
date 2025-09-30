@@ -176,12 +176,7 @@ export function getMockServers(): Server[] {
         id: hourlyData.serverId,
         name: hourlyData.serverId, // serverId를 name으로 사용
         hostname: `${hourlyData.serverId}.internal`,
-        status: hourlyData.status as
-          | 'online'
-          | 'offline'
-          | 'warning'
-          | 'healthy'
-          | 'critical',
+        status: hourlyData.status, // 🔧 수정: 직접 사용 (이미 ServerStatus 타입)
         cpu: hourlyData.cpu,
         memory: hourlyData.memory,
         disk: hourlyData.disk,
@@ -209,10 +204,10 @@ export function getMockServers(): Server[] {
         services: [],
         networkStatus:
           hourlyData.status === 'online'
-            ? 'healthy'
+            ? 'online' // 🔧 수정: ServerStatus 타입 사용
             : hourlyData.status === 'warning'
-              ? 'warning'
-              : 'critical',
+              ? 'warning' // 🔧 수정: ServerStatus 타입 사용
+              : 'critical', // 🔧 수정: ServerStatus 타입 사용
         systemInfo: {
           os: 'Ubuntu 22.04 LTS',
           uptime: `${Math.floor((hourlyData.hour + 1) * 3600)}s`, // hour를 이용한 uptime 계산
@@ -243,7 +238,7 @@ export function getMockServers(): Server[] {
               : Math.floor(Math.random() * 3),
           status:
             hourlyData.status === 'online'
-              ? 'healthy'
+              ? 'online' // 🔧 수정: 'healthy' → 'online' (ServerStatus 타입)
               : hourlyData.status === 'warning'
                 ? 'warning'
                 : 'critical',

@@ -13,6 +13,7 @@ import {
   type ServerBatchResponse,
   type PaginatedServer,
 } from '@/schemas/api.schema';
+import type { ServerStatus } from '@/types/server-enums'; // 🔧 추가
 import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';
 
@@ -134,10 +135,17 @@ const getHandler = createApiRoute()
     debug.log(`📊 Mock 시스템에서 ${mockServers.length}개 서버 로드됨`);
 
     // Mock 시스템 서버 데이터를 API 형식으로 변환
-    const allServers: PaginatedServer[] = mockServers.map((server) => ({
+    const allServers: PaginatedServer[] = mockServers.map((server) => {
+      // 🔧 수정: 'healthy' → 'online', 'error' → 'critical' 타입 변환
+      const rawStatus: any = server.status || 'offline'; // 타입 단언으로 비교 가능하게
+      const status = (rawStatus === 'healthy' ? 'online' :
+                     rawStatus === 'error' ? 'critical' :
+                     rawStatus) as ServerStatus;
+
+      return {
       id: server.id,
       name: server.name,
-      status: server.status || 'offline',
+      status, // 🔧 수정: 이미 ServerStatus로 변환됨
       location: server.location || 'Unknown',
       uptime: typeof server.uptime === 'number' ? server.uptime : 0,
       lastUpdate:
@@ -164,7 +172,8 @@ const getHandler = createApiRoute()
         type: server.type || 'unknown',
         environment: server.environment || 'production',
       },
-    }));
+    }; // 🔧 수정: return 문 닫기
+    });
 
     // 상태 필터링
     let filteredServers = allServers;

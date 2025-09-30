@@ -108,6 +108,10 @@ export default function DashboardContent({
             case 'unstable':
               acc.warning += 1;
               break;
+            case 'unknown':
+            case 'maintenance': // 🔧 수정: unknown 상태 카운트
+              acc.unknown += 1;
+              break;
             case 'healthy':
             case 'running':
             case 'active':
@@ -115,13 +119,13 @@ export default function DashboardContent({
               // 정상 상태, 카운트 없음
               break;
             default:
-              // 알 수 없는 상태는 경고로 분류
-              acc.warning += 1;
+              // 알 수 없는 상태는 unknown으로 분류 (타입 통합)
+              acc.unknown += 1; // 🔧 수정: warning → unknown
           }
         }
         return acc;
       },
-      { total: 0, online: 0, offline: 0, warning: 0 }
+      { total: 0, online: 0, offline: 0, warning: 0, unknown: 0 } // 🔧 수정: unknown 추가
     );
 
     return stats;
@@ -130,7 +134,7 @@ export default function DashboardContent({
   // 최종 서버 통계 (서버 데이터에서 직접 계산)
   const serverStats = useMemo(() => {
     if (statsLoading) {
-      return { total: 0, online: 0, offline: 0, warning: 0 };
+      return { total: 0, online: 0, offline: 0, warning: 0, unknown: 0 }; // 🔧 수정: unknown 추가
     }
 
     // 서버 데이터에서 직접 통계 계산

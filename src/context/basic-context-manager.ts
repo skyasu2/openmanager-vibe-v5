@@ -8,6 +8,7 @@
  */
 
 import { getMockSystem } from '@/mock';
+import type { ServerStatus } from '@/types/server-enums'; // 🔧 추가: Single Source of Truth
 
 // 컨텍스트 인터페이스
 export interface BasicContextData {
@@ -20,7 +21,7 @@ export interface BasicContextData {
     list: Array<{
       id: string;
       name: string;
-      status: 'online' | 'offline' | 'warning' | 'critical';
+      status: ServerStatus; // 🔧 수정: 통합 타입 사용
       ip: string;
       os: string;
       lastUpdate: number;

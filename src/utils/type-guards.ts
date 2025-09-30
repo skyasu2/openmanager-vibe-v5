@@ -134,16 +134,11 @@ export function isValidServerStatus(value: unknown): value is ServerStatus {
   const validStatuses: ServerStatus[] = [
     'online',
     'offline',
-    'running',
-    'stopped',
-    'healthy',
     'warning',
     'critical',
-    'error',
     'maintenance',
-    'active',
-    'inactive',
-  ];
+    'unknown', // 🔧 추가: unknown 상태 (타입 통합)
+  ]; // 🔧 수정: 'running', 'stopped', 'healthy', 'error', 'active', 'inactive' 제거 (타입 통합)
 
   return isString(value) && validStatuses.includes(value as ServerStatus);
 }

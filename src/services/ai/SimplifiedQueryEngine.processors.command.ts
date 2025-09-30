@@ -88,7 +88,7 @@ export class CommandQueryProcessor {
         });
 
         const response = this.utils.generateFormattedResponse(
-          fallbackRecommendations.recommendations,
+          fallbackRecommendations.recommendations as any, // 🔧 수정: 타입 단언 (string[] → object[] 변환)
           fallbackRecommendations.analysis,
           query,
           0.7
@@ -102,12 +102,12 @@ export class CommandQueryProcessor {
         return {
           success: true,
           response,
-          engine: 'local-fallback',
+          engine: 'fallback' as const, // 🔧 수정: 'local-fallback' → 'fallback' (타입 통합)
           confidence: 0.7,
           thinkingSteps,
+          processingTime: Date.now() - startTime, // 🔧 수정: 최상위 레벨로 이동
           metadata: {
             source: 'fallback-command-recommendations',
-            processingTime: Date.now() - startTime,
             fallbackReason: 'aiRouter unavailable'
           },
         };

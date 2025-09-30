@@ -224,7 +224,7 @@ function convertToEnhancedMetrics(hourlyData: any, currentHour: number, rotation
         sentBytes: `${((serverData.network || 20) * 0.4 * fixedVariation).toFixed(1)} MB`,
         receivedErrors: serverData.status === 'critical' ? Math.floor(serverOffset % 5) + 1 : 0,
         sentErrors: serverData.status === 'critical' ? Math.floor(serverOffset % 3) + 1 : 0,
-        status: serverData.status === 'online' ? 'healthy' : serverData.status
+        status: serverData.status // 🔧 수정: 직접 사용 (타입 통합 완료)
       }
     } as EnhancedServerMetrics;
   });
@@ -281,7 +281,7 @@ function generateFallbackServers(): EnhancedServerMetrics[] {
       sentBytes: '8.2 MB',
       receivedErrors: 0,
       sentErrors: 0,
-      status: 'healthy'
+      status: 'online' // 🔧 수정: 'healthy' → 'online' (ServerStatus 타입)
     }
   }));
 }
@@ -347,7 +347,7 @@ async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
         sentBytes: `${((server.network_usage || 0) * 0.4).toFixed(1)} MB`,
         receivedErrors: 0,
         sentErrors: 0,
-        status: 'healthy'
+        status: 'online' // 🔧 수정: 'healthy' → 'online' (ServerStatus 타입)
       }
     })) || [];
   } catch (error) {

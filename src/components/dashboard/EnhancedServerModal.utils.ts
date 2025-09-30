@@ -7,8 +7,8 @@
  * - Color and gradient calculations for different server states
  */
 
-import {
-  ServerStatus,
+import type { ServerStatus } from '@/types/server-enums'; // 🔧 수정: Single Source of Truth
+import type {
   MetricColorResult,
   StatusTheme,
 } from './EnhancedServerModal.types';
@@ -86,7 +86,7 @@ export const getMetricColorByStatus = (
  */
 export const getStatusTheme = (status?: ServerStatus): StatusTheme => {
   switch (status) {
-    case 'healthy':
+    case 'online': // 🔧 수정: 'healthy' → 'online' (타입 통합)
       return {
         gradient: 'from-green-500 to-emerald-600',
         bgLight: 'bg-green-50',

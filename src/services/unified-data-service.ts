@@ -108,7 +108,7 @@ export class UnifiedDataService {
     // 서버 상태 분석
     const criticalServers = servers.filter(s => s.status === 'critical');
     const warningServers = servers.filter(s => s.status === 'warning');
-    const healthyServers = servers.filter(s => s.status === 'online' || s.status === 'healthy');
+    const healthyServers = servers.filter(s => s.status === 'online'); // 🔧 수정: 'healthy' 제거 (타입 통합)
 
     // 시나리오 추론 (시간대별)
     let scenario = '정상 운영';

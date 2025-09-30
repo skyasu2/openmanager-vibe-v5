@@ -28,7 +28,7 @@ export async function updateSession(
         set(name: string, value: string, options: Record<string, unknown>) {
           // ✅ 개선: 여러 쿠키 공존을 위해 response.cookies.set 사용
           try {
-            supabaseResponse.cookies.set(name, value, {
+            (supabaseResponse as any).cookies.set(name, value, { // 🔧 수정: 타입 단언 (Next.js 호환)
               path: '/',
               ...options,
             });
@@ -48,7 +48,7 @@ export async function updateSession(
         remove(name: string, options: Record<string, unknown>) {
           // ✅ 개선: 여러 쿠키 공존을 위해 response.cookies.set 사용
           try {
-            supabaseResponse.cookies.set(name, '', {
+            (supabaseResponse as any).cookies.set(name, '', { // 🔧 수정: 타입 단언 (Next.js 호환)
               path: '/',
               maxAge: 0,
               ...options,

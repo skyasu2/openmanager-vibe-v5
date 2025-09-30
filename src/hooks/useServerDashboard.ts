@@ -230,7 +230,8 @@ interface UseServerDashboardOptions {
     total: number;
     online: number;
     warning: number;
-    unknown: number; // 🔧 수정: 'offline' → 'unknown' (일관성)
+    offline: number; // 🔧 수정: offline 속성 추가 (ServerDashboard와 일관성)
+    unknown: number;
   }) => void;
 }
 
@@ -512,7 +513,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
         id: s.id,
         name: s.name || s.hostname || 'Unknown',
         hostname: s.hostname || s.name || 'Unknown',
-        status: (s.status === 'running' ? 'online' : s.status) as ServerStatus, // 🔧 수정: ServerStatus 타입으로 통일
+        status: s.status, // 🔧 수정: 직접 할당 (타입 가드에서 이미 검증됨)
         // 고정 시간별 데이터의 메트릭 그대로 사용
         cpu: cpu,
         memory: memory,
@@ -520,7 +521,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
         network: network,
         uptime: s.uptime || 0,
         location: s.location || 'Unknown',
-        alerts: serverTypeGuards.getAlerts(s?.alerts),
+        alerts: typeof s.alerts === 'number' ? s.alerts : (Array.isArray(s.alerts) ? s.alerts.length : 0), // 🔧 수정: 명시적 타입 변환
         ip: s.ip || '192.168.1.1',
         os: s.os || 'Ubuntu 22.04 LTS',
         type: s.type || s.role || 'worker',
@@ -641,13 +642,21 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     if (onStatsUpdate && stats.total > 0) {
       // 100ms 디바운싱으로 불필요한 업데이트 방지
       const timeoutId = setTimeout(() => {
-        onStatsUpdate(stats);
+        // 🔧 수정: offline 속성 추가 (ServerDashboard와 일관성)
+        const offlineCount = actualServers.filter(s => s.status === 'offline').length;
+        onStatsUpdate({
+          total: stats.total,
+          online: stats.online,
+          warning: stats.warning,
+          offline: offlineCount,
+          unknown: stats.unknown
+        });
       }, 100);
 
       return () => clearTimeout(timeoutId);
     }
     return undefined;
-  }, [stats, onStatsUpdate]); // onStatsUpdate 함수 의존성 복구
+  }, [stats, onStatsUpdate, actualServers]); // actualServers 의존성 추가
 
   // 서버 선택 핸들러 (간단한 상태 업데이트라 useCallback 불필요)
   const handleServerSelect = (server: Server) => {

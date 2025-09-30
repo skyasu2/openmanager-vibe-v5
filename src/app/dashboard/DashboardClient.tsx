@@ -116,21 +116,7 @@ function convertServerToModalData(server: Server): ServerData {
       typeof server.uptime === 'number'
         ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m`
         : server.uptime || '0h 0m',
-    status: (server.status === 'online' // 🔧 수정: 모든 'healthy' → 'online' (타입 통합)
-      ? 'online'
-      : server.status === 'critical'
-        ? 'critical'
-        : server.status === 'warning'
-          ? 'warning'
-          : server.status === 'offline'
-            ? 'offline'
-            : 'online') as
-      | 'warning'
-      | 'critical'
-      | 'offline'
-      | 'online'
-      | 'unknown'
-      | 'maintenance',
+    status: server.status, // 🔧 수정: ServerStatus 타입 직접 사용 (타입 통합 완료)
     networkStatus: (server.status === 'online' // 🔧 수정: 'healthy' 제거 (타입 통합)
         ? 'excellent'
         : server.status === 'warning'

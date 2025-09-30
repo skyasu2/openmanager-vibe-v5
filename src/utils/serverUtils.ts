@@ -9,6 +9,7 @@
  */
 
 import type { Server, ServerAlert, Service } from '@/types/server';
+import type { ServerStatus } from '@/types/server-enums'; // 🔧 추가: Single Source of Truth
 
 /**
  * 서버 타입 가드 함수들
@@ -41,13 +42,9 @@ export const serverTypeGuards = {
     );
   },
 
-  getStatus: (
-    status: Server['status']
-  ): 'online' | 'warning' | 'critical' | 'unknown' => {
-    if (status === 'online') return 'online';
-    if (status === 'warning') return 'warning';
-    if (status === 'critical') return 'critical';
-    return 'unknown'; // 🔧 수정: 'offline' → 'unknown' (일관성)
+  getStatus: (status: Server['status']): ServerStatus => { // 🔧 수정: ServerStatus 타입 사용
+    // 모든 상태를 그대로 반환 (이미 ServerStatus 타입)
+    return status;
   },
 
   getAlerts: (alerts: Server['alerts']): number => {
@@ -128,19 +125,18 @@ export function normalizeServerData(server: unknown): Server {
     return typeof value === 'number' ? value : defaultValue;
   };
 
-  const getStatus = ():
-    | 'online'
-    | 'offline'
-    | 'critical'
-    | 'healthy'
-    | 'warning' => {
-    const status = s.status;
+  const getStatus = (): ServerStatus => { // 🔧 수정: ServerStatus 타입 사용
+    const status = s.status as any;
+    // 'healthy' → 'online' 변환
+    if (status === 'healthy') return 'online';
+    // ServerStatus 타입 검증
     if (
       status === 'online' ||
       status === 'offline' ||
       status === 'critical' ||
-      status === 'healthy' ||
-      status === 'warning'
+      status === 'warning' ||
+      status === 'maintenance' ||
+      status === 'unknown'
     ) {
       return status;
     }
@@ -161,14 +157,15 @@ export function normalizeServerData(server: unknown): Server {
     provider: getString('provider', 'On-Premise'),
     lastUpdate: s.lastUpdate instanceof Date ? s.lastUpdate : new Date(),
     services: Array.isArray(s.services) ? (s.services as Service[]) : [],
-    networkStatus:
-      s.networkStatus === 'offline' ||
-      s.networkStatus === 'critical' ||
-      s.networkStatus === 'healthy' ||
-      s.networkStatus === 'warning' ||
-      s.networkStatus === 'maintenance'
-        ? s.networkStatus
-        : undefined,
+    networkStatus: (() => { // 🔧 수정: 'healthy' → 'online' 변환
+      const ns = s.networkStatus as any;
+      if (ns === 'healthy') return 'online';
+      if (ns === 'offline' || ns === 'critical' || ns === 'online' ||
+          ns === 'warning' || ns === 'maintenance') {
+        return ns;
+      }
+      return undefined;
+    })(),
   };
 
   // 서버 타입 가드를 통한 메트릭 추출

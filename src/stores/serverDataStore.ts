@@ -295,7 +295,7 @@ export const createServerDataStore = (
         const { servers, isLoading, error, lastUpdate } = get();
         return {
           totalServers: servers.length,
-          healthyServers: servers.filter((s) => s.status === 'healthy').length,
+          healthyServers: servers.filter((s) => s.status === 'online').length, // 🔧 수정: 'healthy' → 'online' (타입 통합)
           warningServers: servers.filter((s) => s.status === 'warning').length,
           criticalServers: servers.filter((s) => s.status === 'critical')
             .length,

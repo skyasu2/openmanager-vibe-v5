@@ -120,14 +120,12 @@ const getMetricConfig = (
         fillColor: 'rgba(245, 158, 11, 0.1)', // 주황색 투명도
       };
     } else if (
-      normalizedStatus === 'online' ||
-      normalizedStatus === 'healthy' ||
-      normalizedStatus === 'running'
+      normalizedStatus === 'online' // 🔧 수정: 'healthy', 'running' 제거 (타입 통합)
     ) {
       // 정상 상황 - 녹색 계열
       return {
-        lineColor: SERVER_STATUS_COLORS.healthy.graphColor, // #10b981
-        textColor: SERVER_STATUS_COLORS.healthy.text, // text-emerald-800
+        lineColor: SERVER_STATUS_COLORS.online.graphColor, // 🔧 수정: 'healthy' → 'online' (타입 통합) #10b981
+        textColor: SERVER_STATUS_COLORS.online.text, // 🔧 수정: 'healthy' → 'online' (타입 통합) text-emerald-800
         bgColor: 'bg-emerald-50',
         gradientFrom: 'from-emerald-500',
         gradientTo: 'to-emerald-100',
@@ -173,8 +171,8 @@ const getMetricConfig = (
   } else {
     // 정상 상태 - 녹색
     return {
-      lineColor: SERVER_STATUS_COLORS.healthy.graphColor, // #10b981
-      textColor: SERVER_STATUS_COLORS.healthy.text, // text-emerald-800
+      lineColor: SERVER_STATUS_COLORS.online.graphColor, // 🔧 수정: 'healthy' → 'online' (타입 통합) #10b981
+      textColor: SERVER_STATUS_COLORS.online.text, // 🔧 수정: 'healthy' → 'online' (타입 통합) text-emerald-800
       bgColor: 'bg-emerald-50',
       gradientFrom: 'from-emerald-500',
       gradientTo: 'to-emerald-100',

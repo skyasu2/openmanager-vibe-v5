@@ -138,7 +138,7 @@ export class MockContextLoader {
       );
       const warningServers = servers.filter((s) => s.status === 'warning');
       const healthyServers = servers.filter(
-        (s) => s.status === 'online' || s.status === 'healthy'
+        (s) => s.status === 'online' // 🔧 수정: 'healthy' 제거 (타입 통합)
       );
 
       const avgCpu = servers.length > 0 
@@ -296,7 +296,7 @@ export class MockContextLoader {
       );
       const warningServers = servers.filter((s) => s.status === 'warning');
       const healthyServers = servers.filter(
-        (s) => s.status === 'online' || s.status === 'healthy'
+        (s) => s.status === 'online' // 🔧 수정: 'healthy' 제거 (타입 통합)
       );
 
       const avgCpu = servers.reduce((sum, s) => sum + s.cpu, 0) / servers.length;
@@ -379,7 +379,7 @@ export class MockContextLoader {
       // 서버 상태별 분류 및 통계 계산
       const criticalServers = servers.filter((s) => s.status === 'critical');
       const warningServers = servers.filter((s) => s.status === 'warning');  
-      const healthyServers = servers.filter((s) => s.status === 'online' || s.status === 'healthy');
+      const healthyServers = servers.filter((s) => s.status === 'online'); // 🔧 수정: 'healthy' 제거 (타입 통합)
 
       const avgCpu = servers.reduce((sum, s) => sum + s.cpu, 0) / servers.length;
       const avgMemory = servers.reduce((sum, s) => sum + s.memory, 0) / servers.length;

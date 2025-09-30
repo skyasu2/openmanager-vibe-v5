@@ -28,8 +28,9 @@ const statusColors = {
   online: 'text-green-600 bg-green-50',
   warning: 'text-yellow-600 bg-yellow-50',
   offline: 'text-red-600 bg-red-50',
-  healthy: 'text-blue-600 bg-blue-50',
   critical: 'text-red-600 bg-red-50',
+  maintenance: 'text-blue-600 bg-blue-50', // 🔧 추가: maintenance 상태 (타입 통합)
+  unknown: 'text-gray-600 bg-gray-50', // 🔧 추가: unknown 상태 (타입 통합)
 } as const;
 
 // 메트릭 카테고리별 색상
@@ -173,8 +174,9 @@ export default function MobileServerSheet({
                       {server.status === 'online' && '온라인'}
                       {server.status === 'warning' && '경고'}
                       {server.status === 'offline' && '오프라인'}
-                      {server.status === 'healthy' && '정상'}
                       {server.status === 'critical' && '위험'}
+                      {server.status === 'maintenance' && '점검중'} {/* 🔧 추가: maintenance 상태 (타입 통합) */}
+                      {server.status === 'unknown' && '알 수 없음'} {/* 🔧 추가: unknown 상태 (타입 통합) */}
                     </span>
                   </div>
                 </div>
