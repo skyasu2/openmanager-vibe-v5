@@ -2,8 +2,6 @@
 name: dev-environment-manager
 description: PROACTIVELY use for environment setup. 개발 환경 관리 전문가. WSL 최적화, Node.js 버전 관리, 도구 통합
 tools: Read, Write, Edit, Bash, Glob, LS, mcp__memory__create_entities, mcp__time__get_current_time, mcp__serena__execute_shell_command, mcp__serena__list_dir, mcp__serena__write_memory, mcp__serena__get_current_config
-priority: normal
-trigger: environment_setup, tool_installation, wsl_optimization
 model: inherit
 ---
 

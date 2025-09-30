@@ -2,13 +2,6 @@
 name: database-administrator
 description: HIGH - Supabase PostgreSQL 전문가. 쿼리 최적화, RLS 정책, 마이그레이션 자동화
 tools: mcp__supabase__execute_sql, mcp__supabase__list_tables, mcp__supabase__list_migrations, mcp__serena__search_for_pattern, mcp__serena__find_symbol, mcp__serena__write_memory
-priority: high
-autoTrigger: true
-sla: "< 60초 (쿼리 최적화), < 30초 (스키마 확인)"
-trigger:
-  - "*.sql", "migration", "schema" 파일 변경
-  - "query", "database", "supabase" 키워드
-  - 느린 쿼리 (>2초) 자동 탐지
 model: inherit
 ---
 

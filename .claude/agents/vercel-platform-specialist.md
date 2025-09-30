@@ -2,8 +2,6 @@
 name: vercel-platform-specialist
 description: Vercel 플랫폼 최적화 전문가. Edge Functions, 배포 설정, 무료 티어 관리
 tools: Read, Write, Edit, Bash, Grep, mcp__vercel__search_vercel_documentation, mcp__vercel__deploy_to_vercel, mcp__vercel__list_projects, mcp__vercel__get_project, mcp__vercel__list_deployments, mcp__vercel__get_deployment, mcp__vercel__get_deployment_build_logs, mcp__serena__search_for_pattern, mcp__serena__find_symbol, mcp__serena__write_memory
-priority: medium
-trigger: vercel_deploy, edge_functions, production_optimization
 model: inherit
 ---
 

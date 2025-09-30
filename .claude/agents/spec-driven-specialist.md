@@ -2,8 +2,6 @@
 name: spec-driven-specialist
 description: 계획 대비 결과 분석 평가 전문가. 원래 계획과 실제 결과를 분석 및 평가하여 차이점, 원인, 개선점을 도출하고 문서화하는 분석 전문가
 tools: Read, Write, Edit, MultiEdit, TodoWrite, Glob, Grep, mcp__memory__create_entities, mcp__sequential-thinking__sequentialthinking, mcp__serena__find_symbol, mcp__serena__list_dir, mcp__serena__write_memory, mcp__serena__read_memory, mcp__serena__think_about_task_adherence, mcp__serena__think_about_whether_you_are_done
-priority: medium
-trigger: plan_evaluation, result_analysis, performance_review, gap_analysis, project_assessment
 model: inherit
 ---
 

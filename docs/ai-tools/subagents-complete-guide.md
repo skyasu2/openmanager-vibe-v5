@@ -150,7 +150,7 @@ CORS_설정:
 # 🔐 인증/인가 시스템 검증
 권한_시스템:
   상태: "✅ 정상"
-  내용: "GitHub OAuth + PIN 인증 (4231)"
+  내용: "GitHub OAuth + PIN 인증 (환경변수 ADMIN_PASSWORD)"
   점검: "무인가 접근 차단 정상"
 
 API_보호:

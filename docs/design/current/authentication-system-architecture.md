@@ -93,7 +93,7 @@ graph TD
     H -->|Yes| I[관리자 모드 클릭]
     H -->|No| G
 
-    I --> J[4자리 PIN 입력 - 4231]
+    I --> J[4자리 PIN 입력 - 환경변수]
     J --> K{PIN 검증}
     K -->|성공| L[관리자 전체 기능 사용]
     K -->|실패| M[3회 실패시 계정 일시 잠금]
@@ -218,9 +218,9 @@ interface OAuthSecurityFeatures {
 
 ### 🎯 **관리자 PIN 아키텍처**
 ```typescript
-// 4자리 PIN 인증 시스템 (PIN: 4231)
+// 4자리 PIN 인증 시스템 (환경변수 ADMIN_PASSWORD)
 class AdminPinAuthenticationSystem {
-  private readonly ADMIN_PIN = process.env.ADMIN_PIN || '4231';
+  private readonly ADMIN_PIN = process.env.ADMIN_PASSWORD || 'xxxx'; // 환경변수 필수
   private readonly MAX_PIN_ATTEMPTS = 3;
   private readonly LOCKOUT_DURATION = 5 * 60 * 1000; // 5분
 
@@ -302,7 +302,7 @@ class AdminPinAuthenticationSystem {
 ```typescript
 interface PinAuthenticationStats {
   // 2025-09-29 기준 실측 데이터
-  successRate: '100%',              // PIN 4231 인증 성공률
+  successRate: '100%',              // PIN 인증 성공률
   averageInputTime: '3.2초',        // 평균 PIN 입력 시간
   securityIncidents: 0,             // 보안 사고 발생 횟수
   lockoutEvents: '월 0-1회',        // 계정 잠김 발생 빈도

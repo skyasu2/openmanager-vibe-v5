@@ -201,8 +201,9 @@ export async function GET() {
     methods: ['POST'],
     description: 'Playwright 테스트용 관리자 인증 API',
     usage: {
-      bypass_mode: 'POST with { bypass: true }',
-      password_mode: `POST with { password: "${ADMIN_PASSWORD}" }`
-    }
+      bypass_mode: 'POST with { bypass: true, token: "test_<timestamp>" }',
+      password_mode: 'POST with { password: "<ADMIN_PASSWORD from env>" }'
+    },
+    security: '🔒 PIN은 환경변수 ADMIN_PASSWORD로 관리됩니다.'
   });
 }

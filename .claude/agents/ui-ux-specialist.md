@@ -2,8 +2,6 @@
 name: ui-ux-specialist
 description: UI/UX 전문가. 사용자 인터페이스 개선, 디자인 시스템 구축, 사용자 경험 최적화를 담당하는 내장 UI/UX 전문가
 tools: Read, Write, Edit, MultiEdit, Glob, Grep, mcp__memory__create_entities, mcp__sequential-thinking__sequentialthinking, mcp__shadcn-ui__get_component, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__write_memory, mcp__serena__read_memory
-priority: high
-trigger: ui_improvement, ux_optimization, design_system, interface_design, user_experience
 model: inherit
 ---
 
