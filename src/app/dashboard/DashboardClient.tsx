@@ -322,7 +322,7 @@ function DashboardPageContent() {
     setIsMounted(true);
   }, []);
 
-  // 🔥 강화된 권한 체크 (AI 교차검증 해결책 - 이중화)
+  // 🔥 강화된 권한 체크 (비동기 인증 상태 타이밍 문제 해결)
   useEffect(() => {
     if (!isMounted) return;
     
@@ -340,30 +340,40 @@ function DashboardPageContent() {
         loading: permissions.userType === 'loading'
       });
       
-      if (permissions.userType === 'loading') {
-        // 아직 권한 로딩 중
+      // 🚨 FIX: 권한 로딩 중이거나 unknown 초기 상태일 때는 알람 표시 안함
+      if (permissions.userType === 'loading' || permissions.userType === 'unknown') {
+        console.log('⏳ 권한 상태 로딩 중 - 알람 억제');
         return;
       }
       
-      if (!canAccess) {
+      // 🚨 FIX: GitHub/게스트 인증이 확실히 실패했을 때만 알람 표시
+      if (!canAccess && (permissions.userType === 'guest' || permissions.userType === 'github')) {
         console.log('🚫 대시보드 접근 권한 없음 - 메인 페이지로 이동');
         alert('대시보드 접근 권한이 없습니다. GitHub 로그인 또는 관리자 모드 인증이 필요합니다.');
         router.push('/main');
         return;
       }
       
-      console.log('✅ 대시보드 접근 권한 확인됨:', {
-        userType: permissions.userType,
-        userName: permissions.userName,
-        canAccessDashboard: permissions.canAccessDashboard,
-        isPinAuthenticated: permissions.isPinAuthenticated,
-        isGitHubAuthenticated: permissions.isGitHubAuthenticated,
-      });
-      
-      setAuthLoading(false);
+      // ✅ 권한 확인 시에만 로딩 완료
+      if (canAccess) {
+        console.log('✅ 대시보드 접근 권한 확인됨:', {
+          userType: permissions.userType,
+          userName: permissions.userName,
+          canAccessDashboard: permissions.canAccessDashboard,
+          isPinAuthenticated: permissions.isPinAuthenticated,
+          isGitHubAuthenticated: permissions.isGitHubAuthenticated,
+        });
+        
+        setAuthLoading(false);
+      }
     };
     
-    checkPermissions();
+    // 🚨 FIX: 권한 상태 안정화를 위한 디바운스 (500ms 지연)
+    const timeoutId = setTimeout(checkPermissions, 500);
+    
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [isMounted, permissions, router]);
 
   // 🎯 서버 통계 상태 관리 (상단 통계 카드용)
