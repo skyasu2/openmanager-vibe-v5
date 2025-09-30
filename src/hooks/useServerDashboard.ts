@@ -161,7 +161,7 @@ const calculatePagination = <T>(
 };
 
 // Type interfaces for server data transformation
-interface EnhancedServerData {
+export interface EnhancedServerData { // 🔧 수정: export 추가 (useWorkerStats.ts에서 사용)
   id: string;
   name?: string;
   hostname?: string;
@@ -206,7 +206,7 @@ interface EnhancedServerData {
     sentBytes: string;
     receivedErrors: number;
     sentErrors: number;
-    status: 'healthy' | 'warning' | 'critical';
+    status: 'online' | 'warning' | 'critical'; // 🔧 수정: 'healthy' → 'online' (타입 통합)
   };
 }
 
@@ -536,7 +536,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
         services: Array.isArray(s.services) ? (s.services as Service[]) : [],
         networkStatus:
           s.status === 'online'
-            ? 'healthy'
+            ? 'online' // 🔧 수정: 'healthy' → 'online' (타입 통합)
             : s.status === 'warning'
               ? 'warning'
               : 'critical',
@@ -564,7 +564,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
           sentErrors: Math.floor(Math.random() * 10),
           status:
             s.status === 'online'
-              ? 'healthy'
+              ? 'online' // 🔧 수정: 'healthy' → 'online' (타입 통합)
               : s.status === 'warning'
                 ? 'warning'
                 : 'critical',

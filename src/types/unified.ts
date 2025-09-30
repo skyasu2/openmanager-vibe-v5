@@ -12,21 +12,11 @@ import type { ServerMetrics } from '@/core/types';
 // ============================================
 
 /**
- * 서버 상태 열거형
- * 모든 가능한 서버 상태를 통합
+ * 🎯 서버 상태 열거형 (2025-09-30 타입 통합)
+ * Single Source of Truth: src/types/server-enums.ts
+ * 모든 가능한 서버 상태를 통합 정의
  */
-export type ServerStatus =
-  | 'online'
-  | 'offline'
-  | 'running'
-  | 'stopped'
-  | 'healthy'
-  | 'warning'
-  | 'critical'
-  | 'error'
-  | 'maintenance'
-  | 'active'
-  | 'inactive';
+export type { ServerStatus } from './server-enums';
 
 /**
  * 서버 스펙 정의

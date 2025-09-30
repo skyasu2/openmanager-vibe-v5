@@ -9,7 +9,7 @@
  */
 
 import { useRef, useCallback, useEffect } from 'react';
-import { EnhancedServerData } from '@/types/server-types';
+import { EnhancedServerData } from './useServerDashboard'; // 🔧 수정: 올바른 경로로 변경
 
 interface ServerStats {
   total: number;

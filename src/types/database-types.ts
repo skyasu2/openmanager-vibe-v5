@@ -399,12 +399,10 @@ export type ServerType =
   | 'load_balancer'
   | 'monitoring';
 
-export type ServerStatus =
-  | 'healthy'
-  | 'warning'
-  | 'critical'
-  | 'offline'
-  | 'maintenance';
+// 🎯 ServerStatus 타입 통합 (2025-09-30)
+// Single Source of Truth: src/types/server-enums.ts
+import type { ServerStatus } from './server-enums';
+export type { ServerStatus };
 
 export type MetricType =
   | 'cpu_usage'

@@ -98,8 +98,8 @@ async function logQuery(
   response?: string,
   aiMode?: string,
   status?: string,
-  userId?: string,
-  sessionId?: string
+  userId?: string | null, // 🔧 수정: null 허용 (AI 교차검증 Codex 버그 포인트 #2)
+  sessionId?: string | null // 🔧 수정: null 허용 (AI 교차검증 Codex 버그 포인트 #2)
 ): Promise<void> {
   try {
     await supabase.from('query_logs').insert({

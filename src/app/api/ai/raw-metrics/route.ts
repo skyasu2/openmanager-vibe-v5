@@ -25,11 +25,13 @@ import {
  * 🎯 목적: AI가 사전 정보 없이 순수 메트릭만으로 분석하도록 보장
  */
 
+import type { ServerStatus } from '@/types/server-enums';
+
 interface RawServerMetric {
   id: string;
   name: string;
   hostname: string;
-  status: 'online' | 'offline' | 'warning' | 'critical' | 'maintenance';
+  status: ServerStatus; // 🔧 수정: 'unknown' 포함 (AI 교차검증 Codex 버그 포인트 #1)
   
   // 📊 Pure Raw Metrics (AI 분석용)
   cpu: number;
