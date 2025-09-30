@@ -204,7 +204,7 @@ export default function AIChatPage() {
                         : 'text-gray-500'
                     }`}
                   >
-                    {message.timestamp.toLocaleTimeString()}
+                    {message.timestamp.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
                   </p>
                   {message.metadata?.processingTime && (
                     <p className="text-xs text-gray-400">
