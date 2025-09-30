@@ -169,7 +169,7 @@ export class MockContextLoader {
 
       const fallbackContext: MockContext = {
         enabled: true,
-        currentTime: new Date().toLocaleTimeString('ko-KR', { hour12: false }),
+        currentTime: new Date().toLocaleTimeString('ko-KR', { hour12: false, timeZone: 'Asia/Seoul' }),
         metrics: {
           serverCount: servers.length,
           criticalCount: systemInfo.criticalCount,
@@ -273,7 +273,7 @@ export class MockContextLoader {
       `- Network: ${server.network}%`,
       ``,
       `알림: ${server.alerts || 0}개`,
-      `마지막 업데이트: ${server.lastUpdate ? new Date(server.lastUpdate).toLocaleTimeString('ko-KR') : '알 수 없음'}`,
+      `마지막 업데이트: ${server.lastUpdate ? new Date(server.lastUpdate).toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul' }) : '알 수 없음'}`,
     ].join('\n');
   }
 

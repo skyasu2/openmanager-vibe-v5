@@ -460,15 +460,18 @@ export function getHourlyStatistics(hour: number): {
  */
 export function getCurrentSimulatedHour(): number {
   const now = new Date();
-  
-  // 현재 실제 시간(0-23)을 그대로 사용
-  const currentHour = now.getHours();
-  
+
+  // 한국 시간대 기준으로 시간 가져오기
+  const koreaTime = new Date(now.toLocaleString('en-US', {
+    timeZone: 'Asia/Seoul'
+  }));
+  const currentHour = koreaTime.getHours();
+
   // 분 단위로 10분 간격 시나리오 내에서 보간
-  const minutes = now.getMinutes();
+  const minutes = koreaTime.getMinutes();
   const minuteOffset = Math.floor(minutes / 10); // 0-5 (10분 단위 구간)
-  
-  // 기본적으로는 현재 시간 사용, 세밀한 조정을 위해 분 정보도 고려
+
+  // 기본적으로는 현재 한국 시간 사용, 세밀한 조정을 위해 분 정보도 고려
   return currentHour;
 }
 
