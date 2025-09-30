@@ -144,28 +144,28 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     const isAccessibilityEnabled = !!accessibility?.isClient;
     
     // 🛡️ 5층 방어 시스템 Layer 4: ARIA 속성 안전 생성 (접근성 활성화 시에만)
+    // ✅ React Hook 규칙 준수: Hook을 먼저 호출 (조건 없이)
+    const rawAriaProps = useServerCardAria({
+      serverId: safeServer.id,
+      serverName: safeServer.name,
+      status: safeServer.status as 'online' | 'offline' | 'warning' | 'critical',
+      cpu: realtimeMetrics?.cpu ?? 0,
+      memory: realtimeMetrics?.memory ?? 0,
+      disk: realtimeMetrics?.disk ?? 0,
+      alerts: typeof safeServer.alerts === 'number' ? safeServer.alerts : 0,
+      uptime: `${safeServer.uptime}시간`,
+    });
+
+    // ✅ 결과를 조건부로 사용 (Hook 규칙 위반 방지)
     const ariaProps = useMemo(() => {
       try {
         if (!isAccessibilityEnabled) return {};
-
-        // 안전한 메트릭 접근
-        const safeMetrics = realtimeMetrics || { cpu: 0, memory: 0, disk: 0, network: 0 };
-
-        return useServerCardAria({
-          serverId: safeServer.id,
-          serverName: safeServer.name,
-          status: safeServer.status as 'online' | 'offline' | 'warning' | 'critical',
-          cpu: safeMetrics.cpu,
-          memory: safeMetrics.memory,
-          disk: safeMetrics.disk,
-          alerts: typeof safeServer.alerts === 'number' ? safeServer.alerts : 0,
-          uptime: `${safeServer.uptime}시간`,
-        });
+        return rawAriaProps;
       } catch (error) {
         console.error('⚠️ ImprovedServerCard Layer 4: ARIA 속성 생성 실패, 빈 객체 반환', error);
         return {};
       }
-    }, [isAccessibilityEnabled, safeServer, realtimeMetrics]);
+    }, [isAccessibilityEnabled, rawAriaProps]);
 
     // 컴포넌트 언마운트 추적
     useEffect(() => {

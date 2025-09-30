@@ -339,7 +339,8 @@ export class AuthManager {
       .toString()
       .padStart(6, '0');
 
-    return code === expectedCode || code === '123456'; // 데모용 고정 코드
+    // 프로덕션 환경에서는 고정 코드 제거 (보안 강화)
+    return code === expectedCode;
   }
 
   private isIPBlocked(ipAddress?: string): boolean {
