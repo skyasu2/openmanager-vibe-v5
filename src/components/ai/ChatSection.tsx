@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, Fragment, type FormEvent } from 'react';
+import { useState, useEffect, useCallback, useRef, Fragment, type FormEvent, type KeyboardEvent } from 'react';
 import {
   Send,
   Loader2,
@@ -157,6 +157,7 @@ export default function ChatSection({
   const [showHistory, setShowHistory] = useState(false);
   const [duplicateAlert, setDuplicateAlert] = useState<string | null>(null);
   const [presets, setPresets] = useState<string[]>([]);
+  const [isThinkingCollapsed, setIsThinkingCollapsed] = useState(true);
 
   // 스크롤 관리를 위한 ref와 상태
   const contentEndRef = useRef<HTMLDivElement>(null);
@@ -244,6 +245,19 @@ export default function ChatSection({
     }
 
     return null;
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter') {
+      if (e.ctrlKey) {
+        // Ctrl+Enter: 줄바꿈 (기본 동작 허용)
+        return;
+      } else {
+        // Enter: 입력 제출
+        e.preventDefault();
+        handleSubmit(e as unknown as FormEvent);
+      }
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -415,7 +429,7 @@ export default function ChatSection({
                           {page.question}
                         </p>
                         <p className="mt-1 text-xs text-gray-500">
-                          {page.timestamp.toLocaleString()}
+                          {page.timestamp.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
                         </p>
                       </div>
                       {page.confidence && (
@@ -484,39 +498,48 @@ export default function ChatSection({
                       <h3 className="mb-2 font-semibold text-gray-800">질문</h3>
                       <p className="text-gray-700">{currentPage.question}</p>
                       <p className="mt-2 text-xs text-gray-500">
-                        {currentPage.timestamp.toLocaleString()}
+                        {currentPage.timestamp.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* AI 생각 과정 */}
+                {/* AI 생각 과정 (접힌 상태로) */}
                 {currentPage.thinking && (
                   <div className="rounded-lg bg-blue-50 p-4">
-                    <div className="mb-3 flex items-center gap-2">
-                      <Brain className="h-4 w-4 text-blue-600" />
-                      <h4 className="font-medium text-blue-700">
-                        AI 분석 과정
-                      </h4>
-                      <span className="rounded bg-blue-200 px-2 py-1 text-xs text-blue-700">
-                        {Math.round(currentPage.thinking.confidence * 100)}%
-                        신뢰도
-                      </span>
-                    </div>
-                    <div className="space-y-1">
-                      {currentPage.thinking.steps.map((step, index) => (
-                        <div
-                          key={index}
-                          className="flex items-start gap-2 text-xs text-gray-600"
-                        >
-                          <span className="text-blue-500">•</span>
-                          <span>{step}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="mt-2 text-xs text-gray-500">
-                      처리 시간: {currentPage.thinking.duration}초
-                    </p>
+                    <button
+                      onClick={() => setIsThinkingCollapsed(!isThinkingCollapsed)}
+                      className="mb-3 flex w-full items-center justify-between text-left transition-all hover:bg-blue-100 rounded p-2"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Brain className="h-4 w-4 text-blue-600" />
+                        <h4 className="font-medium text-blue-700">
+                          AI 분석 과정 {isThinkingCollapsed ? '펼치기' : '접기'}
+                        </h4>
+                        <span className="rounded bg-blue-200 px-2 py-1 text-xs text-blue-700">
+                          {Math.round(currentPage.thinking.confidence * 100)}%
+                          신뢰도
+                        </span>
+                      </div>
+                      <ChevronRight className={`h-4 w-4 text-blue-600 transition-transform ${!isThinkingCollapsed ? 'rotate-90' : ''}`} />
+                    </button>
+
+                    {!isThinkingCollapsed && (
+                      <div className="space-y-1">
+                        {currentPage.thinking.steps.map((step, index) => (
+                          <div
+                            key={index}
+                            className="flex items-start gap-2 text-xs text-gray-600"
+                          >
+                            <span className="text-blue-500">•</span>
+                            <span>{step}</span>
+                          </div>
+                        ))}
+                        <p className="mt-2 text-xs text-gray-500">
+                          처리 시간: {currentPage.thinking.duration}초
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -586,15 +609,25 @@ export default function ChatSection({
       {!showHistory && (
         <div className="border-t px-4 py-3">
           <form onSubmit={handleSubmit} className="flex gap-2">
-            <input
-              aria-label="입력 필드"
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="질문을 입력하세요..."
-              className="flex-1 rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              disabled={isProcessing}
-            />
+            <div className="flex-1 relative">
+              <textarea
+                aria-label="입력 필드"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="질문을 입력하세요... (Enter: 전송, Ctrl+Enter: 줄바꿈)"
+                className="w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none min-h-[40px] max-h-[120px]"
+                disabled={isProcessing}
+                rows={1}
+                style={{ overflow: 'hidden' }}
+                onInput={(e) => {
+                  // 자동 높이 조절
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = 'auto';
+                  target.style.height = Math.min(target.scrollHeight, 120) + 'px';
+                }}
+              />
+            </div>
             <button
               type="submit"
               disabled={!input.trim() || isProcessing}
