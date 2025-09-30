@@ -14,7 +14,7 @@ export interface ServerMetric {
     in: number;
     out: number;
   };
-  status: 'healthy' | 'warning' | 'critical';
+  status: 'online' | 'warning' | 'critical'; // 🔧 수정: 'healthy' → 'online' (타입 통합)
   responseTime: number;
   activeConnections: number;
 

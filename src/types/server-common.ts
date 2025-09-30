@@ -1,6 +1,7 @@
 // 🎯 ServerStatus 타입 통합 (2025-09-30)
 // Single Source of Truth: src/types/server-enums.ts
-export type { ServerStatus } from './server-enums';
+import type { ServerStatus } from './server-enums';
+export type { ServerStatus };
 
 export interface ServerHealth {
   score: number;

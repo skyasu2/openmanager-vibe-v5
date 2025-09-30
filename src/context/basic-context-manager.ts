@@ -258,6 +258,7 @@ export class BasicContextManager {
         offline: servers.filter((s) => s.status === 'offline').length,
         warning: servers.filter((s) => s.status === 'warning').length,
         critical: servers.filter((s) => s.status === 'critical').length,
+        unknown: servers.filter((s) => s.status === 'unknown' || s.status === 'maintenance').length, // 🔧 수정: maintenance도 unknown으로 카운트
       };
 
       return {

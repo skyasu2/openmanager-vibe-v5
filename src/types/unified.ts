@@ -16,7 +16,8 @@ import type { ServerMetrics } from '@/core/types';
  * Single Source of Truth: src/types/server-enums.ts
  * 모든 가능한 서버 상태를 통합 정의
  */
-export type { ServerStatus } from './server-enums';
+import type { ServerStatus } from './server-enums';
+export type { ServerStatus };
 
 /**
  * 서버 스펙 정의

@@ -48,8 +48,7 @@ export interface ServerInstance {
     | 'running'
     | 'stopped'
     | 'error'
-    | 'healthy'
-    | 'warning'
+    | 'warning' // 🔧 수정: 'healthy' 제거 (타입 통합)
     | 'critical'
     | 'offline'
     | 'maintenance'
@@ -82,8 +81,7 @@ export interface ServerInstance {
       | 'running'
       | 'stopped'
       | 'error'
-      | 'healthy'
-      | 'warning'
+      | 'warning' // 🔧 수정: 'healthy' 제거 (타입 통합)
       | 'critical'
       | 'offline'
       | 'maintenance'

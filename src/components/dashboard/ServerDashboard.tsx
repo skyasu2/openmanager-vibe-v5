@@ -54,6 +54,7 @@ interface ServerDashboardProps {
     online: number;
     warning: number;
     offline: number;
+    unknown: number; // 🔧 수정: 'unknown' 상태 추가 (타입 통합)
   }) => void;
 }
 
@@ -287,7 +288,7 @@ export default function ServerDashboard({
                     const safeStatus: ServerStatus = (() => {
                       const status = server.status;
                       if (status === 'online' || status === 'offline' || status === 'warning' ||
-                          status === 'healthy' || status === 'critical') {
+                          status === 'critical' || status === 'maintenance' || status === 'unknown') { // 🔧 수정: 'healthy' → 제거, maintenance/unknown 추가
                         return status;
                       }
                       return 'offline';
@@ -593,7 +594,7 @@ export default function ServerDashboard({
             networkStatus: (() => {
               // Server 타입의 networkStatus를 ServerDashboardData 타입으로 매핑
               const status = selectedServer.networkStatus;
-              if (status === 'healthy') return 'excellent';
+              if (status === 'online') return 'excellent'; // 🔧 수정: 'healthy' → 'online'
               if (status === 'warning') return 'good';
               if (status === 'critical' || status === 'maintenance')
                 return 'poor';

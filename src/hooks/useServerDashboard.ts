@@ -136,7 +136,9 @@ const calculateServerStats = (servers: EnhancedServerData[]): ServerStats => {
   // 🚀 결과 캐싱 (최대 100개 엔트리로 제한)
   if (statsCache.size >= 100) {
     const firstKey = statsCache.keys().next().value;
-    statsCache.delete(firstKey);
+    if (firstKey !== undefined) { // 🔧 수정: undefined 체크 추가
+      statsCache.delete(firstKey);
+    }
   }
   statsCache.set(cacheKey, result);
 
@@ -175,6 +177,7 @@ export interface EnhancedServerData { // 🔧 수정: export 추가 (useWorkerSt
   network?: number;
   network_in?: number;
   network_out?: number;
+  bandwidth?: number; // 🔧 수정: bandwidth 속성 추가 (useWorkerStats에서 사용)
   uptime?: number;
   location?: string;
   alerts?: Array<unknown> | number;
@@ -509,7 +512,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
         id: s.id,
         name: s.name || s.hostname || 'Unknown',
         hostname: s.hostname || s.name || 'Unknown',
-        status: s.status === 'running' ? 'online' : s.status as 'online' | 'warning' | 'critical' | 'unknown', // 🔧 수정: 'offline' → 'unknown' (일관성)
+        status: (s.status === 'running' ? 'online' : s.status) as ServerStatus, // 🔧 수정: ServerStatus 타입으로 통일
         // 고정 시간별 데이터의 메트릭 그대로 사용
         cpu: cpu,
         memory: memory,

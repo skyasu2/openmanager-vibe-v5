@@ -826,7 +826,7 @@ function convertFixedRotationData(hourlyData: HourlyServerData, currentHour: num
         sentBytes: `${((serverData.network || 20) * 0.4 * fixedVariation).toFixed(1)} MB`,
         receivedErrors: serverData.status === 'critical' ? Math.floor(serverOffset % 5) + 1 : 0, // 고정된 오류 수
         sentErrors: serverData.status === 'critical' ? Math.floor(serverOffset % 3) + 1 : 0, // 고정된 오류 수
-        status: safeServerStatus(serverData.status === 'online' ? 'healthy' : serverData.status) as any
+        status: safeServerStatus(serverData.status) // 🔧 수정: 'healthy' 변환 제거 (타입 통합)
       }
     };
     
@@ -1173,7 +1173,7 @@ function generateStaticServers_DEPRECATED(): EnhancedServerMetrics[] {
         sentBytes: `${networkOut.toFixed(1)} MB`,
         receivedErrors: realisticMetrics.status === 'critical' ? Math.floor(Math.random() * 10) + 5 : realisticMetrics.status === 'warning' ? Math.floor(Math.random() * 3) + 1 : 0,
         sentErrors: realisticMetrics.status === 'critical' ? Math.floor(Math.random() * 8) + 3 : realisticMetrics.status === 'warning' ? Math.floor(Math.random() * 2) : 0,
-        status: (realisticMetrics.status === 'online' ? 'healthy' : realisticMetrics.status) as any // 🚨 동적 네트워크 상태
+        status: realisticMetrics.status // 🔧 수정: 'healthy' 변환 제거 (타입 통합)
       }
     };
   });

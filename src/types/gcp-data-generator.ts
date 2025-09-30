@@ -21,5 +21,5 @@ export interface ServerMetric {
   network_in: number;
   network_out: number;
   response_time: number;
-  status: 'healthy' | 'warning' | 'critical';
+  status: 'online' | 'warning' | 'critical'; // 🔧 수정: 'healthy' → 'online' (타입 통합)
 }

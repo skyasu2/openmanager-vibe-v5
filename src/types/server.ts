@@ -108,7 +108,7 @@ export interface Server {
   id: string;
   name: string;
   hostname?: string;
-  status: 'online' | 'offline' | 'warning' | 'healthy' | 'critical';
+  status: ServerStatus; // 🔧 수정: ServerStatus 타입으로 완전 통합 (maintenance, unknown 포함)
   cpu: number;
   memory: number;
   disk: number;
@@ -160,7 +160,7 @@ export interface Server {
   logs?: LogEntry[];
   networkInfo?: NetworkInfo;
   networkStatus?:
-    | 'healthy'
+    | 'online' // 🔧 수정: 'healthy' → 'online' (타입 통합)
     | 'warning'
     | 'critical'
     | 'offline'

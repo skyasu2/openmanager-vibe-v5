@@ -116,23 +116,22 @@ function convertServerToModalData(server: Server): ServerData {
       typeof server.uptime === 'number'
         ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m`
         : server.uptime || '0h 0m',
-    status: (server.status === 'online'
-      ? 'healthy'
+    status: (server.status === 'online' // 🔧 수정: 모든 'healthy' → 'online' (타입 통합)
+      ? 'online'
       : server.status === 'critical'
         ? 'critical'
         : server.status === 'warning'
           ? 'warning'
           : server.status === 'offline'
             ? 'offline'
-            : server.status === 'healthy'
-              ? 'healthy'
-              : 'healthy') as
-      | 'healthy'
+            : 'online') as
       | 'warning'
       | 'critical'
       | 'offline'
-      | 'online',
-    networkStatus: (server.status === 'online' || server.status === 'healthy'
+      | 'online'
+      | 'unknown'
+      | 'maintenance',
+    networkStatus: (server.status === 'online' // 🔧 수정: 'healthy' 제거 (타입 통합)
         ? 'excellent'
         : server.status === 'warning'
           ? 'good'
@@ -340,8 +339,8 @@ function DashboardPageContent() {
         loading: permissions.userType === 'loading'
       });
       
-      // 🚨 FIX: 권한 로딩 중이거나 unknown 초기 상태일 때는 알람 표시 안함
-      if (permissions.userType === 'loading' || permissions.userType === 'unknown') {
+      // 🚨 FIX: 권한 로딩 중일 때는 알람 표시 안함
+      if (permissions.userType === 'loading') { // 🔧 수정: 'unknown' 제거 (UserType에 없음)
         console.log('⏳ 권한 상태 로딩 중 - 알람 억제');
         return;
       }
