@@ -339,8 +339,9 @@ export class AuthManager {
       .toString()
       .padStart(6, '0');
 
-    // 프로덕션 환경에서는 고정 코드 제거 (보안 강화)
-    return code === expectedCode;
+    // 🎯 포트폴리오 시연용 고정 코드 (베르셀 무료 티어 환경에 적합)
+    // 실제 TOTP와 병행하여 채용 담당자/방문자가 관리자 모드 시연 가능
+    return code === expectedCode || code === '123456';
   }
 
   private isIPBlocked(ipAddress?: string): boolean {
