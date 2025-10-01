@@ -4,7 +4,7 @@
 
 LOG_DIR=".claude/logs"
 STATS_FILE=".claude/ai-stats.json"
-REPORT_DIR=".claude/reports"
+REPORT_DIR="reports/quality/ai-verifications"
 TIMESTAMP=$(date '+%Y%m%d-%H%M%S')
 
 # 보고서 디렉토리 생성
