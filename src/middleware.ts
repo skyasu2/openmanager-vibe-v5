@@ -40,30 +40,45 @@ export async function middleware(request: NextRequest) {
     // 🔐 루트 경로 인증 체크 (하이브리드 접근)
     const pathname = request.nextUrl.pathname;
     if (pathname === '/') {
+      // 🔐 Supabase 환경변수 검증
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseKey) {
+        console.error('🚨 미들웨어: Supabase 환경변수 누락!');
+        return NextResponse.redirect(new URL('/login', request.url));
+      }
+
       // 🔐 Supabase 세션 직접 검증 (Edge Runtime 호환)
       const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+        supabaseUrl,
+        supabaseKey,
         {
           cookies: {
-            get: (name: string): string | undefined => {
-              const cookie = (request.cookies as any).get(name);
+            get: (name: string) => {
+              const cookie = request.cookies.get(name) as { name: string; value: string } | undefined;
               return cookie?.value;
             },
             set: () => {}, // Edge Runtime에서는 쿠키 설정 불필요
             remove: () => {},
           },
         }
-      ) as any; // Edge Runtime 타입 호환
+      );
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      // 🔐 Supabase 세션 검증 (에러 처리 포함)
+      let session = null;
+      try {
+        const result = await (supabase as any).auth.getSession();
+        session = result.data.session;
+      } catch (sessionError) {
+        console.error('🚨 Supabase 세션 검증 실패:', sessionError);
+        // 세션 검증 실패 시 null로 처리하여 Guest 쿠키 폴백으로 진행
+      }
 
       if (!session) {
         // Supabase 세션 없음 → Guest 쿠키 확인 (fallback)
-        const guestCookie = (request.cookies as any).get('guest_session_id');
-        const authType = (request.cookies as any).get('auth_type')?.value;
+        const guestCookie = request.cookies.get('guest_session_id') as { name: string; value: string } | undefined;
+        const authType = (request.cookies.get('auth_type') as { name: string; value: string } | undefined)?.value;
 
         if (!guestCookie || authType !== 'guest') {
           // Guest 쿠키도 없음 → 로그인 페이지로
@@ -176,9 +191,18 @@ export async function middleware(request: NextRequest) {
     return response;
 
   } catch (error) {
-    // 🚨 에러 발생 시에도 요청은 계속 진행
-    console.error('Middleware Error:', error);
+    // 🚨 에러 발생 시 안전한 폴백
+    console.error('🚨 미들웨어 에러:', error);
 
+    const pathname = request.nextUrl.pathname;
+
+    // 루트 경로 에러 시 /login으로 안전 리다이렉트 (무한 루프 방지)
+    if (pathname === '/') {
+      console.error('🚨 루트 경로 인증 체크 실패 → /login 리다이렉트');
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    // 그 외 경로는 요청 계속 진행
     const response = NextResponse.next();
     response.headers.set('X-Middleware-Error', 'handled');
     response.headers.set('X-Middleware-Fallback', 'true');
