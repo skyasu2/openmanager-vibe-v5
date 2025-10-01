@@ -12,6 +12,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
 
 // 📊 무료 티어 보호를 위한 Rate Limiting (간단한 버전)
 const RATE_LIMITS = {
@@ -32,9 +33,53 @@ const REGION_OPTIMIZATIONS = {
 /**
  * 🔧 미들웨어 메인 함수
  */
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   try {
     const startTime = Date.now();
+
+    // 🔐 루트 경로 인증 체크 (하이브리드 접근)
+    const pathname = request.nextUrl.pathname;
+    if (pathname === '/') {
+      // 🔐 Supabase 세션 직접 검증 (Edge Runtime 호환)
+      const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+        {
+          cookies: {
+            get: (name: string): string | undefined => {
+              const cookie = (request.cookies as any).get(name);
+              return cookie?.value;
+            },
+            set: () => {}, // Edge Runtime에서는 쿠키 설정 불필요
+            remove: () => {},
+          },
+        }
+      ) as any; // Edge Runtime 타입 호환
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        // Supabase 세션 없음 → Guest 쿠키 확인 (fallback)
+        const guestCookie = (request.cookies as any).get('guest_session_id');
+        const authType = (request.cookies as any).get('auth_type')?.value;
+
+        if (!guestCookie || authType !== 'guest') {
+          // Guest 쿠키도 없음 → 로그인 페이지로
+          console.log('🔐 미들웨어: 미인증 (세션+쿠키 없음) → /login');
+          return NextResponse.redirect(new URL('/login', request.url));
+        }
+
+        // Guest 쿠키 존재 → /main (게스트 모드)
+        console.log('🔐 미들웨어: Guest 쿠키 확인 → /main (게스트 모드)');
+        return NextResponse.redirect(new URL('/main', request.url));
+      }
+
+      // Supabase 세션 존재 → /main (인증된 사용자)
+      console.log('🔐 미들웨어: Supabase 세션 확인 → /main (인증 사용자)');
+      return NextResponse.redirect(new URL('/main', request.url));
+    }
 
     // 🌐 지리적 정보 추출 (Vercel Edge Runtime에서만 사용 가능)
     const geo = (request as any).geo;
@@ -48,7 +93,7 @@ export function middleware(request: NextRequest) {
     const isBot = /bot|crawler|spider|scraper/i.test(userAgent);
 
     // ⚡ 요청 경로별 최적화
-    const pathname = request.nextUrl.pathname;
+    // pathname은 위에서 이미 선언됨
     const isAPI = pathname.startsWith('/api');
     const isStatic = pathname.includes('/_next/static') || pathname.includes('/static');
 
@@ -153,15 +198,19 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * 다음 경로를 제외한 모든 요청에 적용:
-     * - _next/static (정적 파일)
-     * - _next/image (이미지 최적화)
-     * - favicon.ico (파비콘)
+     * 인증 체크 및 성능 최적화 경로:
+     * - 루트 경로 (/) - 인증 체크
+     * - 모든 페이지 - 성능 헤더 추가
+     * 
+     * 🚨 제외 경로 (무한 루프 방지):
+     * - /auth/* (OAuth 콜백, 인증 처리) ⚠️ 필수!
+     * - /login (로그인 페이지) ⚠️ 필수! (무한 루프 방지)
+     * - /api/* (API 라우트)
+     * - /_next/static (정적 파일)
+     * - /_next/image (이미지 최적화)
+     * - /favicon.ico (파비콘)
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-
-    // API 경로는 명시적으로 포함
-    '/api/(.*)',
+    '/((?!auth|login|api|_next/static|_next/image|favicon.ico).*)',
   ],
 };
 

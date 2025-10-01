@@ -128,9 +128,25 @@ export default function AuthCallbackPage() {
             `⏱️ 콜백 처리 시간: ${(performance.now() - startTime).toFixed(0)}ms`
           );
 
-          // auth_verified 쿠키 설정 (Vercel HTTPS 환경 대응)
+          // 🧹 게스트 쿠키 정리 (GitHub 로그인 성공 시)
+          debug.log('🧹 게스트 쿠키 정리 시작...');
           const isProduction = window.location.protocol === 'https:';
-          document.cookie = `auth_verified=true; path=/; max-age=${60 * 60 * 24}; SameSite=Lax${isProduction ? '; Secure' : ''}`;
+          const secureFlag = isProduction ? '; Secure' : '';
+          
+          // 게스트 쿠키 삭제
+          document.cookie = `guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
+          document.cookie = `auth_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
+          document.cookie = `auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
+          
+          // localStorage 게스트 데이터 정리
+          localStorage.removeItem('auth_type');
+          localStorage.removeItem('auth_session_id');
+          localStorage.removeItem('auth_user');
+          
+          debug.log('✅ 게스트 쿠키 및 localStorage 정리 완료');
+
+          // auth_verified 쿠키 설정 (Vercel HTTPS 환경 대응)
+          document.cookie = `auth_verified=true; path=/; max-age=${60 * 60 * 24}; SameSite=Lax${secureFlag}`;
 
           // 바로 메인으로 이동
           debug.log('🚀 메인 페이지로 이동!');
