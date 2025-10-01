@@ -1,4 +1,19 @@
 #!/bin/bash
+# ⚠️ DEPRECATED - 방식 B(Claude Task 도구) 사용 권장
+#
+# 이 스크립트는 히스토리 참조 및 독립 실행용으로만 유지됩니다.
+#
+# 권장 방식 (방식 B - 40% 더 빠름):
+#   Claude Code에서: "이 파일을 3개 AI로 교차검증해줘"
+#   → Claude가 Task codex-specialist, gemini-specialist, qwen-specialist 병렬 호출
+#   → 15초 실행 (기존 25초 대비)
+#   → 투명한 UX (실시간 피드백)
+#
+# 이 스크립트 직접 실행 (방식 A - 느리고 블랙박스):
+#   bash scripts/ai-verification/improved-ai-cross-validation.sh src/file.ts
+#   → 25초 순차 실행
+#   → 불투명한 UX
+#
 # 🚀 개선된 AI 교차검증 시스템 v3.0 (복잡도 무관 병렬 최적화)
 # Claude Code + 3개 외부 AI CLI 동시 실행 (복잡도 제한 제거)
 

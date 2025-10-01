@@ -762,27 +762,32 @@ arbitration_rules:
     - 불확실 시 사용자에게 선택권 위임
 ```
 
-### 🚀 사용 방법
+### 🚀 사용 방법 (방식 B - Claude 주도) 🆕
 
 ```bash
-# 기본 AI 교차검증
-Task ai-cross-verification-specialist "이 코드를 AI 교차검증해줘"
-→ Codex + Gemini + Qwen 병렬 평가 (각자 100점 만점)
-→ Claude가 점수 차이 패턴 분석 후 최종 결론
-
-# 직접 실행 (스크립트)
-bash scripts/ai-verification/improved-ai-cross-validation.sh src/types/ai-types.ts
+# 기본 AI 교차검증 (Claude가 3개 서브에이전트 병렬 호출)
+"이 파일을 3개 AI로 교차검증해줘"
+→ Claude: 파일 읽기
+→ Claude: Task codex-specialist "실무 관점 평가"
+         Task gemini-specialist "아키텍처 관점 평가"
+         Task qwen-specialist "성능 관점 평가"
+         (병렬 실행 - 15초)
+→ Claude: 점수 통합 분석 및 최종 결론
 
 # 특정 관점 강조
 "성능 크리티컬 구간이니 Qwen 의견 중시해서 교차검증해줘"
 → Qwen 성능 항목 가중치 +10점
 
-# 히스토리 활용
-Task ai-cross-verification-specialist "지난번 검증과 비교하여 개선사항 확인"
-→ reports/quality/ai-verifications/ 자동 저장
+# 히스토리 기반 개선 확인
+"지난번 검증과 비교하여 개선사항 확인해줘"
+→ reports/quality/ai-verifications/ 자동 참조
 
 # Performance log 확인
 tail -f logs/ai-perf/ai-perf-$(date +%F).log
+
+# ⚠️ 직접 실행 (bash 스크립트) - DEPRECATED
+# bash scripts/ai-verification/improved-ai-cross-validation.sh src/types/ai-types.ts
+# → 권장: 위의 방식 B 사용 (40% 더 빠르고 투명한 UX)
 ```
 
 ### 📈 실제 성과 측정 (2025-10-01 업데이트)
@@ -832,13 +837,13 @@ tail -f logs/ai-perf/ai-perf-$(date +%F).log
 3. 에러 핸들링 강화:
    추가: 병렬 실행 종료 코드 검사 + fallback 점수 5.0
    효과: 타임아웃/오류 시 안정적 점수 제공
-   파일: scripts/ai-verification/improved-ai-cross-validation.sh
+   파일: scripts/ai-verification/improved-ai-cross-validation.sh (DEPRECATED - 참고용)
 
 4. Claude 오판 감지 보정:
    기존: scoreDiff > 30점 (100점 만점)
    추가: 2엔진 합의 확인 (consensus_count >= 2)
    효과: Single Point of Failure 완화 + 신뢰도 향상
-   파일: scripts/ai-verification/improved-ai-cross-validation.sh
+   파일: scripts/ai-verification/improved-ai-cross-validation.sh (DEPRECATED - 참고용)
 ```
 
 **실제 테스트 결과**:
