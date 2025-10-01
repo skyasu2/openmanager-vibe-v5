@@ -555,7 +555,7 @@ source .env.local && vercel logs --token $VERCEL_TOKEN      # 로그 확인
 #### 💰 Codex CLI (ChatGPT Plus $20/월) ✅ 완전 해결
 **GPT-5 기반 고성능 서브 에이전트**
 - **사용량**: 30-150 메시지/5시간
-- **현재 성능**: codex-wrapper 9.0/10 안정적 운영
+- **현재 성능**: codex-specialist 9.0/10 안정적 운영
 
 ```bash
 # 서브에이전트 정상 작동 확인
@@ -574,7 +574,7 @@ codex exec "이 코드의 보안 취약점 분석"
 #### 🆓 Qwen CLI (Qwen OAuth 무료)
 **Qwen OAuth 브라우저 인증**
 - **한도**: 60 RPM / 2,000 RPD
-- **현재 상태**: qwen-wrapper 9.2/10 타임아웃 해결 완료
+- **현재 상태**: qwen-specialist 9.2/10 타임아웃 해결 완료
 
 ### 🔄 협업 시나리오
 
@@ -826,13 +826,13 @@ tail -f logs/ai-perf/ai-perf-$(date +%F).log
 1. Codex 타임아웃 단축:
    변경: 30초 → 15초
    효과: 응답 시간 70초 → 58초 (17% 개선)
-   파일: scripts/ai-subagents/codex-wrapper.sh
+   적용: codex-specialist 서브에이전트 (방식 B)
 
 2. Performance Log 개선:
    변경: /tmp/important → logs/ai-perf/ai-perf-YYYY-MM-DD.log
    포맷: JSON Lines (ai, duration_ms, timestamp)
    효과: 세션 유지, 일자별 롤링, 영구 보관
-   파일: scripts/ai-subagents/codex-wrapper.sh
+   적용: 서브에이전트 성능 추적 시스템
 
 3. 에러 핸들링 강화:
    추가: 병렬 실행 종료 코드 검사 + fallback 점수 5.0
