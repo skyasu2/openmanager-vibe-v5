@@ -70,36 +70,52 @@ can_use() {
     fi
 }
 
+# Performance Log 기록 (Phase 1 최적화: 일자별 롤링)
+log_performance() {
+    local ai_name="$1"
+    local duration_ms="$2"
+    local script_dir="$(dirname "$(dirname "$0")")"  # scripts/ 디렉토리
+    local project_root="$(dirname "$script_dir")"    # 프로젝트 루트
+    local perf_log="$project_root/logs/ai-perf/ai-perf-$(date +%F).log"
+
+    # logs/ai-perf 디렉토리 생성
+    mkdir -p "$project_root/logs/ai-perf" 2>/dev/null || true
+
+    # JSON 포맷으로 로그 기록
+    local timestamp=$(date +%s)
+    echo "{\"ai\":\"$ai_name\",\"duration_ms\":$duration_ms,\"timestamp\":$timestamp}" >> "$perf_log" 2>/dev/null || true
+}
+
 # 점수 추출 함수 (표준화)
 extract_score_from_text() {
     local text="$1"
     local score=""
-    
+
     # 다양한 점수 패턴 시도
     score=$(echo "$text" | grep -oE '[0-9]+\.?[0-9]*(/10|점|%)' | grep -oE '[0-9]+\.?[0-9]*' | head -1 2>/dev/null || echo "")
-    
+
     if [[ -z "$score" ]]; then
         # 추가 패턴: "점수: 8.5", "Score: 8.5" 등
         score=$(echo "$text" | grep -oiE '(점수|score|평점|rating)[:：]\s*([0-9]+\.?[0-9]*)' | grep -oE '[0-9]+\.?[0-9]*' | head -1 2>/dev/null || echo "")
     fi
-    
+
     if [[ -z "$score" ]]; then
         # 최후 패턴: 첫 번째 숫자 찾기
         score=$(echo "$text" | grep -oE '[0-9]+\.?[0-9]*' | head -1 2>/dev/null || echo "7.0")
     fi
-    
+
     # 100점 만점을 10점 만점으로 변환
     if (( $(echo "$score > 10" | bc -l 2>/dev/null || echo 0) )); then
         score=$(echo "scale=1; $score / 10" | bc 2>/dev/null || echo "7.0")
     fi
-    
+
     # 범위 검증 (0-10)
     if (( $(echo "$score < 0" | bc -l 2>/dev/null || echo 0) )); then
         score="0.0"
     elif (( $(echo "$score > 10" | bc -l 2>/dev/null || echo 0) )); then
         score="10.0"
     fi
-    
+
     echo "$score"
 }
 
@@ -124,9 +140,9 @@ analyze_with_codex() {
         return 1
     fi
     
-    log_info "🤖 Codex CLI (GPT-5) 분석 중... (30초 타임아웃)"
+    log_info "🤖 Codex CLI (GPT-5) 분석 중... (15초 타임아웃)"
     start_time=$(date +%s%3N)  # 밀리초 단위
-    
+
     # 파일 내용을 임시 파일로 저장 (메모리 안전)
     if [ -f "$file_path" ]; then
         temp_file="/tmp/codex_$(basename "$file_path")_$$"
@@ -135,39 +151,50 @@ analyze_with_codex() {
             track_usage "codex" "analyze" "file_error"
             return 1
         }
-        
-        
+
+
         # Codex 실행
         local result
         local exit_code
-        result=$(timeout 30s codex exec "TypeScript 코드 품질 평가 (10점 만점): $(basename "$file_path") - 간단히 점수와 주요 개선사항 1개만" 2>&1) || exit_code=$?
-        
+        result=$(timeout 15s codex exec "TypeScript 코드 품질 평가 (10점 만점): $(basename "$file_path") - 간단히 점수와 주요 개선사항 1개만" 2>&1) || exit_code=$?
+
         end_time=$(date +%s%3N)
         duration=$((end_time - start_time))
-        
+
         # 결과 처리
         if [[ $exit_code -eq 124 ]]; then
-            log_warning "⚠️ Codex CLI 타임아웃 (30초 초과)"
+            log_warning "⚠️ Codex CLI 타임아웃 (15초 초과)"
             echo "🤖 Codex 분석: 타임아웃"
+
+            # Phase 1: 타임아웃도 performance log 기록
+            log_performance "codex" "15000"
+
             track_usage "codex" "analyze" "timeout"
             rm -f "$temp_file" 2>/dev/null
             return 1
         elif [[ $exit_code -ne 0 ]]; then
             log_warning "⚠️ Codex CLI 실행 오류"
             echo "🤖 Codex 분석: 실행 오류 또는 네트워크 문제"
+
+            # Phase 1: 오류도 performance log 기록
+            log_performance "codex" "$duration"
+
             track_usage "codex" "analyze" "error"
             rm -f "$temp_file" 2>/dev/null
             return 1
         else
             # 성공적인 결과
             echo "$result"
-            
+
             # 점수 추출 및 표준화 출력
             local extracted_score
             extracted_score=$(extract_score_from_text "$result")
             echo ""
             echo -e "${CYAN}📊 표준화된 점수: ${extracted_score}/10 (가중치: 0.99)${NC}"
-            
+
+            # Phase 1: Performance log 기록
+            log_performance "codex" "$duration"
+
             track_usage "codex" "analyze" "success"
         fi
         
@@ -196,7 +223,7 @@ show_help() {
 특징:
   • GPT-5 모델 활용 (ChatGPT Plus)
   • 가중치: 0.99 (최고 신뢰도)
-  • 30초 타임아웃
+  • 15초 타임아웃 (Phase 1 최적화)
   • 2KB 파일 크기 제한
   • 기존 ai-cross-validation.sh 패턴 호환
 

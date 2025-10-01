@@ -154,23 +154,21 @@ extract_score() {
     echo "$analysis" | grep -oP '점수:\s*\K[\d.]+' | head -1
 }
 
-# 가중 평균 계산
+# 가중 평균 계산 (Phase 1 최적화: bc 사용)
 calculate_weighted_average() {
     local codex_score="$1"
-    local gemini_score="$2" 
+    local gemini_score="$2"
     local qwen_score="$3"
-    
+
     # 기본값 설정 (분석 실패 시)
     codex_score=${codex_score:-0}
     gemini_score=${gemini_score:-0}
     qwen_score=${qwen_score:-0}
-    
-    # 가중 평균 계산 (bc 없이 bash로)
-    local weighted_sum=$(( codex_score*99 + gemini_score*98 + qwen_score*97 ))
-    local weight_total=294  # 99 + 98 + 97
-    
-    local average=$((weighted_sum / weight_total))
-    echo "$average"
+
+    # 가중 평균 계산 (bc로 부동소수점 처리)
+    local weighted_avg=$(echo "scale=1; ($codex_score*0.99 + $gemini_score*0.98 + $qwen_score*0.97) / (0.99 + 0.98 + 0.97)" | bc 2>/dev/null || echo "0.0")
+
+    echo "$weighted_avg"
 }
 
 # 메인 교차검증 함수
@@ -198,36 +196,51 @@ cross_validate_file() {
         echo "CODEX_DONE:$codex_result" > "/tmp/codex_result_$$"
     } &
     codex_pid=$!
-    
+
     {
         gemini_result=$(analyze_with_gemini "$file_path")
         echo "GEMINI_DONE:$gemini_result" > "/tmp/gemini_result_$$"
     } &
     gemini_pid=$!
-    
+
     {
         qwen_result=$(analyze_with_qwen "$file_path")
         echo "QWEN_DONE:$qwen_result" > "/tmp/qwen_result_$$"
     } &
     qwen_pid=$!
+
+    # 병렬 실행 대기 (Phase 1 최적화: 에러 핸들링)
+    local codex_exit gemini_exit qwen_exit
+    wait $codex_pid
+    codex_exit=$?
+    wait $gemini_pid
+    gemini_exit=$?
+    wait $qwen_pid
+    qwen_exit=$?
     
-    # 병렬 실행 대기
-    wait $codex_pid $gemini_pid $qwen_pid
-    
-    # 결과 읽기
+    # 결과 읽기 (Phase 1 최적화: fallback 점수)
     if [ -f "/tmp/codex_result_$$" ]; then
         codex_result=$(cat "/tmp/codex_result_$$" | sed 's/^CODEX_DONE://')
         rm -f "/tmp/codex_result_$$"
+    elif [ $codex_exit -ne 0 ]; then
+        codex_result="점수: 5.0/10\n실무 장점: [분석 실패]\n개선사항: [재시도 필요]\n보안/성능: 타임아웃"
+        log_warning "Codex 분석 실패 (exit: $codex_exit) - fallback 점수 5.0 적용"
     fi
-    
+
     if [ -f "/tmp/gemini_result_$$" ]; then
         gemini_result=$(cat "/tmp/gemini_result_$$" | sed 's/^GEMINI_DONE://')
         rm -f "/tmp/gemini_result_$$"
+    elif [ $gemini_exit -ne 0 ]; then
+        gemini_result="점수: 5.0/10\n구조적 장점: [분석 실패]\n리팩토링 제안: [재시도 필요]\n확장성: 타임아웃"
+        log_warning "Gemini 분석 실패 (exit: $gemini_exit) - fallback 점수 5.0 적용"
     fi
-    
+
     if [ -f "/tmp/qwen_result_$$" ]; then
         qwen_result=$(cat "/tmp/qwen_result_$$" | sed 's/^QWEN_DONE://')
         rm -f "/tmp/qwen_result_$$"
+    elif [ $qwen_exit -ne 0 ]; then
+        qwen_result="점수: 5.0/10\n알고리즘 장점: [분석 실패]\n최적화: [재시도 필요]\n복잡도: 타임아웃"
+        log_warning "Qwen 분석 실패 (exit: $qwen_exit) - fallback 점수 5.0 적용"
     fi
     
     # 결과 출력
@@ -245,24 +258,44 @@ cross_validate_file() {
     codex_score=$(extract_score "$codex_result")
     gemini_score=$(extract_score "$gemini_result")
     qwen_score=$(extract_score "$qwen_result")
-    
+
     local average_score
     average_score=$(calculate_weighted_average "$codex_score" "$gemini_score" "$qwen_score")
-    
+
+    # Phase 1: Claude 오판 감지 (점수 차이 > 30점 + 2엔진 합의)
+    local max_score min_score score_diff_100
+    max_score=$(printf '%s\n' "$codex_score" "$gemini_score" "$qwen_score" | sort -nr | head -1)
+    min_score=$(printf '%s\n' "$codex_score" "$gemini_score" "$qwen_score" | sort -n | head -1)
+    # 10점 만점 → 100점 만점으로 변환하여 비교
+    score_diff_100=$(echo "($max_score - $min_score) * 10" | bc 2>/dev/null || echo "0")
+
+    # 2엔진 합의 확인 (Codex 제안)
+    local consensus_count
+    consensus_count=$(printf '%s\n' "$codex_score" "$gemini_score" "$qwen_score" | \
+      awk '{print int($1*10)}' | sort | uniq -c | sort -nr | head -1 | awk '{print $1}')
+
+    if (( $(echo "$score_diff_100 > 30" | bc -l 2>/dev/null || echo 0) )); then
+        log_warning "⚠️  점수 차이 ${score_diff_100}점 (100점 만점) - 의견 충돌, 사용자 판단 필요"
+    elif [ "$consensus_count" -lt 2 ]; then
+        log_warning "⚠️  2엔진 합의 부족 (각각 다른 점수) - 검토 권장"
+    else
+        log_success "✅ 2엔진 이상 합의 (신뢰도 높음)"
+    fi
+
     # 종합 결과
     echo
     echo "=" | head -c 60; echo
     log_success "🎯 AI 교차검증 완료 - $(basename "$file_path")"
     echo -e "${GREEN}📊 점수 요약:${NC}"
     echo "  • Codex (GPT-5):   ${codex_score:-N/A}/10 (가중치: 0.99)"
-    echo "  • Gemini:          ${gemini_score:-N/A}/10 (가중치: 0.98)"  
+    echo "  • Gemini:          ${gemini_score:-N/A}/10 (가중치: 0.98)"
     echo "  • Qwen:            ${qwen_score:-N/A}/10 (가중치: 0.97)"
     echo -e "  ${GREEN}• 가중평균:        ${average_score}/10${NC}"
     
-    # 품질 등급
-    if [ "$average_score" -ge 8 ]; then
+    # 품질 등급 (Phase 1 최적화: bc로 부동소수점 비교)
+    if (( $(echo "$average_score >= 8.0" | bc -l 2>/dev/null || echo 0) )); then
         echo -e "  ${GREEN}✅ 등급: HIGH (8.0+ 점)${NC}"
-    elif [ "$average_score" -ge 6 ]; then
+    elif (( $(echo "$average_score >= 6.0" | bc -l 2>/dev/null || echo 0) )); then
         echo -e "  ${YELLOW}⚠️  등급: MEDIUM (6.0-7.9 점)${NC}"
     else
         echo -e "  ${RED}🚨 등급: LOW (6.0 미만)${NC}"
