@@ -850,44 +850,21 @@ Qwen:    8.5/10
 ✅ 2엔진 이상 합의 (신뢰도 높음) ← 새로 추가된 기능
 ```
 
-#### **Phase 2: 단기 개선** (1주) 🎯
+### 🎯 미래 확장 가능성 (필요시에만)
 
-```yaml
-1. Fast-path 구현:
-   - 간단한 코드 → Gemini만 (10초)
-   - 복잡한 코드 → 3개 AI 병렬 (58초)
-   효과: 응답 시간 평균 30초 (50% 단축)
+**Phase 1 완료로 실무적 목표 달성** ✅
 
-2. Shared Context Caching:
-   - 3개 AI 동일 코드 분석 시 입력 토큰 공유
-   효과: 토큰 50% 절감 ($220 → $110/월)
+Phase 2/3는 **오버엔지니어링**으로 판단:
+- Fast-path: "간단한 코드" 판단 로직이 더 복잡
+- Context Caching: Max 플랜이라 토큰 비용 큰 문제 아님
+- Adaptive Weighting: 데이터 축적 + ML = 과도한 복잡도
 
-3. Weighted Voting 도입:
-   - Codex (40%), Gemini (30%), Qwen (30%)
-   효과: 정확도 +15% (85% → 100%)
-```
+**Codex 실무 철학**: "작동하면 OK, 나중에 개선" - **지금 작동함** ✅
 
-#### **Phase 3: 장기 개선** (1개월) 📈
-
-```yaml
-1. Performance Monitoring + Adaptive Weighting:
-   - 각 AI 정확도 추적 → 실시간 가중치 조정
-   효과: 자동 최적화
-
-2. Consensus Mechanism:
-   - Quorum 2/3 rule, Disagreement threshold
-   효과: 일관성 보장, 안정성 99.5%
-
-3. Orchestration Layer 개선:
-   - 명시적 조율 로직, Fallback Strategy
-   효과: 투명성 완전 확보
-```
-
-**예상 최종 효과**:
-- ⚡ 응답 시간: 70초 → 28초 (**60% 단축**)
-- 💰 토큰 비용: $220 → $110/월 (**50% 절감**)
-- 🎯 정확도: 85% → 100% (**15% 향상**)
-- 🔒 안정성: 95% → 99.5% (**일관성 보장**)
+**필요 시 고려할 항목**:
+- Performance log 대시보드 (Grafana/Supabase)
+- CI/CD 통합 (PR 자동 검증)
+- 히스토리 기반 트렌드 분석
 
 ## 🎲 Mock 시뮬레이션 시스템
 
