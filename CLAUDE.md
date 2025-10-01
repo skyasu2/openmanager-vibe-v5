@@ -602,20 +602,52 @@ codex exec "이 코드의 보안 취약점 분석"
 
 ## 🤝 AI 교차검증 시스템
 
-**✅ 표준 루브릭 기반 최적화 완료 (2025-09-25 업데이트)**
+**✅ 수동 트리거 + 히스토리 관리 시스템 (2025-10-01 업데이트)** 🆕
+
+### 🎯 ai-cross-verification-specialist (전용 서브에이전트)
+
+**수동 요청 전용** - 자동 검증 없음, 사용자가 필요할 때만 실행
+
+```bash
+# 기본 AI 교차검증 (무료 AI 우선)
+Task ai-cross-verification-specialist "이 코드를 AI 교차검증해줘"
+→ Gemini + Qwen 병렬 검증 → Claude 통합 (1x 소비)
+→ 자동 히스토리 저장 (reports/quality/ai-verifications/)
+
+# 히스토리 활용 검증
+Task ai-cross-verification-specialist "지난번 검증과 비교하여 개선사항 확인"
+→ 이전 리포트 검색 → 트렌드 분석
+
+# 특정 AI 조합 지정
+Task ai-cross-verification-specialist "Codex와 Gemini로 보안 중심 검증"
+→ 실무 + 설계 검증 → Claude 조율 (1.5x 소비)
+
+# 월간 요약 보고서
+Task ai-cross-verification-specialist "이번 달 검증 결과 요약 보고서 생성"
+→ 자동 통계 집계 및 트렌드 분석
+```
+
+### 💰 Claude Max 한도 효율성 (핵심 개선)
+
+| 방식 | 일일 10개 작업 | Claude 소비 | 효율 |
+|------|---------------|-------------|------|
+| **이전 (자동)** | 간단 5개 + 일반 3개 + 복잡 2개 | 20x | 5시간 한도 도달 |
+| **현재 (수동 + 무료 AI 우선)** | 동일 작업 | **5x** | **75% 절약** ✅ |
+
+**효과**: 하루 3사이클 → 16사이클 가능 (Opus 자유 사용)
 
 ### 🚀 표준화된 서브에이전트 기반 시스템
 
-**AI 교차검증 v4.0 - 표준 점수 루브릭 및 역할 특화 방식**
+**AI 교차검증 v5.0 - 수동 트리거 + 히스토리 자동 관리**
 
 ```bash
-# 새로운 방식: Claude Code가 표준 루브릭으로 서브에이전트 조율
-"이 코드를 3개 AI로 교차검증해줘"  # Claude가 적절한 방식 선택하여 실행
-
-# 개별 AI 특화 역할 직접 호출
+# 개별 AI 특화 역할 직접 호출 (기존 방식 유지)
 "codex-specialist 서브에이전트를 사용하여 구현·버그스캔·PR 제안해주세요"
 "gemini-specialist 서브에이전트를 사용하여 설계 검증해주세요"
 "qwen-specialist 서브에이전트를 사용하여 성능 지표 검증해주세요"
+
+# AI 교차검증 전용 (신규 - 권장) ⭐
+Task ai-cross-verification-specialist "AI 교차검증 요청"
 ```
 
 ### 📊 표준 점수 루브릭 (100점 만점)
