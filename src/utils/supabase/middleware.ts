@@ -22,8 +22,9 @@ export async function updateSession(
     {
       cookies: {
         get(name: string) {
-          const cookie = request.cookies.get(name);
-          return cookie;
+          const cookie = request.cookies.get(name) as { name: string; value: string } | undefined;
+          // ✅ Next.js 15: cookies.get()은 { name, value } 객체를 반환하므로 .value 추출 필요
+          return cookie?.value;
         },
         set(name: string, value: string, options: Record<string, unknown>) {
           // ✅ 개선: 여러 쿠키 공존을 위해 response.cookies.set 사용

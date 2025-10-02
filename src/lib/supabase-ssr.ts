@@ -40,11 +40,10 @@ export function createMiddlewareClient(
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
-        const cookie = request.cookies.get(name);
+        const cookie = request.cookies.get(name) as { name: string; value: string } | undefined;
         if (!cookie) return undefined;
-        return typeof cookie === 'string'
-          ? cookie
-          : String((cookie as any).value);
+        // ✅ Next.js 15: cookies.get()은 { name, value } 객체를 반환하므로 .value 추출
+        return cookie.value;
       },
       set(name: string, value: string, options: Record<string, unknown>) {
         // 🔐 Vercel 환경에 최적화된 쿠키 옵션
