@@ -604,10 +604,11 @@ export async function OPTIONS(_req: NextRequest) {
   });
 }
 
-// Export with authentication - TEMPORARILY DISABLED FOR TESTING
+// TODO: [2025-10-10] Re-enable authentication after AI testing complete
+// Design decision: AI API is currently public for demo purposes
 // export const GET = withAuth(getHandler);
 // export const POST = withAuth(postHandler);
 
-// Temporary bypass for AI testing
+// Current: Public AI API (no authentication required)
 export const GET = getHandler;
 export const POST = postHandler;
