@@ -169,6 +169,11 @@ git push                    # Vercel 자동 배포
   - AI 교차검증 워크플로우
   - Git/배포 워크플로우
 
+- **@docs/claude/environment/claude-code-hooks-guide.md**
+  - Claude Code v2.0 Hooks 시스템
+  - PostToolUse/UserPromptSubmit 설정
+  - WSL 환경 호환성 (선택적)
+
 ### 핵심 도구
 
 | 도구 | 버전 | 요금제 | 역할 |
@@ -216,6 +221,11 @@ claude
 - **@docs/claude/standards/commit-conventions.md**
   - 이모지 + 간결한 메시지
   - ✨ feat | 🐛 fix | ♻️ refactor
+
+- **@docs/claude/standards/git-hooks-best-practices.md**
+  - Pre-commit Hook (1초, 보안 중심)
+  - Pre-push Hook (25초, 품질 검증)
+  - Industry Best Practices 준수
 
 - **@docs/claude/standards/file-organization.md**
   - 500줄 권장, 1500줄 최대
