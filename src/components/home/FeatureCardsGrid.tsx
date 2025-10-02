@@ -5,7 +5,7 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { memo, useEffect, useMemo, useRef, useState, useCallback, type RefObject } from 'react';
 import type { FeatureCard, FeatureCardProps } from '@/types/feature-card.types';
-import { FEATURE_CARDS_DATA, CARD_COMPLETION_RATES } from '@/data/feature-cards.data';
+import { FEATURE_CARDS_DATA } from '@/data/feature-cards.data';
 
 // AI 단어에 그라데이션 애니메이션 적용하는 함수 - 컴포넌트 외부로 이동
 const renderTextWithAIGradient = (text: string) => {
@@ -39,9 +39,6 @@ const FeatureCardItem = memo(
     onCardClick: (cardId: string) => void;
     isAIDisabled: boolean;
   }) => {
-    // 완성도 가져오기
-    const completionRate = CARD_COMPLETION_RATES[card.id] || CARD_COMPLETION_RATES.default;
-    
     // 카드 타입별 스타일 헬퍼
     const getCardStyles = (card: FeatureCard) => {
       return {
@@ -75,12 +72,21 @@ const FeatureCardItem = memo(
     return (
       <div
         key={card.id}
+        role="button"
+        tabIndex={0}
+        aria-label={`${card.title} 상세 정보 보기`}
         className={`group relative cursor-pointer ${
           card.isVibeCard
             ? 'transform-gpu hover:shadow-2xl hover:shadow-yellow-500/30'
             : ''
         }`}
         onClick={() => onCardClick(card.id)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onCardClick(card.id);
+          }
+        }}
       >
         <div
           className={`cubic-bezier(0.4, 0, 0.2, 1) relative h-full rounded-2xl border border-white/25 bg-white/10 p-4 backdrop-blur-sm transition-all duration-300 hover:bg-white/20 ${
