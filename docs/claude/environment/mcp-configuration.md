@@ -128,6 +128,168 @@ source .env.local && vercel logs --token $VERCEL_TOKEN      # 로그 확인
 - **MCP 서버**: Claude Code 내 통합 작업 (권장)
 - **CLI 도구**: 터미널 스크립트 및 자동화
 
+---
+
+## 🎯 베르셀 MCP vs CLI 사용 가이드 (2025-10-02)
+
+### 📊 성능 비교 (실측 데이터)
+
+| 작업 | MCP | CLI | 성능 차이 |
+|------|-----|-----|----------|
+| 프로젝트 목록 | 즉시 (~1초) | 89초 | **89배 빠름** ⚡ |
+| 환경변수 조회 | N/A | 85초 | - |
+| 배포 상세 정보 | 즉시 (~1초) | - | - |
+| 보호된 URL 접근 | 즉시 (~1초) | N/A | - |
+
+### 🔍 MCP 서버 - 조회 및 분석 전용 (권장)
+
+**✅ MCP가 최적인 경우:**
+
+1. **빠른 정보 조회** (89배 빠름)
+   ```typescript
+   // Claude Code 내에서 즉시 실행
+   mcp__vercel__list_projects(teamId)      // 프로젝트 목록
+   mcp__vercel__list_deployments(...)       // 배포 목록
+   mcp__vercel__get_deployment(...)         // 배포 상세
+   ```
+
+2. **보호된 배포 접근**
+   ```typescript
+   // 임시 공유 링크 생성 (23시간 유효)
+   mcp__vercel__get_access_to_vercel_url(url)
+
+   // 보호된 HTML 전체 가져오기
+   mcp__vercel__web_fetch_vercel_url(shareableUrl)
+   ```
+
+3. **도메인 가용성 확인**
+   ```typescript
+   mcp__vercel__check_domain_availability_and_price(["example.com"])
+   ```
+
+**📋 MCP 사용 가능 도구:**
+- ✅ `list_teams` - 팀 목록 조회
+- ✅ `list_projects` - 프로젝트 목록
+- ✅ `get_project` - 프로젝트 상세 (Node.js 버전, 도메인 등)
+- ✅ `list_deployments` - 배포 목록 (페이지네이션 지원)
+- ✅ `get_deployment` - 배포 상세 정보
+- ✅ `get_access_to_vercel_url` - 임시 공유 링크 생성
+- ✅ `web_fetch_vercel_url` - 보호된 배포 HTML 가져오기
+- ✅ `check_domain_availability_and_price` - 도메인 확인
+
+**⚠️ MCP 제한사항:**
+- ❌ 환경변수 수정 (`vercel env add/rm`)
+- ❌ 직접 배포 (`vercel deploy`)
+- ❌ 도메인 연결/해제 (`vercel domains add/rm`)
+- ❌ 팀원 관리 (`vercel teams add/rm`)
+- ❌ 프로젝트 설정 변경
+- ❌ 빌드 로그 조회 (권한 제한)
+
+### 🛠️ CLI 도구 - 설정 및 배포 작업 전용
+
+**✅ CLI가 필수인 경우:**
+
+1. **환경변수 관리**
+   ```bash
+   source .env.local
+   vercel env add VARIABLE_NAME production  # 환경변수 추가
+   vercel env rm VARIABLE_NAME              # 환경변수 삭제
+   vercel env pull .env.production          # 로컬로 가져오기
+   ```
+
+2. **직접 배포**
+   ```bash
+   vercel deploy              # 프리뷰 배포
+   vercel deploy --prod       # 프로덕션 배포
+   vercel rollback            # 이전 배포로 롤백
+   ```
+
+3. **도메인 관리**
+   ```bash
+   vercel domains add example.com     # 도메인 추가
+   vercel domains rm example.com      # 도메인 제거
+   vercel domains ls                  # 도메인 목록
+   ```
+
+4. **팀 관리**
+   ```bash
+   vercel teams add user@example.com  # 팀원 추가
+   vercel teams rm user@example.com   # 팀원 제거
+   ```
+
+5. **런타임 로그 조회**
+   ```bash
+   vercel logs                        # 런타임 로그
+   vercel logs --since=1h             # 최근 1시간
+   ```
+
+**⚠️ CLI 단점:**
+- ❌ 느린 응답 속도 (85-89초)
+- ❌ 토큰 기반 인증 필요
+- ❌ Claude Code 외부 실행
+
+### 💡 실전 사용 패턴
+
+**시나리오 1: 배포 상태 확인**
+```typescript
+// ✅ MCP 사용 (즉시 응답)
+const deployment = await mcp__vercel__get_deployment(deploymentId, teamId);
+console.log(deployment.readyState); // "READY"
+```
+
+**시나리오 2: 환경변수 추가**
+```bash
+# ✅ CLI 사용 (필수)
+source .env.local
+vercel env add NEW_API_KEY production
+```
+
+**시나리오 3: 보호된 프리뷰 배포 접근**
+```typescript
+// ✅ MCP 사용 (임시 링크 생성)
+const { shareableUrl } = await mcp__vercel__get_access_to_vercel_url(previewUrl);
+const html = await mcp__vercel__web_fetch_vercel_url(shareableUrl);
+```
+
+**시나리오 4: 직접 배포**
+```bash
+# ✅ CLI 사용 (필수)
+source .env.local
+vercel deploy --prod
+```
+
+### 🎯 권장 워크플로우
+
+**일상 개발 (조회 중심):**
+```typescript
+// Claude Code 내에서 MCP 도구 활용
+"베르셀 프로젝트 목록 보여줘"
+"최신 배포 상태 확인해줘"
+"프리뷰 URL 접근해서 HTML 가져와줘"
+```
+
+**설정 변경 (수정 필요):**
+```bash
+# 터미널에서 CLI 도구 사용
+source .env.local
+vercel env add API_KEY production
+vercel deploy --prod
+```
+
+### 📈 효율성 지표
+
+| 구분 | MCP | CLI |
+|------|-----|-----|
+| **응답속도** | ~1초 ⚡ | 85-89초 |
+| **토큰효율** | 82% 절약 | - |
+| **사용범위** | 조회/분석 | 전체 기능 |
+| **인증방식** | OAuth (자동) | Token (수동) |
+| **통합성** | Claude Code 내장 | 외부 CLI |
+
+**결론**: 조회는 MCP(89배 빠름), 설정은 CLI 필수
+
+---
+
 ## 🔧 MCP 빠른 설정
 
 ### 기본 명령어
