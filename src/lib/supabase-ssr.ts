@@ -7,6 +7,7 @@
 import { createServerClient } from '@supabase/ssr';
 import type { NextResponse } from 'next/server';
 import { type NextRequest } from 'next/server';
+import { getCookieValue } from '@/utils/cookies/safe-cookie-utils';
 
 /**
  * Middleware에서 Supabase 클라이언트 생성
@@ -40,10 +41,8 @@ export function createMiddlewareClient(
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
-        const cookie = request.cookies.get(name) as { name: string; value: string } | undefined;
-        if (!cookie) return undefined;
-        // ✅ Next.js 15: cookies.get()은 { name, value } 객체를 반환하므로 .value 추출
-        return cookie.value;
+        // ✅ 타입 안전 유틸리티 사용 (Issue #001 근본 해결)
+        return getCookieValue(request, name);
       },
       set(name: string, value: string, options: Record<string, unknown>) {
         // 🔐 Vercel 환경에 최적화된 쿠키 옵션

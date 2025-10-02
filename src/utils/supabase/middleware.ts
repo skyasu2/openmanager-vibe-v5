@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { withDefault } from '@/types/type-utils';
+import { getCookieValue } from '@/utils/cookies/safe-cookie-utils';
 
 /**
  * 🔐 Supabase 미들웨어 세션 업데이트 함수
@@ -22,9 +23,8 @@ export async function updateSession(
     {
       cookies: {
         get(name: string) {
-          const cookie = request.cookies.get(name) as { name: string; value: string } | undefined;
-          // ✅ Next.js 15: cookies.get()은 { name, value } 객체를 반환하므로 .value 추출 필요
-          return cookie?.value;
+          // ✅ 타입 안전 유틸리티 사용 (Issue #001 근본 해결)
+          return getCookieValue(request, name);
         },
         set(name: string, value: string, options: Record<string, unknown>) {
           // ✅ 개선: 여러 쿠키 공존을 위해 response.cookies.set 사용
