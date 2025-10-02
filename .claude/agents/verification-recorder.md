@@ -60,93 +60,45 @@ Claude Code가 AI 교차검증 완료 후 다음 JSON 형식으로 전달합니�
 
 ## 🔧 작업 프로세스
 
-### Step 1: 타임스탬프 및 파일명 생성
+**핵심 원칙**: Bash 스크립트에 위임하여 단순성과 신뢰성 확보
 
+### Step 1: JSON 데이터 검증
+
+```typescript
+// 필수 필드 확인
+required: ["target", "codex_score", "gemini_score", "qwen_score", "average_score", "decision"]
+```
+
+### Step 2: Bash 스크립트 호출
+
+**실행 명령어**:
 ```bash
-# 현재 시간 (UTC)
-TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-FILENAME_DATE=$(date -u +"%Y-%m-%d-%H-%M")
-
-# 파일명: 2025-10-02-14-30-subagent-settings.md
-FILENAME="$FILENAME_DATE-$DESCRIPTION.md"
+bash scripts/ai-verification/verification-recorder.sh '<JSON_DATA>'
 ```
 
-### Step 2: Markdown 리포트 생성
+**스크립트가 자동으로 수행**:
+1. ✅ 타임스탬프 및 파일명 생성
+2. ✅ Markdown 리포트 생성 (표준 템플릿)
+3. ✅ verification-index.json 업데이트 (원자적)
+4. ✅ 통계 자동 재계산
+5. ✅ 성공 메시지 출력
 
-**템플릿 구조**:
-```markdown
-# AI 교차검증 리포트 - {설명}
+### Step 3: 결과 확인 및 보고
 
-**검증일**: {타임스탬프}
-**대상**: {target}
-**요청**: {원본 요청}
-
----
-
-## 🤖 3-AI 교차검증 결과
-
-| AI | 점수 | 전문 분야 | 주요 평가 |
-|---|---|---|---|
-| **Codex** | {codex_score}/100 | 실무 | ... |
-| **Gemini** | {gemini_score}/100 | 설계 | ... |
-| **Qwen** | {qwen_score}/100 | 성능 | ... |
-
-**평균**: {average_score}/100
+- 스크립트 실행 성공 확인
+- 생성된 파일 경로 보고
+- 업데이트된 통계 요약
 
 ---
-
-## 🎯 Claude 최종 판단
-
-### 종합 평가: {average_score}/100
-
-**결정**: {decision}
-
-**주요 발견사항**:
-{key_findings}
-
----
-
-## ✅ 적용된 개선 조치
-
-{actions_taken}
-
----
-
-## 🔗 관련 커밋
-
-**커밋**: `{commit}`
-
----
-
-**Generated**: {timestamp} by verification-recorder
-**Status**: ✅ 히스토리 자동 저장 완료
-```
-
-### Step 3: verification-index.json 업데이트
-
-**기존 인덱스 읽기** → **새 항목 추가** → **통계 갱신** → **저장**
-
-```bash
-# jq를 사용한 JSON 업데이트
-jq ".verifications += [{새 항목}] |
-    .statistics.total_verifications = (.verifications | length) |
-    .statistics.average_score = ([.verifications[].ai_scores.average] | add / length) |
-    ..." verification-index.json
-```
-
-### Step 4: 통계 자동 갱신
-
-- **total_verifications**: 전체 검증 횟수
-- **average_score**: 평균 점수
-- **average_improvement**: 평균 개선률
-- **ai_performance**: AI별 횟수 및 평균 점수
 
 ## 📊 사용 예시
 
-### Claude Code에서 호출
+### ✅ 방법 1: Task 도구 사용 (권장 ⭐)
+
+**Claude Code의 서브에이전트 기능 활용**
 
 ```bash
-# AI 교차검증 완료 후 자동 저장
+# AI 교차검증 완료 후 Task 도구로 호출
 Task verification-recorder '{
   "target": ".claude/agents/codex-specialist.md",
   "description": "subagent-settings-verification",
@@ -155,22 +107,52 @@ Task verification-recorder '{
   "qwen_score": 88,
   "average_score": 87.1,
   "decision": "approved_with_improvements",
-  "priority": 1,
-  "time_spent": "3_hours",
   "actions_taken": [
-    "평가 루브릭 통일 (3개 specialist)",
-    "Gemini 실측 성과 3개 추가"
+    "평가 루브릭 통일",
+    "실측 성과 추가"
   ],
   "key_findings": [
     "일관성 6.3/10 → 10/10",
-    "교차검증 효율성 +40%"
+    "효율성 +40%"
   ],
   "commit": "664e40d0",
-  "tags": ["subagent", "cross-verification", "consistency"]
+  "tags": ["subagent", "cross-verification"]
 }'
 ```
 
-### 예상 출력
+**장점**:
+- ✅ Claude Code 네이티브 기능 활용
+- ✅ 서브에이전트가 자동으로 Bash 스크립트 호출
+- ✅ 오류 처리 및 로깅 자동
+- ✅ 통합된 워크플로우
+
+---
+
+### 🔧 방법 2: Bash 직접 실행 (보조)
+
+**터미널에서 직접 스크립트 실행**
+
+```bash
+bash scripts/ai-verification/verification-recorder.sh '{
+  "target": "대상 파일",
+  "description": "설명",
+  "codex_score": 85,
+  "gemini_score": 90,
+  "qwen_score": 87,
+  "average_score": 87.3,
+  "decision": "approved",
+  "tags": ["tag1", "tag2"]
+}'
+```
+
+**사용 시기**:
+- Claude Code 외부에서 사용할 때
+- 자동화 스크립트에 통합할 때
+- CI/CD 파이프라인에서 사용할 때
+
+---
+
+### 📤 예상 출력
 
 ```
 ✅ AI 교차검증 히스토리 저장 완료

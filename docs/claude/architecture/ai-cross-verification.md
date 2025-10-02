@@ -37,8 +37,8 @@
 **위치**: `reports/quality/ai-verifications/`
 
 **자동 저장 시스템**:
-- **verification-recorder** 서브에이전트가 자동 실행
-- Claude가 검증 완료 후 자동으로 히스토리 저장
+- **✅ 방법 1 (권장)**: Task verification-recorder (Claude Code 서브에이전트)
+- **🔧 방법 2 (보조)**: Bash 스크립트 직접 실행
 - 누락률 0%, 일관성 100%
 
 **저장 내용**:
