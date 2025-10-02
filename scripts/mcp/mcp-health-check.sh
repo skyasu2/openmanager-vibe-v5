@@ -1,0 +1,1 @@
+../mcp-health-check-enhanced.sh
