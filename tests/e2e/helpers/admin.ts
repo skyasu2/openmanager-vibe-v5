@@ -176,7 +176,7 @@ export async function resetAdminState(page: Page): Promise<void> {
 
 /**
  * 🎭 게스트 로그인 보장
- * 
+ *
  * @param page - Playwright Page 객체
  */
 export async function ensureGuestLogin(page: Page): Promise<void> {
@@ -184,28 +184,22 @@ export async function ensureGuestLogin(page: Page): Promise<void> {
     // 현재 인증 상태 확인
     const authState = await page.evaluate(() => ({
       authType: localStorage.getItem('auth_type'),
-      authUser: localStorage.getItem('auth_user')
+      authUser: localStorage.getItem('auth_user'),
+      testModeEnabled: localStorage.getItem('test_mode_enabled')
     }));
 
-    if (authState.authType === 'guest' && authState.authUser) {
-      console.log('✅ [Admin Helper] 이미 게스트 로그인 상태');
+    if (authState.testModeEnabled === 'true' && authState.authType) {
+      console.log('✅ [Admin Helper] 이미 테스트 모드 활성화됨:', authState.authType);
       return;
     }
 
-    console.log('🎭 [Admin Helper] 게스트 로그인 시작');
+    console.log('🎭 [Admin Helper] 게스트 로그인 시작 (enableVercelTestMode 사용)');
 
-    // 로그인 페이지로 이동
-    await page.goto('/');
-    
-    // 게스트 로그인 버튼 클릭
-    await page.click('button:has-text("게스트로 체험하기")');
-    
-    // 메인 페이지 로딩 대기
-    await page.waitForSelector('main, [data-testid="main-content"]', {
-      timeout: 10000
-    });
+    // enableVercelTestMode를 사용하여 게스트 모드 활성화
+    const { enableVercelTestMode } = await import('./vercel-test-auth');
+    await enableVercelTestMode(page, { mode: 'guest', bypass: false });
 
-    console.log('✅ [Admin Helper] 게스트 로그인 완료');
+    console.log('✅ [Admin Helper] 게스트 로그인 완료 (API 기반)');
 
   } catch (error) {
     console.error('❌ [Admin Helper] 게스트 로그인 실패:', error);

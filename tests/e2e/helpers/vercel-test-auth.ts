@@ -85,35 +85,34 @@ export async function enableVercelTestMode(
       targetPage = pages[0] || await page.newPage();
     }
 
-    // 3️⃣ API 호출하여 인증
-    const authResult = await targetPage.evaluate(async ({ secret, mode, pin, bypass, apiUrl }) => {
-      const response = await fetch(`${apiUrl}/api/test/vercel-test-auth`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Playwright Test Agent'
-        },
-        body: JSON.stringify({
-          secret,
-          mode,
-          pin,
-          bypass
-        })
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(`인증 실패: ${error.message || response.statusText}`);
+    // 3️⃣ API 호출하여 인증 (Playwright request API 사용)
+    const context = 'context' in targetPage ? targetPage.context() : targetPage;
+    const response = await context.request.post(`${targetUrl}/api/test/vercel-test-auth`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Playwright Test Agent'
+      },
+      data: {
+        secret: TEST_SECRET_KEY,
+        mode,
+        pin,
+        bypass
       }
-
-      return await response.json();
-    }, {
-      secret: TEST_SECRET_KEY,
-      mode,
-      pin,
-      bypass,
-      apiUrl: targetUrl
     });
+
+    if (!response.ok()) {
+      const errorText = await response.text();
+      let errorMessage;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || response.statusText();
+      } catch {
+        errorMessage = errorText || response.statusText();
+      }
+      throw new Error(`인증 실패 (${response.status()}): ${errorMessage}`);
+    }
+
+    const authResult = await response.json();
 
     if (!authResult.success) {
       throw new Error(`인증 실패: ${authResult.message}`);
@@ -145,8 +144,7 @@ export async function enableVercelTestMode(
       console.log('✅ localStorage 테스트 설정 완료:', sessionData);
     }, authResult.sessionData);
 
-    // 5️⃣ 쿠키 설정 (이미 API에서 설정했지만 추가 확인)
-    const context = 'context' in targetPage ? targetPage.context() : targetPage;
+    // 5️⃣ 쿠키 설정 (Playwright 컨텍스트에 명시적 추가 필수, context는 이미 line 89에서 선언됨)
     await context.addCookies([
       {
         name: 'test_mode',
@@ -162,6 +160,14 @@ export async function enableVercelTestMode(
         url: targetUrl,
         httpOnly: false,
         secure: false,
+        sameSite: 'Lax'
+      },
+      {
+        name: 'vercel_test_token',
+        value: authResult.accessToken || '',
+        url: targetUrl,
+        httpOnly: true,  // API와 동일하게 httpOnly
+        secure: targetUrl.startsWith('https'),  // HTTPS일 때만 secure
         sameSite: 'Lax'
       }
     ]);
