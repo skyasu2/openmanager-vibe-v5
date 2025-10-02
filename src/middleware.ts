@@ -273,8 +273,8 @@ function isTestMode(request: NextRequest): boolean {
   // ⚡ 조기 반환 패턴 - 가장 빠른 체크부터
 
   // 1️⃣ 쿠키 체크 (가장 빠름)
-  if (request.cookies.get('vercel_test_token')) return true;
-  if (request.cookies.get('test_mode') === 'enabled') return true;
+  if ((request.cookies.get('vercel_test_token') as { name: string; value: string } | undefined)?.value) return true;
+  if ((request.cookies.get('test_mode') as { name: string; value: string } | undefined)?.value === 'enabled') return true;
 
   // 2️⃣ 헤더 체크 (빠름)
   if (request.headers.get('X-Test-Mode') === 'enabled') return true;
