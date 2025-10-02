@@ -1,25 +1,34 @@
-echo "🔍 Pre-push validation started..."
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
 
-# 기본 JSON 문법 검사
-echo "📋 Checking package.json syntax..."
-node -e "JSON.parse(require('fs').readFileSync('package.json', 'utf8'))" > /dev/null 2>&1
-if [ $? -ne 0 ]; then
+echo "🔍 Pre-push: Smart validation (변경된 파일만, ~20초 예상)..."
+START_TIME=$(date +%s)
+
+# 1. 빠른 유닛 테스트 (11초)
+echo "🧪 Running quick tests..."
+npm run test:super-fast || {
+  echo "❌ Tests failed"
+  echo "💡 Fix: npm run test"
+  exit 1
+}
+
+# 2. 민감 파일 체크 (보안)
+echo "🔒 Security check..."
+if git diff origin/main...HEAD --name-only 2>/dev/null | grep -E '\.(env|key|pem)$'; then
+  echo "❌ 민감한 파일이 포함되어 있습니다"
+  exit 1
+fi
+
+# 3. package.json 검증
+echo "📦 Checking package.json..."
+node -e "JSON.parse(require('fs').readFileSync('package.json', 'utf8'))" || {
   echo "❌ package.json has syntax errors"
   exit 1
-fi
+}
 
-# 민감한 파일 체크
-echo "🔒 Checking for sensitive files..."
-if git diff --cached --name-only | grep -E '\.(env|key|pem)$'; then
-  echo "❌ 민감한 파일들(.env, .key, .pem)은 커밋할 수 없습니다"
-  exit 1
-fi
+END_TIME=$(date +%s)
+DURATION=$((END_TIME - START_TIME))
 
-# Git 상태 확인
-if [ -z "$(git status --porcelain)" ]; then
-  echo "⚠️  Working directory is clean - nothing to push"
-fi
-
-echo "✅ Pre-push validation completed in $(date +'%H:%M:%S')"
-echo "🚀 Basic security checks passed"
-echo "🔄 Full TypeScript/ESLint validation will run in CI/CD"
+echo "✅ Pre-push validation passed in ${DURATION}s"
+echo "🚀 Ready to push"
+echo "💡 Full validation (type-check + build + lint) will run in Vercel CI/CD"
