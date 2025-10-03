@@ -9,7 +9,6 @@ import type {
   Entity,
   IntentResult,
 } from '../../modules/ai-agent/processors/IntentClassifier';
-import type { CommandRequestContext } from './UnifiedAIEngineRouter';
 import type { AIQueryContext } from '../../types/ai-service-types';
 import {
   createCacheKey,

@@ -1,8 +1,8 @@
 /**
  * 🚀 Ultra-Fast AI Router - 152ms 목표 달성을 위한 최적화 라우터
  *
- * UnifiedAIEngineRouter 성능 최적화 버전
- * - 기존 모듈형 아키텍처 유지
+ * 성능 최적화 AI 라우터
+ * - 모듈형 아키텍처 유지
  * - 병목 지점 제거 및 병렬 처리 강화
  * - 스트리밍 AI 엔진 통합
  * - 메모리 기반 초고속 캐싱
@@ -13,8 +13,7 @@
 import { getStreamingAIEngine } from './streaming-ai-engine';
 import { unifiedCache, CacheNamespace } from '@/lib/unified-cache';
 import { aiLogger } from '@/lib/logger';
-import type { QueryRequest, QueryResponse } from './SimplifiedQueryEngine';
-import type { RouterConfig, RouteResult } from './UnifiedAIEngineRouter.types';
+import type { QueryRequest, QueryResponse, RouterConfig, RouteResult } from './SimplifiedQueryEngine.types';
 
 // Node.js Runtime 사용 - 안정성 우선 (AI 교차 검증 결과)
 

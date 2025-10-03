@@ -434,7 +434,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
     }
   }, [allMessages, selectedEngine, processRealAIQuery]); // processRealAIQuery 함수 의존성 복구
 
-  // UnifiedAIEngineRouter와 동기화
+  // AI 엔진 초기화
   useEffect(() => {
     if (isOpen) {
       console.log('🎯 AISidebarV3 초기화 - 기본 모드:', defaultEngine);

@@ -24,7 +24,7 @@ export interface QueryRequest {
   mode?: AIMode | 'local' | 'local-ai'; // AIMode와 하위 호환성을 위한 추가 값들
   context?: AIQueryContext;
 
-  // 모드별 기능 제어 옵션 (UnifiedAIEngineRouter에서 설정)
+  // 모드별 기능 제어 옵션
   enableGoogleAI?: boolean; // Google AI API 활성화/비활성화
   enableAIAssistantMCP?: boolean; // 로컬 MCP를 통한 컨텍스트 로딩 활성화/비활성화
   enableKoreanNLP?: boolean; // 한국어 NLP 활성화/비활성화
@@ -179,4 +179,48 @@ export interface HealthCheckResult {
   };
   responseTime: number;
   cacheSize: number;
+}
+
+// ===== Router Configuration =====
+
+export interface RouterConfig {
+  // 보안 설정
+  enableSecurity: boolean;
+  strictSecurityMode: boolean;
+
+  // 토큰 사용량 제한
+  dailyTokenLimit: number;
+  userTokenLimit: number;
+
+  // 엔진 선택 설정 (모드 분리)
+  preferredEngine: 'local-ai' | 'google-ai';
+
+  // 캐시 설정
+  enableCache: boolean;
+  cacheTTL: number;
+
+  // 성능 설정
+  timeoutMs: number;
+  maxRetries: number;
+  circuitBreakerThreshold: number;
+
+  // 한국어 NLP 설정
+  enableKoreanNLP: boolean;
+
+  // 로그 레벨
+  logLevel: 'debug' | 'info' | 'warn' | 'error';
+}
+
+// ===== Routing Information =====
+
+export interface RoutingInfo {
+  selectedEngine: string;
+  fallbackUsed: boolean;
+  securityApplied: boolean;
+  tokensCounted: boolean;
+  processingPath: string[];
+}
+
+export interface RouteResult extends QueryResponse {
+  routingInfo: RoutingInfo;
 }
