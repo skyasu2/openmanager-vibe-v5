@@ -5,7 +5,7 @@ keywords: [documentation, guide, index, navigation, cross-reference]
 priority: critical
 ai_optimized: true
 related_docs: ["ai/workflow.md", "mcp/advanced.md", "guides/wsl.md", "testing/README.md", "performance/README.md"]
-updated: "2025-09-09"
+updated: "2025-10-03"
 ---
 
 # 📚 Documentation Index
@@ -20,9 +20,9 @@ updated: "2025-09-09"
 - **[🤖 AI Workflow](ai/workflow.md)** - 4-AI 교차검증 실무 가이드 ⭐ **핵심**
   - *관련*: [MCP Advanced](mcp/advanced.md) → [WSL Guide](guides/wsl.md) → [Testing](testing/README.md)
 - **[📚 MCP 서버 완전 가이드](MCP-SERVERS-GUIDE.md)** - 9개 MCP 서버 통합 시스템 ⭐ **최신**
-  - *관련*: [MCP Advanced](mcp/advanced.md) → [AI Workflow](ai/workflow.md) → [Troubleshoot](troubleshoot/common.md)
-- **[🔧 MCP Advanced](mcp/advanced.md)** - 12 MCP 서버 완전 설치 ⭐ **필수**
-  - *관련*: [AI Workflow](ai/workflow.md) → [Design MCP](design/mcp.md) → [Troubleshoot](troubleshoot/common.md)
+  - *관련*: [MCP 우선순위 가이드](claude/environment/mcp/mcp-priority-guide.md) → [AI Workflow](ai/workflow.md) → [Troubleshoot](troubleshooting/common.md)
+- **[🔧 MCP 우선순위 가이드](claude/environment/mcp/mcp-priority-guide.md)** - MCP 최적 활용 전략 ⭐ **필수**
+  - *관련*: [AI Workflow](ai/workflow.md) → [Design MCP](design/mcp.md) → [Troubleshoot](troubleshooting/common.md)
 - **[🐧 WSL Guide](guides/wsl.md)** - WSL 최적화 + AI CLI 통합 ⭐ **환경**
   - *관련*: [AI Workflow](ai/workflow.md) → [Performance](performance/README.md) → [Dev Environment](development/README.md)
 - **[🚀 개발환경 완전 가이드](development/README.md)** - WSL + 멀티 AI 통합 환경 ⭐ **신규**
@@ -30,87 +30,126 @@ updated: "2025-09-09"
 
 #### 📊 시스템 참조 (일상 개발)
 - **[📊 Testing](testing/README.md)** - 98.2% 커버리지, E2E 자동화 ⭐ **품질**
-  - *관련*: [Performance](performance/README.md) → [API Routes](api/routes.md) → [UI Components](ui/components.md)
+  - *관련*: [Performance](performance/README.md) → [API Routes](architecture/api/routes.md) → [UI Components](design/ui/components.md)
 - **[⚡ Performance](performance/README.md)** - 152ms 응답, 60% 번들 최적화 ⭐ **속도**
-  - *관련*: [WSL Guide](guides/wsl.md) → [Simulation](simulation/README.md) → [Bundle Optimization](performance/bundle.md)
-- **[🌐 API Routes](api/routes.md)** - 76개 엔드포인트 완전 레퍼런스
-  - *관련*: [Database Schema](db/schema.md) → [API Design](design/api.md) → [Validation](api/validation.md)
+  - *관련*: [WSL Guide](guides/wsl.md) → [Simulation](architecture/simulation-setup.md) → [Bundle Optimization](performance/bundle.md)
+- **[🌐 API Routes](architecture/api/routes.md)** - 76개 엔드포인트 완전 레퍼런스
+  - *관련*: [Database Schema](architecture/db/schema.md) → [API Design](design/api.md) → [Validation](architecture/api/validation.md)
 - **[🏗️ System Architecture](guides/architecture.md)** - 현재 스택 개요
-  - *관련*: [Design System](design/system.md) → [Database](db/schema.md) → [Security](design/security.md)
-- **[🔧 Common Issues](troubleshoot/common.md)** - 디버그 솔루션
-  - *관련*: [MCP Advanced](mcp/advanced.md) → [WSL Guide](guides/wsl.md) → [Build Issues](troubleshoot/build.md)
+  - *관련*: [Design System](design/system.md) → [Database](architecture/db/schema.md) → [Security](design/security.md)
+- **[🔧 Common Issues](troubleshooting/common.md)** - 디버그 솔루션
+  - *관련*: [MCP 우선순위 가이드](claude/environment/mcp/mcp-priority-guide.md) → [WSL Guide](guides/wsl.md) → [Build Issues](troubleshooting/build.md)
 - **[🖥️ WSL 모니터링 가이드](troubleshooting/wsl-monitoring-guide.md)** - WSL 문제 해결 통합 도구 ⭐ **신규 (개발 전용)**
-  - *관련*: [WSL Guide](guides/wsl.md) → [Common Issues](troubleshoot/common.md) → [MCP Advanced](mcp/advanced.md)
+  - *관련*: [WSL Guide](guides/wsl.md) → [Common Issues](troubleshooting/common.md) → [MCP 우선순위 가이드](claude/environment/mcp/mcp-priority-guide.md)
   - *용도*: 개발 환경 진단, MCP 서버 상태 추적, 시스템 성능 분석
 
 ### 📊 Technical Reference - 전문 영역별 워크플로우
 
 #### 🗄️ 데이터 & 인프라
-- **[📊 Database Schema](db/schema.md)** - Supabase 테이블 & 인덱스
-  - *관련*: [DB Optimization](db/optimization.md) → [API Design](design/api.md) → [Security Design](design/security.md)
+- **[📊 Database Schema](architecture/db/schema.md)** - Supabase 테이블 & 인덱스
+  - *관련*: [DB Optimization](architecture/db/optimization.md) → [API Design](design/api.md) → [Security Design](design/security.md)
 - **[🚀 Vercel Deploy](deploy/vercel.md)** - 프로덕션 배포 가이드
   - *관련*: [Free Tier](deploy/free-tier.md) → [Warnings Fix](deploy/warnings.md) → [Environment](deploy/env-setup.md)
 - **[⚙️ Environment Setup](deploy/env-setup.md)** - 환경변수 완전 설정
-  - *관련*: [MCP Advanced](mcp/advanced.md) → [WSL Guide](guides/wsl.md) → [Vercel Deploy](deploy/vercel.md)
+  - *관련*: [MCP 설정](claude/environment/mcp/mcp-configuration.md) → [WSL Guide](guides/wsl.md) → [Vercel Deploy](deploy/vercel.md)
 
 #### 🎨 UI & 디자인
-- **[🧩 UI Components](ui/components.md)** - shadcn/ui 컴포넌트 가이드
-  - *관련*: [Design System](design/system.md) → [UI Styling](ui/styling.md) → [Testing E2E](testing/e2e.md)
-- **[🎨 UI Styling](ui/styling.md)** - Tailwind + CSS 최적화
-  - *관련*: [UI Components](ui/components.md) → [Performance Bundle](performance/bundle.md) → [Design Consistency](design/consistency.md)
+- **[🧩 UI Components](design/ui/components.md)** - shadcn/ui 컴포넌트 가이드
+  - *관련*: [Design System](design/system.md) → [UI Styling](design/ui/styling.md) → [Testing E2E](testing/e2e.md)
+- **[🎨 UI Styling](design/ui/styling.md)** - Tailwind + CSS 최적화
+  - *관련*: [UI Components](design/ui/components.md) → [Performance Bundle](performance/bundle.md) → [Design Consistency](design/consistency.md)
 
 ## 📁 Category Structure
 
 ```
-docs/ - AI 도구 최적화 구조 (크로스 레퍼런스 완비)
-├── ai/            # AI 워크플로우 (5 files) ⭐ 핵심 - 4-AI 교차검증
-│   ├── workflow.md         → mcp/advanced.md → guides/wsl.md
-│   ├── verification.md     → testing/README.md → troubleshoot/common.md
-│   └── agents-mcp.md       → design/sub-agents.md → mcp/integration.md
-├── mcp/           # MCP 서버 (5 files) ⭐ 필수 - 12개 서버 완전 가이드
-│   ├── advanced.md         → ai/workflow.md → guides/wsl.md
-│   ├── setup.md            → deploy/env-setup.md → troubleshoot/common.md
-│   └── integration.md      → design/mcp.md → ai/agents-mcp.md
-├── guides/        # 가이드 (3 files) ⭐ 환경 - WSL + 아키텍처
-│   ├── wsl.md              → ai/workflow.md → performance/README.md  
-│   ├── architecture.md     → design/system.md → api/routes.md
-│   └── development.md      → testing/README.md → troubleshoot/build.md
-├── testing/       # 테스트 (2 files) ⭐ 품질 - 98.2% 커버리지
-│   ├── README.md           → performance/README.md → ui/components.md
-│   └── e2e.md              → api/endpoints.md → troubleshoot/build.md
-├── performance/   # 성능 (3 files) ⭐ 속도 - 152ms 최적화
-│   ├── README.md           → guides/wsl.md → simulation/README.md
-│   ├── bundle.md           → ui/styling.md → deploy/vercel.md
-│   └── charts.md           → simulation/setup.md → ui/components.md
-├── design/        # 설계도 (13 files) - 시스템 설계 체계
-│   ├── system.md           → guides/architecture.md → db/schema.md
-│   ├── mcp.md              → mcp/advanced.md → ai/workflow.md
-│   └── sub-agents.md       → ai/agents-mcp.md → mcp/integration.md
-├── simulation/    # 시뮬레이션 (2 files) - FNV-1a Mock 시스템
-│   ├── README.md           → performance/README.md → design/monitoring.md
-│   └── setup.md            → guides/mock-system.md → performance/charts.md
-├── api/           # API (4 files) - 76개 엔드포인트
-│   ├── routes.md           → db/schema.md → design/api.md
-│   └── validation.md       → testing/README.md → troubleshoot/common.md
-├── db/            # 데이터베이스 (3 files) - Supabase 최적화
-│   ├── schema.md           → api/routes.md → design/database.md
-│   └── optimization.md     → performance/README.md → design/system.md
-├── deploy/        # 배포 (4 files) - 무료 티어 최적화
-│   ├── vercel.md           → performance/bundle.md → troubleshoot/build.md
-│   └── env-setup.md        → mcp/setup.md → guides/wsl.md
-├── ui/            # UI (3 files) - shadcn/ui 컴포넌트
-│   ├── components.md       → testing/e2e.md → design/system.md
-│   └── styling.md          → performance/bundle.md → design/consistency.md
-├── troubleshoot/  # 문제해결 (3 files) - 디버그 솔루션
-│   ├── common.md           → mcp/advanced.md → guides/wsl.md
-│   ├── build.md            → testing/README.md → deploy/vercel.md
-│   └── wsl-monitoring-guide.md → WSL 통합 모니터링 도구 활용법 ⭐ **신규**
-├── auth/          # 인증 (1 file) - GitHub OAuth
-│   └── github-oauth.md     → api/routes.md → design/security.md
-├── snippets/      # 코드 (4 files) - 재사용 코드
-│   └── *.ts,.md            → 각 카테고리별 참조 체계
-└── archive/       # 아카이브 (9 files) - 280개 백업 문서
+docs/ - 프로젝트 문서화 체계 (JBGE 원칙 95% 달성, 2025-10-03 최적화)
+├── ai/               # AI 워크플로우 (2 files) ⭐ 핵심 - 4-AI 교차검증
+│   ├── workflow.md         → claude/environment/mcp/mcp-priority-guide.md → guides/wsl.md
+│   └── subagents-complete-guide.md → claude/sub-agents-official.md
+├── architecture/     # 시스템 아키텍처 (6 files + 2 서브폴더) ⭐ 통합
+│   ├── system-overview.md  → design/system.md
+│   ├── simulation-setup.md → performance/README.md → design/monitoring.md
+│   ├── db/                 # 데이터베이스 (3 files)
+│   │   ├── schema.md       → design/database.md
+│   │   ├── optimization.md → performance/README.md
+│   │   └── queries.md      → testing/README.md
+│   └── api/                # API 레퍼런스 (4 files)
+│       ├── routes.md       → design/api.md
+│       ├── endpoints.md    → testing/README.md
+│       ├── schemas.md      → architecture/db/schema.md
+│       └── validation.md   → troubleshooting/common.md
+├── archive/         # 아카이브 (125 files) ⭐ 49% 축소 완료 (2025-10-03)
+├── claude/          # Claude Code 문서 (환경/표준/워크플로우)
+│   ├── environment/
+│   │   └── mcp/           # MCP 서버 (10 files) ⭐ 필수
+│   ├── standards/
+│   ├── testing/
+│   └── workflows/
+├── deploy/          # 배포 가이드 (4 files) - 무료 티어 최적화
+│   ├── vercel.md           → performance/bundle.md → troubleshooting/build.md
+│   └── env-setup.md        → claude/environment/mcp/mcp-configuration.md
+├── design/          # 설계도 (15 files + 2 서브폴더) ⭐ 통합
+│   ├── system.md           → guides/architecture.md → architecture/db/schema.md
+│   ├── specs/             # 명세서 (4 files)
+│   │   ├── README.md
+│   │   ├── template.md
+│   │   ├── user-profile-edit.md
+│   │   └── work-plan-template.md
+│   └── ui/                # UI 문서 (2 files)
+│       ├── components.md   → testing/e2e.md → design/system.md
+│       └── styling.md      → performance/bundle.md
+├── development/     # 개발 환경 (3 files) ⭐ 환경 - WSL + 도구
+│   ├── README.md           → claude/environment/wsl-optimization.md
+│   └── environment-setup.md → claude/environment/ai-tools-setup.md
+├── guides/          # 가이드 (7 files) ⭐ 코드 스니펫 통합 (2025-10-03)
+│   ├── wsl.md              → ai/workflow.md → performance/README.md
+│   ├── architecture.md     → design/system.md → architecture/api/routes.md
+│   ├── hooks.md            → claude/standards/git-hooks-best-practices.md
+│   ├── types.md            → claude/standards/typescript-rules.md
+│   ├── utils.md            → performance/README.md
+│   └── auth-complete.ts    → security/github-oauth.md
+├── meta/            # 프로젝트 메타 (5 files) ⭐ 분석 리포트 통합 (2025-10-03)
+│   ├── side-effects-analysis-final-report.md
+│   ├── design-vs-implementation-analysis.md
+│   ├── development-process-optimization-report.md
+│   ├── mcp-improvement-analysis-report.md
+│   └── ai-cli-upgrade-log-2025-09-12.md
+├── monitoring/      # 모니터링 (2 files)
+│   └── dashboard.md        → design/monitoring.md
+├── performance/     # 성능 최적화 (3 files) ⭐ 속도 - 152ms 최적화
+│   ├── README.md           → guides/wsl.md → architecture/simulation-setup.md
+│   ├── bundle.md           → design/ui/styling.md → deploy/vercel.md
+│   └── charts.md           → architecture/simulation-setup.md
+├── security/        # 보안 (2 files) ⭐ 인증 통합 (2025-10-03)
+│   ├── github-oauth.md     → architecture/api/routes.md → design/security.md
+│   └── security-design.md  → testing/README.md
+├── testing/         # 테스트 전략 (2 files) ⭐ 품질 - 98.2% 커버리지
+│   ├── README.md           → performance/README.md → design/ui/components.md
+│   └── e2e.md              → architecture/api/endpoints.md → troubleshooting/build.md
+└── troubleshooting/ # 문제 해결 (4 files) - 디버그 솔루션
+    ├── common.md           → claude/environment/mcp/mcp-configuration.md → guides/wsl.md
+    ├── build.md            → testing/README.md → deploy/vercel.md
+    ├── wsl-monitoring-guide.md → WSL 통합 모니터링 도구 ⭐ **신규**
+    └── playwright-mcp-recovery-guide.md → claude/environment/mcp/
 ```
+
+### 📊 폴더 통합 이력 (2025-10-03)
+**Phase 4 완료: 28개 → 14개 (50% 축소)**
+- ✅ specs/ → design/specs/
+- ✅ simulation/ → architecture/
+- ✅ project-status/ → meta/
+- ✅ ai-tools/ → ai/
+- ✅ analysis/ → meta/
+- ✅ snippets/ → guides/
+- ✅ logs/ → meta/
+- ✅ ui/ → design/ui/
+- ✅ db/ → architecture/db/
+- ✅ api/ → architecture/api/
+- ✅ auth/ → security/
+- ✅ mcp/ → claude/environment/mcp/
+- ✅ .ai-index/ 삭제 (9 files)
+
+**Phase 3 완료: archive/ 정리 (244→125 files, 49% 축소)**
 
 ## 🎯 AI Optimization Features
 
@@ -294,7 +333,8 @@ npm run check:usage
 
 ---
 
-**Total**: 56 AI-optimized documents (상호 참조 완비)  
-**Cross-Reference**: 280+ 연결 링크  
-**Last Updated**: 2025-09-09  
+**Total**: 14개 폴더, 141개 활성 문서 (상호 참조 완비)
+**Cross-Reference**: 280+ 연결 링크
+**Last Updated**: 2025-10-03 (Phase 4 폴더 통합 완료)
 **AI Compatibility**: 100% token-optimized + 97% 탐색 효율성
+**JBGE Compliance**: 95% 달성 (Phase 5 품질 개선 완료)
