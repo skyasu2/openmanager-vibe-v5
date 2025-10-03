@@ -545,6 +545,7 @@ npm run test:super-fast      # 빠른 로컬 검증
 - **빠른 시작 가이드**: [docs/QUICK-START.md](docs/QUICK-START.md)
 - **시스템 아키텍처**: [docs/system-architecture.md](docs/system-architecture.md)
 - **AI 시스템**: [docs/AI-SYSTEMS.md](docs/AI-SYSTEMS.md)
+- **서브에이전트 공식 가이드**: [docs/claude/sub-agents-official.md](docs/claude/sub-agents-official.md)
 
 ---
 
