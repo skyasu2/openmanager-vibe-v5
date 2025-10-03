@@ -24,7 +24,7 @@ export interface AdminAuthResponse {
  * @returns 관리자 인증 결과
  */
 export async function activateAdminMode(
-  page: Page, 
+  page: Page,
   options: {
     method?: 'bypass' | 'password';
     password?: string;
@@ -32,11 +32,14 @@ export async function activateAdminMode(
     testToken?: string;
   } = {}
 ): Promise<AdminAuthResponse> {
-  const { 
-    method = 'bypass', 
-    password = '4231', 
+  // 프로덕션 환경에서는 password 모드 강제
+  const isProduction = await page.evaluate(() => process.env.NODE_ENV === 'production');
+
+  const {
+    method = isProduction ? 'password' : 'bypass',
+    password = '4231',
     skipGuestLogin = false,
-    testToken 
+    testToken
   } = options;
   
   try {

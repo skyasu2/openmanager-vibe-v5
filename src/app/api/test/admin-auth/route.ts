@@ -39,15 +39,16 @@ function isRateLimited(ip: string): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  // 🛡️ 보안 계층 1: 프로덕션 환경 완전 차단
-  if (process.env.NODE_ENV === 'production') {
+  // 🛡️ 보안 계층 1: 프로덕션 환경 제어 (환경변수로 허용 가능)
+  if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_TEST_API_IN_PROD) {
     console.warn('🚨 [Security] 테스트 API가 프로덕션에서 호출됨 - 차단');
+    console.warn('💡 [Security] 프로덕션에서 활성화하려면 ALLOW_TEST_API_IN_PROD=true 환경변수 설정');
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         message: '프로덕션 환경에서는 사용할 수 없습니다.',
         error: 'PRODUCTION_BLOCKED'
-      }, 
+      },
       { status: 403 }
     );
   }
@@ -121,10 +122,22 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 🔧 테스트 전용 우회 모드 (개발 환경 + 유효 토큰)
-    if (bypass && process.env.NODE_ENV === 'development') {
+    // 🔧 테스트 전용 우회 모드 (개발 환경만 허용, 프로덕션 차단)
+    if (bypass) {
+      if (process.env.NODE_ENV === 'production') {
+        console.warn('🚨 [Security] 프로덕션에서 bypass 모드 차단됨');
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'Bypass 모드는 개발 환경에서만 사용 가능합니다.',
+            error: 'BYPASS_NOT_ALLOWED'
+          },
+          { status: 403 }
+        );
+      }
+
       console.log('🧪 [Test] 보안 검증 통과 - 테스트 우회 모드로 관리자 인증');
-      
+
       return NextResponse.json({
         success: true,
         message: '테스트 모드로 관리자 인증되었습니다.',
@@ -185,10 +198,10 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  // 🛡️ 프로덕션 환경에서는 완전히 비활성화
-  if (process.env.NODE_ENV === 'production') {
+  // 🛡️ 프로덕션 환경 제어 (환경변수로 허용 가능)
+  if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_TEST_API_IN_PROD) {
     return NextResponse.json(
-      { error: 'Not available in production' }, 
+      { error: 'Not available in production' },
       { status: 404 }
     );
   }
