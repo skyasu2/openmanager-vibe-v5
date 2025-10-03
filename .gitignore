@@ -331,8 +331,6 @@ scripts/fix-case-declarations.cjs
 !GEMINI.md
 !QWEN.md
 !AGENTS.md
-!DEVELOPMENT.md
-!QUICK-START.md
 
 # Scripts moved to /scripts/
 enhanced-vm-control.ps1
