@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
 import { useSession, signOut } from '@/hooks/useSupabaseSession';
 import { authStateManager, clearAuthData } from '@/lib/auth-state-manager';
 import {
@@ -15,7 +14,6 @@ import type { UserInfo, UserType, ProfileAuthHook } from '../types/profile.types
  */
 export function useProfileAuth(): ProfileAuthHook {
   const { status } = useSession();
-  const router = useRouter();
 
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [userType, setUserType] = useState<UserType>('unknown');
@@ -131,16 +129,21 @@ export function useProfileAuth(): ProfileAuthHook {
    * 페이지 이동 핸들러들
    */
   const navigateToLogin = useCallback(() => {
-    router.push('/login');
-  }, []); // router 의존성 제거 - Next.js router stable reference 유지
+    console.log('🚀 navigateToLogin 호출됨 - /login으로 이동');
+    window.location.href = '/login';
+  }, []);
 
   const navigateToAdmin = useCallback(() => {
-    router.push('/admin');
-  }, []); // router 의존성 제거 - Next.js router stable reference 유지
+    console.log('🚀 navigateToAdmin 호출됨 - /admin으로 이동');
+    
+    // window.location.href 사용 (더 확실한 라우팅)
+    window.location.href = '/admin';
+  }, []);
 
   const navigateToDashboard = useCallback(() => {
-    router.push('/dashboard');
-  }, []); // router 의존성 제거 - Next.js router stable reference 유지
+    console.log('🚀 navigateToDashboard 호출됨 - /dashboard로 이동');
+    window.location.href = '/dashboard';
+  }, []);
 
   return {
     userInfo,
