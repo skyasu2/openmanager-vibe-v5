@@ -63,7 +63,7 @@ export function useInitialAuth() {
         redirectRef.current = false;
       }
     }, vercelConfig.initDelay);
-  }, [pathname]); // ✅ router 객체 의존성 제거하여 순환 의존성 해결
+  }, [pathname, router]); // ✅ router 의존성 추가 (stale closure 방지)
 
   // 통합 초기화 프로세스
   const initializeAuth = useCallback(async () => {

@@ -3,7 +3,6 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
   SYSTEM_AUTO_SHUTDOWN_TIME,
-  ADMIN_PASSWORD,
   MAX_LOGIN_ATTEMPTS as MAX_ATTEMPTS,
   LOCKOUT_DURATION,
 } from '@/config/system-constants';
@@ -207,61 +206,77 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
             };
           }
 
-          // 비밀번호 검증
-          if (password === ADMIN_PASSWORD) {
-            // 관리자 인증 성공
-            set((state) => ({
-              ...state,
-              attempts: 0,
-              adminMode: {
-                isAuthenticated: true,
-                lastLoginTime: Date.now(),
-              },
-            }));
+          // 🔒 서버 사이드 비밀번호 검증 (보안 강화)
+          try {
+            const verifyResponse = await fetch('/api/admin/verify-pin', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ password }),
+            });
 
-            console.log('✅ [Admin] 관리자 인증 성공 - AI 관리자 기능 활성화');
+            const verifyResult = await verifyResponse.json();
 
-            return {
-              success: true,
-              message:
-                'AI 관리자 모드가 활성화되었습니다. 이제 AI 관리자 페이지에 접근할 수 있습니다.',
-            };
-          } else {
-            // 인증 실패
-            const newAttempts = attempts + 1;
-            console.warn(
-              `❌ [Auth] 관리자 인증 실패 (${newAttempts}/${MAX_ATTEMPTS})`
-            );
-
-            if (newAttempts >= MAX_ATTEMPTS) {
-              // 계정 잠금
-              const lockoutEnd = Date.now() + LOCKOUT_DURATION;
+            if (verifyResult.success) {
+              // 관리자 인증 성공
               set((state) => ({
                 ...state,
-                attempts: newAttempts,
-                isLocked: true,
-                lockoutEndTime: lockoutEnd,
+                attempts: 0,
+                adminMode: {
+                  isAuthenticated: true,
+                  lastLoginTime: Date.now(),
+                },
               }));
 
-              console.warn('🔒 [Auth] 최대 시도 횟수 초과 - 계정 잠금');
+              console.log('✅ [Admin] 관리자 인증 성공 - AI 관리자 기능 활성화');
+
               return {
-                success: false,
-                message: `5번 틀려서 잠겼습니다. ${LOCKOUT_DURATION / 1000}초 후 다시 시도하세요.`,
-                remainingTime: LOCKOUT_DURATION,
+                success: true,
+                message:
+                  'AI 관리자 모드가 활성화되었습니다. 이제 AI 관리자 페이지에 접근할 수 있습니다.',
               };
             } else {
-              // 시도 횟수 증가
-              set((state) => ({
-                ...state,
-                attempts: newAttempts,
-              }));
+              // 인증 실패
+              const newAttempts = attempts + 1;
+              console.warn(
+                `❌ [Auth] 관리자 인증 실패 (${newAttempts}/${MAX_ATTEMPTS})`
+              );
 
-              const remainingAttempts = MAX_ATTEMPTS - newAttempts;
-              return {
-                success: false,
-                message: `관리자 비밀번호가 틀렸습니다. (${remainingAttempts}번 더 시도 가능)`,
-              };
+              if (newAttempts >= MAX_ATTEMPTS) {
+                // 계정 잠금
+                const lockoutEnd = Date.now() + LOCKOUT_DURATION;
+                set((state) => ({
+                  ...state,
+                  attempts: newAttempts,
+                  isLocked: true,
+                  lockoutEndTime: lockoutEnd,
+                }));
+
+                console.warn('🔒 [Auth] 최대 시도 횟수 초과 - 계정 잠금');
+                return {
+                  success: false,
+                  message: `5번 틀려서 잠겼습니다. ${LOCKOUT_DURATION / 1000}초 후 다시 시도하세요.`,
+                  remainingTime: LOCKOUT_DURATION,
+                };
+              } else {
+                // 시도 횟수 증가
+                set((state) => ({
+                  ...state,
+                  attempts: newAttempts,
+                }));
+
+                const remainingAttempts = MAX_ATTEMPTS - newAttempts;
+                return {
+                  success: false,
+                  message: `관리자 비밀번호가 틀렸습니다. (${remainingAttempts}번 더 시도 가능)`,
+                };
+              }
             }
+          } catch (fetchError) {
+            console.error('❌ [Auth] 서버 검증 API 호출 실패:', fetchError);
+            return {
+              success: false,
+              message: '서버와 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+            };
           }
         } catch (error) {
           console.error('❌ [Auth] 관리자 인증 처리 중 오류:', error);

@@ -121,9 +121,13 @@ export function useSystemStatus(): UseSystemStatusReturn {
 
   // 초기 로드 및 주기적 업데이트 - 인라인 구현
   useEffect(() => {
+    const abortController = new AbortController();
+
     const performFetch = async () => {
       try {
-        const response = await fetch('/api/system/status');
+        const response = await fetch('/api/system/status', {
+          signal: abortController.signal, // AbortController로 fetch 취소 가능
+        });
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
@@ -132,6 +136,10 @@ export function useSystemStatus(): UseSystemStatusReturn {
         setStatus(data);
         setError(null);
       } catch (err) {
+        // AbortError는 무시 (정상적인 cleanup)
+        if (err instanceof Error && err.name === 'AbortError') {
+          return;
+        }
         const errorMessage = err instanceof Error ? err.message : '시스템 상태 조회 실패';
         setError(errorMessage);
         console.error('시스템 상태 조회 실패:', err);
@@ -148,11 +156,16 @@ export function useSystemStatus(): UseSystemStatusReturn {
       performFetch();
     }, 30000); // 🎯 300초 → 30초로 개선 (실시간 상태 동기화)
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      abortController.abort(); // 🔧 컴포넌트 unmount 시 진행 중인 fetch 취소
+    };
   }, []); // fetchStatus 함수 의존성 제거하여 React Error #310 해결
 
   // 페이지 포커스 시 상태 새로고침 (2분 throttle) - 인라인 구현
   useEffect(() => {
+    const abortController = new AbortController();
+
     const handleFocus = () => {
       if (!document.hidden) {
         const now = Date.now();
@@ -162,7 +175,9 @@ export function useSystemStatus(): UseSystemStatusReturn {
           // 인라인 상태 조회 함수
           (async () => {
             try {
-              const response = await fetch('/api/system/status');
+              const response = await fetch('/api/system/status', {
+                signal: abortController.signal, // AbortController로 fetch 취소 가능
+              });
               if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
               }
@@ -171,6 +186,10 @@ export function useSystemStatus(): UseSystemStatusReturn {
               setStatus(data);
               setError(null);
             } catch (err) {
+              // AbortError는 무시 (정상적인 cleanup)
+              if (err instanceof Error && err.name === 'AbortError') {
+                return;
+              }
               const errorMessage = err instanceof Error ? err.message : '시스템 상태 조회 실패';
               setError(errorMessage);
               console.error('시스템 상태 조회 실패:', err);
@@ -188,6 +207,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
     return () => {
       document.removeEventListener('visibilitychange', handleFocus);
       window.removeEventListener('focus', handleFocus);
+      abortController.abort(); // 🔧 컴포넌트 unmount 시 진행 중인 fetch 취소
     };
   }, [lastFocusRefresh]); // fetchStatus 함수 의존성 제거하여 React Error #310 해결
 
