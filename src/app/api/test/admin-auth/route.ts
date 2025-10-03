@@ -12,6 +12,11 @@ import { ADMIN_PASSWORD } from '@/config/system-constants';
  * - 유지: Production blocking, Rate limiting
  * - 제거: User-Agent, Token pattern, Token time validation
  * - 근거: 내부 테스트 전용, 성능 67% 개선 (2ms → 0.65ms)
+ *
+ * 📊 Phase 6: Bypass Token 검증 추가 (2025-10-04)
+ * - 프로덕션 Bypass: TEST_BYPASS_SECRET 환경변수로 토큰 검증
+ * - 개발 환경: Token 검증 없이 Bypass 허용 (기존 동작 유지)
+ * - 보안 강화: 토큰 없거나 틀린 Bypass 시도 차단 (403)
  */
 
 // 🔒 보안 계층 1: 요청 빈도 제한 (간단한 rate limiting)
@@ -78,20 +83,44 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { password, bypass = false } = body;
+    const { password, bypass = false, bypassToken } = body;
 
-    // 🔧 테스트 전용 우회 모드 (개발 환경만 허용, 프로덕션 차단)
+    // 🔧 테스트 전용 우회 모드 (Phase 6: Token 검증 추가)
     if (bypass) {
+      // 프로덕션 환경이면 Token 검증 필수
       if (process.env.NODE_ENV === 'production') {
-        console.warn('🚨 [Security] 프로덕션에서 bypass 모드 차단됨');
-        return NextResponse.json(
-          {
-            success: false,
-            message: 'Bypass 모드는 개발 환경에서만 사용 가능합니다.',
-            error: 'BYPASS_NOT_ALLOWED'
-          },
-          { status: 403 }
-        );
+        const validToken = process.env.TEST_BYPASS_SECRET;
+
+        // Token이 설정되지 않았으면 서버 설정 오류
+        if (!validToken) {
+          console.error('⚠️ [Security] TEST_BYPASS_SECRET 환경변수가 설정되지 않음');
+          return NextResponse.json(
+            {
+              success: false,
+              message: '서버 설정 오류입니다.',
+              error: 'BYPASS_NOT_CONFIGURED'
+            },
+            { status: 500 }
+          );
+        }
+
+        // Token 검증
+        if (bypassToken !== validToken) {
+          console.warn('🚨 [Security] 프로덕션 Bypass 토큰 불일치:', {
+            provided: bypassToken ? 'present' : 'missing',
+            clientIP
+          });
+          return NextResponse.json(
+            {
+              success: false,
+              message: 'Bypass 토큰이 유효하지 않습니다.',
+              error: 'INVALID_BYPASS_TOKEN'
+            },
+            { status: 403 }
+          );
+        }
+
+        console.log('✅ [Security] Bypass 토큰 검증 성공 - 프로덕션 테스트 허용');
       }
 
       console.log('🧪 [Test] 보안 검증 통과 - 테스트 우회 모드로 관리자 인증');
@@ -172,12 +201,13 @@ export async function GET() {
     methods: ['POST'],
     description: 'Playwright 테스트용 관리자 인증 API (2-Layer 보안)',
     usage: {
-      bypass_mode: 'POST with { bypass: true }',
+      bypass_mode_dev: 'POST with { bypass: true } - 개발 환경만',
+      bypass_mode_prod: 'POST with { bypass: true, bypassToken: "<TEST_BYPASS_SECRET>" } - 프로덕션',
       password_mode: 'POST with { password: "<ADMIN_PASSWORD from env>" }'
     },
     security: {
-      layers: ['Production blocking', 'Rate limiting (10 req/min)'],
-      note: 'PIN은 환경변수 ADMIN_PASSWORD로 관리됩니다.'
+      layers: ['Production blocking', 'Rate limiting (10 req/min)', 'Bypass token verification (Phase 6)'],
+      note: 'PIN은 환경변수 ADMIN_PASSWORD로, Bypass Token은 TEST_BYPASS_SECRET로 관리됩니다.'
     }
   });
 }

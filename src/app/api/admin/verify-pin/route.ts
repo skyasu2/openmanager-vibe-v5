@@ -16,6 +16,11 @@ const ADMIN_PIN = process.env.ADMIN_PIN || process.env.ADMIN_PASSWORD || '';
  * 📊 Phase 3-1: CSRF 보호 추가
  * - CSRF 토큰 검증: X-CSRF-Token 헤더 vs csrf_token 쿠키
  *
+ * 📊 Phase 5: 보안 레이어 순서 최적화
+ * - Layer 0: Rate limiting (DoS 방어 우선)
+ * - Layer 1: CSRF 검증 (무단 접근 차단)
+ * - Layer 2: IP whitelist (선택적)
+ *
  * @param request - { password: string }
  * @returns { success: boolean, message?: string }
  */
@@ -63,19 +68,7 @@ function isIPWhitelisted(ip: string): boolean {
 }
 export async function POST(request: NextRequest) {
   try {
-    // 🛡️ 보안 계층 0: CSRF 검증 (Phase 3-1)
-    if (!verifyCSRFToken(request)) {
-      console.warn('🚨 [Admin API] CSRF 토큰 검증 실패');
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'CSRF 토큰이 유효하지 않습니다.'
-        },
-        { status: 403 }
-      );
-    }
-
-    // 🛡️ 보안 계층 1: Rate limiting
+    // 🛡️ 보안 계층 0: Rate limiting (Phase 5 - DoS 방어 우선)
     const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
 
     if (isRateLimited(clientIP)) {
@@ -86,6 +79,18 @@ export async function POST(request: NextRequest) {
           message: '요청이 너무 빈번합니다. 1분 후 다시 시도하세요.'
         },
         { status: 429 }
+      );
+    }
+
+    // 🛡️ 보안 계층 1: CSRF 검증 (Phase 3-1)
+    if (!verifyCSRFToken(request)) {
+      console.warn('🚨 [Admin API] CSRF 토큰 검증 실패');
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'CSRF 토큰이 유효하지 않습니다.'
+        },
+        { status: 403 }
       );
     }
 
