@@ -49,7 +49,7 @@ cp config/templates/env.local.template .env.local
 npm run dev:stable  # 안정화된 서버 (권장)
 ```
 
-→ **[📚 상세 설정 가이드](./QUICK-START.md)**
+→ **[📚 상세 설정 가이드](./docs/QUICK-START.md)**
 
 ## 💡 주요 기능
 
@@ -126,13 +126,13 @@ npm run validate:all       # 린트+타입+테스트
 - **MCP 서버**: 9개 통합 (context7, supabase, vercel 등)
 - **성능**: 19GB WSL 메모리, 84% 여유도
 
-→ **[🛠️ 개발 환경 상세 가이드](./DEVELOPMENT.md)**
+→ **[🛠️ 개발 환경 상세 가이드](./docs/DEVELOPMENT.md)**
 
 ## 📚 문서 및 가이드
 
 ### 📖 사용자 가이드
-- **[🚀 빠른 시작](./QUICK-START.md)** - 5분 만에 시작하기
-- **[🛠️ 개발 가이드](./DEVELOPMENT.md)** - AI 도구, MCP 서버, WSL 설정
+- **[🚀 빠른 시작](./docs/QUICK-START.md)** - 5분 만에 시작하기
+- **[🛠️ 개발 가이드](./docs/DEVELOPMENT.md)** - AI 도구, MCP 서버, WSL 설정
 - **[📊 시스템 아키텍처](./docs/design/current/system-architecture-ai.md)** - AI 시스템 아키텍처
 
 ### 🔗 전문 문서
@@ -166,4 +166,4 @@ MIT License - 자유롭게 사용, 수정, 배포 가능
 
 **🎯 대상**: DevOps 학습자, 포트폴리오 구축자, 무료 티어 최적화에 관심 있는 개발자
 
-**🚀 시작**: [QUICK-START.md](./QUICK-START.md) → 5분 만에 체험 가능
+**🚀 시작**: [QUICK-START.md](./docs/QUICK-START.md) → 5분 만에 체험 가능
