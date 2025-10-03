@@ -17,17 +17,30 @@ import { ADMIN_PASSWORD } from '@/config/system-constants';
 // 🔒 보안 계층 1: 요청 빈도 제한 (간단한 rate limiting)
 const requestLog = new Map<string, number[]>();
 
+// 🧹 메모리 누수 방지: 주기적으로 오래된 로그 정리 (Phase 3-2)
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, requests] of requestLog.entries()) {
+    const recentRequests = requests.filter(time => now - time < 60000);
+    if (recentRequests.length === 0) {
+      requestLog.delete(ip); // 1분 동안 요청 없으면 삭제
+    } else {
+      requestLog.set(ip, recentRequests); // 오래된 요청 제거
+    }
+  }
+}, 60000); // 1분마다 정리
+
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
   const requests = requestLog.get(ip) || [];
-  
+
   // 1분 이내 요청만 유지
   const recentRequests = requests.filter(time => now - time < 60000);
-  
+
   if (recentRequests.length >= 10) { // 1분에 최대 10회
     return true;
   }
-  
+
   recentRequests.push(now);
   requestLog.set(ip, recentRequests);
   return false;

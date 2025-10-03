@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyCSRFToken } from '@/utils/security/csrf';
 
 // 환경변수에서 관리자 PIN 가져오기
 const ADMIN_PIN = process.env.ADMIN_PIN || process.env.ADMIN_PASSWORD || '';
@@ -12,12 +13,28 @@ const ADMIN_PIN = process.env.ADMIN_PIN || process.env.ADMIN_PASSWORD || '';
  * - Rate limiting: 10 req/min (IP 기반)
  * - IP whitelist: 선택적 (환경변수 ADMIN_IP_WHITELIST)
  *
+ * 📊 Phase 3-1: CSRF 보호 추가
+ * - CSRF 토큰 검증: X-CSRF-Token 헤더 vs csrf_token 쿠키
+ *
  * @param request - { password: string }
  * @returns { success: boolean, message?: string }
  */
 
 // 🔒 보안 계층 1: Rate limiting (10 req/min)
 const requestLog = new Map<string, number[]>();
+
+// 🧹 메모리 누수 방지: 주기적으로 오래된 로그 정리 (Phase 3-2)
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, requests] of requestLog.entries()) {
+    const recentRequests = requests.filter(time => now - time < 60000);
+    if (recentRequests.length === 0) {
+      requestLog.delete(ip); // 1분 동안 요청 없으면 삭제
+    } else {
+      requestLog.set(ip, recentRequests); // 오래된 요청 제거
+    }
+  }
+}, 60000); // 1분마다 정리
 
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
@@ -46,6 +63,18 @@ function isIPWhitelisted(ip: string): boolean {
 }
 export async function POST(request: NextRequest) {
   try {
+    // 🛡️ 보안 계층 0: CSRF 검증 (Phase 3-1)
+    if (!verifyCSRFToken(request)) {
+      console.warn('🚨 [Admin API] CSRF 토큰 검증 실패');
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'CSRF 토큰이 유효하지 않습니다.'
+        },
+        { status: 403 }
+      );
+    }
+
     // 🛡️ 보안 계층 1: Rate limiting
     const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
 
