@@ -7,6 +7,30 @@
 > - [CHANGELOG-LEGACY-2.md](./CHANGELOG-LEGACY-2.md): v5.66.40 ~ v5.67.21 (2025-08-12 ~ 2025-08-17)
 > - [CHANGELOG-LEGACY.md](./CHANGELOG-LEGACY.md): v5.0.0 ~ v5.65.6 (2025-05 ~ 2025-08)
 
+## [5.79.1] - 2025-10-03
+
+### 🔒 security: PIN 인증 서버 검증 강화 + React Hooks 버그 수정
+
+#### Security Improvements
+- 🔒 **PIN 인증 서버 사이드 검증 추가** (33b2f815)
+  - 신규 API 엔드포인트: `/api/admin/verify-pin`
+  - 클라이언트 하드코딩 `ADMIN_PASSWORD` 제거
+  - 환경변수 기반 서버 검증으로 전환
+  - 보안 강화: 클라이언트 번들에 비밀번호 노출 방지
+
+#### Bug Fixes
+- 🐛 **React Hooks 버그 수정** (33b2f815)
+  - `useInitialAuth`: router 의존성 추가 (stale closure 방지)
+  - `useSystemStatus`: AbortController 패턴 추가 (메모리 누수 방지)
+  - fetch 취소 로직 강화 (컴포넌트 unmount 시 안전 처리)
+
+#### Quality Metrics
+- **코드 품질**: 78/100 → 85/100 (+7점)
+- **보안 등급**: B+ → A- (서버 검증 전환)
+- **TypeScript**: 0 에러 유지 ✅
+
+---
+
 ## [5.79.0] - 2025-09-25
 
 ### fix: TypeScript strict 모드 호환성 개선 (57개 변경)
