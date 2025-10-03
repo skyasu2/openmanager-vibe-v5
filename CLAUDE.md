@@ -158,12 +158,12 @@ git push                    # Vercel 자동 배포
   - 교차 검증 워크플로우
   - 전문 분야별 특화
 
-- **@docs/claude/environment/mcp-configuration.md**
+- **@docs/claude/environment/mcp/mcp-configuration.md**
   - 9개 MCP 서버 설정
   - 인증 방법 (OAuth, Token, API Key)
   - 문제 해결 가이드
 
-- **@docs/claude/environment/mcp-priority-guide.md** ⭐
+- **@docs/claude/environment/mcp/mcp-priority-guide.md** ⭐
   - MCP 우선순위 의사결정 가이드
   - 작업별 MCP 선택 매트릭스
   - 실전 예시 (Before/After)
@@ -200,7 +200,7 @@ git push                    # Vercel 자동 배포
 **활용도 및 개선 (2025-10-03)**
 - 전체 활용도: 65/100점 → 목표 90/100점
 - 토큰 절약: 50-60% → 목표 82%
-- 개선 계획: [MCP 우선순위 가이드](docs/claude/environment/mcp-priority-guide.md) 적용
+- 개선 계획: [MCP 우선순위 가이드](docs/claude/environment/mcp/mcp-priority-guide.md) 적용
 - 핵심 원칙: **"MCP를 대안이 아닌 1순위로!"**
 
 ### 빠른 시작
