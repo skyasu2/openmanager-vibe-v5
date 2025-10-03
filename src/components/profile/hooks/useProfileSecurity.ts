@@ -19,15 +19,16 @@ export function useProfileSecurity() {
   // Zustand 스토어의 관리자 상태 사용
   const { adminMode } = useUnifiedAdminStore();
   
-  // localStorage와 Zustand 스토어 모두 확인하여 관리자 모드 판단
+  // Phase 2: Zustand AuthStore와 UnifiedAdminStore 이중 확인 (레거시 호환성)
   const [isAdminMode, setIsAdminMode] = useState(false);
-  
+
   useEffect(() => {
     const checkAdminMode = () => {
+      // 🔧 레거시 localStorage 체크 (Phase 3에서 제거 예정)
       const localStorageAdmin = localStorage.getItem('admin_mode') === 'true';
       const zustandAdmin = adminMode.isAuthenticated;
-      
-      // localStorage 또는 Zustand 중 하나라도 true이면 관리자 모드
+
+      // 이중 체크: localStorage 또는 UnifiedAdminStore 중 하나라도 true
       const adminModeActive = localStorageAdmin || zustandAdmin;
       setIsAdminMode(adminModeActive);
       

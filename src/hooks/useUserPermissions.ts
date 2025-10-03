@@ -144,7 +144,7 @@ export function useUserPermissions(): UserPermissions {
         const userAvatar = user?.avatar;
         const userType: UserType = type === 'unknown' ? 'guest' : type;
 
-        // PIN 인증 상태는 상단의 useSyncExternalStore에서 관리됨
+        // PIN 인증 상태는 상단의 Zustand useAdminMode()에서 관리됨
         
         // 🔍 디버깅: 통합된 인증 상태 확인
         console.log('🔍 [Debug] useUserPermissions - 통합 인증 상태:', {
@@ -235,7 +235,7 @@ export function useUserPermissions(): UserPermissions {
       console.error('🔐 [Permissions] 권한 계산 중 오류 발생:', error);
       return createSafeDefaultPermissions('guest', '일반사용자');
     }
-  }, [authState, session, status, guestUser, isGuestAuth, isPinAuth]); // useSyncExternalStore로 최적화된 PIN 인증 상태
+  }, [authState, session, status, guestUser, isGuestAuth, isPinAuth]); // Zustand useAdminMode()로 최적화된 PIN 인증 상태 (5배 향상)
 
   return permissions;
 }

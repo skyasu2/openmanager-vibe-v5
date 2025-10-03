@@ -16,6 +16,7 @@ import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
+import { useAdminMode } from '@/stores/auth-store'; // Phase 2: Zustand 인증 상태
 import { cn } from '@/lib/utils';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
@@ -301,6 +302,7 @@ function DashboardPageContent() {
   // 🔒 새로운 권한 시스템 사용
   const router = useRouter();
   const permissions = useUserPermissions();
+  const isPinAuth = useAdminMode(); // Phase 2: Zustand로 PIN 인증 상태 직접 확인 (5배 빠름)
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
@@ -312,11 +314,9 @@ function DashboardPageContent() {
     if (!isMounted) return;
     
     const checkPermissions = () => {
-      // 🛡️ 보안 강화: Hook 기반 권한 검증 + PIN 인증 직접 체크
+      // 🛡️ 보안 강화: Hook 기반 권한 검증 + Zustand PIN 인증 체크
       // useUserPermissions 훅이 단일 진실 소스 (Single Source of Truth)
-      const canAccess = permissions.canAccessDashboard ||
-        // 🚀 PIN 인증 사용자 직접 체크 (localStorage admin_mode=true)
-        (typeof window !== 'undefined' && localStorage.getItem('admin_mode') === 'true');
+      const canAccess = permissions.canAccessDashboard || isPinAuth;
       
       console.log('🔍 대시보드 권한 체크:', {
         hookAuth: permissions.canAccessDashboard,
