@@ -163,6 +163,12 @@ git push                    # Vercel 자동 배포
   - 인증 방법 (OAuth, Token, API Key)
   - 문제 해결 가이드
 
+- **@docs/claude/environment/mcp-priority-guide.md** ⭐
+  - MCP 우선순위 의사결정 가이드
+  - 작업별 MCP 선택 매트릭스
+  - 실전 예시 (Before/After)
+  - 82% 토큰 절약 달성 전략
+
 - **@docs/claude/environment/workflows.md**
   - 일일 개발 루틴
   - 병렬 개발 패턴
@@ -190,6 +196,12 @@ git push                    # Vercel 자동 배포
 - memory, time, sequential-thinking, shadcn-ui
 - 연결 성공률: 100% 🏆
 - 평균 응답속도: 50ms 미만
+
+**활용도 및 개선 (2025-10-03)**
+- 전체 활용도: 65/100점 → 목표 90/100점
+- 토큰 절약: 50-60% → 목표 82%
+- 개선 계획: [MCP 우선순위 가이드](docs/claude/environment/mcp-priority-guide.md) 적용
+- 핵심 원칙: **"MCP를 대안이 아닌 1순위로!"**
 
 ### 빠른 시작
 
