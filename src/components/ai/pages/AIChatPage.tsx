@@ -222,7 +222,7 @@ export default function AIChatPage() {
           <div className="flex justify-start">
             <div className="flex max-w-[80%] items-start space-x-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500">
-                <Sparkles className="animate-pulse h-4 w-4 text-white" />
+                <Sparkles className="animate-pulse h-4 w-4 text-white" aria-hidden="true" />
               </div>
               <div className="rounded-lg border border-gray-200 bg-white p-3">
                 <div className="flex items-center space-x-2">
@@ -256,7 +256,7 @@ export default function AIChatPage() {
             className="rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isThinking ? (
-              <Sparkles className="h-4 w-4 animate-spin" />
+              <Sparkles className="h-4 w-4 motion-safe:animate-pulse-glow" aria-hidden="true" />
             ) : (
               <Send className="h-4 w-4" />
             )}

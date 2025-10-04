@@ -130,7 +130,7 @@ export const AIEnhancedChat: FC<AIEnhancedChatProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-blue-600">
-              <Sparkles className="h-4 w-4 text-white" />
+              <Sparkles className="h-4 w-4 text-white" aria-hidden="true" />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-gray-800">

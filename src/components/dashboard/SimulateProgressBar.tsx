@@ -249,7 +249,7 @@ const SimulateProgressBar: FC<SimulateProgressBarProps> = memo(
               <div className="flex items-center space-x-3">
                 <div
                 >
-                  <Sparkles className="h-5 w-5 text-green-400" />
+                  <Sparkles className="h-5 w-5 text-green-400" aria-hidden="true" />
                 </div>
                 <div>
                   <div className="font-medium text-green-400">
