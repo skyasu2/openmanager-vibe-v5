@@ -69,7 +69,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { password, bypass = false, bypassToken } = body;
+    const { password, bypass = false, bypassToken, token } = body;
+
+    // bypassToken 또는 token 필드 지원 (하위 호환성)
+    const actualToken = bypassToken || token;
 
     // 🔧 테스트 전용 우회 모드 (E2E 테스트용 - Secret 토큰 검증)
     if (bypass) {
@@ -93,16 +96,16 @@ export async function POST(request: NextRequest) {
 
         // 토큰 검증
         console.log('🔍 [Debug] Token comparison:', {
-          providedToken: bypassToken,
-          providedLength: bypassToken?.length,
+          providedToken: actualToken,
+          providedLength: actualToken?.length,
           validToken: validToken,
           validLength: validToken?.length,
-          match: bypassToken === validToken
+          match: actualToken === validToken
         });
 
-        if (bypassToken !== validToken) {
+        if (actualToken !== validToken) {
           console.warn('🚨 [Security] Bypass 토큰 불일치:', {
-            provided: bypassToken ? 'present' : 'missing',
+            provided: actualToken ? 'present' : 'missing',
             clientIP
           });
           return NextResponse.json(
