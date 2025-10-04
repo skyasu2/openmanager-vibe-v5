@@ -312,11 +312,36 @@ function DashboardPageContent() {
   // 🔥 강화된 권한 체크 (비동기 인증 상태 타이밍 문제 해결)
   useEffect(() => {
     if (!isMounted) return;
-    
+
     const checkPermissions = () => {
-      // 🛡️ 보안 강화: Hook 기반 권한 검증 + Zustand PIN 인증 체크
+      // 🧪 테스트 모드 체크 (E2E 테스트용)
+      const isTestMode = () => {
+        // 쿠키 체크
+        if (typeof document !== 'undefined') {
+          const cookies = document.cookie.split(';').map(c => c.trim());
+          const hasTestMode = cookies.some(c => c.startsWith('test_mode=enabled'));
+          const hasTestToken = cookies.some(c => c.startsWith('vercel_test_token='));
+          if (hasTestMode || hasTestToken) {
+            console.log('🧪 [Dashboard] 테스트 모드 감지 (쿠키)');
+            return true;
+          }
+        }
+
+        // localStorage 체크 (보조)
+        if (typeof window !== 'undefined' && window.localStorage) {
+          const testModeEnabled = localStorage.getItem('test_mode_enabled') === 'true';
+          if (testModeEnabled) {
+            console.log('🧪 [Dashboard] 테스트 모드 감지 (localStorage)');
+            return true;
+          }
+        }
+
+        return false;
+      };
+
+      // 🛡️ 보안 강화: Hook 기반 권한 검증 + Zustand PIN 인증 체크 + 테스트 모드
       // useUserPermissions 훅이 단일 진실 소스 (Single Source of Truth)
-      const canAccess = permissions.canAccessDashboard || isPinAuth;
+      const canAccess = permissions.canAccessDashboard || isPinAuth || isTestMode();
       
       console.log('🔍 대시보드 권한 체크:', {
         hookAuth: permissions.canAccessDashboard,

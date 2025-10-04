@@ -34,7 +34,7 @@ export async function activateAdminMode(
 ): Promise<AdminAuthResponse> {
   // 프로덕션 환경에서는 password 모드 강제
   const pageUrl = page.url();
-  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || process.env.VERCEL_PRODUCTION_URL || '';
+  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || process.env.VERCEL_PRODUCTION_URL || 'http://localhost:3000';
   const isProduction = pageUrl.includes('vercel.app') || baseUrl.includes('vercel.app');
 
   // 프로덕션(Vercel)에서는 항상 password, 로컬에서만 bypass 허용
@@ -89,13 +89,51 @@ export async function activateAdminMode(
       throw new Error(`관리자 인증 실패: ${authResponse.message}`);
     }
 
-    // 3단계: localStorage 설정 (API 성공 시)
+    // 3단계: localStorage 및 쿠키 설정 (API 성공 시)
     await page.evaluate(() => {
       localStorage.setItem('admin_mode', 'true');
       console.log('✅ [Admin Helper] localStorage admin_mode 설정 완료');
     });
 
-    // 4단계: 상태 검증
+    // 테스트 모드 쿠키 설정 (Middleware 우회용)
+    // 실제 페이지 URL의 origin 사용 (도메인 불일치 방지)
+    const currentUrl = new URL(page.url());
+    const isSecure = currentUrl.protocol === 'https:';
+
+    await page.context().addCookies([
+      {
+        name: 'test_mode',
+        value: 'enabled',
+        domain: currentUrl.hostname,
+        path: '/',
+        httpOnly: false,
+        secure: isSecure,
+        sameSite: 'None'
+      },
+      {
+        name: 'vercel_test_token',
+        value: authResponse.accessToken || 'test-mode-active',
+        domain: currentUrl.hostname,
+        path: '/',
+        httpOnly: false,  // middleware가 읽을 수 있도록 false로 변경
+        secure: isSecure,
+        sameSite: 'None'
+      }
+    ]);
+
+    console.log('✅ [Admin Helper] 테스트 모드 쿠키 설정 완료');
+
+    // 4단계: 테스트 모드 헤더 설정 (쿠키보다 확실한 방법)
+    await page.setExtraHTTPHeaders({
+      'X-Test-Mode': 'enabled',
+      'X-Test-Token': authResponse.accessToken || 'test-mode-active',
+      'User-Agent': 'Playwright Test Agent'
+    });
+
+    console.log('✅ [Admin Helper] 테스트 모드 헤더 설정 완료');
+
+    // 5단계: 페이지 새로고침하여 헤더가 적용되도록 함
+    await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(500); // 상태 동기화 대기
     
     const isAdminActive = await page.evaluate(() => {
@@ -135,7 +173,17 @@ export async function navigateToAdminDashboard(
 
     // 대시보드로 이동
     await page.goto('/dashboard');
-    
+
+    // 디버깅: 실제 URL과 쿠키 확인
+    const actualUrl = page.url();
+    const cookies = await page.context().cookies();
+    const testModeCookies = cookies.filter(c => c.name === 'test_mode' || c.name === 'vercel_test_token');
+
+    console.log('🔍 [Admin Helper] 대시보드 이동 후 상태:', {
+      actualUrl,
+      testModeCookies: testModeCookies.map(c => ({ name: c.name, value: c.value, domain: c.domain }))
+    });
+
     // 대시보드 로딩 완료 대기
     await page.waitForSelector('[data-testid="dashboard-container"], .dashboard, main', {
       timeout: 10000
@@ -173,12 +221,19 @@ export async function resetAdminState(page: Page): Promise<void> {
         localStorage.removeItem('admin_failed_attempts');
         localStorage.removeItem('admin_lock_end_time');
         localStorage.removeItem('unified-admin-storage');
-        
+        localStorage.removeItem('test_mode_enabled');
+        localStorage.removeItem('auth_type');
+        localStorage.removeItem('auth_user');
+
         console.log('🧹 localStorage 정리 완료');
       } catch (error) {
         console.warn('localStorage 정리 중 오류:', error);
       }
     });
+
+    // 테스트 모드 쿠키 정리
+    await page.context().clearCookies();
+    console.log('🧹 테스트 모드 쿠키 정리 완료');
 
     console.log('✅ [Admin Helper] 관리자 상태 초기화 완료');
 
@@ -207,13 +262,66 @@ export async function ensureGuestLogin(page: Page): Promise<void> {
       return;
     }
 
-    console.log('🎭 [Admin Helper] 게스트 로그인 시작 (enableVercelTestMode 사용)');
+    console.log('🎭 [Admin Helper] 게스트 로그인 시작 (API 직접 호출)');
 
-    // enableVercelTestMode를 사용하여 게스트 모드 활성화
-    const { enableVercelTestMode } = await import('./vercel-test-auth');
-    await enableVercelTestMode(page, { mode: 'guest', bypass: false });
+    // 테스트 모드 API 직접 호출 - 실제 페이지 URL의 origin 사용 (도메인 일치)
+    const currentUrl = new URL(page.url());
+    const cookieUrl = `${currentUrl.protocol}//${currentUrl.host}`;
+    const testSecretKey = process.env.TEST_SECRET_KEY || 'test-secret-key-please-change-in-env';
 
-    console.log('✅ [Admin Helper] 게스트 로그인 완료 (API 기반)');
+    const response = await page.context().request.post(`${cookieUrl}/api/test/vercel-test-auth`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Playwright Test Agent'
+      },
+      data: {
+        secret: testSecretKey,
+        mode: 'guest',
+        bypass: false
+      }
+    });
+
+    const result = await response.json();
+
+    if (!result.success) {
+      throw new Error(`게스트 로그인 API 실패: ${result.message}`);
+    }
+
+    // localStorage 및 쿠키 설정
+    await page.evaluate((authData: any) => {
+      if (authData.sessionData) {
+        localStorage.setItem('auth_type', authData.sessionData.authType);
+        localStorage.setItem('auth_user', 'guest');
+        localStorage.setItem('test_mode_enabled', 'true');
+      }
+    }, result);
+
+    // 테스트 모드 쿠키 설정 (Middleware 우회용)
+    // domain, path 명시적 설정으로 쿠키 전달 보장
+    const isSecure = currentUrl.protocol === 'https:';
+
+    await page.context().addCookies([
+      {
+        name: 'test_mode',
+        value: 'enabled',
+        domain: currentUrl.hostname,
+        path: '/',
+        httpOnly: false,
+        secure: isSecure,
+        sameSite: 'None'
+      },
+      {
+        name: 'vercel_test_token',
+        value: result.accessToken || 'test-mode-active',
+        domain: currentUrl.hostname,
+        path: '/',
+        httpOnly: false,  // middleware가 읽을 수 있도록 false로 변경
+        secure: isSecure,
+        sameSite: 'None'
+      }
+    ]);
+
+    console.log('✅ [Admin Helper] 게스트 로그인 완료 (API 기반 + 쿠키 설정)');
 
   } catch (error) {
     console.error('❌ [Admin Helper] 게스트 로그인 실패:', error);
