@@ -191,6 +191,9 @@ export async function GET() {
     );
   }
 
+  // 🔍 임시 디버그: 환경변수 확인
+  const envToken = process.env.TEST_BYPASS_SECRET;
+
   // 📊 테스트 API 상태 정보 제공
   return NextResponse.json({
     endpoint: '/api/test/admin-auth',
@@ -206,6 +209,12 @@ export async function GET() {
     security: {
       layers: ['Production blocking', 'Rate limiting (10 req/min)', 'Bypass token verification (Phase 6)'],
       note: 'PIN은 환경변수 ADMIN_PASSWORD로, Bypass Token은 TEST_BYPASS_SECRET로 관리됩니다.'
+    },
+    debug: {
+      tokenSet: !!envToken,
+      tokenLength: envToken?.length,
+      tokenFirst3: envToken?.substring(0, 3),
+      tokenLast3: envToken?.substring(envToken.length - 3)
     }
   });
 }
