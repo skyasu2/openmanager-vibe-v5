@@ -96,28 +96,23 @@ export async function activateAdminMode(
     });
 
     // 테스트 모드 쿠키 설정 (Middleware 우회용)
-    // 실제 페이지 URL의 origin 사용 (도메인 불일치 방지)
-    const currentUrl = new URL(page.url());
-    const isSecure = currentUrl.protocol === 'https:';
+    // 🔧 FIX: domain 대신 url 사용으로 쿠키 전송 보장
+    const currentUrl = page.url();
 
     await page.context().addCookies([
       {
         name: 'test_mode',
         value: 'enabled',
-        domain: currentUrl.hostname,
-        path: '/',
+        url: currentUrl,
         httpOnly: false,
-        secure: isSecure,
-        sameSite: 'Lax'  // 같은 사이트 내 네비게이션에는 Lax가 적합
+        sameSite: 'Lax'
       },
       {
         name: 'vercel_test_token',
         value: authResponse.accessToken || 'test-mode-active',
-        domain: currentUrl.hostname,
-        path: '/',
-        httpOnly: false,  // middleware가 읽을 수 있도록 false로 변경
-        secure: isSecure,
-        sameSite: 'Lax'  // 같은 사이트 내 네비게이션에는 Lax가 적합
+        url: currentUrl,
+        httpOnly: false,
+        sameSite: 'Lax'
       }
     ]);
 
@@ -311,26 +306,20 @@ export async function ensureGuestLogin(page: Page): Promise<void> {
     }, result);
 
     // 테스트 모드 쿠키 설정 (Middleware 우회용)
-    // domain, path 명시적 설정으로 쿠키 전달 보장
-    const isSecure = currentUrl.protocol === 'https:';
-
+    // 🔧 FIX: domain 대신 url 사용으로 쿠키 전송 보장
     await page.context().addCookies([
       {
         name: 'test_mode',
         value: 'enabled',
-        domain: currentUrl.hostname,
-        path: '/',
+        url: page.url(),
         httpOnly: false,
-        secure: isSecure,
         sameSite: 'Lax'  // 같은 사이트 내 네비게이션에는 Lax가 적합
       },
       {
         name: 'vercel_test_token',
         value: result.accessToken || 'test-mode-active',
-        domain: currentUrl.hostname,
-        path: '/',
+        url: page.url(),
         httpOnly: false,  // middleware가 읽을 수 있도록 false로 변경
-        secure: isSecure,
         sameSite: 'Lax'  // 같은 사이트 내 네비게이션에는 Lax가 적합
       }
     ]);

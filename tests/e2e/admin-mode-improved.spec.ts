@@ -29,17 +29,18 @@ test.describe('개선된 관리자 모드 테스트', () => {
   test('🚀 핵심 개선: API 호출을 통한 즉시 관리자 모드 활성화', async ({ page }) => {
     const startTime = Date.now();
 
-    // ✨ 새로운 방식: 한 번의 함수 호출로 완료
-    const result = await activateAdminMode(page, { method: 'bypass' });
-    
+    // ✨ 새로운 방식: 한 번의 함수 호출로 완료 (환경 자동 감지)
+    const result = await activateAdminMode(page);
+
     const endTime = Date.now();
     const duration = endTime - startTime;
 
     // 📊 성능 검증
     expect(result.success).toBe(true);
-    expect(result.mode).toBe('test_bypass');
+    // 프로덕션 환경에서는 password_auth, 로컬에서는 test_bypass
+    expect(['test_bypass', 'password_auth']).toContain(result.mode);
     expect(duration).toBeLessThan(5000); // 5초 이내 완료
-    
+
     // 🔍 상태 검증
     const isAdminActive = await verifyAdminState(page);
     expect(isAdminActive).toBe(true);
@@ -120,10 +121,10 @@ test.describe('개선된 관리자 모드 테스트', () => {
     const oldMethodEnd = Date.now();
     const oldMethodDuration = oldMethodEnd - oldMethodStart;
 
-    // 🚀 새로운 방식
+    // 🚀 새로운 방식 (환경 자동 감지)
     const newMethodStart = Date.now();
-    
-    await activateAdminMode(page, { method: 'bypass', skipGuestLogin: true });
+
+    await activateAdminMode(page, { skipGuestLogin: true });
     
     const newMethodEnd = Date.now();
     const newMethodDuration = newMethodEnd - newMethodStart;
