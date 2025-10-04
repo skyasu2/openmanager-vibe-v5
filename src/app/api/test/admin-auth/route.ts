@@ -183,15 +183,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  // 🛡️ 프로덕션 환경 제어 (환경변수로 허용 가능)
-  if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_TEST_API_IN_PROD) {
-    return NextResponse.json(
-      { error: 'Not available in production' },
-      { status: 404 }
-    );
-  }
-
-  // 🔍 임시 디버그: 환경변수 확인
+  // 🔍 임시 디버그: 환경변수 확인 (프로덕션 차단 임시 제거)
   const envToken = process.env.TEST_BYPASS_SECRET;
 
   // 📊 테스트 API 상태 정보 제공
