@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     // 🔧 테스트 전용 우회 모드 (E2E 테스트용 - Secret 토큰 검증)
     if (bypass) {
       // 프로덕션 환경: TEST_BYPASS_SECRET 토큰 검증 필수
-      // ✅ 2025-10-04: TEST_BYPASS_SECRET 환경변수 Vercel 재설정 완료
+      // ✅ 2025-10-04: TEST_BYPASS_SECRET 환경변수 Vercel 간단한 토큰으로 재설정
       if (process.env.NODE_ENV === 'production') {
         const validToken = process.env.TEST_BYPASS_SECRET;
 
