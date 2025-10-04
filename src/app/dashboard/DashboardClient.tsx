@@ -289,6 +289,45 @@ class DashboardErrorBoundary extends Component<
   }
 }
 
+// 🧪 테스트 모드 체크 함수 (컴포넌트 외부로 이동 - E2E 테스트용)
+function checkTestMode(): boolean {
+  console.log('🧪 [Dashboard] checkTestMode() 함수 실행 시작');
+
+  // SSR 환경 체크
+  if (typeof document === 'undefined' || typeof window === 'undefined') {
+    console.log('🧪 [Dashboard] SSR 환경 - 테스트 모드 체크 스킵');
+    return false;
+  }
+
+  // 쿠키 체크
+  const allCookies = document.cookie;
+  console.log('🧪 [Dashboard] 전체 쿠키:', allCookies);
+
+  const cookies = document.cookie.split(';').map(c => c.trim());
+  const hasTestMode = cookies.some(c => c.startsWith('test_mode=enabled'));
+  const hasTestToken = cookies.some(c => c.startsWith('vercel_test_token='));
+
+  console.log('🧪 [Dashboard] test_mode 쿠키 존재:', hasTestMode);
+  console.log('🧪 [Dashboard] vercel_test_token 쿠키 존재:', hasTestToken);
+
+  if (hasTestMode || hasTestToken) {
+    console.log('🧪 [Dashboard] 테스트 모드 감지 (쿠키) ✅');
+    return true;
+  }
+
+  // localStorage 체크 (보조)
+  const testModeEnabled = localStorage.getItem('test_mode_enabled') === 'true';
+  console.log('🧪 [Dashboard] localStorage test_mode_enabled:', testModeEnabled);
+
+  if (testModeEnabled) {
+    console.log('🧪 [Dashboard] 테스트 모드 감지 (localStorage) ✅');
+    return true;
+  }
+
+  console.log('🧪 [Dashboard] 테스트 모드 감지 실패 ❌');
+  return false;
+}
+
 function DashboardPageContent() {
   // 🔒 Hydration 불일치 방지를 위한 클라이언트 전용 상태
   const [isMounted, setIsMounted] = useState(false);
@@ -298,7 +337,7 @@ function DashboardPageContent() {
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const [_showSystemWarning, setShowSystemWarning] = useState(false);
   const isResizing = false;
-  
+
   // 🔒 새로운 권한 시스템 사용
   const router = useRouter();
   const permissions = useUserPermissions();
@@ -314,50 +353,10 @@ function DashboardPageContent() {
     if (!isMounted) return;
 
     const checkPermissions = () => {
-      // 🧪 테스트 모드 체크 (E2E 테스트용)
-      const isTestMode = () => {
-        console.log('🧪 [Dashboard] isTestMode() 함수 실행 시작');
-        console.log('🧪 [Dashboard] typeof document:', typeof document);
-        console.log('🧪 [Dashboard] typeof window:', typeof window);
-
-        // 쿠키 체크
-        if (typeof document !== 'undefined') {
-          const allCookies = document.cookie;
-          console.log('🧪 [Dashboard] 전체 쿠키:', allCookies);
-
-          const cookies = document.cookie.split(';').map(c => c.trim());
-          console.log('🧪 [Dashboard] 쿠키 배열:', cookies);
-
-          const hasTestMode = cookies.some(c => c.startsWith('test_mode=enabled'));
-          const hasTestToken = cookies.some(c => c.startsWith('vercel_test_token='));
-
-          console.log('🧪 [Dashboard] test_mode 쿠키 존재:', hasTestMode);
-          console.log('🧪 [Dashboard] vercel_test_token 쿠키 존재:', hasTestToken);
-
-          if (hasTestMode || hasTestToken) {
-            console.log('🧪 [Dashboard] 테스트 모드 감지 (쿠키) ✅');
-            return true;
-          }
-        }
-
-        // localStorage 체크 (보조)
-        if (typeof window !== 'undefined' && window.localStorage) {
-          const testModeEnabled = localStorage.getItem('test_mode_enabled') === 'true';
-          console.log('🧪 [Dashboard] localStorage test_mode_enabled:', testModeEnabled);
-
-          if (testModeEnabled) {
-            console.log('🧪 [Dashboard] 테스트 모드 감지 (localStorage) ✅');
-            return true;
-          }
-        }
-
-        console.log('🧪 [Dashboard] 테스트 모드 감지 실패 ❌');
-        return false;
-      };
-
       // 🛡️ 보안 강화: Hook 기반 권한 검증 + Zustand PIN 인증 체크 + 테스트 모드
       // useUserPermissions 훅이 단일 진실 소스 (Single Source of Truth)
-      const canAccess = permissions.canAccessDashboard || isPinAuth || isTestMode();
+      // 🧪 FIX: checkTestMode() 함수 사용 (컴포넌트 외부로 이동됨)
+      const canAccess = permissions.canAccessDashboard || isPinAuth || checkTestMode();
       
       console.log('🔍 대시보드 권한 체크:', {
         hookAuth: permissions.canAccessDashboard,
@@ -618,8 +617,9 @@ function DashboardPageContent() {
     );
   }
 
-  // 🔒 대시보드 접근 권한이 없는 경우 (GitHub 로그인 또는 PIN 인증 필요)
-  if (!permissions.canAccessDashboard) {
+  // 🔒 대시보드 접근 권한이 없는 경우 (GitHub 로그인 또는 PIN 인증 또는 테스트 모드 필요)
+  // 🧪 FIX: 테스트 모드 체크 추가 (E2E 테스트용)
+  if (!permissions.canAccessDashboard && !isPinAuth && !checkTestMode()) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
@@ -632,7 +632,7 @@ function DashboardPageContent() {
               대시보드 접근을 위해 GitHub 로그인 또는 관리자 PIN 인증이 필요합니다.
             </p>
           </div>
-          
+
           <div className="space-y-3">
             <button
               onClick={() => router.push('/login')}
