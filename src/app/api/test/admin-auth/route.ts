@@ -92,6 +92,14 @@ export async function POST(request: NextRequest) {
         }
 
         // 토큰 검증
+        console.log('🔍 [Debug] Token comparison:', {
+          providedToken: bypassToken,
+          providedLength: bypassToken?.length,
+          validToken: validToken,
+          validLength: validToken?.length,
+          match: bypassToken === validToken
+        });
+
         if (bypassToken !== validToken) {
           console.warn('🚨 [Security] Bypass 토큰 불일치:', {
             provided: bypassToken ? 'present' : 'missing',
