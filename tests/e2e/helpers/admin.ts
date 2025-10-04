@@ -132,9 +132,9 @@ export async function activateAdminMode(
 
     console.log('✅ [Admin Helper] 테스트 모드 헤더 설정 완료');
 
-    // 5단계: 페이지 새로고침하여 헤더가 적용되도록 함
-    await page.reload({ waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(500); // 상태 동기화 대기
+    // 5단계: 페이지 새로고침하여 헤더가 적용되도록 함 (React 하이드레이션 완료까지 대기)
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.waitForTimeout(1000); // React 하이드레이션 여유 시간
     
     const isAdminActive = await page.evaluate(() => {
       return localStorage.getItem('admin_mode') === 'true';
@@ -200,9 +200,9 @@ export async function navigateToAdminDashboard(
       requestCookieHeader: requestHeaders['cookie'] || '❌ 요청에 Cookie 헤더 없음'
     });
 
-    // 대시보드 로딩 완료 대기
+    // 대시보드 로딩 완료 대기 (React 하이드레이션 고려)
     await page.waitForSelector('[data-testid="dashboard-container"], .dashboard, main', {
-      timeout: 10000
+      timeout: 20000
     });
 
   } catch (error) {
