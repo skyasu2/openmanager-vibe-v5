@@ -171,8 +171,23 @@ export async function navigateToAdminDashboard(
       await activateAdminMode(page);
     }
 
+    // 🔍 요청 인터셉션: 쿠키 전송 확인
+    let requestHeaders: Record<string, string> = {};
+    await page.route('**/dashboard**', async (route) => {
+      const request = route.request();
+      requestHeaders = request.headers();
+      
+      console.log('🔍 [Request Intercept] /dashboard 요청 헤더:', {
+        cookie: requestHeaders['cookie'] || '❌ Cookie 헤더 없음',
+        'x-test-mode': requestHeaders['x-test-mode'],
+        'user-agent': requestHeaders['user-agent']
+      });
+      
+      await route.continue();
+    });
+
     // 대시보드로 이동
-    await page.goto('/dashboard');
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
 
     // 디버깅: 실제 URL과 쿠키 확인
     const actualUrl = page.url();
@@ -181,15 +196,14 @@ export async function navigateToAdminDashboard(
 
     console.log('🔍 [Admin Helper] 대시보드 이동 후 상태:', {
       actualUrl,
-      testModeCookies: testModeCookies.map(c => ({ name: c.name, value: c.value, domain: c.domain }))
+      testModeCookies: testModeCookies.map(c => ({ name: c.name, value: c.value, domain: c.domain })),
+      requestCookieHeader: requestHeaders['cookie'] || '❌ 요청에 Cookie 헤더 없음'
     });
 
     // 대시보드 로딩 완료 대기
     await page.waitForSelector('[data-testid="dashboard-container"], .dashboard, main', {
       timeout: 10000
     });
-
-    console.log('✅ [Admin Helper] 관리자 대시보드 이동 완료');
 
   } catch (error) {
     console.error('❌ [Admin Helper] 관리자 대시보드 이동 실패:', error);
