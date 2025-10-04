@@ -33,7 +33,8 @@ export async function activateAdminMode(
   } = {}
 ): Promise<AdminAuthResponse> {
   // 프로덕션 환경에서는 password 모드 강제
-  const isProduction = await page.evaluate(() => process.env.NODE_ENV === 'production');
+  const pageUrl = page.url();
+  const isProduction = pageUrl.includes('vercel.app');
 
   const {
     method = isProduction ? 'password' : 'bypass',

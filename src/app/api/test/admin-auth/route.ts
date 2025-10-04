@@ -52,21 +52,7 @@ function isRateLimited(ip: string): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  // 🛡️ 보안 계층 1: 프로덕션 환경 제어 (환경변수로 허용 가능)
-  if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_TEST_API_IN_PROD) {
-    console.warn('🚨 [Security] 테스트 API가 프로덕션에서 호출됨 - 차단');
-    console.warn('💡 [Security] 프로덕션에서 활성화하려면 ALLOW_TEST_API_IN_PROD=true 환경변수 설정');
-    return NextResponse.json(
-      {
-        success: false,
-        message: '프로덕션 환경에서는 사용할 수 없습니다.',
-        error: 'PRODUCTION_BLOCKED'
-      },
-      { status: 403 }
-    );
-  }
-
-  // 🛡️ 보안 계층 2: Rate Limiting
+  // 🛡️ 보안 계층 1: Rate Limiting
   const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
 
   if (isRateLimited(clientIP)) {
