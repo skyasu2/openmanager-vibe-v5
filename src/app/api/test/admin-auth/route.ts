@@ -183,8 +183,13 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  // 🔍 임시 디버그: 환경변수 확인 (프로덕션 차단 임시 제거)
-  const envToken = process.env.TEST_BYPASS_SECRET?.trim();
+  // 🛡️ 프로덕션 환경 제어 (환경변수로 허용 가능)
+  if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_TEST_API_IN_PROD) {
+    return NextResponse.json(
+      { error: 'Not available in production' },
+      { status: 404 }
+    );
+  }
 
   // 📊 테스트 API 상태 정보 제공
   return NextResponse.json({
@@ -201,12 +206,6 @@ export async function GET() {
     security: {
       layers: ['Production blocking', 'Rate limiting (10 req/min)', 'Bypass token verification (Phase 6)'],
       note: 'PIN은 환경변수 ADMIN_PASSWORD로, Bypass Token은 TEST_BYPASS_SECRET로 관리됩니다.'
-    },
-    debug: {
-      tokenSet: !!envToken,
-      tokenLength: envToken?.length,
-      tokenFirst3: envToken?.substring(0, 3),
-      tokenLast3: envToken?.substring(envToken.length - 3)
     }
   });
 }
