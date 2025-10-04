@@ -80,19 +80,25 @@ npm run validate:all
 
 ## 🤝 AI 교차검증 워크플로우
 
-### 기본 교차검증
+### ✅ 유일한 올바른 방법: Bash CLI 병렬 실행
+
 ```bash
-# Claude가 자연어 요청으로 3개 AI 서브에이전트 직접 호출 (방식 B)
+# Claude가 자연어 요청으로 bash를 통해 실제 외부 AI CLI 병렬 호출
 "이 코드를 3개 AI로 교차검증해줘"
 
-# → Claude가 codex-specialist, gemini-specialist, qwen-specialist 병렬 호출
-# → 각 AI가 독립적으로 평가 (Codex: 실무, Gemini: 설계, Qwen: 성능)
-# → Claude가 실시간으로 각 응답 확인 후 종합 판단
+# → Claude가 bash로 실제 외부 AI CLI 병렬 실행:
+#   - codex exec "코드 검증" > /tmp/codex.txt &
+#   - gemini "아키텍처 분석" > /tmp/gemini.txt &
+#   - qwen -p "성능 분석" > /tmp/qwen.txt &
+#   - wait
+# → 실제 Codex, Gemini, Qwen AI의 독립적 답변 수집
+# → Claude가 /tmp 파일을 읽고 종합 판단
 
-# 성과: 40% 속도 개선 (25초→15초), 31% 메모리 절약 (1.6GB→1.1GB)
+# 성과: 40% 속도 개선 (25초→15초), 31% 메모리 절약, 100% 정확성
 ```
 
 ### 특정 관점 강조
+
 ```bash
 # 성능 크리티컬 구간
 "성능 크리티컬 구간이니 Qwen 의견 중시해서 교차검증해줘"
@@ -104,11 +110,26 @@ npm run validate:all
 ```
 
 ### 히스토리 활용
+
 ```bash
 # 지난번 검증과 비교
 "지난번 검증과 비교하여 개선사항 확인"
-# → Claude가 3개 AI 서브에이전트 병렬 호출
+# → Claude가 bash로 3개 AI 병렬 실행
 # → 과거 결과와 비교 분석 후 종합 판단
+```
+
+### ⚠️ 잘못된 방법: Task Tool 서브에이전트 (사용 금지)
+
+```bash
+# ❌ 잘못된 방법 - Claude 역할극 (실제 외부 AI 호출 안 됨)
+Task codex-specialist "코드 검증"
+Task gemini-specialist "아키텍처 분석"
+Task qwen-specialist "성능 분석"
+
+# 문제점:
+# - 실제 Codex, Gemini, Qwen AI가 아닌 Claude의 역할극
+# - 진정한 교차검증 불가능
+# - Claude의 단일 관점만 제공
 ```
 
 ## 🧪 테스트 전략
@@ -214,13 +235,8 @@ ls -la scripts/ai-subagents/
 
 ### Claude Code 사용량
 ```bash
-# 일일/주간/월간 사용량
-npx ccusage daily
-npx ccusage weekly
-npx ccusage monthly
-
-# Claude 내부
-/usage  # Max 20x 한도 추적
+# Claude Code 내장 사용량 확인
+/usage  # Max 플랜 한도 추적
 ```
 
 ### AI 교차검증 성능

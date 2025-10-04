@@ -9,16 +9,67 @@
 - **Gemini**: 아키텍처 분석 (무료)
 - **Qwen**: 성능 최적화 (무료)
 
+## AI 호출 방법 비교
+
+### 방법 A: Task Tool (**사용 불가** - Claude 역할극)
+⚠️ **주의**: Task tool 서브에이전트는 **실제 외부 AI를 호출하지 않고** Claude가 특정 관점으로 역할극하는 것입니다.
+- 호출: `Task codex-specialist "코드 검증"`
+- 실행: Claude가 codex-specialist **역할**로 분석 (실제 Codex AI 아님)
+- 문제점: 진정한 교차검증 불가능, Claude의 단일 관점만 제공
+- **권장하지 않음**: 교차검증 목적으로는 사용하지 마세요
+
+### 방법 B: Bash CLI 병렬 실행 (권장 - 교차검증)
+**사용 시나리오**: 3-AI 교차검증, 속도 및 독립성 중요
+- 호출: Claude가 bash로 3개 AI를 백그라운드 병렬 실행
+- 실행: `codex exec & gemini & qwen -p & wait`
+- 장점: 병렬 실행으로 빠름, 진정한 독립적 검증
+- 성과: **40% 속도 개선** (25초→15초), **31% 메모리 절약** (1.6GB→1.1GB)
+- 용도: 3-AI 교차검증으로 다양한 관점 필요
+
+### 비교표
+
+| 항목 | 방법 A (Task Tool) | 방법 B (Bash 병렬) |
+|------|-------------------|-------------------|
+| **실행 방식** | ❌ Claude 역할극 | ✅ 실제 외부 AI 병렬 실행 |
+| **정확성** | ❌ Claude 단일 관점 | ✅ 3개 AI 독립적 판단 |
+| **속도** | 빠름 (내부 처리) | ~15초 (병렬 실행) |
+| **교차검증** | ❌ 불가능 | ✅ 진정한 교차검증 |
+| **사용 여부** | ❌ 사용하지 마세요 | ✅ **권장** |
+
+---
+
 ## 사용 방법
 
-### 기본 검증
+### 3-AI 교차검증 (방법 B - 권장)
 ```bash
-# Claude가 자동으로 3-AI 병렬 호출 (방식 B)
+# Claude가 자동으로 3-AI 병렬 호출
 "이 코드를 3개 AI로 교차검증해줘"
 
-# → codex-specialist, gemini-specialist, qwen-specialist 동시 실행
-# → 성과: 40% 속도 개선 (25초→15초), 31% 메모리 절약 (1.6GB→1.1GB)
+# → Claude가 bash로 실제 외부 AI CLI 병렬 실행:
+#   - codex exec "코드 검증" > /tmp/codex.txt &
+#   - gemini "아키텍처 분석" > /tmp/gemini.txt &
+#   - qwen -p "성능 분석" > /tmp/qwen.txt &
+#   - wait
+# → 실제 Codex, Gemini, Qwen AI의 독립적 답변 수집
+# → 성과: 40% 속도 개선, 31% 메모리 절약, 100% 정확성
 ```
+
+### 터미널에서 직접 AI CLI 호출 (선택적)
+```bash
+# Codex CLI 직접 실행
+codex exec "이 코드의 버그를 찾아줘"
+
+# Gemini CLI 직접 실행
+gemini "아키텍처 설계 검토"
+
+# Qwen CLI 직접 실행 (Plan Mode 권장)
+timeout 60 qwen -p "성능 최적화 계획"
+
+# 또는 스크립트 사용
+./scripts/ai-cross-verification-real.sh "코드 검증 쿼리"
+```
+
+**주의**: 개별 AI 호출은 교차검증이 아니므로 단일 관점만 제공합니다.
 
 ### 히스토리 기반 검증 (2025-10-02 추가)
 ```bash

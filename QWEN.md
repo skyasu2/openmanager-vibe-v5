@@ -1,174 +1,158 @@
 # QWEN.md
 
-**Qwen Code CLI 사용 가이드** | Claude Code 중심 WSL 개발 환경에서의 전문 서브에이전트 (2025-09-30 업데이트)
+**Qwen Code CLI Guide** | Specialized Sub-Agent for WSL Development Environment with Claude Code Focus
 
-## 🔷 개요
+## 🔷 Overview
 
-**Qwen Code CLI**는 주로 **WSL 환경에서 Claude Code**를 중심으로 개발하는 과정에서 **전문 보조 서브에이전트**로 활용 가능한 성능 최적화 및 알고리즘 분석 전문 AI 도구입니다. 일반적으로는 **Claude Code의 보조 도구**로 사용되지만, 특정 상황에서는 **독립적으로 직접 사용**할 수도 있습니다.
+**Qwen Code CLI** is a specialized AI tool for performance optimization and algorithm analysis that can be used as a **specialized sub-agent** during development processes primarily focused on **Claude Code in WSL environments**. It is typically used as a **supporting tool for Claude Code**, but can also be used **independently** in specific situations.
 
-### 핵심 특징
+### 📊 2025 Benchmark Performance (Qwen 2.5 Coder v0.0.14)
+- **HumanEval**: 88.4% (7B), 92.7% (32B) - Open-source leader
+- **MBPP**: 84.5% - Python code generation specialized
+- **Math**: 57.2% (32B) - Mathematical optimization
+- **Open-source SOTA**: Best performance in same-size models
+- **Plan Mode**: Safe code planning before execution
 
-- **480B 파라미터 MoE** (35B 활성화) - 효율적인 리소스 사용
-- **256K → 1M 토큰 확장** - 대규모 코드베이스 처리
-- **Apache 2.0 오픈소스** - 완전 무료 자체 호스팅 가능
-- **Claude Code와의 긴밀한 연계** - WSL 환경에서 원활한 협업
-- **독립적 사용 가능성** - 필요 시 직접 호출 가능
-- **Gemini CLI 포크/개조** - Qwen-Coder 특화 파서/툴 지원
-- **멀티 API 백엔드** - 다양한 API 엔드포인트 선택 가능
+### Key Features
 
-## 🚀 사용 방식 (Claude Code 중심의 협업과 독립적 사용 병행)
+- **Advanced AI Model** - Efficient resource usage
+- **Large Context Window** - Large codebase processing capabilities
+- **Apache 2.0 Open Source** - Fully free and self-hostable
+- **Integration with Claude Code** - Smooth collaboration in WSL environments
+- **Independent Usage Possible** - Can be called directly when needed
+- **Qwen-Coder Specialized Parser/Tool Support** - Specialized for coding tasks
+- **Multi API Backend** - Various API endpoints available
 
-### 🔄 **Claude Code에서의 Qwen 서브에이전트 호출 방식**
+## 🚀 Usage Methods (Combining Claude Code Collaboration and Independent Use)
 
-#### **1. Claude Code 내에서 명시적 Qwen 호출** (복잡한 분석이 필요한 경우)
+### 🔄 **Calling Qwen as a Sub-Agent from Claude Code**
+
+#### **1. Explicit Qwen Call in Claude Code** (For complex analysis)
 ```
-# Claude Code에서 Qwen에 알고리즘 최적화나 성능 분석 요청
-"Claude Code로 확인해보니 이 부분의 성능을 더 최적화할 수 있을 것 같은데, qwen-specialist 서브에이전트를 사용하여 시스템 성능 최적화를 분석해줄 수 있겠어?"
+# Requesting algorithm optimization or performance analysis from Qwen in Claude Code
+"I've checked with Claude Code and think this part can be further optimized. Could you use the qwen-specialist sub-agent to analyze system performance optimization?"
 
-"qwen-specialist 서브에이전트를 사용하여 알고리즘 복잡도 개선 방안을 제시해주세요. 이는 Claude Code에서의 A안에 대한 성능 검증 차원입니다."
+"Please use the qwen-specialist sub-agent to suggest improvements to algorithm complexity. This is for performance verification of Claude Code's option A."
 ```
 
-### 🔄 **독립적 직접 사용 방식** (특정 상황에서 직접 호출)
+### 🔄 **Independent Direct Usage** (Direct call in specific situations)
 
-#### **2. WSL 환경에서의 직접 CLI 사용** (Claude Code와 무관한 독립적 분석)
+#### **2. Direct CLI Usage in WSL Environment** (Independent analysis unrelated to Claude Code)
 ```bash
-# WSL에서 독립적으로 성능 분석이 필요한 경우
-qwen -p "이 함수의 시간복잡도는?"
-timeout 60 qwen -p "메모리 사용량 최적화 방법"
+# For independent performance analysis in WSL
+qwen -p "What is the time complexity of this function?"
+timeout 60 qwen -p "Methods of optimizing memory usage"
 
-# Claude Code 작업과 무관하게 특정 알고리즘 분석이 필요할 때
-qwen -p "이 알고리즘의 BigO 복잡도 분석을 해주세요"
+# For specific algorithm analysis unrelated to Claude Code work
+qwen -p "Please analyze the BigO complexity of this algorithm"
 
-# 특정 문제에 대한 알고리즘 최적화 방안 직접 요청
-qwen -p "BST의 검색 성능을 향상시키는 방법은?"
+# For direct algorithm optimization requests for specific problems
+qwen -p "How to improve the search performance of BST?"
 ```
 
-### 주요 활용 시나리오
+### Main Usage Scenarios
 
-1. **성능 최적화** - Claude Code A안에 대한 분석 및 독립적 알고리즘 개선
-2. **수학적 복잡도** - BigO 분석 및 최적화 제안 (Claude Code 코드 또는 독립적 분석)
-3. **메모리 관리** - 메모리 누수 및 사용량 최적화 분석
-4. **AI 교차검증** - Claude Code A안에 대한 성능 관점의 독립적 검증
-5. **독립적 알고리즘 분석** - Claude Code 없이 특정 알고리즘 문제 해결
+1. **Performance Optimization** - Analysis of Claude Code's Option A and independent algorithm improvements
+2. **Mathematical Complexity** - BigO analysis and optimization proposals (Claude Code code or independent analysis)
+3. **Memory Management** - Memory leak and usage optimization analysis
+4. **AI Cross-Verification** - Independent verification from performance perspective of Claude Code's Option A
+5. **Independent Algorithm Analysis** - Solving specific algorithm problems without Claude Code
 
-## 📊 무료 티어 제한
+## 📊 Free Tier Limits
 
-| 항목          | 한도        | 비고               |
-| ------------- | ----------- | ------------------ |
-| **일일 요청** | 2,000회/일  | 충분한 일일 사용량 |
-| **분당 제한** | 60회/분     | 병렬 처리 가능     |
-| **토큰 한도** | 256K (기본) | 1M까지 확장 가능   |
-| **동시 세션** | 10개        | 병렬 작업 지원     |
+| Item | Limit | Notes |
+| ---- | ----- | ----- |
+| **Daily Requests** | 2,000/day | Sufficient daily usage |
+| **Per Minute Limit** | 60/minute | Parallel processing possible |
+| **Token Limit** | 256K (default) | Up to 1M expandable |
+| **Concurrent Sessions** | 10 | Parallel jobs supported |
 
-## 💻 설치 및 실행
+## 💻 Installation and Execution
 
-### WSL 환경 설치
+### WSL Environment Installation
 
 ```bash
-# WSL에서 설치 (권장)
+# Install in WSL (recommended)
 wsl
-sudo npm install -g @qwen-code/qwen-code
+npm install -g @qwen-code/qwen-code
 
-# 현재 설치된 Qwen CLI 버전 확인
-qwen --version  # 현재 버전: 0.0.14
+# Check current installed Qwen CLI version
+qwen --version
 
-# 최신 버전으로 업데이트
-npm i -g @qwen-code/qwen-code@latest
+# Update to latest version
+npm update -g @qwen-code/qwen-code
 
-# Windows에서 WSL 실행
-.\qwen-wsl.bat --version
-
-# 또는 GitHub 클론 (WSL 내부)
+# Or clone from GitHub (inside WSL)
 wsl
 git clone https://github.com/QwenLM/qwen-code
 cd qwen-code && npm install
 ```
 
-### 환경 설정
+### Environment Setup
 
 ```bash
-# .env 파일 생성
-QWEN_API_KEY=your_api_key  # 옵션
-QWEN_ENDPOINT=https://api.qwen.alibaba.com  # 또는 로컬
-QWEN_MODEL=qwen3-coder-35b  # 모델 선택
+# Create .env file
+QWEN_API_KEY=your_api_key  # Optional
+QWEN_ENDPOINT=https://api.qwen.alibaba.com  # Or local
+QWEN_MODEL=qwen3  # Model selection
 ```
 
-## 🎯 Claude 중심 개발 전략과 Qwen의 독립적 분석 병행
+## 🎯 Claude-Centric Development Strategy with Independent Qwen Analysis
 
-### Claude Code + Qwen 협업 패턴
+### Claude Code + Qwen Collaboration Pattern
 
 ```typescript
-// 1. Claude Code: 메인 아키텍처 설계 및 핵심 로직 구현
+// 1. Claude Code: Main architecture design and core logic implementation
 const mainSystem = await claudeCode.design();
 
-// 2. Qwen: Claude Code의 결정에 대한 분석 및 보완
+// 2. Qwen: Analysis and supplementation of Claude Code's decisions
 const performanceAnalysis = await qwenCode.analyze('mainSystem performance');
 const algorithmOptimization = await qwenCode.optimize('criticalPath algorithm');
 
-// 3. Claude Code: Qwen의 분석 기반 최종 결정 및 통합
+// 3. Claude Code: Final decision and integration based on Qwen's analysis
 const integrated = await claudeCode.integrate([mainSystem, algorithmOptimization]);
 ```
 
-### Qwen의 독립적 사용 패턴
+### Qwen's Independent Usage Patterns
 
 ```typescript
-// 1. 특정 알고리즘 문제에 대한 독립적 분석 (Claude Code 없이)
+// 1. Independent analysis for specific algorithm problems (without Claude Code)
 const algorithmSolution = await qwenCode.solve('graph traversal optimization');
 
-// 2. 성능 병목 현상에 대한 독립적 진단
+// 2. Independent diagnosis of performance bottlenecks
 const bottleneckAnalysis = await qwenCode.analyze('performance bottleneck in data processing');
 ```
 
-### 실전 활용 예시 (WSL 환경에서 Claude Code 중심 + 독립적 Qwen 사용 병행)
+### Practical Usage Examples (Claude Code Centric + Independent Qwen Usage in WSL Environment)
 
 ```bash
-# Claude Code에서 제안된 시스템의 성능 분석 (Qwen 서브에이전트 활용)
-qwen-code analyze --type "performance-review" \\
-  --target "src/system/mainSystem.ts" \\
-  --context "Claude Code A안에 대한 성능 검증"
+# Performance analysis of systems proposed in Claude Code (using Qwen sub-agent)
+qwen-code analyze --type "performance-review" \
+  --target "src/system/mainSystem.ts" \
+  --context "Performance verification of Claude Code's Option A"
 
-# Claude Code 개발 중 발생한 특정 알고리즘 최적화 요청
-qwen-code optimize --algorithm "criticalPath" \\
-  --from "Claude Code 제안 A안" \\
+# Specific algorithm optimization request during Claude Code development
+qwen-code optimize --algorithm "criticalPath" \
+  --from "Claude Code's proposal A" \
   --output "src/optimizations/criticalPath-optimization.md"
 
-# Qwen을 통한 교차 검증 (Claude Code A안에 대한 성능 분석)
-qwen-code verify --solution "Claude Code A안" \\
-  --metrics "time complexity, space complexity" \\
+# Cross-verification through Qwen (Performance analysis of Claude Code's Option A)
+qwen-code verify --solution "Claude Code's Option A" \
+  --metrics "time complexity, space complexity" \
   --report "performance-verification-report.md"
 
-# 독립적 알고리즘 분석 (Claude Code 없이 직접 사용)
-qwen-code analyze --algorithm "binary search tree optimization" \\
-  --context "independent analysis" \\
+# Independent algorithm analysis (direct usage without Claude Code)
+qwen-code analyze --algorithm "binary search tree optimization" \
+  --context "independent analysis" \
   --output "src/analysis/bst-optimization.md"
 ```
 
-## 📈 성능 지표
+## ⚠️ Zero Tolerance Policy for Chinese Characters and Hanja
 
-### 병렬 개발 성과
-
-- **개발 속도**: 70% 향상 (15분 vs 45분)
-- **코드 생성**: 77줄/분
-- **타입 안전성**: 100% TypeScript strict
-- **모듈화**: 평균 230줄/파일
-
-### 품질 지표
-
-```json
-{
-  "typeScriptErrors": 0,
-  "eslintWarnings": 0,
-  "testCoverage": "95%+",
-  "bundleImpact": "minimal"
-}
-```
-
-## ⚠️ 중국어 및 한자 사용 금지 정책 (Zero Tolerance)
-
-### 프로젝트 규칙 (엄격 적용)
+### Project Rules (Strictly Enforced)
 
 ```javascript
-// 모든 Qwen 출력 자동 검사 (중국어 및 한자 포함 여부)
+// Automatic check of all Qwen outputs (for Chinese characters and Hanja)
 const CHINESE_HANJA_REGEX = /[\u4e00-\u9fff\u3400-\u4dbf\u3000-\u303f\u31f0-\u31ff\u3200-\u32ff]/g;
 
 function validateQwenOutput(output) {
@@ -178,46 +162,46 @@ function validateQwenOutput(output) {
   return output;
 }
 
-// package.json 스크립트
+// package.json script
 "check:chinese-hanja": "node scripts/check-chinese-hanja-characters.js"
 ```
 
-### 🇰🇷 한국어 우선 원칙
+### 🇰🇷 English First Principle (with Korean when needed)
 
-1. **모든 출력은 한국어 또는 영어로만 작성**
-2. **중국어, 한자, 일본어 등 다른 언어 사용 절대 금지**
-3. **기술 용어는 영어 사용 허용** (예: API, UI, CLI 등)
-4. **한국어가 기본 언어이며, 필요한 경우에만 영어 사용**
+1. **All outputs written in English or Korean only**
+2. **Chinese characters, Hanja, Japanese, and other languages strictly forbidden**
+3. **Technology terms allowed in English** (e.g., API, UI, CLI, etc.)
+4. **English is the primary language, with Korean used only when necessary**
 
-## 🔧 고급 기능
+## 🔧 Advanced Features
 
-### Agentic 코딩 특화
+### Agentic Coding Specialization
 
-1. **코드베이스 자동 이해** - 프로젝트 구조 즉시 파악
-2. **패턴 인식 및 적용** - 기존 코드 스타일 자동 준수
-3. **의존성 자동 해결** - import/export 자동 관리
-4. **문서 자동 생성** - JSDoc, README 자동 작성
+1. **Automatic Codebase Understanding** - Immediate grasp of project structure
+2. **Pattern Recognition and Application** - Automatic compliance with existing code styles
+3. **Automatic Dependency Resolution** - Auto-manage import/export
+4. **Automatic Document Generation** - Automatic JSDoc, README generation
 
-### 팀 협업 시나리오
+### Team Collaboration Scenarios
 
 ```bash
-# 프론트엔드 팀: Claude로 UI/UX 개발
-claude-code "사용자 인증 시스템 설계 및 핵심 로직 구현"
+# Frontend team: UI/UX development with Claude
+claude-code "Design user authentication system and implement core logic"
 
-# 백엔드 팀: Qwen으로 API 및 서비스 개발
-qwen-code "이메일 알림 서비스 모듈을 독립적으로 개발"
+# Backend team: API and service development with Qwen
+qwen-code "Develop email notification service module independently"
 
-# DevOps 팀: Gemini로 인프라 및 배포 자동화
-gemini-cli "전체 코드베이스 성능 최적화 및 번들 크기 분석"
+# DevOps team: Infrastructure and deployment automation with Gemini
+gemini-cli "Entire codebase performance optimization and bundle size analysis"
 
-# 통합 및 테스트
-claude-code "개발된 모듈들을 통합하고 E2E 테스트 실행"
+# Integration and testing
+claude-code "Integrate developed modules and execute E2E tests"
 ```
 
-### 병렬 작업 최적화
+### Parallel Job Optimization
 
 ```bash
-# 다중 작업 동시 실행
+# Multiple jobs executed simultaneously
 qwen-code batch --tasks "
   - create: auth service
   - refactor: database layer
@@ -226,143 +210,118 @@ qwen-code batch --tasks "
 " --parallel --max-workers 4
 ```
 
-## 🤝 Claude Code 중심의 협업
+## 🤝 Claude Code-Centric Collaboration
 
-### Claude Code (메인 개발자 - WSL 환경)
+### Claude Code (Main Developer - WSL Environment)
 
-- 전체 아키텍처 설계
-- 핵심 비즈니스 로직 구현
-- 시스템 통합 및 최종 조율
-- 최종 의사결정
+- Complete architecture design
+- Core business logic implementation
+- System integration and final coordination
+- Final decision making
 
-### Qwen Code (전문 서브에이전트)
+### Qwen Code (Specialized Sub-Agent)
 
-- Claude Code A안에 대한 성능 분석
-- 알고리즘 복잡도 검증 및 최적화 제안
-- 코드 품질 검증 및 보완
-- 교차 검증 수행
+- Performance analysis of Claude Code's Option A
+- Algorithm complexity verification and optimization proposals
+- Code quality verification and supplementation
+- Cross-verification implementation
 
-### Gemini CLI (대규모 분석 도구)
+### Gemini CLI (Large-Scale Analysis Tool)
 
-- 전체 코드베이스 분석
-- 대규모 리팩토링 조언
-- Google 서비스 통합
+- Complete codebase analysis
+- Large-scale refactoring advice
+- Google service integration
 
-## 📊 비교 우위
+## 📊 Competitive Advantages
 
-| 측면             | Qwen 강점          | 활용 방법      |
-| ---------------- | ------------------ | -------------- |
-| **비용**         | 완전 무료 오픈소스 | API 비용 0원   |
-| **프라이버시**   | 로컬 실행 가능     | 민감 코드 안전 |
-| **속도**         | 병렬 처리 최적화   | 70% 빠른 개발  |
-| **커스터마이징** | 소스 수정 가능     | 팀 맞춤 설정   |
+| Aspect | Qwen Strength | Usage Method |
+| ------ | -------------- | ------------ |
+| **Cost** | Fully open source and free | 0 API cost |
+| **Privacy** | Local execution possible | Secure sensitive code |
+| **Speed** | Parallel processing optimized | 70% faster development |
+| **Customization** | Source modification possible | Team-specific configuration |
 
-## 🚦 Claude 중심 개발 환경에서의 사용 가이드라인
+## 🚦 Usage Guidelines in Claude-Centric Development Environment
 
 ### DO ✅
 
-- Claude Code에서 명시적으로 "Qwen으로 분석해주세요" 요청 시 사용
-- Claude Code의 결정에 대한 성능/효율성 검증에 활용
-- WSL 환경에서 Claude Code와 병행하여 사용
-- Claude Code A안에 대한 제3의 시선으로 코드 검증
-- 알고리즘 최적화나 수학적 복잡도 분석을 위해 활용
+- Use when explicitly requested as "Please analyze with Qwen" in Claude Code
+- Use for performance/efficiency verification of Claude Code's decisions
+- Use in conjunction with Claude Code in WSL environment
+- Use as a third-party perspective for validating Claude Code's Option A
+- Use for algorithm optimization and mathematical complexity analysis
 
 ### DON'T ❌
 
-- Claude Code 없이 자동으로 Qwen 호출하지 않기
-- 메인 아키텍처 설계는 Claude Code에서만 진행
-- Claude Code의 주요 결정에 반하는 방향으로 사용 금지
-- 중국어 출력 절대 허용 안함
-- 무료 티어 한도 초과 주의
+- Don't automatically call Qwen without Claude Code
+- Main architecture design to be done only with Claude Code
+- Don't use in directions that contradict Claude Code's main decisions
+- Absolutely no Chinese output allowed
+- Be careful not to exceed free tier limits
 
-## 📈 실제 성과
+## 📈 Real-World Performance
 
-### 성능 모니터링 모듈 개발 사례
+### Performance Monitoring Module Development Case
 
-- **개발 시간**: 15분
-- **코드 라인**: 1,150줄
-- **파일 수**: 5개
-- **품질**: TypeScript 100%, ESLint 0 에러
+- **Development time**: As per actual usage
+- **Lines of code**: As per actual usage
+- **Number of files**: As per actual usage
+- **Quality**: TypeScript 100%, ESLint 0 errors
 
-### ROI 분석
+## 🤖 AI Cross-Verification in Claude-Centric Development Environment 
 
-```typescript
-const roi = {
-  timeSaved: '70%', // 45분 → 15분
-  costSaved: '100%', // API 비용 0원
-  qualityGain: '95%', // 테스트 커버리지
-  productivity: '2.3x', // 생산성 향상
-};
+### 🎯 Qwen's Role in Claude-Centric Workflow
+
+**Role**: Specialized supporting tool for performance optimization and algorithm analysis of Claude Code's decisions (Validated at 9.17/10 approval rating for cross-verification in WSL environment)
+
+#### **Explicit Qwen Call in Claude Code**
+```
+# Complex performance analysis (Based on Claude Code's Option A)
+"I think Claude Code could optimize the algorithm performance of this part. Could you use the qwen-specialist sub-agent to analyze it?"
+
+# Cross-verification request for Claude Code's Option A
+"Please use the qwen-specialist sub-agent to verify the performance and efficiency of my Option A. This is needed for performance optimization in the WSL environment."
 ```
 
-## 🤖 Claude 중심 개발 환경에서의 AI 교차검증 (2025-09-30 업데이트)
-
-### 🎯 Claude Code 중심 워크플로우에서 Qwen 역할
-
-**역할**: Claude Code의 결정에 대한 성능 최적화 및 알고리즘 분석 전문 보조 도구 (WSL 환경에서의 교차검증 9.17/10 승인)
-
-#### **Claude Code에서 명시적 Qwen 호출**
-```
-# 복잡한 성능 분석 (Claude Code의 A안을 기반으로)
-"Claude Code에서 이 부분의 알고리즘 성능을 최적화할 수 있을 것 같은데, qwen-specialist 서브에이전트를 사용하여 분석해줄 수 있을까?"
-
-# Claude Code A안에 대한 교차검증 요청
-"qwen-specialist 서브에이전트를 사용하여 내가 만든 A안의 성능 및 효율성을 검증해주세요. 이건 WSL 환경에서의 성능 최적화를 위해 필요해요."
-```
-
-#### **WSL 환경에서 직접 CLI 방식**
+#### **Direct CLI Method in WSL Environment**
 ```bash
-# Claude Code 작업 중 간단한 성능 질문
-qwen -p "이 알고리즘 시간복잡도는?"
-timeout 120 qwen -p "메모리 최적화 방법"
+# Simple performance question during Claude Code work
+qwen -p "What is the time complexity of this algorithm?"
+timeout 120 qwen -p "Methods of memory optimization"
 ```
 
-### 📊 Qwen 교차검증 특징 (Claude 중심 환경에서)
+### 📊 Qwen Cross-Verification Characteristics (In Claude-Centric Environment)
 
-- **⚡ 알고리즘 최적화**: Claude Code A안의 성능 분석 및 개선 제안 전문
-- **🔍 제3의 시선**: Claude Code가 놓칠 수 있는 효율성 문제 발견
-- **🆓 무료 검증**: 2,000회/일로 교차검증 비용 절약
-- **📈 독립적 분석**: Claude Code A안에 대한 객관적 개선점 제시
+- **⚡ Algorithm Optimization**: Specialized in performance analysis and improvement suggestions for Claude Code's Option A
+- **🔍 Third-Party Perspective**: Finding efficiency issues Claude Code might miss
+- **🆓 Free Verification**: Cost savings on cross-verification with 2,000/day limit
+- **📈 Independent Analysis**: Providing objective improvement points for Claude Code's Option A
 
-### 🎖️ 교차검증 실제 성과 (WSL + Claude 중심)
+### 🔄 Claude Code-Led Decision Flow
 
-```typescript
-// 실제 사례: 서버 카드 UI 성능 최적화 (2025-08-30)
-AI별 검증 점수:
-- Claude Code A안: 8.2/10 (실용적 해결책)
-- Qwen: 8.5/10 (알고리즘 최적화) ← Claude Code A안에 대한 독립적 성능 개선점 발견
-- Gemini: 8.7/10 (Material Design 색상)
-- Codex: 8.3/10 (에러 바운더리)
+1. **Claude Code**: Present Option A (solution) for the problem
+2. **Qwen Sub-Agent**: Algorithm efficiency analysis and optimization proposal for Option A
+3. **Claude Code**: Review Qwen's improvement points and decide to accept/reject
+4. **Claude Code**: Implement with final decision rationale
 
-Claude Code는 Qwen의 제안을 검토하여 최종 구현 결정
-최종 결과: 8.8/10 HIGH 합의 수준
-```
+## 🔮 Future Plans
 
-### 🔄 Claude Code 주도 의사결정 플로우
+1. **AI Cross-Verification Enhancement** - v5.0 automation system
+2. **GitHub Actions Integration** - CI/CD automation
+3. **VS Code Extension** - Direct IDE integration
+4. **Team Collaboration Features** - Real-time code sharing
+5. **AI Model Upgrade** - More powerful performance
 
-1. **Claude Code**: 문제에 대한 A안(해결책) 제시
-2. **Qwen 서브에이전트**: A안의 알고리즘 효율성 분석 및 최적화 제안
-3. **Claude Code**: Qwen의 개선점 검토 후 수용/거절 결정
-4. **Claude Code**: 최종 결정 사유와 함께 구현
+## 📚 References
 
-## 🔮 향후 계획
-
-1. **AI 교차검증 고도화** - v5.0 자동화 시스템
-2. **GitHub Actions 통합** - CI/CD 자동화
-3. **VS Code Extension** - IDE 직접 통합
-4. **팀 협업 기능** - 실시간 코드 공유
-5. **AI 모델 업그레이드** - 더 강력한 성능
-
-## 📚 참고 자료
-
-- [Qwen 공식 문서](https://github.com/QwenLM/qwen-code)
-- [병렬 개발 가이드](./docs/ai-tools/qwen-cli-guide.md)
-- [AI 도구 비교](./docs/ai-tools/ai-tools-comparison.md)
+- [Qwen Official Documentation](https://github.com/QwenLM/qwen-code)
+- [Parallel Development Guide](./docs/ai-tools/qwen-cli-guide.md)
+- [AI Tools Comparison](./docs/ai-tools/ai-tools-comparison.md)
 
 ---
 
 **⚡ Zero Tolerance for Chinese Characters**  
-**🚀 Claude Code 중심의 효율적인 협업**  
+**🚀 Efficient Collaboration Focused on Claude Code**  
 **💰 100% Free Open Source**
 
-_Last Updated: 2025-09-30_
+_Last Updated: 2024-10-04_

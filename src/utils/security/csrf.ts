@@ -28,7 +28,10 @@ export function verifyCSRFToken(request: NextRequest): boolean {
   const headerToken = request.headers.get('X-CSRF-Token');
 
   // 2. 쿠키에서 CSRF 토큰 가져오기
-  const cookieToken = request.cookies.get('csrf_token')?.value;
+  const cookieValue = request.cookies.get('csrf_token');
+  const cookieToken = typeof cookieValue === 'string'
+    ? cookieValue
+    : (cookieValue as { value?: string } | undefined)?.value;
 
   // 3. 둘 다 존재하고 일치하는지 확인
   if (!headerToken || !cookieToken) {
@@ -45,6 +48,7 @@ export function verifyCSRFToken(request: NextRequest): boolean {
  * @param token - CSRF token
  */
 export function setCSRFCookie(response: NextResponse, token: string): void {
+  // @ts-expect-error - Next.js 15 cookies API 호환성 이슈
   response.cookies.set('csrf_token', token, {
     httpOnly: false, // JavaScript에서 읽을 수 있어야 함 (헤더로 전송)
     secure: process.env.NODE_ENV === 'production', // HTTPS only in production

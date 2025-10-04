@@ -7,7 +7,7 @@
 
 'use client';
 
-import { User } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import debug from '@/utils/debug';
@@ -19,10 +19,44 @@ import { signInWithGitHub } from '@/lib/supabase-auth';
 import type { AuthUser } from '@/lib/auth-state-manager';
 import { authStateManager } from '@/lib/auth-state-manager';
 
+// AI 텍스트 렌더링 유틸리티
+import { renderTextWithAIGradient } from '@/utils/text-rendering';
+
 interface GuestSessionData {
   sessionId: string;
   user: AuthUser;
 }
+
+// 🎯 상수 정의
+const LOADING_MESSAGE_INTERVAL_MS = 1500; // 로딩 메시지 변경 간격
+const SUCCESS_MESSAGE_TIMEOUT_MS = 3000; // 성공 메시지 자동 숨김 시간
+const COOKIE_MAX_AGE_SECONDS = 2 * 60 * 60; // 쿠키 만료 시간 (2시간)
+const PAGE_REDIRECT_DELAY_MS = 500; // 페이지 이동 지연
+const PULSE_ANIMATION_DURATION_MS = 600; // 펄스 애니메이션 시간
+
+// 🎨 로딩 오버레이 컴포넌트 (코드 중복 제거)
+const LoadingOverlay = ({
+  type,
+}: {
+  type: 'github' | 'guest';
+}) => {
+  const progressGradient =
+    type === 'github'
+      ? 'from-green-500 to-blue-500'
+      : 'from-blue-400 to-purple-500';
+
+  return (
+    <>
+      {/* Shimmer 효과 */}
+      <div className="_animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
+      {/* 프로그레스 바 */}
+      <div
+        className={`_animate-progress absolute bottom-0 left-0 h-1 bg-gradient-to-r ${progressGradient}`}
+      />
+    </>
+  );
+};
 
 export default function LoginClient() {
   const router = useRouter();
@@ -67,7 +101,7 @@ export default function LoginClient() {
     const interval = setInterval(() => {
       messageIndex = (messageIndex + 1) % currentMessages.length;
       setLoadingMessage(currentMessages[messageIndex] ?? '로딩 중...');
-    }, 1500); // 1.5초마다 메시지 변경
+    }, LOADING_MESSAGE_INTERVAL_MS);
 
     return () => clearInterval(interval);
   }, [loadingType]);
@@ -81,7 +115,7 @@ export default function LoginClient() {
         setLoadingType(null);
         setLoadingMessage('');
         setSuccessMessage('로그인이 취소되었습니다.');
-        setTimeout(() => setSuccessMessage(null), 3000);
+        setTimeout(() => setSuccessMessage(null), SUCCESS_MESSAGE_TIMEOUT_MS);
       }
     };
 
@@ -145,18 +179,22 @@ export default function LoginClient() {
       // 🍪 쿠키 저장 (middleware 인식용, HTTPS 환경 대응)
       const isProduction = window.location.protocol === 'https:';
       const secureFlag = isProduction ? '; Secure' : '';
-      document.cookie = `guest_session_id=${guestSession.sessionId}; path=/; max-age=${2 * 60 * 60}; SameSite=Lax${secureFlag}`;
-      document.cookie = `auth_type=guest; path=/; max-age=${2 * 60 * 60}; SameSite=Lax${secureFlag}`;
+      // 🔒 보안: encodeURIComponent로 쿠키 값 인코딩 (세미콜론, 등호 방어)
+      document.cookie = `guest_session_id=${encodeURIComponent(guestSession.sessionId)}; path=/; max-age=${COOKIE_MAX_AGE_SECONDS}; SameSite=Lax${secureFlag}`;
+      document.cookie = `auth_type=guest; path=/; max-age=${COOKIE_MAX_AGE_SECONDS}; SameSite=Lax${secureFlag}`;
 
       debug.log(
         '✅ 게스트 세션 저장 완료 (localStorage + 쿠키), 페이지 이동:',
         guestSession.user.name
       );
-      
+
       // 강제 페이지 새로고침과 함께 이동 (쿠키가 확실히 적용되도록)
-      setTimeout(() => {
+      const redirectTimer = setTimeout(() => {
         window.location.href = '/main';
-      }, 500);
+      }, PAGE_REDIRECT_DELAY_MS);
+
+      // 🧹 Cleanup: 컴포넌트 언마운트 시 타이머 정리 (메모리 누수 방지)
+      return () => clearTimeout(redirectTimer);
     }
   }, [guestSession]); // router 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
@@ -164,7 +202,7 @@ export default function LoginClient() {
   const handleGitHubLogin = async () => {
     try {
       setShowPulse('github');
-      setTimeout(() => setShowPulse(null), 600); // 애니메이션 시간과 동일
+      setTimeout(() => setShowPulse(null), PULSE_ANIMATION_DURATION_MS);
 
       setIsLoading(true);
       setLoadingType('github');
@@ -185,8 +223,11 @@ export default function LoginClient() {
 
         // 더 구체적인 에러 메시지
         let errorMsg = 'GitHub 로그인에 실패했습니다.';
-        const errorMessage = (error as any)?.message || '';
-        const errorCode = (error as any)?.code || '';
+        // 🎯 TypeScript strict: error 타입 명시
+        type AuthError = { message?: string; code?: string };
+        const authError = error as AuthError;
+        const errorMessage = authError?.message || '';
+        const errorCode = authError?.code || '';
 
         if (errorMessage.includes('Invalid login credentials')) {
           errorMsg = 'GitHub 인증 정보가 올바르지 않습니다.';
@@ -227,7 +268,7 @@ export default function LoginClient() {
   const handleGuestLogin = async () => {
     try {
       setShowPulse('guest');
-      setTimeout(() => setShowPulse(null), 600); // 애니메이션 시간과 동일
+      setTimeout(() => setShowPulse(null), PULSE_ANIMATION_DURATION_MS);
 
       setIsLoading(true);
       setLoadingType('guest');
@@ -269,19 +310,22 @@ export default function LoginClient() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black p-3 sm:p-4">
       <div className="w-full max-w-md">
         {/* 헤더 */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600">
-            <span className="text-2xl font-bold text-white">OM</span>
+          {/* ✨ 개선된 로고: Sparkles 아이콘 + AI 그라데이션 */}
+          <div className="mx-auto mb-4 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 shadow-lg shadow-purple-500/50 animate-pulse-slow">
+            <Sparkles className="h-6 w-6 sm:h-9 sm:w-9 text-white" strokeWidth={2.5} />
           </div>
           <h1 className="mb-2 text-3xl font-bold text-white">OpenManager</h1>
-          <p className="text-gray-400">AI 서버 모니터링 시스템</p>
+          <p className="text-base text-gray-300">
+            {renderTextWithAIGradient('AI 서버 모니터링 시스템', isClient)}
+          </p>
         </div>
 
         {/* 로그인 폼 */}
-        <div className="rounded-xl border border-gray-700 bg-gray-800 p-8 shadow-2xl">
+        <div className="rounded-xl border border-gray-700 bg-gray-800 p-6 sm:p-8 shadow-2xl">
           <h2 className="mb-6 text-center text-xl font-semibold text-white">
             로그인 방식을 선택하세요
           </h2>
@@ -322,14 +366,7 @@ export default function LoginClient() {
               className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-lg border border-gray-600 bg-[#24292e] px-4 py-3 text-white shadow-lg transition-all duration-200 hover:bg-[#1a1e22] hover:shadow-xl disabled:cursor-progress disabled:opacity-70"
             >
               {/* 로딩 오버레이 */}
-              {loadingType === 'github' && (
-                <div className="_animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-              )}
-
-              {/* 프로그레스 바 */}
-              {loadingType === 'github' && (
-                <div className="_animate-progress absolute bottom-0 left-0 h-1 bg-gradient-to-r from-green-500 to-blue-500" />
-              )}
+              {loadingType === 'github' && <LoadingOverlay type="github" />}
 
               {/* 클릭 펄스 애니메이션 */}
               {showPulse === 'github' && (
@@ -363,7 +400,7 @@ export default function LoginClient() {
                 <div className="w-full border-t border-gray-600" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-gray-800 px-2 text-gray-400">또는</span>
+                <span className="bg-gray-800 px-2 text-gray-300">또는</span>
               </div>
             </div>
 
@@ -374,14 +411,7 @@ export default function LoginClient() {
               className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 text-white shadow-lg transition-all duration-200 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl disabled:cursor-progress disabled:opacity-70"
             >
               {/* 로딩 오버레이 */}
-              {loadingType === 'guest' && (
-                <div className="_animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-              )}
-
-              {/* 프로그레스 바 */}
-              {loadingType === 'guest' && (
-                <div className="_animate-progress absolute bottom-0 left-0 h-1 bg-gradient-to-r from-blue-400 to-purple-500" />
-              )}
+              {loadingType === 'guest' && <LoadingOverlay type="guest" />}
 
               {/* 클릭 펄스 애니메이션 */}
               {showPulse === 'guest' && (
@@ -401,22 +431,22 @@ export default function LoginClient() {
           {/* 로딩 중 추가 안내 */}
           {isLoading && (
             <div className="_animate-fadeIn mt-4 space-y-1 text-center">
-              <p className="text-xs text-gray-400">예상 소요 시간: 3-5초</p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-300">예상 소요 시간: 3-5초</p>
+              <p className="text-xs text-gray-400">
                 ESC 키를 눌러 취소할 수 있습니다
               </p>
             </div>
           )}
 
           {/* 안내 텍스트 */}
-          <div className="mt-6 space-y-2 text-center text-sm text-gray-400">
+          <div className="mt-6 space-y-2 text-center text-sm text-gray-300">
             <p>
               🔐 <strong>GitHub 로그인</strong>: 개인화된 설정과 고급 기능
             </p>
             <p>
               👤 <strong>게스트 모드</strong>: 인증 없이 기본 기능 사용
             </p>
-            <p className="mt-4 text-xs text-gray-500">
+            <p className="mt-4 text-xs text-gray-400">
               모든 로그인 방식은 OpenManager 메인 페이지(/main)로 이동합니다
             </p>
           </div>
@@ -424,7 +454,7 @@ export default function LoginClient() {
 
         {/* 푸터 */}
         <div className="mt-8 text-center">
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-400">
             OpenManager Vibe v5.44.3 • Supabase Auth (GitHub OAuth + 게스트)
           </p>
         </div>

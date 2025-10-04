@@ -2,29 +2,11 @@
 
 import FeatureCardModal from '@/components/shared/FeatureCardModal';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { renderAIGradientWithAnimation } from '@/utils/text-rendering';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { memo, useEffect, useMemo, useRef, useState, useCallback, type RefObject } from 'react';
 import type { FeatureCard, FeatureCardProps } from '@/types/feature-card.types';
 import { FEATURE_CARDS_DATA } from '@/data/feature-cards.data';
-
-// AI 단어에 그라데이션 애니메이션 적용하는 함수 - 컴포넌트 외부로 이동
-const renderTextWithAIGradient = (text: string) => {
-  if (!text.includes('AI')) return text;
-
-  return text.split(/(AI)/g).map((part, index) => {
-    if (part === 'AI') {
-      return (
-        <span
-          key={index}
-          className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-[length:200%_200%] animate-gradient-x bg-clip-text font-bold text-transparent"
-        >
-          {part}
-        </span>
-      );
-    }
-    return part;
-  });
-};
 
 // 개별 카드 컴포넌트를 메모이제이션
 const FeatureCardItem = memo(
@@ -142,12 +124,12 @@ const FeatureCardItem = memo(
             <h3
               className={`mb-2 text-lg font-semibold leading-snug transition-colors ${cardStyles.title}`}
             >
-              {renderTextWithAIGradient(card.title)}
+              {renderAIGradientWithAnimation(card.title)}
             </h3>
             <p
               className={`text-xs leading-relaxed transition-colors ${cardStyles.description}`}
             >
-              {renderTextWithAIGradient(card.description)}
+              {renderAIGradientWithAnimation(card.description)}
             </p>
 
             {/* AI 어시스턴트 필요 표시 */}
@@ -255,7 +237,7 @@ export default function FeatureCardsGrid() {
         <FeatureCardModal
           selectedCard={selectedCardData}
           onClose={closeModal}
-          renderTextWithAIGradient={renderTextWithAIGradient}
+          renderTextWithAIGradient={renderAIGradientWithAnimation}
           modalRef={modalRef as RefObject<HTMLDivElement>}
           variant="home"
           isVisible={true}

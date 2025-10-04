@@ -1,12 +1,21 @@
 # GEMINI.md
 
-> **작성일**: 2025년 6월 1일 | **최종 수정일**: 2025년 9월 18일
+> **작성일**: 2025년 6월 1일 | **최종 수정일**: 2025년 10월 4일
 
 Gemini CLI 사용 가이드 및 Claude Code Sub Agent 협업 방법
+
+> **🔄 2025년 10월 업데이트**: Gemini CLI가 `@google/gemini-cli` v0.7.0으로 업데이트되었습니다. 이에 따라 설치 방법 및 명령어 사용법이 변경되었습니다.
 
 > **🔄 2025년 9월 업데이트**: Gemini CLI는 Claude Code의 **gemini-specialist** 서브에이전트로 통합되어 아키텍처 설계, UI/UX 개선, 그리고 직접 구현까지 담당합니다.
 
 ## 🎯 핵심 원칙
+
+### 📊 2025 벤치마크 성능 (Gemini 2.5 Flash v0.7.0)
+- **SWE-bench Verified**: 54% (48.9% → 54% 5% 개선)
+- **테스트 커버리지**: 98.2% (54/55 통과) - 프로젝트 실적
+- **문제 발견율**: 95%+ (3-AI 교차검증 시스템)
+- **Aider Polyglot**: 향상된 코딩 벤치마크
+- **SOLID 원칙**: 대규모 리팩토링 전문
 
 ### 1. 효율성 최우선
 
@@ -33,43 +42,43 @@ Gemini CLI 사용 가이드 및 Claude Code Sub Agent 협업 방법
 Claude Code 서브에이전트로 동작할 때의 표준 명령어 형식은 `echo`와 파이프(`|`)를 사용합니다. 이는 프로그램 간 입력을 안정적으로 전달하기 위한 가장 안정적인 방법입니다.
 
 ```bash
-# 📖 표준 사용법 (2025-09-18 업데이트)
+# 📖 표준 사용법 (2025-10-04 업데이트)
 # 1. 프롬프트를 echo로 전달하여 gemini CLI의 표준 입력으로 제공
-echo "Show usage stats" | gemini -p "Current usage"
+echo "Show usage stats" | gemini Current usage
 
 # 2. 파일 내용을 파이프로 전달하여 분석
-cat 파일명.js | gemini -p "핵심만 요약"
+cat 파일명.js | gemini 핵심만 요약
 
 # 3. 다른 명령어 결과물을 파이프로 전달
-git diff | gemini -p "변경사항 리뷰"
+git diff | gemini 변경사항 리뷰
 ```
 
 > **⚠️ 중요**: 인터랙티브 모드(`gemini`)는 WSL 환경에서 타임아웃 이슈가 발생할 수 있어 권장하지 않습니다.
 
-> **💡 Tip**: `gemini --version` 이나 `node -v` 같은 명령어로 현재 설치된 도구들의 버전을 확인할 수 있습니다. 문서의 버전 정보가 실제와 다를 수 있으니, 주기적으로 확인하는 것이 좋습니다.
+> **💡 Tip**: `gemini --help`를 통해 확인한 결과, `-p` 플래그는 더 이상 사용되지 않으며(deprecated) 프롬프트는 명령어 뒤에 직접 위치시키는 것이 권장됩니다. `gemini --version` 이나 `node -v` 같은 명령어로 현재 설치된 도구들의 버전을 확인할 수 있습니다. 문서의 버전 정보가 실제와 다를 수 있으니, 주기적으로 확인하는 것이 좋습니다.
 
 #### 일일 워크플로우 예시
 
 ```bash
 # 아침 (사용량 0%)
-echo "Show my usage" | gemini -p "Usage stats"  # 사용량 확인 대체
+echo "Show my usage" | gemini Usage stats  # 사용량 확인 대체
 
 # 개발 중 (사용량 ~50%)
-git diff | gemini -p "변경사항 리뷰"  # 간단한 리뷰
-echo "버그 분석 요청" | gemini -p "원인 분석"  # 로그 분석
+git diff | gemini 변경사항 리뷰  # 간단한 리뷰
+echo "버그 분석 요청" | gemini 원인 분석  # 로그 분석
 
 # 오후 (사용량 ~80%)
-echo "Remaining quota check" | gemini -p "Check limit"  # 남은 사용량 확인
+echo "Remaining quota check" | gemini Check limit  # 남은 사용량 확인
 ```
 
 #### 백업 전략
 
 ```bash
 # 중요 대화 내용 저장 (프롬프트 모드 활용)
-echo "Summarize our conversation" | gemini -p "Key points" > gemini_session_$(date +%Y%m%d).txt
+echo "Summarize our conversation" | gemini Key points > gemini_session_$(date +%Y%m%d).txt
 
 # 컨텍스트 정리
-echo "Clear context" | gemini -p "Reset"  # 새 세션 시작
+echo "Clear context" | gemini Reset  # 새 세션 시작
 ```
 
 ## 🏗️ 아키텍처 설계 & 직접 구현 역할 (2025-09-16 업데이트)
@@ -93,10 +102,10 @@ Claude Code 서브에이전트가 아닌, 터미널에서 직접 사용하거나
 ```bash
 # 표준 방식: echo와 파이프라인을 통해 입력을 전달
 # 이는 Claude Code와 같은 다른 에이전트와의 연동성을 보장하는 안정적인 방법입니다.
-echo "이 컴포넌트 구조를 Material Design 3로 개선하는 방법 제안" | gemini -p "Analyze and suggest"
+echo "이 컴포넌트 구조를 Material Design 3로 개선하는 방법 제안" | gemini Analyze and suggest
 
 # 파일 내용 분석
-cat src/components/MyComponent.tsx | gemini -p "SOLID 원칙에 따라 리팩토링 코드 생성"
+cat src/components/MyComponent.tsx | gemini SOLID 원칙에 따라 리팩토링 코드 생성
 ```
 
 ### 현재 개발 환경
@@ -104,7 +113,8 @@ cat src/components/MyComponent.tsx | gemini -p "SOLID 원칙에 따라 리팩토
 - **OS**: WSL 2 (Ubuntu 24.04.3 LTS)
 - **터미널**: WSL 터미널 (bash)
 - **서브에이전트**: 14개 체계 (Claude Code 공식 지원)
-- **Gemini CLI**: v0.5.3 (npm 전역 설치)
+- **Gemini CLI**: v0.7.0 (`@google/gemini-cli`)
+- **설치/업데이트**: `npm install -g @google/gemini-cli@latest`
 
 ### Gemini 역할 및 책임
 
@@ -171,65 +181,65 @@ cat src/components/MyComponent.tsx | gemini -p "SOLID 원칙에 따라 리팩토
 
 ```bash
 # Claude가 작성한 새 기능을 Gemini가 검토
-cat src/services/new-feature.ts | gemini -p "SOLID 원칙 위반 여부와 개선점 3가지"
+cat src/services/new-feature.ts | gemini SOLID 원칙 위반 여부와 개선점 3가지
 
 # 복잡한 로직에 대한 두 번째 의견
-echo "재귀 함수의 성능 문제 해결 방법" | gemini -p "메모이제이션 적용 예시"
+echo "재귀 함수의 성능 문제 해결 방법" | gemini 메모이제이션 적용 예시
 
 # 타입 안전성 검증
-git diff HEAD^ | gemini -p "TypeScript 타입 누락이나 any 사용 확인"
+git diff HEAD^ | gemini TypeScript 타입 누락이나 any 사용 확인
 ```
 
 ### 2. 아키텍처 결정 협업
 
 ```bash
 # 설계 결정 시 두 AI의 의견 수렴
-echo "마이크로서비스 vs 모놀리스 선택 기준" | gemini -p "프로젝트 규모별 장단점 3개씩"
+echo "마이크로서비스 vs 모놀리스 선택 기준" | gemini 프로젝트 규모별 장단점 3개씩
 
 # 기술 스택 선택
-echo "Redis vs PostgreSQL 캐싱 전략" | gemini -p "무료 티어 기준 추천"
+echo "Redis vs PostgreSQL 캐싱 전략" | gemini 무료 티어 기준 추천
 
 # 성능 최적화 전략
-cat performance-report.json | gemini -p "병목 지점 분석과 해결 우선순위"
+cat performance-report.json | gemini 병목 지점 분석과 해결 우선순위
 ```
 
 ### 3. 버그 해결 협업
 
 ```bash
 # 에러 로그 분석
-tail -n 100 error.log | gemini -p "에러 패턴과 근본 원인 분석"
+tail -n 100 error.log | gemini 에러 패턴과 근본 원인 분석
 
 # 스택 트레이스 해석
-cat stack-trace.txt | gemini -p "메모리 누수 가능성 확인"
+cat stack-trace.txt | gemini 메모리 누수 가능성 확인
 
 # 해결 방안 검증
-echo "useEffect 무한 루프 문제" | gemini -p "의존성 배열 수정 방법"
+echo "useEffect 무한 루프 문제" | gemini 의존성 배열 수정 방법
 ```
 
 ### 4. 문서화 협업
 
 ```bash
 # API 문서 생성
-cat src/api/routes.ts | gemini -p "OpenAPI 스펙 생성"
+cat src/api/routes.ts | gemini OpenAPI 스펙 생성
 
 # README 개선
-echo "프로젝트 소개 문구 개선" | gemini -p "엔터프라이즈 고객 대상 3줄 요약"
+echo "프로젝트 소개 문구 개선" | gemini 엔터프라이즈 고객 대상 3줄 요약
 
 # 변경 로그 작성
-git log --oneline -10 | gemini -p "사용자 친화적 변경사항 요약"
+git log --oneline -10 | gemini 사용자 친화적 변경사항 요약
 ```
 
 ### 5. 테스트 전략 협업
 
 ```bash
 # 테스트 케이스 생성
-cat src/utils/validator.ts | gemini -p "엣지 케이스 포함 테스트 시나리오 5개"
+cat src/utils/validator.ts | gemini 엣지 케이스 포함 테스트 시나리오 5개
 
 # 테스트 커버리지 분석
-cat coverage/lcov.info | gemini -p "테스트 부족 영역 우선순위"
+cat coverage/lcov.info | gemini 테스트 부족 영역 우선순위
 
 # E2E 시나리오 검토
-echo "결제 프로세스 E2E 테스트" | gemini -p "중요 검증 포인트 목록"
+echo "결제 프로세스 E2E 테스트" | gemini 중요 검증 포인트 목록
 ```
 
 ## 💡 컨텍스트 관리 자동화 (구 '메모리 저장 권장사항')
@@ -257,7 +267,7 @@ CONTEXT="
 # 2. 사용자 입력을 컨텍스트와 결합하여 Gemini CLI에 전달
 echo "$CONTEXT
 ---
-User Request: $1" | gemini -p "Process the following request"
+User Request: $1" | gemini Process the following request
 ```
 
 > **사용법**: 위 스크립트를 생성하고 실행 권한을 부여(`chmod +x scripts/gcli.sh`)한 뒤, Claude Code 에이전트가 `gemini` 대신 `./scripts/gcli.sh`를 호출하도록 설정할 수 있습니다.

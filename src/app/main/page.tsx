@@ -12,17 +12,24 @@ import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useInitialAuth } from '@/hooks/useInitialAuth';
 import { useProfileSecurity } from '@/components/profile/hooks/useProfileSecurity';
-import { BarChart3, Bot, Loader2, Play, X, LogIn } from 'lucide-react';
+import { BarChart3, Bot, Loader2, Play, X, LogIn, Sparkles } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import debug from '@/utils/debug';
 import { vercelConfig, debugWithEnv } from '@/utils/vercel-env';
 import { performanceTracker, preloadCriticalResources, getVercelEnvironment } from '@/utils/vercel-optimization';
+import { renderTextWithAIGradient } from '@/utils/text-rendering';
 // 🎯 Performance Score 최적화 - Dynamic Import 롤백하여 SSR 활성화
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import FeatureCardsGrid from '@/components/home/FeatureCardsGrid';
 
 // framer-motion 제거 - CSS 애니메이션 사용
+
+// 🎯 상수 정의
+const SYSTEM_START_COUNTDOWN_SECONDS = 3; // 시스템 시작 카운트다운 시간
+const AUTH_RETRY_DELAY_MS = 3000; // 인증 재시도 지연 시간
+const TIMER_UPDATE_INTERVAL_MS = 1000; // 타이머 업데이트 간격
+const COUNTDOWN_INTERVAL_MS = 1000; // 카운트다운 간격
 
 function Home() {
   const router = useRouter();
@@ -260,29 +267,6 @@ function Home() {
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // AI 단어에 그라데이션 애니메이션 적용하는 함수 - SSR 안전성 보장
-  const renderTextWithAIGradient = (text: string) => {
-    if (!text.includes('AI')) return text;
-
-    return text.split(/(AI)/g).map((part: string, index: number) => {
-      if (part === 'AI') {
-        // SSR과 클라이언트에서 동일한 마크업 렌더링 (Hydration 에러 방지)
-        return (
-          <span
-            key={index}
-            className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text font-bold text-transparent"
-            style={isMounted ? {
-              backgroundSize: '200% 200%',
-            } : undefined}
-          >
-            {part}
-          </span>
-        );
-      }
-      return part;
-    });
-  };
-
   // ✅ handleSystemStartBackground, startSystemCountdown useCallback 제거 - 순환 참조 해결
   // 로직이 handleSystemToggle에 직접 통합됨
 
@@ -321,7 +305,7 @@ function Home() {
       }
     } else {
       // 시스템이 정지 상태면 카운트다운 시작 - 직접 로직 실행
-      setSystemStartCountdown(3);
+      setSystemStartCountdown(SYSTEM_START_COUNTDOWN_SECONDS);
       setIsSystemStarting(false);
 
       const timer = setInterval(() => {
@@ -329,7 +313,7 @@ function Home() {
           if (prev <= 1) {
             clearInterval(timer);
             debug.log('🚀 카운트다운 완료 - 로딩 페이지로 이동');
-            
+
             // 백그라운드에서 시스템 시작 (비동기)
             void (async () => {
               try {
@@ -346,7 +330,7 @@ function Home() {
           }
           return prev - 1;
         });
-      }, 1000);
+      }, COUNTDOWN_INTERVAL_MS);
       setCountdownTimer(timer);
     }
   }, [
@@ -480,7 +464,7 @@ function Home() {
                 </button>
               </div>
             )}
-            <div className="mt-2 text-xs text-white/50">
+            <div className="mt-2 text-xs text-white/90">
               {vercelConfig.envLabel} 서버에서 로딩 중...
             </div>
           </div>
@@ -512,7 +496,7 @@ function Home() {
       <div className="wave-particles"></div>
 
       {/* 헤더 */}
-      <header className="relative z-50 flex items-center justify-between p-6">
+      <header className="relative z-50 flex items-center justify-between p-4 sm:p-6">
         <button 
           className="flex items-center space-x-3 cursor-pointer transition-opacity hover:opacity-80"
           onClick={() => router.push('/')}
@@ -529,24 +513,17 @@ function Home() {
                   : 'linear-gradient(135deg, #6b7280, #4b5563)'
             }}
           >
-            {/* 시스템 활성화 또는 AI 활성화 시 회전 아이콘 */}
-            {(aiAgent.isEnabled || isSystemStarted) ? (
-              <i
-                className="fas fa-server text-lg text-white animate-spin"
-                aria-hidden="true"
-              />
-            ) : (
-              <i
-                className="fas fa-server text-lg text-white"
-                aria-hidden="true"
-              />
-            )}
+            {/* ✨ AI 컨셉 아이콘 - Sparkles로 통일 */}
+            <Sparkles
+              className={`h-5 w-5 text-white ${(aiAgent.isEnabled || isSystemStarted) ? 'animate-spin' : ''}`}
+              strokeWidth={2.5}
+            />
           </div>
 
           {/* 브랜드 텍스트 */}
           <div>
             <h1 className="text-xl font-bold text-white">OpenManager</h1>
-            <p className="text-xs text-white/70">
+            <p className="text-xs text-white/90">
               {aiAgent.isEnabled && !isSystemStarted
                 ? 'AI 독립 모드'
                 : aiAgent.isEnabled && isSystemStarted
@@ -573,13 +550,13 @@ function Home() {
         >
           <h1 className="mb-4 text-3xl font-bold md:text-5xl">
             <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-              {renderTextWithAIGradient('AI')}
+              {renderTextWithAIGradient('AI', isMounted)}
             </span>{' '}
             <span className="font-semibold text-white">기반</span>{' '}
             <span className="text-white">서버 모니터링</span>
           </h1>
-          <p className="mx-auto max-w-3xl text-lg leading-relaxed text-white/80 md:text-xl">
-            <span className="text-sm text-white/60">
+          <p className="mx-auto max-w-3xl text-lg leading-relaxed text-white/90 md:text-xl">
+            <span className="text-sm text-white/75">
               완전 독립 동작 AI 엔진 | 향후 개발: 선택적 LLM API 연동 확장
             </span>
           </p>
@@ -601,7 +578,7 @@ function Home() {
                     <button
                       onClick={handleSystemToggle}
                       disabled={buttonConfig.disabled}
-                      className={`flex h-16 w-64 items-center justify-center gap-3 rounded-xl border font-semibold shadow-xl transition-all duration-300 ${buttonConfig.className}`}
+                      className={`flex h-16 w-full max-w-xs sm:w-64 items-center justify-center gap-3 rounded-xl border font-semibold shadow-xl transition-all duration-300 ${buttonConfig.className}`}
                     >
                       {/* 카운트다운 진행바 */}
                       {systemStartCountdown > 0 && (
@@ -629,7 +606,7 @@ function Home() {
                         {statusInfo.message}
                       </span>
                       {statusInfo.showEscHint && (
-                        <span className="text-xs text-white/60">
+                        <span className="text-xs text-white/75">
                           또는 ESC 키를 눌러 취소
                         </span>
                       )}
@@ -648,7 +625,7 @@ function Home() {
                 ) : (
                   <div className="text-center">
                     {/* 게스트 사용자 - 안내 메시지 표시 */}
-                    <div className="mb-4 rounded-xl border border-blue-400/30 bg-blue-500/10 p-6">
+                    <div className="mb-4 rounded-xl border border-blue-400/30 bg-blue-500/10 p-4 sm:p-6">
                       {isMounted && <LogIn className="mx-auto mb-3 h-12 w-12 text-blue-400" />}
                       <h3 className="mb-2 text-lg font-semibold text-white">
                         GitHub 로그인이 필요합니다
@@ -676,12 +653,12 @@ function Home() {
 
               {/* AI 어시스턴트 안내 */}
               <div className="flex justify-center text-sm">
-                <div className="max-w-md rounded-lg bg-white/5 p-3">
+                <div className="max-w-md rounded-lg bg-white/5 p-2 sm:p-3">
                   <div className="mb-1 flex items-center justify-center gap-2">
                     {isMounted && <Bot className="h-4 w-4 text-purple-400" />}
                     <span className="font-semibold">AI 어시스턴트</span>
                   </div>
-                  <p className="text-center text-white/70">
+                  <p className="text-center text-white/90">
                     시스템 시작 후 대시보드에서 AI 사이드바 이용 가능
                   </p>
                 </div>
@@ -698,7 +675,7 @@ function Home() {
                   {isGitHubUser || isAdminMode ? (
                     <button
                       onClick={() => router.push('/dashboard')}
-                      className="flex h-16 w-64 items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-600 font-semibold text-white shadow-xl transition-all duration-200 hover:bg-emerald-700"
+                      className="flex h-16 w-full max-w-xs sm:w-64 items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-600 font-semibold text-white shadow-xl transition-all duration-200 hover:bg-emerald-700"
                     >
                       <BarChart3 className="h-5 w-5" />
                       <span className="text-lg">📊 대시보드 열기</span>
@@ -726,7 +703,7 @@ function Home() {
                 </div>
               </div>
 
-              <p className="mt-4 text-center text-xs text-white/60">
+              <p className="mt-4 text-center text-xs text-white/75">
                 시스템이 활성화되어 있습니다. 대시보드에서 상세 모니터링을
                 확인하세요.
               </p>
@@ -741,7 +718,7 @@ function Home() {
 
         {/* 푸터 */}
         <div className="mt-8 border-t border-white/20 pt-6 text-center">
-          <p className="text-white/70">
+          <p className="text-white/90">
             Copyright(c) OpenManager. All rights reserved.
           </p>
         </div>

@@ -68,7 +68,7 @@ export function getServerData() {
 | AI 모드 | 설명 | 기술 스택 | 비용 | 용도 |
 |---------|------|----------|------|------|
 | **LOCAL** | 로컬 AI 엔진 | GCP Functions + Supabase RAG | 무료 | 기본 쿼리, 빠른 응답 |
-| **GOOGLE_AI** | Google AI | Gemini 2.5 모델군 (Flash-Lite/Flash/Pro) | 무료/유료 | 자연어 질의, 고급 추론 |
+| **GOOGLE_AI** | Google AI | Gemini 2.0 Flash Experimental | 무료 (15 RPM, 1,500 RPD) | 자연어 질의, 고급 추론 |
 
 ### 핵심 아키텍처
 
@@ -92,7 +92,40 @@ type AIMode = 'LOCAL' | 'GOOGLE_AI';
 - ✅ **Google AI 모드**: Gemini API만 사용, 완전 독립적 동작
 - ✅ **자연어 질의**: Google AI 모드 전용
 - ✅ **기타 기능**: LOCAL 모드만 사용
-- ✅ **비용 효율**: LOCAL 모드 100% 무료, GOOGLE_AI 모드만 유료
+- ✅ **비용 효율**: 모두 100% 무료 (무료 티어 활용)
+
+### Google AI (Gemini 2.0 Flash) 상세 정보
+
+**현재 사용 모델**: `gemini-2.0-flash-exp`
+
+**최신 업데이트 (2025년 2월)**:
+- ✅ **GA 릴리스**: 2025년 2월 5일
+- ✅ **1M 토큰 컨텍스트**: 대용량 문서 처리 가능
+- ✅ **Native Tool Use**: 도구 통합 기본 지원
+- ✅ **Multimodal I/O**: 텍스트, 이미지, 오디오 입출력
+- ✅ **간결한 스타일**: 토큰 효율 최적화 (기본값)
+
+**무료 티어 한도**:
+- **RPM** (분당 요청): 15
+- **RPD** (일일 요청): 1,500
+- **TPM** (분당 토큰): 1M
+- **동시 세션**: 3개 (API 키당)
+- **재설정**: 매일 자정 (태평양 시간)
+
+**새 변형 모델 (2025)**:
+- **Gemini 2.0 Flash-Lite**: 가장 비용 효율적
+- **Gemini 2.0 Flash Thinking**: 향상된 추론 능력
+- **Gemini 2.5 Flash**: 안정 버전
+
+**고급 기능**:
+- 이미지 생성 (Public Preview)
+- Native Audio (Live API, Preview)
+- Canvas Feature (문서/코드 협업)
+
+**성능 최적화**:
+- 타임아웃: 8초 (무료 티어 최적화)
+- 직접 SDK 호출 (중간 레이어 없음)
+- 모델 캐싱 (반복 요청 최적화)
 
 ---
 
