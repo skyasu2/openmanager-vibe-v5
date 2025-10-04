@@ -18,6 +18,7 @@ import type {
   ServerArray,
 } from '../../types/ai-service-types';
 import type { AIMode } from '../../types/ai-types';
+import type { EnhancedServerMetrics } from '@/types/server';
 
 export interface QueryRequest {
   query: string;
@@ -138,6 +139,20 @@ export interface MockContext {
   };
   metadata?: Record<string, string | number | boolean>;
 }
+
+
+/**
+ * 📊 서버 상태 분석 결과 (UnifiedMetricsService)
+ */
+export interface ServerStatusAnalysis {
+  summary: string;
+  criticalServers: EnhancedServerMetrics[];
+  warningServers: EnhancedServerMetrics[];
+  healthyServers: EnhancedServerMetrics[];
+  timeContext: string;
+}
+
+
 
 // GCP VM MCP 타입 제거됨 - Cloud Functions 전용으로 단순화
 

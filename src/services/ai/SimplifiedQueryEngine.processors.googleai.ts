@@ -166,12 +166,20 @@ export class GoogleAIModeProcessor {
         throw new Error('Google AI API가 비활성화됨');
       }
 
-      // 컨텍스트를 포함한 프롬프트 생성
-      const prompt = this.helpers.buildGoogleAIPrompt(
+      // 1. 서버 컨텍스트 조회
+      const serverContext = await this.helpers.getFormattedServerContext(query);
+
+      // 2. 기존 프롬프트 빌드
+      const basePrompt = this.helpers.buildGoogleAIPrompt(
         query,
         context,
         mcpContext
       );
+
+      // 3. 최종 프롬프트 조립 (서버 컨텍스트 포함)
+      const prompt = serverContext
+        ? basePrompt + serverContext
+        : basePrompt;
 
       // 🚀 아키텍처 개선: 직접 Google AI SDK 호출 (중간 API Route 제거)
       const timeouts = getEnvironmentTimeouts();

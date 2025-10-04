@@ -7,7 +7,7 @@
 
 'use client';
 
-import { Sparkles } from 'lucide-react';
+import { Sparkles, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import debug from '@/utils/debug';
@@ -196,6 +196,7 @@ export default function LoginClient() {
       // 🧹 Cleanup: 컴포넌트 언마운트 시 타이머 정리 (메모리 누수 방지)
       return () => clearTimeout(redirectTimer);
     }
+    return undefined;
   }, [guestSession]); // router 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // GitHub OAuth 로그인

@@ -17,7 +17,11 @@ import type {
   AIMetadata,
   ServerArray,
 } from '../../types/ai-service-types';
-import type { MockContext } from './SimplifiedQueryEngine.types';
+import type { 
+  MockContext,
+  ServerStatusAnalysis
+} from './SimplifiedQueryEngine.types';
+import type { EnhancedServerMetrics } from '@/types/server';
 
 /**
  * 🛠️ 쿼리 프로세서 헬퍼 클래스
@@ -289,6 +293,59 @@ export class SimplifiedQueryEngineHelpers {
   /**
    * 🔍 서버 메트릭 쿼리 판별
    */
+  /**
+   * 🎯 서버 컨텍스트 조회 및 포맷팅 (GOOGLE_AI/LOCAL 공통)
+   * 
+   * @param query - 사용자 쿼리
+   * @returns 포맷팅된 서버 컨텍스트 문자열 또는 null (서버 메트릭 쿼리가 아닌 경우)
+   */
+  async getFormattedServerContext(query: string): Promise<string | null> {
+    const lowerQuery = query.toLowerCase();
+    
+    // 서버 메트릭 쿼리가 아니면 null 반환
+    if (!this.isServerMetricQuery(lowerQuery)) {
+      return null;
+    }
+    
+    try {
+      // 서버 메트릭 조회
+      const analysis = await unifiedMetricsService.analyzeServerStatus();
+      
+      // 포맷팅된 문자열만 반환
+      return this.formatServerContext(analysis);
+    } catch (error) {
+      console.warn('[getFormattedServerContext] 서버 메트릭 조회 실패:', error);
+      return null;
+    }
+  }
+
+  /**
+   * 📊 서버 컨텍스트 포맷팅 (private)
+   * 
+   * @param analysis - UnifiedMetricsService의 분석 결과
+   * @returns 포맷팅된 컨텍스트 문자열
+   */
+  private formatServerContext(analysis: ServerStatusAnalysis): string {
+    const { summary, criticalServers, warningServers, healthyServers, timeContext } = analysis;
+    
+    let contextString = '\n\n📊 실시간 서버 상태:\n';
+    contextString += `- 전체 요약: ${summary}\n`;
+    contextString += `- 위험 서버: ${criticalServers.length}개\n`;
+    contextString += `- 경고 서버: ${warningServers.length}개\n`;
+    contextString += `- 정상 서버: ${healthyServers.length}개\n`;
+    contextString += `- 조회 시간: ${timeContext}\n`;
+    
+    // 위험 서버 상세 정보 (있을 경우)
+    if (criticalServers.length > 0) {
+      contextString += '\n⚠️ 위험 서버 상세:\n';
+      criticalServers.forEach(server => {
+        contextString += `  - ${server.name}: CPU ${server.cpu}%, Memory ${server.memory}%\n`;
+      });
+    }
+    
+    return contextString;
+  }
+
   private isServerMetricQuery(lowerQuery: string): boolean {
     const serverKeywords = ['서버', 'cpu', 'memory', 'disk', 'network', '메모리', '디스크', '네트워크'];
     const statusKeywords = ['상태', 'status', '현재', '지금', '실시간'];
