@@ -316,13 +316,26 @@ function DashboardPageContent() {
     const checkPermissions = () => {
       // 🧪 테스트 모드 체크 (E2E 테스트용)
       const isTestMode = () => {
+        console.log('🧪 [Dashboard] isTestMode() 함수 실행 시작');
+        console.log('🧪 [Dashboard] typeof document:', typeof document);
+        console.log('🧪 [Dashboard] typeof window:', typeof window);
+
         // 쿠키 체크
         if (typeof document !== 'undefined') {
+          const allCookies = document.cookie;
+          console.log('🧪 [Dashboard] 전체 쿠키:', allCookies);
+
           const cookies = document.cookie.split(';').map(c => c.trim());
+          console.log('🧪 [Dashboard] 쿠키 배열:', cookies);
+
           const hasTestMode = cookies.some(c => c.startsWith('test_mode=enabled'));
           const hasTestToken = cookies.some(c => c.startsWith('vercel_test_token='));
+
+          console.log('🧪 [Dashboard] test_mode 쿠키 존재:', hasTestMode);
+          console.log('🧪 [Dashboard] vercel_test_token 쿠키 존재:', hasTestToken);
+
           if (hasTestMode || hasTestToken) {
-            console.log('🧪 [Dashboard] 테스트 모드 감지 (쿠키)');
+            console.log('🧪 [Dashboard] 테스트 모드 감지 (쿠키) ✅');
             return true;
           }
         }
@@ -330,12 +343,15 @@ function DashboardPageContent() {
         // localStorage 체크 (보조)
         if (typeof window !== 'undefined' && window.localStorage) {
           const testModeEnabled = localStorage.getItem('test_mode_enabled') === 'true';
+          console.log('🧪 [Dashboard] localStorage test_mode_enabled:', testModeEnabled);
+
           if (testModeEnabled) {
-            console.log('🧪 [Dashboard] 테스트 모드 감지 (localStorage)');
+            console.log('🧪 [Dashboard] 테스트 모드 감지 (localStorage) ✅');
             return true;
           }
         }
 
+        console.log('🧪 [Dashboard] 테스트 모드 감지 실패 ❌');
         return false;
       };
 
