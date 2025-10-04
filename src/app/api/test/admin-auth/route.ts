@@ -184,7 +184,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   // 🔍 임시 디버그: 환경변수 확인 (프로덕션 차단 임시 제거)
-  const envToken = process.env.TEST_BYPASS_SECRET;
+  const envToken = process.env.TEST_BYPASS_SECRET?.trim();
 
   // 📊 테스트 API 상태 정보 제공
   return NextResponse.json({
