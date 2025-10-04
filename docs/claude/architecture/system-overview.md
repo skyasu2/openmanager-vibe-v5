@@ -68,7 +68,7 @@ export function getServerData() {
 | AI 모드 | 설명 | 기술 스택 | 비용 | 용도 |
 |---------|------|----------|------|------|
 | **LOCAL** | 로컬 AI 엔진 | GCP Functions + Supabase RAG | 무료 | 기본 쿼리, 빠른 응답 |
-| **GOOGLE_AI** | Google AI | Gemini 2.0 Flash Experimental | 무료 (15 RPM, 1,500 RPD) | 자연어 질의, 고급 추론 |
+| **GOOGLE_AI** | Google AI | Gemini 2.0 Flash Experimental | 무료 (15 RPM, 200 RPD) | 자연어 질의, 고급 추론 |
 
 ### 핵심 아키텍처
 
@@ -105,17 +105,18 @@ type AIMode = 'LOCAL' | 'GOOGLE_AI';
 - ✅ **Multimodal I/O**: 텍스트, 이미지, 오디오 입출력
 - ✅ **간결한 스타일**: 토큰 효율 최적화 (기본값)
 
-**무료 티어 한도**:
+**무료 티어 한도** (공식 문서 기준):
 - **RPM** (분당 요청): 15
-- **RPD** (일일 요청): 1,500
+- **RPD** (일일 요청): 200
 - **TPM** (분당 토큰): 1M
-- **동시 세션**: 3개 (API 키당)
-- **재설정**: 매일 자정 (태평양 시간)
+- **동시 세션**: 3개 (Live API)
+- **출처**: [Google AI Quotas](https://ai.google.dev/gemini-api/docs/quota)
 
-**새 변형 모델 (2025)**:
-- **Gemini 2.0 Flash-Lite**: 가장 비용 효율적
-- **Gemini 2.0 Flash Thinking**: 향상된 추론 능력
-- **Gemini 2.5 Flash**: 안정 버전
+**2025년 최신 권장 모델**:
+- **Gemini 2.5 Pro** (5 RPM, 100 RPD, 250K TPM): 최고급 사고 모델
+- **Gemini 2.5 Flash** (10 RPM, 250 RPD, 250K TPM): 가격 대비 성능 최고
+- **Gemini 2.5 Flash-Lite** (15 RPM, 1,000 RPD, 250K TPM): 가장 빠르고 비용 효율적
+- **Gemini 2.0 Flash** (15 RPM, 200 RPD, 1M TPM): 현재 사용 중, 높은 TPM
 
 **고급 기능**:
 - 이미지 생성 (Public Preview)
@@ -126,6 +127,11 @@ type AIMode = 'LOCAL' | 'GOOGLE_AI';
 - 타임아웃: 8초 (무료 티어 최적화)
 - 직접 SDK 호출 (중간 레이어 없음)
 - 모델 캐싱 (반복 요청 최적화)
+
+**모델 업그레이드 고려사항**:
+- **2.5 Flash-Lite로 변경 시**: RPD 200 → 1,000 (5배), TPM 1M → 250K (짧은 쿼리에 적합)
+- **2.5 Flash로 변경 시**: 균형잡힌 성능, RPD 250, TPM 250K
+- **현재 2.0 Flash 유지**: 대용량 문서 처리 (TPM 1M)에 최적
 
 ---
 
