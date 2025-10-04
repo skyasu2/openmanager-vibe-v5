@@ -660,6 +660,7 @@ function DashboardPageContent() {
 
   return (
     <div
+      data-testid="dashboard-container"
       className={cn(
         'flex h-screen bg-gray-100 dark:bg-gray-900',
         isResizing && 'cursor-col-resize'
