@@ -1307,3 +1307,13 @@
     transform: translateY(0);
   }
 }
+
+/* ♿ 접근성: 움직임 감소 설정 존중 */
+@media (prefers-reduced-motion: reduce) {
+  .animate-gradient-x,
+  .animate-pulse-glow,
+  .animate-spin,
+  .animate-pulse {
+    animation-duration: 12s; /* 느리게 */
+  }
+}

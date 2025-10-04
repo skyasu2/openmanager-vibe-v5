@@ -186,6 +186,16 @@ export default {
             'background-position': '100% 50%',
           },
         },
+        'pulse-glow': {
+          '0%, 100%': {
+            opacity: '0.7',
+            filter: 'drop-shadow(0 0 2px #fff)',
+          },
+          '50%': {
+            opacity: '1',
+            filter: 'drop-shadow(0 0 5px #fff)',
+          },
+        },
         'gradient-shift': {
           '0%': {
             'background-position': '0% 50%',
@@ -212,6 +222,7 @@ export default {
         fadeIn: 'fadeIn 0.3s ease-out',
         'gradient-x': 'gradient-x 3s ease infinite',
         'gradient-shift': 'gradient-shift 4s ease-in-out infinite',
+        'pulse-glow': 'pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
     },
   },

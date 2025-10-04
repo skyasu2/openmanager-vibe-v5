@@ -317,7 +317,7 @@ export default function LoginClient() {
         <div className="mb-8 text-center">
           {/* ✨ 개선된 로고: Sparkles 아이콘 + AI 그라데이션 애니메이션 */}
           <div className="mx-auto mb-4 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-[length:200%_200%] animate-gradient-x shadow-lg shadow-purple-500/50">
-            <Sparkles className="h-6 w-6 sm:h-9 sm:w-9 text-white" strokeWidth={2.5} />
+            <Sparkles className="h-6 w-6 sm:h-9 sm:w-9 text-white" strokeWidth={2.5} aria-hidden="true" />
           </div>
           <h1 className="mb-2 text-3xl font-bold text-white">OpenManager</h1>
           <p className="text-base text-gray-300">

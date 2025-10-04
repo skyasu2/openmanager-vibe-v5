@@ -515,8 +515,9 @@ function Home() {
           >
             {/* ✨ AI 컨셉 아이콘 - Sparkles로 통일 */}
             <Sparkles
-              className={`h-5 w-5 text-white ${(aiAgent.isEnabled || isSystemStarted) ? 'animate-spin' : ''}`}
+              className={`h-5 w-5 text-white ${(aiAgent.isEnabled || isSystemStarted) ? 'motion-safe:animate-pulse-glow' : ''}`}
               strokeWidth={2.5}
+              aria-hidden="true"
             />
           </div>
 
