@@ -71,8 +71,44 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { password, bypass = false, bypassToken } = body;
 
-    // 🔧 테스트 전용 우회 모드 (E2E 테스트용 - 프로덕션 허용)
+    // 🔧 테스트 전용 우회 모드 (E2E 테스트용 - Secret 토큰 검증)
     if (bypass) {
+      // 프로덕션 환경: TEST_BYPASS_SECRET 토큰 검증 필수
+      if (process.env.NODE_ENV === 'production') {
+        const validToken = process.env.TEST_BYPASS_SECRET;
+
+        // 토큰이 설정되지 않았으면 서버 설정 오류
+        if (!validToken) {
+          console.error('⚠️ [Security] TEST_BYPASS_SECRET 환경변수가 설정되지 않음');
+          return NextResponse.json(
+            {
+              success: false,
+              message: '서버 설정 오류입니다.',
+              error: 'BYPASS_NOT_CONFIGURED'
+            },
+            { status: 500 }
+          );
+        }
+
+        // 토큰 검증
+        if (bypassToken !== validToken) {
+          console.warn('🚨 [Security] Bypass 토큰 불일치:', {
+            provided: bypassToken ? 'present' : 'missing',
+            clientIP
+          });
+          return NextResponse.json(
+            {
+              success: false,
+              message: 'Bypass 토큰이 유효하지 않습니다.',
+              error: 'INVALID_BYPASS_TOKEN'
+            },
+            { status: 403 }
+          );
+        }
+
+        console.log('✅ [Security] Bypass 토큰 검증 성공 - 프로덕션 테스트 허용');
+      }
+
       console.log('🧪 [Test] 테스트 우회 모드로 관리자 인증');
 
       return NextResponse.json({
@@ -81,7 +117,7 @@ export async function POST(request: NextRequest) {
         mode: 'test_bypass',
         adminMode: true,
         timestamp: new Date().toISOString(),
-        security: 'test_mode'
+        security: process.env.NODE_ENV === 'production' ? 'token_verified' : 'dev_mode'
       });
     }
 
