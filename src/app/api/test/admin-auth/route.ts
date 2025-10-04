@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       // 프로덕션 환경: TEST_BYPASS_SECRET 토큰 검증 필수
       // ✅ 2025-10-04: TEST_BYPASS_SECRET 환경변수 Vercel 간단한 토큰으로 재설정
       if (process.env.NODE_ENV === 'production') {
-        const validToken = process.env.TEST_BYPASS_SECRET;
+        const validToken = process.env.TEST_BYPASS_SECRET?.trim(); // 줄바꿈 제거
 
         // 토큰이 설정되지 않았으면 서버 설정 오류
         if (!validToken) {
