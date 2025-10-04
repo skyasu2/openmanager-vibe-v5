@@ -34,17 +34,27 @@ export async function activateAdminMode(
 ): Promise<AdminAuthResponse> {
   // 프로덕션 환경에서는 password 모드 강제
   const pageUrl = page.url();
-  const isProduction = pageUrl.includes('vercel.app');
+  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || process.env.VERCEL_PRODUCTION_URL || '';
+  const isProduction = pageUrl.includes('vercel.app') || baseUrl.includes('vercel.app');
+
+  // 프로덕션(Vercel)에서는 항상 password, 로컬에서만 bypass 허용
+  const defaultMethod = isProduction ? 'password' : 'bypass';
 
   const {
-    method = isProduction ? 'password' : 'bypass',
+    method = defaultMethod,
     password = '4231',
     skipGuestLogin = false,
     testToken
   } = options;
-  
+
   try {
-    console.log('🧪 [Admin Helper] 관리자 모드 활성화 시작:', { method, skipGuestLogin });
+    console.log('🧪 [Admin Helper] 관리자 모드 활성화 시작:', {
+      method,
+      skipGuestLogin,
+      pageUrl,
+      baseUrl,
+      isProduction
+    });
 
     // 1단계: 게스트 로그인 (필요한 경우만)
     if (!skipGuestLogin) {
