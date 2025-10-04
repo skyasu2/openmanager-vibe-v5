@@ -108,7 +108,7 @@ export async function activateAdminMode(
         path: '/',
         httpOnly: false,
         secure: isSecure,
-        sameSite: 'None'
+        sameSite: 'Lax'  // 같은 사이트 내 네비게이션에는 Lax가 적합
       },
       {
         name: 'vercel_test_token',
@@ -117,7 +117,7 @@ export async function activateAdminMode(
         path: '/',
         httpOnly: false,  // middleware가 읽을 수 있도록 false로 변경
         secure: isSecure,
-        sameSite: 'None'
+        sameSite: 'Lax'  // 같은 사이트 내 네비게이션에는 Lax가 적합
       }
     ]);
 
@@ -308,7 +308,7 @@ export async function ensureGuestLogin(page: Page): Promise<void> {
         path: '/',
         httpOnly: false,
         secure: isSecure,
-        sameSite: 'None'
+        sameSite: 'Lax'  // 같은 사이트 내 네비게이션에는 Lax가 적합
       },
       {
         name: 'vercel_test_token',
@@ -317,7 +317,7 @@ export async function ensureGuestLogin(page: Page): Promise<void> {
         path: '/',
         httpOnly: false,  // middleware가 읽을 수 있도록 false로 변경
         secure: isSecure,
-        sameSite: 'None'
+        sameSite: 'Lax'  // 같은 사이트 내 네비게이션에는 Lax가 적합
       }
     ]);
 
