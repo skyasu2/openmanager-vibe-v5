@@ -10,6 +10,10 @@
  * - MULTI_AI_GEMINI_TIMEOUT: Gemini timeout (default: 30s)
  * - MULTI_AI_QWEN_TIMEOUT_NORMAL: Qwen normal mode timeout (default: 30s)
  * - MULTI_AI_QWEN_TIMEOUT_PLAN: Qwen plan mode timeout (default: 60s)
+ * - MULTI_AI_MCP_TIMEOUT: MCP request timeout (default: 180s)
+ * - MULTI_AI_ENABLE_PROGRESS: Enable progress notifications (default: true)
+ * - MULTI_AI_MAX_RETRY_ATTEMPTS: Maximum retry attempts (default: 2)
+ * - MULTI_AI_RETRY_BACKOFF_BASE: Retry backoff base in ms (default: 1000)
  */
 
 interface MultiAIConfig {
@@ -32,6 +36,47 @@ interface MultiAIConfig {
     normal: number;
     plan: number;
   };
+  /** MCP server configuration */
+  mcp: {
+    /** MCP request timeout in milliseconds */
+    requestTimeout: number;
+    /** Enable progress notifications to reset timeout */
+    enableProgress: boolean;
+  };
+  /** Retry configuration */
+  retry: {
+    /** Maximum number of retry attempts (including initial) */
+    maxAttempts: number;
+    /** Base delay in milliseconds for exponential backoff */
+    backoffBase: number;
+  };
+}
+
+/**
+ * Parse and validate integer from environment variable
+ */
+function parseIntWithValidation(
+  envVar: string | undefined,
+  defaultValue: number,
+  min: number,
+  max: number,
+  varName: string
+): number {
+  const value = parseInt(envVar || String(defaultValue), 10);
+
+  if (isNaN(value)) {
+    throw new Error(
+      `Invalid ${varName}: "${envVar}" is not a valid number. Using default: ${defaultValue}`
+    );
+  }
+
+  if (value < min || value > max) {
+    throw new Error(
+      `Invalid ${varName}: ${value} is out of range [${min}, ${max}]. Using default: ${defaultValue}`
+    );
+  }
+
+  return value;
 }
 
 /**
@@ -40,18 +85,86 @@ interface MultiAIConfig {
 export function getConfig(): MultiAIConfig {
   return {
     cwd: process.env.MULTI_AI_CWD || process.cwd(),
-    maxBuffer: parseInt(process.env.MULTI_AI_MAX_BUFFER || '10485760', 10), // 10MB
+    maxBuffer: parseIntWithValidation(
+      process.env.MULTI_AI_MAX_BUFFER,
+      10485760,
+      1024 * 1024, // 1MB min
+      100 * 1024 * 1024, // 100MB max
+      'MULTI_AI_MAX_BUFFER'
+    ),
     codex: {
-      simple: parseInt(process.env.MULTI_AI_CODEX_TIMEOUT_SIMPLE || '30000', 10),
-      medium: parseInt(process.env.MULTI_AI_CODEX_TIMEOUT_MEDIUM || '90000', 10),
-      complex: parseInt(process.env.MULTI_AI_CODEX_TIMEOUT_COMPLEX || '120000', 10),
+      simple: parseIntWithValidation(
+        process.env.MULTI_AI_CODEX_TIMEOUT_SIMPLE,
+        30000,
+        1000, // 1s min
+        300000, // 5min max
+        'MULTI_AI_CODEX_TIMEOUT_SIMPLE'
+      ),
+      medium: parseIntWithValidation(
+        process.env.MULTI_AI_CODEX_TIMEOUT_MEDIUM,
+        90000,
+        1000,
+        300000,
+        'MULTI_AI_CODEX_TIMEOUT_MEDIUM'
+      ),
+      complex: parseIntWithValidation(
+        process.env.MULTI_AI_CODEX_TIMEOUT_COMPLEX,
+        120000,
+        1000,
+        600000, // 10min max
+        'MULTI_AI_CODEX_TIMEOUT_COMPLEX'
+      ),
     },
     gemini: {
-      timeout: parseInt(process.env.MULTI_AI_GEMINI_TIMEOUT || '30000', 10),
+      timeout: parseIntWithValidation(
+        process.env.MULTI_AI_GEMINI_TIMEOUT,
+        30000,
+        1000,
+        300000,
+        'MULTI_AI_GEMINI_TIMEOUT'
+      ),
     },
     qwen: {
-      normal: parseInt(process.env.MULTI_AI_QWEN_TIMEOUT_NORMAL || '30000', 10),
-      plan: parseInt(process.env.MULTI_AI_QWEN_TIMEOUT_PLAN || '60000', 10),
+      normal: parseIntWithValidation(
+        process.env.MULTI_AI_QWEN_TIMEOUT_NORMAL,
+        30000,
+        1000,
+        300000,
+        'MULTI_AI_QWEN_TIMEOUT_NORMAL'
+      ),
+      plan: parseIntWithValidation(
+        process.env.MULTI_AI_QWEN_TIMEOUT_PLAN,
+        60000,
+        1000,
+        300000,
+        'MULTI_AI_QWEN_TIMEOUT_PLAN'
+      ),
+    },
+    mcp: {
+      requestTimeout: parseIntWithValidation(
+        process.env.MULTI_AI_MCP_TIMEOUT,
+        180000,
+        60000, // 1min min
+        600000, // 10min max
+        'MULTI_AI_MCP_TIMEOUT'
+      ),
+      enableProgress: process.env.MULTI_AI_ENABLE_PROGRESS !== 'false', // Default true
+    },
+    retry: {
+      maxAttempts: parseIntWithValidation(
+        process.env.MULTI_AI_MAX_RETRY_ATTEMPTS,
+        2,
+        1, // 최소 1번 (초기 시도)
+        10, // 최대 10번
+        'MULTI_AI_MAX_RETRY_ATTEMPTS'
+      ),
+      backoffBase: parseIntWithValidation(
+        process.env.MULTI_AI_RETRY_BACKOFF_BASE,
+        1000,
+        100, // 최소 100ms
+        60000, // 최대 60초
+        'MULTI_AI_RETRY_BACKOFF_BASE'
+      ),
     },
   };
 }
@@ -64,7 +177,26 @@ export let config: MultiAIConfig = getConfig();
 
 /**
  * Update configuration (useful for testing or runtime configuration)
+ * Uses deep merge to prevent loss of nested properties
  */
 export function setConfig(newConfig: Partial<MultiAIConfig>): void {
-  config = { ...config, ...newConfig };
+  config = {
+    ...config,
+    ...newConfig,
+    codex: newConfig.codex
+      ? { ...config.codex, ...newConfig.codex }
+      : config.codex,
+    gemini: newConfig.gemini
+      ? { ...config.gemini, ...newConfig.gemini }
+      : config.gemini,
+    qwen: newConfig.qwen
+      ? { ...config.qwen, ...newConfig.qwen }
+      : config.qwen,
+    mcp: newConfig.mcp
+      ? { ...config.mcp, ...newConfig.mcp }
+      : config.mcp,
+    retry: newConfig.retry
+      ? { ...config.retry, ...newConfig.retry }
+      : config.retry,
+  };
 }
