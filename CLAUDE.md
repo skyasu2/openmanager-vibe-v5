@@ -117,7 +117,7 @@ git push                    # Vercel 자동 배포
 // 또는 명시적 도구 호출
 mcp__multi_ai__queryAllAIs({
   query: "Multi-AI MCP 서버 코드 품질 분석",
-  qwenPlanMode: true
+  qwenPlanMode: false  // Normal Mode 권장 (8초 응답)
 })
 
 // 선택적 AI 실행
@@ -145,6 +145,12 @@ mcp__multi_ai__getPerformanceStats()
 
 **현재 버전**: v1.0.0
 **평가 점수**: 9.2/10 (프로덕션 준비 완료)
+
+**최신 검증 결과** (2025-10-05):
+- **Qwen wrapper v1.1.0 검증**: 평균 8.67/10
+- **개별 점수**: Codex 8/10, Gemini 10/10, Qwen 8/10
+- **총 실행 시간**: 21.7초 (3-AI 병렬 실행)
+- **성공률**: 100% (3/3 AI 완료)
 
 ---
 
