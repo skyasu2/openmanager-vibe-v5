@@ -114,6 +114,8 @@ mcp__multi_ai__queryWithPriority({
 ```
 
 ### 터미널에서 직접 AI CLI 호출 (개별 AI만 필요 시)
+**참고**: `scripts/ai-subagents/`는 외부 AI CLI Wrapper 스크립트 모음 (Claude Code Task tool 아님)
+
 ```bash
 # Codex Wrapper (적응형 타임아웃)
 ./scripts/ai-subagents/codex-wrapper.sh "버그 분석"
@@ -140,60 +142,55 @@ gemini "아키텍처 설계 검토"
 "AI 검증 히스토리에서 반복되는 문제 패턴 찾아줘"
 ```
 
-## 히스토리 자동 저장 (2025-10-02 개선)
+## 히스토리 자동 저장 (2025-10-05 개선 - v1.2.0)
 
-**위치**: `reports/quality/ai-verifications/`
+**위치**: `packages/multi-ai-mcp/history/`
 
-**자동 저장 시스템**:
-- **✅ 방법 1 (권장)**: Task verification-recorder (Claude Code 서브에이전트)
-- **🔧 방법 2 (보조)**: Bash 스크립트 직접 실행
-- 누락률 0%, 일관성 100%
+**자동 저장 시스템** (Multi-AI MCP v1.2.0):
+- **✅ 자동 기록**: 모든 AI 교차검증 결과 자동 저장 (JSON 형식)
+- **✅ MCP 통합**: `queryAllAIs`, `queryWithPriority` 실행 후 자동 저장
+- **✅ 누락률 0%**: MCP 서버 레벨에서 보장
 
 **저장 내용**:
-- 검증 일시 및 대상
-- 3-AI 점수 (codex, gemini, qwen)
-- Claude 최종 판단
-- 적용된 개선 조치
-- 개선 전후 비교
+- 타임스탬프 및 쿼리
+- 3-AI 모드 설정 (codex, gemini, qwen, qwenPlanMode)
+- 개별 AI 응답 (response, executionTime, success)
+- 합의/충돌 분석 (consensus, conflicts)
+- 성능 메트릭 (totalTime, successRate)
+- 버전 메타데이터
 
 **파일 형식**:
-- `YYYY-MM-DD-HH-MM-description.md` - 상세 리포트
-- `verification-index.json` - 검색 인덱스 (자동 업데이트)
+- `YYYY-MM-DD-HH-MM-SS.json` - 구조화된 JSON 형식
+- 기존 Markdown 파일 (18+ 파일) - 하위 호환성 유지
 
-## 히스토리 빠른 검색 (2025-10-02 신규)
+## 히스토리 조회 API (2025-10-05 신규 - v1.2.0)
 
-**검색 도구**: `scripts/ai-verification/search-history.sh`
+**MCP 도구**: Multi-AI MCP v1.2.0 내장
 
 **사용 예시**:
-```bash
-# 최근 3개 검증
-./scripts/ai-verification/search-history.sh latest 3
+```typescript
+// Claude Code 내에서 자연어로 요청
+"최근 10개 AI 검증 히스토리 보여줘"
+"성능 최적화 관련 검증 기록 찾아줘"
+"AI 검증 통계 분석해줘"
 
-# 특정 대상 검증 히스토리
-./scripts/ai-verification/search-history.sh target "subagent"
+// 또는 명시적 MCP 도구 호출
+mcp__multi_ai__getHistory({ limit: 10 })  // 최근 10개
 
-# 90점 이상 검증
-./scripts/ai-verification/search-history.sh score 90
+mcp__multi_ai__searchHistory({ pattern: "성능 최적화" })  // 패턴 검색
 
-# 태그 검색
-./scripts/ai-verification/search-history.sh tag "architecture"
-
-# 평균 점수 추이
-./scripts/ai-verification/search-history.sh trend
-
-# 전체 통계
-./scripts/ai-verification/search-history.sh stats
+mcp__multi_ai__getHistoryStats()  // 통계 분석
 ```
 
 **성능**:
-- 조회 시간: 30초 → 1.5초 (95% 단축)
-- verification-index.json 기반 빠른 검색
-- 복잡한 쿼리 지원 (jq 기반)
+- 조회 시간: 즉시 (~50ms)
+- JSON 기반 구조화된 데이터
+- 필터링 및 정렬 지원
 
 **활용**:
 - 개선 추세 추적
 - 반복 문제 식별
 - 품질 향상 검증
-- AI별 성과 비교
+- AI별 성과 비교 (평균 성공률, 응답시간, 사용량)
 
-→ 상세 내용은 CLAUDE.md AI 교차검증 섹션 참조
+→ 상세 내용은 CLAUDE.md Multi-AI 사용 전략 섹션 참조

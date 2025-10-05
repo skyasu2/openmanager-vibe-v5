@@ -244,8 +244,11 @@ ls -la scripts/ai-subagents/
 # Performance log 확인
 tail -f logs/ai-perf/ai-perf-$(date +%F).log
 
-# 히스토리 확인
-ls -lh reports/quality/ai-verifications/
+# 히스토리 확인 (Multi-AI MCP v1.2.0)
+ls -lh packages/multi-ai-mcp/history/
+
+# 또는 MCP 도구로 조회
+mcp__multi_ai__getHistory({ limit: 10 })
 ```
 
 ## 🚀 배포 워크플로우

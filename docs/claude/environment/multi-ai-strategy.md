@@ -23,7 +23,7 @@ claude  # 기본 모델로 충분
 claude --model opus  # Plan Mode 전용
 ```
 
-### 🤝 서브 에이전트 라인: 3-AI 협업 시스템
+### 🤝 외부 AI CLI 도구: 3-AI 협업 시스템
 
 #### 📊 2025 벤치마크 비교표
 
@@ -396,4 +396,4 @@ echo "Qwen: OAuth 인증됨"
 - [AI CLI 도구 설정](ai-tools-setup.md)
 - [개인 워크플로우](workflows.md)
 - [AI 교차검증 시스템](../../../../docs/claude/architecture/ai-cross-verification.md)
-- [서브에이전트 가이드](../../../../docs/ai-tools/subagents-complete-guide.md)
+- [Claude Code 서브에이전트 가이드](../../../ai/subagents-complete-guide.md)
