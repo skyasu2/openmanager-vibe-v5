@@ -10,12 +10,62 @@ import { promisify } from 'util';
 import type { AIResponse } from '../types.js';
 import { withTimeout } from '../utils/timeout.js';
 import { validateQuery } from '../utils/validation.js';
+import { withRetry } from '../utils/retry.js';
 import { config } from '../config.js';
 
 const execFileAsync = promisify(execFile);
 
 const GEMINI_TIMEOUT = 30000; // 30 seconds (avg response: 5s)
 
+/**
+ * Execute Gemini CLI query (internal implementation)
+ * @internal
+ */
+async function executeGeminiQuery(query: string): Promise<AIResponse> {
+  const startTime = Date.now();
+
+  // Execute gemini CLI (OAuth authenticated)
+  // ✅ Security: Using execFile with argument array prevents command injection
+  const result = await withTimeout(
+    execFileAsync('gemini', [query], {
+      maxBuffer: config.maxBuffer,
+      cwd: config.cwd
+    }),
+    GEMINI_TIMEOUT,
+    'Gemini timeout after 30s'
+  );
+
+  // Clean response (remove OAuth/credential messages)
+  const response = result.stdout
+    .split('\n')
+    .filter(line =>
+      !line.includes('ImportProcessor') &&
+      !line.includes('Loaded cached credentials') &&
+      line.trim().length > 0
+    )
+    .join('\n')
+    .trim();
+
+  return {
+    provider: 'gemini',
+    response,
+    responseTime: Date.now() - startTime,
+    success: true
+  };
+}
+
+/**
+ * Query Gemini AI with automatic retry on failure
+ *
+ * @param query - The query to send to Gemini
+ * @returns Promise resolving to AIResponse
+ *
+ * @example
+ * ```typescript
+ * const result = await queryGemini('Review this architecture design');
+ * console.log(result.response);
+ * ```
+ */
 export async function queryGemini(query: string): Promise<AIResponse> {
   const startTime = Date.now();
 
@@ -33,35 +83,17 @@ export async function queryGemini(query: string): Promise<AIResponse> {
   }
 
   try {
-    // Execute gemini CLI (OAuth authenticated)
-    // ✅ Security: Using execFile with argument array prevents command injection
-    const result = await withTimeout(
-      execFileAsync('gemini', [query], {
-        maxBuffer: config.maxBuffer,
-        cwd: config.cwd
-      }),
-      GEMINI_TIMEOUT,
-      'Gemini timeout after 30s'
+    // Use retry mechanism for resilience
+    return await withRetry(
+      () => executeGeminiQuery(query),
+      {
+        maxAttempts: config.retry.maxAttempts,
+        backoffBase: config.retry.backoffBase,
+        onRetry: (attempt, error) => {
+          console.error(`[Gemini] Retry attempt ${attempt}: ${error.message}`);
+        },
+      }
     );
-
-    // Clean response (remove OAuth/credential messages)
-    const response = result.stdout
-      .split('\n')
-      .filter(line =>
-        !line.includes('ImportProcessor') &&
-        !line.includes('Loaded cached credentials') &&
-        line.trim().length > 0
-      )
-      .join('\n')
-      .trim();
-
-    return {
-      provider: 'gemini',
-      response,
-      responseTime: Date.now() - startTime,
-      success: true
-    };
-
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
 

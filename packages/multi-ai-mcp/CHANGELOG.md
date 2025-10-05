@@ -52,10 +52,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed 🐛
 
-- **로컬 .mcp.json 인식 불가 문제 발견**
-  - 원인: Claude Code는 글로벌 설정만 인식
-  - 해결: SETUP-GUIDE.md에 상세 가이드 추가
-  - 대안: `~/.claude/settings.json` 사용 권장
+- **복잡한 쿼리 타임아웃 문제 발견 및 해결**
+  - 원인: 3-AI 병렬 실행 시 시간 초과
+  - 해결: `queryWithPriority` 도구로 단일/선택적 AI 실행 권장
+  - 검증: WSL 환경에서 `.mcp.json` 정상 작동 확인 ✅
 
 ### Known Issues ⚠️
 

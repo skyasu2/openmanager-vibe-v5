@@ -5,11 +5,13 @@
 
 ---
 
-## 🚨 중요: Claude Code 설정 필수
+## 🚨 중요: MCP 서버 설정 확인
 
-**프로젝트 로컬 `.mcp.json`은 Claude Code에서 인식되지 않습니다!**
+**프로젝트 로컬 `.mcp.json`은 Claude Code에서 정상 인식됩니다!** ✅
 
-반드시 **글로벌 MCP 설정**에 추가해야 합니다.
+- ✅ WSL 환경에서도 완벽 작동
+- ✅ `claude mcp list`로 연결 상태 확인
+- ⚠️ 복잡한 3-AI 병렬 쿼리는 타임아웃 가능 (단일 AI 실행 권장)
 
 ---
 
@@ -27,9 +29,21 @@ npm run build
 ls -la dist/index.js
 ```
 
-### 2단계: 글로벌 MCP 설정 추가
+### 2단계: MCP 연결 상태 확인
 
-**파일**: `~/.claude/settings.json`
+**프로젝트 루트의 `.mcp.json`이 이미 설정되어 있습니다!**
+
+```bash
+# MCP 서버 연결 확인
+claude mcp list
+
+# multi-ai 서버 확인
+# 출력: multi-ai: node /mnt/d/cursor/.../dist/index.js - ✓ Connected
+```
+
+### 3단계 (선택적): 글로벌 MCP 설정
+
+**다른 프로젝트에서도 사용하려면** `~/.claude/settings.json`에 추가:
 
 ```json
 {
@@ -43,29 +57,17 @@ ls -la dist/index.js
 }
 ```
 
-**⚠️ 주의사항**:
-- **절대 경로 사용 필수**: `/mnt/d/cursor/openmanager-vibe-v5/...`
-- 프로젝트 이동 시 경로 업데이트 필요
-- WSL 환경에서 경로 확인: `pwd`
-
-### 3단계: Claude Code 재시작
-
-```bash
-# 현재 Claude Code 세션 종료 후 재시작
-claude
-```
-
-### 4단계: MCP 연결 확인
+### 4단계: MCP 도구 사용 확인
 
 Claude Code 내에서 테스트:
 
 ```
-"Multi-AI MCP 서버가 연결되었나요?"
+"Multi-AI MCP로 간단한 인사 테스트해줘"
 ```
 
-도구 사용 가능 확인:
-- ✅ `mcp__multi_ai__queryAllAIs`
-- ✅ `mcp__multi_ai__queryWithPriority`
+사용 가능한 도구:
+- ✅ `mcp__multi_ai__queryAllAIs` (3-AI 병렬 실행, 타임아웃 주의)
+- ✅ `mcp__multi_ai__queryWithPriority` (선택적 AI 실행, 권장)
 - ✅ `mcp__multi_ai__getPerformanceStats`
 
 ---
@@ -104,9 +106,10 @@ mcp__multi_ai__queryWithPriority({
 **증상**: `No such tool available: mcp__multi_ai__queryAllAIs`
 
 **해결**:
-1. `~/.claude/settings.json` 경로 확인
-2. 절대 경로 정확성 확인
+1. MCP 서버 연결 확인: `claude mcp list`
+2. `multi-ai` 서버가 "✓ Connected" 상태인지 확인
 3. Claude Code 재시작
+4. 프로젝트 루트에서 Claude 실행 중인지 확인
 
 ### 문제 2: "Server error" 메시지
 

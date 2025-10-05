@@ -21,14 +21,14 @@ Claude Code와 통합되어 3개 AI(Codex, Gemini, Qwen)의 응답을 병렬로 
 
 ## 🚨 중요 공지 (2025-10-05)
 
-**프로젝트 로컬 `.mcp.json`은 Claude Code에서 인식되지 않습니다!**
+**프로젝트 로컬 `.mcp.json`은 Claude Code에서 정상 작동합니다!** ✅
 
-→ **[상세 설정 가이드](./SETUP-GUIDE.md)** 필독
+→ **[상세 설정 가이드](./SETUP-GUIDE.md)** 참조
 
 **요약**:
-- ✅ **글로벌 설정 필수**: `~/.claude/settings.json`에 추가
-- ✅ **절대 경로 사용**: `/mnt/d/cursor/openmanager-vibe-v5/...`
-- ✅ **Claude Code 재시작**: 설정 변경 후 필수
+- ✅ **WSL 환경 완벽 지원**: 프로젝트 스코프 MCP 서버 정상 인식
+- ✅ **자동 연결**: 프로젝트 진입 시 자동으로 `multi-ai` 서버 활성화
+- ⚠️ **복잡한 쿼리 주의**: 3-AI 병렬 실행 시 타임아웃 가능 (단일 AI 권장)
 
 ---
 
