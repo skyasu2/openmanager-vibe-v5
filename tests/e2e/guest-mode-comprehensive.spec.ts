@@ -5,6 +5,8 @@ import {
   resetAdminState,
   verifyAdminState
 } from './helpers/admin';
+import { TIMEOUTS } from './helpers/timeouts';
+import { completeAdminModeActivationViaUI } from './helpers/ui-flow';
 
 /**
  * 🎯 게스트 모드 종합 E2E 테스트
@@ -61,9 +63,9 @@ test.describe('🎯 게스트 모드 종합 플로우 테스트', () => {
     await guestButton.click();
     
     // 메인 페이지로 리다이렉트 대기 (게스트 로그인 후 /main으로 이동)
-    await page.waitForURL(/\/main/, { timeout: 10000 });
+    await page.waitForURL(/\/main/, { timeout: TIMEOUTS.MODAL_DISPLAY });
     await page.waitForSelector('main, [data-testid="main-content"], header', {
-      timeout: 10000
+      timeout: TIMEOUTS.MODAL_DISPLAY
     });
     
     // 게스트 로그인 상태 확인
@@ -92,7 +94,7 @@ test.describe('🎯 게스트 모드 종합 플로우 테스트', () => {
     let mainPageLoaded = false;
     for (const selector of mainPageElements) {
       try {
-        await page.waitForSelector(selector, { timeout: 2000 });
+        await page.waitForSelector(selector, { timeout: TIMEOUTS.CLICK_RESPONSE });
         mainPageLoaded = true;
         console.log(`✅ 메인 페이지 요소 발견: ${selector}`);
         break;
@@ -106,83 +108,23 @@ test.describe('🎯 게스트 모드 종합 플로우 테스트', () => {
     metrics.mainPage = Date.now() - step3Start;
     console.log(`✅ 3단계 완료: 메인 페이지 렌더링 (${metrics.mainPage}ms)`);
 
-    // ✅ 4단계: 프로필 메뉴 → 관리자 모드 접근
+    // ✅ 4-5단계: 프로필 메뉴 → 관리자 모드 → PIN 인증
     const step4Start = Date.now();
-    
+
     try {
-      // 프로필 메뉴 찾기 (여러 가능한 selector)
-      const profileSelectors = [
-        'button:has-text("프로필")',
-        '[data-testid="profile-menu"]',
-        'button[aria-label*="프로필"]',
-        '.profile-menu',
-        'button:has-text("Guest")',
-        '[data-testid="user-menu"]'
-      ];
-      
-      let profileFound = false;
-      for (const selector of profileSelectors) {
-        try {
-          const profileButton = page.locator(selector);
-          if (await profileButton.count() > 0) {
-            await profileButton.first().click();
-            profileFound = true;
-            console.log(`✅ 프로필 메뉴 클릭: ${selector}`);
-            break;
-          }
-        } catch {
-          // 다음 selector 시도
-        }
-      }
-      
-      if (!profileFound) {
-        console.log('⚠️ 프로필 메뉴 UI 방식으로 접근 실패, API 방식으로 우회');
-        
-        // API를 통한 직접 관리자 모드 활성화 (PIN 4231 사용)
-        const result = await activateAdminMode(page, { 
-          method: 'password', 
-          password: '4231',
-          skipGuestLogin: true 
-        });
-        
-        expect(result.success).toBe(true);
-        console.log('✅ API를 통한 PIN 인증 성공');
-        
-      } else {
-        // UI를 통한 관리자 모드 접근
-        await page.waitForTimeout(1000); // 메뉴 열림 대기
-        
-        const adminModeButton = page.locator('button:has-text("관리자 모드"), [data-testid="admin-mode"]');
-        await expect(adminModeButton).toBeVisible({ timeout: 5000 });
-        await adminModeButton.click();
-        console.log('✅ 관리자 모드 버튼 클릭');
-        
-        // ✅ 5단계: PIN 입력 (4231)
-        const pinInput = page.locator('input[type="password"], input[placeholder*="PIN"], [data-testid="pin-input"]');
-        await expect(pinInput).toBeVisible({ timeout: 5000 });
-        
-        await pinInput.fill('4231');
-        console.log('✅ PIN 4231 입력 완료');
-        
-        // 인증 버튼 클릭
-        const authButton = page.locator('button:has-text("인증"), button:has-text("확인"), [data-testid="auth-submit"]');
-        await authButton.click();
-        console.log('✅ PIN 인증 버튼 클릭');
-        
-        // 인증 성공 대기
-        await page.waitForTimeout(2000);
-      }
-      
+      // UI 플로우로 관리자 모드 활성화
+      await completeAdminModeActivationViaUI(page);
+
     } catch (error) {
       console.log('⚠️ UI 플로우 실패, API 백업 방식 사용:', error.message);
-      
+
       // 백업: API를 통한 직접 관리자 모드 활성화
-      const result = await activateAdminMode(page, { 
-        method: 'password', 
+      const result = await activateAdminMode(page, {
+        method: 'password',
         password: '4231',
-        skipGuestLogin: true 
+        skipGuestLogin: true
       });
-      
+
       expect(result.success).toBe(true);
       console.log('✅ 백업 API를 통한 PIN 인증 성공');
     }
@@ -333,7 +275,7 @@ test.describe('🎯 게스트 모드 종합 플로우 테스트', () => {
     
     // 모바일에서 대시보드 로딩 확인
     await page.waitForSelector('main, [data-testid="main-content"]', {
-      timeout: 10000
+      timeout: TIMEOUTS.MODAL_DISPLAY
     });
     
     // PIN 인증 (API 방식)

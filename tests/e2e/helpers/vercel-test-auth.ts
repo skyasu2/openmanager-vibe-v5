@@ -1,4 +1,5 @@
 import { Page, BrowserContext } from '@playwright/test';
+import { getTestBaseUrl } from './config';
 
 /**
  * 🚀 베르셀 친화적 AI 테스트 헬퍼
@@ -71,8 +72,8 @@ export async function enableVercelTestMode(
   console.log('🚀 [Vercel Test] 테스트 모드 활성화 시작:', { mode });
 
   try {
-    // 1️⃣ 베이스 URL 결정
-    const targetUrl = baseUrl || process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
+    // 1️⃣ 베이스 URL 결정 (config.ts 중앙 관리)
+    const targetUrl = baseUrl || getTestBaseUrl();
     console.log(`🌐 [Vercel Test] 대상 URL: ${targetUrl}`);
 
     // 2️⃣ 페이지 객체 가져오기
@@ -151,7 +152,6 @@ export async function enableVercelTestMode(
         value: 'enabled',
         url: targetUrl,
         httpOnly: false,
-        secure: false,
         sameSite: 'Lax'
       },
       {
@@ -159,15 +159,13 @@ export async function enableVercelTestMode(
         value: authResult.sessionData?.authType || 'test',
         url: targetUrl,
         httpOnly: false,
-        secure: false,
         sameSite: 'Lax'
       },
       {
         name: 'vercel_test_token',
         value: authResult.accessToken || '',
         url: targetUrl,
-        httpOnly: true,  // API와 동일하게 httpOnly
-        secure: targetUrl.startsWith('https'),  // HTTPS일 때만 secure
+        httpOnly: true,
         sameSite: 'Lax'
       }
     ]);
@@ -315,7 +313,7 @@ export async function getVercelTestStatus(page: Page): Promise<{
 export async function checkVercelTestApi(
   baseUrl?: string
 ): Promise<boolean> {
-  const targetUrl = baseUrl || process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
+  const targetUrl = baseUrl || getTestBaseUrl();
 
   try {
     const response = await fetch(`${targetUrl}/api/test/vercel-test-auth?secret=${TEST_SECRET_KEY}`);

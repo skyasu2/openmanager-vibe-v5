@@ -3,8 +3,10 @@
  */
 
 import { test } from '@playwright/test';
+import { getTestBaseUrl } from './helpers/config';
+import { TIMEOUTS } from './helpers/timeouts';
 
-const VERCEL_URL = 'https://openmanager-vibe-v5.vercel.app';
+const VERCEL_URL = getTestBaseUrl();
 
 test('AI 사이드바 클릭 테스트', async ({ page }) => {
   console.log('🚀 테스트 시작');
@@ -12,7 +14,7 @@ test('AI 사이드바 클릭 테스트', async ({ page }) => {
   // 대시보드 접속
   await page.goto(VERCEL_URL + '/dashboard', {
     waitUntil: 'load',
-    timeout: 60000
+    timeout: TIMEOUTS.E2E_TEST
   });
 
   await page.waitForTimeout(3000); // 페이지 안정화

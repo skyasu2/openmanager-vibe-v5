@@ -11,8 +11,10 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { getTestBaseUrl } from './helpers/config';
+import { TIMEOUTS } from './helpers/timeouts';
 
-const VERCEL_PRODUCTION_URL = process.env.VERCEL_PRODUCTION_URL || 'https://openmanager-vibe-v5.vercel.app';
+const VERCEL_PRODUCTION_URL = getTestBaseUrl();
 
 test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
 
@@ -22,7 +24,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
     // 루트 경로 접근
     const response = await page.goto(VERCEL_PRODUCTION_URL + '/', {
       waitUntil: 'networkidle',
-      timeout: 30000,
+      timeout: TIMEOUTS.NETWORK_REQUEST,
     });
 
     const endTime = Date.now();
@@ -41,7 +43,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
     // 루트 경로 접근하여 리다이렉트 응답 캡처
     const response = await page.goto(VERCEL_PRODUCTION_URL + '/', {
       waitUntil: 'domcontentloaded',
-      timeout: 30000,
+      timeout: TIMEOUTS.NETWORK_REQUEST,
     });
 
     // 검증: Vercel Edge Runtime 헤더 확인
@@ -72,7 +74,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
     for (let i = 0; i < 3; i++) {
       const response = await page.goto(VERCEL_PRODUCTION_URL + '/', {
         waitUntil: 'domcontentloaded',
-        timeout: 30000,
+        timeout: TIMEOUTS.NETWORK_REQUEST,
       });
 
       // 크래시 없이 정상 리다이렉트 확인
@@ -90,7 +92,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
 
     const response = await page.goto(VERCEL_PRODUCTION_URL + '/login', {
       waitUntil: 'networkidle',
-      timeout: 30000,
+      timeout: TIMEOUTS.NETWORK_REQUEST,
     });
 
     // 검증 1: /login 페이지가 정상 로드되는지
@@ -112,7 +114,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
 
       await page.goto(VERCEL_PRODUCTION_URL + '/', {
         waitUntil: 'domcontentloaded',
-        timeout: 30000,
+        timeout: TIMEOUTS.NETWORK_REQUEST,
       });
 
       const endTime = Date.now();
@@ -139,19 +141,15 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
       {
         name: 'guest_session_id',
         value: 'test-guest-session-' + Date.now(),
-        domain: new URL(VERCEL_PRODUCTION_URL).hostname,
-        path: '/',
+        url: VERCEL_PRODUCTION_URL,
         httpOnly: false,
-        secure: true,
         sameSite: 'Lax',
       },
       {
         name: 'auth_type',
         value: 'guest',
-        domain: new URL(VERCEL_PRODUCTION_URL).hostname,
-        path: '/',
+        url: VERCEL_PRODUCTION_URL,
         httpOnly: false,
-        secure: true,
         sameSite: 'Lax',
       },
     ]);
@@ -159,7 +157,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
     // 루트 경로 접근
     const response = await page.goto(VERCEL_PRODUCTION_URL + '/', {
       waitUntil: 'networkidle',
-      timeout: 30000,
+      timeout: TIMEOUTS.NETWORK_REQUEST,
     });
 
     // 검증: Guest 쿠키가 있으면 /main으로 리다이렉트
@@ -174,7 +172,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
     // 1단계: 루트 접근 → /login 리다이렉트
     await page.goto(VERCEL_PRODUCTION_URL + '/', {
       waitUntil: 'networkidle',
-      timeout: 30000,
+      timeout: TIMEOUTS.NETWORK_REQUEST,
     });
     expect(page.url()).toContain('/login');
 
@@ -185,7 +183,7 @@ test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
     // 3단계: 다시 루트 접근 → /login 리다이렉트 (무한 루프 방지 확인)
     await page.goto(VERCEL_PRODUCTION_URL + '/', {
       waitUntil: 'networkidle',
-      timeout: 30000,
+      timeout: TIMEOUTS.NETWORK_REQUEST,
     });
     expect(page.url()).toContain('/login');
 

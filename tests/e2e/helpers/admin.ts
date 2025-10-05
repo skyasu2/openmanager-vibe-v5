@@ -1,8 +1,10 @@
 import { Page, expect } from '@playwright/test';
+import { getTestBaseUrl, isVercelProduction } from './config';
+import { TIMEOUTS } from './timeouts';
 
 /**
  * Playwright 테스트용 관리자 모드 헬퍼 함수들
- * 
+ *
  * 🎯 목적: 관리자 모드 테스트 자동화 및 효율성 극대화
  * ⚡ 효과: 기존 4단계 UI 흐름 → 1회 API 호출로 단축 (10-15초 → 2-3초)
  */
@@ -32,10 +34,10 @@ export async function activateAdminMode(
     testToken?: string;
   } = {}
 ): Promise<AdminAuthResponse> {
-  // 프로덕션 환경에서는 password 모드 강제
+  // 프로덕션 환경에서는 password 모드 강제 (config.ts 중앙 관리)
   const pageUrl = page.url();
-  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || process.env.VERCEL_PRODUCTION_URL || 'http://localhost:3000';
-  const isProduction = pageUrl.includes('vercel.app') || baseUrl.includes('vercel.app');
+  const baseUrl = getTestBaseUrl();
+  const isProduction = isVercelProduction(pageUrl) || isVercelProduction(baseUrl);
 
   // 프로덕션(Vercel)에서는 항상 password, 로컬에서만 bypass 허용
   const defaultMethod = isProduction ? 'password' : 'bypass';
@@ -197,7 +199,7 @@ export async function navigateToAdminDashboard(
 
     // 대시보드 로딩 완료 대기 (React 하이드레이션 고려)
     await page.waitForSelector('[data-testid="dashboard-container"], .dashboard, main', {
-      timeout: 20000
+      timeout: TIMEOUTS.DASHBOARD_LOAD
     });
 
   } catch (error) {

@@ -79,6 +79,7 @@ export const AdminAuthModal = memo(function AdminAuthModal({
             autoFocus={!isLocked}
             maxLength={4}
             aria-label="관리자 비밀번호"
+            data-testid="admin-pin-input"
             aria-invalid={failedAttempts > 0}
             aria-describedby={failedAttempts > 0 ? 'auth-error' : undefined}
           />

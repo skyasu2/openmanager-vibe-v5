@@ -7,6 +7,8 @@
  */
 
 import { test, expect, type Page } from '@playwright/test';
+import { TIMEOUTS } from './helpers/timeouts';
+import { getTestBaseUrl } from './helpers/config';
 
 // 🎯 Web Vitals 목표 임계값
 const WEB_VITALS_THRESHOLDS = {
@@ -156,7 +158,7 @@ test.describe('🌐 실제 환경 Web Vitals 측정', () => {
     await page.goto(`${testUrl}/dashboard`);
 
     // 대시보드 로딩 완료 대기
-    await page.waitForSelector('[data-testid="dashboard-content"]', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="dashboard-content"]', { timeout: TIMEOUTS.MODAL_DISPLAY });
 
     // Web Vitals 수집
     const vitals = await collectWebVitals(page, 10000); // 더 긴 대기 시간
@@ -313,5 +315,5 @@ test.describe('🌐 실제 환경 Web Vitals 측정', () => {
 // 🔧 테스트 환경별 설정
 test.describe.configure({
   mode: 'parallel',
-  timeout: 30000 // 30초 타임아웃
+  timeout: TIMEOUTS.NETWORK_REQUEST // 30초 타임아웃
 });

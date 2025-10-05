@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { TIMEOUTS } from './helpers/timeouts';
 
 /**
  * 기본 프론트엔드 E2E 테스트
@@ -35,7 +36,7 @@ test.describe('OpenManager VIBE v5 - 기본 프론트엔드 테스트', () => {
     await page.goto('/');
     
     // 리다이렉트 대기 (최대 5초)
-    await page.waitForURL('**/login', { timeout: 5000 });
+    await page.waitForURL('**/login', { timeout: TIMEOUTS.API_RESPONSE });
     
     // 현재 URL이 로그인 페이지인지 확인
     expect(page.url()).toContain('/login');
@@ -61,7 +62,7 @@ test.describe('OpenManager VIBE v5 - 기본 프론트엔드 테스트', () => {
     
     // 메인 컨테이너나 앱 루트 확인
     const mainContainer = page.locator('main, #__next, [data-testid="app-root"], .min-h-screen').first();
-    await expect(mainContainer).toBeVisible({ timeout: 10000 });
+    await expect(mainContainer).toBeVisible({ timeout: TIMEOUTS.MODAL_DISPLAY });
     
     // 로그인 관련 텍스트나 폼 요소 존재 확인
     const hasLoginElements = await page.evaluate(() => {

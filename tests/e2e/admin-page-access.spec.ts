@@ -3,8 +3,10 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { getTestBaseUrl } from './helpers/config';
+import { completeAdminModeActivationViaUI } from './helpers/ui-flow';
 
-const VERCEL_URL = 'https://openmanager-vibe-v5.vercel.app';
+const VERCEL_URL = getTestBaseUrl();
 const ADMIN_PIN = '4231';
 
 test('관리자 페이지 접근 및 UI 검증', async ({ page }) => {
@@ -19,24 +21,8 @@ test('관리자 페이지 접근 및 UI 검증', async ({ page }) => {
 
   await page.waitForTimeout(2000);
 
-  // 2. 프로필 드롭다운 열기
-  await page.click('[data-testid="profile-dropdown"], button:has-text("Guest")');
-  console.log('✅ 프로필 드롭다운 열기');
-
-  await page.waitForTimeout(1000);
-
-  // 3. 관리자 모드 클릭
-  await page.click('button:has-text("관리자 모드")');
-  console.log('✅ 관리자 모드 클릭');
-
-  await page.waitForTimeout(1000);
-
-  // 4. PIN 입력
-  await page.fill('input[type="text"]', ADMIN_PIN);
-  await page.click('button:has-text("확인")');
-  console.log('✅ PIN 입력 및 인증 완료');
-
-  await page.waitForTimeout(2000);
+  // 2-4단계: 관리자 모드 활성화 (프로필 → 관리자 모드 → PIN 입력)
+  await completeAdminModeActivationViaUI(page);
 
   // 5. 시스템 시작
   await page.click('button:has-text("시스템 시작")');

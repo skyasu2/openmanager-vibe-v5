@@ -247,6 +247,7 @@ export default function UnifiedProfileHeader({
         aria-expanded={menuState.showProfileMenu}
         aria-haspopup="true"
         id="profile-menu-button"
+        data-testid="profile-dropdown-trigger"
       >
         {/* 프로필 아바타 */}
         <ProfileAvatar

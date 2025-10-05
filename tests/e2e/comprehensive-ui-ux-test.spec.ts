@@ -89,8 +89,8 @@ test.describe('🎯 OpenManager VIBE UI/UX 종합 테스트', () => {
         
         // 3. 관리자 모드 메뉴 항목 찾기
         const adminMenuSelectors = [
+          '[data-testid="admin-mode"]',
           'button:has-text("관리자 모드"), a:has-text("관리자 모드")',
-          '[data-testid="admin-mode-menu"]',
           'button:has-text("Admin"), a:has-text("Admin")',
           '.admin-menu-item'
         ];

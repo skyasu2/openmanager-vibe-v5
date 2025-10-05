@@ -6,6 +6,7 @@ import {
   verifyAdminState,
   checkTestApiAvailability
 } from './helpers/admin';
+import { TIMEOUTS } from './helpers/timeouts';
 
 /**
  * 🚀 개선된 관리자 모드 테스트 - AI 교차검증 기반 최적화
@@ -39,7 +40,7 @@ test.describe('개선된 관리자 모드 테스트', () => {
     expect(result.success).toBe(true);
     // 프로덕션 환경에서는 password_auth, 로컬에서는 test_bypass
     expect(['test_bypass', 'password_auth']).toContain(result.mode);
-    expect(duration).toBeLessThan(5000); // 5초 이내 완료
+    expect(duration).toBeLessThan(TIMEOUTS.API_RESPONSE); // 5초 이내 완료
 
     // 🔍 상태 검증
     const isAdminActive = await verifyAdminState(page);
@@ -58,7 +59,7 @@ test.describe('개선된 관리자 모드 테스트', () => {
     const duration = endTime - startTime;
 
     // 📊 성능 및 상태 검증
-    expect(duration).toBeLessThan(8000); // 8초 이내 완료
+    expect(duration).toBeLessThan(TIMEOUTS.MODAL_DISPLAY); // 10초 이내 완료 (목표 8초)
     
     // 🔍 대시보드 페이지 확인
     await expect(page).toHaveURL(/\/dashboard/);

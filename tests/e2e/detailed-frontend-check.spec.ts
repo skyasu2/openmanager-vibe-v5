@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { TIMEOUTS } from './helpers/timeouts';
 
 /**
  * 상세 프론트엔드 동작 확인 테스트
@@ -14,7 +15,7 @@ test.describe('OpenManager VIBE v5 - 상세 프론트엔드 검증', () => {
     console.log('📍 Step 1: 홈페이지(/) 접속 중...');
     const response = await page.goto('/', { 
       waitUntil: 'domcontentloaded', 
-      timeout: 15000 
+      timeout: TIMEOUTS.FORM_SUBMIT 
     });
     
     // HTTP 응답 상태 확인
@@ -23,7 +24,7 @@ test.describe('OpenManager VIBE v5 - 상세 프론트엔드 검증', () => {
     
     // 리다이렉트 확인
     console.log('🔄 Step 2: /login 리다이렉트 대기 중...');
-    await page.waitForURL('**/login', { timeout: 10000 });
+    await page.waitForURL('**/login', { timeout: TIMEOUTS.MODAL_DISPLAY });
     
     const currentUrl = page.url();
     console.log(`✅ 리다이렉트 성공: ${currentUrl}`);
@@ -37,7 +38,7 @@ test.describe('OpenManager VIBE v5 - 상세 프론트엔드 검증', () => {
     
     await page.goto('/login', { 
       waitUntil: 'networkidle', 
-      timeout: 15000 
+      timeout: TIMEOUTS.FORM_SUBMIT 
     });
     
     // 페이지 제목 확인
@@ -105,7 +106,7 @@ test.describe('OpenManager VIBE v5 - 상세 프론트엔드 검증', () => {
     
     await page.goto('/login', { 
       waitUntil: 'networkidle', 
-      timeout: 15000 
+      timeout: TIMEOUTS.FORM_SUBMIT 
     });
     
     // CSS 로딩 확인
@@ -181,7 +182,7 @@ test.describe('OpenManager VIBE v5 - 상세 프론트엔드 검증', () => {
     // 페이지 로딩
     await page.goto('/login', { 
       waitUntil: 'networkidle', 
-      timeout: 15000 
+      timeout: TIMEOUTS.FORM_SUBMIT 
     });
     
     // 약간의 시간을 두고 비동기 작업 완료 대기
@@ -295,7 +296,7 @@ test.describe('OpenManager VIBE v5 - 상세 프론트엔드 검증', () => {
     
     await page.goto('/login', { 
       waitUntil: 'networkidle', 
-      timeout: 15000 
+      timeout: TIMEOUTS.FORM_SUBMIT 
     });
     
     const loadTime = Date.now() - startTime;

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { TIMEOUTS } from './helpers/timeouts';
 
 test.describe('AI 어시스턴트 버튼 클릭 테스트', () => {
   test('AI 어시스턴트 버튼 클릭 시 사이드바 활성화 테스트', async ({ page }) => {
@@ -18,7 +19,7 @@ test.describe('AI 어시스턴트 버튼 클릭 테스트', () => {
     console.log('📍 메인 페이지 접속 중...');
     await page.goto('/', {
       waitUntil: 'networkidle',
-      timeout: 15000
+      timeout: TIMEOUTS.FORM_SUBMIT
     });
 
     // 초기 페이지 상태 스크린샷
