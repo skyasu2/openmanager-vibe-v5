@@ -14,7 +14,7 @@ describe('validateQuery', () => {
   });
 
   it('should reject queries that are too long', () => {
-    const longQuery = 'a'.repeat(1001);
+    const longQuery = 'a'.repeat(2501);
     expect(() => validateQuery(longQuery)).toThrow(/Query too long/);
   });
 

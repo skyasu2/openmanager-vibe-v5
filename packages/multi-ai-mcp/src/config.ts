@@ -118,7 +118,7 @@ export function getConfig(): MultiAIConfig {
     gemini: {
       timeout: parseIntWithValidation(
         process.env.MULTI_AI_GEMINI_TIMEOUT,
-        30000,
+        90000, // Increased from 30s to 90s for complex analysis
         1000,
         300000,
         'MULTI_AI_GEMINI_TIMEOUT'
@@ -127,14 +127,14 @@ export function getConfig(): MultiAIConfig {
     qwen: {
       normal: parseIntWithValidation(
         process.env.MULTI_AI_QWEN_TIMEOUT_NORMAL,
-        30000,
+        45000, // Increased from 30s to 45s
         1000,
         300000,
         'MULTI_AI_QWEN_TIMEOUT_NORMAL'
       ),
       plan: parseIntWithValidation(
         process.env.MULTI_AI_QWEN_TIMEOUT_PLAN,
-        60000,
+        90000, // Increased from 60s to 90s
         1000,
         300000,
         'MULTI_AI_QWEN_TIMEOUT_PLAN'

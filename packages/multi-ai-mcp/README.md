@@ -13,6 +13,7 @@ Claude Code와 통합되어 3개 AI(Codex, Gemini, Qwen)의 응답을 병렬로 
 - ✅ **3-AI 교차검증**: Codex(실무) + Gemini(설계) + Qwen(성능) 통합 분석
 - ✅ **자동 합의 탐지**: 2개 이상 AI가 동의하는 항목 자동 추출
 - ✅ **충돌 감지**: AI 간 의견 차이 자동 식별
+- ✅ **히스토리 자동 기록**: 모든 검증 결과 자동 저장 및 조회 (v1.2.0)
 - ✅ **보안 강화**: Command Injection 방지, 입력 검증, 설정 외부화
 - ✅ **성능 최적화**: 병렬 실행, 적응형 타임아웃, 메모리 누수 방지
 - ✅ **100% 테스트 커버리지**: Vitest 기반 자동화 테스트
@@ -159,7 +160,7 @@ packages/multi-ai-mcp/
    - 인자 배열로 전달 (shell 해석 방지)
 
 2. **입력 검증**
-   - 쿼리 길이 제한 (1000자)
+   - 쿼리 길이 제한 (2500자, v1.1.0 개선)
    - 위험 문자 차단 (`$`, `` ` ``, `;`, `&`, `|`, null byte)
 
 3. **설정 외부화**
@@ -237,6 +238,42 @@ mcp__multi_ai__queryWithPriority({
 // 성능 통계 확인
 mcp__multi_ai__getPerformanceStats()
 ```
+
+### 히스토리 조회 API (v1.2.0)
+
+모든 AI 교차검증 결과가 자동으로 `history/` 폴더에 JSON 형식으로 저장됩니다.
+
+```typescript
+// 최근 N개 검증 기록 조회
+mcp__multi_ai__getHistory({
+  limit: 10  // 최근 10개 (기본값)
+})
+
+// 쿼리 패턴 기반 검색
+mcp__multi_ai__searchHistory({
+  pattern: "성능 최적화"  // 쿼리 내용으로 검색
+})
+
+// 통계 분석
+mcp__multi_ai__getHistoryStats()
+// 반환: {
+//   totalCount: number;           // 총 검증 횟수
+//   averageSuccessRate: number;   // 평균 성공률
+//   averageResponseTime: number;  // 평균 응답시간 (ms)
+//   aiUsageCount: {               // AI별 사용 횟수
+//     codex: number;
+//     gemini: number;
+//     qwen: number;
+//   }
+// }
+```
+
+**히스토리 파일 위치**: `packages/multi-ai-mcp/history/`
+
+**저장 형식**:
+- 파일명: `YYYY-MM-DD-HH-MM-SS.json`
+- 자동 저장: `queryAllAIs`, `queryWithPriority` 실행 후 자동 기록
+- 저장 내용: 쿼리, 3-AI 응답, 합의/충돌 분석, 성능 메트릭
 
 ### 응답 구조
 

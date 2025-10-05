@@ -17,8 +17,9 @@ export function validateQuery(query: string): void {
   }
 
   // Check length limit (prevent resource exhaustion)
-  if (query.length > 1000) {
-    throw new Error(`Query too long (max 1000 characters, got ${query.length})`);
+  // Increased to 2500 for complex project analysis
+  if (query.length > 2500) {
+    throw new Error(`Query too long (max 2500 characters, got ${query.length})`);
   }
 
   // Check for dangerous shell metacharacters

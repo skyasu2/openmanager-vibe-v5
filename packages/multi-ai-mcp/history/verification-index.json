@@ -1,0 +1,356 @@
+{
+  "metadata": {
+    "created": "2025-10-01",
+    "version": "1.0",
+    "description": "AI 교차검증 히스토리 인덱스 - 빠른 검색 및 트렌드 분석용",
+    "last_updated": "2025-10-03T01:29:27Z"
+  },
+  "verifications": [
+    {
+      "id": "2025-09-12-dashboard-ux",
+      "date": "2025-09-12T00:00:00Z",
+      "target": "대시보드 서버 카드 UX 개선",
+      "description": "호버 블러 효과 제거, 그래프 색상 직관적 매칭, 24시간 실시간 시간 표시",
+      "ai_scores": {
+        "codex": 87,
+        "gemini": 82,
+        "qwen": 74,
+        "average": 81
+      },
+      "decision": "approved_with_improvements",
+      "tags": [
+        "dashboard",
+        "ux",
+        "server-card",
+        "ui-improvement"
+      ]
+    },
+    {
+      "id": "2025-09-16-dashboard-access",
+      "date": "2025-09-16T00:00:00Z",
+      "target": "대시보드 접근 문제 해결 - PIN 인증 동기화",
+      "description": "PIN 인증 후 리다이렉트 이슈 해결 - localStorage vs React State 동기화",
+      "ai_scores": {
+        "codex": 92,
+        "gemini": 88,
+        "qwen": 90,
+        "average": 90
+      },
+      "decision": "approved",
+      "tags": [
+        "dashboard",
+        "authentication",
+        "pin",
+        "bugfix"
+      ]
+    },
+    {
+      "id": "2025-09-30-typescript-types",
+      "date": "2025-09-30T00:00:00Z",
+      "target": "TypeScript ServerStatus 타입 충돌 해결",
+      "description": "11개 파일 중복 정의 → 1개 파일 통합 (Single Source of Truth)",
+      "ai_scores": {
+        "codex": 94,
+        "gemini": 97,
+        "qwen": 101,
+        "average": 97.3
+      },
+      "decision": "approved",
+      "tags": [
+        "typescript",
+        "types",
+        "refactor",
+        "consolidation"
+      ]
+    },
+    {
+      "id": "2025-10-01-ai-types",
+      "date": "2025-10-01T00:00:00Z",
+      "target": "AI 타입 시스템 검증",
+      "description": "engineType 타입 좁히기, PartialAIConfig 배열 처리, 인터페이스 분리",
+      "ai_scores": {
+        "codex": 72,
+        "gemini": 85,
+        "qwen": 85,
+        "average": 80.7
+      },
+      "decision": "approved_with_improvements",
+      "tags": [
+        "typescript",
+        "ai-types",
+        "validation"
+      ]
+    },
+    {
+      "id": "2025-10-01-critical-bugfix",
+      "date": "2025-10-01T00:00:00Z",
+      "target": "Critical Bug Fix 3종 완료 후 재평가",
+      "description": "환경변수 검증, TypeScript 타입 안전성, 에러 처리 강화 (무한 루프 방지)",
+      "ai_scores": {
+        "codex": 97,
+        "gemini": 97,
+        "qwen": 93,
+        "average": 95.7
+      },
+      "decision": "approved",
+      "tags": [
+        "bugfix",
+        "critical",
+        "validation",
+        "security"
+      ]
+    },
+    {
+      "id": "2025-10-02-00-22-claude-v2",
+      "date": "2025-10-02T00:22:00Z",
+      "target": "Claude Code v2.0.1 신규 기능 검증",
+      "description": "Checkpoints, Sonnet 4.5, Extended thinking, Hooks 등 v2.0.1 신규 기능 문서화 품질",
+      "ai_scores": {
+        "codex": 59,
+        "gemini": 85,
+        "qwen": 82,
+        "average": 73.7
+      },
+      "decision": "approved_with_improvements",
+      "tags": [
+        "claude-code",
+        "features",
+        "v2.0.1",
+        "documentation"
+      ]
+    },
+    {
+      "id": "2025-10-02-14-30-subagent-settings",
+      "date": "2025-10-02T14:30:00Z",
+      "target": ".claude/agents/ (codex, gemini, qwen specialist)",
+      "description": "서브에이전트 설정 AI 교차검증 - 평가 루브릭 통일 및 실측 성과 추가",
+      "score_before": 87.1,
+      "score_after": 93.3,
+      "improvement": 6.2,
+      "ai_scores": {
+        "codex": 82,
+        "gemini": 91.3,
+        "qwen": 88,
+        "average": 87.1
+      },
+      "decision": "approved_with_improvements",
+      "priority": 1,
+      "time_spent": "3_hours",
+      "tags": [
+        "subagent",
+        "cross-verification",
+        "consistency",
+        "architecture",
+        "evaluation-rubric"
+      ],
+      "actions_taken": [
+        "평가 루브릭 통일 (3개 specialist)",
+        "Gemini 실측 성과 3개 추가 (97/94/95점)",
+        "가중치 규칙 명시"
+      ],
+      "key_findings": [
+        "일관성 6.3/10 → 10/10",
+        "교차검증 효율성 +40%",
+        "B+ → A 등급 달성"
+      ],
+      "commit": "664e40d0"
+    },
+    {
+      "id": "2025-10-02-01-13-performance-optimization-backfill-system",
+      "date": "2025-10-02T01:13:17Z",
+      "target": "scripts/ai-verification/verification-recorder.sh (215줄)",
+      "description": "performance-optimization-backfill-system",
+      "ai_scores": {
+        "codex": 85,
+        "gemini": 90,
+        "qwen": 80,
+        "average": 85
+      },
+      "decision": "approved_with_improvements",
+      "tags": [
+        "performance",
+        "optimization",
+        "i/o",
+        "scalability",
+        "verification-system"
+      ],
+      "commit": null
+    },
+    {
+      "id": "2025-10-02-02-38-mcp-performance-security-enhancement",
+      "date": "2025-10-02T02:38:45Z",
+      "target": "MCP 성능 최적화 및 보안 강화 시스템",
+      "description": "mcp-performance-security-enhancement",
+      "ai_scores": {
+        "codex": 72,
+        "gemini": 87,
+        "qwen": 76.4,
+        "average": 78.5
+      },
+      "decision": "conditional_approval",
+      "tags": [
+        "mcp-optimization",
+        "security-enhancement",
+        "performance",
+        "supabase-indexes",
+        "conditional-approval"
+      ],
+      "commit": "pending"
+    },
+    {
+      "id": "2025-10-02-11-33-vercel-test-system",
+      "date": "2025-10-02T11:33:20Z",
+      "target": "Vercel-friendly AI Testing System",
+      "description": "vercel-test-system",
+      "ai_scores": {
+        "codex": 88,
+        "gemini": 94.5,
+        "qwen": 78,
+        "average": 86.83
+      },
+      "decision": "approved_with_improvements",
+      "tags": [
+        "vercel",
+        "testing",
+        "performance",
+        "security",
+        "architecture"
+      ],
+      "commit": null
+    },
+    {
+      "id": "2025-10-02-21-27-v1.1.0-performance-optimization",
+      "date": "2025-10-02T21:27:00Z",
+      "target": "Vercel AI Testing System v1.1.0 성능 최적화",
+      "description": "미들웨어 60-75% 성능 향상, SECRET 검증 60-70% 향상, Rate Limiting 실제 구현",
+      "ai_scores": {
+        "codex": 92,
+        "gemini": 94,
+        "qwen": 91.75,
+        "average": 92.58
+      },
+      "decision": "approved",
+      "tags": [
+        "performance",
+        "optimization",
+        "middleware",
+        "rate-limiting",
+        "security",
+        "v1.1.0"
+      ],
+      "commit": "348bafd9",
+      "improvements": [
+        "미들웨어 isTestMode() 60-75% 성능 향상",
+        "SECRET 검증 crypto.timingSafeEqual 60-70% 향상",
+        "Rate Limiting 실제 구현 (1분 10회, 429 에러)",
+        "TypeScript strict 모드 100% 유지"
+      ]
+    },
+    {
+      "id": "2025-10-03-01-29-ai-api-auth-debug-cleanup",
+      "date": "2025-10-03T01:29:27Z",
+      "target": "src/lib/api-auth.ts, src/app/api/ai/query/route.ts",
+      "description": "ai-api-auth-debug-cleanup",
+      "ai_scores": {
+        "codex": 95,
+        "gemini": 90,
+        "qwen": 85,
+        "average": 90
+      },
+      "decision": "approved_high_priority",
+      "tags": [
+        "architecture",
+        "debugging",
+        "code-cleanup",
+        "3-ai-cross-verification",
+        "high-priority"
+      ],
+      "commit": "e2e210e6"
+    },
+    {
+      "id": "2025-10-05-15-14-multi-ai-mcp-retry-mechanism",
+      "date": "2025-10-05T15:14:00+09:00",
+      "target": "Multi-AI MCP 재시도 메커니즘",
+      "description": "retry.ts, config.ts - Critical/High 버그 4개 발견 → Phase 1+2 완료 (4/4 수정)",
+      "ai_scores": {
+        "codex": 60,
+        "gemini": 80,
+        "qwen": null,
+        "average": 70
+      },
+      "decision": "approved",
+      "tags": [
+        "multi-ai-mcp",
+        "retry-mechanism",
+        "critical-bugs-fixed",
+        "production-ready",
+        "phase-1-complete",
+        "phase-2-complete",
+        "config-validation",
+        "fatal-error-detection",
+        "backoff-jitter"
+      ],
+      "commit": null,
+      "critical_issues": [
+        "✅ NaN 검증 부재 - parseIntWithValidation 구현",
+        "✅ 얕은 병합 버그 - Deep merge 구현",
+        "✅ 치명적 오류 재시도 - isFatalError() 구현",
+        "✅ 백오프 지터 없음 - Jitter + Cap 구현"
+      ],
+      "phase_1_actions": [
+        "✅ NaN 검증 추가 (config.ts) - 15분",
+        "✅ Deep merge 구현 (config.ts) - 10분",
+        "✅ 테스트 작성 (17개, 100% 통과) - 25분"
+      ],
+      "phase_1_results": {
+        "tests_total": 39,
+        "tests_passed": 39,
+        "test_time_ms": 48,
+        "config_tests": 17,
+        "production_crash_prevented": true,
+        "config_loss_prevented": true,
+        "completed_at": "2025-10-05T15:26:00+09:00"
+      },
+      "phase_2_actions": [
+        "✅ 치명적 오류 검출 (retry.ts) - 25분",
+        "✅ 백오프 지터 구현 (retry.ts) - 18분"
+      ],
+      "phase_2_results": {
+        "tests_total": 74,
+        "tests_passed": 74,
+        "test_time_ms": 45180,
+        "retry_tests": 35,
+        "fatal_error_detection": true,
+        "backoff_jitter": true,
+        "time_saved_seconds": "3-5",
+        "thundering_herd_prevented": true,
+        "completed_at": "2025-10-05T15:45:00+09:00"
+      },
+      "production_readiness": {
+        "before": 4,
+        "after": 8,
+        "improvement": 4
+      }
+    }
+  ],
+  "statistics": {
+    "total_verifications": 13,
+    "average_score": 85.26,
+    "average_improvement": 6.2,
+    "ai_performance": {
+      "codex": {
+        "count": 13,
+        "average": 82.69
+      },
+      "gemini": {
+        "count": 13,
+        "average": 89.29
+      },
+      "qwen": {
+        "count": 12,
+        "average": 85.35
+      }
+    },
+    "last_updated": "2025-10-05T15:14:00+09:00"
+  }
+}

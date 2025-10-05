@@ -19,6 +19,7 @@ import { queryGemini } from './ai-clients/gemini.js';
 import { queryQwen } from './ai-clients/qwen.js';
 import { synthesizeResults } from './synthesizer.js';
 import type { AIQueryRequest, AIResponse } from './types.js';
+import { recordVerification, getRecentHistory, searchHistory, getHistoryStats } from './history/manager.js';
 
 // MCP Server instance
 const server = new Server(
@@ -98,6 +99,42 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {},
         },
       },
+      {
+        name: 'getHistory',
+        description: 'Get recent AI cross-verification history',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            limit: {
+              type: 'number',
+              description: 'Number of recent records to retrieve (default: 10)',
+              default: 10,
+            },
+          },
+        },
+      },
+      {
+        name: 'searchHistory',
+        description: 'Search AI cross-verification history by query pattern',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            pattern: {
+              type: 'string',
+              description: 'Search pattern to match against queries',
+            },
+          },
+          required: ['pattern'],
+        },
+      },
+      {
+        name: 'getHistoryStats',
+        description: 'Get AI cross-verification statistics',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
     ],
   };
 });
@@ -144,6 +181,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             qwen: qwen?.responseTime || 0,
           },
         };
+
+        // Record verification history
+        await recordVerification(
+          { query, qwenPlanMode, includeCodex: true, includeGemini: true, includeQwen: true },
+          codex,
+          gemini,
+          qwen,
+          {
+            consensus: synthesis.synthesis.consensus,
+            conflicts: synthesis.synthesis.conflicts,
+            totalTime: synthesis.performance.totalTime,
+            successRate: synthesis.performance.successRate,
+          }
+        );
 
         return {
           content: [
@@ -196,6 +247,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           },
         };
 
+        // Record verification history
+        await recordVerification(
+          { query, qwenPlanMode, includeCodex, includeGemini, includeQwen },
+          codex,
+          gemini,
+          qwen,
+          {
+            consensus: synthesis.synthesis.consensus,
+            conflicts: synthesis.synthesis.conflicts,
+            totalTime: synthesis.performance.totalTime,
+            successRate: synthesis.performance.successRate,
+          }
+        );
+
         return {
           content: [
             {
@@ -223,6 +288,47 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             {
               type: 'text',
               text: JSON.stringify(lastQueryStats, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'getHistory': {
+        const { limit = 10 } = args as { limit?: number };
+        const history = await getRecentHistory(limit);
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(history, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'searchHistory': {
+        const { pattern } = args as { pattern: string };
+        const results = await searchHistory(pattern);
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(results, null, 2),
+            },
+          ],
+        };
+      }
+
+      case 'getHistoryStats': {
+        const stats = await getHistoryStats();
+
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify(stats, null, 2),
             },
           ],
         };

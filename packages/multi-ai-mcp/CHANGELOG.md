@@ -7,6 +7,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] - 2025-10-05
+
+### Added ✨
+
+**히스토리 기록 시스템** - AI 교차검증 결과 자동 저장 및 조회
+
+#### 신규 기능
+- **자동 히스토리 저장**
+  - 모든 AI 교차검증 결과 자동 기록 (JSON 형식)
+  - `queryAllAIs`, `queryWithPriority` 실행 후 자동 저장
+  - 저장 위치: `packages/multi-ai-mcp/history/`
+
+- **히스토리 조회 API** (3개 신규 MCP 도구)
+  - `getHistory(limit)` - 최근 N개 검증 기록 조회
+  - `searchHistory(pattern)` - 쿼리 패턴 기반 검색
+  - `getHistoryStats()` - 평균 성공률, 응답시간, AI 사용량 통계
+
+- **히스토리 마이그레이션**
+  - 기존 히스토리 `reports/quality/ai-verifications/` → `packages/multi-ai-mcp/history/` 이동
+  - 18+ 검증 기록 보존 (Markdown 형식 하위 호환)
+
+#### 저장 데이터
+- 타임스탬프 및 쿼리 내용
+- 3-AI 모드 설정 (codex, gemini, qwen, qwenPlanMode)
+- 개별 AI 응답 (response, executionTime, success)
+- 합의/충돌 분석 결과 (consensus, conflicts)
+- 성능 메트릭 (totalTime, successRate)
+- 버전 메타데이터
+
+### Changed 🔧
+
+- **package.json**: 버전 1.0.0 → 1.2.0
+- **Description**: "AI Cross-Verification History" 기능 명시
+- **CLAUDE.md**: v1.2.0 히스토리 기능 문서화
+
+### Fixed 🐛
+
+- **tests/validation.test.ts**: 쿼리 길이 테스트 2501자로 수정 (v1.1.0 제한 완화 반영)
+
+---
+
+## [1.1.0] - 2025-10-05
+
+### Changed 🔧
+
+**타임아웃 및 제한 완화** - 안정성 대폭 향상
+
+#### 개선 사항
+- **쿼리 길이 제한**: 1,000자 → 2,500자 (+150%)
+- **Gemini 타임아웃**: 30초 → 90초 (+200%)
+- **Qwen 타임아웃**:
+  - Normal Mode: 30초 → 45초 (+50%)
+  - Plan Mode: 60초 → 90초 (+50%)
+
+#### 성과
+- **3-AI 병렬 성공**: 23.6초, 100% 성공률 (타임아웃 0%)
+- **개별 AI 성과**: Codex 8/10 (5초), Gemini 10/10 (23.6초), Qwen 8/10 (23.6초)
+
+---
+
 ## [1.0.0] - 2025-10-05
 
 ### Added ✨

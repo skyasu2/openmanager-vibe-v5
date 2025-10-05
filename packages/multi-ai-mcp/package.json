@@ -1,7 +1,7 @@
 {
   "name": "@mcp/multi-ai",
-  "version": "1.0.0",
-  "description": "Multi-AI MCP Server for Claude Code - Integrates Codex, Gemini, and Qwen",
+  "version": "1.2.0",
+  "description": "Multi-AI MCP Server for Claude Code - Integrates Codex, Gemini, and Qwen with AI Cross-Verification History",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
