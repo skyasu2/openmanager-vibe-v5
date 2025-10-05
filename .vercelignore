@@ -124,6 +124,7 @@ tsconfig.tsbuildinfo
 mcp-servers/
 mcp-server/
 **/mcp-servers/
+packages/multi-ai-mcp/
 .claude/
 fetch-mcp/
 fetch-mcp-server/

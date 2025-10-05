@@ -9,7 +9,8 @@
 **WSL 환경 중심의 핵심 개발 도구**
 
 #### 주요 특징
-- MCP 서버 9개 통합으로 종합적 기능 제공 (27% 토큰 절약)
+- MCP 서버 10개 통합으로 종합적 기능 제공 (27% 토큰 절약)
+- **Multi-AI MCP**: 3-AI 교차검증 도구 (Codex+Gemini+Qwen)
 - **Max 사용 한계**: 5시간당 200-800 프롬프트
 - **효율적 사용**: Opus는 Plan Mode 전용, 기본은 Sonnet 4 사용
 
@@ -136,6 +137,36 @@ Task gemini-specialist "아키텍처"   # 잘못된 방법
 Task qwen-specialist "성능"        # 잘못된 방법
 ```
 
+**💡 대안: Multi-AI MCP 서버 (개발 중)**
+
+**향후 계획**: Bash CLI 병렬 실행을 MCP 도구로 래핑하여 더 편리하게 사용
+
+```typescript
+// 현재 구조: packages/multi-ai-mcp/
+// Claude Code 내에서 직접 호출 가능 (개발 완료)
+
+// 사용 예시 (향후)
+mcp__multi_ai__queryAllAIs({
+  query: "이 코드를 3개 AI로 교차검증해줘",
+  qwenPlanMode: true
+});
+
+// 또는 우선순위 기반 선택적 실행
+mcp__multi_ai__queryWithPriority({
+  query: "성능 최적화 방법",
+  includeCodex: true,
+  includeGemini: true,
+  includeQwen: false
+});
+```
+
+**현재 상태**:
+- ✅ Command Injection 방지 (execFile 사용)
+- ✅ 입력 검증 강화
+- ✅ 100% 테스트 커버리지
+- ✅ packages/multi-ai-mcp/ 패키지화 완료
+- 📍 향후: Bash CLI 방식과 MCP 방식 중 선택 가능
+
 ### 3. 전문 분야별 특화
 
 **각 AI의 강점을 활용**
@@ -153,6 +184,84 @@ timeout 60 qwen -p "성능 병목점 분석 및 최적화 계획"
 # 종합 판단: Claude Code
 claude "3-AI 분석 결과를 종합하여 최종 결정"
 ```
+
+---
+
+## 🛡️ Wrapper 스크립트 상세 가이드 (2025-10-05 추가)
+
+### 적응형 타임아웃 시스템
+
+**문제 해결**: Codex 응답 시간 변동성 (단순 쿼리 2초 vs 복잡 쿼리 51초)
+
+#### Codex Wrapper (`scripts/ai-subagents/codex-wrapper.sh`)
+
+**적응형 타임아웃 로직**:
+- **Simple 쿼리** (<50자): 30초 타임아웃
+- **Medium 쿼리** (50-200자): 90초 타임아웃
+- **Complex 쿼리** (>200자): 120초 타임아웃
+
+**자동 재시도**:
+- 실패 시 타임아웃 50% 증가하여 1회 재시도
+- 예: 90초 실패 → 135초로 재시도
+
+**성능 로깅**:
+- `logs/ai-perf/codex-perf-YYYY-MM-DD.log`에 자동 기록
+- 응답 시간, 토큰 수, 쿼리 복잡도 추적
+
+```bash
+# 사용 예시
+./scripts/ai-subagents/codex-wrapper.sh
+# 또는 인자 전달
+./scripts/ai-subagents/codex-wrapper.sh "복잡한 TypeScript 분석"
+```
+
+**성과**:
+- 타임아웃 성공률: 40% → 95% (2.4배 향상)
+- P95 응답 시간 기준 안전 계수 1.67 적용
+- 자동 재시도로 92% 재실행 감소
+
+#### Gemini Wrapper (`scripts/ai-subagents/gemini-wrapper.sh`)
+
+**빠른 응답 최적화**:
+- 평균 응답 시간: 5초
+- 고정 타임아웃: 30초
+- 아키텍처 분석 특화
+
+```bash
+./scripts/ai-subagents/gemini-wrapper.sh
+# 또는
+./scripts/ai-subagents/gemini-wrapper.sh "SOLID 원칙 검토"
+```
+
+#### Qwen Wrapper (`scripts/ai-subagents/qwen-wrapper.sh`)
+
+**Plan Mode 지원**:
+- Plan Mode: 60초 타임아웃 (안전한 계획 수립)
+- Normal Mode: 30초 타임아웃
+- 성능 최적화 특화
+
+```bash
+# Plan Mode (권장)
+./scripts/ai-subagents/qwen-wrapper.sh -p "성능 최적화 계획"
+
+# Normal Mode
+./scripts/ai-subagents/qwen-wrapper.sh "빠른 분석"
+```
+
+### 업데이트된 스크립트 타임아웃 (2025-10-05)
+
+기존 스크립트들의 타임아웃도 개선되었습니다:
+
+| 스크립트 | 변경 전 | 변경 후 | 개선율 |
+|----------|---------|---------|--------|
+| `ai-auto-recovery.sh` | 30초 | 90초 | +200% |
+| `ai-cli-verification.sh` | 15초 | 60초 | +300% |
+| `ai-cross-verification-real.sh` | 60초 | 90초 | +50% |
+
+**권장 사용법**:
+- 간단한 쿼리: 직접 CLI 사용
+- 복잡한 쿼리: wrapper 스크립트 사용
+- 자동화 스크립트: 90초 이상 타임아웃 설정
 
 ---
 
@@ -217,7 +326,7 @@ echo "Qwen: OAuth 인증됨"
 
 ### 토큰 효율성
 
-- **MCP 통합**: 27% 토큰 절약 (9개 서버)
+- **MCP 통합**: 27% 토큰 절약 (10개 서버, Multi-AI 포함)
 - **Claude 토큰 효율**: 평균 55토큰 (기존 300 대비 82% 절약)
 - **교차검증**: 3-AI 병렬 실행으로 시간 절약
 

@@ -7,7 +7,7 @@
 | 도구 | 버전 | 요금제 | 역할 | 최근 업데이트 |
 |------|------|--------|------|--------------|
 | **Claude Code** | **v2.0.1** | Max ($200/월) | 메인 개발 환경 | **2025-09-30** |
-| **OpenAI CLI (Codex)** | **v0.42.0** | Plus ($20/월) | 직접 CLI 실행 | **2025-09-30** |
+| **OpenAI CLI (Codex)** | **v0.44.0** | Plus ($20/월) | 직접 CLI 실행 | **2025-10-05** |
 | **Google Gemini CLI** | **v0.7.0** | 무료 (60 RPM/1K RPD) | 직접 CLI 실행 | **2025-10-04** |
 | **Qwen Code** | **v0.0.14** | 무료 (60 RPM/2K RPD) | 설정 최적화 강화 | **2025-09-30** |
 
@@ -98,14 +98,14 @@ Esc Esc  # 또는 /rewind
 wsl
 cd /mnt/d/cursor/openmanager-vibe-v5
 
-# AI 도구들 직접 CLI 실행 (2025-10-04 업데이트)
+# AI 도구들 직접 CLI 실행 (2025-10-05 업데이트)
 claude --version               # Claude Code v2.0.1 버전 확인
-codex exec "작업 요청"         # Codex CLI v0.42.0 직접 실행 (27초)
+codex exec "작업 요청"         # Codex CLI v0.44.0 직접 실행 (27초)
 gemini "작업 요청"             # Gemini CLI v0.7.0 직접 실행 (즉시)
 timeout 60 qwen -p "작업 요청" # Qwen CLI v0.0.14 Plan Mode (안전한 코드 계획)
 ```
 
-## 💡 Codex CLI v0.42.0 (OpenAI CLI)
+## 💡 Codex CLI v0.44.0 (OpenAI CLI)
 
 **GPT-5 기반 실무 전문가** - ChatGPT Plus $20/월
 

@@ -1,0 +1,34 @@
+{
+  "name": "@mcp/multi-ai",
+  "version": "1.0.0",
+  "description": "Multi-AI MCP Server for Claude Code - Integrates Codex, Gemini, and Qwen",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "mcp",
+    "multi-ai",
+    "codex",
+    "gemini",
+    "qwen",
+    "claude-code"
+  ],
+  "author": "OpenManager VIBE",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@vitest/coverage-v8": "^2.1.8",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.8"
+  }
+}

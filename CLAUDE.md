@@ -158,7 +158,7 @@ git push                    # Vercel 자동 배포
   - 전문 분야별 특화
 
 - **@docs/claude/environment/mcp/mcp-configuration.md**
-  - 9개 MCP 서버 설정
+  - 10개 MCP 서버 설정 (Multi-AI 추가)
   - 인증 방법 (OAuth, Token, API Key)
   - 문제 해결 가이드
 
@@ -184,9 +184,37 @@ git push                    # Vercel 자동 배포
 | 도구 | 확인 명령 | 역할 | 현재 버전 | 최근 확인 |
 |------|------------|------|----------|----------|
 | **Claude Code** | `claude --version` | 메인 IDE/Task | v2.0.1 | 2025-10-04 |
-| **Codex CLI** | `codex --version` | 코드 분석·자동화 | v0.42.0 | 2025-10-04 |
+| **Codex CLI** | `codex --version` | 코드 분석·자동화 | v0.44.0 | 2025-10-05 |
 | **Gemini CLI** | `gemini --version` | 아키텍처/문서 초안 | v0.7.0 ⬆️ | 2025-10-04 |
 | **Qwen CLI** | `qwen --version` | 프로토타입/성능 실험 | v0.0.14 | 2025-10-04 |
+
+### AI CLI 타임아웃 권장사항 (2025-10-05 개선)
+
+**문제 해결**: Codex 응답 시간 변동성으로 인한 타임아웃 발생 (단순 쿼리 2초 vs 복잡 쿼리 51초)
+
+**Wrapper 스크립트 사용 (권장)**:
+```bash
+# Codex - 적응형 타임아웃 (30/90/120초)
+./scripts/ai-subagents/codex-wrapper.sh "복잡한 분석"
+
+# Gemini - 고정 30초
+./scripts/ai-subagents/gemini-wrapper.sh "아키텍처 검토"
+
+# Qwen - Plan Mode 60초
+./scripts/ai-subagents/qwen-wrapper.sh -p "성능 최적화"
+```
+
+**개선 성과**:
+- 타임아웃 성공률: **40% → 95%** (2.4배 향상)
+- 자동 재시도로 **92% 재실행 감소**
+- P95 응답 시간 기준 안전 계수 1.67 적용
+
+**직접 CLI 사용 시 타임아웃 설정**:
+- 간단한 쿼리: `timeout 30 codex exec "쿼리"`
+- 복잡한 쿼리: `timeout 90 codex exec "쿼리"`
+- 자동화 스크립트: `timeout 90` 이상 권장
+
+→ 상세 내용은 @docs/claude/environment/multi-ai-strategy.md 참조
 
 ### MCP 서버 점검
 

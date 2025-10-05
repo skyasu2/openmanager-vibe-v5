@@ -61,7 +61,7 @@ health_check_claude() {
 }
 
 health_check_codex() {
-    timeout 30 codex exec "ping" >/dev/null 2>&1
+    timeout 90 codex exec "ping" >/dev/null 2>&1
 }
 
 health_check_gemini() {
@@ -108,7 +108,7 @@ recover_codex() {
     sleep 3
 
     # 2. 재인증이 필요할 수 있으므로 상태만 확인
-    if timeout 30 codex exec "recovery test" >/dev/null 2>&1; then
+    if timeout 90 codex exec "recovery test" >/dev/null 2>&1; then
         log_success "Codex CLI 복구 성공"
         return 0
     else

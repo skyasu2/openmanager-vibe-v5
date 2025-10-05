@@ -95,7 +95,7 @@ check_ai_tool_version "claude" "1.0.124"
 # 2. Codex CLI 검증
 check_ai_tool_version "codex" "0.41.0"
 if command -v codex >/dev/null 2>&1; then
-    test_basic_functionality "codex" "echo 'test' | codex exec 'Echo this back'" 15
+    test_basic_functionality "codex" "echo 'test' | codex exec 'Echo this back'" 60
 fi
 
 # 3. Gemini CLI 검증
