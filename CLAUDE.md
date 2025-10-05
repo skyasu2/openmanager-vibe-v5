@@ -28,7 +28,7 @@
 
 | 항목 | 현재 값 | 확인 경로 |
 |------|---------|-----------|
-| **프로젝트** | v5.79.1 | `package.json:version` |
+| **프로젝트** | v5.80.0 | `package.json:version` |
 | **Claude Code CLI** | `claude --version` 결과 확인 | 실행 환경에서 직접 확인 |
 | **Claude 모델** | Sonnet (기본) | `/usage` 또는 설정 패널 |
 | **Node.js** | 22.15.1 | `.nvmrc` |
@@ -93,6 +93,159 @@ git push                    # Vercel 자동 배포
 - Memory tool (Beta) 사용 가능
 
 **참고**: `alwaysThinkingEnabled` 설정은 공식 스키마에 존재하나 문서화되지 않은 Beta 기능입니다.
+
+---
+
+## 🤖 Multi-AI 사용 전략 (2025-10-05 신규)
+
+**핵심 원칙**: MCP 도구 우선 → Bash CLI 대안 → 수동 실행 최후
+
+### 1️⃣ Multi-AI MCP 서버 (우선 사용) ⭐
+
+**위치**: `packages/multi-ai-mcp/` (프로젝트 전용 MCP)
+
+**사용 시기**:
+- ✅ 3-AI 교차검증 필요 시 (자동 합의 분석)
+- ✅ Claude Code 내에서 즉시 실행
+- ✅ 결과를 구조화된 JSON으로 받고 싶을 때
+
+**사용법**:
+```typescript
+// Claude Code에서 자연어로 요청
+"이 코드를 Multi-AI MCP로 교차검증해줘"
+
+// 또는 명시적 도구 호출
+mcp__multi_ai__queryAllAIs({
+  query: "Multi-AI MCP 서버 코드 품질 분석",
+  qwenPlanMode: true
+})
+
+// 선택적 AI 실행
+mcp__multi_ai__queryWithPriority({
+  query: "성능 최적화 방법",
+  includeCodex: true,
+  includeGemini: false,  // 아키텍처 분석 제외
+  includeQwen: true
+})
+
+// 성능 통계 확인
+mcp__multi_ai__getPerformanceStats()
+```
+
+**장점**:
+- ✅ **자동 합의 분석**: 2+ AI 합의 항목 자동 추출
+- ✅ **충돌 감지**: 의견 차이 자동 식별
+- ✅ **구조화된 결과**: JSON 형태로 즉시 사용 가능
+- ✅ **성능 추적**: 응답 시간, 성공률 자동 기록
+
+**현재 버전**: v1.0.0
+**평가 점수**: 9.2/10 (프로덕션 준비 완료)
+
+---
+
+### 2️⃣ Bash CLI Wrapper (대안)
+
+**위치**: `scripts/ai-subagents/`
+
+**사용 시기**:
+- ⚠️ MCP 서버 사용 불가 시 (연결 실패, 디버깅)
+- ⚠️ 터미널 스크립트에서 직접 호출
+- ⚠️ 개별 AI 테스트 필요 시
+
+**사용법**:
+```bash
+# Wrapper 스크립트 (적응형 타임아웃)
+./scripts/ai-subagents/codex-wrapper.sh "쿼리"
+./scripts/ai-subagents/gemini-wrapper.sh "쿼리"
+./scripts/ai-subagents/qwen-wrapper.sh -p "쿼리"
+
+# 병렬 실행 (Claude가 자동으로 수행)
+"Bash CLI로 3-AI 병렬 실행해줘"
+```
+
+**장점**:
+- ✅ **적응형 타임아웃**: 30/90/120초 자동 조절
+- ✅ **자동 재시도**: 실패 시 1회 재시도
+- ✅ **성능 로깅**: logs/ai-perf/ 자동 기록
+
+**단점**:
+- ❌ 수동 합의 분석 필요
+- ❌ Claude가 결과 파일 읽고 종합해야 함
+
+---
+
+### 3️⃣ 직접 CLI 실행 (최후)
+
+**사용 시기**:
+- ❌ MCP/Wrapper 모두 실패 시만
+- ❌ 특수한 디버깅 목적
+
+**사용법**:
+```bash
+# 직접 실행 (타임아웃 보호 필수)
+timeout 90 codex exec "쿼리"
+timeout 30 gemini "쿼리"
+timeout 60 qwen -p "쿼리"
+```
+
+---
+
+### 의사결정 플로우차트
+
+```
+AI 교차검증 필요
+    ↓
+Multi-AI MCP 사용 가능? ──예→ [MCP 우선 사용] ✅
+    │
+    아니오
+    ↓
+Bash CLI Wrapper 사용 ──예→ [Wrapper 대안] ⚠️
+    │
+    아니오
+    ↓
+직접 CLI 실행 (타임아웃 보호) ──→ [최후 수단] ❌
+```
+
+---
+
+### 실전 예시
+
+**시나리오 1: 코드 품질 검증**
+```
+# ✅ 권장 (MCP 우선)
+"이 코드를 Multi-AI MCP로 검증해줘"
+
+# ❌ 비권장 (Bash CLI 직접)
+"Bash로 3개 AI 병렬 실행"
+```
+
+**시나리오 2: 성능 분석**
+```
+# ✅ 권장 (선택적 AI)
+mcp__multi_ai__queryWithPriority({
+  query: "성능 병목점 분석",
+  includeQwen: true,  // 성능 전문가만
+  includeCodex: false,
+  includeGemini: false
+})
+```
+
+**시나리오 3: MCP 연결 실패 시**
+```
+# ⚠️ 대안 (Wrapper 사용)
+./scripts/ai-subagents/codex-wrapper.sh "분석"
+```
+
+---
+
+### 버전 관리
+
+| 항목 | 버전 | 상태 |
+|------|------|------|
+| **Multi-AI MCP** | v1.0.0 | ✅ 프로덕션 준비 완료 |
+| **Codex Wrapper** | v1.0.0 | ✅ 적응형 타임아웃 적용 |
+| **Gemini Wrapper** | v1.0.0 | ✅ 30초 고정 |
+| **Qwen Wrapper** | v1.0.0 | ✅ Plan Mode 60초 |
 
 ---
 

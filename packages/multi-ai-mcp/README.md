@@ -19,6 +19,19 @@ Claude Code와 통합되어 3개 AI(Codex, Gemini, Qwen)의 응답을 병렬로 
 
 ---
 
+## 🚨 중요 공지 (2025-10-05)
+
+**프로젝트 로컬 `.mcp.json`은 Claude Code에서 인식되지 않습니다!**
+
+→ **[상세 설정 가이드](./SETUP-GUIDE.md)** 필독
+
+**요약**:
+- ✅ **글로벌 설정 필수**: `~/.claude/settings.json`에 추가
+- ✅ **절대 경로 사용**: `/mnt/d/cursor/openmanager-vibe-v5/...`
+- ✅ **Claude Code 재시작**: 설정 변경 후 필수
+
+---
+
 ## 🚀 빠른 시작
 
 ### 1. 사전 요구사항
