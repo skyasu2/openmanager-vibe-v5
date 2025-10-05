@@ -137,6 +137,11 @@ mcp__multi_ai__getPerformanceStats()
 - ✅ **충돌 감지**: 의견 차이 자동 식별
 - ✅ **구조화된 결과**: JSON 형태로 즉시 사용 가능
 - ✅ **성능 추적**: 응답 시간, 성공률 자동 기록
+- ✅ **WSL 완벽 지원**: 프로젝트 `.mcp.json` 정상 작동
+
+**주의사항**:
+- ⚠️ **복잡한 쿼리 타임아웃 가능**: `queryAllAIs`는 3-AI 병렬 실행으로 시간 초과 가능
+- ✅ **권장**: `queryWithPriority`로 단일/선택적 AI 실행 (안정적)
 
 **현재 버전**: v1.0.0
 **평가 점수**: 9.2/10 (프로덕션 준비 완료)
@@ -245,7 +250,7 @@ mcp__multi_ai__queryWithPriority({
 | **Multi-AI MCP** | v1.0.0 | ✅ 프로덕션 준비 완료 |
 | **Codex Wrapper** | v1.0.0 | ✅ 적응형 타임아웃 적용 |
 | **Gemini Wrapper** | v1.0.0 | ✅ 30초 고정 |
-| **Qwen Wrapper** | v1.0.0 | ✅ Plan Mode 60초 |
+| **Qwen Wrapper** | v1.1.0 | ✅ Plan Mode 90초 (Normal 45초) |
 
 ---
 
@@ -353,7 +358,7 @@ mcp__multi_ai__queryWithPriority({
 # Gemini - 고정 30초
 ./scripts/ai-subagents/gemini-wrapper.sh "아키텍처 검토"
 
-# Qwen - Plan Mode 60초
+# Qwen - Plan Mode 90초 (Normal 45초)
 ./scripts/ai-subagents/qwen-wrapper.sh -p "성능 최적화"
 ```
 

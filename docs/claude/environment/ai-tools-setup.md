@@ -102,7 +102,7 @@ cd /mnt/d/cursor/openmanager-vibe-v5
 claude --version               # Claude Code v2.0.1 버전 확인
 codex exec "작업 요청"         # Codex CLI v0.44.0 직접 실행 (27초)
 gemini "작업 요청"             # Gemini CLI v0.7.0 직접 실행 (즉시)
-timeout 60 qwen -p "작업 요청" # Qwen CLI v0.0.14 Plan Mode (안전한 코드 계획)
+timeout 90 qwen -p "작업 요청" # Qwen CLI v0.0.14 Plan Mode (안전한 코드 계획, 90초)
 ```
 
 ## 💡 Codex CLI v0.44.0 (OpenAI CLI)
@@ -219,16 +219,16 @@ qwen login
 ### 사용법
 ```bash
 # Plan Mode (권장) - 안전한 계획 수립
-timeout 60 qwen -p "기능 구현 계획"
-timeout 60 qwen -p "리팩토링 전략"
+timeout 90 qwen -p "기능 구현 계획"
+timeout 90 qwen -p "리팩토링 전략"
 
-# 일반 모드
+# 일반 모드 (더 빠름)
 qwen "성능 병목점 분석"
 
 # Wrapper 스크립트
 ./scripts/ai-subagents/qwen-wrapper.sh
 
-# 성능: 평균 응답 60초 (타임아웃 보호)
+# 성능: Plan Mode 90초 타임아웃 (Normal Mode 실제 8초)
 # 특징: 성능 최적화 중시, 자원 효율 우선
 ```
 

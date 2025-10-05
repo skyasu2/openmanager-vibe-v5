@@ -236,8 +236,8 @@ claude "3-AI 분석 결과를 종합하여 최종 결정"
 #### Qwen Wrapper (`scripts/ai-subagents/qwen-wrapper.sh`)
 
 **Plan Mode 지원**:
-- Plan Mode: 60초 타임아웃 (안전한 계획 수립)
-- Normal Mode: 30초 타임아웃
+- Plan Mode: 90초 타임아웃 (안전한 계획 수립)
+- Normal Mode: 45초 타임아웃
 - 성능 최적화 특화
 
 ```bash
