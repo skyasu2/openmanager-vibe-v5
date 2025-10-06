@@ -70,9 +70,11 @@ export function isFatalError(error: Error): boolean {
     return true;
   }
 
-  // MCP timeout (already exceeded maximum wait time)
+  // Timeout errors (already exceeded maximum wait time)
+  // After 60-300s adaptive timeout, retry unlikely to succeed
   if (
     message.includes('mcp timeout') ||
+    message.includes('timed out') ||
     message.includes('deadline exceeded')
   ) {
     return true;
