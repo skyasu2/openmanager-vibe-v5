@@ -1,6 +1,6 @@
 {
   "name": "@mcp/multi-ai",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Multi-AI MCP Server for Claude Code - Integrates Codex, Gemini, and Qwen with Progress Notifications",
   "type": "module",
   "main": "dist/index.js",

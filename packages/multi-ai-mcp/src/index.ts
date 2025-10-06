@@ -19,23 +19,47 @@ import { queryGemini } from './ai-clients/gemini.js';
 import { queryQwen } from './ai-clients/qwen.js';
 import { synthesizeResults } from './synthesizer.js';
 import type { AIQueryRequest, AIResponse, ProgressCallback } from './types.js';
+import { config } from './config.js';
 import { recordVerification, getRecentHistory, searchHistory, getHistoryStats } from './history/manager.js';
 import { analyzeQuery, getAnalysisSummary, shouldUseQwenPlanMode } from './utils/query-analyzer.js';
 import { autoSplit, getSplitSummary } from './utils/query-splitter.js';
+
+/**
+ * Debug logging helper
+ * Only logs when MULTI_AI_DEBUG=true
+ */
+function debugLog(message: string, data?: unknown) {
+  if (config.debug.enabled) {
+    const timestamp = new Date().toISOString();
+    console.error(`[DEBUG ${timestamp}] ${message}`);
+    if (data !== undefined) {
+      console.error(JSON.stringify(data, null, 2));
+    }
+  }
+}
 
 /**
  * Progress callback for AI operations
  * Logs progress updates to stderr (does not interfere with stdout MCP protocol)
  */
 const onProgress: ProgressCallback = (provider, status, elapsed) => {
-  console.error(`[${provider.toUpperCase()}] ${status} (${Math.floor(elapsed / 1000)}초)`);
+  const elapsedSeconds = Math.floor(elapsed / 1000);
+  console.error(`[${provider.toUpperCase()}] ${status} (${elapsedSeconds}초)`);
+  
+  // Debug mode: additional timing information
+  debugLog(`Progress update for ${provider}`, {
+    provider,
+    status,
+    elapsedMs: elapsed,
+    elapsedSeconds,
+  });
 };
 
 // MCP Server instance
 const server = new Server(
   {
     name: 'multi-ai',
-    version: '1.6.0',
+    version: '1.7.0',
   },
   {
     capabilities: {
@@ -165,9 +189,23 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'queryAllAIs': {
         const { query: originalQuery, qwenPlanMode = true } = args as unknown as AIQueryRequest;
 
+        // Debug: Log incoming request
+        debugLog('MCP Tool: queryAllAIs - Request received', {
+          queryLength: originalQuery.length,
+          qwenPlanMode,
+          timestamp: new Date().toISOString(),
+        });
+
         // 🔍 STEP 1: Analyze query complexity
         const analysis = analyzeQuery(originalQuery);
         console.error('📊 Query Analysis:', getAnalysisSummary(analysis));
+        
+        // Debug: Log analysis results
+        debugLog('Query complexity analysis', {
+          complexity: analysis.complexity,
+          estimatedTokens: analysis.estimatedTokens,
+          suggestedTimeouts: analysis.suggestedTimeouts,
+        });
 
         // 📝 STEP 2: Auto-split if needed (preserves information)
         const { subQueries, wasSplit, strategy } = autoSplit(originalQuery, analysis);
@@ -186,19 +224,71 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         // Execute all AIs in parallel with progress notifications
         const startTime = Date.now();
+        debugLog('Starting 3-AI parallel execution', {
+          processedQuery: processedQuery.substring(0, 100) + '...',
+          qwenMode: autoQwenPlanMode ? 'plan' : 'normal',
+          expectedTimeouts: {
+            codex: analysis.suggestedTimeouts.codex,
+            gemini: analysis.suggestedTimeouts.gemini,
+            qwen: autoQwenPlanMode ? config.qwen.plan : config.qwen.normal,
+          },
+        });
+        
         const [codexResult, geminiResult, qwenResult] = await Promise.allSettled([
           queryCodex(processedQuery, onProgress),
           queryGemini(processedQuery, onProgress),
           queryQwen(processedQuery, autoQwenPlanMode, onProgress),
         ]);
+        
+        // Debug: Log execution results
+        const totalTime = Date.now() - startTime;
+        debugLog('3-AI parallel execution completed', {
+          totalTimeMs: totalTime,
+          totalTimeSec: Math.floor(totalTime / 1000),
+          results: {
+            codex: codexResult.status,
+            gemini: geminiResult.status,
+            qwen: qwenResult.status,
+          },
+        });
 
         // Extract results
         const codex = codexResult.status === 'fulfilled' ? codexResult.value : undefined;
         const gemini = geminiResult.status === 'fulfilled' ? geminiResult.value : undefined;
         const qwen = qwenResult.status === 'fulfilled' ? qwenResult.value : undefined;
 
+        // Debug: Log individual AI responses
+        if (config.debug.enabled) {
+          debugLog('Codex response', {
+            success: codex !== undefined,
+            responseTime: codex?.responseTime,
+            responseLength: codex?.response.length,
+            error: codexResult.status === 'rejected' ? String(codexResult.reason) : undefined,
+          });
+          debugLog('Gemini response', {
+            success: gemini !== undefined,
+            responseTime: gemini?.responseTime,
+            responseLength: gemini?.response.length,
+            error: geminiResult.status === 'rejected' ? String(geminiResult.reason) : undefined,
+          });
+          debugLog('Qwen response', {
+            success: qwen !== undefined,
+            responseTime: qwen?.responseTime,
+            responseLength: qwen?.response.length,
+            error: qwenResult.status === 'rejected' ? String(qwenResult.reason) : undefined,
+          });
+        }
+
         // Synthesize results
         const synthesis = synthesizeResults(processedQuery, codex, gemini, qwen);
+        
+        // Debug: Log synthesis results
+        debugLog('Synthesis completed', {
+          successRate: synthesis.performance.successRate,
+          totalTime: synthesis.performance.totalTime,
+          consensusCount: synthesis.synthesis.consensus.length,
+          conflictsCount: synthesis.synthesis.conflicts.length,
+        });
 
         // Update performance stats
         lastQueryStats = {
@@ -262,9 +352,26 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           qwenPlanMode = true,
         } = args as unknown as AIQueryRequest;
 
+        // Debug: Log incoming request
+        debugLog('MCP Tool: queryWithPriority - Request received', {
+          queryLength: originalQuery.length,
+          includeCodex,
+          includeGemini,
+          includeQwen,
+          qwenPlanMode,
+          timestamp: new Date().toISOString(),
+        });
+
         // 🔍 STEP 1: Analyze query complexity
         const analysis = analyzeQuery(originalQuery);
         console.error('📊 Query Analysis:', getAnalysisSummary(analysis));
+        
+        // Debug: Log analysis results
+        debugLog('Query complexity analysis', {
+          complexity: analysis.complexity,
+          estimatedTokens: analysis.estimatedTokens,
+          suggestedTimeouts: analysis.suggestedTimeouts,
+        });
 
         // 📝 STEP 2: Auto-split if needed (preserves information)
         const { subQueries, wasSplit, strategy } = autoSplit(originalQuery, analysis);
@@ -282,12 +389,32 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
 
         // Execute selected AIs in parallel with progress notifications
+        const startTime = Date.now();
         const promises: Promise<AIResponse>[] = [];
         if (includeCodex) promises.push(queryCodex(processedQuery, onProgress));
         if (includeGemini) promises.push(queryGemini(processedQuery, onProgress));
         if (includeQwen) promises.push(queryQwen(processedQuery, autoQwenPlanMode, onProgress));
 
+        debugLog('Starting selective AI execution', {
+          processedQuery: processedQuery.substring(0, 100) + '...',
+          selectedAIs: {
+            codex: includeCodex,
+            gemini: includeGemini,
+            qwen: includeQwen,
+          },
+          qwenMode: autoQwenPlanMode ? 'plan' : 'normal',
+        });
+
         const results = await Promise.allSettled(promises);
+        
+        // Debug: Log execution results
+        const totalTime = Date.now() - startTime;
+        debugLog('Selective AI execution completed', {
+          totalTimeMs: totalTime,
+          totalTimeSec: Math.floor(totalTime / 1000),
+          resultsCount: results.length,
+          successCount: results.filter(r => r.status === 'fulfilled').length,
+        });
 
         // Extract successful results
         const responses = results

@@ -8,10 +8,11 @@
  * - MULTI_AI_CODEX_TIMEOUT_MEDIUM: Codex timeout for medium queries (default: 90s)
  * - MULTI_AI_CODEX_TIMEOUT_COMPLEX: Codex timeout for complex queries (default: 120s)
  * - MULTI_AI_GEMINI_TIMEOUT: Gemini timeout (default: 300s, sufficient for complex analysis)
- * - MULTI_AI_QWEN_TIMEOUT_NORMAL: Qwen normal mode timeout (default: 120s)
+ * - MULTI_AI_QWEN_TIMEOUT_NORMAL: Qwen normal mode timeout (default: 180s, increased from 120s)
  * - MULTI_AI_QWEN_TIMEOUT_PLAN: Qwen plan mode timeout (default: 300s, sufficient for complex planning)
  * - MULTI_AI_MCP_TIMEOUT: MCP request timeout (default: 360s, 6min for 3-AI parallel execution)
  * - MULTI_AI_ENABLE_PROGRESS: Enable progress notifications (default: true)
+ * - MULTI_AI_DEBUG: Enable debug logging (default: false)
  * - MULTI_AI_MAX_RETRY_ATTEMPTS: Maximum retry attempts (default: 2)
  * - MULTI_AI_RETRY_BACKOFF_BASE: Retry backoff base in ms (default: 1000)
  */
@@ -49,6 +50,11 @@ interface MultiAIConfig {
     maxAttempts: number;
     /** Base delay in milliseconds for exponential backoff */
     backoffBase: number;
+  };
+  /** Debug mode configuration */
+  debug: {
+    /** Enable debug logging to stderr */
+    enabled: boolean;
   };
 }
 
@@ -127,7 +133,7 @@ export function getConfig(): MultiAIConfig {
     qwen: {
       normal: parseIntWithValidation(
         process.env.MULTI_AI_QWEN_TIMEOUT_NORMAL,
-        120000, // Increased to 120s (2min) for normal mode
+        180000, // Increased to 180s (3min) for normal mode - matches Codex Complex
         1000,
         600000, // 10min max
         'MULTI_AI_QWEN_TIMEOUT_NORMAL'
@@ -165,6 +171,9 @@ export function getConfig(): MultiAIConfig {
         60000, // 최대 60초
         'MULTI_AI_RETRY_BACKOFF_BASE'
       ),
+    },
+    debug: {
+      enabled: process.env.MULTI_AI_DEBUG === 'true', // Default false
     },
   };
 }

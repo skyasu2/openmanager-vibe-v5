@@ -19,8 +19,8 @@ describe('validateQuery', () => {
   });
 
   it('should reject queries with dangerous characters', () => {
+    // $ (variable substitution), control characters still blocked
     expect(() => validateQuery('test$variable')).toThrow('Query contains dangerous characters');
-    expect(() => validateQuery('test`command`')).toThrow('Query contains dangerous characters');
     expect(() => validateQuery('test;command')).toThrow('Query contains dangerous characters');
     expect(() => validateQuery('test&command')).toThrow('Query contains dangerous characters');
     expect(() => validateQuery('test|command')).toThrow('Query contains dangerous characters');
@@ -35,5 +35,8 @@ describe('validateQuery', () => {
     expect(() => validateQuery('test#query')).not.toThrow();
     expect(() => validateQuery('test?query')).not.toThrow();
     expect(() => validateQuery('test!query')).not.toThrow();
+    // Backticks are now allowed for code blocks (execFile prevents shell injection)
+    expect(() => validateQuery('test`command`')).not.toThrow();
+    expect(() => validateQuery('explain `const x = 42`')).not.toThrow();
   });
 });
