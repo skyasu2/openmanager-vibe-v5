@@ -17,10 +17,35 @@ import { withMemoryGuard } from '../middlewares/memory-guard.js';
 const execFileAsync = promisify(execFile);
 
 /**
+ * Rate Limit Protection
+ * Qwen API has 60 RPM / 2,000 RPD limits
+ */
+let lastQwenQueryTime = 0;
+const QWEN_MIN_INTERVAL_MS = 1000; // 1 second between queries
+
+/**
+ * Sleep utility for rate limit delays
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
  * Execute Qwen CLI query (internal implementation)
  * @internal
  */
 async function executeQwenQuery(query: string, planMode: boolean, timeout: number, onProgress?: ProgressCallback): Promise<AIResponse> {
+  // Rate Limit Protection: Ensure minimum 1s interval between queries
+  const now = Date.now();
+  const timeSinceLastQuery = now - lastQwenQueryTime;
+
+  if (timeSinceLastQuery < QWEN_MIN_INTERVAL_MS) {
+    const waitTime = QWEN_MIN_INTERVAL_MS - timeSinceLastQuery;
+    console.log(`[Qwen] Rate limit protection: waiting ${waitTime}ms...`);
+    await sleep(waitTime);
+  }
+
+  lastQwenQueryTime = Date.now();
   const startTime = Date.now();
 
   // Progress notification: Starting
