@@ -111,7 +111,6 @@ await write_memory("ui-design-plan-" + componentName, JSON.stringify(uiDesignPla
 - **documentation-manager**: UI/UX 가이드라인 문서 체계화
 - **test-automation-specialist**: UI 컴포넌트 시각적 회귀 테스트
 - **structure-refactor-specialist**: 컴포넌트 구조 리팩토링 협력
-- **spec-driven-specialist**: UI/UX 개선 계획 및 결과 분석 문서화
 
 ### 외부 AI 검증 활용
 - **gemini-specialist**: 복잡한 UI/UX 설계 검증 및 개선안 제시 ⭐

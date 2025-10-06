@@ -26,7 +26,7 @@ interface MCPConnectionPool {
 
 const connectionPool: MCPConnectionPool = {
   connections: new Map(),
-  maxConnections: 15, // 15개 서브에이전트 + 여유분
+  maxConnections: 15, // 12개 서브에이전트 + 여유분
   keepAliveTimeout: 300000, // 5분
   healthCheckInterval: 60000  // 1분
 };
@@ -87,7 +87,7 @@ const memoryUsage = {
 
 ### Phase 2: 병렬 처리 (단기)
 
-1. **동시 요청 처리**: 15개 서브에이전트 병렬 실행
+1. **동시 요청 처리**: 12개 서브에이전트 병렬 실행
 2. **로드 밸런싱**: 서버 부하에 따른 요청 분산
 3. **Failover**: 서버 장애 시 자동 대체
 

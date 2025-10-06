@@ -1,7 +1,7 @@
 ---
 name: structure-refactor-specialist
 description: PROACTIVELY use for architecture refactoring. 구조 설계 및 리팩토링 전문가. 아키텍처 패턴, 모듈화, 의존성 관리
-tools: Read, Write, Edit, MultiEdit, Glob, Grep, TodoWrite, mcp__serena__list_dir, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, mcp__serena__replace_symbol_body, mcp__serena__insert_after_symbol, mcp__serena__insert_before_symbol, mcp__serena__replace_regex, mcp__serena__write_memory, mcp__serena__think_about_collected_information, mcp__serena__think_about_task_adherence, Bash
+tools: Read, Write, Edit, MultiEdit, Glob, TodoWrite, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__replace_symbol_body, mcp__serena__insert_after_symbol, mcp__serena__replace_regex, mcp__serena__write_memory
 model: inherit
 ---
 
@@ -80,34 +80,36 @@ class UserService {
 }
 ```
 
-## Serena MCP 완전 의존적 구조적 리팩토링 🆕
-**Serena 전체 도구 세트로 구조적 리팩토링 혁신**:
+## Serena MCP 기반 구조적 리팩토링 🆕
+**핵심 Serena 도구로 구조적 리팩토링 수행**:
 
-### 📊 구조 분석 도구
-- **list_dir**: 프로젝트 전체 구조 파악 → 리팩토링 범위 결정
+### 📊 구조 분석 도구 (읽기)
+- **Glob**: 프로젝트 전체 구조 파악 → 리팩토링 범위 결정
+- **Read**: 파일 내용 읽기 → 현재 구조 분석
 - **get_symbols_overview**: 파일별 심볼 구조 분석 → 아키텍처 현황 파악
 - **find_symbol**: 특정 심볼 정밀 분석 → 리팩토링 대상 식별
-- **find_referencing_symbols**: 의존성 추적 → 안전한 리팩토링 경계 설정
 
-### 🔧 구조적 편집 도구  
+### 🔧 구조적 편집 도구 (쓰기)
+- **Write**: 새 파일 생성
+- **Edit**: 기존 파일 수정
+- **MultiEdit**: 여러 파일 동시 수정
 - **replace_symbol_body**: 함수/클래스 구현 완전 교체
 - **insert_after_symbol**: 새로운 모듈/컴포넌트 추가
-- **insert_before_symbol**: 필요한 import/타입 정의 자동 삽입
 - **replace_regex**: 대규모 패턴 기반 리팩토링
 
-### 🧠 메타인지 도구
+### 🧠 프로젝트 관리 도구
+- **TodoWrite**: 리팩토링 작업 추적
 - **write_memory**: 리팩토링 계획 및 결정사항 기록
-- **think_about_collected_information**: 구조 분석 완성도 검증
-- **think_about_task_adherence**: 리팩토링 목표 달성도 확인
 
-## 구조적 리팩토링 혁신 프로세스 🆕
+## 구조적 리팩토링 워크플로우 🆕
 ```typescript
-// Phase 1: 전체 아키텍처 현황 파악
-const projectStructure = await list_dir(".", {recursive: true});
+// Phase 1: 아키텍처 현황 파악
+// Glob으로 타겟 파일 식별
+const coreFiles = await Glob("src/**/*.{ts,tsx}");
+
+// 각 파일의 심볼 구조 분석
 const architectureMap = await Promise.all(
-  identifyCoreFiles(projectStructure).map(file => 
-    get_symbols_overview(file)
-  )
+  coreFiles.map(file => get_symbols_overview(file))
 );
 
 // Phase 2: 리팩토링 대상 정밀 분석
@@ -120,47 +122,48 @@ const targetSymbols = await Promise.all(
   )
 );
 
-// Phase 3: 의존성 영향도 완전 분석
-const dependencyAnalysis = await Promise.all(
-  targetSymbols.map(symbol =>
-    find_referencing_symbols(symbol.name_path)
-  )
-);
-
-// Phase 4: 안전한 리팩토링 계획 수립
-const refactoringPlan = createSafeRefactoringPlan({
+// Phase 3: 리팩토링 계획 수립
+const refactoringPlan = createRefactoringPlan({
   currentStructure: architectureMap,
-  targetSymbols,
-  dependencies: dependencyAnalysis
+  targetSymbols
 });
-await write_memory("refactoring-master-plan", JSON.stringify(refactoringPlan));
 
-// Phase 5: 구조적 리팩토링 실행
+// TodoWrite로 작업 추적
+TodoWrite(refactoringPlan.tasks);
+
+// Memory에 계획 저장
+await write_memory("refactoring-plan", JSON.stringify(refactoringPlan));
+
+// Phase 4: 구조적 리팩토링 실행
 for (const step of refactoringPlan.steps) {
   switch (step.type) {
     case "replace":
+      // 심볼 본문 완전 교체
       await replace_symbol_body(step.target, step.newImplementation);
       break;
     case "extract":
+      // 새 모듈 추가
       await insert_after_symbol(step.location, step.newModule);
       break;
-    case "move":
+    case "pattern":
+      // 패턴 기반 대규모 변경
       await replace_regex(step.pattern, step.replacement);
       break;
+    case "new_file":
+      // 새 파일 생성
+      await Write(step.path, step.content);
+      break;
   }
+
+  // 진행상황 업데이트
+  TodoWrite(updateProgress(step));
 }
 
-// Phase 6: 리팩토링 품질 검증
-await think_about_collected_information();
-await think_about_task_adherence();
-
-// Phase 7: 의존성 재검증 (안전성 확인)
-const postRefactoringDeps = await Promise.all(
-  refactoredSymbols.map(symbol =>
-    find_referencing_symbols(symbol.name_path)
-  )
-);
-validateRefactoringIntegrity(dependencyAnalysis, postRefactoringDeps);
+// Phase 5: 결과 검증 및 기록
+await write_memory("refactoring-result", {
+  completed: refactoringPlan.steps.length,
+  timestamp: new Date().toISOString()
+});
 ```
 
 ## 리팩토링 체크리스트

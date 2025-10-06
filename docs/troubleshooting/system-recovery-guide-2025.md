@@ -264,7 +264,7 @@ echo "test" > test-file.ts
 
 ### ✅ 서브에이전트 활성화 확인
 - [ ] Task 도구 정상 작동
-- [ ] 18개 에이전트 모두 호출 가능
+- [ ] 12개 서브에이전트 모두 호출 가능
 - [ ] MCP 도구 통합 정상
 - [ ] 자동 트리거 작동
 
@@ -379,7 +379,7 @@ npm update -g @anthropic-ai/claude-code
 ## 🔗 관련 문서
 
 - **[MCP 복구 보고서](mcp-recovery-report-2025-08-21.md)**: 실제 복구 과정 상세 기록
-- **[서브에이전트 상태 보고서](subagent-status-report-2025-08-21.md)**: 18개 에이전트 검증 결과
+- **[서브에이전트 상태 보고서](subagent-status-report-2025-08-21.md)**: 12개 서브에이전트 검증 결과
 - **[MCP 종합 가이드](../MCP-GUIDE.md)**: 12개 서버 완전 활용법
 - **[시스템 아키텍처](../system-architecture.md)**: 전체 시스템 구조
 

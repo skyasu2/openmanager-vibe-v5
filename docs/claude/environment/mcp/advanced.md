@@ -258,7 +258,7 @@ env | grep -E "(GITHUB|SUPABASE|TAVILY)"
 
 ### 🏗️ 설계 및 아키텍처
 1. **[🏛️ Design MCP](../design/mcp.md)** - MCP 아키텍처 설계도
-2. **[🤖 Design Sub-Agents](../design/sub-agents.md)** - 17개 에이전트 ↔ MCP 매핑  
+2. **[🤖 Design Sub-Agents](../design/sub-agents.md)** - 12개 서브에이전트 ↔ MCP 매핑  
 3. **[🗄️ Database](../db/schema.md)** - Supabase MCP 연동
 
 ### 📚 메인 허브

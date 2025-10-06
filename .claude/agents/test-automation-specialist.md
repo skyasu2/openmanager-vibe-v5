@@ -45,9 +45,9 @@ model: inherit
 다른 서브에이전트와 협업하여 종합적 테스트 수행:
 
 - **보안 테스트**: security-specialist와 협업하여 인증/인가 테스트
-- **성능 테스트**: Core Web Vitals 및 로드 테스트  
+- **성능 테스트**: Core Web Vitals 및 로드 테스트
 - **DB 테스트**: database-administrator와 협업하여 데이터 무결성 검증
-- **UI 테스트**: spec-driven-specialist와 협업하여 UX 시나리오 검증
+- **UI 테스트**: ui-ux-specialist와 협업하여 UX 시나리오 검증
 
 ## Serena MCP 구조적 테스트 분석 🆕
 **테스트 대상의 구조적 이해 기반 정밀 테스트 설계**:
