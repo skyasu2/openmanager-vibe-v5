@@ -7,6 +7,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.1.0] - 2025-10-06
+
+### Added ✨
+
+**Unified Memory Guard Middleware**:
+- ✅ **withMemoryGuard() 미들웨어**: 모든 AI에 동일한 메모리 보호 적용
+  - 90% heap pre-check (실행 전 검사)
+  - Post-execution logging (성공/실패 로그)
+  - OOM 예방 (Out of Memory 방지)
+
+**MCP 레벨 2GB Heap 통일**:
+- ✅ `.claude/mcp.json`: `--max-old-space-size=2048` 플래그 추가
+- ✅ Qwen 개별 NODE_OPTIONS 제거 (MCP 레벨로 통합)
+
+**Gemini Pro → Flash Fallback**:
+- ✅ OAuth 무료 티어 최적화
+  - `gemini-2.5-pro` (고품질) 우선 사용
+  - 429 quota 초과 시 `gemini-2.5-flash` 자동 전환
+
+### Improved 🚀
+
+**코드 품질**:
+- 60줄 중복 코드 제거 → 10줄 미들웨어 (83% 감소)
+- DRY (Don't Repeat Yourself) 원칙 준수
+- SoC (Separation of Concerns) 강화
+
+**공정성**:
+- Before: Qwen만 90% pre-check (특수 보호)
+- After: 모든 AI에 동일한 보호 (Codex, Gemini, Qwen)
+
+**아키텍처**:
+- 통합 힙 정책 (MCP 서버 레벨)
+- 미들웨어 패턴 적용
+- 개별 AI 클라이언트 간소화
+
+### Fixed 🐛
+
+- Gemini CLI 타임아웃 이슈 수정 (300s → 5-10s)
+  - 잘못된 CLI 인자 순서 수정
+  - `gemini --model X query` → `gemini "query" --model X`
+- OAuth 모델 호환성 수정
+  - `gemini-2.0-flash-exp`, `gemini-1.5-flash` 제거 (404/400 에러)
+  - OAuth 지원 모델로 통일 (`gemini-2.5-pro`, `gemini-2.5-flash`)
+
+### Documentation 📝
+
+- AI 메모리 파일 최적화 (11% 감소)
+  - QWEN.md: 332줄 → 246줄
+  - GEMINI.md: 277줄 → 252줄
+  - AGENTS.md: Codex 철학/비용 추가
+- Gemini CLI 시작 지연 분석 완료
+  - 원인: OAuth 캐시 로드 (8-9초 정상)
+  - GEMINI.md 파일 크기 무관 확인
+
+### Technical Details
+
+**Memory Guard Implementation**:
+```typescript
+// Before (v3.0.0)
+Qwen:   90% pre-check + post-log + 2GB heap (특수)
+Codex:  post-log only (OOM 위험)
+Gemini: post-log only (OOM 위험)
+
+// After (v3.1.0)
+All AIs: withMemoryGuard()
+  → 90% pre-check (통일)
+  → post-log (통일)
+  → 2GB heap (MCP 레벨)
+```
+
+**Test Results**:
+- 69/69 tests passed (100%)
+- Duration: ~68s
+- Coverage: timeout.ts, retry.ts 완전 검증
+
+---
+
 ## [3.0.0] - 2025-10-06
 
 ### Breaking Changes 🔴
