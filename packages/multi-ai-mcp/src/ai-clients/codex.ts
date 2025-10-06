@@ -12,6 +12,7 @@ import { withTimeout, detectQueryComplexity, getAdaptiveTimeout } from '../utils
 import { validateQuery } from '../utils/validation.js';
 import { withRetry } from '../utils/retry.js';
 import { config } from '../config.js';
+import { logMemoryUsage } from '../utils/memory.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -114,7 +115,7 @@ export async function queryCodex(query: string, onProgress?: ProgressCallback): 
 
   try {
     // Use retry mechanism for resilience
-    return await withRetry(
+    const result = await withRetry(
       () => executeCodexQuery(query, baseTimeout, onProgress),
       {
         maxAttempts: config.retry.maxAttempts,
@@ -124,7 +125,13 @@ export async function queryCodex(query: string, onProgress?: ProgressCallback): 
         },
       }
     );
+
+    // Log memory usage after query (for debugging)
+    logMemoryUsage('Post-query Codex');
+    return result;
+
   } catch (error) {
+    logMemoryUsage('Post-query Codex (failed)');
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     // Extract concise error message

@@ -159,8 +159,8 @@ describe('Configuration System', () => {
     it('should not affect other top-level properties', () => {
       const initialCwd = config.cwd;
       const initialMaxBuffer = config.maxBuffer;
-      const initialGeminiTimeout = config.gemini.timeout;
-      const initialQwenNormal = config.qwen.normal;
+      const initialGeminiSimple = config.gemini.simple;
+      const initialQwenSimple = config.qwen.simple;
 
       setConfig({
         retry: {
@@ -170,8 +170,8 @@ describe('Configuration System', () => {
 
       expect(config.cwd).toBe(initialCwd);
       expect(config.maxBuffer).toBe(initialMaxBuffer);
-      expect(config.gemini.timeout).toBe(initialGeminiTimeout);
-      expect(config.qwen.normal).toBe(initialQwenNormal);
+      expect(config.gemini.simple).toBe(initialGeminiSimple);
+      expect(config.qwen.simple).toBe(initialQwenSimple);
     });
   });
 

@@ -8,10 +8,11 @@
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import type { AIResponse, ProgressCallback } from '../types.js';
-import { withTimeout } from '../utils/timeout.js';
+import { withTimeout, detectQueryComplexity, getAdaptiveTimeout } from '../utils/timeout.js';
 import { validateQuery } from '../utils/validation.js';
 import { withRetry } from '../utils/retry.js';
 import { config } from '../config.js';
+import { logMemoryUsage } from '../utils/memory.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -22,6 +23,7 @@ const execFileAsync = promisify(execFile);
 async function executeGeminiQuery(
   query: string,
   model: string,
+  timeout: number,
   onProgress?: ProgressCallback
 ): Promise<AIResponse> {
   const startTime = Date.now();
@@ -42,14 +44,13 @@ async function executeGeminiQuery(
   try {
     // Execute gemini CLI with model parameter (OAuth authenticated)
     // ✅ Security: Using execFile with argument array prevents command injection
-    const timeoutMs = config.gemini.timeout;
     const result = await withTimeout(
       execFileAsync('gemini', ['--model', model, query], {
         maxBuffer: config.maxBuffer,
         cwd: config.cwd
       }),
-      timeoutMs,
-      `Gemini (${model}) timeout after ${Math.floor(timeoutMs / 1000)}s`
+      timeout,
+      `Gemini (${model}) timeout after ${Math.floor(timeout / 1000)}s`
     );
 
     clearInterval(progressInterval);
@@ -114,6 +115,10 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
     };
   }
 
+  // Detect query complexity and use adaptive timeout (same logic as Codex)
+  const complexity = detectQueryComplexity(query);
+  const baseTimeout = getAdaptiveTimeout(complexity, config.gemini);
+
   // Try each model in fallback order
   const models = config.gemini.models;
   const errors: string[] = [];
@@ -125,7 +130,7 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
     try {
       // Use retry mechanism for resilience (per model)
       const result = await withRetry(
-        () => executeGeminiQuery(query, model, onProgress),
+        () => executeGeminiQuery(query, model, baseTimeout, onProgress),
         {
           maxAttempts: config.retry.maxAttempts,
           backoffBase: config.retry.backoffBase,
@@ -135,10 +140,12 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
         }
       );
 
-      // Success - return result
+      // Success - log memory and return result
+      logMemoryUsage('Post-query Gemini');
       return result;
 
     } catch (error) {
+      logMemoryUsage('Post-query Gemini (failed)');
       const errorMessage = error instanceof Error ? error.message : String(error);
       
       // Check if 429 quota exceeded
@@ -160,7 +167,7 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
 
       // Other error or last model failed
       const shortError = errorMessage.includes('timeout')
-        ? `Gemini timeout (${Math.floor(config.gemini.timeout / 1000)}s)`
+        ? `Gemini timeout (${Math.floor(baseTimeout / 1000)}s, ${complexity} query)`
         : errorMessage.slice(0, 200);
       
       errors.push(`${model}: ${shortError}`);
