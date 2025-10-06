@@ -49,20 +49,18 @@ Esc Esc                     # 빠른 복원
 ### MCP 도구 우선 (최우선 권장) ⭐
 
 ```typescript
-// 3-AI 교차검증 (MCP)
-mcp__multi_ai__queryAllAIs({ query: "코드 검증" })
+// 개별 AI 쿼리 (MCP v3.0)
+mcp__multi-ai__queryCodex({ query: "버그 분석 및 실무적 해결책" })
+mcp__multi-ai__queryGemini({ query: "SOLID 원칙 검토 및 아키텍처 분석" })
+mcp__multi-ai__queryQwen({ query: "성능 최적화 및 병목점 분석", planMode: true })
 
-// 선택적 실행
-mcp__multi_ai__queryWithPriority({
-  query: "성능 분석",
-  includeQwen: true
-})
-
-// 히스토리
-mcp__multi_ai__getHistory({ limit: 10 })
+// 히스토리 조회
+mcp__multi-ai__getBasicHistory({ limit: 10 })
 ```
 
-**타임아웃 (v1.6.0)**:
+**참고**: Multi-AI Verification Specialist 서브에이전트가 3-AI 교차검증을 자동 수행합니다.
+
+**타임아웃 (v3.0)**:
 - Codex: 60s/90s/**180s** (complex)
 - Gemini: **300s** (5분)
 - Qwen: **120s** (normal) / **300s** (plan mode)
@@ -76,6 +74,43 @@ mcp__multi_ai__getHistory({ limit: 10 })
 ./scripts/ai-subagents/gemini-wrapper.sh
 ./scripts/ai-subagents/qwen-wrapper.sh -p  # Plan Mode
 ```
+
+---
+
+## 🎭 서브에이전트 활용 (12개 전문가)
+
+### 호출 방법
+```bash
+Task [에이전트명] "[작업 요청]"
+```
+
+### 12개 전문 서브에이전트
+- **code-review-specialist**: 코드 품질 검토, TypeScript strict 모드
+- **database-administrator**: PostgreSQL 관리, RLS 정책, 쿼리 최적화
+- **debugger-specialist**: 근본 원인 분석, 버그 해결
+- **dev-environment-manager**: WSL 최적화, Node.js 버전 관리
+- **documentation-manager**: AI 친화적 문서 관리 (JBGE 원칙)
+- **gcp-cloud-functions-specialist**: GCP Cloud Functions 배포 및 최적화
+- **multi-ai-verification-specialist**: 3-AI 교차검증 (Codex+Gemini+Qwen)
+- **security-specialist**: 종합 보안 감사, 취약점 스캔
+- **structure-refactor-specialist**: 아키텍처 리팩토링, 모듈화
+- **test-automation-specialist**: Vitest + Playwright E2E 테스트
+- **ui-ux-specialist**: UI/UX 개선, 디자인 시스템 구축
+- **vercel-platform-specialist**: Vercel 플랫폼 완전 관리
+
+### 사용 예시
+```bash
+# 코드 리뷰
+Task code-review-specialist "LoginClient.tsx 타입 안전성 검토"
+
+# 데이터베이스 최적화
+Task database-administrator "users 테이블 RLS 정책 분석 및 개선"
+
+# 아키텍처 검토
+Task structure-refactor-specialist "src/components 구조 개선 방안 제시"
+```
+
+**참고**: 상세 정보는 `.claude/agents/` 및 `docs/ai/subagents-complete-guide.md` 참조
 
 ---
 
@@ -131,6 +166,28 @@ npm run test:fast           # 21초 (44% 개선)
 - Vercel 조회: **Vercel MCP** (CLI 대신, 89배 빠름)
 - 라이브러리 문서: **Context7** (WebSearch 대신)
 - UI 컴포넌트: **Shadcn-ui MCP**
+
+### MCP 실사용 예시
+
+```typescript
+// 1. Serena: 코드 구조 분석 (Read 대신 3-5배 빠름)
+mcp__serena__get_symbols_overview("src/components/DashboardClient.tsx")
+mcp__serena__find_symbol("handleSubmit", {
+  relative_path: "src/components/DashboardClient.tsx",
+  include_body: true
+})
+
+// 2. Context7: 라이브러리 문서 조회 (100% 정확)
+mcp__context7__resolve_library_id("Next.js")
+mcp__context7__get_library_docs("/vercel/next.js", {
+  topic: "server-actions",
+  tokens: 2500
+})
+
+// 3. Vercel: 배포 정보 (CLI 대신 89배 빠름)
+mcp__vercel__list_projects(teamId)
+mcp__vercel__get_deployment(deploymentId, teamId)
+```
 
 ---
 
