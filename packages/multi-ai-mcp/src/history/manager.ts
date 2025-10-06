@@ -131,8 +131,10 @@ export async function getRecentHistory(limit: number = 10): Promise<Verification
     const fs = await import('fs/promises');
     const files = await fs.readdir(dir);
 
+    // Filter for timestamp-based verification files only
+    // Pattern: YYYY-MM-DDTHH-MM-SS-verification.json
     const historyFiles = files
-      .filter(f => f.endsWith('.json'))
+      .filter(f => f.endsWith('.json') && /^\d{4}-\d{2}-\d{2}T/.test(f))
       .sort()
       .reverse()
       .slice(0, limit);

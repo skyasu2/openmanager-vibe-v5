@@ -23,8 +23,11 @@ export function validateQuery(query: string): void {
   }
 
   // Check for dangerous shell metacharacters
+  // ✅ execFile with argument array prevents shell injection
+  // ✅ Backticks (`) are now ALLOWED for code blocks
+  // Only block $ (variable substitution) and control characters
   const dangerousPatterns = [
-    /[\$`]/,      // Shell variable substitution and command substitution
+    /\$/,         // Shell variable substitution (keep blocking)
     /[;&|]/,      // Shell control characters (command chaining)
     /\x00/,       // Null byte injection
   ];

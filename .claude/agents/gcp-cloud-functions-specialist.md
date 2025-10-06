@@ -1,7 +1,7 @@
 ---
 name: gcp-cloud-functions-specialist
-description: GCP Cloud Functions 전문가. 서버리스 함수 배포, 최적화, 무료 티어 관리
-tools: Read, Write, Edit, Bash, Grep, mcp__gcp__query-logs, mcp__gcp__list-spanner-instances, mcp__gcp__query-metrics, mcp__gcp__get-project-id, mcp__gcp__set-project-id, mcp__serena__list_dir, mcp__serena__search_for_pattern, mcp__serena__write_memory
+description: GCP Cloud Functions 전문가. 서버리스 함수 배포, 최적화, 무료 티어 관리 (현재 GCP MCP 서버 미연결 - Bash 도구로 gcloud CLI 사용)
+tools: Read, Write, Edit, Bash, Grep, mcp__serena__list_dir, mcp__serena__search_for_pattern, mcp__serena__write_memory
 model: inherit
 ---
 

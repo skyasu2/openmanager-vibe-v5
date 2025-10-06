@@ -18,14 +18,24 @@ import { queryCodex } from './ai-clients/codex.js';
 import { queryGemini } from './ai-clients/gemini.js';
 import { queryQwen } from './ai-clients/qwen.js';
 import { synthesizeResults } from './synthesizer.js';
-import type { AIQueryRequest, AIResponse } from './types.js';
+import type { AIQueryRequest, AIResponse, ProgressCallback } from './types.js';
 import { recordVerification, getRecentHistory, searchHistory, getHistoryStats } from './history/manager.js';
+import { analyzeQuery, getAnalysisSummary, shouldUseQwenPlanMode } from './utils/query-analyzer.js';
+import { autoSplit, getSplitSummary } from './utils/query-splitter.js';
+
+/**
+ * Progress callback for AI operations
+ * Logs progress updates to stderr (does not interfere with stdout MCP protocol)
+ */
+const onProgress: ProgressCallback = (provider, status, elapsed) => {
+  console.error(`[${provider.toUpperCase()}] ${status} (${Math.floor(elapsed / 1000)}초)`);
+};
 
 // MCP Server instance
 const server = new Server(
   {
     name: 'multi-ai',
-    version: '1.0.0',
+    version: '1.6.0',
   },
   {
     capabilities: {
@@ -153,14 +163,33 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     switch (name) {
       case 'queryAllAIs': {
-        const { query, qwenPlanMode = true } = args as unknown as AIQueryRequest;
+        const { query: originalQuery, qwenPlanMode = true } = args as unknown as AIQueryRequest;
 
-        // Execute all AIs in parallel
+        // 🔍 STEP 1: Analyze query complexity
+        const analysis = analyzeQuery(originalQuery);
+        console.error('📊 Query Analysis:', getAnalysisSummary(analysis));
+
+        // 📝 STEP 2: Auto-split if needed (preserves information)
+        const { subQueries, wasSplit, strategy } = autoSplit(originalQuery, analysis);
+        if (wasSplit) {
+          console.error(`✂️ Query Auto-Split: ${subQueries.length} sub-queries (${strategy})`);
+        }
+
+        // Use first sub-query (or original if not split)
+        const processedQuery = subQueries[0];
+
+        // 🤖 STEP 3: Auto-select Qwen mode based on complexity
+        const autoQwenPlanMode = qwenPlanMode ?? shouldUseQwenPlanMode(analysis);
+        if (autoQwenPlanMode !== qwenPlanMode) {
+          console.error(`🔧 Qwen mode auto-adjusted: ${qwenPlanMode} → ${autoQwenPlanMode}`);
+        }
+
+        // Execute all AIs in parallel with progress notifications
         const startTime = Date.now();
         const [codexResult, geminiResult, qwenResult] = await Promise.allSettled([
-          queryCodex(query),
-          queryGemini(query),
-          queryQwen(query, qwenPlanMode),
+          queryCodex(processedQuery, onProgress),
+          queryGemini(processedQuery, onProgress),
+          queryQwen(processedQuery, autoQwenPlanMode, onProgress),
         ]);
 
         // Extract results
@@ -169,7 +198,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const qwen = qwenResult.status === 'fulfilled' ? qwenResult.value : undefined;
 
         // Synthesize results
-        const synthesis = synthesizeResults(query, codex, gemini, qwen);
+        const synthesis = synthesizeResults(processedQuery, codex, gemini, qwen);
 
         // Update performance stats
         lastQueryStats = {
@@ -184,7 +213,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         // Record verification history
         await recordVerification(
-          { query, qwenPlanMode, includeCodex: true, includeGemini: true, includeQwen: true },
+          { query: originalQuery, qwenPlanMode: autoQwenPlanMode, includeCodex: true, includeGemini: true, includeQwen: true },
           codex,
           gemini,
           qwen,
@@ -196,11 +225,29 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           }
         );
 
+        // 📊 STEP 4: Add query analysis metadata to response
+        const responseWithMetadata = {
+          ...synthesis,
+          queryMetadata: {
+            original: originalQuery,
+            processed: processedQuery,
+            wasSplit,
+            splitStrategy: strategy,
+            subQueriesCount: subQueries.length,
+            analysis: {
+              complexity: analysis.complexity,
+              length: analysis.length,
+              estimatedTokens: analysis.estimatedTokens,
+              suggestedTimeouts: analysis.suggestedTimeouts,
+            },
+          },
+        };
+
         return {
           content: [
             {
               type: 'text',
-              text: JSON.stringify(synthesis, null, 2),
+              text: JSON.stringify(responseWithMetadata, null, 2),
             },
           ],
         };
@@ -208,18 +255,37 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case 'queryWithPriority': {
         const {
-          query,
+          query: originalQuery,
           includeCodex = true,
           includeGemini = true,
           includeQwen = true,
           qwenPlanMode = true,
         } = args as unknown as AIQueryRequest;
 
-        // Execute selected AIs in parallel
+        // 🔍 STEP 1: Analyze query complexity
+        const analysis = analyzeQuery(originalQuery);
+        console.error('📊 Query Analysis:', getAnalysisSummary(analysis));
+
+        // 📝 STEP 2: Auto-split if needed (preserves information)
+        const { subQueries, wasSplit, strategy } = autoSplit(originalQuery, analysis);
+        if (wasSplit) {
+          console.error(`✂️ Query Auto-Split: ${subQueries.length} sub-queries (${strategy})`);
+        }
+
+        // Use first sub-query (or original if not split)
+        const processedQuery = subQueries[0];
+
+        // 🤖 STEP 3: Auto-select Qwen mode based on complexity
+        const autoQwenPlanMode = qwenPlanMode ?? shouldUseQwenPlanMode(analysis);
+        if (autoQwenPlanMode !== qwenPlanMode) {
+          console.error(`🔧 Qwen mode auto-adjusted: ${qwenPlanMode} → ${autoQwenPlanMode}`);
+        }
+
+        // Execute selected AIs in parallel with progress notifications
         const promises: Promise<AIResponse>[] = [];
-        if (includeCodex) promises.push(queryCodex(query));
-        if (includeGemini) promises.push(queryGemini(query));
-        if (includeQwen) promises.push(queryQwen(query, qwenPlanMode));
+        if (includeCodex) promises.push(queryCodex(processedQuery, onProgress));
+        if (includeGemini) promises.push(queryGemini(processedQuery, onProgress));
+        if (includeQwen) promises.push(queryQwen(processedQuery, autoQwenPlanMode, onProgress));
 
         const results = await Promise.allSettled(promises);
 
@@ -234,7 +300,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const qwen = responses.find((r) => r.provider === 'qwen');
 
         // Synthesize results
-        const synthesis = synthesizeResults(query, codex, gemini, qwen);
+        const synthesis = synthesizeResults(processedQuery, codex, gemini, qwen);
 
         // Update performance stats
         lastQueryStats = {
@@ -249,7 +315,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         // Record verification history
         await recordVerification(
-          { query, qwenPlanMode, includeCodex, includeGemini, includeQwen },
+          { query: originalQuery, qwenPlanMode, includeCodex, includeGemini, includeQwen },
           codex,
           gemini,
           qwen,

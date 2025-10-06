@@ -7,7 +7,7 @@
 
 import { execFile } from 'child_process';
 import { promisify } from 'util';
-import type { AIResponse } from '../types.js';
+import type { AIResponse, ProgressCallback } from '../types.js';
 import { withTimeout } from '../utils/timeout.js';
 import { validateQuery } from '../utils/validation.js';
 import { withRetry } from '../utils/retry.js';
@@ -15,43 +15,68 @@ import { config } from '../config.js';
 
 const execFileAsync = promisify(execFile);
 
-const QWEN_TIMEOUTS = {
-  normal: 30000,  // 30 seconds
-  plan: 60000     // 60 seconds for Plan Mode
-};
-
 /**
  * Execute Qwen CLI query (internal implementation)
  * @internal
  */
-async function executeQwenQuery(query: string, planMode: boolean, timeout: number): Promise<AIResponse> {
+async function executeQwenQuery(query: string, planMode: boolean, timeout: number, onProgress?: ProgressCallback): Promise<AIResponse> {
   const startTime = Date.now();
 
-  // Execute qwen CLI with Plan Mode
-  // ✅ Security: Using execFile with argument array prevents command injection
-  // Qwen CLI always requires -p flag for non-interactive mode
-  const result = await withTimeout(
-    execFileAsync('qwen', ['-p', query], {
-      maxBuffer: config.maxBuffer,
-      cwd: config.cwd
-    }),
-    timeout,
-    `Qwen timeout after ${timeout}ms`
-  );
+  // Progress notification: Starting
+  if (onProgress) {
+    const mode = planMode ? 'Plan' : 'Normal';
+    onProgress('qwen', `Qwen ${mode} 모드 시작...`, 0);
+  }
 
-  // Clean response (remove empty lines)
-  const response = result.stdout
-    .split('\n')
-    .filter(line => line.trim().length > 0)
-    .join('\n')
-    .trim();
+  // Progress notification interval (every 10 seconds)
+  const progressInterval = setInterval(() => {
+    if (onProgress) {
+      const elapsed = Date.now() - startTime;
+      const mode = planMode ? 'Plan' : 'Normal';
+      onProgress('qwen', `Qwen ${mode} 실행 중... (${Math.floor(elapsed / 1000)}초)`, elapsed);
+    }
+  }, 10000);
 
-  return {
-    provider: 'qwen',
-    response,
-    responseTime: Date.now() - startTime,
-    success: true
-  };
+  try {
+    // Execute qwen CLI with Plan Mode
+    // ✅ Security: Using execFile with argument array prevents command injection
+    // Qwen CLI always requires -p flag for non-interactive mode
+    const result = await withTimeout(
+      execFileAsync('qwen', ['-p', query], {
+        maxBuffer: config.maxBuffer,
+        cwd: config.cwd
+      }),
+      timeout,
+      `Qwen timeout after ${timeout}ms`
+    );
+
+    clearInterval(progressInterval);
+
+    // Progress notification: Completed
+    if (onProgress) {
+      const elapsed = Date.now() - startTime;
+      const mode = planMode ? 'Plan' : 'Normal';
+      onProgress('qwen', `Qwen ${mode} 완료 (${Math.floor(elapsed / 1000)}초)`, elapsed);
+    }
+
+    // Clean response (remove empty lines)
+    const response = result.stdout
+      .split('\n')
+      .filter(line => line.trim().length > 0)
+      .join('\n')
+      .trim();
+
+    return {
+      provider: 'qwen',
+      response,
+      responseTime: Date.now() - startTime,
+      success: true
+    };
+  } catch (error) {
+    // Ensure interval is cleared on error
+    clearInterval(progressInterval);
+    throw error;
+  }
 }
 
 /**
@@ -59,6 +84,7 @@ async function executeQwenQuery(query: string, planMode: boolean, timeout: numbe
  *
  * @param query - The query to send to Qwen
  * @param planMode - Whether to use Plan Mode (default: true)
+ * @param onProgress - Optional progress callback for status updates
  * @returns Promise resolving to AIResponse
  *
  * @example
@@ -69,7 +95,8 @@ async function executeQwenQuery(query: string, planMode: boolean, timeout: numbe
  */
 export async function queryQwen(
   query: string,
-  planMode = true
+  planMode = true,
+  onProgress?: ProgressCallback
 ): Promise<AIResponse> {
   const startTime = Date.now();
 
@@ -86,12 +113,12 @@ export async function queryQwen(
     };
   }
 
-  const timeout = planMode ? QWEN_TIMEOUTS.plan : QWEN_TIMEOUTS.normal;
+  const timeout = planMode ? config.qwen.plan : config.qwen.normal;
 
   try {
     // Use retry mechanism for resilience
     return await withRetry(
-      () => executeQwenQuery(query, planMode, timeout),
+      () => executeQwenQuery(query, planMode, timeout, onProgress),
       {
         maxAttempts: config.retry.maxAttempts,
         backoffBase: config.retry.backoffBase,

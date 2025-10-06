@@ -1,18 +1,26 @@
 {
   "_metadata": {
-    "version": "3.0.0",
+    "version": "4.0.0",
     "created": "2025-08-18",
-    "updated": "2025-09-19",
-    "purpose": "Claude Code 서브에이전트와 MCP 서버 최적 매핑 (15개 최적화 구조)",
-    "target_utilization": "21.1% → 100% (완전 달성)",
+    "updated": "2025-10-05",
+    "purpose": "Claude Code 서브에이전트와 MCP 서버 최적 매핑 (16개 완전 구조)",
+    "target_utilization": "100% (완전 달성)",
     "collaboration_systems": {
-      "claude_subagents_total": "15개 (최적화 완료)",
+      "claude_subagents_total": "16개 (Multi-AI MCP 추가)",
       "internal_agents": "12개 Claude 내장 서브에이전트",
       "ai_cli_wrappers": "3개 외부 AI CLI 연동 (codex, gemini, qwen)",
-      "ai_verification_system": "3개 AI 교차검증 (9.17/10점 달성)",
-      "priority_order": "Claude Code > 서브에이전트 직접 호출"
+      "multi_ai_mcp": "1개 Multi-AI MCP 통합 (v1.4.0)",
+      "ai_verification_system": "3-AI 교차검증 (히스토리 자동 저장)",
+      "priority_order": "Claude Code > Multi-AI MCP > 서브에이전트 직접 호출"
     },
     "recent_changes": {
+      "2025-10-05_multi_ai_integration": {
+        "agent_count": "15개 → 16개 (Multi-AI MCP 추가)",
+        "mcp_servers": "9개 → 10개 (Multi-AI MCP 추가)",
+        "gcp_mcp_decision": "GCP MCP 비공식 판단, CLI/SDK 사용으로 충분 - 완전 제외",
+        "working_servers": "10개 완전 작동 (100% 성공률)",
+        "utilization_target": "100% 유지"
+      },
       "2025-09-19_optimization": {
         "agent_count": "22개 → 15개 (32% 최적화)",
         "working_servers": "9개 완전 작동 (100% 성공률)",
@@ -30,13 +38,15 @@
   "mcp_server_priorities": {
     "tier1_essential": [
       "memory",
+      "multi-ai",
       "shadcn-ui",
       "time"
     ],
     "tier2_specialized": [
       "sequential-thinking",
       "context7",
-      "serena"
+      "serena",
+      "vercel"
     ],
     "tier3_database_dev": [
       "supabase",
@@ -139,21 +149,36 @@
     },
 
     "gcp-cloud-functions-specialist": {
-      "mcp_access": "ENHANCED",
-      "primary_tools": ["gcp", "serena"],
+      "mcp_access": "BASIC",
+      "primary_tools": ["serena"],
       "secondary_tools": ["memory"],
-      "utilization_target": "85%",
+      "external_tools": ["Bash (gcloud CLI)", "GCP SDK"],
+      "utilization_target": "60%",
       "capabilities": [
-        "mcp__gcp__query-logs",
-        "mcp__gcp__list-spanner-instances",
-        "mcp__gcp__query-metrics",
-        "mcp__gcp__get-project-id",
-        "mcp__gcp__set-project-id",
         "mcp__serena__list_dir",
         "mcp__serena__search_for_pattern",
-        "mcp__serena__write_memory"
+        "mcp__serena__write_memory",
+        "bash_gcloud_commands",
+        "gcp_sdk_integration"
       ],
-      "specialization": "GCP Cloud Functions 완전 관리, 서버리스 함수 최적화, 무료 티어 관리"
+      "specialization": "GCP Cloud Functions 관리 (GCP MCP 비공식 - Bash gcloud CLI 및 SDK 사용 충분)",
+      "note": "GCP MCP는 공식 지원 아님, CLI/SDK로 완전한 기능 제공"
+    },
+
+    "multi-ai-verification-specialist": {
+      "mcp_access": "FULL",
+      "primary_tools": ["multi-ai"],
+      "secondary_tools": [],
+      "utilization_target": "100%",
+      "capabilities": [
+        "mcp__multi_ai__queryAllAIs",
+        "mcp__multi_ai__queryWithPriority",
+        "mcp__multi_ai__getHistory",
+        "mcp__multi_ai__searchHistory",
+        "mcp__multi_ai__getHistoryStats",
+        "mcp__multi_ai__getPerformanceStats"
+      ],
+      "specialization": "Multi-AI MCP 기반 3-AI 교차검증 전문가 (Codex + Gemini + Qwen)"
     },
 
     "gemini-specialist": {

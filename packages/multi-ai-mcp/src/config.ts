@@ -4,13 +4,13 @@
  * Environment variables:
  * - MULTI_AI_CWD: Working directory for AI CLI execution (default: process.cwd())
  * - MULTI_AI_MAX_BUFFER: Max buffer size for CLI output (default: 10MB)
- * - MULTI_AI_CODEX_TIMEOUT_SIMPLE: Codex timeout for simple queries (default: 30s)
+ * - MULTI_AI_CODEX_TIMEOUT_SIMPLE: Codex timeout for simple queries (default: 60s)
  * - MULTI_AI_CODEX_TIMEOUT_MEDIUM: Codex timeout for medium queries (default: 90s)
  * - MULTI_AI_CODEX_TIMEOUT_COMPLEX: Codex timeout for complex queries (default: 120s)
- * - MULTI_AI_GEMINI_TIMEOUT: Gemini timeout (default: 30s)
- * - MULTI_AI_QWEN_TIMEOUT_NORMAL: Qwen normal mode timeout (default: 30s)
- * - MULTI_AI_QWEN_TIMEOUT_PLAN: Qwen plan mode timeout (default: 60s)
- * - MULTI_AI_MCP_TIMEOUT: MCP request timeout (default: 180s)
+ * - MULTI_AI_GEMINI_TIMEOUT: Gemini timeout (default: 300s, sufficient for complex analysis)
+ * - MULTI_AI_QWEN_TIMEOUT_NORMAL: Qwen normal mode timeout (default: 120s)
+ * - MULTI_AI_QWEN_TIMEOUT_PLAN: Qwen plan mode timeout (default: 300s, sufficient for complex planning)
+ * - MULTI_AI_MCP_TIMEOUT: MCP request timeout (default: 360s, 6min for 3-AI parallel execution)
  * - MULTI_AI_ENABLE_PROGRESS: Enable progress notifications (default: true)
  * - MULTI_AI_MAX_RETRY_ATTEMPTS: Maximum retry attempts (default: 2)
  * - MULTI_AI_RETRY_BACKOFF_BASE: Retry backoff base in ms (default: 1000)
@@ -95,7 +95,7 @@ export function getConfig(): MultiAIConfig {
     codex: {
       simple: parseIntWithValidation(
         process.env.MULTI_AI_CODEX_TIMEOUT_SIMPLE,
-        30000,
+        60000, // Increased from 30s to 60s (2× safety)
         1000, // 1s min
         300000, // 5min max
         'MULTI_AI_CODEX_TIMEOUT_SIMPLE'
@@ -109,7 +109,7 @@ export function getConfig(): MultiAIConfig {
       ),
       complex: parseIntWithValidation(
         process.env.MULTI_AI_CODEX_TIMEOUT_COMPLEX,
-        120000,
+        180000, // Increased to 180s (3min) for complex queries
         1000,
         600000, // 10min max
         'MULTI_AI_CODEX_TIMEOUT_COMPLEX'
@@ -118,32 +118,32 @@ export function getConfig(): MultiAIConfig {
     gemini: {
       timeout: parseIntWithValidation(
         process.env.MULTI_AI_GEMINI_TIMEOUT,
-        90000, // Increased from 30s to 90s for complex analysis
+        300000, // Increased to 300s (5min) - sufficient for complex analysis
         1000,
-        300000,
+        600000, // 10min max
         'MULTI_AI_GEMINI_TIMEOUT'
       ),
     },
     qwen: {
       normal: parseIntWithValidation(
         process.env.MULTI_AI_QWEN_TIMEOUT_NORMAL,
-        45000, // Increased from 30s to 45s
+        120000, // Increased to 120s (2min) for normal mode
         1000,
-        300000,
+        600000, // 10min max
         'MULTI_AI_QWEN_TIMEOUT_NORMAL'
       ),
       plan: parseIntWithValidation(
         process.env.MULTI_AI_QWEN_TIMEOUT_PLAN,
-        90000, // Increased from 60s to 90s
+        300000, // Increased to 300s (5min) - sufficient for complex planning
         1000,
-        300000,
+        600000, // 10min max
         'MULTI_AI_QWEN_TIMEOUT_PLAN'
       ),
     },
     mcp: {
       requestTimeout: parseIntWithValidation(
         process.env.MULTI_AI_MCP_TIMEOUT,
-        180000,
+        360000, // Increased to 360s (6min) for 3-AI parallel execution
         60000, // 1min min
         600000, // 10min max
         'MULTI_AI_MCP_TIMEOUT'

@@ -75,3 +75,9 @@ export interface PerformanceStats {
   avgTokens: number;
   timeoutRate: number;
 }
+
+/**
+ * Progress notification callback
+ * Used to send progress updates during long-running AI operations
+ */
+export type ProgressCallback = (provider: AIProvider, status: string, elapsed: number) => void;

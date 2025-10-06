@@ -1,182 +1,152 @@
-# 📁 AI 교차검증 히스토리 저장소
+# Multi-AI MCP 히스토리 관리 정책
 
-**용도**: verification-recorder 서브에이전트의 검증 결과 자동 저장
+**마지막 업데이트**: 2025-10-06
 
-## 📂 폴더 구조
+---
+
+## 📋 로깅 정책
+
+### ✅ Git 추적 대상
+
+**문서화된 분석 리포트** (docs 경로):
+- 위치: `docs/claude/history/ai-verifications/`
+- 형식: Markdown (.md)
+- 용도: 팀 공유, 장기 보관
+- 예시:
+  - `2025-10-02-ai-cross-verification.md`
+  - `2025-10-05-multi-ai-mcp-v1.2.0-validation.md`
+
+### ❌ Git 추적 제외
+
+**로그 수준 JSON 파일** (자동 생성):
+- 위치: `packages/multi-ai-mcp/history/`
+- 형식: JSON
+- 용도: 로컬 디버깅, 임시 분석
+- 제외 이유:
+  - 단순 로그 데이터 (구조화되지 않음)
+  - 빠르게 누적되어 저장소 비대화
+  - 필요 시 분석 후 문서화하여 docs에 저장
+- .gitignore 규칙:
+  ```
+  packages/multi-ai-mcp/history/*.json
+  packages/multi-ai-mcp/history/**/*.json
+  ```
+
+---
+
+## 🔄 워크플로우
+
+### 1. 자동 로깅 (MCP v1.2.0+)
+```typescript
+// Multi-AI MCP 서버가 자동으로 JSON 로그 생성
+mcp__multi_ai__queryAllAIs({ query: "..." })
+// → packages/multi-ai-mcp/history/2025-10-06T12-34-56-verification.json
+```
+
+### 2. 분석 및 문서화 (필요 시)
+```bash
+# 1. 로컬에서 JSON 로그 분석
+cat packages/multi-ai-mcp/history/*.json
+
+# 2. 중요한 인사이트 발견 시 Markdown으로 문서화
+# → docs/claude/history/ai-verifications/2025-10-06-analysis.md
+
+# 3. Git에 문서만 커밋
+git add docs/claude/history/ai-verifications/
+git commit -m "📝 docs: Multi-AI 검증 분석 결과 추가"
+```
+
+### 3. 정기 정리 (권장)
+```bash
+# 30일 이상 된 JSON 로그 삭제 (선택적)
+find packages/multi-ai-mcp/history/ -name "*.json" -mtime +30 -delete
+```
+
+---
+
+## 📂 디렉토리 구조
 
 ```
-ai-verifications/
-├── README.md                         # 이 파일
-├── verification-index.json           # 검색 인덱스 (자동 업데이트)
-├── YYYY-MM-DD-HH-MM-description.md   # 개별 검증 리포트
-└── monthly-summary/
-    └── YYYY-MM-summary.md            # 월간 요약 (자동 생성)
+packages/multi-ai-mcp/history/
+├── README.md                          # 이 파일 (Git 추적 ✅)
+├── .gitkeep                          # 폴더 유지용 (Git 추적 ✅)
+├── *.json                            # 자동 생성 로그 (Git 제외 ❌)
+└── docs/                             # 월별 요약 (선택적)
+    └── monthly-summary/
+
+docs/claude/history/ai-verifications/
+├── 2025-09-12-ai-cross-verification-complete.md
+├── 2025-10-01-ai-verification-summary.md
+├── 2025-10-02-ai-cross-verification.md
+└── ... (분석 문서들, Git 추적 ✅)
 ```
 
-## 🔍 검증 리포트 형식
+---
 
-### 파일명 규칙
-```
-2025-10-01-17-30-dashboard-refactor.md
-└─ 날짜-시간-간단한설명.md
-```
+## 🎯 히스토리 조회 방법
 
-### 리포트 내용
-```markdown
-# AI 교차검증 리포트
-
-**검증일**: 2025-10-01 17:30
-**대상**: src/components/DashboardClient.tsx
-**요청**: "대시보드 리팩토링 검증"
-
-## 🤖 AI 검증 결과
-- Gemini: 8.8/10 (아키텍처)
-- Qwen: 9.2/10 (성능)
-- Codex: 9.0/10 (실무)
-
-## 🎯 Claude 최종 판단: 9.0/10
-✅ 승인 (minor 개선 권장)
-
-## 📈 히스토리 컨텍스트
-- 이전: 7.5/10 → 현재: 9.0/10 (1.5점 개선)
+### MCP 도구 사용 (권장)
+```typescript
+// Claude Code 내에서
+mcp__multi_ai__getHistory({ limit: 10 })        // 최근 10개
+mcp__multi_ai__searchHistory({ pattern: "성능" }) // 패턴 검색
+mcp__multi_ai__getHistoryStats()                 // 통계 분석
 ```
 
-## 📊 verification-index.json 구조
+### 수동 조회
+```bash
+# 최근 5개 JSON 로그 확인
+ls -lt packages/multi-ai-mcp/history/*.json | head -5
 
+# 특정 날짜 로그 확인
+cat packages/multi-ai-mcp/history/2025-10-06*.json
+```
+
+---
+
+## 📊 예시
+
+### JSON 로그 (자동 생성, Git 제외)
 ```json
 {
-  "metadata": {
-    "created": "2025-10-01",
-    "version": "1.0"
+  "timestamp": "2025-10-06T12:34:56Z",
+  "query": "Multi-AI MCP 코드 품질 분석",
+  "results": {
+    "codex": { "score": 8, "response": "..." },
+    "gemini": { "score": 10, "response": "..." },
+    "qwen": { "score": 8, "response": "..." }
   },
-  "verifications": [
-    {
-      "id": "2025-10-01-17-30-dashboard",
-      "date": "2025-10-01T17:30:00Z",
-      "file": "src/components/DashboardClient.tsx",
-      "score": 9.0,
-      "ai_scores": {
-        "gemini": 8.8,
-        "qwen": 9.2,
-        "codex": 9.0
-      },
-      "decision": "approved",
-      "tags": ["dashboard", "refactor", "performance"]
-    }
-  ]
+  "synthesis": {
+    "consensus": [...],
+    "conflicts": [...]
+  }
 }
 ```
 
-## 🔎 검색 방법
+### Markdown 문서 (분석 후, Git 추적)
+```markdown
+# Multi-AI MCP v1.2.0 검증 결과
 
-### 🚀 스마트 검색 도구 (권장)
-```bash
-# 최근 3개 검증
-./scripts/ai-verification/search-history.sh latest 3
+**날짜**: 2025-10-06
+**분석자**: Claude Code + 3-AI
 
-# 특정 대상 검색
-./scripts/ai-verification/search-history.sh target "dashboard"
+## 핵심 결과
+- 전체 점수: 8.67/10
+- 합의 항목: 5개
+- 충돌 항목: 1개
 
-# 점수 기준 검색 (90점 이상)
-./scripts/ai-verification/search-history.sh score 90
-
-# 태그 검색
-./scripts/ai-verification/search-history.sh tag "refactor"
-
-# 전체 통계
-./scripts/ai-verification/search-history.sh stats
-
-# 평균 점수 추이
-./scripts/ai-verification/search-history.sh trend
+## 상세 분석
+...
 ```
 
-### 📊 수동 검색 (참고용)
-```bash
-# 특정 파일 검증 히스토리
-grep -r "DashboardClient.tsx" *.md
+---
 
-# 최근 7일 검증
-find . -name "2025-10-*" -mtime -7
+## 🚀 다음 단계
 
-# 평균 점수 추이
-jq '[.verifications[] | .score] | add / length' verification-index.json
+- [ ] 월별 요약 자동화 스크립트 추가
+- [ ] 히스토리 분석 대시보드 (선택적)
+- [ ] 성능 추세 그래프 생성 (선택적)
 
-# 특정 AI 평균 점수
-jq '[.verifications[] | .ai_scores.gemini] | add / length' verification-index.json
-```
+---
 
-## 📈 월간 요약 보고서
-
-**자동 생성**: 매월 1일 또는 수동 요청 시
-
-**내용**:
-- 검증 횟수 및 평균 점수
-- AI별 성과 통계
-- 트렌드 분석 (개선률, 반복 문제)
-- 비용 효율성 (Claude 한도, 무료 AI 활용)
-
-## 💡 활용 팁
-
-### 히스토리 기반 검증
-```bash
-# Claude에게 직접 요청 (방식 B)
-"지난번 대시보드 검증 결과와 비교하여 이번 변경사항 AI 교차검증해줘"
-
-# → Claude가 3-AI 병렬 호출 (codex, gemini, qwen)
-# → verification-recorder가 자동으로 히스토리 저장
-```
-
-### 자동 저장 시스템
-
-**✅ 방법 1: Task 도구 사용 (권장)**
-```bash
-# AI 교차검증 완료 후 Task 도구로 호출
-Task verification-recorder '{
-  "target": "파일 경로",
-  "description": "간단한 설명",
-  "codex_score": 82,
-  "gemini_score": 91.3,
-  "qwen_score": 88,
-  "average_score": 87.1,
-  "decision": "approved_with_improvements",
-  "actions_taken": ["개선사항1", "개선사항2"],
-  "key_findings": ["발견사항1", "발견사항2"],
-  "commit": "커밋해시",
-  "tags": ["tag1", "tag2"]
-}'
-```
-
-**🔧 방법 2: Bash 직접 실행 (보조)**
-```bash
-bash scripts/ai-verification/verification-recorder.sh '{
-  "target": "파일 경로",
-  "description": "간단한 설명",
-  ...
-}'
-```
-
-**권장**: 웬만하면 방법 1 (Task 도구)을 사용하여 Claude Code 기능을 최대한 활용하세요.
-
-### 특정 문제 추적
-```bash
-# 반복되는 문제 패턴 확인
-grep -r "의존성 배열" *.md | wc -l
-
-# 스마트 검색으로 태그 기반 추적
-./scripts/ai-verification/search-history.sh tag "dependency-array"
-```
-
-## ⚠️ 주의사항
-
-1. **Git 추적**: 이 폴더는 `.gitignore`에 등록되어 로컬 전용
-2. **용량 관리**: 월 100개 검증 시 약 50MB (관리 가능)
-3. **백업**: 중요 검증 결과는 별도 백업 권장
-
-## 🎯 목표
-
-**90% 완성 프로젝트의 마무리 단계 품질 보증**
-- 모든 중요 변경사항 AI 교차검증
-- 히스토리 축적으로 패턴 학습
-- 지속적 개선 트렌드 추적
-
-**Last Updated**: 2025-10-02 by Claude Code (v2.0.1)
+**💡 핵심 원칙**: 로그는 로컬에서 분석, 중요한 인사이트만 docs에 문서화하여 팀 공유

@@ -423,6 +423,11 @@ archive/*.tar.gz
 reports/verification-history/
 !reports/verification-history/.gitkeep
 
+# Multi-AI MCP 히스토리 (로그 수준 JSON 제외, 문서화는 docs에 저장)
+packages/multi-ai-mcp/history/*.json
+packages/multi-ai-mcp/history/**/*.json
+!packages/multi-ai-mcp/history/.gitkeep
+
 # 🚫 백업 파일들 (Git 추적 금지)
 # GCP 함수 백업 (민감한 API 키 포함)
 scripts/backup/

@@ -3,7 +3,9 @@
     "multi-ai": {
       "command": "node",
       "args": ["/mnt/d/cursor/openmanager-vibe-v5/packages/multi-ai-mcp/dist/index.js"],
-      "env": {},
+      "env": {
+        "NODE_OPTIONS": "--max-old-space-size=1024"
+      },
       "disabled": false
     }
   }
