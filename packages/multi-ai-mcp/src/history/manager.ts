@@ -33,10 +33,19 @@ interface VerificationHistory {
     conflicts: Conflict[];
     totalTime: number;
     successRate: number;
+    reasoning?: string; // 판정 근거 (왜 합의/충돌했는지)
+  };
+  performance: {
+    codexTime: number;
+    geminiTime: number;
+    qwenTime: number;
+    parallelEfficiency: number; // totalTime / max(individual times)
   };
   metadata: {
     version: string;
     environment: string;
+    nodeVersion: string;
+    platform: string;
   };
 }
 
@@ -88,6 +97,24 @@ export async function recordVerification(
   try {
     await ensureHistoryDir();
 
+    // Calculate performance metrics
+    const codexTime = codex?.responseTime || 0;
+    const geminiTime = gemini?.responseTime || 0;
+    const qwenTime = qwen?.responseTime || 0;
+    const maxTime = Math.max(codexTime, geminiTime, qwenTime);
+    const totalTime = synthesis?.totalTime || maxTime;
+    const parallelEfficiency = maxTime > 0 ? totalTime / maxTime : 1;
+
+    // Generate reasoning for synthesis
+    const consensusCount = synthesis?.consensus?.length || 0;
+    const conflictCount = synthesis?.conflicts?.length || 0;
+    const successRate = synthesis?.successRate || 0;
+    const reasoning = consensusCount > 0
+      ? `${consensusCount}개 AI 합의 달성, ${conflictCount}개 충돌, 성공률 ${(successRate * 100).toFixed(0)}%`
+      : conflictCount > 0
+      ? `${conflictCount}개 충돌 발견, 추가 검증 권장`
+      : '응답 없음 또는 실패';
+
     const history: VerificationHistory = {
       timestamp: new Date().toISOString(),
       query: request.query,
@@ -102,15 +129,24 @@ export async function recordVerification(
         ...(gemini && { gemini }),
         ...(qwen && { qwen }),
       },
-      synthesis: synthesis || {
-        consensus: [],
-        conflicts: [],
-        totalTime: 0,
-        successRate: 0,
+      synthesis: {
+        consensus: synthesis?.consensus || [],
+        conflicts: synthesis?.conflicts || [],
+        totalTime: synthesis?.totalTime || 0,
+        successRate: synthesis?.successRate || 0,
+        reasoning,
+      },
+      performance: {
+        codexTime,
+        geminiTime,
+        qwenTime,
+        parallelEfficiency,
       },
       metadata: {
-        version: '1.8.1',
+        version: '2.3.0',
         environment: process.env.NODE_ENV || 'development',
+        nodeVersion: process.version,
+        platform: process.platform,
       },
     };
 

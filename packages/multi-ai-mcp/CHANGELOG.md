@@ -7,6 +7,87 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.0] - 2025-10-06
+
+### Improved ⚡
+
+**3-AI 자체 검증 기반 개선** - "Multi-AI MCP로 Multi-AI MCP를 검증한 결과 반영"
+
+#### 개선 배경
+
+v2.2.0 완성 후 `mcp__multi-ai__queryAllAIs`로 자체 검증 수행:
+- **Codex**: 9/10 (아키텍처), 9/10 (안정성) - "실행로그 표준화" 제안
+- **Gemini**: 9/10 (아키텍처), 9/10 (안정성) - "3-AI 응답 종합" 제안
+- **Qwen**: 8/10 (아키텍처), 7/10 (안정성) - "헬스체크 API" 제안
+
+#### 구현 내용
+
+**1. 디버그 모드 옵션화** (`src/index.ts`)
+- 문제: Query Analysis, Auto-Split 등 로그가 항상 출력되어 노이즈 발생
+- 해결: `MULTI_AI_DEBUG=true` 환경변수로 제어
+- 변경:
+  ```typescript
+  // 변경 전: 항상 출력
+  console.error('📊 Query Analysis:', ...);
+  console.error('✂️ Query Auto-Split:', ...);
+  console.error('🔧 Qwen mode auto-adjusted:', ...);
+  
+  // 변경 후: 디버그 모드에서만
+  debugLog('📊 Query Analysis', ...);
+  debugLog('✂️ Query Auto-Split:', ...);
+  debugLog('🔧 Qwen mode auto-adjusted:', ...);
+  ```
+
+**2. 실행로그 표준화** (`src/history/manager.ts`)
+- Codex 제안: "실행로그를 표준화하여 디버깅 효율 향상"
+- VerificationHistory 인터페이스 개선:
+  ```typescript
+  interface VerificationHistory {
+    // ... 기존 필드
+    synthesis: {
+      consensus: string[];
+      conflicts: Conflict[];
+      totalTime: number;
+      successRate: number;
+      reasoning?: string; // NEW: 판정 근거
+    };
+    performance: { // NEW: 성능 메트릭
+      codexTime: number;
+      geminiTime: number;
+      qwenTime: number;
+      parallelEfficiency: number; // totalTime / max(individual times)
+    };
+    metadata: { // ENHANCED
+      version: string;
+      environment: string;
+      nodeVersion: string; // NEW
+      platform: string; // NEW
+    };
+  }
+  ```
+- 자동 reasoning 생성:
+  ```typescript
+  const reasoning = consensusCount > 0
+    ? `${consensusCount}개 AI 합의 달성, ${conflictCount}개 충돌, 성공률 ${(successRate * 100).toFixed(0)}%`
+    : conflictCount > 0
+    ? `${conflictCount}개 충돌 발견, 추가 검증 권장`
+    : '응답 없음 또는 실패';
+  ```
+
+**3. MCP 표준 준수**
+- Qwen의 "헬스체크 API" 제안 검토
+- 결론: MCP 표준에 맞지 않음 (Vercel, Supabase, Playwright MCP 모두 헬스체크 도구 없음)
+- 현재 `getPerformanceStats` + `getHistoryStats`로 충분히 상태 파악 가능
+- MCP 서버 실행 중 = healthy, 각 도구 호출 성공 = 개별 기능 정상
+
+#### 효과
+
+- **디버그 효율**: 필요시에만 디버그 로그 활성화
+- **히스토리 품질**: 판정 근거, 성능 메트릭, 환경 정보 자동 기록
+- **MCP 표준**: 표준 패키지 패턴 준수
+
+---
+
 ## [2.2.0] - 2025-10-06
 
 ### Fixed 🐛

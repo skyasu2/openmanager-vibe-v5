@@ -198,7 +198,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         // 🔍 STEP 1: Analyze query complexity
         const analysis = analyzeQuery(originalQuery);
-        console.error('📊 Query Analysis:', getAnalysisSummary(analysis));
+        debugLog('📊 Query Analysis', getAnalysisSummary(analysis));
         
         // Debug: Log analysis results
         debugLog('Query complexity analysis', {
@@ -210,7 +210,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         // 📝 STEP 2: Auto-split if needed (preserves information)
         const { subQueries, wasSplit, strategy } = autoSplit(originalQuery, analysis);
         if (wasSplit) {
-          console.error(`✂️ Query Auto-Split: ${subQueries.length} sub-queries (${strategy})`);
+          debugLog(`✂️ Query Auto-Split: ${subQueries.length} sub-queries (${strategy})`);
         }
 
         // Use first sub-query (or original if not split)
@@ -219,7 +219,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         // 🤖 STEP 3: Auto-select Qwen mode based on complexity
         const autoQwenPlanMode = qwenPlanMode ?? shouldUseQwenPlanMode(analysis);
         if (autoQwenPlanMode !== qwenPlanMode) {
-          console.error(`🔧 Qwen mode auto-adjusted: ${qwenPlanMode} → ${autoQwenPlanMode}`);
+          debugLog(`🔧 Qwen mode auto-adjusted: ${qwenPlanMode} → ${autoQwenPlanMode}`);
         }
 
         // Execute all AIs in parallel with progress notifications
@@ -364,7 +364,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         // 🔍 STEP 1: Analyze query complexity
         const analysis = analyzeQuery(originalQuery);
-        console.error('📊 Query Analysis:', getAnalysisSummary(analysis));
+        debugLog('📊 Query Analysis', getAnalysisSummary(analysis));
         
         // Debug: Log analysis results
         debugLog('Query complexity analysis', {
@@ -376,7 +376,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         // 📝 STEP 2: Auto-split if needed (preserves information)
         const { subQueries, wasSplit, strategy } = autoSplit(originalQuery, analysis);
         if (wasSplit) {
-          console.error(`✂️ Query Auto-Split: ${subQueries.length} sub-queries (${strategy})`);
+          debugLog(`✂️ Query Auto-Split: ${subQueries.length} sub-queries (${strategy})`);
         }
 
         // Use first sub-query (or original if not split)
@@ -385,7 +385,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         // 🤖 STEP 3: Auto-select Qwen mode based on complexity
         const autoQwenPlanMode = qwenPlanMode ?? shouldUseQwenPlanMode(analysis);
         if (autoQwenPlanMode !== qwenPlanMode) {
-          console.error(`🔧 Qwen mode auto-adjusted: ${qwenPlanMode} → ${autoQwenPlanMode}`);
+          debugLog(`🔧 Qwen mode auto-adjusted: ${qwenPlanMode} → ${autoQwenPlanMode}`);
         }
 
         // Execute selected AIs in parallel with progress notifications
