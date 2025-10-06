@@ -2,7 +2,7 @@
   "outputStyle": "color",
   "statusLine": {
     "type": "command",
-    "command": "ccusage statusline --cost-source auto --visual-burn-rate emoji --no-spinner",
+    "command": "npx ccstatusline@latest",
     "padding": 0
   },
   "env": {
