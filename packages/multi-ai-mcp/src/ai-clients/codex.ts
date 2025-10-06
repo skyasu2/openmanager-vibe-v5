@@ -12,7 +12,7 @@ import { withTimeout, detectQueryComplexity, getAdaptiveTimeout } from '../utils
 import { validateQuery } from '../utils/validation.js';
 import { withRetry } from '../utils/retry.js';
 import { config } from '../config.js';
-import { logMemoryUsage } from '../utils/memory.js';
+import { withMemoryGuard } from '../middlewares/memory-guard.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -114,24 +114,26 @@ export async function queryCodex(query: string, onProgress?: ProgressCallback): 
   const baseTimeout = getAdaptiveTimeout(complexity, config.codex);
 
   try {
-    // Use retry mechanism for resilience
-    const result = await withRetry(
-      () => executeCodexQuery(query, baseTimeout, onProgress),
-      {
-        maxAttempts: config.retry.maxAttempts,
-        backoffBase: config.retry.backoffBase,
-        onRetry: (attempt, error) => {
-          console.error(`[Codex] Retry attempt ${attempt}: ${error.message}`);
-        },
-      }
-    );
+    // ✅ Unified Memory Management: withMemoryGuard applies to all AIs
+    // - Pre-check: Reject if heap >= 90%
+    // - Post-log: Success/failure
+    const result = await withMemoryGuard('Codex', async () => {
+      // Use retry mechanism for resilience
+      return withRetry(
+        () => executeCodexQuery(query, baseTimeout, onProgress),
+        {
+          maxAttempts: config.retry.maxAttempts,
+          backoffBase: config.retry.backoffBase,
+          onRetry: (attempt, error) => {
+            console.error(`[Codex] Retry attempt ${attempt}: ${error.message}`);
+          },
+        }
+      );
+    });
 
-    // Log memory usage after query (for debugging)
-    logMemoryUsage('Post-query Codex');
     return result;
 
   } catch (error) {
-    logMemoryUsage('Post-query Codex (failed)');
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     // Extract concise error message

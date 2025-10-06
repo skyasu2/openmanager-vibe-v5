@@ -12,7 +12,7 @@ import { withTimeout, detectQueryComplexity, getAdaptiveTimeout } from '../utils
 import { validateQuery } from '../utils/validation.js';
 import { withRetry } from '../utils/retry.js';
 import { config } from '../config.js';
-import { checkMemoryBeforeQuery, logMemoryUsage } from '../utils/memory.js';
+import { withMemoryGuard } from '../middlewares/memory-guard.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -43,15 +43,11 @@ async function executeQwenQuery(query: string, planMode: boolean, timeout: numbe
     // ✅ Security: Using execFile with argument array prevents command injection
     // ✅ Performance: CLI argument method is faster than stdin (5.4s vs 5.6s)
     // ✅ Consistency: Same pattern as Codex and Gemini
-    // ✅ Memory: Set Node.js heap size to 2GB to prevent OOM
+    // ✅ Memory: 2GB heap managed at MCP server level (unified policy)
     const result = await withTimeout(
       execFileAsync('qwen', ['-p', query], {
         maxBuffer: config.maxBuffer,
-        cwd: config.cwd,
-        env: {
-          ...process.env,
-          NODE_OPTIONS: '--max-old-space-size=2048', // 2GB heap (default: ~1.4GB)
-        },
+        cwd: config.cwd
       }),
       timeout,
       `Qwen timeout after ${timeout}ms`
@@ -120,43 +116,31 @@ export async function queryQwen(
     };
   }
 
-  // ✅ Memory: Check heap usage before query execution
-  try {
-    checkMemoryBeforeQuery('Qwen');
-  } catch (error) {
-    return {
-      provider: 'qwen',
-      response: '',
-      responseTime: Date.now() - startTime,
-      success: false,
-      error: error instanceof Error ? error.message : 'Memory check failed'
-    };
-  }
-
   // Detect query complexity and use adaptive timeout (same logic as Codex)
   const complexity = detectQueryComplexity(query);
   const baseTimeout = getAdaptiveTimeout(complexity, config.qwen);
 
   try {
-    // Use retry mechanism for resilience
-    const result = await withRetry(
-      () => executeQwenQuery(query, planMode, baseTimeout, onProgress),
-      {
-        maxAttempts: config.retry.maxAttempts,
-        backoffBase: config.retry.backoffBase,
-        onRetry: (attempt, error) => {
-          console.error(`[Qwen] Retry attempt ${attempt}: ${error.message}`);
-        },
-      }
-    );
+    // ✅ Unified Memory Management: withMemoryGuard applies to all AIs
+    // - Pre-check: Reject if heap >= 90%
+    // - Post-log: Success/failure
+    const result = await withMemoryGuard('Qwen', async () => {
+      // Use retry mechanism for resilience
+      return withRetry(
+        () => executeQwenQuery(query, planMode, baseTimeout, onProgress),
+        {
+          maxAttempts: config.retry.maxAttempts,
+          backoffBase: config.retry.backoffBase,
+          onRetry: (attempt, error) => {
+            console.error(`[Qwen] Retry attempt ${attempt}: ${error.message}`);
+          },
+        }
+      );
+    });
 
-    // Log memory usage after successful query
-    logMemoryUsage('Post-query Qwen');
     return result;
 
   } catch (error) {
-    // Log memory usage even on failure (helps diagnose OOM)
-    logMemoryUsage('Post-query Qwen (failed)');
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     // Extract concise error message

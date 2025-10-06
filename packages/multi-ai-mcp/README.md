@@ -1,4 +1,4 @@
-# Multi-AI MCP Server v3.0.0
+# Multi-AI MCP Server v3.1.0
 
 **순수 AI 통신 인프라** - Claude Code와 Codex/Gemini/Qwen을 연결하는 채널
 
@@ -16,6 +16,31 @@ Claude Code에서 WSL 환경의 3개 AI CLI(Codex, Gemini, Qwen)와 안정적으
 - ✅ **입력 검증**: Command Injection 방지, 보안 강화
 - ✅ **기본 히스토리**: 실행 기록 자동 저장 (~/.multi-ai-history/)
 - ✅ **100% 안정성**: timeout.ts, retry.ts 검증된 로직 완전 보존
+
+### v3.1.0 주요 개선사항 (2025-10-06)
+
+**Unified Memory Guard Middleware**:
+- ✅ **공정한 보호**: 모든 AI에 동일한 90% pre-check 적용
+- ✅ **코드 품질**: 60줄 중복 제거 → 10줄 미들웨어 (83% 감소)
+- ✅ **아키텍처**: DRY + SoC 원칙 준수
+- ✅ **통합 힙 정책**: MCP 서버 레벨 2GB heap 통일
+
+**Before (v3.0.0)**:
+```typescript
+Qwen:   90% pre-check + post-log + 2GB heap (특수 보호)
+Codex:  post-log only (OOM 위험 노출)
+Gemini: post-log only (OOM 위험 노출)
+```
+
+**After (v3.1.0)**:
+```typescript
+All AIs: withMemoryGuard() 미들웨어
+  → 90% pre-check (통일)
+  → post-log (통일)
+  → 2GB heap (MCP 레벨 통일)
+```
+
+**상세 문서**: [Unified Memory Guard Implementation](docs/ai-verifications/2025-10-06-unified-memory-guard-implementation.md)
 
 ### v3.0.0 주요 변경사항
 
@@ -182,10 +207,13 @@ packages/multi-ai-mcp/
 │  │  ├─ codex.ts       ✅ Codex CLI 실행
 │  │  ├─ gemini.ts      ✅ Gemini CLI 실행
 │  │  └─ qwen.ts        ✅ Qwen CLI 실행
+│  ├─ middlewares/
+│  │  └─ memory-guard.ts ✅ 통합 메모리 보호 (v3.1.0)
 │  ├─ utils/
 │  │  ├─ timeout.ts     ✅ 적응형 타임아웃 (핵심)
 │  │  ├─ retry.ts       ✅ 자동 재시도 (핵심)
-│  │  └─ validation.ts  ✅ 입력 검증 (보안)
+│  │  ├─ validation.ts  ✅ 입력 검증 (보안)
+│  │  └─ memory.ts      ✅ 메모리 모니터링
 │  ├─ history/
 │  │  └─ basic.ts       ✅ 간소화된 히스토리
 │  ├─ config.ts         ✅ 설정 관리
