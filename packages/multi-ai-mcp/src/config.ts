@@ -149,9 +149,10 @@ export function getConfig(): MultiAIConfig {
       ),
       // Fallback model list (priority order)
       // 429 quota exceeded → try next model
+      // OAuth free tier only supports gemini-2.5-flash
       models: process.env.MULTI_AI_GEMINI_MODELS
         ? process.env.MULTI_AI_GEMINI_MODELS.split(',')
-        : ['gemini-2.5-pro', 'gemini-2.0-flash-exp', 'gemini-1.5-flash'],
+        : ['gemini-2.5-flash'], // OAuth 무료티어 지원 모델
     },
     qwen: {
       simple: parseIntWithValidation(

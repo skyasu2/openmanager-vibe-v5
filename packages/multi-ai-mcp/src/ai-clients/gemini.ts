@@ -44,8 +44,9 @@ async function executeGeminiQuery(
   try {
     // Execute gemini CLI with model parameter (OAuth authenticated)
     // ✅ Security: Using execFile with argument array prevents command injection
+    // ✅ Correct syntax: query as positional argument, then --model flag
     const result = await withTimeout(
-      execFileAsync('gemini', ['--model', model, query], {
+      execFileAsync('gemini', [query, '--model', model], {
         maxBuffer: config.maxBuffer,
         cwd: config.cwd
       }),
