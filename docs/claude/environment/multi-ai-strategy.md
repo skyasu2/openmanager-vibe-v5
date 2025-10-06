@@ -137,35 +137,33 @@ Task gemini-specialist "아키텍처"   # 잘못된 방법
 Task qwen-specialist "성능"        # 잘못된 방법
 ```
 
-**💡 대안: Multi-AI MCP 서버 (개발 중)**
+**💡 최신 방식: Multi-AI MCP v3.0.0 (순수 인프라)**
 
-**향후 계획**: Bash CLI 병렬 실행을 MCP 도구로 래핑하여 더 편리하게 사용
+**v3.0.0 완료**: 개별 AI 도구 + 서브에이전트 교차검증 시스템
 
 ```typescript
-// 현재 구조: packages/multi-ai-mcp/
-// Claude Code 내에서 직접 호출 가능 (개발 완료)
+// Multi-AI MCP v3.0.0: 개별 AI와 안전한 통신
+// 각 AI에 독립적으로 쿼리 전송 (타임아웃 보호)
 
-// 사용 예시 (향후)
-mcp__multi_ai__queryAllAIs({
-  query: "이 코드를 3개 AI로 교차검증해줘",
-  qwenPlanMode: true
-});
+// 1. 개별 AI 쿼리 (직접 호출)
+mcp__multi_ai__queryCodex({ query: "버그 분석" });
+mcp__multi_ai__queryGemini({ query: "아키텍처 검토" });
+mcp__multi_ai__queryQwen({ query: "성능 최적화", planMode: true });
 
-// 또는 우선순위 기반 선택적 실행
-mcp__multi_ai__queryWithPriority({
-  query: "성능 최적화 방법",
-  includeCodex: true,
-  includeGemini: true,
-  includeQwen: false
-});
+// 2. 기본 히스토리 조회
+mcp__multi_ai__getBasicHistory({ limit: 10 });
+
+// 3. 교차검증은 Multi-AI Verification Specialist 서브에이전트가 담당
+// 서브에이전트가 위 3개 도구를 병렬 호출 → 결과 종합 → docs/ 저장
 ```
 
-**현재 상태**:
-- ✅ Command Injection 방지 (execFile 사용)
-- ✅ 입력 검증 강화
-- ✅ 100% 테스트 커버리지
-- ✅ packages/multi-ai-mcp/ 패키지화 완료
-- 📍 향후: Bash CLI 방식과 MCP 방식 중 선택 가능
+**v3.0.0 특징**:
+- ✅ **SoC 완벽 적용**: MCP는 순수 인프라, 비즈니스 로직은 서브에이전트
+- ✅ **개별 AI 도구**: queryCodex, queryGemini, queryQwen (독립 실행)
+- ✅ **타임아웃 안정성**: 적응형 타임아웃 (60s-300s)
+- ✅ **보안 강화**: Command Injection 방지, 입력 검증
+- ✅ **히스토리 분리**: MCP 기본 메타데이터, 서브에이전트 고급 분석
+- ✅ **52% 코드 감소**: 2,500줄 → 1,200줄 (유지보수성 향상)
 
 ### 3. 전문 분야별 특화
 

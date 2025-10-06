@@ -167,19 +167,24 @@ mcp__serena__activate_project "/mnt/d/cursor/openmanager-vibe-v5"
 cd packages/multi-ai-mcp/
 npm run build
 
-# 사용 예시 (Claude Code 내)
-mcp__multi_ai__queryAllAIs({
-  query: "이 코드를 3개 AI로 교차검증해줘"
-})
+# 사용 예시 (Claude Code 내) - v3.0.0
+# 개별 AI와 직접 통신 (타임아웃 안정성)
+mcp__multi_ai__queryCodex({ query: "버그 분석" })
+mcp__multi_ai__queryGemini({ query: "아키텍처 검토" })
+mcp__multi_ai__queryQwen({ query: "성능 최적화", planMode: true })
+
+# 교차검증은 Multi-AI Verification Specialist 서브에이전트가 담당
+# 서브에이전트가 위 3개 도구를 병렬 호출 → 결과 종합
 ```
 
-**프로젝트 전용 서버 특징**:
-- 🎯 **프로젝트 .mcp.json 전용**: 전역 설정과 독립
-- ✅ **개발 환경만**: GitHub 저장소 포함, Vercel 배포 제외
-- 🔒 **보안 강화**: Command Injection 방지 (execFile), 입력 검증
-- 🧪 **테스트 완료**: 100% 커버리지 (Vitest)
-- 📦 **패키지화**: packages/multi-ai-mcp/ 독립 구조
-- 📍 **향후 전환**: npm 독립 패키지 전환 예정
+**v3.0.0 특징 (SoC 완전 분리)**:
+- 🎯 **순수 인프라 레이어**: AI 통신만 담당, 비즈니스 로직 제거
+- 🔧 **개별 AI 도구**: queryCodex, queryGemini, queryQwen (독립 실행)
+- ⏱️ **적응형 타임아웃**: 60s-300s (쿼리 복잡도 기반)
+- 🔒 **보안 강화**: Command Injection 방지, 입력 검증
+- 📊 **히스토리 분리**: MCP 기본 메타데이터, 서브에이전트 고급 분석
+- 📦 **52% 감량**: 2,500줄 → 1,200줄 (유지보수성 향상)
+- 🧪 **안정성**: 100% 테스트 커버리지 유지
 
 ## 🔑 베르셀 CLI 인증 (보조 도구)
 

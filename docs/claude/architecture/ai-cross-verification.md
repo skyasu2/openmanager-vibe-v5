@@ -168,7 +168,7 @@ mcp__multi_ai__getBasicHistory({
 | **개념** | 에이전트 프레임워크 | AI 오케스트레이션 |
 | **AI 수** | 단일 AI (Claude 등) | 다중 AI (Codex+Gemini+Qwen) |
 | **분산 방식** | 에이전트로 분산 (역할) | AI로 분산 (검증) |
-| **워크플로우** | Parallel, Router, Orchestrator | queryAllAIs, queryWithPriority |
+| **워크플로우** | Parallel, Router, Orchestrator | queryCodex, queryGemini, queryQwen (개별 호출) |
 | **목적** | 복잡한 작업 분해 | 품질 보장 및 검증 |
 | **비용** | 단일 AI 비용 | 다중 AI 비용 (3배) |
 
@@ -308,8 +308,8 @@ wait
 └─────────────────────────────────────────┘
     ↓ YES
 ┌─────────────────────────────────────────┐
-│ 1순위: Multi-AI MCP 교차검증             │
-│ mcp__multi_ai__queryAllAIs()            │
+│ 1순위: Multi-AI Verification Specialist │
+│ (서브에이전트가 3-AI 병렬 실행)           │
 └─────────────────────────────────────────┘
     ↓
 ┌─────────────────────────────────────────┐
@@ -353,19 +353,24 @@ wait
 #### 시나리오 1: 코드 리뷰 (품질 중요)
 
 ```typescript
-// 1단계: Multi-AI MCP로 교차검증
-mcp__multi_ai__queryAllAIs({
-  query: "LoginClient.tsx 코드 검증"
-})
-// 결과:
-// - Codex: 타이밍 공격 취약점 발견
-// - Gemini: SoC 원칙 위반 지적
-// - Qwen: 메모이제이션 제안
+// v3.0.0: Multi-AI Verification Specialist 서브에이전트 사용
+// 서브에이전트가 자동으로 3-AI 병렬 실행 + 결과 종합
+Task multi-ai-verification-specialist "LoginClient.tsx 코드 교차검증"
 
-// 2단계: 서브에이전트로 역할 분담 상세 분석
+// 서브에이전트 내부 동작:
+// 1. 3-AI 병렬 쿼리
+//    - mcp__multi_ai__queryCodex({ query: "..." })
+//    - mcp__multi_ai__queryGemini({ query: "..." })
+//    - mcp__multi_ai__queryQwen({ query: "...", planMode: true })
+// 2. 결과 종합
+//    - Codex: 타이밍 공격 취약점 발견
+//    - Gemini: SoC 원칙 위반 지적
+//    - Qwen: 메모이제이션 제안
+// 3. 합의/충돌 분석 → docs/ai-verifications/ 저장
+
+// 2단계: 필요 시 역할별 서브에이전트로 심화 분석
 Task code-review-specialist "보안 취약점 심화"
 Task structure-refactor-specialist "SoC 리팩토링 계획"
-Task performance-specialist "성능 최적화 구체안"
 ```
 
 #### 시나리오 2: 긴급 버그 수정
@@ -374,13 +379,13 @@ Task performance-specialist "성능 최적화 구체안"
 # 1단계: 단일 AI로 빠른 해결
 codex exec "TypeError at line 42 긴급 수정"
 
-# 2단계: Multi-AI MCP로 배포 전 검증
-mcp__multi_ai__queryWithPriority({
-  query: "버그 수정 코드 검증",
-  includeCodex: true,
-  includeGemini: true,
-  includeQwen: false  # 성능 분석 불필요
-})
+# 2단계: v3.0.0 - 배포 전 선택적 검증
+# Claude Code가 필요한 AI만 직접 호출
+mcp__multi_ai__queryCodex({ query: "버그 수정 코드 검증" })
+mcp__multi_ai__queryGemini({ query: "아키텍처 영향 확인" })
+# Qwen 생략 (성능 분석 불필요)
+
+# 또는 간단한 경우 서브에이전트 생략하고 직접 검증
 ```
 
 #### 시나리오 3: 아키텍처 설계 (복잡도 높음)
@@ -389,10 +394,9 @@ mcp__multi_ai__queryWithPriority({
 // 1단계: Sequential-thinking으로 단계 분해
 mcp__sequential_thinking__sequentialthinking(...)
 
-// 2단계: Multi-AI MCP로 각 단계 검증
-mcp__multi_ai__queryAllAIs({
-  query: "Step 1: 서비스 경계 설정 검증"
-})
+// 2단계: v3.0.0 - 각 단계를 Multi-AI로 검증
+Task multi-ai-verification-specialist "Step 1: 서비스 경계 설정 검증"
+// 서브에이전트가 3-AI 병렬 실행 + 합의/충돌 분석
 
 // 3단계: 서브에이전트로 상세 구현
 Task structure-refactor-specialist "서비스 분리 구현"
@@ -462,12 +466,12 @@ mcp__multi_ai__getPerformanceStats()
 
 ---
 
-## 💡 핵심 원칙
+## 💡 핵심 원칙 (v3.0.0)
 
-1. **개별 AI 협업은 MCP 직접 사용** - `queryWithPriority`로 Codex/Gemini/Qwen 선택
-2. **AI 교차검증은 서브에이전트 활용** - Multi-AI Verification Specialist가 `queryAllAIs` 자동 실행
+1. **개별 AI 협업은 MCP 직접 호출** - queryCodex/queryGemini/queryQwen으로 선택적 실행
+2. **AI 교차검증은 서브에이전트 활용** - Multi-AI Verification Specialist가 3-AI 병렬 실행 + 결과 종합
 3. **Claude 최종 결정 필수** - AI 판단을 맹신하지 말고 실제 코드와 대조하여 선택적 적용
-4. **히스토리 기반 개선** - 반복 문제 식별 및 추세 추적 (v2.3.0: reasoning, performance)
-5. **비용 대비 효과 고려** - 중요한 작업에만 Multi-AI MCP 투자
+4. **히스토리 분리 관리** - MCP: 기본 메타데이터 (타임스탬프, 성공/실패), 서브에이전트: 고급 분석 (docs/)
+5. **비용 대비 효과 고려** - 중요한 작업에만 3-AI 교차검증 투자
 
-**Multi-AI MCP v2.3.0**: 품질 보장을 위한 메타 오케스트레이션 전략
+**Multi-AI MCP v3.0.0**: SoC 기반 순수 인프라 레이어 + 서브에이전트 비즈니스 로직 분리
