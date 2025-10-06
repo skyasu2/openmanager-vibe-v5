@@ -337,6 +337,10 @@ MIT License
 
 ## 📚 관련 문서
 
+- **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - 트러블슈팅 가이드 (v1.8.1 추가) ⭐
+- [SETUP-GUIDE.md](./SETUP-GUIDE.md) - 초기 설정 가이드
+- [CHANGELOG.md](./CHANGELOG.md) - 버전 히스토리
+- [MCP-BEST-PRACTICES.md](./MCP-BEST-PRACTICES.md) - MCP 모범 사례
 - [Claude Code 공식 문서](https://docs.claude.com/en/docs/claude-code)
 - [MCP 프로토콜 사양](https://modelcontextprotocol.io/)
 - [프로젝트 CLAUDE.md](../../CLAUDE.md)

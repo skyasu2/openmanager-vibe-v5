@@ -6,6 +6,12 @@
 
 **Qwen Code CLI** is a specialized AI tool for performance optimization and algorithm analysis that can be used as a **specialized sub-agent** during development processes primarily focused on **Claude Code in WSL environments**. It is typically used as a **supporting tool for Claude Code**, but can also be used **independently** in specific situations.
 
+### 🇰🇷 Korean Language Usage Policy
+
+- **Primary Language**: All conversations and outputs should be in Korean
+- **Technical Terms**: English technical terms are allowed and encouraged when necessary
+- **Project Context**: This policy applies when engaging in conversations or providing assistance
+
 ### 📊 2025 Benchmark Performance (Qwen 2.5 Coder v0.0.14)
 - **HumanEval**: 88.4% (7B), 92.7% (32B) - Open-source leader
 - **MBPP**: 84.5% - Python code generation specialized

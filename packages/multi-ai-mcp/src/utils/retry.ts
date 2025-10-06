@@ -57,10 +57,22 @@ export function isFatalError(error: Error): boolean {
     return true;
   }
 
+  // ✅ Rate limit errors (429) - FATAL, immediately throw to upper layer
+  // Gemini: queryGemini() catches this and tries next model in fallback list
+  // Codex/Qwen: No fallback, just fail immediately
+  // This prevents wasting retry attempts on quota issues
+  if (
+    message.includes('429') ||
+    message.includes('quota exceeded') ||
+    message.includes('rate limit') ||
+    message.includes('too many requests')
+  ) {
+    return true;
+  }
+
   // MCP timeout (already exceeded maximum wait time)
   if (
     message.includes('mcp timeout') ||
-    message.includes('operation timed out') ||
     message.includes('deadline exceeded')
   ) {
     return true;

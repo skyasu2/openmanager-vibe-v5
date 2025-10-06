@@ -59,7 +59,7 @@ const onProgress: ProgressCallback = (provider, status, elapsed) => {
 const server = new Server(
   {
     name: 'multi-ai',
-    version: '1.7.0',
+    version: '1.8.1',
   },
   {
     capabilities: {

@@ -18,13 +18,44 @@ describe('validateQuery', () => {
     expect(() => validateQuery(longQuery)).toThrow(/Query too long/);
   });
 
-  it('should reject queries with dangerous characters', () => {
-    // $ (variable substitution), control characters still blocked
-    expect(() => validateQuery('test$variable')).toThrow('Query contains dangerous characters');
-    expect(() => validateQuery('test;command')).toThrow('Query contains dangerous characters');
-    expect(() => validateQuery('test&command')).toThrow('Query contains dangerous characters');
-    expect(() => validateQuery('test|command')).toThrow('Query contains dangerous characters');
+  it('should only reject null bytes', () => {
+    // Only null bytes are dangerous (classic injection technique)
     expect(() => validateQuery('test\x00null')).toThrow('Query contains dangerous characters');
+  });
+
+  it('should accept TypeScript code blocks with special characters', () => {
+    // $ is allowed (used in template literals, jQuery, etc.)
+    expect(() => validateQuery('const price = $100')).not.toThrow();
+    expect(() => validateQuery('test$variable')).not.toThrow();
+    
+    // Semicolons are allowed (TypeScript syntax)
+    expect(() => validateQuery('test;command')).not.toThrow();
+    expect(() => validateQuery('const x = 1; const y = 2;')).not.toThrow();
+    
+    // & and | are allowed (bitwise operators, logical operators)
+    expect(() => validateQuery('test&command')).not.toThrow();
+    expect(() => validateQuery('test|command')).not.toThrow();
+    expect(() => validateQuery('a && b || c')).not.toThrow();
+    
+    // Backticks are allowed (template literals)
+    expect(() => validateQuery('test`command`')).not.toThrow();
+    expect(() => validateQuery('explain `const x = 42`')).not.toThrow();
+    expect(() => validateQuery('const str = `Hello ${name}`')).not.toThrow();
+  });
+
+  it('should accept multi-line code blocks', () => {
+    const codeBlock = `다음 TypeScript 코드를 분석해주세요:
+
+\`\`\`typescript
+function calculateSum(a: number, b: number): number {
+  return a + b;
+}
+\`\`\`
+
+1. 코드 품질 점수
+2. 개선 제안`;
+    
+    expect(() => validateQuery(codeBlock)).not.toThrow();
   });
 
   it('should accept queries with safe special characters', () => {

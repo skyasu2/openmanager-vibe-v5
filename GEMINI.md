@@ -114,7 +114,7 @@ cat src/components/MyComponent.tsx | gemini SOLID 원칙에 따라 리팩토링 
 - **터미널**: WSL 터미널 (bash)
 - **서브에이전트**: 14개 체계 (Claude Code 공식 지원)
 - **Gemini CLI**: v0.7.0 (`@google/gemini-cli`)
-- **설치/업데이트**: `npm install -g @google/gemini-cli@latest`
+- **설치/업데이트**: `placeholder`
 
 ### Gemini 역할 및 책임
 

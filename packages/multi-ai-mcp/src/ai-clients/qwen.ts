@@ -38,13 +38,48 @@ async function executeQwenQuery(query: string, planMode: boolean, timeout: numbe
   }, 10000);
 
   try {
-    // Execute qwen CLI with Plan Mode
-    // ✅ Security: Using execFile with argument array prevents command injection
-    // Qwen CLI always requires -p flag for non-interactive mode
+    // Execute qwen CLI via stdin (more stable than -p flag)
+    // ✅ Security: Using execFile prevents command injection, query passed via stdin
+    // This matches the successful manual test: echo "query" | qwen
+    const childProcess = execFile('qwen', [], {
+      maxBuffer: config.maxBuffer,
+      cwd: config.cwd
+    });
+
+    // Write query to stdin
+    if (childProcess.stdin) {
+      childProcess.stdin.write(query);
+      childProcess.stdin.end();
+    }
+
     const result = await withTimeout(
-      execFileAsync('qwen', ['-p', query], {
-        maxBuffer: config.maxBuffer,
-        cwd: config.cwd
+      new Promise<{stdout: string; stderr: string}>((resolve, reject) => {
+        let stdout = '';
+        let stderr = '';
+
+        if (childProcess.stdout) {
+          childProcess.stdout.on('data', (data) => {
+            stdout += data.toString();
+          });
+        }
+
+        if (childProcess.stderr) {
+          childProcess.stderr.on('data', (data) => {
+            stderr += data.toString();
+          });
+        }
+
+        childProcess.on('close', (code) => {
+          if (code === 0) {
+            resolve({ stdout, stderr });
+          } else {
+            reject(new Error(`Qwen exited with code ${code}: ${stderr}`));
+          }
+        });
+
+        childProcess.on('error', (error) => {
+          reject(error);
+        });
       }),
       timeout,
       `Qwen timeout after ${timeout}ms`

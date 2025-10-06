@@ -22,14 +22,18 @@ export function validateQuery(query: string): void {
     throw new Error(`Query too long (max 2500 characters, got ${query.length})`);
   }
 
-  // Check for dangerous shell metacharacters
+  // Minimal security validation
   // ✅ execFile with argument array prevents shell injection
-  // ✅ Backticks (`) are now ALLOWED for code blocks
-  // Only block $ (variable substitution) and control characters
+  // ✅ AI CLIs (codex, gemini, qwen) have built-in security measures
+  // Only block null bytes (classic injection technique)
+  
+  // Based on official documentation research:
+  // - OpenAI: No strict input validation requirements
+  // - Gemini: Accepts diverse input formats (text, data, inline)
+  // - Qwen CLI: Provides automatic shell-escape for arguments
+  
   const dangerousPatterns = [
-    /\$/,         // Shell variable substitution (keep blocking)
-    /[;&|]/,      // Shell control characters (command chaining)
-    /\x00/,       // Null byte injection
+    /\x00/,  // Null byte injection
   ];
 
   for (const pattern of dangerousPatterns) {

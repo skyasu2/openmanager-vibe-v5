@@ -5,9 +5,14 @@
  */
 
 import { writeFile, mkdir, readFile } from 'fs/promises';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { existsSync } from 'fs';
+import { fileURLToPath } from 'url';
 import type { AIQueryRequest, AIResponse, Conflict } from '../types.js';
+
+// ES Module __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 interface VerificationHistory {
   timestamp: string;
@@ -37,10 +42,11 @@ interface VerificationHistory {
 
 /**
  * Get history directory path
+ * Uses __dirname to ensure correct path regardless of execution context
  */
 function getHistoryDir(): string {
-  // packages/multi-ai-mcp/history/
-  return join(process.cwd(), 'packages', 'multi-ai-mcp', 'history');
+  // src/history/manager.ts → packages/multi-ai-mcp/history/
+  return join(__dirname, '..', '..', 'history');
 }
 
 /**
@@ -103,7 +109,7 @@ export async function recordVerification(
         successRate: 0,
       },
       metadata: {
-        version: '1.1.0',
+        version: '1.8.1',
         environment: process.env.NODE_ENV || 'development',
       },
     };

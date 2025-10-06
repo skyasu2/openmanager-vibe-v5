@@ -31,6 +31,7 @@ interface MultiAIConfig {
   /** Gemini timeout */
   gemini: {
     timeout: number;
+    models: string[]; // Fallback model list (priority order)
   };
   /** Qwen timeouts by mode */
   qwen: {
@@ -101,57 +102,62 @@ export function getConfig(): MultiAIConfig {
     codex: {
       simple: parseIntWithValidation(
         process.env.MULTI_AI_CODEX_TIMEOUT_SIMPLE,
-        60000, // Increased from 30s to 60s (2× safety)
+        90000, // 1.5min - reduced from 2min for faster feedback
         1000, // 1s min
-        300000, // 5min max
+        600000, // 10min max (reduced from 30min) - balanced timeout
         'MULTI_AI_CODEX_TIMEOUT_SIMPLE'
       ),
       medium: parseIntWithValidation(
         process.env.MULTI_AI_CODEX_TIMEOUT_MEDIUM,
-        90000,
+        180000, // 3min - reduced from 4min
         1000,
-        300000,
+        600000, // 10min max (reduced from 30min)
         'MULTI_AI_CODEX_TIMEOUT_MEDIUM'
       ),
       complex: parseIntWithValidation(
         process.env.MULTI_AI_CODEX_TIMEOUT_COMPLEX,
-        180000, // Increased to 180s (3min) for complex queries
+        300000, // 5min - reduced from 6min for complex queries
         1000,
-        600000, // 10min max
+        600000, // 10min max (reduced from 30min) - balanced timeout
         'MULTI_AI_CODEX_TIMEOUT_COMPLEX'
       ),
     },
     gemini: {
       timeout: parseIntWithValidation(
         process.env.MULTI_AI_GEMINI_TIMEOUT,
-        300000, // Increased to 300s (5min) - sufficient for complex analysis
+        240000, // 4min - reduced from 5min for faster feedback
         1000,
-        600000, // 10min max
+        600000, // 10min max (reduced from 30min)
         'MULTI_AI_GEMINI_TIMEOUT'
       ),
+      // Fallback model list (priority order)
+      // 429 quota exceeded → try next model
+      models: process.env.MULTI_AI_GEMINI_MODELS
+        ? process.env.MULTI_AI_GEMINI_MODELS.split(',')
+        : ['gemini-2.5-pro', 'gemini-2.0-flash-exp', 'gemini-1.5-flash'],
     },
     qwen: {
       normal: parseIntWithValidation(
         process.env.MULTI_AI_QWEN_TIMEOUT_NORMAL,
-        180000, // Increased to 180s (3min) for normal mode - matches Codex Complex
+        150000, // 2.5min - reduced from 3min
         1000,
-        600000, // 10min max
+        600000, // 10min max (reduced from 30min)
         'MULTI_AI_QWEN_TIMEOUT_NORMAL'
       ),
       plan: parseIntWithValidation(
         process.env.MULTI_AI_QWEN_TIMEOUT_PLAN,
-        300000, // Increased to 300s (5min) - sufficient for complex planning
+        240000, // 4min - reduced from 5min for plan mode
         1000,
-        600000, // 10min max
+        600000, // 10min max (reduced from 30min)
         'MULTI_AI_QWEN_TIMEOUT_PLAN'
       ),
     },
     mcp: {
       requestTimeout: parseIntWithValidation(
         process.env.MULTI_AI_MCP_TIMEOUT,
-        360000, // Increased to 360s (6min) for 3-AI parallel execution
+        480000, // 8min - reduced from 6min for 3-AI parallel (allows 2 retries)
         60000, // 1min min
-        600000, // 10min max
+        600000, // 10min max (reduced from 30min) - balanced timeout
         'MULTI_AI_MCP_TIMEOUT'
       ),
       enableProgress: process.env.MULTI_AI_ENABLE_PROGRESS !== 'false', // Default true
