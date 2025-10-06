@@ -1,22 +1,19 @@
 /**
  * Multi-AI MCP Server Types
  *
+ * v3.0.0 - Infrastructure layer only
  * OpenManager VIBE Project
  * WSL Environment Optimized
  */
 
+/**
+ * Supported AI providers
+ */
 export type AIProvider = 'codex' | 'gemini' | 'qwen';
 
-export type QueryComplexity = 'simple' | 'medium' | 'complex';
-
-export interface AIQueryRequest {
-  query: string;
-  includeCodex?: boolean;
-  includeGemini?: boolean;
-  includeQwen?: boolean;
-  qwenPlanMode?: boolean;
-}
-
+/**
+ * AI response structure
+ */
 export interface AIResponse {
   provider: AIProvider;
   response: string;
@@ -26,58 +23,23 @@ export interface AIResponse {
   error?: string;
 }
 
-export interface MultiAIResult {
-  query: string;
-  timestamp: string;
-  results: {
-    codex?: AIResponse;
-    gemini?: AIResponse;
-    qwen?: AIResponse;
-  };
-  synthesis: {
-    consensus: string[];
-    conflicts: Conflict[];
-    recommendation: string;
-  };
-  performance: {
-    totalTime: number;
-    successRate: number;
-  };
-}
+/**
+ * Progress notification callback
+ * Used to send progress updates during long-running AI operations
+ */
+export type ProgressCallback = (provider: AIProvider, status: string, elapsed: number) => void;
 
-export interface Conflict {
-  issue: string;
-  codexView?: string;
-  geminiView?: string;
-  qwenView?: string;
-}
+/**
+ * Query complexity levels for adaptive timeout
+ */
+export type QueryComplexity = 'simple' | 'medium' | 'complex';
+
+/**
+ * Timeout configuration for query complexity levels
+ */
 
 export interface TimeoutConfig {
   simple: number;
   medium: number;
   complex: number;
 }
-
-export interface AIClientConfig {
-  name: AIProvider;
-  command: string;
-  timeouts: TimeoutConfig;
-  retryEnabled: boolean;
-  maxRetries: number;
-}
-
-export interface PerformanceStats {
-  provider: AIProvider;
-  totalCalls: number;
-  successCount: number;
-  failureCount: number;
-  avgResponseTime: number;
-  avgTokens: number;
-  timeoutRate: number;
-}
-
-/**
- * Progress notification callback
- * Used to send progress updates during long-running AI operations
- */
-export type ProgressCallback = (provider: AIProvider, status: string, elapsed: number) => void;

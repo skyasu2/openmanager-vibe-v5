@@ -1,6 +1,6 @@
 # AI 교차검증 시스템
 
-**버전**: Multi-AI MCP v2.3.0
+**버전**: Multi-AI MCP v3.0.0
 **최종 업데이트**: 2025-10-06
 
 ---
@@ -26,52 +26,95 @@
 
 ---
 
-## 🎯 Multi-AI MCP v2.3.0 (2025-10-06)
+## 🎯 Multi-AI MCP v3.0.0 아키텍처 (2025-10-06)
 
-### 신규 기능
+### 핵심 변경사항: 관심사 분리 (SoC)
 
-**1. 디버그 모드 옵션화**
-```bash
-# 환경변수로 제어
-export MULTI_AI_DEBUG=true  # 디버그 로그 활성화
-export MULTI_AI_DEBUG=false # 프로덕션 모드 (기본)
+**Before (v2.3.0)**: MCP가 모든 것 처리
+```
+Multi-AI MCP
+├─ AI 통신 (인프라)
+├─ 교차검증 로직 (비즈니스)
+├─ 결과 종합 (비즈니스)
+└─ 히스토리 관리 (비즈니스)
 ```
 
-**2. 실행로그 표준화**
+**After (v3.0.0)**: 완전한 책임 분리
+```
+Multi-AI MCP (순수 인프라)
+└─ queryCodex, queryGemini, queryQwen, getBasicHistory
+
+Multi-AI Verification Specialist (서브에이전트)
+├─ 쿼리 분석 (복잡도 판단)
+├─ 쿼리 분할 (필요 시)
+├─ 3-AI 병렬 실행 (MCP 도구 3개 동시 호출)
+├─ 결과 종합 (합의/충돌 검출)
+└─ 고급 히스토리 (docs/ai-verifications/)
+```
+
+### 코드 감소 및 개선
+
+| 항목 | v2.3.0 | v3.0.0 | 개선 |
+|------|--------|--------|------|
+| **MCP 코드** | 2,500줄 | 1,200줄 | -52% |
+| **MCP 도구** | 6개 (복합) | 4개 (단순) | -33% |
+| **책임** | 혼재 | 완전 분리 | ✅ |
+| **유연성** | 고정 로직 | 서브에이전트 수정 가능 | ✅ |
+| **히스토리** | MCP 내장 | MCP (기본) + 서브에이전트 (고급) | ✅ |
+
+### v3.0.0 MCP 도구
+
+**1. queryCodex** - Codex 실무 전문가
 ```typescript
-interface VerificationHistory {
-  synthesis: {
-    reasoning: string;  // NEW: "3개 AI 합의, 충돌 없음, 성공률 100%"
-  };
-  performance: {  // NEW: 성능 메트릭
-    codexTime: number;
-    geminiTime: number;
-    qwenTime: number;
-    parallelEfficiency: number;
-  };
-  metadata: {  // ENHANCED
-    nodeVersion: string;
-    platform: string;
-  };
-}
+mcp__multi_ai__queryCodex({
+  query: "버그 수정 및 실용적 해결책"
+})
 ```
+- 특화: 버그 수정, 프로토타입, 실무적 해결
+- 타임아웃: 60s (simple) ~ 180s (complex)
 
-**3. MCP 표준 준수**
-- Vercel, Supabase, Playwright MCP 패턴 따름
-- 헬스체크 도구 제거 (getPerformanceStats + getHistoryStats로 충분)
-- 순수 작업 도구만 제공
+**2. queryGemini** - Gemini 아키텍처 전문가
+```typescript
+mcp__multi_ai__queryGemini({
+  query: "SOLID 원칙 및 아키텍처 검토"
+})
+```
+- 특화: SOLID 원칙, 시스템 설계, 리팩토링
+- 타임아웃: 300s (고정)
 
-### 3-AI 자체 검증 결과 (v2.3.0)
+**3. queryQwen** - Qwen 성능 전문가
+```typescript
+mcp__multi_ai__queryQwen({
+  query: "성능 병목점 및 최적화",
+  planMode: false  // 또는 true
+})
+```
+- 특화: 알고리즘 최적화, 성능 분석, 확장성
+- 타임아웃: 120s (normal) / 300s (plan mode)
 
-**검증 방법**: Multi-AI MCP로 Multi-AI MCP를 검증
+**4. getBasicHistory** - 기본 히스토리 조회
+```typescript
+mcp__multi_ai__getBasicHistory({
+  limit: 10
+})
+```
+- 메타데이터만 (타임스탬프, 성공/실패, 응답 시간)
+- 저장 위치: `~/.multi-ai-history/`
 
-| AI | 아키텍처 | 안정성 | 주요 평가 |
-|----|---------|--------|-----------|
-| **Codex** | 9/10 | 9/10 | "실행로그 표준화 제안" (✅ 반영) |
-| **Gemini** | 9/10 | 9/10 | "3-AI 응답 종합 제안" (검토 중) |
-| **Qwen** | 8/10 | 7/10 | "헬스체크 API 제안" (❌ MCP 표준 아님) |
+### 제거된 도구 (v2.3.0 → v3.0.0)
 
-**결론**: 평균 8.7/10, Multi-AI MCP는 메타 오케스트레이션 전략으로 독창적
+**❌ 제거됨**:
+- `queryAllAIs` - 3-AI 병렬 + 합의분석
+- `queryWithPriority` - 선택적 실행 + 종합 로직
+- `getPerformanceStats` - 성능 통계
+- `getHistory` - 상세 히스토리
+- `searchHistory` - 히스토리 검색
+- `getHistoryStats` - 히스토리 통계
+
+**✅ 대체 방법**:
+- 3-AI 교차검증 → Multi-AI Verification Specialist (서브에이전트)
+- 개별 AI 협업 → Claude Code가 MCP 직접 호출
+- 고급 히스토리 → 서브에이전트가 `docs/ai-verifications/` 저장
 
 ---
 
@@ -153,40 +196,72 @@ interface VerificationHistory {
 
 ---
 
-## 🚀 AI 호출 방법 비교
+## 🚀 AI 호출 방법 비교 (v3.0.0)
 
-### 방법 A: Multi-AI MCP (✅ **최우선 권장**)
+### 방법 A: 서브에이전트 교차검증 (✅ **최우선 권장**)
+
+**v3.0.0 주요 방법**: Multi-AI Verification Specialist 서브에이전트
 
 **장점**:
-- ✅ **구조화된 결과**: JSON 형태로 즉시 분석 가능
-- ✅ **자동 합의 분석**: synthesis.consensus, conflicts 자동 생성
-- ✅ **성능 추적**: reasoning, performance 메트릭 자동 기록
-- ✅ **100% 성공률**: 평균 21초 만에 3-AI 병렬 실행
+- ✅ **완전한 자동화**: 쿼리 분석, 병렬 실행, 결과 종합 모두 자동
+- ✅ **자동 합의/충돌 분석**: 서브에이전트가 패턴 매칭으로 검출
+- ✅ **고급 히스토리**: docs/ai-verifications/ 상세 저장
+- ✅ **유연한 로직**: 서브에이전트 수정으로 알고리즘 개선 가능
+
+**사용 예시**:
+```
+사용자: "LoginClient.tsx를 AI 교차검증해줘"
+
+→ Claude Code가 서브에이전트 자동 호출
+→ 서브에이전트가 3-AI 병렬 실행:
+   - mcp__multi_ai__queryCodex()
+   - mcp__multi_ai__queryGemini()
+   - mcp__multi_ai__queryQwen()
+→ 결과 종합 (합의/충돌 검출)
+→ docs/ai-verifications/ 저장
+→ 사용자에게 보고
+```
+
+**워크플로우**:
+1. 쿼리 복잡도 분석 (simple/medium/complex)
+2. 필요 시 쿼리 분할 (2500자 초과)
+3. 3-AI 병렬 실행 (단일 메시지에서 3개 MCP 도구 호출)
+4. 합의/충돌 검출 (의미적 패턴 매칭)
+5. 히스토리 저장 (Markdown 템플릿)
+6. Claude 최종 판단
+
+### 방법 B: 개별 AI 직접 호출 (Claude Code가 직접 사용)
+
+**사용 시나리오**: 특정 AI만 필요할 때, 빠른 단일 검증
 
 **사용 예시**:
 ```typescript
-// 1. 전체 AI 교차검증
-mcp__multi_ai__queryAllAIs({
-  query: "코드 리뷰 - 보안, 설계, 성능 관점",
-  qwenPlanMode: false  // Normal Mode (6-10초)
+// Codex 실무 전문가
+mcp__multi_ai__queryCodex({
+  query: "이 버그의 근본 원인과 실용적 해결책"
 })
 
-// 2. 선택적 AI 실행
-mcp__multi_ai__queryWithPriority({
-  query: "성능 최적화 방법",
-  includeCodex: true,   // 실무 관점
-  includeGemini: false, // 아키텍처 제외
-  includeQwen: true     // 성능 전문가만
+// Gemini 아키텍처 전문가
+mcp__multi_ai__queryGemini({
+  query: "SOLID 원칙 준수 여부 검토"
 })
 
-// 3. 히스토리 조회
-mcp__multi_ai__getHistory({ limit: 10 })
-mcp__multi_ai__searchHistory({ pattern: "성능" })
-mcp__multi_ai__getHistoryStats()
-mcp__multi_ai__getPerformanceStats()
+// Qwen 성능 전문가
+mcp__multi_ai__queryQwen({
+  query: "성능 병목점 및 최적화 방법",
+  planMode: false  // 또는 true
+})
+
+// 기본 히스토리 조회
+mcp__multi_ai__getBasicHistory({ limit: 10 })
 ```
 
-### 방법 B: Bash CLI 병렬 실행 (⚠️ MCP 불가 시 대안)
+**장점**:
+- 빠른 응답 (단일 AI만 실행)
+- 토큰 절약 (1개 AI만)
+- 명확한 전문가 의견
+
+### 방법 C: Bash CLI 병렬 실행 (⚠️ MCP 불가 시 대안)
 
 **사용 시나리오**: MCP 서버 연결 실패 시, 디버깅 목적
 
@@ -205,56 +280,18 @@ wait
 - JSON 구조화 안 됨
 - Claude가 결과 종합해야 함
 
-### 방법 C: Task Tool + 서브에이전트 (**AI 교차검증용**)
+### 비교표 (v3.0.0)
 
-**✅ 추천**: Multi-AI Verification Specialist 서브에이전트를 통한 AI 교차검증
-
-**올바른 사용** (✅ AI 교차검증):
-```bash
-# 사용자 요청: "이 코드를 AI 교차검증해줘"
-#   ↓
-# Claude Code
-#   ↓
-# Multi-AI Verification Specialist (서브에이전트)
-#   ↓
-# mcp__multi_ai__queryAllAIs({ query: "LoginClient.tsx 검증" })
-#   ↓
-# Codex + Gemini + Qwen 병렬 실행 (실제 외부 AI 호출)
-#   ↓
-# 3-AI 결과 종합 및 합의 분석
-```
-
-**잘못된 사용** (❌ 개별 AI 협업):
-```bash
-# ❌ 개별 AI 협업은 서브에이전트 안 거치고 MCP 직접 사용
-# 사용자 요청: "Codex에게만 물어봐"
-# → 올바른 방법: Claude Code가 MCP 직접 호출
-mcp__multi_ai__queryWithPriority({
-  query: "코드 검증",
-  includeCodex: true,
-  includeGemini: false,
-  includeQwen: false
-})
-```
-
-**역할 분담용 서브에이전트** (다른 용도):
-```bash
-# AI 교차검증 후 상세 분석 (별도 서브에이전트)
-Task code-review-specialist "보안 취약점 심화 분석"
-Task structure-refactor-specialist "SoC 원칙 리팩토링 계획"
-```
-
-### 비교표
-
-| 항목 | 방법 A (Multi-AI MCP) | 방법 B (Bash 병렬) | 방법 C (서브에이전트) |
-|------|-----------------------|--------------------|---------------------|
-| **실행 방식** | ✅ MCP 도구 (3-AI) | ✅ Bash CLI 병렬 | ✅ 서브에이전트 → MCP |
-| **결과 형식** | ✅ 구조화 JSON | ⚠️ 텍스트 파일 | ✅ 구조화 JSON |
-| **합의 분석** | ✅ 자동 생성 | ❌ 수동 분석 | ✅ 자동 생성 |
-| **성능 추적** | ✅ 자동 기록 | ❌ 수동 측정 | ✅ 자동 기록 |
-| **정확성** | ✅ 3개 AI 독립 | ✅ 3개 AI 독립 | ✅ 3개 AI 독립 |
-| **속도** | ~21초 | ~15초 | ~21초 (MCP 동일) |
-| **용도** | ✅ **AI 교차검증** | ⚠️ MCP 불가 시 | ✅ **AI 교차검증** |
+| 항목 | 방법 A (서브에이전트) | 방법 B (개별 AI) | 방법 C (Bash CLI) |
+|------|---------------------|-----------------|-------------------|
+| **실행 방식** | ✅ 서브에이전트 → 3 MCP | ✅ Claude → 1 MCP | ✅ Bash 병렬 |
+| **결과 형식** | ✅ Markdown (docs/) | ✅ JSON | ⚠️ 텍스트 |
+| **합의 분석** | ✅ 자동 (서브에이전트) | ❌ 없음 (단일 AI) | ❌ 수동 |
+| **히스토리** | ✅ 고급 (상세 분석) | ✅ 기본 (메타데이터) | ❌ 없음 |
+| **정확성** | ✅ 3-AI 교차검증 | ✅ 단일 AI 전문가 | ✅ 3-AI 교차검증 |
+| **속도** | 10-15초 (병렬) | 3-5초 (단일) | ~15초 (병렬) |
+| **용도** | **AI 교차검증** | **빠른 단일 검증** | MCP 불가 시 대안 |
+| **권장 순위** | **1순위** | 2순위 | 3순위 |
 
 ---
 

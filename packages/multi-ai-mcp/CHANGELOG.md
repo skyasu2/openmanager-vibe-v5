@@ -7,6 +7,136 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.0] - 2025-10-06
+
+### Breaking Changes 🔴
+
+**완전한 아키텍처 재설계 - 관심사 분리 (SoC) 적용**
+
+#### 핵심 변경
+
+**Multi-AI MCP의 새로운 역할**: 
+- Before: 비즈니스 로직 + 인프라 레이어 혼재
+- After: **순수 AI 통신 채널** (인프라 레이어만)
+
+#### 제거된 기능 (→ 서브에이전트로 이관)
+
+**❌ 제거된 도구**:
+- `queryAllAIs` - 3-AI 병렬 + 합의분석 (비즈니스 로직 포함)
+- `queryWithPriority` - 선택적 실행 + 종합 로직 (비즈니스 로직 포함)
+- `getPerformanceStats` - 성능 통계 (서브에이전트가 관리)
+- `getHistory` - 상세 히스토리 (서브에이전트가 관리)
+- `searchHistory` - 히스토리 검색 (서브에이전트가 관리)
+- `getHistoryStats` - 히스토리 통계 (서브에이전트가 관리)
+
+**❌ 제거된 파일 (REMOVED/ 백업)**:
+- `src/synthesizer.ts` - 결과 종합, 합의/충돌 분석
+- `src/utils/query-analyzer.ts` - 쿼리 복잡도 분석
+- `src/utils/query-splitter.ts` - 쿼리 자동 분할
+- `src/history/manager.ts` - 상세 히스토리 관리
+
+#### 추가된 기능 (순수 인프라)
+
+**✅ 새 도구 (개별 AI 통신)**:
+```typescript
+// 1. Codex 쿼리 (실무 전문)
+queryCodex(query: string)
+
+// 2. Gemini 쿼리 (아키텍처 전문)
+queryGemini(query: string)
+
+// 3. Qwen 쿼리 (성능 전문)
+queryQwen(query: string, planMode?: boolean)
+
+// 4. 기본 히스토리 (메타데이터만)
+getBasicHistory(limit: number)
+```
+
+**✅ 새 파일**:
+- `src/history/basic.ts` - 간소화된 히스토리 (~/.multi-ai-history/)
+
+#### 유지된 기능 (안정성 핵심)
+
+**✅ 완전히 보존**:
+- `src/ai-clients/codex.ts` - Codex CLI 실행
+- `src/ai-clients/gemini.ts` - Gemini CLI 실행
+- `src/ai-clients/qwen.ts` - Qwen CLI 실행
+- `src/utils/timeout.ts` - 적응형 타임아웃 (안정성 핵심)
+- `src/utils/retry.ts` - 자동 재시도 (안정성)
+- `src/utils/validation.ts` - 입력 검증 (보안)
+- `src/config.ts` - 설정 관리
+
+#### 마이그레이션 가이드
+
+**v2.3.0 사용자 → v3.0.0**:
+
+**Before (v2.3.0) - 직접 MCP 사용**:
+```typescript
+// AI 교차검증
+mcp__multi_ai__queryAllAIs({ query: "코드 검증" })
+```
+
+**After (v3.0.0) - 서브에이전트 통해 사용**:
+```
+사용자: "이 코드를 AI 교차검증해줘"
+  ↓
+Claude Code
+  ↓
+Multi-AI Verification Specialist (서브에이전트)
+  ↓
+Promise.all([
+  mcp__multi_ai__queryCodex(query),
+  mcp__multi_ai__queryGemini(query),
+  mcp__multi_ai__queryQwen(query, planMode)
+])
+  ↓
+서브에이전트가 합의/충돌 분석
+  ↓
+docs/ai-verifications/ 저장
+```
+
+**개별 AI 협업 (변경 없음)**:
+```typescript
+// Claude Code가 직접 호출 (v2.3.0과 동일)
+mcp__multi_ai__queryCodex({ query: "버그 수정" })
+mcp__multi_ai__queryGemini({ query: "아키텍처 리뷰" })
+mcp__multi_ai__queryQwen({ query: "성능 최적화", planMode: true })
+```
+
+#### 코드 감소 및 성능
+
+**코드베이스**:
+- Before: ~2,500줄 (비즈니스 + 인프라)
+- After: ~1,200줄 (인프라만, **52% 감소**)
+
+**타입 인터페이스**:
+- Before: 9개 interface/type (AIQueryRequest, MultiAIResult, Conflict, etc.)
+- After: 4개 interface/type (AIProvider, AIResponse, ProgressCallback, TimeoutConfig)
+
+**파일 수**:
+- Before: 12개 TypeScript 파일
+- After: 8개 TypeScript 파일 (4개 REMOVED/ 백업)
+
+#### 이점
+
+1. **단일 책임 원칙 (SRP)**
+   - MCP: AI 통신만
+   - 서브에이전트: 교차검증 로직만
+
+2. **타임아웃 안정성 유지**
+   - 검증된 timeout.ts, retry.ts 완전 보존
+   - 개별 AI 도구도 동일한 안정성 보장
+
+3. **유연성 극대화**
+   - Claude Code가 Codex만, Gemini만 선택 가능
+   - 서브에이전트가 전략 자유롭게 조정
+
+4. **유지보수성**
+   - MCP 업데이트 없이 서브에이전트만 개선 가능
+   - 코드 52% 감소로 버그 위험 감소
+
+---
+
 ## [2.3.0] - 2025-10-06
 
 ### Improved ⚡

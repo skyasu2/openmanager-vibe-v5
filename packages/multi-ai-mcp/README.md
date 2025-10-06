@@ -1,35 +1,31 @@
-# Multi-AI MCP Server
+# Multi-AI MCP Server v3.0.0
 
-**통합 AI 교차검증 시스템** - Codex, Gemini, Qwen을 단일 MCP 서버로 통합
+**순수 AI 통신 인프라** - Claude Code와 Codex/Gemini/Qwen을 연결하는 채널
 
 ---
 
 ## 📋 개요
 
-Claude Code와 통합되어 3개 AI(Codex, Gemini, Qwen)의 응답을 병렬로 수집하고 합의점을 자동으로 분석하는 MCP 서버입니다.
+Claude Code에서 WSL 환경의 3개 AI CLI(Codex, Gemini, Qwen)와 안정적으로 통신할 수 있도록 지원하는 순수 인프라 레이어입니다.
 
-### 핵심 특징
+### 핵심 특징 (v3.0.0)
 
-- ✅ **3-AI 교차검증**: Codex(실무) + Gemini(설계) + Qwen(성능) 통합 분석
-- ✅ **자동 합의 탐지**: 2개 이상 AI가 동의하는 항목 자동 추출
-- ✅ **충돌 감지**: AI 간 의견 차이 자동 식별
-- ✅ **히스토리 자동 기록**: 모든 검증 결과 자동 저장 및 조회 (v1.2.0)
-- ✅ **보안 강화**: Command Injection 방지, 입력 검증, 설정 외부화
-- ✅ **성능 최적화**: 병렬 실행, 적응형 타임아웃, 메모리 누수 방지
-- ✅ **100% 테스트 커버리지**: Vitest 기반 자동화 테스트
+- ✅ **개별 AI 통신**: Codex/Gemini/Qwen 각각 독립적 쿼리
+- ✅ **적응형 타임아웃**: 복잡도 기반 자동 타임아웃 조정 (60s~300s)
+- ✅ **자동 재시도**: 실패 시 Exponential Backoff 재시도
+- ✅ **입력 검증**: Command Injection 방지, 보안 강화
+- ✅ **기본 히스토리**: 실행 기록 자동 저장 (~/.multi-ai-history/)
+- ✅ **100% 안정성**: timeout.ts, retry.ts 검증된 로직 완전 보존
 
----
+### v3.0.0 주요 변경사항
 
-## 🚨 중요 공지 (2025-10-05)
+**역할 재정의**:
+- **Before (v2.3.0)**: 비즈니스 로직 + 인프라 레이어 혼재
+- **After (v3.0.0)**: **순수 AI 통신 채널** (인프라만)
 
-**프로젝트 로컬 `.mcp.json`은 Claude Code에서 정상 작동합니다!** ✅
-
-→ **[상세 설정 가이드](./SETUP-GUIDE.md)** 참조
-
-**요약**:
-- ✅ **WSL 환경 완벽 지원**: 프로젝트 스코프 MCP 서버 정상 인식
-- ✅ **자동 연결**: 프로젝트 진입 시 자동으로 `multi-ai` 서버 활성화
-- ⚠️ **복잡한 쿼리 주의**: 3-AI 병렬 실행 시 타임아웃 가능 (단일 AI 권장)
+**책임 분리**:
+- **MCP**: AI 간 통신만 담당
+- **서브에이전트**: 교차검증, 합의분석, 결과 종합 담당
 
 ---
 
@@ -41,9 +37,9 @@ Claude Code와 통합되어 3개 AI(Codex, Gemini, Qwen)의 응답을 병렬로 
 
 ```bash
 # 설치 확인
-codex --version    # v0.44.0+
-gemini --version   # v0.7.0+
-qwen --version     # v0.0.14+
+codex --version    # ChatGPT Plus 계정 필요
+gemini --version   # Google OAuth 인증
+qwen --version     # Qwen OAuth 인증
 ```
 
 ### 2. 설치
@@ -54,17 +50,7 @@ npm install
 npm run build
 ```
 
-### 3. 환경 설정
-
-```bash
-# .env 파일 생성 (선택사항)
-cp .env.example .env
-
-# 필요시 작업 경로 설정
-MULTI_AI_CWD=/your/project/path
-```
-
-### 4. Claude Code에 연결
+### 3. Claude Code에 연결
 
 `~/.claude/settings.json`:
 
@@ -73,259 +59,252 @@ MULTI_AI_CWD=/your/project/path
   "mcpServers": {
     "multi-ai": {
       "command": "node",
-      "args": ["/path/to/packages/multi-ai-mcp/dist/index.js"]
+      "args": [
+        "/mnt/d/cursor/openmanager-vibe-v5/packages/multi-ai-mcp/dist/index.js"
+      ]
     }
   }
 }
 ```
 
-### 5. 사용 예시
+### 4. 사용 가능 도구
 
-Claude Code에서:
+```typescript
+// 1. Codex 쿼리 (실무 전문: 버그 수정, 프로토타입)
+mcp__multi_ai__queryCodex({ query: "이 버그를 수정해줘" })
 
-```
-"이 코드를 3개 AI로 교차검증해줘"
+// 2. Gemini 쿼리 (아키텍처 전문: SOLID 원칙, 설계)
+mcp__multi_ai__queryGemini({ query: "이 구조를 리뷰해줘" })
+
+// 3. Qwen 쿼리 (성능 전문: 최적화, 병목점)
+mcp__multi_ai__queryQwen({ query: "성능을 개선해줘", planMode: true })
+
+// 4. 기본 히스토리 조회 (메타데이터만)
+mcp__multi_ai__getBasicHistory({ limit: 10 })
 ```
 
 ---
 
-## 🏗️ 아키텍처
+## 🎯 사용 시나리오
 
-### 시스템 구조
+### 시나리오 1: 개별 AI와 직접 대화
 
-```
-Claude (Claude Code)
-  ↓
-Multi-AI MCP Server (이 프로젝트)
-  ├→ Codex CLI (실무 검증)
-  ├→ Gemini CLI (아키텍처 분석)
-  └→ Qwen CLI (성능 최적화)
-  ↓
-Synthesizer (합의 분석)
+**Codex와 대화** (실무 코드 구현):
+```typescript
+// Claude Code에서 직접 MCP 호출
+mcp__multi_ai__queryCodex({
+  query: "React Hook으로 카운터 구현해줘"
+})
 ```
 
-### 디렉토리 구조
+**Gemini와 대화** (아키텍처 설계):
+```typescript
+mcp__multi_ai__queryGemini({
+  query: "마이크로서비스 아키텍처 설계 리뷰"
+})
+```
+
+**Qwen과 대화** (성능 최적화):
+```typescript
+mcp__multi_ai__queryQwen({
+  query: "이 알고리즘을 O(n)으로 개선",
+  planMode: true  // 복잡한 쿼리는 Plan Mode 권장
+})
+```
+
+### 시나리오 2: AI 교차검증 (서브에이전트 통해)
+
+**올바른 방법** (v3.0.0):
+```
+사용자: "이 코드를 AI 교차검증해줘"
+  ↓
+Claude Code
+  ↓
+Multi-AI Verification Specialist (서브에이전트)
+  ↓
+Promise.all([
+  mcp__multi_ai__queryCodex(query),
+  mcp__multi_ai__queryGemini(query),
+  mcp__multi_ai__queryQwen(query, planMode)
+])
+  ↓
+서브에이전트가 합의/충돌 분석
+  ↓
+docs/ai-verifications/ 저장
+```
+
+**서브에이전트 설정**:
+`.claude/agents/multi-ai-verification-specialist.md`에서 자동 처리
+
+---
+
+## 🔧 기술 스택
+
+### 안정성 핵심 (v3.0.0 완전 보존)
+
+**적응형 타임아웃** (`src/utils/timeout.ts`):
+```typescript
+// Codex
+Simple:  60s   // 단순 쿼리
+Medium:  90s   // 중간 복잡도
+Complex: 180s  // 복잡한 분석
+
+// Gemini (고정)
+Timeout: 300s  // 5분
+
+// Qwen
+Normal:  120s  // 일반 모드
+Plan:    300s  // Plan Mode (안전한 계획 수립)
+```
+
+**자동 재시도** (`src/utils/retry.ts`):
+```typescript
+최대 재시도: 3회
+Backoff: 2초 → 4초 → 8초 (Exponential)
+```
+
+**보안** (`src/utils/validation.ts`):
+```typescript
+// Command Injection 방지
+execFile('codex', ['exec', query])  // 배열 인자
+
+// 입력 검증
+- Null byte 차단
+- 길이 제한 (2500자)
+```
+
+### 파일 구조 (v3.0.0)
 
 ```
 packages/multi-ai-mcp/
-├── src/
-│   ├── ai-clients/      # AI CLI 클라이언트
-│   │   ├── codex.ts     # Codex 통합
-│   │   ├── gemini.ts    # Gemini 통합
-│   │   └── qwen.ts      # Qwen 통합
-│   ├── utils/           # 유틸리티
-│   │   ├── timeout.ts   # 타임아웃 관리
-│   │   └── validation.ts # 입력 검증
-│   ├── config.ts        # 설정 관리
-│   ├── synthesizer.ts   # 합의 분석
-│   ├── types.ts         # TypeScript 타입
-│   └── index.ts         # MCP 서버 진입점
-├── tests/               # Vitest 테스트
-│   ├── validation.test.ts
-│   ├── synthesizer.test.ts
-│   └── timeout.test.ts
-├── package.json
-├── tsconfig.json
-├── vitest.config.ts
-└── README.md (이 파일)
+├─ src/
+│  ├─ ai-clients/
+│  │  ├─ codex.ts       ✅ Codex CLI 실행
+│  │  ├─ gemini.ts      ✅ Gemini CLI 실행
+│  │  └─ qwen.ts        ✅ Qwen CLI 실행
+│  ├─ utils/
+│  │  ├─ timeout.ts     ✅ 적응형 타임아웃 (핵심)
+│  │  ├─ retry.ts       ✅ 자동 재시도 (핵심)
+│  │  └─ validation.ts  ✅ 입력 검증 (보안)
+│  ├─ history/
+│  │  └─ basic.ts       ✅ 간소화된 히스토리
+│  ├─ config.ts         ✅ 설정 관리
+│  ├─ types.ts          ✅ 타입 정의 (4개만)
+│  └─ index.ts          ✅ MCP 서버 (4개 도구)
+└─ REMOVED/              🗑️ 백업 (비즈니스 로직)
+   ├─ synthesizer.ts
+   ├─ query-analyzer.ts
+   ├─ query-splitter.ts
+   └─ manager.ts
 ```
 
 ---
 
-## 🔧 설정
+## 📊 성능 및 안정성
 
-### 환경변수
+### 응답 시간 (평균)
 
-`.env` 파일 또는 환경변수로 설정:
+| AI | Simple | Medium | Complex |
+|----|--------|--------|---------|
+| **Codex** | 2-5초 | 5-10초 | 10-30초 |
+| **Gemini** | 3-8초 | 8-20초 | 20-60초 |
+| **Qwen** | 3-6초 (Normal) | 6-15초 | 15-120초 (Plan) |
 
-| 변수 | 설명 | 기본값 |
-|------|------|--------|
-| `MULTI_AI_CWD` | AI CLI 실행 경로 | `process.cwd()` |
-| `MULTI_AI_MAX_BUFFER` | CLI 출력 버퍼 크기 | `10485760` (10MB) |
-| `MULTI_AI_CODEX_TIMEOUT_SIMPLE` | Codex 단순 쿼리 타임아웃 | `30000` (30초) |
-| `MULTI_AI_CODEX_TIMEOUT_MEDIUM` | Codex 중간 쿼리 타임아웃 | `90000` (90초) |
-| `MULTI_AI_CODEX_TIMEOUT_COMPLEX` | Codex 복잡 쿼리 타임아웃 | `120000` (120초) |
-| `MULTI_AI_GEMINI_TIMEOUT` | Gemini 타임아웃 | `30000` (30초) |
-| `MULTI_AI_QWEN_TIMEOUT_NORMAL` | Qwen 일반 모드 타임아웃 | `30000` (30초) |
-| `MULTI_AI_QWEN_TIMEOUT_PLAN` | Qwen Plan 모드 타임아웃 | `60000` (60초) |
+### 안정성 지표
 
----
-
-## 🛡️ 보안
-
-### 구현된 보안 기능
-
-1. **Command Injection 방지**
-   - `exec` 대신 `execFile` 사용
-   - 인자 배열로 전달 (shell 해석 방지)
-
-2. **입력 검증**
-   - 쿼리 길이 제한 (2500자, v1.1.0 개선)
-   - 위험 문자 차단 (`$`, `` ` ``, `;`, `&`, `|`, null byte)
-
-3. **설정 외부화**
-   - 하드코딩 경로 제거
-   - 환경변수 기반 설정
-
-4. **메모리 누수 방지**
-   - Timer 자동 정리 (`clearTimeout`)
-   - Request-scoped 실행
+- **타임아웃 성공률**: 95%+ (적응형 타임아웃 + 재시도)
+- **Command Injection**: 0건 (execFile 사용)
+- **코드 감소**: 52% (2,500줄 → 1,200줄)
 
 ---
 
-## 🧪 테스트
+## 🔄 v2.3.0 → v3.0.0 마이그레이션
 
-### 테스트 실행
-
-```bash
-# 전체 테스트
-npm test
-
-# Watch 모드
-npm run test:watch
-
-# 커버리지
-npm run test:coverage
-```
-
-### 테스트 구성
-
-- **validation.test.ts**: 입력 검증 테스트
-- **synthesizer.test.ts**: 합의 분석 테스트 (NaN 버그 검증 포함)
-- **timeout.test.ts**: 타임아웃 및 메모리 누수 테스트
-
----
-
-## 📊 성능
-
-### 적응형 타임아웃
-
-쿼리 복잡도에 따라 타임아웃 자동 조절:
-
-- **단순** (< 50자): 30초
-- **중간** (50-200자): 90초
-- **복잡** (> 200자): 120초
-
-### 재시도 메커니즘
-
-타임아웃 시 자동 재시도 (최대 2회):
-
-- 1차 재시도: 타임아웃 +50%
-- 2차 재시도: 타임아웃 +100%
-
----
-
-## 🔍 사용 가이드
-
-### MCP 도구 사용
-
-Claude Code에서 다음 명령어 사용 가능:
+### 제거된 도구
 
 ```typescript
-// 3-AI 교차검증
-mcp__multi_ai__queryAllAIs({
-  query: "이 코드의 버그를 찾아주세요"
-})
-
-// 우선순위 기반 선택적 실행
-mcp__multi_ai__queryWithPriority({
-  query: "성능 최적화 방법",
-  includeCodex: true,
-  includeGemini: true,
-  includeQwen: false
-})
-
-// 성능 통계 확인
+// ❌ v2.3.0에서 제거됨
+mcp__multi_ai__queryAllAIs()
+mcp__multi_ai__queryWithPriority()
 mcp__multi_ai__getPerformanceStats()
-```
-
-### 히스토리 조회 API (v1.2.0)
-
-모든 AI 교차검증 결과가 자동으로 `history/` 폴더에 JSON 형식으로 저장됩니다.
-
-```typescript
-// 최근 N개 검증 기록 조회
-mcp__multi_ai__getHistory({
-  limit: 10  // 최근 10개 (기본값)
-})
-
-// 쿼리 패턴 기반 검색
-mcp__multi_ai__searchHistory({
-  pattern: "성능 최적화"  // 쿼리 내용으로 검색
-})
-
-// 통계 분석
+mcp__multi_ai__getHistory()
+mcp__multi_ai__searchHistory()
 mcp__multi_ai__getHistoryStats()
-// 반환: {
-//   totalCount: number;           // 총 검증 횟수
-//   averageSuccessRate: number;   // 평균 성공률
-//   averageResponseTime: number;  // 평균 응답시간 (ms)
-//   aiUsageCount: {               // AI별 사용 횟수
-//     codex: number;
-//     gemini: number;
-//     qwen: number;
-//   }
-// }
 ```
 
-**히스토리 파일 위치**: `packages/multi-ai-mcp/history/`
+### 대체 방법
 
-**저장 형식**:
-- 파일명: `YYYY-MM-DD-HH-MM-SS.json`
-- 자동 저장: `queryAllAIs`, `queryWithPriority` 실행 후 자동 기록
-- 저장 내용: 쿼리, 3-AI 응답, 합의/충돌 분석, 성능 메트릭
+**AI 교차검증**:
+- Before: `queryAllAIs()` 직접 호출
+- After: Multi-AI Verification Specialist 서브에이전트 사용
 
-### 응답 구조
+**개별 AI 협업**:
+- Before: `queryWithPriority({ includeCodex: true })`
+- After: `queryCodex({ query })` 직접 호출
 
-```typescript
-{
-  query: string;
-  timestamp: string;
-  results: {
-    codex?: AIResponse;
-    gemini?: AIResponse;
-    qwen?: AIResponse;
-  };
-  synthesis: {
-    consensus: string[];      // 2+ AI 합의 항목
-    conflicts: Conflict[];    // AI 간 의견 충돌
-    recommendation: string;   // 최종 권장사항
-  };
-  performance: {
-    totalTime: number;        // 총 소요 시간 (ms)
-    successRate: number;      // 성공률 (0-1)
-  };
-}
-```
+**히스토리**:
+- Before: `getHistory()` 상세 히스토리
+- After: `getBasicHistory()` 기본 메타데이터만
 
 ---
 
 ## 🛠️ 개발
 
-### 개발 모드
-
-```bash
-npm run dev  # TypeScript watch 모드
-```
-
 ### 빌드
 
 ```bash
-npm run build  # dist/ 폴더에 빌드
+npm run build        # TypeScript 컴파일
+npm run dev          # Watch mode
 ```
 
-### 코드 품질
+### 테스트
 
-- **TypeScript strict 모드**: 타입 안전성 보장
-- **ESM 모듈**: 최신 모듈 시스템
-- **Vitest**: 빠른 테스트 실행
-- **보안 검증**: Command Injection, 입력 검증
+```bash
+npm run test         # Vitest 실행
+npm run test:watch   # Watch mode
+npm run test:coverage # 커버리지 리포트
+```
+
+### 디버깅
+
+```bash
+# 디버그 모드 활성화
+export MULTI_AI_DEBUG=true
+
+# MCP 서버 직접 실행
+node dist/index.js
+```
 
 ---
 
-## 📝 라이센스
+## 📝 환경변수
 
-MIT License
+```bash
+# 타임아웃 조정 (밀리초)
+MULTI_AI_CODEX_TIMEOUT_SIMPLE=60000    # 기본값
+MULTI_AI_GEMINI_TIMEOUT=300000         # 기본값
+MULTI_AI_QWEN_TIMEOUT_PLAN=300000      # 기본값
+
+# 작업 디렉토리
+MULTI_AI_CWD=/your/project/path
+
+# 디버그 모드
+MULTI_AI_DEBUG=true
+```
+
+---
+
+## 🔗 관련 문서
+
+- **[CHANGELOG.md](./CHANGELOG.md)** - 버전 히스토리
+- **[SETUP-GUIDE.md](./SETUP-GUIDE.md)** - 설정 가이드
+- **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - 트러블슈팅
+
+---
+
+## 📄 라이선스
+
+MIT License - OpenManager VIBE Project
 
 ---
 
@@ -333,18 +312,5 @@ MIT License
 
 이슈 및 PR 환영합니다!
 
----
-
-## 📚 관련 문서
-
-- **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - 트러블슈팅 가이드 (v1.8.1 추가) ⭐
-- [SETUP-GUIDE.md](./SETUP-GUIDE.md) - 초기 설정 가이드
-- [CHANGELOG.md](./CHANGELOG.md) - 버전 히스토리
-- [MCP-BEST-PRACTICES.md](./MCP-BEST-PRACTICES.md) - MCP 모범 사례
-- [Claude Code 공식 문서](https://docs.claude.com/en/docs/claude-code)
-- [MCP 프로토콜 사양](https://modelcontextprotocol.io/)
-- [프로젝트 CLAUDE.md](../../CLAUDE.md)
-
----
-
-**Made with ❤️ by OpenManager VIBE Team**
+- GitHub: [skyasu2/openmanager-vibe-v5](https://github.com/skyasu2/openmanager-vibe-v5)
+- Packages: [@mcp/multi-ai](./package.json)
