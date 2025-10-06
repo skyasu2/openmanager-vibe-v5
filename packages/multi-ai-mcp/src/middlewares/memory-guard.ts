@@ -30,23 +30,24 @@ import { checkMemoryBeforeQuery, logMemoryUsage } from '../utils/memory.js';
  * ```
  */
 export async function withMemoryGuard<T>(provider: string, operation: () => Promise<T>): Promise<T> {
-  // Pre-check: Reject query if memory is critical (>=90%)
-  // Throws error with recommendation to wait 10-30 seconds
-  checkMemoryBeforeQuery(provider);
-
   try {
+    // Pre-check: Reject query if memory is critical (>=90%)
+    // Throws error with recommendation to wait 10-30 seconds
+    try {
+      checkMemoryBeforeQuery(provider);
+    } catch (error) {
+      // Log memory state when pre-check fails (diagnostic info)
+      logMemoryUsage(`Pre-check failed ${provider}`);
+      throw error;
+    }
+
     // Execute operation
     const result = await operation();
 
-    // Post-log: Success
-    logMemoryUsage(`Post-query ${provider}`);
-
     return result;
-  } catch (error) {
-    // Post-log: Failure (helps diagnose OOM)
-    logMemoryUsage(`Post-query ${provider} (failed)`);
-
-    // Re-throw original error
-    throw error;
+  } finally {
+    // Post-log: Always log memory usage (success or failure)
+    // Provides baseline for analysis regardless of outcome
+    logMemoryUsage(`Post-query ${provider}`);
   }
 }
