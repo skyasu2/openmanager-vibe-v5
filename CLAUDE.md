@@ -176,39 +176,55 @@ claude mcp list
 
 ## 📚 상세 문서 (Import)
 
-**필요 시 참조** (매번 로드 안 됨 - 토큰 절약):
+### ⚡ 자동 로딩 (핵심 워크플로우)
+- @docs/claude/environment/mcp/mcp-priority-guide.md - MCP 도구 우선순위 의사결정
+- @docs/claude/environment/multi-ai-strategy.md - 3-AI 협업 시스템
 
-### 아키텍처
-- @docs/claude/architecture/system-overview.md
-- @docs/claude/architecture/ai-cross-verification.md
+### 📖 수동 참조 (필요시만)
 
-### 개발 환경
-- @docs/claude/environment/wsl-optimization.md
-- @docs/claude/environment/ai-tools-setup.md
-- @docs/claude/environment/multi-ai-strategy.md
-- @docs/claude/environment/workflows.md
-- @docs/claude/environment/mcp/mcp-configuration.md
-- @docs/claude/environment/mcp/mcp-priority-guide.md ⭐
+**아키텍처**:
+- docs/claude/architecture/system-overview.md
+- docs/claude/architecture/ai-cross-verification.md
 
-### 코딩 표준
-- @docs/claude/standards/typescript-rules.md
-- @docs/claude/standards/commit-conventions.md
-- @docs/claude/standards/git-hooks-best-practices.md
+**개발 환경**:
+- docs/claude/environment/wsl-optimization.md
+- docs/claude/environment/ai-tools-setup.md
+- docs/claude/environment/workflows.md
+- docs/claude/environment/mcp/mcp-configuration.md
 
-### 테스트/배포
-- @docs/claude/testing/vercel-first-strategy.md
-- @docs/claude/deployment/vercel-optimization.md
+**코딩 표준**:
+- docs/claude/standards/typescript-rules.md
+- docs/claude/standards/commit-conventions.md
+- docs/claude/standards/git-hooks-best-practices.md
 
-### 워크플로우
-- @docs/claude/workflows/common-tasks.md
+**테스트/배포**:
+- docs/claude/testing/vercel-first-strategy.md
+- docs/claude/deployment/vercel-optimization.md
+
+**워크플로우**:
+- docs/claude/workflows/common-tasks.md
+
+---
+
+## 📏 CLAUDE.md 크기 관리
+
+**현재 크기**: ~240줄 (적정)
+**하드 리미트**: 350줄 절대 초과 금지
+**목표 범위**: 200-300줄 유지
+
+**새 내용 추가 시 규칙**:
+- 50줄 이상 필요 → Import 문서로 분리
+- 기존 내용 중 우선순위 낮은 것 → 수동 참조로 이동
+- 예시 코드는 최소화, 핵심만 유지
+- 분기별 리뷰 (3개월마다 점검)
 
 ---
 
 ## 🎓 AI 시스템 파일 구분
 
-- **CLAUDE.md** (이 파일): Claude Code Project Memory
+- **CLAUDE.md** (이 파일): Claude Code Project Memory (빠른 참조)
 - **AGENTS.md**: Codex CLI 환경 가이드
-- **docs/claude/**: 상세 문서 (Import)
+- **docs/claude/**: 상세 문서 (2개 자동 로딩 + 14개 수동 참조)
 
 ---
 
@@ -216,7 +232,7 @@ claude mcp list
 
 ⚠️ **주의**: 모든 수정 시 Side-Effect 분석 필수
 
-📖 **상세**: @docs/claude/ Import 문서 참조
+📖 **상세**: docs/claude/ 문서 참조 (핵심 2개는 자동 로딩)
 
 ---
 
