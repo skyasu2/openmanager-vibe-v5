@@ -157,17 +157,27 @@
       "mcp_access": "BASIC",
       "primary_tools": ["serena"],
       "secondary_tools": ["memory"],
-      "external_tools": ["Bash (gcloud CLI)", "GCP SDK"],
+      "external_tools": ["Bash (gcloud CLI)"],
       "utilization_target": "60%",
       "capabilities": [
+        "Read",
+        "Write",
+        "Edit",
+        "Bash",
+        "Grep",
         "mcp__serena__list_dir",
         "mcp__serena__search_for_pattern",
         "mcp__serena__write_memory",
-        "bash_gcloud_commands",
-        "gcp_sdk_integration"
+        "bash_gcloud_commands"
       ],
-      "specialization": "GCP Cloud Functions 관리 (GCP MCP 비공식 - Bash gcloud CLI 및 SDK 사용 충분)",
-      "note": "GCP MCP는 공식 지원 아님, CLI/SDK로 완전한 기능 제공"
+      "specialization": "GCP Cloud Functions 배포 및 최적화",
+      "deployed_functions": [
+        "enhanced-korean-nlp (256Mi, Python 3.11)",
+        "ml-analytics-engine (256Mi, Python 3.11)",
+        "unified-ai-processor (256Mi, Python 3.11)"
+      ],
+      "project": "openmanager-free-tier",
+      "region": "asia-northeast3"
     },
 
     "multi-ai-verification-specialist": {
@@ -245,12 +255,20 @@
       "secondary_tools": ["memory"],
       "utilization_target": "90%",
       "capabilities": [
-        "mcp__serena__replace_symbol_body",
+        "Read",
+        "Write",
+        "Edit",
+        "MultiEdit",
+        "Glob",
+        "TodoWrite",
         "mcp__serena__get_symbols_overview",
+        "mcp__serena__find_symbol",
+        "mcp__serena__replace_symbol_body",
         "mcp__serena__insert_after_symbol",
-        "mcp__serena__replace_regex"
+        "mcp__serena__replace_regex",
+        "mcp__serena__write_memory"
       ],
-      "specialization": "프로젝트 구조 정리, 아키텍처 리팩토링"
+      "specialization": "프로젝트 구조 정리, 아키텍처 리팩토링 (12개 핵심 도구)"
     },
 
     "test-automation-specialist": {
