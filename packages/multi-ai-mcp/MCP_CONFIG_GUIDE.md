@@ -152,28 +152,42 @@ MCP 내장 타이머 기본값        ← 각 MCP 서버의 적절한 기본 타
 
 ---
 
-## 🎯 타임아웃 설정 가이드
+## 🎯 타임아웃 설정 가이드 (v3.4.0 통일)
 
-### AI별 권장 타임아웃
+### 통일된 타임아웃 전략
 
-| AI | 짧은 쿼리 | 중간 쿼리 | 긴 쿼리 | 매우 긴 쿼리 |
-|----|----------|----------|---------|-------------|
-| **Codex** | 60s | 90s | 180s | - |
-| **Gemini** | - | - | 300s | 300s |
-| **Qwen** | - | 180s | 300s | 300s |
-| **MCP 전체** | - | - | - | 360s |
+**핵심 원칙**: "타임아웃의 목적은 통신 두절 감지, AI 응답 시간 측정이 아님"
 
-### 프로젝트 크기별 권장 설정
+| 항목 | 타임아웃 | 이유 |
+|------|---------|------|
+| **모든 AI** | 300s (5분) | 통신 실패 위험은 모두 동일 |
+| **MCP 전체** | 300s (5분) | 단순화 및 코드 중복 제거 |
+
+**변경 이유** (2025-10-06):
+- ✅ **코드 단순화**: AI별 타임아웃 차이 제거 (7개 → 1개)
+- ✅ **논리적 일관성**: 타임아웃은 네트워크 문제 감지용
+- ✅ **유지보수성**: 하나의 환경변수로 전체 제어
+- ✅ **충분한 여유**: 5분이면 대부분의 쿼리 처리 가능
+
+### 구 버전 (v3.3.0 이전) - 사용 중단
+
+| AI | 짧은 쿼리 | 중간 쿼리 | 긴 쿼리 | 문제점 |
+|----|----------|----------|---------|--------|
+| Codex | 60s | 90s | 180s | 불필요한 복잡도 |
+| Gemini | - | - | 300s | 일관성 부족 |
+| Qwen | - | 180s | 300s | 관리 어려움 |
+
+### 프로젝트 크기별 권장 설정 (통일 후)
 
 #### 소규모 프로젝트 (<10K LOC)
 ```json
 {
   "multi-ai": {
-    "timeout": 180000,  // 3분
+    "timeout": 300000,  // 5분 (통일)
     "args": ["--max-old-space-size=2048"],  // 2GB
     "env": {
-      "MULTI_AI_GEMINI_TIMEOUT": "180000",
-      "MULTI_AI_MCP_TIMEOUT": "180000"
+      "MULTI_AI_DEBUG": "false",
+      "NODE_ENV": "production"
     }
   }
 }
@@ -183,11 +197,11 @@ MCP 내장 타이머 기본값        ← 각 MCP 서버의 적절한 기본 타
 ```json
 {
   "multi-ai": {
-    "timeout": 300000,  // 5분
+    "timeout": 300000,  // 5분 (통일)
     "args": ["--max-old-space-size=3072"],  // 3GB
     "env": {
-      "MULTI_AI_GEMINI_TIMEOUT": "240000",
-      "MULTI_AI_MCP_TIMEOUT": "300000"
+      "MULTI_AI_DEBUG": "false",
+      "NODE_ENV": "production"
     }
   }
 }
@@ -197,15 +211,18 @@ MCP 내장 타이머 기본값        ← 각 MCP 서버의 적절한 기본 타
 ```json
 {
   "multi-ai": {
-    "timeout": 360000,  // 6분
+    "timeout": 300000,  // 5분 (통일)
     "args": ["--max-old-space-size=4096"],  // 4GB
     "env": {
-      "MULTI_AI_GEMINI_TIMEOUT": "300000",
-      "MULTI_AI_MCP_TIMEOUT": "360000"
-    }
+      "MULTI_AI_DEBUG": "false",
+      "NODE_ENV": "production"
+    },
+    "description": "Multi-AI Cross-Verification System - Unified 5min timeout"
   }
 }
 ```
+
+**Note**: 프로젝트 크기와 무관하게 타임아웃은 300초로 통일. 메모리만 조절.
 
 ---
 
@@ -242,14 +259,15 @@ claude mcp list | grep multi-ai
 
 ## 🐛 트러블슈팅
 
-### 문제 1: 타임아웃이 여전히 60초
+### 문제 1: 타임아웃이 여전히 짧음 (v3.4.0 업데이트)
 
 **원인**: 글로벌 설정이 프로젝트 설정을 오버라이드
 
 **해결**:
 1. `~/.claude/.mcp.json`에서 `timeout` 제거
-2. `.claude/mcp.json`에만 `timeout` 설정
-3. Claude Code 재시작
+2. `.claude/mcp.json`에만 `timeout: 300000` 설정
+3. AI별 타임아웃 환경변수 제거 (이제 불필요)
+4. Claude Code 재시작
 
 **확인**:
 ```bash
@@ -259,7 +277,8 @@ cat ~/.claude/.mcp.json | grep -A 10 "multi-ai"
 
 # 프로젝트 설정 확인
 cat .claude/mcp.json | grep -A 10 "multi-ai"
-# → "timeout": 360000 있어야 함
+# → "timeout": 300000 있어야 함
+# → AI별 타임아웃 환경변수 없어야 함 (통일됨)
 ```
 
 ### 문제 2: Memory Guard 거부 (90% 초과)

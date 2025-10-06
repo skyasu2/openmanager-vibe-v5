@@ -97,6 +97,7 @@ async function executeQwenQuery(query: string, planMode: boolean, timeout: numbe
     return {
       provider: 'qwen',
       response,
+      stderr: result.stderr || undefined,
       responseTime: Date.now() - startTime,
       success: true
     };
@@ -135,6 +136,7 @@ export async function queryQwen(
     return {
       provider: 'qwen',
       response: '',
+      stderr: undefined,
       responseTime: Date.now() - startTime,
       success: false,
       error: error instanceof Error ? error.message : 'Invalid query'
@@ -175,9 +177,15 @@ export async function queryQwen(
       ? `Qwen timeout (${Math.floor(baseTimeout / 1000)}s, ${complexity} query)`
       : errorMessage.slice(0, 200);
 
+    // Extract stdout/stderr from error object (Node.js execFile error includes these)
+    const errorOutput = error as { stdout?: string | Buffer; stderr?: string | Buffer };
+    const stdout = errorOutput.stdout ? String(errorOutput.stdout).trim() : '';
+    const stderr = errorOutput.stderr ? String(errorOutput.stderr).trim() : errorMessage;
+
     return {
       provider: 'qwen',
-      response: '',
+      response: stdout,
+      stderr: stderr || undefined,
       responseTime: Date.now() - startTime,
       success: false,
       error: shortError

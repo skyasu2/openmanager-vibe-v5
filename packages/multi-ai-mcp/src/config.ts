@@ -4,17 +4,14 @@
  * Environment variables:
  * - MULTI_AI_CWD: Working directory for AI CLI execution (default: process.cwd())
  * - MULTI_AI_MAX_BUFFER: Max buffer size for CLI output (default: 10MB)
- * - MULTI_AI_CODEX_TIMEOUT_SIMPLE: Codex timeout for simple queries (default: 60s)
- * - MULTI_AI_CODEX_TIMEOUT_MEDIUM: Codex timeout for medium queries (default: 90s)
- * - MULTI_AI_CODEX_TIMEOUT_COMPLEX: Codex timeout for complex queries (default: 120s)
- * - MULTI_AI_GEMINI_TIMEOUT: Gemini timeout (default: 300s, sufficient for complex analysis)
- * - MULTI_AI_QWEN_TIMEOUT_NORMAL: Qwen normal mode timeout (default: 180s, increased from 120s)
- * - MULTI_AI_QWEN_TIMEOUT_PLAN: Qwen plan mode timeout (default: 300s, sufficient for complex planning)
- * - MULTI_AI_MCP_TIMEOUT: MCP request timeout (default: 360s, 6min for 3-AI parallel execution)
+ * - MULTI_AI_TIMEOUT: Unified timeout for all AIs (default: 300s, 5min for communication failure detection)
  * - MULTI_AI_ENABLE_PROGRESS: Enable progress notifications (default: true)
  * - MULTI_AI_DEBUG: Enable debug logging (default: false)
  * - MULTI_AI_MAX_RETRY_ATTEMPTS: Maximum retry attempts (default: 2)
  * - MULTI_AI_RETRY_BACKOFF_BASE: Retry backoff base in ms (default: 1000)
+ *
+ * Note: Timeout purpose is to detect communication failure (통신 두절), not to measure AI response time.
+ * All AIs use the same timeout since they face the same communication failure risk.
  */
 
 interface MultiAIConfig {
@@ -104,48 +101,48 @@ export function getConfig(): MultiAIConfig {
     ),
     codex: {
       simple: parseIntWithValidation(
-        process.env.MULTI_AI_CODEX_TIMEOUT_SIMPLE,
-        90000, // 1.5min - reduced from 2min for faster feedback
+        process.env.MULTI_AI_TIMEOUT,
+        300000, // 5min unified timeout for communication failure detection
         1000, // 1s min
-        600000, // 10min max (reduced from 30min) - balanced timeout
-        'MULTI_AI_CODEX_TIMEOUT_SIMPLE'
+        600000, // 10min max
+        'MULTI_AI_TIMEOUT'
       ),
       medium: parseIntWithValidation(
-        process.env.MULTI_AI_CODEX_TIMEOUT_MEDIUM,
-        180000, // 3min - reduced from 4min
+        process.env.MULTI_AI_TIMEOUT,
+        300000, // 5min unified timeout
         1000,
-        600000, // 10min max (reduced from 30min)
-        'MULTI_AI_CODEX_TIMEOUT_MEDIUM'
+        600000,
+        'MULTI_AI_TIMEOUT'
       ),
       complex: parseIntWithValidation(
-        process.env.MULTI_AI_CODEX_TIMEOUT_COMPLEX,
-        300000, // 5min - reduced from 6min for complex queries
+        process.env.MULTI_AI_TIMEOUT,
+        300000, // 5min unified timeout
         1000,
-        600000, // 10min max (reduced from 30min) - balanced timeout
-        'MULTI_AI_CODEX_TIMEOUT_COMPLEX'
+        600000,
+        'MULTI_AI_TIMEOUT'
       ),
     },
     gemini: {
       simple: parseIntWithValidation(
-        process.env.MULTI_AI_GEMINI_TIMEOUT_SIMPLE,
-        120000, // 2min - fast for simple queries
+        process.env.MULTI_AI_TIMEOUT,
+        300000, // 5min unified timeout
         1000,
-        600000, // 10min max
-        'MULTI_AI_GEMINI_TIMEOUT_SIMPLE'
+        600000,
+        'MULTI_AI_TIMEOUT'
       ),
       medium: parseIntWithValidation(
-        process.env.MULTI_AI_GEMINI_TIMEOUT_MEDIUM,
-        180000, // 3min - balanced for medium queries
+        process.env.MULTI_AI_TIMEOUT,
+        300000, // 5min unified timeout
         1000,
-        600000, // 10min max
-        'MULTI_AI_GEMINI_TIMEOUT_MEDIUM'
+        600000,
+        'MULTI_AI_TIMEOUT'
       ),
       complex: parseIntWithValidation(
-        process.env.MULTI_AI_GEMINI_TIMEOUT_COMPLEX,
-        240000, // 4min - sufficient for complex queries
+        process.env.MULTI_AI_TIMEOUT,
+        300000, // 5min unified timeout
         1000,
-        600000, // 10min max
-        'MULTI_AI_GEMINI_TIMEOUT_COMPLEX'
+        600000,
+        'MULTI_AI_TIMEOUT'
       ),
       // Fallback model list (priority order)
       // 429 quota exceeded → try next model
@@ -156,34 +153,34 @@ export function getConfig(): MultiAIConfig {
     },
     qwen: {
       simple: parseIntWithValidation(
-        process.env.MULTI_AI_QWEN_TIMEOUT_SIMPLE,
-        90000, // 1.5min - same as Codex for consistency
+        process.env.MULTI_AI_TIMEOUT,
+        300000, // 5min unified timeout
         1000,
-        600000, // 10min max
-        'MULTI_AI_QWEN_TIMEOUT_SIMPLE'
+        600000,
+        'MULTI_AI_TIMEOUT'
       ),
       medium: parseIntWithValidation(
-        process.env.MULTI_AI_QWEN_TIMEOUT_MEDIUM,
-        150000, // 2.5min - balanced for medium queries
+        process.env.MULTI_AI_TIMEOUT,
+        300000, // 5min unified timeout
         1000,
-        600000, // 10min max
-        'MULTI_AI_QWEN_TIMEOUT_MEDIUM'
+        600000,
+        'MULTI_AI_TIMEOUT'
       ),
       complex: parseIntWithValidation(
-        process.env.MULTI_AI_QWEN_TIMEOUT_COMPLEX,
-        240000, // 4min - sufficient for complex queries (was 'plan' mode)
+        process.env.MULTI_AI_TIMEOUT,
+        300000, // 5min unified timeout
         1000,
-        600000, // 10min max
-        'MULTI_AI_QWEN_TIMEOUT_COMPLEX'
+        600000,
+        'MULTI_AI_TIMEOUT'
       ),
     },
     mcp: {
       requestTimeout: parseIntWithValidation(
-        process.env.MULTI_AI_MCP_TIMEOUT,
-        480000, // 8min - reduced from 6min for 3-AI parallel (allows 2 retries)
+        process.env.MULTI_AI_TIMEOUT,
+        300000, // 5min unified timeout
         60000, // 1min min
-        600000, // 10min max (reduced from 30min) - balanced timeout
-        'MULTI_AI_MCP_TIMEOUT'
+        600000, // 10min max
+        'MULTI_AI_TIMEOUT'
       ),
       enableProgress: process.env.MULTI_AI_ENABLE_PROGRESS !== 'false', // Default true
     },

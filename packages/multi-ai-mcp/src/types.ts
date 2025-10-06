@@ -13,10 +13,13 @@ export type AIProvider = 'codex' | 'gemini' | 'qwen';
 
 /**
  * AI response structure
+ *
+ * v3.5.0: Added stderr field to capture AI CLI warnings and error details
  */
 export interface AIResponse {
   provider: AIProvider;
   response: string;
+  stderr?: string;
   tokens?: number;
   responseTime: number;
   success: boolean;

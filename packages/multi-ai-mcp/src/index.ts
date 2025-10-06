@@ -1,9 +1,12 @@
 /**
- * Multi-AI MCP Server v3.0.0
+ * Multi-AI MCP Server v3.5.0
  *
  * Pure infrastructure layer for AI communication
  * Integrates Codex, Gemini, and Qwen CLI tools for Claude Code
  * Uses Stdio transport for WSL environment compatibility
+ *
+ * v3.4.0: Unified 300s timeout for all AIs (communication failure detection)
+ * v3.5.0: Added stderr passthrough for AI CLI warnings and error details
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -58,7 +61,7 @@ const createProgressCallback = (progressToken?: string): ProgressCallback => {
 const server = new Server(
   {
     name: 'multi-ai',
-    version: '3.0.0',
+    version: '3.5.0',
   },
   {
     capabilities: {
@@ -256,9 +259,9 @@ async function main() {
   await server.connect(transport);
 
   // Log server start (to stderr, not stdout)
-  console.error('Multi-AI MCP Server v3.0.0 running on stdio');
+  console.error('Multi-AI MCP Server v3.5.0 running on stdio');
   console.error('Available tools: queryCodex, queryGemini, queryQwen, getBasicHistory');
-  console.error('Role: Pure AI communication infrastructure');
+  console.error('v3.5.0: stderr passthrough for AI CLI error transparency');
 }
 
 main().catch((error) => {

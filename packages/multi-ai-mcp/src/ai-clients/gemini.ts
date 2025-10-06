@@ -76,6 +76,7 @@ async function executeGeminiQuery(
     return {
       provider: 'gemini',
       response,
+      stderr: result.stderr || undefined,
       responseTime: Date.now() - startTime,
       success: true
     };
@@ -110,6 +111,7 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
     return {
       provider: 'gemini',
       response: '',
+      stderr: undefined,
       responseTime: Date.now() - startTime,
       success: false,
       error: error instanceof Error ? error.message : 'Invalid query'
@@ -178,9 +180,15 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
 
           // If last model, return error with all attempts
           if (isLastModel) {
+            // Extract stdout/stderr from error object
+            const errorOutput = error as { stdout?: string | Buffer; stderr?: string | Buffer };
+            const stdout = errorOutput.stdout ? String(errorOutput.stdout).trim() : '';
+            const stderr = errorOutput.stderr ? String(errorOutput.stderr).trim() : errorMessage;
+
             return {
               provider: 'gemini',
-              response: '',
+              response: stdout,
+              stderr: stderr || undefined,
               responseTime: Date.now() - startTime,
               success: false,
               error: `모든 모델 실패: ${errors.join('; ')}`
@@ -189,9 +197,15 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
 
           // If not 429, don't fallback
           if (!is429) {
+            // Extract stdout/stderr from error object
+            const errorOutput = error as { stdout?: string | Buffer; stderr?: string | Buffer };
+            const stdout = errorOutput.stdout ? String(errorOutput.stdout).trim() : '';
+            const stderr = errorOutput.stderr ? String(errorOutput.stderr).trim() : errorMessage;
+
             return {
               provider: 'gemini',
-              response: '',
+              response: stdout,
+              stderr: stderr || undefined,
               responseTime: Date.now() - startTime,
               success: false,
               error: shortError
@@ -204,6 +218,7 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
       return {
         provider: 'gemini',
         response: '',
+        stderr: undefined,
         responseTime: Date.now() - startTime,
         success: false,
         error: 'Unexpected error in model fallback'
@@ -211,9 +226,16 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
+
+    // Extract stdout/stderr from error object
+    const errorOutput = error as { stdout?: string | Buffer; stderr?: string | Buffer };
+    const stdout = errorOutput.stdout ? String(errorOutput.stdout).trim() : '';
+    const stderr = errorOutput.stderr ? String(errorOutput.stderr).trim() : errorMessage;
+
     return {
       provider: 'gemini',
-      response: '',
+      response: stdout,
+      stderr: stderr || undefined,
       responseTime: Date.now() - startTime,
       success: false,
       error: errorMessage.slice(0, 200)
