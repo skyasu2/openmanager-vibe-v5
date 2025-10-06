@@ -1,7 +1,7 @@
 {
   "name": "@mcp/multi-ai",
-  "version": "3.1.0",
-  "description": "Multi-AI MCP Server v3.1.0 - Pure AI communication infrastructure with unified memory guard",
+  "version": "3.3.0",
+  "description": "Multi-AI MCP Server v3.3.0 - Progress notification to prevent client timeout",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {

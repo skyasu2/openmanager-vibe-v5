@@ -22,12 +22,36 @@ import type { ProgressCallback } from './types.js';
 import { recordBasicHistory, getRecentBasicHistory } from './history/basic.js';
 
 /**
- * Progress callback for AI operations
- * Logs progress updates to stderr (does not interfere with stdout MCP protocol)
+ * Progress callback factory for AI operations
+ * Sends MCP progress notifications to prevent client timeout
+ *
+ * @param progressToken - Optional token from request._meta.progressToken
+ * @returns ProgressCallback function
  */
-const onProgress: ProgressCallback = (provider, status, elapsed) => {
-  const elapsedSeconds = Math.floor(elapsed / 1000);
-  console.error(`[${provider.toUpperCase()}] ${status} (${elapsedSeconds}초)`);
+const createProgressCallback = (progressToken?: string): ProgressCallback => {
+  return (provider, status, elapsed) => {
+    const elapsedSeconds = Math.floor(elapsed / 1000);
+
+    // Log to stderr (does not interfere with stdout MCP protocol)
+    console.error(`[${provider.toUpperCase()}] ${status} (${elapsedSeconds}초)`);
+
+    // Send MCP progress notification to prevent client timeout
+    if (progressToken) {
+      try {
+        server.notification({
+          method: 'notifications/progress',
+          params: {
+            progressToken,
+            progress: elapsedSeconds,
+            total: 120, // Estimated max seconds
+          },
+        });
+      } catch (error) {
+        // Progress notification is best-effort, don't fail on error
+        console.error(`[Progress] Failed to send notification:`, error);
+      }
+    }
+  };
 };
 
 // MCP Server instance
@@ -115,6 +139,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 // Tool handler
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
+
+  // Extract progressToken from request metadata
+  const progressToken = (request.params as any)._meta?.progressToken as string | undefined;
+  const onProgress = createProgressCallback(progressToken);
 
   try {
     switch (name) {
