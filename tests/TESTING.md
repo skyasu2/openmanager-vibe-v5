@@ -453,6 +453,116 @@ npm run test:all && npm run build
 3. **시각적 회귀 테스트 도입 검토**: UI 컴포넌트 변경 감지
 4. **부하 테스트 환경 구축 및 실행**: 다중 AI 엔진 동시 요청 처리 능력 검증
 
+## 🔐 테스트 관리자 인증 전략
+
+### 환경별 인증 방식
+
+OpenManager VIBE는 E2E 테스트를 위한 관리자 인증에서 환경별 자동 전환 전략을 사용합니다.
+
+```
+로컬/CI     → Bypass 모드 (빠른 테스트)
+Vercel 배포 → Password 모드 (안전한 검증)
+```
+
+### 인증 방식 상세
+
+#### 1. Password 모드 (프로덕션)
+
+```typescript
+// Vercel 프로덕션 환경
+await activateAdminMode(page, {
+  method: 'password',
+  password: '4231' // 환경변수 ADMIN_PASSWORD
+});
+```
+
+**특징**:
+- ✅ 실제 사용자 플로우 검증
+- ✅ 보안 강화
+- ⏱️ 약간 느림 (4단계 UI 플로우)
+
+#### 2. Bypass 모드 (로컬/CI)
+
+```typescript
+// 로컬 개발 환경
+await activateAdminMode(page, {
+  method: 'bypass',
+  testToken: process.env.TEST_BYPASS_SECRET
+});
+```
+
+**특징**:
+- ⚡ 빠른 테스트 (1회 API 호출)
+- 🧪 로컬/CI 전용
+- 🔒 프로덕션에서 자동 차단
+
+### 자동 전환 로직
+
+`tests/e2e/helpers/admin.ts`의 `activateAdminMode()` 함수가 환경을 자동 감지합니다:
+
+```typescript
+const isProduction = isVercelProduction(pageUrl) || isVercelProduction(baseUrl);
+const defaultMethod = isProduction ? 'password' : 'bypass';
+```
+
+### 환경 추가 시 체크리스트
+
+새로운 배포 환경 (스테이징, 프리프로덕션 등)을 추가할 때:
+
+- [ ] `activateAdminMode()` 환경 감지 로직 업데이트
+- [ ] 환경별 테스트 추가 (`tests/e2e/helpers/auth-strategy.spec.ts`)
+- [ ] 문서 업데이트 (이 섹션)
+- [ ] Password 플로우 통합 테스트 최소 1개 실행
+
+### 보안 가이드
+
+#### ✅ 허용
+
+```typescript
+// 로컬 .env.local
+TEST_BYPASS_SECRET=your-secret-token
+
+// CI 환경변수
+TEST_BYPASS_SECRET=ci-secret-token
+```
+
+#### ❌ 금지
+
+```bash
+# Vercel 프로덕션 환경변수에 절대 추가 금지!
+# 추가 시 자동 에러 발생:
+# BYPASS_TOKEN_IN_PRODUCTION (500 Error)
+```
+
+### 테스트 예시
+
+```typescript
+// tests/e2e/helpers/auth-strategy.spec.ts
+describe('Test Authentication Strategy', () => {
+  it('should use password in production', () => {
+    process.env.NODE_ENV = 'production';
+    expect(getAuthMethod()).toBe('password');
+  });
+
+  it('should use bypass in local with TEST_BYPASS_SECRET', () => {
+    process.env.NODE_ENV = 'development';
+    process.env.TEST_BYPASS_SECRET = 'test-secret';
+    expect(getAuthMethod()).toBe('bypass');
+  });
+});
+```
+
+### 릴리즈 보호
+
+프로덕션에서 TEST_BYPASS_SECRET 설정 시 즉시 에러 발생:
+
+```typescript
+// src/app/api/test/admin-auth/route.ts
+if (process.env.NODE_ENV === 'production' && process.env.TEST_BYPASS_SECRET) {
+  return error('BYPASS_TOKEN_IN_PRODUCTION');
+}
+```
+
 ---
 
 **마지막 업데이트**: YYYY.MM.DD (현행화 작업일) - AI 엔진 아키텍처 v3.0 완전 구현 반영 및 `vitest.config.ts`, `playwright.config.ts` 내용 반영.

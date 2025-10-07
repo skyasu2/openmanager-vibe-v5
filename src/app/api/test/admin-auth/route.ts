@@ -52,6 +52,19 @@ function isRateLimited(ip: string): boolean {
 }
 
 export async function POST(request: NextRequest) {
+  // 🛡️ 릴리즈 보호: 프로덕션에서 TEST_BYPASS_SECRET 설정 시 에러
+  if (process.env.NODE_ENV === 'production' && process.env.TEST_BYPASS_SECRET) {
+    console.error('❌ [Security] TEST_BYPASS_SECRET은 프로덕션에서 설정하면 안 됩니다!');
+    return NextResponse.json(
+      {
+        success: false,
+        message: '서버 설정 오류입니다.',
+        error: 'BYPASS_TOKEN_IN_PRODUCTION'
+      },
+      { status: 500 }
+    );
+  }
+
   // 🛡️ 보안 계층 1: Rate Limiting
   const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
 
@@ -75,9 +88,14 @@ export async function POST(request: NextRequest) {
     const actualToken = bypassToken || token;
 
     // 🔧 테스트 전용 우회 모드 (E2E 테스트용 - Secret 토큰 검증)
+    // 🧪 로컬/CI 전용 - Vercel 프로덕션에서는 절대 호출되지 않음
+    // ℹ️  E2E 헬퍼(tests/e2e/helpers/admin.ts)가 환경별 자동 전환:
+    //    - 로컬: bypass 모드 (빠른 테스트)
+    //    - Vercel: password 모드 (보안)
     if (bypass) {
       // 프로덕션 환경: TEST_BYPASS_SECRET 토큰 검증 필수
       // ✅ 2025-10-04: TEST_BYPASS_SECRET 환경변수 Vercel 간단한 토큰으로 재설정
+      // ⚠️  2025-10-07: Vercel에는 토큰 미설정 (의도적) - password 모드만 사용
       if (process.env.NODE_ENV === 'production') {
         const validToken = process.env.TEST_BYPASS_SECRET?.trim(); // 줄바꿈 제거
 
