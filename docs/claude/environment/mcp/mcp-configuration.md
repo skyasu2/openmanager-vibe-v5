@@ -116,13 +116,13 @@ mcp__serena__activate_project "/mnt/d/cursor/openmanager-vibe-v5"
 ./scripts/mcp-health-check.sh
 ```
 
-#### 5. Playwright MCP (WSL Sandbox v3)
+#### 5. Playwright MCP (npx 실행)
 ```bash
-# WSL Sandbox v3 wrapper
-~/.local/bin/playwright-mcp-wrapper-v3.sh
+# executeautomation v1.0.6 (npx 방식)
+npx -y @executeautomation/playwright-mcp-server
 
-# 상태 확인
-~/.local/bin/playwright-mcp-wrapper-v3.sh status
+# MCP 연결 확인
+claude mcp list | grep playwright
 
 # 복구 가이드
 # docs/troubleshooting/playwright-mcp-recovery-guide.md 참조
@@ -401,8 +401,8 @@ claude mcp add serena uv run --directory ~/.local/share/uv/tools/serena-mcp sere
 # 복구 스크립트
 ./scripts/fix-playwright-mcp.sh
 
-# 상태 확인
-~/.local/bin/playwright-mcp-wrapper-v3.sh status
+# 연결 상태 확인
+claude mcp list | grep playwright
 
 # 상세 가이드
 # docs/troubleshooting/playwright-mcp-recovery-guide.md
