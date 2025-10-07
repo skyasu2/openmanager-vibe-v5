@@ -9,13 +9,24 @@ describe('timeout utilities', () => {
     });
 
     it('should detect medium queries', () => {
-      expect(detectQueryComplexity('a'.repeat(100))).toBe('medium');
-      expect(detectQueryComplexity('a'.repeat(300))).toBe('medium');
+      expect(detectQueryComplexity('a'.repeat(50))).toBe('medium');
+      expect(detectQueryComplexity('a'.repeat(199))).toBe('medium');
     });
 
     it('should detect complex queries', () => {
-      expect(detectQueryComplexity('a'.repeat(301))).toBe('complex');
+      expect(detectQueryComplexity('a'.repeat(201))).toBe('complex');
       expect(detectQueryComplexity('a'.repeat(1000))).toBe('complex');
+    });
+
+    it('should handle Plan Mode bumps complexity up', () => {
+      expect(detectQueryComplexity('short', false)).toBe('simple');
+      expect(detectQueryComplexity('short', true)).toBe('medium');
+      
+      expect(detectQueryComplexity('a'.repeat(100), false)).toBe('medium');
+      expect(detectQueryComplexity('a'.repeat(100), true)).toBe('complex');
+      
+      expect(detectQueryComplexity('a'.repeat(300), false)).toBe('complex');
+      expect(detectQueryComplexity('a'.repeat(300), true)).toBe('complex');
     });
   });
 

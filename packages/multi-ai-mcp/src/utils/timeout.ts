@@ -34,48 +34,34 @@ import type { QueryComplexity, TimeoutConfig } from '../types.js';
  */
 
 export function detectQueryComplexity(query: string, planMode: boolean = false): QueryComplexity {
-  // Step 1: Length-based classification
+  // Simplified: Length-based classification only
+  // Goal: Get answers reliably, not optimize timeout
+  // Conservative approach: When in doubt, use longer timeout
+  
   const length = query.length;
   
-  // Step 2: Keyword-based hints for better accuracy
-  const complexKeywords = [
-    '분석', '검토', '아키텍처', '최적화', '리팩토링', '교차검증',
-    'analyze', 'architecture', 'optimize', 'refactor', 'cross-verification'
-  ];
-  const simpleKeywords = [
-    '상태', '확인', '간단', '빠른',
-    'status', 'check', 'simple', 'quick'
-  ];
+  // Simple: Short queries only (<50 chars)
+  // Medium: Most queries (50-200 chars)  
+  // Complex: Long queries or Plan Mode (>200 chars)
   
-  const hasComplexKeyword = complexKeywords.some(keyword => 
-    query.toLowerCase().includes(keyword.toLowerCase())
-  );
-  const hasSimpleKeyword = simpleKeywords.some(keyword => 
-    query.toLowerCase().includes(keyword.toLowerCase())
-  );
-  
-  // Step 3: Determine complexity
   let complexity: QueryComplexity;
   
-  if (length < 100 && hasSimpleKeyword) {
+  if (length < 50) {
     complexity = 'simple';
-  } else if (length > 300 || hasComplexKeyword) {
-    complexity = 'complex';
-  } else if (length < 100) {
-    complexity = 'simple';
-  } else if (length >= 100 && length <= 300) {
+  } else if (length < 200) {
     complexity = 'medium';
   } else {
-    // Fallback for edge cases
-    complexity = 'medium';
+    complexity = 'complex';
   }
   
-  // Step 4: Plan Mode adjustment (Qwen-specific)
-  // Plan Mode requires more time for safe planning, bump up one level
-  if (planMode && complexity === 'simple') {
-    complexity = 'medium';
-  } else if (planMode && complexity === 'medium') {
-    complexity = 'complex';
+  // Plan Mode always gets longer timeout (bumps up one level)
+  if (planMode) {
+    if (complexity === 'simple') {
+      complexity = 'medium';
+    } else if (complexity === 'medium') {
+      complexity = 'complex';
+    }
+    // Already complex → stay complex
   }
   
   return complexity;

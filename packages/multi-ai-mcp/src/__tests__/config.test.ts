@@ -30,10 +30,10 @@ describe('Configuration System', () => {
     });
 
     it('should throw error when timeout is NaN', () => {
-      process.env.MULTI_AI_CODEX_TIMEOUT_SIMPLE = 'not-a-number';
+      process.env.MULTI_AI_CODEX_SIMPLE_TIMEOUT = 'not-a-number';
 
       expect(() => getConfig()).toThrow(
-        'Invalid MULTI_AI_CODEX_TIMEOUT_SIMPLE: "not-a-number" is not a valid number'
+        'Invalid MULTI_AI_CODEX_SIMPLE_TIMEOUT: "not-a-number" is not a valid number'
       );
     });
 
@@ -179,7 +179,7 @@ describe('Configuration System', () => {
     it('should work correctly with valid environment variables', () => {
       process.env.MULTI_AI_MAX_RETRY_ATTEMPTS = '3';
       process.env.MULTI_AI_RETRY_BACKOFF_BASE = '1500';
-      process.env.MULTI_AI_CODEX_TIMEOUT_SIMPLE = '20000';
+      process.env.MULTI_AI_CODEX_SIMPLE_TIMEOUT = '20000';
 
       const config = getConfig();
 
