@@ -8,7 +8,7 @@
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import type { AIResponse, ProgressCallback } from '../types.js';
-import { withTimeout, detectQueryComplexity, getAdaptiveTimeout } from '../utils/timeout.js';
+import { withTimeout } from '../utils/timeout.js';
 import { validateQuery } from '../utils/validation.js';
 import { withRetry } from '../utils/retry.js';
 import { config } from '../config.js';
@@ -120,9 +120,8 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
     };
   }
 
-  // Detect query complexity and use adaptive timeout (same logic as Codex)
-  const complexity = detectQueryComplexity(query);
-  const baseTimeout = getAdaptiveTimeout(complexity, config.gemini);
+  // v1.6.0 Regression: Use simple, verified timeout (no complexity detection)
+  const baseTimeout = config.gemini.timeout;
 
   try {
     // ✅ Unified Memory Management: withMemoryGuard applies to all AIs
@@ -175,7 +174,7 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
 
           // Other error or last model failed
           const shortError = errorMessage.includes('timeout')
-            ? `Gemini timeout (${Math.floor(baseTimeout / 1000)}s, ${complexity} query)`
+            ? `Gemini timeout (${Math.floor(baseTimeout / 1000)}s)`
             : errorMessage.slice(0, 200);
           
           errors.push(`${model}: ${shortError}`);

@@ -4,21 +4,25 @@
  * Environment variables:
  * - MULTI_AI_CWD: Working directory for AI CLI execution (default: process.cwd())
  * - MULTI_AI_MAX_BUFFER: Max buffer size for CLI output (default: 10MB)
- * - MULTI_AI_TIMEOUT: Unified timeout for all AIs (default: 600s, 10min for communication failure detection)
+ * - MULTI_AI_CODEX_TIMEOUT: Codex timeout in ms (default: 180s, 3min)
+ * - MULTI_AI_GEMINI_TIMEOUT: Gemini timeout in ms (default: 300s, 5min)
+ * - MULTI_AI_QWEN_TIMEOUT: Qwen timeout in ms (default: 300s, 5min)
+ * - MULTI_AI_MCP_TIMEOUT: MCP request timeout in ms (default: 360s, 6min)
  * - MULTI_AI_ENABLE_PROGRESS: Enable progress notifications (default: true)
  * - MULTI_AI_DEBUG: Enable debug logging (default: false)
  * - MULTI_AI_MAX_RETRY_ATTEMPTS: Maximum retry attempts (default: 2)
  * - MULTI_AI_RETRY_BACKOFF_BASE: Retry backoff base in ms (default: 1000)
- * - MULTI_AI_MEMORY_CRITICAL_THRESHOLD: Memory critical threshold 0-100 (default: 95)
- * - MULTI_AI_MEMORY_WARNING_THRESHOLD: Memory warning threshold 0-100 (default: 85)
  *
- * Note: Timeout purpose is to detect communication failure (통신 두절), not to measure AI response time.
- * All AIs use the same timeout since they face the same communication failure risk.
+ * Timeout Philosophy (v1.6.0 Regression):
+ * - Simple, verified timeouts from v1.6.0 (worked well)
+ * - No complexity detection (over-engineering removed)
+ * - Goal: Get answers reliably, not optimize timeout
+ * - Based on actual P95 response times + 50% safety margin
  *
  * Memory Management:
  * - Start with: node --max-old-space-size=512 dist/index.js (512MB heap)
- * - Critical threshold: 95% (down from 90% for better AI query success rate)
- * - Warning threshold: 85% (down from 80%)
+ * - Critical threshold: 95%
+ * - Warning threshold: 85%
  */
 
 interface MultiAIConfig {
@@ -26,24 +30,18 @@ interface MultiAIConfig {
   cwd: string;
   /** Maximum buffer size for CLI output (bytes) */
   maxBuffer: number;
-  /** Codex timeouts by complexity */
+  /** Codex timeout (single value, no complexity) */
   codex: {
-    simple: number;
-    medium: number;
-    complex: number;
+    timeout: number;
   };
-  /** Gemini timeouts by complexity */
+  /** Gemini timeout (single value, no complexity) */
   gemini: {
-    simple: number;
-    medium: number;
-    complex: number;
+    timeout: number;
     models: string[]; // Fallback model list (priority order)
   };
-  /** Qwen timeouts by complexity */
+  /** Qwen timeout (single value, no complexity) */
   qwen: {
-    simple: number;
-    medium: number;
-    complex: number;
+    timeout: number;
   };
   /** MCP server configuration */
   mcp: {
@@ -107,87 +105,45 @@ export function getConfig(): MultiAIConfig {
       'MULTI_AI_MAX_BUFFER'
     ),
     codex: {
-      simple: parseIntWithValidation(
-        process.env.MULTI_AI_CODEX_SIMPLE_TIMEOUT,
-        60000, // 1min (based on actual response time: 3-14s, 2x safety margin)
+      timeout: parseIntWithValidation(
+        process.env.MULTI_AI_CODEX_TIMEOUT,
+        180000, // 3min (P95: 54s + 50% margin, verified sufficient)
         1000, // 1s min
-        300000, // 5min max
-        'MULTI_AI_CODEX_SIMPLE_TIMEOUT'
-      ),
-      medium: parseIntWithValidation(
-        process.env.MULTI_AI_CODEX_MEDIUM_TIMEOUT,
-        180000, // 3min (medium complexity queries)
-        1000,
-        300000,
-        'MULTI_AI_CODEX_MEDIUM_TIMEOUT'
-      ),
-      complex: parseIntWithValidation(
-        process.env.MULTI_AI_CODEX_COMPLEX_TIMEOUT,
-        300000, // 5min (complex analysis)
-        1000,
-        300000,
-        'MULTI_AI_CODEX_COMPLEX_TIMEOUT'
+        600000, // 10min max
+        'MULTI_AI_CODEX_TIMEOUT'
       ),
     },
     gemini: {
-      simple: parseIntWithValidation(
-        process.env.MULTI_AI_GEMINI_SIMPLE_TIMEOUT,
-        30000, // 30s (fastest AI, avg 18-23s)
+      timeout: parseIntWithValidation(
+        process.env.MULTI_AI_GEMINI_TIMEOUT,
+        300000, // 5min (P95: 64s + 3x margin, v1.6.0 verified)
         1000,
-        180000, // 3min max
-        'MULTI_AI_GEMINI_SIMPLE_TIMEOUT'
-      ),
-      medium: parseIntWithValidation(
-        process.env.MULTI_AI_GEMINI_MEDIUM_TIMEOUT,
-        90000, // 1.5min (medium queries)
-        1000,
-        180000,
-        'MULTI_AI_GEMINI_MEDIUM_TIMEOUT'
-      ),
-      complex: parseIntWithValidation(
-        process.env.MULTI_AI_GEMINI_COMPLEX_TIMEOUT,
-        180000, // 3min (complex architecture analysis)
-        1000,
-        180000,
-        'MULTI_AI_GEMINI_COMPLEX_TIMEOUT'
+        600000,
+        'MULTI_AI_GEMINI_TIMEOUT'
       ),
       // Fallback model list (priority order)
       // 429 quota exceeded → try next model
       // OAuth free tier: Pro (high quality) → Flash (fast) fallback
       models: process.env.MULTI_AI_GEMINI_MODELS
         ? process.env.MULTI_AI_GEMINI_MODELS.split(',')
-        : ['gemini-2.5-pro', 'gemini-2.5-flash'], // OAuth 무료티어: Pro → Flash fallback
+        : ['gemini-2.5-pro', 'gemini-2.5-flash'],
     },
     qwen: {
-      simple: parseIntWithValidation(
-        process.env.MULTI_AI_QWEN_SIMPLE_TIMEOUT,
-        90000, // 1.5min (avg 9s, but Plan Mode needs more)
+      timeout: parseIntWithValidation(
+        process.env.MULTI_AI_QWEN_TIMEOUT,
+        300000, // 5min (Plan Mode support, v1.6.0 verified)
         1000,
-        300000, // 5min max
-        'MULTI_AI_QWEN_SIMPLE_TIMEOUT'
-      ),
-      medium: parseIntWithValidation(
-        process.env.MULTI_AI_QWEN_MEDIUM_TIMEOUT,
-        180000, // 3min (medium complexity + Plan Mode)
-        1000,
-        300000,
-        'MULTI_AI_QWEN_MEDIUM_TIMEOUT'
-      ),
-      complex: parseIntWithValidation(
-        process.env.MULTI_AI_QWEN_COMPLEX_TIMEOUT,
-        300000, // 5min (complex optimization analysis)
-        1000,
-        300000,
-        'MULTI_AI_QWEN_COMPLEX_TIMEOUT'
+        600000,
+        'MULTI_AI_QWEN_TIMEOUT'
       ),
     },
     mcp: {
       requestTimeout: parseIntWithValidation(
         process.env.MULTI_AI_MCP_TIMEOUT,
-        360000, // 6min (slightly longer than longest AI timeout: Qwen complex 5min)
+        360000, // 6min (slightly longer than longest AI timeout: 5min)
         60000, // 1min min
         600000, // 10min max
-        'MULTI_AI_TIMEOUT'
+        'MULTI_AI_MCP_TIMEOUT'
       ),
       enableProgress: process.env.MULTI_AI_ENABLE_PROGRESS !== 'false', // Default true
     },
@@ -244,4 +200,3 @@ export function setConfig(newConfig: Partial<MultiAIConfig>): void {
       : config.retry,
   };
 }
-

@@ -8,7 +8,7 @@
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import type { AIResponse, ProgressCallback } from '../types.js';
-import { withTimeout, detectQueryComplexity, getAdaptiveTimeout } from '../utils/timeout.js';
+import { withTimeout } from '../utils/timeout.js';
 import { validateQuery } from '../utils/validation.js';
 import { withRetry } from '../utils/retry.js';
 import { config } from '../config.js';
@@ -113,8 +113,8 @@ export async function queryCodex(query: string, onProgress?: ProgressCallback): 
     };
   }
 
-  const complexity = detectQueryComplexity(query);
-  const baseTimeout = getAdaptiveTimeout(complexity, config.codex);
+  // v1.6.0 Regression: Use simple, verified timeout (no complexity detection)
+  const baseTimeout = config.codex.timeout;
 
   try {
     // ✅ Unified Memory Management: withMemoryGuard applies to all AIs

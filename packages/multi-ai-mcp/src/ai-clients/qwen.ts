@@ -8,7 +8,7 @@
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import type { AIResponse, ProgressCallback } from '../types.js';
-import { withTimeout, detectQueryComplexity, getAdaptiveTimeout } from '../utils/timeout.js';
+import { withTimeout } from '../utils/timeout.js';
 import { validateQuery } from '../utils/validation.js';
 import { withRetry } from '../utils/retry.js';
 import { config } from '../config.js';
@@ -145,10 +145,9 @@ export async function queryQwen(
     };
   }
 
-  // Detect query complexity and use adaptive timeout
-  // Pass planMode to detectQueryComplexity for accurate timeout selection
-  const complexity = detectQueryComplexity(query, planMode);
-  const baseTimeout = getAdaptiveTimeout(complexity, config.qwen);
+  // v1.6.0 Regression: Use simple, verified timeout (no complexity detection)
+  // Plan Mode is always enabled by default (planMode=true), timeout is sufficient
+  const baseTimeout = config.qwen.timeout;
 
   try {
     // ✅ Unified Memory Management: withMemoryGuard applies to all AIs
@@ -177,7 +176,7 @@ export async function queryQwen(
     const shortError = errorMessage.includes('Unknown argument')
       ? 'Qwen CLI: Invalid command format'
       : errorMessage.includes('timeout')
-      ? `Qwen timeout (${Math.floor(baseTimeout / 1000)}s, ${complexity} query)`
+      ? `Qwen timeout (${Math.floor(baseTimeout / 1000)}s)`
       : errorMessage.slice(0, 200);
 
     // ✅ DRY: Use centralized error handler

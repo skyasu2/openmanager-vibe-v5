@@ -30,10 +30,10 @@ describe('Configuration System', () => {
     });
 
     it('should throw error when timeout is NaN', () => {
-      process.env.MULTI_AI_CODEX_SIMPLE_TIMEOUT = 'not-a-number';
+      process.env.MULTI_AI_CODEX_TIMEOUT = 'not-a-number';
 
       expect(() => getConfig()).toThrow(
-        'Invalid MULTI_AI_CODEX_SIMPLE_TIMEOUT: "not-a-number" is not a valid number'
+        'Invalid MULTI_AI_CODEX_TIMEOUT: "not-a-number" is not a valid number'
       );
     });
 
@@ -121,20 +121,17 @@ describe('Configuration System', () => {
       expect(config.mcp.requestTimeout).toBe(initialTimeout); // Preserved
     });
 
-    it('should preserve existing codex properties when partially updating', () => {
-      const initialSimple = config.codex.simple;
-      const initialMedium = config.codex.medium;
+    it('should preserve existing codex timeout when partially updating', () => {
+      const initialTimeout = config.codex.timeout;
 
-      // Partial update: only change complex timeout
+      // Partial update: change codex timeout
       setConfig({
         codex: {
-          complex: 150000,
+          timeout: 150000,
         } as any,
       });
 
-      expect(config.codex.complex).toBe(150000); // Updated
-      expect(config.codex.simple).toBe(initialSimple); // Preserved
-      expect(config.codex.medium).toBe(initialMedium); // Preserved
+      expect(config.codex.timeout).toBe(150000); // Updated
     });
 
     it('should handle multiple nested updates correctly', () => {
@@ -159,8 +156,8 @@ describe('Configuration System', () => {
     it('should not affect other top-level properties', () => {
       const initialCwd = config.cwd;
       const initialMaxBuffer = config.maxBuffer;
-      const initialGeminiSimple = config.gemini.simple;
-      const initialQwenSimple = config.qwen.simple;
+      const initialGeminiTimeout = config.gemini.timeout;
+      const initialQwenTimeout = config.qwen.timeout;
 
       setConfig({
         retry: {
@@ -170,8 +167,8 @@ describe('Configuration System', () => {
 
       expect(config.cwd).toBe(initialCwd);
       expect(config.maxBuffer).toBe(initialMaxBuffer);
-      expect(config.gemini.simple).toBe(initialGeminiSimple);
-      expect(config.qwen.simple).toBe(initialQwenSimple);
+      expect(config.gemini.timeout).toBe(initialGeminiTimeout);
+      expect(config.qwen.timeout).toBe(initialQwenTimeout);
     });
   });
 
@@ -179,13 +176,13 @@ describe('Configuration System', () => {
     it('should work correctly with valid environment variables', () => {
       process.env.MULTI_AI_MAX_RETRY_ATTEMPTS = '3';
       process.env.MULTI_AI_RETRY_BACKOFF_BASE = '1500';
-      process.env.MULTI_AI_CODEX_SIMPLE_TIMEOUT = '20000';
+      process.env.MULTI_AI_CODEX_TIMEOUT = '120000';
 
       const config = getConfig();
 
       expect(config.retry.maxAttempts).toBe(3);
       expect(config.retry.backoffBase).toBe(1500);
-      expect(config.codex.simple).toBe(20000);
+      expect(config.codex.timeout).toBe(120000);
     });
 
     it('should handle edge case values correctly', () => {
@@ -206,6 +203,19 @@ describe('Configuration System', () => {
 
       expect(config.retry.maxAttempts).toBe(10);
       expect(config.retry.backoffBase).toBe(60000);
+    });
+
+    it('should use v1.6.0 default timeouts', () => {
+      // Clear environment to use defaults
+      delete process.env.MULTI_AI_CODEX_TIMEOUT;
+      delete process.env.MULTI_AI_GEMINI_TIMEOUT;
+      delete process.env.MULTI_AI_QWEN_TIMEOUT;
+
+      const config = getConfig();
+
+      expect(config.codex.timeout).toBe(180000); // 3min
+      expect(config.gemini.timeout).toBe(300000); // 5min
+      expect(config.qwen.timeout).toBe(300000); // 5min
     });
   });
 });
