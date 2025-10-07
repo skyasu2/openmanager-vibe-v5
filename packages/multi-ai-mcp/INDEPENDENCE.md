@@ -4,6 +4,36 @@
 
 ---
 
+## 🏗️ 아키텍처 개요
+
+### WSL CLI 기반 설계
+
+Multi-AI MCP는 **API가 아닌 WSL 로컬 CLI 방식**으로 동작합니다:
+
+```bash
+# WSL에 설치된 CLI 도구들
+codex exec "query"           # ChatGPT Plus 계정 인증
+gemini "query" --model pro   # Google OAuth 인증
+qwen -p "query"              # Qwen OAuth 인증
+```
+
+**특징**:
+- ✅ API 키 불필요 (계정 인증 방식)
+- ✅ API 비용 없음 (무료/구독 계정 활용)
+- ✅ WSL 환경에서 직접 실행
+- ✅ Node.js `execFile()`로 CLI 호출
+
+**MCP 서버 역할**:
+```typescript
+// Multi-AI MCP는 CLI를 래핑하는 인프라 레이어
+execFile('gemini', [query, '--model', model], { ... })
+  → WSL에서 gemini CLI 실행
+  → stdout/stderr 수집
+  → MCP 응답으로 반환
+```
+
+---
+
 ## 🎯 핵심 철학
 
 ### 다른 MCP vs Multi-AI MCP
