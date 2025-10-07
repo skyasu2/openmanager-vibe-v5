@@ -32,17 +32,4 @@ export interface AIResponse {
  */
 export type ProgressCallback = (provider: AIProvider, status: string, elapsed: number) => void;
 
-/**
- * Query complexity levels for adaptive timeout
- */
-export type QueryComplexity = 'simple' | 'medium' | 'complex';
 
-/**
- * Timeout configuration for query complexity levels
- */
-
-export interface TimeoutConfig {
-  simple: number;
-  medium: number;
-  complex: number;
-}

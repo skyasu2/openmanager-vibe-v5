@@ -213,9 +213,9 @@ describe('Configuration System', () => {
 
       const config = getConfig();
 
-      expect(config.codex.timeout).toBe(180000); // 3min
-      expect(config.gemini.timeout).toBe(300000); // 5min
-      expect(config.qwen.timeout).toBe(300000); // 5min
+      expect(config.codex.timeout).toBe(240000); // 4min (v1.6.1)
+      expect(config.gemini.timeout).toBe(420000); // 7min (v1.6.1)
+      expect(config.qwen.timeout).toBe(420000); // 7min (v1.6.1)
     });
   });
 });

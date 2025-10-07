@@ -1,7 +1,7 @@
 {
   "name": "@mcp/multi-ai",
-  "version": "3.5.0",
-  "description": "Multi-AI MCP Server v3.5.0 - AI CLI stdout/stderr passthrough for error transparency",
+  "version": "3.6.0",
+  "description": "Multi-AI MCP Server v3.6.0 - Enhanced timeout safety margins (Codex 240s, Gemini/Qwen 420s)",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {

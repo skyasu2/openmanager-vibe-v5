@@ -4,20 +4,22 @@
  * Environment variables:
  * - MULTI_AI_CWD: Working directory for AI CLI execution (default: process.cwd())
  * - MULTI_AI_MAX_BUFFER: Max buffer size for CLI output (default: 10MB)
- * - MULTI_AI_CODEX_TIMEOUT: Codex timeout in ms (default: 180s, 3min)
- * - MULTI_AI_GEMINI_TIMEOUT: Gemini timeout in ms (default: 300s, 5min)
- * - MULTI_AI_QWEN_TIMEOUT: Qwen timeout in ms (default: 300s, 5min)
- * - MULTI_AI_MCP_TIMEOUT: MCP request timeout in ms (default: 360s, 6min)
+ * - MULTI_AI_CODEX_TIMEOUT: Codex timeout in ms (default: 240s)
+ * - MULTI_AI_GEMINI_TIMEOUT: Gemini timeout in ms (default: 420s)
+ * - MULTI_AI_QWEN_TIMEOUT: Qwen timeout in ms (default: 420s)
+ * - MULTI_AI_MCP_TIMEOUT: MCP request timeout in ms (default: 600s, 10min)
  * - MULTI_AI_ENABLE_PROGRESS: Enable progress notifications (default: true)
  * - MULTI_AI_DEBUG: Enable debug logging (default: false)
  * - MULTI_AI_MAX_RETRY_ATTEMPTS: Maximum retry attempts (default: 2)
  * - MULTI_AI_RETRY_BACKOFF_BASE: Retry backoff base in ms (default: 1000)
  *
- * Timeout Philosophy (v1.6.0 Regression):
- * - Simple, verified timeouts from v1.6.0 (worked well)
- * - No complexity detection (over-engineering removed)
- * - Goal: Get answers reliably, not optimize timeout
- * - Based on actual P95 response times + 50% safety margin
+ * Timeout Philosophy (v1.6.1):
+ * - Single timeout per AI (no complexity detection)
+ * - Safe values based on P99 + large safety margin
+ * - Codex: 240s (P99: 168s → 1.4x safety margin)
+ * - Gemini: 420s (P99: 78s → 5.4x safety margin)
+ * - Qwen: 420s (P99: 92s → 4.6x safety margin)
+ * - Goal: Stability > Optimization
  *
  * Memory Management:
  * - Start with: node --max-old-space-size=512 dist/index.js (512MB heap)
@@ -30,16 +32,16 @@ interface MultiAIConfig {
   cwd: string;
   /** Maximum buffer size for CLI output (bytes) */
   maxBuffer: number;
-  /** Codex timeout (single value, no complexity) */
+  /** Codex timeout in milliseconds */
   codex: {
     timeout: number;
   };
-  /** Gemini timeout (single value, no complexity) */
+  /** Gemini timeout in milliseconds */
   gemini: {
     timeout: number;
     models: string[]; // Fallback model list (priority order)
   };
-  /** Qwen timeout (single value, no complexity) */
+  /** Qwen timeout in milliseconds */
   qwen: {
     timeout: number;
   };
@@ -107,7 +109,7 @@ export function getConfig(): MultiAIConfig {
     codex: {
       timeout: parseIntWithValidation(
         process.env.MULTI_AI_CODEX_TIMEOUT,
-        180000, // 3min (P95: 54s + 50% margin, verified sufficient)
+        240000, // 4min (P99: 168s → 1.4x safety margin)
         1000, // 1s min
         600000, // 10min max
         'MULTI_AI_CODEX_TIMEOUT'
@@ -116,9 +118,9 @@ export function getConfig(): MultiAIConfig {
     gemini: {
       timeout: parseIntWithValidation(
         process.env.MULTI_AI_GEMINI_TIMEOUT,
-        300000, // 5min (P95: 64s + 3x margin, v1.6.0 verified)
-        1000,
-        600000,
+        420000, // 7min (P99: 78s → 5.4x safety margin)
+        1000, // 1s min
+        600000, // 10min max
         'MULTI_AI_GEMINI_TIMEOUT'
       ),
       // Fallback model list (priority order)
@@ -131,16 +133,16 @@ export function getConfig(): MultiAIConfig {
     qwen: {
       timeout: parseIntWithValidation(
         process.env.MULTI_AI_QWEN_TIMEOUT,
-        300000, // 5min (Plan Mode support, v1.6.0 verified)
-        1000,
-        600000,
+        420000, // 7min (P99: 92s → 4.6x safety margin)
+        1000, // 1s min
+        600000, // 10min max
         'MULTI_AI_QWEN_TIMEOUT'
       ),
     },
     mcp: {
       requestTimeout: parseIntWithValidation(
         process.env.MULTI_AI_MCP_TIMEOUT,
-        360000, // 6min (slightly longer than longest AI timeout: 5min)
+        600000, // 10min (longer than longest AI timeout: 7min)
         60000, // 1min min
         600000, // 10min max
         'MULTI_AI_MCP_TIMEOUT'

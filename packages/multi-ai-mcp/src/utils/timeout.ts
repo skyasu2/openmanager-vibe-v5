@@ -1,15 +1,17 @@
 /**
- * Timeout Utilities
+ * Timeout Management - v1.6.1
  *
- * v1.6.0 Regression: Simplified timeout management
- * - No complexity detection (removed over-engineering)
- * - Direct timeout values from config
- * - Goal: Get answers reliably, not optimize timeout
+ * Simple timeout management with increased safety margins.
+ * No complexity detection - single timeout per AI.
  */
 
 /**
  * Calculate retry timeout with exponential backoff
  * 50% increase per retry attempt
+ *
+ * @param originalTimeout - Original timeout in milliseconds
+ * @param attempt - Retry attempt number (0-indexed)
+ * @returns Adjusted timeout in milliseconds
  */
 export function calculateRetryTimeout(
   originalTimeout: number,
@@ -22,6 +24,11 @@ export function calculateRetryTimeout(
 /**
  * Wrap a promise with a timeout
  * Rejects if the promise doesn't resolve within timeoutMs
+ *
+ * @param promise - Promise to wrap
+ * @param timeoutMs - Timeout in milliseconds
+ * @param errorMessage - Custom error message
+ * @returns Promise that rejects on timeout
  */
 export function withTimeout<T>(
   promise: Promise<T>,
