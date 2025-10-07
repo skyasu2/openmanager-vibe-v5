@@ -291,7 +291,7 @@ npx ccusage@latest | grep "Cache"
 # Performance log 확인
 tail -f logs/ai-perf/ai-perf-$(date +%F).log
 
-# 히스토리 확인 (Multi-AI MCP v3.0.0)
+# 히스토리 확인 (Multi-AI MCP v3.5.0)
 ls -lh packages/multi-ai-mcp/history/
 
 # 또는 MCP 도구로 조회

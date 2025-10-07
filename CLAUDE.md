@@ -51,7 +51,7 @@ Esc Esc                     # 빠른 복원
 ### MCP 도구 우선 (최우선 권장) ⭐
 
 ```typescript
-// 개별 AI 쿼리 (MCP v3.0)
+// 개별 AI 쿼리 (MCP v3.5.0)
 mcp__multi-ai__queryCodex({ query: "버그 분석 및 실무적 해결책" })
 mcp__multi-ai__queryGemini({ query: "SOLID 원칙 검토 및 아키텍처 분석" })
 mcp__multi-ai__queryQwen({ query: "성능 최적화 및 병목점 분석", planMode: true })
@@ -62,7 +62,7 @@ mcp__multi-ai__getBasicHistory({ limit: 10 })
 
 **참고**: Multi-AI Verification Specialist 서브에이전트가 3-AI 교차검증을 자동 수행합니다.
 
-**타임아웃 (v3.0)**:
+**타임아웃 (v3.5.0)**:
 - Codex: 60s/90s/**180s** (complex)
 - Gemini: **300s** (5분)
 - Qwen: **120s** (normal) / **300s** (plan mode)
