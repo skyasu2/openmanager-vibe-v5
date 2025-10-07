@@ -9,9 +9,16 @@
  * - MULTI_AI_DEBUG: Enable debug logging (default: false)
  * - MULTI_AI_MAX_RETRY_ATTEMPTS: Maximum retry attempts (default: 2)
  * - MULTI_AI_RETRY_BACKOFF_BASE: Retry backoff base in ms (default: 1000)
+ * - MULTI_AI_MEMORY_CRITICAL_THRESHOLD: Memory critical threshold 0-100 (default: 95)
+ * - MULTI_AI_MEMORY_WARNING_THRESHOLD: Memory warning threshold 0-100 (default: 85)
  *
  * Note: Timeout purpose is to detect communication failure (통신 두절), not to measure AI response time.
  * All AIs use the same timeout since they face the same communication failure risk.
+ *
+ * Memory Management:
+ * - Start with: node --max-old-space-size=512 dist/index.js (512MB heap)
+ * - Critical threshold: 95% (down from 90% for better AI query success rate)
+ * - Warning threshold: 85% (down from 80%)
  */
 
 interface MultiAIConfig {

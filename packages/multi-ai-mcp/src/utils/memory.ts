@@ -111,17 +111,25 @@ export function formatBytes(bytes: number): string {
 /**
  * Check memory before query execution
  *
- * Throws error if memory is critically low (>90%)
- * Logs warning if memory is high (>80%)
+ * Throws error if memory is critically low (>threshold%)
+ * Logs warning if memory is high (>warning%)
+ *
+ * Environment variables:
+ * - MULTI_AI_MEMORY_CRITICAL_THRESHOLD: Critical threshold 0-100 (default: 95)
+ * - MULTI_AI_MEMORY_WARNING_THRESHOLD: Warning threshold 0-100 (default: 85)
  *
  * @param provider - AI provider name (for logging)
- * @throws {Error} If memory usage is critical (>90%)
+ * @throws {Error} If memory usage is critical (>threshold%)
  */
 export function checkMemoryBeforeQuery(provider: string): void {
   const mem = getMemoryUsage();
 
+  // Get thresholds from environment variables (with defaults)
+  const criticalThreshold = parseFloat(process.env.MULTI_AI_MEMORY_CRITICAL_THRESHOLD || '95');
+  const warningThreshold = parseFloat(process.env.MULTI_AI_MEMORY_WARNING_THRESHOLD || '85');
+
   // Critical: Reject query to prevent OOM
-  if (mem.heapPercent >= 90) {
+  if (mem.heapPercent >= criticalThreshold) {
     const heapMB = (mem.heapUsed / 1024 / 1024).toFixed(1);
     const totalMB = (mem.heapTotal / 1024 / 1024).toFixed(1);
     throw new Error(
@@ -131,7 +139,7 @@ export function checkMemoryBeforeQuery(provider: string): void {
   }
 
   // Warning: Allow query but log warning
-  if (mem.heapPercent >= 80) {
+  if (mem.heapPercent >= warningThreshold) {
     logMemoryUsage(`Pre-query ${provider}`);
   }
 }
