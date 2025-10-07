@@ -14,6 +14,7 @@ import { withRetry } from '../utils/retry.js';
 import { config } from '../config.js';
 import { withMemoryGuard } from '../middlewares/memory-guard.js';
 import { safeStringConvert } from '../utils/buffer.js';
+import { createErrorResponse } from '../utils/error-handler.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -181,38 +182,19 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
 
           // If last model, return error with all attempts
           if (isLastModel) {
-            // Extract stdout/stderr from error object
-            // ✅ Memory-safe: Use safeStringConvert to limit size and prevent OOM
-            const errorOutput = error as { stdout?: string | Buffer; stderr?: string | Buffer };
-            const stdout = safeStringConvert(errorOutput.stdout);
-            const stderr = safeStringConvert(errorOutput.stderr) || errorMessage;
-
-            return {
-              provider: 'gemini',
-              response: stdout,
-              stderr: stderr || undefined,
-              responseTime: Date.now() - startTime,
-              success: false,
-              error: `모든 모델 실패: ${errors.join('; ')}`
-            };
+            // ✅ DRY: Use centralized error handler
+            return createErrorResponse(
+              'gemini',
+              error,
+              startTime,
+              `모든 모델 실패: ${errors.join('; ')}`
+            );
           }
 
           // If not 429, don't fallback
           if (!is429) {
-            // Extract stdout/stderr from error object
-            // ✅ Memory-safe: Use safeStringConvert to limit size and prevent OOM
-            const errorOutput = error as { stdout?: string | Buffer; stderr?: string | Buffer };
-            const stdout = safeStringConvert(errorOutput.stdout);
-            const stderr = safeStringConvert(errorOutput.stderr) || errorMessage;
-
-            return {
-              provider: 'gemini',
-              response: stdout,
-              stderr: stderr || undefined,
-              responseTime: Date.now() - startTime,
-              success: false,
-              error: shortError
-            };
+            // ✅ DRY: Use centralized error handler
+            return createErrorResponse('gemini', error, startTime, shortError);
           }
         }
       }
@@ -230,19 +212,7 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
-    // Extract stdout/stderr from error object
-    // ✅ Memory-safe: Use safeStringConvert to limit size and prevent OOM
-    const errorOutput = error as { stdout?: string | Buffer; stderr?: string | Buffer };
-    const stdout = safeStringConvert(errorOutput.stdout);
-    const stderr = safeStringConvert(errorOutput.stderr) || errorMessage;
-
-    return {
-      provider: 'gemini',
-      response: stdout,
-      stderr: stderr || undefined,
-      responseTime: Date.now() - startTime,
-      success: false,
-      error: errorMessage.slice(0, 200)
-    };
+    // ✅ DRY: Use centralized error handler
+    return createErrorResponse('gemini', error, startTime, errorMessage.slice(0, 200));
   }
 }

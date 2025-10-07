@@ -14,6 +14,7 @@ import { withRetry } from '../utils/retry.js';
 import { config } from '../config.js';
 import { withMemoryGuard } from '../middlewares/memory-guard.js';
 import { safeStringConvert } from '../utils/buffer.js';
+import { createErrorResponse } from '../utils/error-handler.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -143,19 +144,7 @@ export async function queryCodex(query: string, onProgress?: ProgressCallback): 
       ? `Codex timeout (${Math.floor(baseTimeout / 1000)}s)`
       : errorMessage.slice(0, 200);
 
-    // Extract stdout/stderr from error object (Node.js execFile error includes these)
-    // ✅ Memory-safe: Use safeStringConvert to limit size and prevent OOM
-    const errorOutput = error as { stdout?: string | Buffer; stderr?: string | Buffer };
-    const stdout = safeStringConvert(errorOutput.stdout);
-    const stderr = safeStringConvert(errorOutput.stderr) || errorMessage;
-
-    return {
-      provider: 'codex',
-      response: stdout,
-      stderr: stderr || undefined,
-      responseTime: Date.now() - startTime,
-      success: false,
-      error: shortError
-    };
+    // ✅ DRY: Use centralized error handler
+    return createErrorResponse('codex', error, startTime, shortError);
   }
 }
