@@ -31,11 +31,21 @@ export function safeStringConvert(
     return '';
   }
 
-  // Convert Buffer to string (entire buffer for now)
-  const str = typeof data === 'string' ? data : data.toString('utf8');
+  // String case: Just limit characters
+  if (typeof data === 'string') {
+    return data.length > maxChars
+      ? data.slice(0, maxChars).trim() + '... (truncated)'
+      : data.trim();
+  }
 
-  // Limit size and trim
-  return str.length > maxChars
-    ? str.slice(0, maxChars).trim() + '... (truncated)'
+  // Buffer case: Limit Buffer BEFORE converting to String (critical for OOM prevention!)
+  // ✅ SAFE: Only convert limited bytes to String
+  // ❌ UNSAFE: data.toString() then slice (would load entire Buffer into memory)
+  const isTruncated = data.length > maxChars;
+  const limitedBuffer = isTruncated ? data.slice(0, maxChars) : data;
+  const str = limitedBuffer.toString('utf8');
+
+  return isTruncated
+    ? str.trim() + '... (truncated)'
     : str.trim();
 }
