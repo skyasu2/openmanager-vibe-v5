@@ -13,6 +13,7 @@ import { validateQuery } from '../utils/validation.js';
 import { withRetry } from '../utils/retry.js';
 import { config } from '../config.js';
 import { withMemoryGuard } from '../middlewares/memory-guard.js';
+import { safeStringConvert } from '../utils/buffer.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -181,9 +182,10 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
           // If last model, return error with all attempts
           if (isLastModel) {
             // Extract stdout/stderr from error object
+            // ✅ Memory-safe: Use safeStringConvert to limit size and prevent OOM
             const errorOutput = error as { stdout?: string | Buffer; stderr?: string | Buffer };
-            const stdout = errorOutput.stdout ? String(errorOutput.stdout).trim() : '';
-            const stderr = errorOutput.stderr ? String(errorOutput.stderr).trim() : errorMessage;
+            const stdout = safeStringConvert(errorOutput.stdout);
+            const stderr = safeStringConvert(errorOutput.stderr) || errorMessage;
 
             return {
               provider: 'gemini',
@@ -198,9 +200,10 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
           // If not 429, don't fallback
           if (!is429) {
             // Extract stdout/stderr from error object
+            // ✅ Memory-safe: Use safeStringConvert to limit size and prevent OOM
             const errorOutput = error as { stdout?: string | Buffer; stderr?: string | Buffer };
-            const stdout = errorOutput.stdout ? String(errorOutput.stdout).trim() : '';
-            const stderr = errorOutput.stderr ? String(errorOutput.stderr).trim() : errorMessage;
+            const stdout = safeStringConvert(errorOutput.stdout);
+            const stderr = safeStringConvert(errorOutput.stderr) || errorMessage;
 
             return {
               provider: 'gemini',
@@ -228,9 +231,10 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     // Extract stdout/stderr from error object
+    // ✅ Memory-safe: Use safeStringConvert to limit size and prevent OOM
     const errorOutput = error as { stdout?: string | Buffer; stderr?: string | Buffer };
-    const stdout = errorOutput.stdout ? String(errorOutput.stdout).trim() : '';
-    const stderr = errorOutput.stderr ? String(errorOutput.stderr).trim() : errorMessage;
+    const stdout = safeStringConvert(errorOutput.stdout);
+    const stderr = safeStringConvert(errorOutput.stderr) || errorMessage;
 
     return {
       provider: 'gemini',

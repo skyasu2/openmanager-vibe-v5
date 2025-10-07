@@ -13,6 +13,7 @@ import { validateQuery } from '../utils/validation.js';
 import { withRetry } from '../utils/retry.js';
 import { config } from '../config.js';
 import { withMemoryGuard } from '../middlewares/memory-guard.js';
+import { safeStringConvert } from '../utils/buffer.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -143,9 +144,10 @@ export async function queryCodex(query: string, onProgress?: ProgressCallback): 
       : errorMessage.slice(0, 200);
 
     // Extract stdout/stderr from error object (Node.js execFile error includes these)
+    // ✅ Memory-safe: Use safeStringConvert to limit size and prevent OOM
     const errorOutput = error as { stdout?: string | Buffer; stderr?: string | Buffer };
-    const stdout = errorOutput.stdout ? String(errorOutput.stdout).trim() : '';
-    const stderr = errorOutput.stderr ? String(errorOutput.stderr).trim() : errorMessage;
+    const stdout = safeStringConvert(errorOutput.stdout);
+    const stderr = safeStringConvert(errorOutput.stderr) || errorMessage;
 
     return {
       provider: 'codex',
