@@ -249,16 +249,20 @@ mcp__shadcn_ui__get_component_demo("button")
 1. **❌ Read로 500줄 이상 파일 전체 읽기**
    - ✅ 대신: Serena `get_symbols_overview()` + `find_symbol()`
 
-2. **❌ Vercel CLI 조회 명령어 사용**
+2. **❌ Serena 루트 디렉토리에서 skip_ignored_files 없이 사용**
+   - ✅ 대신: `skip_ignored_files: true` 추가 (48배 빠름)
+   - ✅ 또는: 특정 디렉토리 지정 (`relative_path: "src"`)
+
+3. **❌ Vercel CLI 조회 명령어 사용**
    - ✅ 대신: Vercel MCP (89배 빠름)
 
-3. **❌ WebSearch로 라이브러리 문서 찾기**
+4. **❌ WebSearch로 라이브러리 문서 찾기**
    - ✅ 대신: Context7 (100% 정확)
 
-4. **❌ UI 컴포넌트 복사 붙여넣기**
+5. **❌ UI 컴포넌트 복사 붙여넣기**
    - ✅ 대신: Shadcn-ui MCP (최신 버전)
 
-5. **❌ 복잡한 문제를 즉시 답변**
+6. **❌ 복잡한 문제를 즉시 답변**
    - ✅ 대신: Sequential-thinking (단계별 분석)
 
 ---

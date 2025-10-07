@@ -189,6 +189,35 @@ mcp__vercel__list_projects(teamId)
 mcp__vercel__get_deployment(deploymentId, teamId)
 ```
 
+### ⚡ Serena MCP 베스트 프랙티스 (필수)
+
+**문제**: 프로젝트 루트에서 79,637개 파일 스캔 시도 → 180초 타임아웃
+
+**해결**: `skip_ignored_files: true` 사용 → 1,639개만 스캔 (48배 빠름)
+
+```typescript
+// ❌ 잘못된 패턴 (타임아웃 발생)
+mcp__serena__list_dir({ relative_path: ".", recursive: false })
+
+// ✅ 올바른 패턴 (즉시 응답)
+mcp__serena__list_dir({
+  relative_path: ".",
+  recursive: false,
+  skip_ignored_files: true  // 필수!
+})
+
+// ✅ 특정 디렉토리 지정 (100배 빠름)
+mcp__serena__find_file({
+  file_mask: "*multi-ai*",
+  relative_path: "packages"  // 범위 제한
+})
+```
+
+**핵심 원칙**:
+- 루트 작업 시 `skip_ignored_files: true` 필수
+- 대규모 검색은 특정 디렉토리 지정 또는 Bash 사용
+- 재귀 검색 시에도 `skip_ignored_files: true` 권장
+
 ---
 
 ## 🎯 현재 상태 (2025-10-06)

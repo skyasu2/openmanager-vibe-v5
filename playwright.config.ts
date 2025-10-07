@@ -42,17 +42,12 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        // WSL 네이티브 Chromium 사용
+        // Playwright 자체 최신 Chromium 사용 (자동 선택)
         launchOptions: {
-          executablePath: '/usr/bin/chromium-browser',
           args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
-            '--disable-web-security',
             '--disable-dev-shm-usage',
-            '--disable-gpu',
-            '--no-first-run',
-            '--disable-default-apps',
           ],
         },
       },
