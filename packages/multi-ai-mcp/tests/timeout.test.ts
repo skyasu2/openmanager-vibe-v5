@@ -9,12 +9,12 @@ describe('timeout utilities', () => {
     });
 
     it('should detect medium queries', () => {
-      expect(detectQueryComplexity('a'.repeat(50))).toBe('medium');
-      expect(detectQueryComplexity('a'.repeat(199))).toBe('medium');
+      expect(detectQueryComplexity('a'.repeat(100))).toBe('medium');
+      expect(detectQueryComplexity('a'.repeat(300))).toBe('medium');
     });
 
     it('should detect complex queries', () => {
-      expect(detectQueryComplexity('a'.repeat(200))).toBe('complex');
+      expect(detectQueryComplexity('a'.repeat(301))).toBe('complex');
       expect(detectQueryComplexity('a'.repeat(1000))).toBe('complex');
     });
   });

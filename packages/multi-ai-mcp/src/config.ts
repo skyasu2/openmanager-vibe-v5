@@ -244,3 +244,4 @@ export function setConfig(newConfig: Partial<MultiAIConfig>): void {
       : config.retry,
   };
 }
+

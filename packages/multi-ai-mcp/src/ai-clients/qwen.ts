@@ -145,8 +145,9 @@ export async function queryQwen(
     };
   }
 
-  // Detect query complexity and use adaptive timeout (same logic as Codex)
-  const complexity = detectQueryComplexity(query);
+  // Detect query complexity and use adaptive timeout
+  // Pass planMode to detectQueryComplexity for accurate timeout selection
+  const complexity = detectQueryComplexity(query, planMode);
   const baseTimeout = getAdaptiveTimeout(complexity, config.qwen);
 
   try {
