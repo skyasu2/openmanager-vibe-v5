@@ -4,7 +4,7 @@
  * Environment variables:
  * - MULTI_AI_CWD: Working directory for AI CLI execution (default: process.cwd())
  * - MULTI_AI_MAX_BUFFER: Max buffer size for CLI output (default: 10MB)
- * - MULTI_AI_TIMEOUT: Unified timeout for all AIs (default: 300s, 5min for communication failure detection)
+ * - MULTI_AI_TIMEOUT: Unified timeout for all AIs (default: 600s, 10min for communication failure detection)
  * - MULTI_AI_ENABLE_PROGRESS: Enable progress notifications (default: true)
  * - MULTI_AI_DEBUG: Enable debug logging (default: false)
  * - MULTI_AI_MAX_RETRY_ATTEMPTS: Maximum retry attempts (default: 2)
@@ -109,21 +109,21 @@ export function getConfig(): MultiAIConfig {
     codex: {
       simple: parseIntWithValidation(
         process.env.MULTI_AI_TIMEOUT,
-        300000, // 5min unified timeout for communication failure detection
+        600000, // 10min unified timeout for communication failure detection
         1000, // 1s min
         600000, // 10min max
         'MULTI_AI_TIMEOUT'
       ),
       medium: parseIntWithValidation(
         process.env.MULTI_AI_TIMEOUT,
-        300000, // 5min unified timeout
+        600000, // 10min unified timeout
         1000,
         600000,
         'MULTI_AI_TIMEOUT'
       ),
       complex: parseIntWithValidation(
         process.env.MULTI_AI_TIMEOUT,
-        300000, // 5min unified timeout
+        600000, // 10min unified timeout
         1000,
         600000,
         'MULTI_AI_TIMEOUT'
@@ -132,21 +132,21 @@ export function getConfig(): MultiAIConfig {
     gemini: {
       simple: parseIntWithValidation(
         process.env.MULTI_AI_TIMEOUT,
-        300000, // 5min unified timeout
+        600000, // 10min unified timeout
         1000,
         600000,
         'MULTI_AI_TIMEOUT'
       ),
       medium: parseIntWithValidation(
         process.env.MULTI_AI_TIMEOUT,
-        300000, // 5min unified timeout
+        600000, // 10min unified timeout
         1000,
         600000,
         'MULTI_AI_TIMEOUT'
       ),
       complex: parseIntWithValidation(
         process.env.MULTI_AI_TIMEOUT,
-        300000, // 5min unified timeout
+        600000, // 10min unified timeout
         1000,
         600000,
         'MULTI_AI_TIMEOUT'
@@ -161,21 +161,21 @@ export function getConfig(): MultiAIConfig {
     qwen: {
       simple: parseIntWithValidation(
         process.env.MULTI_AI_TIMEOUT,
-        300000, // 5min unified timeout
+        600000, // 10min unified timeout
         1000,
         600000,
         'MULTI_AI_TIMEOUT'
       ),
       medium: parseIntWithValidation(
         process.env.MULTI_AI_TIMEOUT,
-        300000, // 5min unified timeout
+        600000, // 10min unified timeout
         1000,
         600000,
         'MULTI_AI_TIMEOUT'
       ),
       complex: parseIntWithValidation(
         process.env.MULTI_AI_TIMEOUT,
-        300000, // 5min unified timeout
+        600000, // 10min unified timeout
         1000,
         600000,
         'MULTI_AI_TIMEOUT'
@@ -184,7 +184,7 @@ export function getConfig(): MultiAIConfig {
     mcp: {
       requestTimeout: parseIntWithValidation(
         process.env.MULTI_AI_TIMEOUT,
-        300000, // 5min unified timeout
+        600000, // 10min unified timeout
         60000, // 1min min
         600000, // 10min max
         'MULTI_AI_TIMEOUT'

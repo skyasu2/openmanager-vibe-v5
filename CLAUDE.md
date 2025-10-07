@@ -62,11 +62,12 @@ mcp__multi-ai__getBasicHistory({ limit: 10 })
 
 **참고**: Multi-AI Verification Specialist 서브에이전트가 3-AI 교차검증을 자동 수행합니다.
 
-**타임아웃 (v3.5.0)**:
-- Codex: 60s/90s/**180s** (complex)
-- Gemini: **300s** (5분)
-- Qwen: **120s** (normal) / **300s** (plan mode)
-- MCP 전체: **360s** (6분)
+**타임아웃 (v3.5.1)** - 통합 타임아웃 시스템:
+- **기본값**: 600s (10분, 통신 두절 감지용)
+- **설정**: `MULTI_AI_TIMEOUT` 환경변수 (60s-600s)
+- **권장 쿼리**: 200자 이하 (응답 시간 50-70% 감소)
+- **Qwen OOM**: Bash wrapper 사용 권장 (`scripts/ai-subagents/qwen-wrapper.sh`)
+- **참고**: `packages/multi-ai-mcp/TIMEOUT_ANALYSIS.md` (근본 원인 분석)
 
 ### Bash CLI 대안 (MCP 불가 시만)
 
