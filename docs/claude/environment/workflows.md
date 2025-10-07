@@ -234,21 +234,68 @@ ls -la scripts/ai-subagents/
 ## 📊 사용량 모니터링
 
 ### Claude Code 사용량
+
+**기본 명령어**:
 ```bash
 # Claude Code 내장 사용량 확인
 /usage  # Max 플랜 한도 추적
 ```
+
+**상세 분석 도구 (npx)**:
+```bash
+# 1. ccusage - 일일/주간 토큰 사용량 상세 분석
+npx ccusage@latest
+# → 일별 토큰 사용량, 모델별 비용, 캐시 효율 등
+
+# 2. ccstatusline - Status Line 커스터마이징
+npx ccstatusline@latest
+# → 대화형 메뉴로 Status Line 항목 설정
+# → Model, Branch, Context, Token 등 표시/숨김 조정
+```
+
+**사용량 분석 예시**:
+```bash
+# 오늘 사용량 확인
+npx ccusage@latest | tail -5
+
+# 최근 7일 비용 계산
+npx ccusage@latest | grep "Total"
+
+# 캐시 효율성 확인
+npx ccusage@latest | grep "Cache"
+# → 90%+ 캐시 재사용 시 매우 우수
+```
+
+**Status Line 설정** (`.claude/settings.json`):
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "npx ccstatusline@latest",
+    "padding": 0
+  }
+}
+```
+
+**표시 항목 의미**:
+- **Model**: 사용 중인 AI 모델 (Sonnet 4.5 등)
+- **Branch**: Git 브랜치 (⎇ main)
+- **Git Status**: 변경된 파일 수 (+N,-N)
+- **Context**: 컨텍스트 윈도우 사용률 (%)
+- **Thinking**: 사고 과정 표시 (Tab으로 토글)
+- **In/Out/Cached**: 토큰 사용량
+- **Usage Alert**: 주간 한도 근접 경고
 
 ### AI 교차검증 성능
 ```bash
 # Performance log 확인
 tail -f logs/ai-perf/ai-perf-$(date +%F).log
 
-# 히스토리 확인 (Multi-AI MCP v1.2.0)
+# 히스토리 확인 (Multi-AI MCP v3.0.0)
 ls -lh packages/multi-ai-mcp/history/
 
 # 또는 MCP 도구로 조회
-mcp__multi_ai__getHistory({ limit: 10 })
+mcp__multi_ai__getBasicHistory({ limit: 10 })
 ```
 
 ## 🚀 배포 워크플로우

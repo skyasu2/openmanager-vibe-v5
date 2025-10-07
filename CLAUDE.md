@@ -29,6 +29,8 @@ git push                    # Vercel 자동 배포
 # Claude Code v2.0
 /rewind                     # Checkpoints 복원
 /usage                      # 사용량 확인
+npx ccusage@latest          # 상세 토큰 분석
+npx ccstatusline@latest     # Status Line 설정
 Esc Esc                     # 빠른 복원
 ```
 
