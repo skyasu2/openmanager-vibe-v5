@@ -66,13 +66,13 @@ async function executeQwenQuery(query: string, planMode: boolean, timeout: numbe
   }, 10000);
 
   try {
-    // Execute qwen CLI with -p flag (CLI argument method)
+    // Execute qwen CLI with Plan Mode (--approval-mode plan)
     // ✅ Security: Using execFile with argument array prevents command injection
-    // ✅ Performance: CLI argument method is faster than stdin (5.4s vs 5.6s)
-    // ✅ Consistency: Same pattern as Codex and Gemini
-    // ✅ Memory: 2GB heap managed at MCP server level (unified policy)
+    // ✅ Plan Mode: Prevents interactive prompts and OOM issues
+    // ✅ Performance: Plan Mode responds immediately without waiting for approval
+    // ✅ Memory: Prevents memory accumulation from waiting state
     const result = await withTimeout(
-      execFileAsync('qwen', ['-p', query], {
+      execFileAsync('qwen', ['--approval-mode', 'plan', '-p', query], {
         maxBuffer: config.maxBuffer,
         cwd: config.cwd
       }),

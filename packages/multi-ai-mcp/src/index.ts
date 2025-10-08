@@ -1,5 +1,5 @@
 /**
- * Multi-AI MCP Server v3.6.0
+ * Multi-AI MCP Server v3.7.0
  *
  * Pure infrastructure layer for AI communication
  * Integrates Codex, Gemini, and Qwen CLI tools for Claude Code
@@ -7,7 +7,8 @@
  *
  * v3.4.0: Unified 300s timeout for all AIs (communication failure detection)
  * v3.5.0: Added stderr passthrough for AI CLI warnings and error details
- * v3.6.0: Enhanced timeout safety margins (Codex 240s, Gemini/Qwen 420s)
+ * v3.6.0: Dynamic progress notification totals (Codex 240s, Gemini/Qwen 420s)
+ * v3.7.0: Qwen Plan Mode fix (--approval-mode plan) - resolves OOM issues
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -68,7 +69,7 @@ const createProgressCallback = (progressToken?: string): ProgressCallback => {
 const server = new Server(
   {
     name: 'multi-ai',
-    version: '3.6.0',
+    version: '3.7.0',
   },
   {
     capabilities: {
@@ -266,9 +267,9 @@ async function main() {
   await server.connect(transport);
 
   // Log server start (to stderr, not stdout)
-  console.error('Multi-AI MCP Server v3.6.0 running on stdio');
+  console.error('Multi-AI MCP Server v3.7.0 running on stdio');
   console.error('Available tools: queryCodex, queryGemini, queryQwen, getBasicHistory');
-  console.error('v3.6.0: Enhanced timeout safety margins (Codex 240s, Gemini/Qwen 420s)');
+  console.error('v3.7.0: Qwen Plan Mode fix (--approval-mode plan) - OOM issues resolved');
 }
 
 main().catch((error) => {
