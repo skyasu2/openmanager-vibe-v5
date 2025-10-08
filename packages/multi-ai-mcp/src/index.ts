@@ -24,6 +24,7 @@ import { queryGemini } from './ai-clients/gemini.js';
 import { queryQwen } from './ai-clients/qwen.js';
 import type { ProgressCallback } from './types.js';
 import { recordBasicHistory, getRecentBasicHistory } from './history/basic.js';
+import { config } from './config.js';
 
 /**
  * Progress callback factory for AI operations
@@ -42,12 +43,17 @@ const createProgressCallback = (progressToken?: string): ProgressCallback => {
     // Send MCP progress notification to prevent client timeout
     if (progressToken) {
       try {
+        // Dynamic total based on actual AI timeout settings
+        const totalSeconds = provider === 'codex'
+          ? Math.floor(config.codex.timeout / 1000)  // Codex: 240s
+          : Math.floor(config.gemini.timeout / 1000); // Gemini/Qwen: 420s
+
         server.notification({
           method: 'notifications/progress',
           params: {
             progressToken,
             progress: elapsedSeconds,
-            total: 120, // Estimated max seconds
+            total: totalSeconds,
           },
         });
       } catch (error) {
@@ -62,7 +68,7 @@ const createProgressCallback = (progressToken?: string): ProgressCallback => {
 const server = new Server(
   {
     name: 'multi-ai',
-    version: '3.5.0',
+    version: '3.6.0',
   },
   {
     capabilities: {
