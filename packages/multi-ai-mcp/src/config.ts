@@ -13,6 +13,11 @@
  * - MULTI_AI_MAX_RETRY_ATTEMPTS: Maximum retry attempts (default: 2)
  * - MULTI_AI_RETRY_BACKOFF_BASE: Retry backoff base in ms (default: 1000)
  *
+ * Phase 1 Environment Variables (v3.8.0):
+ * - MULTI_AI_PROGRESS_INTERVAL: Progress notification interval in ms (default: 10000, range: 1000-30000)
+ * - MULTI_AI_EARLY_RESPONSE: Send initial response immediately (default: false)
+ * - MULTI_AI_VERBOSE_PROGRESS: Enable verbose progress logging (default: false)
+ *
  * Timeout Philosophy (v1.6.1):
  * - Single timeout per AI (no complexity detection)
  * - Safe values based on P99 + large safety margin
@@ -64,6 +69,20 @@ interface MultiAIConfig {
     /** Enable debug logging to stderr */
     enabled: boolean;
   };
+  /** Progress notification configuration (v3.8.0) */
+  progress: {
+    /** Interval between progress notifications in milliseconds */
+    interval: number;
+  };
+  /** Early response configuration (v3.8.0) */
+  earlyResponse: {
+    /** Enable immediate initial response */
+    enabled: boolean;
+    /** Message to send in early response */
+    message: string;
+  };
+  /** Verbose progress logging (v3.8.0) */
+  verboseProgress: boolean;
 }
 
 /**
@@ -168,6 +187,20 @@ export function getConfig(): MultiAIConfig {
     debug: {
       enabled: process.env.MULTI_AI_DEBUG === 'true', // Default false
     },
+    progress: {
+      interval: parseIntWithValidation(
+        process.env.MULTI_AI_PROGRESS_INTERVAL,
+        10000, // 10s default
+        1000, // 1s min
+        30000, // 30s max
+        'MULTI_AI_PROGRESS_INTERVAL'
+      ),
+    },
+    earlyResponse: {
+      enabled: process.env.MULTI_AI_EARLY_RESPONSE === 'true', // Default false
+      message: '분석 시작... (작업 진행 중)',
+    },
+    verboseProgress: process.env.MULTI_AI_VERBOSE_PROGRESS === 'true', // Default false
   };
 }
 
@@ -200,5 +233,11 @@ export function setConfig(newConfig: Partial<MultiAIConfig>): void {
     retry: newConfig.retry
       ? { ...config.retry, ...newConfig.retry }
       : config.retry,
+    progress: newConfig.progress
+      ? { ...config.progress, ...newConfig.progress }
+      : config.progress,
+    earlyResponse: newConfig.earlyResponse
+      ? { ...config.earlyResponse, ...newConfig.earlyResponse }
+      : config.earlyResponse,
   };
 }

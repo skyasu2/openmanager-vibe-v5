@@ -1,7 +1,7 @@
 {
   "name": "@mcp/multi-ai",
-  "version": "3.6.0",
-  "description": "Multi-AI MCP Server v3.6.0 - Enhanced timeout safety margins (Codex 240s, Gemini/Qwen 420s)",
+  "version": "3.8.0",
+  "description": "Multi-AI MCP Server v3.8.0 - Environment variable control (PROGRESS_INTERVAL, EARLY_RESPONSE, VERBOSE_PROGRESS)",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {

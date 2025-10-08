@@ -1,5 +1,5 @@
 /**
- * Multi-AI MCP Server v3.7.0
+ * Multi-AI MCP Server v3.8.0
  *
  * Pure infrastructure layer for AI communication
  * Integrates Codex, Gemini, and Qwen CLI tools for Claude Code
@@ -9,6 +9,7 @@
  * v3.5.0: Added stderr passthrough for AI CLI warnings and error details
  * v3.6.0: Dynamic progress notification totals (Codex 240s, Gemini/Qwen 420s)
  * v3.7.0: Qwen Plan Mode fix (--approval-mode plan) - resolves OOM issues
+ * v3.8.0: Environment variable control (PROGRESS_INTERVAL, EARLY_RESPONSE, VERBOSE_PROGRESS)
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -41,6 +42,15 @@ const createProgressCallback = (progressToken?: string): ProgressCallback => {
     // Log to stderr (does not interfere with stdout MCP protocol)
     console.error(`[${provider.toUpperCase()}] ${status} (${elapsedSeconds}초)`);
 
+    // Verbose progress logging (v3.8.0)
+    if (config.verboseProgress) {
+      console.error(`[VERBOSE] progressToken: ${progressToken || 'none'}`);
+      console.error(`[VERBOSE] provider: ${provider}`);
+      console.error(`[VERBOSE] elapsed: ${elapsedSeconds}초`);
+      console.error(`[VERBOSE] config.progress.interval: ${config.progress.interval}ms`);
+      console.error(`[VERBOSE] config.earlyResponse.enabled: ${config.earlyResponse.enabled}`);
+    }
+
     // Send MCP progress notification to prevent client timeout
     if (progressToken) {
       try {
@@ -48,6 +58,11 @@ const createProgressCallback = (progressToken?: string): ProgressCallback => {
         const totalSeconds = provider === 'codex'
           ? Math.floor(config.codex.timeout / 1000)  // Codex: 240s
           : Math.floor(config.gemini.timeout / 1000); // Gemini/Qwen: 420s
+
+        if (config.verboseProgress) {
+          console.error(`[VERBOSE] total: ${totalSeconds}초`);
+          console.error(`[VERBOSE] progress: ${elapsedSeconds}/${totalSeconds}`);
+        }
 
         server.notification({
           method: 'notifications/progress',
@@ -57,6 +72,10 @@ const createProgressCallback = (progressToken?: string): ProgressCallback => {
             total: totalSeconds,
           },
         });
+
+        if (config.verboseProgress) {
+          console.error(`[VERBOSE] Progress notification sent successfully`);
+        }
       } catch (error) {
         // Progress notification is best-effort, don't fail on error
         console.error(`[Progress] Failed to send notification:`, error);
@@ -69,7 +88,7 @@ const createProgressCallback = (progressToken?: string): ProgressCallback => {
 const server = new Server(
   {
     name: 'multi-ai',
-    version: '3.7.0',
+    version: '3.8.0',
   },
   {
     capabilities: {
@@ -267,9 +286,14 @@ async function main() {
   await server.connect(transport);
 
   // Log server start (to stderr, not stdout)
-  console.error('Multi-AI MCP Server v3.7.0 running on stdio');
+  console.error('Multi-AI MCP Server v3.8.0 running on stdio');
   console.error('Available tools: queryCodex, queryGemini, queryQwen, getBasicHistory');
-  console.error('v3.7.0: Qwen Plan Mode fix (--approval-mode plan) - OOM issues resolved');
+  console.error('v3.8.0: Environment variable control (PROGRESS_INTERVAL, EARLY_RESPONSE, VERBOSE_PROGRESS)');
+
+  // Log environment variable settings
+  console.error(`[Config] progress.interval: ${config.progress.interval}ms`);
+  console.error(`[Config] earlyResponse.enabled: ${config.earlyResponse.enabled}`);
+  console.error(`[Config] verboseProgress: ${config.verboseProgress}`);
 }
 
 main().catch((error) => {

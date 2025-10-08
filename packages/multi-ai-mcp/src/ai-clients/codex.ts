@@ -25,18 +25,23 @@ const execFileAsync = promisify(execFile);
 async function executeCodexQuery(query: string, timeout: number, onProgress?: ProgressCallback): Promise<AIResponse> {
   const startTime = Date.now();
 
+  // Early response (v3.8.0): Send immediate initial response if enabled
+  if (config.earlyResponse.enabled && onProgress) {
+    onProgress('codex', config.earlyResponse.message, 0);
+  }
+
   // Progress notification: Starting
   if (onProgress) {
     onProgress('codex', 'Codex 실행 시작...', 0);
   }
 
-  // Progress notification interval (every 10 seconds)
+  // Progress notification interval (v3.8.0): Configurable interval
   const progressInterval = setInterval(() => {
     if (onProgress) {
       const elapsed = Date.now() - startTime;
       onProgress('codex', `Codex 작업 중... (${Math.floor(elapsed / 1000)}초)`, elapsed);
     }
-  }, 10000);
+  }, config.progress.interval);
 
   try {
     // Execute codex CLI (already installed and authenticated in WSL)

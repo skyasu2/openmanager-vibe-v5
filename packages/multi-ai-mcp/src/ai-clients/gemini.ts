@@ -30,18 +30,23 @@ async function executeGeminiQuery(
 ): Promise<AIResponse> {
   const startTime = Date.now();
 
+  // Early response (v3.8.0): Send immediate initial response if enabled
+  if (config.earlyResponse.enabled && onProgress) {
+    onProgress('gemini', config.earlyResponse.message, 0);
+  }
+
   // Progress notification: Starting
   if (onProgress) {
     onProgress('gemini', `Gemini (${model}) 사고 시작...`, 0);
   }
 
-  // Progress notification interval (every 10 seconds)
+  // Progress notification interval (v3.8.0): Configurable interval
   const progressInterval = setInterval(() => {
     if (onProgress) {
       const elapsed = Date.now() - startTime;
       onProgress('gemini', `Gemini (${model}) 분석 중... (${Math.floor(elapsed / 1000)}초)`, elapsed);
     }
-  }, 10000);
+  }, config.progress.interval);
 
   try {
     // Execute gemini CLI with model parameter (OAuth authenticated)

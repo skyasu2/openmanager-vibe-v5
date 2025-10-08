@@ -50,20 +50,25 @@ async function executeQwenQuery(query: string, planMode: boolean, timeout: numbe
   lastQwenQueryTime = Date.now();
   const startTime = Date.now();
 
+  // Early response (v3.8.0): Send immediate initial response if enabled
+  if (config.earlyResponse.enabled && onProgress) {
+    onProgress('qwen', config.earlyResponse.message, 0);
+  }
+
   // Progress notification: Starting
   if (onProgress) {
     const mode = planMode ? 'Plan' : 'Normal';
     onProgress('qwen', `Qwen ${mode} 모드 시작...`, 0);
   }
 
-  // Progress notification interval (every 10 seconds)
+  // Progress notification interval (v3.8.0): Configurable interval
   const progressInterval = setInterval(() => {
     if (onProgress) {
       const elapsed = Date.now() - startTime;
       const mode = planMode ? 'Plan' : 'Normal';
       onProgress('qwen', `Qwen ${mode} 실행 중... (${Math.floor(elapsed / 1000)}초)`, elapsed);
     }
-  }, 10000);
+  }, config.progress.interval);
 
   try {
     // Execute qwen CLI with Plan Mode (--approval-mode plan)
