@@ -38,16 +38,17 @@ log_error() {
 # Gemini 실행 함수
 execute_gemini() {
     local query="$1"
-    local timeout_seconds="${2:-30}"
+    local timeout_seconds="${2:-60}"
+    local model="${3:-gemini-2.5-pro}"
 
-    log_info "🟢 Gemini 실행 중 (타임아웃 ${timeout_seconds}초)..."
+    log_info "🟢 Gemini 실행 중 (모델: $model, 타임아웃 ${timeout_seconds}초)..."
 
     local start_time=$(date +%s)
     local output_file=$(mktemp)
     local exit_code=0
 
-    # Gemini 실행
-    if timeout "${timeout_seconds}s" gemini "$query" > "$output_file" 2>&1; then
+    # Gemini 실행 (모델 지정 필수)
+    if timeout "${timeout_seconds}s" gemini "$query" --model "$model" > "$output_file" 2>&1; then
         exit_code=0
     else
         exit_code=$?
@@ -80,15 +81,17 @@ usage() {
 ${CYAN}🟢 Gemini CLI Wrapper - 빠른 응답 최적화${NC}
 
 사용법:
-  $0 "쿼리 내용" [타임아웃(초)]
+  $0 "쿼리 내용" [타임아웃(초)] [모델]
 
 예시:
   $0 "아키텍처 검토"
-  $0 "SOLID 원칙 준수 여부 확인" 45
+  $0 "SOLID 원칙 준수 여부 확인" 90
+  $0 "성능 분석" 60 gemini-2.5-flash
 
 특징:
   ✅ 즉시 응답 (평균 5초)
-  ✅ 기본 타임아웃 30초 (충분)
+  ✅ 기본 타임아웃 60초 (안전 마진 2배)
+  ✅ 기본 모델: gemini-2.5-pro
   ✅ 성능 로깅 ($LOG_FILE)
 
 로그 위치:
@@ -104,7 +107,8 @@ main() {
     fi
 
     local query="$1"
-    local timeout="${2:-30}"
+    local timeout="${2:-60}"
+    local model="${3:-gemini-2.5-pro}"
 
     if ! command -v gemini >/dev/null 2>&1; then
         log_error "Gemini CLI가 설치되지 않았습니다"
@@ -116,7 +120,7 @@ main() {
     log_info "🚀 Gemini Wrapper 시작"
     echo ""
 
-    if execute_gemini "$query" "$timeout"; then
+    if execute_gemini "$query" "$timeout" "$model"; then
         echo ""
         log_success "✅ 완료"
         exit 0
