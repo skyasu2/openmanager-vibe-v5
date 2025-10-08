@@ -7,7 +7,21 @@
  * - Consistent protection across Codex, Gemini, Qwen
  */
 
-import { checkMemoryBeforeQuery, logMemoryUsage } from '../utils/memory.js';
+import {
+  checkMemoryAfterQuery,
+  checkMemoryBeforeQuery,
+  getMemoryUsage,
+  logMemoryUsage,
+  type MemoryHealthOptions,
+} from '../utils/memory.js';
+
+/**
+ * Optional configuration for memory guard behaviour
+ */
+export interface MemoryGuardOptions extends MemoryHealthOptions {
+  /** Enable post-query memory health check */
+  enablePostCheck?: boolean;
+}
 
 /**
  * Execute operation with memory protection
@@ -29,12 +43,22 @@ import { checkMemoryBeforeQuery, logMemoryUsage } from '../utils/memory.js';
  * });
  * ```
  */
-export async function withMemoryGuard<T>(provider: string, operation: () => Promise<T>): Promise<T> {
+export async function withMemoryGuard<T>(
+  provider: string,
+  operation: () => Promise<T>,
+  options: MemoryGuardOptions = {}
+): Promise<T> {
+  let beforeHeapPercent: number | undefined;
+
   try {
     // Pre-check: Reject query if memory is critical (>=90%)
     // Throws error with recommendation to wait 10-30 seconds
     try {
       checkMemoryBeforeQuery(provider);
+
+      if (options.enablePostCheck) {
+        beforeHeapPercent = getMemoryUsage().heapPercent;
+      }
     } catch (error) {
       // Log memory state when pre-check fails (diagnostic info)
       logMemoryUsage(`Pre-check failed ${provider}`);
@@ -43,6 +67,18 @@ export async function withMemoryGuard<T>(provider: string, operation: () => Prom
 
     // Execute operation
     const result = await operation();
+
+    if (options.enablePostCheck) {
+      const { enablePostCheck: _ignored, ...healthOptions } = options;
+      const isHealthy = checkMemoryAfterQuery(provider, beforeHeapPercent, healthOptions);
+
+      if (!isHealthy) {
+        console.warn(
+          `[Memory Guard] ${provider} completed with memory warnings. ` +
+          `Monitor queries or adjust thresholds if this persists.`
+        );
+      }
+    }
 
     return result;
   } finally {

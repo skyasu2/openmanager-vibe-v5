@@ -1,6 +1,6 @@
 # GEMINI.md
 
-> **최종 수정일**: 2025년 10월 6일
+> **최종 수정일**: 2025년 10월 8일
 
 Gemini CLI 사용 가이드 - Senior Code Architect 서브에이전트
 
@@ -8,7 +8,7 @@ Gemini CLI 사용 가이드 - Senior Code Architect 서브에이전트
 
 ## 🎯 핵심 원칙
 
-### 📊 2025 벤치마크 (Gemini 2.5 Flash v0.7.0)
+### 📊 2025 벤치마크 (Gemini 2.5 Flash v0.8.1)
 - **SWE-bench Verified**: 54% (48.9% → 54% 5% 개선)
 - **테스트 커버리지**: 98.2% (54/55 통과) - 프로젝트 실적
 - **문제 발견율**: 95%+ (3-AI 교차검증)
@@ -24,7 +24,7 @@ Gemini CLI 사용 가이드 - Senior Code Architect 서브에이전트
 
 ## 💊 CLI 사용 가이드 (WSL 환경)
 
-### 표준 사용법 (v0.7.0)
+### 표준 사용법 (v0.8.1)
 
 ```bash
 # 1. 위치 인자 (positional argument) - 권장

@@ -91,7 +91,7 @@ free -h
 
 # AI CLI 환경 확인
 which claude gemini qwen codex
-claude --version  # v2.0.1 확인
+claude --version  # v2.0.8 확인
 ```
 
 ## 📊 WSL 최적화 성과 (2025-09-30)

@@ -14,7 +14,7 @@ wsl
 cd /mnt/d/cursor/openmanager-vibe-v5
 
 # AI 도구 상태 확인
-claude --version  # v2.0.1
+claude --version  # v2.0.8
 which codex gemini qwen
 
 # MCP 서버 상태 확인

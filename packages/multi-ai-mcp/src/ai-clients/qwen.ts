@@ -158,19 +158,27 @@ export async function queryQwen(
     // ✅ Unified Memory Management: withMemoryGuard applies to all AIs
     // - Pre-check: Reject if heap >= 90%
     // - Post-log: Success/failure
-    const result = await withMemoryGuard('Qwen', async () => {
-      // Use retry mechanism for resilience
-      return withRetry(
-        () => executeQwenQuery(query, planMode, baseTimeout, onProgress),
-        {
-          maxAttempts: config.retry.maxAttempts,
-          backoffBase: config.retry.backoffBase,
-          onRetry: (attempt, error) => {
-            console.error(`[Qwen] Retry attempt ${attempt}: ${error.message}`);
-          },
-        }
-      );
-    });
+    const result = await withMemoryGuard(
+      'Qwen',
+      async () => {
+        // Use retry mechanism for resilience
+        return withRetry(
+          () => executeQwenQuery(query, planMode, baseTimeout, onProgress),
+          {
+            maxAttempts: config.retry.maxAttempts,
+            backoffBase: config.retry.backoffBase,
+            onRetry: (attempt, error) => {
+              console.error(`[Qwen] Retry attempt ${attempt}: ${error.message}`);
+            },
+          }
+        );
+      },
+      {
+        enablePostCheck: config.memory.enablePostCheck,
+        spikeThreshold: config.memory.spikeThreshold,
+        forceGcOnCritical: config.memory.forceGcOnCritical,
+      }
+    );
 
     return result;
 

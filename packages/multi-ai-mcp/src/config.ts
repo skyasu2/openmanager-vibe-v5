@@ -64,6 +64,15 @@ interface MultiAIConfig {
     /** Base delay in milliseconds for exponential backoff */
     backoffBase: number;
   };
+  /** Memory guard configuration */
+  memory: {
+    /** Enable post-query memory verification */
+    enablePostCheck: boolean;
+    /** Heap spike threshold (percentage points) */
+    spikeThreshold: number;
+    /** Force GC automatically on critical spikes */
+    forceGcOnCritical: boolean;
+  };
   /** Debug mode configuration */
   debug: {
     /** Enable debug logging to stderr */
@@ -98,6 +107,33 @@ function parseIntWithValidation(
   const value = parseInt(envVar || String(defaultValue), 10);
 
   if (isNaN(value)) {
+    throw new Error(
+      `Invalid ${varName}: "${envVar}" is not a valid number. Using default: ${defaultValue}`
+    );
+  }
+
+  if (value < min || value > max) {
+    throw new Error(
+      `Invalid ${varName}: ${value} is out of range [${min}, ${max}]. Using default: ${defaultValue}`
+    );
+  }
+
+  return value;
+}
+
+/**
+ * Parse and validate float from environment variable
+ */
+function parseFloatWithValidation(
+  envVar: string | undefined,
+  defaultValue: number,
+  min: number,
+  max: number,
+  varName: string
+): number {
+  const value = parseFloat(envVar || String(defaultValue));
+
+  if (Number.isNaN(value)) {
     throw new Error(
       `Invalid ${varName}: "${envVar}" is not a valid number. Using default: ${defaultValue}`
     );
@@ -184,6 +220,17 @@ export function getConfig(): MultiAIConfig {
         'MULTI_AI_RETRY_BACKOFF_BASE'
       ),
     },
+    memory: {
+      enablePostCheck: process.env.MULTI_AI_MEMORY_POST_CHECK !== 'false',
+      spikeThreshold: parseFloatWithValidation(
+        process.env.MULTI_AI_MEMORY_SPIKE_THRESHOLD,
+        20,
+        5,
+        50,
+        'MULTI_AI_MEMORY_SPIKE_THRESHOLD'
+      ),
+      forceGcOnCritical: process.env.MULTI_AI_MEMORY_FORCE_GC === 'true',
+    },
     debug: {
       enabled: process.env.MULTI_AI_DEBUG === 'true', // Default false
     },
@@ -233,6 +280,9 @@ export function setConfig(newConfig: Partial<MultiAIConfig>): void {
     retry: newConfig.retry
       ? { ...config.retry, ...newConfig.retry }
       : config.retry,
+    memory: newConfig.memory
+      ? { ...config.memory, ...newConfig.memory }
+      : config.memory,
     progress: newConfig.progress
       ? { ...config.progress, ...newConfig.progress }
       : config.progress,

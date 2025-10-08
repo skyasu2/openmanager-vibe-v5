@@ -132,33 +132,35 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
     // ✅ Unified Memory Management: withMemoryGuard applies to all AIs
     // - Pre-check: Reject if heap >= 90%
     // - Post-log: Success/failure
-    return await withMemoryGuard('Gemini', async () => {
-      // Try each model in fallback order
-      const models = config.gemini.models;
-      const errors: string[] = [];
+    return await withMemoryGuard(
+      'Gemini',
+      async () => {
+        // Try each model in fallback order
+        const models = config.gemini.models;
+        const errors: string[] = [];
 
-      for (let i = 0; i < models.length; i++) {
-        const model = models[i];
-        const isLastModel = i === models.length - 1;
+        for (let i = 0; i < models.length; i++) {
+          const model = models[i];
+          const isLastModel = i === models.length - 1;
 
-        try {
-          // Use retry mechanism for resilience (per model)
-          const result = await withRetry(
-            () => executeGeminiQuery(query, model, baseTimeout, onProgress),
-            {
-              maxAttempts: config.retry.maxAttempts,
-              backoffBase: config.retry.backoffBase,
-              onRetry: (attempt, error) => {
-                console.error(`[Gemini ${model}] Retry attempt ${attempt}: ${error.message}`);
-              },
-            }
-          );
+          try {
+            // Use retry mechanism for resilience (per model)
+            const result = await withRetry(
+              () => executeGeminiQuery(query, model, baseTimeout, onProgress),
+              {
+                maxAttempts: config.retry.maxAttempts,
+                backoffBase: config.retry.backoffBase,
+                onRetry: (attempt, error) => {
+                  console.error(`[Gemini ${model}] Retry attempt ${attempt}: ${error.message}`);
+                },
+              }
+            );
 
-          // Success
-          return result;
+            // Success
+            return result;
 
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
       
           // Check if 429 quota exceeded
           const is429 = errorMessage.toLowerCase().includes('429') ||
@@ -196,23 +198,29 @@ export async function queryGemini(query: string, onProgress?: ProgressCallback):
           }
 
           // If not 429, don't fallback
-          if (!is429) {
-            // ✅ DRY: Use centralized error handler
-            return createErrorResponse('gemini', error, startTime, shortError);
+            if (!is429) {
+              // ✅ DRY: Use centralized error handler
+              return createErrorResponse('gemini', error, startTime, shortError);
+            }
           }
         }
-      }
 
-      // Should not reach here, but handle just in case
-      return {
-        provider: 'gemini',
-        response: '',
-        stderr: undefined,
-        responseTime: Date.now() - startTime,
-        success: false,
-        error: 'Unexpected error in model fallback'
-      };
-    });
+        // Should not reach here, but handle just in case
+        return {
+          provider: 'gemini',
+          response: '',
+          stderr: undefined,
+          responseTime: Date.now() - startTime,
+          success: false,
+          error: 'Unexpected error in model fallback'
+        };
+      },
+      {
+        enablePostCheck: config.memory.enablePostCheck,
+        spikeThreshold: config.memory.spikeThreshold,
+        forceGcOnCritical: config.memory.forceGcOnCritical,
+      }
+    );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
 

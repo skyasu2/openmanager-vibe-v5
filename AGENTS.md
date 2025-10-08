@@ -8,7 +8,7 @@ Maintained for active Codex CLI usage in WSL2
 > **이 문서는 Codex CLI 설정 및 사용 지침의 공식 레퍼런스입니다.**
 > **OpenManager VIBE v5 Codex CLI 연동 안내**
 > **Language Policy**: 한국어 우선, 기술용어 영어 허용
-> **Last Updated**: 2025-10-05
+> **Last Updated**: 2025-10-08
 > **Environment**: Windows 11 + WSL2 (Ubuntu)
 > **다른 AI 도구**: `CLAUDE.md` (Claude Code/Multi-AI MCP), `GEMINI.md` (Gemini), `QWEN.md` (Qwen)
 >
@@ -47,7 +47,7 @@ npm run test     # Vitest (메인 설정)
 - **비용**: ChatGPT Plus $20/월 (Claude Max $200/월과 함께 사용)
 - **한도**: 30-150 메시지/5시간 (실사용량 기준)
 
-### 📊 2025 벤치마크 성능 (GPT-5 Codex v0.44.0)
+### 📊 2025 벤치마크 성능 (GPT-5 Codex v0.45.0)
 - **HumanEval**: 94% pass@1 (함수 단위 문제 해결 최강)
 - **SWE-bench Verified**: 74.5% (다중 파일 버그 수정)
 - **Code Refactoring**: 51.3% vs GPT-5 33.9%
@@ -61,11 +61,11 @@ npm run test     # Vitest (메인 설정)
    codex exec "Next.js 15 App Router 성능 병목 요약해줘"
    codex exec "src/components/**/*.tsx 파일 타입 안전성 진단"
    ```
-3. **`.codex/` 상태**: 현재 리포지터리에 설정 파일이 포함되어 있지 않습니다. 필요하면 아래 명령으로 초기화합니다.
+3. **`.codex/` 상태**: 현재 리포지터리에 설정 파일이 포함되어 있지 않습니다. 최초 인증이 필요하면 아래 명령으로 로그인합니다.
    ```bash
-   codex-cli init --project openmanager-vibe-v5 --korean --wsl
+   codex login --interactive  # 사용자별 설정은 ~/.codex/에 저장
    ```
-   초기화 후 생성된 설정 파일은 Git에 추적되지 않으므로, 공유가 필요하면 수동으로 커밋하세요.
+   프로젝트별 설정을 공유하려면 `~/.codex/` 하위 파일을 확인한 뒤 필요한 항목만 수동으로 커밋하세요.
 
 ## Codex CLI 역할 및 관련 도구
 
@@ -141,5 +141,6 @@ npm run test     # Vitest (메인 설정)
 - 사용하지 않는 절차나 수치는 과감히 삭제하고, 문서 하단에 업데이트 로그를 남깁니다.
 
 ## 업데이트 로그
+- **2025-10-08**: Codex CLI 버전 정보 0.45.0으로 갱신하고 Gemini CLI 0.8.1 업그레이드 반영.
 - **2025-10-05**: Codex CLI 전용 문서로 재정의, Wrapper 스크립트 v1.0.0 상세 정보 추가, 다른 AI 도구는 별도 문서로 분리.
 - **2025-10-04**: 리포지터리 실상에 맞춰 문서 전체 재작성, 가상 서브에이전트 및 오래된 통계 제거.

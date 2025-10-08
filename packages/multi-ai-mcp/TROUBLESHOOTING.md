@@ -275,8 +275,8 @@ Error: spawn qwen ENOENT
 #### Step 1: 설치 확인
 
 ```bash
-codex --version   # v0.44.0+
-gemini --version  # v0.7.0+
+codex --version   # v0.45.0+
+gemini --version  # v0.8.1+
 qwen --version    # v0.0.14+
 ```
 
@@ -290,13 +290,13 @@ echo $PATH | tr ':' '\n' | grep -E "codex|gemini|qwen"
 
 ```bash
 # Codex (ChatGPT Plus 필요)
-npm install -g @anthropic-ai/codex-cli
+npm install -g @openai/codex
 
 # Gemini (Google OAuth)
-npm install -g @google/generative-ai-cli
+npm install -g @google/gemini-cli
 
 # Qwen (무료)
-npm install -g qwen-cli
+npm install -g @qwen-code/qwen-code
 ```
 
 #### Step 4: 수동 테스트

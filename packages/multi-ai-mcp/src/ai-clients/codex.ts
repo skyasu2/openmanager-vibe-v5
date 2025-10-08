@@ -125,19 +125,27 @@ export async function queryCodex(query: string, onProgress?: ProgressCallback): 
     // ✅ Unified Memory Management: withMemoryGuard applies to all AIs
     // - Pre-check: Reject if heap >= 90%
     // - Post-log: Success/failure
-    const result = await withMemoryGuard('Codex', async () => {
-      // Use retry mechanism for resilience
-      return withRetry(
-        () => executeCodexQuery(query, baseTimeout, onProgress),
-        {
-          maxAttempts: config.retry.maxAttempts,
-          backoffBase: config.retry.backoffBase,
-          onRetry: (attempt, error) => {
-            console.error(`[Codex] Retry attempt ${attempt}: ${error.message}`);
-          },
-        }
-      );
-    });
+    const result = await withMemoryGuard(
+      'Codex',
+      async () => {
+        // Use retry mechanism for resilience
+        return withRetry(
+          () => executeCodexQuery(query, baseTimeout, onProgress),
+          {
+            maxAttempts: config.retry.maxAttempts,
+            backoffBase: config.retry.backoffBase,
+            onRetry: (attempt, error) => {
+              console.error(`[Codex] Retry attempt ${attempt}: ${error.message}`);
+            },
+          }
+        );
+      },
+      {
+        enablePostCheck: config.memory.enablePostCheck,
+        spikeThreshold: config.memory.spikeThreshold,
+        forceGcOnCritical: config.memory.forceGcOnCritical,
+      }
+    );
 
     return result;
 

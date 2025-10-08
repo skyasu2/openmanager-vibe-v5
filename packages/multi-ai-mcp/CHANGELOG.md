@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added ✨
+
+- **Post-query memory verification**: `withMemoryGuard()` now supports optional post-checks to detect 95%+ spikes or 20%+ increases and can force GC when configured.
+- **Memory utilities**: Added `checkMemoryAfterQuery` and `forceGarbageCollection` helpers with Vitest coverage.
+
+### Changed 🔄
+
+- Memory guard middleware accepts options derived from `config.memory` (`MULTI_AI_MEMORY_POST_CHECK`, `MULTI_AI_MEMORY_SPIKE_THRESHOLD`, `MULTI_AI_MEMORY_FORCE_GC`).
+
+---
+
 ## [3.1.0] - 2025-10-06
 
 ### Added ✨

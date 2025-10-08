@@ -143,3 +143,97 @@ export function checkMemoryBeforeQuery(provider: string): void {
     logMemoryUsage(`Pre-query ${provider}`);
   }
 }
+
+/**
+ * Options for post-query memory health checks
+ */
+export interface MemoryHealthOptions {
+  /** Heap spike threshold in percentage points (default: 20) */
+  spikeThreshold?: number;
+  /** Trigger GC automatically when heap exceeds critical threshold */
+  forceGcOnCritical?: boolean;
+}
+
+/**
+ * Force garbage collection when Node.js exposes `global.gc`
+ *
+ * Requires launching Node with `--expose-gc`
+ *
+ * @returns true if GC was triggered, false if unavailable
+ */
+export function forceGarbageCollection(): boolean {
+  const globalWithGc = global as typeof global & { gc?: () => void };
+
+  if (typeof globalWithGc.gc === 'function') {
+    console.warn('[Memory Guard] Forcing garbage collection...');
+
+    const before = getMemoryUsage();
+    globalWithGc.gc();
+    const after = getMemoryUsage();
+
+    console.warn(
+      `[Memory Guard] GC complete: ${before.heapPercent.toFixed(1)}% → ${after.heapPercent.toFixed(1)}%`
+    );
+
+    return true;
+  }
+
+  console.warn('[Memory Guard] GC not available (run Node with --expose-gc)');
+  return false;
+}
+
+/**
+ * Post-query memory verification (detect spikes and leaks)
+ *
+ * @param provider - AI provider name (for logging)
+ * @param beforeHeapPercent - Heap usage percentage before query
+ * @param options - Memory health options (spike threshold, GC behaviour)
+ * @returns true if memory remains healthy, false if spike detected
+ */
+export function checkMemoryAfterQuery(
+  provider: string,
+  beforeHeapPercent?: number,
+  options: MemoryHealthOptions = {}
+): boolean {
+  const mem = getMemoryUsage();
+  const criticalThreshold = parseFloat(process.env.MULTI_AI_MEMORY_CRITICAL_THRESHOLD || '95');
+  const spikeThresholdEnv = parseFloat(process.env.MULTI_AI_MEMORY_SPIKE_THRESHOLD || '20');
+  const spikeThreshold = Number.isFinite(options.spikeThreshold)
+    ? options.spikeThreshold!
+    : spikeThresholdEnv;
+
+  // Critical spike: immediately warn and optionally trigger GC
+  if (mem.heapPercent >= criticalThreshold) {
+    console.error(
+      `[Memory SPIKE] ${provider}: ${mem.heapPercent.toFixed(1)}% after query. ` +
+      `Consider reducing query complexity or forcing GC.`
+    );
+
+    const shouldForceGc =
+      options.forceGcOnCritical !== undefined
+        ? options.forceGcOnCritical
+        : process.env.MULTI_AI_MEMORY_FORCE_GC === 'true';
+
+    if (shouldForceGc) {
+      forceGarbageCollection();
+    }
+
+    return false;
+  }
+
+  // Large increase from baseline indicates potential leak
+  if (
+    typeof beforeHeapPercent === 'number' &&
+    Number.isFinite(beforeHeapPercent) &&
+    (mem.heapPercent - beforeHeapPercent) >= spikeThreshold
+  ) {
+    console.warn(
+      `[Memory LEAK?] ${provider}: +${(mem.heapPercent - beforeHeapPercent).toFixed(1)}% ` +
+      `(${beforeHeapPercent.toFixed(1)}% → ${mem.heapPercent.toFixed(1)}%).`
+    );
+
+    return false;
+  }
+
+  return true;
+}
