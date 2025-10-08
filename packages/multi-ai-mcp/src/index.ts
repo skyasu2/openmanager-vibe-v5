@@ -1,5 +1,5 @@
 /**
- * Multi-AI MCP Server v3.5.0
+ * Multi-AI MCP Server v3.6.0
  *
  * Pure infrastructure layer for AI communication
  * Integrates Codex, Gemini, and Qwen CLI tools for Claude Code
@@ -7,6 +7,7 @@
  *
  * v3.4.0: Unified 300s timeout for all AIs (communication failure detection)
  * v3.5.0: Added stderr passthrough for AI CLI warnings and error details
+ * v3.6.0: Enhanced timeout safety margins (Codex 240s, Gemini/Qwen 420s)
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -259,9 +260,9 @@ async function main() {
   await server.connect(transport);
 
   // Log server start (to stderr, not stdout)
-  console.error('Multi-AI MCP Server v3.5.0 running on stdio');
+  console.error('Multi-AI MCP Server v3.6.0 running on stdio');
   console.error('Available tools: queryCodex, queryGemini, queryQwen, getBasicHistory');
-  console.error('v3.5.0: stderr passthrough for AI CLI error transparency');
+  console.error('v3.6.0: Enhanced timeout safety margins (Codex 240s, Gemini/Qwen 420s)');
 }
 
 main().catch((error) => {
