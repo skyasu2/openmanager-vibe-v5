@@ -73,18 +73,22 @@ Esc Esc                     # 빠른 복원
 - ✅ 자동 재시도 (1회, 타임아웃 50% 증가)
 - ✅ 성공률 100% (3/3 AI 정상 동작 확인됨, 2025-10-10)
 
-### 서브에이전트 교차검증 (권장)
+### 교차검증 + Decision Log (권장) ⭐
 
 ```bash
-# Multi-AI Verification Specialist가 자동으로 3-AI 병렬 실행
-Task multi-ai-verification-specialist "LoginClient.tsx 교차검증"
+# 1. 3-AI 교차검증 (저장 없음)
+./scripts/ai-subagents/quick-cross-verify.sh "useState vs useReducer 선택 기준"
 
-# 서브에이전트가 자동 수행:
-# 1. 3개 Bash Wrapper 병렬 실행
-# 2. /tmp 파일 결과 수집
-# 3. 합의/충돌 검출
-# 4. docs/ai-cross-verification/ 문서화
+# 2. Claude가 터미널 출력 읽고 Decision Log 작성
+# → logs/ai-decisions/YYYY-MM-DD-[주제].md
+# → 각 AI 핵심 주장, 합의/충돌, 최종 결정, 실행 내역
 ```
+
+**Decision Log 구조**:
+- 📊 각 AI 의견 요약 (핵심만)
+- ⚖️ 합의점과 충돌점
+- 🎯 최종 결정과 근거
+- 📝 실행 내역
 
 ### ❌ MCP 방식 (제거됨)
 

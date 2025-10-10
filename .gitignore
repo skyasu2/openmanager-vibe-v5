@@ -130,7 +130,14 @@ npm-debug.log*
 .vscode/launch.json
 .claude/personal/
 .claude/private/
-**/logs/
+# logs 디렉토리 (ai-decisions 제외)
+**/logs/*
+!logs/ai-decisions/
+logs/ai-decisions/*
+!logs/ai-decisions/*.md
+!logs/ai-decisions/README.md
+!logs/ai-decisions/TEMPLATE.md
+
 dev.log
 combined.log
 ai-combined.log
@@ -393,7 +400,7 @@ eslint-result.json
 *~
 
 # Build artifacts and temporary files
-logs/
+# (logs는 133번 줄에서 설정됨 - ai-decisions 제외)
 test-results/
 playwright-report/
 .next/
