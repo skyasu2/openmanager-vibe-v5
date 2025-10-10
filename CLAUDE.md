@@ -76,19 +76,21 @@ Esc Esc                     # 빠른 복원
 ### 교차검증 + Decision Log (권장) ⭐
 
 ```bash
-# 1. 3-AI 교차검증 (저장 없음)
-./scripts/ai-subagents/quick-cross-verify.sh "useState vs useReducer 선택 기준"
+# 원스톱: 서브에이전트가 모두 수행
+Task multi-ai-verification-specialist "useState vs useReducer 선택 기준"
 
-# 2. Claude가 터미널 출력 읽고 Decision Log 작성
-# → logs/ai-decisions/YYYY-MM-DD-[주제].md
-# → 각 AI 핵심 주장, 합의/충돌, 최종 결정, 실행 내역
+# 서브에이전트가 자동으로:
+# 1. 3-AI 병렬 실행 (61초)
+# 2. 결과 분석 (합의/충돌 검출)
+# 3. Decision Log 작성
+#    → logs/ai-decisions/YYYY-MM-DD-[주제].md
 ```
 
-**Decision Log 구조**:
-- 📊 각 AI 의견 요약 (핵심만)
+**Decision Log 구조** (자동 생성):
+- 📊 각 AI 의견 요약 (3-5줄)
 - ⚖️ 합의점과 충돌점
 - 🎯 최종 결정과 근거
-- 📝 실행 내역
+- 📝 실행 내역 체크리스트
 
 ### ❌ MCP 방식 (제거됨)
 
