@@ -71,6 +71,7 @@ openmanager-*.png
 
 # backup directories
 .backups/
+backups/multi-ai-mcp-v3.8.0/
 
 # gemini dev tools cache
 .cache/gemini/

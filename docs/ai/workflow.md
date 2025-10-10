@@ -177,10 +177,12 @@ graph TB
 ## 💰 투자 대비 효과 (2025년)
 
 ### 월 투자 현황
-- **Claude Max**: $200/월 (메인 개발)
-- **ChatGPT Plus**: $20/월 (GPT-5 접근)
-- **Gemini + Qwen**: $0 (무료)
-- **총 투자**: $220/월
+- **Multi-AI 시스템**: $20/월
+  - Codex (ChatGPT Plus): $20/월
+  - Gemini (OAuth): 무료
+  - Qwen (OAuth): 무료
+- **메인 개발 환경**: Claude Max $200/월 (별도 구독)
+- **총 개발 도구 비용**: $220/월
 
 ### ROI 분석  
 - **실제 작업 가치**: $2,200+ (API 환산)
