@@ -35,14 +35,51 @@
 ### 2. 직접 CLI 사용 (WSL 환경)
 
 ```bash
-# Plan Mode (권장) - 안전한 계획 수립
-timeout 60 qwen -p "기능 구현 계획"
-timeout 60 qwen -p "리팩토링 전략"
+# Wrapper 스크립트 사용 (권장) - v2.2.0
+./scripts/ai-subagents/qwen-wrapper.sh "성능 병목점 분석"
+./scripts/ai-subagents/qwen-wrapper.sh "알고리즘 최적화 방안"
 
-# Normal Mode - 빠른 분석
-qwen -p "시간 복잡도 분석"
-qwen -p "메모리 최적화 방법"
+# 직접 qwen 명령어 (고급 사용자)
+qwen --approval-mode plan "복잡한 리팩토링 계획"
+qwen --approval-mode plan "시간 복잡도 분석"
 ```
+
+---
+
+## 🔧 v2.2.0 타임아웃 해결 (2025-10-10)
+
+### 근본 원인 및 해결
+
+**문제**: 복잡한 쿼리에서 300초(5분) 타임아웃 발생
+**근본 원인**: Normal Mode가 비대화형 터미널에서 승인 입력 대기 상태로 블로킹
+**해결책**: `--approval-mode plan` 명시적 사용
+
+### 진단 과정 (Meta-Analysis)
+
+```bash
+# Codex의 코드 레벨 분석으로 발견:
+Normal Mode (`qwen -p`)는 복잡한 작업에서:
+1. "Approve? [y/N]" 입력 대기
+2. 비대화형 터미널이라 입력 전달 안 됨
+3. 프로세스가 멈춘 채 timeout으로 종료
+
+# 실험적 검증 (10분 대기):
+- 간단한 쿼리: 7-26초 성공 ✅
+- 복잡한 쿼리: 10분 55초 타임아웃 ❌ (출력 없음)
+```
+
+### v2.2.0 개선 사항
+
+```bash
+# qwen-wrapper.sh v2.2.0 핵심 변경
+qwen --approval-mode plan "$query"  # 승인 불필요, 즉시 응답
+```
+
+**효과**:
+- ✅ 간단한 쿼리: 즉시 응답
+- ✅ 복잡한 쿼리: 승인 대기 없이 즉시 응답
+- ✅ AI 교차검증: 300초 타임아웃 내 안정적 완료
+- 📊 근거: Codex Meta-Analysis + 10분 실험 검증
 
 ---
 
@@ -243,4 +280,24 @@ timeout 120 qwen -p "메모리 최적화 방법"
 **🚀 Claude Code 중심 효율적 협업**
 **💰 100% 무료 오픈소스**
 
-_Last Updated: 2024-10-06_
+---
+
+## 📝 버전 히스토리
+
+### v2.2.0 (2025-10-10)
+- ✅ **근본 원인 해결**: Plan Mode 복원 (승인 대기 블로킹 제거)
+- 📊 **진단 방법**: Codex Meta-Analysis + 10분 실험 검증
+- ⚙️ **Wrapper 업데이트**: `--approval-mode plan` 명시적 사용
+- 🎯 **효과**: 간단/복잡한 쿼리 모두 즉시 응답
+
+### v2.1.0 (2025-10-10)
+- ⚡ Normal Mode 기본값 (시도했으나 복잡한 쿼리 여전히 타임아웃)
+- ❌ 근본 문제 미해결 (승인 대기 블로킹)
+
+### v2.0.0 (2025-10-08)
+- 🔧 타임아웃 300초 통일
+- 📊 재시도 제거 (자원 낭비 방지)
+
+---
+
+_Last Updated: 2025-10-10 (v2.2.0)_

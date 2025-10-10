@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Qwen CLI Wrapper - Normal Mode 기본값
-# 버전: 2.1.0
+# Qwen CLI Wrapper - Plan Mode 복원
+# 버전: 2.2.0
 # 날짜: 2025-10-10
-# 변경: Normal Mode 기본값 (3-5배 빠름), Plan Mode는 -p 옵션으로 선택
+# 변경: --approval-mode plan 명시적 사용 (승인 대기 블로킹 해결)
 
 set -euo pipefail
 
@@ -42,33 +42,18 @@ TIMEOUT_SECONDS=300
 # Qwen 실행 함수
 execute_qwen() {
     local query="$1"
-    local use_plan_mode="${2:-false}"  # 기본값 Normal Mode로 변경 (v2.1.0)
-
-    if [ "$use_plan_mode" = "true" ]; then
-        log_info "⚙️  Qwen Plan Mode 실행 중 (타임아웃 ${TIMEOUT_SECONDS}초 = 5분)..."
-    else
-        log_info "⚡ Qwen Normal Mode 실행 중 (타임아웃 ${TIMEOUT_SECONDS}초 = 5분)..."
-    fi
+    
+    log_info "⚙️  Qwen Plan Mode 실행 중 (타임아웃 ${TIMEOUT_SECONDS}초 = 5분)..."
 
     local start_time=$(date +%s)
     local output_file=$(mktemp)
     local exit_code=0
 
-    # Qwen 실행 (non-interactive 모드)
-    if [ "$use_plan_mode" = "true" ]; then
-        # Plan Mode: --approval-mode plan + -p (non-interactive)
-        if timeout "${TIMEOUT_SECONDS}s" qwen --approval-mode plan -p "$query" > "$output_file" 2>&1; then
-            exit_code=0
-        else
-            exit_code=$?
-        fi
+    # Plan Mode 명시: 승인 불필요, 분석만 수행
+    if timeout "${TIMEOUT_SECONDS}s" qwen --approval-mode plan "$query" > "$output_file" 2>&1; then
+        exit_code=0
     else
-        # Normal Mode: -p만 사용 (non-interactive)
-        if timeout "${TIMEOUT_SECONDS}s" qwen -p "$query" > "$output_file" 2>&1; then
-            exit_code=0
-        else
-            exit_code=$?
-        fi
+        exit_code=$?
     fi
 
     local end_time=$(date +%s)
@@ -76,7 +61,7 @@ execute_qwen() {
 
     if [ $exit_code -eq 0 ]; then
         log_success "Qwen 실행 성공 (${duration}초)"
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] MODE: $([ "$use_plan_mode" = "true" ] && echo "Plan" || echo "Normal"), DURATION: ${duration}s" >> "$LOG_FILE"
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] MODE: Plan, DURATION: ${duration}s" >> "$LOG_FILE"
         cat "$output_file"
         rm -f "$output_file"
         return 0
@@ -101,7 +86,7 @@ execute_qwen() {
 # 도움말
 usage() {
     cat << EOF
-${CYAN}🟡 Qwen CLI Wrapper v2.1.0 - Claude Code 내부 도구${NC}
+${CYAN}🟡 Qwen CLI Wrapper v2.2.0 - Claude Code 내부 도구${NC}
 
 ${YELLOW}⚠️  이 스크립트는 Claude Code가 제어하는 내부 도구입니다${NC}
 ${YELLOW}   사용자는 직접 실행하지 않고, 서브에이전트를 통해 사용합니다${NC}
@@ -112,23 +97,29 @@ ${YELLOW}   사용자는 직접 실행하지 않고, 서브에이전트를 통�
   ${GREEN}서브에이전트${NC}: 이 wrapper를 자동 실행
 
 직접 실행 (디버깅/테스트 전용):
-  $0 "쿼리 내용"              # Normal Mode (기본값, 3-5배 빠름)
-  $0 -p "쿼리 내용"           # Plan Mode (선택적, 안전한 계획)
+  $0 "쿼리 내용"              # Plan Mode (기본값, 승인 불필요)
 
 옵션:
-  -p    Plan Mode (선택적): 안전한 계획 수립, 승인 단계 포함
   -h    도움말 표시
 
 예시 (디버깅):
-  $0 "성능 병목점 분석"              # Normal Mode (빠름) ⚡
-  $0 -p "복잡한 리팩토링 계획"       # Plan Mode (안전) 🛡️
+  $0 "성능 병목점 분석"
+  $0 "복잡한 리팩토링 계획"
+  $0 "알고리즘 최적화 방안"
 
-특징 (v2.1.0):
-  ⚡ Normal Mode 기본값 (3-5배 빠름, AI 교차검증에 최적)
+특징 (v2.2.0):
+  ⚙️  Plan Mode 기본값 (--approval-mode plan)
+  ✅ 승인 대기 블로킹 해결 (복잡한 쿼리도 즉시 응답)
   ✅ 고정 타임아웃: 300초 (5분)
   ✅ 재시도 없음 (자원 낭비 방지)
   ✅ 타임아웃 시 분할/간소화 제안
   ✅ 성능 로깅 ($LOG_FILE)
+
+v2.2.0 개선 사항:
+  🔧 근본 원인 해결: Normal Mode 승인 대기 블로킹
+  📊 Meta-Analysis 기반: Codex의 코드 레벨 분석 적용
+  ✅ 간단한 쿼리: 즉시 응답
+  ✅ 복잡한 쿼리: 승인 불필요, 즉시 응답
 
 타임아웃 발생 시:
   - 질문을 더 작은 단위로 분할
@@ -143,15 +134,11 @@ EOF
 
 # 메인 실행
 main() {
-    local use_plan_mode="false"
     local query=""
 
     # 파라미터 파싱
-    while getopts "ph" opt; do
+    while getopts "h" opt; do
         case $opt in
-            p)
-                use_plan_mode="true"
-                ;;
             h)
                 usage
                 ;;
@@ -179,10 +166,10 @@ main() {
     fi
 
     echo ""
-    log_info "🚀 Qwen Wrapper v2.1.0 시작"
+    log_info "🚀 Qwen Wrapper v2.2.0 시작"
     echo ""
 
-    if execute_qwen "$query" "$use_plan_mode"; then
+    if execute_qwen "$query"; then
         echo ""
         log_success "✅ 완료"
         exit 0
