@@ -1,8 +1,9 @@
 #!/bin/bash
 
-# Codex CLI Wrapper - 적응형 타임아웃 및 재시도 로직
-# 버전: 1.0.0
-# 날짜: 2025-10-05
+# Codex CLI Wrapper - 단순화된 300초 타임아웃
+# 버전: 2.0.0
+# 날짜: 2025-10-10
+# 변경: 재시도 제거, 300초 통일, 타임아웃 시 분할/간소화 제안
 
 set -euo pipefail
 
@@ -40,54 +41,21 @@ log_error() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: $1" >> "$LOG_FILE"
 }
 
-# 복잡도 감지 함수 (쿼리 길이 기반)
-detect_query_complexity() {
-    local query="$1"
-    local query_length=${#query}
-
-    if [ "$query_length" -lt 50 ]; then
-        echo "simple"
-    elif [ "$query_length" -lt 200 ]; then
-        echo "medium"
-    else
-        echo "complex"
-    fi
-}
-
-# 적응형 타임아웃 설정
-get_adaptive_timeout() {
-    local complexity="$1"
-
-    case "$complexity" in
-        "simple")
-            echo 30
-            ;;
-        "medium")
-            echo 90
-            ;;
-        "complex")
-            echo 120
-            ;;
-        *)
-            echo 90
-            ;;
-    esac
-}
+# 고정 타임아웃 (5분)
+TIMEOUT_SECONDS=300
 
 # Codex 실행 함수
 execute_codex() {
     local query="$1"
-    local timeout_seconds="$2"
-    local attempt="$3"
 
-    log_info "🤖 Codex 실행 중 (시도 $attempt, 타임아웃 ${timeout_seconds}초)..."
+    log_info "🤖 Codex 실행 중 (타임아웃 ${TIMEOUT_SECONDS}초 = 5분)..."
 
     local start_time=$(date +%s)
     local output_file=$(mktemp)
     local exit_code=0
 
     # Codex 실행 (타임아웃 보호)
-    if timeout "${timeout_seconds}s" codex exec "$query" > "$output_file" 2>&1; then
+    if timeout "${TIMEOUT_SECONDS}s" codex exec "$query" > "$output_file" 2>&1; then
         exit_code=0
     else
         exit_code=$?
@@ -112,7 +80,13 @@ execute_codex() {
         rm -f "$output_file"
         return 0
     elif [ $exit_code -eq 124 ]; then
-        log_error "Codex 타임아웃 (${timeout_seconds}초 초과)"
+        log_error "Codex 타임아웃 (${TIMEOUT_SECONDS}초 = 5분 초과)"
+        echo ""
+        echo -e "${YELLOW}💡 타임아웃 해결 방법:${NC}"
+        echo "  1️⃣  질문을 더 작은 단위로 분할하세요"
+        echo "  2️⃣  질문을 더 간결하게 만드세요"
+        echo "  3️⃣  핵심 부분만 먼저 질문하세요"
+        echo ""
         rm -f "$output_file"
         return 124
     else
@@ -123,37 +97,10 @@ execute_codex() {
     fi
 }
 
-# 재시도 로직
-codex_with_retry() {
-    local query="$1"
-    local complexity=$(detect_query_complexity "$query")
-    local initial_timeout=$(get_adaptive_timeout "$complexity")
-
-    log_info "🔍 쿼리 복잡도: $complexity"
-    log_info "⏱️  초기 타임아웃: ${initial_timeout}초"
-
-    # 첫 번째 시도
-    if execute_codex "$query" "$initial_timeout" 1; then
-        return 0
-    fi
-
-    # 타임아웃 발생 시 재시도 (타임아웃 50% 증가)
-    local retry_timeout=$((initial_timeout * 3 / 2))
-    log_warning "🔄 재시도 (타임아웃 ${retry_timeout}초로 증가)..."
-
-    if execute_codex "$query" "$retry_timeout" 2; then
-        return 0
-    fi
-
-    # 재시도 실패
-    log_error "❌ 모든 시도 실패"
-    return 1
-}
-
 # 도움말
 usage() {
     cat << EOF
-${CYAN}🤖 Codex CLI Wrapper - 적응형 타임아웃 및 재시도 로직${NC}
+${CYAN}🤖 Codex CLI Wrapper v2.0.0 - 단순화된 300초 타임아웃${NC}
 
 사용법:
   $0 "쿼리 내용"
@@ -163,15 +110,15 @@ ${CYAN}🤖 Codex CLI Wrapper - 적응형 타임아웃 및 재시도 로직${NC}
   $0 "이 TypeScript 코드를 분석하고 개선점 3가지를 제시해주세요."
 
 특징:
-  ✅ 자동 복잡도 감지 (쿼리 길이 기반)
-  ✅ 적응형 타임아웃 (간단: 30초, 보통: 90초, 복잡: 120초)
-  ✅ 자동 재시도 (1회, 타임아웃 50% 증가)
+  ✅ 고정 타임아웃: 300초 (5분)
+  ✅ 재시도 없음 (자원 낭비 방지)
+  ✅ 타임아웃 시 분할/간소화 제안
   ✅ 성능 로깅 ($LOG_FILE)
 
-복잡도 기준:
-  - 간단 (< 50자): 30초 타임아웃
-  - 보통 (50-200자): 90초 타임아웃
-  - 복잡 (> 200자): 120초 타임아웃
+타임아웃 발생 시:
+  - 질문을 더 작은 단위로 분할
+  - 질문을 더 간결하게 수정
+  - 핵심 부분만 먼저 질문
 
 로그 위치:
   $LOG_FILE
@@ -203,10 +150,10 @@ main() {
 
     # 실행
     echo ""
-    log_info "🚀 Codex Wrapper 시작"
+    log_info "🚀 Codex Wrapper v2.0.0 시작"
     echo ""
 
-    if codex_with_retry "$query"; then
+    if execute_codex "$query"; then
         echo ""
         log_success "✅ 완료"
         exit 0

@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Qwen CLI Wrapper - Plan Mode 안정화
-# 버전: 1.1.0
-# 날짜: 2025-10-05
-# 개선: 파라미터 처리 및 Plan Mode 수정
+# Qwen CLI Wrapper - 단순화된 300초 타임아웃
+# 버전: 2.0.0
+# 날짜: 2025-10-10
+# 변경: 타임아웃 300초 통일, 타임아웃 시 분할/간소화 제안
 
 set -euo pipefail
 
@@ -36,18 +36,18 @@ log_error() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: $1" >> "$LOG_FILE"
 }
 
+# 고정 타임아웃 (5분)
+TIMEOUT_SECONDS=300
+
 # Qwen 실행 함수
 execute_qwen() {
     local query="$1"
     local use_plan_mode="${2:-true}"
-    local timeout_seconds
 
     if [ "$use_plan_mode" = "true" ]; then
-        timeout_seconds=90
-        log_info "⚙️  Qwen Plan Mode 실행 중 (타임아웃 ${timeout_seconds}초)..."
+        log_info "⚙️  Qwen Plan Mode 실행 중 (타임아웃 ${TIMEOUT_SECONDS}초 = 5분)..."
     else
-        timeout_seconds=45
-        log_info "🟡 Qwen 일반 모드 실행 중 (타임아웃 ${timeout_seconds}초)..."
+        log_info "🟡 Qwen 일반 모드 실행 중 (타임아웃 ${TIMEOUT_SECONDS}초 = 5분)..."
     fi
 
     local start_time=$(date +%s)
@@ -57,14 +57,14 @@ execute_qwen() {
     # Qwen 실행 (non-interactive 모드)
     if [ "$use_plan_mode" = "true" ]; then
         # Plan Mode: --approval-mode plan + -p (non-interactive)
-        if timeout "${timeout_seconds}s" qwen --approval-mode plan -p "$query" > "$output_file" 2>&1; then
+        if timeout "${TIMEOUT_SECONDS}s" qwen --approval-mode plan -p "$query" > "$output_file" 2>&1; then
             exit_code=0
         else
             exit_code=$?
         fi
     else
         # Normal Mode: -p만 사용 (non-interactive)
-        if timeout "${timeout_seconds}s" qwen -p "$query" > "$output_file" 2>&1; then
+        if timeout "${TIMEOUT_SECONDS}s" qwen -p "$query" > "$output_file" 2>&1; then
             exit_code=0
         else
             exit_code=$?
@@ -81,7 +81,13 @@ execute_qwen() {
         rm -f "$output_file"
         return 0
     elif [ $exit_code -eq 124 ]; then
-        log_error "Qwen 타임아웃 (${timeout_seconds}초 초과)"
+        log_error "Qwen 타임아웃 (${TIMEOUT_SECONDS}초 = 5분 초과)"
+        echo ""
+        echo -e "${YELLOW}💡 타임아웃 해결 방법:${NC}"
+        echo "  1️⃣  질문을 더 작은 단위로 분할하세요"
+        echo "  2️⃣  질문을 더 간결하게 만드세요"
+        echo "  3️⃣  핵심 부분만 먼저 질문하세요"
+        echo ""
         rm -f "$output_file"
         return 124
     else
@@ -95,13 +101,13 @@ execute_qwen() {
 # 도움말
 usage() {
     cat << EOF
-${CYAN}🟡 Qwen CLI Wrapper v1.1.0 - Plan Mode 안정화${NC}
+${CYAN}🟡 Qwen CLI Wrapper v2.0.0 - 단순화된 300초 타임아웃${NC}
 
 사용법:
   $0 [-p] "쿼리 내용"
 
 옵션:
-  -p    Plan Mode (권장): 90초 타임아웃, 안전한 계획 수립
+  -p    Plan Mode (권장): 안전한 계획 수립
   -h    도움말 표시
 
 예시:
@@ -109,10 +115,16 @@ ${CYAN}🟡 Qwen CLI Wrapper v1.1.0 - Plan Mode 안정화${NC}
   $0 "간단한 계산: 2+2"             # Normal Mode
 
 특징:
-  ✅ Plan Mode: --approval-mode plan, 90초 타임아웃
-  ✅ Normal Mode: 45초 타임아웃, 빠른 응답
+  ✅ 고정 타임아웃: 300초 (5분, Plan/Normal 통일)
+  ✅ 재시도 없음 (자원 낭비 방지)
+  ✅ 타임아웃 시 분할/간소화 제안
   ✅ Non-interactive: -p 플래그로 자동 실행
   ✅ 성능 로깅 ($LOG_FILE)
+
+타임아웃 발생 시:
+  - 질문을 더 작은 단위로 분할
+  - 질문을 더 간결하게 수정
+  - 핵심 부분만 먼저 질문
 
 로그 위치:
   $LOG_FILE
@@ -158,7 +170,7 @@ main() {
     fi
 
     echo ""
-    log_info "🚀 Qwen Wrapper v1.1.0 시작"
+    log_info "🚀 Qwen Wrapper v2.0.0 시작"
     echo ""
 
     if execute_qwen "$query" "$use_plan_mode"; then

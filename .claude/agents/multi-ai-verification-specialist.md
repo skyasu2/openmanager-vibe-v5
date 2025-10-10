@@ -1,15 +1,15 @@
 ---
 name: multi-ai-verification-specialist
-description: Multi-AI 교차검증 전문가 - "AI 교차검증" 명시적 요청 시에만 실행 (v4.2.0)
+description: Multi-AI 교차검증 전문가 - "AI 교차검증" 명시적 요청 시에만 실행 (v4.3.0)
 tools: Read, Write, Bash, Edit
 model: inherit
 ---
 
-# 🤖 Multi-AI Verification Specialist v4.2.0
+# 🤖 Multi-AI Verification Specialist v4.3.0
 
 **3-AI 교차검증 + Decision Log 자동화** - 실행부터 의사결정 기록까지 원스톱
 
-## 🎯 핵심 역할 (v4.2.0)
+## 🎯 핵심 역할 (v4.3.0)
 
 ### 원스톱 워크플로우
 
@@ -62,6 +62,9 @@ wait
 
 **서브에이전트 분석 작업**:
 1. **각 AI 출력 읽기** (Read /tmp 파일들)
+   - ✅ 성공: AI 응답 파싱
+   - ⏱️ 타임아웃: "타임아웃 발생 (5분 초과)" 표시
+   - ❌ 실패: "실행 오류" 표시
 2. **핵심 주장 추출** (3-5줄로 요약)
    - Codex: 실무적 문제점 + 해결책
    - Gemini: 아키텍처 패턴 + 개선점
@@ -71,6 +74,11 @@ wait
    - 부정: '문제', '이슈', '개선 필요'
 4. **충돌점 검출** (의견 불일치)
    - 예: '최적화 필요' vs '최적화 불필요'
+
+**부분 성공 모드** ⭐ NEW (v2.0.0):
+- **1-2개 AI만 성공해도 Decision Log 작성**
+- 타임아웃/실패 AI는 Decision Log에 표시
+- 최소 1개 AI 성공 필요 (0개 성공 시 전체 실패)
 
 ### Phase 3: Decision Log 작성 ⭐
 
@@ -140,22 +148,25 @@ wait
 ./scripts/ai-subagents/codex-wrapper.sh "이 버그의 근본 원인과 실용적 해결책"
 ```
 **특화**: 버그 수정, 디버깅, 빠른 프로토타입
-**타임아웃**: 적응형 (30-120s), 재시도 1회
+**타임아웃**: 300초 (5분), 재시도 없음
+**버전**: v2.0.0 (2025-10-10)
 
 ### 2. gemini-wrapper.sh (아키텍처 전문가)
 ```bash
 ./scripts/ai-subagents/gemini-wrapper.sh "SOLID 원칙 준수 여부 및 구조적 개선점"
 ```
 **특화**: SOLID 원칙, 디자인 패턴, 리팩토링 전략
-**타임아웃**: 60초
+**타임아웃**: 300초 (5분), 재시도 없음
+**버전**: v2.0.0 (2025-10-10)
 
 ### 3. qwen-wrapper.sh (성능 전문가)
 ```bash
 ./scripts/ai-subagents/qwen-wrapper.sh -p "성능 병목점 및 최적화 기회"
 ```
 **특화**: 알고리즘 최적화, 성능 분석, 확장성 설계
-**타임아웃**: 90초 (Plan Mode)
+**타임아웃**: 300초 (5분, Plan/Normal 통일), 재시도 없음
 **옵션**: `-p` = Plan Mode (권장)
+**버전**: v2.0.0 (2025-10-10)
 
 ---
 

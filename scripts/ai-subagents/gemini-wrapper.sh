@@ -1,8 +1,9 @@
 #!/bin/bash
 
-# Gemini CLI Wrapper - 빠른 응답 최적화
-# 버전: 1.0.0
-# 날짜: 2025-10-05
+# Gemini CLI Wrapper - 단순화된 300초 타임아웃
+# 버전: 2.0.0
+# 날짜: 2025-10-10
+# 변경: 타임아웃 300초 통일, 타임아웃 시 분할/간소화 제안
 
 set -euo pipefail
 
@@ -35,20 +36,22 @@ log_error() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: $1" >> "$LOG_FILE"
 }
 
+# 고정 타임아웃 (5분)
+TIMEOUT_SECONDS=300
+
 # Gemini 실행 함수
 execute_gemini() {
     local query="$1"
-    local timeout_seconds="${2:-60}"
-    local model="${3:-gemini-2.5-pro}"
+    local model="${2:-gemini-2.5-pro}"
 
-    log_info "🟢 Gemini 실행 중 (모델: $model, 타임아웃 ${timeout_seconds}초)..."
+    log_info "🟢 Gemini 실행 중 (모델: $model, 타임아웃 ${TIMEOUT_SECONDS}초 = 5분)..."
 
     local start_time=$(date +%s)
     local output_file=$(mktemp)
     local exit_code=0
 
     # Gemini 실행 (모델 지정 필수)
-    if timeout "${timeout_seconds}s" gemini "$query" --model "$model" > "$output_file" 2>&1; then
+    if timeout "${TIMEOUT_SECONDS}s" gemini "$query" --model "$model" > "$output_file" 2>&1; then
         exit_code=0
     else
         exit_code=$?
@@ -64,7 +67,13 @@ execute_gemini() {
         rm -f "$output_file"
         return 0
     elif [ $exit_code -eq 124 ]; then
-        log_error "Gemini 타임아웃 (${timeout_seconds}초 초과)"
+        log_error "Gemini 타임아웃 (${TIMEOUT_SECONDS}초 = 5분 초과)"
+        echo ""
+        echo -e "${YELLOW}💡 타임아웃 해결 방법:${NC}"
+        echo "  1️⃣  질문을 더 작은 단위로 분할하세요"
+        echo "  2️⃣  질문을 더 간결하게 만드세요"
+        echo "  3️⃣  핵심 부분만 먼저 질문하세요"
+        echo ""
         rm -f "$output_file"
         return 124
     else
@@ -78,21 +87,27 @@ execute_gemini() {
 # 도움말
 usage() {
     cat << EOF
-${CYAN}🟢 Gemini CLI Wrapper - 빠른 응답 최적화${NC}
+${CYAN}🟢 Gemini CLI Wrapper v2.0.0 - 단순화된 300초 타임아웃${NC}
 
 사용법:
-  $0 "쿼리 내용" [타임아웃(초)] [모델]
+  $0 "쿼리 내용" [모델]
 
 예시:
   $0 "아키텍처 검토"
-  $0 "SOLID 원칙 준수 여부 확인" 90
-  $0 "성능 분석" 60 gemini-2.5-flash
+  $0 "SOLID 원칙 준수 여부 확인"
+  $0 "성능 분석" gemini-2.5-flash
 
 특징:
-  ✅ 즉시 응답 (평균 5초)
-  ✅ 기본 타임아웃 60초 (안전 마진 2배)
+  ✅ 고정 타임아웃: 300초 (5분)
+  ✅ 재시도 없음 (자원 낭비 방지)
+  ✅ 타임아웃 시 분할/간소화 제안
   ✅ 기본 모델: gemini-2.5-pro
   ✅ 성능 로깅 ($LOG_FILE)
+
+타임아웃 발생 시:
+  - 질문을 더 작은 단위로 분할
+  - 질문을 더 간결하게 수정
+  - 핵심 부분만 먼저 질문
 
 로그 위치:
   $LOG_FILE
@@ -107,8 +122,7 @@ main() {
     fi
 
     local query="$1"
-    local timeout="${2:-60}"
-    local model="${3:-gemini-2.5-pro}"
+    local model="${2:-gemini-2.5-pro}"
 
     if ! command -v gemini >/dev/null 2>&1; then
         log_error "Gemini CLI가 설치되지 않았습니다"
@@ -117,10 +131,10 @@ main() {
     fi
 
     echo ""
-    log_info "🚀 Gemini Wrapper 시작"
+    log_info "🚀 Gemini Wrapper v2.0.0 시작"
     echo ""
 
-    if execute_gemini "$query" "$timeout" "$model"; then
+    if execute_gemini "$query" "$model"; then
         echo ""
         log_success "✅ 완료"
         exit 0
