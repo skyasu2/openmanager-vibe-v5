@@ -156,16 +156,20 @@ Codex의 역할은 중복이 아니라 **보조 성격**이며, Claude를 지원
 
 ## 📝 실행 내역
 
-### Phase 1: 즉시 실행 (오늘)
+### Phase 1: 즉시 실행 (완료)
 
 - [x] Decision Log 작성 완료 (이 문서)
-- [ ] CLAUDE.md 역할 설명 개선
-  - Claude: "메인 개발자" → "Project Orchestrator + 최종 결정자"
-  - 각 AI 책임 범위 명확화
-- [ ] AGENTS.md 문서 동기화 (Wrapper 버전 정보)
-- [ ] Codex 호출 정책 문서화
-  - 트리거: "AI 교차검증", "3-AI 교차검증" 등
-  - 조건: 복잡한 버그, 아키텍처 결정, 성능 이슈
+- [x] CLAUDE.md 역할 설명 개선
+  - "AI 교차검증 전용" 명시
+  - 일반 개발 = Claude Code 메인 개발자
+  - 교차검증 시 = 4-AI 협업 활성화
+- [x] AGENTS.md 문서 동기화 (Wrapper 버전 정보)
+  - Codex Wrapper v1.0.0 → v2.0.0
+  - Gemini/Qwen도 v2.0.0 반영
+  - 300초 타임아웃, 재시도 제거 명시
+- [x] Codex 호출 정책 문서화
+  - 트리거: "AI 교차검증", "3-AI 교차검증" 명시적 키워드
+  - 조건: 복잡한 버그, 아키텍처 결정, 성능 이슈, 기술 선택
 
 ### Phase 2: 향후 계획 (2주 내)
 

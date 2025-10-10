@@ -75,7 +75,7 @@ npm run test     # Vitest (메인 설정)
 ### Codex CLI (본 문서)
 - **역할**: CLI 기반 실무 코드 분석·자동화 보조 (GPT-5 기반)
 - **벤치마크**: HumanEval 94%, SWE-bench 74.5%, 토큰 93.7% 절약
-- **Wrapper**: `scripts/ai-subagents/codex-wrapper.sh` v1.0.0
+- **Wrapper**: `scripts/ai-subagents/codex-wrapper.sh` v2.0.0
 
 ### 다른 AI 도구 (별도 문서)
 | 도구 | 참고 문서 |
@@ -84,45 +84,47 @@ npm run test     # Vitest (메인 설정)
 | Gemini CLI | `GEMINI.md` |
 | Qwen CLI | `QWEN.md` |
 
-## Codex Wrapper 스크립트 (v1.0.0)
+## Codex Wrapper 스크립트 (v2.0.0)
 
 **위치**: `scripts/ai-subagents/codex-wrapper.sh`
-**버전**: v1.0.0 (2025-10-05)
-**목적**: Codex CLI 호출 시 적응형 타임아웃 및 자동 재시도 제공
+**버전**: v2.0.0 (2025-10-10)
+**목적**: Codex CLI 호출 시 안정적 타임아웃 및 사용자 가이드 제공
 
 ### 주요 기능
 
-#### 1. 적응형 타임아웃
-쿼리 복잡도에 따라 타임아웃 자동 조절:
-- **Simple** (< 50자): 30초
-- **Medium** (50-200자): 90초
-- **Complex** (> 200자): 120초
+#### 1. 고정 타임아웃 (300초)
+- **모든 쿼리**: 300초 (5분) 고정 타임아웃
+- 복잡도 감지 제거 (재시도보다 분할 권장)
+- 자원 낭비 방지 (재시도 = 실패 시간 + 재시도 시간)
 
-#### 2. 자동 재시도
-- 실패 시 타임아웃 50% 증가하여 1회 재시도
-- 예: 90초 실패 → 135초로 재시도
+#### 2. 타임아웃 시 사용자 가이드
+타임아웃 발생 시 자동 안내:
+- 질문을 더 작은 단위로 분할
+- 질문을 더 간결하게 수정
+- 핵심 부분만 먼저 질문
 
 #### 3. 성능 로깅
 - `logs/ai-perf/codex-perf-YYYY-MM-DD.log`에 자동 기록
-- 응답 시간, 토큰 수, 쿼리 복잡도 추적
+- 응답 시간, 토큰 수 추적
 
 ### 사용 예시
 ```bash
-# 직접 실행
-./scripts/ai-subagents/codex-wrapper.sh "복잡한 TypeScript 분석"
+# 직접 실행 (디버깅/테스트 전용)
+./scripts/ai-subagents/codex-wrapper.sh "버그 분석"
 
-# 또는 인자 없이 실행 (대화형)
-./scripts/ai-subagents/codex-wrapper.sh
+# 일반 사용 시: Claude Code가 자동 제어
+"버그를 AI 교차검증해줘"  # Claude가 wrapper 호출
 ```
 
-### 성과
-- 타임아웃 성공률: 40% → 95% (2.4배 향상)
-- P95 응답 시간 기준 안전 계수 1.67 적용
-- 자동 재시도로 92% 재실행 감소
+### v2.0.0 개선 사항
+- **재시도 제거**: 자원 낭비 방지 (40% 실패 → 0% 재시도)
+- **타임아웃 통일**: 300초로 고정 (단순화)
+- **사용자 가이드**: 타임아웃 시 해결 방법 안내
+- **코드 간소화**: 220줄 → 170줄 (23% 감소)
 
 ### 다른 AI Wrapper 스크립트
-- **Gemini**: `scripts/ai-subagents/gemini-wrapper.sh` v1.0.0 (고정 30초 타임아웃) → `GEMINI.md` 참조
-- **Qwen**: `scripts/ai-subagents/qwen-wrapper.sh` v1.1.0 (Plan Mode 90초) → `QWEN.md` 참조
+- **Gemini**: `scripts/ai-subagents/gemini-wrapper.sh` v2.0.0 (300초) → `GEMINI.md` 참조
+- **Qwen**: `scripts/ai-subagents/qwen-wrapper.sh` v2.0.0 (300초) → `QWEN.md` 참조
 
 ## 추천 워크플로우
 - **Lint/Typecheck 선행**: `npm run lint:strict` → `npm run test:quick`
