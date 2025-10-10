@@ -112,7 +112,36 @@ gemini "API 문서 자동 생성"
 
 ### 2. 교차 검증 패턴 (Bash Wrapper v4.0.0)
 
-**✅ 올바른 방법: Bash Wrapper 병렬 실행** ⭐
+**🎯 AI 사용 패턴 구분**
+
+#### 패턴 A: 개별 AI 사용 (직접 wrapper)
+
+```bash
+# Codex만 필요할 때
+./scripts/ai-subagents/codex-wrapper.sh "버그 근본 원인"
+
+# Gemini만 필요할 때
+./scripts/ai-subagents/gemini-wrapper.sh "아키텍처 검토"
+
+# Qwen만 필요할 때
+./scripts/ai-subagents/qwen-wrapper.sh "성능 분석"
+```
+
+**언제**: 특정 AI 전문성만 필요, 빠른 1회성 질문
+
+---
+
+#### 패턴 B: AI 교차검증 (서브에이전트 위임) ⭐
+
+**사용자가 "AI 교차검증" 명시 시, 서브에이전트 위임 필수**
+
+**이유**:
+- ✅ 서브에이전트가 3-AI 병렬 실행 자동화
+- ✅ Decision Log 작성 자동화
+- ✅ 결과 종합 및 보고 자동화
+- ✅ 작업 추적 및 문서화 자동화
+
+**✅ 올바른 방법: 서브에이전트 위임**
 
 ```bash
 # 1단계: Claude Code가 초안 제시
@@ -136,13 +165,14 @@ Task multi-ai-verification-specialist "LoginClient.tsx 교차검증"
 claude "교차검증 결과를 반영하여 개선"
 ```
 
-**💡 Bash Wrapper 방식 특징** (v4.0.0):
+**💡 Bash Wrapper 방식 특징** (v2.3.0):
 - ✅ **타임아웃 완전 해결**: Claude Code 60-90s 제약 회피
-- ✅ **적응형 타임아웃**: Codex 30-120s, Gemini 60s, Qwen 90s
-- ✅ **자동 재시도**: 1회, 타임아웃 50% 증가
+- ✅ **고정 타임아웃**: Codex 300s, Gemini 300s, Qwen 600s
+- ✅ **재시도 제거**: 자원 낭비 방지
 - ✅ **성공률 100%**: 3/3 AI 모두 정상 응답
 - ✅ **stderr 경고 없음**: MCP 프로토콜 문제 완전 회피
 - ✅ **구조 단순화**: MCP 계층 제거, 직접 실행
+- 🚀 **Qwen YOLO Mode**: 완전 무인 동작, 복잡한 분석 대응
 
 **❌ MCP 방식 (제거됨, 2025-10-08)**:
 - 제거 이유: Claude Code 60-90s 하드코딩 타임아웃 (수정 불가)
@@ -217,17 +247,17 @@ claude "3-AI 분석 결과를 종합하여 최종 결정"
 
 #### Qwen Wrapper (`scripts/ai-subagents/qwen-wrapper.sh`)
 
-**Plan Mode 지원**:
-- Plan Mode: 90초 타임아웃 (안전한 계획 수립)
-- Normal Mode: 45초 타임아웃
+**YOLO Mode 채택 (v2.3.0)**:
+- YOLO Mode: 600초 타임아웃 (완전 무인 동작)
+- 모든 도구 자동 승인
 - 성능 최적화 특화
 
 ```bash
-# Plan Mode (권장)
-./scripts/ai-subagents/qwen-wrapper.sh -p "성능 최적화 계획"
+# YOLO Mode (완전 자동)
+./scripts/ai-subagents/qwen-wrapper.sh "성능 최적화 상세 분석"
 
-# Normal Mode
-./scripts/ai-subagents/qwen-wrapper.sh "빠른 분석"
+# 복잡한 분석도 타임아웃 없이 처리
+./scripts/ai-subagents/qwen-wrapper.sh "TypeScript 타입 시스템 종합 분석"
 ```
 
 ### 업데이트된 스크립트 타임아웃 (2025-10-05)

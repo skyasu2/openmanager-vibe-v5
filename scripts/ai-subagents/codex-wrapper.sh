@@ -48,6 +48,12 @@ TIMEOUT_SECONDS=300
 execute_codex() {
     local query="$1"
 
+    # 1인 개발자 환경 컨텍스트 자동 추가
+    local context="**당신의 관점**: 1인 개발자 실용성 - 보수적이되 대기업 운영 관점(kill-switch, watchdog, idle alarm 등) 불필요. ROI 중심 판단."
+    query="$context
+
+$query"
+
     log_info "🤖 Codex 실행 중 (타임아웃 ${TIMEOUT_SECONDS}초 = 5분)..."
 
     local start_time=$(date +%s)
