@@ -141,76 +141,94 @@ wait
 
 ---
 
-## 🔧 Bash Wrapper 도구 사용법
+## 🔧 Bash Wrapper (Claude Code 내부 도구)
 
-### 1. codex-wrapper.sh (실무 전문가)
-```bash
-./scripts/ai-subagents/codex-wrapper.sh "이 버그의 근본 원인과 실용적 해결책"
-```
-**특화**: 버그 수정, 디버깅, 빠른 프로토타입
-**타임아웃**: 300초 (5분), 재시도 없음
-**버전**: v2.0.0 (2025-10-10)
+**⚠️ 중요**: Wrapper 스크립트는 **Claude Code가 제어하는 내부 도구**입니다.
+- **사용자**: "AI 교차검증" 키워드로 요청만 하면 됨
+- **Claude**: 자동으로 서브에이전트 호출
+- **서브에이전트**: Wrapper를 자동 실행
 
-### 2. gemini-wrapper.sh (아키텍처 전문가)
-```bash
-./scripts/ai-subagents/gemini-wrapper.sh "SOLID 원칙 준수 여부 및 구조적 개선점"
-```
-**특화**: SOLID 원칙, 디자인 패턴, 리팩토링 전략
-**타임아웃**: 300초 (5분), 재시도 없음
-**버전**: v2.0.0 (2025-10-10)
+### Wrapper 개요
 
-### 3. qwen-wrapper.sh (성능 전문가)
+| Wrapper | 특화 | 타임아웃 | 버전 |
+|---------|------|----------|------|
+| **codex-wrapper.sh** | 실무 버그 수정, 디버깅 | 300초 (5분) | v2.0.0 |
+| **gemini-wrapper.sh** | SOLID 원칙, 아키텍처 | 300초 (5분) | v2.0.0 |
+| **qwen-wrapper.sh** | 성능 최적화, 알고리즘 | 300초 (5분) | v2.0.0 |
+
+### 공통 특징
+- ✅ 타임아웃 300초 통일 (재시도 없음)
+- ✅ 타임아웃 시 분할/간소화 제안
+- ✅ 성능 로깅 (logs/ai-perf/)
+- ✅ Claude Code가 자동 제어
+
+### 직접 실행 (디버깅/테스트만)
 ```bash
-./scripts/ai-subagents/qwen-wrapper.sh -p "성능 병목점 및 최적화 기회"
+# Codex (실무)
+./scripts/ai-subagents/codex-wrapper.sh "버그 분석"
+
+# Gemini (아키텍처)
+./scripts/ai-subagents/gemini-wrapper.sh "SOLID 검토"
+
+# Qwen (성능)
+./scripts/ai-subagents/qwen-wrapper.sh -p "성능 분석"
 ```
-**특화**: 알고리즘 최적화, 성능 분석, 확장성 설계
-**타임아웃**: 300초 (5분, Plan/Normal 통일), 재시도 없음
-**옵션**: `-p` = Plan Mode (권장)
-**버전**: v2.0.0 (2025-10-10)
+**참고**: 일반 사용 시 위 명령어 직접 실행 불필요
 
 ---
 
-## 📊 실전 예시 (v4.2.0)
+## 📊 실전 예시 (v4.3.0)
 
-**사용자 요청**: "useState vs useReducer 선택 기준을 AI 교차검증해줘"
+### 사용자 워크플로우 (간단)
 
-**실행 과정** (v4.2.0):
+**사용자 입력**:
+```
+useState vs useReducer 선택 기준을 AI 교차검증해줘
+```
 
-1. **Phase 1: 3-AI 병렬 실행** (61초)
-   ```bash
-   TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-   ./scripts/ai-subagents/codex-wrapper.sh "useState vs useReducer 실무 관점" > /tmp/codex-$TIMESTAMP.txt &
-   ./scripts/ai-subagents/gemini-wrapper.sh "useState vs useReducer 아키텍처" > /tmp/gemini-$TIMESTAMP.txt &
-   ./scripts/ai-subagents/qwen-wrapper.sh -p "useState vs useReducer 성능" > /tmp/qwen-$TIMESTAMP.txt &
-   wait
-   ```
+**Claude Code 자동 처리**:
+1. "AI 교차검증" 키워드 감지
+2. `Task multi-ai-verification-specialist` 자동 호출
+3. 서브에이전트가 3-AI 실행 → 분석 → Decision Log 작성
+4. 사용자에게 결과 보고
 
-2. **Phase 2: 결과 분석** (서브에이전트가 자동 수행)
-   - Codex: "단순→useState, 복잡→useReducer"
-   - Gemini: "useReducer는 SoC 원칙 실현"
-   - Qwen: "useReducer가 렌더링 최적화 유리"
-   - 합의: "단순은 useState, 복잡은 useReducer"
-   - 충돌: "복잡함"의 정의 다름
+**사용자 출력**:
+```
+✅ Decision Log 작성 완료
+📁 logs/ai-decisions/2025-10-10-useState-vs-useReducer.md
 
-3. **Phase 3: Decision Log 작성** (자동)
-   ```
-   Write logs/ai-decisions/2025-10-10-useState-vs-useReducer.md
-   ```
-   - 각 AI 의견 3-5줄 요약
-   - 합의/충돌 명확히 기술
-   - 최종 결정: "3가지 신호 중 1개면 useReducer"
-   - 실행 내역: 체크리스트
+🎯 최종 결정: 3가지 신호 기준 수립
+✅ 합의: 단순→useState, 복잡→useReducer
+⚠️ 충돌: "복잡함"의 기준 (각 AI 시각 다름)
+💡 실행: 가이드라인 문서화 완료
+```
 
-4. **사용자 보고**:
-   ```
-   ✅ Decision Log 작성 완료
-   📁 logs/ai-decisions/2025-10-10-useState-vs-useReducer.md
+---
 
-   🎯 최종 결정: 3가지 신호 기준 수립
-   ✅ 합의: 단순→useState, 복잡→useReducer
-   ⚠️ 충돌: "복잡함"의 기준 (각 AI 시각 다름)
-   💡 실행: 가이드라인 문서화 완료
-   ```
+### 내부 실행 과정 (참고용)
+
+**Phase 1: 3-AI 병렬 실행** (서브에이전트가 자동 수행):
+```bash
+# 서브에이전트가 자동 실행 (사용자 직접 실행 불필요)
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+./scripts/ai-subagents/codex-wrapper.sh "useState vs useReducer 실무 관점" > /tmp/codex-$TIMESTAMP.txt &
+./scripts/ai-subagents/gemini-wrapper.sh "useState vs useReducer 아키텍처" > /tmp/gemini-$TIMESTAMP.txt &
+./scripts/ai-subagents/qwen-wrapper.sh -p "useState vs useReducer 성능" > /tmp/qwen-$TIMESTAMP.txt &
+wait
+```
+
+**Phase 2: 결과 분석** (서브에이전트가 자동 수행):
+- Codex: "단순→useState, 복잡→useReducer"
+- Gemini: "useReducer는 SoC 원칙 실현"
+- Qwen: "useReducer가 렌더링 최적화 유리"
+- 합의: "단순은 useState, 복잡은 useReducer"
+- 충돌: "복잡함"의 정의 다름
+
+**Phase 3: Decision Log 작성** (서브에이전트가 자동 수행):
+- 파일: `logs/ai-decisions/2025-10-10-useState-vs-useReducer.md`
+- 각 AI 의견 3-5줄 요약
+- 합의/충돌 명확히 기술
+- 최종 결정 및 실행 체크리스트
 
 ---
 
