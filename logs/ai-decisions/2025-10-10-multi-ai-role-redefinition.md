@@ -173,10 +173,15 @@ Codex의 역할은 중복이 아니라 **보조 성격**이며, Claude를 지원
 
 ### Phase 2: 향후 계획 (2주 내)
 
+- [x] **Qwen 타임아웃 개선** (v2.1.0) ⚡
+  - Normal Mode 기본값 (3-5배 빠름)
+  - 간결한 쿼리로 26초 성공 확인
+  - 쿼리 작성 팁 CLAUDE.md 추가
+- [x] **Claude Code 직접 호출 패턴** 문서화
+  - CLAUDE.md에 Bash 직접 호출 예시 추가
+  - 병렬 실행 패턴 추가
 - [ ] 서브에이전트 설명 업데이트 (.claude/agents/)
-- [ ] Multi-AI Verification Specialist 업데이트
-  - 역할: Claude 지휘 하 3-AI 조율
-  - 책임: 교차검증 실행, 합의/충돌 분석, Decision Log 작성
+  - Multi-AI Verification Specialist 쿼리 간소화 로직
 - [ ] 복잡한 작업 워크플로우 시범 적용 (1-2건)
 - [ ] 성과 측정 및 피드백 수집
 
@@ -184,7 +189,7 @@ Codex의 역할은 중복이 아니라 **보조 성격**이며, Claude를 지원
 
 - [ ] 최적 패턴 확립 (단순 vs 복잡 작업 기준)
 - [ ] 문서 최종 정리 (역할/워크플로우/성과)
-- [ ] Qwen 타임아웃 문제 해결 (Wrapper 개선)
+- [ ] Qwen 쿼리 자동 간소화 (서브에이전트 로직)
 
 ---
 

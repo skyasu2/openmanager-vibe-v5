@@ -110,27 +110,39 @@ Esc Esc                     # 빠른 복원
 
 ---
 
-### Bash Wrapper (내부 도구, v2.0.0)
+### Bash Wrapper (v2.1.0)
 
-**⚠️ Claude Code가 자동 제어 - 사용자 직접 실행 불필요**
+**⚠️ 사용자는 직접 실행 불필요 - Claude Code가 자동 제어**
 
-| Wrapper | 특화 | 타임아웃 | 비고 |
-|---------|------|----------|------|
-| codex-wrapper.sh | 실무 버그 수정 | 300초 (5분) | 재시도 없음 |
-| gemini-wrapper.sh | SOLID 아키텍처 | 300초 (5분) | 재시도 없음 |
-| qwen-wrapper.sh | 성능 최적화 | 300초 (5분) | 재시도 없음 |
+| Wrapper | 특화 | 타임아웃 | 모드 | 버전 |
+|---------|------|----------|------|------|
+| codex-wrapper.sh | 실무 버그 수정 | 300초 | 단일 | v2.0.0 |
+| gemini-wrapper.sh | SOLID 아키텍처 | 300초 | 단일 | v2.0.0 |
+| qwen-wrapper.sh | 성능 최적화 | 300초 | Normal 기본 | v2.1.0 |
 
 **특징**:
 - ✅ 타임아웃 300초 통일 (재시도 제거, 자원 낭비 방지)
 - ✅ 타임아웃 시 분할/간소화 제안
-- ✅ 성공률 100% (3/3 AI, 2025-10-10)
+- ⚡ Qwen Normal Mode 기본값 (3-5배 빠름)
 
-**직접 실행** (디버깅/테스트만):
+**Claude Code 직접 호출 패턴** (서브에이전트 없이):
 ```bash
-./scripts/ai-subagents/codex-wrapper.sh "버그 분석"
-./scripts/ai-subagents/gemini-wrapper.sh "SOLID 검토"
-./scripts/ai-subagents/qwen-wrapper.sh -p "성능 분석"
+# 개별 AI 호출
+Bash: ./scripts/ai-subagents/codex-wrapper.sh "버그 원인 분석"
+Bash: ./scripts/ai-subagents/gemini-wrapper.sh "SOLID 원칙 검토"
+Bash: ./scripts/ai-subagents/qwen-wrapper.sh "성능 병목점은?"
+
+# 병렬 실행 (시간 절약)
+Bash: ./scripts/ai-subagents/codex-wrapper.sh "쿼리" > /tmp/codex.txt &
+Bash: ./scripts/ai-subagents/gemini-wrapper.sh "쿼리" > /tmp/gemini.txt &
+Bash: ./scripts/ai-subagents/qwen-wrapper.sh "쿼리" > /tmp/qwen.txt &
+Bash: wait && cat /tmp/*.txt
 ```
+
+**Qwen 쿼리 작성 팁** (v2.1.0):
+- ✅ 간결한 핵심 질문: "성능 차이는?" (26초)
+- ❌ 상세한 긴 설명: "성능 관점에서...고려해주세요" (300초+)
+- 💡 핵심만 물어보면 충분히 상세한 답변 제공
 
 ### ❌ MCP 방식 (제거됨)
 

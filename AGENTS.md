@@ -124,7 +124,7 @@ npm run test     # Vitest (메인 설정)
 
 ### 다른 AI Wrapper 스크립트
 - **Gemini**: `scripts/ai-subagents/gemini-wrapper.sh` v2.0.0 (300초) → `GEMINI.md` 참조
-- **Qwen**: `scripts/ai-subagents/qwen-wrapper.sh` v2.0.0 (300초) → `QWEN.md` 참조
+- **Qwen**: `scripts/ai-subagents/qwen-wrapper.sh` v2.1.0 (Normal Mode 기본) → `QWEN.md` 참조
 
 ## 추천 워크플로우
 - **Lint/Typecheck 선행**: `npm run lint:strict` → `npm run test:quick`
@@ -146,6 +146,7 @@ npm run test     # Vitest (메인 설정)
 - 사용하지 않는 절차나 수치는 과감히 삭제하고, 문서 하단에 업데이트 로그를 남깁니다.
 
 ## 업데이트 로그
+- **2025-10-10**: Codex Wrapper v2.0.0 반영 (타임아웃 300초, 재시도 제거), Qwen v2.1.0 참조 추가.
 - **2025-10-08**: Codex CLI 버전 정보 0.45.0으로 갱신하고 Gemini CLI 0.8.1 업그레이드 반영.
 - **2025-10-05**: Codex CLI 전용 문서로 재정의, Wrapper 스크립트 v1.0.0 상세 정보 추가, 다른 AI 도구는 별도 문서로 분리.
 - **2025-10-04**: 리포지터리 실상에 맞춰 문서 전체 재작성, 가상 서브에이전트 및 오래된 통계 제거.
