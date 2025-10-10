@@ -1,0 +1,28 @@
+{
+  "timestamp": "2025-10-06T08:28:04.019Z",
+  "query": "Gemini fallback: Pro→Flash-Exp→Flash. Rate architecture, UX, stability (1-10). One improvement. 100 chars max.",
+  "mode": {
+    "codex": false,
+    "gemini": true,
+    "qwen": false,
+    "qwenPlanMode": false
+  },
+  "results": {
+    "gemini": {
+      "provider": "gemini",
+      "response": "Arch: 9, UX: 7, Stability: 8. Improve: Stabilize interactive CLI mode to fix timeout issues.",
+      "responseTime": 19060,
+      "success": true
+    }
+  },
+  "synthesis": {
+    "consensus": [],
+    "conflicts": [],
+    "totalTime": 19060,
+    "successRate": 1
+  },
+  "metadata": {
+    "version": "1.8.1",
+    "environment": "development"
+  }
+}

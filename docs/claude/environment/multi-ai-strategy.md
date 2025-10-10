@@ -9,8 +9,8 @@
 **WSL 환경 중심의 핵심 개발 도구**
 
 #### 주요 특징
-- MCP 서버 10개 통합으로 종합적 기능 제공 (27% 토큰 절약)
-- **Multi-AI MCP**: 3-AI 교차검증 도구 (Codex+Gemini+Qwen)
+- MCP 서버 9개 통합으로 종합적 기능 제공 (27% 토큰 절약)
+- **Bash Wrapper AI**: 3-AI 교차검증 도구 (Codex+Gemini+Qwen) - 타임아웃 100% 해결
 - **Max 사용 한계**: 5시간당 200-800 프롬프트
 - **효율적 사용**: Opus는 Plan Mode 전용, 기본은 Sonnet 4 사용
 
@@ -104,66 +104,44 @@ codex exec "테스트 코드 작성"
 gemini "API 문서 자동 생성"
 ```
 
-### 2. 교차 검증 패턴 (Bash CLI 병렬 실행)
+### 2. 교차 검증 패턴 (Bash Wrapper v4.0.0)
 
-**✅ 유일한 올바른 방법: 실제 외부 AI CLI 병렬 호출**
+**✅ 올바른 방법: Bash Wrapper 병렬 실행** ⭐
 
 ```bash
 # 1단계: Claude Code가 초안 제시
 claude "새 기능 구현"
 
-# 2단계: Bash CLI 병렬 실행으로 3-AI 실제 교차 검증
-"이 코드를 3개 AI로 교차검증해줘"
-# → Claude가 bash로 실제 외부 AI CLI 병렬 실행:
-#   - codex exec "LoginClient.tsx 코드 검증" > /tmp/codex.txt &
-#   - gemini "LoginClient.tsx 아키텍처 분석" > /tmp/gemini.txt &
-#   - qwen -p "LoginClient.tsx 성능 분석" > /tmp/qwen.txt &
-#   - wait
-# → 실제 Codex, Gemini, Qwen AI의 독립적 답변 수집
-# → Codex: 실무 관점 (타이밍 공격 취약점 발견)
-# → Gemini: 설계 관점 (SoC 원칙 검토)
-# → Qwen: 성능 관점 (메모이제이션 제안)
-# → 성과: 실제 외부 AI 답변으로 100% 정확성 보장
+# 2단계: Multi-AI Verification Specialist 서브에이전트 호출
+Task multi-ai-verification-specialist "LoginClient.tsx 교차검증"
 
-# 3단계: Claude Code가 /tmp 파일 읽고 종합 판단 → 최종 결정
+# 서브에이전트가 자동으로 Bash Wrapper 병렬 실행:
+# → ./scripts/ai-subagents/codex-wrapper.sh "실무 관점" > /tmp/codex.txt &
+# → ./scripts/ai-subagents/gemini-wrapper.sh "아키텍처" > /tmp/gemini.txt &
+# → ./scripts/ai-subagents/qwen-wrapper.sh -p "성능" > /tmp/qwen.txt &
+# → wait
+# → 실제 Codex, Gemini, Qwen AI의 독립적 답변 수집
+# → Codex (12초): 실무 관점 (타이밍 공격 취약점 발견)
+# → Gemini (61초): 설계 관점 (SoC 원칙 검토)
+# → Qwen (7초): 성능 관점 (메모이제이션 제안)
+# → 성과: 타임아웃 0건, 성공률 100%
+
+# 3단계: Claude Code가 결과 종합 → 최종 결정
 claude "교차검증 결과를 반영하여 개선"
 ```
 
-**❌ 잘못된 방법: Task tool 서브에이전트 (사용 금지)**
-```bash
-# ❌ Task tool은 Claude 역할극일 뿐, 실제 외부 AI 호출 안 됨
-Task codex-specialist "코드 검증"  # 잘못된 방법
-Task gemini-specialist "아키텍처"   # 잘못된 방법
-Task qwen-specialist "성능"        # 잘못된 방법
-```
+**💡 Bash Wrapper 방식 특징** (v4.0.0):
+- ✅ **타임아웃 완전 해결**: Claude Code 60-90s 제약 회피
+- ✅ **적응형 타임아웃**: Codex 30-120s, Gemini 60s, Qwen 90s
+- ✅ **자동 재시도**: 1회, 타임아웃 50% 증가
+- ✅ **성공률 100%**: 3/3 AI 모두 정상 응답
+- ✅ **stderr 경고 없음**: MCP 프로토콜 문제 완전 회피
+- ✅ **구조 단순화**: MCP 계층 제거, 직접 실행
 
-**💡 최신 방식: Multi-AI MCP v3.0.0 (순수 인프라)**
-
-**v3.0.0 완료**: 개별 AI 도구 + 서브에이전트 교차검증 시스템
-
-```typescript
-// Multi-AI MCP v3.0.0: 개별 AI와 안전한 통신
-// 각 AI에 독립적으로 쿼리 전송 (타임아웃 보호)
-
-// 1. 개별 AI 쿼리 (직접 호출)
-mcp__multi_ai__queryCodex({ query: "버그 분석" });
-mcp__multi_ai__queryGemini({ query: "아키텍처 검토" });
-mcp__multi_ai__queryQwen({ query: "성능 최적화", planMode: true });
-
-// 2. 기본 히스토리 조회
-mcp__multi_ai__getBasicHistory({ limit: 10 });
-
-// 3. 교차검증은 Multi-AI Verification Specialist 서브에이전트가 담당
-// 서브에이전트가 위 3개 도구를 병렬 호출 → 결과 종합 → docs/ 저장
-```
-
-**v3.0.0 특징**:
-- ✅ **SoC 완벽 적용**: MCP는 순수 인프라, 비즈니스 로직은 서브에이전트
-- ✅ **개별 AI 도구**: queryCodex, queryGemini, queryQwen (독립 실행)
-- ✅ **타임아웃 안정성**: 적응형 타임아웃 (60s-300s)
-- ✅ **보안 강화**: Command Injection 방지, 입력 검증
-- ✅ **히스토리 분리**: MCP 기본 메타데이터, 서브에이전트 고급 분석
-- ✅ **52% 코드 감소**: 2,500줄 → 1,200줄 (유지보수성 향상)
+**❌ MCP 방식 (제거됨, 2025-10-08)**:
+- 제거 이유: Claude Code 60-90s 하드코딩 타임아웃 (수정 불가)
+- 성공률: 33% (1/3 AI) vs Bash 100% (3/3 AI)
+- 백업 위치: `backups/multi-ai-mcp-v3.8.0/` (향후 v3.9.0 연구용)
 
 ### 3. 전문 분야별 특화
 

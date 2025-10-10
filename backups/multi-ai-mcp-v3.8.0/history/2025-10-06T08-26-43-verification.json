@@ -1,0 +1,28 @@
+{
+  "timestamp": "2025-10-06T08:26:43.063Z",
+  "query": "Fallback system evaluation: 3-tier model switching (Pro→Flash-Exp→Flash) with immediate error handling. Rate architecture, UX, stability (1-10 scale). One improvement suggestion. Keep it under 150 chars.",
+  "mode": {
+    "codex": false,
+    "gemini": false,
+    "qwen": true,
+    "qwenPlanMode": false
+  },
+  "results": {
+    "qwen": {
+      "provider": "qwen",
+      "response": "Architecture: 8/10 - Solid fallback design. UX: 7/10 - Could be smoother. Stability: 9/10 - Robust error handling. \nSuggestion: Add user feedback during model switching.",
+      "responseTime": 7257,
+      "success": true
+    }
+  },
+  "synthesis": {
+    "consensus": [],
+    "conflicts": [],
+    "totalTime": 7257,
+    "successRate": 1
+  },
+  "metadata": {
+    "version": "1.8.1",
+    "environment": "development"
+  }
+}

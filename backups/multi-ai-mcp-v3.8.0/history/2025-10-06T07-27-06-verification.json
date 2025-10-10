@@ -1,0 +1,28 @@
+{
+  "timestamp": "2025-10-06T07:27:06.024Z",
+  "query": "Multi-AI MCP v2.1.0 Gemini fallback 테스트. \"OK\"만 간단히 답변하세요.",
+  "mode": {
+    "codex": false,
+    "gemini": true,
+    "qwen": false,
+    "qwenPlanMode": false
+  },
+  "results": {
+    "gemini": {
+      "provider": "gemini",
+      "response": "OK",
+      "responseTime": 12167,
+      "success": true
+    }
+  },
+  "synthesis": {
+    "consensus": [],
+    "conflicts": [],
+    "totalTime": 12167,
+    "successRate": 1
+  },
+  "metadata": {
+    "version": "1.8.1",
+    "environment": "development"
+  }
+}

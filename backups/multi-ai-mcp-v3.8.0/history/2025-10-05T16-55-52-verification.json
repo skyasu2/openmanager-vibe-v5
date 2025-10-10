@@ -1,0 +1,43 @@
+{
+  "timestamp": "2025-10-05T16:55:52.100Z",
+  "query": "다음 TypeScript 코드를 분석해주세요:\n\n```typescript\nfunction calculateSum(a: number, b: number): number {\n  return a + b;\n}\n```\n\n각 AI는 다음을 평가해주세요:\n1. 코드 품질 점수 (10점 만점)\n2. 개선 제안 사항\n3. 장단점",
+  "mode": {
+    "codex": true,
+    "gemini": true,
+    "qwen": true,
+    "qwenPlanMode": false
+  },
+  "results": {
+    "codex": {
+      "provider": "codex",
+      "response": "",
+      "responseTime": 0,
+      "success": false,
+      "error": "Query contains dangerous characters"
+    },
+    "gemini": {
+      "provider": "gemini",
+      "response": "",
+      "responseTime": 0,
+      "success": false,
+      "error": "Query contains dangerous characters"
+    },
+    "qwen": {
+      "provider": "qwen",
+      "response": "",
+      "responseTime": 0,
+      "success": false,
+      "error": "Query contains dangerous characters"
+    }
+  },
+  "synthesis": {
+    "consensus": [],
+    "conflicts": [],
+    "totalTime": 0,
+    "successRate": 0
+  },
+  "metadata": {
+    "version": "1.1.0",
+    "environment": "development"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "timestamp": "2025-10-06T08:28:16.137Z",
+  "query": "Evaluate Gemini fallback system (Pro→Flash-Exp→Flash). Rate: architecture, UX, stability (1-10). Suggest 1 improvement. Max 150 chars.",
+  "mode": {
+    "codex": true,
+    "gemini": true,
+    "qwen": true,
+    "qwenPlanMode": false
+  },
+  "results": {
+    "codex": {
+      "provider": "codex",
+      "response": "OpenAI Codex v0.44.0 (research preview)\n--------\n\u001b[1mprovider:\u001b[0m openai\n\u001b[1mapproval:\u001b[0m never\n\u001b[1msandbox:\u001b[0m read-only\n\u001b[1mreasoning effort:\u001b[0m none\n\u001b[1mreasoning summaries:\u001b[0m auto\n\u001b[1msession id:\u001b[0m 0199b8a1-6bca-7d20-8b20-f880ea836ea6\n--------\n\u001b[36muser\u001b[0m\nEvaluate Gemini fallback system (Pro→Flash-Exp→Flash). Rate: architecture, UX, stability (1-10). Suggest 1 improvement. Max 150 chars.\n\n\u001b[35m\u001b[3mthinking\u001b[0m\u001b[0m\n**Composing compact Gemini system evaluation**\n\u001b[35m\u001b[3mcodex\u001b[0m\u001b[0m\n아키텍처 8/10, UX 6/10, 안정성 7/10. 개선: Flash-Exp<->Flash 캐시 공유로 핸드오프 지연 감소.\n\u001b[3m\u001b[35mtokens used\u001b[0m\u001b[0m\n3,094",
+      "responseTime": 8573,
+      "success": true
+    },
+    "gemini": {
+      "provider": "gemini",
+      "response": "Arch: 9/10 (robust), UX: 8/10 (fast, resilient), Stability: 9/10 (circuit breaker). Improvement: Implement a tiered fallback (e.g., Pro→Flash→Local) instead of a single fallback.",
+      "responseTime": 85610,
+      "success": true
+    },
+    "qwen": {
+      "provider": "qwen",
+      "response": "",
+      "responseTime": 58100,
+      "success": false,
+      "error": "Command failed: qwen -p Evaluate Gemini fallback system (Pro→Flash-Exp→Flash). Rate: architecture, UX, stability (1-10). Suggest 1 improvement. Max 150 chars.\n\n<--- Last few GCs --->\n\n[34369:0x3b7ce00"
+    }
+  },
+  "synthesis": {
+    "consensus": [
+      "✓ 개선 필요: 2개 AI 합의"
+    ],
+    "conflicts": [],
+    "totalTime": 85610,
+    "successRate": 0.6666666666666666
+  },
+  "metadata": {
+    "version": "1.8.1",
+    "environment": "development"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "timestamp": "2025-10-06T08:27:37.062Z",
+  "query": "Gemini fallback: Pro→Flash-Exp→Flash. Rate architecture, UX, stability (1-10). One improvement. 100 chars max.",
+  "mode": {
+    "codex": true,
+    "gemini": false,
+    "qwen": false,
+    "qwenPlanMode": false
+  },
+  "results": {
+    "codex": {
+      "provider": "codex",
+      "response": "OpenAI Codex v0.44.0 (research preview)\n--------\n\u001b[1mprovider:\u001b[0m openai\n\u001b[1mapproval:\u001b[0m never\n\u001b[1msandbox:\u001b[0m read-only\n\u001b[1mreasoning effort:\u001b[0m none\n\u001b[1mreasoning summaries:\u001b[0m auto\n\u001b[1msession id:\u001b[0m 0199b8a1-fd57-7b13-beb9-2d154ed8741a\n--------\n\u001b[36muser\u001b[0m\nGemini fallback: Pro→Flash-Exp→Flash. Rate architecture, UX, stability (1-10). One improvement. 100 chars max.\n\n\u001b[35m\u001b[3mthinking\u001b[0m\u001b[0m\n**Calculating concise Korean response length**\n\u001b[35m\u001b[3mcodex\u001b[0m\u001b[0m\nArchitecture 8, UX 7, Stability 9. 개선: Flash UI latency 최적화.\n\u001b[3m\u001b[35mtokens used\u001b[0m\u001b[0m\n2,812",
+      "responseTime": 9189,
+      "success": true
+    }
+  },
+  "synthesis": {
+    "consensus": [],
+    "conflicts": [],
+    "totalTime": 9189,
+    "successRate": 1
+  },
+  "metadata": {
+    "version": "1.8.1",
+    "environment": "development"
+  }
+}

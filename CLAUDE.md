@@ -46,37 +46,44 @@ Esc Esc                     # 빠른 복원
 
 ---
 
-## 🤖 Multi-AI 사용 (2025-10-06 최적화)
+## 🤖 Multi-AI 사용 (2025-10-08 Bash Wrapper 전환)
 
-### MCP 도구 우선 (최우선 권장) ⭐
-
-```typescript
-// 개별 AI 쿼리 (MCP v3.5.0)
-mcp__multi-ai__queryCodex({ query: "버그 분석 및 실무적 해결책" })
-mcp__multi-ai__queryGemini({ query: "SOLID 원칙 검토 및 아키텍처 분석" })
-mcp__multi-ai__queryQwen({ query: "성능 최적화 및 병목점 분석", planMode: true })
-
-// 히스토리 조회
-mcp__multi-ai__getBasicHistory({ limit: 10 })
-```
-
-**참고**: Multi-AI Verification Specialist 서브에이전트가 3-AI 교차검증을 자동 수행합니다.
-
-**타임아웃 (v3.5.1)** - 통합 타임아웃 시스템:
-- **기본값**: 600s (10분, 통신 두절 감지용)
-- **설정**: `MULTI_AI_TIMEOUT` 환경변수 (60s-600s)
-- **권장 쿼리**: 200자 이하 (응답 시간 50-70% 감소)
-- **Qwen OOM**: Bash wrapper 사용 권장 (`scripts/ai-subagents/qwen-wrapper.sh`)
-- **참고**: `packages/multi-ai-mcp/TIMEOUT_ANALYSIS.md` (근본 원인 분석)
-
-### Bash CLI 대안 (MCP 불가 시만)
+### Bash Wrapper 방식 (메인) ⭐
 
 ```bash
-# Wrapper 스크립트 (타임아웃 보호)
-./scripts/ai-subagents/codex-wrapper.sh
-./scripts/ai-subagents/gemini-wrapper.sh
-./scripts/ai-subagents/qwen-wrapper.sh -p  # Plan Mode
+# 개별 AI 직접 사용
+./scripts/ai-subagents/codex-wrapper.sh "버그 분석 및 실무적 해결책"
+./scripts/ai-subagents/gemini-wrapper.sh "SOLID 원칙 검토 및 아키텍처 분석"
+./scripts/ai-subagents/qwen-wrapper.sh -p "성능 최적화 및 병목점 분석"
 ```
+
+**특징**:
+- ✅ 타임아웃 완전 해결 (Claude Code 60-90s 제약 회피)
+- ✅ 적응형 타임아웃 (Codex: 30-120s, Gemini: 60s, Qwen: 90s)
+- ✅ 자동 재시도 (1회, 타임아웃 50% 증가)
+- ✅ stderr 경고 없음
+
+### 서브에이전트 교차검증 (권장)
+
+```bash
+# Multi-AI Verification Specialist가 자동으로 3-AI 병렬 실행
+Task multi-ai-verification-specialist "LoginClient.tsx 교차검증"
+
+# 서브에이전트가 자동 수행:
+# 1. 3개 Bash Wrapper 병렬 실행
+# 2. /tmp 파일 결과 수집
+# 3. 합의/충돌 검출
+# 4. docs/ai-cross-verification/ 문서화
+```
+
+### ❌ MCP 방식 (제거됨)
+
+**제거 이유** (2025-10-08):
+- Claude Code 60-90s 하드코딩 타임아웃 (수정 불가)
+- stderr 경고 발생 (MCP 프로토콜 설계)
+- 성공률 33% (1/3 AI) vs Bash 100% (3/3 AI)
+
+**백업 위치**: `backups/multi-ai-mcp-v3.8.0/` (향후 v3.9.0 연구용)
 
 ---
 

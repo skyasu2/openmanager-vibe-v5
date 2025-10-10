@@ -1,0 +1,28 @@
+{
+  "timestamp": "2025-10-06T07:56:37.799Z",
+  "query": "테스트: OK만 답변",
+  "mode": {
+    "codex": false,
+    "gemini": true,
+    "qwen": false,
+    "qwenPlanMode": false
+  },
+  "results": {
+    "gemini": {
+      "provider": "gemini",
+      "response": "OK",
+      "responseTime": 10066,
+      "success": true
+    }
+  },
+  "synthesis": {
+    "consensus": [],
+    "conflicts": [],
+    "totalTime": 10066,
+    "successRate": 1
+  },
+  "metadata": {
+    "version": "1.8.1",
+    "environment": "development"
+  }
+}
