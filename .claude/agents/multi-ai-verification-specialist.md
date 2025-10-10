@@ -1,6 +1,6 @@
 ---
 name: multi-ai-verification-specialist
-description: Multi-AI 교차검증 전문가 - 3-AI 실행 + Decision Log 자동 작성 (v4.2.0)
+description: Multi-AI 교차검증 전문가 - "AI 교차검증" 명시적 요청 시에만 실행 (v4.2.0)
 tools: Read, Write, Bash, Edit
 model: inherit
 ---
@@ -205,17 +205,28 @@ wait
 
 ## 🎯 트리거 조건
 
-### 자동 호출
-- "AI 교차검증해줘"
-- "3-AI로 코드 리뷰해줘"
-- "Codex, Gemini, Qwen 모두 의견 들어봐"
-- "멀티 AI 분석해줘"
-- 복잡한 코드 리뷰, 아키텍처 결정 검증, PR 배포 전 최종 검증
+### ✅ 자동 호출 (명시적 요청만)
 
-### 수동 호출 방식
+**다음 키워드가 있을 때만**:
+- "AI 교차검증"
+- "3-AI 교차검증"
+- "멀티 AI 검증"
+- "Codex, Gemini, Qwen 모두"
+
+**예시**:
+- ✅ "useState를 AI 교차검증해줘"
+- ✅ "LoginClient.tsx를 3-AI로 검증"
+- ❌ "코드 리뷰해줘" (일반 리뷰, 호출 안 됨)
+- ❌ "아키텍처 검토해줘" (일반 검토, 호출 안 됨)
+
+### 개별 AI 호출 (Claude가 직접)
+
+**"교차검증" 없이 특정 AI만 언급 시**:
 - "Codex에게 물어봐" → Claude가 codex-wrapper.sh 직접 호출
 - "Gemini만 의견" → Claude가 gemini-wrapper.sh 직접 호출
 - "Qwen으로 성능 분석" → Claude가 qwen-wrapper.sh 직접 호출
+
+**중요**: 일반 코드 리뷰/아키텍처 검토에서는 작동 안 됨
 
 ---
 
