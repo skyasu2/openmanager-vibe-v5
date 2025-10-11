@@ -17,11 +17,40 @@ import { NextResponse } from 'next/server';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import { z } from 'zod';
 import debug from '@/utils/debug';
-import type { EnhancedServerMetrics } from '@/types/server';
+import type { EnhancedServerMetrics, ServerStatus, ServerEnvironment, ServerRole } from '@/types/server';
 import type { HourlyServerData, RawServerData } from '@/types/server-metrics';
 import { getSupabaseClient } from '@/lib/supabase/supabase-client';
 import fs from 'fs/promises';
 import path from 'path';
+
+/**
+ * Supabase server_metrics 테이블 스키마 (snake_case)
+ */
+interface SupabaseServerMetrics {
+  id?: string;
+  name?: string;
+  hostname?: string;
+  status?: ServerStatus;
+  cpu_usage?: number;
+  memory_usage?: number;
+  disk_usage?: number;
+  network_usage?: number;
+  uptime?: number;
+  response_time?: number;
+  updated_at?: string;
+  location?: string;
+  ip_address?: string;
+  os?: string;
+  server_type?: string;
+  role?: ServerRole;
+  environment?: ServerEnvironment;
+  provider?: string;
+  cpu_cores?: number;
+  memory_gb?: number;
+  disk_gb?: number;
+  processes?: number;
+  [key: string]: unknown;
+}
 
 // 📝 통합 요청 스키마
 const serversUnifiedRequestSchema = z.object({
@@ -301,46 +330,46 @@ async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
 
     if (error) throw error;
 
-    return servers?.map((server: Partial<EnhancedServerMetrics>) => ({
-      id: server.id,
-      name: server.name || server.hostname,
-      hostname: server.hostname,
-      status: server.status,
+    return servers?.map((server: SupabaseServerMetrics): EnhancedServerMetrics => ({
+      id: server.id ?? '',
+      name: server.name || server.hostname || 'Unknown',
+      hostname: server.hostname ?? '',
+      status: server.status ?? 'offline',
       cpu: server.cpu_usage,
-      cpu_usage: server.cpu_usage,
+      cpu_usage: server.cpu_usage ?? 0,
       memory: server.memory_usage,
-      memory_usage: server.memory_usage,
+      memory_usage: server.memory_usage ?? 0,
       disk: server.disk_usage,
-      disk_usage: server.disk_usage,
-      network: server.network_usage || 0,
-      network_in: (server.network_usage || 0) * 0.6,
-      network_out: (server.network_usage || 0) * 0.4,
-      uptime: server.uptime,
-      responseTime: server.response_time,
-      last_updated: server.updated_at,
-      location: server.location || 'Seoul',
+      disk_usage: server.disk_usage ?? 0,
+      network: server.network_usage ?? 0,
+      network_in: (server.network_usage ?? 0) * 0.6,
+      network_out: (server.network_usage ?? 0) * 0.4,
+      uptime: server.uptime ?? 0,
+      responseTime: server.response_time ?? 0,
+      last_updated: server.updated_at ?? new Date().toISOString(),
+      location: server.location ?? 'Seoul',
       alerts: [],
       ip: server.ip_address,
-      os: server.os || 'Ubuntu 22.04 LTS',
+      os: server.os ?? 'Ubuntu 22.04 LTS',
       type: server.server_type,
-      role: server.role,
-      environment: server.environment,
+      role: server.role ?? 'web',
+      environment: server.environment ?? 'production',
       provider: server.provider,
       specs: {
-        cpu_cores: server.cpu_cores || 4,
-        memory_gb: server.memory_gb || 8,
-        disk_gb: server.disk_gb || 200,
+        cpu_cores: server.cpu_cores ?? 4,
+        memory_gb: server.memory_gb ?? 8,
+        disk_gb: server.disk_gb ?? 200,
         network_speed: '1Gbps'
       },
       lastUpdate: server.updated_at,
       services: [],
       systemInfo: {
-        os: server.os || 'Ubuntu 22.04 LTS',
-        uptime: Math.floor(server.uptime / 3600) + 'h',
-        processes: server.processes || 120,
+        os: server.os ?? 'Ubuntu 22.04 LTS',
+        uptime: Math.floor((server.uptime ?? 0) / 3600) + 'h',
+        processes: server.processes ?? 120,
         zombieProcesses: 0,
-        loadAverage: `${(server.cpu_usage / 20).toFixed(2)}`,
-        lastUpdate: server.updated_at
+        loadAverage: `${((server.cpu_usage ?? 0) / 20).toFixed(2)}`,
+        lastUpdate: server.updated_at ?? new Date().toISOString()
       },
       networkInfo: {
         interface: 'eth0',
