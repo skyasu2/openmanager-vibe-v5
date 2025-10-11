@@ -37,12 +37,34 @@ const streamingRequestSchema = z.object({
 
 type StreamingRequest = z.infer<typeof streamingRequestSchema>;
 
+// 로그 아이템 타입
+interface LogItem {
+  id: string;
+  timestamp: string;
+  level: string;
+  source: string;
+  message: string;
+  serverId: string;
+  metadata: {
+    responseTime: number;
+    statusCode: number;
+  };
+}
+
+// 필터 타입
+interface StreamFilters {
+  level?: string;
+  source?: string;
+  serverId?: string;
+  timeRange?: string;
+}
+
 // 스트리밍 데이터 관리 클래스
 class StreamingManager {
-  private static logBuffer: any[] = [];
-  private static thinkingBuffer: any[] = [];
-  private static metricsBuffer: any[] = [];
-  private static eventsBuffer: any[] = [];
+  private static logBuffer: LogItem[] = [];
+  private static thinkingBuffer: LogItem[] = [];
+  private static metricsBuffer: LogItem[] = [];
+  private static eventsBuffer: LogItem[] = [];
 
   // 로그 스트리밍
   static async streamLogs(request: StreamingRequest): Promise<ReadableStream> {
@@ -191,18 +213,18 @@ class StreamingManager {
   }
 
   // 필터 매칭 헬퍼
-  private static matchesFilter(item: any, filters?: any): boolean {
+  private static matchesFilter(item: LogItem, filters?: StreamFilters): boolean {
     if (!filters) return true;
-    
+
     if (filters.level && item.level !== filters.level) return false;
     if (filters.source && item.source !== filters.source) return false;
     if (filters.serverId && item.serverId !== filters.serverId) return false;
-    
+
     return true;
   }
 
   // 모의 로그 생성 헬퍼
-  private static generateMockLogs(count: number): any[] {
+  private static generateMockLogs(count: number): LogItem[] {
     const levels = ['debug', 'info', 'warn', 'error'];
     const sources = ['api', 'database', 'cache', 'ai-engine'];
     

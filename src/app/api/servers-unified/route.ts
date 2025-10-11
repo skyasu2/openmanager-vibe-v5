@@ -18,6 +18,7 @@ import { createApiRoute } from '@/lib/api/zod-middleware';
 import { z } from 'zod';
 import debug from '@/utils/debug';
 import type { EnhancedServerMetrics } from '@/types/server';
+import type { HourlyServerData, RawServerData } from '@/types/server-metrics';
 import { getSupabaseClient } from '@/lib/supabase/supabase-client';
 import fs from 'fs/promises';
 import path from 'path';
@@ -72,7 +73,7 @@ interface ServerMetrics {
 
 // 🗂️ 파일 캐시 시스템
 interface FileCache {
-  data: any;
+  data: HourlyServerData;
   timestamp: number;
   hour: number;
 }
@@ -83,7 +84,7 @@ const FILE_CACHE_TTL = 60000; // 1분 캐시
 /**
  * 🚀 캐시된 시간별 파일 읽기
  */
-async function readCachedHourlyFile(hour: number): Promise<any> {
+async function readCachedHourlyFile(hour: number): Promise<HourlyServerData> {
   const cacheKey = hour.toString().padStart(2, '0');
   const cached = fileCache.get(cacheKey);
   
@@ -139,7 +140,7 @@ async function loadHourlyScenarioData(): Promise<EnhancedServerMetrics[]> {
 /**
  * 🎯 Enhanced 메트릭으로 변환
  */
-function convertToEnhancedMetrics(hourlyData: any, currentHour: number, rotationMinute: number): EnhancedServerMetrics[] {
+function convertToEnhancedMetrics(hourlyData: HourlyServerData, currentHour: number, rotationMinute: number): EnhancedServerMetrics[] {
   const servers = hourlyData.servers || {};
   
   // 10개 서버 보장
@@ -171,7 +172,7 @@ function convertToEnhancedMetrics(hourlyData: any, currentHour: number, rotation
     }
   }
   
-  return Object.values(servers).map((serverData: any, index) => {
+  return Object.values(servers).map((serverData: RawServerData, index) => {
     const minuteFactor = rotationMinute / 59;
     const fixedOffset = Math.sin(minuteFactor * 2 * Math.PI) * 2;
     const serverOffset = (index * 3.7) % 10;
@@ -300,7 +301,7 @@ async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
 
     if (error) throw error;
 
-    return servers?.map((server: any) => ({
+    return servers?.map((server: Partial<EnhancedServerMetrics>) => ({
       id: server.id,
       name: server.name || server.hostname,
       hostname: server.hostname,
@@ -454,7 +455,7 @@ async function handleServersUnified(
     debug.log(`🎯 통합 서버 API - 액션: ${action}`, { serverId, page, limit });
 
     let servers: EnhancedServerMetrics[] = [];
-    let additionalData: any = {};
+    let additionalData: Record<string, unknown> = {};
 
     // 액션별 데이터 처리
     switch (action) {
