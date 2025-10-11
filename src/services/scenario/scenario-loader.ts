@@ -26,7 +26,7 @@ interface EnhancedServerMetrics {
   responseTime: number;
   last_updated: string;
   location: string;
-  alerts: any[];
+  alerts: never[];  // 항상 빈 배열
   ip: string;
   os: string;
   type: string;
@@ -40,7 +40,7 @@ interface EnhancedServerMetrics {
     network_speed: string;
   };
   lastUpdate: string;
-  services: any[];
+  services: unknown[];  // 외부 데이터, 런타임에서 검증됨
   systemInfo: {
     os: string;
     uptime: string;

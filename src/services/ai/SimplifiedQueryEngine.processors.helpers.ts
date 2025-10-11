@@ -504,7 +504,7 @@ export class SimplifiedQueryEngineHelpers {
   /**
    * 🚨 문제 분석 응답
    */
-  private generateProblemAnalysisResponse(criticalServers: any[], warningServers: any[]): string {
+  private generateProblemAnalysisResponse(criticalServers: EnhancedServerMetrics[], warningServers: EnhancedServerMetrics[]): string {
     let response = `🔍 **서버 문제 분석**\n\n`;
     
     if (criticalServers.length === 0 && warningServers.length === 0) {
