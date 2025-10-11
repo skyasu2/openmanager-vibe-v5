@@ -14,6 +14,22 @@ import { useSystemStatus } from './useSystemStatus';
 import { useUnifiedTimer, createTimerTask } from './useUnifiedTimer';
 import { useCallback, useEffect, useMemo } from 'react';
 
+// Chrome 전용 Performance API 확장
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+interface ExtendedPerformance extends Performance {
+  memory?: PerformanceMemory;
+}
+
+// Chrome DevTools 전용 Window 확장
+interface WindowWithGC extends Window {
+  gc?: () => void;
+}
+
 interface UseOptimizedDashboardProps {
   // Auto logout 설정
   timeoutMinutes?: number;
@@ -110,7 +126,7 @@ export function useOptimizedDashboard({
     // 메모리 사용량 확인
     getMemoryUsage: () => {
       if (typeof window !== 'undefined' && 'performance' in window) {
-        return (window.performance as any).memory;
+        return (window.performance as ExtendedPerformance).memory;
       }
       return null;
     },
@@ -124,8 +140,8 @@ export function useOptimizedDashboard({
     
     // 강제 가비지 컬렉션 (개발 환경)
     forceGC: () => {
-      if (process.env.NODE_ENV === 'development' && (window as any).gc) {
-        (window as any).gc();
+      if (process.env.NODE_ENV === 'development' && (window as WindowWithGC).gc) {
+        (window as WindowWithGC).gc();
         console.log('🗑️ 강제 가비지 컬렉션 실행');
       }
     }
@@ -167,7 +183,7 @@ export function useDashboardPerformanceDebugger() {
     
     return {
       uptime: `${Math.floor(uptime / 1000)}s`,
-      memory: (performance as any).memory || 'not available',
+      memory: (performance as ExtendedPerformance).memory || 'not available',
       timers: {
         note: '기존 4개 독립 타이머 → 최적화된 2개 타이머',
         before: ['useAutoLogout: 1s', 'useSystemAutoShutdown: 1s', 'useSystemStatus: 5min', 'useSystemIntegration: 5s'],

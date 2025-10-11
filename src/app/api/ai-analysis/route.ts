@@ -35,6 +35,26 @@ interface ServerData {
   status: string;
 }
 
+// 서버 원시 데이터 타입
+interface RawServerData {
+  cpu?: number;
+  memory?: number;
+  disk?: number;
+  network?: number;
+  events?: ServerEvent[];
+  trend?: string;
+  status?: string;
+  [key: string]: unknown;
+}
+
+// Correlation 데이터 타입
+interface CorrelationData {
+  description: string;
+  correlation: number;
+  lagTime?: string;
+  [key: string]: unknown;
+}
+
 interface FindingEvidence {
   server?: string;
   event?: ServerEvent;
@@ -139,7 +159,7 @@ class TimelineAnalysisEngine {
             throw new Error(`Invalid data for server ${id}`);
           }
           
-          const validatedData = data as any; // 최소한의 any 사용
+          const validatedData = data as RawServerData;
           
           return {
             id,
@@ -290,7 +310,7 @@ class RootCauseAnalysisEngine {
       const findings: Finding[] = [];
       
       // 서버 데이터 변환
-      const servers = Object.entries(currentData.servers).map(([id, data]: [string, any]) => ({
+      const servers = Object.entries(currentData.servers).map(([id, data]: [string, RawServerData]) => ({
         id,
         name: id.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
         ...data,
@@ -350,7 +370,7 @@ class RootCauseAnalysisEngine {
       
       // 상관관계 분석 (correlationPatterns 활용)
       const correlations = baselinesData.globalBaselines.correlationPatterns;
-      Object.entries(correlations).forEach(([key, correlation]: [string, any]) => {
+      Object.entries(correlations).forEach(([key, correlation]: [string, CorrelationData]) => {
         findings.push({
           type: 'correlation' as const,
           severity: 'medium' as const,
@@ -413,7 +433,7 @@ class PredictiveAnalysisEngine {
       const predictionModels = baselinesData.globalBaselines.predictionModels;
       
       // 서버 데이터 변환
-      const servers = Object.entries(currentData.servers).map(([id, data]: [string, any]) => ({
+      const servers = Object.entries(currentData.servers).map(([id, data]: [string, RawServerData]) => ({
         id,
         name: id.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
         ...data,
@@ -541,7 +561,7 @@ class ComparisonAnalysisEngine {
       const findings: Finding[] = [];
       
       // 서버 데이터 변환
-      const servers = Object.entries(currentData.servers).map(([id, data]: [string, any]) => ({
+      const servers = Object.entries(currentData.servers).map(([id, data]: [string, RawServerData]) => ({
         id,
         name: id.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
         ...data,
@@ -707,14 +727,14 @@ export async function POST(request: NextRequest) {
     }
 
     // 🔧 안전한 타입 체크: findings 속성 존재 확인
-    const safeResults = results as any;
+    const safeResults = results as { findings?: Finding[]; [key: string]: unknown };
     if (!safeResults.findings || !Array.isArray(safeResults.findings)) {
       throw new Error('분석 결과에 findings 배열이 없습니다');
     }
     
     const executionTime = Date.now() - startTime;
     const confidenceLevel = safeResults.findings.length > 0 
-      ? safeResults.findings.reduce((sum: number, finding) => sum + finding.confidence, 0) / safeResults.findings.length
+      ? safeResults.findings.reduce((sum, finding) => sum + finding.confidence, 0) / safeResults.findings.length
       : 0.5;
     
     const response: AIAnalysisResponse = {

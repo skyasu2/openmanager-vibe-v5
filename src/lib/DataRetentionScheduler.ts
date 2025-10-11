@@ -1,6 +1,19 @@
 /**
  * 🗂️ DataRetentionScheduler v1.0
  *
+ * Chrome 전용 Performance API 확장
+ */
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+interface ExtendedPerformance extends Performance {
+  memory?: PerformanceMemory;
+}
+
+/**
  * OpenManager v5.44.3 - 데이터 보존 스케줄러 (2025-07-02 18:10 KST)
  * - 메모리 기반 데이터 정리 (무설정 배포)
  * - 자동화된 데이터 생명주기 관리
@@ -562,12 +575,12 @@ class DataRetentionScheduler {
     if (
       typeof window !== 'undefined' &&
       'performance' in window &&
-      'memory' in (performance as any)
+      'memory' in (performance as ExtendedPerformance)
     ) {
-      const memory = (performance as any).memory;
-      this.stats.memoryUsageMB = Math.round(
+      const memory = (performance as ExtendedPerformance).memory;
+      this.stats.memoryUsageMB = memory ? Math.round(
         memory.usedJSHeapSize / 1024 / 1024
-      );
+      ) : 0;
     }
   }
 
@@ -673,9 +686,15 @@ export function getDataRetentionScheduler(): DataRetentionScheduler {
 
 // 개발 모드 리셋 지원
 export function resetDataRetentionScheduler(): void {
-  if ((DataRetentionScheduler as any).instance) {
-    (DataRetentionScheduler as any).instance.shutdown();
-    (DataRetentionScheduler as any).instance = null;
+  type SchedulerClass = typeof DataRetentionScheduler & {
+    instance: DataRetentionScheduler | null;
+  };
+  
+  const SchedulerWithInstance = DataRetentionScheduler as unknown as SchedulerClass;
+  
+  if (SchedulerWithInstance.instance) {
+    SchedulerWithInstance.instance.shutdown();
+    SchedulerWithInstance.instance = null;
   }
 }
 

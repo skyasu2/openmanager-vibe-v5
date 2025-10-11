@@ -94,7 +94,7 @@ export async function apiFetch(
 /**
  * JSON 응답을 위한 편의 함수
  */
-export async function apiRequest<T = any>(
+export async function apiRequest<T = unknown>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
@@ -122,14 +122,14 @@ export async function apiRequest<T = any>(
 /**
  * GET 요청
  */
-export async function apiGet<T = any>(endpoint: string): Promise<T> {
+export async function apiGet<T = unknown>(endpoint: string): Promise<T> {
   return apiRequest<T>(endpoint, { method: 'GET' });
 }
 
 /**
  * POST 요청
  */
-export async function apiPost<T = any>(
+export async function apiPost<T = unknown>(
   endpoint: string,
   data?: unknown
 ): Promise<T> {
@@ -142,7 +142,7 @@ export async function apiPost<T = any>(
 /**
  * PUT 요청
  */
-export async function apiPut<T = any>(
+export async function apiPut<T = unknown>(
   endpoint: string,
   data?: unknown
 ): Promise<T> {
@@ -155,7 +155,7 @@ export async function apiPut<T = any>(
 /**
  * DELETE 요청
  */
-export async function apiDelete<T = any>(endpoint: string): Promise<T> {
+export async function apiDelete<T = unknown>(endpoint: string): Promise<T> {
   return apiRequest<T>(endpoint, { method: 'DELETE' });
 }
 
