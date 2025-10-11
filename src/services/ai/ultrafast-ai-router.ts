@@ -390,7 +390,7 @@ export class UltraFastAIRouter {
     return {
       success: true,
       response: templates[Math.floor(Math.random() * templates.length)] ?? '처리 중입니다.',
-      engine: ('quick-' + source) as `quick-${string}`,
+      engine: ('quick-' + source) as QueryResponse['engine'],
       confidence: 0.5,
       thinkingSteps: [
         {
