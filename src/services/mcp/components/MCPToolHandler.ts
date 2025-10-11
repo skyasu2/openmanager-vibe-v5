@@ -46,7 +46,7 @@ interface MCPSearchResult {
 }
 
 export class MCPToolHandler {
-  private tools: Map<string, any> = new Map();
+  private tools: Map<string, MCPToolInfo> = new Map();
 
   constructor() {
     this._initializeTools();

@@ -74,7 +74,7 @@ export const MCPContextIntegrationResponseSchema = z.object({
   query: z.string().optional(),
   contextType: z.string().optional(),
   action: z.enum(['sync', 'query', 'update']).optional(),
-  data: z.any().optional(),
+  data: z.unknown().optional(),
   result: z
     .record(
       z.union([z.string(), z.number(), z.boolean(), z.object({}).passthrough()])

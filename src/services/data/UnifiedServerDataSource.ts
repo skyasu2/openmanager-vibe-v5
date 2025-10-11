@@ -159,7 +159,7 @@ export class UnifiedServerDataSource {
         ip: `192.168.1.${100 + index}`,
         os: 'Ubuntu 22.04 LTS',
         type: mockServer.type,
-        role: (mockServer as any).role || mockServer.type,
+        role: (mockServer as { role?: string }).role || mockServer.type,
         environment: 'production',
         location: mockServer.location || `us-east-1${String.fromCharCode(97 + index)}`,
         alerts: [],

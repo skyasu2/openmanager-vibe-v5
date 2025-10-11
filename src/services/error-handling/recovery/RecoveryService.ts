@@ -474,7 +474,7 @@ export class RecoveryService {
     try {
       // 가비지 컬렉션 유도
       if (typeof window !== 'undefined' && 'gc' in window) {
-        (window as any).gc();
+        (window as { gc?: () => void }).gc?.();
       }
 
       // 캐시 정리

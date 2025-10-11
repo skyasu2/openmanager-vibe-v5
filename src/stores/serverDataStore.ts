@@ -52,7 +52,7 @@ export interface ServerDataState {
   // 통합 시스템 제어
   startUnifiedSystem: () => Promise<void>;
   stopUnifiedSystem: () => void;
-  getSystemStatus: () => any;
+  getSystemStatus: () => unknown;
 
   // 개별 서버 조회
   getServerById: (id: string) => EnhancedServerMetrics | undefined;

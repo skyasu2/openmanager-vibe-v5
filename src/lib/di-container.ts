@@ -272,7 +272,7 @@ export function Injectable(
   token?: string | symbol,
   lifetime: ServiceLifetime = 'singleton'
 ) {
-  return function <T extends new (...args: unknown[]) => any>(constructor: T) {
+  return function <T extends new (...args: unknown[]) => unknown>(constructor: T) {
     const serviceToken = token || constructor.name;
     registerService(serviceToken, constructor, lifetime);
     return constructor;

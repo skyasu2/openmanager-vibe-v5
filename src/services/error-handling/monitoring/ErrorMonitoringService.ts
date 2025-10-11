@@ -329,7 +329,7 @@ export class ErrorMonitoringService {
    */
   private recordMonitoringEvent(
     type: MonitoringEvent['type'],
-    data: Record<string, any>
+    data: Record<string, unknown>
   ): void {
     this.monitoringEvents.push({
       type,

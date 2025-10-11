@@ -49,7 +49,7 @@ export interface EnhancedChatMessage extends ChatMessage {
 export interface AIResponse {
   content: string;
   thinkingSteps?: AIThinkingStep[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ChatHookOptions {

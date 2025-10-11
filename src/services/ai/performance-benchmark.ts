@@ -329,7 +329,7 @@ export class AIPerformanceBenchmark {
         },
       };
 
-      let response: QueryResponse | any;
+      let response: QueryResponse | unknown;
 
       switch (engineName) {
         case 'simplified':
