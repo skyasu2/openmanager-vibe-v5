@@ -17,7 +17,7 @@ export interface StandardApiError {
 /**
  * 📊 표준 API 성공 응답 인터페이스
  */
-export interface StandardApiSuccess<T = any> {
+export interface StandardApiSuccess<T = unknown> {
   success: true;
   data: T;
   message?: string;

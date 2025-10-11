@@ -112,7 +112,7 @@ export class CustomContextManager {
   private static instance: CustomContextManager;
   private supabase: SupabaseClient | null = null;
   private isInitialized = false;
-  private localCache: Map<string, any> = new Map();
+  private localCache: Map<string, unknown> = new Map();
 
   private constructor() {
     this._initializeSupabase();

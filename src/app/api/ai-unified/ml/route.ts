@@ -32,7 +32,7 @@ const mlRequestSchema = z.object({
   type: z.enum(['anomaly', 'prediction', 'classification', 'clustering']).optional(),
   data: z.object({
     text: z.string().optional(),
-    metrics: z.array(z.record(z.any())).optional(),
+    metrics: z.array(z.record(z.unknown())).optional(),
     serverId: z.string().optional(),
     timeRange: z.string().optional()
   }).optional(),

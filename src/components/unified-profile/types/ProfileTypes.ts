@@ -85,7 +85,7 @@ export interface AuthenticationState {
 }
 
 // API 응답 타입들
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;

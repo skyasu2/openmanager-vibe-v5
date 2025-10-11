@@ -11,7 +11,7 @@ type AIAgentState = {
   state?: 'disabled' | 'enabled' | 'processing' | 'idle';
 };
 
-type SystemActionFunction = (...args: unknown[]) => Promise<unknown> | any;
+type SystemActionFunction = (...args: unknown[]) => Promise<unknown> | unknown;
 
 interface SystemStatus {
   isRunning: boolean;

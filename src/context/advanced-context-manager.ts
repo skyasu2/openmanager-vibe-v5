@@ -774,7 +774,7 @@ export class AdvancedContextManager {
   private async loadContextCache(): Promise<AdvancedContextCache> {
     try {
       // 먼저 메모리 캐시에서 확인
-      const memCached = this.memoryCache.get<any>(this.CACHE_KEY);
+      const memCached = this.memoryCache.get<AdvancedContextCache>(this.CACHE_KEY);
       if (memCached) {
         return {
           documents: new Map(memCached.documents || []),
