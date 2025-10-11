@@ -1,6 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { safeConsoleError } from '../lib/utils-functions';
 
+// Window 인터페이스 확장 for 디버그 도구
+interface WindowWithLoadingDebug extends Window {
+  debugLoadingState?: {
+    isLoading: boolean;
+    phase: string;
+    progress: number;
+    isCompleted: boolean;
+    elapsedTime: number;
+    timestamp: number;
+  };
+  emergencyComplete?: () => void;
+  skipToServer?: () => void;
+}
+
 interface UseNaturalLoadingTimeProps {
   actualLoadingPromise?: Promise<unknown> | null;
   skipCondition?: boolean;
@@ -125,7 +139,7 @@ export const useNaturalLoadingTime = ({
 
   // 전역 개발자 도구 등록
   useEffect(() => {
-    (window as any).debugLoadingState = {
+    (window as WindowWithLoadingDebug).debugLoadingState = {
       isLoading,
       phase,
       progress,
@@ -134,12 +148,12 @@ export const useNaturalLoadingTime = ({
       timestamp: Date.now(),
     };
 
-    (window as any).emergencyComplete = () => {
+    (window as WindowWithLoadingDebug).emergencyComplete = () => {
       console.log('🚨 비상 완료 실행!');
       handleComplete();
     };
 
-    (window as any).skipToServer = () => {
+    (window as WindowWithLoadingDebug).skipToServer = () => {
       console.log('🚀 서버 대시보드로 바로 이동');
       window.location.href = '/dashboard?instant=true';
     };
@@ -283,7 +297,7 @@ export const useDataLoadingPromise = (
   data: unknown[],
   isLoading: boolean,
   error: Error | unknown
-): Promise<any[]> => {
+): Promise<unknown[]> => {
   return useMemo(() => {
     return new Promise((resolve, reject) => {
       const checkDataReady = () => {

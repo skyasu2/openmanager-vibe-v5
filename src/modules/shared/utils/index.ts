@@ -41,7 +41,7 @@ export const formatDate = (
 /**
  * 디바운스 함수
  */
-export const debounce = <T extends (...args: unknown[]) => any>(
+export const debounce = <T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): ((...args: Parameters<T>) => void) => {
@@ -56,7 +56,7 @@ export const debounce = <T extends (...args: unknown[]) => any>(
 /**
  * 스로틀 함수
  */
-export const throttle = <T extends (...args: unknown[]) => any>(
+export const throttle = <T extends (...args: unknown[]) => unknown>(
   func: T,
   limit: number
 ): ((...args: Parameters<T>) => void) => {
@@ -74,7 +74,7 @@ export const throttle = <T extends (...args: unknown[]) => any>(
 /**
  * 깊은 객체 병합
  */
-export const deepMerge = <T extends Record<string, any>>(
+export const deepMerge = <T extends Record<string, unknown>>(
   target: T,
   source: Partial<T>
 ): T => {
@@ -86,9 +86,12 @@ export const deepMerge = <T extends Record<string, any>>(
       typeof source[key] === 'object' &&
       !Array.isArray(source[key])
     ) {
-      result[key] = deepMerge(result[key] || ({} as any), source[key] as any);
+      result[key] = deepMerge(
+        result[key] || ({} as Record<string, unknown>),
+        source[key] as Record<string, unknown>
+      ) as T[Extract<keyof T, string>];
     } else {
-      result[key] = source[key] as any;
+      result[key] = source[key] as T[Extract<keyof T, string>];
     }
   }
 
@@ -120,7 +123,7 @@ export const validateConfig = (config: BaseConfig): boolean => {
 /**
  * 안전한 JSON 파싱
  */
-export const safeJsonParse = <T = any>(json: string, defaultValue: T): T => {
+export const safeJsonParse = <T = unknown>(json: string, defaultValue: T): T => {
   try {
     return JSON.parse(json);
   } catch {
@@ -163,7 +166,7 @@ export const unique = <T>(array: T[]): T[] => {
 /**
  * 객체에서 빈 값 제거
  */
-export const removeEmpty = <T extends Record<string, any>>(
+export const removeEmpty = <T extends Record<string, unknown>>(
   obj: T
 ): Partial<T> => {
   const result: Partial<T> = {};

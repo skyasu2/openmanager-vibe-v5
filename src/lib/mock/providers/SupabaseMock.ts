@@ -16,7 +16,7 @@ interface QueryBuilder {
 }
 
 export class SupabaseMock extends MockBase {
-  private tables: Map<string, any[]> = new Map();
+  private tables: Map<string, unknown[]> = new Map();
   private currentUser: unknown = null;
 
   constructor() {
@@ -112,7 +112,7 @@ export class SupabaseMock extends MockBase {
       // 필터 적용
       for (const filter of builder.filters) {
         data = data.filter((item) => {
-          const record = item as Record<string, any>;
+          const record = item as Record<string, unknown>;
           const value = record[filter.column];
           switch (filter.operator) {
             case 'eq':
@@ -120,13 +120,21 @@ export class SupabaseMock extends MockBase {
             case 'neq':
               return value !== filter.value;
             case 'gt':
-              return value > (filter.value as any);
+              return typeof value === 'number' && typeof filter.value === 'number'
+                ? value > filter.value
+                : false;
             case 'gte':
-              return value >= (filter.value as any);
+              return typeof value === 'number' && typeof filter.value === 'number'
+                ? value >= filter.value
+                : false;
             case 'lt':
-              return value < (filter.value as any);
+              return typeof value === 'number' && typeof filter.value === 'number'
+                ? value < filter.value
+                : false;
             case 'lte':
-              return value <= (filter.value as any);
+              return typeof value === 'number' && typeof filter.value === 'number'
+                ? value <= filter.value
+                : false;
             case 'like':
               return String(value).includes(String(filter.value));
             default:
@@ -138,8 +146,8 @@ export class SupabaseMock extends MockBase {
       // 정렬 적용
       if (builder.orderBy) {
         data.sort((a, b) => {
-          const recordA = a as Record<string, any>;
-          const recordB = b as Record<string, any>;
+          const recordA = a as Record<string, unknown>;
+          const recordB = b as Record<string, unknown>;
           const aVal = recordA[builder.orderBy!.column];
           const bVal = recordB[builder.orderBy!.column];
           const result = aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
