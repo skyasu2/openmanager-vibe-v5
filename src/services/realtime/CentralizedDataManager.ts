@@ -324,7 +324,7 @@ export function useCentralizedData<T = unknown>(
   dataType: DataType,
   callback: UpdateCallback<T>
 ): () => void {
-  return centralDataManager.subscribe(subscriberId, callback, dataType);
+  return centralDataManager.subscribe(subscriberId, callback as UpdateCallback, dataType);
 }
 
 export function updateDataVisibility(
