@@ -14,6 +14,36 @@ import { calculateOptimalUpdateInterval } from '../config/serverConfig';
 import type { EnhancedServerMetrics } from '../types/server';
 import { apiGet } from '@/lib/api-client';
 
+// API 응답 타입 정의
+interface MetricsCurrentApiResponse {
+  success: boolean;
+  timestamp: string;
+  actualTimestamp: number;
+  servers: EnhancedServerMetrics[];
+  metadata?: {
+    timeInfo?: {
+      normalized: string;
+      actual: number;
+      cycle24h: number;
+      slot10min: number;
+      hour: number;
+      minute: number;
+      validUntil: number;
+    };
+    currentCycle?: {
+      timeSlot: number;
+      scenario: string;
+      description: string;
+      phase: string;
+      intensity: number;
+      progress: number;
+      expectedResolution: Date | null;
+      affectedServers: string[];
+    };
+  };
+  message?: string;
+}
+
 // 사용하지 않는 인터페이스들 제거
 
 export interface ServerDataState {
@@ -107,7 +137,7 @@ export const createServerDataStore = (
           console.log('🔗 통합 메트릭 API 엔드포인트:', '/api/metrics/current');
 
           // API 클라이언트 사용 (강화된 디버깅과 함께)
-          const result = await apiGet('/api/metrics/current');
+          const result = await apiGet<MetricsCurrentApiResponse>('/api/metrics/current');
 
           console.log('📡 API 응답 수신 완료');
           console.log('📋 응답 타입:', typeof result);
@@ -120,7 +150,6 @@ export const createServerDataStore = (
             console.log('  - servers 존재:', !!result.servers);
             console.log('  - servers 타입:', Array.isArray(result.servers) ? 'array' : typeof result.servers);
             console.log('  - servers 길이:', result.servers?.length || 0);
-            console.log('  - data 존재:', !!result.data);
             // 시나리오 정보는 AI 분석 순수성을 위해 로깅하지 않음
           }
 
@@ -135,7 +164,7 @@ export const createServerDataStore = (
 
             // 첫 번째 서버 데이터 샘플 로깅
             if (result.servers.length > 0) {
-              const firstServer = result.servers[0];
+              const firstServer = result.servers[0]!;
               console.log('🔍 첫 번째 서버 데이터 샘플:', {
                 id: firstServer.id,
                 name: firstServer.name,
