@@ -6,6 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
+import type { Server } from '@/types/server';
 
 // Mock all dependencies
 vi.mock('../../../styles/design-constants', () => ({
@@ -79,8 +80,8 @@ vi.mock('lucide-react', () => ({
 
 // Simplified Mock Component
 const MockImprovedServerCard: React.FC<{
-  server: any;
-  onClick: (server: any) => void;
+  server: Server;
+  onClick: (server: Server) => void;
   variant?: string;
   showRealTimeUpdates?: boolean;
 }> = ({ server, onClick, variant = 'standard' }) => {
@@ -115,7 +116,7 @@ const MockImprovedServerCard: React.FC<{
 };
 
 // Mock server data
-const createMockServer = (overrides: any = {}) => ({
+const createMockServer = (overrides: Partial<Server> = {}): Server => ({
   id: 'test-server-1',
   name: 'Test Server',
   hostname: 'test-server.com',
