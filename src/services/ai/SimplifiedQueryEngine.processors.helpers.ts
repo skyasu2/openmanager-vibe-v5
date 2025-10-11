@@ -26,17 +26,38 @@ import type { EnhancedServerMetrics } from '@/types/server';
 /**
  * 통합 응답 타입 (사이클 분석용)
  */
+/**
+ * 확장된 시나리오 타입 (AI 컨텍스트 포함)
+ */
+interface ExtendedScenario {
+  type: string;
+  severity: string;
+  description: string;
+  aiContext?: string;
+  nextAction?: string;
+  estimatedDuration?: string;
+}
+
+/**
+ * 통합 응답 타입 (사이클 분석용)
+ */
 interface UnifiedCycleResponse {
   currentCycle: {
-    timeSlot: string;
+    timeSlot: number;
     scenario: string;
     phase: string;
     progress: number;
     intensity: number;
     description: string;
     affectedServers: string[];
+    expectedResolution?: Date | null;
   };
-  servers: EnhancedServerMetrics[];
+  servers: Array<EnhancedServerMetrics & {
+    metadata?: {
+      scenarios?: ExtendedScenario[];
+      [key: string]: unknown;
+    };
+  }>;
 }
 
 /**
@@ -514,28 +535,36 @@ export class SimplifiedQueryEngineHelpers {
     }
     
     if (criticalServers.length > 0) {
-      response += `🚨 **즉시 조치가 필요한 서버:**\n`;
+      response += `🚨 **즉시 조치가 필요한 서버:**
+`;
       criticalServers.forEach(server => {
-        response += `• **${server.name}**:\n`;
-        response += `  - CPU: ${server.cpu}% ${server.cpu > 85 ? '(과부하)' : ''}\n`;
-        response += `  - 메모리: ${server.memory}% ${server.memory > 90 ? '(과부하)' : ''}\n`;
-        response += `  - 응답시간: ${server.responseTime}ms ${server.responseTime > 500 ? '(지연)' : ''}\n`;
+        response += `• **${server.name}**:
+`;
+        response += `  - CPU: ${server.cpu ?? 0}% ${(server.cpu ?? 0) > 85 ? '(과부하)' : ''}
+`;
+        response += `  - 메모리: ${server.memory ?? 0}% ${(server.memory ?? 0) > 90 ? '(과부하)' : ''}
+`;
+        response += `  - 응답시간: ${server.responseTime}ms ${server.responseTime > 500 ? '(지연)' : ''}
+`;
         
         // 장애 시나리오 정보 포함
-        if (server.metadata?.scenarios?.length > 0) {
-          response += `  - 감지된 이벤트: ${server.metadata.scenarios[0].description}\n`;
+        if (server.metadata?.scenarios?.length && server.metadata.scenarios.length > 0) {
+          response += `  - 감지된 이벤트: ${server.metadata.scenarios[0]!.description}
+`;
         }
         response += `\n`;
       });
     }
     
     if (warningServers.length > 0) {
-      response += `⚠️ **모니터링이 필요한 서버:**\n`;
+      response += `⚠️ **모니터링이 필요한 서버:**
+`;
       warningServers.forEach(server => {
         response += `• ${server.name}: `;
-        if (server.cpu > 70) response += `CPU ${server.cpu}% `;
-        if (server.memory > 80) response += `메모리 ${server.memory}% `;
-        response += `\n`;
+        if ((server.cpu ?? 0) > 70) response += `CPU ${server.cpu ?? 0}% `;
+        if ((server.memory ?? 0) > 80) response += `메모리 ${server.memory ?? 0}% `;
+        response += `
+`;
       });
     }
     
@@ -771,8 +800,10 @@ export class SimplifiedQueryEngineHelpers {
       // 통합 메트릭 API에서 현재 사이클 정보 포함된 데이터 가져오기
       const unifiedResponse = await unifiedMetricsService.getCurrentMetrics();
       
-      if ((unifiedResponse as { currentCycle?: unknown })?.currentCycle) {
-        return this.generateCycleAnalysisResponse(unifiedResponse);
+      if (unifiedResponse.currentCycle) {
+        // UnifiedMetricsResponse를 UnifiedCycleResponse로 타입 단언
+        // (실제로 호환 가능한 구조)
+        return this.generateCycleAnalysisResponse(unifiedResponse as unknown as UnifiedCycleResponse);
       } else {
         return '❌ 현재 사이클 정보를 가져올 수 없습니다. 통합 메트릭 API를 확인해주세요.';
       }
