@@ -18,6 +18,26 @@ import type {
 import { SimplifiedQueryEngineUtils } from './SimplifiedQueryEngine.utils';
 
 /**
+ * AIRouter 인터페이스 정의
+ */
+interface AIRouter {
+  getCommandRecommendations(
+    query: string,
+    options: {
+      maxRecommendations?: number;
+      includeAnalysis?: boolean;
+    }
+  ): Promise<{
+    recommendations: Array<{
+      title: string;
+      description: string;
+      usage?: string;
+    }>;
+    analysis: Record<string, unknown>;
+  }>;
+}
+
+/**
  * 🛠️ 명령어 쿼리 전용 프로세서
  */
 export class CommandQueryProcessor {
@@ -27,8 +47,21 @@ export class CommandQueryProcessor {
     private contextLoader: CloudContextLoader,
     private mockContextLoader: MockContextLoader,
     private intentClassifier: IntentClassifier,
-    private aiRouter: unknown // Injected AI router to break circular dependency
+    private aiRouter: AIRouter | unknown // Injected AI router to break circular dependency
   ) {}
+
+  /**
+   * 🔍 타입 가드: aiRouter가 AIRouter 인터페이스를 구현하는지 확인
+   */
+  private isAIRouter(router: unknown): router is AIRouter {
+    return (
+      router !== null &&
+      router !== undefined &&
+      typeof router === 'object' &&
+      'getCommandRecommendations' in router &&
+      typeof (router as AIRouter).getCommandRecommendations === 'function'
+    );
+  }
 
   /**
    * 🛠️ 명령어 쿼리 전용 처리
@@ -52,18 +85,18 @@ export class CommandQueryProcessor {
     });
 
     try {
-      // 🛡️ aiRouter 안전성 검증
-      if (!this.aiRouter || typeof this.aiRouter.getCommandRecommendations !== 'function') {
+      // 🛡️ aiRouter 안전성 검증 (타입 가드 사용)
+      if (!this.isAIRouter(this.aiRouter)) {
         console.warn('⚠️ aiRouter 또는 getCommandRecommendations 메서드가 사용 불가능합니다.');
 
         // 폴백: 기본 명령어 추천 제공
         const fallbackRecommendations = {
           recommendations: [
-            '• 서버 목록 확인',
-            '• 시스템 상태 조회',
-            '• 성능 모니터링',
-            '• 알림 설정',
-            '• 로그 분석'
+            { title: '서버 목록 확인', description: '현재 등록된 모든 서버 조회', usage: 'list servers' },
+            { title: '시스템 상태 조회', description: '시스템 전체 상태 확인', usage: 'status check' },
+            { title: '성능 모니터링', description: 'CPU, 메모리 등 성능 지표 모니터링', usage: 'monitor performance' },
+            { title: '알림 설정', description: '알림 규칙 및 임계값 설정', usage: 'configure alerts' },
+            { title: '로그 분석', description: '시스템 로그 분석 및 조회', usage: 'analyze logs' }
           ],
           analysis: {
             queryType: 'status_check',
@@ -87,7 +120,7 @@ export class CommandQueryProcessor {
         });
 
         const response = this.utils.generateFormattedResponse(
-          fallbackRecommendations.recommendations as Array<{ command: string; description: string }>, // 🔧 수정: 명시적 타입 단언
+          fallbackRecommendations.recommendations,
           fallbackRecommendations.analysis,
           query,
           0.7
