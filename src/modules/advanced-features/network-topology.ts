@@ -74,7 +74,7 @@ export class NetworkTopologyGenerator {
           { weight: 15, value: 'warning' },
           { weight: 5, value: 'offline' },
         ] as const),
-        connections: [] as any[],
+        connections: [],
         metrics: {
           throughput: faker.number.float({ min: 10, max: 1000 }),
           latency: faker.number.float({ min: 1, max: 100 }),

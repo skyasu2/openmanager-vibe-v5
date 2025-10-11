@@ -121,7 +121,7 @@ export abstract class MockBase<T = any> {
   /**
    * Mock 통계 조회
    */
-  getStats(): Record<string, any> {
+  getStats(): Record<string, unknown> {
     return this.stats.getStats();
   }
 

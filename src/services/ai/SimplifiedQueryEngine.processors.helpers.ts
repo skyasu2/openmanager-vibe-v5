@@ -771,7 +771,7 @@ export class SimplifiedQueryEngineHelpers {
       // 통합 메트릭 API에서 현재 사이클 정보 포함된 데이터 가져오기
       const unifiedResponse = await unifiedMetricsService.getCurrentMetrics();
       
-      if ((unifiedResponse as any)?.currentCycle) {
+      if ((unifiedResponse as { currentCycle?: unknown })?.currentCycle) {
         return this.generateCycleAnalysisResponse(unifiedResponse);
       } else {
         return '❌ 현재 사이클 정보를 가져올 수 없습니다. 통합 메트릭 API를 확인해주세요.';

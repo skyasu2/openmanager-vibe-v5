@@ -50,7 +50,7 @@ export type {
 
 // Global access configuration
 if (typeof globalThis !== 'undefined') {
-  (globalThis as any).getDataGeneratorConfig = getDataGeneratorConfig;
+  (globalThis as typeof globalThis & { getDataGeneratorConfig: typeof getDataGeneratorConfig }).getDataGeneratorConfig = getDataGeneratorConfig;
 }
 
 export class UnifiedMetricsManager {

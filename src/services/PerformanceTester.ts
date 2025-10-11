@@ -444,7 +444,7 @@ export class PerformanceTester {
     console.log('🔧 자동 성능 최적화 시작...');
 
     const results = {
-      memoryOptimization: null as any,
+      memoryOptimization: null as unknown,
       cacheOptimization: false,
       systemCleanup: false,
     };

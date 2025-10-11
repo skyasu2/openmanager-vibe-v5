@@ -87,7 +87,7 @@ export class CommandQueryProcessor {
         });
 
         const response = this.utils.generateFormattedResponse(
-          fallbackRecommendations.recommendations as any, // 🔧 수정: 타입 단언 (string[] → object[] 변환)
+          fallbackRecommendations.recommendations as Array<{ command: string; description: string }>, // 🔧 수정: 명시적 타입 단언
           fallbackRecommendations.analysis,
           query,
           0.7

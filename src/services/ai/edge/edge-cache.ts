@@ -121,7 +121,7 @@ export class EdgeCache {
   /**
    * 캐시 키 생성 헬퍼
    */
-  generateKey(prefix: string, params: Record<string, any>): string {
+  generateKey(prefix: string, params: Record<string, unknown>): string {
     const sortedParams = Object.keys(params)
       .sort()
       .map((key) => `${key}:${JSON.stringify(params[key])}`)

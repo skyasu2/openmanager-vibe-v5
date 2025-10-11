@@ -202,7 +202,7 @@ export class MockScenarioManager {
    * 현재 활성 시나리오 상태 조회
    */
   getActiveScenarios() {
-    const scenarios: Record<string, any> = {};
+    const scenarios: Record<string, unknown> = {};
 
     if (this.serverScenarioRunner) {
       scenarios.server = {

@@ -166,7 +166,7 @@ export function classifyError(error: unknown): {
 /**
  * 🛡️ API 엔드포인트용 에러 핸들러 래퍼
  */
-export function withErrorHandler<T extends any[], R>(
+export function withErrorHandler<T extends unknown[], R>(
   handler: (...args: T) => Promise<NextResponse>
 ) {
   return async (...args: T): Promise<NextResponse> => {
