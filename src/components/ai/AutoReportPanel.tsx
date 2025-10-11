@@ -74,9 +74,12 @@ const AutoReportPanel: FC<AutoReportPanelProps> = ({
             report !== null &&
             'generatedAt' in report
           ) {
+            const reportWithDate = report as Record<string, unknown> & {
+              generatedAt: string | number | Date;
+            };
             return {
-              ...(report as Record<string, unknown>),
-              generatedAt: new Date((report as any).generatedAt),
+              ...reportWithDate,
+              generatedAt: new Date(reportWithDate.generatedAt),
             };
           }
           return report;
@@ -183,7 +186,11 @@ const AutoReportPanel: FC<AutoReportPanelProps> = ({
       adminLabel="관리"
       filters={reportTypes}
       selectedFilter={selectedFilter}
-      onFilterChange={(filterId: string) => setSelectedFilter(filterId as any)}
+      onFilterChange={(filterId: string) =>
+        setSelectedFilter(
+          filterId as 'all' | 'daily' | 'incident' | 'performance' | 'security'
+        )
+      }
       bottomInfo={{
         primary: '🤖 보고서는 AI가 자동으로 분석하여 생성합니다',
         secondary:

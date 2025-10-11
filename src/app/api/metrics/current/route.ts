@@ -9,7 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import type { EnhancedServerMetrics } from '@/types/server';
+import type { EnhancedServerMetrics, ServerRole } from '@/types/server';
 import { mockServersExpanded, serverInitialStatesExpanded } from '@/mock/mockServerConfigExpanded';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import { getSystemConfig } from '@/config/SystemConfiguration';
@@ -393,7 +393,7 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
       name: serverInfo.hostname || serverId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
       hostname: serverInfo.hostname || `${serverId}.local`,
       environment: 'production' as const,
-      role: serverInfo.type || serverId.split('-')[0] as any,
+      role: serverInfo.type || (serverId.split('-')[0] as ServerRole),
       status,
       
       // Enhanced metrics with required naming (조정된 값 사용)
@@ -442,7 +442,7 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
         },
         initialServerInfo: {
           type: serverInfo.type,
-          description: (serverInfo as any).description || 'Server description',
+          description: serverInfo.description || 'Server description',
           location: serverInfo.location,
           initialStatus: serverInfo.status
         },

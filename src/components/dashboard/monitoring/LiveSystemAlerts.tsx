@@ -124,13 +124,17 @@ export default function LiveSystemAlerts() {
           if (data.servers && Array.isArray(data.servers)) {
             data.servers.forEach((server: unknown) => {
               if (typeof server === 'object' && server !== null) {
-                const s = server as any;
+                const s = server as {
+                  id?: string;
+                  name?: string;
+                  status?: string;
+                };
                 if (s.status === 'critical') {
                   newAlerts.push({
-                    id: `${s.id}-critical`,
+                    id: `${s.id ?? 'unknown'}-critical`,
                     type: 'error',
-                    title: `서버 ${s.name} 오류`,
-                    message: `서버 ${s.name}에 심각한 문제가 발생했습니다`,
+                    title: `서버 ${s.name ?? '알 수 없음'} 오류`,
+                    message: `서버 ${s.name ?? '알 수 없음'}에 심각한 문제가 발생했습니다`,
                     timestamp: new Date().toISOString(),
                     source: 'system',
                     isClosable: true,
@@ -218,7 +222,8 @@ export default function LiveSystemAlerts() {
                         </span>
                         <span className="text-xs text-gray-600">•</span>
                         <span className="text-sm font-medium">
-                          {(currentAlert as any).server || 'System'}
+                          {(currentAlert as SystemAlert & { server?: string })
+                            .server || 'System'}
                         </span>
                       </div>
                       <p

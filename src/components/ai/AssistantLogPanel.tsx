@@ -362,7 +362,18 @@ const AssistantLogPanel: FC<AssistantLogPanelProps> = ({
       adminLabel="상세 관리"
       filters={logTypes}
       selectedFilter={selectedType}
-      onFilterChange={(filterId: string) => setSelectedType(filterId as any)}
+      onFilterChange={(filterId: string) =>
+        setSelectedType(
+          filterId as
+            | 'all'
+            | 'analysis'
+            | 'reasoning'
+            | 'data_processing'
+            | 'pattern_matching'
+            | 'response_generation'
+            | 'thinking'
+        )
+      }
       bottomInfo={{
         primary: '🧠 AI 사고 과정과 질의응답 로그를 실시간으로 추적합니다',
         secondary: `🎯 패턴 감지: ${logStats.patterns}건 | 🤔 질의: ${logStats.queries}건 | 🧠 사고: ${logStats.thinking}건`,
@@ -535,9 +546,7 @@ const AssistantLogPanel: FC<AssistantLogPanelProps> = ({
                       )}
                       {log.sessionId && (
                         <button
-                          onClick={() =>
-                            viewSessionDetails(log.sessionId as any)
-                          }
+                          onClick={() => viewSessionDetails(log.sessionId!)}
                           className="text-xs text-purple-400 hover:text-purple-300"
                         >
                           세션: {log.sessionId}

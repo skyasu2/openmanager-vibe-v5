@@ -594,12 +594,26 @@ export default function IntelligentMonitoringPage() {
                     <div className="space-y-2">
                       {'processingTime' in stepResult && (
                         <div className="text-xs text-gray-500">
-                          처리 시간: {(stepResult as any).processingTime}ms
+                          처리 시간:{' '}
+                          {
+                            (
+                              stepResult as StepResult & {
+                                processingTime: number;
+                              }
+                            ).processingTime
+                          }
+                          ms
                         </div>
                       )}
                       {'confidence' in stepResult && (
                         <div className="text-xs text-gray-500">
-                          신뢰도: {Math.round((stepResult as any).confidence * 100)}%
+                          신뢰도:{' '}
+                          {Math.round(
+                            (
+                              stepResult as StepResult & { confidence: number }
+                            ).confidence * 100
+                          )}
+                          %
                         </div>
                       )}
                       {stepResult.summary && (
