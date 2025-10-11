@@ -149,7 +149,7 @@ export interface AIMetadata {
   /** 카테고리 */
   category?: string;
   /** 추가 속성 (유연한 타입 허용) */
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // ============================================================================

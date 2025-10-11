@@ -260,7 +260,7 @@ export interface ISubagentTestRunner {
   updateConfiguration(config: Partial<SubagentTestConfiguration>): void;
 
   // 이벤트 처리
-  on(event: string, handler: (payload: any) => void): void;
+  on(event: string, handler: (payload: SubagentTestEvent) => void): void;
   emit(event: SubagentTestEvent): void;
 }
 

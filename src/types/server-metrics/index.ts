@@ -86,7 +86,7 @@ export interface ServerTypeProfile {
 }
 
 export interface FileCache {
-  data: any;
+  data: HourlyServerData;
   timestamp: number;
   hash: string;
 }

@@ -16,14 +16,14 @@ import * as React from 'react';
  */
 
 // 📊 안전한 Tooltip Props 타입 - 실제 Recharts TooltipProps 확장
-export interface SafeTooltipProps<TValue = any, TName = any> {
+export interface SafeTooltipProps<TValue = string | number, TName = string | number> {
   active?: boolean;
   payload?: Array<{
     value: TValue;
     name?: TName;
     color?: string;
     dataKey?: string | number;
-    payload?: any;
+    payload?: Record<string, unknown>;
     stroke?: string;
     fill?: string;
   }>;
@@ -45,8 +45,8 @@ export interface SafeLineProps extends Partial<LineProps> {
   stroke?: string;
   strokeWidth?: number;
   fill?: string;
-  dot?: boolean | any;
-  activeDot?: boolean | any;
+  dot?: boolean | React.SVGProps<SVGElement> | React.ReactElement;
+  activeDot?: boolean | React.SVGProps<SVGElement> | React.ReactElement;
   yAxisId?: string | number;
   connectNulls?: boolean;
   strokeDasharray?: string | number;
@@ -63,8 +63,8 @@ export interface SafeBarProps {
   stackId?: string | number;
   maxBarSize?: number;
   minPointSize?: number;
-  background?: boolean | any;
-  shape?: any;
+  background?: boolean | React.SVGProps<SVGRectElement>;
+  shape?: React.ReactElement | ((props: unknown) => React.ReactElement);
   name?: string;  // Bar 컴포넌트 name 속성 추가
   radius?: number | [number, number, number, number];  // Bar 모서리 반지름
   children?: React.ReactNode;  // Cell 등 자식 요소
@@ -72,7 +72,7 @@ export interface SafeBarProps {
 
 // 🥧 안전한 Pie Props 타입 - TypeScript strict 호환
 export interface SafePieProps {
-  data: any[];
+  data: Array<Record<string, string | number>>;
   dataKey: string;
   cx?: string | number;
   cy?: string | number;
@@ -81,7 +81,7 @@ export interface SafePieProps {
   fill?: string;
   stroke?: string;
   strokeWidth?: number;
-  label?: boolean | any;
+  label?: boolean | React.ReactElement | ((props: unknown) => React.ReactElement);
   labelLine?: boolean;
   startAngle?: number;
   endAngle?: number;
@@ -121,11 +121,11 @@ export interface SafeAxisProps extends Partial<YAxisProps> {
   dataKey?: string;
   xAxisId?: string | number;
   yAxisId?: string | number;
-  axisLine?: boolean | any;
-  tickLine?: boolean | any;
-  tick?: boolean | any;
-  tickFormatter?: (value: any) => string;
-  domain?: number[] | string[] | any[];  // domain 속성 지원
+  axisLine?: boolean | React.SVGProps<SVGLineElement>;
+  tickLine?: boolean | React.SVGProps<SVGLineElement>;
+  tick?: boolean | React.SVGProps<SVGTextElement> | React.ReactElement;
+  tickFormatter?: (value: string | number) => string;
+  domain?: [number | string | 'auto' | 'dataMin' | 'dataMax', number | string | 'auto' | 'dataMin' | 'dataMax'];
   allowDataOverflow?: boolean;
   hide?: boolean;
   orientation?: 'left' | 'right';  // YAxis는 left/right만 허용
@@ -139,7 +139,7 @@ export interface SafeLegendProps {
   align?: 'left' | 'center' | 'right';
   verticalAlign?: 'top' | 'middle' | 'bottom';
   iconType?: 'line' | 'square' | 'rect' | 'circle' | 'cross' | 'diamond' | 'star' | 'triangle' | 'wye';
-  formatter?: (value: any, entry: any, index: number) => React.ReactNode;
+  formatter?: (value: string | number, entry: Record<string, unknown>, index: number) => React.ReactNode;
   wrapperStyle?: React.CSSProperties;
 }
 
@@ -157,9 +157,15 @@ export interface SafeChartDataPoint {
 
 // 📊 안전한 Tooltip 확장 Props - 실제 Recharts TooltipProps 완전 호환
 export interface ExtendedTooltipProps {
-  content?: React.ComponentType<any> | React.ReactElement;
+  content?: React.ComponentType<SafeTooltipProps> | React.ReactElement;
   active?: boolean;
-  payload?: any[];
+  payload?: Array<{
+    value: string | number;
+    name?: string;
+    dataKey?: string | number;
+    color?: string;
+    payload?: Record<string, unknown>;
+  }>;
   label?: string | number;
   separator?: string;
   cursor?: boolean | object;
@@ -167,28 +173,28 @@ export interface ExtendedTooltipProps {
   contentStyle?: React.CSSProperties;
   labelStyle?: React.CSSProperties;
   itemStyle?: React.CSSProperties;
-  formatter?: (value: any, name?: string) => [string, string];
+  formatter?: (value: string | number, name?: string) => [string, string];
   labelFormatter?: (label: string | number) => React.ReactNode;
   animationDuration?: number;
   animationEasing?: 'ease' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'linear';
   isAnimationActive?: boolean;
   offset?: number;
   filterNull?: boolean;
-  itemSorter?: (item: any) => any;
+  itemSorter?: (item: Record<string, unknown>) => string | number;
   useTranslate3d?: boolean;
 }
 
 // 📊 안전한 YAxis 확장 Props - 실제 Recharts YAxisProps 기반  
 export interface ExtendedYAxisProps {
-  domain?: number[] | string[] | any[];
+  domain?: [number | string | 'auto' | 'dataMin' | 'dataMax', number | string | 'auto' | 'dataMin' | 'dataMax'];
   orientation?: 'left' | 'right';
   yAxisId?: string | number;
   type?: 'number' | 'category';
   dataKey?: string;
-  axisLine?: boolean | any;
-  tickLine?: boolean | any;
-  tick?: boolean | any;
-  tickFormatter?: (value: any) => string;
+  axisLine?: boolean | React.SVGProps<SVGLineElement>;
+  tickLine?: boolean | React.SVGProps<SVGLineElement>;
+  tick?: boolean | React.SVGProps<SVGTextElement> | React.ReactElement;
+  tickFormatter?: (value: string | number) => string;
   allowDataOverflow?: boolean;
   hide?: boolean;
 }
@@ -200,9 +206,9 @@ export interface ExtendedXAxisProps extends Partial<XAxisProps> {
   textAnchor?: string;
   height?: number;
   fontSize?: number;
-  tick?: boolean | any;
-  tickLine?: boolean | any;
-  axisLine?: boolean | any;
+  tick?: boolean | React.SVGProps<SVGTextElement> | React.ReactElement;
+  tickLine?: boolean | React.SVGProps<SVGLineElement>;
+  axisLine?: boolean | React.SVGProps<SVGLineElement>;
 }
 
 /**

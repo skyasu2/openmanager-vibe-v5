@@ -41,7 +41,7 @@ export interface RawServerData {
   os?: string;
   role?: string;
   processes?: number;
-  services?: any[];
+  services?: Service[];
   events?: string[];
   trend?: 'stable' | 'increasing' | 'decreasing';
 }
@@ -163,7 +163,7 @@ export interface PerformanceStats {
  * 파일 캐시 구조
  */
 export interface FileCache {
-  data: any;
+  data: HourlyServerData;
   timestamp: number;
   hour: number;
 }
