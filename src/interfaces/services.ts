@@ -18,15 +18,15 @@ export interface LogEntry {
   message: string;
   timestamp: string;
   module: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   error?: Error;
 }
 
 export interface ILogger {
-  debug(message: string, data?: Record<string, any>): void;
-  info(message: string, data?: Record<string, any>): void;
-  warn(message: string, data?: Record<string, any>): void;
-  error(message: string, error?: Error, data?: Record<string, any>): void;
+  debug(message: string, data?: Record<string, unknown>): void;
+  info(message: string, data?: Record<string, unknown>): void;
+  warn(message: string, data?: Record<string, unknown>): void;
+  error(message: string, error?: Error, data?: Record<string, unknown>): void;
   setLevel(level: 'debug' | 'info' | 'warn' | 'error'): void;
   getLevel(): string;
   getLogs(limit?: number): LogEntry[];
@@ -135,7 +135,7 @@ export interface AIAnalysisRequest {
     start: Date;
     end: Date;
   };
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
 }
 
 export interface AIAnalysisResult {
@@ -173,7 +173,7 @@ export interface ServiceError extends Error {
   code: string;
   service: string;
   timestamp: Date;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   cause?: Error;
 }
 

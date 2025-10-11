@@ -51,7 +51,7 @@ type MLRequest = z.infer<typeof mlRequestSchema>;
 // ML 작업 실행 클래스
 class MLProcessor {
   // ML 모델 학습
-  static async trainModel(request: MLRequest): Promise<any> {
+  static async trainModel(request: MLRequest): Promise<unknown> {
     const { type = 'anomaly', data, options } = request;
     
     try {
@@ -79,7 +79,7 @@ class MLProcessor {
   }
 
   // ML 분석 실행
-  static async analyzeMetrics(request: MLRequest): Promise<any> {
+  static async analyzeMetrics(request: MLRequest): Promise<unknown> {
     const { data } = request;
     
     try {
@@ -101,7 +101,7 @@ class MLProcessor {
   }
 
   // 한국어 NLP 처리
-  static async processKoreanNLP(request: MLRequest): Promise<any> {
+  static async processKoreanNLP(request: MLRequest): Promise<unknown> {
     const { data } = request;
     
     if (!data?.text) {
@@ -130,7 +130,7 @@ class MLProcessor {
   }
 
   // RAG 벤치마크 실행
-  static async runRAGBenchmark(request: MLRequest): Promise<any> {
+  static async runRAGBenchmark(request: MLRequest): Promise<unknown> {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/rag/benchmark`, {
         method: 'POST',
@@ -153,7 +153,7 @@ class MLProcessor {
   }
 
   // 예측 실행
-  static async makePrediction(request: MLRequest): Promise<any> {
+  static async makePrediction(request: MLRequest): Promise<unknown> {
     const { data, options } = request;
     
     try {
@@ -179,7 +179,7 @@ class MLProcessor {
   }
 
   // 모델 평가
-  static async evaluateModel(request: MLRequest): Promise<any> {
+  static async evaluateModel(request: MLRequest): Promise<unknown> {
     const { type = 'anomaly', data } = request;
     
     try {

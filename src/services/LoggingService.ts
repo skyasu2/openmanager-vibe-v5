@@ -30,28 +30,28 @@ export class LoggingService implements ILogger {
   /**
    * 디버그 로그
    */
-  debug(message: string, data?: Record<string, any>): void {
+  debug(message: string, data?: Record<string, unknown>): void {
     this.log('debug', message, data);
   }
 
   /**
    * 정보 로그
    */
-  info(message: string, data?: Record<string, any>): void {
+  info(message: string, data?: Record<string, unknown>): void {
     this.log('info', message, data);
   }
 
   /**
    * 경고 로그
    */
-  warn(message: string, data?: Record<string, any>): void {
+  warn(message: string, data?: Record<string, unknown>): void {
     this.log('warn', message, data);
   }
 
   /**
    * 에러 로그
    */
-  error(message: string, error?: Error, data?: Record<string, any>): void {
+  error(message: string, error?: Error, data?: Record<string, unknown>): void {
     this.log('error', message, data, error);
   }
 
@@ -90,7 +90,7 @@ export class LoggingService implements ILogger {
   private log(
     level: 'debug' | 'info' | 'warn' | 'error',
     message: string,
-    data?: Record<string, any>,
+    data?: Record<string, unknown>,
     error?: Error
   ): void {
     // 레벨 필터링
@@ -321,7 +321,7 @@ export class LoggingService implements ILogger {
     action: string;
     resource?: string;
     userId?: string;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   }): void {
     this.info(`Event: ${event.type}.${event.action}`, {
       event_type: event.type,

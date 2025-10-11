@@ -43,7 +43,7 @@ type MonitoringRequest = z.infer<typeof monitoringRequestSchema>;
 // 모니터링 데이터 수집 클래스
 class AIMonitoringCollector {
   // AI 시스템 모니터링
-  static async getSystemMetrics(timeRange: string): Promise<any> {
+  static async getSystemMetrics(timeRange: string): Promise<unknown> {
     try {
       // 직접 모의 데이터 생성 (내부 API 호출 대신)
       return {
@@ -77,7 +77,7 @@ class AIMonitoringCollector {
   }
 
   // AI 성능 모니터링
-  static async getPerformanceMetrics(timeRange: string): Promise<any> {
+  static async getPerformanceMetrics(timeRange: string): Promise<unknown> {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/performance`, {
         method: 'GET'
@@ -90,7 +90,7 @@ class AIMonitoringCollector {
   }
 
   // 캐시 통계
-  static async getCacheStats(timeRange: string): Promise<any> {
+  static async getCacheStats(timeRange: string): Promise<unknown> {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/cache-stats`, {
         method: 'GET'
@@ -103,7 +103,7 @@ class AIMonitoringCollector {
   }
 
   // 지능형 모니터링
-  static async getIntelligentMonitoring(request: MonitoringRequest): Promise<any> {
+  static async getIntelligentMonitoring(request: MonitoringRequest): Promise<unknown> {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/intelligent-monitoring`, {
         method: 'POST',
@@ -126,7 +126,7 @@ class AIMonitoringCollector {
   }
 
   // 장애 보고서
-  static async getIncidentReport(serverId?: string): Promise<any> {
+  static async getIncidentReport(serverId?: string): Promise<unknown> {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/incident-report`, {
         method: 'POST',
@@ -141,7 +141,7 @@ class AIMonitoringCollector {
   }
 
   // 원시 메트릭
-  static async getRawMetrics(timeRange: string): Promise<any> {
+  static async getRawMetrics(timeRange: string): Promise<unknown> {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/raw-metrics`, {
         method: 'GET'
@@ -154,7 +154,7 @@ class AIMonitoringCollector {
   }
 
   // 통합 대시보드 데이터
-  static async getUnifiedDashboard(timeRange: string): Promise<any> {
+  static async getUnifiedDashboard(timeRange: string): Promise<unknown> {
     const startTime = Date.now();
     
     try {
