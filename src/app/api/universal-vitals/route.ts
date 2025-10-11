@@ -24,7 +24,7 @@ interface UniversalVitalsRequest {
     branch?: string;
     commit?: string;
     testSuite?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 

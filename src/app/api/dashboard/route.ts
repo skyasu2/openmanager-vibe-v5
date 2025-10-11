@@ -15,6 +15,7 @@ import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';
 import { getServerMetricsFromUnifiedSource } from '@/services/data/UnifiedServerDataSource';
 import { getSystemConfig } from '@/config/SystemConfiguration';
+import type { Server } from '@/types/server';
 
 /**
  * 📊 실시간 대시보드 API
@@ -91,7 +92,7 @@ const getHandler = createApiRoute()
       const servers = await dataSource.getServers();
       
       // 서버 데이터를 SupabaseServer 형태로 변환 (기존 호환성 유지)
-      serverList = servers.map((server: any) => ({
+      serverList = servers.map((server: Server) => ({
         id: server.id,
         name: server.name,
         type: server.type,

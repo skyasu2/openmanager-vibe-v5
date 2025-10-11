@@ -137,7 +137,7 @@ const getHandler = createApiRoute()
     // Mock 시스템 서버 데이터를 API 형식으로 변환
     const allServers: PaginatedServer[] = mockServers.map((server) => {
       // 🔧 수정: 'healthy' → 'online', 'error' → 'critical' 타입 변환
-      const rawStatus: any = server.status || 'offline'; // 타입 단언으로 비교 가능하게
+      const rawStatus: unknown = server.status || 'offline';
       const status = (rawStatus === 'healthy' ? 'online' :
                      rawStatus === 'error' ? 'critical' :
                      rawStatus) as ServerStatus;

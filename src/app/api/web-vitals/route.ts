@@ -24,7 +24,13 @@ interface WebVitalMetric {
   rating: 'good' | 'needs-improvement' | 'poor';
   delta: number;
   id: string;
-  entries?: any[];
+  entries?: Array<{
+    name?: string;
+    entryType?: string;
+    startTime?: number;
+    duration?: number;
+    [key: string]: unknown;
+  }>;
 }
 
 interface WebVitalsData {

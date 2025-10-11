@@ -32,6 +32,27 @@ const ALERT_THRESHOLDS = {
   danger: 0.9,   // 90%
 } as const;
 
+// 📊 사용량 타입 정의
+interface UsageMetric {
+  used: number;
+  limit: number;
+  unit: string;
+  status: 'safe' | 'warning' | 'critical' | 'danger';
+  percentage: number;
+  remaining: number;
+  color: string;
+  daysLeft: number | null;
+  friendlyUsed?: string;
+  friendlyLimit?: string;
+}
+
+interface VercelUsage {
+  bandwidth: UsageMetric;
+  functionExecution: UsageMetric;
+  buildTime: UsageMetric;
+  deployments: UsageMetric;
+}
+
 // 📈 사용량 상태 계산
 function calculateUsageStatus(used: number, limit: number) {
   const percentage = (used / limit) * 100;
@@ -80,7 +101,7 @@ function calculateDaysLeft(percentage: number): number | null {
 }
 
 // 🔧 자동 최적화 권장사항
-function generateOptimizations(usage: any) {
+function generateOptimizations(usage: VercelUsage) {
   const optimizations: string[] = [];
 
   if (usage.bandwidth.status === 'critical' || usage.bandwidth.status === 'danger') {
