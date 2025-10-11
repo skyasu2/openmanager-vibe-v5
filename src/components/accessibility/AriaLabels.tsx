@@ -98,7 +98,7 @@ export const useAriaLabels = () => {
     
     for (const k of keys) {
       if (label && typeof label === 'object' && k in label) {
-        label = label[k];
+        label = (label as Record<string, unknown>)[k];
       } else {
         return key; // 키를 찾을 수 없으면 원본 반환
       }
