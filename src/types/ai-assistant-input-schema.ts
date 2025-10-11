@@ -168,7 +168,7 @@ export interface LogEntry {
       | 'System'
       | 'Application';
     tags: string[];
-    context: Record<string, any>;
+    context: Record<string, unknown>;
   };
   analysis: {
     anomaly: boolean;
@@ -191,7 +191,7 @@ export interface TraceData {
   tags: Record<string, string>;
   logs: Array<{
     timestamp: Date;
-    fields: Record<string, any>;
+    fields: Record<string, unknown>;
   }>;
   dependencies: {
     upstream: string[];

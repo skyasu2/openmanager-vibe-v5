@@ -87,8 +87,8 @@ export const ServerBatchRequestSchema = z.object({
     'batch-configure',
     'health-check',
   ]),
-  options: z.record(z.any()).optional(),
-  settings: z.record(z.any()).optional(), // Deprecated: use options instead, kept for backward compatibility
+  options: z.record(z.unknown()).optional(),
+  settings: z.record(z.unknown()).optional(), // Deprecated: use options instead, kept for backward compatibility
 });
 
 export const ServerBatchResponseSchema = z.object({

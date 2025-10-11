@@ -141,8 +141,8 @@ export const EnhancedServerResponseSchema = z.object({
     }),
     alerts: z.array(z.unknown()),
     services: z.array(ServerServiceSchema),
-    pattern_info: z.any().optional(),
-    correlation_metrics: z.any().optional(),
+    pattern_info: z.unknown().optional(),
+    correlation_metrics: z.unknown().optional(),
     history: ServerHistorySchema.optional(),
   }),
 });

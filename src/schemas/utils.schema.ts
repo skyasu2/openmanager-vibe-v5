@@ -245,7 +245,7 @@ export function pick<
   const pickObj = keys.reduce((acc, key) => {
     acc[key as string] = true;
     return acc;
-  }, {} as any);
+  }, {} as Record<string, unknown>);
   return schema.pick(pickObj);
 }
 
@@ -259,7 +259,7 @@ export function omit<
   const omitObj = keys.reduce((acc, key) => {
     acc[key as string] = true;
     return acc;
-  }, {} as any);
+  }, {} as Record<string, unknown>);
   return schema.omit(omitObj);
 }
 

@@ -622,7 +622,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       if (ragResult && ragResult.results && ragResult.results.length > 0) {
         const topResult = ragResult.results[0];
         if (topResult) {
-          return `질문에 대한 답변: ${(topResult as any).content || (topResult as any).text || '관련 정보를 찾았습니다.'}`;
+          return `질문에 대한 답변: ${(topResult as { content?: string; text?: string }).content || (topResult as { content?: string; text?: string }).text || '관련 정보를 찾았습니다.'}`;
         }
       }
 
@@ -657,7 +657,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       if (resultCount > 0) confidence += 0.2;
       if (resultCount > 3) confidence += 0.1;
       if (hasHighQualityResults) confidence += 0.2;
-      if ((ragResult as any).cached) confidence += 0.05;
+      if ((ragResult as { cached?: boolean }).cached) confidence += 0.05;
 
       return Math.min(confidence, 0.95); // 최대 0.95
     } catch (error) {

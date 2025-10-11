@@ -105,7 +105,7 @@ export class MCPPerformanceMonitor {
    */
   selectOptimalServer(
     servers: Map<string, MCPServerConfig>,
-    clients: Map<string, any>,
+    clients: Map<string, unknown>,
     excludeServers: string[] = []
   ): string | null {
     const availableServers = Array.from(servers.entries()).filter(
@@ -202,7 +202,7 @@ export class MCPPerformanceMonitor {
           this.performanceMetrics.lastOptimized
         ).toISOString(),
       },
-      serverMetrics: {} as Record<string, any>,
+      serverMetrics: {} as Record<string, unknown>,
       loadBalancing: Object.fromEntries(
         this.performanceMetrics.serverLoadBalance
       ),

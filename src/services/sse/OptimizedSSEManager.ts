@@ -226,7 +226,7 @@ export class OptimizedSSEManager {
     const listeners = this.eventListeners.get(eventType) || [];
     listeners.forEach((listener) => {
       try {
-        (listener as any)(data);
+        (listener as (data: unknown) => void)(data);
       } catch (error) {
         console.error(`이벤트 리스너 오류 (${eventType}):`, error);
       }
@@ -290,7 +290,7 @@ export class OptimizedSSEManager {
 
     // 직접 프로퍼티에 할당 (Mock에서 더 잘 작동)
     connection.onopen = onOpen;
-    connection.onmessage = onMessage as any;
+    connection.onmessage = onMessage as (event: MessageEvent) => void;
     connection.onerror = onError;
 
     // addEventListener도 호출 (표준 방식)

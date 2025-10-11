@@ -285,7 +285,7 @@ export class MCPContextManager {
    * 📤 컨텍스트 내보내기
    */
   exportContexts(sessionIds?: string[]): unknown {
-    const exportData: Record<string, any> = {};
+    const exportData: Record<string, unknown> = {};
     const targetSessions = sessionIds || Array.from(this.contexts.keys());
 
     for (const sessionId of targetSessions) {
@@ -309,7 +309,7 @@ export class MCPContextManager {
   /**
    * 📥 컨텍스트 가져오기
    */
-  importContexts(data: Record<string, any>): number {
+  importContexts(data: Record<string, unknown>): number {
     let importedCount = 0;
 
     for (const [sessionId, contextData] of Object.entries(data)) {
