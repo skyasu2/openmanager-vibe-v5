@@ -344,8 +344,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
 • serena: 고급 코드 분석 및 리팩토링
 • shadcn-ui: UI 컴포넌트 개발 지원
 • time: 시간대 변환 및 시간 계산
-• vercel: Vercel 플랫폼 배포 및 관리
-• multi-ai: 3-AI 교차검증 시스템 (Codex/Gemini/Qwen)`,
+• vercel: Vercel 플랫폼 배포 및 관리`,
         status: 'active',
         icon: '🔌',
         tags: ['MCP서버', '자동화도구', '확장기능'],
@@ -396,18 +395,6 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         status: 'active',
         icon: '📝',
         tags: ['Git자동화', 'CI/CD', 'GitHub통합'],
-        type: 'custom',
-      },
-      {
-        name: 'Multi-AI MCP',
-        category: 'ai',
-        importance: 'high',
-        description: '프로젝트 전용 커스텀 MCP - 3-AI 교차검증 인프라',
-        implementation: '직접 개발한 MCP 서버로 Codex/Gemini/Qwen CLI와 안전하게 통신. v3.0.0에서 적응형 타임아웃(60s-300s), Command Injection 방지, 히스토리 관리 완성. 서브에이전트가 3-AI 병렬 쿼리 → 결과 종합 → docs/ 저장',
-        version: 'v3.0.0',
-        status: 'active',
-        icon: '🤝',
-        tags: ['커스텀MCP', '3-AI연동', '교차검증'],
         type: 'custom',
       },
     ],
