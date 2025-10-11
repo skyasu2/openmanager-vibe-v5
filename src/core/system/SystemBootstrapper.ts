@@ -9,7 +9,7 @@ import { systemLogger } from '../../lib/logger';
 import { ProcessManager } from './ProcessManager.refactored';
 import { SystemWatchdog } from './SystemWatchdog.refactored';
 import { SystemEventBus } from '../events/SystemEventHandler';
-import type { ProcessConfig } from './ProcessManager.refactored';
+import type { ProcessConfig, ProcessState, SystemMetrics } from './ProcessManager.refactored';
 import type {
   SystemEventType,
   ProcessEventPayload,
@@ -149,9 +149,9 @@ export class SystemBootstrapper {
    */
   getSystemStatus(): {
     running: boolean;
-    processes: Map<string, any>;
-    metrics: any;
-    watchdogReport?: any;
+    processes: Map<string, ProcessState>;
+    metrics: SystemMetrics;
+    watchdogReport?: unknown;
   } {
     const status = this.processManager.getSystemStatus();
 
@@ -164,7 +164,7 @@ export class SystemBootstrapper {
   /**
    * 시스템 메트릭스 조회
    */
-  getSystemMetrics(): any {
+  getSystemMetrics(): SystemMetrics & { watchdog?: unknown } {
     const metrics = this.processManager.getSystemMetrics();
 
     if (this.watchdog) {
@@ -251,7 +251,7 @@ export class SystemBootstrapper {
   /**
    * 메모리 누수 처리
    */
-  private handleMemoryLeak(metrics?: any): void {
+  private handleMemoryLeak(metrics?: WatchdogEventPayload['metrics']): void {
     // 메모리 사용량이 임계값을 초과하면 GC 강제 실행
     if (metrics?.memoryUsage && metrics.memoryUsage > 1000) {
       systemLogger.system('🧹 강제 가비지 컬렉션 실행...');
@@ -264,7 +264,7 @@ export class SystemBootstrapper {
   /**
    * 높은 오류율 처리
    */
-  private handleHighErrorRate(metrics?: any): void {
+  private handleHighErrorRate(metrics?: WatchdogEventPayload['metrics']): void {
     // 오류율이 50% 이상이면 시스템 재시작 고려
     if (metrics?.errorRate && metrics.errorRate > 50) {
       systemLogger.error(
@@ -276,7 +276,7 @@ export class SystemBootstrapper {
   /**
    * 성능 저하 처리
    */
-  private handlePerformanceDegradation(metrics?: any): void {
+  private handlePerformanceDegradation(metrics?: WatchdogEventPayload['metrics']): void {
     // 성능 점수가 30 미만이면 경고
     if (metrics?.performanceScore && metrics.performanceScore < 30) {
       systemLogger.error('⚠️ 심각한 성능 저하. 즉시 조치가 필요합니다.');
@@ -286,7 +286,7 @@ export class SystemBootstrapper {
   /**
    * 빈번한 재시작 처리
    */
-  private handleFrequentRestarts(metrics?: any): void {
+  private handleFrequentRestarts(metrics?: WatchdogEventPayload['metrics']): void {
     // 재시작 횟수가 10회를 초과하면 경고
     if (metrics?.restartCount && metrics.restartCount > 10) {
       systemLogger.error(

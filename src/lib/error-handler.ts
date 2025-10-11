@@ -18,6 +18,18 @@ export interface SafeError {
 }
 
 /**
+ * Window 타입 확장 (에러 핸들러 전용)
+ */
+interface ErrorHandlerWindow extends Window {
+  __openManagerErrorHandlerSetup?: boolean;
+  emergencyComplete?: () => void;
+  debugSafeError?: (error: unknown) => SafeError;
+  testErrorHandler?: () => void;
+}
+
+declare const window: ErrorHandlerWindow;
+
+/**
  * 에러 타입 분류
  */
 export type ErrorType =
@@ -80,7 +92,7 @@ export function createSafeError(error: unknown): SafeError {
 
   // 객체 처리 (message 속성 포함)
   if (typeof error === 'object' && error !== null) {
-    const errorObj = error as any;
+    const errorObj = error as Record<string, unknown>;
 
     // message 속성이 있는 경우
     if ('message' in errorObj) {
@@ -333,7 +345,7 @@ export function setupGlobalErrorHandler(): void {
   if (typeof window === 'undefined') return;
 
   // 기존 핸들러 제거 (중복 방지)
-  (window as any).__openManagerErrorHandlerSetup = true;
+  window.__openManagerErrorHandlerSetup = true;
 
   // Unhandled JavaScript errors
   window.addEventListener('error', (event) => {
@@ -343,7 +355,7 @@ export function setupGlobalErrorHandler(): void {
     if (isLoadingRelatedError(event.error)) {
       console.log('🚀 로딩 관련 에러 감지 - 자동 복구 시도');
       setTimeout(() => {
-        (window as any).emergencyComplete?.();
+        window.emergencyComplete?.();
       }, 1000);
     }
 
@@ -368,7 +380,7 @@ export function setupGlobalErrorHandler(): void {
     if (isLoadingRelatedError(event.reason)) {
       console.log('🚀 Promise 로딩 에러 감지 - 자동 복구 시도');
       setTimeout(() => {
-        (window as any).emergencyComplete?.();
+        window.emergencyComplete?.();
       }, 1000);
     }
 
@@ -377,11 +389,11 @@ export function setupGlobalErrorHandler(): void {
   });
 
   // 디버깅용 전역 함수 등록
-  (window as any).debugSafeError = (error: unknown) => {
+  window.debugSafeError = (error: unknown) => {
     return createSafeError(error);
   };
 
-  (window as any).testErrorHandler = () => {
+  window.testErrorHandler = () => {
     try {
       throw new Error('Test error for handler verification');
     } catch (e) {
@@ -409,7 +421,7 @@ export async function safeApiCall<T>(
     // 로딩 화면에서 API 에러가 발생해도 진행할 수 있도록
     if (typeof window !== 'undefined' && isLoadingRelatedError(error)) {
       setTimeout(() => {
-        (window as any).emergencyComplete?.();
+        window.emergencyComplete?.();
       }, 2000);
     }
 
@@ -497,6 +509,9 @@ export async function withErrorRecovery<T>(
  */
 export function createErrorBoundaryInfo(error: unknown, errorInfo?: unknown) {
   const safeError = createSafeError(error);
+  
+  // React ErrorInfo 타입 추출
+  const errorInfoObj = errorInfo as { componentStack?: string } | undefined;
 
   return {
     error: safeError,
@@ -505,7 +520,7 @@ export function createErrorBoundaryInfo(error: unknown, errorInfo?: unknown) {
     userAgent:
       typeof window !== 'undefined' ? window.navigator.userAgent : 'SSR',
     url: typeof window !== 'undefined' ? window.location.href : 'SSR',
-    componentStack: (errorInfo as any)?.componentStack,
+    componentStack: errorInfoObj?.componentStack,
     isLoadingError: isLoadingRelatedError(error),
   };
 }

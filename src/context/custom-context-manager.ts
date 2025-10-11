@@ -35,7 +35,7 @@ export interface RuleCondition {
 
 export interface RuleAction {
   type: 'alert' | 'email' | 'webhook' | 'script' | 'log';
-  config: Record<string, any>;
+  config: Record<string, unknown>;
   delay?: number; // 지연 실행 (초)
 }
 
@@ -61,8 +61,8 @@ export interface OrganizationSettings {
     maintenanceWindows: MaintenanceWindow[];
   };
   integrations: {
-    monitoring: { type: string; config: Record<string, any> }[];
-    alerting: { type: string; config: Record<string, any> }[];
+    monitoring: { type: string; config: Record<string, unknown> }[];
+    alerting: { type: string; config: Record<string, unknown> }[];
   };
 }
 
@@ -98,7 +98,7 @@ export interface UserProfile {
   };
   permissions: string[];
   lastLogin: number;
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
 }
 
 interface SystemIntegrations {
@@ -363,7 +363,7 @@ export class CustomContextManager {
    * ⚡ 규칙 실행 (실제 구현)
    */
   async executeRules(
-    context: Record<string, any>,
+    context: Record<string, unknown>,
     orgId: string
   ): Promise<{
     executed: number;
@@ -426,7 +426,7 @@ export class CustomContextManager {
    */
   private evaluateRuleConditions(
     conditions: RuleCondition[],
-    context: Record<string, any>
+    context: Record<string, unknown>
   ): boolean {
     if (conditions.length === 0) return false;
 
@@ -455,7 +455,7 @@ export class CustomContextManager {
    */
   private evaluateSingleCondition(
     condition: RuleCondition,
-    context: Record<string, any>
+    context: Record<string, unknown>
   ): boolean {
     const value = this.getNestedValue(context, condition.field);
     const expectedValue = condition.value;
@@ -483,7 +483,7 @@ export class CustomContextManager {
   /**
    * 📊 중첩된 객체에서 값 추출
    */
-  private getNestedValue(obj: Record<string, any>, path: string): unknown {
+  private getNestedValue(obj: Record<string, unknown>, path: string): unknown {
     return path.split('.').reduce((current, key) => current?.[key], obj);
   }
 
