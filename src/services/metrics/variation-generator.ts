@@ -9,6 +9,44 @@
  */
 
 /**
+ * 서버 기본 정보 타입
+ */
+interface ServerBasicInfo {
+  id: string;
+  type: string;
+  cpu: number;
+}
+
+/**
+ * 메트릭 베이스라인 타입
+ */
+interface MetricsBaseline {
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: number;
+}
+
+/**
+ * 생성된 메트릭 타입
+ */
+interface GeneratedMetrics {
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: number;
+}
+
+/**
+ * 배치 생성 결과 타입
+ */
+interface BatchMetricResult {
+  id: string;
+  metrics: GeneratedMetrics;
+  events: string[];
+}
+
+/**
  * 현실적인 서버 변동성 생성기
  * - 자연스러운 ±15% 변동
  * - 확률적 이벤트 발생
@@ -137,7 +175,7 @@ export class RealisticVariationGenerator {
   /**
    * 서버간 연쇄 효과 시뮬레이션
    */
-  static calculateCascadeEffect(serverType: string, otherServers: any[]): number {
+  static calculateCascadeEffect(serverType: string, otherServers: ServerBasicInfo[]): number {
     let cascadeImpact = 0;
     
     // 웹서버 부하 → API 서버 영향
@@ -166,9 +204,9 @@ export class RealisticVariationGenerator {
    * 서버별 개별 처리 대신 배치로 매트릭 생성
    */
   static generateBatchMetrics(
-    serverInfos: Array<{ id: string; type: string; baseMetrics: any }>,
+    serverInfos: Array<{ id: string; type: string; baseMetrics: MetricsBaseline }>,
     timeSlot: number = Date.now()
-  ): Array<{ id: string; metrics: any; events: any }> {
+  ): BatchMetricResult[] {
     const timeSeed = Math.floor(timeSlot / 30000); // 30초마다 변경
     
     // 배치 처리로 모든 서버 메트릭 동시 생성

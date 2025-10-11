@@ -24,6 +24,22 @@ import type {
 import type { EnhancedServerMetrics } from '@/types/server';
 
 /**
+ * 통합 응답 타입 (사이클 분석용)
+ */
+interface UnifiedCycleResponse {
+  currentCycle: {
+    timeSlot: string;
+    scenario: string;
+    phase: string;
+    progress: number;
+    intensity: number;
+    description: string;
+    affectedServers: string[];
+  };
+  servers: EnhancedServerMetrics[];
+}
+
+/**
  * 🛠️ 쿼리 프로세서 헬퍼 클래스
  */
 export class SimplifiedQueryEngineHelpers {
@@ -397,8 +413,8 @@ export class SimplifiedQueryEngineHelpers {
    */
   private generateOverallStatusResponse(
     summary: string, 
-    criticalServers: any[], 
-    warningServers: any[], 
+    criticalServers: EnhancedServerMetrics[],
+    warningServers: EnhancedServerMetrics[], 
     timeContext: string
   ): string {
     let response = `🖥️ **현재 서버 전체 상태**\n\n`;
@@ -531,7 +547,7 @@ export class SimplifiedQueryEngineHelpers {
   /**
    * 🎯 6개 사이클 기반 상황 분석 응답
    */
-  private generateCycleAnalysisResponse(unifiedResponse: any): string {
+  private generateCycleAnalysisResponse(unifiedResponse: UnifiedCycleResponse): string {
     const { currentCycle, servers } = unifiedResponse;
     
     if (!currentCycle) {
@@ -550,13 +566,13 @@ export class SimplifiedQueryEngineHelpers {
     response += `💬 **상황 설명:**\n${currentCycle.description}\n\n`;
     
     // 영향받는 서버들
-    const affectedServers = servers.filter((s: any) => 
+    const affectedServers = servers.filter((s) => 
       currentCycle.affectedServers.includes(s.id)
     );
     
     if (affectedServers.length > 0) {
       response += `🎯 **영향받는 서버 (${affectedServers.length}개):**\n`;
-      affectedServers.forEach((server: any) => {
+      affectedServers.forEach((server) => {
         response += `• **${server.name}** (${server.status}): `;
         
         // 주요 영향받는 메트릭 표시

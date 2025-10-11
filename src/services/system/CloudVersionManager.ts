@@ -48,10 +48,10 @@ export interface VersionComparison {
 
 // 메모리 캐시 관리
 class MemoryCache {
-  private cache = new Map<string, { data: any; expires: number }>();
+  private cache = new Map<string, { data: unknown; expires: number }>();
   private readonly MAX_SIZE = 500;
 
-  set(key: string, data: any, ttlSeconds: number = 600): void {
+  set(key: string, data: unknown, ttlSeconds: number = 600): void {
     // LRU 정책으로 크기 제한
     if (this.cache.size >= this.MAX_SIZE) {
       const firstKey = this.cache.keys().next().value;
@@ -553,7 +553,9 @@ export class CloudVersionManager {
     }
   }
 
-  private calculateAverageDeployTime(deployments: any[]): number {
+  private calculateAverageDeployTime(
+    deployments: Array<{ performance_data?: { buildTime?: number } }>
+  ): number {
     if (deployments.length === 0) return 0;
 
     const totalTime = deployments.reduce((sum, d) => {
