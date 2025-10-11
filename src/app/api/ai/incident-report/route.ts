@@ -112,7 +112,7 @@ function validateMetrics(metrics: unknown[]): metrics is ServerMetric[] {
     // Check if metric is an object
     if (typeof metric !== 'object' || metric === null) return false;
     
-    const m = metric as any; // Type assertion for property access
+    const m = metric as Record<string, unknown>; // Type assertion for property access
     
     // Required string fields
     if (!m.server_id || typeof m.server_id !== 'string') return false;

@@ -200,7 +200,7 @@ export default function FeatureCardModal({
       allCards: [] as TechItem[],
       hasData: false,
       isVibeCard: false,
-      historyStages: null as any,
+      historyStages: null as VibeCodeData['history'] | null,
       categorized: {
         critical: [] as TechItem[],
         high: [] as TechItem[],

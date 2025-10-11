@@ -22,7 +22,7 @@ const getSafeArrayLength = (arr: unknown): number => {
 
     const lengthValue = (() => {
       try {
-        const tempArr = arr as any[];
+        const tempArr = arr as unknown[];
         if (!tempArr || !Array.isArray(tempArr)) return 0;
         const tempLength = tempArr.length;
         if (typeof tempLength !== 'number') return 0;

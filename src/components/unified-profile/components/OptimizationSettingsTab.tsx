@@ -188,7 +188,7 @@ export function OptimizationSettingsTab({
                   onClick={() =>
                     setSettings((prev) => ({
                       ...prev,
-                      performanceMode: key as any,
+                      performanceMode: key as 'balanced' | 'performance' | 'efficiency',
                     }))
                   }
                   className={`rounded-lg border p-3 transition-all duration-200 ${

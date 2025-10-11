@@ -118,7 +118,7 @@ export default function LoggingSection({ loggingStatus }: LoggingSectionProps) {
               <Filter className="h-4 w-4 text-gray-600 dark:text-gray-400" />
               <select
                 value={filter}
-                onChange={(e) => setFilter(e.target.value as any)}
+                onChange={(e) => setFilter(e.target.value as 'all' | 'error' | 'warning' | 'info')}
                 className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               >
                 <option value="all">전체</option>

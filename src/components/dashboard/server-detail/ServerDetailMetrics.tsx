@@ -36,7 +36,7 @@ export function ServerDetailMetrics({
         <h3 className="text-lg font-semibold text-gray-900">성능 메트릭</h3>
         <select
           value={timeRange}
-          onChange={(e) => onTimeRangeChange(e.target.value as any)}
+          onChange={(e) => onTimeRangeChange(e.target.value as '1h' | '6h' | '24h' | '7d')}
           className="rounded-lg border border-gray-300 bg-white px-3 py-2"
         >
           <option value="1h">최근 1시간</option>

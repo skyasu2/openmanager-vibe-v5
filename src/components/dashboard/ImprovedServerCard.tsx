@@ -241,7 +241,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     const statusTheme = useMemo(() => {
       try {
         // 서버 상태를 Material Design 3 표준 상태로 매핑 (베르셀 환경 안전성)
-        const theme = getServerStatusTheme(safeServer.status as any); // 🔧 수정: 타입 어설션 (타입 통합 호환성)
+        const theme = getServerStatusTheme(safeServer.status as ServerStatus); // 🔧 수정: 타입 어설션 (타입 통합 호환성)
       
       return {
         // Material Design 3 Surface 기반 배경 - 상태별 색상 적용
