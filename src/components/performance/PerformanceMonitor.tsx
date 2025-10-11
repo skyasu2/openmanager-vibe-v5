@@ -73,7 +73,7 @@ export function PerformanceMonitor() {
       new PerformanceObserver((entryList) => {
         let clsValue = 0;
         entryList.getEntries().forEach((entry: PerformanceEntry) => {
-          const layoutShiftEntry = entry as { value?: number }; // Layout Shift 전용 타입
+          const layoutShiftEntry = entry as { value?: number; hadRecentInput?: boolean }; // Layout Shift 전용 타입
           if (!layoutShiftEntry.hadRecentInput) {
             clsValue += layoutShiftEntry.value || 0;
           }
