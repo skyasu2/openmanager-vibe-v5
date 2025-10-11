@@ -177,10 +177,11 @@ export function withErrorHandler<T extends unknown[], R>(
 
       const { type, message, details } = classifyError(error);
 
+      const request = args[0] as { url?: string; method?: string } | undefined;
       return createErrorResponse(message, type, {
         error: details,
-        path: args[0]?.url ? new URL(args[0].url).pathname : undefined,
-        method: args[0]?.method,
+        path: request?.url ? new URL(request.url).pathname : undefined,
+        method: request?.method,
       });
     }
   };
