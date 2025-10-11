@@ -138,10 +138,13 @@ export class GCPFunctionsClient {
           status?: number;
           details?: string;
         };
+        const errorCode = gcpError.code !== undefined && typeof gcpError.code === 'number'
+          ? gcpError.code
+          : gcpError.status || 500;
         return {
           success: false,
-          error: gcpError.message,
-          code: gcpError.code || gcpError.status || 500,
+          error: gcpError.message || 'GCP Function Error',
+          code: errorCode,
           details: gcpError.details
         };
       }
