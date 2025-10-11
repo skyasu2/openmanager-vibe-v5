@@ -102,7 +102,7 @@ export class SystemConfigurationManager {
    * 🔄 환경변수에서 설정 로드
    */
   private loadConfiguration(): SystemConfig {
-    const rawConfig: any = {};
+    const rawConfig: Record<string, unknown> = {};
 
     // 환경변수를 설정 객체로 변환
     for (const [envKey, configPath] of Object.entries(ENV_MAPPING)) {
@@ -143,9 +143,9 @@ export class SystemConfigurationManager {
   /**
    * 📝 중첩된 객체 속성 설정
    */
-  private setNestedValue(obj: any, path: string, value: any): void {
+  private setNestedValue(obj: Record<string, unknown>, path: string, value: boolean | number | string | string[]): void {
     const keys = path.split('.');
-    let current = obj;
+    let current: Record<string, unknown> = obj;
 
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
@@ -153,7 +153,8 @@ export class SystemConfigurationManager {
         current[key] = {};
       }
       if (key) {
-        current = current[key];
+        const nextValue = current[key];
+        current = typeof nextValue === 'object' && nextValue !== null ? nextValue as Record<string, unknown> : {};
       }
     }
 
@@ -166,7 +167,7 @@ export class SystemConfigurationManager {
   /**
    * 🔄 환경변수 값 파싱
    */
-  private parseEnvValue(value: string): any {
+  private parseEnvValue(value: string): boolean | number | string | string[] {
     // Boolean 변환
     if (value.toLowerCase() === 'true') return true;
     if (value.toLowerCase() === 'false') return false;

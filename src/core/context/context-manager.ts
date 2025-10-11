@@ -136,7 +136,7 @@ export interface SessionContext {
  */
 export class ContextManager {
   private currentContext: Context;
-  private shortTermMemory: Map<string, any> = new Map();
+  private shortTermMemory: Map<string, unknown> = new Map();
   private sessionContext: SessionContext;
   private contextId: string;
 
@@ -239,7 +239,11 @@ export class ContextManager {
       // updateData가 객체인지 확인
       if (!updateData || typeof updateData !== 'object') return;
 
-      const data = updateData as any;
+      const data = updateData as {
+        user_preferences?: Record<string, unknown>;
+        session_id?: string;
+        metrics?: unknown;
+      };
 
       // 사용자 선호도 업데이트
       if ('user_preferences' in data && data.user_preferences) {
@@ -275,20 +279,28 @@ export class ContextManager {
   private updateMetrics(metrics: unknown): void {
     if (!metrics || typeof metrics !== 'object') return;
 
-    const metricsData = metrics as any;
+    const metricsData = metrics as {
+      cpu?: number;
+      memory?: number;
+      disk?: number;
+      networkIn?: number;
+      networkOut?: number;
+      responseTime?: number;
+      errorRate?: number;
+    };
 
     this.currentContext.system.current_metrics = {
       timestamp: new Date().toISOString(),
-      cpu: 'cpu' in metricsData ? metricsData.cpu : 0,
-      memory: 'memory' in metricsData ? metricsData.memory : 0,
-      disk: 'disk' in metricsData ? metricsData.disk : 0,
+      cpu: 'cpu' in metricsData ? metricsData.cpu ?? 0 : 0,
+      memory: 'memory' in metricsData ? metricsData.memory ?? 0 : 0,
+      disk: 'disk' in metricsData ? metricsData.disk ?? 0 : 0,
       network: {
-        in: 'networkIn' in metricsData ? metricsData.networkIn : 0,
-        out: 'networkOut' in metricsData ? metricsData.networkOut : 0,
+        in: 'networkIn' in metricsData ? metricsData.networkIn ?? 0 : 0,
+        out: 'networkOut' in metricsData ? metricsData.networkOut ?? 0 : 0,
       },
       responseTime:
-        'responseTime' in metricsData ? metricsData.responseTime : 0,
-      errorRate: 'errorRate' in metricsData ? metricsData.errorRate : 0,
+        'responseTime' in metricsData ? metricsData.responseTime ?? 0 : 0,
+      errorRate: 'errorRate' in metricsData ? metricsData.errorRate ?? 0 : 0,
     };
 
     // 트렌드 계산
@@ -543,15 +555,19 @@ export class ContextManager {
         return;
       }
 
-      const resultData = result as any;
+      const resultData = result as {
+        queryId?: string;
+        tools_used?: string[];
+        confidence?: number;
+      };
 
       // 세션 컨텍스트에 결과 저장
       const analysisResult: Result = {
         queryId:
-          'queryId' in resultData ? resultData.queryId : `result_${Date.now()}`,
-        toolsUsed: 'tools_used' in resultData ? resultData.tools_used : [],
+          'queryId' in resultData ? resultData.queryId ?? `result_${Date.now()}` : `result_${Date.now()}`,
+        toolsUsed: 'tools_used' in resultData ? resultData.tools_used ?? [] : [],
         result: result,
-        confidence: 'confidence' in resultData ? resultData.confidence : 0.8,
+        confidence: 'confidence' in resultData ? resultData.confidence ?? 0.8 : 0.8,
         timestamp: new Date().toISOString(),
       };
 

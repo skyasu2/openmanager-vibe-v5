@@ -26,7 +26,8 @@ export function ServerDetailNetwork({
       metrics !== null &&
       'activeConnections' in metrics
     ) {
-      return (metrics as any).activeConnections || 0;
+      const metricsData = metrics as { activeConnections?: number };
+      return metricsData.activeConnections ?? 0;
     }
     return 0;
   };
@@ -37,7 +38,8 @@ export function ServerDetailNetwork({
       metrics !== null &&
       'latency' in metrics
     ) {
-      return (metrics as any).latency || 0;
+      const metricsData = metrics as { latency?: number };
+      return metricsData.latency ?? 0;
     }
     return 0;
   };
@@ -48,7 +50,8 @@ export function ServerDetailNetwork({
       metrics !== null &&
       'packetIO' in metrics
     ) {
-      return (metrics as any).packetIO || { in: 0, out: 0 };
+      const metricsData = metrics as { packetIO?: { in: number; out: number } };
+      return metricsData.packetIO ?? { in: 0, out: 0 };
     }
     return { in: 0, out: 0 };
   };
@@ -59,7 +62,8 @@ export function ServerDetailNetwork({
       metrics !== null &&
       'networkThroughput' in metrics
     ) {
-      return (metrics as any).networkThroughput || { in: 0, out: 0 };
+      const metricsData = metrics as { networkThroughput?: { in: number; out: number } };
+      return metricsData.networkThroughput ?? { in: 0, out: 0 };
     }
     return { in: 0, out: 0 };
   };

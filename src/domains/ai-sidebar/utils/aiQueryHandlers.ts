@@ -12,7 +12,7 @@ export interface AIQueryResult {
   confidence: number;
   engine: string;
   processingTime: number;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export interface AutoReportTrigger {
@@ -220,16 +220,20 @@ export async function handleAIQuery({
 }: {
   query: string;
   engine: AIMode;
-  context: any[];
-}): Promise<any> {
+  context: unknown[];
+}): Promise<{
+  response?: string;
+  metadata?: Record<string, unknown>;
+  error?: string;
+}> {
   const result = await processRealAIQuery(
-    query, 
-    engine, 
+    query,
+    engine,
     'test-session',
     () => {},
     () => {}
   );
-  
+
   return result.success ? {
     response: result.content,
     metadata: result.metadata
@@ -256,19 +260,26 @@ export function validateQuery(query: string): boolean {
 /**
  * Error message formatting utility
  */
-export function formatErrorMessage(error: any): string {
-  if (error?.message?.includes('fetch')) {
+export function formatErrorMessage(error: unknown): string {
+  const err = error as {
+    message?: string;
+    status?: number;
+    name?: string;
+    toString?: () => string;
+  };
+
+  if (err.message?.includes('fetch')) {
     return '네트워크 연결에 문제가 있습니다. 다시 시도해주세요.';
   }
-  
-  if (error?.status === 429) {
+
+  if (err.status === 429) {
     return 'API 한도에 도달했습니다. 잠시 후 다시 시도해주세요.';
   }
-  
-  if (error?.name === 'TimeoutError') {
+
+  if (err.name === 'TimeoutError') {
     return '요청 시간 초과가 발생했습니다. 다시 시도해주세요.';
   }
-  
-  const message = error?.message || error?.toString() || '알 수 없는 오류';
+
+  const message = err.message || err.toString?.() || '알 수 없는 오류';
   return `처리 중 오류가 발생했습니다: ${message}`;
 }

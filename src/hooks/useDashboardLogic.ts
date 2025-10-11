@@ -5,6 +5,19 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNaturalLoadingTime } from './useMinimumLoadingTime';
 import { useSequentialLoadingTime } from './useSequentialLoadingTime';
 
+// Window 인터페이스 확장 for 대시보드 디버그
+interface WindowWithDashboard extends Window {
+  dashboardReady?: boolean;
+  dashboardLoadTime?: number;
+  debugDashboard?: {
+    state: DashboardState;
+    loading: unknown;
+    skipLoading: boolean;
+    forceComplete: () => void;
+    simulateError: (msg: string) => void;
+  };
+}
+
 interface DashboardState {
   isLoading: boolean;
   progress: number;
@@ -169,8 +182,8 @@ export const useDashboardLogic = () => {
       try {
         // 전역 상태 설정
         if (typeof window !== 'undefined') {
-          (window as any).dashboardReady = true;
-          (window as any).dashboardLoadTime = Date.now();
+          (window as WindowWithDashboard).dashboardReady = true;
+          (window as WindowWithDashboard).dashboardLoadTime = Date.now();
         }
       } catch (error) {
         console.warn('⚠️ 전역 상태 설정 실패:', error);
@@ -181,7 +194,7 @@ export const useDashboardLogic = () => {
   // 개발자 도구
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      (window as any).debugDashboard = {
+      (window as WindowWithDashboard).debugDashboard = {
         state: dashboardState,
         loading: loadingState,
         skipLoading,
@@ -232,7 +245,7 @@ export const useDashboardLogic = () => {
 
     // Server generation
     serverGeneration: {
-      servers: [] as any[],
+      servers: [] as unknown[],
       status: 'idle',
       actions: {},
     },
