@@ -231,8 +231,8 @@ class StreamingManager {
     return Array.from({ length: count }, (_, i) => ({
       id: `log-${Date.now()}-${i}`,
       timestamp: new Date().toISOString(),
-      level: levels[Math.floor(Math.random() * levels.length)],
-      source: sources[Math.floor(Math.random() * sources.length)],
+      level: levels[Math.floor(Math.random() * levels.length)]!,
+      source: sources[Math.floor(Math.random() * sources.length)]!,
       message: `Log message ${i + 1} at ${new Date().toLocaleTimeString()}`,
       serverId: `server-${Math.floor(Math.random() * 5) + 1}`,
       metadata: {
