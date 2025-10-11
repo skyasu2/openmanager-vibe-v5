@@ -43,7 +43,7 @@ interface GeneratedMetrics {
 interface BatchMetricResult {
   id: string;
   metrics: GeneratedMetrics;
-  events: string[];
+  events: { hasEvent: boolean; impact: number; type: string; description?: string };
 }
 
 /**
@@ -232,7 +232,11 @@ export class RealisticVariationGenerator {
     results.forEach(result => {
       const cascadeImpact = this.calculateCascadeEffect(
         serverInfos.find(s => s.id === result.id)?.type || 'unknown',
-        results.map(r => ({ type: serverInfos.find(s => s.id === r.id)?.type, cpu: r.metrics.cpu }))
+        results.map(r => ({
+          id: r.id,
+          type: serverInfos.find(s => s.id === r.id)?.type || 'unknown',
+          cpu: r.metrics.cpu
+        }))
       );
       
       // 연쇄 효과 적용
