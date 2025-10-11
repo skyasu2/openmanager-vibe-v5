@@ -71,7 +71,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       let errorType: ErrorState['errorType'] = 'unknown';
       let message = `${context}: `;
 
-      const errorObj = error as any;
+      const errorObj = error as Error & { name?: string; code?: string };
 
       // 에러 타입 분석
       if (error instanceof TypeError || errorObj?.name === 'TypeError') {

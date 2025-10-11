@@ -455,7 +455,7 @@ export const usePredictionSummary = () => {
               acc[metric].predictions[0]?.trend || 'stable';
             return acc;
           },
-          {} as Record<string, any>
+          {} as Record<string, { predictions: PredictionResult[]; count: number; avgAccuracy: number; latestTrend: string }>
         ),
         trends: {
           increasing: predictions.filter((p) => p.trend === 'increasing')

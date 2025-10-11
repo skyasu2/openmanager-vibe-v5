@@ -34,7 +34,7 @@ export function useSystemAlerts() {
 
       if (dashboardData.servers) {
         dashboardData.servers.forEach((server: unknown) => {
-          const s = server as any;
+          const s = server as { id?: string; name?: string; status?: string };
           if (s.status === 'critical') {
             extractedAlerts.push({
               id: `${s.id}-critical`,

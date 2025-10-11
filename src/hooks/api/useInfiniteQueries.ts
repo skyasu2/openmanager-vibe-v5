@@ -25,7 +25,7 @@ interface LogEntry {
   level: 'info' | 'warning' | 'error' | 'debug';
   message: string;
   source: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   serverId?: string;
 }
 

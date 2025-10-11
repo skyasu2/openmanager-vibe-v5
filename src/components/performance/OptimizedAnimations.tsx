@@ -32,7 +32,7 @@ const useOptimizedMotion = () => {
 
   useEffect(() => {
     // 성능 모드 감지 (저사양 기기, 배터리 절약 모드 등)
-    const connection = (navigator as any).connection;
+    const connection = (navigator as Navigator & { connection?: { effectiveType?: string } }).connection;
     if (connection && connection.effectiveType === '2g') {
       setPerformanceMode(true);
     }

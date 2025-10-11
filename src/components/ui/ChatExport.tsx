@@ -28,7 +28,7 @@ interface ChatMessage {
   role: 'user' | 'assistant' | 'thinking';
   content: string;
   timestamp: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface ExportFormat {

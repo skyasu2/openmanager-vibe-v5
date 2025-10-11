@@ -66,7 +66,7 @@ export interface SystemAlert {
   source: string;
   resolved: boolean;
   resolvedAt?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // 쿼리 키 팩토리
