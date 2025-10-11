@@ -5,10 +5,70 @@ import path from 'path';
 /**
  * 🧠 AI 분석 전용 API 엔드포인트
  * - 자연어 질의 처리
- * - 시계열 데이터 분석  
+ * - 시계열 데이터 분석
  * - 장애 패턴 인식
  * - 예측 모델 제공
  */
+
+// ============ 타입 정의 ============
+
+interface ServerMetrics {
+  cpu: number;
+  memory: number;
+  disk: number;
+  network: number;
+}
+
+interface ServerEvent {
+  type: string;
+  description: string;
+  severity?: string;
+  timestamp?: string;
+}
+
+interface ServerData {
+  id: string;
+  name: string;
+  metrics: ServerMetrics;
+  currentEvents: ServerEvent[];
+  currentTrend: string;
+  status: string;
+}
+
+interface FindingEvidence {
+  server?: string;
+  event?: ServerEvent;
+  metrics?: ServerMetrics;
+  threshold?: number;
+  actual?: number;
+  servers?: string[];
+  correlation?: number;
+  trend?: string;
+}
+
+interface Finding {
+  type: 'insight' | 'warning' | 'prediction' | 'correlation';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  message: string;
+  evidence: FindingEvidence;
+  confidence: number;
+}
+
+interface RelatedData {
+  currentSnapshot?: {
+    totalServers?: number;
+    problematicServers?: number;
+    criticalEvents?: number;
+  };
+  trends?: {
+    overall?: string;
+    details?: string[];
+  };
+  incidentHistory?: {
+    relatedIncidents?: number;
+    similarPatterns?: string[];
+  };
+}
 
 interface AIAnalysisRequest {
   query: string;
@@ -30,15 +90,9 @@ interface AIAnalysisResponse {
   query: string;
   results: {
     summary: string;
-    findings: Array<{
-      type: 'insight' | 'warning' | 'prediction' | 'correlation';
-      severity: 'low' | 'medium' | 'high' | 'critical';
-      message: string;
-      evidence: any;
-      confidence: number;
-    }>;
+    findings: Finding[];
     recommendations: string[];
-    relatedData: any;
+    relatedData: RelatedData;
   };
   metadata: {
     executionTime: number;
@@ -69,17 +123,10 @@ class TimelineAnalysisEngine {
       if (/오늘|today/i.test(query)) timeContext = '오늘';
       if (/어제|yesterday/i.test(query)) timeContext = '어제';
       
-      const findings: any[] = [];
-      
+      const findings: Finding[] = [];
+
       // 🔍 데이터 검증 및 변환 - any 타입 제거
-      let servers: Array<{
-        id: string;
-        name: string;
-        metrics: { cpu: number; memory: number; disk: number; network: number };
-        currentEvents: any[];
-        currentTrend: string;
-        status: string;
-      }> = [];
+      let servers: ServerData[] = [];
       
       try {
         if (!currentData?.servers || typeof currentData.servers !== 'object') {
@@ -128,14 +175,14 @@ class TimelineAnalysisEngine {
         }, { status: 200 }); // 200으로 반환 (Graceful Degradation)
       }
       
-      const problematicServers = servers.filter((server: any) => 
-        server.currentEvents?.length > 0 || 
+      const problematicServers = servers.filter((server) =>
+        server.currentEvents?.length > 0 ||
         server.currentTrend === 'increasing' ||
-        server.metrics.cpu > 85 || 
+        server.metrics.cpu > 85 ||
         server.metrics.memory > 90
       );
-      
-      problematicServers.forEach((server: any) => {
+
+      problematicServers.forEach((server) => {
         if (server.currentEvents?.length > 0) {
           findings.push({
             type: 'warning' as const,
@@ -240,7 +287,7 @@ class RootCauseAnalysisEngine {
       const baselinesPath = path.join(process.cwd(), 'public/ai-server-data/ai-features/baselines.json');
       const baselinesData = JSON.parse(await fs.readFile(baselinesPath, 'utf-8'));
       
-      const findings: any[] = [];
+      const findings: Finding[] = [];
       
       // 서버 데이터 변환
       const servers = Object.entries(currentData.servers).map(([id, data]: [string, any]) => ({
@@ -254,9 +301,9 @@ class RootCauseAnalysisEngine {
       
       // CPU 급증 원인 분석
       if (/cpu|CPU|프로세서/i.test(query)) {
-        const highCpuServers = servers.filter((server: any) => server.metrics.cpu > 70);
+        const highCpuServers = servers.filter((server) => server.metrics.cpu > 70);
         
-        highCpuServers.forEach((server: any) => {
+        highCpuServers.forEach((server) => {
           const baseline = baselinesData.serverBaselines[server.id];
           if (baseline) {
             const deviation = server.metrics.cpu - baseline.normalRanges.cpu.average;
@@ -280,9 +327,9 @@ class RootCauseAnalysisEngine {
       
       // 메모리 문제 원인 분석
       if (/메모리|memory|RAM/i.test(query)) {
-        const highMemoryServers = servers.filter((server: any) => server.metrics.memory > 80);
+        const highMemoryServers = servers.filter((server) => server.metrics.memory > 80);
         
-        highMemoryServers.forEach((server: any) => {
+        highMemoryServers.forEach((server) => {
           const baseline = baselinesData.serverBaselines[server.id];
           if (baseline) {
             findings.push({
@@ -362,7 +409,7 @@ class PredictiveAnalysisEngine {
       const baselinesPath = path.join(process.cwd(), 'public/ai-server-data/ai-features/baselines.json');
       const baselinesData = JSON.parse(await fs.readFile(baselinesPath, 'utf-8'));
       
-      const findings: any[] = [];
+      const findings: Finding[] = [];
       const predictionModels = baselinesData.globalBaselines.predictionModels;
       
       // 서버 데이터 변환
@@ -378,13 +425,13 @@ class PredictiveAnalysisEngine {
       
       // 메모리 누수 예측
       if (predictionModels.memoryLeakDetection) {
-        const serversAtRisk = servers.filter((server: any) => {
+        const serversAtRisk = servers.filter((server) => {
           const trend = server.currentTrend;
           const memoryUsage = server.metrics.memory;
           return trend === 'increasing' && memoryUsage > 70;
         });
         
-        serversAtRisk.forEach((server: any) => {
+        serversAtRisk.forEach((server) => {
           findings.push({
             type: 'prediction' as const,
             severity: 'warning' as const,
@@ -403,9 +450,9 @@ class PredictiveAnalysisEngine {
       
       // 트래픽 급증 예측
       if (predictionModels.trafficSpikePredictor) {
-        const webServers = servers.filter((server: any) => server.type === 'web');
+        const webServers = servers.filter((server) => server.type === 'web');
         
-        webServers.forEach((server: any) => {
+        webServers.forEach((server) => {
           if (server.metrics.cpu > 60 && server.metrics.network > 70) {
             findings.push({
               type: 'prediction' as const,
@@ -491,7 +538,7 @@ class ComparisonAnalysisEngine {
       const baselinesPath = path.join(process.cwd(), 'public/ai-server-data/ai-features/baselines.json');
       const baselinesData = JSON.parse(await fs.readFile(baselinesPath, 'utf-8'));
       
-      const findings: any[] = [];
+      const findings: Finding[] = [];
       
       // 서버 데이터 변환
       const servers = Object.entries(currentData.servers).map(([id, data]: [string, any]) => ({
@@ -504,7 +551,7 @@ class ComparisonAnalysisEngine {
       }));
       
       // 현재 vs 기준값 비교
-      servers.forEach((server: any) => {
+      servers.forEach((server) => {
         const baseline = baselinesData.serverBaselines[server.id];
         if (baseline) {
           const cpuDiff = server.metrics.cpu - baseline.normalRanges.cpu.average;
@@ -528,15 +575,15 @@ class ComparisonAnalysisEngine {
       });
       
       // 서버간 성능 비교
-      const avgCpu = servers.reduce((sum: number, s: any) => sum + s.metrics.cpu, 0) / servers.length;
-      const avgMemory = servers.reduce((sum: number, s: any) => sum + s.metrics.memory, 0) / servers.length;
+      const avgCpu = servers.reduce((sum: number, s) => sum + s.metrics.cpu, 0) / servers.length;
+      const avgMemory = servers.reduce((sum: number, s) => sum + s.metrics.memory, 0) / servers.length;
       
-      const outliers = servers.filter((server: any) => 
+      const outliers = servers.filter((server) => 
         Math.abs(server.metrics.cpu - avgCpu) > 25 || 
         Math.abs(server.metrics.memory - avgMemory) > 20
       );
       
-      outliers.forEach((server: any) => {
+      outliers.forEach((server) => {
         findings.push({
           type: 'warning' as const,
           severity: 'medium' as const,
@@ -667,7 +714,7 @@ export async function POST(request: NextRequest) {
     
     const executionTime = Date.now() - startTime;
     const confidenceLevel = safeResults.findings.length > 0 
-      ? safeResults.findings.reduce((sum: number, finding: any) => sum + finding.confidence, 0) / safeResults.findings.length
+      ? safeResults.findings.reduce((sum: number, finding) => sum + finding.confidence, 0) / safeResults.findings.length
       : 0.5;
     
     const response: AIAnalysisResponse = {
