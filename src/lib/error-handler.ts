@@ -101,9 +101,9 @@ export function createSafeError(error: unknown): SafeError {
           typeof errorObj.message === 'string'
             ? errorObj.message || 'Object error without message'
             : String(errorObj.message || 'Invalid message type'),
-        stack: errorObj.stack,
-        code: errorObj.code || errorObj.name || 'ObjectError',
-        name: errorObj.name || 'ObjectError',
+        stack: errorObj.stack as string | undefined,
+        code: (errorObj.code || errorObj.name || 'ObjectError') as string,
+        name: (errorObj.name || 'ObjectError') as string,
         details: errorObj,
         originalError: error,
       };
