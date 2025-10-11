@@ -301,7 +301,7 @@ export function dateInRange(min?: Date, max?: Date) {
 export function envSchema<T extends z.ZodRawShape>(shape: T) {
   return z.object(shape).transform((env) => {
     // 환경변수 기본값 처리
-    const processed: Record<string, any> = {};
+    const processed: Record<string, unknown> = {};
 
     for (const [key, value] of Object.entries(env)) {
       // 'true'/'false' 문자열을 boolean으로 변환

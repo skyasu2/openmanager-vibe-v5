@@ -19,7 +19,7 @@ export interface MockOptions {
   enablePersistence?: boolean;
 }
 
-export abstract class MockBase<T = any> {
+export abstract class MockBase<T = unknown> {
   protected options: MockOptions;
   protected stats: MockStats;
   protected logger: MockLogger;

@@ -61,7 +61,7 @@ export interface ServerMetrics {
 }
 
 export interface HourlyServerData {
-  servers: Record<string, any>;
+  servers: Record<string, unknown>;
   scenario?: string;
 }
 

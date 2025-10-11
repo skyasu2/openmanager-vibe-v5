@@ -37,7 +37,7 @@ import {
  */
 export class MockScenarioManager {
   private serverScenarioRunner?: ScenarioRunner;
-  private activeScenarios: Map<string, any> = new Map();
+  private activeScenarios: Map<string, unknown> = new Map();
 
   constructor() {
     console.log('🎬 시나리오 매니저 초기화 (실제 서비스 사용)');

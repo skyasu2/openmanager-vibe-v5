@@ -129,7 +129,7 @@ export interface ServerInstance {
     // 🔧 korean-ai-engine 및 기타 모듈 호환성을 위한 추가 속성들
     requests?: number;
     errors?: number;
-    customMetrics?: Record<string, any>;
+    customMetrics?: Record<string, unknown>;
   };
 
   // 🔧 ServerInstanceManager 호환성을 위한 추가 속성들
