@@ -157,7 +157,7 @@ export class EnhancedEnvCryptoManager {
       encryptedData.algorithm,
       derivedKey,
       iv
-    ) as any;
+    ) as crypto.Decipher;
     decipher.setAuthTag(authTag);
 
     try {

@@ -132,7 +132,12 @@ export class GCPFunctionsClient {
 
       // 이미 GCP Function Error인 경우
       if (error && typeof error === 'object' && 'code' in error) {
-        const gcpError = error as any;
+        const gcpError = error as {
+          message?: string;
+          code?: number | string;
+          status?: number;
+          details?: string;
+        };
         return {
           success: false,
           error: gcpError.message,

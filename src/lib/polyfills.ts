@@ -8,8 +8,15 @@
 
 // SSR 환경에서 브라우저 전용 API 폴리필 구현
 if (typeof window === 'undefined') {
-  // 전역 객체에 any 타입으로 안전하게 할당
-  const globalAny = global as any;
+  // 전역 객체에 브라우저 API 타입으로 안전하게 할당
+  const globalAny = global as typeof globalThis & {
+    window?: Record<string, unknown>;
+    document?: Record<string, unknown>;
+    navigator?: Record<string, unknown>;
+    localStorage?: Storage;
+    sessionStorage?: Storage;
+    self?: typeof globalThis;
+  };
 
   // window 객체 폴리필
   if (!globalAny.window) {

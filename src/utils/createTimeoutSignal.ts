@@ -1,7 +1,9 @@
 export const createTimeoutSignal = (ms: number): AbortSignal | undefined => {
   if (typeof AbortSignal !== 'undefined' && 'timeout' in AbortSignal) {
     // Node 18+ 환경
-    return (AbortSignal as any).timeout(ms);
+    return (AbortSignal as typeof AbortSignal & {
+      timeout: (ms: number) => AbortSignal;
+    }).timeout(ms);
   }
   if (typeof AbortController !== 'undefined') {
     const controller = new AbortController();

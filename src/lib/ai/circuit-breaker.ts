@@ -108,7 +108,7 @@ export class AIServiceCircuitBreaker {
       state = 'CLOSED';
     }
 
-    const result: any = {
+    const result: ReturnType<typeof this.getStatus> = {
       serviceName: this.serviceName,
       state,
       failures: this.failures,

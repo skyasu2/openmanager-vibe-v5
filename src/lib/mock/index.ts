@@ -82,7 +82,7 @@ export function getGCPMock(): GCPMock {
 /**
  * 모든 Mock 통계 조회
  */
-export function getAllMockStats(): Record<string, any> {
+export function getAllMockStats(): Record<string, unknown> {
   return {
     mode: getMockMode(),
     googleAI: googleAIMock?.getStats() || null,
@@ -124,7 +124,7 @@ export function getMockSystemInfo(): {
 
 // 개발 환경에서 전역 객체에 Mock 노출 (디버깅용)
 if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
-  (window as any).__MOCK_SYSTEM__ = {
+  (window as Window & { __MOCK_SYSTEM__?: Record<string, unknown> }).__MOCK_SYSTEM__ = {
     getGoogleAIMock,
     getSupabaseMock,
     getGCPMock,

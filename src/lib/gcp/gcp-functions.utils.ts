@@ -230,7 +230,13 @@ export function validateResponse<T>(data: unknown): Result<T> {
   }
 
   // 기본적인 응답 구조 확인
-  const response = data as any;
+  const response = data as {
+    success: boolean;
+    data?: T;
+    error?: string;
+    code?: number;
+    details?: string;
+  };
   if (typeof response.success !== 'boolean') {
     return {
       success: false,

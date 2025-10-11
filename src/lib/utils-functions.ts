@@ -54,7 +54,7 @@ export function generateSessionId(prefix?: string): string {
     // Node.js 환경에서는 crypto 모듈 사용
     else if (typeof globalThis !== 'undefined' && 'crypto' in globalThis) {
       // Node.js 19+ has globalThis.crypto
-      (globalThis.crypto as any).getRandomValues?.(array);
+      (globalThis.crypto as Crypto).getRandomValues?.(array);
     }
     // 폴백: Math.random() (권장하지 않음)
     else {
@@ -124,7 +124,7 @@ export function generateTimestamp(): string {
 /**
  * 🔒 안전한 JSON 파싱
  */
-export function safeJsonParse<T = any>(jsonString: string, fallback: T): T {
+export function safeJsonParse<T = unknown>(jsonString: string, fallback: T): T {
   try {
     return JSON.parse(jsonString);
   } catch {
@@ -217,7 +217,7 @@ export function formatDuration(ms: number): string {
  * @param wait - Wait time in milliseconds
  * @returns Debounced function
  */
-export function debounce<T extends (...args: unknown[]) => any>(
+export function debounce<T extends (...args: unknown[]) => void>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -240,7 +240,7 @@ export function debounce<T extends (...args: unknown[]) => any>(
  * @param limit - Time limit in milliseconds
  * @returns Throttled function
  */
-export function throttle<T extends (...args: unknown[]) => any>(
+export function throttle<T extends (...args: unknown[]) => void>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {

@@ -18,7 +18,7 @@ const FILE_CACHE_TTL = 300000; // 5분 캐시 TTL (성능 최적화)
  * @param hour - 0-23 시간 (24시간 형식)
  * @returns 시간별 서버 메트릭 데이터
  */
-export async function readCachedHourlyFile(hour: number): Promise<any> {
+export async function readCachedHourlyFile(hour: number): Promise<FileCache['data']> {
   const cacheKey = hour.toString().padStart(2, '0');
   const cached = fileCache.get(cacheKey);
   

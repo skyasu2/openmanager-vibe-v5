@@ -62,13 +62,13 @@ export interface AISession {
   duration?: number;
   confidence?: number;
   enginePath?: string[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface AISessionRequest {
   query: string;
   mode: 'LOCAL' | 'GOOGLE_AI';
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 // ==============================================
@@ -354,7 +354,7 @@ export async function saveAIResponse(
 ): Promise<boolean> {
   const storage = getAISessionStorage();
 
-  const typedResponse = response as any;
+  const typedResponse = response as Record<string, unknown>;
   const sessionData: AISessionData = {
     session_id: sessionId,
     query,
