@@ -131,7 +131,7 @@ export async function activateAdminMode(
 
     // 5단계: 페이지 새로고침하여 헤더가 적용되도록 함 (React 하이드레이션 완료까지 대기)
     await page.reload({ waitUntil: 'networkidle' });
-    await page.waitForTimeout(1000); // React 하이드레이션 여유 시간
+    await page.waitForTimeout(2000); // React 하이드레이션 여유 시간 증가 (1초 → 2초)
     
     const isAdminActive = await page.evaluate(() => {
       return localStorage.getItem('admin_mode') === 'true';
@@ -219,10 +219,15 @@ export async function resetAdminState(page: Page): Promise<void> {
 
     // 페이지가 로드되어 있지 않으면 먼저 로드
     try {
-      await page.goto('/');
-      await page.waitForLoadState('domcontentloaded');
-    } catch {
-      // 이미 페이지가 로드되어 있는 경우 무시
+      const currentUrl = page.url();
+      if (!currentUrl || currentUrl === 'about:blank') {
+        await page.goto('/');
+        await page.waitForLoadState('domcontentloaded');
+      }
+    } catch (error) {
+      console.warn('⚠️ 페이지 로드 중 오류 (무시):', error);
+      // 재시도: 페이지를 명시적으로 로드
+      await page.goto('/', { waitUntil: 'domcontentloaded' });
     }
 
     await page.evaluate(() => {
@@ -245,6 +250,10 @@ export async function resetAdminState(page: Page): Promise<void> {
     // 테스트 모드 쿠키 정리
     await page.context().clearCookies();
     console.log('🧹 테스트 모드 쿠키 정리 완료');
+
+    // HTTP 헤더 정리 (재설정)
+    await page.setExtraHTTPHeaders({});
+    console.log('🧹 테스트 모드 헤더 정리 완료');
 
     console.log('✅ [Admin Helper] 관리자 상태 초기화 완료');
 
