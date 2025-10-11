@@ -15,7 +15,7 @@ export default function SafePerformanceScript() {
         if ('connection' in navigator && (navigator as { connection?: { effectiveType: string; downlink: number } }).connection) {
           const connection = (navigator as { connection?: { effectiveType: string; downlink: number } }).connection;
           console.log(
-            `📶 Network: ${connection.effectiveType}, ${connection.downlink}Mbps`
+            `📶 Network: ${connection!.effectiveType}, ${connection!.downlink}Mbps`
           );
         }
 
@@ -23,9 +23,9 @@ export default function SafePerformanceScript() {
         if ('memory' in performance && (performance as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory) {
           const memory = (performance as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
           const memoryInfo = {
-            used: Math.round(memory.usedJSHeapSize / 1024 / 1024),
-            total: Math.round(memory.totalJSHeapSize / 1024 / 1024),
-            limit: Math.round(memory.jsHeapSizeLimit / 1024 / 1024),
+            used: Math.round(memory!.usedJSHeapSize / 1024 / 1024),
+            total: Math.round(memory!.totalJSHeapSize / 1024 / 1024),
+            limit: Math.round(memory!.jsHeapSizeLimit / 1024 / 1024),
           };
           console.log(
             `🧠 Memory: ${memoryInfo.used}MB / ${memoryInfo.total}MB (Limit: ${memoryInfo.limit}MB)`
@@ -137,7 +137,7 @@ export default function SafePerformanceScript() {
           const monitorPerformance = () => {
             if ((performance as { memory?: { usedJSHeapSize: number } }).memory) {
               const memory = (performance as { memory?: { usedJSHeapSize: number } }).memory;
-              const used = Math.round(memory.usedJSHeapSize / 1024 / 1024);
+              const used = Math.round(memory!.usedJSHeapSize / 1024 / 1024);
 
               // 메모리 사용량이 100MB를 초과하면 경고
               if (used > 100) {
