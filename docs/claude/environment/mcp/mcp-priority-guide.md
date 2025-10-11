@@ -314,61 +314,17 @@ mcp__shadcn_ui__get_component_demo("button")
 
 ---
 
-## 🎯 실천 방법
+## 🎯 빠른 체크리스트
 
-### 1단계: 습관화 (1주일)
-
-**작업 전 자문**:
-- 이 작업에 MCP가 더 효율적일까?
-- 시간이 오래 걸리는 작업인가?
-- 반복할 작업인가?
-
-### 2단계: 측정 (2주차)
-
-**주간 체크**:
-- MCP 사용 빈도
-- 토큰 절약량
-- 작업 속도 개선
-
-### 3단계: 최적화 (3주차~)
-
-**개선 포인트**:
-- 자주 쓰는 패턴 문서화
-- 새로운 활용법 발견
-- 팀과 공유
-
----
-
-## 🔗 관련 문서
-
-- [MCP 개인 설정](mcp-configuration.md)
-- [Multi-AI 전략](multi-ai-strategy.md)
-- [개인 워크플로우](workflows.md)
-- [AI CLI 도구 설정](ai-tools-setup.md)
-
----
-
-## 📝 체크리스트 요약
-
-### 즉시 적용 (권장)
-
+**즉시 적용**:
 - [ ] 코드 분석 → Serena 우선 (작은 파일은 Read도 OK)
 - [ ] Vercel 조회 → MCP 권장 (일회성은 CLI도 OK)
 - [ ] 라이브러리 문서 → Context7 권장 (블로그는 WebSearch도 OK)
-- [ ] UI 컴포넌트 → Shadcn-ui MCP (기존 수정은 코드 참조)
-- [ ] 복잡한 분석 → Sequential-thinking
+- [ ] UI 컴포넌트 → Shadcn-ui MCP
 
-### 측정 (선택)
+**목표**: 토큰 82% 절약, 개발 속도 3-5배 향상
 
-- [ ] 토큰 사용량 기록
-- [ ] 작업 시간 측정
-- [ ] MCP 사용 비율 추적
-
-### 목표
-
-- [ ] 토큰 절약: 82% 달성
-- [ ] 개발 속도: 3-5배 향상
-- [ ] 정확도: 100% 유지
+**관련 문서**: mcp-configuration.md, multi-ai-strategy.md, workflows.md
 
 ---
 

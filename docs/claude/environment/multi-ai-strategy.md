@@ -166,18 +166,11 @@ claude "교차검증 결과를 반영하여 개선"
 ```
 
 **💡 Bash Wrapper 방식 특징** (v2.3.0):
-- ✅ **타임아웃 완전 해결**: Claude Code 60-90s 제약 회피
+- ✅ **타임아웃 완전 해결**: 성공률 100% (3/3 AI)
 - ✅ **고정 타임아웃**: Codex 300s, Gemini 300s, Qwen 600s
-- ✅ **재시도 제거**: 자원 낭비 방지
-- ✅ **성공률 100%**: 3/3 AI 모두 정상 응답
-- ✅ **stderr 경고 없음**: MCP 프로토콜 문제 완전 회피
-- ✅ **구조 단순화**: MCP 계층 제거, 직접 실행
-- 🚀 **Qwen YOLO Mode**: 완전 무인 동작, 복잡한 분석 대응
+- 🚀 **Qwen YOLO Mode**: 완전 무인 동작
 
-**❌ MCP 방식 (제거됨, 2025-10-08)**:
-- 제거 이유: Claude Code 60-90s 하드코딩 타임아웃 (수정 불가)
-- 성공률: 33% (1/3 AI) vs Bash 100% (3/3 AI)
-- 백업 위치: `backups/multi-ai-mcp-v3.8.0/` (향후 v3.9.0 연구용)
+**참고**: ~~MCP 방식 제거~~ (백업: `backups/multi-ai-mcp-v3.8.0/`)
 
 ### 3. 전문 분야별 특화
 
@@ -199,81 +192,15 @@ claude "3-AI 분석 결과를 종합하여 최종 결정"
 
 ---
 
-## 🛡️ Wrapper 스크립트 상세 가이드 (2025-10-05 추가)
+## 🛡️ Wrapper 스크립트 타임아웃
 
-### 적응형 타임아웃 시스템
+| Wrapper | 타임아웃 | 특징 |
+|---------|----------|------|
+| codex-wrapper.sh | 300초 | 단일 응답 |
+| gemini-wrapper.sh | 300초 | 단일 응답 |
+| qwen-wrapper.sh | 600초 | YOLO Mode (완전 무인) |
 
-**문제 해결**: Codex 응답 시간 변동성 (단순 쿼리 2초 vs 복잡 쿼리 51초)
-
-#### Codex Wrapper (`scripts/ai-subagents/codex-wrapper.sh`)
-
-**적응형 타임아웃 로직**:
-- **Simple 쿼리** (<50자): 30초 타임아웃
-- **Medium 쿼리** (50-200자): 90초 타임아웃
-- **Complex 쿼리** (>200자): 120초 타임아웃
-
-**자동 재시도**:
-- 실패 시 타임아웃 50% 증가하여 1회 재시도
-- 예: 90초 실패 → 135초로 재시도
-
-**성능 로깅**:
-- `logs/ai-perf/codex-perf-YYYY-MM-DD.log`에 자동 기록
-- 응답 시간, 토큰 수, 쿼리 복잡도 추적
-
-```bash
-# 사용 예시
-./scripts/ai-subagents/codex-wrapper.sh
-# 또는 인자 전달
-./scripts/ai-subagents/codex-wrapper.sh "복잡한 TypeScript 분석"
-```
-
-**성과**:
-- 타임아웃 성공률: 40% → 95% (2.4배 향상)
-- P95 응답 시간 기준 안전 계수 1.67 적용
-- 자동 재시도로 92% 재실행 감소
-
-#### Gemini Wrapper (`scripts/ai-subagents/gemini-wrapper.sh`)
-
-**빠른 응답 최적화**:
-- 평균 응답 시간: 5초
-- 고정 타임아웃: 30초
-- 아키텍처 분석 특화
-
-```bash
-./scripts/ai-subagents/gemini-wrapper.sh
-# 또는
-./scripts/ai-subagents/gemini-wrapper.sh "SOLID 원칙 검토"
-```
-
-#### Qwen Wrapper (`scripts/ai-subagents/qwen-wrapper.sh`)
-
-**YOLO Mode 채택 (v2.3.0)**:
-- YOLO Mode: 600초 타임아웃 (완전 무인 동작)
-- 모든 도구 자동 승인
-- 성능 최적화 특화
-
-```bash
-# YOLO Mode (완전 자동)
-./scripts/ai-subagents/qwen-wrapper.sh "성능 최적화 상세 분석"
-
-# 복잡한 분석도 타임아웃 없이 처리
-./scripts/ai-subagents/qwen-wrapper.sh "TypeScript 타입 시스템 종합 분석"
-```
-
-### 업데이트된 스크립트 타임아웃 (2025-10-05)
-
-기존 스크립트들의 타임아웃도 개선되었습니다:
-
-| 스크립트 | 변경 전 | 변경 후 | 개선율 |
-|----------|---------|---------|--------|
-| `ai-auto-recovery.sh` | 30초 | 90초 | +200% |
-| `ai-cli-verification.sh` | 15초 | 60초 | +300% |
-| `ai-cross-verification-real.sh` | 60초 | 90초 | +50% |
-
-**권장 사용법**:
-- 간단한 쿼리: 직접 CLI 사용
-- 복잡한 쿼리: wrapper 스크립트 사용
-- 자동화 스크립트: 90초 이상 타임아웃 설정
+**성과**: 타임아웃 성공률 100% (v2.3.0)
 
 ---
 
