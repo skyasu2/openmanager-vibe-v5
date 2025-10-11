@@ -15,6 +15,14 @@ interface QueryBuilder {
   limitCount?: number;
 }
 
+interface MockUser {
+  id: string;
+  email: string;
+  name?: string;
+  role?: string;
+  [key: string]: unknown;
+}
+
 export class SupabaseMock extends MockBase {
   private tables: Map<string, unknown[]> = new Map();
   private currentUser: unknown = null;
@@ -54,16 +62,20 @@ export class SupabaseMock extends MockBase {
   ): Promise<{ user: unknown; session: unknown }> {
     return this.execute('auth.signIn', async () => {
       const users = this.tables.get('users') || [];
-      const user = users.find((u) => u.email === email);
+      const user = users.find((u) => {
+        const mockUser = u as MockUser;
+        return mockUser.email === email;
+      });
 
       if (!user) {
         throw new Error('사용자를 찾을 수 없습니다');
       }
 
+      const mockUser = user as MockUser;
       this.currentUser = user;
       const session = {
-        access_token: `mock-token-${user.id}`,
-        refresh_token: `mock-refresh-${user.id}`,
+        access_token: `mock-token-${mockUser.id}`,
+        refresh_token: `mock-refresh-${mockUser.id}`,
         expires_in: 3600,
         user,
       };
@@ -150,7 +162,17 @@ export class SupabaseMock extends MockBase {
           const recordB = b as Record<string, unknown>;
           const aVal = recordA[builder.orderBy!.column];
           const bVal = recordB[builder.orderBy!.column];
-          const result = aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+
+          // 타입별 비교 처리
+          let result = 0;
+          if (typeof aVal === 'string' && typeof bVal === 'string') {
+            result = aVal.localeCompare(bVal);
+          } else if (typeof aVal === 'number' && typeof bVal === 'number') {
+            result = aVal - bVal;
+          } else if (typeof aVal === 'boolean' && typeof bVal === 'boolean') {
+            result = aVal === bVal ? 0 : aVal ? 1 : -1;
+          }
+
           return builder.orderBy!.ascending ? result : -result;
         });
       }
