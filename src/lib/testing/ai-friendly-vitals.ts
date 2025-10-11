@@ -145,10 +145,10 @@ export class AIVitalsCollector implements MetricCollector {
       rating: vital.rating,
       timestamp: new Date(vital.timestamp).toISOString(),
       context: {
-        testType: vital.context?.type || 'unknown',
+        testType: (vital.context?.type as string | undefined) || 'unknown',
         environment: process.env.NODE_ENV || 'development',
         duration: vital.value,
-        source: vital.context?.source || 'manual'
+        source: ((vital.context?.source as 'vitest' | 'playwright' | 'api' | 'manual' | undefined) || 'manual')
       },
       actionItems: (vital.recommendations || []).map(rec => ({
         priority: this.inferPriority(vital.rating),
