@@ -6,7 +6,7 @@ declare module 'recharts' {
     width?: number | string;
     height?: number | string;
     children?: ReactNode;
-    data?: any[];
+    data?: unknown[];
   }
 
   interface ResponsiveContainerProps {
@@ -16,11 +16,11 @@ declare module 'recharts' {
   }
 
   interface PieProps {
-    data?: any[];
+    data?: unknown[];
     cx?: number | string;
     cy?: number | string;
     labelLine?: boolean;
-    label?: ((entry: any) => string) | boolean;
+    label?: ((entry: unknown) => string) | boolean;
     outerRadius?: number;
     fill?: string;
     dataKey?: string;
@@ -56,7 +56,7 @@ declare module 'recharts' {
   }
 
   interface TooltipProps {
-    formatter?: (value: any, name?: string) => [string, string];
+    formatter?: (value: unknown, name?: string) => [string, string];
   }
 
   export const ResponsiveContainer: ComponentType<ResponsiveContainerProps>;
@@ -71,18 +71,18 @@ declare module 'recharts' {
   export const YAxis: ComponentType<YAxisProps>;
   export const CartesianGrid: ComponentType<CartesianGridProps>;
   export const Tooltip: ComponentType<TooltipProps>;
-  export const Legend: any;
-  export const Area: any;
-  export const AreaChart: any;
-  export const RadarChart: any;
-  export const PolarGrid: any;
-  export const PolarAngleAxis: any;
-  export const PolarRadiusAxis: any;
-  export const Radar: any;
-  export const ComposedChart: any;
-  export const ScatterChart: any;
-  export const Scatter: any;
-  export const Treemap: any;
-  export const RadialBarChart: any;
-  export const RadialBar: any;
+  export const Legend: ComponentType<any>;
+  export const Area: ComponentType<any>;
+  export const AreaChart: ComponentType<BaseChartProps>;
+  export const RadarChart: ComponentType<BaseChartProps>;
+  export const PolarGrid: ComponentType<any>;
+  export const PolarAngleAxis: ComponentType<any>;
+  export const PolarRadiusAxis: ComponentType<any>;
+  export const Radar: ComponentType<any>;
+  export const ComposedChart: ComponentType<BaseChartProps>;
+  export const ScatterChart: ComponentType<BaseChartProps>;
+  export const Scatter: ComponentType<any>;
+  export const Treemap: ComponentType<BaseChartProps>;
+  export const RadialBarChart: ComponentType<BaseChartProps>;
+  export const RadialBar: ComponentType<any>;
 }

@@ -12,16 +12,16 @@ export default function SafePerformanceScript() {
     const initPerformanceMonitoring = () => {
       try {
         // 📶 네트워크 정보 추적 (CSP 호환)
-        if ('connection' in navigator && (navigator as any).connection) {
-          const connection = (navigator as any).connection;
+        if ('connection' in navigator && (navigator as { connection?: { effectiveType: string; downlink: number } }).connection) {
+          const connection = (navigator as { connection?: { effectiveType: string; downlink: number } }).connection;
           console.log(
             `📶 Network: ${connection.effectiveType}, ${connection.downlink}Mbps`
           );
         }
 
         // 🧠 메모리 사용량 추적 (CSP 호환)
-        if ('memory' in performance && (performance as any).memory) {
-          const memory = (performance as any).memory;
+        if ('memory' in performance && (performance as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory) {
+          const memory = (performance as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
           const memoryInfo = {
             used: Math.round(memory.usedJSHeapSize / 1024 / 1024),
             total: Math.round(memory.totalJSHeapSize / 1024 / 1024),
@@ -45,7 +45,7 @@ export default function SafePerformanceScript() {
           const fidObserver = new PerformanceObserver((list) => {
             for (const entry of list.getEntries()) {
               console.log(
-                `👆 FID: ${Math.round((entry as any).processingStart - entry.startTime)}ms`
+                `👆 FID: ${Math.round(((entry as { processingStart?: number }).processingStart || entry.startTime) - entry.startTime)}ms`
               );
             }
           });
@@ -54,8 +54,8 @@ export default function SafePerformanceScript() {
           const clsObserver = new PerformanceObserver((list) => {
             let clsValue = 0;
             for (const entry of list.getEntries()) {
-              if (!(entry as any).hadRecentInput) {
-                clsValue += (entry as any).value;
+              if (!(entry as { hadRecentInput?: boolean }).hadRecentInput) {
+                clsValue += (entry as { value?: number }).value || 0;
               }
             }
             if (clsValue > 0) {
@@ -135,8 +135,8 @@ export default function SafePerformanceScript() {
         // 🔄 실시간 성능 모니터링 (개발 환경에서만)
         if (process.env.NODE_ENV === 'development') {
           const monitorPerformance = () => {
-            if ((performance as any).memory) {
-              const memory = (performance as any).memory;
+            if ((performance as { memory?: { usedJSHeapSize: number } }).memory) {
+              const memory = (performance as { memory?: { usedJSHeapSize: number } }).memory;
               const used = Math.round(memory.usedJSHeapSize / 1024 / 1024);
 
               // 메모리 사용량이 100MB를 초과하면 경고

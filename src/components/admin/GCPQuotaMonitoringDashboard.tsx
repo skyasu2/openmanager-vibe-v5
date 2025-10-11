@@ -34,54 +34,54 @@ import { useEffect, useState } from 'react';
 
 const BarChart = dynamic(() => import('recharts').then((mod) => mod.BarChart), {
   ssr: false,
-}) as any;
+}) as React.ComponentType<any>;
 
 const LineChart = dynamic(
   () => import('recharts').then((mod) => mod.LineChart),
   { ssr: false }
-) as any;
+) as React.ComponentType<any>;
 
 const PieChart = dynamic(() => import('recharts').then((mod) => mod.PieChart), {
   ssr: false,
-}) as any;
+}) as React.ComponentType<any>;
 
 const ResponsiveContainer = dynamic(
   () => import('recharts').then((mod) => mod.ResponsiveContainer),
   { ssr: false }
-) as any;
+) as React.ComponentType<any>;
 
 const XAxis = dynamic(() => import('recharts').then((mod) => mod.XAxis), {
   ssr: false,
-}) as any;
+}) as React.ComponentType<any>;
 
 const YAxis = dynamic(() => import('recharts').then((mod) => mod.YAxis), {
   ssr: false,
-}) as any;
+}) as React.ComponentType<any>;
 
 const CartesianGrid = dynamic(
   () => import('recharts').then((mod) => mod.CartesianGrid),
   { ssr: false }
-) as any;
+) as React.ComponentType<any>;
 
 const Tooltip = dynamic(() => import('recharts').then((mod) => mod.Tooltip), {
   ssr: false,
-}) as any;
+}) as React.ComponentType<any>;
 
 const Bar = dynamic(() => import('recharts').then((mod) => mod.Bar), {
   ssr: false,
-}) as any;
+}) as React.ComponentType<any>;
 
 const Line = dynamic(() => import('recharts').then((mod) => mod.Line), {
   ssr: false,
-}) as any;
+}) as React.ComponentType<any>;
 
 const Cell = dynamic(() => import('recharts').then((mod) => mod.Cell), {
   ssr: false,
-}) as any;
+}) as React.ComponentType<any>;
 
 const Pie = dynamic(() => import('recharts').then((mod) => mod.Pie), {
   ssr: false,
-}) as any;
+}) as React.ComponentType<any>;
 
 interface GCPQuotaStats {
   freeQuotaUsage: {
@@ -199,7 +199,7 @@ export const GCPQuotaMonitoringDashboard: FC = () => {
       setGCPStats(gcpData);
       setThreeTierStats(threeTierData);
       setRouterStatus(statusData);
-      setHistoricalData(historyData as any);
+      setHistoricalData(historyData as { time: string; calls: number; compute: number; network: number }[]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
