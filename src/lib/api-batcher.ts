@@ -44,7 +44,7 @@ class VercelOptimizedAPIBatcher {
   private readonly options: BatchOptions;
   private readonly queue = new Map<string, APIRequest>();
   private readonly pendingPromises = new Map<string, {
-    resolve: (value: APIResponse) => void;
+    resolve: (value: APIResponse<unknown>) => void;
     reject: (error: Error) => void;
     timestamp: number;
   }>();
