@@ -128,7 +128,7 @@ export default function SystemChecklist({
       error,
       stack,
       timestamp: new Date().toISOString(),
-      retryCount: (window as WindowWithDebug)[`retry_${component}`] || 0,
+      retryCount: (window as unknown as WindowWithDebug)[`retry_${component}`] || 0,
     };
 
     setDebugInfo((prev) => ({
@@ -388,11 +388,11 @@ export default function SystemChecklist({
     };
 
     // 전역 등록
-    (window as WindowWithDebug).debugSystemChecklistAdvanced = advancedDebugTools;
-    (window as WindowWithDebug).systemChecklistDebug = advancedDebugTools; // 짧은 별칭
+    (window as unknown as WindowWithDebug).debugSystemChecklistAdvanced = advancedDebugTools;
+    (window as unknown as WindowWithDebug).systemChecklistDebug = advancedDebugTools; // 짧은 별칭
 
     // 기존 함수들도 유지
-    (window as WindowWithDebug).debugSystemChecklist = {
+    (window as unknown as WindowWithDebug).debugSystemChecklist = {
       components,
       componentDefinitions,
       isCompleted,
@@ -401,7 +401,7 @@ export default function SystemChecklist({
       debugInfo,
     };
 
-    (window as WindowWithDebug).emergencyCompleteChecklist =
+    (window as unknown as WindowWithDebug).emergencyCompleteChecklist =
       advancedDebugTools.forceComplete;
 
     // 개발 환경에서만 디버그 정보 출력
@@ -556,7 +556,7 @@ export default function SystemChecklist({
                       process.env.NEXT_PUBLIC_NODE_ENV) ||
                     process.env.NODE_ENV === 'development'
                   ) {
-                    (window as WindowWithDebug).systemChecklistDebug?.analyzeComponent(
+                    (window as unknown as WindowWithDebug).systemChecklistDebug?.analyzeComponent(
                       component.id
                     );
                   }
@@ -622,7 +622,7 @@ export default function SystemChecklist({
           >
             <button
               onClick={() =>
-                (window as WindowWithDebug).systemChecklistDebug?.retryFailedComponents()
+                (window as unknown as WindowWithDebug).systemChecklistDebug?.retryFailedComponents()
               }
               className="mr-2 rounded-lg border border-red-500/50 bg-red-500/20 px-4 py-2 text-sm text-red-300 transition-colors hover:bg-red-500/30"
             >
@@ -633,7 +633,7 @@ export default function SystemChecklist({
               (process.env.NODE_ENV === 'development' && (
                 <button
                   onClick={() =>
-                    (window as WindowWithDebug).systemChecklistDebug?.diagnoseNetwork()
+                    (window as unknown as WindowWithDebug).systemChecklistDebug?.diagnoseNetwork()
                   }
                   className="rounded-lg border border-yellow-500/50 bg-yellow-500/20 px-4 py-2 text-sm text-yellow-300 transition-colors hover:bg-yellow-500/30"
                 >
