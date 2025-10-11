@@ -689,12 +689,13 @@ export function resetDataRetentionScheduler(): void {
   type SchedulerClass = typeof DataRetentionScheduler & {
     instance: DataRetentionScheduler | null;
   };
-  
+
   const SchedulerWithInstance = DataRetentionScheduler as unknown as SchedulerClass;
-  
-  if (SchedulerWithInstance.instance) {
-    SchedulerWithInstance.instance.shutdown();
-    SchedulerWithInstance.instance = null;
+
+  const instance = (SchedulerWithInstance as { instance: DataRetentionScheduler | null }).instance;
+  if (instance) {
+    instance.shutdown();
+    (SchedulerWithInstance as { instance: DataRetentionScheduler | null }).instance = null;
   }
 }
 
