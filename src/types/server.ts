@@ -120,6 +120,7 @@ export interface Server {
   ip?: string;
   os?: string;
   type?: string;
+  description?: string; // 서버 설명 추가
   environment?: string;
   provider?: string;
   role?: string; // 서버 역할 추가
@@ -277,7 +278,7 @@ export interface EnhancedServerMetrics {
     hour?: number;
     minute?: number;
     cycleInfo?: {
-      scenario: {
+      scenario?: {
         affectedServers: string[];
         name: string;
       };

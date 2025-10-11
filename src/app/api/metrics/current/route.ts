@@ -24,7 +24,7 @@ interface CycleScenario {
 
 interface CycleInfo {
   timeSlot: number;
-  scenario: CycleScenario;
+  scenario?: CycleScenario;
   phase: string;
   intensity: number;
   progress: number;
@@ -176,9 +176,9 @@ function generateCycleBasedMetric(
   
   // 현재 사이클의 영향 계산
   let cycleEffect = 0;
-  
+
   // 영향받는 서버인지 확인
-  const isAffectedServer = cycleInfo.scenario.affectedServers.includes(serverId);
+  const isAffectedServer = cycleInfo.scenario?.affectedServers.includes(serverId) ?? false;
   
   if (isAffectedServer && cycleInfo.intensity > 0) {
     // 장애 유형별 영향
@@ -221,8 +221,8 @@ function generateCycleBasedMetric(
       }
     };
     
-    const effects = incidentEffects[cycleInfo.scenario.name as keyof typeof incidentEffects];
-    const metricEffect = effects[metricType as keyof typeof effects] || 0;
+    const effects = cycleInfo.scenario ? incidentEffects[cycleInfo.scenario.name as keyof typeof incidentEffects] : undefined;
+    const metricEffect = effects ? (effects[metricType as keyof typeof effects] || 0) : 0;
     
     // 사이클 강도에 따라 효과 조정
     cycleEffect = metricEffect * cycleInfo.intensity;
@@ -252,12 +252,14 @@ function interpolate1MinVariation(
 // 🎯 6개 사이클 기반 시나리오 생성
 function generateCycleScenarios(cycleInfo: CycleInfo, serverId: string): CycleScenarioOutput[] {
   const scenarios = [];
-  const isAffected = cycleInfo.scenario.affectedServers.includes(serverId);
-  
-  if (!isAffected || cycleInfo.intensity === 0) {
+  const isAffected = cycleInfo.scenario?.affectedServers.includes(serverId) ?? false;
+
+  if (!isAffected || cycleInfo.intensity === 0 || !cycleInfo.scenario) {
     return []; // 영향받지 않거나 정상 상태면 시나리오 없음
   }
-  
+
+  const scenario = cycleInfo.scenario; // 타입 보장
+
   // 사이클별 주요 시나리오
   const cycleScenarios = {
     backup_cycle: {
@@ -309,11 +311,11 @@ function generateCycleScenarios(cycleInfo: CycleInfo, serverId: string): CycleSc
       estimatedDuration: `${Math.round((1 - cycleInfo.progress) * 4 * 60)}분`
     }
   };
-  
-  const scenario = cycleScenarios[cycleInfo.scenario.name as keyof typeof cycleScenarios];
-  if (scenario) {
+
+  const cycleScenario = cycleScenarios[scenario.name as keyof typeof cycleScenarios];
+  if (cycleScenario) {
     scenarios.push({
-      ...scenario,
+      ...cycleScenario,
       phase: cycleInfo.phase,
       intensity: cycleInfo.intensity,
       progress: Math.round(cycleInfo.progress * 100),
@@ -393,7 +395,7 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
       name: serverInfo.hostname || serverId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
       hostname: serverInfo.hostname || `${serverId}.local`,
       environment: 'production' as const,
-      role: serverInfo.type || (serverId.split('-')[0] as ServerRole),
+      role: (serverInfo.type || serverId.split('-')[0]) as ServerRole,
       status,
       
       // Enhanced metrics with required naming (조정된 값 사용)
@@ -421,7 +423,10 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
         minute,
         cycleInfo: {
           timeSlot: cycleInfo.timeSlot,
-          scenario: cycleInfo.scenario?.name || 'normal',
+          scenario: cycleInfo.scenario ? {
+            affectedServers: cycleInfo.scenario.affectedServers,
+            name: cycleInfo.scenario.name
+          } : undefined,
           phase: cycleInfo.phase,
           intensity: cycleInfo.intensity,
           description: cycleInfo.description,
