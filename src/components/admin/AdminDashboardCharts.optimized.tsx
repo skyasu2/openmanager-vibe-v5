@@ -88,11 +88,11 @@ const AdminDashboardCharts = memo(() => {
     }
 
     // 구조가 다르면 변환
-    const chart = data.charts.performanceChart as Record<string, unknown>;
+    const chart = data.charts.performanceChart as { labels?: unknown[]; datasets?: Array<{ data: number[] }> };
     if (chart.labels && chart.datasets) {
       return chart.labels.map((label: unknown, index: number) => ({
         name: String(label),
-        value: chart.datasets[0]?.data[index] || 0,
+        value: chart.datasets![0]?.data[index] || 0,
         color: getColorByLabel(String(label)),
       }));
     }
