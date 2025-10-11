@@ -269,7 +269,7 @@ const isValidArray = <T>(value: unknown): value is T[] => {
 const isValidServer = (value: unknown): value is EnhancedServerData => {
   return value !== null &&
          typeof value === 'object' &&
-         typeof (value as any).id === 'string';
+         typeof (value as { id?: unknown }).id === 'string';
 };
 
 const isValidNumber = (value: unknown): value is number => {
@@ -324,7 +324,7 @@ export const calculateServerStatsFallback = (servers: EnhancedServerData[]): Ser
     if (isValidNumber(server.memory)) memorySum += server.memory;
     if (isValidNumber(server.uptime)) uptimeSum += server.uptime;
     // 🔧 수정: bandwidth 속성 안전 접근 (optional)
-    const bandwidth = (server as any).bandwidth;
+    const bandwidth = (server as { bandwidth?: number }).bandwidth;
     if (isValidNumber(bandwidth)) bandwidthSum += bandwidth;
   }
 

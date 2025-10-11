@@ -15,7 +15,7 @@ interface APIRequest {
   priority?: 'high' | 'normal' | 'low';
 }
 
-interface APIResponse<T = any> {
+interface APIResponse<T = unknown> {
   id: string;
   data?: T;
   error?: string;
@@ -66,7 +66,7 @@ class VercelOptimizedAPIBatcher {
    * API 요청을 배치에 추가
    * Vercel Edge 환경에서 메모리 효율적 큐잉
    */
-  async request<T = any>(request: APIRequest): Promise<APIResponse<T>> {
+  async request<T = unknown>(request: APIRequest): Promise<APIResponse<T>> {
     return new Promise((resolve, reject) => {
       // 메모리 누수 방지: 오래된 요청 정리
       this.cleanupExpiredRequests();

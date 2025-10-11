@@ -69,7 +69,7 @@ export interface ChartConfig {
   options: {
     responsive: boolean;
     maintainAspectRatio: boolean;
-    scales?: any;
-    plugins?: any;
+    scales?: unknown;
+    plugins?: unknown;
   };
 }

@@ -216,7 +216,7 @@ export class ServiceRegistry {
             status: 'healthy' as const,
             alerts: [],
           }),
-          collectBatch: async (): Promise<any[]> => [],
+          collectBatch: async (): Promise<unknown[]> => [],
           startCollection: () => {},
           stopCollection: () => {},
           isCollecting: () => false,
@@ -231,7 +231,7 @@ export class ServiceRegistry {
       () => {
         return {
           sendMetrics: async () => {},
-          getMetrics: async (): Promise<any[]> => [],
+          getMetrics: async (): Promise<unknown[]> => [],
           isConnected: () => false,
           connect: async () => {},
           disconnect: () => {},

@@ -70,7 +70,7 @@ export function createMiddlewareClient(
         // ✅ response 객체에만 쿠키를 설정합니다 (request는 읽기 전용)
         try {
           if (response && 'cookies' in response) {
-            (response as any).cookies.set({
+            (response as { cookies: { set: (opts: { name: string; value: string; [key: string]: unknown }) => void } }).cookies.set({
               name,
               value,
               ...enhancedOptions,
@@ -92,7 +92,7 @@ export function createMiddlewareClient(
         // ✅ response 객체에서만 쿠키를 삭제합니다 (request는 읽기 전용)
         try {
           if (response && 'cookies' in response) {
-            (response as any).cookies.set({
+            (response as { cookies: { set: (opts: { name: string; value: string; [key: string]: unknown }) => void } }).cookies.set({
               name,
               value: '',
               ...options,

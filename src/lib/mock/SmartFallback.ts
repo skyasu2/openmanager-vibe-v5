@@ -149,8 +149,8 @@ export class SmartFallback {
   /**
    * 폴백 통계 조회
    */
-  static getFallbackStats(): Record<string, any> {
-    const stats: Record<string, any> = {};
+  static getFallbackStats(): Record<string, unknown> {
+    const stats: Record<string, unknown> = {};
 
     for (const [service, count] of this.fallbackHistory.entries()) {
       const lastTime = this.lastFallbackTime.get(service);

@@ -81,7 +81,7 @@ export function usePerformanceGuard({
   // 메모리 사용량 모니터링
   const checkMemoryUsage = useCallback(() => {
     if (typeof window !== 'undefined' && 'performance' in window) {
-      const memory = (performance as any).memory;
+      const memory = (performance as { memory?: { usedJSHeapSize?: number; jsHeapSizeLimit?: number } }).memory;
       if (memory) {
         const usedMB = memory.usedJSHeapSize / 1024 / 1024;
         metricsRef.current.memoryUsage = usedMB;
@@ -114,7 +114,7 @@ export function usePerformanceGuard({
     // setInterval 인터셉트 (개발 환경에서만)
     if (!originalSetInterval.current && typeof window !== 'undefined') {
       originalSetInterval.current = window.setInterval;
-      window.setInterval = interceptSetInterval as any;
+      window.setInterval = interceptSetInterval as typeof window.setInterval;
     }
 
     // localStorage 인터셉트 완전 비활성화 (Vercel Edge Runtime 호환성)

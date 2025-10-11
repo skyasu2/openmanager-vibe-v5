@@ -47,9 +47,9 @@ export class MockStats {
   /**
    * 통계 조회
    */
-  getStats(): Record<string, any> {
+  getStats(): Record<string, unknown> {
     const uptime = Date.now() - this.stats.startTime;
-    const operations: Record<string, any> = {};
+    const operations: Record<string, unknown> = {};
 
     // 작업별 통계 계산
     for (const [op, count] of this.stats.operationCounts.entries()) {

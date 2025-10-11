@@ -27,7 +27,7 @@ interface UseOptimizedRealtimeOptions {
   subscriberId?: string;
 }
 
-interface UseOptimizedRealtimeReturn<T = any> {
+interface UseOptimizedRealtimeReturn<T = unknown> {
   data: T;
   isLoading: boolean;
   error: string | null;
@@ -41,7 +41,7 @@ interface UseOptimizedRealtimeReturn<T = any> {
   };
 }
 
-export function useOptimizedRealtime<T = any>({
+export function useOptimizedRealtime<T = unknown>({
   dataType,
   frequency = 'medium',
   enableVisibilityOptimization = true,
