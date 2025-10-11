@@ -106,7 +106,7 @@ export function createMiddlewareSupabaseClient(
 
           // 쿠키가 객체인 경우 value 속성 추출
           if (typeof cookie === 'object' && cookie !== null && 'value' in cookie) {
-            return String(cookie.value);
+            return String((cookie as { value: string }).value);
           }
 
           return typeof cookie === 'string' ? cookie : String(cookie);
