@@ -1,3 +1,5 @@
+import type { Service } from './server';
+
 /**
  * Server Metrics Type Definitions
  *
