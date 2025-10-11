@@ -81,7 +81,7 @@ export function useUserPermissions(): UserPermissions {
       try {
         const state = await authStateManager.getAuthState();
         if (isMounted) {
-          setAuthState(state);
+          setAuthState(state as typeof authState);
         }
       } catch (error) {
         console.error('🔐 [Permissions] AuthStateManager 오류:', error);
@@ -99,7 +99,7 @@ export function useUserPermissions(): UserPermissions {
   }, []);
 
   // 권한 계산 (AuthStateManager 우선, 레거시 fallback)
-  const permissions = useMemo(() => {
+  const permissions = useMemo<UserPermissions>(() => {
     try {
       // 🔥 Phase 1: PIN 인증 시 즉시 권한 부여 (authState 대기 불필요)
       if (isPinAuth) {
@@ -125,10 +125,10 @@ export function useUserPermissions(): UserPermissions {
           isGitHubAuthenticated: authType === 'github',
           isPinAuthenticated: true,
           canToggleAI: true,
-          userType: authType || 'guest',
+          userType: (authType || 'guest') as UserType,
           userName,
           userAvatar,
-        };
+        } as UserPermissions;
       }
 
       // AuthStateManager 상태 우선 사용
@@ -143,7 +143,7 @@ export function useUserPermissions(): UserPermissions {
         // 사용자 정보 추출 (PIN 인증 시 user null 대비 fallback)
         const userName = user?.name || user?.email?.split('@')[0] || (type === 'github' ? 'GitHub 사용자' : isPinAuth ? '관리자' : '일반사용자');
         const userAvatar = user?.avatar;
-        const userType: UserType = type === 'unknown' ? 'guest' : type;
+        const userType = (type === 'unknown' ? 'guest' : type) as UserType;
 
         // PIN 인증 상태는 상단의 Zustand useAdminMode()에서 관리됨
         
@@ -179,7 +179,7 @@ export function useUserPermissions(): UserPermissions {
           userType,
           userName,
           userAvatar,
-        };
+        } as UserPermissions;
       }
 
       // AuthStateManager 실패 시 레거시 fallback (session, guestUser 사용)
