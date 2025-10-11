@@ -126,6 +126,45 @@ export class CustomContextManager {
   }
 
   /**
+   * 🔍 타입 가드: OrganizationSettings 확인
+   */
+  private isOrganizationSettings(value: unknown): value is OrganizationSettings {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      'id' in value &&
+      'organizationName' in value &&
+      'thresholds' in value
+    );
+  }
+
+  /**
+   * 🔍 타입 가드: UserProfile 확인
+   */
+  private isUserProfile(value: unknown): value is UserProfile {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      'id' in value &&
+      'username' in value &&
+      'role' in value
+    );
+  }
+
+  /**
+   * 🔍 타입 가드: CustomRule 확인
+   */
+  private isCustomRule(value: unknown): value is CustomRule {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      'id' in value &&
+      'name' in value &&
+      'category' in value
+    );
+  }
+
+  /**
    * 🔧 Supabase 초기화 (통합 싱글톤 사용)
    */
   private async _initializeSupabase(): Promise<void> {
@@ -236,7 +275,8 @@ export class CustomContextManager {
     try {
       // 먼저 메모리 캐시 확인
       if (this.localCache.has(`org_${orgId}`)) {
-        return this.localCache.get(`org_${orgId}`);
+        const cached = this.localCache.get(`org_${orgId}`);
+        return this.isOrganizationSettings(cached) ? cached : null;
       }
 
       if (this.supabase) {
@@ -263,11 +303,13 @@ export class CustomContextManager {
         return settings;
       } else {
         // 로컬 캐시에서 조회
-        return this.localCache.get(`org_${orgId}`) || null;
+        const cached = this.localCache.get(`org_${orgId}`);
+        return this.isOrganizationSettings(cached) ? cached : null;
       }
     } catch (error) {
       console.error(`❌ [CustomContext] 조직 설정 조회 실패:`, error);
-      return this.localCache.get(`org_${orgId}`) || null;
+      const cached = this.localCache.get(`org_${orgId}`);
+      return this.isOrganizationSettings(cached) ? cached : null;
     }
   }
 
@@ -345,6 +387,7 @@ export class CustomContextManager {
         for (const [key, value] of this.localCache.entries()) {
           if (
             key.startsWith('rule_') &&
+            this.isCustomRule(value) &&
             (!category || value.category === category)
           ) {
             rules.push(value);
@@ -484,7 +527,12 @@ export class CustomContextManager {
    * 📊 중첩된 객체에서 값 추출
    */
   private getNestedValue(obj: Record<string, unknown>, path: string): unknown {
-    return path.split('.').reduce((current, key) => current?.[key], obj);
+    return path.split('.').reduce((current: unknown, key: string) => {
+      if (current && typeof current === 'object' && key in current) {
+        return (current as Record<string, unknown>)[key];
+      }
+      return undefined;
+    }, obj as unknown);
   }
 
   /**
@@ -570,7 +618,8 @@ export class CustomContextManager {
     try {
       // 메모리 캐시 확인
       if (this.localCache.has(`user_${userId}`)) {
-        return this.localCache.get(`user_${userId}`);
+        const cached = this.localCache.get(`user_${userId}`);
+        return this.isUserProfile(cached) ? cached : null;
       }
 
       if (this.supabase) {
@@ -595,11 +644,13 @@ export class CustomContextManager {
         );
         return profile;
       } else {
-        return this.localCache.get(`user_${userId}`) || null;
+        const cached = this.localCache.get(`user_${userId}`);
+        return this.isUserProfile(cached) ? cached : null;
       }
     } catch (error) {
       console.error(`❌ [CustomContext] 사용자 프로필 조회 실패:`, error);
-      return this.localCache.get(`user_${userId}`) || null;
+      const cached = this.localCache.get(`user_${userId}`);
+      return this.isUserProfile(cached) ? cached : null;
     }
   }
 
@@ -752,7 +803,7 @@ export class CustomContextManager {
           if (key.startsWith('user_')) userCount++;
           if (key.startsWith('rule_')) {
             ruleCount++;
-            if (value.enabled) activeRuleCount++;
+            if (this.isCustomRule(value) && value.enabled) activeRuleCount++;
           }
         }
 
