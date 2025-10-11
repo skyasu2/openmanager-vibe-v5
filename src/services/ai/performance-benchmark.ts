@@ -329,7 +329,7 @@ export class AIPerformanceBenchmark {
         },
       };
 
-      let response: QueryResponse | unknown;
+      let response: QueryResponse;
 
       switch (engineName) {
         case 'simplified':
@@ -354,6 +354,12 @@ export class AIPerformanceBenchmark {
 
       const responseTime = performance.now() - startTime;
 
+      // 타입 안전성을 위한 추가 타입 체크
+      const responseWithOptimizations = response as QueryResponse & {
+        optimizationInfo?: { optimizationsApplied?: string[] };
+        optimizationSteps?: string[];
+      };
+
       return {
         responseTime,
         success: response.success !== false,
@@ -362,8 +368,8 @@ export class AIPerformanceBenchmark {
           response.metadata?.cacheHit === true,
         confidence: response.confidence || 0,
         optimizations:
-          response.optimizationInfo?.optimizationsApplied ||
-          response.optimizationSteps?.map((s: string) => s) ||
+          responseWithOptimizations.optimizationInfo?.optimizationsApplied ||
+          responseWithOptimizations.optimizationSteps?.map((s: string) => s) ||
           [],
       };
     } catch (error) {
