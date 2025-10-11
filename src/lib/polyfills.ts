@@ -20,17 +20,17 @@ if (typeof window === 'undefined') {
 
   // window 객체 폴리필
   if (!globalAny.window) {
-    globalAny.window = {};
+    globalAny.window = {} as unknown as Window & typeof globalThis & Record<string, unknown>;
   }
 
   // document 객체 폴리필
   if (!globalAny.document) {
-    globalAny.document = {};
+    globalAny.document = {} as unknown as Document & Record<string, unknown>;
   }
 
   // navigator 객체 폴리필
   if (!globalAny.navigator) {
-    globalAny.navigator = {};
+    globalAny.navigator = {} as unknown as Navigator & Record<string, unknown>;
   }
 
   // localStorage 폴리필
@@ -59,7 +59,7 @@ if (typeof window === 'undefined') {
 
   // self 객체 폴리필 (웹 워커용)
   if (typeof globalThis !== 'undefined' && !globalAny.self) {
-    globalAny.self = globalThis;
+    globalAny.self = globalThis as unknown as Window & typeof globalThis;
   }
 }
 
