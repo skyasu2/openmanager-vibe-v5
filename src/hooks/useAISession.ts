@@ -32,7 +32,7 @@ export interface AISessionState {
   }>;
   reasoningSteps: string[];
   history: AISessionSummary[];
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 export interface AISessionOptions {
@@ -236,14 +236,20 @@ export function useAISession(
       processingTime: number,
       fullResponse?: unknown
     ) => {
+      // fullResponse 타입 가드
+      const responseData = fullResponse as {
+        enginePath?: Array<{ engine: string; description: string; timestamp: number }>;
+        reasoning_steps?: string[];
+      } | undefined;
+
       const newState: AISessionState = {
         ...sessionState,
         isLoading: false,
         currentResponse: response,
         confidence,
         error: null,
-        enginePath: (fullResponse as any)?.enginePath || [],
-        reasoningSteps: (fullResponse as any)?.reasoning_steps || [],
+        enginePath: responseData?.enginePath ?? [],
+        reasoningSteps: responseData?.reasoning_steps ?? [],
       };
 
       setSessionState(newState);

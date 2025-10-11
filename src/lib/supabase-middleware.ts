@@ -103,9 +103,13 @@ export function createMiddlewareSupabaseClient(
         get: (name: string) => {
           const cookie = cookieStore.get(name);
           if (!cookie) return undefined;
-          return typeof cookie === 'string'
-            ? cookie
-            : String((cookie as any).value);
+
+          // 쿠키가 객체인 경우 value 속성 추출
+          if (typeof cookie === 'object' && cookie !== null && 'value' in cookie) {
+            return String(cookie.value);
+          }
+
+          return typeof cookie === 'string' ? cookie : String(cookie);
         },
         set: (
           name: string,
@@ -115,7 +119,12 @@ export function createMiddlewareSupabaseClient(
           // 미들웨어에서는 response에 쿠키 설정
           try {
             if (response && 'cookies' in response) {
-              (response as any).cookies.set(name, value, options);
+              const responseCookies = response as {
+                cookies: {
+                  set: (name: string, value: string, options: Record<string, unknown>) => void;
+                };
+              };
+              responseCookies.cookies.set(name, value, options);
             }
           } catch (e) {
             console.warn('Middleware cookie set failed:', e);
@@ -124,7 +133,12 @@ export function createMiddlewareSupabaseClient(
         remove: (name: string, _options: Record<string, unknown>) => {
           try {
             if (response && 'cookies' in response) {
-              (response as any).cookies.delete(name);
+              const responseCookies = response as {
+                cookies: {
+                  delete: (name: string) => void;
+                };
+              };
+              responseCookies.cookies.delete(name);
             }
           } catch (e) {
             console.warn('Middleware cookie remove failed:', e);

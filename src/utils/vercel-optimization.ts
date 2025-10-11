@@ -20,15 +20,34 @@ export interface VercelEnvironment {
 }
 
 /**
+ * Performance API 확장 (메모리 정보)
+ */
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+interface ExtendedPerformance extends Performance {
+  memory?: PerformanceMemory;
+}
+
+/**
  * Vercel 환경 감지 및 정보 수집
  */
 export function getVercelEnvironment(): VercelEnvironment {
   // 서버 환경에서는 process.env 사용
   if (typeof window === 'undefined') {
+    const vercelEnv = process.env.VERCEL_ENV;
+    const environment: 'production' | 'preview' | 'development' =
+      vercelEnv === 'production' || vercelEnv === 'preview'
+        ? vercelEnv
+        : 'development';
+
     return {
       isVercel: process.env.VERCEL === '1',
       region: process.env.VERCEL_REGION || 'unknown',
-      environment: (process.env.VERCEL_ENV as any) || 'development',
+      environment,
       deploymentUrl: process.env.VERCEL_URL,
       gitBranch: process.env.VERCEL_GIT_COMMIT_REF,
     };
@@ -211,10 +230,13 @@ export function checkEdgeRuntimeCompatibility(): {
   }
   
   // 메모리 사용량 체크 (Edge Runtime은 128MB 제한)
-  if (typeof performance !== 'undefined' && (performance as any).memory) {
-    const memory = (performance as any).memory;
-    if (memory.usedJSHeapSize > 50 * 1024 * 1024) { // 50MB 이상
-      issues.push('높은 메모리 사용량 감지 (Edge Runtime 제한 고려 필요)');
+  if (typeof performance !== 'undefined') {
+    const extendedPerf = performance as ExtendedPerformance;
+    if (extendedPerf.memory) {
+      const memory = extendedPerf.memory;
+      if (memory.usedJSHeapSize > 50 * 1024 * 1024) { // 50MB 이상
+        issues.push('높은 메모리 사용량 감지 (Edge Runtime 제한 고려 필요)');
+      }
     }
   }
   

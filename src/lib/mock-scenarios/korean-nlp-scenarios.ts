@@ -10,8 +10,8 @@ export interface KoreanNLPScenario {
   industry?: 'it' | 'finance' | 'healthcare' | 'ecommerce' | 'general';
   input: string;
   expectedIntent: string;
-  expectedEntities: Record<string, any>;
-  context?: Record<string, any>;
+  expectedEntities: Record<string, unknown>;
+  context?: Record<string, unknown>;
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
 }
 
@@ -324,7 +324,7 @@ export const TYPO_CASES: KoreanNLPScenario[] = [
 export function evaluateNLPResult(
   scenario: KoreanNLPScenario,
   actualIntent: string,
-  actualEntities: Record<string, any>
+  actualEntities: Record<string, unknown>
 ): {
   intentMatch: boolean;
   entityMatchScore: number;

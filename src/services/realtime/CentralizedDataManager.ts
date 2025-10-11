@@ -11,7 +11,7 @@
 import type { Server } from '@/types/server';
 
 type DataType = 'servers' | 'metrics' | 'network' | 'system';
-type UpdateCallback<T = any> = (data: T) => void;
+type UpdateCallback<T = unknown> = (data: T) => void;
 
 interface Subscriber {
   id: string;
@@ -21,7 +21,7 @@ interface Subscriber {
   lastUpdate: number;
 }
 
-interface CacheEntry<T = any> {
+interface CacheEntry<T = unknown> {
   data: T;
   timestamp: number;
   expiresAt: number;
@@ -319,7 +319,7 @@ class CentralizedDataManager {
 export const centralDataManager = CentralizedDataManager.getInstance();
 
 // 편의 함수들
-export function useCentralizedData<T = any>(
+export function useCentralizedData<T = unknown>(
   subscriberId: string,
   dataType: DataType,
   callback: UpdateCallback<T>
