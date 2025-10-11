@@ -146,7 +146,7 @@ async function trainAnomalyDetection(metrics: MLMetricData[]): Promise<Partial<T
     if (metric.memory_usage > 95) {
       anomalies.push({ type: 'memory', severity: 'critical', value: metric.memory_usage });
     }
-    if (metric.disk_usage > 90) {
+    if (metric.disk_usage && metric.disk_usage > 90) {
       anomalies.push({ type: 'disk', severity: 'high', value: metric.disk_usage });
     }
   }
@@ -228,8 +228,8 @@ async function trainPredictionModel(metrics: MLMetricData[]): Promise<Partial<Tr
   const memoryTrend = sortedMetrics.map(m => m.memory_usage || 0);
   
   // 선형 회귀를 통한 트렌드 분석 (간단한 버전)
-  const cpuSlope = cpuTrend.length > 1 ? (cpuTrend[cpuTrend.length - 1] - cpuTrend[0]) / cpuTrend.length : 0;
-  const memorySlope = memoryTrend.length > 1 ? (memoryTrend[memoryTrend.length - 1] - memoryTrend[0]) / memoryTrend.length : 0;
+  const cpuSlope = cpuTrend.length > 1 ? (cpuTrend[cpuTrend.length - 1]! - cpuTrend[0]!) / cpuTrend.length : 0;
+  const memorySlope = memoryTrend.length > 1 ? (memoryTrend[memoryTrend.length - 1]! - memoryTrend[0]!) / memoryTrend.length : 0;
   
   const insights = [
     `CPU 사용률 트렌드: ${cpuSlope > 0 ? '증가' : '감소'} (${Math.abs(cpuSlope).toFixed(2)}%/시간)`,
