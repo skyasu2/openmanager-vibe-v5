@@ -17,6 +17,19 @@ export const runtime = 'nodejs';
 
 type LearningType = 'patterns' | 'anomaly' | 'incident' | 'prediction';
 
+/**
+ * ML 학습을 위한 메트릭 데이터 타입
+ * (Supabase server_metrics 테이블 스키마)
+ */
+interface MLMetricData {
+  cpu_usage: number;
+  memory_usage: number;
+  disk_usage?: number;
+  network_usage?: number;
+  timestamp: string;
+  server_id?: string;
+}
+
 interface TrainRequest {
   type: LearningType;
   serverId?: string;
@@ -45,7 +58,7 @@ interface TrainingResult {
 }
 
 // 실제 서버 메트릭 데이터 조회
-async function getServerMetrics(serverId?: string, timeRange = '24h') {
+async function getServerMetrics(serverId?: string, timeRange = '24h'): Promise<MLMetricData[]> {
   try {
     let query = supabase
       .from('server_metrics')
@@ -80,7 +93,7 @@ async function getServerMetrics(serverId?: string, timeRange = '24h') {
 }
 
 // 패턴 학습 알고리즘
-async function trainPatterns(metrics: any[]): Promise<Partial<TrainingResult>> {
+async function trainPatterns(metrics: MLMetricData[]): Promise<Partial<TrainingResult>> {
   // CPU/Memory 상관관계 분석
   const cpuMemoryCorrelations = metrics.map(m => ({
     cpu: m.cpu_usage || 0,
@@ -122,7 +135,7 @@ async function trainPatterns(metrics: any[]): Promise<Partial<TrainingResult>> {
 }
 
 // 이상 패턴 분석
-async function trainAnomalyDetection(metrics: any[]): Promise<Partial<TrainingResult>> {
+async function trainAnomalyDetection(metrics: MLMetricData[]): Promise<Partial<TrainingResult>> {
   // 임계값 기반 이상 탐지
   const anomalies = [];
   
@@ -161,7 +174,7 @@ async function trainAnomalyDetection(metrics: any[]): Promise<Partial<TrainingRe
 }
 
 // 장애 케이스 학습
-async function trainIncidentLearning(metrics: any[]): Promise<Partial<TrainingResult>> {
+async function trainIncidentLearning(metrics: MLMetricData[]): Promise<Partial<TrainingResult>> {
   // 장애 패턴 시뮬레이션 (실제로는 과거 장애 데이터 분석)
   const incidentPatterns = [
     {
@@ -206,7 +219,7 @@ async function trainIncidentLearning(metrics: any[]): Promise<Partial<TrainingRe
 }
 
 // 예측 모델 훈련
-async function trainPredictionModel(metrics: any[]): Promise<Partial<TrainingResult>> {
+async function trainPredictionModel(metrics: MLMetricData[]): Promise<Partial<TrainingResult>> {
   // 간단한 시계열 트렌드 분석
   const sortedMetrics = metrics.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
   
@@ -240,7 +253,7 @@ async function trainPredictionModel(metrics: any[]): Promise<Partial<TrainingRes
   };
 }
 
-async function performMLTraining(type: LearningType, metrics: any[]): Promise<Partial<TrainingResult>> {
+async function performMLTraining(type: LearningType, metrics: MLMetricData[]): Promise<Partial<TrainingResult>> {
   const startTime = Date.now();
   
   let result: Partial<TrainingResult>;
