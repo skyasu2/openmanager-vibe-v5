@@ -487,10 +487,8 @@ export class PerformanceMonitoringDashboard {
    */
   public on(event: 'metricRecorded', listener: (metric: PerformanceMetric) => void): void;
   public on(event: 'alertCreated', listener: (alert: PerformanceAlert) => void): void;
-  public on(
-    event: 'metricRecorded' | 'alertCreated',
-    listener: (data: PerformanceMetric | PerformanceAlert) => void
-  ): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public on(event: string, listener: any): void {
     this.eventEmitter.on(event, listener);
   }
 
@@ -499,10 +497,8 @@ export class PerformanceMonitoringDashboard {
    */
   public off(event: 'metricRecorded', listener: (metric: PerformanceMetric) => void): void;
   public off(event: 'alertCreated', listener: (alert: PerformanceAlert) => void): void;
-  public off(
-    event: 'metricRecorded' | 'alertCreated',
-    listener: (data: PerformanceMetric | PerformanceAlert) => void
-  ): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public off(event: string, listener: any): void {
     this.eventEmitter.off(event, listener);
   }
 }
