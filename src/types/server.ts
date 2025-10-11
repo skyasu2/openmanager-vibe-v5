@@ -276,11 +276,29 @@ export interface EnhancedServerMetrics {
     timeSlot?: number;
     hour?: number;
     minute?: number;
-    cycleInfo?: any;
-    scenarios?: any[];
-    baseline?: any;
+    cycleInfo?: {
+      scenario: {
+        affectedServers: string[];
+        name: string;
+      };
+      intensity: number;
+    };
+    scenarios?: Array<{ type: string; severity: string; description: string }>;
+    baseline?: {
+      cpu: number;
+      memory: number;
+      network: number;
+    };
+    timeInfo?: {
+      normalized: number;
+      actual: number;
+      cycle24h: number;
+      slot10min: number;
+      hour: number;
+      validUntil: number;
+    };
     isAffectedByCurrentCycle?: boolean;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 
   // 🔧 기존 Server 타입과의 호환성을 위한 metrics 속성
