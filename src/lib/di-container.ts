@@ -93,11 +93,11 @@ export class DIContainer {
     try {
       switch (service.lifetime) {
         case 'singleton':
-          return this.resolveSingleton(service);
+          return this.resolveSingleton(service as ServiceDescriptor<T> | ServiceFactory<T>);
         case 'transient':
-          return this.resolveTransient(service);
+          return this.resolveTransient(service as ServiceDescriptor<T> | ServiceFactory<T>);
         case 'scoped':
-          return this.resolveScoped(service, scopeId || 'default');
+          return this.resolveScoped(service as ServiceDescriptor<T> | ServiceFactory<T>, scopeId || 'default');
         default:
           throw new Error(`Unknown service lifetime: ${service.lifetime}`);
       }
@@ -113,7 +113,7 @@ export class DIContainer {
     service: ServiceDescriptor<T> | ServiceFactory<T>
   ): T {
     if (this.singletonInstances.has(service.token)) {
-      return this.singletonInstances.get(service.token);
+      return this.singletonInstances.get(service.token) as T;
     }
 
     const instance = this.createInstance(service);
@@ -143,7 +143,7 @@ export class DIContainer {
 
     const scopeMap = this.scopedInstances.get(scopeId);
     if (scopeMap?.has(service.token)) {
-      return scopeMap.get(service.token);
+      return scopeMap.get(service.token) as T;
     }
 
     const instance = this.createInstance(service);
