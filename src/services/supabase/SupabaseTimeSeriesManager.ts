@@ -11,7 +11,27 @@
  * - 집계 통계 및 분석 기능
  */
 
-import type { ServerMetricss } from '@/types/server-metrics';
+import type { ServerMetrics } from '@/types/server-metrics';
+
+// 레거시 형식 및 확장 속성을 포함하는 타입
+type ExtendedServerMetrics = Omit<ServerMetrics, 'network'> & {
+  timestamp?: Date | string;
+  serverId?: string;
+  systemMetrics?: {
+    cpuUsage?: number;
+    memoryUsage?: number;
+    diskUsage?: number;
+    networkUsage?: number;
+  };
+  activeConnections?: number;
+  applicationMetrics?: {
+    requestCount?: number;
+    errorRate?: number;
+    responseTime?: number;
+  };
+  responseTime?: number;
+  network?: { in: number; out: number } | number;
+};
 
 export interface SupabaseClient {
   from(table: string): SupabaseQueryBuilder;
@@ -219,7 +239,7 @@ export class SupabaseTimeSeriesManager {
     };
 
     const records = await this.queryTimeSeriesData(query);
-    return this.transformFromTimeSeriesRecords(records);
+    return this.transformFromTimeSeriesRecords(records) as ServerMetrics[];
   }
 
   /**
@@ -458,14 +478,23 @@ export class SupabaseTimeSeriesManager {
     sessionId: string,
     metrics: ServerMetrics[]
   ): TimeSeriesRecord[] {
-    return metrics.map((metric) => {
+    return metrics.map((m) => {
+      const metric = m as ExtendedServerMetrics;
       // 레거시 형식과 새 형식 모두 지원
       const cpu = metric.cpu ?? metric.systemMetrics?.cpuUsage ?? 0;
       const memory = metric.memory ?? metric.systemMetrics?.memoryUsage ?? 0;
       const disk = metric.disk ?? metric.systemMetrics?.diskUsage ?? 0;
-      const networkUsage = metric.network
-        ? (metric.network.in + metric.network.out) / 2
-        : (metric.systemMetrics?.networkUsage ?? 0);
+      let networkUsage: number;
+      if (metric.network) {
+        if (typeof metric.network === 'object' && 'in' in metric.network && 'out' in metric.network) {
+          const networkObj = metric.network as { in: number; out: number };
+          networkUsage = (networkObj.in + networkObj.out) / 2;
+        } else {
+          networkUsage = typeof metric.network === 'number' ? metric.network : 0;
+        }
+      } else {
+        networkUsage = metric.systemMetrics?.networkUsage ?? 0;
+      }
       const requestCount =
         metric.activeConnections ??
         metric.applicationMetrics?.requestCount ??
@@ -480,7 +509,9 @@ export class SupabaseTimeSeriesManager {
         timestampISO =
           metric.timestamp instanceof Date
             ? metric.timestamp.toISOString()
-            : new Date(metric.timestamp).toISOString();
+            : metric.timestamp
+              ? new Date(metric.timestamp).toISOString()
+              : new Date().toISOString();
       } catch {
         // Fallback to current time for invalid timestamps
         timestampISO = new Date().toISOString();
@@ -507,18 +538,22 @@ export class SupabaseTimeSeriesManager {
    */
   private transformFromTimeSeriesRecords(
     records: TimeSeriesRecord[]
-  ): ServerMetrics[] {
+  ): ExtendedServerMetrics[] {
     return records.map((record) => ({
-      timestamp: new Date(record.timestamp),
-      serverId: record.server_id,
+      // 필수 ServerMetrics 속성
+      name: record.server_id,
       cpu: record.cpu_usage,
       memory: record.memory_usage,
       disk: record.disk_usage,
+      uptime: 0, // TimeSeriesRecord에 uptime이 없으므로 기본값
+      status: 'online' as const,
+      // 확장 속성
+      timestamp: new Date(record.timestamp),
+      serverId: record.server_id,
       network: {
         in: record.network_usage / 2,
         out: record.network_usage / 2,
       },
-      status: 'online' as const, // 🔧 수정: 'healthy' → 'online' (타입 통합)
       responseTime: record.response_time,
       activeConnections: record.request_count,
       // 선택적 필드들
