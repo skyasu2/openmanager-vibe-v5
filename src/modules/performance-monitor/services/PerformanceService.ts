@@ -97,8 +97,10 @@ export class PerformanceService {
     if (typeof window !== 'undefined') {
       // Browser environment
       if ('memory' in performance) {
-        const memory = (performance as { memory?: { usedJSHeapSize?: number; jsHeapSizeLimit?: number } }).memory;
-        return (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
+        const memory = (performance as { memory?: { usedJSHeapSize?: number; totalJSHeapSize?: number; jsHeapSizeLimit?: number } }).memory;
+        if (memory?.usedJSHeapSize && memory?.totalJSHeapSize) {
+          return (memory.usedJSHeapSize / memory.totalJSHeapSize) * 100;
+        }
       }
       return Math.random() * 100; // Fallback
     }
