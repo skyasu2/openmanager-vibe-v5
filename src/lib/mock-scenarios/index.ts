@@ -205,8 +205,9 @@ export class MockScenarioManager {
     const scenarios: Record<string, unknown> = {};
 
     if (this.serverScenarioRunner) {
+      const serverScenario = this.activeScenarios.get('server');
       scenarios.server = {
-        ...this.activeScenarios.get('server'),
+        ...(serverScenario || {}),
         currentState: this.serverScenarioRunner.getCurrentState(),
       };
     }
