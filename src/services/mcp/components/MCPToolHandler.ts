@@ -12,6 +12,24 @@ import * as fs from 'fs';
 import * as path from 'path';
 import type { MCPClient, MCPToolResult } from '@/types/mcp';
 
+/**
+ * MCP 도구 스키마 타입
+ */
+export interface MCPToolSchema {
+  type: string;
+  properties?: Record<string, unknown>;
+  required?: string[];
+}
+
+/**
+ * MCP 도구 정보 타입
+ */
+export interface MCPToolInfo {
+  name: string;
+  description: string;
+  schema: MCPToolSchema;
+}
+
 interface MCPSearchResult {
   success: boolean;
   results: Array<{
@@ -85,15 +103,7 @@ export class MCPToolHandler {
    * 📋 사용 가능한 도구 목록 조회
    */
   async getAvailableTools(): Promise<{
-    tools: Array<{
-      name: string;
-      description: string;
-      schema: {
-        type: string;
-        properties?: Record<string, any>;
-        required?: string[];
-      };
-    }>;
+    tools: MCPToolInfo[];
   }> {
     const toolsList = Array.from(this.tools.values());
 
@@ -384,7 +394,7 @@ export class MCPToolHandler {
   async listTools(
     serverName: string,
     clients: Map<string, MCPClient>
-  ): Promise<any[]> {
+  ): Promise<MCPToolInfo[]> {
     try {
       const client = clients.get(serverName);
       if (!client) {
@@ -574,11 +584,7 @@ export class MCPToolHandler {
     name: string,
     tool: {
       description: string;
-      schema: {
-        type: string;
-        properties?: Record<string, any>;
-        required?: string[];
-      };
+      schema: MCPToolSchema;
     }
   ): void {
     this.tools.set(name, { name, ...tool });

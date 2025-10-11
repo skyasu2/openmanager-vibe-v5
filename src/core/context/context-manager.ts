@@ -63,7 +63,7 @@ export interface Pattern {
   type: 'daily' | 'weekly' | 'monthly';
   description: string;
   confidence: number;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   learnedAt: string;
 }
 
@@ -313,7 +313,11 @@ export class ContextManager {
     // 트렌드 방향 계산
     if (historical.length >= 3) {
       const recent = historical.slice(-3);
-      const cpuTrend = this.calculateTrend(recent.map((m: any) => m.cpu || 0));
+      const cpuTrend = this.calculateTrend(recent.map((m: unknown) => {
+        if (!m || typeof m !== 'object') return 0;
+        const metric = m as Record<string, unknown>;
+        return typeof metric.cpu === 'number' ? metric.cpu : 0;
+      }));
 
       this.currentContext.system.historical_trends = {
         timeRange: '10minutes',
@@ -493,7 +497,7 @@ export class ContextManager {
   private async extractPattern(
     data: unknown,
     patternType: string
-  ): Promise<any> {
+  ): Promise<Pattern & { significance: number }> {
     return {
       id: `pattern_${Date.now()}`,
       type: patternType,

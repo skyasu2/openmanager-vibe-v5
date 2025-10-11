@@ -59,18 +59,18 @@ export interface ABTestResult {
 }
 
 // 메모리 기반 A/B 테스트 캐시
-class MemoryABTestCache {
+class MemoryABTestCache<T = unknown> {
   private cache = new Map<
     string,
     {
-      value: any;
+      value: string;
       expires: number;
       created: number;
     }
   >();
   private maxSize = 200; // 최대 200개 항목
 
-  set(key: string, value: any, ttlSeconds: number = 3600): void {
+  set(key: string, value: T, ttlSeconds: number = 3600): void {
     // 캐시 크기 관리
     if (this.cache.size >= this.maxSize) {
       const oldestKey = this.getOldestKey();
@@ -86,7 +86,7 @@ class MemoryABTestCache {
     });
   }
 
-  get(key: string): any {
+  get(key: string): T | null {
     const item = this.cache.get(key);
 
     if (!item) {

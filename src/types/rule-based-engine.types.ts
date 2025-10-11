@@ -85,7 +85,7 @@ export interface LogProcessingResult {
   module: string;
   message: string;
   details?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   processingTime: number;
 }
 
@@ -99,7 +99,7 @@ export interface PatternAlert {
   message: string;
   timestamp: number;
   serverId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface PatternRule {
@@ -231,7 +231,7 @@ export interface QueryOptions {
   enabledEngines?: string[];
   priority?: 'speed' | 'accuracy' | 'balance';
   language?: 'ko' | 'en' | 'auto';
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 export interface EngineWeights {

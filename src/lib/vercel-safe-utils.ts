@@ -11,6 +11,15 @@
 import { Server, Service } from '@/types/server';
 
 /**
+ * 차트 데이터 포인트 타입
+ */
+interface ChartDataPoint {
+  timestamp: number;
+  value: number;
+  x: number;
+}
+
+/**
  * 🔒 서버 객체 안전성 검증
  * 베르셀 환경에서 server 객체가 undefined일 때 안전하게 처리
  */
@@ -134,7 +143,7 @@ export const getSafeArrayLength = (arr: unknown): number => {
     const lengthValue = (() => {
       try {
         // 임시 변수에 저장하여 Race Condition 방지
-        const tempArr = arr as any[];
+        const tempArr = arr as unknown[];
         if (!tempArr || !Array.isArray(tempArr)) return 0;
         const tempLength = tempArr.length;
         if (typeof tempLength !== 'number') return 0;
@@ -217,7 +226,7 @@ export const handleVercelError = (
  * 🔒 차트 데이터 안전 접근
  * ServerMetricsLineChart에서 사용하는 배열 데이터 대한 완전 방어
  */
-export const getSafeChartData = (data: unknown, fallbackLength: number = 11): any[] => {
+export const getSafeChartData = (data: unknown, fallbackLength: number = 11): ChartDataPoint[] => {
   try {
     // null/undefined 처리
     if (!data) {
@@ -248,13 +257,13 @@ export const getSafeChartData = (data: unknown, fallbackLength: number = 11): an
     }
 
     // 유효한 데이터 필터링 및 정리
-    const validData = data.filter((item: any) => {
-      return item &&
-             typeof item === 'object' &&
-             typeof item.value === 'number' &&
-             !isNaN(item.value) &&
-             typeof item.x === 'number' &&
-             !isNaN(item.x);
+    const validData = data.filter((item: unknown): item is ChartDataPoint => {
+      if (!item || typeof item !== 'object') return false;
+      const point = item as Record<string, unknown>;
+      return typeof point.value === 'number' &&
+             !isNaN(point.value) &&
+             typeof point.x === 'number' &&
+             !isNaN(point.x);
     });
 
     return validData.length > 0 ? validData : Array(fallbackLength).fill(null).map((_, i) => ({
