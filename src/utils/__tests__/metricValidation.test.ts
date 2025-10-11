@@ -4,11 +4,12 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { 
-  validateMetricValue, 
-  validateServerMetrics, 
+import {
+  validateMetricValue,
+  validateServerMetrics,
   generateSafeMetricValue,
-  type MetricType 
+  type MetricType,
+  type ServerMetrics
 } from '../metricValidation';
 
 describe('metricValidation', () => {
@@ -131,7 +132,7 @@ describe('metricValidation', () => {
     });
 
     it('누락된 필드를 기본값으로 채운다', () => {
-      const incompleteMetrics: any = {
+      const incompleteMetrics: Partial<ServerMetrics> = {
         cpu: 45,
         memory: 60,
       };
@@ -145,8 +146,8 @@ describe('metricValidation', () => {
     });
 
     it('빈 객체를 안전한 기본값으로 변환한다', () => {
-      const result = validateServerMetrics({} as any);
-      
+      const result = validateServerMetrics({});
+
       expect(result.cpu).toBe(0);
       expect(result.memory).toBe(0);
       expect(result.disk).toBe(0);
@@ -154,8 +155,8 @@ describe('metricValidation', () => {
     });
 
     it('null/undefined 입력을 안전하게 처리한다', () => {
-      const resultNull = validateServerMetrics(null as any);
-      const resultUndefined = validateServerMetrics(undefined as any);
+      const resultNull = validateServerMetrics(null);
+      const resultUndefined = validateServerMetrics(undefined);
       
       [resultNull, resultUndefined].forEach(result => {
         expect(result.cpu).toBeDefined();
@@ -183,10 +184,10 @@ describe('metricValidation', () => {
     });
 
     it('객체나 배열 입력을 안전하게 처리한다', () => {
-      expect(validateMetricValue({} as any)).toBe(0);
-      expect(validateMetricValue([] as any)).toBe(0);
-      expect(validateMetricValue(null as any)).toBe(0);
-      expect(validateMetricValue(undefined as any)).toBe(0);
+      expect(validateMetricValue({} as unknown as number)).toBe(0);
+      expect(validateMetricValue([] as unknown as number)).toBe(0);
+      expect(validateMetricValue(null as unknown as number)).toBe(0);
+      expect(validateMetricValue(undefined as unknown as number)).toBe(0);
     });
   });
 });
