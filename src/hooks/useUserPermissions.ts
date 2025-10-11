@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { authStateManager } from '@/lib/auth-state-manager';
 import type { UserPermissions, UserType } from '@/types/permissions.types';
+import type { GuestUser, GitHubUser } from '@/types/auth.types';
 import { useMemo, useEffect, useState } from 'react';
 import { useAdminMode } from '@/stores/auth-store'; // Phase 2: Zustand 전환
 
@@ -63,7 +64,7 @@ export function useUserPermissions(): UserPermissions {
   
   // AuthStateManager 기반 상태 관리
   const [authState, setAuthState] = useState<{
-    user: any | null;
+    user: GuestUser | GitHubUser | null;
     type: 'github' | 'guest' | 'unknown';
     isAuthenticated: boolean;
   } | null>(null);

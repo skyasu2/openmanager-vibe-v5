@@ -53,14 +53,14 @@ interface CombinedResult {
 interface WorkerMessage {
   type: string;
   id: string;
-  data?: any;
+  data?: unknown;
   error?: {
     message: string;
     stack?: string;
   };
 }
 
-type WorkerCallback = (result: any) => void;
+type WorkerCallback = (result: unknown) => void;
 type WorkerErrorCallback = (error: Error) => void;
 
 /**
@@ -126,7 +126,7 @@ export const useWorkerStats = () => {
   }, []);
 
   // 🔄 Worker 메시지 전송 (Promise 기반)
-  const sendMessage = useCallback(<T>(type: string, data: any): Promise<T> => {
+  const sendMessage = useCallback(<T>(type: string, data: unknown): Promise<T> => {
     return new Promise((resolve, reject) => {
       if (!workerRef.current) {
         reject(new Error('Worker not initialized'));

@@ -300,7 +300,7 @@ export const useServerData = (): UseServerDataReturn => {
           ? serversResponse.value.data 
           : fallbackServers;
         
-        const mappedServers = serverData.map((server: any) => ({
+        const mappedServers = serverData.map((server: Server) => ({
           ...server,
           status: mapStatus(server.status || 'unknown'),
           lastUpdate: new Date(),
@@ -311,7 +311,7 @@ export const useServerData = (): UseServerDataReturn => {
       } else {
         // API 실패 시 폴백 데이터 사용 (기존 호환성)
         if (realtimeData && Array.isArray(realtimeData)) {
-          const mappedServers = realtimeData.map((server: any) => ({
+          const mappedServers = realtimeData.map((server: Server) => ({
             ...server,
             status: mapStatus(server.status || 'unknown'),
             lastUpdate: new Date(),

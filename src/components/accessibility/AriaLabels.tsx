@@ -94,7 +94,7 @@ export const useAriaLabels = () => {
     context?: Record<string, string | number>
   ): string => {
     const keys = key.split('.');
-    let label: any = ariaLabels;
+    let label: unknown = ariaLabels;
     
     for (const k of keys) {
       if (label && typeof label === 'object' && k in label) {
