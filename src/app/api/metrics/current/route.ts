@@ -14,6 +14,38 @@ import { mockServersExpanded, serverInitialStatesExpanded } from '@/mock/mockSer
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import { getSystemConfig } from '@/config/SystemConfiguration';
 
+// 🔧 사이클 정보 타입
+interface CycleScenario {
+  name: string;
+  description: string;
+  primaryMetric: string;
+  affectedServers: string[];
+}
+
+interface CycleInfo {
+  timeSlot: number;
+  scenario: CycleScenario;
+  phase: string;
+  intensity: number;
+  progress: number;
+  description: string;
+  expectedResolution: Date | null;
+}
+
+interface CycleScenarioOutput {
+  type: string;
+  severity: string;
+  description: string;
+  aiContext: string;
+  nextAction: string;
+  estimatedDuration: string;
+  phase: string;
+  intensity: number;
+  progress: number;
+  timeSlot: number;
+  timestamp: number;
+}
+
 // 🕐 시간 정규화 - 1분 단위로 통일
 function normalizeTimestamp(timestamp: number): number {
   const minuteMs = 60 * 1000; // 1분 = 60,000ms
@@ -131,7 +163,7 @@ function generateCycleBasedMetric(
   serverId: string, 
   metricType: string, 
   slot: number,
-  cycleInfo: any
+  cycleInfo: CycleInfo
 ): number {
   const serverType = serverId.split('-')[0] as keyof typeof SERVER_PROFILES;
   const profile = SERVER_PROFILES[serverType] || SERVER_PROFILES.web;
@@ -218,7 +250,7 @@ function interpolate1MinVariation(
 }
 
 // 🎯 6개 사이클 기반 시나리오 생성
-function generateCycleScenarios(cycleInfo: any, serverId: string): any[] {
+function generateCycleScenarios(cycleInfo: CycleInfo, serverId: string): CycleScenarioOutput[] {
   const scenarios = [];
   const isAffected = cycleInfo.scenario.affectedServers.includes(serverId);
   
