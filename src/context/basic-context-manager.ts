@@ -65,10 +65,10 @@ export interface BasicContextData {
 
 // 메모리 캐시 관리
 class MemoryCache {
-  private cache = new Map<string, { data: any; expires: number }>();
+  private cache = new Map<string, { data: unknown; expires: number }>();
   private readonly MAX_SIZE = 1000;
 
-  set(key: string, data: any, ttlSeconds: number = 300): void {
+  set(key: string, data: unknown, ttlSeconds: number = 300): void {
     // LRU 정책으로 크기 제한
     if (this.cache.size >= this.MAX_SIZE) {
       const firstKey = this.cache.keys().next().value;

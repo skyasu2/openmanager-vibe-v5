@@ -73,7 +73,7 @@ export function PerformanceMonitor() {
       new PerformanceObserver((entryList) => {
         let clsValue = 0;
         entryList.getEntries().forEach((entry: PerformanceEntry) => {
-          const layoutShiftEntry = entry as any; // Layout Shift 전용 타입
+          const layoutShiftEntry = entry as { value?: number }; // Layout Shift 전용 타입
           if (!layoutShiftEntry.hadRecentInput) {
             clsValue += layoutShiftEntry.value || 0;
           }
@@ -107,7 +107,7 @@ export function PerformanceMonitor() {
     const webVitals = collectWebVitals();
 
     // 메모리 사용량
-    const memoryUsage = (performance as any).memory?.usedJSHeapSize || 0;
+    const memoryUsage = (performance as { memory?: { usedJSHeapSize?: number } }).memory?.usedJSHeapSize || 0;
 
     // 로드 시간
     const navigation = performance.getEntriesByType(

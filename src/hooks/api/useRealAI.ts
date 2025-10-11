@@ -318,8 +318,8 @@ export function useRealAI(options: UseRealAIOptions = {}) {
       getPerformanceInfo: (): null => null,
       getSystemSummary: (): null => null,
       isAnalyzing: false,
-      lastResponse: null as any,
-      _systemHealth: null as any,
+      lastResponse: null as unknown,
+      _systemHealth: null as unknown,
       isHealthChecking: false,
       error: '관리자 권한이 필요합니다.',
     };

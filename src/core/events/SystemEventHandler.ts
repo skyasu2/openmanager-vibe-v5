@@ -72,7 +72,7 @@ export class SystemEventBus implements ISystemEventBus {
     if (!this.listeners.has(eventType)) {
       this.listeners.set(eventType, new Set());
     }
-    this.listeners.get(eventType as any)!.add(listener as any);
+    this.listeners.get(eventType as SystemEventType)!.add(listener as EventListener<SystemEventType>);
   }
 
   /**
@@ -81,7 +81,7 @@ export class SystemEventBus implements ISystemEventBus {
   off<T>(eventType: SystemEventType, listener: EventListener<T>): void {
     const listeners = this.listeners.get(eventType);
     if (listeners) {
-      listeners.delete(listener as any);
+      listeners.delete(listener as EventListener<SystemEventType>);
       if (listeners.size === 0) {
         this.listeners.delete(eventType);
       }

@@ -55,8 +55,9 @@ export class ComponentErrorBoundary extends Component<Props, State> {
       
       // 🚨 전역 에러 카운터 증가
       if (typeof window !== 'undefined') {
-        (window as any).__typeErrorCount = ((window as any).__typeErrorCount || 0) + 1;
-        console.error(`📊 총 TypeError 개수: ${(window as any).__typeErrorCount}/15`);
+        const w = window as { __typeErrorCount?: number };
+        w.__typeErrorCount = (w.__typeErrorCount || 0) + 1;
+        console.error(`📊 총 TypeError 개수: ${w.__typeErrorCount}/15`);
       }
     }
 

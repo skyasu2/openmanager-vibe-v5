@@ -105,7 +105,7 @@ export const FILE_SYSTEM_PROTECTION = {
   // 🔄 백업 대체 방안
   alternativeBackup: {
     // 메모리 기반 임시 백업
-    memoryBackup: new Map<string, any>(),
+    memoryBackup: new Map<string, unknown>(),
 
     // 임시 백업 생성
     createMemoryBackup: (key: string, data: unknown) => {
@@ -138,7 +138,7 @@ export const FILE_SYSTEM_PROTECTION = {
   // 🔄 컨텍스트 번들 대체 방안
   alternativeContextBundle: {
     // 메모리 기반 컨텍스트 캐시
-    contextCache: new Map<string, any>(),
+    contextCache: new Map<string, unknown>(),
 
     // 컨텍스트 캐시 저장
     cacheContext: (

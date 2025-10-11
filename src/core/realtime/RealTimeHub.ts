@@ -14,7 +14,7 @@ export interface RealTimeConnection {
   userId?: string;
   groups: Set<string>;
   lastActivity: number;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 export interface RealTimeMessage {
@@ -61,7 +61,7 @@ class RealTimeHub {
   registerConnection(
     connectionId: string,
     socket: WebSocket | null = null,
-    metadata: Record<string, any> = {}
+    metadata: Record<string, unknown> = {}
   ): RealTimeConnection {
     const connection: RealTimeConnection = {
       id: connectionId,

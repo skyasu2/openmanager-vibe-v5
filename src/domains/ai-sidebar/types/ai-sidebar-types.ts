@@ -25,7 +25,7 @@ export interface ThinkingStep {
   progress?: number;
   confidence?: number;
   subSteps?: string[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -122,7 +122,7 @@ export interface ChatMessage {
 export interface AutoReportTrigger {
   type: 'critical' | 'performance' | 'security';
   message: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   shouldGenerate?: boolean;
   severity?: 'low' | 'medium' | 'high' | 'critical';
   lastQuery?: string;

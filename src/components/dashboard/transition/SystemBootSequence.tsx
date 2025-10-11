@@ -158,7 +158,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
 
     // 개발자 도구
     useEffect(() => {
-      (window as any).debugSystemBootSequence = {
+      (window as { debugSystemBootSequence?: unknown }).debugSystemBootSequence = {
         forceComplete: handleFinalComplete,
         getState: () => ({
           currentStage,
@@ -168,7 +168,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
         }),
       };
 
-      (window as any).emergencyCompleteBootSequence = handleFinalComplete;
+      (window as { emergencyCompleteBootSequence?: () => void }).emergencyCompleteBootSequence = handleFinalComplete;
     }, [
       handleFinalComplete,
       currentStage,

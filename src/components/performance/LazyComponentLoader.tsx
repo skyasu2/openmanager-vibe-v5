@@ -140,7 +140,7 @@ export function useInteractionLoader() {
  */
 export class PriorityLoader {
   private static loadQueue: Array<{
-    component: () => Promise<React.ComponentType<any>>;
+    component: () => Promise<React.ComponentType<unknown>>;
     priority: number;
     name: string;
   }> = [];
@@ -148,7 +148,7 @@ export class PriorityLoader {
   private static isLoading = false;
 
   static addToQueue(
-    component: () => Promise<React.ComponentType<any>>,
+    component: () => Promise<React.ComponentType<unknown>>,
     priority: number,
     name: string
   ) {
