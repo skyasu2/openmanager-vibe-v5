@@ -310,15 +310,16 @@ export class SubagentTestController {
         });
 
       } catch (error: unknown) {
-        stderr = error.stderr || '';
-        stdout = error.stdout || '';
+        const execError = error as { stderr?: string; stdout?: string; status?: number };
+        stderr = execError.stderr || '';
+        stdout = execError.stdout || '';
 
         const stats = this.parseTestStats(stdout);
         const errors = this.parseErrors(stdout, stderr);
         const warnings = this.parseWarnings(stdout);
 
         resolve({
-          exitCode: error.status || 1,
+          exitCode: execError.status || 1,
           stdout,
           stderr,
           stats,
