@@ -11,7 +11,7 @@
  * - 집계 통계 및 분석 기능
  */
 
-import type { ServerMetric } from '@/types/server-metrics';
+import type { ServerMetricss } from '@/types/server-metrics';
 
 export interface SupabaseClient {
   from(table: string): SupabaseQueryBuilder;
@@ -146,7 +146,7 @@ export class SupabaseTimeSeriesManager {
    */
   async batchInsertMetrics(
     sessionId: string,
-    metrics: ServerMetric[]
+    metrics: ServerMetrics[]
   ): Promise<void> {
     const records = this.transformToTimeSeriesRecords(sessionId, metrics);
 
@@ -209,7 +209,7 @@ export class SupabaseTimeSeriesManager {
     sessionId: string,
     startTime?: Date,
     endTime?: Date
-  ): Promise<ServerMetric[]> {
+  ): Promise<ServerMetrics[]> {
     const query: TimeSeriesQuery = {
       sessionId,
       startTime,
@@ -452,11 +452,11 @@ export class SupabaseTimeSeriesManager {
   }
 
   /**
-   * Private: ServerMetric을 TimeSeriesRecord로 변환
+   * Private: ServerMetrics을 TimeSeriesRecord로 변환
    */
   private transformToTimeSeriesRecords(
     sessionId: string,
-    metrics: ServerMetric[]
+    metrics: ServerMetrics[]
   ): TimeSeriesRecord[] {
     return metrics.map((metric) => {
       // 레거시 형식과 새 형식 모두 지원
@@ -503,11 +503,11 @@ export class SupabaseTimeSeriesManager {
   }
 
   /**
-   * Private: TimeSeriesRecord를 ServerMetric으로 변환
+   * Private: TimeSeriesRecord를 ServerMetrics으로 변환
    */
   private transformFromTimeSeriesRecords(
     records: TimeSeriesRecord[]
-  ): ServerMetric[] {
+  ): ServerMetrics[] {
     return records.map((record) => ({
       timestamp: new Date(record.timestamp),
       serverId: record.server_id,
