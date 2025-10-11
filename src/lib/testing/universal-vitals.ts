@@ -21,6 +21,12 @@ export interface UniversalVital {
   recommendations?: string[];
 }
 
+// 📊 Threshold 타입 정의
+interface VitalThreshold {
+  good: number;
+  poor: number;
+}
+
 export type VitalCategory =
   | 'web-performance'     // LCP, FID, CLS 등
   | 'test-execution'      // 테스트 실행 성능
@@ -103,8 +109,39 @@ export const UNIVERSAL_THRESHOLDS = {
 
 // 🎯 Universal Vitals 수집기
 export class UniversalVitalsCollector {
-  private metrics: Map<string, UniversalVital> = new Map();
+  private metrics: Map<string, UniversalVital | Record<string, unknown>> = new Map();
   private startTimes: Map<string, number> = new Map();
+
+  /**
+   * 🔍 타입 가드: VitalThreshold 확인
+   */
+  private isVitalThreshold(value: unknown): value is VitalThreshold {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      'good' in value &&
+      'poor' in value &&
+      typeof (value as VitalThreshold).good === 'number' &&
+      typeof (value as VitalThreshold).poor === 'number'
+    );
+  }
+
+  /**
+   * 🔍 타입 가드: UniversalVital 확인
+   */
+  private isUniversalVital(value: unknown): value is UniversalVital {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      'name' in value &&
+      'category' in value &&
+      'value' in value &&
+      'unit' in value &&
+      'rating' in value &&
+      'timestamp' in value &&
+      'context' in value
+    );
+  }
 
   // ⏱️ 메트릭 측정 시작
   startMeasurement(name: string, category: VitalCategory, context: Record<string, unknown> = {}): void {
@@ -113,7 +150,7 @@ export class UniversalVitalsCollector {
     const contextKey = `${category}:${name}:context`;
     this.startTimes.set(contextKey, Date.now());
     if (Object.keys(context).length > 0) {
-      this.metrics.set(contextKey, context as unknown);
+      this.metrics.set(contextKey, context);
     }
   }
 
@@ -133,7 +170,10 @@ export class UniversalVitalsCollector {
 
     const value = performance.now() - startTime;
     const contextKey = `${key}:context`;
-    const existingContext = this.metrics.get(contextKey) as Record<string, unknown> || {};
+    const existingContextRaw = this.metrics.get(contextKey);
+    const existingContext = (existingContextRaw && typeof existingContextRaw === 'object' && !('name' in existingContextRaw))
+      ? existingContextRaw as Record<string, unknown>
+      : {};
 
     const vital: UniversalVital = {
       name,
@@ -183,14 +223,14 @@ export class UniversalVitalsCollector {
       return 'good';
     }
 
-    const thresholds = (categoryThresholds as Record<string, unknown>)[name];
-    if (!thresholds || typeof thresholds !== 'object' || !('good' in thresholds) || !('poor' in thresholds)) {
+    const thresholdsRaw = (categoryThresholds as Record<string, unknown>)[name];
+    if (!this.isVitalThreshold(thresholdsRaw)) {
       // 임계값이 없는 경우 기본 판정
       return 'good';
     }
 
-    if (value <= thresholds.good) return 'good';
-    if (value <= thresholds.poor) return 'needs-improvement';
+    if (value <= thresholdsRaw.good) return 'good';
+    if (value <= thresholdsRaw.poor) return 'needs-improvement';
     return 'poor';
   }
 
@@ -202,18 +242,21 @@ export class UniversalVitalsCollector {
       return recommendations;
     }
 
-    const thresholds = (categoryThresholds as Record<string, unknown>)[name];
-    if (!thresholds || typeof thresholds !== 'object' || !('good' in thresholds) || value <= thresholds.good) return recommendations;
+    const thresholdsRaw = (categoryThresholds as Record<string, unknown>)[name];
+    if (!this.isVitalThreshold(thresholdsRaw)) {
+      return recommendations;
+    }
+    if (value <= thresholdsRaw.good) return recommendations;
 
     // 카테고리별 권장사항
     switch (category) {
       case 'test-execution':
-        if (name === 'unit-test-time' && value > thresholds.good) {
+        if (name === 'unit-test-time' && value > thresholdsRaw.good) {
           recommendations.push('테스트 코드 최적화 필요');
           recommendations.push('Mock 객체 사용 고려');
           recommendations.push('병렬 테스트 실행 검토');
         }
-        if (name === 'e2e-test-time' && value > thresholds.good) {
+        if (name === 'e2e-test-time' && value > thresholdsRaw.good) {
           recommendations.push('E2E 테스트 범위 축소 고려');
           recommendations.push('페이지 로딩 최적화');
           recommendations.push('테스트 데이터 최적화');
@@ -221,7 +264,7 @@ export class UniversalVitalsCollector {
         break;
 
       case 'api-performance':
-        if (name === 'api-response-time' && value > thresholds.good) {
+        if (name === 'api-response-time' && value > thresholdsRaw.good) {
           recommendations.push('API 응답 시간 최적화');
           recommendations.push('데이터베이스 쿼리 최적화');
           recommendations.push('캐싱 전략 검토');
@@ -229,7 +272,7 @@ export class UniversalVitalsCollector {
         break;
 
       case 'build-performance':
-        if (name === 'build-time' && value > thresholds.good) {
+        if (name === 'build-time' && value > thresholdsRaw.good) {
           recommendations.push('번들러 설정 최적화');
           recommendations.push('불필요한 의존성 제거');
           recommendations.push('증분 빌드 활용');
@@ -237,7 +280,7 @@ export class UniversalVitalsCollector {
         break;
 
       case 'infrastructure':
-        if (name === 'memory-usage' && value > thresholds.good) {
+        if (name === 'memory-usage' && value > thresholdsRaw.good) {
           recommendations.push('메모리 누수 검사');
           recommendations.push('가비지 컬렉션 튜닝');
           recommendations.push('메모리 할당 최적화');
@@ -250,7 +293,7 @@ export class UniversalVitalsCollector {
 
   // 📈 모든 메트릭 조회
   getAllMetrics(): UniversalVital[] {
-    return Array.from(this.metrics.values()).filter(m => typeof m === 'object' && 'name' in m);
+    return Array.from(this.metrics.values()).filter(this.isUniversalVital.bind(this));
   }
 
   // 🏷️ 카테고리별 메트릭 조회
@@ -260,7 +303,8 @@ export class UniversalVitalsCollector {
 
   // 🎯 특정 메트릭 조회
   getMetric(name: string, category: VitalCategory): UniversalVital | undefined {
-    return this.metrics.get(`${category}:${name}`) as UniversalVital;
+    const metric = this.metrics.get(`${category}:${name}`);
+    return this.isUniversalVital(metric) ? metric : undefined;
   }
 
   // 🧹 메트릭 초기화
