@@ -9,6 +9,18 @@
 
 import type { EnhancedServerMetrics } from '@/types/server';
 
+interface MetricTrend {
+  current: number;
+  baseline: number;
+  trend: 'stable' | 'rising' | 'falling';
+}
+
+interface ServerTrends {
+  cpu: MetricTrend;
+  memory: MetricTrend;
+  network: MetricTrend;
+}
+
 export interface UnifiedMetricsResponse {
   success: boolean;
   timestamp: number;
@@ -21,7 +33,7 @@ export interface UnifiedMetricsResponse {
     phase: string;
     intensity: number;
     progress: number;
-    expectedResolution: any;
+    expectedResolution: unknown;  // 사용되지 않음
     affectedServers: string[];
   };
   metadata: {
@@ -224,8 +236,8 @@ export class UnifiedMetricsService {
    * 💡 추천사항 생성
    */
   private generateRecommendations(
-    server: EnhancedServerMetrics, 
-    trends: any
+    server: EnhancedServerMetrics,
+    trends: ServerTrends
   ): string[] {
     const recommendations: string[] = [];
     

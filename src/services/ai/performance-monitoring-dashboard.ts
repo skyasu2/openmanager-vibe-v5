@@ -485,9 +485,11 @@ export class PerformanceMonitoringDashboard {
   /**
    * 이벤트 리스너 등록
    */
+  public on(event: 'metricRecorded', listener: (metric: PerformanceMetric) => void): void;
+  public on(event: 'alertCreated', listener: (alert: PerformanceAlert) => void): void;
   public on(
     event: 'metricRecorded' | 'alertCreated',
-    listener: (...args: any[]) => void
+    listener: (data: PerformanceMetric | PerformanceAlert) => void
   ): void {
     this.eventEmitter.on(event, listener);
   }
@@ -495,9 +497,11 @@ export class PerformanceMonitoringDashboard {
   /**
    * 이벤트 리스너 제거
    */
+  public off(event: 'metricRecorded', listener: (metric: PerformanceMetric) => void): void;
+  public off(event: 'alertCreated', listener: (alert: PerformanceAlert) => void): void;
   public off(
     event: 'metricRecorded' | 'alertCreated',
-    listener: (...args: any[]) => void
+    listener: (data: PerformanceMetric | PerformanceAlert) => void
   ): void {
     this.eventEmitter.off(event, listener);
   }
