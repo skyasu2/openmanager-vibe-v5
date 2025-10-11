@@ -312,7 +312,8 @@ export class ContextManager {
    */
   private updateTrends(metrics: unknown): void {
     // 간단한 트렌드 계산 로직
-    const historical = this.shortTermMemory.get('historical_metrics') || [];
+    const historicalRaw = this.shortTermMemory.get('historical_metrics');
+    const historical: unknown[] = Array.isArray(historicalRaw) ? historicalRaw : [];
     historical.push(metrics);
 
     // 최근 10개 데이터만 보관
@@ -492,7 +493,16 @@ export class ContextManager {
         } else if (patternType === 'weekly') {
           this.currentContext.patterns.weekly_patterns.push(pattern);
         } else if (patternType === 'anomaly') {
-          this.currentContext.patterns.anomaly_patterns.push(pattern);
+          // AnomalyPattern 타입으로 변환
+          const anomalyPattern: AnomalyPattern = {
+            id: pattern.id,
+            description: pattern.description,
+            signature: [pattern.confidence, pattern.significance],
+            confidence: pattern.confidence,
+            occurrences: 1,
+            lastSeen: pattern.learnedAt,
+          };
+          this.currentContext.patterns.anomaly_patterns.push(anomalyPattern);
         }
 
         // 최대 패턴 수 제한
@@ -512,10 +522,10 @@ export class ContextManager {
   ): Promise<Pattern & { significance: number }> {
     return {
       id: `pattern_${Date.now()}`,
-      type: patternType,
+      type: patternType as 'daily' | 'weekly' | 'monthly',
       description: `Learned ${patternType} pattern`,
       confidence: Math.random() * 0.3 + 0.7, // 0.7-1.0
-      parameters: data,
+      parameters: typeof data === 'object' && data !== null ? data as Record<string, unknown> : {},
       learnedAt: new Date().toISOString(),
       significance: Math.random() * 0.5 + 0.5, // 0.5-1.0
     };
@@ -658,7 +668,10 @@ export class ContextManager {
 
     for (const [key, value] of this.shortTermMemory.entries()) {
       if (
-        value.timestamp &&
+        typeof value === 'object' &&
+        value !== null &&
+        'timestamp' in value &&
+        typeof value.timestamp === 'string' &&
         new Date(value.timestamp).getTime() < fortyFiveMinutesAgo
       ) {
         this.shortTermMemory.delete(key);
