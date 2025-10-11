@@ -92,7 +92,7 @@ const getHandler = createApiRoute()
       const servers = await dataSource.getServers();
       
       // 서버 데이터를 SupabaseServer 형태로 변환 (기존 호환성 유지)
-      serverList = servers.map((server: Server) => ({
+      serverList = servers.map((server: Server): SupabaseServer => ({
         id: server.id,
         name: server.name,
         type: server.type,
@@ -103,12 +103,12 @@ const getHandler = createApiRoute()
         location: server.location || 'us-east-1',
         environment: server.environment || 'production',
         uptime: server.uptime || 99.9,
-        lastUpdate: server.last_updated || new Date().toISOString(),
+        lastUpdate: server.lastUpdate || new Date().toISOString(),
         metrics: {
           cpu: server.cpu,
           memory: server.memory,
           disk: server.disk,
-          network: server.network
+          network: typeof server.network === 'object' ? server.network : undefined
         }
       }));
       
