@@ -40,7 +40,7 @@ interface AIEngineResponse {
 
 interface AIEngineStreamResponse {
   success: boolean;
-  stream: any; // GenerateContentStreamResult from Google AI
+  stream: unknown; // GenerateContentStreamResult from Google AI
   engine: 'google-ai';
   processingTime: number;
 }

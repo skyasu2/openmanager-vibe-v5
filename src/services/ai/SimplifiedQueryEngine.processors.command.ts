@@ -27,7 +27,7 @@ export class CommandQueryProcessor {
     private contextLoader: CloudContextLoader,
     private mockContextLoader: MockContextLoader,
     private intentClassifier: IntentClassifier,
-    private aiRouter: any // Injected AI router to break circular dependency
+    private aiRouter: unknown // Injected AI router to break circular dependency
   ) {}
 
   /**

@@ -287,7 +287,7 @@ export class AIPerformanceBenchmark {
   /**
    * 🏭 엔진 팩토리
    */
-  private createEngine(type: EngineType): any {
+  private createEngine(type: EngineType): SimplifiedQueryEngine | PerformanceOptimizedQueryEngine | FastAIEngineRouter {
     switch (type) {
       case 'simplified':
         return new SimplifiedQueryEngine();
@@ -304,7 +304,7 @@ export class AIPerformanceBenchmark {
    * 🚀 엔진 실행 (타입별 적응)
    */
   private async executeWithEngine(
-    engine: any,
+    engine: SimplifiedQueryEngine | PerformanceOptimizedQueryEngine | FastAIEngineRouter,
     request: QueryRequest
   ): Promise<QueryResponse> {
     if (engine instanceof FastAIEngineRouter) {

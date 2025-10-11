@@ -426,7 +426,7 @@ export class GoogleAIUsageTracker {
     return alternatives[model];
   }
 
-  private analyzeFeedback(feedbackData: any[]): {
+  private analyzeFeedback(feedbackData: unknown[]): {
     simpleOverload: number;
     complexUnderload: number;
     overallSatisfaction: number;
@@ -442,7 +442,7 @@ export class GoogleAIUsageTracker {
   private calculateExpectedImprovement(
     oldThresholds: number[],
     newThresholds: number[],
-    analysis: any
+    analysis: unknown  // 사용되지 않음
   ): number {
     // 예상 개선도 계산 (간소화된 버전)
     const thresholdChange = Math.abs((newThresholds?.[0] ?? 0) - (oldThresholds?.[0] ?? 0)) + 

@@ -18,7 +18,7 @@ export type { ComplexityScore, AIEngineType, AIMetadata };
 
 // 기존 ComplexityScore와 호환성을 위한 확장 (임시)
 export interface LegacyComplexityScore {
-  [key: string]: any; // 인덱스 시그니처로 호환성 확보
+  [key: string]: unknown; // 인덱스 시그니처로 호환성 확보
   score: number;
   factors: string[];
   category: 'simple' | 'moderate' | 'complex';
