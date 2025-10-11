@@ -222,7 +222,7 @@ const healthCheckHandler = createApiRoute()
 
     // 환경별 추가 정보 (개발 환경에서만)
     if (envConfig.isDevelopment) {
-      (response as Record&lt;string, unknown&gt;).environment = {
+      (response as Record<string, unknown>).environment = {
         type: envConfig.environment,
         urls: {
           site: envConfig.siteUrl,

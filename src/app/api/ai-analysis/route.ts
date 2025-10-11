@@ -64,6 +64,36 @@ interface FindingEvidence {
   servers?: string[];
   correlation?: number;
   trend?: string;
+  // 추가 프로퍼티들
+  metric?: string;
+  value?: number;
+  historicalIncident?: {
+    id: string;
+    title: string;
+    pattern?: string;
+  };
+  current?: number;
+  baseline?: number;
+  deviation?: number;
+  potentialCauses?: ServerEvent[];
+  pattern?: string;
+  description?: string;
+  lagTime?: string;
+  currentMemory?: number;
+  predictionWindow?: string;
+  model?: string;
+  leadIndicators?: { cpu?: number; network?: number } | string[];
+  timeWindow?: string;
+  targetDate?: string;
+  dayOfWeek?: string;
+  expectedLoad?: number;
+  basedOn?: string;
+  differences?: { cpu?: number; memory?: number };
+  average?: number;
+  seasonalData?: Record<string, number>;
+  loadMultiplier?: number;
+  error?: string;
+  [key: string]: unknown; // 추가 프로퍼티 허용
 }
 
 interface Finding {
@@ -207,7 +237,7 @@ class TimelineAnalysisEngine {
           findings.push({
             type: 'warning' as const,
             severity: 'high' as const,
-            message: `${server.name}에서 ${server.currentEvents[0].type} 이벤트 감지: ${server.currentEvents[0].description}`,
+            message: `${server.name}에서 ${server.currentEvents[0]?.type} 이벤트 감지: ${server.currentEvents[0]?.description}`,
             evidence: {
               server: server.name,
               event: server.currentEvents[0],
@@ -310,7 +340,7 @@ class RootCauseAnalysisEngine {
       const findings: Finding[] = [];
       
       // 서버 데이터 변환
-      const servers = Object.entries(currentData.servers).map(([id, data]: [string, RawServerData]) => ({
+      const servers = (Object.entries(currentData.servers) as [string, RawServerData][]).map(([id, data]) => ({
         id,
         name: id.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
         ...data,
@@ -321,12 +351,12 @@ class RootCauseAnalysisEngine {
       
       // CPU 급증 원인 분석
       if (/cpu|CPU|프로세서/i.test(query)) {
-        const highCpuServers = servers.filter((server) => server.metrics.cpu > 70);
+        const highCpuServers = servers.filter((server) => (server.metrics.cpu ?? 0) > 70);
         
         highCpuServers.forEach((server) => {
           const baseline = baselinesData.serverBaselines[server.id];
           if (baseline) {
-            const deviation = server.metrics.cpu - baseline.normalRanges.cpu.average;
+            const deviation = (server.metrics.cpu ?? 0) - baseline.normalRanges.cpu.average;
             
             findings.push({
               type: 'insight' as const,
@@ -347,7 +377,7 @@ class RootCauseAnalysisEngine {
       
       // 메모리 문제 원인 분석
       if (/메모리|memory|RAM/i.test(query)) {
-        const highMemoryServers = servers.filter((server) => server.metrics.memory > 80);
+        const highMemoryServers = servers.filter((server) => (server.metrics.memory ?? 0) > 80);
         
         highMemoryServers.forEach((server) => {
           const baseline = baselinesData.serverBaselines[server.id];
@@ -370,7 +400,7 @@ class RootCauseAnalysisEngine {
       
       // 상관관계 분석 (correlationPatterns 활용)
       const correlations = baselinesData.globalBaselines.correlationPatterns;
-      Object.entries(correlations).forEach(([key, correlation]: [string, CorrelationData]) => {
+      (Object.entries(correlations) as [string, CorrelationData][]).forEach(([key, correlation]) => {
         findings.push({
           type: 'correlation' as const,
           severity: 'medium' as const,
@@ -433,7 +463,7 @@ class PredictiveAnalysisEngine {
       const predictionModels = baselinesData.globalBaselines.predictionModels;
       
       // 서버 데이터 변환
-      const servers = Object.entries(currentData.servers).map(([id, data]: [string, RawServerData]) => ({
+      const servers = (Object.entries(currentData.servers) as [string, RawServerData][]).map(([id, data]) => ({
         id,
         name: id.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
         ...data,
@@ -447,14 +477,14 @@ class PredictiveAnalysisEngine {
       if (predictionModels.memoryLeakDetection) {
         const serversAtRisk = servers.filter((server) => {
           const trend = server.currentTrend;
-          const memoryUsage = server.metrics.memory;
+          const memoryUsage = server.metrics.memory ?? 0;
           return trend === 'increasing' && memoryUsage > 70;
         });
         
         serversAtRisk.forEach((server) => {
           findings.push({
             type: 'prediction' as const,
-            severity: 'warning' as const,
+            severity: 'high' as const,
             message: `${server.name}: 2-3시간 내 메모리 누수 발생 가능성 높음 (현재 트렌드: ${server.currentTrend})`,
             evidence: {
               server: server.name,
@@ -473,7 +503,7 @@ class PredictiveAnalysisEngine {
         const webServers = servers.filter((server) => server.type === 'web');
         
         webServers.forEach((server) => {
-          if (server.metrics.cpu > 60 && server.metrics.network > 70) {
+          if ((server.metrics.cpu ?? 0) > 60 && (server.metrics.network ?? 0) > 70) {
             findings.push({
               type: 'prediction' as const,
               severity: 'medium' as const,
@@ -561,7 +591,7 @@ class ComparisonAnalysisEngine {
       const findings: Finding[] = [];
       
       // 서버 데이터 변환
-      const servers = Object.entries(currentData.servers).map(([id, data]: [string, RawServerData]) => ({
+      const servers = (Object.entries(currentData.servers) as [string, RawServerData][]).map(([id, data]) => ({
         id,
         name: id.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
         ...data,
@@ -574,8 +604,8 @@ class ComparisonAnalysisEngine {
       servers.forEach((server) => {
         const baseline = baselinesData.serverBaselines[server.id];
         if (baseline) {
-          const cpuDiff = server.metrics.cpu - baseline.normalRanges.cpu.average;
-          const memoryDiff = server.metrics.memory - baseline.normalRanges.memory.average;
+          const cpuDiff = (server.metrics.cpu ?? 0) - baseline.normalRanges.cpu.average;
+          const memoryDiff = (server.metrics.memory ?? 0) - baseline.normalRanges.memory.average;
           
           if (Math.abs(cpuDiff) > 20 || Math.abs(memoryDiff) > 15) {
             findings.push({
@@ -584,8 +614,8 @@ class ComparisonAnalysisEngine {
               message: `${server.name}: 기준 대비 CPU ${cpuDiff > 0 ? '+' : ''}${cpuDiff.toFixed(1)}%, 메모리 ${memoryDiff > 0 ? '+' : ''}${memoryDiff.toFixed(1)}%`,
               evidence: {
                 server: server.name,
-                current: server.metrics,
-                baseline: baseline.normalRanges,
+                current: server.metrics.cpu,
+                baseline: baseline.normalRanges.cpu.average,
                 differences: { cpu: cpuDiff, memory: memoryDiff }
               },
               confidence: 0.85
@@ -595,24 +625,24 @@ class ComparisonAnalysisEngine {
       });
       
       // 서버간 성능 비교
-      const avgCpu = servers.reduce((sum: number, s) => sum + s.metrics.cpu, 0) / servers.length;
-      const avgMemory = servers.reduce((sum: number, s) => sum + s.metrics.memory, 0) / servers.length;
+      const avgCpu = servers.reduce((sum: number, s) => sum + (s.metrics.cpu ?? 0), 0) / servers.length;
+      const avgMemory = servers.reduce((sum: number, s) => sum + (s.metrics.memory ?? 0), 0) / servers.length;
       
       const outliers = servers.filter((server) => 
-        Math.abs(server.metrics.cpu - avgCpu) > 25 || 
-        Math.abs(server.metrics.memory - avgMemory) > 20
+        Math.abs((server.metrics.cpu ?? 0) - avgCpu) > 25 || 
+        Math.abs((server.metrics.memory ?? 0) - avgMemory) > 20
       );
       
       outliers.forEach((server) => {
         findings.push({
           type: 'warning' as const,
           severity: 'medium' as const,
-          message: `${server.name}: 다른 서버 대비 이상값 감지 (CPU 평균: ${avgCpu.toFixed(1)}%, 현재: ${server.metrics.cpu}%)`,
+          message: `${server.name}: 다른 서버 대비 이상값 감지 (CPU 평균: ${avgCpu.toFixed(1)}%, 현재: ${server.metrics.cpu ?? 0}%)`,
           evidence: {
             server: server.name,
-            current: server.metrics.cpu,
+            current: server.metrics.cpu ?? 0,
             average: avgCpu,
-            deviation: server.metrics.cpu - avgCpu
+            deviation: (server.metrics.cpu ?? 0) - avgCpu
           },
           confidence: 0.78
         });
@@ -727,7 +757,12 @@ export async function POST(request: NextRequest) {
     }
 
     // 🔧 안전한 타입 체크: findings 속성 존재 확인
-    const safeResults = results as { findings?: Finding[]; [key: string]: unknown };
+    const safeResults = results as {
+      summary: string;
+      findings: Finding[];
+      recommendations: string[];
+      relatedData: RelatedData;
+    };
     if (!safeResults.findings || !Array.isArray(safeResults.findings)) {
       throw new Error('분석 결과에 findings 배열이 없습니다');
     }
