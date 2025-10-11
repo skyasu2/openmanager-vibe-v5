@@ -17,7 +17,7 @@ export interface UniversalVital {
   unit: string;
   rating: 'good' | 'needs-improvement' | 'poor';
   timestamp: number;
-  context: Record<string, any>;
+  context: Record<string, unknown>;
   recommendations?: string[];
 }
 
@@ -107,13 +107,13 @@ export class UniversalVitalsCollector {
   private startTimes: Map<string, number> = new Map();
 
   // ⏱️ 메트릭 측정 시작
-  startMeasurement(name: string, category: VitalCategory, context: Record<string, any> = {}): void {
+  startMeasurement(name: string, category: VitalCategory, context: Record<string, unknown> = {}): void {
     this.startTimes.set(`${category}:${name}`, performance.now());
     // 컨텍스트 정보 저장
     const contextKey = `${category}:${name}:context`;
     this.startTimes.set(contextKey, Date.now());
     if (Object.keys(context).length > 0) {
-      this.metrics.set(contextKey, context as any);
+      this.metrics.set(contextKey, context as unknown);
     }
   }
 
@@ -122,7 +122,7 @@ export class UniversalVitalsCollector {
     name: string,
     category: VitalCategory,
     unit: string = 'ms',
-    additionalContext: Record<string, any> = {}
+    additionalContext: Record<string, unknown> = {}
   ): UniversalVital {
     const key = `${category}:${name}`;
     const startTime = this.startTimes.get(key);
@@ -133,7 +133,7 @@ export class UniversalVitalsCollector {
 
     const value = performance.now() - startTime;
     const contextKey = `${key}:context`;
-    const existingContext = this.metrics.get(contextKey) as Record<string, any> || {};
+    const existingContext = this.metrics.get(contextKey) as Record<string, unknown> || {};
 
     const vital: UniversalVital = {
       name,
@@ -159,7 +159,7 @@ export class UniversalVitalsCollector {
     category: VitalCategory,
     value: number,
     unit: string = 'ms',
-    context: Record<string, any> = {}
+    context: Record<string, unknown> = {}
   ): UniversalVital {
     const vital: UniversalVital = {
       name,
@@ -183,7 +183,7 @@ export class UniversalVitalsCollector {
       return 'good';
     }
 
-    const thresholds = (categoryThresholds as any)[name];
+    const thresholds = (categoryThresholds as Record<string, unknown>)[name];
     if (!thresholds || typeof thresholds !== 'object' || !('good' in thresholds) || !('poor' in thresholds)) {
       // 임계값이 없는 경우 기본 판정
       return 'good';
@@ -202,7 +202,7 @@ export class UniversalVitalsCollector {
       return recommendations;
     }
 
-    const thresholds = (categoryThresholds as any)[name];
+    const thresholds = (categoryThresholds as Record<string, unknown>)[name];
     if (!thresholds || typeof thresholds !== 'object' || !('good' in thresholds) || value <= thresholds.good) return recommendations;
 
     // 카테고리별 권장사항
@@ -299,7 +299,7 @@ export class UniversalVitalsCollector {
 export const universalVitals = new UniversalVitalsCollector();
 
 // 🎮 편의 함수들
-export const startTest = (testName: string, context?: Record<string, any>) => {
+export const startTest = (testName: string, context?: Record<string, unknown>) => {
   universalVitals.startMeasurement(testName, 'test-execution', context);
 };
 
@@ -307,7 +307,7 @@ export const endTest = (testName: string, success: boolean = true) => {
   return universalVitals.endMeasurement(testName, 'test-execution', 'ms', { success });
 };
 
-export const startAPI = (apiName: string, context?: Record<string, any>) => {
+export const startAPI = (apiName: string, context?: Record<string, unknown>) => {
   universalVitals.startMeasurement(apiName, 'api-performance', context);
 };
 

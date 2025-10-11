@@ -5,9 +5,9 @@
 
 import { vi } from 'vitest';
 
-export interface MockQueryResponse<T = any> {
+export interface MockQueryResponse<T = unknown> {
   data: T | null;
-  error: any | null;
+  error: unknown | null;
 }
 
 export interface MockQueryBuilder {
@@ -55,15 +55,15 @@ export interface MockQueryBuilder {
 /**
  * Builder 패턴으로 Supabase Mock 생성
  */
-export class SupabaseMockBuilder {
-  private mockData: any = [];
-  private mockError: any = null;
-  private customResponses: Map<string, any> = new Map();
+export class SupabaseMockBuilder<T = unknown> {
+  private mockData: T | T[] = [];
+  private mockError: unknown | null = null;
+  private customResponses: Map<string, unknown> = new Map();
 
   /**
    * 기본 데이터 설정
    */
-  withData(data: any): this {
+  withData(data: T | T[]): this {
     this.mockData = data;
     return this;
   }
@@ -71,7 +71,7 @@ export class SupabaseMockBuilder {
   /**
    * 에러 설정
    */
-  withError(error: any): this {
+  withError(error: unknown): this {
     this.mockError = error;
     return this;
   }
@@ -79,7 +79,7 @@ export class SupabaseMockBuilder {
   /**
    * 특정 메서드에 대한 커스텀 응답 설정
    */
-  withCustomResponse(method: string, response: any): this {
+  withCustomResponse(method: string, response: unknown): this {
     this.customResponses.set(method, response);
     return this;
   }
@@ -87,7 +87,7 @@ export class SupabaseMockBuilder {
   /**
    * 벡터 검색 결과 설정
    */
-  withVectorSearchResults(results: any[]): this {
+  withVectorSearchResults(results: unknown[]): this {
     return this.withCustomResponse('rpc', {
       data: results,
       error: null,
@@ -97,7 +97,7 @@ export class SupabaseMockBuilder {
   /**
    * 테이블 스키마 정보 설정
    */
-  withTableSchema(schema: any): this {
+  withTableSchema(schema: unknown): this {
     return this.withCustomResponse('describe', {
       data: schema,
       error: null,
@@ -252,7 +252,7 @@ export const TestUtils = {
   /**
    * Mock 함수 호출 횟수 초기화
    */
-  resetMocks: (mocks: any[]) => {
+  resetMocks: (mocks: unknown[]) => {
     mocks.forEach(mock => {
       if (mock && typeof mock.mockClear === 'function') {
         mock.mockClear();
@@ -268,7 +268,7 @@ export const TestUtils = {
   /**
    * Mock 응답 검증
    */
-  expectMockCalled: (mock: any, times: number = 1) => {
+  expectMockCalled: (mock: unknown, times: number = 1) => {
     expect(mock).toHaveBeenCalledTimes(times);
   },
 };

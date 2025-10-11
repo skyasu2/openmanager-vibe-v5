@@ -108,13 +108,13 @@ export namespace AIFriendlyTestTypes {
     represents: string;
 
     /** @description Mock data structure */
-    data: Record<string, any>;
+    data: Record<string, unknown>;
 
     /** @description Variations for different test scenarios */
     variations: {
-      valid: Record<string, any>;
-      invalid: Record<string, any>;
-      edge: Record<string, any>;
+      valid: Record<string, unknown>;
+      invalid: Record<string, unknown>;
+      edge: Record<string, unknown>;
     };
   }
 }
@@ -235,7 +235,7 @@ export namespace AIFriendlyTestHelpers {
    * @param {any} testStructure - Test structure to validate
    * @returns {boolean} Whether structure is AI-friendly
    */
-  export function validateTestStructure(testStructure: any): boolean {
+  export function validateTestStructure(testStructure: unknown): boolean {
     // Basic validation for AI-friendly structure
     const required = ['describe', 'it', 'expect'];
     return required.every(key =>
