@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import ImprovedServerCard from './ImprovedServerCard';
-import type { Server, Service, ServerAlert } from '@/types/server';
+import type { Server, Service, ServerAlert, AlertSeverity } from '@/types/server';
 
 export interface SafeServerCardProps {
   server: Server;
@@ -172,8 +172,8 @@ export const SafeServerCard: React.FC<SafeServerCardProps> = ({ server, index = 
             type: (['cpu', 'memory', 'disk', 'network', 'responseTime', 'custom'].includes(alert.type))
               ? alert.type : 'custom',
             message: String(alert.message).trim(),
-            severity: (['low', 'medium', 'high', 'critical'].includes(alert.severity))
-              ? alert.severity : 'medium',
+            severity: (['info', 'warning', 'critical'].includes(alert.severity))
+              ? alert.severity as AlertSeverity : 'warning' as AlertSeverity,
             timestamp: alert.timestamp || new Date().toISOString(),
             resolved: Boolean(alert.resolved),
           }));
