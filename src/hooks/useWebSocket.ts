@@ -338,20 +338,20 @@ export const useWebSocket = (config: WebSocketConfig = {}) => {
           }));
         });
 
-        socket.on('error', (error: any) => {
+        socket.on('error', (error: unknown) => {
           setConnectionState((prev) => ({
             ...prev,
             isConnected: false,
             isConnecting: false,
-            error: error.message || 'WebSocket 연결 오류',
+            error: error instanceof Error ? error.message : 'WebSocket 연결 오류',
           }));
         });
-      } catch (error: any) {
+      } catch (error: unknown) {
         setConnectionState((prev) => ({
           ...prev,
           isConnected: false,
           isConnecting: false,
-          error: error.message || '연결 실패',
+          error: error instanceof Error ? error.message : '연결 실패',
         }));
       }
     }

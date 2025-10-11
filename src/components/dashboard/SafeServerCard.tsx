@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import ImprovedServerCard from './ImprovedServerCard';
-import type { Server } from '@/types/server';
+import type { Server, Service, ServerAlert } from '@/types/server';
 
 export interface SafeServerCardProps {
   server: Server;
@@ -115,14 +115,14 @@ export const SafeServerCard: React.FC<SafeServerCardProps> = ({ server, index = 
 
         // Triple-check: 배열 → 객체 → 속성
         const validServices = server.services
-          .filter((service: any) => {
+          .filter((service: Service) => {
             // 1차: null/undefined 체크
             if (!service || typeof service !== 'object') return false;
             // 2차: name 속성 검증
             if (!service.name || typeof service.name !== 'string') return false;
             return true;
           })
-          .map((service: any) => ({
+          .map((service: Service) => ({
             name: String(service.name).trim() || 'Unknown Service',
             status: (['running', 'stopped', 'warning'].includes(service.status))
               ? service.status
@@ -158,7 +158,7 @@ export const SafeServerCard: React.FC<SafeServerCardProps> = ({ server, index = 
 
         // 배열 타입 처리 - ServerAlert[] 형태로 변환
         if (Array.isArray(server.alerts)) {
-          const validAlerts = server.alerts.filter((alert: any) => {
+          const validAlerts = server.alerts.filter((alert: ServerAlert) => {
             // 1차: null/undefined 체크
             if (!alert || typeof alert !== 'object') return false;
             // 2차: message 속성 검증
@@ -166,7 +166,7 @@ export const SafeServerCard: React.FC<SafeServerCardProps> = ({ server, index = 
             // 3차: message 내용 검증
             if (alert.message.trim().length === 0) return false;
             return true;
-          }).map((alert: any) => ({
+          }).map((alert: ServerAlert) => ({
             id: alert.id || `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             server_id: alert.server_id || serverId,
             type: (['cpu', 'memory', 'disk', 'network', 'responseTime', 'custom'].includes(alert.type))

@@ -21,7 +21,7 @@ interface Message {
   timestamp: Date;
   metadata?: {
     processingTime?: number;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 

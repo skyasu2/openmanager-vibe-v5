@@ -12,7 +12,7 @@ import type { Server, Service, EnhancedServerMetrics } from '@/types/server';
 import type { ServerStatus } from '@/types/server-common';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';
-import { useWorkerStats, calculateServerStatsFallback } from './useWorkerStats';
+import { useWorkerStats, calculateServerStatsFallback, type ServerStats as WorkerServerStats } from './useWorkerStats';
 import { serverTypeGuards } from '@/utils/serverUtils';
 import debug from '@/utils/debug';
 
@@ -24,7 +24,7 @@ const isValidArray = <T,>(value: unknown): value is T[] => {
 const isValidServer = (value: unknown): value is EnhancedServerData => {
   return value !== null &&
          typeof value === 'object' &&
-         typeof (value as any).id === 'string';
+         typeof (value as Record<string, unknown>).id === 'string';
 };
 
 const isValidNumber = (value: unknown): value is number => {
@@ -38,7 +38,7 @@ const hasValidLength = (value: unknown): value is { length: number } => {
   return value !== null &&
          typeof value === 'object' &&
          Object.hasOwn(value as object, 'length') &&
-         isValidNumber((value as any).length);
+         isValidNumber((value as Record<string, unknown>).length);
 };
 
 // 🏗️ Clean Architecture: 도메인 레이어 - 순수 비즈니스 로직
@@ -67,7 +67,7 @@ const statsCache = new Map<string, ServerStats>();
 const serverGroupCache = new Map<string, Map<string, EnhancedServerData[]>>();
 
 const getServerGroupKey = (servers: EnhancedServerData[]): string => {
-  return servers.map(s => `${s.id}:${s.status}:${(s as any).cpu}:${(s as any).memory}:${(s as any).disk}`).join('|');
+  return servers.map(s => `${s.id}:${s.status}:${s.cpu}:${s.memory}:${s.disk}`).join('|');
 };
 
 const groupServersByStatus = (servers: EnhancedServerData[]): Map<string, EnhancedServerData[]> => {
@@ -87,7 +87,7 @@ const groupServersByStatus = (servers: EnhancedServerData[]): Map<string, Enhanc
 };
 
 // 🚀 Web Worker 결과를 레거시 포맷으로 변환하는 어댑터 함수
-const adaptWorkerStatsToLegacy = (workerStats: any): ServerStats => {
+const adaptWorkerStatsToLegacy = (workerStats: WorkerServerStats): ServerStats => {
   return {
     total: workerStats.total || 0,
     online: workerStats.online || 0,

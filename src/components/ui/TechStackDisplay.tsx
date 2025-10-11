@@ -7,7 +7,7 @@
 // React import 제거 - Next.js 15 자동 JSX Transform 사용
 // framer-motion 제거 - CSS 애니메이션 사용
 import { FC } from 'react';
-import type { TechCategory } from '../../utils/TechStackAnalyzer';
+import type { TechCategory, TechItem } from '../../utils/TechStackAnalyzer';
 import { generateTechStackSummary } from '../../utils/TechStackAnalyzer';
 
 interface TechStackDisplayProps {
@@ -97,7 +97,7 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
 
       {/* 카테고리별 기술 스택 */}
       <div className="space-y-6">
-        {categories.map((category: any, categoryIndex: number) => (
+        {categories.map((category: TechCategory, categoryIndex: number) => (
           <div
             key={category.id}
             className="rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 backdrop-blur-sm"
@@ -126,7 +126,7 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
                   : 'grid-cols-1 lg:grid-cols-2'
               }`}
             >
-              {category.items.map((tech: any, techIndex: number) => (
+              {category.items.map((tech: TechItem, techIndex: number) => (
                 <div
                   key={`${tech.name}-${techIndex}`}
                   className={`rounded-lg border p-3 transition-all duration-200 hover:scale-105 ${colorMap[category.color as keyof typeof colorMap] || colorMap.gray} ${importanceStyles[tech.importance as keyof typeof importanceStyles] || importanceStyles.medium} ${tech.isCore ? 'shadow-lg shadow-amber-500/10' : ''} `}
@@ -206,13 +206,13 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
             <div className="mt-4 flex items-center justify-between border-t border-gray-700/30 pt-3 text-xs text-gray-400">
               <div className="flex gap-4">
                 <span>
-                  핵심: {category.items.filter((item: any) => item.isCore).length}개
+                  핵심: {category.items.filter((item: TechItem) => item.isCore).length}개
                 </span>
                 <span>
                   고중요도:{' '}
                   {
                     category.items.filter(
-                      (item: any) =>
+                      (item: TechItem) =>
                         item.importance === 'critical' ||
                         item.importance === 'high'
                     ).length
@@ -226,7 +226,7 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
                   {['critical', 'high', 'showcase', 'medium', 'low'].map(
                     (level) => {
                       const count = category.items.filter(
-                        (item: any) => item.importance === level
+                        (item: TechItem) => item.importance === level
                       ).length;
                       return count > 0 ? (
                         <div
