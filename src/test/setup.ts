@@ -94,7 +94,7 @@ globalThis.fetch = vi.fn().mockImplementation((url: string) => {
     headers: new Headers(),
     url,
   });
-}) as any;
+}) as typeof fetch;
 
 // Global mocks
 Object.defineProperty(globalThis, 'localStorage', {

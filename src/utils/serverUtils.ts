@@ -126,7 +126,7 @@ export function normalizeServerData(server: unknown): Server {
   };
 
   const getStatus = (): ServerStatus => { // 🔧 수정: ServerStatus 타입 사용
-    const status = s.status as any;
+    const status = s.status as unknown;
     // 'healthy' → 'online' 변환
     if (status === 'healthy') return 'online';
     // ServerStatus 타입 검증
@@ -158,7 +158,7 @@ export function normalizeServerData(server: unknown): Server {
     lastUpdate: s.lastUpdate instanceof Date ? s.lastUpdate : new Date(),
     services: Array.isArray(s.services) ? (s.services as Service[]) : [],
     networkStatus: (() => { // 🔧 수정: 'healthy' → 'online' 변환
-      const ns = s.networkStatus as any;
+      const ns = s.networkStatus as unknown;
       if (ns === 'healthy') return 'online';
       if (ns === 'offline' || ns === 'critical' || ns === 'online' ||
           ns === 'warning' || ns === 'maintenance') {

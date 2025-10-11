@@ -17,7 +17,7 @@ interface PlaywrightVitalsState {
   totalTests: number;
   passedTests: number;
   failedTests: number;
-  pageMetrics: Map<string, any>;
+  pageMetrics: Map<string, UniversalVital>;
   currentTestName: string;
   suiteMetrics: Map<string, UniversalVital>;
   browserName: string;

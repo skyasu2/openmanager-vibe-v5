@@ -4,6 +4,15 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { withDefault } from '@/types/type-utils';
 import { getCookieValue } from '@/utils/cookies/safe-cookie-utils';
 
+// 🔧 타입 정의: Next.js Response의 cookies 인터페이스
+interface ResponseWithCookies extends NextResponse {
+  cookies: {
+    set(name: string, value: string, options?: Record<string, unknown>): void;
+    get(name: string): string | undefined;
+    delete(name: string): void;
+  };
+}
+
 /**
  * 🔐 Supabase 미들웨어 세션 업데이트 함수
  *
@@ -29,7 +38,7 @@ export async function updateSession(
         set(name: string, value: string, options: Record<string, unknown>) {
           // ✅ 개선: 여러 쿠키 공존을 위해 response.cookies.set 사용
           try {
-            (supabaseResponse as any).cookies.set(name, value, { // 🔧 수정: 타입 단언 (Next.js 호환)
+            (supabaseResponse as ResponseWithCookies).cookies.set(name, value, { // 🔧 수정: 타입 안전 단언
               path: '/',
               ...options,
             });
@@ -49,7 +58,7 @@ export async function updateSession(
         remove(name: string, options: Record<string, unknown>) {
           // ✅ 개선: 여러 쿠키 공존을 위해 response.cookies.set 사용
           try {
-            (supabaseResponse as any).cookies.set(name, '', { // 🔧 수정: 타입 단언 (Next.js 호환)
+            (supabaseResponse as ResponseWithCookies).cookies.set(name, '', { // 🔧 수정: 타입 안전 단언
               path: '/',
               maxAge: 0,
               ...options,

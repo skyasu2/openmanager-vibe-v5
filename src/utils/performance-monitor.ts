@@ -33,6 +33,16 @@ export interface AccuracyMetrics {
   sampleSize: number;
 }
 
+interface ErrorWithMetrics extends Error {
+  responseTime?: number;
+  metrics?: {
+    responseTime: number;
+    category: 'slow' | 'medium' | 'fast';
+    baseline: number;
+    improvement: number;
+  };
+}
+
 export interface PerformanceBenchmark {
   memoryUsage: MemoryUsage;
   responseTime: ResponseTimeMetrics;
@@ -140,9 +150,9 @@ export class PerformanceMonitor {
 
       const errorWithMetrics = new Error(
         error instanceof Error ? error.message : String(error)
-      );
-      (errorWithMetrics as any).responseTime = responseTime;
-      (errorWithMetrics as any).metrics = {
+      ) as ErrorWithMetrics;
+      errorWithMetrics.responseTime = responseTime;
+      errorWithMetrics.metrics = {
         responseTime,
         category: 'slow' as const,
         baseline: 0,
