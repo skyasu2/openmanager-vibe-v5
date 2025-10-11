@@ -413,7 +413,13 @@ export class MCPToolHandler {
           `📋 ${serverName} 서버 도구 목록:`,
           response.result?.tools?.length || 0
         );
-        return response.result?.tools || [];
+
+        // MCPTool을 MCPToolInfo로 변환
+        return (response.result?.tools || []).map(tool => ({
+          name: tool.name,
+          description: tool.description || '',
+          schema: tool.inputSchema || { type: 'object' }
+        }));
       } catch {
         console.warn(
           `⚠️ ${serverName} 서버 도구 목록 조회 실패, 기본 도구 반환`
