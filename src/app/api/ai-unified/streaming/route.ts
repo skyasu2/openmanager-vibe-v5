@@ -265,9 +265,9 @@ export async function GET(request: NextRequest) {
   try {
     let stream: ReadableStream;
     const streamingRequest: StreamingRequest = {
-      type: type as any,
-      format: format as any,
-      filters: { level: level as any, serverId }
+      type: type as typeof streamingTypes[number],
+      format: format as typeof streamingFormats[number],
+      filters: { level: level as 'debug' | 'info' | 'warn' | 'error' | undefined, serverId }
     };
 
     switch (type) {

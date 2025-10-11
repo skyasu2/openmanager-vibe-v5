@@ -36,7 +36,7 @@ type AICoreRequest = z.infer<typeof aiCoreRequestSchema>;
 // 엔진별 처리 함수들
 class AIEngineRouter {
   // 메인 AI 쿼리 엔진
-  static async handleQuery(request: AICoreRequest): Promise<any> {
+  static async handleQuery(request: AICoreRequest): Promise<unknown> {
     const { prompt, context } = request;
     
     // 기존 /ai/query 로직 통합
@@ -56,7 +56,7 @@ class AIEngineRouter {
   }
 
   // Google AI Edge 엔진
-  static async handleEdge(request: AICoreRequest): Promise<any> {
+  static async handleEdge(request: AICoreRequest): Promise<unknown> {
     const { prompt, model = 'gemini-1.5-flash', temperature = 0.7 } = request;
     
     try {
@@ -74,7 +74,7 @@ class AIEngineRouter {
   }
 
   // Gemini 생성 엔진
-  static async handleGemini(request: AICoreRequest): Promise<any> {
+  static async handleGemini(request: AICoreRequest): Promise<unknown> {
     const { prompt, model = 'gemini-pro', temperature = 0.7, maxTokens = 2048 } = request;
     
     try {
@@ -97,7 +97,7 @@ class AIEngineRouter {
   }
 
   // Ultra-Fast 엔진
-  static async handleUltraFast(request: AICoreRequest): Promise<any> {
+  static async handleUltraFast(request: AICoreRequest): Promise<unknown> {
     const { prompt, stream = false } = request;
     
     try {

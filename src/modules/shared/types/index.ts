@@ -20,7 +20,7 @@ export interface ModuleInfo {
   isInitialized: boolean;
 }
 
-export interface APIResponse<T = any> {
+export interface APIResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;
@@ -32,7 +32,7 @@ export interface APIResponse<T = any> {
 export interface ErrorInfo {
   code: string;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   timestamp: string;
   stack?: string;
 }
@@ -42,7 +42,7 @@ export interface LogEntry {
   message: string;
   timestamp: string;
   module: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 export interface HealthCheck {
@@ -52,7 +52,7 @@ export interface HealthCheck {
   uptime: number;
 }
 
-export type EventHandler<T = any> = (data: T) => void | Promise<void>;
+export type EventHandler<T = unknown> = (data: T) => void | Promise<void>;
 
 export interface EventEmitter {
   on<T>(event: string, handler: EventHandler<T>): void;

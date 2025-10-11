@@ -302,25 +302,25 @@ export default function ServerDashboard({
                       cpu: (() => {
                         const cpuData = serverTypeGuards.getCpu(server);
                         if (typeof cpuData === 'number') return cpuData;
-                        if (cpuData && typeof cpuData === 'object' && 'usage' in cpuData) return (cpuData as any).usage;
+                        if (cpuData && typeof cpuData === 'object' && 'usage' in cpuData) return (cpuData as { usage: number }).usage;
                         return Math.random() * 80 + 10; // 기본값
                       })(),
                       memory: (() => {
                         const memData = serverTypeGuards.getMemory(server);
                         if (typeof memData === 'number') return memData;
-                        if (memData && typeof memData === 'object' && 'used' in memData) return (memData as any).used;
+                        if (memData && typeof memData === 'object' && 'used' in memData) return (memData as { used: number }).used;
                         return Math.random() * 70 + 15; // 기본값
                       })(),
                       disk: (() => {
                         const diskData = serverTypeGuards.getDisk(server);
                         if (typeof diskData === 'number') return diskData;
-                        if (diskData && typeof diskData === 'object' && 'used' in diskData) return (diskData as any).used;
+                        if (diskData && typeof diskData === 'object' && 'used' in diskData) return (diskData as { used: number }).used;
                         return Math.random() * 60 + 20; // 기본값
                       })(),
                       network: (() => {
                         const netData = serverTypeGuards.getNetwork(server);
                         if (typeof netData === 'number') return netData;
-                        if (netData && typeof netData === 'object' && 'in' in netData) return (netData as any).in;
+                        if (netData && typeof netData === 'object' && 'in' in netData) return (netData as { in: number }).in;
                         return Math.random() * 100 + 50; // 기본값
                       })(),
                       location: server.location || 'unknown',

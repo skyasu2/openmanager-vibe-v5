@@ -317,7 +317,7 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({
     firstElement.focus();
 
     // 정리 함수 저장
-    (container as any).__focusTrapCleanup = () => {
+    (container as { __focusTrapCleanup?: () => void }).__focusTrapCleanup = () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isClient]);
@@ -326,8 +326,8 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({
     if (!isClient || !focusTrapRef.current) return;
     
     const container = document.getElementById(focusTrapRef.current);
-    if (container && (container as any).__focusTrapCleanup) {
-      (container as any).__focusTrapCleanup();
+    if (container && (container as { __focusTrapCleanup?: () => void }).__focusTrapCleanup) {
+      (container as { __focusTrapCleanup?: () => void }).__focusTrapCleanup();
     }
     
     focusTrapRef.current = null;

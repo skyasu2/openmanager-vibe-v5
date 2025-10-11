@@ -448,7 +448,7 @@ function filterAndSortServers(
 async function handleServersUnified(
   request: NextRequest,
   context: { body: { action: ServersUnifiedRequest["action"]; serverId?: string; page?: number; limit?: number; search?: string; sortBy?: ServersUnifiedRequest["sortBy"]; sortOrder?: ServersUnifiedRequest["sortOrder"]; enableRealtime?: boolean; includeProcesses?: boolean; includeMetrics?: boolean; }; query: unknown; params: Record<string, string> }
-): Promise<any> {
+): Promise<unknown> {
   const { action, serverId, page = 1, limit = 10, search, sortBy = "name", sortOrder = "asc", enableRealtime = false } = context.body;
 
   try {
@@ -603,8 +603,8 @@ export async function GET(request: NextRequest) {
     page: parseInt(searchParams.get('page') || '1', 10),
     limit: parseInt(searchParams.get('limit') || '10', 10),
     search: searchParams.get('search') || undefined,
-    sortBy: (searchParams.get('sortBy') as any) || 'name',
-    sortOrder: (searchParams.get('sortOrder') as any) || 'asc',
+    sortBy: (searchParams.get('sortBy') as ServersUnifiedRequest['sortBy']) || 'name',
+    sortOrder: (searchParams.get('sortOrder') as ServersUnifiedRequest['sortOrder']) || 'asc',
     enableRealtime: searchParams.get('realtime') === 'true',
     includeProcesses: false,
     includeMetrics: true
