@@ -215,7 +215,7 @@ export class EdgeHTTPClient {
 // Edge Runtime 호환 상태 관리자
 export class EdgeStateManager {
   private static instance: EdgeStateManager;
-  private state = new Map<string, any>();
+  private state = new Map<string, unknown>();
 
   static getInstance(): EdgeStateManager {
     if (!EdgeStateManager.instance) {
@@ -240,7 +240,7 @@ export class EdgeStateManager {
     this.state.clear();
   }
 
-  getAllState(): Record<string, any> {
+  getAllState(): Record<string, unknown> {
     return Object.fromEntries(this.state);
   }
 }
@@ -250,7 +250,7 @@ export function isEdgeRuntime(): boolean {
   // Vercel Edge Runtime 환경 감지
   return (
     (typeof globalThis !== 'undefined' &&
-      (globalThis as any).EdgeRuntime === 'vercel') ||
+      (globalThis as { EdgeRuntime?: string }).EdgeRuntime === 'vercel') ||
     (typeof process !== 'undefined' &&
       process.env.VERCEL_ENV !== undefined &&
       typeof window === 'undefined')
@@ -290,7 +290,7 @@ export function checkEdgeCompatibility() {
     hasProcess,
     hasGlobal,
     hasBuffer,
-    userAgent: hasWindow ? (window as any).navigator?.userAgent : undefined,
+    userAgent: hasWindow ? (window as { navigator?: { userAgent?: string } }).navigator?.userAgent : undefined,
     nodeVersion: hasProcess ? process.version : undefined,
     platform: hasProcess ? process.platform : undefined,
   };
@@ -360,7 +360,7 @@ export class EdgePerformanceMonitor {
   }
 
   getAllMetrics() {
-    const result: Record<string, any> = {};
+    const result: Record<string, unknown> = {};
     const entries = Array.from(this.metrics.entries());
     for (const [name] of entries) {
       result[name] = this.getMetrics(name);

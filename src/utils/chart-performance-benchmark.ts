@@ -8,6 +8,17 @@
  * - 데이터 처리 성능 분석
  */
 
+// Chrome 전용 Performance API 확장
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+interface ExtendedPerformance extends Performance {
+  memory?: PerformanceMemory;
+}
+
 export interface PerformanceMetrics {
   renderTime: number;
   memoryUsage: number;
@@ -81,8 +92,8 @@ export class ChartPerformanceBenchmark {
    */
   measureMemoryUsage(): number {
     if ('memory' in performance) {
-      const memory = (performance as any).memory;
-      const memoryUsage = memory.usedJSHeapSize / 1024 / 1024; // MB
+      const memory = (performance as ExtendedPerformance).memory;
+      const memoryUsage = memory ? memory.usedJSHeapSize / 1024 / 1024 : 0; // MB
       this.memoryUsages.push(memoryUsage);
       
       // 최근 10개 메모리 사용량만 유지
@@ -213,7 +224,7 @@ export class ChartLibraryComparator {
   generateComparisonReport(): {
     results: BenchmarkResult[];
     winner: string;
-    summary: Record<string, any>;
+    summary: Record<string, unknown>;
   } {
     const results: BenchmarkResult[] = [];
     
@@ -307,7 +318,8 @@ export function detectMemoryLeaks(
   threshold: number = 50 // MB
 ): boolean {
   if ('memory' in performance) {
-    const currentMemory = (performance as any).memory.usedJSHeapSize / 1024 / 1024;
+    const memory = (performance as ExtendedPerformance).memory;
+    const currentMemory = memory ? memory.usedJSHeapSize / 1024 / 1024 : 0;
     return (currentMemory - initialMemory) > threshold;
   }
   return false;
@@ -319,14 +331,14 @@ export function detectMemoryLeaks(
 export function profilePerformance(library: string) {
   const benchmark = new ChartPerformanceBenchmark(library);
   
-  return function <T extends (...args: any[]) => any>(
-    target: any,
+  return function <T extends (...args: unknown[]) => unknown>(
+    target: unknown,
     propertyName: string,
     descriptor: TypedPropertyDescriptor<T>
   ) {
     const method = descriptor.value!;
     
-    descriptor.value = ((...args: any[]) => {
+    descriptor.value = ((...args: unknown[]) => {
       const startTime = benchmark.startRender();
       const result = method.apply(target, args);
       benchmark.endRender(startTime);

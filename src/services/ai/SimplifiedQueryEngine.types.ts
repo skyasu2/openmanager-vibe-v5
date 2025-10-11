@@ -173,7 +173,7 @@ export interface ThinkingStep {
   progress?: number;
   confidence?: number;
   subSteps?: string[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Cache entry type definition

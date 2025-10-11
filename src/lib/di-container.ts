@@ -10,14 +10,14 @@
 
 export type ServiceLifetime = 'singleton' | 'transient' | 'scoped';
 
-export interface ServiceDescriptor<T = any> {
+export interface ServiceDescriptor<T = unknown> {
   token: string | symbol;
   implementation: new (...args: unknown[]) => T;
   lifetime: ServiceLifetime;
   dependencies?: (string | symbol)[];
 }
 
-export interface ServiceFactory<T = any> {
+export interface ServiceFactory<T = unknown> {
   token: string | symbol;
   factory: (...args: unknown[]) => T;
   lifetime: ServiceLifetime;
@@ -30,8 +30,8 @@ export class DIContainer {
     string | symbol,
     ServiceDescriptor | ServiceFactory
   >();
-  private singletonInstances = new Map<string | symbol, any>();
-  private scopedInstances = new Map<string, Map<string | symbol, any>>();
+  private singletonInstances = new Map<string | symbol, unknown>();
+  private scopedInstances = new Map<string, Map<string | symbol, unknown>>();
   private resolutionStack: (string | symbol)[] = [];
 
   static getInstance(): DIContainer {
@@ -287,10 +287,10 @@ export function Inject(token: string | symbol) {
     parameterIndex: number
   ) {
     // 간단한 의존성 추적 (실제 프로젝트에서는 reflect-metadata 사용 권장)
-    const typedTarget = target as any;
+    const typedTarget = target as Record<string, unknown>;
     if (!typedTarget.__dependencies) {
       typedTarget.__dependencies = [];
     }
-    typedTarget.__dependencies[parameterIndex] = token;
+    (typedTarget.__dependencies as unknown[])[parameterIndex] = token;
   };
 }

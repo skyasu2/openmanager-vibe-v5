@@ -61,24 +61,24 @@ export class ApiRouteBuilder<
    * 요청 바디 스키마 설정
    */
   body<T>(schema: z.ZodSchema<T>): ApiRouteBuilder<T, TQuery, TResponse> {
-    this.bodySchema = schema as any;
-    return this as any;
+    this.bodySchema = schema as unknown as z.ZodSchema<TBody>;
+    return this as unknown as ApiRouteBuilder<T, TQuery, TResponse>;
   }
 
   /**
    * 쿼리 파라미터 스키마 설정
    */
   query<T>(schema: z.ZodSchema<T>): ApiRouteBuilder<TBody, T, TResponse> {
-    this.querySchema = schema as any;
-    return this as any;
+    this.querySchema = schema as unknown as z.ZodSchema<TQuery>;
+    return this as unknown as ApiRouteBuilder<TBody, T, TResponse>;
   }
 
   /**
    * 응답 스키마 설정
    */
   response<T>(schema: z.ZodSchema<T>): ApiRouteBuilder<TBody, TQuery, T> {
-    this.responseSchema = schema as any;
-    return this as any;
+    this.responseSchema = schema as unknown as z.ZodSchema<TResponse>;
+    return this as unknown as ApiRouteBuilder<TBody, TQuery, T>;
   }
 
   /**
