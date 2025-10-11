@@ -273,7 +273,7 @@ export class SubagentTestController {
   }
 
   // ⚡ 테스트 실행
-  private async executeTest(profile: TestProfile, context?: any): Promise<{
+  private async executeTest(profile: TestProfile, context?: unknown): Promise<{
     exitCode: number;
     stdout: string;
     stderr: string;
@@ -309,7 +309,7 @@ export class SubagentTestController {
           warnings
         });
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         stderr = error.stderr || '';
         stdout = error.stdout || '';
 

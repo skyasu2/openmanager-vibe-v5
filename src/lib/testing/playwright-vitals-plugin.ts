@@ -124,7 +124,7 @@ export const PlaywrightVitals = {
       // 🌐 실제 Web Vitals 수집 (브라우저에서)
       const webVitals = await page.evaluate(() => {
         return new Promise((resolve) => {
-          const vitals: any = {};
+          const vitals: Record<string, unknown> = {};
           let metricsCollected = 0;
           const totalMetrics = 5;
 
@@ -248,7 +248,7 @@ export const PlaywrightVitals = {
   collectBrowserMetrics: async (page: Page, label: string = 'browser-metrics') => {
     try {
       const metrics = await page.evaluate(() => {
-        const memory = (performance as any).memory;
+        const memory = (performance as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number } }).memory;
         const timing = performance.timing;
 
         return {

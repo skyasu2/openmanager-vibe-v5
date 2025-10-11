@@ -53,8 +53,8 @@ const getHandler = createApiRoute()
 
     // 3. GitHub OAuth URL 생성 테스트 (서버 환경 대응 - 브라우저 API 회피)
     debug.log('🐙 GitHub OAuth URL 생성 테스트 (서버 환경 안전 모드)...');
-    let oauthData: any = null;
-    let oauthError: any = null;
+    let oauthData: unknown = null;
+    let oauthError: unknown = null;
     
     try {
       // 서버 환경에서는 OAuth URL만 생성 (브라우저 API 사용 방지)
@@ -179,8 +179,8 @@ const postHandler = createApiRoute()
         const redirectUrl = `${request.headers.get('origin') || `https://${request.headers.get('host')}`}/auth/callback`;
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
         
-        let oauthData: any = null;
-        let oauthError: any = null;
+        let oauthData: unknown = null;
+    let oauthError: unknown = null;
         
         if (supabaseUrl) {
           // OAuth URL 수동 생성으로 브라우저 API 의존성 제거

@@ -141,7 +141,7 @@ export interface SubagentTestReport {
     version: string;
     capabilities: string[];
     limitations: string[];
-    configUsed: Record<string, any>;
+    configUsed: Record<string, unknown>;
   };
 }
 

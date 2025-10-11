@@ -35,7 +35,7 @@ export interface AIFriendlyMetric {
 export interface MetricCollector {
   collect(name: string, value: number, category: VitalCategory, unit?: string): AIFriendlyMetric;
   startTimer(name: string, category: VitalCategory): string; // 타이머 ID 반환
-  endTimer(timerId: string, context?: Record<string, any>): AIFriendlyMetric;
+  endTimer(timerId: string, context?: Record<string, unknown>): AIFriendlyMetric;
 }
 
 // 📊 메트릭 분석 인터페이스 (ISP 적용)
@@ -114,7 +114,7 @@ export class AIVitalsCollector implements MetricCollector {
   }
 
   // ⏹️ 타이머 종료 및 메트릭 수집
-  endTimer(timerId: string, context: Record<string, any> = {}): AIFriendlyMetric {
+  endTimer(timerId: string, context: Record<string, unknown> = {}): AIFriendlyMetric {
     const timer = this.timers.get(timerId);
     if (!timer) {
       throw new Error(`타이머를 찾을 수 없음: ${timerId}`);

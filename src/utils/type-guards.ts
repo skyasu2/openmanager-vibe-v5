@@ -63,7 +63,7 @@ export function isObject(value: unknown): value is Record<string, unknown> {
 /**
  * 함수인지 확인하는 타입 가드
  */
-export function isFunction(value: unknown): value is (...args: any[]) => any {
+export function isFunction(value: unknown): value is (...args: unknown[]) => unknown {
   return typeof value === 'function';
 }
 
