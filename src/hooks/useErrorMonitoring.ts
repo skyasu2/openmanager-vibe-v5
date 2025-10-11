@@ -71,7 +71,7 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       let errorType: ErrorState['errorType'] = 'unknown';
       let message = `${context}: `;
 
-      const errorObj = error as Error & { name?: string; code?: string };
+      const errorObj = error as Error & { name?: string; code?: string; status?: number };
 
       // 에러 타입 분석
       if (error instanceof TypeError || errorObj?.name === 'TypeError') {
@@ -86,10 +86,10 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
       } else if (errorObj?.name === 'NetworkError' || !navigator.onLine) {
         errorType = 'network';
         message += '네트워크 연결에 문제가 있습니다.';
-      } else if (errorObj?.status >= 400 && errorObj?.status < 500) {
+      } else if (typeof errorObj?.status === 'number' && errorObj.status >= 400 && errorObj.status < 500) {
         errorType = 'validation';
         message += '요청 데이터에 문제가 있습니다.';
-      } else if (errorObj?.status >= 500) {
+      } else if (typeof errorObj?.status === 'number' && errorObj.status >= 500) {
         errorType = 'processing';
         message += '서버에서 처리 중 오류가 발생했습니다.';
       } else {
