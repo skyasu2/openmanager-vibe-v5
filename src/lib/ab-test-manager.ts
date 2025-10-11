@@ -101,7 +101,7 @@ class MemoryABTestCache<T = unknown> {
     try {
       return JSON.parse(item.value);
     } catch {
-      return item.value;
+      return item.value as T;
     }
   }
 
@@ -263,7 +263,7 @@ export class ABTestManager {
       // 기존 그룹 확인
       const existingGroup = this.memoryCache.get(
         `${this.CACHE_KEYS.USER_GROUPS}:${userKey}`
-      );
+      ) as string | null;
       if (existingGroup && ['legacy', 'optimized'].includes(existingGroup)) {
         return existingGroup as ABTestGroup;
       }
@@ -310,7 +310,7 @@ export class ABTestManager {
       const metricsKey = `${this.CACHE_KEYS.METRICS}:${group}`;
 
       // 기존 메트릭 조회
-      const existingMetrics = this.memoryCache.get(metricsKey);
+      const existingMetrics = this.memoryCache.get(metricsKey) as ABTestMetrics | null;
       let metrics: ABTestMetrics;
 
       if (existingMetrics) {
@@ -504,13 +504,13 @@ export class ABTestManager {
   // ==============================================
 
   private async getConfig(): Promise<ABTestConfig> {
-    const config = this.memoryCache.get(this.CACHE_KEYS.CONFIG);
+    const config = this.memoryCache.get(this.CACHE_KEYS.CONFIG) as ABTestConfig | null;
     return config || this.DEFAULT_CONFIG;
   }
 
   private async getMetrics(group: ABTestGroup): Promise<ABTestMetrics> {
     const metricsKey = `${this.CACHE_KEYS.METRICS}:${group}`;
-    const metrics = this.memoryCache.get(metricsKey);
+    const metrics = this.memoryCache.get(metricsKey) as ABTestMetrics | null;
 
     return (
       metrics || {
