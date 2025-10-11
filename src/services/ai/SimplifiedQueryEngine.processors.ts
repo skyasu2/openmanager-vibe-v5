@@ -50,7 +50,7 @@ export class SimplifiedQueryEngineProcessors {
     contextLoader: CloudContextLoader,
     mockContextLoader: MockContextLoader,
     intentClassifier: IntentClassifier,
-    aiRouter?: any // Optional AI router to break circular dependency
+    aiRouter?: unknown // Optional AI router to break circular dependency
   ) {
     // Store constructor parameters
     this.utils = utils;
@@ -100,7 +100,7 @@ export class SimplifiedQueryEngineProcessors {
   /**
    * 🔄 AI Router 설정 (순환 종속성 해결용)
    */
-  setAIRouter(aiRouter: any): void {
+  setAIRouter(aiRouter: unknown): void {
     this.commandProcessor = new CommandQueryProcessor(
       this.utils,
       this.ragEngine,
