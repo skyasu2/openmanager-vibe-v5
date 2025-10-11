@@ -24,6 +24,16 @@ import {
 import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';
 
+// OAuth 데이터 타입 정의
+interface OAuthData {
+  url: string;
+  provider: string;
+}
+
+interface OAuthError {
+  message: string;
+}
+
 // GET 핸들러
 const getHandler = createApiRoute()
   .response(AuthTestResponseSchema)
@@ -53,8 +63,8 @@ const getHandler = createApiRoute()
 
     // 3. GitHub OAuth URL 생성 테스트 (서버 환경 대응 - 브라우저 API 회피)
     debug.log('🐙 GitHub OAuth URL 생성 테스트 (서버 환경 안전 모드)...');
-    let oauthData: unknown = null;
-    let oauthError: unknown = null;
+    let oauthData: OAuthData | null = null;
+    let oauthError: OAuthError | null = null;
     
     try {
       // 서버 환경에서는 OAuth URL만 생성 (브라우저 API 사용 방지)
@@ -178,9 +188,9 @@ const postHandler = createApiRoute()
         // OAuth URL 생성 및 검증 (서버 환경 대응 - 브라우저 API 회피)
         const redirectUrl = `${request.headers.get('origin') || `https://${request.headers.get('host')}`}/auth/callback`;
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-        
-        let oauthData: unknown = null;
-    let oauthError: unknown = null;
+
+        let oauthData: OAuthData | null = null;
+        let oauthError: OAuthError | null = null;
         
         if (supabaseUrl) {
           // OAuth URL 수동 생성으로 브라우저 API 의존성 제거
