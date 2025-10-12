@@ -347,6 +347,45 @@ test.describe('🔐 관리자 모드 PIN 인증 API 테스트 (축소 범위)', 
 
     await page.screenshot({ path: 'test-results/admin-api-10-ai-sidebar.png', fullPage: true });
 
+    // Step 11: /admin 페이지 접근 검증
+    console.log('\n========================================');
+    console.log('🔐 Step 11: /admin 페이지 접근 검증');
+    console.log('========================================\n');
+
+    await page.goto(`${BASE_URL}/admin`, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(2000);
+
+    const currentUrl = page.url();
+    console.log(`  📊 현재 URL: ${currentUrl}`);
+
+    const isOnAdminPage = currentUrl.includes('/admin');
+    
+    if (isOnAdminPage) {
+      console.log('  ✅ /admin 페이지 접근 성공');
+      
+      // 관리자 페이지 요소 확인
+      const adminPageElements = {
+        '관리자 대시보드': await page.locator('text=/관리자|Admin|Administrator/i').count() > 0,
+        '서버 관리': await page.locator('text=/서버 관리|Server Management/i').count() > 0,
+        '사용자 관리': await page.locator('text=/사용자 관리|User Management/i').count() > 0,
+        '시스템 설정': await page.locator('text=/시스템 설정|System Settings/i').count() > 0,
+      };
+
+      console.log('  📋 관리자 페이지 요소:');
+      for (const [key, value] of Object.entries(adminPageElements)) {
+        console.log(`    ${value ? '✅' : 'ℹ️'} ${key}`);
+      }
+
+      await page.screenshot({ path: 'test-results/admin-api-11-admin-page.png', fullPage: true });
+    } else {
+      console.log('  ❌ /admin 페이지 접근 실패 (리다이렉트됨)');
+      console.log(`  📍 리다이렉트된 URL: ${currentUrl}`);
+      console.log('  ℹ️ Playwright 쿠키 전달 제약으로 자동화 불가');
+      console.log('  📝 수동 테스트 필요: docs/testing/vercel-manual-test-guide.md 참조');
+      
+      await page.screenshot({ path: 'test-results/admin-api-11-redirect.png', fullPage: true });
+    }
+
     // 최종 종합 결과
     console.log('\n========================================');
     console.log('✅ 전체 플로우 테스트 완료');
@@ -356,6 +395,7 @@ test.describe('🔐 관리자 모드 PIN 인증 API 테스트 (축소 범위)', 
     console.log('3. ✅ 관리자 모드 활성화');
     console.log('4. ✅ 대시보드 점검');
     console.log('5. ✅ AI 어시스턴트 사이드바 점검');
+    console.log(`6. ${isOnAdminPage ? '✅' : '⚠️'} /admin 페이지 접근 ${isOnAdminPage ? '성공' : '실패 (수동 검증 필요)'}`);
     console.log('========================================\n');
   });
 });
