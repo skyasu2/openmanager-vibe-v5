@@ -141,7 +141,7 @@ export function useOptimizedDashboard({
     // 강제 가비지 컬렉션 (개발 환경)
     forceGC: () => {
       if (process.env.NODE_ENV === 'development' && (window as WindowWithGC).gc) {
-        (window as WindowWithGC).gc();
+        (window as WindowWithGC).gc?.();
         console.log('🗑️ 강제 가비지 컬렉션 실행');
       }
     }
