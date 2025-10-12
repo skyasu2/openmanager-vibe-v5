@@ -13,14 +13,18 @@ const BASE_URL = 'https://openmanager-vibe-v5.vercel.app';
 const ADMIN_PIN = '4231';
 
 test.describe('🔐 관리자 모드 PIN 인증 테스트', () => {
-  // 🧪 테스트 모드 활성화: 모든 요청에 X-Test-Mode 헤더 추가
-  test.use({
-    extraHTTPHeaders: {
-      'X-Test-Mode': 'enabled',
-    },
-  });
-
-  test('게스트 로그인 → PIN 4231 입력 → 관리자 모드 활성화', async ({ page }) => {
+  test('게스트 로그인 → PIN 4231 입력 → 관리자 모드 활성화', async ({ page, context }) => {
+    // 🧪 테스트 모드 쿠키 설정 (extraHTTPHeaders보다 확실함)
+    await context.addCookies([{
+      name: 'test_mode',
+      value: 'enabled',
+      domain: 'openmanager-vibe-v5.vercel.app',
+      path: '/',
+      httpOnly: false,
+      secure: true,
+      sameSite: 'Lax',
+    }]);
+    console.log('  🧪 테스트 모드 쿠키 설정 완료');
     // 🐛 브라우저 콘솔 로그 캡처
     const consoleLogs: string[] = [];
     page.on('console', msg => {
