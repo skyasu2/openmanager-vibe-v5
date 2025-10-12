@@ -248,7 +248,7 @@ export function useAISession(
         currentResponse: response,
         confidence,
         error: null,
-        enginePath: responseData?.enginePath ?? [],
+        enginePath: (responseData?.enginePath as Array<{ engine: string; description: string; timestamp: number }> | undefined)?.map(item => item.engine) ?? [],
         reasoningSteps: responseData?.reasoning_steps ?? [],
       };
 
