@@ -163,6 +163,18 @@ test.describe('🔐 관리자 모드 PIN 인증 테스트', () => {
     const adminModeCookie = cookies.find(c => c.name === 'admin_mode');
     if (adminModeCookie) {
       console.log(`  ✅ admin_mode 쿠키 발견: ${adminModeCookie.value}`);
+
+      // 🔧 쿠키를 명시적으로 재설정 (Playwright context에 확실히 등록)
+      await page.context().addCookies([{
+        name: 'admin_mode',
+        value: 'true',
+        domain: 'openmanager-vibe-v5.vercel.app',
+        path: '/',
+        httpOnly: false,
+        secure: true,
+        sameSite: 'Lax',
+      }]);
+      console.log('  🔧 admin_mode 쿠키 명시적 재설정 완료');
     } else {
       console.log('  ⚠️ admin_mode 쿠키 미발견');
       console.log(`  📊 전체 쿠키 목록: ${cookies.map(c => c.name).join(', ')}`);

@@ -160,12 +160,18 @@ export async function POST(request: NextRequest) {
 
       // 🍪 관리자 모드 쿠키 설정 (middleware에서 /admin 접근 허용용)
       const response = NextResponse.json({ success: true });
+
+      // 🌐 도메인 추출 (테스트와 프로덕션 모두 지원)
+      const requestUrl = new URL(request.url);
+      const domain = requestUrl.hostname; // openmanager-vibe-v5.vercel.app
+
       response.cookies.set('admin_mode', 'true', {
         httpOnly: !testMode, // 테스트 모드에서는 JavaScript 접근 허용
         secure: process.env.NODE_ENV === 'production' && !testMode,
         sameSite: 'lax',
         maxAge: 60 * 60 * 24, // 24시간
         path: '/',
+        domain, // 명시적 domain 설정 (중요!)
       });
 
       console.log(`✅ [Admin API] admin_mode 쿠키 설정 완료 (testMode: ${testMode}, httpOnly: ${!testMode})`);
