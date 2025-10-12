@@ -53,15 +53,15 @@ class CentralizedDataManager {
   /**
    * 구독 등록
    */
-  subscribe(
+  subscribe<T = unknown>(
     id: string,
-    callback: UpdateCallback,
+    callback: UpdateCallback<T>,
     dataType: DataType,
     options?: { priority?: number }
   ): () => void {
     const subscriber: Subscriber = {
       id,
-      callback,
+      callback: callback as UpdateCallback,
       dataType,
       isVisible: true,
       lastUpdate: 0,
@@ -72,7 +72,7 @@ class CentralizedDataManager {
     // 캐시된 데이터가 있으면 즉시 전달
     const cached = this.cache.get(dataType);
     if (cached && cached.expiresAt > Date.now()) {
-      callback(cached.data);
+      callback(cached.data as T);
       subscriber.lastUpdate = Date.now();
     } else {
       // 캐시가 없으면 즉시 한 번 페치
@@ -324,7 +324,7 @@ export function useCentralizedData<T = unknown>(
   dataType: DataType,
   callback: UpdateCallback<T>
 ): () => void {
-  return centralDataManager.subscribe(subscriberId, callback as UpdateCallback, dataType);
+  return centralDataManager.subscribe<T>(subscriberId, callback, dataType);
 }
 
 export function updateDataVisibility(
