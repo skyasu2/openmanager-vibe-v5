@@ -136,7 +136,7 @@ export const useWorkerStats = () => {
       const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
       // 콜백 등록
-      callbacksRef.current.set(id, { resolve, reject });
+      callbacksRef.current.set(id, { resolve: resolve as WorkerCallback, reject });
 
       // Worker에 메시지 전송
       workerRef.current.postMessage({ type, data, id });
