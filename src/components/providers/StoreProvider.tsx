@@ -42,7 +42,7 @@ const getStore = (): ServerDataStore => {
 
         // 🛠️ 개발자 도구 연동 (개발 편의성 향상)
         if (typeof window !== 'undefined') {
-          (window as Record<string, unknown>).__ZUSTAND_STORE__ = globalStore;
+          (window as unknown as Record<string, unknown>).__ZUSTAND_STORE__ = globalStore;
         }
       }
     } catch (error) {
