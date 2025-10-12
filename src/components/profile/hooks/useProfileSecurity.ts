@@ -19,22 +19,37 @@ export function useProfileSecurity() {
   // Zustand 스토어의 관리자 상태 사용
   const { adminMode } = useUnifiedAdminStore();
   
-  // Phase 2: Zustand AuthStore와 UnifiedAdminStore 이중 확인 (레거시 호환성)
+  // Phase 2: Zustand AuthStore와 UnifiedAdminStore 삼중 확인 (레거시 호환성)
+  const authStoreAdminMode = useAuthStore((s) => s.adminMode);
   const [isAdminMode, setIsAdminMode] = useState(false);
 
   useEffect(() => {
     const checkAdminMode = () => {
-      // 🔧 레거시 localStorage 체크 (Phase 3에서 제거 예정)
+      // 🔧 다중 소스 체크 (localStorage + 2개 Zustand 스토어)
       const localStorageAdmin = localStorage.getItem('admin_mode') === 'true';
-      const zustandAdmin = adminMode.isAuthenticated;
+      const unifiedStoreAdmin = adminMode.isAuthenticated;
+      
+      // 🆕 auth-storage에서 adminMode 직접 파싱
+      let authStorageAdmin = false;
+      try {
+        const authStorage = localStorage.getItem('auth-storage');
+        if (authStorage) {
+          const parsed = JSON.parse(authStorage);
+          authStorageAdmin = parsed?.state?.adminMode === true;
+        }
+      } catch (e) {
+        console.warn('auth-storage 파싱 실패:', e);
+      }
 
-      // 이중 체크: localStorage 또는 UnifiedAdminStore 중 하나라도 true
-      const adminModeActive = localStorageAdmin || zustandAdmin;
+      // 삼중 체크: 하나라도 true면 관리자 모드
+      const adminModeActive = localStorageAdmin || unifiedStoreAdmin || authStorageAdmin || authStoreAdminMode;
       setIsAdminMode(adminModeActive);
       
       console.log('🔐 관리자 모드 상태 체크:', {
         localStorage: localStorageAdmin,
-        zustand: zustandAdmin,
+        unifiedStore: unifiedStoreAdmin,
+        authStorage: authStorageAdmin,
+        authStore: authStoreAdminMode,
         final: adminModeActive
       });
     };
@@ -47,7 +62,7 @@ export function useProfileSecurity() {
     return () => {
       window.removeEventListener('storage', checkAdminMode);
     };
-  }, [adminMode.isAuthenticated]);
+  }, [adminMode.isAuthenticated, authStoreAdminMode]);
 
   const [securityState, setSecurityState] = useState<ProfileSecurityState>({
     failedAttempts: 0,
