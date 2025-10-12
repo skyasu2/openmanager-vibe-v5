@@ -108,7 +108,7 @@ export function useOptimizedRealtime<T = unknown>({
       // 중앙 데이터 관리자에 구독
       const unsubscribe = centralDataManager.subscribe(
         subscriberId,
-        handleDataUpdate,
+        handleDataUpdate as (data: unknown) => void,
         dataType
       );
 
