@@ -326,8 +326,8 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({
     if (!isClient || !focusTrapRef.current) return;
     
     const container = document.getElementById(focusTrapRef.current);
-    if (container && (container as { __focusTrapCleanup?: () => void }).__focusTrapCleanup) {
-      (container as { __focusTrapCleanup?: () => void }).__focusTrapCleanup();
+    if (container) {
+      (container as { __focusTrapCleanup?: () => void }).__focusTrapCleanup?.();
     }
     
     focusTrapRef.current = null;
