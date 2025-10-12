@@ -170,13 +170,26 @@ export const useWorkerStats = () => {
     });
   }, [sendMessage]);
 
-  // 📈 서버 통계만 계산
+  // 📈 서버 통계만 계산 (Phase 76: 스키마 검증 추가)
   const calculateStats = useCallback(async (servers: EnhancedServerData[]): Promise<ServerStats> => {
     if (!workerRef.current) {
       throw new Error('Worker not available');
     }
 
-    return sendMessage<ServerStats>('CALCULATE_STATS', { servers });
+    try {
+      const result = await sendMessage<ServerStats>('CALCULATE_STATS', { servers });
+
+      // 🛡️ Phase 76: Worker 응답 스키마 검증
+      if (!isValidServerStats(result)) {
+        console.error('❌ Worker 응답 스키마 불일치, Fallback 사용:', result);
+        return calculateServerStatsFallback(servers);
+      }
+
+      return result;
+    } catch (error) {
+      console.error('❌ Worker 계산 실패, Fallback 사용:', error);
+      return calculateServerStatsFallback(servers);
+    }
   }, [sendMessage]);
 
   // 📄 페이지네이션만 계산
@@ -277,6 +290,31 @@ const isValidNumber = (value: unknown): value is number => {
          !Number.isNaN(value) &&
          Number.isFinite(value) &&
          value >= 0;
+};
+
+// 🛡️ ServerStats 타입 가드 (Phase 76)
+const isValidServerStats = (value: unknown): value is ServerStats => {
+  if (!value || typeof value !== 'object') return false;
+
+  const stats = value as Partial<ServerStats>;
+
+  return (
+    typeof stats.total === 'number' &&
+    typeof stats.online === 'number' &&
+    typeof stats.offline === 'number' &&
+    typeof stats.warning === 'number' &&
+    typeof stats.critical === 'number' &&
+    typeof stats.averageCpu === 'number' &&
+    typeof stats.averageMemory === 'number' &&
+    typeof stats.averageUptime === 'number' &&
+    typeof stats.totalBandwidth === 'number' &&
+    typeof stats.typeDistribution === 'object' &&
+    stats.typeDistribution !== null &&
+    typeof stats.performanceMetrics === 'object' &&
+    stats.performanceMetrics !== null &&
+    typeof stats.performanceMetrics.calculationTime === 'number' &&
+    typeof stats.performanceMetrics.serversProcessed === 'number'
+  );
 };
 
 // 🔄 Fallback 통계 계산

@@ -35,6 +35,25 @@ interface BatchOptions {
 }
 
 /**
+ * 🛡️ APIResponse 타입 가드 (Phase 76)
+ */
+function isValidAPIResponse(value: unknown): value is APIResponse {
+  if (!value || typeof value !== 'object') return false;
+
+  const response = value as Partial<APIResponse>;
+
+  return (
+    typeof response.id === 'string' &&
+    typeof response.status === 'number' &&
+    typeof response.timing === 'object' &&
+    response.timing !== null &&
+    typeof response.timing.queued === 'number' &&
+    typeof response.timing.executed === 'number' &&
+    typeof response.timing.duration === 'number'
+  );
+}
+
+/**
  * Vercel Edge Runtime 최적화 API 배처
  * - 메모리 효율적: WeakMap 사용으로 GC 친화적
  * - 타임아웃 관리: Edge 환경의 10초 제한 고려
@@ -240,10 +259,17 @@ class VercelOptimizedAPIBatcher {
   }
 
   /**
-   * 결과 처리 및 Promise 해결
+   * 결과 처리 및 Promise 해결 (Phase 76: 스키마 검증 추가)
    */
   private processResults(results: APIResponse[]): void {
     results.forEach(result => {
+      // 🛡️ Phase 76: Batcher 응답 스키마 검증
+      if (!isValidAPIResponse(result)) {
+        console.error('❌ Batcher 응답 스키마 불일치:', result);
+        // result.id가 없을 수 있으므로 스킵
+        return;
+      }
+
       const pending = this.pendingPromises.get(result.id);
       if (pending) {
         pending.resolve(result);
