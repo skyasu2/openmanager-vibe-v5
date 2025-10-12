@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getCookieValue } from '@/utils/cookies/safe-cookie-utils';
 import { verifyCSRFToken } from '@/utils/security/csrf';
 
 // 환경변수에서 관리자 PIN 가져오기
@@ -70,10 +71,8 @@ function isIPWhitelisted(ip: string): boolean {
 // 🧪 테스트 모드 감지 함수 (middleware.ts와 동일한 로직)
 function isTestMode(request: NextRequest): boolean {
   // 1️⃣ 테스트 쿠키 확인
-  const testModeCookie = request.cookies.get('test_mode');
-  if (testModeCookie?.value === 'enabled') return true;
-
-  if (request.cookies.get('vercel_test_token')) return true;
+  if (getCookieValue(request, 'test_mode') === 'enabled') return true;
+  if (getCookieValue(request, 'vercel_test_token')) return true;
 
   // 2️⃣ 테스트 헤더 확인
   if (request.headers.get('X-Test-Mode') === 'enabled') return true;
@@ -159,16 +158,34 @@ export async function POST(request: NextRequest) {
       const testMode = isTestMode(request);
 
       // 🍪 관리자 모드 쿠키 설정 (middleware에서 /admin 접근 허용용)
-      const response = NextResponse.json({ success: true });
-
-      response.cookies.set('admin_mode', 'true', {
+      const cookieOptions = {
         httpOnly: !testMode, // 테스트 모드에서는 JavaScript 접근 허용
         secure: process.env.NODE_ENV === 'production' && !testMode,
-        sameSite: 'lax',
+        sameSite: 'lax' as const,
         maxAge: 60 * 60 * 24, // 24시간
         path: '/',
         // domain을 생략하면 현재 호스트로 자동 설정됨 (더 안전)
-      });
+      };
+
+      const cookieValue = [
+        `admin_mode=true`,
+        `Path=${cookieOptions.path}`,
+        `Max-Age=${cookieOptions.maxAge}`,
+        `SameSite=${cookieOptions.sameSite}`,
+        cookieOptions.httpOnly ? 'HttpOnly' : '',
+        cookieOptions.secure ? 'Secure' : '',
+      ]
+        .filter(Boolean)
+        .join('; ');
+
+      const response = NextResponse.json(
+        { success: true },
+        {
+          headers: {
+            'Set-Cookie': cookieValue,
+          },
+        }
+      );
 
       console.log(`✅ [Admin API] admin_mode 쿠키 설정 완료 (testMode: ${testMode}, httpOnly: ${!testMode})`);
       return response;

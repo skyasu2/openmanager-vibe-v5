@@ -3,6 +3,7 @@
 import React, { memo } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Crown } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { ProfileAvatar, UserTypeIcon } from './ProfileAvatar';
 import { ProfileMenuItem } from './ProfileMenuItem';
 import { AdminAuthModal } from './AdminAuthModal';
@@ -23,6 +24,7 @@ export const ProfileDropdownMenu = memo(function ProfileDropdownMenu({
   showAdminInput,
   adminAuthProps,
 }: ProfileDropdownMenuProps) {
+  const router = useRouter();
   const getUserName = () => {
     if (userInfo) {
       return (
@@ -114,6 +116,21 @@ export const ProfileDropdownMenu = memo(function ProfileDropdownMenu({
 
                 {showAdminInput && <AdminAuthModal {...adminAuthProps} />}
               </>
+            )}
+
+            {/* 관리자 페이지 메뉴 (관리자 모드일 때만 표시) */}
+            {isAdminMode && (
+              <ProfileMenuItem
+                id="admin-page"
+                label="관리자 페이지"
+                icon={Crown}
+                action={() => {
+                  router.push('/admin');
+                  onClose();
+                }}
+                visible={true}
+                description="관리자 전용 페이지"
+              />
             )}
 
             {/* 메뉴 아이템 렌더링 */}
