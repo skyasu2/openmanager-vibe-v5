@@ -158,6 +158,16 @@ test.describe('🔐 관리자 모드 PIN 인증 테스트', () => {
     await page.waitForTimeout(5000);
     await page.screenshot({ path: 'test-results/admin-06-after-confirm.png' });
 
+    // 🍪 쿠키 확인
+    const cookies = await page.context().cookies();
+    const adminModeCookie = cookies.find(c => c.name === 'admin_mode');
+    if (adminModeCookie) {
+      console.log(`  ✅ admin_mode 쿠키 발견: ${adminModeCookie.value}`);
+    } else {
+      console.log('  ⚠️ admin_mode 쿠키 미발견');
+      console.log(`  📊 전체 쿠키 목록: ${cookies.map(c => c.name).join(', ')}`);
+    }
+
     // 다이얼로그가 닫혔는지 확인
     const dialogStillOpen = await page.locator('input[type="password"]').isVisible().catch(() => false);
     if (dialogStillOpen) {
@@ -215,8 +225,8 @@ test.describe('🔐 관리자 모드 PIN 인증 테스트', () => {
     await page.waitForTimeout(500);
 
     // /admin 페이지로 직접 이동
-    await page.goto(`${BASE_URL}/admin`);
-    await page.waitForLoadState('networkidle');
+    await page.goto(`${BASE_URL}/admin`, { waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(2000); // DOM 로드 후 2초 대기
 
     const currentUrl = page.url();
     console.log(`  📊 현재 URL: ${currentUrl}`);

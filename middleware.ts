@@ -232,6 +232,11 @@ export async function middleware(request: NextRequest) {
       // 🍪 관리자 모드 쿠키 확인
       const adminModeCookie = getCookieValue(request, 'admin_mode');
 
+      // 🐛 디버깅: 모든 쿠키 출력
+      const allCookies = request.cookies.getAll();
+      console.log('🔍 [Admin Check] 전체 쿠키 목록:', allCookies.map(c => `${c.name}=${c.value}`).join(', '));
+      console.log('🔍 [Admin Check] admin_mode 쿠키 값:', adminModeCookie);
+
       if (adminModeCookie !== 'true') {
         // 관리자 모드 미활성화 → /main으로 리다이렉트
         console.log('🔐 미들웨어: 관리자 모드 미활성화 → /main');

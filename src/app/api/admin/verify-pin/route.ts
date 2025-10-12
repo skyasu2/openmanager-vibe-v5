@@ -155,17 +155,20 @@ export async function POST(request: NextRequest) {
     if (password === ADMIN_PIN) {
       console.log('✅ [Admin API] PIN 인증 성공');
 
+      // 🧪 테스트 모드 확인
+      const testMode = isTestMode(request);
+
       // 🍪 관리자 모드 쿠키 설정 (middleware에서 /admin 접근 허용용)
       const response = NextResponse.json({ success: true });
       response.cookies.set('admin_mode', 'true', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        httpOnly: !testMode, // 테스트 모드에서는 JavaScript 접근 허용
+        secure: process.env.NODE_ENV === 'production' && !testMode,
         sameSite: 'lax',
         maxAge: 60 * 60 * 24, // 24시간
         path: '/',
       });
 
-      console.log('✅ [Admin API] admin_mode 쿠키 설정 완료');
+      console.log(`✅ [Admin API] admin_mode 쿠키 설정 완료 (testMode: ${testMode}, httpOnly: ${!testMode})`);
       return response;
     }
 
