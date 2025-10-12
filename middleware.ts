@@ -237,8 +237,11 @@ export async function middleware(request: NextRequest) {
         // 🍪 admin_mode 쿠키 확인 (게스트/GitHub 로그인 무관)
         const adminModeCookie = getCookieValue(request, 'admin_mode');
 
-        // 🐛 디버깅: 쿠키 출력
+        // 🐛 디버깅: 모든 쿠키 출력
+        const allCookies = request.cookies.getAll().map(c => `${c.name}=${c.value}`);
+        console.log('🔍 [Admin Check] 전체 쿠키:', allCookies.join(', '));
         console.log('🔍 [Admin Check] admin_mode 쿠키 값:', adminModeCookie);
+        console.log('🔍 [Admin Check] test_mode 쿠키:', request.cookies.get('test_mode')?.value);
 
         // admin_mode 쿠키가 없으면 리다이렉트
         // (PIN 4231 인증 후에만 admin_mode=true 쿠키 설정됨)
