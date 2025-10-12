@@ -229,21 +229,27 @@ export async function middleware(request: NextRequest) {
     // 3️⃣-A 🔐 관리자 페이지 접근 체크
     // ============================================================
     if (pathname.startsWith('/admin')) {
-      // 🍪 admin_mode 쿠키 확인 (게스트/GitHub 로그인 무관)
-      const adminModeCookie = getCookieValue(request, 'admin_mode');
+      // 🧪 테스트 모드 확인
+      if (isTestMode(request)) {
+        console.log('✅ 미들웨어: 테스트 모드 - /admin 접근 자동 허용');
+        // 테스트 모드에서는 쿠키 체크 생략
+      } else {
+        // 🍪 admin_mode 쿠키 확인 (게스트/GitHub 로그인 무관)
+        const adminModeCookie = getCookieValue(request, 'admin_mode');
 
-      // 🐛 디버깅: 쿠키 출력
-      console.log('🔍 [Admin Check] admin_mode 쿠키 값:', adminModeCookie);
+        // 🐛 디버깅: 쿠키 출력
+        console.log('🔍 [Admin Check] admin_mode 쿠키 값:', adminModeCookie);
 
-      // admin_mode 쿠키가 없으면 리다이렉트
-      // (PIN 4231 인증 후에만 admin_mode=true 쿠키 설정됨)
-      if (adminModeCookie !== 'true') {
-        console.log('🔐 미들웨어: admin_mode 쿠키 없음 → /main 리다이렉트');
-        return NextResponse.redirect(new URL('/main', request.url));
+        // admin_mode 쿠키가 없으면 리다이렉트
+        // (PIN 4231 인증 후에만 admin_mode=true 쿠키 설정됨)
+        if (adminModeCookie !== 'true') {
+          console.log('🔐 미들웨어: admin_mode 쿠키 없음 → /main 리다이렉트');
+          return NextResponse.redirect(new URL('/main', request.url));
+        }
+
+        // admin_mode 쿠키 있음 → /admin 접근 허용 (게스트/GitHub 무관)
+        console.log('✅ 미들웨어: admin_mode 쿠키 확인 → /admin 접근 허용');
       }
-
-      // admin_mode 쿠키 있음 → /admin 접근 허용 (게스트/GitHub 무관)
-      console.log('✅ 미들웨어: admin_mode 쿠키 확인 → /admin 접근 허용');
     }
 
     // ============================================================
