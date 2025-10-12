@@ -21,6 +21,35 @@ test.describe('🔐 관리자 모드 PIN 인증 테스트', () => {
   });
 
   test('게스트 로그인 → PIN 4231 입력 → 관리자 모드 활성화', async ({ page }) => {
+    // 🐛 브라우저 콘솔 로그 캡처
+    const consoleLogs: string[] = [];
+    page.on('console', msg => {
+      const text = `[${msg.type()}] ${msg.text()}`;
+      consoleLogs.push(text);
+      if (msg.type() === 'error' || msg.type() === 'warning') {
+        console.log(`  🔍 브라우저 ${text}`);
+      }
+    });
+
+    // 🌐 네트워크 요청 캡처 (verify-pin API만)
+    const apiCalls: { url: string; status: number; response: any }[] = [];
+    page.on('response', async response => {
+      const url = response.url();
+      if (url.includes('/api/admin/verify-pin')) {
+        try {
+          const json = await response.json();
+          apiCalls.push({
+            url,
+            status: response.status(),
+            response: json,
+          });
+          console.log(`  🌐 API 응답: ${response.status()} - ${JSON.stringify(json)}`);
+        } catch {
+          // JSON 파싱 실패 무시
+        }
+      }
+    });
+
     console.log('\n========================================');
     console.log('🎯 관리자 모드 PIN 인증 테스트 시작 (테스트 모드)');
     console.log('========================================\n');
@@ -124,8 +153,25 @@ test.describe('🔐 관리자 모드 PIN 인증 테스트', () => {
       console.log('  ✅ Enter 키 입력');
     }
 
-    await page.waitForTimeout(2000);
+    // API 응답 대기 (최대 5초)
+    console.log('  ⏳ API 응답 대기...');
+    await page.waitForTimeout(5000);
     await page.screenshot({ path: 'test-results/admin-06-after-confirm.png' });
+
+    // 다이얼로그가 닫혔는지 확인
+    const dialogStillOpen = await page.locator('input[type="password"]').isVisible().catch(() => false);
+    if (dialogStillOpen) {
+      console.log('  ⚠️ PIN 다이얼로그가 여전히 열려있음 (인증 실패 가능성)');
+
+      // API 응답 로그 출력
+      if (apiCalls.length > 0) {
+        console.log(`  📊 API 호출 결과: ${JSON.stringify(apiCalls[0])}`);
+      } else {
+        console.log('  ⚠️ API 호출이 감지되지 않음');
+      }
+    } else {
+      console.log('  ✅ PIN 다이얼로그가 닫힘 (인증 성공 가능성)');
+    }
 
     // 8단계: 관리자 모드 활성화 확인
     console.log('\n📍 Step 8: 관리자 모드 활성화 확인');
@@ -206,5 +252,22 @@ test.describe('🔐 관리자 모드 PIN 인증 테스트', () => {
     expect(pinInputVisible, 'PIN 입력 필드가 나타나야 함').toBeTruthy();
 
     console.log('\n✅ 관리자 모드 PIN 인증 테스트 완료!\n');
+
+    // 🐛 디버깅 정보 출력
+    console.log('\n========================================');
+    console.log('🔍 디버깅 정보');
+    console.log('========================================');
+    console.log(`📊 API 호출 횟수: ${apiCalls.length}`);
+    if (apiCalls.length > 0) {
+      apiCalls.forEach((call, index) => {
+        console.log(`  ${index + 1}. ${call.status} - ${JSON.stringify(call.response)}`);
+      });
+    }
+    console.log(`📊 에러 로그 수: ${consoleLogs.filter(log => log.includes('[error]')).length}`);
+    const errorLogs = consoleLogs.filter(log => log.includes('[error]'));
+    if (errorLogs.length > 0) {
+      errorLogs.forEach(log => console.log(`  - ${log}`));
+    }
+    console.log('========================================\n');
   });
 });

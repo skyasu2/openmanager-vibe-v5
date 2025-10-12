@@ -154,7 +154,19 @@ export async function POST(request: NextRequest) {
     // PIN 검증
     if (password === ADMIN_PIN) {
       console.log('✅ [Admin API] PIN 인증 성공');
-      return NextResponse.json({ success: true });
+
+      // 🍪 관리자 모드 쿠키 설정 (middleware에서 /admin 접근 허용용)
+      const response = NextResponse.json({ success: true });
+      response.cookies.set('admin_mode', 'true', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24, // 24시간
+        path: '/',
+      });
+
+      console.log('✅ [Admin API] admin_mode 쿠키 설정 완료');
+      return response;
     }
 
     console.warn('❌ [Admin API] PIN 인증 실패 - 잘못된 비밀번호');
