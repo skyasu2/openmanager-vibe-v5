@@ -138,13 +138,17 @@ main() {
     local query=""
 
     # 파라미터 파싱
-    while getopts "h" opt; do
+    while getopts "hp" opt; do
         case $opt in
             h)
                 usage
                 ;;
+            p)
+                # -p 옵션은 무시 (v2.3.0에서는 항상 plan mode)
+                # 하위 호환성을 위해 허용만 함
+                ;;
             \?)
-                echo "잘못된 옵션: -$OPTARG" >&2
+                echo "잘못된 옵션: -${OPTARG:-unknown}" >&2
                 usage
                 ;;
         esac
