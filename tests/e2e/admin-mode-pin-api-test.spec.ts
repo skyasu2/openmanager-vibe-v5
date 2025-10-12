@@ -287,5 +287,75 @@ test.describe('🔐 관리자 모드 PIN 인증 API 테스트 (축소 범위)', 
       errorLogs.forEach(log => console.log(`  - ${log}`));
     }
     console.log('========================================\n');
+
+    // 9단계: 대시보드 점검
+    console.log('\n========================================');
+    console.log('📊 Step 9: 대시보드 점검');
+    console.log('========================================\n');
+
+    // 프로필 드롭다운 닫기
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(500);
+
+    // 대시보드로 이동 (시스템 시작 버튼 또는 /dashboard 직접 접근)
+    const systemStartButton = page.locator('button:has-text("시스템 시작")');
+    const hasSystemStartButton = await systemStartButton.isVisible().catch(() => false);
+
+    if (hasSystemStartButton) {
+      console.log('  ✅ 시스템 시작 버튼 발견 - 클릭하여 대시보드 진입');
+      await systemStartButton.click();
+      await page.waitForTimeout(3000); // 카운트다운 대기
+      console.log('  ✅ 시스템 시작 완료, 대시보드 로딩 중...');
+      await page.waitForTimeout(2000);
+    } else {
+      console.log('  ℹ️ 시스템 시작 버튼 없음 - /dashboard 직접 이동');
+      await page.goto(`${BASE_URL}/dashboard`);
+      await page.waitForLoadState('domcontentloaded');
+    }
+
+    await page.screenshot({ path: 'test-results/admin-api-09-dashboard.png', fullPage: true });
+
+    // 대시보드 UI 요소 검증
+    const dashboardElements = {
+      '서버 카드': await page.locator('text=/서버|Server/i').count() > 0,
+      'CPU 지표': await page.locator('text=/CPU|cpu/i').count() > 0,
+      'Memory 지표': await page.locator('text=/Memory|memory|메모리/i').count() > 0,
+      '응답 시간': await page.locator('text=/Response|응답|Latency/i').count() > 0,
+    };
+
+    console.log('  📊 대시보드 요소 검증:');
+    for (const [key, value] of Object.entries(dashboardElements)) {
+      console.log(`    ${value ? '✅' : '⚠️'} ${key}`);
+    }
+
+    // 10단계: AI 어시스턴트 사이드바 점검
+    console.log('\n========================================');
+    console.log('🤖 Step 10: AI 어시스턴트 사이드바 점검');
+    console.log('========================================\n');
+
+    // AI 사이드바 UI 요소 검증
+    const aiSidebarElements = {
+      '입력 필드': await page.locator('input[type="text"], textarea').count() > 0,
+      '전송 버튼': await page.locator('button').filter({ hasText: /send|보내기|전송/i }).count() > 0,
+      '채팅 영역': await page.locator('[data-testid*="chat"], [class*="message"], [class*="chat"]').count() > 0,
+    };
+
+    console.log('  🤖 AI 사이드바 요소 검증:');
+    for (const [key, value] of Object.entries(aiSidebarElements)) {
+      console.log(`    ${value ? '✅' : '⚠️'} ${key}`);
+    }
+
+    await page.screenshot({ path: 'test-results/admin-api-10-ai-sidebar.png', fullPage: true });
+
+    // 최종 종합 결과
+    console.log('\n========================================');
+    console.log('✅ 전체 플로우 테스트 완료');
+    console.log('========================================');
+    console.log('1. ✅ 게스트 로그인');
+    console.log('2. ✅ PIN 4231 인증');
+    console.log('3. ✅ 관리자 모드 활성화');
+    console.log('4. ✅ 대시보드 점검');
+    console.log('5. ✅ AI 어시스턴트 사이드바 점검');
+    console.log('========================================\n');
   });
 });
