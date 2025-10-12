@@ -12,7 +12,7 @@ import type { Server, Service, EnhancedServerMetrics } from '@/types/server';
 import type { ServerStatus } from '@/types/server-common';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';
-import { useWorkerStats, calculateServerStatsFallback, type ServerStats as WorkerServerStats } from './useWorkerStats';
+import { useWorkerStats, calculateServerStatsFallback } from './useWorkerStats';
 import { serverTypeGuards } from '@/utils/serverUtils';
 import debug from '@/utils/debug';
 
@@ -87,7 +87,20 @@ const groupServersByStatus = (servers: EnhancedServerData[]): Map<string, Enhanc
 };
 
 // 🚀 Web Worker 결과를 레거시 포맷으로 변환하는 어댑터 함수
-const adaptWorkerStatsToLegacy = (workerStats: WorkerServerStats): ServerStats => {
+const adaptWorkerStatsToLegacy = (workerStats: {
+  total?: number;
+  online?: number;
+  offline?: number;
+  unknown?: number;
+  warning?: number;
+  critical?: number;
+  averageCpu?: number;
+  averageMemory?: number;
+  averageUptime?: number;
+  totalBandwidth?: number;
+  typeDistribution?: Record<string, number>;
+  performanceMetrics?: { calculationTime: number; serversProcessed: number };
+}): ServerStats => {
   return {
     total: workerStats.total || 0,
     online: workerStats.online || 0,
