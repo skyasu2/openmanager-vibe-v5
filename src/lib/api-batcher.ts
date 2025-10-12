@@ -74,7 +74,7 @@ class VercelOptimizedAPIBatcher {
       // 큐에 요청 추가
       this.queue.set(request.id, request);
       this.pendingPromises.set(request.id, {
-        resolve,
+        resolve: resolve as (value: APIResponse<unknown>) => void,
         reject,
         timestamp: Date.now(),
       });
