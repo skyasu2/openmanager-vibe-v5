@@ -83,7 +83,7 @@ export function usePerformanceGuard({
     if (typeof window !== 'undefined' && 'performance' in window) {
       const memory = (performance as { memory?: { usedJSHeapSize?: number; jsHeapSizeLimit?: number } }).memory;
       if (memory) {
-        const usedMB = memory.usedJSHeapSize / 1024 / 1024;
+        const usedMB = (memory.usedJSHeapSize ?? 0) / 1024 / 1024;
         metricsRef.current.memoryUsage = usedMB;
 
         if (usedMB > memoryWarningThreshold) {
