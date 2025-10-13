@@ -28,14 +28,14 @@ interface DashboardHeaderProps {
   isAgentOpen?: boolean;
   onMenuClick?: () => void;
   title?: string;
-  /** 시스템 남은 시간 (밀리초) */
+  /** 시스템 남은 시간 (밀리초) - SystemStatusBadge에서 사용 */
   systemRemainingTime?: number;
-  /** 시스템 활성 상태 */
+  /** 시스템 활성 상태 - SystemStatusBadge에서 사용 */
   isSystemActive?: boolean;
-  /** 시스템 중지 핸들러 */
-  onSystemStop?: () => void;
-  /** 포맷된 남은 시간 문자열 */
+  /** 포맷된 남은 시간 문자열 - SystemStatusBadge에서 사용 */
   remainingTimeFormatted?: string;
+  /** @deprecated 시스템 중지 핸들러 - useSystemStatusStore로 대체됨 */
+  onSystemStop?: () => void;
 }
 
 /**
@@ -62,7 +62,7 @@ const DashboardHeader = memo(function DashboardHeader({
   title: _title = 'OpenManager Dashboard',
   systemRemainingTime,
   isSystemActive = true,
-  onSystemStop,
+  onSystemStop: _onSystemStop, // deprecated - useSystemStatusStore로 대체됨
   remainingTimeFormatted,
 }: DashboardHeaderProps) {
   // 🔒 Hydration 불일치 방지를 위한 클라이언트 전용 상태
@@ -136,11 +136,8 @@ const DashboardHeader = memo(function DashboardHeader({
             />
           )}
 
-          {/* 🎯 UnifiedProfileHeader 사용 - 통합된 프로필 헤더 */}
-          <UnifiedProfileHeader
-            onSystemStop={onSystemStop}
-            parentSystemActive={isSystemActive}
-          />
+          {/* 🎯 UnifiedProfileHeader 사용 - Zustand 스토어로 Props Drilling 제거 */}
+          <UnifiedProfileHeader />
         </div>
       </div>
 

@@ -134,6 +134,7 @@ function convertServerToModalData(server: Server): ServerData {
 // --- Static Imports for Core Components (SSR bailout 해결) ---
 import DashboardHeader from '../../components/dashboard/DashboardHeader';
 import DashboardContent from '../../components/dashboard/DashboardContent';
+import { useSystemStatusStore } from '@/stores/useSystemStatusStore';
 const FloatingSystemControl = dynamic(
   () => import('../../components/system/FloatingSystemControl'),
   {
@@ -493,6 +494,15 @@ function DashboardPageContent() {
       // 종료 알림은 콘솔 로그로만 표시 (info 레벨은 NotificationToast에서 필터링됨)
     },
   });
+
+  // 🔄 시스템 상태를 Zustand 스토어에 동기화 (Props Drilling 제거)
+  const { setActive, setRemainingTime, setStopHandler } = useSystemStatusStore();
+
+  useEffect(() => {
+    setActive(isSystemActive);
+    setRemainingTime(systemRemainingTime);
+    setStopHandler(stopSystem);
+  }, [isSystemActive, systemRemainingTime, stopSystem, setActive, setRemainingTime, setStopHandler]);
 
   // 🎯 실제 서버 데이터 생성기 데이터 사용 - 즉시 로드
   const {

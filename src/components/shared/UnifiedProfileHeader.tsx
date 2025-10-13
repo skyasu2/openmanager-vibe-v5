@@ -3,6 +3,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { useSystemStatusStore } from '@/stores/useSystemStatusStore';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   BarChart3,
@@ -38,9 +39,7 @@ import type {
  */
 export default function UnifiedProfileHeader({
   className = '',
-  onSystemStop: _onSystemStop,
-  parentSystemActive: _parentSystemActive,
-}: UnifiedProfileHeaderProps) {
+}: Omit<UnifiedProfileHeaderProps, 'onSystemStop' | 'parentSystemActive'>) {
   // 훅 사용
   const {
     userInfo,
@@ -68,7 +67,10 @@ export default function UnifiedProfileHeader({
   const { status: systemStatus } = useSystemStatus();
   const { isSystemStarted } = useUnifiedAdminStore(); // 🎯 로컬 상태 직접 접근으로 즉시 동기화
 
-  // 시스템 종료 핸들러
+  // 🔄 Zustand 스토어에서 시스템 상태 직접 읽기 (Props Drilling 제거)
+  const { isActive: systemActive, stop: systemStopHandler } = useSystemStatusStore();
+
+  // 시스템 종료 핸들러 - 스토어의 stop 함수 사용
   const handleSystemStop = useCallback(async () => {
     const confirmed = confirm(
       '⚠️ 시스템을 종료하시겠습니까?\n\n종료 후 메인 페이지에서 다시 시작할 수 있습니다.'
@@ -80,24 +82,31 @@ export default function UnifiedProfileHeader({
       closeMenu();
       console.log('🛑 시스템 종료 요청 (프로필에서)');
 
-      const response = await fetch('/api/system/status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'stop' }),
-      });
-
-      if (response.ok) {
-        console.log('✅ 시스템 종료 성공');
-        localStorage.removeItem('system_auto_shutdown');
-        alert('✅ 시스템이 성공적으로 종료되었습니다.');
+      // 스토어에 등록된 DashboardClient의 stopSystem 호출
+      if (systemStopHandler) {
+        systemStopHandler();
+        console.log('✅ 시스템 종료 성공 (스토어 통합)');
       } else {
-        alert('❌ 시스템 종료에 실패했습니다. 다시 시도해주세요.');
+        // Fallback: 직접 API 호출
+        const response = await fetch('/api/system/status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'stop' }),
+        });
+
+        if (response.ok) {
+          console.log('✅ 시스템 종료 성공');
+          localStorage.removeItem('system_auto_shutdown');
+          alert('✅ 시스템이 성공적으로 종료되었습니다.');
+        } else {
+          alert('❌ 시스템 종료에 실패했습니다. 다시 시도해주세요.');
+        }
       }
     } catch (error) {
       console.error('❌ 시스템 종료 오류:', error);
       alert('❌ 시스템 종료 중 오류가 발생했습니다.');
     }
-  }, []); // ✅ closeMenu 함수 의존성 제거 - React Error #310 무한 리렌더링 방지
+  }, [closeMenu, systemStopHandler]);
 
   // 관리자 인증 핸들러
   const handleAdminAuth = useCallback(async () => {
