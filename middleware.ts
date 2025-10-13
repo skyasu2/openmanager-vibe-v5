@@ -243,6 +243,9 @@ export async function middleware(request: NextRequest) {
     // ============================================================
     // 3️⃣-A 🔐 관리자 페이지 접근 체크
     // ============================================================
+    // 🚧 [개발 중] 게스트 전체 접근 허용 - 프로덕션 배포 전 복원 필요
+    // TODO: 프로덕션 배포 시 아래 주석 해제하여 관리자 페이지 보안 강화
+    /*
     if (pathname.startsWith('/admin')) {
       // 🧪 테스트 모드 확인
       if (isTestMode(request)) {
@@ -269,6 +272,10 @@ export async function middleware(request: NextRequest) {
         console.log('✅ 미들웨어: admin_mode 쿠키 확인 → /admin 접근 허용');
       }
     }
+    */
+
+    // 🟢 개발 중: 게스트도 관리자/대시보드 접근 가능
+    console.log(`✅ 미들웨어: ${pathname} 접근 허용 (개발 모드)`);
 
     // ============================================================
     // 4️⃣ ⚡ 성능 최적화 헤더 추가
