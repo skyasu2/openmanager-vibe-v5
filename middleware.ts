@@ -14,6 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { getCookieValue, hasCookie } from '@/utils/cookies/safe-cookie-utils';
+import { setupCSRFProtection } from '@/utils/security/csrf';
 
 // ============================================================
 // 🔒 IP 화이트리스트 보안 (Module-level 캐싱 최적화)
@@ -162,6 +163,10 @@ export async function middleware(request: NextRequest) {
       const response = NextResponse.next();
       response.headers.set('X-Test-Mode-Active', 'true');
       response.headers.set('X-Test-Bypass', 'enabled');
+
+      // 🛡️ CSRF 토큰 설정 (테스트 모드)
+      setupCSRFProtection(response);
+
       return response;
     }
 
@@ -217,12 +222,22 @@ export async function middleware(request: NextRequest) {
 
         // Guest 쿠키 존재 → /main (게스트 모드)
         console.log('🔐 미들웨어: Guest 쿠키 확인 → /main (게스트 모드)');
-        return NextResponse.redirect(new URL('/main', request.url));
+        const guestResponse = NextResponse.redirect(new URL('/main', request.url));
+
+        // 🛡️ CSRF 토큰 설정 (게스트)
+        setupCSRFProtection(guestResponse);
+
+        return guestResponse;
       }
 
       // Supabase 세션 존재 → /main (인증된 사용자)
       console.log('🔐 미들웨어: Supabase 세션 확인 → /main (인증 사용자)');
-      return NextResponse.redirect(new URL('/main', request.url));
+      const authResponse = NextResponse.redirect(new URL('/main', request.url));
+
+      // 🛡️ CSRF 토큰 설정 (인증 사용자)
+      setupCSRFProtection(authResponse);
+
+      return authResponse;
     }
 
     // ============================================================
@@ -350,6 +365,9 @@ export async function middleware(request: NextRequest) {
       response.headers.set(key, value);
     });
 
+    // 🛡️ CSRF 토큰 설정 (모든 응답)
+    setupCSRFProtection(response);
+
     return response;
 
   } catch (error) {
@@ -368,6 +386,9 @@ export async function middleware(request: NextRequest) {
     const response = NextResponse.next();
     response.headers.set('X-Middleware-Error', 'handled');
     response.headers.set('X-Middleware-Fallback', 'true');
+
+    // 🛡️ CSRF 토큰 설정 (에러 응답)
+    setupCSRFProtection(response);
 
     return response;
   }

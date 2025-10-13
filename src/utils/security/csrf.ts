@@ -69,3 +69,32 @@ export function setupCSRFProtection(response: NextResponse): string {
   setCSRFCookie(response, token);
   return token;
 }
+
+/**
+ * 클라이언트 사이드에서 CSRF 토큰 가져오기
+ *
+ * @returns CSRF token from cookie, or empty string if not found
+ *
+ * @example
+ * ```typescript
+ * const csrfToken = getCSRFTokenFromCookie();
+ * const response = await fetch('/api/admin/verify-pin', {
+ *   method: 'POST',
+ *   headers: {
+ *     'Content-Type': 'application/json',
+ *     'X-CSRF-Token': csrfToken
+ *   },
+ *   body: JSON.stringify({ password })
+ * });
+ * ```
+ */
+export function getCSRFTokenFromCookie(): string {
+  if (typeof document === 'undefined') return '';
+
+  const cookies = document.cookie.split(';').map(c => c.trim());
+  const csrfCookie = cookies.find(c => c.startsWith('csrf_token='));
+
+  if (!csrfCookie) return '';
+
+  return csrfCookie.split('=')[1] || '';
+}

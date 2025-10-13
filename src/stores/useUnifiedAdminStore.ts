@@ -1,4 +1,5 @@
 import { browserNotificationService } from '@/services/notifications/BrowserNotificationService';
+import { getCSRFTokenFromCookie } from '@/utils/security/csrf';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
@@ -208,9 +209,15 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
 
           // 🔒 서버 사이드 비밀번호 검증 (보안 강화)
           try {
+            // CSRF 토큰 가져오기 (쿠키에서)
+            const csrfToken = getCSRFTokenFromCookie();
+
             const verifyResponse = await fetch('/api/admin/verify-pin', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                ...(csrfToken && { 'X-CSRF-Token': csrfToken })
+              },
               body: JSON.stringify({ password }),
             });
 
