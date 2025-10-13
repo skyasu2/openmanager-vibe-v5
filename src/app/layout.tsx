@@ -7,6 +7,7 @@ import { EmergencyBanner } from '@/components/emergency/EmergencyBanner';
 import { AuthTokenHandler } from '@/components/auth/AuthTokenHandler';
 import { SystemBootstrap } from '@/components/system/SystemBootstrap';
 import { Toaster } from '@/components/ui/toaster';
+import { CSRFTokenProvider } from '@/components/security/CSRFTokenProvider';
 
 // Vercel Analytics & Speed Insights
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -32,10 +33,12 @@ export default function RootLayout({
       <body className={inter.className}>
         <EmergencyBanner />
         <ClientProviders>
-          <AuthTokenHandler />
-          <SystemBootstrap />
-          <Toaster />
-          {children}
+          <CSRFTokenProvider>
+            <AuthTokenHandler />
+            <SystemBootstrap />
+            <Toaster />
+            {children}
+          </CSRFTokenProvider>
         </ClientProviders>
         <SpeedInsights key="speed-insights" />
         <Analytics key="analytics" />
