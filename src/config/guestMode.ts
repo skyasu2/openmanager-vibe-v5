@@ -32,6 +32,11 @@ export type GuestModeType = typeof GUEST_MODE[keyof typeof GUEST_MODE];
 export function getGuestMode(): GuestModeType {
   const mode = process.env.NEXT_PUBLIC_GUEST_MODE;
 
+  // 디버그: 환경 변수 값 확인 (빌드 타임)
+  if (typeof window === 'undefined') {
+    console.log('🎛️ [Build] NEXT_PUBLIC_GUEST_MODE:', mode);
+  }
+
   if (mode === GUEST_MODE.FULL_ACCESS || mode === GUEST_MODE.RESTRICTED) {
     return mode;
   }
