@@ -11,7 +11,9 @@
  * NEXT_PUBLIC_GUEST_MODE=full_access
  *
  * // Vercel 환경 변수 (프로덕션)
- * NEXT_PUBLIC_GUEST_MODE=restricted
+ * NEXT_PUBLIC_GUEST_MODE=full_access
+ *
+ * 📝 Build timestamp: 2025-10-13
  */
 
 export const GUEST_MODE = {
