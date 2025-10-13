@@ -106,7 +106,7 @@ export default function UnifiedProfileHeader({
     console.log('🔐 인증 결과:', success); // 디버그 로그
     if (success) {
       cancelAdminInput();
-      closeMenu();
+      // 🔥 closeMenu() 제거 - 사용자가 관리자 모드 활성화를 즉시 확인할 수 있도록
     }
   }, [menuState.adminPassword]); // ✅ 함수 의존성 제거, primitive 값만 유지 - React Error #310 방지
 
