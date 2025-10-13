@@ -623,9 +623,10 @@ function DashboardPageContent() {
     );
   }
 
-  // 🔒 대시보드 접근 권한이 없는 경우 (GitHub 로그인 또는 PIN 인증 또는 테스트 모드 필요)
+  // 🔒 대시보드 접근 권한이 없는 경우 (GitHub 로그인 또는 PIN 인증 또는 테스트 모드 또는 게스트 전체 접근 모드 필요)
   // 🧪 FIX: 테스트 모드 체크 추가 (E2E 테스트용)
-  if (!permissions.canAccessDashboard && !isPinAuth && !checkTestMode()) {
+  // 🎛️ FIX: 게스트 전체 접근 모드 체크 추가 (개발 모드용)
+  if (!permissions.canAccessDashboard && !isPinAuth && !checkTestMode() && !isGuestFullAccessEnabled()) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
