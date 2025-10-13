@@ -13,6 +13,7 @@
 
 import React, { useCallback, useEffect, useRef, useState, useMemo, memo, Fragment, createElement, type FC } from 'react';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { isGuestFullAccessEnabled } from '@/config/guestMode';
 import { useRealTimeAILogs } from '../../../hooks/useRealTimeAILogs';
 import {
   useAIChat,
@@ -621,7 +622,8 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
   }, [selectedFunction, renderEnhancedAIChat]); // renderEnhancedAIChat 함수 의존성 복구
 
   // 🔐 권한이 없으면 사이드바 렌더링하지 않음
-  if (!permissions.canToggleAI) {
+  // 🎛️ 게스트 전체 접근 모드에서는 AI 어시스턴트 허용
+  if (!permissions.canToggleAI && !isGuestFullAccessEnabled()) {
     return null;
   }
 
