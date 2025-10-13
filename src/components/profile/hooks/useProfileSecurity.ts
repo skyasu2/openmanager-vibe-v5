@@ -202,7 +202,10 @@ export function useProfileSecurity() {
             detail: { key: 'admin_mode', value: 'true' }
           }));
 
-          console.log('🔑 관리자 모드 활성화 (Zustand 자동 동기화 + 게스트 세션 자동 생성)');
+          // 🔥 직접 상태 업데이트 (이벤트 리스너보다 확실함)
+          setIsAdminMode(true);
+
+          console.log('🔑 관리자 모드 활성화 (Zustand 자동 동기화 + 게스트 세션 자동 생성 + 즉시 상태 반영)');
           return true;
         } else {
           // 인증 실패
