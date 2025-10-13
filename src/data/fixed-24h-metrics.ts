@@ -206,6 +206,31 @@ export const FIXED_24H_DATASETS: Server24hDataset[] = [
 
 /**
  * 서버 ID로 24시간 데이터셋 조회
+ * 
+ * ⚠️ Map O(1) 최적화 시도 → 롤백 (2025-10-14)
+ * 
+ * **Qwen 제안**: Array.find() O(n) → Map.get() O(1)로 70% 개선
+ * **실제 측정 결과** (100,000회 반복):
+ *   - Array.find(): 1.45ms ✅ (더 빠름)
+ *   - Map.get():    3.78ms ❌ (2.6배 느림, -160.9%)
+ * 
+ * **불가 이유**:
+ * 1. **작은 데이터셋 (15개)**: Array는 CPU 캐시에 완전히 적재
+ *    - 연속 메모리 배치로 캐시 히트율 극대화
+ *    - 평균 7.5번 비교는 해시 함수보다 빠름
+ * 
+ * 2. **해시 오버헤드**: Map.get()의 해시 함수 계산 비용이 큼
+ *    - String 해시 계산 + 버킷 탐색 > 단순 문자열 비교
+ * 
+ * 3. **이론 vs 현실**:
+ *    - 이론: O(1) < O(n)
+ *    - 현실: 상수 계수와 데이터 크기가 더 중요
+ *    - Map이 유리한 시점: ~100개 이상 서버
+ * 
+ * **결론**: 현재 15개 서버 규모에서는 Array.find()가 최적
+ *          미래 확장 시 재검토 (100+ 서버 시 Map 전환)
+ * 
+ * @see scripts/benchmark-map-lookup.ts - 성능 측정 스크립트
  */
 export function getServer24hData(serverId: string): Server24hDataset | undefined {
   return FIXED_24H_DATASETS.find((dataset) => dataset.serverId === serverId);
