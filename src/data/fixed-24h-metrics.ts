@@ -38,7 +38,8 @@ export interface Server24hDataset {
  * 기본 메트릭에 작은 변동 추가 (±5%)
  */
 function addVariation(value: number): number {
-  const variation = (Math.random() - 0.5) * 10; // ±5%
+  // ±5% 퍼센트 기반 변동 (절대값이 아닌 상대값)
+  const variation = value * (Math.random() - 0.5) * 0.1; // ±5%
   return Math.max(0, Math.min(100, value + variation));
 }
 
@@ -248,11 +249,8 @@ export function getRecentData(
   const result: Fixed10MinMetric[] = [];
 
   for (let i = 0; i < count; i++) {
-    // 뫼비우스 띠처럼 순환 (0시를 넘어가면 23시대로)
-    let targetIndex = currentSlotIndex - i;
-    if (targetIndex < 0) {
-      targetIndex = 144 + targetIndex; // 음수를 24시간 순환으로 변환
-    }
+    // 뫼비우스 띠처럼 순환 (0시를 넘어가면 23시대로) - 모듈러 연산으로 수정
+    let targetIndex = ((currentSlotIndex - i) % 144 + 144) % 144;
 
     const dataPoint = dataset.data[targetIndex];
     if (dataPoint) {

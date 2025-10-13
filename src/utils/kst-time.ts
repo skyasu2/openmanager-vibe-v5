@@ -8,12 +8,10 @@
  * 현재 한국 시간 가져오기 (UTC+9)
  */
 export function getCurrentKST(): Date {
-  // 현재 UTC 시간 가져오기
+  // 현재 UTC timestamp에 9시간(KST) 추가
+  // getTime()은 이미 UTC이므로 getTimezoneOffset() 불필요
   const now = new Date();
-  const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
-
-  // UTC+9 (KST) 계산
-  const kstTime = new Date(utcTime + 9 * 60 * 60 * 1000);
+  const kstTime = new Date(now.getTime() + 9 * 60 * 60 * 1000);
   return kstTime;
 }
 
