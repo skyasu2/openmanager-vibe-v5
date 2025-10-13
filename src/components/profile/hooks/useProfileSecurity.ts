@@ -55,12 +55,15 @@ export function useProfileSecurity() {
     };
     
     checkAdminMode();
-    
+
     // storage 이벤트 리스너 추가 (localStorage 변경 감지)
     window.addEventListener('storage', checkAdminMode);
-    
+    // custom 이벤트 리스너 추가 (같은 탭에서의 변경 감지)
+    window.addEventListener('local-storage-changed', checkAdminMode);
+
     return () => {
       window.removeEventListener('storage', checkAdminMode);
+      window.removeEventListener('local-storage-changed', checkAdminMode);
     };
   }, [adminMode.isAuthenticated, authStoreAdminMode]);
 
@@ -193,6 +196,11 @@ export function useProfileSecurity() {
 
           // 🔧 FIX: skipHydration 대응 - localStorage admin_mode 명시적 설정
           localStorage.setItem('admin_mode', 'true');
+
+          // 🔥 수동 storage 이벤트 발생 (같은 탭에서는 자동 발생 안 됨)
+          window.dispatchEvent(new CustomEvent('local-storage-changed', {
+            detail: { key: 'admin_mode', value: 'true' }
+          }));
 
           console.log('🔑 관리자 모드 활성화 (Zustand 자동 동기화 + 게스트 세션 자동 생성)');
           return true;
