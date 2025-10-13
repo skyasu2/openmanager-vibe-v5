@@ -68,6 +68,14 @@ const vercelSafeLog = (message: string, data?: unknown): void => {
   }
 };
 
+export interface HistoryDataPoint {
+  time: string;
+  cpu?: number;
+  memory?: number;
+  disk?: number;
+  network?: number;
+}
+
 export interface ServerMetricsLineChartProps {
   value: number;
   label: string;
@@ -75,6 +83,7 @@ export interface ServerMetricsLineChartProps {
   showRealTimeUpdates?: boolean;
   className?: string;
   serverStatus?: 'online' | 'offline' | 'warning' | 'critical' | string;
+  historyData?: HistoryDataPoint[]; // 🎯 24시간 고정 데이터 (외부에서 주입)
 }
 
 import { SERVER_STATUS_COLORS } from '../../styles/design-constants';
@@ -211,11 +220,26 @@ export default function ServerMetricsLineChart({
   showRealTimeUpdates = false,
   className = '',
   serverStatus,
+  historyData, // 🎯 24시간 고정 데이터 (외부에서 주입)
 }: ServerMetricsLineChartProps) {
+  // 🎯 historyData prop을 차트 형식으로 변환
+  const convertHistoryData = (history: HistoryDataPoint[] | undefined) => {
+    if (!history || !Array.isArray(history) || history.length === 0) {
+      return generateHistoricalData(value || 0, type); // fallback
+    }
+
+    const now = Date.now();
+    return history.map((point, index) => ({
+      timestamp: now - (history.length - 1 - index) * 60 * 1000, // 1분 간격
+      value: point[type] ?? value ?? 50,
+      x: index,
+    }));
+  };
+
   // 🛡️ 베르셀 환경 안전 초기화
-  const [historicalData, setHistoricalData] = useState(() => {
+  const [historicalDataState, setHistoricalData] = useState(() => {
     try {
-      const initialData = generateHistoricalData(value || 0, type);
+      const initialData = convertHistoryData(historyData);
       vercelSafeLog('historicalData 초기화 성공', { value, type, dataLength: getSafeArrayLength(initialData) });
       return initialData;
     } catch (error) {
@@ -225,52 +249,26 @@ export default function ServerMetricsLineChart({
   });
   const svgRef = useRef<SVGSVGElement>(null);
 
+  // 🎯 historyData prop 변경 시 업데이트
+  useEffect(() => {
+    if (historyData) {
+      setHistoricalData(convertHistoryData(historyData));
+    }
+  }, [historyData, type]);
+
   const config = getMetricConfig(value, type, serverStatus);
 
-  // 🛡️ 베르셀 환경 안전 실시간 업데이트
-  useEffect(() => {
-    if (!showRealTimeUpdates) return;
-
-    const interval = setInterval(() => {
-      setHistoricalData((prev) => {
-        // 🛡️ 베르셀 Race Condition 방지
-        if (!prev || !Array.isArray(prev)) {
-          vercelSafeLog('실시간 업데이트 중 prev 데이터 손실, 재생성', { prev });
-          return generateHistoricalData(value || 0, type);
-        }
-        // 기존 데이터를 한 칸씩 앞으로 밀고 새 데이터 추가 (11개 포인트 유지)
-        const newData = prev.slice(1).map((item, index) => ({
-          ...item,
-          x: index,
-        }));
-
-        const lastValue = getSafeLastArrayItem(prev, { value: 50 })?.value ?? 50;
-
-        // 새로운 현재값 생성 - 더 안정적인 변동 (1분 간격에 맞춤)
-        const variation = (Math.random() - 0.5) * 6; // ±3% 변동 (더 안정적)
-        const newValue = Math.max(0, Math.min(100, lastValue + variation));
-
-        newData.push({
-          timestamp: Date.now(),
-          value: Math.round(newValue * 10) / 10, // 소수점 1자리 정밀도
-          x: 10, // 마지막 포인트 (0-10 중 10)
-        });
-
-        return newData;
-      });
-    }, 60000); // 1분(60초)마다 업데이트 - 실제 1분 간격과 동기화
-
-    return () => clearInterval(interval);
-  }, [showRealTimeUpdates]);
+  // ✅ 실시간 업데이트는 useFixed24hMetrics 훅에서 자동 처리됨
+  // historyData prop이 변경되면 자동으로 차트 업데이트
 
   // 🛡️ 베르셀 환경 완전 방어: historicalData 초기화 강화
   const safeHistoricalData = useMemo(() => {
-    if (!historicalData || !Array.isArray(historicalData)) {
+    if (!historicalDataState || !Array.isArray(historicalDataState)) {
       console.warn('🛡️ ServerMetricsLineChart: historicalData 초기화 - 기본값 생성');
       return generateHistoricalData(value || 0, type);
     }
-    return historicalData;
-  }, [historicalData, value, type]);
+    return historicalDataState;
+  }, [historicalDataState, value, type]);
 
   // SVG 경로 생성 - 베르셀 환경 완전 방어 강화 ⭐⭐⭐
   const createPath = () => {
@@ -454,15 +452,15 @@ export default function ServerMetricsLineChart({
               return null;
             }
 
-            // 🛡️ historicalData 최고값 계산 - 안전한 방식
+            // 🛡️ safeHistoricalData 최고값 계산 - 안전한 방식
             const getMaxValue = () => {
-              if (!historicalData || !Array.isArray(historicalData) || getSafeArrayLength(historicalData) === 0) {
+              if (!safeHistoricalData || !Array.isArray(safeHistoricalData) || getSafeArrayLength(safeHistoricalData) === 0) {
                 return 0;
               }
 
-              const validValues = historicalData
-                .filter((d) => d && typeof d === 'object' && typeof d.value === 'number' && !isNaN(d.value))
-                .map((d) => d.value);
+              const validValues = safeHistoricalData
+                .filter((d: any) => d && typeof d === 'object' && typeof d.value === 'number' && !isNaN(d.value))
+                .map((d: any) => d.value);
 
               return getSafeArrayLength(validValues) > 0 ? Math.max(...validValues) : 0;
             };
@@ -481,11 +479,11 @@ export default function ServerMetricsLineChart({
 
               const isLast = index === getSafeArrayLength(points) - 1;
 
-              // 🛡️ historicalData 인덱스 안전 접근
+              // 🛡️ safeHistoricalData 인덱스 안전 접근
               const dataValue = (() => {
-                if (!historicalData || !Array.isArray(historicalData)) return 0;
-                if (index < 0 || index >= getSafeArrayLength(historicalData)) return 0;
-                const dataPoint = historicalData[index];
+                if (!safeHistoricalData || !Array.isArray(safeHistoricalData)) return 0;
+                if (index < 0 || index >= getSafeArrayLength(safeHistoricalData)) return 0;
+                const dataPoint = safeHistoricalData[index];
                 if (!dataPoint || typeof dataPoint !== 'object') return 0;
                 if (typeof dataPoint.value !== 'number' || isNaN(dataPoint.value)) return 0;
                 return dataPoint.value;

@@ -44,6 +44,7 @@ import {
 } from '@/lib/vercel-safe-utils';
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
 import { validateMetricValue, validateServerMetrics, generateSafeMetricValue, type MetricType } from '../../utils/metricValidation';
+import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
 import { getServerStatusTheme, getTypographyClass, COMMON_ANIMATIONS, LAYOUT, type ServerStatus } from '../../styles/design-constants';
 // 🚀 Vercel 호환 접근성 기능 추가
 import { useAccessibilityOptional } from '@/context/AccessibilityProvider';
@@ -118,18 +119,29 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     const [showTertiaryInfo, setShowTertiaryInfo] = useState(false);
     const isMountedRef = useRef(true); // 비동기 상태 관리 개선 (Codex 제안)
     
-    // 🛡️ 5층 방어 시스템 Layer 3: 실시간 메트릭 안전성 검증 (베르셀 환경 강화)
-    const [realtimeMetrics, setRealtimeMetrics] = useState(() => {
+    // 🎯 24시간 고정 데이터 + 1분 미세 변동 (KST 동기화)
+    const { currentMetrics, historyData } = useFixed24hMetrics(server.id, 60000); // 1분 간격 업데이트
+    
+    // 🛡️ 메트릭 안전성 검증 (고정 데이터 기반)
+    const realtimeMetrics = useMemo(() => {
       try {
-        const safeMetrics = {
+        if (currentMetrics) {
+          return {
+            cpu: currentMetrics.cpu,
+            memory: currentMetrics.memory,
+            disk: currentMetrics.disk,
+            network: currentMetrics.network,
+          };
+        }
+        // 초기 로딩 시 서버 기본값 사용
+        return {
           cpu: safeServer.cpu,
           memory: safeServer.memory,
           disk: safeServer.disk,
           network: safeServer.network,
         };
-        return validateServerMetrics(safeMetrics);
       } catch (error) {
-        console.error('⚠️ ImprovedServerCard Layer 3: 메트릭 초기화 실패, 안전한 기본값 사용', error);
+        console.error('⚠️ ImprovedServerCard: 메트릭 로드 실패, 안전한 기본값 사용', error);
         return {
           cpu: 50,
           memory: 50,
@@ -137,7 +149,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           network: 25
         };
       }
-    });
+    }, [currentMetrics, safeServer.cpu, safeServer.memory, safeServer.disk, safeServer.network]);
     
     // 🚀 Vercel 호환 접근성 Hook (선택적 사용)
     const accessibility = useAccessibilityOptional();
@@ -175,67 +187,8 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       };
     }, []);
 
-    // 실시간 메트릭 업데이트 시뮬레이션 (안정화 버전 + 검증 강화)
-    useEffect(() => {
-      if (!showRealTimeUpdates) return;
-
-      const interval = setInterval(
-        () => {
-          try {
-            // 컴포넌트가 언마운트된 경우 setState 방지 (Codex 제안)
-            if (!isMountedRef.current) return;
-
-            setRealtimeMetrics((prev) => {
-              try {
-                // 🛡️ 5층 방어 시스템 Layer 5: prev 객체 완전 안전성 검증 (베르셀 환경 강화)
-                const safePrev = prev || {
-                  cpu: safeServer.cpu,
-                  memory: safeServer.memory,
-                  disk: safeServer.disk,
-                  network: safeServer.network,
-                };
-
-                // 각 메트릭 값 안전성 검증
-                const newMetrics = {
-                  cpu: generateSafeMetricValue(safePrev.cpu || 50, 3, 'cpu'),
-                  memory: generateSafeMetricValue(safePrev.memory || 50, 2, 'memory'),
-                  disk: generateSafeMetricValue(safePrev.disk || 30, 0.5, 'disk'),
-                  network: generateSafeMetricValue(safePrev.network || 25, 5, 'network'),
-                };
-
-                // 생성된 메트릭 검증
-                if (typeof newMetrics.cpu !== 'number' || isNaN(newMetrics.cpu)) {
-                  console.warn('⚠️ Layer 5: CPU 메트릭 오류 감지, 안전값 사용');
-                  newMetrics.cpu = 50;
-                }
-                if (typeof newMetrics.memory !== 'number' || isNaN(newMetrics.memory)) {
-                  console.warn('⚠️ Layer 5: Memory 메트릭 오류 감지, 안전값 사용');
-                  newMetrics.memory = 50;
-                }
-                if (typeof newMetrics.disk !== 'number' || isNaN(newMetrics.disk)) {
-                  console.warn('⚠️ Layer 5: Disk 메트릭 오류 감지, 안전값 사용');
-                  newMetrics.disk = 30;
-                }
-                if (typeof newMetrics.network !== 'number' || isNaN(newMetrics.network)) {
-                  console.warn('⚠️ Layer 5: Network 메트릭 오류 감지, 안전값 사용');
-                  newMetrics.network = 25;
-                }
-
-                return newMetrics;
-              } catch (innerError) {
-                console.error('⚠️ Layer 5: setState 내부 처리 실패, 이전 값 유지', innerError);
-                return prev || { cpu: 50, memory: 50, disk: 30, network: 25 };
-              }
-            });
-          } catch (outerError) {
-            console.error('⚠️ Layer 5: 실시간 메트릭 업데이트 완전 실패', outerError);
-          }
-        },
-        45000 + index * 1000 // 🎯 데이터 수집 간격 최적화 (45초 + 서버별 지연)
-      );
-
-      return () => clearInterval(interval);
-    }, [showRealTimeUpdates, index]);
+    // ✅ 실시간 메트릭 업데이트는 useFixed24hMetrics 훅에서 자동 처리됨
+    // 기존 setInterval 로직 제거 (24시간 고정 데이터 시스템으로 대체)
 
     // 🎨 Material Design 3 토큰 기반 서버 상태별 테마 (5층 방어 시스템 적용)
     const statusTheme = useMemo(() => {
@@ -603,6 +556,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   type="cpu"
                   showRealTimeUpdates={showRealTimeUpdates}
                   serverStatus={safeServer.status}
+                  historyData={historyData}
                 />
               </div>
               <div className="transform transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1 hover:shadow-lg">
@@ -612,6 +566,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   type="memory"
                   showRealTimeUpdates={showRealTimeUpdates}
                   serverStatus={safeServer.status}
+                  historyData={historyData}
                 />
               </div>
             </div>
@@ -640,6 +595,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   type="disk"
                   showRealTimeUpdates={showRealTimeUpdates}
                   serverStatus={safeServer.status}
+                  historyData={historyData}
                 />
               </div>
               <div className="transform transition-all duration-300 ease-out hover:opacity-100 hover:scale-105 hover:-translate-y-0.5 hover:shadow-md">
@@ -649,6 +605,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   type="network"
                   showRealTimeUpdates={showRealTimeUpdates}
                   serverStatus={safeServer.status}
+                  historyData={historyData}
                 />
               </div>
             </div>
