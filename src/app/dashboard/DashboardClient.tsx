@@ -352,63 +352,63 @@ function DashboardPageContent() {
   useEffect(() => {
     if (!isMounted) return;
 
-    const checkPermissions = () => {
-      // 🚧 [개발 중] 게스트 전체 접근 허용 - 프로덕션 배포 전 복원 필요
+    // 🚧 [개발 중] 게스트 전체 접근 허용 - 프로덕션 배포 전 복원 필요
     // TODO: 프로덕션 배포 시 아래 주석 해제하여 대시보드 보안 강화
     /*
-    // 🛡️ 보안 강화: Hook 기반 권한 검증 + Zustand PIN 인증 체크 + 테스트 모드
-    // useUserPermissions 훅이 단일 진실 소스 (Single Source of Truth)
-    // 🧪 FIX: checkTestMode() 함수 사용 (컴포넌트 외부로 이동됨)
-    const canAccess = permissions.canAccessDashboard || isPinAuth || checkTestMode();
-    
-    console.log('🔍 대시보드 권한 체크:', {
-      hookAuth: permissions.canAccessDashboard,
-      canAccess: canAccess,
-      userType: permissions.userType,
-      loading: permissions.userType === 'loading'
-    });
-    
-    // 🚨 FIX: 권한 로딩 중일 때는 알람 표시 안함
-    if (permissions.userType === 'loading') { // 🔧 수정: 'unknown' 제거 (UserType에 없음)
-      console.log('⏳ 권한 상태 로딩 중 - 알람 억제');
-      return;
-    }
-    
-    // 🚨 FIX: GitHub/게스트 인증이 확실히 실패했을 때만 알람 표시
-    if (!canAccess && (permissions.userType === 'guest' || permissions.userType === 'github')) {
-      console.log('🚫 대시보드 접근 권한 없음 - 메인 페이지로 이동');
-      alert('대시보드 접근 권한이 없습니다. GitHub 로그인 또는 관리자 모드 인증이 필요합니다.');
-      router.push('/main');
-      return;
-    }
-    
-    // ✅ 권한 확인 시에만 로딩 완료
-    if (canAccess) {
-      console.log('✅ 대시보드 접근 권한 확인됨:', {
+    const checkPermissions = () => {
+      // 🛡️ 보안 강화: Hook 기반 권한 검증 + Zustand PIN 인증 체크 + 테스트 모드
+      // useUserPermissions 훅이 단일 진실 소스 (Single Source of Truth)
+      // 🧪 FIX: checkTestMode() 함수 사용 (컴포넌트 외부로 이동됨)
+      const canAccess = permissions.canAccessDashboard || isPinAuth || checkTestMode();
+      
+      console.log('🔍 대시보드 권한 체크:', {
+        hookAuth: permissions.canAccessDashboard,
+        canAccess: canAccess,
         userType: permissions.userType,
-        userName: permissions.userName,
-        canAccessDashboard: permissions.canAccessDashboard,
-        isPinAuthenticated: permissions.isPinAuthenticated,
-        isGitHubAuthenticated: permissions.isGitHubAuthenticated,
+        loading: permissions.userType === 'loading'
       });
       
-      setAuthLoading(false);
-    }
-  };
-  
-  // 🚨 FIX: 권한 상태 안정화를 위한 디바운스 (500ms 지연)
-  const timeoutId = setTimeout(checkPermissions, 500);
-  
-  return () => {
-    clearTimeout(timeoutId);
-  };
-  */
+      // 🚨 FIX: 권한 로딩 중일 때는 알람 표시 안함
+      if (permissions.userType === 'loading') { // 🔧 수정: 'unknown' 제거 (UserType에 없음)
+        console.log('⏳ 권한 상태 로딩 중 - 알람 억제');
+        return;
+      }
+      
+      // 🚨 FIX: GitHub/게스트 인증이 확실히 실패했을 때만 알람 표시
+      if (!canAccess && (permissions.userType === 'guest' || permissions.userType === 'github')) {
+        console.log('🚫 대시보드 접근 권한 없음 - 메인 페이지로 이동');
+        alert('대시보드 접근 권한이 없습니다. GitHub 로그인 또는 관리자 모드 인증이 필요합니다.');
+        router.push('/main');
+        return;
+      }
+      
+      // ✅ 권한 확인 시에만 로딩 완료
+      if (canAccess) {
+        console.log('✅ 대시보드 접근 권한 확인됨:', {
+          userType: permissions.userType,
+          userName: permissions.userName,
+          canAccessDashboard: permissions.canAccessDashboard,
+          isPinAuthenticated: permissions.isPinAuthenticated,
+          isGitHubAuthenticated: permissions.isGitHubAuthenticated,
+        });
+        
+        setAuthLoading(false);
+      }
+    };
+    
+    // 🚨 FIX: 권한 상태 안정화를 위한 디바운스 (500ms 지연)
+    const timeoutId = setTimeout(checkPermissions, 500);
+    
+    return () => {
+      clearTimeout(timeoutId);
+    };
+    */
 
-  // 🟢 개발 중: 게스트도 대시보드 접근 가능
-  console.log('✅ 개발 모드: 대시보드 접근 허용 (게스트 포함)');
-  setAuthLoading(false);
-  
-}, [isMounted, permissions, router]);
+    // 🟢 개발 중: 게스트도 대시보드 접근 가능
+    console.log('✅ 개발 모드: 대시보드 접근 허용 (게스트 포함)');
+    setAuthLoading(false);
+    
+  }, [isMounted, permissions, router]);
 
   // 🎯 서버 통계 상태 관리 (상단 통계 카드용)
   const [serverStats, setServerStats] = useState({
