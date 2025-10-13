@@ -3,6 +3,7 @@
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { isGuestFullAccessEnabled } from '@/config/guestMode';
 import { Bot, Clock } from 'lucide-react';
 // 사용자 정보 관련 import는 UnifiedProfileHeader에서 처리됨
 import dynamic from 'next/dynamic';
@@ -183,8 +184,8 @@ const DashboardHeader = memo(function DashboardHeader({
 
         {/* 오른쪽: AI 어시스턴트 & 프로필 */}
         <div className="flex items-center gap-4">
-          {/* 🔐 권한이 있는 사용자만 AI 어시스턴트 토글 버튼 표시 */}
-          {permissions.canToggleAI && (
+          {/* 🔐 권한이 있는 사용자 또는 게스트 전체 접근 모드에서 AI 어시스턴트 토글 버튼 표시 */}
+          {(permissions.canToggleAI || isGuestFullAccessEnabled()) && (
           <div className="relative" suppressHydrationWarning>
             <button
               onClick={handleAIAgentToggle}
