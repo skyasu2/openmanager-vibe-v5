@@ -32,11 +32,12 @@ export type GuestModeType = typeof GUEST_MODE[keyof typeof GUEST_MODE];
  * @default 'restricted' (환경 변수 미설정 시)
  */
 export function getGuestMode(): GuestModeType {
-  const mode = process.env.NEXT_PUBLIC_GUEST_MODE;
+  // ⚠️ 중요: Vercel 환경 변수 입력 시 개행 문자가 포함될 수 있으므로 trim 필수
+  const mode = process.env.NEXT_PUBLIC_GUEST_MODE?.trim();
 
   // 디버그: 환경 변수 값 확인 (빌드 타임)
   if (typeof window === 'undefined') {
-    console.log('🎛️ [Build] NEXT_PUBLIC_GUEST_MODE:', mode);
+    console.log('🎛️ [Build] NEXT_PUBLIC_GUEST_MODE:', JSON.stringify(mode));
   }
 
   if (mode === GUEST_MODE.FULL_ACCESS || mode === GUEST_MODE.RESTRICTED) {
