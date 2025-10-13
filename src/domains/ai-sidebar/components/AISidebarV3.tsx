@@ -627,6 +627,18 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
     return null;
   }
 
+  // ESC 키로 사이드바 닫기
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onClose]);
+
   return (
     <Fragment>
       <div

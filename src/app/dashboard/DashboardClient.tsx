@@ -15,6 +15,7 @@ import { useAutoLogout } from '@/hooks/useAutoLogout';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { isGuestFullAccessEnabled } from '@/config/guestMode';
+import { useToast } from '@/hooks/use-toast';
 import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useAdminMode } from '@/stores/auth-store'; // Phase 2: Zustand 인증 상태
@@ -341,6 +342,7 @@ function DashboardPageContent() {
 
   // 🔒 새로운 권한 시스템 사용
   const router = useRouter();
+  const { toast } = useToast();
   const permissions = useUserPermissions();
 
   // 🎯 AI 사이드바 상태 (중앙 관리)
@@ -363,6 +365,7 @@ function DashboardPageContent() {
       // 🟢 게스트 전체 접근 모드: 즉시 허용
       console.log('✅ DashboardClient: 게스트 전체 접근 모드 - 즉시 허용 (NEXT_PUBLIC_GUEST_MODE=full_access)');
       setAuthLoading(false);
+      return; // cleanup 불필요
     } else {
       // 🔐 프로덕션 모드: 권한 체크
       const checkPermissions = () => {
@@ -379,10 +382,14 @@ function DashboardPageContent() {
           console.log('⏳ 권한 상태 로딩 중 - 알람 억제');
           return;
         }
-        
+
         if (!canAccess && (permissions.userType === 'guest' || permissions.userType === 'github')) {
           console.log('🚫 대시보드 접근 권한 없음 - 메인 페이지로 이동');
-          alert('대시보드 접근 권한이 없습니다. GitHub 로그인 또는 관리자 모드 인증이 필요합니다.');
+          toast({
+            variant: 'destructive',
+            title: '접근 권한 없음',
+            description: '대시보드 접근 권한이 없습니다. GitHub 로그인 또는 관리자 모드 인증이 필요합니다.',
+          });
           router.push('/main');
           return;
         }

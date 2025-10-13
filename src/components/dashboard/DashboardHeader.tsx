@@ -61,7 +61,7 @@ const RealTimeDisplay = memo(function RealTimeDisplay() {
           second: '2-digit',
         })}
       </span>
-      <span className="text-gray-400">|</span>
+      <span className="text-gray-700">|</span>
       <span>
         {currentTime.toLocaleDateString('ko-KR', {
           month: 'short',
@@ -191,7 +191,7 @@ const DashboardHeader = memo(function DashboardHeader({
               onClick={handleAIAgentToggle}
               className={`relative transform rounded-xl p-3 transition-all duration-300 hover:scale-105 active:scale-95 ${
                 isMounted && (isSidebarOpen || aiAgent.isEnabled)
-                  ? 'scale-105 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                  ? 'scale-105 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 text-white shadow-lg'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'
               } `}
               title={
@@ -206,7 +206,7 @@ const DashboardHeader = memo(function DashboardHeader({
               {/* AI 활성화 시 그라데이션 테두리 애니메이션 */}
               {aiAgent.isEnabled && (
                 <div
-                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 opacity-75"
+                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 opacity-75 animate-gradient"
                   style={{
                     background:
                       'conic-gradient(from 0deg, #a855f7, #ec4899, #06b6d4, #a855f7)',
@@ -214,7 +214,7 @@ const DashboardHeader = memo(function DashboardHeader({
                     borderRadius: '0.75rem',
                   }}
                 >
-                  <div className="h-full w-full rounded-xl bg-gradient-to-r from-purple-500 to-pink-500" />
+                  <div className="h-full w-full rounded-xl bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500" />
                 </div>
               )}
 
@@ -226,11 +226,11 @@ const DashboardHeader = memo(function DashboardHeader({
                 </div>
                 <span className="hidden text-sm font-medium sm:inline">
                   {aiAgent.isEnabled ? (
-                    <div
-                      className="bg-gradient-to-r from-purple-100 via-pink-100 to-cyan-100 bg-clip-text font-bold text-transparent"
+                    <span
+                      className="bg-gradient-to-r from-purple-200 via-pink-200 to-cyan-200 bg-clip-text font-bold text-transparent animate-gradient"
                     >
                       AI 어시스턴트
-                    </div>
+                    </span>
                   ) : (
                     'AI 어시스턴트'
                   )}
@@ -245,20 +245,6 @@ const DashboardHeader = memo(function DashboardHeader({
                 />
               )}
             </button>
-
-            {/* 손가락 아이콘 - AI 비활성화 시에만 표시 */}
-            {!aiAgent.isEnabled &&
-              !isSidebarOpen &&
-              !ui.isSettingsPanelOpen && (
-                <div
-                  className="finger-pointer-ai animate-fade-in"
-                  style={{
-                    zIndex: isSidebarOpen || ui.isSettingsPanelOpen ? 10 : 30,
-                  }}
-                >
-                  ��
-                </div>
-              )}
           </div>
           )}
 
