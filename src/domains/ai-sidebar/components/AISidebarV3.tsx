@@ -161,8 +161,8 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
   // 🔐 권한 확인 (모든 hooks보다 먼저 호출)
   const permissions = useUserPermissions();
 
-  // 실제 AI 서비스 인스턴스
-  const aiService = new RealAISidebarService();
+  // 실제 AI 서비스 인스턴스 (useMemo로 캐싱하여 재생성 방지)
+  const aiService = useMemo(() => new RealAISidebarService(), []);
 
   // 🔧 상태 관리 (성능 최적화된 그룹) - hooks 순서 일관성 보장
   const [selectedFunction, setSelectedFunction] = useState<AIAssistantFunction>('chat');
@@ -204,6 +204,15 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
 
   // 스크롤 참조
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // steps를 useRef로 관리하여 불필요한 re-render 방지
+  const stepsRef = useRef(steps);
+  useEffect(() => {
+    stepsRef.current = steps;
+  }, [steps]);
+
+  // AbortController 참조 (컴포넌트 언마운트 시 진행 중인 요청 취소)
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // 실시간 AI 로그 훅
   const {
@@ -250,6 +259,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
 
       // 단계 2: API 호출 (timeout 및 abort controller 적용)
       const abortController = new AbortController();
+      abortControllerRef.current = abortController; // cleanup을 위해 참조 저장
       const timeoutId = setTimeout(() => abortController.abort(), 30000); // 30초 timeout
       
       const response = await fetch('/api/ai/query', {
@@ -296,12 +306,15 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
             processingTime,
             confidence: data.confidence || 0.8,
           },
-          // Local AI인 경우 thinking steps 포함
-          thinkingSteps: enableRealTimeThinking && engine !== 'GOOGLE_AI' ? steps : undefined,
+          // Local AI인 경우 thinking steps 포함 (useRef로 최적화)
+          thinkingSteps: enableRealTimeThinking && engine !== 'GOOGLE_AI' ? stepsRef.current : undefined,
           isCompleted: true,
         };
 
         addMessage(finalMessage);
+
+        // AbortController 참조 초기화 (성공 시)
+        abortControllerRef.current = null;
 
         // 부모 컴포넌트에 알림
         onMessageSend?.(query);
@@ -349,7 +362,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
     addMessage,
     startThinking,
     simulateThinkingSteps,
-    steps,
+    // steps는 useRef로 관리하여 dependency에서 제거 (불필요한 re-render 방지)
     chatSessionId,
     enableRealTimeThinking,
     onMessageSend,
@@ -450,13 +463,25 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
       : allMessages;
   }, [allMessages]);
 
-  // 자동 스크롤 (디바운싱으로 성능 최적화)
+  // 자동 스크롤 (IntersectionObserver로 성능 최적화)
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
-    
-    return () => clearTimeout(timeoutId);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          // 메시지가 뷰포트에 보이지 않으면 스크롤
+          if (!entry.isIntersecting && limitedMessages.length > 0) {
+            messagesEndRef.current?.scrollIntoView(); // behavior는 CSS로 처리
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    if (messagesEndRef.current) {
+      observer.observe(messagesEndRef.current);
+    }
+
+    return () => observer.disconnect();
   }, [limitedMessages]);
 
   // 아이콘 매핑 (성능 최적화)
@@ -492,7 +517,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
       </div>
 
       {/* 메시지 영역 */}
-      <div className="flex-1 space-y-3 overflow-y-auto p-3 sm:space-y-4 sm:p-4">
+      <div className="flex-1 space-y-3 overflow-y-auto p-3 sm:space-y-4 sm:p-4 scroll-smooth [will-change:scroll-position]">
         {/* 자동장애보고서 알림 */}
         {autoReportTrigger.shouldGenerate && (
           <div className="rounded-lg border border-red-200 bg-gradient-to-r from-red-50 to-orange-50 p-3">
@@ -639,6 +664,16 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
     return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
+  // 컴포넌트 언마운트 시 진행 중인 API 요청 취소
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+      }
+    };
+  }, []);
+
   return (
     <Fragment>
       <div
@@ -646,7 +681,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
         aria-labelledby="ai-sidebar-v3-title"
         aria-modal="true"
         aria-hidden={!isOpen}
-        className={`fixed right-0 top-0 z-30 flex h-full w-full max-w-[90vw] bg-white shadow-2xl transition-transform duration-300 ease-in-out sm:w-[90vw] md:w-[600px] lg:w-[700px] xl:w-[800px] ${
+        className={`fixed right-0 top-0 z-30 flex h-full w-full max-w-[90vw] bg-white shadow-2xl transition-transform duration-300 ease-in-out will-change-transform sm:w-[90vw] md:w-[600px] lg:w-[700px] xl:w-[800px] ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         } ${className}`}
       >

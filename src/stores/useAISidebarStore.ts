@@ -443,7 +443,7 @@ export const useAISidebarStore = create<AISidebarState>()(
         // 채팅 관련 액션들
         addMessage: (message) =>
           set((state) => ({
-            messages: [...state.messages, message],
+            messages: [...state.messages, message].slice(-100), // 최대 100개만 유지 (메모리 누수 방지)
           })),
 
         updateMessage: (messageId, updates) =>
