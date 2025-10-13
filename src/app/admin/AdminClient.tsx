@@ -231,6 +231,9 @@ export default function AdminClient() {
 
   // 인증 체크
   useEffect(() => {
+    // 🚧 [개발 중] 게스트 전체 접근 허용 - 프로덕션 배포 전 복원 필요
+    // TODO: 프로덕션 배포 시 아래 주석 해제하여 관리자 페이지 보안 강화
+    /*
     if (permissions.canAccessAdminPage) {
       setIsAuthorized(true);
       void loadInitialData();
@@ -238,6 +241,12 @@ export default function AdminClient() {
       setIsAuthorized(false);
       router.push('/main');
     }
+    */
+
+    // 🟢 개발 중: 게스트도 관리자 페이지 접근 가능
+    setIsAuthorized(true);
+    void loadInitialData();
+
     setIsLoading(false);
   }, [permissions.canAccessAdminPage, router, loadInitialData]);
 
