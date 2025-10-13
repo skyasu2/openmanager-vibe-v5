@@ -48,14 +48,17 @@ export function verifyCSRFToken(request: NextRequest): boolean {
  * @param token - CSRF token
  */
 export function setCSRFCookie(response: NextResponse, token: string): void {
-  // @ts-expect-error - Next.js 15 cookies API 호환성 이슈
-  response.cookies.set('csrf_token', token, {
-    httpOnly: false, // JavaScript에서 읽을 수 있어야 함 (헤더로 전송)
-    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
-    sameSite: 'strict', // CSRF 방어
-    maxAge: 60 * 60 * 24, // 24시간
-    path: '/'
-  });
+  // Next.js 15 리다이렉트 응답 호환성을 위해 Set-Cookie 헤더 직접 설정
+  const secure = process.env.NODE_ENV === 'production';
+  const cookieValue = [
+    `csrf_token=${token}`,
+    'Path=/',
+    'SameSite=Strict',
+    'Max-Age=86400', // 24시간
+    secure && 'Secure'
+  ].filter(Boolean).join('; ');
+
+  response.headers.append('Set-Cookie', cookieValue);
 }
 
 /**
