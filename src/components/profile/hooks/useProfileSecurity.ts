@@ -246,6 +246,10 @@ export function useProfileSecurity() {
   const { logoutAdmin } = useUnifiedAdminStore();
   const disableAdminMode = useCallback(() => {
     logoutAdmin();
+
+    // ✅ Phase 1 Codex 버그 수정: useAuthStore 정리 (AI 교차검증)
+    useAuthStore.getState().clearAuth();
+
     // 🔧 FIX: localStorage admin_mode도 정리
     localStorage.removeItem('admin_mode');
     
