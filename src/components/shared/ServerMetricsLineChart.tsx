@@ -85,17 +85,17 @@ const getMetricConfig = (
   type: 'cpu' | 'memory' | 'disk' | 'network',
   serverStatus?: string
 ) => {
-  // 서버 상태 우선 확인 - design-constants 사용
+  // 🔧 수정: 메트릭 값 우선 판단 (사용자 요구사항)
+  // 예외: 서버가 critical/offline이면 모든 메트릭을 빨간색으로 표시
   if (serverStatus) {
     const normalizedStatus = serverStatus.toLowerCase();
 
-    // 서버 상태별 색상 정의
     if (
       normalizedStatus === 'offline' ||
       normalizedStatus === 'critical' ||
       normalizedStatus === 'error'
     ) {
-      // 심각 상황 - 빨간색 계열
+      // 서버 전체가 심각 상황 - 모든 메트릭 빨간색
       return {
         lineColor: SERVER_STATUS_COLORS.critical.graphColor, // #ef4444
         textColor: SERVER_STATUS_COLORS.critical.text, // text-red-800
@@ -105,42 +105,15 @@ const getMetricConfig = (
         status: '심각',
         fillColor: 'rgba(239, 68, 68, 0.1)', // 빨간색 투명도
       };
-    } else if (
-      normalizedStatus === 'warning' ||
-      normalizedStatus === 'degraded'
-    ) {
-      // 경고 상황 - 노랑/주황 계열
-      return {
-        lineColor: SERVER_STATUS_COLORS.warning.graphColor, // #f59e0b
-        textColor: SERVER_STATUS_COLORS.warning.text, // text-amber-800
-        bgColor: 'bg-amber-50',
-        gradientFrom: 'from-amber-500',
-        gradientTo: 'to-amber-100',
-        status: '경고',
-        fillColor: 'rgba(245, 158, 11, 0.1)', // 주황색 투명도
-      };
-    } else if (
-      normalizedStatus === 'online' // 🔧 수정: 'healthy', 'running' 제거 (타입 통합)
-    ) {
-      // 정상 상황 - 녹색 계열
-      return {
-        lineColor: SERVER_STATUS_COLORS.online.graphColor, // 🔧 수정: 'healthy' → 'online' (타입 통합) #10b981
-        textColor: SERVER_STATUS_COLORS.online.text, // 🔧 수정: 'healthy' → 'online' (타입 통합) text-emerald-800
-        bgColor: 'bg-emerald-50',
-        gradientFrom: 'from-emerald-500',
-        gradientTo: 'to-emerald-100',
-        status: '정상',
-        fillColor: 'rgba(16, 185, 129, 0.1)', // 녹색 투명도
-      };
     }
   }
 
-  // 서버 상태가 없으면 메트릭 값 기반으로 판단
+  // 메트릭 값 기반으로 개별 판단 (서버 상태 warning/online 무시)
   const thresholds = {
     cpu: { warning: 70, critical: 85 },
     memory: { warning: 80, critical: 90 },
     disk: { warning: 80, critical: 95 },
-    network: { warning: 70, critical: 85 }, // 🔧 수정: 60→70, 80→85 (다른 파일과 일관성)
+    network: { warning: 70, critical: 85 },
   };
 
   const threshold = thresholds[type];
@@ -171,8 +144,8 @@ const getMetricConfig = (
   } else {
     // 정상 상태 - 녹색
     return {
-      lineColor: SERVER_STATUS_COLORS.online.graphColor, // 🔧 수정: 'healthy' → 'online' (타입 통합) #10b981
-      textColor: SERVER_STATUS_COLORS.online.text, // 🔧 수정: 'healthy' → 'online' (타입 통합) text-emerald-800
+      lineColor: SERVER_STATUS_COLORS.online.graphColor, // #10b981
+      textColor: SERVER_STATUS_COLORS.online.text, // text-emerald-800
       bgColor: 'bg-emerald-50',
       gradientFrom: 'from-emerald-500',
       gradientTo: 'to-emerald-100',
