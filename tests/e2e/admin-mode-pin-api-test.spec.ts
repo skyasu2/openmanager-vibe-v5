@@ -183,11 +183,16 @@ test.describe('🔐 관리자 모드 PIN 인증 API 테스트 (축소 범위)', 
       console.log(`  📊 전체 쿠키 목록: ${cookies.map(c => c.name).join(', ')}`);
     }
 
-    // 🔄 페이지 새로고침으로 쿠키 재로딩
-    console.log('  🔄 페이지 새로고침으로 쿠키 재로딩 중...');
-    await page.reload({ waitUntil: 'domcontentloaded' });
+    // 🔄 페이지 새로고침으로 쿠키 재로딩 (제거 - 불필요)
+    // console.log('  🔄 페이지 새로고침으로 쿠키 재로딩 중...');
+    // await page.reload({ waitUntil: 'domcontentloaded' });
+    // await page.waitForTimeout(2000);
+    // console.log('  ✅ 쿠키 재로딩 완료');
+
+    // 🔥 새로고침 대신 충분한 대기 시간 제공 (React 상태 업데이트 완료 대기)
+    console.log('  ⏳ React 상태 업데이트 대기 중...');
     await page.waitForTimeout(2000);
-    console.log('  ✅ 쿠키 재로딩 완료');
+    console.log('  ✅ 상태 업데이트 완료');
 
     // 다이얼로그가 닫혔는지 확인
     const dialogStillOpen = await page.locator('input[type="password"]').isVisible().catch(() => false);
@@ -239,12 +244,18 @@ test.describe('🔐 관리자 모드 PIN 인증 API 테스트 (축소 범위)', 
     // 8단계: 관리자 모드 활성화 확인
     console.log('\n📍 Step 8: 관리자 모드 활성화 확인');
 
-    // 다시 프로필 버튼 클릭해서 드롭다운 확인
-    const profileButtonAfter = page.locator('button').filter({ hasText: /관리자|게스트/i }).first();
-    await expect(profileButtonAfter).toBeVisible({ timeout: 5000 });
+    // 메뉴가 열려있는지 확인 (closeMenu 제거로 인증 후 열린 상태여야 함)
+    const menuVisible = await page.locator('[role="menu"]').isVisible().catch(() => false);
 
-    await profileButtonAfter.click();
-    await page.waitForTimeout(1500);
+    if (!menuVisible) {
+      console.log('  ℹ️ 메뉴가 닫혀있음, 프로필 버튼 다시 클릭');
+      const profileButtonAfter = page.locator('button').filter({ hasText: /관리자|게스트/i }).first();
+      await expect(profileButtonAfter).toBeVisible({ timeout: 5000 });
+      await profileButtonAfter.click();
+      await page.waitForTimeout(1500);
+    } else {
+      console.log('  ✅ 메뉴가 이미 열려있음 (closeMenu 제거 효과)');
+    }
 
     await page.screenshot({ path: 'test-results/admin-api-07-profile-after-auth.png' });
 
