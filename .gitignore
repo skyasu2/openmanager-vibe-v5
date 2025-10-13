@@ -112,6 +112,10 @@ npm-debug.log*
 **/*token*
 **/*credential*
 
+# CSRF 토큰 API는 예외 (보안 로직이므로 git에 포함)
+!src/app/api/csrf-token/
+!src/app/api/csrf-token/**
+
 # 이슈 파일에서 실제 키가 노출된 경우 (패턴 기반)
 **/*-issues-with-keys.md
 **/*-api-keys-*.md
