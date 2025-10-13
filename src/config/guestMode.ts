@@ -3,6 +3,9 @@
  *
  * 환경 변수로 게스트 접근 권한을 제어합니다.
  *
+ * ⚠️ 주의: NEXT_PUBLIC_ 환경 변수는 빌드 타임에 번들링됩니다.
+ * Vercel에서 환경 변수 변경 후 반드시 재빌드가 필요합니다.
+ *
  * @example
  * // .env.local (개발 환경)
  * NEXT_PUBLIC_GUEST_MODE=full_access
