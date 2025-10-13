@@ -4,11 +4,14 @@ import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { isGuestFullAccessEnabled } from '@/config/guestMode';
-import { Bot, Clock } from 'lucide-react';
+import { Bot } from 'lucide-react';
 // 사용자 정보 관련 import는 UnifiedProfileHeader에서 처리됨
 import dynamic from 'next/dynamic';
 import React, { useEffect, useState, memo } from 'react';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
+import { RealTimeDisplay } from './RealTimeDisplay';
+import { SystemStatusBadge } from './SystemStatusBadge';
+import { AIAssistantButton } from './AIAssistantButton';
 import debug from '@/utils/debug';
 
 // framer-motion 제거 - CSS 애니메이션 사용
@@ -34,44 +37,6 @@ interface DashboardHeaderProps {
   /** 포맷된 남은 시간 문자열 */
   remainingTimeFormatted?: string;
 }
-
-/**
- * 실시간 시간 표시 컴포넌트
- */
-const RealTimeDisplay = memo(function RealTimeDisplay() {
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => {
-      clearInterval(timer);
-    };
-  }, []);
-
-  return (
-    <div className="flex items-center gap-2 text-sm text-gray-600">
-      <Clock className="h-4 w-4 text-blue-500" />
-      <span>
-        {currentTime.toLocaleTimeString('ko-KR', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-        })}
-      </span>
-      <span className="text-gray-700">|</span>
-      <span>
-        {currentTime.toLocaleDateString('ko-KR', {
-          month: 'short',
-          day: 'numeric',
-          weekday: 'short',
-        })}
-      </span>
-    </div>
-  );
-});
 
 /**
  * 대시보드 메인 헤더 컴포넌트
@@ -153,99 +118,22 @@ const DashboardHeader = memo(function DashboardHeader({
         {/* 중앙: 실시간 정보 & 시스템 상태 */}
         <div className="hidden items-center gap-6 md:flex">
           <RealTimeDisplay />
-
-          {/* 🕐 시스템 자동 종료 타이머 표시 */}
-          {isSystemActive && remainingTimeFormatted && (
-            <div className="flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-1">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 animate-pulse rounded-full bg-yellow-400" />
-                <span className="text-sm font-medium text-yellow-800">
-                  시스템 자동 종료: {remainingTimeFormatted}
-                </span>
-              </div>
-              {systemRemainingTime && systemRemainingTime < 5 * 60 * 1000 && (
-                <span className="animate-pulse text-xs font-semibold text-red-600">
-                  ⚠️ 곧 종료됨
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* 시스템 종료됨 표시 */}
-          {!isSystemActive && (
-            <div className="flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-100 px-3 py-1">
-              <div className="h-2 w-2 rounded-full bg-gray-400" />
-              <span className="text-sm font-medium text-gray-600">
-                시스템 종료됨
-              </span>
-            </div>
-          )}
+          <SystemStatusBadge
+            isActive={isSystemActive}
+            remainingTimeFormatted={remainingTimeFormatted}
+            remainingTime={systemRemainingTime}
+          />
         </div>
 
         {/* 오른쪽: AI 어시스턴트 & 프로필 */}
         <div className="flex items-center gap-4">
           {/* 🔐 권한이 있는 사용자 또는 게스트 전체 접근 모드에서 AI 어시스턴트 토글 버튼 표시 */}
           {(permissions.canToggleAI || isGuestFullAccessEnabled()) && (
-          <div className="relative" suppressHydrationWarning>
-            <button
+            <AIAssistantButton
+              isOpen={isSidebarOpen}
+              isEnabled={aiAgent.isEnabled}
               onClick={handleAIAgentToggle}
-              className={`relative transform rounded-xl p-3 transition-all duration-300 hover:scale-105 active:scale-95 ${
-                isMounted && (isSidebarOpen || aiAgent.isEnabled)
-                  ? 'scale-105 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'
-              } `}
-              title={
-                isMounted && isSidebarOpen ? 'AI 어시스턴트 닫기' : 'AI 어시스턴트 열기'
-              }
-              aria-label={
-                isMounted && isSidebarOpen ? 'AI 어시스턴트 닫기' : 'AI 어시스턴트 열기'
-              }
-              aria-pressed={isMounted ? isSidebarOpen : false}
-              suppressHydrationWarning
-            >
-              {/* AI 활성화 시 그라데이션 테두리 애니메이션 */}
-              {aiAgent.isEnabled && (
-                <div
-                  className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 opacity-75 animate-gradient"
-                  style={{
-                    background:
-                      'conic-gradient(from 0deg, #a855f7, #ec4899, #06b6d4, #a855f7)',
-                    padding: '2px',
-                    borderRadius: '0.75rem',
-                  }}
-                >
-                  <div className="h-full w-full rounded-xl bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500" />
-                </div>
-              )}
-
-              <div className="relative flex items-center gap-2">
-                <div
-                  className={`h-5 w-5 ${isSidebarOpen || aiAgent.isEnabled ? 'text-white' : 'text-gray-600'}`}
-                >
-                  <Bot className="h-5 w-5" />
-                </div>
-                <span className="hidden text-sm font-medium sm:inline">
-                  {aiAgent.isEnabled ? (
-                    <span
-                      className="bg-gradient-to-r from-purple-200 via-pink-200 to-cyan-200 bg-clip-text font-bold text-transparent animate-gradient"
-                    >
-                      AI 어시스턴트
-                    </span>
-                  ) : (
-                    'AI 어시스턴트'
-                  )}
-                </span>
-              </div>
-
-              {/* 활성화 상태 표시 */}
-              {(isSidebarOpen || aiAgent.isEnabled) && (
-                <div
-                  className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-green-400"
-                  aria-hidden="true"
-                />
-              )}
-            </button>
-          </div>
+            />
           )}
 
           {/* 🎯 UnifiedProfileHeader 사용 - 통합된 프로필 헤더 */}
@@ -261,32 +149,13 @@ const DashboardHeader = memo(function DashboardHeader({
         <div className="flex items-center justify-center">
           <RealTimeDisplay />
         </div>
-
-        {/* 🕐 모바일 시스템 상태 표시 */}
-        {isSystemActive && remainingTimeFormatted && (
-          <div className="flex items-center justify-center">
-            <div className="flex items-center gap-2 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-1 text-xs">
-              <div className="h-2 w-2 animate-pulse rounded-full bg-yellow-400" />
-              <span className="font-medium text-yellow-800">
-                자동 종료: {remainingTimeFormatted}
-              </span>
-              {systemRemainingTime && systemRemainingTime < 5 * 60 * 1000 && (
-                <span className="animate-pulse font-semibold text-red-600">
-                  ⚠️
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {!isSystemActive && (
-          <div className="flex items-center justify-center">
-            <div className="flex items-center gap-2 rounded-lg border border-gray-300 bg-gray-100 px-3 py-1 text-xs">
-              <div className="h-2 w-2 rounded-full bg-gray-400" />
-              <span className="font-medium text-gray-600">시스템 종료됨</span>
-            </div>
-          </div>
-        )}
+        <div className="flex items-center justify-center">
+          <SystemStatusBadge
+            isActive={isSystemActive}
+            remainingTimeFormatted={remainingTimeFormatted}
+            remainingTime={systemRemainingTime}
+          />
+        </div>
       </div>
     </header>
   );
