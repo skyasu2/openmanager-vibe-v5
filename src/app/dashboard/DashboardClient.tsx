@@ -527,8 +527,8 @@ function DashboardPageContent() {
     : '00:00';
 
   const toggleAgent = useCallback(() => {
-    // 🔒 AI 기능은 권한이 있는 사용자만 사용 가능 (GitHub 또는 PIN 인증)
-    if (!permissions.canToggleAI) {
+    // 🔒 AI 기능은 권한이 있는 사용자 또는 게스트 전체 접근 모드에서 사용 가능
+    if (!permissions.canToggleAI && !isGuestFullAccessEnabled()) {
       console.log('🚫 AI 사이드바 접근 차단 - AI 사용 권한 필요');
       // 토스트 메시지로 안내 (선택사항)
       return;
@@ -700,8 +700,8 @@ function DashboardPageContent() {
           </Suspense>
         </div>
 
-        {/* 🎯 AI 에이전트 - 동적 로딩으로 최적화 (Hydration 안전성) - AI 권한이 있는 사용자 접근 가능 */}
-        {isMounted && permissions.canToggleAI && (
+        {/* 🎯 AI 에이전트 - 동적 로딩으로 최적화 (Hydration 안전성) - AI 권한이 있는 사용자 또는 게스트 전체 접근 모드에서 접근 가능 */}
+        {isMounted && (permissions.canToggleAI || isGuestFullAccessEnabled()) && (
           <AnimatedAISidebar
             isOpen={isAgentOpen}
             onClose={closeAgent}
