@@ -204,6 +204,38 @@ test.describe('🔐 관리자 모드 PIN 인증 API 테스트 (축소 범위)', 
       console.log('  ✅ PIN 다이얼로그가 닫힘 (인증 성공 가능성)');
     }
 
+    // 7.5단계: localStorage 디버깅
+    console.log('\n📍 Step 7.5: localStorage 상태 디버깅');
+
+    const localStorageState = await page.evaluate(() => {
+      return {
+        admin_mode: localStorage.getItem('admin_mode'),
+        'auth-storage': localStorage.getItem('auth-storage'),
+        'unified-admin-storage': localStorage.getItem('unified-admin-storage'),
+      };
+    });
+
+    console.log('  📊 localStorage 상태:');
+    console.log('    admin_mode:', localStorageState.admin_mode);
+
+    if (localStorageState['auth-storage']) {
+      try {
+        const authStorage = JSON.parse(localStorageState['auth-storage']);
+        console.log('    auth-storage.adminMode:', authStorage?.state?.adminMode);
+      } catch (e) {
+        console.log('    auth-storage: 파싱 실패');
+      }
+    }
+
+    if (localStorageState['unified-admin-storage']) {
+      try {
+        const unifiedStorage = JSON.parse(localStorageState['unified-admin-storage']);
+        console.log('    unified-admin-storage.adminMode.isAuthenticated:', unifiedStorage?.state?.adminMode?.isAuthenticated);
+      } catch (e) {
+        console.log('    unified-admin-storage: 파싱 실패');
+      }
+    }
+
     // 8단계: 관리자 모드 활성화 확인
     console.log('\n📍 Step 8: 관리자 모드 활성화 확인');
 
