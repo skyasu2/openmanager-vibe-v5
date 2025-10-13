@@ -191,6 +191,9 @@ export function useProfileSecurity() {
           // localStorage 직접 조작 제거 → setPinAuth() 사용
           setPinAuth();
 
+          // 🔧 FIX: skipHydration 대응 - localStorage admin_mode 명시적 설정
+          localStorage.setItem('admin_mode', 'true');
+
           console.log('🔑 관리자 모드 활성화 (Zustand 자동 동기화 + 게스트 세션 자동 생성)');
           return true;
         } else {
