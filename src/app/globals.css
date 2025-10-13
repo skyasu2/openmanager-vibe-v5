@@ -1042,3 +1042,55 @@ a {
 .spacing-y-md { padding-top: var(--spacing-4); padding-bottom: var(--spacing-4); }
 .spacing-y-lg { padding-top: var(--spacing-6); padding-bottom: var(--spacing-6); }
 .spacing-y-xl { padding-top: var(--spacing-8); padding-bottom: var(--spacing-8); }
+
+/* ============================================
+   🎨 Border Radius System
+   ============================================ */
+
+/* Material Design 3 호환 Border Radius 스케일 */
+:root {
+  --radius-none: 0;
+  --radius-sm: 0.125rem; /* 2px */
+  --radius-md: 0.375rem; /* 6px - Input, Small Button */
+  --radius-lg: 0.5rem; /* 8px - Card, Button */
+  --radius-xl: 0.75rem; /* 12px - Modal, Large Card */
+  --radius-2xl: 1rem; /* 16px - Hero Card */
+  --radius-3xl: 1.5rem; /* 24px - Special Container */
+  --radius-full: 9999px; /* Badge, Avatar */
+}
+
+/* ============================================
+   🎨 Shadow System (Elevation)
+   ============================================ */
+
+/* Material Design 3 호환 Shadow 스케일 */
+:root {
+  /* Level 1: Subtle elevation (Card, Input) */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+
+  /* Level 2: Moderate elevation (Dropdown, Tooltip) */
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+  /* Level 3: High elevation (Modal, Dialog) */
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Level 4: Very high elevation (Popover) */
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* Level 5: Maximum elevation (Toast, Notification) */
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* ============================================
+   ⚡ Transition Duration System
+   ============================================ */
+
+/* Material Design 3 호환 Transition Duration 스케일 */
+:root {
+  --duration-75: 75ms; /* Ultra fast (Hover feedback) */
+  --duration-100: 100ms; /* Extra fast (Toggle switch) */
+  --duration-150: 150ms; /* Fast (Button hover, Checkbox) */
+  --duration-200: 200ms; /* Normal (Color change, Opacity) */
+  --duration-300: 300ms; /* Moderate (Dropdown, Tooltip) */
+  --duration-500: 500ms; /* Slow (Modal, Dialog) */
+}
