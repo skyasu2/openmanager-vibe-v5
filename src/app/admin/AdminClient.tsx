@@ -14,6 +14,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import { useRouter } from 'next/navigation';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { isGuestFullAccessEnabled } from '@/config/guestMode';
 import {
   Card,
   CardContent,
@@ -231,21 +232,24 @@ export default function AdminClient() {
 
   // 인증 체크
   useEffect(() => {
-    // 🚧 [개발 중] 게스트 전체 접근 허용 - 프로덕션 배포 전 복원 필요
-    // TODO: 프로덕션 배포 시 아래 주석 해제하여 관리자 페이지 보안 강화
-    /*
-    if (permissions.canAccessAdminPage) {
+    // 🎛️ 환경 변수 기반 게스트 모드 체크
+    const isGuestFullAccess = isGuestFullAccessEnabled();
+
+    if (isGuestFullAccess) {
+      // 🟢 게스트 전체 접근 모드: 즉시 허용
+      console.log('✅ AdminClient: 게스트 전체 접근 모드 - 즉시 허용 (NEXT_PUBLIC_GUEST_MODE=full_access)');
       setIsAuthorized(true);
       void loadInitialData();
     } else {
-      setIsAuthorized(false);
-      router.push('/main');
+      // 🔐 프로덕션 모드: 권한 체크
+      if (permissions.canAccessAdminPage) {
+        setIsAuthorized(true);
+        void loadInitialData();
+      } else {
+        setIsAuthorized(false);
+        router.push('/main');
+      }
     }
-    */
-
-    // 🟢 개발 중: 게스트도 관리자 페이지 접근 가능
-    setIsAuthorized(true);
-    void loadInitialData();
 
     setIsLoading(false);
   }, [permissions.canAccessAdminPage, router, loadInitialData]);

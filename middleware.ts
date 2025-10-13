@@ -15,6 +15,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { getCookieValue, hasCookie } from '@/utils/cookies/safe-cookie-utils';
 import { setupCSRFProtection } from '@/utils/security/csrf';
+import { isGuestFullAccessEnabled } from '@/config/guestMode';
 
 // ============================================================
 // 🔒 IP 화이트리스트 보안 (Module-level 캐싱 최적화)
@@ -243,39 +244,34 @@ export async function middleware(request: NextRequest) {
     // ============================================================
     // 3️⃣-A 🔐 관리자 페이지 접근 체크
     // ============================================================
-    // 🚧 [개발 중] 게스트 전체 접근 허용 - 프로덕션 배포 전 복원 필요
-    // TODO: 프로덕션 배포 시 아래 주석 해제하여 관리자 페이지 보안 강화
-    /*
+    
+    // 🎛️ 환경 변수 기반 게스트 모드 체크
+    const isGuestFullAccess = isGuestFullAccessEnabled();
+    
     if (pathname.startsWith('/admin')) {
       // 🧪 테스트 모드 확인
       if (isTestMode(request)) {
         console.log('✅ 미들웨어: 테스트 모드 - /admin 접근 자동 허용');
-        // 테스트 모드에서는 쿠키 체크 생략
-      } else {
-        // 🍪 admin_mode 쿠키 확인 (게스트/GitHub 로그인 무관)
+      } 
+      // 🎛️ 게스트 전체 접근 모드
+      else if (isGuestFullAccess) {
+        console.log('✅ 미들웨어: 게스트 전체 접근 모드 - /admin 접근 허용 (NEXT_PUBLIC_GUEST_MODE=full_access)');
+      } 
+      // 🔐 프로덕션 모드: admin_mode 쿠키 체크
+      else {
         const adminModeCookie = getCookieValue(request, 'admin_mode');
 
-        // 🐛 디버깅: 모든 쿠키 출력
-        const allCookies = request.cookies.getAll().map(c => `${c.name}=${c.value}`);
-        console.log('🔍 [Admin Check] 전체 쿠키:', allCookies.join(', '));
         console.log('🔍 [Admin Check] admin_mode 쿠키 값:', adminModeCookie);
-        console.log('🔍 [Admin Check] test_mode 쿠키:', request.cookies.get('test_mode')?.value);
 
         // admin_mode 쿠키가 없으면 리다이렉트
-        // (PIN 4231 인증 후에만 admin_mode=true 쿠키 설정됨)
         if (adminModeCookie !== 'true') {
           console.log('🔐 미들웨어: admin_mode 쿠키 없음 → /main 리다이렉트');
           return NextResponse.redirect(new URL('/main', request.url));
         }
 
-        // admin_mode 쿠키 있음 → /admin 접근 허용 (게스트/GitHub 무관)
         console.log('✅ 미들웨어: admin_mode 쿠키 확인 → /admin 접근 허용');
       }
     }
-    */
-
-    // 🟢 개발 중: 게스트도 관리자/대시보드 접근 가능
-    console.log(`✅ 미들웨어: ${pathname} 접근 허용 (개발 모드)`);
 
     // ============================================================
     // 4️⃣ ⚡ 성능 최적화 헤더 추가
