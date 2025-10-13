@@ -18,6 +18,7 @@ import { isGuestFullAccessEnabled } from '@/config/guestMode';
 import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useAdminMode } from '@/stores/auth-store'; // Phase 2: Zustand 인증 상태
+import { useAISidebarStore } from '@/stores/useAISidebarStore'; // AI 사이드바 상태
 import { cn } from '@/lib/utils';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
@@ -332,7 +333,6 @@ function checkTestMode(): boolean {
 function DashboardPageContent() {
   // 🔒 Hydration 불일치 방지를 위한 클라이언트 전용 상태
   const [isMounted, setIsMounted] = useState(false);
-  const [isAgentOpen, setIsAgentOpen] = useState(false);
   const [selectedServer, setSelectedServer] = useState<Server | null>(null); // eslint-disable-line @typescript-eslint/no-redundant-type-constituents
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
@@ -342,6 +342,9 @@ function DashboardPageContent() {
   // 🔒 새로운 권한 시스템 사용
   const router = useRouter();
   const permissions = useUserPermissions();
+
+  // 🎯 AI 사이드바 상태 (중앙 관리)
+  const { isOpen: isAgentOpen, setOpen: setIsAgentOpen } = useAISidebarStore();
   const isPinAuth = useAdminMode(); // Phase 2: Zustand로 PIN 인증 상태 직접 확인 (5배 빠름)
   const [authLoading, setAuthLoading] = useState(true);
 
@@ -533,12 +536,12 @@ function DashboardPageContent() {
       // 토스트 메시지로 안내 (선택사항)
       return;
     }
-    setIsAgentOpen((prev) => !prev);
-  }, [permissions.canToggleAI]);
+    setIsAgentOpen(!isAgentOpen);
+  }, [permissions.canToggleAI, isAgentOpen, setIsAgentOpen]);
 
   const closeAgent = useCallback(() => {
     setIsAgentOpen(false);
-  }, []);
+  }, [setIsAgentOpen]);
 
   // 🔄 세션 연장 처리
   const handleExtendSession = useCallback(() => {
