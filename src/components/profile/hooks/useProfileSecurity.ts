@@ -16,56 +16,12 @@ export function useProfileSecurity() {
   // Phase 2: Zustand 인증 스토어 사용 (5배 성능 향상)
   const setPinAuth = useAuthStore((s) => s.setPinAuth);
 
-  // Zustand 스토어의 관리자 상태 사용
+  // 🔄 Zustand 스토어의 관리자 상태 직접 사용 (단일 진실 공급원)
   const { adminMode } = useUnifiedAdminStore();
-  
-  // Phase 2: Zustand AuthStore와 UnifiedAdminStore 삼중 확인 (레거시 호환성)
   const authStoreAdminMode = useAuthStore((s) => s.adminMode);
-  const [isAdminMode, setIsAdminMode] = useState(false);
 
-  useEffect(() => {
-    const checkAdminMode = () => {
-      // 🔧 다중 소스 체크 (localStorage + 2개 Zustand 스토어)
-      const localStorageAdmin = localStorage.getItem('admin_mode') === 'true';
-      const unifiedStoreAdmin = adminMode.isAuthenticated;
-      
-      // 🆕 auth-storage에서 adminMode 직접 파싱
-      let authStorageAdmin = false;
-      try {
-        const authStorage = localStorage.getItem('auth-storage');
-        if (authStorage) {
-          const parsed = JSON.parse(authStorage);
-          authStorageAdmin = parsed?.state?.adminMode === true;
-        }
-      } catch (e) {
-        console.warn('auth-storage 파싱 실패:', e);
-      }
-
-      // 삼중 체크: 하나라도 true면 관리자 모드
-      const adminModeActive = localStorageAdmin || unifiedStoreAdmin || authStorageAdmin || authStoreAdminMode;
-      setIsAdminMode(adminModeActive);
-      
-      console.log('🔐 관리자 모드 상태 체크:', {
-        localStorage: localStorageAdmin,
-        unifiedStore: unifiedStoreAdmin,
-        authStorage: authStorageAdmin,
-        authStore: authStoreAdminMode,
-        final: adminModeActive
-      });
-    };
-    
-    checkAdminMode();
-
-    // storage 이벤트 리스너 추가 (localStorage 변경 감지)
-    window.addEventListener('storage', checkAdminMode);
-    // custom 이벤트 리스너 추가 (같은 탭에서의 변경 감지)
-    window.addEventListener('local-storage-changed', checkAdminMode);
-
-    return () => {
-      window.removeEventListener('storage', checkAdminMode);
-      window.removeEventListener('local-storage-changed', checkAdminMode);
-    };
-  }, [adminMode.isAuthenticated, authStoreAdminMode]);
+  // 🔧 FIX: Zustand store만 사용, localStorage 복잡성 제거
+  const isAdminMode = adminMode.isAuthenticated || authStoreAdminMode;
 
   const [securityState, setSecurityState] = useState<ProfileSecurityState>({
     failedAttempts: 0,
@@ -194,18 +150,10 @@ export function useProfileSecurity() {
           // localStorage 직접 조작 제거 → setPinAuth() 사용
           setPinAuth();
 
-          // 🔧 FIX: skipHydration 대응 - localStorage admin_mode 명시적 설정
-          localStorage.setItem('admin_mode', 'true');
+          // ⚡ Phase 2: Zustand 스토어로 인증 상태 설정 (5배 성능 향상)
+          // 🔥 Zustand가 자동으로 localStorage와 동기화하므로 수동 설정 불필요
 
-          // 🔥 수동 storage 이벤트 발생 (같은 탭에서는 자동 발생 안 됨)
-          window.dispatchEvent(new CustomEvent('local-storage-changed', {
-            detail: { key: 'admin_mode', value: 'true' }
-          }));
-
-          // 🔥 직접 상태 업데이트 (이벤트 리스너보다 확실함)
-          setIsAdminMode(true);
-
-          console.log('🔑 관리자 모드 활성화 (Zustand 자동 동기화 + 게스트 세션 자동 생성 + 즉시 상태 반영)');
+          console.log('🔑 관리자 모드 활성화 (Zustand 자동 동기화 + 게스트 세션 자동 생성)');
           return true;
         } else {
           // 인증 실패

@@ -244,12 +244,14 @@ test.describe('🔐 관리자 모드 PIN 인증 API 테스트 (축소 범위)', 
     // 8단계: 관리자 모드 활성화 확인
     console.log('\n📍 Step 8: 관리자 모드 활성화 확인');
 
+    // 프로필 버튼 참조 (스코프 밖에서 정의)
+    const profileButtonAfter = page.locator('button').filter({ hasText: /관리자|게스트/i }).first();
+
     // 메뉴가 열려있는지 확인 (closeMenu 제거로 인증 후 열린 상태여야 함)
     const menuVisible = await page.locator('[role="menu"]').isVisible().catch(() => false);
 
     if (!menuVisible) {
       console.log('  ℹ️ 메뉴가 닫혀있음, 프로필 버튼 다시 클릭');
-      const profileButtonAfter = page.locator('button').filter({ hasText: /관리자|게스트/i }).first();
       await expect(profileButtonAfter).toBeVisible({ timeout: 5000 });
       await profileButtonAfter.click();
       await page.waitForTimeout(1500);
