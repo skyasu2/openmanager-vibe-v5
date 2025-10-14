@@ -7,7 +7,7 @@
 ## 📦 핵심 정보
 
 **프로젝트**: OpenManager VIBE v5.80.0 - AI 기반 실시간 서버 모니터링 플랫폼
-**환경**: WSL + Claude Code v2.0.8 (Vercel OAuth 개선) + Multi-AI 협업
+**환경**: WSL + Claude Code v2.0.14 + Multi-AI 협업
 **스택**: Next.js 15, React 18.3, TypeScript strict, Vercel + Supabase
 
 ---
@@ -75,7 +75,7 @@ Task multi-ai-verification-specialist "LoginClient.tsx 검증"
 
 ---
 
-## 🎭 서브에이전트 활용 (12개 전문가)
+## 🎭 서브에이전트 활용 (18개 전문가)
 
 ### 호출 방법
 ```bash
@@ -132,13 +132,12 @@ npm run test:fast           # 21초 (44% 개선)
 **WSL 최적화**:
 - 메모리: 20GB 할당
 - .wslconfig: `dnsTunneling=true`, `autoProxy=true` (필수)
-- MCP 상태: 10/10 완벽 연결
+- MCP 상태: 9/9 완벽 연결
 
-**MCP 서버** (10/10 완벽 연결):
+**MCP 서버** (9/9 완벽 연결):
 - ✅ vercel (OAuth 안정화, v2.0.5+ 패치)
 - ✅ serena, supabase, context7, playwright
 - ✅ memory, time, sequential-thinking, shadcn-ui
-- ✅ **multi-ai** (프로젝트 전용)
 
 **MCP 우선순위 (82% 토큰 절약)**:
 - 코드 분석: **Serena** (Read 대신, 3-5배 빠름)
@@ -155,7 +154,7 @@ npm run test:fast           # 21초 (44% 개선)
 
 ---
 
-## 🎯 현재 상태 (2025-10-06)
+## 🎯 현재 상태 (2025-10-15)
 
 **품질**:
 - TypeScript 에러: 0개 ✅

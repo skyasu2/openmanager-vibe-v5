@@ -122,7 +122,7 @@
     "wsl:stop": "./scripts/wsl-native-dev.sh stop"
   },
   "dependencies": {
-    "@anthropic-ai/claude-code": "^2.0.1",
+    "@anthropic-ai/claude-code": "^2.0.14",
     "@faker-js/faker": "^9.9.0",
     "@google/generative-ai": "^0.24.1",
     "@radix-ui/react-accordion": "^1.2.11",

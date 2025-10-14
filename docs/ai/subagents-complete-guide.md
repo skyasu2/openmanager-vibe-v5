@@ -1,8 +1,8 @@
 # 🤖 Claude Code 서브에이전트 완전 가이드
 
-**OpenManager VIBE 프로젝트 전용** | 최종 업데이트: 2025-10-06
+**OpenManager VIBE 프로젝트 전용** | 최종 업데이트: 2025-10-15
 
-> 이 문서는 Claude Code에서 사용하는 12개 전문 서브에이전트의 활용법과 최적화 전략을 다룹니다.
+> 이 문서는 Claude Code에서 사용하는 18개 전문 서브에이전트의 활용법과 최적화 전략을 다룹니다.
 
 ---
 
@@ -182,7 +182,15 @@ API_보호:
 
 ## 🎯 핵심 에이전트 구성 (18개)
 
-### 1. AI 교차 검증 시스템 (3개)
+### 1. AI 교차 검증 시스템 (4개)
+
+#### multi-ai-verification-specialist
+**Multi-AI 교차검증 전문가 - v4.4.0**
+- **특화**: 3-AI 병렬 실행 자동화, Decision Log 작성, 결과 종합 및 보고
+- **트리거**: "AI 교차검증" 명시 시에만 활성화 (일반 개발은 Claude 단독)
+- **프로세스**: Bash Wrapper 병렬 실행 → 실제 Codex, Gemini, Qwen 독립 답변 수집 → 결과 종합
+- **호출 예시**: `Task multi-ai-verification-specialist "LoginClient.tsx 교차검증"`
+- **상세**: @docs/claude/environment/multi-ai-strategy.md
 
 #### codex-specialist
 **ChatGPT Codex CLI 전용 외부 AI 연동**
@@ -249,7 +257,7 @@ API_보호:
 
 ## 🔧 서브에이전트 최적화 전략
 
-**12개 핵심 에이전트 최적화 완료** - 불필요한 에이전트 제거 완료 (2025.10.06)
+**최종 18개 에이전트 구성 완료** - 불필요한 에이전트 제거 및 최적화 완료 (2025.10.15)
 
 ### 📊 AI 교차검증 결과 (9.17/10)
 

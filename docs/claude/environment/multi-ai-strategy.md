@@ -110,7 +110,7 @@ codex exec "테스트 코드 작성"
 gemini "API 문서 자동 생성"
 ```
 
-### 2. 교차 검증 패턴 (Bash Wrapper v4.0.0)
+### 2. 교차 검증 패턴 (Bash Wrapper v2.3.0)
 
 **🎯 AI 사용 패턴 구분**
 
