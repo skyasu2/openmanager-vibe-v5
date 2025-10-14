@@ -9,9 +9,9 @@ import { SystemBootstrap } from '@/components/system/SystemBootstrap';
 import { Toaster } from '@/components/ui/toaster';
 import { CSRFTokenProvider } from '@/components/security/CSRFTokenProvider';
 
-// Vercel Analytics & Speed Insights
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Analytics } from '@vercel/analytics/react';
+// Vercel Analytics & Speed Insights (무료 티어 최적화 - 비활성화)
+// import { SpeedInsights } from '@vercel/speed-insights/next';
+// import { Analytics } from '@vercel/analytics/react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -40,8 +40,9 @@ export default function RootLayout({
             {children}
           </CSRFTokenProvider>
         </ClientProviders>
-        <SpeedInsights key="speed-insights" />
-        <Analytics key="analytics" />
+        {/* Vercel Analytics 비활성화 - 무료 티어 최적화 (6개 404 에러 제거) */}
+        {/* <SpeedInsights key="speed-insights" /> */}
+        {/* <Analytics key="analytics" /> */}
       </body>
     </html>
   );
