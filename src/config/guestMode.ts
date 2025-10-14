@@ -26,6 +26,12 @@ export const GUEST_MODE = {
 export type GuestModeType = typeof GUEST_MODE[keyof typeof GUEST_MODE];
 
 /**
+ * 빌드 타임스탬프 (캐시 우회용)
+ * @internal
+ */
+export const BUILD_TIMESTAMP = '2025-10-14T07:20:00Z';
+
+/**
  * 현재 게스트 모드 설정을 반환합니다.
  *
  * @returns 'full_access' | 'restricted'
@@ -35,10 +41,8 @@ export function getGuestMode(): GuestModeType {
   // ⚠️ 중요: Vercel 환경 변수 입력 시 개행 문자가 포함될 수 있으므로 trim 필수
   const mode = process.env.NEXT_PUBLIC_GUEST_MODE?.trim();
 
-  // 디버그: 환경 변수 값 확인 (빌드 타임)
-  if (typeof window === 'undefined') {
-    console.log('🎛️ [Build] NEXT_PUBLIC_GUEST_MODE:', JSON.stringify(mode));
-  }
+  // 디버그: 환경 변수 값 확인 (서버/클라이언트 모두)
+  console.log(`🎛️ [${BUILD_TIMESTAMP}] NEXT_PUBLIC_GUEST_MODE:`, JSON.stringify(mode));
 
   if (mode === GUEST_MODE.FULL_ACCESS || mode === GUEST_MODE.RESTRICTED) {
     return mode;
