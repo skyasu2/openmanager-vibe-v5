@@ -355,6 +355,19 @@ function DashboardPageContent() {
     setIsMounted(true);
   }, []);
 
+  // 🎛️ 게스트 모드 디버그 로그 (빌드 캐시 무효화 + 디버깅)
+  useEffect(() => {
+    const guestModeStatus = isGuestFullAccessEnabled();
+    console.log('🎛️ [DashboardClient] Guest Mode Status:', {
+      enabled: guestModeStatus,
+      canAccessDashboard: permissions.canAccessDashboard,
+      isPinAuth: isPinAuth,
+      shouldAllow: permissions.canAccessDashboard || isPinAuth || guestModeStatus,
+      timestamp: new Date().toISOString(),
+      buildVersion: '7.0.0-cache-fix',
+    });
+  }, [permissions.canAccessDashboard, isPinAuth]);
+
   // 🔥 강화된 권한 체크 (비동기 인증 상태 타이밍 문제 해결)
   useEffect(() => {
     if (!isMounted) return;

@@ -162,6 +162,18 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
   // 🔐 권한 확인 (모든 hooks보다 먼저 호출)
   const permissions = useUserPermissions();
 
+  // 🎛️ 게스트 모드 디버그 로그 (빌드 캐시 무효화 + 디버깅)
+  useEffect(() => {
+    const guestModeStatus = isGuestFullAccessEnabled();
+    console.log('🎛️ [AISidebarV3] Guest Mode Status:', {
+      enabled: guestModeStatus,
+      canToggleAI: permissions.canToggleAI,
+      shouldRender: permissions.canToggleAI || guestModeStatus,
+      timestamp: new Date().toISOString(),
+      buildVersion: '7.0.0-cache-fix',
+    });
+  }, [permissions.canToggleAI]);
+
   // 실제 AI 서비스 인스턴스 (useMemo로 캐싱하여 재생성 방지)
   const aiService = useMemo(() => new RealAISidebarService(), []);
 
