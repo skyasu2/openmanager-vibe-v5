@@ -26,6 +26,8 @@ import { useServerDataStore } from '@/components/providers/StoreProvider';
 import type { EnhancedServerMetrics } from '@/types/server';
 import AIInsightsCard from './AIInsightsCard';
 import AIAssistantIconPanel, { type AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
+import { AIModeSelector } from '@/components/ai/AIModeSelector';
+import type { AIMode } from '@/types/ai-types';
 
 interface AISidebarContentProps {
   onClose: () => void;
@@ -70,6 +72,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
   );
   const [selectedFunction, setSelectedFunction] = useState<AIAssistantFunction>('chat');
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [aiMode, setAiMode] = useState<AIMode>('LOCAL'); // AI 모드 (LOCAL/GOOGLE_AI)
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -142,7 +145,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
         body: JSON.stringify({
           query: content,
           context: 'dashboard',
-          mode: 'local-ai',
+          mode: aiMode === 'LOCAL' ? 'local-ai' : 'google-ai',
           temperature: 0.7,
           maxTokens: 1000,
           includeThinking: false,
@@ -263,6 +266,15 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
       <div className="flex flex-1 flex-col overflow-hidden">
         {activeTab === 'chat' && (
           <>
+            {/* AI 모드 선택기 */}
+            <div className="border-b border-gray-100 p-4">
+              <AIModeSelector
+                selectedMode={aiMode}
+                onModeChange={setAiMode}
+                disabled={isLoading}
+              />
+            </div>
+
             {/* 채팅 메시지 */}
             <div className="flex-1 space-y-4 overflow-y-auto p-4">
               {messages.map((message) => (
