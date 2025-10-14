@@ -357,6 +357,9 @@ export default function ServerMetricsLineChart({
 
   const { path, points } = createPath();
 
+  // 🎨 상태별 고유한 그라데이션 ID 생성 (색상 불일치 방지)
+  const gradientId = `gradient-${type}-${config.status}`;
+
   return (
     <div className={`${className}`}>
       {/* 라벨과 현재값 */}
@@ -395,9 +398,9 @@ export default function ServerMetricsLineChart({
             })}
           </g>
 
-          {/* 그라데이션 정의 */}
+          {/* 그라데이션 정의 - 상태별 고유 ID */}
           <defs>
-            <linearGradient id={`gradient-${type}`} x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
               <stop
                 offset="0%"
                 stopColor={config.lineColor}
@@ -431,7 +434,7 @@ export default function ServerMetricsLineChart({
               const safeFirstX = getSafeFirstArrayItem(points, { x: 0 }).x ?? 0;
               return `${path} L ${safeLastX} 70 L ${safeFirstX} 70 Z`;
             })()}
-            fill={`url(#gradient-${type})`}
+            fill={`url(#${gradientId})`}
           />
 
           {/* 라인 - 사용자 요구사항: 얇은 선 (1.5px) 적용 */}
