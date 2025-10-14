@@ -25,6 +25,7 @@ import {
 import { useServerDataStore } from '@/components/providers/StoreProvider';
 import type { EnhancedServerMetrics } from '@/types/server';
 import AIInsightsCard from './AIInsightsCard';
+import AIAssistantIconPanel, { type AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
 
 interface AISidebarContentProps {
   onClose: () => void;
@@ -67,9 +68,23 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
   const [activeTab, setActiveTab] = useState<'chat' | 'reports' | 'insights'>(
     'chat'
   );
+  const [selectedFunction, setSelectedFunction] = useState<AIAssistantFunction>('chat');
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // AI 기능 변경 시 자동 처리
+  useEffect(() => {
+    if (selectedFunction === 'auto-report') {
+      // 자동 장애 보고서 생성
+      handleSendMessage('시스템 전체 장애 보고서를 생성해주세요');
+      // 채팅 탭으로 자동 전환
+      setActiveTab('chat');
+      // auto-report 실행 후 다시 chat으로 돌아가기
+      setTimeout(() => setSelectedFunction('chat'), 100);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFunction]);
 
   // Placeholder 순환 (5초마다)
   useEffect(() => {
@@ -204,12 +219,21 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-2 transition-colors hover:bg-gray-100"
-          >
-            ✕
-          </button>
+          <div className="flex items-center gap-2">
+            {/* AI 기능 아이콘 패널 */}
+            <AIAssistantIconPanel
+              selectedFunction={selectedFunction}
+              onFunctionChange={setSelectedFunction}
+              isMobile={true}
+              className="max-w-xs"
+            />
+            <button
+              onClick={onClose}
+              className="rounded-lg p-2 transition-colors hover:bg-gray-100"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* 탭 메뉴 */}
