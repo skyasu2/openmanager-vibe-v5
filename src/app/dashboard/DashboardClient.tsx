@@ -370,7 +370,7 @@ function DashboardPageContent() {
     } else {
       // 🔐 프로덕션 모드: 권한 체크
       const checkPermissions = () => {
-        const canAccess = permissions.canAccessDashboard || isPinAuth || checkTestMode();
+        const canAccess = permissions.canAccessDashboard || isPinAuth || checkTestMode() || isGuestFullAccessEnabled();
         
         console.log('🔍 대시보드 권한 체크:', {
           hookAuth: permissions.canAccessDashboard,
