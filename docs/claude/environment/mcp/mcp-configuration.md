@@ -1,8 +1,8 @@
 # MCP 서버 개인 설정
 
-**개인 MCP 환경**: 10개 서버 완벽 연결 (100% 성공률)
+**개인 MCP 환경**: 9개 서버 완벽 연결 (100% 성공률)
 
-## 📊 MCP 현황: 10/10개 연결, 완벽 작동 (2025-10-06 업데이트)
+## 📊 MCP 현황: 9/9개 연결, 완벽 작동 (2025-10-15 업데이트)
 
 | MCP 서버 | 연결 | WSL 성능 | 기능 테스트 | 상태 |
 |----------|------|----------|-------------|------|
@@ -15,11 +15,10 @@
 | **time** | ✅ | ✅ 즉시 응답 | ✅ 시간대 변환 | **완전 작동** |
 | **sequential-thinking** | ✅ | ✅ 즉시 응답 | ✅ 사고 프로세스 | **완전 작동** |
 | **shadcn-ui** | ✅ | ✅ 즉시 응답 | ✅ UI 컴포넌트 조회 | **완전 작동** |
-| **multi-ai** | ✅ | ✅ 즉시 응답 | ✅ 3-AI 교차검증 (Codex+Gemini+Qwen) | **완전 작동** |
 
-## 🚀 성능 지표 (2025-10-06)
+## 🚀 성능 지표 (2025-10-15)
 
-- **연결 성공률**: 100% (10/10) 🏆
+- **연결 성공률**: 100% (9/9) 🏆
 - **Vercel MCP**: OAuth 401 오류 해결 (v2.0.5+ 패치) ✅
 - **평균 응답속도**: 50ms 미만
 - **안정성**: 99.9% 가동률
@@ -27,7 +26,7 @@
 
 ## 🏗️ MCP 구성 아키텍처
 
-**10개 MCP 서버** = 전역 8개 + OAuth 1개 + 프로젝트 1개
+**9개 MCP 서버** = 전역 8개 + OAuth 1개
 
 ### 1️⃣ 전역 MCP 서버 (8개)
 **위치**: `~/.claude/.mcp.json`
@@ -50,18 +49,24 @@
 |------|-----|----------|
 | vercel | https://mcp.vercel.com | OAuth (Claude Code 내장) |
 
-### 3️⃣ 프로젝트 MCP 서버 (1개)
-**위치**: `/mnt/d/cursor/openmanager-vibe-v5/.mcp.json`
+### 3️⃣ 프로젝트 MCP 서버 (제거됨)
 
-| 서버 | 경로 | 용도 |
-|------|------|------|
-| multi-ai | packages/multi-ai-mcp/dist/index.js | 3-AI 교차검증 (개발 전용) |
+**Multi-AI MCP (v3.8.0) - 2025-10-15 제거**
 
-**프로젝트 .mcp.json 역할**:
-- ✅ Multi-AI MCP 개발 및 테스트 전용
-- ✅ GitHub 저장소에 포함 (팀 공유용)
-- ❌ Vercel 배포 제외 (로컬 개발만)
-- 📍 향후 독립 패키지 전환 시 분리 예정
+| 서버 | 상태 | 대체 방법 |
+|------|------|-----------|
+| ~~multi-ai~~ | ❌ 제거됨 | Bash Wrapper v2.3.0 사용 |
+
+**제거 이유**:
+- ✅ Bash Wrapper 방식이 100% 안정성 달성 (타임아웃 해결)
+- ✅ 더 간단한 아키텍처 (외부 CLI 직접 호출)
+- ✅ MCP 오버헤드 제거 (응답속도 향상)
+
+**백업 위치**: `backups/multi-ai-mcp-v3.8.0/` (38개 파일)
+
+**현재 사용 방법**:
+- 서브에이전트: `multi-ai-verification-specialist` (자동화)
+- 직접 호출: `./scripts/ai-subagents/codex-wrapper.sh` 등
 
 ---
 
@@ -154,37 +159,35 @@ claude mcp list | grep playwright
 # UI 컴포넌트 조회 도구
 ```
 
-#### 10. Multi-AI MCP (프로젝트 전용 서버)
+#### 10. Multi-AI 교차검증 (Bash Wrapper 방식)
+
+**⚠️ Multi-AI MCP 제거됨 (2025-10-15)** - Bash Wrapper로 완전 대체
+
 ```bash
-# ⚠️ 프로젝트 .mcp.json에서만 활성화
-# 위치: /mnt/d/cursor/openmanager-vibe-v5/.mcp.json
-# 경로: packages/multi-ai-mcp/dist/index.js
+# ✅ 현재 사용 방법: Bash Wrapper v2.3.0
 
-# 자동 실행 (프로젝트 진입 시)
-# 3-AI 교차검증: Codex(실무) + Gemini(아키텍처) + Qwen(성능)
+# 방법 1: 서브에이전트 위임 (권장)
+"이 코드를 AI 교차검증해줘"  # multi-ai-verification-specialist 자동 호출
 
-# 수동 빌드 (개발 시)
-cd packages/multi-ai-mcp/
-npm run build
+# 방법 2: 직접 실행
+./scripts/ai-subagents/codex-wrapper.sh "버그 분석"
+./scripts/ai-subagents/gemini-wrapper.sh "아키텍처 검토"
+./scripts/ai-subagents/qwen-wrapper.sh "성능 최적화"
 
-# 사용 예시 (Claude Code 내) - v3.0.0
-# 개별 AI와 직접 통신 (타임아웃 안정성)
-mcp__multi_ai__queryCodex({ query: "버그 분석" })
-mcp__multi_ai__queryGemini({ query: "아키텍처 검토" })
-mcp__multi_ai__queryQwen({ query: "성능 최적화", planMode: true })
-
-# 교차검증은 Multi-AI Verification Specialist 서브에이전트가 담당
-# 서브에이전트가 위 3개 도구를 병렬 호출 → 결과 종합
+# 방법 3: 병렬 실행 (고급)
+codex exec "버그 분석" > /tmp/codex.txt &
+gemini "아키텍처 검토" > /tmp/gemini.txt &
+qwen -p "성능 최적화" > /tmp/qwen.txt &
+wait
 ```
 
-**v3.0.0 특징 (SoC 완전 분리)**:
-- 🎯 **순수 인프라 레이어**: AI 통신만 담당, 비즈니스 로직 제거
-- 🔧 **개별 AI 도구**: queryCodex, queryGemini, queryQwen (독립 실행)
-- ⏱️ **적응형 타임아웃**: 60s-300s (쿼리 복잡도 기반)
-- 🔒 **보안 강화**: Command Injection 방지, 입력 검증
-- 📊 **히스토리 분리**: MCP 기본 메타데이터, 서브에이전트 고급 분석
-- 📦 **52% 감량**: 2,500줄 → 1,200줄 (유지보수성 향상)
-- 🧪 **안정성**: 100% 테스트 커버리지 유지
+**Bash Wrapper v2.3.0 특징**:
+- ✅ **100% 안정성**: 타임아웃 문제 완전 해결
+- ✅ **고정 타임아웃**: Codex 300s, Gemini 300s, Qwen 600s
+- ✅ **간단한 아키텍처**: MCP 오버헤드 제거
+- 🚀 **Qwen YOLO Mode**: 완전 무인 동작
+
+**상세 문서**: `docs/claude/environment/multi-ai-strategy.md`
 
 ## 🔑 베르셀 CLI 인증 (보조 도구)
 
