@@ -29,7 +29,7 @@ export type GuestModeType = typeof GUEST_MODE[keyof typeof GUEST_MODE];
  * 빌드 타임스탬프 (캐시 우회용)
  * @internal
  */
-export const BUILD_TIMESTAMP = '2025-10-14T09:27:00Z';
+export const BUILD_TIMESTAMP = '2025-10-14T10:40:00Z';
 
 /**
  * 현재 게스트 모드 설정을 반환합니다.
@@ -59,7 +59,18 @@ export function getGuestMode(): GuestModeType {
  * @returns false: 게스트 접근 제한 (기본값)
  */
 export function isGuestFullAccessEnabled(): boolean {
-  return getGuestMode() === GUEST_MODE.FULL_ACCESS;
+  const result = getGuestMode() === GUEST_MODE.FULL_ACCESS;
+  
+  // 🔍 디버그: 프로덕션에서도 환경 변수 확인 가능
+  if (typeof window !== 'undefined') {
+    console.log('🔍 [isGuestFullAccessEnabled] Check:', {
+      mode: getGuestMode(),
+      result,
+      timestamp: BUILD_TIMESTAMP,
+    });
+  }
+  
+  return result;
 }
 
 /**
