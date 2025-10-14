@@ -91,6 +91,7 @@ npm-debug.log*
 .env.development
 .env.test
 .env.production
+.env.vercel.*
 
 # 암호화된 백업 파일 (추적)
 !.backup/

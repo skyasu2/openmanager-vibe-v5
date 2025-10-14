@@ -6,11 +6,29 @@ let isInitialized = false;
 const _initializeCrypto = () => {
   if (isInitialized) return;
 
-  // 환경변수에서 마스터 키 가져오기 (또는 기본값 사용)
+  // ✅ 보안: 하드코딩된 기본값 제거 (CVE-2025-003)
   const masterKey =
     process.env.ENCRYPTION_KEY ||
-    process.env.TEAM_DECRYPT_PASSWORD ||
-    'openmanager2025';
+    process.env.TEAM_DECRYPT_PASSWORD;
+
+  if (!masterKey) {
+    // 개발 환경에서는 경고, 프로덕션에서는 예외
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(
+        '⚠️ ENCRYPTION_KEY 환경변수가 설정되지 않았습니다. 암호화 기능이 제한됩니다.'
+      );
+      // 개발 환경에서만 임시 키 사용
+      const tempKey = 'dev-temp-key-' + Date.now();
+      enhancedCryptoManager._initializeMasterKey(tempKey);
+      isInitialized = true;
+      return;
+    } else {
+      throw new Error(
+        '🔒 보안: ENCRYPTION_KEY 환경변수가 필요합니다. Vercel 환경변수를 확인하세요.'
+      );
+    }
+  }
+
   enhancedCryptoManager._initializeMasterKey(masterKey);
   isInitialized = true;
 };
@@ -83,10 +101,14 @@ export function getSecureGoogleAIKey(): string | null {
     if (encryptedKey) {
       try {
         const decryptedKey = decrypt(encryptedKey);
-        console.log('🔑 Google AI API 키 소스: 암호화된 환경변수');
+        // ✅ 프로덕션 로그 제거 (보안)
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔑 Google AI API 키 소스: 암호화된 환경변수');
+        }
         return decryptedKey;
       } catch (decryptError) {
-        console.error('🔑 암호화된 키 복호화 실패, 평문 키로 fallback:', decryptError);
+        // ✅ 에러 상세 정보 제거 (스택트레이스 노출 방지)
+        console.error('🔑 암호화된 키 복호화 실패, 평문 키로 fallback');
         // 복호화 실패 시 평문 키로 fallback (계속 진행)
       }
     }
@@ -94,26 +116,30 @@ export function getSecureGoogleAIKey(): string | null {
     // 2. 평문 키 사용 (암호화된 키가 없거나 복호화 실패 시)
     const plainKey = process.env.GOOGLE_AI_API_KEY;
     if (plainKey) {
+      // ✅ 프로덕션 로그 제거 (보안)
       if (process.env.NODE_ENV === 'development') {
         console.warn(
           '⚠️ 개발 환경에서 암호화되지 않은 Google AI API 키를 사용 중입니다.'
         );
-      } else {
-        console.log('🔑 Google AI API 키 소스: 평문 환경변수 (프로덕션)');
       }
       return plainKey;
     }
 
     // 3. 키를 찾을 수 없음
-    console.warn('🔑 Google AI API 키를 찾을 수 없습니다.');
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('🔑 Google AI API 키를 찾을 수 없습니다.');
+    }
     return null;
   } catch (error) {
-    console.error('🔑 Google AI API 키 가져오기 실패:', error);
+    // ✅ 에러 상세 정보 제거
+    console.error('🔑 Google AI API 키 가져오기 실패');
 
     // 최후의 fallback: 평문 키 재시도
     const plainKey = process.env.GOOGLE_AI_API_KEY;
     if (plainKey) {
-      console.warn('⚠️ 예외 발생, 평문 키로 최종 fallback');
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('⚠️ 예외 발생, 평문 키로 최종 fallback');
+      }
       return plainKey;
     }
 
@@ -178,11 +204,12 @@ export function getEncryptionStatus() {
       googleAI: {
         hasKey: !!googleAIKey,
         source: process.env.GOOGLE_AI_API_KEY ? 'env' : 'builtin',
-        preview: googleAIKey?.substring(0, 30) + '...' || 'none',
+        // ✅ 보안: API 키 프리뷰 제거 (CVE-2025-001)
+        preview: googleAIKey ? 'AIza****' : 'none',
       },
     };
   } catch (error) {
-    console.error('암호화 상태 확인 실패:', error);
+    console.error('암호화 상태 확인 실패');
     return {
       enabled: false,
       keySource: 'error',
@@ -190,7 +217,7 @@ export function getEncryptionStatus() {
       googleAI: {
         hasKey: false,
         source: 'error',
-        preview: 'error',
+        preview: 'none',
       },
     };
   }
