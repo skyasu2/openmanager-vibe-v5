@@ -315,8 +315,10 @@ export class UnifiedServerDataSource {
   private generateServerStatus(serverId: string): 'online' | 'warning' | 'critical' {
     const hash = this.simpleHash(serverId);
 
-    if (hash < 0.7) return 'online';
-    if (hash < 0.9) return 'warning';
+    // 🚨 장애 시나리오: 경고/심각 상태 서버 비율 증가
+    // online: 45% | warning: 35% | critical: 20%
+    if (hash < 0.45) return 'online';
+    if (hash < 0.80) return 'warning';
     return 'critical';
   }
 
