@@ -1,6 +1,7 @@
 'use client';
 
 import EnhancedServerModal from '@/components/dashboard/EnhancedServerModal';
+import VirtualizedServerList from '@/components/dashboard/VirtualizedServerList';
 import SafeServerCard from '@/components/dashboard/SafeServerCard';
 import { ServerCardErrorBoundary } from '@/components/debug/ComponentErrorBoundary';
 import {
@@ -21,7 +22,8 @@ import {
 import type { DashboardTab } from '@/hooks/useServerDashboard';
 import { useServerDashboard } from '@/hooks/useServerDashboard';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
+// react-window Grid는 사용하지 않음 (VirtualizedServerList에서 List 사용)
 import { usePerformanceTracking } from '@/utils/performance';
 import { formatUptime, getAlertsCount } from './types/server-dashboard.types';
 import { serverTypeGuards } from '@/utils/serverUtils';
@@ -258,20 +260,28 @@ export default function ServerDashboard({
               </div>
             )}
 
-            {/* 🎯 페이지 크기에 따른 동적 그리드 레이아웃 */}
-            <div
-              className={`grid gap-4 transition-all duration-300 sm:gap-6 ${
-                pageSize <= 3
-                  ? 'grid-cols-1' // 3개: 모바일 최적화 (1열)
-                  : pageSize <= 6
-                    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' // 6개: 2x3 레이아웃
-                    : pageSize <= 9
-                      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' // 9개: 3x3 레이아웃
-                      : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' // 12개 이상: 3x4 레이아웃
-              }`}
-            >
-              {sortedServers.length > 0 ? (
-                sortedServers.map((server, index) => {
+            {/* 🎯 페이지 크기에 따른 렌더링 방식 선택 */}
+            {pageSize >= 15 && sortedServers.length >= 15 ? (
+              // ⚡ 15개 전체 보기: 가상 스크롤 (react-window)
+              <VirtualizedServerList
+                servers={sortedServers}
+                handleServerSelect={handleServerSelect}
+              />
+            ) : (
+              // 📊 일반 보기 (3/6/9/12개): 그리드 레이아웃
+              <div
+                className={`grid gap-4 transition-all duration-300 sm:gap-6 ${
+                  pageSize <= 3
+                    ? 'grid-cols-1' // 3개: 모바일 최적화 (1열)
+                    : pageSize <= 6
+                      ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' // 6개: 2x3 레이아웃
+                      : pageSize <= 9
+                        ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' // 9개: 3x3 레이아웃
+                        : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' // 12개 이상: 3x4 레이아웃
+                }`}
+              >
+                {sortedServers.length > 0 ? (
+                  sortedServers.map((server, index) => {
                   // 🛡️ AI 교차검증: 개별 서버 안전성 재검증 (Codex 실무 권장)
                   if (!server) {
                     console.error(`⚠️ ServerDashboard: 서버[${index}]가 null 또는 undefined입니다.`);
@@ -393,7 +403,8 @@ export default function ServerDashboard({
                   </div>
                 </div>
               )}
-            </div>
+              </div>
+            )}
           </div>
         )}
         {/* 다른 탭 컨텐츠는 여기에 추가될 수 있습니다. */}

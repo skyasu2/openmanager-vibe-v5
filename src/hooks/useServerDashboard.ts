@@ -383,11 +383,9 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const [currentPage, setCurrentPage] = useState(1);
   // 🚀 화면 크기에 따른 초기 페이지 크기 설정
   const getInitialPageSize = () => {
-    if (typeof window === 'undefined') return 6;
-    const width = window.innerWidth;
-    if (width < 640) return 3; // 모바일: 3개
-    if (width < 1024) return 6; // 태블릿: 6개
-    return 6; // 데스크톱: 6개 (기본값)
+    // 🚀 성능 최적화: 초기 로딩 개선 (3개로 시작)
+    // 사용자는 필요시 6, 9, 12, 15개로 증가 가능
+    return 3; // 모든 화면 크기에서 3개 시작 (무거움 방지)
   };
 
   const [pageSize, setPageSize] = useState(getInitialPageSize);
