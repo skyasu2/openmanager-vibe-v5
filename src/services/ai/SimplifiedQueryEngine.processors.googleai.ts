@@ -185,6 +185,15 @@ export class GoogleAIModeProcessor {
       const timeouts = getEnvironmentTimeouts();
 
       // DirectGoogleAIService 사용 (API Wrapper Anti-Pattern 제거)
+      console.log('🚀 [Google AI] 요청 시작:', {
+        model: selectedModel,
+        query: query.substring(0, 50) + (query.length > 50 ? '...' : ''),
+        temperature: standardTemperature,
+        maxTokens: standardMaxTokens,
+        timeout: timeouts.GOOGLE_AI,
+        promptLength: prompt.length
+      });
+
       const directGoogleAI = getDirectGoogleAIService();
       const apiResponse = await directGoogleAI.generateContent(prompt, {
         model: selectedModel,
@@ -193,7 +202,21 @@ export class GoogleAIModeProcessor {
         timeout: timeouts.GOOGLE_AI // 🎯 넉넉한 타임아웃: timeout-config.ts 설정 사용 (8초)
       });
 
+      console.log('📊 [Google AI] 응답 상태:', {
+        success: apiResponse.success,
+        error: apiResponse.error,
+        responseTime: apiResponse.responseTime,
+        contentLength: apiResponse.content?.length
+      });
+
       if (!apiResponse.success) {
+        console.error('❌ [Google AI] 상세 에러:', {
+          error: apiResponse.error,
+          model: selectedModel,
+          query,
+          promptLength: prompt.length,
+          responseTime: apiResponse.responseTime
+        });
         throw new Error(`Google AI 직접 호출 오류: ${apiResponse.error}`);
       }
 
@@ -256,7 +279,13 @@ export class GoogleAIModeProcessor {
         processingTime: Date.now() - startTime,
       };
     } catch (error) {
-      console.error('Google AI 처리 오류:', error);
+      console.error('❌ [Google AI] 처리 오류 (catch):', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        query,
+        model: selectedModel,
+        processingTime: Date.now() - startTime
+      });
 
       // 🔄 사용량 추적: 실패한 API 호출 기록
       const usageTracker = getGoogleAIUsageTracker();

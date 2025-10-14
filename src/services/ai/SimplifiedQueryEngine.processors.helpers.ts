@@ -87,7 +87,19 @@ export class SimplifiedQueryEngineHelpers {
     userContext: AIQueryContext | undefined
   ): Promise<string> {
     const lowerQuery = query.toLowerCase();
-    
+
+    // 👋 인사말 우선 처리 (RAG 검색 불필요)
+    if (this.isGreeting(query)) {
+      return '안녕하세요! 👋\n\n' +
+             '저는 서버 모니터링 AI 어시스턴트입니다.\n' +
+             '다음과 같은 질문을 도와드릴 수 있습니다:\n\n' +
+             '• 📊 서버 상태 및 메트릭 조회\n' +
+             '• 🖥️ CPU/메모리 사용률 분석\n' +
+             '• 🚨 장애 및 문제 상황 분석\n' +
+             '• 🔍 실시간 시스템 모니터링\n\n' +
+             '궁금하신 점을 자유롭게 물어보세요!';
+    }
+
     // 🎯 실시간 서버 메트릭 쿼리 처리 (최우선)
     if (this.isServerMetricQuery(lowerQuery)) {
       try {
@@ -393,6 +405,33 @@ export class SimplifiedQueryEngineHelpers {
     const hasMetricKeyword = metricKeywords.some(keyword => lowerQuery.includes(keyword));
     
     return hasServerKeyword || (hasStatusKeyword && hasMetricKeyword);
+  }
+
+  /**
+   * 🎯 인사말 감지
+   * 
+   * 간단한 인사말이면 RAG 검색 없이 친근한 응답 반환
+   */
+  private isGreeting(query: string): boolean {
+    const greetings = [
+      '안녕', '안녕하세요', '안녕하십니까', 
+      'hi', 'hello', 'hey', 'hola',
+      '반가워', '반갑습니다',
+      'good morning', 'good afternoon', 'good evening',
+      '좋은 아침', '좋은 저녁'
+    ];
+    
+    const lower = query.toLowerCase().trim();
+    
+    // 완전 일치 또는 공백/구두점 포함 일치
+    return greetings.some(greeting => {
+      const greetingLower = greeting.toLowerCase();
+      return lower === greetingLower || 
+             lower === greetingLower + '!' ||
+             lower === greetingLower + '?' ||
+             lower === greetingLower + '.' ||
+             lower.startsWith(greetingLower + ' ');
+    });
   }
   
   /**
