@@ -3,10 +3,9 @@
 /**
  * 🤖 AI 사이드바 전체 기능 통합 컴포넌트
  *
- * - 자연어 질의 입력
- * - 프리셋 질문 버튼들
+ * - 자연어 질의 입력 (순환하는 질문 예시)
  * - 채팅 인터페이스
- * - 자동 장애 보고서 생성
+ * - 실시간 보고서 생성
  * - AI 인사이트 표시
  * - ✅ 실제 서버 데이터 기반 응답
  */
@@ -19,14 +18,10 @@ import {
   AlertTriangle,
   Brain,
   FileText,
-  Zap,
   Clock,
   TrendingUp,
-  Shield,
-  Search,
   Lightbulb,
 } from 'lucide-react';
-import { PRESET_QUESTIONS } from '@/stores/useAISidebarStore';
 import { useServerDataStore } from '@/components/providers/StoreProvider';
 import type { EnhancedServerMetrics } from '@/types/server';
 import AIInsightsCard from './AIInsightsCard';
@@ -44,6 +39,16 @@ interface ChatMessage {
   error?: boolean;
 }
 
+// 질문 예시 배열
+const QUESTION_EXAMPLES = [
+  '현재 시스템의 전반적인 성능 상태는 어떤가요?',
+  'CPU 사용률이 높은 서버들을 분석해주세요',
+  '메모리 사용량 트렌드를 분석해주세요',
+  '보안상 위험한 서버나 패턴이 있나요?',
+  '향후 1시간 내 장애 가능성이 있는 서버는?',
+  '전체 인프라의 상태를 종합적으로 분석해주세요',
+];
+
 export default function AISidebarContent({ onClose }: AISidebarContentProps) {
   // 실시간 서버 데이터 가져오기
   const servers = useServerDataStore((state: { servers: EnhancedServerMetrics[] }) => state.servers);
@@ -52,7 +57,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
     {
       id: '1',
       content:
-        '안녕하세요! 실시간 서버 데이터 기반으로 시스템 모니터링 분석을 제공합니다. 아래 프리셋 질문을 클릭하거나 직접 입력하실 수 있습니다.',
+        '안녕하세요! 실시간 서버 데이터 기반으로 시스템 모니터링 분석을 제공합니다. 질문을 입력해주세요.',
       role: 'assistant',
       timestamp: new Date(),
     },
@@ -62,8 +67,18 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
   const [activeTab, setActiveTab] = useState<'chat' | 'reports' | 'insights'>(
     'chat'
   );
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Placeholder 순환 (5초마다)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPlaceholderIndex((prev) => (prev + 1) % QUESTION_EXAMPLES.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // 스크롤을 맨 아래로
   const scrollToBottom = () => {
@@ -171,16 +186,6 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
     }
   };
 
-  // 프리셋 질문 클릭 처리
-  const handlePresetClick = (question: string) => {
-    handleSendMessage(question);
-  };
-
-  // 자동 장애 보고서 생성
-  const generateAutoReport = () => {
-    handleSendMessage('시스템 전체 장애 보고서를 생성해주세요');
-  };
-
   return (
     <div className="fixed inset-y-0 right-0 z-50 flex w-96 flex-col bg-white shadow-lg">
       {/* 헤더 */}
@@ -234,53 +239,6 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
       <div className="flex flex-1 flex-col overflow-hidden">
         {activeTab === 'chat' && (
           <>
-            {/* 프리셋 질문 */}
-            <div className="border-b border-gray-100 p-4">
-              <h3 className="mb-3 text-sm font-medium text-gray-700">
-                빠른 질문
-              </h3>
-              <div className="grid grid-cols-2 gap-2">
-                {PRESET_QUESTIONS.slice(0, 4).map((preset) => (
-                  <button
-                    key={preset.id}
-                    onClick={() => handlePresetClick(preset.question)}
-                    className="rounded-lg bg-gray-50 p-2 text-left text-xs transition-colors hover:bg-gray-100"
-                    disabled={isLoading}
-                  >
-                    <div className="mb-1 flex items-center gap-1">
-                      {preset.category === 'performance' && (
-                        <TrendingUp className="h-3 w-3 text-green-500" />
-                      )}
-                      {preset.category === 'security' && (
-                        <Shield className="h-3 w-3 text-red-500" />
-                      )}
-                      {preset.category === 'prediction' && (
-                        <Brain className="h-3 w-3 text-purple-500" />
-                      )}
-                      {preset.category === 'analysis' && (
-                        <Search className="h-3 w-3 text-blue-500" />
-                      )}
-                      <span className="font-medium capitalize">
-                        {preset.category}
-                      </span>
-                    </div>
-                    <div className="text-gray-600">{preset.question}</div>
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={generateAutoReport}
-                disabled={isLoading}
-                className="mt-3 w-full rounded-lg bg-gradient-to-r from-purple-500 to-blue-600 p-3 font-medium text-white transition-all hover:from-purple-600 hover:to-blue-700 disabled:opacity-50"
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <Zap className="h-4 w-4" />
-                  자동 장애 보고서 생성
-                </div>
-              </button>
-            </div>
-
             {/* 채팅 메시지 */}
             <div className="flex-1 space-y-4 overflow-y-auto p-4">
               {messages.map((message) => (
@@ -368,9 +326,9 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                   onKeyPress={(e) =>
                     e.key === 'Enter' && handleSendMessage(inputValue)
                   }
-                  placeholder="자연어로 질문하세요..."
+                  placeholder={QUESTION_EXAMPLES[placeholderIndex]}
                   disabled={isLoading}
-                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 />
                 <button
                   onClick={() => handleSendMessage(inputValue)}
@@ -406,7 +364,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
               </div>
 
               <button
-                onClick={generateAutoReport}
+                onClick={() => handleSendMessage('시스템 전체 장애 보고서를 생성해주세요')}
                 className="w-full rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 p-3 font-medium text-white transition-all hover:from-green-600 hover:to-emerald-700"
               >
                 <div className="flex items-center justify-center gap-2">
