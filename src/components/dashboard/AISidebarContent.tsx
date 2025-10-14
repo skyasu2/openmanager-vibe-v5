@@ -8,10 +8,10 @@
  * - 채팅 인터페이스
  * - 자동 장애 보고서 생성
  * - AI 인사이트 표시
+ * - ✅ 실제 서버 데이터 기반 응답
  */
 
 import { useState, useRef, useEffect } from 'react';
-// framer-motion 제거 - CSS 애니메이션 사용
 import {
   Send,
   Bot,
@@ -27,6 +27,8 @@ import {
   Lightbulb,
 } from 'lucide-react';
 import { PRESET_QUESTIONS } from '@/stores/useAISidebarStore';
+import { useServerDataStore } from '@/components/providers/StoreProvider';
+import type { EnhancedServerMetrics } from '@/types/server';
 import AIInsightsCard from './AIInsightsCard';
 
 interface AISidebarContentProps {
@@ -39,14 +41,18 @@ interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   timestamp: Date;
   type?: 'text' | 'report' | 'analysis';
+  error?: boolean;
 }
 
 export default function AISidebarContent({ onClose }: AISidebarContentProps) {
+  // 실시간 서버 데이터 가져오기
+  const servers = useServerDataStore((state: { servers: EnhancedServerMetrics[] }) => state.servers);
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
       content:
-        '안녕하세요! 시스템 모니터링과 관련된 질문을 해주세요. 아래 프리셋 질문을 클릭하거나 직접 입력하실 수 있습니다.',
+        '안녕하세요! 실시간 서버 데이터 기반으로 시스템 모니터링 분석을 제공합니다. 아래 프리셋 질문을 클릭하거나 직접 입력하실 수 있습니다.',
       role: 'assistant',
       timestamp: new Date(),
     },
@@ -68,7 +74,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
     scrollToBottom();
   }, [messages]);
 
-  // 메시지 전송
+  // 🚀 실제 AI API 호출
   const handleSendMessage = async (content: string) => {
     if (!content.trim() || isLoading) return;
 
@@ -83,129 +89,86 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
     setInputValue('');
     setIsLoading(true);
 
-    // AI 응답 시뮬레이션 (실제로는 API 호출)
-    setTimeout(() => {
+    try {
+      // 실시간 서버 통계 계산
+      const totalServers = servers.length;
+      const onlineServers = servers.filter((s: EnhancedServerMetrics) => s.status === 'online').length;
+      const warningServers = servers.filter((s: EnhancedServerMetrics) => s.status === 'warning').length;
+      const criticalServers = servers.filter((s: EnhancedServerMetrics) => s.status === 'critical').length;
+
+      const avgCpu = servers.length > 0
+        ? Math.round(servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + (s.cpu || 0), 0) / servers.length)
+        : 0;
+      const avgMemory = servers.length > 0
+        ? Math.round(servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + (s.memory || 0), 0) / servers.length)
+        : 0;
+
+      // 🎯 실제 API 호출
+      const response = await fetch('/api/ai/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: content,
+          context: 'dashboard',
+          mode: 'local-ai',
+          temperature: 0.7,
+          maxTokens: 1000,
+          includeThinking: false,
+          // 실시간 서버 메타데이터 포함
+          metadata: {
+            totalServers,
+            onlineServers,
+            warningServers,
+            criticalServers,
+            avgCpu,
+            avgMemory,
+            timestamp: new Date().toISOString(),
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API 호출 실패: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // AI 응답을 메시지로 추가
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        content: generateAIResponse(content),
+        content: data.response || data.answer || '응답을 받지 못했습니다.',
         role: 'assistant',
         timestamp: new Date(),
         type: content.includes('보고서') ? 'report' : 'text',
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+
+      // 성공 로그
+      console.log('✅ AI 응답 성공:', {
+        engine: data.engine,
+        responseTime: data.responseTime,
+        confidence: data.confidence,
+      });
+
+    } catch (error) {
+      console.error('❌ AI API 호출 실패:', error);
+
+      // 에러 메시지 추가
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        content: `죄송합니다. 일시적인 오류가 발생했습니다.\n\n현재 ${servers.length}개의 서버가 모니터링 중입니다:\n- 정상: ${servers.filter((s: EnhancedServerMetrics) => s.status === 'online').length}개\n- 경고: ${servers.filter((s: EnhancedServerMetrics) => s.status === 'warning').length}개\n- 심각: ${servers.filter((s: EnhancedServerMetrics) => s.status === 'critical').length}개\n\n잠시 후 다시 시도해주세요.`,
+        role: 'assistant',
+        timestamp: new Date(),
+        error: true,
+      };
+
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
-  };
-
-  // AI 응답 생성 (실제로는 API 연동)
-  const generateAIResponse = (userInput: string): string => {
-    const lowerInput = userInput.toLowerCase();
-
-    if (
-      lowerInput.includes('성능') ||
-      lowerInput.includes('cpu') ||
-      lowerInput.includes('메모리')
-    ) {
-      return `현재 시스템 성능 분석 결과:
-
-📊 **전체 현황**
-- 온라인 서버: 8대 (정상)
-- 평균 CPU 사용률: 65%
-- 평균 메모리 사용률: 72%
-
-⚠️ **주의사항**
-- 서버 #3: CPU 사용률 85% (모니터링 필요)
-- 서버 #7: 메모리 사용률 88% (최적화 권장)
-
-💡 **권장사항**
-1. 고사용률 서버들의 프로세스 최적화
-2. 부하 분산 설정 검토
-3. 자동 스케일링 고려`;
     }
-
-    if (
-      lowerInput.includes('보안') ||
-      lowerInput.includes('위험') ||
-      lowerInput.includes('취약점')
-    ) {
-      return `🔒 **보안 상태 분석**
-
-✅ **정상 항목**
-- 모든 서버 방화벽 활성화
-- 최신 보안 패치 적용됨
-- SSL 인증서 유효
-
-⚠️ **주의 항목**
-- 서버 #2: 비정상적 네트워크 활동 감지
-- 로그인 시도 횟수 증가 (지난 1시간)
-
-🛡️ **권장 조치**
-1. 네트워크 트래픽 상세 분석
-2. 접근 로그 검토
-3. 비밀번호 정책 강화 검토`;
-    }
-
-    if (
-      lowerInput.includes('장애') ||
-      lowerInput.includes('보고서') ||
-      lowerInput.includes('리포트')
-    ) {
-      return `📋 **자동 장애 보고서 생성**
-
-🕐 **분석 기간**: ${new Date().toLocaleDateString('ko-KR')} 00:00 ~ 현재
-
-🎯 **주요 지표**
-- 전체 가동률: 99.2%
-- 평균 응답시간: 120ms
-- 에러율: 0.08%
-
-❌ **발생한 문제들**
-1. 서버 #5 일시적 응답 지연 (13:24-13:27)
-2. 네트워크 순간 끊김 (15:41, 3초)
-
-✅ **해결된 문제들**
-- 데이터베이스 연결 풀 최적화 완료
-- 메모리 누수 패치 적용
-
-🔍 **향후 모니터링 포인트**
-- 서버 #3, #7 리소스 사용량 추이
-- 네트워크 안정성 지속 관찰`;
-    }
-
-    if (
-      lowerInput.includes('예측') ||
-      lowerInput.includes('미래') ||
-      lowerInput.includes('전망')
-    ) {
-      return `🔮 **AI 예측 분석**
-
-📈 **다음 24시간 예측**
-- 트래픽 증가 예상: 오후 2-4시 (+30%)
-- 리소스 사용률 피크: 오후 3시경
-- 장애 가능성: 매우 낮음 (5%)
-
-⚡ **예방 조치 제안**
-1. 서버 #3 프로세스 최적화 (우선순위: 높음)
-2. 로드밸런서 설정 검토 (우선순위: 중간)
-3. 백업 시스템 상태 확인 (우선순위: 낮음)
-
-🎯 **최적화 기회**
-- 비사용 서비스 정리로 메모리 10% 절약 가능
-- 캐시 전략 개선으로 응답속도 20% 향상 가능`;
-    }
-
-    // 기본 응답
-    return `이해했습니다. "${userInput}"에 대해 분석하고 있습니다.
-
-현재 시스템 상태를 종합적으로 검토하여 관련 정보를 제공드리겠습니다. 더 구체적인 정보가 필요하시면 아래와 같이 질문해 주세요:
-
-• "현재 성능 상태는?" - 실시간 성능 지표
-• "보안 위험 요소는?" - 보안 상태 점검  
-• "장애 보고서 생성" - 자동 리포트 작성
-• "향후 예측 분석" - AI 기반 예측 정보
-
-어떤 부분을 더 자세히 알아보시겠습니까?`;
   };
 
   // 프리셋 질문 클릭 처리
@@ -231,7 +194,9 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
               <h2 className="text-lg font-semibold text-gray-800">
                 AI 어시스턴트
               </h2>
-              <p className="text-xs text-gray-500">실시간 모니터링 분석</p>
+              <p className="text-xs text-gray-500">
+                실시간 {servers.length}개 서버 분석
+              </p>
             </div>
           </div>
           <button
@@ -330,9 +295,11 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                       className={`rounded-lg p-3 ${
                         message.role === 'user'
                           ? 'bg-blue-500 text-white'
-                          : message.type === 'report'
-                            ? 'border border-purple-200 bg-purple-50'
-                            : 'bg-gray-100 text-gray-800'
+                          : message.error
+                            ? 'border border-red-200 bg-red-50 text-red-800'
+                            : message.type === 'report'
+                              ? 'border border-purple-200 bg-purple-50'
+                              : 'bg-gray-100 text-gray-800'
                       }`}
                     >
                       <div className="whitespace-pre-wrap text-sm">
@@ -369,21 +336,19 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
               ))}
 
               {isLoading && (
-                <div
-                  className="flex justify-start"
-                >
+                <div className="flex justify-start">
                   <div className="rounded-lg bg-gray-100 p-3">
                     <div className="flex items-center gap-2 text-gray-600">
-                      <div className="_animate-bounce h-2 w-2 rounded-full bg-gray-400"></div>
+                      <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
                       <div
-                        className="_animate-bounce h-2 w-2 rounded-full bg-gray-400"
+                        className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
                         style={{ animationDelay: '0.1s' }}
                       ></div>
                       <div
-                        className="_animate-bounce h-2 w-2 rounded-full bg-gray-400"
+                        className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
                         style={{ animationDelay: '0.2s' }}
                       ></div>
-                      <span className="text-sm">분석 중...</span>
+                      <span className="text-sm">AI 분석 중...</span>
                     </div>
                   </div>
                 </div>
@@ -430,9 +395,10 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                   </h3>
                 </div>
                 <div className="space-y-2 text-sm text-gray-600">
-                  <div>• 전체 서버 상태: 정상</div>
-                  <div>• 평균 응답시간: 120ms</div>
-                  <div>• 에러율: 0.08%</div>
+                  <div>• 총 서버: {servers.length}개</div>
+                  <div>• 정상: {servers.filter((s: EnhancedServerMetrics) => s.status === 'online').length}개</div>
+                  <div>• 경고: {servers.filter((s: EnhancedServerMetrics) => s.status === 'warning').length}개</div>
+                  <div>• 심각: {servers.filter((s: EnhancedServerMetrics) => s.status === 'critical').length}개</div>
                   <div>
                     • 마지막 업데이트: {new Date().toLocaleTimeString('ko-KR')}
                   </div>
@@ -478,8 +444,11 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                   <h3 className="font-medium text-purple-800">AI 추천</h3>
                 </div>
                 <p className="text-sm text-purple-700">
-                  서버 #3의 CPU 사용률이 85%에 도달했습니다. 프로세스 최적화를
-                  권장합니다.
+                  {servers.filter((s: EnhancedServerMetrics) => s.status === 'critical').length > 0
+                    ? `심각 상태 서버 ${servers.filter((s: EnhancedServerMetrics) => s.status === 'critical').length}개를 즉시 확인하세요.`
+                    : servers.filter((s: EnhancedServerMetrics) => s.status === 'warning').length > 0
+                      ? `경고 상태 서버 ${servers.filter((s: EnhancedServerMetrics) => s.status === 'warning').length}개를 모니터링하세요.`
+                      : '모든 서버가 정상 상태입니다.'}
                 </p>
               </div>
 
@@ -489,18 +458,17 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                   <h3 className="font-medium text-yellow-800">주의 사항</h3>
                 </div>
                 <p className="text-sm text-yellow-700">
-                  네트워크 트래픽이 평소보다 20% 증가했습니다. 모니터링을
-                  강화하세요.
+                  평균 CPU 사용률: {servers.length > 0 ? Math.round(servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + (s.cpu || 0), 0) / servers.length) : 0}%
                 </p>
               </div>
 
               <div className="rounded-lg border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-4">
                 <div className="mb-2 flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-green-600" />
-                  <h3 className="font-medium text-green-800">성능 향상</h3>
+                  <h3 className="font-medium text-green-800">시스템 상태</h3>
                 </div>
                 <p className="text-sm text-green-700">
-                  최근 최적화로 전체 응답시간이 15% 개선되었습니다.
+                  {servers.length}개 서버 중 {servers.filter((s: EnhancedServerMetrics) => s.status === 'online').length}개가 정상 동작 중입니다.
                 </p>
               </div>
             </div>
