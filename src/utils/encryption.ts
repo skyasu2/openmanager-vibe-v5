@@ -68,28 +68,55 @@ export function decrypt(encryptedText: string): string {
 
 /**
  * 🔑 Google AI API 키 안전하게 가져오기
+ *
+ * 우선순위:
+ * 1. 암호화된 키 (GOOGLE_AI_API_KEY_ENCRYPTED)
+ * 2. 평문 키 (GOOGLE_AI_API_KEY)
+ * 3. null (키 없음)
+ *
+ * 프로덕션 환경에서도 안전한 fallback 제공
  */
 export function getSecureGoogleAIKey(): string | null {
   try {
-    // 1. 암호화된 키 확인
+    // 1. 암호화된 키 시도
     const encryptedKey = process.env.GOOGLE_AI_API_KEY_ENCRYPTED;
     if (encryptedKey) {
-      return decrypt(encryptedKey);
+      try {
+        const decryptedKey = decrypt(encryptedKey);
+        console.log('🔑 Google AI API 키 소스: 암호화된 환경변수');
+        return decryptedKey;
+      } catch (decryptError) {
+        console.error('🔑 암호화된 키 복호화 실패, 평문 키로 fallback:', decryptError);
+        // 복호화 실패 시 평문 키로 fallback (계속 진행)
+      }
     }
 
-    // 2. 평문 키 확인 (개발 환경)
+    // 2. 평문 키 사용 (암호화된 키가 없거나 복호화 실패 시)
     const plainKey = process.env.GOOGLE_AI_API_KEY;
     if (plainKey) {
-      console.warn(
-        '⚠️ 개발 환경에서 암호화되지 않은 Google AI API 키를 사용 중입니다.'
-      );
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(
+          '⚠️ 개발 환경에서 암호화되지 않은 Google AI API 키를 사용 중입니다.'
+        );
+      } else {
+        console.log('🔑 Google AI API 키 소스: 평문 환경변수 (프로덕션)');
+      }
       return plainKey;
     }
 
+    // 3. 키를 찾을 수 없음
     console.warn('🔑 Google AI API 키를 찾을 수 없습니다.');
     return null;
   } catch (error) {
-    console.error('🔑 Google AI API 키 복호화 실패:', error);
+    console.error('🔑 Google AI API 키 가져오기 실패:', error);
+
+    // 최후의 fallback: 평문 키 재시도
+    const plainKey = process.env.GOOGLE_AI_API_KEY;
+    if (plainKey) {
+      console.warn('⚠️ 예외 발생, 평문 키로 최종 fallback');
+      return plainKey;
+    }
+
     return null;
   }
 }
