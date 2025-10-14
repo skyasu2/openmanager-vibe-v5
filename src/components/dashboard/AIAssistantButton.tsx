@@ -22,7 +22,7 @@ interface AIAssistantButtonProps {
  * - AI 사이드바 토글 기능
  * - 활성화 상태에 따른 시각적 피드백
  * - Hydration 불일치 방지
- * - 그라데이션 애니메이션 (Stage 1 통일)
+ * - ✨ 그라데이션 애니메이션 (gradient-shift 4초)
  *
  * @example
  * ```tsx
@@ -49,11 +49,20 @@ export const AIAssistantButton = memo(function AIAssistantButton({
     <div className="relative" suppressHydrationWarning>
       <button
         onClick={onClick}
-        className={`relative transform rounded-xl p-3 transition-all duration-300 hover:scale-105 active:scale-95 ${
+        className={`group relative transform overflow-hidden rounded-xl p-3 transition-all duration-300 hover:scale-105 active:scale-95 ${
           isMounted && (isOpen || isEnabled)
-            ? 'scale-105 bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500 text-white shadow-lg'
+            ? 'scale-105 text-white shadow-lg shadow-purple-500/50'
             : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'
         } `}
+        style={
+          isMounted && (isOpen || isEnabled)
+            ? {
+                background: 'linear-gradient(90deg, #8b5cf6, #ec4899, #06b6d4, #8b5cf6)',
+                backgroundSize: '200% 200%',
+                animation: 'gradient-shift 4s ease-in-out infinite',
+              }
+            : undefined
+        }
         title={
           isMounted && isOpen ? 'AI 어시스턴트 닫기' : 'AI 어시스턴트 열기'
         }
@@ -63,44 +72,26 @@ export const AIAssistantButton = memo(function AIAssistantButton({
         aria-pressed={isMounted ? isOpen : false}
         suppressHydrationWarning
       >
-        {/* AI 활성화 시 그라데이션 테두리 애니메이션 */}
-        {isEnabled && (
-          <div
-            className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 opacity-75 animate-gradient"
-            style={{
-              background:
-                'conic-gradient(from 0deg, #a855f7, #ec4899, #06b6d4, #a855f7)',
-              padding: '2px',
-              borderRadius: '0.75rem',
-            }}
-          >
-            <div className="h-full w-full rounded-xl bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500" />
+        {/* 호버 시 빛나는 효과 */}
+        {isMounted && (isOpen || isEnabled) && (
+          <div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+            <div className="absolute inset-0 animate-pulse-glow bg-gradient-to-r from-white/20 via-white/40 to-white/20" />
           </div>
         )}
 
         <div className="relative flex items-center gap-2">
-          <div
-            className={`h-5 w-5 ${isOpen || isEnabled ? 'text-white' : 'text-gray-600'}`}
-          >
+          <div className={`h-5 w-5 ${isOpen || isEnabled ? 'text-white' : 'text-gray-600'}`}>
             <Bot className="h-5 w-5" />
           </div>
           <span className="hidden text-sm font-medium sm:inline">
-            {isEnabled ? (
-              <span
-                className="bg-gradient-to-r from-purple-200 via-pink-200 to-cyan-200 bg-clip-text font-bold text-transparent animate-gradient"
-              >
-                AI 어시스턴트
-              </span>
-            ) : (
-              'AI 어시스턴트'
-            )}
+            AI 어시스턴트
           </span>
         </div>
 
         {/* 활성화 상태 표시 */}
-        {(isOpen || isEnabled) && (
+        {isMounted && (isOpen || isEnabled) && (
           <div
-            className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white bg-green-400"
+            className="absolute -right-1 -top-1 h-3 w-3 animate-pulse rounded-full border-2 border-white bg-green-400"
             aria-hidden="true"
           />
         )}
