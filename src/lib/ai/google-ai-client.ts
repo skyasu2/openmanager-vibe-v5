@@ -42,3 +42,5 @@ if (process.env.NODE_ENV === 'development') {
   console.log(`  - NODE_ENV: ${process.env.NODE_ENV}`);
   console.log(`  - 실제 Google AI API 사용`);
 }
+
+// Force rebuild: 2025-10-14T06:45:00Z
