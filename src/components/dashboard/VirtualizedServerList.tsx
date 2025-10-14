@@ -2,10 +2,11 @@
 
 /**
  * 🚀 가상 스크롤 서버 리스트 (15개 전체 보기 전용)
- * react-window v2.2.1 기반 성능 최적화
+ * react-window v2.2.1 Grid 기반 가로 스크롤 구현
+ * 브라우저 너비에 맞게 한 줄로 표시, 가로 스크롤로 추가 서버 확인
  */
 
-import { List } from 'react-window';
+import { Grid } from 'react-window';
 import SafeServerCard from '@/components/dashboard/SafeServerCard';
 import { ServerCardErrorBoundary } from '@/components/debug/ComponentErrorBoundary';
 import { formatUptime, getAlertsCount } from './types/server-dashboard.types';
@@ -18,42 +19,40 @@ interface VirtualizedServerListProps {
   handleServerSelect: (server: Server) => void;
 }
 
-// react-window가 자동 제공하는 props
-interface AutoProvidedRowProps {
-  index: number;
+// react-window Grid가 자동 제공하는 props (cellProps로 전달하면 안됨)
+// ariaAttributes는 forbidden key이므로 포함하지 않음
+interface AutoProvidedCellProps {
+  columnIndex: number;
+  rowIndex: number;
   style: CSSProperties;
-  ariaAttributes: {
-    'aria-posinset': number;
-    'aria-setsize': number;
-    role: 'listitem';
-  };
 }
 
-// 사용자가 rowProps로 전달하는 props
-interface CustomRowProps {
+// 사용자가 cellProps로 전달하는 props (자동 제공 props 제외)
+interface CustomCellProps {
   servers: Server[];
   handleServerSelect: (server: Server) => void;
 }
 
-// 최종 Row 컴포넌트가 받는 props
-type RowComponentProps = AutoProvidedRowProps & CustomRowProps;
+// 최종 Cell 컴포넌트가 받는 props (자동 + 사용자)
+type CellComponentProps = AutoProvidedCellProps & CustomCellProps;
 
-// Row 컴포넌트 정의 (react-window v2.2.1 rowComponent 형식)
-const RowComponent = ({
-  index,
+// Cell 컴포넌트 정의 (react-window v2.2.1 Grid cellComponent 형식)
+const CellComponent = ({
+  columnIndex,
+  rowIndex,
   style,
   servers,
   handleServerSelect,
-}: RowComponentProps) => {
-  const server = servers[index];
+}: CellComponentProps) => {
+  const server = servers[columnIndex];
 
   if (!server) {
-    console.error(`⚠️ VirtualizedServerList: 서버[${index}]가 null 또는 undefined입니다.`);
+    console.error(`⚠️ VirtualizedServerList: 서버[${columnIndex}]가 null 또는 undefined입니다.`);
     return null;
   }
 
-  const serverId = server.id || `server-${index}`;
-  const serverName = server.name || `서버-${index + 1}`;
+  const serverId = server.id || `server-${columnIndex}`;
+  const serverName = server.name || `서버-${columnIndex + 1}`;
 
   let safeServerData;
   try {
@@ -113,7 +112,7 @@ const RowComponent = ({
       services: Array.isArray(server.services) ? server.services : [],
     };
   } catch (error) {
-    console.error(`⚠️ VirtualizedServerList: 서버[${index}] 데이터 매핑 오류:`, error);
+    console.error(`⚠️ VirtualizedServerList: 서버[${columnIndex}] 데이터 매핑 오류:`, error);
     safeServerData = {
       id: serverId,
       name: serverName,
@@ -145,14 +144,14 @@ const RowComponent = ({
   };
 
   return (
-    <div style={{ ...style, padding: '0 16px' }}>
+    <div style={{ ...style, padding: '16px 8px' }}>
       <ServerCardErrorBoundary key={`boundary-${serverId}`} serverId={serverId}>
         <SafeServerCard
           key={serverId}
           server={safeServerData}
           variant="compact"
           showRealTimeUpdates={true}
-          index={index}
+          index={columnIndex}
           onClick={safeHandleClick}
         />
       </ServerCardErrorBoundary>
@@ -172,8 +171,8 @@ export default function VirtualizedServerList({
   useEffect(() => {
     const updateDimensions = () => {
       setDimensions({
-        width: window.innerWidth - 64, // 좌우 패딩 제외
-        height: window.innerHeight - 300, // 헤더/푸터 제외
+        width: window.innerWidth - 64, // 뷰포트 너비 (좌우 패딩 제외)
+        height: window.innerHeight - 300, // 뷰포트 높이 (헤더/푸터 제외)
       });
     };
 
@@ -182,14 +181,15 @@ export default function VirtualizedServerList({
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-  // 서버 카드 높이 (고정)
-  const CARD_HEIGHT = 450;
+  // 서버 카드 크기 (고정)
+  const CARD_WIDTH = 380; // 카드 가로 폭
+  const CARD_HEIGHT = 500; // 카드 세로 높이
 
   return (
     <div className="w-full">
-      <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-3">
+      <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3">
         <div className="flex items-center gap-2">
-          <div className="text-green-600">
+          <div className="text-blue-600">
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -200,28 +200,28 @@ export default function VirtualizedServerList({
             </svg>
           </div>
           <div>
-            <p className="text-sm font-medium text-green-900">
-              ⚡ 가상 스크롤 활성화 (15개 전체 보기)
+            <p className="text-sm font-medium text-blue-900">
+              ⚡ 가로 스크롤 활성화 (15개 전체 보기)
             </p>
-            <p className="text-xs text-green-700">
-              보이는 영역만 렌더링하여 성능 최적화
+            <p className="text-xs text-blue-700">
+              한 줄로 표시, 가로 스크롤로 추가 서버 확인
             </p>
           </div>
         </div>
       </div>
 
-      <List
-        rowComponent={RowComponent}
-        rowCount={servers.length}
-        rowHeight={CARD_HEIGHT}
-        rowProps={{
+      <Grid<CustomCellProps>
+        cellComponent={CellComponent}
+        cellProps={{
           servers,
           handleServerSelect,
         }}
-        style={{
-          height: dimensions.height,
-          width: dimensions.width,
-        }}
+        columnCount={servers.length}
+        columnWidth={CARD_WIDTH}
+        defaultHeight={CARD_HEIGHT + 32}
+        defaultWidth={dimensions.width}
+        rowCount={1}
+        rowHeight={CARD_HEIGHT + 32}
         className="scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200"
       />
     </div>
