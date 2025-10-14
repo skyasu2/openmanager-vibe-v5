@@ -29,7 +29,7 @@ export type GuestModeType = typeof GUEST_MODE[keyof typeof GUEST_MODE];
  * 빌드 타임스탬프 (캐시 우회용)
  * @internal
  */
-export const BUILD_TIMESTAMP = '2025-10-14T07:20:00Z';
+export const BUILD_TIMESTAMP = '2025-10-14T09:27:00Z';
 
 /**
  * 현재 게스트 모드 설정을 반환합니다.
