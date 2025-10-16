@@ -231,6 +231,7 @@ corrected-cursor-mcp.json
 # AI Engine Context and Logs (not development artifacts)
 logs/ai-context/
 logs/ai-analysis/
+logs/ai-tools-health/
 data/vector-cache/
 **/summary-intent-analysis.json
 **/ai-context-*.json

@@ -309,6 +309,7 @@ claude mcp list                # 전체 서버 상태 확인
 **개발 환경**:
 - docs/claude/environment/wsl-optimization.md
 - docs/claude/environment/ai-tools-setup.md
+- docs/ai/ai-maintenance.md (AI CLI 도구 유지보수)
 - docs/claude/environment/workflows.md
 - docs/claude/environment/mcp/mcp-configuration.md
 
@@ -328,9 +329,10 @@ claude mcp list                # 전체 서버 상태 확인
 
 ## 📏 CLAUDE.md 크기 관리
 
-**현재 크기**: 255줄 (목표 달성! ✅)
+**현재 크기**: 359줄 (⚠️ 목표 초과 +59줄)
 **목표**: 200-300줄 유지
 **새 내용 추가 시**: Import 문서로 분리 또는 기존 내용 삭제 필수
+**TODO**: documentation-manager로 불필요한 섹션 정리
 
 ---
 
