@@ -1,0 +1,620 @@
+# AI Registry - Single Source of Truth (SSOT)
+# 모든 AI 도구, 서브에이전트, MCP 서버 정보 중앙 관리
+# 목적: 설정 분산 문제 해결, 변경 시 한 번만 수정
+
+version: "1.0.0"
+last_updated: "2025-10-16"
+project: "OpenManager VIBE v5.80.0"
+
+# ============================================================================
+# 1. External AI CLI Tools (외부 AI CLI 도구)
+# ============================================================================
+ai-tools:
+  # Codex - 실무 검증 전문가
+  codex:
+    name: "ChatGPT Codex CLI"
+    version: "GPT-5"
+    role: "실무 검증 전문가"
+    description: "버그 분석, 개선 제안, 실무 관점 검증"
+    philosophy: "사용자 지침을 정확히 따르고 결과를 재현 가능하게"
+    specialty:
+      - "다중 파일 버그 분석"
+      - "라인 단위 보고"
+      - "실무 개선 제안"
+    benchmark:
+      humaneval: "94%"
+      swe_bench: "74.5%"
+      token_savings: "93.7%"
+    authentication:
+      type: "API Key"
+      provider: "ChatGPT Plus ($20/월)"
+    usage_limits:
+      messages_per_5h: "30-150"
+      estimated_rpm: "6-30"
+    response_time:
+      typical: "2-13초"
+      max_timeout: "300초"
+    wrapper:
+      path: "scripts/ai-subagents/codex-wrapper.sh"
+      version: "v2.3.0"
+      timeout: "300초"
+      features:
+        - "타임아웃 보호"
+        - "결과 파일 저장"
+        - "에러 핸들링"
+    optimization:
+      query_length: "250단어 (최대 500단어)"
+      input_size: "100줄 (최대 200줄)"
+      clear_role: "구체적 역할 정의 필수"
+      avoid: "포괄적 평가, 모든 측면 분석"
+
+  # Gemini - 아키텍처 검증 전문가
+  gemini:
+    name: "Google Gemini CLI"
+    version: "2.5 Flash"
+    role: "아키텍처 검증 전문가"
+    description: "SOLID 검토, 설계 리뷰, 구조 분석"
+    philosophy: "구조적 무결성을 갖춘 효율성 - Senior Code Architect"
+    specialty:
+      - "SOLID 원칙 검증"
+      - "any 타입 제거"
+      - "TDD 워크플로우"
+    benchmark:
+      swe_bench: "54%"
+      test_coverage: "98.2%"
+      problem_discovery: "95%+"
+    authentication:
+      type: "OAuth"
+      provider: "Google (무료)"
+      cache: "캐시 인증"
+    usage_limits:
+      rpm: "60"
+      rpd: "1,000"
+      tier: "무료 개발자"
+    response_time:
+      typical: "11-70초"
+      max_timeout: "300초"
+    wrapper:
+      path: "scripts/ai-subagents/gemini-wrapper.sh"
+      version: "v2.3.0"
+      timeout: "300초"
+      features:
+        - "타임아웃 보호"
+        - "결과 파일 저장"
+        - "OAuth 재인증"
+    optimization:
+      approach: "Top-down 구조 분석"
+      focus: "아키텍처 패턴, SOLID 원칙"
+      avoid: "성능 분석, 실무 문제점"
+
+  # Qwen - 성능 검증 전문가
+  qwen:
+    name: "Qwen CLI"
+    version: "2.5 Coder"
+    role: "성능 검증 전문가"
+    description: "병목 분석, 알고리즘 최적화, 성능 개선"
+    philosophy: "1ms라도 빨라야 함 - Performance Engineer"
+    specialty:
+      - "알고리즘 최적화"
+      - "성능 병목점 분석"
+      - "수치 중심 데이터 분석"
+    benchmark:
+      humaneval_7b: "88.4%"
+      humaneval_32b: "92.7%"
+      mbpp: "84.5%"
+      math: "57.2%"
+    authentication:
+      type: "OAuth"
+      provider: "Qwen (무료)"
+    usage_limits:
+      rpm: "60"
+      rpd: "2,000"
+      tier: "무료 개발자"
+    response_time:
+      typical: "6-102초"
+      max_timeout: "600초"
+    wrapper:
+      path: "scripts/ai-subagents/qwen-wrapper.sh"
+      version: "v2.3.0"
+      timeout: "600초"
+      yolo_mode: true
+      features:
+        - "타임아웃 보호"
+        - "완전 무인 동작"
+        - "결과 파일 저장"
+    optimization:
+      recommended_mode: "Plan Mode (-p)"
+      approach: "수치 중심 분석"
+      focus: "성능 지표, 알고리즘 복잡도"
+      avoid: "아키텍처 설계, 실무 문제"
+
+# ============================================================================
+# 2. Claude Code Subagents (서브에이전트)
+# ============================================================================
+subagents:
+  # AI 교차 검증 시스템 (4개)
+  multi-ai-verification-specialist:
+    name: "Multi-AI 교차검증 전문가"
+    version: "v4.5.0"
+    category: "ai-verification"
+    trigger: '"AI 교차검증" 명시 시에만'
+    role: "3-AI 병렬 실행 자동화, Decision Log 작성"
+    tools:
+      - "Read"
+      - "Write"
+      - "Bash"
+      - "Edit"
+    process:
+      - "Bash Wrapper 병렬 실행"
+      - "실제 Codex, Gemini, Qwen 독립 답변 수집"
+      - "결과 종합 및 보고"
+    file_path: ".claude/agents/multi-ai-verification-specialist.md"
+    priority: "HIGH"
+
+  codex-specialist:
+    name: "Codex CLI 연동 - 실무 검증"
+    category: "ai-verification"
+    role: "검증 및 분석 전문가 (실제 개발은 Claude)"
+    specialty: "구현 검증, 버그 분석, 개선 제안"
+    output: "버그 3개 + 리팩토링 3개 + 개선 방향"
+    important: "분석/제안만, 실제 수정은 Claude가 수행"
+    file_path: ".claude/agents/codex-specialist.md"
+    priority: "MEDIUM"
+
+  gemini-specialist:
+    name: "Gemini CLI 연동 - 아키텍처 검증"
+    category: "ai-verification"
+    role: "아키텍처 검증 전문가 (실제 개발은 Claude)"
+    specialty: "시스템 설계, SOLID 검증, 구조 개선"
+    important: "검토/제안만, 실제 리팩토링은 Claude가 수행"
+    file_path: ".claude/agents/gemini-specialist.md"
+    priority: "MEDIUM"
+
+  qwen-specialist:
+    name: "Qwen CLI 연동 - 성능 검증"
+    category: "ai-verification"
+    role: "성능 검증 전문가 (실제 개발은 Claude)"
+    specialty: "알고리즘 최적화, 성능 병목 분석"
+    important: "분석/제안만, 실제 최적화는 Claude가 수행"
+    file_path: ".claude/agents/qwen-specialist.md"
+    priority: "MEDIUM"
+
+  # 시스템 설정 & 범용 (3개)
+  general-purpose:
+    name: "범용 목적 에이전트"
+    category: "system"
+    role: "복잡한 다단계 작업 자율 처리"
+    tools: ["*"]
+    file_path: ".claude/agents/general-purpose.md"
+    priority: "LOW"
+
+  statusline-setup:
+    name: "상태표시줄 설정"
+    category: "system"
+    role: "Claude Code 상태표시줄 설정"
+    tools: ["Read", "Edit"]
+    file_path: ".claude/agents/statusline-setup.md"
+    priority: "LOW"
+
+  output-style-setup:
+    name: "출력 스타일 생성"
+    category: "system"
+    role: "Claude Code 출력 스타일 생성"
+    tools: ["Read", "Write", "Edit", "Glob", "Grep"]
+    file_path: ".claude/agents/output-style-setup.md"
+    priority: "LOW"
+
+  # 전문 도구 (12개)
+  dev-environment-manager:
+    name: "개발 환경 관리자"
+    category: "development"
+    role: "WSL 최적화, Node.js 버전 관리"
+    proactive: true
+    tools: ["Read", "Write", "Edit", "Bash", "Glob", "LS"]
+    file_path: ".claude/agents/dev-environment-manager.md"
+    priority: "MEDIUM"
+
+  structure-refactor-specialist:
+    name: "구조 리팩토링 전문가"
+    category: "development"
+    role: "아키텍처 패턴, 모듈화, 의존성 관리"
+    proactive: true
+    tools: ["Read", "Write", "Edit", "MultiEdit", "Glob", "TodoWrite"]
+    file_path: ".claude/agents/structure-refactor-specialist.md"
+    priority: "MEDIUM"
+
+  database-administrator:
+    name: "데이터베이스 관리자"
+    category: "backend"
+    role: "Supabase PostgreSQL, 쿼리 최적화, RLS"
+    tools:
+      - "mcp__supabase__execute_sql"
+      - "mcp__supabase__list_tables"
+      - "mcp__supabase__list_migrations"
+    file_path: ".claude/agents/database-administrator.md"
+    priority: "HIGH"
+
+  vercel-platform-specialist:
+    name: "Vercel 플랫폼 전문가"
+    category: "backend"
+    role: "배포 자동화, Edge Functions, 무료 티어"
+    tools:
+      - "mcp__vercel__list_projects"
+      - "mcp__vercel__get_deployment"
+      - "mcp__vercel__deploy_to_vercel"
+    file_path: ".claude/agents/vercel-platform-specialist.md"
+    priority: "HIGH"
+
+  gcp-cloud-functions-specialist:
+    name: "GCP Cloud Functions 전문가"
+    category: "backend"
+    role: "GCP 배포, 최적화, 무료 티어"
+    tools: ["Read", "Write", "Edit", "Bash", "Grep"]
+    file_path: ".claude/agents/gcp-cloud-functions-specialist.md"
+    priority: "LOW"
+
+  code-review-specialist:
+    name: "코드 리뷰 전문가"
+    category: "quality"
+    role: "TypeScript strict, PR 리뷰, shadcn/ui 품질"
+    tools: ["Read", "Grep", "Glob", "Bash", "TodoWrite"]
+    file_path: ".claude/agents/code-review-specialist.md"
+    priority: "HIGH"
+
+  debugger-specialist:
+    name: "디버깅 전문가"
+    category: "quality"
+    role: "근본 원인 분석, 버그 해결"
+    proactive: true
+    tools: ["Read", "Grep", "Bash", "LS", "Glob"]
+    file_path: ".claude/agents/debugger-specialist.md"
+    priority: "HIGH"
+
+  security-specialist:
+    name: "보안 전문가"
+    category: "quality"
+    role: "취약점 스캔, 인증/인가, 배포 전 감사"
+    priority_level: "CRITICAL"
+    tools: ["Read", "Grep", "Bash", "Glob"]
+    file_path: ".claude/agents/security-specialist.md"
+    priority: "CRITICAL"
+
+  test-automation-specialist:
+    name: "테스트 자동화 전문가"
+    category: "testing"
+    role: "Vitest, Playwright E2E, 커버리지 관리"
+    proactive: true
+    smart_diagnosis: true
+    tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
+    file_path: ".claude/agents/test-automation-specialist.md"
+    priority: "HIGH"
+
+  documentation-manager:
+    name: "문서 관리 전문가"
+    category: "documentation"
+    role: "JBGE 원칙, 루트 파일 정리"
+    proactive: true
+    tools: ["Read", "Write", "Edit", "MultiEdit", "Glob", "Grep", "LS"]
+    file_path: ".claude/agents/documentation-manager.md"
+    priority: "MEDIUM"
+
+  ui-ux-specialist:
+    name: "UI/UX 전문가"
+    category: "frontend"
+    role: "사용자 인터페이스 개선, 디자인 시스템"
+    tools: ["Read", "Write", "Edit", "MultiEdit", "Glob", "Grep"]
+    file_path: ".claude/agents/ui-ux-specialist.md"
+    priority: "MEDIUM"
+
+# ============================================================================
+# 3. MCP Servers (MCP 서버)
+# ============================================================================
+mcp-servers:
+  # 플랫폼 & 인프라
+  vercel:
+    name: "Vercel Platform"
+    type: "HTTP"
+    url: "https://mcp.vercel.com"
+    version: "v2.0.5+"
+    status: "✅ Connected"
+    priority: "HIGH"
+    use_case:
+      - "배포 정보 조회 (89배 빠름)"
+      - "환경변수 관리"
+      - "빌드 로그 확인"
+    optimization:
+      vs_cli: "89배 빠름 (1초 vs 89초)"
+      token_savings: "82%"
+    tools:
+      - "mcp__vercel__list_projects"
+      - "mcp__vercel__get_deployment"
+      - "mcp__vercel__list_deployments"
+      - "mcp__vercel__get_deployment_build_logs"
+    authentication: "OAuth (안정화)"
+
+  supabase:
+    name: "Supabase PostgreSQL"
+    type: "CLI"
+    command: "npx -y @supabase/mcp-server-supabase@latest"
+    status: "✅ Connected"
+    priority: "HIGH"
+    use_case:
+      - "테이블/RLS/쿼리 작업"
+      - "마이그레이션 관리"
+      - "보안 감사"
+    tools:
+      - "mcp__supabase__execute_sql"
+      - "mcp__supabase__list_tables"
+      - "mcp__supabase__list_migrations"
+      - "mcp__supabase__apply_migration"
+      - "mcp__supabase__get_advisors"
+
+  # 개발 도구
+  serena:
+    name: "Serena Code Intelligence"
+    type: "Native"
+    status: "✅ Connected"
+    priority: "HIGH"
+    use_case:
+      - "코드 분석 (3-5배 빠름)"
+      - "심볼 기반 검색"
+      - "구조 파악"
+    optimization:
+      vs_read: "3-5배 빠름"
+      recommended: "500줄 이상 파일"
+      critical: "skip_ignored_files: true (48배 빠름)"
+    tools:
+      - "mcp__serena__get_symbols_overview"
+      - "mcp__serena__find_symbol"
+      - "mcp__serena__search_for_pattern"
+      - "mcp__serena__replace_regex"
+    caution:
+      - "루트 작업 시 skip_ignored_files: true 필수"
+      - "대규모 검색 시 relative_path 지정"
+
+  context7:
+    name: "Context7 Library Docs"
+    type: "CLI"
+    command: "npx -y @upstash/context7-mcp"
+    status: "✅ Connected"
+    priority: "HIGH"
+    use_case:
+      - "라이브러리 공식 문서 (100% 정확)"
+      - "최신 버전 정보"
+      - "API 레퍼런스"
+    optimization:
+      vs_websearch: "100% 정확 (WebSearch 70%)"
+      token_savings: "80%"
+    tools:
+      - "mcp__context7__resolve_library_id"
+      - "mcp__context7__get_library_docs"
+
+  playwright:
+    name: "Playwright E2E Testing"
+    type: "CLI"
+    command: "npx -y @executeautomation/playwright-mcp-server"
+    status: "✅ Connected"
+    priority: "MEDIUM"
+    use_case:
+      - "E2E 테스트 자동화"
+      - "브라우저 제어"
+      - "스크린샷 캡처"
+    tools:
+      - "mcp__playwright__playwright_navigate"
+      - "mcp__playwright__playwright_screenshot"
+      - "mcp__playwright__playwright_click"
+
+  # 유틸리티
+  shadcn-ui:
+    name: "shadcn/ui Components"
+    type: "CLI"
+    command: "npx -y @jpisnice/shadcn-ui-mcp-server@latest"
+    status: "✅ Connected"
+    priority: "MEDIUM"
+    use_case:
+      - "최신 v4 컴포넌트"
+      - "공식 베스트 프랙티스"
+    tools:
+      - "mcp__shadcn_ui__get_component"
+      - "mcp__shadcn_ui__list_components"
+      - "mcp__shadcn_ui__get_component_demo"
+
+  memory:
+    name: "Memory Knowledge Graph"
+    type: "CLI"
+    command: "npx -y @modelcontextprotocol/server-memory"
+    status: "✅ Connected"
+    priority: "LOW"
+    use_case:
+      - "엔티티 관계 저장"
+      - "지식 그래프 구축"
+    tools:
+      - "mcp__memory__create_entities"
+      - "mcp__memory__search_nodes"
+      - "mcp__memory__read_graph"
+
+  time:
+    name: "Time Zone Converter"
+    type: "Python"
+    command: "/home/sky-note/.local/bin/uvx mcp-server-time"
+    status: "✅ Connected"
+    priority: "LOW"
+    use_case:
+      - "시간대 변환"
+      - "정확한 시간 계산"
+    tools:
+      - "mcp__time__get_current_time"
+      - "mcp__time__convert_time"
+
+  sequential-thinking:
+    name: "Sequential Thinking"
+    type: "CLI"
+    command: "npx -y @modelcontextprotocol/server-sequential-thinking@latest"
+    status: "✅ Connected"
+    priority: "MEDIUM"
+    use_case:
+      - "복잡한 분석 (다단계 추론)"
+      - "근본 원인 분석"
+    tools:
+      - "mcp__sequential_thinking__sequentialthinking"
+
+# ============================================================================
+# 4. Workflows (워크플로우)
+# ============================================================================
+workflows:
+  # 3-AI 교차검증
+  cross-verification:
+    name: "3-AI 교차검증"
+    trigger: '"AI 교차검증" 명시 시'
+    method: "서브에이전트 위임 (multi-ai-verification-specialist)"
+    process:
+      phase_1: "Claude Code가 초안 제시"
+      phase_2: "Multi-AI Verification Specialist 호출"
+      phase_3: "서브에이전트가 3-AI 병렬 실행 자동화"
+      phase_4: "Claude Code가 결과 종합 → 최종 결정"
+    success_rate: "100% (3/3 AI)"
+    response_time: "Codex 13초, Gemini 70초, Qwen 102초"
+    documentation: "docs/ai/3-ai-query-optimization-guide.md"
+
+  # MCP 우선 사용
+  mcp-first:
+    name: "MCP 우선 사용 전략"
+    principle: "MCP를 우선 고려하되, 상황에 맞게 유연하게"
+    priority:
+      code_analysis: "Serena > Read (500줄 이상)"
+      vercel_info: "Vercel MCP > CLI (89배 빠름)"
+      library_docs: "Context7 > WebSearch (100% 정확)"
+      ui_components: "Shadcn-ui MCP (최신 v4)"
+    optimization:
+      toggle: "@-mention으로 특정 서버만 활성화 (10-18% 추가 절약)"
+      checklist: "CLAUDE.md의 'MCP 활용도 극대화 체크리스트' 참조"
+    documentation: "docs/claude/environment/mcp/mcp-priority-guide.md"
+
+  # 개발 워크플로우
+  development:
+    name: "일일 개발 워크플로우"
+    steps:
+      morning:
+        - "code-review-specialist: 어제 커밋 검토"
+        - "./scripts/mcp-health-check.sh (주 1회)"
+      development:
+        - "debugger-specialist: 에러 근본 원인 분석"
+        - "qwen-specialist: 로직 최적화"
+      deployment:
+        - "security-specialist: 보안 체크리스트"
+        - "test-automation-specialist: 전체 테스트 진단"
+
+# ============================================================================
+# 5. Maintenance (유지보수)
+# ============================================================================
+maintenance:
+  # 버전 관리
+  version_check:
+    frequency: "월 1회"
+    items:
+      - "Codex/Gemini/Qwen 버전 확인"
+      - "Claude Code 버전 업데이트"
+      - "MCP 서버 버전 확인"
+      - "서브에이전트 버전 동기화"
+    checklist_file: "docs/ai-maintenance.md"
+
+  # MCP 건강 체크
+  mcp_health:
+    frequency: "주 1회 (월요일)"
+    script: "./scripts/mcp-health-check.sh"
+    log_dir: "logs/mcp-health/"
+    expected: "9/9 연결 성공"
+    action_required: "7개 이상 성공 → 확인, 6개 이하 → 긴급 조치"
+
+  # AI Tools 건강 체크
+  ai_tools_health:
+    frequency: "필요 시 (on-demand)"
+    trigger:
+      - "AI 도구 오류 발생 시"
+      - "Claude/사용자가 상태 확인 필요 시"
+      - "AI 교차검증 실패 시"
+    script: "./scripts/ai-tools-health-check.sh"
+    log_dir: "logs/ai-tools-health/"
+    tools:
+      - "Claude Code (v2.0.14)"
+      - "Codex CLI (v0.45.0)"
+      - "Gemini CLI (v0.8.1)"
+      - "Qwen CLI (v0.0.14)"
+    checks:
+      - "설치 여부 확인"
+      - "버전 확인"
+      - "대화 테스트 (Codex, Gemini, Qwen)"
+      - "업그레이드 가능 여부"
+    expected: "4/4 설치됨"
+    action_required: "3개 이상 → 확인, 2개 이하 → 설치 필요"
+
+  # 문서 동기화
+  docs_sync:
+    frequency: "월 1회"
+    items:
+      - "CLAUDE.md 크기 체크 (200-300줄 유지)"
+      - "AI 역할 분담 원칙 일치 확인"
+      - "서브에이전트 목록 동기화"
+      - "MCP 서버 목록 동기화"
+    target_files:
+      - "CLAUDE.md"
+      - "docs/ai/subagents-complete-guide.md"
+      - "docs/claude/environment/multi-ai-strategy.md"
+
+  # 성능 모니터링
+  performance:
+    frequency: "월 1회"
+    metrics:
+      - "토큰 효율: 82% 유지 (목표 85%)"
+      - "MCP 활용도: 90-100/100"
+      - "3-AI 성공률: 100% (3/3)"
+      - "개발 생산성: 3-5배"
+    script: "./scripts/monthly-metrics-report.sh (예정)"
+
+  # 스택 드리프트 추적
+  stack_drift:
+    frequency: "월 1회"
+    monitoring:
+      - "Codex/Claude/Gemini/Qwen API 변경 사항"
+      - "MCP 서버 Breaking changes"
+      - "서브에이전트 호환성"
+    alert: "자동 알림 없음 → 월간 체크리스트로 수동 확인"
+
+# ============================================================================
+# 6. Quick Reference (빠른 참조)
+# ============================================================================
+quick_reference:
+  # 자주 사용하는 명령어
+  commands:
+    mcp_health: "./scripts/mcp-health-check.sh"
+    ai_verification: 'Task multi-ai-verification-specialist "[작업]"'
+    subagent: 'Task [에이전트명] "[작업 요청]"'
+    codex_direct: 'codex exec "[질문]"'
+    gemini_direct: 'gemini "[질문]"'
+    qwen_direct: 'qwen -p "[질문]"'
+
+  # 문서 경로
+  documentation:
+    main: "CLAUDE.md"
+    subagents: "docs/ai/subagents-complete-guide.md"
+    multi_ai: "docs/claude/environment/multi-ai-strategy.md"
+    mcp_priority: "docs/claude/environment/mcp/mcp-priority-guide.md"
+    query_optimization: "docs/ai/3-ai-query-optimization-guide.md"
+    decision_logs: "logs/ai-decisions/"
+
+  # 긴급 연락처
+  support:
+    claude_code: "https://github.com/anthropics/claude-code/issues"
+    documentation: "https://docs.claude.com/en/docs/claude-code/"
+
+# ============================================================================
+# 7. Notes (주의사항)
+# ============================================================================
+notes:
+  - "이 파일은 SSOT (Single Source of Truth)입니다."
+  - "AI 설정 변경 시 이 파일을 먼저 업데이트하세요."
+  - "다른 파일(.claude/, docs/)은 이 파일을 참조합니다."
+  - "월 1회 버전 체크 및 동기화 필수"
+  - "문제 발생 시: claude mcp list 또는 ./scripts/mcp-health-check.sh"
+
+# End of AI Registry

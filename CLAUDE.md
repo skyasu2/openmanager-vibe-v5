@@ -36,6 +36,30 @@ Esc Esc                     # 빠른 복원
 
 ---
 
+## 📊 실사용 피드백 진행 중 (2주)
+
+**목표**: Phase 1 + 1.5의 실제 효과 측정
+
+### 매일 체크리스트 (5분)
+```bash
+# 개발 시작 전 확인
+cat logs/feedback/week1-checklist.md
+```
+
+### 측정 항목
+- MCP 활용도: 65% → 80%+ (목표 90%)
+- 3-AI 성공률: 67% → 90%+ (목표 100%)
+- 평균 응답 시간: 157초 → 90초 이하
+- 토큰 효율: 55토큰 유지 또는 개선
+
+### 주간 리뷰
+- **Week 1**: 2025-10-22 (화) 오후
+- **Week 2**: 2025-10-29 (화) 오후
+
+**상세**: logs/feedback/week1-checklist.md
+
+---
+
 ## 💡 핵심 원칙
 
 1. **Type-First**: 타입 정의 → 구현 → 리팩토링
@@ -51,16 +75,22 @@ Esc Esc                     # 빠른 복원
 **⚠️ 트리거**: "AI 교차검증" 명시 시에만 활성화 (일반 개발은 Claude 단독)
 
 **4-AI 역할**:
-- **Claude Code**: 최종 결정자 (3-AI 평가/통합)
-- **Codex**: 실무 버그 수정 (2초)
-- **Gemini**: SOLID 아키텍처 (11초)
-- **Qwen**: 성능 최적화 (6초)
+- **Claude Code**: 메인 개발자 (코딩, 문서, 모든 구현) + 최종 결정자
+- **Codex**: 실무 검증 (버그 분석, 개선 제안) - 2초
+- **Gemini**: 아키텍처 검증 (SOLID 검토, 설계 리뷰) - 11초
+- **Qwen**: 성능 검증 (병목 분석, 최적화 제안) - 6초
 
-**호출 조건**:
-- 복잡한 버그 (근본 원인 불명확)
-- 아키텍처 결정 (SOLID 검토, 대규모 리팩토링)
-- 성능 이슈 (병목점 분석, 알고리즘 최적화)
-- 기술 선택 (다양한 관점 필요)
+**핵심 원칙**:
+- ✅ **개발/구현**: Claude Code 전담
+- ✅ **검증/리뷰**: Codex/Gemini/Qwen (사용자 명시 시만)
+- ⚠️ **예외**: 사용자가 특정 AI에게 직접 개발 지시한 경우만
+  - 예: "Codex야 이 코드 짜줘" - OK (명시적 지시)
+
+**검증 호출 조건**:
+- 복잡한 버그 (근본 원인 불명확) → Codex 검증
+- 아키텍처 결정 (SOLID 검토, 대규모 리팩토링) → Gemini 검증
+- 성능 이슈 (병목점 분석, 알고리즘 최적화) → Qwen 검증
+- 종합 검토 (다양한 관점 필요) → 3-AI 교차검증
 
 **사용법**: 
 ```bash
@@ -90,6 +120,7 @@ Task [에이전트명] "[작업 요청]"
 - **test-automation-specialist**: E2E 테스트
 
 **전체 목록**: @docs/ai/subagents-complete-guide.md
+**설정 레지스트리**: @config/ai/registry.yaml (SSOT)
 
 ---
 
@@ -171,6 +202,45 @@ npm run test:fast           # 21초 (44% 개선)
 **루트 작업 시 필수**: `skip_ignored_files: true` (48배 빠름)
 **대규모 검색**: 특정 디렉토리 지정 (`relative_path: "src"`)
 
+### 📋 MCP 활용도 극대화 체크리스트 ⭐
+
+**목표**: 65/100 → 90-100 (35% 향상 가능)
+
+#### ✅ 매번 확인할 항목
+
+**1. 코드 분석 시**:
+- [ ] 500줄 이상 파일 → Serena 우선 (Read는 100줄 미만만)
+- [ ] 루트 디렉토리 작업 → `skip_ignored_files: true` 필수 (48배 빠름)
+- [ ] 대규모 검색 → `relative_path: "src"` 지정 (타임아웃 방지)
+
+**2. 정보 조회 시**:
+- [ ] Vercel 정보 → MCP 우선 (CLI는 89배 느림)
+- [ ] 라이브러리 문서 → Context7 우선 (WebSearch는 70% 정확)
+- [ ] UI 컴포넌트 → Shadcn-ui MCP (최신 v4 보장)
+
+**3. 토큰 절약 시**:
+- [ ] 특정 서버만 필요 → @-mention 활용 (추가 10-18% 절약)
+- [ ] 예: `@serena 구조 분석`, `@context7 Next.js 문서`
+
+#### 🎯 빠른 참조
+
+```bash
+# ✅ 올바른 사용 (Serena)
+mcp__serena__get_symbols_overview("file.tsx")
+mcp__serena__find_symbol("MyComponent", { skip_ignored_files: true })
+
+# ✅ 올바른 사용 (@-mention)
+@serena 이 컴포넌트 구조 분석  # Serena만 활성화
+@vercel 최신 배포 상태        # Vercel만 활성화
+
+# ❌ 비효율적 패턴
+Read("large-file.tsx")         # 500줄 이상은 Serena 사용
+WebSearch("Next.js 공식 문서") # Context7이 100% 정확
+vercel ls --token $TOKEN       # MCP가 89배 빠름
+```
+
+**기대 효과**: MCP 활용도 +35%, 토큰 효율 82% → 85%+
+
 ---
 
 ## 🎯 현재 상태 (2025-10-15)
@@ -205,9 +275,24 @@ npm run build  # 로컬 테스트
 # → Vercel 로그 확인
 ```
 
+**AI CLI 도구 문제**:
+```bash
+./scripts/ai-tools-health-check.sh  # AI 도구 헬스 체크 (Codex/Gemini/Qwen/Claude)
+cat logs/ai-tools-health/$(date +%Y-%m-%d).log  # 로그 확인
+```
+
 **MCP 문제**:
 ```bash
-claude mcp list
+claude mcp list                # 전체 서버 상태 확인
+./scripts/mcp-health-check.sh  # 자동 헬스 체크 (로그 저장)
+```
+
+**필요 시 체크** (오류 발생 시, 상태 확인 필요 시):
+```bash
+# AI CLI 도구 헬스 체크 (필요 시)
+./scripts/ai-tools-health-check.sh
+
+# MCP 서버 헬스 체크 (주 1회 권장)
 ./scripts/mcp-health-check.sh
 ```
 

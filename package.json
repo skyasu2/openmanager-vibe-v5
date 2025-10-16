@@ -67,6 +67,8 @@
     "lighthouse:local": "NODE_ENV=production npm run build && npm run start & sleep 5 && lhci collect --url=http://localhost:3000 && kill %1",
     "performance:alerts": "node scripts/performance/performance-alert-system.js",
     "type-check": "node scripts/dev/tsc-wrapper.js --noEmit",
+    "type-check:fast": "node scripts/dev/tsc-wrapper.js --noEmit",
+    "test:ci:fast": "vitest run --config config/testing/vitest.config.minimal.ts",
     "prepare": "husky || true",
     "validate": "npm run type-check && npm run lint:quick",
     "validate:all": "npm run type-check && npm run lint && npm run test",
