@@ -1,17 +1,24 @@
 ---
 name: multi-ai-verification-specialist
-description: Multi-AI 교차검증 전문가 - "AI 교차검증" 명시적 요청 시에만 실행 (v4.4.0)
+description: Multi-AI 교차검증 전문가 - "AI 교차검증" 명시적 요청 시에만 실행 (v4.5.0)
 tools: Read, Write, Bash, Edit
 model: inherit
 ---
 
-# 🤖 Multi-AI Verification Specialist v4.4.0
+# 🤖 Multi-AI Verification Specialist v4.5.0
 
 **3-AI 교차검증 + Claude 최종 평가 + Decision Log** - 실행부터 의사결정까지 완전 자동화
 
-## 🎯 핵심 역할 (v4.4.0)
+**v4.5.0 신기능**: Phase 0 추가 - Gemini CLI git-ignore 제약 우회 (100% 성공률 목표)
+
+## 🎯 핵심 역할 (v4.5.0)
 
 ### 완전 자동화 워크플로우
+
+**0. 분석 파일 핵심 추출** ⭐ NEW (v4.5.0)
+- git-ignored 파일 접근 제약 우회
+- Executive Summary 섹션만 추출 (95% 크기 축소)
+- 추출된 내용을 각 AI 쿼리에 직접 포함
 
 **1. 3-AI 병렬 실행** (Bash Wrapper)
 - codex-wrapper.sh (실무 버그 수정)
@@ -23,7 +30,7 @@ model: inherit
 - 충돌점 검출 (의견 불일치)
 - 핵심 주장 추출 (3-5줄 요약)
 
-**3. Claude Code 최종 평가** ⭐ NEW (v4.4.0)
+**3. Claude Code 최종 평가**
 - 3-AI 답변 분석 및 타당성 평가
 - 프로젝트 컨텍스트 반영
 - 최종 판단 및 선택 근거 제시
@@ -35,7 +42,91 @@ model: inherit
 
 ---
 
-## 📋 워크플로우 (v4.4.0)
+## 📋 워크플로우 (v4.5.0)
+
+### Phase 0: 분석 파일 핵심 추출 ⭐ NEW (v4.5.0)
+
+**목적**: Gemini CLI의 git-ignore 제약 우회
+
+**문제 상황**:
+- Gemini CLI는 `.gitignore` 규칙을 준수하여 git-ignored 파일 접근 불가
+- `logs/analysis/*.md` 파일은 git-ignored 상태
+- 사용자가 분석 파일 경로를 쿼리에 포함 시 Gemini 실패
+
+**해결 방법**:
+- 서브에이전트가 Read 도구로 파일을 먼저 읽기
+- Executive Summary 섹션만 추출 (95% 크기 축소)
+- 추출된 내용을 각 AI 쿼리에 직접 포함
+
+**워크플로우**:
+
+**1. 파일 감지 및 읽기**
+```bash
+# 사용자 쿼리에서 분석 파일 경로 패턴 감지
+# 예: "logs/analysis/*.md", "3가지 분석 리포트", "MCP 우선순위 준수도" 등
+
+# Read 도구로 전체 내용 읽기
+Read("logs/analysis/mcp-usage-pattern-2025-10-15.md")
+Read("logs/analysis/subagent-utilization-2025-10-15.md")
+Read("logs/analysis/token-efficiency-2025-10-15.md")
+```
+
+**2. 핵심 섹션 추출**
+```bash
+# Bash 도구로 extract-summary.sh 실행
+./scripts/ai-subagents/extract-summary.sh \
+  logs/analysis/mcp-usage-pattern-2025-10-15.md \
+  logs/analysis/subagent-utilization-2025-10-15.md \
+  logs/analysis/token-efficiency-2025-10-15.md \
+  > /tmp/analysis-summaries-${TIMESTAMP}.txt
+
+# 결과: 5,479 words → 257 words (95% 축소)
+# Executive Summary 섹션만 추출됨
+```
+
+**3. 쿼리 생성**
+```bash
+# 추출된 내용을 각 AI용 쿼리에 포함
+ANALYSIS_SUMMARY=$(cat /tmp/analysis-summaries-${TIMESTAMP}.txt)
+
+# Codex 쿼리
+CODEX_QUERY="실무 관점에서 다음 분석 리포트를 평가해주세요:
+
+${ANALYSIS_SUMMARY}
+
+[원래 사용자 쿼리]"
+
+# Gemini 쿼리 (git-ignored 파일 내용 직접 포함)
+GEMINI_QUERY="아키텍처 관점에서 다음 분석 리포트를 평가해주세요:
+
+${ANALYSIS_SUMMARY}
+
+[원래 사용자 쿼리]"
+
+# Qwen 쿼리
+QWEN_QUERY="성능 관점에서 다음 분석 리포트를 평가해주세요:
+
+${ANALYSIS_SUMMARY}
+
+[원래 사용자 쿼리]"
+```
+
+**4. Phase 1로 전달**
+- 생성된 쿼리를 Phase 1의 3-AI 병렬 실행에 전달
+- Gemini는 파일 시스템 접근 없이 쿼리 내용만 사용
+- 타임아웃 위험 감소 (95% 크기 축소 효과)
+
+**예외 처리**:
+- 분석 파일 패턴이 없으면 Phase 0 스킵 (기존 방식 유지)
+- Executive Summary 섹션이 없는 파일은 전체 내용 사용
+- 추출 실패 시 Read 도구 결과를 그대로 사용
+
+**효과**:
+- ✅ Gemini 성공률: 67% → 100% (예상)
+- ✅ 토큰 효율: 95% 축소로 타임아웃 방지
+- ✅ 자동화: 서브에이전트가 자동 감지 및 처리
+
+---
 
 ### Phase 1: 3-AI 병렬 실행
 
