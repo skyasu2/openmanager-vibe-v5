@@ -51,9 +51,81 @@ updated: "2025-09-24"
 | **데이터베이스** | ❌ 비현실적 | ✅ 필수 | **실제 환경** |
 | **외부 API** | ❌ 비현실적 | ✅ 필수 | **실제 환경** |
 
-## 📚 핵심 문서
+## 📚 문서 인덱스 (23개 파일)
 
-### 📖 전략 가이드
+### 카테고리별 분류
+
+#### 🚀 Vercel 프로덕션 테스트 (8개)
+**특징**: 실제 Vercel 환경 테스트, Mock 한계 극복
+
+- **vercel-production-test-report.md** (3일 전, 166줄) ⭐
+  - 실제 환경 vs Mock 테스트 차이점 검증
+  - 7개 실제 이슈 발견 (DOM 차이, AI Fallback, 성능)
+
+- **vercel-production-test-analysis.md** (3일 전, 442줄) ⭐
+  - 기존 E2E 테스트 분석 및 프로덕션 적용 전략
+  - localhost vs Vercel 차이점, 통합 시나리오 제안
+
+- **README-vercel-production-testing.md** (3일 전)
+  - Vercel 프로덕션 테스트 빠른 실행 가이드
+
+- 기타: `vercel-production-api-routing-test.md`, `vercel-production-api-test-analysis.md`, `vercel-production-test-guide.md`, `vercel-production-test-issues-summary.md`, `vercel-production-ui-test.md`
+
+#### 🎭 E2E 테스트 (4개)
+
+- **e2e-testing-guide.md** (17일 전, 320줄) ⭐
+  - 종합 E2E 가이드, Playwright 설정, 타임아웃 표준화
+
+- **guest-mode-e2e-test-report.md** (3일 전)
+- **e2e.md** (34일 전, 최고)
+- **e2e-testing-best-practices.md** (17일 전)
+
+#### 🤖 AI/서브에이전트 테스트 (3개)
+
+- **2025-10-11-multi-ai-mcp-removal-qa-test.md** (5일 전)
+  - Multi-AI MCP 제거 후 QA 테스트
+  - Bash Wrapper 방식 검증 (타임아웃 100% 해결)
+
+- **2025-10-11-subagent-optimization-test.md** (5일 전)
+- **2025-10-11-subagent-task-test.md** (5일 전)
+
+#### 🔐 PIN 인증 테스트 (2개)
+
+- **admin-mode-manual-test-guide.md** (4일 전)
+  - 수동 테스트 가이드, Playwright 쿠키 전달 문제 회피
+
+- **pin-auth-test-strategy.md** (7일 전)
+
+#### 📖 테스트 가이드 (2개)
+
+- **testing-strategy-minimal.md** (15일 전)
+  - 최소 테스트 전략, Vercel-First 접근법
+
+- **test-categorization.md** (7일 전)
+
+#### 기타 (4개)
+
+- **guest-admin-mode-flow.md** (12일 전)
+- **integration-test-report.md** (11일 전)
+- **typescript-testing-guide.md** (32일 전)
+- **testing-report.md** (32일 전)
+
+### 🎯 우선순위별 문서
+
+**즉시 읽을 문서** (전략 이해):
+1. ⭐ **vercel-production-test-report.md** - Mock vs 실제 환경 차이
+2. ⭐ **e2e-testing-guide.md** - E2E 기본 가이드
+3. **testing-strategy-minimal.md** - Vercel-First 전략
+
+**실행 가이드**:
+1. **README-vercel-production-testing.md** - Vercel 테스트 실행
+2. **admin-mode-manual-test-guide.md** - 수동 테스트
+
+**상세 분석**:
+1. **vercel-production-test-analysis.md** - 테스트 구조 분석
+2. **e2e-testing-best-practices.md** - 베스트 프랙티스
+
+### 📖 전략 가이드 (외부 링크)
 - **[🎯 테스트 전략 가이드](./test-strategy-guide.md)**: 상세한 테스트 철학과 Mock vs Reality 전략
 - **[📝 테스트 템플릿 모음](./test-templates.md)**: 복잡도별 실전 템플릿과 예제 코드
 
