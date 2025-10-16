@@ -1,7 +1,7 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-echo "🔍 Pre-push: Smart validation (변경된 파일만, ~20초 예상)..."
+echo "🔍 Pre-push: Type-safe validation (~60초 예상)..."
 START_TIME=$(date +%s)
 
 # 1. 빠른 유닛 테스트 (11초)
@@ -12,14 +12,24 @@ npm run test:super-fast || {
   exit 1
 }
 
-# 2. 민감 파일 체크 (보안)
+# 2. TypeScript 타입 체크 (CRITICAL - 프로덕션 안전성)
+echo "🔍 Type checking..."
+npm run type-check || {
+  echo "❌ TypeScript errors found - push blocked"
+  echo "💡 Fix: npm run type-check"
+  echo "⚠️  CRITICAL: Type errors must be fixed before push"
+  echo "   (Vercel may deploy broken code if this is skipped)"
+  exit 1
+}
+
+# 3. 민감 파일 체크 (보안)
 echo "🔒 Security check..."
 if git diff origin/main...HEAD --name-only 2>/dev/null | grep -E '\.(env|key|pem)$'; then
   echo "❌ 민감한 파일이 포함되어 있습니다"
   exit 1
 fi
 
-# 3. package.json 검증
+# 4. package.json 검증
 echo "📦 Checking package.json..."
 node -e "JSON.parse(require('fs').readFileSync('package.json', 'utf8'))" || {
   echo "❌ package.json has syntax errors"
@@ -30,5 +40,6 @@ END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
 
 echo "✅ Pre-push validation passed in ${DURATION}s"
-echo "🚀 Ready to push"
-echo "💡 Full validation (type-check + build + lint) will run in Vercel CI/CD"
+echo "🚀 Ready to push - Type-safe guaranteed!"
+echo "💡 CI will run: build + lint:strict"
+echo "🛡️  Protection: Type errors blocked at local → Vercel deployment safe"
