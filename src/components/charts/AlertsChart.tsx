@@ -5,11 +5,10 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
   ResponsiveContainer,
   Cell,
+  Tooltip,
 } from 'recharts';
-import { SafeBarProps, ExtendedTooltipProps, ExtendedXAxisProps, ExtendedYAxisProps, SafeCartesianGridProps } from '@/types/CustomRechartsTypes';
 
 interface ChartDataPoint {
   name: string;
@@ -82,29 +81,20 @@ const AlertsChart = memo<AlertsChartProps>(({ data }) => {
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
-            <CartesianGrid {...({ strokeDasharray: "3 3", stroke: "#f0f0f0" } as SafeCartesianGridProps)} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis
-              {...({
-                dataKey: "name",
-                tick: { fontSize: 12 },
-                tickLine: false,
-                axisLine: false
-              } as ExtendedXAxisProps)}
+              dataKey="name"
+              tick={{ fontSize: 12 }}
+              tickLine={false}
+              axisLine={false}
             />
-            <YAxis 
-              {...({
-                tick: { fontSize: 12 },
-                tickLine: false,
-                axisLine: false
-              } as ExtendedYAxisProps)}
+            <YAxis
+              tick={{ fontSize: 12 }}
+              tickLine={false}
+              axisLine={false}
             />
-            <Tooltip {...({ content: <AlertsTooltip /> } as ExtendedTooltipProps)} />
-            <Bar 
-              {...({
-                dataKey: "value",
-                radius: [4, 4, 0, 0]
-              } as SafeBarProps)}
-            >
+            <Tooltip content={<AlertsTooltip />} />
+            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}

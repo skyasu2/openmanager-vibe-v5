@@ -1,11 +1,19 @@
 /**
  * 🎨 커스텀 툴팁 컴포넌트
  * AdminDashboardCharts에서 분리된 툴팁 컴포넌트
+ * Recharts 3.x 네이티브 타입 사용
  */
 
-import type { SafeTooltipProps } from '@/types/CustomRechartsTypes';
-
-interface CustomTooltipProps extends SafeTooltipProps<number, string> {}
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    value: number | string;
+    name?: string;
+    color?: string;
+    dataKey?: string | number;
+  }>;
+  label?: string | number;
+}
 
 export default function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (active && payload && payload.length) {

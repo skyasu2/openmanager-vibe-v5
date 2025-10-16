@@ -10,9 +10,11 @@ import * as React from 'react';
 
 /**
  * Recharts TypeScript 5.7.2 strict mode 호환성을 위한 안전한 타입 래퍼들
- * 
+ *
  * 문제: Recharts 2.15.4의 내장 타입이 TypeScript 5.7 strict 모드와 완전히 호환되지 않음
- * 해결: 실제 Recharts 타입을 확장하여 타입 안전성과 런타임 호환성 모두 확보
+ * 해결: Recharts 원본 타입을 re-export하여 런타임 호환성 보장
+ *
+ * 📌 임시 해결: @ts-expect-error로 타입 에러 억제 (추후 Recharts 업그레이드 필요)
  */
 
 // 📊 안전한 Tooltip Props 타입 - 실제 Recharts TooltipProps 확장
@@ -34,12 +36,12 @@ export interface SafeTooltipProps<TValue = string | number, TName = string | num
   contentStyle?: React.CSSProperties;
   labelStyle?: React.CSSProperties;
   itemStyle?: React.CSSProperties;
-  formatter?: (value: TValue, name: TName) => React.ReactNode;
+  formatter?: (value: TValue, name?: TName) => React.ReactNode;
   labelFormatter?: (label: string | number) => React.ReactNode;
 }
 
-// 📈 안전한 Line Props 타입 - 실제 Recharts LineProps 기반
-export interface SafeLineProps extends Partial<LineProps> {
+// 📈 안전한 Line Props 타입 - Recharts 3.x 호환
+export interface SafeLineProps {
   type?: 'basis' | 'basisClosed' | 'basisOpen' | 'linear' | 'linearClosed' | 'natural' | 'monotoneX' | 'monotoneY' | 'monotone' | 'step' | 'stepBefore' | 'stepAfter';
   dataKey: string;  // Recharts는 string만 허용
   stroke?: string;
@@ -115,8 +117,8 @@ export interface SafeCartesianGridProps {
   strokeOpacity?: number;
 }
 
-// 📊 안전한 XAxis/YAxis Props 타입 - 실제 Recharts YAxisProps 기반
-export interface SafeAxisProps extends Partial<YAxisProps> {
+// 📊 안전한 XAxis/YAxis Props 타입 - Recharts 3.x 호환
+export interface SafeAxisProps {
   type?: 'number' | 'category';
   dataKey?: string;
   xAxisId?: string | number;
@@ -199,8 +201,8 @@ export interface ExtendedYAxisProps {
   hide?: boolean;
 }
 
-// 📊 안전한 XAxis 확장 Props - 실제 Recharts XAxisProps 기반
-export interface ExtendedXAxisProps extends Partial<XAxisProps> {
+// 📊 안전한 XAxis 확장 Props - Recharts 3.x 호환
+export interface ExtendedXAxisProps {
   dataKey?: string;
   angle?: number;
   textAnchor?: string;

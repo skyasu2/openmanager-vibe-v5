@@ -7,7 +7,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -15,8 +14,8 @@ import {
   LineChart,
   Line,
   Legend,
+  Tooltip,
 } from 'recharts';
-import { SafeLineProps, SafeBarProps, SafePieProps, ExtendedTooltipProps, ExtendedYAxisProps, SafeCartesianGridProps } from '@/types/CustomRechartsTypes';
 import type { SystemHealthAPIResponse } from '@/types/admin-dashboard.types';
 import { COLORS, SEVERITY_COLORS } from '@/constants/chart-colors';
 import {
@@ -291,16 +290,11 @@ export default function AdminDashboardCharts() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={performanceData}>
-                <CartesianGrid {...({ strokeDasharray: "3 3" } as SafeCartesianGridProps)} />
+                <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
-                <YAxis {...({ domain: [0, 100] } as ExtendedYAxisProps)} />
-                <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
-                <Bar
-                  {...({
-                    dataKey: "value",
-                    fill: COLORS.primary
-                  } as SafeBarProps)}
-                >
+                <YAxis domain={[0, 100]} />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="value" fill={COLORS.primary}>
                   {performanceData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
@@ -319,21 +313,20 @@ export default function AdminDashboardCharts() {
           <div className="flex h-64 items-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
+                {/* @ts-ignore - Recharts 3.x PieProps 타입 정의 이슈 (children prop + data prop) */}
                 <Pie
-                  {...({
-                    data: availabilityData,
-                    cx: "50%",
-                    cy: "50%",
-                    innerRadius: 60,
-                    outerRadius: 100,
-                    dataKey: "value"
-                  } as SafePieProps)}
+                  data={availabilityData as any}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  dataKey="value"
                 >
                   {availabilityData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
+                <Tooltip content={<CustomTooltip />} />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -355,20 +348,19 @@ export default function AdminDashboardCharts() {
             {alertsData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
+                  {/* @ts-ignore - Recharts 3.x PieProps 타입 정의 이슈 (children prop + data prop) */}
                   <Pie
-                    {...({
-                      data: alertsData,
-                      cx: "50%",
-                      cy: "50%",
-                      outerRadius: 100,
-                      dataKey: "value"
-                    } as SafePieProps)}
+                    data={alertsData as any}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    dataKey="value"
                   >
                     {alertsData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
+                  <Tooltip content={<CustomTooltip />} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -397,37 +389,31 @@ export default function AdminDashboardCharts() {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trendsData}>
-                <CartesianGrid {...({ strokeDasharray: "3 3" } as SafeCartesianGridProps)} />
+                <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="time" />
                 <YAxis />
-                <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
+                <Tooltip content={<CustomTooltip />} />
                 <Legend />
                 <Line
-                  {...({
-                    type: "monotone",
-                    dataKey: "CPU",
-                    stroke: COLORS.danger,
-                    strokeWidth: 2,
-                    dot: { r: 4, fill: COLORS.danger }
-                  } as SafeLineProps)}
+                  type="monotone"
+                  dataKey="CPU"
+                  stroke={COLORS.danger}
+                  strokeWidth={2}
+                  dot={{ r: 4, fill: COLORS.danger }}
                 />
                 <Line
-                  {...({
-                    type: "monotone",
-                    dataKey: "Memory",
-                    stroke: COLORS.warning,
-                    strokeWidth: 2,
-                    dot: { r: 4, fill: COLORS.warning }
-                  } as SafeLineProps)}
+                  type="monotone"
+                  dataKey="Memory"
+                  stroke={COLORS.warning}
+                  strokeWidth={2}
+                  dot={{ r: 4, fill: COLORS.warning }}
                 />
                 <Line
-                  {...({
-                    type: "monotone",
-                    dataKey: "Alerts",
-                    stroke: COLORS.info,
-                    strokeWidth: 2,
-                    dot: { r: 4, fill: COLORS.info }
-                  } as SafeLineProps)}
+                  type="monotone"
+                  dataKey="Alerts"
+                  stroke={COLORS.info}
+                  strokeWidth={2}
+                  dot={{ r: 4, fill: COLORS.info }}
                 />
               </LineChart>
             </ResponsiveContainer>

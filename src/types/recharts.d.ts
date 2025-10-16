@@ -1,88 +1,30 @@
-// Recharts 타입 정의 (SSR 지원)
+/**
+ * Recharts 3.x 타입 정의 확장
+ *
+ * 1. PieProps children prop 지원:
+ *    Recharts 3.x PieProps에 children prop이 명시적으로 정의되어 있지 않지만,
+ *    Cell 패턴 (<Pie><Cell /></Pie>)은 공식적으로 지원되는 패턴입니다.
+ *
+ * 2. ChartDataInput 호환성:
+ *    프로젝트의 ChartDataPoint 타입이 Recharts의 ChartDataInput과 호환되도록 보장합니다.
+ *    TypeScript의 구조적 타이핑 제한을 우회하기 위해 any를 사용합니다.
+ *
+ * 3. Legend formatter 타입 확장:
+ *    LegendPayload의 color가 optional이므로 타입 확장으로 처리합니다.
+ */
+
+import { ReactNode } from 'react';
+
 declare module 'recharts' {
-  import type { ComponentType, ReactNode } from 'react';;
-
-  interface BaseChartProps {
-    width?: number | string;
-    height?: number | string;
-    children?: ReactNode;
-    data?: unknown[];
-  }
-
-  interface ResponsiveContainerProps {
-    width?: number | string;
-    height?: number | string;
-    children?: ReactNode;
-  }
-
+  // Pie 컴포넌트 타입 확장
   interface PieProps {
-    data?: unknown[];
-    cx?: number | string;
-    cy?: number | string;
-    labelLine?: boolean;
-    label?: ((entry: unknown) => string) | boolean;
-    outerRadius?: number;
-    fill?: string;
-    dataKey?: string;
     children?: ReactNode;
+    // ChartDataPoint[] 호환을 위한 data prop 타입 완전 재정의
+    data?: any[];
   }
 
-  interface BarProps {
-    dataKey?: string;
-    fill?: string;
+  // Legend 컴포넌트 타입 확장
+  interface LegendProps {
+    formatter?: (value: any, entry: any, index: number) => React.ReactNode;
   }
-
-  interface LineProps {
-    type?: string;
-    dataKey?: string;
-    stroke?: string;
-    strokeWidth?: number;
-    name?: string;
-  }
-
-  interface CellProps {
-    key?: string;
-    fill?: string;
-  }
-
-  interface XAxisProps {
-    dataKey?: string;
-  }
-
-  interface YAxisProps {}
-
-  interface CartesianGridProps {
-    strokeDasharray?: string;
-  }
-
-  interface TooltipProps {
-    formatter?: (value: unknown, name?: string) => [string, string];
-  }
-
-  export const ResponsiveContainer: ComponentType<ResponsiveContainerProps>;
-  export const BarChart: ComponentType<BaseChartProps>;
-  export const Bar: ComponentType<BarProps>;
-  export const LineChart: ComponentType<BaseChartProps>;
-  export const Line: ComponentType<LineProps>;
-  export const PieChart: ComponentType<BaseChartProps>;
-  export const Pie: ComponentType<PieProps>;
-  export const Cell: ComponentType<CellProps>;
-  export const XAxis: ComponentType<XAxisProps>;
-  export const YAxis: ComponentType<YAxisProps>;
-  export const CartesianGrid: ComponentType<CartesianGridProps>;
-  export const Tooltip: ComponentType<TooltipProps>;
-  export const Legend: ComponentType<any>;
-  export const Area: ComponentType<any>;
-  export const AreaChart: ComponentType<BaseChartProps>;
-  export const RadarChart: ComponentType<BaseChartProps>;
-  export const PolarGrid: ComponentType<any>;
-  export const PolarAngleAxis: ComponentType<any>;
-  export const PolarRadiusAxis: ComponentType<any>;
-  export const Radar: ComponentType<any>;
-  export const ComposedChart: ComponentType<BaseChartProps>;
-  export const ScatterChart: ComponentType<BaseChartProps>;
-  export const Scatter: ComponentType<any>;
-  export const Treemap: ComponentType<BaseChartProps>;
-  export const RadialBarChart: ComponentType<BaseChartProps>;
-  export const RadialBar: ComponentType<any>;
 }

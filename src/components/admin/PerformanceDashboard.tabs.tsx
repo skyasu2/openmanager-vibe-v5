@@ -37,14 +37,13 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
   Area,
   Bar,
   Line,
   Cell,
   Pie,
+  Tooltip,
 } from './PerformanceDashboard.charts';
-import { SafeTooltipProps, SafeLineProps, SafeBarProps, SafePieProps, SafeAxisProps, ExtendedTooltipProps, ExtendedYAxisProps } from '@/types/CustomRechartsTypes';
 
 interface ModeDataItem {
   name: string;
@@ -104,14 +103,12 @@ export function PerformanceDashboardTabs({
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      {...({
-                        data: modeData,
-                        cx: "50%",
-                        cy: "50%",
-                        outerRadius: 80,
-                        dataKey: "value",
-                        label: ({ name, value }: { name: string; value: number }) => `${name}: ${value}`
-                      } as SafePieProps)}
+                      data={modeData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      label={(entry: any) => `${entry.name}: ${entry.value}`}
                     >
                       {modeData.map((entry, index) => (
                         <Cell
@@ -124,7 +121,7 @@ export function PerformanceDashboardTabs({
                         />
                       ))}
                     </Pie>
-                    <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
+                    <Tooltip content={<CustomTooltip />} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -146,7 +143,7 @@ export function PerformanceDashboardTabs({
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="time" />
                     <YAxis />
-                    <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
+                    <Tooltip content={<CustomTooltip />} />
                     <Area
                       type="monotone"
                       dataKey="requests"
@@ -177,32 +174,26 @@ export function PerformanceDashboardTabs({
                 <BarChart data={engineData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
-                  <YAxis {...({ yAxisId: "left" } as ExtendedYAxisProps)} />
-                  <YAxis {...({ yAxisId: "right", orientation: "right" } as ExtendedYAxisProps)} />
-                  <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
+                  <YAxis yAxisId="left" />
+                  <YAxis yAxisId="right" orientation="right" />
+                  <Tooltip content={<CustomTooltip />} />
                   <Bar
-                    {...({
-                      yAxisId: "left",
-                      dataKey: "requests",
-                      fill: COLORS.primary,
-                      name: "요청 수"
-                    } as SafeBarProps)}
+                    yAxisId="left"
+                    dataKey="requests"
+                    fill={COLORS.primary}
+                    name="요청 수"
                   />
                   <Bar
-                    {...({
-                      yAxisId: "left",
-                      dataKey: "responseTime",
-                      fill: COLORS.warning,
-                      name: "응답시간(ms)"
-                    } as SafeBarProps)}
+                    yAxisId="left"
+                    dataKey="responseTime"
+                    fill={COLORS.warning}
+                    name="응답시간(ms)"
                   />
                   <Bar
-                    {...({
-                      yAxisId: "right",
-                      dataKey: "successRate",
-                      fill: COLORS.success,
-                      name: "성공률(%)"
-                    } as SafeBarProps)}
+                    yAxisId="right"
+                    dataKey="successRate"
+                    fill={COLORS.success}
+                    name="성공률(%)"
                   />
                 </BarChart>
               </ResponsiveContainer>
@@ -226,26 +217,22 @@ export function PerformanceDashboardTabs({
                 <LineChart data={trendsData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="time" />
-                  <YAxis {...({ yAxisId: "left" } as ExtendedYAxisProps)} />
-                  <YAxis {...({ yAxisId: "right", orientation: "right" } as ExtendedYAxisProps)} />
-                  <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
+                  <YAxis yAxisId="left" />
+                  <YAxis yAxisId="right" orientation="right" />
+                  <Tooltip content={<CustomTooltip />} />
                   <Line
-                    {...({
-                      yAxisId: "left",
-                      type: "monotone",
-                      dataKey: "responseTime",
-                      stroke: COLORS.warning,
-                      strokeWidth: 2
-                    } as SafeLineProps)}
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="responseTime"
+                    stroke={COLORS.warning}
+                    strokeWidth={2}
                   />
                   <Line
-                    {...({
-                      yAxisId: "right",
-                      type: "monotone",
-                      dataKey: "successRate",
-                      stroke: COLORS.success,
-                      strokeWidth: 2
-                    } as SafeLineProps)}
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="successRate"
+                    stroke={COLORS.success}
+                    strokeWidth={2}
                   />
                 </LineChart>
               </ResponsiveContainer>

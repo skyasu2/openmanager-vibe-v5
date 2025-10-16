@@ -18,13 +18,12 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
   Bar,
   Pie,
   Cell,
   CustomTooltip,
+  Tooltip,
 } from './LogDashboard.charts';
-import { ExtendedTooltipProps, SafeBarProps, ExtendedXAxisProps } from '@/types/CustomRechartsTypes';
 import type { LogData } from './LogDashboard.types';
 import { LEVEL_COLORS, CATEGORY_COLORS } from './LogDashboard.types';
 import type { ChartDataPoint } from '@/types/core-types';
@@ -97,8 +96,8 @@ export function LogDashboardAnalytics({ data }: AnalyticsTabProps) {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ name, percent }) =>
-                      `${name} ${(percent * 100).toFixed(0)}%`
+                    label={(entry: any) =>
+                      `${entry.name} ${(entry.percent * 100).toFixed(0)}%`
                     }
                     outerRadius={80}
                     fill="#8884d8"
@@ -108,7 +107,7 @@ export function LogDashboardAnalytics({ data }: AnalyticsTabProps) {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
+                  <Tooltip content={<CustomTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -129,22 +128,15 @@ export function LogDashboardAnalytics({ data }: AnalyticsTabProps) {
                 <BarChart data={categoryData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
-                    {...({
-                      dataKey: "name",
-                      angle: -45,
-                      textAnchor: "end",
-                      height: 80,
-                      fontSize: 12
-                    } as ExtendedXAxisProps)}
+                    dataKey="name"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    tick={{ fontSize: 12 }}
                   />
                   <YAxis />
-                  <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
-                  <Bar
-                    {...({
-                      dataKey: "value",
-                      fill: "#8884d8"
-                    } as SafeBarProps)}
-                  >
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="value" fill="#8884d8">
                     {categoryData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
@@ -171,19 +163,9 @@ export function LogDashboardAnalytics({ data }: AnalyticsTabProps) {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="time" />
                 <YAxis />
-                <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
-                <Bar
-                  {...({
-                    dataKey: "logs",
-                    fill: "#3B82F6"
-                  } as SafeBarProps)}
-                />
-                <Bar
-                  {...({
-                    dataKey: "errors",
-                    fill: "#EF4444"
-                  } as SafeBarProps)}
-                />
+                <Tooltip content={<CustomTooltip />} />
+                <Bar dataKey="logs" fill="#3B82F6" />
+                <Bar dataKey="errors" fill="#EF4444" />
               </BarChart>
             </ResponsiveContainer>
           </div>

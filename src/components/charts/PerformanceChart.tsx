@@ -4,10 +4,9 @@ import {
   Pie,
   Cell,
   ResponsiveContainer,
-  Tooltip,
   Legend,
+  Tooltip,
 } from 'recharts';
-import { SafePieProps, ExtendedTooltipProps } from '@/types/CustomRechartsTypes';
 
 interface ChartDataPoint {
   name: string;
@@ -63,26 +62,25 @@ const PerformanceChart = memo<PerformanceChartProps>(({ data }) => {
     <div className="h-64">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
+          {/* @ts-ignore - Recharts 3.x PieProps 타입 정의 이슈 (children prop + data prop) */}
           <Pie
-            {...({
-              data: data,
-              cx: "50%",
-              cy: "50%",
-              innerRadius: 40,
-              outerRadius: 80,
-              paddingAngle: 2,
-              dataKey: "value"
-            } as SafePieProps)}
+            data={data as any}
+            cx="50%"
+            cy="50%"
+            innerRadius={40}
+            outerRadius={80}
+            paddingAngle={2}
+            dataKey="value"
           >
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
           </Pie>
-          <Tooltip {...({ content: <CustomTooltip /> } as ExtendedTooltipProps)} />
+          <Tooltip content={<CustomTooltip />} />
           <Legend
             verticalAlign="bottom"
             height={36}
-            formatter={(value: string, entry: { color: string }) => (
+            formatter={(value: string, entry: any) => (
               <span style={{ color: entry.color }}>{value}</span>
             )}
           />
