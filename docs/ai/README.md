@@ -1,3 +1,22 @@
+---
+category: ai-systems
+purpose: multi_ai_integration_and_verification
+ai_optimized: true
+query_triggers:
+  - 'AI 교차검증'
+  - '서브에이전트'
+  - 'Codex 사용법'
+  - 'Gemini 활용'
+  - 'Qwen 최적화'
+  - 'Multi-AI 전략'
+related_docs:
+  - 'config/ai/registry.yaml'
+  - 'docs/claude/environment/multi-ai-strategy.md'
+  - '.claude/agents/'
+  - 'scripts/ai-subagents/'
+last_updated: '2025-10-16'
+---
+
 # 🤖 AI 시스템 문서 (AI Systems Documentation)
 
 **목적**: Multi-AI 교차검증, 서브에이전트, CLI 도구 통합 가이드
@@ -21,6 +40,7 @@ ai/
 ### ⭐ 필수 읽기 (최신, 활발히 사용 중)
 
 #### 1. subagents-complete-guide.md (13K, 1일 전) 🔥
+
 **Claude Code 서브에이전트 완전 가이드**
 
 - **목적**: 18개 전문 서브에이전트 활용법 및 최적화 전략
@@ -31,6 +51,7 @@ ai/
   - 전문 도구 (12개): 환경, 구조, DB, Vercel, 코드 리뷰, 디버깅, 보안, 테스트, 문서, UI/UX
 
 **핵심 원칙**:
+
 ```bash
 # 복잡한 작업 → 서브에이전트 호출
 codex: 구현된 알고리즘을 실무 관점에서 검증해주세요
@@ -48,6 +69,7 @@ qwen -p "시간복잡도는?"
 ---
 
 #### 2. ai-maintenance.md (18K, 7일 전) ⭐
+
 **AI CLI 도구 유지보수 가이드**
 
 - **목적**: Codex, Gemini, Qwen CLI 버전 관리 및 트러블슈팅
@@ -62,6 +84,7 @@ qwen -p "시간복잡도는?"
 ---
 
 #### 3. 3-ai-query-optimization-guide.md (16K, 1일 전) ⭐
+
 **3-AI 쿼리 최적화 가이드**
 
 - **목적**: Codex, Gemini, Qwen 쿼리 효율 극대화
@@ -72,11 +95,14 @@ qwen -p "시간복잡도는?"
   - 타임아웃 전략 (Codex 300s, Gemini 300s, Qwen 600s)
 
 **핵심 원칙**:
+
 ```markdown
 # ✅ 효율적 쿼리
+
 codex: LoginClient.tsx를 실무 관점에서 버그 및 개선점 3개씩 찾아주세요
 
 # ❌ 비효율적 쿼리
+
 codex: 이 프로젝트의 모든 측면을 분석하고 개선 방향을 제시해주세요
 ```
 
@@ -85,6 +111,7 @@ codex: 이 프로젝트의 모든 측면을 분석하고 개선 방향을 제시
 ---
 
 #### 4. ai-workflows.md (14K, 1일 전)
+
 **AI 워크플로우 가이드**
 
 - **목적**: AI 도구 통합 워크플로우 및 사용 패턴
@@ -99,6 +126,7 @@ codex: 이 프로젝트의 모든 측면을 분석하고 개선 방향을 제시
 ### 📖 참고 문서 (안정적, 배경 지식)
 
 #### 5. cli-strategy.md (4K, 6일 전)
+
 **AI CLI 도구 전략**
 
 - Codex, Gemini, Qwen CLI 전략적 활용
@@ -108,6 +136,7 @@ codex: 이 프로젝트의 모든 측면을 분석하고 개선 방향을 제시
 ---
 
 #### 6. workflow.md (9.5K, 6일 전)
+
 **AI 워크플로우 기본**
 
 - 일반적 AI 워크플로우
@@ -118,6 +147,7 @@ codex: 이 프로젝트의 모든 측면을 분석하고 개선 방향을 제시
 ### 📚 레거시 문서 (참고용, 37일 전)
 
 #### 7. verification-history.md (5.5K, 37일 전)
+
 **AI 검증 히스토리**
 
 - 초기 AI 검증 기록
@@ -126,6 +156,7 @@ codex: 이 프로젝트의 모든 측면을 분석하고 개선 방향을 제시
 ---
 
 #### 8. verification.md (3.8K, 37일 전)
+
 **AI 검증 프로세스**
 
 - 기본 검증 프로세스
@@ -150,48 +181,23 @@ codex: 이 프로젝트의 모든 측면을 분석하고 개선 방향을 제시
 
 ## 📊 문서 통계 (2025-10-16)
 
-| 카테고리 | 파일 수 | 최신 업데이트 | 중요도 |
-|----------|---------|--------------|--------|
-| **최신 가이드** | 4 | 1-7일 전 | 🔴 HIGH |
-| **참고 문서** | 2 | 6일 전 | 🟡 MEDIUM |
-| **레거시** | 2 | 37일 전 | 🟢 LOW |
-| **검증 기록** | 3 | 10일 전 | 🟡 MEDIUM |
-| **합계** | **11** | - | - |
+| 카테고리        | 파일 수 | 최신 업데이트 | 중요도    |
+| --------------- | ------- | ------------- | --------- |
+| **최신 가이드** | 4       | 1-7일 전      | 🔴 HIGH   |
+| **참고 문서**   | 2       | 6일 전        | 🟡 MEDIUM |
+| **레거시**      | 2       | 37일 전       | 🟢 LOW    |
+| **검증 기록**   | 3       | 10일 전       | 🟡 MEDIUM |
+| **합계**        | **11**  | -             | -         |
 
 **특징**:
+
 - ✅ 활발한 업데이트 (4개 문서 1주일 내)
 - ✅ 명확한 역할 분담 (서브에이전트, 유지보수, 최적화, 워크플로우)
 - ✅ SSOT 연계 (config/ai/registry.yaml)
 
 ---
 
-## 🚀 빠른 시작 가이드
-
-### 신규 개발자
-
-**1단계: AI 시스템 이해** (30분)
-1. `subagents-complete-guide.md` (15분) - 서브에이전트 개요
-2. `ai-workflows.md` (10분) - 워크플로우 이해
-3. `cli-strategy.md` (5분) - CLI 도구 전략
-
-**2단계: 실습** (20분)
-```bash
-# AI 헬스 체크
-./scripts/ai-tools-health-check.sh
-
-# 서브에이전트 호출 테스트
-codex: "useState vs useReducer 선택 기준"
-
-# 3-AI 교차검증 (명시 시만)
-"이 LoginClient.tsx를 AI 교차검증해줘"
-```
-
-**3단계: 유지보수 학습** (10분)
-1. `ai-maintenance.md` (10분) - 월간 체크리스트
-
-**총 소요 시간**: 60분
-
----
+## 🚀 Document Index (AI Query Guide)
 
 ### 서브에이전트 활용 패턴
 
@@ -225,6 +231,7 @@ Task multi-ai-verification-specialist "LoginClient.tsx 교차검증"
 ```
 
 **특징**:
+
 - ✅ Bash Wrapper 방식 (타임아웃 100% 해결)
 - ✅ 병렬 실행 (Codex 13s, Gemini 70s, Qwen 102s)
 - ✅ 독립적 답변 (각 AI의 고유 관점)
@@ -238,17 +245,20 @@ Task multi-ai-verification-specialist "LoginClient.tsx 교차검증"
 ### 1. 역할 분담 명확화
 
 **Claude Code = 메인 개발자**:
+
 - ✅ 모든 코딩, 구현, 문서 작성
 - ✅ 검증 결과 반영한 개선
 - ✅ 최종 결정 및 통합
 
 **Codex/Gemini/Qwen = 검증자**:
+
 - ✅ 구현 검증, 버그 분석
 - ✅ 아키텍처 검토, 성능 분석
 - ✅ 개선 제안, 의견 제시
 - ❌ **실제 코드 수정은 하지 않음**
 
 **예외**: 사용자가 특정 AI에게 직접 개발 지시한 경우만
+
 - ✅ "Codex야 이 함수 구현해줘" - OK (명시적 지시)
 - ❌ "AI 교차검증해줘" - Claude가 개발, 다른 AI는 검증만
 
@@ -261,11 +271,13 @@ Task multi-ai-verification-specialist "LoginClient.tsx 교차검증"
 **역할**: 구체적 역할 정의 필수
 
 **✅ 효율적**:
+
 ```
 codex: LoginClient.tsx를 실무 관점에서 버그 3개, 리팩토링 3개 찾아주세요
 ```
 
 **❌ 비효율적**:
+
 ```
 codex: 이 프로젝트를 전체적으로 분석하고 모든 개선점을 알려주세요
 ```
@@ -275,6 +287,7 @@ codex: 이 프로젝트를 전체적으로 분석하고 모든 개선점을 알�
 ### 3. SSOT (Single Source of Truth)
 
 **모든 AI 설정은 config/ai/registry.yaml에서 관리**:
+
 - 18개 서브에이전트 정의
 - 3개 외부 AI CLI 도구 설정
 - 9개 MCP 서버 통합
@@ -311,6 +324,7 @@ codex: 이 프로젝트를 전체적으로 분석하고 모든 개선점을 알�
 **증상**: Codex/Gemini/Qwen 응답 없음
 
 **해결**:
+
 ```bash
 # 1. 헬스 체크
 ./scripts/ai-tools-health-check.sh
@@ -333,11 +347,13 @@ cat logs/ai-tools-health/$(date +%Y-%m-%d).log
 **증상**: AI 응답 타임아웃
 
 **원인 & 해결**:
+
 1. **쿼리 너무 길거나 복잡** → 3-ai-query-optimization-guide.md 참조
 2. **입력 크기 너무 큼** → 100줄 이하로 제한
 3. **포괄적 질문** → 구체적 역할 정의
 
 **Bash Wrapper 타임아웃** (안전장치):
+
 - Codex: 300초
 - Gemini: 300초
 - Qwen: 600초 (YOLO Mode)
@@ -349,6 +365,7 @@ cat logs/ai-tools-health/$(date +%Y-%m-%d).log
 **증상**: Task 명령이 작동하지 않음
 
 **해결**:
+
 ```bash
 # 1. 서브에이전트 목록 확인
 ls .claude/agents/
@@ -362,50 +379,12 @@ Task multi-ai-verification-specialist "작업 설명"
 
 ---
 
-## 📚 학습 경로
-
-### 초급 (1시간)
-
-1. **subagents-complete-guide.md** (20분) - 서브에이전트 기본
-2. **cli-strategy.md** (10분) - CLI 도구 이해
-3. **실습** (30분):
-   ```bash
-   ./scripts/ai-tools-health-check.sh
-   codex: "간단한 질문"
-   ```
-
----
-
-### 중급 (2시간)
-
-1. **ai-workflows.md** (20분) - 워크플로우 이해
-2. **3-ai-query-optimization-guide.md** (30분) - 쿼리 최적화
-3. **ai-maintenance.md** (30분) - 유지보수
-4. **실습** (40분):
-   ```bash
-   # 3-AI 교차검증 테스트
-   "이 컴포넌트를 AI 교차검증해줘"
-   ```
-
----
-
-### 고급 (3시간)
-
-1. **config/ai/registry.yaml** (30분) - SSOT 구조 이해
-2. **docs/claude/environment/multi-ai-strategy.md** (40분) - Multi-AI 전략
-3. **scripts/ai-subagents/** (40분) - Bash Wrapper 분석
-4. **실습** (70분):
-   - 새 서브에이전트 추가
-   - Wrapper 커스터마이징
-   - Decision Log 작성
-
----
-
 ## 🎯 핵심 메시지
 
 > **"AI는 도구일 뿐, 최종 결정은 항상 Claude Code가 한다"**
 
 **개발 워크플로우**:
+
 ```
 Phase 1: Claude Code가 개발 (코딩, 구현, 문서)
     ↓
@@ -415,6 +394,7 @@ Phase 3: Claude Code가 개선 (검증 결과 반영)
 ```
 
 **기대 효과**:
+
 - ✅ 품질 4배 향상 (Claude 개발 + 3-AI 검증)
 - ✅ 정확도 48% 개선 (6.2/10 → 9.2/10)
 - ✅ 토큰 82% 절약 (MCP 통합)

@@ -1,3 +1,22 @@
+---
+category: guides
+purpose: development_utilities_and_best_practices
+ai_optimized: true
+query_triggers:
+  - 'Side Effects 최적화'
+  - 'useEffect 최적화'
+  - '타입 시스템'
+  - '유틸리티 함수'
+  - 'Mock 시스템'
+  - '시뮬레이션 환경'
+related_docs:
+  - 'docs/architecture/type-system-consistency.md'
+  - 'docs/development/performance-optimization-guide.md'
+  - 'src/lib/utils/'
+  - 'src/lib/mock/'
+last_updated: '2025-10-16'
+---
+
 # 📖 개발 가이드 (Development Guides)
 
 **목적**: 실용적 개발 가이드, 유틸리티, Mock 시스템
@@ -20,6 +39,7 @@ guides/
 ### 1. 최적화 가이드 (1개)
 
 #### ⭐ side-effects-optimization-guide.md (10K, 23일 전)
+
 **Side Effects 최적화 가이드**
 
 - **목적**: React 컴포넌트 Side Effects 최적화 전략
@@ -32,6 +52,7 @@ guides/
 **중요도**: 🔴 **HIGH** - 성능 최적화 핵심
 
 **예시**:
+
 ```typescript
 // ❌ 비효율적 - 매 렌더링마다 실행
 useEffect(() => {
@@ -49,6 +70,7 @@ useEffect(() => {
 ### 2. 시뮬레이션 시스템 (2개)
 
 #### simulation.md (6.2K, 18일 전)
+
 **시뮬레이션 환경 설정**
 
 - **목적**: 서버 상태 시뮬레이션 시스템 가이드
@@ -62,6 +84,7 @@ useEffect(() => {
 ---
 
 #### mock-system.md (2.4K, 54일 전)
+
 **Mock 시스템 기본**
 
 - **목적**: Mock 데이터 시스템 개요
@@ -76,6 +99,7 @@ useEffect(() => {
 ### 3. 유틸리티 가이드 (3개)
 
 #### types.md (6.0K, 54일 전)
+
 **타입 시스템 가이드**
 
 - **목적**: TypeScript 타입 정의 및 활용
@@ -91,6 +115,7 @@ useEffect(() => {
 ---
 
 #### utils.md (6.0K, 54일 전)
+
 **유틸리티 함수 가이드**
 
 - **목적**: 공통 유틸리티 함수 설명
@@ -104,6 +129,7 @@ useEffect(() => {
 ---
 
 #### auth-complete.ts (3.5K, 54일 전)
+
 **인증 시스템 예제**
 
 - **목적**: 완전한 인증 시스템 TypeScript 예제
@@ -118,14 +144,15 @@ useEffect(() => {
 
 ## 📊 문서 통계 (2025-10-16)
 
-| 카테고리 | 파일 수 | 최신 업데이트 | 평균 크기 | 중요도 |
-|----------|---------|--------------|----------|--------|
-| **최적화** | 1 | 23일 전 | 10K | 🔴 HIGH |
-| **시뮬레이션** | 2 | 18일 전 | 4.3K | 🟡 MEDIUM |
-| **유틸리티** | 3 | 54일 전 | 5.2K | 🔴 HIGH |
-| **합계** | **6** | - | **5.3K** | - |
+| 카테고리       | 파일 수 | 최신 업데이트 | 평균 크기 | 중요도    |
+| -------------- | ------- | ------------- | --------- | --------- |
+| **최적화**     | 1       | 23일 전       | 10K       | 🔴 HIGH   |
+| **시뮬레이션** | 2       | 18일 전       | 4.3K      | 🟡 MEDIUM |
+| **유틸리티**   | 3       | 54일 전       | 5.2K      | 🔴 HIGH   |
+| **합계**       | **6**   | -             | **5.3K**  | -         |
 
 **특징**:
+
 - ✅ 안정적 (대부분 18-54일 전 작성, 변경 없음)
 - ✅ 실용적 (코드 예제 포함)
 - ✅ 보완 관계 (architecture/, development/ 문서와 연계)
@@ -137,10 +164,12 @@ useEffect(() => {
 ### 성능 최적화 시
 
 **필수 읽기**:
+
 1. `side-effects-optimization-guide.md` (10분)
 2. `development/performance-optimization-guide.md` (20분)
 
 **체크리스트**:
+
 - [ ] useEffect 의존성 배열 최적화
 - [ ] useMemo/useCallback 적절한 사용
 - [ ] 불필요한 리렌더링 제거
@@ -150,6 +179,7 @@ useEffect(() => {
 ### Mock/시뮬레이션 환경 설정 시
 
 **단계별 가이드**:
+
 1. `mock-system.md` (5분) - 기본 개념
 2. `simulation.md` (15분) - 실제 설정
 3. `architecture/simulation-setup.md` (20분) - 아키텍처
@@ -159,6 +189,7 @@ useEffect(() => {
 ### 타입 시스템 작업 시
 
 **참고 순서**:
+
 1. `types.md` (15분) - 기본 타입 가이드
 2. `architecture/type-system-consistency.md` (15분) - 일관성 원칙
 3. `architecture/typescript-any-removal-project-report.md` (20분) - any 제거 전략
@@ -189,28 +220,12 @@ useEffect(() => {
 
 ---
 
-## 🎯 문서 활용 가이드
-
-### 신규 개발자 온보딩
-
-**1단계: 기본 개념** (20분)
-1. `types.md` (10분) - 타입 시스템
-2. `utils.md` (10분) - 유틸리티 함수
-
-**2단계: 개발 환경** (20분)
-1. `mock-system.md` (5분) - Mock 개념
-2. `simulation.md` (15분) - 시뮬레이션 설정
-
-**3단계: 최적화** (10분)
-1. `side-effects-optimization-guide.md` (10분)
-
-**총 소요 시간**: 50분
-
----
+## 🎯 Document Index (AI Query Guide)
 
 ### 코드 리뷰 시
 
 **체크 항목**:
+
 - [ ] **타입 안전성**: types.md 기준 준수
 - [ ] **Side Effects**: side-effects-optimization-guide.md 패턴
 - [ ] **유틸리티**: utils.md 재사용 가능 여부
@@ -222,14 +237,17 @@ useEffect(() => {
 ### 문서 연계성
 
 **타입 시스템**:
+
 - guides/types.md (기본) → architecture/type-system-consistency.md (상세)
 - 변경 시 두 문서 동기화 필요
 
 **시뮬레이션**:
+
 - guides/mock-system.md (개요) → guides/simulation.md (설정) → architecture/simulation-setup.md (아키텍처)
 - 3단계 문서 일관성 유지
 
 **최적화**:
+
 - guides/side-effects-optimization-guide.md (React) → development/performance-optimization-guide.md (전체)
 - 보완 관계 유지
 
@@ -238,47 +256,14 @@ useEffect(() => {
 ### 레거시 vs 최신
 
 **54일 전 문서** (types.md, utils.md, auth-complete.ts):
+
 - ✅ 여전히 유효 (기본 개념 안정적)
 - ⚠️ 최신 패턴은 실제 코드 (src/) 참조
 
 **18-23일 전 문서** (simulation.md, side-effects-optimization-guide.md):
+
 - ✅ 최신 상태 유지
 - ✅ 적극 활용 권장
-
----
-
-## 📚 학습 경로
-
-### 초급 (1시간)
-
-**기본 유틸리티 이해**:
-1. `types.md` (15분)
-2. `utils.md` (15분)
-3. `auth-complete.ts` (15분) - 예제 분석
-4. 실습 (15분): src/lib/utils/ 코드 리뷰
-
----
-
-### 중급 (2시간)
-
-**개발 환경 설정**:
-1. `mock-system.md` (10분)
-2. `simulation.md` (30분)
-3. `architecture/simulation-setup.md` (30분)
-4. 실습 (50분): Mock 데이터 생성 및 시뮬레이션
-
----
-
-### 고급 (3시간)
-
-**성능 최적화**:
-1. `side-effects-optimization-guide.md` (30분)
-2. `development/performance-optimization-guide.md` (40분)
-3. `architecture/type-system-consistency.md` (30분)
-4. 실습 (80분):
-   - useEffect 최적화
-   - useMemo/useCallback 적용
-   - 타입 일관성 검증
 
 ---
 
@@ -287,16 +272,19 @@ useEffect(() => {
 > **"재사용 가능한 코드, 명확한 타입, 최적화된 Side Effects"**
 
 **코드 품질**:
+
 - ✅ 타입 안전성 100% (types.md 기준)
 - ✅ 유틸리티 재사용 (utils.md 패턴)
 - ✅ Side Effects 최소화 (optimization-guide 준수)
 
 **개발 효율**:
+
 - ✅ Mock 시스템 활용 (빠른 개발)
 - ✅ 시뮬레이션 환경 (안전한 테스트)
 - ✅ 실제 코드 참조 (최신 패턴)
 
 **문서 활용**:
+
 - ✅ 기본 개념 → guides/
 - ✅ 상세 설명 → architecture/, development/
 - ✅ 실제 구현 → src/
