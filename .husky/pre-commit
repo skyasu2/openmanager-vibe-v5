@@ -1,17 +1,24 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-echo "🔍 Pre-commit: Quick checks (< 5초 목표)..."
+echo "🔍 Pre-commit: Quick checks + Auto-fix (< 10초 목표)..."
 START_TIME=$(date +%s)
 
-# 1. .env 파일 차단
+# 1. lint-staged (변경된 파일만 자동 수정)
+echo "🎨 Auto-fixing staged files..."
+npx lint-staged || {
+  echo "❌ lint-staged failed - please fix errors manually"
+  exit 1
+}
+
+# 2. .env 파일 차단
 echo "🔒 Checking for sensitive files..."
 if git diff --cached --name-only | grep -E '^\.env$|^\.env\.|\.env$' | grep -v '\.env\.example$'; then
   echo "❌ .env 파일은 커밋할 수 없습니다"
   exit 1
 fi
 
-# 2. API 키/비밀키 패턴 검사
+# 3. API 키/비밀키 패턴 검사
 STAGED_CONTENT=$(git diff --cached)
 if echo "$STAGED_CONTENT" | grep -qiE '(api[_-]?key|secret[_-]?key|password|token).*=.*["\047][A-Za-z0-9+/=]{20,}["\047]'; then
   echo "❌ 하드코딩된 API 키나 비밀키가 감지되었습니다"
@@ -19,7 +26,7 @@ if echo "$STAGED_CONTENT" | grep -qiE '(api[_-]?key|secret[_-]?key|password|toke
   exit 1
 fi
 
-# 3. package.json 문법 검사
+# 4. package.json 문법 검사
 if git diff --cached --name-only | grep -q "package.json"; then
   echo "📦 Checking package.json..."
   node -e "JSON.parse(require('fs').readFileSync('package.json', 'utf8'))" || {
@@ -32,5 +39,5 @@ END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
 
 echo "✅ Pre-commit passed in ${DURATION}s"
-echo "💡 Format: Run 'npm run format' before commit (optional)"
-echo "💡 Full lint will run in pre-push"
+echo "✨ Auto-fixed: ESLint + Prettier applied to changed files"
+echo "🚀 Next: Type check + Full tests will run in CI"

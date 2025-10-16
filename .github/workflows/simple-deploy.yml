@@ -1,9 +1,9 @@
 name: Simple Deploy
 
-# 🎯 Vercel 자동 배포를 위한 최소한의 빌드 검증
-# - ESLint/TypeScript 에러가 있어도 배포 진행
+# 🎯 Vercel 자동 배포를 위한 빌드 검증 + 품질 게이트
+# - TypeScript/ESLint 에러 시 배포 차단 (베스트 프랙티스)
 # - 환경변수 없이도 빌드 성공 (SKIP_ENV_VALIDATION)
-# - 실제 검증은 Vercel이 담당
+# - CI가 main 브랜치 품질 보장
 
 on:
   push:
@@ -84,11 +84,13 @@ jobs:
           CRON_KEEP_ALIVE: true
           CRON_GEMINI_LEARNING: true
 
-      - name: Lint check
-        run: npm run lint || true # 린트 에러는 무시하고 계속 진행
+      - name: Type check (품질 게이트)
+        run: npm run type-check
+        # TypeScript 에러 발견 시 배포 차단 (베스트 프랙티스)
 
-      - name: Type check
-        run: npm run type-check || true # 타입 체크 에러도 무시하고 계속 진행
+      - name: Lint check (품질 게이트)
+        run: npm run lint:strict
+        # ESLint 경고/에러 발견 시 배포 차단 (max-warnings=0)
 
 
     # Vercel이 자동으로 배포를 처리
