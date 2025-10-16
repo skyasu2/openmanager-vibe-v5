@@ -186,9 +186,15 @@ export class RealMCPClient {
         console.log(`🎭 ${serverName} 목업 요청:`, request.method);
         if (request.method === 'tools/list') {
           const tools = await toolHandler.getAvailableTools();
+          // MCPToolInfo[] → MCPTool[] 변환
+          const mcpTools: MCPTool[] = (tools.tools || []).map(toolInfo => ({
+            name: toolInfo.name,
+            description: toolInfo.description,
+            inputSchema: toolInfo.schema,  // schema → inputSchema
+          }));
           return {
             success: true,
-            result: { tools: (tools.tools || []) as MCPTool[], data: {} },
+            result: { tools: mcpTools, data: {} },
           };
         }
         if (request.method === 'tools/call' && request.params?.toolName) {
@@ -218,7 +224,13 @@ export class RealMCPClient {
   }
 
   async listTools(serverName: string): Promise<MCPTool[]> {
-    return await this.toolHandler.listTools(serverName, this.clients);
+    const toolInfos = await this.toolHandler.listTools(serverName, this.clients);
+    // MCPToolInfo[] → MCPTool[] 변환
+    return toolInfos.map(toolInfo => ({
+      name: toolInfo.name,
+      description: toolInfo.description,
+      inputSchema: toolInfo.schema,  // schema → inputSchema
+    }));
   }
 
   async callTool(

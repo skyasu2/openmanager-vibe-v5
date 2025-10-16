@@ -71,12 +71,12 @@ export interface AIMetadata {
 
 /**
  * 차트 데이터 포인트
+ * Recharts 3.x ChartDataInput (Record<string, unknown>)과 완전 호환
  */
-export interface ChartDataPoint {
+export interface ChartDataPoint extends Record<string, unknown> {
   name: string;
   value: number;
   color?: string;
-  [key: string]: unknown;
 }
 
 /**
