@@ -143,7 +143,7 @@ export class AIPerformanceIntegrationTest {
         requestId,
         response.success,
         response.engine || 'unknown',
-        response.metadata?.cached || false,
+        Boolean(response.metadata?.cached),
         0, // 메모리 사용량 (실제로는 측정)
         response.confidence || 0
       );
@@ -199,7 +199,7 @@ export class AIPerformanceIntegrationTest {
     const results: number[] = [];
 
     // 10회 연속 요청
-    const promises = queries.map(async (query, index) => {
+    const promises = queries.map(async (query) => {
       const requestStart = performance.now();
 
       try {
@@ -207,7 +207,7 @@ export class AIPerformanceIntegrationTest {
         const responseTime = performance.now() - requestStart;
         results.push(responseTime);
         return responseTime;
-      } catch (error) {
+      } catch {
         results.push(1000); // 실패시 1초로 기록
         return 1000;
       }
@@ -366,8 +366,8 @@ ${suite.summary.recommendedActions.map((action) => `- ${action}`).join('\n')}
   /**
    * 🔄 실시간 성능 모니터링 시작
    */
-  async startRealTimeMonitoring(): Promise<void> {
-    setInterval(async () => {
+  startRealTimeMonitoring(): void {
+    setInterval(() => {
       const metrics = this.metricsEngine.getRealTimeMetrics();
       const routerStats = this.ultraFastRouter.getPerformanceStats();
 
@@ -433,12 +433,12 @@ ${suite.summary.recommendedActions.map((action) => `- ${action}`).join('\n')}
   /**
    * 📊 캐시 효율성 분석
    */
-  async analyzeCacheEfficiency(): Promise<{
+  analyzeCacheEfficiency(): {
     instantCacheHitRate: number;
     predictiveCacheHitRate: number;
     unifiedCacheHitRate: number;
     overallEfficiency: number;
-  }> {
+  } {
     const routerStats = this.ultraFastRouter.getPerformanceStats();
     const streamingStats = this.streamingEngine.getPerformanceStats();
 
@@ -489,7 +489,7 @@ export async function runPerformanceIntegrationTest(): Promise<IntegrationTestSu
   return await testSuite.runCompletePerformanceTest();
 }
 
-export async function runQuickPerformanceCheck(): Promise<boolean> {
+export function runQuickPerformanceCheck(): boolean {
   const testSuite = new AIPerformanceIntegrationTest();
   return testSuite.verifyTargetAchievement();
 }

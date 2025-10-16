@@ -1,6 +1,6 @@
 /**
  * 🚀 Vercel 최적화 실시간 서버 데이터 관리 훅
- * 
+ *
  * Vercel 무료 티어 최적화:
  * - API 배칭으로 동시 요청 수 최소화
  * - 메모리 효율적 상태 관리
@@ -587,7 +587,7 @@ export function useRealtimeServers(
   // Vercel 최적화 서버 데이터 패치 함수
   const fetchServers = useCallback(async (): Promise<Server[]> => {
     const batcher = getAPIBatcher();
-    
+
     try {
       // API 배칭을 통한 최적화된 요청
       const batchedRequests: APIRequest[] = [
@@ -618,14 +618,28 @@ export function useRealtimeServers(
 
       // 배칭된 요청 실행
       const [serversResponse, statusResponse] = await Promise.all([
-        batchedRequests[0] ? batcher.request(batchedRequests[0]) : Promise.resolve({ id: 'servers-all', data: null, status: 400, timing: { queued: 0, executed: Date.now(), duration: 0 } }),
-        batchedRequests[1] ? batcher.request(batchedRequests[1]) : Promise.resolve({ id: 'servers-status', data: null, status: 400, timing: { queued: 0, executed: Date.now(), duration: 0 } }),
+        batchedRequests[0]
+          ? batcher.request(batchedRequests[0])
+          : Promise.resolve({
+              id: 'servers-all',
+              data: null,
+              status: 400,
+              timing: { queued: 0, executed: Date.now(), duration: 0 },
+            }),
+        batchedRequests[1]
+          ? batcher.request(batchedRequests[1])
+          : Promise.resolve({
+              id: 'servers-status',
+              data: null,
+              status: 400,
+              timing: { queued: 0, executed: Date.now(), duration: 0 },
+            }),
       ]);
 
       // 서버 데이터 처리
       if (serversResponse.status === 200 && serversResponse.data) {
-        const data = serversResponse.data;
-        
+        const data = serversResponse.data as Record<string, unknown>;
+
         // 데이터 구조 검증 및 변환
         if (data?.servers && Array.isArray(data.servers)) {
           const transformedServers = data.servers.map(
@@ -640,12 +654,12 @@ export function useRealtimeServers(
               return s;
             }
           );
-          
+
           // 시스템 상태 정보와 결합 (선택적)
           if (statusResponse.status === 200 && statusResponse.data) {
             console.log('🔄 시스템 상태 동기화:', statusResponse.data);
           }
-          
+
           return transformedServers as Server[];
         }
       }
@@ -653,7 +667,6 @@ export function useRealtimeServers(
       // API 응답이 실패했거나 데이터가 없으면 목업 데이터 반환
       console.warn('🔄 API 응답 실패, 목업 데이터 사용');
       return mockServers;
-      
     } catch (fetchError) {
       console.warn('🚨 API 배칭 실패, 목업 데이터 사용:', fetchError);
 
@@ -771,7 +784,7 @@ export function useRealtimeServers(
   useEffect(() => {
     if (autoRefresh && refreshInterval > 0) {
       intervalRef.current = setInterval(() => {
-        refreshServers();
+        void refreshServers();
       }, refreshInterval);
     }
 
@@ -784,7 +797,7 @@ export function useRealtimeServers(
 
   // 초기 데이터 로드
   useEffect(() => {
-    refreshServers();
+    void refreshServers();
   }, [refreshServers]); // refreshServers 함수 의존성 복구
 
   // Vercel 최적화: 컴포넌트 언마운트 시 정리
@@ -794,7 +807,7 @@ export function useRealtimeServers(
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
-      
+
       // API 배처 정리 (메모리 누수 방지)
       // 전역 배처는 정리하지 않고, 개별 요청만 취소
       // getAPIBatcher().cleanup(); // 전역이므로 정리하지 않음
