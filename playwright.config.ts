@@ -19,10 +19,13 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'https://openmanager-vibe-v5-skyasus-projects.vercel.app',
+    baseURL:
+      process.env.PLAYWRIGHT_BASE_URL ||
+      'https://openmanager-vibe-v5-skyasus-projects.vercel.app',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    /* Phase 17.1: 'retain-on-failure'로 변경 - 실패 시 항상 trace 생성 (로컬 환경에서도) */
+    trace: 'retain-on-failure',
 
     /* 타임아웃 설정 최적화 (2025-09-28) */
     actionTimeout: 30000, // 30초 (기존 15초에서 증가)
@@ -34,7 +37,6 @@ export default defineConfig({
   expect: {
     timeout: 10000, // assertion 타임아웃 10초
   },
-
 
   /* Configure projects for major browsers */
   projects: [
