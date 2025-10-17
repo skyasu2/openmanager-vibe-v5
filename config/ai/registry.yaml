@@ -344,13 +344,30 @@ mcp-servers:
     name: "Vercel Platform"
     type: "HTTP"
     url: "https://mcp.vercel.com"
-    version: "v2.0.5+"
-    status: "✅ Connected"
+    version: "v1.0.0"  # 2025-10-17 업데이트
+    status: "⚠ Needs authentication"  # OAuth 재인증 필요
     priority: "HIGH"
+    changelog:  # 🆕 변경사항 추적
+      v1_0_0:
+        date: "2025-07-15"
+        status: "Public Beta"
+        highlights:
+          - "OAuth 지원 공식 추가 (MCP Authorization spec)"
+          - "withMcpAuth wrapper for route 보안"
+      august_2025_updates:
+        date: "2025-08-19"
+        new_tools:
+          - "get_access_to_vercel_url (Protected deployments 접근)"
+          - "web_fetch_vercel_url (인증된 URL 패치)"
+      xmcp_support:
+        date: "2025-08-22"
+        highlights:
+          - "xmcp 프레임워크 지원 (TypeScript MCP 서버)"
     use_case:
       - "배포 정보 조회 (89배 빠름)"
       - "환경변수 관리"
       - "빌드 로그 확인"
+      - "Protected deployments 접근 (🆕)"
     optimization:
       vs_cli: "89배 빠름 (1초 vs 89초)"
       token_savings: "82%"
@@ -359,7 +376,9 @@ mcp-servers:
       - "mcp__vercel__get_deployment"
       - "mcp__vercel__list_deployments"
       - "mcp__vercel__get_deployment_build_logs"
-    authentication: "OAuth (안정화)"
+      - "mcp__vercel__get_access_to_vercel_url (🆕 2025-08)"
+      - "mcp__vercel__web_fetch_vercel_url (🆕 2025-08)"
+    authentication: "OAuth (재인증 필요)"
 
   supabase:
     name: "Supabase PostgreSQL"

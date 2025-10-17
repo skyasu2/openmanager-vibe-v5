@@ -175,11 +175,11 @@ npm run test:fast           # 21초 (44% 개선)
 
 - 메모리: 20GB 할당
 - .wslconfig: `dnsTunneling=true`, `autoProxy=true` (필수)
-- MCP 상태: 9/9 완벽 연결
+- MCP 상태: 8/9 연결 (Vercel OAuth 재인증 필요)
 
-**MCP 서버** (9/9 완벽 연결):
+**MCP 서버** (8/9 연결):
 
-- ✅ vercel (OAuth 안정화, v2.0.5+ 패치)
+- ⚠️ vercel (v1.0.0 Public Beta, OAuth 재인증 필요)
 - ✅ serena, supabase, context7, playwright
 - ✅ memory, time, sequential-thinking, shadcn-ui
 
