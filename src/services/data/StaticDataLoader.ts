@@ -282,6 +282,101 @@ export class StaticDataLoader {
   }
 
   /**
+   * 🔄 동기 래퍼: 캐시된 서버 데이터 반환 (MockContextLoader용)
+   *
+   * @param forAI - AI 분석용(고정)/UI 시연용(변화) 구분
+   * @returns 캐시된 서버 데이터 또는 null (캐시 미준비 시)
+   *
+   * ⚠️ 주의: 이 메서드는 캐시가 준비된 경우에만 데이터를 반환합니다.
+   * 캐시가 없거나 만료된 경우 null을 반환하므로 호출자는 폴백을 준비해야 합니다.
+   */
+  getCurrentServersDataSync(forAI: boolean = false): HourlyServerState[] | null {
+    // 캐시가 유효하지 않으면 null 반환 (비동기 로드 필요)
+    if (!this.isCacheValid() || !this.cachedData) {
+      return null;
+    }
+
+    const currentHour = new Date().getHours();
+    const currentMinute = new Date().getMinutes();
+    const currentServersData: HourlyServerState[] = [];
+
+    for (const server of this.cachedData.servers) {
+      const hourlyData = server.hourlyData.find(h => h.hour === currentHour);
+      if (hourlyData) {
+        let serverData: HourlyServerState = {
+          serverId: server.id,
+          hour: currentHour,
+          status: hourlyData.status,
+          cpu: hourlyData.cpu,
+          memory: hourlyData.memory,
+          disk: hourlyData.disk,
+          network: hourlyData.network,
+          responseTime: hourlyData.responseTime,
+          errorRate: hourlyData.errorRate,
+          incidentType: hourlyData.incidentType,
+        };
+
+        // AI 분석용은 고정 데이터, UI 시연용은 미세 변화 적용
+        if (!forAI) {
+          const minuteVariation = Math.sin(currentMinute * Math.PI / 30);
+          const baseVariation = minuteVariation * 0.05;
+
+          serverData = {
+            ...serverData,
+            cpu: this.applyRealtimeVariation(hourlyData.cpu, 5),
+            memory: this.applyRealtimeVariation(hourlyData.memory, 3),
+            disk: this.applyRealtimeVariation(hourlyData.disk, 2),
+            network: this.applyRealtimeVariation(hourlyData.network, 8),
+            responseTime: Math.max(1, this.applyRealtimeVariation(hourlyData.responseTime, 15)),
+            errorRate: Math.max(0, Number((hourlyData.errorRate * (1 + baseVariation)).toFixed(1))),
+          };
+        }
+
+        currentServersData.push(serverData);
+      }
+    }
+
+    return currentServersData;
+  }
+
+  /**
+   * 🔄 동기 래퍼: 캐시된 통계 데이터 반환 (MockContextLoader용)
+   *
+   * @returns 캐시된 통계 또는 null (캐시 미준비 시)
+   *
+   * ⚠️ 주의: 캐시가 없거나 만료된 경우 null을 반환합니다.
+   */
+  getCurrentStatisticsSync(): {
+    totalServers: number;
+    online: number;
+    warning: number;
+    critical: number;
+    avgCpu: number;
+    avgMemory: number;
+    avgResponseTime: number;
+    dominantIncident: string;
+  } | null {
+    // 캐시가 유효하지 않으면 null 반환
+    if (!this.isCacheValid() || !this.cachedData) {
+      return null;
+    }
+
+    const currentHour = new Date().getHours();
+    const stats = this.cachedData.hourlyStatistics.find(s => s.hour === currentHour);
+
+    return stats || {
+      totalServers: 15,
+      online: 12,
+      warning: 2,
+      critical: 1,
+      avgCpu: 35,
+      avgMemory: 45,
+      avgResponseTime: 150,
+      dominantIncident: '정상 운영'
+    };
+  }
+
+  /**
    * 🗑️ 캐시 무효화
    */
   clearCache(): void {

@@ -430,38 +430,87 @@ export class MockContextLoader {
   /**
    * 🚀 베르셀 최적화: StaticDataLoader 기반 컨텍스트 생성
    * CPU 99.4% 절약, 메모리 90% 절약
+   *
+   * Phase 3.3: 동기 래퍼 메서드 연동으로 하드코딩 제거
    */
   private getStaticContextSync(): MockContext | null {
     try {
-      // 동기적으로 사용하기 위해 Promise를 처리할 수 없으므로
-      // 이미 캐시된 데이터가 있는지 확인하거나 폴백 사용
       if (process.env.NODE_ENV === 'development') {
-        console.log('🚀 StaticDataLoader 기반 컨텍스트 생성 시도');
+        console.log('🚀 StaticDataLoader 기반 컨텍스트 생성 시도 (동기 래퍼)');
       }
 
-      // getCurrentServersData는 비동기이므로 여기서는 간단한 폴백 사용
-      // 실제로는 AI API에서 직접 staticDataLoader.getCurrentServersData(true) 호출 권장
-      const now = new Date();
-      const currentTime = now.toLocaleTimeString('ko-KR', { hour12: false });
+      // 🔄 StaticDataLoader의 동기 래퍼 메서드 호출
+      const serversData = staticDataLoader.getCurrentServersDataSync(true); // forAI=true (고정 데이터)
+      const stats = staticDataLoader.getCurrentStatisticsSync();
+
+      // 캐시가 준비되지 않은 경우 null 반환 → getUnifiedContextSync() 폴백
+      if (!serversData || !stats) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('⚠️ StaticDataLoader 캐시 미준비 - getUnifiedContextSync() 폴백');
+        }
+        return null;
+      }
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ StaticDataLoader 동기 데이터 로드 성공:', {
+          serversCount: serversData.length,
+          stats: stats,
+        });
+      }
+
+      // 서버 상태별 분류
+      const criticalServers = serversData.filter(s => s.status === 'critical');
+      const warningServers = serversData.filter(s => s.status === 'warning');
+      const onlineServers = serversData.filter(s => s.status === 'online');
+
+      // 평균 디스크 사용률 계산 (stats에 없으므로 서버 데이터에서 계산)
+      const avgDisk = serversData.length > 0
+        ? Math.round(serversData.reduce((sum, s) => sum + s.disk, 0) / serversData.length)
+        : 0;
+
+      const currentTime = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+
+      // Server 타입으로 변환 (MockContext 인터페이스 호환)
+      const servers: Server[] = serversData.map(s => ({
+        id: s.serverId,
+        name: s.serverId,
+        hostname: s.serverId,
+        status: s.status, // 'online' | 'warning' | 'critical'
+        cpu: s.cpu,
+        memory: s.memory,
+        disk: s.disk,
+        network: s.network,
+        uptime: 86400, // 기본값 (24시간)
+        location: 'Seoul-DC-01',
+        alerts: s.status === 'critical' ? 2 : s.status === 'warning' ? 1 : 0,
+        ip: '192.168.1.1',
+        os: 'Ubuntu 22.04 LTS',
+        type: 'application',
+        role: 'worker',
+        environment: 'production',
+        provider: 'StaticDataLoader',
+        lastUpdate: new Date(),
+      }));
 
       return {
         enabled: true,
         currentTime,
         metrics: {
-          serverCount: 15,
-          criticalCount: 1,
-          warningCount: 2,
-          healthyCount: 12,
-          avgCpu: 45,
-          avgMemory: 55,
-          avgDisk: 35,
+          serverCount: serversData.length,
+          criticalCount: criticalServers.length,
+          warningCount: warningServers.length,
+          healthyCount: onlineServers.length,
+          avgCpu: stats.avgCpu,
+          avgMemory: stats.avgMemory,
+          avgDisk: avgDisk,
         },
-        servers: [], // AI API에서 staticDataLoader.getCurrentServersData(true) 직접 호출
+        servers: servers.slice(0, 10), // 상위 10개 서버 (AI 분석에 충분)
         trends: {
-          cpuTrend: 'stable',
+          cpuTrend: stats.avgCpu > 70 ? 'increasing' : stats.avgCpu < 30 ? 'decreasing' : 'stable',
+          memoryTrend: stats.avgMemory > 75 ? 'increasing' : stats.avgMemory < 40 ? 'decreasing' : 'stable',
+          alertTrend: criticalServers.length > serversData.length * 0.3 ? 'increasing'
+                     : criticalServers.length === 0 ? 'decreasing' : 'stable',
           scenario: { name: "static" },
-          memoryTrend: 'stable',
-          alertTrend: 'stable',
         },
       };
     } catch (error) {
