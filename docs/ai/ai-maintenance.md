@@ -9,17 +9,20 @@
 ## 📊 Executive Summary
 
 ### 목적
+
 - 스택 드리프트 추적 부재 해결 (Codex 지적 핵심 문제)
 - AI 도구, MCP 서버, 서브에이전트 버전 관리
 - 장기 안정성 확보 (99.9% 연결 성공률 유지)
 
 ### 핵심 원칙
+
 1. **월 1회 체크리스트**: 30분 투입으로 전체 시스템 점검
 2. **버전 고정 전략**: 예상치 못한 Breaking changes 방지
 3. **점진적 업데이트**: 한 번에 하나씩, 테스트 후 다음 단계
 4. **변경 로그 추적**: registry.yaml + Decision Log 기록
 
 ### 기대 효과
+
 - 스택 드리프트 빠른 감지 (1개월 → 즉시)
 - API 변경 대응 지연 방지 (0% 다운타임)
 - 유지보수 복잡도 50% 감소
@@ -30,11 +33,13 @@
 ## 📋 월간 체크리스트 (30분)
 
 ### 실행 일정
+
 - **권장**: 매월 1일 (월초)
 - **필수**: 분기별 최소 1회 (3개월마다)
 - **긴급**: AI 도구 오류 발생 시 즉시
 
 ### 체크리스트 사용법
+
 1. 이 문서를 열어 둔다
 2. 각 항목을 순서대로 실행
 3. ✅ 체크 시 현재 날짜 기록
@@ -48,14 +53,15 @@
 **사용 시기**: AI 도구 오류 발생 시, 또는 상태 확인 필요 시 (필요할 때만 실행)
 
 ```bash
-# AI CLI 도구 자동 헬스 체크 (2분)
-./scripts/ai-tools-health-check.sh
+# 🆕 서브에이전트 사용 (권장)
+# Claude Code에서: "dev-environment-manager야, AI 도구 헬스 체크해줘"
 
-# 로그 확인
-cat logs/ai-tools-health/$(date +%Y-%m-%d).log
+# 또는 레거시 스크립트 (기본 체크만, Deprecated)
+./scripts/ai-tools-health-check.sh
 ```
 
 **체크 항목** (자동):
+
 - ✅ **설치 여부**: Claude Code, Codex CLI, Gemini CLI, Qwen CLI
 - ✅ **버전 확인**: 각 도구의 현재 버전
 - ✅ **대화 테스트**: Codex, Gemini, Qwen 응답 테스트
@@ -63,13 +69,14 @@ cat logs/ai-tools-health/$(date +%Y-%m-%d).log
 
 **결과 해석**:
 
-| 상태 | 의미 | 조치 |
-|------|------|------|
-| ✅ 모든 도구 정상 (4/4) | 완벽 | Section 1-4 간단 확인만 |
-| ⚠️ 일부 도구 누락 (3/4) | 주의 | 누락된 도구 확인 |
-| ❌ 다수 도구 누락 (≤2/4) | 긴급 | 즉시 Section 1 실행 |
+| 상태                     | 의미 | 조치                    |
+| ------------------------ | ---- | ----------------------- |
+| ✅ 모든 도구 정상 (4/4)  | 완벽 | Section 1-4 간단 확인만 |
+| ⚠️ 일부 도구 누락 (3/4)  | 주의 | 누락된 도구 확인        |
+| ❌ 다수 도구 누락 (≤2/4) | 긴급 | 즉시 Section 1 실행     |
 
 **다음 단계**:
+
 - 모든 도구 정상 → **Section 2 (MCP 서버)로 이동**
 - 문제 발견 → **Section 1 (상세 체크)로 이동**
 
@@ -93,6 +100,7 @@ codex --version
 ```
 
 **체크 항목**:
+
 - [ ] Codex 버전: `______` (현재: GPT-5)
 - [ ] ChatGPT Plus 구독 활성: `Yes/No` (만료일: `______`)
 - [ ] API 변경 사항: `없음 / 있음 (설명: ______)`
@@ -100,6 +108,7 @@ codex --version
 - [ ] registry.yaml 업데이트 필요: `No / Yes`
 
 **Breaking Changes 대응**:
+
 - [ ] 쿼리 최적화 가이드 수정 필요: `No / Yes`
 - [ ] 테스트 실행: `codex exec "Hello World"` 성공 확인
 
@@ -119,6 +128,7 @@ gemini "test query"  # 인증 프롬프트 없으면 정상
 ```
 
 **체크 항목**:
+
 - [ ] Gemini 버전: `______` (현재: 2.5 Flash)
 - [ ] OAuth 캐시 유효: `Yes/No` (재인증 필요 시 실행)
 - [ ] API 한도 변경: `없음 / 있음 (60 RPM → ___RPM)`
@@ -127,6 +137,7 @@ gemini "test query"  # 인증 프롬프트 없으면 정상
 - [ ] registry.yaml 업데이트 필요: `No / Yes`
 
 **Breaking Changes 대응**:
+
 - [ ] OAuth 재인증: 필요 시 `gemini --auth`
 - [ ] 테스트 실행: `gemini "Hello World"` 성공 확인
 
@@ -146,6 +157,7 @@ qwen -p "test query"  # Plan Mode 테스트
 ```
 
 **체크 항목**:
+
 - [ ] Qwen 버전: `______` (현재: 2.5 Coder)
 - [ ] OAuth 유효: `Yes/No` (재인증 필요 시 실행)
 - [ ] API 한도 변경: `없음 / 있음 (60 RPM → ___RPM)`
@@ -154,6 +166,7 @@ qwen -p "test query"  # Plan Mode 테스트
 - [ ] registry.yaml 업데이트 필요: `No / Yes`
 
 **Breaking Changes 대응**:
+
 - [ ] OAuth 재인증: 필요 시 `qwen --auth`
 - [ ] Plan Mode 테스트: `qwen -p "Hello World"` 성공 확인
 
@@ -173,13 +186,15 @@ claude --version
 ```
 
 **체크 항목**:
-- [ ] Claude Code 버전: `______` (현재: v2.0.14)
+
+- [ ] Claude Code 버전: `______` (현재: v2.0.21)
 - [ ] 최신 버전 확인: `업데이트 없음 / 있음 (v___.___로 업데이트)`
 - [ ] Breaking Changes: `없음 / 있음 (설명: ______)`
 - [ ] 서브에이전트 호환성: `정상 / 문제 (설명: ______)`
 - [ ] MCP 서버 호환성: `정상 / 문제 (설명: ______)`
 
 **Breaking Changes 대응**:
+
 - [ ] 서브에이전트 업데이트 필요: `No / Yes`
 - [ ] CLAUDE.md 수정 필요: `No / Yes`
 
@@ -199,29 +214,32 @@ cat logs/mcp-health/$(date +%Y-%m-%d).log
 ```
 
 **체크 항목**:
+
 - [ ] MCP 연결 성공률: `___/9` (목표: 9/9, 최소: 7/9)
 - [ ] 연결 실패 서버: `없음 / 있음 (서버명: ______, ______, ______)`
 
 **서버별 상태** (✅/❌ 표시):
 
-| 서버 | 상태 | 버전 | Breaking Changes | 조치 필요 |
-|------|------|------|------------------|----------|
-| vercel | ☐ | `______` | `없음/있음` | `No/Yes` |
-| serena | ☐ | `______` | `없음/있음` | `No/Yes` |
-| supabase | ☐ | `______` | `없음/있음` | `No/Yes` |
-| context7 | ☐ | `______` | `없음/있음` | `No/Yes` |
-| playwright | ☐ | `______` | `없음/있음` | `No/Yes` |
-| shadcn-ui | ☐ | `______` | `없음/있음` | `No/Yes` |
-| memory | ☐ | `______` | `없음/있음` | `No/Yes` |
-| time | ☐ | `______` | `없음/있음` | `No/Yes` |
-| sequential-thinking | ☐ | `______` | `없음/있음` | `No/Yes` |
+| 서버                | 상태 | 버전     | Breaking Changes | 조치 필요 |
+| ------------------- | ---- | -------- | ---------------- | --------- |
+| vercel              | ☐    | `______` | `없음/있음`      | `No/Yes`  |
+| serena              | ☐    | `______` | `없음/있음`      | `No/Yes`  |
+| supabase            | ☐    | `______` | `없음/있음`      | `No/Yes`  |
+| context7            | ☐    | `______` | `없음/있음`      | `No/Yes`  |
+| playwright          | ☐    | `______` | `없음/있음`      | `No/Yes`  |
+| shadcn-ui           | ☐    | `______` | `없음/있음`      | `No/Yes`  |
+| memory              | ☐    | `______` | `없음/있음`      | `No/Yes`  |
+| time                | ☐    | `______` | `없음/있음`      | `No/Yes`  |
+| sequential-thinking | ☐    | `______` | `없음/있음`      | `No/Yes`  |
 
 **문제 해결**:
+
 - [ ] OAuth 재인증 필요: `No / Yes (서버명: ______)`
 - [ ] 서버 재시작: `No / Yes (명령: claude mcp restart)`
 - [ ] settings.json 수정: `No / Yes`
 
 **릴리즈 노트 확인**:
+
 - Vercel: https://github.com/vercel/mcp
 - Supabase: https://github.com/supabase/mcp-server-supabase
 - Context7: https://github.com/upstash/context7-mcp
@@ -242,6 +260,7 @@ wc -l CLAUDE.md
 ```
 
 **체크 항목**:
+
 - [ ] CLAUDE.md 크기: `___줄` (목표: 200-300줄)
 - [ ] 크기 초과 시 조치: `No / Yes (내용 분리: ______)`
 
@@ -256,6 +275,7 @@ grep "last_updated:" config/ai/registry.yaml
 ```
 
 **체크 항목**:
+
 - [ ] registry.yaml 버전: `______` (현재: 1.0.0)
 - [ ] last_updated: `______` (이번 달로 업데이트)
 - [ ] AI 도구 버전 일치: `Yes / No (수정 필요: ______)`
@@ -272,6 +292,7 @@ ls -1 .claude/agents/*.md | wc -l
 ```
 
 **체크 항목**:
+
 - [ ] 서브에이전트 파일: `___개` (목표: 18개)
 - [ ] 목록 일치: `Yes / No`
   - CLAUDE.md: `___개`
@@ -285,10 +306,12 @@ ls -1 .claude/agents/*.md | wc -l
 #### 토큰 효율
 
 **측정 방법**:
+
 - CLAUDE.md에 명시된 목표 달성 여부 확인
 - 주요 작업 토큰 사용량 추적 (수동)
 
 **체크 항목**:
+
 - [ ] 토큰 효율: `___%` (목표: 82% → 85%)
 - [ ] MCP 활용도: `___/100` (목표: 90-100)
 - [ ] 개선 필요: `No / Yes (액션: ______)`
@@ -296,10 +319,12 @@ ls -1 .claude/agents/*.md | wc -l
 #### 3-AI 성공률
 
 **측정 방법**:
+
 - 최근 교차검증 결과 확인
 - Decision Log 참조
 
 **체크 항목**:
+
 - [ ] 최근 교차검증 날짜: `______`
 - [ ] 3-AI 성공률: `___% (___/3)` (목표: 100%)
 - [ ] Codex 타임아웃: `없음 / 있음 (날짜: ______, 원인: ______)`
@@ -308,10 +333,12 @@ ls -1 .claude/agents/*.md | wc -l
 #### MCP 활용도
 
 **측정 방법**:
+
 - 체크리스트 준수 여부 확인 (CLAUDE.md)
 - 실제 사용 패턴 회고
 
 **체크 항목**:
+
 - [ ] Serena `skip_ignored_files: true` 사용: `항상 / 가끔 / 안 함`
 - [ ] @-mention 활용: `자주 / 가끔 / 안 함`
 - [ ] MCP 우선 원칙 준수: `Yes / No`
@@ -335,12 +362,14 @@ npx -y @supabase/mcp-server-supabase@1.2.3
 ```
 
 **적용 방법**:
+
 1. `claude mcp list`로 현재 버전 확인
 2. `~/.config/claude-code/settings.json` 수정
 3. `@latest` → `@1.2.3`으로 변경
 4. `claude mcp restart`
 
 **버전 고정 권장**:
+
 - ✅ **프로덕션**: 항상 버전 고정
 - ⚠️ **개발**: 최신 버전 테스트 가능
 - ⚠️ **신규 기능**: 업데이트 전 테스트 환경 확인
@@ -353,8 +382,8 @@ npx -y @supabase/mcp-server-supabase@1.2.3
 
 ```yaml
 # 버전 정보 업데이트
-version: "1.1.0"  # 메이저 변경 시 증가
-last_updated: "2025-11-01"  # 월간 체크 시 업데이트
+version: '1.1.0' # 메이저 변경 시 증가
+last_updated: '2025-11-01' # 월간 체크 시 업데이트
 
 # 변경 사항 기록 (주석)
 # 2025-10-16: Codex 타임아웃 300→600초
@@ -364,6 +393,7 @@ last_updated: "2025-11-01"  # 월간 체크 시 업데이트
 #### Decision Log 기록
 
 **중요 변경만 기록** (예시):
+
 - AI 도구 메이저 업데이트
 - MCP 서버 Breaking changes
 - 서브에이전트 추가/제거
@@ -373,14 +403,17 @@ last_updated: "2025-11-01"  # 월간 체크 시 업데이트
 # logs/ai-decisions/2025-11-01-gemini-oauth-update.md
 
 ## 변경 사항
+
 - Gemini OAuth 캐시 만료로 재인증 필요
 - 재인증 완료: 2025-11-01
 
 ## 영향 범위
+
 - gemini-wrapper.sh: 정상 동작 확인
 - gemini-specialist: 정상 동작 확인
 
 ## 조치 사항
+
 - 없음 (3개월 후 재확인)
 ```
 
@@ -441,6 +474,7 @@ claude mcp list
 **현실**: 1인 개발 환경에서 자동 알림 시스템 구축은 과도한 투자
 
 **실용적 해결책**:
+
 1. **월간 체크리스트 활용** (주요 방법)
 2. **버전 고정 전략** (Breaking changes 방지)
 3. **점진적 업데이트** (리스크 최소화)
@@ -465,6 +499,7 @@ claude mcp list
    - 타임아웃 증가
 
 **조치 절차**:
+
 1. 월간 체크리스트 즉시 실행
 2. 릴리즈 노트 확인
 3. 버전 업데이트 또는 롤백
@@ -475,12 +510,14 @@ claude mcp list
 ### 릴리즈 노트 모니터링
 
 **권장 구독** (GitHub Watch):
+
 - Codex/Claude: OpenAI Blog, Anthropic Blog
 - Gemini: Google AI Blog
 - Qwen: GitHub Releases
 - MCP Servers: 각 저장소 Releases
 
 **체크 빈도**:
+
 - **월 1회**: 월간 체크리스트 실행 시
 - **즉시**: 오류 발생 시
 
@@ -493,11 +530,13 @@ claude mcp list
 **목표**: 82% (달성) → 85% (차기 목표)
 
 **측정 방법** (수동):
+
 1. 주요 작업 토큰 사용량 기록
 2. MCP 활용 전후 비교
 3. 월간 평균 계산
 
 **개선 액션**:
+
 - MCP 활용도 체크리스트 준수
 - @-mention 적극 활용 (추가 10-18% 절약)
 - Serena `skip_ignored_files: true` 항시 사용
@@ -509,11 +548,13 @@ claude mcp list
 **목표**: 65/100 (현재) → 90-100/100 (차기 목표)
 
 **측정 방법** (자가 평가):
+
 - 체크리스트 준수 여부 확인
 - 실제 사용 패턴 회고
 - 비효율적 패턴 식별
 
 **개선 액션**:
+
 - CLAUDE.md 체크리스트 매번 확인
 - MCP 우선 원칙 준수
 - WebSearch/Read 대신 MCP 사용
@@ -525,11 +566,13 @@ claude mcp list
 **목표**: 100% (3/3 성공)
 
 **측정 방법**:
+
 - 교차검증 시 성공/실패 기록
 - Decision Log 참조
 - 타임아웃 패턴 분석
 
 **개선 액션**:
+
 - 쿼리 최적화 가이드 준수
 - Executive Summary 방식 활용
 - 타임아웃 시 쿼리 50% 축소
@@ -543,17 +586,20 @@ claude mcp list
 #### 문제 1: Codex 타임아웃
 
 **증상**:
+
 ```
 ❌ Codex 타임아웃 (300초 = 5분 초과)
 ```
 
 **해결 방법**:
+
 1. 쿼리 간소화 (docs/ai/3-ai-query-optimization-guide.md 참조)
 2. 쿼리 50% 축소
 3. Executive Summary 방식 사용
 4. 분할 쿼리 (3개 별도)
 
 **예방**:
+
 - 쿼리 길이 250단어 이내
 - 명확한 역할 정의
 - 불필요한 컨텍스트 제거
@@ -563,11 +609,13 @@ claude mcp list
 #### 문제 2: Gemini OAuth 실패
 
 **증상**:
+
 ```
 ❌ OAuth authentication required
 ```
 
 **해결 방법**:
+
 ```bash
 # OAuth 재인증
 gemini --auth
@@ -578,6 +626,7 @@ gemini "test query"
 ```
 
 **예방**:
+
 - 월간 체크리스트에서 OAuth 유효성 확인
 - 3개월마다 사전 재인증
 
@@ -586,11 +635,13 @@ gemini "test query"
 #### 문제 3: MCP 서버 연결 실패
 
 **증상**:
+
 ```
 ❌ Failed to connect: [서버명]
 ```
 
 **해결 방법**:
+
 ```bash
 # 1. MCP 재시작
 claude mcp restart
@@ -606,6 +657,7 @@ cat ~/.config/claude-code/settings.json
 ```
 
 **예방**:
+
 - 주 1회 mcp-health-check.sh 실행
 - 9/9 연결 성공 유지
 
@@ -614,17 +666,20 @@ cat ~/.config/claude-code/settings.json
 #### 문제 4: 서브에이전트 호출 실패
 
 **증상**:
+
 ```
 Task tool error: Agent not found
 ```
 
 **해결 방법**:
+
 1. 서브에이전트 파일 존재 확인 (`.claude/agents/*.md`)
 2. 파일 이름 정확성 확인
 3. Claude Code 재시작
 4. 서브에이전트 재등록
 
 **예방**:
+
 - 월간 체크리스트에서 서브에이전트 목록 확인 (18개)
 - 파일 삭제 주의
 
@@ -633,14 +688,17 @@ Task tool error: Agent not found
 ### 긴급 연락처
 
 **Claude Code**:
+
 - 이슈: https://github.com/anthropics/claude-code/issues
 - 문서: https://docs.claude.com/en/docs/claude-code/
 
 **커뮤니티**:
+
 - Discord: Claude Code 커뮤니티
 - Reddit: r/ClaudeAI
 
 **로컬 문제 해결**:
+
 - Decision Log 검색: `grep "문제" logs/ai-decisions/*.md`
 - AI Registry 참조: `config/ai/registry.yaml`
 - 워크플로우 가이드: `docs/ai/ai-workflows.md`
@@ -652,9 +710,9 @@ Task tool error: Agent not found
 ### 월간 체크리스트 실행
 
 ```bash
-# 0. 빠른 헬스 체크 (2분) ⭐ 필수
-./scripts/ai-tools-health-check.sh
-cat logs/ai-tools-health/$(date +%Y-%m-%d).log
+# 0. 빠른 헬스 체크 (2분) ⭐ 필수 - 🆕 서브에이전트 사용
+# Claude Code: "dev-environment-manager야, AI 도구 헬스 체크해줘"
+# 또는 레거시 스크립트: ./scripts/ai-tools-health-check.sh (Deprecated)
 
 # 1. AI 도구 상세 체크 (10분, 문제 발견 시만)
 codex --version

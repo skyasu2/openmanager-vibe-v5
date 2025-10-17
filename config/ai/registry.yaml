@@ -13,9 +13,24 @@ ai-tools:
   # Codex - 실무 검증 전문가
   codex:
     name: "ChatGPT Codex CLI"
-    version: "GPT-5"
+    version: "v0.46.0"  # 2025-10-17 업데이트
     role: "실무 검증 전문가"
     description: "버그 분석, 개선 제안, 실무 관점 검증"
+    changelog:  # 🆕 변경사항 추적
+      v0_46_0:
+        date: "2025-10-09"
+        highlights:
+          - "MCP 지원 대폭 개선 (Bearer token, credentials store)"
+          - "list_dir, grep_files 도구 추가"
+          - "codex resume 개선"
+      v0_45_0:
+        date: "2025-10-06"
+        breaking_changes:
+          - "codex login --api-key → --with-api-key (stdin 읽기)"
+        highlights:
+          - "실험적 OAuth MCP 서버 인증 지원"
+          - "Windows 기본 모델 gpt-5"
+        impact: "wrapper 스크립트 영향 없음 (codex exec만 사용)"
     philosophy: "사용자 지침을 정확히 따르고 결과를 재현 가능하게"
     specialty:
       - "다중 파일 버그 분석"
@@ -51,9 +66,19 @@ ai-tools:
   # Gemini - 아키텍처 검증 전문가
   gemini:
     name: "Google Gemini CLI"
-    version: "2.5 Flash"
+    version: "v0.9.0"  # 2025-10-17 업데이트
     role: "아키텍처 검증 전문가"
     description: "SOLID 검토, 설계 리뷰, 구조 분석"
+    changelog:  # 🆕 변경사항 추적
+      v0_9_0:
+        date: "2025-10-06"
+        highlights:
+          - "인터랙티브 셸 추가 (vim, rebase -i 등)"
+          - "node-pty 사용 (터미널 도구 직접 실행)"
+          - "Pre-release 익스텐션 설치 지원"
+      v0_8_1:
+        date: "2025-09"
+        notes: "v0.8.0 패치 릴리즈"
     philosophy: "구조적 무결성을 갖춘 효율성 - Senior Code Architect"
     specialty:
       - "SOLID 원칙 검증"
@@ -208,9 +233,13 @@ subagents:
   dev-environment-manager:
     name: "개발 환경 관리자"
     category: "development"
-    role: "WSL 최적화, Node.js 버전 관리"
+    role: "WSL 최적화, Node.js 버전 관리, AI 도구 관리"  # 🆕 AI 도구 관리 추가
     proactive: true
     tools: ["Read", "Write", "Edit", "Bash", "Glob", "LS"]
+    features:  # 🆕 추가
+      - "AI CLI 도구 헬스 체크 및 업그레이드"
+      - "구조적 환경 관리"
+      - "OAuth 재인증 감지"
     file_path: ".claude/agents/dev-environment-manager.md"
     priority: "MEDIUM"
 
@@ -508,6 +537,38 @@ workflows:
 # 5. Maintenance (유지보수)
 # ============================================================================
 maintenance:
+  # Claude Code (메인 개발 도구)
+  claude_code:
+    current_version: "v2.0.21"  # 2025-10-17 업데이트
+    changelog:  # 🆕 변경사항 추적
+      v2_0_21:
+        date: "2025-10-17"
+        notes: "CHANGELOG 미기재 (마이너 패치로 추정)"
+      v2_0_20:
+        date: "2025-10-16"
+        highlights:
+          - "Claude Skills 지원 추가"
+      v2_0_19:
+        date: "2025-10-15"
+        highlights:
+          - "장기 실행 bash 명령 자동 백그라운드 실행"
+          - "Print mode Haiku 불필요 호출 버그 수정"
+      v2_0_17:
+        date: "2025-10-14"
+        highlights:
+          - "Haiku 4.5 모델 셀렉터 추가"
+          - "Explore 서브에이전트 도입 (Haiku 기반)"
+          - "HTTP_PROXY/HTTPS_PROXY 지원"
+      v2_0_15:
+        date: "2025-10-13"
+        highlights:
+          - "Resume 및 -p mode 파일 재읽기 버그 수정"
+      v2_0_14:
+        date: "2025-10-12"
+        highlights:
+          - "@-mention MCP 서버 토글 개선"
+          - "Bash inline 환경변수 권한 체크 개선"
+
   # 버전 관리
   version_check:
     frequency: "월 1회"
@@ -526,27 +587,33 @@ maintenance:
     expected: "9/9 연결 성공"
     action_required: "7개 이상 성공 → 확인, 6개 이하 → 긴급 조치"
 
-  # AI Tools 건강 체크
+  # AI Tools 건강 체크 (🆕 서브에이전트 위임)
   ai_tools_health:
     frequency: "필요 시 (on-demand)"
     trigger:
       - "AI 도구 오류 발생 시"
       - "Claude/사용자가 상태 확인 필요 시"
       - "AI 교차검증 실패 시"
-    script: "./scripts/ai-tools-health-check.sh"
-    log_dir: "logs/ai-tools-health/"
+    method: "dev-environment-manager 서브에이전트"  # 🆕 스크립트 → 서브에이전트
+    command: 'Task dev-environment-manager "AI CLI 도구 상태 확인"'
+    legacy_script: "./scripts/ai-tools-health-check.sh (deprecated)"  # 레거시 지원
     tools:
-      - "Claude Code (v2.0.14)"
-      - "Codex CLI (v0.45.0)"
-      - "Gemini CLI (v0.8.1)"
+      - "Claude Code (v2.0.21)"  # 🆕 업데이트
+      - "Codex CLI (v0.46.0)"    # 🆕 업데이트
+      - "Gemini CLI (v0.9.0)"    # 🆕 업데이트
       - "Qwen CLI (v0.0.14)"
+    features:  # 🆕 추가
+      - "자동 업그레이드"
+      - "OAuth 재인증 감지"
+      - "구조적 환경 관리"
+      - "메모리 기반 이력 관리"
     checks:
       - "설치 여부 확인"
-      - "버전 확인"
-      - "대화 테스트 (Codex, Gemini, Qwen)"
-      - "업그레이드 가능 여부"
-    expected: "4/4 설치됨"
-    action_required: "3개 이상 → 확인, 2개 이하 → 설치 필요"
+      - "버전 확인 및 업그레이드 가능 여부"
+      - "대화 테스트 (OAuth 상태 확인)"
+      - "환경 설정 최적화"
+    expected: "4/4 설치됨, 최신 버전"
+    action_required: "3개 이상 → 확인, 2개 이하 → 서브에이전트에게 설치 요청"
 
   # 문서 동기화
   docs_sync:

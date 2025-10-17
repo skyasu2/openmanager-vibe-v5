@@ -26,12 +26,13 @@ npm run test:super-fast     # 11초 빠른 테스트
 # 배포
 git push                    # Vercel 자동 배포
 
-# Claude Code v2.0
+# Claude Code v2.0.21 🆕
 /rewind                     # Checkpoints 복원
 /usage                      # 사용량 확인
 npx ccusage@latest          # 상세 토큰 분석
-npx ccstatusline@latest     # Status Line 설정
 Esc Esc                     # 빠른 복원
+# 🆕 Haiku 4.5: 빠른 탐색용, Explore 서브에이전트
+# 🆕 Claude Skills: 고급 기능 지원
 ```
 
 ---
@@ -261,6 +262,13 @@ vercel ls --token $TOKEN       # MCP가 89배 빠름
 
 ## 🎯 현재 상태 (2025-10-17)
 
+**AI 도구**: 최신 버전 업그레이드 완료 ✅
+
+- Claude Code v2.0.21 (Skills, Haiku 4.5, Explore 서브에이전트)
+- Codex CLI v0.46.0 (MCP 개선, list_dir/grep_files)
+- Gemini CLI v0.9.0 (인터랙티브 셸)
+- Qwen CLI v0.0.14
+
 **품질**:
 
 - TypeScript 에러: 0개 ✅
@@ -299,8 +307,11 @@ npm run build  # 로컬 테스트
 **AI CLI 도구 문제**:
 
 ```bash
-./scripts/ai-tools-health-check.sh  # AI 도구 헬스 체크 (Codex/Gemini/Qwen/Claude)
-cat logs/ai-tools-health/$(date +%Y-%m-%d).log  # 로그 확인
+# 🆕 서브에이전트 사용 (권장)
+"dev-environment-manager야, AI 도구 헬스 체크해줘"
+
+# 또는 레거시 스크립트 (기본 체크만)
+./scripts/ai-tools-health-check.sh  # Deprecated - 서브에이전트 권장
 ```
 
 **MCP 문제**:
@@ -313,8 +324,8 @@ claude mcp list                # 전체 서버 상태 확인
 **필요 시 체크** (오류 발생 시, 상태 확인 필요 시):
 
 ```bash
-# AI CLI 도구 헬스 체크 (필요 시)
-./scripts/ai-tools-health-check.sh
+# AI CLI 도구 헬스 체크 (필요 시) - 🆕 서브에이전트 사용
+"dev-environment-manager야, AI 도구 헬스 체크해줘"
 
 # MCP 서버 헬스 체크 (주 1회 권장)
 ./scripts/mcp-health-check.sh
