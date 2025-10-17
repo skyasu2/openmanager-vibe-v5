@@ -32,37 +32,39 @@
         "utilization_target": "100% 달성",
         "optimization_focus": "AI 교차검증 9.17/10점 달성"
       },
-      "removed_agents": ["central-supervisor", "verification-specialist", "external-ai-orchestrator", "ai-verification-coordinator", "mcp-server-administrator", "ai-systems-specialist", "gcp-vm-specialist", "spec-driven-specialist"],
+      "removed_agents": [
+        "central-supervisor",
+        "verification-specialist",
+        "external-ai-orchestrator",
+        "ai-verification-coordinator",
+        "mcp-server-administrator",
+        "ai-systems-specialist",
+        "gcp-vm-specialist",
+        "spec-driven-specialist"
+      ],
       "renamed_agents": ["design-architect → ui-ux-specialist"],
-      "unified_agents": ["security-auditor + security-reviewer → security-specialist"],
-      "new_features": ["12개 최적화 구조", "외부 AI CLI 직접 연동", "호출 방식 개선"],
+      "unified_agents": [
+        "security-auditor + security-reviewer → security-specialist"
+      ],
+      "new_features": [
+        "12개 최적화 구조",
+        "외부 AI CLI 직접 연동",
+        "호출 방식 개선"
+      ],
       "mcp_utilization": "100% (12개 에이전트 모두 MCP 도구 완전 활용)"
     }
   },
 
   "mcp_server_priorities": {
-    "tier1_essential": [
-      "memory",
-      "multi-ai",
-      "shadcn-ui",
-      "time"
-    ],
+    "tier1_essential": ["memory", "multi-ai", "shadcn-ui", "time"],
     "tier2_specialized": [
       "sequential-thinking",
       "context7",
       "serena",
       "vercel"
     ],
-    "tier3_database_dev": [
-      "supabase",
-      "playwright"
-    ],
-    "tier4_archived": [
-      "filesystem",
-      "github",
-      "gcp",
-      "tavily"
-    ]
+    "tier3_database_dev": ["supabase", "playwright"],
+    "tier4_archived": ["filesystem", "github", "gcp", "tavily"]
   },
 
   "agent_mcp_mapping": {
@@ -305,11 +307,11 @@
       "utilization_target": "90%",
       "capabilities": [
         "mcp__vercel__search_vercel_documentation",
-        "mcp__vercel__deploy_to_vercel",
-        "mcp__vercel__list_projects",
-        "mcp__vercel__get_project",
-        "mcp__vercel__list_deployments",
-        "mcp__vercel__get_deployment",
+        "mcp__vercel__createdeployment",
+        "mcp__vercel__getprojects",
+        "mcp__vercel__getproject",
+        "mcp__vercel__getdeployments",
+        "mcp__vercel__getdeployment",
         "mcp__vercel__get_deployment_build_logs",
         "mcp__serena__search_for_pattern",
         "mcp__serena__find_symbol",

@@ -175,11 +175,13 @@ npm run test:fast           # 21초 (44% 개선)
 
 - 메모리: 20GB 할당
 - .wslconfig: `dnsTunneling=true`, `autoProxy=true` (필수)
-- MCP 상태: 8/9 연결 (Vercel OAuth 재인증 필요)
+- MCP 상태: 9/9 연결 (완벽 연결!)
 
-**MCP 서버** (8/9 연결):
+**MCP 서버** (9/9 연결): ✅ **완벽 연결!**
 
-- ⚠️ vercel (v1.0.0 Public Beta, OAuth 재인증 필요)
+- ✅ **vercel** (@open-mcp/vercel v0.0.13, stdio 방식)
+  - OAuth 버그 우회: HTTP → stdio + API_KEY
+  - Claude Code v2.0.14 OAuth 버그 (invalid_scope) 해결
 - ✅ serena, supabase, context7, playwright
 - ✅ memory, time, sequential-thinking, shadcn-ui
 

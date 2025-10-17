@@ -4,60 +4,75 @@
 
 ## 📊 MCP 현황: 9/9개 연결, 완벽 작동 (2025-10-15 업데이트)
 
-| MCP 서버 | 연결 | WSL 성능 | 기능 테스트 | 상태 |
-|----------|------|----------|-------------|------|
-| **vercel** | ✅ | ✅ 즉시 응답 | ✅ OAuth 안정화 (v2.0.5+ 패치), 배포 관리 | **완전 작동** ⭐ |
-| **serena** | ✅ | ✅ 즉시 응답 | ✅ 프로젝트 분석, 코드 탐색 | **완전 작동** |
-| **supabase** | ✅ | ✅ 즉시 응답 | ✅ SQL 실행, 테이블 관리 | **완전 작동** |
-| **context7** | ✅ | ✅ 즉시 응답 | ✅ 라이브러리 문서 조회 | **완전 작동** |
-| **playwright** | ✅ | ✅ 즉시 응답 | ✅ WSL Sandbox E2E 테스트 | **완전 작동** |
-| **memory** | ✅ | ✅ 즉시 응답 | ✅ 지식 그래프 관리 | **완전 작동** |
-| **time** | ✅ | ✅ 즉시 응답 | ✅ 시간대 변환 | **완전 작동** |
-| **sequential-thinking** | ✅ | ✅ 즉시 응답 | ✅ 사고 프로세스 | **완전 작동** |
-| **shadcn-ui** | ✅ | ✅ 즉시 응답 | ✅ UI 컴포넌트 조회 | **완전 작동** |
+| MCP 서버                | 연결 | WSL 성능     | 기능 테스트                                              | 상태             |
+| ----------------------- | ---- | ------------ | -------------------------------------------------------- | ---------------- |
+| **vercel**              | ✅   | ✅ 즉시 응답 | ✅ stdio + @open-mcp/vercel v0.0.13 (API_KEY), 배포 관리 | **완전 작동** ⭐ |
+| **serena**              | ✅   | ✅ 즉시 응답 | ✅ 프로젝트 분석, 코드 탐색                              | **완전 작동**    |
+| **supabase**            | ✅   | ✅ 즉시 응답 | ✅ SQL 실행, 테이블 관리                                 | **완전 작동**    |
+| **context7**            | ✅   | ✅ 즉시 응답 | ✅ 라이브러리 문서 조회                                  | **완전 작동**    |
+| **playwright**          | ✅   | ✅ 즉시 응답 | ✅ WSL Sandbox E2E 테스트                                | **완전 작동**    |
+| **memory**              | ✅   | ✅ 즉시 응답 | ✅ 지식 그래프 관리                                      | **완전 작동**    |
+| **time**                | ✅   | ✅ 즉시 응답 | ✅ 시간대 변환                                           | **완전 작동**    |
+| **sequential-thinking** | ✅   | ✅ 즉시 응답 | ✅ 사고 프로세스                                         | **완전 작동**    |
+| **shadcn-ui**           | ✅   | ✅ 즉시 응답 | ✅ UI 컴포넌트 조회                                      | **완전 작동**    |
 
-## 🚀 성능 지표 (2025-10-15)
+## 🚀 성능 지표 (2025-10-17)
 
 - **연결 성공률**: 100% (9/9) 🏆
-- **Vercel MCP**: OAuth 401 오류 해결 (v2.0.5+ 패치) ✅
+- **Vercel MCP**: stdio + @open-mcp/vercel v0.0.13 적용 (Claude Code OAuth 버그 우회) ✅
 - **평균 응답속도**: 50ms 미만
 - **안정성**: 99.9% 가동률
 - **WSL 메모리**: 20GB 할당
 
 ## 🏗️ MCP 구성 아키텍처
 
-**9개 MCP 서버** = 전역 8개 + OAuth 1개
+**9개 MCP 서버** = 전역 9개 (stdio 방식)
 
-### 1️⃣ 전역 MCP 서버 (8개)
-**위치**: `~/.claude/.mcp.json`
+### 1️⃣ 전역 MCP 서버 (9개)
 
-| 서버 | 명령어 | 역할 |
-|------|--------|------|
-| memory | npx @modelcontextprotocol/server-memory | 지식 그래프 관리 |
-| sequential-thinking | npx @modelcontextprotocol/server-sequential-thinking | 사고 프로세스 |
-| playwright | node /mnt/d/.../playwright-mcp-server/dist/index.js | E2E 테스트 |
-| shadcn-ui | npx @jpisnice/shadcn-ui-mcp-server | UI 컴포넌트 |
-| supabase | npx @supabase/mcp-server-supabase | DB 관리 |
-| context7 | npx @upstash/context7-mcp | 라이브러리 문서 |
-| time | uvx mcp-server-time | 시간대 변환 |
-| serena | /home/sky-note/.local/bin/serena-mcp-server | 코드 분석 |
+**위치**: `~/.claude.json` (전역) / `~/.claude/.mcp.json` (전역 대체 경로)
 
-### 2️⃣ OAuth 내장 서버 (1개)
-**위치**: `~/.claude/.credentials.json` (Claude Code 자동 관리)
+| 서버                | 명령어                                               | 역할                      |
+| ------------------- | ---------------------------------------------------- | ------------------------- |
+| memory              | npx @modelcontextprotocol/server-memory              | 지식 그래프 관리          |
+| sequential-thinking | npx @modelcontextprotocol/server-sequential-thinking | 사고 프로세스             |
+| playwright          | node /mnt/d/.../playwright-mcp-server/dist/index.js  | E2E 테스트                |
+| shadcn-ui           | npx @jpisnice/shadcn-ui-mcp-server                   | UI 컴포넌트               |
+| supabase            | npx @supabase/mcp-server-supabase                    | DB 관리                   |
+| context7            | npx @upstash/context7-mcp                            | 라이브러리 문서           |
+| time                | uvx mcp-server-time                                  | 시간대 변환               |
+| serena              | /home/sky-note/.local/bin/serena-mcp-server          | 코드 분석                 |
+| **vercel**          | **npx @open-mcp/vercel**                             | **배포 관리 (150+ 도구)** |
 
-| 서버 | URL | 인증 방식 |
-|------|-----|----------|
-| vercel | https://mcp.vercel.com | OAuth (Claude Code 내장) |
+### 2️⃣ 인증 설정 (환경변수)
+
+**Vercel MCP**: `~/.claude.json` 내 `env` 섹션
+
+```json
+"vercel": {
+  "type": "stdio",
+  "command": "npx",
+  "args": ["-y", "@open-mcp/vercel"],
+  "env": {
+    "API_KEY": "your_vercel_token_here"
+  }
+}
+```
+
+**배경**: Claude Code v2.0.14 OAuth 버그 (`invalid_scope 'claudeai'`) 우회를 위해 stdio 방식 적용
+
+**Supabase/Context7 MCP**: 기존 환경변수 설정 유지 (`.env.local`)
 
 ### 3️⃣ 프로젝트 MCP 서버 (제거됨)
 
 **Multi-AI MCP (v3.8.0) - 2025-10-15 제거**
 
-| 서버 | 상태 | 대체 방법 |
-|------|------|-----------|
+| 서버         | 상태      | 대체 방법                |
+| ------------ | --------- | ------------------------ |
 | ~~multi-ai~~ | ❌ 제거됨 | Bash Wrapper v2.3.0 사용 |
 
 **제거 이유**:
+
 - ✅ Bash Wrapper 방식이 100% 안정성 달성 (타임아웃 해결)
 - ✅ 더 간단한 아키텍처 (외부 CLI 직접 호출)
 - ✅ MCP 오버헤드 제거 (응답속도 향상)
@@ -65,6 +80,7 @@
 **백업 위치**: `backups/multi-ai-mcp-v3.8.0/` (38개 파일)
 
 **현재 사용 방법**:
+
 - 서브에이전트: `multi-ai-verification-specialist` (자동화)
 - 직접 호출: `./scripts/ai-subagents/codex-wrapper.sh` 등
 
@@ -74,21 +90,32 @@
 
 ### 인증 필요 서버
 
-#### 1. Vercel MCP (OAuth)
-```bash
-# Claude Code 내 자동 인증
-claude mcp list  # vercel: ✓ Connected 확인
+#### 1. Vercel MCP (stdio + API_KEY)
 
-# 재인증 필요 시
-/mcp  # Claude Code 명령어로 재인증
+```bash
+# ~/.claude.json 설정 (환경변수)
+"vercel": {
+  "type": "stdio",
+  "command": "npx",
+  "args": ["-y", "@open-mcp/vercel"],
+  "env": {
+    "API_KEY": "your_vercel_token_here"
+  }
+}
+
+# 연결 확인
+claude mcp list  # vercel: ✓ Connected
 ```
 
 **장점**:
+
 - Claude Code 통합 환경에서 직접 Vercel 기능 사용
-- OAuth 인증으로 안전한 토큰 관리
-- MCP 도구로 프로젝트/배포 관리 자동화
+- API_KEY 환경변수로 안전한 토큰 관리
+- @open-mcp/vercel 패키지로 150+ 도구 제공
+- Claude Code OAuth 버그 우회 (stdio 방식)
 
 #### 2. Supabase MCP (Access Token)
+
 ```bash
 # 환경변수 설정 (.env.local)
 SUPABASE_ACCESS_TOKEN=your_token_here
@@ -99,6 +126,7 @@ claude mcp list  # supabase: ✓ Connected
 ```
 
 #### 3. Context7 MCP (API 키)
+
 ```bash
 # 환경변수 설정 (.env.local)
 CONTEXT7_API_KEY=your_api_key
@@ -110,6 +138,7 @@ claude mcp list  # context7: ✓ Connected
 ### 로컬 실행 서버
 
 #### 4. Serena MCP (Python 기반)
+
 ```bash
 # uv 도구로 실행
 # 프로젝트 자동 활성화: /mnt/d/cursor/openmanager-vibe-v5
@@ -122,6 +151,7 @@ mcp__serena__activate_project "/mnt/d/cursor/openmanager-vibe-v5"
 ```
 
 #### 5. Playwright MCP (npx 실행)
+
 ```bash
 # executeautomation v1.0.6 (npx 방식)
 npx -y @executeautomation/playwright-mcp-server
@@ -136,24 +166,28 @@ claude mcp list | grep playwright
 ### 범용 도구 서버
 
 #### 6. Memory MCP (npx 실행)
+
 ```bash
 # 자동 실행
 # 지식 그래프 관리 도구
 ```
 
 #### 7. Time MCP (uvx 실행)
+
 ```bash
 # 자동 실행
 # 시간대 변환 도구
 ```
 
 #### 8. Sequential-Thinking MCP (npx 실행)
+
 ```bash
 # 자동 실행
 # 사고 프로세스 도구
 ```
 
 #### 9. Shadcn-UI MCP (npx 실행)
+
 ```bash
 # 자동 실행
 # UI 컴포넌트 조회 도구
@@ -182,6 +216,7 @@ wait
 ```
 
 **Bash Wrapper v2.3.0 특징**:
+
 - ✅ **100% 안정성**: 타임아웃 문제 완전 해결
 - ✅ **고정 타임아웃**: Codex 300s, Gemini 300s, Qwen 600s
 - ✅ **간단한 아키텍처**: MCP 오버헤드 제거
@@ -202,6 +237,7 @@ source .env.local && vercel logs --token $VERCEL_TOKEN      # 로그 확인
 ```
 
 **사용 구분**:
+
 - **MCP 서버**: Claude Code 내 통합 작업 (권장)
 - **CLI 도구**: 터미널 스크립트 및 자동화
 
@@ -211,50 +247,53 @@ source .env.local && vercel logs --token $VERCEL_TOKEN      # 로그 확인
 
 ### 📊 성능 비교 (실측 데이터)
 
-| 작업 | MCP | CLI | 성능 차이 |
-|------|-----|-----|----------|
-| 프로젝트 목록 | 즉시 (~1초) | 89초 | **89배 빠름** ⚡ |
-| 환경변수 조회 | N/A | 85초 | - |
-| 배포 상세 정보 | 즉시 (~1초) | - | - |
-| 보호된 URL 접근 | 즉시 (~1초) | N/A | - |
+| 작업            | MCP         | CLI  | 성능 차이        |
+| --------------- | ----------- | ---- | ---------------- |
+| 프로젝트 목록   | 즉시 (~1초) | 89초 | **89배 빠름** ⚡ |
+| 환경변수 조회   | N/A         | 85초 | -                |
+| 배포 상세 정보  | 즉시 (~1초) | -    | -                |
+| 보호된 URL 접근 | 즉시 (~1초) | N/A  | -                |
 
 ### 🔍 MCP 서버 - 조회 및 분석 전용 (권장)
 
 **✅ MCP가 최적인 경우:**
 
 1. **빠른 정보 조회** (89배 빠름)
+
    ```typescript
    // Claude Code 내에서 즉시 실행
-   mcp__vercel__list_projects(teamId)      // 프로젝트 목록
-   mcp__vercel__list_deployments(...)       // 배포 목록
-   mcp__vercel__get_deployment(...)         // 배포 상세
+   // 참고: @open-mcp/vercel 사용 시 getprojects, getdeployments 등 사용
+   mcp__vercel__getprojects(teamId)         // 프로젝트 목록
+   mcp__vercel__getdeployments(...)         // 배포 목록
+   mcp__vercel__getdeployment(...)          // 배포 상세
    ```
 
 2. **보호된 배포 접근**
+
    ```typescript
    // 임시 공유 링크 생성 (23시간 유효)
-   mcp__vercel__get_access_to_vercel_url(url)
+   mcp__vercel__get_access_to_vercel_url(url);
 
    // 보호된 HTML 전체 가져오기
-   mcp__vercel__web_fetch_vercel_url(shareableUrl)
+   mcp__vercel__web_fetch_vercel_url(shareableUrl);
    ```
 
 3. **도메인 가용성 확인**
    ```typescript
-   mcp__vercel__check_domain_availability_and_price(["example.com"])
+   mcp__vercel__check_domain_availability_and_price(['example.com']);
    ```
 
-**📋 MCP 사용 가능 도구:**
-- ✅ `list_teams` - 팀 목록 조회
-- ✅ `list_projects` - 프로젝트 목록
-- ✅ `get_project` - 프로젝트 상세 (Node.js 버전, 도메인 등)
-- ✅ `list_deployments` - 배포 목록 (페이지네이션 지원)
-- ✅ `get_deployment` - 배포 상세 정보
-- ✅ `get_access_to_vercel_url` - 임시 공유 링크 생성
-- ✅ `web_fetch_vercel_url` - 보호된 배포 HTML 가져오기
-- ✅ `check_domain_availability_and_price` - 도메인 확인
+**📋 MCP 사용 가능 도구 (@open-mcp/vercel v0.0.13):**
+
+- ✅ `getprojects` - 프로젝트 목록
+- ✅ `getdeployments` - 배포 목록 (페이지네이션 지원)
+- ✅ `getdeployment` - 배포 상세 정보
+- ✅ 기타 150+ 도구 제공
+
+**참고**: 공식 Vercel MCP와 도구명이 다름 (list_projects → getprojects)
 
 **⚠️ MCP 제한사항:**
+
 - ❌ 환경변수 수정 (`vercel env add/rm`)
 - ❌ 직접 배포 (`vercel deploy`)
 - ❌ 도메인 연결/해제 (`vercel domains add/rm`)
@@ -267,6 +306,7 @@ source .env.local && vercel logs --token $VERCEL_TOKEN      # 로그 확인
 **✅ CLI가 필수인 경우:**
 
 1. **환경변수 관리**
+
    ```bash
    source .env.local
    vercel env add VARIABLE_NAME production  # 환경변수 추가
@@ -275,6 +315,7 @@ source .env.local && vercel logs --token $VERCEL_TOKEN      # 로그 확인
    ```
 
 2. **직접 배포**
+
    ```bash
    vercel deploy              # 프리뷰 배포
    vercel deploy --prod       # 프로덕션 배포
@@ -282,6 +323,7 @@ source .env.local && vercel logs --token $VERCEL_TOKEN      # 로그 확인
    ```
 
 3. **도메인 관리**
+
    ```bash
    vercel domains add example.com     # 도메인 추가
    vercel domains rm example.com      # 도메인 제거
@@ -289,6 +331,7 @@ source .env.local && vercel logs --token $VERCEL_TOKEN      # 로그 확인
    ```
 
 4. **팀 관리**
+
    ```bash
    vercel teams add user@example.com  # 팀원 추가
    vercel teams rm user@example.com   # 팀원 제거
@@ -301,6 +344,7 @@ source .env.local && vercel logs --token $VERCEL_TOKEN      # 로그 확인
    ```
 
 **⚠️ CLI 단점:**
+
 - ❌ 느린 응답 속도 (85-89초)
 - ❌ 토큰 기반 인증 필요
 - ❌ Claude Code 외부 실행
@@ -308,6 +352,7 @@ source .env.local && vercel logs --token $VERCEL_TOKEN      # 로그 확인
 ### 💡 실전 사용 패턴
 
 **시나리오 1: 배포 상태 확인**
+
 ```typescript
 // ✅ MCP 사용 (즉시 응답)
 const deployment = await mcp__vercel__get_deployment(deploymentId, teamId);
@@ -315,6 +360,7 @@ console.log(deployment.readyState); // "READY"
 ```
 
 **시나리오 2: 환경변수 추가**
+
 ```bash
 # ✅ CLI 사용 (필수)
 source .env.local
@@ -322,13 +368,16 @@ vercel env add NEW_API_KEY production
 ```
 
 **시나리오 3: 보호된 프리뷰 배포 접근**
+
 ```typescript
 // ✅ MCP 사용 (임시 링크 생성)
-const { shareableUrl } = await mcp__vercel__get_access_to_vercel_url(previewUrl);
+const { shareableUrl } =
+  await mcp__vercel__get_access_to_vercel_url(previewUrl);
 const html = await mcp__vercel__web_fetch_vercel_url(shareableUrl);
 ```
 
 **시나리오 4: 직접 배포**
+
 ```bash
 # ✅ CLI 사용 (필수)
 source .env.local
@@ -338,14 +387,16 @@ vercel deploy --prod
 ### 🎯 권장 워크플로우
 
 **일상 개발 (조회 중심):**
+
 ```typescript
 // Claude Code 내에서 MCP 도구 활용
-"베르셀 프로젝트 목록 보여줘"
-"최신 배포 상태 확인해줘"
-"프리뷰 URL 접근해서 HTML 가져와줘"
+'베르셀 프로젝트 목록 보여줘';
+'최신 배포 상태 확인해줘';
+'프리뷰 URL 접근해서 HTML 가져와줘';
 ```
 
 **설정 변경 (수정 필요):**
+
 ```bash
 # 터미널에서 CLI 도구 사용
 source .env.local
@@ -355,13 +406,13 @@ vercel deploy --prod
 
 ### 📈 효율성 지표
 
-| 구분 | MCP | CLI |
-|------|-----|-----|
-| **응답속도** | ~1초 ⚡ | 85-89초 |
-| **토큰효율** | 82% 절약 | - |
-| **사용범위** | 조회/분석 | 전체 기능 |
-| **인증방식** | OAuth (자동) | Token (수동) |
-| **통합성** | Claude Code 내장 | 외부 CLI |
+| 구분         | MCP              | CLI          |
+| ------------ | ---------------- | ------------ |
+| **응답속도** | ~1초 ⚡          | 85-89초      |
+| **토큰효율** | 82% 절약         | -            |
+| **사용범위** | 조회/분석        | 전체 기능    |
+| **인증방식** | OAuth (자동)     | Token (수동) |
+| **통합성**   | Claude Code 내장 | 외부 CLI     |
 
 **결론**: 조회는 MCP(89배 빠름), 설정은 CLI 필수
 
@@ -370,6 +421,7 @@ vercel deploy --prod
 ## 🔧 MCP 빠른 설정
 
 ### 기본 명령어
+
 ```bash
 # MCP 서버 상태 확인
 claude mcp list
@@ -384,6 +436,7 @@ source ./scripts/setup-mcp-env.sh
 ### 문제 해결
 
 #### Serena "No active project" 오류
+
 ```bash
 # 프로젝트 활성화
 mcp__serena__activate_project "/mnt/d/cursor/openmanager-vibe-v5"
@@ -393,6 +446,7 @@ mcp__serena__activate_project "/mnt/d/cursor/openmanager-vibe-v5"
 ```
 
 #### MCP 서버 재연결
+
 ```bash
 # 문제 서버 제거 후 재추가
 claude mcp remove serena
@@ -400,6 +454,7 @@ claude mcp add serena uv run --directory ~/.local/share/uv/tools/serena-mcp sere
 ```
 
 #### Playwright MCP 실패
+
 ```bash
 # 복구 스크립트
 ./scripts/fix-playwright-mcp.sh
@@ -416,6 +471,7 @@ claude mcp list | grep playwright
 **MCP 서버 안정성을 위한 필수 설정**
 
 ### 절대 변경하지 말 것
+
 ```ini
 # .wslconfig 필수 설정
 dnsTunneling=true     # MCP DNS 해석 필수
@@ -425,6 +481,7 @@ networkingMode=mirrored  # 미러 모드 필수
 ```
 
 ### WSL 설정 변경 후 체크리스트
+
 1. `wsl --shutdown` 후 재시작
 2. `claude mcp status` 명령으로 MCP 서버 상태 확인
 3. 모든 서버가 정상 연결되는지 검증
@@ -439,6 +496,7 @@ networkingMode=mirrored  # 미러 모드 필수
 - **절약 효과**: 82% 토큰 효율 향상
 
 ### 효율적 사용 패턴
+
 ```bash
 # ✅ MCP 도구 우선
 mcp__vercel__list_projects  # Vercel 프로젝트 목록

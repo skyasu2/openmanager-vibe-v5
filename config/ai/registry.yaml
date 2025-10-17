@@ -268,9 +268,9 @@ subagents:
     category: "backend"
     role: "배포 자동화, Edge Functions, 무료 티어"
     tools:
-      - "mcp__vercel__list_projects"
-      - "mcp__vercel__get_deployment"
-      - "mcp__vercel__deploy_to_vercel"
+      - "mcp__vercel__getprojects"  # @open-mcp/vercel naming
+      - "mcp__vercel__getdeployment"  # @open-mcp/vercel naming
+      - "mcp__vercel__createdeployment"  # @open-mcp/vercel naming
     file_path: ".claude/agents/vercel-platform-specialist.md"
     priority: "HIGH"
 
@@ -342,27 +342,23 @@ mcp-servers:
   # 플랫폼 & 인프라
   vercel:
     name: "Vercel Platform"
-    type: "HTTP"
-    url: "https://mcp.vercel.com"
-    version: "v1.0.0"  # 2025-10-17 업데이트
-    status: "⚠ Needs authentication"  # OAuth 재인증 필요
+    type: "stdio"  # ✅ HTTP → stdio (Claude Code OAuth 버그 우회)
+    package: "@open-mcp/vercel"
+    version: "v0.0.13"  # 2025-10-17 업데이트
+    status: "✅ Connected"  # stdio + API_KEY 방식으로 해결
     priority: "HIGH"
     changelog:  # 🆕 변경사항 추적
-      v1_0_0:
-        date: "2025-07-15"
-        status: "Public Beta"
-        highlights:
-          - "OAuth 지원 공식 추가 (MCP Authorization spec)"
-          - "withMcpAuth wrapper for route 보안"
-      august_2025_updates:
-        date: "2025-08-19"
-        new_tools:
-          - "get_access_to_vercel_url (Protected deployments 접근)"
-          - "web_fetch_vercel_url (인증된 URL 패치)"
-      xmcp_support:
-        date: "2025-08-22"
-        highlights:
-          - "xmcp 프레임워크 지원 (TypeScript MCP 서버)"
+      v0_0_13:
+        date: "2025-10-17"
+        status: "Workaround Applied"
+        reason: "Claude Code v2.0.14 OAuth 버그 (invalid_scope 'claudeai')"
+        solution: "HTTP OAuth → stdio + @open-mcp/vercel 패키지"
+        authentication: "API_KEY 환경변수 방식"
+        github_issues: "#653, #3515, #1794"
+      official_http_version:
+        version: "v1.0.0"
+        status: "Public Beta (OAuth 버그로 사용 불가)"
+        workaround: "@open-mcp/vercel stdio 패키지 사용 중"
     use_case:
       - "배포 정보 조회 (89배 빠름)"
       - "환경변수 관리"
@@ -372,13 +368,17 @@ mcp-servers:
       vs_cli: "89배 빠름 (1초 vs 89초)"
       token_savings: "82%"
     tools:
-      - "mcp__vercel__list_projects"
-      - "mcp__vercel__get_deployment"
-      - "mcp__vercel__list_deployments"
-      - "mcp__vercel__get_deployment_build_logs"
-      - "mcp__vercel__get_access_to_vercel_url (🆕 2025-08)"
-      - "mcp__vercel__web_fetch_vercel_url (🆕 2025-08)"
-    authentication: "OAuth (재인증 필요)"
+      - "접근 그룹 관리 (expand, read, update, delete)"
+      - "배포 관리 (list, get, create, cancel)"
+      - "프로젝트 관리 (list, get, update, delete)"
+      - "환경변수 관리"
+      - "아티팩트 관리 (upload, download, query)"
+      - "체크 작업 (create, update, list)"
+    authentication: "API_KEY 환경변수 (.env.local의 VERCEL_TOKEN 재사용)"
+    configuration:
+      command: "npx -y @open-mcp/vercel"
+      env:
+        API_KEY: "from .env.local VERCEL_TOKEN"
 
   supabase:
     name: "Supabase PostgreSQL"
