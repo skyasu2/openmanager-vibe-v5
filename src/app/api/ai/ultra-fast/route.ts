@@ -10,10 +10,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getUltraFastAIRouter } from '@/services/ai/ultrafast-ai-router';
-import {
-  getPerformanceMetricsEngine,
-  withPerformanceTracking,
-} from '@/services/ai/performance-metrics-engine';
 import { createCachedResponse } from '@/lib/unified-cache';
 import { aiLogger } from '@/lib/logger';
 import { isBoolean, extractProperty } from '@/types/type-utils';
@@ -58,18 +54,9 @@ const ultraFastRouter = getUltraFastAIRouter({
   preferredEngine: 'local-ai', // 기본값
 });
 
-const metricsEngine = getPerformanceMetricsEngine({
-  enableRealTimeTracking: true,
-  targetResponseTime: 152,
-  enableAutoOptimization: true,
-});
-
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const requestId = `api_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   const startTime = performance.now();
-
-  // 메트릭 추적 시작
-  metricsEngine.startTracking(requestId, 'ultra_fast_api');
 
   try {
     // 요청 파싱 (빠른 처리를 위해 최소화)
@@ -101,22 +88,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // 성능 추적과 함께 AI 라우터 실행
-    const result = await withPerformanceTracking(
-      'ultra_fast_routing',
-      'ultra_fast_router',
-      async () => {
-        return await ultraFastRouter.route({
-          query: query.trim(),
-          userId,
-          mode,
-          options: {
-            timeoutMs: maxResponseTime,
-            cached: true,
-          },
-        });
-      }
-    );
+    // AI 라우터 실행
+    const result = await ultraFastRouter.route({
+      query: query.trim(),
+      userId,
+      mode,
+      options: {
+        timeoutMs: maxResponseTime,
+        cached: true,
+      },
+    });
 
     const processingTime = performance.now() - startTime;
     const targetAchieved = processingTime <= maxResponseTime;
@@ -145,16 +126,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       },
     };
 
-    // 메트릭 추적 종료
-    metricsEngine.endTracking(
-      requestId,
-      result.success,
-      aiResponse.engine,
-      aiResponse.cached,
-      0, // 메모리 사용량 (실제 측정 필요)
-      aiResponse.confidence
-    );
-
     // 성능 로깅
     if (!targetAchieved) {
       aiLogger.warn('성능 목표 미달성', {
@@ -174,9 +145,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
   } catch (error) {
     const processingTime = performance.now() - startTime;
-
-    // 메트릭 추적 종료 (에러)
-    metricsEngine.endTracking(requestId, false, 'error', false);
 
     aiLogger.error('Ultra-Fast AI API 오류', {
       error: error instanceof Error ? error.message : String(error),

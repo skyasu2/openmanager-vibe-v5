@@ -13,7 +13,7 @@ import type { SupabaseRAGEngine } from './supabase-rag-engine';
 import { CloudContextLoader } from '../mcp/CloudContextLoader';
 import { MockContextLoader } from './MockContextLoader';
 import { IntentClassifier } from '../../modules/ai-agent/processors/IntentClassifier';
-import type { ComplexityScore } from './SimplifiedQueryEngine.complexity-types';
+import type { ComplexityScore } from './query-complexity-analyzer';
 import type { AIQueryContext, MCPContext } from '../../types/ai-service-types';
 import type {
   QueryRequest,

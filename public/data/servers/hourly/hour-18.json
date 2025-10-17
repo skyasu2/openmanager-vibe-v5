@@ -1,0 +1,971 @@
+{
+  "hour": 18,
+  "generatedAt": "2025-10-17T10:28:31.375Z",
+  "dataPoints": [
+    {
+      "timestamp": "18:00",
+      "servers": {
+        "web-prod-01": {
+          "cpu": 38.54758837960435,
+          "memory": 26.498733633004402,
+          "disk": 16.727413105694172,
+          "network": 51.27981490838476,
+          "status": "online",
+          "responseTime": 124,
+          "uptime": 86400
+        },
+        "web-prod-02": {
+          "cpu": 28.527754702137713,
+          "memory": 21.295986009588567,
+          "disk": 23.82162312426211,
+          "network": 50.55010703480529,
+          "status": "online",
+          "responseTime": 111,
+          "uptime": 86400
+        },
+        "web-prod-03": {
+          "cpu": 44.20653614354707,
+          "memory": 34.59963917965868,
+          "disk": 14.820687283525873,
+          "network": 50.23431702813577,
+          "status": "warning",
+          "responseTime": 149,
+          "uptime": 86354,
+          "scenario": "frontend_errors"
+        },
+        "api-prod-01": {
+          "cpu": 46.55275149689593,
+          "memory": 38.4856005260648,
+          "disk": 27.669039174391365,
+          "network": 44.90951892674437,
+          "status": "online",
+          "responseTime": 161,
+          "uptime": 86400
+        },
+        "api-prod-02": {
+          "cpu": 41.14291522890552,
+          "memory": 27.273802383003773,
+          "disk": 18.538190156927936,
+          "network": 53.75405034985311,
+          "status": "online",
+          "responseTime": 161,
+          "uptime": 86400
+        },
+        "db-prod-01": {
+          "cpu": 46.21660940218557,
+          "memory": 54.25639746706102,
+          "disk": 61.64056283502731,
+          "network": 42.08490364411456,
+          "status": "warning",
+          "responseTime": 81,
+          "uptime": 86362,
+          "scenario": "connection_pool_exhausted"
+        },
+        "db-prod-02": {
+          "cpu": 23.52921569319748,
+          "memory": 53.11648143188542,
+          "disk": 53.022274788512526,
+          "network": 48.36505452496698,
+          "status": "online",
+          "responseTime": 43,
+          "uptime": 86400
+        },
+        "cache-prod-01": {
+          "cpu": 27.932255125810368,
+          "memory": 50.51021053851163,
+          "disk": 13.192763860297124,
+          "network": 62.21919616350323,
+          "status": "online",
+          "responseTime": 19,
+          "uptime": 86400
+        },
+        "cache-prod-02": {
+          "cpu": 18.767070763836667,
+          "memory": 53.45639236198261,
+          "disk": 10.087416249871001,
+          "network": 48.923863112018374,
+          "status": "online",
+          "responseTime": 19,
+          "uptime": 86400
+        },
+        "storage-prod-01": {
+          "cpu": 39.61419855010029,
+          "memory": 13.59278140348791,
+          "disk": 85.40560612632703,
+          "network": 23.925300727928764,
+          "status": "critical",
+          "responseTime": 1074,
+          "uptime": 86206,
+          "scenario": "io_bottleneck"
+        },
+        "lb-prod-01": {
+          "cpu": 27.86559569320401,
+          "memory": 26.15043820604985,
+          "disk": 4.943397906802012,
+          "network": 71.32964665134372,
+          "status": "online",
+          "responseTime": 91,
+          "uptime": 86400
+        },
+        "backup-prod-01": {
+          "cpu": 22.02401646108134,
+          "memory": 9.296153722585462,
+          "disk": 72.8956863073415,
+          "network": 34.08422137585834,
+          "status": "online",
+          "responseTime": 917,
+          "uptime": 86400
+        },
+        "monitoring-prod-01": {
+          "cpu": 28.681781584121097,
+          "memory": 33.416527044459464,
+          "disk": 53.30086702910286,
+          "network": 51.69063983257507,
+          "status": "online",
+          "responseTime": 259,
+          "uptime": 86400
+        },
+        "security-prod-01": {
+          "cpu": 20.77142251225751,
+          "memory": 11.360318651591221,
+          "disk": 20.48167912858844,
+          "network": 49.55939334930289,
+          "status": "online",
+          "responseTime": 80,
+          "uptime": 86400
+        },
+        "queue-prod-01": {
+          "cpu": 36.49844597611772,
+          "memory": 35.22919076820012,
+          "disk": 26.37672820386257,
+          "network": 43.716077088167,
+          "status": "warning",
+          "responseTime": 81,
+          "uptime": 86380,
+          "scenario": "worker_timeout"
+        },
+        "app-prod-01": {
+          "cpu": 43.21477702322614,
+          "memory": 28.55130894887521,
+          "disk": 24.831451713296666,
+          "network": 35.45466741032845,
+          "status": "online",
+          "responseTime": 143,
+          "uptime": 86400
+        },
+        "fallback-prod-01": {
+          "cpu": 50.154882628554475,
+          "memory": 39.08340590073968,
+          "disk": 40.8274404598467,
+          "network": 45.71310341993834,
+          "status": "warning",
+          "responseTime": 333,
+          "uptime": 86379,
+          "scenario": "backup_system_overload"
+        }
+      }
+    },
+    {
+      "timestamp": "18:10",
+      "servers": {
+        "web-prod-01": {
+          "cpu": 29.954374805430703,
+          "memory": 29.022934174884355,
+          "disk": 18.287625936111787,
+          "network": 58.941605711730325,
+          "status": "online",
+          "responseTime": 131,
+          "uptime": 86400
+        },
+        "web-prod-02": {
+          "cpu": 42.820482029631876,
+          "memory": 32.48670876125484,
+          "disk": 21.274491598420216,
+          "network": 63.894524051720595,
+          "status": "warning",
+          "responseTime": 154,
+          "uptime": 86394,
+          "scenario": "ssl_issues"
+        },
+        "web-prod-03": {
+          "cpu": 32.94398398745621,
+          "memory": 25.55078450477787,
+          "disk": 8.759320064472302,
+          "network": 54.43272283335523,
+          "status": "online",
+          "responseTime": 136,
+          "uptime": 86400
+        },
+        "api-prod-01": {
+          "cpu": 68.90758374299193,
+          "memory": 35.05743004354094,
+          "disk": 17.975579741937516,
+          "network": 88.65808036693875,
+          "status": "warning",
+          "responseTime": 324,
+          "uptime": 86367,
+          "scenario": "connection_timeout"
+        },
+        "api-prod-02": {
+          "cpu": 36.53275083757223,
+          "memory": 24.49649757302148,
+          "disk": 18.604459563244447,
+          "network": 55.035323529237566,
+          "status": "online",
+          "responseTime": 229,
+          "uptime": 86400
+        },
+        "db-prod-01": {
+          "cpu": 26.075714448079466,
+          "memory": 43.10657492946384,
+          "disk": 68.17172470147736,
+          "network": 48.30481861805214,
+          "status": "online",
+          "responseTime": 56,
+          "uptime": 86400
+        },
+        "db-prod-02": {
+          "cpu": 39.68155877071851,
+          "memory": 40.477782340938674,
+          "disk": 53.523043551577,
+          "network": 46.02898990903341,
+          "status": "online",
+          "responseTime": 56,
+          "uptime": 86400
+        },
+        "cache-prod-01": {
+          "cpu": 19.96495538944326,
+          "memory": 55.601382047574305,
+          "disk": 3.356370834515129,
+          "network": 59.80298023279278,
+          "status": "online",
+          "responseTime": 22,
+          "uptime": 86400
+        },
+        "cache-prod-02": {
+          "cpu": 29.41133122098065,
+          "memory": 62.60320565281837,
+          "disk": 11.426422431626946,
+          "network": 45.63555912901765,
+          "status": "online",
+          "responseTime": 18,
+          "uptime": 86400
+        },
+        "storage-prod-01": {
+          "cpu": 14.043612650344869,
+          "memory": 27.36030002419404,
+          "disk": 72.04917902251117,
+          "network": 34.0820501264258,
+          "status": "online",
+          "responseTime": 430,
+          "uptime": 86400
+        },
+        "lb-prod-01": {
+          "cpu": 21.911531432808133,
+          "memory": 21.8721334033076,
+          "disk": 12.952818428171792,
+          "network": 63.834229510417266,
+          "status": "online",
+          "responseTime": 70,
+          "uptime": 86400
+        },
+        "backup-prod-01": {
+          "cpu": 14.700819017713904,
+          "memory": 17.044497829548103,
+          "disk": 57.51859929263929,
+          "network": 30.23652026764683,
+          "status": "online",
+          "responseTime": 1091,
+          "uptime": 86400
+        },
+        "monitoring-prod-01": {
+          "cpu": 20.1404653773865,
+          "memory": 25.28848822722345,
+          "disk": 46.03636167782691,
+          "network": 51.656751486883785,
+          "status": "online",
+          "responseTime": 291,
+          "uptime": 86400
+        },
+        "security-prod-01": {
+          "cpu": 5.900551654697427,
+          "memory": 29.00778408572114,
+          "disk": 22.722303514104336,
+          "network": 45.9310742699876,
+          "status": "online",
+          "responseTime": 84,
+          "uptime": 86400
+        },
+        "queue-prod-01": {
+          "cpu": 38.712281710076944,
+          "memory": 43.566706406712,
+          "disk": 26.777678088127935,
+          "network": 40.71143812680443,
+          "status": "online",
+          "responseTime": 41,
+          "uptime": 86400
+        },
+        "app-prod-01": {
+          "cpu": 30.19537430058678,
+          "memory": 59.6574591297975,
+          "disk": 29.60543278542297,
+          "network": 43.36167255800278,
+          "status": "warning",
+          "responseTime": 259,
+          "uptime": 86360,
+          "scenario": "memory_leak"
+        },
+        "fallback-prod-01": {
+          "cpu": 32.96298305014973,
+          "memory": 44.99751338827106,
+          "disk": 33.36346368074755,
+          "network": 43.40568671122394,
+          "status": "online",
+          "responseTime": 220,
+          "uptime": 86400
+        }
+      }
+    },
+    {
+      "timestamp": "18:20",
+      "servers": {
+        "web-prod-01": {
+          "cpu": 29.122998629277987,
+          "memory": 16.442041599813955,
+          "disk": 16.833695274121027,
+          "network": 57.82365805715601,
+          "status": "online",
+          "responseTime": 118,
+          "uptime": 86400
+        },
+        "web-prod-02": {
+          "cpu": 28.183957684098523,
+          "memory": 22.98191364629333,
+          "disk": 22.07234425461718,
+          "network": 51.38612214203038,
+          "status": "online",
+          "responseTime": 101,
+          "uptime": 86400
+        },
+        "web-prod-03": {
+          "cpu": 43.90677659428927,
+          "memory": 28.572714971438863,
+          "disk": 27.29722466257339,
+          "network": 59.61314232751689,
+          "status": "online",
+          "responseTime": 116,
+          "uptime": 86400
+        },
+        "api-prod-01": {
+          "cpu": 45.121166336970255,
+          "memory": 39.02550781202439,
+          "disk": 28.237078467552806,
+          "network": 50.2215499378185,
+          "status": "online",
+          "responseTime": 208,
+          "uptime": 86400
+        },
+        "api-prod-02": {
+          "cpu": 47.045755693456684,
+          "memory": 25.687944971148028,
+          "disk": 25.896119216861383,
+          "network": 51.52747216656833,
+          "status": "online",
+          "responseTime": 197,
+          "uptime": 86400
+        },
+        "db-prod-01": {
+          "cpu": 26.086651149382103,
+          "memory": 45.219089324716776,
+          "disk": 54.5678042371202,
+          "network": 36.093518634054234,
+          "status": "online",
+          "responseTime": 58,
+          "uptime": 86400
+        },
+        "db-prod-02": {
+          "cpu": 32.81953677511733,
+          "memory": 52.53183044587595,
+          "disk": 54.30396829520943,
+          "network": 37.60248896920549,
+          "status": "online",
+          "responseTime": 51,
+          "uptime": 86400
+        },
+        "cache-prod-01": {
+          "cpu": 20.674284608194945,
+          "memory": 69.40432546499221,
+          "disk": 13.655423398521592,
+          "network": 52.78630270602501,
+          "status": "online",
+          "responseTime": 20,
+          "uptime": 86400
+        },
+        "cache-prod-02": {
+          "cpu": 12.174435214673158,
+          "memory": 62.981311746277406,
+          "disk": 9.450928414599062,
+          "network": 60.148506691358335,
+          "status": "online",
+          "responseTime": 18,
+          "uptime": 86400
+        },
+        "storage-prod-01": {
+          "cpu": 22.778614637324846,
+          "memory": 13.1453002900248,
+          "disk": 78.35210300433815,
+          "network": 25.800904513309458,
+          "status": "online",
+          "responseTime": 424,
+          "uptime": 86400
+        },
+        "lb-prod-01": {
+          "cpu": 25.535951723385196,
+          "memory": 22.114543355106086,
+          "disk": 20.589883300005816,
+          "network": 72.19620148647721,
+          "status": "online",
+          "responseTime": 71,
+          "uptime": 86400
+        },
+        "backup-prod-01": {
+          "cpu": 25.20062857876827,
+          "memory": 23.799440925139823,
+          "disk": 64.08742841442195,
+          "network": 30.027339081252435,
+          "status": "online",
+          "responseTime": 1189,
+          "uptime": 86400
+        },
+        "monitoring-prod-01": {
+          "cpu": 17.263755158741052,
+          "memory": 38.151536103879195,
+          "disk": 53.07098961882767,
+          "network": 50.28133849757492,
+          "status": "online",
+          "responseTime": 270,
+          "uptime": 86400
+        },
+        "security-prod-01": {
+          "cpu": 13.237248789744985,
+          "memory": 16.024774056421506,
+          "disk": 37.89847792517356,
+          "network": 47.58065589748617,
+          "status": "online",
+          "responseTime": 99,
+          "uptime": 86400
+        },
+        "queue-prod-01": {
+          "cpu": 32.60371423379067,
+          "memory": 37.83438318665238,
+          "disk": 18.43378982908312,
+          "network": 38.8617299302591,
+          "status": "online",
+          "responseTime": 56,
+          "uptime": 86400
+        },
+        "app-prod-01": {
+          "cpu": 56.970632423098316,
+          "memory": 24.198134256110293,
+          "disk": 28.249300765531483,
+          "network": 53.564087615445445,
+          "status": "warning",
+          "responseTime": 269,
+          "uptime": 86353,
+          "scenario": "application_crash"
+        },
+        "fallback-prod-01": {
+          "cpu": 37.588399464507006,
+          "memory": 30.87160791679586,
+          "disk": 30.188800152204273,
+          "network": 50.29136178139383,
+          "status": "online",
+          "responseTime": 206,
+          "uptime": 86400
+        }
+      }
+    },
+    {
+      "timestamp": "18:30",
+      "servers": {
+        "web-prod-01": {
+          "cpu": 28.822717434114917,
+          "memory": 22.638626708142713,
+          "disk": 18.79675163240217,
+          "network": 65.79381497452498,
+          "status": "online",
+          "responseTime": 133,
+          "uptime": 86400
+        },
+        "web-prod-02": {
+          "cpu": 29.73827522179851,
+          "memory": 34.248721718154876,
+          "disk": 25.51444618142674,
+          "network": 68.77726292311289,
+          "status": "online",
+          "responseTime": 142,
+          "uptime": 86400
+        },
+        "web-prod-03": {
+          "cpu": 26.814477028081498,
+          "memory": 27.84989658875807,
+          "disk": 27.317553676691567,
+          "network": 53.68537303137989,
+          "status": "online",
+          "responseTime": 110,
+          "uptime": 86400
+        },
+        "api-prod-01": {
+          "cpu": 39.32269412956111,
+          "memory": 28.744455157364893,
+          "disk": 20.834972647687444,
+          "network": 53.2852925603267,
+          "status": "online",
+          "responseTime": 204,
+          "uptime": 86400
+        },
+        "api-prod-02": {
+          "cpu": 41.34500105222138,
+          "memory": 30.40276670090398,
+          "disk": 20.617565757078296,
+          "network": 54.95998962721241,
+          "status": "online",
+          "responseTime": 178,
+          "uptime": 86400
+        },
+        "db-prod-01": {
+          "cpu": 38.54410915820748,
+          "memory": 51.44307381976466,
+          "disk": 58.507147615377335,
+          "network": 47.494026137888056,
+          "status": "online",
+          "responseTime": 59,
+          "uptime": 86400
+        },
+        "db-prod-02": {
+          "cpu": 34.81056228988645,
+          "memory": 48.79104822959411,
+          "disk": 54.28152855341767,
+          "network": 39.20574415118913,
+          "status": "online",
+          "responseTime": 55,
+          "uptime": 86400
+        },
+        "cache-prod-01": {
+          "cpu": 17.08426198809496,
+          "memory": 50.30409720509125,
+          "disk": 9.869468312247005,
+          "network": 45.72931153740316,
+          "status": "online",
+          "responseTime": 22,
+          "uptime": 86400
+        },
+        "cache-prod-02": {
+          "cpu": 26.800558007389633,
+          "memory": 68.16577183512025,
+          "disk": 3.7015079623558584,
+          "network": 57.09694720415909,
+          "status": "online",
+          "responseTime": 21,
+          "uptime": 86400
+        },
+        "storage-prod-01": {
+          "cpu": 36.497863970620884,
+          "memory": 24.667026517113673,
+          "disk": 92.29278437779963,
+          "network": 24.116681336389885,
+          "status": "critical",
+          "responseTime": 1361,
+          "uptime": 86267,
+          "scenario": "io_bottleneck"
+        },
+        "lb-prod-01": {
+          "cpu": 28.599199025352004,
+          "memory": 22.6626806660584,
+          "disk": 7.676304145479731,
+          "network": 62.9137076434144,
+          "status": "online",
+          "responseTime": 94,
+          "uptime": 86400
+        },
+        "backup-prod-01": {
+          "cpu": 16.174526861270348,
+          "memory": 5.458540074081828,
+          "disk": 59.1596979746127,
+          "network": 34.25406779965071,
+          "status": "online",
+          "responseTime": 881,
+          "uptime": 86400
+        },
+        "monitoring-prod-01": {
+          "cpu": 18.70074111353383,
+          "memory": 31.532255493834505,
+          "disk": 38.591937855989,
+          "network": 42.06968499765821,
+          "status": "online",
+          "responseTime": 250,
+          "uptime": 86400
+        },
+        "security-prod-01": {
+          "cpu": 21.000710363099763,
+          "memory": 21.21989808970646,
+          "disk": 27.491703300858838,
+          "network": 48.22647803657238,
+          "status": "online",
+          "responseTime": 94,
+          "uptime": 86400
+        },
+        "queue-prod-01": {
+          "cpu": 28.28853490351936,
+          "memory": 34.85532346390223,
+          "disk": 20.031213635621555,
+          "network": 49.25777380737573,
+          "status": "online",
+          "responseTime": 57,
+          "uptime": 86400
+        },
+        "app-prod-01": {
+          "cpu": 31.55867454739316,
+          "memory": 20.615617041746347,
+          "disk": 29.289334145918204,
+          "network": 42.27640908347517,
+          "status": "online",
+          "responseTime": 136,
+          "uptime": 86400
+        },
+        "fallback-prod-01": {
+          "cpu": 38.53973288761375,
+          "memory": 41.827332957618786,
+          "disk": 27.65547057163318,
+          "network": 45.14158848312896,
+          "status": "online",
+          "responseTime": 253,
+          "uptime": 86400
+        }
+      }
+    },
+    {
+      "timestamp": "18:40",
+      "servers": {
+        "web-prod-01": {
+          "cpu": 39.53453043940313,
+          "memory": 27.909447195055257,
+          "disk": 26.671905847405228,
+          "network": 67.76366868414422,
+          "status": "online",
+          "responseTime": 119,
+          "uptime": 86400
+        },
+        "web-prod-02": {
+          "cpu": 42.930677951619224,
+          "memory": 20.68560383206385,
+          "disk": 13.07159752476612,
+          "network": 64.0062135031441,
+          "status": "warning",
+          "responseTime": 200,
+          "uptime": 86383,
+          "scenario": "ssl_issues"
+        },
+        "web-prod-03": {
+          "cpu": 43.607524611346605,
+          "memory": 19.996942378770775,
+          "disk": 25.37731232967392,
+          "network": 57.26512131652847,
+          "status": "online",
+          "responseTime": 110,
+          "uptime": 86400
+        },
+        "api-prod-01": {
+          "cpu": 39.8652234478038,
+          "memory": 20.716741658262443,
+          "disk": 30.800111650473497,
+          "network": 52.50159029271073,
+          "status": "online",
+          "responseTime": 194,
+          "uptime": 86400
+        },
+        "api-prod-02": {
+          "cpu": 43.92380766024781,
+          "memory": 36.617283921810774,
+          "disk": 24.744118532617904,
+          "network": 45.08755233295649,
+          "status": "online",
+          "responseTime": 184,
+          "uptime": 86400
+        },
+        "db-prod-01": {
+          "cpu": 24.605363939261686,
+          "memory": 41.28306901915692,
+          "disk": 59.74787494500169,
+          "network": 46.086661529310774,
+          "status": "online",
+          "responseTime": 49,
+          "uptime": 86400
+        },
+        "db-prod-02": {
+          "cpu": 37.441029166197,
+          "memory": 46.4095323890326,
+          "disk": 80.29687001343248,
+          "network": 31.27907992898303,
+          "status": "warning",
+          "responseTime": 84,
+          "uptime": 86384,
+          "scenario": "slow_queries"
+        },
+        "cache-prod-01": {
+          "cpu": 10.487979902098798,
+          "memory": 62.24072405291305,
+          "disk": 6.506074518309409,
+          "network": 54.039644810497975,
+          "status": "online",
+          "responseTime": 16,
+          "uptime": 86400
+        },
+        "cache-prod-02": {
+          "cpu": 25.094811958874267,
+          "memory": 67.05678249456712,
+          "disk": 16.028662824569963,
+          "network": 56.40260689159027,
+          "status": "online",
+          "responseTime": 21,
+          "uptime": 86400
+        },
+        "storage-prod-01": {
+          "cpu": 25.56632357751208,
+          "memory": 16.644470017986848,
+          "disk": 92.64258540088153,
+          "network": 27.037641472478807,
+          "status": "critical",
+          "responseTime": 1222,
+          "uptime": 86352,
+          "scenario": "hardware_failure"
+        },
+        "lb-prod-01": {
+          "cpu": 23.539305638859208,
+          "memory": 16.151615065978397,
+          "disk": 10.604118952709928,
+          "network": 66.7696707530805,
+          "status": "online",
+          "responseTime": 76,
+          "uptime": 86400
+        },
+        "backup-prod-01": {
+          "cpu": 10.136810757764522,
+          "memory": 7.2401082467723965,
+          "disk": 66.10186817620426,
+          "network": 29.283949539104164,
+          "status": "online",
+          "responseTime": 1128,
+          "uptime": 86400
+        },
+        "monitoring-prod-01": {
+          "cpu": 17.407033503984728,
+          "memory": 20.76478189611725,
+          "disk": 57.06585189570816,
+          "network": 37.33750313677025,
+          "status": "online",
+          "responseTime": 356,
+          "uptime": 86400
+        },
+        "security-prod-01": {
+          "cpu": 23.218897602712126,
+          "memory": 29.65030888602918,
+          "disk": 39.558307127035285,
+          "network": 64.48023174600232,
+          "status": "online",
+          "responseTime": 83,
+          "uptime": 86400
+        },
+        "queue-prod-01": {
+          "cpu": 35.91554441529508,
+          "memory": 42.737093523881526,
+          "disk": 21.85919737223464,
+          "network": 46.959918425706846,
+          "status": "online",
+          "responseTime": 53,
+          "uptime": 86400
+        },
+        "app-prod-01": {
+          "cpu": 39.5225021067216,
+          "memory": 38.16299907765068,
+          "disk": 28.71491251582382,
+          "network": 51.1628825317642,
+          "status": "online",
+          "responseTime": 127,
+          "uptime": 86400
+        },
+        "fallback-prod-01": {
+          "cpu": 57.43002125745848,
+          "memory": 32.8370282652259,
+          "disk": 40.04127904159018,
+          "network": 58.761110676502256,
+          "status": "warning",
+          "responseTime": 414,
+          "uptime": 86386,
+          "scenario": "fallback_activation"
+        }
+      }
+    },
+    {
+      "timestamp": "18:50",
+      "servers": {
+        "web-prod-01": {
+          "cpu": 32.581155099041524,
+          "memory": 19.48029534255241,
+          "disk": 26.17041084883452,
+          "network": 68.36127574364922,
+          "status": "online",
+          "responseTime": 140,
+          "uptime": 86400
+        },
+        "web-prod-02": {
+          "cpu": 40.652783913395425,
+          "memory": 22.650066665044122,
+          "disk": 13.770976845481833,
+          "network": 56.709443310555756,
+          "status": "warning",
+          "responseTime": 214,
+          "uptime": 86360,
+          "scenario": "frontend_errors"
+        },
+        "web-prod-03": {
+          "cpu": 58.16207853387944,
+          "memory": 18.07558539273613,
+          "disk": 8.998086369419813,
+          "network": 59.5542986860893,
+          "status": "warning",
+          "responseTime": 173,
+          "uptime": 86398,
+          "scenario": "ssl_issues"
+        },
+        "api-prod-01": {
+          "cpu": 49.796403834325744,
+          "memory": 35.954115980442936,
+          "disk": 16.90774125993833,
+          "network": 51.54292459315146,
+          "status": "online",
+          "responseTime": 198,
+          "uptime": 86400
+        },
+        "api-prod-02": {
+          "cpu": 47.689170640480135,
+          "memory": 28.180086465824484,
+          "disk": 15.31583834098456,
+          "network": 47.96204117625235,
+          "status": "online",
+          "responseTime": 213,
+          "uptime": 86400
+        },
+        "db-prod-01": {
+          "cpu": 24.995527613826376,
+          "memory": 35.12335917143109,
+          "disk": 50.59671455783901,
+          "network": 42.855900849439905,
+          "status": "online",
+          "responseTime": 49,
+          "uptime": 86400
+        },
+        "db-prod-02": {
+          "cpu": 32.28887993256538,
+          "memory": 42.65372740629915,
+          "disk": 61.681176212117464,
+          "network": 39.519339927204584,
+          "status": "online",
+          "responseTime": 43,
+          "uptime": 86400
+        },
+        "cache-prod-01": {
+          "cpu": 20.620373482227855,
+          "memory": 60.75179376554888,
+          "disk": 8.642452137688085,
+          "network": 59.026619038214164,
+          "status": "online",
+          "responseTime": 21,
+          "uptime": 86400
+        },
+        "cache-prod-02": {
+          "cpu": 34.481405514395725,
+          "memory": 54.36386557477856,
+          "disk": 13.546237145584307,
+          "network": 63.90071710559752,
+          "status": "warning",
+          "responseTime": 34,
+          "uptime": 86358,
+          "scenario": "cache_miss_spike"
+        },
+        "storage-prod-01": {
+          "cpu": 12.809804414968564,
+          "memory": 29.320989283692057,
+          "disk": 79.12372853971554,
+          "network": 32.56311309228593,
+          "status": "online",
+          "responseTime": 418,
+          "uptime": 86400
+        },
+        "lb-prod-01": {
+          "cpu": 33.13886180676401,
+          "memory": 20.94990300403246,
+          "disk": 14.28568726468084,
+          "network": 65.06758110322644,
+          "status": "online",
+          "responseTime": 65,
+          "uptime": 86400
+        },
+        "backup-prod-01": {
+          "cpu": 23.885934163281476,
+          "memory": 23.43302814540325,
+          "disk": 74.46794774929963,
+          "network": 35.77595605035543,
+          "status": "online",
+          "responseTime": 901,
+          "uptime": 86400
+        },
+        "monitoring-prod-01": {
+          "cpu": 30.667570332260937,
+          "memory": 23.010589316323205,
+          "disk": 49.737855600532924,
+          "network": 44.48809334794735,
+          "status": "online",
+          "responseTime": 242,
+          "uptime": 86400
+        },
+        "security-prod-01": {
+          "cpu": 16.445124153505922,
+          "memory": 20.212571799080635,
+          "disk": 37.9357098539321,
+          "network": 57.77454320954717,
+          "status": "online",
+          "responseTime": 88,
+          "uptime": 86400
+        },
+        "queue-prod-01": {
+          "cpu": 26.88114436377516,
+          "memory": 33.4526610507739,
+          "disk": 29.58760631483461,
+          "network": 38.103754036671596,
+          "status": "online",
+          "responseTime": 52,
+          "uptime": 86400
+        },
+        "app-prod-01": {
+          "cpu": 43.724550620942466,
+          "memory": 39.129394417047216,
+          "disk": 24.86771141386744,
+          "network": 52.58851568883504,
+          "status": "online",
+          "responseTime": 165,
+          "uptime": 86400
+        },
+        "fallback-prod-01": {
+          "cpu": 30.706962456585437,
+          "memory": 33.10079769172231,
+          "disk": 38.75614432345164,
+          "network": 55.23374810086792,
+          "status": "online",
+          "responseTime": 231,
+          "uptime": 86400
+        }
+      }
+    }
+  ]
+}

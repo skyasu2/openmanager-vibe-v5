@@ -4,7 +4,7 @@
  * Shared types and interfaces for the SimplifiedQueryEngine system
  */
 
-import type { ComplexityScore } from './SimplifiedQueryEngine.complexity-types';
+import type { ComplexityScore } from './query-complexity-analyzer';
 import type {
   Entity,
   IntentResult,

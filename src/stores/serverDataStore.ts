@@ -11,37 +11,102 @@
 import { createStore } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { calculateOptimalUpdateInterval } from '../config/serverConfig';
-import type { EnhancedServerMetrics } from '../types/server';
-import { apiGet } from '@/lib/api-client';
+import type { EnhancedServerMetrics, ServerRole } from '../types/server';
+import { getMultipleServerMetrics, type InterpolatedMetric } from '@/data/hourly-server-data';
+import { getCurrentKST } from '@/utils/kst-time';
 
-// API 응답 타입 정의
-interface MetricsCurrentApiResponse {
-  success: boolean;
-  timestamp: string;
-  actualTimestamp: number;
-  servers: EnhancedServerMetrics[];
-  metadata?: {
-    timeInfo?: {
-      normalized: string;
-      actual: number;
-      cycle24h: number;
-      slot10min: number;
-      hour: number;
-      minute: number;
-      validUntil: number;
-    };
-    currentCycle?: {
-      timeSlot: number;
-      scenario: string;
-      description: string;
-      phase: string;
-      intensity: number;
-      progress: number;
-      expectedResolution: Date | null;
-      affectedServers: string[];
-    };
+// 🎯 서버 ID 목록 (hourly JSON 파일에서 가져올 서버들)
+const SERVER_IDS = [
+  'web-prod-01', 'web-prod-02', 'web-prod-03',
+  'api-prod-01', 'api-prod-02',
+  'db-prod-01', 'db-prod-02',
+  'cache-prod-01', 'cache-prod-02',
+  'storage-prod-01',
+  'lb-prod-01',
+  'backup-prod-01',
+  'monitoring-prod-01',
+  'security-prod-01',
+  'queue-prod-01',
+  'app-prod-01',
+] as const;
+
+/**
+ * InterpolatedMetric을 EnhancedServerMetrics로 변환
+ */
+function mapInterpolatedToEnhanced(
+  serverId: string,
+  metric: InterpolatedMetric
+): EnhancedServerMetrics {
+  // 서버 ID에서 타입 추출 (예: "web-prod-01" → "web")
+  const serverType = serverId.split('-')[0] as string;
+  
+  // 환경 결정 (prod/staging/dev)
+  const environment = serverId.includes('prod') ? 'production' 
+    : serverId.includes('staging') ? 'staging' 
+    : 'development';
+  
+  // 역할 매핑 (ServerRole 타입에 맞게)
+  const roleMap: Record<string, ServerRole> = {
+    'web': 'web',
+    'api': 'api',
+    'db': 'database',
+    'cache': 'cache',
+    'storage': 'storage',
+    'lb': 'load-balancer',
+    'backup': 'backup',
+    'monitoring': 'monitoring',
+    'security': 'security',
+    'queue': 'queue',
+    'app': 'app',
   };
-  message?: string;
+  
+  const role = roleMap[serverType] || 'fallback';
+  
+  return {
+    // 기본 식별 정보
+    id: serverId,
+    hostname: serverId,
+    name: serverId,
+    environment: environment as 'production' | 'staging' | 'development',
+    role: role,
+    status: metric.status,
+    
+    // 메트릭 데이터 (중복 매핑으로 호환성 보장)
+    cpu: metric.cpu,
+    cpu_usage: metric.cpu,
+    memory: metric.memory,
+    memory_usage: metric.memory,
+    disk: metric.disk,
+    disk_usage: metric.disk,
+    network: metric.network,
+    network_usage: metric.network,
+    network_in: metric.network / 2,
+    network_out: metric.network / 2,
+    
+    // 성능 정보
+    responseTime: metric.responseTime,
+    uptime: metric.uptime,
+    
+    // 타임스탬프
+    timestamp: metric.timestamp,
+    last_updated: new Date().toISOString(),
+    
+    // 기본값
+    alerts: [],
+    
+    // 메타데이터
+    metadata: {
+      timeInfo: {
+        normalized: Date.now(),
+        actual: Date.now(),
+        cycle24h: 0,
+        slot10min: Math.floor(new Date().getMinutes() / 10),
+        hour: new Date().getHours(),
+        validUntil: Date.now() + 60000, // 1분 후
+      },
+      isInterpolated: metric.isInterpolated,
+    },
+  };
 }
 
 // 사용하지 않는 인터페이스들 제거
@@ -126,89 +191,75 @@ export const createServerDataStore = (
       },
       ..._initialState,
 
-      // 서버 데이터 가져오기 (강화된 디버깅)
+      // 서버 데이터 가져오기 (Vercel JSON hourly files 사용)
       fetchServers: async () => {
-        console.log('🎯 fetchServers 함수 시작 - 포트폴리오 시나리오 데이터 로드');
+        console.log('🎯 fetchServers 함수 시작 - Vercel JSON hourly 데이터 로드');
         
         set({ isLoading: true, error: null });
 
         try {
-          console.log('🚀 정적 시나리오 데이터 API 호출 시작');
-          console.log('🔗 통합 메트릭 API 엔드포인트:', '/api/metrics/current');
-
-          // API 클라이언트 사용 (강화된 디버깅과 함께)
-          const result = await apiGet<MetricsCurrentApiResponse>('/api/metrics/current');
-
-          console.log('📡 API 응답 수신 완료');
-          console.log('📋 응답 타입:', typeof result);
-          console.log('🔍 응답 구조:', Object.keys(result || {}));
+          console.log('🚀 Vercel JSON hourly 데이터 로드 시작');
           
-          // 응답 구조 상세 분석
-          if (result) {
-            console.log('✨ API 응답 상세 분석:');
-            console.log('  - success:', result.success);
-            console.log('  - servers 존재:', !!result.servers);
-            console.log('  - servers 타입:', Array.isArray(result.servers) ? 'array' : typeof result.servers);
-            console.log('  - servers 길이:', result.servers?.length || 0);
-            // 시나리오 정보는 AI 분석 순수성을 위해 로깅하지 않음
+          // 현재 KST 시간 가져오기
+          const kst = getCurrentKST();
+          const hour = kst.getUTCHours();
+          const minute = kst.getUTCMinutes();
+          
+          console.log(`🕐 현재 시간: ${hour}시 ${minute}분 (KST)`);
+          console.log(`📊 로드할 서버 수: ${SERVER_IDS.length}개`);
+          
+          // 모든 서버의 메트릭을 병렬로 가져오기
+          const metricsMap = await getMultipleServerMetrics(
+            [...SERVER_IDS], // spread to convert readonly array to mutable array
+            hour,
+            minute
+          );
+          
+          console.log('📡 hourly JSON 데이터 수신 완료');
+          console.log(`✅ 성공적으로 로드된 서버: ${metricsMap.size}개`);
+          
+          // InterpolatedMetric → EnhancedServerMetrics 변환
+          const enhancedServers: EnhancedServerMetrics[] = [];
+          
+          for (const serverId of SERVER_IDS) {
+            const metric = metricsMap.get(serverId);
+            
+            if (metric) {
+              const enhanced = mapInterpolatedToEnhanced(serverId, metric);
+              enhancedServers.push(enhanced);
+              
+              if (enhancedServers.length === 1) {
+                // 첫 번째 서버 데이터 샘플 로깅
+                console.log('🔍 첫 번째 서버 데이터 샘플:', {
+                  id: enhanced.id,
+                  status: enhanced.status,
+                  cpu: enhanced.cpu,
+                  memory: enhanced.memory,
+                  isInterpolated: enhanced.metadata?.isInterpolated,
+                });
+              }
+            } else {
+              console.warn(`⚠️ 서버 "${serverId}" 데이터를 찾을 수 없습니다.`);
+            }
           }
-
-          if (result && result.success && result.servers && Array.isArray(result.servers)) {
+          
+          if (enhancedServers.length > 0) {
             console.log(
-              '✅ 통합 메트릭 데이터 수신 성공:',
-              result.servers.length,
+              '✅ Vercel JSON 데이터 변환 성공:',
+              enhancedServers.length,
               '개 서버'
             );
-            console.log('🕐 데이터 타임스탬프:', new Date(result.timestamp));
-            console.log('⏱️ 24시간 순환 위치:', Math.round(result.metadata?.timeInfo?.hour || 0) + '시');
-
-            // 첫 번째 서버 데이터 샘플 로깅
-            if (result.servers.length > 0) {
-              const firstServer = result.servers[0]!;
-              console.log('🔍 첫 번째 서버 데이터 샘플:', {
-                id: firstServer.id,
-                name: firstServer.name,
-                status: firstServer.status,
-                cpu: firstServer.cpu,
-                memory: firstServer.memory,
-                timeSlot: firstServer.metadata?.timeSlot,
-                hasScenarios: !!(firstServer.metadata?.scenarios?.length),
-              });
-            }
-
-            // 시간 컨텍스트 정보 추가
-            const timeContext = result.metadata?.timeInfo;
-            if (timeContext) {
-              console.log('🔄 24시간 순환 정보:', {
-                hour: timeContext.hour,
-                slot: timeContext.slot10min,
-                validUntil: new Date(timeContext.validUntil)
-              });
-            }
-
+            
             set({
-              servers: result.servers, // API 응답 구조: servers 필드 사용
+              servers: enhancedServers,
               isLoading: false,
-              lastUpdate: new Date(result.timestamp), // 정규화된 타임스탬프 사용
+              lastUpdate: new Date(),
               error: null,
             });
 
             console.log('✅ 서버 데이터 Zustand 스토어 업데이트 완료');
-            
           } else {
-            console.error('❌ 통합 메트릭 API 응답 구조 문제:', {
-              hasResult: !!result,
-              hasSuccess: !!result?.success,
-              successValue: result?.success,
-              hasServers: !!result?.servers,
-              serversType: typeof result?.servers,
-              isServersArray: Array.isArray(result?.servers),
-            });
-            
-            throw new Error(
-              result?.message || 
-              `API 응답 형식 오류: ${JSON.stringify(result).substring(0, 200)}`
-            );
+            throw new Error('로드된 서버 데이터가 없습니다.');
           }
         } catch (e) {
           const error = e instanceof Error ? e : new Error(String(e));
@@ -220,7 +271,7 @@ export const createServerDataStore = (
           set({ 
             isLoading: false, 
             error: error.message,
-            servers: [] // 실패 시 빈 배열로 초기화
+            servers: []
           });
         }
       },

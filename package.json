@@ -78,6 +78,7 @@
     "deploy:check": "npm run validate:env && npm run type-check && npm run test:quick",
     "clean": "rm -rf .next node_modules/.cache",
     "clean:all": "rm -rf .next node_modules package-lock.json && npm install",
+    "generate:server-data": "tsx scripts/generate-server-data.ts",
     "ci": "npm run validate:all",
     "health:check": "node scripts/health-check.js",
     "bundle:analyze": "BUNDLE_ANALYZE=browser npm run build",
