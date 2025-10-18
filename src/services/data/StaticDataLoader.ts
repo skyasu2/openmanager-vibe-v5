@@ -21,6 +21,7 @@ import type { ServerStatus } from '../../types/server-enums';
 import {
   loadHourlyData,
   type HourlyServerData,
+  type HourlyServerMetric,
 } from '../../data/hourly-server-data';
 
 export interface StaticServerData {
@@ -90,6 +91,49 @@ export class StaticDataLoader {
   }
 
   /**
+   * 🆕 Initialize hourly data cache (background pre-load)
+   * ✅ FIXED (Phase 1.3): With 5-second timeout protection
+   */
+  private async initHourlyCache(): Promise<void> {
+    const currentHour = new Date().getHours();
+
+    try {
+      // ✅ FIXED: Timeout protection (5 seconds)
+      const timeoutPromise = new Promise<null>((_, reject) =>
+        setTimeout(() => reject(new Error('Initialization timeout (5s)')), 5000)
+      );
+
+      const loadPromise = loadHourlyData(currentHour);
+
+      // Race between loading and timeout
+      const data = await Promise.race([loadPromise, timeoutPromise]);
+
+      if (data) {
+        this.hourlyDataCache.set(currentHour, data);
+        this.hourlyDataCacheTimestamp = Date.now();
+        this.isInitialized = true;
+        this.initializationError = null; // Clear any previous errors
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🚀 Hourly data cache initialized:', {
+            hour: currentHour,
+            servers: Object.keys(data.dataPoints[0]?.servers || {}).length,
+            dataPoints: data.dataPoints.length,
+          });
+        }
+      } else {
+        // Data load returned null/undefined
+        const error = new Error('Hourly data load returned null');
+        this.initializationError = error;
+        console.error('❌ Hourly data cache initialization failed:', error);
+      }
+    } catch (error) {
+      this.initializationError = error as Error;
+      console.error('❌ Hourly data cache initialization failed:', error);
+    }
+  }
+
+  /**
    * 🎯 실시간 시연용: 1분 간격 미세 변화 데이터
    * 기본 데이터에 ±5% 오차 적용으로 실시간처럼 보이게 함
    */
@@ -147,7 +191,7 @@ export class StaticDataLoader {
     for (const { hour, data } of allHourlyData) {
       if (data && data.dataPoints && data.dataPoints.length > 0) {
         const firstPoint = data.dataPoints[0]; // Use first data point (00 minutes)
-        if (firstPoint.servers) {
+        if (firstPoint && firstPoint.servers) {
           serverDataByHour.set(hour, firstPoint.servers);
           Object.keys(firstPoint.servers).forEach((id) => serverIds.add(id));
         }
