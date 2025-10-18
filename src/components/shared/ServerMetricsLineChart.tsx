@@ -1,7 +1,7 @@
 'use client';
 
 // framer-motion 제거 - CSS 애니메이션 사용
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 // 🎯 Bundle-Safe Inline 매크로 - getSafe 함수들 (압축 방지)
 const getSafeArrayLength = (arr: unknown): number => {
   try {
@@ -61,9 +61,12 @@ const getSafeFirstArrayItem = <T,>(arr: unknown, fallback: T): T => {
 };
 
 const vercelSafeLog = (message: string, data?: unknown): void => {
-  if (typeof process !== 'undefined' && process.env &&
-      (process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined) &&
-      process.env.NODE_ENV === 'development') {
+  if (
+    typeof process !== 'undefined' &&
+    process.env &&
+    (process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined) &&
+    process.env.NODE_ENV === 'development'
+  ) {
     console.log(`🛡️ [Vercel Safe] ${message}`, data);
   }
 };
@@ -82,7 +85,7 @@ export interface ServerMetricsLineChartProps {
   type: 'cpu' | 'memory' | 'disk' | 'network';
   showRealTimeUpdates?: boolean;
   className?: string;
-  serverStatus?: 'online' | 'offline' | 'warning' | 'critical' | string;
+  serverStatus?: string;
   historyData?: HistoryDataPoint[]; // 🎯 24시간 고정 데이터 (외부에서 주입)
 }
 
@@ -94,8 +97,8 @@ const getMetricConfig = (
   type: 'cpu' | 'memory' | 'disk' | 'network',
   serverStatus?: string
 ) => {
-  // 🔧 수정: 메트릭 값 우선 판단 (사용자 요구사항)
-  // 예외: 서버가 critical/offline이면 모든 메트릭을 빨간색으로 표시
+  // 🔧 수정: 서버 상태 우선 판단 (일관성 개선)
+  // Critical/Offline/Warning 서버는 서버 상태에 따라 색상 결정
   if (serverStatus) {
     const normalizedStatus = serverStatus.toLowerCase();
 
@@ -113,6 +116,42 @@ const getMetricConfig = (
         gradientTo: 'to-red-100',
         status: '심각',
         fillColor: 'rgba(239, 68, 68, 0.1)', // 빨간색 투명도
+      };
+    }
+
+    // 🆕 WARNING 서버 처리 (버그 수정)
+    if (normalizedStatus === 'warning') {
+      // 메트릭 임계값 계산
+      const thresholds = {
+        cpu: { warning: 70, critical: 85 },
+        memory: { warning: 80, critical: 90 },
+        disk: { warning: 80, critical: 95 },
+        network: { warning: 70, critical: 85 },
+      };
+      const threshold = thresholds[type];
+
+      // 메트릭이 critical 수준이면 빨간색으로 업그레이드
+      if (value >= threshold.critical) {
+        return {
+          lineColor: SERVER_STATUS_COLORS.critical.graphColor, // #ef4444
+          textColor: SERVER_STATUS_COLORS.critical.text,
+          bgColor: 'bg-red-50',
+          gradientFrom: 'from-red-500',
+          gradientTo: 'to-red-100',
+          status: '위험',
+          fillColor: 'rgba(239, 68, 68, 0.1)',
+        };
+      }
+
+      // 그 외 모든 경우: 최소한 warning 색상 유지 (서버가 warning이므로)
+      return {
+        lineColor: SERVER_STATUS_COLORS.warning.graphColor, // #f59e0b
+        textColor: SERVER_STATUS_COLORS.warning.text,
+        bgColor: 'bg-amber-50',
+        gradientFrom: 'from-amber-500',
+        gradientTo: 'to-amber-100',
+        status: '주의',
+        fillColor: 'rgba(245, 158, 11, 0.1)',
       };
     }
   }
@@ -164,24 +203,10 @@ const getMetricConfig = (
   }
 };
 
-// 🛡️ 베르셀 환경 감지 유틸리티
-const isVercelEnvironment = () => {
-  try {
-    return typeof process !== 'undefined' &&
-           process.env && (
-             process.env.VERCEL === '1' ||
-             process.env.VERCEL_ENV !== undefined ||
-             process.env.NEXT_RUNTIME === 'edge'
-           );
-  } catch {
-    return false;
-  }
-};
-
 // 🛡️ 베르셀 안전 로깅 (중복 제거됨 - 이미 63번째 줄에 정의됨)
 
 // 10분간 데이터 생성 함수 - 베르셀 환경 안전성 강화
-const generateHistoricalData = (currentValue: number, type: string) => {
+const generateHistoricalData = (currentValue: number, _type: string) => {
   const data = [];
   const now = Date.now();
 
@@ -197,10 +222,14 @@ const generateHistoricalData = (currentValue: number, type: string) => {
       const baseVariation = Math.sin(timeRatio * Math.PI * 2) * 8; // 사인파 기반 자연 변동
       const randomNoise = (Math.random() - 0.5) * 4; // ±2% 노이즈
       const trendVariation = (10 - i) * 0.5; // 시간에 따른 점진적 트렌드
-      
-      value = Math.max(0, Math.min(100, 
-        currentValue + baseVariation + randomNoise - trendVariation
-      ));
+
+      value = Math.max(
+        0,
+        Math.min(
+          100,
+          currentValue + baseVariation + randomNoise - trendVariation
+        )
+      );
     }
 
     data.push({
@@ -223,27 +252,38 @@ export default function ServerMetricsLineChart({
   historyData, // 🎯 24시간 고정 데이터 (외부에서 주입)
 }: ServerMetricsLineChartProps) {
   // 🎯 historyData prop을 차트 형식으로 변환
-  const convertHistoryData = (history: HistoryDataPoint[] | undefined) => {
-    if (!history || !Array.isArray(history) || history.length === 0) {
-      return generateHistoricalData(value || 0, type); // fallback
-    }
+  const convertHistoryData = useCallback(
+    (history: HistoryDataPoint[] | undefined) => {
+      if (!history || !Array.isArray(history) || history.length === 0) {
+        return generateHistoricalData(value || 0, type); // fallback
+      }
 
-    const now = Date.now();
-    return history.map((point, index) => ({
-      timestamp: now - (history.length - 1 - index) * 60 * 1000, // 1분 간격
-      value: point[type] ?? value ?? 50,
-      x: index,
-    }));
-  };
+      const now = Date.now();
+      return history.map((point, index) => ({
+        timestamp: now - (history.length - 1 - index) * 60 * 1000, // 1분 간격
+        value: point[type] ?? value ?? 50,
+        x: index,
+      }));
+    },
+    [value, type, generateHistoricalData]
+  );
 
   // 🛡️ 베르셀 환경 안전 초기화
   const [historicalDataState, setHistoricalData] = useState(() => {
     try {
       const initialData = convertHistoryData(historyData);
-      vercelSafeLog('historicalData 초기화 성공', { value, type, dataLength: getSafeArrayLength(initialData) });
+      vercelSafeLog('historicalData 초기화 성공', {
+        value,
+        type,
+        dataLength: getSafeArrayLength(initialData),
+      });
       return initialData;
     } catch (error) {
-      vercelSafeLog('historicalData 초기화 실패, 기본값 사용', { error, value, type });
+      vercelSafeLog('historicalData 초기화 실패, 기본값 사용', {
+        error,
+        value,
+        type,
+      });
       return [];
     }
   });
@@ -254,7 +294,7 @@ export default function ServerMetricsLineChart({
     if (historyData) {
       setHistoricalData(convertHistoryData(historyData));
     }
-  }, [historyData, type]);
+  }, [historyData, type, convertHistoryData]);
 
   const config = getMetricConfig(value, type, serverStatus);
 
@@ -264,7 +304,9 @@ export default function ServerMetricsLineChart({
   // 🛡️ 베르셀 환경 완전 방어: historicalData 초기화 강화
   const safeHistoricalData = useMemo(() => {
     if (!historicalDataState || !Array.isArray(historicalDataState)) {
-      console.warn('🛡️ ServerMetricsLineChart: historicalData 초기화 - 기본값 생성');
+      console.warn(
+        '🛡️ ServerMetricsLineChart: historicalData 초기화 - 기본값 생성'
+      );
       return generateHistoricalData(value || 0, type);
     }
     return historicalDataState;
@@ -290,7 +332,10 @@ export default function ServerMetricsLineChart({
     }
 
     if (!Array.isArray(workingData)) {
-      console.warn('🚨 베르셀 방어: workingData가 배열이 아님:', typeof workingData);
+      console.warn(
+        '🚨 베르셀 방어: workingData가 배열이 아님:',
+        typeof workingData
+      );
       workingData = generateHistoricalData(value || 0, type);
     }
 
@@ -300,10 +345,16 @@ export default function ServerMetricsLineChart({
     }
 
     // 🛡️ 베르셀 안전 필터링: try-catch로 감쌈
-    let points: Array<{x: number, y: number}> = [];
+    let points: Array<{ x: number; y: number }> = [];
     try {
       points = workingData
-        .filter((d) => d && typeof d === 'object' && typeof d.x === 'number' && typeof d.value === 'number')
+        .filter(
+          (d) =>
+            d &&
+            typeof d === 'object' &&
+            typeof d.x === 'number' &&
+            typeof d.value === 'number'
+        )
         .map((d) => ({
           x: xScale(d.x),
           y: yScale(d.value),
@@ -321,7 +372,11 @@ export default function ServerMetricsLineChart({
     }
 
     const firstPoint = getSafeFirstArrayItem(points, { x: 0, y: 0 });
-    if (!firstPoint || typeof firstPoint.x !== 'number' || typeof firstPoint.y !== 'number') {
+    if (
+      !firstPoint ||
+      typeof firstPoint.x !== 'number' ||
+      typeof firstPoint.y !== 'number'
+    ) {
       console.warn('🛡️ ServerMetricsLineChart: firstPoint가 유효하지 않음');
       return { path: '', points: [] };
     }
@@ -338,9 +393,15 @@ export default function ServerMetricsLineChart({
 
       // 🛡️ Triple-check: 존재성 → 객체 타입 → 속성 유효성
       if (!prevPoint || !currentPoint) continue;
-      if (typeof prevPoint !== 'object' || typeof currentPoint !== 'object') continue;
-      if (typeof prevPoint.x !== 'number' || typeof prevPoint.y !== 'number') continue;
-      if (typeof currentPoint.x !== 'number' || typeof currentPoint.y !== 'number') continue;
+      if (typeof prevPoint !== 'object' || typeof currentPoint !== 'object')
+        continue;
+      if (typeof prevPoint.x !== 'number' || typeof prevPoint.y !== 'number')
+        continue;
+      if (
+        typeof currentPoint.x !== 'number' ||
+        typeof currentPoint.y !== 'number'
+      )
+        continue;
 
       // 더 부드러운 곡선을 위한 제어점 계산 (tension = 0.3)
       const tension = 0.3;
@@ -418,7 +479,11 @@ export default function ServerMetricsLineChart({
           <path
             d={(() => {
               // 🛡️ 베르셀 Triple-Guard: points 배열 안전 접근
-              if (!points || !Array.isArray(points) || getSafeArrayLength(points) === 0) {
+              if (
+                !points ||
+                !Array.isArray(points) ||
+                getSafeArrayLength(points) === 0
+              ) {
                 return 'M 10 70 L 170 70 L 170 70 L 10 70 Z'; // 기본 사각형
               }
 
@@ -451,103 +516,135 @@ export default function ServerMetricsLineChart({
           {/* 데이터 포인트 - AI 교차검증 기반 이중 안전장치 ⭐⭐ */}
           {(() => {
             // 🛡️ points 배열 안전성 재검증 (createPath에서 이미 검증했지만 Race Condition 방지)
-            if (!points || !Array.isArray(points) || getSafeArrayLength(points) === 0) {
+            if (
+              !points ||
+              !Array.isArray(points) ||
+              getSafeArrayLength(points) === 0
+            ) {
               return null;
             }
 
             // 🛡️ safeHistoricalData 최고값 계산 - 안전한 방식
             const getMaxValue = () => {
-              if (!safeHistoricalData || !Array.isArray(safeHistoricalData) || getSafeArrayLength(safeHistoricalData) === 0) {
+              if (
+                !safeHistoricalData ||
+                !Array.isArray(safeHistoricalData) ||
+                getSafeArrayLength(safeHistoricalData) === 0
+              ) {
                 return 0;
               }
 
               const validValues = safeHistoricalData
-                .filter((d: any) => d && typeof d === 'object' && typeof d.value === 'number' && !isNaN(d.value))
-                .map((d: any) => d.value);
+                .filter(
+                  (d): d is { timestamp: number; value: number; x: number } =>
+                    d &&
+                    typeof d === 'object' &&
+                    typeof d.value === 'number' &&
+                    !isNaN(d.value)
+                )
+                .map((d) => d.value);
 
-              return getSafeArrayLength(validValues) > 0 ? Math.max(...validValues) : 0;
+              return getSafeArrayLength(validValues) > 0
+                ? Math.max(...validValues)
+                : 0;
             };
 
             const maxValue = getMaxValue();
 
-            return points.map((point, index) => {
-              // 🛡️ Triple-check: point 객체 검증
-              if (!point || typeof point !== 'object') return null;
-              if (typeof point.x !== 'number' || typeof point.y !== 'number') return null;
-              if (isNaN(point.x) || isNaN(point.y)) return null;
+            return points
+              .map((point, index) => {
+                // 🛡️ Triple-check: point 객체 검증
+                if (!point || typeof point !== 'object') return null;
+                if (typeof point.x !== 'number' || typeof point.y !== 'number')
+                  return null;
+                if (isNaN(point.x) || isNaN(point.y)) return null;
 
-              // 🛡️ 배열 경계 검사 및 안전한 접근
-              const isValidIndex = typeof index === 'number' && index >= 0 && index < getSafeArrayLength(points);
-              if (!isValidIndex) return null;
+                // 🛡️ 배열 경계 검사 및 안전한 접근
+                const isValidIndex =
+                  typeof index === 'number' &&
+                  index >= 0 &&
+                  index < getSafeArrayLength(points);
+                if (!isValidIndex) return null;
 
-              const isLast = index === getSafeArrayLength(points) - 1;
+                const isLast = index === getSafeArrayLength(points) - 1;
 
-              // 🛡️ safeHistoricalData 인덱스 안전 접근
-              const dataValue = (() => {
-                if (!safeHistoricalData || !Array.isArray(safeHistoricalData)) return 0;
-                if (index < 0 || index >= getSafeArrayLength(safeHistoricalData)) return 0;
-                const dataPoint = safeHistoricalData[index];
-                if (!dataPoint || typeof dataPoint !== 'object') return 0;
-                if (typeof dataPoint.value !== 'number' || isNaN(dataPoint.value)) return 0;
-                return dataPoint.value;
-              })();
+                // 🛡️ safeHistoricalData 인덱스 안전 접근
+                const dataValue = (() => {
+                  if (!safeHistoricalData || !Array.isArray(safeHistoricalData))
+                    return 0;
+                  if (
+                    index < 0 ||
+                    index >= getSafeArrayLength(safeHistoricalData)
+                  )
+                    return 0;
+                  const dataPoint = safeHistoricalData[index];
+                  if (!dataPoint || typeof dataPoint !== 'object') return 0;
+                  if (
+                    typeof dataPoint.value !== 'number' ||
+                    isNaN(dataPoint.value)
+                  )
+                    return 0;
+                  return dataPoint.value;
+                })();
 
-              return (
-                <g key={`point-${index}-${point.x}-${point.y}`}>
-                  {/* 포인트 */}
-                  <circle
-                    cx={point.x}
-                    cy={point.y}
-                    r={isLast ? '4' : '3'}
-                    fill={config.lineColor}
-                    className={isLast ? 'drop-shadow-md filter' : ''}
-                  />
+                return (
+                  <g key={`point-${index}-${point.x}-${point.y}`}>
+                    {/* 포인트 */}
+                    <circle
+                      cx={point.x}
+                      cy={point.y}
+                      r={isLast ? '4' : '3'}
+                      fill={config.lineColor}
+                      className={isLast ? 'drop-shadow-md filter' : ''}
+                    />
 
-                  {/* 현재값 표시 */}
-                  {isLast && (
-                    <g>
-                      <rect
-                        x={point.x - 15}
-                        y={point.y - 25}
-                        width="30"
-                        height="18"
-                        rx="3"
-                        fill={config.lineColor}
-                        className="drop-shadow-sm filter"
-                      />
+                    {/* 현재값 표시 */}
+                    {isLast && (
+                      <g>
+                        <rect
+                          x={point.x - 15}
+                          y={point.y - 25}
+                          width="30"
+                          height="18"
+                          rx="3"
+                          fill={config.lineColor}
+                          className="drop-shadow-sm filter"
+                        />
+                        <text
+                          x={point.x}
+                          y={point.y - 12}
+                          textAnchor="middle"
+                          className="fill-white text-xs font-bold"
+                        >
+                          {Math.round(dataValue)}%
+                        </text>
+                      </g>
+                    )}
+
+                    {/* 최고값 표시 - AI 교차검증 기반 안전한 비교 */}
+                    {maxValue > 0 && dataValue === maxValue && !isLast && (
                       <text
                         x={point.x}
-                        y={point.y - 12}
+                        y={point.y - 8}
                         textAnchor="middle"
-                        className="fill-white text-xs font-bold"
+                        className="text-xs font-medium"
+                        fill={config.lineColor}
                       >
-                        {Math.round(dataValue)}%
+                        {Math.round(dataValue)}
                       </text>
-                    </g>
-                  )}
-
-                  {/* 최고값 표시 - AI 교차검증 기반 안전한 비교 */}
-                  {maxValue > 0 && dataValue === maxValue && !isLast && (
-                    <text
-                      x={point.x}
-                      y={point.y - 8}
-                      textAnchor="middle"
-                      className="text-xs font-medium"
-                      fill={config.lineColor}
-                    >
-                      {Math.round(dataValue)}
-                    </text>
-                  )}
-                </g>
-              );
-            }).filter(Boolean); // null 제거
+                    )}
+                  </g>
+                );
+              })
+              .filter(Boolean); // null 제거
           })()}
 
           {/* 현재값 펄스 효과 - AI 교차검증 기반 이중 안전장치 ⭐⭐ */}
           {(() => {
             // 🛡️ 실시간 업데이트 조건 및 points 배열 안전성 검증
             if (!showRealTimeUpdates) return null;
-            if (!points || !Array.isArray(points) || points.length === 0) return null;
+            if (!points || !Array.isArray(points) || points.length === 0)
+              return null;
 
             // 🛡️ 베르셀 Triple-Guard: 마지막 point 완전 안전 접근
             const safeLength = getSafeArrayLength(points);
@@ -556,7 +653,11 @@ export default function ServerMetricsLineChart({
 
             const lastPoint = points[lastIndex];
             if (!lastPoint || typeof lastPoint !== 'object') return null;
-            if (typeof lastPoint.x !== 'number' || typeof lastPoint.y !== 'number') return null;
+            if (
+              typeof lastPoint.x !== 'number' ||
+              typeof lastPoint.y !== 'number'
+            )
+              return null;
             if (isNaN(lastPoint.x) || isNaN(lastPoint.y)) return null;
 
             return (
@@ -592,9 +693,7 @@ export default function ServerMetricsLineChart({
         </div>
 
         {showRealTimeUpdates && (
-          <div className="text-xs text-gray-400">
-            실시간
-          </div>
+          <div className="text-xs text-gray-400">실시간</div>
         )}
       </div>
     </div>
