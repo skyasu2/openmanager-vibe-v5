@@ -69,9 +69,6 @@ export interface StaticServerData {
 
 export class StaticDataLoader {
   private static instance: StaticDataLoader;
-  private cachedData: StaticServerData | null = null;
-  private cacheTimestamp: number = 0;
-  private readonly CACHE_TTL_MS = 60000; // 1분 캐시 (JSON은 변경 빈도가 낮음)
 
   // 🆕 Hourly data cache for sync access
   private hourlyDataCache: Map<number, HourlyServerData> = new Map();
@@ -93,114 +90,6 @@ export class StaticDataLoader {
   }
 
   /**
-   * 🆕 Initialize hourly data cache (background pre-load)
-   * ✅ FIXED (Phase 1.3): With 5-second timeout protection
-   */
-  private async initHourlyCache(): Promise<void> {
-    const currentHour = new Date().getHours();
-
-    try {
-      // ✅ FIXED: Timeout protection (5 seconds)
-      const timeoutPromise = new Promise<null>((_, reject) =>
-        setTimeout(() => reject(new Error('Initialization timeout (5s)')), 5000)
-      );
-
-      const loadPromise = loadHourlyData(currentHour);
-
-      // Race between loading and timeout
-      const data = await Promise.race([loadPromise, timeoutPromise]);
-
-      if (data) {
-        this.hourlyDataCache.set(currentHour, data);
-        this.hourlyDataCacheTimestamp = Date.now();
-        this.isInitialized = true;
-        this.initializationError = null; // Clear any previous errors
-
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🚀 Hourly data cache initialized:', {
-            hour: currentHour,
-            servers: Object.keys(data.dataPoints[0]?.servers || {}).length,
-            dataPoints: data.dataPoints.length,
-          });
-        }
-      } else {
-        // Data load returned null/undefined
-        const error = new Error('Hourly data load returned null');
-        this.initializationError = error;
-        console.error('❌ Failed to initialize hourly cache:', error);
-      }
-    } catch (error) {
-      // Timeout or loading error
-      this.initializationError =
-        error instanceof Error ? error : new Error(String(error));
-      console.error(
-        '❌ Failed to initialize hourly cache:',
-        this.initializationError
-      );
-    }
-  }
-
-  private isCacheValid(): boolean {
-    return (
-      this.cachedData !== null &&
-      Date.now() - this.cacheTimestamp < this.CACHE_TTL_MS
-    );
-  }
-
-  /**
-   * @deprecated 🗑️ DEPRECATED (2025-10-17)
-   *
-   * Use hourly-server-data.ts loader instead.
-   * This method loads from OLD consolidated JSON (3 servers).
-   * NEW system uses hourly JSON files (17 servers).
-   *
-   * 🚀 베르셀 최적화: 시간 고정 + 날짜 동적 계산 방식
-   * 0-23시 고정 데이터에서 현재 시간에 맞춰 날짜만 계산
-   */
-  async loadStaticServerData(): Promise<StaticServerData> {
-    if (this.isCacheValid() && this.cachedData) {
-      return this.cachedData;
-    }
-
-    try {
-      // 베르셀에서 정적 자산은 CDN으로 캐싱됨
-      const response = await fetch('/data/server-data-24h-fixed.json', {
-        cache: 'force-cache', // 베르셀 CDN 캐싱 활용
-        headers: {
-          Accept: 'application/json',
-          'Cache-Control': 'max-age=3600', // 1시간 캐시
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`정적 데이터 로드 실패: ${response.status}`);
-      }
-
-      const data: StaticServerData = await response.json();
-
-      // 메모리 캐싱
-      this.cachedData = data;
-      this.cacheTimestamp = Date.now();
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🚀 시간 고정 서버 데이터 로드 완료:', {
-          version: data.metadata.version,
-          servers: data.servers.length,
-          dataPoints: data.metadata.totalDataPoints,
-          jsonSize: `${(JSON.stringify(data).length / 1024).toFixed(1)}KB`,
-          optimization: data.metadata.optimization,
-          timeStructure: '0-23시 고정 + 현재시간 매핑',
-        });
-      }
-
-      return data;
-    } catch (error) {
-      console.error('❌ 정적 데이터 로드 오류:', error);
-      throw error;
-    }
-  }
-
-  /**
    * 🎯 실시간 시연용: 1분 간격 미세 변화 데이터
    * 기본 데이터에 ±5% 오차 적용으로 실시간처럼 보이게 함
    */
@@ -211,98 +100,10 @@ export class StaticDataLoader {
     const variation = (Math.random() - 0.5) * 2 * maxVariation; // -5% ~ +5%
     const newValue = baseValue + (baseValue * variation) / 100;
     return Math.max(0, Math.min(100, Math.round(newValue)));
-  }
-
-  /**
-   * 🕐 시간 고정 + 날짜 동적 계산 방식 (베르셀 최적화)
-   * 0-23시 고정 데이터에서 현재 시간 매핑 + 실시간 변화 효과
-   */
-  async getCurrentServersData(
-    forAI: boolean = false
-  ): Promise<HourlyServerState[]> {
-    const staticData = await this.loadStaticServerData();
-    const currentHour = new Date().getHours();
-    const currentMinute = new Date().getMinutes();
-
-    const currentServersData: HourlyServerState[] = [];
-
-    for (const server of staticData.servers) {
-      // 고정된 24시간 데이터에서 현재 시간에 해당하는 데이터 찾기
-      const hourlyData = server.hourlyData.find((h) => h.hour === currentHour);
-      if (hourlyData) {
-        let serverData: HourlyServerState = {
-          serverId: server.id,
-          hour: currentHour,
-          status: hourlyData.status,
-          cpu: hourlyData.cpu,
-          memory: hourlyData.memory,
-          disk: hourlyData.disk,
-          network: hourlyData.network,
-          responseTime: hourlyData.responseTime,
-          errorRate: hourlyData.errorRate,
-          incidentType: hourlyData.incidentType,
-        };
-
-        // AI 분석용은 고정 데이터, UI 시연용은 미세 변화 적용
-        if (!forAI) {
-          // 1분 간격으로 ±5% 변화 적용 (실시간처럼 보이게)
-          const minuteVariation = Math.sin((currentMinute * Math.PI) / 30); // 30분 주기 사인파
-          const baseVariation = minuteVariation * 0.05; // ±5%
-
-          serverData = {
-            ...serverData,
-            cpu: this.applyRealtimeVariation(hourlyData.cpu, 5),
-            memory: this.applyRealtimeVariation(hourlyData.memory, 3),
-            disk: this.applyRealtimeVariation(hourlyData.disk, 2), // 디스크는 변화 적게
-            network: this.applyRealtimeVariation(hourlyData.network, 8), // 네트워크는 변화 크게
-            responseTime: Math.max(
-              1,
-              this.applyRealtimeVariation(hourlyData.responseTime, 15)
-            ),
-            errorRate: Math.max(
-              0,
-              Number((hourlyData.errorRate * (1 + baseVariation)).toFixed(1))
-            ),
-          };
-        }
-
-        currentServersData.push(serverData);
-      }
-    }
-
-    return currentServersData;
-  }
-
-  /**
-   * 📊 현재 시간 기준 통계 (베르셀 최적화)
-   */
-  async getCurrentStatistics() {
-    const staticData = await this.loadStaticServerData();
-    const currentHour = new Date().getHours();
-
-    const stats = staticData.hourlyStatistics.find(
-      (s) => s.hour === currentHour
-    );
-
-    return (
-      stats || {
-        totalServers: 15,
-        online: 12,
-        warning: 2,
-        critical: 1,
-        avgCpu: 35,
-        avgMemory: 45,
-        avgResponseTime: 150,
-        dominantIncident: '정상 운영',
-      }
-    );
-  }
-
-  /**
+  } /**
    * 📚 현재 시간 기준 24시간 히스토리 데이터 조회 (AI 분석용)
    *
    * ✅ FIXED (2025-10-17): NEW hourly system 사용 (17 servers)
-   * - OLD: loadStaticServerData() → 3 servers (❌ Wrong!)
    * - NEW: loadHourlyData() × 24 → 17 servers (✅ Correct!)
    *
    * 시간 고정 + 현재 시간 매핑 방식으로 지난 24시간 데이터 제공
@@ -746,10 +547,6 @@ export class StaticDataLoader {
    * 🆕 마이그레이션 (2025-10-17): hourly cache도 함께 클리어
    */
   clearCache(): void {
-    // OLD system cache
-    this.cachedData = null;
-    this.cacheTimestamp = 0;
-
     // 🆕 NEW system cache
     this.hourlyDataCache.clear();
     this.hourlyDataCacheTimestamp = 0;
