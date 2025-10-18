@@ -5,11 +5,8 @@
  * 컨텍스트 정보를 제공
  */
 
-import { getMockSystem, getMockServers } from '../../mock';
 import type { Server } from '../../types/server';
-import type { EnhancedServerMetrics } from '../../types/server';
 import { isMockMode } from '../../config/mock-config';
-import { unifiedDataService } from '../unified-data-service';
 import { staticDataLoader } from '../data/StaticDataLoader';
 
 export interface MockContext {
@@ -29,7 +26,7 @@ export interface MockContext {
     cpuTrend: 'increasing' | 'decreasing' | 'stable';
     memoryTrend: 'increasing' | 'decreasing' | 'stable';
     alertTrend: 'increasing' | 'decreasing' | 'stable';
-  scenario: { name: string; }; 
+    scenario: { name: string };
   };
 }
 
@@ -82,7 +79,7 @@ export class MockContextLoader {
       console.log('🔍 MockContextLoader.getMockContext() 호출됨');
       console.log('🔍 isMockMode() 결과:', isMockMode());
     }
-    
+
     if (!isMockMode()) {
       if (process.env.NODE_ENV === 'development') {
         console.log('❌ Mock 모드가 비활성화됨 - null 반환');
@@ -100,101 +97,39 @@ export class MockContextLoader {
 
     try {
       if (process.env.NODE_ENV === 'development') {
-        console.log('🔄 getUnifiedContextSync() 호출 시도...');
+        console.log('🔄 StaticDataLoader 동기 컨텍스트 조회 시도...');
       }
-      // 🚀 베르셀 최적화: StaticDataLoader를 통해 정적 JSON 데이터 사용
-      const result = this.getStaticContextSync() || this.getUnifiedContextSync();
-      
+      // 🚀 베르셀 최적화: StaticDataLoader를 통해 정적 JSON 데이터 사용 (NEW 17-server system)
+      const result = this.getStaticContextSync();
+
       // 캐시 업데이트
       if (result) {
         this.cachedContext = result;
         this.cacheTimestamp = Date.now();
       }
-      
+
       if (process.env.NODE_ENV === 'development') {
-        console.log('✅ getUnifiedContextSync() 성공:', {
+        console.log('✅ StaticDataLoader 동기 컨텍스트 성공:', {
           enabled: result?.enabled,
           serverCount: result?.servers?.length,
           currentTime: result?.currentTime,
-          cached: true
+          cached: true,
         });
       }
       return result;
     } catch (error) {
-      console.error('❌ 통합 데이터 조회 실패, 기존 Mock 시스템 사용:', error);
-      
-      // 폴백: 15서버 고정 시간별 데이터 사용
-      console.log('🔄 15서버 고정 시간별 데이터로 폴백 처리...');
-      const mockSystem = getMockSystem();
-      console.log('✅ MockSystem 인스턴스 획득');
-      const servers = getMockServers(); // 15대 서버 데이터
-      console.log('✅ 서버 데이터 획득:', servers.length, '개');
-      const systemInfo = mockSystem.getSystemInfo();
-      console.log('✅ 시스템 정보 획득:', systemInfo);
+      console.error('❌ StaticDataLoader 데이터 조회 실패:', error);
 
-      // 메트릭 계산
-      const criticalServers = servers.filter(
-        (s) => s.status === 'critical' || s.status === 'warning'
-      );
-      const warningServers = servers.filter((s) => s.status === 'warning');
-      const healthyServers = servers.filter(
-        (s) => s.status === 'online' // 🔧 수정: 'healthy' 제거 (타입 통합)
+      // 폴백: null 반환 (StaticDataLoader 캐시 초기화 대기 필요)
+      // AI는 데이터 없음 상태를 gracefully 처리 가능
+      console.warn(
+        '⚠️ MockContext 사용 불가 - StaticDataLoader 초기화 대기 중'
       );
 
-      const avgCpu = servers.length > 0 
-        ? servers.reduce((sum, s) => sum + s.cpu, 0) / servers.length 
-        : 0;
-      const avgMemory = servers.length > 0 
-        ? servers.reduce((sum, s) => sum + s.memory, 0) / servers.length 
-        : 0;
-      const avgDisk = servers.length > 0 
-        ? servers.reduce((sum, s) => sum + s.disk, 0) / servers.length 
-        : 0;
+      // 캐시 무효화 (다음 요청 시 재시도)
+      this.invalidateCache();
 
-      // 트렌드 분석 (간단한 휴리스틱)
-      const cpuTrend =
-        avgCpu > 70 ? 'increasing' : avgCpu < 30 ? 'decreasing' : 'stable';
-      const memoryTrend =
-        avgMemory > 75
-          ? 'increasing'
-          : avgMemory < 40
-            ? 'decreasing'
-            : 'stable';
-      const alertTrend =
-        servers.length > 0 && criticalServers.length > servers.length * 0.3
-          ? 'increasing'
-          : criticalServers.length === 0
-            ? 'decreasing'
-            : 'stable';
-
-      const fallbackContext: MockContext = {
-        enabled: true,
-        currentTime: new Date().toLocaleTimeString('ko-KR', { hour12: false, timeZone: 'Asia/Seoul' }),
-        metrics: {
-          serverCount: servers.length,
-          criticalCount: systemInfo.criticalCount,
-          warningCount: systemInfo.warningCount,
-          healthyCount: healthyServers.length,
-          avgCpu: Math.round(avgCpu * 10) / 10,
-          avgMemory: Math.round(avgMemory * 10) / 10,
-          avgDisk: Math.round(avgDisk * 10) / 10,
-        },
-        servers: servers.slice(0, 10), // 상위 10개 서버 (분석에 충분한 샘플)
-        trends: {
-          cpuTrend,
-          memoryTrend,
-          alertTrend,
-          scenario: { name: "normal" },
-        },
-      };
-
-      // 폴백 데이터도 캐시에 저장
-      if (fallbackContext) {
-        this.cachedContext = fallbackContext;
-        this.cacheTimestamp = Date.now();
-      }
-
-      return fallbackContext;
+      return null;
     }
   }
 
@@ -272,159 +207,9 @@ export class MockContextLoader {
       `- Disk: ${server.disk}%`,
       `- Network: ${server.network}%`,
       ``,
-      `알림: ${server.alerts || 0}개`,
+      `알림: ${typeof server.alerts === 'number' ? server.alerts : Array.isArray(server.alerts) ? server.alerts.length : 0}개`,
       `마지막 업데이트: ${server.lastUpdate ? new Date(server.lastUpdate).toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul' }) : '알 수 없음'}`,
     ].join('\n');
-  }
-
-  /**
-   * 🔄 통합 데이터 서비스 기반 컨텍스트 생성 (동기 버전)
-   * 서버 모니터링과 동일한 24시간 고정 데이터를 AI 분석용으로 변환
-   */
-  private getUnifiedContextSync(): MockContext | null {
-    try {
-      console.log('🔄 통합 데이터 서비스에서 AI 분석용 데이터 조회 중... (동기)');
-      
-      // ✅ 15서버 고정 시간별 데이터 사용 (API 엔드포인트와 동일)
-      const servers = getMockServers(); // 15대 서버 데이터
-      const mockSystem = getMockSystem();
-      const systemInfo = mockSystem.getSystemInfo();
-
-      // 메트릭 계산
-      const criticalServers = servers.filter(
-        (s) => s.status === 'critical' || s.status === 'warning'
-      );
-      const warningServers = servers.filter((s) => s.status === 'warning');
-      const healthyServers = servers.filter(
-        (s) => s.status === 'online' // 🔧 수정: 'healthy' 제거 (타입 통합)
-      );
-
-      const avgCpu = servers.reduce((sum, s) => sum + s.cpu, 0) / servers.length;
-      const avgMemory = servers.reduce((sum, s) => sum + s.memory, 0) / servers.length;
-      const avgDisk = servers.reduce((sum, s) => sum + s.disk, 0) / servers.length;
-
-      // 트렌드 분석 (간단한 휴리스틱)
-      const cpuTrend = avgCpu > 70 ? 'increasing' : avgCpu < 30 ? 'decreasing' : 'stable';
-      const memoryTrend = avgMemory > 75 ? 'increasing' : avgMemory < 40 ? 'decreasing' : 'stable';
-      const alertTrend = criticalServers.length > servers.length * 0.3 ? 'increasing' : 
-                        criticalServers.length === 0 ? 'decreasing' : 'stable';
-
-      return {
-        enabled: true,
-        currentTime: new Date().toLocaleTimeString('ko-KR', { hour12: false }),
-        metrics: {
-          serverCount: servers.length,
-          criticalCount: systemInfo.criticalCount,
-          warningCount: systemInfo.warningCount,
-          healthyCount: healthyServers.length,
-          avgCpu: Math.round(avgCpu * 10) / 10,
-          avgMemory: Math.round(avgMemory * 10) / 10,
-          avgDisk: Math.round(avgDisk * 10) / 10,
-        },
-        servers: servers.slice(0, 10), // 상위 10개 서버
-        trends: {
-          cpuTrend,
-          memoryTrend,
-          alertTrend,
-          scenario: { name: "unified" },
-        },
-      };
-
-    } catch (error) {
-      console.error('❌ 동기 통합 데이터 컨텍스트 생성 실패:', error);
-      throw error; // 상위에서 폴백 처리
-    }
-  }
-
-  /**
-   * 🔄 통합 데이터 서비스 기반 컨텍스트 생성 (비동기 버전)
-   * 서버 모니터링과 동일한 24시간 고정 데이터를 AI 분석용으로 변환
-   */
-  private async getUnifiedContext(): Promise<MockContext | null> {
-    try {
-      console.log('🔄 통합 데이터 서비스에서 AI 분석용 데이터 조회 중...');
-      
-      // 통합 데이터 서비스에서 AI 메타데이터 포함하여 데이터 조회
-      const unifiedData = await unifiedDataService.getAIAnalysisData();
-      
-      if (!unifiedData.servers || unifiedData.servers.length === 0) {
-        throw new Error('통합 데이터 서비스에서 서버 데이터 없음');
-      }
-
-      console.log(`✅ 통합 데이터 조회 성공: ${unifiedData.servers.length}개 서버`);
-      console.log(`📊 시나리오: ${unifiedData.aiContext?.scenario || '알 수 없음'}`);
-
-      // EnhancedServerMetrics를 Server 타입으로 변환
-      const servers: Server[] = unifiedData.servers.map((server) => ({
-        id: server.id,
-        name: server.name,
-        hostname: server.hostname || server.name,
-        status: this.normalizeStatus(server.status),
-        cpu: server.cpu_usage || server.cpu || 0,
-        memory: server.memory_usage || server.memory || 0,
-        disk: server.disk_usage || server.disk || 0,
-        network: server.network || 0,
-        uptime: server.uptime || 86400,
-        location: server.location || 'Seoul-DC-01',
-        alerts: server.alerts || 0,
-        ip: server.ip || '192.168.1.1',
-        os: server.os || 'Ubuntu 22.04 LTS',
-        type: server.type || 'application',
-        role: server.role || 'worker',
-        environment: server.environment || 'production',
-        provider: server.provider || 'Unified-Data-Service',
-        lastUpdate: server.lastUpdate ? new Date(server.lastUpdate) : new Date(),
-      }));
-
-      // 서버 상태별 분류 및 통계 계산
-      const criticalServers = servers.filter((s) => s.status === 'critical');
-      const warningServers = servers.filter((s) => s.status === 'warning');  
-      const healthyServers = servers.filter((s) => s.status === 'online'); // 🔧 수정: 'healthy' 제거 (타입 통합)
-
-      const avgCpu = servers.reduce((sum, s) => sum + s.cpu, 0) / servers.length;
-      const avgMemory = servers.reduce((sum, s) => sum + s.memory, 0) / servers.length;
-      const avgDisk = servers.reduce((sum, s) => sum + s.disk, 0) / servers.length;
-
-      // 트렌드 분석 (통합 데이터 기반)
-      const cpuTrend = avgCpu > 70 ? 'increasing' : avgCpu < 30 ? 'decreasing' : 'stable';
-      const memoryTrend = avgMemory > 75 ? 'increasing' : avgMemory < 40 ? 'decreasing' : 'stable';
-      const alertTrend = criticalServers.length > servers.length * 0.3 ? 'increasing' : 
-                        criticalServers.length === 0 ? 'decreasing' : 'stable';
-
-      const mockContext: MockContext = {
-        enabled: true,
-        currentTime: new Date().toLocaleTimeString('ko-KR', { hour12: false }),
-        metrics: {
-          serverCount: servers.length,
-          criticalCount: criticalServers.length,
-          warningCount: warningServers.length,
-          healthyCount: healthyServers.length,
-          avgCpu: Math.round(avgCpu * 10) / 10,
-          avgMemory: Math.round(avgMemory * 10) / 10,
-          avgDisk: Math.round(avgDisk * 10) / 10,
-        },
-        servers,
-        trends: {
-          cpuTrend,
-          memoryTrend,
-          scenario: { name: "dynamic" },
-          alertTrend,
-        },
-      };
-
-      console.log('🤖 AI 분석용 통합 컨텍스트 생성 완료:', {
-        serverCount: mockContext.servers.length,
-        scenario: mockContext.trends.scenario.name,
-        criticalCount: mockContext.metrics.criticalCount,
-        warningCount: mockContext.metrics.warningCount,
-      });
-
-      return mockContext;
-
-    } catch (error) {
-      console.error('❌ 통합 데이터 컨텍스트 생성 실패:', error);
-      throw error; // 상위에서 폴백 처리
-    }
   }
 
   /**
@@ -443,10 +228,12 @@ export class MockContextLoader {
       const serversData = staticDataLoader.getCurrentServersDataSync(true); // forAI=true (고정 데이터)
       const stats = staticDataLoader.getCurrentStatisticsSync();
 
-      // 캐시가 준비되지 않은 경우 null 반환 → getUnifiedContextSync() 폴백
+      // 캐시가 준비되지 않은 경우 null 반환 (NEW 17-server system)
       if (!serversData || !stats) {
         if (process.env.NODE_ENV === 'development') {
-          console.warn('⚠️ StaticDataLoader 캐시 미준비 - getUnifiedContextSync() 폴백');
+          console.warn(
+            '⚠️ StaticDataLoader 캐시 미준비 - 다음 요청에서 재시도'
+          );
         }
         return null;
       }
@@ -459,19 +246,27 @@ export class MockContextLoader {
       }
 
       // 서버 상태별 분류
-      const criticalServers = serversData.filter(s => s.status === 'critical');
-      const warningServers = serversData.filter(s => s.status === 'warning');
-      const onlineServers = serversData.filter(s => s.status === 'online');
+      const criticalServers = serversData.filter(
+        (s) => s.status === 'critical'
+      );
+      const warningServers = serversData.filter((s) => s.status === 'warning');
+      const onlineServers = serversData.filter((s) => s.status === 'online');
 
       // 평균 디스크 사용률 계산 (stats에 없으므로 서버 데이터에서 계산)
-      const avgDisk = serversData.length > 0
-        ? Math.round(serversData.reduce((sum, s) => sum + s.disk, 0) / serversData.length)
-        : 0;
+      const avgDisk =
+        serversData.length > 0
+          ? Math.round(
+              serversData.reduce((sum, s) => sum + s.disk, 0) /
+                serversData.length
+            )
+          : 0;
 
-      const currentTime = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+      const currentTime = new Date().toLocaleTimeString('ko-KR', {
+        hour12: false,
+      });
 
       // Server 타입으로 변환 (MockContext 인터페이스 호환)
-      const servers: Server[] = serversData.map(s => ({
+      const servers: Server[] = serversData.map((s) => ({
         id: s.serverId,
         name: s.serverId,
         hostname: s.serverId,
@@ -506,11 +301,25 @@ export class MockContextLoader {
         },
         servers: servers.slice(0, 10), // 상위 10개 서버 (AI 분석에 충분)
         trends: {
-          cpuTrend: stats.avgCpu > 70 ? 'increasing' : stats.avgCpu < 30 ? 'decreasing' : 'stable',
-          memoryTrend: stats.avgMemory > 75 ? 'increasing' : stats.avgMemory < 40 ? 'decreasing' : 'stable',
-          alertTrend: criticalServers.length > serversData.length * 0.3 ? 'increasing'
-                     : criticalServers.length === 0 ? 'decreasing' : 'stable',
-          scenario: { name: "static" },
+          cpuTrend:
+            stats.avgCpu > 70
+              ? 'increasing'
+              : stats.avgCpu < 30
+                ? 'decreasing'
+                : 'stable',
+          memoryTrend:
+            stats.avgMemory > 75
+              ? 'increasing'
+              : stats.avgMemory < 40
+                ? 'decreasing'
+                : 'stable',
+          alertTrend:
+            criticalServers.length > serversData.length * 0.3
+              ? 'increasing'
+              : criticalServers.length === 0
+                ? 'decreasing'
+                : 'stable',
+          scenario: { name: 'static' },
         },
       };
     } catch (error) {
@@ -536,5 +345,4 @@ export class MockContextLoader {
         return 'online';
     }
   }
-
 }
