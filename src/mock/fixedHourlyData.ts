@@ -9,11 +9,12 @@
  */
 
 import type { Server } from '../types/server';
+import type { ServerStatus } from '../types/server-enums';
 
 export interface HourlyServerState {
   serverId: string;
   hour: number; // 0-23
-  status: 'online' | 'warning' | 'critical';
+  status: ServerStatus;
   cpu: number;
   memory: number;
   disk: number;
