@@ -35,8 +35,8 @@ export interface MockServerInfo {
 export const mockServers: MockServerInfo[] = [
   // 로드 밸런서 (1대) - NEW
   {
-    id: 'lb-main-01',
-    hostname: 'LB-MAIN-01',
+    id: 'lb-prod-01',
+    hostname: 'LB-PROD-01',
     type: 'web',
     os: 'Ubuntu 22.04 LTS',
     service: 'HAProxy 2.8',
@@ -51,8 +51,8 @@ export const mockServers: MockServerInfo[] = [
 
   // 웹 서버 (3대)
   {
-    id: 'web-prd-01',
-    hostname: 'WEB-PRD-01',
+    id: 'web-prod-01',
+    hostname: 'WEB-PROD-01',
     type: 'web',
     os: 'Ubuntu 22.04 LTS',
     service: 'Nginx 1.22.0',
@@ -65,8 +65,8 @@ export const mockServers: MockServerInfo[] = [
     description: '프로덕션 웹 서버 #1 - 로드밸런서 Primary',
   },
   {
-    id: 'web-prd-02',
-    hostname: 'WEB-PRD-02',
+    id: 'web-prod-02',
+    hostname: 'WEB-PROD-02',
     type: 'web',
     os: 'CentOS 8.5',
     service: 'Apache 2.4.51',
@@ -79,8 +79,8 @@ export const mockServers: MockServerInfo[] = [
     description: '프로덕션 웹 서버 #2 - 로드밸런서 Secondary (CPU 높음)',
   },
   {
-    id: 'web-prd-03',
-    hostname: 'WEB-PRD-03',
+    id: 'web-prod-03',
+    hostname: 'WEB-PROD-03',
     type: 'web',
     os: 'Ubuntu 22.04 LTS',
     service: 'Nginx 1.22.0',
@@ -95,8 +95,8 @@ export const mockServers: MockServerInfo[] = [
 
   // API 서버 (2대) - NEW
   {
-    id: 'api-prd-01',
-    hostname: 'API-PRD-01',
+    id: 'api-prod-01',
+    hostname: 'API-PROD-01',
     type: 'app',
     os: 'Ubuntu 20.04 LTS',
     service: 'Node.js 20.x (Express)',
@@ -109,8 +109,8 @@ export const mockServers: MockServerInfo[] = [
     description: 'RESTful API 서버 #1 - GraphQL Gateway',
   },
   {
-    id: 'api-prd-02',
-    hostname: 'API-PRD-02',
+    id: 'api-prod-02',
+    hostname: 'API-PROD-02',
     type: 'app',
     os: 'Ubuntu 20.04 LTS',
     service: 'Node.js 20.x (Express)',
@@ -125,8 +125,8 @@ export const mockServers: MockServerInfo[] = [
 
   // 애플리케이션 서버 (3대)
   {
-    id: 'app-prd-01',
-    hostname: 'APP-PRD-01',
+    id: 'app-prod-01',
+    hostname: 'APP-PROD-01',
     type: 'app',
     os: 'Red Hat Enterprise Linux 8.7',
     service: 'Apache Tomcat 9.0.71',
@@ -138,39 +138,11 @@ export const mockServers: MockServerInfo[] = [
     status: 'critical',
     description: 'Java 애플리케이션 서버 #1 - 메모리 누수 발생',
   },
-  {
-    id: 'app-prd-02',
-    hostname: 'APP-PRD-02',
-    type: 'app',
-    os: 'Ubuntu 20.04 LTS',
-    service: 'Node.js 18.17.1 (PM2)',
-    ip: '192.168.1.21',
-    location: 'Rack B-02',
-    cpu: { cores: 16, model: 'Intel Xeon Gold 6130' },
-    memory: { total: 32 },
-    disk: { total: 1000 },
-    status: 'online',
-    description: 'Node.js 애플리케이션 서버 #2 - API 서비스',
-  },
-  {
-    id: 'app-prd-03',
-    hostname: 'APP-PRD-03',
-    type: 'app',
-    os: 'Windows Server 2022',
-    service: 'IIS 10.0 (.NET 8.0)',
-    ip: '192.168.1.22',
-    location: 'Rack B-03',
-    cpu: { cores: 16, model: 'Intel Xeon Gold 6130' },
-    memory: { total: 32 },
-    disk: { total: 1000 },
-    status: 'online',
-    description: '.NET 애플리케이션 서버 #3 - 레거시 시스템',
-  },
 
   // 캐시 서버 (1대) - NEW
   {
-    id: 'cache-prd-01',
-    hostname: 'CACHE-PRD-01',
+    id: 'cache-prod-01',
+    hostname: 'CACHE-PROD-01',
     type: 'cache',
     os: 'Ubuntu 22.04 LTS',
     service: 'Redis 7.2.3 Cluster',
@@ -182,11 +154,25 @@ export const mockServers: MockServerInfo[] = [
     status: 'online',
     description: 'Redis 캐시 클러스터 - 세션 및 데이터 캐싱',
   },
+  {
+    id: 'cache-prod-02',
+    hostname: 'CACHE-PROD-02',
+    type: 'cache',
+    os: 'Ubuntu 22.04 LTS',
+    service: 'Redis 7.2.3 Cluster (Replica)',
+    ip: '192.168.1.26',
+    location: 'Rack B-05',
+    cpu: { cores: 8, model: 'Intel Xeon Silver 4214' },
+    memory: { total: 64 },
+    disk: { total: 500 },
+    status: 'online',
+    description: 'Redis 캐시 클러스터 복제본 - HA 구성',
+  },
 
   // 데이터베이스 서버 (3대)
   {
-    id: 'db-main-01',
-    hostname: 'DB-MAIN-01',
+    id: 'db-prod-01',
+    hostname: 'DB-PROD-01',
     type: 'database',
     os: 'Ubuntu 20.04 LTS',
     service: 'PostgreSQL 14.9',
@@ -199,8 +185,8 @@ export const mockServers: MockServerInfo[] = [
     description: '메인 데이터베이스 서버 - 디스크 용량 95% 초과',
   },
   {
-    id: 'db-repl-01',
-    hostname: 'DB-REPL-01',
+    id: 'db-prod-02',
+    hostname: 'DB-PROD-02',
     type: 'database',
     os: 'Ubuntu 20.04 LTS',
     service: 'PostgreSQL 14.9 (Replica)',
@@ -212,25 +198,11 @@ export const mockServers: MockServerInfo[] = [
     status: 'online',
     description: '읽기 전용 복제 데이터베이스 서버',
   },
-  {
-    id: 'db-arch-01',
-    hostname: 'DB-ARCH-01',
-    type: 'database',
-    os: 'Ubuntu 20.04 LTS',
-    service: 'PostgreSQL 14.9 (Archive)',
-    ip: '192.168.1.32',
-    location: 'Rack C-03',
-    cpu: { cores: 24, model: 'AMD EPYC 7543' },
-    memory: { total: 96 },
-    disk: { total: 8000 },
-    status: 'online',
-    description: '아카이브 데이터베이스 서버 - 히스토리 데이터',
-  },
 
   // 파일/스토리지 서버 - RENAMED from file-nas-01
   {
-    id: 'storage-nas-01',
-    hostname: 'STORAGE-NAS-01',
+    id: 'storage-prod-01',
+    hostname: 'STORAGE-PROD-01',
     type: 'storage',
     os: 'Windows Server 2019 Standard',
     service: 'SMB/CIFS File Server',
@@ -245,8 +217,8 @@ export const mockServers: MockServerInfo[] = [
 
   // 모니터링 서버 (1대) - NEW
   {
-    id: 'mon-prd-01',
-    hostname: 'MON-PRD-01',
+    id: 'monitoring-prod-01',
+    hostname: 'MONITORING-PROD-01',
     type: 'monitoring',
     os: 'Ubuntu 22.04 LTS',
     service: 'Prometheus + Grafana',
@@ -259,10 +231,58 @@ export const mockServers: MockServerInfo[] = [
     description: '통합 모니터링 서버 - 메트릭 수집 및 시각화',
   },
 
+  // 보안 서버 (1대) - NEW
+  {
+    id: 'security-prod-01',
+    hostname: 'SECURITY-PROD-01',
+    type: 'monitoring',
+    os: 'Ubuntu 22.04 LTS',
+    service: 'Security Monitoring System',
+    ip: '192.168.1.55',
+    location: 'Rack E-02',
+    cpu: { cores: 8, model: 'Intel Xeon Silver 4214' },
+    memory: { total: 32 },
+    disk: { total: 1000 },
+    status: 'online',
+    description: '보안 모니터링 서버 - 침입 탐지 및 로그 분석',
+  },
+
+  // 메시지 큐 서버 (1대) - NEW
+  {
+    id: 'queue-prod-01',
+    hostname: 'QUEUE-PROD-01',
+    type: 'app',
+    os: 'Ubuntu 22.04 LTS',
+    service: 'RabbitMQ 3.12',
+    ip: '192.168.1.60',
+    location: 'Rack E-03',
+    cpu: { cores: 12, model: 'Intel Xeon Gold 5220' },
+    memory: { total: 48 },
+    disk: { total: 1500 },
+    status: 'online',
+    description: '메시지 큐 서버 - 비동기 작업 처리',
+  },
+
+  // 장애 복구 서버 (1대) - NEW
+  {
+    id: 'fallback-prod-01',
+    hostname: 'FALLBACK-PROD-01',
+    type: 'backup',
+    os: 'Ubuntu 22.04 LTS',
+    service: 'Disaster Recovery System',
+    ip: '192.168.1.65',
+    location: 'Rack E-04',
+    cpu: { cores: 16, model: 'Intel Xeon Gold 5220' },
+    memory: { total: 64 },
+    disk: { total: 2000 },
+    status: 'online',
+    description: '장애 복구 서버 - DR 및 페일오버',
+  },
+
   // 백업 서버 (1대) - Keep as 16th server
   {
-    id: 'backup-01',
-    hostname: 'BACKUP-01',
+    id: 'backup-prod-01',
+    hostname: 'BACKUP-PROD-01',
     type: 'backup',
     os: 'Debian 11 (Bullseye)',
     service: 'Bacula 9.6.7',
@@ -339,22 +359,23 @@ export const metricThresholds = {
   },
 };
 
-// 서버별 초기 상태 정의
+// 서버별 초기 상태 정의 (17개 서버)
 export const serverInitialStates = {
-  'lb-main-01': { scenario: 'normal' },
-  'web-prd-01': { scenario: 'normal' },
-  'web-prd-02': { scenario: 'cpu_spike' },
-  'web-prd-03': { scenario: 'normal' },
-  'api-prd-01': { scenario: 'normal' },
-  'api-prd-02': { scenario: 'normal' },
-  'app-prd-01': { scenario: 'memory_leak' },
-  'app-prd-02': { scenario: 'normal' },
-  'app-prd-03': { scenario: 'normal' },
-  'cache-prd-01': { scenario: 'normal' },
-  'db-main-01': { scenario: 'disk_full' },
-  'db-repl-01': { scenario: 'normal' },
-  'db-arch-01': { scenario: 'normal' },
-  'storage-nas-01': { scenario: 'backup_delay' },
-  'mon-prd-01': { scenario: 'normal' },
-  'backup-01': { scenario: 'storage_warning' },
+  'lb-prod-01': { scenario: 'normal' },
+  'web-prod-01': { scenario: 'normal' },
+  'web-prod-02': { scenario: 'cpu_spike' },
+  'web-prod-03': { scenario: 'normal' },
+  'api-prod-01': { scenario: 'normal' },
+  'api-prod-02': { scenario: 'normal' },
+  'app-prod-01': { scenario: 'memory_leak' },
+  'cache-prod-01': { scenario: 'normal' },
+  'cache-prod-02': { scenario: 'normal' },
+  'db-prod-01': { scenario: 'disk_full' },
+  'db-prod-02': { scenario: 'normal' },
+  'storage-prod-01': { scenario: 'backup_delay' },
+  'monitoring-prod-01': { scenario: 'normal' },
+  'security-prod-01': { scenario: 'normal' },
+  'queue-prod-01': { scenario: 'normal' },
+  'fallback-prod-01': { scenario: 'normal' },
+  'backup-prod-01': { scenario: 'storage_warning' },
 };
