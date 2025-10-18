@@ -419,8 +419,31 @@ export class StaticDataLoader {
           totalMemory = 0,
           totalResponseTime = 0;
 
-        // ✅ Statistics grouping (intentional): online | warning | critical/offline/maintenance/unknown
-        // Note: Individual server status is preserved in hourlyData, but statistics group for simplicity
+        /**
+         * ✅ STATUS GROUPING STRATEGY (Intentional Design Decision)
+         *
+         * PURPOSE: Simplify aggregate statistics for dashboard overview charts
+         * - Statistics display: 3 categories (online | warning | critical)
+         * - Individual details: 6 full statuses preserved in hourlyData
+         *
+         * GROUPING LOGIC:
+         * - "online" → online (정상)
+         * - "warning" → warning (경고)
+         * - "critical" → critical (심각)
+         * - "offline" → critical (통계에서 심각으로 그룹화)
+         * - "maintenance" → critical (통계에서 심각으로 그룹화)
+         * - "unknown" → critical (통계에서 심각으로 그룹화)
+         *
+         * DETAILED DATA PRESERVATION:
+         * - Full 6-status details: Available in `hourlyData[].servers[].status`
+         * - UI components can access exact status for individual server cards
+         * - Example: Dashboard shows "3 critical" but details show "2 offline, 1 maintenance"
+         *
+         * IMPACT ON CONSUMERS:
+         * - Aggregate statistics: Use simplified 3-category counts (this calculation)
+         * - Detailed views: Access full status from hourlyData (not affected)
+         * - Charts/graphs: Benefit from simplified categories for clarity
+         */
         for (const server of servers) {
           if (server.status === 'online') online++;
           else if (server.status === 'warning') warning++;
