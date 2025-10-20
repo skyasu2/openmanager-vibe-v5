@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react'; // 🧪 테스트 환경에서 JSX 트랜스폼을 위해 명시적 import 필요
 import EnhancedServerModal from '@/components/dashboard/EnhancedServerModal';
 import VirtualizedServerList from '@/components/dashboard/VirtualizedServerList';
 import SafeServerCard from '@/components/dashboard/SafeServerCard';
@@ -262,7 +263,7 @@ export default function ServerDashboard({
 
             {/* 🎯 페이지 크기에 따른 렌더링 방식 선택 */}
             {pageSize >= 15 && sortedServers.length >= 15 ? (
-              // ⚡ 15개 전체 보기: 가상 스크롤 (react-window)
+              // ⚡ 15개 전체 보기: 반응형 그리드 + 더보기 버튼
               <VirtualizedServerList
                 servers={sortedServers}
                 handleServerSelect={handleServerSelect}

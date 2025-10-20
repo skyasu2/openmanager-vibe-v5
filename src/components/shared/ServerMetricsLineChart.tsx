@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react'; // 🧪 테스트 환경에서 JSX 트랜스폼을 위해 명시적 import 필요
 // framer-motion 제거 - CSS 애니메이션 사용
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 // 🎯 Bundle-Safe Inline 매크로 - getSafe 함수들 (압축 방지)

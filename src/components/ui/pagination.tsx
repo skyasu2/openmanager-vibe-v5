@@ -1,3 +1,4 @@
+import React from 'react'; // 🧪 테스트 환경에서 JSX 트랜스폼을 위해 명시적 import 필요
 import { forwardRef, type ComponentProps, type ReactElement, type ReactNode, type HTMLAttributes, type ButtonHTMLAttributes, type ElementRef } from 'react';
 import { cn } from '@/lib/utils';
 import type { ButtonProps } from '@/components/ui/button';

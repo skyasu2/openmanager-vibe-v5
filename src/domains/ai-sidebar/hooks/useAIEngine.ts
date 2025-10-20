@@ -35,13 +35,13 @@ const STORAGE_KEY = 'selected-ai-engine';
 // 엔진 설정 맵
 const ENGINE_CONFIG = {
   UNIFIED: {
-    displayName: 'Google AI 모드',
-    description: '순수 Google AI (Gemini Pro) - 고급 추론과 자연어 질의',
+    displayName: '통합 AI 엔진',
+    description: '모든 AI 엔진 통합 - RAG + Google AI + 자연어 처리',
     endpoint: '/api/ai/edge-v2'
   },
   LOCAL: {
-    displayName: '로컬 AI',
-    description: 'Supabase RAG + NLP 통합 엔진 - Vercel + GCP + 자연어 처리',
+    displayName: '로컬 RAG',
+    description: 'Supabase RAG 엔진 - 벡터 검색 기반 문서 검색',
     endpoint: '/api/ai/query'
   },
   GOOGLE_AI: {

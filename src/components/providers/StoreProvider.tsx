@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react'; // 🧪 테스트 환경에서 JSX 트랜스폼을 위해 명시적 import 필요
 import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 import { useStore } from 'zustand';

@@ -96,27 +96,6 @@ export function calculateServerConfig(
       warningPercent,
       tolerancePercent,
     },
-    // 8개 서버 전용 타입 할당 설정
-    serverTypes:
-      serverCount === 8
-        ? {
-            orderedTypes: [
-              'web', // 웹 서버 (nginx, apache)
-              'app', // 애플리케이션 서버
-              'api', // API 서버 (REST, GraphQL)
-              'database', // 데이터베이스 서버
-              'cache', // 캐시 서버 (Redis, Memcached)
-              'storage', // 스토리지 서버
-              'load-balancer', // 로드밸런서
-              'backup', // 백업 서버
-            ],
-            statusMapping: {
-              critical: [3, 6], // database(인덱스 3), load-balancer(인덱스 6) - 심각 2대
-              warning: [1, 4, 7], // app(인덱스 1), cache(인덱스 4), backup(인덱스 7) - 경고 3대
-              normal: [0, 2, 5], // web(인덱스 0), api(인덱스 2), storage(인덱스 5) - 정상 3대
-            },
-          }
-        : undefined,
     pagination: {
       defaultPageSize,
       maxPageSize,
@@ -320,10 +299,12 @@ export function getServerInfoByIndex(index: number) {
 }
 
 /**
- * 📋 전체 8개 서버 정보 배열 생성
+ * 📋 전체 서버 정보 배열 생성 (현재: 15개)
  */
 export function getAllServersInfo() {
-  return Array.from({ length: 8 }, (_, index) => getServerInfoByIndex(index));
+  return Array.from({ length: ACTIVE_SERVER_CONFIG.maxServers }, (_, index) =>
+    getServerInfoByIndex(index)
+  );
 }
 
 /**

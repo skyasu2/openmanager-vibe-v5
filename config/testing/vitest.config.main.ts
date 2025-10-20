@@ -6,13 +6,17 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/*.{test,spec}.{js,ts,tsx}'],
+    include: [
+      'src/**/*.{test,spec}.{js,ts,tsx}',
+      'tests/**/*.{test,spec}.{js,ts,tsx}', // 🆕 tests/ 디렉토리 테스트 파일 포함
+    ],
     exclude: [
       'node_modules/**',
       'dist/**',
       '.next/**',
       'out/**',
       'gcp-functions/**',
+      'tests/archive/**', // ✅ 아카이브된 테스트 제외 (jsdom 한계로 개선 불가능)
     ],
     coverage: {
       provider: 'v8',
@@ -30,7 +34,7 @@ export default defineConfig({
     testTimeout: 30000,
     hookTimeout: 30000,
     pool: 'threads',
-    isolate: false,
+    isolate: true, // ✅ Enable test isolation to prevent state pollution
     poolOptions: {
       threads: {
         singleThread: false,

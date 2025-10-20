@@ -14,6 +14,7 @@
  * - ✅ 반응형 디자인 완전 지원
  */
 
+import React from 'react'; // 🧪 테스트 환경에서 JSX 트랜스폼을 위해 명시적 import 필요
 import {
   AlertCircle,
   CheckCircle2,

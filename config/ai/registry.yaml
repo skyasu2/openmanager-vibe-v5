@@ -176,58 +176,12 @@ subagents:
     file_path: ".claude/agents/multi-ai-verification-specialist.md"
     priority: "HIGH"
 
-  codex-specialist:
-    name: "Codex CLI 연동 - 실무 검증"
-    category: "ai-verification"
-    role: "검증 및 분석 전문가 (실제 개발은 Claude)"
-    specialty: "구현 검증, 버그 분석, 개선 제안"
-    output: "버그 3개 + 리팩토링 3개 + 개선 방향"
-    important: "분석/제안만, 실제 수정은 Claude가 수행"
-    file_path: ".claude/agents/codex-specialist.md"
-    priority: "MEDIUM"
-
-  gemini-specialist:
-    name: "Gemini CLI 연동 - 아키텍처 검증"
-    category: "ai-verification"
-    role: "아키텍처 검증 전문가 (실제 개발은 Claude)"
-    specialty: "시스템 설계, SOLID 검증, 구조 개선"
-    important: "검토/제안만, 실제 리팩토링은 Claude가 수행"
-    file_path: ".claude/agents/gemini-specialist.md"
-    priority: "MEDIUM"
-
-  qwen-specialist:
-    name: "Qwen CLI 연동 - 성능 검증"
-    category: "ai-verification"
-    role: "성능 검증 전문가 (실제 개발은 Claude)"
-    specialty: "알고리즘 최적화, 성능 병목 분석"
-    important: "분석/제안만, 실제 최적화는 Claude가 수행"
-    file_path: ".claude/agents/qwen-specialist.md"
-    priority: "MEDIUM"
-
-  # 시스템 설정 & 범용 (3개)
-  general-purpose:
-    name: "범용 목적 에이전트"
-    category: "system"
-    role: "복잡한 다단계 작업 자율 처리"
-    tools: ["*"]
-    file_path: ".claude/agents/general-purpose.md"
-    priority: "LOW"
-
-  statusline-setup:
-    name: "상태표시줄 설정"
-    category: "system"
-    role: "Claude Code 상태표시줄 설정"
-    tools: ["Read", "Edit"]
-    file_path: ".claude/agents/statusline-setup.md"
-    priority: "LOW"
-
-  output-style-setup:
-    name: "출력 스타일 생성"
-    category: "system"
-    role: "Claude Code 출력 스타일 생성"
-    tools: ["Read", "Write", "Edit", "Glob", "Grep"]
-    file_path: ".claude/agents/output-style-setup.md"
-    priority: "LOW"
+  # 시스템 설정 & 범용 (구 Ghost agents 및 Low-value agents 제거됨 - 2025-10-19)
+  # 제거된 에이전트 (6개):
+  # - codex-specialist, gemini-specialist, qwen-specialist (Ghost - 파일 없음)
+  # - general-purpose, statusline-setup, output-style-setup (Low-value - 3-5/10)
+  # 실제 Multi-AI 실행: Bash wrapper scripts (codex/gemini/qwen-wrapper.sh)
+  # Orchestrator: multi-ai-verification-specialist.md
 
   # 전문 도구 (12개)
   dev-environment-manager:
@@ -280,7 +234,7 @@ subagents:
     role: "GCP 배포, 최적화, 무료 티어"
     tools: ["Read", "Write", "Edit", "Bash", "Grep"]
     file_path: ".claude/agents/gcp-cloud-functions-specialist.md"
-    priority: "LOW"
+    priority: "HIGH"  # 🆕 LOW → HIGH (2025-10-19: AI assistant features 실 운영 중)
 
   code-review-specialist:
     name: "코드 리뷰 전문가"
@@ -547,7 +501,7 @@ workflows:
         - "./scripts/mcp-health-check.sh (주 1회)"
       development:
         - "debugger-specialist: 에러 근본 원인 분석"
-        - "qwen-specialist: 로직 최적화"
+        - "Bash wrapper 사용: ./scripts/ai-subagents/qwen-wrapper.sh '로직 최적화'"
       deployment:
         - "security-specialist: 보안 체크리스트"
         - "test-automation-specialist: 전체 테스트 진단"
@@ -558,8 +512,11 @@ workflows:
 maintenance:
   # Claude Code (메인 개발 도구)
   claude_code:
-    current_version: "v2.0.21"  # 2025-10-17 업데이트
+    current_version: "v2.0.22"  # 2025-10-19 업데이트
     changelog:  # 🆕 변경사항 추적
+      v2_0_22:
+        date: "2025-10-19"
+        notes: "CHANGELOG 미기재 (마이너 패치로 추정)"
       v2_0_21:
         date: "2025-10-17"
         notes: "CHANGELOG 미기재 (마이너 패치로 추정)"
@@ -617,7 +574,7 @@ maintenance:
     command: 'Task dev-environment-manager "AI CLI 도구 상태 확인"'
     legacy_script: "./scripts/ai-tools-health-check.sh (deprecated)"  # 레거시 지원
     tools:
-      - "Claude Code (v2.0.21)"  # 🆕 업데이트
+      - "Claude Code (v2.0.22)"  # 🆕 업데이트
       - "Codex CLI (v0.46.0)"    # 🆕 업데이트
       - "Gemini CLI (v0.9.0)"    # 🆕 업데이트
       - "Qwen CLI (v0.0.14)"

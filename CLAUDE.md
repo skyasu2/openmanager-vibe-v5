@@ -26,7 +26,7 @@ npm run test:super-fast     # 11초 빠른 테스트
 # 배포
 git push                    # Vercel 자동 배포
 
-# Claude Code v2.0.21 🆕
+# Claude Code v2.0.22 🆕
 /rewind                     # Checkpoints 복원
 /usage                      # 사용량 확인
 npx ccusage@latest          # 상세 토큰 분석
@@ -113,7 +113,7 @@ Task multi-ai-verification-specialist "LoginClient.tsx 검증"
 
 ---
 
-## 🎭 서브에이전트 활용 (18개 전문가)
+## 🎭 서브에이전트 활용 (12개 전문가)
 
 ### 호출 방법
 
@@ -262,11 +262,11 @@ vercel ls --token $TOKEN       # MCP가 89배 빠름
 
 ---
 
-## 🎯 현재 상태 (2025-10-17)
+## 🎯 현재 상태 (2025-10-19)
 
 **AI 도구**: 최신 버전 업그레이드 완료 ✅
 
-- Claude Code v2.0.21 (Skills, Haiku 4.5, Explore 서브에이전트)
+- Claude Code v2.0.22 (Skills, Haiku 4.5, Explore 서브에이전트)
 - Codex CLI v0.46.0 (MCP 개선, list_dir/grep_files)
 - Gemini CLI v0.9.0 (인터랙티브 셸)
 - Qwen CLI v0.0.14

@@ -28,7 +28,7 @@ export const ConfigSchema = z.object({
     generationInterval: z.number().min(1000).default(5000), // 5초
     totalDuration: z.number().min(60000).default(1200000), // 20분
     historyDuration: z.number().min(3600000).default(86400000), // 24시간
-    serverCount: z.number().min(1).max(20).default(5),
+    serverCount: z.number().min(1).max(20).default(15),
     enableRealtimeGeneration: z.boolean().default(true),
     enableHistoryGeneration: z.boolean().default(true),
   }),
@@ -148,7 +148,7 @@ export class ConfigLoader {
         generationInterval: Number(process.env.GENERATION_INTERVAL) || 5000,
         totalDuration: Number(process.env.TOTAL_DURATION) || 1200000,
         historyDuration: Number(process.env.HISTORY_DURATION) || 86400000,
-        serverCount: Number(process.env.SERVER_COUNT) || 5,
+        serverCount: Number(process.env.SERVER_COUNT) || 15,
         enableRealtimeGeneration:
           process.env.ENABLE_REALTIME_GENERATION !== 'false',
         enableHistoryGeneration:

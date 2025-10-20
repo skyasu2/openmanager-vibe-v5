@@ -12,6 +12,7 @@ import { formatUptime, getAlertsCount } from './types/server-dashboard.types';
 import { serverTypeGuards } from '@/utils/serverUtils';
 import type { Server, ServerStatus } from '@/types/server';
 import { useEffect, useState } from 'react';
+import { debounce } from 'lodash-es';
 
 interface VirtualizedServerListProps {
   servers: Server[];
@@ -34,9 +35,17 @@ export default function VirtualizedServerList({
       setCardsPerRow(Math.max(1, cards)); // 최소 1개
     };
 
+    // 초기 계산
     calculateCardsPerRow();
-    window.addEventListener('resize', calculateCardsPerRow);
-    return () => window.removeEventListener('resize', calculateCardsPerRow);
+
+    // 150ms debounce로 성능 최적화 (Gemini 교차검증 지적 반영)
+    const debouncedCalculate = debounce(calculateCardsPerRow, 150);
+    window.addEventListener('resize', debouncedCalculate);
+
+    return () => {
+      window.removeEventListener('resize', debouncedCalculate);
+      debouncedCalculate.cancel(); // 메모리 누수 방지
+    };
   }, []);
 
   // 첫 줄만 표시할 서버 개수

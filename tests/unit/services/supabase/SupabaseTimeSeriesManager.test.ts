@@ -383,7 +383,7 @@ describe('SupabaseTimeSeriesManager', () => {
         memory: 60.2,
         disk: 45.0,
         network: { in: 75, out: 75 }, // network_usage / 2
-        status: 'healthy',
+      status: 'online',
         responseTime: 250,
         activeConnections: 50,
       });
