@@ -30,7 +30,12 @@ jobs:
       - name: Install dependencies (429 Error Resilient)
         run: |
           echo "📦 Simple Deploy NPM 의존성 설치..."
-          
+
+          # 🧹 CI 캐시 정리 (ESLint false positive 방지)
+          echo "🧹 CI 캐시 정리 중..."
+          rm -rf node_modules/.cache || true
+          npm cache clean --force || true
+
           # 배포용 간단한 retry 로직
           for attempt in 1 2 3; do
             echo "🔄 NPM CI 시도 $attempt/3..."
@@ -88,11 +93,9 @@ jobs:
         run: npm run type-check
         # TypeScript 에러 발견 시 배포 차단 (베스트 프랙티스)
 
-      # 🚧 임시 비활성화: ESLint 1,617 에러로 배포 차단 중
-      # TODO: ESLint 에러 수정 후 재활성화 필요
-      # - name: Lint check (품질 게이트)
-      #   run: npm run lint:strict
-      #   # ESLint 경고/에러 발견 시 배포 차단 (max-warnings=0)
+      - name: Lint check (품질 게이트 - CI 캐시 정리 후 재활성화)
+        run: npm run lint:strict
+        # ESLint 경고/에러 발견 시 배포 차단 (max-warnings=0)
 
 
     # Vercel이 자동으로 배포를 처리
