@@ -56,7 +56,21 @@ function isRateLimited(ip: string): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  // 🛡️ 릴리즈 보호: 프로덕션에서 TEST_BYPASS_SECRET 설정 시 에러
+  // 🎯 우선순위 0: 게스트 전체 접근 모드 체크 (개발용)
+  // 프로덕션 블로킹보다 먼저 체크하여 개발 환경에서 원활한 테스트 가능
+  if (GUEST_MODE === 'full_access') {
+    console.log('✅ [Test API] 게스트 전체 접근 모드 - 인증 우회');
+
+    return NextResponse.json({
+      success: true,
+      message: '게스트 모드로 관리자 인증되었습니다.',
+      mode: 'guest_bypass',
+      adminMode: true,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // 🛡️ 보안 계층 1: 릴리즈 보호 (프로덕션에서 TEST_BYPASS_SECRET 설정 시 에러)
   if (process.env.NODE_ENV === 'production' && process.env.TEST_BYPASS_SECRET) {
     console.error(
       '❌ [Security] TEST_BYPASS_SECRET은 프로덕션에서 설정하면 안 됩니다!'
@@ -71,7 +85,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 🛡️ 보안 계층 1: Rate Limiting
+  // 🛡️ 보안 계층 2: Rate Limiting
   const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
 
   if (isRateLimited(clientIP)) {
@@ -84,19 +98,6 @@ export async function POST(request: NextRequest) {
       },
       { status: 429 }
     );
-  }
-
-  // 🎯 게스트 전체 접근 모드: 인증 우회 (개발용)
-  if (GUEST_MODE === 'full_access') {
-    console.log('✅ [Test API] 게스트 전체 접근 모드 - 인증 우회');
-
-    return NextResponse.json({
-      success: true,
-      message: '게스트 모드로 관리자 인증되었습니다.',
-      mode: 'guest_bypass',
-      adminMode: true,
-      timestamp: new Date().toISOString(),
-    });
   }
 
   try {
