@@ -2,7 +2,7 @@
 
 # Qwen CLI Wrapper - YOLO Mode
 # 버전: 2.3.0
-# 날짜: 2025-10-10
+# 날짜: 2025-10-20 (문서 동기화)
 # 변경: --approval-mode yolo 사용 (완전 무인 동작, 타임아웃 600초)
 
 set -euo pipefail
