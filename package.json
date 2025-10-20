@@ -29,6 +29,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "lint:strict": "eslint . --max-warnings=0",
+    "lint:progressive": "eslint . --max-warnings=50 --cache",
     "lint:fast": "eslint src/ --config config/eslint-backups/eslint.config.fast.mjs --cache",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
