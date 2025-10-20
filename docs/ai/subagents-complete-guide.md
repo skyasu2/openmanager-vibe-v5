@@ -37,13 +37,13 @@
 
 ## 🎯 상황별 에이전트 선택 매트릭스
 
-| 상황 | 1순위 | 2순위 | 조합 사용 |
-|------|-------|-------|-----------|
-| 🐛 **버그 수정** | debugger-specialist | codex-specialist | 분석→해결 순서 |
-| 🚀 **성능 개선** | qwen-specialist | structure-refactor-specialist | 알고리즘→구조 순서 |
-| 🔒 **보안 강화** | security-specialist | codex-specialist | 스캔→실무검증 |
-| 📱 **UI 개선** | ui-ux-specialist | shadcn-ui 도구 | 디자인→구현 |
-| 🧪 **테스트 자동화** | test-automation-specialist | vercel-platform-specialist | 테스트→배포 |
+| 상황                 | 1순위                      | 2순위                         | 조합 사용          |
+| -------------------- | -------------------------- | ----------------------------- | ------------------ |
+| 🐛 **버그 수정**     | debugger-specialist        | codex-specialist              | 분석→해결 순서     |
+| 🚀 **성능 개선**     | qwen-specialist            | structure-refactor-specialist | 알고리즘→구조 순서 |
+| 🔒 **보안 강화**     | security-specialist        | codex-specialist              | 스캔→실무검증      |
+| 📱 **UI 개선**       | ui-ux-specialist           | shadcn-ui 도구                | 디자인→구현        |
+| 🧪 **테스트 자동화** | test-automation-specialist | vercel-platform-specialist    | 테스트→배포        |
 
 ---
 
@@ -69,6 +69,7 @@ test-automation-specialist: "테스트 전체 상황을 분석하고 실행해�
 **🎯 사용법**: `test-automation-specialist: "전체 테스트를 진단하고 실행해주세요"`
 
 **📋 자동 분석 과정 (6단계)**:
+
 1. **테스트 환경 스캔** → package.json, playwright.config.ts, 환경변수 검증
 2. **시나리오 분석** → 현재 테스트 케이스, 커버리지, 누락 영역 확인
 3. **테스트 실행** → 유닛, E2E, API 테스트 순차 실행
@@ -102,35 +103,35 @@ test-automation-specialist: "테스트 전체 상황을 분석하고 실행해�
 ```yaml
 # 🧪 테스트 문제 (Test Issues)
 타임아웃_오류:
-  증상: "TimeoutError, 15000ms exceeded"
-  진단: "테스트 설정 문제"
-  해결: "playwright.config.ts 타임아웃 증가"
+  증상: 'TimeoutError, 15000ms exceeded'
+  진단: '테스트 설정 문제'
+  해결: 'playwright.config.ts 타임아웃 증가'
 
 셀렉터_오류:
-  증상: "Element not found, selector"
-  진단: "UI 변경으로 인한 테스트 코드 문제"
-  해결: "셀렉터 업데이트 필요"
+  증상: 'Element not found, selector'
+  진단: 'UI 변경으로 인한 테스트 코드 문제'
+  해결: '셀렉터 업데이트 필요'
 
 환경변수_누락:
-  증상: "Environment variable not found"
-  진단: "테스트 환경 설정 문제"
-  해결: ".env.test 또는 환경변수 설정"
+  증상: 'Environment variable not found'
+  진단: '테스트 환경 설정 문제'
+  해결: '.env.test 또는 환경변수 설정'
 
 # 💻 코드 문제 (Code Issues)
 API_로직_오류:
-  증상: "500 Internal Server Error"
-  진단: "서버 코드 로직 문제"
-  해결: "API 코드 디버깅 필요"
+  증상: '500 Internal Server Error'
+  진단: '서버 코드 로직 문제'
+  해결: 'API 코드 디버깅 필요'
 
 인증_실패:
-  증상: "401 Unauthorized, 403 Forbidden"
-  진단: "인증/인가 로직 문제"
-  해결: "인증 시스템 코드 수정"
+  증상: '401 Unauthorized, 403 Forbidden'
+  진단: '인증/인가 로직 문제'
+  해결: '인증 시스템 코드 수정'
 
 데이터베이스_오류:
-  증상: "Database connection failed"
-  진단: "DB 연결 또는 쿼리 문제"
-  해결: "데이터베이스 코드 점검"
+  증상: 'Database connection failed'
+  진단: 'DB 연결 또는 쿼리 문제'
+  해결: '데이터베이스 코드 점검'
 ```
 
 **🛡️ 보안 자동 감지 체크리스트**:
@@ -138,34 +139,34 @@ API_로직_오류:
 ```yaml
 # ✅ 보안 헤더 검증
 CSP_헤더:
-  상태: "✅ 정상"
-  내용: "Content-Security-Policy 적용"
-  점검: "XSS, 인젝션 공격 방어"
+  상태: '✅ 정상'
+  내용: 'Content-Security-Policy 적용'
+  점검: 'XSS, 인젝션 공격 방어'
 
 CORS_설정:
-  상태: "✅ 정상"
-  내용: "Cross-Origin 요청 제한"
-  점검: "무단 도메인 접근 차단"
+  상태: '✅ 정상'
+  내용: 'Cross-Origin 요청 제한'
+  점검: '무단 도메인 접근 차단'
 
 # 🔐 인증/인가 시스템 검증
 권한_시스템:
-  상태: "✅ 정상"
-  내용: "GitHub OAuth + PIN 인증 (환경변수 ADMIN_PASSWORD)"
-  점검: "무인가 접근 차단 정상"
+  상태: '✅ 정상'
+  내용: 'GitHub OAuth + PIN 인증 (환경변수 ADMIN_PASSWORD)'
+  점검: '무인가 접근 차단 정상'
 
 API_보호:
-  상태: "✅ 정상"
-  내용: "관리자 전용 API 접근 제한"
-  점검: "/api/debug/env 인증 필수 적용"
+  상태: '✅ 정상'
+  내용: '관리자 전용 API 접근 제한'
+  점검: '/api/debug/env 인증 필수 적용'
 
 # ⚠️ 환경변수 보안 스캔
 민감정보_노출:
-  자동검사: "API 키, 토큰, 패스워드 패턴 스캔"
-  권장사항: ".env 파일 git 제외 확인"
+  자동검사: 'API 키, 토큰, 패스워드 패턴 스캔'
+  권장사항: '.env 파일 git 제외 확인'
 
 # 📊 보안 점수 자동 계산
-보안_등급: "A+ (95/100점)"
-기준: "OWASP Top 10 대응, 보안 권장사항 준수"
+보안_등급: 'A+ (95/100점)'
+기준: 'OWASP Top 10 대응, 보안 권장사항 준수'
 ```
 
 ### AI 교차검증 템플릿
@@ -185,7 +186,9 @@ API_보호:
 ### 1. AI 교차 검증 시스템 (4개)
 
 #### multi-ai-verification-specialist
+
 **Multi-AI 교차검증 전문가 - v4.4.0**
+
 - **특화**: 3-AI 병렬 실행 자동화, Decision Log 작성, 결과 종합 및 보고
 - **트리거**: "AI 교차검증" 명시 시에만 활성화 (일반 개발은 Claude 단독)
 - **프로세스**: Bash Wrapper 병렬 실행 → 실제 Codex, Gemini, Qwen 독립 답변 수집 → 결과 종합
@@ -193,7 +196,9 @@ API_보호:
 - **상세**: @docs/claude/environment/multi-ai-strategy.md
 
 #### codex-specialist
+
 **ChatGPT Codex CLI 전용 외부 AI 연동 - 실무 검증 전문가**
+
 - **역할**: 검증 및 분석 전문가 (실제 개발은 Claude Code가 수행)
 - **특화**: 구현 검증·버그 분석·개선 제안, GPT-5 기반 분석
 - **출력**: 버그 포인트 3개 + 리팩토링 제안 3개 + 개선 방향
@@ -201,14 +206,18 @@ API_보호:
 - **중요**: Codex는 분석/제안만, 실제 수정은 Claude가 수행
 
 #### gemini-specialist
+
 **Google Gemini CLI 전용 외부 AI 연동 - 아키텍처 검증 전문가**
+
 - **역할**: 아키텍처 검증 전문가 (실제 개발은 Claude Code가 수행)
 - **특화**: 시스템 설계 검토, SOLID 원칙 검증, 구조적 개선 제안
 - **호출 예시**: `gemini: 구현된 시스템 아키텍처를 SOLID 관점에서 검토해주세요`
 - **중요**: Gemini는 검토/제안만, 실제 리팩토링은 Claude가 수행
 
 #### qwen-specialist
+
 **Qwen CLI 전용 외부 AI 연동 - 성능 검증 전문가**
+
 - **역할**: 성능 검증 전문가 (실제 개발은 Claude Code가 수행)
 - **특화**: 알고리즘 최적화 분석, 성능 병목 검증, 수학적 복잡도 개선 제안
 - **호출 예시**: `qwen: 구현된 알고리즘의 성능을 분석하고 최적화 방안을 제안해주세요`
@@ -217,17 +226,23 @@ API_보호:
 ### 2. 시스템 설정 & 범용 (3개)
 
 #### general-purpose
+
 **범용 목적 에이전트**
+
 - **특화**: 복잡한 다단계 작업 자율 처리, 코드 검색 및 연구
-- **도구**: 모든 도구 접근 가능 (*)
+- **도구**: 모든 도구 접근 가능 (\*)
 
 #### statusline-setup
+
 **Claude Code 상태표시줄 설정 전용**
+
 - **특화**: Claude Code 상태표시줄 설정 구성
 - **도구**: Read, Edit
 
 #### output-style-setup
+
 **Claude Code 출력 스타일 생성 전용**
+
 - **특화**: Claude Code 출력 스타일 생성
 - **도구**: Read, Write, Edit, Glob, Grep
 
@@ -274,6 +289,7 @@ API_보호:
 ### 🗑️ 최적화 완료 (2025-09-19)
 
 **제거된 에이전트 (7개)**:
+
 - ❌ **orchestrator-agent**: 서브에이전트 체이닝 불가능으로 논리적 모순
 - ❌ **verification-specialist**: 중간 단계일 뿐, Claude Code가 직접 수행 가능
 - ❌ **central-supervisor**: Claude Code 메인이 실제 오케스트레이터 역할
@@ -283,9 +299,11 @@ API_보호:
 - ❌ **task-coordinator**: 프로젝트 성숙 단계에서 불필요
 
 **이름 변경된 에이전트 (1개)**:
+
 - 🔄 **design-architect** → **ui-ux-specialist**: UI/UX 전문성 명확화
 
 **통합된 에이전트 (1개)**:
+
 - ✅ **security-specialist**: auditor + reviewer 기능 통합, Critical priority 유지
 
 ---
