@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCookieValue } from '@/utils/cookies/safe-cookie-utils';
 import { verifyCSRFToken } from '@/utils/security/csrf';
 
-// 환경변수에서 관리자 PIN 가져오기
+// 환경변수에서 관리자 PIN 및 게스트 모드 가져오기
 const ADMIN_PIN = process.env.ADMIN_PIN || process.env.ADMIN_PASSWORD || '';
+const GUEST_MODE = process.env.NEXT_PUBLIC_GUEST_MODE?.trim();
 
 /**
  * POST /api/admin/verify-pin
@@ -33,7 +34,7 @@ const requestLog = new Map<string, number[]>();
 setInterval(() => {
   const now = Date.now();
   for (const [ip, requests] of requestLog.entries()) {
-    const recentRequests = requests.filter(time => now - time < 60000);
+    const recentRequests = requests.filter((time) => now - time < 60000);
     if (recentRequests.length === 0) {
       requestLog.delete(ip); // 1분 동안 요청 없으면 삭제
     } else {
@@ -47,9 +48,10 @@ function isRateLimited(ip: string): boolean {
   const requests = requestLog.get(ip) || [];
 
   // 1분 이내 요청만 유지
-  const recentRequests = requests.filter(time => now - time < 60000);
+  const recentRequests = requests.filter((time) => now - time < 60000);
 
-  if (recentRequests.length >= 10) { // 10 req/min
+  if (recentRequests.length >= 10) {
+    // 10 req/min
     return true;
   }
 
@@ -60,7 +62,7 @@ function isRateLimited(ip: string): boolean {
 
 // 🔒 보안 계층 2: IP Whitelist (선택적)
 const IP_WHITELIST = process.env.ADMIN_IP_WHITELIST
-  ? process.env.ADMIN_IP_WHITELIST.split(',').map(ip => ip.trim())
+  ? process.env.ADMIN_IP_WHITELIST.split(',').map((ip) => ip.trim())
   : null; // null이면 whitelist 비활성화
 
 function isIPWhitelisted(ip: string): boolean {
@@ -87,6 +89,27 @@ function isTestMode(request: NextRequest): boolean {
 
 export async function POST(request: NextRequest) {
   try {
+    // 🎯 게스트 전체 접근 모드: 인증 우회 (개발용)
+    if (GUEST_MODE === 'full_access') {
+      console.log('✅ [Admin API] 게스트 전체 접근 모드 - 인증 우회');
+
+      const testMode = isTestMode(request);
+      const cookieValue = [
+        `admin_mode=true`,
+        `Path=/`,
+        `Max-Age=${60 * 60 * 24}`,
+        `SameSite=lax`,
+        testMode ? '' : 'HttpOnly',
+        process.env.NODE_ENV === 'production' && !testMode ? 'Secure' : '',
+      ]
+        .filter(Boolean)
+        .join('; ');
+
+      return NextResponse.json(
+        { success: true },
+        { headers: { 'Set-Cookie': cookieValue } }
+      );
+    }
     // 🛡️ 보안 계층 0: Rate limiting (Phase 5 - DoS 방어 우선)
     const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
 
@@ -95,7 +118,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: '요청이 너무 빈번합니다. 1분 후 다시 시도하세요.'
+          message: '요청이 너무 빈번합니다. 1분 후 다시 시도하세요.',
         },
         { status: 429 }
       );
@@ -113,7 +136,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: 'CSRF 토큰이 유효하지 않습니다.'
+          message: 'CSRF 토큰이 유효하지 않습니다.',
         },
         { status: 403 }
       );
@@ -125,7 +148,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: '허용되지 않은 IP 주소입니다.'
+          message: '허용되지 않은 IP 주소입니다.',
         },
         { status: 403 }
       );
@@ -137,7 +160,10 @@ export async function POST(request: NextRequest) {
     if (!ADMIN_PIN) {
       console.error('❌ [Admin API] ADMIN_PIN 환경변수가 설정되지 않음');
       return NextResponse.json(
-        { success: false, message: '서버 설정 오류: 관리자 PIN이 설정되지 않았습니다.' },
+        {
+          success: false,
+          message: '서버 설정 오류: 관리자 PIN이 설정되지 않았습니다.',
+        },
         { status: 500 }
       );
     }
@@ -187,7 +213,9 @@ export async function POST(request: NextRequest) {
         }
       );
 
-      console.log(`✅ [Admin API] admin_mode 쿠키 설정 완료 (testMode: ${testMode}, httpOnly: ${!testMode})`);
+      console.log(
+        `✅ [Admin API] admin_mode 쿠키 설정 완료 (testMode: ${testMode}, httpOnly: ${!testMode})`
+      );
       return response;
     }
 
