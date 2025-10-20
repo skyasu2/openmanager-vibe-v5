@@ -221,7 +221,7 @@
   "packageManager": "npm@10.9.2",
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "eslint --cache --cache-location /tmp/lint-cache/eslint-precommit/ --max-warnings=20 --fix",
+      "eslint --cache --cache-location /tmp/lint-cache/eslint-precommit/ --max-warnings=0 --fix",
       "prettier --write"
     ],
     "*.{json,md,mdx,css,scss}": [
