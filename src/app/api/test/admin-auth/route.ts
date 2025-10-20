@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ADMIN_PASSWORD } from '@/config/system-constants';
 
+// 환경변수에서 게스트 모드 가져오기
+const GUEST_MODE = process.env.NEXT_PUBLIC_GUEST_MODE?.trim();
+
 /**
  * 🔒 간소화된 테스트 전용 관리자 인증 API
  *
@@ -26,7 +29,7 @@ const requestLog = new Map<string, number[]>();
 setInterval(() => {
   const now = Date.now();
   for (const [ip, requests] of requestLog.entries()) {
-    const recentRequests = requests.filter(time => now - time < 60000);
+    const recentRequests = requests.filter((time) => now - time < 60000);
     if (recentRequests.length === 0) {
       requestLog.delete(ip); // 1분 동안 요청 없으면 삭제
     } else {
@@ -40,9 +43,10 @@ function isRateLimited(ip: string): boolean {
   const requests = requestLog.get(ip) || [];
 
   // 1분 이내 요청만 유지
-  const recentRequests = requests.filter(time => now - time < 60000);
+  const recentRequests = requests.filter((time) => now - time < 60000);
 
-  if (recentRequests.length >= 10) { // 1분에 최대 10회
+  if (recentRequests.length >= 10) {
+    // 1분에 최대 10회
     return true;
   }
 
@@ -54,12 +58,14 @@ function isRateLimited(ip: string): boolean {
 export async function POST(request: NextRequest) {
   // 🛡️ 릴리즈 보호: 프로덕션에서 TEST_BYPASS_SECRET 설정 시 에러
   if (process.env.NODE_ENV === 'production' && process.env.TEST_BYPASS_SECRET) {
-    console.error('❌ [Security] TEST_BYPASS_SECRET은 프로덕션에서 설정하면 안 됩니다!');
+    console.error(
+      '❌ [Security] TEST_BYPASS_SECRET은 프로덕션에서 설정하면 안 됩니다!'
+    );
     return NextResponse.json(
       {
         success: false,
         message: '서버 설정 오류입니다.',
-        error: 'BYPASS_TOKEN_IN_PRODUCTION'
+        error: 'BYPASS_TOKEN_IN_PRODUCTION',
       },
       { status: 500 }
     );
@@ -74,10 +80,23 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         message: '요청이 너무 빈번합니다. 1분 후 다시 시도하세요.',
-        error: 'RATE_LIMITED'
+        error: 'RATE_LIMITED',
       },
       { status: 429 }
     );
+  }
+
+  // 🎯 게스트 전체 접근 모드: 인증 우회 (개발용)
+  if (GUEST_MODE === 'full_access') {
+    console.log('✅ [Test API] 게스트 전체 접근 모드 - 인증 우회');
+
+    return NextResponse.json({
+      success: true,
+      message: '게스트 모드로 관리자 인증되었습니다.',
+      mode: 'guest_bypass',
+      adminMode: true,
+      timestamp: new Date().toISOString(),
+    });
   }
 
   try {
@@ -101,12 +120,14 @@ export async function POST(request: NextRequest) {
 
         // 토큰이 설정되지 않았으면 서버 설정 오류
         if (!validToken) {
-          console.error('⚠️ [Security] TEST_BYPASS_SECRET 환경변수가 설정되지 않음');
+          console.error(
+            '⚠️ [Security] TEST_BYPASS_SECRET 환경변수가 설정되지 않음'
+          );
           return NextResponse.json(
             {
               success: false,
               message: '서버 설정 오류입니다.',
-              error: 'BYPASS_NOT_CONFIGURED'
+              error: 'BYPASS_NOT_CONFIGURED',
             },
             { status: 500 }
           );
@@ -118,25 +139,27 @@ export async function POST(request: NextRequest) {
           providedLength: actualToken?.length,
           validToken: validToken,
           validLength: validToken?.length,
-          match: actualToken === validToken
+          match: actualToken === validToken,
         });
 
         if (actualToken !== validToken) {
           console.warn('🚨 [Security] Bypass 토큰 불일치:', {
             provided: actualToken ? 'present' : 'missing',
-            clientIP
+            clientIP,
           });
           return NextResponse.json(
             {
               success: false,
               message: 'Bypass 토큰이 유효하지 않습니다.',
-              error: 'INVALID_BYPASS_TOKEN'
+              error: 'INVALID_BYPASS_TOKEN',
             },
             { status: 403 }
           );
         }
 
-        console.log('✅ [Security] Bypass 토큰 검증 성공 - 프로덕션 테스트 허용');
+        console.log(
+          '✅ [Security] Bypass 토큰 검증 성공 - 프로덕션 테스트 허용'
+        );
       }
 
       console.log('🧪 [Test] 테스트 우회 모드로 관리자 인증');
@@ -147,62 +170,65 @@ export async function POST(request: NextRequest) {
         mode: 'test_bypass',
         adminMode: true,
         timestamp: new Date().toISOString(),
-        security: process.env.NODE_ENV === 'production' ? 'token_verified' : 'dev_mode'
+        security:
+          process.env.NODE_ENV === 'production' ? 'token_verified' : 'dev_mode',
       });
     }
 
     // 📝 일반 비밀번호 검증
     if (!password) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           message: '비밀번호가 필요합니다.',
-          error: 'PASSWORD_REQUIRED'
-        }, 
+          error: 'PASSWORD_REQUIRED',
+        },
         { status: 400 }
       );
     }
 
     if (password === ADMIN_PASSWORD) {
       console.log('✅ [Test API] 관리자 인증 성공 - 테스트용 API 경로');
-      
+
       return NextResponse.json({
         success: true,
         message: '관리자 인증이 완료되었습니다.',
         mode: 'password_auth',
         adminMode: true,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } else {
       console.warn('❌ [Test API] 관리자 인증 실패 - 잘못된 비밀번호');
-      
+
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           message: '잘못된 관리자 비밀번호입니다.',
-          error: 'INVALID_PASSWORD'
-        }, 
+          error: 'INVALID_PASSWORD',
+        },
         { status: 401 }
       );
     }
-
   } catch (error) {
     console.error('💥 [Test API] 관리자 인증 API 처리 중 오류:', error);
-    
+
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         message: '서버 처리 중 오류가 발생했습니다.',
-        error: 'SERVER_ERROR'
-      }, 
+        error: 'SERVER_ERROR',
+      },
       { status: 500 }
     );
   }
 }
 
-export async function GET() {
+export function GET() {
   // 🛡️ 프로덕션 환경 제어 (환경변수로 허용 가능)
-  if (process.env.NODE_ENV === 'production' && !process.env.ALLOW_TEST_API_IN_PROD) {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    !process.env.ALLOW_TEST_API_IN_PROD
+  ) {
     return NextResponse.json(
       { error: 'Not available in production' },
       { status: 404 }
@@ -218,12 +244,17 @@ export async function GET() {
     description: 'Playwright 테스트용 관리자 인증 API (2-Layer 보안)',
     usage: {
       bypass_mode_dev: 'POST with { bypass: true } - 개발 환경만',
-      bypass_mode_prod: 'POST with { bypass: true, bypassToken: "<TEST_BYPASS_SECRET>" } - 프로덕션',
-      password_mode: 'POST with { password: "<ADMIN_PASSWORD from env>" }'
+      bypass_mode_prod:
+        'POST with { bypass: true, bypassToken: "<TEST_BYPASS_SECRET>" } - 프로덕션',
+      password_mode: 'POST with { password: "<ADMIN_PASSWORD from env>" }',
     },
     security: {
-      layers: ['Production blocking', 'Rate limiting (10 req/min)', 'Bypass token verification (Phase 6)'],
-      note: 'PIN은 환경변수 ADMIN_PASSWORD로, Bypass Token은 TEST_BYPASS_SECRET로 관리됩니다.'
-    }
+      layers: [
+        'Production blocking',
+        'Rate limiting (10 req/min)',
+        'Bypass token verification (Phase 6)',
+      ],
+      note: 'PIN은 환경변수 ADMIN_PASSWORD로, Bypass Token은 TEST_BYPASS_SECRET로 관리됩니다.',
+    },
   });
 }
