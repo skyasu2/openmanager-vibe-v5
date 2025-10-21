@@ -4,10 +4,11 @@ import { verifyCSRFToken } from '@/utils/security/csrf';
 
 // 환경변수에서 관리자 PIN 및 게스트 모드 가져오기
 const ADMIN_PIN = process.env.ADMIN_PIN || process.env.ADMIN_PASSWORD || '';
-const GUEST_MODE = process.env.NEXT_PUBLIC_GUEST_MODE?.trim().replace(
-  /^["']|["']$/g,
-  ''
-);
+// 우선순위: GUEST_MODE_ENABLED (서버 전용) > NEXT_PUBLIC_GUEST_MODE (클라이언트/개발)
+// 이유: NEXT_PUBLIC_ 변수는 Vercel 프로덕션 서버 사이드 API에서 접근 불가능할 수 있음
+const GUEST_MODE =
+  process.env.GUEST_MODE_ENABLED?.trim().replace(/^["']|["']$/g, '') ||
+  process.env.NEXT_PUBLIC_GUEST_MODE?.trim().replace(/^["']|["']$/g, '');
 
 /**
  * POST /api/admin/verify-pin
