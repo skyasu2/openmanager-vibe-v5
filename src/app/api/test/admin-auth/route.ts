@@ -59,6 +59,15 @@ function isRateLimited(ip: string): boolean {
 }
 
 export async function POST(request: NextRequest) {
+  // 🔍 Debug: Log environment variable values
+  console.log('🔍 [Debug] Environment check:', {
+    NODE_ENV: process.env.NODE_ENV,
+    NEXT_PUBLIC_GUEST_MODE_raw: process.env.NEXT_PUBLIC_GUEST_MODE,
+    GUEST_MODE_processed: GUEST_MODE,
+    comparison: GUEST_MODE === 'full_access',
+    TEST_BYPASS_SECRET_exists: !!process.env.TEST_BYPASS_SECRET,
+  });
+
   // 🎯 우선순위 0: 게스트 전체 접근 모드 체크 (개발용)
   // 프로덕션 블로킹보다 먼저 체크하여 개발 환경에서 원활한 테스트 가능
   if (GUEST_MODE === 'full_access') {
