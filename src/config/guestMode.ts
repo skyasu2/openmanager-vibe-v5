@@ -39,7 +39,11 @@ export const BUILD_TIMESTAMP = '2025-10-14T10:40:00Z';
  */
 export function getGuestMode(): GuestModeType {
   // ⚠️ 중요: Vercel 환경 변수 입력 시 개행 문자가 포함될 수 있으므로 trim 필수
-  const mode = process.env.NEXT_PUBLIC_GUEST_MODE?.trim();
+  // 🔧 Quote stripping: Vercel 환경변수 입력 시 따옴표가 포함될 수 있어 제거 필요
+  const mode = process.env.NEXT_PUBLIC_GUEST_MODE?.trim().replace(
+    /^[\"']|[\"']$/g,
+    ''
+  );
 
   // 디버그: 환경 변수 값 확인 (서버/클라이언트 모두)
   console.log(`🎛️ [${BUILD_TIMESTAMP}] NEXT_PUBLIC_GUEST_MODE:`, JSON.stringify(mode));
