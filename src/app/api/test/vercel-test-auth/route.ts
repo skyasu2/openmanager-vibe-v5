@@ -32,6 +32,12 @@ const VERCEL_ENVIRONMENTS = {
 const TEST_SECRET_KEY = process.env.TEST_SECRET_KEY || 'test-secret-key-please-change-in-env';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '4231';
 
+// 환경변수에서 게스트 모드 가져오기
+// 우선순위: GUEST_MODE_ENABLED (서버 전용) > NEXT_PUBLIC_GUEST_MODE (클라이언트/개발)
+const GUEST_MODE =
+  process.env.GUEST_MODE_ENABLED?.trim().replace(/^[\"']|[\"']$/g, '') ||
+  process.env.NEXT_PUBLIC_GUEST_MODE?.trim().replace(/^[\"']|[\"']$/g, '');
+
 // 🧪 테스트 모드 종류
 type TestMode = 'guest' | 'admin' | 'full_access';
 
@@ -174,6 +180,37 @@ export async function POST(request: NextRequest) {
           }
         }
       );
+    }
+
+    // 🎯 게스트 전체 접근 모드: 인증 우회 (개발용)
+    if (GUEST_MODE === 'full_access') {
+      console.log('✅ [Vercel Test Auth] 게스트 모드 - 인증 우회');
+
+      const accessToken = generateTestAccessToken('guest');
+
+      const response = NextResponse.json(
+        {
+          success: true,
+          message: '게스트 모드로 인증되었습니다.',
+          testMode: 'guest',
+          accessToken,
+          sessionData: {
+            authType: 'guest',
+            adminMode: false,
+            permissions: ['read', 'guest_access']
+          }
+        } as TestAuthResponse
+      );
+
+      // Set cookie
+      const cookieValue = `vercel_test_token=${accessToken}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${60 * 60 * 24}${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
+      response.headers.set('Set-Cookie', cookieValue);
+
+      // Add rate limit headers
+      response.headers.set('X-RateLimit-Remaining', remaining.toString());
+      response.headers.set('X-RateLimit-Reset', resetTime.toString());
+
+      return response;
     }
 
     const body: TestAuthRequest = await request.json();
