@@ -441,7 +441,9 @@ test.describe('🔐 관리자 모드 PIN 인증 API 테스트 (축소 범위)', 
     await page.waitForTimeout(2000);
 
     // 프로필 메뉴 열기
-    await page.click('[aria-label="프로필 메뉴"]');
+    const profileButtonStep12 = page.locator('button').filter({ hasText: /관리자|게스트/i }).first();
+    await expect(profileButtonStep12).toBeVisible({ timeout: 5000 });
+    await profileButtonStep12.click();
     await page.waitForTimeout(500);
 
     console.log('  📋 관리자 모드 해제 전 상태:');
