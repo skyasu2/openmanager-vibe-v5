@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ADMIN_PASSWORD } from '@/config/system-constants';
+import { getCookieValue } from '@/utils/cookies/safe-cookie-utils';
 
 // 환경변수에서 게스트 모드 가져오기
 // 우선순위: GUEST_MODE_ENABLED (서버 전용) > NEXT_PUBLIC_GUEST_MODE (클라이언트/개발)
@@ -59,6 +60,23 @@ function isRateLimited(ip: string): boolean {
   return false;
 }
 
+// 🧪 테스트 모드 감지 함수 (middleware.ts와 동일한 로직)
+function isTestMode(request: NextRequest): boolean {
+  // 1️⃣ 테스트 쿠키 확인
+  if (getCookieValue(request, 'test_mode') === 'enabled') return true;
+  if (getCookieValue(request, 'vercel_test_token')) return true;
+
+  // 2️⃣ 테스트 헤더 확인
+  if (request.headers.get('X-Test-Mode') === 'enabled') return true;
+  if (request.headers.get('X-Test-Token')) return true;
+
+  // 3️⃣ Playwright User-Agent 확인
+  const userAgent = request.headers.get('user-agent') || '';
+  if (/Playwright|HeadlessChrome/i.test(userAgent)) return true;
+
+  return false;
+}
+
 export async function POST(request: NextRequest) {
   // 🔍 Debug: Log environment variable values
   console.log('🔍 [Debug] Environment check:', {
@@ -74,13 +92,30 @@ export async function POST(request: NextRequest) {
   if (GUEST_MODE === 'full_access') {
     console.log('✅ [Test API] 게스트 전체 접근 모드 - 인증 우회');
 
-    return NextResponse.json({
-      success: true,
-      message: '게스트 모드로 관리자 인증되었습니다.',
-      mode: 'guest_bypass',
-      adminMode: true,
-      timestamp: new Date().toISOString(),
-    });
+    const testMode = isTestMode(request);
+    const cookieValue = [
+      `admin_mode=true`,
+      `Path=/`,
+      `Max-Age=${60 * 60 * 24}`,
+      `SameSite=lax`,
+      testMode ? '' : 'HttpOnly',
+      process.env.NODE_ENV === 'production' && !testMode ? 'Secure' : '',
+    ]
+      .filter(Boolean)
+      .join('; ');
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: '게스트 모드로 관리자 인증되었습니다.',
+        mode: 'guest_bypass',
+        adminMode: true,
+        timestamp: new Date().toISOString(),
+      },
+      {
+        headers: { 'Set-Cookie': cookieValue },
+      }
+    );
   }
 
   // 🛡️ 보안 계층 1: 릴리즈 보호 (프로덕션에서 TEST_BYPASS_SECRET 설정 시 에러)
@@ -178,15 +213,34 @@ export async function POST(request: NextRequest) {
 
       console.log('🧪 [Test] 테스트 우회 모드로 관리자 인증');
 
-      return NextResponse.json({
-        success: true,
-        message: '테스트 모드로 관리자 인증되었습니다.',
-        mode: 'test_bypass',
-        adminMode: true,
-        timestamp: new Date().toISOString(),
-        security:
-          process.env.NODE_ENV === 'production' ? 'token_verified' : 'dev_mode',
-      });
+      const testMode = isTestMode(request);
+      const cookieValue = [
+        `admin_mode=true`,
+        `Path=/`,
+        `Max-Age=${60 * 60 * 24}`,
+        `SameSite=lax`,
+        testMode ? '' : 'HttpOnly',
+        process.env.NODE_ENV === 'production' && !testMode ? 'Secure' : '',
+      ]
+        .filter(Boolean)
+        .join('; ');
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: '테스트 모드로 관리자 인증되었습니다.',
+          mode: 'test_bypass',
+          adminMode: true,
+          timestamp: new Date().toISOString(),
+          security:
+            process.env.NODE_ENV === 'production'
+              ? 'token_verified'
+              : 'dev_mode',
+        },
+        {
+          headers: { 'Set-Cookie': cookieValue },
+        }
+      );
     }
 
     // 📝 일반 비밀번호 검증
@@ -204,13 +258,30 @@ export async function POST(request: NextRequest) {
     if (password === ADMIN_PASSWORD) {
       console.log('✅ [Test API] 관리자 인증 성공 - 테스트용 API 경로');
 
-      return NextResponse.json({
-        success: true,
-        message: '관리자 인증이 완료되었습니다.',
-        mode: 'password_auth',
-        adminMode: true,
-        timestamp: new Date().toISOString(),
-      });
+      const testMode = isTestMode(request);
+      const cookieValue = [
+        `admin_mode=true`,
+        `Path=/`,
+        `Max-Age=${60 * 60 * 24}`,
+        `SameSite=lax`,
+        testMode ? '' : 'HttpOnly',
+        process.env.NODE_ENV === 'production' && !testMode ? 'Secure' : '',
+      ]
+        .filter(Boolean)
+        .join('; ');
+
+      return NextResponse.json(
+        {
+          success: true,
+          message: '관리자 인증이 완료되었습니다.',
+          mode: 'password_auth',
+          adminMode: true,
+          timestamp: new Date().toISOString(),
+        },
+        {
+          headers: { 'Set-Cookie': cookieValue },
+        }
+      );
     } else {
       console.warn('❌ [Test API] 관리자 인증 실패 - 잘못된 비밀번호');
 
