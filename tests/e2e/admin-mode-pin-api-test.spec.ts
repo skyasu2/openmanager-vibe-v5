@@ -436,23 +436,32 @@ test.describe('🔐 관리자 모드 PIN 인증 API 테스트 (축소 범위)', 
     console.log('🔐 Step 12: 관리자 모드 해제 검증 (Codex 버그 수정)');
     console.log('========================================\n');
 
-    // 대시보드로 이동
-    await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(2000);
+    // 대시보드로 이동 (네트워크 안정화 대기)
+  await page.goto(`${BASE_URL}/`, { waitUntil: 'networkidle' });
+  await page.waitForLoadState('networkidle');
+  await page.waitForTimeout(3000); // React 하이드레이션 완료 대기
 
-    // 프로필 메뉴 열기
-    const profileButtonStep12 = page.locator('button').filter({ hasText: /관리자|게스트/i }).first();
-    await expect(profileButtonStep12).toBeVisible({ timeout: 5000 });
-    await profileButtonStep12.click();
-    await page.waitForTimeout(500);
+  // 프로필 메뉴 열기
+  const profileButtonStep12 = page.locator('button').filter({ hasText: /관리자|게스트/i }).first();
+  await expect(profileButtonStep12).toBeVisible({ timeout: 5000 });
+  await profileButtonStep12.click();
+  await page.waitForTimeout(1000); // 드롭다운 렌더링 완료 대기
 
     console.log('  📋 관리자 모드 해제 전 상태:');
-    const beforeDisable = await page.evaluate(() => {
+  
+  // Try-catch로 evaluate 에러 핸들링
+  let beforeDisable;
+  try {
+    beforeDisable = await page.evaluate(() => {
       return {
         localStorage_admin_mode: localStorage.getItem('admin_mode'),
         authStorage: localStorage.getItem('auth-storage'),
       };
     });
+  } catch (error) {
+    console.error('    ❌ page.evaluate() 실패:', error);
+    throw error;
+  }
     console.log('    localStorage admin_mode:', beforeDisable.localStorage_admin_mode);
     const authStorageBefore = beforeDisable.authStorage ? JSON.parse(beforeDisable.authStorage) : null;
     console.log('    auth-storage adminMode:', authStorageBefore?.state?.adminMode);
