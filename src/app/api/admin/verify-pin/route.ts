@@ -4,7 +4,10 @@ import { verifyCSRFToken } from '@/utils/security/csrf';
 
 // 환경변수에서 관리자 PIN 및 게스트 모드 가져오기
 const ADMIN_PIN = process.env.ADMIN_PIN || process.env.ADMIN_PASSWORD || '';
-const GUEST_MODE = process.env.NEXT_PUBLIC_GUEST_MODE?.trim();
+const GUEST_MODE = process.env.NEXT_PUBLIC_GUEST_MODE?.trim().replace(
+  /^["']|["']$/g,
+  ''
+);
 
 /**
  * POST /api/admin/verify-pin

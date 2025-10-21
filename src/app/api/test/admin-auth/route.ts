@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { ADMIN_PASSWORD } from '@/config/system-constants';
 
 // 환경변수에서 게스트 모드 가져오기
-const GUEST_MODE = process.env.NEXT_PUBLIC_GUEST_MODE?.trim();
+const GUEST_MODE = process.env.NEXT_PUBLIC_GUEST_MODE?.trim().replace(
+  /^["']|["']$/g,
+  ''
+);
 
 /**
  * 🔒 간소화된 테스트 전용 관리자 인증 API
