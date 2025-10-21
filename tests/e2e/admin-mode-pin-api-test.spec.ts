@@ -495,7 +495,9 @@ test.describe('🔐 관리자 모드 PIN 인증 API 테스트 (축소 범위)', 
       }
 
       // 프로필 메뉴 다시 열어서 관리자 모드 해제 확인
-      await page.click('[aria-label="프로필 메뉴"]');
+      const profileButtonVerify = page.locator('button').filter({ hasText: /관리자|게스트/i }).first();
+      await expect(profileButtonVerify).toBeVisible({ timeout: 5000 });
+      await profileButtonVerify.click();
       await page.waitForTimeout(500);
 
       const adminPageMenuItem = await page.locator('text=/관리자 페이지|Admin Page/i').count();
