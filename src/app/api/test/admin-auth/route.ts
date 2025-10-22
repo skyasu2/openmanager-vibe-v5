@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ADMIN_PASSWORD } from '@/config/system-constants';
 import { getCookieValue } from '@/utils/cookies/safe-cookie-utils';
-
-// 환경변수에서 게스트 모드 가져오기
-// 우선순위: GUEST_MODE_ENABLED (서버 전용) > NEXT_PUBLIC_GUEST_MODE (클라이언트/개발)
-// 이유: NEXT_PUBLIC_ 변수는 Vercel 프로덕션 서버 사이드 API에서 접근 불가능할 수 있음
-const GUEST_MODE =
-  process.env.GUEST_MODE_ENABLED?.trim().replace(/^["']|["']$/g, '') ||
-  process.env.NEXT_PUBLIC_GUEST_MODE?.trim().replace(/^["']|["']$/g, '');
+import { getServerGuestMode } from '@/config/guestMode.server';
 
 /**
  * 🔒 간소화된 테스트 전용 관리자 인증 API
@@ -78,18 +72,24 @@ function isTestMode(request: NextRequest): boolean {
 }
 
 export async function POST(request: NextRequest) {
+  const guestMode = getServerGuestMode();
+  const isGuestFullAccess = guestMode === 'full_access';
+
   // 🔍 Debug: Log environment variable values
   console.log('🔍 [Debug] Environment check:', {
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_GUEST_MODE_raw: process.env.NEXT_PUBLIC_GUEST_MODE,
-    GUEST_MODE_processed: GUEST_MODE,
-    comparison: GUEST_MODE === 'full_access',
+    NEXT_PUBLIC_GUEST_FULL_ACCESS_raw:
+      process.env.NEXT_PUBLIC_GUEST_FULL_ACCESS,
+    GUEST_FULL_ACCESS_ENABLED_raw: process.env.GUEST_FULL_ACCESS_ENABLED,
+    resolvedGuestMode: guestMode,
+    comparison: isGuestFullAccess,
     TEST_BYPASS_SECRET_exists: !!process.env.TEST_BYPASS_SECRET,
   });
 
   // 🎯 우선순위 0: 게스트 전체 접근 모드 체크 (개발용)
   // 프로덕션 블로킹보다 먼저 체크하여 개발 환경에서 원활한 테스트 가능
-  if (GUEST_MODE === 'full_access') {
+  if (isGuestFullAccess) {
     console.log('✅ [Test API] 게스트 전체 접근 모드 - 인증 우회');
 
     const testMode = isTestMode(request);

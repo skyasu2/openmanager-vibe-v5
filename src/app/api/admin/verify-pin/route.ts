@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCookieValue } from '@/utils/cookies/safe-cookie-utils';
 import { verifyCSRFToken } from '@/utils/security/csrf';
+import { getServerGuestMode } from '@/config/guestMode.server';
 
-// 환경변수에서 관리자 PIN 및 게스트 모드 가져오기
+// 환경변수에서 관리자 PIN 가져오기
 const ADMIN_PIN = process.env.ADMIN_PIN || process.env.ADMIN_PASSWORD || '';
-// 우선순위: GUEST_MODE_ENABLED (서버 전용) > NEXT_PUBLIC_GUEST_MODE (클라이언트/개발)
-// 이유: NEXT_PUBLIC_ 변수는 Vercel 프로덕션 서버 사이드 API에서 접근 불가능할 수 있음
-const GUEST_MODE =
-  process.env.GUEST_MODE_ENABLED?.trim().replace(/^["']|["']$/g, '') ||
-  process.env.NEXT_PUBLIC_GUEST_MODE?.trim().replace(/^["']|["']$/g, '');
 
 /**
  * POST /api/admin/verify-pin
@@ -93,9 +89,14 @@ function isTestMode(request: NextRequest): boolean {
 
 export async function POST(request: NextRequest) {
   try {
+    const guestMode = getServerGuestMode();
+    const isGuestFullAccess = guestMode === 'full_access';
+
     // 🎯 게스트 전체 접근 모드: 인증 우회 (개발용)
-    if (GUEST_MODE === 'full_access') {
-      console.log('✅ [Admin API] 게스트 전체 접근 모드 - 인증 우회');
+    if (isGuestFullAccess) {
+      console.log('✅ [Admin API] 게스트 전체 접근 모드 - 인증 우회', {
+        guestMode,
+      });
 
       const testMode = isTestMode(request);
       const cookieValue = [

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
+import { getServerGuestMode } from '@/config/guestMode.server';
 
 /**
  * 🚀 베르셀 친화적 AI 테스트 인증 API
@@ -25,18 +26,15 @@ import { timingSafeEqual } from 'crypto';
 const VERCEL_ENVIRONMENTS = {
   PRODUCTION: process.env.VERCEL_ENV === 'production',
   PREVIEW: process.env.VERCEL_ENV === 'preview',
-  DEVELOPMENT: process.env.VERCEL_ENV === 'development' || process.env.NODE_ENV === 'development'
+  DEVELOPMENT:
+    process.env.VERCEL_ENV === 'development' ||
+    process.env.NODE_ENV === 'development',
 } as const;
 
 // 🔐 시크릿 키 검증 (환경변수에서 관리)
-const TEST_SECRET_KEY = process.env.TEST_SECRET_KEY || 'test-secret-key-please-change-in-env';
+const TEST_SECRET_KEY =
+  process.env.TEST_SECRET_KEY || 'test-secret-key-please-change-in-env';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '4231';
-
-// 환경변수에서 게스트 모드 가져오기
-// 우선순위: GUEST_MODE_ENABLED (서버 전용) > NEXT_PUBLIC_GUEST_MODE (클라이언트/개발)
-const GUEST_MODE =
-  process.env.GUEST_MODE_ENABLED?.trim().replace(/^[\"']|[\"']$/g, '') ||
-  process.env.NEXT_PUBLIC_GUEST_MODE?.trim().replace(/^[\"']|[\"']$/g, '');
 
 // 🧪 테스트 모드 종류
 type TestMode = 'guest' | 'admin' | 'full_access';
@@ -102,14 +100,17 @@ interface RateLimitRecord {
 const rateLimitStore = new Map<string, RateLimitRecord>();
 
 // 🧹 주기적 정리 (5분마다)
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, record] of rateLimitStore.entries()) {
-    if (now > record.resetTime) {
-      rateLimitStore.delete(ip);
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [ip, record] of rateLimitStore.entries()) {
+      if (now > record.resetTime) {
+        rateLimitStore.delete(ip);
+      }
     }
-  }
-}, 5 * 60 * 1000);
+  },
+  5 * 60 * 1000
+);
 
 /**
  * 🛡️ Rate Limiting 체크 (실제 구현)
@@ -122,7 +123,11 @@ setInterval(() => {
  * @param ip - IP 주소
  * @returns 허용 여부 및 남은 요청 수
  */
-function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetTime: number } {
+function checkRateLimit(ip: string): {
+  allowed: boolean;
+  remaining: number;
+  resetTime: number;
+} {
   const now = Date.now();
   const windowMs = 60 * 1000; // 1분
   const maxRequests = 10;
@@ -133,10 +138,14 @@ function checkRateLimit(ip: string): { allowed: boolean; remaining: number; rese
     // 새 윈도우 시작
     const newRecord: RateLimitRecord = {
       count: 1,
-      resetTime: now + windowMs
+      resetTime: now + windowMs,
     };
     rateLimitStore.set(ip, newRecord);
-    return { allowed: true, remaining: maxRequests - 1, resetTime: newRecord.resetTime };
+    return {
+      allowed: true,
+      remaining: maxRequests - 1,
+      resetTime: newRecord.resetTime,
+    };
   }
 
   if (record.count >= maxRequests) {
@@ -146,18 +155,26 @@ function checkRateLimit(ip: string): { allowed: boolean; remaining: number; rese
 
   // 카운트 증가
   record.count++;
-  return { allowed: true, remaining: maxRequests - record.count, resetTime: record.resetTime };
+  return {
+    allowed: true,
+    remaining: maxRequests - record.count,
+    resetTime: record.resetTime,
+  };
 }
 
 /**
  * POST: 테스트 인증 요청
  */
 export async function POST(request: NextRequest) {
+  const guestMode = getServerGuestMode();
+  const isGuestFullAccess = guestMode === 'full_access';
+
   try {
     // 🛡️ Rate Limiting 체크 (최우선)
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-               request.headers.get('x-real-ip') ||
-               'unknown';
+    const ip =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip') ||
+      'unknown';
 
     const { allowed, remaining, resetTime } = checkRateLimit(ip);
 
@@ -169,38 +186,38 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           message: 'Rate limit exceeded. Please try again later.',
-          error: 'RATE_LIMIT_EXCEEDED'
+          error: 'RATE_LIMIT_EXCEEDED',
         } as TestAuthResponse,
         {
           status: 429,
           headers: {
             'X-RateLimit-Remaining': '0',
             'X-RateLimit-Reset': resetTime.toString(),
-            'Retry-After': retryAfter.toString()
-          }
+            'Retry-After': retryAfter.toString(),
+          },
         }
       );
     }
 
     // 🎯 게스트 전체 접근 모드: 인증 우회 (개발용)
-    if (GUEST_MODE === 'full_access') {
-      console.log('✅ [Vercel Test Auth] 게스트 모드 - 인증 우회');
+    if (isGuestFullAccess) {
+      console.log('✅ [Vercel Test Auth] 게스트 모드 - 인증 우회', {
+        guestMode,
+      });
 
       const accessToken = generateTestAccessToken('guest');
 
-      const response = NextResponse.json(
-        {
-          success: true,
-          message: '게스트 모드로 인증되었습니다.',
-          testMode: 'guest',
-          accessToken,
-          sessionData: {
-            authType: 'guest',
-            adminMode: false,
-            permissions: ['read', 'guest_access']
-          }
-        } as TestAuthResponse
-      );
+      const response = NextResponse.json({
+        success: true,
+        message: '게스트 모드로 인증되었습니다.',
+        testMode: 'guest',
+        accessToken,
+        sessionData: {
+          authType: 'guest',
+          adminMode: false,
+          permissions: ['read', 'guest_access'],
+        },
+      } as TestAuthResponse);
 
       // Set cookie
       const cookieValue = `vercel_test_token=${accessToken}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${60 * 60 * 24}${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
@@ -224,7 +241,7 @@ export async function POST(request: NextRequest) {
       hasSecret: !!secret,
       hasPin: !!pin,
       ip,
-      rateLimit: { remaining }
+      rateLimit: { remaining },
     });
 
     // 🔐 시크릿 키 검증 (필수)
@@ -234,7 +251,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           message: '잘못된 테스트 시크릿 키입니다.',
-          error: 'INVALID_SECRET'
+          error: 'INVALID_SECRET',
         } as TestAuthResponse,
         { status: 401 }
       );
@@ -247,7 +264,7 @@ export async function POST(request: NextRequest) {
     let sessionData = {
       authType: 'test',
       adminMode: false,
-      permissions: ['read']
+      permissions: ['read'],
     };
 
     switch (mode) {
@@ -255,7 +272,7 @@ export async function POST(request: NextRequest) {
         sessionData = {
           authType: 'guest',
           adminMode: false,
-          permissions: ['read', 'guest_access']
+          permissions: ['read', 'guest_access'],
         };
         break;
 
@@ -265,15 +282,17 @@ export async function POST(request: NextRequest) {
           sessionData = {
             authType: 'admin',
             adminMode: true,
-            permissions: ['read', 'write', 'admin_access', 'full_dashboard']
+            permissions: ['read', 'write', 'admin_access', 'full_dashboard'],
           };
         } else {
-          console.warn('🚨 [Vercel Test Auth] 관리자 모드 요청 실패 - PIN 불일치');
+          console.warn(
+            '🚨 [Vercel Test Auth] 관리자 모드 요청 실패 - PIN 불일치'
+          );
           return NextResponse.json(
             {
               success: false,
               message: '관리자 PIN이 필요합니다.',
-              error: 'PIN_REQUIRED'
+              error: 'PIN_REQUIRED',
             } as TestAuthResponse,
             { status: 401 }
           );
@@ -286,15 +305,24 @@ export async function POST(request: NextRequest) {
           sessionData = {
             authType: 'test_full',
             adminMode: true,
-            permissions: ['read', 'write', 'admin_access', 'full_dashboard', 'test_mode', 'bypass_all']
+            permissions: [
+              'read',
+              'write',
+              'admin_access',
+              'full_dashboard',
+              'test_mode',
+              'bypass_all',
+            ],
           };
         } else {
-          console.warn('🚨 [Vercel Test Auth] 완전 접근 요청 실패 - bypass 플래그 없음');
+          console.warn(
+            '🚨 [Vercel Test Auth] 완전 접근 요청 실패 - bypass 플래그 없음'
+          );
           return NextResponse.json(
             {
               success: false,
               message: 'full_access 모드는 bypass: true가 필요합니다.',
-              error: 'BYPASS_REQUIRED'
+              error: 'BYPASS_REQUIRED',
             } as TestAuthResponse,
             { status: 401 }
           );
@@ -311,13 +339,13 @@ export async function POST(request: NextRequest) {
       message: `테스트 모드 '${mode}' 인증 성공`,
       testMode: mode,
       accessToken,
-      sessionData
+      sessionData,
     };
 
     console.log('✅ [Vercel Test Auth] 인증 성공:', {
       mode,
       environment: process.env.VERCEL_ENV,
-      adminMode: sessionData.adminMode
+      adminMode: sessionData.adminMode,
     });
 
     // 🍪 쿠키 설정 + Rate Limit 헤더
@@ -332,14 +360,13 @@ export async function POST(request: NextRequest) {
     res.headers.set('X-RateLimit-Reset', resetTime.toString());
 
     return res;
-
   } catch (error) {
     console.error('💥 [Vercel Test Auth] 처리 중 오류:', error);
     return NextResponse.json(
       {
         success: false,
         message: '서버 처리 중 오류가 발생했습니다.',
-        error: 'SERVER_ERROR'
+        error: 'SERVER_ERROR',
       } as TestAuthResponse,
       { status: 500 }
     );
@@ -349,11 +376,12 @@ export async function POST(request: NextRequest) {
 /**
  * GET: 테스트 API 상태 확인
  */
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   // 🛡️ Rate Limiting 체크
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-             request.headers.get('x-real-ip') ||
-             'unknown';
+  const ip =
+    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    request.headers.get('x-real-ip') ||
+    'unknown';
 
   const { allowed, remaining, resetTime } = checkRateLimit(ip);
 
@@ -365,8 +393,8 @@ export async function GET(request: NextRequest) {
         status: 429,
         headers: {
           'X-RateLimit-Remaining': '0',
-          'Retry-After': retryAfter.toString()
-        }
+          'Retry-After': retryAfter.toString(),
+        },
       }
     );
   }
@@ -375,10 +403,7 @@ export async function GET(request: NextRequest) {
   const secret = request.nextUrl.searchParams.get('secret');
 
   if (!verifySecret(secret || undefined)) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const response = NextResponse.json({
@@ -394,14 +419,14 @@ export async function GET(request: NextRequest) {
       enabled: true,
       maxRequests: 10,
       windowMs: 60000,
-      remaining
+      remaining,
     },
     usage: {
       guest: 'POST { secret, mode: "guest" }',
       admin: 'POST { secret, mode: "admin", pin: "4231" }',
-      full_access: 'POST { secret, mode: "full_access", bypass: true }'
+      full_access: 'POST { secret, mode: "full_access", bypass: true }',
     },
-    environments: VERCEL_ENVIRONMENTS
+    environments: VERCEL_ENVIRONMENTS,
   });
 
   // Rate Limit 헤더 추가
