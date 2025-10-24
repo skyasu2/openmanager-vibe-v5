@@ -1,11 +1,14 @@
 #!/bin/bash
 
 # Codex CLI Wrapper - 600초 타임아웃 (복잡한 분석 대응)
-# 버전: 2.4.0
-# 날짜: 2025-10-24 (타임아웃 증가, 버전 라벨 통일)
-# 변경: 타임아웃 300→600초 (실제 프로덕션 워크로드 대응)
+# 버전: 2.5.0
+# 날짜: 2025-10-24 (하드코딩 경로 제거, 포터블화)
+# 변경: 절대 경로 → 상대 경로 (PROJECT_ROOT 자동 결정)
 
 set -euo pipefail
+
+# 프로젝트 루트 자동 결정 (포터블)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 # 색상 정의
 RED='\033[0;31m'
@@ -15,8 +18,8 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# 로그 디렉터리
-LOG_DIR="/mnt/d/cursor/openmanager-vibe-v5/logs/ai-perf"
+# 로그 디렉터리 (프로젝트 루트 기준)
+LOG_DIR="${PROJECT_ROOT}/logs/ai-perf"
 LOG_FILE="$LOG_DIR/codex-perf-$(date +%F).log"
 mkdir -p "$LOG_DIR"
 
@@ -106,7 +109,7 @@ $query"
 # 도움말
 usage() {
     cat << EOF
-${CYAN}🤖 Codex CLI Wrapper v2.4.0 - Claude Code 내부 도구${NC}
+${CYAN}🤖 Codex CLI Wrapper v2.5.0 - Claude Code 내부 도구${NC}
 
 ${YELLOW}⚠️  이 스크립트는 Claude Code가 제어하는 내부 도구입니다${NC}
 ${YELLOW}   사용자는 직접 실행하지 않고, 서브에이전트를 통해 사용합니다${NC}
@@ -129,7 +132,7 @@ ${YELLOW}   사용자는 직접 실행하지 않고, 서브에이전트를 통�
   ✅ 타임아웃 시 분할/간소화 제안
   ✅ 성능 로깅 ($LOG_FILE)
 
-v2.4.0 개선 사항:
+v2.5.0 개선 사항:
   🚀 타임아웃 600초: 복잡한 코드 분석 대응 (실제 워크로드 검증)
   ✅ 실무 검증 통과: 69줄 TypeScript 파일 분석 성공
 
@@ -160,15 +163,15 @@ main() {
         exit 1
     fi
 
-    # 환경변수 확인 (선택적)
-    if [ -f "/mnt/d/cursor/openmanager-vibe-v5/.env.local" ]; then
+    # 환경변수 확인 (선택적, 프로젝트 루트 기준)
+    if [ -f "${PROJECT_ROOT}/.env.local" ]; then
         # shellcheck disable=SC1091
-        source "/mnt/d/cursor/openmanager-vibe-v5/.env.local" 2>/dev/null || true
+        source "${PROJECT_ROOT}/.env.local" 2>/dev/null || true
     fi
 
     # 실행
     echo ""
-    log_info "🚀 Codex Wrapper v2.4.0 시작"
+    log_info "🚀 Codex Wrapper v2.5.0 시작"
     echo ""
 
     if execute_codex "$query"; then

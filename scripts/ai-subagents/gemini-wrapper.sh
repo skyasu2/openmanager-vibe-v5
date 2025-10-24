@@ -1,11 +1,14 @@
 #!/bin/bash
 
 # Gemini CLI Wrapper - 단순화된 300초 타임아웃
-# 버전: 2.4.0
-# 날짜: 2025-10-24 (버전 라벨 통일, 환경변수 로딩 추가)
+# 버전: 2.5.0
+# 날짜: 2025-10-24 (하드코딩 경로 제거, 포터블화)
 # 변경: 타임아웃 300초 통일, 타임아웃 시 분할/간소화 제안
 
 set -euo pipefail
+
+# 프로젝트 루트 자동 결정 (포터블)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 # 색상 정의
 RED='\033[0;31m'
@@ -16,7 +19,8 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # 로그 디렉터리
-LOG_DIR="/mnt/d/cursor/openmanager-vibe-v5/logs/ai-perf"
+# 로그 디렉터리 (프로젝트 루트 기준)
+LOG_DIR="${PROJECT_ROOT}/logs/ai-perf"
 LOG_FILE="$LOG_DIR/gemini-perf-$(date +%F).log"
 mkdir -p "$LOG_DIR"
 
@@ -87,7 +91,7 @@ execute_gemini() {
 # 도움말
 usage() {
     cat << EOF
-${CYAN}🟢 Gemini CLI Wrapper v2.4.0 - Claude Code 내부 도구${NC}
+${CYAN}🟢 Gemini CLI Wrapper v2.5.0 - Claude Code 내부 도구${NC}
 
 ${YELLOW}⚠️  이 스크립트는 Claude Code가 제어하는 내부 도구입니다${NC}
 ${YELLOW}   사용자는 직접 실행하지 않고, 서브에이전트를 통해 사용합니다${NC}
@@ -139,13 +143,14 @@ main() {
     fi
 
     # 환경변수 확인 (선택적)
-    if [ -f "/mnt/d/cursor/openmanager-vibe-v5/.env.local" ]; then
+    # 환경변수 확인 (선택적, 프로젝트 루트 기준)
+    if [ -f "${PROJECT_ROOT}/.env.local" ]; then
         # shellcheck disable=SC1091
-        source "/mnt/d/cursor/openmanager-vibe-v5/.env.local" 2>/dev/null || true
+        source "${PROJECT_ROOT}/.env.local" 2>/dev/null || true
     fi
 
     echo ""
-    log_info "🚀 Gemini Wrapper v2.4.0 시작"
+    log_info "🚀 Gemini Wrapper v2.5.0 시작"
     echo ""
 
     if execute_gemini "$query" "$model"; then

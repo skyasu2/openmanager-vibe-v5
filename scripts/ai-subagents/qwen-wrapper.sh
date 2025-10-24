@@ -1,11 +1,14 @@
 #!/bin/bash
 
 # Qwen CLI Wrapper - YOLO Mode
-# 버전: 2.4.0
-# 날짜: 2025-10-24 (버전 라벨 통일, 환경변수 로딩 추가, 보안 경고 강화)
-# 변경: 보안 경고 추가, 환경변수 로딩 표준화 (v2.4.0 통일)
+# 버전: 2.5.0
+# 날짜: 2025-10-24 (하드코딩 경로 제거, 포터블화)
+# 변경: 절대 경로 → 상대 경로 (PROJECT_ROOT 자동 결정)
 
 set -euo pipefail
+
+# 프로젝트 루트 자동 결정 (포터블)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 # 색상 정의
 RED='\033[0;31m'
@@ -16,7 +19,8 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # 로그 디렉터리
-LOG_DIR="/mnt/d/cursor/openmanager-vibe-v5/logs/ai-perf"
+# 로그 디렉터리 (프로젝트 루트 기준)
+LOG_DIR="${PROJECT_ROOT}/logs/ai-perf"
 LOG_FILE="$LOG_DIR/qwen-perf-$(date +%F).log"
 mkdir -p "$LOG_DIR"
 
@@ -86,7 +90,7 @@ execute_qwen() {
 # 도움말
 usage() {
     cat << EOF
-${CYAN}🟡 Qwen CLI Wrapper v2.4.0 - Claude Code 내부 도구${NC}
+${CYAN}🟡 Qwen CLI Wrapper v2.5.0 - Claude Code 내부 도구${NC}
 
 ${YELLOW}⚠️  이 스크립트는 Claude Code가 제어하는 내부 도구입니다${NC}
 ${YELLOW}   사용자는 직접 실행하지 않고, 서브에이전트를 통해 사용합니다${NC}
@@ -113,7 +117,7 @@ ${RED}   - 신뢰할 수 없는 입력에 사용 금지${NC}
   $0 "복잡한 리팩토링 계획"
   $0 "알고리즘 최적화 방안"
 
-특징 (v2.4.0):
+특징 (v2.5.0):
   🚀 YOLO Mode (--approval-mode yolo) - 완전 무인 동작
   🚨 보안 경고 강화 (읽기 전용 분석에만 안전)
   ✅ 환경변수 로딩 표준화 (.env.local)
@@ -122,10 +126,10 @@ ${RED}   - 신뢰할 수 없는 입력에 사용 금지${NC}
   ✅ 타임아웃 시 분할/간소화 제안
   ✅ 성능 로깅 ($LOG_FILE)
 
-v2.4.0 개선 사항:
+v2.5.0 개선 사항:
   🚨 보안 경고 추가: YOLO Mode 위험성 명시
   ✅ 환경변수 로딩: 다른 wrapper와 동일 패턴
-  📋 버전 라벨 통일: v2.4.0 (Codex/Gemini와 동기화)
+  📋 버전 라벨 통일: v2.5.0 (Codex/Gemini와 동기화)
 
 v2.3.0 이전 성과:
   🚀 YOLO Mode 채택: 완전 무인 동작 (Plan Mode 블로킹 해결)
@@ -183,13 +187,14 @@ main() {
     fi
 
     # 환경변수 확인 (선택적)
-    if [ -f "/mnt/d/cursor/openmanager-vibe-v5/.env.local" ]; then
+    # 환경변수 확인 (선택적, 프로젝트 루트 기준)
+    if [ -f "${PROJECT_ROOT}/.env.local" ]; then
         # shellcheck disable=SC1091
-        source "/mnt/d/cursor/openmanager-vibe-v5/.env.local" 2>/dev/null || true
+        source "${PROJECT_ROOT}/.env.local" 2>/dev/null || true
     fi
 
     echo ""
-    log_info "🚀 Qwen Wrapper v2.4.0 시작"
+    log_info "🚀 Qwen Wrapper v2.5.0 시작"
     echo ""
 
     if execute_qwen "$query"; then
