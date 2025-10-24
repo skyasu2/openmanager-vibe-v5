@@ -55,6 +55,28 @@ codex exec "이 코드의 보안 취약점 분석"
 ./scripts/ai-subagents/codex-wrapper.sh
 ```
 
+##### 🆕 Advanced Commands (v0.46.0+)
+
+**File System Operations:**
+
+```bash
+# Directory listing
+codex list_dir src/components
+
+# Pattern search across files
+codex grep_files "useState" src/
+
+# Combined with exec for analysis
+codex exec "Analyze all useState usage in src/" && \
+codex grep_files "useState" src/
+```
+
+**Use Cases:**
+
+- 📁 Project structure exploration
+- 🔍 Cross-file pattern detection
+- 📊 Codebase analysis automation
+
 #### 🆓 Gemini CLI (Google OAuth 무료)
 
 **아키텍처 설계 전문가 - Senior Code Architect**
@@ -74,6 +96,26 @@ gemini "SOLID 원칙 준수 여부 확인"
 # Wrapper 스크립트
 ./scripts/ai-subagents/gemini-wrapper.sh
 ```
+
+##### 🆕 Interactive Mode (v0.9.0+)
+
+**Multi-Turn Conversations:**
+
+```bash
+# Start interactive shell
+gemini --interactive
+
+# Multi-turn dialogue example
+> Analyze this architecture
+> Now check SOLID compliance
+> Suggest refactoring for the issues you found
+```
+
+**Benefits:**
+
+- 🔄 Context retention across questions
+- 💬 Natural conversation flow
+- 🎯 Iterative design refinement
 
 #### 🆓 Qwen CLI (Qwen OAuth 무료)
 
@@ -170,7 +212,7 @@ qwen -p "LoginClient.tsx 성능 병목점 분석"
 claude "3-AI 검증 결과를 반영하여 코드 개선"
 ```
 
-### 2. 교차 검증 패턴 (Bash Wrapper v2.3.0)
+### 2. 교차 검증 패턴 (Bash Wrapper v2.4.0)
 
 **🎯 AI 사용 패턴 구분**
 
@@ -226,11 +268,12 @@ Task multi-ai-verification-specialist "LoginClient.tsx 교차검증"
 claude "교차검증 결과를 반영하여 개선"
 ```
 
-**💡 Bash Wrapper 방식 특징** (v2.3.0):
+**💡 Bash Wrapper 방식 특징** (v2.4.0):
 
 - ✅ **타임아웃 완전 해결**: 성공률 100% (3/3 AI)
-- ✅ **고정 타임아웃**: Codex 300s, Gemini 300s, Qwen 600s
-- 🚀 **Qwen YOLO Mode**: 완전 무인 동작
+- ✅ **고정 타임아웃**: Codex 600s, Gemini 300s, Qwen 600s
+- 🚀 **Codex 타임아웃 증가**: 실제 프로덕션 워크로드 검증 기반 (300→600초)
+- 🔒 **Qwen YOLO Mode**: 완전 무인 동작 (보안 경고 강화)
 
 #### 📚 Bash Wrapper 선택 이유 (의사결정 히스토리)
 
@@ -282,13 +325,13 @@ claude "3-AI 검증 결과를 반영하여 최종 개선 및 결정"
 
 ## 🛡️ Wrapper 스크립트 타임아웃
 
-| Wrapper           | 타임아웃 | 특징                  |
-| ----------------- | -------- | --------------------- |
-| codex-wrapper.sh  | 300초    | 단일 응답             |
-| gemini-wrapper.sh | 300초    | 단일 응답             |
-| qwen-wrapper.sh   | 600초    | YOLO Mode (완전 무인) |
+| Wrapper           | 타임아웃 | 특징                    |
+| ----------------- | -------- | ----------------------- |
+| codex-wrapper.sh  | 600초    | 단일 응답 (v2.4.0 증가) |
+| gemini-wrapper.sh | 300초    | 단일 응답               |
+| qwen-wrapper.sh   | 600초    | YOLO Mode (완전 무인)   |
 
-**성과**: 타임아웃 성공률 100% (v2.3.0)
+**성과**: 타임아웃 성공률 100% (v2.4.0)
 
 ---
 

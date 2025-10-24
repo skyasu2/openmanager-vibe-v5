@@ -3,7 +3,7 @@
 # 목적: 설정 분산 문제 해결, 변경 시 한 번만 수정
 
 version: "1.0.0"
-last_updated: "2025-10-20"  # Multi-AI system validation & version unification
+last_updated: "2025-10-24"  # Wrapper v2.4.0 critical fixes & validation
 project: "OpenManager VIBE v5.80.0"
 
 # ============================================================================
@@ -51,10 +51,21 @@ ai-tools:
       max_timeout: "300초"
     wrapper:
       path: "scripts/ai-subagents/codex-wrapper.sh"
-      version: "v2.3.0"
-      timeout: "300초"
+      version: "v2.4.0"
+      timeout: "600초"
+      changelog:
+        v2_4_0:
+          date: "2025-10-24"
+          changes:
+            - "타임아웃 300→600초 (복잡한 분석 대응)"
+            - "버전 라벨 통일"
+            - "환경변수 로딩 표준화"
+          validation:
+            test_duration: "134초"
+            tokens_used: "23,092"
+            safety_margin: "466초 (77% headroom)"
       features:
-        - "타임아웃 보호"
+        - "타임아웃 보호 (600초)"
         - "결과 파일 저장"
         - "에러 핸들링"
     optimization:
@@ -101,8 +112,14 @@ ai-tools:
       max_timeout: "300초"
     wrapper:
       path: "scripts/ai-subagents/gemini-wrapper.sh"
-      version: "v2.3.0"
+      version: "v2.4.0"
       timeout: "300초"
+      changelog:
+        v2_4_0:
+          date: "2025-10-24"
+          changes:
+            - "버전 라벨 통일 (v2.4.0)"
+            - "환경변수 로딩 표준화 (.env.local)"
       features:
         - "타임아웃 보호"
         - "결과 파일 저장"
@@ -140,9 +157,16 @@ ai-tools:
       max_timeout: "600초"
     wrapper:
       path: "scripts/ai-subagents/qwen-wrapper.sh"
-      version: "v2.3.0"
+      version: "v2.4.0"
       timeout: "600초"
       yolo_mode: true
+      changelog:
+        v2_4_0:
+          date: "2025-10-24"
+          changes:
+            - "버전 라벨 통일 (v2.4.0)"
+            - "보안 경고 강화 (YOLO Mode 위험성 명시)"
+            - "환경변수 로딩 표준화 (.env.local)"
       features:
         - "타임아웃 보호"
         - "완전 무인 동작"

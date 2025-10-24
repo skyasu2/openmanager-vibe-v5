@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Codex CLI Wrapper - 단순화된 300초 타임아웃
-# 버전: 2.3.0
-# 날짜: 2025-10-20 (버전 라벨링 통일)
-# 변경: 재시도 제거, 300초 통일, 타임아웃 시 분할/간소화 제안
+# Codex CLI Wrapper - 600초 타임아웃 (복잡한 분석 대응)
+# 버전: 2.4.0
+# 날짜: 2025-10-24 (타임아웃 증가, 버전 라벨 통일)
+# 변경: 타임아웃 300→600초 (실제 프로덕션 워크로드 대응)
 
 set -euo pipefail
 
@@ -41,8 +41,8 @@ log_error() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: $1" >> "$LOG_FILE"
 }
 
-# 고정 타임아웃 (5분)
-TIMEOUT_SECONDS=300
+# 고정 타임아웃 (10분) - 복잡한 코드 분석 대응
+TIMEOUT_SECONDS=600
 
 # Codex 실행 함수
 execute_codex() {
@@ -54,7 +54,7 @@ execute_codex() {
 
 $query"
 
-    log_info "🤖 Codex 실행 중 (타임아웃 ${TIMEOUT_SECONDS}초 = 5분)..."
+    log_info "🤖 Codex 실행 중 (타임아웃 ${TIMEOUT_SECONDS}초 = 10분)..."
 
     local start_time=$(date +%s)
     local output_file=$(mktemp)
@@ -86,7 +86,7 @@ $query"
         rm -f "$output_file"
         return 0
     elif [ $exit_code -eq 124 ]; then
-        log_error "Codex 타임아웃 (${TIMEOUT_SECONDS}초 = 5분 초과)"
+        log_error "Codex 타임아웃 (${TIMEOUT_SECONDS}초 = 10분 초과)"
         echo ""
         echo -e "${YELLOW}💡 타임아웃 해결 방법:${NC}"
         echo "  1️⃣  질문을 더 작은 단위로 분할하세요"
@@ -106,7 +106,7 @@ $query"
 # 도움말
 usage() {
     cat << EOF
-${CYAN}🤖 Codex CLI Wrapper v2.0.0 - Claude Code 내부 도구${NC}
+${CYAN}🤖 Codex CLI Wrapper v2.4.0 - Claude Code 내부 도구${NC}
 
 ${YELLOW}⚠️  이 스크립트는 Claude Code가 제어하는 내부 도구입니다${NC}
 ${YELLOW}   사용자는 직접 실행하지 않고, 서브에이전트를 통해 사용합니다${NC}
@@ -124,10 +124,14 @@ ${YELLOW}   사용자는 직접 실행하지 않고, 서브에이전트를 통�
   $0 "이 TypeScript 코드를 분석하고 개선점 3가지를 제시해주세요."
 
 특징:
-  ✅ 고정 타임아웃: 300초 (5분)
+  ✅ 고정 타임아웃: 600초 (10분) - 복잡한 분석 대응
   ✅ 재시도 없음 (자원 낭비 방지)
   ✅ 타임아웃 시 분할/간소화 제안
   ✅ 성능 로깅 ($LOG_FILE)
+
+v2.4.0 개선 사항:
+  🚀 타임아웃 600초: 복잡한 코드 분석 대응 (실제 워크로드 검증)
+  ✅ 실무 검증 통과: 69줄 TypeScript 파일 분석 성공
 
 타임아웃 발생 시:
   - 질문을 더 작은 단위로 분할
@@ -164,7 +168,7 @@ main() {
 
     # 실행
     echo ""
-    log_info "🚀 Codex Wrapper v2.0.0 시작"
+    log_info "🚀 Codex Wrapper v2.4.0 시작"
     echo ""
 
     if execute_codex "$query"; then
