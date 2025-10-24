@@ -37,30 +37,11 @@ Esc Esc                     # 빠른 복원
 
 ---
 
-## 📊 실사용 피드백 진행 중 (2주)
+## 📊 주간 메트릭 (logs/feedback/week1-checklist.md)
 
-**목표**: Phase 1 + 1.5의 실제 효과 측정
-
-### 매일 체크리스트 (5분)
-
-```bash
-# 개발 시작 전 확인
-cat logs/feedback/week1-checklist.md
-```
-
-### 측정 항목
-
-- MCP 활용도: 65% → 80%+ (목표 90%)
-- 3-AI 성공률: 67% → 90%+ (목표 100%)
-- 평균 응답 시간: 157초 → 90초 이하
-- 토큰 효율: 55토큰 유지 또는 개선
-
-### 주간 리뷰
-
-- **Week 1**: 2025-10-22 (화) 오후
-- **Week 2**: 2025-10-29 (화) 오후
-
-**상세**: logs/feedback/week1-checklist.md
+- MCP 활용도: 65% → 90% 목표
+- 3-AI 성공률: 100% 유지
+- 토큰 효율: 55토큰 유지
 
 ---
 
@@ -194,100 +175,31 @@ npm run test:fast           # 21초 (44% 개선)
 
 **상세**: @docs/claude/environment/mcp/mcp-priority-guide.md (Before/After 예시 포함)
 
-### 🎯 MCP 토글 기능 (v2.0.10+)
+### 🎯 @-mention 토큰 절약 (v2.0.10+)
 
-**선택적 사용** - @-mention으로 특정 서버만 활성화:
+특정 MCP 서버만 활성화: `@serena 구조 분석`, `@context7 문서`, `@vercel 배포 확인`
+**효과**: 10-18% 추가 절약
 
-```bash
-# 예시: serena만 활성화
-@serena 이 컴포넌트 구조 분석해줘
+### 📋 MCP 사용 팁
 
-# 예시: context7만 활성화
-@context7 Next.js 15 server actions 문서
+- **코드 분석**: Serena (500줄+), Read (100줄-)
+- **정보 조회**: Vercel MCP (89배 빠름), Context7 (100% 정확)
+- **토큰 절약**: @-mention으로 특정 서버만 활성화
 
-# 예시: vercel만 활성화
-@vercel 최신 배포 상태 확인
-```
-
-**효과**: 추가 10-18% 토큰 절약 (55토큰 → 45-50토큰)
-
-**권장**: 일반 사용은 기본 설정 유지 (이미 충분히 효율적)
-
-### ⚡ Serena MCP 주의사항
-
-**루트 작업 시 필수**: `skip_ignored_files: true` (48배 빠름)
-**대규모 검색**: 특정 디렉토리 지정 (`relative_path: "src"`)
-
-### 📋 MCP 활용도 극대화 체크리스트 ⭐
-
-**목표**: 65/100 → 90-100 (35% 향상 가능)
-
-#### ✅ 매번 확인할 항목
-
-**1. 코드 분석 시**:
-
-- [ ] 500줄 이상 파일 → Serena 우선 (Read는 100줄 미만만)
-- [ ] 루트 디렉토리 작업 → `skip_ignored_files: true` 필수 (48배 빠름)
-- [ ] 대규모 검색 → `relative_path: "src"` 지정 (타임아웃 방지)
-
-**2. 정보 조회 시**:
-
-- [ ] Vercel 정보 → MCP 우선 (CLI는 89배 느림)
-- [ ] 라이브러리 문서 → Context7 우선 (WebSearch는 70% 정확)
-- [ ] UI 컴포넌트 → Shadcn-ui MCP (최신 v4 보장)
-
-**3. 토큰 절약 시**:
-
-- [ ] 특정 서버만 필요 → @-mention 활용 (추가 10-18% 절약)
-- [ ] 예: `@serena 구조 분석`, `@context7 Next.js 문서`
-
-#### 🎯 빠른 참조
-
-```bash
-# ✅ 올바른 사용 (Serena)
-mcp__serena__get_symbols_overview("file.tsx")
-mcp__serena__find_symbol("MyComponent", { skip_ignored_files: true })
-
-# ✅ 올바른 사용 (@-mention)
-@serena 이 컴포넌트 구조 분석  # Serena만 활성화
-@vercel 최신 배포 상태        # Vercel만 활성화
-
-# ❌ 비효율적 패턴
-Read("large-file.tsx")         # 500줄 이상은 Serena 사용
-WebSearch("Next.js 공식 문서") # Context7이 100% 정확
-vercel ls --token $TOKEN       # MCP가 89배 빠름
-```
-
-**기대 효과**: MCP 활용도 +35%, 토큰 효율 82% → 85%+
+**상세 가이드**: @docs/claude/environment/mcp/mcp-priority-guide.md
 
 ---
 
-## 🎯 현재 상태 (2025-10-19)
+## 🎯 현재 상태 (2025-10-24)
 
-**AI 도구**: 최신 버전 업그레이드 완료 ✅
+**종합 평가**: 9.2/10 (매우 건강한 상태)
 
-- Claude Code v2.0.22 (Skills, Haiku 4.5, Explore 서브에이전트)
-- Codex CLI v0.46.0 (MCP 개선, list_dir/grep_files)
-- Gemini CLI v0.9.0 (인터랙티브 셸)
-- Qwen CLI v0.0.14
+- ✅ TypeScript 에러: 0개
+- ✅ MCP 연결: 9/9 (100%)
+- ✅ AI 도구: 최신 버전 (4/4)
+- ✅ 무료 티어: 월 $0
 
-**품질**:
-
-- TypeScript 에러: 0개 ✅
-- E2E 테스트: 29개, 86% 통과 (Master 종합 검증 Phase 16-22 완료)
-- 코드베이스: 226K줄, 873개 TS 파일
-
-**성능**:
-
-- 개발 서버: 22초 (35% 개선)
-- 테스트: 21초 (44% 개선)
-- FCP: 608ms, 응답: 532ms
-
-**무료 티어**:
-
-- 월 운영비: $0 (100% 무료)
-- Vercel: 30% 사용
-- Supabase: 3% 사용
+**상세**: @docs/status.md
 
 ---
 
@@ -321,16 +233,6 @@ npm run build  # 로컬 테스트
 ```bash
 claude mcp list                # 전체 서버 상태 확인
 ./scripts/mcp-health-check.sh  # 자동 헬스 체크 (로그 저장)
-```
-
-**필요 시 체크** (오류 발생 시, 상태 확인 필요 시):
-
-```bash
-# AI CLI 도구 헬스 체크 (필요 시) - 🆕 서브에이전트 사용
-"dev-environment-manager야, AI 도구 헬스 체크해줘"
-
-# MCP 서버 헬스 체크 (주 1회 권장)
-./scripts/mcp-health-check.sh
 ```
 
 ---
@@ -371,10 +273,8 @@ claude mcp list                # 전체 서버 상태 확인
 
 ## 📏 CLAUDE.md 크기 관리
 
-**현재 크기**: 359줄 (⚠️ 목표 초과 +59줄)
-**목표**: 200-300줄 유지
+**현재**: 305줄 ✅ (목표: 200-300줄)
 **새 내용 추가 시**: Import 문서로 분리 또는 기존 내용 삭제 필수
-**TODO**: documentation-manager로 불필요한 섹션 정리
 
 ---
 
