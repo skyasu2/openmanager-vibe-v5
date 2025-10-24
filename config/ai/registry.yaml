@@ -663,6 +663,56 @@ maintenance:
     expected: "4/4 설치됨, 최신 버전"
     action_required: "3개 이상 → 확인, 2개 이하 → 서브에이전트에게 설치 요청"
 
+  # Wrapper Verification Suite (🆕 Phase 3 Task 9)
+  wrapper_verification:
+    version: "v1.0.0"
+    date_completed: "2025-10-24"
+    script: "scripts/ai-subagents/wrapper-verification-suite.sh"
+    description: "종합 wrapper 검증 시스템 (Three-Tier 방법론)"
+    status: "✅ Operational"
+    methodology: "Three-Tier Complexity Testing"
+    tiers:
+      simple:
+        query: "useState vs useReducer 선택 기준"
+        expected_time: "~13초"
+        timeout: "30초"
+      medium:
+        query: "React 컴포넌트 최적화: useMemo, useCallback, React.memo 차이점 3가지"
+        expected_time: "~120초"
+        timeout: "180초"
+      complex:
+        query: "TypeScript strict mode에서 발생할 수 있는 타입 안전성 문제 5가지와 해결 방법"
+        expected_time: "~284초"
+        timeout: "600초"
+    validation_results:
+      date: "2025-10-24 18:24:53"
+      total_tests: 9
+      passed: 8
+      failed: 1
+      success_rate: "88.9%"
+      failures:
+        - wrapper: "gemini"
+          tier: "simple"
+          reason: "API rate limit (HTTP 429, 60 RPM free tier)"
+          status: "External factor (not wrapper issue)"
+      ai_cross_verification:
+        decision: "APPROVED COMPLETE"
+        log: "logs/ai-decisions/2025-10-24-phase3-task9-completion-verification.md"
+        rationale: "88.9% success valid, rate limit is external factor"
+    features:
+      - "Three-Tier testing (Simple/Medium/Complex)"
+      - "Automatic Markdown report generation"
+      - "Filtering capabilities (-w wrapper, -t tier)"
+      - "Timeout handling with exit code detection"
+      - "Individual result files in /tmp/"
+    usage:
+      all_tests: "./scripts/ai-subagents/wrapper-verification-suite.sh"
+      specific_wrapper: "./scripts/ai-subagents/wrapper-verification-suite.sh -w codex"
+      specific_tier: "./scripts/ai-subagents/wrapper-verification-suite.sh -t simple"
+      combined: "./scripts/ai-subagents/wrapper-verification-suite.sh -w gemini -t medium"
+    frequency: "On-demand (wrapper 업데이트 시, 버그 의심 시)"
+    decision_log: "logs/ai-decisions/2025-10-24-phase3-task9-completion-verification.md"
+
   # 문서 동기화
   docs_sync:
     frequency: "월 1회"
