@@ -51,9 +51,19 @@ ai-tools:
       max_timeout: "300초"
     wrapper:
       path: "scripts/ai-subagents/codex-wrapper.sh"
-      version: "v2.4.0"
+      version: "v2.5.0"
       timeout: "600초"
       changelog:
+        v2_5_0:
+          date: "2025-10-24"
+          changes:
+            - "하드코딩 경로 제거 (포터블화)"
+            - "PROJECT_ROOT 동적 계산"
+            - "환경 독립적 동작 (CI/CD 호환)"
+          impact:
+            portability: "100% 환경 독립"
+            team_collaboration: "클론 후 즉시 사용"
+            ci_cd_compatible: "자동화 파이프라인 호환"
         v2_4_0:
           date: "2025-10-24"
           changes:
@@ -112,9 +122,19 @@ ai-tools:
       max_timeout: "300초"
     wrapper:
       path: "scripts/ai-subagents/gemini-wrapper.sh"
-      version: "v2.4.0"
+      version: "v2.5.0"
       timeout: "300초"
       changelog:
+        v2_5_0:
+          date: "2025-10-24"
+          changes:
+            - "하드코딩 경로 제거 (포터블화)"
+            - "PROJECT_ROOT 동적 계산"
+            - "환경 독립적 동작 (CI/CD 호환)"
+          impact:
+            portability: "100% 환경 독립"
+            team_collaboration: "클론 후 즉시 사용"
+            ci_cd_compatible: "자동화 파이프라인 호환"
         v2_4_0:
           date: "2025-10-24"
           changes:
@@ -157,10 +177,20 @@ ai-tools:
       max_timeout: "600초"
     wrapper:
       path: "scripts/ai-subagents/qwen-wrapper.sh"
-      version: "v2.4.0"
+      version: "v2.5.0"
       timeout: "600초"
       yolo_mode: true
       changelog:
+        v2_5_0:
+          date: "2025-10-24"
+          changes:
+            - "하드코딩 경로 제거 (포터블화)"
+            - "PROJECT_ROOT 동적 계산"
+            - "환경 독립적 동작 (CI/CD 호환)"
+          impact:
+            portability: "100% 환경 독립"
+            team_collaboration: "클론 후 즉시 사용"
+            ci_cd_compatible: "자동화 파이프라인 호환"
         v2_4_0:
           date: "2025-10-24"
           changes:

@@ -212,7 +212,7 @@ qwen -p "LoginClient.tsx 성능 병목점 분석"
 claude "3-AI 검증 결과를 반영하여 코드 개선"
 ```
 
-### 2. 교차 검증 패턴 (Bash Wrapper v2.4.0)
+### 2. 교차 검증 패턴 (Bash Wrapper v2.5.0)
 
 **🎯 AI 사용 패턴 구분**
 
@@ -268,12 +268,13 @@ Task multi-ai-verification-specialist "LoginClient.tsx 교차검증"
 claude "교차검증 결과를 반영하여 개선"
 ```
 
-**💡 Bash Wrapper 방식 특징** (v2.4.0):
+**💡 Bash Wrapper 방식 특징** (v2.5.0):
 
 - ✅ **타임아웃 완전 해결**: 성공률 100% (3/3 AI)
 - ✅ **고정 타임아웃**: Codex 600s, Gemini 300s, Qwen 600s
 - 🚀 **Codex 타임아웃 증가**: 실제 프로덕션 워크로드 검증 기반 (300→600초)
 - 🔒 **Qwen YOLO Mode**: 완전 무인 동작 (보안 경고 강화)
+- 🌍 **환경 독립성**: PROJECT_ROOT 동적 계산 (포터블화, CI/CD 호환)
 
 #### 📚 Bash Wrapper 선택 이유 (의사결정 히스토리)
 
@@ -325,13 +326,13 @@ claude "3-AI 검증 결과를 반영하여 최종 개선 및 결정"
 
 ## 🛡️ Wrapper 스크립트 타임아웃
 
-| Wrapper           | 타임아웃 | 특징                    |
-| ----------------- | -------- | ----------------------- |
-| codex-wrapper.sh  | 600초    | 단일 응답 (v2.4.0 증가) |
-| gemini-wrapper.sh | 300초    | 단일 응답               |
-| qwen-wrapper.sh   | 600초    | YOLO Mode (완전 무인)   |
+| Wrapper           | 타임아웃 | 버전   | 특징                          |
+| ----------------- | -------- | ------ | ----------------------------- |
+| codex-wrapper.sh  | 600초    | v2.5.0 | 단일 응답, 환경 독립 (포터블) |
+| gemini-wrapper.sh | 300초    | v2.5.0 | 단일 응답, 환경 독립 (포터블) |
+| qwen-wrapper.sh   | 600초    | v2.5.0 | YOLO Mode, 환경 독립 (포터블) |
 
-**성과**: 타임아웃 성공률 100% (v2.4.0)
+**성과**: 타임아웃 성공률 100%, 포터블화 100% (v2.5.0)
 
 ---
 
