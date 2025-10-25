@@ -130,7 +130,7 @@ function checkRateLimit(ip: string): {
 } {
   const now = Date.now();
   const windowMs = 60 * 1000; // 1분
-  const maxRequests = 10;
+  const maxRequests = 30;
 
   const record = rateLimitStore.get(ip);
 

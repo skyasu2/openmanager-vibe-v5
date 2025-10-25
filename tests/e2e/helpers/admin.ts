@@ -1,6 +1,7 @@
 import { Page, expect } from '@playwright/test';
 import { getTestBaseUrl, isVercelProduction } from './config';
 import { TIMEOUTS } from './timeouts';
+import * as fs from 'fs/promises';
 
 /**
  * Playwright 테스트용 관리자 모드 헬퍼 함수들
@@ -12,8 +13,13 @@ import { TIMEOUTS } from './timeouts';
 export interface AdminAuthResponse {
   success: boolean;
   message: string;
-  mode?: 'test_bypass' | 'password_auth';
-  adminMode?: boolean;
+  testMode?: 'guest' | 'admin' | 'full_access';
+  accessToken?: string;
+  sessionData?: {
+    authType: string;
+    adminMode: boolean;
+    permissions: string[];
+  };
   timestamp?: string;
   error?: string;
 }
@@ -103,26 +109,73 @@ export async function activateAdminMode(
     // 2단계: 보안 토큰 생성 및 검증
     const secureToken = testToken || (await generateSecureTestToken(page));
 
+    // Vercel 배포 보호 우회 (E2E 테스트용)
+    const vercelBypassSecret =
+      process.env.VERCEL_AUTOMATION_BYPASS_SECRET || '';
+
+    // 🔍 네트워크 요청 로깅: 바이패스 헤더 전송 검증
+    await page.route('**/api/test/vercel-test-auth', (route) => {
+      const request = route.request();
+      const headers = request.headers();
+
+      console.log(
+        '🔍 [Network Inspector] ========================================'
+      );
+      console.log('🔍 [Network Inspector] Request URL:', request.url());
+      console.log('🔍 [Network Inspector] Request Method:', request.method());
+      console.log(
+        '🔍 [Network Inspector] All Headers:',
+        JSON.stringify(headers, null, 2)
+      );
+      console.log(
+        '🔍 [Network Inspector] Has bypass header:',
+        'x-vercel-protection-bypass' in headers
+      );
+      console.log(
+        '🔍 [Network Inspector] Bypass header value:',
+        headers['x-vercel-protection-bypass'] || 'NOT FOUND'
+      );
+      console.log(
+        '🔍 [Network Inspector] Expected value:',
+        process.env.VERCEL_AUTOMATION_BYPASS_SECRET
+      );
+      console.log(
+        '🔍 [Network Inspector] ========================================'
+      );
+
+      route.continue();
+    });
+
     // 3단계: 보안 강화된 API 호출
     const authResponse = await page.evaluate(
       async (authData) => {
-        const { method, password, token } = authData;
+        const { method, password, secretKey, bypassSecret } = authData;
 
-        const response = await fetch('/api/test/admin-auth', {
+        const response = await fetch('/api/test/vercel-test-auth', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'User-Agent': 'Playwright Test Agent',
+            'x-vercel-protection-bypass': bypassSecret,
           },
-          body: JSON.stringify(
-            method === 'bypass' ? { bypass: true, token } : { password, token }
-          ),
+          body: JSON.stringify({
+            secret: secretKey,
+            mode: method === 'bypass' ? 'full_access' : 'admin',
+            bypass: method === 'bypass',
+            pin: password,
+          }),
         });
 
         const result = await response.json();
         return { ...result, status: response.status };
       },
-      { method, password, token: secureToken }
+      {
+        method,
+        password,
+        secretKey:
+          process.env.TEST_SECRET_KEY || 'test-secret-key-please-change-in-env',
+        bypassSecret: vercelBypassSecret,
+      }
     );
 
     if (!authResponse.success) {
@@ -351,35 +404,90 @@ export async function ensureGuestLogin(page: Page): Promise<void> {
 
     console.log('🎭 [Admin Helper] 게스트 로그인 시작 (API 직접 호출)');
 
-    // 테스트 모드 API 직접 호출 - 실제 페이지 URL의 origin 사용 (도메인 일치)
-    const currentUrl = new URL(page.url());
-    const cookieUrl = `${currentUrl.protocol}//${currentUrl.host}`;
+    // 🔧 FIX: page.evaluate() 사용으로 browser context에서 fetch 실행
+    // 이유: page.context().request는 Vercel deployment protection에서 403 반환
+    //       browser context fetch는 same-origin이므로 정상 동작
     const testSecretKey =
       process.env.TEST_SECRET_KEY || 'test-secret-key-please-change-in-env';
+    const vercelBypassSecret =
+      process.env.VERCEL_AUTOMATION_BYPASS_SECRET || '';
 
-    const response = await page
-      .context()
-      .request.post(`${cookieUrl}/api/test/vercel-test-auth`, {
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'Playwright Test Agent',
-        },
-        data: {
-          secret: testSecretKey,
-          mode: 'guest',
-          bypass: false,
-        },
-      });
+    // 🔍 네트워크 요청 로깅: 바이패스 헤더 전송 검증
+    const capturedHeaders: Record<string, string> = {};
+    page.on('request', (request) => {
+      if (request.url().includes('/api/test/vercel-test-auth')) {
+        const headers = request.headers();
+        Object.assign(capturedHeaders, headers);
+      }
+    });
 
-    const rawBody = await response.text();
-    let result: any;
-    try {
-      result = JSON.parse(rawBody);
-    } catch {
-      throw new Error(
-        `게스트 로그인 API 응답이 JSON 형식이 아닙니다 (status ${response.status()}): ${rawBody.slice(0, 200)}`
-      );
-    }
+    const result = await page.evaluate(
+      async (params) => {
+        const { secretKey, bypassSecret } = params;
+
+        try {
+          const response = await fetch('/api/test/vercel-test-auth', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'User-Agent': 'Playwright Test Agent',
+              'x-vercel-protection-bypass': bypassSecret,
+            },
+            body: JSON.stringify({
+              secret: secretKey,
+              mode: 'guest',
+              bypass: false,
+            }),
+          });
+
+          // Handle non-JSON responses (403 HTML from Vercel SSO Protection)
+          const contentType = response.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            return {
+              success: false,
+              status: response.status,
+              error: 'NON_JSON_RESPONSE',
+              message: `Received ${contentType} instead of JSON (status ${response.status})`,
+            };
+          }
+
+          const data = await response.json();
+          return { ...data, status: response.status };
+        } catch (error) {
+          return {
+            success: false,
+            error: 'FETCH_ERROR',
+            message: error.message,
+            status: 0,
+          };
+        }
+      },
+      { secretKey: testSecretKey, bypassSecret: vercelBypassSecret }
+    );
+
+    // 🔍 File-based logging to replace console.log (Playwright doesn't capture console.log)
+    const headerLogPath = `/tmp/network-headers-${Date.now()}.json`;
+    await fs.writeFile(
+      headerLogPath,
+      JSON.stringify(
+        {
+          timestamp: new Date().toISOString(),
+          capturedHeaders,
+          expectedBypassSecret: vercelBypassSecret,
+          diagnostics: {
+            hasHeader: 'x-vercel-protection-bypass' in capturedHeaders,
+            headerValue:
+              capturedHeaders['x-vercel-protection-bypass'] || 'NOT FOUND',
+            matchStatus:
+              capturedHeaders['x-vercel-protection-bypass'] ===
+              vercelBypassSecret,
+          },
+        },
+        null,
+        2
+      )
+    );
+    console.log(`🔍 [Network Inspector] Headers logged to: ${headerLogPath}`);
 
     if (!result.success) {
       throw new Error(`게스트 로그인 API 실패: ${result.message}`);
@@ -396,6 +504,9 @@ export async function ensureGuestLogin(page: Page): Promise<void> {
 
     // 테스트 모드 쿠키 설정 (Middleware 우회용)
     // 🔧 FIX: domain 대신 url 사용으로 쿠키 전송 보장
+    const currentUrl = page.url();
+    const cookieUrl = new URL(currentUrl).origin;
+
     await page.context().addCookies([
       {
         name: 'test_mode',
