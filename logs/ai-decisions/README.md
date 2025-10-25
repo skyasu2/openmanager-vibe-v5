@@ -10,8 +10,18 @@
 logs/ai-decisions/
 ├── README.md (이 파일)
 ├── TEMPLATE.md (템플릿)
-└── 2025-10-10-useState-vs-useReducer.md (실제 결정)
+├── archive/ (보관된 Decision Logs - 로컬 전용)
+│   ├── README.md (아카이브 가이드)
+│   └── [18개 보관 파일, 2025-10-17 ~ 2025-10-24]
+└── 2025-10-25-[주제].md (활성 Decision Logs)
 ```
+
+**아카이브 디렉토리 (`archive/`)**:
+
+- **목적**: 7일 이상 경과하거나 완료된 프로젝트 단계 관련 Decision Log 보관
+- **상태**: Git-ignored (`.gitignore`로 제외, 로컼 작업 파일)
+- **접근**: `archive/README.md` 참조하여 보관 파일 목록 및 카테고리 확인
+- **유지보수**: 자동 아카이빙 (Claude Code)
 
 **파일명 규칙**: `YYYY-MM-DD-[주제-kebab-case].md`
 
@@ -20,11 +30,13 @@ logs/ai-decisions/
 ## 🎯 핵심 철학
 
 ### ❌ 저장하지 않는 것
+
 - 개별 AI의 긴 원본 출력 (codex-output.txt, gemini-output.txt 등)
 - 실행 과정의 로그
 - 메타데이터 JSON
 
 ### ✅ 저장하는 것
+
 - **각 AI의 핵심 주장** (3-5줄 요약)
 - **합의점과 충돌점**
 - **최종 결정과 근거**
@@ -72,10 +84,12 @@ Decision Log에 기록된 "실행 내역"을 따라 작업 수행
 ## 💡 가치
 
 ### 기존 시스템 (logs/ai-cross-verification/)
+
 - **문제**: 개별 출력 파일만 저장 → 재참조 어려움
 - **결과**: 디스크만 차지, 의사결정 히스토리 없음
 
 ### 새 시스템 (logs/ai-decisions/)
+
 - **장점**: 의사결정 히스토리 명확
 - **결과**: 지식 베이스로 활용 가능
 - **효과**: 왜 그렇게 결정했는지 추후 확인 가능
@@ -87,11 +101,13 @@ Decision Log에 기록된 "실행 내역"을 따라 작업 수행
 ### 병존 전략
 
 **logs/ai-cross-verification/** (기존):
+
 - 상세한 원본 출력 필요 시 사용
 - 자동화된 스크립트가 호출
 - 10개까지 자동 보관
 
 **logs/ai-decisions/** (신규):
+
 - 인간이 읽고 참조하는 의사결정 기록
 - Claude가 수동으로 작성
 - 영구 보관
@@ -114,6 +130,7 @@ cat logs/ai-cross-verification/2025-10-10/110759-useState-vs-useReducer--/summar
 **좋은 Decision Log 예시**: `2025-10-10-useState-vs-useReducer.md`
 
 **포함 내용**:
+
 - 3-AI 의견이 명확하게 요약됨
 - 합의와 충돌이 분석됨
 - 최종 결정이 근거와 함께 제시됨
@@ -124,6 +141,7 @@ cat logs/ai-cross-verification/2025-10-10/110759-useState-vs-useReducer--/summar
 ## 🎯 사용 시나리오
 
 ### 1. 아키텍처 결정
+
 ```bash
 ./scripts/ai-subagents/quick-cross-verify.sh "인증 시스템 리팩토링 방향"
 # → Claude가 Decision Log 작성
@@ -131,6 +149,7 @@ cat logs/ai-cross-verification/2025-10-10/110759-useState-vs-useReducer--/summar
 ```
 
 ### 2. 성능 최적화
+
 ```bash
 ./scripts/ai-subagents/quick-cross-verify.sh "대시보드 렌더링 최적화 전략"
 # → Claude가 Decision Log 작성
@@ -138,6 +157,7 @@ cat logs/ai-cross-verification/2025-10-10/110759-useState-vs-useReducer--/summar
 ```
 
 ### 3. 보안 리뷰
+
 ```bash
 ./scripts/ai-subagents/quick-cross-verify.sh "로그인 보안 취약점 분석"
 # → Claude가 Decision Log 작성
