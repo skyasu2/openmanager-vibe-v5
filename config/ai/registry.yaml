@@ -16,21 +16,7 @@ ai-tools:
     version: "v0.46.0"  # 2025-10-17 업데이트
     role: "실무 검증 전문가"
     description: "버그 분석, 개선 제안, 실무 관점 검증"
-    changelog:  # 🆕 변경사항 추적
-      v0_46_0:
-        date: "2025-10-09"
-        highlights:
-          - "MCP 지원 대폭 개선 (Bearer token, credentials store)"
-          - "list_dir, grep_files 도구 추가"
-          - "codex resume 개선"
-      v0_45_0:
-        date: "2025-10-06"
-        breaking_changes:
-          - "codex login --api-key → --with-api-key (stdin 읽기)"
-        highlights:
-          - "실험적 OAuth MCP 서버 인증 지원"
-          - "Windows 기본 모델 gpt-5"
-        impact: "wrapper 스크립트 영향 없음 (codex exec만 사용)"
+    changelog_ref: "config/ai/changelog.yaml#codex"  # 히스토리는 changelog.yaml 참조
     philosophy: "사용자 지침을 정확히 따르고 결과를 재현 가능하게"
     specialty:
       - "다중 파일 버그 분석"
@@ -51,39 +37,9 @@ ai-tools:
       max_timeout: "300초"
     wrapper:
       path: "scripts/ai-subagents/codex-wrapper.sh"
-      version: "v2.6.0"
+      version: "v2.5.0"
       timeout: "600초"
-      changelog:
-        v2_6_0:
-          date: "2025-10-24"
-          changes:
-            - "Decision Log 자동 기록 추가 (Phase 1)"
-            - "메타데이터 자동 추출: 시간, 토큰, 쿼리, 결과"
-            - "80% 시간 절약: 30분 → 6분 문서 작성"
-          impact:
-            productivity: "문서화 자동화"
-            time_savings: "80%"
-            file_io_overhead: "~50ms (0.008% of 600s timeout)"
-        v2_5_0:
-          date: "2025-10-24"
-          changes:
-            - "하드코딩 경로 제거 (포터블화)"
-            - "PROJECT_ROOT 동적 계산"
-            - "환경 독립적 동작 (CI/CD 호환)"
-          impact:
-            portability: "100% 환경 독립"
-            team_collaboration: "클론 후 즉시 사용"
-            ci_cd_compatible: "자동화 파이프라인 호환"
-        v2_4_0:
-          date: "2025-10-24"
-          changes:
-            - "타임아웃 300→600초 (복잡한 분석 대응)"
-            - "버전 라벨 통일"
-            - "환경변수 로딩 표준화"
-          validation:
-            test_duration: "134초"
-            tokens_used: "23,092"
-            safety_margin: "466초 (77% headroom)"
+      changelog_ref: "config/ai/changelog.yaml#codex_wrapper"  # 히스토리는 changelog.yaml 참조
       features:
         - "타임아웃 보호 (600초)"
         - "결과 파일 저장"
@@ -100,16 +56,7 @@ ai-tools:
     version: "v0.9.0"  # 2025-10-17 업데이트
     role: "아키텍처 검증 전문가"
     description: "SOLID 검토, 설계 리뷰, 구조 분석"
-    changelog:  # 🆕 변경사항 추적
-      v0_9_0:
-        date: "2025-10-06"
-        highlights:
-          - "인터랙티브 셸 추가 (vim, rebase -i 등)"
-          - "node-pty 사용 (터미널 도구 직접 실행)"
-          - "Pre-release 익스텐션 설치 지원"
-      v0_8_1:
-        date: "2025-09"
-        notes: "v0.8.0 패치 릴리즈"
+    changelog_ref: "config/ai/changelog.yaml#gemini"  # 히스토리는 changelog.yaml 참조
     philosophy: "구조적 무결성을 갖춘 효율성 - Senior Code Architect"
     specialty:
       - "SOLID 원칙 검증"
@@ -132,34 +79,9 @@ ai-tools:
       max_timeout: "300초"
     wrapper:
       path: "scripts/ai-subagents/gemini-wrapper.sh"
-      version: "v2.6.0"
+      version: "v2.5.0"
       timeout: "300초"
-      changelog:
-        v2_6_0:
-          date: "2025-10-24"
-          changes:
-            - "Decision Log 자동 기록 추가 (Phase 1)"
-            - "메타데이터 자동 추출: 시간, 토큰, 쿼리, 결과"
-            - "80% 시간 절약: 30분 → 6분 문서 작성"
-          impact:
-            productivity: "문서화 자동화"
-            time_savings: "80%"
-            file_io_overhead: "~50ms (0.017% of 300s timeout)"
-        v2_5_0:
-          date: "2025-10-24"
-          changes:
-            - "하드코딩 경로 제거 (포터블화)"
-            - "PROJECT_ROOT 동적 계산"
-            - "환경 독립적 동작 (CI/CD 호환)"
-          impact:
-            portability: "100% 환경 독립"
-            team_collaboration: "클론 후 즉시 사용"
-            ci_cd_compatible: "자동화 파이프라인 호환"
-        v2_4_0:
-          date: "2025-10-24"
-          changes:
-            - "버전 라벨 통일 (v2.4.0)"
-            - "환경변수 로딩 표준화 (.env.local)"
+      changelog_ref: "config/ai/changelog.yaml#gemini_wrapper"  # 히스토리는 changelog.yaml 참조
       features:
         - "타임아웃 보호"
         - "결과 파일 저장"
@@ -197,36 +119,10 @@ ai-tools:
       max_timeout: "600초"
     wrapper:
       path: "scripts/ai-subagents/qwen-wrapper.sh"
-      version: "v2.6.0"
+      version: "v2.5.0"
       timeout: "600초"
       yolo_mode: true
-      changelog:
-        v2_6_0:
-          date: "2025-10-24"
-          changes:
-            - "Decision Log 자동 기록 추가 (Phase 1)"
-            - "메타데이터 자동 추출: 시간, 토큰, 쿼리, 결과"
-            - "80% 시간 절약: 30분 → 6분 문서 작성"
-          impact:
-            productivity: "문서화 자동화"
-            time_savings: "80%"
-            file_io_overhead: "~50ms (0.008% of 600s timeout)"
-        v2_5_0:
-          date: "2025-10-24"
-          changes:
-            - "하드코딩 경로 제거 (포터블화)"
-            - "PROJECT_ROOT 동적 계산"
-            - "환경 독립적 동작 (CI/CD 호환)"
-          impact:
-            portability: "100% 환경 독립"
-            team_collaboration: "클론 후 즉시 사용"
-            ci_cd_compatible: "자동화 파이프라인 호환"
-        v2_4_0:
-          date: "2025-10-24"
-          changes:
-            - "버전 라벨 통일 (v2.4.0)"
-            - "보안 경고 강화 (YOLO Mode 위험성 명시)"
-            - "환경변수 로딩 표준화 (.env.local)"
+      changelog_ref: "config/ai/changelog.yaml#qwen_wrapper"  # 히스토리는 changelog.yaml 참조
       features:
         - "타임아웃 보호"
         - "완전 무인 동작"
@@ -385,18 +281,7 @@ mcp-servers:
     version: "v0.0.13"  # 2025-10-17 업데이트
     status: "✅ Connected"  # stdio + API_KEY 방식으로 해결
     priority: "HIGH"
-    changelog:  # 🆕 변경사항 추적
-      v0_0_13:
-        date: "2025-10-17"
-        status: "Workaround Applied"
-        reason: "Claude Code v2.0.14 OAuth 버그 (invalid_scope 'claudeai')"
-        solution: "HTTP OAuth → stdio + @open-mcp/vercel 패키지"
-        authentication: "API_KEY 환경변수 방식"
-        github_issues: "#653, #3515, #1794"
-      official_http_version:
-        version: "v1.0.0"
-        status: "Public Beta (OAuth 버그로 사용 불가)"
-        workaround: "@open-mcp/vercel stdio 패키지 사용 중"
+    changelog_ref: "config/ai/changelog.yaml#vercel_mcp"  # 히스토리는 changelog.yaml 참조
     use_case:
       - "배포 정보 조회 (89배 빠름)"
       - "환경변수 관리"
@@ -597,37 +482,7 @@ maintenance:
   # Claude Code (메인 개발 도구)
   claude_code:
     current_version: "v2.0.22"  # 2025-10-19 업데이트
-    changelog:  # 🆕 변경사항 추적
-      v2_0_22:
-        date: "2025-10-19"
-        notes: "CHANGELOG 미기재 (마이너 패치로 추정)"
-      v2_0_21:
-        date: "2025-10-17"
-        notes: "CHANGELOG 미기재 (마이너 패치로 추정)"
-      v2_0_20:
-        date: "2025-10-16"
-        highlights:
-          - "Claude Skills 지원 추가"
-      v2_0_19:
-        date: "2025-10-15"
-        highlights:
-          - "장기 실행 bash 명령 자동 백그라운드 실행"
-          - "Print mode Haiku 불필요 호출 버그 수정"
-      v2_0_17:
-        date: "2025-10-14"
-        highlights:
-          - "Haiku 4.5 모델 셀렉터 추가"
-          - "Explore 서브에이전트 도입 (Haiku 기반)"
-          - "HTTP_PROXY/HTTPS_PROXY 지원"
-      v2_0_15:
-        date: "2025-10-13"
-        highlights:
-          - "Resume 및 -p mode 파일 재읽기 버그 수정"
-      v2_0_14:
-        date: "2025-10-12"
-        highlights:
-          - "@-mention MCP 서버 토글 개선"
-          - "Bash inline 환경변수 권한 체크 개선"
+    changelog_ref: "config/ai/changelog.yaml#claude_code"  # 히스토리는 changelog.yaml 참조
 
   # 버전 관리
   version_check:

@@ -1,18 +1,14 @@
 #!/bin/bash
 
 # Qwen CLI Wrapper - YOLO Mode
-# 버전: 2.6.0
-# 날짜: 2025-10-24 (Decision Log auto-logging 추가 - Phase 1)
-# 변경: AI 실행 결과를 자동으로 Decision Log에 기록
+# 버전: 2.5.0
+# 날짜: 2025-10-17 (환경 독립성 개선 - 포터블화)
 
 set -euo pipefail
 
 # 프로젝트 루트 자동 결정 (포터블)
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-# Decision Log directories (Phase 1 Auto-logging)
-DECISION_LOG_DIR="${PROJECT_ROOT}/logs/ai-decisions"
-DECISION_LOG_FILE="$DECISION_LOG_DIR/auto-log-$(date +%Y-%m-%d).md"
 
 # 색상 정의
 RED='\033[0;31m'
@@ -128,7 +124,6 @@ execute_qwen() {
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] MODE: YOLO, DURATION: ${duration}s" >> "$LOG_FILE"
 
         # Auto-logging to Decision Log (Phase 1)
-        append_to_decision_log "Qwen" "$query" "$duration" "N/A" "$(cat "$output_file")" || true
 
         cat "$output_file"
         rm -f "$output_file"

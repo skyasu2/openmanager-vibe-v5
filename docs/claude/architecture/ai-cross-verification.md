@@ -74,13 +74,13 @@ Task multi-ai-verification-specialist 호출
     │   ├─ 합의점 검출 (2+ AI 동의)
     │   └─ 충돌점 검출 (의견 불일치)
     └─ Phase 3: Decision Log 작성
-        └─ logs/ai-decisions/2025-10-10-useState-vs-useReducer.md
+        └─ (Decision Log 예시 - 실제 파일 삭제됨)
     ↓
 사용자에게 보고:
     ✅ 합의: 단순→useState, 복잡→useReducer
     ⚠️ 충돌: "복잡함"의 기준 다름
     🎯 최종 결정: 3가지 신호 중 1개면 useReducer
-    📁 저장: logs/ai-decisions/2025-10-10-useState-vs-useReducer.md
+    📁 저장: (Decision Log 예시 - 실제 파일 삭제됨)
 ```
 
 ---
@@ -89,11 +89,11 @@ Task multi-ai-verification-specialist 호출
 
 ### 3개 독립 실행 스크립트
 
-| 스크립트 | AI | 타임아웃 | 특화 분야 |
-|---------|-----|----------|----------|
-| `codex-wrapper.sh` | GPT-5 | 30-120s (적응형) | 실무 버그 수정 |
-| `gemini-wrapper.sh` | Gemini 2.5 Flash | 60s | SOLID 아키텍처 |
-| `qwen-wrapper.sh` | Qwen 2.5 Coder | 90s (Plan Mode) | 성능 최적화 |
+| 스크립트            | AI               | 타임아웃         | 특화 분야      |
+| ------------------- | ---------------- | ---------------- | -------------- |
+| `codex-wrapper.sh`  | GPT-5            | 30-120s (적응형) | 실무 버그 수정 |
+| `gemini-wrapper.sh` | Gemini 2.5 Flash | 60s              | SOLID 아키텍처 |
+| `qwen-wrapper.sh`   | Qwen 2.5 Coder   | 90s (Plan Mode)  | 성능 최적화    |
 
 ### 적응형 타임아웃 (Codex)
 
@@ -122,7 +122,7 @@ Task multi-ai-verification-specialist 호출
 logs/ai-decisions/
 ├── TEMPLATE.md                          # 표준 템플릿
 ├── README.md                            # 사용 가이드
-└── 2025-10-10-useState-vs-useReducer.md # 실제 결정
+└── (예시 파일 - 실제 파일 삭제됨) # 실제 결정
 ```
 
 ### Decision Log 구조
@@ -136,16 +136,19 @@ logs/ai-decisions/
 ## 🤖 AI 의견 요약
 
 ### 📊 Codex (실무 관점)
+
 - **핵심 주장**: [요점]
 - **근거**: [이유]
 - **추천 사항**: [제안]
 
 ### 📐 Gemini (아키텍처 관점)
+
 - **핵심 주장**: [요점]
 - **근거**: [이유]
 - **추천 사항**: [제안]
 
 ### ⚡ Qwen (성능 관점)
+
 - **핵심 주장**: [요점]
 - **근거**: [이유]
 - **추천 사항**: [제안]
@@ -153,9 +156,11 @@ logs/ai-decisions/
 ## ⚖️ 합의점과 충돌점
 
 ### ✅ 합의
+
 [3-AI 모두 동의한 사항]
 
 ### ⚠️ 충돌
+
 [의견이 갈린 부분]
 
 ## 🎯 최종 결정
@@ -166,26 +171,31 @@ logs/ai-decisions/
 ## 📝 실행 내역
 
 **즉시 실행**:
+
 - [x] [완료된 작업]
 
 **향후 계획**:
+
 - [ ] [예정된 작업]
 ```
 
 ### 핵심 철학
 
 **저장하는 것**:
+
 - ✅ 각 AI 핵심 주장 (3-5줄 요약)
 - ✅ 합의점과 충돌점
 - ✅ 최종 결정과 근거
 - ✅ 실행 내역
 
 **저장하지 않는 것**:
+
 - ❌ 원본 출력 (codex-output.txt 등)
 - ❌ 실행 과정 로그
 - ❌ 메타데이터 JSON
 
 **Git 추적**:
+
 - ✅ logs/ai-decisions/ (영구 보관)
 - ❌ logs/ai-cross-verification/ (v4.1.0, 삭제됨)
 
@@ -196,6 +206,7 @@ logs/ai-decisions/
 ### 자동 호출 (명시적 키워드 필수)
 
 **다음 키워드가 있을 때만 실행**:
+
 - "AI 교차검증"
 - "3-AI 교차검증"
 - "멀티 AI 검증"
@@ -203,12 +214,12 @@ logs/ai-decisions/
 
 ### 예시
 
-| 사용자 요청 | 실행 여부 | 이유 |
-|------------|-----------|------|
-| "useState를 **AI 교차검증**해줘" | ✅ 실행 | 명시적 키워드 |
-| "LoginClient.tsx를 **3-AI로 검증**" | ✅ 실행 | 명시적 키워드 |
-| "코드 리뷰해줘" | ❌ 실행 안 됨 | 일반 리뷰 |
-| "아키텍처 검토해줘" | ❌ 실행 안 됨 | 일반 검토 |
+| 사용자 요청                         | 실행 여부     | 이유          |
+| ----------------------------------- | ------------- | ------------- |
+| "useState를 **AI 교차검증**해줘"    | ✅ 실행       | 명시적 키워드 |
+| "LoginClient.tsx를 **3-AI로 검증**" | ✅ 실행       | 명시적 키워드 |
+| "코드 리뷰해줘"                     | ❌ 실행 안 됨 | 일반 리뷰     |
+| "아키텍처 검토해줘"                 | ❌ 실행 안 됨 | 일반 검토     |
 
 ---
 
@@ -216,16 +227,16 @@ logs/ai-decisions/
 
 ### 진화 비교
 
-| 항목 | v3.0.0 (MCP) | v4.0.0 (Bash) | v4.1.0 (원본 저장) | v4.2.0 (Decision Log) |
-|------|-------------|---------------|-------------------|----------------------|
-| **타임아웃** | 60-90s 제약 | 완전 해결 | 완전 해결 | 완전 해결 |
-| **성공률** | 33% (1/3) | 100% (3/3) | 100% (3/3) | 100% (3/3) |
-| **저장** | 없음 | /tmp | ai-cross-verification/ | ai-decisions/ |
-| **저장 내용** | - | 원본 출력 | 원본 + 메타 | 의사결정만 |
-| **Git 추적** | - | ❌ | ❌ | ✅ |
-| **재참조성** | - | 낮음 | 중간 | 높음 |
-| **통합도** | - | 분리 | 분리 | **통합** |
-| **소요 시간** | - | 61초 | 61초 + 수동 | 76초 (자동) |
+| 항목          | v3.0.0 (MCP) | v4.0.0 (Bash) | v4.1.0 (원본 저장)     | v4.2.0 (Decision Log) |
+| ------------- | ------------ | ------------- | ---------------------- | --------------------- |
+| **타임아웃**  | 60-90s 제약  | 완전 해결     | 완전 해결              | 완전 해결             |
+| **성공률**    | 33% (1/3)    | 100% (3/3)    | 100% (3/3)             | 100% (3/3)            |
+| **저장**      | 없음         | /tmp          | ai-cross-verification/ | ai-decisions/         |
+| **저장 내용** | -            | 원본 출력     | 원본 + 메타            | 의사결정만            |
+| **Git 추적**  | -            | ❌            | ❌                     | ✅                    |
+| **재참조성**  | -            | 낮음          | 중간                   | 높음                  |
+| **통합도**    | -            | 분리          | 분리                   | **통합**              |
+| **소요 시간** | -            | 61초          | 61초 + 수동            | 76초 (자동)           |
 
 ### 용량 절감
 
@@ -254,7 +265,7 @@ logs/ai-decisions/
   ✅ 합의: 단순은 useState, 복잡은 useReducer
   ⚠️ 충돌: "복잡함"의 정의 다름
   🎯 최종 결정: 3가지 신호 중 1개면 useReducer
-  📁 logs/ai-decisions/2025-10-10-useState-vs-useReducer.md
+  📁 (Decision Log 예시 - 실제 파일 삭제됨)
 ```
 
 ### 예시 2: 보안 검토
@@ -282,22 +293,27 @@ logs/ai-decisions/
 ## 🔗 관련 문서
 
 **서브에이전트**:
+
 - `.claude/agents/multi-ai-verification-specialist.md` - v4.2.0 상세 문서
 
 **Bash Wrapper**:
+
 - `scripts/ai-subagents/codex-wrapper.sh` - 실무 전문가
 - `scripts/ai-subagents/gemini-wrapper.sh` - 아키텍처 전문가
 - `scripts/ai-subagents/qwen-wrapper.sh` - 성능 전문가
 
 **Decision Log**:
+
 - `logs/ai-decisions/TEMPLATE.md` - 표준 템플릿
 - `logs/ai-decisions/README.md` - 사용 가이드
 
 **전략 문서**:
+
 - `docs/claude/environment/multi-ai-strategy.md` - Multi-AI 전략
 - `CLAUDE.md` - 프로젝트 메모리
 
 **백업** (연구용):
+
 - `backups/multi-ai-mcp-v3.8.0/` - MCP 방식 백업 (소스만)
 
 ---

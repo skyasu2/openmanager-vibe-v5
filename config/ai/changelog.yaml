@@ -1,0 +1,204 @@
+# AI Tools Changelog - Version History
+# 과거 버전 변경사항 기록 (SSOT에서 분리)
+
+version: "1.0.0"
+last_updated: "2025-10-24"
+purpose: "AI CLI 도구 및 Wrapper 스크립트 버전 히스토리 관리"
+
+# ============================================================================
+# 1. External AI CLI Tools Changelog
+# ============================================================================
+
+## Codex CLI Changelog
+codex:
+  v0_46_0:
+    date: "2025-10-09"
+    highlights:
+      - "MCP 지원 대폭 개선 (Bearer token, credentials store)"
+      - "list_dir, grep_files 도구 추가"
+      - "codex resume 개선"
+
+  v0_45_0:
+    date: "2025-10-06"
+    breaking_changes:
+      - "codex login --api-key → --with-api-key (stdin 읽기)"
+    highlights:
+      - "실험적 OAuth MCP 서버 인증 지원"
+      - "Windows 기본 모델 gpt-5"
+    impact: "wrapper 스크립트 영향 없음 (codex exec만 사용)"
+
+## Gemini CLI Changelog
+gemini:
+  v0_9_0:
+    date: "2025-10-06"
+    highlights:
+      - "인터랙티브 셸 추가 (vim, rebase -i 등)"
+      - "node-pty 사용 (터미널 도구 직접 실행)"
+      - "Pre-release 익스텐션 설치 지원"
+
+  v0_8_1:
+    date: "2025-09"
+    notes: "v0.8.0 패치 릴리즈"
+
+## Qwen CLI Changelog
+# (현재 changelog 없음 - 최초 버전 2.5 Coder)
+
+# ============================================================================
+# 2. Wrapper Scripts Changelog
+# ============================================================================
+
+## Codex Wrapper Changelog
+codex_wrapper:
+  v2_6_0:
+    date: "2025-10-24"
+    changes:
+      - "Decision Log 자동 기록 추가 (Phase 1)"
+      - "메타데이터 자동 추출: 시간, 토큰, 쿼리, 결과"
+      - "80% 시간 절약: 30분 → 6분 문서 작성"
+    impact:
+      productivity: "문서화 자동화"
+      time_savings: "80%"
+      file_io_overhead: "~50ms (0.008% of 600s timeout)"
+
+  v2_5_0:
+    date: "2025-10-24"
+    changes:
+      - "하드코딩 경로 제거 (포터블화)"
+      - "PROJECT_ROOT 동적 계산"
+      - "환경 독립적 동작 (CI/CD 호환)"
+    impact:
+      portability: "100% 환경 독립"
+      team_collaboration: "클론 후 즉시 사용"
+      ci_cd_compatible: "자동화 파이프라인 호환"
+
+  v2_4_0:
+    date: "2025-10-24"
+    changes:
+      - "타임아웃 300→600초 (복잡한 분석 대응)"
+      - "버전 라벨 통일"
+      - "환경변수 로딩 표준화"
+    validation:
+      test_duration: "134초"
+      tokens_used: "23,092"
+      safety_margin: "466초 (77% headroom)"
+
+## Gemini Wrapper Changelog
+gemini_wrapper:
+  v2_6_0:
+    date: "2025-10-24"
+    changes:
+      - "Decision Log 자동 기록 추가 (Phase 1)"
+      - "메타데이터 자동 추출: 시간, 토큰, 쿼리, 결과"
+      - "80% 시간 절약: 30분 → 6분 문서 작성"
+    impact:
+      productivity: "문서화 자동화"
+      time_savings: "80%"
+      file_io_overhead: "~50ms (0.017% of 300s timeout)"
+
+  v2_5_0:
+    date: "2025-10-24"
+    changes:
+      - "하드코딩 경로 제거 (포터블화)"
+      - "PROJECT_ROOT 동적 계산"
+      - "환경 독립적 동작 (CI/CD 호환)"
+    impact:
+      portability: "100% 환경 독립"
+      team_collaboration: "클론 후 즉시 사용"
+      ci_cd_compatible: "자동화 파이프라인 호환"
+
+  v2_4_0:
+    date: "2025-10-24"
+    changes:
+      - "버전 라벨 통일 (v2.4.0)"
+      - "환경변수 로딩 표준화 (.env.local)"
+
+## Qwen Wrapper Changelog
+qwen_wrapper:
+  v2_6_0:
+    date: "2025-10-24"
+    changes:
+      - "Decision Log 자동 기록 추가 (Phase 1)"
+      - "메타데이터 자동 추출: 시간, 토큰, 쿼리, 결과"
+      - "80% 시간 절약: 30분 → 6분 문서 작성"
+    impact:
+      productivity: "문서화 자동화"
+      time_savings: "80%"
+      file_io_overhead: "~50ms (0.008% of 600s timeout)"
+
+  v2_5_0:
+    date: "2025-10-24"
+    changes:
+      - "하드코딩 경로 제거 (포터블화)"
+      - "PROJECT_ROOT 동적 계산"
+      - "환경 독립적 동작 (CI/CD 호환)"
+    impact:
+      portability: "100% 환경 독립"
+      team_collaboration: "클론 후 즉시 사용"
+      ci_cd_compatible: "자동화 파이프라인 호환"
+
+  v2_4_0:
+    date: "2025-10-24"
+    changes:
+      - "버전 라벨 통일 (v2.4.0)"
+      - "보안 경고 강화 (YOLO Mode 위험성 명시)"
+      - "환경변수 로딩 표준화 (.env.local)"
+
+# ============================================================================
+# 3. MCP Servers Changelog
+# ============================================================================
+
+## Vercel MCP Changelog
+vercel_mcp:
+  v0_0_13:
+    date: "2025-10-17"
+    status: "Workaround Applied"
+    reason: "Claude Code v2.0.14 OAuth 버그 (invalid_scope 'claudeai')"
+    solution: "HTTP OAuth → stdio + @open-mcp/vercel 패키지"
+    authentication: "API_KEY 환경변수 방식"
+    github_issues: "#653, #3515, #1794"
+
+  official_http_version:
+    version: "v1.0.0"
+    status: "Public Beta (OAuth 버그로 사용 불가)"
+    workaround: "@open-mcp/vercel stdio 패키지 사용 중"
+
+## Claude Code Changelog
+claude_code:
+  v2_0_22:
+    date: "2025-10-19"
+    notes: "CHANGELOG 미기재 (마이너 패치로 추정)"
+
+  v2_0_21:
+    date: "2025-10-17"
+    notes: "CHANGELOG 미기재 (마이너 패치로 추정)"
+
+  v2_0_20:
+    date: "2025-10-16"
+    highlights:
+      - "Claude Skills 지원 추가"
+
+  v2_0_19:
+    date: "2025-10-15"
+    highlights:
+      - "장기 실행 bash 명령 자동 백그라운드 실행"
+      - "Print mode Haiku 불필요 호출 버그 수정"
+
+  v2_0_17:
+    date: "2025-10-14"
+    highlights:
+      - "Haiku 4.5 모델 셀렉터 추가"
+      - "Explore 서브에이전트 도입 (Haiku 기반)"
+      - "HTTP_PROXY/HTTPS_PROXY 지원"
+
+  v2_0_15:
+    date: "2025-10-13"
+    highlights:
+      - "Resume 및 -p mode 파일 재읽기 버그 수정"
+
+  v2_0_14:
+    date: "2025-10-12"
+    highlights:
+      - "@-mention MCP 서버 토글 개선"
+      - "Bash inline 환경변수 권한 체크 개선"
+
+# End of Changelog

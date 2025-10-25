@@ -7,7 +7,7 @@
 ## 📦 핵심 정보
 
 **프로젝트**: OpenManager VIBE v5.80.0 - AI 기반 실시간 서버 모니터링 플랫폼
-**환경**: WSL + Claude Code v2.0.14 + Multi-AI 협업
+**환경**: WSL + Claude Code v2.0.22 + Multi-AI 협업
 **스택**: Next.js 15, React 18.3, TypeScript strict, Vercel + Supabase
 
 ---
@@ -158,20 +158,12 @@ npm run test:fast           # 21초 (44% 개선)
 - .wslconfig: `dnsTunneling=true`, `autoProxy=true` (필수)
 - MCP 상태: 9/9 연결 (완벽 연결!)
 
-**MCP 서버** (9/9 연결): ✅ **완벽 연결!**
+**MCP 연결**: 9/9 완벽 (100% 가동률) ✅
 
-- ✅ **vercel** (@open-mcp/vercel v0.0.13, stdio 방식)
-  - OAuth 버그 우회: HTTP → stdio + API_KEY
-  - Claude Code v2.0.14 OAuth 버그 (invalid_scope) 해결
-- ✅ serena, supabase, context7, playwright
-- ✅ memory, time, sequential-thinking, shadcn-ui
+**MCP 우선 전략**: Serena (코드 분석), Vercel MCP (배포 조회), Context7 (문서), Shadcn-ui (UI)
 
-**MCP 우선순위 (82% 토큰 절약)**:
-
-- 코드 분석: **Serena** (Read 대신, 3-5배 빠름)
-- Vercel 조회: **Vercel MCP** (CLI 대신, 89배 빠름)
-- 라이브러리 문서: **Context7** (WebSearch 대신, 100% 정확)
-- UI 컴포넌트: **Shadcn-ui MCP** (최신 v4)
+- **토큰 절약**: 82% (목표 달성)
+- **핵심 서버**: vercel, serena, supabase, context7, playwright, shadcn-ui, memory, time, sequential-thinking
 
 **상세**: @docs/claude/environment/mcp/mcp-priority-guide.md (Before/After 예시 포함)
 
@@ -190,16 +182,9 @@ npm run test:fast           # 21초 (44% 개선)
 
 ---
 
-## 🎯 현재 상태 (2025-10-24)
+## 🎯 현재 상태
 
-**종합 평가**: 9.2/10 (매우 건강한 상태)
-
-- ✅ TypeScript 에러: 0개
-- ✅ MCP 연결: 9/9 (100%)
-- ✅ AI 도구: 최신 버전 (4/4)
-- ✅ 무료 티어: 월 $0
-
-**상세**: @docs/status.md
+**상세**: @docs/status.md (종합 평가: 9.2/10)
 
 ---
 
