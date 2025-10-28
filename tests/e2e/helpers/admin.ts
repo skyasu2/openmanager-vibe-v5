@@ -182,10 +182,42 @@ export async function activateAdminMode(
       throw new Error(`관리자 인증 실패: ${authResponse.message}`);
     }
 
-    // 3단계: localStorage 및 쿠키 설정 (API 성공 시)
+    // 3단계: Zustand 스토어 업데이트 (API 성공 시)
+    // 🔧 FIX: Zustand persist 미들웨어가 감지하는 auth-storage 키에 직접 저장
+    // 이전: localStorage.setItem('admin_mode', 'true') - 레거시 키 직접 설정 (❌ Zustand와 동기화 안 됨)
+    // 이후: auth-storage 키에 adminMode: true 설정 (✅ Zustand persist 미들웨어 자동 동기화)
     await page.evaluate(() => {
-      localStorage.setItem('admin_mode', 'true');
-      console.log('✅ [Admin Helper] localStorage admin_mode 설정 완료');
+      // Zustand persist 미들웨어의 auth-storage 키에 adminMode: true 설정
+      const existingAuth = localStorage.getItem('auth-storage');
+      let authState: any = { state: {}, version: 0 };
+
+      if (existingAuth) {
+        try {
+          authState = JSON.parse(existingAuth);
+        } catch (e) {
+          console.warn(
+            '⚠️ [Admin Helper] 기존 auth-storage 파싱 실패, 새로 생성'
+          );
+        }
+      }
+
+      // adminMode를 true로 설정
+      authState.state = {
+        ...authState.state,
+        adminMode: true,
+        authType: authState.state?.authType || 'guest',
+        sessionId:
+          authState.state?.sessionId ||
+          `guest_${Date.now()}_${Math.random().toString(36).substr(2, 12)}`,
+        user: authState.state?.user || {
+          id: authState.state?.sessionId || `guest_${Date.now()}`,
+          name: '게스트 사용자',
+          email: `guest_${Date.now()}@example.com`,
+        },
+      };
+
+      localStorage.setItem('auth-storage', JSON.stringify(authState));
+      console.log('✅ [Admin Helper] Zustand auth-storage adminMode 설정 완료');
     });
 
     // 테스트 모드 쿠키 설정 (Middleware 우회용)
@@ -225,12 +257,22 @@ export async function activateAdminMode(
     await page.reload({ waitUntil: 'networkidle' });
     await page.waitForTimeout(2000); // React 하이드레이션 여유 시간 증가 (1초 → 2초)
 
+    // 🔧 FIX: Zustand 스토어 상태 검증 (레거시 키 대신)
     const isAdminActive = await page.evaluate(() => {
-      return localStorage.getItem('admin_mode') === 'true';
+      // Zustand persist 미들웨어가 저장한 auth-storage 키에서 adminMode 확인
+      const authStorage = localStorage.getItem('auth-storage');
+      if (!authStorage) return false;
+
+      try {
+        const parsed = JSON.parse(authStorage);
+        return parsed.state?.adminMode === true;
+      } catch {
+        return false;
+      }
     });
 
     if (!isAdminActive) {
-      throw new Error('localStorage admin_mode 설정 실패');
+      throw new Error('Zustand auth-storage adminMode 설정 실패');
     }
 
     console.log(
