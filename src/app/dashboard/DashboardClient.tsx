@@ -27,11 +27,19 @@ import type { Server } from '@/types/server';
 import type { ServerData } from '@/components/dashboard/EnhancedServerModal.types';
 import { AlertTriangle } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import { Suspense, useCallback, useEffect, useState, Component, type ReactNode, type ErrorInfo } from 'react';
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useState,
+  Component,
+  type ReactNode,
+  type ErrorInfo,
+} from 'react';
 import { useRouter } from 'next/navigation';
 import debug from '@/utils/debug';
 // 🛡️ 베르셀 안전 유틸리티 import 추가 (Bundle-Safe Inline으로 l6 압축 방지)
-import { handleVercelError } from '@/lib/vercel-safe-utils';
+// import { handleVercelError } from '@/lib/vercel-safe-utils'; // Unused
 
 // 🎯 Bundle-Safe Inline 매크로 - getSafeArrayLength (압축 방지)
 const getSafeArrayLength = (arr: unknown): number => {
@@ -68,9 +76,12 @@ const getSafeArrayLength = (arr: unknown): number => {
 
 // 🎯 Bundle-Safe Inline 매크로 - vercelSafeLog (압축 방지)
 const vercelSafeLog = (message: string, data?: unknown): void => {
-  if (typeof process !== 'undefined' && process.env &&
-      (process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined) &&
-      process.env.NODE_ENV === 'development') {
+  if (
+    typeof process !== 'undefined' &&
+    process.env &&
+    (process.env.VERCEL === '1' || process.env.VERCEL_ENV !== undefined) &&
+    process.env.NODE_ENV === 'development'
+  ) {
     console.log(`🛡️ [Vercel Safe] ${message}`, data);
   }
 };
@@ -83,51 +94,52 @@ function convertServerToModalData(server: Server): ServerData {
     type: server.type || 'server',
     environment: server.environment || 'production',
     provider: server.provider || 'Unknown',
-        // 🚀 FIX: getSafeArrayLength로 베르셀 안전성 보장 (l6 TypeError 완전 해결)
-        alerts: (() => {
-          try {
-            if (Array.isArray(server.alerts)) {
-              return getSafeArrayLength(server.alerts);
-            }
-            if (typeof server.alerts === 'number') {
-              return Math.max(0, server.alerts);
-            }
-            return 0;
-          } catch (error) {
-            vercelSafeLog('convertServerToModalData alerts 처리 오류:', error);
-            return 0;
-          }
-        })(),
-        // 🛡️ services 배열도 베르셀 안전 처리
-        services: (() => {
-          try {
-            const serverServices = server.services || [];
-            if (!Array.isArray(serverServices)) {
-              return [];
-            }
-            return serverServices.map(service => ({
-              name: service?.name || 'Unknown Service',
-              status: service?.status || 'running',
-              port: service?.port || 80
-            }));
-          } catch (error) {
-            vercelSafeLog('convertServerToModalData services 처리 오류:', error);
-            return [];
-          }
-        })(),
+    // 🚀 FIX: getSafeArrayLength로 베르셀 안전성 보장 (l6 TypeError 완전 해결)
+    alerts: (() => {
+      try {
+        if (Array.isArray(server.alerts)) {
+          return getSafeArrayLength(server.alerts);
+        }
+        if (typeof server.alerts === 'number') {
+          return Math.max(0, server.alerts);
+        }
+        return 0;
+      } catch (error) {
+        vercelSafeLog('convertServerToModalData alerts 처리 오류:', error);
+        return 0;
+      }
+    })(),
+    // 🛡️ services 배열도 베르셀 안전 처리
+    services: (() => {
+      try {
+        const serverServices = server.services || [];
+        if (!Array.isArray(serverServices)) {
+          return [];
+        }
+        return serverServices.map((service) => ({
+          name: service?.name || 'Unknown Service',
+          status: service?.status || 'running',
+          port: service?.port || 80,
+        }));
+      } catch (error) {
+        vercelSafeLog('convertServerToModalData services 처리 오류:', error);
+        return [];
+      }
+    })(),
     lastUpdate: server.lastUpdate || new Date(),
     uptime:
       typeof server.uptime === 'number'
         ? `${Math.floor(server.uptime / 3600)}h ${Math.floor((server.uptime % 3600) / 60)}m`
         : server.uptime || '0h 0m',
     status: server.status, // 🔧 수정: ServerStatus 타입 직접 사용 (타입 통합 완료)
-    networkStatus: (server.status === 'online' // 🔧 수정: 'healthy' 제거 (타입 통합)
+    networkStatus:
+      server.status === 'online' // 🔧 수정: 'healthy' 제거 (타입 통합)
         ? 'excellent'
         : server.status === 'warning'
           ? 'good'
           : server.status === 'critical'
             ? 'poor'
-            : 'offline') as 'excellent' | 'good' | 'poor' | 'offline',
+            : 'offline',
   };
 }
 
@@ -146,9 +158,15 @@ const FloatingSystemControl = dynamic(
 // AI Sidebar를 CSS 애니메이션으로 동적 로드
 const AnimatedAISidebar = dynamic(
   async () => {
-    const AISidebarV3 = await import('@/domains/ai-sidebar/components/AISidebarV3');
+    const AISidebarV3 = await import(
+      '@/domains/ai-sidebar/components/AISidebarV3'
+    );
 
-    return function AnimatedAISidebarWrapper(props: { isOpen: boolean; onClose: () => void; [key: string]: unknown }) {
+    return function AnimatedAISidebarWrapper(props: {
+      isOpen: boolean;
+      onClose: () => void;
+      [key: string]: unknown;
+    }) {
       const { isOpen, onClose, ...otherProps } = props;
       return (
         <>
@@ -156,7 +174,7 @@ const AnimatedAISidebar = dynamic(
             <div
               className="fixed inset-y-0 right-0 z-40 w-96 transform transition-transform duration-300 ease-in-out"
               style={{
-                transform: isOpen ? 'translateX(0)' : 'translateX(100%)'
+                transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
               }}
             >
               <AISidebarV3.default
@@ -185,7 +203,9 @@ const AnimatedAISidebar = dynamic(
 // 서버 모달을 CSS 애니메이션으로 동적 로드
 const AnimatedServerModal = dynamic(
   async () => {
-    const EnhancedServerModal = await import('../../components/dashboard/EnhancedServerModal');
+    const EnhancedServerModal = await import(
+      '../../components/dashboard/EnhancedServerModal'
+    );
 
     return function AnimatedServerModalWrapper({
       isOpen,
@@ -251,7 +271,7 @@ const ContentLoadingSkeleton = () => (
 );
 
 // Error Boundary for Dashboard
-class DashboardErrorBoundary extends Component<
+class _DashboardErrorBoundary extends Component<
   { children: ReactNode },
   { hasError: boolean; error?: Error }
 > {
@@ -307,9 +327,9 @@ function checkTestMode(): boolean {
   const allCookies = document.cookie;
   console.log('🧪 [Dashboard] 전체 쿠키:', allCookies);
 
-  const cookies = document.cookie.split(';').map(c => c.trim());
-  const hasTestMode = cookies.some(c => c.startsWith('test_mode=enabled'));
-  const hasTestToken = cookies.some(c => c.startsWith('vercel_test_token='));
+  const cookies = document.cookie.split(';').map((c) => c.trim());
+  const hasTestMode = cookies.some((c) => c.startsWith('test_mode=enabled'));
+  const hasTestToken = cookies.some((c) => c.startsWith('vercel_test_token='));
 
   console.log('🧪 [Dashboard] test_mode 쿠키 존재:', hasTestMode);
   console.log('🧪 [Dashboard] vercel_test_token 쿠키 존재:', hasTestToken);
@@ -321,7 +341,10 @@ function checkTestMode(): boolean {
 
   // localStorage 체크 (보조)
   const testModeEnabled = localStorage.getItem('test_mode_enabled') === 'true';
-  console.log('🧪 [Dashboard] localStorage test_mode_enabled:', testModeEnabled);
+  console.log(
+    '🧪 [Dashboard] localStorage test_mode_enabled:',
+    testModeEnabled
+  );
 
   if (testModeEnabled) {
     console.log('🧪 [Dashboard] 테스트 모드 감지 (localStorage) ✅');
@@ -335,6 +358,8 @@ function checkTestMode(): boolean {
 function DashboardPageContent() {
   // 🔒 Hydration 불일치 방지를 위한 클라이언트 전용 상태
   const [isMounted, setIsMounted] = useState(false);
+  // 🧪 테스트 모드 감지 상태 (post-hydration cookie detection)
+  const [testModeDetected, setTestModeDetected] = useState(false);
   const [selectedServer, setSelectedServer] = useState<Server | null>(null); // eslint-disable-line @typescript-eslint/no-redundant-type-constituents
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
@@ -355,6 +380,28 @@ function DashboardPageContent() {
     setIsMounted(true);
   }, []);
 
+  // 🧪 Post-hydration test mode detection (E2E 테스트용)
+  useEffect(() => {
+    if (!isMounted) return;
+
+    // 쿠키가 hydration 후 접근 가능한지 확인
+    const detectTestMode = () => {
+      if (typeof document === 'undefined') return;
+
+      const hasTestModeCookie = document.cookie.includes('test_mode=enabled');
+      const hasTestToken = document.cookie.includes('vercel_test_token=');
+
+      if (hasTestModeCookie || hasTestToken) {
+        console.log(
+          '✅ [DashboardClient] 테스트 모드 감지 (post-hydration) - dashboard-container 즉시 렌더링'
+        );
+        setTestModeDetected(true);
+      }
+    };
+
+    detectTestMode();
+  }, [isMounted]);
+
   // 🎛️ 게스트 모드 디버그 로그 (빌드 캐시 무효화 + 디버깅)
   useEffect(() => {
     const guestModeStatus = isGuestFullAccessEnabled();
@@ -362,7 +409,8 @@ function DashboardPageContent() {
       enabled: guestModeStatus,
       canAccessDashboard: permissions.canAccessDashboard,
       isPinAuth: isPinAuth,
-      shouldAllow: permissions.canAccessDashboard || isPinAuth || guestModeStatus,
+      shouldAllow:
+        permissions.canAccessDashboard || isPinAuth || guestModeStatus,
       timestamp: new Date().toISOString(),
       buildVersion: '7.0.0-cache-fix',
     });
@@ -377,37 +425,48 @@ function DashboardPageContent() {
 
     if (isGuestFullAccess) {
       // 🟢 게스트 전체 접근 모드: 즉시 허용
-      console.log('✅ DashboardClient: 게스트 전체 접근 모드 - 즉시 허용 (NEXT_PUBLIC_GUEST_MODE=full_access)');
+      console.log(
+        '✅ DashboardClient: 게스트 전체 접근 모드 - 즉시 허용 (NEXT_PUBLIC_GUEST_MODE=full_access)'
+      );
       setAuthLoading(false);
       return; // cleanup 불필요
     } else {
       // 🔐 프로덕션 모드: 권한 체크
       const checkPermissions = () => {
-        const canAccess = permissions.canAccessDashboard || isPinAuth || checkTestMode() || isGuestFullAccessEnabled();
-        
+        const canAccess =
+          permissions.canAccessDashboard ||
+          isPinAuth ||
+          checkTestMode() ||
+          isGuestFullAccessEnabled();
+
         console.log('🔍 대시보드 권한 체크:', {
           hookAuth: permissions.canAccessDashboard,
           canAccess: canAccess,
           userType: permissions.userType,
-          loading: permissions.userType === 'loading'
+          loading: permissions.userType === 'loading',
         });
-        
+
         if (permissions.userType === 'loading') {
           console.log('⏳ 권한 상태 로딩 중 - 알람 억제');
           return;
         }
 
-        if (!canAccess && (permissions.userType === 'guest' || permissions.userType === 'github')) {
+        if (
+          !canAccess &&
+          (permissions.userType === 'guest' ||
+            permissions.userType === 'github')
+        ) {
           console.log('🚫 대시보드 접근 권한 없음 - 메인 페이지로 이동');
           toast({
             variant: 'destructive',
             title: '접근 권한 없음',
-            description: '대시보드 접근 권한이 없습니다. GitHub 로그인 또는 관리자 모드 인증이 필요합니다.',
+            description:
+              '대시보드 접근 권한이 없습니다. GitHub 로그인 또는 관리자 모드 인증이 필요합니다.',
           });
           router.push('/main');
           return;
         }
-        
+
         if (canAccess) {
           console.log('✅ 대시보드 접근 권한 확인됨:', {
             userType: permissions.userType,
@@ -416,22 +475,21 @@ function DashboardPageContent() {
             isPinAuthenticated: permissions.isPinAuthenticated,
             isGitHubAuthenticated: permissions.isGitHubAuthenticated,
           });
-          
+
           setAuthLoading(false);
         }
       };
-      
+
       const timeoutId = setTimeout(checkPermissions, 500);
-      
+
       return () => {
         clearTimeout(timeoutId);
       };
     }
-    
   }, [isMounted, permissions, router]);
 
   // 🎯 서버 통계 상태 관리 (상단 통계 카드용)
-  const [serverStats, setServerStats] = useState({
+  const [_serverStats, setServerStats] = useState({
     total: 0,
     online: 0,
     warning: 0,
@@ -509,13 +567,21 @@ function DashboardPageContent() {
   });
 
   // 🔄 시스템 상태를 Zustand 스토어에 동기화 (Props Drilling 제거)
-  const { setActive, setRemainingTime, setStopHandler } = useSystemStatusStore();
+  const { setActive, setRemainingTime, setStopHandler } =
+    useSystemStatusStore();
 
   useEffect(() => {
     setActive(isSystemActive);
     setRemainingTime(systemRemainingTime);
     setStopHandler(stopSystem);
-  }, [isSystemActive, systemRemainingTime, stopSystem, setActive, setRemainingTime, setStopHandler]);
+  }, [
+    isSystemActive,
+    systemRemainingTime,
+    stopSystem,
+    setActive,
+    setRemainingTime,
+    setStopHandler,
+  ]);
 
   // 🎯 실제 서버 데이터 생성기 데이터 사용 - 즉시 로드
   const {
@@ -547,9 +613,13 @@ function DashboardPageContent() {
   useEffect(() => {
     if (process.env.NODE_ENV === 'development' && warningCount > 0) {
       console.group('🚨 Performance Guard Warnings');
-      console.warn(`성능 경고 ${warningCount}개 발견! 베르셀 Edge Runtime 문제 예방을 위해 확인하세요.`);
+      console.warn(
+        `성능 경고 ${warningCount}개 발견! 베르셀 Edge Runtime 문제 예방을 위해 확인하세요.`
+      );
       console.log('성능 리포트 확인:', generateReport());
-      console.log('해결 방법: docs/development/performance-development-checklist.md 참고');
+      console.log(
+        '해결 방법: docs/development/performance-development-checklist.md 참고'
+      );
       console.groupEnd();
     }
   }, [warningCount]); // ✅ generateReport 함수 의존성 제거하여 순환 의존성 해결
@@ -589,15 +659,18 @@ function DashboardPageContent() {
   }, []); // ✅ forceLogout 함수 의존성 제거하여 순환 의존성 해결
 
   // 🎯 통계 업데이트 핸들러 (상단 통계 카드 업데이트)
-  const handleStatsUpdate = useCallback((stats: {
-    total: number;
-    online: number;
-    warning: number;
-    offline: number;
-  }) => {
-    console.log('📊 통계 업데이트 수신:', stats);
-    setServerStats(stats);
-  }, []);
+  const handleStatsUpdate = useCallback(
+    (stats: {
+      total: number;
+      online: number;
+      warning: number;
+      offline: number;
+    }) => {
+      console.log('📊 통계 업데이트 수신:', stats);
+      setServerStats(stats);
+    },
+    []
+  );
 
   // 🎯 서버 클릭 핸들러 - 실제 데이터와 연동
   const handleServerClick = useCallback(
@@ -638,18 +711,20 @@ function DashboardPageContent() {
 
   // 🔒 대시보드 접근 권한 확인 - PIN 인증한 게스트도 접근 가능
   // 🧪 FIX: 테스트 모드일 때는 로딩 상태 스킵 (E2E 테스트용)
-  if ((!isMounted || authLoading || permissions.userType === 'loading') && !checkTestMode()) {
+  if (
+    (!isMounted || authLoading || permissions.userType === 'loading') &&
+    !checkTestMode() &&
+    !testModeDetected
+  ) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="mx-auto max-w-md p-6 text-center">
           <div className="mb-6">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-purple-600">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">로딩 중...</h2>
-            <p className="text-gray-300 mb-6">
-              권한을 확인하고 있습니다.
-            </p>
+            <h2 className="mb-2 text-2xl font-bold text-white">로딩 중...</h2>
+            <p className="mb-6 text-gray-300">권한을 확인하고 있습니다.</p>
           </div>
         </div>
       </div>
@@ -659,37 +734,46 @@ function DashboardPageContent() {
   // 🔒 대시보드 접근 권한이 없는 경우 (GitHub 로그인 또는 PIN 인증 또는 테스트 모드 또는 게스트 전체 접근 모드 필요)
   // 🧪 FIX: 테스트 모드 체크 추가 (E2E 테스트용)
   // 🎛️ FIX: 게스트 전체 접근 모드 체크 추가 (개발 모드용)
-  if (!permissions.canAccessDashboard && !isPinAuth && !checkTestMode() && !isGuestFullAccessEnabled()) {
+  if (
+    !permissions.canAccessDashboard &&
+    !isPinAuth &&
+    !checkTestMode() &&
+    !testModeDetected &&
+    !isGuestFullAccessEnabled()
+  ) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="mx-auto max-w-md p-6 text-center">
           <div className="mb-6">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <i className="fas fa-shield-alt text-white text-2xl"></i>
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-purple-600">
+              <i className="fas fa-shield-alt text-2xl text-white"></i>
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">접근 권한 필요</h2>
-            <p className="text-gray-300 mb-6">
-              대시보드 접근을 위해 GitHub 로그인 또는 관리자 PIN 인증이 필요합니다.
+            <h2 className="mb-2 text-2xl font-bold text-white">
+              접근 권한 필요
+            </h2>
+            <p className="mb-6 text-gray-300">
+              대시보드 접근을 위해 GitHub 로그인 또는 관리자 PIN 인증이
+              필요합니다.
             </p>
           </div>
 
           <div className="space-y-3">
             <button
               onClick={() => router.push('/login')}
-              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-200"
+              className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white transition-all duration-200 hover:from-blue-600 hover:to-blue-700"
             >
               GitHub 로그인
             </button>
-            
+
             <button
               onClick={() => router.push('/main')}
-              className="w-full bg-gray-700 hover:bg-gray-600 text-gray-200 py-3 px-6 rounded-lg font-medium transition-all duration-200"
+              className="w-full rounded-lg bg-gray-700 px-6 py-3 font-medium text-gray-200 transition-all duration-200 hover:bg-gray-600"
             >
               메인 페이지로 돌아가기
             </button>
           </div>
-          
-          <p className="text-xs text-gray-500 mt-4">
+
+          <p className="mt-4 text-xs text-gray-500">
             게스트 모드에서는 관리자 PIN 인증으로 대시보드 접근이 가능합니다
           </p>
         </div>
@@ -734,13 +818,14 @@ function DashboardPageContent() {
         </div>
 
         {/* 🎯 AI 에이전트 - 동적 로딩으로 최적화 (Hydration 안전성) - AI 권한이 있는 사용자 또는 게스트 전체 접근 모드에서 접근 가능 */}
-        {isMounted && (permissions.canToggleAI || isGuestFullAccessEnabled()) && (
-          <AnimatedAISidebar
-            isOpen={isAgentOpen}
-            onClose={closeAgent}
-            userType={permissions.userType}
-          />
-        )}
+        {isMounted &&
+          (permissions.canToggleAI || isGuestFullAccessEnabled()) && (
+            <AnimatedAISidebar
+              isOpen={isAgentOpen}
+              onClose={closeAgent}
+              userType={permissions.userType}
+            />
+          )}
 
         {/* 🎯 서버 모달 - 동적 로딩으로 최적화 (Hydration 안전성 추가) */}
         {isMounted && (
