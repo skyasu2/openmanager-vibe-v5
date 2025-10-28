@@ -85,7 +85,10 @@ test.describe('관리자 페이지 버튼 테스트', () => {
     expect(currentUrl).toContain('/admin');
 
     // 7. 관리자 페이지 콘텐츠 확인
-    const adminHeading = page.locator('h1, h2, text=/관리자|Admin/i').first();
+    const adminHeading = page
+      .locator('h1, h2')
+      .filter({ hasText: /관리자|Admin/i })
+      .first();
     await expect(adminHeading).toBeVisible({ timeout: 5000 });
     console.log('✅ 관리자 페이지 콘텐츠 확인');
 
