@@ -12,45 +12,58 @@ import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useInitialAuth } from '@/hooks/useInitialAuth';
 import { useProfileSecurity } from '@/components/profile/hooks/useProfileSecurity';
-import { BarChart3, Bot, Loader2, Play, X, LogIn, Sparkles } from 'lucide-react';
+import {
+  BarChart3,
+  Bot,
+  Loader2,
+  Play,
+  X,
+  LogIn,
+  Sparkles,
+} from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import debug from '@/utils/debug';
 import { vercelConfig, debugWithEnv } from '@/utils/vercel-env';
-import { performanceTracker, preloadCriticalResources, getVercelEnvironment } from '@/utils/vercel-optimization';
+import {
+  performanceTracker,
+  preloadCriticalResources,
+  getVercelEnvironment,
+} from '@/utils/vercel-optimization';
 import { renderTextWithAIGradient } from '@/utils/text-rendering';
 // 🎯 Performance Score 최적화 - Dynamic Import 롤백하여 SSR 활성화
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import FeatureCardsGrid from '@/components/home/FeatureCardsGrid';
+import { isGuestFullAccessEnabled } from '@/config/guestMode';
 
 // framer-motion 제거 - CSS 애니메이션 사용
 
 // 🎯 상수 정의
 const SYSTEM_START_COUNTDOWN_SECONDS = 3; // 시스템 시작 카운트다운 시간
-const AUTH_RETRY_DELAY_MS = 3000; // 인증 재시도 지연 시간
-const TIMER_UPDATE_INTERVAL_MS = 1000; // 타이머 업데이트 간격
+const _AUTH_RETRY_DELAY_MS = 3000; // 인증 재시도 지연 시간 (미래 사용 예정)
+const _TIMER_UPDATE_INTERVAL_MS = 1000; // 타이머 업데이트 간격 (미래 사용 예정)
 const COUNTDOWN_INTERVAL_MS = 1000; // 카운트다운 간격
 
 function Home() {
   const router = useRouter();
   const pathname = usePathname();
-  
+
   // 통합 초기화 훅 사용 (5-6초 지연 문제 해결)
   const {
     isLoading: authLoading,
     isAuthenticated,
-    user: currentUser,
+    user: _currentUser,
     isGitHubConnected: isGitHubUser,
     error: authError,
     isReady: authReady,
     shouldRedirect,
     getLoadingMessage,
-    retry: retryAuth
+    retry: retryAuth,
   } = useInitialAuth();
-  
+
   // 관리자 모드 보안 훅 (isAdminMode만 필요)
   const { isAdminMode } = useProfileSecurity();
-  
+
   const [isMounted, setIsMounted] = useState(false); // 🔄 클라이언트 마운트 상태 (hydration 문제 방지)
 
   const {
@@ -71,11 +84,11 @@ function Home() {
     status: multiUserStatus,
     isLoading: statusLoading,
     startSystem: startMultiUserSystem,
-    refresh: refreshSystemStatus,
+    refresh: _refreshSystemStatus,
   } = useSystemStatus();
 
   const [isLoading, _setIsLoading] = useState(false);
-  const [systemTimeRemaining, setSystemTimeRemaining] = useState(0);
+  const [_systemTimeRemaining, setSystemTimeRemaining] = useState(0);
 
   // 🚀 시스템 시작 카운트다운 상태
   const [systemStartCountdown, setSystemStartCountdown] = useState(0);
@@ -86,7 +99,7 @@ function Home() {
 
   // 시스템 상태 동기화 debounce를 위한 ref
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // 이전 상태 추적을 위한 ref (추가 안정성)
   const prevRunningRef = useRef<boolean | null>(null);
 
@@ -99,51 +112,63 @@ function Home() {
       return {
         color: 'text-orange-300',
         message: '⚠️ 시작 예정 - 취소하려면 클릭',
-        showEscHint: true
+        showEscHint: true,
       };
     }
     if (isSystemStarting) {
       return {
         color: 'text-purple-300',
         message: '🚀 시스템 부팅 중...',
-        showEscHint: false
+        showEscHint: false,
       };
     }
     if (multiUserStatus?.isRunning || isSystemStarted) {
-      const shutdownTime = typeof window !== 'undefined' ? localStorage.getItem('system_auto_shutdown') : null;
+      const shutdownTime =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('system_auto_shutdown')
+          : null;
       let message = '✅ 시스템 가동 중 - 대시보드로 이동';
       if (shutdownTime) {
-        const timeLeft = Math.max(0, Math.floor((parseInt(shutdownTime) - Date.now()) / 60000));
+        const timeLeft = Math.max(
+          0,
+          Math.floor((parseInt(shutdownTime) - Date.now()) / 60000)
+        );
         message = `✅ 시스템 가동 중 (${timeLeft}분 후 자동 종료)`;
       }
       return {
         color: 'text-green-300',
         message,
-        showEscHint: false
+        showEscHint: false,
       };
     }
     return {
       color: 'text-white',
       message: '클릭하여 시작하기',
-      showEscHint: false
+      showEscHint: false,
     };
-  }, [systemStartCountdown, isSystemStarting, multiUserStatus?.isRunning, multiUserStatus?.userCount, isSystemStarted]); // ✅ multiUserStatus primitive 값만 의존성으로 사용하여 React Error #310 해결
+  }, [
+    systemStartCountdown,
+    isSystemStarting,
+    multiUserStatus?.isRunning,
+    multiUserStatus?.userCount,
+    isSystemStarted,
+  ]); // ✅ multiUserStatus primitive 값만 의존성으로 사용하여 React Error #310 해결
 
   // 🎯 분할된 useEffect 시스템 - React Error #310 완전 해결
 
   // 1️⃣ 클라이언트 마운트 처리 + Vercel 최적화 (독립적)
   useEffect(() => {
     const vercelEnv = getVercelEnvironment();
-    
+
     // 🚀 Vercel 성능 추적 시작
     if (vercelEnv.isVercel) {
       performanceTracker.start('page-mount');
     }
-    
+
     const mountTimer = setTimeout(() => {
       setIsMounted(true);
       debug.log(debugWithEnv('✅ 클라이언트 마운트 완료'), vercelEnv);
-      
+
       // 🚀 사전 로딩 실행 (Vercel Cold Start 최소화)
       if (vercelEnv.isVercel) {
         void preloadCriticalResources();
@@ -161,13 +186,13 @@ function Home() {
     const currentRunning = multiUserStatus.isRunning;
     if (prevRunningRef.current !== currentRunning) {
       prevRunningRef.current = currentRunning;
-      
+
       // 3초 debounce로 시스템 상태 동기화
       if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
       syncTimeoutRef.current = setTimeout(() => {
         const needsStart = multiUserStatus.isRunning && !isSystemStarted;
         const needsStop = !multiUserStatus.isRunning && isSystemStarted;
-        
+
         if (needsStart) {
           debug.log(debugWithEnv('🔄 시스템이 다른 사용자에 의해 시작됨'));
           startSystem();
@@ -181,15 +206,25 @@ function Home() {
     return () => {
       if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
     };
-  }, [authReady, multiUserStatus?.isRunning, isSystemStarted, startSystem, stopSystem]); // ✅ startSystem, stopSystem 함수 의존성 추가
+  }, [
+    authReady,
+    multiUserStatus?.isRunning,
+    isSystemStarted,
+    startSystem,
+    stopSystem,
+  ]); // ✅ startSystem, stopSystem 함수 의존성 추가
 
   // 3️⃣ 시스템 시작 상태 동기화 (독립적)
   useEffect(() => {
     if (!multiUserStatus) return;
-    
+
     const currentStarting = multiUserStatus.isStarting || false;
     if (currentStarting !== isSystemStarting) {
-      debug.log(debugWithEnv(`🔄 시스템 시작 상태 업데이트: ${isSystemStarting} → ${currentStarting}`));
+      debug.log(
+        debugWithEnv(
+          `🔄 시스템 시작 상태 업데이트: ${isSystemStarting} → ${currentStarting}`
+        )
+      );
       setIsSystemStarting(currentStarting);
     }
   }, [multiUserStatus?.isStarting, isSystemStarting]);
@@ -200,7 +235,11 @@ function Home() {
 
     debug.error(debugWithEnv('❌ 인증 에러 발생'), authError);
     const authRetryTimeout = setTimeout(() => {
-      debug.log(debugWithEnv(`🔄 인증 재시도 시작 (${vercelConfig.authRetryDelay/1000}초 후)`));
+      debug.log(
+        debugWithEnv(
+          `🔄 인증 재시도 시작 (${vercelConfig.authRetryDelay / 1000}초 후)`
+        )
+      );
       retryAuth();
     }, vercelConfig.authRetryDelay);
 
@@ -274,16 +313,24 @@ function Home() {
   // 로직이 handleSystemToggle에 직접 통합됨
 
   // 시스템 토글 함수 (깜빡임 방지 개선)
-  const handleSystemToggle = useCallback(async () => {
+  const handleSystemToggle = useCallback(() => {
     // 🔧 GitHub 인증 완료 후에는 authLoading 체크 완화 - GitHub 사용자는 즉시 활성화
-    const isActuallyLoading = statusLoading || isSystemStarting || 
+    const isActuallyLoading =
+      statusLoading ||
+      isSystemStarting ||
       (authLoading && !isAuthenticated && !isGitHubUser);
-    
+
     if (isActuallyLoading) {
-      console.log('🚫 시스템 토글 차단:', { statusLoading, isSystemStarting, authLoading, isAuthenticated, isGitHubUser });
+      console.log('🚫 시스템 토글 차단:', {
+        statusLoading,
+        isSystemStarting,
+        authLoading,
+        isAuthenticated,
+        isGitHubUser,
+      });
       return;
     }
-    
+
     console.log('✅ 시스템 토글 실행 - GitHub 사용자:', isGitHubUser);
 
     // 카운트다운 중이면 취소 - 직접 로직 실행으로 순환 참조 제거
@@ -341,10 +388,10 @@ function Home() {
     multiUserStatus?.userCount,
     isSystemStarted,
     pathname,
-    isAuthenticated,  // 🔧 추가: GitHub 인증 상태 - stale closure 방지
-    isGitHubUser,     // 🔧 추가: GitHub 사용자 여부 - 토글 로직에서 사용
-    authLoading,      // 🔧 추가: 인증 로딩 상태 - 토글 차단 로직에서 사용
-    statusLoading     // 🔧 추가: 상태 로딩 - 토글 차단 로직에서 사용
+    isAuthenticated, // 🔧 추가: GitHub 인증 상태 - stale closure 방지
+    isGitHubUser, // 🔧 추가: GitHub 사용자 여부 - 토글 로직에서 사용
+    authLoading, // 🔧 추가: 인증 로딩 상태 - 토글 차단 로직에서 사용
+    statusLoading, // 🔧 추가: 상태 로딩 - 토글 차단 로직에서 사용
     // ✅ countdownTimer 객체 의존성 제거하여 React Error #310 완전 해결 - 타이머 객체는 불안정한 참조
   ]);
 
@@ -359,11 +406,14 @@ function Home() {
       isSystemStarting,
       systemStartCountdown,
       multiUserStatusRunning: multiUserStatus?.isRunning,
-      isSystemStarted
+      isSystemStarted,
     });
 
     // SSR 안전성: 클라이언트 마운트 전에는 아이콘 없이 렌더링
-    const getIcon = (IconComponent: React.ComponentType<{ className?: string }>, className: string) => {
+    const getIcon = (
+      IconComponent: React.ComponentType<{ className?: string }>,
+      className: string
+    ) => {
       if (!isMounted) return null;
       return <IconComponent className={className} />;
     };
@@ -372,7 +422,7 @@ function Home() {
     if (systemStartCountdown > 0) {
       return {
         text: `시작 취소 (${systemStartCountdown}초)`,
-        icon: getIcon(X, "h-5 w-5"),
+        icon: getIcon(X, 'h-5 w-5'),
         className:
           'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50 relative overflow-hidden',
         disabled: false,
@@ -383,7 +433,7 @@ function Home() {
     if (isSystemStarting) {
       return {
         text: '시스템 시작 중...',
-        icon: getIcon(Loader2, "h-5 w-5 animate-spin"),
+        icon: getIcon(Loader2, 'h-5 w-5 animate-spin'),
         className:
           'bg-gradient-to-r from-purple-500 to-blue-600 text-white border-purple-400/50 cursor-not-allowed',
         disabled: true,
@@ -391,13 +441,15 @@ function Home() {
     }
 
     // 3. 일반 로딩 상태 - 🔧 GitHub 인증 완료 후에는 authLoading 체크 완화 - GitHub 사용자는 즉시 활성화
-    const isActuallyLoading = statusLoading || isSystemStarting || 
+    const isActuallyLoading =
+      statusLoading ||
+      isSystemStarting ||
       (authLoading && !isAuthenticated && !isGitHubUser);
-    
+
     if (isActuallyLoading) {
       return {
         text: '시스템 초기화 중...',
-        icon: getIcon(Loader2, "h-5 w-5 animate-spin"),
+        icon: getIcon(Loader2, 'h-5 w-5 animate-spin'),
         className:
           'bg-gray-500 text-white border-gray-400/50 cursor-not-allowed',
         disabled: true,
@@ -408,7 +460,7 @@ function Home() {
     if (multiUserStatus?.isRunning || isSystemStarted) {
       return {
         text: `📊 대시보드 이동 (사용자: ${multiUserStatus?.userCount || 0}명)`,
-        icon: getIcon(BarChart3, "h-5 w-5"),
+        icon: getIcon(BarChart3, 'h-5 w-5'),
         className:
           'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50',
         disabled: false,
@@ -418,7 +470,7 @@ function Home() {
     // 5. 기본 상태 (시스템 시작 대기)
     return {
       text: '🚀 시스템 시작',
-      icon: getIcon(Play, "h-5 w-5"),
+      icon: getIcon(Play, 'h-5 w-5'),
       className:
         'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-blue-400/50',
       disabled: false,
@@ -440,25 +492,26 @@ function Home() {
 
   // 🔄 통합 로딩 상태 - 안정된 환경 감지
   const shouldShowLoading = !isMounted || authLoading || shouldRedirect;
-  
+
   if (shouldShowLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="flex min-h-screen items-center justify-center">
           <div className="text-center">
-            <div
-            >
+            <div>
               <Loader2 className="mx-auto mb-4 h-8 w-8 text-white" />
             </div>
-            <p className="text-white/90 font-medium">
+            <p className="font-medium text-white/90">
               {getLoadingMessage()} ({vercelConfig.envLabel} 환경)
             </p>
             {authError && (
-              <div className="mt-4 max-w-md mx-auto">
-                <p className="text-red-400 text-sm mb-2">인증 오류: {authError}</p>
-                <button 
+              <div className="mx-auto mt-4 max-w-md">
+                <p className="mb-2 text-sm text-red-400">
+                  인증 오류: {authError}
+                </p>
+                <button
                   onClick={retryAuth}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
                 >
                   다시 시도
                 </button>
@@ -476,10 +529,12 @@ function Home() {
   // 인증이 완료되지 않았으면 대기 - 안정된 환경 처리
   if (!authReady || !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="h-4 w-4 mx-auto mb-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-          <div className="text-sm">리다이렉션 중... ({vercelConfig.envLabel})</div>
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="text-center text-white">
+          <div className="mx-auto mb-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+          <div className="text-sm">
+            리다이렉션 중... ({vercelConfig.envLabel})
+          </div>
         </div>
       </div>
     );
@@ -489,16 +544,16 @@ function Home() {
 
   return (
     <div
-        className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
-        data-system-active={isSystemStarted ? 'true' : 'false'}
-      >
+      className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
+      data-system-active={isSystemStarted ? 'true' : 'false'}
+    >
       {/* 웨이브 파티클 배경 효과 */}
       <div className="wave-particles"></div>
 
       {/* 헤더 */}
       <header className="relative z-50 flex items-center justify-between p-4 sm:p-6">
-        <button 
-          className="flex items-center space-x-3 cursor-pointer transition-opacity hover:opacity-80"
+        <button
+          className="flex cursor-pointer items-center space-x-3 transition-opacity hover:opacity-80"
           onClick={() => router.push('/')}
           aria-label="홈으로 이동"
         >
@@ -506,16 +561,16 @@ function Home() {
           <div
             className="relative flex h-10 w-10 items-center justify-center rounded-lg shadow-lg"
             style={{
-              background: aiAgent.isEnabled 
+              background: aiAgent.isEnabled
                 ? 'linear-gradient(135deg, #a855f7, #ec4899)'
                 : isSystemStarted
                   ? 'linear-gradient(135deg, #10b981, #059669)'
-                  : 'linear-gradient(135deg, #6b7280, #4b5563)'
+                  : 'linear-gradient(135deg, #6b7280, #4b5563)',
             }}
           >
             {/* ✨ AI 컨셉 아이콘 - Sparkles로 통일 */}
             <Sparkles
-              className={`h-5 w-5 text-white ${(aiAgent.isEnabled || isSystemStarted) ? 'motion-safe:animate-pulse-glow' : ''}`}
+              className={`h-5 w-5 text-white ${aiAgent.isEnabled || isSystemStarted ? 'motion-safe:animate-pulse-glow' : ''}`}
               strokeWidth={2.5}
               aria-hidden="true"
             />
@@ -546,9 +601,7 @@ function Home() {
       {/* 메인 콘텐츠 */}
       <div className="container relative z-10 mx-auto px-6 pt-8">
         {/* 타이틀 섹션 */}
-        <div
-          className="mb-12 text-center"
-        >
+        <div className="mb-12 text-center">
           <h1 className="mb-4 text-3xl font-bold md:text-5xl">
             <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
               {renderTextWithAIGradient('AI', isMounted)}
@@ -564,22 +617,20 @@ function Home() {
         </div>
 
         {/* 제어 패널 */}
-        <div
-          className="mb-12"
-        >
+        <div className="mb-12">
           {!isSystemStarted ? (
             <div className="mx-auto max-w-2xl text-center">
               {/* 시스템 중지 상태 - 대시보드 버튼 중심으로 변경 */}
               {/* 메인 제어 버튼들 */}
               <div className="mb-6 flex flex-col items-center space-y-4">
-                {isGitHubUser || isAdminMode ? (
+                {isGitHubUser || isAdminMode || isGuestFullAccessEnabled() ? (
                   <>
                     {/* GitHub 인증 사용자 - 시스템 시작 버튼 표시 */}
                     {/* 현재 사용자: {currentUser?.name || currentUser?.email || 'Unknown'} */}
                     <button
-                      onClick={handleSystemToggle}
+                      onClick={() => void handleSystemToggle()}
                       disabled={buttonConfig.disabled}
-                      className={`flex h-16 w-full max-w-xs sm:w-64 items-center justify-center gap-3 rounded-xl border font-semibold shadow-xl transition-all duration-300 ${buttonConfig.className}`}
+                      className={`flex h-16 w-full max-w-xs items-center justify-center gap-3 rounded-xl border font-semibold shadow-xl transition-all duration-300 sm:w-64 ${buttonConfig.className}`}
                     >
                       {/* 카운트다운 진행바 */}
                       {systemStartCountdown > 0 && (
@@ -587,12 +638,8 @@ function Home() {
                           className="absolute inset-0 overflow-hidden rounded-xl"
                           style={{ transformOrigin: 'left' }}
                         >
-                          <div
-                            className="h-full bg-gradient-to-r from-red-600/40 via-red-500/40 to-red-400/40"
-                          />
-                          <div
-                            className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                          />
+                          <div className="h-full bg-gradient-to-r from-red-600/40 via-red-500/40 to-red-400/40" />
+                          <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                         </div>
                       )}
                       <div className="relative z-10 flex items-center gap-3">
@@ -603,7 +650,9 @@ function Home() {
 
                     {/* 상태 안내 - 메모이제이션으로 렌더링 최적화 - 컴포넌트 레벨로 이동 */}
                     <div className="mt-2 flex flex-col items-center gap-1">
-                      <span className={`text-sm font-medium opacity-80 transition-all duration-300 ${statusInfo.color}`}>
+                      <span
+                        className={`text-sm font-medium opacity-80 transition-all duration-300 ${statusInfo.color}`}
+                      >
                         {statusInfo.message}
                       </span>
                       {statusInfo.showEscHint && (
@@ -627,7 +676,9 @@ function Home() {
                   <div className="text-center">
                     {/* 게스트 사용자 - 안내 메시지 표시 */}
                     <div className="mb-4 rounded-xl border border-blue-400/30 bg-blue-500/10 p-4 sm:p-6">
-                      {isMounted && <LogIn className="mx-auto mb-3 h-12 w-12 text-blue-400" />}
+                      {isMounted && (
+                        <LogIn className="mx-auto mb-3 h-12 w-12 text-blue-400" />
+                      )}
                       <h3 className="mb-2 text-lg font-semibold text-white">
                         GitHub 로그인이 필요합니다
                       </h3>
@@ -643,10 +694,9 @@ function Home() {
                       </button>
                     </div>
                     <p className="text-xs text-gray-400">
-                      {adminMode.isAuthenticated 
+                      {adminMode.isAuthenticated
                         ? '👑 관리자 권한: 모든 기능 사용 가능합니다'
-                        : '게스트 모드에서는 읽기 전용 기능만 사용 가능합니다'
-                      }
+                        : '게스트 모드에서는 읽기 전용 기능만 사용 가능합니다'}
                     </p>
                   </div>
                 )}
@@ -666,17 +716,15 @@ function Home() {
               </div>
             </div>
           ) : (
-            <div
-              className="mx-auto max-w-4xl text-center"
-            >
+            <div className="mx-auto max-w-4xl text-center">
               {/* 시스템 활성 상태 */}
               {/* 대시보드 버튼 - 중앙 배치 */}
               <div className="mb-6 flex justify-center">
                 <div className="flex flex-col items-center">
-                  {isGitHubUser || isAdminMode ? (
+                  {isGitHubUser || isAdminMode || isGuestFullAccessEnabled() ? (
                     <button
                       onClick={() => router.push('/dashboard')}
-                      className="flex h-16 w-full max-w-xs sm:w-64 items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-600 font-semibold text-white shadow-xl transition-all duration-200 hover:bg-emerald-700"
+                      className="flex h-16 w-full max-w-xs items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-600 font-semibold text-white shadow-xl transition-all duration-200 hover:bg-emerald-700 sm:w-64"
                     >
                       <BarChart3 className="h-5 w-5" />
                       <span className="text-lg">📊 대시보드 열기</span>
