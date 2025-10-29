@@ -358,8 +358,23 @@ function checkTestMode(): boolean {
 function DashboardPageContent() {
   // 🔒 Hydration 불일치 방지를 위한 클라이언트 전용 상태
   const [isMounted, setIsMounted] = useState(false);
-  // 🧪 테스트 모드 감지 상태 (post-hydration cookie detection)
-  const [testModeDetected, setTestModeDetected] = useState(false);
+
+  // 🧪 테스트 모드 감지 - 즉시 동기적으로 체크 (useEffect 타이밍 이슈 해결)
+  const [testModeDetected, setTestModeDetected] = useState(() => {
+    if (typeof window === 'undefined') return false;
+
+    const hasTestModeCookie = document.cookie.includes('test_mode=enabled');
+    const hasTestToken = document.cookie.includes('vercel_test_token=');
+
+    if (hasTestModeCookie || hasTestToken) {
+      console.log(
+        '✅ [DashboardClient] 테스트 모드 감지 (초기 렌더) - dashboard-container 즉시 렌더링'
+      );
+      return true;
+    }
+
+    return false;
+  });
   const [selectedServer, setSelectedServer] = useState<Server | null>(null); // eslint-disable-line @typescript-eslint/no-redundant-type-constituents
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
