@@ -3,7 +3,7 @@
 # 목적: 설정 분산 문제 해결, 변경 시 한 번만 수정
 
 version: "1.0.0"
-last_updated: "2025-10-24"  # Wrapper v2.4.0 critical fixes & validation
+last_updated: "2025-10-29"  # Wrapper v2.4.0 critical fixes & validation
 project: "OpenManager VIBE v5.80.0"
 
 # ============================================================================
