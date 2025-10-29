@@ -7,17 +7,26 @@
 
 'use client';
 
-import { ReactNode } from 'react';
+import { ReactNode, lazy, Suspense } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ErrorBoundary } from 'react-error-boundary';
+
+// React Query DevTools 동적 로드 (개발 환경에서만)
+const ReactQueryDevtools =
+  process.env.NODE_ENV === 'development'
+    ? lazy(() =>
+        import('@tanstack/react-query-devtools').then((module) => ({
+          default: module.ReactQueryDevtools,
+        }))
+      )
+    : null;
 
 // 공유 QueryClient 인스턴스
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // 자동 재시도 설정
-      retry: (failureCount, error: Error | unknown) => {
+      retry: (failureCount, error: unknown) => {
         // 400번대 에러는 재시도하지 않음
         if (error && typeof error === 'object' && 'status' in error) {
           const status = (error as { status: number }).status;
@@ -88,11 +97,12 @@ export function QueryProvider({ children }: QueryProviderProps) {
     <QueryErrorBoundary>
       <QueryClientProvider client={queryClient}>
         {children}
-        {/* 개발 환경에서만 DevTools 표시 */}
-        {process.env.NEXT_PUBLIC_NODE_ENV ||
-          (process.env.NODE_ENV === 'development' && (
+        {/* 개발 환경에서만 DevTools 동적 로드 (프로덕션 번들에서 제외) */}
+        {ReactQueryDevtools && (
+          <Suspense fallback={null}>
             <ReactQueryDevtools initialIsOpen={false} />
-          ))}
+          </Suspense>
+        )}
       </QueryClientProvider>
     </QueryErrorBoundary>
   );
