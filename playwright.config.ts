@@ -1,4 +1,22 @@
 import { defineConfig, devices } from '@playwright/test';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+// Explicitly load .env file to ensure environment variables are available
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+
+// Validate critical environment variables
+if (!process.env.VERCEL_AUTOMATION_BYPASS_SECRET) {
+  console.error('❌ VERCEL_AUTOMATION_BYPASS_SECRET not loaded from .env file');
+  throw new Error(
+    'Environment variable validation failed: VERCEL_AUTOMATION_BYPASS_SECRET is required'
+  );
+}
+
+console.log('✅ Environment variables loaded from .env');
+console.log(
+  `📍 VERCEL_AUTOMATION_BYPASS_SECRET: ${process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.substring(0, 10)}...`
+);
 
 /**
  * Playwright E2E 테스트 설정

@@ -2,6 +2,12 @@ import { Page, expect } from '@playwright/test';
 import { getTestBaseUrl, isVercelProduction } from './config';
 import { TIMEOUTS } from './timeouts';
 import * as fs from 'fs/promises';
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+// Explicitly load .env file for test helper functions
+// This ensures VERCEL_AUTOMATION_BYPASS_SECRET is available in worker processes
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 /**
  * Playwright 테스트용 관리자 모드 헬퍼 함수들
@@ -183,11 +189,10 @@ export async function activateAdminMode(
     }
 
     // 3단계: Zustand 스토어 업데이트 (API 성공 시)
-    // 🔧 FIX: Zustand persist 미들웨어가 감지하는 auth-storage 키에 직접 저장
-    // 이전: localStorage.setItem('admin_mode', 'true') - 레거시 키 직접 설정 (❌ Zustand와 동기화 안 됨)
-    // 이후: auth-storage 키에 adminMode: true 설정 (✅ Zustand persist 미들웨어 자동 동기화)
+    // 🔧 FIX: BOTH Zustand stores need to be set for isAdminMode to work
+    // useProfileSecurity.ts line 24: isAdminMode = adminMode.isAuthenticated || authStoreAdminMode
     await page.evaluate(() => {
-      // Zustand persist 미들웨어의 auth-storage 키에 adminMode: true 설정
+      // 1. auth-storage 설정 (useAuthStore)
       const existingAuth = localStorage.getItem('auth-storage');
       let authState: any = { state: {}, version: 0 };
 
@@ -201,7 +206,6 @@ export async function activateAdminMode(
         }
       }
 
-      // adminMode를 true로 설정
       authState.state = {
         ...authState.state,
         adminMode: true,
@@ -217,7 +221,29 @@ export async function activateAdminMode(
       };
 
       localStorage.setItem('auth-storage', JSON.stringify(authState));
-      console.log('✅ [Admin Helper] Zustand auth-storage adminMode 설정 완료');
+      console.log('✅ [Admin Helper] auth-storage adminMode 설정 완료');
+
+      // 2. unified-admin-storage 설정 (useUnifiedAdminStore)
+      const unifiedState = {
+        state: {
+          adminMode: {
+            isAuthenticated: true,
+            lastLoginTime: Date.now(),
+          },
+          attempts: 0,
+          isLocked: false,
+          lockoutEndTime: null,
+        },
+        version: 0,
+      };
+
+      localStorage.setItem(
+        'unified-admin-storage',
+        JSON.stringify(unifiedState)
+      );
+      console.log(
+        '✅ [Admin Helper] unified-admin-storage adminMode 설정 완료'
+      );
     });
 
     // 테스트 모드 쿠키 설정 (Middleware 우회용)
@@ -244,6 +270,13 @@ export async function activateAdminMode(
 
     console.log('✅ [Admin Helper] 테스트 모드 쿠키 설정 완료');
 
+    // ✅ State setup complete - no navigation here
+    // Navigation will be handled by navigateToAdminDashboard() which will trigger
+    // Zustand persist middleware re-hydration through fresh page load
+    console.log(
+      '✅ [Admin Helper] localStorage + 쿠키 설정 완료 - 관리자 모드 활성화 완료'
+    );
+
     // 4단계: 테스트 모드 헤더 설정 (쿠키보다 확실한 방법)
     await page.setExtraHTTPHeaders({
       'X-Test-Mode': 'enabled',
@@ -257,19 +290,44 @@ export async function activateAdminMode(
     await page.reload({ waitUntil: 'networkidle' });
     await page.waitForTimeout(2000); // React 하이드레이션 여유 시간 증가 (1초 → 2초)
 
-    // 🔧 FIX: Zustand 스토어 상태 검증 (레거시 키 대신)
-    const isAdminActive = await page.evaluate(() => {
-      // Zustand persist 미들웨어가 저장한 auth-storage 키에서 adminMode 확인
+    // 🔧 FIX: BOTH Zustand stores verification
+    const storeStatus = await page.evaluate(() => {
       const authStorage = localStorage.getItem('auth-storage');
-      if (!authStorage) return false;
+      const unifiedStorage = localStorage.getItem('unified-admin-storage');
 
-      try {
-        const parsed = JSON.parse(authStorage);
-        return parsed.state?.adminMode === true;
-      } catch {
-        return false;
+      let authAdminMode = false;
+      let unifiedAdminMode = false;
+
+      if (authStorage) {
+        try {
+          const parsed = JSON.parse(authStorage);
+          authAdminMode = parsed.state?.adminMode === true;
+        } catch {
+          authAdminMode = false;
+        }
       }
+
+      if (unifiedStorage) {
+        try {
+          const parsed = JSON.parse(unifiedStorage);
+          unifiedAdminMode = parsed.state?.adminMode?.isAuthenticated === true;
+        } catch {
+          unifiedAdminMode = false;
+        }
+      }
+
+      return {
+        authAdminMode,
+        unifiedAdminMode,
+        authData: !!authStorage,
+        unifiedData: !!unifiedStorage,
+      };
     });
+
+    console.log('🔍 [Admin Helper] localStorage 검증 결과:', storeStatus);
+
+    const isAdminActive =
+      storeStatus.authAdminMode || storeStatus.unifiedAdminMode;
 
     if (!isAdminActive) {
       throw new Error('Zustand auth-storage adminMode 설정 실패');
