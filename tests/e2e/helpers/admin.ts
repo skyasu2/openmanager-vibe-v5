@@ -2,18 +2,16 @@ import { Page, expect } from '@playwright/test';
 import { getTestBaseUrl, isVercelProduction } from './config';
 import { TIMEOUTS } from './timeouts';
 import * as fs from 'fs/promises';
-import * as dotenv from 'dotenv';
-import * as path from 'path';
-
-// Explicitly load .env file for test helper functions
-// This ensures VERCEL_AUTOMATION_BYPASS_SECRET is available in worker processes
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 /**
  * Playwright 테스트용 관리자 모드 헬퍼 함수들
  *
  * 🎯 목적: 관리자 모드 테스트 자동화 및 효율성 극대화
  * ⚡ 효과: 기존 4단계 UI 흐름 → 1회 API 호출로 단축 (10-15초 → 2-3초)
+ *
+ * ⚙️ 환경변수: globalSetup.ts에서 로드됨
+ * - VERCEL_AUTOMATION_BYPASS_SECRET: Vercel protection bypass
+ * - TEST_SECRET_KEY: API authentication
  */
 
 export interface AdminAuthResponse {

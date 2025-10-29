@@ -1,28 +1,16 @@
 import { defineConfig, devices } from '@playwright/test';
-import * as dotenv from 'dotenv';
-import * as path from 'path';
-
-// Explicitly load .env file to ensure environment variables are available
-dotenv.config({ path: path.resolve(__dirname, '.env') });
-
-// Validate critical environment variables
-if (!process.env.VERCEL_AUTOMATION_BYPASS_SECRET) {
-  console.error('❌ VERCEL_AUTOMATION_BYPASS_SECRET not loaded from .env file');
-  throw new Error(
-    'Environment variable validation failed: VERCEL_AUTOMATION_BYPASS_SECRET is required'
-  );
-}
-
-console.log('✅ Environment variables loaded from .env');
-console.log(
-  `📍 VERCEL_AUTOMATION_BYPASS_SECRET: ${process.env.VERCEL_AUTOMATION_BYPASS_SECRET?.substring(0, 10)}...`
-);
 
 /**
  * Playwright E2E 테스트 설정
+ *
+ * Environment variables are loaded via globalSetup.ts
+ * This ensures variables are available before worker processes spawn
+ *
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
+  // Load environment variables globally before any tests run
+  globalSetup: require.resolve('./globalSetup'),
   testDir: './tests/e2e',
   /* Run tests in files in parallel */
   fullyParallel: true,
