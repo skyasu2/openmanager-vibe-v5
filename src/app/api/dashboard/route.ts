@@ -1,6 +1,5 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase/supabase-client';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
   DashboardResponseSchema,
@@ -16,6 +15,29 @@ import debug from '@/utils/debug';
 import { getServerMetricsFromUnifiedSource } from '@/services/data/UnifiedServerDataSource';
 import { getSystemConfig } from '@/config/SystemConfiguration';
 import type { Server } from '@/types/server';
+
+/**
+ * 테스트 모드 감지
+ * E2E 테스트 시 인증 우회를 위한 헬퍼 함수
+ */
+function isTestMode(request: NextRequest): boolean {
+  // Check for test mode header
+  const testHeader = request.headers.get('X-Test-Mode');
+  if (testHeader === 'enabled') {
+    console.log('🧪 [Dashboard API] Test mode detected via X-Test-Mode header');
+    return true;
+  }
+
+  // Check for test mode cookie
+  const cookies = request.cookies;
+  const testModeCookie = cookies.get('test_mode');
+  if (testModeCookie === 'enabled') {
+    console.log('🧪 [Dashboard API] Test mode detected via test_mode cookie');
+    return true;
+  }
+
+  return false;
+}
 
 /**
  * 📊 실시간 대시보드 API
@@ -49,19 +71,6 @@ interface SupabaseServer {
   };
 }
 
-interface MockServer {
-  id: string;
-  name: string;
-  type: string;
-  status: string;
-  cpu: number;
-  memory: number;
-  disk: number;
-  location: string;
-  environment: string;
-  metrics?: unknown;
-}
-
 // GET 핸들러
 const getHandler = createApiRoute()
   .response(DashboardResponseSchema)
@@ -76,44 +85,52 @@ const getHandler = createApiRoute()
 
     // 🎯 통합 데이터 소스 사용 (Single Source of Truth)
     debug.log('🚀 중앙집중식 설정 시스템으로 데이터 로드');
-    
+
     let serverList: SupabaseServer[] = [];
-    
+
     try {
       // 🎯 통합 서버 메트릭 조회 (중앙집중식 설정)
       const metrics = await getServerMetricsFromUnifiedSource();
       const config = getSystemConfig();
-      
-      debug.log(`🎯 통합 데이터 소스에서 ${metrics.totalServers}개 서버 로드 완료`);
-      
+
+      debug.log(
+        `🎯 통합 데이터 소스에서 ${metrics.totalServers}개 서버 로드 완료`
+      );
+
       // 실제 서버 리스트 가져오기
-      const { getUnifiedServerDataSource } = await import('@/services/data/UnifiedServerDataSource');
+      const { getUnifiedServerDataSource } = await import(
+        '@/services/data/UnifiedServerDataSource'
+      );
       const dataSource = getUnifiedServerDataSource();
       const servers = await dataSource.getServers();
-      
+
       // 서버 데이터를 SupabaseServer 형태로 변환 (기존 호환성 유지)
-      serverList = servers.map((server: Server): SupabaseServer => ({
-        id: server.id,
-        name: server.name,
-        type: server.type,
-        status: server.status,
-        cpu: server.cpu,
-        memory: server.memory,
-        disk: server.disk,
-        location: server.location || 'us-east-1',
-        environment: server.environment || 'production',
-        uptime: server.uptime || 99.9,
-        lastUpdate: server.lastUpdate || new Date().toISOString(),
-        metrics: {
+      serverList = servers.map(
+        (server: Server): SupabaseServer => ({
+          id: server.id,
+          name: server.name,
+          type: server.type,
+          status: server.status,
           cpu: server.cpu,
           memory: server.memory,
           disk: server.disk,
-          network: typeof server.network === 'object' ? server.network : undefined
-        }
-      }));
-      
-      debug.log(`✅ 통합 데이터 소스 로드 완료: ${serverList.length}개 서버, ${config.environment.mode} 환경`);
-      
+          location: server.location || 'us-east-1',
+          environment: server.environment || 'production',
+          uptime: server.uptime || 99.9,
+          lastUpdate: server.lastUpdate || new Date().toISOString(),
+          metrics: {
+            cpu: server.cpu,
+            memory: server.memory,
+            disk: server.disk,
+            network:
+              typeof server.network === 'object' ? server.network : undefined,
+          },
+        })
+      );
+
+      debug.log(
+        `✅ 통합 데이터 소스 로드 완료: ${serverList.length}개 서버, ${config.environment.mode} 환경`
+      );
     } catch (error) {
       debug.error('❌ 통합 데이터 소스 로드 실패:', error);
       debug.log('🔄 응급 복구 모드로 전환...');
@@ -149,32 +166,38 @@ const getHandler = createApiRoute()
         environment: server.environment,
         metrics: {
           cpu: server.metrics?.cpu,
-          memory: typeof server.metrics?.memory === 'number'
-            ? {
-                usage: server.metrics.memory,
-                used: Math.round(server.metrics.memory * 0.8),
-                total: 100
-              }
-            : server.metrics?.memory
-            ? {
-                usage: server.metrics.memory.usage || 0,
-                used: server.metrics.memory.used || Math.round((server.metrics.memory.usage || 0) * 0.8),
-                total: server.metrics.memory.total || 100
-              }
-            : undefined,
-          disk: typeof server.metrics?.disk === 'number'
-            ? {
-                usage: server.metrics.disk,
-                used: Math.round(server.metrics.disk * 0.8),
-                total: 100
-              }
-            : server.metrics?.disk
-            ? {
-                usage: server.metrics.disk.usage || 0,
-                used: server.metrics.disk.used || Math.round((server.metrics.disk.usage || 0) * 0.8),
-                total: server.metrics.disk.total || 100
-              }
-            : undefined,
+          memory:
+            typeof server.metrics?.memory === 'number'
+              ? {
+                  usage: server.metrics.memory,
+                  used: Math.round(server.metrics.memory * 0.8),
+                  total: 100,
+                }
+              : server.metrics?.memory
+                ? {
+                    usage: server.metrics.memory.usage || 0,
+                    used:
+                      server.metrics.memory.used ||
+                      Math.round((server.metrics.memory.usage || 0) * 0.8),
+                    total: server.metrics.memory.total || 100,
+                  }
+                : undefined,
+          disk:
+            typeof server.metrics?.disk === 'number'
+              ? {
+                  usage: server.metrics.disk,
+                  used: Math.round(server.metrics.disk * 0.8),
+                  total: 100,
+                }
+              : server.metrics?.disk
+                ? {
+                    usage: server.metrics.disk.usage || 0,
+                    used:
+                      server.metrics.disk.used ||
+                      Math.round((server.metrics.disk.usage || 0) * 0.8),
+                    total: server.metrics.disk.total || 100,
+                  }
+                : undefined,
           network: (() => {
             const networkValue = server.network || server.metrics?.network || 0;
             return typeof networkValue === 'number'
@@ -253,6 +276,12 @@ const getHandler = createApiRoute()
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
+
+  // 🧪 테스트 모드 확인
+  const testMode = isTestMode(request);
+  if (testMode) {
+    console.log('🧪 [Dashboard API] 테스트 모드 활성화 - E2E 테스트용 요청');
+  }
 
   try {
     const response = await getHandler(request);
@@ -355,8 +384,8 @@ function calculateServerStats(servers: DatabaseServer[]): DashboardStats {
   }
 
   // 🎯 포트폴리오 시나리오 데이터의 실제 상태 매핑
-  const online = servers.filter((s) => 
-    s.status === 'online' || s.status === 'healthy'
+  const online = servers.filter(
+    (s) => s.status === 'online' || s.status === 'healthy'
   ).length;
   const warning = servers.filter((s) => s.status === 'warning').length;
   const critical = servers.filter(
@@ -366,9 +395,9 @@ function calculateServerStats(servers: DatabaseServer[]): DashboardStats {
   debug.log('📊 서버 상태 통계 계산:', {
     total: servers.length,
     online,
-    warning, 
+    warning,
     critical,
-    serverStatuses: servers.map(s => ({ id: s.id, status: s.status }))
+    serverStatuses: servers.map((s) => ({ id: s.id, status: s.status })),
   });
 
   const totalCpu = servers.reduce((sum, s) => {
@@ -408,7 +437,7 @@ const postHandler = createApiRoute()
     showDetailedErrors: process.env.NODE_ENV === 'development',
     enableLogging: true,
   })
-  .build(async (_request, context): Promise<DashboardActionResponse> => {
+  .build((_request, context): Promise<DashboardActionResponse> => {
     const { action } = context.body;
 
     debug.log('🔄 대시보드 액션 요청...', action);
