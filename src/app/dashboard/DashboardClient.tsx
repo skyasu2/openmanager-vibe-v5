@@ -726,11 +726,26 @@ function DashboardPageContent() {
 
   // 🔒 대시보드 접근 권한 확인 - PIN 인증한 게스트도 접근 가능
   // 🧪 FIX: 테스트 모드일 때는 로딩 상태 스킵 (E2E 테스트용)
+  // 🔍 DEBUG: 로딩 조건 평가 로그 추가
+  const testModeFromFunction = checkTestMode();
+  const loadingConditionValues = {
+    isMounted,
+    authLoading,
+    permissionsLoading: permissions.userType === 'loading',
+    checkTestMode: testModeFromFunction,
+    testModeDetected,
+    documentCookie: typeof document !== 'undefined' ? document.cookie : 'SSR',
+  };
+  console.log('🔍 [Loading Check] 조건 평가:', loadingConditionValues);
+
   if (
     (!isMounted || authLoading || permissions.userType === 'loading') &&
-    !checkTestMode() &&
+    !testModeFromFunction &&
     !testModeDetected
   ) {
+    console.log(
+      '❌ [Loading Check] 로딩 UI 렌더링 - dashboard-container 차단!'
+    );
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="mx-auto max-w-md p-6 text-center">
@@ -745,6 +760,7 @@ function DashboardPageContent() {
       </div>
     );
   }
+  console.log('✅ [Loading Check] 통과 - 권한 체크로 진행');
 
   // 🔒 대시보드 접근 권한이 없는 경우 (GitHub 로그인 또는 PIN 인증 또는 테스트 모드 또는 게스트 전체 접근 모드 필요)
   // 🧪 FIX: 테스트 모드 체크 추가 (E2E 테스트용)
