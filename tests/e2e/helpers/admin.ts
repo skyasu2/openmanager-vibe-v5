@@ -160,7 +160,7 @@ export async function activateAdminMode(
           headers: {
             'Content-Type': 'application/json',
             'User-Agent': 'Playwright Test Agent',
-            'x-vercel-protection-bypass': bypassSecret,
+            'X-Test-Mode': 'enabled',
           },
           body: JSON.stringify({
             secret: secretKey,
@@ -532,6 +532,7 @@ export async function ensureGuestLogin(page: Page): Promise<void> {
             headers: {
               'Content-Type': 'application/json',
               'User-Agent': 'Playwright Test Agent',
+              'X-Test-Mode': 'enabled',
               'x-vercel-protection-bypass': bypassSecret,
             },
             body: JSON.stringify({
