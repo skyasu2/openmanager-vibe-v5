@@ -447,20 +447,20 @@ const postHandler = createApiRoute()
       // 실제 시스템에서는 캐시 새로고침 또는 데이터 갱신
       debug.log('🔄 실시간 데이터 새로고침 중...');
 
-      return {
+      return Promise.resolve({
         success: true,
         message: '실시간 시스템 새로고침 완료',
         action: 'refresh',
         timestamp: new Date().toISOString(),
-      };
+      });
     }
 
-    return {
+    return Promise.resolve({
       success: true,
       message: '액션 처리 완료',
       action: action || 'refresh',
       timestamp: new Date().toISOString(),
-    };
+    });
   });
 
 /**
