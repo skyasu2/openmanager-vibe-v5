@@ -161,6 +161,7 @@ export async function activateAdminMode(
             'Content-Type': 'application/json',
             'User-Agent': 'Playwright Test Agent',
             'X-Test-Mode': 'enabled',
+            'x-vercel-protection-bypass': bypassSecret,
           },
           body: JSON.stringify({
             secret: secretKey,
