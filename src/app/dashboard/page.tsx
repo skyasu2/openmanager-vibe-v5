@@ -12,5 +12,12 @@ import DashboardClient from './DashboardClient';
 
 // 🎯 대시보드 페이지 - 직접 import로 SSR 활성화
 export default function DashboardPage() {
+  // 🔍 DIAGNOSTIC: Check if page component executes at all
+  console.log('🔍 [DashboardPage] Page component executing', {
+    timestamp: Date.now(),
+    isSSR: typeof window === 'undefined',
+    url: typeof window !== 'undefined' ? window.location.href : 'SSR',
+  });
+
   return <DashboardClient />;
 }
