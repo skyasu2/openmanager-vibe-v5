@@ -909,6 +909,13 @@ function DashboardPageContent() {
 
 // 🎯 대시보드 클라이언트 컴포넌트
 export default function DashboardClient() {
+  // 🔍 DIAGNOSTIC: Check if wrapper component executes at all
+  console.log('🚀 [DashboardClient] Wrapper component executing', {
+    timestamp: Date.now(),
+    isSSR: typeof window === 'undefined',
+    location: typeof window !== 'undefined' ? window.location.href : 'SSR',
+  });
+
   return (
     <Suspense fallback={<ContentLoadingSkeleton />}>
       <DashboardPageContent />
