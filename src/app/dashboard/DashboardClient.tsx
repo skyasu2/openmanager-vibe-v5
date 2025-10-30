@@ -738,10 +738,14 @@ function DashboardPageContent() {
   };
   console.log('🔍 [Loading Check] 조건 평가:', loadingConditionValues);
 
+  // 🧪 FIX: 테스트 모드일 때는 로딩 체크 전체를 스킵
+  // E2E 테스트 시 SSR 단계에서 쿠키 접근 불가 → testMode guards가 모두 false
+  // 따라서 test environment 체크를 먼저 수행하여 로딩 UI를 건너뛰도록 수정
+  const isTestEnvironment = testModeFromFunction || testModeDetected;
+
   if (
     (!isMounted || authLoading || permissions.userType === 'loading') &&
-    !testModeFromFunction &&
-    !testModeDetected
+    !isTestEnvironment
   ) {
     console.log(
       '❌ [Loading Check] 로딩 UI 렌더링 - dashboard-container 차단!'

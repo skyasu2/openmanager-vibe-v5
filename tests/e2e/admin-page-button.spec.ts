@@ -14,6 +14,13 @@ test.describe('관리자 페이지 버튼 테스트', () => {
 
     console.log('🚀 관리자 페이지 버튼 테스트 시작');
 
+    // 🔍 Browser console listener - Capture debug logs from DashboardClient.tsx
+    page.on('console', (msg) => {
+      const type = msg.type();
+      const text = msg.text();
+      console.log(`[BROWSER ${type.toUpperCase()}]:`, text);
+    });
+
     // ✨ 개선: API 기반 인증으로 세션 안정성 향상
     // 기존: 수동 게스트 로그인 → 프로필 클릭 → PIN 입력 → alert 처리 (9단계, 15-20초)
     // 신규: API 호출 1회로 세션 설정 (1단계, 2-3초)
