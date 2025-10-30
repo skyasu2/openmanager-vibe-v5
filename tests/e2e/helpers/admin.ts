@@ -396,6 +396,9 @@ export async function navigateToAdminDashboard(
         requestHeaders['cookie'] || '❌ 요청에 Cookie 헤더 없음',
     });
 
+    // 네트워크 안정화 대기 (Cold Start 대응)
+    await page.waitForLoadState('networkidle');
+
     // 대시보드 로딩 완료 대기 (React 하이드레이션 고려)
     await page.waitForSelector(
       '[data-testid="dashboard-container"], .dashboard, main',

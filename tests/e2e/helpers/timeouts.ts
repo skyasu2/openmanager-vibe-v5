@@ -37,8 +37,8 @@ export const TIMEOUTS = {
   INPUT_FOCUS: 1000,
 
   // 🏃 Standard Timeouts (10-30초)
-  /** 대시보드 페이지 로딩 (20초) */
-  DASHBOARD_LOAD: 20000,
+  /** 대시보드 페이지 로딩 (40초) - Vercel Cold Start 대응 */
+  DASHBOARD_LOAD: 40000,
 
   /** 네트워크 요청 완료 (30초) */
   NETWORK_REQUEST: 30000,
@@ -66,7 +66,7 @@ export const TIMEOUTS = {
 /**
  * Timeout 타입 (TypeScript strict 모드 지원)
  */
-export type TimeoutValue = typeof TIMEOUTS[keyof typeof TIMEOUTS];
+export type TimeoutValue = (typeof TIMEOUTS)[keyof typeof TIMEOUTS];
 
 /**
  * Timeout 헬퍼 함수
