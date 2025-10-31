@@ -29,13 +29,13 @@ test.describe('관리자 페이지 버튼 테스트', () => {
     await activateAdminMode(page);
     console.log('✅ 관리자 모드 활성화 완료 (API)');
 
-    // 2. 대시보드로 이동
-    await navigateToAdminDashboard(page, false);
-    console.log('✅ 대시보드 접근 완료');
+    // 2. 대시보드로 직접 이동 (helper 함수 우회하여 timeout 전 진단)
+    console.log('🔍 [Step 4] Bypassing helper to diagnose BEFORE timeout...');
+    await page.goto(`${VERCEL_URL}/dashboard`);
+    await page.waitForLoadState('networkidle');
+    console.log('✅ Navigation complete, performing IMMEDIATE DOM diagnostics');
 
-    await page.waitForTimeout(2000);
-
-    // Step 4: React commit phase investigation - DOM structure analysis
+    // Step 4: React commit phase investigation - IMMEDIATE DOM inspection
     console.log('🔍 [Step 4] Investigating React commit phase...');
 
     // Check if element exists in DOM at all
