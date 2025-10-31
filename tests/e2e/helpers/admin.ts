@@ -277,10 +277,14 @@ export async function activateAdminMode(
     );
 
     // 4단계: 테스트 모드 헤더 설정 (쿠키보다 확실한 방법)
+    // 🔑 CRITICAL: Add x-vercel-protection-bypass header for page navigation
+    // This header was previously only sent in fetch() calls, not page requests
+    // Without this, Vercel SSO Protection blocks dashboard page navigation
     await page.setExtraHTTPHeaders({
       'X-Test-Mode': 'enabled',
       'X-Test-Token': authResponse.accessToken || 'test-mode-active',
       'User-Agent': 'Playwright Test Agent',
+      'x-vercel-protection-bypass': vercelBypassSecret, // 🔑 ADD BYPASS FOR PAGE NAVIGATION
     });
 
     console.log('✅ [Admin Helper] 테스트 모드 헤더 설정 완료');
