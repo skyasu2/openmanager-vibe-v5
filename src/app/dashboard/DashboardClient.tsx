@@ -360,15 +360,35 @@ function DashboardPageContent() {
   const [isMounted, setIsMounted] = useState(false);
 
   // 🧪 테스트 모드 감지 - 즉시 동기적으로 체크 (useEffect 타이밍 이슈 해결)
+  // FIX: Check BOTH cookie methods synchronously for E2E test reliability
   const [testModeDetected, setTestModeDetected] = useState(() => {
     if (typeof window === 'undefined') return false;
 
+    // Check both cookie patterns that E2E tests use
     const hasTestModeCookie = document.cookie.includes('test_mode=enabled');
     const hasTestToken = document.cookie.includes('vercel_test_token=');
 
-    if (hasTestModeCookie || hasTestToken) {
+    // Also check function-based detection for immediate sync check
+    const functionBasedDetection = (() => {
+      try {
+        const cookies = document.cookie.split(';').map((c) => c.trim());
+        return cookies.some(
+          (c) =>
+            c.startsWith('test_mode=enabled') ||
+            c.startsWith('vercel_test_token=')
+        );
+      } catch {
+        return false;
+      }
+    })();
+
+    const isTestMode =
+      hasTestModeCookie || hasTestToken || functionBasedDetection;
+
+    if (isTestMode) {
       console.log(
-        '✅ [DashboardClient] 테스트 모드 감지 (초기 렌더) - dashboard-container 즉시 렌더링'
+        '✅ [DashboardClient] 테스트 모드 감지 (초기 렌더) - dashboard-container 즉시 렌더링',
+        { hasTestModeCookie, hasTestToken, functionBasedDetection }
       );
       return true;
     }
