@@ -35,6 +35,49 @@ test.describe('관리자 페이지 버튼 테스트', () => {
 
     await page.waitForTimeout(2000);
 
+    // Step 4: React commit phase investigation - DOM structure analysis
+    console.log('🔍 [Step 4] Investigating React commit phase...');
+
+    // Check if element exists in DOM at all
+    const domDiagnostic = await page.evaluate(() => {
+      const container = document.querySelector(
+        '[data-testid="dashboard-container"]'
+      );
+      const allTestIds = Array.from(
+        document.querySelectorAll('[data-testid]')
+      ).map((el) => el.getAttribute('data-testid'));
+
+      return {
+        containerExists: !!container,
+        containerVisible: container
+          ? window.getComputedStyle(container).display !== 'none'
+          : false,
+        containerStyles: container
+          ? {
+              display: window.getComputedStyle(container).display,
+              visibility: window.getComputedStyle(container).visibility,
+              opacity: window.getComputedStyle(container).opacity,
+              position: window.getComputedStyle(container).position,
+            }
+          : null,
+        bodyHTML: document.body.innerHTML.substring(0, 500), // First 500 chars
+        allTestIds,
+        documentReady: document.readyState,
+      };
+    });
+
+    console.log('📊 [Step 4] DOM Diagnostic Results:', {
+      ...domDiagnostic,
+      timestamp: Date.now(),
+    });
+
+    // Take screenshot for visual debugging
+    await page.screenshot({
+      path: '/tmp/dashboard-dom-debug.png',
+      fullPage: true,
+    });
+    console.log('📸 [Step 4] Screenshot saved to /tmp/dashboard-dom-debug.png');
+
     // 3. 프로필 드롭다운 열기
     // UI 상태가 쿠키 동기화 전에는 "사용자"로 표시될 수 있으므로 두 텍스트 모두 허용
     const profileButton = page
