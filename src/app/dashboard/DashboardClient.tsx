@@ -29,6 +29,7 @@ import { AlertTriangle } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import {
   Suspense,
+  useRef,
   useCallback,
   useEffect,
   useState,
@@ -356,6 +357,17 @@ function checkTestMode(): boolean {
 }
 
 function DashboardPageContent() {
+  // 🔍 DIAGNOSTIC: Render cycle tracking for E2E investigation
+  const renderCountRef = useRef(0);
+
+  useEffect(() => {
+    renderCountRef.current++;
+    console.log('🔄 [DashboardClient] Render cycle', {
+      timestamp: Date.now(),
+      renderCount: renderCountRef.current,
+    });
+  });
+
   // 🔒 Hydration 불일치 방지를 위한 클라이언트 전용 상태
   const [isMounted, setIsMounted] = useState(false);
 
@@ -845,6 +857,20 @@ function DashboardPageContent() {
       </div>
     );
   }
+
+  // 🎯 DIAGNOSTIC: Final state check before dashboard-container return
+  console.log('🎯 [DashboardClient] About to return dashboard-container', {
+    timestamp: Date.now(),
+    isMounted,
+    testModeDetected,
+    checkTestMode: checkTestMode(),
+    authLoading,
+    permissionsUserType: permissions.userType,
+    canAccessDashboard: permissions.canAccessDashboard,
+    isPinAuth,
+    isGuestFullAccessEnabled: isGuestFullAccessEnabled(),
+    renderCount: renderCountRef.current,
+  });
 
   return (
     <div
