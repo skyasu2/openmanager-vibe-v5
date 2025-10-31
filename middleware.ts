@@ -34,7 +34,7 @@ const WILDCARD_PATTERNS: RegExp[] = [];
 function initializeIPWhitelist() {
   const allowedIPsEnv = process.env.ALLOWED_TEST_IPS || '';
   const allowedIPs = allowedIPsEnv
-    ? allowedIPsEnv.split(',').map(ip => ip.trim())
+    ? allowedIPsEnv.split(',').map((ip) => ip.trim())
     : ['121.138.139.74']; // Default: 사용자 현재 IP
 
   for (const ip of allowedIPs) {
@@ -44,7 +44,7 @@ function initializeIPWhitelist() {
       const mask = ~((1 << (32 - parseInt(bits))) - 1);
       CIDR_RANGES.push({
         network: ipToInt(network),
-        mask
+        mask,
       });
     } else if (ip.includes('*')) {
       // 와일드카드 (예: 121.138.*.*)
@@ -96,7 +96,7 @@ const RATE_LIMITS = {
   'tier-hobby': {
     requests: 1000, // per hour
     bandwidth: 30 * 1024 * 1024 * 1024, // 30GB per month
-  }
+  },
 } as const;
 
 // ============================================================
@@ -104,10 +104,10 @@ const RATE_LIMITS = {
 // ============================================================
 
 const REGION_OPTIMIZATIONS = {
-  'KR': { cdn: 'asia', cache: 'aggressive' },
-  'US': { cdn: 'america', cache: 'standard' },
-  'EU': { cdn: 'europe', cache: 'standard' },
-  'default': { cdn: 'global', cache: 'standard' }
+  KR: { cdn: 'asia', cache: 'aggressive' },
+  US: { cdn: 'america', cache: 'standard' },
+  EU: { cdn: 'europe', cache: 'standard' },
+  default: { cdn: 'global', cache: 'standard' },
 } as const;
 
 // ============================================================
@@ -115,8 +115,9 @@ const REGION_OPTIMIZATIONS = {
 // ============================================================
 
 const PLAYWRIGHT_UA_REGEX = /Playwright|HeadlessChrome/i;
-const IS_DEV_ENV = process.env.NODE_ENV === 'development' ||
-                   process.env.VERCEL_ENV === 'development';
+const IS_DEV_ENV =
+  process.env.NODE_ENV === 'development' ||
+  process.env.VERCEL_ENV === 'development';
 
 // ============================================================
 // 🔧 미들웨어 메인 함수
@@ -131,15 +132,16 @@ export async function middleware(request: NextRequest) {
     // 1️⃣ 🔒 IP 화이트리스트 체크 (/api/test/* 경로만)
     // ============================================================
     if (pathname.startsWith('/api/test/')) {
-      const clientIP = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
-                       request.headers.get('x-real-ip') ||
-                       'unknown';
+      const clientIP =
+        request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+        request.headers.get('x-real-ip') ||
+        'unknown';
 
       if (!isIPAllowed(clientIP)) {
         console.warn('🚨 [IP Security] 차단된 IP에서 테스트 API 접근 시도:', {
           ip: clientIP,
           path: pathname,
-          allowedIPs: Array.from(EXACT_IPS).join(', ')
+          allowedIPs: Array.from(EXACT_IPS).join(', '),
         });
 
         return NextResponse.json(
@@ -147,7 +149,7 @@ export async function middleware(request: NextRequest) {
             success: false,
             error: 'IP_NOT_ALLOWED',
             message: '허용되지 않은 IP에서의 접근입니다.',
-            yourIP: clientIP
+            yourIP: clientIP,
           },
           { status: 403 }
         );
@@ -185,20 +187,18 @@ export async function middleware(request: NextRequest) {
       }
 
       // 🔐 Supabase 세션 직접 검증 (Edge Runtime 호환)
-      const supabase = createServerClient(
-        supabaseUrl,
-        supabaseKey,
-        {
-          cookies: {
-            get: (name: string) => {
-              const cookie = request.cookies.get(name) as { name: string; value: string } | undefined;
-              return cookie?.value;
-            },
-            set: () => {}, // Edge Runtime에서는 쿠키 설정 불필요
-            remove: () => {},
+      const supabase = createServerClient(supabaseUrl, supabaseKey, {
+        cookies: {
+          get: (name: string) => {
+            const cookie = request.cookies.get(name) as
+              | { name: string; value: string }
+              | undefined;
+            return cookie?.value;
           },
-        }
-      );
+          set: () => {}, // Edge Runtime에서는 쿠키 설정 불필요
+          remove: () => {},
+        },
+      });
 
       // 🔐 Supabase 세션 검증 (에러 처리 포함)
       let session = null;
@@ -212,8 +212,14 @@ export async function middleware(request: NextRequest) {
 
       if (!session) {
         // Supabase 세션 없음 → Guest 쿠키 확인 (fallback)
-        const guestCookie = request.cookies.get('guest_session_id') as { name: string; value: string } | undefined;
-        const authType = (request.cookies.get('auth_type') as { name: string; value: string } | undefined)?.value;
+        const guestCookie = request.cookies.get('guest_session_id') as
+          | { name: string; value: string }
+          | undefined;
+        const authType = (
+          request.cookies.get('auth_type') as
+            | { name: string; value: string }
+            | undefined
+        )?.value;
 
         if (!guestCookie || authType !== 'guest') {
           // Guest 쿠키도 없음 → 로그인 페이지로
@@ -223,7 +229,9 @@ export async function middleware(request: NextRequest) {
 
         // Guest 쿠키 존재 → /main (게스트 모드)
         console.log('🔐 미들웨어: Guest 쿠키 확인 → /main (게스트 모드)');
-        const guestResponse = NextResponse.redirect(new URL('/main', request.url));
+        const guestResponse = NextResponse.redirect(
+          new URL('/main', request.url)
+        );
 
         // 🛡️ CSRF 토큰 설정 (게스트)
         setupCSRFProtection(guestResponse);
@@ -244,19 +252,21 @@ export async function middleware(request: NextRequest) {
     // ============================================================
     // 3️⃣-A 🔐 관리자 페이지 접근 체크
     // ============================================================
-    
+
     // 🎛️ 환경 변수 기반 게스트 모드 체크
     const isGuestFullAccess = isGuestFullAccessEnabled();
-    
+
     if (pathname.startsWith('/admin')) {
       // 🧪 테스트 모드 확인
       if (isTestMode(request)) {
         console.log('✅ 미들웨어: 테스트 모드 - /admin 접근 자동 허용');
-      } 
+      }
       // 🎛️ 게스트 전체 접근 모드
       else if (isGuestFullAccess) {
-        console.log('✅ 미들웨어: 게스트 전체 접근 모드 - /admin 접근 허용 (NEXT_PUBLIC_GUEST_MODE=full_access)');
-      } 
+        console.log(
+          '✅ 미들웨어: 게스트 전체 접근 모드 - /admin 접근 허용 (NEXT_PUBLIC_GUEST_MODE=full_access)'
+        );
+      }
       // 🔐 프로덕션 모드: admin_mode 쿠키 체크
       else {
         const adminModeCookie = getCookieValue(request, 'admin_mode');
@@ -290,11 +300,13 @@ export async function middleware(request: NextRequest) {
 
     // ⚡ 요청 경로별 최적화
     const isAPI = pathname.startsWith('/api');
-    const isStatic = pathname.includes('/_next/static') || pathname.includes('/static');
+    const isStatic =
+      pathname.includes('/_next/static') || pathname.includes('/static');
 
     // 🎯 지역별 최적화 적용
-    const regionConfig = REGION_OPTIMIZATIONS[country as keyof typeof REGION_OPTIMIZATIONS]
-      || REGION_OPTIMIZATIONS.default;
+    const regionConfig =
+      REGION_OPTIMIZATIONS[country as keyof typeof REGION_OPTIMIZATIONS] ||
+      REGION_OPTIMIZATIONS.default;
 
     // 📈 동적 헤더 생성
     const headers = new Headers();
@@ -313,14 +325,22 @@ export async function middleware(request: NextRequest) {
 
     // 🛡️ 무료 티어 보호 헤더
     headers.set('X-Rate-Limit-Tier', 'hobby');
-    headers.set('X-Rate-Limit-Requests', RATE_LIMITS['tier-hobby'].requests.toString());
+    headers.set(
+      'X-Rate-Limit-Requests',
+      RATE_LIMITS['tier-hobby'].requests.toString()
+    );
 
     // ⚡ API 요청별 특별 처리
     if (isAPI) {
       // Edge Runtime API 우선 라우팅
-      if (pathname.includes('/web-vitals') || pathname.includes('/vercel-usage') ||
-          pathname.includes('/ping') || pathname.includes('/time') ||
-          pathname.includes('/version') || pathname.includes('/simulate/data')) {
+      if (
+        pathname.includes('/web-vitals') ||
+        pathname.includes('/vercel-usage') ||
+        pathname.includes('/ping') ||
+        pathname.includes('/time') ||
+        pathname.includes('/version') ||
+        pathname.includes('/simulate/data')
+      ) {
         headers.set('X-Runtime-Priority', 'edge');
         headers.set('X-Optimization-Level', 'maximum');
       } else {
@@ -331,7 +351,10 @@ export async function middleware(request: NextRequest) {
       // API별 캐싱 힌트
       if (pathname.includes('/health') || pathname.includes('/ping')) {
         headers.set('X-Cache-Hint', 'short-ttl'); // 짧은 캐시
-      } else if (pathname.includes('/version') || pathname.includes('/enterprise')) {
+      } else if (
+        pathname.includes('/version') ||
+        pathname.includes('/enterprise')
+      ) {
         headers.set('X-Cache-Hint', 'long-ttl'); // 긴 캐시
       }
     }
@@ -372,7 +395,6 @@ export async function middleware(request: NextRequest) {
     setupCSRFProtection(response);
 
     return response;
-
   } catch (error) {
     // 🚨 에러 발생 시 안전한 폴백
     console.error('🚨 미들웨어 에러:', error);
@@ -417,8 +439,8 @@ export const config = {
      * - /_next/image (이미지 최적화)
      * - /favicon.ico (파비콘)
      */
-    '/api/test/:path*',  // IP 화이트리스트 적용
-    '/((?!auth|login|api|_next/static|_next/image|favicon.ico).*)',  // 인증 + 성능 최적화
+    '/api/test/:path*', // IP 화이트리스트 적용
+    '/((?!auth|login|api|_next/static|_next/image|favicon.ico).*)', // 인증 + 성능 최적화
   ],
 };
 
@@ -440,22 +462,81 @@ export const config = {
  * - 조기 반환 패턴 (빠른 체크 먼저)
  */
 function isTestMode(request: NextRequest): boolean {
+  console.log(
+    '🔍 [Middleware] isTestMode() called, checking test mode signals...'
+  );
+
   // ⚡ 조기 반환 패턴 - 가장 빠른 체크부터
 
   // 1️⃣ 쿠키 체크 (가장 빠름)
-  if (hasCookie(request, 'vercel_test_token')) return true;
-  if (getCookieValue(request, 'test_mode') === 'enabled') return true;
+  const hasVercelToken = hasCookie(request, 'vercel_test_token');
+  console.log('🔍 [Middleware] hasCookie(vercel_test_token):', hasVercelToken);
+  if (hasVercelToken) {
+    console.log(
+      '✅ [Middleware] isTestMode() returning TRUE via vercel_test_token cookie'
+    );
+    return true;
+  }
+
+  const testModeValue = getCookieValue(request, 'test_mode');
+  const testModeCookieEnabled = testModeValue === 'enabled';
+  console.log(
+    '🔍 [Middleware] getCookieValue(test_mode):',
+    testModeValue,
+    '→ enabled?',
+    testModeCookieEnabled
+  );
+  if (testModeCookieEnabled) {
+    console.log(
+      '✅ [Middleware] isTestMode() returning TRUE via test_mode cookie'
+    );
+    return true;
+  }
 
   // 2️⃣ 헤더 체크 (빠름)
-  if (request.headers.get('X-Test-Mode') === 'enabled') return true;
-  if (request.headers.get('X-Test-Token')) return true;
+  const xTestModeHeader = request.headers.get('X-Test-Mode');
+  const xTestModeEnabled = xTestModeHeader === 'enabled';
+  console.log(
+    '🔍 [Middleware] X-Test-Mode header:',
+    xTestModeHeader,
+    '→ enabled?',
+    xTestModeEnabled
+  );
+  if (xTestModeEnabled) {
+    console.log(
+      '✅ [Middleware] isTestMode() returning TRUE via X-Test-Mode header'
+    );
+    return true;
+  }
+
+  const xTestToken = request.headers.get('X-Test-Token');
+  console.log(
+    '🔍 [Middleware] X-Test-Token header:',
+    xTestToken ? 'present' : 'missing'
+  );
+  if (xTestToken) {
+    console.log(
+      '✅ [Middleware] isTestMode() returning TRUE via X-Test-Token header'
+    );
+    return true;
+  }
 
   // 3️⃣ User-Agent 체크 (느림 - 개발 환경에서만)
   if (IS_DEV_ENV) {
     const userAgent = request.headers.get('user-agent') || '';
-    return PLAYWRIGHT_UA_REGEX.test(userAgent);
+    const uaMatches = PLAYWRIGHT_UA_REGEX.test(userAgent);
+    console.log('🔍 [Middleware] User-Agent check (dev only):', uaMatches);
+    if (uaMatches) {
+      console.log(
+        '✅ [Middleware] isTestMode() returning TRUE via User-Agent pattern'
+      );
+      return true;
+    }
   }
 
+  console.log(
+    '❌ [Middleware] isTestMode() returning FALSE - no test mode signals detected'
+  );
   return false;
 }
 
