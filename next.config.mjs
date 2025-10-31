@@ -100,8 +100,8 @@ const nextConfig = {
 
   // 컴파일러 최적화
   compiler: {
-    // 미사용 코드 제거
-    removeConsole: process.env.NODE_ENV === 'production',
+    // 미사용 코드 제거 (E2E 테스트 시 console.log 보존)
+    removeConsole: process.env.NODE_ENV === 'production' && process.env.PRESERVE_CONSOLE !== 'true',
     // React DevTools 제거 (프로덕션 + 테스트 모드)
     reactRemoveProperties: process.env.NODE_ENV === 'production' || process.env.__NEXT_TEST_MODE === 'true',
   },
