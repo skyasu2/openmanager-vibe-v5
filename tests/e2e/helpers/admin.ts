@@ -610,28 +610,44 @@ export async function ensureGuestLogin(page: Page): Promise<void> {
     }, result);
 
     // 테스트 모드 쿠키 설정 (Middleware 우회용)
-    // 🔧 FIX: domain 대신 url 사용으로 쿠키 전송 보장
+    // 🔧 FIX: domain 사용 및 쿠키 검증 추가로 타이밍 이슈 해결
     const currentUrl = page.url();
-    const cookieUrl = new URL(currentUrl).origin;
+    const cookieDomain = new URL(currentUrl).hostname;
 
     await page.context().addCookies([
       {
         name: 'test_mode',
         value: 'enabled',
-        url: cookieUrl,
+        domain: cookieDomain,
+        path: '/',
         httpOnly: false,
-        sameSite: 'Lax', // 같은 사이트 내 네비게이션에는 Lax가 적합
+        sameSite: 'Lax',
       },
       {
         name: 'vercel_test_token',
         value: result.accessToken || 'test-mode-active',
-        url: cookieUrl,
-        httpOnly: false, // middleware가 읽을 수 있도록 false로 변경
-        sameSite: 'Lax', // 같은 사이트 내 네비게이션에는 Lax가 적합
+        domain: cookieDomain,
+        path: '/',
+        httpOnly: false,
+        sameSite: 'Lax',
       },
     ]);
 
-    console.log('✅ [Admin Helper] 게스트 로그인 완료 (API 기반 + 쿠키 설정)');
+    // 🔧 FIX: 쿠키가 실제로 설정되었는지 검증 (타이밍 이슈 방지)
+    await page.waitForFunction(
+      () => {
+        const cookies = document.cookie;
+        return (
+          cookies.includes('test_mode=enabled') &&
+          cookies.includes('vercel_test_token')
+        );
+      },
+      { timeout: 5000 }
+    );
+
+    console.log(
+      '✅ [Admin Helper] 게스트 로그인 완료 (API 기반 + 쿠키 설정 및 검증)'
+    );
   } catch (error) {
     console.error('❌ [Admin Helper] 게스트 로그인 실패:', error);
     throw error;
