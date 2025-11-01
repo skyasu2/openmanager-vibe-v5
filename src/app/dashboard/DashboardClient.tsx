@@ -374,15 +374,44 @@ function DashboardPageContent() {
   // 🧪 테스트 모드 감지 - 즉시 동기적으로 체크 (useEffect 타이밍 이슈 해결)
   // FIX: Check BOTH cookie methods synchronously for E2E test reliability
   const [testModeDetected, setTestModeDetected] = useState(() => {
-    if (typeof window === 'undefined') return false;
+    console.log('🔍 [DEBUG Step 1] testModeDetected initializer START', {
+      timestamp: Date.now(),
+      windowDefined: typeof window !== 'undefined',
+    });
+
+    if (typeof window === 'undefined') {
+      console.log('🔍 [DEBUG Step 2] SSR mode detected - returning false');
+      return false;
+    }
+
+    console.log('🔍 [DEBUG Step 3] Client-side detected - checking cookies', {
+      cookieString: document.cookie,
+      cookieLength: document.cookie.length,
+      nodeEnv: process.env.NODE_ENV,
+      nextPublicEnv: process.env.NEXT_PUBLIC_NODE_ENV,
+    });
 
     // Check for test mode cookies first (works in all environments)
     const hasTestModeCookie = document.cookie.includes('test_mode=enabled');
     const hasTestToken = document.cookie.includes('vercel_test_token=');
 
+    console.log('🔍 [DEBUG Step 4] Cookie detection results', {
+      hasTestModeCookie,
+      hasTestToken,
+      cookieParts: document.cookie.split(';').map((c) => c.trim()),
+    });
+
     // 🔒 Production: Require BOTH cookies for security while allowing E2E tests
     if (process.env.NODE_ENV === 'production') {
+      console.log('🔍 [DEBUG Step 5] Production mode path entered');
       const isTestMode = hasTestModeCookie && hasTestToken;
+      console.log('🔍 [DEBUG Step 6] Test mode calculation', {
+        isTestMode,
+        hasTestModeCookie,
+        hasTestToken,
+        andResult: hasTestModeCookie && hasTestToken,
+      });
+
       if (isTestMode) {
         console.log(
           '🧪 [Security] 프로덕션: 테스트 모드 쿠키 감지 - E2E 테스트 허용'
@@ -394,6 +423,10 @@ function DashboardPageContent() {
       }
       return isTestMode;
     }
+
+    console.log(
+      '🔍 [DEBUG Step 7] NOT production mode - using development path'
+    );
 
     // Development mode: use full detection logic with additional checks
     const functionBasedDetection = (() => {
