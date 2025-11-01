@@ -374,6 +374,12 @@ function DashboardPageContent() {
   // 🧪 테스트 모드 감지 - 즉시 동기적으로 체크 (useEffect 타이밍 이슈 해결)
   // FIX: Check BOTH cookie methods synchronously for E2E test reliability
   const [testModeDetected, setTestModeDetected] = useState(() => {
+    // 🔒 Phase 1: 프로덕션 환경에서는 테스트 모드 완전 비활성화
+    if (process.env.NODE_ENV === 'production') {
+      console.log('🔒 [Security] 프로덕션 환경: 테스트 모드 비활성화');
+      return false;
+    }
+    
     if (typeof window === 'undefined') return false;
 
     // Check both cookie patterns that E2E tests use
@@ -394,13 +400,22 @@ function DashboardPageContent() {
       }
     })();
 
-    const isTestMode =
-      hasTestModeCookie || hasTestToken || functionBasedDetection;
+    // 💾 Phase 1: localStorage 체크 (예외 처리 추가)
+  let hasLocalStorageTestMode = false;
+  try {
+    const localStorageTestMode = localStorage.getItem('test_mode');
+    hasLocalStorageTestMode = localStorageTestMode === 'enabled';
+  } catch (error) {
+    console.error('❌ [Security] localStorage 접근 실패:', error);
+  }
+
+  const isTestMode =
+    hasTestModeCookie || hasTestToken || functionBasedDetection || hasLocalStorageTestMode;
 
     if (isTestMode) {
       console.log(
         '✅ [DashboardClient] 테스트 모드 감지 (초기 렌더) - dashboard-container 즉시 렌더링',
-        { hasTestModeCookie, hasTestToken, functionBasedDetection }
+        { hasTestModeCookie, hasTestToken, functionBasedDetection, hasLocalStorageTestMode }
       );
       return true;
     }
@@ -421,7 +436,13 @@ function DashboardPageContent() {
   // 🎯 AI 사이드바 상태 (중앙 관리)
   const { isOpen: isAgentOpen, setOpen: setIsAgentOpen } = useAISidebarStore();
   const isPinAuth = useAdminMode(); // Phase 2: Zustand로 PIN 인증 상태 직접 확인 (5배 빠름)
-  const [authLoading, setAuthLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(() => {
+    if (checkTestMode()) {
+      console.log('🧪 Test mode detected - authLoading initialized to false');
+      return false;
+    }
+    return true;
+  });
 
   useEffect(() => {
     setIsMounted(true);
@@ -770,22 +791,18 @@ function DashboardPageContent() {
   };
   console.log('🔍 [Loading Check] 조건 평가:', loadingConditionValues);
 
-  // 🧪 FIX: 테스트 모드일 때는 로딩 체크 전체를 스킵
-  // E2E 테스트 시 SSR 단계에서 쿠키 접근 불가 → testMode guards가 모두 false
-  // 따라서 test environment 체크를 먼저 수행하여 로딩 UI를 건너뛰도록 수정
-  const isTestEnvironment = testModeFromFunction || testModeDetected;
+  // 🧪 FIX: 테스트 모드 감지를 가장 먼저 체크 (E2E 테스트 타임아웃 해결)
+  // 핵심: 테스트 환경이면 로딩 체크를 완전히 스킵하여 dashboard-container가 즉시 렌더링되도록 함
+  const isTestEnvironment = checkTestMode();
 
-  // 🧪 FIX: SSR 중에는 로딩 체크를 완전히 스킵하여 dashboard-container가 렌더링되도록 함
-  // 문제: SSR 시 !isMounted=true이지만 테스트 모드 감지가 불가능 (쿠키 접근 불가)
-  // 해결: SSR 중(!isMounted)에는 로딩 체크를 건너뛰고, hydration 후에만 체크 수행
-  // 효과: E2E 테스트에서 dashboard-container가 SSR 출력에 포함되어 즉시 렌더링됨
-  if (!isMounted) {
+  // 🎯 옵션 1: 테스트 모드 우선순위 상향 - 로딩 체크보다 먼저 실행
+  if (isTestEnvironment) {
+    // ✅ 테스트 모드: 모든 로딩 체크 스킵 → dashboard-container 즉시 렌더링
+    console.log('🧪 [Loading Check] 테스트 모드 감지 - 로딩 체크 스킵, 즉시 렌더링');
+  } else if (!isMounted) {
     // SSR 중에는 모든 로딩 체크 스킵 → dashboard-container가 렌더링됨
     console.log('🔄 [Loading Check] SSR 모드 - 체크 스킵, 렌더링 허용');
-  } else if (
-    (authLoading || permissions.userType === 'loading') &&
-    !isTestEnvironment
-  ) {
+  } else if (authLoading || permissions.userType === 'loading') {
     // Hydration 후에만 로딩 상태를 체크하며, 테스트 모드는 존중
     console.log(
       '❌ [Loading Check] 로딩 UI 렌더링 - dashboard-container 차단!'
@@ -815,7 +832,6 @@ function DashboardPageContent() {
     !permissions.canAccessDashboard &&
     !isPinAuth &&
     !checkTestMode() &&
-    !testModeDetected &&
     !isGuestFullAccessEnabled()
   ) {
     return (

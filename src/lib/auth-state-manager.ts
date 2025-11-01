@@ -374,6 +374,9 @@ export class AuthStateManager {
       const cookiesToClear = [
         'auth_session_id',
         'auth_type',
+        // 🔒 Phase 1: 테스트 모드 쿠키 정리 (프로덕션 보안 강화)
+        'test_mode',
+        'vercel_test_token',
       ];
       
       cookiesToClear.forEach(cookie => {

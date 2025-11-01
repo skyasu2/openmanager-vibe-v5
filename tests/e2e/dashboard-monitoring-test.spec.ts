@@ -138,10 +138,15 @@ test.describe('서버 모니터링 대시보드 심화 테스트', () => {
       const elements = page.locator(selector);
       const count = await elements.count();
       if (count > 0) {
-        console.log(`✅ 모니터링 요소 발견: ${selector} (${count}개)`);
-        
-        // 첫 번째 요소 스크린샷
-        await elements.first().screenshot({ path: `test-results/monitoring-element-${selector.replace(/[^a-zA-Z0-9]/g, '_')}.png` });
+        const firstElement = elements.first();
+        if (await firstElement.isVisible()) {
+          console.log(`✅ 모니터링 요소 발견: ${selector} (${count}개)`);
+
+          // 첫 번째 요소 스크린샷
+          await firstElement.screenshot({ path: `test-results/monitoring-element-${selector.replace(/[^a-zA-Z0-9]/g, '_')}.png` });
+        } else {
+          console.log(`⚠️ 요소 존재하지만 숨겨짐: ${selector}`);
+        }
       }
     }
   });

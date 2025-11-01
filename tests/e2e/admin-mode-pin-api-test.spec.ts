@@ -32,6 +32,7 @@ test.describe('🔐 관리자 모드 PIN 인증 API 테스트 (축소 범위)', 
       value: 'enabled',
       domain: 'openmanager-vibe-v5.vercel.app',
       path: '/',
+      expires: Math.floor(Date.now() / 1000) + 1800, // 🔒 Phase 2: 30분 후 자동 만료
       httpOnly: false,
       secure: true,
       sameSite: 'Lax',
