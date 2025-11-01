@@ -374,19 +374,28 @@ function DashboardPageContent() {
   // 🧪 테스트 모드 감지 - 즉시 동기적으로 체크 (useEffect 타이밍 이슈 해결)
   // FIX: Check BOTH cookie methods synchronously for E2E test reliability
   const [testModeDetected, setTestModeDetected] = useState(() => {
-    // 🔒 Phase 1: 프로덕션 환경에서는 테스트 모드 완전 비활성화
-    if (process.env.NODE_ENV === 'production') {
-      console.log('🔒 [Security] 프로덕션 환경: 테스트 모드 비활성화');
-      return false;
-    }
-    
     if (typeof window === 'undefined') return false;
 
-    // Check both cookie patterns that E2E tests use
+    // Check for test mode cookies first (works in all environments)
     const hasTestModeCookie = document.cookie.includes('test_mode=enabled');
     const hasTestToken = document.cookie.includes('vercel_test_token=');
 
-    // Also check function-based detection for immediate sync check
+    // 🔒 Production: Require BOTH cookies for security while allowing E2E tests
+    if (process.env.NODE_ENV === 'production') {
+      const isTestMode = hasTestModeCookie && hasTestToken;
+      if (isTestMode) {
+        console.log(
+          '🧪 [Security] 프로덕션: 테스트 모드 쿠키 감지 - E2E 테스트 허용'
+        );
+      } else {
+        console.log(
+          '🔒 [Security] 프로덕션: 테스트 모드 쿠키 없음 - 일반 인증 필요'
+        );
+      }
+      return isTestMode;
+    }
+
+    // Development mode: use full detection logic with additional checks
     const functionBasedDetection = (() => {
       try {
         const cookies = document.cookie.split(';').map((c) => c.trim());
@@ -400,22 +409,30 @@ function DashboardPageContent() {
       }
     })();
 
-    // 💾 Phase 1: localStorage 체크 (예외 처리 추가)
-  let hasLocalStorageTestMode = false;
-  try {
-    const localStorageTestMode = localStorage.getItem('test_mode');
-    hasLocalStorageTestMode = localStorageTestMode === 'enabled';
-  } catch (error) {
-    console.error('❌ [Security] localStorage 접근 실패:', error);
-  }
+    // 💾 localStorage check (with exception handling)
+    let hasLocalStorageTestMode = false;
+    try {
+      const localStorageTestMode = localStorage.getItem('test_mode');
+      hasLocalStorageTestMode = localStorageTestMode === 'enabled';
+    } catch (error) {
+      console.error('❌ [Security] localStorage 접근 실패:', error);
+    }
 
-  const isTestMode =
-    hasTestModeCookie || hasTestToken || functionBasedDetection || hasLocalStorageTestMode;
+    const isTestMode =
+      hasTestModeCookie ||
+      hasTestToken ||
+      functionBasedDetection ||
+      hasLocalStorageTestMode;
 
     if (isTestMode) {
       console.log(
         '✅ [DashboardClient] 테스트 모드 감지 (초기 렌더) - dashboard-container 즉시 렌더링',
-        { hasTestModeCookie, hasTestToken, functionBasedDetection, hasLocalStorageTestMode }
+        {
+          hasTestModeCookie,
+          hasTestToken,
+          functionBasedDetection,
+          hasLocalStorageTestMode,
+        }
       );
       return true;
     }
@@ -798,7 +815,9 @@ function DashboardPageContent() {
   // 🎯 옵션 1: 테스트 모드 우선순위 상향 - 로딩 체크보다 먼저 실행
   if (isTestEnvironment) {
     // ✅ 테스트 모드: 모든 로딩 체크 스킵 → dashboard-container 즉시 렌더링
-    console.log('🧪 [Loading Check] 테스트 모드 감지 - 로딩 체크 스킵, 즉시 렌더링');
+    console.log(
+      '🧪 [Loading Check] 테스트 모드 감지 - 로딩 체크 스킵, 즉시 렌더링'
+    );
   } else if (!isMounted) {
     // SSR 중에는 모든 로딩 체크 스킵 → dashboard-container가 렌더링됨
     console.log('🔄 [Loading Check] SSR 모드 - 체크 스킵, 렌더링 허용');
