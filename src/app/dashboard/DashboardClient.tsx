@@ -566,60 +566,54 @@ function DashboardPageContent() {
       setAuthLoading(false);
       return; // cleanup 불필요
     } else {
-      // 🔐 프로덕션 모드: 권한 체크
-      const checkPermissions = () => {
-        const canAccess =
-          permissions.canAccessDashboard ||
-          isPinAuth ||
-          testModeDetected ||
-          isGuestFullAccessEnabled();
+      // 🔐 프로덕션 모드: 권한 체크 (동기 실행 - 타이밍 이슈 제거)
+      const canAccess =
+        permissions.canAccessDashboard ||
+        isPinAuth ||
+        testModeDetected ||
+        isGuestFullAccessEnabled();
 
-        console.log('🔍 대시보드 권한 체크:', {
-          hookAuth: permissions.canAccessDashboard,
-          canAccess: canAccess,
+      console.log('🔍 대시보드 권한 체크:', {
+        hookAuth: permissions.canAccessDashboard,
+        canAccess: canAccess,
+        userType: permissions.userType,
+        loading: permissions.userType === 'loading',
+        testModeDetected: testModeDetected,
+      });
+
+      if (permissions.userType === 'loading') {
+        console.log('⏳ 권한 상태 로딩 중 - 알람 억제');
+        return; // cleanup 불필요
+      }
+
+      if (
+        !canAccess &&
+        (permissions.userType === 'guest' || permissions.userType === 'github')
+      ) {
+        console.log('🚫 대시보드 접근 권한 없음 - 메인 페이지로 이동');
+        toast({
+          variant: 'destructive',
+          title: '접근 권한 없음',
+          description:
+            '대시보드 접근 권한이 없습니다. GitHub 로그인 또는 관리자 모드 인증이 필요합니다.',
+        });
+        router.push('/main');
+        return; // cleanup 불필요
+      }
+
+      if (canAccess) {
+        console.log('✅ 대시보드 접근 권한 확인됨:', {
           userType: permissions.userType,
-          loading: permissions.userType === 'loading',
+          userName: permissions.userName,
+          canAccessDashboard: permissions.canAccessDashboard,
+          isPinAuthenticated: permissions.isPinAuthenticated,
+          isGitHubAuthenticated: permissions.isGitHubAuthenticated,
         });
 
-        if (permissions.userType === 'loading') {
-          console.log('⏳ 권한 상태 로딩 중 - 알람 억제');
-          return;
-        }
+        setAuthLoading(false);
+      }
 
-        if (
-          !canAccess &&
-          (permissions.userType === 'guest' ||
-            permissions.userType === 'github')
-        ) {
-          console.log('🚫 대시보드 접근 권한 없음 - 메인 페이지로 이동');
-          toast({
-            variant: 'destructive',
-            title: '접근 권한 없음',
-            description:
-              '대시보드 접근 권한이 없습니다. GitHub 로그인 또는 관리자 모드 인증이 필요합니다.',
-          });
-          router.push('/main');
-          return;
-        }
-
-        if (canAccess) {
-          console.log('✅ 대시보드 접근 권한 확인됨:', {
-            userType: permissions.userType,
-            userName: permissions.userName,
-            canAccessDashboard: permissions.canAccessDashboard,
-            isPinAuthenticated: permissions.isPinAuthenticated,
-            isGitHubAuthenticated: permissions.isGitHubAuthenticated,
-          });
-
-          setAuthLoading(false);
-        }
-      };
-
-      const timeoutId = setTimeout(checkPermissions, 500);
-
-      return () => {
-        clearTimeout(timeoutId);
-      };
+      // cleanup 불필요 - 동기 실행으로 타이머 없음
     }
   }, [isMounted, permissions, router, testModeDetected]);
 
