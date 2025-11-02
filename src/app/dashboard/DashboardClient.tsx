@@ -621,7 +621,7 @@ function DashboardPageContent() {
         clearTimeout(timeoutId);
       };
     }
-  }, [isMounted, permissions, router]);
+  }, [isMounted, permissions, router, testModeDetected]);
 
   // 🎯 서버 통계 상태 관리 (상단 통계 카드용)
   const [_serverStats, setServerStats] = useState({
