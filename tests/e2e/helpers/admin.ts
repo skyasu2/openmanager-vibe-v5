@@ -655,6 +655,62 @@ export async function ensureGuestLogin(page: Page): Promise<void> {
 }
 
 /**
+ * 🍪 Set test mode cookies for E2E testing in production
+ *
+ * Enables test mode without full admin authentication.
+ * Required for tests that use direct guest login instead of navigateToAdminDashboard().
+ *
+ * @param page - Playwright Page object
+ */
+export async function setTestModeCookies(page: Page): Promise<void> {
+  try {
+    console.log('🍪 [Admin Helper] 테스트 모드 쿠키 설정 시작');
+
+    // Ensure page has proper context
+    await ensurePageContext(page);
+
+    const currentUrl = page.url();
+    const cookieDomain = new URL(currentUrl).hostname;
+
+    await page.context().addCookies([
+      {
+        name: 'test_mode',
+        value: 'enabled',
+        domain: cookieDomain,
+        path: '/',
+        httpOnly: false,
+        sameSite: 'Lax',
+      },
+      {
+        name: 'vercel_test_token',
+        value: process.env.TEST_SECRET_KEY || 'test-secret',
+        domain: cookieDomain,
+        path: '/',
+        httpOnly: false,
+        sameSite: 'Lax',
+      },
+    ]);
+
+    // Verify cookies committed before proceeding
+    await page.waitForFunction(
+      () => {
+        const cookies = document.cookie;
+        return (
+          cookies.includes('test_mode=enabled') &&
+          cookies.includes('vercel_test_token')
+        );
+      },
+      { timeout: 5000 }
+    );
+
+    console.log('✅ [Admin Helper] 테스트 모드 쿠키 설정 및 검증 완료');
+  } catch (error) {
+    console.error('❌ [Admin Helper] 테스트 모드 쿠키 설정 실패:', error);
+    throw error;
+  }
+}
+
+/**
  * 📊 관리자 상태 검증
  *
  * @param page - Playwright Page 객체

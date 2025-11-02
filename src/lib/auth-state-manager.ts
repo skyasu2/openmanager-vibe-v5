@@ -370,14 +370,22 @@ export class AuthStateManager {
     }
 
     // 쿠키 정리
-    if (typeof document !== 'undefined') {
-      const cookiesToClear = [
-        'auth_session_id',
-        'auth_type',
-        // 🔒 Phase 1: 테스트 모드 쿠키 정리 (프로덕션 보안 강화)
-        'test_mode',
-        'vercel_test_token',
-      ];
+  if (typeof document !== 'undefined') {
+    // 🔍 테스트 모드 감지 - 테스트 쿠키 보존 여부 확인
+    const isTestMode = document.cookie.includes('test_mode=enabled') && 
+                       document.cookie.includes('vercel_test_token=');
+    
+    const cookiesToClear = [
+      'auth_session_id',
+      'auth_type',
+    ];
+    
+    // ⚠️ 테스트 모드가 아닐 때만 테스트 쿠키 정리 (프로덕션 보안 강화)
+    if (!isTestMode) {
+      cookiesToClear.push('test_mode', 'vercel_test_token');
+    } else {
+      console.log('🧪 테스트 모드 감지 - 테스트 쿠키 보존');
+    }
       
       cookiesToClear.forEach(cookie => {
         document.cookie = `${cookie}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=Strict`;
