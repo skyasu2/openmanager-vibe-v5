@@ -66,6 +66,37 @@ test.describe('🎯 OpenManager VIBE UI/UX 종합 테스트', () => {
       await expect(guestButton).toBeVisible();
       await guestButton.click();
       await page.waitForLoadState('networkidle'); // 🔧 Wait for navigation to complete
+
+      // 🔍 DIAGNOSTIC: Capture actual URL and HTML to debug rendering issue
+      const actualUrl = page.url();
+      console.log('🔍 [TEST] URL after guest button click:', actualUrl);
+
+      const pageContent = await page.content();
+      const hasDashboardContainer = pageContent.includes(
+        'data-testid="dashboard-container"'
+      );
+      const hasDashboardPage = pageContent.includes('[DashboardPage]');
+      const hasDashboardClient = pageContent.includes('[DashboardClient]');
+
+      console.log('🔍 [TEST] Page analysis:', {
+        hasDashboardContainer,
+        hasDashboardPage,
+        hasDashboardClient,
+        urlMatch: actualUrl.includes('/dashboard'),
+        htmlLength: pageContent.length,
+      });
+
+      // Extract first 800 chars to see what's actually rendering
+      const htmlSnippet = pageContent.substring(0, 800);
+      console.log('🔍 [TEST] HTML snippet (first 800 chars):', htmlSnippet);
+
+      // Look for any React error boundaries or error messages
+      const hasErrorBoundary =
+        pageContent.includes('Something went wrong') ||
+        pageContent.includes('Error:') ||
+        pageContent.includes('Failed to');
+      console.log('🔍 [TEST] Error detection:', { hasErrorBoundary });
+
       await page.waitForSelector('[data-testid="dashboard-container"]');
 
       // 2. 프로필 메뉴 찾기 (다양한 셀렉터 시도)
