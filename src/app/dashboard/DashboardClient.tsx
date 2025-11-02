@@ -472,6 +472,23 @@ function DashboardPageContent() {
 
     return false;
   });
+  // 🔧 FIX: Re-evaluate test mode after client-side mount
+  // Problem: useState initializer runs during SSR (before cookies available)
+  // Solution: Check again after hydration when cookies are guaranteed present
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isTestMode = checkTestMode();
+      if (isTestMode !== testModeDetected) {
+        console.log('🔄 [useEffect] Updating test mode detection:', {
+          before: testModeDetected,
+          after: isTestMode,
+          cookies: document.cookie,
+        });
+        setTestModeDetected(isTestMode);
+      }
+    }
+  }, []); // Run once after mount
+
   const [selectedServer, setSelectedServer] = useState<Server | null>(null); // eslint-disable-line @typescript-eslint/no-redundant-type-constituents
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
