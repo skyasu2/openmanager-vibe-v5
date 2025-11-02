@@ -897,7 +897,7 @@ function DashboardPageContent() {
     isMounted && // ← SSR/Hydration 완료 후에만 권한 체크 실행
     !permissions.canAccessDashboard &&
     !isPinAuth &&
-    !checkTestMode() &&
+    !testModeDetected &&
     !isGuestFullAccessEnabled()
   ) {
     return (
