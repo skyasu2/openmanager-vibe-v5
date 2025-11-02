@@ -571,7 +571,7 @@ function DashboardPageContent() {
         const canAccess =
           permissions.canAccessDashboard ||
           isPinAuth ||
-          checkTestMode() ||
+          testModeDetected ||
           isGuestFullAccessEnabled();
 
         console.log('🔍 대시보드 권한 체크:', {
