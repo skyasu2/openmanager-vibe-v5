@@ -860,7 +860,8 @@ function DashboardPageContent() {
 
   // 🧪 FIX: 테스트 모드 감지를 가장 먼저 체크 (E2E 테스트 타임아웃 해결)
   // 핵심: 테스트 환경이면 로딩 체크를 완전히 스킵하여 dashboard-container가 즉시 렌더링되도록 함
-  const isTestEnvironment = checkTestMode();
+  // ✅ FIX: Use testModeDetected state (updated by useEffect) instead of direct checkTestMode() call
+  const isTestEnvironment = testModeDetected;
 
   // 🎯 Step 4: Loading Gate with Test Mode Priority
   // Only block if NOT test mode AND hydration complete AND still loading
