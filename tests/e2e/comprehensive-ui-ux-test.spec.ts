@@ -65,39 +65,8 @@ test.describe('🎯 OpenManager VIBE UI/UX 종합 테스트', () => {
       const guestButton = page.locator('button:has-text("게스트로 체험하기")');
       await expect(guestButton).toBeVisible();
       await guestButton.click();
-      await page.waitForLoadState('networkidle'); // 🔧 Wait for navigation to /main
-
-      // 🔧 FIX: Explicitly navigate to dashboard after guest login
-      // Evidence: LoginClient.tsx line 193 redirects to '/main', not '/dashboard'
-      // Root cause: Application intentionally redirects to /main, test assumption was wrong
-      await page.goto('/dashboard');
-      await page.waitForLoadState('networkidle');
-
-      // 3. 대시보드 로딩 확인
-      await page.waitForSelector('main, [data-testid="main-content"]', {
-        timeout: 10000,
-      });
-
-      // 4. URL 변화 확인
-      await expect(page).toHaveURL(/\/(dashboard)?/);
-
-      const endTime = Date.now();
-      console.log(`✅ 게스트 로그인 완료: ${endTime - startTime}ms`);
-
-      // 5. 기본 대시보드 요소 확인
-      await expect(page.locator('main')).toBeVisible();
-    });
-
-    test('프로필 메뉴 → 관리자 모드 접근', async ({ page }) => {
-      // 1. 게스트 로그인 먼저 수행
-      await page.goto('/');
-
-      // 🔧 FIX: Set test mode cookies before guest login
-      await setTestModeCookies(page);
-
-      await page.click('button:has-text("게스트로 체험하기")');
       await page.waitForLoadState('networkidle'); // 🔧 Wait for navigation to complete
-      await page.waitForSelector('main');
+      await page.waitForSelector('[data-testid="dashboard-container"]');
 
       // 2. 프로필 메뉴 찾기 (다양한 셀렉터 시도)
       const profileSelectors = [
@@ -645,7 +614,7 @@ test.describe('⚡ 성능 최적화 검증', () => {
     const startTime = Date.now();
 
     await page.goto('/');
-    await page.waitForSelector('main');
+    await page.waitForSelector('[data-testid="dashboard-container"]');
 
     const loadTime = Date.now() - startTime;
     console.log(`📊 페이지 로딩 시간: ${loadTime}ms`);
