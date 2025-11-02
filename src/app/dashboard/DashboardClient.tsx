@@ -862,17 +862,13 @@ function DashboardPageContent() {
   // 핵심: 테스트 환경이면 로딩 체크를 완전히 스킵하여 dashboard-container가 즉시 렌더링되도록 함
   const isTestEnvironment = checkTestMode();
 
-  // 🎯 옵션 1: 테스트 모드 우선순위 상향 - 로딩 체크보다 먼저 실행
-  if (isTestEnvironment) {
-    // ✅ 테스트 모드: 모든 로딩 체크 스킵 → dashboard-container 즉시 렌더링
-    console.log(
-      '🧪 [Loading Check] 테스트 모드 감지 - 로딩 체크 스킵, 즉시 렌더링'
-    );
-  } else if (!isMounted) {
-    // SSR 중에는 모든 로딩 체크 스킵 → dashboard-container가 렌더링됨
-    console.log('🔄 [Loading Check] SSR 모드 - 체크 스킵, 렌더링 허용');
-  } else if (authLoading || permissions.userType === 'loading') {
-    // Hydration 후에만 로딩 상태를 체크하며, 테스트 모드는 존중
+  // 🎯 Step 4: Loading Gate with Test Mode Priority
+  // Only block if NOT test mode AND hydration complete AND still loading
+  if (
+    !isTestEnvironment &&
+    isMounted &&
+    (authLoading || permissions.userType === 'loading')
+  ) {
     console.log(
       '❌ [Loading Check] 로딩 UI 렌더링 - dashboard-container 차단!'
     );
@@ -890,7 +886,13 @@ function DashboardPageContent() {
       </div>
     );
   }
-  console.log('✅ [Loading Check] 통과 - 권한 체크로 진행');
+
+  console.log('✅ [Loading Check] 통과 - 권한 체크로 진행', {
+    isTestEnvironment,
+    isMounted,
+    authLoading,
+    permissionsLoading: permissions.userType === 'loading',
+  });
 
   // 🔒 대시보드 접근 권한이 없는 경우 (GitHub 로그인 또는 PIN 인증 또는 테스트 모드 또는 게스트 전체 접근 모드 필요)
   // 🧪 FIX: 테스트 모드 체크 추가 (E2E 테스트용)
