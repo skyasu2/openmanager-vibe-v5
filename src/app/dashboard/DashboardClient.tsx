@@ -960,6 +960,12 @@ function DashboardPageContent() {
   return (
     <div
       data-testid="dashboard-container"
+      data-test-mode={testModeDetected.toString()}
+      data-cookies-present={(
+        typeof document !== 'undefined' && document.cookie.includes('test_mode')
+      ).toString()}
+      data-hydration-complete={isMounted.toString()}
+      data-check-test-mode-result={checkTestMode().toString()}
       className={cn(
         'flex h-screen bg-gray-100 dark:bg-gray-900',
         isResizing && 'cursor-col-resize'
