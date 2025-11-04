@@ -15,19 +15,26 @@
 
 ## 🧠 Extended Thinking 활용법
 
-> ⚠️ **중요**: 아래 "Magic Keywords"는 **공식 문서에 명시되지 않은 사용자 관례**입니다.  
-> Claude Code 공식 문서(`https://docs.claude.com/en/docs/claude-code/`)에서 이러한 키워드를 확인할 수 없었습니다.  
-> Extended Thinking 기능은 존재하지만, 특정 키워드로 레벨을 제어하는 것은 검증되지 않았습니다.  
-> 실제 효과는 프롬프트 복잡도와 컨텍스트에 따라 달라질 수 있습니다.
+**공식 기능**: Claude Code 공식 문서 기반 Extended Thinking 활용법
 
-### "Magic Keywords" 사용 패턴 (비공식)
+**공식 출처**: `https://docs.claude.com/en/docs/claude-code/common-workflows`
 
-| Keyword          | Level | 응답 시간 | 사용 시나리오        | 예시                                         |
-| ---------------- | ----- | --------- | -------------------- | -------------------------------------------- |
-| **think**        | 1     | ~5초      | 일상 작업, 빠른 검토 | "이 버그를 think 해서 확인해줘"              |
-| **think hard**   | 2     | ~15초     | 코드 리뷰, 설계 검토 | "아키텍처를 think hard 해서 분석해줘"        |
-| **think harder** | 3     | ~30초     | 근본 원인 분석       | "타입 오류를 think harder 해서 찾아줘"       |
-| **ultrathink**   | 4     | ~60초     | 시스템 전체 최적화   | "전체 워크플로우를 ultrathink 해서 개선해줘" |
+### 공식 키워드 사용 패턴
+
+| Keyword          | 심도 | 사용 시나리오        | 예시                                   |
+| ---------------- | ---- | -------------------- | -------------------------------------- |
+| **think**        | 기본 | 일상 작업, 빠른 검토 | "이 버그를 think 해서 확인해줘"        |
+| **think hard**   | 깊은 | 코드 리뷰, 설계 검토 | "아키텍처를 think hard 해서 분석해줘"  |
+| **think longer** | 깊은 | 근본 원인 분석       | "타입 오류를 think longer 해서 찾아줘" |
+| **think more**   | 깊은 | 복잡한 구현 계획     | "이 기능을 think more 해서 구현해줘"   |
+| **think a lot**  | 깊은 | 트레이드오프 평가    | "이 설계를 think a lot 해서 평가해줘"  |
+| **keep hard**    | 깊은 | 코드베이스 전체 이해 | "전체 구조를 keep hard 해서 파악해줘"  |
+
+**성능 가이드라인**:
+
+- ✅ 복잡한 작업에만 활성화 권장 (처리 시간 증가)
+- ✅ 토큰 소비 증가 (Max plan 한도 고려)
+- ✅ 낮은 레벨부터 시작 → 필요 시 단계적 상승
 
 ### 실전 예시
 
@@ -47,8 +54,6 @@
 - 명백한 버그 발견
 - 간단한 개선 제안
 
-**소요 시간**: ~5초
-
 ---
 
 #### Case 2: 아키텍처 리뷰 (think hard)
@@ -67,18 +72,16 @@
 - SOLID 원칙 준수 여부
 - 구체적 개선안 3-5개
 
-**소요 시간**: ~15초
-
 ---
 
-#### Case 3: 복잡한 버그 분석 (think harder)
+#### Case 3: 복잡한 버그 분석 (think longer)
 
 **상황**: 간헐적 타임아웃 이슈
 
 **질문**:
 
 ```
-"Qwen wrapper의 600초 타임아웃 문제를 think harder 해서 근본 원인 찾아줘"
+"Qwen wrapper의 600초 타임아웃 문제를 think longer 해서 근본 원인 찾아줘"
 ```
 
 **기대 결과**:
@@ -87,18 +90,16 @@
 - 재현 조건 분석
 - 구체적 코드 수정안
 
-**소요 시간**: ~30초
-
 ---
 
-#### Case 4: 시스템 전체 최적화 (ultrathink)
+#### Case 4: 시스템 전체 이해 (think a lot)
 
 **상황**: 대규모 리팩토링 계획
 
 **질문**:
 
 ```
-"ResilientAIClient가 프로젝트 전체에 미치는 영향을 ultrathink 해서 최적화 계획 세워줘"
+"ResilientAIClient가 프로젝트 전체에 미치는 영향을 think a lot 해서 최적화 계획 세워줘"
 ```
 
 **기대 결과**:
@@ -107,23 +108,29 @@
 - 4-Phase 구현 로드맵
 - 예상 성능 개선 메트릭
 
-**소요 시간**: ~60초
-
 ---
 
 ### 선택 가이드
 
 ```
-문제 복잡도 낮음 ──────────────────→ 문제 복잡도 높음
-    ↓                                      ↓
-  think        think hard      think harder      ultrathink
-    ↓              ↓                ↓                ↓
-  5초            15초              30초              60초
-    ↓              ↓                ↓                ↓
-일상 작업      코드 리뷰        버그 분석      시스템 설계
+문제 복잡도 낮음 ────────────────────────────→ 문제 복잡도 높음
+    ↓                                                  ↓
+  think         think hard/longer/more/keep hard/a lot
+    ↓                          ↓
+  기본                       깊은 분석
+    ↓                          ↓
+일상 작업            복잡한 설계/분석/계획
 ```
 
-**원칙**: **가장 낮은 레벨에서 시작 → 필요 시 단계적 상승**
+**원칙**: **기본(think)에서 시작 → 필요 시 깊은 분석 키워드 사용**
+
+**깊은 분석 키워드 선택**:
+
+- **think hard**: 코드 리뷰, 설계 검토
+- **think longer**: 근본 원인 분석
+- **think more**: 복잡한 구현 계획
+- **think a lot**: 트레이드오프 평가
+- **keep hard**: 코드베이스 전체 이해
 
 ---
 
@@ -483,7 +490,7 @@
 → 200 토큰 (캐싱!)
 
 # 4. 근본 원인 분석 (Extended Thinking)
-"타입 오류를 think harder 해서 찾아줘"
+"타입 오류를 think longer 해서 찾아줘"
 → 500 토큰
 ```
 
@@ -499,7 +506,7 @@
 → 1,300 토큰
 
 # 2. 성능 분석 (Extended Thinking)
-"전체 워크플로우를 ultrathink 해서 성능 개선안 제시해줘"
+"전체 워크플로우를 think a lot 해서 성능 개선안 제시해줘"
 → 2,000 토큰
 
 # 3. E2E 테스트 (@-mention)
@@ -519,7 +526,7 @@
 
 ```bash
 # 1. 근본 원인 분석 (Extended Thinking)
-"프로덕션 500 에러를 ultrathink 해서 근본 원인 찾아줘"
+"프로덕션 500 에러를 think a lot 해서 근본 원인 찾아줘"
 → 2,000 토큰
 
 # 2. 관련 코드 분석 (@-mention + Caching)
@@ -573,7 +580,7 @@
 
 ## 🎯 핵심 원칙
 
-1. **Extended Thinking**: 낮은 레벨부터 시작 (think → ultrathink)
+1. **Extended Thinking**: 낮은 레벨부터 시작 (think → think hard/longer/more/a lot/keep hard)
 2. **@-mention**: 필요한 서버만 활성화
 3. **Prompt Caching**: 5분 이내 연속 작업
 4. **조합 전략**: 3가지 기능 동시 활용
