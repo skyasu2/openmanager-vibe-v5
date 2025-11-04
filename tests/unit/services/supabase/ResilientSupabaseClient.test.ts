@@ -1,12 +1,13 @@
 /**
  * ResilientSupabaseClient 테스트
- * 
+ *
  * 테스트 대상: ResilientSupabaseClient 클래스
  * 목표: 완전한 fallback 메커니즘과 resilient 기능 검증
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ResilientSupabaseClient } from '@/lib/supabase';
+import { resetSupabaseClient } from '@/lib/supabase-singleton';
 
 // Type definitions for mock objects
 interface MockFromChain {
@@ -57,39 +58,90 @@ const mockSupabaseClient = {
   },
 };
 
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => mockSupabaseClient),
+// Mock the supabase-client module to bypass the Proxy pattern
+// The Proxy in supabase-client.ts calls getSingletonClient() internally,
+// so we need to mock the entire supabase export to prevent the Proxy bypass
+vi.mock('@/lib/supabase/supabase-client', () => ({
+  supabase: mockSupabaseClient,
+  browserSupabase: mockSupabaseClient,
+  getSupabaseUser: vi.fn().mockResolvedValue(null),
+  signOut: vi.fn().mockResolvedValue({ error: null }),
 }));
+
+// Also mock the singleton module for completeness
+vi.mock('@/lib/supabase-singleton', async () => {
+  const actual = await vi.importActual('@/lib/supabase-singleton');
+  return {
+    ...actual,
+    getSupabaseClient: vi.fn(() => mockSupabaseClient),
+  };
+});
 
 describe('ResilientSupabaseClient', () => {
   let resilientClient: ResilientSupabaseClient;
   let mockFromChain: MockFromChain;
   let mockChannel: MockChannel;
+  let mockMatchChain: { match: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
-    vi.clearAllMocks();
+    resetSupabaseClient(); // Clear singleton cache before each test
+
+    // Clear only call history, not mock implementations/return values
+    mockSupabaseClient.from.mockClear();
+    mockSupabaseClient.channel.mockClear();
     mockStorage.clear();
-    
+
     // Import ResilientSupabaseClient using importOriginal to bypass mocks
-    const supabaseModule = await vi.importActual('@/lib/supabase') as MockSupabaseModule;
-    
+    const supabaseModule = (await vi.importActual(
+      '@/lib/supabase'
+    )) as MockSupabaseModule;
+
     // Mock Supabase query chain
-    mockFromChain = {
-      select: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      delete: vi.fn().mockReturnThis(),
-      match: vi.fn().mockReturnThis(),
+    // Note: For UPDATE and DELETE, we need intermediate objects with .match() methods
+    // For SELECT and INSERT, we return promises directly
+
+    // Create mockMatchChain first
+    mockMatchChain = {
+      match: vi.fn(),
     };
 
+    // Configure mockMatchChain.match to return a promise
+    mockMatchChain.match.mockResolvedValue({ data: [], error: null });
+
+    // Create mockFromChain WITHOUT factory functions
+    mockFromChain = {
+      select: vi.fn(),
+      insert: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+      match: vi.fn(),
+    };
+
+    // Set return values AFTER creation and AFTER vi.clearAllMocks()
+    mockFromChain.update.mockReturnValue(mockMatchChain);
+    mockFromChain.delete.mockReturnValue(mockMatchChain);
+
+    // Set default return value for select() - tests will override with specific data
+    mockFromChain.select.mockResolvedValue({ data: [], error: null });
+
+    // Set default return value for insert() - tests will override with specific data
+    mockFromChain.insert.mockResolvedValue({ data: [], error: null });
+
     mockSupabaseClient.from.mockReturnValue(mockFromChain);
+
+    // Clear call history for all mock chain functions
+    mockFromChain.select.mockClear();
+    mockFromChain.insert.mockClear();
+    mockFromChain.update.mockClear();
+    mockFromChain.delete.mockClear();
+    mockMatchChain.match.mockClear();
 
     // Mock realtime channel
     mockChannel = {
       on: vi.fn().mockReturnThis(),
       subscribe: vi.fn().mockReturnThis(),
     };
-    
+
     mockSupabaseClient.channel.mockReturnValue(mockChannel);
 
     resilientClient = new supabaseModule.ResilientSupabaseClient();
@@ -103,7 +155,7 @@ describe('ResilientSupabaseClient', () => {
     it('should successfully retrieve data when Supabase is working', async () => {
       const mockData = [
         { id: '1', name: 'Test User 1' },
-        { id: '2', name: 'Test User 2' }
+        { id: '2', name: 'Test User 2' },
       ];
 
       mockFromChain.select.mockResolvedValue({
@@ -121,13 +173,16 @@ describe('ResilientSupabaseClient', () => {
 
     it('should return fallback data when Supabase returns error', async () => {
       const fallbackData = [{ id: 'cached-1', name: 'Cached User' }];
-      
+
       // Set up fallback data in storage
       mockStorage.set('supabase_cache_users', JSON.stringify(fallbackData));
 
       mockFromChain.select.mockResolvedValue({
         data: null,
-        error: { code: 'CONNECTION_ERROR', message: 'Database connection failed' },
+        error: {
+          code: 'CONNECTION_ERROR',
+          message: 'Database connection failed',
+        },
       });
 
       const result = await resilientClient.from('users');
@@ -158,7 +213,9 @@ describe('ResilientSupabaseClient', () => {
 
       await resilientClient.from('servers');
 
-      expect(mockStorage.get('supabase_cache_servers')).toBe(JSON.stringify(mockData));
+      expect(mockStorage.get('supabase_cache_servers')).toBe(
+        JSON.stringify(mockData)
+      );
     });
 
     it('should handle connection exceptions gracefully', async () => {
@@ -174,7 +231,7 @@ describe('ResilientSupabaseClient', () => {
   describe('🔴 insert() - INSERT operations', () => {
     it('should successfully insert data', async () => {
       const testData = { name: 'New User', email: 'test@example.com' };
-      
+
       mockFromChain.insert.mockResolvedValue({
         data: [testData],
         error: null,
@@ -220,16 +277,19 @@ describe('ResilientSupabaseClient', () => {
       const matchData = { id: '1' };
       const mockResult = [{ id: '1', name: 'Updated Name' }];
 
-      mockFromChain.update.mockReturnThis();
-      mockFromChain.match.mockResolvedValue({
+      mockMatchChain.match.mockResolvedValue({
         data: mockResult,
         error: null,
       });
 
-      const result = await resilientClient.update('users', updateData, matchData);
+      const result = await resilientClient.update(
+        'users',
+        updateData,
+        matchData
+      );
 
       expect(mockFromChain.update).toHaveBeenCalledWith(updateData);
-      expect(mockFromChain.match).toHaveBeenCalledWith(matchData);
+      expect(mockMatchChain.match).toHaveBeenCalledWith(matchData);
       expect(result.data).toEqual(mockResult);
       expect(result.error).toBeNull();
     });
@@ -238,10 +298,13 @@ describe('ResilientSupabaseClient', () => {
       const updateData = { status: 'inactive' };
       const matchData = { id: 'non-existent' };
 
-      mockFromChain.update.mockReturnThis();
-      mockFromChain.match.mockRejectedValue(new Error('Update failed'));
+      mockMatchChain.match.mockRejectedValue(new Error('Update failed'));
 
-      const result = await resilientClient.update('users', updateData, matchData);
+      const result = await resilientClient.update(
+        'users',
+        updateData,
+        matchData
+      );
 
       expect(result.data).toEqual([]);
       expect(result.error).toBeInstanceOf(Error);
@@ -251,13 +314,16 @@ describe('ResilientSupabaseClient', () => {
       const updateData = { name: 'New Name' };
       const matchData = { id: 'missing-id' };
 
-      mockFromChain.update.mockReturnThis();
-      mockFromChain.match.mockResolvedValue({
+      mockMatchChain.match.mockResolvedValue({
         data: [],
         error: { code: 'PGRST116', message: 'No rows found' },
       });
 
-      const result = await resilientClient.update('users', updateData, matchData);
+      const result = await resilientClient.update(
+        'users',
+        updateData,
+        matchData
+      );
 
       expect(result.data).toEqual([]);
       expect(result.error).toBeDefined();
@@ -269,8 +335,7 @@ describe('ResilientSupabaseClient', () => {
       const matchData = { id: '1' };
       const mockResult = [{ id: '1' }];
 
-      mockFromChain.delete.mockReturnThis();
-      mockFromChain.match.mockResolvedValue({
+      mockMatchChain.match.mockResolvedValue({
         data: mockResult,
         error: null,
       });
@@ -278,7 +343,7 @@ describe('ResilientSupabaseClient', () => {
       const result = await resilientClient.delete('users', matchData);
 
       expect(mockFromChain.delete).toHaveBeenCalled();
-      expect(mockFromChain.match).toHaveBeenCalledWith(matchData);
+      expect(mockMatchChain.match).toHaveBeenCalledWith(matchData);
       expect(result.data).toEqual(mockResult);
       expect(result.error).toBeNull();
     });
@@ -286,8 +351,9 @@ describe('ResilientSupabaseClient', () => {
     it('should handle delete failures gracefully', async () => {
       const matchData = { id: 'protected-record' };
 
-      mockFromChain.delete.mockReturnThis();
-      mockFromChain.match.mockRejectedValue(new Error('Delete failed - constraint violation'));
+      mockMatchChain.match.mockRejectedValue(
+        new Error('Delete failed - constraint violation')
+      );
 
       const result = await resilientClient.delete('users', matchData);
 
@@ -298,8 +364,7 @@ describe('ResilientSupabaseClient', () => {
     it('should handle deletion of non-existent records', async () => {
       const matchData = { id: 'non-existent' };
 
-      mockFromChain.delete.mockReturnThis();
-      mockFromChain.match.mockResolvedValue({
+      mockMatchChain.match.mockResolvedValue({
         data: [],
         error: null,
       });
@@ -314,7 +379,7 @@ describe('ResilientSupabaseClient', () => {
   describe('🔴 subscribe() - Realtime subscriptions', () => {
     it('should set up realtime subscription successfully', () => {
       const mockCallback = vi.fn();
-      
+
       resilientClient.subscribe('users', mockCallback);
 
       expect(mockSupabaseClient.channel).toHaveBeenCalledWith('public:users');
@@ -338,7 +403,7 @@ describe('ResilientSupabaseClient', () => {
 
       // Get the callback function passed to mockChannel.on
       const onCallback = mockChannel.on.mock.calls[0][2];
-      
+
       // Simulate receiving a realtime update
       onCallback(mockPayload);
 
@@ -350,22 +415,26 @@ describe('ResilientSupabaseClient', () => {
 
     it('should handle subscription with reconnection logic', () => {
       const mockCallback = vi.fn();
-      
+
       resilientClient.subscribe('metrics', mockCallback);
 
       // Verify system event handler is set up
-      expect(mockChannel.on).toHaveBeenCalledWith('system', {}, expect.any(Function));
+      expect(mockChannel.on).toHaveBeenCalledWith(
+        'system',
+        {},
+        expect.any(Function)
+      );
     });
 
     it('should attempt reconnection on connection loss', () => {
       vi.useFakeTimers();
       const mockCallback = vi.fn();
-      
+
       resilientClient.subscribe('servers', mockCallback);
 
       // Get the system event callback
       const systemCallback = mockChannel.on.mock.calls.find(
-        call => call[0] === 'system'
+        (call) => call[0] === 'system'
       )[2];
 
       // Simulate connection close
@@ -382,12 +451,12 @@ describe('ResilientSupabaseClient', () => {
     it('should stop reconnection attempts after max attempts', () => {
       vi.useFakeTimers();
       const mockCallback = vi.fn();
-      
+
       resilientClient.subscribe('logs', mockCallback);
 
       // Get the system event callback
       const systemCallback = mockChannel.on.mock.calls.find(
-        call => call[0] === 'system'
+        (call) => call[0] === 'system'
       )[2];
 
       // Simulate multiple connection losses
@@ -419,7 +488,6 @@ describe('ResilientSupabaseClient', () => {
     it.skip('should handle cache clear when localStorage is unavailable', () => {
       // Skip: Cannot redefine localStorage in current test environment
       // TODO: Find alternative way to test localStorage errors
-      
       // Original test code:
       // Object.defineProperty(global, 'localStorage', {
       //   value: {
@@ -435,8 +503,8 @@ describe('ResilientSupabaseClient', () => {
     it('should fallback to memory storage when localStorage write fails', async () => {
       // Mock localStorage.setItem to throw error
       const originalSetItem = global.localStorage.setItem;
-      global.localStorage.setItem = vi.fn(() => { 
-        throw new Error('Storage quota exceeded'); 
+      global.localStorage.setItem = vi.fn(() => {
+        throw new Error('Storage quota exceeded');
       });
 
       const mockData = [{ id: '1', name: 'Test' }];
@@ -449,15 +517,15 @@ describe('ResilientSupabaseClient', () => {
       const result = await resilientClient.from('users');
 
       expect(result.data).toEqual(mockData);
-      
+
       // Restore original method
       global.localStorage.setItem = originalSetItem;
     });
 
     it('should handle localStorage read errors gracefully', async () => {
       // Mock localStorage.getItem to throw error
-      global.localStorage.getItem = vi.fn(() => { 
-        throw new Error('Storage read error'); 
+      global.localStorage.getItem = vi.fn(() => {
+        throw new Error('Storage read error');
       });
 
       // Mock Supabase error to trigger fallback attempt
