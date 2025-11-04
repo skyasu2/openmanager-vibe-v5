@@ -267,6 +267,7 @@ export default function LoginClient() {
 
   // 게스트 로그인
   const handleGuestLogin = async () => {
+    console.log('🔍 [DEBUG Step 0] handleGuestLogin function CALLED');
     try {
       setShowPulse('guest');
       setTimeout(() => setShowPulse(null), PULSE_ANIMATION_DURATION_MS);
@@ -286,12 +287,26 @@ export default function LoginClient() {
 
       // AuthStateManager를 통한 게스트 인증 설정
       await authStateManager.setGuestAuth(guestUser);
+      console.log('🔍 [DEBUG Step 1] setGuestAuth completed successfully');
       
       // 세션 ID 생성 (localStorage에서 가져옴)
       const sessionId = localStorage.getItem('auth_session_id') || `guest_${Date.now()}`;
+      console.log('🔍 [DEBUG Step 2] Retrieved sessionId from localStorage:', {
+        sessionId,
+        fromLocalStorage: !!localStorage.getItem('auth_session_id'),
+        allAuthKeys: Object.keys(localStorage).filter(k => k.startsWith('auth_')),
+      });
       
-      // 상태 업데이트
+      // 상태 업데이트 직전
+      console.log('🔍 [DEBUG Step 3] About to call setGuestSession with:', {
+        sessionId,
+        userId: guestUser.id,
+        userName: guestUser.name,
+      });
+      
       setGuestSession({ sessionId, user: guestUser });
+      
+      console.log('🔍 [DEBUG Step 4] setGuestSession called successfully');
     } catch (error) {
       debug.error('게스트 로그인 실패:', error);
       alert('게스트 로그인에 실패했습니다. 다시 시도해주세요.');
