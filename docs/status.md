@@ -75,7 +75,8 @@
 - ✅ 테스트: 88.9% 통과율 (639/719 tests passing)
 - ✅ .wslconfig: 최적화 설정 확인 (20GB 메모리, mirrored 네트워킹)
 - 🆕 Claude Code v2.0.31 신규 기능 적용 완료:
-  - Extended Thinking (Magic Keywords: think / think hard / think harder / ultrathink)
+  - Extended Thinking (Tab 키 또는 ultrathink 키워드로 자동 활성화)
+  - Token Budget Keywords (think: 4K, think hard: 10K, ultrathink: 32K)
   - @-mention 서버 필터링 (9개 서버별 예시 문서화)
   - Prompt Caching (자동 활성화)
   - 토큰 효율 85% 달성 (MCP 82% + @-mention 3%)

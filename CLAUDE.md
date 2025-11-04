@@ -33,10 +33,11 @@ npx ccusage@latest          # 상세 토큰 분석
 Esc Esc                     # 빠른 복원
 
 # Extended Thinking (v2.0.31+) 🔥
+# 활성화: Tab 키 토글 또는 ultrathink 키워드 (자동)
 claude --model sonnet
-> "복잡한 버그를 think harder 해서 분석해줘"
-> "아키텍처를 ultrathink 해서 검토해줘"
-# Magic Keywords: think < think hard < think harder < ultrathink
+> "복잡한 버그를 think harder 해서 분석해줘"    # Token budget 10K
+> "아키텍처를 ultrathink 해서 검토해줘"        # Token budget 32K + Extended Thinking 자동
+# Token Budget Keywords: think (4K) < think hard (10K) < ultrathink (32K + Extended Thinking)
 
 # @-mention 서버 필터링 (v2.0.10+) 🔥
 @serena "코드 구조 분석"       # Serena만 활성화 → 10-18% 추가 절약
