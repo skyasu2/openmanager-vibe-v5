@@ -21,7 +21,7 @@
 - **유닛 테스트**: 64개, 100% 통과 (15초, 3개 파일)
 - **E2E 테스트**: 29개, 99% 통과 (TEST_SECRET_KEY 활성화)
 - **코드베이스**: 224K줄, 878개 TS 파일
-- **Git 상태**: 8개 modified, 2개 untracked
+- **Git 상태**: Clean (모든 변경사항 커밋 완료)
 
 ---
 
@@ -48,7 +48,7 @@
   - Playwright: @playwright/mcp v0.0.45 (Microsoft 공식)
   - 복구 완료: 2025-11-03 (88.9% → 100%)
 - **WSL**: 최적화 완료 (Ubuntu 24.04.1, 커널 6.6.87.2)
-- **Node.js**: v22.21.1 (n 패키지 매니저)
+- **Node.js**: v22.21.1 (AI 교차검증 기반 v24→v22 다운그레이드 완료)
 - **npm**: v11.6.2
 - **Rust/Cargo**: v1.91.0 (Serena 지원)
 - **uv/uvx**: v0.9.7 (Python 도구)
