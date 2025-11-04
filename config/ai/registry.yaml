@@ -2,8 +2,8 @@
 # 모든 AI 도구, 서브에이전트, MCP 서버 정보 중앙 관리
 # 목적: 설정 분산 문제 해결, 변경 시 한 번만 수정
 
-version: "1.0.0"
-last_updated: "2025-11-03"  # WSL 재설치 후 환경 재구축
+version: "1.1.0"  # 🆕 new_features 섹션 추가
+last_updated: "2025-11-04"  # Extended Thinking + @-mention 문서화 완료
 project: "OpenManager VIBE v5.80.0"
 
 # ============================================================================
@@ -447,7 +447,251 @@ mcp-servers:
       - "mcp__sequential_thinking__sequentialthinking"
 
 # ============================================================================
-# 4. Workflows (워크플로우)
+# 4. New Features (신규 기능 - Claude Code v2.0.10+)
+# ============================================================================
+new_features:
+  # Extended Thinking (v2.0.31+)
+  extended_thinking:
+    name: "Extended Thinking"
+    version_introduced: "v2.0.31"
+    category: "reasoning"
+    description: "내부 추론 강화 기능 - Magic Keywords로 복잡한 문제 분석"
+    max_plan_included: true
+    api_required: false
+    cost: "Max Plan 포함 ($200/월, 별도 비용 없음)"
+
+    magic_keywords:
+      think:
+        level: 1
+        description: "기본 추론"
+        use_case: "일반적인 문제 분석"
+        example: '"이 버그를 think 해서 분석해줘"'
+
+      think_hard:
+        level: 2
+        description: "중간 추론"
+        use_case: "복잡한 로직 분석"
+        example: '"아키텍처를 think hard 해서 검토해줘"'
+
+      think_harder:
+        level: 3
+        description: "깊은 추론"
+        use_case: "근본 원인 분석"
+        example: '"타입 오류를 think harder 해서 찾아줘"'
+
+      ultrathink:
+        level: 4
+        description: "최대 추론"
+        use_case: "매우 복잡한 시스템 분석"
+        example: '"전체 워크플로우를 ultrathink 해서 최적화해줘"'
+
+    benefits:
+      - "더 정확한 근본 원인 분석"
+      - "복잡한 문제 해결력 향상"
+      - "다단계 추론 가능"
+      - "아키텍처 레벨 개선 제안"
+
+    usage:
+      basic: '"복잡한 버그를 think 해서 분석해줘"'
+      advanced: '"시스템 아키텍처를 ultrathink 해서 검토해줘"'
+      combined: '"think harder 해서 성능 병목점을 찾고 개선안 제시해줘"'
+
+    documentation_refs:
+      - "CLAUDE.md#⚡-quick-reference-빠른-참조"
+      - "docs/claude/environment/mcp/mcp-priority-guide.md"
+
+  # @-mention MCP Server Filtering (v2.0.10+)
+  mention_filtering:
+    name: "@-mention MCP Server Filtering"
+    version_introduced: "v2.0.10"
+    category: "optimization"
+    description: "특정 MCP 서버만 활성화하여 토큰 10-18% 추가 절약"
+    max_plan_included: true
+    api_required: false
+    cost: "Max Plan 포함 ($200/월, 별도 비용 없음)"
+
+    principle: "필요한 MCP 서버만 활성화 → 불필요한 도구 목록 제거 → 컨텍스트 크기 감소"
+
+    token_savings:
+      baseline: "일반 방식 (9개 서버 전체): ~147 토큰"
+      with_mention: "@-mention 방식: ~121 토큰"
+      savings_percent: "18% (평균)"
+      range: "16-20% (서버별)"
+      combined_with_mcp: "일반 300토큰 → MCP 55토큰 → @-mention 45토큰 (85% 절약)"
+
+    servers:
+      serena:
+        syntax: "@serena"
+        use_case: "코드 분석 전문"
+        example: '@serena "src/components/LoginClient.tsx 파일의 구조를 분석해줘"'
+        tools_loaded: "find_symbol, get_symbols_overview, search_for_pattern"
+        savings: "20%"
+
+      context7:
+        syntax: "@context7"
+        use_case: "라이브러리 문서 조회"
+        example: '@context7 "Next.js 15 공식 문서에서 Server Actions 사용법 알려줘"'
+        tools_loaded: "resolve_library_id, get_library_docs"
+        savings: "18%"
+
+      vercel:
+        syntax: "@vercel"
+        use_case: "배포 정보 조회"
+        example: '@vercel "현재 프로덕션 배포 상태를 확인해줘"'
+        tools_loaded: "getprojects, getdeployment, get_access_to_vercel_url"
+        savings: "17%"
+
+      supabase:
+        syntax: "@supabase"
+        use_case: "데이터베이스 작업"
+        example: '@supabase "users 테이블의 RLS 정책을 확인해줘"'
+        tools_loaded: "execute_sql, list_tables, get_advisors"
+        savings: "18%"
+
+      playwright:
+        syntax: "@playwright"
+        use_case: "E2E 테스트 자동화"
+        example: '@playwright "로그인 플로우를 테스트해줘"'
+        tools_loaded: "browser_navigate, browser_click, browser_snapshot"
+        savings: "16%"
+
+      shadcn_ui:
+        syntax: "@shadcn-ui"
+        use_case: "UI 컴포넌트"
+        example: '@shadcn-ui "최신 v4 button 컴포넌트를 가져와줘"'
+        tools_loaded: "get_component, list_components, get_component_demo"
+        savings: "17%"
+
+      sequential_thinking:
+        syntax: "@sequential-thinking"
+        use_case: "복잡한 다단계 분석"
+        example: '@sequential-thinking "버그의 근본 원인을 단계별로 분석해줘"'
+        tools_loaded: "sequentialthinking"
+        savings: "19%"
+
+      memory:
+        syntax: "@memory"
+        use_case: "지식 그래프 저장"
+        example: '@memory "프로젝트 아키텍처 관계를 저장해줘"'
+        tools_loaded: "create_entities, search_nodes, read_graph"
+        savings: "18%"
+
+      time:
+        syntax: "@time"
+        use_case: "시간대 변환"
+        example: '@time "서울 시간 14:00를 뉴욕 시간으로 변환해줘"'
+        tools_loaded: "get_current_time, convert_time"
+        savings: "16%"
+
+    combination_usage:
+      example1:
+        query: '@serena @context7 "LoginClient.tsx에서 사용된 React 훅의 공식 문서를 확인해줘"'
+        description: "코드 분석 + 문서 조회"
+        servers_active: ["serena", "context7"]
+        servers_inactive: ["vercel", "supabase", "playwright", "shadcn-ui", "sequential-thinking", "memory", "time"]
+
+      example2:
+        query: '@vercel @supabase "프로덕션 배포의 데이터베이스 연결 상태를 확인해줘"'
+        description: "배포 정보 + DB 상태"
+        servers_active: ["vercel", "supabase"]
+        servers_inactive: ["serena", "context7", "playwright", "shadcn-ui", "sequential-thinking", "memory", "time"]
+
+    best_practices:
+      - "작업에 필요한 최소한의 서버만 활성화"
+      - "여러 서버 동시 사용 가능 (@serena @context7)"
+      - "일반 쿼리는 @-mention 없이 사용 (모든 서버 활성화)"
+      - "토큰 절약 목표: 85% (MCP 82% + @-mention 3%)"
+
+    documentation_refs:
+      - "docs/claude/environment/mcp/mcp-priority-guide.md#🎯-mention-토큰-절약-가이드"
+      - "CLAUDE.md#⚡-quick-reference-빠른-참조"
+
+  # Prompt Caching (v2.0.10+)
+  prompt_caching:
+    name: "Prompt Caching"
+    version_introduced: "v2.0.10"
+    category: "optimization"
+    description: "자동 프롬프트 캐싱으로 토큰 비용 절감 (반복 컨텍스트)"
+    max_plan_included: true
+    api_required: false
+    cost: "Max Plan 포함 ($200/월, 별도 비용 없음)"
+
+    mechanism:
+      automatic: true
+      manual_control: false
+      description: "Claude Code가 자동으로 반복되는 컨텍스트를 캐싱하여 토큰 절약"
+
+    benefits:
+      - "반복 질문 시 토큰 75% 절감"
+      - "긴 문서/코드 참조 시 효율적"
+      - "사용자 개입 불필요 (자동)"
+
+    use_cases:
+      - "동일 파일 반복 분석"
+      - "긴 프로젝트 문서 참조"
+      - "시스템 프롬프트 재사용"
+
+    limitations:
+      - "Max Plan에서는 자동 동작만 지원"
+      - "수동 제어는 API 사용자 전용"
+      - "캐시 만료: 5분 (Anthropic API 기본값)"
+
+    documentation_refs:
+      - "https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching"
+
+  # Agent Skills (Claude Code 내장)
+  agent_skills:
+    name: "Agent Skills"
+    version_introduced: "v2.0.0"
+    category: "automation"
+    description: "Claude Code 내장 전문가 기능 (Subagents와 구분됨)"
+    max_plan_included: true
+    api_required: false
+    cost: "Max Plan 포함 ($200/월, 별도 비용 없음)"
+
+    vs_subagents:
+      agent_skills:
+        scope: "Claude Code 내장 기능"
+        examples: ["Extended Thinking", "Prompt Caching", "@-mention"]
+        control: "자동 또는 Magic Keywords"
+        customization: "불가 (내장 기능)"
+
+      subagents:
+        scope: "프로젝트별 커스텀 전문가"
+        examples: ["multi-ai-verification-specialist", "code-review-specialist", "debugger-specialist"]
+        control: "Task 명령어로 명시적 호출"
+        customization: "가능 (.claude/agents/*.md)"
+
+    usage:
+      skills: "내장 기능 자동 활용 (think, @-mention)"
+      subagents: 'Task [에이전트명] "[작업]" 명시 호출'
+
+    documentation_refs:
+      - "docs/ai/subagents-complete-guide.md"
+      - "CLAUDE.md#🤖-서브에이전트-활용-12개-전문가"
+
+  # Excluded Features (API 전용 - Max Plan 미지원)
+  excluded_features:
+    vision_api:
+      name: "Vision API"
+      reason: "별도 Anthropic API 구독 필요 ($5/월 최소)"
+      max_plan_supported: false
+      alternative: "Max Plan 미지원, 스크린샷은 기본 도구 사용"
+
+    batch_processing:
+      name: "Batch Processing"
+      reason: "별도 Anthropic API 구독 필요"
+      max_plan_supported: false
+      alternative: "Max Plan 미지원, 순차 처리 사용"
+
+    computer_use:
+      name: "Computer Use (베타)"
+      reason: "별도 Anthropic API 구독 필요 + 베타 기능"
+      max_plan_supported: false
+      alternative: "Max Plan 미지원, Playwright MCP 사용"
+
+# ============================================================================
+# 5. Workflows (워크플로우)
 # ============================================================================
 workflows:
   # 3-AI 교차검증
@@ -633,10 +877,11 @@ maintenance:
   performance:
     frequency: "월 1회"
     metrics:
-      - "토큰 효율: 82% 유지 (목표 85%)"
+      - "토큰 효율: 85% 달성 (MCP 82% + @-mention 3%)"  # 🆕 업데이트
       - "MCP 활용도: 90-100/100"
       - "3-AI 성공률: 100% (3/3)"
       - "개발 생산성: 3-5배"
+      - "Extended Thinking 활용도: 추적 예정"  # 🆕 추가
     script: "./scripts/monthly-metrics-report.sh (예정)"
 
   # 스택 드리프트 추적

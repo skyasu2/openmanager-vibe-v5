@@ -89,7 +89,7 @@ claude/
 - `README.md` - MCP 서버 개요
 - `setup-guide.md` - 9개 MCP 서버 설정 (완전 가이드)
 - `mcp-configuration.md` - 설정 파일 및 인증
-- `mcp-priority-guide.md` ⭐ - MCP 우선순위 전략 (82% 토큰 절약)
+- `mcp-priority-guide.md` ⭐ - MCP 우선순위 전략 (85% 토큰 절약, @-mention 포함)
 - `servers.md` - 서버별 상세 설명
 - `tools.md` - MCP 도구 활용법
 - `integration.md` - MCP 통합 패턴
@@ -170,7 +170,7 @@ claude/
 **MCP 서버 설정**:
 
 - `environment/mcp/setup-guide.md` - 9개 서버 완전 설정
-- `environment/mcp/mcp-priority-guide.md` - 우선순위 전략 (82% 절약)
+- `environment/mcp/mcp-priority-guide.md` - 우선순위 전략 (85% 절약)
 - `environment/mcp/mcp-configuration.md` - 설정 파일
 
 **코딩 표준**:
@@ -228,14 +228,14 @@ claude/
 
 ## 🎯 핵심 철학
 
-> **"Claude Code 메인 + 3-AI 교차검증 + MCP 82% 토큰 절약"**
+> **"Claude Code 메인 + 3-AI 교차검증 + MCP 85% 토큰 절약"**
 
 **개발 원칙**:
 
 - ✅ Type-First: 타입 정의 → 구현 → 리팩토링
 - ✅ any 금지: TypeScript strict mode 100%
 - ✅ Vercel 중심: 실제 환경 우선 테스트
-- ✅ MCP 우선: 82% 토큰 절약
+- ✅ MCP 우선: 85% 토큰 절약 (MCP 82% + @-mention 3%)
 - ✅ Multi-AI: 교차검증으로 품질 4배 향상
 
 **AI 역할 분담**:

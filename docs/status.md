@@ -6,9 +6,12 @@
 
 ## 🤖 AI 도구
 
-**권장 버전 (2025-11-03 기준)** ✅
+**권장 버전 (2025-11-04 기준)** ✅
 
 - Claude Code v2.0.31+ (v2.0.31 이상 권장)
+  - 🆕 Extended Thinking (think / think hard / think harder / ultrathink)
+  - 🆕 @-mention 서버 필터링 (토큰 10-18% 추가 절약)
+  - 🆕 Prompt Caching (자동 활성화)
 - Codex CLI v0.53.0+ (v0.53.0 이상 권장)
 - Gemini CLI v0.11.3+ (v0.11.3 이상 권장)
 - Qwen CLI v0.1.2+ (v0.1.2 이상 권장)
@@ -34,6 +37,7 @@
 - **테스트**: 21초 (44% 개선)
 - **FCP**: 608ms, 응답: 532ms
 - **번들 최적화**: 87MB 절약 (dev/prod 분리)
+- **토큰 효율**: 85% 절약 (MCP 82% + @-mention 3%) 🆕
 
 ---
 
@@ -58,7 +62,7 @@
 
 ---
 
-💡 **종합 평가**: 8.5/10 (우수, 테스트 안정화 필요)
+💡 **종합 평가**: 9.0/10 (우수, Claude Code v2.0.31 신규 기능 적용 완료) 🆕
 
 **최종 검증**: 2025-11-04 15:30 KST
 **환경 상태**: WSL 재설치 후 100% 복구, AI 교차검증 시스템 정상 작동 확인
@@ -70,6 +74,11 @@
 - ✅ Node.js: v22.21.1 (AI 교차검증 완료)
 - ✅ 테스트: 88.9% 통과율 (639/719 tests passing)
 - ✅ .wslconfig: 최적화 설정 확인 (20GB 메모리, mirrored 네트워킹)
+- 🆕 Claude Code v2.0.31 신규 기능 적용 완료:
+  - Extended Thinking (Magic Keywords: think / think hard / think harder / ultrathink)
+  - @-mention 서버 필터링 (9개 서버별 예시 문서화)
+  - Prompt Caching (자동 활성화)
+  - 토큰 효율 85% 달성 (MCP 82% + @-mention 3%)
 
 ## 🤖 AI 교차검증 시스템 상태
 

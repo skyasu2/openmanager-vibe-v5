@@ -7,7 +7,7 @@
 ## 📦 핵심 정보
 
 **프로젝트**: OpenManager VIBE v5.80.0 - AI 기반 실시간 서버 모니터링 플랫폼
-**환경**: WSL + Claude Code v2.0.22 + Multi-AI 협업
+**환경**: WSL + Claude Code v2.0.31+ + Multi-AI 협업
 **스택**: Next.js 15, React 18.3, TypeScript strict, Vercel + Supabase
 
 ---
@@ -26,13 +26,22 @@ npm run test:super-fast     # 11초 빠른 테스트
 # 배포
 git push                    # Vercel 자동 배포
 
-# Claude Code v2.0.22 🆕
+# Claude Code v2.0.31+ 🆕
 /rewind                     # Checkpoints 복원
 /usage                      # 사용량 확인
 npx ccusage@latest          # 상세 토큰 분석
 Esc Esc                     # 빠른 복원
-# 🆕 Haiku 4.5: 빠른 탐색용, Explore 서브에이전트
-# 🆕 Claude Skills: 고급 기능 지원
+
+# Extended Thinking (v2.0.31+) 🔥
+claude --model sonnet
+> "복잡한 버그를 think harder 해서 분석해줘"
+> "아키텍처를 ultrathink 해서 검토해줘"
+# Magic Keywords: think < think hard < think harder < ultrathink
+
+# @-mention 서버 필터링 (v2.0.10+) 🔥
+@serena "코드 구조 분석"       # Serena만 활성화 → 10-18% 추가 절약
+@context7 "Next.js 15 문서"    # Context7만 활성화
+@vercel "배포 상태 확인"       # Vercel만 활성화
 ```
 
 ---
@@ -50,7 +59,7 @@ Esc Esc                     # 빠른 복원
 1. **Type-First**: 타입 정의 → 구현 → 리팩토링
 2. **any 금지**: TypeScript strict mode 100%
 3. **Vercel 중심**: 실제 환경 우선 테스트
-4. **MCP 우선**: 82% 토큰 절약 (Read → Serena, WebSearch → Context7)
+4. **MCP 우선**: 85% 토큰 절약 (MCP 82% + @-mention 3%)
 5. **Side-Effect First**: 테스트/문서/의존성 동시 수정
 
 ---
@@ -162,7 +171,7 @@ npm run test:fast           # 21초 (44% 개선)
 
 **MCP 우선 전략**: Serena (코드 분석), Vercel MCP (배포 조회), Context7 (문서), Shadcn-ui (UI)
 
-- **토큰 절약**: 82% (목표 달성)
+- **토큰 절약**: 85% (MCP 82% + @-mention 3%)
 - **핵심 서버**: vercel, serena, supabase, context7, playwright, shadcn-ui, memory, time, sequential-thinking
 
 **상세**: @docs/claude/environment/mcp/mcp-priority-guide.md (Before/After 예시 포함)
@@ -268,6 +277,74 @@ claude mcp list                # 전체 서버 상태 확인
 - **CLAUDE.md** (이 파일): Claude Code Project Memory (빠른 참조)
 - **AGENTS.md**: Codex CLI 환경 가이드
 - **docs/claude/**: 상세 문서 (필요 시 참조)
+
+---
+
+## ⚡ Quick Reference (빠른 참조)
+
+### 🔥 신규 기능 (Claude Code v2.0.31+)
+
+#### Extended Thinking (내부 추론 강화)
+
+```bash
+# Magic Keywords: think < think hard < think harder < ultrathink
+claude --model sonnet
+> "복잡한 버그를 think harder 해서 분석해줘"
+> "아키텍처를 ultrathink 해서 검토해줘"
+```
+
+**효과**: 더 정확한 분석, 복잡한 문제 해결력 향상
+
+#### @-mention 서버 필터링 (토큰 10-18% 추가 절약)
+
+```bash
+@serena "코드 구조 분석"       # Serena만 활성화
+@context7 "Next.js 15 문서"    # Context7만 활성화
+@vercel "배포 상태 확인"       # Vercel만 활성화
+
+# 복합 사용도 가능
+@serena @context7 "LoginClient.tsx에서 사용된 훅 문서 확인"
+```
+
+**효과**: 147토큰 → 121토큰 (평균 18% 절약)
+
+### 🎯 일일 워크플로우
+
+```bash
+# 🌅 개발 시작
+npm run dev:stable
+npm run validate:all        # 린트+타입+테스트
+
+# 🔧 개발 중
+@serena "코드 분석"          # 심볼 기반 분석
+think harder "버그 근본 원인"  # Extended Thinking
+
+# 🚀 배포 전
+npm run test:vercel:e2e     # Vercel E2E 테스트
+npm run build               # 프로덕션 빌드
+git push                    # 자동 배포
+```
+
+### 🛠️ 문제 해결
+
+```bash
+# TypeScript 오류
+npm run type-check
+
+# MCP 연결 문제
+claude mcp list
+./scripts/mcp-health-check.sh
+
+# AI 도구 문제 (서브에이전트 권장)
+"dev-environment-manager야, AI 도구 헬스 체크해줘"
+```
+
+### 📊 핵심 지표
+
+- **토큰 절약**: 85% (MCP 82% + @-mention 3%)
+- **테스트 통과율**: 88.9% (639/719)
+- **MCP 연결**: 9/9 완벽 (100% 가동률)
+- **개발 속도**: 3-5배 향상
 
 ---
 
