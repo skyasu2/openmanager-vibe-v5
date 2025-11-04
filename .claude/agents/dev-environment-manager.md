@@ -83,7 +83,136 @@ alias cdp='cd $PROJECT_ROOT'
 
 ## AI CLI 도구 관리 🆕
 
-**자동화된 AI 도구 헬스 체크 및 업그레이드**:
+**자동화된 AI 도구 헬스 체크 및 업그레이드 + 로그 기록**:
+
+### 📋 로그 생성 자동화 (Phase 3A-2)
+
+**모든 헬스 체크 실행 시 자동으로 YAML 로그 파일 생성**:
+
+```typescript
+const generateHealthCheckLog = async (healthCheckResults) => {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const logDir = 'logs/ai-health';
+  const logFile = `${logDir}/${timestamp}-ai-health-check.log`;
+  const latestLog = `${logDir}/latest.log`;
+
+  // Create log directory if not exists
+  await execute_shell_command(`mkdir -p ${logDir}`);
+
+  // Generate YAML log
+  const logContent = `# AI Tools Health Check Log
+# Generated: ${new Date().toISOString()}
+
+timestamp: "${new Date().toISOString()}"
+overall_score: "${healthCheckResults.overall_score}/10"
+
+tools:
+${healthCheckResults.tools
+  .map(
+    (tool) => `  ${tool.name}:
+    installed: ${tool.installed}
+    version: "${tool.version}"
+    recommended: "${tool.recommended_version}+"
+    status: "${tool.status}"
+    response_time: "${tool.response_time}"
+${tool.oauth ? `    oauth: "${tool.oauth}"` : ''}`
+  )
+  .join('
+')}
+
+recommendations:
+${healthCheckResults.recommendations.map((rec) => `  - "${rec}"`).join('
+')}
+
+actions_taken:
+${healthCheckResults.actions.map((action) => `  - "${action}"`).join('
+')}
+`;
+
+  // Write log file
+  await execute_shell_command(`cat > ${logFile} << 'EOFLOG'
+${logContent}
+EOFLOG`);
+
+  // Update latest.log symlink
+  await execute_shell_command(`ln -sf $(basename ${logFile}) ${latestLog}`);
+
+  return {
+    logFile,
+    latestLog,
+    message: `✅ Log generated: ${logFile}`,
+  };
+};
+```
+
+**로그 구조 예시**:
+
+```yaml
+# logs/ai-health/2025-11-04T15-30-00-000Z-ai-health-check.log
+
+timestamp: '2025-11-04T15:30:00.000Z'
+overall_score: '9.5/10'
+
+tools:
+  codex:
+    installed: true
+    version: 'v0.53.0'
+    recommended: 'v0.53.0+'
+    status: '✅ 최신'
+    response_time: '5s'
+
+  gemini:
+    installed: true
+    version: 'v0.11.3'
+    recommended: 'v0.11.3+'
+    status: '✅ 최신'
+    response_time: '3s'
+    oauth: '캐시 인증 정상'
+
+  qwen:
+    installed: true
+    version: 'v0.1.2'
+    recommended: 'v0.1.2+'
+    status: '✅ 최신'
+    response_time: '2s'
+
+recommendations:
+  - '모든 AI 도구 최신 버전 유지 중'
+  - 'OAuth 인증 정상'
+
+actions_taken:
+  - '버전 확인 완료'
+  - '응답 테스트 완료'
+```
+
+**로그 파일 관리**:
+
+- **디렉토리**: `logs/ai-health/`
+- **명명 규칙**: `{ISO_timestamp}-ai-health-check.log`
+- **최신 로그**: `latest.log` (심볼릭 링크)
+- **형식**: YAML (구조화된 데이터)
+- **자동 생성**: 헬스 체크 실행 시마다
+
+**통합 예시**:
+
+```typescript
+// AI 도구 헬스 체크 + 로그 생성
+const performAIToolsHealthCheck = async () => {
+  // 1. 헬스 체크 실행
+  const results = await aiToolsHealthCheck();
+
+  // 2. 로그 생성
+  const logInfo = await generateHealthCheckLog(results);
+
+  // 3. 사용자 리포트
+  return {
+    summary: results.summary,
+    logPath: logInfo.logFile,
+    latestLog: logInfo.latestLog,
+    recommendations: results.recommendations,
+  };
+};
+```
 
 ### 🔍 헬스 체크 프로세스
 

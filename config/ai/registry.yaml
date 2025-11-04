@@ -2,8 +2,8 @@
 # 모든 AI 도구, 서브에이전트, MCP 서버 정보 중앙 관리
 # 목적: 설정 분산 문제 해결, 변경 시 한 번만 수정
 
-version: "1.2.0"  # 🆕 Phase 2: 검증 완료 (Extended Thinking, @-mention 실측)
-last_updated: "2025-11-04"  # Phase 2 완료: 검증 메트릭 추가, Best Practices 문서화
+version: "1.3.0"  # 🆕 Phase 3A: 참조 기반 아키텍처 (하드코딩 제거)
+last_updated: "2025-11-04"  # Phase 3A 완료: 참조 기반 maintenance, 자동 로깅
 project: "OpenManager VIBE v5.80.0"
 
 # ============================================================================
@@ -835,53 +835,65 @@ maintenance:
   mcp_health:
     frequency: "주 1회 (월요일)"
     script: "./scripts/mcp-health-check.sh"
+    
+    # ✅ Single Source of Truth (실시간 상태)
+    current_status_ref: "docs/status.md#🔌-인프라"
+    
+    # ✅ Auto-generated logs (already working)
     log_dir: "logs/mcp-health/"
+    latest_log: "logs/mcp-health/latest.log"
+    
+    # Expected results
     expected: "9/9 연결 성공"
     action_required: "7개 이상 성공 → 확인, 6개 이하 → 긴급 조치"
 
-  # AI Tools 건강 체크 (🆕 서브에이전트 위임)
+  # AI Tools 건강 체크 (참조 기반 아키텍처)
   ai_tools_health:
     frequency: "필요 시 (on-demand)"
-    last_check: "2025-10-20"  # 🆕 최근 체크
-    health_status:  # 🆕 최근 결과
-      overall_score: "9.5/10"
-      codex:
-        version: "v0.46.0"
-        status: "✅ 설치됨"
-        response_time: "5초"
-        notes: "최신 안정 버전 (v0.47.0은 미릴리즈)"
-      gemini:
-        version: "v0.9.0"
-        status: "✅ 설치됨"
-        response_time: "3초"
-        notes: "최신 버전"
-      qwen:
-        version: "v0.0.14"
-        status: "✅ 설치됨"
-        response_time: "2초"
-        notes: "최신 버전"
+    method: "dev-environment-manager 서브에이전트"
+    command: 'Task dev-environment-manager "AI CLI 도구 상태 확인"'
+    
+    # ✅ Single Source of Truth (실시간 상태)
+    current_status_ref: "docs/status.md#🤖-ai-도구"
+    
+    # ✅ Auto-generated logs (history tracking)
+    logs:
+      directory: "logs/ai-health/"
+      latest: "logs/ai-health/latest.log"
+      format: "{timestamp}-ai-health-check.log"
+      notes: "dev-environment-manager가 자동 생성 (YAML 형식)"
+    
+    # ✅ Recommended versions reference
+    recommended_versions_ref: "config/ai/registry.yaml#ai-tools"
+    
+    # ✅ Last check info
+    last_check_info: "logs/ai-health/latest.log 참조 (자동 업데이트)"
+    
+    # Trigger conditions
     trigger:
       - "AI 도구 오류 발생 시"
       - "Claude/사용자가 상태 확인 필요 시"
       - "AI 교차검증 실패 시"
-    method: "dev-environment-manager 서브에이전트"  # 🆕 스크립트 → 서브에이전트
-    command: 'Task dev-environment-manager "AI CLI 도구 상태 확인"'
-    legacy_script: "./scripts/ai-tools-health-check.sh (deprecated)"  # 레거시 지원
-    tools:
-      - "Claude Code (v2.0.22)"  # 🆕 업데이트
-      - "Codex CLI (v0.46.0)"    # 🆕 업데이트
-      - "Gemini CLI (v0.9.0)"    # 🆕 업데이트
-      - "Qwen CLI (v0.0.14)"
-    features:  # 🆕 추가
+    
+    # Legacy support
+    legacy_script: "./scripts/ai-tools-health-check.sh (deprecated - 서브에이전트 권장)"
+    
+    # Features (dev-environment-manager capabilities)
+    features:
       - "자동 업그레이드"
       - "OAuth 재인증 감지"
       - "구조적 환경 관리"
       - "메모리 기반 이력 관리"
+      - "YAML 로그 자동 생성"
+    
+    # Check items
     checks:
       - "설치 여부 확인"
       - "버전 확인 및 업그레이드 가능 여부"
       - "대화 테스트 (OAuth 상태 확인)"
       - "환경 설정 최적화"
+    
+    # Expected results
     expected: "4/4 설치됨, 최신 버전"
     action_required: "3개 이상 → 확인, 2개 이하 → 서브에이전트에게 설치 요청"
 
@@ -938,25 +950,47 @@ maintenance:
   # 문서 동기화
   docs_sync:
     frequency: "월 1회"
-    items:
+    
+    # ✅ 목표 정의 (참조 기반)
+    goals:
       - "CLAUDE.md 크기 체크 (200-300줄 유지)"
       - "AI 역할 분담 원칙 일치 확인"
       - "서브에이전트 목록 동기화"
       - "MCP 서버 목록 동기화"
+    
+    # ✅ 대상 파일
     target_files:
       - "CLAUDE.md"
       - "docs/ai/subagents-complete-guide.md"
       - "docs/claude/environment/multi-ai-strategy.md"
+    
+    # ✅ SSOT 참조
+    source_of_truth:
+      subagents: "config/ai/registry.yaml#subagents"
+      mcp_servers: "config/ai/registry.yaml#mcp-servers"
+      ai_tools: "config/ai/registry.yaml#ai-tools"
+      workflows: "config/ai/registry.yaml#workflows"
+    
+    # 추적 방법: 수동 체크리스트 (자동화 옵션)
+    tracking: "수동 (./scripts/monthly-docs-sync-checklist.sh 옵션)"
 
   # 성능 모니터링
   performance:
     frequency: "월 1회"
-    metrics:
-      - "토큰 효율: 85% 달성 (MCP 82% + @-mention 3%)"  # 🆕 업데이트
+    
+    # ✅ Single Source of Truth (실시간 성능 데이터)
+    current_metrics_ref: "docs/status.md#⚡-성능"
+    
+    # 목표 메트릭
+    target_metrics:
+      - "토큰 효율: 85% 달성 (MCP 82% + @-mention 3%)"
       - "MCP 활용도: 90-100/100"
       - "3-AI 성공률: 100% (3/3)"
       - "개발 생산성: 3-5배"
-      - "Extended Thinking 활용도: 추적 예정"  # 🆕 추가
+      - "Extended Thinking 활용도: 추적 예정"
+    
+    # 추적 방법
+    tracking: "status.md 자동 업데이트 (스크립트 옵션)"
     script: "./scripts/monthly-metrics-report.sh (예정)"
 
   # 스택 드리프트 추적
