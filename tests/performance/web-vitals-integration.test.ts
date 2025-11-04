@@ -31,11 +31,11 @@ async function loadWebVitals() {
     console.warn('web-vitals 모듈 로드 실패, Mock으로 대체:', error);
     // Mock 버전 반환
     return {
-      getCLS: vi.fn(),
-      getFID: vi.fn(),
-      getFCP: vi.fn(),
-      getLCP: vi.fn(),
-      getTTFB: vi.fn()
+      onCLS: vi.fn(),
+      onINP: vi.fn(),
+      onFCP: vi.fn(),
+      onLCP: vi.fn(),
+      onTTFB: vi.fn(),
     };
   }
 }
@@ -59,7 +59,8 @@ class WebVitalsCollector {
         this.metrics.set(metric.name, metric);
 
         // 모든 주요 메트릭이 수집되면 즉시 완료
-        if (this.metrics.size >= 3) { // LCP, FID, CLS 최소
+        if (this.metrics.size >= 3) {
+          // LCP, FID, CLS 최소
           clearTimeout(timer);
           resolve(this.metrics);
         }
@@ -67,17 +68,29 @@ class WebVitalsCollector {
 
       // 각 메트릭 수집 설정
       try {
-        webVitals.getCLS(handleMetric);
-        webVitals.getFID(handleMetric);
-        webVitals.getFCP(handleMetric);
-        webVitals.getLCP(handleMetric);
-        webVitals.getTTFB(handleMetric);
+        webVitals.onCLS(handleMetric);
+        webVitals.onINP(handleMetric);
+        webVitals.onFCP(handleMetric);
+        webVitals.onLCP(handleMetric);
+        webVitals.onTTFB(handleMetric);
       } catch (error) {
         console.warn('Web Vitals 수집 중 오류:', error);
         // Mock 데이터로 대체
         setTimeout(() => {
-          this.metrics.set('LCP', { name: 'LCP', value: 2000, rating: 'good', delta: 2000, id: 'mock-lcp' });
-          this.metrics.set('CLS', { name: 'CLS', value: 0.05, rating: 'good', delta: 0.05, id: 'mock-cls' });
+          this.metrics.set('LCP', {
+            name: 'LCP',
+            value: 2000,
+            rating: 'good',
+            delta: 2000,
+            id: 'mock-lcp',
+          });
+          this.metrics.set('CLS', {
+            name: 'CLS',
+            value: 0.05,
+            rating: 'good',
+            delta: 0.05,
+            id: 'mock-cls',
+          });
           resolve(this.metrics);
         }, 100);
       }
@@ -103,24 +116,57 @@ interface WebVitalsApiResponse {
   error?: string;
 }
 
-async function sendToWebVitalsAPI(metrics: Metric[]): Promise<WebVitalsApiResponse> {
+async function sendToWebVitalsAPI(
+  metrics: Metric[]
+): Promise<WebVitalsApiResponse> {
   // 개발 환경에서는 Mock 응답 사용 (API 서버가 실행 중이지 않을 수 있음)
   if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL_URL) {
     // Mock 응답 시뮬레이션
-    await new Promise(resolve => setTimeout(resolve, 100)); // 네트워크 지연 시뮬레이션
+    await new Promise((resolve) => setTimeout(resolve, 100)); // 네트워크 지연 시뮬레이션
+
+    // Calculate overall rating based on worst metric
+    const ratings = metrics.map((m) => m.rating);
+    const overall = ratings.includes('poor')
+      ? ('poor' as const)
+      : ratings.includes('needs-improvement')
+        ? ('needs-improvement' as const)
+        : ('good' as const);
 
     const mockAnalysis = {
-      overall: 'good' as const,
-      score: 90,
-      insights: ['모든 메트릭이 양호합니다'],
-      recommendations: metrics.some(m => m.value > 2500 && m.name === 'LCP')
-        ? ['이미지 최적화 (WebP/AVIF 형식 사용)']
-        : []
+      overall,
+      score:
+        overall === 'good' ? 90 : overall === 'needs-improvement' ? 60 : 30,
+      insights:
+        overall === 'good'
+          ? ['모든 메트릭이 양호합니다']
+          : ['성능 개선이 필요합니다'],
+      recommendations: (() => {
+        const recs: string[] = [];
+
+        // LCP recommendations
+        if (metrics.some((m) => m.name === 'LCP' && m.value > 2500)) {
+          recs.push('이미지 최적화 (WebP/AVIF 형식 사용)');
+        }
+
+        // CLS recommendations
+        if (metrics.some((m) => m.name === 'CLS' && m.value > 0.1)) {
+          recs.push('레이아웃 시프트 방지를 위한 이미지 크기 명시');
+          recs.push('폰트 로딩 최적화 (font-display: swap)');
+        }
+
+        // INP recommendations
+        if (metrics.some((m) => m.name === 'INP' && m.value > 200)) {
+          recs.push('JavaScript 실행 시간 최적화');
+          recs.push('메인 스레드 작업 분산');
+        }
+
+        return recs;
+      })(),
     };
 
     return {
       success: true,
-      data: { analysis: mockAnalysis }
+      data: { analysis: mockAnalysis },
     };
   }
 
@@ -138,16 +184,16 @@ async function sendToWebVitalsAPI(metrics: Metric[]): Promise<WebVitalsApiRespon
         url: 'test-integration',
         userAgent: 'test-agent',
         timestamp: Date.now(),
-        metrics: metrics.map(m => ({
+        metrics: metrics.map((m) => ({
           name: m.name,
           value: m.value,
           rating: m.rating || 'good',
           delta: m.delta,
-          id: m.id
+          id: m.id,
         })),
         sessionId: 'test-session',
-        deviceType: 'desktop'
-      })
+        deviceType: 'desktop',
+      }),
     });
 
     if (!response.ok) {
@@ -159,7 +205,7 @@ async function sendToWebVitalsAPI(metrics: Metric[]): Promise<WebVitalsApiRespon
     console.error('Web Vitals API Error:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -183,7 +229,9 @@ describe('🌐 Web Vitals 통합 테스트', () => {
       global.PerformanceObserver = class MockPerformanceObserver {
         observe() {}
         disconnect() {}
-        takeRecords() { return []; }
+        takeRecords() {
+          return [];
+        }
       } as any;
     }
   });
@@ -193,16 +241,15 @@ describe('🌐 Web Vitals 통합 테스트', () => {
   });
 
   describe('📦 Web Vitals 패키지 통합', () => {
-
     it('web-vitals 패키지가 정상적으로 로드됨', async () => {
       const webVitals = await loadWebVitals();
 
       // web-vitals 함수들이 정상적으로 로드되는지 확인
-      expect(typeof webVitals.getCLS).toBe('function');
-      expect(typeof webVitals.getFID).toBe('function');
-      expect(typeof webVitals.getLCP).toBe('function');
-      expect(typeof webVitals.getFCP).toBe('function');
-      expect(typeof webVitals.getTTFB).toBe('function');
+      expect(typeof webVitals.onCLS).toBe('function');
+      expect(typeof webVitals.onINP).toBe('function');
+      expect(typeof webVitals.onLCP).toBe('function');
+      expect(typeof webVitals.onFCP).toBe('function');
+      expect(typeof webVitals.onTTFB).toBe('function');
 
       console.log('✅ web-vitals 패키지 로드 성공');
     });
@@ -214,11 +261,9 @@ describe('🌐 Web Vitals 통합 테스트', () => {
       expect(metrics).toBeInstanceOf(Map);
       expect(metrics.size).toBeGreaterThanOrEqual(0);
     });
-
   });
 
   describe('🔗 API 통합 테스트', () => {
-
     it('Web Vitals API가 정상 응답함', async () => {
       // 테스트용 가짜 메트릭 데이터
       const testMetrics: Metric[] = [
@@ -228,15 +273,15 @@ describe('🌐 Web Vitals 통합 테스트', () => {
           rating: 'good',
           delta: 2200,
           id: 'test-lcp-1',
-          entries: []
+          entries: [],
         },
         {
-          name: 'FID',
+          name: 'INP',
           value: 45,
           rating: 'good',
           delta: 45,
           id: 'test-fid-1',
-          entries: []
+          entries: [],
         },
         {
           name: 'CLS',
@@ -244,8 +289,8 @@ describe('🌐 Web Vitals 통합 테스트', () => {
           rating: 'good',
           delta: 0.08,
           id: 'test-cls-1',
-          entries: []
-        }
+          entries: [],
+        },
       ];
 
       const response = await sendToWebVitalsAPI(testMetrics);
@@ -256,7 +301,9 @@ describe('🌐 Web Vitals 통합 테스트', () => {
       if (response.success) {
         expect(response.data).toBeDefined();
         expect(response.data?.analysis).toBeDefined();
-        expect(['good', 'needs-improvement', 'poor']).toContain(response.data?.analysis.overall);
+        expect(['good', 'needs-improvement', 'poor']).toContain(
+          response.data?.analysis.overall
+        );
         expect(typeof response.data?.analysis.score).toBe('number');
       }
     });
@@ -270,11 +317,9 @@ describe('🌐 Web Vitals 통합 테스트', () => {
       expect(response).toBeDefined();
       expect(typeof response.success).toBe('boolean');
     });
-
   });
 
   describe('🎯 실제 성능 목표 검증', () => {
-
     it('[통합] 우수한 성능 메트릭 시뮬레이션', async () => {
       // 우수한 성능을 시뮬레이션하는 메트릭
       const excellentMetrics: Metric[] = [
@@ -284,15 +329,15 @@ describe('🌐 Web Vitals 통합 테스트', () => {
           rating: 'good',
           delta: 1800,
           id: 'excellent-lcp',
-          entries: []
+          entries: [],
         },
         {
-          name: 'FID',
+          name: 'INP',
           value: 30, // 30ms (우수)
           rating: 'good',
           delta: 30,
           id: 'excellent-fid',
-          entries: []
+          entries: [],
         },
         {
           name: 'CLS',
@@ -300,8 +345,8 @@ describe('🌐 Web Vitals 통합 테스트', () => {
           rating: 'good',
           delta: 0.05,
           id: 'excellent-cls',
-          entries: []
-        }
+          entries: [],
+        },
       ];
 
       const response = await sendToWebVitalsAPI(excellentMetrics);
@@ -321,15 +366,15 @@ describe('🌐 Web Vitals 통합 테스트', () => {
           rating: 'needs-improvement',
           delta: 3200,
           id: 'slow-lcp',
-          entries: []
+          entries: [],
         },
         {
-          name: 'FID',
+          name: 'INP',
           value: 120, // 120ms (개선 필요)
           rating: 'needs-improvement',
           delta: 120,
           id: 'slow-fid',
-          entries: []
+          entries: [],
         },
         {
           name: 'CLS',
@@ -337,22 +382,24 @@ describe('🌐 Web Vitals 통합 테스트', () => {
           rating: 'needs-improvement',
           delta: 0.15,
           id: 'unstable-cls',
-          entries: []
-        }
+          entries: [],
+        },
       ];
 
       const response = await sendToWebVitalsAPI(needsImprovementMetrics);
 
       if (response.success && response.data) {
-        expect(['needs-improvement', 'poor']).toContain(response.data.analysis.overall);
-        expect(response.data.analysis.recommendations.length).toBeGreaterThan(0);
+        expect(['needs-improvement', 'poor']).toContain(
+          response.data.analysis.overall
+        );
+        expect(response.data.analysis.recommendations.length).toBeGreaterThan(
+          0
+        );
       }
     });
-
   });
 
   describe('📊 성능 분석 정확성 검증', () => {
-
     it('LCP 3초 이상일 때 이미지 최적화 권장사항 제공', async () => {
       const slowLcpMetrics: Metric[] = [
         {
@@ -361,19 +408,22 @@ describe('🌐 Web Vitals 통합 테스트', () => {
           rating: 'poor',
           delta: 3500,
           id: 'very-slow-lcp',
-          entries: []
-        }
+          entries: [],
+        },
       ];
 
       const response = await sendToWebVitalsAPI(slowLcpMetrics);
 
       if (response.success && response.data) {
         const recommendations = response.data.analysis.recommendations;
-        expect(recommendations.some(r =>
-          r.includes('이미지 최적화') ||
-          r.includes('WebP') ||
-          r.includes('AVIF')
-        )).toBe(true);
+        expect(
+          recommendations.some(
+            (r) =>
+              r.includes('이미지 최적화') ||
+              r.includes('WebP') ||
+              r.includes('AVIF')
+          )
+        ).toBe(true);
       }
     });
 
@@ -385,22 +435,23 @@ describe('🌐 Web Vitals 통합 테스트', () => {
           rating: 'poor',
           delta: 0.25,
           id: 'very-unstable-cls',
-          entries: []
-        }
+          entries: [],
+        },
       ];
 
       const response = await sendToWebVitalsAPI(unstableClsMetrics);
 
       if (response.success && response.data) {
         const recommendations = response.data.analysis.recommendations;
-        expect(recommendations.some(r =>
-          r.includes('레이아웃 시프트') ||
-          r.includes('이미지 크기') ||
-          r.includes('폰트 로딩')
-        )).toBe(true);
+        expect(
+          recommendations.some(
+            (r) =>
+              r.includes('레이아웃 시프트') ||
+              r.includes('이미지 크기') ||
+              r.includes('폰트 로딩')
+          )
+        ).toBe(true);
       }
     });
-
   });
-
 });
