@@ -3,7 +3,7 @@
 # 목적: 설정 분산 문제 해결, 변경 시 한 번만 수정
 
 version: "1.0.0"
-last_updated: "2025-10-29"  # npm v11.6.2 upgrade
+last_updated: "2025-11-03"  # WSL 재설치 후 환경 재구축
 project: "OpenManager VIBE v5.80.0"
 
 # ============================================================================
@@ -13,7 +13,7 @@ ai-tools:
   # Codex - 실무 검증 전문가
   codex:
     name: "ChatGPT Codex CLI"
-    version: "v0.46.0"  # 2025-10-17 업데이트
+    version: "v0.53.0+"  # v0.53.0 이상 권장 (2025-11-03 기준)
     role: "실무 검증 전문가"
     description: "버그 분석, 개선 제안, 실무 관점 검증"
     changelog_ref: "config/ai/changelog.yaml#codex"  # 히스토리는 changelog.yaml 참조
@@ -53,7 +53,7 @@ ai-tools:
   # Gemini - 아키텍처 검증 전문가
   gemini:
     name: "Google Gemini CLI"
-    version: "v0.9.0"  # 2025-10-17 업데이트
+    version: "v0.11.3+"  # v0.11.3 이상 권장 (2025-11-03 기준)
     role: "아키텍처 검증 전문가"
     description: "SOLID 검토, 설계 리뷰, 구조 분석"
     changelog_ref: "config/ai/changelog.yaml#gemini"  # 히스토리는 changelog.yaml 참조
@@ -94,7 +94,7 @@ ai-tools:
   # Qwen - 성능 검증 전문가
   qwen:
     name: "Qwen CLI"
-    version: "2.5 Coder"
+    version: "v0.1.2+"  # v0.1.2 이상 권장 (2025-11-03 기준)
     role: "성능 검증 전문가"
     description: "병목 분석, 알고리즘 최적화, 성능 개선"
     philosophy: "1ms라도 빨라야 함 - Performance Engineer"
@@ -498,7 +498,8 @@ workflows:
 maintenance:
   # Claude Code (메인 개발 도구)
   claude_code:
-    current_version: "v2.0.22"  # 2025-10-19 업데이트
+    current_version: "v2.0.31+"  # v2.0.31 이상 권장 (2025-11-03 기준)
+    installation_method: "npm-global"
     changelog_ref: "config/ai/changelog.yaml#claude_code"  # 히스토리는 changelog.yaml 참조
 
   # 버전 관리
