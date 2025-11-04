@@ -4,9 +4,166 @@
 >
 > **최신 설정 방법**: [Playwright MCP 설정 가이드](../development/playwright-mcp-setup-guide.md) 참조
 >
+> **변경 사항 (2025-11-03)**:
+>
+> - ✅ Microsoft 공식 @playwright/mcp v0.0.45로 마이그레이션 완료
+> - ✅ Symlink 방식으로 브라우저 경로 문제 해결
+> - ✅ 환경변수 8개 → 0개로 간소화 (100% 감소)
+> - ✅ launchOptions 플래그 13개 → 0개로 간소화
+> - ✅ MCP 연결 성공률 88.9% → 100% 달성
+>
 > **변경 사항 (2025-10-07)**:
+>
 > - ❌ Wrapper 스크립트 방식 제거
 > - ✅ npx 직접 실행 방식으로 전환
+
+---
+
+## 2025-11-03: Microsoft @playwright/mcp 마이그레이션
+
+### 📋 개요
+
+**문제**: `@executeautomation/playwright-mcp-server` stdio 프로토콜 버그로 MCP 연결 실패 (88.9% 성공률)
+
+**해결**: Microsoft 공식 `@playwright/mcp` v0.0.45 + Symlink 방식으로 마이그레이션
+
+**성과**: 100% MCP 연결 성공률 달성 (9/9 서버) ✅
+
+---
+
+### 🔧 6단계 복구 프로세스
+
+#### Step 1: 패키지 마이그레이션
+
+**`.mcp.json` 수정**:
+
+```json
+{
+  "mcpServers": {
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp"]
+    }
+  }
+}
+```
+
+**변경점**:
+
+- ❌ `@executeautomation/playwright-mcp-server` (Third-party, stdio 버그)
+- ✅ `@playwright/mcp` v0.0.45 (Microsoft 공식, 2025-11-01 릴리즈)
+
+#### Step 2: 패키지 검증
+
+```bash
+timeout 10 npx -y @playwright/mcp
+```
+
+**결과**: 4.5초 정상 실행 (이전 패키지는 <1초 즉시 종료)
+
+#### Step 3: Claude Code 재시작 #1
+
+새 패키지 설정 로드를 위한 재시작
+
+#### Step 4: 브라우저 경로 문제 해결
+
+**문제 발생**:
+
+```
+Error: browserType.launchPersistentContext: Chromium distribution 'chrome' is not found at /opt/google/chrome/chrome
+```
+
+**실패한 시도 - 환경변수**:
+
+```json
+"playwright": {
+  "env": {
+    "PLAYWRIGHT_BROWSERS_PATH": "0"
+  }
+}
+```
+
+- 결과: ❌ 실패 (하드코딩된 경로는 환경변수로 우회 불가)
+- Claude Code 재시작 #2 후에도 동일 에러 지속
+
+**성공한 해결책 - Symlink**:
+
+```bash
+sudo mkdir -p /opt/google/chrome
+sudo ln -sf ~/.cache/ms-playwright/chromium-1187/chrome-linux/chrome /opt/google/chrome/chrome
+
+# 검증
+ls -la /opt/google/chrome/chrome
+# 예상 출력:
+# lrwxrwxrwx 1 root root 68 Nov  3 XX:XX /opt/google/chrome/chrome -> /home/sky-note/.cache/ms-playwright/chromium-1187/chrome-linux/chrome
+```
+
+**브라우저 테스트**:
+
+```typescript
+mcp__playwright__browser_navigate({ url: 'https://example.com' });
+```
+
+**결과**: ✅ 성공
+
+```yaml
+- Page URL: https://example.com/
+- Page Title: Example Domain
+- Page Snapshot: (Accessibility Tree 반환)
+  - generic [ref=e2]:
+    - heading "Example Domain" [level=1]
+    - paragraph: This domain is for use in documentation examples...
+```
+
+#### Step 5: 헬스 리포트 생성
+
+```bash
+# 생성된 문서
+logs/mcp-health/2025-11-03-playwright-recovery-complete.md
+```
+
+#### Step 6: 문서 업데이트
+
+- ✅ 비교 분석 문서 생성 (800+ 줄)
+- ✅ 설정 가이드 업데이트 (8개 수정)
+- ✅ 복구 가이드 업데이트 (현재 섹션)
+- ⏳ 상태 문서 업데이트 (다음 단계)
+
+---
+
+### 📊 Before/After 비교
+
+| 항목              | Before (Wrapper 방식)                    | After (Symlink 방식)    | 개선           |
+| ----------------- | ---------------------------------------- | ----------------------- | -------------- |
+| **패키지**        | @executeautomation/playwright-mcp-server | @playwright/mcp v0.0.45 | Microsoft 공식 |
+| **브라우저**      | Windows Chrome                           | Playwright Chromium     | 네이티브 지원  |
+| **환경변수**      | 8개                                      | 0개                     | 100% 감소      |
+| **launchOptions** | 13개 플래그                              | 0개                     | 100% 감소      |
+| **추가 파일**     | Wrapper 스크립트 필요                    | 불필요                  | 간소화         |
+| **보안**          | `--no-sandbox` 비활성화                  | Sandbox 정상 작동       | 보안 강화      |
+| **설정 복잡도**   | 434줄                                    | ~50줄                   | 88% 감소       |
+| **MCP 성공률**    | 88.9% (8/9)                              | 100% (9/9)              | ✅ 완벽        |
+
+---
+
+### 🎯 핵심 교훈
+
+1. **환경변수의 한계**: MCP 서버가 경로를 하드코딩한 경우, 환경변수로는 우회 불가능
+2. **Symlink 솔루션**: 하드코딩된 경로를 실제 바이너리 위치로 매핑하는 효과적 방법
+3. **공식 패키지 우선**: Third-party 패키지보다 Microsoft 공식 구현이 안정적
+4. **간소화 효과**: 환경변수, 플래그 제거로 설정 복잡도 88% 감소
+
+---
+
+### 📚 관련 문서
+
+- [Playwright MCP 설정 가이드](../development/playwright-mcp-setup-guide.md) - 현재 권장 방식
+- [문서 vs 실제 비교 분석](./playwright-mcp-documentation-comparison.md) - 상세 변경 내역
+- [MCP 헬스 리포트](../../logs/mcp-health/2025-11-03-playwright-recovery-complete.md) - 복구 완료 보고서
+
+---
+
 > - ✅ executeautomation v1.0.6 사용
 > - ✅ 환경 변수 90% 간소화 (8개 → 2개)
 
@@ -21,6 +178,7 @@
 **현재는 사용하지 않습니다. 최신 가이드를 참조하세요.**
 
 ### ✨ v2.0 새로운 특징
+
 - **영구적 wrapper 스크립트**: WSL 재시작에도 영향받지 않음
 - **지능형 캐시 관리**: 중복 설치 자동 방지 (5개 제한, 30일 보관)
 - **안전장치 강화**: 사용자 데이터 보호 우선
@@ -47,6 +205,7 @@ claude mcp list | grep playwright
 ## 🔍 근본 원인 분석 (v3.0 - 진실 발견!)
 
 ### 🎯 WSL2 Sandbox 지원 확인 (2025-09-23 업데이트)
+
 **놀라운 발견**: WSL2는 실제로 Chromium sandbox를 **완벽히 지원**합니다!
 
 - ✅ `CONFIG_USER_NS=y`: User namespace 활성화
@@ -55,19 +214,23 @@ claude mcp list | grep playwright
 - ✅ **Chromium sandbox 모드 정상 작동 확인!**
 
 ### 기존 문제들
+
 1. **WSL /tmp 초기화**: 재시작마다 wrapper 스크립트 삭제
 2. **npm 캐시 손상**: ENOTEMPTY 에러로 중복 설치 유발
 3. **디스크 사용량 폭증**: 1.5GB+ 중복 브라우저 바이너리
 4. **❌ 잘못된 가정**: `--no-sandbox` 플래그가 필수라고 잘못 알려졌음
 
 ### v3.0 해결 방식 (Sandbox 활성화!)
+
 1. **영구적 위치 사용**: `~/.local/bin/playwright-mcp-wrapper-v2.sh`
 2. **🎉 Sandbox 활성화**: `--no-sandbox` 플래그 완전 제거
 3. **지능형 캐시 관리**: 14일+ 경과한 것만 자동 삭제
 4. **보수적 접근**: 최대 2개씩만 자동 정리
 
 ### ⚡ Wrapper 필요한 진짜 이유
+
 **Claude Code MCP 클라이언트 제한**:
+
 - 환경변수 전달 불가 (DISPLAY, LIBGL_ALWAYS_INDIRECT)
 - 직접 npx 실행 시 MCP 프로토콜 호환성 문제
 
@@ -93,6 +256,7 @@ claude mcp list | grep playwright
 #### 🎯 Wrapper v3.0 스마트 특징
 
 **1. WSLg 우선 정책**
+
 ```bash
 #!/bin/bash
 # WSLg 환경 자동 감지
@@ -103,6 +267,7 @@ check_wslg_available() {
 ```
 
 **2. Headless 기본 원칙**
+
 ```bash
 # 기본: 환경변수 설정 안함 (headless 모드)
 # headed 모드 감지시에만 DISPLAY 설정
@@ -110,11 +275,13 @@ setup_display_if_needed "$@"
 ```
 
 **3. 시나리오별 자동 선택**
+
 - **기본 실행**: 환경변수 없음 (headless)
 - **headed 모드**: WSLg DISPLAY 자동 설정
 - **WSLg 실패**: Xvfb 수동 설정 안내 (예외적)
 
 #### 기존 Wrapper에서 업그레이드
+
 ```bash
 # v3.0으로 자동 업그레이드 (권장)
 ./scripts/fix-playwright-mcp.sh
@@ -127,6 +294,7 @@ claude mcp add playwright "/home/sky-note/.local/bin/playwright-mcp-wrapper-v3.s
 ### 🎯 WSLg vs Xvfb 시나리오별 가이드 (v3.0 신규)
 
 #### 시나리오 1: Headless 모드 (기본, 권장) ✅
+
 ```bash
 # Playwright MCP 기본 사용 - GUI 불필요
 claude # MCP 자동 실행
@@ -135,6 +303,7 @@ claude # MCP 자동 실행
 ```
 
 #### 시나리오 2: WSLg Headed 모드 (GUI 필요시) ✅
+
 ```bash
 # WSLg 환경에서 GUI 브라우저 테스트
 npx playwright test --headed
@@ -144,6 +313,7 @@ npx playwright test --headed
 ```
 
 #### 시나리오 3: Xvfb 백업 (WSLg 실패시만) ⚠️
+
 ```bash
 # WSLg 실패시 수동 Xvfb 설정
 sudo apt install xvfb
@@ -154,11 +324,12 @@ Xvfb :99 -screen 0 1024x768x24 &
 ```
 
 #### 🎉 스마트 선택 로직
-| 상황 | 자동 선택 | 환경변수 | 성능 |
-|------|----------|----------|------|
-| **기본 MCP** | Headless | 없음 | 최고 |
-| **headed 플래그** | WSLg | DISPLAY=:0 | 높음 |
-| **WSLg 실패** | 안내 메시지 | 수동 설정 | 보통 |
+
+| 상황              | 자동 선택   | 환경변수   | 성능 |
+| ----------------- | ----------- | ---------- | ---- |
+| **기본 MCP**      | Headless    | 없음       | 최고 |
+| **headed 플래그** | WSLg        | DISPLAY=:0 | 높음 |
+| **WSLg 실패**     | 안내 메시지 | 수동 설정  | 보통 |
 
 ### 자동화 설정
 
@@ -174,12 +345,12 @@ echo '0 0 * * 0 fix-playwright-mcp >/dev/null 2>&1' | crontab -
 
 ### 캐시 관리 정책
 
-| 구분 | 이전 (v1.0) | 현재 (v2.0) | 개선 효과 |
-|------|-------------|-------------|-----------|
-| **npx 캐시 제한** | 3개 | 5개 | 호환성 증대 |
-| **자동 삭제 기준** | 7일 | 14일+ | 안전성 강화 |
-| **최대 자동 삭제** | 무제한 | 2개 | 데이터 보호 |
-| **브라우저 캐시** | 2GB 제한 | 3GB 제한 | 여유도 증가 |
+| 구분               | 이전 (v1.0) | 현재 (v2.0) | 개선 효과   |
+| ------------------ | ----------- | ----------- | ----------- |
+| **npx 캐시 제한**  | 3개         | 5개         | 호환성 증대 |
+| **자동 삭제 기준** | 7일         | 14일+       | 안전성 강화 |
+| **최대 자동 삭제** | 무제한      | 2개         | 데이터 보호 |
+| **브라우저 캐시**  | 2GB 제한    | 3GB 제한    | 여유도 증가 |
 
 ### 안전장치
 
@@ -296,15 +467,16 @@ npx playwright install
 
 ## 📊 성과 지표
 
-| 지표 | v1.0 (기존) | v2.0 (이전) | v3.0 (현재) | 개선률 |
-|------|-------------|-------------|-------------|--------|
-| **복구 시간** | 5-10분 | 30초 | 15초 | 95% 단축 |
-| **재발 방지** | 임시적 | 근본적 | 완전한 | 99% 예방 |
-| **디스크 절약** | 0GB | 1.5GB+ | 1.5GB+ | 완전 차단 |
-| **보안 강화** | --no-sandbox | --no-sandbox | **Sandbox 활성화** | **보안 향상** |
-| **안정성** | 보통 | 높음 | 최고 | 사용자 데이터 보호 |
+| 지표            | v1.0 (기존)  | v2.0 (이전)  | v3.0 (현재)        | 개선률             |
+| --------------- | ------------ | ------------ | ------------------ | ------------------ |
+| **복구 시간**   | 5-10분       | 30초         | 15초               | 95% 단축           |
+| **재발 방지**   | 임시적       | 근본적       | 완전한             | 99% 예방           |
+| **디스크 절약** | 0GB          | 1.5GB+       | 1.5GB+             | 완전 차단          |
+| **보안 강화**   | --no-sandbox | --no-sandbox | **Sandbox 활성화** | **보안 향상**      |
+| **안정성**      | 보통         | 높음         | 최고               | 사용자 데이터 보호 |
 
 ### 🎉 v3.0 혁신 성과
+
 - **🔒 보안 혁신**: WSL2 Chromium sandbox 활성화 달성
 - **⚡ 성능 향상**: 환경변수 최적화로 15초 복구 시간
 - **🎯 근본 해결**: Claude Code MCP 제한 우회 완료

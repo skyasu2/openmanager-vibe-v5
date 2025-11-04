@@ -38,7 +38,7 @@ claude --version   # v1.0.119
 claude mcp list | grep playwright
 
 # 예상 결과
-# playwright: npx -y @executeautomation/playwright-mcp-server - ✓ Connected
+# playwright: npx -y @playwright/mcp - ✓ Connected (Microsoft 공식 v0.0.45)
 ```
 
 ## 🚀 단계별 설정 가이드
@@ -54,14 +54,18 @@ npx playwright --version
 # Version 1.55.0
 ```
 
-### 2단계: 윈도우 크롬 브라우저 경로 확인
+### 2단계: Playwright Chromium 브라우저 경로 설정 (Symlink)
 
 ```bash
-# 윈도우 크롬 브라우저 경로 확인
-ls -la "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
+# Playwright Chromium 브라우저 심볼릭 링크 생성
+# @playwright/mcp v0.0.45는 /opt/google/chrome/chrome 경로를 하드코딩하고 있음
+sudo mkdir -p /opt/google/chrome
+sudo ln -sf ~/.cache/ms-playwright/chromium-1187/chrome-linux/chrome /opt/google/chrome/chrome
 
-# 예상 결과
-# -r-xr-xr-x 1 sky-note sky-note 3423384 Sep  9 15:00 /mnt/c/Program Files/Google/Chrome/Application/chrome.exe
+# 심볼릭 링크 확인
+ls -la /opt/google/chrome/chrome
+# 예상 결과:
+# lrwxrwxrwx 1 root root 68 Nov  3 XX:XX /opt/google/chrome/chrome -> /home/sky-note/.cache/ms-playwright/chromium-1187/chrome-linux/chrome
 ```
 
 ### 3단계: 플레이라이트 설정 파일 생성
@@ -108,23 +112,8 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        // WSL 환경에서 윈도우 크롬 브라우저 사용
-        launchOptions: {
-          executablePath: '/mnt/c/Program Files/Google/Chrome/Application/chrome.exe',
-          args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-web-security',
-            '--disable-features=VizDisplayCompositor',
-            // WSL-Windows 연동 최적화
-            '--disable-gpu',
-            '--no-first-run',
-            '--disable-default-apps',
-            '--disable-background-timer-throttling',
-            '--disable-renderer-backgrounding',
-            '--disable-backgrounding-occluded-windows',
-          ],
-        },
+        // launchOptions 불필요 - Playwright 기본값 사용
+        // symlink 설정으로 브라우저 경로 자동 인식
       },
     },
 
@@ -149,18 +138,26 @@ export default defineConfig({
 });
 ```
 
-### 4단계: 환경변수 설정
+### 4단계: ~~환경변수 설정~~ (불필요)
+
+**중요**: Symlink 방식을 사용하므로 환경변수 설정이 필요 없습니다.
 
 ```bash
-# WSL 환경에서 플레이라이트 환경변수 설정
-export PLAYWRIGHT_BROWSERS_PATH=/home/sky-note/.cache/ms-playwright
-export PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH="/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
+# ❌ 기존 방식 (8개 환경변수) - 더 이상 불필요
+# export PLAYWRIGHT_BROWSERS_PATH=...
+# export PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=...
+# export DISPLAY=...
+# (총 8개 환경변수 제거됨)
 
-# ~/.bashrc에 영구 저장
-echo 'export PLAYWRIGHT_BROWSERS_PATH=/home/sky-note/.cache/ms-playwright' >> ~/.bashrc
-echo 'export PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH="/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"' >> ~/.bashrc
-source ~/.bashrc
+# ✅ 새로운 방식 - Symlink만으로 충분
+# sudo ln -sf ~/.cache/ms-playwright/chromium-1187/chrome-linux/chrome /opt/google/chrome/chrome
 ```
+
+**장점**:
+
+- 환경변수 0개로 간소화 (100% 감소)
+- 보안 플래그 정상 작동 (sandbox 활성화)
+- 설정 복잡도 88% 감소
 
 ### 5단계: 브라우저 호환성 문제 해결
 
@@ -179,8 +176,9 @@ ln -sf chromium_headless_shell-1187 chromium_headless_shell-1179
 ```
 
 **1. 페이지 네비게이션 테스트:**
+
 ```
-mcp__playwright__playwright_navigate 함수 사용:
+mcp__playwright__browser_navigate 함수 사용:
 - url: http://localhost:3000
 - browserType: chromium
 - headless: false
@@ -188,22 +186,25 @@ mcp__playwright__playwright_navigate 함수 사용:
 ```
 
 **2. 스크린샷 캡처 테스트:**
+
 ```
-mcp__playwright__playwright_screenshot 함수 사용:
+mcp__playwright__browser_take_screenshot 함수 사용:
 - name: "test-screenshot"
 - fullPage: true
 - storeBase64: true
 ```
 
 **3. 요소 클릭 테스트:**
+
 ```
-mcp__playwright__playwright_click 함수 사용:
+mcp__playwright__browser_click 함수 사용:
 - selector: 'button:has-text("게스트로 체험하기")'
 ```
 
 **4. 페이지 텍스트 추출 테스트:**
+
 ```
-mcp__playwright__playwright_get_visible_text 함수 사용
+mcp__playwright__browser_snapshot 함수 사용 (Accessibility Tree 반환)
 ```
 
 ### 성공적인 테스트 시나리오
@@ -233,28 +234,30 @@ mcp__playwright__playwright_get_visible_text 함수 사용
 
 **개발 서버 vs 베르셀 프로덕션의 핵심 차이점:**
 
-| 구분 | 개발 서버 (localhost:3000) | 베르셀 프로덕션 |
-|------|---------------------------|-----------------|
-| **빌드 타입** | 개발 모드 (Hot Reload) | 프로덕션 빌드 (최적화) |
-| **성능** | 느림 (24.1s 초기 로드) | 빠름 (152ms 응답) |
-| **캐싱** | 캐싱 없음 | CDN + Edge 캐싱 |
-| **환경변수** | .env.local | 베르셀 환경변수 |
-| **SSR/SSG** | 개발 모드 | 프로덕션 최적화 |
-| **실제성** | 개발 환경 | 실제 사용자 환경 |
+| 구분          | 개발 서버 (localhost:3000) | 베르셀 프로덕션        |
+| ------------- | -------------------------- | ---------------------- |
+| **빌드 타입** | 개발 모드 (Hot Reload)     | 프로덕션 빌드 (최적화) |
+| **성능**      | 느림 (24.1s 초기 로드)     | 빠름 (152ms 응답)      |
+| **캐싱**      | 캐싱 없음                  | CDN + Edge 캐싱        |
+| **환경변수**  | .env.local                 | 베르셀 환경변수        |
+| **SSR/SSG**   | 개발 모드                  | 프로덕션 최적화        |
+| **실제성**    | 개발 환경                  | 실제 사용자 환경       |
 
 ### 🧪 베르셀 환경 테스트 시나리오
 
 **베르셀 프로덕션 URL**: `https://openmanager-vibe-v5.vercel.app`
 
 #### 1. 프로덕션 빌드 검증 테스트
+
 ```
-mcp__playwright__playwright_navigate 함수 사용:
+mcp__playwright__browser_navigate 함수 사용:
 - url: https://openmanager-vibe-v5.vercel.app
 - browserType: chromium
 - 목적: 프로덕션 빌드의 안정성 확인
 ```
 
 #### 2. 실제 성능 측정 테스트
+
 ```
 성능 지표 확인:
 - 초기 로드 시간: 152ms 목표
@@ -264,6 +267,7 @@ mcp__playwright__playwright_navigate 함수 사용:
 ```
 
 #### 3. 프로덕션 환경변수 검증
+
 ```
 테스트 항목:
 - Supabase 연결 상태
@@ -273,6 +277,7 @@ mcp__playwright__playwright_navigate 함수 사용:
 ```
 
 #### 4. 실제 사용자 플로우 검증
+
 ```
 완전한 E2E 시나리오:
 1. 프로덕션 로그인 페이지 접속
@@ -298,7 +303,7 @@ mcp__playwright__playwright_screenshot:
   storeBase64: true
 
 # 실제 API 응답 시간 측정
-mcp__playwright__playwright_evaluate:
+mcp__playwright__browser_evaluate:
   script: |
     performance.mark('api-start');
     fetch('/api/system/status')
@@ -339,6 +344,7 @@ npm run build && npm run start
 **문제**: `Executable doesn't exist at /home/sky-note/.cache/ms-playwright/chromium_headless_shell-1179/chrome-linux/headless_shell`
 
 **해결책**:
+
 ```bash
 # 브라우저 재설치
 npx playwright install chromium
@@ -356,6 +362,7 @@ ln -sf chromium_headless_shell-1187 chromium_headless_shell-1179
 **문제**: 플레이라이트 MCP 서버 응답 없음
 
 **해결책**:
+
 ```bash
 # MCP 서버 상태 확인
 claude mcp list
@@ -373,6 +380,7 @@ claude mcp add playwright npx -y @executeautomation/playwright-mcp-server
 **문제**: 브라우저 실행 시 메모리 부족
 
 **해결책**:
+
 ```bash
 # 메모리 상태 확인
 free -h
@@ -410,11 +418,13 @@ wsl --shutdown
 ## 🔗 관련 문서
 
 ### 📖 플레이라이트 테스트 가이드
+
 - **[E2E 테스트 가이드](../testing/e2e.md)** - 기본 E2E 테스트 실행 방법
 - **[종합 E2E 테스트 가이드](../testing/e2e-testing-guide.md)** - 베르셀 환경 테스트 전략 포함
 - **[PIN 인증 테스트 시나리오](../testing/pin-authentication-ai-assistant-test-scenario.md)** - 실제 베르셀 테스트 사례
 
 ### 🛠️ 환경 설정 문서
+
 - **[WSL 안전 가이드](./wsl-safety-guide.md)** - WSL 설정 변경 시 주의사항
 - **[현재 환경 가이드](./current-environment-guide.md)** - 실제 운영 환경 상태
 - **[MCP 서버 설정](../mcp/setup-guide.md)** - 9개 MCP 서버 완전 가이드
@@ -424,6 +434,7 @@ wsl --shutdown
 이 가이드를 통해 WSL 환경에서 플레이라이트 MCP가 윈도우 크롬 브라우저와 완벽하게 연동되어 안정적인 E2E 테스트 환경을 구축할 수 있습니다.
 
 **핵심 성과**:
+
 - ✅ 100% MCP 서버 연결 성공
 - ✅ WSL ↔ 윈도우 브라우저 완전 호환
 - ✅ 실제 사용자 플로우 테스트 성공

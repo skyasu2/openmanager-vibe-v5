@@ -1,3 +1,59 @@
 {
-  "mcpServers": {}
+  "mcpServers": {
+    "vercel": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@open-mcp/vercel"],
+      "env": {
+        "API_KEY": "8hRpGH5iHdUYIpnEPDVyRg8A"
+      }
+    },
+    "serena": {
+      "type": "stdio",
+      "command": "/home/sky-note/.local/bin/uvx",
+      "args": ["--from", "git+https://github.com/oraios/serena", "serena-mcp-server"]
+    },
+    "supabase": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@supabase/mcp-server-supabase@latest"],
+      "env": {
+        "SUPABASE_URL": "https://vnswjnltnhpsueosfhmw.supabase.co",
+        "SUPABASE_ACCESS_TOKEN": "sbp_90532bce7e5713a964686d52b254175e8c5c32b9"
+      }
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp"],
+      "env": {
+        "PLAYWRIGHT_BROWSERS_PATH": "0"
+      }
+    },
+    "shadcn-ui": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@jpisnice/shadcn-ui-mcp-server@latest"]
+    },
+    "memory": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "time": {
+      "type": "stdio",
+      "command": "/home/sky-note/.local/bin/uvx",
+      "args": ["mcp-server-time"]
+    },
+    "sequential-thinking": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking@latest"]
+    }
+  }
 }
