@@ -271,17 +271,15 @@ describe('🚀 OpenManager VIBE v5 - 핵심 API 엔드포인트 테스트', () =
             json: () =>
               Promise.resolve({
                 success: true,
-                data: [
-                  {
-                    id: 'server-1',
-                    name: 'Test Server 1',
-                    hostname: 'test-1.local',
-                    status: 'online',
-                    cpu: 45,
-                    memory: 67,
-                    disk: 23,
-                  },
-                ],
+                data: Array.from({ length: 10 }, (_, i) => ({
+                  id: `server-${i + 1}`,
+                  name: `Test Server ${i + 1}`,
+                  hostname: `test-${i + 1}.local`,
+                  status: i < 8 ? 'online' : i === 8 ? 'warning' : 'offline',
+                  cpu: 45,
+                  memory: 67,
+                  disk: 23,
+                })),
               }),
           } as Response);
         }
