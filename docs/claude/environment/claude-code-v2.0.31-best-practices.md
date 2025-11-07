@@ -13,126 +13,83 @@
 
 ---
 
-## 🧠 Extended Thinking 및 Token Budget 활용법
+## 🧠 Extended Thinking 활용법
 
-> ⚠️ **중요**: Extended Thinking과 Token Budget Keywords는 **별개의 기능**입니다.
+> **공식 문서 기반 안내** - Claude Code v2.0.31+ 전용 기능
 >
-> - **Extended Thinking**: Tab 키 토글 또는 ultrathink 키워드로 자동 활성화 (순차적 추론 시각화)
-> - **Token Budget Keywords**: think/think hard/ultrathink로 최대 thinking 토큰 수 조정
-> - 두 기능 모두 **Claude Code CLI 전용**이며, Web 인터페이스나 API에서는 작동하지 않습니다.
->
-> **출처**: [Claude Code: Best practices for agentic coding](https://simonwillison.net/2025/Apr/19/claude-code-best-practices/)
+> **출처**: [Claude Code 공식 문서](https://docs.claude.com/en/docs/claude-code/)
 
-### Token Budget Keywords (Claude Code CLI 전용)
+### Extended Thinking이란?
 
-| Keyword        | Token Budget | Trigger Phrases                                                                                                             | 사용 시나리오                 |
-| -------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| **think**      | 4,000 토큰   | "think"                                                                                                                     | 일상 작업, 빠른 검토          |
-| **megathink**  | 10,000 토큰  | "think hard", "think more", "think deeply", "think a lot"                                                                   | 코드 리뷰, 설계 검토          |
-| **ultrathink** | 31,999 토큰  | "think harder", "ultrathink", "think intensely", "think longer", "think really hard", "think super hard", "think very hard" | 근본 원인 분석, 시스템 최적화 |
+**순차적 추론 과정을 시각화하는 Claude Code 전용 기능**입니다.
 
-**참고**:
+- ✅ **활성화 방법**: Tab 키 토글 (수동 활성화만 가능)
+- ✅ **기본 상태**: 비활성화 (명시적 활성화 필요)
+- ✅ **시각 피드백**: 추론 과정이 실시간으로 표시됨
+- ✅ **비용**: 추가 비용 없음 (토큰 소비만 발생)
+- ❌ **자동 활성화**: 키워드로는 자동 활성화되지 않음
 
-- 토큰 예산은 Claude Code CLI가 내부적으로 할당하는 최대 thinking 토큰 수
-- 실제 소비 토큰은 프롬프트 복잡도에 따라 자동 조정
-- ultrathink는 기본 대비 약 15배 더 많은 토큰을 소비하므로 전략적 사용 권장
-- ⚠️ **중요**: ultrathink 키워드는 **Extended Thinking을 자동으로 활성화**합니다 (Tab 키 불필요)
+### 사용 방법
+
+#### 1. Tab 키 토글
+
+```bash
+# 활성화
+Tab 키 누르기 → Extended Thinking ON
+
+# 비활성화
+Tab 키 다시 누르기 → Extended Thinking OFF
+```
+
+#### 2. 프롬프트 강도 조절 (선택적)
+
+Extended Thinking 활성화 후, 프롬프트에 다음 키워드를 포함하여 분석 강도를 강조할 수 있습니다:
+
+| 키워드                | 설명                | 사용 예시                       |
+| --------------------- | ------------------- | ------------------------------- |
+| **think**             | 기본 추론 강조      | "think about this"              |
+| **think hard**        | 심층 추론 강조      | "think hard about architecture" |
+| **think longer**      | 더 긴 추론 강조     | "think longer about this bug"   |
+| **think more**        | 추가 추론 강조      | "think more about edge cases"   |
+| **think a lot**       | 충분한 추론 강조    | "think a lot before deciding"   |
+| **think really hard** | 매우 심층 추론 강조 | "think really hard about this"  |
+
+**참고**: 이 키워드들은 프롬프트의 강도를 강조하는 역할만 하며, Extended Thinking 자체를 활성화하지는 않습니다. Extended Thinking은 반드시 Tab 키로 수동 활성화해야 합니다.
+
+### 성능 지침
+
+**복잡한 작업에만 활성화 권장**:
+
+- ✅ 근본 원인 분석 필요 시
+- ✅ 다단계 추론 필요 시
+- ✅ 복잡한 시스템 설계 검토 시
+- ✅ 대규모 리팩토링 계획 수립 시
+
+**주의사항**:
+
+- ⚠️ 처리 시간 증가 가능성
+- ⚠️ 토큰 소비 증가 (순차적 추론으로 인한)
+- ⚠️ 간단한 작업에는 비활성화 권장
 
 ### 실전 예시
 
-#### Case 1: 빠른 코드 검토 (think)
+#### 간단한 작업 (Extended Thinking OFF)
 
-**상황**: PR 리뷰 전 빠른 검토
-
-**질문**:
-
-```
-"LoginClient.tsx의 에러 핸들링을 think 해서 검토해줘"
+```bash
+# Tab 키 비활성화 상태
+"LoginClient.tsx의 에러 핸들링 검토해줘"
+→ 빠른 응답, 토큰 절약
 ```
 
-**기대 결과**:
+#### 복잡한 분석 (Extended Thinking ON)
 
-- 기본 패턴 확인 (4-5개)
-- 명백한 버그 발견
-- 간단한 개선 제안
-
-**소요 시간**: ~5초
-
----
-
-#### Case 2: 아키텍처 리뷰 (think hard)
-
-**상황**: 새 기능 설계 검토
-
-**질문**:
-
-```
+```bash
+# Tab 키 활성화 후
 "Multi-AI 검증 시스템의 아키텍처를 think hard 해서 분석해줘"
+→ 순차적 추론 과정 시각화, 정확도↑
 ```
 
-**기대 결과**:
-
-- 설계 패턴 분석 (Decorator, Strategy 등)
-- SOLID 원칙 준수 여부
-- 구체적 개선안 3-5개
-
-**소요 시간**: ~15초
-
----
-
-#### Case 3: 복잡한 버그 분석 (think harder)
-
-**상황**: 간헐적 타임아웃 이슈
-
-**질문**:
-
-```
-"Qwen wrapper의 600초 타임아웃 문제를 think harder 해서 근본 원인 찾아줘"
-```
-
-**기대 결과**:
-
-- 근본 원인 3개 병목점
-- 재현 조건 분석
-- 구체적 코드 수정안
-
-**소요 시간**: ~30초
-
----
-
-#### Case 4: 시스템 전체 최적화 (ultrathink)
-
-**상황**: 대규모 리팩토링 계획
-
-**질문**:
-
-```
-"ResilientAIClient가 프로젝트 전체에 미치는 영향을 ultrathink 해서 최적화 계획 세워줘"
-```
-
-**기대 결과**:
-
-- 시스템 전체 의존성 맵
-- 4-Phase 구현 로드맵
-- 예상 성능 개선 메트릭
-
-**소요 시간**: ~60초
-
----
-
-### 선택 가이드
-
-```
-문제 복잡도 낮음 ──────────────────→ 문제 복잡도 높음
-    ↓                                      ↓
-  think        think hard      think harder      ultrathink
-    ↓              ↓                ↓                ↓
-  5초            15초              30초              60초
-    ↓              ↓                ↓                ↓
-일상 작업      코드 리뷰        버그 분석      시스템 설계
-```
-
-**원칙**: **가장 낮은 레벨에서 시작 → 필요 시 단계적 상승**
+**원칙**: **필요할 때만 Tab 키로 활성화 → 작업 완료 후 비활성화**
 
 ---
 

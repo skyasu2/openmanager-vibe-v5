@@ -5,6 +5,10 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL: 'http://mock-supabase-url.local',
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'mock-anon-key-for-testing',
+    },
     setupFiles: ['./src/test/setup.ts'],
     include: [
       'src/**/*.{test,spec}.{js,ts,tsx}',
