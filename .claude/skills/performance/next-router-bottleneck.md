@@ -1,3 +1,8 @@
+---
+name: diagnosing-nextjs-performance
+description: Next.js Router performance analysis and bottleneck identification workflow. Triggers when user reports performance issues, slow routing, or requests Next.js optimization analysis. Use for identifying FCP/LCP/CLS bottlenecks and Server Actions blocking.
+---
+
 # Next.js Router Performance Diagnosis
 
 **Target Token Efficiency**: 75% (400 tokens → 100 tokens)

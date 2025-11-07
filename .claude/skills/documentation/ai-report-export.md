@@ -1,3 +1,8 @@
+---
+name: exporting-ai-reports
+description: Automated 3-AI verification result documentation and export workflow. Triggers when user requests AI verification report export, documentation of findings, or saving cross-validation results. Use after completing Codex/Gemini/Qwen analysis.
+---
+
 # AI Verification Report Export
 
 **Target Token Efficiency**: 78% (450 tokens → 99 tokens)

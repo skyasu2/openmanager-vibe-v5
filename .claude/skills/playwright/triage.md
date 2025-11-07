@@ -1,3 +1,8 @@
+---
+name: triaging-playwright-failures
+description: Automated E2E test failure classification and diagnosis workflow for Playwright tests. Triggers when user reports Playwright failures, E2E test errors, or requests test triage. Use for timeout, selector, network, assertion, or page crash analysis.
+---
+
 # Playwright E2E Failure Triage
 
 **Target Token Efficiency**: 77% (350 tokens → 80 tokens)

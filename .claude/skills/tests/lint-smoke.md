@@ -1,3 +1,8 @@
+---
+name: checking-code-quality
+description: Automated lint and test smoke check workflow for code quality verification. Triggers when user requests code quality checks, lint execution, test validation, or smoke testing. Use for pre-commit checks or quality gates.
+---
+
 # Lint & Test Smoke Check
 
 **Target Token Efficiency**: 62% (300 tokens → 114 tokens)
@@ -39,7 +44,7 @@ npm run lint
 ### 2. Run Fast Tests
 
 ```bash
-npm run test:fast
+npm run test:quick
 ```
 
 **Expected Metrics**:
