@@ -287,6 +287,145 @@ subagents:
     priority: "MEDIUM"
 
 # ============================================================================
+# 2.5. Claude Code Skills (커스텀 스킬)
+# ============================================================================
+skills:
+  # Phase 1 Implementation (2025-11-07)
+  lint-smoke:
+    name: "Lint & Test Smoke Check"
+    version: "v1.0.0"
+    category: "testing"
+    description: "자동화된 린트 + 테스트 워크플로우 (빠른 코드 품질 검증)"
+    file_path: ".claude/skills/tests/lint-smoke.md"
+    token_efficiency: "62%"
+    baseline_tokens: 300
+    skill_tokens: 114
+    trigger_keywords:
+      - "check code quality"
+      - "run lint and tests"
+      - "smoke check"
+      - "verify code"
+      - "test파일 실행"
+    use_case:
+      - "코드 품질 빠른 검증"
+      - "커밋 전 체크"
+      - "CI/CD 파이프라인 통합"
+    success_criteria:
+      - "Lint: 0 errors"
+      - "Tests: Pass rate ≥ 88.9%"
+      - "Duration: < 25초"
+    implementation_date: "2025-11-07"
+    status: "✅ Implemented"
+
+  next-router-bottleneck:
+    name: "Next.js Router Performance Diagnosis"
+    version: "v1.0.0"
+    category: "performance"
+    description: "자동화된 Next.js 라우팅 성능 분석 및 병목점 식별"
+    file_path: ".claude/skills/performance/next-router-bottleneck.md"
+    token_efficiency: "75%"
+    baseline_tokens: 400
+    skill_tokens: 100
+    trigger_keywords:
+      - "performance issues"
+      - "slow routing"
+      - "next router bottleneck"
+      - "페이지 느림"
+      - "라우팅 성능"
+    use_case:
+      - "Next.js 15 성능 진단"
+      - "FCP/LCP 병목점 분석"
+      - "번들 크기 최적화"
+    success_criteria:
+      - "FCP: < 1.8s maintained"
+      - "Response: < 1s maintained"
+      - "Bottlenecks identified: < 3분"
+    implementation_date: "2025-11-07"
+    status: "✅ Implemented"
+
+  ai-report-export:
+    name: "AI Verification Report Export"
+    version: "v1.0.0"
+    category: "documentation"
+    description: "자동화된 3-AI 검증 결과 문서화 (마크다운 리포트 생성)"
+    file_path: ".claude/skills/documentation/ai-report-export.md"
+    token_efficiency: "78%"
+    baseline_tokens: 450
+    skill_tokens: 99
+    trigger_keywords:
+      - "export AI report"
+      - "document findings"
+      - "save verification results"
+      - "AI 검증 결과"
+      - "3-AI 결과"
+    use_case:
+      - "3-AI 교차검증 문서화"
+      - "Decision Log 자동 생성"
+      - "logs/ai-decisions/ 저장"
+    sources:
+      - "/tmp/codex.txt"
+      - "/tmp/gemini.txt"
+      - "/tmp/qwen.txt"
+    success_criteria:
+      - "Report generated: < 2 min"
+      - "All 3 AI outputs included: 100%"
+      - "Markdown formatting valid: ✅"
+    implementation_date: "2025-11-07"
+    status: "✅ Implemented"
+
+  playwright-triage:
+    name: "Playwright E2E Failure Triage"
+    version: "v1.0.0"
+    category: "testing"
+    description: "자동화된 E2E 테스트 실패 분류 및 진단 (Playwright 전용)"
+    file_path: ".claude/skills/playwright/triage.md"
+    token_efficiency: "77%"
+    baseline_tokens: 350
+    skill_tokens: 80
+    trigger_keywords:
+      - "playwright failed"
+      - "triage E2E"
+      - "E2E test error"
+      - "E2E 실패"
+      - "playwright 오류"
+    use_case:
+      - "E2E 테스트 자동 진단"
+      - "실패 타입 분류 (5가지)"
+      - "Quick Fix 제안"
+    failure_types:
+      - "Timeout (HIGH)"
+      - "Selector Not Found (MEDIUM)"
+      - "Network Failure (LOW/HIGH)"
+      - "Assertion Failure (HIGH)"
+      - "Page Crash (CRITICAL)"
+    success_criteria:
+      - "Failure classified: < 1 min"
+      - "Root cause identified: 90%+"
+      - "Quick fix provided: 70%+"
+    implementation_date: "2025-11-07"
+    status: "✅ Implemented"
+
+# Skills Configuration
+skills_config:
+  version: "1.0.0"
+  implementation_phase: "Phase 1"
+  total_skills: 4
+  average_token_efficiency: "73%"  # (62 + 75 + 78 + 77) / 4
+  expected_savings:
+    weekly_time: "30-40 min"
+    payback_period: "1-2 weeks"
+  validation:
+    method: "3-AI Cross-Verification"
+    approval_scores:
+      codex: "9.2/10"
+      gemini: "9.5/10"
+      qwen: "8.8/10"
+    consensus_rating: "9.17/10"
+  documentation:
+    planning_doc: "docs/planning/2025-11-claude-code-skills-adoption.md"
+    implementation_log: "logs/phase1-skills-implementation.md"
+
+# ============================================================================
 # 3. MCP Servers (MCP 서버)
 # ============================================================================
 mcp-servers:
