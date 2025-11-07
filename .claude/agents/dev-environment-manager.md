@@ -115,7 +115,8 @@ ${healthCheckResults.tools
     recommended: "${tool.recommended_version}+"
     status: "${tool.status}"
     response_time: "${tool.response_time}"
-${tool.oauth ? `    oauth: "${tool.oauth}"` : ''}`
+${tool.oauth ? `    oauth: "${tool.oauth}"` : ''}
+${tool.updateAvailable ? `    update_available: "${tool.updateAvailable.current} → ${tool.updateAvailable.latest}"` : ''}`
   )
   .join('
 ')}
@@ -218,14 +219,47 @@ const performAIToolsHealthCheck = async () => {
 
 ```typescript
 const aiToolsHealthCheck = async () => {
-  // Phase 1: 설치 및 버전 확인
+  // Phase 1: 설치 및 버전 확인 (✅ npm outdated 통합)
   const tools = ['claude', 'codex', 'gemini', 'qwen'];
+
+  // ✅ CLI 명령어 → npm 패키지명 매핑
+  const npmPackageMap = {
+    claude: '@anthropic-ai/claude-code',
+    codex: '@openai/codex',
+    gemini: '@google/gemini-cli',
+    qwen: '@qwen-code/qwen-code',
+  };
   const versions = await Promise.all(
-    tools.map(async (tool) => ({
-      name: tool,
-      installed: await execute_shell_command(`which ${tool}`),
-      version: await execute_shell_command(`${tool} --version`),
-    }))
+    tools.map(async (tool) => {
+      const installed = await execute_shell_command(`which ${tool}`);
+      const currentVersion = await execute_shell_command(`${tool} --version`);
+
+      // ✅ npm outdated로 업데이트 가능 여부 확인
+      const npmPackage = npmPackageMap[tool];
+      const outdatedInfo = await execute_shell_command(
+        `npm outdated -g ${npmPackage} --json 2>&1 || echo "{}"`
+      );
+
+      let updateAvailable = null;
+      try {
+        const outdated = JSON.parse(outdatedInfo);
+        if (outdated[npmPackage]) {
+          updateAvailable = {
+            current: outdated[npmPackage].current,
+            latest: outdated[npmPackage].latest,
+          };
+        }
+      } catch (e) {
+        // JSON 파싱 실패 시 무시
+      }
+
+      return {
+        name: tool,
+        installed: !!installed,
+        currentVersion,
+        updateAvailable,
+      };
+    })
   );
 
   // Phase 2: 대화 테스트 (OAuth 재인증 필요 여부 확인)
@@ -235,12 +269,15 @@ const aiToolsHealthCheck = async () => {
     execute_shell_command('timeout 30 qwen -p "hello"'),
   ]);
 
-  // Phase 3: 업그레이드 가능 패키지 확인
-  const outdated = await execute_shell_command(
-    'npm outdated -g | grep -E "(gemini|qwen|codex|claude)"'
-  );
+  // Phase 3: 업그레이드 권장사항 생성
+  const upgradeRecommendations = versions
+    .filter((v) => v.updateAvailable)
+    .map(
+      (v) =>
+        `${v.name}: ${v.updateAvailable.current} → ${v.updateAvailable.latest}`
+    );
 
-  return { versions, healthTests, outdated };
+  return { versions, healthTests, upgradeRecommendations };
 };
 ```
 
