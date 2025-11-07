@@ -18,6 +18,14 @@ Automated Next.js routing performance analysis and bottleneck identification wit
 - "next router bottleneck"
 - "페이지 느림"
 - "라우팅 성능"
+- "performance check"
+- "bottleneck analysis"
+- "성능 분석"
+- "web vitals"
+- "optimize routing"
+- "페이지 최적화"
+- "느린 로딩"
+- "performance diagnosis"
 
 ## Context
 
@@ -31,13 +39,43 @@ Automated Next.js routing performance analysis and bottleneck identification wit
 
 ### 1. Check Current Metrics
 
+**Automated Metrics Collection**:
+
+```bash
+# Run performance test
+npm run dev:stable &
+DEV_PID=$!
+sleep 30  # Wait for startup
+
+# Collect metrics (if available)
+curl -s http://localhost:3000 -w "
+Response Time: %{time_total}s
+"
+
+# Kill dev server
+kill $DEV_PID
+```
+
 **Performance Indicators**:
 
 ```typescript
-// Expected from logs/performance/
+// Parse from logs/performance/ or real-time collection
 - FCP (First Contentful Paint): 608ms ✅
+- LCP (Largest Contentful Paint): [to be measured]
+- TTFB (Time to First Byte): [to be measured]
 - Response Time: 532ms ✅
 - Bundle Size: 최적화 완료 (87MB 절약)
+```
+
+**Metrics Parsing Logic**:
+
+```bash
+# Check if performance logs exist
+if [ -f "logs/performance/latest.log" ]; then
+  grep -E "(FCP|LCP|TTFB)" logs/performance/latest.log
+else
+  echo "⚠️  No performance logs found. Metrics will be estimated."
+fi
 ```
 
 ### 2. Identify Common Bottlenecks
@@ -52,20 +90,54 @@ Automated Next.js routing performance analysis and bottleneck identification wit
 
 ### 3. Run Diagnostic Commands
 
-**Bundle Analysis**:
+**Automated Bundle Analysis**:
 
 ```bash
-# Check bundle size
-npm run build
-# Expected: < 500KB for main bundle
+# Run production build and capture output
+BUILD_OUTPUT=$(npm run build 2>&1)
+
+# Parse bundle sizes from build output
+echo "$BUILD_OUTPUT" | grep -E "(Route|First Load JS)" | tee logs/performance/bundle-analysis.log
+
+# Extract key metrics
+MAIN_BUNDLE=$(echo "$BUILD_OUTPUT" | grep -E "/_app" | awk '{print $4}')
+TOTAL_SIZE=$(echo "$BUILD_OUTPUT" | grep -E "First Load JS shared by all" | awk '{print $6}')
+
+# Threshold checks
+echo "📦 Bundle Analysis:"
+echo "  Main Bundle: $MAIN_BUNDLE"
+echo "  Total First Load: $TOTAL_SIZE"
+
+# Warning thresholds
+if [[ $(echo "$MAIN_BUNDLE" | sed 's/kB//') > 500 ]]; then
+  echo "⚠️  WARNING: Main bundle exceeds 500KB threshold"
+fi
+```
+
+**Bundle Size Targets**:
+
+```typescript
+// Production build targets
+- Main Bundle: < 500KB ✅
+- First Load JS: < 200KB ✅
+- Route Chunks: < 100KB each
+- Total Bundle: ~87MB saved (dev/prod 분리 완료)
 ```
 
 **Runtime Analysis**:
 
 ```bash
 # Check dev server performance
-npm run dev:stable
-# Expected: < 22초 startup
+time npm run dev:stable &
+DEV_PID=$!
+sleep 5
+
+# Measure startup time
+STARTUP_TIME=$(ps -p $DEV_PID -o etime= | tr -d ' ')
+echo "⏱️  Dev Server Startup: $STARTUP_TIME"
+
+# Expected: < 22초 (current: 22초, 35% improved)
+kill $DEV_PID
 ```
 
 ### 4. Analyze Web Vitals
@@ -79,37 +151,98 @@ npm run dev:stable
 
 ### 5. Bottleneck Classification
 
-**Category A: Bundle Size Issues** (87% resolved)
+**Automated Performance Regression Detection**:
 
-```
-Problem: Large vendor chunks
-Solution: ✅ Already optimized (dev/prod 분리)
-Status: No action needed
+```bash
+# Load baseline metrics (from docs/status.md)
+BASELINE_FCP=608
+BASELINE_RESPONSE=532
+BASELINE_STARTUP=22
+
+# Parse current metrics from latest performance log
+CURRENT_FCP=$(awk '/FCP:/ {gsub(/ms/, "", $2); print $2}' logs/performance/latest.log 2>/dev/null || echo "0")
+CURRENT_RESPONSE=$(awk '/Response:/ {gsub(/ms/, "", $2); print $2}' logs/performance/latest.log 2>/dev/null || echo "0")
+CURRENT_STARTUP=$(awk '/Startup:/ {gsub(/s/, "", $2); print $2}' logs/performance/latest.log 2>/dev/null || echo "0")
+
+# Calculate percentage differences
+FCP_DIFF=$(echo "scale=1; ($CURRENT_FCP - $BASELINE_FCP) / $BASELINE_FCP * 100" | bc 2>/dev/null || echo "0")
+RESPONSE_DIFF=$(echo "scale=1; ($CURRENT_RESPONSE - $BASELINE_RESPONSE) / $BASELINE_RESPONSE * 100" | bc 2>/dev/null || echo "0")
+STARTUP_DIFF=$(echo "scale=1; ($CURRENT_STARTUP - $BASELINE_STARTUP) / $BASELINE_STARTUP * 100" | bc 2>/dev/null || echo "0")
+
+# Trigger warnings for >10% regression
+echo "📊 Performance Regression Check:"
+if (( $(echo "$FCP_DIFF > 10" | bc -l 2>/dev/null || echo 0) )); then
+  echo "⚠️  WARNING: FCP regression ${FCP_DIFF}% (${BASELINE_FCP}ms → ${CURRENT_FCP}ms)"
+fi
+if (( $(echo "$RESPONSE_DIFF > 10" | bc -l 2>/dev/null || echo 0) )); then
+  echo "⚠️  WARNING: Response time regression ${RESPONSE_DIFF}% (${BASELINE_RESPONSE}ms → ${CURRENT_RESPONSE}ms)"
+fi
+if (( $(echo "$STARTUP_DIFF > 10" | bc -l 2>/dev/null || echo 0) )); then
+  echo "⚠️  WARNING: Startup time regression ${STARTUP_DIFF}% (${BASELINE_STARTUP}s → ${CURRENT_STARTUP}s)"
+fi
 ```
 
-**Category B: Server Actions Blocking**
+**Bundle Size Thresholds**:
 
-```
-Problem: Sequential await chains
-Solution: Parallel Promise.all()
-Example: src/app/api/dashboard/route.ts
+```typescript
+// Check against production targets
+const THRESHOLDS = {
+  mainBundle: 500, // KB - trigger investigation if exceeded
+  firstLoad: 200, // KB - Next.js recommendation
+  routeChunk: 100, // KB - per route target
+};
+
+// Current status (docs/status.md)
+// Main Bundle: ✅ < 500KB
+// First Load: ✅ < 200KB
+// Total saved: 87MB (dev/prod split)
 ```
 
-**Category C: Unnecessary Re-renders**
+**Categories**:
 
-```
-Problem: Missing React.memo or useMemo
-Solution: Memoize expensive components
-Target: src/components/dashboard/
-```
+**Category A: Bundle Bloat** (⚠️ Threshold: Main bundle > 500KB)
 
-**Category D: Middleware Overhead**
+- Symptoms: Large bundle size, slow initial load, high First Load JS
+- Common causes:
+  - Unnecessary dependencies in production
+  - Missing tree-shaking
+  - Large libraries not code-split
+  - Inline data/assets
+- Quick fix: Check `npm run build` output for large chunks
+- Impact: FCP +30-50%, Initial load +2-5s
 
-```
-Problem: Auth check on every request
-Solution: Edge middleware optimization
-File: middleware.ts
-```
+**Category B: Server Component Issues** (⚠️ Threshold: Response time > 532ms baseline)
+
+- Symptoms: Slow SSR, high TTFB, delayed hydration
+- Common causes:
+  - Server Components fetching in waterfall
+  - Missing Suspense boundaries
+  - Blocking database queries
+  - No streaming/partial prerendering
+- Quick fix: Add `loading.tsx` and Suspense
+- Impact: TTFB +50-100%, Response +200-500ms
+
+**Category C: Client State Overhead** (⚠️ Threshold: Startup time > 22s baseline)
+
+- Symptoms: Slow client-side navigation, high hydration time
+- Common causes:
+  - Too many Client Components (`"use client"`)
+  - Large client-side state
+  - Unnecessary re-renders
+  - Missing React.memo/useMemo
+- Quick fix: Convert to Server Components where possible
+- Impact: Hydration +20-40%, Dev server +35% slower
+
+**Category D: Data Fetching** (⚠️ Threshold: FCP > 608ms baseline)
+
+- Symptoms: Slow route transitions, loading spinners
+- Common causes:
+  - Waterfall requests
+  - No request deduplication
+  - Missing caching headers
+  - No prefetching
+- Quick fix: Use Next.js `fetch()` with cache
+- Impact: Route transitions +100-300ms
 
 ### 6. Report Format
 

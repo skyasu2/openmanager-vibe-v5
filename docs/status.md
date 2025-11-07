@@ -16,6 +16,18 @@
 - Gemini CLI v0.13.0+ (v0.13.0 이상 권장)
 - Qwen CLI v0.2.0+ (v0.2.0 이상 권장, 최신 버전)
 
+**Claude Code Skills** (Phase 1 완료) ✅
+
+- 4개 Skills 구현 완료 (2025-11-07)
+  - 🧪 lint-smoke: 린트 + 테스트 자동화 (62% 토큰 절약)
+  - ⚡ next-router-bottleneck: Next.js 라우팅 성능 진단 (75% 토큰 절약)
+  - 📝 ai-report-export: 3-AI 검증 결과 문서화 (78% 토큰 절약)
+  - 🎭 playwright-triage: E2E 테스트 실패 자동 분류 (77% 토큰 절약, v1.1.0)
+- 평균 토큰 효율: 73% (300-450 → 80-114 tokens)
+- 3-AI 합의 점수: 9.17/10 (Codex 9.2, Gemini 9.5, Qwen 8.8)
+- 예상 효과: 주당 30-40분 절감, 1-2주 내 ROI 회수
+- 상태: Registry 등록 완료, 테스트 검증 완료
+
 ---
 
 ## 📊 품질 지표

@@ -1,5 +1,6 @@
 ---
 name: exporting-ai-reports
+version: v1.1.0
 description: Automated 3-AI verification result documentation and export workflow. Triggers when user requests AI verification report export, documentation of findings, or saving cross-validation results. Use after completing Codex/Gemini/Qwen analysis.
 ---
 
@@ -55,6 +56,70 @@ Automated 3-AI verification result documentation without manual formatting or fi
 - Consensus points (agreements)
 - Divergent points (disagreements)
 - Recommended actions
+
+**Automated Parsing** (Enhancement 1):
+
+```bash
+# Parse scores from AI outputs
+CODEX_SCORE=$(awk '/score:|점수:/ {print $NF}' /tmp/codex.txt 2>/dev/null | grep -oE '[0-9]+\.[0-9]+|[0-9]+' | head -1)
+GEMINI_SCORE=$(awk '/score:|점수:/ {print $NF}' /tmp/gemini.txt 2>/dev/null | grep -oE '[0-9]+\.[0-9]+|[0-9]+' | head -1)
+QWEN_SCORE=$(awk '/score:|점수:/ {print $NF}' /tmp/qwen.txt 2>/dev/null | grep -oE '[0-9]+\.[0-9]+|[0-9]+' | head -1)
+
+# Calculate average score
+if [ -n "$CODEX_SCORE" ] && [ -n "$GEMINI_SCORE" ] && [ -n "$QWEN_SCORE" ]; then
+  AVERAGE_SCORE=$(echo "scale=1; ($CODEX_SCORE + $GEMINI_SCORE + $QWEN_SCORE) / 3" | bc 2>/dev/null || echo "0")
+else
+  AVERAGE_SCORE="N/A"
+  echo "⚠️  WARNING: Unable to parse all AI scores"
+fi
+
+# Extract key findings (first 5 bullet points from each AI)
+CODEX_FINDINGS=$(grep -E "^- |^\* " /tmp/codex.txt 2>/dev/null | head -5)
+GEMINI_FINDINGS=$(grep -E "^- |^\* " /tmp/gemini.txt 2>/dev/null | head -5)
+QWEN_FINDINGS=$(grep -E "^- |^\* " /tmp/qwen.txt 2>/dev/null | head -5)
+```
+
+**Consensus Detection** (Enhancement 2):
+
+```bash
+# Extract common keywords across all 3 AI outputs
+# Simple approach: Find keywords appearing in at least 2 outputs
+CODEX_KEYWORDS=$(tr '[:upper:]' '[:lower:]' < /tmp/codex.txt | grep -oE '[a-z]{4,}' | sort | uniq)
+GEMINI_KEYWORDS=$(tr '[:upper:]' '[:lower:]' < /tmp/gemini.txt | grep -oE '[a-z]{4,}' | sort | uniq)
+QWEN_KEYWORDS=$(tr '[:upper:]' '[:lower:]' < /tmp/qwen.txt | grep -oE '[a-z]{4,}' | sort | uniq)
+
+# Find intersection (keywords in at least 2 AIs)
+CONSENSUS_KEYWORDS=$(echo "$CODEX_KEYWORDS $GEMINI_KEYWORDS $QWEN_KEYWORDS" | tr ' ' '
+' | sort | uniq -c | awk '$1 >= 2 {print $2}')
+
+# Generate consensus summary
+CONSENSUS_SUMMARY="Common themes: $(echo $CONSENSUS_KEYWORDS | head -10 | tr '
+' ', ' | sed 's/, $//')"
+```
+
+**Status Determination** (Enhancement 3):
+
+```bash
+# Threshold-based approval logic
+if [ "$AVERAGE_SCORE" != "N/A" ]; then
+  if (( $(echo "$AVERAGE_SCORE >= 9.0" | bc -l) )); then
+    STATUS="✅ APPROVED"
+    STATUS_REASON="High consensus (≥9.0), implementation recommended"
+  elif (( $(echo "$AVERAGE_SCORE >= 8.0" | bc -l) )); then
+    STATUS="⚠️  CONDITIONALLY APPROVED"
+    STATUS_REASON="Good score (≥8.0), minor improvements suggested"
+  elif (( $(echo "$AVERAGE_SCORE >= 7.0" | bc -l) )); then
+    STATUS="🔄 NEEDS REVISION"
+    STATUS_REASON="Moderate score (≥7.0), significant improvements required"
+  else
+    STATUS="❌ REJECTED"
+    STATUS_REASON="Low score (<7.0), major redesign recommended"
+  fi
+else
+  STATUS="⚠️  INCOMPLETE"
+  STATUS_REASON="Unable to calculate average score (missing AI outputs)"
+fi
+```
 
 **Template Structure**:
 
@@ -124,7 +189,58 @@ logs/ai-decisions/YYYY-MM-DD-{task-slug}.md
 logs/ai-decisions/2025-11-04-skills-implementation-verification.md
 ```
 
+**✅ Enhancement 5: Filename Generation**
+
+```bash
+# Auto-generate filename slug from task name
+# Input: TASK_NAME="Skills Implementation Verification"
+# Output: skills-implementation-verification
+TASK_SLUG=$(echo "$TASK_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')
+
+# Generate full filename with timestamp
+FILENAME="logs/ai-decisions/$(date +%Y-%m-%d)-${TASK_SLUG}.md"
+
+echo "📝 Report filename: $FILENAME"
+```
+
+**Slug Generation Logic**:
+
+- Convert to lowercase: `tr '[:upper:]' '[:lower:]'`
+- Replace non-alphanumeric with hyphens: `sed 's/[^a-z0-9]/-/g'`
+- Collapse multiple hyphens: `sed 's/--*/-/g'`
+- Trim leading hyphen: `sed 's/^-//'`
+- Trim trailing hyphen: `sed 's/-$//'`
+
 ### 4. Export to Repository
+
+**✅ Enhancement 4: Validation Workflow**
+
+```bash
+# Check file existence before parsing
+MISSING=""
+[ ! -f /tmp/codex.txt ] && MISSING="${MISSING}codex "
+[ ! -f /tmp/gemini.txt ] && MISSING="${MISSING}gemini "
+[ ! -f /tmp/qwen.txt ] && MISSING="${MISSING}qwen "
+
+if [ -n "$MISSING" ]; then
+  echo "⚠️  WARNING: Missing AI outputs: $MISSING"
+  echo "   Report will be incomplete. Run wrapper scripts first:"
+  echo "   ./scripts/ai-subagents/codex-wrapper.sh \"[query]\""
+  echo "   ./scripts/ai-subagents/gemini-wrapper.sh \"[query]\""
+  echo "   ./scripts/ai-subagents/qwen-wrapper.sh \"[query]\""
+  exit 1
+fi
+
+# Validate AI output format (non-empty files)
+for ai_file in /tmp/codex.txt /tmp/gemini.txt /tmp/qwen.txt; do
+  if [ ! -s "$ai_file" ]; then
+    echo "❌ ERROR: Empty AI output file: $ai_file"
+    exit 1
+  fi
+done
+
+echo "✅ Validation passed: All AI outputs present and non-empty"
+```
 
 **File Location**:
 

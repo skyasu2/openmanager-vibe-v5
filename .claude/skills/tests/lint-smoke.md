@@ -17,7 +17,12 @@ Automated lint + test workflow for quick code quality verification without manua
 - "run lint and tests"
 - "smoke check"
 - "verify code"
+- "validate code"
+- "pre-commit check"
+- "quality gate"
+- "코드 검증"
 - "test파일 실행"
+- "품질 체크"
 
 ## Context
 
@@ -28,6 +33,30 @@ Automated lint + test workflow for quick code quality verification without manua
 - **Fast Test Target**: < 25초
 
 ## Workflow
+
+### 0. Pre-Check: ESLint Configuration
+
+**Verify strict mode settings**:
+
+```bash
+# Check for TypeScript strict rules
+grep -E "(no-explicit-any|strict)" .eslintrc.json
+```
+
+**Expected Rules**:
+
+- ✅ `@typescript-eslint/no-explicit-any`: `"error"` (any 타입 금지)
+- ✅ `@typescript-eslint/strict-boolean-expressions`: enabled
+- ✅ `@typescript-eslint/no-unsafe-assignment`: enabled
+
+**If Missing**:
+
+```
+⚠️ Warning: TypeScript strict 규칙 누락 감지
+권장: .eslintrc.json에 다음 규칙 추가 필요
+  - @typescript-eslint/no-explicit-any: "error"
+  - @typescript-eslint/strict-boolean-expressions: "error"
+```
 
 ### 1. Run Lint Check
 
@@ -40,6 +69,31 @@ npm run lint
 - ✅ No ESLint errors
 - ⚠️ Warnings acceptable if < 5개
 - ❌ Errors require immediate fix
+
+**Auto-Fix Detection**:
+
+If errors are detected, check for auto-fixable issues:
+
+```bash
+# Attempt auto-fix for common issues
+npm run lint:fix
+
+# Re-verify after auto-fix
+npm run lint
+```
+
+**Common Auto-Fixable Issues**:
+
+- Missing semicolons
+- Trailing whitespace
+- Import order violations
+- Spacing inconsistencies
+
+**Manual Fix Required**:
+
+- TypeScript type errors
+- Unused variables (`any` type violations)
+- Logic errors in code flow
 
 ### 2. Run Fast Tests
 
@@ -144,4 +198,8 @@ Tokens: ~114 (62% reduction)
 
 ## Changelog
 
+- 2025-11-08: Enhanced with auto-fix detection and ESLint config verification (Phase 1 Optimization)
+  - Added 5 new trigger keywords (10 total)
+  - Added auto-fix suggestion logic for common issues
+  - Added ESLint strict mode configuration verification
 - 2025-11-04: Initial implementation (Phase 1)

@@ -201,4 +201,95 @@ claude_code:
       - "@-mention MCP 서버 토글 개선"
       - "Bash inline 환경변수 권한 체크 개선"
 
+# ============================================================================
+# 3. Claude Code Skills Changelog
+# ============================================================================
+
+## next-router-bottleneck.md Changelog
+next_router_bottleneck:
+  v1_1_0:
+    date: "2025-11-08"
+    category: "enhancement"
+    highlights:
+      - "Automated bundle analysis parsing from npm build output"
+      - "Threshold-based performance regression detection"
+      - "Real-time startup time measurement"
+      - "Bundle size threshold warnings (>500KB)"
+      - "Performance regression warnings (>10% from baseline)"
+    technical_details:
+      - "Step 3: Added bash automation for BUILD_OUTPUT capture and parsing"
+      - "Step 3: Added runtime analysis with ps-based startup measurement"
+      - "Step 5: Added automated regression detection with awk-based log parsing"
+      - "Step 5: Added category-specific threshold indicators"
+    baselines:
+      FCP: "608ms"
+      Response: "532ms"
+      Startup: "22s"
+      MainBundle: "500KB"
+    token_efficiency: "75% (maintained)"
+    decision_log: "logs/ai-decisions/2025-11-08-phase1-skills-week1-day3-4-completion.md"
+
+## ai-report-export.md Changelog
+ai_report_export:
+  v1_1_0:
+    date: "2025-11-08"
+    category: "enhancement"
+    highlights:
+      - "Enhancement 1: Automated parsing of AI output files (/tmp/*.txt)"
+      - "Enhancement 2: Consensus detection logic (2+ AIs agree = consensus)"
+      - "Enhancement 3: Status determination (approval thresholds)"
+      - "Enhancement 4: Validation workflow (file existence & non-empty checks)"
+      - "Enhancement 5: Filename generation (auto-slug from task name)"
+    technical_details:
+      - "Step 2: Added bash parsing logic for extracting scores from AI outputs"
+      - "Step 2: Added consensus detection comparing findings across 3 AIs"
+      - "Step 2: Added status calculation (avg ≥9.0: APPROVED, 7.0-8.9: CONDITIONAL, &lt;7.0: REJECTED)"
+      - "Step 3: Added validation workflow checking file existence before parsing"
+      - "Step 3: Added filename slug generation pipeline (tr + sed multi-stage)"
+    token_efficiency: "78% reduction (450 → 99 tokens)"
+    decision_log: "logs/ai-decisions/2025-11-08-phase1-skills-week1-day5-completion.md"
+
+  v1_0_0:
+    date: "2025-11-04"
+    category: "initial"
+    highlights:
+      - "Initial implementation (Phase 1)"
+      - "3-AI verification report export workflow"
+      - "Markdown template structure"
+    token_efficiency: "78% baseline (450 → 99 tokens)"
+
+# ============================================================================
+# playwright_triage Skill
+# ============================================================================
+
+playwright_triage:
+  v1_1_0:
+    date: "2025-11-08"
+    category: "enhancement"
+    highlights:
+      - "Week 1 Day 6-7: Bash automation scripts added (5 enhancements)"
+      - "Enhancement 1: Automated log parsing (parse_playwright_logs function)"
+      - "Enhancement 2: Real-time error classification (classify_failure_type function)"
+      - "Enhancement 3: Diagnosis report generation (generate_diagnosis_report function)"
+      - "Enhancement 4: Quick fix generator (generate_quick_fix function)"
+      - "Enhancement 5: Failure tracking (track_failure_pattern & analyze_failure_patterns)"
+    technical_details:
+      - "Fix: Double-escaped backslashes (\\s, \\K) to avoid replace_regex tool escape sequence parser"
+      - "Enhancement 1: JSON parsing from test-results/ directory with screenshot/video/trace detection"
+      - "Enhancement 2: 5 failure type classifications (Type A-E) with priority levels (CRITICAL → LOW)"
+      - "Enhancement 3: Heredoc-based markdown report template with structured sections"
+      - "Enhancement 4: Case-based quick fix suggestions for each failure type"
+      - "Enhancement 5: CSV-based failure pattern tracking and analysis"
+    token_efficiency: "77% reduction (350 → 80 tokens)"
+    decision_log: "logs/ai-decisions/2025-11-08-phase1-skills-week1-day6-7-completion.md"
+
+  v1_0_0:
+    date: "2025-11-04"
+    category: "initial"
+    highlights:
+      - "Initial implementation (Phase 1)"
+      - "E2E test failure triage workflow"
+      - "5-step manual workflow structure"
+    token_efficiency: "77% baseline (350 → 80 tokens with automation)"
+
 # End of Changelog

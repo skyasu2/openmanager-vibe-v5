@@ -1,6 +1,7 @@
 ---
 name: triaging-playwright-failures
 description: Automated E2E test failure classification and diagnosis workflow for Playwright tests. Triggers when user reports Playwright failures, E2E test errors, or requests test triage. Use for timeout, selector, network, assertion, or page crash analysis.
+version: 1.1.0
 ---
 
 # Playwright E2E Failure Triage
@@ -46,6 +47,56 @@ stdout/stderr from test run
 - Stack trace location
 - Screenshot/video references
 - Retry count
+
+**Bash Automation Script**:
+
+```bash
+#!/bin/bash
+# Parse Playwright test-results/ directory for failure data
+
+parse_playwright_logs() {
+  local results_dir="${1:-test-results}"
+
+  if [[ ! -d "$results_dir" ]]; then
+    echo "❌ Error: $results_dir directory not found"
+    return 1
+  fi
+
+  echo "🔍 Parsing Playwright Logs from $results_dir"
+  echo ""
+
+  # Find all test result JSON files
+  find "$results_dir" -name "*.json" -type f | while read -r json_file; do
+    # Extract test name (using double-escaped patterns for replace_regex tool)
+    test_name=$(grep -oP '"title":\s*"\K[^"]+' "$json_file" | head -1)
+
+    # Extract error message
+    error_msg=$(grep -oP '"message":\s*"\K[^"]+' "$json_file" | head -1)
+
+    # Extract stack trace
+    stack_trace=$(grep -oP '"stack":\s*"\K[^"]+' "$json_file" | head -1)
+
+    # Find associated screenshots/videos
+    test_dir=$(dirname "$json_file")
+    screenshots=$(find "$test_dir" -name "*.png" -type f)
+    videos=$(find "$test_dir" -name "*.webm" -type f)
+    traces=$(find "$test_dir" -name "trace.zip" -type f)
+
+    # Output structured data
+    echo "📊 Test: $test_name"
+    echo "  Error: ${error_msg:-No error message}"
+    echo "  Stack: ${stack_trace:-No stack trace}"
+    [[ -n "$screenshots" ]] && echo "  Screenshots: $(echo "$screenshots" | wc -l) file(s)"
+    [[ -n "$videos" ]] && echo "  Videos: $(echo "$videos" | wc -l) file(s)"
+    [[ -n "$traces" ]] && echo "  Traces: $(echo "$traces" | wc -l) file(s)"
+    echo ""
+  done
+}
+
+# Usage:
+# parse_playwright_logs                    # Uses default test-results/
+# parse_playwright_logs "custom-results"   # Uses custom directory
+```
 
 ### 2. Classify Failure Type
 
@@ -119,6 +170,76 @@ Fix Priority: CRITICAL
 - Verify navigation sequence
 - Check for memory leaks
 
+**Bash Automation**:
+
+```bash
+#!/bin/bash
+# Classify failure type from error message
+
+classify_failure_type() {
+  local error_msg="$1"
+  local failure_type="UNKNOWN"
+  local priority="MEDIUM"
+
+  # Type A: Timeout
+  if echo "$error_msg" | grep -qi "timeout"; then
+    failure_type="Type A: Timeout"
+    priority="HIGH"
+    echo "🕐 $failure_type"
+    echo "  Priority: $priority"
+    echo "  Check: Element load time, selector validity, page performance"
+
+  # Type B: Selector Not Found
+  elif echo "$error_msg" | grep -qi "selector.*not found\|locator.*not found\|element.*not found"; then
+    failure_type="Type B: Selector Not Found"
+    priority="MEDIUM"
+    echo "🔍 $failure_type"
+    echo "  Priority: $priority"
+    echo "  Check: UI changes, dynamic content, incorrect selector"
+
+  # Type C: Network Failure
+  elif echo "$error_msg" | grep -qi "network\|ECONNREFUSED\|fetch failed\|ERR_CONNECTION"; then
+    failure_type="Type C: Network Failure"
+    # Determine priority based on error details
+    if echo "$error_msg" | grep -qi "ECONNREFUSED\|500\|503"; then
+      priority="HIGH"
+    else
+      priority="LOW"
+    fi
+    echo "🌐 $failure_type"
+    echo "  Priority: $priority"
+    echo "  Check: API availability, network configuration, backend status"
+
+  # Type D: Assertion Failure
+  elif echo "$error_msg" | grep -qi "expect.*to\|assertion\|expected.*received"; then
+    failure_type="Type D: Assertion Failure"
+    priority="HIGH"
+    echo "⚠️  $failure_type"
+    echo "  Priority: $priority"
+    echo "  Check: Test expectations, data state, UI behavior changes"
+
+  # Type E: Page Crash
+  elif echo "$error_msg" | grep -qi "page.*closed\|context.*closed\|browser.*closed\|crashed"; then
+    failure_type="Type E: Page Crash"
+    priority="CRITICAL"
+    echo "💥 $failure_type"
+    echo "  Priority: $priority"
+    echo "  Check: Browser console errors, memory usage, navigation sequence"
+
+  else
+    echo "❓ $failure_type"
+    echo "  Priority: $priority"
+    echo "  Manual review required"
+  fi
+
+  echo ""
+}
+
+# Usage:
+# error=$(grep -oP '"message":\s*"\K[^"]+' test.json)
+# classify_failure_type "$error"
+```
+
 ### 3. Generate Diagnosis Report
 
 **Report Format**:
@@ -144,6 +265,111 @@ Fix Priority: CRITICAL
 
 💡 Quick Fix (if available):
 [Code snippet or command to fix]
+```
+
+**🔧 Enhancement 3: Automated Diagnosis Report Generation**
+
+```bash
+#!/bin/bash
+# Generate formatted markdown diagnosis report
+
+generate_diagnosis_report() {
+  local test_name="$1"
+  local failure_type="$2"
+  local error_msg="$3"
+  local root_cause="$4"
+  local priority="$5"
+  local screenshot="$6"
+  local video="$7"
+  local trace="$8"
+
+  local timestamp=$(date +%Y-%m-%d-%H%M%S)
+  local report_file="logs/test-failures/${timestamp}-${test_name//[ \/]/-}.md"
+
+  mkdir -p logs/test-failures
+
+  cat > "$report_file" <<EOF
+# Playwright Failure Triage Report
+
+**Generated**: $(date +"%Y-%m-%d %H:%M:%S")
+
+---
+
+## 🔍 Test Failure Analysis
+
+📊 **Test**: $test_name
+├─ **Failure Type**: $failure_type
+├─ **Error Pattern**: $error_msg
+├─ **Root Cause**: $root_cause
+└─ **Fix Priority**: $priority
+
+---
+
+## 🎯 Recommended Fix
+
+1. Review error pattern and classification above
+2. Check evidence files (screenshot/video/trace)
+3. Apply quick fix if available (see below)
+4. Re-run test: \`npm run test:e2e -- --grep "$test_name"\`
+5. Verify fix in CI/CD environment
+
+---
+
+## 📸 Evidence Files
+
+EOF
+
+  [[ -n "$screenshot" ]] && echo "- **Screenshot**: \`$screenshot\`" >> "$report_file"
+  [[ -n "$video" ]] && echo "- **Video**: \`$video\`" >> "$report_file"
+  [[ -n "$trace" ]] && echo "- **Trace**: \`$trace\`" >> "$report_file"
+
+  cat >> "$report_file" <<EOF
+
+---
+
+## 💡 Quick Fix Commands
+
+\`\`\`bash
+# View screenshot
+open $screenshot
+
+# View video
+open $video
+
+# View trace in Playwright Trace Viewer
+npx playwright show-trace $trace
+\`\`\`
+
+---
+
+## ⚠️ Next Steps
+
+- [ ] Apply recommended fix
+- [ ] Re-run test
+- [ ] Verify in CI/CD
+- [ ] Document if recurring pattern
+EOF
+
+  echo "✅ Diagnosis report saved to: $report_file"
+  echo "$report_file"
+}
+
+# Usage: generate_diagnosis_report "test_name" "type" "error" "cause" "priority" "screenshot" "video" "trace"
+```
+
+**Invocation**:
+
+```bash
+# After classification
+generate_diagnosis_report \
+  "should login successfully" \
+  "Type A: Timeout" \
+  "TimeoutError: page.waitForSelector: Timeout 30000ms exceeded" \
+  "Element slow to load" \
+  "HIGH" \
+  "test-results/login-spec/screenshot.png" \
+  "test-results/login-spec/video.webm" \
+  "test-results/login-spec/trace.zip"
 ```
 
 ### 4. Provide Quick Fix (when applicable)
@@ -177,6 +403,139 @@ use: {
   // Add retry for network failures
   retries: 2,
 }
+```
+
+**🔧 Enhancement 4: Quick Fix Script Generator**
+
+```bash
+#!/bin/bash
+# Generate executable quick fix scripts based on failure type
+
+generate_quick_fix() {
+  local failure_type="$1"
+  local test_name="$2"
+  local selector="${3:-}"
+
+  local fix_script="logs/test-failures/fix-${test_name//[ \/]/-}.sh"
+
+  case "$failure_type" in
+    "Type A: Timeout")
+      cat > "$fix_script" <<'EOF'
+#!/bin/bash
+# Quick Fix: Increase timeout for slow elements
+
+echo "🔧 Applying Timeout Fix"
+
+# Option 1: Update playwright.config.ts globally
+sed -i 's/timeout: 30000/timeout: 60000/g' tests/e2e/playwright.config.ts
+
+# Option 2: Add timeout to specific test
+echo ""
+echo "💡 Or add timeout to specific test:"
+echo "await page.waitForSelector('$selector', { timeout: 60000 });"
+
+echo "✅ Fix applied. Re-run: npm run test:e2e"
+EOF
+      ;;
+
+    "Type B: Selector Not Found")
+      cat > "$fix_script" <<EOF
+#!/bin/bash
+# Quick Fix: Update selector to data-testid
+
+echo "🔧 Applying Selector Fix"
+
+# Suggest stable selector
+echo "💡 Replace selector '$selector' with:"
+echo "  [data-testid=\"$(basename $selector)\"]"
+echo ""
+echo "Example:"
+echo "  await page.click('[data-testid=\"submit-button\"]');"
+
+echo "✅ Manual fix required. Update test file accordingly."
+EOF
+      ;;
+
+    "Type C: Network Failure")
+      cat > "$fix_script" <<'EOF'
+#!/bin/bash
+# Quick Fix: Add retry config and check backend
+
+echo "🔧 Applying Network Failure Fix"
+
+# Add retry to playwright.config.ts
+sed -i '/use: {/a \  retries: 2,' tests/e2e/playwright.config.ts
+
+# Check backend health
+echo ""
+echo "🩺 Checking backend health..."
+curl -f http://localhost:3000/api/health || echo "❌ Backend not responding"
+
+echo "✅ Retry config added. Re-run: npm run test:e2e"
+EOF
+      ;;
+
+    "Type D: Assertion Failure")
+      cat > "$fix_script" <<'EOF'
+#!/bin/bash
+# Quick Fix: Debug assertion failure
+
+echo "🔧 Debugging Assertion Failure"
+
+echo "💡 Check test data setup:"
+echo "  1. Verify expected values are correct"
+echo "  2. Check for race conditions (add waitForFunction)"
+echo "  3. Review test data mocks"
+echo ""
+echo "Example fix:"
+echo "  await page.waitForFunction(() => document.querySelector('.status').textContent === 'completed');"
+
+echo "✅ Manual debugging required."
+EOF
+      ;;
+
+    "Type E: Page Crash")
+      cat > "$fix_script" <<'EOF'
+#!/bin/bash
+# Quick Fix: Investigate page crash
+
+echo "🔧 Investigating Page Crash"
+
+echo "💡 Check browser console errors:"
+echo "  1. Review trace file in Playwright Trace Viewer"
+echo "  2. Check for memory leaks"
+echo "  3. Verify navigation sequence"
+echo ""
+echo "Commands:"
+echo "  npx playwright show-trace test-results/.../trace.zip"
+
+echo "⚠️ Critical issue - manual investigation required."
+EOF
+      ;;
+
+    *)
+      echo "❌ Unknown failure type: $failure_type"
+      return 1
+      ;;
+  esac
+
+  chmod +x "$fix_script"
+  echo "✅ Quick fix script generated: $fix_script"
+  echo "$fix_script"
+}
+
+# Usage: generate_quick_fix "failure_type" "test_name" "[selector]"
+# Example: generate_quick_fix "Type A: Timeout" "should login successfully" ".dashboard-header"
+```
+
+**Invocation**:
+
+```bash
+# Generate fix script
+fix_script=$(generate_quick_fix "Type A: Timeout" "should login successfully" ".dashboard-header")
+
+# Execute fix
+bash "$fix_script"
 ```
 
 ### 5. Summary and Next Steps
@@ -338,6 +697,103 @@ Fix: Add waitForFunction for state change
 └─ logs/test-failures/2025-11-04-dashboard-selector.md
 ```
 
+**🔧 Enhancement 5: Test Failure Tracking and Pattern Analysis**
+
+```bash
+#!/bin/bash
+# Track failure patterns over time and identify flaky tests
+
+track_failure_pattern() {
+  local test_name="$1"
+  local failure_type="$2"
+  local timestamp=$(date +%Y-%m-%d)
+  local tracking_db="logs/test-failures/failure-tracking.csv"
+
+  mkdir -p logs/test-failures
+
+  # Initialize CSV if not exists
+  if [[ ! -f "$tracking_db" ]]; then
+    echo "Date,TestName,FailureType,Count" > "$tracking_db"
+  fi
+
+  # Check if entry exists for today
+  if grep -q "^${timestamp},${test_name},${failure_type}," "$tracking_db"; then
+    # Increment count
+    awk -F',' -v date="$timestamp" -v test="$test_name" -v type="$failure_type" \
+      'BEGIN{OFS=","} $1==date && $2==test && $3==type {$4=$4+1} {print}' \
+      "$tracking_db" > "${tracking_db}.tmp"
+    mv "${tracking_db}.tmp" "$tracking_db"
+  else
+    # New entry
+    echo "${timestamp},${test_name},${failure_type},1" >> "$tracking_db"
+  fi
+
+  echo "✅ Failure tracked in: $tracking_db"
+}
+
+analyze_failure_patterns() {
+  local tracking_db="logs/test-failures/failure-tracking.csv"
+  local days="${1:-30}"
+
+  if [[ ! -f "$tracking_db" ]]; then
+    echo "❌ No failure tracking data found"
+    return 1
+  fi
+
+  echo "📊 Failure Pattern Analysis (Last $days days)"
+  echo "=============================================="
+  echo ""
+
+  # Most frequent failures
+  echo "🔥 Top 5 Most Frequent Failures:"
+  tail -n +2 "$tracking_db" | \
+    awk -F',' '{sum[$2]+=$4} END {for (test in sum) print sum[test], test}' | \
+    sort -rn | head -5 | \
+    awk '{printf "  %2d failures: %s
+", $1, substr($0, index($0,$2))}'
+  echo ""
+
+  # Flaky tests (multiple failure types)
+  echo "⚠️  Potentially Flaky Tests:"
+  tail -n +2 "$tracking_db" | \
+    awk -F',' '{types[$2]++} END {for (test in types) if (types[test] > 1) print "  ", test, "(" types[test], "different failure types)"}' | \
+    sort
+  echo ""
+
+  # Recent trend (last 7 days)
+  echo "📈 Recent Trend (Last 7 days):"
+  tail -n +2 "$tracking_db" | \
+    awk -F',' -v cutoff="$(date -d '7 days ago' +%Y-%m-%d)" '$1 >= cutoff {sum+=$4} END {print "  Total failures:", sum}'
+  echo ""
+}
+
+# Usage:
+# track_failure_pattern "test_name" "failure_type"
+# analyze_failure_patterns [days]
+
+# Example:
+# track_failure_pattern "should login successfully" "Type A: Timeout"
+# analyze_failure_patterns 30
+```
+
+**Invocation**:
+
+```bash
+# After each triage
+track_failure_pattern "should login successfully" "Type A: Timeout"
+
+# Weekly analysis
+analyze_failure_patterns 30
+```
+
+---
+
 ## Changelog
 
 - 2025-11-04: Initial implementation (Phase 1)
+- 2025-11-08: Enhanced to v1.1.0 with bash automation (Phase 1 Week 1 Day 6-7)
+  - Added Enhancement 1: Automated Playwright log parsing
+  - Added Enhancement 2: Real-time error pattern detection
+  - Added Enhancement 3: Automated diagnosis report generation
+  - Added Enhancement 4: Quick fix script generator
+  - Added Enhancement 5: Test failure tracking and pattern analysis
