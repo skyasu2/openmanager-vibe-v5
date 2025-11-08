@@ -41,15 +41,15 @@ log_error() {
 }
 
 
-# 고정 타임아웃 (5분)
-TIMEOUT_SECONDS=300
+# 고정 타임아웃 (10분) - Codex/Qwen과 동일하게 통일
+TIMEOUT_SECONDS=600
 
 # Gemini 실행 함수
 execute_gemini() {
     local query="$1"
     local model="${2:-gemini-2.5-pro}"
 
-    log_info "🟢 Gemini 실행 중 (모델: $model, 타임아웃 ${TIMEOUT_SECONDS}초 = 5분)..."
+    log_info "🟢 Gemini 실행 중 (모델: $model, 타임아웃 ${TIMEOUT_SECONDS}초 = 10분)..."
 
     local start_time=$(date +%s)
     local output_file=$(mktemp)

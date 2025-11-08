@@ -282,6 +282,44 @@ wait
 
 ---
 
+### Phase 5: Temp 파일 정리 ⭐ NEW (v4.3.0)
+
+**목적**: 세션 중 생성된 임시 파일 자동 삭제
+
+**실행 시점**: Phase 4 완료 직후 (Decision Log 작성 후)
+
+**실행 코드**:
+
+```bash
+# Phase 1에서 생성된 임시 파일 삭제
+rm -f "$CODEX_TMP" "$GEMINI_TMP" "$QWEN_TMP"
+
+# Phase 0에서 생성된 파일 삭제 (존재하는 경우)
+if [[ -n "${ANALYSIS_SUMMARY_TMP:-}" ]]; then
+    rm -f "$ANALYSIS_SUMMARY_TMP"
+fi
+
+echo "✅ 임시 파일 정리 완료"
+```
+
+**정리 대상 파일**:
+
+- `/tmp/codex-${TIMESTAMP}.txt` (Phase 1)
+- `/tmp/gemini-${TIMESTAMP}.txt` (Phase 1)
+- `/tmp/qwen-${TIMESTAMP}.txt` (Phase 1)
+- `/tmp/analysis-summaries-${TIMESTAMP}.txt` (Phase 0, 조건부)
+
+**효과**:
+
+- ✅ 디스크 공간 절약 (세션당 ~50KB 절약)
+- ✅ 파일명 충돌 방지 (타임스탬프 재사용 시)
+- ✅ 세션 종료 시 자동 정리 (수동 관리 불필요)
+- ✅ Decision Log만 영구 보관 (Git 추적)
+
+**중요**: 원본 AI 출력은 임시 파일로만 존재하며 Decision Log에 요약본만 기록됨
+
+---
+
 ## 🔧 Bash Wrapper (Claude Code 내부 도구)
 
 **⚠️ 중요**: Wrapper 스크립트는 **Claude Code가 제어하는 내부 도구**입니다.
