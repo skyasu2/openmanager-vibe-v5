@@ -1,6 +1,3 @@
-#!/bin/sh
-. "$(dirname "$0")/_/husky.sh"
-
 echo "🔍 Pre-push: Type-safe validation (~60초 예상)..."
 START_TIME=$(date +%s)
 
