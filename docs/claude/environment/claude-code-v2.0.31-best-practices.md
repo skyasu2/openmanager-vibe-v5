@@ -552,6 +552,6 @@ Extended Thinking 활성화 후, 프롬프트에 다음 키워드를 포함하�
 **Validated By**: Phase 2 실측 검증 완료
 **Related Docs**:
 
-- config/ai/registry.yaml
+- config/ai/registry-core.yaml
 - docs/claude/environment/mcp/mcp-priority-guide.md
 - CLAUDE.md

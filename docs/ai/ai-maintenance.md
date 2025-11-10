@@ -268,10 +268,10 @@ wc -l CLAUDE.md
 
 ```bash
 # 버전 번호 확인
-grep "version:" config/ai/registry.yaml
+grep "version:" config/ai/registry-core.yaml
 
 # last_updated 확인
-grep "last_updated:" config/ai/registry.yaml
+grep "last_updated:" config/ai/registry-core.yaml
 ```
 
 **체크 항목**:
@@ -700,7 +700,7 @@ Task tool error: Agent not found
 **로컬 문제 해결**:
 
 - Decision Log 검색: `grep "문제" logs/ai-decisions/*.md`
-- AI Registry 참조: `config/ai/registry.yaml`
+- AI Registry 참조: `config/ai/registry-core.yaml`
 - 워크플로우 가이드: `docs/ai/ai-workflows.md`
 
 ---
@@ -726,7 +726,7 @@ claude mcp list
 
 # 3. 문서 동기화 (5분)
 wc -l CLAUDE.md
-grep "version:" config/ai/registry.yaml
+grep "version:" config/ai/registry-core.yaml
 ls -1 .claude/agents/*.md | wc -l
 
 # 4. 성능 지표 (5분)
@@ -759,7 +759,7 @@ claude mcp restart
 
 ## 📚 관련 문서
 
-- **AI Registry**: config/ai/registry.yaml (SSOT)
+- **AI Registry**: config/ai/registry-core.yaml (SSOT)
 - **워크플로우**: docs/ai/ai-workflows.md
 - **쿼리 최적화**: docs/ai/3-ai-query-optimization-guide.md
 - **서브에이전트**: docs/ai/subagents-complete-guide.md

@@ -222,7 +222,7 @@ last_updated: '2025-10-17'
 **AI 시스템**:
 
 - **docs/ai/** - Multi-AI 통합
-- **config/ai/registry.yaml** - AI 도구 SSOT
+- **config/ai/registry-core.yaml** - AI 도구 SSOT
 
 ---
 

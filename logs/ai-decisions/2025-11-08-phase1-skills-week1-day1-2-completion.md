@@ -226,4 +226,4 @@ grep -E "(no-explicit-any|strict)" .eslintrc.json
 
 **작성자**: Claude Code (Sonnet 4.5)  
 **상태**: ✅ Week 1, Day 1-2 완료 → Day 3-4 진행 예정  
-**참조**: `config/ai/registry.yaml#skills`, `phase1-skills-optimization-plan` (memory)
+**참조**: `config/ai/registry-core.yaml#skills`, `phase1-skills-optimization-plan` (memory)

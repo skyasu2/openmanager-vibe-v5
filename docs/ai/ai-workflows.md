@@ -485,7 +485,7 @@ qwen -p "시간복잡도는?"
 
 ## 📚 관련 문서
 
-- **AI Registry**: config/ai/registry.yaml (SSOT)
+- **AI Registry**: config/ai/registry-core.yaml (SSOT)
 - **3-AI 쿼리 최적화**: docs/ai/3-ai-query-optimization-guide.md
 - **서브에이전트 가이드**: docs/ai/subagents-complete-guide.md
 - **Multi-AI 전략**: docs/claude/environment/multi-ai-strategy.md
@@ -503,7 +503,7 @@ qwen -p "시간복잡도는?"
 
 ---
 
-**💬 피드백**: 이 워크플로우가 도움이 되었다면 AI Registry (config/ai/registry.yaml)를 업데이트하세요!
+**💬 피드백**: 이 워크플로우가 도움이 되었다면 AI Registry (config/ai/registry-core.yaml)를 업데이트하세요!
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 

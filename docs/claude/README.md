@@ -13,7 +13,7 @@ query_triggers:
   - '테스트 전략'
 related_docs:
   - 'CLAUDE.md'
-  - 'config/ai/registry.yaml'
+  - 'config/ai/registry-core.yaml'
   - 'docs/ai/'
   - 'docs/development/'
 last_updated: '2025-10-17'
@@ -55,7 +55,7 @@ claude/
 - `mock-simulation.md` - Mock/Simulation 시스템 설계
 - `system-overview.md` - 전체 시스템 개요
 
-**관련**: docs/quality/, config/ai/registry.yaml
+**관련**: docs/quality/, config/ai/registry-core.yaml
 
 ---
 
@@ -97,7 +97,7 @@ claude/
 - `serena-tools-comprehensive-guide.md` - Serena MCP 완전 가이드
 - `serena-subagent-integration-plan.md` - Serena 서브에이전트 통합
 
-**관련**: config/ai/registry.yaml, docs/ai/, scripts/ai-subagents/
+**관련**: config/ai/registry-core.yaml, docs/ai/, scripts/ai-subagents/
 
 ---
 
@@ -210,7 +210,7 @@ claude/
 **프로젝트 루트**:
 
 - **CLAUDE.md** - 메인 프로젝트 메모리 (빠른 참조)
-- **config/ai/registry.yaml** - AI 도구 SSOT
+- **config/ai/registry-core.yaml** - AI 도구 SSOT
 
 **다른 docs/ 디렉토리**:
 

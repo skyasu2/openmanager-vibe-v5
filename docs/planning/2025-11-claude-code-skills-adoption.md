@@ -56,7 +56,7 @@
 ### Gemini (아키텍처 관점) - 9.5/10
 
 **핵심 주장:**
-Skills를 단일 책임을 갖는 재사용 가능한 함수로 정의하고, Subagents는 이러한 Skills와 Tools를 조합하는 오케스트레이터로 역할 분리. `.claude/skills/` 디렉토리를 도메인별(git, filesystem 등)로 구조화하고, `config/ai/registry.yaml`에 `skills:` 섹션 신설하여 SSOT 원칙 준수. 전략 패턴(Strategy Pattern) 적용으로 OCP(개방-폐쇄 원칙) 만족.
+Skills를 단일 책임을 갖는 재사용 가능한 함수로 정의하고, Subagents는 이러한 Skills와 Tools를 조합하는 오케스트레이터로 역할 분리. `.claude/skills/` 디렉토리를 도메인별(git, filesystem 등)로 구조화하고, `config/ai/registry-core.yaml`에 `skills:` 섹션 신설하여 SSOT 원칙 준수. 전략 패턴(Strategy Pattern) 적용으로 OCP(개방-폐쇄 원칙) 만족.
 
 **아키텍처 설계:**
 
@@ -98,7 +98,7 @@ Skills를 단일 책임을 갖는 재사용 가능한 함수로 정의하고, Su
 
 **SSOT 원칙:**
 
-- `config/ai/registry.yaml`에 `skills:` 섹션 신설
+- `config/ai/registry-core.yaml`에 `skills:` 섹션 신설
 - 각 Skill의 메타데이터, 토큰 오버헤드, 절약 효과 중앙 관리
 
 ---
@@ -131,7 +131,7 @@ Skills의 30-50 토큰 오버헤드는 복잡한 다단계 작업 시 순 절약
 
 1. **Skills 도입 타당성**: 1인 개발자에게 긍정적 ROI
 2. **Skills 개수**: 3-5개 최적 (Codex 3-4개, Qwen 3-5개)
-3. **SSOT 원칙**: `config/ai/registry.yaml` 중앙 관리
+3. **SSOT 원칙**: `config/ai/registry-core.yaml` 중앙 관리
 4. **역할 분담**: Skills = 유틸리티 함수, Subagents = 복잡한 워크플로우
 
 ---
@@ -171,7 +171,7 @@ Skills의 30-50 토큰 오버헤드는 복잡한 다단계 작업 시 순 절약
 
 1. `.claude/skills/` 디렉토리 구조 생성
 2. 4개 Skills 구현 (tests, performance, documentation, playwright)
-3. `config/ai/registry.yaml`에 Skills 메타데이터 등록
+3. `config/ai/registry-core.yaml`에 Skills 메타데이터 등록
 4. 토큰 효율 측정 및 검증
 
 **실제 달성 결과:**
@@ -193,7 +193,7 @@ Skills의 30-50 토큰 오버헤드는 복잡한 다단계 작업 시 순 절약
   - [x] `performance/next-router-bottleneck.md` (75% efficiency)
   - [x] `documentation/ai-report-export.md` (78% efficiency)
   - [x] `playwright/triage.md` (77% efficiency)
-- [x] `config/ai/registry.yaml` 업데이트 (138 lines)
+- [x] `config/ai/registry-core.yaml` 업데이트 (138 lines)
 - [x] 토큰 효율 측정 및 검증 완료
 - [x] 실제 사용 테스트 (lint-smoke Skill)
 - [x] 결과 로그 작성 (`logs/phase1-skills-implementation.md`)
@@ -626,7 +626,7 @@ npx playwright test [테스트명] --browser chromium
 
 ---
 
-## 📝 config/ai/registry.yaml 업데이트
+## 📝 config/ai/registry-core.yaml 업데이트
 
 **추가할 섹션:**
 
@@ -888,7 +888,7 @@ recommendations:
 
 **참조:**
 
-- `config/ai/registry.yaml` - SSOT 원칙, Skills 메타데이터
+- `config/ai/registry-core.yaml` - SSOT 원칙, Skills 메타데이터
 - `docs/claude/environment/multi-ai-strategy.md` - 3-AI 교차검증
 - `docs/ai/subagents-complete-guide.md` - Subagents 활용법
 - `.claude/agents/` - 기존 Subagents 구조
@@ -916,7 +916,7 @@ recommendations:
   - [ ] 워크플로우 문서화
   - [ ] 토큰 효율 명시
 
-- [ ] `config/ai/registry.yaml` 업데이트
+- [ ] `config/ai/registry-core.yaml` 업데이트
   - [ ] `skills:` 섹션 신설
   - [ ] `skills_validation:` 섹션 추가
 

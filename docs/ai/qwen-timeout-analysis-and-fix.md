@@ -248,7 +248,7 @@ Qwen에 보내기 전에 추정:
 
 **새 가이드 생성**: Qwen 전용 쿼리 최적화
 
-### 3. config/ai/registry.yaml
+### 3. config/ai/registry-core.yaml
 
 **Qwen 섹션 업데이트**:
 
@@ -274,7 +274,7 @@ qwen:
 - [x] 타임아웃 수정 검증 (27초 성공)
 - [x] multi-ai-strategy.md 업데이트 (72-line timeout prevention section)
 - [x] 3-ai-query-optimization-guide.md 생성 (530+ lines Qwen-specific content)
-- [x] config/ai/registry.yaml 업데이트 (17-line timeout_prevention config)
+- [x] config/ai/registry-core.yaml 업데이트 (17-line timeout_prevention config)
 - [x] 나머지 3개 집중 요청으로 전체 검증 완료 (228초 total, 100% success)
 
 ---

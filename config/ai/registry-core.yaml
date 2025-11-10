@@ -1,0 +1,105 @@
+# AI Registry Core - Minimal Configuration (SSOT)
+# 핵심 정보만 포함, 상세 내역은 별도 문서 참조
+# 목적: 토큰 사용량 최소화 (Cache Read 79% → 30% 목표)
+
+version: "2.0.0"  # registry-core 버전
+last_updated: "2025-11-10"
+project: "OpenManager VIBE v5.80.0"
+
+# ============================================================================
+# 1. Current Active AI Tools (현재 활성화된 AI 도구만)
+# ============================================================================
+ai-tools:
+  codex:
+    current_version: "v0.56.0+"
+    wrapper_version: "v2.5.0"
+    status: "✅ Active"
+    
+  gemini:
+    current_version: "v0.13.0+"
+    wrapper_version: "v2.5.0"
+    status: "✅ Active"
+    
+  qwen:
+    current_version: "v0.2.0+"
+    wrapper_version: "v2.5.0"
+    status: "✅ Active"
+
+# 상세 정보: config/ai/changelog.yaml 참조
+
+# ============================================================================
+# 2. Active Subagents (활성화된 서브에이전트만)
+# ============================================================================
+subagents:
+  active:
+    - multi-ai-verification-specialist  # HIGH priority
+    - dev-environment-manager           # MEDIUM
+    - database-administrator            # HIGH
+    - vercel-platform-specialist        # HIGH
+    - code-review-specialist            # HIGH
+    - debugger-specialist               # HIGH
+    - security-specialist               # CRITICAL
+    - test-automation-specialist        # HIGH
+    - documentation-manager             # MEDIUM
+    - structure-refactor-specialist     # MEDIUM
+    - ui-ux-specialist                  # MEDIUM
+    - gcp-cloud-functions-specialist    # HIGH
+
+# 상세 정보: .claude/agents/*.md 참조
+
+# ============================================================================
+# 3. Active MCP Servers (활성화된 MCP 서버만)
+# ============================================================================
+mcp-servers:
+  active:
+    - vercel          # v0.0.13, stdio, API_KEY
+    - supabase        # CLI
+    - serena          # Native
+    - context7        # CLI
+    - playwright      # CLI, v0.0.45
+    - shadcn-ui       # CLI
+    - memory          # CLI
+    - time            # Python
+    - sequential-thinking  # CLI
+
+# 상세 정보: .mcp.json 참조
+
+# ============================================================================
+# 4. Claude Code Skills (Phase 1)
+# ============================================================================
+skills:
+  active:
+    - lint-smoke              # 62% token savings
+    - next-router-bottleneck  # 75% token savings
+    - ai-report-export        # 78% token savings
+    - playwright-triage       # 77% token savings
+  
+  average_efficiency: "73%"
+  status: "✅ Phase 1 Complete"
+
+# 상세 정보: .claude/skills/*/*.md 참조
+
+# ============================================================================
+# 5. Quick Reference (빠른 참조만)
+# ============================================================================
+quick_commands:
+  mcp_health: "./scripts/mcp-health-check.sh"
+  ai_verification: 'Task multi-ai-verification-specialist "[task]"'
+  token_usage: "npx ccusage@latest"
+
+maintenance_frequency:
+  mcp_health: "주 1회 (월요일)"
+  ai_tools_health: "필요 시 (dev-environment-manager 사용)"
+  docs_sync: "월 1회"
+
+# ============================================================================
+# 6. Documentation References (문서 참조)
+# ============================================================================
+docs:
+  main: "CLAUDE.md"
+  multi_ai: "docs/claude/environment/multi-ai-strategy.md"
+  subagents: "docs/ai/subagents-complete-guide.md"
+  mcp_guide: "docs/claude/environment/mcp/mcp-priority-guide.md"
+  changelog: "config/ai/changelog.yaml"
+
+# End of AI Registry Core

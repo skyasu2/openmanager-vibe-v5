@@ -10,7 +10,7 @@ query_triggers:
   - 'Qwen 최적화'
   - 'Multi-AI 전략'
 related_docs:
-  - 'config/ai/registry.yaml'
+  - 'config/ai/registry-core.yaml'
   - 'docs/claude/environment/multi-ai-strategy.md'
   - '.claude/agents/'
   - 'scripts/ai-subagents/'
@@ -64,7 +64,7 @@ gemini "이 구조가 SOLID 원칙에 맞나요?"
 qwen -p "시간복잡도는?"
 ```
 
-**SSOT**: config/ai/registry.yaml (18개 서브에이전트 중앙 관리)
+**SSOT**: config/ai/registry-core.yaml (18개 서브에이전트 중앙 관리)
 
 ---
 
@@ -193,7 +193,7 @@ codex: 이 프로젝트의 모든 측면을 분석하고 개선 방향을 제시
 
 - ✅ 활발한 업데이트 (4개 문서 1주일 내)
 - ✅ 명확한 역할 분담 (서브에이전트, 유지보수, 최적화, 워크플로우)
-- ✅ SSOT 연계 (config/ai/registry.yaml)
+- ✅ SSOT 연계 (config/ai/registry-core.yaml)
 
 ---
 
@@ -286,7 +286,7 @@ codex: 이 프로젝트를 전체적으로 분석하고 모든 개선점을 알�
 
 ### 3. SSOT (Single Source of Truth)
 
-**모든 AI 설정은 config/ai/registry.yaml에서 관리**:
+**모든 AI 설정은 config/ai/registry-core.yaml에서 관리**:
 
 - 18개 서브에이전트 정의
 - 3개 외부 AI CLI 도구 설정
@@ -301,7 +301,7 @@ codex: 이 프로젝트를 전체적으로 분석하고 모든 개선점을 알�
 
 ### 중앙 관리
 
-- **config/ai/registry.yaml** - SSOT (모든 AI 설정)
+- **config/ai/registry-core.yaml** - SSOT (모든 AI 설정)
 - **CLAUDE.md** - 프로젝트 메인 가이드
 - **docs/claude/environment/multi-ai-strategy.md** - Multi-AI 전략 상세
 
@@ -371,7 +371,7 @@ cat logs/ai-tools-health/$(date +%Y-%m-%d).log
 ls .claude/agents/
 
 # 2. registry.yaml 동기화 확인
-cat config/ai/registry.yaml
+cat config/ai/registry-core.yaml
 
 # 3. 올바른 호출 형식
 Task multi-ai-verification-specialist "작업 설명"

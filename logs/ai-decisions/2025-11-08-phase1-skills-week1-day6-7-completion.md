@@ -274,7 +274,7 @@ $ grep -n "^parse_playwright_logs()\|^classify_failure_type()\|^generate_diagnos
 ## 📚 참고 문서
 
 - **Phase 1 Plan**: docs/planning/2025-11-claude-code-skills-adoption.md
-- **Skills Config**: config/ai/registry.yaml#skills
+- **Skills Config**: config/ai/registry-core.yaml#skills
 - **Playwright Config**: tests/e2e/playwright.config.ts
 - **E2E Status**: docs/status.md (29 tests, 99% pass rate)
 

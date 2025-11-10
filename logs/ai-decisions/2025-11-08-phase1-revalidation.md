@@ -86,7 +86,7 @@
    - Line 71: `Qwen v0.1.2` → `Qwen v2.2.0`
    - Line 3: `2025-11-04` → `2025-11-08` (최종 업데이트 날짜)
 
-2. **config/ai/registry.yaml** (1개 편집)
+2. **config/ai/registry-core.yaml** (1개 편집)
    - Line 97: `version: "v0.1.2+"` → `version: "v2.2.0+"`
 
 #### ✅ 최종 상태
@@ -105,7 +105,7 @@
 
 #### 서브에이전트 분석 대상
 
-- **파일**: config/ai/registry.yaml (1,182줄)
+- **파일**: config/ai/registry-core.yaml (1,182줄)
 - **분석 범위**: Phase 2+ skills 계획 존재 여부
 - **교차 검증**: 계획 문서, 워크플로우 갭 분석
 
@@ -391,7 +391,7 @@ skills_config:
    **마지막 업데이트**: 2025-11-08
    ```
 
-**파일 2: config/ai/registry.yaml (1개 편집)**
+**파일 2: config/ai/registry-core.yaml (1개 편집)**
 
 ```yaml
 # Line 97 (AI Tools 섹션)
@@ -441,7 +441,7 @@ skills_config:
 ### 문서 일관성
 
 - ✅ docs/status.md 업데이트 (3개 편집)
-- ✅ config/ai/registry.yaml 업데이트 (1개 편집)
+- ✅ config/ai/registry-core.yaml 업데이트 (1개 편집)
 - ✅ logs/ai-decisions/ 검증 로그 생성
 
 ---
@@ -465,6 +465,6 @@ skills_config:
 **참조 문서**:
 
 - docs/status.md (현재 상태 - 수정됨)
-- config/ai/registry.yaml (AI 레지스트리 SSOT - 수정됨)
+- config/ai/registry-core.yaml (AI 레지스트리 SSOT - 수정됨)
 - logs/ai-decisions/2025-11-07-phase1-skills-verification.md (이전 검증)
 - docs/planning/2025-11-claude-code-skills-adoption.md (Phase 계획)

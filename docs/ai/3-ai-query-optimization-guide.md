@@ -1182,7 +1182,7 @@ jq '.dependencies | length' package.json
 
 - 상세 분석: `docs/ai/qwen-timeout-analysis-and-fix.md` (8-thought Sequential Thinking)
 - 전략 가이드: `docs/claude/environment/multi-ai-strategy.md` (lines 140-210)
-- 설정 레지스트리: `config/ai/registry.yaml` (lines 135-151)
+- 설정 레지스트리: `config/ai/registry-core.yaml` (lines 135-151)
 
 ---
 
@@ -1208,7 +1208,7 @@ jq '.dependencies | length' package.json
   - multi-ai-verification-specialist 활용법
   - codex/gemini/qwen-specialist 호출 방법
 
-- **AI Registry (SSOT)**: config/ai/registry.yaml
+- **AI Registry (SSOT)**: config/ai/registry-core.yaml
   - Qwen timeout_prevention 설정 (lines 135-151)
   - 검증 완료 메트릭 (228초, 62% 안전 마진)
 

@@ -65,63 +65,63 @@ claude --model sonnet
 
 ---
 
+## ⚡ 토큰 최적화 전략
+
+### @-mention 템플릿 (복사해서 사용) 🔥
+
+```bash
+# 코드 분석 (Serena)
+@serena "src/components/LoginClient.tsx 구조 분석"
+
+# 라이브러리 문서 (Context7)
+@context7 "Next.js 15 server actions 문서"
+
+# Vercel 조회
+@vercel "최근 배포 목록"
+
+# DB 작업 (Supabase)
+@supabase "users 테이블 RLS 정책 확인"
+
+# UI 컴포넌트 (Shadcn-ui)
+@shadcn-ui "button 컴포넌트 최신 버전"
+```
+
+**효과**: 10-18% 추가 절약, Cache Read 90%+ 달성
+
+### 외부 문서 참조 가이드
+
+| 문서                     | 언제 참조           | 핵심 내용                     |
+| ------------------------ | ------------------- | ----------------------------- |
+| multi-ai-strategy.md     | AI 교차검증 필요 시 | 3-AI 병렬 실행, Bash Wrapper  |
+| subagents-complete-guide | 전문 작업 필요 시   | 12개 에이전트, 호출 방법      |
+| mcp-priority-guide.md    | MCP 도구 선택 시    | 작업별 우선순위, Before/After |
+
+**원칙**: 500줄+ 문서는 직접 참조 최소화, 1-2줄 요약으로 빠른 판단
+
+---
+
 ## 🤖 Multi-AI 교차검증
 
 **⚠️ 트리거**: "AI 교차검증" 명시 시에만 활성화 (일반 개발은 Claude 단독)
 
-**4-AI 역할**:
-
-- **Claude Code**: 메인 개발자 (코딩, 문서, 모든 구현) + 최종 결정자
-- **Codex**: 실무 검증 (버그 분석, 개선 제안) - 2초
-- **Gemini**: 아키텍처 검증 (SOLID 검토, 설계 리뷰) - 11초
-- **Qwen**: 성능 검증 (병목 분석, 최적화 제안) - 6초
-
-**핵심 원칙**:
-
-- ✅ **개발/구현**: Claude Code 전담
-- ✅ **검증/리뷰**: Codex/Gemini/Qwen (사용자 명시 시만)
-- ⚠️ **예외**: 사용자가 특정 AI에게 직접 개발 지시한 경우만
-  - 예: "Codex야 이 코드 짜줘" - OK (명시적 지시)
-
-**검증 호출 조건**:
-
-- 복잡한 버그 (근본 원인 불명확) → Codex 검증
-- 아키텍처 결정 (SOLID 검토, 대규모 리팩토링) → Gemini 검증
-- 성능 이슈 (병목점 분석, 알고리즘 최적화) → Qwen 검증
-- 종합 검토 (다양한 관점 필요) → 3-AI 교차검증
-
-**사용법**:
+**호출**:
 
 ```bash
-# 교차검증 요청
-"useState vs useReducer를 AI 교차검증해줘"
-
-# 서브에이전트 직접 호출
 Task multi-ai-verification-specialist "LoginClient.tsx 검증"
 ```
 
-**상세**: @docs/claude/environment/multi-ai-strategy.md
+**상세**: @docs/claude/environment/multi-ai-strategy.md (653줄, 3-AI 협업 전략)
 
 ---
 
-## 🎭 서브에이전트 활용 (12개 전문가)
+## 🎭 서브에이전트 (12개)
 
-### 호출 방법
+**호출**: `Task [에이전트명] "[작업]"`
 
-```bash
-Task [에이전트명] "[작업 요청]"
-```
+**핵심**: multi-ai-verification, code-review, vercel-platform, security, test-automation
 
-### 핵심 서브에이전트
-
-- **multi-ai-verification-specialist**: 3-AI 교차검증
-- **code-review-specialist**: TypeScript strict 검토
-- **vercel-platform-specialist**: 배포 및 최적화
-- **security-specialist**: 보안 감사
-- **test-automation-specialist**: E2E 테스트
-
-**전체 목록**: @docs/ai/subagents-complete-guide.md
-**설정 레지스트리**: @config/ai/registry.yaml (SSOT)
+**상세**: @docs/ai/subagents-complete-guide.md (371줄, 전체 목록)
+**설정**: @config/ai/registry-core.yaml (SSOT)
 
 ---
 
@@ -170,25 +170,12 @@ npm run test:fast           # 21초 (44% 개선)
 
 **MCP 연결**: 9/9 완벽 (100% 가동률) ✅
 
-**MCP 우선 전략**: Serena (코드 분석), Vercel MCP (배포 조회), Context7 (문서), Shadcn-ui (UI)
+**MCP 우선 전략**: Serena (코드 분석), Vercel (배포), Context7 (문서), Shadcn-ui (UI)
 
 - **토큰 절약**: 85% (MCP 82% + @-mention 3%)
 - **핵심 서버**: vercel, serena, supabase, context7, playwright, shadcn-ui, memory, time, sequential-thinking
 
-**상세**: @docs/claude/environment/mcp/mcp-priority-guide.md (Before/After 예시 포함)
-
-### 🎯 @-mention 토큰 절약 (v2.0.10+)
-
-특정 MCP 서버만 활성화: `@serena 구조 분석`, `@context7 문서`, `@vercel 배포 확인`
-**효과**: 10-18% 추가 절약
-
-### 📋 MCP 사용 팁
-
-- **코드 분석**: Serena (500줄+), Read (100줄-)
-- **정보 조회**: Vercel MCP (89배 빠름), Context7 (100% 정확)
-- **토큰 절약**: @-mention으로 특정 서버만 활성화
-
-**상세 가이드**: @docs/claude/environment/mcp/mcp-priority-guide.md
+**상세**: @docs/claude/environment/mcp/mcp-priority-guide.md (514줄, Before/After 예시)
 
 ---
 
@@ -268,8 +255,10 @@ claude mcp list                # 전체 서버 상태 확인
 
 ## 📏 CLAUDE.md 크기 관리
 
-**현재**: 305줄 ✅ (목표: 200-300줄)
+**현재**: 292줄 ✅ (목표: 200-300줄)
 **새 내용 추가 시**: Import 문서로 분리 또는 기존 내용 삭제 필수
+
+**최적화 완료**: 2025-11-11 (281줄 → 292줄, 토큰 효율 섹션 추가)
 
 ---
 
@@ -281,71 +270,11 @@ claude mcp list                # 전체 서버 상태 확인
 
 ---
 
-## ⚡ Quick Reference (빠른 참조)
+## ⚡ Quick Reference
 
-### 🔥 신규 기능 (Claude Code v2.0.31+)
-
-#### Extended Thinking (내부 추론 강화)
-
-```bash
-# Magic Keywords: think < think hard < think harder < ultrathink
-claude --model sonnet
-> "복잡한 버그를 think harder 해서 분석해줘"
-> "아키텍처를 ultrathink 해서 검토해줘"
-```
-
-**효과**: 더 정확한 분석, 복잡한 문제 해결력 향상
-
-#### @-mention 서버 필터링 (토큰 10-18% 추가 절약)
-
-```bash
-@serena "코드 구조 분석"       # Serena만 활성화
-@context7 "Next.js 15 문서"    # Context7만 활성화
-@vercel "배포 상태 확인"       # Vercel만 활성화
-
-# 복합 사용도 가능
-@serena @context7 "LoginClient.tsx에서 사용된 훅 문서 확인"
-```
-
-**효과**: 147토큰 → 121토큰 (평균 18% 절약)
-
-### 🎯 일일 워크플로우
-
-```bash
-# 🌅 개발 시작
-npm run dev:stable
-npm run validate:all        # 린트+타입+테스트
-
-# 🔧 개발 중
-@serena "코드 분석"          # 심볼 기반 분석
-think harder "버그 근본 원인"  # Extended Thinking
-
-# 🚀 배포 전
-npm run test:vercel:e2e     # Vercel E2E 테스트
-npm run build               # 프로덕션 빌드
-git push                    # 자동 배포
-```
-
-### 🛠️ 문제 해결
-
-```bash
-# TypeScript 오류
-npm run type-check
-
-# MCP 연결 문제
-claude mcp list
-./scripts/mcp-health-check.sh
-
-# AI 도구 문제 (서브에이전트 권장)
-"dev-environment-manager야, AI 도구 헬스 체크해줘"
-```
-
-### 📊 핵심 지표
-
-- **토큰 절약**: 85% (MCP 82% + @-mention 3%)
-- **테스트 통과율**: 88.9% (639/719)
-- **MCP 연결**: 9/9 완벽 (100% 가동률)
-- **개발 속도**: 3-5배 향상
+**일일 워크플로우**: @docs/claude/workflows/common-tasks.md  
+**문제 해결**: @docs/claude/environment/workflows.md  
+**상세 가이드**: @docs/claude/environment/mcp/mcp-priority-guide.md
 
 ---
 

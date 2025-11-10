@@ -275,7 +275,7 @@ echo "📝 Report filename: $FILENAME"
 ### Week 3 (Documentation Updates):
 
 - [ ] Update CLAUDE.md skills section
-- [ ] Update config/ai/registry.yaml skills_config
+- [ ] Update config/ai/registry-core.yaml skills_config
 - [ ] Final validation and metrics
 
 ---

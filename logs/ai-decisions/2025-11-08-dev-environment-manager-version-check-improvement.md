@@ -262,7 +262,7 @@ recommendations:
 
 ### 단기 (권장)
 
-- [x] config/ai/registry.yaml 업데이트 (권장 버전 갱신) ✅ 2025-11-08 완료
+- [x] config/ai/registry-core.yaml 업데이트 (권장 버전 갱신) ✅ 2025-11-08 완료
   - claude: v2.0.31+ → v2.0.35+
   - codex: v0.53.0+ → v0.56.0+
   - gemini: v0.11.3+ → v0.13.0+

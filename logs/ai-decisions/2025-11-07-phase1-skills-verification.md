@@ -146,5 +146,5 @@ $ npm outdated | grep -E "(generative-ai|playwright-mcp)"
 **참조 문서**:
 
 - docs/status.md (AI 도구 권장 버전)
-- config/ai/registry.yaml (Skills 정의)
+- config/ai/registry-core.yaml (Skills 정의)
 - https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview (공식 문서)

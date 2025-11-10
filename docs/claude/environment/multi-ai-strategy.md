@@ -645,7 +645,7 @@ echo "Qwen: OAuth 인증됨"
 
 ## 🔗 관련 문서
 
-- [AI Registry (SSOT)](../../../config/ai/registry.yaml) - AI 도구 버전, 스펙, 설정
+- [AI Registry (SSOT)](../../../config/ai/registry-core.yaml) - AI 도구 버전, 스펙, 설정
 - [AI CLI 도구 설정](ai-tools-setup.md)
 - [AI 유지보수 가이드](../../../docs/ai/ai-maintenance.md)
 - [개인 워크플로우](workflows.md)
