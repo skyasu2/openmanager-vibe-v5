@@ -15,7 +15,7 @@
  * - LOCAL: 로컬 AI 엔진들만 사용 (기본값)
  * - GOOGLE_AI: Google AI만 사용 (자연어 처리용)
  */
-export type AIMode = 'LOCAL' | 'GOOGLE_AI';
+export type AIMode = 'LOCAL' | 'GOOGLE_AI' | 'AUTO';
 
 /**
  * AI 엔진 타입 정의

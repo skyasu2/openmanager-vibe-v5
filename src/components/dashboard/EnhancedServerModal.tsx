@@ -13,6 +13,7 @@
  * - 실시간 데이터 시각화
  */
 
+import React from 'react';
 import { calculateOptimalCollectionInterval } from '@/config/serverConfig';
 import {
   Activity,

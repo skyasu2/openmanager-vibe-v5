@@ -152,7 +152,7 @@ export async function getServerMetricAt(
   minute: number
 ): Promise<InterpolatedMetric | null> {
   const hourlyData = await loadHourlyData(hour);
-  if (!hourlyData) return null;
+  if (!hourlyData || !hourlyData.dataPoints) return null;
 
   // 현재 분에 해당하는 10분 슬롯 찾기
   const currentSlot = Math.floor(minute / 10) * 10; // 0, 10, 20, 30, 40, 50

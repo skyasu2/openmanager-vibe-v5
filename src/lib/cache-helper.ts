@@ -33,11 +33,11 @@ import {
  * 캐시 서비스 인스턴스 가져오기 (하위 호환성)
  * @deprecated unified-cache.ts의 unifiedCache를 직접 사용하세요
  */
-export function getCacheService(): UnifiedCacheService {
+export function getCacheService(): MemoryCacheService {
   console.warn(
-    'getCacheService() is deprecated. Use unifiedCache from unified-cache.ts instead.'
+    'getCacheService() is deprecated. Use MemoryCacheService or unifiedCache instead.'
   );
-  return UnifiedCacheService.getInstance();
+  return getGlobalCacheService();
 }
 
 /**

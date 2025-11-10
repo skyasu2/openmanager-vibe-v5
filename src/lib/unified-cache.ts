@@ -413,20 +413,18 @@ export class UnifiedCacheService {
 export const unifiedCache = UnifiedCacheService.getInstance();
 
 // 하위 호환성을 위한 wrapper 함수들
-export function getCachedData<T>(key: string): T | null {
+export async function getCachedData<T>(key: string): Promise<T | null> {
   const cache = UnifiedCacheService.getInstance();
-  // Synchronous wrapper for backward compatibility
-  const result = cache.get<T>(key, CacheNamespace.GENERAL);
-  return result instanceof Promise ? null : (result as T | null);
+  return await cache.get<T>(key, CacheNamespace.GENERAL);
 }
 
-export function setCachedData<T>(
+export async function setCachedData<T>(
   key: string,
   data: T,
   ttlSeconds: number = 300
-): void {
+): Promise<void> {
   const cache = UnifiedCacheService.getInstance();
-  cache.set(key, data, { ttlSeconds, namespace: CacheNamespace.GENERAL });
+  await cache.set(key, data, { ttlSeconds, namespace: CacheNamespace.GENERAL });
 }
 
 export async function cacheOrFetch<T>(

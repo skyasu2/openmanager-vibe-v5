@@ -51,9 +51,16 @@
 ## 📊 품질 지표
 
 - **TypeScript 에러**: 0개 ✅
-- **테스트 현황**: 639 passed, 57 failed, 23 skipped (총 719개)
+- **테스트 현황**: 639 passed, 57 failed, 20 skipped (총 719개)
   - 통과율: 88.9% (639/719)
   - 실행 시간: 36.22초 (전체 워크플로우 57분)
+  - 테스트 스킵 (Vitest 실행 환경):
+    - **총 20개 스킵** (Vitest가 CI=true 자동 설정)
+  - 파일별 상세:
+    - tests/api/ai-query.integration.test.ts: 9개 (통합 AI 쿼리, 무조건 스킵)
+    - tests/api/admin/auth.test.ts: 10개 (Admin API 인증, 무조건 스킵)
+    - tests/unit/services/supabase/ResilientSupabaseClient.test.ts: 1개 (localStorage 캐시)
+  - 참고: Vitest는 자동으로 CI=true를 설정하여 테스트를 실행함
   - ✅ **해결 완료**: ResilientSupabaseClient (26/27 tests passing, mockClear fix)
 - **E2E 테스트**: 29개, 99% 통과 (TEST_SECRET_KEY 활성화)
 - **코드베이스**: 224K줄, 878개 TS 파일

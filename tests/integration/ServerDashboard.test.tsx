@@ -138,6 +138,45 @@ console.log(
 );
 console.log('🔍 [MODULE LEVEL] About to execute vi.mock() call...');
 
+// 🔧 useWorkerStats Mock - Web Worker API를 사용하지 않는 테스트용 구현
+// Worker API는 Node.js/Vitest 환경에서 사용할 수 없으므로 완전히 모킹
+vi.mock('@/hooks/useWorkerStats', () => ({
+  useWorkerStats: () => ({
+    calculateStats: vi.fn(async (servers) => ({
+      total: servers.length,
+      online: servers.filter((s: any) => s.status === 'online').length,
+      offline: servers.filter((s: any) => s.status === 'offline').length,
+      warning: 0,
+      critical: 0,
+      averageCpu: 0,
+      averageMemory: 0,
+      averageUptime: 0,
+      totalBandwidth: 0,
+      typeDistribution: {},
+      performanceMetrics: { calculationTime: 0, serversProcessed: servers.length }
+    })),
+    isWorkerReady: () => false,  // Always false in tests - forces fallback path
+    restartWorker: vi.fn(),
+    calculateCombinedStats: vi.fn(),
+    calculatePagination: vi.fn(),
+    applyFilters: vi.fn(),
+    pendingOperations: 0
+  }),
+  calculateServerStatsFallback: vi.fn((servers) => ({
+    total: servers.length,
+    online: 0,
+    offline: 0,
+    warning: 0,
+    critical: 0,
+    averageCpu: 0,
+    averageMemory: 0,
+    averageUptime: 0,
+    totalBandwidth: 0,
+    typeDistribution: {},
+    performanceMetrics: { calculationTime: 0, serversProcessed: servers.length }
+  }))
+}));
+
 // 🔧 useServerDataStore Mock - Zustand store에 테스트 데이터 주입 (완전한 인터페이스)
 vi.mock('@/components/providers/StoreProvider', async () => {
   console.log('🔧 [MOCK FACTORY] Executing mock factory');

@@ -18,13 +18,13 @@ import {
 describe('MemoryCacheService', () => {
   let cacheService: ReturnType<typeof getCacheService>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // 각 테스트 전에 캐시 초기화
     cacheService = getCacheService();
-    cacheService.cache.clear();
+    await cacheService.invalidateCache(); // 전체 캐시 클리어
     cacheService.resetStats();
-    // maxSize를 기본값으로 리셋 (일부 테스트가 변경할 수 있음)
-    (cacheService as any).maxSize = 100;
+    // maxSize를 기본값으로 리셋 (싱글톤의 private 속성에 접근)
+    (cacheService as any).unifiedCache.maxSize = 100;
   });
 
   afterEach(() => {
@@ -68,7 +68,7 @@ describe('MemoryCacheService', () => {
   describe('LRU 캐시 관리', () => {
     it('최대 크기를 초과하면 가장 적게 사용된 항목을 제거해야 함', async () => {
       // maxSize를 작게 설정하기 위해 private 속성에 접근
-      (cacheService as any).maxSize = 3;
+      (cacheService as any).unifiedCache.maxSize = 3;
 
       // 3개 항목 추가
       await cacheService.set('key1', 'value1');
@@ -82,7 +82,7 @@ describe('MemoryCacheService', () => {
       // 네 번째 항목 추가 (key3가 제거되어야 함 - 가장 적게 사용됨)
       await cacheService.set('key4', 'value4');
 
-      expect(cacheService.cache.size).toBe(3);
+      expect(cacheService.getStats().size).toBe(3);
       expect(await cacheService.get('key3')).toBeNull(); // key3 제거됨
       expect(await cacheService.get('key1')).toBe('value1');
       expect(await cacheService.get('key2')).toBe('value2');
@@ -91,7 +91,7 @@ describe('MemoryCacheService', () => {
 
     it('같은 히트 수일 때 가장 오래된 항목을 제거해야 함', async () => {
       vi.useFakeTimers();
-      (cacheService as any).maxSize = 2;
+      (cacheService as any).unifiedCache.maxSize = 2;
 
       await cacheService.set('old', 'old-value');
       
@@ -101,7 +101,7 @@ describe('MemoryCacheService', () => {
       // 둘 다 히트 수 0
       await cacheService.set('third', 'third-value');
 
-      expect(cacheService.cache.size).toBe(2);
+      expect(cacheService.getStats().size).toBe(2);
       expect(await cacheService.get('old')).toBeNull(); // 오래된 것이 제거됨
       expect(await cacheService.get('new')).toBe('new-value');
       expect(await cacheService.get('third')).toBe('third-value');
@@ -159,7 +159,9 @@ describe('MemoryCacheService', () => {
 
       await cacheService.invalidateCache();
 
-      expect(cacheService.cache.size).toBe(0);
+      // 캐시가 완전히 비워졌는지 확인
+      expect(await cacheService.get('key1')).toBeNull();
+      expect(await cacheService.get('key2')).toBeNull();
     });
   });
 
@@ -192,32 +194,32 @@ describe('MemoryCacheService', () => {
 });
 
 describe('캐시 헬퍼 함수', () => {
-  beforeEach(() => {
-    const cache = getCacheService();
-    cache.cache.clear();
+  beforeEach(async () => {
+    // unifiedCache singleton을 직접 초기화
+    await invalidateCache(); // 전체 캐시 클리어
   });
 
   describe('getCachedData / setCachedData', () => {
-    it('간편 API로 캐시를 사용할 수 있어야 함', () => {
+    it('간편 API로 캐시를 사용할 수 있어야 함', async () => {
       const key = 'simple-key';
       const value = { message: 'hello' };
 
-      setCachedData(key, value);
-      const retrieved = getCachedData<typeof value>(key);
+      await setCachedData(key, value);
+      const retrieved = await getCachedData<typeof value>(key);
 
       expect(retrieved).toEqual(value);
     });
 
-    it('타입 안전성을 제공해야 함', () => {
+    it('타입 안전성을 제공해야 함', async () => {
       interface User {
         id: number;
         name: string;
       }
 
       const user: User = { id: 1, name: 'John' };
-      setCachedData('user:1', user);
+      await setCachedData('user:1', user);
 
-      const retrieved = getCachedData<User>('user:1');
+      const retrieved = await getCachedData<User>('user:1');
       expect(retrieved?.id).toBe(1);
       expect(retrieved?.name).toBe('John');
     });
@@ -237,7 +239,7 @@ describe('캐시 헬퍼 함수', () => {
       expect(result).toBe('fallback-value');
       
       // 캐시에 저장되었는지 확인
-      const cached = getCachedData('missing-key');
+      const cached = await getCachedData('missing-key');
       expect(cached).toBe('fallback-value');
     });
 
@@ -246,7 +248,7 @@ describe('캐시 헬퍼 함수', () => {
       const value = 'cached-value';
       const fallback = vi.fn();
 
-      setCachedData(key, value);
+      await setCachedData(key, value);
       
       const result = await getCachedDataWithFallback(key, fallback);
 
@@ -292,15 +294,15 @@ describe('캐시 헬퍼 함수', () => {
 
   describe('invalidateCache', () => {
     it('export된 invalidateCache 함수가 동작해야 함', async () => {
-      setCachedData('test:1', 'value1');
-      setCachedData('test:2', 'value2');
-      setCachedData('other:1', 'other');
+      await setCachedData('test:1', 'value1');
+      await setCachedData('test:2', 'value2');
+      await setCachedData('other:1', 'other');
 
       await invalidateCache('test:*');
 
-      expect(getCachedData('test:1')).toBeNull();
-      expect(getCachedData('test:2')).toBeNull();
-      expect(getCachedData('other:1')).toBe('other');
+      expect(await getCachedData('test:1')).toBeNull();
+      expect(await getCachedData('test:2')).toBeNull();
+      expect(await getCachedData('other:1')).toBe('other');
     });
   });
 });

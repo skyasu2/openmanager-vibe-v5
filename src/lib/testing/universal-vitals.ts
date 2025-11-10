@@ -230,7 +230,7 @@ export class UniversalVitalsCollector {
     }
 
     if (value <= thresholdsRaw.good) return 'good';
-    if (value <= thresholdsRaw.poor) return 'needs-improvement';
+    if (value < thresholdsRaw.poor) return 'needs-improvement';
     return 'poor';
   }
 
