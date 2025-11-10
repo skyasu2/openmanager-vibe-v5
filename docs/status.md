@@ -4,6 +4,31 @@
 
 ---
 
+## 📝 메모리 파일 최적화 (2025-11-11)
+
+**캐싱 효율성 개선** ✅
+
+- 메모리 파일: 8개 → 3개 (62% 감소)
+- 토큰 사용: ~12,000 → ~2,400 토큰 (80% 감소)
+- Cache Read 목표: 79% → 30% 이하
+- 월간 비용 절감: $3-4 예상 (Cache Read 기준)
+
+**유지 파일**:
+
+- CLAUDE.md (292줄) - 핵심 프로젝트 메모리
+- config/ai/registry-core.yaml (144줄) - AI Registry SSOT
+- docs/status.md (200줄) - 프로젝트 현재 상태
+
+**제외 파일** (필요 시 @참조):
+
+- docs/claude/environment/multi-ai-strategy.md (653줄)
+- docs/ai/subagents-complete-guide.md (371줄)
+- docs/claude/environment/mcp/mcp-priority-guide.md (514줄)
+- docs/claude/workflows/common-tasks.md (100줄)
+- docs/claude/environment/workflows.md (300줄)
+
+---
+
 ## 🤖 AI 도구
 
 **권장 버전 (2025-11-08 기준)** ✅

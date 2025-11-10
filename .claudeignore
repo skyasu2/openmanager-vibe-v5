@@ -1,0 +1,32 @@
+# Claude Code Ignore File
+# 캐싱 효율성 최적화를 위해 조건부 참조 문서 제외
+# 필요 시 @docs/path/to/file.md 형식으로 명시적 참조
+
+# ============================================================================
+# Conditional Reference Docs (필요 시 @참조)
+# ============================================================================
+
+# Multi-AI Strategy (653줄) - AI 교차검증 작업 시에만 필요
+docs/claude/environment/multi-ai-strategy.md
+
+# Subagents Complete Guide (371줄) - 서브에이전트 사용 시에만 필요
+docs/ai/subagents-complete-guide.md
+
+# MCP Priority Guide (514줄) - MCP 도구 선택 시에만 필요
+docs/claude/environment/mcp/mcp-priority-guide.md
+
+# Common Tasks (100줄) - CLAUDE.md에 핵심 내용 포함
+docs/claude/workflows/common-tasks.md
+
+# Workflows (300줄) - 개발 환경 설정 시에만 필요
+docs/claude/environment/workflows.md
+
+# ============================================================================
+# 효과: 메모리 파일 8개 → 3개 (80% 토큰 절약)
+# Cache Read: 79% → 30% 이하 목표
+# ============================================================================
+
+# 유지되는 필수 파일:
+# - CLAUDE.md (292줄) - 핵심 프로젝트 메모리
+# - config/ai/registry-core.yaml (144줄) - AI Registry SSOT
+# - docs/status.md (200줄) - 프로젝트 현재 상태
