@@ -245,21 +245,8 @@ export const validateEnvironment = (): {
       }
     }
 
-    // 선택적 환경변수 체크 (경고만) - Redis 다중 소스 지원
+    // 선택적 환경변수 체크 (경고만)
     const optionalVars: string[] = []; // service role key removed from client-side checks
-
-    // Redis 환경변수 체크 (다중 소스)
-    const hasRedisConfig = !!(
-      (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) ||
-      (process.env.UPSTASH_REDIS_REST_URL &&
-        process.env.UPSTASH_REDIS_REST_TOKEN)
-    );
-
-    if (!hasRedisConfig) {
-      warnings.push(
-        '⚠️ Redis 환경변수 누락: KV_REST_API_URL/TOKEN 또는 UPSTASH_REDIS_REST_URL/TOKEN 필요 (캐싱 기능 제한됨)'
-      );
-    }
 
     for (const varName of optionalVars) {
       if (!process.env[varName]) {
@@ -298,7 +285,6 @@ export const printConfig = (config: EnvironmentConfig) => {
    └ Host: ${config.supabase.host}
    └ Port: ${config.supabase.port}
    └ Mode: ${config.supabase.poolMode}
-🔴 Redis: ${config.redis.enabled ? '✅ 연결됨' : '❌ 비활성화'}
 💬 알림: ✅ 브라우저 알림 활성화
 ⚙️ API 타임아웃: ${config.api.timeout}ms
 🔧 디버그 모드: ${config.development.debugMode ? '활성화' : '비활성화'}

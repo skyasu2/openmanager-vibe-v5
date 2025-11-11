@@ -58,7 +58,7 @@ function validateEnvironment() {
         console.log('🔧 개발 환경: 일부 환경변수 누락, 기본값으로 진행');
       } else {
         console.log(
-          'ℹ️ 선택적 환경변수가 설정되지 않음 (Redis, AI 등) - 핵심 기능은 정상 작동'
+          'ℹ️ 선택적 환경변수가 설정되지 않음 (AI 등) - 핵심 기능은 정상 작동'
         );
       }
       return getDefaultEnvironment();
