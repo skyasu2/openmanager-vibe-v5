@@ -3,7 +3,7 @@
 # 목적: 토큰 사용량 최소화 (Cache Read 79% → 30% 목표)
 
 version: "2.0.0"  # registry-core 버전
-last_updated: "2025-11-10"
+last_updated: "2025-11-11"
 project: "OpenManager VIBE v5.80.0"
 
 # ============================================================================

@@ -233,7 +233,7 @@ claude mcp list                # 전체 서버 상태 확인
 - docs/claude/environment/wsl-optimization.md
 - docs/claude/environment/ai-tools-setup.md
 - docs/ai/ai-maintenance.md (AI CLI 도구 유지보수)
-- docs/claude/environment/workflows.md
+- docs/claude/1_workflows.md ✅ **통합 워크플로우 (workflows + multi-ai 통합)**
 - docs/claude/environment/mcp/mcp-configuration.md
 
 **코딩 표준**:
@@ -249,7 +249,8 @@ claude mcp list                # 전체 서버 상태 확인
 
 **워크플로우**:
 
-- docs/claude/workflows/common-tasks.md
+- docs/claude/1_workflows.md ✅ **통합 워크플로우 (일일 루틴 + Multi-AI + 서브에이전트 + MCP 우선순위)**
+- ~~docs/claude/workflows/common-tasks.md~~ ❌ **제거 완료 (Phase 2A)**
 
 ---
 
@@ -272,9 +273,9 @@ claude mcp list                # 전체 서버 상태 확인
 
 ## ⚡ Quick Reference
 
-**일일 워크플로우**: @docs/claude/workflows/common-tasks.md  
-**문제 해결**: @docs/claude/environment/workflows.md  
+**통합 워크플로우**: @docs/claude/1_workflows.md ✅ (일일 루틴 + Multi-AI + 서브에이전트 + MCP 우선순위)
 **상세 가이드**: @docs/claude/environment/mcp/mcp-priority-guide.md
+**Multi-AI 전략**: @docs/claude/environment/multi-ai-strategy.md (교차검증 상세)
 
 ---
 

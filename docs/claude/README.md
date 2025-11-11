@@ -151,7 +151,7 @@ claude/
 **문서**:
 
 - `ai-cross-verification-workflow.md` - 3-AI 교차검증 실행 가이드
-- `common-tasks.md` - 자주 사용하는 작업 패턴
+- ~~`common-tasks.md`~~ ❌ **제거됨 (Phase 2A)** - CLAUDE.md로 통합
 
 **관련**: docs/ai/, scripts/ai-subagents/
 

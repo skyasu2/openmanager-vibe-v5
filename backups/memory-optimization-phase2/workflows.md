@@ -5,6 +5,7 @@
 ## 🚀 일일 개발 루틴
 
 ### 1. 환경 시작
+
 ```bash
 # Windows에서 WSL Claude 시작
 .\claude-wsl-optimized.bat
@@ -25,6 +26,7 @@ claude mcp list
 ```
 
 ### 2. 개발 서버 시작
+
 ```bash
 # 안정화된 개발 서버 (권장)
 npm run dev:stable
@@ -34,6 +36,7 @@ npm run dev:stable &  # 백그라운드 실행
 ```
 
 ### 3. Claude Code 실행
+
 ```bash
 # 메인 개발 환경
 claude
@@ -48,11 +51,13 @@ Tab
 ## 🎯 병렬 개발 패턴 (2025-09-28 최적화)
 
 **성능 향상 달성**:
+
 - 개발 서버 시작: 32초 → 22초 (35% 단축)
 - 테스트 실행: 37.95초 → 21.08초 (44% 단축)
 - E2E 성공률: 98.2% (Vercel 실제 환경)
 
 ### 터미널 구성
+
 ```bash
 # Terminal 1: 백그라운드 개발 서버
 npm run dev:stable &
@@ -67,6 +72,7 @@ timeout 60 qwen -p "성능 분석" # Qwen Plan Mode
 ```
 
 ### 빠른 검증 (필요 시)
+
 ```bash
 # 11초 빠른 테스트
 npm run test:super-fast
@@ -156,6 +162,7 @@ npm run test:e2e            # 로컬 Playwright
 ```
 
 ### 1인 AI 개발 맞춤 전략
+
 ```bash
 # 🧠 AI 교차검증 (Unit 테스트 대체)
 "codex: 이 로직 문제있나 검증해줘"
@@ -166,6 +173,7 @@ npm run test:e2e            # 로컬 Playwright
 ## 🔄 Git 워크플로우
 
 ### 커밋 패턴
+
 ```bash
 # 이모지 + 간결한 메시지
 git add .
@@ -179,6 +187,7 @@ git push
 ```
 
 ### PR 생성 (필요 시)
+
 ```bash
 # gh CLI 사용
 gh pr create --title "feat: 새 기능" --body "설명"
@@ -187,6 +196,7 @@ gh pr create --title "feat: 새 기능" --body "설명"
 ## 🛠️ 트러블슈팅 워크플로우
 
 ### MCP 문제 해결
+
 ```bash
 # 1. MCP 서버 상태 확인
 claude mcp list
@@ -203,6 +213,7 @@ claude mcp add serena uv run --directory ~/.local/share/uv/tools/serena-mcp sere
 ```
 
 ### WSL 성능 문제
+
 ```bash
 # WSL 종합 진단
 ./scripts/wsl-monitor/wsl-monitor.sh --once
@@ -215,6 +226,7 @@ free -h
 ```
 
 ### AI CLI 도구 문제
+
 ```bash
 # 버전 확인
 claude --version
@@ -236,12 +248,14 @@ ls -la scripts/ai-subagents/
 ### Claude Code 사용량
 
 **기본 명령어**:
+
 ```bash
 # Claude Code 내장 사용량 확인
 /usage  # Max 플랜 한도 추적
 ```
 
 **상세 분석 도구 (npx)**:
+
 ```bash
 # 1. ccusage - 일일/주간 토큰 사용량 상세 분석
 npx ccusage@latest
@@ -254,6 +268,7 @@ npx ccstatusline@latest
 ```
 
 **사용량 분석 예시**:
+
 ```bash
 # 오늘 사용량 확인
 npx ccusage@latest | tail -5
@@ -267,6 +282,7 @@ npx ccusage@latest | grep "Cache"
 ```
 
 **Status Line 설정** (`.claude/settings.json`):
+
 ```json
 {
   "statusLine": {
@@ -278,6 +294,7 @@ npx ccusage@latest | grep "Cache"
 ```
 
 **표시 항목 의미**:
+
 - **Model**: 사용 중인 AI 모델 (Sonnet 4.5 등)
 - **Branch**: Git 브랜치 (⎇ main)
 - **Git Status**: 변경된 파일 수 (+N,-N)
@@ -287,6 +304,7 @@ npx ccusage@latest | grep "Cache"
 - **Usage Alert**: 주간 한도 근접 경고
 
 ### AI 교차검증 성능
+
 ```bash
 # Performance log 확인
 tail -f logs/ai-perf/ai-perf-$(date +%F).log
@@ -301,6 +319,7 @@ mcp__multi_ai__getBasicHistory({ limit: 10 })
 ## 🚀 배포 워크플로우
 
 ### 베르셀 배포
+
 ```bash
 # 1. 로컬 검증 (선택적)
 npm run validate:all
@@ -321,6 +340,7 @@ curl -I https://openmanager-vibe-v5.vercel.app
 ```
 
 ### 베르셀 CLI (보조)
+
 ```bash
 # 토큰 기반 인증
 source .env.local
@@ -338,16 +358,19 @@ vercel env ls --token $VERCEL_TOKEN
 ## 💡 효율성 팁
 
 ### 병렬 작업
+
 - Terminal 1: 개발 서버 백그라운드
 - Terminal 2: Claude Code 메인 작업
 - Terminal 3: 서브 AI 병렬 실행
 
 ### 토큰 절약
+
 - MCP 도구 우선 사용 (27% 토큰 절약)
 - Opus는 Plan Mode만 사용
 - 서브 AI로 부하 분산
 
 ### 시간 절약
+
 - Vercel 환경 우선 테스트
 - AI 교차검증으로 Unit 테스트 대체
 - 멀티스레드 테스트 (44% 성능 향상)

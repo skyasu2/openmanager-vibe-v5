@@ -507,7 +507,7 @@ mcp__shadcn_ui__get_component_demo('button');
 
 **목표**: 토큰 85% 절약 (MCP 82% + @-mention 3%), 개발 속도 3-5배 향상
 
-**관련 문서**: mcp-configuration.md, multi-ai-strategy.md, workflows.md
+**관련 문서**: mcp-configuration.md, multi-ai-strategy.md, 1_workflows.md
 
 ---
 
