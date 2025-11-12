@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { ensureVercelBypassCookie } from './helpers/security';
 
 /**
  * 빠른 프론트엔드 상태 체크
@@ -6,6 +7,10 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('빠른 프론트엔드 체크', () => {
+  test.beforeEach(async ({ page }) => {
+    await ensureVercelBypassCookie(page);
+  });
+
   test('홈페이지 로딩 및 리다이렉트 확인', async ({ page }) => {
     console.log('🌐 테스트 시작: 홈페이지 접속');
 

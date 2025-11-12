@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { navigateToAdminDashboard, resetAdminState } from './helpers/admin';
+import { ensureVercelBypassCookie } from './helpers/security';
 
 /**
  * ⚡ 성능 및 시각적 회귀 테스트
@@ -16,6 +17,7 @@ test.describe('⚡ 성능 최적화 및 시각적 테스트', () => {
   
   test.beforeEach(async ({ page }) => {
     await resetAdminState(page);
+    await ensureVercelBypassCookie(page);
   });
 
   test.afterEach(async ({ page }) => {

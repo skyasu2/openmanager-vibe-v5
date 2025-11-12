@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { ensureVercelBypassCookie } from './helpers/security';
 
 /**
  * 게스트 모드 전체 접근 E2E 테스트
@@ -17,6 +18,7 @@ test.describe('게스트 모드 전체 접근 테스트', () => {
   test.beforeEach(async ({ page }) => {
     // 각 테스트 전 쿠키 및 로컬 스토리지 클리어
     await page.context().clearCookies();
+    await ensureVercelBypassCookie(page);
   });
 
   test('1. Admin 페이지 접근 테스트', async ({ page }) => {

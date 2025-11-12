@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { ensureVercelBypassCookie } from './helpers/security';
 
 /**
  * 프론트엔드 성능 종합 검증 테스트
@@ -6,6 +7,9 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('프론트엔드 성능 종합 검증', () => {
+  test.beforeEach(async ({ page }) => {
+    await ensureVercelBypassCookie(page);
+  });
   
   test('Core Web Vitals 및 성능 메트릭 측정', async ({ page }) => {
     console.log('⚡ === 성능 측정 시작 ===');

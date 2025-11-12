@@ -16,6 +16,14 @@ function profileTriggerLocator(page: Page) {
   );
 }
 
+function adminPageButtonLocator(page: Page) {
+  return page
+    .locator(
+      '[data-testid="admin-page"], button:has-text("관리자 페이지"), a:has-text("관리자 페이지")'
+    )
+    .first();
+}
+
 /**
  * 프로필 드롭다운 열기
  *
@@ -166,5 +174,16 @@ export async function completeAdminModeActivationViaUI(
   console.log('  3️⃣ PIN 입력 및 제출');
   await enterPinAndSubmit(page, pin);
 
-  console.log('✅ 관리자 모드 활성화 완료');
+  await openProfileDropdown(page);
+  const adminPageButton = adminPageButtonLocator(page);
+
+  try {
+    await expect(adminPageButton).toBeVisible({
+      timeout: TIMEOUTS.MODAL_DISPLAY,
+    });
+    console.log('✅ 관리자 모드 활성화 완료');
+  } catch (error) {
+    console.warn('⚠️ 관리자 메뉴 표시를 확인하지 못했습니다.');
+    throw error;
+  }
 }

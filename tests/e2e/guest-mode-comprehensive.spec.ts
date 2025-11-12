@@ -7,6 +7,7 @@ import {
 } from './helpers/admin';
 import { TIMEOUTS } from './helpers/timeouts';
 import { completeAdminModeActivationViaUI } from './helpers/ui-flow';
+import { ensureVercelBypassCookie } from './helpers/security';
 
 /**
  * 🎯 게스트 모드 종합 E2E 테스트
@@ -24,6 +25,7 @@ test.describe('🎯 게스트 모드 종합 플로우 테스트', () => {
   test.beforeEach(async ({ page }) => {
     // 🧹 테스트 전 상태 초기화
     await resetAdminState(page);
+    await ensureVercelBypassCookie(page);
     console.log('🧹 테스트 환경 초기화 완료');
   });
 
