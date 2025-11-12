@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { ensureVercelBypassCookie } from './helpers/security';
 
 /**
  * 수동 프론트엔드 테스트 - Headed 모드로 실행
@@ -6,6 +7,10 @@ import { test, expect } from '@playwright/test';
  */
 
 const BASE_URL = 'https://openmanager-vibe-v5.vercel.app';
+
+test.beforeEach(async ({ page }) => {
+  await ensureVercelBypassCookie(page);
+});
 
 test.describe('🎭 프론트엔드 구성 및 기능 테스트 (대화형)', () => {
   test('1️⃣ 로그인 플로우 테스트', async ({ page }) => {

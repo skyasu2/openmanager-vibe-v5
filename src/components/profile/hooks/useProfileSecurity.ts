@@ -231,6 +231,23 @@ export function useProfileSecurity() {
           // localStorage 직접 조작 제거 → setPinAuth() 사용
           setPinAuth();
 
+          try {
+            // 레거시 admin_mode 호환 - middleware 및 외부 스크립트 즉시 반영
+            document.cookie = `admin_mode=true; path=/; SameSite=Lax; Secure`;
+            localStorage.setItem('admin_mode', 'true');
+            window.dispatchEvent(
+              new CustomEvent('local-storage-changed', {
+                detail: { key: 'admin_mode', value: true },
+              })
+            );
+            console.log('✅ 관리자 모드 스토어 + localStorage 동기화 완료');
+          } catch (cookieError) {
+            console.warn(
+              '⚠️ 관리자 모드 쿠키/스토어 동기화 중 경고:',
+              cookieError
+            );
+          }
+
           // ⚡ Phase 2: Zustand 스토어로 인증 상태 설정 (5배 성능 향상)
           // 🔥 Zustand가 자동으로 localStorage와 동기화하므로 수동 설정 불필요
 

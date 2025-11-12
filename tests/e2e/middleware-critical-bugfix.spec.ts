@@ -13,8 +13,13 @@
 import { test, expect } from '@playwright/test';
 import { getTestBaseUrl } from './helpers/config';
 import { TIMEOUTS } from './helpers/timeouts';
+import { ensureVercelBypassCookie } from './helpers/security';
 
 const VERCEL_PRODUCTION_URL = getTestBaseUrl();
+
+test.beforeEach(async ({ page }) => {
+  await ensureVercelBypassCookie(page);
+});
 
 test.describe('🔒 미들웨어 Critical Bug Fix 검증', () => {
 

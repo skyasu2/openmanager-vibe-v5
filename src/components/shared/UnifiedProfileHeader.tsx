@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useSystemStatusStore } from '@/stores/useSystemStatusStore';
@@ -58,6 +58,7 @@ export default function UnifiedProfileHeader({
     menuState,
     dropdownRef,
     toggleMenu,
+    openMenu,
     closeMenu,
     toggleAdminInput,
     setAdminPassword,
@@ -68,6 +69,14 @@ export default function UnifiedProfileHeader({
   useEffect(() => {
     setIsHydrated(true);
   }, []);
+
+  const prevAdminModeRef = useRef(isAdminMode);
+  useEffect(() => {
+    if (!prevAdminModeRef.current && isAdminMode) {
+      openMenu();
+    }
+    prevAdminModeRef.current = isAdminMode;
+  }, [isAdminMode, openMenu]);
 
   const { status: systemStatus } = useSystemStatus();
   const { isSystemStarted } = useUnifiedAdminStore(); // 🎯 로컬 상태 직접 접근으로 즉시 동기화

@@ -3,10 +3,12 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { ensureVercelBypassCookie } from './helpers/security';
 
 const VERCEL_PRODUCTION_URL = 'https://openmanager-vibe-v5.vercel.app';
 
 test('AI 어시스턴트 사이드바 동작 검증', async ({ page }) => {
+  await ensureVercelBypassCookie(page);
   // 1. 대시보드 접속
   await page.goto(VERCEL_PRODUCTION_URL + '/dashboard', {
     waitUntil: 'networkidle',

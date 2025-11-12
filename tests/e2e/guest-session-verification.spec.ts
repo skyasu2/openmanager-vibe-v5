@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { ensureVercelBypassCookie } from './helpers/security';
 
 /**
  * 게스트 세션 유지 검증 테스트
@@ -10,6 +11,10 @@ import { test, expect } from '@playwright/test';
  */
 
 const BASE_URL = 'https://openmanager-vibe-v5.vercel.app';
+
+test.beforeEach(async ({ page }) => {
+  await ensureVercelBypassCookie(page);
+});
 
 test.describe('🔐 게스트 세션 유지 검증', () => {
   test('게스트 로그인 → 쿠키 설정 → 프로필 접근 전체 플로우', async ({ page }) => {

@@ -1,6 +1,7 @@
 import { test, expect, Page } from '@playwright/test';
 import { activateAdminMode, resetAdminState, verifyAdminState } from './helpers/admin';
 import { TIMEOUTS } from './helpers/timeouts';
+import { ensureVercelBypassCookie } from './helpers/security';
 
 /**
  * Vercel 프로덕션: 게스트 + 관리자 모드 종합 점검
@@ -25,6 +26,10 @@ import { TIMEOUTS } from './helpers/timeouts';
 // 환경 설정
 const BASE_URL = process.env.BASE_URL || 'https://openmanager-vibe-v5.vercel.app';
 const IS_VERCEL = BASE_URL.includes('vercel.app');
+
+test.beforeEach(async ({ page }) => {
+  await ensureVercelBypassCookie(page);
+});
 
 /**
  * 헬퍼: 대시보드 요소 검증

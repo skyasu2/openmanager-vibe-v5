@@ -30,6 +30,16 @@ export function useProfileMenu() {
   }, []);
 
   /**
+   * 메뉴 열기 (강제)
+   */
+  const openMenu = useCallback(() => {
+    setMenuState((prev) => ({
+      ...prev,
+      showProfileMenu: true,
+    }));
+  }, []);
+
+  /**
    * 메뉴 닫기
    */
   const closeMenu = useCallback(() => {
@@ -163,6 +173,7 @@ export function useProfileMenu() {
     menuState,
     dropdownRef,
     toggleMenu,
+    openMenu,
     closeMenu,
     toggleAdminInput,
     setAdminPassword,
