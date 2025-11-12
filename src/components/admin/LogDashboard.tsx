@@ -57,7 +57,7 @@ export default function LogDashboard() {
 
   // 초기 데이터 로드 및 필터 변경 시 재로드
   useEffect(() => {
-    fetchLogData(filters);
+    void fetchLogData(filters);
   }, [fetchLogData, filters]);
 
   // 필터 업데이트 헬퍼 함수
@@ -132,7 +132,7 @@ export default function LogDashboard() {
       <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-center">
         <p className="text-red-600">오류: {error}</p>
         <Button
-          onClick={() => fetchLogData(filters)}
+          onClick={() => void fetchLogData(filters)}
           className="mt-4"
           variant="outline"
         >
@@ -175,12 +175,20 @@ export default function LogDashboard() {
             자동 새로고침 {autoRefresh ? 'ON' : 'OFF'}
           </Button>
 
-          <Button variant="outline" size="sm" onClick={handleExportLogs}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => void handleExportLogs()}
+          >
             <Download className="mr-2 h-4 w-4" />
             내보내기
           </Button>
 
-          <Button variant="destructive" size="sm" onClick={handleClearLogs}>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => void handleClearLogs()}
+          >
             <Trash2 className="mr-2 h-4 w-4" />
             로그 삭제
           </Button>
@@ -240,18 +248,18 @@ export default function LogDashboard() {
                 {data.status && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">
+                      <div aria-live="polite">
+                        <p className="text-sm font-medium text-gray-700">
                           상태
-                        </label>
+                        </p>
                         <p className="text-lg">
                           {data.status.enabled ? '활성' : '비활성'}
                         </p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-700">
+                        <p className="text-sm font-medium text-gray-700">
                           총 로그 수
-                        </label>
+                        </p>
                         <p className="text-lg">
                           {data.status.logCount.toLocaleString()}
                         </p>
@@ -260,9 +268,9 @@ export default function LogDashboard() {
 
                     {data.status.lastLogTime && (
                       <div>
-                        <label className="text-sm font-medium text-gray-700">
+                        <p className="text-sm font-medium text-gray-700">
                           마지막 로그 시간
-                        </label>
+                        </p>
                         <p className="text-lg">
                           {new Date(data.status.lastLogTime).toLocaleString(
                             'ko-KR'
@@ -272,9 +280,7 @@ export default function LogDashboard() {
                     )}
 
                     <div>
-                      <label className="text-sm font-medium text-gray-700">
-                        설정
-                      </label>
+                      <p className="text-sm font-medium text-gray-700">설정</p>
                       <pre className="mt-1 overflow-x-auto rounded bg-gray-100 p-3 text-xs">
                         {JSON.stringify(data.status.config, null, 2)}
                       </pre>
