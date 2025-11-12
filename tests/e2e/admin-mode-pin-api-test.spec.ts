@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { TIMEOUTS } from './helpers/timeouts';
+import { ensureVercelBypassCookie } from './helpers/security';
 
 /**
  * 관리자 모드 PIN 4231 인증 API 테스트 (축소 범위)
@@ -31,6 +32,7 @@ test.describe('🔐 관리자 모드 PIN 인증 API 테스트 (축소 범위)', 
     page,
     context,
   }) => {
+    await ensureVercelBypassCookie(page);
     // 🧪 테스트 모드 쿠키 설정
     await context.addCookies([
       {

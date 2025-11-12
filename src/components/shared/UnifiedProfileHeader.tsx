@@ -284,6 +284,7 @@ export default function UnifiedProfileHeader({
           isAdminMode={isAdminMode}
           size="medium"
         />
+        {isAdminMode && <span className="sr-only">관리자</span>}
 
         {/* 사용자 정보 */}
         <div className="hidden text-left sm:block">

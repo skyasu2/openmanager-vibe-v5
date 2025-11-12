@@ -4,7 +4,8 @@
  * 대시보드의 전반적인 상태 관리 및 데이터 페칭
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { isGuestFullAccessEnabled } from '@/config/guestMode';
 import type {
   DashboardData,
   DashboardTab,
@@ -21,6 +22,11 @@ export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
     _initialTab = 'overview',
     autoRefreshInterval = REFRESH_INTERVALS.normal,
   } = options;
+
+  const ADMIN_DATA_MODE = process.env.NEXT_PUBLIC_ADMIN_DATA_MODE;
+  const guestFullAccess = useMemo(() => isGuestFullAccessEnabled(), []);
+  const shouldUseMockData =
+    guestFullAccess || ADMIN_DATA_MODE === 'mock';
 
   // 상태 관리
   const [data, setData] = useState<DashboardData | null>(null);
@@ -39,6 +45,17 @@ export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
     try {
       setLoading(true);
       setError(null);
+
+      if (shouldUseMockData) {
+        const mockData = createMockDashboardData();
+        setData(mockData);
+        setLastUpdate(new Date());
+        setUnreadAlerts(
+          mockData.alerts.filter((alert) => !alert.acknowledged).length
+        );
+        setLoading(false);
+        return;
+      }
 
       // 🚨 시스템 상태 먼저 확인 후 조건부로 다른 API 호출 (Vercel 절약)
       const systemRes = await fetch('/api/system/status');
@@ -100,31 +117,46 @@ export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [shouldUseMockData]);
 
   // 자동 새로고침 설정
   useEffect(() => {
-    if (autoRefresh) {
-      refreshIntervalRef.current = setInterval(
-        fetchSystemData,
-        autoRefreshInterval
-      );
+    if (!autoRefresh || shouldUseMockData) {
+      return;
     }
+
+    refreshIntervalRef.current = setInterval(() => {
+      void fetchSystemData();
+    }, autoRefreshInterval);
 
     return () => {
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current);
       }
     };
-  }, [autoRefresh, autoRefreshInterval, fetchSystemData]);
+  }, [autoRefresh, autoRefreshInterval, fetchSystemData, shouldUseMockData]);
 
   // 초기 데이터 로드
   useEffect(() => {
-    fetchSystemData();
+    void fetchSystemData();
   }, [fetchSystemData]);
 
   // 알림 확인 처리
   const acknowledgeAlert = useCallback(async (alertId: string) => {
+    if (shouldUseMockData) {
+      setData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          alerts: prev.alerts.map((alert) =>
+            alert.id === alertId ? { ...alert, acknowledged: true } : alert
+          ),
+        };
+      });
+      setUnreadAlerts((prev) => Math.max(0, prev - 1));
+      return;
+    }
+
     try {
       await fetch(`/api/system/alerts/${alertId}/acknowledge`, {
         method: 'POST',
@@ -145,7 +177,7 @@ export function useAdminDashboard(options: UseAdminDashboardOptions = {}) {
     } catch (err) {
       console.error('알림 확인 실패:', err);
     }
-  }, []);
+  }, [shouldUseMockData]);
 
   return {
     // 상태
@@ -223,6 +255,64 @@ function createDefaultInfrastructure() {
     uptime: 0,
     memoryUsage: 0,
     connections: 0,
+  };
+}
+
+function createMockDashboardData(): DashboardData {
+  const now = new Date().toISOString();
+  return {
+    status: {
+      overall: 'healthy',
+      performance: {
+        score: 92,
+        status: 'good',
+        metrics: {
+          avgResponseTime: 820,
+          successRate: 99.2,
+          errorRate: 0.4,
+          fallbackRate: 0.2,
+        },
+      },
+      logging: {
+        status: 'active',
+        totalLogs: 18432,
+        errorRate: 1.2,
+        lastLogTime: now,
+      },
+      engines: {
+        active: 3,
+        total: 4,
+        engines: [
+          { name: 'Next AI Engine', status: 'active', lastUsed: now },
+          { name: 'Fallback Engine', status: 'active', lastUsed: now },
+          { name: 'GCP Functions', status: 'active', lastUsed: now },
+          { name: 'Legacy Engine', status: 'inactive', lastUsed: now },
+        ],
+      },
+      infrastructure: {
+        environment: 'vercel-mock',
+        uptime: 3600 * 24 * 5,
+        memoryUsage: 68,
+        connections: 42,
+      },
+    },
+    alerts: [
+      {
+        id: 'mock-alert-1',
+        type: 'info',
+        title: 'Mock 데이터 모드',
+        message: '게스트 전체 접근 모드에서는 실시간 API를 호출하지 않습니다.',
+        timestamp: now,
+        source: 'system',
+        acknowledged: false,
+      },
+    ],
+    quickStats: {
+      totalRequests: 2480,
+      activeUsers: 6,
+      systemUptime: 3600 * 24 * 5,
+      lastUpdate: now,
+    },
   };
 }
 

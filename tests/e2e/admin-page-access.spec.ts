@@ -11,11 +11,13 @@ import {
 import { TIMEOUTS } from './helpers/timeouts';
 import { activateAdminMode } from './helpers/admin';
 import { interceptAdminApis } from './helpers/admin-api-intercept';
+import { ensureVercelBypassCookie } from './helpers/security';
 
 const VERCEL_URL = getTestBaseUrl();
 
 test('관리자 페이지 접근 및 UI 검증', async ({ page }) => {
   console.log('🚀 관리자 페이지 테스트 시작');
+  await ensureVercelBypassCookie(page);
   page.on('response', (response) => {
     if (response.status() === 404) {
       console.warn(`⚠️ [404] ${response.url()}`);
