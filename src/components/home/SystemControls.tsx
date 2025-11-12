@@ -2,6 +2,11 @@
 
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
+import {
+  isGuestFullAccessEnabled,
+  isGuestSystemStartEnabled,
+} from '@/config/guestMode';
 import { BarChart3, Bot, Loader2, Play, X, LogIn } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useMemo, memo } from 'react';
@@ -24,8 +29,15 @@ const SystemControls = memo(function SystemControls({
   onDashboardClick,
 }: SystemControlsProps) {
   const router = useRouter();
-  const { isSystemStarted, adminMode } = useUnifiedAdminStore();
+  const { isSystemStarted } = useUnifiedAdminStore();
   const { status: multiUserStatus, isLoading: statusLoading } = useSystemStatus();
+  const permissions = useUserPermissions();
+
+  const guestFullAccess = isGuestFullAccessEnabled();
+  const guestSystemStartAllowed = isGuestSystemStartEnabled();
+  const isGuestUser = permissions.userType === 'guest';
+  const userCanControlSystem =
+    isGitHubUser || guestFullAccess || (isGuestUser && guestSystemStartAllowed);
 
   // 버튼 설정 메모이제이션
   const buttonConfig = useMemo(() => {
@@ -84,8 +96,8 @@ const SystemControls = memo(function SystemControls({
     return (
       <div className="mx-auto max-w-2xl text-center">
         <div className="mb-6 flex flex-col items-center space-y-4">
-          {/* GitHub 사용자 또는 관리자 인증된 게스트 사용자 */}
-          {(isGitHubUser || adminMode.isAuthenticated) ? (
+          {/* GitHub 사용자 또는 전체 접근 게스트 */}
+          {userCanControlSystem ? (
             <>
               <button
                 onClick={onSystemToggle}
@@ -139,10 +151,19 @@ const SystemControls = memo(function SystemControls({
                   GitHub 로그인이 필요합니다
                 </h3>
                 <p className="mb-4 text-sm text-blue-100">
-                  시스템 시작 기능은 GitHub 인증된 사용자만 사용할 수 있습니다.
+                  기본적으로 시스템 제어는 GitHub 사용자에게만 허용되지만,
+                  현재는 개발 편의성을 위해 게스트도 동일한 기능을 테스트 중입니다.
                 </p>
                 <p className="mb-4 text-xs text-blue-200/80">
-                  💡 프로필 메뉴에서 관리자 모드를 통해서도 접근 가능합니다.
+                  💡 게스트 제한을 다시 적용하려면 환경 변수{' '}
+                  <span className="ml-1 rounded bg-blue-900/40 px-1 py-0.5 text-[10px]">
+                    NEXT_PUBLIC_GUEST_MODE
+                  </span>{' '}
+                  또는{' '}
+                  <span className="ml-1 rounded bg-blue-900/40 px-1 py-0.5 text-[10px]">
+                    NEXT_PUBLIC_GUEST_SYSTEM_START_ENABLED
+                  </span>{' '}
+                  값을 조정하세요.
                 </p>
                 <button
                   onClick={() => router.push('/login')}
@@ -161,7 +182,7 @@ const SystemControls = memo(function SystemControls({
   // 시스템이 시작된 후 상태
   return (
     <div className="text-center">
-      {(isGitHubUser || adminMode.isAuthenticated) ? (
+      {userCanControlSystem ? (
         <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-8">
           <div className="mb-4 flex items-center justify-center">
             <Bot className="h-16 w-16 text-emerald-400" />
@@ -186,7 +207,7 @@ const SystemControls = memo(function SystemControls({
             시스템이 실행 중입니다
           </h3>
           <p className="mb-4 text-sm text-blue-100">
-            GitHub 로그인 또는 관리자 인증 후 대시보드에 접근할 수 있습니다.
+            게스트 제한이 활성화된 경우 GitHub 로그인 후 대시보드에 접근할 수 있습니다.
           </p>
           <button
             onClick={() => router.push('/login')}

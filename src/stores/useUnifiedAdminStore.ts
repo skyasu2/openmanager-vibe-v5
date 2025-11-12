@@ -1,5 +1,6 @@
 import { browserNotificationService } from '@/services/notifications/BrowserNotificationService';
 import { getCSRFTokenFromCookie } from '@/utils/security/csrf';
+import { isGuestFullAccessEnabled } from '@/config/guestMode';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
@@ -7,6 +8,15 @@ import {
   MAX_LOGIN_ATTEMPTS as MAX_ATTEMPTS,
   LOCKOUT_DURATION,
 } from '@/config/system-constants';
+
+const AUTO_ADMIN_ENABLED = isGuestFullAccessEnabled();
+
+function getAutoAdminState() {
+  return {
+    isAuthenticated: AUTO_ADMIN_ENABLED,
+    lastLoginTime: AUTO_ADMIN_ENABLED ? Date.now() : null,
+  };
+}
 
 interface UnifiedAdminState {
   // 시스템 상태
@@ -64,11 +74,8 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
         state: 'enabled',
       },
 
-      // 관리자 모드 (인증 필요)
-      adminMode: {
-        isAuthenticated: false, // 기본값을 false로 복구 - 관리자 인증 필요
-        lastLoginTime: null,
-      },
+      // 관리자 모드 (개발 모드에서는 자동 활성화)
+      adminMode: getAutoAdminState(),
 
       // UI 상태
       ui: {
@@ -184,6 +191,22 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
 
       // 관리자 인증 (관리자 기능 접근용)
       authenticateAdmin: async (password: string) => {
+        if (AUTO_ADMIN_ENABLED) {
+          set((state) => ({
+            ...state,
+            attempts: 0,
+            isLocked: false,
+            lockoutEndTime: null,
+            adminMode: getAutoAdminState(),
+          }));
+
+          return {
+            success: true,
+            message:
+              '개발용 전체 접근 모드에서는 관리자 PIN 없이 모든 기능을 사용할 수 있습니다.',
+          };
+        }
+
         try {
           const state = get();
           if (!state) {
@@ -297,6 +320,13 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
       // 관리자 로그아웃
       logoutAdmin: () => {
         try {
+          if (AUTO_ADMIN_ENABLED) {
+            console.log(
+              '🔐 [Admin] 개발용 전체 접근 모드 - 관리자 로그아웃을 건너뜁니다.'
+            );
+            return;
+          }
+
           set((state) => ({
             ...state,
             adminMode: {

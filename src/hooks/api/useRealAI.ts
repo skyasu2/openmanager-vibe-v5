@@ -15,6 +15,8 @@ import { useCallback, useRef, useState } from 'react';
 
 // ⚠️ 관리자 권한 체크용 import
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { isGuestFullAccessEnabled } from '@/config/guestMode';
 
 interface UseRealAIOptions {
   enablePython?: boolean;
@@ -116,13 +118,18 @@ export function useRealAI(options: UseRealAIOptions = {}) {
 
   // 🔒 관리자 권한 체크
   const { adminMode } = useUnifiedAdminStore();
+  const permissions = useUserPermissions();
+  const adminAccessGranted =
+    adminMode?.isAuthenticated ||
+    permissions.isGitHubAuthenticated ||
+    isGuestFullAccessEnabled();
 
   /**
    * 🧠 통합 AI 분석 실행 (관리자 전용)
    */
   const analyze = useCallback(
     async (request: AIAnalysisRequest): Promise<AIAnalysisResponse | null> => {
-      if (!adminMode) {
+      if (!adminAccessGranted) {
         showToast.error('관리자 권한이 필요합니다');
         return null;
       }
@@ -206,7 +213,7 @@ export function useRealAI(options: UseRealAIOptions = {}) {
         abortControllerRef.current = null;
       }
     },
-    [isAnalyzing, options, adminMode]
+    [adminAccessGranted, isAnalyzing, options]
   );
 
   const analyzeMetrics = useCallback(
@@ -214,7 +221,7 @@ export function useRealAI(options: UseRealAIOptions = {}) {
       serverId?: string,
       timeframe?: number
     ): Promise<AIAnalysisResponse | null> => {
-      if (!adminMode) {
+      if (!adminAccessGranted) {
         showToast.error('관리자 권한이 필요합니다');
         return null;
       }
@@ -226,12 +233,12 @@ export function useRealAI(options: UseRealAIOptions = {}) {
         includeLogs: false,
       });
     },
-    [analyze, adminMode]
+    [adminAccessGranted, analyze]
   );
 
   const checkSystemHealth =
     useCallback(async (): Promise<SystemHealth | null> => {
-      if (!adminMode) {
+      if (!adminAccessGranted) {
         showToast.error('관리자 권한이 필요합니다');
         return null;
       }
@@ -262,7 +269,7 @@ export function useRealAI(options: UseRealAIOptions = {}) {
       } finally {
         setIsHealthChecking(false);
       }
-    }, [isHealthChecking, adminMode]);
+    }, [adminAccessGranted, isHealthChecking]);
 
   const cancelAnalysis = useCallback(() => {
     if (abortControllerRef.current) {
@@ -305,7 +312,7 @@ export function useRealAI(options: UseRealAIOptions = {}) {
   }, [_systemHealth]);
 
   // 관리자가 아니면 제한된 기능만 제공 (모든 훅 호출 이후)
-  if (!adminMode && options.adminOnly !== false) {
+  if (!adminAccessGranted && options.adminOnly !== false) {
     console.warn(
       '🚫 useRealAI: 관리자 권한이 필요합니다. 제한된 기능만 제공됩니다.'
     );

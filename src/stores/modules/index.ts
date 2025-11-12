@@ -5,6 +5,7 @@
  */
 
 import { useServerDataStore } from '@/components/providers/StoreProvider';
+import { isGuestFullAccessEnabled } from '@/config/guestMode';
 import { useUnifiedAdminStore } from '../useUnifiedAdminStore';
 
 // 기본 스토어들 익스포트
@@ -16,6 +17,8 @@ export const useSystemAuth = () => {
   const { isSystemStarted, startSystem, stopSystem, getSystemRemainingTime } =
     useUnifiedAdminStore();
   const { adminMode, authenticateAdmin, logoutAdmin } = useUnifiedAdminStore();
+  const canControlSystem =
+    adminMode.isAuthenticated || isGuestFullAccessEnabled();
 
   return {
     // 시스템 상태
@@ -27,7 +30,7 @@ export const useSystemAuth = () => {
 
     // 통합 액션
     startSystem: () => {
-      if (adminMode.isAuthenticated) {
+      if (canControlSystem) {
         startSystem();
       } else {
         console.warn('⚠️ 관리자 인증이 필요합니다.');

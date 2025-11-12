@@ -34,6 +34,8 @@ import {
 
 // 관리자 권한 체크
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { useUserPermissions } from '@/hooks/useUserPermissions';
+import { isGuestFullAccessEnabled } from '@/config/guestMode';
 
 // 실시간 AI 로그 엔트리 타입
 interface RealTimeAILog {
@@ -129,10 +131,15 @@ export const RealTimeThinkingViewer: FC<RealTimeThinkingViewerProps> = ({
 
   // 🔒 관리자 권한 체크
   const { adminMode } = useUnifiedAdminStore();
+  const permissions = useUserPermissions();
+  const adminAccessGranted =
+    adminMode?.isAuthenticated ||
+    permissions.isGitHubAuthenticated ||
+    isGuestFullAccessEnabled();
 
   // 실시간 로그 수집
   useEffect(() => {
-    if (!adminMode || !sessionId) return;
+    if (!adminAccessGranted || !sessionId) return;
 
     const eventSource = new EventSource(
       `/api/ai/logs/stream?sessionId=${sessionId}`
@@ -172,19 +179,19 @@ export const RealTimeThinkingViewer: FC<RealTimeThinkingViewerProps> = ({
     return () => {
       eventSource.close();
     };
-  }, [sessionId, adminMode]);
+  }, [adminAccessGranted, sessionId]);
 
   // 자동 스크롤
   useEffect(() => {
-    if (!adminMode) return;
+    if (!adminAccessGranted) return;
 
     if (logContainerRef.current) {
       logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
     }
-  }, [logs, adminMode]);
+  }, [adminAccessGranted, logs]);
 
   // 관리자가 아니면 접근 제한 UI 표시
-  if (!adminMode) {
+  if (!adminAccessGranted) {
     return (
       <div className="rounded-lg border border-red-700/30 bg-red-900/20 p-4">
         <div className="flex items-center gap-2 text-red-300">

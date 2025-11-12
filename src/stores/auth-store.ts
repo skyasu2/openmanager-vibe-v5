@@ -11,6 +11,9 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { isGuestFullAccessEnabled } from '@/config/guestMode';
+
+const AUTO_ADMIN_ENABLED = isGuestFullAccessEnabled();
 
 /**
  * 인증 상태 인터페이스
@@ -54,7 +57,7 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       // 초기 상태
-      adminMode: false,
+      adminMode: AUTO_ADMIN_ENABLED,
       authType: null,
       sessionId: null,
       user: null,
@@ -64,7 +67,7 @@ export const useAuthStore = create<AuthState>()(
         console.log('🔐 [AuthStore] setAuth 호출:', params);
 
         set({
-          adminMode: params.adminMode,
+          adminMode: AUTO_ADMIN_ENABLED ? true : params.adminMode,
           authType: params.authType,
           sessionId: params.sessionId || get().sessionId,
           user: params.user || get().user,
@@ -116,7 +119,7 @@ export const useAuthStore = create<AuthState>()(
         console.log('🔐 [AuthStore] setGitHubAuth 호출:', user);
 
         set({
-          adminMode: false,
+          adminMode: AUTO_ADMIN_ENABLED ? true : false,
           authType: 'github',
           sessionId: user?.id || null,
           user,
@@ -138,7 +141,7 @@ export const useAuthStore = create<AuthState>()(
         console.log('🔐 [AuthStore] clearAuth 호출');
 
         set({
-          adminMode: false,
+          adminMode: AUTO_ADMIN_ENABLED ? true : false,
           authType: null,
           sessionId: null,
           user: null,
@@ -158,6 +161,14 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-storage', // localStorage 키
       storage: createJSONStorage(() => localStorage),
+      version: 2,
+      migrate: (state: any) => {
+        if (!state) return state;
+        if (AUTO_ADMIN_ENABLED) {
+          return { ...state, adminMode: true };
+        }
+        return state;
+      },
 
       // 선택적 직렬화 (레거시 localStorage 키 호환)
       onRehydrateStorage: () => (state) => {

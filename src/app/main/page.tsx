@@ -11,7 +11,6 @@
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useInitialAuth } from '@/hooks/useInitialAuth';
-import { useProfileSecurity } from '@/components/profile/hooks/useProfileSecurity';
 import {
   BarChart3,
   Bot,
@@ -34,7 +33,10 @@ import { renderTextWithAIGradient } from '@/utils/text-rendering';
 // 🎯 Performance Score 최적화 - Dynamic Import 롤백하여 SSR 활성화
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import FeatureCardsGrid from '@/components/home/FeatureCardsGrid';
-import { isGuestFullAccessEnabled } from '@/config/guestMode';
+import {
+  isGuestFullAccessEnabled,
+  isGuestSystemStartEnabled,
+} from '@/config/guestMode';
 
 // framer-motion 제거 - CSS 애니메이션 사용
 
@@ -61,23 +63,18 @@ function Home() {
     retry: retryAuth,
   } = useInitialAuth();
 
-  // 관리자 모드 보안 훅 (isAdminMode만 필요)
-  const { isAdminMode } = useProfileSecurity();
+  const guestSystemStartEnabled = isGuestSystemStartEnabled();
 
   const [isMounted, setIsMounted] = useState(false); // 🔄 클라이언트 마운트 상태 (hydration 문제 방지)
 
   const {
     isSystemStarted,
     aiAgent,
-    adminMode: _adminMode,
     startSystem,
     stopSystem,
     logout: _logout,
     getSystemRemainingTime,
   } = useUnifiedAdminStore();
-
-  // 관리자 모드 상태 변수
-  const adminMode = _adminMode;
 
   // 📊 다중 사용자 시스템 상태 관리 - 개선된 동기화
   const {
@@ -623,7 +620,7 @@ function Home() {
               {/* 시스템 중지 상태 - 대시보드 버튼 중심으로 변경 */}
               {/* 메인 제어 버튼들 */}
               <div className="mb-6 flex flex-col items-center space-y-4">
-                {isGitHubUser || isAdminMode || isGuestFullAccessEnabled() ? (
+                {isGitHubUser || guestSystemStartEnabled || isGuestFullAccessEnabled() ? (
                   <>
                     {/* GitHub 인증 사용자 - 시스템 시작 버튼 표시 */}
                     {/* 현재 사용자: {currentUser?.name || currentUser?.email || 'Unknown'} */}
@@ -694,9 +691,9 @@ function Home() {
                       </button>
                     </div>
                     <p className="text-xs text-gray-400">
-                      {adminMode.isAuthenticated
-                        ? '👑 관리자 권한: 모든 기능 사용 가능합니다'
-                        : '게스트 모드에서는 읽기 전용 기능만 사용 가능합니다'}
+                      {guestSystemStartEnabled || isGuestFullAccessEnabled()
+                        ? '현재 게스트 모드에서도 시스템 제어 기능을 전부 테스트 중입니다.'
+                        : '게스트 모드에서는 읽기 전용 기능만 사용 가능합니다.'}
                     </p>
                   </div>
                 )}
@@ -721,7 +718,7 @@ function Home() {
               {/* 대시보드 버튼 - 중앙 배치 */}
               <div className="mb-6 flex justify-center">
                 <div className="flex flex-col items-center">
-                  {isGitHubUser || isAdminMode || isGuestFullAccessEnabled() ? (
+                  {isGitHubUser || guestSystemStartEnabled || isGuestFullAccessEnabled() ? (
                     <button
                       onClick={() => router.push('/dashboard')}
                       className="flex h-16 w-full max-w-xs items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-600 font-semibold text-white shadow-xl transition-all duration-200 hover:bg-emerald-700 sm:w-64"

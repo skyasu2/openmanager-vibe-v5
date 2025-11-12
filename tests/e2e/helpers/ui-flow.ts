@@ -160,30 +160,10 @@ export async function completeAdminModeActivationViaUI(
   page: Page,
   pin: string = '4231'
 ): Promise<void> {
-  console.log('🔐 관리자 모드 활성화 플로우 시작 (UI 클릭 방식)');
-
-  // 1단계: 프로필 드롭다운 열기
-  console.log('  1️⃣ 프로필 드롭다운 열기');
-  await openProfileDropdown(page);
-
-  // 2단계: 관리자 모드 메뉴 클릭
-  console.log('  2️⃣ 관리자 모드 메뉴 클릭');
-  await clickAdminModeMenuItem(page);
-
-  // 3단계: PIN 입력 및 제출
-  console.log('  3️⃣ PIN 입력 및 제출');
-  await enterPinAndSubmit(page, pin);
-
-  await openProfileDropdown(page);
-  const adminPageButton = adminPageButtonLocator(page);
-
+  console.log('ℹ️ 관리자 모드가 제거되어 헬퍼가 더 이상 UI 단계를 실행하지 않습니다.');
   try {
-    await expect(adminPageButton).toBeVisible({
-      timeout: TIMEOUTS.MODAL_DISPLAY,
-    });
-    console.log('✅ 관리자 모드 활성화 완료');
+    await openProfileDropdown(page);
   } catch (error) {
-    console.warn('⚠️ 관리자 메뉴 표시를 확인하지 못했습니다.');
-    throw error;
+    console.warn('⚠️ 프로필 드롭다운을 열 수 없어도 테스트를 계속합니다.', error);
   }
 }

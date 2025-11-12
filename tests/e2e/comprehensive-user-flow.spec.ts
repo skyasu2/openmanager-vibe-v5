@@ -3,22 +3,19 @@
  *
  * 테스트 순서:
  * 1. 게스트 모드로 접속
- * 2. 프로필 드롭다운으로 관리자 모드 진입
- * 3. PIN 4231 입력
- * 4. 시스템 시작
- * 5. 대시보드 진입
- * 6. AI 어시스턴트 기능 확인
+ * 2. 게스트 전체 접근 모드에서 시스템 시작
+ * 3. 대시보드 진입
+ * 4. AI 어시스턴트 기능 확인
  */
 
 import { test, expect } from '@playwright/test';
 import { getTestBaseUrl } from './helpers/config';
 import { TIMEOUTS } from './helpers/timeouts';
-import { completeAdminModeActivationViaUI } from './helpers/ui-flow';
 
 const BASE_URL = getTestBaseUrl();
 
 test.describe('전체 사용자 시나리오 플로우', () => {
-  test('게스트 → 관리자 모드 → 시스템 시작 → 대시보드 → AI 어시스턴트 전체 플로우', async ({ page }) => {
+  test('게스트 → 시스템 시작 → 대시보드 → AI 어시스턴트 플로우', async ({ page }) => {
     console.log('🚀 전체 시나리오 플로우 테스트 시작');
 
     // 1단계: 게스트 모드로 접속
@@ -42,12 +39,8 @@ test.describe('전체 사용자 시나리오 플로우', () => {
     await page.waitForLoadState('networkidle', { timeout: TIMEOUTS.NETWORK_REQUEST });
     console.log('✅ 메인 애플리케이션 로딩 완료');
 
-    // 2-4단계: 관리자 모드 활성화 (프로필 → 관리자 모드 → PIN 입력)
-    console.log('2️⃣ 관리자 모드 활성화 (UI 클릭 방식)');
-    await completeAdminModeActivationViaUI(page);
-
-    // 5단계: 시스템 시작 버튼 찾기 및 클릭
-    console.log('5️⃣ 시스템 시작 버튼 찾기');
+    // 2단계: 시스템 시작 버튼 찾기 및 클릭
+    console.log('2️⃣ 시스템 시작 버튼 찾기');
 
     const startButtonSelectors = [
       'button:has-text("🚀 시스템 시작")',
@@ -88,8 +81,8 @@ test.describe('전체 사용자 시나리오 플로우', () => {
     await startButton.click();
     console.log('✅ 시스템 시작 버튼 클릭');
 
-    // 6단계: 대시보드로 이동 대기
-    console.log('6️⃣ 대시보드 페이지 로딩 대기');
+    // 3단계: 대시보드로 이동 대기
+    console.log('3️⃣ 대시보드 페이지 로딩 대기');
 
     // 대시보드 URL 변경 또는 대시보드 요소 등장 대기
     try {
@@ -128,8 +121,8 @@ test.describe('전체 사용자 시나리오 플로우', () => {
       }
     }
 
-    // 7단계: AI 어시스턴트 버튼 찾기
-    console.log('7️⃣ AI 어시스턴트 버튼 찾기');
+    // 4단계: AI 어시스턴트 버튼 찾기
+    console.log('4️⃣ AI 어시스턴트 버튼 찾기');
 
     const aiButtonSelectors = [
       'button:has-text("AI 어시스턴트")',
@@ -169,8 +162,8 @@ test.describe('전체 사용자 시나리오 플로우', () => {
       // AI 어시스턴트 버튼이 없으면 경고만 하고 테스트 계속
       console.log('❌ AI 어시스턴트 버튼이 대시보드에 구현되지 않음');
     } else {
-      // 8단계: AI 어시스턴트 기능 테스트
-      console.log('8️⃣ AI 어시스턴트 기능 테스트');
+      // 5단계: AI 어시스턴트 기능 테스트
+      console.log('5️⃣ AI 어시스턴트 기능 테스트');
 
       await aiButton.click();
       console.log('✅ AI 어시스턴트 버튼 클릭');
@@ -246,7 +239,7 @@ test.describe('전체 사용자 시나리오 플로우', () => {
     }
 
     // 최종 검증
-    console.log('9️⃣ 최종 상태 검증');
+    console.log('6️⃣ 최종 상태 검증');
 
     // 대시보드 기본 요소들 확인
     const dashboardElements = {
