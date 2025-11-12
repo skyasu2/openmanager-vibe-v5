@@ -45,7 +45,7 @@ npx playwright test tests/e2e/guest-dashboard-flow.spec.ts --project=chromium
 
 ### 1. 기존 테스트 방식 분석 보고서
 
-**파일**: [vercel-production-test-analysis.md](./vercel-production-test-analysis.md)
+**파일**: [vercel-production-test-analysis.md](../archive/testing/vercel-production-test-analysis.md)
 
 **내용**:
 
@@ -421,7 +421,7 @@ jobs:
 
 | 문서                                                                                                           | 목적                 | 대상          |
 | -------------------------------------------------------------------------------------------------------------- | -------------------- | ------------- |
-| [vercel-production-test-analysis.md](./vercel-production-test-analysis.md)                                     | 기존 테스트 분석     | 아키텍처 이해 |
+| [vercel-production-test-analysis.md](../archive/testing/vercel-production-test-analysis.md)                    | 기존 테스트 분석     | 아키텍처 이해 |
 | [vercel-production-test-scenarios.md](./vercel-production-test-scenarios.md)                                   | 단계별 체크리스트    | 테스트 실행   |
 | [vercel-production-enhancement-analysis.md](./vercel-production-enhancement-analysis.md)                       | 고도화 방안          | 개선 계획     |
 | [vercel-manual-test-guide.md](./vercel-manual-test-guide.md)                                                   | 수동 검증 가이드     | /admin 접근   |

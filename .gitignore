@@ -299,6 +299,8 @@ commit/
 
 # Archive folder (local temporary storage only)
 archive/
+!docs/archive/
+!docs/archive/**
 
 # 🛠️ Personal tools folder (WSL-First policy)
 .local/
@@ -425,6 +427,8 @@ screenshots/
 # 📦 통합 아카이브/백업 시스템 (프로젝트 내부 관리)
 # 아카이브 폴더들 (문서+코드+API)
 archive/
+!docs/archive/
+!docs/archive/**
 docs/.backup/
 src/.backup/
 src/app/api/.backup/

@@ -12,6 +12,7 @@
 **영향**: /admin 페이지 자동 접근 불가 → 수동 테스트 필요
 
 **자동화 범위**:
+
 - ✅ 게스트 로그인 (자동화 완료)
 - ✅ PIN 4231 인증 (자동화 완료)
 - ✅ API 응답 검증 (자동화 완료)
@@ -31,6 +32,7 @@ BASE_URL=https://openmanager-vibe-v5.vercel.app npm run test:e2e -- vercel-guest
 ```
 
 **예상 결과**:
+
 - ✅ 게스트 로그인 성공
 - ✅ PIN 4231 인증 성공
 - ✅ 대시보드 렌더링 확인
@@ -55,12 +57,12 @@ BASE_URL=https://openmanager-vibe-v5.vercel.app npm run test:e2e -- vercel-guest
 2. **Cookies** → `https://openmanager-vibe-v5.vercel.app` 선택
 3. 다음 쿠키 확인:
 
-| 쿠키 이름 | 예상 값 | 설명 |
-|----------|--------|------|
-| `admin_mode` | `true` | 관리자 모드 활성화 상태 |
-| `guest_session_id` | UUID 형식 (예: `550e8400-e29b...`) | 게스트 세션 ID |
-| `auth_type` | `guest` | 인증 타입 |
-| `test_mode` | `enabled` | 테스트 모드 (자동화에서 설정) |
+| 쿠키 이름          | 예상 값                            | 설명                          |
+| ------------------ | ---------------------------------- | ----------------------------- |
+| `admin_mode`       | `true`                             | 관리자 모드 활성화 상태       |
+| `guest_session_id` | UUID 형식 (예: `550e8400-e29b...`) | 게스트 세션 ID                |
+| `auth_type`        | `guest`                            | 인증 타입                     |
+| `test_mode`        | `enabled`                          | 테스트 모드 (자동화에서 설정) |
 
 **스크린샷 예시**:
 
@@ -86,6 +88,7 @@ console.log('auth_user:', localStorage.getItem('auth_user'));
 ```
 
 **예상 출력**:
+
 ```
 admin_mode: true
 auth_type: guest
@@ -109,6 +112,7 @@ auth_user: guest
 3. **"관리자 페이지"** 메뉴 클릭
 
 **예상 메뉴 구조**:
+
 ```
 [프로필 드롭다운]
 ├── 게스트 (또는 관리자) ← 현재 상태 표시
@@ -128,6 +132,7 @@ auth_user: guest
 **URL**: `https://openmanager-vibe-v5.vercel.app/admin`
 
 **화면 구성**:
+
 - 관리자 전용 헤더 또는 타이틀 ("관리자 대시보드", "Admin Page")
 - 관리자 전용 기능:
   - 서버 관리
@@ -136,6 +141,7 @@ auth_user: guest
   - 로그 조회
 
 **스크린샷 캡처** (수동):
+
 1. F12 → 스크린샷 도구 사용
 2. 또는 Windows: `Win+Shift+S` / macOS: `Cmd+Shift+4`
 3. 저장 경로: `test-results/manual-admin-page-success.png`
@@ -147,6 +153,7 @@ auth_user: guest
 **URL**: `https://openmanager-vibe-v5.vercel.app/main` (자동 리다이렉트)
 
 **원인**:
+
 1. **admin_mode 쿠키 미설정**: PIN 인증 실패 또는 쿠키 삭제
 2. **middleware 쿠키 체크 실패**: Playwright 쿠키 전달 문제 (자동화 제약)
 3. **세션 만료**: 24시간 경과 또는 브라우저 재시작
@@ -205,13 +212,16 @@ auth_user: guest
 ### 문제 1: "관리자 페이지" 메뉴가 없음
 
 **증상**:
+
 - 프로필 드롭다운에 "관리자 모드" 메뉴만 있고 "관리자 페이지" 없음
 
 **원인**:
+
 - PIN 인증 미완료
 - 클라이언트 상태 업데이트 실패
 
 **해결**:
+
 1. **페이지 새로고침** (F5)
 2. **프로필 버튼 다시 클릭**
 3. "관리자 페이지" 메뉴 확인
@@ -222,13 +232,16 @@ auth_user: guest
 ### 문제 2: PIN 다이얼로그가 열리지 않음
 
 **증상**:
+
 - "관리자 모드" 버튼 클릭해도 아무 반응 없음
 
 **원인**:
+
 - JavaScript 에러
 - 다이얼로그 컴포넌트 렌더링 실패
 
 **해결**:
+
 1. **F12 → Console 탭** 확인
 2. 에러 메시지 확인
 3. **페이지 새로고침** (F5)
@@ -239,14 +252,17 @@ auth_user: guest
 ### 문제 3: /admin 접근 시 404 Not Found
 
 **증상**:
+
 - URL: `/admin`
 - 화면: "404 Page Not Found"
 
 **원인**:
+
 - `/admin` 라우트 미구현
 - Next.js 빌드 오류
 
 **해결**:
+
 1. **URL 재확인**: `https://openmanager-vibe-v5.vercel.app/admin` (오타 확인)
 2. **Vercel 배포 상태 확인**: https://vercel.com/dashboard
 3. **개발팀 문의**: `/admin` 라우트 존재 여부 확인
@@ -255,15 +271,15 @@ auth_user: guest
 
 ## 자동화 vs 수동 테스트 비교
 
-| 항목 | 자동화 (Playwright) | 수동 테스트 | 비고 |
-|------|-------------------|-----------|------|
-| 게스트 로그인 | ✅ 완전 자동 | - | - |
-| PIN 4231 인증 | ✅ 완전 자동 | - | - |
-| API 응답 검증 | ✅ 완전 자동 | - | - |
-| 대시보드 점검 | ✅ 완전 자동 | - | - |
-| AI 사이드바 점검 | ✅ 완전 자동 | - | - |
-| /admin 접근 | ❌ 불가능 | ⚠️ 수동 필요 | Playwright 쿠키 전달 문제 |
-| 관리자 기능 검증 | ❌ 불가능 | ⚠️ 수동 필요 | /admin 접근 전제 |
+| 항목             | 자동화 (Playwright) | 수동 테스트  | 비고                      |
+| ---------------- | ------------------- | ------------ | ------------------------- |
+| 게스트 로그인    | ✅ 완전 자동        | -            | -                         |
+| PIN 4231 인증    | ✅ 완전 자동        | -            | -                         |
+| API 응답 검증    | ✅ 완전 자동        | -            | -                         |
+| 대시보드 점검    | ✅ 완전 자동        | -            | -                         |
+| AI 사이드바 점검 | ✅ 완전 자동        | -            | -                         |
+| /admin 접근      | ❌ 불가능           | ⚠️ 수동 필요 | Playwright 쿠키 전달 문제 |
+| 관리자 기능 검증 | ❌ 불가능           | ⚠️ 수동 필요 | /admin 접근 전제          |
 
 **자동화 커버리지**: 85% (5/6 단계)
 **수동 테스트 소요 시간**: 약 2-5분
@@ -294,6 +310,7 @@ export function middleware(request: NextRequest) {
 ```
 
 **효과**:
+
 - ✅ Playwright에서 `page.setExtraHTTPHeaders()` 사용 시 100% 전달 보장
 - ✅ /admin 자동 접근 가능
 - ✅ 수동 테스트 불필요
@@ -315,6 +332,7 @@ export async function POST(request: NextRequest) {
 ```
 
 **효과**:
+
 - ✅ 서버에서 쿠키 설정 시 전달 보장
 - ✅ /admin 자동 접근 가능
 
@@ -324,7 +342,7 @@ export async function POST(request: NextRequest) {
 
 ## 참고 문서
 
-- [Vercel 프로덕션 테스트 분석 보고서](./vercel-production-test-analysis.md)
+- [Vercel 프로덕션 테스트 분석 보고서](../archive/testing/vercel-production-test-analysis.md)
 - [실제 코드 기반 테스트 시나리오](./vercel-production-test-scenarios.md)
 - [고도화 필요도 분석](./vercel-production-enhancement-analysis.md)
 - [통합 테스트 스크립트](../../tests/e2e/vercel-guest-admin-full-check.spec.ts)

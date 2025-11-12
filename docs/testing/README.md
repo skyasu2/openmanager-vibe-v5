@@ -76,7 +76,7 @@ last_updated: '2025-10-16'
   - 실제 환경 vs Mock 테스트 차이점 검증
   - 7개 실제 이슈 발견 (DOM 차이, AI Fallback, 성능)
 
-- **vercel-production-test-analysis.md** (3일 전, 442줄) ⭐
+- **vercel-production-test-analysis.md** (archive/testing, 442줄) ⭐
   - 기존 E2E 테스트 분석 및 프로덕션 적용 전략
   - localhost vs Vercel 차이점, 통합 시나리오 제안
 
@@ -139,7 +139,7 @@ last_updated: '2025-10-16'
 
 **상세 분석**:
 
-1. **vercel-production-test-analysis.md** - 테스트 구조 분석
+1. **vercel-production-test-analysis.md** - 테스트 구조 분석 (archive/testing)
 2. **e2e-testing-best-practices.md** - 베스트 프랙티스
 
 ### 📖 전략 가이드 (외부 링크)

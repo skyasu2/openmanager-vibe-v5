@@ -84,6 +84,7 @@ Vercel 프로덕션 종합 점검
   - 예상 결과: URL이 /main으로 변경
 
 - [ ] **1-4. localStorage 인증 상태 확인**
+
   ```typescript
   const authState = await page.evaluate(() => ({
     authType: localStorage.getItem('auth_type'),
@@ -171,6 +172,7 @@ Vercel 프로덕션 종합 점검
   - 예상 결과: 쿠키 및 헤더 설정 완료
 
 - [ ] **2-5. 관리자 상태 검증 (verifyAdminState)**
+
   ```typescript
   const isAdminActive = await verifyAdminState(page);
   expect(isAdminActive).toBe(true);
@@ -264,6 +266,7 @@ Vercel 프로덕션 종합 점검
   - 예상 결과: 최소 1개 이상 지표 텍스트 발견
 
 - [ ] **3-5. 스크린샷 캡처**
+
   ```typescript
   await page.screenshot({
     path: 'test-results/vercel-dashboard-loaded.png',
@@ -338,6 +341,7 @@ Vercel 프로덕션 종합 점검
   - 예상 결과: AI 응답 메시지 수신
 
 - [ ] **4-4. 스크린샷 캡처**
+
   ```typescript
   await page.screenshot({
     path: 'test-results/vercel-ai-sidebar-rendered.png',
@@ -589,7 +593,7 @@ expect(sidebarFound || inputVisible || sendButtonCount > 0).toBe(true) // Expect
 
 ## 참고 문서
 
-- [Vercel 프로덕션 테스트 분석 보고서](./vercel-production-test-analysis.md)
+- [Vercel 프로덕션 테스트 분석 보고서](../archive/testing/vercel-production-test-analysis.md)
 - [고도화 필요도 분석](./vercel-production-enhancement-analysis.md)
 - [관리자 모드 수동 테스트 가이드](./admin-mode-manual-test-guide.md)
 - [Playwright E2E 테스트 가이드](./testing-guide.md)

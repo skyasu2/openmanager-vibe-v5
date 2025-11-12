@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page, Locator } from '@playwright/test';
 import { ensureVercelBypassCookie } from './security';
 import { TIMEOUTS } from './timeouts';
 
@@ -8,6 +8,30 @@ export interface GuestLoginOptions {
   waitForPath?: string;
   skipLandingNavigation?: boolean;
 }
+
+export interface AiToggleOptions {
+  buttonSelectors?: string[];
+  sidebarSelectors?: string[];
+  waitForSidebar?: boolean;
+  waitTimeout?: number;
+}
+
+const DEFAULT_AI_BUTTON_SELECTORS = [
+  '[data-testid="ai-assistant"]',
+  '[data-testid="ai-sidebar-trigger"]',
+  'button:has-text("AI")',
+  'button:has-text("AI 어시스턴트")',
+  'button[aria-label*="AI"]',
+  'button[title*="AI"]',
+];
+
+const DEFAULT_AI_SIDEBAR_SELECTORS = [
+  '[data-testid="ai-sidebar"]',
+  '[role="complementary"]',
+  'aside:has-text("AI")',
+  '.ai-sidebar',
+  '.ai-panel',
+];
 
 /**
  * 게스트 세션 관련 상태(localStorage/cookies)를 정리합니다.
@@ -65,4 +89,53 @@ export async function guestLogin(
   await page.waitForLoadState('networkidle', {
     timeout: TIMEOUTS.NETWORK_REQUEST,
   });
+}
+
+/**
+ * AI 사이드바 토글을 열고 해당 locator를 반환합니다.
+ */
+export async function openAiSidebar(
+  page: Page,
+  options: AiToggleOptions = {}
+): Promise<Locator> {
+  const {
+    buttonSelectors = DEFAULT_AI_BUTTON_SELECTORS,
+    sidebarSelectors = DEFAULT_AI_SIDEBAR_SELECTORS,
+    waitForSidebar = true,
+    waitTimeout = TIMEOUTS.DOM_UPDATE,
+  } = options;
+
+  let trigger: Locator | null = null;
+  for (const selector of buttonSelectors) {
+    const candidate = page.locator(selector).first();
+    const isVisible = await candidate
+      .isVisible({ timeout: TIMEOUTS.MODAL_DISPLAY })
+      .catch(() => false);
+    if (isVisible) {
+      trigger = candidate;
+      break;
+    }
+  }
+
+  if (!trigger) {
+    throw new Error('AI 토글 버튼을 찾을 수 없습니다.');
+  }
+
+  await trigger.click();
+
+  if (!waitForSidebar) {
+    return trigger;
+  }
+
+  for (const selector of sidebarSelectors) {
+    const sidebar = page.locator(selector).first();
+    const isVisible = await sidebar
+      .isVisible({ timeout: waitTimeout })
+      .catch(() => false);
+    if (isVisible) {
+      return sidebar;
+    }
+  }
+
+  throw new Error('AI 사이드바가 나타나지 않았습니다.');
 }

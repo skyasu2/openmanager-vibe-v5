@@ -11,7 +11,7 @@
 import { test, expect } from '@playwright/test';
 import { getTestBaseUrl } from './helpers/config';
 import { TIMEOUTS } from './helpers/timeouts';
-import { guestLogin, resetGuestState } from './helpers/guest';
+import { guestLogin, resetGuestState, openAiSidebar } from './helpers/guest';
 
 const BASE_URL = getTestBaseUrl();
 
@@ -124,142 +124,19 @@ test.describe('전체 사용자 시나리오 플로우', () => {
       }
     }
 
-    // 4단계: AI 어시스턴트 버튼 찾기
-    console.log('4️⃣ AI 어시스턴트 버튼 찾기');
-
-    const aiButtonSelectors = [
-      'button:has-text("AI 어시스턴트")',
-      'button:has-text("AI Assistant")',
-      'button:has-text("🤖")',
-      '[data-testid="ai-assistant"]',
-      '[data-testid="ai-button"]',
-      '.ai-assistant-button',
-      'button[aria-label*="AI"]',
-      'button[title*="AI"]',
-    ];
-
-    let aiButton = null;
-    for (const selector of aiButtonSelectors) {
-      try {
-        await page.waitForSelector(selector, {
-          timeout: TIMEOUTS.MODAL_DISPLAY,
-        });
-        aiButton = await page.locator(selector).first();
-        if (await aiButton.isVisible()) {
-          console.log(`✅ AI 어시스턴트 버튼 발견: ${selector}`);
-          break;
-        }
-      } catch (e) {
-        console.log(`❌ AI 어시스턴트 버튼 셀렉터 시도 실패: ${selector}`);
-      }
-    }
-
-    if (!aiButton) {
+    // 4-5단계: AI 어시스턴트 토글 및 사이드바 확인
+    console.log('4️⃣ AI 어시스턴트 버튼 및 사이드바 확인');
+    try {
+      const sidebar = await openAiSidebar(page, {
+        waitTimeout: TIMEOUTS.MODAL_DISPLAY,
+      });
+      await expect(sidebar).toBeVisible();
+      const sidebarContent = await sidebar.textContent();
       console.log(
-        '⚠️ AI 어시스턴트 버튼을 찾을 수 없음. 현재 페이지의 모든 버튼을 출력합니다.'
+        `✅ AI 사이드바 내용 확인: ${sidebarContent?.substring(0, 100) ?? ''}`
       );
-      const allButtons = await page.locator('button').all();
-      for (let i = 0; i < allButtons.length; i++) {
-        const text = await allButtons[i].textContent();
-        const ariaLabel = await allButtons[i].getAttribute('aria-label');
-        const title = await allButtons[i].getAttribute('title');
-        console.log(
-          `Button ${i}: text="${text}", aria-label="${ariaLabel}", title="${title}"`
-        );
-      }
-
-      // AI 어시스턴트 버튼이 없으면 경고만 하고 테스트 계속
-      console.log('❌ AI 어시스턴트 버튼이 대시보드에 구현되지 않음');
-    } else {
-      // 5단계: AI 어시스턴트 기능 테스트
-      console.log('5️⃣ AI 어시스턴트 기능 테스트');
-
-      await aiButton.click();
-      console.log('✅ AI 어시스턴트 버튼 클릭');
-
-      // 크롬 브라우저 팝업 처리 (notifications, location 등)
-      console.log('🔔 크롬 팝업 처리 중...');
-      try {
-        // 알림 권한 요청 팝업 거부
-        page.on('dialog', async (dialog) => {
-          console.log(`크롬 다이얼로그 감지: ${dialog.message()}`);
-          await dialog.dismiss();
-        });
-
-        // 알림 권한 팝업 거부 (브라우저 레벨)
-        const context = page.context();
-        await context.grantPermissions([], { origin: page.url() });
-
-        await page.waitForTimeout(2000); // 팝업 처리 대기
-        console.log('✅ 크롬 팝업 처리 완료');
-      } catch (e) {
-        console.log('⚠️ 크롬 팝업 처리 실패, 계속 진행');
-      }
-
-      // AI 사이드바 등장 대기 (우측에서 슬라이드인)
-      const aiSidebarSelectors = [
-        '.ai-sidebar',
-        '.ai-assistant-sidebar',
-        '.sidebar.ai',
-        '[data-testid="ai-sidebar"]',
-        '.side-panel',
-        '.assistant-panel',
-        // 우측에서 나타나는 패널들
-        '.slide-in-right',
-        '.panel-right',
-        '.fixed.right-0',
-        // 일반적인 사이드바 패턴
-        'aside',
-        '.drawer',
-        '.offcanvas',
-      ];
-
-      let aiSidebarFound = false;
-      for (const selector of aiSidebarSelectors) {
-        try {
-          await page.waitForSelector(selector, {
-            timeout: TIMEOUTS.MODAL_DISPLAY,
-          });
-          const element = await page.locator(selector).first();
-          if (await element.isVisible()) {
-            console.log(`✅ AI 사이드바 발견: ${selector}`);
-
-            // 사이드바 내용 확인
-            const sidebarContent = await element.textContent();
-            if (
-              sidebarContent &&
-              (sidebarContent.includes('AI') ||
-                sidebarContent.includes('어시스턴트') ||
-                sidebarContent.includes('Assistant'))
-            ) {
-              console.log(
-                `✅ AI 사이드바 내용 확인: ${sidebarContent.substring(0, 100)}...`
-              );
-              aiSidebarFound = true;
-              break;
-            }
-          }
-        } catch (e) {
-          console.log(`❌ AI 사이드바 셀렉터 시도 실패: ${selector}`);
-        }
-      }
-
-      if (!aiSidebarFound) {
-        console.log(
-          '⚠️ AI 사이드바를 찾을 수 없음. 페이지의 모든 aside/sidebar 요소를 검사합니다.'
-        );
-
-        const allSidebars = await page
-          .locator('aside, .sidebar, .panel, .drawer, [class*="side"]')
-          .all();
-        for (let i = 0; i < allSidebars.length; i++) {
-          const text = await allSidebars[i].textContent();
-          const isVisible = await allSidebars[i].isVisible();
-          console.log(
-            `Sidebar ${i}: visible=${isVisible}, content="${text?.substring(0, 50)}..."`
-          );
-        }
-      }
+    } catch (error) {
+      console.log('⚠️ AI 토글/사이드바 확인 실패:', error);
     }
 
     // 최종 검증

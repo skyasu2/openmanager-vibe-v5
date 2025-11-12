@@ -13,14 +13,16 @@
 
 ```typescript
 // ❌ 실패하는 패턴
-await context.addCookies([{
-  name: 'admin_mode',
-  value: 'true',
-  domain: 'openmanager-vibe-v5.vercel.app',
-  path: '/',
-  secure: true,
-  sameSite: 'Lax'
-}]);
+await context.addCookies([
+  {
+    name: 'admin_mode',
+    value: 'true',
+    domain: 'openmanager-vibe-v5.vercel.app',
+    path: '/',
+    secure: true,
+    sameSite: 'Lax',
+  },
+]);
 
 await page.goto('/admin');
 // → middleware가 쿠키를 읽지 못함
@@ -35,6 +37,7 @@ await page.goto('/admin');
    - Chrome DevTools Protocol 레벨의 버그 가능성
 
 2. **Middleware 동작 차이**:
+
    ```typescript
    // middleware.ts (프로덕션)
    export function middleware(request: NextRequest) {
@@ -63,6 +66,7 @@ await page.goto('/admin');
 #### 문제 상황
 
 현재 테스트 파일:
+
 - `dashboard-monitoring-test.spec.ts`: 대시보드만 ✅
 - `ai-sidebar-v3-comprehensive.spec.ts`: AI 사이드바만 ✅
 - **통합 시나리오 없음**: 대시보드 + AI 사이드바 동시 검증 ❌
@@ -80,7 +84,7 @@ test('대시보드에서 AI 사이드바 상호작용', async ({ page }) => {
   await expect(sidebar).toBeVisible();
 
   // 3. AI 질의: "서버 상태 알려줘"
-  await inputField.fill("서버 상태 알려줘");
+  await inputField.fill('서버 상태 알려줘');
   await sendButton.click();
 
   // 4. 대시보드 업데이트 확인
@@ -100,12 +104,12 @@ test('대시보드에서 AI 사이드바 상호작용', async ({ page }) => {
 
 #### 문제 상황
 
-| 파일 | 환경 | BASE_URL | 프로덕션 대응 |
-|------|------|----------|-------------|
-| guest-mode-comprehensive.spec.ts | localhost | 상대 경로 | ❌ |
-| dashboard-monitoring-test.spec.ts | localhost | 상대 경로 | ❌ |
+| 파일                                | 환경      | BASE_URL                | 프로덕션 대응 |
+| ----------------------------------- | --------- | ----------------------- | ------------- |
+| guest-mode-comprehensive.spec.ts    | localhost | 상대 경로               | ❌            |
+| dashboard-monitoring-test.spec.ts   | localhost | 상대 경로               | ❌            |
 | ai-sidebar-v3-comprehensive.spec.ts | localhost | `http://localhost:3000` | ❌ (하드코딩) |
-| admin-mode-pin-api-test.spec.ts | Vercel | `https://...vercel.app` | ✅ (하드코딩) |
+| admin-mode-pin-api-test.spec.ts     | Vercel    | `https://...vercel.app` | ✅ (하드코딩) |
 
 #### 환경별 타임아웃 부족
 
@@ -115,8 +119,8 @@ await page.waitForSelector('.dashboard', { timeout: 20000 }); // 항상 20초
 
 // ✅ 개선안: 환경별 동적 타임아웃
 const timeout = TimeoutUtils.adjustForEnvironment(
-  TIMEOUTS.DASHBOARD_LOAD,  // 20000ms
-  isVercelProduction(page.url())  // true → 30000ms (1.5배)
+  TIMEOUTS.DASHBOARD_LOAD, // 20000ms
+  isVercelProduction(page.url()) // true → 30000ms (1.5배)
 );
 await page.waitForSelector('.dashboard', { timeout });
 ```
@@ -194,22 +198,25 @@ export function middleware(request: NextRequest) {
 ```
 
 **테스트 코드**:
+
 ```typescript
 // activateAdminMode() 수정
 await page.setExtraHTTPHeaders({
   'X-Test-Mode': 'enabled',
-  'X-Test-Token': testToken
+  'X-Test-Token': testToken,
 });
 
 await page.goto('/admin'); // ✅ 헤더가 전달되어 우회 성공
 ```
 
 **장점**:
+
 - ✅ Playwright에서 헤더는 100% 전달 보장
 - ✅ 쿠키 전달 문제 완전 우회
 - ✅ 보안 유지 (X-Test-Token으로 검증)
 
 **단점**:
+
 - ⚠️ middleware.ts 수정 필요 (코드 변경)
 
 ---
@@ -232,7 +239,7 @@ export async function POST(request: NextRequest) {
     httpOnly: false,
     secure: true,
     sameSite: 'lax',
-    path: '/'
+    path: '/',
   });
 
   return response;
@@ -240,10 +247,11 @@ export async function POST(request: NextRequest) {
 ```
 
 **테스트 코드**:
+
 ```typescript
 // activateAdminMode() 수정
 await page.context().request.post('/api/test/set-admin-session', {
-  data: { testToken: process.env.TEST_SECRET_KEY }
+  data: { testToken: process.env.TEST_SECRET_KEY },
 });
 
 await page.reload(); // 쿠키 재로딩
@@ -251,10 +259,12 @@ await page.goto('/admin'); // ✅ 서버 측 쿠키로 우회 성공
 ```
 
 **장점**:
+
 - ✅ 쿠키가 서버에서 직접 설정되어 전달 보장
 - ✅ middleware 수정 불필요
 
 **단점**:
+
 - ⚠️ 추가 API 엔드포인트 필요 (개발 오버헤드)
 - ⚠️ 페이지 새로고침 필요 (1-2초 추가 소요)
 
@@ -269,18 +279,22 @@ export default defineConfig({
     {
       name: 'vercel-preview',
       use: {
-        baseURL: process.env.VERCEL_URL || 'https://openmanager-vibe-v5-git-main-your-org.vercel.app'
-      }
-    }
-  ]
+        baseURL:
+          process.env.VERCEL_URL ||
+          'https://openmanager-vibe-v5-git-main-your-org.vercel.app',
+      },
+    },
+  ],
 });
 ```
 
 **장점**:
+
 - ✅ Preview 환경에서는 테스트 모드 활성화 가능
 - ✅ Production 배포 전 E2E 검증
 
 **단점**:
+
 - ⚠️ Production 환경 직접 테스트 불가
 - ⚠️ Preview 환경 URL이 동적으로 변경됨
 
@@ -292,7 +306,9 @@ export default defineConfig({
 
 ```typescript
 // vercel-guest-admin-full-check.spec.ts (이미 작성됨)
-test('전체 시나리오: 게스트 → PIN → 대시보드 → AI 사이드바', async ({ page }) => {
+test('전체 시나리오: 게스트 → PIN → 대시보드 → AI 사이드바', async ({
+  page,
+}) => {
   // Phase 1: 게스트 로그인
   await activateAdminMode(page, { method: 'password', password: '4231' });
 
@@ -308,10 +324,12 @@ test('전체 시나리오: 게스트 → PIN → 대시보드 → AI 사이드�
 ```
 
 **장점**:
+
 - ✅ 실제 사용자 플로우 검증
 - ✅ 통합 환경 버그 조기 발견
 
 **단점**:
+
 - ⚠️ 테스트 시간 증가 (60초 → 120초)
 
 ---
@@ -325,22 +343,24 @@ test('전체 시나리오: 게스트 → PIN → 대시보드 → AI 사이드�
 export const TimeoutUtils = {
   adjustForEnvironment(baseTimeout: number, isProduction: boolean): number {
     return isProduction ? Math.floor(baseTimeout * 1.5) : baseTimeout;
-  }
+  },
 };
 
 // 테스트 코드
 const timeout = TimeoutUtils.adjustForEnvironment(
-  TIMEOUTS.DASHBOARD_LOAD,  // 20000ms
-  IS_VERCEL  // true → 30000ms
+  TIMEOUTS.DASHBOARD_LOAD, // 20000ms
+  IS_VERCEL // true → 30000ms
 );
 await page.waitForSelector('.dashboard', { timeout });
 ```
 
 **장점**:
+
 - ✅ 프로덕션 네트워크 레이턴시 고려
 - ✅ False Negative (잘못된 실패) 감소
 
 **단점**:
+
 - ⚠️ 기존 테스트 파일 수정 필요 (24개 파일)
 
 ---
@@ -356,16 +376,18 @@ test('대시보드 시각적 회귀 테스트', async ({ page }) => {
 
   // 스크린샷 비교
   await expect(page).toHaveScreenshot('dashboard-baseline.png', {
-    maxDiffPixels: 100 // 100px 차이 허용
+    maxDiffPixels: 100, // 100px 차이 허용
   });
 });
 ```
 
 **장점**:
+
 - ✅ UI 변경 자동 감지
 - ✅ CSS 버그 조기 발견
 
 **단점**:
+
 - ⚠️ Baseline 이미지 관리 오버헤드
 - ⚠️ 동적 데이터(시간, 랜덤값) 처리 필요
 
@@ -425,11 +447,11 @@ test('대시보드 시각적 회귀 테스트', async ({ page }) => {
 
 ### ROI 분석
 
-| 항목 | 투입 비용 | 절감 효과 | ROI |
-|------|----------|----------|-----|
-| 헤더 기반 우회 | 4시간 (middleware 수정) | 수동 테스트 25분/배포 절약 | 6회 배포 후 회수 |
-| 통합 시나리오 | 2시간 (스크립트 작성) | 통합 버그 조기 발견 (평균 2시간/버그 절약) | 1회 버그 후 회수 |
-| 환경별 타임아웃 | 8시간 (24개 파일 수정) | False Negative 80% 감소 | 10회 배포 후 회수 |
+| 항목            | 투입 비용               | 절감 효과                                  | ROI               |
+| --------------- | ----------------------- | ------------------------------------------ | ----------------- |
+| 헤더 기반 우회  | 4시간 (middleware 수정) | 수동 테스트 25분/배포 절약                 | 6회 배포 후 회수  |
+| 통합 시나리오   | 2시간 (스크립트 작성)   | 통합 버그 조기 발견 (평균 2시간/버그 절약) | 1회 버그 후 회수  |
+| 환경별 타임아웃 | 8시간 (24개 파일 수정)  | False Negative 80% 감소                    | 10회 배포 후 회수 |
 
 **총 투입 비용**: 14시간 (1.75일)
 **예상 절감 효과**: 월 30시간 (배포 주 2회 기준)
@@ -443,6 +465,7 @@ test('대시보드 시각적 회귀 테스트', async ({ page }) => {
 
 **위험도**: HIGH
 **대응**:
+
 - Feature Flag 도입 (NEXT_PUBLIC_TEST_MODE_ENABLED)
 - Canary 배포 (Preview 환경 먼저 테스트)
 - 롤백 계획 수립 (git revert)
@@ -451,6 +474,7 @@ test('대시보드 시각적 회귀 테스트', async ({ page }) => {
 
 **위험도**: MEDIUM
 **대응**:
+
 - 병렬 실행 (Playwright projects 활용)
 - 선택적 실행 (`npm run test:e2e -- -g "대시보드"`)
 - 야간 전체 테스트 (CI/CD 스케줄링)
@@ -459,6 +483,7 @@ test('대시보드 시각적 회귀 테스트', async ({ page }) => {
 
 **위험도**: LOW
 **대응**:
+
 - 점진적 적용 (1개 파일씩 테스트)
 - Timeout 로그 수집 (실제 소요 시간 분석)
 - 동적 조정 (성능 프로파일링 기반)
@@ -508,6 +533,7 @@ test('대시보드 시각적 회귀 테스트', async ({ page }) => {
 **다음 단계**: 헤더 기반 테스트 모드 감지 구현 (middleware.ts 수정)
 
 **참고 문서**:
-- [Vercel 프로덕션 테스트 분석 보고서](./vercel-production-test-analysis.md)
+
+- [Vercel 프로덕션 테스트 분석 보고서](../archive/testing/vercel-production-test-analysis.md)
 - [실제 코드 기반 테스트 시나리오](./vercel-production-test-scenarios.md)
 - [통합 테스트 스크립트](../../tests/e2e/vercel-guest-admin-full-check.spec.ts)
