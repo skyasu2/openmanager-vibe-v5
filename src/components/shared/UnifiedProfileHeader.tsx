@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useSystemStatusStore } from '@/stores/useSystemStatusStore';
@@ -63,6 +63,11 @@ export default function UnifiedProfileHeader({
     setAdminPassword,
     cancelAdminInput,
   } = useProfileMenu();
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const { status: systemStatus } = useSystemStatus();
   const { isSystemStarted } = useUnifiedAdminStore(); // 🎯 로컬 상태 직접 접근으로 즉시 동기화
@@ -225,6 +230,16 @@ export default function UnifiedProfileHeader({
 
   // 사용자 정보 가져오기
   const getUserName = () => {
+    if (isAdminMode) {
+      if (userInfo?.name) {
+        return `${userInfo.name} · 관리자`;
+      }
+      if (userType === 'github') {
+        return 'GitHub 관리자';
+      }
+      return '관리자 (게스트)';
+    }
+
     if (userInfo) {
       return (
         userInfo.name ||
@@ -234,6 +249,18 @@ export default function UnifiedProfileHeader({
     }
     return status === 'loading' ? '로딩 중...' : '사용자';
   };
+
+  if (!isHydrated) {
+    return (
+      <div
+        ref={dropdownRef}
+        className={`relative z-50 ${className}`}
+        aria-hidden="true"
+      >
+        <div className="h-12 w-32 animate-pulse rounded-full bg-gray-200" />
+      </div>
+    );
+  }
 
   return (
     <div ref={dropdownRef} className={`relative z-50 ${className}`}>

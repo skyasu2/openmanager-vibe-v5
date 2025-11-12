@@ -5,7 +5,7 @@
  */
 
 // framer-motion 제거 - CSS 애니메이션 사용
-import React, { Fragment, type ReactNode } from 'react';
+import React, { Fragment, type ReactNode, useEffect, useState } from 'react';
 import { AlertTriangle, CheckCircle, Info, X } from 'lucide-react';
 import type { SystemAlert } from '../../UnifiedAdminDashboard.types';
 import { ALERT_PRIORITIES } from '../../UnifiedAdminDashboard.types';
@@ -21,6 +21,12 @@ export default function AlertsSection({
   onAcknowledge,
   compact = false,
 }: AlertsSectionProps) {
+  const [relativeTimeEnabled, setRelativeTimeEnabled] = useState(false);
+
+  useEffect(() => {
+    setRelativeTimeEnabled(true);
+  }, []);
+
   // 우선순위에 따라 정렬
   const sortedAlerts = [...alerts].sort((a, b) => {
     const priorityDiff = (ALERT_PRIORITIES[b.type] ?? 0) - (ALERT_PRIORITIES[a.type] ?? 0);
@@ -46,38 +52,57 @@ export default function AlertsSection({
       <div
         className={`space-y-3 ${compact ? '' : 'max-h-[600px] overflow-y-auto'}`}
       >
-        {displayAlerts.map((alert) => (
-          <div
-            key={alert.id}
-            className={`rounded-lg border p-4 ${getAlertStyles(alert.type)} ${
-              alert.acknowledged ? 'opacity-60' : ''
-            }`}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                {getAlertIcon(alert.type)}
-                <div className="flex-1">
-                  <h4 className="font-medium">{alert.title}</h4>
-                  <p className="mt-1 text-sm">{alert.message}</p>
-                  <div className="mt-2 flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
-                    <span>{formatTimestamp(alert.timestamp)}</span>
-                    <span>출처: {getSourceLabel(alert.source)}</span>
+        {displayAlerts.map((alert) => {
+          const timestampLabel = formatTimestamp(
+            alert.timestamp,
+            relativeTimeEnabled
+          );
+
+          return (
+            <div
+              key={alert.id}
+              className={`rounded-lg border p-4 ${getAlertStyles(alert.type)} ${
+                alert.acknowledged ? 'opacity-60' : ''
+              }`}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3">
+                  {getAlertIcon(alert.type)}
+                  <div className="flex-1">
+                    <h4 className="font-medium">{alert.title}</h4>
+                    <p className="mt-1 text-sm">{alert.message}</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
+                      <span className="flex items-center gap-1">
+                        <abbr
+                          title={timestampLabel.absolute}
+                          className="cursor-help decoration-dotted underline-offset-2"
+                        >
+                          {timestampLabel.display}
+                        </abbr>
+                        {relativeTimeEnabled && (
+                          <span className="text-[11px] text-gray-400 dark:text-gray-500">
+                            ({timestampLabel.absolute})
+                          </span>
+                        )}
+                      </span>
+                      <span>출처: {getSourceLabel(alert.source)}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {!alert.acknowledged && (
-                <button
-                  onClick={() => onAcknowledge(alert.id)}
-                  className="rounded p-1 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
-                  title="알림 확인"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
+                {!alert.acknowledged && (
+                  <button
+                    onClick={() => onAcknowledge(alert.id)}
+                    className="rounded p-1 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700"
+                    title="알림 확인"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </Fragment>
   );
@@ -129,19 +154,38 @@ function getSourceLabel(source: SystemAlert['source']): string {
   return labels[source] || source;
 }
 
-function formatTimestamp(timestamp: string): string {
+function formatTimestamp(
+  timestamp: string,
+  relativeEnabled: boolean
+): { display: string; absolute: string } {
   const date = new Date(timestamp);
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
+  const absolute = new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date);
 
+  if (!relativeEnabled) {
+    return { display: absolute, absolute };
+  }
+
+  const diff = Date.now() - date.getTime();
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
-  if (minutes < 1) return '방금 전';
-  if (minutes < 60) return `${minutes}분 전`;
-  if (hours < 24) return `${hours}시간 전`;
-  if (days < 7) return `${days}일 전`;
+  if (minutes < 1) {
+    return { display: '방금 전', absolute };
+  }
+  if (minutes < 60) {
+    return { display: `${minutes}분 전`, absolute };
+  }
+  if (hours < 24) {
+    return { display: `${hours}시간 전`, absolute };
+  }
+  if (days < 7) {
+    return { display: `${days}일 전`, absolute };
+  }
 
-  return date.toLocaleDateString('ko-KR');
+  return { display: absolute, absolute };
 }

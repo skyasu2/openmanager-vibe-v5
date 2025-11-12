@@ -10,7 +10,7 @@
 
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import { useRouter } from 'next/navigation';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
@@ -75,12 +75,17 @@ interface AdminStats {
   lastUpdated: Date;
 }
 
+const ADMIN_DATA_MODE = process.env.NEXT_PUBLIC_ADMIN_DATA_MODE;
+
 export default function AdminClient() {
   const router = useRouter();
   const permissions = useUserPermissions();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('conversations');
+  const guestFullAccess = useMemo(() => isGuestFullAccessEnabled(), []);
+  const shouldUseMockAdminApis =
+    ADMIN_DATA_MODE === 'mock' || guestFullAccess;
 
   // 상태 관리
   const [conversations, setConversations] = useState<ConversationEntry[]>([]);
@@ -97,6 +102,11 @@ export default function AdminClient() {
   const loadConversations = useCallback(async () => {
     setIsLoadingData(true);
     try {
+      if (shouldUseMockAdminApis) {
+        setConversations(createMockConversations());
+        return;
+      }
+
       const response = await fetch('/api/admin/conversations', {
         method: 'GET',
         headers: {
@@ -108,51 +118,26 @@ export default function AdminClient() {
         const data = await response.json();
         setConversations(data.conversations || []);
       } else {
-        // Fallback: Mock 데이터
-        const mockConversations: ConversationEntry[] = [
-          {
-            id: '1',
-            userId: 'guest_1234',
-            query: '서버 상태가 어떻게 되나요?',
-            response: '현재 모든 서버가 정상 작동 중입니다...',
-            aiMode: 'LOCAL',
-            timestamp: new Date(Date.now() - 1000 * 60 * 10), // 10분 전
-            responseTime: 850,
-            status: 'success',
-          },
-          {
-            id: '2',
-            userId: 'guest_5678',
-            query: 'CPU 사용률이 높은 이유가 뭔가요?',
-            response: 'CPU 사용률 증가의 주요 원인을 분석해보겠습니다...',
-            aiMode: 'GOOGLE_AI',
-            timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30분 전
-            responseTime: 1200,
-            status: 'success',
-          },
-          {
-            id: '3',
-            userId: 'github_user123',
-            query: '에러가 발생했는데 해결 방법이 있나요?',
-            response: '오류가 발생했습니다. 관리자에게 문의하세요.',
-            aiMode: 'LOCAL',
-            timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1시간 전
-            responseTime: 500,
-            status: 'error',
-          },
-        ];
-        setConversations(mockConversations);
+        setConversations(createMockConversations());
       }
     } catch (error) {
       console.error('Failed to load conversations:', error);
+      if (!shouldUseMockAdminApis) {
+        setConversations(createMockConversations());
+      }
     } finally {
       setIsLoadingData(false);
     }
-  }, []);
+  }, [shouldUseMockAdminApis]);
 
   // 시스템 로그 로드
   const loadSystemLogs = useCallback(async () => {
     try {
+      if (shouldUseMockAdminApis) {
+        setSystemLogs(createMockSystemLogs());
+        return;
+      }
+
       const response = await fetch('/api/admin/logs', {
         method: 'GET',
         headers: {
@@ -164,43 +149,24 @@ export default function AdminClient() {
         const data = await response.json();
         setSystemLogs(data.logs || []);
       } else {
-        // Fallback: Mock 데이터
-        const mockLogs: SystemLog[] = [
-          {
-            id: '1',
-            level: 'info',
-            message: '사용자 로그인 성공',
-            source: 'auth',
-            timestamp: new Date(Date.now() - 1000 * 60 * 5),
-            metadata: { userId: 'guest_1234' },
-          },
-          {
-            id: '2',
-            level: 'warn',
-            message: 'AI API 응답 시간 지연',
-            source: 'ai-engine',
-            timestamp: new Date(Date.now() - 1000 * 60 * 15),
-            metadata: { responseTime: 3500, threshold: 3000 },
-          },
-          {
-            id: '3',
-            level: 'error',
-            message: 'Database 연결 재시도',
-            source: 'database',
-            timestamp: new Date(Date.now() - 1000 * 60 * 45),
-            metadata: { retryCount: 3, maxRetries: 5 },
-          },
-        ];
-        setSystemLogs(mockLogs);
+        setSystemLogs(createMockSystemLogs());
       }
     } catch (error) {
       console.error('Failed to load system logs:', error);
+      if (!shouldUseMockAdminApis) {
+        setSystemLogs(createMockSystemLogs());
+      }
     }
-  }, []);
+  }, [shouldUseMockAdminApis]);
 
   // 관리자 통계 로드
   const loadAdminStats = useCallback(async () => {
     try {
+      if (shouldUseMockAdminApis) {
+        setAdminStats(createMockAdminStats());
+        return;
+      }
+
       const response = await fetch('/api/admin/stats');
       if (response.ok) {
         const data = await response.json();
@@ -216,20 +182,17 @@ export default function AdminClient() {
             ? new Date(stats.lastUpdated)
             : new Date(),
         });
-      } else {
-        // Fallback: Mock 데이터
-        setAdminStats({
-          totalQueries: 247,
-          activeUsers: 12,
-          errorRate: 2.3,
-          avgResponseTime: 890,
-          lastUpdated: new Date(),
-        });
+        return;
       }
+
+      setAdminStats(createMockAdminStats());
     } catch (error) {
       console.error('Failed to load admin stats:', error);
+      if (!shouldUseMockAdminApis) {
+        setAdminStats(createMockAdminStats());
+      }
     }
-  }, []);
+  }, [shouldUseMockAdminApis]);
 
   // 초기 데이터 로드
   const loadInitialData = useCallback(async () => {
@@ -242,10 +205,7 @@ export default function AdminClient() {
 
   // 인증 체크
   useEffect(() => {
-    // 🎛️ 환경 변수 기반 게스트 모드 체크
-    const isGuestFullAccess = isGuestFullAccessEnabled();
-
-    if (isGuestFullAccess) {
+    if (guestFullAccess) {
       // 🟢 게스트 전체 접근 모드: 즉시 허용
       console.log(
         '✅ AdminClient: 게스트 전체 접근 모드 - 즉시 허용 (NEXT_PUBLIC_GUEST_MODE=full_access)'
@@ -264,7 +224,12 @@ export default function AdminClient() {
     }
 
     setIsLoading(false);
-  }, [permissions.canAccessAdminPage, router, loadInitialData]);
+  }, [
+    guestFullAccess,
+    permissions.canAccessAdminPage,
+    router,
+    loadInitialData,
+  ]);
 
   // 새로고침
   const handleRefresh = useCallback(async () => {
@@ -758,4 +723,82 @@ export default function AdminClient() {
       </div>
     </div>
   );
+}
+
+function createMockConversations(): ConversationEntry[] {
+  const now = Date.now();
+
+  return [
+    {
+      id: '1',
+      userId: 'guest_1234',
+      query: '서버 상태가 어떻게 되나요?',
+      response: '현재 모든 서버가 정상 작동 중입니다...',
+      aiMode: 'LOCAL',
+      timestamp: new Date(now - 1000 * 60 * 10),
+      responseTime: 850,
+      status: 'success',
+    },
+    {
+      id: '2',
+      userId: 'guest_5678',
+      query: 'CPU 사용률이 높은 이유가 뭔가요?',
+      response: 'CPU 사용률 증가의 주요 원인을 분석해보겠습니다...',
+      aiMode: 'GOOGLE_AI',
+      timestamp: new Date(now - 1000 * 60 * 30),
+      responseTime: 1200,
+      status: 'success',
+    },
+    {
+      id: '3',
+      userId: 'github_user123',
+      query: '에러가 발생했는데 해결 방법이 있나요?',
+      response: '오류가 발생했습니다. 관리자에게 문의하세요.',
+      aiMode: 'LOCAL',
+      timestamp: new Date(now - 1000 * 60 * 60),
+      responseTime: 500,
+      status: 'error',
+    },
+  ];
+}
+
+function createMockSystemLogs(): SystemLog[] {
+  const now = Date.now();
+
+  return [
+    {
+      id: '1',
+      level: 'info',
+      message: '사용자 로그인 성공',
+      source: 'auth',
+      timestamp: new Date(now - 1000 * 60 * 5),
+      metadata: { userId: 'guest_1234' },
+    },
+    {
+      id: '2',
+      level: 'warn',
+      message: 'AI API 응답 시간 지연',
+      source: 'ai-engine',
+      timestamp: new Date(now - 1000 * 60 * 15),
+      metadata: { responseTime: 3500, threshold: 3000 },
+    },
+    {
+      id: '3',
+      level: 'error',
+      message: 'Database 연결 재시도',
+      source: 'database',
+      timestamp: new Date(now - 1000 * 60 * 45),
+      metadata: { retryCount: 3, maxRetries: 5 },
+    },
+  ];
+}
+
+function createMockAdminStats(): AdminStats {
+  return {
+    totalQueries: 247,
+    activeUsers: 12,
+    errorRate: 2.3,
+    avgResponseTime: 890,
+    lastUpdated: new Date(),
+  };
 }

@@ -43,6 +43,7 @@ export default function LogDashboard() {
   const { clearLogs } = useLogClear();
 
   const [selectedTab, setSelectedTab] = useState('logs');
+  const [lastUpdatedText, setLastUpdatedText] = useState('');
 
   // 필터 상태
   const [filters, setFilters] = useState<LogFilters>({
@@ -94,6 +95,23 @@ export default function LogDashboard() {
     }
   }, [clearLogs, fetchLogData, filters]);
 
+  useEffect(() => {
+    if (!data) return;
+
+    const referenceTimestamp =
+      data.status.lastLogTime ||
+      data.logs[0]?.timestamp ||
+      new Date().toISOString();
+
+    setLastUpdatedText(
+      new Intl.DateTimeFormat('ko-KR', {
+        timeZone: 'Asia/Seoul',
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      }).format(new Date(referenceTimestamp))
+    );
+  }, [data]);
+
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -139,7 +157,7 @@ export default function LogDashboard() {
           <h1 className="text-2xl font-bold text-gray-900">📝 로그 대시보드</h1>
           <p className="text-gray-600">
             {data.logs.length.toLocaleString()}개 로그 • 마지막 업데이트:{' '}
-            {new Date().toLocaleString('ko-KR')}
+            {lastUpdatedText || '-'}
           </p>
         </div>
 

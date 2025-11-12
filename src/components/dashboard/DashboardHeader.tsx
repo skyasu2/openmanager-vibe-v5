@@ -4,10 +4,8 @@ import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { isGuestFullAccessEnabled } from '@/config/guestMode';
-import { Bot } from 'lucide-react';
 // 사용자 정보 관련 import는 UnifiedProfileHeader에서 처리됨
-import dynamic from 'next/dynamic';
-import React, { useEffect, useState, memo } from 'react';
+import React, { memo } from 'react';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import { RealTimeDisplay } from './RealTimeDisplay';
 import { SystemStatusBadge } from './SystemStatusBadge';
@@ -72,7 +70,7 @@ const DashboardHeader = memo(function DashboardHeader({
     setIsMounted(true);
   }, []);
 
-  const { aiAgent, ui } = useUnifiedAdminStore();
+  const { aiAgent } = useUnifiedAdminStore();
   // 🔐 사용자 권한 확인
   const permissions = useUserPermissions();
   // 새로운 AI 사이드바 상태
@@ -91,6 +89,24 @@ const DashboardHeader = memo(function DashboardHeader({
   };
 
   // 사용자 정보는 UnifiedProfileHeader에서 처리됨
+
+  if (!isMounted) {
+    return (
+      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between px-6 py-4">
+          <div className="h-10 w-32 animate-pulse rounded-lg bg-gray-200" />
+          <div className="hidden items-center gap-6 md:flex">
+            <div className="h-6 w-24 animate-pulse rounded bg-gray-200" />
+            <div className="h-6 w-32 animate-pulse rounded bg-gray-200" />
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200" />
+            <div className="h-10 w-10 animate-pulse rounded-full bg-gray-200" />
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-gray-200 bg-white shadow-sm">
