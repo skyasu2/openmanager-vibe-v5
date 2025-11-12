@@ -2,6 +2,10 @@ import { Page, expect } from '@playwright/test';
 import { getTestBaseUrl, isVercelProduction } from './config';
 import { TIMEOUTS } from './timeouts';
 import * as fs from 'fs/promises';
+import * as path from 'path';
+import * as dotenv from 'dotenv';
+
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 /**
  * Playwright 테스트용 관리자 모드 헬퍼 함수들
@@ -58,7 +62,29 @@ async function ensurePageContext(
     }
   }
 
+  await applyVercelBypass(page);
   await page.goto(fallbackPath, { waitUntil: 'domcontentloaded' });
+}
+
+async function applyVercelBypass(page: Page): Promise<void> {
+  const secret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+  const baseUrl = getTestBaseUrl();
+  if (!secret || !isVercelProduction(baseUrl)) {
+    return;
+  }
+
+  try {
+    const bypassUrl = new URL(baseUrl);
+    bypassUrl.searchParams.set('vercel_bypass', secret);
+    console.log('🔑 [Admin Helper] Vercel 보호 우회 시도:', bypassUrl.origin);
+    await page.goto(bypassUrl.toString(), {
+      waitUntil: 'networkidle',
+      timeout: TIMEOUTS.NETWORK_REQUEST,
+    });
+    console.log('✅ [Admin Helper] Vercel 보호 우회 쿠키 설정 완료');
+  } catch (error) {
+    console.warn('⚠️ [Admin Helper] Vercel 보호 우회 실패 (계속 진행):', error);
+  }
 }
 
 /**

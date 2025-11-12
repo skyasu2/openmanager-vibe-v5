@@ -1,4 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
+import * as path from 'path';
+import * as dotenv from 'dotenv';
+
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 /**
  * Playwright E2E 테스트 설정
@@ -8,6 +12,13 @@ import { defineConfig, devices } from '@playwright/test';
  *
  * @see https://playwright.dev/docs/test-configuration
  */
+const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+const extraHTTPHeaders = bypassSecret
+  ? {
+      'x-vercel-protection-bypass': bypassSecret,
+    }
+  : undefined;
+
 export default defineConfig({
   // Load environment variables globally before any tests run
   globalSetup: require.resolve('./globalSetup'),
@@ -28,6 +39,7 @@ export default defineConfig({
     baseURL:
       process.env.PLAYWRIGHT_BASE_URL ||
       'https://openmanager-vibe-v5-skyasus-projects.vercel.app',
+    extraHTTPHeaders,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     /* Phase 17.1: 'retain-on-failure'로 변경 - 실패 시 항상 trace 생성 (로컬 환경에서도) */

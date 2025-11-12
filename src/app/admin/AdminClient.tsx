@@ -41,7 +41,6 @@ import {
   Database,
   Trash2,
   Download,
-  Filter,
   Eye,
 } from 'lucide-react';
 
@@ -205,7 +204,18 @@ export default function AdminClient() {
       const response = await fetch('/api/admin/stats');
       if (response.ok) {
         const data = await response.json();
-        setAdminStats(data);
+        const stats = (data?.stats || data) as AdminStats & {
+          lastUpdated?: Date | string;
+        };
+        setAdminStats({
+          totalQueries: stats.totalQueries ?? 0,
+          activeUsers: stats.activeUsers ?? 0,
+          errorRate: stats.errorRate ?? 0,
+          avgResponseTime: stats.avgResponseTime ?? 0,
+          lastUpdated: stats.lastUpdated
+            ? new Date(stats.lastUpdated)
+            : new Date(),
+        });
       } else {
         // Fallback: Mock 데이터
         setAdminStats({
@@ -237,7 +247,9 @@ export default function AdminClient() {
 
     if (isGuestFullAccess) {
       // 🟢 게스트 전체 접근 모드: 즉시 허용
-      console.log('✅ AdminClient: 게스트 전체 접근 모드 - 즉시 허용 (NEXT_PUBLIC_GUEST_MODE=full_access)');
+      console.log(
+        '✅ AdminClient: 게스트 전체 접근 모드 - 즉시 허용 (NEXT_PUBLIC_GUEST_MODE=full_access)'
+      );
       setIsAuthorized(true);
       void loadInitialData();
     } else {
@@ -262,27 +274,36 @@ export default function AdminClient() {
   // 로그 레벨 색상
   const getLogLevelColor = (level: string) => {
     switch (level) {
-      case 'error': return 'text-red-400';
-      case 'warn': return 'text-yellow-400';
-      case 'info': return 'text-green-400';
-      default: return 'text-gray-400';
+      case 'error':
+        return 'text-red-400';
+      case 'warn':
+        return 'text-yellow-400';
+      case 'info':
+        return 'text-green-400';
+      default:
+        return 'text-gray-400';
     }
   };
 
   // 로그 레벨 아이콘
   const getLogLevelIcon = (level: string) => {
     switch (level) {
-      case 'error': return <AlertTriangle className="h-4 w-4" />;
-      case 'warn': return <Activity className="h-4 w-4" />;
-      case 'info': return <CheckCircle className="h-4 w-4" />;
-      default: return <Activity className="h-4 w-4" />;
+      case 'error':
+        return <AlertTriangle className="h-4 w-4" />;
+      case 'warn':
+        return <Activity className="h-4 w-4" />;
+      case 'info':
+        return <CheckCircle className="h-4 w-4" />;
+      default:
+        return <Activity className="h-4 w-4" />;
     }
   };
 
   // 필터된 대화 목록
-  const filteredConversations = conversations.filter(conv => {
-    const matchesSearch = conv.query.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         conv.response.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredConversations = conversations.filter((conv) => {
+    const matchesSearch =
+      conv.query.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      conv.response.toLowerCase().includes(searchQuery.toLowerCase());
 
     const now = new Date();
     const convDate = new Date(conv.timestamp);
@@ -299,9 +320,12 @@ export default function AdminClient() {
   });
 
   // 필터된 로그 목록
-  const filteredLogs = systemLogs.filter(log => {
-    const matchesSearch = log.message.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesLevel = logLevelFilter === 'all' || log.level === logLevelFilter;
+  const filteredLogs = systemLogs.filter((log) => {
+    const matchesSearch = log.message
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesLevel =
+      logLevelFilter === 'all' || log.level === logLevelFilter;
 
     return matchesSearch && matchesLevel;
   });
@@ -322,7 +346,7 @@ export default function AdminClient() {
   if (!isAuthorized) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-950">
-        <Card className="w-96 bg-gray-900 border-gray-800">
+        <Card className="w-96 border-gray-800 bg-gray-900">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-400">
               <Shield className="h-5 w-5" />
@@ -330,7 +354,7 @@ export default function AdminClient() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-400 mb-4">
+            <p className="mb-4 text-gray-400">
               관리자 대시보드에 접근할 권한이 없습니다.
             </p>
             <Button onClick={() => router.push('/main')} className="w-full">
@@ -351,11 +375,11 @@ export default function AdminClient() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-white flex items-center gap-2">
+              <h1 className="flex items-center gap-2 text-3xl font-bold text-white">
                 <Settings className="h-8 w-8 text-blue-400" />
                 관리자 대시보드
               </h1>
-              <p className="text-gray-400 mt-2">
+              <p className="mt-2 text-gray-400">
                 AI 대화 히스토리, 시스템 로그 및 관리 도구
               </p>
             </div>
@@ -368,13 +392,26 @@ export default function AdminClient() {
                   <Badge variant="outline" className="text-blue-400">
                     총 쿼리: {adminStats.totalQueries}
                   </Badge>
-                  <Badge variant="outline" className={adminStats.errorRate > 5 ? "text-red-400" : "text-green-400"}>
+                  <Badge
+                    variant="outline"
+                    className={
+                      adminStats.errorRate > 5
+                        ? 'text-red-400'
+                        : 'text-green-400'
+                    }
+                  >
                     오류율: {adminStats.errorRate}%
                   </Badge>
                 </div>
               )}
-              <Button onClick={handleRefresh} size="sm" disabled={isLoadingData}>
-                <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingData ? 'animate-spin' : ''}`} />
+              <Button
+                onClick={handleRefresh}
+                size="sm"
+                disabled={isLoadingData}
+              >
+                <RefreshCw
+                  className={`mr-2 h-4 w-4 ${isLoadingData ? 'animate-spin' : ''}`}
+                />
                 새로고침
               </Button>
             </div>
@@ -383,19 +420,19 @@ export default function AdminClient() {
 
         {/* 검색 및 필터 */}
         <div className="mb-6 flex flex-wrap items-center gap-4">
-          <div className="relative flex-1 min-w-80">
+          <div className="relative min-w-80 flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
               placeholder="대화 내용이나 로그 메시지 검색..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-gray-900 border-gray-700 text-white"
+              className="border-gray-700 bg-gray-900 pl-10 text-white"
             />
           </div>
           <select
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-white"
+            className="rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-white"
           >
             <option value="today">오늘</option>
             <option value="week">지난 7일</option>
@@ -404,25 +441,38 @@ export default function AdminClient() {
         </div>
 
         {/* 메인 탭 */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-gray-900 border-gray-700">
-            <TabsTrigger value="conversations" className="data-[state=active]:bg-blue-600">
-              <MessageSquare className="h-4 w-4 mr-2" />
+        <Tabs
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="space-y-6"
+        >
+          <TabsList className="border-gray-700 bg-gray-900">
+            <TabsTrigger
+              value="conversations"
+              className="data-[state=active]:bg-blue-600"
+            >
+              <MessageSquare className="mr-2 h-4 w-4" />
               AI 대화 히스토리
             </TabsTrigger>
-            <TabsTrigger value="logs" className="data-[state=active]:bg-blue-600">
-              <Activity className="h-4 w-4 mr-2" />
+            <TabsTrigger
+              value="logs"
+              className="data-[state=active]:bg-blue-600"
+            >
+              <Activity className="mr-2 h-4 w-4" />
               시스템 로그
             </TabsTrigger>
-            <TabsTrigger value="management" className="data-[state=active]:bg-blue-600">
-              <Database className="h-4 w-4 mr-2" />
+            <TabsTrigger
+              value="management"
+              className="data-[state=active]:bg-blue-600"
+            >
+              <Database className="mr-2 h-4 w-4" />
               데이터 관리
             </TabsTrigger>
           </TabsList>
 
           {/* AI 대화 히스토리 탭 */}
           <TabsContent value="conversations" className="space-y-4">
-            <Card className="bg-gray-900 border-gray-700">
+            <Card className="border-gray-700 bg-gray-900">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MessageSquare className="h-5 w-5 text-blue-400" />
@@ -433,22 +483,35 @@ export default function AdminClient() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4 max-h-96 overflow-y-auto">
+                <div className="max-h-96 space-y-4 overflow-y-auto">
                   {filteredConversations.length > 0 ? (
                     filteredConversations.map((conv) => (
-                      <div key={conv.id} className="border border-gray-700 rounded-lg p-4 bg-gray-800">
-                        <div className="flex items-center justify-between mb-2">
+                      <div
+                        key={conv.id}
+                        className="rounded-lg border border-gray-700 bg-gray-800 p-4"
+                      >
+                        <div className="mb-2 flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-gray-400" />
-                            <span className="text-sm text-gray-400">{conv.userId}</span>
+                            <span className="text-sm text-gray-400">
+                              {conv.userId}
+                            </span>
                             <Badge
-                              variant={conv.aiMode === 'GOOGLE_AI' ? "default" : "secondary"}
+                              variant={
+                                conv.aiMode === 'GOOGLE_AI'
+                                  ? 'default'
+                                  : 'secondary'
+                              }
                               className="text-xs"
                             >
                               {conv.aiMode}
                             </Badge>
                             <Badge
-                              variant={conv.status === 'success' ? "secondary" : "destructive"}
+                              variant={
+                                conv.status === 'success'
+                                  ? 'secondary'
+                                  : 'destructive'
+                              }
                               className="text-xs"
                             >
                               {conv.status}
@@ -462,23 +525,28 @@ export default function AdminClient() {
                         </div>
                         <div className="space-y-2">
                           <div>
-                            <span className="text-xs text-blue-400 font-medium">질문:</span>
-                            <p className="text-sm text-gray-200 mt-1">{conv.query}</p>
+                            <span className="text-xs font-medium text-blue-400">
+                              질문:
+                            </span>
+                            <p className="mt-1 text-sm text-gray-200">
+                              {conv.query}
+                            </p>
                           </div>
                           <div>
-                            <span className="text-xs text-green-400 font-medium">답변:</span>
-                            <p className="text-sm text-gray-300 mt-1">
+                            <span className="text-xs font-medium text-green-400">
+                              답변:
+                            </span>
+                            <p className="mt-1 text-sm text-gray-300">
                               {conv.response.length > 200
                                 ? `${conv.response.substring(0, 200)}...`
-                                : conv.response
-                              }
+                                : conv.response}
                             </p>
                           </div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-8 text-gray-400">
+                    <div className="py-8 text-center text-gray-400">
                       검색 조건에 맞는 대화가 없습니다.
                     </div>
                   )}
@@ -489,11 +557,11 @@ export default function AdminClient() {
 
           {/* 시스템 로그 탭 */}
           <TabsContent value="logs" className="space-y-4">
-            <div className="flex items-center gap-4 mb-4">
+            <div className="mb-4 flex items-center gap-4">
               <select
                 value={logLevelFilter}
                 onChange={(e) => setLogLevelFilter(e.target.value)}
-                className="px-3 py-2 bg-gray-900 border border-gray-700 rounded-md text-white"
+                className="rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-white"
               >
                 <option value="all">모든 레벨</option>
                 <option value="info">정보</option>
@@ -502,7 +570,7 @@ export default function AdminClient() {
               </select>
             </div>
 
-            <Card className="bg-gray-900 border-gray-700">
+            <Card className="border-gray-700 bg-gray-900">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Activity className="h-5 w-5 text-green-400" />
@@ -513,11 +581,14 @@ export default function AdminClient() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
+                <div className="max-h-96 space-y-3 overflow-y-auto">
                   {filteredLogs.length > 0 ? (
                     filteredLogs.map((log) => (
-                      <div key={log.id} className="border border-gray-700 rounded-lg p-3 bg-gray-800">
-                        <div className="flex items-center justify-between mb-2">
+                      <div
+                        key={log.id}
+                        className="rounded-lg border border-gray-700 bg-gray-800 p-3"
+                      >
+                        <div className="mb-2 flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className={getLogLevelColor(log.level)}>
                               {getLogLevelIcon(log.level)}
@@ -525,7 +596,9 @@ export default function AdminClient() {
                             <Badge variant="outline" className="text-xs">
                               {log.source}
                             </Badge>
-                            <span className={`text-sm font-medium ${getLogLevelColor(log.level)}`}>
+                            <span
+                              className={`text-sm font-medium ${getLogLevelColor(log.level)}`}
+                            >
                               {log.level.toUpperCase()}
                             </span>
                           </div>
@@ -534,11 +607,15 @@ export default function AdminClient() {
                             {new Date(log.timestamp).toLocaleString('ko-KR')}
                           </div>
                         </div>
-                        <p className="text-sm text-gray-200 mb-2">{log.message}</p>
+                        <p className="mb-2 text-sm text-gray-200">
+                          {log.message}
+                        </p>
                         {log.metadata && (
                           <details className="text-xs text-gray-400">
-                            <summary className="cursor-pointer">메타데이터</summary>
-                            <pre className="mt-1 bg-gray-700 p-2 rounded text-xs overflow-x-auto">
+                            <summary className="cursor-pointer">
+                              메타데이터
+                            </summary>
+                            <pre className="mt-1 overflow-x-auto rounded bg-gray-700 p-2 text-xs">
                               {JSON.stringify(log.metadata, null, 2)}
                             </pre>
                           </details>
@@ -546,7 +623,7 @@ export default function AdminClient() {
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-8 text-gray-400">
+                    <div className="py-8 text-center text-gray-400">
                       검색 조건에 맞는 로그가 없습니다.
                     </div>
                   )}
@@ -557,28 +634,30 @@ export default function AdminClient() {
 
           {/* 데이터 관리 탭 */}
           <TabsContent value="management" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="bg-gray-900 border-gray-700">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <Card className="border-gray-700 bg-gray-900">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Download className="h-5 w-5 text-blue-400" />
                     데이터 내보내기
                   </CardTitle>
-                  <CardDescription>대화 히스토리와 로그를 내보냅니다.</CardDescription>
+                  <CardDescription>
+                    대화 히스토리와 로그를 내보냅니다.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <Button className="w-full" variant="outline">
-                    <Download className="h-4 w-4 mr-2" />
+                    <Download className="mr-2 h-4 w-4" />
                     대화 히스토리 내보내기 (CSV)
                   </Button>
                   <Button className="w-full" variant="outline">
-                    <Download className="h-4 w-4 mr-2" />
+                    <Download className="mr-2 h-4 w-4" />
                     시스템 로그 내보내기 (JSON)
                   </Button>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-900 border-gray-700">
+              <Card className="border-gray-700 bg-gray-900">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Trash2 className="h-5 w-5 text-red-400" />
@@ -588,38 +667,50 @@ export default function AdminClient() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <Button className="w-full" variant="destructive">
-                    <Trash2 className="h-4 w-4 mr-2" />
+                    <Trash2 className="mr-2 h-4 w-4" />
                     30일 이전 대화 삭제
                   </Button>
                   <Button className="w-full" variant="destructive">
-                    <Trash2 className="h-4 w-4 mr-2" />
+                    <Trash2 className="mr-2 h-4 w-4" />
                     30일 이전 로그 삭제
                   </Button>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-900 border-gray-700">
+              <Card className="border-gray-700 bg-gray-900">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Eye className="h-5 w-5 text-green-400" />
                     실시간 모니터링
                   </CardTitle>
-                  <CardDescription>시스템 상태를 실시간으로 모니터링합니다.</CardDescription>
+                  <CardDescription>
+                    시스템 상태를 실시간으로 모니터링합니다.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   {adminStats && (
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span>평균 응답시간:</span>
-                        <span className="text-blue-400">{adminStats.avgResponseTime}ms</span>
+                        <span className="text-blue-400">
+                          {adminStats.avgResponseTime}ms
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span>총 쿼리 수:</span>
-                        <span className="text-green-400">{adminStats.totalQueries}</span>
+                        <span className="text-green-400">
+                          {adminStats.totalQueries}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span>오류율:</span>
-                        <span className={adminStats.errorRate > 5 ? "text-red-400" : "text-green-400"}>
+                        <span
+                          className={
+                            adminStats.errorRate > 5
+                              ? 'text-red-400'
+                              : 'text-green-400'
+                          }
+                        >
                           {adminStats.errorRate}%
                         </span>
                       </div>
@@ -634,13 +725,15 @@ export default function AdminClient() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-gray-900 border-gray-700">
+              <Card className="border-gray-700 bg-gray-900">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Settings className="h-5 w-5 text-yellow-400" />
                     시스템 설정
                   </CardTitle>
-                  <CardDescription>관리자 도구 설정을 관리합니다.</CardDescription>
+                  <CardDescription>
+                    관리자 도구 설정을 관리합니다.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <Button className="w-full" variant="outline">
@@ -653,11 +746,11 @@ export default function AdminClient() {
               </Card>
             </div>
 
-            <Alert className="bg-blue-900/20 border-blue-800">
+            <Alert className="border-blue-800 bg-blue-900/20">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                모든 데이터는 무료 티어 범위 내에서 관리됩니다.
-                대화 히스토리는 Supabase에, 시스템 로그는 GCP Functions에 저장됩니다.
+                모든 데이터는 무료 티어 범위 내에서 관리됩니다. 대화 히스토리는
+                Supabase에, 시스템 로그는 GCP Functions에 저장됩니다.
               </AlertDescription>
             </Alert>
           </TabsContent>

@@ -1,13 +1,28 @@
 import { defineConfig, devices } from '@playwright/test';
+import * as path from 'path';
+import * as dotenv from 'dotenv';
+
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 /**
  * 🚀 Vercel 실제 환경용 Playwright 설정
  * Mock 없는 진짜 프로덕션 테스트
  */
 
-const baseURL = process.env.TEST_BASE_URL || process.env.VERCEL_PRODUCTION_URL || 'https://openmanager-vibe-v5.vercel.app';
+const baseURL =
+  process.env.TEST_BASE_URL ||
+  process.env.VERCEL_PRODUCTION_URL ||
+  'https://openmanager-vibe-v5.vercel.app';
+
+const bypassSecret = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+const extraHTTPHeaders = bypassSecret
+  ? {
+      'x-vercel-protection-bypass': bypassSecret,
+    }
+  : undefined;
 
 export default defineConfig({
+  globalSetup: require.resolve('./globalSetup'),
   testDir: './tests/e2e',
 
   /* 실제 환경 테스트를 위한 설정 */
@@ -26,12 +41,13 @@ export default defineConfig({
   reporter: [
     ['html', { outputFolder: 'test-results/vercel-e2e-report' }],
     ['json', { outputFile: 'test-results/vercel-e2e-results.json' }],
-    ['list']
+    ['list'],
   ],
 
   /* 실제 환경 전용 글로벌 설정 */
   use: {
     baseURL,
+    extraHTTPHeaders,
 
     /* 실제 환경 네트워크 설정 */
     actionTimeout: 15000,
@@ -43,7 +59,8 @@ export default defineConfig({
     trace: 'retain-on-failure',
 
     /* 실제 사용자 시뮬레이션 */
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    userAgent:
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     viewport: { width: 1280, height: 720 },
 
     /* 실제 환경 대응 */
