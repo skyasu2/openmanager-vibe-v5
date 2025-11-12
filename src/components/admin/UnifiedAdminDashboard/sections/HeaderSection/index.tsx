@@ -14,6 +14,7 @@ import {
   Wifi,
   WifiOff,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import type { SystemStatus } from '../../UnifiedAdminDashboard.types';
 import { STATUS_COLORS } from '../../UnifiedAdminDashboard.types';
 
@@ -38,6 +39,11 @@ export function HeaderSection({
 }: HeaderSectionProps) {
   const statusIcon = getStatusIcon(status);
   const statusColor = STATUS_COLORS[status] || STATUS_COLORS.inactive;
+  const [relativeTimeEnabled, setRelativeTimeEnabled] = useState(false);
+
+  useEffect(() => {
+    setRelativeTimeEnabled(true);
+  }, []);
 
   return (
     <div className="mb-8 flex items-center justify-between">
@@ -60,7 +66,7 @@ export function HeaderSection({
             시스템 상태: {getStatusText(status)}
             {lastUpdate && (
               <span className="ml-2 text-sm">
-                (업데이트: {formatTime(lastUpdate)})
+                (업데이트: {formatTime(lastUpdate, relativeTimeEnabled)})
               </span>
             )}
           </p>
@@ -173,9 +179,16 @@ function getStatusText(status: SystemStatus['overall']) {
   }
 }
 
-function formatTime(date: Date): string {
-  const now = new Date();
-  const diff = now.getTime() - date.getTime();
+function formatTime(date: Date, relative: boolean): string {
+  if (!relative) {
+    return new Intl.DateTimeFormat('ko-KR', {
+      timeZone: 'Asia/Seoul',
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(date);
+  }
+
+  const diff = Date.now() - date.getTime();
   const seconds = Math.floor(diff / 1000);
 
   if (seconds < 60) return `${seconds}초 전`;

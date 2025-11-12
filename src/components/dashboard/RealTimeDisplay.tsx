@@ -17,9 +17,13 @@ import React, { useEffect, useState, memo } from 'react';
  * ```
  */
 export const RealTimeDisplay = memo(function RealTimeDisplay() {
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+    setCurrentTime(new Date());
+
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
@@ -29,24 +33,28 @@ export const RealTimeDisplay = memo(function RealTimeDisplay() {
     };
   }, []);
 
+  const timeText = currentTime
+    ? currentTime.toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      })
+    : '--:--:--';
+
+  const dateText = currentTime
+    ? currentTime.toLocaleDateString('ko-KR', {
+        month: 'short',
+        day: 'numeric',
+        weekday: 'short',
+      })
+    : '--- -- (-- )';
+
   return (
     <div className="flex items-center gap-2 text-sm text-gray-600">
       <Clock className="h-4 w-4 text-blue-500" />
-      <span>
-        {currentTime.toLocaleTimeString('ko-KR', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-        })}
-      </span>
+      <span aria-live={isMounted ? 'polite' : 'off'}>{timeText}</span>
       <span className="text-gray-700">|</span>
-      <span>
-        {currentTime.toLocaleDateString('ko-KR', {
-          month: 'short',
-          day: 'numeric',
-          weekday: 'short',
-        })}
-      </span>
+      <span>{dateText}</span>
     </div>
   );
 });
