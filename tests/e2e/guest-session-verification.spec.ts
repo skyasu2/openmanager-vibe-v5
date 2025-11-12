@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { ensureVercelBypassCookie } from './helpers/security';
+import { guestLogin, resetGuestState } from './helpers/guest';
 
 /**
  * 게스트 세션 유지 검증 테스트
@@ -13,7 +13,7 @@ import { ensureVercelBypassCookie } from './helpers/security';
 const BASE_URL = 'https://openmanager-vibe-v5.vercel.app';
 
 test.beforeEach(async ({ page }) => {
-  await ensureVercelBypassCookie(page);
+  await resetGuestState(page);
 });
 
 test.describe('🔐 게스트 세션 유지 검증', () => {
@@ -24,29 +24,10 @@ test.describe('🔐 게스트 세션 유지 검증', () => {
     console.log('🎯 게스트 세션 유지 검증 테스트 시작');
     console.log('========================================\n');
 
-    // 1단계: 홈페이지 접속
-    console.log('📍 Step 1: 홈페이지 접속');
-    await page.goto(BASE_URL);
-    await page.waitForLoadState('networkidle');
-
-    const initialUrl = page.url();
-    console.log(`  ✅ 현재 URL: ${initialUrl}`);
-
-    // 2단계: 게스트 로그인 버튼 클릭
-    console.log('\n📍 Step 2: 게스트 로그인 시도');
-    const guestButton = page.locator('button:has-text("게스트로 체험하기")');
-
-    await expect(guestButton).toBeVisible({ timeout: 10000 });
-    console.log('  ✅ 게스트 로그인 버튼 발견');
-
-    await guestButton.click();
-    console.log('  ✅ 게스트 로그인 버튼 클릭');
-
-    // 3단계: /main 리다이렉트 대기
-    console.log('\n📍 Step 3: /main 리다이렉트 대기');
-    await page.waitForURL('**/main', { timeout: 15000 });
-    console.log('  ✅ /main 페이지로 이동 완료');
-    await page.waitForLoadState('networkidle');
+    // 1-3단계: 게스트 로그인 플로우
+    console.log('📍 Step 1-3: 게스트 로그인 플로우 실행');
+    await guestLogin(page, { landingPath: BASE_URL });
+    console.log('  ✅ 게스트 로그인 완료 및 /main 도달');
 
     // 4단계: 쿠키 확인
     console.log('\n📍 Step 4: 게스트 세션 쿠키 확인');

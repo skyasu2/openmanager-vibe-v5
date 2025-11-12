@@ -64,6 +64,13 @@ npm run test:e2e:headed         # 브라우저 창 표시 모드
 npm run test:e2e:ci
 ```
 
+### 신규 게스트 전용 시나리오
+
+- `tests/e2e/guest-dashboard-flow.spec.ts`: 게스트 로그인 → 시스템 시작 → 대시보드 및 프로필 검증.
+  ```bash
+  npx playwright test tests/e2e/guest-dashboard-flow.spec.ts --project=chromium
+  ```
+
 ### 고급 옵션
 
 ```bash

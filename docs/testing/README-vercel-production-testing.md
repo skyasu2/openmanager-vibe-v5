@@ -25,6 +25,14 @@ BASE_URL=https://openmanager-vibe-v5.vercel.app npm run test:e2e -- vercel-guest
 
 > ℹ️ `vercel-guest-admin-full-check` 스크립트는 관리자 기능 제거로 인해 2025-11 기준 자동으로 skip 처리됩니다. 새 플로우가 제공되기 전까지는 게스트 대시보드 기반 테스트만 실행해주세요.
 
+### 게스트 전용 대시보드 스모크
+
+```bash
+npx playwright test tests/e2e/guest-dashboard-flow.spec.ts --project=chromium
+```
+
+> 게스트 로그인 → 시스템 시작 → 대시보드 렌더링 및 관리자 UI 부재 확인까지 1분 내외로 점검할 수 있는 경량 시나리오입니다.
+
 ### 예상 소요 시간
 
 - **자동화 테스트**: 18-30초 (네트워크 상태에 따라 변동)

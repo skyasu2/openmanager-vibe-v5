@@ -1,21 +1,6 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { TIMEOUTS } from './helpers/timeouts';
-import { ensureVercelBypassCookie } from './helpers/security';
-
-async function resetGuestState(page: Page): Promise<void> {
-  await page.context().clearCookies();
-  await page.context().clearPermissions();
-  await page.goto('about:blank');
-  try {
-    await page.goto('/login', { waitUntil: 'domcontentloaded' });
-  } catch {
-    // ignore navigation issues
-  }
-  await page.evaluate(() => {
-    localStorage.clear();
-    sessionStorage.clear();
-  });
-}
+import { guestLogin, resetGuestState } from './helpers/guest';
 
 /**
  * 🎯 게스트 모드 종합 플로우 테스트 (관리자 모드 제거 버전)
@@ -28,7 +13,6 @@ async function resetGuestState(page: Page): Promise<void> {
 test.describe('🎯 게스트 모드 종합 플로우 테스트', () => {
   test.beforeEach(async ({ page }) => {
     await resetGuestState(page);
-    await ensureVercelBypassCookie(page);
   });
 
   test.afterEach(async ({ page }) => {
@@ -55,10 +39,9 @@ test.describe('🎯 게스트 모드 종합 플로우 테스트', () => {
 
     // 2. 게스트 로그인 버튼 클릭
     const guestStart = Date.now();
-    await page.locator('button:has-text("게스트로 체험하기")').click();
-    await page.waitForURL(/\/main/, { timeout: TIMEOUTS.MODAL_DISPLAY });
-    await page.waitForSelector('main, header, [data-testid="main-content"]', {
-      timeout: TIMEOUTS.MODAL_DISPLAY,
+    await guestLogin(page, {
+      landingPath: '/login',
+      skipLandingNavigation: true,
     });
     metrics.guestLogin = Date.now() - guestStart;
 

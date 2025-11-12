@@ -11,10 +11,15 @@
 import { test, expect } from '@playwright/test';
 import { getTestBaseUrl } from './helpers/config';
 import { TIMEOUTS } from './helpers/timeouts';
+import { guestLogin, resetGuestState } from './helpers/guest';
 
 const BASE_URL = getTestBaseUrl();
 
 test.describe('전체 사용자 시나리오 플로우', () => {
+  test.beforeEach(async ({ page }) => {
+    await resetGuestState(page);
+  });
+
   test('게스트 → 시스템 시작 → 대시보드 → AI 어시스턴트 플로우', async ({
     page,
   }) => {
@@ -22,30 +27,8 @@ test.describe('전체 사용자 시나리오 플로우', () => {
 
     // 1단계: 게스트 모드로 접속
     console.log('1️⃣ 게스트 모드로 접속');
-    await page.goto(BASE_URL);
-    await page.waitForLoadState('networkidle', {
-      timeout: TIMEOUTS.NETWORK_REQUEST,
-    });
-
-    // 페이지 로딩 확인
-    await expect(page).toHaveTitle(/OpenManager/i);
-    console.log('✅ 메인 페이지 로딩 완료');
-
-    // 1.5단계: "게스트로 체험하기" 버튼 클릭
-    console.log('1.5️⃣ 게스트로 체험하기 버튼 클릭');
-
-    const guestButton = await page
-      .locator('button:has-text("게스트로 체험하기")')
-      .first();
-    await expect(guestButton).toBeVisible({ timeout: TIMEOUTS.MODAL_DISPLAY });
-    await guestButton.click();
-    console.log('✅ 게스트로 체험하기 버튼 클릭 완료');
-
-    // 메인 페이지 로딩 대기
-    await page.waitForLoadState('networkidle', {
-      timeout: TIMEOUTS.NETWORK_REQUEST,
-    });
-    console.log('✅ 메인 애플리케이션 로딩 완료');
+    await guestLogin(page, { landingPath: BASE_URL });
+    console.log('✅ 게스트 로그인 및 메인 애플리케이션 로딩 완료');
 
     // 2단계: 시스템 시작 버튼 찾기 및 클릭
     console.log('2️⃣ 시스템 시작 버튼 찾기');

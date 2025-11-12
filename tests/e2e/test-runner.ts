@@ -101,6 +101,12 @@ export class E2ETestRunner {
         estimatedTime: 180000, // 3분
       },
       {
+        name: '게스트 대시보드 스모크',
+        file: 'guest-dashboard-flow.spec.ts',
+        priority: 1,
+        estimatedTime: 90000, // 1.5분
+      },
+      {
         name: 'AI 어시스턴트 고급 테스트',
         file: 'ai-assistant-advanced-test.spec.ts',
         priority: 2,
@@ -133,6 +139,7 @@ export class E2ETestRunner {
       basic: [
         'comprehensive-ui-ux-test.spec.ts',
         'admin-mode-improved.spec.ts',
+        'guest-dashboard-flow.spec.ts',
       ],
       ai: ['ai-assistant-advanced-test.spec.ts'],
       performance: ['performance-visual-regression.spec.ts'],
