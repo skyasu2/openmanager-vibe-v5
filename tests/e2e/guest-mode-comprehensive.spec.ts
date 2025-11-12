@@ -1,7 +1,21 @@
-import { test, expect } from '@playwright/test';
-import { resetAdminState } from './helpers/admin';
+import { test, expect, Page } from '@playwright/test';
 import { TIMEOUTS } from './helpers/timeouts';
 import { ensureVercelBypassCookie } from './helpers/security';
+
+async function resetGuestState(page: Page): Promise<void> {
+  await page.context().clearCookies();
+  await page.context().clearPermissions();
+  await page.goto('about:blank');
+  try {
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
+  } catch {
+    // ignore navigation issues
+  }
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+}
 
 /**
  * 🎯 게스트 모드 종합 플로우 테스트 (관리자 모드 제거 버전)
@@ -13,12 +27,12 @@ import { ensureVercelBypassCookie } from './helpers/security';
  */
 test.describe('🎯 게스트 모드 종합 플로우 테스트', () => {
   test.beforeEach(async ({ page }) => {
-    await resetAdminState(page);
+    await resetGuestState(page);
     await ensureVercelBypassCookie(page);
   });
 
   test.afterEach(async ({ page }) => {
-    await resetAdminState(page);
+    await resetGuestState(page);
   });
 
   test('게스트 로그인만으로 시스템 시작 및 대시보드 접근', async ({ page }) => {
@@ -74,7 +88,10 @@ test.describe('🎯 게스트 모드 종합 플로우 테스트', () => {
       }
     }
 
-    expect(startButton, '시스템 시작 버튼을 찾을 수 있어야 합니다').not.toBeNull();
+    expect(
+      startButton,
+      '시스템 시작 버튼을 찾을 수 있어야 합니다'
+    ).not.toBeNull();
     await expect(startButton!).toBeEnabled();
     await startButton!.click();
     metrics.systemControl = Date.now() - controlStart;

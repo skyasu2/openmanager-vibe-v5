@@ -1,6 +1,9 @@
-# 관리자 모드 수동 테스트 가이드
+# [Legacy] 관리자 모드 수동 테스트 가이드
 
-**목적**: 게스트 로그인 후 PIN 4231로 관리자 모드 활성화 및 /admin 페이지 접근 확인
+> ⚠️ **보관용 문서**  
+> OpenManager VIBE v5.80.0부터 관리자 모드와 /admin 페이지가 제거되어 본 가이드는 참고용으로만 유지합니다. 최신 게스트/대시보드 플로우는 `docs/testing/e2e-testing-guide.md`를 참고하세요.
+
+**목적**: (Legacy) 게스트 로그인 후 PIN 4231로 관리자 모드 활성화 및 /admin 페이지 접근 확인
 
 **배경**: GitHub 로그인 테스트가 어려워 게스트 로그인 후 관리자 모드로 기능 점검
 
@@ -73,6 +76,7 @@ npm exec -- playwright test tests/e2e/admin-mode-pin-api-test.spec.ts --project=
    - `auth_type`: `guest` ✅
 
 **스크린샷 예시**:
+
 ```
 Name                | Value
 --------------------|-------------------
@@ -98,6 +102,7 @@ auth_type           | guest
 2. **방법 B**: 주소창에 직접 `/admin` 입력
 
 **예상 결과**:
+
 - ✅ `/admin` 페이지 접근 성공
 - ✅ 관리자 전용 기능 표시 (서버 관리, 설정 등)
 - ❌ `/main`으로 리다이렉트되면 실패 (middleware 쿠키 체크 실패)
@@ -109,21 +114,25 @@ auth_type           | guest
 #### 게스트 로그인 + 관리자 모드 (PIN 4231)
 
 **접근 가능**:
+
 - ✅ `/main` (대시보드)
 - ✅ `/admin` (PIN 인증 후)
 
 **제한사항**:
+
 - ⚠️ GitHub 전용 API는 사용 불가
 - ⚠️ 게스트 세션은 24시간 유효
 
 #### GitHub 로그인 + 관리자 모드 (PIN 4231)
 
 **접근 가능**:
+
 - ✅ `/main` (대시보드)
 - ✅ `/admin` (PIN 인증 후)
 - ✅ GitHub API 연동 (Issues, Pull Requests 등)
 
 **추가 권한**:
+
 - 🔐 Supabase 세션 영구 저장 (로그아웃 전까지)
 - 🔐 GitHub OAuth 토큰 사용
 
@@ -136,6 +145,7 @@ auth_type           | guest
 **원인**: middleware가 `admin_mode` 쿠키를 읽지 못함
 
 **확인 사항**:
+
 1. 개발자 도구에서 `admin_mode` 쿠키 존재 확인
 2. 쿠키 속성 확인:
    - `HttpOnly`: `false` (프로덕션에서는 `true`)
@@ -145,6 +155,7 @@ auth_type           | guest
    - `Domain`: (자동 설정)
 
 **해결 방법**:
+
 - 페이지 새로고침 (`F5`) 시도
 - 쿠키가 없으면 PIN 재입력
 
@@ -153,6 +164,7 @@ auth_type           | guest
 **원인**: 잘못된 PIN 입력 또는 API 오류
 
 **확인 사항**:
+
 1. 개발자 도구 → Network 탭 확인
 2. `/api/admin/verify-pin` 요청 확인:
    - Status: `200 OK` (성공)
@@ -160,6 +172,7 @@ auth_type           | guest
    - Status: `401` (잘못된 PIN)
 
 **해결 방법**:
+
 - 정확한 PIN 재입력: `4231`
 - API 오류 시 콘솔 로그 확인
 
@@ -168,11 +181,13 @@ auth_type           | guest
 **원인**: 브라우저 쿠키 정책 또는 CSRF 오류
 
 **확인 사항**:
+
 1. 브라우저 쿠키 설정 확인 (Third-party cookies 허용)
 2. 콘솔에서 CSRF 오류 메시지 확인
 3. Network 탭에서 `Set-Cookie` 헤더 확인
 
 **해결 방법**:
+
 - 시크릿 모드에서 다시 시도
 - 브라우저 캐시 삭제 후 재시도
 
@@ -238,6 +253,7 @@ auth_type           | guest
 ## 7. 문의
 
 **문제 발생 시**:
+
 1. 콘솔 로그 캡처 (개발자 도구 → Console 탭)
 2. Network 탭 HAR 파일 저장
 3. 스크린샷 첨부

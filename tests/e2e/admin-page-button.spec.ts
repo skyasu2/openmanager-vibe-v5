@@ -1,12 +1,17 @@
 import { test, expect } from '@playwright/test';
 import { activateAdminMode, navigateToAdminDashboard } from './helpers/admin';
 import { getTestBaseUrl } from './helpers/config';
+import {
+  ADMIN_FEATURES_REMOVED,
+  ADMIN_FEATURES_SKIP_MESSAGE,
+} from './helpers/featureFlags';
 
 /**
  * 관리자 페이지 버튼 동작 테스트
  * ✨ 개선: API 기반 인증으로 세션 안정성 향상
  */
 test.describe('관리자 페이지 버튼 테스트', () => {
+  test.skip(ADMIN_FEATURES_REMOVED, ADMIN_FEATURES_SKIP_MESSAGE);
   test('관리자 모드 활성화 후 관리자 페이지 버튼 클릭 → /admin 이동', async ({
     page,
   }) => {

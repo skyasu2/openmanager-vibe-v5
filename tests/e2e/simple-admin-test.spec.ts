@@ -1,4 +1,8 @@
 import { test, expect } from '@playwright/test';
+import {
+  ADMIN_FEATURES_REMOVED,
+  ADMIN_FEATURES_SKIP_MESSAGE,
+} from './helpers/featureFlags';
 
 /**
  * 🚀 간소화된 관리자 모드 테스트 (2-Layer 보안)
@@ -11,20 +15,21 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('간소화된 관리자 모드 테스트 (2-Layer)', () => {
-  
+  test.skip(ADMIN_FEATURES_REMOVED, ADMIN_FEATURES_SKIP_MESSAGE);
+
   test('🔍 테스트 API 가용성 확인', async ({ page }) => {
     await page.goto('/');
-    
+
     // 테스트 API 상태 확인
     const response = await page.evaluate(async () => {
       const res = await fetch('/api/test/admin-auth', {
         headers: {
-          'User-Agent': 'Playwright Test Agent'
-        }
+          'User-Agent': 'Playwright Test Agent',
+        },
       });
       return {
         status: res.status,
-        data: await res.json()
+        data: await res.json(),
       };
     });
 
@@ -43,11 +48,11 @@ test.describe('간소화된 관리자 모드 테스트 (2-Layer)', () => {
       const response = await fetch('/api/test/admin-auth', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          bypass: true
-        })
+          bypass: true,
+        }),
       });
 
       return await response.json();
@@ -69,11 +74,11 @@ test.describe('간소화된 관리자 모드 테스트 (2-Layer)', () => {
       const response = await fetch('/api/test/admin-auth', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          password: '4231'
-        })
+          password: '4231',
+        }),
       });
 
       return await response.json();
@@ -94,11 +99,11 @@ test.describe('간소화된 관리자 모드 테스트 (2-Layer)', () => {
       const response = await fetch('/api/test/admin-auth', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          password: 'wrong_password'
-        })
+          password: 'wrong_password',
+        }),
       });
 
       return await response.json();
@@ -121,11 +126,11 @@ test.describe('간소화된 관리자 모드 테스트 (2-Layer)', () => {
       const response = await fetch('/api/test/admin-auth', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          bypass: true
-        })
+          bypass: true,
+        }),
       });
 
       return await response.json();
@@ -138,7 +143,9 @@ test.describe('간소화된 관리자 모드 테스트 (2-Layer)', () => {
     expect(authResponse.success).toBe(true);
     expect(responseTime).toBeLessThan(1000); // 1초 이내 (67% 개선)
 
-    console.log(`⚡ API 응답 시간: ${responseTime}ms (목표: 1초 이내, 기존 대비 67% 개선)`);
+    console.log(
+      `⚡ API 응답 시간: ${responseTime}ms (목표: 1초 이내, 기존 대비 67% 개선)`
+    );
   });
 
   test('📊 2-Layer 보안 시스템 검증', async ({ page }) => {
@@ -149,11 +156,11 @@ test.describe('간소화된 관리자 모드 테스트 (2-Layer)', () => {
       const response = await fetch('/api/test/admin-auth', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          bypass: true
-        })
+          bypass: true,
+        }),
       });
 
       return await response.json();

@@ -3,6 +3,9 @@
 **작성일**: 2025-10-12
 **목적**: Vercel 프로덕션 환경 게스트+관리자 모드 종합 점검을 위한 통합 가이드
 
+> ⚠️ **2025-11 업데이트**  
+> 관리자 모드와 /admin 페이지가 제거되면서 `vercel-guest-admin-full-check` 등 관리자 전용 플로우는 더 이상 실행되지 않습니다. 본 가이드는 역사적 참고용이며, 최신 게스트 기반 점검 절차는 추후 별도 문서로 제공될 예정입니다.
+
 ---
 
 ## 빠른 시작
@@ -20,6 +23,8 @@ BASE_URL=https://openmanager-vibe-v5.vercel.app TEST_AI_QUERY=true npm run test:
 BASE_URL=https://openmanager-vibe-v5.vercel.app npm run test:e2e -- vercel-guest-admin-full-check --headed
 ```
 
+> ℹ️ `vercel-guest-admin-full-check` 스크립트는 관리자 기능 제거로 인해 2025-11 기준 자동으로 skip 처리됩니다. 새 플로우가 제공되기 전까지는 게스트 대시보드 기반 테스트만 실행해주세요.
+
 ### 예상 소요 시간
 
 - **자동화 테스트**: 18-30초 (네트워크 상태에 따라 변동)
@@ -35,6 +40,7 @@ BASE_URL=https://openmanager-vibe-v5.vercel.app npm run test:e2e -- vercel-guest
 **파일**: [vercel-production-test-analysis.md](./vercel-production-test-analysis.md)
 
 **내용**:
+
 - 기존 4개 테스트 파일 분석 (guest-mode, dashboard, ai-sidebar, admin-pin)
 - 헬퍼 함수 구조 (admin.ts, ui-flow.ts, timeouts.ts)
 - localhost vs Vercel 환경 차이점
@@ -49,6 +55,7 @@ BASE_URL=https://openmanager-vibe-v5.vercel.app npm run test:e2e -- vercel-guest
 **파일**: [vercel-production-test-scenarios.md](./vercel-production-test-scenarios.md)
 
 **내용**:
+
 - Phase 1-4 단계별 체크리스트
   - Phase 1: 게스트 로그인
   - Phase 2: PIN 4231 인증
@@ -66,6 +73,7 @@ BASE_URL=https://openmanager-vibe-v5.vercel.app npm run test:e2e -- vercel-guest
 **파일**: [vercel-production-enhancement-analysis.md](./vercel-production-enhancement-analysis.md)
 
 **내용**:
+
 - 현재 문제점 4가지
   - Playwright 쿠키 전달 실패
   - 통합 테스트 부재
@@ -87,12 +95,14 @@ BASE_URL=https://openmanager-vibe-v5.vercel.app npm run test:e2e -- vercel-guest
 **파일**: [tests/e2e/vercel-guest-admin-full-check.spec.ts](../../tests/e2e/vercel-guest-admin-full-check.spec.ts)
 
 **내용**:
+
 - 전체 시나리오: 게스트 → PIN → 대시보드 → AI 사이드바
 - 대시보드 전용 점검 (빠른 검증)
 - AI 사이드바 전용 점검 (빠른 검증)
 - 네트워크 지연 시뮬레이션 (선택적)
 
 **실행 방법**:
+
 ```bash
 # 전체 시나리오
 BASE_URL=https://openmanager-vibe-v5.vercel.app npm run test:e2e -- vercel-guest-admin-full-check
@@ -113,6 +123,7 @@ BASE_URL=https://openmanager-vibe-v5.vercel.app npm run test:e2e -- vercel-guest
 **파일**: [vercel-manual-test-guide.md](./vercel-manual-test-guide.md)
 
 **내용**:
+
 - 자동화 제약 설명 (Playwright 쿠키 전달 문제)
 - 5단계 수동 테스트 절차
   1. 자동화 테스트 실행
@@ -131,21 +142,21 @@ BASE_URL=https://openmanager-vibe-v5.vercel.app npm run test:e2e -- vercel-guest
 
 ### 자동화 범위 (85%)
 
-| Phase | 검증 항목 | 상태 | 소요 시간 |
-|-------|----------|------|----------|
-| Phase 1 | 게스트 로그인 | ✅ 완전 자동 | 4-5초 |
-| Phase 2 | PIN 4231 인증 | ✅ 완전 자동 | 3-4초 |
-| Phase 3 | 대시보드 점검 | ✅ 완전 자동 | 8-10초 |
-| Phase 4 | AI 사이드바 점검 | ✅ 완전 자동 | 2-3초 |
-| **소계** | **4/5 단계** | **85%** | **18-30초** |
+| Phase    | 검증 항목        | 상태         | 소요 시간   |
+| -------- | ---------------- | ------------ | ----------- |
+| Phase 1  | 게스트 로그인    | ✅ 완전 자동 | 4-5초       |
+| Phase 2  | PIN 4231 인증    | ✅ 완전 자동 | 3-4초       |
+| Phase 3  | 대시보드 점검    | ✅ 완전 자동 | 8-10초      |
+| Phase 4  | AI 사이드바 점검 | ✅ 완전 자동 | 2-3초       |
+| **소계** | **4/5 단계**     | **85%**      | **18-30초** |
 
 ### 수동 범위 (15%)
 
-| Phase | 검증 항목 | 상태 | 소요 시간 |
-|-------|----------|------|----------|
-| Phase 5 | /admin 페이지 접근 | ⚠️ 수동 필요 | 1-2분 |
-| Phase 6 | 관리자 기능 검증 | ⚠️ 수동 필요 | 1-3분 |
-| **소계** | **2/5 단계** | **15%** | **2-5분** |
+| Phase    | 검증 항목          | 상태         | 소요 시간 |
+| -------- | ------------------ | ------------ | --------- |
+| Phase 5  | /admin 페이지 접근 | ⚠️ 수동 필요 | 1-2분     |
+| Phase 6  | 관리자 기능 검증   | ⚠️ 수동 필요 | 1-3분     |
+| **소계** | **2/5 단계**       | **15%**      | **2-5분** |
 
 **전체 커버리지**: 85% 자동화 + 15% 수동 = 100%
 
@@ -230,22 +241,27 @@ test-results/
 ### 문제 1: 테스트 실패 (타임아웃)
 
 **증상**:
+
 ```
 TimeoutError: page.waitForSelector: Timeout 20000ms exceeded.
 ```
 
 **원인**:
+
 - 프로덕션 네트워크 레이턴시 (Vercel 응답 지연)
 - UI 변경으로 셀렉터 불일치
 
 **해결**:
+
 1. **타임아웃 증가**:
+
    ```bash
    # 기본 타임아웃 2배로 증가
    BASE_URL=https://openmanager-vibe-v5.vercel.app npm run test:e2e -- vercel-guest-admin-full-check --timeout=120000
    ```
 
 2. **스크린샷 확인**:
+
    ```bash
    open test-results/*.png
    ```
@@ -259,16 +275,20 @@ TimeoutError: page.waitForSelector: Timeout 20000ms exceeded.
 ### 문제 2: 대시보드 요소 미발견
 
 **증상**:
+
 ```
 expect(foundIndicators).toBeGreaterThan(0) // Expected > 0, received: 0
 ```
 
 **원인**:
+
 - 대시보드 UI 변경
 - 백엔드 API 응답 없음
 
 **해결**:
+
 1. **스크린샷 확인**:
+
    ```bash
    open test-results/vercel-dashboard-loaded.png
    ```
@@ -286,16 +306,20 @@ expect(foundIndicators).toBeGreaterThan(0) // Expected > 0, received: 0
 ### 문제 3: AI 사이드바 미렌더링
 
 **증상**:
+
 ```
 expect(sidebarFound || inputVisible || sendButtonCount > 0).toBe(true) // Expected true, received false
 ```
 
 **원인**:
+
 - AI 사이드바 지연 로딩
 - 관리자 모드 권한 미활성화
 
 **해결**:
+
 1. **관리자 상태 확인**:
+
    ```bash
    # 테스트 로그에서 확인
    grep "관리자 모드 활성화 확인" test-results/*.log
@@ -359,6 +383,7 @@ jobs:
 ### 즉시 조치 (MUST)
 
 1. **통합 테스트 실행** (0시간, 이미 완료)
+
    ```bash
    BASE_URL=https://openmanager-vibe-v5.vercel.app npm run test:e2e -- vercel-guest-admin-full-check --headed
    ```
@@ -386,13 +411,13 @@ jobs:
 
 ## 참고 문서
 
-| 문서 | 목적 | 대상 |
-|------|------|------|
-| [vercel-production-test-analysis.md](./vercel-production-test-analysis.md) | 기존 테스트 분석 | 아키텍처 이해 |
-| [vercel-production-test-scenarios.md](./vercel-production-test-scenarios.md) | 단계별 체크리스트 | 테스트 실행 |
-| [vercel-production-enhancement-analysis.md](./vercel-production-enhancement-analysis.md) | 고도화 방안 | 개선 계획 |
-| [vercel-manual-test-guide.md](./vercel-manual-test-guide.md) | 수동 검증 가이드 | /admin 접근 |
-| [../../tests/e2e/vercel-guest-admin-full-check.spec.ts](../../tests/e2e/vercel-guest-admin-full-check.spec.ts) | 실행 가능한 스크립트 | 실제 테스트 |
+| 문서                                                                                                           | 목적                 | 대상          |
+| -------------------------------------------------------------------------------------------------------------- | -------------------- | ------------- |
+| [vercel-production-test-analysis.md](./vercel-production-test-analysis.md)                                     | 기존 테스트 분석     | 아키텍처 이해 |
+| [vercel-production-test-scenarios.md](./vercel-production-test-scenarios.md)                                   | 단계별 체크리스트    | 테스트 실행   |
+| [vercel-production-enhancement-analysis.md](./vercel-production-enhancement-analysis.md)                       | 고도화 방안          | 개선 계획     |
+| [vercel-manual-test-guide.md](./vercel-manual-test-guide.md)                                                   | 수동 검증 가이드     | /admin 접근   |
+| [../../tests/e2e/vercel-guest-admin-full-check.spec.ts](../../tests/e2e/vercel-guest-admin-full-check.spec.ts) | 실행 가능한 스크립트 | 실제 테스트   |
 
 ---
 

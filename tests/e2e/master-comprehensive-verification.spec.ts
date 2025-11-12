@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import {
+  ADMIN_FEATURES_REMOVED,
+  ADMIN_FEATURES_SKIP_MESSAGE,
+} from './helpers/featureFlags';
 
 /**
  * 🎯 OpenManager VIBE - 마스터 종합 프론트엔드 검증
@@ -144,6 +148,7 @@ ${results.map((r) => `| ${r.name} | ${r.status} | ${r.message || '-'} |`).join('
 }
 
 test.describe('🎯 OpenManager VIBE - 마스터 종합 프론트엔드 검증', () => {
+  test.skip(ADMIN_FEATURES_REMOVED, ADMIN_FEATURES_SKIP_MESSAGE);
   test.afterAll(() => {
     generateReport();
   });

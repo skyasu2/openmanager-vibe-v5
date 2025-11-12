@@ -3,8 +3,12 @@ import {
   enableVercelTestMode,
   aiNavigate,
   getVercelTestStatus,
-  cleanupVercelTestMode
+  cleanupVercelTestMode,
 } from './helpers/vercel-test-auth';
+import {
+  ADMIN_FEATURES_REMOVED,
+  ADMIN_FEATURES_SKIP_MESSAGE,
+} from './helpers/featureFlags';
 
 /**
  * 🤖 AI 친화적 베르셀 테스트 예시
@@ -19,6 +23,7 @@ import {
  */
 
 test.describe('🤖 AI 친화적 베르셀 테스트', () => {
+  test.skip(ADMIN_FEATURES_REMOVED, ADMIN_FEATURES_SKIP_MESSAGE);
 
   test.beforeEach(async ({ page }) => {
     // 🚀 테스트 전 환경 정리
@@ -115,15 +120,18 @@ test.describe('🤖 AI 친화적 베르셀 테스트', () => {
     const dashboardElements = await page.evaluate(() => ({
       title: document.querySelector('h1')?.textContent,
       buttons: document.querySelectorAll('button').length,
-      serverCards: document.querySelectorAll('[data-testid="server-card"]').length
+      serverCards: document.querySelectorAll('[data-testid="server-card"]')
+        .length,
     }));
 
     console.log('📊 대시보드 요소:', dashboardElements);
     expect(dashboardElements.buttons).toBeGreaterThan(0);
 
     // 4단계: AI 어시스턴트 버튼 찾기 및 클릭
-    const aiButton = page.locator('button:has-text("AI"), [data-testid="ai-assistant"]');
-    if (await aiButton.count() > 0) {
+    const aiButton = page.locator(
+      'button:has-text("AI"), [data-testid="ai-assistant"]'
+    );
+    if ((await aiButton.count()) > 0) {
       await aiButton.first().click();
       console.log('✅ AI 어시스턴트 버튼 클릭 성공');
     } else {
@@ -137,7 +145,13 @@ test.describe('🤖 AI 친화적 베르셀 테스트', () => {
     // 한 번 설정으로 여러 페이지 자유롭게 이동
     await enableVercelTestMode(page);
 
-    const pages = ['/dashboard', '/admin', '/settings', '/profile', '/ai-assistant'];
+    const pages = [
+      '/dashboard',
+      '/admin',
+      '/settings',
+      '/profile',
+      '/ai-assistant',
+    ];
 
     for (const pagePath of pages) {
       await page.goto(pagePath);
@@ -159,8 +173,8 @@ test.describe('🤖 AI 친화적 베르셀 테스트', () => {
           body: JSON.stringify({
             secret: 'wrong_secret_key',
             mode: 'full_access',
-            bypass: true
-          })
+            bypass: true,
+          }),
         });
 
         const result = await response.json();
@@ -216,7 +230,7 @@ test.describe('🤖 AI 친화적 베르셀 테스트', () => {
       '/admin',
       '/settings',
       '/profile',
-      '/dashboard'
+      '/dashboard',
     ];
 
     for (const pagePath of pages) {
@@ -237,7 +251,6 @@ test.describe('🤖 AI 친화적 베르셀 테스트', () => {
  * 🎯 AI가 복사해서 바로 사용할 수 있는 간단한 템플릿
  */
 test.describe('📝 AI 복사용 간단 템플릿', () => {
-
   test('✨ 최소 코드 템플릿', async ({ page }) => {
     // 🤖 AI가 복사해서 사용하세요!
     await enableVercelTestMode(page);

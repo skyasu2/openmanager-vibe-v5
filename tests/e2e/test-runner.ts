@@ -1,6 +1,6 @@
 /**
  * 🤖 AI 기반 E2E 테스트 실행기
- * 
+ *
  * 기능:
  * - 테스트 카테고리별 선택적 실행
  * - 실시간 진행 상황 모니터링
@@ -11,6 +11,7 @@
 import { spawn } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
+import { ADMIN_FEATURES_REMOVED } from './helpers/featureFlags';
 
 export interface TestConfig {
   category: 'all' | 'basic' | 'ai' | 'performance' | 'visual' | 'accessibility';
@@ -36,7 +37,7 @@ export interface TestResult {
 export class E2ETestRunner {
   private config: TestConfig;
   private results: TestResult[] = [];
-  
+
   constructor(config: Partial<TestConfig> = {}) {
     this.config = {
       category: 'all',
@@ -47,7 +48,7 @@ export class E2ETestRunner {
       retries: 2,
       reportFormat: 'html',
       outputDir: './test-results',
-      ...config
+      ...config,
     };
   }
 
@@ -57,26 +58,25 @@ export class E2ETestRunner {
   async runTests(): Promise<TestResult[]> {
     console.log('🧪 OpenManager VIBE E2E 테스트 시작');
     console.log('📊 테스트 설정:', this.config);
-    
+
     try {
       // 출력 디렉토리 생성
       await this.ensureOutputDirectory();
-      
+
       // 테스트 카테고리별 실행
       const testCategories = this.getTestCategories();
-      
+
       for (const category of testCategories) {
         console.log(`\n🎯 ${category.name} 테스트 실행 중...`);
         const result = await this.runTestCategory(category);
         this.results.push(result);
       }
-      
+
       // 결과 리포트 생성
       await this.generateReport();
-      
+
       console.log('\n✅ 모든 테스트 완료');
       return this.results;
-      
     } catch (error) {
       console.error('❌ 테스트 실행 중 오류:', error);
       throw error;
@@ -87,48 +87,61 @@ export class E2ETestRunner {
    * 📋 테스트 카테고리 정의
    */
   private getTestCategories() {
+    const adminDisabledFiles = new Set([
+      'comprehensive-ui-ux-test.spec.ts',
+      'ai-assistant-advanced-test.spec.ts',
+      'admin-mode-improved.spec.ts',
+    ]);
+
     const allCategories = [
       {
         name: 'UI/UX 종합 테스트',
         file: 'comprehensive-ui-ux-test.spec.ts',
         priority: 1,
-        estimatedTime: 180000 // 3분
+        estimatedTime: 180000, // 3분
       },
       {
         name: 'AI 어시스턴트 고급 테스트',
         file: 'ai-assistant-advanced-test.spec.ts',
         priority: 2,
-        estimatedTime: 240000 // 4분
+        estimatedTime: 240000, // 4분
       },
       {
         name: '성능 및 시각적 회귀 테스트',
         file: 'performance-visual-regression.spec.ts',
         priority: 3,
-        estimatedTime: 300000 // 5분
+        estimatedTime: 300000, // 5분
       },
       {
         name: '관리자 모드 개선 테스트',
         file: 'admin-mode-improved.spec.ts',
         priority: 4,
-        estimatedTime: 120000 // 2분
-      }
+        estimatedTime: 120000, // 2분
+      },
     ];
+
+    const filteredCategories = allCategories.filter(
+      (cat) => !(ADMIN_FEATURES_REMOVED && adminDisabledFiles.has(cat.file))
+    );
 
     // 카테고리 필터링
     if (this.config.category === 'all') {
-      return allCategories;
+      return filteredCategories;
     }
-    
+
     const categoryMap: Record<string, string[]> = {
-      basic: ['comprehensive-ui-ux-test.spec.ts', 'admin-mode-improved.spec.ts'],
+      basic: [
+        'comprehensive-ui-ux-test.spec.ts',
+        'admin-mode-improved.spec.ts',
+      ],
       ai: ['ai-assistant-advanced-test.spec.ts'],
       performance: ['performance-visual-regression.spec.ts'],
       visual: ['performance-visual-regression.spec.ts'],
-      accessibility: ['performance-visual-regression.spec.ts']
+      accessibility: ['performance-visual-regression.spec.ts'],
     };
-    
+
     const selectedFiles = categoryMap[this.config.category] || [];
-    return allCategories.filter(cat => selectedFiles.includes(cat.file));
+    return filteredCategories.filter((cat) => selectedFiles.includes(cat.file));
   }
 
   /**
@@ -137,16 +150,20 @@ export class E2ETestRunner {
   private async runTestCategory(category: any): Promise<TestResult> {
     const startTime = Date.now();
     const testFile = path.join('./tests/e2e', category.file);
-    
+
     console.log(`   📂 테스트 파일: ${category.file}`);
-    console.log(`   ⏱️ 예상 소요시간: ${(category.estimatedTime / 1000).toFixed(0)}초`);
-    
+    console.log(
+      `   ⏱️ 예상 소요시간: ${(category.estimatedTime / 1000).toFixed(0)}초`
+    );
+
     try {
       const result = await this.executePlaywrightTest(testFile);
       const duration = Date.now() - startTime;
-      
-      console.log(`   ✅ ${category.name} 완료 (${(duration / 1000).toFixed(1)}초)`);
-      
+
+      console.log(
+        `   ✅ ${category.name} 완료 (${(duration / 1000).toFixed(1)}초)`
+      );
+
       return {
         category: category.name,
         passed: result.passed,
@@ -154,13 +171,12 @@ export class E2ETestRunner {
         skipped: result.skipped,
         duration,
         errors: result.errors,
-        warnings: result.warnings
+        warnings: result.warnings,
       };
-      
     } catch (error) {
       const duration = Date.now() - startTime;
       console.error(`   ❌ ${category.name} 실패:`, error);
-      
+
       return {
         category: category.name,
         passed: 0,
@@ -168,7 +184,7 @@ export class E2ETestRunner {
         skipped: 0,
         duration,
         errors: [error instanceof Error ? error.message : String(error)],
-        warnings: []
+        warnings: [],
       };
     }
   }
@@ -186,32 +202,32 @@ export class E2ETestRunner {
         `--timeout=${this.config.timeout}`,
         `--retries=${this.config.retries}`,
         `--reporter=json`,
-        `--output-dir=${this.config.outputDir}`
+        `--output-dir=${this.config.outputDir}`,
       ];
-      
+
       if (this.config.headless) {
         args.push('--headed=false');
       }
-      
+
       const playwrightProcess = spawn('npx', ['playwright', ...args], {
         stdio: 'pipe',
-        cwd: process.cwd()
+        cwd: process.cwd(),
       });
-      
+
       let stdout = '';
       let stderr = '';
-      
+
       playwrightProcess.stdout?.on('data', (data) => {
         stdout += data.toString();
         // 실시간 로그 출력
         process.stdout.write(data);
       });
-      
+
       playwrightProcess.stderr?.on('data', (data) => {
         stderr += data.toString();
         process.stderr.write(data);
       });
-      
+
       playwrightProcess.on('close', (code) => {
         if (code === 0) {
           // JSON 결과 파싱
@@ -224,14 +240,16 @@ export class E2ETestRunner {
               failed: 0,
               skipped: 0,
               errors: [],
-              warnings: []
+              warnings: [],
             });
           }
         } else {
-          reject(new Error(`Playwright 프로세스 종료 코드: ${code}\n${stderr}`));
+          reject(
+            new Error(`Playwright 프로세스 종료 코드: ${code}\n${stderr}`)
+          );
         }
       });
-      
+
       // 타임아웃 설정
       setTimeout(() => {
         playwrightProcess.kill();
@@ -247,31 +265,42 @@ export class E2ETestRunner {
     try {
       // JSON 리포터 출력에서 결과 추출
       const lines = output.split('\n');
-      const jsonLine = lines.find(line => line.trim().startsWith('{') && line.includes('passed'));
-      
+      const jsonLine = lines.find(
+        (line) => line.trim().startsWith('{') && line.includes('passed')
+      );
+
       if (jsonLine) {
         const result = JSON.parse(jsonLine);
         return {
-          passed: result.suites?.reduce((sum: number, suite: any) => 
-            sum + (suite.specs?.filter((spec: any) => spec.ok).length || 0), 0) || 0,
-          failed: result.suites?.reduce((sum: number, suite: any) => 
-            sum + (suite.specs?.filter((spec: any) => !spec.ok).length || 0), 0) || 0,
+          passed:
+            result.suites?.reduce(
+              (sum: number, suite: any) =>
+                sum + (suite.specs?.filter((spec: any) => spec.ok).length || 0),
+              0
+            ) || 0,
+          failed:
+            result.suites?.reduce(
+              (sum: number, suite: any) =>
+                sum +
+                (suite.specs?.filter((spec: any) => !spec.ok).length || 0),
+              0
+            ) || 0,
           skipped: 0,
           errors: [],
-          warnings: []
+          warnings: [],
         };
       }
     } catch (error) {
       console.warn('📊 결과 파싱 실패, 기본값 사용:', error);
     }
-    
+
     // 파싱 실패 시 기본값
     return {
       passed: output.includes('passed') ? 1 : 0,
       failed: output.includes('failed') ? 1 : 0,
       skipped: 0,
       errors: [],
-      warnings: []
+      warnings: [],
     };
   }
 
@@ -294,24 +323,30 @@ export class E2ETestRunner {
       config: this.config,
       summary: this.generateSummary(),
       results: this.results,
-      recommendations: this.generateRecommendations()
+      recommendations: this.generateRecommendations(),
     };
-    
+
     // HTML 리포트
-    if (this.config.reportFormat === 'html' || this.config.reportFormat === 'all') {
+    if (
+      this.config.reportFormat === 'html' ||
+      this.config.reportFormat === 'all'
+    ) {
       await this.generateHTMLReport(reportData);
     }
-    
+
     // JSON 리포트
-    if (this.config.reportFormat === 'json' || this.config.reportFormat === 'all') {
+    if (
+      this.config.reportFormat === 'json' ||
+      this.config.reportFormat === 'all'
+    ) {
       await this.generateJSONReport(reportData);
     }
-    
+
     // GitHub Actions 형식
     if (this.config.reportFormat === 'github') {
       await this.generateGitHubReport(reportData);
     }
-    
+
     console.log('📄 테스트 리포트 생성 완료');
   }
 
@@ -324,15 +359,16 @@ export class E2ETestRunner {
     const totalSkipped = this.results.reduce((sum, r) => sum + r.skipped, 0);
     const totalDuration = this.results.reduce((sum, r) => sum + r.duration, 0);
     const totalTests = totalPassed + totalFailed + totalSkipped;
-    
+
     return {
       totalTests,
       passed: totalPassed,
       failed: totalFailed,
       skipped: totalSkipped,
-      successRate: totalTests > 0 ? (totalPassed / totalTests * 100).toFixed(2) : '0',
+      successRate:
+        totalTests > 0 ? ((totalPassed / totalTests) * 100).toFixed(2) : '0',
       duration: totalDuration,
-      categories: this.results.length
+      categories: this.results.length,
     };
   }
 
@@ -342,24 +378,31 @@ export class E2ETestRunner {
   private generateRecommendations(): string[] {
     const recommendations: string[] = [];
     const summary = this.generateSummary();
-    
+
     if (parseFloat(summary.successRate) < 90) {
-      recommendations.push('🔴 테스트 성공률이 90% 미만입니다. 실패한 테스트를 검토하세요.');
+      recommendations.push(
+        '🔴 테스트 성공률이 90% 미만입니다. 실패한 테스트를 검토하세요.'
+      );
     }
-    
-    if (summary.duration > 600000) { // 10분 초과
-      recommendations.push('⚡ 테스트 실행 시간이 10분을 초과합니다. 병렬 실행을 고려하세요.');
+
+    if (summary.duration > 600000) {
+      // 10분 초과
+      recommendations.push(
+        '⚡ 테스트 실행 시간이 10분을 초과합니다. 병렬 실행을 고려하세요.'
+      );
     }
-    
-    const failedCategories = this.results.filter(r => r.failed > 0);
+
+    const failedCategories = this.results.filter((r) => r.failed > 0);
     if (failedCategories.length > 0) {
-      recommendations.push(`🧪 다음 카테고리에서 실패: ${failedCategories.map(r => r.category).join(', ')}`);
+      recommendations.push(
+        `🧪 다음 카테고리에서 실패: ${failedCategories.map((r) => r.category).join(', ')}`
+      );
     }
-    
+
     if (recommendations.length === 0) {
       recommendations.push('✅ 모든 테스트가 성공적으로 완료되었습니다!');
     }
-    
+
     return recommendations;
   }
 
@@ -422,23 +465,31 @@ export class E2ETestRunner {
     
     <div class="results">
         <h2>📊 카테고리별 결과</h2>
-        ${data.results.map((result: TestResult) => `
+        ${data.results
+          .map(
+            (result: TestResult) => `
             <div class="category">
                 <h3>${result.category}</h3>
                 <p>성공: <span class="passed">${result.passed}</span> | 
                    실패: <span class="failed">${result.failed}</span> | 
                    건너뜀: <span class="skipped">${result.skipped}</span> | 
                    소요시간: ${(result.duration / 1000).toFixed(1)}초</p>
-                ${result.errors.length > 0 ? `
+                ${
+                  result.errors.length > 0
+                    ? `
                     <details>
                         <summary style="color: #dc3545; cursor: pointer;">❌ 오류 ${result.errors.length}개</summary>
                         <ul>
-                            ${result.errors.map(error => `<li>${error}</li>`).join('')}
+                            ${result.errors.map((error) => `<li>${error}</li>`).join('')}
                         </ul>
                     </details>
-                ` : ''}
+                `
+                    : ''
+                }
             </div>
-        `).join('')}
+        `
+          )
+          .join('')}
     </div>
     
     <div class="recommendations">
@@ -449,7 +500,7 @@ export class E2ETestRunner {
     </div>
 </body>
 </html>`;
-    
+
     const reportPath = path.join(this.config.outputDir, 'test-report.html');
     fs.writeFileSync(reportPath, htmlContent);
     console.log(`📄 HTML 리포트: ${reportPath}`);
@@ -470,7 +521,7 @@ export class E2ETestRunner {
   private async generateGitHubReport(data: any): Promise<void> {
     const summary = data.summary;
     const emoji = summary.failed > 0 ? '❌' : '✅';
-    
+
     const githubSummary = `
 ## ${emoji} OpenManager VIBE E2E 테스트 결과
 
@@ -482,18 +533,22 @@ export class E2ETestRunner {
 - **소요시간**: ${(summary.duration / 1000).toFixed(1)}초
 
 ### 📋 카테고리별 결과
-${data.results.map((result: TestResult) => `
+${data.results
+  .map(
+    (result: TestResult) => `
 - **${result.category}**: ${result.passed}개 성공, ${result.failed}개 실패 (${(result.duration / 1000).toFixed(1)}초)
-`).join('')}
+`
+  )
+  .join('')}
 
 ### 💡 권장사항
 ${data.recommendations.map((rec: string) => `- ${rec}`).join('\n')}
 `;
-    
+
     const reportPath = path.join(this.config.outputDir, 'github-summary.md');
     fs.writeFileSync(reportPath, githubSummary);
     console.log(`📄 GitHub 리포트: ${reportPath}`);
-    
+
     // GitHub Actions 환경에서 Step Summary 설정
     if (process.env.GITHUB_STEP_SUMMARY) {
       fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, githubSummary);
@@ -504,13 +559,15 @@ ${data.recommendations.map((rec: string) => `- ${rec}`).join('\n')}
 /**
  * 🚀 CLI 실행 인터페이스
  */
-export async function runE2ETests(options: Partial<TestConfig> = {}): Promise<void> {
+export async function runE2ETests(
+  options: Partial<TestConfig> = {}
+): Promise<void> {
   const runner = new E2ETestRunner(options);
-  
+
   try {
     const results = await runner.runTests();
     const totalFailed = results.reduce((sum, r) => sum + r.failed, 0);
-    
+
     if (totalFailed > 0) {
       console.error(`\n❌ ${totalFailed}개 테스트 실패`);
       process.exit(1);
@@ -528,9 +585,9 @@ export async function runE2ETests(options: Partial<TestConfig> = {}): Promise<vo
 if (require.main === module) {
   const args = process.argv.slice(2);
   const options: Partial<TestConfig> = {};
-  
+
   // 간단한 CLI 파라미터 파싱
-  args.forEach(arg => {
+  args.forEach((arg) => {
     if (arg.startsWith('--category=')) {
       options.category = arg.split('=')[1] as TestConfig['category'];
     } else if (arg.startsWith('--browser=')) {
@@ -541,6 +598,6 @@ if (require.main === module) {
       options.workers = parseInt(arg.split('=')[1]);
     }
   });
-  
+
   runE2ETests(options);
 }

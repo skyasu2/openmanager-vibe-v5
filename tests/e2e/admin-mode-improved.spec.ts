@@ -8,6 +8,10 @@ import {
 } from './helpers/admin';
 import { TIMEOUTS } from './helpers/timeouts';
 import { getEnvironmentInfo } from './helpers/config';
+import {
+  ADMIN_FEATURES_REMOVED,
+  ADMIN_FEATURES_SKIP_MESSAGE,
+} from './helpers/featureFlags';
 
 const { isProduction } = getEnvironmentInfo();
 const hasTestSecret =
@@ -22,6 +26,7 @@ const hasTestSecret =
  */
 
 test.describe('개선된 관리자 모드 테스트', () => {
+  test.skip(ADMIN_FEATURES_REMOVED, ADMIN_FEATURES_SKIP_MESSAGE);
   test.skip(
     isProduction && !hasTestSecret,
     'Vercel 프로덕션 환경에서는 TEST_SECRET_KEY가 필요합니다.'

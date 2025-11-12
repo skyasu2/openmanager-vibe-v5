@@ -4,8 +4,17 @@ import { TIMEOUTS } from './timeouts';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
+import { ADMIN_FEATURES_REMOVED } from './featureFlags';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+
+function assertAdminFeatureAvailable(action: string): void {
+  if (ADMIN_FEATURES_REMOVED) {
+    throw new Error(
+      `[Admin Helper] ${action} is unavailable because admin mode/page were removed in v5.80.`
+    );
+  }
+}
 
 /**
  * Playwright 테스트용 관리자 모드 헬퍼 함수들
@@ -103,6 +112,7 @@ export async function activateAdminMode(
     testToken?: string;
   } = {}
 ): Promise<AdminAuthResponse> {
+  assertAdminFeatureAvailable('activateAdminMode');
   // 프로덕션 환경에서는 password 모드 강제 (config.ts 중앙 관리)
   const pageUrl = page.url();
   const baseUrl = getTestBaseUrl();
@@ -384,6 +394,7 @@ export async function navigateToAdminDashboard(
   page: Page,
   autoActivate: boolean = true
 ): Promise<void> {
+  assertAdminFeatureAvailable('navigateToAdminDashboard');
   try {
     console.log('🎯 [Admin Helper] 관리자 대시보드 이동 시작');
 
@@ -449,6 +460,7 @@ export async function navigateToAdminDashboard(
  * @param page - Playwright Page 객체
  */
 export async function resetAdminState(page: Page): Promise<void> {
+  assertAdminFeatureAvailable('resetAdminState');
   try {
     console.log('🧹 [Admin Helper] 관리자 상태 초기화 시작');
 
@@ -505,6 +517,7 @@ export async function resetAdminState(page: Page): Promise<void> {
  * @param page - Playwright Page 객체
  */
 export async function ensureGuestLogin(page: Page): Promise<void> {
+  assertAdminFeatureAvailable('ensureGuestLogin');
   try {
     await ensurePageContext(page);
 
@@ -689,6 +702,7 @@ export async function ensureGuestLogin(page: Page): Promise<void> {
  * @param page - Playwright Page object
  */
 export async function setTestModeCookies(page: Page): Promise<void> {
+  assertAdminFeatureAvailable('setTestModeCookies');
   try {
     console.log('🍪 [Admin Helper] 테스트 모드 쿠키 설정 시작');
 
@@ -743,6 +757,7 @@ export async function setTestModeCookies(page: Page): Promise<void> {
  * @returns 관리자 모드 활성화 여부
  */
 export async function verifyAdminState(page: Page): Promise<boolean> {
+  assertAdminFeatureAvailable('verifyAdminState');
   try {
     const adminState = await page.evaluate(() => {
       const localStorage_admin = localStorage.getItem('admin_mode') === 'true';
@@ -799,6 +814,7 @@ async function generateSecureTestToken(page: Page): Promise<string> {
  * @returns API 사용 가능 여부
  */
 export async function checkTestApiAvailability(page: Page): Promise<boolean> {
+  assertAdminFeatureAvailable('checkTestApiAvailability');
   try {
     const response = await page.evaluate(async () => {
       const res = await fetch('/api/test/admin-auth', {

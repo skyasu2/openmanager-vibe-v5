@@ -15,13 +15,17 @@ import { TIMEOUTS } from './helpers/timeouts';
 const BASE_URL = getTestBaseUrl();
 
 test.describe('전체 사용자 시나리오 플로우', () => {
-  test('게스트 → 시스템 시작 → 대시보드 → AI 어시스턴트 플로우', async ({ page }) => {
+  test('게스트 → 시스템 시작 → 대시보드 → AI 어시스턴트 플로우', async ({
+    page,
+  }) => {
     console.log('🚀 전체 시나리오 플로우 테스트 시작');
 
     // 1단계: 게스트 모드로 접속
     console.log('1️⃣ 게스트 모드로 접속');
     await page.goto(BASE_URL);
-    await page.waitForLoadState('networkidle', { timeout: TIMEOUTS.NETWORK_REQUEST });
+    await page.waitForLoadState('networkidle', {
+      timeout: TIMEOUTS.NETWORK_REQUEST,
+    });
 
     // 페이지 로딩 확인
     await expect(page).toHaveTitle(/OpenManager/i);
@@ -30,13 +34,17 @@ test.describe('전체 사용자 시나리오 플로우', () => {
     // 1.5단계: "게스트로 체험하기" 버튼 클릭
     console.log('1.5️⃣ 게스트로 체험하기 버튼 클릭');
 
-    const guestButton = await page.locator('button:has-text("게스트로 체험하기")').first();
+    const guestButton = await page
+      .locator('button:has-text("게스트로 체험하기")')
+      .first();
     await expect(guestButton).toBeVisible({ timeout: TIMEOUTS.MODAL_DISPLAY });
     await guestButton.click();
     console.log('✅ 게스트로 체험하기 버튼 클릭 완료');
 
     // 메인 페이지 로딩 대기
-    await page.waitForLoadState('networkidle', { timeout: TIMEOUTS.NETWORK_REQUEST });
+    await page.waitForLoadState('networkidle', {
+      timeout: TIMEOUTS.NETWORK_REQUEST,
+    });
     console.log('✅ 메인 애플리케이션 로딩 완료');
 
     // 2단계: 시스템 시작 버튼 찾기 및 클릭
@@ -48,13 +56,15 @@ test.describe('전체 사용자 시나리오 플로우', () => {
       'button:has-text("Start System")',
       '[data-testid="start-system"]',
       '.start-system-button',
-      'button[aria-label*="시스템 시작"]'
+      'button[aria-label*="시스템 시작"]',
     ];
 
     let startButton = null;
     for (const selector of startButtonSelectors) {
       try {
-        await page.waitForSelector(selector, { timeout: TIMEOUTS.MODAL_DISPLAY });
+        await page.waitForSelector(selector, {
+          timeout: TIMEOUTS.MODAL_DISPLAY,
+        });
         startButton = await page.locator(selector).first();
         if (await startButton.isVisible()) {
           console.log(`✅ 시스템 시작 버튼 발견: ${selector}`);
@@ -66,7 +76,9 @@ test.describe('전체 사용자 시나리오 플로우', () => {
     }
 
     if (!startButton) {
-      console.log('⚠️ 시스템 시작 버튼을 찾을 수 없음. 모든 버튼을 다시 출력합니다.');
+      console.log(
+        '⚠️ 시스템 시작 버튼을 찾을 수 없음. 모든 버튼을 다시 출력합니다.'
+      );
       const allButtons = await page.locator('button').all();
       for (let i = 0; i < allButtons.length; i++) {
         const text = await allButtons[i].textContent();
@@ -77,7 +89,9 @@ test.describe('전체 사용자 시나리오 플로우', () => {
     }
 
     // 시스템 시작 버튼이 활성화될 때까지 대기
-    await expect(startButton).not.toBeDisabled({ timeout: TIMEOUTS.FORM_SUBMIT });
+    await expect(startButton).not.toBeDisabled({
+      timeout: TIMEOUTS.FORM_SUBMIT,
+    });
     await startButton.click();
     console.log('✅ 시스템 시작 버튼 클릭');
 
@@ -86,7 +100,9 @@ test.describe('전체 사용자 시나리오 플로우', () => {
 
     // 대시보드 URL 변경 또는 대시보드 요소 등장 대기
     try {
-      await page.waitForURL('**/dashboard**', { timeout: TIMEOUTS.NETWORK_REQUEST });
+      await page.waitForURL('**/dashboard**', {
+        timeout: TIMEOUTS.NETWORK_REQUEST,
+      });
       console.log('✅ 대시보드 URL로 이동 완료');
     } catch (e) {
       console.log('⚠️ URL 변경은 안 됐지만 대시보드 요소를 찾아봅니다');
@@ -97,13 +113,15 @@ test.describe('전체 사용자 시나리오 플로우', () => {
         'h1:has-text("대시보드")',
         '[data-testid="dashboard"]',
         '.dashboard-container',
-        '.dashboard-header'
+        '.dashboard-header',
       ];
 
       let dashboardFound = false;
       for (const selector of dashboardSelectors) {
         try {
-          await page.waitForSelector(selector, { timeout: TIMEOUTS.MODAL_DISPLAY });
+          await page.waitForSelector(selector, {
+            timeout: TIMEOUTS.MODAL_DISPLAY,
+          });
           console.log(`✅ 대시보드 요소 발견: ${selector}`);
           dashboardFound = true;
           break;
@@ -113,7 +131,9 @@ test.describe('전체 사용자 시나리오 플로우', () => {
       }
 
       if (!dashboardFound) {
-        console.log('⚠️ 대시보드 요소를 찾을 수 없음. 현재 페이지 내용을 확인합니다.');
+        console.log(
+          '⚠️ 대시보드 요소를 찾을 수 없음. 현재 페이지 내용을 확인합니다.'
+        );
         const currentURL = page.url();
         const pageTitle = await page.title();
         console.log(`현재 URL: ${currentURL}`);
@@ -132,13 +152,15 @@ test.describe('전체 사용자 시나리오 플로우', () => {
       '[data-testid="ai-button"]',
       '.ai-assistant-button',
       'button[aria-label*="AI"]',
-      'button[title*="AI"]'
+      'button[title*="AI"]',
     ];
 
     let aiButton = null;
     for (const selector of aiButtonSelectors) {
       try {
-        await page.waitForSelector(selector, { timeout: TIMEOUTS.MODAL_DISPLAY });
+        await page.waitForSelector(selector, {
+          timeout: TIMEOUTS.MODAL_DISPLAY,
+        });
         aiButton = await page.locator(selector).first();
         if (await aiButton.isVisible()) {
           console.log(`✅ AI 어시스턴트 버튼 발견: ${selector}`);
@@ -150,13 +172,17 @@ test.describe('전체 사용자 시나리오 플로우', () => {
     }
 
     if (!aiButton) {
-      console.log('⚠️ AI 어시스턴트 버튼을 찾을 수 없음. 현재 페이지의 모든 버튼을 출력합니다.');
+      console.log(
+        '⚠️ AI 어시스턴트 버튼을 찾을 수 없음. 현재 페이지의 모든 버튼을 출력합니다.'
+      );
       const allButtons = await page.locator('button').all();
       for (let i = 0; i < allButtons.length; i++) {
         const text = await allButtons[i].textContent();
         const ariaLabel = await allButtons[i].getAttribute('aria-label');
         const title = await allButtons[i].getAttribute('title');
-        console.log(`Button ${i}: text="${text}", aria-label="${ariaLabel}", title="${title}"`);
+        console.log(
+          `Button ${i}: text="${text}", aria-label="${ariaLabel}", title="${title}"`
+        );
       }
 
       // AI 어시스턴트 버튼이 없으면 경고만 하고 테스트 계속
@@ -202,21 +228,30 @@ test.describe('전체 사용자 시나리오 플로우', () => {
         // 일반적인 사이드바 패턴
         'aside',
         '.drawer',
-        '.offcanvas'
+        '.offcanvas',
       ];
 
       let aiSidebarFound = false;
       for (const selector of aiSidebarSelectors) {
         try {
-          await page.waitForSelector(selector, { timeout: TIMEOUTS.MODAL_DISPLAY });
+          await page.waitForSelector(selector, {
+            timeout: TIMEOUTS.MODAL_DISPLAY,
+          });
           const element = await page.locator(selector).first();
           if (await element.isVisible()) {
             console.log(`✅ AI 사이드바 발견: ${selector}`);
 
             // 사이드바 내용 확인
             const sidebarContent = await element.textContent();
-            if (sidebarContent && (sidebarContent.includes('AI') || sidebarContent.includes('어시스턴트') || sidebarContent.includes('Assistant'))) {
-              console.log(`✅ AI 사이드바 내용 확인: ${sidebarContent.substring(0, 100)}...`);
+            if (
+              sidebarContent &&
+              (sidebarContent.includes('AI') ||
+                sidebarContent.includes('어시스턴트') ||
+                sidebarContent.includes('Assistant'))
+            ) {
+              console.log(
+                `✅ AI 사이드바 내용 확인: ${sidebarContent.substring(0, 100)}...`
+              );
               aiSidebarFound = true;
               break;
             }
@@ -227,13 +262,19 @@ test.describe('전체 사용자 시나리오 플로우', () => {
       }
 
       if (!aiSidebarFound) {
-        console.log('⚠️ AI 사이드바를 찾을 수 없음. 페이지의 모든 aside/sidebar 요소를 검사합니다.');
+        console.log(
+          '⚠️ AI 사이드바를 찾을 수 없음. 페이지의 모든 aside/sidebar 요소를 검사합니다.'
+        );
 
-        const allSidebars = await page.locator('aside, .sidebar, .panel, .drawer, [class*="side"]').all();
+        const allSidebars = await page
+          .locator('aside, .sidebar, .panel, .drawer, [class*="side"]')
+          .all();
         for (let i = 0; i < allSidebars.length; i++) {
           const text = await allSidebars[i].textContent();
           const isVisible = await allSidebars[i].isVisible();
-          console.log(`Sidebar ${i}: visible=${isVisible}, content="${text?.substring(0, 50)}..."`);
+          console.log(
+            `Sidebar ${i}: visible=${isVisible}, content="${text?.substring(0, 50)}..."`
+          );
         }
       }
     }
@@ -245,20 +286,20 @@ test.describe('전체 사용자 시나리오 플로우', () => {
     const dashboardElements = {
       headers: await page.locator('h1, h2, h3').count(),
       buttons: await page.locator('button').count(),
-      canvases: await page.locator('canvas, svg').count()
+      canvases: await page.locator('canvas, svg').count(),
     };
 
     console.log(`✅ 대시보드 요소 확인: ${JSON.stringify(dashboardElements)}`);
 
-    // 현재 인증 상태 확인 (프로필에 "관리자 모드" 표시 여부)
-    try {
-      const profileStatus = await page.locator('button:has-text("관리자")').first();
-      if (await profileStatus.isVisible()) {
-        console.log('✅ 관리자 모드 인증 상태 확인됨');
-      }
-    } catch (e) {
-      console.log('⚠️ 관리자 모드 상태 확인 불가');
+    // 관리자 모드 UI가 노출되지 않는지 점검
+    const adminBadge = page.locator('text=관리자 모드');
+    const adminBadgeCount = await adminBadge.count();
+    if (adminBadgeCount > 0) {
+      console.log('❌ 관리자 모드 배지가 여전히 노출되고 있습니다.');
+    } else {
+      console.log('ℹ️ 관리자 모드 배지가 표시되지 않는 것을 확인했습니다.');
     }
+    expect(adminBadgeCount).toBe(0);
 
     console.log('🎉 전체 시나리오 플로우 테스트 완료!');
 

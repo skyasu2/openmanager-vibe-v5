@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { TIMEOUTS } from './helpers/timeouts';
 import { ensureVercelBypassCookie } from './helpers/security';
+import {
+  ADMIN_FEATURES_REMOVED,
+  ADMIN_FEATURES_SKIP_MESSAGE,
+} from './helpers/featureFlags';
 
 /**
  * 관리자 모드 PIN 4231 인증 API 테스트 (축소 범위)
@@ -28,6 +32,7 @@ const ADMIN_PIN = '4231';
 const DASHBOARD_ROUTE_REGEX = /\/(dashboard|main)(\/|\?|$)/;
 
 test.describe('🔐 관리자 모드 PIN 인증 API 테스트 (축소 범위)', () => {
+  test.skip(ADMIN_FEATURES_REMOVED, ADMIN_FEATURES_SKIP_MESSAGE);
   test('게스트 로그인 → PIN 4231 입력 → API 응답 검증', async ({
     page,
     context,

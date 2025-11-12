@@ -6,6 +6,10 @@ import {
   verifyAdminState,
   setTestModeCookies,
 } from './helpers/admin';
+import {
+  ADMIN_FEATURES_REMOVED,
+  ADMIN_FEATURES_SKIP_MESSAGE,
+} from './helpers/featureFlags';
 
 /**
  * 🎯 OpenManager VIBE 프론트엔드 UI/UX 종합 테스트
@@ -18,6 +22,7 @@ import {
  */
 
 test.describe('🎯 OpenManager VIBE UI/UX 종합 테스트', () => {
+  test.skip(ADMIN_FEATURES_REMOVED, ADMIN_FEATURES_SKIP_MESSAGE);
   test.beforeEach(async ({ page, context }) => {
     // 🧹 완전한 상태 초기화 - 인증 세션 포함
 
@@ -62,17 +67,17 @@ test.describe('🎯 OpenManager VIBE UI/UX 종합 테스트', () => {
       await setTestModeCookies(page);
 
       // 2. 게스트 로그인 버튼 확인 및 클릭 (OR selector for resilience)
-    const guestButton = page.locator(
-      'button:has-text("게스트"), button:has-text("체험")'
-    );
+      const guestButton = page.locator(
+        'button:has-text("게스트"), button:has-text("체험")'
+      );
       await expect(guestButton).toBeVisible();
       await expect(guestButton).toBeEnabled(); // 🔧 FIX: Check button is not disabled before clicking
       await guestButton.click();
-      
+
       // 🔧 FIX: Add explicit wait for navigation to start
       // LoginClient uses 500ms setTimeout before window.location.href navigation
       await page.waitForTimeout(1000); // Wait for 500ms delay + margin
-      
+
       // Then wait for navigation to complete
       await page.waitForLoadState('networkidle'); // 🔧 Wait for navigation to complete
 
