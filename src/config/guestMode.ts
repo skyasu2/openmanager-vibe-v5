@@ -110,6 +110,23 @@ export function isGuestFullAccessEnabled(): boolean {
 }
 
 /**
+ * 게스트가 시스템 시작 버튼 등 제어 기능을 사용할 수 있는지 여부
+ * @default true
+ */
+export function isGuestSystemStartEnabled(): boolean {
+  const flag = parseGuestBooleanFlag(
+    process.env.NEXT_PUBLIC_GUEST_SYSTEM_START_ENABLED
+  );
+
+  if (typeof flag === 'boolean') {
+    return flag;
+  }
+
+  // 별도 설정이 없다면 개발/테스트 편의성을 위해 허용
+  return true;
+}
+
+/**
  * 현재 게스트 모드 설정 정보를 반환합니다.
  *
  * @returns 설정 정보 객체

@@ -8,8 +8,6 @@ import type { ProfileMenuState } from '../types/profile.types';
 export function useProfileMenu() {
   const [menuState, setMenuState] = useState<ProfileMenuState>({
     showProfileMenu: false,
-    showAdminInput: false,
-    adminPassword: '',
   });
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -20,12 +18,10 @@ export function useProfileMenu() {
    */
   const toggleMenu = useCallback((e?: MouseEvent) => {
     e?.stopPropagation(); // 이벤트 버블링 방지
-    
+
     setMenuState((prev) => ({
       ...prev,
       showProfileMenu: !prev.showProfileMenu,
-      showAdminInput: false,
-      adminPassword: '',
     }));
   }, []);
 
@@ -45,41 +41,7 @@ export function useProfileMenu() {
   const closeMenu = useCallback(() => {
     setMenuState({
       showProfileMenu: false,
-      showAdminInput: false,
-      adminPassword: '',
     });
-  }, []);
-
-  /**
-   * 관리자 입력 토글
-   */
-  const toggleAdminInput = useCallback(() => {
-    setMenuState((prev) => ({
-      ...prev,
-      showAdminInput: !prev.showAdminInput,
-      adminPassword: '',
-    }));
-  }, []);
-
-  /**
-   * 관리자 비밀번호 변경
-   */
-  const setAdminPassword = useCallback((password: string) => {
-    setMenuState((prev) => ({
-      ...prev,
-      adminPassword: password,
-    }));
-  }, []);
-
-  /**
-   * 관리자 입력 취소
-   */
-  const cancelAdminInput = useCallback(() => {
-    setMenuState((prev) => ({
-      ...prev,
-      showAdminInput: false,
-      adminPassword: '',
-    }));
   }, []);
 
   // 외부 클릭 감지 (타이밍 최적화)
@@ -101,8 +63,6 @@ export function useProfileMenu() {
         console.log('🎯 외부 클릭 감지됨, 드롭다운 닫기');
         setMenuState({
           showProfileMenu: false,
-          showAdminInput: false,
-          adminPassword: '',
         });
       }
     };
@@ -141,8 +101,6 @@ export function useProfileMenu() {
       if (event.key === 'Escape' && menuState.showProfileMenu) {
         setMenuState({
           showProfileMenu: false,
-          showAdminInput: false,
-          adminPassword: '',
         });
       }
     };
@@ -175,9 +133,6 @@ export function useProfileMenu() {
     toggleMenu,
     openMenu,
     closeMenu,
-    toggleAdminInput,
-    setAdminPassword,
-    cancelAdminInput,
   };
 }
 

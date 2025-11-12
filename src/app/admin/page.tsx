@@ -9,11 +9,8 @@
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-import AdminClient from './AdminClient';
-
-// 서버 컴포넌트 - 클라이언트 컴포넌트 렌더링만 담당
+import { redirect } from 'next/navigation';
 
 export default function AdminPage() {
-  // 서버 컴포넌트에서는 클라이언트 컴포넌트 렌더링만
-  return <AdminClient />;
+  redirect('/dashboard');
 }

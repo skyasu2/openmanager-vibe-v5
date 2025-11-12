@@ -63,25 +63,7 @@ export interface ProfileDropdownMenuProps {
   menuItems: MenuItem[];
   userInfo: UserInfo | null;
   userType: UserType;
-  isAdminMode: boolean;
   onClose: () => void;
-  onAdminAuthClick: () => void;
-  showAdminInput: boolean;
-  adminAuthProps: AdminAuthProps;
-}
-
-/**
- * 관리자 인증 Props
- */
-export interface AdminAuthProps {
-  isLocked: boolean;
-  failedAttempts: number;
-  remainingLockTime: number;
-  isProcessing: boolean;
-  adminPassword: string;
-  onPasswordChange: (password: string) => void;
-  onSubmit: () => void;
-  onCancel: () => void;
 }
 
 /**
@@ -100,8 +82,6 @@ export interface ProfileSecurityState {
  */
 export interface ProfileMenuState {
   showProfileMenu: boolean;
-  showAdminInput: boolean;
-  adminPassword: string;
 }
 
 /**

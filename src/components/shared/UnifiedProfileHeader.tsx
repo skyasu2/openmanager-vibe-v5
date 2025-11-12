@@ -1,18 +1,11 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useSystemStatusStore } from '@/stores/useSystemStatusStore';
 // framer-motion 제거 - CSS 애니메이션 사용
-import {
-  BarChart3,
-  ChevronDown,
-  Crown,
-  LogOut,
-  Power,
-  Shield,
-} from 'lucide-react';
+import { BarChart3, ChevronDown, LogOut, Power, Shield } from 'lucide-react';
 
 // 프로필 컴포넌트 임포트
 import {
@@ -25,7 +18,6 @@ import { EnhancedProfileStatusDisplay } from '@/components/unified-profile/Enhan
 // 프로필 훅 임포트
 import { useProfileAuth } from '@/components/profile/hooks/useProfileAuth';
 import { useProfileMenu } from '@/components/profile/hooks/useProfileMenu';
-import { useProfileSecurity } from '@/components/profile/hooks/useProfileSecurity';
 
 // 타입 임포트
 import type {
@@ -47,36 +39,15 @@ export default function UnifiedProfileHeader({
     status,
     handleLogout,
     navigateToLogin,
-    navigateToAdmin,
     navigateToDashboard,
   } = useProfileAuth();
 
-  const { securityState, isAdminMode, authenticateAdmin, disableAdminMode } =
-    useProfileSecurity();
-
-  const {
-    menuState,
-    dropdownRef,
-    toggleMenu,
-    openMenu,
-    closeMenu,
-    toggleAdminInput,
-    setAdminPassword,
-    cancelAdminInput,
-  } = useProfileMenu();
+  const { menuState, dropdownRef, toggleMenu, closeMenu } = useProfileMenu();
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
     setIsHydrated(true);
   }, []);
-
-  const prevAdminModeRef = useRef(isAdminMode);
-  useEffect(() => {
-    if (!prevAdminModeRef.current && isAdminMode) {
-      openMenu();
-    }
-    prevAdminModeRef.current = isAdminMode;
-  }, [isAdminMode, openMenu]);
 
   const { status: systemStatus } = useSystemStatus();
   const { isSystemStarted } = useUnifiedAdminStore(); // 🎯 로컬 상태 직접 접근으로 즉시 동기화
@@ -123,47 +94,16 @@ export default function UnifiedProfileHeader({
   }, [closeMenu, systemStopHandler]);
 
   // 관리자 인증 핸들러
-  const handleAdminAuth = useCallback(async () => {
-    console.log('🔐 handleAdminAuth 함수 호출됨:', menuState.adminPassword); // 디버그 로그
-    const success = await authenticateAdmin(menuState.adminPassword);
-    console.log('🔐 인증 결과:', success); // 디버그 로그
-    if (success) {
-      cancelAdminInput();
-      // 🔥 closeMenu() 제거 - 사용자가 관리자 모드 활성화를 즉시 확인할 수 있도록
-    }
-  }, [menuState.adminPassword, authenticateAdmin, cancelAdminInput]);
-
-  // 강화된 로그아웃 핸들러
-  const handleEnhancedLogout = useCallback(async () => {
-    // 관리자 모드 해제
-    if (isAdminMode) {
-      disableAdminMode();
-    }
-
+  const handleLogoutClick = useCallback(async () => {
     const success = await handleLogout();
     if (success) {
       closeMenu();
     }
-  }, [closeMenu, disableAdminMode, handleLogout, isAdminMode]);
+  }, [closeMenu, handleLogout]);
 
   // 메뉴 아이템 구성
   const menuItems = useMemo<MenuItem[]>(() => {
     const items: MenuItem[] = [];
-
-    // 관리자 모드일 때
-    if (isAdminMode) {
-      items.push({
-        id: 'admin-page',
-        label: '관리자 페이지',
-        icon: Crown,
-        action: () => {
-          closeMenu();
-          setTimeout(() => navigateToAdmin(), 100);
-        },
-        visible: true,
-        danger: false,
-      });
-    }
 
     // GitHub 사용자 시스템 관리 메뉴
     if (userType === 'github') {
@@ -196,7 +136,7 @@ export default function UnifiedProfileHeader({
     }
 
     // 게스트 사용자 메뉴
-    if (userType === 'guest' && !isAdminMode) {
+    if (userType === 'guest') {
       items.push({
         id: 'github-login',
         label: 'GitHub로 로그인',
@@ -216,7 +156,7 @@ export default function UnifiedProfileHeader({
       id: 'logout',
       label: userType === 'github' ? 'GitHub 로그아웃' : '게스트 세션 종료',
       icon: LogOut,
-      action: handleEnhancedLogout,
+      action: handleLogoutClick,
       visible: true,
       danger: true,
       badge: '확인 후 종료',
@@ -225,30 +165,18 @@ export default function UnifiedProfileHeader({
 
     return items;
   }, [
-    isAdminMode,
     userType,
     systemStatus,
-    isSystemStarted, // 🎯 로컬 시스템 상태 의존성 추가
+    isSystemStarted,
     closeMenu,
-    navigateToAdmin,
     navigateToDashboard,
     navigateToLogin,
     handleSystemStop,
-    handleEnhancedLogout,
+    handleLogoutClick,
   ]);
 
   // 사용자 정보 가져오기
   const getUserName = () => {
-    if (isAdminMode) {
-      if (userInfo?.name) {
-        return `${userInfo.name} · 관리자`;
-      }
-      if (userType === 'github') {
-        return 'GitHub 관리자';
-      }
-      return '관리자 (게스트)';
-    }
-
     if (userInfo) {
       return (
         userInfo.name ||
@@ -290,10 +218,9 @@ export default function UnifiedProfileHeader({
         <ProfileAvatar
           userInfo={userInfo}
           userType={userType}
-          isAdminMode={isAdminMode}
+          isAdminMode={false}
           size="medium"
         />
-        {isAdminMode && <span className="sr-only">관리자</span>}
 
         {/* 사용자 정보 */}
         <div className="hidden text-left sm:block">
@@ -301,25 +228,18 @@ export default function UnifiedProfileHeader({
             {getUserName()}
             <UserTypeIcon
               userType={userType}
-              isAdminMode={isAdminMode}
+              isAdminMode={false}
               className="h-3 w-3"
             />
-            {isAdminMode && (
-              <span className="ml-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
-                관리자 모드
-              </span>
-            )}
           </div>
           <div className="flex items-center gap-1 text-xs text-gray-500">
-            {isAdminMode
-              ? '관리자 모드 활성화됨'
-              : userType === 'github'
-                ? 'GitHub 로그인'
-                : userType === 'guest'
-                  ? '게스트 로그인'
-                  : status === 'loading'
-                    ? '확인 중...'
-                    : '알 수 없음'}
+            {userType === 'github'
+              ? 'GitHub 로그인'
+              : userType === 'guest'
+                ? '게스트 로그인'
+                : status === 'loading'
+                  ? '확인 중...'
+                  : '알 수 없음'}
             {status === 'loading' && (
               <div className="_animate-pulse h-2 w-2 rounded-full bg-gray-400" />
             )}
@@ -340,20 +260,7 @@ export default function UnifiedProfileHeader({
         menuItems={menuItems}
         userInfo={userInfo}
         userType={userType}
-        isAdminMode={isAdminMode}
         onClose={closeMenu}
-        onAdminAuthClick={toggleAdminInput}
-        showAdminInput={menuState.showAdminInput}
-        adminAuthProps={{
-          isLocked: securityState.isLocked,
-          failedAttempts: securityState.failedAttempts,
-          remainingLockTime: securityState.remainingLockTime,
-          isProcessing: securityState.isProcessing,
-          adminPassword: menuState.adminPassword,
-          onPasswordChange: setAdminPassword,
-          onSubmit: handleAdminAuth,
-          onCancel: cancelAdminInput,
-        }}
       />
 
       {/* GitHub 사용자용 시스템 상태 표시 (드롭다운 내부에 위치) */}

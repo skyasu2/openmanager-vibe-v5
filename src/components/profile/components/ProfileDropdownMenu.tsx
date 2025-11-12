@@ -2,10 +2,8 @@
 
 import React, { memo } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
-import { Crown } from 'lucide-react';
 import { ProfileAvatar, UserTypeIcon } from './ProfileAvatar';
 import { ProfileMenuItem } from './ProfileMenuItem';
-import { AdminAuthModal } from './AdminAuthModal';
 import type { ProfileDropdownMenuProps } from '../types/profile.types';
 
 /**
@@ -17,11 +15,7 @@ export const ProfileDropdownMenu = memo(function ProfileDropdownMenu({
   menuItems,
   userInfo,
   userType,
-  isAdminMode,
   onClose,
-  onAdminAuthClick,
-  showAdminInput,
-  adminAuthProps,
 }: ProfileDropdownMenuProps) {
   const getUserName = () => {
     if (userInfo) {
@@ -39,14 +33,12 @@ export const ProfileDropdownMenu = memo(function ProfileDropdownMenu({
   };
 
   const getUserTypeLabel = () => {
-    if (isAdminMode) return '관리자';
     if (userType === 'github') return 'GitHub';
     if (userType === 'guest') return '게스트';
     return '알 수 없음';
   };
 
   const getUserTypeClass = () => {
-    if (isAdminMode) return 'bg-red-100 text-red-700';
     if (userType === 'github') return 'bg-green-100 text-green-700';
     if (userType === 'guest') return 'bg-blue-100 text-blue-700';
     return 'bg-gray-100 text-gray-700';
@@ -67,7 +59,7 @@ export const ProfileDropdownMenu = memo(function ProfileDropdownMenu({
               <ProfileAvatar
                 userInfo={userInfo}
                 userType={userType}
-                isAdminMode={isAdminMode}
+                isAdminMode={false}
                 size="large"
                 showBadge={false}
               />
@@ -77,7 +69,7 @@ export const ProfileDropdownMenu = memo(function ProfileDropdownMenu({
                   {getUserName()}
                   <UserTypeIcon
                     userType={userType}
-                    isAdminMode={isAdminMode}
+                    isAdminMode={false}
                     className="h-4 w-4 flex-shrink-0"
                   />
                 </div>
@@ -99,23 +91,6 @@ export const ProfileDropdownMenu = memo(function ProfileDropdownMenu({
 
           {/* 메뉴 아이템들 */}
           <div className="py-1">
-            {/* 관리자 모드 섹션 */}
-            {!isAdminMode && (
-              <>
-                <ProfileMenuItem
-                  id="admin-toggle"
-                  label="관리자 모드"
-                  icon={Crown}
-                  action={onAdminAuthClick}
-                  visible={true}
-                  disabled={adminAuthProps.isLocked}
-                  description={adminAuthProps.isLocked ? '(잠금됨)' : undefined}
-                />
-
-                {showAdminInput && <AdminAuthModal {...adminAuthProps} />}
-              </>
-            )}
-
             {/* 메뉴 아이템 렌더링 */}
             {menuItems.map((item, index) => (
               <ProfileMenuItem
@@ -133,9 +108,7 @@ export const ProfileDropdownMenu = memo(function ProfileDropdownMenu({
 
           {/* 하단 정보 */}
           <div className="border-t border-gray-100 px-4 py-2">
-            <p className="text-center text-xs text-gray-400">
-              {isAdminMode ? '🔒 관리자 권한으로 실행 중' : '🛡️ 보안 연결됨'}
-            </p>
+            <p className="text-center text-xs text-gray-400">🛡️ 보안 연결됨</p>
           </div>
         </div>
       )}

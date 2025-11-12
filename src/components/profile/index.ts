@@ -10,7 +10,6 @@ export {
   MenuDivider,
   MenuSectionHeader,
 } from './components/ProfileMenuItem';
-export { AdminAuthModal } from './components/AdminAuthModal';
 
 // 훅
 export { useProfileAuth } from './hooks/useProfileAuth';
@@ -25,7 +24,6 @@ export type {
   UnifiedProfileHeaderProps,
   ProfileAvatarProps,
   ProfileDropdownMenuProps,
-  AdminAuthProps,
   ProfileSecurityState,
   ProfileMenuState,
   SystemStatus,

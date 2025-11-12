@@ -15,7 +15,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { getCookieValue, hasCookie } from '@/utils/cookies/safe-cookie-utils';
 import { setupCSRFProtection } from '@/utils/security/csrf';
-import { isGuestFullAccessEnabled } from '@/config/guestMode';
 
 // ============================================================
 // 🔒 IP 화이트리스트 보안 (Module-level 캐싱 최적화)
@@ -250,41 +249,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // ============================================================
-    // 3️⃣-A 🔐 관리자 페이지 접근 체크
-    // ============================================================
-
-    // 🎛️ 환경 변수 기반 게스트 모드 체크
-    const isGuestFullAccess = isGuestFullAccessEnabled();
-
-    if (pathname.startsWith('/admin')) {
-      // 🧪 테스트 모드 확인
-      if (isTestMode(request)) {
-        console.log('✅ 미들웨어: 테스트 모드 - /admin 접근 자동 허용');
-      }
-      // 🎛️ 게스트 전체 접근 모드
-      else if (isGuestFullAccess) {
-        console.log(
-          '✅ 미들웨어: 게스트 전체 접근 모드 - /admin 접근 허용 (NEXT_PUBLIC_GUEST_MODE=full_access)'
-        );
-      }
-      // 🔐 프로덕션 모드: admin_mode 쿠키 체크
-      else {
-        const adminModeCookie = getCookieValue(request, 'admin_mode');
-
-        console.log('🔍 [Admin Check] admin_mode 쿠키 값:', adminModeCookie);
-
-        // admin_mode 쿠키가 없으면 리다이렉트
-        if (adminModeCookie !== 'true') {
-          console.log('🔐 미들웨어: admin_mode 쿠키 없음 → /main 리다이렉트');
-          return NextResponse.redirect(new URL('/main', request.url));
-        }
-
-        console.log('✅ 미들웨어: admin_mode 쿠키 확인 → /admin 접근 허용');
-      }
-    }
-
-    // ============================================================
-    // 4️⃣ ⚡ 성능 최적화 헤더 추가
+    // 3️⃣ ⚡ 성능 최적화 헤더 추가
     // ============================================================
 
     // 🌐 지리적 정보 추출 (Vercel Edge Runtime에서만 사용 가능)
