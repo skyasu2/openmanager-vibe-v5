@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ProfileSecurityState } from '../types/profile.types';
-import { ADMIN_PASSWORD } from '@/config/system-constants';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useAuthStore } from '@/stores/auth-store'; // Phase 2: Zustand 전환
 const MAX_ATTEMPTS = 5;
@@ -30,6 +29,70 @@ export function useProfileSecurity() {
     remainingLockTime: 0,
     isProcessing: false,
   });
+
+  const hydrateAdminModeFromPersistentState = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    const hasAdminCookie = document.cookie
+      .split(';')
+      .some((cookie) => cookie.trim().startsWith('admin_mode=true'));
+
+    const readPersistedFlag = (key: string, path: string[]): boolean => {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return false;
+        const parsed = JSON.parse(raw);
+        let value: unknown = parsed;
+        for (const segment of path) {
+          if (
+            value !== null &&
+            typeof value === 'object' &&
+            segment in (value as Record<string, unknown>)
+          ) {
+            value = (value as Record<string, unknown>)[segment];
+          } else {
+            return false;
+          }
+        }
+        return Boolean(value);
+      } catch (error) {
+        console.warn(`⚠️ [Security] ${key} 파싱 실패:`, error);
+        return false;
+      }
+    };
+
+    const persistedAdminStore = readPersistedFlag('unified-admin-storage', [
+      'state',
+      'adminMode',
+      'isAuthenticated',
+    ]);
+    const persistedAuthStore = readPersistedFlag('auth-storage', [
+      'state',
+      'adminMode',
+    ]);
+
+    const shouldHydrate =
+      hasAdminCookie || persistedAdminStore || persistedAuthStore;
+
+    if (!shouldHydrate) {
+      return;
+    }
+
+    const currentAdminState = useUnifiedAdminStore.getState().adminMode;
+    if (!currentAdminState.isAuthenticated) {
+      useUnifiedAdminStore.setState((state) => ({
+        ...state,
+        adminMode: {
+          isAuthenticated: true,
+          lastLoginTime: state.adminMode.lastLoginTime || Date.now(),
+        },
+      }));
+    }
+
+    if (!useAuthStore.getState().adminMode) {
+      setPinAuth();
+    }
+  }, [setPinAuth]);
 
   // 초기 상태 로드
   useEffect(() => {
@@ -67,15 +130,31 @@ export function useProfileSecurity() {
     checkLockStatus();
   }, []);
 
+  useEffect(() => {
+    hydrateAdminModeFromPersistentState();
+
+    if (typeof window === 'undefined') return;
+
+    const handler = () => hydrateAdminModeFromPersistentState();
+    window.addEventListener('storage', handler);
+    window.addEventListener('local-storage-changed', handler);
+
+    return () => {
+      window.removeEventListener('storage', handler);
+      window.removeEventListener('local-storage-changed', handler);
+    };
+  }, [hydrateAdminModeFromPersistentState]);
+
   // 잠금 시간 카운트다운
   useEffect(() => {
     let timer: NodeJS.Timeout;
 
     if (securityState.isLocked && securityState.lockEndTime) {
+      const lockedUntil = securityState.lockEndTime;
       timer = setInterval(() => {
         const remaining = Math.max(
           0,
-          Math.ceil((securityState.lockEndTime! - Date.now()) / 1000)
+          Math.ceil((lockedUntil - Date.now()) / 1000)
         );
 
         setSecurityState((prev) => ({
@@ -105,35 +184,37 @@ export function useProfileSecurity() {
    * 관리자 인증 처리 - Zustand 스토어 사용
    */
   const { authenticateAdmin: zustandAuth } = useUnifiedAdminStore();
+  const { isLocked, failedAttempts, remainingLockTime, isProcessing } =
+    securityState;
   const authenticateAdmin = useCallback(
     async (password: string): Promise<boolean> => {
       // 잠금 상태 확인
-      if (securityState.isLocked) {
+      if (isLocked) {
         alert(
-          `🔒 보안상 ${Math.ceil(securityState.remainingLockTime / 60)}분 ${
-            securityState.remainingLockTime % 60
+          `🔒 보안상 ${Math.ceil(remainingLockTime / 60)}분 ${
+            remainingLockTime % 60
           }초 후에 다시 시도해주세요.`
         );
         return false;
       }
 
       // 처리 중 상태 설정
-      if (securityState.isProcessing) return false;
+      if (isProcessing) return false;
 
       setSecurityState((prev) => ({ ...prev, isProcessing: true }));
 
       try {
         // 브루트포스 공격 방어를 위한 지연
-        const delay = Math.min(securityState.failedAttempts * 1000, 5000);
+        const delay = Math.min(failedAttempts * 1000, 5000);
         if (delay > 0) {
           await new Promise((resolve) => setTimeout(resolve, delay));
         }
 
         console.log('🔐 관리자 인증 시도'); // 디버그 로그
-        
+
         // Zustand 스토어의 인증 함수 사용
         const result = await zustandAuth(password);
-        
+
         console.log('🔐 Zustand 인증 결과:', result); // 디버그 로그
 
         if (result.success) {
@@ -153,11 +234,13 @@ export function useProfileSecurity() {
           // ⚡ Phase 2: Zustand 스토어로 인증 상태 설정 (5배 성능 향상)
           // 🔥 Zustand가 자동으로 localStorage와 동기화하므로 수동 설정 불필요
 
-          console.log('🔑 관리자 모드 활성화 (Zustand 자동 동기화 + 게스트 세션 자동 생성)');
+          console.log(
+            '🔑 관리자 모드 활성화 (Zustand 자동 동기화 + 게스트 세션 자동 생성)'
+          );
           return true;
         } else {
           // 인증 실패
-          const newFailedAttempts = securityState.failedAttempts + 1;
+          const newFailedAttempts = failedAttempts + 1;
 
           let lockTime: number | null = null;
           let alertMessage = `❌ 잘못된 관리자 비밀번호입니다. (${newFailedAttempts}/${MAX_ATTEMPTS})`;
@@ -199,7 +282,14 @@ export function useProfileSecurity() {
         setSecurityState((prev) => ({ ...prev, isProcessing: false }));
       }
     },
-    [zustandAuth, securityState.isLocked, securityState.failedAttempts] // Zustand 함수 의존성 추가
+    [
+      zustandAuth,
+      isLocked,
+      failedAttempts,
+      remainingLockTime,
+      isProcessing,
+      setPinAuth,
+    ]
   );
 
   /**
@@ -214,12 +304,14 @@ export function useProfileSecurity() {
 
     // 🔧 FIX: localStorage admin_mode도 정리
     localStorage.removeItem('admin_mode');
-    
+
     // 🔥 수동 storage 이벤트 발생 (AI 교차검증 해결책)
-    window.dispatchEvent(new CustomEvent('local-storage-changed', {
-      detail: { key: 'admin_mode', value: null }
-    }));
-    
+    window.dispatchEvent(
+      new CustomEvent('local-storage-changed', {
+        detail: { key: 'admin_mode', value: null },
+      })
+    );
+
     console.log('🔒 관리자 모드 해제 (localStorage + Zustand + 이벤트 발생)');
   }, [logoutAdmin]);
 

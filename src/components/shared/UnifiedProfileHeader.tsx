@@ -68,7 +68,7 @@ export default function UnifiedProfileHeader({
   const { isSystemStarted } = useUnifiedAdminStore(); // 🎯 로컬 상태 직접 접근으로 즉시 동기화
 
   // 🔄 Zustand 스토어에서 시스템 상태 직접 읽기 (Props Drilling 제거)
-  const { isActive: systemActive, stop: systemStopHandler } = useSystemStatusStore();
+  const { stop: systemStopHandler } = useSystemStatusStore();
 
   // 시스템 종료 핸들러 - 스토어의 stop 함수 사용
   const handleSystemStop = useCallback(async () => {
@@ -117,7 +117,7 @@ export default function UnifiedProfileHeader({
       cancelAdminInput();
       // 🔥 closeMenu() 제거 - 사용자가 관리자 모드 활성화를 즉시 확인할 수 있도록
     }
-  }, [menuState.adminPassword]); // ✅ 함수 의존성 제거, primitive 값만 유지 - React Error #310 방지
+  }, [menuState.adminPassword, authenticateAdmin, cancelAdminInput]);
 
   // 강화된 로그아웃 핸들러
   const handleEnhancedLogout = useCallback(async () => {
@@ -130,7 +130,7 @@ export default function UnifiedProfileHeader({
     if (success) {
       closeMenu();
     }
-  }, [isAdminMode]); // ✅ 함수 의존성 제거, primitive 값만 유지 - React Error #310 방지
+  }, [closeMenu, disableAdminMode, handleLogout, isAdminMode]);
 
   // 메뉴 아이템 구성
   const menuItems = useMemo<MenuItem[]>(() => {
@@ -144,7 +144,7 @@ export default function UnifiedProfileHeader({
         icon: Crown,
         action: () => {
           closeMenu();
-          setTimeout(navigateToAdmin, 100);
+          setTimeout(() => navigateToAdmin(), 100);
         },
         visible: true,
         danger: false,
@@ -163,7 +163,7 @@ export default function UnifiedProfileHeader({
           icon: BarChart3,
           action: () => {
             closeMenu();
-            setTimeout(navigateToDashboard, 100);
+            setTimeout(() => navigateToDashboard(), 100);
           },
           visible: true,
           badge: '모니터링',
@@ -189,7 +189,7 @@ export default function UnifiedProfileHeader({
         icon: Shield,
         action: () => {
           closeMenu();
-          setTimeout(navigateToLogin, 100);
+          setTimeout(() => navigateToLogin(), 100);
         },
         visible: true,
         badge: '계정 연동',
@@ -235,14 +235,6 @@ export default function UnifiedProfileHeader({
     return status === 'loading' ? '로딩 중...' : '사용자';
   };
 
-  const getUserTypeLabel = () => {
-    if (status === 'loading') return '확인 중...';
-    if (isAdminMode) return '관리자';
-    if (userType === 'github') return 'GitHub';
-    if (userType === 'guest') return '게스트';
-    return '알 수 없음';
-  };
-
   return (
     <div ref={dropdownRef} className={`relative z-50 ${className}`}>
       {/* 프로필 버튼 */}
@@ -275,12 +267,22 @@ export default function UnifiedProfileHeader({
               isAdminMode={isAdminMode}
               className="h-3 w-3"
             />
+            {isAdminMode && (
+              <span className="ml-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+                관리자 모드
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-1 text-xs text-gray-500">
-            {/* 🔧 GitHub 사용자 표시 개선: "GitHub 로그인"으로 정확히 표시 */}
-            {userType === 'github' ? 'GitHub 로그인' : 
-             userType === 'guest' ? '게스트 로그인' : 
-             status === 'loading' ? '확인 중...' : '알 수 없음'}
+            {isAdminMode
+              ? '관리자 모드 활성화됨'
+              : userType === 'github'
+                ? 'GitHub 로그인'
+                : userType === 'guest'
+                  ? '게스트 로그인'
+                  : status === 'loading'
+                    ? '확인 중...'
+                    : '알 수 없음'}
             {status === 'loading' && (
               <div className="_animate-pulse h-2 w-2 rounded-full bg-gray-400" />
             )}
