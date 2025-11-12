@@ -99,16 +99,20 @@ export default function LogDashboard() {
     if (!data) return;
 
     const referenceTimestamp =
-      data.status.lastLogTime ||
+      data.status?.lastLogTime ||
       data.logs[0]?.timestamp ||
-      new Date().toISOString();
+      null;
+
+    const formatter = new Intl.DateTimeFormat('ko-KR', {
+      timeZone: 'Asia/Seoul',
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
 
     setLastUpdatedText(
-      new Intl.DateTimeFormat('ko-KR', {
-        timeZone: 'Asia/Seoul',
-        dateStyle: 'medium',
-        timeStyle: 'short',
-      }).format(new Date(referenceTimestamp))
+      formatter.format(
+        new Date(referenceTimestamp ?? new Date().toISOString())
+      )
     );
   }, [data]);
 
