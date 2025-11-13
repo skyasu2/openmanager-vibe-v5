@@ -22,6 +22,8 @@ import type {
   ServerStatusAnalysis
 } from './SimplifiedQueryEngine.types';
 import type { EnhancedServerMetrics } from '@/types/server';
+import { processUnifiedAI } from '@/lib/gcp/gcp-functions-client';
+import type { UnifiedAIResponse } from '@/lib/gcp/gcp-functions.types';
 
 /**
  * 통합 응답 타입 (사이클 분석용)
@@ -287,7 +289,9 @@ export class SimplifiedQueryEngineHelpers {
   buildGoogleAIPrompt(
     query: string,
     context: AIQueryContext | undefined,
-    mcpContext: MCPContext | null
+    mcpContext: MCPContext | null,
+    ragResult: { results: Array<{ id: string; content: string; similarity: number; metadata?: AIMetadata; }> } | null,
+    unifiedInsights?: string | null
   ): string {
     let prompt = `사용자 질문: ${query}\n\n`;
 
@@ -305,6 +309,20 @@ export class SimplifiedQueryEngineHelpers {
       prompt += JSON.stringify(context, null, 2) + '\n\n';
     }
 
+    // RAG 컨텍스트 추가
+    if (ragResult && ragResult.results.length > 0) {
+      prompt += '관련 정보 (from RAG):\n';
+      ragResult.results.forEach((result) => {
+        prompt += `\n- ${result.content}\n`;
+      });
+      prompt += '\n';
+    }
+
+    if (unifiedInsights) {
+      prompt += 'Cloud Functions 분석 요약:\n';
+      prompt += `${unifiedInsights}\n\n`;
+    }
+
     // MCP 컨텍스트 추가
     if (mcpContext && mcpContext.files.length > 0) {
       prompt += '관련 파일 내용:\n';
@@ -318,6 +336,86 @@ export class SimplifiedQueryEngineHelpers {
     prompt += '위 정보를 바탕으로 사용자의 질문에 답변해주세요.';
 
     return prompt;
+  }
+
+  /**
+   * ☁️ GCP Cloud Functions 통합 인사이트
+   */
+  async fetchUnifiedInsights(
+    query: string,
+    context: AIQueryContext | undefined,
+    ragResult?: {
+      results: Array<{ id: string; content: string; similarity: number; metadata?: AIMetadata }>;
+    }
+  ): Promise<{ summary: string | null; raw: UnifiedAIResponse | null }> {
+    try {
+      const result = await processUnifiedAI({
+        query,
+        context: {
+          metadata: context?.metadata,
+          servers: context?.servers?.map((server) => ({
+            id: server.id,
+            status: server.status,
+            cpu: server.cpu,
+            memory: server.memory,
+          })),
+          ragSamples: ragResult?.results?.slice(0, 3) || [],
+        },
+        processors: [
+          'korean_nlp',
+          'ml_analytics',
+          'server_analyzer',
+          'pattern_matcher',
+        ],
+        options: {
+          nlp_features: { include_entities: true },
+        },
+      });
+
+      if (!result.success || !result.data) {
+        return { summary: null, raw: null };
+      }
+
+      return {
+        summary: this.formatUnifiedInsights(result.data),
+        raw: result.data,
+      };
+    } catch (error) {
+      console.warn('[UnifiedInsights] Cloud Functions 호출 실패:', error);
+      return { summary: null, raw: null };
+    }
+  }
+
+  private formatUnifiedInsights(data: UnifiedAIResponse): string | null {
+    const sections: string[] = [];
+    const aggregated = data.aggregated_data || {};
+
+    if (aggregated.main_insights && aggregated.main_insights.length > 0) {
+      sections.push(
+        aggregated.main_insights
+          .slice(0, 3)
+          .map((insight, index) => `${index + 1}. ${insight}`)
+          .join('\n')
+      );
+    }
+
+    if (aggregated.metrics) {
+      const metricSummary = Object.entries(aggregated.metrics)
+        .slice(0, 3)
+        .map(([metric, value]) => `${metric}: ${value}`)
+        .join(', ');
+      if (metricSummary) {
+        sections.push(`주요 지표: ${metricSummary}`);
+      }
+    }
+
+    if (data.recommendations?.length) {
+      sections.push(
+        `추천 조치: ${data.recommendations.slice(0, 2).join(', ')}`
+      );
+    }
+
+    return sections.length > 0 ? sections.join('\n') : null;
   }
 
   /**

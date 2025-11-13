@@ -65,7 +65,7 @@ interface AnalyzeRequest {
     timeRange?: string
     includeMetrics?: boolean
   }
-  mode: 'LOCAL' | 'GOOGLE_ONLY'
+  mode?: 'UNIFIED'
 }
 
 interface AnalyzeResponse {
@@ -77,7 +77,7 @@ interface AnalyzeResponse {
 
 // GET /api/ai/status - AI system status
 interface AIStatusResponse {
-  mode: 'LOCAL' | 'GOOGLE_ONLY'
+  mode?: 'UNIFIED'
   health: boolean
   latency: number
   lastUpdate: string

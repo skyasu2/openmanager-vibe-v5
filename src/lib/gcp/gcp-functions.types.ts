@@ -13,21 +13,48 @@ export interface KoreanNLPRequest {
   context?: unknown;
 }
 
+export interface KoreanNLPEntity {
+  type: string;
+  value: string;
+  confidence: number;
+  normalized: string;
+}
+
+export interface KoreanNLPSemanticAnalysis {
+  main_topic: string;
+  sub_topics: string[];
+  urgency_level: 'low' | 'medium' | 'high' | 'critical';
+  technical_complexity: number;
+}
+
+export interface KoreanNLPServerContext {
+  target_servers: string[];
+  metrics: string[];
+  time_range?: Record<string, string>;
+  comparison_type?: string;
+}
+
+export interface KoreanNLPResponseGuidance {
+  response_type: string;
+  detail_level: string;
+  visualization_suggestions: string[];
+  follow_up_questions: string[];
+}
+
+export interface KoreanNLPQualityMetrics {
+  confidence: number;
+  processing_time: number;
+  analysis_depth: number;
+  context_relevance: number;
+}
+
 export interface KoreanNLPResponse {
-  query: string;
-  analysis: {
-    sentiment: string;
-    keywords: string[];
-    intent: string;
-    confidence: number;
-    language: string;
-    processing_region: string;
-    response_time_ms: number;
-  };
-  context?: unknown;
-  processed_at: string;
-  region: string;
-  country: string;
+  intent: string;
+  entities: KoreanNLPEntity[];
+  semantic_analysis: KoreanNLPSemanticAnalysis;
+  server_context: KoreanNLPServerContext;
+  response_guidance: KoreanNLPResponseGuidance;
+  quality_metrics: KoreanNLPQualityMetrics;
 }
 
 export interface MLAnalyticsRequest {
@@ -64,24 +91,35 @@ export interface MLAnalyticsResponse {
   country: string;
 }
 
-export interface UnifiedAIRequest {
-  query: string;
-  ai_type?: 'nlp' | 'ml' | 'general';
-  context?: unknown;
+export interface UnifiedAIProcessingResult {
+  processor: string;
+  success: boolean;
+  data?: Record<string, unknown> | null;
+  error?: string | null;
+  processing_time: number;
+}
+
+export interface UnifiedAIAggregatedData {
+  confidence_score?: number;
+  main_insights?: string[];
+  entities?: Record<string, unknown[]>;
+  metrics?: Record<string, number>;
+  patterns?: Array<Record<string, unknown>>;
+  anomalies?: Array<Record<string, unknown>>;
 }
 
 export interface UnifiedAIResponse {
+  results: UnifiedAIProcessingResult[];
+  aggregated_data: UnifiedAIAggregatedData;
+  recommendations: string[];
+  cache_hit: boolean;
+}
+
+export interface UnifiedAIRequest {
   query: string;
-  ai_type: string;
-  result: {
-    type: string;
-    [key: string]: unknown;
-  };
-  context?: unknown;
-  processed_at: string;
-  processing_time_ms: number;
-  region: string;
-  country: string;
+  context?: Record<string, unknown>;
+  processors?: string[];
+  options?: Record<string, unknown>;
 }
 
 // 클라이언트 설정 타입

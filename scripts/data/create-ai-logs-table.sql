@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS ai_query_logs (
     response TEXT NOT NULL,
     -- AI 엔진 정보
     engine_used VARCHAR(50) NOT NULL DEFAULT 'unknown',
-    mode VARCHAR(50) NOT NULL DEFAULT 'AUTO',
+    mode VARCHAR(50) NOT NULL DEFAULT 'UNIFIED',
     confidence FLOAT DEFAULT 0.0,
     processing_time INTEGER DEFAULT 0,
     -- milliseconds
@@ -86,8 +86,8 @@ COMMENT ON TABLE ai_query_logs IS 'AI 자연어 질의 로그 저장 테이블 -
 COMMENT ON COLUMN ai_query_logs.session_id IS '사용자 세션 ID';
 COMMENT ON COLUMN ai_query_logs.query IS '사용자 질의 (최대 1000자)';
 COMMENT ON COLUMN ai_query_logs.response IS 'AI 응답 (최대 2000자)';
-COMMENT ON COLUMN ai_query_logs.engine_used IS '사용된 AI 엔진 (google-ai, local, hybrid 등)';
-COMMENT ON COLUMN ai_query_logs.mode IS 'AI 모드 (GOOGLE_ONLY, LOCAL, AUTO)';
+COMMENT ON COLUMN ai_query_logs.engine_used IS '사용된 AI 엔진 (예: unified-google-rag, cloud-functions, command-router)';
+COMMENT ON COLUMN ai_query_logs.mode IS 'AI 모드 (단일 통합 파이프라인: UNIFIED)';
 COMMENT ON COLUMN ai_query_logs.confidence IS '응답 신뢰도 (0.0 ~ 1.0)';
 COMMENT ON COLUMN ai_query_logs.processing_time IS '처리 시간 (밀리초)';
 COMMENT ON COLUMN ai_query_logs.user_intent IS '사용자 의도 (monitoring, analysis, prediction 등)';
@@ -99,6 +99,6 @@ COMMENT ON COLUMN ai_query_logs.cost_estimate IS '비용 추정 (USD)';
 -- ALTER TABLE ai_query_logs ENABLE ROW LEVEL SECURITY;
 -- 11. 샘플 데이터 (테스트용)
 -- INSERT INTO ai_query_logs (session_id, query, response, engine_used, mode, confidence, processing_time, user_intent, category)
--- VALUES ('test_session_1', '서버 상태를 확인해주세요', '모든 서버가 정상 작동 중입니다.', 'google-ai', 'GOOGLE_ONLY', 0.95, 1250, 'monitoring', 'server');
+-- VALUES ('test_session_1', '서버 상태를 확인해주세요', '모든 서버가 정상 작동 중입니다.', 'unified-google-rag', 'UNIFIED', 0.95, 1250, 'monitoring', 'server');
 -- 12. 완료 메시지
 SELECT 'AI 자연어 질의 로그 테이블 생성 완료! 🎉' as status;

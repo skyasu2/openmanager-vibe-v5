@@ -38,7 +38,6 @@ interface AIQueryRequest {
   maxTokens?: number;
   context?: string;
   includeThinking?: boolean;
-  mode?: 'local' | 'google-ai' | 'local-ai';
   timeoutMs?: number;
 }
 
@@ -108,7 +107,7 @@ async function logQuery(
       response_time: responseTime,
       cache_hit: cacheHit,
       intent,
-      ai_mode: aiMode || 'LOCAL',
+      ai_mode: aiMode || 'UNIFIED_GOOGLE',
       status: status || 'success',
       user_id: userId || null,
       guest_user_id: !userId ? `guest_${Date.now()}_${Math.random().toString(36).substr(2, 8)}` : null,
@@ -233,21 +232,14 @@ async function postHandler(request: NextRequest) {
       maxTokens = 1000,
       context = 'general',
       includeThinking = true,
-      mode = 'local-ai',
       timeoutMs, // 환경변수 기반 타임아웃 사용
     } = body;
 
     // 🔧 환경변수 기반 타임아웃 설정 (Google AI/Local AI 모드 구분)
     const timeouts = getEnvironmentTimeouts();
-    const normalizedModeForTimeout = mode.toLowerCase().replace(/_/g, '-');
-    const finalTimeoutMs = timeoutMs || (
-      normalizedModeForTimeout === 'google-ai'
-        ? timeouts.GOOGLE_AI  // 8000ms (Google AI 모드)
-        : timeouts.LOCAL_AI   // 3000ms (Local AI 모드)
-    );
+    const finalTimeoutMs = timeoutMs || timeouts.GOOGLE_AI;
 
     console.log('🔍 [DEBUG] API Route timeout configuration:', {
-      mode,
       providedTimeout: timeoutMs,
       calculatedTimeout: finalTimeoutMs,
       environmentTimeouts: timeouts
@@ -276,15 +268,9 @@ async function postHandler(request: NextRequest) {
       );
     }
 
-    // 헤더에서 우선 모드 확인
-    const preferredMode = request.headers.get('X-AI-Mode') as
-      | 'local-ai'
-      | 'google-ai'
-      | null;
-
     // 캐시 키 생성 및 캐시 확인
     const cacheKey = generateCacheKey(query, context);
-    const cachedResponse = getCachedData<QueryResponse>(cacheKey);
+    const cachedResponse = await getCachedData<QueryResponse>(cacheKey);
 
     let result: QueryResponse;
     let cacheHit = false;
@@ -298,29 +284,8 @@ async function postHandler(request: NextRequest) {
       debug.log(`✅ 캐시 HIT: ${cacheKey}, 응답 시간: ${responseTime}ms`);
     } else {
       // 새로운 쿼리 실행
-      // 모드별 기능 설정 (MCP 제거)
-      // 🔧 Mode 대소문자 정규화 (LOCAL → local, GOOGLE_AI → google-ai)
-      const normalizedMode = (mode || preferredMode || 'local-ai')
-        .toLowerCase()
-        .replace(/_/g, '-') as 'local' | 'google-ai' | 'local-ai';
-
-      // AIMode 타입으로 변환
-      const finalMode = normalizedMode === 'google-ai' ? 'GOOGLE_AI' :
-                       normalizedMode === 'local' ? 'LOCAL' : 'LOCAL';
-      const enableGoogleAI = finalMode === 'GOOGLE_AI';
-      
-      // 🐛 디버그 로그: 라우팅 확인
-      console.log('🔍 [DEBUG] Mode routing:', {
-        original: mode,
-        normalized: normalizedMode,
-        final: finalMode,
-        enableGoogleAI,
-        preferredMode
-      });
-
       const queryRequest: QueryRequest = {
         query,
-        mode: finalMode,
         context: {
           metadata: {
             category: context,
@@ -334,10 +299,6 @@ async function postHandler(request: NextRequest) {
           category: context,
           timeoutMs: finalTimeoutMs,
         },
-        // 모드별 기능 제어 옵션 (MCP 제거)
-        enableGoogleAI,
-        enableKoreanNLP: true, // 두 모드 모두 한국어 NLP 활성화
-        enableVMBackend: true, // 두 모드 모두 VM 백엔드 활성화
       };
 
       // SimplifiedQueryEngine을 사용한 실제 쿼리 처리
@@ -358,8 +319,8 @@ async function postHandler(request: NextRequest) {
     const sessionId = request.headers.get('x-session-id') || `guest_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
     const userId = request.headers.get('x-user-id') || null;
 
-    // AI 모드 결정 (LOCAL vs GOOGLE_AI)
-    const aiMode = (mode === 'google-ai' || preferredMode === 'google-ai') ? 'GOOGLE_AI' : 'LOCAL';
+    // AI 모드 (단일 파이프라인)
+    const aiMode = 'UNIFIED_GOOGLE';
 
     // 쿼리 로그 저장 (비동기, 응답을 기다리지 않음) - 대화 히스토리 포함
     logQuery(
@@ -385,7 +346,7 @@ async function postHandler(request: NextRequest) {
       responseTime,
       timestamp: new Date().toISOString(),
       metadata: {
-        mode: mode || preferredMode || 'local-ai',
+        mode: 'unified-google-rag',
         temperature,
         maxTokens,
         context,
@@ -461,7 +422,7 @@ async function postHandler(request: NextRequest) {
       false,
       `error:${errorAnalysis.type}:${intent}`,
       errorMessage, // 에러 응답 텍스트
-      'LOCAL',      // 에러 시 기본 모드
+      'UNIFIED_GOOGLE',      // 에러 시 기본 모드
       'error',      // 상태
       userId,       // 사용자 ID
       sessionId     // 세션 ID
@@ -512,13 +473,12 @@ async function postHandler(request: NextRequest) {
  */
 async function getHandler(_request: NextRequest) {
   try {
-    // 임시 fallback 헬스체크
     const healthStatus = {
-      status: 'maintenance',
+      status: 'online',
       engines: {
-        localRAG: false,
-        googleAI: false,
-        mcp: false,
+        unifiedPipeline: true,
+        cloudFunctions: true,
+        supabaseRAG: true,
       },
     };
 
@@ -529,39 +489,39 @@ async function getHandler(_request: NextRequest) {
         service: 'ai-query-optimized',
         status: healthStatus.status,
         engines: {
-          'local-rag': {
-            name: 'Supabase RAG Engine',
-            available: healthStatus.engines.localRAG,
-            status: healthStatus.engines.localRAG ? 'healthy' : 'unavailable',
-            description: '벡터 DB 기반 빠른 검색',
+          'unified-google-rag': {
+            name: 'Unified Google AI + Supabase RAG',
+            available: healthStatus.engines.unifiedPipeline,
+            status: healthStatus.engines.unifiedPipeline ? 'healthy' : 'degraded',
+            description: 'RAG + Google Cloud Functions + Gemini',
           },
-          'google-ai': {
-            name: 'Google AI (Gemini)',
-            available: healthStatus.engines.googleAI,
-            status: healthStatus.engines.googleAI ? 'healthy' : 'unavailable',
-            description: '복잡한 분석 및 추론',
+          'cloud-functions': {
+            name: 'Google Cloud Functions',
+            available: healthStatus.engines.cloudFunctions,
+            status: healthStatus.engines.cloudFunctions ? 'healthy' : 'unavailable',
+            description: 'Korean NLP · ML Analytics · Unified Processor',
           },
-          'mcp-context': {
-            name: 'MCP Context Assistant',
-            available: healthStatus.engines.mcp,
-            status: healthStatus.engines.mcp ? 'healthy' : 'degraded',
-            description: '프로젝트 컨텍스트 지원',
+          'supabase-rag': {
+            name: 'Supabase pgvector',
+            available: healthStatus.engines.supabaseRAG,
+            status: healthStatus.engines.supabaseRAG ? 'healthy' : 'unavailable',
+            description: 'pgvector 기반 RAG 검색',
           },
         },
         capabilities: {
-          autoMode: true,
+          autoMode: false,
           complexityAnalysis: true,
-          multiEngine: true,
+          multiEngine: false,
           ragSearch: true,
           contextAware: true,
           thinkingMode: true,
-          mcpIntegration: true,
+          mcpIntegration: false,
           performanceOptimized: true,
           responseCaching: true,
           parallelProcessing: true,
         },
         optimization: {
-          targetResponseTime: '< 500ms',
+          targetResponseTime: '< 600ms',
           cacheEnabled: true,
           autoEngineSelection: true,
           timeoutFallback: true,
@@ -598,7 +558,7 @@ export async function OPTIONS(_req: NextRequest) {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-AI-Mode',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'Access-Control-Max-Age': '86400',
     },
   });

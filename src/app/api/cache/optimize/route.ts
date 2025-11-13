@@ -224,7 +224,7 @@ async function handleOptimize(): Promise<CacheOptimizeResponse> {
 async function handleResetStats(): Promise<CacheResetStatsResponse> {
   const cache = getCacheService();
   // MemoryCacheService는 resetStats 메서드가 없으므로 캐시를 비워서 통계를 리셋
-  await cache.invalidate('*');
+  await cache.invalidateCache('*');
 
   const rawStats = cache.getStats();
   const memoryUsageKB = parseInt(rawStats.memoryUsage.replace('KB', '')) || 0;

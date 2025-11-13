@@ -141,10 +141,9 @@ export class SimplifiedQueryEngine {
 
     // 🐛 디버그 로그: SimplifiedQueryEngine에서 받은 request 값들 확인
     console.log('🔍 [DEBUG] SimplifiedQueryEngine received:', {
-      mode: request.mode,
-      enableGoogleAI: request.enableGoogleAI,
-      enableAIAssistantMCP: request.enableAIAssistantMCP,
-      query: request.query?.substring(0, 50) + '...'
+      query: request.query?.substring(0, 50) + '...',
+      contextKeys: Object.keys(request.context || {}),
+      options: Object.keys(request.options || {}),
     });
 
     // 초기화 병렬 실행
@@ -152,14 +151,8 @@ export class SimplifiedQueryEngine {
 
     const {
       query,
-      mode = 'local', // 기본값: 로컬 모드 (더 이상 auto 없음)
       context = {},
       options = {},
-      // 새로운 모드별 기능 제어 옵션
-      enableGoogleAI = false,
-      enableAIAssistantMCP = false,
-      enableKoreanNLP = true,
-      enableVMBackend = true,
     } = request;
 
     const thinkingSteps: QueryResponse['thinkingSteps'] = [];
@@ -169,25 +162,17 @@ export class SimplifiedQueryEngine {
     console.log('🔍 [DEBUG] Timeout configuration:', {
       envVars: {
         GOOGLE_AI_TIMEOUT: process.env.GOOGLE_AI_TIMEOUT,
-        LOCAL_AI_TIMEOUT: process.env.LOCAL_AI_TIMEOUT,
         MCP_TIMEOUT: process.env.MCP_TIMEOUT
       },
       calculatedTimeouts: timeouts,
-      mode,
-      enableGoogleAI
     });
 
-    const isGoogleAIMode = (mode as string) === 'GOOGLE_AI' || (mode as string) === 'google-ai' || enableGoogleAI;
-    const timeoutMs = options.timeoutMs || (
-      isGoogleAIMode
-        ? timeouts.GOOGLE_AI  // 8000ms (Google AI 모드)
-        : timeouts.LOCAL_AI   // 3000ms (Local AI 모드)
-    );
+    const timeoutMs = options.timeoutMs || timeouts.GOOGLE_AI;
 
     console.log('🔍 [DEBUG] Final timeout selected:', timeoutMs);
 
     // Cache check (delegated to utils)
-    const cacheKey = this.utils.generateCacheKey(query, mode, context);
+    const cacheKey = this.utils.generateCacheKey(query, context);
     const cachedResponse = this.utils.getCachedResponse(cacheKey);
     if (cachedResponse && options.cached !== false) {
       const baseMetadata = cachedResponse.metadata || {};
@@ -263,20 +248,19 @@ export class SimplifiedQueryEngine {
         }
       }
 
-      // 모드별 처리 전환
       thinkingSteps.push({
-        step: '모드 선택',
-        description: `${mode} 모드 선택됨 (Google AI: ${enableGoogleAI}, AI MCP: ${enableAIAssistantMCP})`,
+        step: '통합 파이프라인 준비',
+        description: 'RAG + Google Cloud Functions + Google AI 조합 실행',
         status: 'completed',
         timestamp: Date.now(),
       });
 
-      // 2단계: 병렬 처리 준비
+      // 2단계: 병렬 처리 준비 (예: MCP 컨텍스트)
       const processingPromises: Promise<unknown>[] = [];
       let mcpContext: MCPContext | null = null;
 
-      // MCP 컨텍스트 수집 (AI 어시스턴트 MCP가 활성화된 경우에만)
-      if (options.includeMCPContext && enableAIAssistantMCP) {
+      // MCP 컨텍스트 수집 (요청 시)
+      if (options.includeMCPContext) {
         const mcpStepIndex = thinkingSteps.length;
         thinkingSteps.push({
           step: 'AI 어시스턴트 MCP 컨텍스트 수집',
@@ -308,13 +292,6 @@ export class SimplifiedQueryEngine {
               }
             })
         );
-      } else if (options.includeMCPContext && !enableAIAssistantMCP) {
-        thinkingSteps.push({
-          step: 'MCP 건너뛰기',
-          description: 'AI 어시스턴트 MCP 비활성화됨 (로컬 AI 모드)',
-          status: 'completed',
-          timestamp: Date.now(),
-        });
       }
 
       // 병렬 처리 대기 (최대 100ms)
@@ -333,56 +310,17 @@ export class SimplifiedQueryEngine {
       let response: QueryResponse;
 
       try {
-        // 🔧 라우팅 조건 강화: LOCAL 모드를 더 명확하게 처리
-        const shouldUseLocalMode = (
-          mode === 'local-ai' ||
-          mode === 'local' ||
-          mode === 'LOCAL' ||
-          (mode?.toLowerCase() === 'local') ||
-          !enableGoogleAI
-        );
-        
-        console.log('🔍 [DEBUG] Routing decision:', {
-          mode,
-          enableGoogleAI,
-          shouldUseLocalMode,
-          finalDecision: shouldUseLocalMode ? 'LOCAL' : 'GOOGLE_AI'
-        });
-        
-        if (shouldUseLocalMode) {
-          // Local AI mode (delegated to processors)
-          response = await Promise.race([
-            this.processors.processLocalAIModeQuery(
-              query,
-              context,
-              options,
-              mcpContext,
-              thinkingSteps,
-              startTime,
-              { enableKoreanNLP, enableVMBackend }
-            ),
-            queryTimeout,
-          ]);
-        } else {
-          // Google AI mode (delegated to processors)
-          response = await Promise.race([
-            this.processors.processGoogleAIModeQuery(
-              query,
-              context,
-              options,
-              mcpContext,
-              thinkingSteps,
-              startTime,
-              {
-                enableGoogleAI,
-                enableAIAssistantMCP,
-                enableKoreanNLP,
-                enableVMBackend,
-              }
-            ),
-            queryTimeout,
-          ]);
-        }
+        response = await Promise.race([
+          this.processors.processUnifiedQuery(
+            query,
+            context,
+            options,
+            mcpContext,
+            thinkingSteps,
+            startTime
+          ),
+          queryTimeout,
+        ]);
 
         // Cache successful response (delegated to utils)
         if (response.success && response.processingTime < 500) {
@@ -392,16 +330,13 @@ export class SimplifiedQueryEngine {
         return response;
       } catch (timeoutError) {
         // 🚨 폴백 제거: 각 모드에서 타임아웃 시 에러 직접 반환
-        const errorMessage = isGoogleAIMode
-          ? 'Google AI 모드에서 처리 시간 초과입니다.'
-          : '로컬 AI 모드에서 처리 시간 초과입니다.';
-        
+        const errorMessage = '통합 AI 파이프라인 처리 시간 초과입니다.';
         console.warn(`${errorMessage} (폴백 없음 - 에러 직접 반환)`);
 
         return {
           success: false,
           response: errorMessage,
-          engine: (mode === 'LOCAL' || mode === 'local' || mode === 'local-ai') ? 'local-ai' : 'google-ai',
+          engine: 'unified-google-rag',
           confidence: 0,
           thinkingSteps,
           error: timeoutError instanceof Error ? timeoutError.message : '타임아웃',
@@ -414,8 +349,7 @@ export class SimplifiedQueryEngine {
       return {
         success: false,
         response: '죄송합니다. 쿼리 처리 중 오류가 발생했습니다.',
-        engine:
-          (mode === 'LOCAL' || mode === 'local' || mode === 'local-ai') ? 'local-rag' : 'google-ai',
+        engine: 'unified-google-rag',
         confidence: 0,
         thinkingSteps,
         error: error instanceof Error ? error.message : '알 수 없는 오류',

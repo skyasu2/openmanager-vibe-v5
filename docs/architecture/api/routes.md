@@ -40,7 +40,7 @@ interface DashboardResponse {
 interface AnalyzeRequest {
   query: string
   context: Record<string, any>
-  mode: 'LOCAL' | 'GOOGLE_ONLY'
+  mode?: 'UNIFIED'
 }
 
 // GET /api/ai/status

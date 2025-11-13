@@ -42,6 +42,26 @@ const AI_MODE_CONFIG = {
     textColor: 'text-emerald-700',
     selectedBg: 'bg-emerald-500',
   },
+  UNIFIED: {
+    label: '통합 AI',
+    description: 'RAG + Google AI 통합',
+    icon: Zap,
+    color: 'purple',
+    bgColor: 'bg-purple-50',
+    borderColor: 'border-purple-200',
+    textColor: 'text-purple-700',
+    selectedBg: 'bg-purple-500',
+  },
+  AUTO: {
+    label: '자동 선택',
+    description: '상황에 맞게 자동',
+    icon: Brain,
+    color: 'gray',
+    bgColor: 'bg-gray-50',
+    borderColor: 'border-gray-200',
+    textColor: 'text-gray-700',
+    selectedBg: 'bg-gray-500',
+  },
 } as const;
 
 export const AIModeSelector: FC<AiModeSelectorProps> = ({

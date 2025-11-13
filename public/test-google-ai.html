@@ -93,7 +93,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🤖 Google AI API 테스트</h1>
+        <h1>🤖 통합 AI API 테스트</h1>
         <div class="status ready">✅ 베르셀 프로덕션 환경에서 테스트 중</div>
 
         <div class="test-section">
@@ -107,8 +107,7 @@
                 <button onclick="setPreset('일반 질문')">일반 질문</button>
             </div>
 
-            <button onclick="testGoogleAI()" id="testBtn">🚀 Google AI 테스트</button>
-            <button onclick="testLocalAI()" id="localBtn">🏠 LOCAL 모드 테스트</button>
+            <button onclick="testUnifiedAI()" id="testBtn">🚀 통합 AI 테스트</button>
             <button onclick="clearResult()">🗑️ 결과 지우기</button>
 
             <div id="result" class="result" style="display: none;"></div>
@@ -135,44 +134,29 @@
             document.getElementById('promptInput').value = presets[type];
         }
 
-        async function testGoogleAI() {
+        async function testUnifiedAI() {
             const prompt = document.getElementById('promptInput').value.trim();
             if (!prompt) {
                 alert('질의를 입력해주세요.');
                 return;
             }
 
-            await sendRequest('/api/ai/google-ai/generate', {
+            await sendRequest('/api/ai/query', {
                 query: prompt,
-                mode: 'GOOGLE_AI',
-                category: 'general'
-            }, 'Google AI');
-        }
-
-        async function testLocalAI() {
-            const prompt = document.getElementById('promptInput').value.trim();
-            if (!prompt) {
-                alert('질의를 입력해주세요.');
-                return;
-            }
-
-            await sendRequest('/api/ai/unified/query', {
-                query: prompt,
-                mode: 'LOCAL'
-            }, 'LOCAL AI');
+                includeThinking: true,
+                context: 'general'
+            }, 'Unified AI');
         }
 
         async function sendRequest(endpoint, payload, mode) {
             const resultDiv = document.getElementById('result');
             const testBtn = document.getElementById('testBtn');
-            const localBtn = document.getElementById('localBtn');
 
             resultDiv.style.display = 'block';
             resultDiv.className = 'result loading';
             resultDiv.textContent = `🔄 ${mode} 테스트 중...`;
 
             testBtn.disabled = true;
-            localBtn.disabled = true;
 
             try {
                 const startTime = Date.now();
@@ -181,8 +165,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-AI-Assistant': 'true',
-                        'X-AI-Mode': payload.mode || 'GOOGLE_AI'
+                        'X-AI-Assistant': 'true'
                     },
                     body: JSON.stringify(payload)
                 });
@@ -204,7 +187,6 @@
                 resultDiv.textContent = `❌ ${mode} 네트워크 오류:\n${error.message}`;
             } finally {
                 testBtn.disabled = false;
-                localBtn.disabled = false;
             }
         }
 
@@ -224,16 +206,15 @@
 
                 try {
                     const startTime = Date.now();
-                    const response = await fetch(API_BASE + '/api/ai/google-ai/generate', {
+                    const response = await fetch(API_BASE + '/api/ai/query', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-AI-Assistant': 'true',
-                            'X-AI-Mode': 'GOOGLE_AI'
+                            'X-AI-Assistant': 'true'
                         },
                         body: JSON.stringify({
                             query: scenario.query,
-                            mode: 'GOOGLE_AI',
+                            includeThinking: true,
                             category: scenario.category
                         })
                     });

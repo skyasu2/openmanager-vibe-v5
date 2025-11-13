@@ -32,6 +32,10 @@ Maintained for active Codex CLI usage in WSL2
 | 주요 테스트 러너 | Vitest, Playwright | `package.json` |
 | 기본 작업 디렉터리 | `/mnt/d/cursor/openmanager-vibe-v5` | 현 세션 |
 
+> **2025-10-18 업데이트**  
+> 자연어 질의용 `LOCAL`/`GOOGLE_AI` 모드 스위치는 폐기되었습니다.  
+> `/api/ai/query`는 Supabase RAG + Google Cloud Functions + Gemini SDK를 묶은 단일 파이프라인을 항상 사용합니다.
+
 ### 기본 명령어 기억하기
 ```bash
 nvm use          # Node 22.15.1 로드

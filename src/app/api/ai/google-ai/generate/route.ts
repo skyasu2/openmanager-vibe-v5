@@ -190,22 +190,18 @@ const postHandler = createApiRoute()
   .build(async (request, context): Promise<GoogleAIGenerateResponse> => {
     // 🔒 AI Assistant 전용 접근 제어
     const aiAssistantHeader = request.headers.get('X-AI-Assistant');
-    const aiModeHeader = request.headers.get('X-AI-Mode');
     const userAgent = request.headers.get('User-Agent') || '';
     const isDiagnosticMode = request.headers.get('X-Diagnostic-Mode') === 'true';
     
     // AI 어시스턴트에서 Google AI 모드로 호출된 경우만 허용
     const isValidAIAssistant = 
       aiAssistantHeader === 'true' ||
-      aiModeHeader === 'google-ai' ||
-      aiModeHeader === 'google_ai' || // AI Sidebar에서 GOOGLE_AI 모드로 전송
       userAgent.includes('AI-Assistant') ||
       isDiagnosticMode; // 진단 모드 허용
       
     if (!isValidAIAssistant) {
       debug.warn('❌ Google AI API 무단 접근 시도 차단됨', {
         aiAssistant: aiAssistantHeader,
-        aiMode: aiModeHeader,
         userAgent: userAgent.substring(0, 50),
         diagnostic: isDiagnosticMode
       });
@@ -215,13 +211,11 @@ const postHandler = createApiRoute()
         message: 'AI Assistant 전용 API 접근이 거부되었습니다.',
         requiredHeaders: [
           'X-AI-Assistant: true',
-          'X-AI-Mode: google-ai',
           'User-Agent containing AI-Assistant',
           'X-Diagnostic-Mode: true (테스트용)'
         ],
         currentHeaders: {
           'X-AI-Assistant': aiAssistantHeader,
-          'X-AI-Mode': aiModeHeader,
           'User-Agent': userAgent.substring(0, 50),
           'X-Diagnostic-Mode': isDiagnosticMode
         }

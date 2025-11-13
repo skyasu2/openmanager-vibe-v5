@@ -170,7 +170,7 @@ export class IncidentReportService {
 
     // 캐시 확인
     const cacheKey = `incident:${JSON.stringify(metrics.map((m) => m.serverId)).slice(0, 50)}`;
-    const cached = getCachedData<IncidentReport>(cacheKey);
+    const cached = await getCachedData<IncidentReport>(cacheKey);
 
     if (cached) {
       return cached;

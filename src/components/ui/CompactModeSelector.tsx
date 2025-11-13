@@ -38,6 +38,22 @@ const AI_MODES = {
     color: 'text-emerald-600',
     description: '고급 추론',
   },
+  UNIFIED: {
+    id: 'UNIFIED' as const,
+    label: '통합 AI',
+    shortLabel: 'Unified',
+    icon: Zap,
+    color: 'text-purple-600',
+    description: 'RAG + Google AI',
+  },
+  AUTO: {
+    id: 'AUTO' as const,
+    label: '자동 선택',
+    shortLabel: 'Auto',
+    icon: Zap,
+    color: 'text-gray-600',
+    description: '자동',
+  },
 } as const;
 
 export const CompactModeSelector: FC<CompactModeSelectorProps> = ({

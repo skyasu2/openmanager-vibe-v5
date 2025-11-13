@@ -11,11 +11,11 @@
 // ==============================================
 
 /**
- * AI 모드 정의 v2.0 (단순화)
- * - LOCAL: 로컬 AI 엔진들만 사용 (기본값)
- * - GOOGLE_AI: Google AI만 사용 (자연어 처리용)
+ * AI 모드 정의 v3.0 (단일 파이프라인)
+ * - UNIFIED: Supabase RAG + Google Cloud Functions + Gemini (기본값)
+ * - 나머지 값은 하위 호환성만 유지
  */
-export type AIMode = 'LOCAL' | 'GOOGLE_AI' | 'AUTO';
+export type AIMode = 'UNIFIED' | 'LOCAL' | 'GOOGLE_AI' | 'AUTO';
 
 /**
  * AI 엔진 타입 정의

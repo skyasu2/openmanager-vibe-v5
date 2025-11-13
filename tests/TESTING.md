@@ -40,32 +40,32 @@ npm run test:coverage
 npm run validate:all
 ```
 
-### ⚡ **AI 엔진 아키텍처 v3.0 테스트 철학**
+### ⚡ **AI 엔진 아키텍처 v4.0 테스트 철학**
 
-- **3개 운영 모드 완전 지원**: AUTO, LOCAL, GOOGLE_ONLY
-- **Supabase RAG 메인 엔진**: 자연어 처리 및 로컬 AI 엔진의 핵심
-- **Google AI 모드별 가중치**: 2-80% 동적 조정
-- **MCP 표준 서버**: AI 기능 제거, 표준 MCP 도구만 제공
-- **하위 AI 도구들**: 모든 모드에서 편리하게 사용 가능
+- **단일 통합 파이프라인**: Supabase RAG + Google Cloud Functions + Google AI SDK
+- **Cloud Functions 우선**: Korean NLP, ML Analytics, Unified Processor를 기본 단계로 실행
+- **직접 Google AI 호출**: Prompt SDK를 통한 저지연 응답, 모델은 `gemini-2.5-flash-lite` 고정
+- **MCP는 선택적 컨텍스트**: 필요 시 개발자가 명시적으로 켜는 보조 옵션
+- **캐싱 + 폴백 최소화**: 500ms 이내 응답 목표, 타임아웃 시 사용자 안내 반환
 
-## 🎯 AI 엔진 아키텍처 v3.0 테스트 전략
+## 🎯 AI 엔진 아키텍처 v4.0 테스트 전략
 
-### 🤖 **3개 운영 모드 테스트**
+### 🤖 **통합 파이프라인 검증 시나리오**
 
-1. **AUTO 모드** (균형 모드)
-   - Supabase RAG (50%) → MCP+하위AI (30%) → 하위AI (18%) → Google AI (2%)
-   - 성능: 850ms (다층 폴백)
-   - 테스트 포커스: 폴백 시스템, 균형 잡힌 응답
+1. **RAG + Cloud Functions 결합**
+   - Supabase RAG 결과 5건 → Unified AI Processor 요약 → Prompt 결합
+   - 성능 목표: 400~600ms
+   - 테스트 포커스: 유사도 검색 정확도, Cloud Functions latency
 
-2. **LOCAL 모드** (로컬 우선)
-   - Supabase RAG (80%) → MCP+하위AI (20%) → Google AI 제외
-   - 성능: 620ms (Google AI 제외)
-   - 테스트 포커스: 로컬 AI 엔진, 빠른 응답
+2. **한국어 NLP + 실시간 메트릭**
+   - Korean NLP 함수 호출 → UnifiedMetricsService 실시간 데이터 병합
+   - 성능 목표: 650ms 이내
+   - 테스트 포커스: 한국어 질의 감지, 서버 메트릭 컨텍스트 주입
 
-3. **GOOGLE_ONLY 모드** (고급 추론)
-   - Google AI (80%) → Supabase RAG (15%) → 하위AI (5%)
-   - 성능: 1200ms (고급 추론)
-   - 테스트 포커스: Google AI 통합, 고급 분석
+3. **직접 Google AI 응답**
+   - DirectGoogleAIService → Gemini 2.5 Flash Lite
+   - 성능 목표: 800ms 이내
+   - 테스트 포커스: prompt 품질, timeout/resume 처리
 
 ### 📊 **테스트 커버리지 목표 (v5.44.0 기준)**
 
@@ -208,31 +208,34 @@ beforeAll(() => {
 ```typescript
 // tests/unit/ai/unified-ai-engine-router.test.ts
 describe('UnifiedAIEngineRouter', () => {
-  test('AUTO 모드에서 다층 폴백 시스템 동작', async () => {
-    const router = new UnifiedAIEngineRouter('AUTO');
+  test('통합 파이프라인에서 Cloud Functions와 RAG 결합', async () => {
+    const router = new UnifiedAIEngineRouter('UNIFIED');
     const result = await router.processQuery('서버 상태 확인');
 
-    expect(result.mode).toBe('AUTO');
-    expect(result.responseTime).toBeLessThan(1000);
-    expect(result.fallbackChain).toBeDefined();
+    expect(result.mode).toBe('UNIFIED');
+    expect(result.responseTime).toBeLessThan(800);
+    expect(result.metadatas.cloudFunctionsUsed).toBe(true);
+    expect(result.metadatas.ragResults).toBeGreaterThan(0);
   });
 
-  test('LOCAL 모드에서 Google AI 제외', async () => {
-    const router = new UnifiedAIEngineRouter('LOCAL');
-    const result = await router.processQuery('성능 분석');
+  test('한국어 질의에서 Korean NLP 결과 반영', async () => {
+    const router = new UnifiedAIEngineRouter('UNIFIED');
+    const result = await router.processQuery('CPU 사용률이 높은 서버를 알려줘');
 
-    expect(result.mode).toBe('LOCAL');
-    expect(result.responseTime).toBeLessThan(700);
-    expect(result.usedEngines).not.toContain('GoogleAI');
+    expect(result.mode).toBe('UNIFIED');
+    expect(result.metadatas.koreanNLPUsed).toBe(true);
+    expect(result.thinkingSteps).toContainEqual(
+      expect.objectContaining({ step: '한국어 NLP 처리', status: 'completed' })
+    );
   });
 
-  test('GOOGLE_ONLY 모드에서 고급 추론', async () => {
-    const router = new UnifiedAIEngineRouter('GOOGLE_ONLY');
+  test('직접 Google AI 호출이 1초 이내에 완료', async () => {
+    const router = new UnifiedAIEngineRouter('UNIFIED');
     const result = await router.processQuery('복잡한 장애 분석');
 
-    expect(result.mode).toBe('GOOGLE_ONLY');
-    expect(result.primaryEngine).toBe('GoogleAI');
-    expect(result.confidence).toBeGreaterThan(0.8);
+    expect(result.mode).toBe('UNIFIED');
+    expect(result.primaryEngine).toBe('google-ai-rag');
+    expect(result.processingTime).toBeLessThan(1000);
   });
 });
 ```
@@ -292,36 +295,34 @@ describe('KoreanNLPEngine', () => {
 ```typescript
 // tests/integration/ai-engine-integration.test.ts
 describe('AI Engine Integration', () => {
-  test('3개 모드 간 전환 테스트', async () => {
-    const modes = ['AUTO', 'LOCAL', 'GOOGLE_ONLY'];
-
-    for (const mode of modes) {
-      const response = await fetch('/api/ai/unified-query', {
-        method: 'POST',
-        body: JSON.stringify({
-          query: '서버 상태 확인',
-          mode: mode,
-        }),
-      });
-
-      const data = await response.json();
-      expect(data.mode).toBe(mode);
-      expect(data.success).toBe(true);
-    }
-  });
-
-  test('폴백 시스템 동작 확인', async () => {
-    // 메인 엔진 실패 시뮬레이션
-    const response = await fetch('/api/ai/unified-query', {
+  test('단일 통합 파이프라인 응답 확인', async () => {
+    const response = await fetch('/api/ai/query', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        query: '복잡한 분석 요청',
-        simulateFailure: true,
+        query: '서버 상태 확인',
+        includeThinking: true,
       }),
     });
 
     const data = await response.json();
-    expect(data.fallbackUsed).toBe(true);
+    expect(data.metadata.mode).toBe('unified-google-rag');
+    expect(data.success).toBe(true);
+  });
+
+  test('타임아웃 시 사용자 안내 반환', async () => {
+    // 타임아웃 시뮬레이션 (긴 쿼리)
+    const response = await fetch('/api/ai/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: '복잡한 분석 요청'.repeat(200),
+        includeThinking: true,
+      }),
+    });
+
+    const data = await response.json();
+    expect(data.metadata?.fallback).toBe(true);
     expect(data.success).toBe(true);
   });
 });
@@ -356,20 +357,12 @@ npm run test:coverage -- --reporter=html
 ```typescript
 // tests/performance/ai-engine-benchmark.test.ts
 describe('AI Engine Performance', () => {
-  test('AUTO 모드 성능: 850ms 이내', async () => {
+  test('통합 파이프라인 성능: 600ms 이내', async () => {
     const startTime = Date.now();
-    await processQuery('서버 분석', 'AUTO');
+    await processQuery('서버 분석', 'UNIFIED');
     const duration = Date.now() - startTime;
 
-    expect(duration).toBeLessThan(850);
-  });
-
-  test('LOCAL 모드 성능: 620ms 이내', async () => {
-    const startTime = Date.now();
-    await processQuery('서버 분석', 'LOCAL');
-    const duration = Date.now() - startTime;
-
-    expect(duration).toBeLessThan(620);
+    expect(duration).toBeLessThan(600);
   });
 });
 ```

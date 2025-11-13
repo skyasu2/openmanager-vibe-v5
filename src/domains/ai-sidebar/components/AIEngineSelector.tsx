@@ -7,7 +7,7 @@
 'use client';
 
 // framer-motion 제거 - CSS 애니메이션 사용
-import { ChevronDown, Database, Zap, type LucideIcon } from 'lucide-react';
+import { ChevronDown, Zap, type LucideIcon } from 'lucide-react';
 import React, { Fragment, useState, createElement, type FC } from 'react';
 
 // 타입 임포트
@@ -34,28 +34,7 @@ export const availableEngines: AIEngine[] = [
     bgColor: 'bg-purple-100',
     features: ['최적 엔진 자동 선택', '고성능', '유연성'],
     status: 'ready',
-  },
-  {
-    id: 'GOOGLE_ONLY',
-    name: 'Google AI Only',
-    description: 'Google AI만 사용 - 고급 자연어 처리와 추론 능력',
-    icon: Zap,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100',
-    features: ['자연어 처리 특화', '고급 추론', '클라우드 기반'],
-    usage: { used: 45, limit: 100 },
-    status: 'ready',
-  },
-  {
-    id: 'LOCAL',
-    name: '로컬 MCP',
-    description: '로컬 MCP 서버 - 프라이버시 보장과 오프라인 동작',
-    icon: Database,
-    color: 'text-green-600',
-    bgColor: 'bg-green-100',
-    features: ['프라이버시 보장', '오프라인 동작', '빠른 응답'],
-    status: 'ready',
-  },
+  }
 ];
 
 // AISidebarV2 호환성을 위한 별칭

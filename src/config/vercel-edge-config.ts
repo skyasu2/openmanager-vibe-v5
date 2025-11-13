@@ -14,9 +14,8 @@ export const VERCEL_PLANS = {
     requestsPerMinute: 100,
     edgeRequestsPerMonth: 1000000, // 1M
 
-    // 기능 제한 - 무료 플랜에서는 Google AI 완전 비활성화
-    enableGoogleAI: false, // 무료 모델 전용 (Google AI 비활성화)
-    enableAdvancedRAG: false,
+    // 기능 제한 - 무료 플랜에서도 통합 AI 파이프라인 사용
+    enableAdvancedRAG: true,
     enableMCPIntegration: false,
     maxConcurrentRequests: 10,
 
@@ -40,7 +39,6 @@ export const VERCEL_PLANS = {
     edgeRequestsPerMonth: 10000000, // 10M
 
     // 기능 활성화
-    enableGoogleAI: true,
     enableAdvancedRAG: true,
     enableMCPIntegration: true,
     maxConcurrentRequests: 100,

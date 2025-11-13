@@ -22,15 +22,8 @@ import type { EnhancedServerMetrics } from '@/types/server';
 
 export interface QueryRequest {
   query: string;
-  mode?: AIMode | 'local' | 'local-ai'; // AIMode와 하위 호환성을 위한 추가 값들
+  mode?: AIMode | 'local' | 'local-ai'; // 하위 호환성 유지용
   context?: AIQueryContext;
-
-  // 모드별 기능 제어 옵션
-  enableGoogleAI?: boolean; // Google AI API 활성화/비활성화
-  enableAIAssistantMCP?: boolean; // 로컬 MCP를 통한 컨텍스트 로딩 활성화/비활성화
-  enableKoreanNLP?: boolean; // 한국어 NLP 활성화/비활성화
-  enableVMBackend?: boolean; // VM AI 백엔드 활성화/비활성화 (MCP와 무관)
-
   options?: AIQueryOptions & {
     includeThinking?: boolean;
     includeMCPContext?: boolean;
@@ -57,6 +50,8 @@ export interface QueryResponse {
     | 'local-rag' 
     | 'local-ai' 
     | 'google-ai' 
+    | 'google-ai-rag'
+    | 'unified-google-rag'
     | 'fallback'
     | 'pattern-matched'
     | 'streaming-initial'

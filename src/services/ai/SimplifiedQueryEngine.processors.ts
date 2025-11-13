@@ -2,9 +2,7 @@
  * 🔄 SimplifiedQueryEngine Processors
  *
  * Delegating processor class that coordinates specialized processor modules:
- * - LocalQueryProcessor: Local RAG processing
- * - LocalAIModeProcessor: Local AI mode with NLP and VM backend
- * - GoogleAIModeProcessor: Google AI mode with all features
+ * - GoogleAIModeProcessor: Unified RAG + Cloud Functions + Google AI
  * - CommandQueryProcessor: Command analysis and recommendations
  * - SimplifiedQueryEngineHelpers: Shared helper methods
  */
@@ -13,7 +11,6 @@ import type { SupabaseRAGEngine } from './supabase-rag-engine';
 import { CloudContextLoader } from '../mcp/CloudContextLoader';
 import { MockContextLoader } from './MockContextLoader';
 import { IntentClassifier } from '../../modules/ai-agent/processors/IntentClassifier';
-import type { ComplexityScore } from './SimplifiedQueryEngine.complexity-types';
 import type { AIQueryContext, MCPContext } from '../../types/ai-service-types';
 import type {
   QueryRequest,
@@ -22,8 +19,6 @@ import type {
 } from './SimplifiedQueryEngine.types';
 import { SimplifiedQueryEngineUtils } from './SimplifiedQueryEngine.utils';
 import { SimplifiedQueryEngineHelpers } from './SimplifiedQueryEngine.processors.helpers';
-import { LocalQueryProcessor } from './SimplifiedQueryEngine.processors.local';
-import { LocalAIModeProcessor } from './SimplifiedQueryEngine.processors.localai';
 import { GoogleAIModeProcessor } from './SimplifiedQueryEngine.processors.googleai';
 import { CommandQueryProcessor } from './SimplifiedQueryEngine.processors.command';
 
@@ -32,9 +27,7 @@ import { CommandQueryProcessor } from './SimplifiedQueryEngine.processors.comman
  */
 export class SimplifiedQueryEngineProcessors {
   private helpers: SimplifiedQueryEngineHelpers;
-  private localProcessor: LocalQueryProcessor;
-  private localAIProcessor: LocalAIModeProcessor;
-  private googleAIProcessor: GoogleAIModeProcessor;
+  private unifiedProcessor: GoogleAIModeProcessor;
   private commandProcessor: CommandQueryProcessor;
   
   // Store constructor parameters for later use
@@ -63,28 +56,12 @@ export class SimplifiedQueryEngineProcessors {
     this.helpers = new SimplifiedQueryEngineHelpers(mockContextLoader);
 
     // Initialize specialized processors
-    this.localProcessor = new LocalQueryProcessor(
-      utils,
-      ragEngine,
-      contextLoader,
-      mockContextLoader,
-      intentClassifier
-    );
-
-    this.localAIProcessor = new LocalAIModeProcessor(
-      utils,
-      ragEngine,
-      mockContextLoader,
-      intentClassifier,
-      this.helpers
-    );
-
-    this.googleAIProcessor = new GoogleAIModeProcessor(
+    this.unifiedProcessor = new GoogleAIModeProcessor(
       utils,
       contextLoader,
       mockContextLoader,
       this.helpers,
-      this.localAIProcessor
+      this.ragEngine
     );
 
     this.commandProcessor = new CommandQueryProcessor(
@@ -112,89 +89,23 @@ export class SimplifiedQueryEngineProcessors {
   }
 
   /**
-   * 🏠 로컬 RAG 쿼리 처리 (최적화됨)
+   * 통합 Google AI + Cloud Functions RAG 파이프라인
    */
-  async processLocalQuery(
+  async processUnifiedQuery(
     query: string,
     context: AIQueryContext | undefined,
     options: QueryRequest['options'],
     mcpContext: MCPContext | null,
     thinkingSteps: QueryResponse['thinkingSteps'],
-    startTime: number,
-    complexity?: ComplexityScore
+    startTime: number
   ): Promise<QueryResponse> {
-    if (!context) {
-      throw new Error('AIQueryContext is required for local processing');
-    }
-    
-    return this.localProcessor.processLocalQuery(
+    return this.unifiedProcessor.processUnifiedQuery(
       query,
       context,
-      options || {},
+      options,
       mcpContext,
       thinkingSteps,
       startTime
-    );
-  }
-
-  /**
-   * 로컬 AI 모드 쿼리 처리
-   * - 한국어 NLP 처리 (enableKoreanNLP=true일 때)
-   * - Supabase RAG 검색
-   * - VM 백엔드 연동 (enableVMBackend=true일 때)
-   * - Google AI API 사용하지 않음
-   * - AI 어시스턴트 MCP 사용하지 않음
-   */
-  async processLocalAIModeQuery(
-    query: string,
-    context: AIQueryContext | undefined,
-    options: QueryRequest['options'],
-    mcpContext: MCPContext | null,
-    thinkingSteps: QueryResponse['thinkingSteps'],
-    startTime: number,
-    modeConfig: { enableKoreanNLP: boolean; enableVMBackend: boolean }
-  ): Promise<QueryResponse> {
-    return this.localAIProcessor.processLocalAIModeQuery(
-      query,
-      context,
-      options,
-      mcpContext,
-      thinkingSteps,
-      startTime,
-      modeConfig
-    );
-  }
-
-  /**
-   * 구글 AI 모드 쿼리 처리
-   * - Google AI API 활성화
-   * - AI 어시스턴트 MCP 활성화 (CloudContextLoader)
-   * - 한국어 NLP 처리
-   * - VM 백엔드 연동
-   * - 모든 기능 포함
-   */
-  async processGoogleAIModeQuery(
-    query: string,
-    context: AIQueryContext | undefined,
-    options: QueryRequest['options'],
-    mcpContext: MCPContext | null,
-    thinkingSteps: QueryResponse['thinkingSteps'],
-    startTime: number,
-    modeConfig: {
-      enableGoogleAI: boolean;
-      enableAIAssistantMCP: boolean;
-      enableKoreanNLP: boolean;
-      enableVMBackend: boolean;
-    }
-  ): Promise<QueryResponse> {
-    return this.googleAIProcessor.processGoogleAIModeQuery(
-      query,
-      context,
-      options,
-      mcpContext,
-      thinkingSteps,
-      startTime,
-      modeConfig
     );
   }
 

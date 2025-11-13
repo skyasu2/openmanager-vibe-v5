@@ -48,6 +48,11 @@ const ENGINE_CONFIG = {
     displayName: 'Google AI',
     description: 'Google AI 모드 - 클라우드 기반 AI 처리',
     endpoint: '/api/ai/google-ai/generate'
+  },
+  AUTO: {
+    displayName: '자동 선택',
+    description: '상황에 맞게 최적 엔진 자동 선택',
+    endpoint: '/api/ai/query'
   }
 } as const;
 

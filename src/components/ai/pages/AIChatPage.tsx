@@ -11,7 +11,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, User, Bot, Sparkles, AlertCircle } from 'lucide-react';
 import { useAIThinking } from '@/stores/useAISidebarStore';
 import debug from '@/utils/debug';
-import type { GoogleAIGenerateResponse } from '@/schemas/api.ai.schema';
+import type { QueryResponse as UnifiedQueryResponse } from '@/services/ai/SimplifiedQueryEngine';
 // import ThinkingView from '../ThinkingView'; // 백업됨
 
 interface Message {
@@ -44,20 +44,20 @@ export default function AIChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [localMessages]);
 
-  // Google AI API 호출 함수
-  const callGoogleAI = async (prompt: string): Promise<GoogleAIGenerateResponse> => {
-    const response = await fetch('/api/ai/google-ai/generate', {
+  // 통합 AI API 호출 함수
+  const callUnifiedAI = async (prompt: string): Promise<UnifiedQueryResponse> => {
+    const response = await fetch('/api/ai/query', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-AI-Assistant': 'true',
-        'X-AI-Mode': 'google-ai',
       },
       body: JSON.stringify({
-        prompt,
+        query: prompt,
+        includeThinking: true,
         temperature: 0.7,
         maxTokens: 1000,
-        model: 'gemini-1.5-flash'
+        context: 'ai-chat-page',
       })
     });
 
@@ -83,18 +83,18 @@ export default function AIChatPage() {
     setInputValue('');
 
     try {
-      debug.log('🤖 Google AI 요청 시작:', currentPrompt);
+      debug.log('🤖 통합 AI 요청 시작:', currentPrompt);
       
       // AI 응답 처리
       const startTime = Date.now();
-      const apiResponse = await callGoogleAI(currentPrompt);
+      const apiResponse = await callUnifiedAI(currentPrompt);
       const processingTime = Date.now() - startTime;
 
-      if (apiResponse.success && (apiResponse.response || apiResponse.text)) {
+      if (apiResponse.success && apiResponse.response) {
         const aiMessage: Message = {
           id: (Date.now() + 1).toString(),
           type: 'ai',
-          content: apiResponse.response || apiResponse.text || '응답을 받을 수 없습니다.',
+          content: apiResponse.response || '응답을 받을 수 없습니다.',
           timestamp: new Date(),
           metadata: {
             ...apiResponse.metadata,
@@ -103,12 +103,12 @@ export default function AIChatPage() {
         };
         
         setLocalMessages((prev) => [...prev, aiMessage]);
-        debug.log(`✅ Google AI 응답 성공: ${processingTime}ms`);
+        debug.log(`✅ 통합 AI 응답 성공: ${processingTime}ms`);
       } else {
         throw new Error('message' in apiResponse ? String(apiResponse.message) : 'AI 응답에서 오류가 발생했습니다.');
       }
     } catch (error) {
-      debug.error('❌ Google AI 오류:', error);
+      debug.error('❌ 통합 AI 오류:', error);
       
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),

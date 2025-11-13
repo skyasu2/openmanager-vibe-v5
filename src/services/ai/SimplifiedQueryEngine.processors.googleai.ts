@@ -9,9 +9,9 @@
  * - All advanced features included
  */
 
+import type { SupabaseRAGEngine } from './supabase-rag-engine';
 import { CloudContextLoader } from '../mcp/CloudContextLoader';
 import { MockContextLoader } from './MockContextLoader';
-import { validateGoogleAIMCPConfig } from '../../lib/env-safe';
 import type {
   AIQueryContext,
   MCPContext,
@@ -23,7 +23,6 @@ import type {
 } from './SimplifiedQueryEngine.types';
 import { SimplifiedQueryEngineUtils } from './SimplifiedQueryEngine.utils';
 import { SimplifiedQueryEngineHelpers } from './SimplifiedQueryEngine.processors.helpers';
-import { LocalAIModeProcessor } from './SimplifiedQueryEngine.processors.localai';
 import { getQueryDifficultyAnalyzer, type GoogleAIModel } from './QueryDifficultyAnalyzer';
 import { getGoogleAIUsageTracker } from './GoogleAIUsageTracker';
 // 🔧 타임아웃 설정 (통합 유틸리티 사용)
@@ -39,20 +38,20 @@ export class GoogleAIModeProcessor {
   private contextLoader: CloudContextLoader;
   private mockContextLoader: MockContextLoader;
   private helpers: SimplifiedQueryEngineHelpers;
-  private localAIProcessor: LocalAIModeProcessor;
+  private ragEngine: SupabaseRAGEngine;
 
   constructor(
     utils: SimplifiedQueryEngineUtils,
     contextLoader: CloudContextLoader,
     mockContextLoader: MockContextLoader,
     helpers: SimplifiedQueryEngineHelpers,
-    localAIProcessor: LocalAIModeProcessor
+    ragEngine: SupabaseRAGEngine
   ) {
     this.utils = utils;
     this.contextLoader = contextLoader;
     this.mockContextLoader = mockContextLoader;
     this.helpers = helpers;
-    this.localAIProcessor = localAIProcessor;
+    this.ragEngine = ragEngine;
   }
 
   /**
@@ -62,26 +61,16 @@ export class GoogleAIModeProcessor {
    * - 한국어 NLP 처리
    * - 모든 기능 포함
    */
-  async processGoogleAIModeQuery(
+  async processUnifiedQuery(
     query: string,
     context: AIQueryContext | undefined,
     options: QueryRequest['options'],
     mcpContext: MCPContext | null,
     thinkingSteps: QueryResponse['thinkingSteps'],
-    startTime: number,
-    modeConfig: {
-      enableGoogleAI: boolean;
-      enableAIAssistantMCP: boolean;
-      enableKoreanNLP: boolean;
-      enableVMBackend: boolean;
-    }
+    startTime: number
   ): Promise<QueryResponse> {
-    const {
-      enableGoogleAI,
-      enableAIAssistantMCP,
-      enableKoreanNLP,
-      enableVMBackend,
-    } = modeConfig;
+    const enableKoreanNLP = true;
+    const enableAIAssistantMCP = !!mcpContext;
 
     // 1단계: 한국어 NLP 처리 (활성화된 경우)
     if (enableKoreanNLP) {
@@ -125,7 +114,70 @@ export class GoogleAIModeProcessor {
       }
     }
 
-    // 2단계: 기본 모델 고정 (무료 티어 안정성 우선)
+    // 2단계: RAG 검색 (Supabase pgvector)
+    const ragStepStart = Date.now();
+    thinkingSteps.push({
+      step: 'Supabase RAG 검색',
+      description: 'pgvector 기반 유사도 검색',
+      status: 'pending',
+      timestamp: ragStepStart,
+    });
+
+    let ragResult;
+    try {
+      ragResult = await this.ragEngine.searchSimilar(query, {
+        maxResults: 5,
+        threshold: 0.5,
+        category: options?.category,
+        enableMCP: false,
+        useLocalEmbeddings: true,
+        enableKeywordFallback: true,
+      });
+
+      const ragStep = thinkingSteps[thinkingSteps.length - 1];
+      if (ragStep) {
+        ragStep.status = 'completed';
+        ragStep.description = `${ragResult.totalResults}개 관련 문서 발견`;
+        ragStep.duration = Date.now() - ragStepStart;
+      }
+    } catch (ragError) {
+      console.error('RAG 검색 실패:', ragError);
+      const ragFailedStep = thinkingSteps[thinkingSteps.length - 1];
+      if (ragFailedStep) {
+        ragFailedStep.status = 'failed';
+        ragFailedStep.description = 'RAG 검색 실패';
+        ragFailedStep.duration = Date.now() - ragStepStart;
+      }
+      // RAG 실패는 치명적이지 않음. 계속 진행.
+      ragResult = { success: false, results: [], totalResults: 0, cached: false, processingTime: Date.now() - ragStepStart };
+    }
+
+
+    // 3단계: Cloud Functions 기반 통합 분석
+    const unifiedStepStart = Date.now();
+    thinkingSteps.push({
+      step: 'Cloud Functions 분석',
+      description: 'Korean NLP + ML Analytics + Server Analyzer 실행',
+      status: 'pending',
+      timestamp: unifiedStepStart,
+    });
+
+    const unifiedInsights = await this.helpers.fetchUnifiedInsights(
+      query,
+      context,
+      ragResult
+    );
+
+    const unifiedStep = thinkingSteps[thinkingSteps.length - 1];
+    if (unifiedStep) {
+      unifiedStep.status = unifiedInsights.summary ? 'completed' : 'failed';
+      unifiedStep.description = unifiedInsights.summary
+        ? 'Cloud Functions 결과 수집 완료'
+        : 'Cloud Functions 결과 없음';
+      unifiedStep.duration = Date.now() - unifiedStepStart;
+    }
+
+    // 4단계: 기본 모델 고정 (무료 티어 안정성 우선)
     const modelStepStart = Date.now();
     thinkingSteps.push({
       step: '모델 선택',
@@ -152,7 +204,7 @@ export class GoogleAIModeProcessor {
     const standardTemperature = 0.7; // 균형잡힌 창의성
     const standardMaxTokens = 1000;  // 충분한 응답 길이
 
-    // 3단계: Google AI API 처리 (선택된 모델 사용)
+    // 5단계: Google AI API 처리 (선택된 모델 사용)
     const googleStepStart = Date.now();
     thinkingSteps.push({
       step: 'Google AI 처리',
@@ -162,10 +214,6 @@ export class GoogleAIModeProcessor {
     });
 
     try {
-      if (!enableGoogleAI) {
-        throw new Error('Google AI API가 비활성화됨');
-      }
-
       // 1. 서버 컨텍스트 조회
       const serverContext = await this.helpers.getFormattedServerContext(query);
 
@@ -173,7 +221,9 @@ export class GoogleAIModeProcessor {
       const basePrompt = this.helpers.buildGoogleAIPrompt(
         query,
         context,
-        mcpContext
+        mcpContext,
+        ragResult,
+        unifiedInsights.summary
       );
 
       // 3. 최종 프롬프트 조립 (서버 컨텍스트 포함)
@@ -246,7 +296,7 @@ export class GoogleAIModeProcessor {
       return {
         success: true,
         response: finalResponse,
-        engine: 'google-ai',
+        engine: 'google-ai-rag',
         confidence: finalConfidence,
         thinkingSteps,
         metadata: {
@@ -257,7 +307,10 @@ export class GoogleAIModeProcessor {
           koreanNLPUsed: enableKoreanNLP,
           // GCP VM MCP 제거됨 - Cloud Functions 전용으로 단순화
           mockMode: !!this.mockContextLoader.getMockContext(),
-          mode: 'google-ai',
+          mode: 'google-ai-rag',
+          cloudFunctionsUsed: !!unifiedInsights.raw,
+          cloudFunctionsCacheHit: unifiedInsights.raw?.cache_hit ?? false,
+          cloudFunctionsSummary: unifiedInsights.summary || undefined,
           // 기본 모델 고정 정보
           modelInfo: {
             selectedModel,
@@ -311,7 +364,7 @@ export class GoogleAIModeProcessor {
       return {
         success: false,
         response: 'Google AI 모드에서 쿼리 처리 중 오류가 발생했습니다.',
-        engine: 'google-ai',
+        engine: 'google-ai-rag',
         confidence: 0,
         thinkingSteps,
         error: error instanceof Error ? error.message : '알 수 없는 오류',
@@ -320,7 +373,9 @@ export class GoogleAIModeProcessor {
           aiAssistantMCPUsed: enableAIAssistantMCP,
           koreanNLPUsed: enableKoreanNLP,
           mockMode: !!this.mockContextLoader.getMockContext(),
-          mode: 'google-ai',
+          mode: 'google-ai-rag',
+          cloudFunctionsUsed: !!unifiedInsights.raw,
+          cloudFunctionsCacheHit: unifiedInsights.raw?.cache_hit ?? false,
           // 기본 모델 고정 정보 (에러 시에도 포함)
           modelInfo: {
             selectedModel,

@@ -17,6 +17,7 @@ import { devtools, persist } from 'zustand/middleware';
 
 // AI Thinking Step 타입 import (중복 정의 제거)
 import type { AIThinkingStep } from '../types/ai-thinking';
+import type { AIMode } from '../types/ai-types';
 
 export interface AgentLog {
   id: string;
@@ -138,7 +139,7 @@ export const useAIThinking = () => {
   }, []);
 
   // 실제 thinking 과정 시뮬레이션
-  const simulateThinkingSteps = useCallback((query: string, mode: 'LOCAL' | 'GOOGLE_AI' = 'LOCAL') => {
+  const simulateThinkingSteps = useCallback((query: string, mode: AIMode = 'LOCAL') => {
     if (mode === 'GOOGLE_AI') {
       // Google AI는 단순한 처리 과정
       const steps: Omit<AIThinkingStep, 'timestamp'>[] = [

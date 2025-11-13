@@ -268,7 +268,7 @@ describe('API: /api/ai/query', () => {
       expect(response.status).toBe(200);
       expect(response.headers.get('Access-Control-Allow-Origin')).toBe('*');
       expect(response.headers.get('Access-Control-Allow-Methods')).toBe('GET, POST, OPTIONS');
-      expect(response.headers.get('Access-Control-Allow-Headers')).toBe('Content-Type, Authorization, X-AI-Mode');
+      expect(response.headers.get('Access-Control-Allow-Headers')).toBe('Content-Type, Authorization');
       expect(response.headers.get('Access-Control-Max-Age')).toBe('86400');
     });
   });

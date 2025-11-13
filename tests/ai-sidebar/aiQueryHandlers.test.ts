@@ -10,7 +10,7 @@ describe('aiQueryHandlers', () => {
   });
 
   describe('processRealAIQuery', () => {
-    it('sends query to correct endpoint based on engine', async () => {
+    it('sends query to unified endpoint', async () => {
       const mockResponse = { 
         success: true,
         response: 'AI 응답입니다',
@@ -36,19 +36,16 @@ describe('aiQueryHandlers', () => {
         onThinkingStop
       );
 
-      expect(fetch).toHaveBeenCalledWith('/api/ai/google-ai/generate', {
+      expect(fetch).toHaveBeenCalledWith('/api/ai/query', {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'X-AI-Mode': 'google_ai'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           query: '서버 상태는 어떤가요?',
           context: 'ai-sidebar',
           includeThinking: true,
-          sessionId: 'test-session-id',
-          mode: 'google_ai',
-          prompt: '서버 상태는 어떤가요?'
+          sessionId: 'test-session-id'
         })
       });
 
@@ -56,7 +53,7 @@ describe('aiQueryHandlers', () => {
       expect(result.content).toBe('AI 응답입니다');
     });
 
-    it('handles different engines correctly', async () => {
+    it('ignores legacy engine flags', async () => {
       const mockResponse = { 
         success: true,
         response: 'Test response',
@@ -71,13 +68,11 @@ describe('aiQueryHandlers', () => {
       const onThinkingStart = vi.fn();
       const onThinkingStop = vi.fn();
 
-      // UNIFIED engine
-      await processRealAIQuery('test', 'UNIFIED', 'test-session', onThinkingStart, onThinkingStop);
-      expect(fetch).toHaveBeenCalledWith('/api/ai/edge-v2', expect.any(Object));
+      await processRealAIQuery('test', 'GOOGLE_AI', 'test-session', onThinkingStart, onThinkingStop);
+      expect(fetch).toHaveBeenLastCalledWith('/api/ai/query', expect.any(Object));
 
-      // LOCAL engine  
       await processRealAIQuery('test', 'LOCAL', 'test-session', onThinkingStart, onThinkingStop);
-      expect(fetch).toHaveBeenCalledWith('/api/ai/query', expect.any(Object));
+      expect(fetch).toHaveBeenLastCalledWith('/api/ai/query', expect.any(Object));
     });
 
     it('handles API errors gracefully', async () => {

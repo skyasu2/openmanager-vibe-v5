@@ -26,7 +26,6 @@ export interface AutoReportTrigger {
  */
 export async function processRealAIQuery(
   query: string,
-  engine: AIMode = 'LOCAL',
   sessionId: string,
   onThinkingStart: () => void,
   onThinkingStop: (
@@ -39,30 +38,19 @@ export async function processRealAIQuery(
   onThinkingStart(); // 생각중 시작
 
   try {
-    console.log(`🤖 실제 AI 쿼리 처리 시작: ${query} (엔진: ${engine})`);
-
-    // 엔진별 API 엔드포인트 선택
-    const apiEndpoint =
-      engine === 'GOOGLE_AI'
-        ? '/api/ai/google-ai/generate'
-        : engine === 'LOCAL'
-          ? '/api/ai/query'
-          : '/api/ai/edge-v2';
+    console.log(`🤖 실제 AI 쿼리 처리 시작: ${query}`);
 
     // API 엔드포인트 호출
-    const response = await fetch(apiEndpoint, {
+    const response = await fetch('/api/ai/query', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-AI-Mode': engine.toLowerCase(),
       },
       body: JSON.stringify({
         query,
         context: 'ai-sidebar',
         includeThinking: true,
         sessionId,
-        mode: engine.toLowerCase(),
-        prompt: query, // Google AI용
       }),
     });
 
@@ -77,7 +65,7 @@ export async function processRealAIQuery(
 
       // 성공 시 생각 과정을 저장하고 실시간 표시 중단
       setTimeout(
-        () => onThinkingStop(query, data.engine || engine, processingTime),
+        () => onThinkingStop(query, data.engine || 'unified-google-rag', processingTime),
         500
       );
 
@@ -85,17 +73,17 @@ export async function processRealAIQuery(
         success: true,
         content: data.response,
         confidence: data.confidence || 0.8,
-        engine: data.engine || engine,
+        engine: data.engine || 'unified-google-rag',
         processingTime,
         metadata: data.metadata,
       };
     } else {
-      onThinkingStop('', engine, 0);
+      onThinkingStop('', 'unified-google-rag', 0);
       throw new Error(data.error || 'AI 응답 생성 실패');
     }
   } catch (error) {
     console.error('❌ 실제 AI 쿼리 실패:', error);
-    onThinkingStop('', engine, 0);
+    onThinkingStop('', 'unified-google-rag', 0);
 
     return {
       success: false,
@@ -215,7 +203,7 @@ export function detectAutoReportTrigger(
  */
 export async function handleAIQuery({
   query,
-  engine,
+  engine: _engine,
   context
 }: {
   query: string;
@@ -228,7 +216,6 @@ export async function handleAIQuery({
 }> {
   const result = await processRealAIQuery(
     query,
-    engine,
     'test-session',
     () => {},
     () => {}

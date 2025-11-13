@@ -15,6 +15,8 @@ import {
   getTTL,
   validateDataSize,
 } from '../../config/free-tier-cache-config';
+import { analyzeKoreanNLP } from '@/lib/gcp/gcp-functions-client';
+import type { KoreanNLPResponse } from '@/lib/gcp/gcp-functions.types';
 import type {
   QueryResponse,
   CacheEntry,
@@ -45,7 +47,6 @@ export class SimplifiedQueryEngineUtils {
    */
   generateCacheKey(
     query: string,
-    mode: string,
     context?: AIQueryContext
   ): string {
     // 1. 기본 정규화
@@ -59,7 +60,7 @@ export class SimplifiedQueryEngineUtils {
     
     // 4. 캐시 키 생성 (의미론적 해시 포함)
     const semanticHash = this.generateSemanticHash(normalizedQuery);
-    return createCacheKey('ai', `${mode}:${semanticHash}:${contextKey}`);
+    return createCacheKey('ai', `${semanticHash}:${contextKey}`);
   }
 
   /**
@@ -406,29 +407,76 @@ export class SimplifiedQueryEngineUtils {
       includeAnalysis?: boolean;
     } = {}
   ): Promise<NLPAnalysis | null> {
-    try {
-      // 실제 구현에서는 GCP Functions의 Korean NLP 엔드포인트 호출
-      // 현재는 Mock 응답
-      const koreanRatio = this.calculateKoreanRatio(query);
+    const koreanRatio = this.calculateKoreanRatio(query);
+    if (koreanRatio < 0.3) {
+      return null;
+    }
 
-      if (koreanRatio < 0.3) {
-        return null; // 한국어 비율이 낮으면 NLP 처리 안함
+    try {
+      const result = await analyzeKoreanNLP(query, {
+        features: {
+          includeEntities: options.includeEntities ?? true,
+          includeAnalysis: options.includeAnalysis ?? true,
+        },
+      });
+
+      if (!result.success || !result.data) {
+        return null;
       }
 
+      const data = result.data as KoreanNLPResponse;
+
       return {
-        intent: this.detectBasicIntent(query).intent,
-        sentiment: 'neutral',
-        keywords: query.split(' ').filter((word) => word.length > 1),
-        summary: query.length > 50 ? query.substring(0, 50) + '...' : query,
+        intent: data.intent,
+        sentiment: this.mapUrgencyToSentiment(
+          data.semantic_analysis?.urgency_level
+        ),
+        keywords: data.semantic_analysis?.sub_topics ?? [],
+        summary: this.buildKoreanNLPSummary(data),
         metadata: {
           koreanRatio,
-          processed: true,
+          urgency: data.semantic_analysis?.urgency_level,
+          technicalComplexity: data.semantic_analysis?.technical_complexity,
+          entityCount: data.entities?.length ?? 0,
         },
       };
     } catch (error) {
       console.error('한국어 NLP 처리 실패:', error);
       return null;
     }
+  }
+
+  private mapUrgencyToSentiment(
+    urgency?: 'low' | 'medium' | 'high' | 'critical'
+  ): NLPAnalysis['sentiment'] {
+    if (!urgency) return 'neutral';
+    if (urgency === 'low') return 'neutral';
+    if (urgency === 'medium') return 'negative';
+    return 'negative';
+  }
+
+  private buildKoreanNLPSummary(data: KoreanNLPResponse): string {
+    const parts: string[] = [];
+
+    if (data.semantic_analysis?.main_topic) {
+      parts.push(`주요 주제: ${data.semantic_analysis.main_topic}`);
+    }
+
+    if (data.response_guidance?.response_type) {
+      parts.push(`권장 응답 방식: ${data.response_guidance.response_type}`);
+    }
+
+    if (data.server_context?.target_servers?.length) {
+      parts.push(
+        `대상 서버: ${data.server_context.target_servers.slice(0, 3).join(', ')}`
+      );
+    }
+
+    if (parts.length === 0) {
+      return '한국어 분석이 완료되었습니다.';
+    }
+
+    return parts.join(' / ');
   }
 
   /**

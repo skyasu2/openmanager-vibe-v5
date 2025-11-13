@@ -90,7 +90,7 @@ interface AIAnalysisRequest {
     includeMetrics?: boolean
     metadata?: Record<string, unknown>
   }
-  mode: 'LOCAL' | 'GOOGLE_ONLY'
+  mode?: 'UNIFIED' // legacy values (LOCAL/GOOGLE_ONLY) are ignored
 }
 
 interface AIAnalysisResponse {

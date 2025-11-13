@@ -152,7 +152,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
   isOpen,
   onClose,
   className = '',
-  defaultEngine = 'LOCAL',
+  defaultEngine = 'UNIFIED',
   sessionId,
   enableRealTimeThinking = true,
   onEngineChange,
@@ -179,7 +179,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
 
   // 🔧 상태 관리 (성능 최적화된 그룹) - hooks 순서 일관성 보장
   const [selectedFunction, setSelectedFunction] = useState<AIAssistantFunction>('chat');
-  const [selectedEngine, setSelectedEngine] = useState<AIMode>(defaultEngine);
+  const [selectedEngine, setSelectedEngine] = useState<AIMode>('UNIFIED');
   const [inputValue, setInputValue] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -441,7 +441,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
     addMessage(userMessage);
 
     // 실제 AI 질의 처리
-    await processRealAIQuery(query, selectedEngine);
+    await processRealAIQuery(query);
 
     setInputValue('');
     setIsGenerating(false);
@@ -457,17 +457,17 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
     // 마지막 사용자 메시지 찾아서 재처리
     const lastUserMessage = allMessages.find((msg) => msg.role === 'user');
     if (lastUserMessage) {
-      processRealAIQuery(lastUserMessage.content, selectedEngine);
+      processRealAIQuery(lastUserMessage.content);
     }
   }, [allMessages, selectedEngine, processRealAIQuery]); // processRealAIQuery 함수 의존성 복구
 
   // AI 엔진 초기화
   useEffect(() => {
     if (isOpen) {
-      console.log('🎯 AISidebarV3 초기화 - 기본 모드:', defaultEngine);
-      setSelectedEngine(defaultEngine);
+      console.log('🎯 AISidebarV3 초기화 - 기본 모드: UNIFIED');
+      setSelectedEngine('UNIFIED');
     }
-  }, [isOpen, defaultEngine]);
+  }, [isOpen]);
 
   // 메모리 효율성을 위한 메시지 제한
   const limitedMessages = useMemo(() => {

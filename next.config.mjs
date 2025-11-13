@@ -309,7 +309,6 @@ const nextConfig = {
 
   // 🔧 웹팩 설정 (번들 최적화)
   webpack: (config, { isServer, dev }) => {
-    // ✅ 2-AI 교차검증 개선 - @/ 경로 해석 안정화
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': join(process.cwd(), 'src'),
@@ -424,7 +423,6 @@ const nextConfig = {
       ] : [])
     );
 
-    // ✅ 2-AI 교차검증 개선 - 경고 무시 제거 (조기 문제 탐지)
     config.ignoreWarnings = [
       /Critical dependency: the request of a dependency is an expression/,
       // Module not found 경고 제거로 경로 문제 조기 발견 
