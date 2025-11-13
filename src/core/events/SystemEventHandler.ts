@@ -60,7 +60,7 @@ export class SystemEventBus implements ISystemEventBus {
     const listeners = this.listeners.get(event.type);
     if (listeners && listeners.size > 0) {
       listeners.forEach((listener) => {
-        this.invokeListener(listener, event);
+        void this.invokeListener(listener, event);
       });
     }
   }
@@ -72,7 +72,8 @@ export class SystemEventBus implements ISystemEventBus {
     if (!this.listeners.has(eventType)) {
       this.listeners.set(eventType, new Set());
     }
-    this.listeners.get(eventType as SystemEventType)!.add(listener as unknown as EventListener);
+    const listeners = this.listeners.get(eventType);
+    listeners?.add(listener as unknown as EventListener);
   }
 
   /**
@@ -93,7 +94,7 @@ export class SystemEventBus implements ISystemEventBus {
    */
   once<T>(eventType: SystemEventType, listener: EventListener<T>): void {
     const onceWrapper: EventListener<T> = (event) => {
-      listener(event);
+      void this.invokeListener(listener, event);
       this.off(eventType, onceWrapper);
     };
     this.on(eventType, onceWrapper);
@@ -237,9 +238,7 @@ export class SystemEventMediator {
   /**
    * Process 에러 처리
    */
-  private async handleProcessError(
-    event: SystemEvent<ProcessEventPayload>
-  ): Promise<void> {
+  private handleProcessError(event: SystemEvent<ProcessEventPayload>): void {
     const { payload } = event;
 
     // Watchdog에 알림
@@ -269,9 +268,9 @@ export class SystemEventMediator {
   /**
    * Process 헬스 체크 처리
    */
-  private async handleProcessHealthCheck(
+  private handleProcessHealthCheck(
     event: SystemEvent<ProcessEventPayload>
-  ): Promise<void> {
+  ): void {
     const { payload } = event;
 
     if (payload.resources) {
@@ -316,9 +315,9 @@ export class SystemEventMediator {
   /**
    * 임계값 초과 처리
    */
-  private async handleThresholdExceeded(
+  private handleThresholdExceeded(
     event: SystemEvent<WatchdogEventPayload>
-  ): Promise<void> {
+  ): void {
     const { payload } = event;
 
     // 시스템 상태 업데이트
@@ -344,9 +343,7 @@ export class SystemEventMediator {
   /**
    * 시스템 위급 상황 처리
    */
-  private async handleSystemCritical(
-    event: SystemEvent<SystemStatusPayload>
-  ): Promise<void> {
+  private handleSystemCritical(event: SystemEvent<SystemStatusPayload>): void {
     console.error(
       '🚨 [SystemEventMediator] System critical state detected!',
       event

@@ -25,11 +25,13 @@ interface UseServerDataOptions {
 }
 
 // 글로벌 캐시 (여러 컴포넌트 간 공유)
-const serverDataCache = new Map<string, {
+type CacheEntry = {
   data: ServerData;
   timestamp: number;
   subscribers: Set<() => void>;
-}>();
+};
+
+const serverDataCache = new Map<string, CacheEntry>();
 
 // 진행 중인 요청 중복 제거
 const ongoingRequests = new Map<string, Promise<ServerData>>();
@@ -53,7 +55,7 @@ export const useServerData = (
   invalidateCache: () => void;
 } => {
   const opts = { ...DEFAULT_OPTIONS, ...options };
-  
+
   const [state, setState] = useState<UseServerDataState>({
     data: null,
     loading: true,
@@ -74,18 +76,21 @@ export const useServerData = (
   // 안전한 setState (언마운트 후 호출 방지)
   const safeSetState = useCallback((updater: Partial<UseServerDataState>) => {
     if (isMountedRef.current) {
-      setState(prev => ({ ...prev, ...updater }));
+      setState((prev) => ({ ...prev, ...updater }));
     }
   }, []);
 
   // 캐시에서 데이터 가져오기
-  const getCachedData = useCallback((id: string): ServerData | null => {
-    const cached = serverDataCache.get(id);
-    if (cached && Date.now() - cached.timestamp < opts.cacheTime) {
-      return cached.data;
-    }
-    return null;
-  }, [opts.cacheTime]);
+  const getCachedData = useCallback(
+    (id: string): ServerData | null => {
+      const cached = serverDataCache.get(id);
+      if (cached && Date.now() - cached.timestamp < opts.cacheTime) {
+        return cached.data;
+      }
+      return null;
+    },
+    [opts.cacheTime]
+  );
 
   // 캐시 업데이트 및 구독자 알림
   const updateCache = useCallback((id: string, data: ServerData) => {
@@ -95,11 +100,11 @@ export const useServerData = (
       timestamp: Date.now(),
       subscribers: cached?.subscribers || new Set(),
     };
-    
+
     serverDataCache.set(id, newCached);
-    
+
     // 구독자들에게 업데이트 알림
-    newCached.subscribers.forEach(callback => {
+    newCached.subscribers.forEach((callback) => {
       try {
         callback();
       } catch (error) {
@@ -109,64 +114,75 @@ export const useServerData = (
   }, []);
 
   // 적응형 polling 간격 계산
-  const getAdaptiveInterval = useCallback((data: ServerData | null): number => {
-    if (!data) return opts.pollingInterval;
-    
-    switch (data.status) {
-      case 'critical': return Math.min(opts.pollingInterval * 0.3, 500);
-      case 'warning': return Math.min(opts.pollingInterval * 0.7, 2000);
-      case 'normal': return Math.max(opts.pollingInterval * 1.5, 5000);
-      default: return opts.pollingInterval;
-    }
-  }, [opts.pollingInterval]);
+  const getAdaptiveInterval = useCallback(
+    (data: ServerData | null): number => {
+      if (!data) return opts.pollingInterval;
+
+      switch (data.status) {
+        case 'critical':
+          return Math.min(opts.pollingInterval * 0.3, 500);
+        case 'warning':
+          return Math.min(opts.pollingInterval * 0.7, 2000);
+        case 'normal':
+          return Math.max(opts.pollingInterval * 1.5, 5000);
+        default:
+          return opts.pollingInterval;
+      }
+    },
+    [opts.pollingInterval]
+  );
 
   // 서버 데이터 페치 함수
-  const fetchServerData = useCallback(async (id: string, signal?: AbortSignal): Promise<ServerData> => {
-    // 진행 중인 요청이 있다면 재사용
-    if (ongoingRequests.has(id)) {
-      return ongoingRequests.get(id)!;
-    }
-
-    const fetchPromise = (async (): Promise<ServerData> => {
-      try {
-        const response = await fetch(`/api/servers/${id}`, {
-          signal,
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        
-        // 데이터 검증
-        if (!data || typeof data !== 'object' || !data.id) {
-          throw new Error('Invalid server data received');
-        }
-
-        return data as ServerData;
-      } catch (error) {
-        if (signal?.aborted) {
-          throw new Error('Request aborted');
-        }
-        throw error;
+  const fetchServerData = useCallback(
+    async (id: string, signal?: AbortSignal): Promise<ServerData> => {
+      // 진행 중인 요청이 있다면 재사용
+      const existingRequest = ongoingRequests.get(id);
+      if (existingRequest !== undefined) {
+        return existingRequest;
       }
-    })();
 
-    ongoingRequests.set(id, fetchPromise);
+      const fetchPromise = (async (): Promise<ServerData> => {
+        try {
+          const response = await fetch(`/api/servers/${id}`, {
+            signal,
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Content-Type': 'application/json',
+            },
+          });
 
-    try {
-      const result = await fetchPromise;
-      updateCache(id, result);
-      return result;
-    } finally {
-      ongoingRequests.delete(id);
-    }
-  }, [updateCache]);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          // 데이터 검증
+          if (!data || typeof data !== 'object' || !data.id) {
+            throw new Error('Invalid server data received');
+          }
+
+          return data as ServerData;
+        } catch (error) {
+          if (signal?.aborted) {
+            throw new Error('Request aborted');
+          }
+          throw error;
+        }
+      })();
+
+      ongoingRequests.set(id, fetchPromise);
+
+      try {
+        const result = await fetchPromise;
+        updateCache(id, result);
+        return result;
+      } finally {
+        ongoingRequests.delete(id);
+      }
+    },
+    [updateCache]
+  );
 
   // 데이터 새로고침
   const refetch = useCallback(async (): Promise<void> => {
@@ -181,8 +197,11 @@ export const useServerData = (
     safeSetState({ loading: true, error: null });
 
     try {
-      const data = await fetchServerData(serverId, abortControllerRef.current.signal);
-      
+      const data = await fetchServerData(
+        serverId,
+        abortControllerRef.current.signal
+      );
+
       safeSetState({
         data,
         loading: false,
@@ -190,12 +209,13 @@ export const useServerData = (
         lastUpdated: new Date(),
         connectionStatus: 'connected',
       });
-      
+
       retryCountRef.current = 0; // 성공 시 재시도 카운트 리셋
     } catch (error) {
       if (!abortControllerRef.current?.signal.aborted && isMountedRef.current) {
-        const errorObj = error instanceof Error ? error : new Error('Unknown error');
-        
+        const errorObj =
+          error instanceof Error ? error : new Error('Unknown error');
+
         // 재시도 로직
         if (retryCountRef.current < opts.retryCount) {
           retryCountRef.current++;
@@ -203,10 +223,15 @@ export const useServerData = (
             connectionStatus: 'reconnecting',
             error: errorObj,
           });
-          
+
           // 지수 백오프로 재시도
-          const retryDelay = Math.min(1000 * Math.pow(2, retryCountRef.current - 1), 10000);
-          retryTimeoutRef.current = setTimeout(refetch, retryDelay);
+          const retryDelay = Math.min(
+            1000 * Math.pow(2, retryCountRef.current - 1),
+            10000
+          );
+          retryTimeoutRef.current = setTimeout(() => {
+            void refetch();
+          }, retryDelay);
         } else {
           safeSetState({
             loading: false,
@@ -221,7 +246,7 @@ export const useServerData = (
   // 캐시 무효화
   const invalidateCache = useCallback(() => {
     serverDataCache.delete(serverId);
-    refetch();
+    void refetch();
   }, [serverId, refetch]);
 
   // 초기 데이터 로드 및 polling 설정
@@ -256,7 +281,7 @@ export const useServerData = (
     }
 
     // 초기 데이터 로드
-    refetch();
+    void refetch();
 
     // adaptive polling 설정
     const setupPolling = () => {
@@ -267,7 +292,7 @@ export const useServerData = (
       const currentInterval = getAdaptiveInterval(state.data);
       intervalRef.current = setInterval(() => {
         if (isMountedRef.current && opts.enabled && !document.hidden) {
-          refetch();
+          void refetch();
         }
       }, currentInterval);
     };
@@ -277,7 +302,7 @@ export const useServerData = (
     // 탭 가시성 변경 감지
     const handleVisibilityChange = () => {
       if (!document.hidden && isMountedRef.current) {
-        refetch(); // 탭 활성화 시 즉시 새로고침
+        void refetch(); // 탭 활성화 시 즉시 새로고침
         setupPolling(); // polling 재설정
       }
     };
@@ -291,21 +316,29 @@ export const useServerData = (
       }
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [serverId, opts.enabled, getCachedData, safeSetState, refetch, getAdaptiveInterval, state.data]);
+  }, [
+    serverId,
+    opts.enabled,
+    getCachedData,
+    safeSetState,
+    refetch,
+    getAdaptiveInterval,
+    state.data,
+  ]);
 
   // 언마운트 시 정리
   useEffect(() => {
     return () => {
       isMountedRef.current = false;
-      
+
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
-      
+
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
-      
+
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);
       }
@@ -319,32 +352,12 @@ export const useServerData = (
   };
 };
 
-// 여러 서버 데이터를 한 번에 관리하는 Hook
-export const useMultipleServerData = (serverIds: string[], options?: UseServerDataOptions) => {
-  const servers = serverIds.map(id => ({
-    id,
-    ...useServerData(id, options),
-  }));
-
-  const allLoading = servers.every(server => server.loading);
-  const hasErrors = servers.some(server => server.error);
-  const allConnected = servers.every(server => server.connectionStatus === 'connected');
-
-  return {
-    servers,
-    allLoading,
-    hasErrors,
-    allConnected,
-    refetchAll: () => Promise.all(servers.map(server => server.refetch())),
-    invalidateAllCache: () => servers.forEach(server => server.invalidateCache()),
-  };
-};
-
 // 캐시 관리 유틸리티
 export const ServerDataCacheManager = {
   clear: () => serverDataCache.clear(),
-  
-  clearExpired: (maxAge = 300000) => { // 5분
+
+  clearExpired: (maxAge = 300000) => {
+    // 5분
     const now = Date.now();
     for (const [key, value] of serverDataCache.entries()) {
       if (now - value.timestamp > maxAge) {
@@ -352,12 +365,12 @@ export const ServerDataCacheManager = {
       }
     }
   },
-  
+
   getStats: () => ({
     size: serverDataCache.size,
     keys: Array.from(serverDataCache.keys()),
   }),
-  
+
   preload: async (serverIds: string[]) => {
     const promises = serverIds.map(async (id) => {
       try {
@@ -372,7 +385,7 @@ export const ServerDataCacheManager = {
         console.error(`Failed to preload server ${id}:`, error);
       }
     });
-    
+
     await Promise.allSettled(promises);
   },
 };

@@ -15,10 +15,13 @@ import type {
   IntelligentAnalysisRequest,
   ExtendedIntelligentAnalysisResult,
   StepResult,
-  AnomalyDetectionResult,
-  RootCauseAnalysisResult,
-  PredictiveMonitoringResult,
 } from '@/types/intelligent-monitoring.types';
+
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+type StepResultWithMeta = StepResult & {
+  processingTime?: number;
+  confidence?: number;
+};
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   AlertTriangle,
@@ -43,12 +46,12 @@ import {
 import { useState, useEffect } from 'react';
 // MLDataManager 제거 - 클라이언트에서 Redis 사용 불가
 
-
 export default function IntelligentMonitoringPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentStep, setCurrentStep] = useState<string>('준비');
-  const [progress, setProgress] = useState(0);
-  const [result, setResult] = useState<ExtendedIntelligentAnalysisResult | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+  const [result, setResult] =
+    useState<ExtendedIntelligentAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showAIInsights, setShowAIInsights] = useState(true);
   const [_lastInsightsRefresh, _setLastInsightsRefresh] = useState<number>(0);
@@ -117,7 +120,6 @@ export default function IntelligentMonitoringPage() {
    */
   const runIntelligentAnalysis = async () => {
     setIsAnalyzing(true);
-    setProgress(0);
     setCurrentStep('분석 시작');
     setResult(null);
     setError(null);
@@ -144,7 +146,6 @@ export default function IntelligentMonitoringPage() {
       }
 
       setResult(data.data);
-      setProgress(100);
       setCurrentStep('분석 완료');
 
       console.log('✅ 이상감지/예측 분석 완료', data.data);
@@ -174,7 +175,6 @@ export default function IntelligentMonitoringPage() {
   const resetAnalysis = () => {
     setResult(null);
     setError(null);
-    setProgress(0);
     setCurrentStep('준비');
     setIsAnalyzing(false);
   };
@@ -237,7 +237,9 @@ export default function IntelligentMonitoringPage() {
             </button>
 
             <button
-              onClick={runIntelligentAnalysis}
+              onClick={() => {
+                void runIntelligentAnalysis();
+              }}
               disabled={isAnalyzing}
               className="rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2 text-sm font-medium text-white transition-all hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50"
             >
@@ -263,9 +265,7 @@ export default function IntelligentMonitoringPage() {
 
       {/* AI 인사이트 통합 섹션 (상단) */}
       {showAIInsights && (
-        <div
-          className="mb-6"
-        >
+        <div className="mb-6">
           <div className="rounded-lg border border-orange-200 bg-white p-4 shadow-sm">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-700">
@@ -298,9 +298,7 @@ export default function IntelligentMonitoringPage() {
 
       {/* ML 학습 인사이트 섹션 (신규) */}
       {showMLInsights && (
-        <div
-          className="mb-6"
-        >
+        <div className="mb-6">
           <div className="rounded-lg border border-purple-200 bg-white p-4 shadow-sm">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="flex items-center gap-2 text-lg font-semibold text-gray-700">
@@ -465,33 +463,41 @@ export default function IntelligentMonitoringPage() {
 
           {/* 분석 단계 선택 */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-700">
+            <p className="mb-2 block text-sm font-medium text-gray-700">
               포함할 분석 단계
-            </label>
+            </p>
             <div className="space-y-2">
-              {workflowSteps.map((step) => (
-                <label key={step.id} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={
-                      analysisConfig.includeSteps[
-                        step.id as keyof typeof analysisConfig.includeSteps
-                      ]
-                    }
-                    onChange={(e) =>
-                      updateAnalysisConfig({
-                        includeSteps: {
-                          ...analysisConfig.includeSteps,
-                          [step.id]: e.target.checked,
-                        },
-                      })
-                    }
-                    className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                    disabled={isAnalyzing}
-                  />
-                  <span className="text-sm text-gray-700">{step.title}</span>
-                </label>
-              ))}
+              {workflowSteps.map((step) => {
+                const checkboxId = `workflow-step-${step.id}`;
+                return (
+                  <label
+                    key={step.id}
+                    htmlFor={checkboxId}
+                    className="flex items-center space-x-2"
+                  >
+                    <input
+                      id={checkboxId}
+                      type="checkbox"
+                      checked={
+                        analysisConfig.includeSteps[
+                          step.id as keyof typeof analysisConfig.includeSteps
+                        ]
+                      }
+                      onChange={(e) =>
+                        updateAnalysisConfig({
+                          includeSteps: {
+                            ...analysisConfig.includeSteps,
+                            [step.id]: e.target.checked,
+                          },
+                        })
+                      }
+                      className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                      disabled={isAnalyzing}
+                    />
+                    <span className="text-sm text-gray-700">{step.title}</span>
+                  </label>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -512,16 +518,15 @@ export default function IntelligentMonitoringPage() {
 
           {/* 진행률 바 */}
           <div className="mb-6 h-2 w-full rounded-full bg-gray-200">
-            <div
-              className="h-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
-            />
+            <div className="h-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500" />
           </div>
 
           {/* 3단계 워크플로우 시각화 */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {workflowSteps.map((step, index) => {
+            {workflowSteps.map((step) => {
               // 타입 안전성을 위한 명시적 타입 가드
-              let stepResult: StepResult | undefined;
+              // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+              let stepResult: StepResultWithMeta | undefined;
 
               if (result) {
                 switch (step.id) {
@@ -592,28 +597,15 @@ export default function IntelligentMonitoringPage() {
 
                   {stepResult && stepResult.status === 'completed' && (
                     <div className="space-y-2">
-                      {'processingTime' in stepResult && (
+                      {typeof stepResult.processingTime === 'number' && (
                         <div className="text-xs text-gray-500">
-                          처리 시간:{' '}
-                          {
-                            (
-                              stepResult as StepResult & {
-                                processingTime: number;
-                              }
-                            ).processingTime
-                          }
+                          처리 시간: {stepResult.processingTime}
                           ms
                         </div>
                       )}
-                      {'confidence' in stepResult && (
+                      {typeof stepResult.confidence === 'number' && (
                         <div className="text-xs text-gray-500">
-                          신뢰도:{' '}
-                          {Math.round(
-                            (
-                              stepResult as StepResult & { confidence: number }
-                            ).confidence * 100
-                          )}
-                          %
+                          신뢰도: {Math.round(stepResult.confidence * 100)}%
                         </div>
                       )}
                       {stepResult.summary && (
@@ -632,9 +624,7 @@ export default function IntelligentMonitoringPage() {
 
       {/* 오류 표시 */}
       {error && (
-        <div
-          className="rounded-xl border border-red-200 bg-red-50 p-4"
-        >
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4">
           <div className="flex items-center space-x-2">
             <XCircle className="h-5 w-5 text-red-600" />
             <h3 className="font-medium text-red-800">분석 실행 오류</h3>
@@ -645,9 +635,7 @@ export default function IntelligentMonitoringPage() {
 
       {/* 통합 결과 표시 */}
       {result && (
-        <div
-          className="rounded-xl border border-gray-200 bg-white p-6"
-        >
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
           <h3 className="mb-4 text-lg font-semibold text-gray-900">
             통합 분석 결과
           </h3>
@@ -841,4 +829,3 @@ export default function IntelligentMonitoringPage() {
     </div>
   );
 }
-

@@ -7,7 +7,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { UniversalVital, VitalCategory, UNIVERSAL_THRESHOLDS } from '@/lib/testing/universal-vitals';
+import {
+  UniversalVital,
+  VitalCategory,
+  UNIVERSAL_THRESHOLDS,
+} from '@/lib/testing/universal-vitals';
 
 // ⚡ Edge Runtime으로 전환 - 빠른 메트릭 처리
 export const runtime = 'edge';
@@ -65,14 +69,13 @@ interface RegressionAlert {
 
 // 🧮 Universal Vitals 분석 엔진
 class UniversalVitalsAnalyzer {
-
   // 📈 전체 Vitals 분석
   analyze(metrics: UniversalVital[]): VitalsAnalysis {
     if (metrics.length === 0) {
       return {
         overall: 'good',
         score: 100,
-        breakdown: {}
+        breakdown: {},
       };
     }
 
@@ -94,48 +97,61 @@ class UniversalVitalsAnalyzer {
     }
 
     // 전체 점수 및 등급 계산
-    const overallScore = categoryCount > 0 ? Math.round(totalScore / categoryCount) : 100;
+    const overallScore =
+      categoryCount > 0 ? Math.round(totalScore / categoryCount) : 100;
     const overall = this.determineOverallRating(overallScore);
 
     return {
       overall,
       score: overallScore,
-      breakdown
+      breakdown,
     };
   }
 
   // 🏷️ 메트릭을 카테고리별로 그룹화
-  private groupByCategory(metrics: UniversalVital[]): Map<VitalCategory, UniversalVital[]> {
+  private groupByCategory(
+    metrics: UniversalVital[]
+  ): Map<VitalCategory, UniversalVital[]> {
     const grouped = new Map<VitalCategory, UniversalVital[]>();
 
-    metrics.forEach(metric => {
-      if (!grouped.has(metric.category)) {
-        grouped.set(metric.category, []);
+    metrics.forEach((metric) => {
+      let bucket = grouped.get(metric.category);
+      if (!bucket) {
+        bucket = [];
+        grouped.set(metric.category, bucket);
       }
-      grouped.get(metric.category)!.push(metric);
+      bucket.push(metric);
     });
 
     return grouped;
   }
 
   // 📊 카테고리별 메트릭 분석
-  private analyzeCategoryMetrics(category: VitalCategory, metrics: UniversalVital[]) {
-    const good = metrics.filter(m => m.rating === 'good').length;
-    const needsImprovement = metrics.filter(m => m.rating === 'needs-improvement').length;
-    const poor = metrics.filter(m => m.rating === 'poor').length;
-    const avgValue = metrics.reduce((sum, m) => sum + m.value, 0) / metrics.length;
+  private analyzeCategoryMetrics(
+    category: VitalCategory,
+    metrics: UniversalVital[]
+  ) {
+    const good = metrics.filter((m) => m.rating === 'good').length;
+    const needsImprovement = metrics.filter(
+      (m) => m.rating === 'needs-improvement'
+    ).length;
+    const poor = metrics.filter((m) => m.rating === 'poor').length;
+    const avgValue =
+      metrics.reduce((sum, m) => sum + m.value, 0) / metrics.length;
 
     return {
       count: metrics.length,
       good,
       needsImprovement,
       poor,
-      avgValue: Math.round(avgValue * 100) / 100
+      avgValue: Math.round(avgValue * 100) / 100,
     };
   }
 
   // 🎯 카테고리 점수 계산
-  private calculateCategoryScore(analysis: NonNullable<VitalsAnalysis['breakdown'][VitalCategory]>): number {
+  private calculateCategoryScore(
+    analysis: NonNullable<VitalsAnalysis['breakdown'][VitalCategory]>
+  ): number {
     const total = analysis.count;
     if (total === 0) return 100;
 
@@ -148,7 +164,9 @@ class UniversalVitalsAnalyzer {
   }
 
   // ⚖️ 전체 등급 결정
-  private determineOverallRating(score: number): 'good' | 'needs-improvement' | 'poor' {
+  private determineOverallRating(
+    score: number
+  ): 'good' | 'needs-improvement' | 'poor' {
     if (score >= 80) return 'good';
     if (score >= 60) return 'needs-improvement';
     return 'poor';
@@ -160,42 +178,50 @@ class UniversalVitalsAnalyzer {
     const categorizedMetrics = this.groupByCategory(metrics);
 
     categorizedMetrics.forEach((categoryMetrics, category) => {
-      const poorMetrics = categoryMetrics.filter(m => m.rating === 'poor');
+      const poorMetrics = categoryMetrics.filter((m) => m.rating === 'poor');
 
       if (poorMetrics.length > 0) {
         switch (category) {
           case 'test-execution':
-            if (poorMetrics.some(m => m.name.includes('test-time'))) {
-              recommendations.push('테스트 실행 시간 최적화 필요 - 병렬 실행 검토');
+            if (poorMetrics.some((m) => m.name.includes('test-time'))) {
+              recommendations.push(
+                '테스트 실행 시간 최적화 필요 - 병렬 실행 검토'
+              );
             }
-            if (poorMetrics.some(m => m.name.includes('success-rate'))) {
-              recommendations.push('테스트 안정성 개선 필요 - Flaky 테스트 분석');
+            if (poorMetrics.some((m) => m.name.includes('success-rate'))) {
+              recommendations.push(
+                '테스트 안정성 개선 필요 - Flaky 테스트 분석'
+              );
             }
             break;
 
           case 'api-performance':
-            if (poorMetrics.some(m => m.name.includes('response-time'))) {
+            if (poorMetrics.some((m) => m.name.includes('response-time'))) {
               recommendations.push('API 응답 시간 개선 - 캐싱 및 쿼리 최적화');
             }
-            if (poorMetrics.some(m => m.name.includes('error-rate'))) {
+            if (poorMetrics.some((m) => m.name.includes('error-rate'))) {
               recommendations.push('API 오류율 감소 - 에러 핸들링 강화');
             }
             break;
 
           case 'build-performance':
-            if (poorMetrics.some(m => m.name.includes('build-time'))) {
-              recommendations.push('빌드 시간 단축 - 번들러 최적화 및 캐싱 활용');
+            if (poorMetrics.some((m) => m.name.includes('build-time'))) {
+              recommendations.push(
+                '빌드 시간 단축 - 번들러 최적화 및 캐싱 활용'
+              );
             }
-            if (poorMetrics.some(m => m.name.includes('bundle-size'))) {
-              recommendations.push('번들 크기 최적화 - 코드 스플리팅 및 Tree Shaking');
+            if (poorMetrics.some((m) => m.name.includes('bundle-size'))) {
+              recommendations.push(
+                '번들 크기 최적화 - 코드 스플리팅 및 Tree Shaking'
+              );
             }
             break;
 
           case 'infrastructure':
-            if (poorMetrics.some(m => m.name.includes('memory'))) {
+            if (poorMetrics.some((m) => m.name.includes('memory'))) {
               recommendations.push('메모리 사용량 최적화 - 메모리 누수 검사');
             }
-            if (poorMetrics.some(m => m.name.includes('cpu'))) {
+            if (poorMetrics.some((m) => m.name.includes('cpu'))) {
               recommendations.push('CPU 사용률 개선 - 알고리즘 최적화');
             }
             break;
@@ -207,20 +233,24 @@ class UniversalVitalsAnalyzer {
   }
 
   // 🚨 회귀 감지 (간단한 버전 - 실제로는 히스토리 데이터 필요)
-  detectRegressions(currentMetrics: UniversalVital[], previousMetrics?: UniversalVital[]): RegressionAlert[] {
+  detectRegressions(
+    currentMetrics: UniversalVital[],
+    previousMetrics?: UniversalVital[]
+  ): RegressionAlert[] {
     if (!previousMetrics || previousMetrics.length === 0) {
       return [];
     }
 
     const alerts: RegressionAlert[] = [];
 
-    currentMetrics.forEach(current => {
-      const previous = previousMetrics.find(p =>
-        p.name === current.name && p.category === current.category
+    currentMetrics.forEach((current) => {
+      const previous = previousMetrics.find(
+        (p) => p.name === current.name && p.category === current.category
       );
 
       if (previous && current.value > previous.value) {
-        const regressionPercent = ((current.value - previous.value) / previous.value) * 100;
+        const regressionPercent =
+          ((current.value - previous.value) / previous.value) * 100;
 
         // 20% 이상 성능 저하 시 경고
         if (regressionPercent > 20) {
@@ -234,7 +264,7 @@ class UniversalVitalsAnalyzer {
             previousValue: previous.value,
             currentValue: current.value,
             regressionPercent,
-            severity
+            severity,
           });
         }
       }
@@ -256,7 +286,7 @@ export async function POST(request: NextRequest) {
     const startTime = Date.now();
 
     // 요청 데이터 파싱
-    const body = await request.json() as UniversalVitalsRequest;
+    const body = (await request.json()) as UniversalVitalsRequest;
 
     // 기본 검증
     if (!body.metrics || !Array.isArray(body.metrics)) {
@@ -283,8 +313,8 @@ export async function POST(request: NextRequest) {
         processed: body.metrics.length,
         analysis,
         recommendations,
-        regressions: regressions.length > 0 ? regressions : undefined
-      }
+        regressions: regressions.length > 0 ? regressions : undefined,
+      },
     };
 
     // 🚀 Edge Runtime 최적화 헤더
@@ -296,12 +326,14 @@ export async function POST(request: NextRequest) {
       'X-Metrics-Processed': body.metrics.length.toString(),
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
+      'Access-Control-Allow-Headers': 'Content-Type',
     });
 
     // 📝 개발 환경에서 로깅
     if (process.env.NODE_ENV === 'development') {
-      console.log(`📊 [Universal Vitals] ${body.source}에서 ${body.metrics.length}개 메트릭 처리`);
+      console.log(
+        `📊 [Universal Vitals] ${body.source}에서 ${body.metrics.length}개 메트릭 처리`
+      );
       console.log(`🎯 전체 점수: ${analysis.score}점 (${analysis.overall})`);
       if (recommendations.length > 0) {
         console.log(`💡 권장사항 ${recommendations.length}개 제공`);
@@ -312,7 +344,6 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(response, { headers });
-
   } catch (error) {
     console.error('Universal Vitals API Error:', error);
 
@@ -321,7 +352,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: 'Universal Vitals processing failed',
         message: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       } as UniversalVitalsResponse,
       { status: 500 }
     );
@@ -332,8 +363,10 @@ export async function POST(request: NextRequest) {
  * 🔍 GET /api/universal-vitals
  * Universal Vitals 시스템 상태 및 설정 정보
  */
-export async function GET() {
-  const supportedCategories = Object.keys(UNIVERSAL_THRESHOLDS) as VitalCategory[];
+export function GET() {
+  const supportedCategories = Object.keys(
+    UNIVERSAL_THRESHOLDS
+  ) as VitalCategory[];
 
   const response = {
     success: true,
@@ -345,7 +378,7 @@ export async function GET() {
       'Real-time performance analysis',
       'Automated regression detection',
       'Smart recommendations engine',
-      'Edge Runtime optimized processing'
+      'Edge Runtime optimized processing',
     ],
     supportedCategories,
     thresholds: UNIVERSAL_THRESHOLDS,
@@ -353,17 +386,17 @@ export async function GET() {
       vitest: 'Use VitestVitals plugin for automatic collection',
       playwright: 'Use PlaywrightVitals for E2E metrics',
       api: 'Use startAPI/endAPI helpers',
-      manual: 'POST metrics directly to this endpoint'
+      manual: 'POST metrics directly to this endpoint',
     },
-    timestamp: Date.now()
+    timestamp: Date.now(),
   };
 
   return NextResponse.json(response, {
     headers: {
       'Content-Type': 'application/json',
       'Cache-Control': 'public, max-age=3600',
-      'X-Runtime': 'edge'
-    }
+      'X-Runtime': 'edge',
+    },
   });
 }
 
@@ -371,14 +404,14 @@ export async function GET() {
  * 🔧 OPTIONS /api/universal-vitals
  * CORS 및 프리플라이트 요청 처리
  */
-export async function OPTIONS() {
+export function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
-      'X-Runtime': 'edge'
-    }
+      'X-Runtime': 'edge',
+    },
   });
 }

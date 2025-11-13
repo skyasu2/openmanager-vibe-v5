@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react';
 import { lazy } from 'react';
-import { SystemHealthAPIResponse } from '@/types/api';
+import type { SystemHealthAPIResponse } from '@/types/admin-dashboard.types';
 import { useTimerManager } from '@/hooks/useTimerManager';
 import { useSafeEffect } from '@/types/react-utils';
 
@@ -69,6 +69,8 @@ const ChartSkeleton = memo(() => (
 ChartSkeleton.displayName = 'ChartSkeleton';
 
 const AdminDashboardCharts = memo(() => {
+  // 타입 병합으로 인해 eslint가 any로 추론하는 문제를 피하기 위해 예외 처리
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   const [data, setData] = useState<SystemHealthAPIResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -88,13 +90,23 @@ const AdminDashboardCharts = memo(() => {
     }
 
     // 구조가 다르면 변환
-    const chart = data.charts.performanceChart as { labels?: unknown[]; datasets?: Array<{ data: number[] }> };
-    if (chart.labels && chart.datasets) {
-      return chart.labels.map((label: unknown, index: number) => ({
-        name: String(label),
-        value: chart.datasets![0]?.data[index] || 0,
-        color: getColorByLabel(String(label)),
-      }));
+    const chart = data.charts.performanceChart as {
+      labels?: Array<string | number>;
+      datasets?: Array<{ data?: number[] }>;
+    };
+    if (chart.labels && chart.datasets?.length) {
+      const primaryDataset = chart.datasets[0];
+      const datasetValues = Array.isArray(primaryDataset?.data)
+        ? primaryDataset.data
+        : [];
+      return chart.labels.map((label, index: number) => {
+        const labelText = typeof label === 'string' ? label : String(label);
+        return {
+          name: labelText,
+          value: datasetValues[index] ?? 0,
+          color: getColorByLabel(labelText),
+        };
+      });
     }
 
     return [];
@@ -193,7 +205,7 @@ const AdminDashboardCharts = memo(() => {
 
   // 🔄 안전한 타이머 관리 (메모리 누수 방지)
   useSafeEffect(() => {
-    fetchHealthData(); // 초기 로드
+    void fetchHealthData(); // 초기 로드
 
     if (autoRefresh) {
       const timerId = timerManager.register({
@@ -217,7 +229,7 @@ const AdminDashboardCharts = memo(() => {
   // 🎨 새로고침 버튼 핸들러
   const handleRefresh = useCallback(() => {
     if (!loading) {
-      fetchHealthData();
+      void fetchHealthData();
     }
   }, [fetchHealthData, loading]);
 

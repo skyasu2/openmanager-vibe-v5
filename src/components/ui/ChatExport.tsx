@@ -1,6 +1,6 @@
 /**
  * 📤 ChatExport 컴포넌트 - 대화 내보내기 기능
- * 
+ *
  * 기능:
  * - 다양한 형식으로 내보내기 (JSON, Markdown, Text, CSV)
  * - 필터링 옵션 (날짜, 역할, 키워드)
@@ -11,16 +11,15 @@
 'use client';
 
 import { useState, useMemo, useCallback, type FC } from 'react';
-import { 
-  Download, 
-  FileText, 
-  FileCode, 
+import {
+  Download,
+  FileText,
+  FileCode,
   Database,
   Eye,
-  Calendar,
   Filter,
   X,
-  CheckCircle
+  CheckCircle,
 } from 'lucide-react';
 
 interface ChatMessage {
@@ -53,7 +52,7 @@ interface ChatExportProps {
   className?: string;
 }
 
-const EXPORT_FORMATS: ExportFormat[] = [
+const EXPORT_FORMATS: [ExportFormat, ...ExportFormat[]] = [
   {
     id: 'markdown',
     name: 'Markdown',
@@ -93,7 +92,9 @@ export const ChatExport: FC<ChatExportProps> = ({
   onClose,
   className = '',
 }) => {
-  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>(EXPORT_FORMATS[0]!);
+  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>(
+    EXPORT_FORMATS[0]
+  );
   const [showPreview, setShowPreview] = useState(false);
   const [filters, setFilters] = useState<ExportFilter>({
     roles: ['user', 'assistant'],
@@ -105,18 +106,19 @@ export const ChatExport: FC<ChatExportProps> = ({
 
   // 필터링된 메시지
   const filteredMessages = useMemo(() => {
-    return messages.filter(message => {
+    return messages.filter((message) => {
       // 역할 필터
       if (!filters.roles.includes(message.role)) return false;
 
       // 날짜 필터
-      if (filters.startDate && message.timestamp < filters.startDate) return false;
+      if (filters.startDate && message.timestamp < filters.startDate)
+        return false;
       if (filters.endDate && message.timestamp > filters.endDate) return false;
 
       // 키워드 필터
       if (filters.keywords.length > 0) {
         const content = message.content.toLowerCase();
-        return filters.keywords.some(keyword => 
+        return filters.keywords.some((keyword) =>
           content.includes(keyword.toLowerCase())
         );
       }
@@ -126,113 +128,129 @@ export const ChatExport: FC<ChatExportProps> = ({
   }, [messages, filters]);
 
   // 내보낼 데이터 생성
-  const generateExportData = useCallback((format: ExportFormat) => {
-    const timestamp = new Date().toISOString().split('T')[0];
-    const filename = `openmanager-chat-${timestamp}.${format.extension}`;
+  const generateExportData = useCallback(
+    (format: ExportFormat) => {
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `openmanager-chat-${timestamp}.${format.extension}`;
 
-    switch (format.id) {
-      case 'markdown':
-        const markdownContent = filteredMessages
-          .map(message => {
-            const time = message.timestamp.toLocaleString('ko-KR');
-            const roleEmoji = message.role === 'user' ? '👤' : '🤖';
-            return `## ${roleEmoji} ${message.role} (${time})\n\n${message.content}\n`;
-          })
-          .join('\n---\n\n');
-        
-        return {
-          content: `# OpenManager AI Chat Export\n\n생성일: ${new Date().toLocaleString('ko-KR')}\n총 메시지: ${filteredMessages.length}개\n\n---\n\n${markdownContent}`,
-          filename,
-          mimeType: format.mimeType,
-        };
+      switch (format.id) {
+        case 'markdown': {
+          const markdownContent = filteredMessages
+            .map((message) => {
+              const time = message.timestamp.toLocaleString('ko-KR');
+              const roleEmoji = message.role === 'user' ? '👤' : '🤖';
+              return `## ${roleEmoji} ${message.role} (${time})\n\n${message.content}\n`;
+            })
+            .join('\n---\n\n');
 
-      case 'json':
-        const jsonData = {
-          meta: {
-            exportDate: new Date().toISOString(),
-            totalMessages: filteredMessages.length,
-            filters: filters,
-          },
-          messages: filteredMessages.map(message => ({
-            id: message.id,
-            role: message.role,
-            content: message.content,
-            timestamp: message.timestamp.toISOString(),
-            metadata: message.metadata,
-          })),
-        };
-        
-        return {
-          content: JSON.stringify(jsonData, null, 2),
-          filename,
-          mimeType: format.mimeType,
-        };
+          return {
+            content: `# OpenManager AI Chat Export\n\n생성일: ${new Date().toLocaleString('ko-KR')}\n총 메시지: ${filteredMessages.length}개\n\n---\n\n${markdownContent}`,
+            filename,
+            mimeType: format.mimeType,
+          };
+        }
 
-      case 'text':
-        const textContent = filteredMessages
-          .map(message => {
-            const time = message.timestamp.toLocaleString('ko-KR');
-            return `[${time}] ${message.role.toUpperCase()}: ${message.content}`;
-          })
-          .join('\n\n');
-        
-        return {
-          content: `OpenManager AI Chat Export\n생성일: ${new Date().toLocaleString('ko-KR')}\n총 메시지: ${filteredMessages.length}개\n\n${textContent}`,
-          filename,
-          mimeType: format.mimeType,
-        };
+        case 'json': {
+          const jsonData = {
+            meta: {
+              exportDate: new Date().toISOString(),
+              totalMessages: filteredMessages.length,
+              filters: filters,
+            },
+            messages: filteredMessages.map((message) => ({
+              id: message.id,
+              role: message.role,
+              content: message.content,
+              timestamp: message.timestamp.toISOString(),
+              metadata: message.metadata,
+            })),
+          };
 
-      case 'csv':
-        const csvHeaders = 'ID,Role,Content,Timestamp';
-        const csvRows = filteredMessages
-          .map(message => 
-            `"${message.id}","${message.role}","${message.content.replace(/"/g, '""')}","${message.timestamp.toISOString()}"`
-          )
-          .join('\n');
-        
-        return {
-          content: `${csvHeaders}\n${csvRows}`,
-          filename,
-          mimeType: format.mimeType,
-        };
+          return {
+            content: JSON.stringify(jsonData, null, 2),
+            filename,
+            mimeType: format.mimeType,
+          };
+        }
 
-      default:
-        throw new Error(`Unsupported format: ${format.id}`);
-    }
-  }, [filteredMessages, filters]);
+        case 'text': {
+          const textContent = filteredMessages
+            .map((message) => {
+              const time = message.timestamp.toLocaleString('ko-KR');
+              return `[${time}] ${message.role.toUpperCase()}: ${message.content}`;
+            })
+            .join('\n\n');
+
+          return {
+            content: `OpenManager AI Chat Export\n생성일: ${new Date().toLocaleString('ko-KR')}\n총 메시지: ${filteredMessages.length}개\n\n${textContent}`,
+            filename,
+            mimeType: format.mimeType,
+          };
+        }
+
+        case 'csv': {
+          const csvHeaders = 'ID,Role,Content,Timestamp';
+          const csvRows = filteredMessages
+            .map(
+              (message) =>
+                `"${message.id}","${message.role}","${message.content.replace(/"/g, '""')}","${message.timestamp.toISOString()}"`
+            )
+            .join('\n');
+
+          return {
+            content: `${csvHeaders}\n${csvRows}`,
+            filename,
+            mimeType: format.mimeType,
+          };
+        }
+
+        default:
+          throw new Error(`Unsupported format: ${format.id}`);
+      }
+    },
+    [filteredMessages, filters]
+  );
 
   // 파일 다운로드
-  const downloadFile = useCallback(async (format: ExportFormat) => {
-    try {
-      setIsExporting(true);
-      const exportData = generateExportData(format);
-      
-      const blob = new Blob([exportData.content], { type: exportData.mimeType });
-      const url = URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = exportData.filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      URL.revokeObjectURL(url);
-      
-      setExportSuccess(true);
-      setTimeout(() => setExportSuccess(false), 2000);
-    } catch (error) {
-      console.error('Export failed:', error);
-      alert('내보내기에 실패했습니다.');
-    } finally {
-      setIsExporting(false);
-    }
-  }, [generateExportData]);
+  const downloadFile = useCallback(
+    (format: ExportFormat) => {
+      try {
+        setIsExporting(true);
+        const exportData = generateExportData(format);
+
+        const blob = new Blob([exportData.content], {
+          type: exportData.mimeType,
+        });
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = exportData.filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        URL.revokeObjectURL(url);
+
+        setExportSuccess(true);
+        setTimeout(() => setExportSuccess(false), 2000);
+      } catch (error) {
+        console.error('Export failed:', error);
+        alert('내보내기에 실패했습니다.');
+      } finally {
+        setIsExporting(false);
+      }
+    },
+    [generateExportData]
+  );
 
   // 키워드 추가
   const addKeyword = useCallback(() => {
-    if (keywordInput.trim() && !filters.keywords.includes(keywordInput.trim())) {
-      setFilters(prev => ({
+    if (
+      keywordInput.trim() &&
+      !filters.keywords.includes(keywordInput.trim())
+    ) {
+      setFilters((prev) => ({
         ...prev,
         keywords: [...prev.keywords, keywordInput.trim()],
       }));
@@ -242,18 +260,18 @@ export const ChatExport: FC<ChatExportProps> = ({
 
   // 키워드 제거
   const removeKeyword = useCallback((keyword: string) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      keywords: prev.keywords.filter(k => k !== keyword),
+      keywords: prev.keywords.filter((k) => k !== keyword),
     }));
   }, []);
 
   // 역할 토글
   const toggleRole = useCallback((role: string) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       roles: prev.roles.includes(role)
-        ? prev.roles.filter(r => r !== role)
+        ? prev.roles.filter((r) => r !== role)
         : [...prev.roles, role],
     }));
   }, []);
@@ -290,21 +308,23 @@ export const ChatExport: FC<ChatExportProps> = ({
         <div className="space-y-3">
           {/* 역할 필터 */}
           <div>
-            <label className="text-xs font-medium text-gray-600">메시지 역할</label>
+            <p className="text-xs font-medium text-gray-600">메시지 역할</p>
             <div className="mt-1 flex gap-2">
-              {['user', 'assistant', 'thinking'].map(role => (
+              {['user', 'assistant', 'thinking'].map((role) => (
                 <button
                   key={role}
                   onClick={() => toggleRole(role)}
-                  className={`
-                    rounded px-3 py-1 text-xs font-medium transition-colors
-                    ${filters.roles.includes(role)
+                  className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
+                    filters.roles.includes(role)
                       ? 'bg-blue-100 text-blue-700'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }
-                  `}
+                  } `}
                 >
-                  {role === 'user' ? '👤 사용자' : role === 'assistant' ? '🤖 AI' : '💭 사고'}
+                  {role === 'user'
+                    ? '👤 사용자'
+                    : role === 'assistant'
+                      ? '🤖 AI'
+                      : '💭 사고'}
                 </button>
               ))}
             </div>
@@ -312,7 +332,7 @@ export const ChatExport: FC<ChatExportProps> = ({
 
           {/* 키워드 필터 */}
           <div>
-            <label className="text-xs font-medium text-gray-600">키워드 필터</label>
+            <p className="text-xs font-medium text-gray-600">키워드 필터</p>
             <div className="mt-1 flex gap-2">
               <input
                 type="text"
@@ -332,7 +352,7 @@ export const ChatExport: FC<ChatExportProps> = ({
             </div>
             {filters.keywords.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
-                {filters.keywords.map(keyword => (
+                {filters.keywords.map((keyword) => (
                   <span
                     key={keyword}
                     className="flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-xs"
@@ -354,24 +374,26 @@ export const ChatExport: FC<ChatExportProps> = ({
 
       {/* 형식 선택 */}
       <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">내보내기 형식</label>
+        <p className="mb-2 block text-sm font-medium text-gray-700">
+          내보내기 형식
+        </p>
         <div className="grid grid-cols-2 gap-2">
-          {EXPORT_FORMATS.map(format => (
+          {EXPORT_FORMATS.map((format) => (
             <button
               key={format.id}
               onClick={() => setSelectedFormat(format)}
-              className={`
-                flex items-center gap-3 rounded-lg border p-3 text-left transition-all
-                ${selectedFormat.id === format.id
+              className={`flex items-center gap-3 rounded-lg border p-3 text-left transition-all ${
+                selectedFormat.id === format.id
                   ? 'border-blue-500 bg-blue-50 text-blue-700'
                   : 'border-gray-200 bg-white hover:border-gray-300'
-                }
-              `}
+              } `}
             >
               <format.icon className="h-5 w-5 flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <div className="font-medium">{format.name}</div>
-                <div className="text-xs text-gray-500">{format.description}</div>
+                <div className="text-xs text-gray-500">
+                  {format.description}
+                </div>
               </div>
             </button>
           ))}

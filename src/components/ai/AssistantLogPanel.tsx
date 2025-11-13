@@ -152,9 +152,7 @@ const generateMockLogs = (): LogEntry[] => [
   },
 ];
 
-const AssistantLogPanel: FC<AssistantLogPanelProps> = ({
-  className = '',
-}) => {
+const AssistantLogPanel: FC<AssistantLogPanelProps> = ({ className = '' }) => {
   // 🔧 관리자 기능 상태
   const [adminMode, setAdminMode] = useState(false);
   const [_selectedSession, setSelectedSession] = useState<string | null>(null);
@@ -201,11 +199,12 @@ const AssistantLogPanel: FC<AssistantLogPanelProps> = ({
 
     const groups = new Map<string, LogEntry[]>();
     logs.forEach((log) => {
-      if (log.sessionId) {
-        if (!groups.has(log.sessionId)) {
-          groups.set(log.sessionId, []);
-        }
-        groups.get(log.sessionId)!.push(log);
+      if (!log.sessionId) return;
+      const existing = groups.get(log.sessionId);
+      if (existing) {
+        existing.push(log);
+      } else {
+        groups.set(log.sessionId, [log]);
       }
     });
 
@@ -238,7 +237,7 @@ const AssistantLogPanel: FC<AssistantLogPanelProps> = ({
   }, [logs, sessionGroups]);
 
   // 🤖 관리자 기능: 로그 내보내기
-  const exportLogsToCSV = async () => {
+  const exportLogsToCSV = () => {
     if (!logs || exportInProgress) return;
 
     setExportInProgress(true);
@@ -501,81 +500,84 @@ const AssistantLogPanel: FC<AssistantLogPanelProps> = ({
         ) : (
           // 기존 로그 목록 표시
           <div className="space-y-3">
-            {filteredLogs.map((log: LogEntry) => (
-              <div
-                key={log.id}
-                className="rounded-lg border border-gray-600/30 bg-gray-800/50 p-4 transition-colors hover:bg-gray-700/30"
-              >
-                {/* 로그 헤더 */}
-                <div className="mb-3 flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="mb-1 flex items-center gap-2">
-                      <span className="text-lg">{getTypeIcon(log.type)}</span>
-                      <h4 className="font-medium text-white">{log.step}</h4>
-                      <span
-                        className={`rounded-full border px-2 py-1 text-xs ${getLevelColor(
-                          log.level
-                        )}`}
-                      >
-                        {log.level.toUpperCase()}
+            {filteredLogs.map((log: LogEntry) => {
+              const sessionId = log.sessionId;
+              return (
+                <div
+                  key={log.id}
+                  className="rounded-lg border border-gray-600/30 bg-gray-800/50 p-4 transition-colors hover:bg-gray-700/30"
+                >
+                  {/* 로그 헤더 */}
+                  <div className="mb-3 flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="mb-1 flex items-center gap-2">
+                        <span className="text-lg">{getTypeIcon(log.type)}</span>
+                        <h4 className="font-medium text-white">{log.step}</h4>
+                        <span
+                          className={`rounded-full border px-2 py-1 text-xs ${getLevelColor(
+                            log.level
+                          )}`}
+                        >
+                          {log.level.toUpperCase()}
+                        </span>
+                        {log.patternDetected && (
+                          <span className="rounded-full bg-orange-100 px-2 py-1 text-xs text-orange-700">
+                            🎯 패턴 감지
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 text-sm text-gray-400">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-4 w-4" />
+                          <span>{log.timestamp.toLocaleString()}</span>
+                        </div>
+                        {log.duration && (
+                          <div className="flex items-center gap-1">
+                            <Zap className="h-4 w-4" />
+                            <span>{log.duration}ms</span>
+                          </div>
+                        )}
+                        {log.confidence && (
+                          <div className="flex items-center gap-1">
+                            <Target className="h-4 w-4" />
+                            <span>
+                              {Math.round(log.confidence * 100)}% 신뢰도
+                            </span>
+                          </div>
+                        )}
+                        {sessionId && (
+                          <button
+                            onClick={() => viewSessionDetails(sessionId)}
+                            className="text-xs text-purple-400 hover:text-purple-300"
+                          >
+                            세션: {sessionId}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 로그 내용 */}
+                  <p className="text-sm leading-relaxed text-gray-300">
+                    {log.content}
+                  </p>
+
+                  {/* AI 엔진 정보 */}
+                  {log.aiEngine && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="rounded bg-blue-500/20 px-2 py-1 text-xs text-blue-300">
+                        🤖 {log.aiEngine}
                       </span>
-                      {log.patternDetected && (
-                        <span className="rounded-full bg-orange-100 px-2 py-1 text-xs text-orange-700">
-                          🎯 패턴 감지
+                      {log.category && (
+                        <span className="rounded bg-green-500/20 px-2 py-1 text-xs text-green-300">
+                          📂 {log.category}
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-gray-400">
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
-                        <span>{log.timestamp.toLocaleString()}</span>
-                      </div>
-                      {log.duration && (
-                        <div className="flex items-center gap-1">
-                          <Zap className="h-4 w-4" />
-                          <span>{log.duration}ms</span>
-                        </div>
-                      )}
-                      {log.confidence && (
-                        <div className="flex items-center gap-1">
-                          <Target className="h-4 w-4" />
-                          <span>
-                            {Math.round(log.confidence * 100)}% 신뢰도
-                          </span>
-                        </div>
-                      )}
-                      {log.sessionId && (
-                        <button
-                          onClick={() => viewSessionDetails(log.sessionId!)}
-                          className="text-xs text-purple-400 hover:text-purple-300"
-                        >
-                          세션: {log.sessionId}
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                  )}
                 </div>
-
-                {/* 로그 내용 */}
-                <p className="text-sm leading-relaxed text-gray-300">
-                  {log.content}
-                </p>
-
-                {/* AI 엔진 정보 */}
-                {log.aiEngine && (
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className="rounded bg-blue-500/20 px-2 py-1 text-xs text-blue-300">
-                      🤖 {log.aiEngine}
-                    </span>
-                    {log.category && (
-                      <span className="rounded bg-green-500/20 px-2 py-1 text-xs text-green-300">
-                        📂 {log.category}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

@@ -12,20 +12,30 @@ export default function SafePerformanceScript() {
     const initPerformanceMonitoring = () => {
       try {
         // 📶 네트워크 정보 추적 (CSP 호환)
-        if ('connection' in navigator && (navigator as { connection?: { effectiveType: string; downlink: number } }).connection) {
-          const connection = (navigator as { connection?: { effectiveType: string; downlink: number } }).connection;
+        const navigatorWithConnection = navigator as Navigator & {
+          connection?: { effectiveType?: string; downlink?: number };
+        };
+        const connection = navigatorWithConnection.connection;
+        if (connection) {
           console.log(
-            `📶 Network: ${connection!.effectiveType}, ${connection!.downlink}Mbps`
+            `📶 Network: ${connection.effectiveType ?? 'unknown'}, ${connection.downlink ?? 0}Mbps`
           );
         }
 
         // 🧠 메모리 사용량 추적 (CSP 호환)
-        if ('memory' in performance && (performance as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory) {
-          const memory = (performance as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
+        const performanceWithMemory = performance as Performance & {
+          memory?: {
+            usedJSHeapSize: number;
+            totalJSHeapSize: number;
+            jsHeapSizeLimit: number;
+          };
+        };
+        const memory = performanceWithMemory.memory;
+        if (memory) {
           const memoryInfo = {
-            used: Math.round(memory!.usedJSHeapSize / 1024 / 1024),
-            total: Math.round(memory!.totalJSHeapSize / 1024 / 1024),
-            limit: Math.round(memory!.jsHeapSizeLimit / 1024 / 1024),
+            used: Math.round(memory.usedJSHeapSize / 1024 / 1024),
+            total: Math.round(memory.totalJSHeapSize / 1024 / 1024),
+            limit: Math.round(memory.jsHeapSizeLimit / 1024 / 1024),
           };
           console.log(
             `🧠 Memory: ${memoryInfo.used}MB / ${memoryInfo.total}MB (Limit: ${memoryInfo.limit}MB)`
@@ -67,9 +77,12 @@ export default function SafePerformanceScript() {
             lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
             fidObserver.observe({ entryTypes: ['first-input'] });
             clsObserver.observe({ entryTypes: ['layout-shift'] });
-          } catch (e) {
+          } catch (observerError) {
             // Observer not supported in some browsers
-            console.warn('⚠️ Some performance observers not supported');
+            console.warn(
+              '⚠️ Some performance observers not supported',
+              observerError
+            );
           }
         }
 
@@ -135,9 +148,13 @@ export default function SafePerformanceScript() {
         // 🔄 실시간 성능 모니터링 (개발 환경에서만)
         if (process.env.NODE_ENV === 'development') {
           const monitorPerformance = () => {
-            if ((performance as { memory?: { usedJSHeapSize: number } }).memory) {
-              const memory = (performance as { memory?: { usedJSHeapSize: number } }).memory;
-              const used = Math.round(memory!.usedJSHeapSize / 1024 / 1024);
+            const devMemory = (
+              performance as Performance & {
+                memory?: { usedJSHeapSize: number };
+              }
+            ).memory;
+            if (devMemory) {
+              const used = Math.round(devMemory.usedJSHeapSize / 1024 / 1024);
 
               // 메모리 사용량이 100MB를 초과하면 경고
               if (used > 100) {
@@ -153,7 +170,7 @@ export default function SafePerformanceScript() {
             clearInterval(performanceInterval);
           };
         }
-        
+
         return undefined;
       } catch (error) {
         console.warn('⚠️ Performance monitoring initialization failed:', error);

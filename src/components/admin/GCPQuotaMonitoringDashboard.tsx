@@ -10,8 +10,6 @@
 
 'use client';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { FC } from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -28,60 +26,84 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
+import type { PieLabelRenderProps, TooltipProps } from 'recharts';
+import type {
+  ValueType,
+  NameType,
+} from 'recharts/types/component/DefaultTooltipContent';
 
 // 동적 import로 차트 컴포넌트들 로드
 // 타입 정의는 사용하지 않으므로 제거
 
 const BarChart = dynamic(() => import('recharts').then((mod) => mod.BarChart), {
   ssr: false,
-}) as React.ComponentType<any>;
+});
 
 const LineChart = dynamic(
   () => import('recharts').then((mod) => mod.LineChart),
   { ssr: false }
-) as React.ComponentType<any>;
+);
 
 const PieChart = dynamic(() => import('recharts').then((mod) => mod.PieChart), {
   ssr: false,
-}) as React.ComponentType<any>;
+});
 
 const ResponsiveContainer = dynamic(
   () => import('recharts').then((mod) => mod.ResponsiveContainer),
   { ssr: false }
-) as React.ComponentType<any>;
+);
 
 const XAxis = dynamic(() => import('recharts').then((mod) => mod.XAxis), {
   ssr: false,
-}) as React.ComponentType<any>;
+});
 
 const YAxis = dynamic(() => import('recharts').then((mod) => mod.YAxis), {
   ssr: false,
-}) as React.ComponentType<any>;
+});
 
 const CartesianGrid = dynamic(
   () => import('recharts').then((mod) => mod.CartesianGrid),
   { ssr: false }
-) as React.ComponentType<any>;
+);
 
 const Tooltip = dynamic(() => import('recharts').then((mod) => mod.Tooltip), {
   ssr: false,
-}) as React.ComponentType<any>;
+});
 
 const Bar = dynamic(() => import('recharts').then((mod) => mod.Bar), {
   ssr: false,
-}) as React.ComponentType<any>;
+});
 
 const Line = dynamic(() => import('recharts').then((mod) => mod.Line), {
   ssr: false,
-}) as React.ComponentType<any>;
+});
 
 const Cell = dynamic(() => import('recharts').then((mod) => mod.Cell), {
   ssr: false,
-}) as React.ComponentType<any>;
+});
+
+const renderEngineUsageLabel = ({ name, percent }: PieLabelRenderProps) => {
+  if (name === undefined || name === null) return '';
+  const safePercent = typeof percent === 'number' ? percent * 100 : 0;
+  return `${String(name)} ${safePercent.toFixed(0)}%`;
+};
+
+type TooltipFormatter = NonNullable<
+  TooltipProps<ValueType, NameType>['formatter']
+>;
+
+const formatResponseTooltip: TooltipFormatter = (value) => {
+  const numericValue = Array.isArray(value)
+    ? Number(value[0] ?? 0)
+    : typeof value === 'number'
+      ? value
+      : Number(value ?? 0);
+  return [`${numericValue}ms`, 'Response Time'];
+};
 
 const Pie = dynamic(() => import('recharts').then((mod) => mod.Pie), {
   ssr: false,
-}) as React.ComponentType<any>;
+});
 
 interface GCPQuotaStats {
   freeQuotaUsage: {
@@ -199,7 +221,14 @@ export const GCPQuotaMonitoringDashboard: FC = () => {
       setGCPStats(gcpData);
       setThreeTierStats(threeTierData);
       setRouterStatus(statusData);
-      setHistoricalData(historyData as { time: string; calls: number; compute: number; network: number }[]);
+      setHistoricalData(
+        historyData as {
+          time: string;
+          calls: number;
+          compute: number;
+          network: number;
+        }[]
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -453,13 +482,7 @@ export const GCPQuotaMonitoringDashboard: FC = () => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({
-                        name,
-                        percent,
-                      }: {
-                        name: string;
-                        percent: number;
-                      }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                      label={renderEngineUsageLabel}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
@@ -536,12 +559,7 @@ export const GCPQuotaMonitoringDashboard: FC = () => {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />
                     <YAxis />
-                    <Tooltip
-                      formatter={(value: number) => [
-                        `${value}ms`,
-                        'Response Time',
-                      ]}
-                    />
+                    <Tooltip formatter={formatResponseTooltip} />
                     <Bar dataKey="time" fill="#82ca9d" />
                   </BarChart>
                 </ResponsiveContainer>

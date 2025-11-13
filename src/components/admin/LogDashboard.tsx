@@ -66,11 +66,11 @@ export default function LogDashboard() {
   }, []);
 
   // 📤 로그 내보내기 핸들러
-  const handleExportLogs = useCallback(async () => {
+  const handleExportLogs = useCallback(() => {
     if (!data?.logs?.length) return;
 
     try {
-      await exportLogs(data.logs, {
+      exportLogs(data.logs, {
         format: 'json',
         includeMetadata: true,
         includeStackTrace: false,
@@ -99,9 +99,7 @@ export default function LogDashboard() {
     if (!data) return;
 
     const referenceTimestamp =
-      data.status?.lastLogTime ||
-      data.logs[0]?.timestamp ||
-      null;
+      data.status?.lastLogTime || data.logs[0]?.timestamp || null;
 
     const formatter = new Intl.DateTimeFormat('ko-KR', {
       timeZone: 'Asia/Seoul',
@@ -110,9 +108,7 @@ export default function LogDashboard() {
     });
 
     setLastUpdatedText(
-      formatter.format(
-        new Date(referenceTimestamp ?? new Date().toISOString())
-      )
+      formatter.format(new Date(referenceTimestamp ?? new Date().toISOString()))
     );
   }, [data]);
 
@@ -154,9 +150,7 @@ export default function LogDashboard() {
   return (
     <div className="space-y-6">
       {/* 헤더 및 제어 버튼 */}
-      <div
-        className="flex items-center justify-between"
-      >
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">📝 로그 대시보드</h1>
           <p className="text-gray-600">
@@ -199,8 +193,7 @@ export default function LogDashboard() {
       <LogDashboardStatsCards data={data} />
 
       {/* 메인 대시보드 */}
-      <div
-      >
+      <div>
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="logs">📝 로그 뷰어</TabsTrigger>

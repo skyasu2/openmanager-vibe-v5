@@ -1,6 +1,6 @@
 /**
  * 🎯 KeyboardNavigation - 키보드 네비게이션 완성
- * 
+ *
  * Vercel 클라이언트 사이드 최적화:
  * - Tab, Shift+Tab, Enter, Space, Escape, 방향키 지원
  * - 포커스 트랩 및 스킵 링크
@@ -11,7 +11,10 @@
 'use client';
 
 import React, { useEffect, useRef, useCallback } from 'react';
-import { useAccessibility, getAccessibilityClasses } from '@/context/AccessibilityProvider';
+import {
+  useAccessibility,
+  getAccessibilityClasses,
+} from '@/context/AccessibilityProvider';
 
 interface KeyboardNavigationProps {
   children: React.ReactNode;
@@ -21,7 +24,7 @@ interface KeyboardNavigationProps {
 // 🎯 스킵 링크 컴포넌트
 export const SkipLinks: React.FC = () => {
   const { isClient, announce } = useAccessibility();
-  
+
   if (!isClient) return null;
 
   const handleSkip = (targetId: string, label: string) => {
@@ -90,7 +93,7 @@ export const FocusTrap: React.FC<FocusTrapProps> = ({
   children,
   className = '',
   id,
-  autoFocus = true
+  autoFocus = true,
 }) => {
   const { isClient, trapFocus, releaseFocus } = useAccessibility();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -108,7 +111,11 @@ export const FocusTrap: React.FC<FocusTrapProps> = ({
   }, [isClient, isActive, id, autoFocus, trapFocus, releaseFocus]);
 
   if (!isClient) {
-    return <div ref={containerRef} className={className}>{children}</div>;
+    return (
+      <div ref={containerRef} className={className}>
+        {children}
+      </div>
+    );
   }
 
   return (
@@ -117,7 +124,7 @@ export const FocusTrap: React.FC<FocusTrapProps> = ({
       id={id}
       className={className}
       role="dialog"
-      aria-modal={isActive ? "true" : "false"}
+      aria-modal={isActive ? 'true' : 'false'}
       tabIndex={-1}
     >
       {children}
@@ -137,84 +144,97 @@ export const ArrowNavigationGrid: React.FC<ArrowNavigationGridProps> = ({
   children,
   columns,
   className = '',
-  role = 'grid'
+  role = 'grid',
 }) => {
   const { isClient, announce } = useAccessibility();
   const gridRef = useRef<HTMLDivElement>(null);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (!isClient) return;
-    
-    const focusableElements = gridRef.current?.querySelectorAll(
-      '[role="gridcell"], [role="option"], [role="menuitem"], button, [tabindex="0"]'
-    ) as NodeListOf<HTMLElement>;
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!isClient) return;
 
-    if (!focusableElements || focusableElements.length === 0) return;
+      const focusableElements = gridRef.current?.querySelectorAll(
+        '[role="gridcell"], [role="option"], [role="menuitem"], button, [tabindex="0"]'
+      );
 
-    const currentIndex = Array.from(focusableElements).indexOf(
-      document.activeElement as HTMLElement
-    );
+      if (!focusableElements || focusableElements.length === 0) return;
 
-    if (currentIndex === -1) return;
+      const currentIndex = Array.from(focusableElements).indexOf(
+        document.activeElement as HTMLElement
+      );
 
-    let newIndex = currentIndex;
+      if (currentIndex === -1) return;
 
-    switch (e.key) {
-      case 'ArrowRight':
-        e.preventDefault();
-        newIndex = (currentIndex + 1) % focusableElements.length;
-        break;
-      case 'ArrowLeft':
-        e.preventDefault();
-        newIndex = currentIndex === 0 ? focusableElements.length - 1 : currentIndex - 1;
-        break;
-      case 'ArrowDown':
-        e.preventDefault();
-        newIndex = currentIndex + columns;
-        if (newIndex >= focusableElements.length) {
-          newIndex = currentIndex % columns;
-        }
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        newIndex = currentIndex - columns;
-        if (newIndex < 0) {
-          const lastRowStart = Math.floor((focusableElements.length - 1) / columns) * columns;
-          newIndex = lastRowStart + (currentIndex % columns);
+      let newIndex = currentIndex;
+
+      switch (e.key) {
+        case 'ArrowRight':
+          e.preventDefault();
+          newIndex = (currentIndex + 1) % focusableElements.length;
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          newIndex =
+            currentIndex === 0
+              ? focusableElements.length - 1
+              : currentIndex - 1;
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          newIndex = currentIndex + columns;
           if (newIndex >= focusableElements.length) {
-            newIndex = focusableElements.length - 1;
+            newIndex = currentIndex % columns;
           }
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          newIndex = currentIndex - columns;
+          if (newIndex < 0) {
+            const lastRowStart =
+              Math.floor((focusableElements.length - 1) / columns) * columns;
+            newIndex = lastRowStart + (currentIndex % columns);
+            if (newIndex >= focusableElements.length) {
+              newIndex = focusableElements.length - 1;
+            }
+          }
+          break;
+        case 'Home':
+          e.preventDefault();
+          newIndex = 0;
+          break;
+        case 'End':
+          e.preventDefault();
+          newIndex = focusableElements.length - 1;
+          break;
+        default:
+          return;
+      }
+
+      const targetElement = focusableElements[newIndex] as
+        | HTMLElement
+        | undefined;
+      if (targetElement) {
+        targetElement.focus();
+        announce(`${newIndex + 1}번째 항목`);
+      }
+    },
+    [isClient, columns, announce]
+  );
+
+  const resolvedRole: 'grid' | 'listbox' | 'menu' =
+    role === 'grid' ? 'grid' : role === 'listbox' ? 'listbox' : 'menu';
+
+  const ariaProps =
+    resolvedRole === 'grid'
+      ? {
+          'aria-rowcount': Math.ceil(React.Children.count(children) / columns),
+          'aria-colcount': columns,
         }
-        break;
-      case 'Home':
-        e.preventDefault();
-        newIndex = 0;
-        break;
-      case 'End':
-        e.preventDefault();
-        newIndex = focusableElements.length - 1;
-        break;
-      default:
-        return;
-    }
-
-    const targetElement = focusableElements[newIndex];
-    if (targetElement) {
-      targetElement.focus();
-      announce(`${newIndex + 1}번째 항목`);
-    }
-  }, [isClient, columns, announce]);
-
-  const ariaProps = role === 'grid' ? {
-    role: 'grid',
-    'aria-rowcount': Math.ceil(React.Children.count(children) / columns),
-    'aria-colcount': columns
-  } : role === 'listbox' ? {
-    role: 'listbox',
-    'aria-multiselectable': false
-  } : {
-    role: 'menu'
-  };
+      : resolvedRole === 'listbox'
+        ? {
+            'aria-multiselectable': false,
+          }
+        : {};
 
   return (
     <div
@@ -222,6 +242,7 @@ export const ArrowNavigationGrid: React.FC<ArrowNavigationGridProps> = ({
       className={className}
       onKeyDown={handleKeyDown}
       tabIndex={0}
+      role={resolvedRole}
       {...ariaProps}
     >
       {children}
@@ -230,7 +251,8 @@ export const ArrowNavigationGrid: React.FC<ArrowNavigationGridProps> = ({
 };
 
 // 🎯 접근 가능한 버튼 컴포넌트
-interface AccessibleButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface AccessibleButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
@@ -250,18 +272,21 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
   const { isClient, reducedMotion, announce } = useAccessibility();
   const { focusRing, motion } = getAccessibilityClasses(reducedMotion);
 
-  const handleClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    if (loading || disabled) {
-      e.preventDefault();
-      return;
-    }
-    
-    if (isClient) {
-      announce('버튼이 활성화되었습니다');
-    }
-    
-    onClick?.(e);
-  }, [loading, disabled, onClick, isClient, announce]);
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (loading || disabled) {
+        e.preventDefault();
+        return;
+      }
+
+      if (isClient) {
+        announce('버튼이 활성화되었습니다');
+      }
+
+      onClick?.(e);
+    },
+    [loading, disabled, onClick, isClient, announce]
+  );
 
   const baseClasses = `
     inline-flex items-center justify-center rounded-md font-medium
@@ -273,13 +298,13 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
   const variantClasses = {
     primary: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
     secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 active:bg-gray-400',
-    danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800'
+    danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800',
   };
 
   const sizeClasses = {
     sm: 'px-3 py-1.5 text-sm',
     md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg'
+    lg: 'px-6 py-3 text-lg',
   };
 
   const finalClassName = `
@@ -300,7 +325,7 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
     >
       {loading && (
         <svg
-          className={`animate-spin -ml-1 mr-2 h-4 w-4 ${reducedMotion ? '' : 'motion-safe:animate-spin'}`}
+          className={`-ml-1 mr-2 h-4 w-4 animate-spin ${reducedMotion ? '' : 'motion-safe:animate-spin'}`}
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -329,21 +354,21 @@ export const AccessibleButton: React.FC<AccessibleButtonProps> = ({
 // 🎯 메인 키보드 네비게이션 컴포넌트
 export const KeyboardNavigation: React.FC<KeyboardNavigationProps> = ({
   children,
-  className = ''
+  className = '',
 }) => {
-  const { 
-    isClient, 
-    isKeyboardNavigating, 
+  const {
+    isClient,
+    isKeyboardNavigating,
     reducedMotion,
     highContrast,
-    fontSize 
+    fontSize,
   } = useAccessibility();
 
-  const { motion, contrast, fontSize: fontSizeClass } = getAccessibilityClasses(
-    reducedMotion,
-    highContrast,
-    fontSize
-  );
+  const {
+    motion,
+    contrast,
+    fontSize: fontSizeClass,
+  } = getAccessibilityClasses(reducedMotion, highContrast, fontSize);
 
   // 키보드 네비게이션 활성화 시 스타일 적용
   const navigationClasses = `
@@ -362,9 +387,13 @@ export const KeyboardNavigation: React.FC<KeyboardNavigationProps> = ({
     <div className={navigationClasses}>
       <SkipLinks />
       {children}
-      
+
       {/* 🎯 키보드 네비게이션 도움말 (숨겨진 상태, 스크린 리더용) */}
-      <div className="sr-only" role="region" aria-label="키보드 네비게이션 도움말">
+      <div
+        className="sr-only"
+        role="region"
+        aria-label="키보드 네비게이션 도움말"
+      >
         <h2>키보드 단축키</h2>
         <ul>
           <li>Tab: 다음 요소로 이동</li>

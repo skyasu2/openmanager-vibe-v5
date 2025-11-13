@@ -114,7 +114,7 @@ export function useLogDashboard() {
  */
 export const useLogExport = () => {
   const exportLogs = useCallback(
-    async (
+    (
       logs: LogEntry[],
       options: ExportOptions = {
         format: 'json',
@@ -127,11 +127,12 @@ export const useLogExport = () => {
         let filename = '';
         let mimeType = '';
 
-        const filteredLogs = options.dateRange
+        const dateRange = options.dateRange;
+        const filteredLogs = dateRange
           ? logs.filter((log) => {
               const logTime = new Date(log.timestamp);
-              const startTime = new Date(options.dateRange!.start);
-              const endTime = new Date(options.dateRange!.end);
+              const startTime = new Date(dateRange.start);
+              const endTime = new Date(dateRange.end);
               return logTime >= startTime && logTime <= endTime;
             })
           : logs;
@@ -219,7 +220,7 @@ export const useLogExport = () => {
           }
 
           default:
-            throw new Error(`지원되지 않는 내보내기 형식: ${options.format}`);
+            throw new Error('지원되지 않는 내보내기 형식입니다.');
         }
 
         // 파일 다운로드
