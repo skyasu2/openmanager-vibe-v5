@@ -79,8 +79,8 @@ export class UnifiedServerDataSource {
    */
   public async getServers(): Promise<Server[]> {
     // 캐시 확인
-    if (this.isCacheValid()) {
-      return this.cachedServers!;
+    if (this.isCacheValid() && this.cachedServers) {
+      return this.cachedServers;
     }
 
     // 데이터 소스별 로드

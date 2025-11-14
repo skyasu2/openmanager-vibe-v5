@@ -37,7 +37,7 @@ const isValidNumber = (value: unknown): value is number => {
 const hasValidLength = (value: unknown): value is { length: number } => {
   return value !== null &&
          typeof value === 'object' &&
-         Object.hasOwn(value as object, 'length') &&
+         Object.hasOwn(value, 'length') &&
          isValidNumber((value as Record<string, unknown>).length);
 };
 
@@ -80,7 +80,8 @@ const groupServersByStatus = (servers: EnhancedServerData[]): Map<string, Enhanc
     if (!groups.has(status)) {
       groups.set(status, []);
     }
-    groups.get(status)!.push(server);
+    const bucket = groups.get(status);
+    bucket?.push(server);
   }
 
   return groups;
@@ -137,7 +138,10 @@ const calculateServerStats = (servers: EnhancedServerData[]): ServerStats => {
   // 🚀 캐시 키 생성 및 캐시 확인
   const cacheKey = getServerGroupKey(servers);
   if (statsCache.has(cacheKey)) {
-    return statsCache.get(cacheKey)!;
+    const cachedStats = statsCache.get(cacheKey);
+    if (cachedStats) {
+      return cachedStats;
+    }
   }
 
   // 🚀 Fallback 계산 사용 (Web Worker 미지원 환경용)
@@ -590,7 +594,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
   // 🏗️ Clean Architecture: 페이지네이션 도메인 로직 (순수 함수)
   const { paginatedItems: paginatedServers, totalPages } = useMemo(() => {
-    return calculatePagination(actualServers as Server[], currentPage, ITEMS_PER_PAGE);
+    return calculatePagination(actualServers, currentPage, ITEMS_PER_PAGE);
   }, [actualServers, currentPage, ITEMS_PER_PAGE]);
 
   // 🚀 Web Worker 기반 비동기 통계 계산 상태

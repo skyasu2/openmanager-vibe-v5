@@ -13,10 +13,10 @@ import type { PerformanceData } from './PerformanceDashboard.types';
  * 📥 데이터 내보내기 함수
  * 현재 성능 데이터를 JSON 파일로 내보냄 (Vercel 무료 티어 최적화)
  */
-export async function handleExportData(
+export function handleExportData(
   data: PerformanceData | null,
   selectedTimeRange: string
-): Promise<void> {
+): void {
   try {
     if (!data) {
       console.warn('내보낼 데이터가 없습니다.');

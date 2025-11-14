@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic';
 /**
  * 📊 연결 상태 및 통계 조회
  */
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const connectionId = searchParams.get('connectionId');
@@ -276,7 +276,7 @@ export async function PUT(request: NextRequest) {
 /**
  * 🚪 연결 해제
  */
-export async function DELETE(request: NextRequest) {
+export function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const connectionId = searchParams.get('connectionId');

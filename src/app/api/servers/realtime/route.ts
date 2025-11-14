@@ -37,7 +37,7 @@ export const dynamic = 'force-dynamic';
 // 전역 변수로 GCP 실제 데이터 서비스 상태 관리
 // Using mock system for realtime server data
 
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get('page') || '1', 10);
   const limit = parseInt(searchParams.get('limit') || '8', 10);

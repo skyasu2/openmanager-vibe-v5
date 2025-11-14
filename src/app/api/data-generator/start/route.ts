@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
  *
  * 목업 데이터 기반으로 시뮬레이션된 데이터 생성기 시작
  */
-export async function POST() {
+export function POST() {
   try {
     debug.log('🚀 데이터 생성기 시작 요청');
 

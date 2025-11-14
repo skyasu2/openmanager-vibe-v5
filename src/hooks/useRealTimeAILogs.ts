@@ -132,11 +132,13 @@ export const useRealTimeAILogs = (
         setCurrentEngine(log.engine);
 
         // 기술 스택 업데이트
-        if (log.metadata?.technology) {
-          setTechStack((prev) => new Set([...prev, log.metadata!.technology!]));
+        const technology = log.metadata?.technology;
+        if (typeof technology === 'string' && technology.length > 0) {
+          setTechStack((prev) => new Set([...prev, technology]));
         }
-        if (log.metadata?.openSource) {
-          setTechStack((prev) => new Set([...prev, log.metadata!.openSource!]));
+        const openSource = log.metadata?.openSource;
+        if (typeof openSource === 'string' && openSource.length > 0) {
+          setTechStack((prev) => new Set([...prev, openSource]));
         }
 
         // 처리 상태 업데이트

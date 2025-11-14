@@ -10,7 +10,7 @@
  * POST /api/ai-unified/core
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import debug from '@/utils/debug';
@@ -135,8 +135,10 @@ async function handleAICoreRequest(request: AICoreRequest) {
       case 'ultra-fast':
         result = await AIEngineRouter.handleUltraFast(request);
         break;
-      default:
-        throw new Error(`Unsupported engine: ${request.engine}`);
+      default: {
+        const engineValue: string = request.engine;
+        throw new Error(`Unsupported engine: ${engineValue}`);
+      }
     }
 
     const responseTime = Date.now() - startTime;
@@ -198,7 +200,7 @@ export const POST = createApiRoute()
   });
 
 // GET 엔드포인트 - 엔진 상태 조회
-export async function GET() {
+export function GET() {
   return NextResponse.json({
     success: true,
     engines: [

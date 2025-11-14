@@ -153,13 +153,14 @@ export class ResilientAIClient {
    * Exponential Backoff와 함께 재시도
    */
   private async withRetry<T>(fn: () => Promise<T>): Promise<T> {
-    let lastError: Error;
+    let lastError: Error | null = null;
     
     for (let attempt = 0; attempt <= this.MAX_RETRIES; attempt++) {
       try {
         return await fn();
       } catch (error) {
-        lastError = error as Error;
+        const currentError = error as Error;
+        lastError = currentError;
         
         if (attempt === this.MAX_RETRIES) {
           break;
@@ -172,7 +173,10 @@ export class ResilientAIClient {
       }
     }
     
-    throw lastError!;
+    if (lastError) {
+      throw lastError;
+    }
+    throw new Error('Retry attempts exhausted without capturing error');
   }
 
   /**

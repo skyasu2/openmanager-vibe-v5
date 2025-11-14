@@ -16,7 +16,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createApiRoute } from '@/lib/api/zod-middleware';
-import { supabase } from '@/lib/supabase/supabase-client';
 import debug from '@/utils/debug';
 
 // 모니터링 타입 정의
@@ -43,12 +42,12 @@ type MonitoringRequest = z.infer<typeof monitoringRequestSchema>;
 // 모니터링 데이터 수집 클래스
 class AIMonitoringCollector {
   // AI 시스템 모니터링
-  static async getSystemMetrics(timeRange: string): Promise<unknown> {
+  static getSystemMetrics(_timeRange: string): unknown {
     try {
       // 직접 모의 데이터 생성 (내부 API 호출 대신)
       return {
         success: true,
-        timeRange,
+        timeRange: _timeRange,
         timestamp: new Date().toISOString(),
         systemHealth: {
           aiEnginesStatus: {
@@ -77,7 +76,7 @@ class AIMonitoringCollector {
   }
 
   // AI 성능 모니터링
-  static async getPerformanceMetrics(timeRange: string): Promise<unknown> {
+  static async getPerformanceMetrics(_timeRange: string): Promise<unknown> {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/performance`, {
         method: 'GET'
@@ -90,7 +89,7 @@ class AIMonitoringCollector {
   }
 
   // 캐시 통계
-  static async getCacheStats(timeRange: string): Promise<unknown> {
+  static async getCacheStats(_timeRange: string): Promise<unknown> {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/cache-stats`, {
         method: 'GET'
@@ -141,7 +140,7 @@ class AIMonitoringCollector {
   }
 
   // 원시 메트릭
-  static async getRawMetrics(timeRange: string): Promise<unknown> {
+  static async getRawMetrics(_timeRange: string): Promise<unknown> {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/raw-metrics`, {
         method: 'GET'
@@ -313,9 +312,8 @@ export const POST = createApiRoute()
       };
 
     } catch (error) {
-      const responseTime = Date.now() - startTime;
       debug.error('AI Monitoring Analysis Error:', error);
-      
+
       throw error;
     }
   });

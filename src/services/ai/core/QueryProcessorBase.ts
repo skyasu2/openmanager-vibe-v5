@@ -77,6 +77,19 @@ export abstract class QueryProcessorBase implements IAIProcessor {
     };
   }
 
+  private ensureMetrics(): NonNullable<AIEngineStatus['metrics']> {
+    if (!this.status.metrics) {
+      this.status.metrics = {
+        totalRequests: 0,
+        successfulRequests: 0,
+        failedRequests: 0,
+        averageResponseTime: 0,
+        cacheHitRate: 0,
+      };
+    }
+    return this.status.metrics;
+  }
+
   /**
    * 초기화
    */
@@ -120,7 +133,8 @@ export abstract class QueryProcessorBase implements IAIProcessor {
     }
 
     const startTime = Date.now();
-    this.status.metrics!.totalRequests++;
+    const metrics = this.ensureMetrics();
+    metrics.totalRequests++;
 
     try {
       // 옵션 병합
@@ -271,12 +285,13 @@ export abstract class QueryProcessorBase implements IAIProcessor {
    * 성공 메트릭 업데이트
    */
   protected updateSuccessMetrics(responseTime: number): void {
-    this.status.metrics!.successfulRequests++;
+    const metrics = this.ensureMetrics();
+    metrics.successfulRequests++;
 
     // 평균 응답 시간 계산 (이동 평균)
-    const totalRequests = this.status.metrics!.successfulRequests;
-    const currentAvg = this.status.metrics!.averageResponseTime;
-    this.status.metrics!.averageResponseTime =
+    const totalRequests = metrics.successfulRequests;
+    const currentAvg = metrics.averageResponseTime;
+    metrics.averageResponseTime =
       (currentAvg * (totalRequests - 1) + responseTime) / totalRequests;
   }
 
@@ -284,13 +299,14 @@ export abstract class QueryProcessorBase implements IAIProcessor {
    * 실패 메트릭 업데이트
    */
   protected updateFailureMetrics(responseTime: number): void {
-    this.status.metrics!.failedRequests++;
+    const metrics = this.ensureMetrics();
+    metrics.failedRequests++;
 
     // 에러가 있어도 응답 시간은 기록
     if (responseTime > 0) {
-      const totalRequests = this.status.metrics!.totalRequests;
-      const currentAvg = this.status.metrics!.averageResponseTime;
-      this.status.metrics!.averageResponseTime =
+      const totalRequests = metrics.totalRequests;
+      const currentAvg = metrics.averageResponseTime;
+      metrics.averageResponseTime =
         (currentAvg * (totalRequests - 1) + responseTime) / totalRequests;
     }
   }

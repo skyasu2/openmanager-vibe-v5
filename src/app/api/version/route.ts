@@ -19,7 +19,7 @@ const VERSION_INFO = {
  *
  * @returns {NextResponse} 버전 정보가 포함된 JSON 응답
  */
-export async function GET() {
+export function GET() {
   try {
     const versionInfo = {
       ...VERSION_INFO,

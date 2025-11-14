@@ -14,7 +14,7 @@ import debug from '@/utils/debug';
  * - 메모리 정리
  * - 불필요한 데이터 삭제
  */
-export async function GET(_request: NextRequest) {
+export function GET(_request: NextRequest) {
   try {
     // Vercel Cron에서만 실행 허용
     const authHeader = _request.headers.get('authorization');
@@ -69,7 +69,7 @@ export async function GET(_request: NextRequest) {
 }
 
 // POST 방식도 지원 (수동 청소)
-export async function POST(_request: NextRequest) {
+export function POST(_request: NextRequest) {
   try {
     debug.log('🧹 수동 청소 작업 시작...');
 

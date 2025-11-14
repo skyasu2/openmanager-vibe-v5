@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUltraFastAIRouter } from '@/services/ai/ultrafast-ai-router';
 import { createCachedResponse } from '@/lib/unified-cache';
 import { aiLogger } from '@/lib/logger';
-import { isBoolean, extractProperty } from '@/types/type-utils';
+import { extractProperty } from '@/types/type-utils';
 
 // Node.js Runtime 사용 (Vercel 경고 해결)
 export const runtime = 'nodejs';
@@ -218,7 +218,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 }
 
 // OPTIONS 메서드 (CORS 지원)
-export async function OPTIONS(): Promise<NextResponse> {
+export function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {

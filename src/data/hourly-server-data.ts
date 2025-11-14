@@ -66,8 +66,9 @@ const hourlyDataCache = new Map<number, HourlyServerData>();
  */
 export async function loadHourlyData(hour: number): Promise<HourlyServerData | null> {
   // 캐시 확인
-  if (hourlyDataCache.has(hour)) {
-    return hourlyDataCache.get(hour)!;
+  const cached = hourlyDataCache.get(hour);
+  if (cached) {
+    return cached;
   }
 
   try {

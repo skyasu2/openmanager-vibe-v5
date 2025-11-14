@@ -25,12 +25,12 @@ interface AIEngineConfig {
 }
 
 // Replace with simple implementation
-const makeAIRequest = async (query: string) => {
-  return {
+const makeAIRequest = (query: string) => {
+  return Promise.resolve({
     success: true,
     response: `테스트 응답: ${query}`,
     confidence: 0.5,
-  };
+  });
 };
 
 const getDefaultConfig = () => ({
@@ -44,7 +44,7 @@ export const AIEngineTest: FC = () => {
   const [config, setConfig] = useState<AIEngineConfig | null>(null);
 
   // AI 엔진 설정 로드
-  const loadConfig = async () => {
+  const loadConfig = () => {
     try {
       const aiConfig = getDefaultConfig();
       const validation = { isValid: true, errors: [] as string[] };
@@ -91,20 +91,20 @@ export const AIEngineTest: FC = () => {
     });
 
     // 3. AI 엔진 설정 테스트
-    await runTest(2, async () => {
+    await runTest(2, () => {
       const aiConfig = getDefaultConfig();
       const validation = { isValid: true, errors: [] as string[] };
 
       if (!validation.isValid) {
-        throw new Error(`설정 오류: ${validation.errors.join(', ')}`);
+        return Promise.reject(new Error(`설정 오류: ${validation.errors.join(', ')}`));
       }
 
-      return {
+      return Promise.resolve({
         internalEngineEnabled: true,
         fallbackEnabled: true,
         timeout: aiConfig.timeout,
         configured: true,
-      };
+      });
     });
 
     // 4. 폴백 시스템 테스트

@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
  * GET /api/simulate/data
  * 현재 시뮬레이션 데이터 및 진행 상황을 반환합니다
  */
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action') || 'current';

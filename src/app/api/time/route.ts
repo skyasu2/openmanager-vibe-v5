@@ -11,7 +11,7 @@ export const runtime = 'edge';
  *
  * @returns {NextResponse} 시간 정보가 포함된 JSON 응답
  */
-export async function GET() {
+export function GET() {
   try {
     const now = new Date();
     const utc = new Date(now.toUTCString());

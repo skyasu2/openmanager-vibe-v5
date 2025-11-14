@@ -210,7 +210,7 @@ export async function POST(request: NextRequest) {
  * 🏓 GET /api/web-vitals
  * Web Vitals 수집 상태 및 설정 정보
  */
-export async function GET() {
+export function GET() {
   const response = {
     success: true,
     service: 'Web Vitals Collection API',
@@ -241,7 +241,7 @@ export async function GET() {
  * 🔧 OPTIONS /api/web-vitals
  * CORS 및 프리플라이트 요청 처리
  */
-export async function OPTIONS() {
+export function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {

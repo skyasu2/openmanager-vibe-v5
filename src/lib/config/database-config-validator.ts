@@ -68,7 +68,7 @@ function extractDatabaseConfig(): DatabaseConfig {
       kvReadOnlyToken: process.env.KV_REST_API_READ_ONLY_TOKEN,
     },
     environment: {
-      nodeEnv: (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
+      nodeEnv: (process.env.NODE_ENV) || 'development',
       isVercel: !!process.env.VERCEL,
       isProduction: process.env.NODE_ENV === 'production',
     },

@@ -57,7 +57,7 @@ try {
 
 // OptimizedDataGenerator는 Mock System으로 대체됨
 
-export async function GET(_request: NextRequest) {
+export function GET(_request: NextRequest) {
   try {
     const versionInfo = {
       version: '5.0.0',

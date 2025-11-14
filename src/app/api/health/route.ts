@@ -65,7 +65,7 @@ async function checkDatabaseStatus(): Promise<
   }
 }
 
-async function checkCacheStatus(): Promise<
+function checkCacheStatus(): Promise<
   'connected' | 'disconnected' | 'error'
 > {
   try {
@@ -76,13 +76,13 @@ async function checkCacheStatus(): Promise<
       debug.log(
         `✅ Cache operational (${stats.size}/${stats.maxSize} items, hit rate: ${stats.hitRate}%)`
       );
-      return 'connected';
+      return Promise.resolve('connected');
     }
 
-    return 'disconnected';
+    return Promise.resolve('disconnected');
   } catch (error) {
     debug.error('❌ Cache check error:', error);
-    return 'error';
+    return Promise.resolve('error');
   }
 }
 
@@ -149,7 +149,7 @@ async function checkDatabaseWithLatency(): Promise<ServiceCheckResult> {
 
 async function checkCacheWithLatency(): Promise<ServiceCheckResult> {
   const startTime = Date.now();
-  const status = await checkCacheStatus();
+  const status = await checkCacheStatus();  // await needed because checkCacheStatus returns Promise
   return { status, latency: Date.now() - startTime };
 }
 
@@ -292,7 +292,7 @@ export async function GET(request: NextRequest) {
 /**
  * HEAD 요청도 지원 (더 가벼운 헬스체크)
  */
-export async function HEAD(_request: NextRequest) {
+export function HEAD(_request: NextRequest) {
   try {
     return new NextResponse(null, {
       status: 200,

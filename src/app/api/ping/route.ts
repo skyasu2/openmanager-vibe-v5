@@ -11,7 +11,7 @@ export const runtime = 'edge';
  *
  * @returns {NextResponse} 간단한 ping 응답
  */
-export async function GET() {
+export function GET() {
   try {
     const now = new Date();
 
@@ -64,7 +64,7 @@ export async function GET() {
 /**
  * HEAD 요청 지원 - 더 빠른 연결 테스트
  */
-export async function HEAD() {
+export function HEAD() {
   return new NextResponse(null, {
     status: 200,
     headers: {

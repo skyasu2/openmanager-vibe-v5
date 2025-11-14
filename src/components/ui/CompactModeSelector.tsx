@@ -114,7 +114,7 @@ export const CompactModeSelector: FC<CompactModeSelectorProps> = ({
   }, [isOpen, disabled]);
 
   // 모드 변경 핸들러
-  const handleModeSelect = useCallback(async (mode: AIMode) => {
+  const handleModeSelect = useCallback((mode: AIMode) => {
     if (disabled || isChanging || mode === selectedMode) {
       setIsOpen(false);
       return;

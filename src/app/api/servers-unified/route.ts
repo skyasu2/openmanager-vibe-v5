@@ -484,7 +484,7 @@ async function handleServersUnified(
     debug.log(`🎯 통합 서버 API - 액션: ${action}`, { serverId, page, limit });
 
     let servers: EnhancedServerMetrics[] = [];
-    let additionalData: Record<string, unknown> = {};
+    const additionalData: Record<string, unknown> = {};
 
     // 액션별 데이터 처리
     switch (action) {

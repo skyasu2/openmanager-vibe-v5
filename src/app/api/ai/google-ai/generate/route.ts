@@ -12,7 +12,6 @@ import {
   GoogleAIGenerateRequestSchema,
   GoogleAIGenerateResponseSchema,
   GoogleAIStatusResponseSchema,
-  type GoogleAIGenerateRequest,
   type GoogleAIGenerateResponse,
   type GoogleAIStatusResponse,
   type GoogleAIErrorResponse,
@@ -83,7 +82,7 @@ function analyzeQuery(query: string): QueryAnalysis {
 }
 
 // 레거시 함수 유지 (하위 호환성)
-function isServerStatusQuery(query: string): boolean {
+function _isServerStatusQuery(query: string): boolean {
   return analyzeQuery(query).needsServerData;
 }
 
@@ -369,7 +368,7 @@ const getHandler = createApiRoute()
     showDetailedErrors: process.env.NODE_ENV === 'development',
     enableLogging: true,
   })
-  .build(async (): Promise<GoogleAIStatusResponse> => {
+  .build((): GoogleAIStatusResponse => {
     const apiKey =
       process.env.GOOGLE_AI_API_KEY ||
       process.env.NEXT_PUBLIC_GOOGLE_AI_API_KEY;

@@ -37,7 +37,7 @@ export default function FeedbackButtons({
     }
   };
 
-  const submitFeedback = async (
+  const submitFeedback = (
     feedback: 'helpful' | 'not_helpful' | 'incorrect',
     skipDetails = false
   ) => {

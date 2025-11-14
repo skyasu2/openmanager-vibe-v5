@@ -6,7 +6,7 @@ import debug from '@/utils/debug';
  * AI 예측 시스템 API
  * GET /api/prediction
  */
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || 'system';
@@ -104,7 +104,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function OPTIONS() {
+export function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {

@@ -58,7 +58,7 @@ export const runtime = 'nodejs';
 /**
  * GET handler - Service status and capabilities
  */
-async function getHandler(_request: NextRequest) {
+async function getHandler(_request: NextRequest): Promise<NextResponse> {
   try {
     return NextResponse.json({
       success: true,
@@ -102,7 +102,7 @@ async function getHandler(_request: NextRequest) {
 /**
  * POST handler - Analysis actions using modular functions
  */
-async function postHandler(request: NextRequest) {
+async function postHandler(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json();
     const { action } = body;

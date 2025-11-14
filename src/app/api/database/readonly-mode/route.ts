@@ -37,7 +37,7 @@ async function setReadOnlyMode(enabled: boolean, reason?: string) {
   };
 }
 
-export async function GET(_request: NextRequest) {
+export function GET(_request: NextRequest) {
   try {
     const status = {
       mode: readOnlyMode ? 'readonly' : 'readwrite',

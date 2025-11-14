@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
 /**
  * CSP 리포트 엔드포인트 상태 확인
  */
-export async function GET() {
+export function GET() {
   return NextResponse.json(
     {
       status: 'active',
@@ -104,7 +104,7 @@ export async function GET() {
 }
 
 // OPTIONS 메서드 지원 (CORS preflight)
-export async function OPTIONS() {
+export function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {

@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
     // 첫 번째 호출 (캐시 미스)
     const firstCallStart = Date.now();
-    const firstResult = await ragEngine.searchSimilar(testQuery, {
+    const _firstResult = await ragEngine.searchSimilar(testQuery, {
       maxResults: 5,
       cached: true,
     });
@@ -57,10 +57,9 @@ export async function GET(request: NextRequest) {
       maxResults: 5,
       cached: true,
     });
-    const secondCallTime = Date.now() - secondCallStart;
     cacheTests.push({
       call: 2,
-      time: secondCallTime,
+      time: Date.now() - secondCallStart,
       cached: secondResult.cached,
     });
 

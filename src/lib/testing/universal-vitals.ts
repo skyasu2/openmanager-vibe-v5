@@ -172,7 +172,7 @@ export class UniversalVitalsCollector {
     const contextKey = `${key}:context`;
     const existingContextRaw = this.metrics.get(contextKey);
     const existingContext = (existingContextRaw && typeof existingContextRaw === 'object' && !('name' in existingContextRaw))
-      ? existingContextRaw as Record<string, unknown>
+      ? existingContextRaw
       : {};
 
     const vital: UniversalVital = {

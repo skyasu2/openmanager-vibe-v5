@@ -98,8 +98,9 @@ export class DirectGoogleAIService {
   private async getModel(modelName: string, temperature: number, maxTokens: number): Promise<GenerativeModel> {
     const cacheKey = `${modelName}-${temperature}-${maxTokens}`;
 
-    if (this.modelCache.has(cacheKey)) {
-      return this.modelCache.get(cacheKey)!;
+    const cachedModel = this.modelCache.get(cacheKey);
+    if (cachedModel) {
+      return cachedModel;
     }
 
     const genAI = this.initializeClient();

@@ -22,7 +22,6 @@ async function getQueryEngine() {
   );
   return getSimplifiedQueryEngine();
 }
-import { withAuth } from '@/lib/api-auth';
 import { getCachedData, setCachedData } from '@/lib/cache-helper';
 import { supabase } from '@/lib/supabase/supabase-client';
 import crypto from 'crypto';
@@ -107,7 +106,7 @@ async function logQuery(
       response_time: responseTime,
       cache_hit: cacheHit,
       intent,
-      ai_mode: aiMode || 'UNIFIED_GOOGLE',
+      ai_mode: aiMode || 'UNIFIED',
       status: status || 'success',
       user_id: userId || null,
       guest_user_id: !userId ? `guest_${Date.now()}_${Math.random().toString(36).substr(2, 8)}` : null,
@@ -131,7 +130,6 @@ interface ErrorAnalysis {
 
 function classifyError(error: Error, responseTime: number): ErrorAnalysis {
   const message = error.message?.toLowerCase() || '';
-  const stack = error.stack?.toLowerCase() || '';
   
   // 타임아웃 에러
   if (message.includes('timeout') || responseTime > 30000) {
@@ -320,10 +318,10 @@ async function postHandler(request: NextRequest) {
     const userId = request.headers.get('x-user-id') || null;
 
     // AI 모드 (단일 파이프라인)
-    const aiMode = 'UNIFIED_GOOGLE';
+    const aiMode = 'UNIFIED';
 
     // 쿼리 로그 저장 (비동기, 응답을 기다리지 않음) - 대화 히스토리 포함
-    logQuery(
+    void logQuery(
       query,
       responseTime,
       cacheHit,
@@ -422,7 +420,7 @@ async function postHandler(request: NextRequest) {
       false,
       `error:${errorAnalysis.type}:${intent}`,
       errorMessage, // 에러 응답 텍스트
-      'UNIFIED_GOOGLE',      // 에러 시 기본 모드
+      'UNIFIED',      // 에러 시 기본 모드
       'error',      // 상태
       userId,       // 사용자 ID
       sessionId     // 세션 ID
@@ -471,7 +469,7 @@ async function postHandler(request: NextRequest) {
  *
  * GET /api/ai/query
  */
-async function getHandler(_request: NextRequest) {
+function getHandler(_request: NextRequest) {
   try {
     const healthStatus = {
       status: 'online',
@@ -552,7 +550,7 @@ async function getHandler(_request: NextRequest) {
 /**
  * OPTIONS 요청 처리 (CORS)
  */
-export async function OPTIONS(_req: NextRequest) {
+export function OPTIONS(_req: NextRequest) {
   return new NextResponse(null, {
     status: 200,
     headers: {

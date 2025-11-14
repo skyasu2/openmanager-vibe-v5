@@ -74,7 +74,7 @@ function getDatabaseStatus() {
   };
 }
 
-async function getHandler(request: NextRequest) {
+async function getHandler(request: NextRequest): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
     const component = searchParams.get('component');
@@ -219,7 +219,7 @@ async function postHandler(request: NextRequest) {
  * 🗄️ 데이터베이스 상태 API
  */
 
-export async function GET_NEW(_request: NextRequest) {
+export function GET_NEW(_request: NextRequest) {
   try {
     // 데이터베이스 상태 확인
     const dbStatus = {

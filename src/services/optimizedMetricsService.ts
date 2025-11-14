@@ -44,7 +44,7 @@ function parseTimeRange(range: string): number {
   const unit = match[2];
   if (!value || !unit) return 60 * 60 * 1000;
   
-  const multiplier = units[unit as keyof typeof units];
+  const multiplier = units[unit];
   if (!multiplier) return 60 * 60 * 1000; // 기본 1시간
   
   return parseInt(value) * multiplier;

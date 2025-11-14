@@ -98,7 +98,7 @@ class MemorySystemStateManager {
     return { ...this.systemState };
   }
 
-  async stopSystem(userId: string): Promise<SystemState> {
+  stopSystem(userId: string): Promise<SystemState> {
     this.systemState = {
       ...this.systemState,
       isRunning: false,
@@ -109,10 +109,10 @@ class MemorySystemStateManager {
     };
 
     debug.log(`🛑 메모리 기반 시스템 중지: ${userId.substring(0, 12)}...`);
-    return { ...this.systemState };
+    return Promise.resolve({ ...this.systemState });
   }
 
-  async updateUserActivity(userId: string): Promise<void> {
+  updateUserActivity(userId: string): Promise<void> {
     const now = Date.now();
     const existing = this.userActivities.get(userId);
 
@@ -123,9 +123,10 @@ class MemorySystemStateManager {
     });
 
     this.systemState.lastActivity = now;
+    return Promise.resolve();
   }
 
-  async cleanupInactiveUsers(): Promise<void> {
+  cleanupInactiveUsers(): Promise<void> {
     const now = Date.now();
     const inactiveUsers: string[] = [];
 
@@ -142,6 +143,7 @@ class MemorySystemStateManager {
     if (inactiveUsers.length > 0) {
       debug.log(`🧹 비활성 사용자 정리: ${inactiveUsers.length}명`);
     }
+    return Promise.resolve();
   }
 
   getActiveUsers(): UserActivity[] {

@@ -64,7 +64,7 @@ export default function AutoReportPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
 
-  const handleGenerateReport = async () => {
+  const handleGenerateReport = () => {
     setIsGenerating(true);
 
     // 새 보고서 생성 시뮬레이션

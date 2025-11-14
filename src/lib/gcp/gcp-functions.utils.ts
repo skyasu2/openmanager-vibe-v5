@@ -103,13 +103,14 @@ export async function retryWithBackoff<T>(
   maxRetries: number,
   baseDelay: number = 1000
 ): Promise<T> {
-  let lastError: Error;
+  let lastError: Error | null = null;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
     } catch (error) {
-      lastError = error as Error;
+      const currentError = error as Error;
+      lastError = currentError;
 
       // 마지막 시도였다면 에러 던지기
       if (attempt === maxRetries) {
@@ -117,7 +118,7 @@ export async function retryWithBackoff<T>(
       }
 
       // HTTP 상태 코드 확인 (재시도할 만한 에러인지)
-      const shouldRetry = isRetryableError(lastError);
+      const shouldRetry = isRetryableError(currentError);
       if (!shouldRetry) {
         throw lastError;
       }
@@ -133,7 +134,10 @@ export async function retryWithBackoff<T>(
     }
   }
 
-  throw lastError!;
+  if (lastError) {
+    throw lastError;
+  }
+  throw new Error('Retry failed without a captured error');
 }
 
 /**
@@ -246,9 +250,16 @@ export function validateResponse<T>(data: unknown): Result<T> {
   }
 
   if (response.success) {
+    if (response.data === undefined) {
+      return {
+        success: false,
+        error: 'Response marked as success but data is missing',
+        code: 500
+      };
+    }
     return {
       success: true,
-      data: response.data as T
+      data: response.data
     };
   } else {
     return {

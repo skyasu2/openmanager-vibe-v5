@@ -242,7 +242,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     // 4. 결과 처리
     const mcpContext = mcpContextPromise
       ? taskResults[0]?.status === 'fulfilled'
-        ? (taskResults[0] as PromiseFulfilledResult<unknown>).value
+        ? (taskResults[0]).value
         : null
       : null;
 

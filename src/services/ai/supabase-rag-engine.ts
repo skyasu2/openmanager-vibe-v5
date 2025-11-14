@@ -766,9 +766,12 @@ export class SupabaseRAGEngine {
       );
 
       // 임베딩이 성공한 문서들만 처리
-      const validDocuments = documents
-        .map((doc, i) => ({ ...doc, embedding: embeddings[i] }))
-        .filter((doc) => doc.embedding !== null);
+    const validDocuments = documents
+      .map((doc, i) => ({ ...doc, embedding: embeddings[i] }))
+      .filter(
+        (doc): doc is typeof doc & { embedding: number[] } =>
+          Array.isArray(doc.embedding)
+      );
 
       if (validDocuments.length === 0) {
         return { success: 0, failed: documents.length };
@@ -780,7 +783,7 @@ export class SupabaseRAGEngine {
           const result = await this.vectorDB.store(
             doc.id,
             doc.content,
-            doc.embedding!,
+            doc.embedding,
             convertAIMetadataToDocumentMetadata(doc.metadata)
           );
 

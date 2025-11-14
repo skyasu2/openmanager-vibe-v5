@@ -16,7 +16,7 @@ interface HybridAnalysis {
 }
 
 // GET: 실시간 분석 결과 조회
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const serverId = searchParams.get('serverId');

@@ -9,7 +9,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import debug from '@/utils/debug';
 
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const error = searchParams.get('error');
   const error_code = searchParams.get('error_code');
@@ -47,6 +47,6 @@ export async function GET(request: NextRequest) {
 }
 
 // POST 메서드도 지원 (일부 OAuth 제공자는 POST 사용)
-export async function POST(request: NextRequest) {
+export function POST(request: NextRequest) {
   return GET(request);
 }

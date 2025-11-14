@@ -11,9 +11,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api-auth';
-import { supabase } from '@/lib/supabase/supabase-client';
-import { getCachedData, setCachedData } from '@/lib/cache-helper';
-import crypto from 'crypto';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
@@ -500,7 +497,7 @@ async function postHandler(request: NextRequest) {
       }
 
       case 'learn_patterns': {
-        const { incident_history } = body;
+        // incident_history from body is available but not used in simplified implementation
 
         return NextResponse.json({
           success: true,
@@ -537,7 +534,8 @@ async function postHandler(request: NextRequest) {
       }
 
       case 'multi_metric_analysis': {
-        const { server_id, metrics } = body;
+        const { server_id } = body;
+        // metrics from body is available but not used in simplified implementation
 
         return NextResponse.json({
           success: true,
@@ -588,7 +586,8 @@ async function postHandler(request: NextRequest) {
       }
 
       case 'schedule_scaling': {
-        const { server_id, predicted_patterns } = body;
+        const { server_id } = body;
+        // predicted_patterns from body is available but not used in simplified implementation
 
         return NextResponse.json({
           success: true,
@@ -631,7 +630,7 @@ async function postHandler(request: NextRequest) {
 /**
  * GET handler
  */
-async function getHandler(_request: NextRequest) {
+async function getHandler(_request: NextRequest): Promise<NextResponse> {
   try {
     return NextResponse.json({
       success: true,

@@ -12,7 +12,7 @@ import { NextResponse } from 'next/server';
 import { env, features, isProduction, isVercelProduction } from '@/utils/env';
 import { authManager } from '@/lib/auth';
 
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   try {
     // SECURITY: Admin 인증 필수
     const authHeader = request.headers.get('authorization');
@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
 /**
  * 보안상의 이유로 POST/PUT/DELETE 방법은 허용하지 않음
  */
-export async function POST() {
+export function POST() {
   return NextResponse.json({ 
     error: 'Method not allowed' 
   }, { status: 405 });

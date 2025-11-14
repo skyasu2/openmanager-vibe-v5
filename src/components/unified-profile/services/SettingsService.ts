@@ -269,19 +269,16 @@ export class SettingsService {
   /**
    * 개별 설정 조회 메서드들
    */
-  async getMetricsConfig() {
-    const response = await fetch('/api/admin/metrics-config');
-    return response.json();
+  getMetricsConfig(): Promise<unknown> {
+    return fetch('/api/admin/metrics-config').then(response => response.json());
   }
 
-  async getScenariosConfig() {
-    const response = await fetch('/api/admin/scenarios');
-    return response.json();
+  getScenariosConfig(): Promise<unknown> {
+    return fetch('/api/admin/scenarios').then(response => response.json());
   }
 
-  async getThresholdsConfig() {
-    const response = await fetch('/api/admin/thresholds');
-    return response.json();
+  getThresholdsConfig(): Promise<unknown> {
+    return fetch('/api/admin/thresholds').then(response => response.json());
   }
 
   async getDashboardConfig() {

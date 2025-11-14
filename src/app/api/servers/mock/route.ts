@@ -15,7 +15,7 @@ import debug from '@/utils/debug';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   const startTime = Date.now();
 
   try {

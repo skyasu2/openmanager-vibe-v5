@@ -38,7 +38,8 @@ function mapInterpolatedToEnhanced(
   metric: InterpolatedMetric
 ): EnhancedServerMetrics {
   // 서버 ID에서 타입 추출 (예: "web-prod-01" → "web")
-  const serverType = serverId.split('-')[0] as string;
+  const [serverTypeRaw] = serverId.split('-');
+  const serverType = serverTypeRaw ?? 'fallback';
   
   // 환경 결정 (prod/staging/dev)
   const environment = serverId.includes('prod') ? 'production' 
@@ -67,7 +68,7 @@ function mapInterpolatedToEnhanced(
     id: serverId,
     hostname: serverId,
     name: serverId,
-    environment: environment as 'production' | 'staging' | 'development',
+    environment: environment,
     role: role,
     status: metric.status,
     

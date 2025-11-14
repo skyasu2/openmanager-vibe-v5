@@ -54,7 +54,7 @@ export function generateSessionId(prefix?: string): string {
     // Node.js 환경에서는 crypto 모듈 사용
     else if (typeof globalThis !== 'undefined' && 'crypto' in globalThis) {
       // Node.js 19+ has globalThis.crypto
-      (globalThis.crypto as Crypto).getRandomValues?.(array);
+      (globalThis.crypto).getRandomValues?.(array);
     }
     // 폴백: Math.random() (권장하지 않음)
     else {

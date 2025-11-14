@@ -49,7 +49,7 @@ import { useState, useEffect } from 'react';
 export default function IntelligentMonitoringPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentStep, setCurrentStep] = useState<string>('준비');
-  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+   
   const [result, setResult] =
     useState<ExtendedIntelligentAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);

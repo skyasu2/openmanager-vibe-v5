@@ -275,7 +275,7 @@ export function getRecentData(
 
   for (let i = 0; i < count; i++) {
     // 뫼비우스 띠처럼 순환 (0시를 넘어가면 23시대로) - 모듈러 연산으로 수정
-    let targetIndex = ((currentSlotIndex - i) % 144 + 144) % 144;
+    const targetIndex = ((currentSlotIndex - i) % 144 + 144) % 144;
 
     const dataPoint = dataset.data[targetIndex];
     if (dataPoint) {

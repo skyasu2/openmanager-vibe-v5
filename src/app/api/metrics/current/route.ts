@@ -547,7 +547,7 @@ export async function GET(request: NextRequest) {
 }
 
 // 📋 API 정보 조회
-export async function OPTIONS(_request: NextRequest) {
+export function OPTIONS(_request: NextRequest) {
   return NextResponse.json({
     name: 'Unified Metrics API',
     description: '6개 시간대 장애-해소 사이클 기반 모니터링과 AI 어시스턴트 데이터 일관성 보장',

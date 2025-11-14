@@ -137,7 +137,7 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
     }
   };
 
-  const quickTest = async (query: string) => {
+  const quickTest = (query: string) => {
     setAiTestQuery(query);
     // 잠시 후 자동 실행을 위한 설정
     setTimeout(() => {

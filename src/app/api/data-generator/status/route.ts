@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
  *
  * 목업 데이터 기반으로 시뮬레이션된 데이터 생성기 상태 반환
  */
-export async function GET() {
+export function GET() {
   try {
     debug.log('🔍 데이터 생성기 상태 확인');
 

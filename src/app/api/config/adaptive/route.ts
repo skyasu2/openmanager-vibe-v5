@@ -10,7 +10,7 @@ import debug from '@/utils/debug';
  * Vercel 플랜을 자동 감지하여 최적 서버 구성을 제공합니다.
  */
 
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category');

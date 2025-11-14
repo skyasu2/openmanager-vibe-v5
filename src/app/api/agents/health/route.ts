@@ -6,7 +6,7 @@
 import { NextResponse } from 'next/server';
 import debug from '@/utils/debug';
 
-export async function GET() {
+export function GET() {
   try {
     // 서브 에이전트 목록
     const agents = [

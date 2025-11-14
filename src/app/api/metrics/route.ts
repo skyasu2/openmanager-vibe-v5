@@ -44,7 +44,7 @@ interface PrometheusMetricResult {
  * 🎯 표준 Prometheus /metrics 엔드포인트
  * 실제 Prometheus 서버와 100% 호환
  */
-export async function GET() {
+export function GET() {
   try {
     // 목업 메트릭 데이터
     const metrics = {

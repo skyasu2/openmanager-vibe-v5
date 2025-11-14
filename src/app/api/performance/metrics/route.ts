@@ -6,7 +6,7 @@
 import { PerformanceService } from '@/modules/performance-monitor/services/PerformanceService';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(_request: NextRequest) {
+export function GET(_request: NextRequest) {
   try {
     const performanceService = PerformanceService.getInstance();
     const currentMetrics = performanceService.getCurrentMetrics();

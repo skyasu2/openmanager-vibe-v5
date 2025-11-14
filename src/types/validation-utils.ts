@@ -374,9 +374,9 @@ export function requireIf<T>(
   value: T | undefined,
   condition: boolean,
   errorMessage = '이 필드는 필수입니다'
-): T {
+): T | undefined {
   if (condition && value === undefined) {
     throw new Error(errorMessage);
   }
-  return value as T;
+  return value;
 }

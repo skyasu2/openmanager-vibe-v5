@@ -84,7 +84,7 @@ export default function PredictionPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedRisk, setSelectedRisk] = useState<string>('all');
 
-  const handleAnalyze = async () => {
+  const handleAnalyze = () => {
     setIsAnalyzing(true);
 
     // AI 분석 시뮬레이션

@@ -22,7 +22,7 @@ const STREAM_CONFIG = {
   maxDuration: 300000, // 5분 (무료 티어 보호)
 };
 
-export async function GET(req: NextRequest) {
+export function GET(req: NextRequest) {
   const sessionId = req.nextUrl.searchParams.get('sessionId');
 
   if (!sessionId) {
@@ -42,7 +42,6 @@ export async function GET(req: NextRequest) {
     async start(controller) {
       const encoder = new TextEncoder();
       let isActive = true;
-      const startTime = Date.now();
 
       // 초기 연결 메시지
       controller.enqueue(
@@ -190,7 +189,7 @@ export async function POST(req: NextRequest) {
     return new Response(JSON.stringify({ success: true, stepId }), {
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (error) {
+  } catch {
     return new Response(
       JSON.stringify({ error: 'Failed to add thinking step' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }

@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'; // Vercel edge 캐싱 방지
  *
  * Streams real-time alert events to connected clients
  */
-export async function GET(req: NextRequest) {
+export function GET(req: NextRequest) {
   const stream = new ReadableStream({
     start(controller) {
       // 처음 연결 시 ping

@@ -130,7 +130,7 @@ class MLProcessor {
   }
 
   // RAG 벤치마크 실행
-  static async runRAGBenchmark(request: MLRequest): Promise<unknown> {
+  static async runRAGBenchmark(_request: MLRequest): Promise<unknown> {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/ai/rag/benchmark`, {
         method: 'POST',
@@ -153,9 +153,9 @@ class MLProcessor {
   }
 
   // 예측 실행
-  static async makePrediction(request: MLRequest): Promise<unknown> {
+  static makePrediction(request: MLRequest): unknown {
     const { data, options } = request;
-    
+
     try {
       // 기존 학습된 모델을 사용한 예측
       const mockPrediction = {
@@ -179,9 +179,9 @@ class MLProcessor {
   }
 
   // 모델 평가
-  static async evaluateModel(request: MLRequest): Promise<unknown> {
+  static evaluateModel(request: MLRequest): unknown {
     const { type = 'anomaly', data } = request;
-    
+
     try {
       // 모의 모델 평가 결과
       const evaluation = {
@@ -262,15 +262,14 @@ export const POST = createApiRoute()
       };
 
     } catch (error) {
-      const responseTime = Date.now() - startTime;
       debug.error('ML Operation Error:', error);
-      
+
       throw error;
     }
   });
 
 // GET 핸들러 - ML 상태 및 정보 조회
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get('type') || 'status';
 

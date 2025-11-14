@@ -68,7 +68,8 @@ export function usePerformanceGuard({
       }
     }
 
-    return originalSetInterval.current!(callback, delay);
+    const setIntervalFn = originalSetInterval.current ?? setInterval;
+    return setIntervalFn(callback, delay);
   }, [minTimerInterval]);
 
   // localStorage 접근 모니터링 (인터셉트 없이 카운팅만)

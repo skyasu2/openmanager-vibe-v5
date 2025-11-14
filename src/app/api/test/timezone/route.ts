@@ -8,7 +8,7 @@ import { NextResponse } from 'next/server';
 import { MockContextLoader } from '@/services/ai/MockContextLoader';
 import { getCurrentSimulatedHour } from '@/mock/fixedHourlyData';
 
-export async function GET() {
+export function GET() {
   try {
     // MockContextLoader 인스턴스 생성
     const mockContextLoader = MockContextLoader.getInstance();

@@ -74,7 +74,7 @@ const _defaultThresholds = {
 };
 
 // GET 핸들러 - 임계값 조회 (인증 필요)
-async function getThresholds(request: AuthenticatedRequest) {
+async function getThresholds(request: AuthenticatedRequest): Promise<Response> {
   try {
     const thresholds = {
       cpu: {

@@ -11,6 +11,7 @@
  */
 
 import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import debug from '@/utils/debug';
 import {
   createSuccessResponse,
@@ -146,7 +147,7 @@ async function optimizeMemoryHandler(request: NextRequest) {
 /**
  * 📊 메모리 상태 조회 (GET)
  */
-async function getMemoryStatusHandler(_request: NextRequest) {
+async function getMemoryStatusHandler(_request: NextRequest): Promise<NextResponse> {
   try {
     debug.log('📊 메모리 상태 조회 API 호출');
 

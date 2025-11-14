@@ -22,12 +22,9 @@ import {
   LoadBenchmarkResponseSchema,
   CacheClearResponseSchema,
   type AIPerformanceStatsResponse,
-  type AIBenchmarkRequest,
   type ComparisonBenchmarkResponse,
   type LoadBenchmarkResponse,
-  type CacheClearResponse,
   type BenchmarkResponseItem,
-  type AIPerformanceMetrics,
   type AIOptimizationStatus,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
@@ -184,7 +181,7 @@ const postHandler = createApiRoute()
     async (
       _request,
       context
-    ): Promise<ComparisonBenchmarkResponse | LoadBenchmarkResponse> => {
+    ) => {
       const {
         mode = 'comparison',
         queries = ['서버 상태', 'CPU 사용률', '메모리 상태'],
@@ -227,9 +224,9 @@ const deleteHandler = createApiRoute()
     showDetailedErrors: process.env.NODE_ENV === 'development',
     enableLogging: true,
   })
-  .build(async (): Promise<CacheClearResponse> => {
+  .build(async () => {
     const engine = getPerformanceOptimizedQueryEngine();
-    engine.clearOptimizationCache();
+    await engine.clearOptimizationCache();
 
     return {
       success: true,

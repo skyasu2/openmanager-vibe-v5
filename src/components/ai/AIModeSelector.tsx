@@ -72,7 +72,7 @@ export const AIModeSelector: FC<AiModeSelectorProps> = ({
 }) => {
   const [isChanging, setIsChanging] = useState(false);
 
-  const handleModeChange = async (newMode: AIMode) => {
+  const handleModeChange = (newMode: AIMode) => {
     if (disabled || isChanging || newMode === selectedMode) return;
 
     setIsChanging(true);

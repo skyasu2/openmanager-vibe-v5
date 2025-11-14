@@ -51,6 +51,6 @@ export async function POST(_request: NextRequest) {
 }
 
 // OPTIONS 메소드 지원 (CORS)
-export async function OPTIONS(_request: NextRequest) {
+export function OPTIONS(_request: NextRequest) {
   return new NextResponse(null, { status: 200 });
 }

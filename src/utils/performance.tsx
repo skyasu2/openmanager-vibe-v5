@@ -42,7 +42,10 @@ class PerformanceTracker {
       performance.mark(`${name}-end`);
       performance.measure(name, `${name}-start`, `${name}-end`);
       
-      const measure = performance.getEntriesByName(name)[0] as PerformanceEntry;
+      const measure = performance.getEntriesByName(name)[0];
+      if (!measure) {
+        return 0;
+      }
       const duration = measure.duration;
       
       const measurement: PerformanceMeasurement = {

@@ -165,7 +165,7 @@ function generateMockUsage() {
  * 📊 GET /api/vercel-usage
  * Vercel 무료 티어 사용량 조회 및 자동 최적화
  */
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   try {
     const startTime = Date.now();
 

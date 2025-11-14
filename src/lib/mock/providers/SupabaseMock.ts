@@ -156,12 +156,13 @@ export class SupabaseMock extends MockBase {
       }
 
       // 정렬 적용
-      if (builder.orderBy) {
+      const orderBy = builder.orderBy;
+      if (orderBy) {
         data.sort((a, b) => {
           const recordA = a as Record<string, unknown>;
           const recordB = b as Record<string, unknown>;
-          const aVal = recordA[builder.orderBy!.column];
-          const bVal = recordB[builder.orderBy!.column];
+          const aVal = recordA[orderBy.column];
+          const bVal = recordB[orderBy.column];
 
           // 타입별 비교 처리
           let result = 0;
@@ -173,7 +174,7 @@ export class SupabaseMock extends MockBase {
             result = aVal === bVal ? 0 : aVal ? 1 : -1;
           }
 
-          return builder.orderBy!.ascending ? result : -result;
+          return orderBy.ascending ? result : -result;
         });
       }
 

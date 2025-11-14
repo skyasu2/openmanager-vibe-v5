@@ -10,7 +10,6 @@
 
 import type {
   ExecutiveSummary,
-  RoadmapPhase,
   ImprovementRoadmap,
 } from './insight-center.types';
 

@@ -23,18 +23,6 @@ import debug from '@/utils/debug';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// 메모리 기반 캐시 정보 조회
-function getMemoryCacheInfo() {
-  return {
-    type: 'Memory Cache',
-    implementation: 'JavaScript Map',
-    features: ['LRU Eviction', 'TTL Support', 'Statistics'],
-    performance: 'Optimized for serverless',
-    maxSize: '1000 items',
-    cleanup: 'Auto-cleanup every 5 minutes',
-  };
-}
-
 // 메모리 사용량 추정
 function estimateMemoryCacheUsage() {
   const stats = getCacheStats();
@@ -58,7 +46,7 @@ const cacheStatsHandler = createApiRoute()
     showDetailedErrors: process.env.NODE_ENV === 'development',
     enableLogging: true,
   })
-  .build(async (_request, _context): Promise<CacheStatsResponse> => {
+  .build((_request, _context): CacheStatsResponse => {
     // 메모리 기반 캐시 통계
     const rawStats = getCacheStats();
 
@@ -76,8 +64,7 @@ const cacheStatsHandler = createApiRoute()
     };
 
     // 메모리 캐시 정보
-    const memoryCacheInfo = getMemoryCacheInfo();
-
+  
     // 메모리 사용량 추정
     const memoryUsage = estimateMemoryCacheUsage();
 
@@ -109,9 +96,9 @@ const cacheStatsHandler = createApiRoute()
     return response;
   });
 
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   try {
-    return await cacheStatsHandler(request);
+    return cacheStatsHandler(request);
   } catch (error) {
     debug.error('❌ Memory cache stats failed:', error);
 
@@ -139,7 +126,6 @@ export async function GET(request: NextRequest) {
  */
 function analyzePerformance(stats: CacheStats): CachePerformance {
   const totalOps = stats.hits + stats.misses;
-  const errorRate = 0; // 메모리 캐시는 네트워크 에러가 없음
 
   // 성능 등급 계산 (메모리 캐시에 최적화된 기준)
   let grade: 'A' | 'B' | 'C' | 'D' | 'F' = 'A';
@@ -176,7 +162,7 @@ function analyzePerformance(stats: CacheStats): CachePerformance {
     errorRate: '0.00', // 메모리 캐시는 에러율이 거의 0
     issues,
     totalOperations: totalOps,
-    recommendations: getMemoryCacheRecommendations(stats, issues),
+    recommendations: getMemoryCacheRecommendations(stats),
   };
 }
 
@@ -184,8 +170,7 @@ function analyzePerformance(stats: CacheStats): CachePerformance {
  * 메모리 캐시 개선 권장사항 생성
  */
 function getMemoryCacheRecommendations(
-  stats: CacheStats,
-  issues: string[]
+  stats: CacheStats
 ): string[] {
   const recommendations: string[] = [];
 

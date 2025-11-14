@@ -42,7 +42,7 @@ export const getSafeServicesLength = (server: unknown): number => {
   try {
     if (!isValidServer(server)) return 0;
 
-    const services = (server as Server).services;
+    const services = (server).services;
     if (!services || !Array.isArray(services)) return 0;
 
     return services.length;
@@ -60,7 +60,7 @@ export const getSafeValidServices = (server: unknown): Service[] => {
   try {
     if (!isValidServer(server)) return [];
 
-    const services = (server as Server).services;
+    const services = (server).services;
     if (!services || !Array.isArray(services)) return [];
 
     return services.filter((service: unknown): service is Service => {
@@ -328,7 +328,7 @@ export const normalizeServerForVercel = (server: unknown): Server | null => {
     // 🛡️ 베르셀 특화: 서버 객체를 완전히 안전한 방식으로 접근
     const safeServer = (() => {
       try {
-        return server as Server;
+        return server;
       } catch {
         return {} as Server;
       }

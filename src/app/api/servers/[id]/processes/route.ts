@@ -47,7 +47,7 @@ function generateMockProcesses(serverId: string): ServerProcess[] {
   return processes;
 }
 
-export async function GET(
+export function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {

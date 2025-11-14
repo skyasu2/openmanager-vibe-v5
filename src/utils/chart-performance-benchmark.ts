@@ -336,15 +336,20 @@ export function profilePerformance(library: string) {
     propertyName: string,
     descriptor: TypedPropertyDescriptor<T>
   ) {
-    const method = descriptor.value!;
+    const method = descriptor.value;
+    if (!method) {
+      return descriptor;
+    }
     
-    descriptor.value = ((...args: unknown[]) => {
+    descriptor.value = (function (this: unknown, ...args: unknown[]) {
       const startTime = benchmark.startRender();
-      const result = method.apply(target, args);
+      const result = method.apply(this, args);
       benchmark.endRender(startTime);
       benchmark.measureMemoryUsage();
       
       return result;
     }) as T;
+
+    return descriptor;
   };
 }

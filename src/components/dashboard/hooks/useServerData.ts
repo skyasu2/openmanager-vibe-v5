@@ -100,7 +100,7 @@ export const useServerData = (): UseServerDataReturn => {
   );
 
   // 데이터 초기화 함수
-  const _initializeData = useCallback(async () => {
+  const _initializeData = useCallback(() => {
     try {
       setLoading(true);
       setError(null);

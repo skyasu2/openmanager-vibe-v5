@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { 
+import {
   safeServerStatus,
-  safeServerEnvironment, 
-  safeServerRole,
-  safeMetricValue,
   safeResponseTime,
-  safeConnections 
+  safeConnections,
 } from '@/lib/type-converters';
+import fs from 'fs';
+import path from 'path';
 
 /**
  * 🤖 AI 분석 무결성 보장 API
@@ -80,44 +79,41 @@ interface ServerDataStructure {
 /**
  * 🔄 24시간 순수 메트릭 로드 (시나리오 힌트 완전 제거)
  */
-async function loadPureRawMetrics(): Promise<RawServerMetric[]> {
+function loadPureRawMetrics(): Promise<RawServerMetric[]> {
   try {
     const now = new Date();
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     const currentSecond = now.getSeconds();
-    
+
     // 30초 단위 데이터 회전 (시나리오 정보 없이)
     const segmentInHour = Math.floor((currentMinute * 60 + currentSecond) / 30);
     const rotationMinute = segmentInHour % 60;
-    
+
     // 시나리오 정보를 로그하지 않음 - AI 분석 무결성 보장
-    
-    const fs = require('fs');
-    const path = require('path');
     const filePath = path.join(process.cwd(), 'public', 'server-scenarios', 'hourly-metrics', `${currentHour.toString().padStart(2, '0')}.json`);
-    
+
     let hourlyData;
-    
+
     if (!fs.existsSync(filePath)) {
       const fallbackPath = path.join(process.cwd(), 'public', 'server-scenarios', 'hourly-metrics', '17.json');
       hourlyData = JSON.parse(fs.readFileSync(fallbackPath, 'utf8'));
     } else {
       hourlyData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     }
-    
-    return convertToPureMetrics(hourlyData, currentHour, rotationMinute, segmentInHour);
-    
+
+    return Promise.resolve(convertToPureMetrics(hourlyData, currentHour, rotationMinute, segmentInHour));
+
   } catch (error) {
     console.error('Raw metrics 로드 실패:', error);
-    return generateFallbackMetrics();
+    return Promise.resolve(generateFallbackMetrics());
   }
 }
 
 /**
  * 🧹 순수 메트릭 변환기 - 모든 시나리오 힌트 제거
  */
-function convertToPureMetrics(hourlyData: HourlyDataStructure, currentHour: number, rotationMinute: number, segmentInHour: number): RawServerMetric[] {
+function convertToPureMetrics(hourlyData: HourlyDataStructure, _currentHour: number, rotationMinute: number, _segmentInHour: number): RawServerMetric[] {
   const servers = hourlyData.servers || {};
   
   // 🔒 시나리오 정보를 로그하지 않음 - AI 분석 무결성 유지

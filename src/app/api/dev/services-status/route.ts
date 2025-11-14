@@ -79,7 +79,7 @@ async function checkSupabase(): Promise<ServiceStatus> {
   }
 }
 
-async function checkMemoryCache(): Promise<ServiceStatus> {
+function checkMemoryCache(): Promise<ServiceStatus> {
   const startTime = Date.now();
   try {
     // 메모리 기반 캐시 상태 확인
@@ -104,7 +104,7 @@ async function checkMemoryCache(): Promise<ServiceStatus> {
 
     const responseTime = Date.now() - startTime;
 
-    return {
+    return Promise.resolve({
       name: 'Memory Cache',
       status: 'connected',
       responseTime,
@@ -115,15 +115,15 @@ async function checkMemoryCache(): Promise<ServiceStatus> {
         features: ['LRU Eviction', 'TTL Support', 'Statistics'],
         performance: 'Optimized for serverless',
       },
-    };
+    });
   } catch (error: unknown) {
-    return {
+    return Promise.resolve({
       name: 'Memory Cache',
       status: 'error',
       responseTime: Date.now() - startTime,
       details: null,
       error: error instanceof Error ? error.message : 'Unknown error',
-    };
+    });
   }
 }
 

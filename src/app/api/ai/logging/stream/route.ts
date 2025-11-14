@@ -9,19 +9,11 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import debug from '@/utils/debug';
 import {
   AILogRequestSchema,
-  AILogWriteResponseSchema,
-  AILogExportResponseSchema,
   type AILogEntry,
-  type AILogRequest,
-  type AILogWriteResponse,
-  type AILogExportResponse,
-  type AILogLevel,
-  type AILogStreamMessage,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
 
@@ -66,7 +58,7 @@ class MemoryLogStorage {
 
   getLogs(
     count: number = 10,
-    level?: AILogLevel | 'all',
+    level?: 'info' | 'warn' | 'error' | 'debug' | 'all',
     source?: string
   ): AILogEntry[] {
     let filtered = this.logs;
@@ -132,7 +124,7 @@ const _LOG_EMOJIS = {
 
 // Mock 로그 생성기 제거 - 실제 시스템 로그만 사용
 
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const level = searchParams.get('level') || 'all';
   const source = searchParams.get('source') || 'all';
@@ -154,7 +146,7 @@ export async function GET(request: NextRequest) {
 
   // 스트림 생성 (Vercel timeout 고려)
   const stream = new ReadableStream({
-    async start(controller) {
+    start(controller) {
       const encoder = new TextEncoder();
       let isActive = true;
       const logStorage = getLogStorage();
@@ -171,7 +163,7 @@ export async function GET(request: NextRequest) {
       debug.log('✅ 메모리 기반 로그 스토리지 활성화');
 
       // 로그 전송 함수
-      const sendLogs = async () => {
+      const sendLogs = () => {
         if (!isActive) return;
 
         try {
@@ -180,7 +172,7 @@ export async function GET(request: NextRequest) {
           // 메모리 스토리지에서 기존 로그 가져오기
           const existingLogs = logStorage.getLogs(
             5,
-            level as AILogLevel,
+            level as 'info' | 'warn' | 'error' | 'debug' | 'all',
             source
           );
           logs.push(...existingLogs);
@@ -237,7 +229,7 @@ export async function GET(request: NextRequest) {
           // 다음 전송 예약 (Vercel timeout 방지)
           streamCount++;
           if (isActive && streamCount < maxStreamCount) {
-            setTimeout(sendLogs, interval);
+            void setTimeout(sendLogs, interval);
           } else if (streamCount >= maxStreamCount) {
             // Vercel timeout 방지를 위해 스트림 종료
             const endMessage = {
@@ -266,13 +258,13 @@ export async function GET(request: NextRequest) {
           // 재시도 (Vercel timeout 방지)
           streamCount++;
           if (isActive && streamCount < maxStreamCount) {
-            setTimeout(sendLogs, interval * 2);
+            void setTimeout(sendLogs, interval * 2);
           }
         }
       };
 
       // 초기 로그 전송
-      await sendLogs();
+      sendLogs();
     },
   });
 
@@ -282,16 +274,11 @@ export async function GET(request: NextRequest) {
 // POST 핸들러
 const postHandler = createApiRoute()
   .body(AILogRequestSchema)
-  .response(z.union([AILogWriteResponseSchema, AILogExportResponseSchema]))
   .configure({
     showDetailedErrors: process.env.NODE_ENV === 'development',
     enableLogging: true,
   })
-  .build(
-    async (
-      _request,
-      context
-    ): Promise<AILogWriteResponse | AILogExportResponse> => {
+  .build((_request, context) => {
       const body = context.body;
 
       debug.log(`📊 AI 로그 관리 액션 (Memory-based): ${body.action}`);

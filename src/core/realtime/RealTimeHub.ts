@@ -120,8 +120,8 @@ class RealTimeHub {
     if (!this.groups.has(groupName)) {
       this.groups.set(groupName, new Set());
     }
-
-    this.groups.get(groupName)!.add(connectionId);
+    const group = this.groups.get(groupName);
+    group?.add(connectionId);
     connection.groups.add(groupName);
 
     this.updateGroupStats();

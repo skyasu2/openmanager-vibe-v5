@@ -142,10 +142,12 @@ class AICircuitBreakerManager {
    * 서비스별 Circuit Breaker 가져오기 (없으면 생성)
    */
   getBreaker(serviceName: string): AIServiceCircuitBreaker {
-    if (!this.breakers.has(serviceName)) {
-      this.breakers.set(serviceName, new AIServiceCircuitBreaker(serviceName));
+    let breaker = this.breakers.get(serviceName);
+    if (!breaker) {
+      breaker = new AIServiceCircuitBreaker(serviceName);
+      this.breakers.set(serviceName, breaker);
     }
-    return this.breakers.get(serviceName)!;
+    return breaker;
   }
 
   /**

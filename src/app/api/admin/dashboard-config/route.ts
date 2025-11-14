@@ -137,7 +137,7 @@ const DEFAULT_CONFIG: DashboardConfig = {
 /**
  * 🔍 대시보드 설정 조회
  */
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const section = searchParams.get('section');
@@ -221,7 +221,7 @@ export const POST = withAdminAuth(updateDashboardConfig);
 /**
  * 🔄 대시보드 설정 초기화 (인증 필요)
  */
-async function resetDashboardConfig(request: AuthenticatedRequest) {
+async function resetDashboardConfig(request: AuthenticatedRequest): Promise<Response> {
   try {
     // 기본 설정으로 초기화
     const resetConfig = DEFAULT_CONFIG;

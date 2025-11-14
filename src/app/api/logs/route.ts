@@ -56,7 +56,7 @@ function addLog(
 /**
  * 📝 GET - 로그 조회 및 검색
  */
-export async function GET(request: NextRequest) {
+export function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
 /**
  * 🗑️ DELETE - 로그 정리
  */
-export async function DELETE(request: NextRequest) {
+export function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const keepDays = parseInt(searchParams.get('keepDays') || '7');

@@ -1,15 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-// 🔒 타입 안전성을 위한 인터페이스 정의
-interface EnterpriseServer {
-  id: string;
-  status: 'online' | 'warning' | 'error';
-  name?: string;
-  location?: string;
-  type?: string;
-  [key: string]: unknown;
-}
 import {
   AI_RECOMMENDATIONS,
   CRITICAL_FAILURE_CHAINS,

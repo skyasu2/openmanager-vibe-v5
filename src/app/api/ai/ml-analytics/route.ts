@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
 /**
  * OPTIONS 요청 처리 (CORS)
  */
-export async function OPTIONS(request: NextRequest) {
+export function OPTIONS(_request: NextRequest) {
   return new NextResponse(null, {
     status: 200,
     headers: {

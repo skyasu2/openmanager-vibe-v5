@@ -229,7 +229,7 @@ export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
         if (!task.enabled && task.lastRun && (now - task.lastRun > maxAge)) {
           updated.delete(id);
           cleanedCount++;
-          console.warn(`🧹 Cleaned stale timer: ${id} (inactive for ${Math.round((now - task.lastRun!) / 1000)}s)`);
+          console.warn(`🧹 Cleaned stale timer: ${id} (inactive for ${Math.round((now - task.lastRun) / 1000)}s)`);
         }
         
         // 실패가 많은 작업 정리

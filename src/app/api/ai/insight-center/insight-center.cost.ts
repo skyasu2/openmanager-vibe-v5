@@ -26,10 +26,6 @@ export function analyzeCosts(infrastructure: InfrastructureInfo): CostAnalysis {
     bandwidth: infrastructure.bandwidth_gb * 0.05, // $0.05 per GB
   };
 
-  const totalCalculated = Object.values(costBreakdown).reduce(
-    (sum, v) => sum + v,
-    0
-  );
   const actualCost = infrastructure.monthly_cost;
 
   const optimizationOpportunities = [];

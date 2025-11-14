@@ -18,17 +18,11 @@ import { createApiRoute } from '@/lib/api/zod-middleware';
 import debug from '@/utils/debug';
 import {
   CacheOptimizeRequestSchema,
-  CacheWarmupResponseSchema,
-  CacheInvalidateResponseSchema,
-  CacheOptimizeResponseSchema,
-  CacheResetStatsResponseSchema,
-  type CacheOptimizeRequest,
   type CacheWarmupResponse,
   type CacheInvalidateResponse,
   type CacheOptimizeResponse,
   type CacheResetStatsResponse,
   type CacheStats,
-  type ServerMetricsDetail,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
 

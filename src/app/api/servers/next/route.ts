@@ -49,7 +49,7 @@ function _formatUptime(hours: number): string {
 }
 
 // 🚫 서버 데이터 생성기 초기화 비활성화 (서버리스 호환)
-const __initializeGenerator = async () => {
+const __initializeGenerator = () => {
   debug.warn('⚠️ 서버 데이터 생성기 초기화 무시됨 - 서버리스 환경');
   debug.warn('📊 요청별 데이터 생성 사용 권장');
 
@@ -119,7 +119,7 @@ const getHandler = createApiRoute()
     showDetailedErrors: process.env.NODE_ENV === 'development',
     enableLogging: true,
   })
-  .build(async (_request, context): Promise<ServerPaginatedResponse> => {
+  .build((_request, context): Promise<ServerPaginatedResponse> => {
     const {
       page = 1,
       limit = 10,
@@ -208,7 +208,7 @@ const getHandler = createApiRoute()
     const hasNext = page < totalPages;
     const hasPrev = page > 1;
 
-    return {
+    return Promise.resolve({
       success: true,
       data: paginatedServers,
       pagination: {
@@ -220,7 +220,7 @@ const getHandler = createApiRoute()
         hasPrev,
       },
       timestamp: new Date().toISOString(),
-    };
+    });
   });
 
 /**
@@ -320,7 +320,7 @@ const postHandler = createApiRoute()
         };
 
       default:
-        throw new Error(`지원되지 않는 액션: ${action}`);
+        return Promise.reject(new Error(`지원되지 않는 액션: ${action}`));
     }
   });
 
@@ -346,7 +346,7 @@ export async function POST(request: NextRequest) {
 /**
  * OPTIONS - CORS 지원
  */
-export async function OPTIONS(_request: NextRequest) {
+export function OPTIONS(_request: NextRequest) {
   return new NextResponse(null, {
     status: 200,
     headers: {

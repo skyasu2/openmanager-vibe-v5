@@ -154,7 +154,7 @@ export async function POST(_request: NextRequest) {
   }
 }
 
-export async function GET(_request: NextRequest) {
+export function GET(_request: NextRequest) {
   try {
     const searchParams = _request.nextUrl.searchParams;
     const type = searchParams.get('type') || 'default';
@@ -240,7 +240,7 @@ export async function GET(_request: NextRequest) {
   }
 }
 
-export async function DELETE(_request: NextRequest) {
+export function DELETE(_request: NextRequest) {
   try {
     const searchParams = _request.nextUrl.searchParams;
     const resetType = searchParams.get('resetType') || 'all';

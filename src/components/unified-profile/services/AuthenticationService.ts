@@ -46,26 +46,26 @@ export class AuthenticationService {
   /**
    * 빠른 활성화 (개발 모드용)
    */
-  async quickActivation(): Promise<ApiResponse> {
+  quickActivation(): Promise<ApiResponse> {
     if (!DEVELOPMENT_MODE || !BYPASS_PASSWORD) {
-      return {
+      return Promise.resolve({
         success: false,
         error: '빠른 활성화는 개발 모드에서만 사용 가능합니다.',
-      };
+      });
     }
 
     try {
       // 개발 모드에서는 즉시 인증 성공 처리
-      return {
+      return Promise.resolve({
         success: true,
         message: '🚀 AI 에이전트가 빠르게 활성화되었습니다!',
         data: { mode: 'quick-activation', timestamp: new Date().toISOString() },
-      };
+      });
     } catch (error) {
-      return {
+      return Promise.resolve({
         success: false,
         error: '빠른 활성화 중 오류가 발생했습니다.',
-      };
+      });
     }
   }
 

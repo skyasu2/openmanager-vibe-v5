@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { setupCSRFProtection } from '@/utils/security/csrf';
 
-export async function GET(request: NextRequest) {
+export function GET(_request: NextRequest) {
   try {
     const response = NextResponse.json({
       success: true,

@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+
 import { devKeyManager } from '@/utils/dev-key-manager';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
@@ -10,14 +11,11 @@ import {
   DevKeyManagerEnvResponseSchema,
   DevKeyManagerSetupResponseSchema,
   DevKeyManagerDefaultResponseSchema,
-  DevKeyManagerErrorResponseSchema,
-  type DevKeyManagerAction,
   type DevKeyManagerStatusResponse,
   type DevKeyManagerReportResponse,
   type DevKeyManagerEnvResponse,
   type DevKeyManagerSetupResponse,
   type DevKeyManagerDefaultResponse,
-  type DevKeyManagerValidation,
   type DevKeyManagerErrorResponse,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';

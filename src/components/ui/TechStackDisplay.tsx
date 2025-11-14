@@ -129,7 +129,7 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
               {category.items.map((tech: TechItem, techIndex: number) => (
                 <div
                   key={`${tech.name}-${techIndex}`}
-                  className={`rounded-lg border p-3 transition-all duration-200 hover:scale-105 ${colorMap[category.color as keyof typeof colorMap] || colorMap.gray} ${importanceStyles[tech.importance as keyof typeof importanceStyles] || importanceStyles.medium} ${tech.isCore ? 'shadow-lg shadow-amber-500/10' : ''} `}
+                  className={`rounded-lg border p-3 transition-all duration-200 hover:scale-105 ${colorMap[category.color as keyof typeof colorMap] || colorMap.gray} ${importanceStyles[tech.importance] || importanceStyles.medium} ${tech.isCore ? 'shadow-lg shadow-amber-500/10' : ''} `}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">

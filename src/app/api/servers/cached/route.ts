@@ -4,7 +4,7 @@ import type { Server } from '@/types/server';
 import type { EnhancedServerMetrics } from '@/types/server';
 import debug from '@/utils/debug';
 
-export async function GET() {
+export function GET() {
   try {
     const cacheKey = 'servers:cached:all';
 

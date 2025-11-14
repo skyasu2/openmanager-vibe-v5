@@ -24,66 +24,66 @@ import {
 /**
  * 알림 상태 확인
  */
-async function checkNotificationStatus(): Promise<NotificationStatus> {
+function checkNotificationStatus(): Promise<NotificationStatus> {
   // 실제 브라우저 알림 상태 확인 로직
-  return {
+  return Promise.resolve({
     supported: true,
     permission: 'granted',
     enabled: true,
-  };
+  });
 }
 
 /**
  * 테스트 알림 발송
  */
-async function handleSendTestNotification(
+function handleSendTestNotification(
   data: TestNotificationData
 ): Promise<NotificationResponse> {
   // 테스트 알림 발송 로직
-  return {
+  return Promise.resolve({
     success: true,
     message: '테스트 알림이 발송되었습니다.',
     data,
-  };
+  });
 }
 
 /**
  * 알림 유효성 검증
  */
-async function handleValidateNotification(
+function handleValidateNotification(
   data: ValidateNotificationData
 ): Promise<NotificationResponse> {
   // 알림 유효성 검증 로직
-  return {
+  return Promise.resolve({
     success: true,
     valid: true,
     data,
-  };
+  });
 }
 
 /**
  * 알림 이력 삭제
  */
-async function handleClearHistory(): Promise<NotificationResponse> {
+function handleClearHistory(): Promise<NotificationResponse> {
   // 알림 이력 삭제 로직
-  return {
+  return Promise.resolve({
     success: true,
     message: '알림 이력이 삭제되었습니다.',
-  };
+  });
 }
 
 /**
  * 알림 설정 업데이트
  */
-async function handleUpdateSettings(
+function handleUpdateSettings(
   data: UpdateNotificationSettings
 ): Promise<NotificationResponse> {
   // 설정 업데이트 로직
-  return {
+  return Promise.resolve({
     success: true,
     message: '알림 설정이 업데이트되었습니다.',
     data,
-  };
+  });
 }
 
 // GET 핸들러
