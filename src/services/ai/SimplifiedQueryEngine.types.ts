@@ -30,6 +30,10 @@ export interface QueryRequest {
     category?: string;
     cached?: boolean;
     timeoutMs?: number; // 타임아웃 설정
+    // GoogleAiUnifiedEngine 호환성
+    enableRAG?: boolean;
+    enableML?: boolean;
+    enableRules?: boolean;
     commandContext?: {
       isCommandRequest?: boolean;
       categories?: string[];
@@ -46,11 +50,12 @@ export interface QueryRequest {
 export interface QueryResponse {
   success: boolean;
   response: string;
-  engine: 
-    | 'local-rag' 
-    | 'local-ai' 
-    | 'google-ai' 
+  engine:
+    | 'local-rag'
+    | 'local-ai'
+    | 'google-ai'
     | 'google-ai-rag'
+    | 'google-ai-unified'
     | 'unified-google-rag'
     | 'fallback'
     | 'pattern-matched'

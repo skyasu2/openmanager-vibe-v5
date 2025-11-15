@@ -36,22 +36,22 @@ const STORAGE_KEY = 'selected-ai-engine';
 const ENGINE_CONFIG = {
   UNIFIED: {
     displayName: '통합 AI 엔진',
-    description: '모든 AI 엔진 통합 - RAG + Google AI + 자연어 처리',
-    endpoint: '/api/ai/edge-v2'
+    description: 'Provider 패턴 통합 - RAG + ML + Google AI + 자연어 처리 (GoogleAiUnifiedEngine)',
+    endpoint: '/api/ai/query'  // GoogleAiUnifiedEngine via SimplifiedQueryEngineAdapter
   },
   LOCAL: {
     displayName: '로컬 RAG',
-    description: 'Supabase RAG 엔진 - 벡터 검색 기반 문서 검색',
+    description: 'Supabase RAG 엔진 - 벡터 검색 기반 문서 검색 (레거시, UNIFIED 사용 권장)',
     endpoint: '/api/ai/query'
   },
   GOOGLE_AI: {
     displayName: 'Google AI',
-    description: 'Google AI 모드 - 클라우드 기반 AI 처리',
+    description: 'Google AI 모드 - 순수 Google AI 직접 호출 (컨텍스트 인텔리전스)',
     endpoint: '/api/ai/google-ai/generate'
   },
   AUTO: {
     displayName: '자동 선택',
-    description: '상황에 맞게 최적 엔진 자동 선택',
+    description: '시나리오 기반 자동 라우팅 (7개 시나리오 지원)',
     endpoint: '/api/ai/query'
   }
 } as const;

@@ -77,7 +77,7 @@ describe('useAIEngine', () => {
     const { result } = renderHook(() => useAIEngine());
 
     const unifiedDesc = result.current.getEngineDescription('UNIFIED');
-    expect(unifiedDesc).toContain('모든 AI 엔진 통합');
+    expect(unifiedDesc).toContain('Provider 패턴 통합');
 
     const googleDesc = result.current.getEngineDescription('GOOGLE_AI');
     expect(googleDesc).toContain('Google AI 모드');
@@ -101,7 +101,7 @@ describe('useAIEngine', () => {
   it('provides correct API endpoints for engines', () => {
     const { result } = renderHook(() => useAIEngine());
 
-    expect(result.current.getEngineEndpoint('UNIFIED')).toBe('/api/ai/edge-v2');
+    expect(result.current.getEngineEndpoint('UNIFIED')).toBe('/api/ai/query');
     expect(result.current.getEngineEndpoint('LOCAL')).toBe('/api/ai/query');
     expect(result.current.getEngineEndpoint('GOOGLE_AI')).toBe('/api/ai/google-ai/generate');
   });

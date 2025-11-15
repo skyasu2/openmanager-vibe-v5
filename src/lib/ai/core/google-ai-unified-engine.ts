@@ -1,0 +1,564 @@
+/**
+ * 🤖 Google AI Unified Engine
+ *
+ * 핵심 역할:
+ * 1. Provider 오케스트레이션 (RAG, ML, Rule)
+ * 2. Google AI API 통합
+ * 3. 시나리오 기반 라우팅
+ * 4. 캐싱 및 성능 최적화
+ *
+ * 아키텍처 원칙:
+ * - Google AI API = 설명·요약·보고서 생성
+ * - Cloud Functions = 전처리·ML·룰 기반 처리
+ * - Provider = 컨텍스트 제공자 (RAG/ML/Rule)
+ */
+
+import type {
+  IUnifiedEngine,
+  UnifiedQueryRequest,
+  UnifiedQueryResponse,
+  ProviderContext,
+  ProviderContexts,
+  IContextProvider,
+  EngineHealthStatus,
+  EngineConfig,
+  ThinkingStep,
+  ResponseMetadata,
+  CachedResponse,
+  AIScenario,
+  GoogleAIPrompt,
+} from './types';
+
+import { UnifiedEngineError, GoogleAIError } from './types';
+
+// Provider imports
+import { RAGProvider } from '../providers/rag-provider';
+import { MLProvider } from '../providers/ml-provider';
+import { KoreanNLPProvider } from '../providers/korean-nlp-provider';
+
+// PromptBuilder import
+import { promptBuilder } from './prompt-builder';
+
+// ============================================================================
+// Cache Entry
+// ============================================================================
+
+interface CacheEntry {
+  response: UnifiedQueryResponse;
+  timestamp: number;
+}
+
+// ============================================================================
+// Google AI Unified Engine
+// ============================================================================
+
+export class GoogleAiUnifiedEngine implements IUnifiedEngine {
+  // Provider 관리
+  private providers: Map<string, IContextProvider>;
+
+  // 캐시
+  private cache = new Map<string, CacheEntry>();
+  private readonly cacheTTL: number;
+
+  // 설정
+  private config: EngineConfig;
+
+  // 통계
+  private stats = {
+    totalRequests: 0,
+    cacheHits: 0,
+    cacheMisses: 0,
+    errors: 0,
+  };
+
+  constructor(config?: Partial<EngineConfig>) {
+    // 기본 설정
+    this.config = {
+      model: config?.model || 'gemini-2.0-flash-lite',
+      temperature: config?.temperature ?? 0.7,
+      maxTokens: config?.maxTokens || 2048,
+      timeout: config?.timeout || 30000,
+      cache: {
+        enabled: config?.cache?.enabled ?? true,
+        ttl: config?.cache?.ttl || 5 * 60 * 1000, // 5분
+        maxSize: config?.cache?.maxSize || 100,
+      },
+      providers: {
+        rag: {
+          enabled: config?.providers?.rag?.enabled ?? true,
+          maxResults: config?.providers?.rag?.maxResults || 5,
+          threshold: config?.providers?.rag?.threshold || 0.7,
+        },
+        ml: {
+          enabled: config?.providers?.ml?.enabled ?? true,
+          models: config?.providers?.ml?.models || ['anomaly-detection', 'trend-analysis'],
+        },
+        rule: {
+          enabled: config?.providers?.rule?.enabled ?? true,
+          confidenceThreshold: config?.providers?.rule?.confidenceThreshold || 0.6,
+        },
+      },
+    };
+
+    this.cacheTTL = this.config.cache.ttl;
+
+    // Provider 초기화
+    this.providers = new Map<string, RAGProvider | MLProvider | KoreanNLPProvider>([
+      ['rag', new RAGProvider()],
+      ['ml', new MLProvider()],
+      ['rule', new KoreanNLPProvider()], // Korean NLP = Rule Provider
+    ]);
+  }
+
+  /**
+   * 메인 쿼리 처리 메서드
+   */
+  async query(request: UnifiedQueryRequest): Promise<UnifiedQueryResponse> {
+    const startTime = Date.now();
+    const thinkingSteps: ThinkingStep[] = [];
+
+    try {
+      this.stats.totalRequests++;
+
+      // Step 1: 캐시 확인
+      if (this.config.cache.enabled && request.options?.cached !== false) {
+        const cached = this.getFromCache(request);
+        if (cached) {
+          this.stats.cacheHits++;
+          return {
+            ...cached.response,
+            metadata: {
+              ...cached.response.metadata,
+              cacheHit: true,
+              processingTime: Date.now() - startTime,
+            },
+          };
+        }
+      }
+      this.stats.cacheMisses++;
+
+      // Step 2: 시나리오 기반 Provider 활성화 결정
+      thinkingSteps.push({
+        step: 'provider-selection',
+        description: `시나리오 "${request.scenario}"에 맞는 Provider 선택`,
+        status: 'completed',
+        timestamp: Date.now(),
+        duration: Date.now() - startTime,
+      });
+
+      const enabledProviders = this.selectProviders(request);
+
+      // Step 3: 병렬 컨텍스트 수집
+      const contextStartTime = Date.now();
+      thinkingSteps.push({
+        step: 'context-collection',
+        description: `${enabledProviders.length}개 Provider에서 컨텍스트 수집`,
+        status: 'pending',
+        timestamp: Date.now(),
+      });
+
+      const contexts = await this.collectContexts(request, enabledProviders);
+
+      const lastContextStep = thinkingSteps[thinkingSteps.length - 1];
+      if (lastContextStep) {
+        lastContextStep.status = 'completed';
+        lastContextStep.duration = Date.now() - contextStartTime;
+      }
+
+      // Step 4: 프롬프트 생성
+      const promptStartTime = Date.now();
+      thinkingSteps.push({
+        step: 'prompt-generation',
+        description: '컨텍스트 기반 프롬프트 생성',
+        status: 'pending',
+        timestamp: Date.now(),
+      });
+
+      const prompt = this.buildPrompt(request, contexts);
+
+      const lastPromptStep = thinkingSteps[thinkingSteps.length - 1];
+      if (lastPromptStep) {
+        lastPromptStep.status = 'completed';
+        lastPromptStep.duration = Date.now() - promptStartTime;
+      }
+
+      // Step 5: Google AI API 호출
+      const aiStartTime = Date.now();
+      thinkingSteps.push({
+        step: 'google-ai-call',
+        description: `${this.config.model} 모델 호출`,
+        status: 'pending',
+        timestamp: Date.now(),
+      });
+
+      const aiResponse = await this.callGoogleAI(prompt, request.options?.temperature);
+      const tokensUsed = this.estimateTokens(prompt + aiResponse);
+
+      const lastAIStep = thinkingSteps[thinkingSteps.length - 1];
+      if (lastAIStep) {
+        lastAIStep.status = 'completed';
+        lastAIStep.duration = Date.now() - aiStartTime;
+      }
+
+      // Step 6: 응답 생성
+      const response: UnifiedQueryResponse = {
+        success: true,
+        response: aiResponse,
+        scenario: request.scenario,
+        metadata: {
+          engine: 'google-ai-unified',
+          model: this.config.model,
+          tokensUsed,
+          processingTime: Date.now() - startTime,
+          cacheHit: false,
+          providersUsed: enabledProviders.map(p => p.name),
+          timestamp: new Date(),
+        },
+        contexts: this.sanitizeContexts(contexts),
+        thinkingSteps: request.options?.includeThinking ? thinkingSteps : undefined,
+      };
+
+      // Step 7: 캐시 저장
+      if (this.config.cache.enabled) {
+        this.setCache(request, response);
+      }
+
+      return response;
+    } catch (error) {
+      this.stats.errors++;
+
+      // 에러를 ThinkingStep으로 기록
+      if (thinkingSteps.length > 0) {
+        const lastStep = thinkingSteps[thinkingSteps.length - 1];
+        if (lastStep && lastStep.status === 'pending') {
+          lastStep.status = 'failed';
+          lastStep.error = error instanceof Error ? error.message : String(error);
+        }
+      }
+
+      return {
+        success: false,
+        response: '',
+        scenario: request.scenario,
+        metadata: {
+          engine: 'google-ai-unified',
+          model: this.config.model,
+          tokensUsed: 0,
+          processingTime: Date.now() - startTime,
+          cacheHit: false,
+          providersUsed: [],
+          timestamp: new Date(),
+        },
+        thinkingSteps: request.options?.includeThinking ? thinkingSteps : undefined,
+        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
+      };
+    }
+  }
+
+  /**
+   * Provider 선택 (시나리오 기반)
+   */
+  private selectProviders(request: UnifiedQueryRequest): IContextProvider[] {
+    const providers: IContextProvider[] = [];
+
+    for (const [key, provider] of this.providers.entries()) {
+      // 1. Provider가 시나리오에 활성화되어 있는지 확인
+      if (!provider.isEnabled(request.scenario)) {
+        continue;
+      }
+
+      // 2. 사용자 옵션 확인 (수동 비활성화)
+      if (key === 'rag' && request.options?.enableRAG === false) continue;
+      if (key === 'ml' && request.options?.enableML === false) continue;
+      if (key === 'rule' && request.options?.enableRules === false) continue;
+
+      // 3. 엔진 설정 확인 (전역 비활성화)
+      if (key === 'rag' && !this.config.providers.rag.enabled) continue;
+      if (key === 'ml' && !this.config.providers.ml.enabled) continue;
+      if (key === 'rule' && !this.config.providers.rule.enabled) continue;
+
+      providers.push(provider);
+    }
+
+    return providers;
+  }
+
+  /**
+   * 병렬 컨텍스트 수집
+   */
+  private async collectContexts(
+    request: UnifiedQueryRequest,
+    providers: IContextProvider[]
+  ): Promise<ProviderContexts> {
+    const contexts: ProviderContexts = {};
+
+    // 병렬 실행
+    const results = await Promise.allSettled(
+      providers.map(provider =>
+        provider.getContext(request.query, {
+          maxResults: this.config.providers.rag.maxResults,
+          threshold: this.config.providers.rag.threshold,
+          timeoutMs: this.config.timeout,
+          ...request.options,
+        })
+      )
+    );
+
+    // 결과 수집
+    providers.forEach((provider, index) => {
+      const result = results[index];
+      if (result && result.status === 'fulfilled') {
+        const context = result.value;
+        if (context.type === 'rag') contexts.rag = context;
+        if (context.type === 'ml') contexts.ml = context;
+        if (context.type === 'rule') contexts.rule = context;
+      } else if (result && result.status === 'rejected') {
+        console.warn(`[GoogleAiUnifiedEngine] Provider ${provider.name} failed:`, result.reason);
+      }
+    });
+
+    return contexts;
+  }
+
+  /**
+   * 프롬프트 생성 (PromptBuilder 사용)
+   */
+  private buildPrompt(request: UnifiedQueryRequest, contexts: ProviderContexts): GoogleAIPrompt {
+    return promptBuilder.build(
+      {
+        query: request.query,
+        contexts,
+        options: request.options,
+      },
+      request.scenario
+    );
+  }
+
+
+  /**
+   * Google AI API 호출 (GoogleAIPrompt 사용)
+   */
+  private async callGoogleAI(prompt: GoogleAIPrompt, temperature?: number): Promise<string> {
+    const apiKey = process.env.GOOGLE_AI_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_AI_API_KEY;
+
+    if (!apiKey) {
+      throw new GoogleAIError('Google AI API 키가 설정되지 않았습니다. GOOGLE_AI_API_KEY 환경변수를 확인하세요.');
+    }
+
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${this.config.model}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: {
+              parts: [{ text: prompt.systemInstruction }],
+            },
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: prompt.userMessage }],
+              },
+            ],
+            generationConfig: {
+              temperature: temperature ?? this.config.temperature,
+              maxOutputTokens: this.config.maxTokens,
+            },
+          }),
+          signal: AbortSignal.timeout(this.config.timeout),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new GoogleAIError(
+          `Google AI API 오류: ${response.status}`,
+          response.status,
+          errorText
+        );
+      }
+
+      const data = await response.json();
+
+      if (!data.candidates || data.candidates.length === 0) {
+        throw new GoogleAIError('Google AI API 응답에 결과가 없습니다.', undefined, data);
+      }
+
+      const candidate = data.candidates[0];
+      const text = candidate.content?.parts?.[0]?.text;
+
+      if (!text) {
+        throw new GoogleAIError('Google AI API 응답에 텍스트가 없습니다.', undefined, data);
+      }
+
+      return text;
+    } catch (error) {
+      if (error instanceof GoogleAIError) {
+        throw error;
+      }
+
+      throw new GoogleAIError(
+        error instanceof Error ? error.message : 'Google AI API 호출 실패',
+        undefined,
+        error
+      );
+    }
+  }
+
+  /**
+   * 토큰 수 추정 (간단한 버전)
+   */
+  private estimateTokens(text: string): number {
+    // 간단한 추정: 1 토큰 ≈ 4 글자
+    return Math.ceil(text.length / 4);
+  }
+
+  /**
+   * 컨텍스트 정리 (민감한 정보 제거)
+   */
+  private sanitizeContexts(contexts: ProviderContexts): ProviderContexts {
+    // 현재는 그대로 반환, 향후 필요 시 민감한 정보 제거 로직 추가
+    return contexts;
+  }
+
+  /**
+   * 캐시 키 생성
+   */
+  private getCacheKey(request: UnifiedQueryRequest): string {
+    const normalized = request.query.trim().toLowerCase();
+    return `unified:${request.scenario}:${normalized}`;
+  }
+
+  /**
+   * 캐시 조회
+   */
+  private getFromCache(request: UnifiedQueryRequest): CacheEntry | null {
+    const key = this.getCacheKey(request);
+    const cached = this.cache.get(key);
+
+    if (!cached) return null;
+
+    const now = Date.now();
+    if (now - cached.timestamp > this.cacheTTL) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return cached;
+  }
+
+  /**
+   * 캐시 저장
+   */
+  private setCache(request: UnifiedQueryRequest, response: UnifiedQueryResponse): void {
+    const key = this.getCacheKey(request);
+    this.cache.set(key, { response, timestamp: Date.now() });
+
+    // 캐시 크기 제한
+    if (this.cache.size > this.config.cache.maxSize) {
+      const firstKey = this.cache.keys().next().value;
+      if (firstKey) this.cache.delete(firstKey);
+    }
+  }
+
+  /**
+   * 헬스 체크
+   */
+  async healthCheck(): Promise<EngineHealthStatus> {
+    const providers: Array<{
+      name: string;
+      type: 'rag' | 'ml' | 'rule';
+      healthy: boolean;
+      responseTime?: number;
+      error?: string;
+    }> = [];
+
+    // Provider 상태 확인 (간단한 테스트 쿼리)
+    for (const [key, provider] of this.providers.entries()) {
+      const startTime = Date.now();
+      try {
+        await provider.getContext('health check', { timeoutMs: 5000 });
+        providers.push({
+          name: provider.name,
+          type: provider.type,
+          healthy: true,
+          responseTime: Date.now() - startTime,
+        });
+      } catch (error) {
+        providers.push({
+          name: provider.name,
+          type: provider.type,
+          healthy: false,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    // Google AI 상태 확인
+    let googleAIStatus: { available: boolean; latency?: number; error?: string };
+    const aiStartTime = Date.now();
+    try {
+      await this.callGoogleAI({
+      systemInstruction: 'Health check',
+      userMessage: 'ping',
+      estimatedTokens: 10,
+    });
+      googleAIStatus = {
+        available: true,
+        latency: Date.now() - aiStartTime,
+      };
+    } catch (error) {
+      googleAIStatus = {
+        available: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+
+    // 캐시 통계
+    const hitRate =
+      this.stats.totalRequests > 0 ? this.stats.cacheHits / this.stats.totalRequests : 0;
+
+    return {
+      healthy: providers.every(p => p.healthy) && googleAIStatus.available,
+      message: providers.every(p => p.healthy) && googleAIStatus.available
+        ? 'All systems operational'
+        : 'Some systems are unavailable',
+      providers,
+      googleAIStatus,
+      cacheStatus: {
+        hitRate,
+        size: this.cache.size,
+        maxSize: this.config.cache.maxSize,
+      },
+      timestamp: new Date(),
+    };
+  }
+
+  /**
+   * 엔진 설정 업데이트
+   */
+  configure(config: Partial<EngineConfig>): void {
+    this.config = {
+      ...this.config,
+      ...config,
+      cache: { ...this.config.cache, ...config.cache },
+      providers: {
+        rag: { ...this.config.providers.rag, ...config.providers?.rag },
+        ml: { ...this.config.providers.ml, ...config.providers?.ml },
+        rule: { ...this.config.providers.rule, ...config.providers?.rule },
+      },
+    };
+  }
+
+  /**
+   * 통계 조회
+   */
+  getStats() {
+    return {
+      ...this.stats,
+      hitRate:
+        this.stats.totalRequests > 0 ? this.stats.cacheHits / this.stats.totalRequests : 0,
+    };
+  }
+}

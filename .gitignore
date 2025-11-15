@@ -1,9 +1,5 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-node_modules
-/node_modules
-mcp-server/node_modules
+# Dependencies
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -11,78 +7,62 @@ mcp-server/node_modules
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-# npm
-node_modules/
-npm-debug.log*
+*.log
 
-# testing
+# Testing
 /coverage
 /test-results/
 /playwright-report/
-# test results in any directory
 **/test-results/
 **/playwright-report/
 **/unit-test-results/
 
-# Playwright 관련 생성 파일들 (2025-09-22 추가)
+# Playwright
 .playwright-mcp/
 **/traces/
-# 테스트 스크린샷 (용량 큰 파일들)
-*-test.png
-*-test-*.png
+*-test*.png
 openmanager-*.png
 playwright-*.png
-# E2E 테스트 결과물
 test-output/
 screenshots/
 
-# 🧹 정리된 임시/테스트 파일들
+# Temporary files
 *.log
 test-*.txt
-test-*.png
 .temp-*
 verification.log
 setup.log
 build-before.log
 dev.log
-
-# 테스트 결과
 test-results.json
 playwright-test.png
-
-# 오래된 백업
 bundle-before.txt
 project-structure.txt
 
-# 스크린샷 파일들
-openmanager-*.png
-
-# next.js
+# Next.js
 /.next/
 /out/
-
-# production
 /build
 
 
-# misc
+# System files
 .DS_Store
 *.pem
 
-# backup directories
+# Backup directories
 .backups/
 backups/
 
-# gemini dev tools cache
-.cache/gemini/
+# Environment files
+.env
+.env.*
+!.env.example
 
-# debug
+# Cache and debug
+.cache/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-npm-debug.log*
-# log files
-*.log
 
 # 🔐 보안 및 민감한 정보 방지
 # 원본 환경 변수 파일 (제외)
@@ -343,7 +323,7 @@ scripts/fix-case-declarations.cjs
 !README.md
 !CLAUDE.md
 !CHANGELOG.md
-!CHANGELOG-LEGACY.md
+!CHANGELOG-LEGACY*.md
 !GEMINI.md
 !QWEN.md
 !AGENTS.md

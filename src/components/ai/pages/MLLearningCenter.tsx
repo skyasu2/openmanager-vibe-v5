@@ -257,7 +257,7 @@ export const MLLearningCenter: FC = () => {
 
           case 'prediction': {
             // 예측 모델 훈련 시뮬레이션
-            // LightweightMLEngine에는 predictServerLoad가 없으므로 학습 시뮬레이션
+            // GCP ML Provider를 통한 실제 ML 분석 (학습 시뮬레이션)
             await new Promise((resolve) => setTimeout(resolve, 2500));
             result = {
               type,

@@ -37,7 +37,7 @@ interface RAGSearchOptions {
   useLocalEmbeddings?: boolean; // 로컬 임베딩 강제 사용
 }
 
-interface RAGEngineSearchResult {
+export interface RAGEngineSearchResult {
   success: boolean;
   results: Array<{
     id: string;
@@ -51,6 +51,10 @@ interface RAGEngineSearchResult {
   cached: boolean;
   error?: string;
   mcpContext?: MCPContext;
+  metadata?: {
+    processingTime?: number;
+  };
+  queryEmbedding?: number[];
 }
 
 interface _EmbeddingResult {

@@ -5,7 +5,7 @@
  * - PredictiveAnalysisEngine
  * - AutoIncidentReportSystem
  * - AnomalyDetectionService
- * - LightweightMLEngine
+ * - MLProvider (GCP Functions 기반)
  */
 
 // 기존 타입들 재사용

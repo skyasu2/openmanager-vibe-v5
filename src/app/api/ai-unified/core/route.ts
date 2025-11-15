@@ -1,12 +1,12 @@
 /**
- * 🤖 AI Core Engine 통합 API
- * 
- * 기존 4개 AI 엔진을 하나로 통합
- * - /ai/query (메인 AI 쿼리)
- * - /ai/edge-v2 (Google AI 전용)  
- * - /ai/google-ai/generate (Gemini 생성)
- * - /ai/ultra-fast (고성능 AI)
- * 
+ * 🤖 AI Core Engine 통합 API (라우터)
+ *
+ * 4개 AI 엔진 통합 라우터
+ * - /ai/query (메인 AI 쿼리) - GoogleAiUnifiedEngine (Provider 패턴: RAG + ML + Google AI)
+ * - /ai/edge-v2 (Google AI 전용) - 순수 Google AI 직접 호출 (레거시, 프론트엔드에서 미사용)
+ * - /ai/google-ai/generate (Gemini 생성) - 컨텍스트 인텔리전스 Google AI
+ * - /ai/ultra-fast (고성능 AI) - 152ms 목표
+ *
  * POST /api/ai-unified/core
  */
 

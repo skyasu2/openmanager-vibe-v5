@@ -278,8 +278,9 @@ export const AI_ENGINE_REFACTORING_PLAN = {
     tasks: [
       {
         name: 'ML 엔진 통합',
+        status: '✅ 완료 (GCP ML Provider로 대체)',
         merge: ['TransformersEngine', 'LightweightMLEngine'],
-        into: 'MLEngine',
+        into: 'MLProvider (GCP Functions)',
         expectedSaving: '400줄',
       },
       {

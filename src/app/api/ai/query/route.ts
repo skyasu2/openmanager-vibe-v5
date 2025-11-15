@@ -1,9 +1,10 @@
 /**
- * 🤖 AI 쿼리 API (MCP 제거 버전)
+ * 🤖 AI 쿼리 API (Unified Engine)
  *
  * 목표: 응답 시간 500ms 이하, 무료 티어 최적화
- * - Supabase RAG + Google AI + GCP Functions 직접 연동
- * - MCP 의존성 완전 제거
+ * - GoogleAiUnifiedEngine (Provider 패턴) via SimplifiedQueryEngineAdapter
+ * - RAGProvider + MLProvider + KoreanNLPProvider 통합
+ * - 시나리오 기반 라우팅 (7개 시나리오 지원)
  * - 무료 티어 친화적 설계
  * POST /api/ai/query
  */
@@ -17,10 +18,10 @@ import type {
 
 // 동적 import로 빌드 시점 초기화 방지
 async function getQueryEngine() {
-  const { getSimplifiedQueryEngine } = await import(
-    '@/services/ai/SimplifiedQueryEngine'
+  const { getSimplifiedQueryEngineAdapter } = await import(
+    '@/lib/ai/adapters/SimplifiedQueryEngineAdapter'
   );
-  return getSimplifiedQueryEngine();
+  return getSimplifiedQueryEngineAdapter();
 }
 import { getCachedData, setCachedData } from '@/lib/cache-helper';
 import { supabase } from '@/lib/supabase/supabase-client';

@@ -18,7 +18,7 @@
 ### 🏗️ 기술 스택
 - **Frontend**: Next.js 15 + React 18 + TypeScript (strict)
 - **Backend**: Vercel Edge Functions + Supabase PostgreSQL
-- **AI Engine**: 2-모드 시스템 (LOCAL/GOOGLE_AI)
+- **AI Engine**: Google AI Unified Engine (RAG/ML/NLP 통합)
 - **데이터**: StaticDataLoader v5.71.0 (99.6% CPU 절약)
 
 ### 📊 구현 현황
@@ -59,9 +59,11 @@ npm run dev:stable  # 안정화된 서버 (권장)
 - **실시간 메트릭**: CPU, Memory, Disk, Network 사용률
 - **장애 시나리오**: 15+ 현실적 장애 상황 시뮬레이션
 
-### 🤖 AI 어시스턴트 (2-모드 시스템)
-- **LOCAL 모드**: Supabase RAG + GCP Functions (무료)
-- **GOOGLE_AI 모드**: Gemini 2.5 고급 분석 (API 키 필요)
+### 🤖 AI 어시스턴트 (Google AI Unified Engine)
+- **RAG 검색**: Supabase pgvector 기반 문서 검색 (3분 TTL 캐싱)
+- **ML 예측**: 성능 예측 및 이상 탐지 (실시간 분석)
+- **한국어 NLP**: 자연어 쿼리 처리 (통합 프롬프트 생성)
+- **Gemini 2.5 Flash**: 실시간 AI 응답 (1초 이내)
 
 ### 🔐 PIN 인증 시스템
 - **다층 권한 관리**: 관리자/운영자/게스트 차등 접근
@@ -75,7 +77,7 @@ npm run dev:stable  # 안정화된 서버 (권장)
                            ↓
         Supabase PostgreSQL ← StaticDataLoader v5.71.0
                            ↓
-        AI 엔진 (LOCAL/GOOGLE_AI) → 실시간 응답
+        Google AI Unified Engine → 실시간 응답 (RAG/ML/NLP 통합)
 ```
 
 ### 핵심 구조
