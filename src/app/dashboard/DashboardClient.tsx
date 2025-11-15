@@ -18,7 +18,7 @@ import { isGuestFullAccessEnabled } from '@/config/guestMode';
 import { useToast } from '@/hooks/use-toast';
 import { useSystemAutoShutdown } from '@/hooks/useSystemAutoShutdown';
 import { useSystemStatus } from '@/hooks/useSystemStatus';
-import { useAdminMode } from '@/stores/auth-store'; // Phase 2: Zustand 인증 상태
+// Admin mode removed - Phase 2: Admin removal complete
 import { useAISidebarStore } from '@/stores/useAISidebarStore'; // AI 사이드바 상태
 import { cn } from '@/lib/utils';
 import { systemInactivityService } from '@/services/system/SystemInactivityService';

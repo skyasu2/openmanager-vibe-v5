@@ -248,11 +248,12 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
 
     if (mode === 'local') {
       const embeddingResult =
-        embeddingPromise !== null && embeddingPromise !== undefined &&
-        (taskResults.find((r) => r.status === 'fulfilled')?.value as
-          | number[]
-          | null
-          | undefined);
+        embeddingPromise !== null && embeddingPromise !== undefined
+          ? (taskResults.find((r) => r.status === 'fulfilled')?.value as
+              | number[]
+              | null
+              | undefined)
+          : undefined;
       const embedding = embeddingResult === null ? undefined : embeddingResult;
       return await this.processLocalQueryOptimized(
         query,
