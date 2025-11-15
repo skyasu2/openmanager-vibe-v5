@@ -502,7 +502,6 @@ function DashboardPageContent() {
 
   // 🎯 AI 사이드바 상태 (중앙 관리)
   const { isOpen: isAgentOpen, setOpen: setIsAgentOpen } = useAISidebarStore();
-  const isPinAuth = useAdminMode(); // Phase 2: Zustand로 PIN 인증 상태 직접 확인 (5배 빠름)
   const [authLoading, setAuthLoading] = useState(() => {
     if (checkTestMode()) {
       console.log('🧪 Test mode detected - authLoading initialized to false');
@@ -543,13 +542,13 @@ function DashboardPageContent() {
     console.log('🎛️ [DashboardClient] Guest Mode Status:', {
       enabled: guestModeStatus,
       canAccessDashboard: permissions.canAccessDashboard,
-      isPinAuth: isPinAuth,
+      isPinAuth: permissions.isPinAuthenticated,
       shouldAllow:
-        permissions.canAccessDashboard || isPinAuth || guestModeStatus,
+        permissions.canAccessDashboard || permissions.isPinAuthenticated || guestModeStatus,
       timestamp: new Date().toISOString(),
       buildVersion: '7.0.0-cache-fix',
     });
-  }, [permissions.canAccessDashboard, isPinAuth]);
+  }, [permissions.canAccessDashboard, permissions.isPinAuthenticated]);
 
   // 🔥 강화된 권한 체크 (비동기 인증 상태 타이밍 문제 해결)
   useEffect(() => {
@@ -569,7 +568,7 @@ function DashboardPageContent() {
       // 🔐 프로덕션 모드: 권한 체크 (동기 실행 - 타이밍 이슈 제거)
       const canAccess =
         permissions.canAccessDashboard ||
-        isPinAuth ||
+        permissions.isPinAuthenticated ||
         testModeDetected ||
         isGuestFullAccessEnabled();
 
@@ -896,7 +895,7 @@ function DashboardPageContent() {
   if (
     isMounted && // ← SSR/Hydration 완료 후에만 권한 체크 실행
     !permissions.canAccessDashboard &&
-    !isPinAuth &&
+    !permissions.isPinAuthenticated &&
     !testModeDetected &&
     !isGuestFullAccessEnabled()
   ) {
@@ -949,7 +948,7 @@ function DashboardPageContent() {
     authLoading,
     permissionsUserType: permissions.userType,
     canAccessDashboard: permissions.canAccessDashboard,
-    isPinAuth,
+    isPinAuth: permissions.isPinAuthenticated,
     isGuestFullAccessEnabled: isGuestFullAccessEnabled(),
     renderCount: renderCountRef.current,
   });
