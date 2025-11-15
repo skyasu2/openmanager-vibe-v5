@@ -151,14 +151,15 @@ export class BasicContextManager {
     await this.collectBasicContext();
 
     // 주기적 업데이트 (5분마다)
-    this.updateInterval = setInterval(
-      async () => {
+    this.updateInterval = setInterval(() => {
+      void (async () => {
         try {
           await this.collectBasicContext();
         } catch (error) {
           console.error('❌ BasicContextManager 주기적 업데이트 실패:', error);
         }
-      },
+      })();
+    },
       5 * 60 * 1000
     ); // 5분
 

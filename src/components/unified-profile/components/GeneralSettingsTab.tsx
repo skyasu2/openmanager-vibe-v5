@@ -57,7 +57,7 @@ export function GeneralSettingsTab({ settingsData }: GeneralSettingsTabProps) {
 
           <div className="grid grid-cols-1 gap-3">
             <button
-              onClick={async () => {
+              onClick={() => { void (async () => {
                 try {
                   info('settings', '테마를 변경 중...');
                   await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -65,7 +65,7 @@ export function GeneralSettingsTab({ settingsData }: GeneralSettingsTabProps) {
                 } catch (err) {
                   error('settings', '테마 변경 실패');
                 }
-              }}
+              })(); }}
               className="rounded-lg border border-gray-500/30 bg-gray-500/20 px-4 py-3 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-500/30"
             >
               <div className="flex flex-col items-center gap-1">
@@ -76,7 +76,7 @@ export function GeneralSettingsTab({ settingsData }: GeneralSettingsTabProps) {
               </div>
             </button>
             <button
-              onClick={async () => {
+              onClick={() => { void (async () => {
                 try {
                   info('backup', '백업을 생성 중...');
                   await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -84,7 +84,7 @@ export function GeneralSettingsTab({ settingsData }: GeneralSettingsTabProps) {
                 } catch (err) {
                   error('backup', '백업 생성 실패');
                 }
-              }}
+              })(); }}
               className="rounded-lg border border-gray-500/30 bg-gray-500/20 px-4 py-3 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-500/30"
             >
               <div className="flex flex-col items-center gap-1">

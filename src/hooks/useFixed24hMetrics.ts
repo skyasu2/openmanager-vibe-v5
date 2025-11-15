@@ -107,7 +107,7 @@ export function useFixed24hMetrics(serverId: string, updateInterval: number = 60
     updateMetrics();
 
     // 1분마다 자동 업데이트
-    const intervalId = setInterval(updateMetrics, updateInterval);
+    const intervalId = setInterval(() => { void updateMetrics(); }, updateInterval);
 
     return () => {
       isMountedRef.current = false;
@@ -180,7 +180,7 @@ export function useMultipleFixed24hMetrics(
     updateAllMetrics();
 
     // 1분마다 자동 업데이트
-    const intervalId = setInterval(updateAllMetrics, updateInterval);
+    const intervalId = setInterval(() => { void updateAllMetrics(); }, updateInterval);
 
     return () => {
       isMountedRef.current = false;
@@ -252,7 +252,7 @@ export function useSingleMetric(
     updateMetric();
 
     // 1분마다 자동 업데이트
-    const intervalId = setInterval(updateMetric, updateInterval);
+    const intervalId = setInterval(() => { void updateMetric(); }, updateInterval);
 
     return () => {
       isMountedRef.current = false;

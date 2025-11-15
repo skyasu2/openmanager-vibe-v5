@@ -228,7 +228,7 @@ export const SixWPrincipleDisplay: FC<SixWPrincipleDisplayProps> = ({
 
                     {showCopyButtons && (
                       <button
-                        onClick={() => handleCopy(content, key)}
+                        onClick={() => { void handleCopy(content, key); }}
                         className="rounded-md p-1.5 transition-colors hover:bg-white hover:bg-opacity-50"
                       >
                         {isCopied ? (

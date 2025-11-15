@@ -130,10 +130,8 @@ export const RealTimeThinkingViewer: FC<RealTimeThinkingViewerProps> = ({
   const logContainerRef = useRef<HTMLDivElement>(null);
 
   // 🔒 관리자 권한 체크
-  const { adminMode } = useUnifiedAdminStore();
   const permissions = useUserPermissions();
   const adminAccessGranted =
-    adminMode?.isAuthenticated ||
     permissions.isGitHubAuthenticated ||
     isGuestFullAccessEnabled();
 

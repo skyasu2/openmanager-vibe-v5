@@ -259,7 +259,7 @@ export class WebSocketManager {
    */
   private startDataGeneration(): void {
     // 실시간 서버 데이터 브로드캐스트 (20초마다)
-    interval(20000).subscribe(async () => {
+    interval(20000).subscribe(() => { void (async () => {
       const gcpServerData = await this.dataGenerator
         .getRealServerMetrics()
         .then((response: DataGeneratorResponse) => response.data);
@@ -313,10 +313,10 @@ export class WebSocketManager {
 
         this.dataSubject.next(streamData);
       });
-    });
+    })(); });
 
     // 30초마다 장애 감지 및 보고서 생성
-    interval(30000).subscribe(async () => {
+    interval(30000).subscribe(() => { void (async () => {
       if (!this.isActive || this.clients.size === 0) return;
 
       try {
@@ -416,7 +416,7 @@ export class WebSocketManager {
       } catch (error) {
         console.error('❌ 장애 감지 중 오류:', error);
       }
-    });
+    })(); });
   }
 
   /**

@@ -282,7 +282,7 @@ export class SupabaseRealtimeAdapter {
    * 모든 채널 정리
    */
   cleanup(): void {
-    this.channels.forEach((channel) => channel.unsubscribe());
+    this.channels.forEach((channel) => { void channel.unsubscribe(); });
     this.channels.clear();
   }
 

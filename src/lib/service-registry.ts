@@ -43,7 +43,7 @@ export class ServiceRegistry {
       return;
     }
 
-    if (this._initializationPromise) {
+    if (this._initializationPromise !== null && this._initializationPromise !== undefined) {
       return this._initializationPromise;
     }
 

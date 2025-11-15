@@ -383,7 +383,7 @@ export function ButtonWithFeedback({
   return (
     <div className="space-y-2">
       <button
-        onClick={handleClick}
+        onClick={() => { void handleClick(); }}
         disabled={disabled || status === 'loading'}
         className={`${className} ${
           status === 'loading' ? 'cursor-not-allowed opacity-75' : ''

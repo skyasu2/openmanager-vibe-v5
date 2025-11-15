@@ -216,9 +216,10 @@ export function useSequentialServerGeneration(
     }
 
     // 1초마다 다음 서버 생성
-    intervalRef.current = setInterval(async () => {
-      try {
-        const result = await generateNextServer();
+    intervalRef.current = setInterval(() => {
+      void (async () => {
+        try {
+          const result = await generateNextServer();
 
         if (result.success && result.server) {
           const newServer = result.server;
@@ -283,6 +284,7 @@ export function useSequentialServerGeneration(
 
         onError?.(errorMessage);
       }
+      })();
     }, intervalMs);
   }, [
     status.isGenerating,

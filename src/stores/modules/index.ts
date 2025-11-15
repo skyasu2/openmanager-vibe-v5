@@ -16,17 +16,12 @@ export { useUnifiedAdminStore } from '../useUnifiedAdminStore';
 export const useSystemAuth = () => {
   const { isSystemStarted, startSystem, stopSystem, getSystemRemainingTime } =
     useUnifiedAdminStore();
-  const { adminMode, authenticateAdmin, logoutAdmin } = useUnifiedAdminStore();
-  const canControlSystem =
-    adminMode.isAuthenticated || isGuestFullAccessEnabled();
+  const canControlSystem = isGuestFullAccessEnabled();
 
   return {
     // 시스템 상태
     isSystemStarted,
     systemRemainingTime: getSystemRemainingTime(),
-
-    // 관리자 인증 상태
-    isAdminAuthenticated: adminMode.isAuthenticated,
 
     // 통합 액션
     startSystem: () => {
@@ -38,12 +33,10 @@ export const useSystemAuth = () => {
     },
 
     stopSystem,
-    authenticateAdmin,
     logout: () => {
       if (isSystemStarted) {
         stopSystem();
       }
-      logoutAdmin();
     },
   };
 };

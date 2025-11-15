@@ -64,7 +64,7 @@ export function GeneratorSettingsTab({
           {/* 빠른 액션 버튼들 */}
           <div className="grid grid-cols-1 gap-3">
             <button
-              onClick={() => onServerCountChange(8)}
+              onClick={() => { void onServerCountChange(8); }}
               className="rounded-lg border border-green-500/30 bg-green-500/20 px-3 py-3 text-sm font-medium text-green-300 transition-colors hover:bg-green-500/30"
             >
               <div className="flex flex-col items-center gap-1">
@@ -75,7 +75,7 @@ export function GeneratorSettingsTab({
               </div>
             </button>
             <button
-              onClick={() => onServerCountChange(20)}
+              onClick={() => { void onServerCountChange(20); }}
               className="rounded-lg border border-blue-500/30 bg-blue-500/20 px-3 py-3 text-sm font-medium text-blue-300 transition-colors hover:bg-blue-500/30"
             >
               <div className="flex flex-col items-center gap-1">
@@ -86,7 +86,7 @@ export function GeneratorSettingsTab({
               </div>
             </button>
             <button
-              onClick={() => onServerCountChange(30)}
+              onClick={() => { void onServerCountChange(30); }}
               className="rounded-lg border border-purple-500/30 bg-purple-500/20 px-3 py-3 text-sm font-medium text-purple-300 transition-colors hover:bg-purple-500/30"
             >
               <div className="flex flex-col items-center gap-1">
@@ -97,7 +97,7 @@ export function GeneratorSettingsTab({
               </div>
             </button>
             <button
-              onClick={onGeneratorCheck}
+              onClick={() => { void onGeneratorCheck(); }}
               className="rounded-lg border border-purple-500/30 bg-purple-500/20 px-3 py-3 text-sm font-medium text-purple-300 transition-colors hover:bg-purple-500/30"
             >
               <div className="flex flex-col items-center gap-1">

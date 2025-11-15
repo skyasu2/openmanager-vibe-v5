@@ -107,7 +107,7 @@ export default function AIPerformanceMonitor({
   useEffect(() => {
     if (!autoRefresh) return;
 
-    const interval = setInterval(fetchMonitoringData, refreshInterval * 1000);
+    const interval = setInterval(() => { void fetchMonitoringData(); }, refreshInterval * 1000);
     return () => clearInterval(interval);
   }, [fetchMonitoringData, refreshInterval, autoRefresh]);
 
@@ -141,8 +141,8 @@ export default function AIPerformanceMonitor({
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <span className="text-sm text-red-800">모니터링 오류: {error}</span>
         </div>
-        <button 
-          onClick={fetchMonitoringData}
+        <button
+          onClick={() => { void fetchMonitoringData(); }}
           className="mt-2 text-xs text-red-700 hover:text-red-900 underline"
         >
           다시 시도
@@ -172,8 +172,8 @@ export default function AIPerformanceMonitor({
           >
             {autoRefresh ? '자동' : '수동'}
           </button>
-          <button 
-            onClick={fetchMonitoringData}
+          <button
+            onClick={() => { void fetchMonitoringData(); }}
             className="text-xs text-gray-600 hover:text-gray-800"
           >
             <RefreshCw className="h-3 w-3" />

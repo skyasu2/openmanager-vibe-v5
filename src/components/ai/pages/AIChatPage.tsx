@@ -246,12 +246,12 @@ export default function AIChatPage() {
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            onKeyPress={(e) => { if (e.key === 'Enter') void handleSendMessage(); }}
             placeholder="시스템에 대해 질문해보세요..."
             className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
-            onClick={handleSendMessage}
+            onClick={() => { void handleSendMessage(); }}
             disabled={!inputValue.trim() || isThinking}
             className="rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
           >

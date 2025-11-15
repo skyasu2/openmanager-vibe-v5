@@ -122,7 +122,7 @@ export const CompactModeSelector: FC<CompactModeSelectorProps> = ({
 
     setIsChanging(true);
     try {
-      onModeChange(mode);
+      void onModeChange(mode);
       setIsOpen(false);
       buttonRef.current?.focus();
     } catch (error) {

@@ -121,7 +121,7 @@ export function PortMonitor({
     let interval: NodeJS.Timeout;
 
     if (autoRefreshEnabled) {
-      interval = setInterval(fetchPortStates, updateInterval);
+      interval = setInterval(() => { void fetchPortStates(); }, updateInterval);
     }
 
     return () => {
@@ -169,7 +169,7 @@ export function PortMonitor({
   const stats = getPortStats();
 
   if (compact) {
-    return <CompactPortMonitor portStates={portStates} onRefresh={fetchPortStates} isRefreshing={isRefreshing} />;
+    return <CompactPortMonitor portStates={portStates} onRefresh={() => { void fetchPortStates(); }} isRefreshing={isRefreshing} />;
   }
 
   return (
@@ -203,7 +203,7 @@ export function PortMonitor({
           <Button
             variant="outline"
             size="sm"
-            onClick={fetchPortStates}
+            onClick={() => { void fetchPortStates(); }}
             disabled={isRefreshing}
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />

@@ -107,10 +107,14 @@ export const GoogleAIStatusCard: FC<GoogleAIStatusCardProps> = ({
             onChange={(e) => setApiKey(e.target.value)}
             placeholder="Google AI API 키 입력"
             className="w-32 rounded border px-2 py-1 text-xs"
-            onKeyPress={(e) => e.key === 'Enter' && handleSaveApiKey()}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                void handleSaveApiKey();
+              }
+            }}
           />
           <button
-            onClick={handleSaveApiKey}
+            onClick={() => { void handleSaveApiKey(); }}
             disabled={isSaving || !apiKey.trim()}
             className="rounded bg-blue-500 px-2 py-1 text-xs text-white hover:bg-blue-600 disabled:opacity-50"
           >
@@ -184,7 +188,7 @@ export const GoogleAIStatusCard: FC<GoogleAIStatusCardProps> = ({
             </div>
 
             <button
-              onClick={handleRefresh}
+              onClick={() => { void handleRefresh(); }}
               disabled={isRefetching || isRefreshing}
               className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
               title="새로고침"
@@ -300,7 +304,7 @@ export const GoogleAIStatusCard: FC<GoogleAIStatusCardProps> = ({
         </div>
 
         <button
-          onClick={handleRefresh}
+          onClick={() => { void handleRefresh(); }}
           disabled={isLoading || isRefreshing}
           className="rounded-lg p-2 transition-colors hover:bg-gray-100 disabled:opacity-50"
           title="상태 새로고침"

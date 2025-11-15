@@ -190,10 +190,10 @@ export default function SystemBootClient() {
     };
 
     // 시스템 상태를 1초마다 체크 (API 호출 최적화)
-    statusCheckInterval = setInterval(checkSystemStatus, 1000);
+    statusCheckInterval = setInterval(() => { void checkSystemStatus(), 1000; });
 
     // 초기 즉시 체크
-    checkSystemStatus();
+    void checkSystemStatus();
 
     // 로딩 애니메이션 실행
     stages.forEach(({ name, delay, icon }, index) => {
@@ -224,13 +224,18 @@ export default function SystemBootClient() {
               setTimeout(() => handleBootComplete(), 500);
             } else {
               // 최대 5초 추가 대기 후 강제 이동 (시스템 시작에 더 많은 시간 제공)
-              setTimeout(async () => {
-                // 마지막으로 한 번 더 체크
-                const finalCheck = await checkSystemStatus();
-                if (!finalCheck) {
-                  debug.log('⏰ 최대 대기 시간 초과 - 대시보드로 이동');
-                }
-                handleBootComplete();
+              setTimeout(() => {
+                void checkSystemStatus()
+                  .then((finalCheck) => {
+                    if (!finalCheck) {
+                      debug.log('⏰ 최대 대기 시간 초과 - 대시보드로 이동');
+                    }
+                    handleBootComplete();
+                  })
+                  .catch(() => {
+                    handleBootComplete();
+                  });
+                return; // Explicit void return for setTimeout callback
               }, 5000);
             }
           }

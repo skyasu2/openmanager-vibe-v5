@@ -653,10 +653,12 @@ export class ProcessManager
       clearInterval(this.healthCheckInterval);
     }
 
-    this.healthCheckInterval = setInterval(async () => {
-      for (const processId of Array.from(this.processes.keys())) {
-        await this.performHealthCheck(processId);
-      }
+    this.healthCheckInterval = setInterval(() => {
+      void (async () => {
+        for (const processId of Array.from(this.processes.keys())) {
+          await this.performHealthCheck(processId);
+        }
+      })();
     }, this.healthCheckIntervalMs);
   }
 
@@ -669,11 +671,13 @@ export class ProcessManager
 
   private setupStabilityMonitoring(): void {
     this.stabilityTimeout = setTimeout(() => {
-      const metrics = this.getSystemMetrics();
-      if (metrics.healthyProcesses === metrics.totalProcesses) {
-        systemLogger.system('🏆 시스템 30분 안정성 달성!');
-        this.emit('system:stable', { metrics, duration: 30 });
-      }
+      void (async () => {
+        const metrics = this.getSystemMetrics();
+        if (metrics.healthyProcesses === metrics.totalProcesses) {
+          systemLogger.system('🏆 시스템 30분 안정성 달성!');
+          this.emit('system:stable', { metrics, duration: 30 });
+        }
+      })();
     }, this.stabilityTimeoutMs);
   }
 
@@ -700,8 +704,8 @@ export class ProcessManager
       process.exit(0);
     };
 
-    process.on('SIGTERM', () => shutdownHandler('SIGTERM'));
-    process.on('SIGINT', () => shutdownHandler('SIGINT'));
+    process.on('SIGTERM', () => { void shutdownHandler('SIGTERM'); });
+    process.on('SIGINT', () => { void shutdownHandler('SIGINT'); });
   }
 
   private delay(ms: number): Promise<void> {

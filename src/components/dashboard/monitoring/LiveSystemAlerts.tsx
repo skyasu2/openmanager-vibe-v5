@@ -1,7 +1,16 @@
 'use client';
 
 import CollapsibleCard from '@/components/shared/CollapsibleCard';
-import type { SystemAlert } from '@/components/admin/UnifiedAdminDashboard/UnifiedAdminDashboard.types';
+// SystemAlert type definition (moved from admin)
+interface SystemAlert {
+  id: string;
+  type: 'error' | 'warning' | 'info' | 'success';
+  title: string;
+  message: string;
+  timestamp: string;
+  source: string;
+  isClosable: boolean;
+}
 import { useDashboardToggleStore } from '@/stores/useDashboardToggleStore';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
@@ -162,10 +171,10 @@ export default function LiveSystemAlerts() {
     };
 
     // 초기 로드
-    pollAlerts();
+    void pollAlerts();
 
     // 15초마다 폴링
-    const pollInterval = setInterval(pollAlerts, 15000);
+    const pollInterval = setInterval(() => { void pollAlerts(); }, 15000);
 
     return () => {
       clearInterval(pollInterval);

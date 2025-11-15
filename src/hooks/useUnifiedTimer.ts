@@ -98,7 +98,8 @@ export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
     });
     
     // 🔄 우선순위별 순차 실행으로 안정성 향상
-    activeTasks.forEach(async (task) => {
+    activeTasks.forEach((task) => {
+      void (async () => {
       try {
         await task.callback();
         task.lastRun = now;
@@ -115,6 +116,7 @@ export function useUnifiedTimer(baseInterval = 1000): UseUnifiedTimerReturn {
           task.enabled = false; // 최대 재시도 후 자동 비활성화
         }
       }
+      })(); // Close async IIFE
     });
   }, [isPaused]);
 

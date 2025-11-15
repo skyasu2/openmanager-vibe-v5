@@ -77,7 +77,7 @@ export function useDataLoader<T>({
 
   useEffect(() => {
     if (refreshInterval && refreshInterval > 0) {
-      intervalRef.current = setInterval(reload, refreshInterval);
+      intervalRef.current = setInterval(() => { void reload(); }, refreshInterval);
 
       return () => {
         if (intervalRef.current) {

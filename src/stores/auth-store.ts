@@ -11,16 +11,12 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { isGuestFullAccessEnabled } from '@/config/guestMode';
-
-const AUTO_ADMIN_ENABLED = isGuestFullAccessEnabled();
 
 /**
  * 인증 상태 인터페이스
  */
 export interface AuthState {
   // 인증 상태
-  adminMode: boolean;
   authType: 'guest' | 'github' | null;
   sessionId: string | null;
 
@@ -34,13 +30,11 @@ export interface AuthState {
 
   // 액션
   setAuth: (params: {
-    adminMode: boolean;
     authType: 'guest' | 'github' | null;
     sessionId?: string;
     user?: AuthState['user'];
   }) => void;
 
-  setPinAuth: () => void;
   setGitHubAuth: (user: AuthState['user']) => void;
   clearAuth: () => void;
 }
@@ -57,7 +51,6 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       // 초기 상태
-      adminMode: AUTO_ADMIN_ENABLED,
       authType: null,
       sessionId: null,
       user: null,
@@ -67,7 +60,6 @@ export const useAuthStore = create<AuthState>()(
         console.log('🔐 [AuthStore] setAuth 호출:', params);
 
         set({
-          adminMode: AUTO_ADMIN_ENABLED ? true : params.adminMode,
           authType: params.authType,
           sessionId: params.sessionId || get().sessionId,
           user: params.user || get().user,
@@ -77,38 +69,7 @@ export const useAuthStore = create<AuthState>()(
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('auth-state-changed', {
             detail: {
-              adminMode: params.adminMode,
               authType: params.authType,
-            }
-          }));
-        }
-      },
-
-      // 액션: PIN 인증
-      setPinAuth: () => {
-        console.log('🔐 [AuthStore] setPinAuth 호출');
-
-        const existingAuthType = get().authType || 'guest';
-        const existingSessionId = get().sessionId || `guest_${Date.now()}_${Math.random().toString(36).substr(2, 12)}`;
-        const existingUser = get().user || {
-          id: existingSessionId,
-          name: '게스트 사용자',
-          email: `${existingSessionId}@example.com`,
-        };
-
-        set({
-          adminMode: true,
-          authType: existingAuthType,
-          sessionId: existingSessionId,
-          user: existingUser,
-        });
-
-        // CustomEvent 발생 (레거시 호환)
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('auth-state-changed', {
-            detail: {
-              adminMode: true,
-              authType: existingAuthType,
             }
           }));
         }
@@ -119,7 +80,6 @@ export const useAuthStore = create<AuthState>()(
         console.log('🔐 [AuthStore] setGitHubAuth 호출:', user);
 
         set({
-          adminMode: AUTO_ADMIN_ENABLED ? true : false,
           authType: 'github',
           sessionId: user?.id || null,
           user,
@@ -129,7 +89,6 @@ export const useAuthStore = create<AuthState>()(
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('auth-state-changed', {
             detail: {
-              adminMode: false,
               authType: 'github',
             }
           }));
@@ -141,7 +100,6 @@ export const useAuthStore = create<AuthState>()(
         console.log('🔐 [AuthStore] clearAuth 호출');
 
         set({
-          adminMode: AUTO_ADMIN_ENABLED ? true : false,
           authType: null,
           sessionId: null,
           user: null,
@@ -151,7 +109,6 @@ export const useAuthStore = create<AuthState>()(
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('auth-state-changed', {
             detail: {
-              adminMode: false,
               authType: null,
             }
           }));
@@ -162,13 +119,6 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-storage', // localStorage 키
       storage: createJSONStorage(() => localStorage),
       version: 2,
-      migrate: (state: any) => {
-        if (!state) return state;
-        if (AUTO_ADMIN_ENABLED) {
-          return { ...state, adminMode: true };
-        }
-        return state;
-      },
 
       // 선택적 직렬화 (레거시 localStorage 키 호환)
       onRehydrateStorage: () => (state) => {
@@ -176,10 +126,9 @@ export const useAuthStore = create<AuthState>()(
           console.log('🔐 [AuthStore] Rehydrate 완료:', state);
 
           // 레거시 localStorage 키 동기화 (읽기 전용)
-          const legacyAdminMode = localStorage.getItem('admin_mode') === 'true';
           const legacyAuthType = localStorage.getItem('auth_type') as 'guest' | 'github' | null;
 
-          if (legacyAdminMode !== state.adminMode || legacyAuthType !== state.authType) {
+          if (legacyAuthType !== state.authType) {
             console.warn('🔐 [AuthStore] 레거시 localStorage와 불일치 감지, Zustand 우선');
           }
         }
@@ -195,6 +144,5 @@ export const useAuthStore = create<AuthState>()(
  * const adminMode = useAdminMode(); // adminMode만 구독
  * const authType = useAuthType(); // authType만 구독
  */
-export const useAdminMode = () => useAuthStore((s) => s.adminMode);
 export const useAuthType = () => useAuthStore((s) => s.authType);
 export const useAuthUser = () => useAuthStore((s) => s.user);

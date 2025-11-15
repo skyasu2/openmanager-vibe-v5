@@ -27,6 +27,9 @@ interface GuestSessionData {
   user: AuthUser;
 }
 
+// 🎯 TypeScript strict: Supabase Auth error 타입 정의
+type AuthError = { message?: string; code?: string };
+
 // 🎯 상수 정의
 const LOADING_MESSAGE_INTERVAL_MS = 1500; // 로딩 메시지 변경 간격
 const SUCCESS_MESSAGE_TIMEOUT_MS = 3000; // 성공 메시지 자동 숨김 시간
@@ -59,7 +62,7 @@ const LoadingOverlay = ({
 };
 
 export default function LoginClient() {
-  const router = useRouter();
+  const _router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [loadingType, setLoadingType] = useState<'github' | 'guest' | null>(
     null
@@ -224,8 +227,7 @@ export default function LoginClient() {
 
         // 더 구체적인 에러 메시지
         let errorMsg = 'GitHub 로그인에 실패했습니다.';
-        // 🎯 TypeScript strict: error 타입 명시
-        type AuthError = { message?: string; code?: string };
+        // 🎯 TypeScript strict: error 타입 명시 (타입 정의는 파일 상단 참조)
         const authError = error as AuthError;
         const errorMessage = authError?.message || '';
         const errorCode = authError?.code || '';
@@ -377,7 +379,7 @@ export default function LoginClient() {
           <div className="space-y-4">
             {/* GitHub OAuth 로그인 - 업계 표준 스타일 */}
             <button
-              onClick={handleGitHubLogin}
+              onClick={() => { void handleGitHubLogin(); }}
               disabled={isLoading}
               className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-lg border border-gray-600 bg-[#24292e] px-4 py-3 text-white shadow-lg transition-all duration-200 hover:bg-[#1a1e22] hover:shadow-xl disabled:cursor-progress disabled:opacity-70"
             >
@@ -422,7 +424,7 @@ export default function LoginClient() {
 
             {/* 게스트 로그인 - 개선된 스타일 */}
             <button
-              onClick={handleGuestLogin}
+              onClick={() => { void handleGuestLogin(); }}
               disabled={isLoading}
               className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 text-white shadow-lg transition-all duration-200 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl disabled:cursor-progress disabled:opacity-70"
             >

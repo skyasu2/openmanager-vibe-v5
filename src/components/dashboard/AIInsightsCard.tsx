@@ -100,7 +100,7 @@ export default function AIInsightsCard({
         </div>
 
         <button
-          onClick={handleRefresh}
+          onClick={() => { void handleRefresh(); }}
           disabled={isLoading || isRefreshing}
           className="rounded-lg p-2 transition-colors hover:bg-gray-100 disabled:opacity-50"
           title="인사이트 새로고침"

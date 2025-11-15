@@ -132,12 +132,12 @@ export function ServicesMonitor({
   };
 
   useEffect(() => {
-    fetchServicesStatus();
+    void fetchServicesStatus();
   }, []);
 
   useEffect(() => {
     if (autoRefresh) {
-      const interval = setInterval(fetchServicesStatus, 10000);
+      const interval = setInterval(() => { void fetchServicesStatus(); }, 10000);
       return () => clearInterval(interval);
     }
     return undefined;

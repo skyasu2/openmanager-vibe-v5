@@ -625,7 +625,7 @@ function Home() {
                     {/* GitHub 인증 사용자 - 시스템 시작 버튼 표시 */}
                     {/* 현재 사용자: {currentUser?.name || currentUser?.email || 'Unknown'} */}
                     <button
-                      onClick={() => void handleSystemToggle()}
+                      onClick={() => { void handleSystemToggle(); }}
                       disabled={buttonConfig.disabled}
                       className={`flex h-16 w-full max-w-xs items-center justify-center gap-3 rounded-xl border font-semibold shadow-xl transition-all duration-300 sm:w-64 ${buttonConfig.className}`}
                     >

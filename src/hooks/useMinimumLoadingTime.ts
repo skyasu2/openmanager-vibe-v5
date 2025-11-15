@@ -221,7 +221,7 @@ export const useNaturalLoadingTime = ({
 
     // 실제 데이터 로딩 Promise 처리
     const handleActualLoading = async () => {
-      if (actualLoadingPromise) {
+      if (actualLoadingPromise !== null && actualLoadingPromise !== undefined) {
         try {
           console.log('📡 실제 데이터 로딩 시작');
           await actualLoadingPromise;

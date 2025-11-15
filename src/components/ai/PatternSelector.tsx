@@ -51,7 +51,7 @@ export default function PatternSelector({
         {patterns.map((pattern) => (
           <button
             key={pattern.id}
-            onClick={() => handlePatternChange(pattern.id)}
+            onClick={() => { void handlePatternChange(pattern.id); }}
             disabled={isChanging === pattern.id}
             className={`group relative rounded-xl border-2 p-4 text-left transition-all duration-300 ${
               pattern.active

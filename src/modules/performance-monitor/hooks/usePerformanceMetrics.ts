@@ -311,7 +311,7 @@ export const usePerformanceMetrics = (
       updatePerformanceData();
 
       // Set up polling interval as fallback
-      intervalRef.current = setInterval(updatePerformanceData, updateInterval);
+      intervalRef.current = setInterval(() => { void updatePerformanceData(); }, updateInterval);
 
       // Connect WebSocket for real-time updates
       connectWebSocket();

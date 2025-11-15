@@ -100,14 +100,16 @@ export async function POST(request: NextRequest) {
 
     // 지정된 시간 후 자동으로 해제하는 경우
     if (enabled && duration && duration > 0) {
-      setTimeout(async () => {
-        try {
-          await setReadOnlyMode(false, 'Auto-disable after duration');
+      setTimeout(() => {
+      void setReadOnlyMode(false, 'Auto-disable after duration')
+        .then(() => {
           debug.log('⏰ ReadOnly mode auto-disabled after', duration, 'ms');
-        } catch (error) {
+        })
+        .catch((error) => {
           debug.error('❌ Failed to auto-disable readonly mode:', error);
-        }
-      }, duration);
+        });
+      return; // Explicit void return for setTimeout callback
+    }, duration);
 
       result.autoDisableIn = duration;
     }

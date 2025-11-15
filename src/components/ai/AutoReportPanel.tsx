@@ -101,17 +101,17 @@ const AutoReportPanel: FC<AutoReportPanelProps> = ({
 
   // 컴포넌트 마운트 시 데이터 로드
   useEffect(() => {
-    loadReports();
+    void loadReports();
   }, [loadReports]);
 
   // 30초마다 자동 새로고침
   useEffect(() => {
-    const interval = setInterval(loadReports, 30000);
+    const interval = setInterval(() => { void loadReports(); }, 30000);
     return () => clearInterval(interval);
   }, [loadReports]);
 
   const reload = useCallback(() => {
-    loadReports();
+    void loadReports();
   }, [loadReports]);
 
   // 필터 상태 관리

@@ -410,15 +410,17 @@ export class ProcessManager extends EventEmitter {
 
     systemLogger.system('💓 헬스체크 시스템 시작 (로컬 환경)');
 
-    this.healthCheckInterval = setInterval(async () => {
-      const healthPromises = Array.from(this.processes.entries()).map(
-        ([processId, config]) => this.performHealthCheck(processId, config)
-      );
+    this.healthCheckInterval = setInterval(() => {
+      void (async () => {
+        const healthPromises = Array.from(this.processes.entries()).map(
+          ([processId, config]) => this.performHealthCheck(processId, config)
+        );
 
-      await Promise.allSettled(healthPromises);
+        await Promise.allSettled(healthPromises);
 
-      // 시스템 전체 헬스 상태 평가
-      this.evaluateSystemHealth();
+        // 시스템 전체 헬스 상태 평가
+        this.evaluateSystemHealth();
+      })();
     }, this.healthCheckIntervalMs);
   }
 
@@ -691,12 +693,14 @@ export class ProcessManager extends EventEmitter {
     const signals = ['SIGTERM', 'SIGINT', 'SIGUSR2'] as const;
 
     signals.forEach((signal) => {
-      process.on(signal, async () => {
-        systemLogger.system(
-          `📡 ${signal} 시그널 수신 - Graceful shutdown 시작`
-        );
-        await this.stopSystem();
-        process.exit(0);
+      process.on(signal, () => {
+        void (async () => {
+          systemLogger.system(
+            `📡 ${signal} 시그널 수신 - Graceful shutdown 시작`
+          );
+          await this.stopSystem();
+          process.exit(0);
+        })();
       });
     });
   }

@@ -41,17 +41,13 @@ export const LazyDashboardContent = lazy(
   () => import('@/components/dashboard/DashboardContent')
 );
 
-export const LazyAIAssistantDashboard = lazy(
-  () => import('@/components/ai/AIAssistantAdminDashboard')
-);
+// LazyAIAssistantDashboard removed (admin dashboard)
 
 // Note: Removed problematic lazy imports that don't have default exports
 // LazyPerformanceDashboard and LazyGCPQuotaMonitoring removed per GCP VM removal directive
 // These can be re-added when components have proper default exports
 
-export const LazyLogAnalyticsDashboard = lazy(
-  () => import('@/components/admin/LogAnalyticsDashboard')
-);
+// LazyLogAnalyticsDashboard removed (admin dashboard)
 
 export const LazyFeatureCardModal = lazy(
   () => import('@/components/shared/FeatureCardModal')
@@ -209,7 +205,7 @@ export const COMPONENT_LOAD_CONFIG = {
   // 일반 컴포넌트 (우선순위 7-9)
   normal: {
     PerformanceDashboard: { priority: 7, delay: 2000 },
-    LogAnalyticsDashboard: { priority: 8, delay: 3000 },
+    // LogAnalyticsDashboard removed (admin dashboard)
   },
 
   // 지연 가능한 컴포넌트 (우선순위 10+)

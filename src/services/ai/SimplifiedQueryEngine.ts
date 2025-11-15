@@ -100,7 +100,7 @@ export class SimplifiedQueryEngine {
     if (this.isInitialized) return;
 
     // 이미 초기화 진행 중이면 기다림
-    if (this.initPromise) {
+    if (this.initPromise !== null && this.initPromise !== undefined) {
       return this.initPromise;
     }
 

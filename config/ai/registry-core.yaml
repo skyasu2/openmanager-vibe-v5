@@ -3,25 +3,29 @@
 # 목적: 토큰 사용량 최소화 (Cache Read 79% → 30% 목표)
 
 version: "2.0.0"  # registry-core 버전
-last_updated: "2025-11-11"
+last_updated: "2025-11-14"
 project: "OpenManager VIBE v5.80.0"
 
 # ============================================================================
 # 1. Current Active AI Tools (현재 활성화된 AI 도구만)
 # ============================================================================
 ai-tools:
+  claude-code:
+    current_version: "v2.0.37"
+    status: "✅ Active"
+    
   codex:
-    current_version: "v0.56.0+"
+    current_version: "v0.58.0"
     wrapper_version: "v2.5.0"
     status: "✅ Active"
     
   gemini:
-    current_version: "v0.13.0+"
+    current_version: "v0.15.0"
     wrapper_version: "v2.5.0"
     status: "✅ Active"
     
   qwen:
-    current_version: "v0.2.0+"
+    current_version: "v0.2.1"
     wrapper_version: "v2.5.0"
     status: "✅ Active"
 

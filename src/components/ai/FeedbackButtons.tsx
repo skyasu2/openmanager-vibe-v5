@@ -103,7 +103,7 @@ export default function FeedbackButtons({
           </span>
 
           <button
-            onClick={() => handleFeedbackClick('helpful')}
+            onClick={() => { void handleFeedbackClick('helpful'); }}
             disabled={isSubmitting}
             className="flex items-center gap-1 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-sm text-green-700 transition-colors hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -112,7 +112,7 @@ export default function FeedbackButtons({
           </button>
 
           <button
-            onClick={() => handleFeedbackClick('not_helpful')}
+            onClick={() => { void handleFeedbackClick('not_helpful'); }}
             disabled={isSubmitting}
             className="flex items-center gap-1 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-sm text-orange-700 transition-colors hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -121,7 +121,7 @@ export default function FeedbackButtons({
           </button>
 
           <button
-            onClick={() => handleFeedbackClick('incorrect')}
+            onClick={() => { void handleFeedbackClick('incorrect'); }}
             disabled={isSubmitting}
             className="flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm text-red-700 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
           >

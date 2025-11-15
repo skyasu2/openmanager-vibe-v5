@@ -36,15 +36,16 @@ class TimerManager {
     }
 
     // 새 타이머 생성
-    const handle = setInterval(async () => {
-      try {
-        const timerInfo = this.timers.get(config.id);
-        if (timerInfo && timerInfo.enabled && !this.isDestroyed) {
-          await config.callback();
-          timerInfo.runCount++;
-        }
-      } catch (error) {
-        console.error(`Timer ${config.id} callback error:`, error);
+    const handle = setInterval(() => {
+      void (async () => {
+        try {
+          const timerInfo = this.timers.get(config.id);
+          if (timerInfo && timerInfo.enabled && !this.isDestroyed) {
+            await config.callback();
+            timerInfo.runCount++;
+          }
+        } catch (error) {
+          console.error(`Timer ${config.id} callback error:`, error);
       }
     }, config.interval);
 

@@ -241,14 +241,16 @@ export class PerformanceTester {
     const allResponseTimes: number[] = [];
 
     // 메트릭 수집 인터벌 - 성능 최적화
-    const metricsInterval = setInterval(async () => {
-      if (!this.isRunning) return;
+    const metricsInterval = setInterval(() => {
+      void (async () => {
+        if (!this.isRunning) return;
 
-      try {
-        await this.collectCurrentMetrics();
-      } catch (error) {
-        console.error('❌ 메트릭 수집 실패:', error);
-      }
+        try {
+          await this.collectCurrentMetrics();
+        } catch (error) {
+          console.error('❌ 메트릭 수집 실패:', error);
+        }
+      })();
     }, 5000); // 5초마다 수집
 
     // 부하 생성

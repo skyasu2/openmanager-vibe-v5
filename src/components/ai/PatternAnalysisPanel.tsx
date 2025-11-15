@@ -369,7 +369,7 @@ const PatternAnalysisPanel: FC<PatternAnalysisPanelProps> = ({
                   {(pattern.severity === 'high' ||
                     pattern.severity === 'medium') && (
                     <button
-                      onClick={() => generateAutoReportFromPattern(pattern)}
+                      onClick={() => { void generateAutoReportFromPattern(pattern); }}
                       disabled={
                         autoReportStatus.isGenerating &&
                         autoReportStatus.lastPatternId === pattern.id

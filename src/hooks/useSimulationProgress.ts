@@ -267,7 +267,8 @@ const useSimulationProgress = ({
     setIsPolling(true);
     setIsPaused(false);
 
-    intervalRef.current = setInterval(async () => {
+    intervalRef.current = setInterval(() => {
+      void (async () => {
       // 페이지가 숨겨져 있으면 폴링 건너뛰기
       if (!isVisibleRef.current && pauseWhenHidden) {
         setIsPaused(true);
@@ -307,6 +308,7 @@ const useSimulationProgress = ({
           retryCountRef.current += 1;
         }
       }
+    })();
     }, pollInterval);
   }, [
     isPolling,

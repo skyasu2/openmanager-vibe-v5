@@ -359,15 +359,17 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={(e) =>
-                    e.key === 'Enter' && handleSendMessage(inputValue)
-                  }
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      void handleSendMessage(inputValue);
+                    }
+                  }}
                   placeholder={QUESTION_EXAMPLES[placeholderIndex]}
                   disabled={isLoading}
                   className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 />
                 <button
-                  onClick={() => handleSendMessage(inputValue)}
+                  onClick={() => { void handleSendMessage(inputValue); }}
                   disabled={!inputValue.trim() || isLoading}
                   className="rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
                 >
@@ -400,7 +402,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
               </div>
 
               <button
-                onClick={() => handleSendMessage('시스템 전체 장애 보고서를 생성해주세요')}
+                onClick={() => { void handleSendMessage('시스템 전체 장애 보고서를 생성해주세요'); }}
                 className="w-full rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 p-3 font-medium text-white transition-all hover:from-green-600 hover:to-emerald-700"
               >
                 <div className="flex items-center justify-center gap-2">
@@ -411,13 +413,13 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
 
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => handleSendMessage('성능 분석 보고서')}
+                  onClick={() => { void handleSendMessage('성능 분석 보고서'); }}
                   className="rounded-lg bg-blue-50 p-3 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100"
                 >
                   성능 분석
                 </button>
                 <button
-                  onClick={() => handleSendMessage('보안 상태 보고서')}
+                  onClick={() => { void handleSendMessage('보안 상태 보고서'); }}
                   className="rounded-lg bg-red-50 p-3 text-sm font-medium text-red-700 transition-colors hover:bg-red-100"
                 >
                   보안 점검

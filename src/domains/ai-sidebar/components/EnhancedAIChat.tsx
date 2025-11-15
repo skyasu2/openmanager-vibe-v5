@@ -182,7 +182,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
 
           {/* 전송 버튼 */}
           <button
-            onClick={handleSendInput}
+            onClick={() => { void handleSendInput(); }}
             disabled={!inputValue.trim() || isGenerating}
             className="rounded bg-blue-500 p-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
             title="메시지 전송"

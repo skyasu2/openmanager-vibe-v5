@@ -521,10 +521,10 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
           MessageComponent={MessageComponent}
           inputValue={inputValue}
           setInputValue={setInputValue}
-          handleSendInput={handleSendInput}
+          handleSendInput={() => { void handleSendInput(); }}
           isGenerating={isGenerating}
           selectedEngine={selectedEngine}
-          handleModeChange={handleModeChange}
+          handleModeChange={(mode) => { void handleModeChange(mode); }}
           regenerateResponse={regenerateResponse}
         />
       );

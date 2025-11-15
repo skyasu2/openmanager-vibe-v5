@@ -349,7 +349,7 @@ export const MLLearningCenter: FC = () => {
               key={button.id}
             >
               <button
-                onClick={() => startLearning(button.id)}
+                onClick={() => { void startLearning(button.id); }}
                 disabled={isRunning}
                 className={`w-full rounded-xl border-2 p-6 transition-all ${
                   isRunning

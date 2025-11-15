@@ -51,7 +51,7 @@ export function SystemStateChecker({
 
   useEffect(() => {
     if (autoRefresh && systemState?.isSystemActive) {
-      const interval = setInterval(fetchSystemState, 30000); // 30초마다 새로고침
+      const interval = setInterval(() => { void fetchSystemState(); }, 30000); // 30초마다 새로고침
       return () => clearInterval(interval);
     }
     return undefined;

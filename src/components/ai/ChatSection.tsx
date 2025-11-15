@@ -608,7 +608,7 @@ export default function ChatSection({
       {/* 입력 영역 */}
       {!showHistory && (
         <div className="border-t px-4 py-3">
-          <form onSubmit={handleSubmit} className="flex gap-2">
+          <form onSubmit={(e) => { void handleSubmit(e); }} className="flex gap-2">
             <div className="flex-1 relative">
               <textarea
                 aria-label="입력 필드"

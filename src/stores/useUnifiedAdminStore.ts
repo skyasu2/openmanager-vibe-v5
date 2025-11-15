@@ -1,22 +1,9 @@
 import { browserNotificationService } from '@/services/notifications/BrowserNotificationService';
-import { getCSRFTokenFromCookie } from '@/utils/security/csrf';
-import { isGuestFullAccessEnabled } from '@/config/guestMode';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
   SYSTEM_AUTO_SHUTDOWN_TIME,
-  MAX_LOGIN_ATTEMPTS as MAX_ATTEMPTS,
-  LOCKOUT_DURATION,
 } from '@/config/system-constants';
-
-const AUTO_ADMIN_ENABLED = isGuestFullAccessEnabled();
-
-function getAutoAdminState() {
-  return {
-    isAuthenticated: AUTO_ADMIN_ENABLED,
-    lastLoginTime: AUTO_ADMIN_ENABLED ? Date.now() : null,
-  };
-}
 
 interface UnifiedAdminState {
   // 시스템 상태
@@ -30,32 +17,15 @@ interface UnifiedAdminState {
     state: 'disabled' | 'enabled' | 'processing' | 'idle';
   };
 
-  // 관리자 모드 상태 (관리자 기능 접근용)
-  adminMode: {
-    isAuthenticated: boolean; // PIN 인증 상태
-    lastLoginTime: number | null;
-  };
-
-  // UI 상태
+// UI 상태
   ui: {
     isSettingsPanelOpen: boolean; // 설정 패널 열림 상태
   };
 
-  // 인증 및 보안 (관리자 모드용)
-  attempts: number;
-  isLocked: boolean;
-  lockoutEndTime: number | null;
-
-  // 액션 메소드
+// 액션 메소드
   startSystem: () => void;
   stopSystem: () => void;
-  authenticateAdmin: (
-    password: string
-  ) => Promise<{ success: boolean; message: string; remainingTime?: number }>;
-  logoutAdmin: () => void;
-  checkLockStatus: () => boolean;
-  getRemainingLockTime: () => number;
-  getSystemRemainingTime: () => number;
+getSystemRemainingTime: () => number;
   logout: () => void;
   setSettingsPanelOpen: (isOpen: boolean) => void;
 }
@@ -74,18 +44,14 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
         state: 'enabled',
       },
 
-      // 관리자 모드 (개발 모드에서는 자동 활성화)
-      adminMode: getAutoAdminState(),
+
 
       // UI 상태
       ui: {
         isSettingsPanelOpen: false,
       },
 
-      // 인증 상태 (관리자 모드용)
-      attempts: 0,
-      isLocked: false,
-      lockoutEndTime: null,
+
 
       // 시스템 시작
       startSystem: () => {
@@ -150,34 +116,9 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
         }
       },
 
-      // 잠금 상태 확인
-      checkLockStatus: () => {
-        const { isLocked, lockoutEndTime } = get();
-        if (isLocked && lockoutEndTime) {
-          if (Date.now() >= lockoutEndTime) {
-            // 잠금 해제
-            set((state) => ({
-              ...state,
-              isLocked: false,
-              lockoutEndTime: null,
-              attempts: 0,
-            }));
-            console.log('🔓 [Auth] 잠금 자동 해제');
-            return true;
-          }
-          return false;
-        }
-        return true;
-      },
 
-      // 남은 잠금 시간
-      getRemainingLockTime: () => {
-        const { lockoutEndTime } = get();
-        if (lockoutEndTime) {
-          return Math.max(0, lockoutEndTime - Date.now());
-        }
-        return 0;
-      },
+
+
 
       // 시스템 남은 시간
       getSystemRemainingTime: () => {
@@ -189,164 +130,14 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
         return 0;
       },
 
-      // 관리자 인증 (관리자 기능 접근용)
-      authenticateAdmin: async (password: string) => {
-        if (AUTO_ADMIN_ENABLED) {
-          set((state) => ({
-            ...state,
-            attempts: 0,
-            isLocked: false,
-            lockoutEndTime: null,
-            adminMode: getAutoAdminState(),
-          }));
 
-          return {
-            success: true,
-            message:
-              '개발용 전체 접근 모드에서는 관리자 PIN 없이 모든 기능을 사용할 수 있습니다.',
-          };
-        }
 
-        try {
-          const state = get();
-          if (!state) {
-            console.error('❌ [Auth] 스토어 상태가 없음 - 인증 중단');
-            return {
-              success: false,
-              message: '스토어 상태를 읽을 수 없습니다.',
-            };
-          }
 
-          const { attempts, checkLockStatus } = state;
-
-          // 잠금 상태 확인
-          if (!checkLockStatus()) {
-            const remainingTime = get()?.getRemainingLockTime() || 0;
-            console.warn('🔒 [Auth] 계정 잠금 상태 - 인증 시도 차단');
-            return {
-              success: false,
-              message: `5번 틀려서 잠겼습니다. ${Math.ceil(remainingTime / 1000)}초 후 다시 시도하세요.`,
-              remainingTime,
-            };
-          }
-
-          // 🔒 서버 사이드 비밀번호 검증 (보안 강화)
-          try {
-            // CSRF 토큰 가져오기 (쿠키에서)
-            const csrfToken = getCSRFTokenFromCookie();
-
-            const verifyResponse = await fetch('/api/admin/verify-pin', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                ...(csrfToken && { 'X-CSRF-Token': csrfToken })
-              },
-              body: JSON.stringify({ password }),
-            });
-
-            const verifyResult = await verifyResponse.json();
-
-            if (verifyResult.success) {
-              // 관리자 인증 성공
-              set((state) => ({
-                ...state,
-                attempts: 0,
-                adminMode: {
-                  isAuthenticated: true,
-                  lastLoginTime: Date.now(),
-                },
-              }));
-
-              console.log('✅ [Admin] 관리자 인증 성공 - AI 관리자 기능 활성화');
-
-              return {
-                success: true,
-                message:
-                  'AI 관리자 모드가 활성화되었습니다. 이제 AI 관리자 페이지에 접근할 수 있습니다.',
-              };
-            } else {
-              // 인증 실패
-              const newAttempts = attempts + 1;
-              console.warn(
-                `❌ [Auth] 관리자 인증 실패 (${newAttempts}/${MAX_ATTEMPTS})`
-              );
-
-              if (newAttempts >= MAX_ATTEMPTS) {
-                // 계정 잠금
-                const lockoutEnd = Date.now() + LOCKOUT_DURATION;
-                set((state) => ({
-                  ...state,
-                  attempts: newAttempts,
-                  isLocked: true,
-                  lockoutEndTime: lockoutEnd,
-                }));
-
-                console.warn('🔒 [Auth] 최대 시도 횟수 초과 - 계정 잠금');
-                return {
-                  success: false,
-                  message: `5번 틀려서 잠겼습니다. ${LOCKOUT_DURATION / 1000}초 후 다시 시도하세요.`,
-                  remainingTime: LOCKOUT_DURATION,
-                };
-              } else {
-                // 시도 횟수 증가
-                set((state) => ({
-                  ...state,
-                  attempts: newAttempts,
-                }));
-
-                const remainingAttempts = MAX_ATTEMPTS - newAttempts;
-                return {
-                  success: false,
-                  message: `관리자 비밀번호가 틀렸습니다. (${remainingAttempts}번 더 시도 가능)`,
-                };
-              }
-            }
-          } catch (fetchError) {
-            console.error('❌ [Auth] 서버 검증 API 호출 실패:', fetchError);
-            return {
-              success: false,
-              message: '서버와 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
-            };
-          }
-        } catch (error) {
-          console.error('❌ [Auth] 관리자 인증 처리 중 오류:', error);
-          return {
-            success: false,
-            message: '인증 처리 중 오류가 발생했습니다.',
-          };
-        }
-      },
-
-      // 관리자 로그아웃
-      logoutAdmin: () => {
-        try {
-          if (AUTO_ADMIN_ENABLED) {
-            console.log(
-              '🔐 [Admin] 개발용 전체 접근 모드 - 관리자 로그아웃을 건너뜁니다.'
-            );
-            return;
-          }
-
-          set((state) => ({
-            ...state,
-            adminMode: {
-              isAuthenticated: false,
-              lastLoginTime: null,
-            },
-            attempts: 0, // 로그아웃 시 시도 횟수 초기화
-          }));
-
-          console.log('🔐 [Admin] 관리자 로그아웃 완료');
-        } catch (error) {
-          console.error('❌ [Admin] 관리자 로그아웃 실패:', error);
-        }
-      },
 
       // 전체 로그아웃 (시스템 + 관리자)
       logout: () => {
         try {
           get().stopSystem();
-          get().logoutAdmin();
           console.log('🔐 [System] 전체 로그아웃 완료');
         } catch (error) {
           console.error('❌ [System] 전체 로그아웃 실패:', error);
@@ -389,10 +180,6 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
       name: 'unified-admin-storage',
       partialize: (state) => ({
         // AI 에이전트는 항상 활성화 상태이므로 저장하지 않음
-        adminMode: state.adminMode, // 관리자 모드 상태만 저장
-        attempts: state.attempts,
-        isLocked: state.isLocked,
-        lockoutEndTime: state.lockoutEndTime,
       }),
       // SSR 안전성을 위한 skipHydration 추가
       skipHydration: true,

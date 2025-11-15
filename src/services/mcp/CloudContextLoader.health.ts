@@ -40,12 +40,14 @@ export class MCPHealthChecker {
       clearInterval(this.healthCheckTimer);
     }
 
-    this.healthCheckTimer = setInterval(async () => {
-      await this.performHealthCheck();
+    this.healthCheckTimer = setInterval(() => {
+      void (async () => {
+        await this.performHealthCheck();
+      })();
     }, this.config.mcpHealthCheckInterval);
 
     // 즉시 첫 헬스체크 수행
-    this.performHealthCheck();
+    void this.performHealthCheck();
     console.log('🏥 MCP 서버 헬스체크 시작');
   }
 

@@ -118,7 +118,7 @@ export default function GitHubLoginButton({
 
         {/* 로그아웃 버튼 */}
         <button
-          onClick={handleGitHubLogout}
+          onClick={() => { void handleGitHubLogout(); }}
           disabled={isLoading}
           className={`flex w-full items-center justify-center rounded-lg border border-transparent px-4 py-3 text-sm font-medium text-white ${
             isLoading
@@ -161,7 +161,7 @@ export default function GitHubLoginButton({
   // 로그인 버튼
   return (
     <button
-      onClick={handleGitHubLogin}
+      onClick={() => { void handleGitHubLogin(); }}
       disabled={isLoading}
       className={`flex w-full items-center justify-center rounded-lg border border-transparent px-4 py-3 text-sm font-medium text-white ${
         isLoading

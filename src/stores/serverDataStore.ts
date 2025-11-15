@@ -308,20 +308,22 @@ export const createServerDataStore = (
         }
       },
 
-      stopUnifiedSystem: async () => {
-        try {
-          const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
-          const response = await fetch(`${appUrl}/api/system/stop`, {
-            method: 'POST',
-          });
-          if (!response.ok) throw new Error('통합 시스템 중지에 실패했습니다.');
-          // 자동 갱신도 함께 중지
-          get().stopAutoRefresh();
-          set({ servers: [] });
-        } catch (e) {
-          const error = e instanceof Error ? e : new Error(String(e));
-          console.error(error.message);
-        }
+      stopUnifiedSystem: () => {
+        void (async () => {
+          try {
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL || '';
+            const response = await fetch(`${appUrl}/api/system/stop`, {
+              method: 'POST',
+            });
+            if (!response.ok) throw new Error('통합 시스템 중지에 실패했습니다.');
+            // 자동 갱신도 함께 중지
+            get().stopAutoRefresh();
+            set({ servers: [] });
+          } catch (e) {
+            const error = e instanceof Error ? e : new Error(String(e));
+            console.error(error.message);
+          }
+        })();
       },
 
       // 자동 갱신 시작 (30-60초 주기)
@@ -342,13 +344,15 @@ export const createServerDataStore = (
 
         // 즉시 한 번 실행 - Vercel Edge Runtime 호환성 확보
         const currentState = get();
-        currentState.fetchServers();
+        void currentState.fetchServers();
 
         // 주기적 갱신 설정 - Vercel Edge Runtime 호환성 확보
-        const intervalId = setInterval(async () => {
-          console.log('🔄 서버 데이터 자동 갱신 중...');
-          const currentState = get();
-          await currentState.fetchServers();
+        const intervalId = setInterval(() => {
+          void (async () => {
+            console.log('🔄 서버 데이터 자동 갱신 중...');
+            const currentState = get();
+            await currentState.fetchServers();
+          })();
         }, refreshInterval);
 
         set({

@@ -68,7 +68,7 @@ export function useSystemAlerts() {
     fetchAlerts();
 
     // 30초마다 알림 업데이트
-    const interval = setInterval(fetchAlerts, 30000);
+    const interval = setInterval(() => { void fetchAlerts(); }, 30000);
 
     return () => clearInterval(interval);
   }, []);

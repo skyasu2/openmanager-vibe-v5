@@ -163,15 +163,17 @@ export class OptimizedSSEManager {
     const delays = this.getReconnectDelays();
     const delay = delays[attempts] || this.config.reconnectDelay;
 
-    setTimeout(async () => {
-      try {
-        await this.createConnection(channel);
-        this.reconnectAttempts.set(channel, 0); // 성공 시 재설정
-        this.totalReconnects++;
-      } catch (error) {
-        this.reconnectAttempts.set(channel, attempts + 1);
-        this.reconnect(channel); // 재귀 호출
-      }
+    setTimeout(() => {
+      void (async () => {
+        try {
+          await this.createConnection(channel);
+          this.reconnectAttempts.set(channel, 0); // 성공 시 재설정
+          this.totalReconnects++;
+        } catch (error) {
+          this.reconnectAttempts.set(channel, attempts + 1);
+          void this.reconnect(channel); // 재귀 호출
+        }
+      })();
     }, delay);
   }
 
@@ -365,13 +367,15 @@ export class OptimizedSSEManager {
    * 💓 하트비트 시작
    */
   private startHeartbeat(channel: string): void {
-    const interval = setInterval(async () => {
-      try {
-        await this.sendHeartbeat(channel);
-        this.emit('heartbeat', { channel, timestamp: new Date() });
-      } catch (error) {
-        console.warn(`💓 하트비트 실패: ${channel}`, error);
-      }
+    const interval = setInterval(() => {
+      void (async () => {
+        try {
+          await this.sendHeartbeat(channel);
+          this.emit('heartbeat', { channel, timestamp: new Date() });
+        } catch (error) {
+          console.warn(`💓 하트비트 실패: ${channel}`, error);
+        }
+      })();
     }, this.config.heartbeatInterval);
 
     this.heartbeatIntervals.set(channel, interval);

@@ -19,12 +19,11 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { Bot, Database, Monitor, Settings, X, Zap } from 'lucide-react';
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-// AISettingsTab은 GCP Functions로 이관됨
 import { GeneralSettingsTab } from './components/GeneralSettingsTab';
 import { GeneratorSettingsTab } from './components/GeneratorSettingsTab';
 import { MonitorSettingsTab } from './components/MonitorSettingsTab';
 import { OptimizationSettingsTab } from './components/OptimizationSettingsTab';
-import { useAuthentication } from './hooks/useAuthentication';
+
 import { useSettingsData } from './hooks/useSettingsData';
 import type {
   SettingsTab,
@@ -53,18 +52,7 @@ export function UnifiedSettingsPanel({
     checkSystemHealth,
   } = useSettingsData();
 
-  const {
-    authState,
-    aiPassword,
-    setAiPassword,
-    setShowPassword,
-    handleAIAuthentication,
-    validatePassword,
-  } = useAuthentication();
 
-  // 관리자 모드 확인을 위해 스토어에서 직접 가져오기
-  const { adminMode } = useUnifiedAdminStore();
-  const isAdminAuthenticated = adminMode.isAuthenticated;
 
   // 새로운 인라인 피드백 시스템 사용
   const { success, error, info, warning, loading, clear } = useInlineFeedback();
@@ -190,24 +178,6 @@ export function UnifiedSettingsPanel({
     return undefined;
   }, [isOpen]);
 
-  // 인증 핸들러들
-  const handleAuthenticationSubmit = async (quickPassword?: string) => {
-    if (authState.isAuthenticating) return;
-
-    try {
-      const result = await handleAIAuthentication(quickPassword);
-      if (result.success) {
-        success(
-          'auth-section',
-          '✅ AI 에이전트 관리자 권한이 활성화되었습니다!'
-        );
-      } else {
-        error('auth-section', result.error || '잘못된 관리자 PIN입니다.');
-      }
-    } catch (err) {
-      error('auth-section', '인증 처리 중 시스템 오류가 발생했습니다.');
-    }
-  };
 
   // 제너레이터 핸들러들
   const handleGeneratorCheck = async () => {
@@ -356,18 +326,7 @@ export function UnifiedSettingsPanel({
             🚀 AI 설정은 GCP Functions로 이관되었습니다
           </div>
         );
-      /*
-        return (
-          <AISettingsTab
-            authState={authState}
-            aiPassword={aiPassword}
-            setAiPassword={setAiPassword}
-            onAuthentication={handleAuthenticationSubmit}
-            onAIOptimization={handleAIOptimization}
-            onSystemDiagnosis={handleSystemDiagnosis}
-          />
-        );
-        */
+
 
       case 'generator':
         return (

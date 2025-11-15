@@ -240,7 +240,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     const taskResults = await Promise.allSettled(tasks);
 
     // 4. 결과 처리
-    const mcpContext = mcpContextPromise
+    const mcpContext = mcpContextPromise !== null && mcpContextPromise !== undefined
       ? taskResults[0]?.status === 'fulfilled'
         ? (taskResults[0]).value
         : null
@@ -248,7 +248,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
 
     if (mode === 'local') {
       const embeddingResult =
-        embeddingPromise &&
+        embeddingPromise !== null && embeddingPromise !== undefined &&
         (taskResults.find((r) => r.status === 'fulfilled')?.value as
           | number[]
           | null
