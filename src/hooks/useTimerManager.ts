@@ -46,7 +46,8 @@ class TimerManager {
           }
         } catch (error) {
           console.error(`Timer ${config.id} callback error:`, error);
-      }
+        }
+      })();
     }, config.interval);
 
     // 타이머 정보 저장
