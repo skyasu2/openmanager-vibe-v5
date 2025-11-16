@@ -300,7 +300,7 @@ export function checkFreeTierStatus(): {
 /**
  * 자동 최적화 실행
  */
-export function runAutoOptimization(): Promise<{
+export async function runAutoOptimization(): Promise<{
   executed: string[];
   recommendations: string[];
 }> {

@@ -76,7 +76,7 @@ export function PortMonitor({
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // 🚨 SAFE: Mock 포트 상태 가져오기 함수 (브라우저 호환)
-  const fetchPortStates = useCallback(() => {
+  const fetchPortStates = useCallback(async () => {
     setIsRefreshing(true);
 
     try {

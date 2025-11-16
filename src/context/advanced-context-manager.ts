@@ -379,7 +379,7 @@ export class AdvancedContextManager {
   /**
    * 🔤 임베딩 생성 (모의 구현)
    */
-  private generateEmbedding(text: string): Promise<number[]> {
+  private async generateEmbedding(text: string): Promise<number[]> {
     // 실제 환경에서는 OpenAI embeddings나 Hugging Face 모델 사용
     // 현재는 간단한 해시 기반 벡터 생성
     const normalized = text.toLowerCase().trim();

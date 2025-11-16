@@ -135,7 +135,7 @@ export class SettingsService {
   /**
    * 알림 설정 조회 (Vercel 최적화)
    */
-  private fetchNotificationConfig() {
+  private async fetchNotificationConfig() {
     // Vercel 환경에서는 콘솔 로깅만 지원
     if (process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.VERCEL === '1') {
       return { email: false, webhook: false };

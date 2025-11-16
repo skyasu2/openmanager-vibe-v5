@@ -147,7 +147,9 @@ async function optimizeMemoryHandler(request: NextRequest) {
 /**
  * 📊 메모리 상태 조회 (GET)
  */
-function getMemoryStatusHandler(_request: NextRequest): Promise<NextResponse> {
+async function getMemoryStatusHandler(
+  _request: NextRequest
+): Promise<NextResponse> {
   try {
     debug.log('📊 메모리 상태 조회 API 호출');
 
