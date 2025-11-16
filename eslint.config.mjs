@@ -138,7 +138,7 @@ export default tseslint.config(
       '@typescript-eslint/ban-ts-comment': 'off',
       '@typescript-eslint/require-await': 'off',  // Disabled: conflicts with TypeScript explicit Promise return types
       '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-redundant-type-constituents': 'warn',
+      '@typescript-eslint/no-redundant-type-constituents': 'off',  // Disabled: produces false positives with multi-level re-exports
       '@typescript-eslint/no-base-to-string': 'warn',
       'no-case-declarations': 'warn',
       
@@ -182,7 +182,7 @@ export default tseslint.config(
       // Downgrade these rules to warnings for buildability
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/no-floating-promises': 'warn',
-      '@typescript-eslint/no-redundant-type-constituents': 'warn',
+      '@typescript-eslint/no-redundant-type-constituents': 'off',  // Disabled: produces false positives with multi-level re-exports
       '@typescript-eslint/no-base-to-string': 'warn',
       '@typescript-eslint/require-await': 'off',  // Disabled: conflicts with TypeScript explicit Promise return types
       '@typescript-eslint/no-explicit-any': 'warn',
