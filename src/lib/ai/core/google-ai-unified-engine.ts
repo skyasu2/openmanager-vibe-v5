@@ -39,6 +39,10 @@ import { KoreanNLPProvider } from '../providers/korean-nlp-provider';
 // PromptBuilder import
 import { promptBuilder } from './prompt-builder';
 
+// Usage Tracker import (할당량 보호)
+import { getGoogleAIUsageTracker } from '@/services/ai/GoogleAIUsageTracker';
+import type { GoogleAIModel } from '@/services/ai/QueryDifficultyAnalyzer';
+
 // ============================================================================
 // Cache Entry
 // ============================================================================
@@ -71,6 +75,9 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
     errors: 0,
   };
 
+  // 할당량 추적기 (429 에러 방지)
+  private usageTracker = getGoogleAIUsageTracker();
+
   constructor(config?: Partial<EngineConfig>) {
     // 기본 설정
     this.config = {
@@ -91,11 +98,15 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
         },
         ml: {
           enabled: config?.providers?.ml?.enabled ?? true,
-          models: config?.providers?.ml?.models || ['anomaly-detection', 'trend-analysis'],
+          models: config?.providers?.ml?.models || [
+            'anomaly-detection',
+            'trend-analysis',
+          ],
         },
         rule: {
           enabled: config?.providers?.rule?.enabled ?? true,
-          confidenceThreshold: config?.providers?.rule?.confidenceThreshold || 0.6,
+          confidenceThreshold:
+            config?.providers?.rule?.confidenceThreshold || 0.6,
         },
       },
     };
@@ -103,7 +114,10 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
     this.cacheTTL = this.config.cache.ttl;
 
     // Provider 초기화
-    this.providers = new Map<string, RAGProvider | MLProvider | KoreanNLPProvider>([
+    this.providers = new Map<
+      string,
+      RAGProvider | MLProvider | KoreanNLPProvider
+    >([
       ['rag', new RAGProvider()],
       ['ml', new MLProvider()],
       ['rule', new KoreanNLPProvider()], // Korean NLP = Rule Provider
@@ -182,6 +196,40 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
         lastPromptStep.duration = Date.now() - promptStartTime;
       }
 
+      // 🛡️ 할당량 보호 로직 - API 호출 전 체크
+      let selectedModel = this.config.model as GoogleAIModel;
+
+      if (!this.usageTracker.canUseModel(selectedModel)) {
+        console.warn(
+          `⚠️ [GoogleAiUnifiedEngine] ${selectedModel} 할당량 초과, 대체 모델 확인 중...`
+        );
+
+        // 사용 가능한 대체 모델 찾기
+        const availableModels = this.usageTracker.getAvailableModels();
+
+        if (availableModels.length === 0) {
+          // 모든 모델 할당량 초과 - 에러 반환
+          const errorMsg =
+            'Google AI 모든 모델의 할당량이 초과되었습니다. 잠시 후 다시 시도해주세요.';
+          console.error(`❌ [GoogleAiUnifiedEngine] ${errorMsg}`);
+          throw new GoogleAIError(errorMsg);
+        }
+
+        // 첫 번째 사용 가능한 모델로 전환
+        const fallbackModel = availableModels.at(0);
+        if (!fallbackModel) {
+          throw new GoogleAIError(
+            'Internal error: availableModels array is empty after length check'
+          );
+        }
+
+        console.log(
+          `✅ [GoogleAiUnifiedEngine] 대체 모델 사용: ${selectedModel} → ${fallbackModel}`
+        );
+        selectedModel = fallbackModel;
+        this.config.model = selectedModel;
+      }
+
       // Step 5: Google AI API 호출
       const aiStartTime = Date.now();
       thinkingSteps.push({
@@ -191,8 +239,24 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
         timestamp: Date.now(),
       });
 
-      const aiResponse = await this.callGoogleAI(prompt, request.options?.temperature);
-      const tokensUsed = this.estimateTokens(prompt + aiResponse);
+      const aiResponse = await this.callGoogleAI(
+        prompt,
+        request.options?.temperature
+      );
+      const aiLatency = Date.now() - aiStartTime;
+      const tokensUsed = this.estimateTokens(
+        prompt.systemInstruction + prompt.userMessage + aiResponse
+      );
+
+      // 📊 사용량 추적 (할당량 관리)
+      this.usageTracker.recordUsage({
+        model: selectedModel,
+        timestamp: Date.now(),
+        requestCount: 1,
+        tokenCount: tokensUsed,
+        latency: aiLatency,
+        success: true,
+      });
 
       const lastAIStep = thinkingSteps[thinkingSteps.length - 1];
       if (lastAIStep) {
@@ -211,11 +275,13 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
           tokensUsed,
           processingTime: Date.now() - startTime,
           cacheHit: false,
-          providersUsed: enabledProviders.map(p => p.name),
+          providersUsed: enabledProviders.map((p) => p.name),
           timestamp: new Date(),
         },
         contexts: this.sanitizeContexts(contexts),
-        thinkingSteps: request.options?.includeThinking ? thinkingSteps : undefined,
+        thinkingSteps: request.options?.includeThinking
+          ? thinkingSteps
+          : undefined,
       };
 
       // Step 7: 캐시 저장
@@ -232,7 +298,8 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
         const lastStep = thinkingSteps[thinkingSteps.length - 1];
         if (lastStep && lastStep.status === 'pending') {
           lastStep.status = 'failed';
-          lastStep.error = error instanceof Error ? error.message : String(error);
+          lastStep.error =
+            error instanceof Error ? error.message : String(error);
         }
       }
 
@@ -249,8 +316,13 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
           providersUsed: [],
           timestamp: new Date(),
         },
-        thinkingSteps: request.options?.includeThinking ? thinkingSteps : undefined,
-        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다',
+        thinkingSteps: request.options?.includeThinking
+          ? thinkingSteps
+          : undefined,
+        error:
+          error instanceof Error
+            ? error.message
+            : '알 수 없는 오류가 발생했습니다',
       };
     }
   }
@@ -294,7 +366,7 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
 
     // 병렬 실행
     const results = await Promise.allSettled(
-      providers.map(provider =>
+      providers.map((provider) =>
         provider.getContext(request.query, {
           maxResults: this.config.providers.rag.maxResults,
           threshold: this.config.providers.rag.threshold,
@@ -313,7 +385,10 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
         if (context.type === 'ml') contexts.ml = context;
         if (context.type === 'rule') contexts.rule = context;
       } else if (result && result.status === 'rejected') {
-        console.warn(`[GoogleAiUnifiedEngine] Provider ${provider.name} failed:`, result.reason);
+        console.warn(
+          `[GoogleAiUnifiedEngine] Provider ${provider.name} failed:`,
+          result.reason
+        );
       }
     });
 
@@ -323,7 +398,10 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
   /**
    * 프롬프트 생성 (PromptBuilder 사용)
    */
-  private buildPrompt(request: UnifiedQueryRequest, contexts: ProviderContexts): GoogleAIPrompt {
+  private buildPrompt(
+    request: UnifiedQueryRequest,
+    contexts: ProviderContexts
+  ): GoogleAIPrompt {
     return promptBuilder.build(
       {
         query: request.query,
@@ -334,15 +412,21 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
     );
   }
 
-
   /**
    * Google AI API 호출 (GoogleAIPrompt 사용)
    */
-  private async callGoogleAI(prompt: GoogleAIPrompt, temperature?: number): Promise<string> {
-    const apiKey = process.env.GOOGLE_AI_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_AI_API_KEY;
+  private async callGoogleAI(
+    prompt: GoogleAIPrompt,
+    temperature?: number
+  ): Promise<string> {
+    const apiKey =
+      process.env.GOOGLE_AI_API_KEY ||
+      process.env.NEXT_PUBLIC_GOOGLE_AI_API_KEY;
 
     if (!apiKey) {
-      throw new GoogleAIError('Google AI API 키가 설정되지 않았습니다. GOOGLE_AI_API_KEY 환경변수를 확인하세요.');
+      throw new GoogleAIError(
+        'Google AI API 키가 설정되지 않았습니다. GOOGLE_AI_API_KEY 환경변수를 확인하세요.'
+      );
     }
 
     try {
@@ -382,14 +466,22 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
       const data = await response.json();
 
       if (!data.candidates || data.candidates.length === 0) {
-        throw new GoogleAIError('Google AI API 응답에 결과가 없습니다.', undefined, data);
+        throw new GoogleAIError(
+          'Google AI API 응답에 결과가 없습니다.',
+          undefined,
+          data
+        );
       }
 
       const candidate = data.candidates[0];
       const text = candidate.content?.parts?.[0]?.text;
 
       if (!text) {
-        throw new GoogleAIError('Google AI API 응답에 텍스트가 없습니다.', undefined, data);
+        throw new GoogleAIError(
+          'Google AI API 응답에 텍스트가 없습니다.',
+          undefined,
+          data
+        );
       }
 
       return text;
@@ -427,7 +519,8 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
    */
   private getCacheKey(request: UnifiedQueryRequest): string {
     const normalized = request.query.trim().toLowerCase();
-    return `unified:${request.scenario}:${normalized}`;
+    const scenarioNormalized = request.scenario.toLowerCase();
+    return `unified:${scenarioNormalized}:${normalized}`;
   }
 
   /**
@@ -445,13 +538,20 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
       return null;
     }
 
+    // LRU: 캐시 히트 시 최신 항목으로 갱신 (재삽입)
+    this.cache.delete(key);
+    this.cache.set(key, cached);
+
     return cached;
   }
 
   /**
    * 캐시 저장
    */
-  private setCache(request: UnifiedQueryRequest, response: UnifiedQueryResponse): void {
+  private setCache(
+    request: UnifiedQueryRequest,
+    response: UnifiedQueryResponse
+  ): void {
     const key = this.getCacheKey(request);
     this.cache.set(key, { response, timestamp: Date.now() });
 
@@ -496,14 +596,18 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
     }
 
     // Google AI 상태 확인
-    let googleAIStatus: { available: boolean; latency?: number; error?: string };
+    let googleAIStatus: {
+      available: boolean;
+      latency?: number;
+      error?: string;
+    };
     const aiStartTime = Date.now();
     try {
       await this.callGoogleAI({
-      systemInstruction: 'Health check',
-      userMessage: 'ping',
-      estimatedTokens: 10,
-    });
+        systemInstruction: 'Health check',
+        userMessage: 'ping',
+        estimatedTokens: 10,
+      });
       googleAIStatus = {
         available: true,
         latency: Date.now() - aiStartTime,
@@ -517,13 +621,16 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
 
     // 캐시 통계
     const hitRate =
-      this.stats.totalRequests > 0 ? this.stats.cacheHits / this.stats.totalRequests : 0;
+      this.stats.totalRequests > 0
+        ? this.stats.cacheHits / this.stats.totalRequests
+        : 0;
 
     return {
-      healthy: providers.every(p => p.healthy) && googleAIStatus.available,
-      message: providers.every(p => p.healthy) && googleAIStatus.available
-        ? 'All systems operational'
-        : 'Some systems are unavailable',
+      healthy: providers.every((p) => p.healthy) && googleAIStatus.available,
+      message:
+        providers.every((p) => p.healthy) && googleAIStatus.available
+          ? 'All systems operational'
+          : 'Some systems are unavailable',
       providers,
       googleAIStatus,
       cacheStatus: {
@@ -558,7 +665,9 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
     return {
       ...this.stats,
       hitRate:
-        this.stats.totalRequests > 0 ? this.stats.cacheHits / this.stats.totalRequests : 0,
+        this.stats.totalRequests > 0
+          ? this.stats.cacheHits / this.stats.totalRequests
+          : 0,
     };
   }
 }
