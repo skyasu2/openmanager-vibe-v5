@@ -26,13 +26,14 @@ cp config/templates/env.local.template .env.local
 ```
 
 **`.env.local` 필수 설정**:
+
 ```bash
 # Supabase 연결 (필수)
 SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
-# AI 기능 (선택 - Google AI 모드 사용 시)
+# AI 기능 (선택 - Google AI API 사용 시)
 GOOGLE_AI_API_KEY=your_google_ai_api_key
 
 # 관리자 PIN (기본값: 4231)
@@ -54,14 +55,17 @@ npm run dev
 ## 🎯 주요 기능 체험
 
 ### 1. 실시간 서버 모니터링
+
 - 대시보드에서 10개 시뮬레이션 서버 상태 실시간 확인
 - CPU, Memory, Disk 사용률 모니터링
 
 ### 2. AI 어시스턴트
-- **LOCAL 모드**: 빠른 기본 응답 (무료)
-- **GOOGLE_AI 모드**: 고급 자연어 질의 (API 키 필요)
+
+- **Google AI API**: 실시간 서버 분석 및 자연어 질의 (API 키 필요)
+- **Mock 모드**: API 키 없을 때 자동 폴백 (무료, 시뮬레이션)
 
 ### 3. PIN 인증 시스템
+
 - 관리자 PIN: 4231 (변경 가능)
 - 권한별 차등 접근 제어
 
@@ -89,6 +93,7 @@ npm run validate:all
 ## 🔧 문제 해결
 
 ### 개발 서버 오류
+
 ```bash
 # segment-explorer 에러 시
 npm run dev:stable
@@ -99,6 +104,7 @@ npm run dev
 ```
 
 ### 빌드 오류
+
 ```bash
 # TypeScript 검사
 npx tsc --noEmit
@@ -122,4 +128,4 @@ npm run validate:all
 
 🎯 **즉시 체험**: PIN 4231로 관리자 로그인 → 실시간 대시보드 확인
 
-🤖 **AI 활용**: LOCAL 모드로 서버 상태 질문 → GOOGLE_AI 모드로 고급 분석
+🤖 **AI 활용**: Google AI로 서버 분석 (API 키) 또는 Mock 모드로 체험 (무료)

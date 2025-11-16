@@ -16,7 +16,8 @@ import { getTestBaseUrl } from './config';
  */
 
 // 🔐 환경변수에서 시크릿 키 가져오기
-const TEST_SECRET_KEY = process.env.TEST_SECRET_KEY || 'test-secret-key-please-change-in-env';
+const TEST_SECRET_KEY =
+  process.env.TEST_SECRET_KEY || 'test-secret-key-please-change-in-env';
 
 export type TestMode = 'guest' | 'admin' | 'full_access';
 
@@ -66,7 +67,7 @@ export async function enableVercelTestMode(
     mode = 'full_access',
     pin = '4231',
     bypass = true,
-    baseUrl
+    baseUrl,
   } = options;
 
   console.log('🚀 [Vercel Test] 테스트 모드 활성화 시작:', { mode });
@@ -83,23 +84,26 @@ export async function enableVercelTestMode(
     } else {
       // BrowserContext인 경우 새 페이지 생성
       const pages = page.pages();
-      targetPage = pages[0] || await page.newPage();
+      targetPage = pages[0] || (await page.newPage());
     }
 
     // 3️⃣ API 호출하여 인증 (Playwright request API 사용)
     const context = 'context' in targetPage ? targetPage.context() : targetPage;
-    const response = await context.request.post(`${targetUrl}/api/test/vercel-test-auth`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Playwright Test Agent'
-      },
-      data: {
-        secret: TEST_SECRET_KEY,
-        mode,
-        pin,
-        bypass
+    const response = await context.request.post(
+      `${targetUrl}/api/test/vercel-test-auth`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Playwright Test Agent',
+        },
+        data: {
+          secret: TEST_SECRET_KEY,
+          mode,
+          pin,
+          bypass,
+        },
       }
-    });
+    );
 
     if (!response.ok()) {
       const errorText = await response.text();
@@ -121,56 +125,53 @@ export async function enableVercelTestMode(
 
     console.log('✅ [Vercel Test] API 인증 성공:', authResult.testMode);
 
-    // 4️⃣ localStorage 설정 (클라이언트 사이드)
-    await targetPage.evaluate((sessionData) => {
-      // 관리자 모드
-      localStorage.setItem('admin_mode', sessionData.adminMode ? 'true' : 'false');
-
-      // 인증 타입
-      localStorage.setItem('auth_type', sessionData.authType);
-
-      // 테스트 모드 플래그
-      localStorage.setItem('test_mode_enabled', 'true');
-      localStorage.setItem('test_bypass_active', 'true');
-
-      // 권한 정보
-      localStorage.setItem('test_permissions', JSON.stringify(sessionData.permissions));
-
-      // 게스트 세션 (필요한 경우)
-      if (sessionData.authType === 'guest' || sessionData.authType === 'test') {
-        localStorage.setItem('guest_session_id', `test_${Date.now()}`);
-        localStorage.setItem('auth_user', 'Test User');
-      }
-
-      console.log('✅ localStorage 테스트 설정 완료:', sessionData);
-    }, authResult.sessionData);
-
-    // 5️⃣ 쿠키 설정 (Playwright 컨텍스트에 명시적 추가 필수, context는 이미 line 89에서 선언됨)
+    // 4️⃣ 쿠키 설정 (localStorage 대신 쿠키만 사용 - Vercel 프로덕션 보안 정책 호환)
     await context.addCookies([
       {
         name: 'test_mode',
         value: 'enabled',
         url: targetUrl,
         httpOnly: false,
-        sameSite: 'Lax'
+        sameSite: 'Lax',
       },
       {
         name: 'test_auth_type',
         value: authResult.sessionData?.authType || 'test',
         url: targetUrl,
         httpOnly: false,
-        sameSite: 'Lax'
+        sameSite: 'Lax',
+      },
+      {
+        name: 'admin_mode',
+        value: authResult.sessionData?.adminMode ? 'true' : 'false',
+        url: targetUrl,
+        httpOnly: false,
+        sameSite: 'Lax',
+      },
+      {
+        name: 'test_permissions',
+        value: JSON.stringify(authResult.sessionData?.permissions || []),
+        url: targetUrl,
+        httpOnly: false,
+        sameSite: 'Lax',
+      },
+      {
+        name: 'test_bypass_active',
+        value: 'true',
+        url: targetUrl,
+        httpOnly: false,
+        sameSite: 'Lax',
       },
       {
         name: 'vercel_test_token',
         value: authResult.accessToken || '',
         url: targetUrl,
         httpOnly: true,
-        sameSite: 'Lax'
-      }
+        sameSite: 'Lax',
+      },
     ]);
 
-    console.log('✅ [Vercel Test] 쿠키 설정 완료');
+    console.log('✅ [Vercel Test] 쿠키 설정 완료 (localStorage 우회)');
 
     // 6️⃣ 테스트 헤더 추가 (모든 요청에 자동 적용)
     await context.route('**/*', async (route) => {
@@ -178,7 +179,7 @@ export async function enableVercelTestMode(
         ...route.request().headers(),
         'X-Test-Mode': 'enabled',
         'X-Test-Auth-Type': authResult.sessionData?.authType || 'test',
-        'X-Test-Token': authResult.accessToken || ''
+        'X-Test-Token': authResult.accessToken || '',
       };
 
       await route.continue({ headers });
@@ -193,7 +194,6 @@ export async function enableVercelTestMode(
     console.log(`   - 권한: ${authResult.sessionData?.permissions.join(', ')}`);
 
     return authResult;
-
   } catch (error) {
     console.error('❌ [Vercel Test] 테스트 모드 활성화 실패:', error);
     throw error;
@@ -225,10 +225,10 @@ export async function aiNavigate(
   console.log(`🤖 [AI Navigate] 이동 요청: ${url}`);
 
   try {
-    // 1️⃣ 테스트 모드 확인
-    const isTestModeActive = await page.evaluate(() =>
-      localStorage.getItem('test_mode_enabled') === 'true'
-    );
+    // 1️⃣ 테스트 모드 확인 (쿠키 기반)
+    const cookies = await page.context().cookies();
+    const testModeCookie = cookies.find((c) => c.name === 'test_mode');
+    const isTestModeActive = testModeCookie?.value === 'enabled';
 
     // 2️⃣ 테스트 모드가 없으면 자동 설정
     if (!isTestModeActive && autoSetup) {
@@ -241,7 +241,6 @@ export async function aiNavigate(
     await page.waitForLoadState('domcontentloaded');
 
     console.log(`✅ [AI Navigate] ${url} 접근 완료`);
-
   } catch (error) {
     console.error(`❌ [AI Navigate] ${url} 이동 실패:`, error);
     throw error;
@@ -257,23 +256,11 @@ export async function cleanupVercelTestMode(page: Page): Promise<void> {
   console.log('🧹 [Vercel Test] 테스트 모드 정리 시작');
 
   try {
-    await page.evaluate(() => {
-      // localStorage 정리
-      localStorage.removeItem('admin_mode');
-      localStorage.removeItem('auth_type');
-      localStorage.removeItem('test_mode_enabled');
-      localStorage.removeItem('test_bypass_active');
-      localStorage.removeItem('test_permissions');
-      localStorage.removeItem('guest_session_id');
-      localStorage.removeItem('auth_user');
-    });
-
-    // 쿠키 정리
+    // 쿠키 정리만 수행 (localStorage는 사용하지 않음 - Vercel 프로덕션 호환)
     const context = page.context();
     await context.clearCookies();
 
     console.log('✅ [Vercel Test] 테스트 모드 정리 완료');
-
   } catch (error) {
     console.error('❌ [Vercel Test] 정리 중 오류:', error);
   }
@@ -291,15 +278,24 @@ export async function getVercelTestStatus(page: Page): Promise<{
   adminMode: boolean;
   permissions: string[];
 }> {
-  return await page.evaluate(() => {
-    const isActive = localStorage.getItem('test_mode_enabled') === 'true';
-    const authType = localStorage.getItem('auth_type');
-    const adminMode = localStorage.getItem('admin_mode') === 'true';
-    const permissionsStr = localStorage.getItem('test_permissions');
-    const permissions = permissionsStr ? JSON.parse(permissionsStr) : [];
+  // 쿠키 기반으로 테스트 상태 확인 (localStorage는 Vercel 프로덕션에서 차단됨)
+  const cookies = await page.context().cookies();
 
-    return { isActive, authType, adminMode, permissions };
-  });
+  const testModeCookie = cookies.find((c) => c.name === 'test_mode');
+  const isActive = testModeCookie?.value === 'enabled';
+
+  const authTypeCookie = cookies.find((c) => c.name === 'test_auth_type');
+  const authType = authTypeCookie?.value || null;
+
+  const adminModeCookie = cookies.find((c) => c.name === 'admin_mode');
+  const adminMode = adminModeCookie?.value === 'true';
+
+  const permissionsCookie = cookies.find((c) => c.name === 'test_permissions');
+  const permissions = permissionsCookie?.value
+    ? JSON.parse(permissionsCookie.value)
+    : [];
+
+  return { isActive, authType, adminMode, permissions };
 }
 
 /**
@@ -310,22 +306,21 @@ export async function getVercelTestStatus(page: Page): Promise<{
  * @param baseUrl - 베이스 URL
  * @returns API 사용 가능 여부
  */
-export async function checkVercelTestApi(
-  baseUrl?: string
-): Promise<boolean> {
+export async function checkVercelTestApi(baseUrl?: string): Promise<boolean> {
   const targetUrl = baseUrl || getTestBaseUrl();
 
   try {
-    const response = await fetch(`${targetUrl}/api/test/vercel-test-auth?secret=${TEST_SECRET_KEY}`);
+    const response = await fetch(
+      `${targetUrl}/api/test/vercel-test-auth?secret=${TEST_SECRET_KEY}`
+    );
     const data = await response.json();
 
     console.log('🔍 [Vercel Test] API 상태:', {
       available: data.available,
-      environment: data.environment
+      environment: data.environment,
     });
 
     return data.available === true;
-
   } catch (error) {
     console.warn('⚠️ [Vercel Test] API 확인 실패:', error);
     return false;
