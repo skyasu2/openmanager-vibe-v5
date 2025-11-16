@@ -265,7 +265,12 @@ export class GoogleAIModeProcessor {
         }
 
         // 첫 번째 사용 가능한 모델로 전환
-        const fallbackModel = availableModels[0]; // Non-null: length check guarantees element exists
+        const fallbackModel = availableModels.at(0);
+        if (!fallbackModel) {
+          throw new Error(
+            'Internal error: availableModels array is empty after length check'
+          );
+        }
         console.log(
           `✅ [Google AI] 대체 모델 사용: ${selectedModel} → ${fallbackModel}`
         );
