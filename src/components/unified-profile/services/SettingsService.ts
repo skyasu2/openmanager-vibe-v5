@@ -135,7 +135,7 @@ export class SettingsService {
   /**
    * 알림 설정 조회 (Vercel 최적화)
    */
-  private async fetchNotificationConfig() {
+  private fetchNotificationConfig() {
     // Vercel 환경에서는 콘솔 로깅만 지원
     if (process.env.NEXT_PUBLIC_VERCEL_ENV || process.env.VERCEL === '1') {
       return { email: false, webhook: false };
@@ -270,15 +270,17 @@ export class SettingsService {
    * 개별 설정 조회 메서드들
    */
   getMetricsConfig(): Promise<unknown> {
-    return fetch('/api/admin/metrics-config').then(response => response.json());
+    return fetch('/api/admin/metrics-config').then((response) =>
+      response.json()
+    );
   }
 
   getScenariosConfig(): Promise<unknown> {
-    return fetch('/api/admin/scenarios').then(response => response.json());
+    return fetch('/api/admin/scenarios').then((response) => response.json());
   }
 
   getThresholdsConfig(): Promise<unknown> {
-    return fetch('/api/admin/thresholds').then(response => response.json());
+    return fetch('/api/admin/thresholds').then((response) => response.json());
   }
 
   async getDashboardConfig() {

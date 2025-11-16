@@ -252,7 +252,7 @@ export async function POST(request: NextRequest) {
 /**
  * 📊 PromQL 쿼리 시뮬레이션 실행
  */
-async function executePromQLQuery(
+function executePromQLQuery(
   query: string,
   time?: number
 ): Promise<PrometheusMetricResult[]> {

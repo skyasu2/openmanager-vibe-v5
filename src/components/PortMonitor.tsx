@@ -27,7 +27,7 @@ import {
   Network,
   Info,
   Settings,
-  BarChart3
+  BarChart3,
 } from 'lucide-react';
 
 // 포트 상태 인터페이스
@@ -62,17 +62,21 @@ export function PortMonitor({
   defaultPorts = [3000, 3001, 3002, 3003, 3004, 3005],
   updateInterval = 5000,
   autoRefresh = true,
-  compact = false
+  compact = false,
 }: PortMonitorProps) {
-  const [portStates, setPortStates] = useState<Map<number, PortInfo>>(new Map());
+  const [portStates, setPortStates] = useState<Map<number, PortInfo>>(
+    new Map()
+  );
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(autoRefresh);
-  const [selectedPorts, setSelectedPorts] = useState<Set<number>>(new Set(defaultPorts));
+  const [selectedPorts, setSelectedPorts] = useState<Set<number>>(
+    new Set(defaultPorts)
+  );
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // 🚨 SAFE: Mock 포트 상태 가져오기 함수 (브라우저 호환)
-  const fetchPortStates = useCallback(async () => {
+  const fetchPortStates = useCallback(() => {
     setIsRefreshing(true);
 
     try {
@@ -84,9 +88,9 @@ export function PortMonitor({
       for (const port of portsToCheck) {
         // 포트별 고유한 시드로 일관성 있는 Mock 데이터
         const seed = port * 2654435761; // FNV-1a 해시 기반
-        const random1 = ((seed >> 16) & 0xFFFF) / 0xFFFF;
-        const random2 = ((seed >> 8) & 0xFFFF) / 0xFFFF;
-        const random3 = (seed & 0xFFFF) / 0xFFFF;
+        const random1 = ((seed >> 16) & 0xffff) / 0xffff;
+        const random2 = ((seed >> 8) & 0xffff) / 0xffff;
+        const random3 = (seed & 0xffff) / 0xffff;
 
         // 개발 포트들은 사용 중일 확률이 높음
         const isDevelopmentPort = [3000, 3001, 3002, 3003].includes(port);
@@ -96,19 +100,25 @@ export function PortMonitor({
           port,
           available: isAvailable,
           lastChecked: Date.now(),
-          service: isAvailable ? undefined :
-                  isDevelopmentPort ? 'Next.js Dev Server' :
-                  ['Node.js App', 'Express Server', 'React App', 'Unknown Service'][Math.floor(random2 * 4)],
+          service: isAvailable
+            ? undefined
+            : isDevelopmentPort
+              ? 'Next.js Dev Server'
+              : [
+                  'Node.js App',
+                  'Express Server',
+                  'React App',
+                  'Unknown Service',
+                ][Math.floor(random2 * 4)],
           uptime: isAvailable ? undefined : Math.floor(random3 * 3600), // 0-1시간
           memoryUsage: 20 + random1 * 60, // 20-80%
           cpuUsage: 10 + random2 * 30, // 10-40%
-          platform: 'WSL' as const
+          platform: 'WSL' as const,
         });
       }
 
       setPortStates(newPortStates);
       setLastUpdate(new Date());
-
     } catch (error) {
       console.error('포트 상태 조회 실패:', error);
     } finally {
@@ -121,7 +131,9 @@ export function PortMonitor({
     let interval: NodeJS.Timeout;
 
     if (autoRefreshEnabled) {
-      interval = setInterval(() => { void fetchPortStates(); }, updateInterval);
+      interval = setInterval(() => {
+        void fetchPortStates();
+      }, updateInterval);
     }
 
     return () => {
@@ -139,8 +151,8 @@ export function PortMonitor({
   // 포트 상태 통계
   const getPortStats = () => {
     const ports = Array.from(portStates.values());
-    const available = ports.filter(p => p.available).length;
-    const occupied = ports.filter(p => !p.available).length;
+    const available = ports.filter((p) => p.available).length;
+    const occupied = ports.filter((p) => !p.available).length;
     const total = ports.length;
 
     return { available, occupied, total };
@@ -169,7 +181,15 @@ export function PortMonitor({
   const stats = getPortStats();
 
   if (compact) {
-    return <CompactPortMonitor portStates={portStates} onRefresh={() => { void fetchPortStates(); }} isRefreshing={isRefreshing} />;
+    return (
+      <CompactPortMonitor
+        portStates={portStates}
+        onRefresh={() => {
+          void fetchPortStates();
+        }}
+        isRefreshing={isRefreshing}
+      />
+    );
   }
 
   return (
@@ -203,10 +223,14 @@ export function PortMonitor({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => { void fetchPortStates(); }}
+            onClick={() => {
+              void fetchPortStates();
+            }}
             disabled={isRefreshing}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`}
+            />
             새로고침
           </Button>
           <Button
@@ -214,18 +238,18 @@ export function PortMonitor({
             size="sm"
             onClick={() => setShowAdvanced(!showAdvanced)}
           >
-            <Settings className="h-4 w-4 mr-2" />
+            <Settings className="mr-2 h-4 w-4" />
             고급 설정
           </Button>
         </div>
       </div>
 
       {/* 포트 통계 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
         <Card>
           <CardContent className="flex items-center p-6">
             <div className="flex items-center space-x-4">
-              <div className="p-2 bg-green-100 rounded-full">
+              <div className="rounded-full bg-green-100 p-2">
                 <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
               <div>
@@ -239,7 +263,7 @@ export function PortMonitor({
         <Card>
           <CardContent className="flex items-center p-6">
             <div className="flex items-center space-x-4">
-              <div className="p-2 bg-red-100 rounded-full">
+              <div className="rounded-full bg-red-100 p-2">
                 <XCircle className="h-6 w-6 text-red-600" />
               </div>
               <div>
@@ -253,7 +277,7 @@ export function PortMonitor({
         <Card>
           <CardContent className="flex items-center p-6">
             <div className="flex items-center space-x-4">
-              <div className="p-2 bg-blue-100 rounded-full">
+              <div className="rounded-full bg-blue-100 p-2">
                 <Server className="h-6 w-6 text-blue-600" />
               </div>
               <div>
@@ -267,12 +291,15 @@ export function PortMonitor({
         <Card>
           <CardContent className="flex items-center p-6">
             <div className="flex items-center space-x-4">
-              <div className="p-2 bg-yellow-100 rounded-full">
+              <div className="rounded-full bg-yellow-100 p-2">
                 <Activity className="h-6 w-6 text-yellow-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {stats.total > 0 ? Math.round((stats.available / stats.total) * 100) : 0}%
+                  {stats.total > 0
+                    ? Math.round((stats.available / stats.total) * 100)
+                    : 0}
+                  %
                 </p>
                 <p className="text-sm text-muted-foreground">가용률</p>
               </div>
@@ -286,7 +313,7 @@ export function PortMonitor({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Settings className="h-5 w-5 mr-2" />
+              <Settings className="mr-2 h-5 w-5" />
               고급 설정
             </CardTitle>
           </CardHeader>
@@ -295,7 +322,8 @@ export function PortMonitor({
               <div>
                 <p className="font-medium">포트 범위 추가</p>
                 <p className="text-sm text-muted-foreground">
-                  {portRange.start}-{portRange.end} 범위의 포트들을 모니터링에 추가
+                  {portRange.start}-{portRange.end} 범위의 포트들을 모니터링에
+                  추가
                 </p>
               </div>
               <Button onClick={addPortRange} variant="outline" size="sm">
@@ -306,18 +334,20 @@ export function PortMonitor({
             <Separator />
 
             <div>
-              <p className="font-medium mb-2">개별 포트 관리</p>
+              <p className="mb-2 font-medium">개별 포트 관리</p>
               <div className="flex flex-wrap gap-2">
-                {Array.from({ length: 20 }, (_, i) => portRange.start + i).map(port => (
-                  <Button
-                    key={port}
-                    variant={selectedPorts.has(port) ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => togglePortMonitoring(port)}
-                  >
-                    {port}
-                  </Button>
-                ))}
+                {Array.from({ length: 20 }, (_, i) => portRange.start + i).map(
+                  (port) => (
+                    <Button
+                      key={port}
+                      variant={selectedPorts.has(port) ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => togglePortMonitoring(port)}
+                    >
+                      {port}
+                    </Button>
+                  )
+                )}
               </div>
             </div>
           </CardContent>
@@ -328,7 +358,7 @@ export function PortMonitor({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <BarChart3 className="h-5 w-5 mr-2" />
+            <BarChart3 className="mr-2 h-5 w-5" />
             포트 상세 현황
           </CardTitle>
         </CardHeader>
@@ -389,11 +419,13 @@ function PortStatusCard({ portInfo }: { portInfo: PortInfo }) {
             )}
 
             {portInfo.memoryUsage !== undefined && (
-              <div className="text-right min-w-[80px]">
+              <div className="min-w-[80px] text-right">
                 <p className="text-xs text-muted-foreground">메모리</p>
                 <div className="flex items-center space-x-2">
-                  <Progress value={portInfo.memoryUsage} className="w-12 h-2" />
-                  <span className="text-xs">{Math.round(portInfo.memoryUsage)}%</span>
+                  <Progress value={portInfo.memoryUsage} className="h-2 w-12" />
+                  <span className="text-xs">
+                    {Math.round(portInfo.memoryUsage)}%
+                  </span>
                 </div>
               </div>
             )}
@@ -415,15 +447,16 @@ function PortStatusCard({ portInfo }: { portInfo: PortInfo }) {
 function CompactPortMonitor({
   portStates,
   onRefresh,
-  isRefreshing
+  isRefreshing,
 }: {
   portStates: Map<number, PortInfo>;
   onRefresh: () => void;
   isRefreshing: boolean;
 }) {
   const stats = {
-    available: Array.from(portStates.values()).filter(p => p.available).length,
-    total: portStates.size
+    available: Array.from(portStates.values()).filter((p) => p.available)
+      .length,
+    total: portStates.size,
   };
 
   return (
@@ -437,20 +470,24 @@ function CompactPortMonitor({
             onClick={onRefresh}
             disabled={isRefreshing}
           >
-            <RefreshCw className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-3 w-3 ${isRefreshing ? 'animate-spin' : ''}`}
+            />
           </Button>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
         <div className="flex items-center justify-between text-sm">
-          <span>사용 가능: {stats.available}/{stats.total}</span>
+          <span>
+            사용 가능: {stats.available}/{stats.total}
+          </span>
           <div className="flex space-x-1">
             {Array.from(portStates.values())
               .slice(0, 6)
               .map((port) => (
                 <div
                   key={port.port}
-                  className={`w-2 h-2 rounded-full ${
+                  className={`h-2 w-2 rounded-full ${
                     port.available ? 'bg-green-500' : 'bg-red-500'
                   }`}
                   title={`포트 ${port.port}: ${port.available ? '사용가능' : '사용중'}`}

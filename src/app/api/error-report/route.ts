@@ -112,7 +112,7 @@ const getHandler = createApiRoute()
     showDetailedErrors: process.env.NODE_ENV === 'development',
     enableLogging: true,
   })
-  .build(async (_request, context): Promise<ErrorReportListResponse> => {
+  .build((_request, context): Promise<ErrorReportListResponse> => {
     const { severity, status, category, limit, offset } = context.query;
 
     let errorReports = generateMockErrorReports(100);
@@ -174,7 +174,7 @@ const postHandler = createApiRoute()
     showDetailedErrors: process.env.NODE_ENV === 'development',
     enableLogging: true,
   })
-  .build(async (_request, context): Promise<ErrorReportCreateResponse> => {
+  .build((_request, context): Promise<ErrorReportCreateResponse> => {
     const {
       title,
       description,

@@ -110,7 +110,7 @@ const getHandler = createApiRoute()
     showDetailedErrors: process.env.NODE_ENV === 'development',
     enableLogging: true,
   })
-  .build(async (): Promise<DatabasePoolStatusResponse> => {
+  .build((): Promise<DatabasePoolStatusResponse> => {
     // 현재 연결 풀 상태 반환
     return {
       success: true,

@@ -147,7 +147,7 @@ async function optimizeMemoryHandler(request: NextRequest) {
 /**
  * 📊 메모리 상태 조회 (GET)
  */
-async function getMemoryStatusHandler(_request: NextRequest): Promise<NextResponse> {
+function getMemoryStatusHandler(_request: NextRequest): Promise<NextResponse> {
   try {
     debug.log('📊 메모리 상태 조회 API 호출');
 
@@ -176,10 +176,10 @@ async function getMemoryStatusHandler(_request: NextRequest): Promise<NextRespon
           duration: result.duration,
           actions: result.optimizationActions,
         })),
-        recommendations: generateMemoryRecommendations(
-          memorySummary.status,
-          { memory: memorySummary.current.usagePercent, cpu: 0 }
-        ),
+        recommendations: generateMemoryRecommendations(memorySummary.status, {
+          memory: memorySummary.current.usagePercent,
+          cpu: 0,
+        }),
       },
       '메모리 상태 조회 완료'
     );
@@ -210,7 +210,13 @@ function determineMemoryStatus(
  */
 function generateMemoryRecommendations(
   status: 'optimal' | 'good' | 'acceptable' | 'warning' | 'critical',
-  current?: { memory: number; cpu: number; rss?: number; heapTotal?: number; external?: number }
+  current?: {
+    memory: number;
+    cpu: number;
+    rss?: number;
+    heapTotal?: number;
+    external?: number;
+  }
 ): string[] {
   const recommendations: string[] = [];
 

@@ -379,7 +379,7 @@ export class AdvancedContextManager {
   /**
    * 🔤 임베딩 생성 (모의 구현)
    */
-  private async generateEmbedding(text: string): Promise<number[]> {
+  private generateEmbedding(text: string): Promise<number[]> {
     // 실제 환경에서는 OpenAI embeddings나 Hugging Face 모델 사용
     // 현재는 간단한 해시 기반 벡터 생성
     const normalized = text.toLowerCase().trim();
@@ -774,7 +774,9 @@ export class AdvancedContextManager {
   private async loadContextCache(): Promise<AdvancedContextCache> {
     try {
       // 먼저 메모리 캐시에서 확인
-      const memCached = this.memoryCache.get<AdvancedContextCache>(this.CACHE_KEY);
+      const memCached = this.memoryCache.get<AdvancedContextCache>(
+        this.CACHE_KEY
+      );
       if (memCached) {
         return {
           documents: new Map(memCached.documents || []),
