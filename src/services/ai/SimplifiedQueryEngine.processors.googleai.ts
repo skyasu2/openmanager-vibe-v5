@@ -23,7 +23,10 @@ import type {
 } from './SimplifiedQueryEngine.types';
 import { SimplifiedQueryEngineUtils } from './SimplifiedQueryEngine.utils';
 import { SimplifiedQueryEngineHelpers } from './SimplifiedQueryEngine.processors.helpers';
-import { getQueryDifficultyAnalyzer, type GoogleAIModel } from './QueryDifficultyAnalyzer';
+import {
+  getQueryDifficultyAnalyzer,
+  type GoogleAIModel,
+} from './QueryDifficultyAnalyzer';
 import { getGoogleAIUsageTracker } from './GoogleAIUsageTracker';
 // 🔧 타임아웃 설정 (통합 유틸리티 사용)
 import { getEnvironmentTimeouts } from '@/utils/timeout-config';
@@ -149,9 +152,14 @@ export class GoogleAIModeProcessor {
         ragFailedStep.duration = Date.now() - ragStepStart;
       }
       // RAG 실패는 치명적이지 않음. 계속 진행.
-      ragResult = { success: false, results: [], totalResults: 0, cached: false, processingTime: Date.now() - ragStepStart };
+      ragResult = {
+        success: false,
+        results: [],
+        totalResults: 0,
+        cached: false,
+        processingTime: Date.now() - ragStepStart,
+      };
     }
-
 
     // 3단계: Cloud Functions 기반 통합 분석
     const unifiedStepStart = Date.now();
@@ -186,8 +194,8 @@ export class GoogleAIModeProcessor {
       timestamp: modelStepStart,
     });
 
-    // 🎯 무료 티어 안정성 우선: Flash-Lite 고정 사용
-    const selectedModel: GoogleAIModel = 'gemini-2.5-flash-lite';
+    // 🎯 무료 티어 안정성 우선: Flash-Lite 고정 사용 (할당량 초과 시 대체 모델 전환 가능)
+    let selectedModel: GoogleAIModel = 'gemini-2.5-flash-lite';
     const difficultyScore = 0; // 단순화: 분석 생략
     const difficultyLevel = 'standard'; // 표준 처리
 
@@ -202,7 +210,7 @@ export class GoogleAIModeProcessor {
 
     // 🎯 기본 모델 고정: 표준 파라미터 사용 (스코프 외부에서 정의)
     const standardTemperature = 0.7; // 균형잡힌 창의성
-    const standardMaxTokens = 1000;  // 충분한 응답 길이
+    const standardMaxTokens = 1000; // 충분한 응답 길이
 
     // 5단계: Google AI API 처리 (선택된 모델 사용)
     const googleStepStart = Date.now();
@@ -212,6 +220,10 @@ export class GoogleAIModeProcessor {
       status: 'pending',
       timestamp: googleStepStart,
     });
+
+    // 🛡️ 할당량 보호: API 호출 전 사용 가능 여부 확인
+    // 🔄 사용량 추적기: 할당량 체크 + 성공/실패 기록용 (try/catch 블록 외부에서 선언하여 재사용)
+    const usageTracker = getGoogleAIUsageTracker();
 
     try {
       // 1. 서버 컨텍스트 조회
@@ -227,21 +239,46 @@ export class GoogleAIModeProcessor {
       );
 
       // 3. 최종 프롬프트 조립 (서버 컨텍스트 포함)
-      const prompt = serverContext
-        ? basePrompt + serverContext
-        : basePrompt;
+      const prompt = serverContext ? basePrompt + serverContext : basePrompt;
 
       // 🚀 아키텍처 개선: 직접 Google AI SDK 호출 (중간 API Route 제거)
       const timeouts = getEnvironmentTimeouts();
 
       // DirectGoogleAIService 사용 (API Wrapper Anti-Pattern 제거)
+
+      // 🛡️ 할당량 보호 로직 (usageTracker는 try 블록 외부에서 선언됨)
+      if (!usageTracker.canUseModel(selectedModel)) {
+        console.warn(
+          `⚠️ [Google AI] ${selectedModel} 할당량 초과, 대체 모델 확인 중...`
+        );
+
+        // 사용 가능한 대체 모델 찾기
+        const availableModels = usageTracker.getAvailableModels();
+
+        if (availableModels.length === 0) {
+          // 모든 모델 할당량 초과 - 에러 반환
+          const errorMsg =
+            'Google AI 모든 모델의 할당량이 초과되었습니다. 잠시 후 다시 시도해주세요.';
+          console.error(`❌ [Google AI] ${errorMsg}`);
+
+          throw new Error(errorMsg);
+        }
+
+        // 첫 번째 사용 가능한 모델로 전환
+        const fallbackModel = availableModels[0]; // Non-null: length check guarantees element exists
+        console.log(
+          `✅ [Google AI] 대체 모델 사용: ${selectedModel} → ${fallbackModel}`
+        );
+        selectedModel = fallbackModel;
+      }
+
       console.log('🚀 [Google AI] 요청 시작:', {
         model: selectedModel,
         query: query.substring(0, 50) + (query.length > 50 ? '...' : ''),
         temperature: standardTemperature,
         maxTokens: standardMaxTokens,
         timeout: timeouts.GOOGLE_AI,
-        promptLength: prompt.length
+        promptLength: prompt.length,
       });
 
       const directGoogleAI = getDirectGoogleAIService();
@@ -249,14 +286,14 @@ export class GoogleAIModeProcessor {
         model: selectedModel,
         temperature: standardTemperature,
         maxTokens: standardMaxTokens,
-        timeout: timeouts.GOOGLE_AI // 🎯 넉넉한 타임아웃: timeout-config.ts 설정 사용 (8초)
+        timeout: timeouts.GOOGLE_AI, // 🎯 넉넉한 타임아웃: timeout-config.ts 설정 사용 (8초)
       });
 
       console.log('📊 [Google AI] 응답 상태:', {
         success: apiResponse.success,
         error: apiResponse.error,
         responseTime: apiResponse.responseTime,
-        contentLength: apiResponse.content?.length
+        contentLength: apiResponse.content?.length,
       });
 
       if (!apiResponse.success) {
@@ -265,7 +302,7 @@ export class GoogleAIModeProcessor {
           model: selectedModel,
           query,
           promptLength: prompt.length,
-          responseTime: apiResponse.responseTime
+          responseTime: apiResponse.responseTime,
         });
         throw new Error(`Google AI 직접 호출 오류: ${apiResponse.error}`);
       }
@@ -278,7 +315,6 @@ export class GoogleAIModeProcessor {
       }
 
       // 🔄 사용량 추적: 성공한 API 호출 기록
-      const usageTracker = getGoogleAIUsageTracker();
       usageTracker.recordUsage({
         model: selectedModel,
         timestamp: Date.now(),
@@ -337,11 +373,10 @@ export class GoogleAIModeProcessor {
         stack: error instanceof Error ? error.stack : undefined,
         query,
         model: selectedModel,
-        processingTime: Date.now() - startTime
+        processingTime: Date.now() - startTime,
       });
 
       // 🔄 사용량 추적: 실패한 API 호출 기록
-      const usageTracker = getGoogleAIUsageTracker();
       usageTracker.recordUsage({
         model: selectedModel,
         timestamp: Date.now(),
