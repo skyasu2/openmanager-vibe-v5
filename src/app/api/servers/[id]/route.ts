@@ -1,17 +1,12 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 import { getMockSystem } from '@/mock';
-import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
   ServerDetailQuerySchema,
   LegacyServerResponseSchema,
   EnhancedServerResponseSchema,
   ServerErrorResponseSchema,
   type ServerDetailQuery,
-
-
-
 } from '@/schemas/api.schema';
 // server-details.schema에서 직접 import (올바른 구조를 위해)
 import {
@@ -81,23 +76,25 @@ export async function GET(
     });
 
     const servers = mockSystem.getServers();
-    const serverData = servers.find(server =>
-      server.id === id ||
-      server.hostname === id ||
-      server.name === id
+    const serverData = servers.find(
+      (server) =>
+        server.id === id || server.hostname === id || server.name === id
     );
 
     if (!serverData) {
-      debug.error('❌ Mock 시스템에서 서버 조회 실패:', `서버 ID/hostname [${id}] 찾을 수 없음`);
+      debug.error(
+        '❌ Mock 시스템에서 서버 조회 실패:',
+        `서버 ID/hostname [${id}] 찾을 수 없음`
+      );
     }
 
     const server = serverData as DatabaseServer | null;
 
     if (!server) {
       // 사용 가능한 서버 목록을 Mock 시스템에서 가져오기
-      const availableServers = servers.slice(0, 10).map(s => ({
+      const availableServers = servers.slice(0, 10).map((s) => ({
         id: s.id,
-        hostname: s.hostname
+        hostname: s.hostname,
       }));
 
       return NextResponse.json(

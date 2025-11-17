@@ -4,7 +4,7 @@ import type {
   ServerHealth,
   ServerMetrics,
   ServerSpecs,
-  ServerStatus,
+  ServerStatus as CommonServerStatus,
 } from './server-common';
 
 // 🏗️ AI 교차검증 기반 새로운 타입 시스템 통합
@@ -20,31 +20,28 @@ import type {
   getDefaultServerRole,
 } from './server-enums';
 
-// 새로운 enum 기반 타입들을 기본으로 사용
-export type { 
+// 타입 충돌 방지를 위해 타입 이름 변경
+export type {
   EnumServerStatus as ServerStatusEnum,
-  EnumServerEnvironment as ServerEnvironmentEnum, 
-  EnumServerRole as ServerRoleEnum
+  EnumServerEnvironment as ServerEnvironmentEnum,
+  EnumServerRole as ServerRoleEnum,
 };
 
 // 타입 가드와 기본값 함수들 re-export
 export {
   isValidServerStatus,
-  isValidServerEnvironment, 
+  isValidServerEnvironment,
   isValidServerRole,
   getDefaultServerStatus,
   getDefaultServerEnvironment,
   getDefaultServerRole,
 };
 
+// 기존 타입들과의 호환성을 위해 재정의
+export type ServerStatus = CommonServerStatus;
+
 // 다른 파일에서 사용할 수 있도록 재export
-export type {
-  AlertSeverity,
-  ServerHealth,
-  ServerMetrics,
-  ServerSpecs,
-  ServerStatus,
-};
+export type { AlertSeverity, ServerHealth, ServerMetrics, ServerSpecs };
 
 export interface ServerInstance {
   id: string;
@@ -119,11 +116,11 @@ export interface Server {
   alerts?: number | ServerAlert[];
   ip?: string;
   os?: string;
-  type?: string;
+  type?: ServerRole; // 🔧 수정: ServerRole 타입 사용
   description?: string; // 서버 설명 추가
-  environment?: string;
+  environment?: ServerEnvironment; // 🔧 수정: ServerEnvironment 타입 사용
   provider?: string;
-  role?: string; // 서버 역할 추가
+  role?: ServerRole; // 🔧 수정: ServerRole 타입 사용
   lastSeen?: string; // 추가
   metrics?: {
     cpu: {
@@ -160,12 +157,7 @@ export interface Server {
   services?: Service[];
   logs?: LogEntry[];
   networkInfo?: NetworkInfo;
-  networkStatus?:
-    | 'online' // 🔧 수정: 'healthy' → 'online' (타입 통합)
-    | 'warning'
-    | 'critical'
-    | 'offline'
-    | 'maintenance'; // 네트워크 상태를 ServerStatus와 통일
+  networkStatus?: ServerStatus; // 🔧 수정: ServerStatus 타입 사용
   systemInfo?: SystemInfo;
   health?: {
     score: number; // 0 ~ 100
@@ -182,6 +174,8 @@ export interface Service {
   name: string;
   status: ServiceStatus;
   port?: number; // optional로 변경
+  environment?: ServerEnvironment; // 환경 정보 추가
+  role?: ServerRole; // 서버 역할 정보 추가
 }
 
 export interface LogEntry {
@@ -204,6 +198,8 @@ export interface NetworkInfo {
   last_updated?: string;
   alerts?: ServerAlert[];
   processes?: ProcessInfo[];
+  environment?: ServerEnvironment; // 환경 정보 추가
+  role?: ServerRole; // 서버 역할 정보 추가
 }
 
 export interface SystemInfo {
@@ -213,11 +209,18 @@ export interface SystemInfo {
   zombieProcesses: number;
   loadAverage: string;
   lastUpdate: string;
+  environment?: ServerEnvironment; // 환경 정보 추가
+  role?: ServerRole; // 서버 역할 정보 추가
 }
 
 // ⚠️ DEPRECATED: 기존 타입들 - server-enums.ts 사용 권장
 // 호환성을 위해 유지하되, 새 코드에서는 ServerEnvironmentEnum, ServerRoleEnum 사용
-export type ServerEnvironment = EnumServerEnvironment | 'on-premise' | 'aws' | 'gcp' | 'azure';
+export type ServerEnvironment =
+  | EnumServerEnvironment
+  | 'on-premise'
+  | 'aws'
+  | 'gcp'
+  | 'azure';
 export type ServerRole = EnumServerRole | 'app' | 'fallback';
 
 export interface EnhancedServerMetrics {
@@ -227,7 +230,7 @@ export interface EnhancedServerMetrics {
   environment: ServerEnvironment;
   role: ServerRole;
   status: ServerStatus;
-  
+
   // 🔧 호환성 확장을 위한 추가 필드들 (AI 교차검증 결과 반영)
   cpu_usage: number;
   memory_usage: number;
@@ -252,19 +255,19 @@ export interface EnhancedServerMetrics {
   // 🔧 호환성을 위한 추가 속성들
   network?: number; // network_in/network_out의 합계 또는 평균
   cpu?: number; // cpu_usage 호환성
-  memory?: number; // memory_usage 호환성  
+  memory?: number; // memory_usage 호환성
   disk?: number; // disk_usage 호환성
 
   // 🔧 추가 호환성 필드들
   ip?: string; // IP 주소
-  os?: string; // 운영체제 
+  os?: string; // 운영체제
   connections?: number; // 연결 수
   services?: Service[]; // 서비스 목록
   processes?: ProcessInfo[]; // 프로세스 정보
 
   // 🔧 서버 기본 정보 (API route에서 사용)
   location?: string; // 서버 위치
-  type?: string; // 서버 타입 (role과 중복되지만 호환성)
+  type?: ServerRole; // 🔧 수정: ServerRole 타입 사용 (role과 중복되지만 호환성)
   provider?: string; // 클라우드 제공자
   specs?: ServerSpecs; // 서버 사양
   lastUpdate?: string; // 마지막 업데이트 (ISO 문자열)
@@ -273,7 +276,7 @@ export interface EnhancedServerMetrics {
 
   // 🔧 메타데이터 정보 (API route에서 사용)
   metadata?: {
-    serverType?: string;
+    serverType?: ServerRole;
     timeSlot?: number;
     hour?: number;
     minute?: number;
@@ -284,7 +287,11 @@ export interface EnhancedServerMetrics {
       };
       intensity: number;
     };
-    scenarios?: Array<{ type: string; severity: string; description: string }>;
+    scenarios?: Array<{
+      type: ServerRole;
+      severity: AlertSeverity;
+      description: string;
+    }>;
     baseline?: {
       cpu: number;
       memory: number;
@@ -683,4 +690,62 @@ export interface TimeSeriesMetrics {
   disk: number;
   network: number;
   processes?: ProcessInfo[];
+}
+
+// 🔧 타입 가드 함수들
+export function isServer(obj: unknown): obj is Server {
+  if (typeof obj !== 'object' || obj === null) return false;
+
+  const server = obj as Server;
+  return (
+    typeof server.id === 'string' &&
+    typeof server.name === 'string' &&
+    isValidServerStatus(server.status) &&
+    typeof server.cpu === 'number' &&
+    typeof server.memory === 'number' &&
+    typeof server.disk === 'number' &&
+    typeof server.uptime !== 'undefined'
+  );
+}
+
+export function isValidAlertSeverity(
+  severity: string
+): severity is AlertSeverity {
+  const validSeverities: AlertSeverity[] = [
+    'info',
+    'warning',
+    'error',
+    'critical',
+  ];
+  return (validSeverities as string[]).includes(severity);
+}
+
+export function isValidServiceStatus(status: string): status is ServiceStatus {
+  const validStatuses: ServiceStatus[] = [
+    'running',
+    'stopped',
+    'unknown',
+    'error',
+    'starting',
+    'stopping',
+  ];
+  return (validStatuses as string[]).includes(status);
+}
+
+export function isEnhancedServerMetrics(
+  obj: unknown
+): obj is EnhancedServerMetrics {
+  if (typeof obj !== 'object' || obj === null) return false;
+
+  const server = obj as EnhancedServerMetrics;
+  return (
+    typeof server.id === 'string' &&
+    typeof server.hostname === 'string' &&
+    isValidServerEnvironment(server.environment) &&
+    isValidServerRole(server.role) &&
+    isValidServerStatus(server.status) &&
+    typeof server.cpu_usage === 'number' &&
+    typeof server.memory_usage === 'number' &&
+    typeof server.disk_usage === 'number'
+  );
 }

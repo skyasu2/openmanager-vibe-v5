@@ -3,6 +3,9 @@
  * 테스트용 console.log를 대체하는 구조화된 로깅
  */
 
+import { createSafeError } from './error-handler';
+import type { SafeError } from './error-handler';
+
 export enum LogLevel {
   DEBUG = 0,
   INFO = 1,
@@ -18,6 +21,7 @@ export interface LogEntry {
   message: string;
   data?: unknown;
   source?: string;
+  error?: SafeError; // 에러 관련 로깅을 위한 필드 추가
 }
 
 class DevLogger {
@@ -52,7 +56,8 @@ class DevLogger {
     level: LogLevel,
     category: string,
     message: string,
-    data?: unknown
+    data?: unknown,
+    error?: SafeError
   ): string {
     const timestamp = new Date().toISOString();
     const levelIcon = this.getLevelIcon(level);
@@ -62,6 +67,16 @@ class DevLogger {
 
     if (data) {
       formatted += `\n${JSON.stringify(data, null, 2)}`;
+    }
+
+    if (error) {
+      formatted += `\nError: ${error.message}`;
+      if (error.stack) {
+        formatted += `\nStack: ${error.stack}`;
+      }
+      if (error.code) {
+        formatted += `\nCode: ${error.code}`;
+      }
     }
 
     return formatted;
@@ -116,10 +131,17 @@ class DevLogger {
     }
   }
 
-  error(category: string, message: string, data?: unknown): void {
+  error(
+    category: string,
+    message: string,
+    data?: unknown,
+    errorObj?: unknown
+  ): void {
     if (this.shouldLog(LogLevel.ERROR, category)) {
+      const safeError = errorObj ? createSafeError(errorObj) : undefined;
+
       console.error(
-        this.formatMessage(LogLevel.ERROR, category, message, data)
+        this.formatMessage(LogLevel.ERROR, category, message, data, safeError)
       );
     }
   }
@@ -159,6 +181,37 @@ class DevLogger {
     this.info('performance', `${operation}: ${duration}ms`, metadata);
   }
 
+  // 에러 로깅 함수들
+  errorTrace(category: string, message: string, error: unknown): void {
+    const safeError = createSafeError(error);
+    this.error(
+      category,
+      message,
+      { errorDetails: safeError.message },
+      safeError
+    );
+  }
+
+  errorWithStack(category: string, message: string, error: unknown): void {
+    const safeError = createSafeError(error);
+    this.error(category, message, {}, safeError);
+  }
+
+  warnWithDetails(
+    category: string,
+    message: string,
+    details?: unknown,
+    error?: unknown
+  ): void {
+    const safeError = error ? createSafeError(error) : undefined;
+    this.warn(
+      category,
+      message,
+      { details, error: safeError?.message },
+      safeError
+    );
+  }
+
   // AI 관련 로깅
   aiQuery(query: string, engine: string, confidence?: number): void {
     this.info('ai', `AI 쿼리 처리`, {
@@ -194,6 +247,26 @@ export const logPerformance = (
 ) => devLogger.performance(operation, duration, metadata);
 export const logAI = (query: string, engine: string, confidence?: number) =>
   devLogger.aiQuery(query, engine, confidence);
+
+// 에러 관련 편의 함수
+export const logError = (
+  message: string,
+  error: unknown,
+  category: string = 'general'
+) => devLogger.errorTrace(category, message, error);
+
+export const logErrorWithStack = (
+  message: string,
+  error: unknown,
+  category: string = 'general'
+) => devLogger.errorWithStack(category, message, error);
+
+export const logWarningWithDetails = (
+  message: string,
+  details?: unknown,
+  error?: unknown,
+  category: string = 'general'
+) => devLogger.warnWithDetails(category, message, details, error);
 
 // 🔄 기존 코드 호환성을 위한 레거시 export
 export const systemLogger = {

@@ -14,7 +14,7 @@
  * - ✅ 반응형 디자인 완전 지원
  */
 
-import React from 'react'; // 🧪 테스트 환경에서 JSX 트랜스폼을 위해 명시적 import 필요
+import React, { useCallback, useMemo } from 'react'; // 🧪 테스트 환경에서 JSX 트랜스폼을 위해 명시적 import 필요
 import {
   AlertCircle,
   CheckCircle2,
@@ -31,8 +31,12 @@ import {
   Zap,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import { memo, useCallback, useEffect, useState, useMemo, useRef, type FC, Fragment } from 'react';
-import type { Server as ServerType } from '../../types/server';
+import { memo, useEffect, useState, useRef, type FC, Fragment } from 'react';
+
+// 공통 컴포넌트 import
+import { ServerStatusIndicator } from '../shared/ServerStatusIndicator';
+import { ServerMetricsChart } from '../shared/ServerMetricsChart';
+import type { Server as ServerType, ServerStatus } from '../../types/server';
 import { ServerCardLineChart } from '../shared/ServerMetricsLineChart';
 import { usePerformanceTracking } from '@/utils/performance';
 import {
@@ -41,12 +45,22 @@ import {
   getSafeAlertsCount,
   vercelSafeLog,
   handleVercelError,
-  isValidServer
+  isValidServer,
 } from '@/lib/vercel-safe-utils';
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
-import { validateMetricValue, validateServerMetrics, generateSafeMetricValue} from '../../utils/metricValidation';
+import {
+  validateMetricValue,
+  validateServerMetrics,
+  generateSafeMetricValue,
+} from '../../utils/metricValidation';
 import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
-import { getServerStatusTheme, getTypographyClass, COMMON_ANIMATIONS, LAYOUT, type ServerStatus } from '../../styles/design-constants';
+import {
+  getServerStatusTheme,
+  getTypographyClass,
+  COMMON_ANIMATIONS,
+  LAYOUT,
+  type ServerStatus,
+} from '../../styles/design-constants';
 // 🚀 Vercel 호환 접근성 기능 추가
 import { useAccessibilityOptional } from '@/context/AccessibilityProvider';
 import { useServerCardAria } from '../accessibility/AriaLabels';
@@ -71,7 +85,8 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
   }) => {
     // 🛡️ 5층 방어 시스템 Layer 1: 서버 객체 존재성 검증 (베르셀 서버리스 환경 대응)
     // TypeError: Cannot read properties of undefined (reading 'length') 완전 방지
-    const isValidServerObject = server && typeof server === 'object' && server.id;
+    const isValidServerObject =
+      server && typeof server === 'object' && server.id;
 
     // 🛡️ 5층 방어 시스템 Layer 2: 필수 서버 속성 안전성 검증
     const safeServer = {
@@ -89,20 +104,25 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       network: typeof server.network === 'number' ? server.network : 25,
       alerts: server.alerts || 0,
       services: Array.isArray(server.services) ? server.services : [],
-      lastUpdate: server.lastUpdate || new Date()
+      lastUpdate: server.lastUpdate || new Date(),
     };
 
     // 🚀 성능 추적 활성화 (개발환경 전용)
-    const performanceStats = usePerformanceTracking(`ImprovedServerCard-${server.id}`);
-    
+    const performanceStats = usePerformanceTracking(
+      `ImprovedServerCard-${server.id}`
+    );
+
     const [isHovered, setIsHovered] = useState(false);
     const [showSecondaryInfo, setShowSecondaryInfo] = useState(false);
     const [showTertiaryInfo, setShowTertiaryInfo] = useState(false);
     const isMountedRef = useRef(true); // 비동기 상태 관리 개선 (Codex 제안)
-    
+
     // 🎯 24시간 고정 데이터 + 1분 미세 변동 (KST 동기화)
-    const { currentMetrics, historyData } = useFixed24hMetrics(server.id, 60000); // 1분 간격 업데이트
-    
+    const { currentMetrics, historyData } = useFixed24hMetrics(
+      server.id,
+      60000
+    ); // 1분 간격 업데이트
+
     // 🛡️ 메트릭 안전성 검증 (고정 데이터 기반)
     const realtimeMetrics = useMemo(() => {
       try {
@@ -122,26 +142,39 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           network: safeServer.network,
         };
       } catch (error) {
-        console.error('⚠️ ImprovedServerCard: 메트릭 로드 실패, 안전한 기본값 사용', error);
+        console.error(
+          '⚠️ ImprovedServerCard: 메트릭 로드 실패, 안전한 기본값 사용',
+          error
+        );
         return {
           cpu: 50,
           memory: 50,
           disk: 30,
-          network: 25
+          network: 25,
         };
       }
-    }, [currentMetrics, safeServer.cpu, safeServer.memory, safeServer.disk, safeServer.network]);
-    
+    }, [
+      currentMetrics,
+      safeServer.cpu,
+      safeServer.memory,
+      safeServer.disk,
+      safeServer.network,
+    ]);
+
     // 🚀 Vercel 호환 접근성 Hook (선택적 사용)
     const accessibility = useAccessibilityOptional();
     const isAccessibilityEnabled = !!accessibility?.isClient;
-    
+
     // 🛡️ 5층 방어 시스템 Layer 4: ARIA 속성 안전 생성 (접근성 활성화 시에만)
     // ✅ React Hook 규칙 준수: Hook을 먼저 호출 (조건 없이)
     const rawAriaProps = useServerCardAria({
       serverId: safeServer.id,
       serverName: safeServer.name,
-      status: safeServer.status as 'online' | 'offline' | 'warning' | 'critical',
+      status: safeServer.status as
+        | 'online'
+        | 'offline'
+        | 'warning'
+        | 'critical',
       cpu: realtimeMetrics?.cpu ?? 0,
       memory: realtimeMetrics?.memory ?? 0,
       disk: realtimeMetrics?.disk ?? 0,
@@ -155,7 +188,10 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         if (!isAccessibilityEnabled) return {};
         return rawAriaProps;
       } catch (error) {
-        console.error('⚠️ ImprovedServerCard Layer 4: ARIA 속성 생성 실패, 빈 객체 반환', error);
+        console.error(
+          '⚠️ ImprovedServerCard Layer 4: ARIA 속성 생성 실패, 빈 객체 반환',
+          error
+        );
         return {};
       }
     }, [isAccessibilityEnabled, rawAriaProps]);
@@ -175,61 +211,73 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     const statusTheme = useMemo(() => {
       try {
         // 서버 상태를 Material Design 3 표준 상태로 매핑 (베르셀 환경 안전성)
-        const theme = getServerStatusTheme(safeServer.status as ServerStatus); // 🔧 수정: 타입 어설션 (타입 통합 호환성)
+        const theme = getServerStatusTheme(safeServer.status); // 🔧 수정: 타입 어설션 (타입 통합 호환성)
 
-      return {
-        // Material Design 3 Surface 기반 배경 - 상태별 색상 적용
-        cardBg: theme.background, // 상태별 배경 그라데이션
-        cardBorder: theme.border, // 상태별 테두리
-        cardStyle: {
-          backgroundColor: 'transparent', // Tailwind CSS로 배경 처리
-          borderColor: 'transparent', // Tailwind CSS로 테두리 처리
-          color: 'inherit',
-        },
-        
-        // 호버 효과 - 상태별 색상 반영
-        hoverStyle: {
-          borderColor: 'transparent',
-          boxShadow: safeServer.status === 'online' // 🔧 수정: normalizedStatus → safeServer.status
-            ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(16, 185, 129, 0.125)'
-            : safeServer.status === 'warning'
-              ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(245, 158, 11, 0.125)'
-              : '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(239, 68, 68, 0.125)',
-        },
+        return {
+          // Material Design 3 Surface 기반 배경 - 상태별 색상 적용
+          cardBg: theme.background, // 상태별 배경 그라데이션
+          cardBorder: theme.border, // 상태별 테두리
+          cardStyle: {
+            backgroundColor: 'transparent', // Tailwind CSS로 배경 처리
+            borderColor: 'transparent', // Tailwind CSS로 테두리 처리
+            color: 'inherit',
+          },
 
-        // 상태 표시 - design-constants 사용
-        statusColor: theme.statusColor,
-        statusIcon: safeServer.status === 'online' // 🔧 수정: normalizedStatus → safeServer.status
-          ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-          : <AlertCircle className="h-4 w-4" aria-hidden="true" />,
-        statusText: safeServer.status === 'online' // 🔧 수정: normalizedStatus → safeServer.status
-          ? '정상'
-          : safeServer.status === 'warning'
-            ? '경고'
-            : '심각',
-            
-        // 실시간 펄스 - 상태별 색상
-        pulse: {
-          backgroundColor: theme.accentColor,
-        },
-        
-        // 액센트 색상 - 상태별 색상
-        accent: {
-          color: theme.accentColor,
-        },
-      };
+          // 호버 효과 - 상태별 색상 반영
+          hoverStyle: {
+            borderColor: 'transparent',
+            boxShadow:
+              safeServer.status === 'online' // 🔧 수정: normalizedStatus → safeServer.status
+                ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(16, 185, 129, 0.125)'
+                : safeServer.status === 'warning'
+                  ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(245, 158, 11, 0.125)'
+                  : '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(239, 68, 68, 0.125)',
+          },
+
+          // 상태 표시 - design-constants 사용
+          statusColor: theme.statusColor,
+          statusIcon:
+            safeServer.status === 'online' ? ( // 🔧 수정: normalizedStatus → safeServer.status
+              <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <AlertCircle className="h-4 w-4" aria-hidden="true" />
+            ),
+          statusText:
+            safeServer.status === 'online' // 🔧 수정: normalizedStatus → safeServer.status
+              ? '정상'
+              : safeServer.status === 'warning'
+                ? '경고'
+                : '심각',
+
+          // 실시간 펄스 - 상태별 색상
+          pulse: {
+            backgroundColor: theme.accentColor,
+          },
+
+          // 액센트 색상 - 상태별 색상
+          accent: {
+            color: theme.accentColor,
+          },
+        };
       } catch (error) {
         console.error('⚠️ statusTheme 생성 실패, 기본 테마 사용', error);
         return {
           cardBg: 'bg-gray-50',
           cardBorder: 'border-gray-200',
-          cardStyle: { backgroundColor: 'transparent', borderColor: 'transparent', color: 'inherit' },
-          hoverStyle: { borderColor: 'transparent', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' },
+          cardStyle: {
+            backgroundColor: 'transparent',
+            borderColor: 'transparent',
+            color: 'inherit',
+          },
+          hoverStyle: {
+            borderColor: 'transparent',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+          },
           statusColor: { backgroundColor: '#f3f4f6', color: '#374151' },
           statusIcon: <AlertCircle className="h-4 w-4" aria-hidden="true" />,
           statusText: '오류',
           pulse: { backgroundColor: '#6b7280' },
-          accent: { color: '#6b7280' }
+          accent: { color: '#6b7280' },
         };
       }
     }, [safeServer.status]); // 상태별 의존성 최적화 (5층 방어 시스템 적용)
@@ -261,13 +309,17 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       try {
         const os = (safeServer.os || '').toLowerCase();
 
-      if (
-        os.includes('ubuntu') ||
-        os.includes('debian') ||
-        os.includes('linux')
-      ) {
+        if (
+          os.includes('ubuntu') ||
+          os.includes('debian') ||
+          os.includes('linux')
+        ) {
           return (
-            <span className="text-base" title={safeServer.os} aria-label={`운영체제: ${safeServer.os}`}>
+            <span
+              className="text-base"
+              title={safeServer.os}
+              aria-label={`운영체제: ${safeServer.os}`}
+            >
               🐧
             </span>
           );
@@ -277,13 +329,21 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           os.includes('rhel')
         ) {
           return (
-            <span className="text-base" title={safeServer.os} aria-label={`운영체제: ${safeServer.os}`}>
+            <span
+              className="text-base"
+              title={safeServer.os}
+              aria-label={`운영체제: ${safeServer.os}`}
+            >
               🎩
             </span>
           );
         } else if (os.includes('windows')) {
           return (
-            <span className="text-base" title={safeServer.os} aria-label={`운영체제: ${safeServer.os}`}>
+            <span
+              className="text-base"
+              title={safeServer.os}
+              aria-label={`운영체제: ${safeServer.os}`}
+            >
               🪟
             </span>
           );
@@ -373,13 +433,16 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     }, [enableProgressiveDisclosure, showTertiaryInfo]);
 
     // 🎯 Progressive Disclosure 클릭 토글
-    const handleExpandToggle = useCallback((e: React.MouseEvent) => {
-      e.stopPropagation();
-      setShowTertiaryInfo(prev => !prev);
-      if (!showTertiaryInfo) {
-        setShowSecondaryInfo(true);
-      }
-    }, [showTertiaryInfo]);
+    const handleExpandToggle = useCallback(
+      (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setShowTertiaryInfo((prev) => !prev);
+        if (!showTertiaryInfo) {
+          setShowSecondaryInfo(true);
+        }
+      },
+      [showTertiaryInfo]
+    );
 
     // 🚀 클릭 핸들러 메모이제이션 (5층 방어 시스템 적용)
     const handleClick = useCallback(() => {
@@ -389,26 +452,23 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       } catch (error) {
         console.error('⚠️ handleClick 실행 실패', error);
       }
-    }, [safeServer.id, onClick]); // 의존성 최적화
+    }, [safeServer, onClick]); // safeServer.id 대신 전체 객체를 의존성에 포함
 
     // 🎯 키보드 접근성 개선 (Gemini 제안)
-    const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        handleClick();
-      }
-    }, [handleClick]);
+    const handleKeyDown = useCallback(
+      (event: React.KeyboardEvent) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          handleClick();
+        }
+      },
+      [handleClick]
+    );
 
     return (
       <button
         type="button"
-        className={`
-          relative cursor-pointer rounded-2xl border-2 w-full overflow-hidden text-left group
-          md3-state-layer md3-card-hover
-          ${statusTheme.cardBg} ${statusTheme.cardBorder}
-          ${variantStyles.container}
-          focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:ring-offset-2
-        `}
+        className={`md3-state-layer md3-card-hover group relative w-full cursor-pointer overflow-hidden rounded-2xl border-2 text-left ${statusTheme.cardBg} ${statusTheme.cardBorder} ${variantStyles.container} focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:ring-offset-2`}
         style={{
           ...statusTheme.cardStyle,
           transition: `all ${'300ms'} ${'cubic-bezier(0.2, 0.0, 0, 1.0)'}`,
@@ -424,14 +484,13 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         onClick={handleClick}
         onKeyDown={handleKeyDown}
         aria-label={`${safeServer.name} 서버 - ${statusTheme.statusText} 상태. CPU ${Math.round((realtimeMetrics && realtimeMetrics.cpu) || 50)}%, 메모리 ${Math.round((realtimeMetrics && realtimeMetrics.memory) || 50)}% 사용 중`}
-        role="button"
         tabIndex={0}
       >
         {/* 실시간 활동 인디케이터 */}
         {showRealTimeUpdates && (
           <div className="absolute right-3 top-3 z-10" aria-hidden="true">
             <div
-              className="h-2 w-2 rounded-full shadow-lg animate-pulse"
+              className="h-2 w-2 animate-pulse rounded-full shadow-lg"
               style={statusTheme.pulse}
               title="실시간 업데이트 중"
             />
@@ -460,7 +519,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                 </h3>
                 {osIcon}
               </div>
-              <div 
+              <div
                 className={`flex items-center gap-2 ${'text-sm font-medium'}`}
                 style={statusTheme.accent}
               >
@@ -471,10 +530,10 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                     <span aria-hidden="true">•</span>
                     <Clock className="h-3 w-3" aria-hidden="true" />
                     <span aria-label="현재 시간">
-                      {new Date().toLocaleTimeString('ko-KR', { 
-                        hour12: false, 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
+                      {new Date().toLocaleTimeString('ko-KR', {
+                        hour12: false,
+                        hour: '2-digit',
+                        minute: '2-digit',
                       })}
                     </span>
                   </>
@@ -484,25 +543,22 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           </div>
 
           <div className="flex items-center gap-2">
-            <div
-              className={`flex items-center gap-2 rounded-full px-3 py-1.5 shadow-sm ${'text-sm font-medium'}`}
-              style={statusTheme.statusColor}
-              role="status"
-              aria-label={`서버 상태: ${statusTheme.statusText}`}
-            >
-              {statusTheme.statusIcon}
-              <span className="font-semibold">
-                {statusTheme.statusText}
-              </span>
-            </div>
-            
+            <ServerStatusIndicator
+              status={safeServer.status}
+              size="md"
+              showText={true}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium shadow-sm"
+            />
+
             {/* Progressive Disclosure 확장/축소 버튼 */}
             {enableProgressiveDisclosure && (
               <button
                 type="button"
                 onClick={handleExpandToggle}
-                className="flex items-center justify-center w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                aria-label={showTertiaryInfo ? '상세 정보 숨기기' : '상세 정보 보기'}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition-all duration-200 hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                aria-label={
+                  showTertiaryInfo ? '상세 정보 숨기기' : '상세 정보 보기'
+                }
                 title={showTertiaryInfo ? '상세 정보 숨기기' : '상세 정보 보기'}
               >
                 {showTertiaryInfo ? (
@@ -516,156 +572,202 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         </header>
 
         {/* 📈 Progressive Disclosure 메트릭 섹션 - 3단계 정보 공개 */}
-        <section 
+        <section
           className={variantStyles.spacing}
           aria-labelledby={`server-${safeServer.id}-title`}
         >
           {/* 🎯 Level 1: 핵심 메트릭 (CPU, 메모리) - 상시 표시 */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2 mb-3">
+            <div className="mb-3 flex items-center gap-2">
               <Activity className="h-3 w-3 text-red-500" aria-hidden="true" />
-              <h4 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-700 dark:text-gray-300">
                 핵심 지표
               </h4>
               <div className="ml-auto text-xs text-gray-500">Level 1</div>
             </div>
-            <div className="grid grid-cols-2 gap-6" role="group" aria-label="주요 서버 메트릭">
-              <div className="transform transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1 hover:shadow-lg">
-                <ServerCardLineChart
-                  label="CPU"
-                  value={(realtimeMetrics && realtimeMetrics.cpu) || 50}
+            <div
+              className="grid grid-cols-2 gap-6"
+              role="group"
+              aria-label="주요 서버 메트릭"
+            >
+              <div className="flex transform justify-center transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-105 hover:shadow-lg">
+                <ServerMetricsChart
                   type="cpu"
-                  showRealTimeUpdates={showRealTimeUpdates}
-                  serverStatus={safeServer.status}
-                  historyData={historyData}
+                  value={(realtimeMetrics && realtimeMetrics.cpu) || 50}
+                  status={safeServer.status}
+                  size="md"
+                  showLabel={true}
                 />
               </div>
-              <div className="transform transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1 hover:shadow-lg">
-                <ServerCardLineChart
-                  label="메모리"
-                  value={(realtimeMetrics && realtimeMetrics.memory) || 50}
+              <div className="flex transform justify-center transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-105 hover:shadow-lg">
+                <ServerMetricsChart
                   type="memory"
-                  showRealTimeUpdates={showRealTimeUpdates}
-                  serverStatus={safeServer.status}
-                  historyData={historyData}
+                  value={(realtimeMetrics && realtimeMetrics.memory) || 50}
+                  status={safeServer.status}
+                  size="md"
+                  showLabel={true}
                 />
               </div>
             </div>
           </div>
 
           {/* 🔹 Level 2: 보조 메트릭 (디스크, 네트워크) - 호버 시 표시 */}
-          <div 
-            className={`space-y-3 transition-all duration-300 overflow-hidden ${
-              showSecondaryInfo 
-                ? 'max-h-96 opacity-100 transform translate-y-0' 
-                : 'max-h-0 opacity-0 transform -translate-y-4'
+          <div
+            className={`space-y-3 overflow-hidden transition-all duration-300 ${
+              showSecondaryInfo
+                ? 'max-h-96 translate-y-0 transform opacity-100'
+                : 'max-h-0 -translate-y-4 transform opacity-0'
             }`}
           >
-            <div className="flex items-center gap-2 mb-2">
+            <div className="mb-2 flex items-center gap-2">
               <HardDrive className="h-3 w-3 text-blue-400" aria-hidden="true" />
-              <h4 className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+              <h4 className="text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
                 보조 지표
               </h4>
               <div className="ml-auto text-xs text-gray-500">Level 2</div>
             </div>
-            <div className="grid grid-cols-2 gap-4 opacity-90" role="group" aria-label="보조 서버 메트릭">
-              <div className="transform transition-all duration-300 ease-out hover:opacity-100 hover:scale-105 hover:-translate-y-0.5 hover:shadow-md">
-                <ServerCardLineChart
-                  label="디스크"
-                  value={(realtimeMetrics && realtimeMetrics.disk) || 30}
+            <div
+              className="grid grid-cols-2 gap-4 opacity-90"
+              role="group"
+              aria-label="보조 서버 메트릭"
+            >
+              <div className="flex transform justify-center transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 hover:opacity-100 hover:shadow-md">
+                <ServerMetricsChart
                   type="disk"
-                  showRealTimeUpdates={showRealTimeUpdates}
-                  serverStatus={safeServer.status}
-                  historyData={historyData}
+                  value={(realtimeMetrics && realtimeMetrics.disk) || 30}
+                  status={safeServer.status}
+                  size="md"
+                  showLabel={true}
                 />
               </div>
-              <div className="transform transition-all duration-300 ease-out hover:opacity-100 hover:scale-105 hover:-translate-y-0.5 hover:shadow-md">
-                <ServerCardLineChart
-                  label="네트워크"
-                  value={(realtimeMetrics && realtimeMetrics.network) || 25}
+              <div className="flex transform justify-center transition-all duration-300 ease-out hover:-translate-y-0.5 hover:scale-105 hover:opacity-100 hover:shadow-md">
+                <ServerMetricsChart
                   type="network"
-                  showRealTimeUpdates={showRealTimeUpdates}
-                  serverStatus={safeServer.status}
-                  historyData={historyData}
+                  value={(realtimeMetrics && realtimeMetrics.network) || 25}
+                  status={safeServer.status}
+                  size="md"
+                  showLabel={true}
                 />
               </div>
             </div>
           </div>
 
           {/* 🔸 Level 3: 상세 정보 (운영체제, 업타임, IP 등) - 클릭 시 표시 */}
-          <div 
-            className={`space-y-4 transition-all duration-500 overflow-hidden ${
-              showTertiaryInfo 
-                ? 'max-h-96 opacity-100 transform translate-y-0' 
-                : 'max-h-0 opacity-0 transform -translate-y-8'
+          <div
+            className={`space-y-4 overflow-hidden transition-all duration-500 ${
+              showTertiaryInfo
+                ? 'max-h-96 translate-y-0 transform opacity-100'
+                : 'max-h-0 -translate-y-8 transform opacity-0'
             }`}
           >
-            <div className="flex items-center gap-2 mb-3 pt-4 border-t border-gray-200/50">
+            <div className="mb-3 flex items-center gap-2 border-t border-gray-200/50 pt-4">
               <Zap className="h-3 w-3 text-purple-400" aria-hidden="true" />
-              <h4 className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+              <h4 className="text-xs font-medium uppercase tracking-wide text-gray-600 dark:text-gray-400">
                 상세 정보
               </h4>
               <div className="ml-auto text-xs text-gray-500">Level 3</div>
             </div>
-            
+
             {/* 운영체제 및 기본 정보 */}
             <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2">
                 <Globe className="h-4 w-4 text-gray-500" />
                 <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">OS</div>
-                  <div className="font-medium text-gray-700">{server.os || 'Ubuntu 22.04'}</div>
+                  <div className="text-xs uppercase tracking-wide text-gray-500">
+                    OS
+                  </div>
+                  <div className="font-medium text-gray-700">
+                    {server.os || 'Ubuntu 22.04'}
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2">
                 <Clock className="h-4 w-4 text-gray-500" />
                 <div>
-                  <div className="text-xs text-gray-500 uppercase tracking-wide">업타임</div>
-                  <div className="font-medium text-gray-700">{server.uptime || '72d 14h 23m'}</div>
+                  <div className="text-xs uppercase tracking-wide text-gray-500">
+                    업타임
+                  </div>
+                  <div className="font-medium text-gray-700">
+                    {server.uptime || '72d 14h 23m'}
+                  </div>
                 </div>
               </div>
             </div>
-            
+
             {/* IP 및 네트워크 정보 */}
             <div className="grid grid-cols-1 gap-2 text-sm">
-              <div className="flex justify-between items-center px-3 py-2 bg-gray-50 rounded-lg">
-                <span className="text-xs text-gray-500 uppercase tracking-wide">IP 주소</span>
+              <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
+                <span className="text-xs uppercase tracking-wide text-gray-500">
+                  IP 주소
+                </span>
                 <span className="font-mono font-medium text-gray-700">
                   {server.ip || `192.168.1.${10 + (parseInt(server.id) % 240)}`}
                 </span>
               </div>
-              <div className="flex justify-between items-center px-3 py-2 bg-gray-50 rounded-lg">
-                <span className="text-xs text-gray-500 uppercase tracking-wide">마지막 업데이트</span>
+              <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2">
+                <span className="text-xs uppercase tracking-wide text-gray-500">
+                  마지막 업데이트
+                </span>
                 <span className="font-medium text-gray-700">
-                  {new Date().toLocaleString('ko-KR', { 
-                    month: 'short', 
-                    day: 'numeric', 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
+                  {new Date().toLocaleString('ko-KR', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
                   })}
                 </span>
               </div>
             </div>
-            
+
             {/* 성능 요약 */}
-            <div className="px-3 py-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-100">
-              <div className="text-xs text-gray-500 uppercase tracking-wide mb-2">성능 요약</div>
-              <div className="grid grid-cols-4 gap-4 text-center">
-                <div>
-                  <div className="text-lg font-bold text-blue-600">{Math.round((realtimeMetrics && realtimeMetrics.cpu) || 50)}%</div>
-                  <div className="text-xs text-gray-500">CPU</div>
+            <div className="rounded-lg border border-blue-100 bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-3">
+              <div className="mb-2 text-xs uppercase tracking-wide text-gray-500">
+                성능 요약
+              </div>
+              <div className="grid grid-cols-4 gap-2 text-center">
+                <div className="flex flex-col items-center">
+                  <ServerMetricsChart
+                    type="cpu"
+                    value={Math.round(
+                      (realtimeMetrics && realtimeMetrics.cpu) || 50
+                    )}
+                    status={safeServer.status}
+                    size="sm"
+                    showLabel={true}
+                  />
                 </div>
-                <div>
-                  <div className="text-lg font-bold text-green-600">{Math.round((realtimeMetrics && realtimeMetrics.memory) || 50)}%</div>
-                  <div className="text-xs text-gray-500">RAM</div>
+                <div className="flex flex-col items-center">
+                  <ServerMetricsChart
+                    type="memory"
+                    value={Math.round(
+                      (realtimeMetrics && realtimeMetrics.memory) || 50
+                    )}
+                    status={safeServer.status}
+                    size="sm"
+                    showLabel={true}
+                  />
                 </div>
-                <div>
-                  <div className="text-lg font-bold text-orange-600">{Math.round((realtimeMetrics && realtimeMetrics.disk) || 30)}%</div>
-                  <div className="text-xs text-gray-500">DISK</div>
+                <div className="flex flex-col items-center">
+                  <ServerMetricsChart
+                    type="disk"
+                    value={Math.round(
+                      (realtimeMetrics && realtimeMetrics.disk) || 30
+                    )}
+                    status={safeServer.status}
+                    size="sm"
+                    showLabel={true}
+                  />
                 </div>
-                <div>
-                  <div className="text-lg font-bold text-purple-600">{Math.round((realtimeMetrics && realtimeMetrics.network) || 25)}%</div>
-                  <div className="text-xs text-gray-500">NET</div>
+                <div className="flex flex-col items-center">
+                  <ServerMetricsChart
+                    type="network"
+                    value={Math.round(
+                      (realtimeMetrics && realtimeMetrics.network) || 25
+                    )}
+                    status={safeServer.status}
+                    size="sm"
+                    showLabel={true}
+                  />
                 </div>
               </div>
             </div>
@@ -693,13 +795,13 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
             }
           })() &&
           (showSecondaryInfo || !enableProgressiveDisclosure) && (
-            <footer 
+            <footer
               className={`mt-4 transition-all duration-300 ${
                 showSecondaryInfo || !enableProgressiveDisclosure
-                  ? 'opacity-100 transform translate-y-0'
-                  : 'opacity-0 transform -translate-y-2'
-              }`} 
-              role="complementary" 
+                  ? 'translate-y-0 transform opacity-100'
+                  : '-translate-y-2 transform opacity-0'
+              }`}
+              role="complementary"
               aria-label="서비스 상태 목록"
             >
               <div className="flex flex-wrap gap-2">
@@ -712,47 +814,57 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                       return [];
                     }
 
-                    const slicedServices = validServices.slice(0, variantStyles.maxServices);
-                    return slicedServices.map((service, idx) => {
-                      // 각 서비스 객체 안전성 검증
-                      if (!service || typeof service !== 'object') {
-                        console.warn(`⚠️ Layer 5: 서비스 ${idx} 유효하지 않음`);
-                        return null;
-                      }
+                    const slicedServices = validServices.slice(
+                      0,
+                      variantStyles.maxServices
+                    );
+                    return slicedServices
+                      .map((service, idx) => {
+                        // 각 서비스 객체 안전성 검증
+                        if (!service || typeof service !== 'object') {
+                          console.warn(
+                            `⚠️ Layer 5: 서비스 ${idx} 유효하지 않음`
+                          );
+                          return null;
+                        }
 
-                      const serviceName = service.name || `서비스 ${idx + 1}`;
-                      const serviceStatus = service.status || 'unknown';
+                        const serviceName = service.name || `서비스 ${idx + 1}`;
+                        const serviceStatus = service.status || 'unknown';
 
-                      return (
-                        <div
-                          key={`${safeServer.id}-service-${idx}`}
-                          className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium shadow-sm transition-colors ${
-                            serviceStatus === 'running'
-                              ? 'border-green-300 bg-green-50 text-green-700'
-                              : serviceStatus === 'stopped'
-                                ? 'border-red-300 bg-red-50 text-red-700'
-                                : 'border-yellow-300 bg-yellow-50 text-yellow-700'
-                          }`}
-                          role="status"
-                          aria-label={`${serviceName} 서비스: ${
-                            serviceStatus === 'running' ? '실행중' :
-                            serviceStatus === 'stopped' ? '중단' : '경고'
-                          }`}
-                        >
+                        return (
                           <div
-                            className={`h-1.5 w-1.5 rounded-full ${
+                            key={`${safeServer.id}-service-${idx}`}
+                            className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium shadow-sm transition-colors ${
                               serviceStatus === 'running'
-                                ? 'bg-green-500'
+                                ? 'border-green-300 bg-green-50 text-green-700'
                                 : serviceStatus === 'stopped'
-                                  ? 'bg-red-500'
-                                  : 'bg-yellow-500'
+                                  ? 'border-red-300 bg-red-50 text-red-700'
+                                  : 'border-yellow-300 bg-yellow-50 text-yellow-700'
                             }`}
-                            aria-hidden="true"
-                          />
-                          <span>{serviceName}</span>
-                        </div>
-                      );
-                    }).filter(Boolean); // null 요소 제거
+                            role="status"
+                            aria-label={`${serviceName} 서비스: ${
+                              serviceStatus === 'running'
+                                ? '실행중'
+                                : serviceStatus === 'stopped'
+                                  ? '중단'
+                                  : '경고'
+                            }`}
+                          >
+                            <div
+                              className={`h-1.5 w-1.5 rounded-full ${
+                                serviceStatus === 'running'
+                                  ? 'bg-green-500'
+                                  : serviceStatus === 'stopped'
+                                    ? 'bg-red-500'
+                                    : 'bg-yellow-500'
+                              }`}
+                              aria-hidden="true"
+                            />
+                            <span>{serviceName}</span>
+                          </div>
+                        );
+                      })
+                      .filter(Boolean); // null 요소 제거
                   } catch (error) {
                     console.error('⚠️ Layer 5: 서비스 렌더링 실패', error);
                     return [];
@@ -762,14 +874,23 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   try {
                     // 🛡️ 5층 방어 시스템 완전 적용 - remainingServices 안전 계산
                     if (!isValidServer(safeServer)) {
-                      vercelSafeLog('Invalid safeServer object in ImprovedServerCard', safeServer);
+                      vercelSafeLog(
+                        'Invalid safeServer object in ImprovedServerCard',
+                        safeServer
+                      );
                       return null;
                     }
 
                     // 서비스 수 안전 계산
-                    const validServicesCount = getSafeServicesLength(safeServer);
-                    if (typeof validServicesCount !== 'number' || isNaN(validServicesCount)) {
-                      console.warn('⚠️ Layer 5: validServicesCount가 유효한 숫자가 아님');
+                    const validServicesCount =
+                      getSafeServicesLength(safeServer);
+                    if (
+                      typeof validServicesCount !== 'number' ||
+                      isNaN(validServicesCount)
+                    ) {
+                      console.warn(
+                        '⚠️ Layer 5: validServicesCount가 유효한 숫자가 아님'
+                      );
                       return null;
                     }
 
@@ -787,7 +908,10 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                       </div>
                     );
                   } catch (error) {
-                    console.error('❌ Layer 5: remainingServices 렌더링 중 에러:', error);
+                    console.error(
+                      '❌ Layer 5: remainingServices 렌더링 중 에러:',
+                      error
+                    );
                     return null;
                   }
                 })()}
@@ -812,16 +936,23 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
 ImprovedServerCardInner.displayName = 'ImprovedServerCardInner';
 
 // 🛡️ 에러 바운더리로 감싼 최종 컴포넌트 (Codex 제안 반영)
-const ImprovedServerCard: FC<ImprovedServerCardProps> = ({ server, ...props }) => {
+const ImprovedServerCard: FC<ImprovedServerCardProps> = ({
+  server,
+  ...props
+}) => {
   // 서버 객체가 유효하지 않으면 안전한 로딩 카드 표시
-  const _isValidServerObject = server && typeof server === 'object' && server.id;
+  const _isValidServerObject =
+    server && typeof server === 'object' && server.id;
 
   if (!_isValidServerObject) {
-    console.warn('⚠️ ImprovedServerCard Layer 1: 서버 객체가 유효하지 않음 - 안전한 로딩 카드 표시', {
-      server: server ? 'exists' : 'null/undefined',
-      type: typeof server,
-      hasId: server?.id ? 'yes' : 'no'
-    });
+    console.warn(
+      '⚠️ ImprovedServerCard Layer 1: 서버 객체가 유효하지 않음 - 안전한 로딩 카드 표시',
+      {
+        server: server ? 'exists' : 'null/undefined',
+        type: typeof server,
+        hasId: server?.id ? 'yes' : 'no',
+      }
+    );
     return (
       <div className="animate-pulse rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
         <div className="flex items-center space-x-3">

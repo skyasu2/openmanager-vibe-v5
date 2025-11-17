@@ -19,12 +19,6 @@ import {
   withErrorHandler,
 } from '../../../../lib/api/errorHandler';
 import { memoryOptimizer } from '../../../../utils/MemoryOptimizer';
-import {
-
-  type MemorySummary,
-
-
-} from '@/schemas/api.schema';
 
 /**
  * 🚨 즉시 메모리 최적화 실행 (POST)

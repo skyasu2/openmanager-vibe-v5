@@ -5,6 +5,8 @@
  * "Cannot read properties of undefined (reading 'message')" 에러를 완전 근절
  */
 
+import { logError } from './logger';
+
 /**
  * 안전한 에러 객체 인터페이스
  */
@@ -132,7 +134,10 @@ export function createSafeError(error: unknown): SafeError {
   // 기타 모든 경우
   try {
     return {
-      message: String(error),
+      message:
+        typeof error === 'object' && error !== null && 'message' in error
+          ? String((error as Error).message || error)
+          : String(error),
       code: 'UNKNOWN_ERROR',
       name: 'UnknownError',
       originalError: error,
@@ -213,7 +218,10 @@ export function classifyErrorType(safeError: SafeError): ErrorType {
     return 'LOADING_ERROR';
   }
 
-  if (message.includes('api') || safeError.code?.includes('API')) {
+  if (
+    message.includes('api') ||
+    (safeError.code && safeError.code.includes('API'))
+  ) {
     return 'API_ERROR';
   }
 
@@ -407,6 +415,8 @@ export function setupGlobalErrorHandler(): void {
 /**
  * 🔄 API 호출 안전 래퍼
  */
+import { logError } from './logger';
+
 export async function safeApiCall<T>(
   apiCall: () => Promise<T>,
   errorContext = 'API 호출',
@@ -416,7 +426,8 @@ export async function safeApiCall<T>(
     const data = await apiCall();
     return { success: true, data };
   } catch (error) {
-    const safeError = safeErrorLog(`❌ ${errorContext} 실패`, error);
+    const safeError = createSafeError(error);
+    logError(`❌ ${errorContext} 실패`, error, 'api');
 
     // 로딩 화면에서 API 에러가 발생해도 진행할 수 있도록
     if (typeof window !== 'undefined' && isLoadingRelatedError(error)) {
@@ -473,7 +484,7 @@ export async function withErrorRecovery<T>(
       lastError = createSafeError(error);
 
       if (i < maxRetries - 1 && shouldRetry(lastError)) {
-        safeErrorLog(`🔄 재시도 ${i + 1}/${maxRetries}`, error);
+        logError(`🔄 재시도 ${i + 1}/${maxRetries}`, error, 'recovery');
         onRetry?.(i + 2, lastError); // 다음 시도 번호 전달
 
         if (retryDelay > 0) {
@@ -486,14 +497,11 @@ export async function withErrorRecovery<T>(
     }
   }
 
-  const result: {
-    success: boolean;
-    data?: T;
-    error?: SafeError;
-    attempts: number;
-  } = {
+  const result = {
     success: false,
-    error: lastError || createSafeError(new Error('Operation failed without retries')),
+    error:
+      lastError ||
+      createSafeError(new Error('Operation failed without retries')),
     attempts,
   };
 
@@ -501,6 +509,7 @@ export async function withErrorRecovery<T>(
     result.data = fallbackValue as T;
   }
 
+  logError('❌ 모든 재시도 실패', result.error, 'recovery');
   return result;
 }
 
@@ -509,7 +518,7 @@ export async function withErrorRecovery<T>(
  */
 export function createErrorBoundaryInfo(error: unknown, errorInfo?: unknown) {
   const safeError = createSafeError(error);
-  
+
   // React ErrorInfo 타입 추출
   const errorInfoObj = errorInfo as { componentStack?: string } | undefined;
 

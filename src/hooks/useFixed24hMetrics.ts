@@ -9,7 +9,7 @@
  * @see src/data/hourly-server-data.ts - 데이터 로더 + 보간 로직
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   getServerMetricAt,
   getRecentMetrics,
@@ -52,15 +52,19 @@ export interface HistoryDataPoint {
  * );
  * ```
  */
-export function useFixed24hMetrics(serverId: string, updateInterval: number = 60000) {
-  const [currentMetrics, setCurrentMetrics] = useState<InterpolatedMetric | null>(null);
+export function useFixed24hMetrics(
+  serverId: string,
+  updateInterval: number = 60000
+) {
+  const [currentMetrics, setCurrentMetrics] =
+    useState<InterpolatedMetric | null>(null);
   const [historyData, setHistoryData] = useState<HistoryDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
 
   // 메트릭 업데이트 함수
-  const updateMetrics = async () => {
+  const updateMetrics = useCallback(async () => {
     if (!isMountedRef.current) return;
 
     try {
@@ -97,7 +101,7 @@ export function useFixed24hMetrics(serverId: string, updateInterval: number = 60
       setError(err instanceof Error ? err.message : '알 수 없는 오류');
       setIsLoading(false);
     }
-  };
+  }, [serverId]); // serverId를 의존성에 추가
 
   // 초기 로드 및 자동 업데이트
   useEffect(() => {
@@ -107,7 +111,9 @@ export function useFixed24hMetrics(serverId: string, updateInterval: number = 60
     updateMetrics();
 
     // 1분마다 자동 업데이트
-    const intervalId = setInterval(() => { void updateMetrics(); }, updateInterval);
+    const intervalId = setInterval(() => {
+      void updateMetrics();
+    }, updateInterval);
 
     return () => {
       isMountedRef.current = false;
@@ -146,13 +152,15 @@ export function useMultipleFixed24hMetrics(
   serverIds: string[],
   updateInterval: number = 60000
 ) {
-  const [metricsMap, setMetricsMap] = useState<Map<string, InterpolatedMetric>>(new Map());
+  const [metricsMap, setMetricsMap] = useState<Map<string, InterpolatedMetric>>(
+    new Map()
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
 
   // 메트릭 업데이트 함수
-  const updateAllMetrics = async () => {
+  const updateAllMetrics = useCallback(async () => {
     if (!isMountedRef.current) return;
 
     try {
@@ -171,7 +179,7 @@ export function useMultipleFixed24hMetrics(
       setError(err instanceof Error ? err.message : '알 수 없는 오류');
       setIsLoading(false);
     }
-  };
+  }, [serverIds]); // serverIds를 의존성에 추가
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -180,7 +188,9 @@ export function useMultipleFixed24hMetrics(
     updateAllMetrics();
 
     // 1분마다 자동 업데이트
-    const intervalId = setInterval(() => { void updateAllMetrics(); }, updateInterval);
+    const intervalId = setInterval(() => {
+      void updateAllMetrics();
+    }, updateInterval);
 
     return () => {
       isMountedRef.current = false;
@@ -220,7 +230,7 @@ export function useSingleMetric(
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
 
-  const updateMetric = async () => {
+  const updateMetric = useCallback(async () => {
     if (!isMountedRef.current) return;
 
     try {
@@ -243,7 +253,7 @@ export function useSingleMetric(
       setError(err instanceof Error ? err.message : '알 수 없는 오류');
       setIsLoading(false);
     }
-  };
+  }, [serverId, metricType]); // serverId와 metricType을 의존성에 추가
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -252,7 +262,9 @@ export function useSingleMetric(
     updateMetric();
 
     // 1분마다 자동 업데이트
-    const intervalId = setInterval(() => { void updateMetric(); }, updateInterval);
+    const intervalId = setInterval(() => {
+      void updateMetric();
+    }, updateInterval);
 
     return () => {
       isMountedRef.current = false;
