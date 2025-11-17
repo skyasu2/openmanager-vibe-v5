@@ -257,6 +257,40 @@ describe('useFixed24hMetrics', () => {
       expect(result.current.currentMetrics).toBeDefined();
     });
   });
+
+  describe('컴포넌트 언마운트 처리', () => {
+    it('훅이 언마운트되면 더 이상 데이터를 업데이트하지 않는다', async () => {
+      const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
+
+      vi.mocked(hourlyDataModule.getServerMetricAt).mockResolvedValueOnce({
+        id: 'server-1',
+        cpu: 50,
+        memory: 60,
+        disk: 30,
+        network: 20,
+        status: 'online',
+        isInterpolated: false,
+        timestamp: '2023-01-01T00:00:00Z',
+      });
+
+      vi.mocked(hourlyDataModule.getRecentMetrics).mockResolvedValueOnce([]);
+
+      mockKST.getUTCHours.mockReturnValue(10);
+      mockKST.getUTCMinutes.mockReturnValue(30);
+
+      const { unmount, result } = renderHook(() =>
+        useFixed24hMetrics('server-1')
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      unmount();
+
+      expect(clearIntervalSpy).toHaveBeenCalled();
+    });
+  });
 });
 
 /**
@@ -359,6 +393,72 @@ describe('useMultipleFixed24hMetrics', () => {
       expect(result.current.metricsMap.size).toBe(1); // Only server-1 data in mock
     });
   });
+
+  describe('업데이트 기능', () => {
+    it('refreshMetrics 함수로 여러 서버 데이터를 다시 로드할 수 있다', async () => {
+      const mockMetricsMap1 = new Map();
+      mockMetricsMap1.set('server-1', {
+        id: 'server-1',
+        cpu: 50,
+        memory: 60,
+        disk: 30,
+        network: 20,
+        status: 'online',
+        isInterpolated: false,
+        timestamp: '2023-01-01T00:00:00Z',
+      });
+
+      const mockMetricsMap2 = new Map();
+      mockMetricsMap2.set('server-1', {
+        id: 'server-1',
+        cpu: 60,
+        memory: 70,
+        disk: 40,
+        network: 30,
+        status: 'online',
+        isInterpolated: false,
+        timestamp: '2023-01-01T00:00:00Z',
+      });
+      mockMetricsMap2.set('server-2', {
+        id: 'server-2',
+        cpu: 45,
+        memory: 55,
+        disk: 25,
+        network: 15,
+        status: 'online',
+        isInterpolated: false,
+        timestamp: '2023-01-01T00:00:00Z',
+      });
+
+      const getMultipleServerMetricsSpy = vi.spyOn(
+        hourlyDataModule,
+        'getMultipleServerMetrics'
+      );
+      vi.mocked(getMultipleServerMetricsSpy)
+        .mockResolvedValueOnce(mockMetricsMap1)
+        .mockResolvedValueOnce(mockMetricsMap2);
+
+      mockKST.getUTCHours.mockReturnValue(10);
+      mockKST.getUTCMinutes.mockReturnValue(30);
+
+      const { result } = renderHook(() =>
+        useMultipleFixed24hMetrics(['server-1'])
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+      expect(result.current.metricsMap.size).toBe(1);
+      expect(result.current.metricsMap.get('server-1')?.cpu).toBe(50);
+
+      // refresh 호출
+      await result.current.refreshMetrics();
+
+      // 데이터 갱신 확인
+      expect(result.current.metricsMap.get('server-1')?.cpu).toBe(60);
+      expect(result.current.metricsMap.get('server-2')?.cpu).toBe(45);
+    });
+  });
 });
 
 /**
@@ -417,5 +517,120 @@ describe('useSingleMetric', () => {
     });
 
     expect(result.current.error).toContain('데이터를 찾을 수 없습니다');
+  });
+
+  describe('업데이트 기능', () => {
+    it('다양한 메트릭 타입(cpu, memory, disk, network)을 가져올 수 있다', async () => {
+      const mockMetric = {
+        id: 'server-1',
+        cpu: 50,
+        memory: 60,
+        disk: 30,
+        network: 20,
+        status: 'online',
+        isInterpolated: false,
+        timestamp: '2023-01-01T00:00:00Z',
+      };
+
+      vi.mocked(hourlyDataModule.getServerMetricAt).mockResolvedValueOnce(
+        mockMetric
+      );
+
+      mockKST.getUTCHours.mockReturnValue(10);
+      mockKST.getUTCMinutes.mockReturnValue(30);
+
+      // CPU 메트릭 테스트
+      const { result: cpuResult } = renderHook(() =>
+        useSingleMetric('server-1', 'cpu')
+      );
+      await waitFor(() => expect(cpuResult.current.isLoading).toBe(false));
+      expect(cpuResult.current.value).toBe(50);
+
+      // Memory 메트릭 테스트
+      const { result: memoryResult } = renderHook(() =>
+        useSingleMetric('server-1', 'memory')
+      );
+      await waitFor(() => expect(memoryResult.current.isLoading).toBe(false));
+      expect(memoryResult.current.value).toBe(60);
+
+      // Disk 메트릭 테스트
+      const { result: diskResult } = renderHook(() =>
+        useSingleMetric('server-1', 'disk')
+      );
+      await waitFor(() => expect(diskResult.current.isLoading).toBe(false));
+      expect(diskResult.current.value).toBe(30);
+
+      // Network 메트릭 테스트
+      const { result: networkResult } = renderHook(() =>
+        useSingleMetric('server-1', 'network')
+      );
+      await waitFor(() => expect(networkResult.current.isLoading).toBe(false));
+      expect(networkResult.current.value).toBe(20);
+    });
+  });
+});
+
+// Import the function at the end to test it independently
+import { getFixedMetricNow } from '../useFixed24hMetrics';
+
+/**
+ * 🧪 getFixedMetricNow 함수 테스트
+ */
+describe('getFixedMetricNow', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(kstTimeModule.getCurrentKST).mockReturnValue(mockKST as any);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('현재 시간의 서버 메트릭을 가져올 수 있다', async () => {
+    const expectedMetric = {
+      id: 'server-1',
+      cpu: 50,
+      memory: 60,
+      disk: 30,
+      network: 20,
+      status: 'online',
+      isInterpolated: false,
+      timestamp: '2023-01-01T00:00:00Z',
+    };
+
+    vi.mocked(hourlyDataModule.getServerMetricAt).mockResolvedValueOnce(
+      expectedMetric
+    );
+
+    mockKST.getUTCHours.mockReturnValue(10);
+    mockKST.getUTCMinutes.mockReturnValue(30);
+
+    const result = await getFixedMetricNow('server-1');
+
+    expect(result).toEqual(expectedMetric);
+  });
+
+  it('서버를 찾지 못하면 null을 반환한다', async () => {
+    vi.mocked(hourlyDataModule.getServerMetricAt).mockResolvedValueOnce(null);
+
+    mockKST.getUTCHours.mockReturnValue(10);
+    mockKST.getUTCMinutes.mockReturnValue(30);
+
+    const result = await getFixedMetricNow('invalid-server');
+
+    expect(result).toBeNull();
+  });
+
+  it('API 오류가 발생하면 null을 반환한다', async () => {
+    vi.mocked(hourlyDataModule.getServerMetricAt).mockRejectedValueOnce(
+      new Error('Network error')
+    );
+
+    mockKST.getUTCHours.mockReturnValue(10);
+    mockKST.getUTCMinutes.mockReturnValue(30);
+
+    const result = await getFixedMetricNow('error-server');
+
+    expect(result).toBeNull();
   });
 });

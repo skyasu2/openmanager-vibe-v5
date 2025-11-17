@@ -6,10 +6,12 @@
  * - 반응형 디자인
  * - 실시간 데이터 업데이트
  * - 애니메이션 효과
+ * - 접근성 향상
  */
 
-import React, { memo, useEffect, useRef, useCallback } from 'react';
+import React, { memo, useEffect, useRef, useCallback, useState } from 'react';
 import type { ServerStatus } from '../../types/server';
+import { usePerformanceTracking } from '@/utils/performance';
 
 interface ServerMetricsChartProps {
   type: 'cpu' | 'memory' | 'disk' | 'network';
@@ -19,6 +21,7 @@ interface ServerMetricsChartProps {
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
   className?: string;
+  animationDuration?: number; // 애니메이션 지속 시간 (ms)
 }
 
 // 상태와 값에 따라 색상 결정
@@ -48,8 +51,11 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
     size = 'md',
     showLabel = true,
     className = '',
+    animationDuration = 300,
   }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [animationValue, setAnimationValue] = useState(0);
+    const { trackComponentRender } = usePerformanceTracking();
 
     const sizeConfig = {
       sm: { width: 40, height: 40 },
@@ -58,6 +64,36 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
     };
 
     const { width, height } = sizeConfig[size];
+
+    // 애니메이션 효과
+    useEffect(() => {
+      let animationFrame: number;
+      const startTime = performance.now();
+      const startValue = animationValue;
+      const targetValue = value;
+
+      const animate = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / animationDuration, 1);
+        const currentValue = startValue + (targetValue - startValue) * progress;
+
+        setAnimationValue(currentValue);
+
+        if (progress < 1) {
+          animationFrame = requestAnimationFrame(animate);
+        } else {
+          setAnimationValue(targetValue);
+        }
+      };
+
+      animationFrame = requestAnimationFrame(animate);
+
+      return () => {
+        if (animationFrame) {
+          cancelAnimationFrame(animationFrame);
+        }
+      };
+    }, [value, animationDuration]);
 
     // Canvas에 차트 그리기
     const drawChart = useCallback(() => {
@@ -75,7 +111,7 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
       ctx.clearRect(0, 0, width, height);
 
       // 색상 설정
-      const fillColor = getStatusColor(status, value);
+      const fillColor = getStatusColor(status, animationValue);
       const bgColor = getBackgroundColor(status);
 
       // 차트 중심
@@ -91,7 +127,7 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
 
       // 진행률 원 (호)
       const startAngle = -Math.PI / 2; // 12시 방향 시작
-      const endAngle = startAngle + (value / max) * 2 * Math.PI;
+      const endAngle = startAngle + (animationValue / max) * 2 * Math.PI;
 
       ctx.beginPath();
       ctx.arc(centerX, centerY, radius, startAngle, endAngle);
@@ -106,13 +142,16 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
         ctx.fillStyle = fillColor;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(`${Math.round(value)}%`, centerX, centerY);
+        ctx.fillText(`${Math.round(animationValue)}%`, centerX, centerY);
       }
-    }, [value, max, status, size, showLabel, width, height]);
+    }, [animationValue, max, status, size, showLabel, width, height]);
 
     useEffect(() => {
       drawChart();
     }, [drawChart]);
+
+    // 성능 추적
+    trackComponentRender('ServerMetricsChart', { type, size });
 
     // 차트 제목 생성
     const chartTitle =
@@ -126,12 +165,19 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
 
     return (
       <div className={`inline-flex flex-col items-center ${className}`}>
-        <div className="relative">
+        <div
+          className="relative"
+          role="group"
+          aria-label={`${chartTitle} ${Math.round(value)}%`}
+        >
           <canvas
             ref={canvasRef}
-            aria-label={`${chartTitle} ${Math.round(value)}%`}
-            role="img"
+            aria-hidden="true" // 이미 role="img"로 레이블링 되었기 때문
           />
+          {/* 텍스트 기반 대체 - 스크린 리더용 */}
+          <span className="sr-only">
+            {chartTitle}: {Math.round(value)}% ({status})
+          </span>
         </div>
         {showLabel && (
           <span
@@ -144,6 +190,7 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
                     ? 'text-emerald-600'
                     : 'text-gray-600'
             } `}
+            aria-hidden="true"
           >
             {type === 'cpu'
               ? 'CPU'

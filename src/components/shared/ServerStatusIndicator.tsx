@@ -5,10 +5,12 @@
  * - 일관된 UX 제공
  * - 퍼포먼스 최적화 (memo 사용)
  * - 접근성 지원
+ * - 성능 추적 통합
  */
 
 import React, { memo } from 'react';
 import type { ServerStatus } from '../../types/server';
+import { usePerformanceTracking } from '@/utils/performance';
 
 interface ServerStatusIndicatorProps {
   status: ServerStatus;
@@ -53,6 +55,8 @@ const statusStyles = {
 
 export const ServerStatusIndicator: React.FC<ServerStatusIndicatorProps> = memo(
   ({ status, size = 'md', showText = true, className = '' }) => {
+    const { trackComponentRender } = usePerformanceTracking();
+
     const sizeClasses = {
       sm: 'w-2 h-2',
       md: 'w-3 h-3',
@@ -60,6 +64,9 @@ export const ServerStatusIndicator: React.FC<ServerStatusIndicatorProps> = memo(
     };
 
     const statusStyle = statusStyles[status];
+
+    // 성능 추적
+    trackComponentRender('ServerStatusIndicator', { status, size });
 
     return (
       <div
@@ -69,6 +76,7 @@ export const ServerStatusIndicator: React.FC<ServerStatusIndicatorProps> = memo(
       >
         <div
           className={`rounded-full ${statusStyle.indicator} ${sizeClasses[size]} ${statusStyle.pulse} transition-colors duration-300 ease-in-out`}
+          aria-hidden="true"
         />
         {showText && (
           <span
