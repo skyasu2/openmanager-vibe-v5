@@ -711,12 +711,7 @@ export function isServer(obj: unknown): obj is Server {
 export function isValidAlertSeverity(
   severity: string
 ): severity is AlertSeverity {
-  const validSeverities: AlertSeverity[] = [
-    'info',
-    'warning',
-    'error',
-    'critical',
-  ];
+  const validSeverities: AlertSeverity[] = ['info', 'warning', 'critical'];
   return (validSeverities as string[]).includes(severity);
 }
 

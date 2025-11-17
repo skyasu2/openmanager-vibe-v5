@@ -80,7 +80,7 @@ export interface MonitoringAlert {
   readonly acknowledgedBy?: string;
 }
 
-export type AlertSeverity = 'low' | 'medium' | 'high' | 'critical';
+export type AlertSeverity = 'info' | 'warning' | 'critical';
 
 export type AlertType =
   | 'cpu_high'

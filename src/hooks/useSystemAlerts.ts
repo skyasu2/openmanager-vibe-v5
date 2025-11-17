@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { AlertSeverity } from '@/types/common';
 
 interface Alert {
   id: string;
-  type: 'info' | 'warning' | 'error';
+  type: AlertSeverity;
   message: string;
   timestamp: string;
   serverId?: string;
@@ -38,7 +39,7 @@ export function useSystemAlerts() {
           if (s.status === 'critical') {
             extractedAlerts.push({
               id: `${s.id}-critical`,
-              type: 'error',
+              type: 'critical',
               message: `서버 ${s.name}에 심각한 문제가 발생했습니다`,
               timestamp: new Date().toISOString(),
               serverId: s.id,
@@ -68,7 +69,9 @@ export function useSystemAlerts() {
     fetchAlerts();
 
     // 30초마다 알림 업데이트
-    const interval = setInterval(() => { void fetchAlerts(); }, 30000);
+    const interval = setInterval(() => {
+      void fetchAlerts();
+    }, 30000);
 
     return () => clearInterval(interval);
   }, []);

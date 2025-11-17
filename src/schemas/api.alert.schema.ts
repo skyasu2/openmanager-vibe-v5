@@ -9,12 +9,7 @@ import { IdSchema, TimestampSchema } from './common.schema';
 
 // ===== 알림 심각도 =====
 
-export const AlertSeveritySchema = z.enum([
-  'low',
-  'medium',
-  'high',
-  'critical',
-]);
+export const AlertSeveritySchema = z.enum(['info', 'warning', 'critical']);
 
 // ===== 알림 객체 =====
 
