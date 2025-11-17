@@ -24,22 +24,42 @@ interface ServerMetricsChartProps {
   animationDuration?: number; // 애니메이션 지속 시간 (ms)
 }
 
+// 색상 테마 정의
+const colorThemes = {
+  critical: {
+    primary: '#EF4444', // red-500
+    background: 'rgba(239, 68, 68, 0.1)', // red-500/10
+  },
+  warning: {
+    primary: '#F59E0B', // amber-500
+    background: 'rgba(245, 158, 11, 0.1)', // amber-500/10
+  },
+  online: {
+    primary: '#10B981', // emerald-500
+    background: 'rgba(16, 185, 129, 0.1)', // emerald-500/10
+  },
+  default: {
+    primary: '#6B7280', // gray-500
+    background: 'rgba(107, 114, 128, 0.1)', // gray-500/10
+  },
+} as const;
+
 // 상태와 값에 따라 색상 결정
 const getStatusColor = (status: ServerStatus, value: number): string => {
   // 상태와 값에 따라 색상 결정
-  if (status === 'critical' || value > 85) return '#EF4444'; // red-500
-  if (status === 'warning' || value > 70) return '#F59E0B'; // amber-500
-  if (status === 'online' || value <= 70) return '#10B981'; // emerald-500
+  if (status === 'critical' || value > 85) return colorThemes.critical.primary;
+  if (status === 'warning' || value > 70) return colorThemes.warning.primary;
+  if (status === 'online' || value <= 70) return colorThemes.online.primary;
 
-  return '#6B7280'; // gray-500
+  return colorThemes.default.primary;
 };
 
 const getBackgroundColor = (status: ServerStatus): string => {
-  if (status === 'critical') return 'rgba(239, 68, 68, 0.1)'; // red-500/10
-  if (status === 'warning') return 'rgba(245, 158, 11, 0.1)'; // amber-500/10
-  if (status === 'online') return 'rgba(16, 185, 129, 0.1)'; // emerald-500/10
+  if (status === 'critical') return colorThemes.critical.background;
+  if (status === 'warning') return colorThemes.warning.background;
+  if (status === 'online') return colorThemes.online.background;
 
-  return 'rgba(107, 114, 128, 0.1)'; // gray-500/10
+  return colorThemes.default.background;
 };
 
 export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
@@ -55,6 +75,7 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
   }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [animationValue, setAnimationValue] = useState(0);
+    const animationFrameRef = useRef<number | null>(null);
     const { trackComponentRender } = usePerformanceTracking();
 
     const sizeConfig = {
@@ -67,7 +88,11 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
 
     // 애니메이션 효과
     useEffect(() => {
-      let animationFrame: number;
+      // 이전 애니메이션 프레임이 있으면 취소
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+
       const startTime = performance.now();
       const startValue = animationValue;
       const targetValue = value;
@@ -80,20 +105,22 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
         setAnimationValue(currentValue);
 
         if (progress < 1) {
-          animationFrame = requestAnimationFrame(animate);
+          animationFrameRef.current = requestAnimationFrame(animate);
         } else {
           setAnimationValue(targetValue);
+          animationFrameRef.current = null;
         }
       };
 
-      animationFrame = requestAnimationFrame(animate);
+      animationFrameRef.current = requestAnimationFrame(animate);
 
       return () => {
-        if (animationFrame) {
-          cancelAnimationFrame(animationFrame);
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
         }
       };
-    }, [value, animationDuration]);
+    }, [value, animationValue, animationDuration]);
 
     // Canvas에 차트 그리기
     const drawChart = useCallback(() => {
