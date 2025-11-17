@@ -8,18 +8,14 @@ import { type FC } from 'react';
  * - Service status monitoring
  * - Real-time updates with animated indicators
  */
-
 'use client';
 
-// React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
 import { Activity, Server as ServerIcon } from 'lucide-react';
-import dynamic from 'next/dynamic';
 import { ServerModal3DGauge } from '../shared/UnifiedCircularGauge';
 import { ServerData, StatusTheme } from './EnhancedServerModal.types';
 import { StatusLED } from './EnhancedServerModal.components';
 
 // framer-motion을 동적 import로 처리
-// framer-motion 제거됨
 
 /**
  * Overview Tab Props

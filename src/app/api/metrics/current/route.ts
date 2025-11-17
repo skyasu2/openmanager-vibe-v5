@@ -10,7 +10,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import type { EnhancedServerMetrics, ServerRole } from '@/types/server';
-import { mockServersExpanded, serverInitialStatesExpanded } from '@/mock/mockServerConfigExpanded';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import { getSystemConfig } from '@/config/SystemConfiguration';
 
@@ -340,8 +339,7 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
   // 🎯 통합 데이터 소스에서 서버 정보 가져오기 (중앙집중식 관리)
   const dataSource = getUnifiedServerDataSource();
   const servers = await dataSource.getServers();
-  const config = getSystemConfig();
-  
+
   return servers.map(serverInfo => {
     const serverId = serverInfo.id;
     // 6개 사이클 기반 메트릭 생성
@@ -462,7 +460,7 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
  * 
  * 모니터링과 AI 어시스턴트가 공통으로 사용하는 통합 메트릭 API
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const startTime = Date.now();
     

@@ -17,7 +17,6 @@ import type {
   StepResult,
 } from '@/types/intelligent-monitoring.types';
 
-// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 type StepResultWithMeta = StepResult & {
   processingTime?: number;
   confidence?: number;
@@ -525,7 +524,6 @@ export default function IntelligentMonitoringPage() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {workflowSteps.map((step) => {
               // 타입 안전성을 위한 명시적 타입 가드
-              // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
               let stepResult: StepResultWithMeta | undefined;
 
               if (result) {

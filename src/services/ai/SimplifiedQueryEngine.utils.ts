@@ -133,13 +133,13 @@ export class SimplifiedQueryEngineUtils {
     
     // Optional context properties (타입 안전성을 위해 체크)
     if ('timeRange' in context && context.timeRange) {
-      parts.push(`time-${context.timeRange}`);
+      parts.push('time-' + context.timeRange);
     }
-    
+
     if ('alertLevel' in context && context.alertLevel) {
-      parts.push(`alert-${context.alertLevel}`);
+      parts.push('alert-' + context.alertLevel);
     }
-    
+
     return parts.length > 0 ? parts.join('|') : 'no-context';
   }
 

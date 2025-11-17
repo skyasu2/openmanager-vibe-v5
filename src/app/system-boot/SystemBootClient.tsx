@@ -156,7 +156,6 @@ export default function SystemBootClient() {
 
     let systemReady = false;
     let animationCompleted = false;
-    let statusCheckInterval: NodeJS.Timeout;
 
     // 실제 시스템 상태를 주기적으로 체크
     const checkSystemStatus = async () => {
@@ -190,7 +189,7 @@ export default function SystemBootClient() {
     };
 
     // 시스템 상태를 1초마다 체크 (API 호출 최적화)
-    statusCheckInterval = setInterval(() => { void checkSystemStatus(), 1000; });
+    const statusCheckInterval = setInterval(() => { void checkSystemStatus(); }, 1000);
 
     // 초기 즉시 체크
     void checkSystemStatus();
@@ -245,9 +244,7 @@ export default function SystemBootClient() {
 
     // 컴포넌트 언마운트 시 정리
     return () => {
-      if (statusCheckInterval) {
-        clearInterval(statusCheckInterval);
-      }
+      clearInterval(statusCheckInterval);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isClient]);

@@ -136,10 +136,9 @@ export const MLLearningCenter: FC = () => {
       }));
 
       const startTime = Date.now();
-      let progressTimer: NodeJS.Timeout;
 
       // 진행률 업데이트 타이머
-      progressTimer = setInterval(() => {
+      const progressTimer = setInterval(() => {
         setLearningProgress((prev) => {
           const current = prev[type];
           const newProgress = Math.min(current.progress + 10, 90);

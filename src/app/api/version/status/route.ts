@@ -10,6 +10,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import debug from '@/utils/debug';
+import { AI_ENGINE_VERSIONS, DATA_GENERATOR_VERSIONS, VersionManager as ImportedVersionManager } from '@/config/versions';
 
 // 🔒 타입 안전성을 위한 인터페이스 정의
 interface AIEngineVersions {
@@ -29,19 +30,10 @@ interface MasterAIEngine {
 }
 
 // 안전한 import 처리
-let _AI_ENGINE_VERSIONS: AIEngineVersions | null = null;
-let _DATA_GENERATOR_VERSIONS: DataGeneratorVersions | null = null;
-let _VersionManager: VersionManager | null = null;
-let _masterAIEngine: MasterAIEngine | null = null;
-
-try {
-  const versionsModule = require('@/config/versions');
-  _AI_ENGINE_VERSIONS = versionsModule.AI_ENGINE_VERSIONS;
-  _DATA_GENERATOR_VERSIONS = versionsModule.DATA_GENERATOR_VERSIONS;
-  _VersionManager = versionsModule.VersionManager;
-} catch (error) {
-  debug.warn('versions 모듈 import 실패:', (error as Error).message);
-}
+const _AI_ENGINE_VERSIONS: AIEngineVersions | null = AI_ENGINE_VERSIONS;
+const _DATA_GENERATOR_VERSIONS: DataGeneratorVersions | null = DATA_GENERATOR_VERSIONS;
+const _VersionManager: VersionManager | null = ImportedVersionManager;
+const _masterAIEngine: MasterAIEngine | null = null;
 
 // SimplifiedQueryEngine은 GCP Functions로 이관됨
 try {

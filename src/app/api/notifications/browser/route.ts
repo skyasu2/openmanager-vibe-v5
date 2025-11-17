@@ -6,7 +6,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getErrorMessage } from '@/types/type-utils';
-import { headers } from 'next/headers';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
   NotificationRequestSchema,
@@ -16,7 +15,7 @@ import {
   type TestNotificationData,
   type ValidateNotificationData,
   type UpdateNotificationSettings,
-  type NotificationRequest,
+
   type NotificationResponse,
   type NotificationStatusResponse,
 } from '@/schemas/api.schema';
@@ -133,17 +132,17 @@ const postHandler = createApiRoute()
 
     switch (body.action) {
       case 'test': {
-        const { action, ...data } = body;
+        const { action: _action, ...data } = body;
         return handleSendTestNotification(data);
       }
       case 'validate': {
-        const { action, ...data } = body;
+        const { action: _action, ...data } = body;
         return handleValidateNotification(data);
       }
       case 'clear-history':
         return handleClearHistory();
       case 'update-settings': {
-        const { action, ...data } = body;
+        const { action: _action, ...data } = body;
         return handleUpdateSettings(data);
       }
       default:

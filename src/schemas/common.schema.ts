@@ -101,7 +101,7 @@ export const ConfigurationSchema = z.object({
 });
 
 // 상태
-export const StatusSchema = z.enum([
+export const _StatusSchema = z.enum([
   'active',
   'inactive',
   'pending',
@@ -208,7 +208,7 @@ export type PaginationResponse = z.infer<typeof PaginationResponseSchema>;
 export type BaseResponse = z.infer<typeof BaseResponseSchema>;
 export type Metadata = z.infer<typeof MetadataSchema>;
 export type Configuration = z.infer<typeof ConfigurationSchema>;
-export type Status = z.infer<typeof StatusSchema>;
+export type Status = z.infer<typeof _StatusSchema>;
 export type HealthStatus = z.infer<typeof HealthStatusSchema>;
 export type Priority = z.infer<typeof PrioritySchema>;
 export type Environment = z.infer<typeof EnvironmentSchema>;

@@ -79,13 +79,13 @@ export class DIContainer {
     // 순환 의존성 감지
     if (this.resolutionStack.includes(token)) {
       throw new Error(
-        `Circular dependency detected: ${this.resolutionStack.join(' -> ')} -> ${String(token)}`
+        'Circular dependency detected: ' + (this.resolutionStack.join(' -> ') + ' -> ' + String(token))
       );
     }
 
     const service = this.services.get(token);
     if (!service) {
-      throw new Error(`Service not registered: ${String(token)}`);
+      throw new Error('Service not registered: ' + String(token));
     }
 
     this.resolutionStack.push(token);

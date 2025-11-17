@@ -27,7 +27,6 @@ import {
   Server as ServerIcon,
   X,
 } from 'lucide-react';
-import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useState, Fragment } from 'react';
 import { ServerModal3DGauge } from '../shared/UnifiedCircularGauge';
 
@@ -218,10 +217,24 @@ export default function EnhancedServerModal({
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
           onClick={onClose}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              onClose();
+            }
+          }}
         >
           <div
             className="w-full max-w-md rounded-xl bg-white p-6 text-center"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') {
+                onClose();
+              }
+            }}
+            role="presentation"
+            tabIndex={-1}
           >
             <div className="mb-4 text-4xl text-red-500">⚠️</div>
             <h3 className="mb-2 text-lg font-semibold text-gray-900">
@@ -250,10 +263,26 @@ export default function EnhancedServerModal({
       <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md"
         onClick={onClose}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            onClose();
+          }
+        }}
       >
         <div
           className="flex h-[95vh] sm:h-[90vh] w-full max-w-7xl flex-col overflow-hidden rounded-2xl sm:rounded-3xl bg-white shadow-2xl ring-1 ring-black/10"
+          /* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              onClose();
+            }
+          }}
+          role="dialog"
+          aria-modal="true"
+          tabIndex={-1}
         >
           {/* 헤더 - Miller's Rule 적용 (8개→5개 요소 축소) */}
           <div

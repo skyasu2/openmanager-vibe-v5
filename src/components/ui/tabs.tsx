@@ -1,4 +1,4 @@
-import { forwardRef, type ComponentProps, type ComponentPropsWithoutRef, type ReactElement, type ReactNode, type HTMLAttributes, type ButtonHTMLAttributes, type ElementRef } from 'react';
+import { forwardRef, type ComponentPropsWithoutRef, type ReactElement, type ReactNode, type HTMLAttributes, type ButtonHTMLAttributes, type ElementRef } from 'react';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import { cn } from '@/lib/utils';
 

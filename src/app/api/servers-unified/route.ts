@@ -522,37 +522,41 @@ async function handleServersUnified(
         break;
 
       case 'detail':
-        if (!serverId) {
-          return { success: false, error: 'serverId required for detail action' };
+        {
+          if (!serverId) {
+            return { success: false, error: 'serverId required for detail action' };
+          }
+          const serverDetail = await getServerDetail(serverId);
+          if (!serverDetail) {
+            return { success: false, error: 'Server not found' };
+          }
+          return {
+            success: true,
+            data: serverDetail,
+            action: 'detail',
+            serverId
+          };
         }
-        const serverDetail = await getServerDetail(serverId);
-        if (!serverDetail) {
-          return { success: false, error: 'Server not found' };
-        }
-        return {
-          success: true,
-          data: serverDetail,
-          action: 'detail',
-          serverId
-        };
 
       case 'processes':
-        if (!serverId) {
-          return { success: false, error: 'serverId required for processes action' };
+        {
+          if (!serverId) {
+            return { success: false, error: 'serverId required for processes action' };
+          }
+          const processData = await getServerProcesses(serverId);
+          if (!processData) {
+            return { success: false, error: 'Server not found' };
+          }
+          return {
+            success: true,
+            data: processData,
+            action: 'processes',
+            serverId
+          };
         }
-        const processData = await getServerProcesses(serverId);
-        if (!processData) {
-          return { success: false, error: 'Server not found' };
-        }
-        return {
-          success: true,
-          data: processData,
-          action: 'processes',
-          serverId
-        };
 
       default:
-        throw new Error(`Unknown action: ${action}`);
+        throw new Error(`Unknown action: ${(action as string)}`);
     }
 
     // 필터링 및 정렬

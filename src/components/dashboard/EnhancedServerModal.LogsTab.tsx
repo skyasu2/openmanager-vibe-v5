@@ -8,14 +8,10 @@ import { type FC } from 'react';
  * - Smooth animations for log entries
  * - Log level indicators and timestamp formatting
  */
-
 'use client';
 
-// React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
-import dynamic from 'next/dynamic';
 import { RealtimeData, LogEntry, LogLevel } from './EnhancedServerModal.types';
 
-// framer-motion 제거 - CSS 애니메이션 사용
 
 /**
  * Logs Tab Props

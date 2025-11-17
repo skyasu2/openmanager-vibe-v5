@@ -149,9 +149,9 @@ export default function InfrastructureOverviewPage({
               // CPU 값은 cpu.usage 또는 직접 cpu 필드에서 가져옴
               const cpuValue =
                 typeof server.cpu === 'object' && server.cpu
-                  ? server.cpu.usage || 0
-                  : server.cpu || 0;
-              return sum + cpuValue;
+                  ? (server.cpu as { usage?: number }).usage ?? 0
+                  : (server.cpu as number ?? 0);
+              return sum + (typeof cpuValue === 'number' ? cpuValue : 0);
             }
             return sum;
           }, 0) / servers.length;
@@ -163,9 +163,9 @@ export default function InfrastructureOverviewPage({
               // Memory 값은 memory.usage 또는 직접 memory 필드에서 가져옴
               const memoryValue =
                 typeof server.memory === 'object' && server.memory
-                  ? server.memory.usage || 0
-                  : server.memory || 0;
-              return sum + memoryValue;
+                  ? (server.memory as { usage?: number }).usage ?? 0
+                  : (server.memory as number ?? 0);
+              return sum + (typeof memoryValue === 'number' ? memoryValue : 0);
             }
             return sum;
           }, 0) / servers.length;
@@ -177,9 +177,9 @@ export default function InfrastructureOverviewPage({
               // Disk 값은 disk.usage 또는 직접 disk 필드에서 가져옴
               const diskValue =
                 typeof server.disk === 'object' && server.disk
-                  ? server.disk.usage || 0
-                  : server.disk || 0;
-              return sum + diskValue;
+                  ? (server.disk as { usage?: number }).usage ?? 0
+                  : (server.disk as number ?? 0);
+              return sum + (typeof diskValue === 'number' ? diskValue : 0);
             }
             return sum;
           }, 0) / servers.length;

@@ -62,9 +62,9 @@ const PerformanceChart = memo<PerformanceChartProps>(({ data }) => {
     <div className="h-64">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
-          {/* @ts-ignore - Recharts 3.x PieProps 타입 정의 이슈 (children prop + data prop) */}
+          {/* @ts-expect-error - Recharts 3.x PieProps 타입 정의 이슈 (children prop + data prop) */}
           <Pie
-            data={data as any}
+            data={data}
             cx="50%"
             cy="50%"
             innerRadius={40}

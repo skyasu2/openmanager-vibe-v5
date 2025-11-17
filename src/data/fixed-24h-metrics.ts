@@ -5,7 +5,7 @@
  * 10분 단위 슬롯, 장애 시나리오 포함
  */
 
-import { applyScenario, type MetricType } from './scenarios';
+import { applyScenario} from './scenarios';
 
 /**
  * 10분 단위 고정 메트릭

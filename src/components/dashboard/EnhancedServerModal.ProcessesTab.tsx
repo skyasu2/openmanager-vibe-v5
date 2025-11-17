@@ -8,15 +8,10 @@ import { type FC } from 'react';
  * - Color-coded usage indicators
  * - Responsive table layout with smooth animations
  */
-
 'use client';
 
-// React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
-import dynamic from 'next/dynamic';
 import { RealtimeData, ProcessData } from './EnhancedServerModal.types';
 
-// framer-motion을 동적 import로 처리
-// framer-motion 제거됨
 
 /**
  * Processes Tab Props

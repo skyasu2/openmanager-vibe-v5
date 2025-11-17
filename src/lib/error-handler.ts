@@ -232,16 +232,16 @@ export function safeErrorLog(
   const errorType = classifyErrorType(safeError);
 
   // 콘솔 로깅
-  console.error(`${prefix}:`, safeError.message);
-  console.error(`↳ Type: ${errorType}`, `Code: ${safeError.code || 'NONE'}`);
+  console.error(prefix + ':', safeError.message);
+  console.error('↳ Type: ' + errorType, 'Code: ' + (safeError.code || 'NONE'));
 
   if (includeStack && safeError.stack) {
-    console.error(`↳ Stack:`, safeError.stack);
+    console.error('↳ Stack:', safeError.stack);
   }
 
   // 개발 환경에서는 원본 에러도 출력
   if (process.env.NODE_ENV === 'development' && safeError.originalError) {
-    console.error(`↳ Original:`, safeError.originalError);
+    console.error('↳ Original:', safeError.originalError);
   }
 
   return safeError;

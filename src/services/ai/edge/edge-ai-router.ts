@@ -266,7 +266,7 @@ export class EdgeAIRouter {
         }
       } catch (error) {
         // 폴백 실패는 로그만
-        console.warn(`Fallback service ${service} failed:`, error);
+        console.warn('Fallback service ' + service + ' failed:', error);
       }
     }
   }
@@ -283,7 +283,7 @@ export class EdgeAIRouter {
 
     // Circuit Breaker 체크
     if (!this.canCallService(service)) {
-      throw new Error(`Circuit breaker open for ${service}`);
+      throw new Error('Circuit breaker open for ' + service);
     }
 
     const serviceRequest = {
@@ -339,7 +339,7 @@ export class EdgeAIRouter {
           break;
 
         default:
-          throw new Error(`Unknown service: ${service}`);
+          throw new Error('Unknown service: ' + service);
       }
 
       // 성공 시 Circuit Breaker 업데이트
@@ -359,7 +359,7 @@ export class EdgeAIRouter {
     request: EdgeRouterRequest
   ): Promise<DistributedResponse | null> {
     try {
-      const cacheKey = `ai:response:${this.generateCacheKey(request)}`;
+      const cacheKey = 'ai:response:' + this.generateCacheKey(request);
       const cachedData = await edgeCache.get(cacheKey);
 
       if (cachedData) {

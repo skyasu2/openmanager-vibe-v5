@@ -46,7 +46,7 @@ export class PromptSanitizer {
 
     // Code execution attempts
     /<script|javascript:|data:|vbscript:/gi,
-    /\$\{[^}]*\}|\#\{[^}]*\}/g, // Template injection
+    /\$\{[^}]*\}|#{[^}]*}/g, // Template injection
 
     // Korean specific attacks
     /관리자\s+권한|루트\s+접근|시스템\s+해킹/gi,
@@ -407,7 +407,7 @@ export class PromptSanitizer {
    */
   private containsCommandInjection(input: string): boolean {
     const commandPatterns = [
-      /[\|\;&$`]/g,
+      /[|;&$`]/g,
       /\b(cat|ls|pwd|whoami|id|ps|top|kill|rm|mv|cp|chmod|sudo)\b/gi,
       /\\x[0-9a-f]{2}/gi, // Hex encoded
       /%[0-9a-f]{2}/gi, // URL encoded

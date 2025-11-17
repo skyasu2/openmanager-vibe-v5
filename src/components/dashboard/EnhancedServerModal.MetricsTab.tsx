@@ -8,12 +8,9 @@ import { type FC } from 'react';
  * - Color-coded status visualization
  * - Responsive grid layout
  */
-
 'use client';
 
-// React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
 import { Pause, Play } from 'lucide-react';
-import dynamic from 'next/dynamic';
 import {
   ServerData,
   RealtimeData,
@@ -23,7 +20,6 @@ import { getMetricColorByStatus } from './EnhancedServerModal.utils';
 import { RealtimeChart } from './EnhancedServerModal.components';
 import { getSafeLastArrayItem } from "../../lib/vercel-safe-utils";
 
-// framer-motion 제거 - CSS 애니메이션 사용
 
 /**
  * Metrics Tab Props

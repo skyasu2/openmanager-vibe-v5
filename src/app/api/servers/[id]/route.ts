@@ -9,9 +9,9 @@ import {
   EnhancedServerResponseSchema,
   ServerErrorResponseSchema,
   type ServerDetailQuery,
-  type LegacyServerResponse,
-  type EnhancedServerResponse,
-  type ServerErrorResponse,
+
+
+
 } from '@/schemas/api.schema';
 // server-details.schema에서 직접 import (올바른 구조를 위해)
 import {

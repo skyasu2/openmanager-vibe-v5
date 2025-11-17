@@ -268,7 +268,7 @@ export function useHybridAI() {
                 isLoading: false,
                 error: errorMessage,
               }));
-              reject(error);
+              reject(error instanceof Error ? error : new Error(String(error)));
             }
           })();
         } else {

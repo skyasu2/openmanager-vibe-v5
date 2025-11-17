@@ -67,7 +67,7 @@ function getSupabaseForScript(serviceRoleKey?: string): SupabaseClient {
     return global.__supabaseScriptInstance;
   }
 
-  const { createClient } = require('@supabase/supabase-js');
+  const { createClient } = await import('@supabase/supabase-js');
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
   const key = serviceRoleKey || process.env.SUPABASE_SERVICE_ROLE_KEY;

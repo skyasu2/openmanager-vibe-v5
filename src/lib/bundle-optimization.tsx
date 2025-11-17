@@ -15,7 +15,7 @@ export const debounce = <T extends (...args: unknown[]) => unknown>(
   let timeout: NodeJS.Timeout;
   return ((...args: unknown[]) => {
     clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(null, args), wait);
+    timeout = setTimeout(() => func(...args), wait);
   }) as T;
 };
 
@@ -26,7 +26,7 @@ export const throttle = <T extends (...args: unknown[]) => unknown>(
   let inThrottle: boolean;
   return ((...args: unknown[]) => {
     if (!inThrottle) {
-      func.apply(null, args);
+      func(...args);
       inThrottle = true;
       setTimeout(() => (inThrottle = false), limit);
     }
@@ -128,12 +128,14 @@ export class BundleAnalyzer {
   }
 }
 
+import React from 'react';
+
 /**
  * 🎯 전략 6: 에러 바운더리 경량화
  */
 export class LightErrorBoundary {
   static createFallback(componentName: string) {
-    return () => (
+    const FallbackComponent = () => (
       <div className="rounded-lg border border-red-200 bg-red-50 p-4">
         <h3 className="font-medium text-red-800">오류 발생</h3>
         <p className="mt-1 text-sm text-red-600">
@@ -141,6 +143,10 @@ export class LightErrorBoundary {
         </p>
       </div>
     );
+
+    FallbackComponent.displayName = 'LightErrorBoundaryFallback';
+
+    return FallbackComponent;
   }
 }
 

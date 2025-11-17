@@ -658,7 +658,7 @@ export class SubagentTestController {
 
   // 📁 로그 디렉토리 확인
   private ensureLogDirectory(): void {
-    const { mkdirSync } = require('fs');
+    const { mkdirSync } = await import('fs');
     try {
       mkdirSync(this.logDir, { recursive: true });
     } catch (error) {
@@ -668,7 +668,7 @@ export class SubagentTestController {
 
   // 🔍 테스트 히스토리 조회 (서브에이전트용)
   getTestHistory(limit: number = 10): SubagentTestResult[] {
-    const { readdirSync } = require('fs');
+    const { readdirSync } = await import('fs');
     try {
       const logFiles = readdirSync(this.logDir)
         .filter((file: string) => file.endsWith('.json'))

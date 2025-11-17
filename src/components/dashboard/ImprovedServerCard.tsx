@@ -44,7 +44,7 @@ import {
   isValidServer
 } from '@/lib/vercel-safe-utils';
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
-import { validateMetricValue, validateServerMetrics, generateSafeMetricValue, type MetricType } from '../../utils/metricValidation';
+import { validateMetricValue, validateServerMetrics, generateSafeMetricValue} from '../../utils/metricValidation';
 import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
 import { getServerStatusTheme, getTypographyClass, COMMON_ANIMATIONS, LAYOUT, type ServerStatus } from '../../styles/design-constants';
 // 🚀 Vercel 호환 접근성 기능 추가
@@ -71,33 +71,13 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
   }) => {
     // 🛡️ 5층 방어 시스템 Layer 1: 서버 객체 존재성 검증 (베르셀 서버리스 환경 대응)
     // TypeError: Cannot read properties of undefined (reading 'length') 완전 방지
-    if (!server || typeof server !== 'object' || !server.id) {
-      console.warn('⚠️ ImprovedServerCard Layer 1: 서버 객체가 유효하지 않음 - 안전한 로딩 카드 표시', {
-        server: server ? 'exists' : 'null/undefined',
-        type: typeof server,
-        hasId: server?.id ? 'yes' : 'no'
-      });
-      return (
-        <div className="animate-pulse rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
-          <div className="flex items-center space-x-3">
-            <div className="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600"></div>
-            <div className="flex-1 space-y-2">
-              <div className="h-4 w-3/4 rounded bg-gray-300 dark:bg-gray-600"></div>
-              <div className="h-3 w-1/2 rounded bg-gray-300 dark:bg-gray-600"></div>
-            </div>
-          </div>
-          <div className="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
-            서버 데이터 로딩 중... (Layer 1 Safe Mode)
-          </div>
-        </div>
-      );
-    }
+    const isValidServerObject = server && typeof server === 'object' && server.id;
 
     // 🛡️ 5층 방어 시스템 Layer 2: 필수 서버 속성 안전성 검증
     const safeServer = {
-      id: server.id || 'unknown',
-      name: server.name || '알 수 없는 서버',
-      status: server.status || 'unknown', // 🔧 수정: 'offline' → 'unknown' (기본값 변경)
+      id: server?.id || 'unknown',
+      name: server?.name || '알 수 없는 서버',
+      status: server?.status || 'unknown', // 🔧 수정: 'offline' → 'unknown' (기본값 변경)
       type: server.type || 'server',
       location: server.location || '서울',
       os: server.os || 'Ubuntu 22.04',
@@ -196,7 +176,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       try {
         // 서버 상태를 Material Design 3 표준 상태로 매핑 (베르셀 환경 안전성)
         const theme = getServerStatusTheme(safeServer.status as ServerStatus); // 🔧 수정: 타입 어설션 (타입 통합 호환성)
-      
+
       return {
         // Material Design 3 Surface 기반 배경 - 상태별 색상 적용
         cardBg: theme.background, // 상태별 배경 그라데이션
@@ -832,10 +812,35 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
 ImprovedServerCardInner.displayName = 'ImprovedServerCardInner';
 
 // 🛡️ 에러 바운더리로 감싼 최종 컴포넌트 (Codex 제안 반영)
-const ImprovedServerCard: FC<ImprovedServerCardProps> = (props) => {
+const ImprovedServerCard: FC<ImprovedServerCardProps> = ({ server, ...props }) => {
+  // 서버 객체가 유효하지 않으면 안전한 로딩 카드 표시
+  const _isValidServerObject = server && typeof server === 'object' && server.id;
+
+  if (!_isValidServerObject) {
+    console.warn('⚠️ ImprovedServerCard Layer 1: 서버 객체가 유효하지 않음 - 안전한 로딩 카드 표시', {
+      server: server ? 'exists' : 'null/undefined',
+      type: typeof server,
+      hasId: server?.id ? 'yes' : 'no'
+    });
+    return (
+      <div className="animate-pulse rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+        <div className="flex items-center space-x-3">
+          <div className="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600"></div>
+          <div className="flex-1 space-y-2">
+            <div className="h-4 w-3/4 rounded bg-gray-300 dark:bg-gray-600"></div>
+            <div className="h-3 w-1/2 rounded bg-gray-300 dark:bg-gray-600"></div>
+          </div>
+        </div>
+        <div className="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
+          서버 데이터 로딩 중... (Layer 1 Safe Mode)
+        </div>
+      </div>
+    );
+  }
+
   return (
     <ServerCardErrorBoundary>
-      <ImprovedServerCardInner {...props} />
+      <ImprovedServerCardInner server={server} {...props} />
     </ServerCardErrorBoundary>
   );
 };

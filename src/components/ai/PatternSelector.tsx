@@ -27,7 +27,7 @@ export default function PatternSelector({
   const handlePatternChange = async (patternId: string) => {
     setIsChanging(patternId);
     try {
-      await onPatternChange(patternId);
+      onPatternChange(patternId);
     } finally {
       setIsChanging(null);
     }

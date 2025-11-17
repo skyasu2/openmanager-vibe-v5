@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, type ComponentProps, type ReactElement, type ReactNode, type HTMLAttributes, type ButtonHTMLAttributes, type ElementRef, ComponentPropsWithoutRef } from 'react';
+import { forwardRef, type ReactElement, type ReactNode, type HTMLAttributes, type ButtonHTMLAttributes, type ElementRef, ComponentPropsWithoutRef } from 'react';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 
 import { cn } from '@/lib/utils';

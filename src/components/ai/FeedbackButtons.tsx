@@ -30,7 +30,7 @@ export default function FeedbackButtons({
 
     if (feedback === 'helpful') {
       // 긍정적 피드백은 바로 제출
-      await submitFeedback(feedback);
+      submitFeedback(feedback);
     } else {
       // 부정적 피드백은 상세 정보 요청
       setShowDetailForm(true);
@@ -140,10 +140,11 @@ export default function FeedbackButtons({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="detailed-reason-select" className="mb-1 block text-sm font-medium text-gray-700">
               왜 도움이 되지 않았나요?
             </label>
             <select
+              id="detailed-reason-select"
               value={detailedReason}
               onChange={(e) => setDetailedReason(e.target.value)}
               className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -161,10 +162,11 @@ export default function FeedbackButtons({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label htmlFor="additional-comments-textarea" className="mb-1 block text-sm font-medium text-gray-700">
               추가 의견 (선택사항)
             </label>
             <textarea
+              id="additional-comments-textarea"
               value={additionalComments}
               onChange={(e) => setAdditionalComments(e.target.value)}
               placeholder="어떤 점을 개선하면 좋을지 알려주세요..."

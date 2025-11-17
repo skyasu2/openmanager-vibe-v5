@@ -186,7 +186,7 @@ class EmbeddingService {
     // 간단한 TF-IDF 시뮬레이션
     const tf = tokens.filter(t => t === term).length / tokens.length;
     // IDF는 고정값으로 시뮬레이션 (실제로는 문서 집합이 필요)
-    const idf = Math.log(100 / (1 + Math.abs((term ?? '').charCodeAt(0) % 20)));
+    const idf = Math.log(100 / (1 + Math.abs((term || '').charCodeAt(0) % 20)));
     
     return tf * idf;
   }

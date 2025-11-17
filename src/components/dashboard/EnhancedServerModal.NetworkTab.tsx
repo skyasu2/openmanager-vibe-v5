@@ -9,11 +9,8 @@ import { type FC } from 'react';
  * - SVG-based traffic flow charts with gradients
  * - Server connection details and specifications
  */
-
 'use client';
 
-// React import C81cAc70 - Next.js 15 C790B3d9 JSX Transform C0acC6a9
-import dynamic from 'next/dynamic';
 import {
   ServerData,
   RealtimeData,
@@ -23,7 +20,6 @@ import {
 import { RealtimeChart } from './EnhancedServerModal.components';
 
 // framer-motion을 동적 import로 처리
-// framer-motion 제거됨
 
 /**
  * Network Tab Props

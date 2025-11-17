@@ -5,7 +5,7 @@ import {
   DatabasePoolResetRequestSchema,
   DatabasePoolResetResponseSchema,
   DatabasePoolStatusResponseSchema,
-  type DatabasePoolResetRequest,
+
   type DatabasePoolResetResponse,
   type DatabasePoolStatusResponse,
   type DatabasePoolConfig,

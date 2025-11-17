@@ -5,7 +5,7 @@ import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { renderAIGradientWithAnimation } from '@/utils/text-rendering';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { memo, useEffect, useMemo, useRef, useState, useCallback, type RefObject } from 'react';
-import type { FeatureCard, FeatureCardProps } from '@/types/feature-card.types';
+import type { FeatureCard} from '@/types/feature-card.types';
 import { FEATURE_CARDS_DATA } from '@/data/feature-cards.data';
 
 // 개별 카드 컴포넌트를 메모이제이션

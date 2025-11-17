@@ -165,9 +165,9 @@ export const useNaturalLoadingTime = ({
 
     console.log('🎬 자연스러운 시스템 로딩 시작');
 
-    let intervalId: NodeJS.Timeout | undefined;
+    let intervalId: NodeJS.Timeout | undefined; // eslint-disable-line prefer-const
     let phaseTimer: NodeJS.Timeout | undefined;
-    let cleanupTimer: NodeJS.Timeout | undefined;
+    const cleanupTimer: NodeJS.Timeout | undefined;
     let isCleanedUp = false;
 
     const cleanup = () => {
@@ -302,7 +302,7 @@ export const useDataLoadingPromise = (
     return new Promise((resolve, reject) => {
       const checkDataReady = () => {
         if (error) {
-          reject(error);
+          reject(error instanceof Error ? error : new Error(String(error)));
         } else if (!isLoading && data && data.length > 0) {
           resolve(data);
         } else {

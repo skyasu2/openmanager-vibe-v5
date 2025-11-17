@@ -20,10 +20,10 @@ import {
 } from '../../../../lib/api/errorHandler';
 import { memoryOptimizer } from '../../../../utils/MemoryOptimizer';
 import {
-  type SystemOptimizeRequest,
+
   type MemorySummary,
-  type SystemOptimizeResponse,
-  type MemoryStatusResponse,
+
+
 } from '@/schemas/api.schema';
 
 /**

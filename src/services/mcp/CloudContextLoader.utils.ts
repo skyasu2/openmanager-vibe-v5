@@ -10,7 +10,7 @@
  * - Checksum generation
  */
 
-import type { NLPType, BundleType } from './CloudContextLoader.types';
+import type { BundleType } from './CloudContextLoader.types';
 
 /**
  * 🔍 쿼리에서 관련 파일 경로 추출

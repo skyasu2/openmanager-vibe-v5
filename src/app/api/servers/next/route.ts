@@ -9,7 +9,7 @@ import {
   ServerBatchResponseSchema,
   type ServerPaginationQuery,
   type ServerPaginatedResponse,
-  type ServerBatchRequest,
+
   type ServerBatchResponse,
   type PaginatedServer,
 } from '@/schemas/api.schema';

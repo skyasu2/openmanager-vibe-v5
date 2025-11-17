@@ -394,7 +394,7 @@ export class SimplifiedQueryEngineHelpers {
       sections.push(
         aggregated.main_insights
           .slice(0, 3)
-          .map((insight, index) => `${index + 1}. ${insight}`)
+          .map((insight, index) => (index + 1) + '. ' + insight)
           .join('\n')
       );
     }
@@ -402,16 +402,16 @@ export class SimplifiedQueryEngineHelpers {
     if (aggregated.metrics) {
       const metricSummary = Object.entries(aggregated.metrics)
         .slice(0, 3)
-        .map(([metric, value]) => `${metric}: ${value}`)
+        .map(([metric, value]) => metric + ': ' + value)
         .join(', ');
       if (metricSummary) {
-        sections.push(`주요 지표: ${metricSummary}`);
+        sections.push('주요 지표: ' + metricSummary);
       }
     }
 
     if (data.recommendations?.length) {
       sections.push(
-        `추천 조치: ${data.recommendations.slice(0, 2).join(', ')}`
+        '추천 조치: ' + data.recommendations.slice(0, 2).join(', ')
       );
     }
 
@@ -677,19 +677,15 @@ export class SimplifiedQueryEngineHelpers {
       criticalServers.forEach(server => {
         response += `• **${server.name}**:
 `;
-        response += `  - CPU: ${server.cpu ?? 0}% ${(server.cpu ?? 0) > 85 ? '(과부하)' : ''}
-`;
-        response += `  - 메모리: ${server.memory ?? 0}% ${(server.memory ?? 0) > 90 ? '(과부하)' : ''}
-`;
-        response += `  - 응답시간: ${server.responseTime}ms ${server.responseTime > 500 ? '(지연)' : ''}
-`;
-        
+        response += '  - CPU: ' + (server.cpu ?? 0) + '% ' + ((server.cpu ?? 0) > 85 ? '(과부하)' : '') + '\n';
+        response += '  - 메모리: ' + (server.memory ?? 0) + '% ' + ((server.memory ?? 0) > 90 ? '(과부하)' : '') + '\n';
+        response += '  - 응답시간: ' + server.responseTime + 'ms ' + (server.responseTime > 500 ? '(지연)' : '') + '\n';
+
         // 장애 시나리오 정보 포함
         if (server.metadata?.scenarios?.length && server.metadata.scenarios.length > 0) {
-          response += `  - 감지된 이벤트: ${server.metadata.scenarios[0]!.description}
-`;
+          response += '  - 감지된 이벤트: ' + server.metadata.scenarios[0]!.description + '\n';
         }
-        response += `\n`;
+        response += '\n';
       });
     }
     

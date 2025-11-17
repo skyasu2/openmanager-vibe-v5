@@ -90,13 +90,13 @@ export class UnifiedMetricsService {
       const response = await fetch(apiUrl);
       
       if (!response.ok) {
-        throw new Error(`API 호출 실패: ${response.status} ${response.statusText}`);
+        throw new Error('API 호출 실패: ' + response.status + ' ' + response.statusText);
       }
-      
+
       const data: UnifiedMetricsResponse = await response.json();
-      
+
       if (!data.success) {
-        throw new Error(`메트릭 생성 실패: ${data}`);
+        throw new Error('메트릭 생성 실패: ' + data);
       }
       
       // 캐시 저장

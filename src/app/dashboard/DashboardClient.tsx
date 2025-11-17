@@ -214,7 +214,7 @@ const AnimatedServerModal = dynamic(
       onClose,
     }: {
       isOpen: boolean;
-      server: Server | null; // eslint-disable-line @typescript-eslint/no-redundant-type-constituents
+      server: Server | null;
       onClose: () => void;
     }) {
       // 🎯 서버 데이터 변환 헬퍼 함수 사용
@@ -489,7 +489,7 @@ function DashboardPageContent() {
     }
   }, []); // Run once after mount
 
-  const [selectedServer, setSelectedServer] = useState<Server | null>(null); // eslint-disable-line @typescript-eslint/no-redundant-type-constituents
+  const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
   const [showLogoutWarning, setShowLogoutWarning] = useState(false);
   const [_showSystemWarning, setShowSystemWarning] = useState(false);

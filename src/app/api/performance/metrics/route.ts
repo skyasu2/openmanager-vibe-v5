@@ -43,23 +43,24 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case 'resolve-alert':
-        if (!alertId) {
-          return NextResponse.json(
-            { error: 'Alert ID is required' },
-            { status: 400 }
-          );
+        {
+          if (!alertId) {
+            return NextResponse.json(
+              { error: 'Alert ID is required' },
+              { status: 400 }
+            );
+          }
+
+          const resolved = performanceService.resolveAlert(alertId);
+          if (!resolved) {
+            return NextResponse.json(
+              { error: 'Alert not found' },
+              { status: 404 }
+            );
+          }
+
+          return NextResponse.json({ success: true });
         }
-
-        const resolved = performanceService.resolveAlert(alertId);
-        if (!resolved) {
-          return NextResponse.json(
-            { error: 'Alert not found' },
-            { status: 404 }
-          );
-        }
-
-        return NextResponse.json({ success: true });
-
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }

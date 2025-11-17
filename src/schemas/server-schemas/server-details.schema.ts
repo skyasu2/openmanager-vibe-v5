@@ -23,7 +23,7 @@ export const ServerSpecsSchema = z.object({
 
 // ===== 서버 상세 쿼리 =====
 
-export const ServerDetailQuerySchema = z.object({
+export const _ServerDetailQuerySchema = z.object({
   history: z.enum(['true', 'false']).optional(),
   range: z.string().optional().default('24h'),
   format: z
@@ -58,7 +58,7 @@ export const ServerHistorySchema = z.object({
 
 // ===== 레거시 서버 응답 =====
 
-export const LegacyServerResponseSchema = z.object({
+export const _LegacyServerResponseSchema = z.object({
   success: z.boolean(),
   server: z.object({
     id: z.string(),
@@ -100,7 +100,7 @@ export const LegacyServerResponseSchema = z.object({
 
 // ===== 향상된 서버 응답 =====
 
-export const EnhancedServerResponseSchema = z.object({
+export const _EnhancedServerResponseSchema = z.object({
   meta: z.object({
     request_info: z.object({
       server_id: z.string(),
@@ -149,7 +149,7 @@ export const EnhancedServerResponseSchema = z.object({
 
 // ===== 에러 응답 =====
 
-export const ServerErrorResponseSchema = z.object({
+export const _ServerErrorResponseSchema = z.object({
   success: z.boolean(),
   error: z.string(),
   message: z.string(),
@@ -168,13 +168,13 @@ export const ServerErrorResponseSchema = z.object({
 
 export type ServerService = z.infer<typeof ServerServiceSchema>;
 export type ServerSpecs = z.infer<typeof ServerSpecsSchema>;
-export type ServerDetailQuery = z.infer<typeof ServerDetailQuerySchema>;
+export type ServerDetailQuery = z.infer<typeof _ServerDetailQuerySchema>;
 export type ServerHistoryDataPoint = z.infer<
   typeof ServerHistoryDataPointSchema
 >;
 export type ServerHistory = z.infer<typeof ServerHistorySchema>;
-export type LegacyServerResponse = z.infer<typeof LegacyServerResponseSchema>;
+export type LegacyServerResponse = z.infer<typeof _LegacyServerResponseSchema>;
 export type EnhancedServerResponse = z.infer<
-  typeof EnhancedServerResponseSchema
+  typeof _EnhancedServerResponseSchema
 >;
-export type ServerErrorResponse = z.infer<typeof ServerErrorResponseSchema>;
+export type ServerErrorResponse = z.infer<typeof _ServerErrorResponseSchema>;
