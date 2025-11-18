@@ -1,13 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { getMockSystem } from '@/mock';
-import {
-  ServerDetailQuerySchema,
-  LegacyServerResponseSchema,
-  EnhancedServerResponseSchema,
-  ServerErrorResponseSchema,
-  type ServerDetailQuery,
-} from '@/schemas/api.schema';
 // server-details.schema에서 직접 import (올바른 구조를 위해)
 import {
   type ServerService,
@@ -15,7 +8,6 @@ import {
   type ServerHistory,
   type ServerHistoryDataPoint,
 } from '@/schemas/server-schemas/server-details.schema';
-import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';
 
 // Database Server type from Supabase

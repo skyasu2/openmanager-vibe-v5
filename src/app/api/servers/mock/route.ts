@@ -9,7 +9,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getMockSystem, mockHelpers } from '@/mock';
-import type { Server } from '@/types/server';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';

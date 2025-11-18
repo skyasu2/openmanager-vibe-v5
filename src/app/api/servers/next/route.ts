@@ -7,9 +7,7 @@ import {
   ServerPaginatedResponseSchema,
   ServerBatchRequestSchema,
   ServerBatchResponseSchema,
-  type ServerPaginationQuery,
   type ServerPaginatedResponse,
-
   type ServerBatchResponse,
   type PaginatedServer,
 } from '@/schemas/api.schema';
@@ -138,41 +136,45 @@ const getHandler = createApiRoute()
     const allServers: PaginatedServer[] = mockServers.map((server) => {
       // 🔧 수정: 'healthy' → 'online', 'error' → 'critical' 타입 변환
       const rawStatus: unknown = server.status || 'offline';
-      const status = (rawStatus === 'healthy' ? 'online' :
-                     rawStatus === 'error' ? 'critical' :
-                     rawStatus) as ServerStatus;
+      const status = (
+        rawStatus === 'healthy'
+          ? 'online'
+          : rawStatus === 'error'
+            ? 'critical'
+            : rawStatus
+      ) as ServerStatus;
 
       return {
-      id: server.id,
-      name: server.name,
-      status, // 🔧 수정: 이미 ServerStatus로 변환됨
-      location: server.location || 'Unknown',
-      uptime: typeof server.uptime === 'number' ? server.uptime : 0,
-      lastUpdate:
-        server.lastUpdate instanceof Date
-          ? server.lastUpdate.toISOString()
-          : new Date().toISOString(),
-      metrics: {
-        cpu: Math.round(server.cpu ?? 0),
-        memory: Math.round(server.memory ?? 0),
-        disk: Math.round(server.disk ?? 0),
-        network: {
-          bytesIn: Math.round(server.network ?? 0),
-          bytesOut: Math.round(server.network ?? 0),
-          packetsIn: 0,
-          packetsOut: 0,
-          latency: 0,
-          connections: 0,
+        id: server.id,
+        name: server.name,
+        status, // 🔧 수정: 이미 ServerStatus로 변환됨
+        location: server.location || 'Unknown',
+        uptime: typeof server.uptime === 'number' ? server.uptime : 0,
+        lastUpdate:
+          server.lastUpdate instanceof Date
+            ? server.lastUpdate.toISOString()
+            : new Date().toISOString(),
+        metrics: {
+          cpu: Math.round(server.cpu ?? 0),
+          memory: Math.round(server.memory ?? 0),
+          disk: Math.round(server.disk ?? 0),
+          network: {
+            bytesIn: Math.round(server.network ?? 0),
+            bytesOut: Math.round(server.network ?? 0),
+            packetsIn: 0,
+            packetsOut: 0,
+            latency: 0,
+            connections: 0,
+          },
+          processes: 50,
+          loadAverage: [0.5, 0.3, 0.2] as [number, number, number],
         },
-        processes: 50,
-        loadAverage: [0.5, 0.3, 0.2] as [number, number, number],
-      },
-      tags: [],
-      metadata: {
-        type: server.type || 'unknown',
-        environment: server.environment || 'production',
-      },
-    }; // 🔧 수정: return 문 닫기
+        tags: [],
+        metadata: {
+          type: server.type || 'unknown',
+          environment: server.environment || 'production',
+        },
+      }; // 🔧 수정: return 문 닫기
     });
 
     // 상태 필터링
@@ -252,7 +254,7 @@ const postHandler = createApiRoute()
     enableLogging: true,
   })
   .build(async (_request, context): Promise<ServerBatchResponse> => {
-    const { action, serverIds, settings } = context.body;
+    const { action, serverIds, settings: _settings } = context.body;
 
     switch (action) {
       case 'batch-restart':

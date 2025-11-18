@@ -52,7 +52,9 @@ async function checkDatabaseStatus(): Promise<
       }
 
       // 데이터 존재 여부와 관계없이 쿼리가 성공하면 연결됨
-      debug.log(`✅ Database connected (latency: ${latency}ms, records: ${data?.length || 0})`);
+      debug.log(
+        `✅ Database connected (latency: ${latency}ms, records: ${data?.length || 0})`
+      );
       return 'connected';
     } catch (fetchError) {
       clearTimeout(timeoutId);
@@ -65,9 +67,7 @@ async function checkDatabaseStatus(): Promise<
   }
 }
 
-function checkCacheStatus(): Promise<
-  'connected' | 'disconnected' | 'error'
-> {
+function checkCacheStatus(): Promise<'connected' | 'disconnected' | 'error'> {
   try {
     // Memory-based 캐시 상태 체크
     const stats = getCacheStats();
@@ -149,7 +149,7 @@ async function checkDatabaseWithLatency(): Promise<ServiceCheckResult> {
 
 async function checkCacheWithLatency(): Promise<ServiceCheckResult> {
   const startTime = Date.now();
-  const status = await checkCacheStatus();  // await needed because checkCacheStatus returns Promise
+  const status = await checkCacheStatus(); // await needed because checkCacheStatus returns Promise
   return { status, latency: Date.now() - startTime };
 }
 
@@ -167,7 +167,6 @@ const healthCheckHandler = createApiRoute()
     enableLogging: true,
   })
   .build(async (_request, _context): Promise<HealthCheckResponse> => {
-    const startTime = Date.now();
     const envConfig = getEnvConfig();
     const apiConfig = getApiConfig();
 

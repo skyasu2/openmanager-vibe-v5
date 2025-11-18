@@ -85,27 +85,6 @@ const serversUnifiedRequestSchema = z.object({
 
 type ServersUnifiedRequest = z.infer<typeof serversUnifiedRequestSchema>;
 
-// 📊 서버 데이터 타입 정의
-interface ServerMetrics {
-  id: string;
-  name: string;
-  hostname: string;
-  status: 'online' | 'offline' | 'warning' | 'critical';
-  cpu: number;
-  memory: number;
-  disk: number;
-  network?: number;
-  uptime: number;
-  type: string;
-  role: string;
-  environment: string;
-  provider: string;
-  responseTime?: number;
-  connections?: number;
-  processes?: number;
-  lastUpdate: string;
-}
-
 // 🗂️ 파일 캐시 시스템
 interface FileCache {
   data: HourlyServerData;
@@ -148,7 +127,7 @@ async function readCachedHourlyFile(hour: number): Promise<HourlyServerData> {
 
     debug.log(`✅ 파일 읽기 완료: ${hour}시 데이터`);
     return hourlyData;
-  } catch (error) {
+  } catch {
     console.error(`❌ 시간별 데이터 파일 오류: ${filePath}`);
     throw new Error(`시간별 데이터 파일 누락: ${cacheKey}.json`);
   }
