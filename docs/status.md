@@ -1,6 +1,6 @@
 # 프로젝트 현재 상태
 
-**마지막 업데이트**: 2025-11-08
+**마지막 업데이트**: 2025-11-19
 
 ---
 
@@ -32,15 +32,15 @@
 
 ## 🤖 AI 도구
 
-**권장 버전 (2025-11-08 기준)** ✅
+**권장 버전 (2025-11-19 기준)** ✅
 
-- Claude Code v2.0.35+ (v2.0.35 이상 권장)
+- Claude Code v2.0.37 (현재 버전, 최신)
   - 🆕 Extended Thinking (think / think hard / think harder / ultrathink)
   - 🆕 @-mention 서버 필터링 (토큰 10-18% 추가 절약)
   - 🆕 Prompt Caching (자동 활성화)
-- Codex CLI v0.56.0+ (v0.56.0 이상 권장)
-- Gemini CLI v0.13.0+ (v0.13.0 이상 권장)
-- Qwen CLI v0.2.0+ (v0.2.0 이상 권장, 최신 버전)
+- Codex CLI v0.58.0 (현재 버전, 최신)
+- Gemini CLI v0.15.4 (현재 버전, 최신)
+- Qwen CLI v0.2.1 (현재 버전, 최신)
 
 **Claude Code Skills** (Phase 1 완료) ✅
 
@@ -131,7 +131,7 @@
 **환경 상태**: WSL 재설치 후 100% 복구, AI 교차검증 시스템 정상 작동 확인
 
 - ✅ MCP 서버: 9/9 완벽 연결 (Supabase 복구 완료)
-- ✅ AI CLI 도구: 4/4 정상 작동 (Codex v0.56.0, Gemini v0.13.0, Qwen v0.2.0 최신)
+- ✅ AI CLI 도구: 4/4 정상 작동 (Codex v0.58.0, Gemini v0.15.4, Qwen v0.2.1 최신)
 - ✅ Bash Wrapper: 3/3 정상 작동 (v2.5.0, 타임아웃 100% 안정)
 - ✅ Multi-AI Verification: 서브에이전트 정상 작동 (병렬 실행 성공)
 - ✅ Node.js: v22.21.1 (AI 교차검증 완료)

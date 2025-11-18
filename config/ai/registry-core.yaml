@@ -3,7 +3,7 @@
 # 목적: 토큰 사용량 최소화 (Cache Read 79% → 30% 목표)
 
 version: "2.0.0"  # registry-core 버전
-last_updated: "2025-11-14"
+last_updated: "2025-11-19"
 project: "OpenManager VIBE v5.80.0"
 
 # ============================================================================
@@ -18,16 +18,7 @@ ai-tools:
     current_version: "v0.58.0"
     wrapper_version: "v2.5.0"
     status: "✅ Active"
-    
-  gemini:
-    current_version: "v0.15.0"
-    wrapper_version: "v2.5.0"
-    status: "✅ Active"
-    
-  qwen:
-    current_version: "v0.2.1"
-    wrapper_version: "v2.5.0"
-    status: "✅ Active"
+    role: "Code review and verification"
 
 # 상세 정보: config/ai/changelog.yaml 참조
 
@@ -36,7 +27,7 @@ ai-tools:
 # ============================================================================
 subagents:
   active:
-    - multi-ai-verification-specialist  # HIGH priority
+    - codex-specialist                  # HIGH priority - Code review
     - dev-environment-manager           # MEDIUM
     - database-administrator            # HIGH
     - vercel-platform-specialist        # HIGH
@@ -88,7 +79,7 @@ skills:
 # ============================================================================
 quick_commands:
   mcp_health: "./scripts/mcp-health-check.sh"
-  ai_verification: 'Task multi-ai-verification-specialist "[task]"'
+  codex_review: 'codex exec "[review request]"'
   token_usage: "npx ccusage@latest"
 
 maintenance_frequency:
@@ -101,7 +92,6 @@ maintenance_frequency:
 # ============================================================================
 docs:
   main: "CLAUDE.md"
-  multi_ai: "docs/claude/environment/multi-ai-strategy.md"
   subagents: "docs/ai/subagents-complete-guide.md"
   mcp_guide: "docs/claude/environment/mcp/mcp-priority-guide.md"
   changelog: "config/ai/changelog.yaml"
