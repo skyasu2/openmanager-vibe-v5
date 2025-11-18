@@ -487,7 +487,7 @@ function DashboardPageContent() {
         setTestModeDetected(isTestMode);
       }
     }
-  }, []); // Run once after mount
+  }, [testModeDetected]); // testModeDetected 의존성 추가
 
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
   const [isServerModalOpen, setIsServerModalOpen] = useState(false);
@@ -544,7 +544,9 @@ function DashboardPageContent() {
       canAccessDashboard: permissions.canAccessDashboard,
       isPinAuth: permissions.isPinAuthenticated,
       shouldAllow:
-        permissions.canAccessDashboard || permissions.isPinAuthenticated || guestModeStatus,
+        permissions.canAccessDashboard ||
+        permissions.isPinAuthenticated ||
+        guestModeStatus,
       timestamp: new Date().toISOString(),
       buildVersion: '7.0.0-cache-fix',
     });
@@ -614,7 +616,7 @@ function DashboardPageContent() {
 
       // cleanup 불필요 - 동기 실행으로 타이머 없음
     }
-  }, [isMounted, permissions, router, testModeDetected]);
+  }, [isMounted, permissions, router, testModeDetected, toast]);
 
   // 🎯 서버 통계 상태 관리 (상단 통계 카드용)
   const [_serverStats, setServerStats] = useState({
@@ -735,7 +737,7 @@ function DashboardPageContent() {
       debug.log('🚀 시스템이 종료된 상태입니다. 자동으로 시작합니다.');
       startSystem();
     }
-  }, [isSystemStarted]); // ✅ startSystem 함수 의존성 제거하여 순환 의존성 해결
+  }, [isSystemStarted, startSystem]);
 
   // 🛡️ 성능 가드 경고 모니터링 (개발 환경에서만)
   useEffect(() => {
@@ -777,14 +779,14 @@ function DashboardPageContent() {
     setShowLogoutWarning(false);
     systemInactivityService.resumeSystem();
     debug.log('🔄 사용자가 세션을 연장했습니다 - 베르셀 사용량 최적화');
-  }, []); // ✅ resetTimer 함수 의존성 제거하여 순환 의존성 해결
+  }, [resetTimer]);
 
   // 🔒 즉시 로그아웃 처리
   const handleLogoutNow = useCallback(() => {
     forceLogout();
     setShowLogoutWarning(false);
     debug.log('🔒 사용자가 즉시 로그아웃을 선택했습니다');
-  }, []); // ✅ forceLogout 함수 의존성 제거하여 순환 의존성 해결
+  }, [forceLogout]);
 
   // 🎯 통계 업데이트 핸들러 (상단 통계 카드 업데이트)
   const handleStatsUpdate = useCallback(
@@ -824,7 +826,7 @@ function DashboardPageContent() {
     dashboardModalClose();
     setSelectedServer(null);
     setIsServerModalOpen(false);
-  }, []); // ✅ dashboardModalClose 함수 의존성 제거하여 순환 의존성 해결
+  }, [dashboardModalClose]);
 
   // 🚀 시스템 제어 더미 데이터 최적화
   const dummySystemControl = {
