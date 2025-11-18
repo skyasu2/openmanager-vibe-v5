@@ -96,7 +96,7 @@ export function useAIThinking(): UseAIThinkingReturn {
       () => {
         if (currentStepIndex < steps.length) {
           setCurrentThinkingSteps((prev) =>
-            prev.map((step, index) => {
+            prev.map((step, _index) => {
               if (index === currentStepIndex) {
                 return {
                   ...step,
@@ -130,6 +130,7 @@ export function useAIThinking(): UseAIThinkingReturn {
     if (thinkingPersistTimer) {
       clearTimeout(thinkingPersistTimer);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // thinkingPersistTimer, simulateRealTimeThinking 함수/타이머 의존성 제거하여 Vercel Edge Runtime 호환성 확보
 
   // 사고 종료

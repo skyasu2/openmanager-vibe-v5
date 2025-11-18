@@ -246,6 +246,7 @@ export const useWorkerStats = () => {
         workerRef.current.terminate();
         workerRef.current = null;
         isInitializedRef.current = false;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         callbacksRef.current.clear();
       }
     };

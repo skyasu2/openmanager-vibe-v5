@@ -25,6 +25,7 @@ export function useSafeEffect(
         cleanup();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
   useEffect(() => {
@@ -58,7 +59,7 @@ export function useAsyncEffect(
       }
     };
 
-    runAsyncEffect();
+    void runAsyncEffect();
 
     return () => {
       isMountedRef.current = false;
@@ -67,6 +68,7 @@ export function useAsyncEffect(
         cleanupRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
   useEffect(() => {

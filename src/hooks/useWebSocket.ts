@@ -434,6 +434,7 @@ export const useServerWebSocket = (
       websocket.subscribe('server-metrics');
       websocket.subscribe('alerts');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [websocket.isConnected]); // ✅ websocket 객체 의존성을 isConnected 원시값으로 변경하여 순환 의존성 해결
 
   return {

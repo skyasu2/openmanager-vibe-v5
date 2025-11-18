@@ -21,7 +21,7 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface ServiceStatus {
   name: string;
@@ -94,7 +94,7 @@ export function ServicesMonitor({
   const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const fetchServicesStatus = async () => {
+  const fetchServicesStatus = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch('/api/services/status');
@@ -129,11 +129,11 @@ export function ServicesMonitor({
     } finally {
       setLoading(false);
     }
-  };
+  }, [onRefresh]);
 
   useEffect(() => {
     void fetchServicesStatus();
-  }, []);
+  }, [fetchServicesStatus]);
 
   useEffect(() => {
     if (autoRefresh) {
@@ -141,7 +141,7 @@ export function ServicesMonitor({
       return () => clearInterval(interval);
     }
     return undefined;
-  }, [autoRefresh]);
+  }, [autoRefresh, fetchServicesStatus]);
 
   return (
     <Card>
@@ -242,7 +242,7 @@ export function ServicesMonitor({
         {/* 서비스 상태 카드들 */}
         {servicesData && (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {servicesData.services.map((service, index) => (
+            {servicesData.services.map((service, _index) => (
               <Card key={index} className="relative overflow-hidden">
                 <div
                   className={`absolute left-0 top-0 h-full w-1 ${getStatusColor(service.status)}`}

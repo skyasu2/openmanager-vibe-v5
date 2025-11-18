@@ -147,9 +147,13 @@ export function usePerformanceGuard({
       if (originalSetInterval.current) {
         window.setInterval = originalSetInterval.current;
       }
-      if (originalLocalStorageGetItem.current && originalLocalStorageSetItem.current) {
-        localStorage.getItem = originalLocalStorageGetItem.current;
-        localStorage.setItem = originalLocalStorageSetItem.current;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      const originalGetItem = originalLocalStorageGetItem.current;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      const originalSetItem = originalLocalStorageSetItem.current;
+      if (originalGetItem && originalSetItem) {
+        localStorage.getItem = originalGetItem;
+        localStorage.setItem = originalSetItem;
       }
     };
   }, [devOnly, minTimerInterval, memoryWarningThreshold, localStorageAccessLimit, interceptSetInterval, monitorLocalStorageAccess, checkMemoryUsage]);

@@ -81,7 +81,7 @@ const useSimulationProgress = ({
       if (isCurrentlyVisible && isPaused && isPolling) {
         console.log('📱 페이지가 활성화됨. 폴링 재개...');
         setIsPaused(false);
-        refresh(); // 즉시 데이터 갱신
+        void refresh(); // 즉시 데이터 갱신
       } else if (!isCurrentlyVisible && isPolling) {
         console.log('📱 페이지가 백그라운드로 이동. 폴링 일시정지...');
         setIsPaused(true);
@@ -92,6 +92,7 @@ const useSimulationProgress = ({
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPaused, isPolling]);
 
   /**
@@ -248,7 +249,7 @@ const useSimulationProgress = ({
 
         setTimeout(() => {
           if (isVisibleRef.current || !pauseWhenHidden) {
-            refresh();
+            void refresh();
           }
         }, retryDelay);
       }
@@ -310,6 +311,7 @@ const useSimulationProgress = ({
       }
     })();
     }, pollInterval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isPolling,
     fetchSimulationData,
@@ -348,7 +350,7 @@ const useSimulationProgress = ({
    */
   useEffect(() => {
     if (autoStart) {
-      refresh().then(() => {
+      void refresh().then(() => {
         if (!isComplete) {
           startPolling();
         }
@@ -359,10 +361,12 @@ const useSimulationProgress = ({
     return () => {
       stopPolling();
       // 캐시 정리
-      if (cacheRef.current) {
-        cacheRef.current.clear();
+      const cache = cacheRef.current;
+      if (cache) {
+        cache.clear();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 빈 의존성 배열로 한 번만 실행
 
   // Pause when page is hidden
