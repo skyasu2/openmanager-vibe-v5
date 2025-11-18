@@ -247,9 +247,6 @@ export function toSafeString(value: unknown): string {
   if (typeof value === 'number' || typeof value === 'boolean') {
     return String(value);
   }
-  try {
-    return JSON.stringify(value);
-  } catch {
-    return '[unserializable]';
-  }
+  // For objects and arrays, use String() to get standard JavaScript string representation
+  return String(value);
 }
