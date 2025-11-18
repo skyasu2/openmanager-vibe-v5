@@ -52,7 +52,7 @@ function AuthErrorContent() {
     };
 
     setError(getErrorMessage(errorParam || null));
-  }, []); // searchParams 객체 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [searchParams]); // searchParams 변화에 반응
 
   /**
    * 🔙 로그인 페이지로 돌아가기
@@ -72,9 +72,7 @@ function AuthErrorContent() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-50 via-white to-orange-50 p-4">
       <div className="w-full max-w-md">
         {/* 에러 아이콘 */}
-        <div
-          className="mb-8 text-center"
-        >
+        <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
             <svg
               className="h-8 w-8 text-red-600"
@@ -95,9 +93,7 @@ function AuthErrorContent() {
         </div>
 
         {/* 에러 메시지 */}
-        <div
-          className="mb-6 rounded-xl border border-red-200 bg-white p-6 shadow-lg"
-        >
+        <div className="mb-6 rounded-xl border border-red-200 bg-white p-6 shadow-lg">
           <div className="flex items-start space-x-3">
             <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
               <svg
@@ -122,9 +118,7 @@ function AuthErrorContent() {
         </div>
 
         {/* 해결 방법 */}
-        <div
-          className="mb-6 rounded-xl bg-blue-50 p-6"
-        >
+        <div className="mb-6 rounded-xl bg-blue-50 p-6">
           <h3 className="mb-3 font-semibold text-blue-900">해결 방법</h3>
           <div className="space-y-2 text-sm text-blue-800">
             <div className="flex items-start space-x-2">
@@ -147,9 +141,7 @@ function AuthErrorContent() {
         </div>
 
         {/* 액션 버튼들 */}
-        <div
-          className="space-y-3"
-        >
+        <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={handleTryAgain}
@@ -180,9 +172,7 @@ function AuthErrorContent() {
         </div>
 
         {/* 기술 정보 */}
-        <div
-          className="mt-8 text-center"
-        >
+        <div className="mt-8 text-center">
           <div className="space-y-1 text-xs text-gray-500">
             <p>🔐 NextAuth 기반 GitHub OAuth</p>
             <p>🛠️ 문제가 계속되면 관리자에게 문의하세요</p>
