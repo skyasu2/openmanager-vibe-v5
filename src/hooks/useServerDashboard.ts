@@ -468,7 +468,8 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     window.addEventListener('resize', handleResize);
 
     return () => window.removeEventListener('resize', handleResize);
-  }, []); // 의존성 배열을 비워서 초기에만 리스너 등록
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 의존성 배열을 비워서 초기에만 리스너 등록 (pageSize는 handleResize 내부에서 계산)
 
   // 🚀 최적화된 서버 데이터 로드 및 자동 갱신 설정
   useEffect(() => {
@@ -503,7 +504,8 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
       console.log('🛑 서버 데이터 자동 갱신 중지');
       stopAutoRefresh();
     };
-  }, []); // 빈 의존성 배열로 마운트 시 한 번만 실행
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 빈 의존성 배열로 마운트 시 한 번만 실행 (함수들은 ref 기반으로 안정적)
 
   // 실제 서버 데이터 사용 (메모이제이션 + 🕐 시간 기반 메트릭 변화)
   const actualServers = useMemo(() => {
@@ -884,10 +886,20 @@ export function useEnhancedServerDashboard({
   };
 
   // 📊 디버깅 로그
+  const serversLength = useMemo(() => 
+    Array.isArray(servers) ? servers.length : 0, 
+    [servers]
+  );
+  
+  const filteredServersLength = useMemo(() => 
+    (filteredServers && Array.isArray(filteredServers)) ? filteredServers.length : 0,
+    [filteredServers]
+  );
+
   useEffect(() => {
     debug.log('🎯 Enhanced 서버 대시보드 상태:', {
-      전체_서버_수: Array.isArray(servers) ? servers.length : 0,
-      필터링된_서버_수: (filteredServers && Array.isArray(filteredServers)) ? filteredServers.length : 0,
+      전체_서버_수: serversLength,
+      필터링된_서버_수: filteredServersLength,
       현재_페이지: currentPage,
       총_페이지: totalPages,
       표시_모드: displayMode,
@@ -896,8 +908,8 @@ export function useEnhancedServerDashboard({
       표시_정보: displayInfo,
     });
   }, [
-    Array.isArray(servers) ? servers.length : 0,
-    (filteredServers && Array.isArray(filteredServers)) ? filteredServers.length : 0,
+    serversLength,
+    filteredServersLength,
     currentPage,
     totalPages,
     displayMode,

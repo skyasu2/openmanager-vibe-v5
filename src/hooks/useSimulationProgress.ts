@@ -361,6 +361,7 @@ const useSimulationProgress = ({
     return () => {
       stopPolling();
       // 캐시 정리
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       const cache = cacheRef.current;
       if (cache) {
         cache.clear();

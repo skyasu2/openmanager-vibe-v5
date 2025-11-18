@@ -71,7 +71,7 @@ export function useAutoLogout({
 
       // 로그아웃 타이머
       timeoutRef.current = setTimeout(() => {
-        handleAutoLogout();
+        void handleAutoLogout();
       }, inactivityTimeout);
     }
   };
@@ -153,7 +153,8 @@ export function useAutoLogout({
         clearTimeout(warningTimeoutRef.current);
       }
     };
-  }, [isLoggedIn, inactivityTimeout, warningTimeout]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn, inactivityTimeout, warningTimeout]); // resetTimers, updateActivity는 ref 기반으로 안정적
 
   // 로그인 상태 확인
   useEffect(() => {
@@ -174,7 +175,8 @@ export function useAutoLogout({
   // 로그인 상태가 변경될 때 타이머 재설정
   useEffect(() => {
     resetTimers();
-  }, [isLoggedIn]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoggedIn]); // resetTimers는 ref 기반으로 안정적
 
   return {
     logout,
