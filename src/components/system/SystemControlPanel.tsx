@@ -20,38 +20,7 @@ import {
   Shield,
   Square,
 } from 'lucide-react';
-import React, { Fragment, useCallback, useState } from 'react';
-
-interface SystemStatus {
-  isRunning: boolean;
-  health: 'healthy' | 'degraded' | 'critical';
-  processes: Array<{
-    id: string;
-    status:
-      | 'stopped'
-      | 'starting'
-      | 'running'
-      | 'stopping'
-      | 'error'
-      | 'restarting';
-    healthScore: number;
-    restartCount: number;
-    uptime: number;
-    lastHealthCheck?: Date;
-    errorCount: number;
-  }>;
-  metrics: {
-    totalProcesses: number;
-    runningProcesses: number;
-    healthyProcesses: number;
-    systemUptime: number;
-    memoryUsage: number;
-    averageHealthScore: number;
-    totalRestarts: number;
-  };
-  startTime?: Date;
-  watchdogMetrics?: unknown;
-}
+import React, { Fragment, useState } from 'react';
 
 interface SystemOperation {
   success: boolean;
@@ -61,27 +30,12 @@ interface SystemOperation {
 }
 
 export function SystemControlPanel() {
-  const [systemStatus, setSystemStatus] = useState<SystemStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [operation, setOperation] = useState<string | null>(null);
-  const [stabilityTimer, setStabilityTimer] = useState<number>(0);
   const [alerts, setAlerts] = useState<
     Array<{ type: string; message: string; timestamp: Date }>
   >([]);
   const [isCollapsed, setIsCollapsed] = useState(true);
-
-  // 🚫 주기적 API 호출 제거 - Vercel 플랫폼 모니터링 사용
-  // 기존 fetchSystemStatus 함수의 타이머 기반 호출 제거
-  const fetchSystemStatus = useCallback(async (): Promise<null> => {
-    // 🚫 주기적 호출 제거됨
-    // 사용자가 수동으로 새로고침하거나 특정 액션 시에만 호출
-    // Vercel 대시보드에서 실시간 상태 확인 권장
-
-    console.log('ℹ️ SystemControlPanel: Vercel 플랫폼 모니터링 사용 권장');
-    console.log('📊 실시간 상태: https://vercel.com/dashboard');
-
-    return null;
-  }, []);
 
   // 시스템 제어 함수 (수동 액션만 유지)
   const executeSystemAction = async (
@@ -156,7 +110,7 @@ export function SystemControlPanel() {
       return;
     }
 
-    executeSystemAction('start', { mode: 'full' });
+    void executeSystemAction('start', { mode: 'full' });
   };
 
   // 시스템 중지 (수동 액션만 유지)
@@ -169,7 +123,7 @@ export function SystemControlPanel() {
       return;
     }
 
-    executeSystemAction('stop');
+    void executeSystemAction('stop');
   };
 
   // 시스템 재시작 (수동 액션만 유지)
@@ -182,7 +136,7 @@ export function SystemControlPanel() {
       return;
     }
 
-    executeSystemAction('restart');
+    void executeSystemAction('restart');
   };
 
   // 수동 새로고침 버튼 추가
@@ -246,9 +200,7 @@ export function SystemControlPanel() {
 
       <Fragment>
         {!isCollapsed && (
-          <div
-            className="space-y-4"
-          >
+          <div className="space-y-4">
             {/* 수동 제어 버튼들 */}
             <div className="grid grid-cols-3 gap-3">
               <button
