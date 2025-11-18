@@ -312,7 +312,7 @@ export const AIEngineTest: FC = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {results.map((result, _index) => (
+              {results.map((result, index) => (
                 <div
                   key={index}
                   className="flex items-center justify-between rounded-lg bg-gray-800/50 p-3"

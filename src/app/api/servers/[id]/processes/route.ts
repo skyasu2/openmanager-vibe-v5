@@ -34,7 +34,7 @@ function generateMockProcesses(_serverId: string): ServerProcess[] {
 
   const processes: ServerProcess[] = processNames
     .slice(0, Math.floor(Math.random() * 8) + 3)
-    .map((name, _index) => ({
+    .map((name, index) => ({
       pid: 1000 + index,
       name,
       cpu: (Math.random() * 50).toFixed(1),

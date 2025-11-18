@@ -95,7 +95,7 @@ const AlertsChart = memo<AlertsChartProps>(({ data }) => {
             />
             <Tooltip content={<AlertsTooltip />} />
             <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-              {data.map((entry, _index) => (
+              {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Bar>

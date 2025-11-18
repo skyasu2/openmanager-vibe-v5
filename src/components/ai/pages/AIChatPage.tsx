@@ -144,7 +144,7 @@ export default function AIChatPage() {
         <div className="border-b border-blue-200 p-4">
           <h3 className="mb-2 text-sm font-medium text-gray-700">빠른 질문</h3>
           <div className="grid grid-cols-1 gap-2">
-            {QUICK_QUESTIONS.map((question, _index) => (
+            {QUICK_QUESTIONS.map((question, index) => (
               <button
                 key={index}
                 onClick={() => handleQuickQuestion(question)}

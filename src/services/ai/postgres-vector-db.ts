@@ -475,7 +475,7 @@ export class PostgresVectorDB {
         return await this.fallbackKeywordSearch(keywords, options);
       }
 
-      return data.map((row, _index) => ({
+      return data.map((row, index) => ({
         id: row.id,
         content: row.content,
         metadata: row.metadata,

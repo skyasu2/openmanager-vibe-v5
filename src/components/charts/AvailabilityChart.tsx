@@ -99,7 +99,7 @@ const AvailabilityChart = memo<AvailabilityChartProps>(({ data }) => {
               paddingAngle={1}
               dataKey="value"
             >
-              {data.map((entry, _index) => (
+              {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>

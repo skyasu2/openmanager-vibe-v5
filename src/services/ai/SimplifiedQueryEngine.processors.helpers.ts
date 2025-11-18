@@ -407,7 +407,7 @@ export class SimplifiedQueryEngineHelpers {
       sections.push(
         aggregated.main_insights
           .slice(0, 3)
-          .map((insight, _index) => index + 1 + '. ' + insight)
+          .map((insight, index) => index + 1 + '. ' + insight)
           .join('\n')
       );
     }

@@ -260,7 +260,7 @@ export default function ServerMetricsLineChart({
       }
 
       const now = Date.now();
-      return history.map((point, _index) => ({
+      return history.map((point, index) => ({
         timestamp: now - (history.length - 1 - index) * 60 * 1000, // 1분 간격
         value: point[type] ?? value ?? 50,
         x: index,
@@ -553,7 +553,7 @@ export default function ServerMetricsLineChart({
             const maxValue = getMaxValue();
 
             return points
-              .map((point, _index) => {
+              .map((point, index) => {
                 // 🛡️ Triple-check: point 객체 검증
                 if (!point || typeof point !== 'object') return null;
                 if (typeof point.x !== 'number' || typeof point.y !== 'number')

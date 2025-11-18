@@ -430,7 +430,7 @@ export const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({
           className="sr-only"
           role="status"
         >
-          {state.announcements.map((announcement, _index) => (
+          {state.announcements.map((announcement, index) => (
             <div key={`${announcement}-${index}`}>{announcement}</div>
           ))}
         </div>

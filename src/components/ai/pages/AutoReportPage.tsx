@@ -194,7 +194,7 @@ export default function AutoReportPage() {
 
       {/* 보고서 목록 */}
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
-        {filteredReports.map((report, _index) => (
+        {filteredReports.map((report, index) => (
           <div
             key={report.id}
             className={`rounded-lg border p-4 animate-fade-in transition-shadow hover:shadow-md ${getSeverityColor(report.severity)}`}

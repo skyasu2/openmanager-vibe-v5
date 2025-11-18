@@ -74,7 +74,7 @@ export class SimulationEngine {
    */
   getServers(): EnhancedServerMetrics[] {
     const metrics = this.generateMetrics();
-    return metrics.map((metric, _index) => {
+    return metrics.map((metric, index) => {
       const serverNumber = index + 1;
       const environment: ServerEnvironment = [
         'production',

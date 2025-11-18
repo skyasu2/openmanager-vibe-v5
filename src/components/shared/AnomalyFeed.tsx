@@ -171,7 +171,7 @@ export function AnomalyFeed({
             </div>
           )}
           <div className="space-y-4">
-            {sortedAnomalies.map((anomaly, _index) => (
+            {sortedAnomalies.map((anomaly, index) => (
               <div
                 key={anomaly.id || index}
                 className="flex items-start gap-4 rounded-lg bg-slate-700/50 p-3"
@@ -259,7 +259,7 @@ export function AnomalyFeed({
             </div>
           ) : (
             <div className="space-y-3">
-              {sortedAnomalies.map((anomaly, _index) => (
+              {sortedAnomalies.map((anomaly, index) => (
                 <div
                   key={anomaly.id || index}
                   className="rounded-lg border p-3 transition-colors hover:bg-muted/50"

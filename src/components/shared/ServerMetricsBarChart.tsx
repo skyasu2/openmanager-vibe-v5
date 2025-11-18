@@ -141,7 +141,7 @@ export default function ServerMetricsBarChart({
         });
 
         // 라벨 업데이트
-        return newData.map((item, _index) => ({
+        return newData.map((item, index) => ({
           ...item,
           label: index === 4 ? '현재' : `${4 - index}분 전`,
         }));
@@ -167,7 +167,7 @@ export default function ServerMetricsBarChart({
       {/* 막대 그래프 */}
       <div className="space-y-1">
         <div className="flex h-20 items-end justify-between gap-1 px-1">
-          {historicalData.map((dataPoint, _index) => {
+          {historicalData.map((dataPoint, index) => {
             const height = Math.max(8, (dataPoint.value / 100) * 100);
             const isCurrentValue = index === historicalData.length - 1;
 
@@ -222,7 +222,7 @@ export default function ServerMetricsBarChart({
 
         {/* 시간 라벨 */}
         <div className="mt-2 flex justify-between px-1 text-xs text-gray-400">
-          {historicalData.map((dataPoint, _index) => (
+          {historicalData.map((dataPoint, index) => (
             <span
               key={index}
               className={`flex-1 text-center font-medium ${

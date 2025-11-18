@@ -96,7 +96,7 @@ export function useAIThinking(): UseAIThinkingReturn {
       () => {
         if (currentStepIndex < steps.length) {
           setCurrentThinkingSteps((prev) =>
-            prev.map((step, _index) => {
+            prev.map((step, index) => {
               if (index === currentStepIndex) {
                 return {
                   ...step,

@@ -90,7 +90,7 @@ export const RealtimeChart: FC<RealtimeChartProps> = ({
   
   // 데이터 포인트를 SVG 좌표로 변환 - 베르셀 안전 방식
   const points = data
-    .map((value, _index) => {
+    .map((value, index) => {
       const x = (index / Math.max(safeDataLength - 1, 1)) * 100;
       const y = 100 - Math.max(0, Math.min(100, value));
       return `${x},${y}`;

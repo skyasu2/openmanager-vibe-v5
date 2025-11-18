@@ -75,7 +75,7 @@ export function ServerDetailLogs({ serverId }: ServerDetailLogsProps) {
       <div className="max-h-96 overflow-y-auto rounded-xl bg-gray-900 p-4 font-mono text-sm text-green-400">
         <div className="space-y-1">
           {logs.length > 0 ? (
-            logs.map((log, _index) => (
+            logs.map((log, index) => (
               <div key={index} className="flex">
                 <span
                   className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getLogLevelClass(log.level)}`}

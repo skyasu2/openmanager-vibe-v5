@@ -38,7 +38,7 @@ const TrendsTooltip = memo(({ active, payload, label }: TrendsTooltipProps) => {
       <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg">
         <p className="mb-2 font-semibold text-gray-800">{label}</p>
         <div className="space-y-1">
-          {payload.map((entry, _index) => (
+          {payload.map((entry, index) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
               {entry.name}: {entry.value.toFixed(1)}
               {entry.name !== 'Alerts' ? '%' : '건'}

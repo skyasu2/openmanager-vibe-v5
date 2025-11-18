@@ -224,7 +224,7 @@ class DataRetentionScheduler {
       try {
         const result = await this.cleanupByPolicy(policy);
         results.push(result);
-      } catch {
+      } catch (error) {
         const errorResult: CleanupResult = {
           dataType: policy.dataType,
           itemsRemoved: 0,
@@ -266,7 +266,7 @@ class DataRetentionScheduler {
         timeTaken,
         success: true,
       };
-    } catch {
+    } catch (error) {
       return {
         dataType: policy.dataType,
         itemsRemoved: 0,
@@ -624,7 +624,7 @@ class DataRetentionScheduler {
       try {
         const result = await this.cleanupByPolicy(policy);
         results.push(result);
-      } catch {
+      } catch (error) {
         const errorResult: CleanupResult = {
           dataType: policy.dataType,
           itemsRemoved: 0,

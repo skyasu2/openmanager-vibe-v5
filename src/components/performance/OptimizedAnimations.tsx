@@ -343,7 +343,7 @@ export function BatchAnimation({
 
   return (
     <Fragment>
-      {children.map((child, _index) => (
+      {children.map((child, index) => (
         <div key={index} style={{ willChange: 'transform, opacity' }}>
           {child}
         </div>

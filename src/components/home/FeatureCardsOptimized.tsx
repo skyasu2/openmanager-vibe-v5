@@ -138,7 +138,7 @@ export default function FeatureCardsOptimized() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {features.map((feature, _index) => (
+        {features.map((feature, index) => (
           <div
             key={feature.id}
             className="animate-fadeInUp opacity-0"

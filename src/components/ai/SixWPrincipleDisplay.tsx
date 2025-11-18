@@ -197,7 +197,7 @@ export const SixWPrincipleDisplay: FC<SixWPrincipleDisplayProps> = ({
       {/* 6W 원칙 카드들 */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Fragment>
-          {principleConfig.map((config, _index) => {
+          {principleConfig.map((config, index) => {
             const {
               key,
               icon: IconComponent,
@@ -294,7 +294,7 @@ export const SixWPrincipleDisplay: FC<SixWPrincipleDisplayProps> = ({
               </span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {response.sources.map((source, _index) => (
+              {response.sources.map((source, index) => (
                 <span
                   key={index}
                   className="inline-flex items-center rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-600"

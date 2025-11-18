@@ -240,7 +240,7 @@ class VercelOptimizedAPIBatcher {
     // Promise.allSettled로 부분 실패 허용
     const settledResults = await Promise.allSettled(requestPromises);
     
-    return settledResults.map((result, _index) => {
+    return settledResults.map((result, index) => {
       if (result.status === 'fulfilled') {
         return result.value;
       } else {

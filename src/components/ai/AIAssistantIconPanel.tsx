@@ -158,7 +158,7 @@ export default function AIAssistantIconPanel({
 
       {/* 아이콘 버튼들 */}
       <div className="space-y-1">
-        {AI_ASSISTANT_ICONS.map((item, _index) => {
+        {AI_ASSISTANT_ICONS.map((item, index) => {
           const Icon = item.icon;
           const isSelected = selectedFunction === item.id;
 

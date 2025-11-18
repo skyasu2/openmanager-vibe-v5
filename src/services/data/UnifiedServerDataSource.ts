@@ -150,7 +150,7 @@ export class UnifiedServerDataSource {
       // mockServersExpanded를 기반으로 서버 생성
       const servers: Server[] = mockServersExpanded
         .slice(0, this.config.totalServers)
-        .map((mockServer, _index) => ({
+        .map((mockServer, index) => ({
           id: mockServer.id,
           name:
             mockServer.hostname ||

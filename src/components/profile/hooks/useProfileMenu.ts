@@ -147,7 +147,7 @@ export function useProfileMenuKeyboard(
 
   // 표시 가능한 메뉴 아이템 인덱스 계산
   const visibleIndices = menuItems
-    .map((item, _index) => (item.visible && !item.disabled ? index : -1))
+    .map((item, index) => (item.visible && !item.disabled ? index : -1))
     .filter((index) => index !== -1);
 
   useEffect(() => {

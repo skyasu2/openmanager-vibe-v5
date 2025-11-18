@@ -192,7 +192,7 @@ export default function VirtualizedServerList({
           gridTemplateColumns: `repeat(auto-fit, minmax(380px, 1fr))`,
         }}
       >
-        {servers.slice(0, visibleCount).map((server, _index) => renderServer(server, index))}
+        {servers.slice(0, visibleCount).map((server, index) => renderServer(server, index))}
       </div>
 
       {/* 더보기 버튼 */}

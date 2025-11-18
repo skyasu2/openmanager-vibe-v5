@@ -664,7 +664,7 @@ export default function IntelligentMonitoringPage() {
               <div className="space-y-2">
                 <h4 className="text-sm font-medium">🚨 우선순위 조치사항:</h4>
                 <ul className="space-y-1">
-                  {result.overallResult.priorityActions.map((action, _index) => (
+                  {result.overallResult.priorityActions.map((action, index) => (
                     <li
                       key={index}
                       className="flex items-center space-x-2 text-sm"
