@@ -178,7 +178,7 @@ export const useInfiniteScrollManager = () => {
   // 🔄 특정 타입의 무한 쿼리 새로고침
   const refreshInfiniteQueries = useCallback(
     (type: 'logs' | 'metrics' | 'predictions' | 'alerts') => {
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey[0] === 'infinite' && query.queryKey[1] === type,
       });

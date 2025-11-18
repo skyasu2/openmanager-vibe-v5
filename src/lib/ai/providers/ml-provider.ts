@@ -230,7 +230,7 @@ export class MLProvider implements IContextProvider {
   private getAnalysisType(
     options?: ProviderOptions
   ): 'anomaly_detection' | 'trend_analysis' | 'pattern_recognition' {
-    return (options?.analysisType as any) || 'anomaly_detection';
+    return (options?.analysisType as 'anomaly_detection' | 'trend_analysis' | 'pattern_recognition') || 'anomaly_detection';
   }
 
   /**

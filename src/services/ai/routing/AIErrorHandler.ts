@@ -119,7 +119,7 @@ export class AIErrorHandler {
       engine: 'fallback',
       confidence: 0,
       thinkingSteps: [
-        ...context.failedEngines.map((engine, index) => ({
+        ...context.failedEngines.map((engine, _index) => ({
           step: `엔진 ${index + 1} 시도`,
           description: `${engine} - 실패`,
           status: 'failed' as const,
@@ -256,7 +256,7 @@ export class AIErrorHandler {
   }
 
   private buildProcessingPathSteps(processingPath: string[]) {
-    return processingPath.map((step, index) => ({
+    return processingPath.map((step, _index) => ({
       step: `처리 단계 ${index + 1}`,
       description: step,
       status: 'completed' as const,

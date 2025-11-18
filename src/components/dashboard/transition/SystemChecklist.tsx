@@ -541,7 +541,7 @@ export default function SystemChecklist({
 
         {/* 컴팩트한 체크리스트 */}
         <div className="space-y-2">
-          {componentDefinitions.map((component, index) => {
+          {componentDefinitions.map((component, _index) => {
             const status = components[component.id];
             if (!status) return null;
 

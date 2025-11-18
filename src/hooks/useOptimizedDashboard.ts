@@ -104,7 +104,7 @@ export function useOptimizedDashboard({
       unifiedTimer.unregisterTask(authTask.id);
       unifiedTimer.unregisterTask(systemTask.id);
     };
-  }, [useUnifiedTimerMode]); // unifiedTimer 객체 참조 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [useUnifiedTimerMode, unifiedTimer]);
 
   // 📈 성능 통계 (개발 모드에서만)
   const performanceStats = useMemo(() => {

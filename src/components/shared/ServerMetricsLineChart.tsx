@@ -260,13 +260,13 @@ export default function ServerMetricsLineChart({
       }
 
       const now = Date.now();
-      return history.map((point, index) => ({
+      return history.map((point, _index) => ({
         timestamp: now - (history.length - 1 - index) * 60 * 1000, // 1분 간격
         value: point[type] ?? value ?? 50,
         x: index,
       }));
     },
-    [value, type, generateHistoricalData]
+    [value, type]
   );
 
   // 🛡️ 베르셀 환경 안전 초기화
@@ -553,7 +553,7 @@ export default function ServerMetricsLineChart({
             const maxValue = getMaxValue();
 
             return points
-              .map((point, index) => {
+              .map((point, _index) => {
                 // 🛡️ Triple-check: point 객체 검증
                 if (!point || typeof point !== 'object') return null;
                 if (typeof point.x !== 'number' || typeof point.y !== 'number')

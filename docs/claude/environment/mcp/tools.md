@@ -153,7 +153,10 @@ await mcp__serena__activate_project({
 });
 
 // 2. 이후 25개 도구 사용 가능
-await mcp__serena__list_dir({ relative_path: '.' });
+await mcp__serena__list_dir({ 
+  relative_path: 'src',  // ⚠️ 루트(.) 대신 특정 디렉토리 지정
+  skip_ignored_files: true  // 필수: 48배 빠름
+});
 await mcp__serena__find_file({ file_mask: '*.tsx', relative_path: 'src' });
 ```
 

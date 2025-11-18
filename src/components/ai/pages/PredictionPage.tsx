@@ -217,7 +217,7 @@ export default function PredictionPage() {
 
       {/* 예측 목록 */}
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
-        {filteredPredictions.map((prediction, index) => (
+        {filteredPredictions.map((prediction, _index) => (
           <div
             key={prediction.serverId}
             className={`rounded-lg border-2 p-4 ${getRiskColor(prediction.riskLevel)} transition-shadow hover:shadow-lg`}

@@ -71,7 +71,7 @@ export function useDataLoader<T>({
 
   useEffect(() => {
     if (autoLoad) {
-      reload();
+      void reload();
     }
   }, [autoLoad, reload]);
 

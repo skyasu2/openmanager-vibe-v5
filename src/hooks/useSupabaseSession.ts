@@ -100,7 +100,7 @@ export function useSession(): UseSessionReturn {
       }
     };
 
-    checkSession();
+    void checkSession();
 
     // 세션 변경 감지
     const response = supabase.auth.onAuthStateChange(async (event, session) => {

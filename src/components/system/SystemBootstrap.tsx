@@ -53,7 +53,7 @@ export function SystemBootstrap(): JSX.Element | null {
             }
             return;
           }
-        } catch (error) {
+        } catch {
           console.warn('⚠️ 부트스트랩 캐시 파싱 실패, 새로 시작');
         }
       }
@@ -221,7 +221,7 @@ export function SystemBootstrap(): JSX.Element | null {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [systemState, isSessionActive]);
+  }, [systemState, isSessionActive, bootstrapStatus]);
 
   // 시스템 초기화 상태 표시 제거됨 (웹 알람 삭제에 따라)
   return null;

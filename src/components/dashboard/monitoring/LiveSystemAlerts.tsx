@@ -179,7 +179,7 @@ export default function LiveSystemAlerts() {
     return () => {
       clearInterval(pollInterval);
     };
-  }, []);
+  }, [_isConnected]);
 
   // 5초마다 알림 로테이션
   useEffect(() => {

@@ -255,7 +255,7 @@ export default function ChatSection({
       } else {
         // Enter: 입력 제출
         e.preventDefault();
-        handleSubmit(e as unknown as FormEvent);
+        void handleSubmit(e as unknown as FormEvent);
       }
     }
   };
@@ -413,7 +413,7 @@ export default function ChatSection({
                 <h3 className="mb-3 font-semibold text-gray-800">
                   질문 히스토리
                 </h3>
-                {qaPages.map((page, index) => (
+                {qaPages.map((page, _index) => (
                   <button
                     key={page.id}
                     onClick={() => goToPage(index)}
@@ -526,7 +526,7 @@ export default function ChatSection({
 
                     {!isThinkingCollapsed && (
                       <div className="space-y-1">
-                        {currentPage.thinking.steps.map((step, index) => (
+                        {currentPage.thinking.steps.map((step, _index) => (
                           <div
                             key={index}
                             className="flex items-start gap-2 text-xs text-gray-600"
@@ -578,7 +578,7 @@ export default function ChatSection({
                 </div>
 
                 <div className="space-y-2">
-                  {presets.map((preset, index) => (
+                  {presets.map((preset, _index) => (
                     <button
                       key={`${preset}-${index}`}
                       onClick={() => handlePresetSelect(preset)}

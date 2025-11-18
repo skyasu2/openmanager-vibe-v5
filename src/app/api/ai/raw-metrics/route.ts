@@ -145,7 +145,7 @@ function convertToPureMetrics(hourlyData: HourlyDataStructure, _currentHour: num
     }
   }
   
-  return Object.values(servers).map((serverData: ServerDataStructure, index) => {
+  return Object.values(servers).map((serverData: ServerDataStructure, _index) => {
     // 🔄 시간 내 고정 패턴 (시나리오 힌트 없이)
     const minuteFactor = rotationMinute / 59;
     const fixedOffset = Math.sin(minuteFactor * 2 * Math.PI) * 2;

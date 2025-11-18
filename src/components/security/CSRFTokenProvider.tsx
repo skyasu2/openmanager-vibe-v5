@@ -29,7 +29,7 @@ export function CSRFTokenProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    fetchCSRFToken();
+    void fetchCSRFToken();
   }, []);
 
   // 토큰 발급 완료 전에도 children 렌더링 (UX 개선)

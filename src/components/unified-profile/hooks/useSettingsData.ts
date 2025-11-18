@@ -124,7 +124,7 @@ export function useSettingsData(): UseSettingsDataReturn {
         return { success: false, error: errorMessage };
       }
     },
-    [] // settingsService, loadGeneratorConfig 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+    [settingsService, loadGeneratorConfig]
   );
 
   /**
@@ -152,7 +152,7 @@ export function useSettingsData(): UseSettingsDataReturn {
         return { success: false, error: errorMessage };
       }
     },
-    [] // settingsService, loadGeneratorConfig 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+    [settingsService, loadGeneratorConfig]
   );
 
   /**
@@ -172,24 +172,24 @@ export function useSettingsData(): UseSettingsDataReturn {
    */
   const refreshSettings = useCallback(async () => {
     await Promise.all([loadAllSettings(), loadGeneratorConfig()]);
-  }, []); // loadAllSettings, loadGeneratorConfig 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [loadAllSettings, loadGeneratorConfig]);
 
   // 컴포넌트 마운트 시 초기 데이터 로드
   useEffect(() => {
-    refreshSettings();
-  }, []); // refreshSettings 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+    void refreshSettings();
+  }, [refreshSettings]); // refreshSettings 함수 의존성 추가
 
   // 자동 새로고침 (5분마다)
   useEffect(() => {
     const interval = setInterval(
       () => {
-        refreshSettings();
+        void refreshSettings();
       },
       5 * 60 * 1000
     ); // 5분
 
     return () => clearInterval(interval);
-  }, []); // refreshSettings 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [refreshSettings]); // refreshSettings 함수 의존성 추가
 
   return {
     // 설정 데이터 상태

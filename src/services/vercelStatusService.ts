@@ -316,7 +316,7 @@ export class VercelStatusService {
    */
   private _initializeStatusMonitoring(): void {
     // 초기 상태 확인
-    this.updateScalingConfig();
+    void this.updateScalingConfig();
 
     // 주기적 상태 확인
     setInterval(() => {

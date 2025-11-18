@@ -282,7 +282,7 @@ export default function ServerDashboard({
                 }`}
               >
                 {sortedServers.length > 0 ? (
-                  sortedServers.map((server, index) => {
+                  sortedServers.map((server, _index) => {
                   // 🛡️ AI 교차검증: 개별 서버 안전성 재검증 (Codex 실무 권장)
                   if (!server) {
                     console.error(`⚠️ ServerDashboard: 서버[${index}]가 null 또는 undefined입니다.`);

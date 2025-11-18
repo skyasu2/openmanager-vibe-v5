@@ -86,7 +86,7 @@ export class SystemStateManager extends EventEmitter {
   private _initializeStatusTracking(): void {
     // 주기적 상태 업데이트
     this.updateTimer = setInterval(() => {
-      this.updateSystemStatus();
+      void this.updateSystemStatus();
     }, this.UPDATE_INTERVAL);
 
     // 시뮬레이션 엔진 이벤트 수신
@@ -116,7 +116,7 @@ export class SystemStateManager extends EventEmitter {
         }
 
         lastRunningState = currentRunningState;
-        this.updateSystemStatus(); // 즉시 상태 업데이트
+        void this.updateSystemStatus(); // 즉시 상태 업데이트
       }
     }, 1000); // 1초마다 체크
   }
@@ -288,7 +288,7 @@ export class SystemStateManager extends EventEmitter {
    */
   getSystemStatus(): SystemStatus {
     if (!this.currentStatus) {
-      this.updateSystemStatus(); // 동기적으로 상태 업데이트 시도
+      void this.updateSystemStatus(); // 동기적으로 상태 업데이트 시도
       return this.createFallbackStatus();
     }
 

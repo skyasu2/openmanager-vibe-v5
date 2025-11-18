@@ -124,7 +124,7 @@ export const SixWPrincipleDisplay: FC<SixWPrincipleDisplayProps> = ({
       .map((config) => `${config.title}: ${response[config.key]}`)
       .join('\n\n');
 
-    handleCopy(fullResponse, 'all');
+    void handleCopy(fullResponse, 'all');
   }, [response, handleCopy]);
 
   // 아이템 확장/축소
@@ -197,7 +197,7 @@ export const SixWPrincipleDisplay: FC<SixWPrincipleDisplayProps> = ({
       {/* 6W 원칙 카드들 */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Fragment>
-          {principleConfig.map((config, index) => {
+          {principleConfig.map((config, _index) => {
             const {
               key,
               icon: IconComponent,
@@ -294,7 +294,7 @@ export const SixWPrincipleDisplay: FC<SixWPrincipleDisplayProps> = ({
               </span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {response.sources.map((source, index) => (
+              {response.sources.map((source, _index) => (
                 <span
                   key={index}
                   className="inline-flex items-center rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-600"

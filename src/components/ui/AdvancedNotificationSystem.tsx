@@ -466,7 +466,7 @@ export function AdvancedNotificationContainer() {
       {/* 알림 목록 */}
       <div className="pointer-events-auto space-y-2">
         <Fragment>
-          {notifications.map((notification, index) => (
+          {notifications.map((notification, _index) => (
             <NotificationItem
               key={notification.id}
               notification={notification}

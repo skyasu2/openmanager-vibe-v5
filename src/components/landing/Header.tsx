@@ -55,7 +55,7 @@ export default function Header({ isDark, onThemeToggle }: HeaderProps) {
 
           {/* 네비게이션 (데스크탑) */}
           <nav className="hidden items-center space-x-8 md:flex">
-            {navItems.map((item, index) => (
+            {navItems.map((item, _index) => (
               <a
                 key={item.name}
                 href={item.href}
@@ -100,7 +100,7 @@ export default function Header({ isDark, onThemeToggle }: HeaderProps) {
         className={`overflow-hidden border-t border-white/10 bg-black/20 backdrop-blur-lg md:hidden transition-all duration-300 ${isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}
       >
         <div className="space-y-4 px-4 py-6">
-          {navItems.map((item, index) => (
+          {navItems.map((item, _index) => (
             <a
               key={item.name}
               href={item.href}

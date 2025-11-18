@@ -276,7 +276,7 @@ export const useSystemChecklist = ({
   // 자동 시작
   useEffect(() => {
     if (autoStart) {
-      startChecklist();
+      void startChecklist();
     }
   }, [autoStart, startChecklist]); // startChecklist 함수 의존성 복구
 

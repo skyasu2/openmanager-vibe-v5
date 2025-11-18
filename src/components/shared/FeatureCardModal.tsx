@@ -95,7 +95,7 @@ export default function FeatureCardModal({
       id: selectedCard.id,
       requiresAI: selectedCard.requiresAI || false,
     };
-  }, [selectedCard?.id]); // 🎯 Gemini 제안: ID만 의존성으로 하여 불필요한 리렌더링 방지
+  }, [selectedCard]); // selectedCard 전체 객체 의존성
 
   // 일관된 구조분해 할당 (Hook 순서에 영향 없음)
   const { title, icon: Icon, gradient, detailedContent, requiresAI } = cardData;
@@ -457,7 +457,7 @@ export default function FeatureCardModal({
                 </span>
               </h4>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {criticalTech.map((tech, index) => (
+                {criticalTech.map((tech, _index) => (
                   <TechCard key={tech.name} tech={tech} index={index} />
                 ))}
               </div>
@@ -475,7 +475,7 @@ export default function FeatureCardModal({
                 </span>
               </h4>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {highTech.map((tech, index) => (
+                {highTech.map((tech, _index) => (
                   <TechCard key={tech.name} tech={tech} index={index} />
                 ))}
               </div>
@@ -493,7 +493,7 @@ export default function FeatureCardModal({
                 </span>
               </h4>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {mediumTech.map((tech, index) => (
+                {mediumTech.map((tech, _index) => (
                   <TechCard key={tech.name} tech={tech} index={index} />
                 ))}
               </div>
@@ -511,7 +511,7 @@ export default function FeatureCardModal({
                 </span>
               </h4>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {lowTech.map((tech, index) => (
+                {lowTech.map((tech, _index) => (
                   <TechCard key={tech.name} tech={tech} index={index} />
                 ))}
               </div>

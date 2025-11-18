@@ -243,7 +243,7 @@
 #### ❌ 비효율적 패턴
 
 ```typescript
-// 1. 전체 파일 읽기
+// 1. 전체 파일 읽기 (Serena 없이)
 Read('src/components/dashboard/DashboardClient.tsx'); // 500줄 전체
 // 2. 관련 파일도 읽기
 Read('src/types/dashboard.ts');
@@ -252,25 +252,29 @@ Read('src/hooks/useDashboard.ts');
 // 토큰 소비: ~1,500 토큰
 // 시간: 읽는 데 15초
 // 정확도: 불필요한 정보 많음
+// ⚠️ 컨텍스트 압축 위험: Read() 남발 시 5-20% 발생률
 ```
 
-#### ✅ 효율적 패턴
+#### ✅ 효율적 패턴 (Serena)
 
 ```typescript
-// 1. 심볼 오버뷰만
-mcp__serena__get_symbols_overview(
-  'src/components/dashboard/DashboardClient.tsx'
-);
+// 1. 심볼 오버뷰만 (skip_ignored_files 필수!)
+mcp__serena__get_symbols_overview({
+  relative_path: 'src/components/dashboard/DashboardClient.tsx',
+  max_answer_chars: 5000
+});
 
 // 2. 필요한 함수만 정확히
 mcp__serena__find_symbol('handleSubmit', {
   relative_path: 'src/components/dashboard/DashboardClient.tsx',
   include_body: true,
+  max_answer_chars: 5000
 });
 
 // 토큰 소비: ~200 토큰 (87% 절약!)
 // 시간: 3초 (5배 빠름)
 // 정확도: 필요한 정보만 정확히
+// ✅ 컨텍스트 압축 방지: Serena 사용 시 80% 감소
 ```
 
 **절약 효과**: 1,300 토큰, 12초 절약
@@ -280,6 +284,11 @@ mcp__serena__find_symbol('handleSubmit', {
 - 파일이 100줄 미만
 - 전체 맥락이 필요한 경우
 - 설정 파일 등 짧은 파일
+
+**⚠️ Read() 사용 주의사항**:
+- 500줄 이상 파일은 Serena 권장 (87% 토큰 절약)
+- 여러 파일 연속 Read 시 컨텍스트 압축 위험 (5-20% 발생률)
+- 디렉토리 탐색 시 `skip_ignored_files: true` 필수 (48배 빠름)
 
 ---
 

@@ -92,7 +92,7 @@ export const ProfileDropdownMenu = memo(function ProfileDropdownMenu({
           {/* 메뉴 아이템들 */}
           <div className="py-1">
             {/* 메뉴 아이템 렌더링 */}
-            {menuItems.map((item, index) => (
+            {menuItems.map((item, _index) => (
               <ProfileMenuItem
                 key={item.id}
                 {...item}

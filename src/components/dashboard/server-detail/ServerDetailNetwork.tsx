@@ -239,7 +239,7 @@ export function ServerDetailNetwork({
               protocol: 'TCP',
               status: 'LISTEN',
             },
-          ].map((port, index) => (
+          ].map((port, _index) => (
             <div
               key={index}
               className="rounded-lg border border-gray-200 bg-gray-50 p-4 transition-colors hover:border-blue-300"

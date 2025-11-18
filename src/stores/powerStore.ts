@@ -196,7 +196,7 @@ export const usePowerStore = create<PowerStore>()(
           }
 
           // 🔒 React 안전 모드: 배치 업데이트로 처리
-          Promise.resolve().then(() => {
+          void Promise.resolve().then(() => {
             try {
               const latestState = get();
               if (latestState) {

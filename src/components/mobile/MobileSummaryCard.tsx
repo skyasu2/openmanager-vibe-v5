@@ -177,7 +177,7 @@ export default function MobileSummaryCard({
         {/* 우선순위 서버 목록 */}
         <div className="mb-4 space-y-2">
           <h3 className="mb-2 text-sm font-medium text-gray-700">주요 서버</h3>
-          {priorityServers.map((server, index) => (
+          {priorityServers.map((server, _index) => (
             <button
               key={server.id}
               onClick={() => onServerSelect(server)}

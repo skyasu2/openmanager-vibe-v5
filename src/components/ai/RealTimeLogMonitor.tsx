@@ -455,7 +455,7 @@ export const RealTimeLogMonitor: FC<RealTimeLogMonitorProps> = ({
       {/* 로그 목록 */}
       <div className="h-96 space-y-2 overflow-y-auto p-4">
         <Fragment>
-          {filteredLogs.map((log, index) => (
+          {filteredLogs.map((log, _index) => (
             <div
               key={log.id}
               className="rounded-lg border p-3 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"

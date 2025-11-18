@@ -271,7 +271,7 @@ export class AuthenticationService {
 
     // 필요시 서버로 보안 로그 전송
     if (event === 'auth_failure' || event === 'account_locked') {
-      void this.sendSecurityLog(logEntry);
+      this.sendSecurityLog(logEntry);
     }
   }
 

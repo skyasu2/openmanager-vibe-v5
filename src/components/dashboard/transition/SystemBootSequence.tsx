@@ -186,7 +186,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
       currentStage,
       isComplete,
       progress,
-      servers?.length || 0,
+      servers,
     ]);
 
     if (skipAnimation || isComplete) {

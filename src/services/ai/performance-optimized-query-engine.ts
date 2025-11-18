@@ -616,7 +616,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     query: string,
     ragResult: RAGResult | null,
     mcpContext: MCPContext | null,
-    context?: AIQueryContext
+    _context?: AIQueryContext
   ): string {
     try {
       // RAG 결과가 있으면 그를 기반으로 응답 생성

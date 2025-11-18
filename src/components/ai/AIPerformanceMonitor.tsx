@@ -17,8 +17,7 @@ import {
   RefreshCw,
   Database,
   Clock,
-  TrendingUp,
-  Settings
+  TrendingUp
 } from 'lucide-react';
 
 interface MonitoringData {
@@ -100,7 +99,7 @@ export default function AIPerformanceMonitor({
 
   // 초기 로드
   useEffect(() => {
-    fetchMonitoringData();
+    void fetchMonitoringData();
   }, [fetchMonitoringData]);
 
   // 자동 새로고침

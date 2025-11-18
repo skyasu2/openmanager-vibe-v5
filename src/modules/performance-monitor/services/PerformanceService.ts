@@ -27,7 +27,7 @@ export class PerformanceService {
   private initializeMetricsCollection(): void {
     // Start collecting system metrics every 5 seconds
     setInterval(() => {
-      this.collectMetrics();
+      void this.collectMetrics();
     }, 5000);
   }
 

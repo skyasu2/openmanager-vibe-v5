@@ -116,7 +116,7 @@ class VercelOptimizedAPIBatcher {
       this.queue.size >= this.options.maxBatchSize;
 
     if (shouldExecuteImmediately) {
-      this.executeBatch();
+      void this.executeBatch();
       return;
     }
 
@@ -127,7 +127,7 @@ class VercelOptimizedAPIBatcher {
 
     // 새 타이머 설정
     this.batchTimer = setTimeout(() => {
-      this.executeBatch();
+      void this.executeBatch();
     }, this.options.batchDelay);
   }
 
@@ -240,7 +240,7 @@ class VercelOptimizedAPIBatcher {
     // Promise.allSettled로 부분 실패 허용
     const settledResults = await Promise.allSettled(requestPromises);
     
-    return settledResults.map((result, index) => {
+    return settledResults.map((result, _index) => {
       if (result.status === 'fulfilled') {
         return result.value;
       } else {

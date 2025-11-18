@@ -234,7 +234,7 @@ export class PerformanceMonitor {
    */
   static calculateSystemEfficiency(
     servers: UnifiedServerMetrics[],
-    metrics: MetricsPerformanceData
+    _metrics: MetricsPerformanceData
   ): {
     overallEfficiency: number;
     resourceUtilization: number;

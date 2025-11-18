@@ -67,7 +67,7 @@ export class PostgresVectorDB {
   private dimension = 384; // 최적화된 차원
 
   constructor() {
-    this._initialize();
+    void this._initialize();
   }
 
   /**
@@ -475,7 +475,7 @@ export class PostgresVectorDB {
         return await this.fallbackKeywordSearch(keywords, options);
       }
 
-      return data.map((row, index) => ({
+      return data.map((row, _index) => ({
         id: row.id,
         content: row.content,
         metadata: row.metadata,

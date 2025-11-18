@@ -152,7 +152,7 @@ export class PriorityLoader {
     this.loadQueue.sort((a, b) => a.priority - b.priority);
 
     if (!this.isLoading) {
-      this.processQueue();
+      void this.processQueue();
     }
   }
 

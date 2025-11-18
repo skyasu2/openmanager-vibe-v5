@@ -292,7 +292,7 @@ export class BasicContextManager {
         s.status === 'critical' || s.status === 'warning'
       );
 
-      const mockAlerts = problematicServers.slice(0, 10).map((server, index) => ({
+      const mockAlerts = problematicServers.slice(0, 10).map((server, _index) => ({
         id: `alert-${server.id}-${Date.now()}-${index}`,
         type: ['cpu', 'memory', 'disk', 'network'][Math.floor(Math.random() * 4)] as 'cpu' | 'memory' | 'disk' | 'network',
         severity: server.status === 'critical' ? 'critical' as const : 'warning' as const,

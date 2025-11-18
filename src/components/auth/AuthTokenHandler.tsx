@@ -48,7 +48,7 @@ export function AuthTokenHandler() {
     };
 
     // 컴포넌트 마운트 후 토큰 처리
-    handleAuthToken();
+    void handleAuthToken();
   }, [router]);
 
   return null; // 렌더링하지 않음

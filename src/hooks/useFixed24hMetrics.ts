@@ -108,7 +108,7 @@ export function useFixed24hMetrics(
     isMountedRef.current = true;
 
     // 초기 로드
-    updateMetrics();
+    void updateMetrics();
 
     // 1분마다 자동 업데이트
     const intervalId = setInterval(() => {
@@ -188,7 +188,7 @@ export function useMultipleFixed24hMetrics(
     isMountedRef.current = true;
 
     // 초기 로드
-    updateAllMetrics();
+    void updateAllMetrics();
 
     // 1분마다 자동 업데이트
     const intervalId = setInterval(() => {
@@ -262,7 +262,7 @@ export function useSingleMetric(
     isMountedRef.current = true;
 
     // 초기 로드
-    updateMetric();
+    void updateMetric();
 
     // 1분마다 자동 업데이트
     const intervalId = setInterval(() => {

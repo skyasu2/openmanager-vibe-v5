@@ -286,7 +286,7 @@ export class OptimizedSSEManager {
       console.error(`❌ SSE 연결 오류: ${connection.channel}`, event);
       // 비동기로 재연결 시도
       setTimeout(() => {
-        this.reconnect(connection.channel);
+        void this.reconnect(connection.channel);
       }, 50);
     };
 

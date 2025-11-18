@@ -448,7 +448,7 @@ export function useSystemControl(): UseSystemControlReturn {
     message: string;
   }> => {
     try {
-      pauseSystem(reason);
+      void pauseSystem(reason);
       const message = `⏸️ 시스템이 일시정지되었습니다: ${reason}`;
       systemLogger.system(message);
       return { success: true, message };
@@ -467,7 +467,7 @@ export function useSystemControl(): UseSystemControlReturn {
     message: string;
   }> => {
     try {
-      resumeSystem();
+      void resumeSystem();
       const message = '▶️ 시스템이 재개되었습니다';
       systemLogger.system(message);
       return { success: true, message };

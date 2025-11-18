@@ -244,7 +244,7 @@ export function SystemControlPanel() {
             {/* 알림 메시지 */}
             {alerts.length > 0 && (
               <div className="space-y-2">
-                {alerts.slice(-3).map((alert, index) => (
+                {alerts.slice(-3).map((alert, _index) => (
                   <div
                     key={index}
                     className={`rounded-lg p-3 text-sm ${

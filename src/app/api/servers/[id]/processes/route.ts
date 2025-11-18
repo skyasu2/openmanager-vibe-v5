@@ -16,7 +16,7 @@ interface ServerProcess {
 const serverProcessesStore = new Map<string, ServerProcess[]>();
 
 // 모의 프로세스 데이터 생성기
-function generateMockProcesses(serverId: string): ServerProcess[] {
+function generateMockProcesses(_serverId: string): ServerProcess[] {
   const processNames = [
     'nginx',
     'node',
@@ -34,7 +34,7 @@ function generateMockProcesses(serverId: string): ServerProcess[] {
 
   const processes: ServerProcess[] = processNames
     .slice(0, Math.floor(Math.random() * 8) + 3)
-    .map((name, index) => ({
+    .map((name, _index) => ({
       pid: 1000 + index,
       name,
       cpu: (Math.random() * 50).toFixed(1),

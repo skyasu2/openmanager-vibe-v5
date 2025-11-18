@@ -240,7 +240,7 @@ export const SafeServerCard: React.FC<SafeServerCardProps> = ({
       // 추가 메타데이터
       lastUpdate: server.lastUpdate || new Date(),
     };
-  }, [server?.id, index]); // AI 교차검증 기반: server.id 변경 시에만 재계산 (Race Condition 방지)
+  }, [server, index]); // server 전체 객체 의존성 추가
 
   // 🔍 개발 환경에서만 안전성 검증 로그
   if (process.env.NODE_ENV === 'development') {

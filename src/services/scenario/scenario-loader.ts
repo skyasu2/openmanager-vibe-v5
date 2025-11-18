@@ -139,7 +139,7 @@ function convertFixedRotationData(
     }
   }
 
-  return Object.values(servers).map((serverData: RawServerData, index) => {
+  return Object.values(servers).map((serverData: RawServerData, _index) => {
     
     // 🔒 고정 데이터 그대로 사용 (변동 없음)
     // rotationMinute를 사용하여 시간 내 분별 고정 패턴 적용

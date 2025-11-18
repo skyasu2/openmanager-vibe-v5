@@ -149,11 +149,11 @@ export function useSystemStatus(): UseSystemStatusReturn {
     };
 
     // 초기 로드
-    performFetch();
+    void performFetch();
 
     // 30초마다 상태 업데이트 - 실시간성과 성능 균형
     const interval = setInterval(() => {
-      performFetch();
+      void performFetch();
     }, 30000); // 🎯 300초 → 30초로 개선 (실시간 상태 동기화)
 
     return () => {
@@ -173,7 +173,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
         if (now - lastFocusRefresh > 120000) {
           setLastFocusRefresh(now);
           // 인라인 상태 조회 함수
-          (async () => {
+          void (async () => {
             try {
               const response = await fetch('/api/system/status', {
                 signal: abortController.signal, // AbortController로 fetch 취소 가능

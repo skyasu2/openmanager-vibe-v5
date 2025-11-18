@@ -159,7 +159,7 @@ export const useRefreshGoogleAIStatus = () => {
   const queryClient = useQueryClient();
 
   return () => {
-    queryClient.invalidateQueries({ queryKey: ['google-ai-status'] });
+    void queryClient.invalidateQueries({ queryKey: ['google-ai-status'] });
   };
 };
 

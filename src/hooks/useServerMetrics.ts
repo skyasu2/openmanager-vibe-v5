@@ -137,7 +137,7 @@ export function useServerMetrics() {
       const range = max - min || 1;
 
       return data
-        .map((value, index) => {
+        .map((value, _index) => {
           const x = (index / (data.length - 1)) * 300;
           const y = maxHeight - ((value - min) / range) * maxHeight;
           return `${x},${y}`;

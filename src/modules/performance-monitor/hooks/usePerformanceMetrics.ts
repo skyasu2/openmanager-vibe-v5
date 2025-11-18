@@ -301,14 +301,14 @@ export const usePerformanceMetrics = (
 
   // Manual refresh
   const refreshMetrics = useCallback(() => {
-    updatePerformanceData();
+    void updatePerformanceData();
   }, [updatePerformanceData]);
 
   // Initialize
   useEffect(() => {
     if (autoConnect) {
       // Initial fetch
-      updatePerformanceData();
+      void updatePerformanceData();
 
       // Set up polling interval as fallback
       intervalRef.current = setInterval(() => { void updatePerformanceData(); }, updateInterval);

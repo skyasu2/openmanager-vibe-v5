@@ -224,7 +224,7 @@ class DataRetentionScheduler {
       try {
         const result = await this.cleanupByPolicy(policy);
         results.push(result);
-      } catch (error) {
+      } catch {
         const errorResult: CleanupResult = {
           dataType: policy.dataType,
           itemsRemoved: 0,
@@ -266,7 +266,7 @@ class DataRetentionScheduler {
         timeTaken,
         success: true,
       };
-    } catch (error) {
+    } catch {
       return {
         dataType: policy.dataType,
         itemsRemoved: 0,
@@ -329,7 +329,7 @@ class DataRetentionScheduler {
               sizeFreed += data.length;
             }
           }
-        } catch (error) {
+        } catch {
           // 잘못된 JSON은 제거
           localStorage.removeItem(key);
           itemsRemoved++;
@@ -368,7 +368,7 @@ class DataRetentionScheduler {
               sizeFreed += data.length;
             }
           }
-        } catch (error) {
+        } catch {
           localStorage.removeItem(key);
           itemsRemoved++;
         }
@@ -406,7 +406,7 @@ class DataRetentionScheduler {
               sizeFreed += data.length;
             }
           }
-        } catch (error) {
+        } catch {
           localStorage.removeItem(key);
           itemsRemoved++;
         }
@@ -445,7 +445,7 @@ class DataRetentionScheduler {
               sizeFreed += data.length;
             }
           }
-        } catch (error) {
+        } catch {
           localStorage.removeItem(key);
           itemsRemoved++;
         }
@@ -486,7 +486,7 @@ class DataRetentionScheduler {
               sizeFreed += data.length;
             }
           }
-        } catch (error) {
+        } catch {
           localStorage.removeItem(key);
           itemsRemoved++;
         }
@@ -527,7 +527,7 @@ class DataRetentionScheduler {
               sizeFreed += data.length;
             }
           }
-        } catch (error) {
+        } catch {
           localStorage.removeItem(key);
           itemsRemoved++;
         }
@@ -624,7 +624,7 @@ class DataRetentionScheduler {
       try {
         const result = await this.cleanupByPolicy(policy);
         results.push(result);
-      } catch (error) {
+      } catch {
         const errorResult: CleanupResult = {
           dataType: policy.dataType,
           itemsRemoved: 0,

@@ -255,8 +255,8 @@ export const useServerToggle = () => {
       );
 
       // 관련 쿼리 무효화
-      queryClient.invalidateQueries({ queryKey: serverKeys.detail(serverId) });
-      queryClient.invalidateQueries({ queryKey: serverKeys.metrics(serverId) });
+      void queryClient.invalidateQueries({ queryKey: serverKeys.detail(serverId) });
+      void queryClient.invalidateQueries({ queryKey: serverKeys.metrics(serverId) });
     },
 
     // 에러 시 롤백
@@ -276,7 +276,7 @@ export const useServerToggle = () => {
 
     // 완료 후 정리
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: serverKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: serverKeys.lists() });
     },
   });
 };
@@ -317,7 +317,7 @@ export const useServerRestart = () => {
       });
 
       // 모든 관련 데이터 새로고침
-      queryClient.invalidateQueries({ queryKey: serverKeys.all });
+      void queryClient.invalidateQueries({ queryKey: serverKeys.all });
     },
 
     onError: (error, serverId) => {
@@ -326,7 +326,7 @@ export const useServerRestart = () => {
       });
 
       // 원래 상태로 복구를 위해 데이터 무효화
-      queryClient.invalidateQueries({ queryKey: serverKeys.lists() });
+      void queryClient.invalidateQueries({ queryKey: serverKeys.lists() });
     },
   });
 };

@@ -416,7 +416,7 @@ export class PromptBuilder {
    *
    * {{variable}} 형식 지원
    */
-  private applyTemplate(template: string, variables: Record<string, any>): string {
+  private applyTemplate(template: string, variables: Record<string, string | number | boolean>): string {
     let result = template;
 
     for (const [key, value] of Object.entries(variables)) {

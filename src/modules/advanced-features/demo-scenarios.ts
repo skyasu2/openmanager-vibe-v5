@@ -311,7 +311,7 @@ export class DemoScenariosGenerator {
     metric: keyof typeof this.baselineMetrics,
     timePattern: number,
     modifier: Record<string, number>,
-    index: number
+    _index: number
   ): number {
     const baseValue = this.baselineMetrics[metric];
     const modifierKey = this.getModifierKey(metric);

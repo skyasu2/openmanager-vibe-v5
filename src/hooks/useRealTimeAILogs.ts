@@ -240,7 +240,7 @@ export const useRealTimeAILogs = (
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, []); // connect 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [connect]);
 
   // sessionId 변경 시 재연결
   useEffect(() => {
@@ -248,7 +248,7 @@ export const useRealTimeAILogs = (
       clearLogs();
       reconnect();
     }
-  }, [sessionId, isConnected]); // clearLogs, reconnect 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [sessionId, isConnected, clearLogs, reconnect]);
 
   return {
     logs,

@@ -160,7 +160,7 @@ export const ErrorMessage: FC<ErrorMessageProps> = ({
           해결 방법
         </h3>
         <ul className="space-y-1 text-sm text-blue-800 dark:text-blue-200">
-          {errorInfo.suggestions.map((suggestion, index) => (
+          {errorInfo.suggestions.map((suggestion, _index) => (
             <li key={index} className="flex items-start">
               <span className="mr-2 text-blue-500">•</span>
               {suggestion}
@@ -171,7 +171,7 @@ export const ErrorMessage: FC<ErrorMessageProps> = ({
 
       {/* 액션 버튼들 */}
       <div className="flex flex-col justify-center gap-3 sm:flex-row">
-        {allActions.map((action, index) => (
+        {allActions.map((action, _index) => (
           <button
             key={index}
             onClick={action.onClick}

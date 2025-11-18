@@ -31,8 +31,8 @@ export function useUserPermissions(): UserPermissions {
     resolvedUser.email?.split('@')[0] ||
     (isGitHub ? 'GitHub 사용자' : '게스트 사용자');
   const userAvatar =
-    (resolvedUser as any).avatar ||
-    (session?.user as any)?.image ||
+    (resolvedUser as { avatar?: string }).avatar ||
+    (session?.user as { image?: string })?.image ||
     undefined;
 
   return {

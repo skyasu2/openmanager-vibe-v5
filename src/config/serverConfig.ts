@@ -133,7 +133,7 @@ export function calculateOptimalUpdateInterval(): number {
       if (usagePercent > 60) return 33000; // 중간 사용률: 33초
       return 30000; // 낮은 사용률: 30초
     }
-  } catch (error) {
+  } catch {
     // Edge Runtime에서는 process.memoryUsage()가 지원되지 않음
     console.log('🔧 Edge Runtime 환경 - 기본 업데이트 간격 사용');
   }
@@ -176,7 +176,7 @@ export function calculateOptimalCollectionInterval(): number {
       if (usagePercent > 60) return 450000; // 중간 사용률: 7.5분
       return 300000; // 낮은 사용률: 5분
     }
-  } catch (error) {
+  } catch {
     // Edge Runtime에서는 process.memoryUsage()가 지원되지 않음
     console.log('🔧 Edge Runtime 환경 - 데이터 수집 간격 기본값 사용');
   }

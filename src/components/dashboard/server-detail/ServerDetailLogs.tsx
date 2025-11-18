@@ -49,7 +49,7 @@ export function ServerDetailLogs({ serverId }: ServerDetailLogsProps) {
       }
     };
 
-    fetchLogs();
+    void fetchLogs();
     // 로그는 일반적으로 계속 쌓이므로, 실시간 업데이트가 필요하다면
     // 여기에 30초 간격의 인터벌을 추가할 수 있습니다.
   }, [serverId]);
@@ -75,7 +75,7 @@ export function ServerDetailLogs({ serverId }: ServerDetailLogsProps) {
       <div className="max-h-96 overflow-y-auto rounded-xl bg-gray-900 p-4 font-mono text-sm text-green-400">
         <div className="space-y-1">
           {logs.length > 0 ? (
-            logs.map((log, index) => (
+            logs.map((log, _index) => (
               <div key={index} className="flex">
                 <span
                   className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getLogLevelClass(log.level)}`}

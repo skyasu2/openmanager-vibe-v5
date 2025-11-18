@@ -133,7 +133,7 @@ export function useInitialAuth() {
       // 에러 시 로그인 페이지로 리다이렉션
       safeRedirect('/login');
     }
-  }, []); // ✅ updateState, safeRedirect 함수 의존성 제거하여 순환 의존성 해결
+  }, [pathname, safeRedirect, updateState]);
 
   // 초기화 실행 - 안정적인 환경 감지로 최적화
   useEffect(() => {
@@ -145,7 +145,7 @@ export function useInitialAuth() {
         console.log(debugWithEnv('🚫 useInitialAuth: 이미 초기화 중이므로 스킵'));
         return;
       }
-      initializeAuth();
+      void initializeAuth();
     }, vercelConfig.initDelay);
     
     return () => {
@@ -175,8 +175,8 @@ export function useInitialAuth() {
     initRef.current = false;
     redirectRef.current = false;
     setState(initialState);
-    initializeAuth();
-  }, []); // ✅ initializeAuth 함수 의존성 제거하여 순환 의존성 해결
+    void initializeAuth();
+  }, [initializeAuth]);
 
   // 로딩 메시지 헬퍼 (단일 메시지로 통합)
   const getLoadingMessage = useCallback(() => {

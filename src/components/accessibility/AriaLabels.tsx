@@ -252,7 +252,7 @@ export const useServerCardAria = (props: ServerCardAriaProps) => {
         'aria-label': `${props.serverName} 서버 설정`,
       },
     },
-  }), [props, generateLabel, getServerStatusLabel, getMetricLabel]);
+  }), [props, getServerStatusLabel, getMetricLabel]);
 };
 
 // 대시보드용 ARIA 속성

@@ -204,7 +204,7 @@ export function detectAutoReportTrigger(
 export async function handleAIQuery({
   query,
   engine: _engine,
-  context
+  context: _context
 }: {
   query: string;
   engine: AIMode;

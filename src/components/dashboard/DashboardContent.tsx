@@ -77,7 +77,7 @@ export default function DashboardContent({
   const [statsLoading, setStatsLoading] = useState(false);
 
   // 폴백 통계 계산 (개선된 로직: 가용성과 성능 상태 분리)
-  const calculateFallbackStats = (): DashboardStats => {
+  const calculateFallbackStats = useCallback((): DashboardStats => {
     if (!servers || servers.length === 0) {
       return { total: 0, online: 0, offline: 0, warning: 0 };
     }
@@ -129,7 +129,7 @@ export default function DashboardContent({
     );
 
     return stats;
-  };
+  }, [servers]);
 
   // 최종 서버 통계 (서버 데이터에서 직접 계산)
   const serverStats = useMemo(() => {
@@ -141,7 +141,7 @@ export default function DashboardContent({
     const stats = calculateFallbackStats();
     debug.log('📊 서버 통계 계산:', stats);
     return stats;
-  }, [statsLoading, servers]);
+  }, [statsLoading, calculateFallbackStats]);
 
   // 🚀 에러 상태 추가
   const [renderError, setRenderError] = useState<string | null>(null);

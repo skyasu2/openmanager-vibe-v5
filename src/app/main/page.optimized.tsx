@@ -5,10 +5,9 @@
 
 'use client';
 
-import { Suspense, lazy, useEffect, useState, type ReactNode } from 'react';
+import { lazy, useEffect, useState, type ReactNode } from 'react';
 import {
   OptimizedLazy,
-  MinimalFallback,
 } from '@/components/performance/OptimizedLazyLoader';
 import { BundleAnalyzer } from '@/lib/bundle-optimization';
 import { Loader2, BarChart3, Bot, Settings } from '@/lib/bundle-optimization';

@@ -2,6 +2,55 @@
 
 **업데이트**: 2025-09-16 | **Serena MCP 버전**: 최신 | **상태**: ✅ 정상 작동
 
+## ⚠️ 필수 주의사항 (컨텍스트 압축 방지)
+
+**컨텍스트 압축이란?**: Claude Code가 과도한 토큰을 로드하여 성능이 저하되는 현상 (5-20% 발생률)
+
+### 안티패턴 (절대 금지!)
+
+```typescript
+// ❌ 절대 금지: skip_ignored_files 없이 루트 디렉토리 스캔
+mcp__serena__list_dir({
+  relative_path: ".",  // 루트 디렉토리
+  recursive: true      // skip_ignored_files 누락!
+})
+// 결과: 180초 타임아웃, 43K+ 토큰 응답 (25K 한도 초과)
+
+// ❌ 절대 금지: 광범위한 패턴 검색
+mcp__serena__search_for_pattern({
+  substring_pattern: "권장",  // 너무 일반적인 패턴
+  relative_path: ""           // 전체 프로젝트 스캔
+})
+// 결과: 42,999 토큰 응답 → MCP 한도 초과 → 컨텍스트 압축
+```
+
+### ✅ 올바른 사용법
+
+```typescript
+// ✅ 권장: skip_ignored_files 필수
+mcp__serena__list_dir({
+  relative_path: "src/components",  // 특정 디렉토리
+  recursive: true,
+  skip_ignored_files: true,  // 필수! 48배 빠름, 80% 압축 방지
+  max_answer_chars: 5000
+})
+
+// ✅ 권장: 특정 파일/디렉토리 대상 검색
+mcp__serena__search_for_pattern({
+  substring_pattern: "skip_ignored_files.*권장",
+  relative_path: "docs/claude/environment/mcp",  // 범위 제한
+  max_answer_chars: 10000  // 토큰 제한
+})
+```
+
+**핵심 규칙**:
+1. `list_dir` 사용 시 `skip_ignored_files: true` **필수**
+2. `search_for_pattern` 사용 시 `relative_path` 특정 디렉토리로 제한
+3. `max_answer_chars` 설정으로 응답 크기 제한 (5K-15K 권장)
+4. 500줄+ 파일은 Serena 우선, Read() 대신 `get_symbols_overview()` 사용
+
+---
+
 ## 🎯 Serena MCP 개요
 
 **정확한 역할**: Language Server Protocol (LSP) + Model Context Protocol (MCP) 결합형 **시맨틱 코드 분석 전문 도구**
@@ -42,6 +91,7 @@ mcp__serena__create_text_file({
 mcp__serena__list_dir({
   relative_path: "src/components",
   recursive: true,
+  skip_ignored_files: true,  // ⚠️ 필수: 48배 빠름, 타임아웃 방지
   max_answer_chars: 5000
 })
 ```

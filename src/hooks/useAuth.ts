@@ -132,7 +132,7 @@ export function useAuth(): UseAuthResult {
 
   // 컴포넌트 마운트 시 인증 상태 확인
   useEffect(() => {
-    checkAuth();
+    void checkAuth();
   }, []);
 
   return {

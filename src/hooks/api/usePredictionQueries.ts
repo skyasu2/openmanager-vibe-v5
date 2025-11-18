@@ -241,10 +241,10 @@ export const usePredictionMutation = () => {
       );
 
       // 관련 쿼리 무효화
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: predictionKeys.analytics('7d'),
       });
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: predictionKeys.history(request.metric),
       });
     },

@@ -206,7 +206,10 @@ let projectStructure = await mcp__memory__search({ query: cacheKey });
 if (!projectStructure) {
   // Serena로 새로 분석
   await mcp__serena__activate_project({ project: project_name });
-  projectStructure = await mcp__serena__list_dir({ relative_path: '.' });
+  projectStructure = await mcp__serena__list_dir({ 
+  relative_path: 'src',  // ⚠️ 루트(.) 대신 특정 디렉토리 지정
+  skip_ignored_files: true  // 필수: 48배 빠름
+});
   
   // Memory에 캐싱
   await mcp__memory__create_entities({

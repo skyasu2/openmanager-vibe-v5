@@ -80,7 +80,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
   useEffect(() => {
     if (selectedFunction === 'auto-report') {
       // 자동 장애 보고서 생성
-      handleSendMessage('시스템 전체 장애 보고서를 생성해주세요');
+      void handleSendMessage('시스템 전체 장애 보고서를 생성해주세요');
       // 채팅 탭으로 자동 전환
       setActiveTab('chat');
       // auto-report 실행 후 다시 chat으로 돌아가기

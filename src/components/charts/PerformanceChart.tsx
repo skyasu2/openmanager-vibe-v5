@@ -72,7 +72,7 @@ const PerformanceChart = memo<PerformanceChartProps>(({ data }) => {
             paddingAngle={2}
             dataKey="value"
           >
-            {data.map((entry, index) => (
+            {data.map((entry, _index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
           </Pie>
@@ -80,7 +80,7 @@ const PerformanceChart = memo<PerformanceChartProps>(({ data }) => {
           <Legend
             verticalAlign="bottom"
             height={36}
-            formatter={(value: string, entry: any) => (
+            formatter={(value: string, entry: { color: string }) => (
               <span style={{ color: entry.color }}>{value}</span>
             )}
           />

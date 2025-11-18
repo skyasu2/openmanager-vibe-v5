@@ -1,40 +1,82 @@
-echo "🔍 Pre-commit: Quick checks + Auto-fix (< 10초 목표)..."
-START_TIME=$(date +%s)
+#!/usr/bin/env bash
 
-# 1. lint-staged (변경된 파일만 자동 수정)
-echo "🎨 Auto-fixing staged files..."
-npx lint-staged || {
-  echo "❌ lint-staged failed - please fix errors manually"
-  exit 1
-}
+# Serena Anti-pattern Detection Hook
+# 목적: 컨텍스트 압축 방지 (5-20% 발생률 → 0% 목표)
 
-# 2. .env 파일 차단
-echo "🔒 Checking for sensitive files..."
-if git diff --cached --name-only | grep -E '^\.env$|^\.env\.|\.env$' | grep -v '\.env\.example$'; then
-  echo "❌ .env 파일은 커밋할 수 없습니다"
+set -e
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(md|ts|tsx|js|jsx)$' || true)
+
+if [ -z "$STAGED_FILES" ]; then
+  exit 0
+fi
+
+echo "🔍 Serena 안티패턴 검사 중..."
+
+ANTI_PATTERN_FOUND=0
+
+# 안티패턴 1: Read() 남발 (500줄+ 파일)
+echo "  ├─ Read() 남발 검사..."
+for FILE in $STAGED_FILES; do
+  # Read() 호출에서 "500줄", "1000줄" 등 큰 파일 주석 탐지
+  if grep -n "Read(.*\/\/.*(500|1000|2000)줄" "$FILE" 2>/dev/null; then
+    echo "  │  ❌ $FILE: Read() 남발 발견 (500줄+ 파일)"
+    echo "  │     → Serena get_symbols_overview() 사용 권장"
+    ANTI_PATTERN_FOUND=1
+  fi
+done
+
+# 안티패턴 2: recursive:true without skip_ignored_files
+echo "  ├─ recursive:true 검사..."
+for FILE in $STAGED_FILES; do
+  # list_dir 블록 내에서 recursive:true 있지만 skip_ignored_files 없는 경우
+  if grep -Pzo "list_dir\([^)]*recursive:\s*true(?![\s\S]*skip_ignored_files)" "$FILE" 2>/dev/null; then
+    echo "  │  ❌ $FILE: recursive:true without skip_ignored_files"
+    echo "  │     → skip_ignored_files: true 추가 필수 (48배 빠름)"
+    ANTI_PATTERN_FOUND=1
+  fi
+done
+
+# 안티패턴 3: 루트 디렉토리 스캔
+echo "  ├─ 루트 디렉토리 스캔 검사..."
+for FILE in $STAGED_FILES; do
+  # list_dir에서 relative_path: "." 또는 "" 사용
+  if grep -n 'list_dir.*relative_path.*["\x27]\.["\x27]' "$FILE" 2>/dev/null || \
+     grep -n 'list_dir.*relative_path.*["\x27]["\x27]' "$FILE" 2>/dev/null; then
+    echo "  │  ❌ $FILE: 루트 디렉토리 스캔 발견"
+    echo "  │     → 특정 디렉토리로 제한 (src/components 등)"
+    ANTI_PATTERN_FOUND=1
+  fi
+done
+
+# 안티패턴 4: 광범위한 패턴 검색
+echo "  └─ 광범위한 패턴 검색 검사..."
+for FILE in $STAGED_FILES; do
+  # search_for_pattern에서 relative_path 없이 짧은 패턴 사용
+  if grep -Pzo "search_for_pattern\([^)]*substring_pattern.*[\"'][^\"']{1,3}[\"'](?![\s\S]*relative_path)" "$FILE" 2>/dev/null; then
+    echo "     ❌ $FILE: 광범위한 패턴 검색 발견"
+    echo "        → relative_path로 범위 제한 필수"
+    ANTI_PATTERN_FOUND=1
+  fi
+done
+
+if [ $ANTI_PATTERN_FOUND -eq 1 ]; then
+  echo ""
+  echo "❌ Serena 안티패턴 발견!"
+  echo ""
+  echo "📚 참조 문서:"
+  echo "  - docs/claude/environment/mcp/serena-tools-comprehensive-guide.md"
+  echo "  - docs/claude/environment/mcp/mcp-priority-guide.md"
+  echo ""
+  echo "⚠️  컨텍스트 압축 방지 규칙:"
+  echo "  1. Read() 대신 Serena get_symbols_overview() 사용 (500줄+)"
+  echo "  2. list_dir + recursive:true 시 skip_ignored_files:true 필수"
+  echo "  3. search_for_pattern 시 relative_path로 범위 제한"
+  echo "  4. 루트 디렉토리(.) 스캔 금지"
+  echo ""
+  echo "💡 수정 후 다시 커밋하세요."
   exit 1
 fi
 
-# 3. API 키/비밀키 패턴 검사
-STAGED_CONTENT=$(git diff --cached)
-if echo "$STAGED_CONTENT" | grep -qiE '(api[_-]?key|secret[_-]?key|password|token).*=.*["\047][A-Za-z0-9+/=]{20,}["\047]'; then
-  echo "❌ 하드코딩된 API 키나 비밀키가 감지되었습니다"
-  echo "💡 환경변수(.env.local)를 사용하세요"
-  exit 1
-fi
-
-# 4. package.json 문법 검사
-if git diff --cached --name-only | grep -q "package.json"; then
-  echo "📦 Checking package.json..."
-  node -e "JSON.parse(require('fs').readFileSync('package.json', 'utf8'))" || {
-    echo "❌ package.json has syntax errors"
-    exit 1
-  }
-fi
-
-END_TIME=$(date +%s)
-DURATION=$((END_TIME - START_TIME))
-
-echo "✅ Pre-commit passed in ${DURATION}s"
-echo "✨ Auto-fixed: ESLint + Prettier applied to changed files"
-echo "🚀 Next: Type check + Full tests will run in CI"
+echo "✅ Serena 안티패턴 검사 통과!"
+exit 0

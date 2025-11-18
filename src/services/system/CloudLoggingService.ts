@@ -269,7 +269,7 @@ export class CloudLoggingService {
 
     // 배치 크기 도달 시 즉시 처리
     if (this.logBuffer.length >= this.config.batchSize) {
-      this.processBatch();
+      void this.processBatch();
     }
   }
 
@@ -283,7 +283,7 @@ export class CloudLoggingService {
 
     this.batchTimer = setInterval(() => {
       if (this.logBuffer.length > 0 && !this.isProcessing) {
-        this.processBatch();
+        void this.processBatch();
       }
     }, this.config.batchInterval);
 

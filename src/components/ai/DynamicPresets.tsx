@@ -97,7 +97,7 @@ export default function DynamicPresets({
       </div>
 
       <div className="space-y-2">
-        {presets.map((preset, index) => (
+        {presets.map((preset, _index) => (
           <button
             key={`${preset}-${index}`}
             onClick={() => onSelect(preset)}

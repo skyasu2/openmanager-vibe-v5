@@ -37,7 +37,7 @@ class BrowserNotificationService {
   >();
 
   constructor() {
-    this._initializePermission();
+    void this._initializePermission();
   }
 
   /**

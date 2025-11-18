@@ -204,7 +204,7 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
         <CardContent>
           {aiEnginesStatus && aiEnginesStatus.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {aiEnginesStatus.map((engine, index) => (
+              {aiEnginesStatus.map((engine, _index) => (
                 <Card key={index}>
                   <CardContent className="p-4">
                     <div className="mb-2 flex items-center justify-between">
@@ -278,7 +278,7 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
               빠른 테스트 질문:
             </p>
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-              {presetQueries.map((query, index) => (
+              {presetQueries.map((query, _index) => (
                 <Button
                   key={index}
                   variant="outline"

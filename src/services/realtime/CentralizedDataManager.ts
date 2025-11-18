@@ -76,7 +76,7 @@ class CentralizedDataManager {
       subscriber.lastUpdate = Date.now();
     } else {
       // 캐시가 없으면 즉시 한 번 페치
-      this.fetchDataForType(dataType);
+      void this.fetchDataForType(dataType);
     }
 
     console.log(

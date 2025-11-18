@@ -138,7 +138,7 @@ export default function AIInsightsCard({
         {insights && !isLoading && (
           <div className="space-y-3">
             {insights.length > 0 ? (
-              insights.slice(0, 3).map((insight, index) => (
+              insights.slice(0, 3).map((insight, _index) => (
                 <div
                   key={insight.id || index}
                   className={`rounded-lg border p-3 animate-fade-in ${getInsightColor(insight.type)}`}

@@ -213,10 +213,10 @@ export function useHybridAI() {
       return new Promise((resolve, reject) => {
         // 높은 우선순위는 즉시 처리
         if (options?.priority === 'high') {
-          (async () => {
+          void (async () => {
             try {
               const sessionId = crypto.randomUUID();
-              connectThinkingStream(sessionId);
+              void connectThinkingStream(sessionId);
 
               const response = await fetch(CONFIG.apiEndpoint, {
                 method: 'POST',
@@ -281,13 +281,13 @@ export function useHybridAI() {
           }
 
           batchTimer.current = setTimeout(() => {
-            processBatch();
+            void processBatch();
           }, CONFIG.batchDelay);
 
           // 큐가 가득 차면 즉시 처리
           if (batchQueue.current.length >= CONFIG.maxBatchSize) {
             clearTimeout(batchTimer.current);
-            processBatch();
+            void processBatch();
           }
         }
       });

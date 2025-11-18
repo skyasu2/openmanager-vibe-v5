@@ -85,9 +85,9 @@ export function useAISession(
 
   useEffect(() => {
     if (enableHistory) {
-      loadSessionHistory();
+      void loadSessionHistory();
     }
-  }, [enableHistory]);
+  }, [enableHistory, loadSessionHistory]);
 
   /**
    * 💾 로컬 스토리지에서 상태 복원

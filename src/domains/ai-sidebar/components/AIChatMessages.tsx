@@ -42,7 +42,7 @@ export const AIChatMessages: FC<AIChatMessagesProps> = ({
 
   return (
     <>
-      {messages.map((message: ChatMessage, index: number) => {
+      {messages.map((message: ChatMessage, _index: number) => {
         // 메시지 ID로 완료된 사고 과정 찾기
         const thinkingForMessage = Object.entries(completedThinkingSteps).find(
           ([_, thinking]) =>

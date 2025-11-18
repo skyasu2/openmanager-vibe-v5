@@ -16,16 +16,13 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import {
-  AlertTriangle,
   CheckCircle,
   XCircle,
   RefreshCw,
   Activity,
   Server,
-  Zap,
   Timer,
   Network,
-  Info,
   Settings,
   BarChart3,
 } from 'lucide-react';
@@ -145,7 +142,7 @@ export function PortMonitor({
 
   // 초기 데이터 로드
   useEffect(() => {
-    fetchPortStates();
+    void fetchPortStates();
   }, [fetchPortStates]);
 
   // 포트 상태 통계

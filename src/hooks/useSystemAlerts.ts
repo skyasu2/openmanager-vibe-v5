@@ -66,7 +66,7 @@ export function useSystemAlerts() {
   };
 
   useEffect(() => {
-    fetchAlerts();
+    void fetchAlerts();
 
     // 30초마다 알림 업데이트
     const interval = setInterval(() => {

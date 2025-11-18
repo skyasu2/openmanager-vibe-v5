@@ -46,7 +46,7 @@ export function SystemStateChecker({
   };
 
   useEffect(() => {
-    fetchSystemState();
+    void fetchSystemState();
   }, []);
 
   useEffect(() => {

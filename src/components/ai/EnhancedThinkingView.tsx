@@ -195,7 +195,7 @@ export const EnhancedThinkingView: FC<EnhancedThinkingViewProps> = ({
               className="scrollbar-thin scrollbar-track-gray-800 scrollbar-thumb-gray-600 max-h-48 space-y-2 overflow-y-auto p-3"
             >
               <Fragment>
-                {visibleSteps.map((step, index) => (
+                {visibleSteps.map((step, _index) => (
                   <div
                     key={step.id}
                     className={`flex items-start gap-3 rounded-lg border p-2.5 ${getEngineColor(step.engine)}`}

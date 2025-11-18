@@ -59,7 +59,7 @@ export const UserSessionDisplay: FC<UserSessionDisplayProps> = ({
 
     // 알림 권한 요청
     if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
+      void Notification.requestPermission();
     }
 
     // 정기 업데이트 (1초마다)

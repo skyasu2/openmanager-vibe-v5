@@ -99,7 +99,7 @@ const AvailabilityChart = memo<AvailabilityChartProps>(({ data }) => {
               paddingAngle={1}
               dataKey="value"
             >
-              {data.map((entry, index) => (
+              {data.map((entry, _index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
@@ -107,7 +107,7 @@ const AvailabilityChart = memo<AvailabilityChartProps>(({ data }) => {
             <Legend
               verticalAlign="bottom"
               height={24}
-              formatter={(value: string, entry: any) => (
+              formatter={(value: string, entry: { color: string }) => (
                 <span style={{ color: entry.color }} className="text-sm">
                   {value}
                 </span>

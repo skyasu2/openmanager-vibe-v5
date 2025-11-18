@@ -66,7 +66,7 @@ export class ErrorHandlingService implements IErrorHandler {
 
       // 복구 시도 (비동기)
       if (this.config.enableRecovery && error.recoverable !== false) {
-        this.attemptRecoveryAsync(error);
+        void this.attemptRecoveryAsync(error);
       }
     } catch (handlingError) {
       console.error('통합 에러 처리 실패:', handlingError);

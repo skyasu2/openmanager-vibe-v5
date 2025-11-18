@@ -405,7 +405,7 @@ export function ServerDetailOverview({ server }: ServerDetailOverviewProps) {
             실행 중인 서비스 ({server.services.length}개)
           </h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {server.services.map((service, index) => (
+            {server.services.map((service, _index) => (
               <div
                 key={index}
                 className="flex items-center justify-between rounded-lg border bg-gray-50 p-4 transition-colors hover:border-blue-300"

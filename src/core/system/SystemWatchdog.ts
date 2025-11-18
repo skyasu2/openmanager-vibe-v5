@@ -72,13 +72,13 @@ export class SystemWatchdog {
     systemLogger.system('🐕 시스템 Watchdog 활성화');
 
     this.monitoringInterval = setInterval(() => {
-      this.collectMetrics();
-      this.analyzeStability();
-      this.checkAlerts();
+      void this.collectMetrics();
+      void this.analyzeStability();
+      void this.checkAlerts();
     }, this.monitoringIntervalMs);
 
     // 초기 메트릭스 수집
-    this.collectMetrics();
+    void this.collectMetrics();
   }
 
   /**

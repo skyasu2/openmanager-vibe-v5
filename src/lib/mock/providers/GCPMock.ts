@@ -20,7 +20,7 @@ export class GCPMock extends MockBase {
    */
   async analyzeKoreanNLP(
     text: string,
-    context?: unknown
+    _context?: unknown
   ): Promise<{
     intent: string;
     entities: Array<{ type: string; value: string }>;

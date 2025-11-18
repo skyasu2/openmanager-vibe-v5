@@ -240,7 +240,7 @@ export const useNaturalLoadingTime = ({
       }
     };
 
-    handleActualLoading();
+    void handleActualLoading();
 
     // 안전장치: 최대 5초 후 강제 완료
     cleanupTimer = setTimeout(() => {

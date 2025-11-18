@@ -283,7 +283,7 @@ export function ServerDetailMetrics({
                   />
 
                   {/* 데이터 포인트 표시 */}
-                  {metricsHistory.map((_, index) => {
+                  {metricsHistory.map((_, _index) => {
                     const x =
                       (index / Math.max(metricsHistory.length - 1, 1)) * 100;
                     return (

@@ -71,7 +71,7 @@ export const useDashboardLogic = () => {
       searchParams.get('instant') === 'true' ||
       searchParams.get('skip') === 'true'
     );
-  }, [isClient]);
+  }, []);
 
   // 완료 처리 함수
   const handleLoadingComplete = useCallback(() => {

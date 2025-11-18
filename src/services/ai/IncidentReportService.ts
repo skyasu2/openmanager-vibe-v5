@@ -222,7 +222,7 @@ export class IncidentReportService {
     };
 
     // 캐시 저장
-    setCachedData(cacheKey, report, 300);
+    void setCachedData(cacheKey, report, 300);
 
     return report;
   }
@@ -278,7 +278,7 @@ export class IncidentReportService {
    */
   private analyzeCascadeImpact(
     affectedServers: string[],
-    metrics: ServerMetric[]
+    _metrics: ServerMetric[]
   ): { services: string[]; dependencies: string[] } {
     const services: Set<string> = new Set();
     const dependencies: Set<string> = new Set();
@@ -367,7 +367,7 @@ export class IncidentReportService {
    */
   private identifyRootCause(
     incident: IncidentPattern | null,
-    metrics: ServerMetric[]
+    _metrics: ServerMetric[]
   ): string {
     if (!incident) return '특별한 이상 없음';
 
@@ -482,7 +482,7 @@ export class IncidentReportService {
   /**
    * 시작 시간 추정
    */
-  private estimateStartTime(metrics: ServerMetric[]): string {
+  private estimateStartTime(_metrics: ServerMetric[]): string {
     // 현재 시간에서 5분 전으로 추정
     const startTime = new Date();
     startTime.setMinutes(startTime.getMinutes() - 5);

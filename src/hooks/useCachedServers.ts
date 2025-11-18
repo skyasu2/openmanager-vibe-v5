@@ -245,7 +245,7 @@ export function useCachedServers(
   useEffect(() => {
     if (autoRefresh && refreshInterval > 0) {
       refreshIntervalRef.current = setInterval(() => {
-        fetchData(false); // 백그라운드 업데이트는 로딩 표시 안함
+        void fetchData(false); // 백그라운드 업데이트는 로딩 표시 안함
       }, refreshInterval);
 
       return () => {
@@ -255,14 +255,14 @@ export function useCachedServers(
       };
     }
     return undefined;
-  }, [autoRefresh, refreshInterval]); // fetchData 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [autoRefresh, refreshInterval, fetchData]); // fetchData 함수 의존성 추가
 
   /**
    * 📊 초기 데이터 로드 및 의존성 변경 시 업데이트
    */
   useEffect(() => {
-    fetchData();
-  }, []); // fetchData 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+    void fetchData();
+  }, [fetchData]); // fetchData 함수 의존성 추가
 
   /**
    * 🧹 컴포넌트 언마운트 시 정리

@@ -154,7 +154,7 @@ export class SupabaseRealtimeAdapter {
       // 기존 채널이 있으면 재사용
       if (this.channels.has(sessionId)) {
         const existingChannel = this.channels.get(sessionId);
-        existingChannel?.unsubscribe();
+        void existingChannel?.unsubscribe();
       }
 
       // 새 채널 생성
@@ -209,7 +209,7 @@ export class SupabaseRealtimeAdapter {
 
       // Unsubscribe 함수 반환
       return () => {
-        channel.unsubscribe();
+        void channel.unsubscribe();
         this.channels.delete(sessionId);
       };
     } catch (error) {

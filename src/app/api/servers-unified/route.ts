@@ -197,7 +197,7 @@ function convertToEnhancedMetrics(
     }
   }
 
-  return Object.values(servers).map((serverData: RawServerData, index) => {
+  return Object.values(servers).map((serverData: RawServerData, _index) => {
     const minuteFactor = rotationMinute / 59;
     const fixedOffset = Math.sin(minuteFactor * 2 * Math.PI) * 2;
     const serverOffset = (index * 3.7) % 10;

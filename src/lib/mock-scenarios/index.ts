@@ -184,7 +184,7 @@ export class MockScenarioManager {
         break;
 
       case 'nlp':
-        this.testKoreanNLPScenarios();
+        void this.testKoreanNLPScenarios();
         break;
 
       case 'ml':
@@ -192,7 +192,7 @@ export class MockScenarioManager {
         const randomServerType =
           serverTypes[Math.floor(Math.random() * serverTypes.length)];
         if (randomServerType) {
-          this.applyMLAnalyticsPattern(randomServerType);
+          void this.applyMLAnalyticsPattern(randomServerType);
         }
         break;
     }

@@ -128,10 +128,10 @@ export class RAGProvider implements IContextProvider {
    */
   private transformToRAGData(searchResult: RAGEngineSearchResult): RAGData {
     return {
-      documents: searchResult.results.map((result: { id: string; content: string; similarity: number; metadata?: any }) => ({
+      documents: searchResult.results.map((result: { id: string; content: string; similarity: number; metadata?: Record<string, unknown> }) => ({
         id: result.id,
         content: result.content,
-        source: result.metadata?.source || 'unknown',
+        source: result.metadata?.source as string || 'unknown',
         similarity: result.similarity,
         metadata: {
           title: result.metadata?.title,

@@ -51,7 +51,7 @@ export function useProfileAuth(): ProfileAuthHook {
     };
 
     if (status !== 'loading') {
-      loadUserInfo();
+      void loadUserInfo();
     }
   }, [status]); // session 제거하여 무한 루프 방지
 

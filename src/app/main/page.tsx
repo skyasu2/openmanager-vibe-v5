@@ -147,7 +147,6 @@ function Home() {
     systemStartCountdown,
     isSystemStarting,
     multiUserStatus?.isRunning,
-    multiUserStatus?.userCount,
     isSystemStarted,
   ]); // ✅ multiUserStatus primitive 값만 의존성으로 사용하여 React Error #310 해결
 
@@ -205,7 +204,7 @@ function Home() {
     };
   }, [
     authReady,
-    multiUserStatus?.isRunning,
+    multiUserStatus,
     isSystemStarted,
     startSystem,
     stopSystem,
@@ -224,7 +223,7 @@ function Home() {
       );
       setIsSystemStarting(currentStarting);
     }
-  }, [multiUserStatus?.isStarting, isSystemStarting]);
+  }, [multiUserStatus, isSystemStarting]);
 
   // 4️⃣ 인증 에러 재시도 처리 (독립적)
   useEffect(() => {
@@ -378,18 +377,19 @@ function Home() {
       setCountdownTimer(timer);
     }
   }, [
-    isLoading,
     isSystemStarting,
     systemStartCountdown,
     multiUserStatus?.isRunning,
-    multiUserStatus?.userCount,
     isSystemStarted,
     pathname,
-    isAuthenticated, // 🔧 추가: GitHub 인증 상태 - stale closure 방지
-    isGitHubUser, // 🔧 추가: GitHub 사용자 여부 - 토글 로직에서 사용
-    authLoading, // 🔧 추가: 인증 로딩 상태 - 토글 차단 로직에서 사용
-    statusLoading, // 🔧 추가: 상태 로딩 - 토글 차단 로직에서 사용
-    // ✅ countdownTimer 객체 의존성 제거하여 React Error #310 완전 해결 - 타이머 객체는 불안정한 참조
+    isAuthenticated,
+    isGitHubUser,
+    authLoading,
+    statusLoading,
+    countdownTimer,
+    router,
+    startMultiUserSystem,
+    startSystem,
   ]);
 
   // 📊 버튼 설정 메모이제이션 최적화 - 렌더링 성능 향상 + SSR 안전성

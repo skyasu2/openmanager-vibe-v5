@@ -362,7 +362,7 @@ export function useSequentialServerGeneration(
       !status.isComplete &&
       servers.length === 0
     ) {
-      startGeneration();
+      void startGeneration();
     }
   }, [
     autoStart,

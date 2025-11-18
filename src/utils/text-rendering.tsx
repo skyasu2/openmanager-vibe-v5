@@ -23,7 +23,7 @@ export function renderTextWithAIGradient(
 ): React.ReactNode {
   if (!text.includes('AI')) return text;
 
-  return text.split(/(AI)/g).map((part, index) => {
+  return text.split(/(AI)/g).map((part, _index) => {
     if (part === 'AI') {
       return (
         <span
@@ -54,7 +54,7 @@ export function renderTextWithAIGradient(
 export function renderAIGradientWithAnimation(text: string): React.ReactNode {
   if (!text.includes('AI')) return text;
 
-  return text.split(/(AI)/g).map((part, index) => {
+  return text.split(/(AI)/g).map((part, _index) => {
     if (part === 'AI') {
       return (
         <span

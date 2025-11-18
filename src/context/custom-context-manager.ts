@@ -115,7 +115,7 @@ export class CustomContextManager {
   private localCache: Map<string, unknown> = new Map();
 
   private constructor() {
-    this._initializeSupabase();
+    void this._initializeSupabase();
   }
 
   static getInstance(): CustomContextManager {

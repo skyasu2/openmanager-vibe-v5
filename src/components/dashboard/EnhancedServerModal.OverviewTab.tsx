@@ -168,7 +168,7 @@ export const OverviewTab: FC<OverviewTabProps> = ({ server, statusTheme }) => {
 
               <div className="space-y-3">
                 {server.services && server.services.length > 0 ? (
-                  server.services.map((service, index) => (
+                  server.services.map((service, _index) => (
                     <div
                       key={index}
                       className="flex items-center justify-between rounded-lg bg-gradient-to-r from-gray-50 to-transparent p-3 transition-all hover:from-gray-100"

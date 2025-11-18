@@ -33,7 +33,6 @@ import {
 } from 'lucide-react';
 
 // 관리자 권한 체크
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { isGuestFullAccessEnabled } from '@/config/guestMode';
 

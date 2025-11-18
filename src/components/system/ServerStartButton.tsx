@@ -120,7 +120,7 @@ export default function ServerStartButton() {
   // 워밍업 상태 폴링 시작
   useEffect(() => {
     if (showWarmupProgress) {
-      pollWarmupStatus();
+      void pollWarmupStatus();
     }
   }, [showWarmupProgress, pollWarmupStatus]);
 
