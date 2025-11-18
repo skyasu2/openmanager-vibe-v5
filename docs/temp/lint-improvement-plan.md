@@ -2,10 +2,10 @@
 
 **최종 목표:** `npm run lint` 실행 시 발생하는 모든 오류(Error)를 제거하고, 경고(Warning)를 최소화하여 코드 품질을 높입니다.
 
-**현재 상태 (2025-11-18 기준):**
+**현재 상태 (2025-11-18 기준, 최신 실행):**
 
-- **오류:** 108개
-- **경고:** 697개
+- **오류:** 0개
+- **경고:** 538개 (`npm run lint -- --max-warnings=0` 기준)
 
 ---
 
@@ -13,27 +13,27 @@
 
 각 단계 완료 후, 이 문서에 체크(`[x]`)하여 진행 상황을 표시합니다.
 
-### ☐ Phase 1: 치명적 오류 해결 (108개)
+### ☐ Phase 1: 치명적 오류 해결 (108개) → ✅ 완료 (오류 0개)
 
 > **목표:** 런타임 에러를 유발할 수 있는 모든 ESLint 오류를 해결하여 빌드 안정성을 확보합니다.
 
-- [ ] **Sub-task 1.1: Promise 관련 오류 해결**
-  - [ ] `@typescript-eslint/no-misused-promises` (5개)
-  - [ ] `@typescript-eslint/await-thenable` (2개)
-- [ ] **Sub-task 1.2: 타입스크립트 타입 오류 해결**
-  - [ ] `@typescript-eslint/restrict-template-expressions` (7개)
-  - [ ] `@typescript-eslint/no-unsafe-enum-comparison` (4개)
-  - [ ] `@typescript-eslint/restrict-plus-operands` (3개)
-- [ ] **Sub-task 1.3: 모듈 및 가져오기 오류 해결**
-  - [ ] `@typescript-eslint/no-require-imports` (2개)
-  - [ ] `@next/next/no-assign-module-variable` (1개)
-- [ ] **Sub-task 1.4: 기타 주요 오류 해결**
-  - [ ] `no-useless-escape` (8개)
-  - [ ] `@typescript-eslint/unbound-method` (1개)
-  - [ ] `@typescript-eslint/no-namespace` (3개)
-  - [ ] `@typescript-eslint/no-empty-object-type` (4개)
-  - [ ] `@typescript-eslint/only-throw-error` (1개)
-  - [ ] 기타 산발적인 오류 모두 해결
+- [x] **Sub-task 1.1: Promise 관련 오류 해결**
+  - [x] `@typescript-eslint/no-misused-promises`
+  - [x] `@typescript-eslint/await-thenable`
+- [x] **Sub-task 1.2: 타입스크립트 타입 오류 해결**
+  - [x] `@typescript-eslint/restrict-template-expressions`
+  - [x] `@typescript-eslint/no-unsafe-enum-comparison`
+  - [x] `@typescript-eslint/restrict-plus-operands`
+- [x] **Sub-task 1.3: 모듈 및 가져오기 오류 해결**
+  - [x] `@typescript-eslint/no-require-imports`
+  - [x] `@next/next/no-assign-module-variable`
+- [x] **Sub-task 1.4: 기타 주요 오류 해결**
+  - [x] `no-useless-escape`
+  - [x] `@typescript-eslint/unbound-method`
+  - [x] `@typescript-eslint/no-namespace`
+  - [x] `@typescript-eslint/no-empty-object-type`
+  - [x] `@typescript-eslint/only-throw-error`
+  - [x] 기타 산발적인 오류 모두 해결
 
 ### ☐ Phase 2: 잠재적 버그 경고 해결
 
@@ -41,8 +41,8 @@
 
 - [ ] **Sub-task 2.1: 처리되지 않은 Promise 경고 해결**
   - [ ] `@typescript-eslint/no-floating-promises` (19개): `void` 연산자 추가 또는 `await` 처리
-- [ ] **Sub-task 2.2: 암시적 타입 변환 경고 해결**
-  - [ ] `@typescript-eslint/no-base-to-string` (22개): 객체가 `[object Object]`로 변환되는 문제 해결
+- [x] **Sub-task 2.2: 암시적 타입 변환 경고 해결**
+  - [x] `@typescript-eslint/no-base-to-string` (2025-11-18 기준 0개)
 - [ ] **Sub-task 2.3: React Hook 의존성 배열 경고 해결**
   - [ ] `react-hooks/exhaustive-deps` (4개)
 
