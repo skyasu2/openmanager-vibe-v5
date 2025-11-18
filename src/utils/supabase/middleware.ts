@@ -38,18 +38,31 @@ export async function updateSession(
         set(name: string, value: string, options: Record<string, unknown>) {
           // ✅ 개선: 여러 쿠키 공존을 위해 response.cookies.set 사용
           try {
-            (supabaseResponse as ResponseWithCookies).cookies.set(name, value, { // 🔧 수정: 타입 안전 단언
+            (supabaseResponse as ResponseWithCookies).cookies.set(name, value, {
+              // 🔧 수정: 타입 안전 단언
               path: '/',
               ...options,
             });
-          } catch (error) {
+          } catch (_error) {
             // Fallback: Headers.append 사용 (여러 쿠키 지원)
             const cookieValue = `${name}=${value}; Path=/; ${Object.entries(
               options
             )
               .map(
                 ([k, v]) =>
-                  `${k}=${typeof v === 'object' ? JSON.stringify(v) : String(v)}`
+                  `${k}=${
+                    typeof v === 'string' ||
+                    typeof v === 'number' ||
+                    typeof v === 'boolean'
+                      ? String(v)
+                      : (() => {
+                          try {
+                            return JSON.stringify(v);
+                          } catch {
+                            return '[unserializable]';
+                          }
+                        })()
+                  }`
               )
               .join('; ')}`;
             supabaseResponse.headers.append('Set-Cookie', cookieValue);
@@ -58,19 +71,32 @@ export async function updateSession(
         remove(name: string, options: Record<string, unknown>) {
           // ✅ 개선: 여러 쿠키 공존을 위해 response.cookies.set 사용
           try {
-            (supabaseResponse as ResponseWithCookies).cookies.set(name, '', { // 🔧 수정: 타입 안전 단언
+            (supabaseResponse as ResponseWithCookies).cookies.set(name, '', {
+              // 🔧 수정: 타입 안전 단언
               path: '/',
               maxAge: 0,
               ...options,
             });
-          } catch (error) {
+          } catch (_error) {
             // Fallback: Headers.append 사용 (여러 쿠키 지원)
             const cookieValue = `${name}=; Path=/; Max-Age=0; ${Object.entries(
               options
             )
               .map(
                 ([k, v]) =>
-                  `${k}=${typeof v === 'object' ? JSON.stringify(v) : String(v)}`
+                  `${k}=${
+                    typeof v === 'string' ||
+                    typeof v === 'number' ||
+                    typeof v === 'boolean'
+                      ? String(v)
+                      : (() => {
+                          try {
+                            return JSON.stringify(v);
+                          } catch {
+                            return '[unserializable]';
+                          }
+                        })()
+                  }`
               )
               .join('; ')}`;
             supabaseResponse.headers.append('Set-Cookie', cookieValue);

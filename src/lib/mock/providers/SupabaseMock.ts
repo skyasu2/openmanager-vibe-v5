@@ -132,23 +132,34 @@ export class SupabaseMock extends MockBase {
             case 'neq':
               return value !== filter.value;
             case 'gt':
-              return typeof value === 'number' && typeof filter.value === 'number'
+              return typeof value === 'number' &&
+                typeof filter.value === 'number'
                 ? value > filter.value
                 : false;
             case 'gte':
-              return typeof value === 'number' && typeof filter.value === 'number'
+              return typeof value === 'number' &&
+                typeof filter.value === 'number'
                 ? value >= filter.value
                 : false;
             case 'lt':
-              return typeof value === 'number' && typeof filter.value === 'number'
+              return typeof value === 'number' &&
+                typeof filter.value === 'number'
                 ? value < filter.value
                 : false;
             case 'lte':
-              return typeof value === 'number' && typeof filter.value === 'number'
+              return typeof value === 'number' &&
+                typeof filter.value === 'number'
                 ? value <= filter.value
                 : false;
-            case 'like':
-              return String(value).includes(String(filter.value));
+            case 'like': {
+              const valueString =
+                typeof value === 'string' ? value : JSON.stringify(value);
+              const filterString =
+                typeof filter.value === 'string'
+                  ? filter.value
+                  : JSON.stringify(filter.value);
+              return valueString.includes(filterString);
+            }
             default:
               return true;
           }

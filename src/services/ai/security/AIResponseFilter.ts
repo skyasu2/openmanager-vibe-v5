@@ -75,7 +75,7 @@ export class AIResponseFilter {
     // 내부 구조 정보
     /next\.js|vercel|supabase|redis|upstash/gi,
     /src\/|components\/|services\/|api\//gi,
-    /localhost:\d+|127\.0\.0\.1|\:\d{4,5}/gi,
+    /localhost:\d+|127\.0\.0\.1|:\d{4,5}/gi,
 
     // 개발 관련 정보
     /development|staging|production|debug/gi,

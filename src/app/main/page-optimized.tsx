@@ -54,17 +54,20 @@ const useSystemHooks = () => {
   const [hooks, setHooks] = useState<unknown>(null);
 
   useEffect(() => {
-    Promise.all([
-      import('@/hooks/useSystemStatus'),
-      import('@/stores/useUnifiedAdminStore'),
-      import('@/lib/supabase-auth'),
-    ]).then(([systemStatus, adminStore, auth]) => {
+    const loadHooks = async () => {
+      const [systemStatus, adminStore, auth] = await Promise.all([
+        import('@/hooks/useSystemStatus'),
+        import('@/stores/useUnifiedAdminStore'),
+        import('@/lib/supabase-auth'),
+      ]);
       setHooks({
         useSystemStatus: systemStatus.useSystemStatus,
         useUnifiedAdminStore: adminStore.useUnifiedAdminStore,
         auth,
       });
-    });
+    };
+
+    void loadHooks();
   }, []);
 
   return hooks;
@@ -85,7 +88,8 @@ function AuthCheck({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // 동적으로 인증 모듈 로드
-    import('@/lib/supabase-auth').then(async (authModule) => {
+    const checkAuth = async () => {
+      const authModule = await import('@/lib/supabase-auth');
       try {
         const [isAuthenticated, user] = await Promise.all([
           authModule.isAuthenticated(),
@@ -105,7 +109,9 @@ function AuthCheck({ children }: { children: ReactNode }) {
         console.error('Auth check failed:', error);
         router.replace('/login');
       }
-    });
+    };
+
+    void checkAuth();
   }, [router]);
 
   if (authState.isLoading) {
@@ -145,9 +151,16 @@ function MainContent() {
     const { isGitHubAuthenticated } = (
       hooks as { auth: { isGitHubAuthenticated: () => Promise<unknown> } }
     ).auth;
-    isGitHubAuthenticated().then((result) => {
-      setSystemState((prev) => ({ ...prev, isGitHubUser: Boolean(result) }));
-    });
+    const loadGitHubAuth = async () => {
+      try {
+        const result = await isGitHubAuthenticated();
+        setSystemState((prev) => ({ ...prev, isGitHubUser: Boolean(result) }));
+      } catch (error) {
+        console.error('GitHub auth check failed:', error);
+      }
+    };
+
+    void loadGitHubAuth();
   }, [hooks]);
 
   if (!hooks) {

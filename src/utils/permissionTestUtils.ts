@@ -109,7 +109,23 @@ export function testPermissions(
 
   results.forEach(({ key, expected, actual, passed }) => {
     const icon = passed ? '✅' : '❌';
-    console.log(`${icon} ${key}: 예상=${expected}, 실제=${actual}`);
+    const formatValue = (value: unknown) => {
+      if (
+        typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean'
+      ) {
+        return String(value);
+      }
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return '[unserializable]';
+      }
+    };
+    console.log(
+      `${icon} ${key}: 예상=${formatValue(expected)}, 실제=${formatValue(actual)}`
+    );
   });
 
   console.groupEnd();

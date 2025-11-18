@@ -97,68 +97,65 @@ export interface PaginatedApiResponse<T = unknown> extends ApiResponse<T[]> {
 /**
  * 대시보드 응답 타입
  */
-export interface DashboardResponse
-  extends ApiResponse<{
-    servers: Server[];
-    metrics: {
-      totalServers: number;
-      onlineServers: number;
-      offlineServers: number;
-      criticalAlerts: number;
-    };
-    recentActivities: Array<{
-      id: string;
-      type: 'alert' | 'maintenance' | 'deployment';
-      message: string;
-      timestamp: string;
-      severity: 'low' | 'medium' | 'high' | 'critical';
-    }>;
-  }> {}
+export type DashboardResponse = ApiResponse<{
+  servers: Server[];
+  metrics: {
+    totalServers: number;
+    onlineServers: number;
+    offlineServers: number;
+    criticalAlerts: number;
+  };
+  recentActivities: Array<{
+    id: string;
+    type: 'alert' | 'maintenance' | 'deployment';
+    message: string;
+    timestamp: string;
+    severity: 'low' | 'medium' | 'high' | 'critical';
+  }>;
+}>;
 
 /**
  * 서버 목록 응답 타입
  */
-export interface ServerListResponse extends PaginatedApiResponse<Server> {}
+export type ServerListResponse = PaginatedApiResponse<Server>;
 
 /**
  * 서버 상세 정보 응답 타입
  */
-export interface ServerDetailResponse
-  extends ApiResponse<{
-    server: Server;
-    metrics: ServerMetrics;
-    recentLogs: Array<{
-      id: string;
-      level: 'debug' | 'info' | 'warn' | 'error';
-      message: string;
-      timestamp: string;
-      source: string;
-    }>;
-  }> {}
+export type ServerDetailResponse = ApiResponse<{
+  server: Server;
+  metrics: ServerMetrics;
+  recentLogs: Array<{
+    id: string;
+    level: 'debug' | 'info' | 'warn' | 'error';
+    message: string;
+    timestamp: string;
+    source: string;
+  }>;
+}>;
 
 /**
  * AI 분석 결과 응답 타입
  */
-export interface AIAnalysisResponse
-  extends ApiResponse<{
-    analysis: {
-      summary: string;
-      insights: string[];
-      recommendations: string[];
-      confidence: number;
-    };
-    thinkingSteps?: Array<{
-      step: number;
-      description: string;
-      reasoning: string;
-      confidence: number;
-    }>;
-    metadata: {
-      engine: string;
-      processingTime: number;
-      tokensUsed: number;
-    };
-  }> {}
+export type AIAnalysisResponse = ApiResponse<{
+  analysis: {
+    summary: string;
+    insights: string[];
+    recommendations: string[];
+    confidence: number;
+  };
+  thinkingSteps?: Array<{
+    step: number;
+    description: string;
+    reasoning: string;
+    confidence: number;
+  }>;
+  metadata: {
+    engine: string;
+    processingTime: number;
+    tokensUsed: number;
+  };
+}>;
 
 // ===== React 컴포넌트에서 자주 사용되는 타입들 =====
 
@@ -261,7 +258,13 @@ export function isMCPQueryResponse(data: unknown): data is MCPQueryResponse {
 export function getErrorMessage(error: unknown): string {
   if (typeof error === 'string') return error;
   if (error && typeof error === 'object' && 'message' in error) {
-    return String((error as Record<string, unknown>).message);
+    const msg = (error as Record<string, unknown>).message;
+    if (typeof msg === 'string') return msg;
+    try {
+      return JSON.stringify(msg ?? '');
+    } catch {
+      return 'An unknown error occurred';
+    }
   }
   return 'An unknown error occurred';
 }

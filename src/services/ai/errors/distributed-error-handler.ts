@@ -147,7 +147,7 @@ export class DistributedErrorHandler {
       return error;
     }
     if (typeof error === 'object' && error !== null && 'message' in error) {
-      return String(error.message);
+      return this.safeStringify((error as { message: unknown }).message);
     }
     return '알 수 없는 오류가 발생했습니다';
   }
@@ -344,9 +344,16 @@ export class DistributedErrorHandler {
 
   private extractServiceError(error: unknown): string | null {
     if (typeof error === 'object' && error !== null) {
-      if ('code' in error) return String(error.code);
-      if ('error_code' in error) return String(error.error_code);
-      if ('errorCode' in error) return String(error.errorCode);
+      if ('code' in error)
+        return this.safeStringify((error as { code: unknown }).code ?? '');
+      if ('error_code' in error)
+        return this.safeStringify(
+          (error as { error_code: unknown }).error_code ?? ''
+        );
+      if ('errorCode' in error)
+        return this.safeStringify(
+          (error as { errorCode: unknown }).errorCode ?? ''
+        );
     }
     return null;
   }
@@ -418,6 +425,18 @@ export class DistributedErrorHandler {
     }
 
     return ErrorSeverity.LOW;
+  }
+
+  private safeStringify(value: unknown): string {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number' || typeof value === 'boolean')
+      return String(value);
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return '[unserializable]';
+    }
   }
 }
 

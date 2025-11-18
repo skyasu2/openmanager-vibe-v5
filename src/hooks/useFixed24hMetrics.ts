@@ -9,7 +9,7 @@
  * @see src/data/hourly-server-data.ts - 데이터 로더 + 보간 로직
  */
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   getServerMetricAt,
   getRecentMetrics,
@@ -119,7 +119,7 @@ export function useFixed24hMetrics(
       isMountedRef.current = false;
       clearInterval(intervalId);
     };
-  }, [serverId, updateInterval]);
+  }, [serverId, updateInterval, updateMetrics]);
 
   return {
     currentMetrics,
@@ -181,6 +181,9 @@ export function useMultipleFixed24hMetrics(
     }
   }, [serverIds]); // serverIds를 의존성에 추가
 
+  // serverIds.join(',')을 별도 변수로 추출하여 의존성 배열의 복잡도를 줄임
+  const serverIdsKey = serverIds.join(',');
+
   useEffect(() => {
     isMountedRef.current = true;
 
@@ -196,7 +199,7 @@ export function useMultipleFixed24hMetrics(
       isMountedRef.current = false;
       clearInterval(intervalId);
     };
-  }, [serverIds.join(','), updateInterval]); // serverIds 배열 변경 시에만 재실행
+  }, [serverIdsKey, updateInterval, updateAllMetrics]); // serverIds 배열 변경 시에만 재실행
 
   return {
     metricsMap,
@@ -270,7 +273,7 @@ export function useSingleMetric(
       isMountedRef.current = false;
       clearInterval(intervalId);
     };
-  }, [serverId, metricType, updateInterval]);
+  }, [serverId, metricType, updateInterval, updateMetric]);
 
   return { value, isLoading, error };
 }

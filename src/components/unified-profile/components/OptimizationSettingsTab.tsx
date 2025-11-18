@@ -37,6 +37,7 @@ export function OptimizationSettingsTab({
     performanceMode: 'balanced' as 'balanced' | 'performance' | 'efficiency',
     lastOptimized: '2025-06-10 14:30:00',
   });
+  const autoOptimizationToggleId = 'auto-optimization-toggle';
 
   const handleOptimizationRun = async () => {
     setIsOptimizing(true);
@@ -109,7 +110,9 @@ export function OptimizationSettingsTab({
             </div>
             <div className="grid grid-cols-1 gap-3">
               <button
-                onClick={() => { void handleOptimizationRun(); }}
+                onClick={() => {
+                  void handleOptimizationRun();
+                }}
                 disabled={isOptimizing}
                 className="rounded-lg border border-yellow-500/30 bg-yellow-500/20 px-4 py-3 text-sm font-medium text-yellow-300 transition-colors hover:bg-yellow-500/30 disabled:opacity-50"
               >
@@ -133,7 +136,9 @@ export function OptimizationSettingsTab({
               </button>
 
               <button
-                onClick={() => { void handlePerformanceAnalysis(); }}
+                onClick={() => {
+                  void handlePerformanceAnalysis();
+                }}
                 disabled={isAnalyzing}
                 className="rounded-lg border border-blue-500/30 bg-blue-500/20 px-4 py-3 text-sm font-medium text-blue-300 transition-colors hover:bg-blue-500/30 disabled:opacity-50"
               >
@@ -188,7 +193,10 @@ export function OptimizationSettingsTab({
                   onClick={() =>
                     setSettings((prev) => ({
                       ...prev,
-                      performanceMode: key as 'balanced' | 'performance' | 'efficiency',
+                      performanceMode: key as
+                        | 'balanced'
+                        | 'performance'
+                        | 'efficiency',
                     }))
                   }
                   className={`rounded-lg border p-3 transition-all duration-200 ${
@@ -213,9 +221,14 @@ export function OptimizationSettingsTab({
                 정기적으로 시스템 자동 최적화
               </div>
             </div>
-            <label className="relative inline-flex cursor-pointer items-center">
+            <label
+              className="relative inline-flex cursor-pointer items-center"
+              htmlFor={autoOptimizationToggleId}
+            >
+              <span className="sr-only">자동 최적화 설정</span>
               <input
                 type="checkbox"
+                id={autoOptimizationToggleId}
                 checked={settings.autoOptimization}
                 onChange={(e) =>
                   setSettings((prev) => ({

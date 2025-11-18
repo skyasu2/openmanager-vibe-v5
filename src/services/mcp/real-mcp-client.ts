@@ -187,10 +187,10 @@ export class RealMCPClient {
         if (request.method === 'tools/list') {
           const tools = await toolHandler.getAvailableTools();
           // MCPToolInfo[] → MCPTool[] 변환
-          const mcpTools: MCPTool[] = (tools.tools || []).map(toolInfo => ({
+          const mcpTools: MCPTool[] = (tools.tools || []).map((toolInfo) => ({
             name: toolInfo.name,
             description: toolInfo.description,
-            inputSchema: toolInfo.schema,  // schema → inputSchema
+            inputSchema: toolInfo.schema, // schema → inputSchema
           }));
           return {
             success: true,
@@ -224,12 +224,15 @@ export class RealMCPClient {
   }
 
   async listTools(serverName: string): Promise<MCPTool[]> {
-    const toolInfos = await this.toolHandler.listTools(serverName, this.clients);
+    const toolInfos = await this.toolHandler.listTools(
+      serverName,
+      this.clients
+    );
     // MCPToolInfo[] → MCPTool[] 변환
-    return toolInfos.map(toolInfo => ({
+    return toolInfos.map((toolInfo) => ({
       name: toolInfo.name,
       description: toolInfo.description,
-      inputSchema: toolInfo.schema,  // schema → inputSchema
+      inputSchema: toolInfo.schema, // schema → inputSchema
     }));
   }
 
@@ -302,7 +305,20 @@ export class RealMCPClient {
                   : '',
               content:
                 typeof item === 'object' && item !== null && 'content' in item
-                  ? String(item.content)
+                  ? (() => {
+                      if (
+                        typeof item.content === 'string' ||
+                        typeof item.content === 'number' ||
+                        typeof item.content === 'boolean'
+                      ) {
+                        return String(item.content);
+                      }
+                      try {
+                        return JSON.stringify(item.content);
+                      } catch {
+                        return '[unserializable]';
+                      }
+                    })()
                   : '',
               score:
                 typeof item === 'object' && item !== null && 'score' in item
@@ -344,7 +360,20 @@ export class RealMCPClient {
                 : '',
             content:
               typeof item === 'object' && item !== null && 'content' in item
-                ? String(item.content)
+                ? (() => {
+                    if (
+                      typeof item.content === 'string' ||
+                      typeof item.content === 'number' ||
+                      typeof item.content === 'boolean'
+                    ) {
+                      return String(item.content);
+                    }
+                    try {
+                      return JSON.stringify(item.content);
+                    } catch {
+                      return '[unserializable]';
+                    }
+                  })()
                 : '',
             score:
               typeof item === 'object' && item !== null && 'score' in item

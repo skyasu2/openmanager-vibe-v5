@@ -11,6 +11,7 @@
  */
 
 import { memoryOptimizer } from '../utils/MemoryOptimizer';
+import * as os from 'os';
 
 interface PerformanceMetrics {
   timestamp: number;
@@ -175,8 +176,7 @@ export class PerformanceTester {
 
     return {
       cpuUsage: Math.min(100, (totalCpuTime / 1000000) % 100), // 마이크로초를 백분율로
-      loadAverage:
-        process.platform === 'win32' ? [0, 0, 0] : require('os').loadavg(),
+      loadAverage: process.platform === 'win32' ? [0, 0, 0] : os.loadavg(),
       uptime: process.uptime(),
     };
   }
@@ -333,9 +333,11 @@ export class PerformanceTester {
 
       try {
         // 랜덤 엔드포인트 선택
-        const endpointIndex = Math.floor(Math.random() * config.endpoints.length);
+        const endpointIndex = Math.floor(
+          Math.random() * config.endpoints.length
+        );
         const endpoint = config.endpoints[endpointIndex];
-        
+
         if (!endpoint) {
           throw new Error('No valid endpoint found');
         }
@@ -498,7 +500,8 @@ export class PerformanceTester {
   generatePerformanceReport(testResult: LoadTestResult): string {
     const { config, summary, recommendations, metrics } = testResult;
 
-    const lastMetric = metrics.length > 0 ? metrics[metrics.length - 1] : undefined;
+    const lastMetric =
+      metrics.length > 0 ? metrics[metrics.length - 1] : undefined;
     const memoryStats = lastMetric?.memoryUsage ?? null;
 
     return `
@@ -581,7 +584,8 @@ ${this.calculatePerformanceGrade(summary)}
    */
   getCurrentMetrics(): PerformanceMetrics | null {
     const metrics = this.metricsStore.getAllMetrics();
-    const lastMetric = metrics.length > 0 ? metrics[metrics.length - 1] : undefined;
+    const lastMetric =
+      metrics.length > 0 ? metrics[metrics.length - 1] : undefined;
     return lastMetric ?? null;
   }
 

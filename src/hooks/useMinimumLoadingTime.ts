@@ -302,7 +302,17 @@ export const useDataLoadingPromise = (
     return new Promise((resolve, reject) => {
       const checkDataReady = () => {
         if (error) {
-          reject(error instanceof Error ? error : new Error(String(error)));
+          const message =
+            error instanceof Error
+              ? error.message
+              : (() => {
+                  try {
+                    return JSON.stringify(error);
+                  } catch {
+                    return typeof error === 'string' ? error : 'Unknown error';
+                  }
+                })();
+          reject(new Error(message));
         } else if (!isLoading && data && data.length > 0) {
           resolve(data);
         } else {

@@ -1,3 +1,5 @@
+'use client';
+
 import { type FC } from 'react';
 /**
  * ⚙️ Enhanced Server Modal Processes Tab
@@ -8,10 +10,7 @@ import { type FC } from 'react';
  * - Color-coded usage indicators
  * - Responsive table layout with smooth animations
  */
-'use client';
-
 import { RealtimeData, ProcessData } from './EnhancedServerModal.types';
-
 
 /**
  * Processes Tab Props
@@ -56,8 +55,7 @@ const getMemoryColor = (value: number): string => {
 export const ProcessesTab: FC<ProcessesTabProps> = ({ realtimeData }) => {
   return (
     <div className="space-y-6">
-      <div
-      >
+      <div>
         {/* 헤더 섹션 */}
         <div className="mb-6 flex items-center justify-between">
           <h3 className="bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
@@ -154,9 +152,7 @@ export const ProcessesTab: FC<ProcessesTabProps> = ({ realtimeData }) => {
 
         {/* 프로세스 통계 요약 */}
         {realtimeData.processes.length > 0 && (
-          <div
-            className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3"
-          >
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
             {/* 총 프로세스 수 */}
             <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
               <div className="flex items-center justify-between">

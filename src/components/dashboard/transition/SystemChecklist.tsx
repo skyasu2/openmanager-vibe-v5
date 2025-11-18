@@ -12,7 +12,12 @@
 'use client';
 
 // framer-motion 제거 - CSS 애니메이션 사용
-import { Fragment, useEffect, useState } from 'react';
+import {
+  Fragment,
+  useEffect,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from 'react';
 import debug from '@/utils/debug';
 import {
   useSystemChecklist,
@@ -51,7 +56,6 @@ interface WindowWithDebug extends Window {
   emergencyCompleteChecklist?: () => void;
   [key: `retry_${string}`]: number | undefined;
 }
-
 
 export default function SystemChecklist({
   onComplete,
@@ -128,7 +132,8 @@ export default function SystemChecklist({
       error,
       stack,
       timestamp: new Date().toISOString(),
-      retryCount: (window as unknown as WindowWithDebug)[`retry_${component}`] || 0,
+      retryCount:
+        (window as unknown as WindowWithDebug)[`retry_${component}`] || 0,
     };
 
     setDebugInfo((prev) => ({
@@ -212,7 +217,7 @@ export default function SystemChecklist({
       // 2초 후 자동 전환 (사용자가 클릭 안 할 경우)
       const autoCompleteTimer = setTimeout(() => {
         setShouldProceed(true);
-        setTimeout(onComplete, 500); // 애니메이션 완료 후
+        setTimeout(() => onComplete(), 500); // 애니메이션 완료 후
       }, 2000);
 
       return () => clearTimeout(autoCompleteTimer);
@@ -312,7 +317,9 @@ export default function SystemChecklist({
             ) / debugInfo.networkRequests.length,
           slowestRequest: debugInfo.networkRequests.reduce(
             (slowest, current) =>
-              current.responseTime > (slowest?.responseTime ?? 0) ? current : slowest,
+              current.responseTime > (slowest?.responseTime ?? 0)
+                ? current
+                : slowest,
             debugInfo.networkRequests[0]
           ),
           failedRequests: debugInfo.networkRequests.filter((r) => !r.success),
@@ -388,8 +395,10 @@ export default function SystemChecklist({
     };
 
     // 전역 등록
-    (window as unknown as WindowWithDebug).debugSystemChecklistAdvanced = advancedDebugTools;
-    (window as unknown as WindowWithDebug).systemChecklistDebug = advancedDebugTools; // 짧은 별칭
+    (window as unknown as WindowWithDebug).debugSystemChecklistAdvanced =
+      advancedDebugTools;
+    (window as unknown as WindowWithDebug).systemChecklistDebug =
+      advancedDebugTools; // 짧은 별칭
 
     // 기존 함수들도 유지
     (window as unknown as WindowWithDebug).debugSystemChecklist = {
@@ -500,13 +509,11 @@ export default function SystemChecklist({
 
       <div
         className={`relative z-10 w-full max-w-md transition-all duration-300 ${
-          shouldProceed ? 'opacity-0 scale-90' : 'opacity-100 scale-100'
+          shouldProceed ? 'scale-90 opacity-0' : 'scale-100 opacity-100'
         }`}
       >
         {/* 로고 섹션 */}
-        <div
-          className="mb-8 text-center"
-        >
+        <div className="mb-8 text-center">
           <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-2xl">
             <span className="text-2xl font-bold text-white">OM</span>
           </div>
@@ -538,6 +545,19 @@ export default function SystemChecklist({
             const status = components[component.id];
             if (!status) return null;
 
+            const isDiagnosticAvailable =
+              status.status === 'failed' &&
+              (process.env.NEXT_PUBLIC_NODE_ENV ||
+                process.env.NODE_ENV === 'development');
+
+            const handleCardActivate = () => {
+              if (isDiagnosticAvailable) {
+                (
+                  window as unknown as WindowWithDebug
+                ).systemChecklistDebug?.analyzeComponent(component.id);
+              }
+            };
+
             return (
               <div
                 key={component.id}
@@ -549,16 +569,15 @@ export default function SystemChecklist({
                       : status.status === 'loading'
                         ? 'bg-blue-500/10'
                         : 'bg-gray-500/10'
-                } transition-all duration-300 ${status.status === 'failed' ? 'cursor-pointer hover:bg-red-500/20' : ''} `}
-                onClick={() => {
-                  if (
-                    (status.status === 'failed' &&
-                      process.env.NEXT_PUBLIC_NODE_ENV) ||
-                    process.env.NODE_ENV === 'development'
-                  ) {
-                    (window as unknown as WindowWithDebug).systemChecklistDebug?.analyzeComponent(
-                      component.id
-                    );
+                } transition-all duration-300 ${isDiagnosticAvailable ? 'cursor-pointer hover:bg-red-500/20' : ''} `}
+                role={isDiagnosticAvailable ? 'button' : undefined}
+                tabIndex={isDiagnosticAvailable ? 0 : -1}
+                onClick={handleCardActivate}
+                onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) => {
+                  if (!isDiagnosticAvailable) return;
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    handleCardActivate();
                   }
                 }}
                 title={
@@ -585,8 +604,12 @@ export default function SystemChecklist({
                   {status.status === 'loading' && (
                     <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-gray-600/30">
                       <div
-                        className="h-full rounded-full bg-blue-400 animate-pulse transition-all duration-300"
-                        style={{ width: status.progress ? `${status.progress}%` : '60%' }}
+                        className="h-full animate-pulse rounded-full bg-blue-400 transition-all duration-300"
+                        style={{
+                          width: status.progress
+                            ? `${status.progress}%`
+                            : '60%',
+                        }}
                       />
                     </div>
                   )}
@@ -617,12 +640,12 @@ export default function SystemChecklist({
 
         {/* 에러 시 재시도 버튼 */}
         {failedCount > 0 && (
-          <div
-            className="mt-4 space-y-2 text-center"
-          >
+          <div className="mt-4 space-y-2 text-center">
             <button
               onClick={() =>
-                (window as unknown as WindowWithDebug).systemChecklistDebug?.retryFailedComponents()
+                (
+                  window as unknown as WindowWithDebug
+                ).systemChecklistDebug?.retryFailedComponents()
               }
               className="mr-2 rounded-lg border border-red-500/50 bg-red-500/20 px-4 py-2 text-sm text-red-300 transition-colors hover:bg-red-500/30"
             >
@@ -633,7 +656,9 @@ export default function SystemChecklist({
               (process.env.NODE_ENV === 'development' && (
                 <button
                   onClick={() =>
-                    (window as unknown as WindowWithDebug).systemChecklistDebug?.diagnoseNetwork()
+                    (
+                      window as unknown as WindowWithDebug
+                    ).systemChecklistDebug?.diagnoseNetwork()
                   }
                   className="rounded-lg border border-yellow-500/50 bg-yellow-500/20 px-4 py-2 text-sm text-yellow-300 transition-colors hover:bg-yellow-500/30"
                 >
@@ -647,17 +672,25 @@ export default function SystemChecklist({
         <Fragment>
           {showCompleted && (
             <div
-              className="absolute inset-0 flex items-center justify-center rounded-2xl border border-green-500/50 bg-green-500/20 backdrop-blur-sm animate-in fade-in zoom-in duration-500"
+              className="absolute inset-0 flex items-center justify-center rounded-2xl border border-green-500/50 bg-green-500/20 backdrop-blur-sm duration-500 animate-in fade-in zoom-in"
+              role="button"
+              tabIndex={0}
+              aria-label="체크리스트 완료 후 다음 단계로 이동"
               onClick={() => {
                 // 클릭 시 다음 단계로 진행
                 setShouldProceed(true);
-                setTimeout(onComplete, 100);
+                setTimeout(() => onComplete(), 100);
+              }}
+              onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  setShouldProceed(true);
+                  setTimeout(() => onComplete(), 100);
+                }
               }}
             >
               <div className="text-center">
-                <div
-                  className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500"
-                >
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500">
                   <svg
                     className="h-8 w-8 text-white"
                     fill="none"
@@ -678,9 +711,7 @@ export default function SystemChecklist({
                 <p className="mb-3 text-sm text-gray-300">
                   다음 단계로 진행합니다...
                 </p>
-                <div
-                  className="inline-flex items-center space-x-2 rounded-lg border border-green-400/50 bg-green-500/30 px-4 py-2"
-                >
+                <div className="inline-flex items-center space-x-2 rounded-lg border border-green-400/50 bg-green-500/30 px-4 py-2">
                   <span className="text-sm text-green-200">클릭하여 계속</span>
                   <svg
                     className="h-4 w-4 text-green-200"
@@ -704,9 +735,7 @@ export default function SystemChecklist({
         {/* 스킵 버튼 (3초 후 표시) */}
         <Fragment>
           {canSkip && !showCompleted && (
-            <div
-              className="mt-4 text-center"
-            >
+            <div className="mt-4 text-center">
               <button
                 onClick={onComplete}
                 className="rounded-lg border border-blue-500/50 bg-blue-500/20 px-4 py-2 text-sm text-blue-300 transition-colors hover:bg-blue-500/30"
@@ -724,9 +753,7 @@ export default function SystemChecklist({
       </div>
 
       {/* 돌아가기 버튼 (왼쪽 아래 고정) */}
-      <div
-        className="absolute bottom-6 left-6 z-20"
-      >
+      <div className="absolute bottom-6 left-6 z-20">
         <button
           onClick={() => {
             if (typeof window !== 'undefined') {

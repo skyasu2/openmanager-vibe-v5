@@ -1,3 +1,5 @@
+'use client';
+
 import { type FC } from 'react';
 /**
  * 📊 Enhanced Server Modal Metrics Tab
@@ -8,8 +10,6 @@ import { type FC } from 'react';
  * - Color-coded status visualization
  * - Responsive grid layout
  */
-'use client';
-
 import { Pause, Play } from 'lucide-react';
 import {
   ServerData,
@@ -18,8 +18,7 @@ import {
 } from './EnhancedServerModal.types';
 import { getMetricColorByStatus } from './EnhancedServerModal.utils';
 import { RealtimeChart } from './EnhancedServerModal.components';
-import { getSafeLastArrayItem } from "../../lib/vercel-safe-utils";
-
+import { getSafeLastArrayItem } from '../../lib/vercel-safe-utils';
 
 /**
  * Metrics Tab Props
@@ -135,7 +134,7 @@ export const MetricsTab: FC<MetricsTabProps> = ({
           {chartConfigs.map((chart, idx) => (
             <div
               key={idx}
-              className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all hover:shadow-2xl hover:-translate-y-1 animate-fade-in"
+              className="animate-fade-in relative overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all hover:-translate-y-1 hover:shadow-2xl"
               style={{ animationDelay: `${0.2 + idx * 0.1}s` }}
             >
               {/* 배경 그라데이션 */}
@@ -179,7 +178,7 @@ export const MetricsTab: FC<MetricsTabProps> = ({
 
         {/* 메트릭 요약 정보 */}
         <div
-          className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4 animate-fade-in"
+          className="animate-fade-in mt-6 grid grid-cols-2 gap-4 md:grid-cols-4"
           style={{ animationDelay: '0.6s' }}
         >
           {chartConfigs.map((chart, idx) => {

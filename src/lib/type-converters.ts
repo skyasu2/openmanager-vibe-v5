@@ -1,16 +1,16 @@
 /**
  * 🔄 안전한 타입 변환 유틸리티
- * 
+ *
  * AI 교차검증 기반으로 생성됨 (8.3/10 합의):
  * - Claude: 실용적 변환 패턴 설계
- * - Gemini: 런타임 안전성 강화  
+ * - Gemini: 런타임 안전성 강화
  * - Codex: 에러 처리 및 폴백 로직
  * - Qwen: 성능 최적화된 타입 체크
  */
 
-import { 
+import {
   type ServerStatus,
-  type ServerEnvironment, 
+  type ServerEnvironment,
   type ServerRole,
   isValidServerStatus,
   isValidServerEnvironment,
@@ -20,15 +20,28 @@ import {
   getDefaultServerRole,
 } from '@/types/server-enums';
 
+const stringifyForLog = (value: unknown): string => {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean')
+    return String(value);
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return '[unserializable]';
+  }
+};
+
 /**
  * 🛡️ 안전한 ServerStatus 변환
  * string → ServerStatus로 안전하게 변환, 유효하지 않으면 기본값 반환
  */
 export function safeServerStatus(value: unknown): ServerStatus {
+  const valueString = stringifyForLog(value);
   if (typeof value === 'string' && isValidServerStatus(value)) {
     return value;
   }
-  
+
   // 일반적인 변환 패턴들
   if (typeof value === 'string') {
     const normalized = value.toLowerCase().trim();
@@ -50,24 +63,29 @@ export function safeServerStatus(value: unknown): ServerStatus {
       case 'maint':
         return 'maintenance';
       default:
-        console.warn(`[safeServerStatus] Unknown status: "${value}", using default`);
+        console.warn(
+          `[safeServerStatus] Unknown status: "${valueString}", using default`
+        );
         return getDefaultServerStatus();
     }
   }
-  
-  console.warn(`[safeServerStatus] Invalid type: ${typeof value}, using default`);
+
+  console.warn(
+    `[safeServerStatus] Invalid value: ${valueString}, using default`
+  );
   return getDefaultServerStatus();
 }
 
 /**
- * 🛡️ 안전한 ServerEnvironment 변환  
+ * 🛡️ 안전한 ServerEnvironment 변환
  * string → ServerEnvironment로 안전하게 변환, 유효하지 않으면 기본값 반환
  */
 export function safeServerEnvironment(value: unknown): ServerEnvironment {
+  const valueString = stringifyForLog(value);
   if (typeof value === 'string' && isValidServerEnvironment(value)) {
     return value;
   }
-  
+
   // 일반적인 변환 패턴들
   if (typeof value === 'string') {
     const normalized = value.toLowerCase().trim();
@@ -85,12 +103,16 @@ export function safeServerEnvironment(value: unknown): ServerEnvironment {
       case 'testing':
         return 'testing';
       default:
-        console.warn(`[safeServerEnvironment] Unknown environment: "${value}", using default`);
+        console.warn(
+          `[safeServerEnvironment] Unknown environment: "${valueString}", using default`
+        );
         return getDefaultServerEnvironment();
     }
   }
-  
-  console.warn(`[safeServerEnvironment] Invalid type: ${typeof value}, using default`);
+
+  console.warn(
+    `[safeServerEnvironment] Invalid value: ${valueString}, using default`
+  );
   return getDefaultServerEnvironment();
 }
 
@@ -99,13 +121,17 @@ export function safeServerEnvironment(value: unknown): ServerEnvironment {
  * string → ServerRole로 안전하게 변환, 유효하지 않으면 기본값 반환
  */
 export function safeServerRole(value: unknown): ServerRole {
+  const valueString = stringifyForLog(value);
   if (typeof value === 'string' && isValidServerRole(value)) {
     return value;
   }
-  
+
   // 일반적인 변환 패턴들
   if (typeof value === 'string') {
-    const normalized = value.toLowerCase().trim().replace(/[-_\s]/g, '-');
+    const normalized = value
+      .toLowerCase()
+      .trim()
+      .replace(/[-_\s]/g, '-');
     switch (normalized) {
       case 'webserver':
       case 'http':
@@ -152,12 +178,14 @@ export function safeServerRole(value: unknown): ServerRole {
       case 'job':
         return 'queue';
       default:
-        console.warn(`[safeServerRole] Unknown role: "${value}", using default`);
+        console.warn(
+          `[safeServerRole] Unknown role: "${valueString}", using default`
+        );
         return getDefaultServerRole();
     }
   }
-  
-  console.warn(`[safeServerRole] Invalid type: ${typeof value}, using default`);
+
+  console.warn(`[safeServerRole] Invalid value: ${valueString}, using default`);
   return getDefaultServerRole();
 }
 
@@ -169,14 +197,14 @@ export function safeMetricValue(value: unknown, fallback: number = 0): number {
   if (typeof value === 'number' && !isNaN(value) && isFinite(value)) {
     return Math.max(0, Math.min(100, value));
   }
-  
+
   if (typeof value === 'string') {
     const parsed = parseFloat(value);
     if (!isNaN(parsed) && isFinite(parsed)) {
       return Math.max(0, Math.min(100, parsed));
     }
   }
-  
+
   return fallback;
 }
 
@@ -185,17 +213,22 @@ export function safeMetricValue(value: unknown, fallback: number = 0): number {
  * responseTime을 ms 단위로 정규화
  */
 export function safeResponseTime(value: unknown, fallback: number = 0): number {
-  if (typeof value === 'number' && !isNaN(value) && isFinite(value) && value >= 0) {
+  if (
+    typeof value === 'number' &&
+    !isNaN(value) &&
+    isFinite(value) &&
+    value >= 0
+  ) {
     return Math.min(30000, value); // 30초 최대값
   }
-  
+
   if (typeof value === 'string') {
     const parsed = parseFloat(value);
     if (!isNaN(parsed) && isFinite(parsed) && parsed >= 0) {
       return Math.min(30000, parsed);
     }
   }
-  
+
   return fallback;
 }
 
@@ -204,17 +237,22 @@ export function safeResponseTime(value: unknown, fallback: number = 0): number {
  * connections를 양의 정수로 정규화
  */
 export function safeConnections(value: unknown, fallback: number = 0): number {
-  if (typeof value === 'number' && !isNaN(value) && isFinite(value) && value >= 0) {
+  if (
+    typeof value === 'number' &&
+    !isNaN(value) &&
+    isFinite(value) &&
+    value >= 0
+  ) {
     return Math.floor(Math.min(10000, value)); // 10k 연결 최대값
   }
-  
+
   if (typeof value === 'string') {
     const parsed = parseInt(value, 10);
     if (!isNaN(parsed) && parsed >= 0) {
       return Math.min(10000, parsed);
     }
   }
-  
+
   return fallback;
 }
 
@@ -238,17 +276,24 @@ export function normalizeRawServerData(rawData: Record<string, unknown>): {
   disk: number;
   network: number;
 } {
+  const toSafeString = (input: unknown, fallback: string): string => {
+    const str = stringifyForLog(input);
+    return str ? str : fallback;
+  };
+
   return {
-    id: String(rawData.id || 'unknown'),
-    name: String(rawData.name || 'Unknown Server'),
-    hostname: String(rawData.hostname || rawData.name || 'unknown'),
+    id: toSafeString(rawData.id, 'unknown'),
+    name: toSafeString(rawData.name, 'Unknown Server'),
+    hostname: toSafeString(rawData.hostname || rawData.name, 'unknown'),
     status: safeServerStatus(rawData.status),
     environment: safeServerEnvironment(rawData.environment || rawData.env),
     role: safeServerRole(rawData.role || rawData.type),
-    responseTime: safeResponseTime(rawData.responseTime || rawData.response_time),
+    responseTime: safeResponseTime(
+      rawData.responseTime || rawData.response_time
+    ),
     connections: safeConnections(rawData.connections),
-    ip: rawData.ip ? String(rawData.ip) : undefined,
-    os: rawData.os ? String(rawData.os) : undefined,
+    ip: rawData.ip ? toSafeString(rawData.ip, '') : undefined,
+    os: rawData.os ? toSafeString(rawData.os, '') : undefined,
     cpu: safeMetricValue(rawData.cpu || rawData.cpu_usage, 0),
     memory: safeMetricValue(rawData.memory || rawData.memory_usage, 0),
     disk: safeMetricValue(rawData.disk || rawData.disk_usage, 0),
@@ -260,26 +305,34 @@ export function normalizeRawServerData(rawData: Record<string, unknown>): {
  * 🛡️ 배치 정규화
  * 서버 데이터 배열을 일괄 정규화
  */
-export function normalizeServerDataBatch(rawDataArray: unknown[]): ReturnType<typeof normalizeRawServerData>[] {
+export function normalizeServerDataBatch(
+  rawDataArray: unknown[]
+): ReturnType<typeof normalizeRawServerData>[] {
   if (!Array.isArray(rawDataArray)) {
-    console.warn('[normalizeServerDataBatch] Input is not an array, returning empty array');
+    console.warn(
+      '[normalizeServerDataBatch] Input is not an array, returning empty array'
+    );
     return [];
   }
-  
+
   return rawDataArray
-    .filter((item): item is Record<string, unknown> => 
-      typeof item === 'object' && item !== null
+    .filter(
+      (item): item is Record<string, unknown> =>
+        typeof item === 'object' && item !== null
     )
-    .map(rawData => {
+    .map((rawData) => {
       try {
         return normalizeRawServerData(rawData);
       } catch (error) {
-        console.error('[normalizeServerDataBatch] Failed to normalize server data:', error);
+        console.error(
+          '[normalizeServerDataBatch] Failed to normalize server data:',
+          error
+        );
         // 기본 서버 데이터 반환
         return normalizeRawServerData({
           id: 'error-server',
           name: 'Error Server',
-          status: 'offline'
+          status: 'offline',
         });
       }
     });
@@ -290,11 +343,11 @@ export const TypeConverterTests = {
   testServerStatus: () => {
     console.log('Testing ServerStatus conversions:');
     console.log('  "online" →', safeServerStatus('online'));
-    console.log('  "healthy" →', safeServerStatus('healthy'));  
+    console.log('  "healthy" →', safeServerStatus('healthy'));
     console.log('  "invalid" →', safeServerStatus('invalid'));
     console.log('  123 →', safeServerStatus(123));
   },
-  
+
   testServerRole: () => {
     console.log('Testing ServerRole conversions:');
     console.log('  "web" →', safeServerRole('web'));
@@ -302,7 +355,7 @@ export const TypeConverterTests = {
     console.log('  "postgres" →', safeServerRole('postgres'));
     console.log('  "invalid" →', safeServerRole('invalid'));
   },
-  
+
   testNormalization: () => {
     const testData = {
       id: 'test-01',
@@ -311,8 +364,8 @@ export const TypeConverterTests = {
       role: 'webserver',
       cpu: '75.5',
       memory: 80,
-      responseTime: '125.6'
+      responseTime: '125.6',
     };
     console.log('Testing normalization:', normalizeRawServerData(testData));
-  }
+  },
 };

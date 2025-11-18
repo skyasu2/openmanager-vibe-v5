@@ -80,7 +80,7 @@ const safeStringify = (obj: unknown, maxDepth = 3): string => {
   try {
     return JSON.stringify(obj, replacer, 2);
   } catch (error) {
-    return `[Stringify Error: ${error instanceof Error ? error.message : 'Unknown'}]`;
+    return `[Stringify Error: ${String(error)}]`;
   }
 };
 
@@ -104,7 +104,19 @@ const formatMessage = (
   }
 
   // 기본 타입인 경우 그대로 출력
-  return `${prefix} ${message} ${data}`;
+  if (
+    typeof data === 'string' ||
+    typeof data === 'number' ||
+    typeof data === 'boolean'
+  ) {
+    return `${prefix} ${message} ${String(data)}`;
+  }
+
+  try {
+    return `${prefix} ${message} ${JSON.stringify(data)}`;
+  } catch {
+    return `${prefix} ${message} [unserializable]`;
+  }
 };
 
 // 향상된 로깅 클래스

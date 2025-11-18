@@ -68,7 +68,7 @@ export class AISecurityService {
 
     try {
       // 프롬프트 검증
-      const sanitizationResult = await sanitizePrompt(request.query);
+      const sanitizationResult = sanitizePrompt(request.query);
 
       if (sanitizationResult.blocked) {
         this.metrics.promptsBlocked++;
@@ -119,7 +119,7 @@ export class AISecurityService {
     }
 
     try {
-      const filteredResult = await filterAIResponse(response.response);
+      const filteredResult = filterAIResponse(response.response);
 
       if (filteredResult.filtered) {
         this.metrics.responsesFiltered++;

@@ -8,115 +8,113 @@
  */
 
 /**
- * @namespace AIFriendlyTestTypes
  * @description Type definitions for AI-friendly testing patterns
  */
-export namespace AIFriendlyTestTypes {
-  /**
-   * @interface TestMetadata
-   * @description Structured metadata for AI parsing
-   */
-  export interface TestMetadata {
-    /** @description Unique identifier for this test */
-    testId: string;
 
-    /** @description Human-readable test purpose */
-    purpose: string;
+/**
+ * @interface TestMetadata
+ * @description Structured metadata for AI parsing
+ */
+export interface TestMetadata {
+  /** @description Unique identifier for this test */
+  testId: string;
 
-    /** @description Test complexity level (1-5) */
-    complexity: 1 | 2 | 3 | 4 | 5;
+  /** @description Human-readable test purpose */
+  purpose: string;
 
-    /** @description Test categories for AI classification */
-    categories: TestCategory[];
+  /** @description Test complexity level (1-5) */
+  complexity: 1 | 2 | 3 | 4 | 5;
 
-    /** @description Expected execution time in milliseconds */
-    expectedDuration: number;
+  /** @description Test categories for AI classification */
+  categories: TestCategory[];
 
-    /** @description Dependencies this test requires */
-    dependencies: string[];
+  /** @description Expected execution time in milliseconds */
+  expectedDuration: number;
 
-    /** @description What this test validates */
-    validates: string[];
+  /** @description Dependencies this test requires */
+  dependencies: string[];
 
-    /** @description Test priority level */
-    priority: 'critical' | 'high' | 'medium' | 'low';
+  /** @description What this test validates */
+  validates: string[];
 
-    /** @description Related components or features */
-    relatedFeatures: string[];
+  /** @description Test priority level */
+  priority: 'critical' | 'high' | 'medium' | 'low';
 
-    /** @description AI context hints */
-    aiContext: {
-      intent: string;
-      expectedBehavior: string;
-      errorScenarios: string[];
-      successCriteria: string[];
-    };
-  }
+  /** @description Related components or features */
+  relatedFeatures: string[];
 
-  /**
-   * @type TestCategory
-   * @description Predefined categories for AI classification
-   */
-  export type TestCategory =
-    | 'unit-test'
-    | 'integration-test'
-    | 'e2e-test'
-    | 'performance-test'
-    | 'security-test'
-    | 'ui-component'
-    | 'api-endpoint'
-    | 'data-validation'
-    | 'error-handling'
-    | 'accessibility'
-    | 'user-interaction'
-    | 'business-logic'
-    | 'edge-cases';
+  /** @description AI context hints */
+  aiContext: {
+    intent: string;
+    expectedBehavior: string;
+    errorScenarios: string[];
+    successCriteria: string[];
+  };
+}
 
-  /**
-   * @interface TestScenario
-   * @description Structured test scenario for AI understanding
-   */
-  export interface TestScenario {
-    /** @description Scenario name following consistent pattern */
-    name: string;
+/**
+ * @type TestCategory
+ * @description Predefined categories for AI classification
+ */
+export type TestCategory =
+  | 'unit-test'
+  | 'integration-test'
+  | 'e2e-test'
+  | 'performance-test'
+  | 'security-test'
+  | 'ui-component'
+  | 'api-endpoint'
+  | 'data-validation'
+  | 'error-handling'
+  | 'accessibility'
+  | 'user-interaction'
+  | 'business-logic'
+  | 'edge-cases';
 
-    /** @description What this scenario tests */
-    description: string;
+/**
+ * @interface TestScenario
+ * @description Structured test scenario for AI understanding
+ */
+export interface TestScenario {
+  /** @description Scenario name following consistent pattern */
+  name: string;
 
-    /** @description Initial state or setup */
-    given: string;
+  /** @description What this scenario tests */
+  description: string;
 
-    /** @description Action being tested */
-    when: string;
+  /** @description Initial state or setup */
+  given: string;
 
-    /** @description Expected outcome */
-    then: string;
+  /** @description Action being tested */
+  when: string;
 
-    /** @description Additional assertions */
-    and?: string[];
-  }
+  /** @description Expected outcome */
+  then: string;
 
-  /**
-   * @interface MockDataTemplate
-   * @description Standardized mock data structure
-   */
-  export interface MockDataTemplate {
-    /** @description Mock data identifier */
-    id: string;
+  /** @description Additional assertions */
+  and?: string[];
+}
 
-    /** @description What this mock represents */
-    represents: string;
+/**
+ * @interface MockDataTemplate
+ * @description Standardized mock data structure
+ */
+export interface MockDataTemplate {
+  /** @description Mock data identifier */
+  id: string;
 
-    /** @description Mock data structure */
-    data: Record<string, unknown>;
+  /** @description What this mock represents */
+  represents: string;
 
-    /** @description Variations for different test scenarios */
-    variations: {
-      valid: Record<string, unknown>;
-      invalid: Record<string, unknown>;
-      edge: Record<string, unknown>;
-    };
-  }
+  /** @description Mock data structure */
+  data: Record<string, unknown>;
+
+  /** @description Variations for different test scenarios */
+  variations: {
+    valid: Record<string, unknown>;
+    invalid: Record<string, unknown>;
+    edge: Record<string, unknown>;
+  };
 }
 
 /**
@@ -124,9 +122,9 @@ export namespace AIFriendlyTestTypes {
  * @description Base template class for creating AI-friendly tests
  */
 export class AIFriendlyTestTemplate {
-  private metadata: AIFriendlyTestTypes.TestMetadata;
+  private metadata: TestMetadata;
 
-  constructor(metadata: AIFriendlyTestTypes.TestMetadata) {
+  constructor(metadata: TestMetadata) {
     this.metadata = metadata;
   }
 
@@ -163,9 +161,11 @@ export class AIFriendlyTestTemplate {
    * @param {AIFriendlyTestTypes.TestScenario[]} scenarios - Test scenarios
    * @returns {string} Formatted test suite code
    */
-  public createTestSuite(scenarios: AIFriendlyTestTypes.TestScenario[]): string {
+  public createTestSuite(scenarios: TestScenario[]): string {
     const header = this.getTestHeader();
-    const suiteContent = scenarios.map(scenario => this.formatScenario(scenario)).join('\n\n');
+    const suiteContent = scenarios
+      .map((scenario) => this.formatScenario(scenario))
+      .join('\n\n');
 
     return `${header}
 describe('${this.metadata.testId}: ${this.metadata.purpose}', () => {
@@ -180,7 +180,7 @@ ${suiteContent}
    * @returns {string} Formatted scenario code
    * @private
    */
-  private formatScenario(scenario: AIFriendlyTestTypes.TestScenario): string {
+  private formatScenario(scenario: TestScenario): string {
     return `  /**
    * @scenario ${scenario.name}
    * @given ${scenario.given}
@@ -201,78 +201,77 @@ ${suiteContent}
 }
 
 /**
- * @namespace AIFriendlyTestHelpers
  * @description Helper functions for AI-friendly testing
  */
-export namespace AIFriendlyTestHelpers {
-  /**
-   * @function createMockData
-   * @description Creates consistent mock data following AI-friendly patterns
-   * @param {string} type - Type of mock data to create
-   * @param {Partial<AIFriendlyTestTypes.MockDataTemplate>} overrides - Custom overrides
-   * @returns {AIFriendlyTestTypes.MockDataTemplate} Structured mock data
-   */
-  export function createMockData(
-    type: string,
-    overrides: Partial<AIFriendlyTestTypes.MockDataTemplate> = {}
-  ): AIFriendlyTestTypes.MockDataTemplate {
-    return {
-      id: `mock-${type}-${Date.now()}`,
-      represents: `Mock data for ${type}`,
-      data: {},
-      variations: {
-        valid: {},
-        invalid: {},
-        edge: {}
-      },
-      ...overrides
-    };
-  }
 
-  /**
-   * @function validateTestStructure
-   * @description Validates test structure for AI compatibility
-   * @param {any} testStructure - Test structure to validate
-   * @returns {boolean} Whether structure is AI-friendly
-   */
-  export function validateTestStructure(testStructure: unknown): boolean {
-    // Basic validation for AI-friendly structure
-    const required = ['describe', 'it', 'expect'];
-    return required.every(key =>
-      typeof testStructure[key] === 'function' ||
-      testStructure.toString().includes(key)
-    );
-  }
+/**
+ * @function createMockData
+ * @description Creates consistent mock data following AI-friendly patterns
+ * @param {string} type - Type of mock data to create
+ * @param {Partial<MockDataTemplate>} overrides - Custom overrides
+ * @returns {MockDataTemplate} Structured mock data
+ */
+export function createMockData(
+  type: string,
+  overrides: Partial<MockDataTemplate> = {}
+): MockDataTemplate {
+  return {
+    id: `mock-${type}-${Date.now()}`,
+    represents: `Mock data for ${type}`,
+    data: {},
+    variations: {
+      valid: {},
+      invalid: {},
+      edge: {},
+    },
+    ...overrides,
+  };
+}
 
-  /**
-   * @function generateTestMetadata
-   * @description Auto-generates test metadata for AI consumption
-   * @param {string} componentName - Name of component being tested
-   * @param {string} testType - Type of test (unit, integration, e2e)
-   * @returns {AIFriendlyTestTypes.TestMetadata} Generated metadata
-   */
-  export function generateTestMetadata(
-    componentName: string,
-    testType: string
-  ): AIFriendlyTestTypes.TestMetadata {
-    return {
-      testId: `${testType}-${componentName.toLowerCase()}-${Date.now()}`,
-      purpose: `${testType} tests for ${componentName}`,
-      complexity: 2,
-      categories: [testType as AIFriendlyTestTypes.TestCategory],
-      expectedDuration: 100,
-      dependencies: ['vitest', '@testing-library/react'],
-      validates: [`${componentName} functionality`],
-      priority: 'medium',
-      relatedFeatures: [componentName],
-      aiContext: {
-        intent: `Validate ${componentName} behavior`,
-        expectedBehavior: `Component should work as designed`,
-        errorScenarios: ['Invalid props', 'Missing dependencies'],
-        successCriteria: ['Renders correctly', 'Handles interactions']
-      }
-    };
-  }
+/**
+ * @function validateTestStructure
+ * @description Validates test structure for AI compatibility
+ * @param {any} testStructure - Test structure to validate
+ * @returns {boolean} Whether structure is AI-friendly
+ */
+export function validateTestStructure(testStructure: unknown): boolean {
+  // Basic validation for AI-friendly structure
+  const required = ['describe', 'it', 'expect'];
+  return required.every(
+    (key) =>
+      typeof (testStructure as Record<string, unknown>)[key] === 'function' ||
+      false
+  );
+}
+
+/**
+ * @function generateTestMetadata
+ * @description Auto-generates test metadata for AI consumption
+ * @param {string} componentName - Name of component being tested
+ * @param {string} testType - Type of test (unit, integration, e2e)
+ * @returns {TestMetadata} Generated metadata
+ */
+export function generateTestMetadata(
+  componentName: string,
+  testType: string
+): TestMetadata {
+  return {
+    testId: `${testType}-${componentName.toLowerCase()}-${Date.now()}`,
+    purpose: `${testType} tests for ${componentName}`,
+    complexity: 2,
+    categories: [testType as TestCategory],
+    expectedDuration: 100,
+    dependencies: ['vitest', '@testing-library/react'],
+    validates: [`${componentName} functionality`],
+    priority: 'medium',
+    relatedFeatures: [componentName],
+    aiContext: {
+      intent: `Validate ${componentName} behavior`,
+      expectedBehavior: `Component should work as designed`,
+      errorScenarios: ['Invalid props', 'Missing dependencies'],
+      successCriteria: ['Renders correctly', 'Handles interactions'],
+    },
+  };
 }
 
 /**
@@ -289,7 +288,7 @@ export const AI_FRIENDLY_TEST_PATTERNS = {
     testSuites: /^(Unit|Integration|E2E|Performance)Test_.*$/,
     testCases: /^should_.*_when_.*$/,
     mockData: /^mock[A-Z][a-zA-Z]*Data$/,
-    assertions: /^(expect|assert)[A-Z][a-zA-Z]*$/
+    assertions: /^(expect|assert)[A-Z][a-zA-Z]*$/,
   },
 
   /**
@@ -326,8 +325,8 @@ export const AI_FRIENDLY_TEST_PATTERNS = {
       describe('AI-Friendly Test Suite', () => {
         // AI can understand this structure
       });
-    `
-  }
+    `,
+  },
 } as const;
 
 /**

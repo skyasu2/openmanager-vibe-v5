@@ -1,3 +1,5 @@
+'use client';
+
 import { type FC } from 'react';
 /**
  * 🌐 Enhanced Server Modal Network Tab
@@ -9,8 +11,6 @@ import { type FC } from 'react';
  * - SVG-based traffic flow charts with gradients
  * - Server connection details and specifications
  */
-'use client';
-
 import {
   ServerData,
   RealtimeData,
@@ -80,10 +80,7 @@ const getNetworkStatusInfo = (status?: NetworkStatus) => {
  * - 트래픽 흐름 SVG 차트 (인바운드/아웃바운드)
  * - 네트워크 연결 정보 및 서버 상세 사양
  */
-export const NetworkTab: FC<NetworkTabProps> = ({
-  server,
-  realtimeData,
-}) => {
+export const NetworkTab: FC<NetworkTabProps> = ({ server, realtimeData }) => {
   const networkStatusInfo = getNetworkStatusInfo(server.networkStatus);
   const latestNetwork = realtimeData.network[
     realtimeData.network.length - 1
@@ -94,8 +91,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({
   return (
     <div className="space-y-6">
       {/* 헤더 섹션 */}
-      <div
-      >
+      <div>
         <div className="mb-6 flex items-center justify-between">
           <h3 className="bg-gradient-to-r from-emerald-600 to-teal-700 bg-clip-text text-2xl font-bold text-transparent">
             🌐 네트워크 실시간 모니터링
@@ -110,13 +106,9 @@ export const NetworkTab: FC<NetworkTabProps> = ({
       </div>
 
       {/* 네트워크 상태 카드들 */}
-      <div
-        className="grid grid-cols-1 gap-6 md:grid-cols-3"
-      >
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {/* 네트워크 상태 카드 */}
-        <div
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-6 shadow-xl"
-        >
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-6 shadow-xl">
           <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
           <div className="relative z-10">
             <div className="mb-4 flex items-center justify-between">
@@ -141,9 +133,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({
         </div>
 
         {/* 실시간 트래픽 카드 */}
-        <div
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 p-6 shadow-xl"
-        >
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 p-6 shadow-xl">
           <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
           <div className="relative z-10">
             <div className="mb-4 flex items-center justify-between">
@@ -154,9 +144,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({
               <div className="rounded-lg bg-white/20 p-3 backdrop-blur-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-white/80">⬇️ 인바운드</span>
-                  <div
-                    className="text-xl font-bold text-green-300"
-                  >
+                  <div className="text-xl font-bold text-green-300">
                     {latestNetwork.in.toFixed(1)} MB/s
                   </div>
                 </div>
@@ -164,9 +152,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({
               <div className="rounded-lg bg-white/20 p-3 backdrop-blur-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-white/80">⬆️ 아웃바운드</span>
-                  <div
-                    className="text-xl font-bold text-cyan-300"
-                  >
+                  <div className="text-xl font-bold text-cyan-300">
                     {latestNetwork.out.toFixed(1)} MB/s
                   </div>
                 </div>
@@ -176,18 +162,14 @@ export const NetworkTab: FC<NetworkTabProps> = ({
         </div>
 
         {/* 지연시간 카드 */}
-        <div
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 p-6 shadow-xl"
-        >
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 p-6 shadow-xl">
           <div className="absolute inset-0 bg-white/10 backdrop-blur-sm" />
           <div className="relative z-10">
             <div className="mb-4 flex items-center justify-between">
               <h4 className="text-lg font-bold text-white">응답 시간</h4>
               <span className="text-2xl">⚡</span>
             </div>
-            <div
-              className="mb-2 text-4xl font-bold text-white"
-            >
+            <div className="mb-2 text-4xl font-bold text-white">
               {latestLatency.toFixed(1)} ms
             </div>
             <div className="rounded-lg bg-white/20 p-3 backdrop-blur-sm">
@@ -201,9 +183,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({
       </div>
 
       {/* 네트워크 트래픽 차트 */}
-      <div
-        className="grid grid-cols-1 gap-6 md:grid-cols-2"
-      >
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* 트래픽 흐름 차트 */}
         <div className="rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 p-6 shadow-lg transition-shadow hover:shadow-xl">
           <div className="mb-4 flex items-center justify-between">
@@ -347,9 +327,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({
       </div>
 
       {/* 네트워크 연결 정보 */}
-      <div
-        className="rounded-2xl bg-gradient-to-br from-slate-50 to-gray-100 p-6 shadow-xl transition-shadow hover:shadow-2xl"
-      >
+      <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-gray-100 p-6 shadow-xl transition-shadow hover:shadow-2xl">
         <div className="mb-6 flex items-center justify-between">
           <h4 className="bg-gradient-to-r from-slate-700 to-gray-900 bg-clip-text text-xl font-bold text-transparent">
             🔗 네트워크 연결 상세 정보
@@ -362,9 +340,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* 왼쪽 컬럼 */}
           <div className="space-y-4">
-            <div
-              className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md"
-            >
+            <div className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md">
               <span className="flex items-center gap-2 text-sm text-gray-600">
                 <span>🌐</span> IP 주소
               </span>
@@ -372,9 +348,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({
                 {server.ip || '192.168.1.100'}
               </span>
             </div>
-            <div
-              className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md"
-            >
+            <div className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md">
               <span className="flex items-center gap-2 text-sm text-gray-600">
                 <span>💻</span> 호스트명
               </span>
@@ -382,9 +356,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({
                 {server.hostname}
               </span>
             </div>
-            <div
-              className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md"
-            >
+            <div className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md">
               <span className="flex items-center gap-2 text-sm text-gray-600">
                 <span>📍</span> 위치
               </span>
@@ -396,9 +368,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({
 
           {/* 오른쪽 컬럼 */}
           <div className="space-y-4">
-            <div
-              className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md"
-            >
+            <div className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md">
               <span className="flex items-center gap-2 text-sm text-gray-600">
                 <span>☁️</span> 프로바이더
               </span>
@@ -406,9 +376,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({
                 {server.provider}
               </span>
             </div>
-            <div
-              className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md"
-            >
+            <div className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md">
               <span className="flex items-center gap-2 text-sm text-gray-600">
                 <span>🔧</span> 환경
               </span>
@@ -416,9 +384,7 @@ export const NetworkTab: FC<NetworkTabProps> = ({
                 {server.environment}
               </span>
             </div>
-            <div
-              className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md"
-            >
+            <div className="flex items-center justify-between rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md">
               <span className="flex items-center gap-2 text-sm text-gray-600">
                 <span>🖥️</span> 서버 타입
               </span>

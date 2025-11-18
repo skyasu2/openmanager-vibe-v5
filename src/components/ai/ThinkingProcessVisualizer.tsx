@@ -51,9 +51,11 @@ const stepStatusConfig: Record<
   },
 };
 
-export const ThinkingProcessVisualizer: FC<
-  ThinkingProcessVisualizerProps
-> = ({ steps, isActive = false, className = '' }: ThinkingProcessVisualizerProps) => {
+export const ThinkingProcessVisualizer: FC<ThinkingProcessVisualizerProps> = ({
+  steps,
+  isActive = false,
+  className = '',
+}: ThinkingProcessVisualizerProps) => {
   const [visibleSteps, setVisibleSteps] = useState<AIThinkingStep[]>([]);
 
   useEffect(() => {
@@ -127,15 +129,15 @@ export const ThinkingProcessVisualizer: FC<
                     </div>
 
                     {/* 진행률 표시 */}
-                    {step.progress && step.progress > 0 && step.progress < 100 && (
-                      <div className="mt-2">
-                        <div className="h-1 w-full rounded-full bg-gray-200">
-                          <div
-                            className="h-1 rounded-full bg-blue-500"
-                          />
+                    {step.progress &&
+                      step.progress > 0 &&
+                      step.progress < 100 && (
+                        <div className="mt-2">
+                          <div className="h-1 w-full rounded-full bg-gray-200">
+                            <div className="h-1 rounded-full bg-blue-500" />
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     {/* 소요 시간 */}
                     {step.duration && (
@@ -170,7 +172,13 @@ export const ThinkingProcessVisualizer: FC<
                           {Object.entries(step.metadata).map(([key, value]) => (
                             <div key={key} className="flex justify-between">
                               <span className="font-medium">{key}:</span>
-                              <span>{String(value)}</span>
+                              <span>
+                                {typeof value === 'string' ||
+                                typeof value === 'number' ||
+                                typeof value === 'boolean'
+                                  ? String(value)
+                                  : JSON.stringify(value)}
+                              </span>
                             </div>
                           ))}
                         </div>
@@ -186,16 +194,12 @@ export const ThinkingProcessVisualizer: FC<
 
       {/* 활성 상태 인디케이터 */}
       {isActive && (
-        <div
-          className="flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 p-3"
-        >
+        <div className="flex items-center justify-center rounded-lg border border-blue-200 bg-blue-50 p-3">
           <Zap className="mr-2 h-4 w-4 text-blue-500" />
           <span className="text-sm font-medium text-blue-700">
             AI가 사고 중입니다...
           </span>
-          <div
-            className="ml-2"
-          >
+          <div className="ml-2">
             <div className="h-2 w-2 rounded-full bg-blue-500" />
           </div>
         </div>

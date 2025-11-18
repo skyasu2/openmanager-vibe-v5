@@ -21,7 +21,9 @@ import {
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 
 // 🛡️ Codex 제안: 타입 가드 함수 (프로덕션 안정성 강화)
-const isValidCard = (card: unknown): card is NonNullable<FeatureCardModalProps['selectedCard']> => {
+const isValidCard = (
+  card: unknown
+): card is NonNullable<FeatureCardModalProps['selectedCard']> => {
   return (
     typeof card === 'object' &&
     card !== null &&
@@ -51,7 +53,9 @@ export default function FeatureCardModal({
   const [isHistoryView, setIsHistoryView] = React.useState(false);
 
   // AI 상태 확인 (AI 제한 처리용)
-  const aiAgentEnabled = useUnifiedAdminStore(state => state.aiAgent.isEnabled);
+  const aiAgentEnabled = useUnifiedAdminStore(
+    (state) => state.aiAgent.isEnabled
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -75,7 +79,7 @@ export default function FeatureCardModal({
         gradient: 'from-blue-500 to-purple-600',
         detailedContent: { overview: '', features: [], technologies: [] },
         id: null,
-        requiresAI: false
+        requiresAI: false,
       };
     }
 
@@ -83,9 +87,13 @@ export default function FeatureCardModal({
       title: sanitizeText(selectedCard.title),
       icon: selectedCard.icon || Bot,
       gradient: selectedCard.gradient || 'from-blue-500 to-purple-600',
-      detailedContent: selectedCard.detailedContent || { overview: '', features: [], technologies: [] },
+      detailedContent: selectedCard.detailedContent || {
+        overview: '',
+        features: [],
+        technologies: [],
+      },
       id: selectedCard.id,
-      requiresAI: selectedCard.requiresAI || false
+      requiresAI: selectedCard.requiresAI || false,
     };
   }, [selectedCard?.id]); // 🎯 Gemini 제안: ID만 의존성으로 하여 불필요한 리렌더링 방지
 
@@ -103,98 +111,105 @@ export default function FeatureCardModal({
   };
 
   // 기술 카드 컴포넌트 (과거 구현 참조)
-  const TechCard = React.memo(({ tech, index }: { tech: TechItem; index: number }) => {
-    const importanceStyle = getImportanceStyle(tech.importance);
-    const categoryStyle = getCategoryStyle(tech.category);
+  const TechCard = React.memo(
+    ({ tech, index }: { tech: TechItem; index: number }) => {
+      const importanceStyle = getImportanceStyle(tech.importance);
+      const categoryStyle = getCategoryStyle(tech.category);
 
-    return (
-      <div
-        className={`rounded-lg border p-4 ${importanceStyle.bg} transition-all duration-300 hover:scale-105`}
-      >
-        <div className="mb-3 flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">{tech.icon}</span>
-            <div>
-              <h4 className="text-sm font-semibold text-white">{sanitizeText(tech.name)}</h4>
-              {tech.version && (
-                <span className="text-xs text-gray-400">v{sanitizeText(tech.version)}</span>
-              )}
+      return (
+        <div
+          className={`rounded-lg border p-4 ${importanceStyle.bg} transition-all duration-300 hover:scale-105`}
+        >
+          <div className="mb-3 flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">{tech.icon}</span>
+              <div>
+                <h4 className="text-sm font-semibold text-white">
+                  {sanitizeText(tech.name)}
+                </h4>
+                {tech.version && (
+                  <span className="text-xs text-gray-400">
+                    v{sanitizeText(tech.version)}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span
+                className={`rounded-full px-2 py-1 text-xs font-medium ${importanceStyle.badge}`}
+              >
+                {importanceStyle.label}
+              </span>
+              <span
+                className={`rounded-full px-2 py-1 text-xs ${categoryStyle.bg} ${categoryStyle.color}`}
+              >
+                {tech.category}
+              </span>
             </div>
           </div>
-          <div className="flex flex-col gap-1">
-            <span
-              className={`rounded-full px-2 py-1 text-xs font-medium ${importanceStyle.badge}`}
-            >
-              {importanceStyle.label}
-            </span>
-            <span
-              className={`rounded-full px-2 py-1 text-xs ${categoryStyle.bg} ${categoryStyle.color}`}
-            >
-              {tech.category}
-            </span>
+
+          <p className="mb-2 text-xs leading-relaxed text-gray-300">
+            {sanitizeText(tech.description)}
+          </p>
+
+          <div className="mb-3 rounded bg-gray-800/50 p-2 text-xs text-gray-400">
+            <strong className="text-gray-300">구현:</strong>{' '}
+            {sanitizeText(tech.implementation)}
+          </div>
+
+          {/* 제품 타입 및 AI 엔진 타입 배지 */}
+          <div className="mb-2 flex flex-wrap gap-2">
+            {tech.type && (
+              <span
+                className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                  tech.type === 'custom'
+                    ? 'border border-blue-500/30 bg-blue-500/20 text-blue-300'
+                    : tech.type === 'opensource'
+                      ? 'border border-green-500/30 bg-green-500/20 text-green-300'
+                      : 'border border-purple-500/30 bg-purple-500/20 text-purple-300'
+                }`}
+              >
+                {tech.type === 'custom'
+                  ? '🏭 커스텀'
+                  : tech.type === 'opensource'
+                    ? '🔓 오픈소스'
+                    : '📦 상용'}
+              </span>
+            )}
+            {tech.aiType && (
+              <span
+                className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                  tech.aiType === 'google-api'
+                    ? 'border border-green-500/30 bg-green-500/20 text-green-300'
+                    : 'border border-yellow-500/30 bg-yellow-500/20 text-yellow-300'
+                }`}
+              >
+                {tech.aiType === 'google-api' ? '🌐 Google AI' : '💻 로컬 AI'}
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-1">
+            {tech.tags?.map((tag, tagIndex) => (
+              <span
+                key={tagIndex}
+                className="rounded bg-gray-700/50 px-2 py-1 text-xs text-gray-300"
+              >
+                {sanitizeText(tag)}
+              </span>
+            )) || null}
           </div>
         </div>
-
-        <p className="mb-2 text-xs leading-relaxed text-gray-300">
-          {sanitizeText(tech.description)}
-        </p>
-
-        <div className="mb-3 rounded bg-gray-800/50 p-2 text-xs text-gray-400">
-          <strong className="text-gray-300">구현:</strong> {sanitizeText(tech.implementation)}
-        </div>
-
-        {/* 제품 타입 및 AI 엔진 타입 배지 */}
-        <div className="mb-2 flex flex-wrap gap-2">
-          {tech.type && (
-            <span
-              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                tech.type === 'custom'
-                  ? 'border border-blue-500/30 bg-blue-500/20 text-blue-300'
-                  : tech.type === 'opensource'
-                    ? 'border border-green-500/30 bg-green-500/20 text-green-300'
-                    : 'border border-purple-500/30 bg-purple-500/20 text-purple-300'
-              }`}
-            >
-              {tech.type === 'custom'
-                ? '🏭 커스텀'
-                : tech.type === 'opensource'
-                  ? '🔓 오픈소스'
-                  : '📦 상용'}
-            </span>
-          )}
-          {tech.aiType && (
-            <span
-              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                tech.aiType === 'google-api'
-                  ? 'border border-green-500/30 bg-green-500/20 text-green-300'
-                  : 'border border-yellow-500/30 bg-yellow-500/20 text-yellow-300'
-              }`}
-            >
-              {tech.aiType === 'google-api' ? '🌐 Google AI' : '💻 로컬 AI'}
-            </span>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-1">
-          {tech.tags?.map((tag, tagIndex) => (
-            <span
-              key={tagIndex}
-              className="rounded bg-gray-700/50 px-2 py-1 text-xs text-gray-300"
-            >
-              {sanitizeText(tag)}
-            </span>
-          )) || null}
-        </div>
-      </div>
-    );
-  });
+      );
+    }
+  );
 
   TechCard.displayName = 'TechCard';
 
   // 🎯 Qwen 제안: 메모리 효율성 개선 - 단일 순회로 모든 중요도별 분류 처리
   const categorizedTechData = React.useMemo(() => {
     const selectedCardId = cardData.id;
-    
+
     // 항상 동일한 구조 반환 (배열 + 메타데이터)
     const result = {
       allCards: [] as TechItem[],
@@ -205,30 +220,30 @@ export default function FeatureCardModal({
         critical: [] as TechItem[],
         high: [] as TechItem[],
         medium: [] as TechItem[],
-        low: [] as TechItem[]
-      }
+        low: [] as TechItem[],
+      },
     };
-    
+
     if (!selectedCardId) {
       return result; // 빈 구조체 반환
     }
-    
+
     const data = TECH_STACKS_DATA[selectedCardId] || null;
     if (!data) {
       return result; // 빈 구조체 반환
     }
-    
+
     // 바이브 코딩 카드 처리
     if (selectedCardId === 'cursor-ai' && 'current' in data) {
       const vibeData = data as VibeCodeData;
       result.isVibeCard = true;
       result.historyStages = vibeData.history || null;
-      
+
       if (isHistoryView && vibeData.history) {
         // 🎯 Qwen 제안: O(n²) → O(n) 최적화 - concat 체인 사용
         result.allCards = ([] as TechItem[]).concat(
           vibeData.history.stage1 || [],
-          vibeData.history.stage2 || [], 
+          vibeData.history.stage2 || [],
           vibeData.history.stage3 || []
         );
       } else {
@@ -238,26 +253,30 @@ export default function FeatureCardModal({
       // 일반 카드 처리
       result.allCards = Array.isArray(data) ? data : [];
     }
-    
+
     // 🎯 Qwen 제안: 단일 순회로 모든 중요도별 분류 처리 (O(n) 복잡도)
-    result.allCards.forEach(tech => {
+    result.allCards.forEach((tech) => {
       const importance = tech.importance;
       if (result.categorized[importance]) {
         result.categorized[importance].push(tech);
       }
     });
-    
+
     result.hasData = result.allCards.length > 0;
     return result;
   }, [cardData.id, isHistoryView]);
 
   // 기술 스택 배열 추출 (항상 배열)
   const techCards = categorizedTechData.allCards;
-  const { critical: criticalTech, high: highTech, medium: mediumTech, low: lowTech } = categorizedTechData.categorized;
+  const {
+    critical: criticalTech,
+    high: highTech,
+    medium: mediumTech,
+    low: lowTech,
+  } = categorizedTechData.categorized;
 
   // 바이브 히스토리 스테이지 추출
   const vibeHistoryStages = categorizedTechData.historyStages;
-
 
   // 🛡️ Codex 제안: 런타임 안전성 검증
   const renderModalSafely = () => {
@@ -266,7 +285,10 @@ export default function FeatureCardModal({
         return (
           <div className="p-6 text-center text-white">
             <p>모달을 불러올 수 없습니다.</p>
-            <button onClick={onClose} className="mt-4 px-4 py-2 bg-red-600 rounded">
+            <button
+              onClick={onClose}
+              className="mt-4 rounded bg-red-600 px-4 py-2"
+            >
               닫기
             </button>
           </div>
@@ -278,7 +300,10 @@ export default function FeatureCardModal({
       return (
         <div className="p-6 text-center text-white">
           <p>모달을 불러오는 중 오류가 발생했습니다.</p>
-          <button onClick={onClose} className="mt-4 px-4 py-2 bg-red-600 rounded">
+          <button
+            onClick={onClose}
+            className="mt-4 rounded bg-red-600 px-4 py-2"
+          >
             닫기
           </button>
         </div>
@@ -289,9 +314,7 @@ export default function FeatureCardModal({
   const mainContent = (
     <div className="p-6 text-white">
       {/* 헤더 섹션 */}
-      <div
-        className="mb-8 text-center"
-      >
+      <div className="mb-8 text-center">
         <div
           className={`mx-auto mb-4 h-16 w-16 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center`}
         >
@@ -307,10 +330,9 @@ export default function FeatureCardModal({
           )}
         </h3>
         <p className="mx-auto max-w-2xl text-sm text-gray-300">
-          {cardData.id === 'cursor-ai' && isHistoryView 
+          {cardData.id === 'cursor-ai' && isHistoryView
             ? '바이브 코딩의 3단계 발전 과정을 시간 순서대로 보여줍니다. 초기(ChatGPT 개별 페이지) → 중기(Cursor + Vercel + Supabase) → 후기(Claude Code + WSL + 멀티 AI CLI)로 진화한 개발 도구들의 역사를 확인할 수 있습니다.'
-            : sanitizeText(detailedContent.overview)
-          }
+            : sanitizeText(detailedContent.overview)}
         </p>
       </div>
 
@@ -327,7 +349,7 @@ export default function FeatureCardModal({
               <h4 className="mb-2 font-semibold text-orange-300">
                 🤖 AI 어시스턴트 모드 필요
               </h4>
-              <p className="text-sm text-orange-200/90 leading-relaxed">
+              <p className="text-sm leading-relaxed text-orange-200/90">
                 이 기능을 사용하려면 AI 어시스턴트 모드를 활성화해야 합니다.
                 메인 페이지로 돌아가서 AI 모드를 켜주세요.
               </p>
@@ -347,20 +369,25 @@ export default function FeatureCardModal({
           <div className="space-y-4">
             <div className="mb-6 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4">
               <h4 className="mb-2 flex items-center gap-2 text-xl font-bold text-emerald-300">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-sm font-bold text-emerald-300">1</div>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-sm font-bold text-emerald-300">
+                  1
+                </div>
                 초기 단계 (2025.05~06)
                 <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-sm text-emerald-300">
                   {vibeHistoryStages.stage1?.length || 0}개 도구
                 </span>
               </h4>
               <p className="text-sm text-emerald-200/80">
-                ChatGPT로 개별 페이지 생성 → GitHub 수동 업로드 → Netlify 배포 → 데모용 목업 수준
+                ChatGPT로 개별 페이지 생성 → GitHub 수동 업로드 → Netlify 배포 →
+                데모용 목업 수준
               </p>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {vibeHistoryStages.stage1?.map((tech: TechItem, index: number) => (
-                <TechCard key={tech.name} tech={tech} index={index} />
-              )) || null}
+              {vibeHistoryStages.stage1?.map(
+                (tech: TechItem, index: number) => (
+                  <TechCard key={tech.name} tech={tech} index={index} />
+                )
+              ) || null}
             </div>
           </div>
 
@@ -368,20 +395,25 @@ export default function FeatureCardModal({
           <div className="space-y-4">
             <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
               <h4 className="mb-2 flex items-center gap-2 text-xl font-bold text-amber-300">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/20 text-sm font-bold text-amber-300">2</div>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/20 text-sm font-bold text-amber-300">
+                  2
+                </div>
                 중기 단계 (2025.06~07)
                 <span className="rounded-full bg-amber-500/20 px-3 py-1 text-sm text-amber-300">
                   {vibeHistoryStages.stage2?.length || 0}개 도구
                 </span>
               </h4>
               <p className="text-sm text-amber-200/80">
-                Cursor 도입 → GitHub 연동 → Vercel 배포 → Supabase CRUD 웹앱 완성
+                Cursor 도입 → GitHub 연동 → Vercel 배포 → Supabase CRUD 웹앱
+                완성
               </p>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {vibeHistoryStages.stage2?.map((tech: TechItem, index: number) => (
-                <TechCard key={tech.name} tech={tech} index={index} />
-              )) || null}
+              {vibeHistoryStages.stage2?.map(
+                (tech: TechItem, index: number) => (
+                  <TechCard key={tech.name} tech={tech} index={index} />
+                )
+              ) || null}
             </div>
           </div>
 
@@ -389,20 +421,25 @@ export default function FeatureCardModal({
           <div className="space-y-4">
             <div className="mb-6 rounded-lg border border-purple-500/30 bg-purple-500/10 p-4">
               <h4 className="mb-2 flex items-center gap-2 text-xl font-bold text-purple-300">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-500/20 text-sm font-bold text-purple-300">3</div>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-500/20 text-sm font-bold text-purple-300">
+                  3
+                </div>
                 후기 단계 (2025.07~현재)
                 <span className="rounded-full bg-purple-500/20 px-3 py-1 text-sm text-purple-300">
                   {vibeHistoryStages.stage3?.length || 0}개 도구
                 </span>
               </h4>
               <p className="text-sm text-purple-200/80">
-                Claude Code 전환 → WSL 최적화 → 멀티 AI CLI 협업 → GCP Functions 활용
+                Claude Code 전환 → WSL 최적화 → 멀티 AI CLI 협업 → GCP Functions
+                활용
               </p>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {vibeHistoryStages.stage3?.map((tech: TechItem, index: number) => (
-                <TechCard key={tech.name} tech={tech} index={index} />
-              )) || null}
+              {vibeHistoryStages.stage3?.map(
+                (tech: TechItem, index: number) => (
+                  <TechCard key={tech.name} tech={tech} index={index} />
+                )
+              ) || null}
             </div>
           </div>
         </div>
@@ -487,78 +524,89 @@ export default function FeatureCardModal({
 
   // ✅ Portal 기반 모달 렌더링 (AI 교차검증 기반 개선)
   // 클라이언트 사이드에서만 Portal 렌더링하고, isVisible과 selectedCard로 가시성 제어
-  
+
   return createPortal(
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 transition-opacity duration-300 ${
-        isVisible && selectedCard ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      className={`fixed inset-0 z-50 flex items-center justify-center p-2 transition-opacity duration-300 sm:p-4 ${
+        isVisible && selectedCard
+          ? 'pointer-events-auto opacity-100'
+          : 'pointer-events-none opacity-0'
       }`}
-      onClick={onClose}
       data-modal-version="v4.0-ai-cross-verified"
       aria-hidden={!isVisible || !selectedCard}
+      role="presentation"
     >
       {/* 개선된 배경 블러 효과 */}
-      <div className="absolute inset-0 bg-black/85 backdrop-blur-sm" />
+      <button
+        type="button"
+        aria-label="모달 닫기"
+        className="absolute inset-0 bg-black/85 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
       {/* 모달 컨텐츠 - Hook 안정화를 위해 항상 렌더링 */}
       <div
         ref={modalRef}
-        className={`relative max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-2xl border border-gray-600/50 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl transform transition-transform duration-300 ${
+        className={`relative max-h-[85vh] w-full max-w-3xl transform overflow-hidden rounded-2xl border border-gray-600/50 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl transition-transform duration-300 ${
           !cardData.id ? 'hidden' : ''
         }`}
-        onClick={(e) => e.stopPropagation()}
         data-modal-content="portal-unified-v4-ai-cross-verified"
         style={{
           transform: isVisible && cardData.id ? 'scale(1)' : 'scale(0.95)',
         }}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
       >
         {/* Hook 안정화: 조건부 렌더링 제거, CSS로 가시성 제어 */}
         <>
-            <div
-              className={`absolute left-0 right-0 top-0 h-48 bg-gradient-to-b ${gradient} opacity-20 blur-3xl`}
-            ></div>
-            <div className="relative z-10 flex h-full flex-col">
-              <header className="flex flex-shrink-0 items-center justify-between border-b border-gray-700/50 p-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-800">
-                    <Icon
-                      className="h-5 w-5"
-                      style={{
-                        color: variant === 'home' ? 'white' : 'currentColor',
-                      }}
-                    />
-                  </div>
-                  <h2 className="text-lg font-semibold text-white">{title}</h2>
+          <div
+            className={`absolute left-0 right-0 top-0 h-48 bg-gradient-to-b ${gradient} opacity-20 blur-3xl`}
+          ></div>
+          <div className="relative z-10 flex h-full flex-col">
+            <header className="flex flex-shrink-0 items-center justify-between border-b border-gray-700/50 p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-800">
+                  <Icon
+                    className="h-5 w-5"
+                    style={{
+                      color: variant === 'home' ? 'white' : 'currentColor',
+                    }}
+                  />
                 </div>
-
-                <div className="flex items-center gap-2">
-                  {/* 바이브 코딩 카드 전용 히스토리 전환 버튼 */}
-                  {cardData.id === 'cursor-ai' && (
-                    <button
-                      onClick={() => setIsHistoryView(!isHistoryView)}
-                      className="rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:from-amber-500 hover:to-orange-500 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                      aria-label={isHistoryView ? "현재 도구 보기" : "히스토리 보기"}
-                    >
-                      {isHistoryView ? '🔄 현재 도구' : '📚 발전 히스토리'}
-                    </button>
-                  )}
-                  
-                  <button
-                    onClick={onClose}
-                    className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
-                    aria-label="Close modal"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-              </header>
-              <div
-                className="overflow-y-auto scroll-smooth"
-                style={{ maxHeight: 'calc(85vh - 80px)' }}
-              >
-                {renderModalSafely()}
+                <h2 className="text-lg font-semibold text-white">{title}</h2>
               </div>
+
+              <div className="flex items-center gap-2">
+                {/* 바이브 코딩 카드 전용 히스토리 전환 버튼 */}
+                {cardData.id === 'cursor-ai' && (
+                  <button
+                    onClick={() => setIsHistoryView(!isHistoryView)}
+                    className="rounded-lg bg-gradient-to-r from-amber-600 to-orange-600 px-3 py-1.5 text-sm font-medium text-white transition-all duration-200 hover:scale-105 hover:from-amber-500 hover:to-orange-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+                    aria-label={
+                      isHistoryView ? '현재 도구 보기' : '히스토리 보기'
+                    }
+                  >
+                    {isHistoryView ? '🔄 현재 도구' : '📚 발전 히스토리'}
+                  </button>
+                )}
+
+                <button
+                  onClick={onClose}
+                  className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-700 hover:text-white"
+                  aria-label="Close modal"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </header>
+            <div
+              className="overflow-y-auto scroll-smooth"
+              style={{ maxHeight: 'calc(85vh - 80px)' }}
+            >
+              {renderModalSafely()}
             </div>
+          </div>
         </>
       </div>
     </div>,

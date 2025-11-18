@@ -54,7 +54,7 @@ export function generateSessionId(prefix?: string): string {
     // Node.js 환경에서는 crypto 모듈 사용
     else if (typeof globalThis !== 'undefined' && 'crypto' in globalThis) {
       // Node.js 19+ has globalThis.crypto
-      (globalThis.crypto).getRandomValues?.(array);
+      globalThis.crypto.getRandomValues?.(array);
     }
     // 폴백: Math.random() (권장하지 않음)
     else {
@@ -335,7 +335,19 @@ export function isDevelopment(): boolean {
 export function groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
   return array.reduce(
     (result, item) => {
-      const group = String(item[key]);
+      const value = item[key];
+      const group =
+        typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean'
+          ? String(value)
+          : (() => {
+              try {
+                return JSON.stringify(value);
+              } catch {
+                return '[unserializable]';
+              }
+            })();
       if (!result[group]) result[group] = [];
       result[group].push(item);
       return result;

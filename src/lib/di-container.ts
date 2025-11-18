@@ -79,7 +79,8 @@ export class DIContainer {
     // 순환 의존성 감지
     if (this.resolutionStack.includes(token)) {
       throw new Error(
-        'Circular dependency detected: ' + (this.resolutionStack.join(' -> ') + ' -> ' + String(token))
+        'Circular dependency detected: ' +
+          (this.resolutionStack.join(' -> ') + ' -> ' + String(token))
       );
     }
 
@@ -93,13 +94,20 @@ export class DIContainer {
     try {
       switch (service.lifetime) {
         case 'singleton':
-          return this.resolveSingleton(service as ServiceDescriptor<T> | ServiceFactory<T>);
+          return this.resolveSingleton(
+            service as ServiceDescriptor<T> | ServiceFactory<T>
+          );
         case 'transient':
-          return this.resolveTransient(service as ServiceDescriptor<T> | ServiceFactory<T>);
+          return this.resolveTransient(
+            service as ServiceDescriptor<T> | ServiceFactory<T>
+          );
         case 'scoped':
-          return this.resolveScoped(service as ServiceDescriptor<T> | ServiceFactory<T>, scopeId || 'default');
+          return this.resolveScoped(
+            service as ServiceDescriptor<T> | ServiceFactory<T>,
+            scopeId || 'default'
+          );
         default:
-          throw new Error(`Unknown service lifetime: ${service.lifetime}`);
+          throw new Error('Unknown service lifetime');
       }
     } finally {
       this.resolutionStack.pop();
@@ -272,7 +280,9 @@ export function Injectable(
   token?: string | symbol,
   lifetime: ServiceLifetime = 'singleton'
 ) {
-  return function <T extends new (...args: unknown[]) => unknown>(constructor: T) {
+  return function <T extends new (...args: unknown[]) => unknown>(
+    constructor: T
+  ) {
     const serviceToken = token || constructor.name;
     registerService(serviceToken, constructor, lifetime);
     return constructor;

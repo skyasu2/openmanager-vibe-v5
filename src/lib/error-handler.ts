@@ -102,7 +102,16 @@ export function createSafeError(error: unknown): SafeError {
         message:
           typeof errorObj.message === 'string'
             ? errorObj.message || 'Object error without message'
-            : String(errorObj.message || 'Invalid message type'),
+            : (() => {
+                try {
+                  return JSON.stringify(
+                    errorObj.message ?? 'Invalid message type'
+                  );
+                } catch {
+                  const msg = errorObj.message;
+                  return typeof msg === 'string' ? msg : 'Invalid message type';
+                }
+              })(),
         stack: errorObj.stack as string | undefined,
         code: (errorObj.code || errorObj.name || 'ObjectError') as string,
         name: (errorObj.name || 'ObjectError') as string,
@@ -136,8 +145,22 @@ export function createSafeError(error: unknown): SafeError {
     return {
       message:
         typeof error === 'object' && error !== null && 'message' in error
-          ? String((error as Error).message || error)
-          : String(error),
+          ? (() => {
+              const msg = (error as { message: unknown }).message;
+              if (typeof msg === 'string') return msg;
+              try {
+                return JSON.stringify(msg ?? '');
+              } catch {
+                return typeof msg === 'string' ? msg : 'Unknown message';
+              }
+            })()
+          : (() => {
+              try {
+                return JSON.stringify(error);
+              } catch {
+                return typeof error === 'string' ? error : 'Unknown error';
+              }
+            })(),
       code: 'UNKNOWN_ERROR',
       name: 'UnknownError',
       originalError: error,

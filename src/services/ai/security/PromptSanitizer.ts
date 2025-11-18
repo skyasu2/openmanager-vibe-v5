@@ -282,8 +282,7 @@ export class PromptSanitizer {
     const threats: string[] = [];
 
     // 한글 유니코드 조작 패턴
-    const koreanUnicodePattern =
-      /[\uAC00-\uD7AF][\u0300-\u036F\u1AB0-\u1AFF\u1DC0-\u1DFF\u20D0-\u20FF]+/g;
+    const koreanUnicodePattern = /[\uAC00-\uD7AF][\p{M}]+/gu;
     if (koreanUnicodePattern.test(input)) {
       threats.push('korean_unicode_manipulation');
     }
@@ -348,6 +347,7 @@ export class PromptSanitizer {
       .split('')
       .filter((char) => {
         // 한글, 영문, 숫자는 허용
+
         if (/[ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9]/.test(char)) return true;
         // 허용된 특수문자 확인
         return this.ALLOWED_SPECIAL_CHARS.has(char);
@@ -396,7 +396,7 @@ export class PromptSanitizer {
       /(\b(union|select|insert|update|delete|drop|create|alter|exec|execute)\b)/gi,
       /(or\s+1\s*=\s*1|and\s+1\s*=\s*1)/gi,
       /(\|\||&&|\band\b|\bor\b)\s*\d+\s*[=<>]/gi,
-      /('|\").*(\1.*){2,}/gi, // Quote manipulation
+      /(['"]).*(\1.*){2,}/gi, // Quote manipulation
     ];
 
     return sqlPatterns.some((pattern) => pattern.test(input));
@@ -444,7 +444,7 @@ export class PromptSanitizer {
    */
   private hasSuspiciousEncoding(input: string): boolean {
     // Base64 패턴 (긴 것만 의심)
-    const base64Pattern = /[A-Za-z0-9+\/]{50,}={0,2}/g;
+    const base64Pattern = /[A-Za-z0-9+/]{50,}={0,2}/g;
 
     // URL 인코딩 패턴 (과도한 것)
     const urlEncodedPattern = /(%[0-9A-Fa-f]{2}){10,}/g;

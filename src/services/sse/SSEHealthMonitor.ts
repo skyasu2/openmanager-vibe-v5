@@ -115,12 +115,14 @@ export class SSEHealthMonitor {
     if (this.isMonitoring) return;
 
     this.isMonitoring = true;
-    this.monitoringInterval = setInterval(async () => {
-      try {
-        await this.performHealthCheck();
-      } catch (error) {
-        this.recordError(`모니터링 체크 실패: ${error}`);
-      }
+    this.monitoringInterval = setInterval(() => {
+      void (async () => {
+        try {
+          await this.performHealthCheck();
+        } catch (error) {
+          this.recordError(`모니터링 체크 실패: ${error}`);
+        }
+      })();
     }, this.config.checkInterval);
 
     console.log(

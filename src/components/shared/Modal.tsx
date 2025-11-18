@@ -11,22 +11,25 @@ interface ModalProps {
   children: ReactNode;
 }
 
-export const Modal: FC<ModalProps> = ({
-  isOpen,
-  onClose,
-  title,
-  children,
-}) => {
+export const Modal: FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   return (
     <Fragment>
       {isOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 backdrop-blur-sm"
-          onClick={onClose}
+          role="presentation"
         >
+          <button
+            type="button"
+            aria-label="모달 닫기"
+            className="absolute inset-0 h-full w-full cursor-pointer"
+            onClick={onClose}
+          />
           <div
             className="relative w-full max-w-2xl rounded-xl border border-slate-700 bg-slate-800 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            tabIndex={-1}
           >
             <div className="flex items-center justify-between border-b border-slate-700 p-4">
               <h3 className="text-lg font-semibold text-white">{title}</h3>

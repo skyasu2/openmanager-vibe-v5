@@ -166,12 +166,14 @@ export class CloudVersionManager {
 
     // 자동 동기화 설정
     if (this.config.autoSync && this.supabase) {
-      this.syncInterval = setInterval(async () => {
-        try {
-          await this.syncVersions();
-        } catch (error) {
-          console.error('❌ CloudVersionManager 자동 동기화 실패:', error);
-        }
+      this.syncInterval = setInterval(() => {
+        void (async () => {
+          try {
+            await this.syncVersions();
+          } catch (error) {
+            console.error('❌ CloudVersionManager 자동 동기화 실패:', error);
+          }
+        })();
       }, this.config.syncInterval);
 
       console.log('✅ CloudVersionManager 자동 동기화 시작');

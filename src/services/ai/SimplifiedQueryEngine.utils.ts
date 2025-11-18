@@ -32,7 +32,7 @@ import type {
  */
 export class SimplifiedQueryEngineUtils {
   private responseCache: Map<string, CacheEntry> = new Map();
-  
+
   // 📊 캐시 통계 추적
   private cacheStats = {
     hits: 0,
@@ -45,19 +45,16 @@ export class SimplifiedQueryEngineUtils {
   /**
    * 🔑 의미론적 캐시 키 생성 (히트율 30% → 60% 목표)
    */
-  generateCacheKey(
-    query: string,
-    context?: AIQueryContext
-  ): string {
+  generateCacheKey(query: string, context?: AIQueryContext): string {
     // 1. 기본 정규화
     let normalizedQuery = query.toLowerCase().trim();
-    
+
     // 2. 의미론적 정규화 - 유사한 질의를 같은 키로 매핑
     normalizedQuery = this.normalizeQuerySemantics(normalizedQuery);
-    
+
     // 3. 컨텍스트 기반 키 생성
     const contextKey = this.generateContextKey(context);
-    
+
     // 4. 캐시 키 생성 (의미론적 해시 포함)
     const semanticHash = this.generateSemanticHash(normalizedQuery);
     return createCacheKey('ai', `${semanticHash}:${contextKey}`);
@@ -74,7 +71,7 @@ export class SimplifiedQueryEngineUtils {
       ['시스템 상태', '상태'],
       ['현재 상태', '상태'],
       ['서버들의 상태', '상태'],
-      
+
       // 성능 관련
       ['cpu 사용률', 'cpu'],
       ['cpu 사용량', 'cpu'],
@@ -82,13 +79,13 @@ export class SimplifiedQueryEngineUtils {
       ['메모리 사용률', '메모리'],
       ['메모리 사용량', '메모리'],
       ['램 사용률', '메모리'],
-      
+
       // 문제 관련
       ['에러', '오류'],
       ['문제점', '문제'],
       ['장애', '문제'],
       ['이슈', '문제'],
-      
+
       // 명령어 관련
       ['명령어', '명령'],
       ['커맨드', '명령'],
@@ -97,22 +94,39 @@ export class SimplifiedQueryEngineUtils {
     ]);
 
     // 불용어 제거
-    const stopWords = ['은', '는', '이', '가', '을', '를', '에', '의', '로', '으로', '와', '과', '하는', '있는', '된', '되는'];
-    
+    const stopWords = [
+      '은',
+      '는',
+      '이',
+      '가',
+      '을',
+      '를',
+      '에',
+      '의',
+      '로',
+      '으로',
+      '와',
+      '과',
+      '하는',
+      '있는',
+      '된',
+      '되는',
+    ];
+
     let normalized = query;
-    
+
     // 동의어 치환
     for (const [original, replacement] of synonymMap) {
       const regex = new RegExp(original, 'gi');
       normalized = normalized.replace(regex, replacement);
     }
-    
+
     // 불용어 제거 (한국어)
     for (const stopWord of stopWords) {
       const regex = new RegExp(`\\b${stopWord}\\b`, 'g');
       normalized = normalized.replace(regex, '');
     }
-    
+
     // 중복 공백 제거 및 정리
     return normalized.replace(/\s+/g, ' ').trim();
   }
@@ -122,22 +136,32 @@ export class SimplifiedQueryEngineUtils {
    */
   private generateContextKey(context?: AIQueryContext): string {
     if (!context) return 'no-context';
-    
+
     const parts = [];
-    
+
     if (context.servers && context.servers.length > 0) {
       // 서버 수와 타입에 따른 키 생성
-      const serverTypes = [...new Set(context.servers.map(s => s.type))].sort();
+      const serverTypes = [
+        ...new Set(context.servers.map((s) => s.type)),
+      ].sort();
       parts.push(`servers-${context.servers.length}-${serverTypes.join(',')}`);
     }
-    
+
     // Optional context properties (타입 안전성을 위해 체크)
     if ('timeRange' in context && context.timeRange) {
-      parts.push('time-' + context.timeRange);
+      const timeRange =
+        typeof context.timeRange === 'string'
+          ? context.timeRange
+          : JSON.stringify(context.timeRange);
+      parts.push('time-' + timeRange);
     }
 
     if ('alertLevel' in context && context.alertLevel) {
-      parts.push('alert-' + context.alertLevel);
+      const alert =
+        typeof context.alertLevel === 'string'
+          ? context.alertLevel
+          : JSON.stringify(context.alertLevel);
+      parts.push('alert-' + alert);
     }
 
     return parts.length > 0 ? parts.join('|') : 'no-context';
@@ -148,18 +172,19 @@ export class SimplifiedQueryEngineUtils {
    */
   private generateSemanticHash(query: string): string {
     // 키워드 추출 및 정렬 (순서 독립적)
-    const keywords = query.split(' ')
-      .filter(word => word.length > 1)
+    const keywords = query
+      .split(' ')
+      .filter((word) => word.length > 1)
       .sort()
       .join('|');
-    
+
     // 간단한 해시 생성 (FNV-1a 알고리즘 기반)
     let hash = 2166136261;
     for (let i = 0; i < keywords.length; i++) {
       hash ^= keywords.charCodeAt(i);
       hash *= 16777619;
     }
-    
+
     return (hash >>> 0).toString(16).substring(0, 8);
   }
 
@@ -168,7 +193,7 @@ export class SimplifiedQueryEngineUtils {
    */
   getCachedResponse(key: string): QueryResponse | null {
     this.cacheStats.totalRequests++;
-    
+
     const cached = this.responseCache.get(key);
     if (!cached) {
       this.cacheStats.misses++;
@@ -244,49 +269,63 @@ export class SimplifiedQueryEngineUtils {
 
     // 🔧 더 구체적인 명령어 키워드 패턴 (자연어 질의와 구분)
     const commandKeywords = [
-      'command list',     // "command list" 같은 구체적 명령어
-      '명령어 목록',      // "명령어 목록" 같은 구체적 요청
-      '명령어 리스트',    // "명령어 리스트" 같은 구체적 요청
-      'cmd help',         // "cmd help" 같은 구체적 명령어
-      'help command',     // "help command" 같은 구체적 요청
-      '도움말 보기',      // "도움말 보기" 같은 구체적 요청
-      '사용법',           // "사용법" - 명령어 사용법 요청
-      'usage',            // "usage" - 영어 사용법 요청
+      'command list', // "command list" 같은 구체적 명령어
+      '명령어 목록', // "명령어 목록" 같은 구체적 요청
+      '명령어 리스트', // "명령어 리스트" 같은 구체적 요청
+      'cmd help', // "cmd help" 같은 구체적 명령어
+      'help command', // "help command" 같은 구체적 요청
+      '도움말 보기', // "도움말 보기" 같은 구체적 요청
+      '사용법', // "사용법" - 명령어 사용법 요청
+      'usage', // "usage" - 영어 사용법 요청
     ];
 
     // 🚫 자연어 질의 패턴 (명령어가 아님을 명시적으로 체크)
     const naturalLanguagePatterns = [
-      '상태가 어떻게',     // "서버 상태가 어떻게 되나요?"
-      '어떻게 되나',       // "시스템이 어떻게 되나요?"
-      '무엇인가요',        // "현재 상태가 무엇인가요?"
-      '분석해',           // "성능을 분석해줘"
-      '알려줘',           // "서버 상태 알려줘"
-      '확인해',           // "시스템을 확인해줘"
-      '보고서',           // "월간 보고서 생성해줘"
+      '상태가 어떻게', // "서버 상태가 어떻게 되나요?"
+      '어떻게 되나', // "시스템이 어떻게 되나요?"
+      '무엇인가요', // "현재 상태가 무엇인가요?"
+      '분석해', // "성능을 분석해줘"
+      '알려줘', // "서버 상태 알려줘"
+      '확인해', // "시스템을 확인해줘"
+      '보고서', // "월간 보고서 생성해줘"
     ];
 
     // 명시적 명령어 요청
     if (commandContext?.isCommandRequest) {
-      console.log('🔍 [DEBUG] Command detected by context:', { isCommandRequest: true, query });
+      console.log('🔍 [DEBUG] Command detected by context:', {
+        isCommandRequest: true,
+        query,
+      });
       return true;
     }
 
     // 🛡️ 자연어 질의 패턴 먼저 체크 (우선순위)
-    const foundNaturalPattern = naturalLanguagePatterns.find((pattern) => lowerQuery.includes(pattern));
+    const foundNaturalPattern = naturalLanguagePatterns.find((pattern) =>
+      lowerQuery.includes(pattern)
+    );
     if (foundNaturalPattern) {
-      console.log('🔍 [DEBUG] Natural language detected:', { query, foundPattern: foundNaturalPattern, isCommand: false });
+      console.log('🔍 [DEBUG] Natural language detected:', {
+        query,
+        foundPattern: foundNaturalPattern,
+        isCommand: false,
+      });
       return false; // 자연어 질의로 판단
     }
 
     // 구체적인 명령어 키워드 기반 감지 (더 엄격한 기준)
-    const foundCommandKeyword = commandKeywords.find((keyword) => lowerQuery.includes(keyword));
+    const foundCommandKeyword = commandKeywords.find((keyword) =>
+      lowerQuery.includes(keyword)
+    );
     const isCommand = !!foundCommandKeyword;
 
     console.log('🔍 [DEBUG] Command detection result:', {
       query,
       foundCommandKeyword,
       isCommand,
-      availablePatterns: { commandKeywords: commandKeywords.length, naturalPatterns: naturalLanguagePatterns.length }
+      availablePatterns: {
+        commandKeywords: commandKeywords.length,
+        naturalPatterns: naturalLanguagePatterns.length,
+      },
     });
 
     return isCommand;
@@ -530,40 +569,50 @@ export class SimplifiedQueryEngineUtils {
    */
   getCacheStats() {
     const entries = Array.from(this.responseCache.values());
-    const hitRate = this.cacheStats.totalRequests > 0 
-      ? (this.cacheStats.hits / this.cacheStats.totalRequests) * 100 
-      : 0;
-    
+    const hitRate =
+      this.cacheStats.totalRequests > 0
+        ? (this.cacheStats.hits / this.cacheStats.totalRequests) * 100
+        : 0;
+
     return {
       // 기본 통계
       totalEntries: this.responseCache.size,
       totalRequests: this.cacheStats.totalRequests,
-      
+
       // 성능 지표
       hitRate: Math.round(hitRate * 100) / 100, // 소수점 2자리
-      hitRateImprovement: hitRate >= 60 ? '🎯 목표 달성!' : `📈 목표까지 ${Math.round(60 - hitRate)}% 부족`,
+      hitRateImprovement:
+        hitRate >= 60
+          ? '🎯 목표 달성!'
+          : `📈 목표까지 ${Math.round(60 - hitRate)}% 부족`,
       hits: this.cacheStats.hits,
       misses: this.cacheStats.misses,
       evictions: this.cacheStats.evictions,
-      
+
       // 상세 통계
       totalHits: entries.reduce((sum, entry) => sum + entry.hits, 0),
-      avgHitsPerEntry: entries.length > 0
-        ? Math.round((entries.reduce((sum, entry) => sum + entry.hits, 0) / entries.length) * 100) / 100
-        : 0,
-      
+      avgHitsPerEntry:
+        entries.length > 0
+          ? Math.round(
+              (entries.reduce((sum, entry) => sum + entry.hits, 0) /
+                entries.length) *
+                100
+            ) / 100
+          : 0,
+
       // 시간 정보
       uptime: Date.now() - this.cacheStats.lastReset,
-      oldestEntry: entries.length > 0
-        ? new Date(Math.min(...entries.map((e) => e.timestamp))).toISOString()
-        : null,
-      
+      oldestEntry:
+        entries.length > 0
+          ? new Date(Math.min(...entries.map((e) => e.timestamp))).toISOString()
+          : null,
+
       // 메모리 효율성
       memoryUsage: {
         entriesCount: this.responseCache.size,
         maxEntries: 100,
-        utilizationRate: Math.round((this.responseCache.size / 100) * 100)
-      }
+        utilizationRate: Math.round((this.responseCache.size / 100) * 100),
+      },
     };
   }
 

@@ -37,6 +37,7 @@ import {
   Zap,
 } from 'lucide-react';
 import React, { Fragment, useCallback, useEffect, useState } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 
 export interface AdvancedNotification {
@@ -309,6 +310,19 @@ function NotificationItem({
   };
 
   const styles = getTypeStyles();
+  const interactiveProps = notification.dismissible
+    ? {
+        role: 'button' as const,
+        tabIndex: 0,
+        onClick: handleDismiss,
+        onKeyDown: (event: ReactKeyboardEvent<HTMLDivElement>) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            handleDismiss();
+          }
+        },
+      }
+    : {};
 
   return (
     <div
@@ -318,7 +332,7 @@ function NotificationItem({
         boxShadow: '0 8px 25px -5px rgba(0, 0, 0, 0.2)',
         transform: `translateY(${-index * 5}px)`,
       }}
-      onClick={notification.dismissible ? handleDismiss : undefined}
+      {...interactiveProps}
     >
       {/* 우선순위 표시 바 */}
       <div className={`absolute left-0 right-0 top-0 h-1 ${styles.accent}`} />
@@ -439,9 +453,7 @@ export function AdvancedNotificationContainer() {
     <div className="pointer-events-none fixed right-4 top-4 z-[99999]">
       {/* 전체 알림 제어 */}
       {notifications.length > 1 && (
-        <div
-          className="pointer-events-auto mb-4"
-        >
+        <div className="pointer-events-auto mb-4">
           <button
             onClick={handleClearAll}
             className="rounded-xl border border-gray-700 bg-gray-900 px-4 py-2 text-xs font-medium text-white shadow-2xl backdrop-blur-xl transition-all duration-200 hover:bg-gray-800"

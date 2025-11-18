@@ -14,7 +14,13 @@ export function getErrorMessage(error: unknown): string {
     return error;
   }
   if (error && typeof error === 'object' && 'message' in error) {
-    return String((error as { message: unknown }).message);
+    const msg = (error as { message: unknown }).message;
+    if (typeof msg === 'string') return msg;
+    try {
+      return JSON.stringify(msg ?? '');
+    } catch {
+      return '알 수 없는 오류가 발생했습니다';
+    }
   }
   return '알 수 없는 오류가 발생했습니다';
 }
@@ -63,7 +69,9 @@ export function isObject(value: unknown): value is Record<string, unknown> {
 /**
  * 함수인지 확인하는 타입 가드
  */
-export function isFunction(value: unknown): value is (...args: unknown[]) => unknown {
+export function isFunction(
+  value: unknown
+): value is (...args: unknown[]) => unknown {
   return typeof value === 'function';
 }
 

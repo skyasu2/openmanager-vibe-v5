@@ -48,7 +48,8 @@ export default function CollapsibleCard({
   return (
     <div className={cn(baseClasses[variant], className)}>
       {/* 헤더 */}
-      <div
+      <button
+        type="button"
         className={cn(
           'flex cursor-pointer select-none items-center justify-between',
           'rounded-lg transition-colors duration-200 hover:bg-gray-50',
@@ -56,6 +57,8 @@ export default function CollapsibleCard({
           headerClassName
         )}
         onClick={onToggle}
+        aria-expanded={isExpanded}
+        aria-controls="collapsible-card-content"
       >
         <div className="flex items-center gap-3">
           {icon && <div className="flex-shrink-0">{icon}</div>}
@@ -68,28 +71,27 @@ export default function CollapsibleCard({
         </div>
 
         {/* 토글 버튼 */}
-        <div
-          className="flex-shrink-0 rounded-full p-1 transition-colors hover:bg-gray-100"
-        >
+        <div className="flex-shrink-0 rounded-full p-1 transition-colors hover:bg-gray-100">
           <ChevronDown className="h-5 w-5 text-gray-500" />
         </div>
-      </div>
+      </button>
 
       {/* 콘텐츠 */}
       {isExpanded && (
+        <div
+          id="collapsible-card-content"
+          className="overflow-hidden transition-all duration-300 ease-in-out"
+        >
           <div
-            className="overflow-hidden transition-all duration-300 ease-in-out"
+            className={cn(
+              'mt-2 border-t border-gray-100 pt-4',
+              contentClassName
+            )}
           >
-            <div
-              className={cn(
-                'mt-2 border-t border-gray-100 pt-4',
-                contentClassName
-              )}
-            >
-              {children}
-            </div>
+            {children}
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
 }

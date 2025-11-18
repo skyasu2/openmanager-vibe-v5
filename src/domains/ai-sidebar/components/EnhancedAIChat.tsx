@@ -102,7 +102,9 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
             <div>
               <h3 className="text-sm font-bold text-gray-800">자연어 질의</h3>
               <p className="text-xs text-gray-600">
-                {enableRealTimeThinking ? '실시간 thinking 지원' : 'AI 기반 대화형 인터페이스'}
+                {enableRealTimeThinking
+                  ? '실시간 thinking 지원'
+                  : 'AI 기반 대화형 인터페이스'}
               </p>
             </div>
           </div>
@@ -110,7 +112,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
       </div>
 
       {/* 메시지 영역 */}
-      <div className="flex-1 space-y-3 overflow-y-auto p-3 sm:space-y-4 sm:p-4 scroll-smooth [will-change:scroll-position]">
+      <div className="flex-1 space-y-3 overflow-y-auto scroll-smooth p-3 [will-change:scroll-position] sm:space-y-4 sm:p-4">
         {/* 자동장애보고서 알림 */}
         {autoReportTrigger.shouldGenerate && (
           <div className="rounded-lg border border-red-200 bg-gradient-to-r from-red-50 to-orange-50 p-3">
@@ -122,7 +124,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
                     자동장애보고서 생성 준비
                   </h4>
                   <p className="text-xs text-red-600">
-                    "{autoReportTrigger.lastQuery}"에서{' '}
+                    &quot;{autoReportTrigger.lastQuery}&quot;에서{' '}
                     {autoReportTrigger.severity} 수준의 이슈가 감지되었습니다.
                   </p>
                 </div>
@@ -143,8 +145,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
             <p className="mx-auto max-w-[280px] text-sm text-gray-500">
               {enableRealTimeThinking
                 ? '실시간 thinking process를 지원하는 AI 사이드바입니다.'
-                : '질문을 입력하시면 AI가 도움을 드리겠습니다.'
-              }
+                : '질문을 입력하시면 AI가 도움을 드리겠습니다.'}
             </p>
           </div>
         )}
@@ -182,7 +183,9 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
 
           {/* 전송 버튼 */}
           <button
-            onClick={() => { void handleSendInput(); }}
+            onClick={() => {
+              void handleSendInput();
+            }}
             disabled={!inputValue.trim() || isGenerating}
             className="rounded bg-blue-500 p-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
             title="메시지 전송"

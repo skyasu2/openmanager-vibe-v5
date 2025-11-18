@@ -81,10 +81,15 @@ export function TimeRotationDisplay({
       )}
     >
       {/* 메인 시간 표시 */}
-      <div
+      <button
+        type="button"
+        disabled={!showControls}
+        aria-expanded={showControls ? isExpanded : undefined}
         className={cn(
-          'flex cursor-pointer items-center justify-between p-4',
-          showControls && 'border-b border-gray-100'
+          'flex w-full items-center justify-between p-4 text-left',
+          showControls
+            ? 'cursor-pointer border-b border-gray-100'
+            : 'cursor-default'
         )}
         onClick={() => showControls && setIsExpanded(!isExpanded)}
       >
@@ -126,7 +131,7 @@ export function TimeRotationDisplay({
             />
           )}
         </div>
-      </div>
+      </button>
 
       {/* 제어 패널 */}
       {showControls && isExpanded && (

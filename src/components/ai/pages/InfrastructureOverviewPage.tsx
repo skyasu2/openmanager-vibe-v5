@@ -70,7 +70,7 @@ export default function InfrastructureOverviewPage({
   statsData: propStatsData,
 }: InfrastructureOverviewPageProps) {
   console.log('🎯 [InfrastructureOverviewPage] 컴포넌트 렌더링 시작');
-  
+
   const [stats, setStats] = useState<InfrastructureStats>({
     totalServers: 0,
     onlineServers: 0,
@@ -97,8 +97,11 @@ export default function InfrastructureOverviewPage({
        *   - servers는 객체이므로 Object.values()로 배열 변환
        */
       const response_data = await response.json();
-      console.log('🔍 [InfrastructureOverviewPage] 전체 API 응답:', response_data);
-      
+      console.log(
+        '🔍 [InfrastructureOverviewPage] 전체 API 응답:',
+        response_data
+      );
+
       const actualData = response_data?.data?.data || {};
       const serversObject = actualData.servers || {};
       const stats = actualData.stats || {};
@@ -149,8 +152,8 @@ export default function InfrastructureOverviewPage({
               // CPU 값은 cpu.usage 또는 직접 cpu 필드에서 가져옴
               const cpuValue =
                 typeof server.cpu === 'object' && server.cpu
-                  ? (server.cpu as { usage?: number }).usage ?? 0
-                  : (server.cpu as number ?? 0);
+                  ? ((server.cpu as { usage?: number }).usage ?? 0)
+                  : ((server.cpu as number) ?? 0);
               return sum + (typeof cpuValue === 'number' ? cpuValue : 0);
             }
             return sum;
@@ -163,8 +166,8 @@ export default function InfrastructureOverviewPage({
               // Memory 값은 memory.usage 또는 직접 memory 필드에서 가져옴
               const memoryValue =
                 typeof server.memory === 'object' && server.memory
-                  ? (server.memory as { usage?: number }).usage ?? 0
-                  : (server.memory as number ?? 0);
+                  ? ((server.memory as { usage?: number }).usage ?? 0)
+                  : ((server.memory as number) ?? 0);
               return sum + (typeof memoryValue === 'number' ? memoryValue : 0);
             }
             return sum;
@@ -177,8 +180,8 @@ export default function InfrastructureOverviewPage({
               // Disk 값은 disk.usage 또는 직접 disk 필드에서 가져옴
               const diskValue =
                 typeof server.disk === 'object' && server.disk
-                  ? (server.disk as { usage?: number }).usage ?? 0
-                  : (server.disk as number ?? 0);
+                  ? ((server.disk as { usage?: number }).usage ?? 0)
+                  : ((server.disk as number) ?? 0);
               return sum + (typeof diskValue === 'number' ? diskValue : 0);
             }
             return sum;
@@ -256,14 +259,19 @@ export default function InfrastructureOverviewPage({
         totalServers: propStatsData.totalServers || propServers.length,
         onlineServers: propStatsData.onlineServers || 0,
         offlineServers: propStatsData.criticalServers || 0,
-        alertCount: (propStatsData.warningServers || 0) + (propStatsData.criticalServers || 0),
+        alertCount:
+          (propStatsData.warningServers || 0) +
+          (propStatsData.criticalServers || 0),
         totalCpu: propStatsData.avgCpu || 0,
         totalRam: propStatsData.avgMemory || 0,
         totalDisk: propStatsData.avgDisk || 0,
         bandwidth: 0, // 기본값
       };
 
-      console.log('✅ [InfrastructureOverviewPage] Props 기반 통계 계산 완료:', calculatedStats);
+      console.log(
+        '✅ [InfrastructureOverviewPage] Props 기반 통계 계산 완료:',
+        calculatedStats
+      );
       setStats(calculatedStats);
       setLastUpdate(new Date());
       setIsLoading(false);
@@ -272,14 +280,14 @@ export default function InfrastructureOverviewPage({
 
     // Props가 없을 경우에만 API 호출
     console.log('🚀 [InfrastructureOverviewPage] Props 없음, API 호출 시작');
-    fetchServerData();
-    
+    void fetchServerData();
+
     // 🎯 데이터 생성기와 동기화: 30초 간격
     const interval = setInterval(() => {
       console.log('🔄 [InfrastructureOverviewPage] 30초 간격 데이터 업데이트');
-      fetchServerData();
+      void fetchServerData();
     }, 30000);
-    
+
     return () => {
       console.log('🧹 [InfrastructureOverviewPage] cleanup - interval 제거');
       clearInterval(interval);
@@ -323,7 +331,9 @@ export default function InfrastructureOverviewPage({
           </p>
         </div>
         <button
-          onClick={() => { void fetchServerData(); }}
+          onClick={() => {
+            void fetchServerData();
+          }}
           className="flex items-center gap-1 rounded-lg bg-blue-500 px-3 py-1.5 text-sm text-white transition-colors hover:bg-blue-600"
         >
           <RefreshCw className="h-3 w-3" />
@@ -332,9 +342,7 @@ export default function InfrastructureOverviewPage({
       </div>
 
       {/* 메인 통계 카드 */}
-      <div
-        className="mb-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
-      >
+      <div className="mb-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
         <h3 className="mb-2 text-sm font-semibold text-gray-700">
           📊 전체 인프라 현황
         </h3>
@@ -379,9 +387,7 @@ export default function InfrastructureOverviewPage({
       </div>
 
       {/* 리소스 사용률 */}
-      <div
-        className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
-      >
+      <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
         <h3 className="mb-2 text-sm font-semibold text-gray-700">
           💻 평균 리소스 사용률
         </h3>

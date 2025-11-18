@@ -154,7 +154,15 @@ export const systemComponents: SystemComponent[] = [
         }
 
         const errorMessage =
-          error instanceof Error ? error.message : String(error);
+          error instanceof Error
+            ? error.message
+            : (() => {
+                try {
+                  return JSON.stringify(error);
+                } catch {
+                  return typeof error === 'string' ? error : 'Unknown error';
+                }
+              })();
         const responseTime =
           isNetworkError(error) && error.networkInfo
             ? getResponseTime(error.networkInfo)

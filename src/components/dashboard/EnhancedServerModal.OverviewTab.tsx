@@ -1,3 +1,5 @@
+'use client';
+
 import { type FC } from 'react';
 /**
  * 📊 Enhanced Server Modal Overview Tab
@@ -8,8 +10,6 @@ import { type FC } from 'react';
  * - Service status monitoring
  * - Real-time updates with animated indicators
  */
-'use client';
-
 import { Activity, Server as ServerIcon } from 'lucide-react';
 import { ServerModal3DGauge } from '../shared/UnifiedCircularGauge';
 import { ServerData, StatusTheme } from './EnhancedServerModal.types';
@@ -35,15 +35,11 @@ interface OverviewTabProps {
  * - 시스템 정보 및 서비스 상태
  * - 반응형 디자인 및 부드러운 애니메이션
  */
-export const OverviewTab: FC<OverviewTabProps> = ({
-  server,
-  statusTheme,
-}) => {
+export const OverviewTab: FC<OverviewTabProps> = ({ server, statusTheme }) => {
   return (
     <div className="space-y-6">
       {/* 3D 게이지들 - 개선된 디자인 */}
-      <div
-      >
+      <div>
         <div className="mb-4 flex items-center justify-between">
           <h3 className="bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-2xl font-bold text-transparent">
             실시간 리소스 모니터링
@@ -60,8 +56,7 @@ export const OverviewTab: FC<OverviewTabProps> = ({
           className={`grid grid-cols-1 gap-8 rounded-2xl bg-gradient-to-br ${statusTheme.bgLight} border backdrop-blur-sm ${statusTheme.borderColor} p-8 shadow-xl md:grid-cols-3`}
         >
           {/* CPU 게이지 */}
-          <div
-          >
+          <div>
             <ServerModal3DGauge
               value={server.cpu}
               label="CPU"
@@ -71,8 +66,7 @@ export const OverviewTab: FC<OverviewTabProps> = ({
           </div>
 
           {/* 메모리 게이지 */}
-          <div
-          >
+          <div>
             <ServerModal3DGauge
               value={server.memory}
               label="메모리"
@@ -82,8 +76,7 @@ export const OverviewTab: FC<OverviewTabProps> = ({
           </div>
 
           {/* 디스크 게이지 */}
-          <div
-          >
+          <div>
             <ServerModal3DGauge
               value={server.disk}
               label="디스크"
@@ -97,9 +90,7 @@ export const OverviewTab: FC<OverviewTabProps> = ({
       {/* 시스템 정보 - 개선된 카드 디자인 */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* 시스템 정보 카드 */}
-        <div
-          className="group"
-        >
+        <div className="group">
           <div className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all duration-300 hover:shadow-2xl">
             {/* 배경 그라데이션 효과 */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-transparent opacity-50" />
@@ -162,9 +153,7 @@ export const OverviewTab: FC<OverviewTabProps> = ({
         </div>
 
         {/* 서비스 상태 카드 */}
-        <div
-          className="group"
-        >
+        <div className="group">
           <div className="relative overflow-hidden rounded-2xl bg-white p-6 shadow-xl transition-all duration-300 hover:shadow-2xl">
             {/* 배경 그라데이션 효과 */}
             <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-transparent opacity-50" />

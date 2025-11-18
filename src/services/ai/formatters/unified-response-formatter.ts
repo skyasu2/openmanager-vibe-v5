@@ -320,19 +320,35 @@ export class UnifiedResponseFormatter {
   }
 
   private extractGCPAnswer(result: unknown, functionType: string): string {
+    const safeString = (value: unknown): string => {
+      if (value === null || value === undefined) return '';
+      if (
+        typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean'
+      ) {
+        return String(value);
+      }
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return '[unserializable]';
+      }
+    };
+
     if (typeof result === 'string') {
       return result;
     }
 
     if (typeof result === 'object' && result !== null) {
       if ('answer' in result) {
-        return String((result as { answer: unknown }).answer);
+        return safeString((result as { answer: unknown }).answer ?? '');
       }
       if ('response' in result) {
-        return String((result as { response: unknown }).response);
+        return safeString((result as { response: unknown }).response ?? '');
       }
       if ('text' in result) {
-        return String((result as { text: unknown }).text);
+        return safeString((result as { text: unknown }).text ?? '');
       }
     }
 
@@ -436,7 +452,18 @@ export class UnifiedResponseFormatter {
       else if (service === 'redis-cache') {
         sources.push({
           type: 'cache' as const,
-          content: String(response.data),
+          content:
+            typeof response.data === 'string' ||
+            typeof response.data === 'number' ||
+            typeof response.data === 'boolean'
+              ? String(response.data)
+              : (() => {
+                  try {
+                    return JSON.stringify(response.data);
+                  } catch {
+                    return '[unserializable]';
+                  }
+                })(),
           relevance: 1.0,
           metadata: { cached: true },
         });

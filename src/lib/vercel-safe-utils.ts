@@ -42,7 +42,7 @@ export const getSafeServicesLength = (server: unknown): number => {
   try {
     if (!isValidServer(server)) return 0;
 
-    const services = (server).services;
+    const services = server.services;
     if (!services || !Array.isArray(services)) return 0;
 
     return services.length;
@@ -60,7 +60,7 @@ export const getSafeValidServices = (server: unknown): Service[] => {
   try {
     if (!isValidServer(server)) return [];
 
-    const services = (server).services;
+    const services = server.services;
     if (!services || !Array.isArray(services)) return [];
 
     return services.filter((service: unknown): service is Service => {
@@ -105,8 +105,8 @@ export const isVercelEnvironment = (): boolean => {
       typeof process !== 'undefined' &&
       process.env &&
       (process.env.VERCEL === '1' ||
-       process.env.VERCEL_ENV !== undefined ||
-       process.env.NEXT_RUNTIME === 'edge')
+        process.env.VERCEL_ENV !== undefined ||
+        process.env.NEXT_RUNTIME === 'edge')
     );
   } catch {
     return false;
@@ -160,7 +160,10 @@ export const getSafeArrayLength = (arr: unknown): number => {
   } catch (error) {
     // 🛡️ 모든 오류를 0으로 처리 (Vercel 환경 안전성 우선)
     if (typeof console !== 'undefined' && console.error) {
-      console.error('🛡️ getSafeArrayLength VERCEL RACE CONDITION SAFE error:', error);
+      console.error(
+        '🛡️ getSafeArrayLength VERCEL RACE CONDITION SAFE error:',
+        error
+      );
     }
     vercelSafeLog('getSafeArrayLength Race Condition 방어', { arr, error });
     return 0;
@@ -206,10 +209,21 @@ export const handleVercelError = (
   context: string,
   fallback?: () => unknown
 ): unknown => {
-  const errorMessage = error instanceof Error ? error.message : String(error);
+  const errorMessage =
+    error instanceof Error
+      ? error.message
+      : (() => {
+          try {
+            return JSON.stringify(error);
+          } catch {
+            return '[unserializable]';
+          }
+        })();
 
-  if (errorMessage.includes('reading \'length\'') ||
-      errorMessage.includes('undefined')) {
+  if (
+    errorMessage.includes("reading 'length'") ||
+    errorMessage.includes('undefined')
+  ) {
     vercelSafeLog(`Vercel environment error in ${context}:`, errorMessage);
 
     if (fallback) {
@@ -226,58 +240,75 @@ export const handleVercelError = (
  * 🔒 차트 데이터 안전 접근
  * ServerMetricsLineChart에서 사용하는 배열 데이터 대한 완전 방어
  */
-export const getSafeChartData = (data: unknown, fallbackLength: number = 11): ChartDataPoint[] => {
+export const getSafeChartData = (
+  data: unknown,
+  fallbackLength: number = 11
+): ChartDataPoint[] => {
   try {
     // null/undefined 처리
     if (!data) {
-      return Array(fallbackLength).fill(null).map((_, i) => ({
-        timestamp: Date.now() - (fallbackLength - 1 - i) * 60000,
-        value: Math.random() * 50 + 25,
-        x: i,
-      }));
+      return Array(fallbackLength)
+        .fill(null)
+        .map((_, i) => ({
+          timestamp: Date.now() - (fallbackLength - 1 - i) * 60000,
+          value: Math.random() * 50 + 25,
+          x: i,
+        }));
     }
 
     // 배열 타입 검증
     if (!Array.isArray(data)) {
       vercelSafeLog('차트 데이터가 배열이 아님:', typeof data);
-      return Array(fallbackLength).fill(null).map((_, i) => ({
-        timestamp: Date.now() - (fallbackLength - 1 - i) * 60000,
-        value: Math.random() * 50 + 25,
-        x: i,
-      }));
+      return Array(fallbackLength)
+        .fill(null)
+        .map((_, i) => ({
+          timestamp: Date.now() - (fallbackLength - 1 - i) * 60000,
+          value: Math.random() * 50 + 25,
+          x: i,
+        }));
     }
 
     // 빈 배열 처리
     if (data.length === 0) {
-      return Array(fallbackLength).fill(null).map((_, i) => ({
-        timestamp: Date.now() - (fallbackLength - 1 - i) * 60000,
-        value: Math.random() * 50 + 25,
-        x: i,
-      }));
+      return Array(fallbackLength)
+        .fill(null)
+        .map((_, i) => ({
+          timestamp: Date.now() - (fallbackLength - 1 - i) * 60000,
+          value: Math.random() * 50 + 25,
+          x: i,
+        }));
     }
 
     // 유효한 데이터 필터링 및 정리
     const validData = data.filter((item: unknown): item is ChartDataPoint => {
       if (!item || typeof item !== 'object') return false;
       const point = item as Record<string, unknown>;
-      return typeof point.value === 'number' &&
-             !isNaN(point.value) &&
-             typeof point.x === 'number' &&
-             !isNaN(point.x);
+      return (
+        typeof point.value === 'number' &&
+        !isNaN(point.value) &&
+        typeof point.x === 'number' &&
+        !isNaN(point.x)
+      );
     });
 
-    return validData.length > 0 ? validData : Array(fallbackLength).fill(null).map((_, i) => ({
-      timestamp: Date.now() - (fallbackLength - 1 - i) * 60000,
-      value: Math.random() * 50 + 25,
-      x: i,
-    }));
+    return validData.length > 0
+      ? validData
+      : Array(fallbackLength)
+          .fill(null)
+          .map((_, i) => ({
+            timestamp: Date.now() - (fallbackLength - 1 - i) * 60000,
+            value: Math.random() * 50 + 25,
+            x: i,
+          }));
   } catch (error) {
     console.warn('🛡️ getSafeChartData error:', error);
-    return Array(fallbackLength).fill(null).map((_, i) => ({
-      timestamp: Date.now() - (fallbackLength - 1 - i) * 60000,
-      value: Math.random() * 50 + 25,
-      x: i,
-    }));
+    return Array(fallbackLength)
+      .fill(null)
+      .map((_, i) => ({
+        timestamp: Date.now() - (fallbackLength - 1 - i) * 60000,
+        value: Math.random() * 50 + 25,
+        x: i,
+      }));
   }
 };
 
@@ -357,18 +388,18 @@ export const normalizeServerForVercel = (server: unknown): Server | null => {
         cpu_cores: 4,
         memory_gb: 8,
         disk_gb: 250,
-        network_speed: '1Gbps'
+        network_speed: '1Gbps',
       }),
       lastUpdate: getSafeProperty(s, 'lastUpdate', new Date()),
       services: getSafeValidServices(s),
       networkStatus: getSafeProperty(s, 'networkStatus', 'offline'),
       systemInfo: getSafeProperty(s, 'systemInfo', {
         os: s.os || 'Ubuntu 22.04 LTS',
-        uptime: `${Math.floor(((typeof s.uptime === "number" ? s.uptime : 0)) / 3600)}h`,
+        uptime: `${Math.floor((typeof s.uptime === 'number' ? s.uptime : 0) / 3600)}h`,
         processes: 50,
         zombieProcesses: 0,
         loadAverage: '1.0, 1.0, 1.0',
-        lastUpdate: new Date().toISOString()
+        lastUpdate: new Date().toISOString(),
       }),
       networkInfo: getSafeProperty(s, 'networkInfo', {
         interface: 'eth0',
@@ -376,10 +407,14 @@ export const normalizeServerForVercel = (server: unknown): Server | null => {
         sentBytes: '0 MB',
         receivedErrors: 0,
         sentErrors: 0,
-        status: 'offline'
-      })
+        status: 'offline',
+      }),
     };
   } catch (error) {
-    return handleVercelError(error, 'normalizeServerForVercel', () => null) as Server | null;
+    return handleVercelError(
+      error,
+      'normalizeServerForVercel',
+      () => null
+    ) as Server | null;
   }
 };

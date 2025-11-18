@@ -143,12 +143,12 @@ export class UnifiedCacheService {
     namespace: CacheNamespace = CacheNamespace.GENERAL
   ): Promise<(T | null)[]> {
     const results: (T | null)[] = [];
-    
+
     for (const key of keys) {
       const value = await this.get<T>(key, namespace);
       results.push(value);
     }
-    
+
     return results;
   }
 
@@ -184,14 +184,15 @@ export class UnifiedCacheService {
       expires: Date.now() + ttlSeconds * 1000,
       created: Date.now(),
       hits: 0,
-      namespace,
+      namespace: String(namespace),
       pattern,
       metadata,
     });
 
     // 네임스페이스별 통계 업데이트
-    this.stats.namespaces[namespace] =
-      (this.stats.namespaces[namespace] || 0) + 1;
+    const namespaceKey = String(namespace);
+    this.stats.namespaces[namespaceKey] =
+      (this.stats.namespaces[namespaceKey] || 0) + 1;
     this.stats.sets++;
 
     // 패턴 학습 (AI 쿼리인 경우)
@@ -289,7 +290,7 @@ export class UnifiedCacheService {
       if (!item) continue;
 
       // 네임스페이스 매칭
-      if (namespace && item.namespace !== namespace) continue;
+      if (namespace && item.namespace !== String(namespace)) continue;
 
       // 패턴 매칭
       if (pattern) {

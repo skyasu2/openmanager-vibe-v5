@@ -206,7 +206,13 @@ export class AIErrorHandler {
     }
 
     if (error && typeof error === 'object' && 'message' in error) {
-      return String((error as { message: unknown }).message);
+      const msg = (error as { message: unknown }).message;
+      if (typeof msg === 'string') return msg;
+      try {
+        return JSON.stringify(msg ?? '');
+      } catch {
+        return typeof msg === 'string' ? msg : 'Unknown message';
+      }
     }
 
     return 'Unknown error occurred';

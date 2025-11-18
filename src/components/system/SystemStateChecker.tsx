@@ -51,7 +51,9 @@ export function SystemStateChecker({
 
   useEffect(() => {
     if (autoRefresh && systemState?.isSystemActive) {
-      const interval = setInterval(() => { void fetchSystemState(); }, 30000); // 30초마다 새로고침
+      const interval = setInterval(() => {
+        void fetchSystemState();
+      }, 30000); // 30초마다 새로고침
       return () => clearInterval(interval);
     }
     return undefined;
@@ -160,17 +162,13 @@ export function SystemStateChecker({
           <>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-gray-600">
-                  전원 모드
-                </label>
+                <p className="text-sm font-medium text-gray-600">전원 모드</p>
                 <p className="text-lg font-semibold capitalize">
                   {systemState.powerMode}
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">
-                  데이터 수집
-                </label>
+                <p className="text-sm font-medium text-gray-600">데이터 수집</p>
                 <p className="text-lg font-semibold">
                   {systemState.isDataCollecting ? '활성' : '비활성'}
                 </p>
@@ -178,9 +176,7 @@ export function SystemStateChecker({
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-600">
-                상태 설명
-              </label>
+              <p className="text-sm font-medium text-gray-600">상태 설명</p>
               <p className="rounded-md bg-gray-50 p-3 text-sm text-gray-800">
                 {systemState.reason}
               </p>

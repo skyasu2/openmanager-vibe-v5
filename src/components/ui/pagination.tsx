@@ -1,13 +1,17 @@
 import React from 'react'; // 🧪 테스트 환경에서 JSX 트랜스폼을 위해 명시적 import 필요
-import { forwardRef, type ComponentProps, type ReactElement, type ReactNode, type HTMLAttributes, type ButtonHTMLAttributes, type ElementRef } from 'react';
+import {
+  forwardRef,
+  type ComponentProps,
+  type ReactElement,
+  type ReactNode,
+  type HTMLAttributes,
+  type ButtonHTMLAttributes,
+  type ElementRef,
+} from 'react';
 import { cn } from '@/lib/utils';
 import type { ButtonProps } from '@/components/ui/button';
 import { buttonVariants } from '@/components/ui/button';
-import {
-  ChevronLeft,
-  ChevronRight,
-  MoreHorizontal,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 
 const Pagination = ({ className, ...props }: ComponentProps<'nav'>) => (
   <nav
@@ -19,24 +23,22 @@ const Pagination = ({ className, ...props }: ComponentProps<'nav'>) => (
 );
 Pagination.displayName = 'Pagination';
 
-const PaginationContent = forwardRef<
-  HTMLUListElement,
-  ComponentProps<'ul'>
->(({ className, ...props }, ref) => (
-  <ul
-    ref={ref}
-    className={cn('flex flex-row items-center gap-1', className)}
-    {...props}
-  />
-));
+const PaginationContent = forwardRef<HTMLUListElement, ComponentProps<'ul'>>(
+  ({ className, ...props }, ref) => (
+    <ul
+      ref={ref}
+      className={cn('flex flex-row items-center gap-1', className)}
+      {...props}
+    />
+  )
+);
 PaginationContent.displayName = 'PaginationContent';
 
-const PaginationItem = forwardRef<
-  HTMLLIElement,
-  ComponentProps<'li'>
->(({ className, ...props }, ref) => (
-  <li ref={ref} className={cn('', className)} {...props} />
-));
+const PaginationItem = forwardRef<HTMLLIElement, ComponentProps<'li'>>(
+  ({ className, ...props }, ref) => (
+    <li ref={ref} className={cn('', className)} {...props} />
+  )
+);
 PaginationItem.displayName = 'PaginationItem';
 
 type PaginationLinkProps = {
@@ -48,6 +50,7 @@ const PaginationLink = ({
   className,
   isActive,
   size = 'icon',
+  children,
   ...props
 }: PaginationLinkProps) => (
   <a
@@ -60,7 +63,9 @@ const PaginationLink = ({
       className
     )}
     {...props}
-  />
+  >
+    {children}
+  </a>
 );
 PaginationLink.displayName = 'PaginationLink';
 

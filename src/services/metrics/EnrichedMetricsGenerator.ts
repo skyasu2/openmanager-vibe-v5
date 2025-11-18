@@ -272,12 +272,14 @@ export class EnrichedMetricsGenerator {
   private startContinuousGeneration(): void {
     this.isRunning = true;
 
-    this.updateInterval = setInterval(async () => {
-      try {
-        await this.generateEnrichedMetricsForAllServers();
-      } catch (error) {
-        console.error('❌ 메트릭 생성 오류:', error);
-      }
+    this.updateInterval = setInterval(() => {
+      void (async () => {
+        try {
+          await this.generateEnrichedMetricsForAllServers();
+        } catch (error) {
+          console.error('❌ 메트릭 생성 오류:', error);
+        }
+      })();
     }, this.UPDATE_CYCLE_MS);
 
     console.log('🔄 24시간 연속 메트릭 생성 시작됨');

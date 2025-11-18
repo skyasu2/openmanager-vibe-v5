@@ -424,9 +424,9 @@ export class CloudLoggingService {
 
           data.forEach((log) => {
             const level = String(log.level);
-            const module = String(log.module);
+            const moduleName = String(log.module);
             levelCounts[level] = (levelCounts[level] || 0) + 1;
-            moduleCounts[module] = (moduleCounts[module] || 0) + 1;
+            moduleCounts[moduleName] = (moduleCounts[moduleName] || 0) + 1;
           });
 
           supabaseStats.logLevels = levelCounts;
@@ -465,7 +465,7 @@ export class CloudLoggingService {
   async searchLogs(
     query: string,
     level?: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL',
-    module?: string,
+    moduleName?: string,
     startDate?: string,
     endDate?: string,
     limit: number = 100
@@ -484,8 +484,8 @@ export class CloudLoggingService {
         dbQuery = dbQuery.eq('level', level);
       }
 
-      if (module) {
-        dbQuery = dbQuery.eq('module', module);
+      if (moduleName) {
+        dbQuery = dbQuery.eq('module', moduleName);
       }
 
       if (startDate) {

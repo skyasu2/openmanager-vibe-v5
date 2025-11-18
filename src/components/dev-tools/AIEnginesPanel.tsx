@@ -61,6 +61,9 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
   >(null);
   const [aiEnginesLoading, setAiEnginesLoading] = useState(false);
 
+  const aiModeSelectId = 'ai-engine-mode';
+  const aiTestQueryId = 'ai-test-query';
+
   // 프리셋 질문들
   const presetQueries = [
     'CPU 사용률이 높은 서버를 찾아줘',
@@ -142,12 +145,12 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
     // 잠시 후 자동 실행을 위한 설정
     setTimeout(() => {
       setAiTestQuery(query);
-      testAINaturalQuery();
+      void testAINaturalQuery();
     }, 100);
   };
 
   useEffect(() => {
-    fetchAIEnginesStatus();
+    void fetchAIEnginesStatus();
   }, []);
 
   const getStatusBadgeVariant = (status: string) => {
@@ -248,11 +251,18 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
         <CardContent className="space-y-4">
           {/* 엔진 모드 선택 */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label
+              id={`${aiModeSelectId}-label`}
+              htmlFor={aiModeSelectId}
+              className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300"
+            >
               AI 엔진 모드:
             </label>
             <Select value={aiTestMode} onValueChange={setAiTestMode}>
-              <SelectTrigger>
+              <SelectTrigger
+                id={aiModeSelectId}
+                aria-labelledby={`${aiModeSelectId}-label`}
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -264,9 +274,9 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
 
           {/* 프리셋 질문들 */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
               빠른 테스트 질문:
-            </label>
+            </p>
             <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
               {presetQueries.map((query, index) => (
                 <Button
@@ -286,11 +296,15 @@ export function AIEnginesPanel({ className = '' }: AIEnginesPanelProps) {
 
           {/* 사용자 정의 질문 */}
           <div>
-            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+            <label
+              htmlFor={aiTestQueryId}
+              className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300"
+            >
               사용자 정의 질문:
             </label>
             <div className="flex gap-2">
               <Textarea
+                id={aiTestQueryId}
                 placeholder="예: CPU 사용률이 높은 서버를 찾아줘"
                 value={aiTestQuery}
                 onChange={(e) => setAiTestQuery(e.target.value)}

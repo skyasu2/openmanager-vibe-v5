@@ -113,7 +113,10 @@ export abstract class QueryProcessorBase implements IAIProcessor {
   /**
    * IAIProcessor 인터페이스 구현 - processQuery
    */
-  async processQuery(query: string, options?: AIQueryOptions): Promise<AIResponse> {
+  async processQuery(
+    query: string,
+    options?: AIQueryOptions
+  ): Promise<AIResponse> {
     return this.process(query, options);
   }
 
@@ -318,7 +321,7 @@ export abstract class QueryProcessorBase implements IAIProcessor {
     const wordCount = query.split(/\s+/).length;
     const hasSpecialChars = /[^a-zA-Z0-9\s가-힣]/.test(query);
     const hasNumbers = /\d/.test(query);
-    const hasCode = /[{}()\[\];:<>]/.test(query);
+    const hasCode = /[{}()[];:<>]/.test(query);
 
     const factors: string[] = [];
     let score = 0;
@@ -369,7 +372,7 @@ export abstract class QueryProcessorBase implements IAIProcessor {
       queryLength: Math.min(10, wordCount > 50 ? 8 : wordCount > 20 ? 5 : 2),
       conceptCount: Math.min(10, factors.length),
       technicalDepth: Math.min(10, hasCode ? 6 : hasSpecialChars ? 3 : 1),
-      contextDependency: Math.min(10, wordCount > 30 ? 5 : 2)
+      contextDependency: Math.min(10, wordCount > 30 ? 5 : 2),
     };
   }
 

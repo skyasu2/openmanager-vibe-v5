@@ -1,3 +1,5 @@
+'use client';
+
 import { type FC } from 'react';
 /**
  * 📋 Enhanced Server Modal Logs Tab
@@ -8,10 +10,7 @@ import { type FC } from 'react';
  * - Smooth animations for log entries
  * - Log level indicators and timestamp formatting
  */
-'use client';
-
 import { RealtimeData, LogEntry, LogLevel } from './EnhancedServerModal.types';
-
 
 /**
  * Logs Tab Props
@@ -118,7 +117,7 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
                 return (
                   <div
                     key={idx}
-                    className={`mb-3 flex items-start gap-3 rounded-lg p-3 backdrop-blur-sm animate-fade-in ${styles.containerClass}`}
+                    className={`animate-fade-in mb-3 flex items-start gap-3 rounded-lg p-3 backdrop-blur-sm ${styles.containerClass}`}
                     style={{ animationDelay: `${idx * 0.02}s` }}
                   >
                     {/* 로그 레벨 배지 */}
@@ -172,7 +171,7 @@ export const LogsTab: FC<LogsTabProps> = ({ realtimeData }) => {
         {/* 로그 통계 요약 */}
         {realtimeData.logs.length > 0 && (
           <div
-            className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-4 animate-fade-in"
+            className="animate-fade-in mt-6 grid grid-cols-1 gap-4 md:grid-cols-4"
             style={{ animationDelay: '0.3s' }}
           >
             {/* 총 로그 수 */}

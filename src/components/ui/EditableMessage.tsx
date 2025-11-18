@@ -1,6 +1,6 @@
 /**
  * ✏️ EditableMessage 컴포넌트 - 인라인 메시지 편집 기능
- * 
+ *
  * 기능:
  * - 인라인 메시지 편집
  * - 자동 저장/취소
@@ -62,7 +62,7 @@ export const EditableMessage: FC<EditableMessageProps> = ({
     }
     setIsEditing(false);
     setHasChanges(false);
-    
+
     // 편집 버튼에 포커스 복원
     setTimeout(() => {
       editButtonRef.current?.focus();
@@ -75,7 +75,7 @@ export const EditableMessage: FC<EditableMessageProps> = ({
     setEditText(originalText);
     setHasChanges(false);
     onEditCancel?.();
-    
+
     // 편집 버튼에 포커스 복원
     setTimeout(() => {
       editButtonRef.current?.focus();
@@ -89,13 +89,16 @@ export const EditableMessage: FC<EditableMessageProps> = ({
   }, [originalText]);
 
   // 키보드 단축키 핸들러
-  const handleKeyboardShortcut = useCallback((event: KeyboardEvent) => {
-    if (event.ctrlKey && event.key === 'Enter') {
-      completeEdit();
-    } else if (event.key === 'Escape') {
-      cancelEdit();
-    }
-  }, [completeEdit, cancelEdit]);
+  const handleKeyboardShortcut = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === 'Enter') {
+        completeEdit();
+      } else if (event.key === 'Escape') {
+        cancelEdit();
+      }
+    },
+    [completeEdit, cancelEdit]
+  );
 
   if (isEditing) {
     return (
@@ -106,9 +109,7 @@ export const EditableMessage: FC<EditableMessageProps> = ({
             <Edit3 className="h-3 w-3" />
             메시지 편집 중
           </span>
-          <span className="text-gray-400">
-            Ctrl+Enter: 저장 | Esc: 취소
-          </span>
+          <span className="text-gray-400">Ctrl+Enter: 저장 | Esc: 취소</span>
         </div>
 
         {/* 편집 텍스트 영역 */}
@@ -121,7 +122,6 @@ export const EditableMessage: FC<EditableMessageProps> = ({
           minHeight={60}
           maxHeight={200}
           aria-label="메시지 편집"
-          autoFocus
         />
 
         {/* 편집 액션 버튼들 */}
@@ -166,7 +166,8 @@ export const EditableMessage: FC<EditableMessageProps> = ({
         {/* 변경 상태 표시 */}
         {hasChanges && (
           <div className="rounded bg-amber-50 p-2 text-xs text-amber-700">
-            💾 변경사항이 있습니다. 저장하려면 "저장" 버튼을 클릭하세요.
+            💾 변경사항이 있습니다. 저장하려면 &quot;저장&quot; 버튼을
+            클릭하세요.
           </div>
         )}
       </div>
@@ -177,12 +178,8 @@ export const EditableMessage: FC<EditableMessageProps> = ({
   return (
     <div className={`group relative ${className}`}>
       {/* 메시지 텍스트 */}
-      <div 
-        className={`
-          whitespace-pre-wrap break-words text-sm 
-          ${role === 'user' ? 'text-gray-800' : 'text-gray-700'}
-          ${!readOnly ? 'pr-8' : ''}
-        `}
+      <div
+        className={`whitespace-pre-wrap break-words text-sm ${role === 'user' ? 'text-gray-800' : 'text-gray-700'} ${!readOnly ? 'pr-8' : ''} `}
       >
         {originalText}
       </div>
@@ -192,7 +189,7 @@ export const EditableMessage: FC<EditableMessageProps> = ({
         <button
           ref={editButtonRef}
           onClick={startEditing}
-          className="absolute right-0 top-0 rounded p-1 text-gray-400 opacity-0 transition-all duration-200 hover:bg-gray-100 hover:text-gray-600 group-hover:opacity-100 focus:opacity-100"
+          className="absolute right-0 top-0 rounded p-1 text-gray-400 opacity-0 transition-all duration-200 hover:bg-gray-100 hover:text-gray-600 focus:opacity-100 group-hover:opacity-100"
           title="메시지 편집"
           aria-label="메시지 편집"
         >

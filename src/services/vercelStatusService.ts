@@ -319,17 +319,19 @@ export class VercelStatusService {
     this.updateScalingConfig();
 
     // 주기적 상태 확인
-    setInterval(async () => {
-      try {
-        await this.updateScalingConfig();
-        await this.adjustFromPrometheusMetrics();
+    setInterval(() => {
+      void (async () => {
+        try {
+          await this.updateScalingConfig();
+          await this.adjustFromPrometheusMetrics();
 
-        console.log(
-          `🔄 스케일링 설정 업데이트: ${this.scalingConfig.maxServers}서버, ${this.scalingConfig.updateInterval}ms 간격`
-        );
-      } catch (error) {
-        console.error('❌ 상태 모니터링 실패:', error);
-      }
+          console.log(
+            `🔄 스케일링 설정 업데이트: ${this.scalingConfig.maxServers}서버, ${this.scalingConfig.updateInterval}ms 간격`
+          );
+        } catch (error) {
+          console.error('❌ 상태 모니터링 실패:', error);
+        }
+      })();
     }, this.checkInterval);
   }
 

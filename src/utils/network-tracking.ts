@@ -65,7 +65,11 @@ export const fetchWithTracking = async (
       `❌ API 에러: ${method} ${url} - ${error} (${responseTime}ms)`
     );
 
-    throw { originalError: error, networkInfo };
+    const errorToThrow = new Error(
+      error instanceof Error ? error.message : 'Unknown fetch error'
+    ) as Error & { networkInfo?: NetworkInfo };
+    errorToThrow.networkInfo = networkInfo;
+    throw errorToThrow;
   }
 };
 
@@ -194,7 +198,9 @@ export const getNetworkStatsByComponent = (): Record<
 /**
  * 네트워크 에러 타입 가드
  */
-export const isNetworkError = (error: unknown): error is {
+export const isNetworkError = (
+  error: unknown
+): error is {
   originalError?: Error;
   networkInfo?: NetworkInfo;
 } => {
@@ -208,7 +214,9 @@ export const isNetworkError = (error: unknown): error is {
 /**
  * 원본 에러 존재 여부 타입 가드
  */
-export const hasOriginalError = (error: unknown): error is {
+export const hasOriginalError = (
+  error: unknown
+): error is {
   originalError: Error;
 } => {
   return (

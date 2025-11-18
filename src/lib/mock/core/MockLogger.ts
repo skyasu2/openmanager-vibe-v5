@@ -21,8 +21,26 @@ export class MockLogger {
   info(message: string, data?: unknown): void {
     if (!this.enabled) return;
 
-    if (data) {
-      console.log(this.prefix, message, data);
+    const payload =
+      data === undefined
+        ? undefined
+        : (() => {
+            if (
+              typeof data === 'string' ||
+              typeof data === 'number' ||
+              typeof data === 'boolean'
+            ) {
+              return data;
+            }
+            try {
+              return JSON.stringify(data);
+            } catch {
+              return '[unserializable]';
+            }
+          })();
+
+    if (payload !== undefined) {
+      console.log(this.prefix, message, payload);
     } else {
       console.log(this.prefix, message);
     }
@@ -34,8 +52,26 @@ export class MockLogger {
   debug(message: string, data?: unknown): void {
     if (!this.enabled || process.env.DEBUG !== 'true') return;
 
-    if (data) {
-      console.debug(this.prefix, '[DEBUG]', message, data);
+    const payload =
+      data === undefined
+        ? undefined
+        : (() => {
+            if (
+              typeof data === 'string' ||
+              typeof data === 'number' ||
+              typeof data === 'boolean'
+            ) {
+              return data;
+            }
+            try {
+              return JSON.stringify(data);
+            } catch {
+              return '[unserializable]';
+            }
+          })();
+
+    if (payload !== undefined) {
+      console.debug(this.prefix, '[DEBUG]', message, payload);
     } else {
       console.debug(this.prefix, '[DEBUG]', message);
     }
@@ -47,8 +83,26 @@ export class MockLogger {
   warn(message: string, data?: unknown): void {
     if (!this.enabled) return;
 
-    if (data) {
-      console.warn(this.prefix, '⚠️', message, data);
+    const payload =
+      data === undefined
+        ? undefined
+        : (() => {
+            if (
+              typeof data === 'string' ||
+              typeof data === 'number' ||
+              typeof data === 'boolean'
+            ) {
+              return data;
+            }
+            try {
+              return JSON.stringify(data);
+            } catch {
+              return '[unserializable]';
+            }
+          })();
+
+    if (payload !== undefined) {
+      console.warn(this.prefix, '⚠️', message, payload);
     } else {
       console.warn(this.prefix, '⚠️', message);
     }
@@ -60,7 +114,16 @@ export class MockLogger {
   error(message: string, error?: unknown): void {
     if (!this.enabled) return;
 
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : (() => {
+            try {
+              return JSON.stringify(error);
+            } catch {
+              return typeof error === 'string' ? error : '[unserializable]';
+            }
+          })();
     console.error(this.prefix, '❌', message, errorMessage);
   }
 

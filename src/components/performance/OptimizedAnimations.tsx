@@ -7,7 +7,7 @@
 
 // framer-motion 제거 - CSS 애니메이션 사용
 import React, { Fragment, useState, useEffect, CSSProperties } from 'react';
-import type { ReactNode } from 'react';;
+import type { ReactNode, KeyboardEvent as ReactKeyboardEvent } from 'react';
 
 // 사용자 모션 설정 감지 (CSS 기반)
 const useReducedMotion = () => {
@@ -19,7 +19,7 @@ const useReducedMotion = () => {
 
     const handleChange = () => setPrefersReducedMotion(mediaQuery.matches);
     mediaQuery.addEventListener('change', handleChange);
-    
+
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
@@ -32,7 +32,9 @@ const useOptimizedMotion = () => {
 
   useEffect(() => {
     // 성능 모드 감지 (저사양 기기, 배터리 절약 모드 등)
-    const connection = (navigator as Navigator & { connection?: { effectiveType?: string } }).connection;
+    const connection = (
+      navigator as Navigator & { connection?: { effectiveType?: string } }
+    ).connection;
     if (connection && connection.effectiveType === '2g') {
       setPerformanceMode(true);
     }
@@ -164,9 +166,39 @@ export function OptimizedHoverCard({
 }: OptimizedMotionProps) {
   const { shouldAnimate } = useOptimizedMotion();
 
+  if (!onClick) {
+    if (!shouldAnimate) {
+      return <div className={className}>{children}</div>;
+    }
+    return (
+      <div
+        className={`${className} transition-transform duration-200 hover:-translate-y-1 hover:scale-105`}
+        // 성능 최적화
+        style={{
+          willChange: 'transform',
+          backfaceVisibility: 'hidden',
+        }}
+      >
+        {children}
+      </div>
+    );
+  }
+
+  const interactiveProps = {
+    role: 'button' as const,
+    tabIndex: 0,
+    onClick,
+    onKeyDown: (event: ReactKeyboardEvent<HTMLDivElement>) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        onClick();
+      }
+    },
+  };
+
   if (!shouldAnimate) {
     return (
-      <div className={className} onClick={onClick}>
+      <div className={className} {...interactiveProps}>
         {children}
       </div>
     );
@@ -174,8 +206,8 @@ export function OptimizedHoverCard({
 
   return (
     <div
-      className={`${className} hover:scale-105 hover:-translate-y-1 transition-transform duration-200`}
-      onClick={onClick}
+      className={`${className} transition-transform duration-200 hover:-translate-y-1 hover:scale-105`}
+      {...interactiveProps}
       // 성능 최적화
       style={{
         willChange: 'transform',
@@ -200,13 +232,7 @@ export function OptimizedStaggerContainer({
     return <div className={className}>{children}</div>;
   }
 
-  return (
-    <div
-      className={`${className} space-y-2`}
-    >
-      {children}
-    </div>
-  );
+  return <div className={`${className} space-y-2`}>{children}</div>;
 }
 
 /**
@@ -318,10 +344,7 @@ export function BatchAnimation({
   return (
     <Fragment>
       {children.map((child, index) => (
-        <div
-          key={index}
-          style={{ willChange: 'transform, opacity' }}
-        >
+        <div key={index} style={{ willChange: 'transform, opacity' }}>
           {child}
         </div>
       ))}

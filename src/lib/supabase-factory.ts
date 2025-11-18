@@ -11,7 +11,7 @@
  * - Script: 스크립트용 admin (getSupabaseForScript)
  */
 
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { NextRequest, NextResponse } from 'next/server';
 
 // 기존 singleton들 import (의도적 분리 존중)
@@ -54,7 +54,7 @@ export function createSupabaseClient(
       return getSupabaseForScript(options.serviceRoleKey);
 
     default:
-      throw new Error(`Unknown Supabase environment: ${options.environment}`);
+      throw new Error('Unknown or unsupported Supabase environment specified');
   }
 }
 
@@ -66,8 +66,6 @@ function getSupabaseForScript(serviceRoleKey?: string): SupabaseClient {
   if (global.__supabaseScriptInstance) {
     return global.__supabaseScriptInstance;
   }
-
-  const { createClient } = await import('@supabase/supabase-js');
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
   const key = serviceRoleKey || process.env.SUPABASE_SERVICE_ROLE_KEY;

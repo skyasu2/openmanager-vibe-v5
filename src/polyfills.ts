@@ -97,37 +97,39 @@ if (typeof globalThis !== 'undefined') {
 
   // 🚀 Node.js 환경에서 crypto 모듈 사용
   if (isNodeEnvironment && !glob.crypto) {
-    try {
-      // Node.js crypto 모듈을 브라우저 호환 형태로 노출
-      const crypto = require('crypto');
+    void (async () => {
+      try {
+        // Node.js crypto 모듈을 브라우저 호환 형태로 노출
+        const crypto = await import('crypto');
 
-      // Web Crypto API 호환 인터페이스 제공
-      glob.crypto = {
-        // getRandomValues는 Web Crypto API와 호환되게
-        getRandomValues: (arr: any) => {
-          if (arr && arr.length) {
-            const randomBytes = crypto.randomBytes(arr.length);
-            for (let i = 0; i < arr.length; i++) {
-              arr[i] = randomBytes[i];
+        // Web Crypto API 호환 인터페이스 제공
+        glob.crypto = {
+          // getRandomValues는 Web Crypto API와 호환되게
+          getRandomValues: (arr: any) => {
+            if (arr && arr.length) {
+              const randomBytes = crypto.randomBytes(arr.length);
+              for (let i = 0; i < arr.length; i++) {
+                arr[i] = randomBytes[i];
+              }
             }
-          }
-          return arr;
-        },
+            return arr;
+          },
 
-        // Node.js crypto 함수들을 직접 노출
-        randomUUID: crypto.randomUUID,
-        subtle: undefined, // SubtleCrypto는 복잡하므로 제외
+          // Node.js crypto 함수들을 직접 노출
+          randomUUID: crypto.randomUUID,
+          subtle: undefined, // SubtleCrypto는 복잡하므로 제외
 
-        // 추가 헬퍼 함수들
-        randomBytes: crypto.randomBytes,
-        createHash: crypto.createHash,
-        createHmac: crypto.createHmac,
-      };
+          // 추가 헬퍼 함수들
+          randomBytes: crypto.randomBytes,
+          createHash: crypto.createHash,
+          createHmac: crypto.createHmac,
+        };
 
-      console.log('✅ Node.js crypto 모듈을 글로벌 crypto로 설정완료');
-    } catch (error) {
-      console.warn('⚠️ Node.js crypto 모듈 로드 실패:', error);
-    }
+        console.log('✅ Node.js crypto 모듈을 글로벌 crypto로 설정완료');
+      } catch (error) {
+        console.warn('⚠️ Node.js crypto 모듈 로드 실패:', error);
+      }
+    })();
   }
 
   // 🚀 브라우저 환경에서 crypto 확인

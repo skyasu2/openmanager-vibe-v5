@@ -244,29 +244,35 @@ class CentralizedDataManager {
   private startPolling(): void {
     if (this.updateInterval) return;
 
-    this.updateInterval = setInterval(async () => {
-      if (this.isUpdating || this.subscribers.size === 0) return;
+    this.updateInterval = setInterval(() => {
+      void (async () => {
+        if (this.isUpdating || this.subscribers.size === 0) return;
 
-      this.isUpdating = true;
-      console.log(`🔄 정기 업데이트 시작 (구독자: ${this.subscribers.size}명)`);
-
-      try {
-        // 사용 중인 데이터 타입만 업데이트
-        const activeDataTypes = new Set(
-          Array.from(this.subscribers.values())
-            .filter((sub) => sub.isVisible)
-            .map((sub) => sub.dataType)
+        this.isUpdating = true;
+        console.log(
+          `🔄 정기 업데이트 시작 (구독자: ${this.subscribers.size}명)`
         );
 
-        // 병렬로 데이터 페치
-        await Promise.all(
-          Array.from(activeDataTypes).map((type) => this.fetchDataForType(type))
-        );
-      } catch (error) {
-        console.error('❌ 정기 업데이트 실패:', error);
-      } finally {
-        this.isUpdating = false;
-      }
+        try {
+          // 사용 중인 데이터 타입만 업데이트
+          const activeDataTypes = new Set(
+            Array.from(this.subscribers.values())
+              .filter((sub) => sub.isVisible)
+              .map((sub) => sub.dataType)
+          );
+
+          // 병렬로 데이터 페치
+          await Promise.all(
+            Array.from(activeDataTypes).map((type) =>
+              this.fetchDataForType(type)
+            )
+          );
+        } catch (error) {
+          console.error('❌ 정기 업데이트 실패:', error);
+        } finally {
+          this.isUpdating = false;
+        }
+      })();
     }, this.UPDATE_INTERVAL);
 
     console.log('✅ 중앙 데이터 관리자 폴링 시작');

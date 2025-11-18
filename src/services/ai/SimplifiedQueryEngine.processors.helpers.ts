@@ -17,9 +17,9 @@ import type {
   AIMetadata,
   ServerArray,
 } from '../../types/ai-service-types';
-import type { 
+import type {
   MockContext,
-  ServerStatusAnalysis
+  ServerStatusAnalysis,
 } from './SimplifiedQueryEngine.types';
 import type { EnhancedServerMetrics } from '@/types/server';
 import { processUnifiedAI } from '@/lib/gcp/gcp-functions-client';
@@ -54,12 +54,14 @@ interface UnifiedCycleResponse {
     affectedServers: string[];
     expectedResolution?: Date | null;
   };
-  servers: Array<EnhancedServerMetrics & {
-    metadata?: {
-      scenarios?: ExtendedScenario[];
-      [key: string]: unknown;
-    };
-  }>;
+  servers: Array<
+    EnhancedServerMetrics & {
+      metadata?: {
+        scenarios?: ExtendedScenario[];
+        [key: string]: unknown;
+      };
+    }
+  >;
 }
 
 /**
@@ -92,14 +94,16 @@ export class SimplifiedQueryEngineHelpers {
 
     // 👋 인사말 우선 처리 (RAG 검색 불필요)
     if (this.isGreeting(query)) {
-      return '안녕하세요! 👋\n\n' +
-             '저는 서버 모니터링 AI 어시스턴트입니다.\n' +
-             '다음과 같은 질문을 도와드릴 수 있습니다:\n\n' +
-             '• 📊 서버 상태 및 메트릭 조회\n' +
-             '• 🖥️ CPU/메모리 사용률 분석\n' +
-             '• 🚨 장애 및 문제 상황 분석\n' +
-             '• 🔍 실시간 시스템 모니터링\n\n' +
-             '궁금하신 점을 자유롭게 물어보세요!';
+      return (
+        '안녕하세요! 👋\n\n' +
+        '저는 서버 모니터링 AI 어시스턴트입니다.\n' +
+        '다음과 같은 질문을 도와드릴 수 있습니다:\n\n' +
+        '• 📊 서버 상태 및 메트릭 조회\n' +
+        '• 🖥️ CPU/메모리 사용률 분석\n' +
+        '• 🚨 장애 및 문제 상황 분석\n' +
+        '• 🔍 실시간 시스템 모니터링\n\n' +
+        '궁금하신 점을 자유롭게 물어보세요!'
+      );
     }
 
     // 🎯 실시간 서버 메트릭 쿼리 처리 (최우선)
@@ -111,7 +115,7 @@ export class SimplifiedQueryEngineHelpers {
         // 실패 시 Mock 모드로 폴백
       }
     }
-    
+
     // Mock 모드 확인 및 처리
     const mockContext = this.mockContextLoader.getMockContext();
     if (mockContext) {
@@ -121,10 +125,7 @@ export class SimplifiedQueryEngineHelpers {
       }
 
       // 상황 분석 쿼리 - 데이터만 보고 AI가 스스로 판단
-      if (
-        lowerQuery.includes('상황') ||
-        lowerQuery.includes('분석')
-      ) {
+      if (lowerQuery.includes('상황') || lowerQuery.includes('분석')) {
         return this.generateMockServerResponse(query, mockContext);
       }
     }
@@ -290,7 +291,14 @@ export class SimplifiedQueryEngineHelpers {
     query: string,
     context: AIQueryContext | undefined,
     mcpContext: MCPContext | null,
-    ragResult: { results: Array<{ id: string; content: string; similarity: number; metadata?: AIMetadata; }> } | null,
+    ragResult: {
+      results: Array<{
+        id: string;
+        content: string;
+        similarity: number;
+        metadata?: AIMetadata;
+      }>;
+    } | null,
     unifiedInsights?: string | null
   ): string {
     let prompt = `사용자 질문: ${query}\n\n`;
@@ -345,7 +353,12 @@ export class SimplifiedQueryEngineHelpers {
     query: string,
     context: AIQueryContext | undefined,
     ragResult?: {
-      results: Array<{ id: string; content: string; similarity: number; metadata?: AIMetadata }>;
+      results: Array<{
+        id: string;
+        content: string;
+        similarity: number;
+        metadata?: AIMetadata;
+      }>;
     }
   ): Promise<{ summary: string | null; raw: UnifiedAIResponse | null }> {
     try {
@@ -394,7 +407,7 @@ export class SimplifiedQueryEngineHelpers {
       sections.push(
         aggregated.main_insights
           .slice(0, 3)
-          .map((insight, index) => (index + 1) + '. ' + insight)
+          .map((insight, index) => index + 1 + '. ' + insight)
           .join('\n')
       );
     }
@@ -402,7 +415,20 @@ export class SimplifiedQueryEngineHelpers {
     if (aggregated.metrics) {
       const metricSummary = Object.entries(aggregated.metrics)
         .slice(0, 3)
-        .map(([metric, value]) => metric + ': ' + value)
+        .map(([metric, value]) => {
+          if (
+            typeof value === 'string' ||
+            typeof value === 'number' ||
+            typeof value === 'boolean'
+          ) {
+            return `${metric}: ${value}`;
+          }
+          try {
+            return `${metric}: ${JSON.stringify(value)}`;
+          } catch {
+            return `${metric}: [unserializable]`;
+          }
+        })
         .join(', ');
       if (metricSummary) {
         sections.push('주요 지표: ' + metricSummary);
@@ -436,28 +462,28 @@ export class SimplifiedQueryEngineHelpers {
 
     return Math.min(confidence, 0.95);
   }
-  
+
   /**
    * 🔍 서버 메트릭 쿼리 판별
    */
   /**
    * 🎯 서버 컨텍스트 조회 및 포맷팅 (GOOGLE_AI/LOCAL 공통)
-   * 
+   *
    * @param query - 사용자 쿼리
    * @returns 포맷팅된 서버 컨텍스트 문자열 또는 null (서버 메트릭 쿼리가 아닌 경우)
    */
   async getFormattedServerContext(query: string): Promise<string | null> {
     const lowerQuery = query.toLowerCase();
-    
+
     // 서버 메트릭 쿼리가 아니면 null 반환
     if (!this.isServerMetricQuery(lowerQuery)) {
       return null;
     }
-    
+
     try {
       // 서버 메트릭 조회
       const analysis = await unifiedMetricsService.analyzeServerStatus();
-      
+
       // 포맷팅된 문자열만 반환
       return this.formatServerContext(analysis);
     } catch (error) {
@@ -468,275 +494,370 @@ export class SimplifiedQueryEngineHelpers {
 
   /**
    * 📊 서버 컨텍스트 포맷팅 (private)
-   * 
+   *
    * @param analysis - UnifiedMetricsService의 분석 결과
    * @returns 포맷팅된 컨텍스트 문자열
    */
   private formatServerContext(analysis: ServerStatusAnalysis): string {
-    const { summary, criticalServers, warningServers, healthyServers, timeContext } = analysis;
-    
+    const {
+      summary,
+      criticalServers,
+      warningServers,
+      healthyServers,
+      timeContext,
+    } = analysis;
+
     let contextString = '\n\n📊 실시간 서버 상태:\n';
     contextString += `- 전체 요약: ${summary}\n`;
     contextString += `- 위험 서버: ${criticalServers.length}개\n`;
     contextString += `- 경고 서버: ${warningServers.length}개\n`;
     contextString += `- 정상 서버: ${healthyServers.length}개\n`;
     contextString += `- 조회 시간: ${timeContext}\n`;
-    
+
     // 위험 서버 상세 정보 (있을 경우)
     if (criticalServers.length > 0) {
       contextString += '\n⚠️ 위험 서버 상세:\n';
-      criticalServers.forEach(server => {
+      criticalServers.forEach((server) => {
         contextString += `  - ${server.name}: CPU ${server.cpu}%, Memory ${server.memory}%\n`;
       });
     }
-    
+
     return contextString;
   }
 
   private isServerMetricQuery(lowerQuery: string): boolean {
-    const serverKeywords = ['서버', 'cpu', 'memory', 'disk', 'network', '메모리', '디스크', '네트워크'];
+    const serverKeywords = [
+      '서버',
+      'cpu',
+      'memory',
+      'disk',
+      'network',
+      '메모리',
+      '디스크',
+      '네트워크',
+    ];
     const statusKeywords = ['상태', 'status', '현재', '지금', '실시간'];
     const metricKeywords = ['사용률', '부하', '성능', '모니터링', '메트릭'];
-    
-    const hasServerKeyword = serverKeywords.some(keyword => lowerQuery.includes(keyword));
-    const hasStatusKeyword = statusKeywords.some(keyword => lowerQuery.includes(keyword));
-    const hasMetricKeyword = metricKeywords.some(keyword => lowerQuery.includes(keyword));
-    
+
+    const hasServerKeyword = serverKeywords.some((keyword) =>
+      lowerQuery.includes(keyword)
+    );
+    const hasStatusKeyword = statusKeywords.some((keyword) =>
+      lowerQuery.includes(keyword)
+    );
+    const hasMetricKeyword = metricKeywords.some((keyword) =>
+      lowerQuery.includes(keyword)
+    );
+
     return hasServerKeyword || (hasStatusKeyword && hasMetricKeyword);
   }
 
   /**
    * 🎯 인사말 감지
-   * 
+   *
    * 간단한 인사말이면 RAG 검색 없이 친근한 응답 반환
    */
   private isGreeting(query: string): boolean {
     const greetings = [
-      '안녕', '안녕하세요', '안녕하십니까', 
-      'hi', 'hello', 'hey', 'hola',
-      '반가워', '반갑습니다',
-      'good morning', 'good afternoon', 'good evening',
-      '좋은 아침', '좋은 저녁'
+      '안녕',
+      '안녕하세요',
+      '안녕하십니까',
+      'hi',
+      'hello',
+      'hey',
+      'hola',
+      '반가워',
+      '반갑습니다',
+      'good morning',
+      'good afternoon',
+      'good evening',
+      '좋은 아침',
+      '좋은 저녁',
     ];
-    
+
     const lower = query.toLowerCase().trim();
-    
+
     // 완전 일치 또는 공백/구두점 포함 일치
-    return greetings.some(greeting => {
+    return greetings.some((greeting) => {
       const greetingLower = greeting.toLowerCase();
-      return lower === greetingLower || 
-             lower === greetingLower + '!' ||
-             lower === greetingLower + '?' ||
-             lower === greetingLower + '.' ||
-             lower.startsWith(greetingLower + ' ');
+      return (
+        lower === greetingLower ||
+        lower === greetingLower + '!' ||
+        lower === greetingLower + '?' ||
+        lower === greetingLower + '.' ||
+        lower.startsWith(greetingLower + ' ')
+      );
     });
   }
-  
+
   /**
    * 🚀 실시간 서버 응답 생성
    */
-  private async generateRealTimeServerResponse(originalQuery: string, lowerQuery: string): Promise<string> {
+  private async generateRealTimeServerResponse(
+    originalQuery: string,
+    lowerQuery: string
+  ): Promise<string> {
     // 통합 메트릭 서비스에서 현재 상태 조회
     const analysis = await unifiedMetricsService.analyzeServerStatus();
-    const { summary, criticalServers, warningServers, healthyServers, timeContext } = analysis;
-    
+    const {
+      summary,
+      criticalServers,
+      warningServers,
+      healthyServers,
+      timeContext,
+    } = analysis;
+
     // 쿼리 유형별 응답 생성
     if (lowerQuery.includes('전체') || lowerQuery.includes('상태')) {
-      return this.generateOverallStatusResponse(summary, criticalServers, warningServers, timeContext);
+      return this.generateOverallStatusResponse(
+        summary,
+        criticalServers,
+        warningServers,
+        timeContext
+      );
     }
-    
+
     if (lowerQuery.includes('cpu')) {
       return await this.generateCPUStatusResponse();
     }
-    
+
     if (lowerQuery.includes('memory') || lowerQuery.includes('메모리')) {
       return await this.generateMemoryStatusResponse();
     }
-    
+
     if (lowerQuery.includes('문제') || lowerQuery.includes('장애')) {
-      return this.generateProblemAnalysisResponse(criticalServers, warningServers);
+      return this.generateProblemAnalysisResponse(
+        criticalServers,
+        warningServers
+      );
     }
-    
+
     // 6개 사이클 분석 쿼리
-    if (lowerQuery.includes('사이클') || lowerQuery.includes('시나리오') || lowerQuery.includes('원인') || lowerQuery.includes('분석')) {
+    if (
+      lowerQuery.includes('사이클') ||
+      lowerQuery.includes('시나리오') ||
+      lowerQuery.includes('원인') ||
+      lowerQuery.includes('분석')
+    ) {
       return await this.generateCycleAnalysisFromRealTime();
     }
-    
+
     // 기본 현재 상태 응답
-    return this.generateOverallStatusResponse(summary, criticalServers, warningServers, timeContext);
+    return this.generateOverallStatusResponse(
+      summary,
+      criticalServers,
+      warningServers,
+      timeContext
+    );
   }
-  
+
   /**
    * 📊 전체 상태 응답
    */
   private generateOverallStatusResponse(
-    summary: string, 
+    summary: string,
     criticalServers: EnhancedServerMetrics[],
-    warningServers: EnhancedServerMetrics[], 
+    warningServers: EnhancedServerMetrics[],
     timeContext: string
   ): string {
     let response = `🖥️ **현재 서버 전체 상태**\n\n`;
     response += `${summary}\n\n`;
     response += `⏰ ${timeContext}\n\n`;
-    
+
     if (criticalServers.length > 0) {
       response += `🚨 **심각한 상태의 서버 (${criticalServers.length}개):**\n`;
-      criticalServers.forEach(server => {
+      criticalServers.forEach((server) => {
         response += `• ${server.name}: CPU ${server.cpu}%, 메모리 ${server.memory}%, 응답시간 ${server.responseTime}ms\n`;
       });
       response += `\n`;
     }
-    
+
     if (warningServers.length > 0) {
       response += `⚠️ **주의가 필요한 서버 (${warningServers.length}개):**\n`;
-      warningServers.forEach(server => {
+      warningServers.forEach((server) => {
         response += `• ${server.name}: CPU ${server.cpu}%, 메모리 ${server.memory}%\n`;
       });
       response += `\n`;
     }
-    
+
     response += `✅ 정상 상태 서버: ${criticalServers.length + warningServers.length > 0 ? '나머지 서버들' : '모든 서버'}\n\n`;
     response += `🔄 데이터 동기화: 모니터링 대시보드와 동일한 실시간 데이터`;
-    
+
     return response;
   }
-  
+
   /**
    * 🖥️ CPU 상태 응답
    */
   private async generateCPUStatusResponse(): Promise<string> {
     const metrics = await unifiedMetricsService.getCurrentMetrics();
     const servers = metrics.servers;
-    
-    const highCPUServers = servers.filter(s => (s.cpu || s.cpu_usage || 0) > 70);
-    const avgCPU = servers.reduce((sum, s) => sum + (s.cpu || s.cpu_usage || 0), 0) / servers.length;
-    
+
+    const highCPUServers = servers.filter(
+      (s) => (s.cpu || s.cpu_usage || 0) > 70
+    );
+    const avgCPU =
+      servers.reduce((sum, s) => sum + (s.cpu || s.cpu_usage || 0), 0) /
+      servers.length;
+
     let response = `💻 **CPU 사용률 현황**\n\n`;
     response += `📊 전체 평균 CPU 사용률: ${Math.round(avgCPU)}%\n\n`;
-    
+
     if (highCPUServers.length > 0) {
       response += `🔥 **높은 CPU 사용률 서버:**\n`;
-      highCPUServers.forEach(server => {
+      highCPUServers.forEach((server) => {
         const cpuValue = server.cpu || server.cpu_usage || 0;
-        const trend = cpuValue > (server.metadata?.baseline?.cpu || 50) ? '↗️' : '↘️';
+        const trend =
+          cpuValue > (server.metadata?.baseline?.cpu || 50) ? '↗️' : '↘️';
         response += `• ${server.name}: ${cpuValue}% ${trend}\n`;
       });
     } else {
       response += `✅ 모든 서버의 CPU 사용률이 정상 범위 내에 있습니다.\n`;
     }
-    
+
     return response;
   }
-  
+
   /**
    * 💾 메모리 상태 응답
    */
   private async generateMemoryStatusResponse(): Promise<string> {
     const metrics = await unifiedMetricsService.getCurrentMetrics();
     const servers = metrics.servers;
-    
-    const highMemoryServers = servers.filter(s => (s.memory || s.memory_usage || 0) > 80);
-    const avgMemory = servers.reduce((sum, s) => sum + (s.memory || s.memory_usage || 0), 0) / servers.length;
-    
+
+    const highMemoryServers = servers.filter(
+      (s) => (s.memory || s.memory_usage || 0) > 80
+    );
+    const avgMemory =
+      servers.reduce((sum, s) => sum + (s.memory || s.memory_usage || 0), 0) /
+      servers.length;
+
     let response = `💾 **메모리 사용률 현황**\n\n`;
     response += `📊 전체 평균 메모리 사용률: ${Math.round(avgMemory)}%\n\n`;
-    
+
     if (highMemoryServers.length > 0) {
       response += `⚠️ **높은 메모리 사용률 서버:**\n`;
-      highMemoryServers.forEach(server => {
+      highMemoryServers.forEach((server) => {
         const memoryValue = server.memory || server.memory_usage || 0;
         response += `• ${server.name}: ${memoryValue}%`;
         if (memoryValue > 90) response += ` 🚨 위험`;
         else if (memoryValue > 80) response += ` ⚠️ 주의`;
         response += `\n`;
       });
-      
+
       response += `\n💡 **권장사항:** 메모리 사용량이 높은 서버들의 프로세스를 확인해보세요.`;
     } else {
       response += `✅ 모든 서버의 메모리 사용률이 안전한 수준입니다.`;
     }
-    
+
     return response;
   }
-  
+
   /**
    * 🚨 문제 분석 응답
    */
-  private generateProblemAnalysisResponse(criticalServers: EnhancedServerMetrics[], warningServers: EnhancedServerMetrics[]): string {
+  private generateProblemAnalysisResponse(
+    criticalServers: EnhancedServerMetrics[],
+    warningServers: EnhancedServerMetrics[]
+  ): string {
     let response = `🔍 **서버 문제 분석**\n\n`;
-    
+
     if (criticalServers.length === 0 && warningServers.length === 0) {
       response += `✅ **현재 심각한 문제가 감지되지 않았습니다.**\n\n`;
       response += `모든 서버가 정상 범위 내에서 작동하고 있습니다.`;
       return response;
     }
-    
+
     if (criticalServers.length > 0) {
       response += `🚨 **즉시 조치가 필요한 서버:**
 `;
-      criticalServers.forEach(server => {
+      criticalServers.forEach((server) => {
         response += `• **${server.name}**:
 `;
-        response += '  - CPU: ' + (server.cpu ?? 0) + '% ' + ((server.cpu ?? 0) > 85 ? '(과부하)' : '') + '\n';
-        response += '  - 메모리: ' + (server.memory ?? 0) + '% ' + ((server.memory ?? 0) > 90 ? '(과부하)' : '') + '\n';
-        response += '  - 응답시간: ' + server.responseTime + 'ms ' + (server.responseTime > 500 ? '(지연)' : '') + '\n';
+        response +=
+          '  - CPU: ' +
+          (server.cpu ?? 0) +
+          '% ' +
+          ((server.cpu ?? 0) > 85 ? '(과부하)' : '') +
+          '\n';
+        response +=
+          '  - 메모리: ' +
+          (server.memory ?? 0) +
+          '% ' +
+          ((server.memory ?? 0) > 90 ? '(과부하)' : '') +
+          '\n';
+        response +=
+          '  - 응답시간: ' +
+          server.responseTime +
+          'ms ' +
+          (server.responseTime > 500 ? '(지연)' : '') +
+          '\n';
 
         // 장애 시나리오 정보 포함
-        if (server.metadata?.scenarios?.length && server.metadata.scenarios.length > 0) {
-          response += '  - 감지된 이벤트: ' + server.metadata.scenarios[0]!.description + '\n';
+        if (
+          server.metadata?.scenarios?.length &&
+          server.metadata.scenarios.length > 0
+        ) {
+          response +=
+            '  - 감지된 이벤트: ' +
+            server.metadata.scenarios[0]!.description +
+            '\n';
         }
         response += '\n';
       });
     }
-    
+
     if (warningServers.length > 0) {
       response += `⚠️ **모니터링이 필요한 서버:**
 `;
-      warningServers.forEach(server => {
+      warningServers.forEach((server) => {
         response += `• ${server.name}: `;
         if ((server.cpu ?? 0) > 70) response += `CPU ${server.cpu ?? 0}% `;
-        if ((server.memory ?? 0) > 80) response += `메모리 ${server.memory ?? 0}% `;
+        if ((server.memory ?? 0) > 80)
+          response += `메모리 ${server.memory ?? 0}% `;
         response += `
 `;
       });
     }
-    
+
     response += `\n🔄 실시간 모니터링이 계속되고 있습니다.`;
-    
+
     return response;
   }
-  
+
   /**
    * 🎯 6개 사이클 기반 상황 분석 응답
    */
-  private generateCycleAnalysisResponse(unifiedResponse: UnifiedCycleResponse): string {
+  private generateCycleAnalysisResponse(
+    unifiedResponse: UnifiedCycleResponse
+  ): string {
     const { currentCycle, servers } = unifiedResponse;
-    
+
     if (!currentCycle) {
       return '❓ 현재 사이클 정보를 불러올 수 없습니다.';
     }
-    
+
     let response = `🎯 **24시간 장애-해소 사이클 분석**\n\n`;
-    
+
     // 현재 사이클 기본 정보
     response += `⏰ **현재 시간대:** ${this.getCycleTimeSlotDescription(currentCycle.timeSlot)}\n`;
     response += `📋 **시나리오:** ${this.getCycleScenarioDescription(currentCycle.scenario)}\n`;
     response += `📊 **진행 단계:** ${this.getCyclePhaseDescription(currentCycle.phase)} (${currentCycle.progress}%)\n`;
     response += `🔥 **영향 강도:** ${Math.round(currentCycle.intensity * 100)}%\n\n`;
-    
+
     // 상세 설명
     response += `💬 **상황 설명:**\n${currentCycle.description}\n\n`;
-    
+
     // 영향받는 서버들
-    const affectedServers = servers.filter((s) => 
+    const affectedServers = servers.filter((s) =>
       currentCycle.affectedServers.includes(s.id)
     );
-    
+
     if (affectedServers.length > 0) {
       response += `🎯 **영향받는 서버 (${affectedServers.length}개):**\n`;
       affectedServers.forEach((server) => {
         response += `• **${server.name}** (${server.status}): `;
-        
+
         // 주요 영향받는 메트릭 표시
         const scenario = server.metadata?.scenarios?.[0];
         if (scenario) {
@@ -750,35 +871,41 @@ export class SimplifiedQueryEngineHelpers {
       });
       response += `\n`;
     }
-    
+
     // 해결 예상 시간
     if (currentCycle.expectedResolution) {
       const resolutionTime = new Date(currentCycle.expectedResolution);
-      const remainingMinutes = Math.max(0, Math.ceil((resolutionTime.getTime() - Date.now()) / (1000 * 60)));
+      const remainingMinutes = Math.max(
+        0,
+        Math.ceil((resolutionTime.getTime() - Date.now()) / (1000 * 60))
+      );
       response += `⏳ **예상 해결 시간:** ${resolutionTime.toLocaleString('ko-KR')} (약 ${remainingMinutes}분 후)\n\n`;
     }
-    
+
     // 사이클별 맞춤 권장사항
-    response += this.getCycleRecommendations(currentCycle.scenario, currentCycle.phase);
-    
+    response += this.getCycleRecommendations(
+      currentCycle.scenario,
+      currentCycle.phase
+    );
+
     return response;
   }
-  
+
   /**
    * 시간대 설명
    */
   private getCycleTimeSlotDescription(timeSlot: number): string {
     const descriptions = [
       '0-4시 (야간 백업 시간)',
-      '4-8시 (새벽 유지보수 시간)', 
+      '4-8시 (새벽 유지보수 시간)',
       '8-12시 (오전 업무 시간)',
       '12-16시 (점심 피크 시간)',
       '16-20시 (오후 피크 시간)',
-      '20-24시 (저녁 배치 시간)'
+      '20-24시 (저녁 배치 시간)',
     ];
     return descriptions[timeSlot] || `시간대 ${timeSlot}`;
   }
-  
+
   /**
    * 사이클 시나리오 설명
    */
@@ -789,11 +916,11 @@ export class SimplifiedQueryEngineHelpers {
       traffic_cycle: '트래픽 사이클 - 출근시간 동시 접속자 급증',
       database_cycle: '데이터베이스 사이클 - 점심시간 주문 시스템 과부하',
       network_cycle: '네트워크 사이클 - 퇴근시간 대용량 파일 다운로드',
-      batch_cycle: '배치 사이클 - 저녁 대량 데이터 처리 작업'
+      batch_cycle: '배치 사이클 - 저녁 대량 데이터 처리 작업',
     };
     return descriptions[scenario as keyof typeof descriptions] || scenario;
   }
-  
+
   /**
    * 사이클 단계 설명
    */
@@ -803,11 +930,11 @@ export class SimplifiedQueryEngineHelpers {
       incident: '🟡 장애 발생 중',
       peak: '🔴 장애 심화 상태',
       resolving: '🟠 해결 진행 중',
-      resolved: '✅ 해결 완료'
+      resolved: '✅ 해결 완료',
     };
     return descriptions[phase as keyof typeof descriptions] || phase;
   }
-  
+
   /**
    * 사이클별 맞춤 권장사항
    */
@@ -828,7 +955,7 @@ export class SimplifiedQueryEngineHelpers {
 • 백업 완료 확인: \`backup-status --verify\`
 • 성능 정상화 확인: \`iostat -x 1 5\`
 • 로그 정리: \`logrotate -f /etc/logrotate.d/backup\`
-• 다음 백업 스케줄 점검 및 최적화`
+• 다음 백업 스케줄 점검 및 최적화`,
       },
       maintenance_cycle: {
         incident: `🔧 **패치 관리자 조치:**
@@ -845,7 +972,7 @@ export class SimplifiedQueryEngineHelpers {
 • 시스템 업데이트 확인: \`sudo apt list --installed | grep -i updated\`
 • 서비스 상태 전체 점검: \`sudo systemctl --failed\`
 • 보안 패치 적용 확인: \`sudo unattended-upgrades --dry-run\`
-• 시스템 재시작 필요 여부 확인: \`sudo needrestart\``
+• 시스템 재시작 필요 여부 확인: \`sudo needrestart\``,
       },
       traffic_cycle: {
         incident: `📈 **트래픽 스케일링 관리:**
@@ -855,14 +982,14 @@ export class SimplifiedQueryEngineHelpers {
 • 필요시 수동 스케일링: 추가 인스턴스 기동`,
         peak: `🚨 **트래픽 피크 긴급대응:**
 • 로드밸런서 연결 제한 확인: \`nginx -s reload\` (설정 변경 시)
-• 서버 리소스 긴급 점검: \`top -p \$(pgrep nginx)\`
+• 서버 리소스 긴급 점검: \`top -p $(pgrep nginx)\`
 • CDN 캐시 상태 확인 및 강제 갱신 고려
 • 필요시 트래픽 제한: rate limiting 규칙 적용`,
         resolving: `✨ **스케일링 완료 후 최적화:**
 • 오토스케일링 결과 확인
 • 각 서버 인스턴스 헬스체크: \`curl -I http://server/health\`
 • 로드밸런싱 균등분산 확인
-• 불필요한 인스턴스 정리 계획`
+• 불필요한 인스턴스 정리 계획`,
       },
       database_cycle: {
         incident: `🍽️ **데이터베이스 과부하 대응:**
@@ -879,7 +1006,7 @@ export class SimplifiedQueryEngineHelpers {
 • 쿼리 응답시간 모니터링: \`mysqladmin processlist\`
 • 인덱스 재구성 결과 확인: \`ANALYZE TABLE [table_name];\`
 • 캐시 성능 확인 및 워밍업
-• 커넥션 풀 정상화 점검`
+• 커넥션 풀 정상화 점검`,
       },
       network_cycle: {
         incident: `📁 **네트워크 트래픽 관리:**
@@ -896,7 +1023,7 @@ export class SimplifiedQueryEngineHelpers {
 • CDN 분산 효과 확인
 • 트래픽 경로 최적화 결과 점검
 • 대역폭 사용률 정상화 확인
-• 파일 전송 성능 테스트 실시`
+• 파일 전송 성능 테스트 실시`,
       },
       batch_cycle: {
         incident: `🌙 **배치작업 모니터링:**
@@ -913,18 +1040,22 @@ export class SimplifiedQueryEngineHelpers {
 • 배치 작업 완료 확인 및 로그 검토
 • 메모리 정리 상태 확인: \`free -h\`
 • 가비지 컬렉션 완료 대기
-• 다음 배치 스케줄 최적화 검토`
-      }
+• 다음 배치 스케줄 최적화 검토`,
+      },
     };
-    
-    const scenarioRecs = recommendations[scenario as keyof typeof recommendations];
+
+    const scenarioRecs =
+      recommendations[scenario as keyof typeof recommendations];
     if (scenarioRecs) {
-      return scenarioRecs[phase as keyof typeof scenarioRecs] || '📊 시스템 상태를 지속적으로 모니터링하고 있습니다.';
+      return (
+        scenarioRecs[phase as keyof typeof scenarioRecs] ||
+        '📊 시스템 상태를 지속적으로 모니터링하고 있습니다.'
+      );
     }
-    
+
     return '📊 시스템 상태를 지속적으로 모니터링하고 있습니다.';
   }
-  
+
   /**
    * 🎯 실시간 데이터에서 사이클 분석 생성
    */
@@ -932,11 +1063,13 @@ export class SimplifiedQueryEngineHelpers {
     try {
       // 통합 메트릭 API에서 현재 사이클 정보 포함된 데이터 가져오기
       const unifiedResponse = await unifiedMetricsService.getCurrentMetrics();
-      
+
       if (unifiedResponse.currentCycle) {
         // UnifiedMetricsResponse를 UnifiedCycleResponse로 타입 단언
         // (실제로 호환 가능한 구조)
-        return this.generateCycleAnalysisResponse(unifiedResponse as unknown as UnifiedCycleResponse);
+        return this.generateCycleAnalysisResponse(
+          unifiedResponse as unknown as UnifiedCycleResponse
+        );
       } else {
         return '❌ 현재 사이클 정보를 가져올 수 없습니다. 통합 메트릭 API를 확인해주세요.';
       }

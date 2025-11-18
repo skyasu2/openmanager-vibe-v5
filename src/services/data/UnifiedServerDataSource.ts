@@ -4,7 +4,11 @@
  * 모든 API가 동일한 데이터 소스를 사용하도록 보장
  */
 
-import { SystemConfigurationManager, getSystemConfig, getMockConfig } from '@/config/SystemConfiguration';
+import {
+  SystemConfigurationManager,
+  getSystemConfig,
+  getMockConfig,
+} from '@/config/SystemConfiguration';
 import type { Server } from '@/types/server';
 
 // 기존 Mock 설정들 (조건부 import)
@@ -108,9 +112,9 @@ export class UnifiedServerDataSource {
 
     const metrics: ServerDataMetrics = {
       totalServers: servers.length,
-      onlineServers: servers.filter(s => s.status === 'online').length,
-      warningServers: servers.filter(s => s.status === 'warning').length,
-      criticalServers: servers.filter(s => s.status === 'critical').length,
+      onlineServers: servers.filter((s) => s.status === 'online').length,
+      warningServers: servers.filter((s) => s.status === 'warning').length,
+      criticalServers: servers.filter((s) => s.status === 'critical').length,
       lastUpdated: new Date().toISOString(),
       dataSource: `${this.config.dataSource}-${this.config.totalServers}`,
     };
@@ -133,7 +137,7 @@ export class UnifiedServerDataSource {
         return this.loadFromCustomSource();
 
       default:
-        console.warn(`⚠️ Unknown data source: ${this.config.dataSource}, falling back to expanded`);
+        console.warn(`⚠️ Unknown data source, falling back to expanded`);
         return this.loadFromExpandedMock();
     }
   }
@@ -144,38 +148,44 @@ export class UnifiedServerDataSource {
   private async loadFromExpandedMock(): Promise<Server[]> {
     try {
       // mockServersExpanded를 기반으로 서버 생성
-      const servers: Server[] = mockServersExpanded.slice(0, this.config.totalServers).map((mockServer, index) => ({
-        id: mockServer.id,
-        name: mockServer.hostname || `${mockServer.type.toUpperCase()}-${index + 1}`,
-        hostname: mockServer.hostname || `${mockServer.id}.example.com`,
-        status: this.generateServerStatus(mockServer.id),
-        cpu: this.generateMetric('cpu', mockServer.type),
-        memory: this.generateMetric('memory', mockServer.type),
-        disk: this.generateMetric('disk', mockServer.type),
-        network: this.generateMetric('network', mockServer.type),
-        uptime: 99.95,
-        responseTime: this.generateResponseTime(mockServer.type),
-        lastUpdate: new Date(),
-        ip: `192.168.1.${100 + index}`,
-        os: 'Ubuntu 22.04 LTS',
-        type: mockServer.type,
-        role: (mockServer as { role?: string }).role || mockServer.type,
-        environment: 'production',
-        location: mockServer.location || `us-east-1${String.fromCharCode(97 + index)}`,
-        alerts: [],
-        // cpu_usage: 0, // 하위 호환성을 위해 제거 (Server 타입에 없음)
-        // memory_usage: 0,
-        // disk_usage: 0,
-        // network_in: 0,
-        // network_out: 0,
-        provider: 'DataCenter-0222',
-        specs: {
-          cpu_cores: this.getServerSpecs(mockServer.type).cpu_cores,
-          memory_gb: this.getServerSpecs(mockServer.type).memory_gb,
-          disk_gb: this.getServerSpecs(mockServer.type).disk_gb,
-          network_speed: '1Gbps',
-        },
-      }));
+      const servers: Server[] = mockServersExpanded
+        .slice(0, this.config.totalServers)
+        .map((mockServer, index) => ({
+          id: mockServer.id,
+          name:
+            mockServer.hostname ||
+            `${mockServer.type.toUpperCase()}-${index + 1}`,
+          hostname: mockServer.hostname || `${mockServer.id}.example.com`,
+          status: this.generateServerStatus(mockServer.id),
+          cpu: this.generateMetric('cpu', mockServer.type),
+          memory: this.generateMetric('memory', mockServer.type),
+          disk: this.generateMetric('disk', mockServer.type),
+          network: this.generateMetric('network', mockServer.type),
+          uptime: 99.95,
+          responseTime: this.generateResponseTime(mockServer.type),
+          lastUpdate: new Date(),
+          ip: `192.168.1.${100 + index}`,
+          os: 'Ubuntu 22.04 LTS',
+          type: mockServer.type,
+          role: (mockServer as { role?: string }).role || mockServer.type,
+          environment: 'production',
+          location:
+            mockServer.location ||
+            `us-east-1${String.fromCharCode(97 + index)}`,
+          alerts: [],
+          // cpu_usage: 0, // 하위 호환성을 위해 제거 (Server 타입에 없음)
+          // memory_usage: 0,
+          // disk_usage: 0,
+          // network_in: 0,
+          // network_out: 0,
+          provider: 'DataCenter-0222',
+          specs: {
+            cpu_cores: this.getServerSpecs(mockServer.type).cpu_cores,
+            memory_gb: this.getServerSpecs(mockServer.type).memory_gb,
+            disk_gb: this.getServerSpecs(mockServer.type).disk_gb,
+            network_speed: '1Gbps',
+          },
+        }));
 
       // 부족한 서버 자동 생성
       if (servers.length < this.config.totalServers) {
@@ -229,8 +239,20 @@ export class UnifiedServerDataSource {
   /**
    * 🔧 부족한 서버 자동 생성
    */
-  private generateAdditionalServers(count: number, startIndex: number): Server[] {
-    const serverTypes = ['web', 'api', 'database', 'cache', 'storage', 'monitoring', 'security', 'backup'];
+  private generateAdditionalServers(
+    count: number,
+    startIndex: number
+  ): Server[] {
+    const serverTypes = [
+      'web',
+      'api',
+      'database',
+      'cache',
+      'storage',
+      'monitoring',
+      'security',
+      'backup',
+    ];
     const additionalServers: Server[] = [];
 
     for (let i = 0; i < count; i++) {
@@ -272,7 +294,10 @@ export class UnifiedServerDataSource {
   /**
    * 🔄 메트릭 생성 (타입별 특성 반영)
    */
-  private generateMetric(type: 'cpu' | 'memory' | 'disk' | 'network', serverType: string): number {
+  private generateMetric(
+    type: 'cpu' | 'memory' | 'disk' | 'network',
+    serverType: string
+  ): number {
     const baseValues = {
       cpu: { web: 35, api: 45, database: 60, cache: 25, default: 40 },
       memory: { web: 40, api: 50, database: 70, cache: 80, default: 45 },
@@ -280,8 +305,9 @@ export class UnifiedServerDataSource {
       network: { web: 50, api: 60, database: 40, cache: 30, default: 45 },
     };
 
-    const base = baseValues[type][serverType as keyof typeof baseValues[typeof type]]
-                || baseValues[type].default;
+    const base =
+      baseValues[type][serverType as keyof (typeof baseValues)[typeof type]] ||
+      baseValues[type].default;
 
     // ±20% 변동성 추가
     const variation = (Math.random() - 0.5) * 0.4;
@@ -293,13 +319,18 @@ export class UnifiedServerDataSource {
    */
   private generateNetworkMetric(serverType: string) {
     const baseValues = {
-      web: 50, api: 60, database: 40, cache: 30, default: 45
+      web: 50,
+      api: 60,
+      database: 40,
+      cache: 30,
+      default: 45,
     };
 
-    const base = baseValues[serverType as keyof typeof baseValues] || baseValues.default;
+    const base =
+      baseValues[serverType as keyof typeof baseValues] || baseValues.default;
     const variation = (Math.random() - 0.5) * 0.4;
     const usage = Math.max(5, Math.min(95, Math.round(base * (1 + variation))));
-    
+
     // Dashboard API가 요구하는 완전한 object 형태로 생성
     return {
       usage: usage,
@@ -312,13 +343,15 @@ export class UnifiedServerDataSource {
   /**
    * 🎯 서버 상태 생성
    */
-  private generateServerStatus(serverId: string): 'online' | 'warning' | 'critical' {
+  private generateServerStatus(
+    serverId: string
+  ): 'online' | 'warning' | 'critical' {
     const hash = this.simpleHash(serverId);
 
     // 🚨 장애 시나리오: 경고/심각 상태 서버 비율 증가
     // online: 45% | warning: 35% | critical: 20%
     if (hash < 0.45) return 'online';
-    if (hash < 0.80) return 'warning';
+    if (hash < 0.8) return 'warning';
     return 'critical';
   }
 
@@ -327,10 +360,15 @@ export class UnifiedServerDataSource {
    */
   private generateResponseTime(serverType: string): number {
     const baseTimes = {
-      web: 150, api: 200, database: 100, cache: 50, default: 150
+      web: 150,
+      api: 200,
+      database: 100,
+      cache: 50,
+      default: 150,
     };
 
-    const base = baseTimes[serverType as keyof typeof baseTimes] || baseTimes.default;
+    const base =
+      baseTimes[serverType as keyof typeof baseTimes] || baseTimes.default;
     return Math.round(base + (Math.random() - 0.5) * 100);
   }
 
@@ -356,7 +394,7 @@ export class UnifiedServerDataSource {
   private simpleHash(str: string): number {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
-      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash = (hash << 5) - hash + str.charCodeAt(i);
       hash = hash & hash;
     }
     return Math.abs(hash) / 2147483647;
@@ -380,7 +418,9 @@ export class UnifiedServerDataSource {
       );
     }
 
-    const invalidServers = servers.filter(s => !s.id || !s.name || !s.hostname);
+    const invalidServers = servers.filter(
+      (s) => !s.id || !s.name || !s.hostname
+    );
     if (invalidServers.length > 0) {
       console.error('❌ Invalid servers found:', invalidServers.length);
     }
@@ -424,9 +464,12 @@ export class UnifiedServerDataSource {
 }
 
 // 🌟 편의 함수들
-export const getUnifiedServerDataSource = () => UnifiedServerDataSource.getInstance();
-export const getServersFromUnifiedSource = () => UnifiedServerDataSource.getInstance().getServers();
-export const getServerMetricsFromUnifiedSource = () => UnifiedServerDataSource.getInstance().getServerMetrics();
+export const getUnifiedServerDataSource = () =>
+  UnifiedServerDataSource.getInstance();
+export const getServersFromUnifiedSource = () =>
+  UnifiedServerDataSource.getInstance().getServers();
+export const getServerMetricsFromUnifiedSource = () =>
+  UnifiedServerDataSource.getInstance().getServerMetrics();
 
 // 기본 인스턴스 생성
 export const serverDataSource = UnifiedServerDataSource.getInstance();

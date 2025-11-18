@@ -128,7 +128,9 @@ export class CustomContextManager {
   /**
    * 🔍 타입 가드: OrganizationSettings 확인
    */
-  private isOrganizationSettings(value: unknown): value is OrganizationSettings {
+  private isOrganizationSettings(
+    value: unknown
+  ): value is OrganizationSettings {
     return (
       typeof value === 'object' &&
       value !== null &&
@@ -494,6 +496,22 @@ export class CustomContextManager {
   }
 
   /**
+   * 안전한 문자열 변환 (로깅/비교용)
+   */
+  private stringifyValue(value: unknown): string {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number' || typeof value === 'boolean') {
+      return String(value);
+    }
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return '[unserializable]';
+    }
+  }
+
+  /**
    * 🔍 단일 조건 평가
    */
   private evaluateSingleCondition(
@@ -515,9 +533,13 @@ export class CustomContextManager {
       case 'eq':
         return value === expectedValue;
       case 'contains':
-        return String(value).includes(String(expectedValue));
+        return this.stringifyValue(value).includes(
+          this.stringifyValue(expectedValue)
+        );
       case 'matches':
-        return new RegExp(String(expectedValue)).test(String(value));
+        return new RegExp(this.stringifyValue(expectedValue)).test(
+          this.stringifyValue(value)
+        );
       default:
         return false;
     }

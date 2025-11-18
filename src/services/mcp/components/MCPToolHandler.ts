@@ -128,10 +128,11 @@ export class MCPToolHandler {
     [key: string]: unknown;
   }> {
     const { name, arguments: args } = params;
+    const toolName = name as string;
 
-    console.log(`🔧 도구 호출: ${name}`, args);
+    console.log(`🔧 도구 호출: ${toolName}`, args);
 
-    switch (name) {
+    switch (toolName) {
       case 'search_files':
         return await this.realSearchFiles(
           args as { pattern?: string; content?: string }
@@ -141,7 +142,19 @@ export class MCPToolHandler {
       case 'list_directory':
         return await this.realListDirectory((args as { path: string }).path);
       default:
-        throw new Error(`알 수 없는 도구: ${name}`);
+        throw new Error(
+          `알 수 없는 도구: ${
+            typeof name === 'string'
+              ? name
+              : (() => {
+                  try {
+                    return JSON.stringify(name);
+                  } catch {
+                    return '[unserializable]';
+                  }
+                })()
+          }`
+        );
     }
   }
 
@@ -415,10 +428,10 @@ export class MCPToolHandler {
         );
 
         // MCPTool을 MCPToolInfo로 변환
-        return (response.result?.tools || []).map(tool => ({
+        return (response.result?.tools || []).map((tool) => ({
           name: tool.name,
           description: tool.description || '',
-          schema: tool.inputSchema || { type: 'object' }
+          schema: tool.inputSchema || { type: 'object' },
         }));
       } catch {
         console.warn(

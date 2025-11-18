@@ -489,13 +489,15 @@ export class PerformanceMonitor {
   static startRealTimeMonitoring(intervalMs: number = 5000): NodeJS.Timeout {
     console.log(`🔄 실시간 성능 모니터링 시작 (${intervalMs}ms 간격)`);
 
-    return setInterval(async () => {
-      const memory = this.getMemoryUsage();
-      const cpu = await this.getCPUUsage();
+    return setInterval(() => {
+      void (async () => {
+        const memory = this.getMemoryUsage();
+        const cpu = await this.getCPUUsage();
 
-      console.log(
-        `📊 [${new Date().toLocaleTimeString()}] 메모리: ${memory.rss}MB (${memory.percentage}%), CPU: ${cpu.usage}% (${cpu.category})`
-      );
+        console.log(
+          `📊 [${new Date().toLocaleTimeString()}] 메모리: ${memory.rss}MB (${memory.percentage}%), CPU: ${cpu.usage}% (${cpu.category})`
+        );
+      })();
     }, intervalMs);
   }
 }

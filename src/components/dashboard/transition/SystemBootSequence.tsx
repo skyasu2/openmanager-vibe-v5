@@ -9,7 +9,15 @@
 
 'use client';
 
-import { Fragment, useState, useCallback, useEffect, memo, type FC } from 'react';
+import {
+  Fragment,
+  useState,
+  useCallback,
+  useEffect,
+  memo,
+  type FC,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from 'react';
 import debug from '@/utils/debug';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { useRouter } from 'next/navigation';
@@ -96,7 +104,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
           handleFinalComplete();
           return;
         }
-        
+
         debug.log(`📊 ${stage.name} 시작`);
         setCurrentStage(stageIndex);
 
@@ -158,7 +166,9 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
 
     // 개발자 도구
     useEffect(() => {
-      (window as { debugSystemBootSequence?: unknown }).debugSystemBootSequence = {
+      (
+        window as { debugSystemBootSequence?: unknown }
+      ).debugSystemBootSequence = {
         forceComplete: handleFinalComplete,
         getState: () => ({
           currentStage,
@@ -168,7 +178,9 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
         }),
       };
 
-      (window as { emergencyCompleteBootSequence?: () => void }).emergencyCompleteBootSequence = handleFinalComplete;
+      (
+        window as { emergencyCompleteBootSequence?: () => void }
+      ).emergencyCompleteBootSequence = handleFinalComplete;
     }, [
       handleFinalComplete,
       currentStage,
@@ -183,13 +195,28 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
 
     const currentStageData = LOADING_STAGES[currentStage] || LOADING_STAGES[0];
 
+    const handleOverlayActivate = () => {
+      debug.log('🖱️ 화면 상호작용 - 즉시 완료 처리');
+      handleFinalComplete();
+    };
+
+    const handleOverlayKeyDown = (
+      event: ReactKeyboardEvent<HTMLDivElement>
+    ) => {
+      if (['Enter', ' '].includes(event.key)) {
+        event.preventDefault();
+        handleOverlayActivate();
+      }
+    };
+
     return (
       <div
+        role="button"
+        tabIndex={0}
+        aria-label="로딩 화면을 종료하고 대시보드로 이동"
         className="fixed inset-0 z-50 cursor-pointer bg-black"
-        onClick={() => {
-          debug.log('🖱️ 화면 클릭 - 즉시 완료 처리');
-          handleFinalComplete();
-        }}
+        onClick={handleOverlayActivate}
+        onKeyDown={handleOverlayKeyDown}
       >
         {/* 배경 효과 */}
         <div className="absolute inset-0">
@@ -199,14 +226,9 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
 
         {/* 메인 로딩 화면 */}
         <div className="relative z-10 flex min-h-screen items-center justify-center">
-          <div
-            className="space-y-8 text-center"
-          >
+          <div className="space-y-8 text-center">
             {/* 현재 단계 아이콘 */}
-            <div
-              key={currentStage}
-              className="text-6xl"
-            >
+            <div key={currentStage} className="text-6xl">
               {currentStageData?.icon ?? '🚀'}
             </div>
 
@@ -227,9 +249,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
                 </span>
               </div>
               <div className="h-2 w-full rounded-full bg-gray-700">
-                <div
-                  className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"
-                />
+                <div className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500" />
               </div>
             </div>
 
@@ -238,7 +258,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
               {[0, 1, 2].map((i) => (
                 <div
                   key={i}
-                  className="h-2 w-2 rounded-full bg-white animate-pulse"
+                  className="h-2 w-2 animate-pulse rounded-full bg-white"
                   style={{
                     animationDelay: `${i * 0.2}s`,
                     animationDuration: '1.5s',
@@ -252,9 +272,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
         {/* 비상 완료 버튼 */}
         <Fragment>
           {showEmergencyButton && (
-            <div
-              className="fixed bottom-6 left-1/2 z-[10000] -translate-x-1/2 transform"
-            >
+            <div className="fixed bottom-6 left-1/2 z-[10000] -translate-x-1/2 transform">
               <div className="max-w-sm rounded-lg border border-red-500/30 bg-black/90 p-4 text-white shadow-2xl backdrop-blur-sm">
                 <div className="space-y-3 text-center">
                   <div className="text-sm font-medium text-red-400">
@@ -283,9 +301,7 @@ const SystemBootSequence: FC<SystemBootSequenceProps> = memo(
         </Fragment>
 
         {/* 사용자 안내 */}
-        <div
-          className="fixed bottom-4 left-4 max-w-xs rounded-lg border border-white/30 bg-black/50 p-4 text-sm text-white backdrop-blur-lg"
-        >
+        <div className="fixed bottom-4 left-4 max-w-xs rounded-lg border border-white/30 bg-black/50 p-4 text-sm text-white backdrop-blur-lg">
           <div className="space-y-2">
             <div className="font-medium text-cyan-300">💡 빠른 완료 방법</div>
             <div>🖱️ 화면 아무 곳이나 클릭</div>

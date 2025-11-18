@@ -226,7 +226,7 @@ export function getInfrastructureUrl(
         process.env.GCP_MCP_SERVER_URL || INFRASTRUCTURE_CONFIG.mcp.serverUrl
       );
     default:
-      throw new Error(`지원하지 않는 인프라 서비스: ${service}`);
+      throw new Error('지원하지 않는 인프라 서비스');
   }
 }
 
@@ -246,7 +246,7 @@ export function getApiKey(service: 'google'): string {
       return googleKey || '';
     }
     default:
-      throw new Error(`지원하지 않는 API 서비스: ${service}`);
+      throw new Error('지원하지 않는 API 서비스');
   }
 }
 

@@ -75,15 +75,17 @@ const StepDots: FC<StepDotsProps> = ({
       {Array.from({ length: totalSteps }, (_, index) => (
         <div key={index} className="relative flex flex-col items-center">
           {/* 점 */}
-          <div
-            className={`${sizeClasses.dot} relative cursor-pointer rounded-full transition-all duration-300 ${getDotColor(index)}`}
+          <button
+            type="button"
+            disabled={!onStepClick || index > currentStep}
+            aria-label={`단계 ${index + 1}`}
+            aria-pressed={index === currentStep}
+            className={`${sizeClasses.dot} relative rounded-full transition-all duration-300 ${getDotColor(index)} ${onStepClick && index <= currentStep ? 'cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400' : 'cursor-default'}`}
             onClick={() => handleDotClick(index)}
           >
             {/* 현재 단계 펄스 효과 */}
             {index === currentStep && !error && (
-              <div
-                className="absolute inset-0 rounded-full bg-blue-400 animate-ping opacity-75"
-              />
+              <div className="absolute inset-0 animate-ping rounded-full bg-blue-400 opacity-75" />
             )}
 
             {/* 완료 체크 표시 */}
@@ -92,7 +94,7 @@ const StepDots: FC<StepDotsProps> = ({
                 <div className="h-1 w-1 rounded-full bg-white" />
               </div>
             )}
-          </div>
+          </button>
 
           {/* 라벨 (옵션) */}
           {showLabels && (

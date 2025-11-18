@@ -34,7 +34,7 @@ export const availableEngines: AIEngine[] = [
     bgColor: 'bg-purple-100',
     features: ['최적 엔진 자동 선택', '고성능', '유연성'],
     status: 'ready',
-  }
+  },
 ];
 
 // AISidebarV2 호환성을 위한 별칭
@@ -71,13 +71,10 @@ export const AIEngineSelector: FC<AIEngineSelectorProps> = ({
       <button
         onClick={() => !disabled && setShowEngineInfo(!showEngineInfo)}
         disabled={disabled}
-        role="button"
         aria-expanded={showEngineInfo}
         aria-haspopup="true"
         className={`flex items-center space-x-2 rounded-lg border border-gray-300 bg-white px-2 py-1 text-xs transition-colors ${
-          disabled 
-            ? 'cursor-not-allowed opacity-50' 
-            : 'hover:bg-gray-50'
+          disabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-gray-50'
         }`}
       >
         {createElement(selectedEngineData.icon, {
@@ -92,9 +89,7 @@ export const AIEngineSelector: FC<AIEngineSelectorProps> = ({
       {/* 엔진 선택 드롭다운 */}
       <Fragment>
         {showEngineInfo && (
-          <div
-            className="absolute right-0 top-full z-50 mt-2 w-60 rounded-lg border border-gray-200 bg-white shadow-lg sm:w-72"
-          >
+          <div className="absolute right-0 top-full z-50 mt-2 w-60 rounded-lg border border-gray-200 bg-white shadow-lg sm:w-72">
             <div className="border-b border-gray-100 p-3">
               <h4 className="text-xs font-semibold text-gray-800">
                 AI 모델 선택
@@ -115,15 +110,12 @@ export const AIEngineSelector: FC<AIEngineSelectorProps> = ({
                     }
                   }}
                   disabled={disabled}
-                  role="button"
                   aria-pressed={activeEngine === engine.id}
                   className={`w-full border-b border-gray-100 p-3 text-left transition-colors last:border-b-0 ${
-                    disabled 
-                      ? 'cursor-not-allowed opacity-50' 
+                    disabled
+                      ? 'cursor-not-allowed opacity-50'
                       : 'hover:bg-gray-50'
-                  } ${
-                    activeEngine === engine.id ? 'bg-blue-50' : ''
-                  }`}
+                  } ${activeEngine === engine.id ? 'bg-blue-50' : ''}`}
                 >
                   <div className="flex items-start space-x-3">
                     <div

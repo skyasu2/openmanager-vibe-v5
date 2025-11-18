@@ -38,7 +38,18 @@ export function safeFormatUptime(uptime: unknown): string {
     }
 
     // 기타 타입인 경우 문자열로 변환 시도
-    const stringValue = String(uptime);
+    const stringValue =
+      typeof uptime === 'string' ||
+      typeof uptime === 'number' ||
+      typeof uptime === 'boolean'
+        ? String(uptime)
+        : (() => {
+            try {
+              return JSON.stringify(uptime);
+            } catch {
+              return '[unserializable]';
+            }
+          })();
     return stringValue || 'N/A';
   } catch (error) {
     console.warn('⚠️ [safeFormatUptime] 업타임 포맷팅 실패:', error);

@@ -1,0 +1,32 @@
+Total errors: 13
+
+/mnt/d/cursor/openmanager-vibe-v5/src/config/fallback-data.ts
+  229:43  error  Invalid type "never" of template literal expression  @typescript-eslint/restrict-template-expressions
+  249:43  error  Invalid type "never" of template literal expression  @typescript-eslint/restrict-template-expressions
+
+/mnt/d/cursor/openmanager-vibe-v5/src/lib/di-container.ts
+  102:56  error  Invalid type "never" of template literal expression  @typescript-eslint/restrict-template-expressions
+
+/mnt/d/cursor/openmanager-vibe-v5/src/lib/unified-cache.ts
+  292:24  error    The two values in this comparison do not have a shared enum type  @typescript-eslint/no-unsafe-enum-comparison
+
+/mnt/d/cursor/openmanager-vibe-v5/src/services/ai/SimplifiedQueryEngine.processors.helpers.ts
+  405:51  error    Invalid operand for a '+' operation. Operands must each be a number or string, allowing a string + any of: `any`, `boolean`, `null`, `RegExp`, `undefined`. Got `unknown`  @typescript-eslint/restrict-plus-operands
+  858:26  error    Unnecessary escape character: \$                                                                                                                                           no-useless-escape
+
+/mnt/d/cursor/openmanager-vibe-v5/src/services/ai/UnifiedMetricsService.ts
+  99:41  error    Invalid operand for a '+' operation. Operands must each be a number or string, allowing a string + any of: `any`, `boolean`, `null`, `RegExp`, `undefined`. Got `UnifiedMetricsResponse`  @typescript-eslint/restrict-plus-operands
+
+/mnt/d/cursor/openmanager-vibe-v5/src/services/ai/embedding-service.ts
+  136:43  error  Unnecessary escape character: \[  no-useless-escape
+
+/mnt/d/cursor/openmanager-vibe-v5/src/services/ai/security/PromptSanitizer.ts
+  286:44  error    Unexpected combined character in character class                                                  no-misleading-character-class
+  400:11  error    Unnecessary escape character: \"                                                                  no-useless-escape
+  448:39  error    Unnecessary escape character: \/                                                                  no-useless-escape
+
+/mnt/d/cursor/openmanager-vibe-v5/src/services/system/CloudLoggingService.ts
+  427:13  error    Do not assign to the variable `module`. See: https://nextjs.org/docs/messages/no-assign-module-variable                                                             @next/next/no-assign-module-variable
+
+/mnt/d/cursor/openmanager-vibe-v5/src/utils/enhanced-logging.ts
+  107:34  error    Invalid type "unknown" of template literal expression                                         @typescript-eslint/restrict-template-expressions

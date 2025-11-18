@@ -135,7 +135,7 @@ export class SupabaseRealtimeAdapter {
         throw error;
       }
 
-      return (data || []).map(this.mapToThinkingStep);
+      return (data || []).map((record) => this.mapToThinkingStep(record));
     } catch (error) {
       console.error('SupabaseRealtimeAdapter.getThinkingSteps error:', error);
       return [];
@@ -191,6 +191,7 @@ export class SupabaseRealtimeAdapter {
           }
         )
         .subscribe((status) => {
+          /* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
           if (
             status === 'SUBSCRIBED' ||
             status === 'CHANNEL_ERROR' ||
@@ -201,6 +202,7 @@ export class SupabaseRealtimeAdapter {
               onError?.(new Error(`Subscription failed: ${status}`));
             }
           }
+          /* eslint-enable @typescript-eslint/no-unsafe-enum-comparison */
         });
 
       this.channels.set(sessionId, channel);
@@ -282,7 +284,9 @@ export class SupabaseRealtimeAdapter {
    * 모든 채널 정리
    */
   cleanup(): void {
-    this.channels.forEach((channel) => { void channel.unsubscribe(); });
+    this.channels.forEach((channel) => {
+      void channel.unsubscribe();
+    });
     this.channels.clear();
   }
 

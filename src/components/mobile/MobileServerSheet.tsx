@@ -1,6 +1,10 @@
 'use client';
 
-import { useMemo, Fragment } from 'react';
+import {
+  useMemo,
+  Fragment,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   X,
@@ -103,6 +107,13 @@ export default function MobileServerSheet({
       ? server.alerts
       : 0;
 
+  const handleOverlayKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onClose();
+    }
+  };
+
   return (
     <Fragment>
       {isOpen && (
@@ -111,12 +122,14 @@ export default function MobileServerSheet({
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={onClose}
+            onKeyDown={handleOverlayKeyDown}
+            role="button"
+            tabIndex={0}
+            aria-label="모바일 서버 시트를 닫기"
           />
 
           {/* 시트 컨테이너 */}
-          <div
-            className="absolute bottom-0 left-0 right-0 max-h-[90vh] overflow-hidden rounded-t-2xl bg-white shadow-2xl"
-          >
+          <div className="absolute bottom-0 left-0 right-0 max-h-[90vh] overflow-hidden rounded-t-2xl bg-white shadow-2xl">
             {/* 드래그 핸들 */}
             <div className="flex justify-center p-2">
               <div className="h-1 w-12 rounded-full bg-gray-300" />
@@ -124,13 +137,9 @@ export default function MobileServerSheet({
 
             {/* 스크롤 가능한 콘텐츠 */}
             <div className="max-h-[calc(90vh-3rem)] overflow-y-auto">
-              <div
-                className="px-6 pb-8"
-              >
+              <div className="px-6 pb-8">
                 {/* 헤더 */}
-                <div
-                  className="flex items-center justify-between border-b border-gray-100 pb-4"
-                >
+                <div className="flex items-center justify-between border-b border-gray-100 pb-4">
                   <div className="flex items-center space-x-3">
                     <div
                       className={`rounded-lg p-2 ${
@@ -159,9 +168,7 @@ export default function MobileServerSheet({
                 </div>
 
                 {/* 서버 상태 */}
-                <div
-                  className="mt-6 rounded-lg bg-gray-50 p-4"
-                >
+                <div className="mt-6 rounded-lg bg-gray-50 p-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-gray-700">
                       상태
@@ -175,16 +182,16 @@ export default function MobileServerSheet({
                       {server.status === 'warning' && '경고'}
                       {server.status === 'offline' && '오프라인'}
                       {server.status === 'critical' && '위험'}
-                      {server.status === 'maintenance' && '점검중'} {/* 🔧 추가: maintenance 상태 (타입 통합) */}
-                      {server.status === 'unknown' && '알 수 없음'} {/* 🔧 추가: unknown 상태 (타입 통합) */}
+                      {server.status === 'maintenance' && '점검중'}{' '}
+                      {/* 🔧 추가: maintenance 상태 (타입 통합) */}
+                      {server.status === 'unknown' && '알 수 없음'}{' '}
+                      {/* 🔧 추가: unknown 상태 (타입 통합) */}
                     </span>
                   </div>
                 </div>
 
                 {/* 기본 정보 */}
-                <div
-                  className="mt-6 grid grid-cols-2 gap-4"
-                >
+                <div className="mt-6 grid grid-cols-2 gap-4">
                   <div className="rounded-lg bg-gray-50 p-4">
                     <div className="flex items-center space-x-3">
                       <Clock className="h-5 w-5 text-gray-500" />
@@ -270,9 +277,7 @@ export default function MobileServerSheet({
 
                 {/* 알림 정보 */}
                 {alertCount > 0 && (
-                  <div
-                    className="mt-6 rounded-lg bg-red-50 p-4"
-                  >
+                  <div className="mt-6 rounded-lg bg-red-50 p-4">
                     <div className="flex items-center space-x-3">
                       <AlertTriangle className="h-5 w-5 text-red-500" />
                       <div>
@@ -289,9 +294,7 @@ export default function MobileServerSheet({
 
                 {/* 서비스 상태 */}
                 {server.services && server.services.length > 0 && (
-                  <div
-                    className="mt-6 space-y-4"
-                  >
+                  <div className="mt-6 space-y-4">
                     <h3 className="text-lg font-semibold text-gray-900">
                       실행 중인 서비스
                     </h3>
@@ -328,18 +331,13 @@ export default function MobileServerSheet({
 
                 {/* 최근 로그 */}
                 {server.logs && server.logs.length > 0 && (
-                  <div
-                    className="mt-6 space-y-4"
-                  >
+                  <div className="mt-6 space-y-4">
                     <h3 className="text-lg font-semibold text-gray-900">
                       최근 로그
                     </h3>
                     <div className="space-y-2">
                       {server.logs.slice(0, 5).map((log, index) => (
-                        <div
-                          key={index}
-                          className="rounded-lg bg-gray-50 p-3"
-                        >
+                        <div key={index} className="rounded-lg bg-gray-50 p-3">
                           <div className="flex items-center justify-between">
                             <span
                               className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${

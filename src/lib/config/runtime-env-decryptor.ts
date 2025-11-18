@@ -73,7 +73,17 @@ function decryptValue(
     return decryptedText;
   } catch (error: unknown) {
     throw new Error(
-      `복호화 실패: ${error instanceof Error ? error.message : String(error)}`
+      `복호화 실패: ${
+        error instanceof Error
+          ? error.message
+          : (() => {
+              try {
+                return JSON.stringify(error);
+              } catch {
+                return typeof error === 'string' ? error : 'Unknown error';
+              }
+            })()
+      }`
     );
   }
 }
