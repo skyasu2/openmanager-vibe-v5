@@ -129,11 +129,13 @@ export class StreamingAIEngine {
 
       if (
         cached &&
-        Date.now() - (typeof cached.metadata?.timestamp === 'number' 
-          ? cached.metadata.timestamp 
-          : cached.metadata?.timestamp instanceof Date 
-            ? cached.metadata.timestamp.getTime() 
-            : 0) < 300000
+        Date.now() -
+          (typeof cached.metadata?.timestamp === 'number'
+            ? cached.metadata.timestamp
+            : cached.metadata?.timestamp instanceof Date
+              ? cached.metadata.timestamp.getTime()
+              : 0) <
+          300000
       ) {
         // 5분 TTL
         return {
@@ -208,7 +210,7 @@ export class StreamingAIEngine {
           }, 20);
 
           // 병렬로 완전한 응답 처리
-          this.processCompleteResponse(request, controller, startTime);
+          void this.processCompleteResponse(request, controller, startTime);
         },
       });
 
@@ -250,7 +252,7 @@ export class StreamingAIEngine {
           response.processingTime = performance.now() - startTime;
 
           // 비동기로 캐시 및 패턴 학습
-          this.learnAndCache(request, response);
+          void this.learnAndCache(request, response);
 
           return response;
         }
@@ -373,7 +375,7 @@ export class StreamingAIEngine {
    * 🎯 초기 응답 생성 (20ms 이내)
    */
   private generateInitialResponse(
-    request: QueryRequest
+    _request: QueryRequest
   ): Partial<QueryResponse> {
     return {
       success: true,
@@ -438,7 +440,7 @@ export class StreamingAIEngine {
             if (parsed.success && parsed.response) {
               finalResponse = parsed;
             }
-          } catch (parseError) {
+          } catch {
             // 파싱 에러는 무시하고 계속
           }
         }
@@ -556,7 +558,11 @@ export class StreamingAIEngine {
     ];
 
     const randomIndex = Math.floor(Math.random() * templates.length);
-    return templates[randomIndex] ?? templates[0] ?? `${query}에 대한 분석을 시작합니다.`;
+    return (
+      templates[randomIndex] ??
+      templates[0] ??
+      `${query}에 대한 분석을 시작합니다.`
+    );
   }
 
   /**
@@ -711,11 +717,12 @@ export class StreamingAIEngine {
     // 오래된 예측적 응답 정리
     const cutoff = Date.now() - 600000; // 10분
     for (const [key, response] of this.preloadedResponses.entries()) {
-      const timestamp = typeof response.metadata?.timestamp === 'number' 
-        ? response.metadata.timestamp 
-        : response.metadata?.timestamp instanceof Date 
-          ? response.metadata.timestamp.getTime() 
-          : 0;
+      const timestamp =
+        typeof response.metadata?.timestamp === 'number'
+          ? response.metadata.timestamp
+          : response.metadata?.timestamp instanceof Date
+            ? response.metadata.timestamp.getTime()
+            : 0;
       if (timestamp < cutoff) {
         this.preloadedResponses.delete(key);
       }

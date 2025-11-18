@@ -13,7 +13,12 @@
 import { getStreamingAIEngine } from './streaming-ai-engine';
 import { unifiedCache, CacheNamespace } from '@/lib/unified-cache';
 import { aiLogger } from '@/lib/logger';
-import type { QueryRequest, QueryResponse, RouterConfig, RouteResult } from './SimplifiedQueryEngine.types';
+import type {
+  QueryRequest,
+  QueryResponse,
+  RouterConfig,
+  RouteResult,
+} from './SimplifiedQueryEngine.types';
 
 // Node.js Runtime 사용 - 안정성 우선 (AI 교차 검증 결과)
 
@@ -389,7 +394,9 @@ export class UltraFastAIRouter {
 
     return {
       success: true,
-      response: templates[Math.floor(Math.random() * templates.length)] ?? '처리 중입니다.',
+      response:
+        templates[Math.floor(Math.random() * templates.length)] ??
+        '처리 중입니다.',
       engine: ('quick-' + source) as QueryResponse['engine'],
       confidence: 0.5,
       thinkingSteps: [
@@ -414,7 +421,7 @@ export class UltraFastAIRouter {
   private postProcessAsync(
     request: QueryRequest,
     response: QueryResponse,
-    startTime: number
+    _startTime: number
   ): void {
     // 응답 속도에 영향을 주지 않는 비동기 작업들
     setTimeout(() => {
@@ -687,7 +694,7 @@ export class UltraFastAIRouter {
     this.operationQueue.push(operation);
 
     if (!this.isProcessingQueue) {
-      this.processOperationQueue();
+      void this.processOperationQueue();
     }
   }
 
