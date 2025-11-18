@@ -1,6 +1,6 @@
 /**
  * 📊 차트 라이브러리 성능 벤치마크 유틸리티
- * 
+ *
  * 실시간 차트 성능 측정 및 분석 도구
  * - 렌더링 성능 측정
  * - 메모리 사용량 추적
@@ -41,7 +41,7 @@ export class ChartPerformanceBenchmark {
   private lastFPSUpdate: number = 0;
   private renderTimes: number[] = [];
   private memoryUsages: number[] = [];
-  
+
   constructor(private library: string) {
     this.startTime = performance.now();
     this.lastFPSUpdate = Date.now();
@@ -60,12 +60,12 @@ export class ChartPerformanceBenchmark {
   endRender(startTime: number): number {
     const renderTime = performance.now() - startTime;
     this.renderTimes.push(renderTime);
-    
+
     // 최근 10개 렌더링 시간만 유지 (메모리 절약)
     if (this.renderTimes.length > 10) {
       this.renderTimes.shift();
     }
-    
+
     return renderTime;
   }
 
@@ -76,14 +76,14 @@ export class ChartPerformanceBenchmark {
     this.frameCount++;
     const now = Date.now();
     const elapsed = now - this.lastFPSUpdate;
-    
+
     if (elapsed >= 1000) {
       const fps = (this.frameCount * 1000) / elapsed;
       this.frameCount = 0;
       this.lastFPSUpdate = now;
       return fps;
     }
-    
+
     return 0;
   }
 
@@ -95,12 +95,12 @@ export class ChartPerformanceBenchmark {
       const memory = (performance as ExtendedPerformance).memory;
       const memoryUsage = memory ? memory.usedJSHeapSize / 1024 / 1024 : 0; // MB
       this.memoryUsages.push(memoryUsage);
-      
+
       // 최근 10개 메모리 사용량만 유지
       if (this.memoryUsages.length > 10) {
         this.memoryUsages.shift();
       }
-      
+
       return memoryUsage;
     }
     return 0;
@@ -119,7 +119,10 @@ export class ChartPerformanceBenchmark {
    */
   getAverageRenderTime(): number {
     if (this.renderTimes.length === 0) return 0;
-    return this.renderTimes.reduce((sum, time) => sum + time, 0) / this.renderTimes.length;
+    return (
+      this.renderTimes.reduce((sum, time) => sum + time, 0) /
+      this.renderTimes.length
+    );
   }
 
   /**
@@ -127,13 +130,20 @@ export class ChartPerformanceBenchmark {
    */
   getAverageMemoryUsage(): number {
     if (this.memoryUsages.length === 0) return 0;
-    return this.memoryUsages.reduce((sum, usage) => sum + usage, 0) / this.memoryUsages.length;
+    return (
+      this.memoryUsages.reduce((sum, usage) => sum + usage, 0) /
+      this.memoryUsages.length
+    );
   }
 
   /**
    * 현재 성능 메트릭 반환
    */
-  getCurrentMetrics(dataPoints: number, updateCount: number, domNodes?: number): PerformanceMetrics {
+  getCurrentMetrics(
+    dataPoints: number,
+    updateCount: number,
+    domNodes?: number
+  ): PerformanceMetrics {
     return {
       renderTime: this.getAverageRenderTime(),
       memoryUsage: this.getAverageMemoryUsage(),
@@ -147,9 +157,13 @@ export class ChartPerformanceBenchmark {
   /**
    * 벤치마크 결과 생성
    */
-  generateBenchmarkResult(dataPoints: number, updateCount: number, domNodes?: number): BenchmarkResult {
+  generateBenchmarkResult(
+    dataPoints: number,
+    updateCount: number,
+    domNodes?: number
+  ): BenchmarkResult {
     const testDuration = performance.now() - this.startTime;
-    
+
     return {
       library: this.library,
       metrics: this.getCurrentMetrics(dataPoints, updateCount, domNodes),
@@ -170,8 +184,8 @@ export class ChartPerformanceBenchmark {
     };
 
     // 각 메트릭을 0-100 점수로 정규화
-    const renderScore = Math.max(0, 100 - (metrics.renderTime * 2)); // 50ms = 0점
-    const memoryScore = Math.max(0, 100 - (metrics.memoryUsage)); // 100MB = 0점
+    const renderScore = Math.max(0, 100 - metrics.renderTime * 2); // 50ms = 0점
+    const memoryScore = Math.max(0, 100 - metrics.memoryUsage); // 100MB = 0점
     const fpsScore = Math.min(100, metrics.fps * 1.67); // 60fps = 100점
     const responsivenessScore = Math.min(100, (1000 / metrics.renderTime) * 10); // 응답성
 
@@ -226,29 +240,33 @@ export class ChartLibraryComparator {
     winner: string;
     summary: Record<string, unknown>;
   } {
-    const results: BenchmarkResult[] = [];
-    
-    this.benchmarks.forEach((benchmark, library) => {
-      const result = benchmark.generateBenchmarkResult(0, 0);
-      results.push(result);
-    });
+    const results: BenchmarkResult[] = Array.from(this.benchmarks.values()).map(
+      (benchmark) => benchmark.generateBenchmarkResult(0, 0)
+    );
 
     // 성능 점수 기준으로 우승자 결정
-    const scores = results.map(result => ({
+    const scores = results.map((result) => ({
       library: result.library,
-      score: new ChartPerformanceBenchmark(result.library).calculatePerformanceScore(result.metrics),
+      score: new ChartPerformanceBenchmark(
+        result.library
+      ).calculatePerformanceScore(result.metrics),
     }));
 
-    const winner = scores.reduce((prev, current) => 
+    const winner = scores.reduce((prev, current) =>
       prev.score > current.score ? prev : current
     ).library;
 
     const summary = {
       totalLibraries: results.length,
       bestPerformance: winner,
-      averageRenderTime: results.reduce((sum, r) => sum + r.metrics.renderTime, 0) / results.length,
-      averageMemoryUsage: results.reduce((sum, r) => sum + r.metrics.memoryUsage, 0) / results.length,
-      averageFPS: results.reduce((sum, r) => sum + r.metrics.fps, 0) / results.length,
+      averageRenderTime:
+        results.reduce((sum, r) => sum + r.metrics.renderTime, 0) /
+        results.length,
+      averageMemoryUsage:
+        results.reduce((sum, r) => sum + r.metrics.memoryUsage, 0) /
+        results.length,
+      averageFPS:
+        results.reduce((sum, r) => sum + r.metrics.fps, 0) / results.length,
     };
 
     return { results, winner, summary };
@@ -261,7 +279,9 @@ export class ChartLibraryComparator {
     const intervalId = setInterval(() => {
       this.benchmarks.forEach((benchmark, library) => {
         const metrics = benchmark.getCurrentMetrics(0, 0);
-        console.log(`[${library}] Render: ${metrics.renderTime.toFixed(2)}ms, Memory: ${metrics.memoryUsage.toFixed(1)}MB, FPS: ${metrics.fps.toFixed(1)}`);
+        console.log(
+          `[${library}] Render: ${metrics.renderTime.toFixed(2)}ms, Memory: ${metrics.memoryUsage.toFixed(1)}MB, FPS: ${metrics.fps.toFixed(1)}`
+        );
       });
     }, interval);
 
@@ -272,7 +292,7 @@ export class ChartLibraryComparator {
    * 벤치마크 리셋
    */
   resetAll(): void {
-    this.benchmarks.forEach(benchmark => benchmark.reset());
+    this.benchmarks.forEach((benchmark) => benchmark.reset());
     this.results = [];
   }
 }
@@ -320,7 +340,7 @@ export function detectMemoryLeaks(
   if ('memory' in performance) {
     const memory = (performance as ExtendedPerformance).memory;
     const currentMemory = memory ? memory.usedJSHeapSize / 1024 / 1024 : 0;
-    return (currentMemory - initialMemory) > threshold;
+    return currentMemory - initialMemory > threshold;
   }
   return false;
 }
@@ -330,7 +350,7 @@ export function detectMemoryLeaks(
  */
 export function profilePerformance(library: string) {
   const benchmark = new ChartPerformanceBenchmark(library);
-  
+
   return function <T extends (...args: unknown[]) => unknown>(
     target: unknown,
     propertyName: string,
@@ -340,15 +360,15 @@ export function profilePerformance(library: string) {
     if (!method) {
       return descriptor;
     }
-    
-    descriptor.value = (function (this: unknown, ...args: unknown[]) {
+
+    descriptor.value = function (this: unknown, ...args: unknown[]) {
       const startTime = benchmark.startRender();
       const result = method.apply(this, args);
       benchmark.endRender(startTime);
       benchmark.measureMemoryUsage();
-      
+
       return result;
-    }) as T;
+    } as T;
 
     return descriptor;
   };

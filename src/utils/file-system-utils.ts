@@ -142,7 +142,7 @@ export const safeLogWrite = (
 export const safeFileUpload = (
   uploadType: string,
   fileName: string,
-  data: unknown
+  _data: unknown
 ): boolean => {
   if (isVercelEnvironment()) {
     console.warn(

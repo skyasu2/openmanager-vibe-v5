@@ -8,8 +8,7 @@ const _initializeCrypto = () => {
 
   // ✅ 보안: 하드코딩된 기본값 제거 (CVE-2025-003)
   const masterKey =
-    process.env.ENCRYPTION_KEY ||
-    process.env.TEAM_DECRYPT_PASSWORD;
+    process.env.ENCRYPTION_KEY || process.env.TEAM_DECRYPT_PASSWORD;
 
   if (!masterKey) {
     // 개발 환경에서는 경고, 프로덕션에서는 예외
@@ -106,7 +105,7 @@ export function getSecureGoogleAIKey(): string | null {
           console.log('🔑 Google AI API 키 소스: 암호화된 환경변수');
         }
         return decryptedKey;
-      } catch (decryptError) {
+      } catch {
         // ✅ 에러 상세 정보 제거 (스택트레이스 노출 방지)
         console.error('🔑 암호화된 키 복호화 실패, 평문 키로 fallback');
         // 복호화 실패 시 평문 키로 fallback (계속 진행)
@@ -130,7 +129,7 @@ export function getSecureGoogleAIKey(): string | null {
       console.warn('🔑 Google AI API 키를 찾을 수 없습니다.');
     }
     return null;
-  } catch (error) {
+  } catch {
     // ✅ 에러 상세 정보 제거
     console.error('🔑 Google AI API 키 가져오기 실패');
 
@@ -208,7 +207,7 @@ export function getEncryptionStatus() {
         preview: googleAIKey ? 'AIza****' : 'none',
       },
     };
-  } catch (error) {
+  } catch {
     console.error('암호화 상태 확인 실패');
     return {
       enabled: false,
