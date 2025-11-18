@@ -30,40 +30,21 @@ import {
   Activity,
   Zap,
 } from 'lucide-react';
-import dynamic from 'next/dynamic';
 import { memo, useEffect, useState, useRef, type FC, Fragment } from 'react';
 
 // 공통 컴포넌트 import
 import { ServerStatusIndicator } from '../shared/ServerStatusIndicator';
 import { ServerMetricsChart } from '../shared/ServerMetricsChart';
-import type { Server as ServerType, ServerStatus } from '../../types/server';
-import { ServerCardLineChart } from '../shared/ServerMetricsLineChart';
-import { usePerformanceTracking } from '@/utils/performance';
+import type { Server as ServerType } from '../../types/server';
 import {
   getSafeServicesLength,
   getSafeValidServices,
-  getSafeAlertsCount,
   vercelSafeLog,
-  handleVercelError,
   isValidServer,
 } from '@/lib/vercel-safe-utils';
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
-import {
-  validateMetricValue,
-  validateServerMetrics,
-  generateSafeMetricValue,
-} from '../../utils/metricValidation';
 import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
-import {
-  getServerStatusTheme,
-  getTypographyClass,
-  COMMON_ANIMATIONS,
-  LAYOUT,
-  type ServerStatus,
-} from '../../styles/design-constants';
-// 🚀 Vercel 호환 접근성 기능 추가
-import { useAccessibilityOptional } from '@/context/AccessibilityProvider';
-import { useServerCardAria } from '../accessibility/AriaLabels';
+import { getServerStatusTheme, LAYOUT } from '../../styles/design-constants';
 
 export interface ImprovedServerCardProps {
   server: ServerType;
@@ -80,37 +61,34 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     onClick,
     variant = 'standard',
     showRealTimeUpdates = true,
-    index = 0,
+    _index = 0,
     enableProgressiveDisclosure = true,
   }) => {
     // 🛡️ 5층 방어 시스템 Layer 1: 서버 객체 존재성 검증 (베르셀 서버리스 환경 대응)
     // TypeError: Cannot read properties of undefined (reading 'length') 완전 방지
-    const isValidServerObject =
-      server && typeof server === 'object' && server.id;
-
     // 🛡️ 5층 방어 시스템 Layer 2: 필수 서버 속성 안전성 검증
-    const safeServer = {
-      id: server?.id || 'unknown',
-      name: server?.name || '알 수 없는 서버',
-      status: server?.status || 'unknown', // 🔧 수정: 'offline' → 'unknown' (기본값 변경)
-      type: server.type || 'server',
-      location: server.location || '서울',
-      os: server.os || 'Ubuntu 22.04',
-      ip: server.ip || '192.168.1.1',
-      uptime: server.uptime || 0,
-      cpu: typeof server.cpu === 'number' ? server.cpu : 50,
-      memory: typeof server.memory === 'number' ? server.memory : 50,
-      disk: typeof server.disk === 'number' ? server.disk : 30,
-      network: typeof server.network === 'number' ? server.network : 25,
-      alerts: server.alerts || 0,
-      services: Array.isArray(server.services) ? server.services : [],
-      lastUpdate: server.lastUpdate || new Date(),
-    };
+    const safeServer = useMemo(
+      () => ({
+        id: server?.id || 'unknown',
+        name: server?.name || '알 수 없는 서버',
+        status: server?.status || 'unknown', // 🔧 수정: 'offline' → 'unknown' (기본값 변경)
+        type: server.type || 'server',
+        location: server.location || '서울',
+        os: server.os || 'Ubuntu 22.04',
+        ip: server.ip || '192.168.1.1',
+        uptime: server.uptime || 0,
+        cpu: typeof server.cpu === 'number' ? server.cpu : 50,
+        memory: typeof server.memory === 'number' ? server.memory : 50,
+        disk: typeof server.disk === 'number' ? server.disk : 30,
+        network: typeof server.network === 'number' ? server.network : 25,
+        alerts: server.alerts || 0,
+        services: Array.isArray(server.services) ? server.services : [],
+        lastUpdate: server.lastUpdate || new Date(),
+      }),
+      [server]
+    );
 
     // 🚀 성능 추적 활성화 (개발환경 전용)
-    const performanceStats = usePerformanceTracking(
-      `ImprovedServerCard-${server.id}`
-    );
 
     const [isHovered, setIsHovered] = useState(false);
     const [showSecondaryInfo, setShowSecondaryInfo] = useState(false);
@@ -118,10 +96,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     const isMountedRef = useRef(true); // 비동기 상태 관리 개선 (Codex 제안)
 
     // 🎯 24시간 고정 데이터 + 1분 미세 변동 (KST 동기화)
-    const { currentMetrics, historyData } = useFixed24hMetrics(
-      server.id,
-      60000
-    ); // 1분 간격 업데이트
+    const { currentMetrics } = useFixed24hMetrics(server.id, 60000); // 1분 간격 업데이트
 
     // 🛡️ 메트릭 안전성 검증 (고정 데이터 기반)
     const realtimeMetrics = useMemo(() => {
@@ -160,41 +135,6 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
       safeServer.disk,
       safeServer.network,
     ]);
-
-    // 🚀 Vercel 호환 접근성 Hook (선택적 사용)
-    const accessibility = useAccessibilityOptional();
-    const isAccessibilityEnabled = !!accessibility?.isClient;
-
-    // 🛡️ 5층 방어 시스템 Layer 4: ARIA 속성 안전 생성 (접근성 활성화 시에만)
-    // ✅ React Hook 규칙 준수: Hook을 먼저 호출 (조건 없이)
-    const rawAriaProps = useServerCardAria({
-      serverId: safeServer.id,
-      serverName: safeServer.name,
-      status: safeServer.status as
-        | 'online'
-        | 'offline'
-        | 'warning'
-        | 'critical',
-      cpu: realtimeMetrics?.cpu ?? 0,
-      memory: realtimeMetrics?.memory ?? 0,
-      disk: realtimeMetrics?.disk ?? 0,
-      alerts: typeof safeServer.alerts === 'number' ? safeServer.alerts : 0,
-      uptime: `${safeServer.uptime}시간`,
-    });
-
-    // ✅ 결과를 조건부로 사용 (Hook 규칙 위반 방지)
-    const ariaProps = useMemo(() => {
-      try {
-        if (!isAccessibilityEnabled) return {};
-        return rawAriaProps;
-      } catch (error) {
-        console.error(
-          '⚠️ ImprovedServerCard Layer 4: ARIA 속성 생성 실패, 빈 객체 반환',
-          error
-        );
-        return {};
-      }
-    }, [isAccessibilityEnabled, rawAriaProps]);
 
     // 컴포넌트 언마운트 추적
     useEffect(() => {
@@ -354,29 +294,6 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         return null;
       }
     }, [safeServer.os]);
-
-    // 🚀 알림 수 계산 - 5층 방어 시스템 완전 적용
-    const alertCount = useMemo(() => {
-      try {
-        // 안전한 서버 객체에서 알림 수 계산
-        const alertsValue = safeServer.alerts;
-
-        // 추가 타입 검증
-        if (typeof alertsValue === 'number') {
-          return Math.max(0, alertsValue); // 음수 방지
-        }
-
-        if (Array.isArray(alertsValue)) {
-          return alertsValue.length || 0;
-        }
-
-        // 베르셀 안전 유틸리티 사용
-        return getSafeAlertsCount(alertsValue);
-      } catch (error) {
-        console.error('⚠️ alertCount 계산 실패, 기본값 0 사용', error);
-        return 0;
-      }
-    }, [safeServer.alerts]);
 
     // Material Design 3 배리언트별 스타일 (Typography 토큰 기반) - 메모이제이션 최적화
     const variantStyles = useMemo(() => {

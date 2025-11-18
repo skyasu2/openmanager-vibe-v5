@@ -23,10 +23,7 @@ import type {
 } from './SimplifiedQueryEngine.types';
 import { SimplifiedQueryEngineUtils } from './SimplifiedQueryEngine.utils';
 import { SimplifiedQueryEngineHelpers } from './SimplifiedQueryEngine.processors.helpers';
-import {
-  getQueryDifficultyAnalyzer,
-  type GoogleAIModel,
-} from './QueryDifficultyAnalyzer';
+import type { GoogleAIModel } from './QueryDifficultyAnalyzer';
 import { getGoogleAIUsageTracker } from './GoogleAIUsageTracker';
 // 🔧 타임아웃 설정 (통합 유틸리티 사용)
 import { getEnvironmentTimeouts } from '@/utils/timeout-config';
@@ -196,8 +193,6 @@ export class GoogleAIModeProcessor {
 
     // 🎯 무료 티어 안정성 우선: Flash-Lite 고정 사용 (할당량 초과 시 대체 모델 전환 가능)
     let selectedModel: GoogleAIModel = 'gemini-2.5-flash-lite';
-    const difficultyScore = 0; // 단순화: 분석 생략
-    const difficultyLevel = 'standard'; // 표준 처리
 
     const modelStep = thinkingSteps[thinkingSteps.length - 1];
     if (modelStep) {

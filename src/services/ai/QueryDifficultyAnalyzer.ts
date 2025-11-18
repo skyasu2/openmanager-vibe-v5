@@ -11,7 +11,10 @@
 import type { AIQueryContext, MCPContext } from '../../types/ai-service-types';
 
 // 구글 AI 모델 정의 (성능 순)
-export type GoogleAIModel = 'gemini-2.5-flash-lite' | 'gemini-2.5-flash' | 'gemini-2.5-pro';
+export type GoogleAIModel =
+  | 'gemini-2.5-flash-lite'
+  | 'gemini-2.5-flash'
+  | 'gemini-2.5-pro';
 
 // 난이도 레벨
 export type DifficultyLevel = 'simple' | 'medium' | 'complex';
@@ -55,15 +58,67 @@ export const MODEL_CHARACTERISTICS = {
 // 서버 모니터링 도메인 특화 용어 사전 (가중치 포함)
 const TECHNICAL_TERMS = {
   // 서버 모니터링 핵심 (가장 높은 가중치)
-  monitoring: ['서버', '모니터링', '상태', '정상', '비정상', '장애', '알림', '메트릭', '로그', '이벤트'],
+  monitoring: [
+    '서버',
+    '모니터링',
+    '상태',
+    '정상',
+    '비정상',
+    '장애',
+    '알림',
+    '메트릭',
+    '로그',
+    '이벤트',
+  ],
   // 서버 상태/관리 (높은 가중치)
-  server_status: ['CPU', 'Memory', '메모리', 'Disk', '디스크', 'Network', '네트워크', 'uptime', '가동시간', 'downtime'],
+  server_status: [
+    'CPU',
+    'Memory',
+    '메모리',
+    'Disk',
+    '디스크',
+    'Network',
+    '네트워크',
+    'uptime',
+    '가동시간',
+    'downtime',
+  ],
   // 장애/문제 해결 (중간 가중치)
-  troubleshooting: ['장애', '오류', 'error', '문제', '복구', '재시작', 'restart', '점검', '분석', '원인'],
+  troubleshooting: [
+    '장애',
+    '오류',
+    'error',
+    '문제',
+    '복구',
+    '재시작',
+    'restart',
+    '점검',
+    '분석',
+    '원인',
+  ],
   // 성능 지표 (중간 가중치)
-  performance: ['성능', '응답시간', 'latency', 'throughput', '처리량', 'load', '부하', '임계값', 'threshold'],
+  performance: [
+    '성능',
+    '응답시간',
+    'latency',
+    'throughput',
+    '처리량',
+    'load',
+    '부하',
+    '임계값',
+    'threshold',
+  ],
   // 프로그래밍 관련 (낮은 가중치 - 모니터링에서는 덜 중요)
-  programming: ['TypeScript', 'React', 'Next.js', 'API', 'Hook', 'Component', 'async', 'await'],
+  programming: [
+    'TypeScript',
+    'React',
+    'Next.js',
+    'API',
+    'Hook',
+    'Component',
+    'async',
+    'await',
+  ],
 } as const;
 
 // 서버 모니터링 복잡도별 질문 패턴
@@ -129,12 +184,17 @@ export class QueryDifficultyAnalyzer {
     const recommendedModel = this.recommendModel(score, level, usageQuota);
 
     // 선택 이유 생성
-    const reasoningText = this.generateReasoning(score, level, recommendedModel, {
-      linguistic,
-      technical,
-      reasoning,
-      response,
-    });
+    const reasoningText = this.generateReasoning(
+      score,
+      level,
+      recommendedModel,
+      {
+        linguistic,
+        technical,
+        reasoning,
+        response,
+      }
+    );
 
     return {
       level,
@@ -165,9 +225,14 @@ export class QueryDifficultyAnalyzer {
     else score += 15;
 
     // 문장 구조 복잡도
-    const sentences = query.split(/[.!?]/).filter(s => s.trim().length > 0);
+    const sentences = query.split(/[.!?]/).filter((s) => s.trim().length > 0);
     if (sentences.length > 1) score += 3; // 다중 문장
-    if (query.includes('그리고') || query.includes('또한') || query.includes('하지만')) score += 2; // 접속사
+    if (
+      query.includes('그리고') ||
+      query.includes('또한') ||
+      query.includes('하지만')
+    )
+      score += 2; // 접속사
 
     // 의문문 패턴 (복잡한 질문일수록 높은 점수)
     if (query.includes('어떻게') || query.includes('왜')) score += 3;
@@ -180,7 +245,10 @@ export class QueryDifficultyAnalyzer {
   /**
    * 기술적 복잡도 분석 (0-25점)
    */
-  private analyzeTechnicalComplexity(query: string, context?: AIQueryContext): number {
+  private analyzeTechnicalComplexity(
+    query: string,
+    context?: AIQueryContext
+  ): number {
     let score = 0;
 
     // 기술 용어 가중치 계산
@@ -195,7 +263,12 @@ export class QueryDifficultyAnalyzer {
     }
 
     // 코드 관련 키워드
-    if (query.includes('코드') || query.includes('구현') || query.includes('함수')) score += 3;
+    if (
+      query.includes('코드') ||
+      query.includes('구현') ||
+      query.includes('함수')
+    )
+      score += 3;
     if (query.includes('알고리즘') || query.includes('자료구조')) score += 4;
     if (query.includes('아키텍처') || query.includes('시스템')) score += 5;
 
@@ -209,11 +282,14 @@ export class QueryDifficultyAnalyzer {
   /**
    * 추론 복잡도 분석 (0-25점) - 서버 모니터링 특화
    */
-  private analyzeReasoningComplexity(query: string, mcpContext?: MCPContext | null): number {
+  private analyzeReasoningComplexity(
+    query: string,
+    mcpContext?: MCPContext | null
+  ): number {
     let score = 3; // 기본 점수 (모니터링은 대부분 단순 조회)
 
     // 서버 모니터링 복잡도별 패턴 분석
-    
+
     // 1. 간단한 조회 (점수 낮음)
     for (const pattern of SIMPLE_MONITORING_PATTERNS) {
       if (pattern.test(query)) {
@@ -243,12 +319,28 @@ export class QueryDifficultyAnalyzer {
     if (query.includes('지금') || query.includes('당장')) score += 2;
 
     // 시간 범위 지정 시 복잡도 증가
-    if (query.includes('지난') || query.includes('최근') || query.includes('어제')) score += 3;
-    if (query.includes('시간') || query.includes('분') || query.includes('일')) score += 2;
+    if (
+      query.includes('지난') ||
+      query.includes('최근') ||
+      query.includes('어제')
+    )
+      score += 3;
+    if (query.includes('시간') || query.includes('분') || query.includes('일'))
+      score += 2;
 
     // 집계/통계 요청 시 복잡도 증가
-    if (query.includes('평균') || query.includes('합계') || query.includes('통계')) score += 4;
-    if (query.includes('비율') || query.includes('퍼센트') || query.includes('%')) score += 3;
+    if (
+      query.includes('평균') ||
+      query.includes('합계') ||
+      query.includes('통계')
+    )
+      score += 4;
+    if (
+      query.includes('비율') ||
+      query.includes('퍼센트') ||
+      query.includes('%')
+    )
+      score += 3;
 
     // MCP 컨텍스트 사용 시 복잡도 증가
     if (mcpContext?.files && mcpContext.files.length > 0) score += 2;
@@ -260,7 +352,10 @@ export class QueryDifficultyAnalyzer {
   /**
    * 응답 복잡도 분석 (0-25점) - 서버 모니터링 특화
    */
-  private analyzeResponseComplexity(query: string, context?: AIQueryContext): number {
+  private analyzeResponseComplexity(
+    query: string,
+    _context?: AIQueryContext
+  ): number {
     let score = 2; // 기본 점수 (모니터링은 간단한 답변이 대부분)
 
     // 간단한 수치/상태 응답 (낮은 점수)
@@ -314,9 +409,9 @@ export class QueryDifficultyAnalyzer {
    */
   private determineDifficultyLevel(score: number): DifficultyLevel {
     // 서버 모니터링은 대부분 간단한 조회이므로 임계값 조정
-    if (score <= 20) return 'simple';   // 더 낮은 임계값 (단순 조회)
-    if (score <= 50) return 'medium';   // 중간 임계값 (목록, 확인)
-    return 'complex';                   // 높은 임계값 (분석, 예측)
+    if (score <= 20) return 'simple'; // 더 낮은 임계값 (단순 조회)
+    if (score <= 50) return 'medium'; // 중간 임계값 (목록, 확인)
+    return 'complex'; // 높은 임계값 (분석, 예측)
   }
 
   /**
@@ -324,9 +419,9 @@ export class QueryDifficultyAnalyzer {
    * 🎯 2025년 무료 티어 최적화: Flash-Lite 고정 사용
    */
   private recommendModel(
-    score: number,
-    level: DifficultyLevel,
-    usageQuota?: { [model: string]: { daily: number; rpm: number } }
+    _score: number,
+    _level: DifficultyLevel,
+    _usageQuota?: { [model: string]: { daily: number; rpm: number } }
   ): GoogleAIModel {
     // 🚀 무료 티어 안정성 우선: Flash-Lite 고정 사용 (RPD 1,000개, 가장 관대한 제한)
     return 'gemini-2.5-flash-lite';
@@ -336,10 +431,15 @@ export class QueryDifficultyAnalyzer {
    * 고정 모델 선택 이유 생성 (단순화)
    */
   private generateReasoning(
-    score: number,
-    level: DifficultyLevel,
-    model: GoogleAIModel,
-    factors: { linguistic: number; technical: number; reasoning: number; response: number }
+    _score: number,
+    _level: DifficultyLevel,
+    _model: GoogleAIModel,
+    _factors: {
+      linguistic: number;
+      technical: number;
+      reasoning: number;
+      response: number;
+    }
   ): string {
     // 🎯 무료 티어 안정성 우선: 단순한 설명
     return `무료 티어 최적화: Flash-Lite 고정 사용 (RPD 1,000개, 안정성 우선)`;
@@ -348,7 +448,13 @@ export class QueryDifficultyAnalyzer {
   /**
    * 실시간 난이도 조정 (학습 기능)
    */
-  adjustThresholds(feedbackData: { query: string; actualComplexity: number; userSatisfaction: number }[]): void {
+  adjustThresholds(
+    _feedbackData: {
+      query: string;
+      actualComplexity: number;
+      userSatisfaction: number;
+    }[]
+  ): void {
     // 피드백 데이터를 기반으로 임계값 동적 조정
     // 실제 구현 시 머신러닝 모델이나 통계적 분석 사용 가능
     console.log('📊 난이도 임계값 동적 조정 (향후 구현 예정)');

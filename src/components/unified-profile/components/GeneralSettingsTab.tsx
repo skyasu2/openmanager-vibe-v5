@@ -57,15 +57,17 @@ export function GeneralSettingsTab({ settingsData }: GeneralSettingsTabProps) {
 
           <div className="grid grid-cols-1 gap-3">
             <button
-              onClick={() => { void (async () => {
-                try {
-                  info('settings', '테마를 변경 중...');
-                  await new Promise((resolve) => setTimeout(resolve, 1000));
-                  success('settings', '테마가 변경되었습니다.');
-                } catch (err) {
-                  error('settings', '테마 변경 실패');
-                }
-              })(); }}
+              onClick={() => {
+                void (async () => {
+                  try {
+                    info('settings', '테마를 변경 중...');
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                    success('settings', '테마가 변경되었습니다.');
+                  } catch {
+                    error('settings', '테마 변경 실패');
+                  }
+                })();
+              }}
               className="rounded-lg border border-gray-500/30 bg-gray-500/20 px-4 py-3 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-500/30"
             >
               <div className="flex flex-col items-center gap-1">
@@ -76,15 +78,17 @@ export function GeneralSettingsTab({ settingsData }: GeneralSettingsTabProps) {
               </div>
             </button>
             <button
-              onClick={() => { void (async () => {
-                try {
-                  info('backup', '백업을 생성 중...');
-                  await new Promise((resolve) => setTimeout(resolve, 2000));
-                  success('backup', '백업이 성공적으로 생성되었습니다.');
-                } catch (err) {
-                  error('backup', '백업 생성 실패');
-                }
-              })(); }}
+              onClick={() => {
+                void (async () => {
+                  try {
+                    info('backup', '백업을 생성 중...');
+                    await new Promise((resolve) => setTimeout(resolve, 2000));
+                    success('backup', '백업이 성공적으로 생성되었습니다.');
+                  } catch {
+                    error('backup', '백업 생성 실패');
+                  }
+                })();
+              }}
               className="rounded-lg border border-gray-500/30 bg-gray-500/20 px-4 py-3 text-sm font-medium text-gray-300 transition-colors hover:bg-gray-500/30"
             >
               <div className="flex flex-col items-center gap-1">

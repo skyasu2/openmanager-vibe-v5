@@ -14,10 +14,16 @@ import {
   InlineFeedbackContainer,
   useInlineFeedback,
 } from '@/components/ui/InlineFeedbackSystem';
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 // framer-motion 제거 - CSS 애니메이션 사용
 import { Bot, Database, Monitor, Settings, X, Zap } from 'lucide-react';
-import { Fragment, useEffect, useRef, useState } from 'react';
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { GeneralSettingsTab } from './components/GeneralSettingsTab';
 import { GeneratorSettingsTab } from './components/GeneratorSettingsTab';
@@ -43,7 +49,6 @@ export function UnifiedSettingsPanel({
   // 커스텀 훅 사용
   const {
     settingsData,
-    isLoadingSettings,
     generatorConfig,
     isGeneratorLoading,
     loadGeneratorConfig,
@@ -52,10 +57,8 @@ export function UnifiedSettingsPanel({
     checkSystemHealth,
   } = useSettingsData();
 
-
-
   // 새로운 인라인 피드백 시스템 사용
-  const { success, error, info, warning, loading, clear } = useInlineFeedback();
+  const { success, error, info, loading } = useInlineFeedback();
 
   useEffect(() => {
     setIsClient(true);
@@ -75,7 +78,7 @@ export function UnifiedSettingsPanel({
     document.addEventListener('keydown', handleEscape, { capture: true });
     return () =>
       document.removeEventListener('keydown', handleEscape, { capture: true });
-  }, [isOpen]); // onClose 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [isOpen, onClose]);
 
   // 외부 클릭으로 모달 닫기
   useEffect(() => {
@@ -103,7 +106,7 @@ export function UnifiedSettingsPanel({
       clearTimeout(timeoutId);
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen]); // onClose, buttonRef 함수/객체 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [isOpen, onClose, buttonRef]);
 
   // Body 스크롤 방지
   useEffect(() => {
@@ -121,12 +124,12 @@ export function UnifiedSettingsPanel({
   // 탭별 데이터 로드
   useEffect(() => {
     if (isOpen && activeTab === 'generator') {
-      loadGeneratorConfig();
+      void loadGeneratorConfig();
     }
-  }, [isOpen, activeTab]); // loadGeneratorConfig 함수 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [isOpen, activeTab, loadGeneratorConfig]);
 
   // 모달 위치 계산 함수
-  const calculateModalPosition = () => {
+  const calculateModalPosition = useCallback(() => {
     if (!buttonRef?.current) return;
 
     const buttonRect = buttonRef.current.getBoundingClientRect();
@@ -162,7 +165,7 @@ export function UnifiedSettingsPanel({
     }
 
     setModalPosition({ top, left });
-  };
+  }, [buttonRef]);
 
   // 위치 계산 - 모달이 열릴 때마다 실행
   useEffect(() => {
@@ -176,8 +179,7 @@ export function UnifiedSettingsPanel({
       return () => window.removeEventListener('resize', handleResize);
     }
     return undefined;
-  }, [isOpen]);
-
+  }, [isOpen, calculateModalPosition]);
 
   // 제너레이터 핸들러들
   const handleGeneratorCheck = async () => {
@@ -185,7 +187,7 @@ export function UnifiedSettingsPanel({
       loading('generator-section', '데이터 생성기 상태를 확인하고 있습니다...');
       await loadGeneratorConfig();
       success('generator-section', '데이터 생성기가 정상적으로 작동 중입니다.');
-    } catch (err) {
+    } catch {
       error(
         'generator-section',
         '데이터 생성기 상태 확인 중 오류가 발생했습니다.'
@@ -211,7 +213,7 @@ export function UnifiedSettingsPanel({
           result.error || '서버 개수 변경에 실패했습니다.'
         );
       }
-    } catch (err) {
+    } catch {
       error(
         'generator-section',
         '서버 개수 변경 중 시스템 오류가 발생했습니다.'
@@ -237,7 +239,7 @@ export function UnifiedSettingsPanel({
           result.error || '아키텍처 변경에 실패했습니다.'
         );
       }
-    } catch (err) {
+    } catch {
       error(
         'generator-section',
         '아키텍처 변경 중 시스템 오류가 발생했습니다.'
@@ -254,35 +256,8 @@ export function UnifiedSettingsPanel({
         '시스템 진단 완료',
         '모든 시스템 구성요소가 정상적으로 작동 중입니다.'
       );
-    } catch (err) {
+    } catch {
       error('시스템 진단 실패', '시스템 상태 확인 중 오류가 발생했습니다.');
-    }
-  };
-
-  // 고급 기능 핸들러들
-  const handleAIOptimization = async () => {
-    try {
-      info('AI 최적화', 'AI 시스템 성능 최적화를 진행하고 있습니다...');
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      success('최적화 완료', '🤖 AI 시스템이 성공적으로 최적화되었습니다!', {
-        duration: 5000,
-        persistent: true,
-      });
-    } catch (err) {
-      error('최적화 실패', 'AI 시스템 최적화 중 오류가 발생했습니다.');
-    }
-  };
-
-  const handleSystemDiagnosis = async () => {
-    try {
-      info('시스템 진단', '종합적인 시스템 상태 분석을 진행하고 있습니다...');
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      success('진단 완료', '🔍 시스템이 최적 상태로 운영되고 있습니다!', {
-        duration: 3000,
-        persistent: false,
-      });
-    } catch (err) {
-      error('진단 실패', '시스템 진단 중 오류가 발생했습니다.');
     }
   };
 
@@ -292,7 +267,7 @@ export function UnifiedSettingsPanel({
       info('optimization-section', '⚡ 시스템 최적화를 시작합니다...');
       await new Promise((resolve) => setTimeout(resolve, 3000));
       success('optimization-section', '🚀 시스템 최적화가 완료되었습니다!');
-    } catch (err) {
+    } catch {
       error('optimization-section', '최적화 실행 중 오류가 발생했습니다.');
     }
   };
@@ -302,7 +277,7 @@ export function UnifiedSettingsPanel({
       info('optimization-section', '📊 성능 분석을 시작합니다...');
       await new Promise((resolve) => setTimeout(resolve, 2000));
       success('optimization-section', '✅ 성능 분석이 완료되었습니다!');
-    } catch (err) {
+    } catch {
       error('optimization-section', '성능 분석 중 오류가 발생했습니다.');
     }
   };
@@ -312,7 +287,7 @@ export function UnifiedSettingsPanel({
       info('optimization-section', '🔧 캐시 최적화를 시작합니다...');
       await new Promise((resolve) => setTimeout(resolve, 1500));
       success('optimization-section', '💾 캐시 최적화가 완료되었습니다!');
-    } catch (err) {
+    } catch {
       error('optimization-section', '캐시 최적화 중 오류가 발생했습니다.');
     }
   };
@@ -326,7 +301,6 @@ export function UnifiedSettingsPanel({
             🚀 AI 설정은 GCP Functions로 이관되었습니다
           </div>
         );
-
 
       case 'generator':
         return (
@@ -370,6 +344,13 @@ export function UnifiedSettingsPanel({
 
   if (!isOpen) return null;
 
+  const handleOverlayKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ' || event.key === 'Escape') {
+      event.preventDefault();
+      onClose();
+    }
+  };
+
   return createPortal(
     <Fragment>
       {isOpen && (
@@ -380,6 +361,8 @@ export function UnifiedSettingsPanel({
             onClick={onClose}
             role="button"
             aria-label="설정 패널 닫기"
+            tabIndex={0}
+            onKeyDown={handleOverlayKeyDown}
           />
 
           {/* 설정 패널 - 프로필 버튼 근처에 배치 */}
@@ -435,9 +418,7 @@ export function UnifiedSettingsPanel({
                     }`}
                   >
                     {activeTab === tabKey && (
-                      <div
-                        className="absolute inset-0 z-0 rounded-md bg-purple-500/30"
-                      />
+                      <div className="absolute inset-0 z-0 rounded-md bg-purple-500/30" />
                     )}
                     <div className="relative z-10 flex items-center justify-center gap-1 sm:gap-2">
                       <Icon className="h-4 w-4 flex-shrink-0" />
@@ -451,11 +432,7 @@ export function UnifiedSettingsPanel({
             {/* 탭 콘텐츠 */}
             <main className="scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800 flex-1 overflow-y-auto p-4">
               <Fragment>
-                <div
-                  key={activeTab}
-                >
-                  {renderTabContent()}
-                </div>
+                <div key={activeTab}>{renderTabContent()}</div>
               </Fragment>
             </main>
 
