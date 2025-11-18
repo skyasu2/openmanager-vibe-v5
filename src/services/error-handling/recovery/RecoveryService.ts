@@ -220,7 +220,7 @@ export class RecoveryService {
    * 데이터베이스 에러 복구
    */
   private async recoverFromDatabaseError(
-    error: ServiceError
+    _error: ServiceError
   ): Promise<RecoveryResult> {
     debug.log('💾 데이터베이스 에러 복구 시도');
 
@@ -296,7 +296,7 @@ export class RecoveryService {
    * 메모리 캐시 에러 복구
    */
   private async recoverFromMemoryCacheError(
-    error: ServiceError
+    _error: ServiceError
   ): Promise<RecoveryResult> {
     debug.log('🧠 메모리 캐시 에러 복구 시도');
 
@@ -392,7 +392,7 @@ export class RecoveryService {
    * WebSocket 에러 복구
    */
   private async recoverFromWebSocketError(
-    error: ServiceError
+    _error: ServiceError
   ): Promise<RecoveryResult> {
     debug.log('🔌 WebSocket 에러 복구 시도');
 
@@ -426,7 +426,7 @@ export class RecoveryService {
    * AI 에이전트 에러 복구
    */
   private async recoverFromAIAgentError(
-    error: ServiceError
+    _error: ServiceError
   ): Promise<RecoveryResult> {
     debug.log('🤖 AI 에이전트 에러 복구 시도');
 
@@ -467,7 +467,7 @@ export class RecoveryService {
    * 메모리 에러 복구
    */
   private async recoverFromMemoryError(
-    error: ServiceError
+    _error: ServiceError
   ): Promise<RecoveryResult> {
     debug.log('🧠 메모리 에러 복구 시도');
 
@@ -503,7 +503,7 @@ export class RecoveryService {
    * 디스크 공간 에러 복구
    */
   private async recoverFromDiskSpaceError(
-    error: ServiceError
+    _error: ServiceError
   ): Promise<RecoveryResult> {
     debug.log('💾 디스크 공간 에러 복구 시도');
 
@@ -543,7 +543,7 @@ export class RecoveryService {
    * 시스템 과부하 에러 복구
    */
   private async recoverFromSystemOverloadError(
-    error: ServiceError
+    _error: ServiceError
   ): Promise<RecoveryResult> {
     debug.log('⚡ 시스템 과부하 에러 복구 시도');
 
@@ -577,7 +577,7 @@ export class RecoveryService {
    * 일반적인 복구 시도
    */
   private async attemptGenericRecovery(
-    error: ServiceError
+    _error: ServiceError
   ): Promise<RecoveryResult> {
     debug.log('🔧 일반적인 복구 시도');
 

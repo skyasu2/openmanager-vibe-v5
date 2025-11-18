@@ -28,7 +28,6 @@ import {
   X,
 } from 'lucide-react';
 import { useEffect, useMemo, useState, Fragment } from 'react';
-import { ServerModal3DGauge } from '../shared/UnifiedCircularGauge';
 
 // 모듈화된 컴포넌트 및 타입 임포트
 import type {
@@ -38,17 +37,8 @@ import type {
   TabId,
   TabInfo,
 } from './EnhancedServerModal.types';
-import {
-  getMetricColorByStatus,
-  getStatusTheme,
-} from './EnhancedServerModal.utils';
-import {
-  getSafeServicesLength,
-  getSafeValidServices,
-  isValidServer,
-  vercelSafeLog,
-} from '@/lib/vercel-safe-utils';
-import { RealtimeChart } from './EnhancedServerModal.components';
+import { getStatusTheme } from './EnhancedServerModal.utils';
+import { getSafeServicesLength } from '@/lib/vercel-safe-utils';
 import { OverviewTab } from './EnhancedServerModal.OverviewTab';
 import { MetricsTab } from './EnhancedServerModal.MetricsTab';
 import { ProcessesTab } from './EnhancedServerModal.ProcessesTab';
@@ -224,7 +214,7 @@ export default function EnhancedServerModal({
     );
 
     return () => clearInterval(interval);
-  }, [isRealtime]); // safeServer 객체 의존성 제거하여 Vercel Edge Runtime 호환성 확보
+  }, [isRealtime, safeServer]);
 
   // 📊 탭 구성 최적화 (5개→3개로 통합, Progressive Disclosure)
   const tabs: TabInfo[] = [
@@ -386,14 +376,14 @@ export default function EnhancedServerModal({
 
             {/* 탭 네비게이션 - 모바일 최적화 */}
             <div className="mt-4 flex gap-1 overflow-x-auto pb-1 sm:mt-6 sm:gap-2">
-              {tabs.map((tab, index) => {
+              {tabs.map((tab) => {
                 const Icon = tab.icon;
                 const isActive = selectedTab === tab.id;
 
                 // 📊 통합 탭 인디케이터 (3개 탭 전용)
                 const getTabIndicator = (tabId: TabId) => {
                   switch (tabId) {
-                    case 'overview':
+                    case 'overview': {
                       // 🎯 전체 헬스 점수 표시
                       const healthScore = safeServer.health?.score || 0;
                       return (
@@ -407,7 +397,8 @@ export default function EnhancedServerModal({
                           } ${isActive ? 'opacity-100' : 'opacity-70'}`}
                         />
                       );
-                    case 'metrics':
+                    }
+                    case 'metrics': {
                       // 🎯 성능 상태 + 프로세스 수 통합
                       const avgCpu = (safeServer.cpu + safeServer.memory) / 2;
                       const processCount = getSafeServicesLength(safeServer);
@@ -431,7 +422,8 @@ export default function EnhancedServerModal({
                           </span>
                         </div>
                       );
-                    case 'logs':
+                    }
+                    case 'logs': {
                       // 🎯 로그 상태 + 네트워크 상태 통합
                       const hasError = realtimeData.logs.some(
                         (log) => log.level === 'error'
@@ -460,6 +452,7 @@ export default function EnhancedServerModal({
                           />
                         </div>
                       );
+                    }
                     default:
                       return null;
                   }
