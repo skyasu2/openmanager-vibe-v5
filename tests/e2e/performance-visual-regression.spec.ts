@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { navigateToAdminDashboard, resetAdminState } from './helpers/admin';
+import { resetGuestState } from './helpers/guest';
 import { ensureVercelBypassCookie } from './helpers/security';
+import { getTestBaseUrl } from './helpers/config';
 
 /**
  * ⚡ 성능 및 시각적 회귀 테스트
@@ -13,15 +14,17 @@ import { ensureVercelBypassCookie } from './helpers/security';
  * - 접근성 기준 준수 확인
  */
 
+const BASE_URL = getTestBaseUrl();
+
 test.describe('⚡ 성능 최적화 및 시각적 테스트', () => {
   
   test.beforeEach(async ({ page }) => {
-    await resetAdminState(page);
+    await resetGuestState(page);
     await ensureVercelBypassCookie(page);
   });
 
   test.afterEach(async ({ page }) => {
-    await resetAdminState(page);
+    await resetGuestState(page);
   });
 
   test.describe('📊 Core Web Vitals 측정', () => {
