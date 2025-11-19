@@ -180,7 +180,8 @@ function interpolate1MinVariation(
 function generateCycleScenarios(
   cycleInfo: CycleInfo,
   serverId: string,
-  serverRole: ServerRole
+  serverRole: ServerRole,
+  normalizedTimestamp: number
 ): ServerAlert[] {
   if (!cycleInfo.scenario) {
     return [];
@@ -199,7 +200,7 @@ function generateCycleScenarios(
     'custom';
 
   return [{
-    id: `alert-${serverId}-${Date.now()}`,
+    id: `alert-${serverId}-${cycleInfo.scenario.name.replace(/\s+/g, '-')}-${normalizedTimestamp}`,
     server_id: serverId,
     type: alertType,
     message: `${cycleInfo.scenario.name}: ${cycleInfo.scenario.description} (${cycleInfo.phase}, ${Math.round(cycleInfo.progress * 100)}%)`,
@@ -350,7 +351,7 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
     const serverRole = (serverInfo.role || serverInfo.type || serverId.split('-')[0]) as ServerRole;
 
     // 현재 사이클 기반 시나리오 생성
-    const scenarios = generateCycleScenarios(cycleInfo, serverId, serverRole);
+    const scenarios = generateCycleScenarios(cycleInfo, serverId, serverRole, normalizedTimestamp);
 
     return {
       id: serverId,
