@@ -16,8 +16,10 @@ import type {
   MLAnalyticsRequest,
   MLAnalyticsResponse,
   UnifiedAIRequest,
-  UnifiedAIResponse
 } from './gcp-functions.types';
+
+// UnifiedAIResponse는 별도 파일에서 import
+import type { UnifiedAIResponse } from '@/services/ai/formatters/unified-response-formatter';
 
 import { GCPFunctionErrorCode } from './gcp-functions.types';
 

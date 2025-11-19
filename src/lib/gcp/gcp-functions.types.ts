@@ -91,30 +91,10 @@ export interface MLAnalyticsResponse {
   country: string;
 }
 
-export interface UnifiedAIProcessingResult {
-  processor: string;
-  success: boolean;
-  data?: Record<string, unknown> | null;
-  error?: string | null;
-  processing_time: number;
-}
+// UnifiedAI 타입은 src/services/ai/formatters/unified-response-formatter.ts에서 정의됨
+// 중복 제거 완료 (2025-11-19)
 
-export interface UnifiedAIAggregatedData {
-  confidence_score?: number;
-  main_insights?: string[];
-  entities?: Record<string, unknown[]>;
-  metrics?: Record<string, number>;
-  patterns?: Array<Record<string, unknown>>;
-  anomalies?: Array<Record<string, unknown>>;
-}
-
-export interface UnifiedAIResponse {
-  results: UnifiedAIProcessingResult[];
-  aggregated_data: UnifiedAIAggregatedData;
-  recommendations: string[];
-  cache_hit: boolean;
-}
-
+// UnifiedAIRequest는 GCP Functions 호출용으로 유지
 export interface UnifiedAIRequest {
   query: string;
   context?: Record<string, unknown>;
