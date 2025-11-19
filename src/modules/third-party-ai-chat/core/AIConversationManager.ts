@@ -80,15 +80,6 @@ export class AIConversationManager {
       enabled: !!process.env.OPENAI_API_KEY,
     });
 
-    // Anthropic (Claude)
-    this.providers.set('anthropic', {
-      name: 'Anthropic (Claude)',
-      apiKey: process.env.ANTHROPIC_API_KEY || '',
-      baseUrl: 'https://api.anthropic.com/v1',
-      model: 'claude-3-sonnet-20240229',
-      enabled: !!process.env.ANTHROPIC_API_KEY,
-    });
-
     // Cohere
     this.providers.set('cohere', {
       name: 'Cohere',
@@ -233,8 +224,6 @@ export class AIConversationManager {
         return this.callGoogleAI(provider, messages);
       case 'OpenAI (GPT)':
         return this.callOpenAI(provider, messages);
-      case 'Anthropic (Claude)':
-        return this.callAnthropic(provider, messages);
       case 'Cohere':
         return this.callCohere(provider, messages);
       default:
@@ -351,61 +340,6 @@ export class AIConversationManager {
       content,
       tokensUsed,
       confidence: 0.95,
-    };
-  }
-
-  /**
-   * Anthropic 호출
-   */
-  private async callAnthropic(
-    provider: AIProvider,
-    messages: ConversationMessage[]
-  ): Promise<{
-    content: string;
-    tokensUsed: number;
-    confidence: number;
-  }> {
-    const url = `${provider.baseUrl}/messages`;
-    const lastMessage = messages[messages.length - 1];
-    if (!lastMessage) {
-      throw new Error('메시지가 없습니다.');
-    }
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': provider.apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: provider.model,
-        max_tokens: 1024,
-        messages: [
-          {
-            role: 'user',
-            content: lastMessage.content,
-          },
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(
-        `Anthropic API 오류: ${errorData.error?.message || response.statusText}`
-      );
-    }
-
-    const data = await response.json();
-    const content = data.content?.[0]?.text || '응답을 받을 수 없습니다.';
-    const tokensUsed =
-      data.usage?.input_tokens + data.usage?.output_tokens || 0;
-
-    return {
-      content,
-      tokensUsed,
-      confidence: 0.92,
     };
   }
 

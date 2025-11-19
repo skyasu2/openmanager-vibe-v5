@@ -11,7 +11,7 @@
 ## ✨ 핵심 특징
 
 ### 🎯 프로젝트 특징
-- **AI 연동 실습**: Claude + Codex + Gemini + Qwen 멀티 AI 연동
+- **AI 기반 개발 워크플로우**: Claude Code를 중심으로 Codex, Gemini, Qwen을 활용한 교차검증 및 개발 자동화
 - **무료 운영**: Vercel + Supabase 무료 티어 활용
 - **Mock 시뮬레이션**: 실제 서버 없이 현실적인 모니터링 구현
 
