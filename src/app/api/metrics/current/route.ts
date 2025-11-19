@@ -9,7 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import type { EnhancedServerMetrics, ServerRole, AlertSeverity } from '@/types/server';
+import type { EnhancedServerMetrics, ServerRole, AlertSeverity, ServerAlert } from '@/types/server';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import { getSystemConfig } from '@/config/SystemConfiguration';
 
@@ -64,9 +64,9 @@ function getBaseline10MinSlot(cycleTime: number): number {
 }
 
 // ⚡ FNV-1a 해시 기반 보간 (기존 코드와 동일)
-function fnv1aHash(seed: number): number {
+function fnv1aHash(seed: number | string): number {
   let hash = 0x811c9dc5;
-  const str = seed.toString();
+  const str = typeof seed === 'number' ? seed.toString() : seed;
   for (let i = 0; i < str.length; i++) {
     hash ^= str.charCodeAt(i);
     hash = (hash * 0x01000193) >>> 0;
@@ -165,35 +165,47 @@ function interpolate1MinVariation(
   serverId: string,
   metricType: string
 ): number {
-  // FNV-1a 해시로 서버별 고유 변동 생성
-  const seed = fnv1aHash(timestamp + serverId.charCodeAt(0) + metricType.charCodeAt(0));
-  
-  // ±5% 범위의 자연스러운 변동
-  const variation = (seed - 0.5) * 10; // -5 ~ +5
-  
+  // FNV-1a 해시로 서버별 고유 변동 생성 (문자열 템플릿으로 충돌 감소)
+  const seed = fnv1aHash(`${timestamp}-${serverId}-${metricType}`);
+
+  // ±5% 범위의 자연스러운 변동 (baseline의 5%, 절대값 아님)
+  const variationPercent = (seed - 0.5) * 0.1; // -0.05 ~ +0.05 (즉 ±5%)
+  const variation = baseline * variationPercent;
+
   // 최종값은 0-100 범위로 제한
   return Math.max(0, Math.min(100, baseline + variation));
 }
 
 // 📋 사이클 기반 시나리오 생성 (Alert 형식으로 변환)
-function generateCycleScenarios(cycleInfo: CycleInfo, serverId: string): Array<{
-  type: ServerRole;
-  severity: AlertSeverity;
-  description: string;
-}> {
+function generateCycleScenarios(
+  cycleInfo: CycleInfo,
+  serverId: string,
+  serverRole: ServerRole
+): ServerAlert[] {
   if (!cycleInfo.scenario) {
     return [];
   }
 
-  // Cycle scenario를 Alert 형식으로 변환
-  const severity: AlertSeverity = 
+  // Cycle scenario를 ServerAlert 형식으로 변환
+  const severity: AlertSeverity =
     cycleInfo.intensity > 0.7 ? 'critical' :
     cycleInfo.intensity > 0.4 ? 'warning' : 'info';
 
+  const alertType: ServerAlert['type'] =
+    cycleInfo.scenario.name.includes('CPU') ? 'cpu' :
+    cycleInfo.scenario.name.includes('Memory') || cycleInfo.scenario.name.includes('메모리') ? 'memory' :
+    cycleInfo.scenario.name.includes('Network') || cycleInfo.scenario.name.includes('네트워크') ? 'network' :
+    cycleInfo.scenario.name.includes('Disk') || cycleInfo.scenario.name.includes('디스크') ? 'disk' :
+    'custom';
+
   return [{
-    type: 'api' as ServerRole, // 기본 서버 타입
+    id: `alert-${serverId}-${Date.now()}`,
+    server_id: serverId,
+    type: alertType,
+    message: `${cycleInfo.scenario.name}: ${cycleInfo.scenario.description} (${cycleInfo.phase}, ${Math.round(cycleInfo.progress * 100)}%)`,
     severity,
-    description: `${cycleInfo.scenario.name}: ${cycleInfo.scenario.description} (${cycleInfo.phase}, ${Math.round(cycleInfo.progress * 100)}%)`
+    timestamp: new Date().toISOString(),
+    resolved: cycleInfo.phase === '해소' || cycleInfo.phase === 'recovery'
   }];
 }
 
@@ -333,18 +345,21 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
     // 최종 상태 결정 (기존 임계값 유지)
     const status = adjustedCpu > 85 || adjustedMemory > 90 ? 'critical' :
                   adjustedCpu > 70 || adjustedMemory > 80 ? 'warning' : 'online';
-    
+
+    // 서버 역할 결정
+    const serverRole = (serverInfo.role || serverInfo.type || serverId.split('-')[0]) as ServerRole;
+
     // 현재 사이클 기반 시나리오 생성
-    const scenarios = generateCycleScenarios(cycleInfo, serverId);
-    
+    const scenarios = generateCycleScenarios(cycleInfo, serverId, serverRole);
+
     return {
       id: serverId,
       name: serverInfo.hostname || serverId.replace('-', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
       hostname: serverInfo.hostname || `${serverId}.local`,
       environment: 'production' as const,
-      role: (serverInfo.type || serverId.split('-')[0]) as ServerRole,
+      role: serverRole,
       status,
-      
+
       // Enhanced metrics with required naming (조정된 값 사용)
       cpu_usage: Math.round(adjustedCpu * 10) / 10,
       memory_usage: Math.round(adjustedMemory * 10) / 10,
@@ -354,7 +369,7 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
       responseTime: Math.round(responseTime),
       uptime: 99.95,
       last_updated: new Date(normalizedTimestamp).toISOString(),
-      alerts: [],
+      alerts: scenarios, // 생성된 시나리오를 alerts 배열에 연결
       
       // Compatibility fields (조정된 값 사용)
       cpu: Math.round(adjustedCpu * 10) / 10,
@@ -379,7 +394,11 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
           description: cycleInfo.description,
           expectedResolution: cycleInfo.expectedResolution
         },
-        scenarios,
+        scenarios: scenarios.map(alert => ({
+          type: serverRole, // Use server role instead of alert type
+          severity: alert.severity,
+          description: alert.message // Map message to description
+        })),
         baseline: {
           cpu: cpuBaseline,
           memory: memoryBaseline,
