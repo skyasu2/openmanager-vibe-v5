@@ -12,6 +12,7 @@ interface ChartDataPoint {
   name: string;
   value: number;
   color: string;
+  [key: string]: string | number; // Add index signature for Recharts compatibility
 }
 
 interface AvailabilityChartProps {
@@ -89,9 +90,9 @@ const AvailabilityChart = memo<AvailabilityChartProps>(({ data }) => {
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            { }
             <Pie
-              data={data as any}
+              data={data}
               cx="50%"
               cy="50%"
               innerRadius={30}
