@@ -438,8 +438,6 @@ export function setupGlobalErrorHandler(): void {
 /**
  * 🔄 API 호출 안전 래퍼
  */
-import { logError } from './logger';
-
 export async function safeApiCall<T>(
   apiCall: () => Promise<T>,
   errorContext = 'API 호출',

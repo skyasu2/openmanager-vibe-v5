@@ -183,8 +183,8 @@ export function getMockServers(): Server[] {
         network: hourlyData.network,
         uptime: Math.floor(Math.random() * 3600 * 24 * 30), // 임의의 uptime
         location: '서울',
-        environment: 'Production',
-        type: 'Server',
+        environment: 'production',
+        role: 'worker',
         provider: 'On-Premise',
         alerts:
           hourlyData.status === 'critical'

@@ -8,7 +8,7 @@
  * - 압축된 l6 함수에서 발생하는 베르셀 환경 특화 오류
  */
 
-import { Server, Service } from '@/types/server';
+import { Server, Service, ServerRole, ServerEnvironment } from '@/types/server';
 
 /**
  * 차트 데이터 포인트 타입
@@ -381,8 +381,8 @@ export const normalizeServerForVercel = (server: unknown): Server | null => {
       alerts: getSafeAlertsCount(s.alerts),
       ip: getSafeProperty(s, 'ip', '192.168.1.1'),
       os: getSafeProperty(s, 'os', 'Ubuntu 22.04 LTS'),
-      type: getSafeProperty(s, 'type', 'worker'),
-      environment: getSafeProperty(s, 'environment', 'production'),
+      role: getSafeProperty(s, 'type', 'worker') as ServerRole,
+      environment: getSafeProperty(s, 'environment', 'production') as ServerEnvironment,
       provider: getSafeProperty(s, 'provider', 'On-Premise'),
       specs: getSafeProperty(s, 'specs', {
         cpu_cores: 4,

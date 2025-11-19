@@ -8,7 +8,7 @@ import {
   type ServerDisplayMode,
 } from '@/config/display-config';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
-import type { Server, Service, EnhancedServerMetrics } from '@/types/server';
+import type { Server, Service, EnhancedServerMetrics, ServerRole, ServerEnvironment } from '@/types/server';
 import type { ServerStatus } from '@/types/server-common';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';
@@ -541,8 +541,8 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
         alerts: typeof s.alerts === 'number' ? s.alerts : (Array.isArray(s.alerts) ? s.alerts.length : 0), // 🔧 수정: 명시적 타입 변환
         ip: s.ip || '192.168.1.1',
         os: s.os || 'Ubuntu 22.04 LTS',
-        type: s.type || s.role || 'worker',
-        environment: s.environment || 'production',
+        role: (s.type || s.role || 'worker') as ServerRole,
+        environment: (s.environment || 'production') as ServerEnvironment,
         provider: s.provider || 'On-Premise',
         specs: s.specs || {
           cpu_cores: 4,
