@@ -77,7 +77,8 @@ collect_changes() {
 "
             changes_summary+="\`\`\`diff
 "
-            changes_summary+="$(git show "$last_commit":"$file" 2>/dev/null | head -100)
+            # Bug Fix #1: 실제 diff 표시 (파일 내용이 아닌 변경사항)
+            changes_summary+="$(git diff "$last_commit^" "$last_commit" -- "$file" 2>/dev/null | head -100)
 "
             changes_summary+="\`\`\`
 
@@ -193,9 +194,12 @@ show_review_summary() {
 
 # 메인 실행
 main() {
+    # 프로젝트 루트로 이동 (Bug Fix #2)
+    cd "$PROJECT_ROOT"
+
     log_info "🚀 Auto Codex Review 시작"
     echo ""
-    
+
     # 변경사항 수집
     local changes
     if ! changes=$(collect_changes); then
