@@ -297,7 +297,7 @@ function generateFallbackServers(): EnhancedServerMetrics[] {
     alerts: [],
     ip: `192.168.1.${100 + index}`,
     os: 'Ubuntu 22.04 LTS',
-    type: ['web', 'api', 'database', 'cache'][index % 4] || 'web',
+    type: (['web', 'api', 'database', 'cache'][index % 4] || 'web') as ServerRole,
     role: 'fallback',
     environment: 'production',
     provider: 'Fallback-System',
@@ -331,7 +331,7 @@ function generateFallbackServers(): EnhancedServerMetrics[] {
 /**
  * 🎯 실시간 서버 데이터 (Supabase 연동)
  */
-async function getRealtimeServers(): Promise<unknown[]> {
+async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
   try {
     const supabase = getSupabaseClient();
     const { data: servers, error } = await supabase
