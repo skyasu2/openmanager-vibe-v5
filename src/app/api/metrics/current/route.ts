@@ -9,7 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import type { EnhancedServerMetrics, ServerRole } from '@/types/server';
+import type { EnhancedServerMetrics, ServerRole, AlertSeverity } from '@/types/server';
 import { getUnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 import { getSystemConfig } from '@/config/SystemConfiguration';
 
@@ -32,8 +32,8 @@ interface CycleInfo {
 }
 
 interface CycleScenarioOutput {
-  type: string;
-  severity: string;
+  type: ServerRole;
+  severity: AlertSeverity;
   description: string;
   aiContext: string;
   nextAction: string;
@@ -158,6 +158,46 @@ function getIncidentCycleInfo(hour: number, minute: number) {
 }
 
 // 📈 6개 사이클 기반 메트릭 생성
+// 🎲 1분 단위 자연스러운 변동 추가
+function interpolate1MinVariation(
+  baseline: number,
+  timestamp: number,
+  serverId: string,
+  metricType: string
+): number {
+  // FNV-1a 해시로 서버별 고유 변동 생성
+  const seed = fnv1aHash(timestamp + serverId.charCodeAt(0) + metricType.charCodeAt(0));
+  
+  // ±5% 범위의 자연스러운 변동
+  const variation = (seed - 0.5) * 10; // -5 ~ +5
+  
+  // 최종값은 0-100 범위로 제한
+  return Math.max(0, Math.min(100, baseline + variation));
+}
+
+// 📋 사이클 기반 시나리오 생성 (Alert 형식으로 변환)
+function generateCycleScenarios(cycleInfo: CycleInfo, serverId: string): Array<{
+  type: ServerRole;
+  severity: AlertSeverity;
+  description: string;
+}> {
+  if (!cycleInfo.scenario) {
+    return [];
+  }
+
+  // Cycle scenario를 Alert 형식으로 변환
+  const severity: AlertSeverity = 
+    cycleInfo.intensity > 0.7 ? 'critical' :
+    cycleInfo.intensity > 0.4 ? 'warning' : 'info';
+
+  return [{
+    type: 'api' as ServerRole, // 기본 서버 타입
+    severity,
+    description: `${cycleInfo.scenario.name}: ${cycleInfo.scenario.description} (${cycleInfo.phase}, ${Math.round(cycleInfo.progress * 100)}%)`
+  }];
+}
+
+// 🔄 사이클 기반 메트릭 생성
 function generateCycleBasedMetric(
   serverId: string, 
   metricType: string, 
@@ -189,141 +229,50 @@ function generateCycleBasedMetric(
         network: +5
       },
       maintenance_cycle: {
-        cpu: +35,  // 패치로 CPU 급증
-        memory: +20,
-        disk: +15,
+        cpu: +45, // CPU 급증 (패치 적용)
+        memory: +10,
+        disk: +10,
         network: +5
       },
       traffic_cycle: {
-        network: +45, // 네트워크 폭증
-        cpu: +30,     // CPU도 급증
+        network: +50, // 네트워크 급증 (트래픽 폭주)
+        cpu: +20,
         memory: +15,
         disk: +5
       },
       database_cycle: {
-        memory: +40, // 메모리 사용량 급증
-        cpu: +25,    // DB CPU도 증가
-        disk: +20,   // I/O도 증가
-        network: +15
-      },
-      network_cycle: {
-        network: +50, // 네트워크 최대 영향
-        cpu: +20,     // 처리량 증가
-        memory: +15,
-        disk: +25     // 파일 처리
-      },
-      batch_cycle: {
-        memory: +45, // 메모리 사용량 최대
-        cpu: +25,    // 배치 처리 CPU
+        memory: +60, // 메모리 급증 (쿼리 폭주)
+        cpu: +30,
         disk: +20,
         network: +10
+      },
+      network_cycle: {
+        network: +55, // 네트워크 급증 (다운로드 폭주)
+        disk: +25,
+        cpu: +10,
+        memory: +5
+      },
+      batch_cycle: {
+        memory: +50, // 메모리 급증 (배치 처리)
+        cpu: +35,
+        disk: +15,
+        network: +5
       }
-    };
-    
-    const effects = cycleInfo.scenario ? incidentEffects[cycleInfo.scenario.name as keyof typeof incidentEffects] : undefined;
-    const metricEffect = effects ? (effects[metricType as keyof typeof effects] || 0) : 0;
-    
-    // 사이클 강도에 따라 효과 조정
-    cycleEffect = metricEffect * cycleInfo.intensity;
-  }
-  
-  // 최종 값 계산
-  const finalValue = baseValue + cycleEffect;
-  
-  // 0-100 범위로 제한
-  return Math.max(0, Math.min(100, finalValue));
-}
-
-// 🔄 1분 보간 계산
-function interpolate1MinVariation(
-  baseline: number,
-  timestamp: number,
-  serverId: string,
-  metricType: string
-): number {
-  const seed = timestamp + serverId.charCodeAt(0) + metricType.charCodeAt(0);
-  const variation = fnv1aHash(seed) * 0.2; // ±10% 범위
-  const result = baseline * (0.9 + variation);
-  
-  return Math.max(0, Math.min(100, result));
-}
-
-// 🎯 6개 사이클 기반 시나리오 생성
-function generateCycleScenarios(cycleInfo: CycleInfo, serverId: string): CycleScenarioOutput[] {
-  const scenarios = [];
-  const isAffected = cycleInfo.scenario?.affectedServers.includes(serverId) ?? false;
-
-  if (!isAffected || cycleInfo.intensity === 0 || !cycleInfo.scenario) {
-    return []; // 영향받지 않거나 정상 상태면 시나리오 없음
-  }
-
-  const scenario = cycleInfo.scenario; // 타입 보장
-
-  // 사이클별 주요 시나리오
-  const cycleScenarios = {
-    backup_cycle: {
-      type: 'backup_overload',
-      severity: cycleInfo.phase === 'peak' ? 'high' : 'medium',
-      description: `야간 백업으로 디스크 I/O ${Math.round(cycleInfo.intensity * 100)}% 과부하`,
-      aiContext: '전체 시스템 백업 진행 중이므로 디스크 응답시간이 증가했습니다. 백업 완료 시까지 성능 저하가 예상됩니다.',
-      nextAction: '백업 완료까지 대기',
-      estimatedDuration: `${Math.round((1 - cycleInfo.progress) * 4 * 60)}분`
-    },
-    maintenance_cycle: {
-      type: 'patch_restart',  
-      severity: cycleInfo.phase === 'peak' ? 'high' : 'medium',
-      description: `보안 패치 적용으로 CPU ${Math.round(cycleInfo.intensity * 100)}% 스파이크`,
-      aiContext: '새벽 정기 보안 패치 및 서버 재시작이 진행 중입니다. 서비스 안정화까지 시간이 필요합니다.',
-      nextAction: '패치 완료 및 재시작 대기',
-      estimatedDuration: `${Math.round((1 - cycleInfo.progress) * 4 * 60)}분`
-    },
-    traffic_cycle: {
-      type: 'morning_traffic_surge',
-      severity: cycleInfo.phase === 'peak' ? 'critical' : 'high', 
-      description: `출근시간 트래픽으로 네트워크 ${Math.round(cycleInfo.intensity * 100)}% 과부하`,
-      aiContext: '오전 출근시간으로 인한 동시 접속자 급증입니다. 오토스케일링으로 부하 분산 중입니다.',
-      nextAction: '오토스케일링 완료 대기',
-      estimatedDuration: `${Math.round((1 - cycleInfo.progress) * 4 * 60)}분`
-    },
-    database_cycle: {
-      type: 'lunch_order_peak',
-      severity: cycleInfo.phase === 'peak' ? 'critical' : 'high',
-      description: `점심 주문 폭증으로 메모리 ${Math.round(cycleInfo.intensity * 100)}% 사용`,
-      aiContext: '점심시간 주문 시스템 과부하로 데이터베이스 연결이 포화 상태입니다. 쿼리 최적화가 진행 중입니다.',
-      nextAction: '인덱스 재구성 및 캐시 최적화',
-      estimatedDuration: `${Math.round((1 - cycleInfo.progress) * 4 * 60)}분`
-    },
-    network_cycle: {
-      type: 'file_download_peak',
-      severity: cycleInfo.phase === 'peak' ? 'critical' : 'high',
-      description: `퇴근시간 다운로드로 네트워크 ${Math.round(cycleInfo.intensity * 100)}% 포화`,
-      aiContext: '퇴근시간 대용량 파일 다운로드로 네트워크 대역폭이 포화 상태입니다. CDN 활성화로 부하 분산 중입니다.',
-      nextAction: 'CDN 트래픽 분산 완료 대기',
-      estimatedDuration: `${Math.round((1 - cycleInfo.progress) * 4 * 60)}분`
-    },
-    batch_cycle: {
-      type: 'evening_batch_processing',
-      severity: cycleInfo.phase === 'peak' ? 'high' : 'medium',
-      description: `저녁 배치작업으로 메모리 ${Math.round(cycleInfo.intensity * 100)}% 사용`,
-      aiContext: '저녁 대량 데이터 처리 작업으로 메모리 사용량이 급증했습니다. 가비지 컬렉션 최적화가 필요합니다.',
-      nextAction: '배치작업 완료 및 메모리 정리',
-      estimatedDuration: `${Math.round((1 - cycleInfo.progress) * 4 * 60)}분`
-    }
   };
 
-  const cycleScenario = cycleScenarios[scenario.name as keyof typeof cycleScenarios];
-  if (cycleScenario) {
-    scenarios.push({
-      ...cycleScenario,
-      phase: cycleInfo.phase,
-      intensity: cycleInfo.intensity,
-      progress: Math.round(cycleInfo.progress * 100),
-      timeSlot: cycleInfo.timeSlot,
-      timestamp: Date.now()
-    });
+    // 사이클 타입에 해당하는 영향 적용
+    const cycleName = cycleInfo.scenario?.name as keyof typeof incidentEffects;
+    const effects = cycleName ? incidentEffects[cycleName] : null;
+    
+    if (effects && effects[metricType as keyof typeof effects]) {
+      cycleEffect = effects[metricType as keyof typeof effects] * cycleInfo.intensity;
+    }
   }
   
-  return scenarios;
+  // 최종값 = 기준값 + 사이클 영향
+  const finalValue = Math.max(0, Math.min(100, baseValue + cycleEffect));
+  
+  return Math.round(finalValue);
 }
 
 // 🚀 통합 서버 메트릭 생성 (6개 사이클 기반)
