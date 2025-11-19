@@ -9,7 +9,7 @@ import {
   getSystemConfig,
   getMockConfig,
 } from '@/config/SystemConfiguration';
-import type { Server } from '@/types/server';
+import type { Server, ServerRole, ServerEnvironment } from '@/types/server';
 
 // 기존 Mock 설정들 (조건부 import)
 import { mockServersExpanded } from '@/mock/mockServerConfigExpanded';
@@ -81,7 +81,7 @@ export class UnifiedServerDataSource {
   /**
    * 🎯 서버 데이터 조회 (메인 인터페이스)
    */
-  public async getServers(): Promise<any[]> {
+  public async getServers(): Promise<Server[]> {
     // 캐시 확인
     if (this.isCacheValid() && this.cachedServers) {
       return this.cachedServers;
@@ -274,8 +274,8 @@ export class UnifiedServerDataSource {
         lastUpdate: new Date(),
         ip: `192.168.2.${100 + i}`,
         os: 'Ubuntu 22.04 LTS',
-        role: serverType as any,
-        environment: 'production' as any,
+        role: serverType as ServerRole,
+        environment: 'production' as ServerEnvironment,
         location: `us-west-${1 + (i % 3)}`,
         alerts: [],
         // cpu_usage: 0, // 하위 호환성을 위해 제거 (Server 타입에 없음)
