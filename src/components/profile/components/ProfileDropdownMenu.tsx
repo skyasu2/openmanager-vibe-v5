@@ -96,7 +96,6 @@ export const ProfileDropdownMenu = memo(function ProfileDropdownMenu({
               <ProfileMenuItem
                 key={item.id}
                 {...item}
-                index={index}
                 onClick={() => {
                   if (!item.disabled) {
                     onClose();
