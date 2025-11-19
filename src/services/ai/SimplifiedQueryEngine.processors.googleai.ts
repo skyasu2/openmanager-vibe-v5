@@ -322,7 +322,7 @@ export class GoogleAIModeProcessor {
         tokenCount: apiResponse.usage?.totalTokens || 0,
         latency: apiResponse.responseTime,
         success: true,
-        difficultyScore,
+        difficultyScore: 0.5,
       });
 
       // 🚀 직접 응답 사용 (구조 단순화)
@@ -384,7 +384,7 @@ export class GoogleAIModeProcessor {
         tokenCount: 0,
         latency: Date.now() - googleStepStart,
         success: false,
-        difficultyScore,
+        difficultyScore: 0.5,
       });
 
       // 🚨 폴백 제거: 에러 직접 반환
