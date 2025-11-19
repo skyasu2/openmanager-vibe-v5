@@ -130,16 +130,28 @@ find logs/code-reviews -name "review-*.md" -type f -printf '%T@ %p\n' | sort -rn
 - 우선순위 설정 (보안 > 버그 > 타입 안전성 > 성능)
 - 필요 시 코드 수정 직접 수행
 
-### 트리거 조건
+### 트리거 조건 및 폴백 전략
 
 **자동 트리거**:
-- `.husky/post-commit` 훅 실행 후
-- `logs/code-reviews/` 디렉토리에 새 파일 감지
+- `.husky/post-commit` 훅 실행 후 백그라운드로 실행
+- `scripts/code-review/auto-codex-review.sh` 호출
+- `logs/code-reviews/` 디렉토리에 리뷰 파일 자동 생성
+- **폴백**: 스크립트 실패 시 커밋은 계속 진행 (백그라운드 실행)
 
 **수동 요청**:
 - "최근 Codex 리뷰 분석해줘"
 - "Codex 리뷰 결과 확인"
 - "`analyze-codex-review.sh` 실행해서 분석"
+- **폴백**: 리뷰 파일이 없을 경우 수동 리뷰 제안
+
+**입력/출력 포맷**:
+- **입력**: Git 커밋 변경사항 (diff 형식)
+- **출력**: Markdown 리포트 (`logs/code-reviews/review-*.md`)
+  - 버그 위험 (최대 3개)
+  - 개선 제안 (3개)
+  - TypeScript 안전성
+  - 보안 이슈
+  - 종합 점수 (1-10) 및 승인 여부
 
 ### 출력 예시
 

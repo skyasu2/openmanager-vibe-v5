@@ -27,8 +27,11 @@ ai-tools:
 # ============================================================================
 subagents:
   active:
-    - codex-specialist                  # HIGH priority - Code review
-    - code-review-specialist            # HIGH priority - Unified (General + Codex Auto + Multi-AI)
+    - codex-specialist                  # HIGH priority - Code review (CLI wrapper)
+    - code-review-specialist            # HIGH priority - Unified agent
+      # 3가지 기능 통합: General review + Codex auto-review + Multi-AI verification
+      # Workflow: .husky/post-commit → auto-codex-review.sh → review-*.md → Claude 분석
+      # Input: Git diff | Output: Markdown report with score (1-10)
     - dev-environment-manager           # MEDIUM
     - database-administrator            # HIGH
     - vercel-platform-specialist        # HIGH
@@ -41,6 +44,10 @@ subagents:
     - gcp-cloud-functions-specialist    # HIGH
 
 # 상세 정보: .claude/agents/*.md 참조
+# Workflow Integration:
+#   - post-commit hook triggers auto-codex-review.sh (background)
+#   - code-review-specialist analyzes generated review files
+#   - Multi-AI verification requires explicit "AI 교차검증" keyword
 
 # ============================================================================
 # 3. Active MCP Servers (활성화된 MCP 서버만)

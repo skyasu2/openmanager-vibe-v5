@@ -2,13 +2,31 @@
 
 # Auto Codex Code Review Script
 # 목적: 커밋 시 변경사항을 Codex가 자동 리뷰하고 리포트 생성
-# 버전: 1.0.0
+# 버전: 1.1.0
 # 날짜: 2025-11-19
+#
+# Changelog v1.1.0:
+# - PROJECT_ROOT 유효성 검증 및 폴백 로직 추가
+# - git rev-parse --show-toplevel 폴백 지원
 
 set -euo pipefail
 
-# 프로젝트 루트
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+# 프로젝트 루트 (폴백 포함)
+PROJECT_ROOT="${PROJECT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+
+# PROJECT_ROOT 유효성 검증
+if [ -z "$PROJECT_ROOT" ] || [ ! -d "$PROJECT_ROOT" ]; then
+    echo "❌ Error: PROJECT_ROOT가 설정되지 않았거나 유효하지 않습니다."
+    echo "   Attempting fallback to git root..."
+    PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+
+    if [ -z "$PROJECT_ROOT" ] || [ ! -d "$PROJECT_ROOT" ]; then
+        echo "❌ Fatal: 프로젝트 루트를 찾을 수 없습니다."
+        exit 1
+    fi
+
+    echo "✅ PROJECT_ROOT 설정 완료: $PROJECT_ROOT"
+fi
 
 # 색상 정의
 RED='\033[0;31m'
