@@ -216,7 +216,7 @@ export const usePerformanceMetrics = (
           const message: WebSocketPerformanceMessage = JSON.parse(event.data);
 
           switch (message.type) {
-            case 'performance-update':
+            case 'performance-update': {
               const metric = message.data as PerformanceMetric;
               const health = calculateHealthScore(metric);
 
@@ -227,22 +227,25 @@ export const usePerformanceMetrics = (
                 alerts: prev.alerts,
               }));
               break;
+            }
 
-            case 'alert':
+            case 'alert': {
               const alert = message.data as Alert;
               setPerformanceData((prev) => ({
                 ...prev,
                 alerts: [...prev.alerts, alert],
               }));
               break;
+            }
 
-            case 'health-check':
+            case 'health-check': {
               const healthData = message.data as SystemHealth;
               setPerformanceData((prev) => ({
                 ...prev,
                 health: healthData,
               }));
               break;
+            }
           }
         } catch (err) {
           console.error('Error parsing WebSocket message:', err);

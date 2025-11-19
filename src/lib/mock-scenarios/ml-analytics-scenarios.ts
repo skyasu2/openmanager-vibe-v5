@@ -497,11 +497,12 @@ export function generateMetricsByWorkload(
       value += (Math.random() - 0.5) * baseValue * 0.1;
       break;
 
-    case 'periodic':
+    case 'periodic': {
       // 주기적인 패턴 (일일 주기)
       const dailyCycle = Math.sin((hour / 24) * 2 * Math.PI);
       value += dailyCycle * baseValue * 0.3;
       break;
+    }
 
     case 'bursty':
       // 간헐적인 스파이크
@@ -512,21 +513,23 @@ export function generateMetricsByWorkload(
       value += (Math.random() - 0.5) * baseValue * 0.2;
       break;
 
-    case 'growing':
+    case 'growing': {
       // 점진적 증가
       const daysSinceStart =
         (timestamp.getTime() - new Date('2024-01-01').getTime()) /
         (1000 * 60 * 60 * 24);
       value *= 1 + (daysSinceStart / 365) * 0.5;
       break;
+    }
 
-    case 'declining':
+    case 'declining': {
       // 점진적 감소
       const daysDecline =
         (timestamp.getTime() - new Date('2024-01-01').getTime()) /
         (1000 * 60 * 60 * 24);
       value *= 1 - (daysDecline / 365) * 0.3;
       break;
+    }
   }
 
   // 주말 효과 (웹/API 서버)

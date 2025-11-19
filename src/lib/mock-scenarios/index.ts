@@ -172,7 +172,7 @@ export class MockScenarioManager {
       scenarioTypes[Math.floor(Math.random() * scenarioTypes.length)];
 
     switch (randomType) {
-      case 'server':
+      case 'server': {
         const serverScenarios = Object.keys(SERVER_SCENARIOS) as Array<
           keyof typeof SERVER_SCENARIOS
         >;
@@ -182,12 +182,13 @@ export class MockScenarioManager {
           this.startServerScenario(randomServerScenario);
         }
         break;
+      }
 
       case 'nlp':
         void this.testKoreanNLPScenarios();
         break;
 
-      case 'ml':
+      case 'ml': {
         const serverTypes = ['web', 'api', 'database', 'cache', 'ml'] as const;
         const randomServerType =
           serverTypes[Math.floor(Math.random() * serverTypes.length)];
@@ -195,6 +196,7 @@ export class MockScenarioManager {
           void this.applyMLAnalyticsPattern(randomServerType);
         }
         break;
+      }
     }
   }
 
