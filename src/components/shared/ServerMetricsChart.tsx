@@ -177,9 +177,6 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
       drawChart();
     }, [drawChart]);
 
-    // 성능 추적
-    trackComponentRender('ServerMetricsChart', { type, size });
-
     // 차트 제목 생성
     const chartTitle =
       type === 'cpu'

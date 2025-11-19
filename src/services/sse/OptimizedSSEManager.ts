@@ -230,7 +230,7 @@ export class OptimizedSSEManager {
       try {
         (listener as (data: unknown) => void)(data);
       } catch (_error) {
-        console.error(`이벤트 리스너 오류 (${eventType}):`, error);
+        console.error(`이벤트 리스너 오류 (${eventType}):`, _error);
       }
     });
   }
@@ -373,7 +373,7 @@ export class OptimizedSSEManager {
           await this.sendHeartbeat(channel);
           this.emit('heartbeat', { channel, timestamp: new Date() });
         } catch (_error) {
-          console.warn(`💓 하트비트 실패: ${channel}`, error);
+          console.warn(`💓 하트비트 실패: ${channel}`, _error);
         }
       })();
     }, this.config.heartbeatInterval);

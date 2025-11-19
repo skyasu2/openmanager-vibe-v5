@@ -104,7 +104,7 @@ const parseSupabaseConfig = () => {
     }
   } catch (_error) {
     if (!isBuildTime()) {
-      console.warn('⚠️ Supabase URL 파싱 실패, 기본값 사용:', error);
+      console.warn('⚠️ Supabase URL 파싱 실패, 기본값 사용:', _error);
     }
   }
 
@@ -182,7 +182,7 @@ const createConfig = (): EnvironmentConfig => {
     return config;
   } catch (_error) {
     if (!isBuildTime()) {
-      console.error('❌ 환경변수 검증 실패:', error);
+      console.error('❌ 환경변수 검증 실패:', _error);
     }
 
     // 빌드 타임에는 기본 설정 반환
@@ -267,7 +267,7 @@ export const validateEnvironment = (): {
     };
   } catch (_error) {
     errors.push(
-      error instanceof Error ? error.message : '알 수 없는 검증 오류'
+      _error instanceof Error ? _error.message : '알 수 없는 검증 오류'
     );
     return { success: false, errors, warnings };
   }

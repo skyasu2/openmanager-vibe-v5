@@ -65,9 +65,6 @@ export const ServerStatusIndicator: React.FC<ServerStatusIndicatorProps> = memo(
 
     const statusStyle = statusStyles[status];
 
-    // 성능 추적
-    trackComponentRender('ServerStatusIndicator', { status, size });
-
     return (
       <div
         className={`inline-flex items-center gap-1.5 ${className}`}

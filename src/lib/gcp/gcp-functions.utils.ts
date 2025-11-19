@@ -81,7 +81,7 @@ export async function fetchWithTimeout(
     });
     return response;
   } catch (_error) {
-    if (error instanceof Error && error.name === 'AbortError') {
+    if (_error instanceof Error && _error.name === 'AbortError') {
       throw createGCPError(
         GCPFunctionErrorCode.TIMEOUT,
         `Request timed out after ${timeout}ms`,
@@ -89,7 +89,7 @@ export async function fetchWithTimeout(
         url
       );
     }
-    throw error;
+    throw _error;
   } finally {
     clearTimeout(timeoutId);
   }
@@ -109,7 +109,7 @@ export async function retryWithBackoff<T>(
     try {
       return await fn();
     } catch (_error) {
-      const currentError = error as Error;
+      const currentError = _error as Error;
       lastError = currentError;
 
       // 마지막 시도였다면 에러 던지기
