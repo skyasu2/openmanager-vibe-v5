@@ -89,7 +89,6 @@ const AvailabilityChart = memo<AvailabilityChartProps>(({ data }) => {
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            {/* @ts-expect-error - Recharts 3.x PieProps 타입 정의 이슈 (children prop + data prop) */}
             <Pie
               data={data}
               cx="50%"

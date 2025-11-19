@@ -169,7 +169,7 @@ export class OptimizedSSEManager {
           await this.createConnection(channel);
           this.reconnectAttempts.set(channel, 0); // 성공 시 재설정
           this.totalReconnects++;
-        } catch (error) {
+        } catch (_error) {
           this.reconnectAttempts.set(channel, attempts + 1);
           void this.reconnect(channel); // 재귀 호출
         }
@@ -229,7 +229,7 @@ export class OptimizedSSEManager {
     listeners.forEach((listener) => {
       try {
         (listener as (data: unknown) => void)(data);
-      } catch (error) {
+      } catch (_error) {
         console.error(`이벤트 리스너 오류 (${eventType}):`, error);
       }
     });
@@ -276,7 +276,7 @@ export class OptimizedSSEManager {
         const messageEvent = event as MessageEvent;
         const data = JSON.parse(messageEvent.data);
         this.emit('message', data);
-      } catch (error) {
+      } catch (_error) {
         const messageEvent = event as MessageEvent;
         this.emit('message', messageEvent.data);
       }
@@ -372,7 +372,7 @@ export class OptimizedSSEManager {
         try {
           await this.sendHeartbeat(channel);
           this.emit('heartbeat', { channel, timestamp: new Date() });
-        } catch (error) {
+        } catch (_error) {
           console.warn(`💓 하트비트 실패: ${channel}`, error);
         }
       })();

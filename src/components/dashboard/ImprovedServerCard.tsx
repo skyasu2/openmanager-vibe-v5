@@ -61,7 +61,6 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     onClick,
     variant = 'standard',
     showRealTimeUpdates = true,
-    _index = 0,
     enableProgressiveDisclosure = true,
   }) => {
     // 🛡️ 5층 방어 시스템 Layer 1: 서버 객체 존재성 검증 (베르셀 서버리스 환경 대응)

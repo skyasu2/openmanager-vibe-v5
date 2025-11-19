@@ -80,7 +80,7 @@ export async function fetchWithTimeout(
       signal: controller.signal
     });
     return response;
-  } catch (error) {
+  } catch (_error) {
     if (error instanceof Error && error.name === 'AbortError') {
       throw createGCPError(
         GCPFunctionErrorCode.TIMEOUT,
@@ -108,7 +108,7 @@ export async function retryWithBackoff<T>(
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
-    } catch (error) {
+    } catch (_error) {
       const currentError = error as Error;
       lastError = currentError;
 
@@ -211,7 +211,7 @@ export function convertHttpError(
 export function createSafeUrl(baseUrl: string, path: string): URL {
   try {
     return new URL(path, baseUrl);
-  } catch (error) {
+  } catch (_error) {
     throw createGCPError(
       GCPFunctionErrorCode.CLIENT_ERROR,
       `Invalid URL: ${baseUrl}/${path}`,

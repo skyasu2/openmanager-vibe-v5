@@ -2,7 +2,7 @@
 
 import InfrastructureOverviewPage from '@/components/ai/pages/InfrastructureOverviewPage';
 import dynamic from 'next/dynamic';
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { safeConsoleError, safeErrorMessage } from '../../lib/utils-functions';
 import type { Server } from '../../types/server';

@@ -102,7 +102,7 @@ const parseSupabaseConfig = () => {
       const projectId = host.split('.')[0];
       user = `postgres.${projectId}`;
     }
-  } catch (error) {
+  } catch (_error) {
     if (!isBuildTime()) {
       console.warn('⚠️ Supabase URL 파싱 실패, 기본값 사용:', error);
     }
@@ -180,7 +180,7 @@ const createConfig = (): EnvironmentConfig => {
     };
 
     return config;
-  } catch (error) {
+  } catch (_error) {
     if (!isBuildTime()) {
       console.error('❌ 환경변수 검증 실패:', error);
     }
@@ -265,7 +265,7 @@ export const validateEnvironment = (): {
       errors,
       warnings,
     };
-  } catch (error) {
+  } catch (_error) {
     errors.push(
       error instanceof Error ? error.message : '알 수 없는 검증 오류'
     );
@@ -298,7 +298,7 @@ let config: EnvironmentConfig;
 try {
   config = createConfig();
   printConfig(config);
-} catch (error) {
+} catch (_error) {
   console.warn('⚠️ 환경설정 초기화 중 경고 발생, 기본값 사용');
   config = createConfig(); // 재시도
 }

@@ -94,7 +94,7 @@ export class UnifiedCacheService {
         // Edge Runtime: 요청별 정리 (cleanup은 수동으로 호출됨)
         // 빌드 시에는 아무것도 하지 않음
       }
-    } catch (error) {
+    } catch (_error) {
       // setInterval 사용 불가 환경: 수동 cleanup만 사용
       console.warn(
         'Automatic cache cleanup disabled: setInterval not available'
