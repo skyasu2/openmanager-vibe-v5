@@ -95,34 +95,16 @@ export class E2ETestRunner {
 
     const allCategories = [
       {
-        name: 'UI/UX 종합 테스트',
-        file: 'comprehensive-ui-ux-test.spec.ts',
-        priority: 1,
-        estimatedTime: 180000, // 3분
-      },
-      {
-        name: '게스트 대시보드 스모크',
-        file: 'guest-dashboard-flow.spec.ts',
+        name: '게스트 모드',
+        file: 'guest.spec.ts',
         priority: 1,
         estimatedTime: 90000, // 1.5분
       },
       {
-        name: 'AI 어시스턴트 고급 테스트',
-        file: 'ai-assistant-advanced-test.spec.ts',
-        priority: 2,
-        estimatedTime: 240000, // 4분
-      },
-      {
         name: '성능 및 시각적 회귀 테스트',
-        file: 'performance-visual-regression.spec.ts',
+        file: 'performance.spec.ts',
         priority: 3,
         estimatedTime: 300000, // 5분
-      },
-      {
-        name: '관리자 모드 개선 테스트',
-        file: 'admin-mode-improved.spec.ts',
-        priority: 4,
-        estimatedTime: 120000, // 2분
       },
     ];
 
@@ -142,9 +124,9 @@ export class E2ETestRunner {
         'guest-dashboard-flow.spec.ts',
       ],
       ai: ['ai-assistant-advanced-test.spec.ts'],
-      performance: ['performance-visual-regression.spec.ts'],
-      visual: ['performance-visual-regression.spec.ts'],
-      accessibility: ['performance-visual-regression.spec.ts'],
+      performance: ['performance.spec.ts'],
+      visual: ['visual-regression.spec.ts'],
+      accessibility: ['accessibility.spec.ts'],
     };
 
     const selectedFiles = categoryMap[this.config.category] || [];

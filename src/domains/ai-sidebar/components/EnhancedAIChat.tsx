@@ -38,10 +38,6 @@ interface EnhancedAIChatProps {
   handleSendInput: () => void;
   /** 생성 중 여부 */
   isGenerating: boolean;
-  /** 선택된 AI 엔진 */
-  selectedEngine: AIMode;
-  /** AI 모드 변경 핸들러 */
-  handleModeChange: (mode: AIMode) => void;
   /** 응답 재생성 핸들러 */
   regenerateResponse: (messageId: string) => void;
 }
@@ -86,8 +82,6 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   setInputValue,
   handleSendInput,
   isGenerating,
-  selectedEngine,
-  handleModeChange,
   regenerateResponse,
 }: EnhancedAIChatProps) {
   return (
@@ -198,11 +192,7 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
         {/* 하단 컨트롤 영역 */}
         <div className="mt-2 flex items-center justify-between">
           {/* 왼쪽: AI 모드 선택기 (Cursor 스타일) */}
-          <CompactModeSelector
-            selectedMode={selectedEngine}
-            onModeChange={handleModeChange}
-            disabled={isGenerating}
-          />
+          <div />
 
           {/* 오른쪽: 키보드 단축키 힌트 */}
           <div className="text-xs text-gray-500">

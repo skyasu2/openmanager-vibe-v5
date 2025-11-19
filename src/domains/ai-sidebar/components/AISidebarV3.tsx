@@ -151,7 +151,6 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
   className = '',
   sessionId,
   enableRealTimeThinking = true,
-  onEngineChange,
   onMessageSend,
 }) => {
   // 🔐 권한 확인 (모든 hooks보다 먼저 호출)
@@ -175,7 +174,6 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
   // 🔧 상태 관리 (성능 최적화된 그룹) - hooks 순서 일관성 보장
   const [selectedFunction, setSelectedFunction] =
     useState<AIAssistantFunction>('chat');
-  const [selectedEngine, setSelectedEngine] = useState<AIMode>('UNIFIED');
   const [inputValue, setInputValue] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -239,28 +237,16 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
 
   // 🎯 실제 AI 쿼리 처리 함수 (완전히 새로워진 구현)
   const processRealAIQuery = useCallback(
-    async (query: string, engine: AIMode = 'LOCAL') => {
+    async (query: string) => {
       const startTime = Date.now();
 
       try {
-        console.log(`🤖 V3 AI 쿼리 처리 시작: ${query} (엔진: ${engine})`);
+        console.log(`🤖 V3 AI 쿼리 처리 시작: ${query}`);
 
         // 순차적 비동기 처리 (Race Condition 해결)
-        let processingMessage: EnhancedChatMessage | null = null;
-
-        // 단계 1: 처리 메시지 추가
-        if (engine === 'GOOGLE_AI') {
-          processingMessage = {
-            id: `processing-${crypto.randomUUID()}`,
-            content: '🤖 Google AI API 사용중...',
-            role: 'thinking',
-            timestamp: new Date(),
-            isStreaming: true,
-          };
-          addMessage(processingMessage);
-        } else if (enableRealTimeThinking) {
+        if (enableRealTimeThinking) {
           startThinking();
-          simulateThinkingSteps(query, engine);
+          simulateThinkingSteps(query, 'UNIFIED');
         }
 
         // 단계 2: API 호출 (timeout 및 abort controller 적용)
@@ -278,8 +264,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
             temperature: 0.7,
             maxTokens: 1000,
             context: 'ai-sidebar-v3',
-            includeThinking: enableRealTimeThinking && engine !== 'GOOGLE_AI',
-            mode: engine === 'GOOGLE_AI' ? 'google-ai' : 'local-ai',
+            includeThinking: enableRealTimeThinking,
             timeoutMs: 450,
           }),
           signal: abortController.signal,
@@ -296,25 +281,19 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
         if (data.success && data.response) {
           const processingTime = Date.now() - startTime;
 
-          // 단계 3: 처리 메시지 제거 및 최종 응답 추가
-          if (processingMessage) {
-            // 처리 메시지 제거 (불필요한 상태 제거)
-            // 실제 구현에서는 updateMessage로 대체
-          }
-
+          // 단계 3: 최종 응답 추가
           const finalMessage: EnhancedChatMessage = {
             id: `assistant-${crypto.randomUUID()}`,
             content: data.response,
             role: 'assistant',
             timestamp: new Date(),
-            engine: data.engine || engine,
+            engine: data.engine || 'UNIFIED',
             metadata: {
               processingTime,
               confidence: data.confidence || 0.8,
             },
-            // Local AI인 경우 thinking steps 포함 (useRef로 최적화)
             thinkingSteps:
-              enableRealTimeThinking && engine !== 'GOOGLE_AI'
+              enableRealTimeThinking
                 ? stepsRef.current
                 : undefined,
             isCompleted: true,
@@ -327,13 +306,12 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
 
           // 부모 컴포넌트에 알림
           onMessageSend?.(query);
-          onEngineChange?.(engine);
 
           return {
             success: true,
             content: data.response,
             confidence: data.confidence || 0.8,
-            engine: data.engine || engine,
+            engine: data.engine || 'UNIFIED',
             processingTime,
             metadata: data.metadata,
           };
@@ -374,50 +352,8 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
       simulateThinkingSteps,
       enableRealTimeThinking,
       onMessageSend,
-      onEngineChange,
     ]
   );
-
-  // 🎯 AI 모드 변경 핸들러 (성능 최적화)
-  const handleModeChange = useCallback(
-    async (newMode: AIMode) => {
-      try {
-        setIsGenerating(true);
-        setSelectedEngine(newMode);
-
-        console.log(`🔄 V3 AI 모드 변경: ${newMode}`);
-
-        // 성공 메시지 추가
-        const message: EnhancedChatMessage = {
-          id: `mode-change-${Date.now()}`,
-          role: 'assistant',
-          content: `AI 모드가 ${newMode === 'LOCAL' ? '로컬' : 'Google AI'}로 변경되었습니다.`,
-          timestamp: new Date(),
-          isCompleted: true,
-        };
-
-        addMessage(message);
-        onEngineChange?.(newMode);
-      } catch (error) {
-        console.error('AI 모드 변경 실패:', error);
-
-        const errorMessage: EnhancedChatMessage = {
-          id: `error-${Date.now()}`,
-          role: 'assistant',
-          content: `AI 모드 변경에 실패했습니다: ${
-            error instanceof Error ? error.message : 'Unknown error'
-          }`,
-          timestamp: new Date(),
-          isCompleted: true,
-        };
-
-        addMessage(errorMessage);
-      } finally {
-        setIsGenerating(false);
-      }
-    },
-    [addMessage, onEngineChange]
-  ); // onEngineChange 함수 의존성 복구
 
   // 🎯 메시지 전송 핸들러 (성능 최적화)
   const handleSendInput = useCallback(async () => {
@@ -461,14 +397,6 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
     },
     [allMessages, processRealAIQuery]
   ); // processRealAIQuery 함수 의존성 복구
-
-  // AI 엔진 초기화
-  useEffect(() => {
-    if (isOpen) {
-      console.log('🎯 AISidebarV3 초기화 - 기본 모드: UNIFIED');
-      setSelectedEngine('UNIFIED');
-    }
-  }, [isOpen]);
 
   // 메모리 효율성을 위한 메시지 제한
   const limitedMessages = useMemo(() => {
@@ -515,10 +443,6 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
             void handleSendInput();
           }}
           isGenerating={isGenerating}
-          selectedEngine={selectedEngine}
-          handleModeChange={(mode) => {
-            void handleModeChange(mode);
-          }}
           regenerateResponse={regenerateResponse}
         />
       );
@@ -539,8 +463,6 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
     messagesEndRef,
     inputValue,
     isGenerating,
-    selectedEngine,
-    handleModeChange,
     handleSendInput,
     regenerateResponse,
   ]);
