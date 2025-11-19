@@ -76,7 +76,6 @@ export const ServerMetricsChart: React.FC<ServerMetricsChartProps> = memo(
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [animationValue, setAnimationValue] = useState(0);
     const animationFrameRef = useRef<number | null>(null);
-    const performanceTracking = usePerformanceTracking();
 
     const sizeConfig = {
       sm: { width: 40, height: 40 },

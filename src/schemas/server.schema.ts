@@ -4,7 +4,7 @@ import {
   TimestampSchema,
   PercentageSchema,
   MetadataSchema,
-  StatusSchema,
+  _StatusSchema,
   HealthStatusSchema,
 } from './common.schema';
 
