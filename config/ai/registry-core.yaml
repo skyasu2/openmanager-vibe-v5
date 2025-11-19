@@ -28,6 +28,7 @@ ai-tools:
 subagents:
   active:
     - codex-specialist                  # HIGH priority - Code review
+    - codex-review-specialist           # HIGH priority - Auto code review (post-commit)
     - dev-environment-manager           # MEDIUM
     - database-administrator            # HIGH
     - vercel-platform-specialist        # HIGH

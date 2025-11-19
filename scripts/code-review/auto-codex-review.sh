@@ -50,22 +50,43 @@ log_error() {
 collect_changes() {
     log_info "📊 변경사항 수집 중..."
     
-    # Staged 파일 목록
-    local staged_files=$(git diff --cached --name-only --diff-filter=ACM)
+    # 마지막 커밋의 변경사항 가져오기
+    local last_commit=$(git log -1 --format=%H)
+    local commit_message=$(git log -1 --format=%s)
+    local changed_files=$(git diff-tree --no-commit-id --name-only -r "$last_commit")
     
-    if [ -z "$staged_files" ]; then
+    if [ -z "$changed_files" ]; then
         log_warning "변경된 파일이 없습니다"
         return 1
     fi
     
-    # 파일별 diff 수집
-    local changes_summary=""
+    log_info "마지막 커밋: $last_commit"
+    log_info "커밋 메시지: $commit_message"
     
-    for file in $staged_files; do
-        changes_summary+="## 📄 $file\n\n"
-        changes_summary+="\`\`\`diff\n"
-        changes_summary+="$(git diff --cached "$file")\n"
-        changes_summary+="\`\`\`\n\n"
+    # 파일별 diff 수집
+    local changes_summary="**커밋**: \`$last_commit\`
+**메시지**: $commit_message
+
+"
+    
+    for file in $changed_files; do
+        # 파일이 존재하는지 확인 (삭제된 파일 제외)
+        if [ -f "$file" ]; then
+            changes_summary+="## 📄 $file
+
+"
+            changes_summary+="\`\`\`diff
+"
+            changes_summary+="$(git show "$last_commit":"$file" 2>/dev/null | head -100)
+"
+            changes_summary+="\`\`\`
+
+"
+        else
+            changes_summary+="## 🗑️ $file (삭제됨)
+
+"
+        fi
     done
     
     echo -e "$changes_summary"
