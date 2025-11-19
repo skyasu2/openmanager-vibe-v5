@@ -9,7 +9,7 @@ import {
   safeErrorLog,
   safeErrorMessage,
   withErrorRecovery,
-} from '@/lib/error-handler';
+} from '../../src/lib/error-handler';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Error Handler', () => {

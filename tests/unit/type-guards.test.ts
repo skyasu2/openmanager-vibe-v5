@@ -10,7 +10,7 @@ import {
   toSafeObject,
   toSafeArray,
   toSafeString,
-} from '@/types/common-replacements';
+} from '../../src/types/common-replacements';
 
 describe('Type Guard Functions', () => {
   describe('isErrorWithMessage', () => {
