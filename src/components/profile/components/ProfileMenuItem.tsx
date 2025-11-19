@@ -6,7 +6,6 @@ import type { MenuItem } from '../types/profile.types';
 
 interface ProfileMenuItemProps extends MenuItem {
   onClick?: (e: MouseEvent) => void;
-  index?: number;
 }
 
 /**
@@ -25,7 +24,6 @@ export const ProfileMenuItem = memo(function ProfileMenuItem({
   disabled = false,
   dividerBefore = false,
   onClick,
-  index = 0,
 }: ProfileMenuItemProps) {
   if (!visible) return null;
 

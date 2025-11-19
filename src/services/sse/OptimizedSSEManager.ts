@@ -169,7 +169,7 @@ export class OptimizedSSEManager {
           await this.createConnection(channel);
           this.reconnectAttempts.set(channel, 0); // 성공 시 재설정
           this.totalReconnects++;
-        } catch (_error) {
+        } catch {
           this.reconnectAttempts.set(channel, attempts + 1);
           void this.reconnect(channel); // 재귀 호출
         }
@@ -276,7 +276,7 @@ export class OptimizedSSEManager {
         const messageEvent = event as MessageEvent;
         const data = JSON.parse(messageEvent.data);
         this.emit('message', data);
-      } catch (_error) {
+      } catch {
         const messageEvent = event as MessageEvent;
         this.emit('message', messageEvent.data);
       }

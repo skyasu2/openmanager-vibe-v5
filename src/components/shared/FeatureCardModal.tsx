@@ -112,7 +112,7 @@ export default function FeatureCardModal({
 
   // 기술 카드 컴포넌트 (과거 구현 참조)
   const TechCard = React.memo(
-    ({ tech, index }: { tech: TechItem; index: number }) => {
+    ({ tech }: { tech: TechItem }) => {
       const importanceStyle = getImportanceStyle(tech.importance);
       const categoryStyle = getCategoryStyle(tech.category);
 
@@ -385,7 +385,7 @@ export default function FeatureCardModal({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {vibeHistoryStages.stage1?.map(
                 (tech: TechItem, index: number) => (
-                  <TechCard key={tech.name} tech={tech} index={index} />
+                  <TechCard key={tech.name} tech={tech} />
                 )
               ) || null}
             </div>
@@ -411,7 +411,7 @@ export default function FeatureCardModal({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {vibeHistoryStages.stage2?.map(
                 (tech: TechItem, index: number) => (
-                  <TechCard key={tech.name} tech={tech} index={index} />
+                  <TechCard key={tech.name} tech={tech} />
                 )
               ) || null}
             </div>
@@ -437,7 +437,7 @@ export default function FeatureCardModal({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {vibeHistoryStages.stage3?.map(
                 (tech: TechItem, index: number) => (
-                  <TechCard key={tech.name} tech={tech} index={index} />
+                  <TechCard key={tech.name} tech={tech} />
                 )
               ) || null}
             </div>
@@ -458,7 +458,7 @@ export default function FeatureCardModal({
               </h4>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {criticalTech.map((tech, index) => (
-                  <TechCard key={tech.name} tech={tech} index={index} />
+                  <TechCard key={tech.name} tech={tech} />
                 ))}
               </div>
             </div>
@@ -476,7 +476,7 @@ export default function FeatureCardModal({
               </h4>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {highTech.map((tech, index) => (
-                  <TechCard key={tech.name} tech={tech} index={index} />
+                  <TechCard key={tech.name} tech={tech} />
                 ))}
               </div>
             </div>
@@ -494,7 +494,7 @@ export default function FeatureCardModal({
               </h4>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {mediumTech.map((tech, index) => (
-                  <TechCard key={tech.name} tech={tech} index={index} />
+                  <TechCard key={tech.name} tech={tech} />
                 ))}
               </div>
             </div>
@@ -512,7 +512,7 @@ export default function FeatureCardModal({
               </h4>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {lowTech.map((tech, index) => (
-                  <TechCard key={tech.name} tech={tech} index={index} />
+                  <TechCard key={tech.name} tech={tech} />
                 ))}
               </div>
             </div>

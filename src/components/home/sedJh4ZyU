@@ -12,10 +12,12 @@ import { FEATURE_CARDS_DATA } from '@/data/feature-cards.data';
 const FeatureCardItem = memo(
   ({
     card,
+    index: index,
     onCardClick,
     isAIDisabled,
   }: {
     card: FeatureCard;
+    index: number;
     onCardClick: (cardId: string) => void;
     isAIDisabled: boolean;
   }) => {
@@ -219,10 +221,11 @@ export default function FeatureCardsGrid() {
   return (
     <>
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
-        {FEATURE_CARDS_DATA.map((card) => (
+        {FEATURE_CARDS_DATA.map((card, _index) => (
           <FeatureCardItem
             key={card.id}
             card={card}
+            index={index}
             onCardClick={handleCardClick}
             isAIDisabled={!aiAgentEnabled}
           />

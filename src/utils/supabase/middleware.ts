@@ -43,7 +43,7 @@ export async function updateSession(
               path: '/',
               ...options,
             });
-          } catch (_error) {
+          } catch {
             // Fallback: Headers.append 사용 (여러 쿠키 지원)
             const cookieValue = `${name}=${value}; Path=/; ${Object.entries(
               options
@@ -77,7 +77,7 @@ export async function updateSession(
               maxAge: 0,
               ...options,
             });
-          } catch (_error) {
+          } catch {
             // Fallback: Headers.append 사용 (여러 쿠키 지원)
             const cookieValue = `${name}=; Path=/; Max-Age=0; ${Object.entries(
               options

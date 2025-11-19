@@ -211,7 +211,7 @@ export function convertHttpError(
 export function createSafeUrl(baseUrl: string, path: string): URL {
   try {
     return new URL(path, baseUrl);
-  } catch (_error) {
+  } catch {
     throw createGCPError(
       GCPFunctionErrorCode.CLIENT_ERROR,
       `Invalid URL: ${baseUrl}/${path}`,

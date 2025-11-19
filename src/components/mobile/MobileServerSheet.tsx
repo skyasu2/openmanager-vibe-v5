@@ -231,7 +231,7 @@ export default function MobileServerSheet({
                     시스템 메트릭
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
-                    {metrics.map((metric, index) => (
+                    {metrics.map((metric, _index) => (
                       <div
                         key={metric.label}
                         className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
@@ -299,7 +299,7 @@ export default function MobileServerSheet({
                       실행 중인 서비스
                     </h3>
                     <div className="space-y-3">
-                      {server.services.map((service, index) => (
+                      {server.services.map((service, _index) => (
                         <div
                           key={`${service.name}-${service.port}`}
                           className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3"
