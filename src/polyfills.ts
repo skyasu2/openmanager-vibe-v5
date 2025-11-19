@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * 🔧 Polyfills for Next.js 15 (crypto-js 제거 후)
  *
  * 목표: 순수 Node.js crypto 모듈로 간소화
  * 🚨 Vercel 빌드 self 오류 완전 해결
+ * 
+ * Note: 'any' types are intentionally used for runtime environment setup
  */
 
 // 🚀 전역 환경 체크

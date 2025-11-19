@@ -62,6 +62,7 @@ const PerformanceChart = memo<PerformanceChartProps>(({ data }) => {
     <div className="h-64">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <Pie
             data={data as any}
             cx="50%"
@@ -79,6 +80,7 @@ const PerformanceChart = memo<PerformanceChartProps>(({ data }) => {
           <Legend
             verticalAlign="bottom"
             height={36}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             formatter={(value: string, entry: any) => (
               <span style={{ color: entry.color }}>{value}</span>
             )}

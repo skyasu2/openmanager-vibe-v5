@@ -101,6 +101,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
       }
     >
       {userInfo?.avatar ? (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={userInfo.avatar}
           alt={getUserName()}

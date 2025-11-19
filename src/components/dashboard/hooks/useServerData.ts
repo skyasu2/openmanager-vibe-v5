@@ -23,7 +23,7 @@
 
 import { STATIC_ERROR_SERVERS } from '@/config/fallback-data';
 import { useRealtimeServers } from '@/hooks/api/useRealtimeServers';
-import type { Server } from '@/types/server';
+import type { Server, ServerRole, ServerEnvironment } from '@/types/server';
 import { useCallback, useEffect, useState } from 'react';
 import type { DashboardStats, ServerFilters } from '../types/dashboard.types';
 // 🚀 Vercel 최적화: API 배칭 + 통합 타이머 시스템 통합
@@ -130,8 +130,8 @@ export const useServerData = (): UseServerDataReturn => {
                   alerts: 0,
                   ip: '0.0.0.0',
                   os: 'Unknown',
-                  role: 'worker' as any,
-                  environment: 'production' as any,
+                  role: 'worker' as ServerRole,
+                  environment: 'production' as ServerEnvironment,
                   provider: 'unknown',
                   lastUpdate: new Date(),
                 } as Server)

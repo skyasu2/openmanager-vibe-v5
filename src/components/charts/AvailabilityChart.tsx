@@ -89,6 +89,7 @@ const AvailabilityChart = memo<AvailabilityChartProps>(({ data }) => {
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
             <Pie
               data={data as any}
               cx="50%"
@@ -106,6 +107,7 @@ const AvailabilityChart = memo<AvailabilityChartProps>(({ data }) => {
             <Legend
               verticalAlign="bottom"
               height={24}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               formatter={(value: string, entry: any) => (
                 <span style={{ color: entry.color }} className="text-sm">
                   {value}
