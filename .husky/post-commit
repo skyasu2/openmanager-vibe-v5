@@ -3,3 +3,10 @@ if [ -f ".claude/hooks/post-commit.sh" ]; then
     echo "🔄 Running CHANGELOG.md auto-update..."
     bash .claude/hooks/post-commit.sh
 fi
+
+# Auto Codex Code Review (백그라운드 실행)
+if [ -f "scripts/code-review/auto-codex-review.sh" ]; then
+    echo "🤖 Starting Codex code review (background)..."
+    bash scripts/code-review/auto-codex-review.sh &
+    echo "   ✅ Review will be saved to logs/code-reviews/"
+fi
