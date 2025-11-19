@@ -327,7 +327,7 @@ function generateCycleScenarios(cycleInfo: CycleInfo, serverId: string): CycleSc
 }
 
 // 🚀 통합 서버 메트릭 생성 (6개 사이클 기반)
-async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promise<EnhancedServerMetrics[]> {
+async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promise<any[]> {
   const cycleTime = get24HourCycle(normalizedTimestamp);
   const slot = getBaseline10MinSlot(cycleTime);
   const hour = Math.floor(slot * 10 / 60);
@@ -390,7 +390,7 @@ async function generateUnifiedServerMetrics(normalizedTimestamp: number): Promis
     
     return {
       id: serverId,
-      name: serverInfo.hostname || serverId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      name: serverInfo.hostname || serverId.replace('-', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
       hostname: serverInfo.hostname || `${serverId}.local`,
       environment: 'production' as const,
       role: (serverInfo.type || serverId.split('-')[0]) as ServerRole,

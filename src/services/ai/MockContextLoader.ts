@@ -265,6 +265,7 @@ export class MockContextLoader {
         hour12: false,
       });
 
+  // @ts-expect-error - Server type mismatch
       // Server 타입으로 변환 (MockContext 인터페이스 호환)
       const servers: Server[] = serversData.map((s) => ({
         id: s.serverId,

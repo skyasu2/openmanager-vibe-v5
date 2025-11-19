@@ -207,8 +207,7 @@ class DevLogger {
     this.warn(
       category,
       message,
-      { details, error: safeError?.message },
-      safeError
+      { details, error: safeError?.message }
     );
   }
 

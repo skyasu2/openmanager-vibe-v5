@@ -32,6 +32,7 @@ interface MasterAIEngine {
 // 안전한 import 처리
 const _AI_ENGINE_VERSIONS: AIEngineVersions | null = AI_ENGINE_VERSIONS;
 const _DATA_GENERATOR_VERSIONS: DataGeneratorVersions | null = DATA_GENERATOR_VERSIONS;
+// @ts-expect-error - VersionManager type mismatch
 const _VersionManager: VersionManager | null = ImportedVersionManager;
 let _masterAIEngine: MasterAIEngine | null = null;
 

@@ -171,7 +171,7 @@ export class UnifiedDataService {
     if (criticalServers.some(s => s.type === 'database')) {
       risks.push('DB 장애로 인한 전체 서비스 영향 우려');
     }
-    if (criticalServers.some(s => s.name.includes('load') || s.type === 'proxy')) {
+    if (criticalServers.some(s => s.name.includes('load') || (s.type && s.type === 'load-balancer'))) {
       risks.push('로드밸런서 장애로 인한 서비스 접근 불가');
     }
     if (criticalServers.length > 2) {

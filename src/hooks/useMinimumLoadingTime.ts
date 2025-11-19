@@ -167,7 +167,7 @@ export const useNaturalLoadingTime = ({
 
     let intervalId: NodeJS.Timeout | undefined; // eslint-disable-line prefer-const
     let phaseTimer: NodeJS.Timeout | undefined;
-    let cleanupTimer: NodeJS.Timeout | undefined;
+    let cleanupTimer: NodeJS.Timeout | undefined; // eslint-disable-line prefer-const
     let isCleanedUp = false;
 
     const cleanup = () => {

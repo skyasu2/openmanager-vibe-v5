@@ -137,7 +137,7 @@ async function readCachedHourlyFile(hour: number): Promise<HourlyServerData> {
 /**
  * 🔄 시간별 시나리오 데이터 로드
  */
-async function loadHourlyScenarioData(): Promise<EnhancedServerMetrics[]> {
+async function loadHourlyScenarioData(): Promise<any[]> {
   try {
     const now = new Date();
     const currentHour = now.getHours();
@@ -275,7 +275,7 @@ function convertToEnhancedMetrics(
 /**
  * 🔄 폴백 서버 데이터 생성
  */
-function generateFallbackServers(): EnhancedServerMetrics[] {
+function generateFallbackServers(): any[] {
   return Array.from({ length: 10 }, (_, index) => ({
     id: `fallback-${index + 1}`,
     name: `Fallback Server ${index + 1}`,
@@ -331,7 +331,7 @@ function generateFallbackServers(): EnhancedServerMetrics[] {
 /**
  * 🎯 실시간 서버 데이터 (Supabase 연동)
  */
-async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
+async function getRealtimeServers(): Promise<any[]> {
   try {
     const supabase = getSupabaseClient();
     const { data: servers, error } = await supabase

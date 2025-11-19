@@ -3,10 +3,10 @@
  * any 타입 제거를 위한 명확한 타입 정의
  */
 
-import type { Server, Service, ServerAlert } from '@/types/server';
+import type { Server, Service, ServerAlert, ServerRole, ServerEnvironment } from '@/types/server';
 
 // 서버 확장 타입 (any 타입 제거용)
-export interface ExtendedServer extends Omit<Server, 'networkStatus'> {
+export interface ExtendedServer extends Omit<Server, 'type' | 'environment'> {
   hostname: string;
   cpu: number;
   memory: number;
@@ -15,8 +15,8 @@ export interface ExtendedServer extends Omit<Server, 'networkStatus'> {
   uptime: string | number;
   ip: string;
   os: string;
-  type: string;
-  environment: string;
+  type: ServerRole;
+  environment: ServerEnvironment;
   provider: string;
   lastUpdate: Date;
   alerts: number | ServerAlert[];
@@ -27,15 +27,6 @@ export interface ExtendedServer extends Omit<Server, 'networkStatus'> {
     disk_gb: number;
     network_speed?: string;
   };
-  networkStatus:
-    | 'excellent'
-    | 'good'
-    | 'poor'
-    | 'offline'
-    | 'healthy'
-    | 'warning'
-    | 'critical'
-    | 'maintenance';
   health: {
     score: number;
     trend: number[];
@@ -126,8 +117,8 @@ export function toExtendedServer(server: Server): ExtendedServer {
     uptime: server.uptime || 'N/A',
     ip: server.ip || '192.168.1.100',
     os: server.os || 'Ubuntu 22.04',
-    type: server.type || 'api',
-    environment: server.environment || 'prod',
+    type: (server.type || 'api') as ServerRole,
+    environment: (server.environment || 'production') as ServerEnvironment,
     provider: server.provider || 'Unknown',
     lastUpdate:
       hasProperty(server, 'lastUpdate') && server.lastUpdate instanceof Date
@@ -145,20 +136,6 @@ export function toExtendedServer(server: Server): ExtendedServer {
             memory_gb: 16,
             disk_gb: 500,
           },
-    networkStatus:
-      hasProperty(server, 'networkStatus') &&
-      [
-        'excellent',
-        'good',
-        'poor',
-        'offline',
-        'healthy',
-        'warning',
-        'critical',
-        'maintenance',
-      ].includes(String(server.networkStatus))
-        ? (server.networkStatus as ExtendedServer['networkStatus'])
-        : 'good',
     health: server.health || {
       score: 85,
       trend: [],

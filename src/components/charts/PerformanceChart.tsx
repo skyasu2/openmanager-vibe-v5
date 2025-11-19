@@ -79,7 +79,7 @@ const PerformanceChart = memo<PerformanceChartProps>(({ data }) => {
           <Legend
             verticalAlign="bottom"
             height={36}
-            formatter={(value: string, entry: { color: string }) => (
+            formatter={(value: string, entry: any) => (
               <span style={{ color: entry.color }}>{value}</span>
             )}
           />

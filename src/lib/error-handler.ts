@@ -518,7 +518,12 @@ export async function withErrorRecovery<T>(
     }
   }
 
-  const result = {
+  const result: {
+    success: boolean;
+    data?: T;
+    error: SafeError;
+    attempts: number;
+  } = {
     success: false,
     error:
       lastError ||
