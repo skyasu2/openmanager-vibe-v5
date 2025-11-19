@@ -2,8 +2,13 @@
 
 # Auto Codex Code Review Script
 # 목적: 커밋 시 변경사항을 Codex가 자동 리뷰하고 리포트 생성
-# 버전: 1.1.0
+# 버전: 1.2.0
 # 날짜: 2025-11-19
+#
+# Changelog v1.2.0:
+# - cd "$PROJECT_ROOT" 위치 최적화: validation 직후로 이동
+# - Working directory 로그 추가 (디버깅 지원)
+# - main() 함수 내 중복 cd 제거
 #
 # Changelog v1.1.0:
 # - PROJECT_ROOT 유효성 검증 및 폴백 로직 추가
@@ -27,6 +32,13 @@ if [ -z "$PROJECT_ROOT" ] || [ ! -d "$PROJECT_ROOT" ]; then
 
     echo "✅ PROJECT_ROOT 설정 완료: $PROJECT_ROOT"
 fi
+
+# 프로젝트 루트로 이동 (git 명령어 및 로그 파일 생성 위치 일관성 보장)
+cd "$PROJECT_ROOT" || {
+    echo "❌ Fatal: cd to PROJECT_ROOT failed"
+    exit 1
+}
+echo "✅ Working directory: $PROJECT_ROOT"
 
 # 색상 정의
 RED='\033[0;31m'
@@ -212,9 +224,6 @@ show_review_summary() {
 
 # 메인 실행
 main() {
-    # 프로젝트 루트로 이동 (Bug Fix #2)
-    cd "$PROJECT_ROOT"
-
     log_info "🚀 Auto Codex Review 시작"
     echo ""
 
