@@ -28,6 +28,7 @@ import AIInsightsCard from './AIInsightsCard';
 import AIAssistantIconPanel, { type AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
 import { AIModeSelector } from '@/components/ai/AIModeSelector';
 import type { AIMode } from '@/types/ai-types';
+import FreeTierMonitor from '@/components/ai/FreeTierMonitor';
 
 interface AISidebarContentProps {
   onClose: () => void;
@@ -85,6 +86,9 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
       setActiveTab('chat');
       // auto-report 실행 후 다시 chat으로 돌아가기
       setTimeout(() => setSelectedFunction('chat'), 100);
+    } else if (selectedFunction === 'free-tier-monitor') {
+      // 무료 티어 모니터 탭으로 전환
+      setActiveTab('insights');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFunction]);
@@ -431,6 +435,13 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
 
         {activeTab === 'insights' && (
           <div className="overflow-y-auto p-4">
+            {/* 무료 티어 모니터 (선택 시 상단 표시) */}
+            {selectedFunction === 'free-tier-monitor' && (
+              <div className="mb-4">
+                <FreeTierMonitor />
+              </div>
+            )}
+
             <AIInsightsCard className="mb-4" />
 
             <div className="space-y-3">
