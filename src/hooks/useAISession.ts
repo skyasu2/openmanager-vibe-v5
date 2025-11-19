@@ -83,12 +83,6 @@ export function useAISession(
   // 🔄 초기화 및 복원
   // ==============================================
 
-  useEffect(() => {
-    if (enableHistory) {
-      void loadSessionHistory();
-    }
-  }, [enableHistory, loadSessionHistory]);
-
   /**
    * 💾 로컬 스토리지에서 상태 복원
    */
@@ -142,6 +136,13 @@ export function useAISession(
       console.warn('세션 이력 로드 실패:', error);
     }
   }, [maxHistoryItems]);
+
+  // 초기 로드
+  useEffect(() => {
+    if (enableHistory) {
+      void loadSessionHistory();
+    }
+  }, [enableHistory, loadSessionHistory]);
 
   // ==============================================
   // 🎯 세션 관리 함수들

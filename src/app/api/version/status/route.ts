@@ -33,7 +33,7 @@ interface MasterAIEngine {
 const _AI_ENGINE_VERSIONS: AIEngineVersions | null = AI_ENGINE_VERSIONS;
 const _DATA_GENERATOR_VERSIONS: DataGeneratorVersions | null = DATA_GENERATOR_VERSIONS;
 const _VersionManager: VersionManager | null = ImportedVersionManager;
-const _masterAIEngine: MasterAIEngine | null = null;
+let _masterAIEngine: MasterAIEngine | null = null;
 
 // SimplifiedQueryEngine은 GCP Functions로 이관됨
 try {

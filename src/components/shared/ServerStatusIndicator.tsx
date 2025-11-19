@@ -55,7 +55,7 @@ const statusStyles = {
 
 export const ServerStatusIndicator: React.FC<ServerStatusIndicatorProps> = memo(
   ({ status, size = 'md', showText = true, className = '' }) => {
-    const { trackComponentRender } = usePerformanceTracking();
+    const performanceTracking = usePerformanceTracking();
 
     const sizeClasses = {
       sm: 'w-2 h-2',

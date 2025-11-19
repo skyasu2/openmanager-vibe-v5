@@ -120,7 +120,8 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
 
       return errorState;
     },
-    [createError, defaultConfig.enableAutoRecover, defaultConfig.maxRetries, attemptAutoRecover]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [createError, defaultConfig.enableAutoRecover, defaultConfig.maxRetries]
   );
 
   // 자동 복구 시도
@@ -165,7 +166,8 @@ export const useErrorMonitoring = (config?: Partial<MonitoringConfig>) => {
 
       retryTimeouts.current.set(retryKey, timeout);
     },
-    [defaultConfig.retryDelay, resolveError]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [defaultConfig.retryDelay]
   );
 
   // 에러 해결
