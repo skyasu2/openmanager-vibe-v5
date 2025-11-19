@@ -365,9 +365,8 @@ async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
           alerts: [],
           ip: server.ip_address,
           os: server.os ?? 'Ubuntu 22.04 LTS',
-          type: server.server_type,
-          role: server.role ?? 'web',
-          environment: server.environment ?? 'production',
+          role: (server.role ?? 'web') as any,
+          environment: (server.environment ?? 'production') as any,
           provider: server.provider,
           specs: {
             cpu_cores: server.cpu_cores ?? 4,

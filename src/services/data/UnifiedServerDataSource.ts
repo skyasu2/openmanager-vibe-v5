@@ -273,9 +273,8 @@ export class UnifiedServerDataSource {
         lastUpdate: new Date(),
         ip: `192.168.2.${100 + i}`,
         os: 'Ubuntu 22.04 LTS',
-        type: serverType,
-        role: serverType,
-        environment: 'production',
+        role: serverType as any,
+        environment: 'production' as any,
         location: `us-west-${1 + (i % 3)}`,
         alerts: [],
         // cpu_usage: 0, // 하위 호환성을 위해 제거 (Server 타입에 없음)

@@ -130,8 +130,8 @@ export const useServerData = (): UseServerDataReturn => {
                   alerts: 0,
                   ip: '0.0.0.0',
                   os: 'Unknown',
-                  type: 'unknown',
-                  environment: 'unknown',
+                  role: 'worker' as any,
+                  environment: 'production' as any,
                   provider: 'unknown',
                   lastUpdate: new Date(),
                 } as Server)

@@ -8,7 +8,7 @@
  * - 상태 매핑
  */
 
-import type { Server, ServerAlert, Service } from '@/types/server';
+import type { Server, ServerAlert, Service, ServerRole, ServerEnvironment } from '@/types/server';
 import type { ServerStatus } from '@/types/server-enums'; // 🔧 추가: Single Source of Truth
 
 /**

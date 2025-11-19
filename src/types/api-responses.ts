@@ -48,7 +48,7 @@ export type PaginationRequest = z.infer<typeof PaginationRequestSchema>;
 export type PaginationResponse<T> = z.infer<typeof PaginationResponseSchema> & {
   data: T[];
 };
-export type Status = z.infer<typeof StatusSchema>;
+export type Status = z.infer<typeof _StatusSchema>;
 export type HealthStatus = z.infer<typeof HealthStatusSchema>;
 export type Timestamp = z.infer<typeof TimestampSchema>;
 export type Id = z.infer<typeof IdSchema>;
