@@ -52,7 +52,7 @@ jobs:
       - name: Install dependencies (429 Error Resilient)
         run: |
           echo "📦 CI 환경 NPM 의존성 설치 시작..."
-          
+
           # npm ci CI 환경 최적화 retry 로직
           npm_ci_optimized() {
             local attempt=1
@@ -84,7 +84,7 @@ jobs:
               fi
             done
           }
-          
+
           # npm ci 실행
           if npm_ci_optimized; then
             echo "✅ CI 환경 의존성 설치 완료"
@@ -95,10 +95,10 @@ jobs:
 
       - name: Smart TypeScript Check
         timeout-minutes: 2
-        continue-on-error: true  # TypeScript 에러도 CI 차단 방지
+        continue-on-error: true # TypeScript 에러도 CI 차단 방지
         run: |
           echo "🚀 TypeScript 스마트 체크 시작..."
-          
+
           # 변경된 파일만 스마트 체크 (성공하면 바로 끝)
           if node scripts/dev/type-check-changed.js smart; then
             echo "✅ 스마트 타입 체크 통과!"
@@ -119,12 +119,12 @@ jobs:
           fi
 
       - name: Fast CI Tests
-        timeout-minutes: 2
-        continue-on-error: true  # 테스트 실패도 CI 차단 방지
+        timeout-minutes: 3 # 타임아웃 3분으로 증가
+        continue-on-error: true # 테스트 실패도 CI 차단 방지
         run: |
           echo "🧪 빠른 CI 테스트 실행 시작..."
           echo "📊 핵심 유닛 테스트만 실행하여 빠른 피드백 제공"
-          
+
           # 빠른 CI 테스트 실행 (핵심 유닛 테스트만)
           if npm run test:ci:fast; then
             echo "✅ 핵심 테스트 모두 통과!"

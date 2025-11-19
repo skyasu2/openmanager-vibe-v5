@@ -93,9 +93,19 @@ jobs:
         run: npm run type-check
         # TypeScript 에러 발견 시 배포 차단 (베스트 프랙티스)
 
+      - name: Fast CI Tests (품질 게이트)
+        timeout-minutes: 3
+        run: |
+          echo "🧪 배포 전 빠른 테스트 실행..."
+          if npm run test:ci:fast; then
+            echo "✅ 핵심 테스트 통과!"
+          else
+            echo "❌ 핵심 테스트 실패 - 배포 중단"
+            exit 1
+          fi
+
       - name: Lint check (품질 게이트 - CI 캐시 정리 후 재활성화)
         run: npm run lint:strict
         # ESLint 경고/에러 발견 시 배포 차단 (max-warnings=0)
-
 
     # Vercel이 자동으로 배포를 처리

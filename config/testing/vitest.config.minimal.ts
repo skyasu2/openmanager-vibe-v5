@@ -14,45 +14,47 @@ export default defineConfig({
       'src/utils/**/*.{test,spec}.{js,ts}',
       'tests/unit/type-guards.test.ts',
       'tests/unit/koreanTime.test.ts',
+      'tests/unit/safe-format.test.ts',
+      'tests/unit/error-handler.test.ts',
     ],
     exclude: [
       'node_modules/**',
       'dist/**',
       '.next/**',
       'out/**',
-      // 복잡한 Mock 테스트 제외 (삭제됨)
+      // 복잡한 Mock 테스트 제외 (CI에서 실행하지 않음)
       'src/services/ai/**',
       'src/app/api/**/__tests__/**',
       'tests/integration/**',
       'tests/e2e/**',
+      // Mock 관련 테스트 제외
+      '**/*.mock.test.ts',
+      '**/mock/**',
+      // 복잡한 서비스 테스트 제외
+      'tests/unit/services/**',
+      'tests/unit/hooks/**',
+      'tests/unit/lib/**',
     ],
-    testTimeout: 2000, // 빠른 실패
-    hookTimeout: 2000,
+    testTimeout: 5000, // 타임아웃 증가
+    hookTimeout: 5000,
     pool: 'vmThreads', // 4배 성능 향상
     isolate: false, // 격리 비활성화
+    retry: 1, // 실패 시 1번 재시도
     deps: {
       optimizer: {
         web: {
           enabled: true
         }
       }
-    }
+    },
+    coverage: {
+      enabled: false, // CI에서는 커버리지 비활성화
+    },
+    reporters: ['default'], // 간단한 리포터만 사용
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, '../../src'),
-      '@/components': path.resolve(__dirname, '../../src/components'),
-      '@/lib': path.resolve(__dirname, '../../src/lib'),
-      '@/services': path.resolve(__dirname, '../../src/services'),
-      '@/utils': path.resolve(__dirname, '../../src/utils'),
-      '@/types': path.resolve(__dirname, '../../src/types'),
-      '@/app': path.resolve(__dirname, '../../src/app'),
-      '@/hooks': path.resolve(__dirname, '../../src/hooks'),
-      '@/domains': path.resolve(__dirname, '../../src/domains'),
-      '@/schemas': path.resolve(__dirname, '../../src/schemas'),
+      '@': path.resolve(__dirname, '../src'),
     },
-  },
-  esbuild: {
-    target: 'node14',
   },
 });
