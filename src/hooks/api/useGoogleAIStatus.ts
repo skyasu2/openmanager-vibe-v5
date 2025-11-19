@@ -4,9 +4,19 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 // 🤖 Google AI 상태 타입 정의
 export interface GoogleAIStatus {
   isEnabled: boolean;
-  isConnected: boolean;
-  apiKeyStatus: 'valid' | 'invalid' | 'missing' | 'expired';
-  quotaStatus: {
+  isConnected: boolean; // Overall connection status
+
+  apiKeyStatus: {
+    primary: 'valid' | 'invalid' | 'missing' | 'expired';
+    secondary: 'valid' | 'invalid' | 'missing' | 'expired';
+  };
+  primaryKeyId?: string; // e.g., AIza...Kjk
+  secondaryKeyId?: string; // e.g., AIza...xyz
+
+  primaryKeyConnected: boolean; // Is primary key successfully making calls?
+  secondaryKeyConnected: boolean; // Is secondary key successfully making calls?
+
+  quotaStatus: { // This would represent the active key's quota
     daily: {
       used: number;
       limit: number;
@@ -31,6 +41,8 @@ export interface GoogleAIStatus {
     successRate: number;
     errorRate: number;
   };
+  // Optional field to indicate which key is currently active
+  activeKeySource?: 'primary' | 'secondary' | 'none';
 }
 
 // 🔧 API 함수

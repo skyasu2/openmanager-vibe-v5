@@ -13,10 +13,14 @@ import { getSecureGoogleAIKey } from '@/utils/encryption';
  */
 class GoogleAIManager {
   private static instance: GoogleAIManager;
+  private primaryKey: string | null = null;
+  private secondaryKey: string | null = null;
   private decryptedTeamKey: string | null = null;
   private isTeamKeyUnlocked = false;
 
-  private constructor() {}
+  private constructor() {
+    this.loadAPIKeys();
+  }
 
   static getInstance(): GoogleAIManager {
     if (!GoogleAIManager.instance) {
@@ -25,71 +29,79 @@ class GoogleAIManager {
     return GoogleAIManager.instance;
   }
 
+  private loadAPIKeys(): void {
+    this.primaryKey =
+      process.env.GOOGLE_AI_PRIMARY_API_KEY ||
+      process.env.NEXT_PUBLIC_GOOGLE_AI_PRIMARY_API_KEY ||
+      null;
+    this.secondaryKey =
+      process.env.GOOGLE_AI_SECONDARY_API_KEY ||
+      process.env.NEXT_PUBLIC_GOOGLE_AI_SECONDARY_API_KEY ||
+      null;
+  }
+
   /**
-   * Google AI API 키 가져오기 (통합 버전)
-   * @returns API 키 또는 null
+   * 주 Google AI API 키 가져오기
+   * @returns 주 API 키 또는 null
    */
-  getAPIKey(): string | null {
-    // 1순위: 기존 환경변수 암복호화 시스템 사용
-    const secureKey = getSecureGoogleAIKey();
-    if (secureKey) {
-      console.log('🔑 Google AI API 키 소스: 통합 암호화 시스템');
-      return secureKey;
+  getPrimaryAPIKey(): string | null {
+    if (this.primaryKey) {
+      console.log('🔑 Google AI 주 API 키 소스: 환경변수');
+      return this.primaryKey;
     }
-
-    // 2순위: 팀 설정 (Node.js crypto)
-    if (this.isTeamKeyUnlocked && this.decryptedTeamKey) {
-      console.log('🔑 Google AI API 키 소스: 팀 설정 (Node.js crypto)');
-      return this.decryptedTeamKey;
-    }
-
-    // 3순위: null (키 없음)
-    console.log('🚫 Google AI API 키를 찾을 수 없습니다.');
     return null;
   }
 
   /**
-   * API 키 사용 가능 여부 확인
+   * 보조 Google AI API 키 가져오기 (팀 키 또는 백업)
+   * @returns 보조 API 키 또는 null
+   */
+  getSecondaryAPIKey(): string | null {
+    if (this.secondaryKey) {
+      console.log('🔑 Google AI 보조 API 키 소스: 환경변수');
+      return this.secondaryKey;
+    }
+    if (this.isTeamKeyUnlocked && this.decryptedTeamKey) {
+      console.log('🔑 Google AI 보조 API 키 소스: 팀 설정 (Node.js crypto)');
+      return this.decryptedTeamKey;
+    }
+    return null;
+  }
+
+  /**
+   * API 키 사용 가능 여부 확인 (주 키 기준)
    */
   isAPIKeyAvailable(): boolean {
-    return this.getAPIKey() !== null;
+    return this.getPrimaryAPIKey() !== null || this.getSecondaryAPIKey() !== null;
   }
 
   /**
    * API 키 상태 정보
    */
   getKeyStatus(): {
-    source: 'env' | 'team' | 'none';
-    isAvailable: boolean;
+    primaryKeySource: 'env' | 'team' | 'none';
+    secondaryKeySource: 'env' | 'team' | 'none';
+    isPrimaryAvailable: boolean;
+    isSecondaryAvailable: boolean;
     needsUnlock: boolean;
-    cryptoMethod: 'crypto-js' | 'node-crypto' | 'none';
+    cryptoMethod: 'node-crypto' | 'none';
   } {
-    const secureKey = getSecureGoogleAIKey();
-
-    if (secureKey) {
-      return {
-        source: 'env',
-        isAvailable: true,
-        needsUnlock: false,
-        cryptoMethod: 'node-crypto',
-      };
-    }
-
-    if (this.isTeamKeyUnlocked && this.decryptedTeamKey) {
-      return {
-        source: 'team',
-        isAvailable: true,
-        needsUnlock: false,
-        cryptoMethod: 'node-crypto',
-      };
-    }
+    const primaryKey = this.getPrimaryAPIKey();
+    const secondaryKey = this.getSecondaryAPIKey();
 
     const hasTeamConfig = ENCRYPTED_GOOGLE_AI_CONFIG !== null;
+
     return {
-      source: 'none',
-      isAvailable: false,
-      needsUnlock: hasTeamConfig,
-      cryptoMethod: 'none',
+      primaryKeySource: primaryKey ? 'env' : 'none',
+      secondaryKeySource: secondaryKey
+        ? secondaryKey === this.decryptedTeamKey
+          ? 'team'
+          : 'env'
+        : 'none',
+      isPrimaryAvailable: primaryKey !== null,
+      isSecondaryAvailable: secondaryKey !== null,
+      needsUnlock: hasTeamConfig && !this.isTeamKeyUnlocked,
+      cryptoMethod: 'node-crypto',
     };
   }
 
@@ -133,9 +145,13 @@ class GoogleAIManager {
         };
       }
 
-      // 성공: 메모리에 저장
+      // 성공: 메모리에 저장 (보조 키로 사용)
       this.decryptedTeamKey = decryptedText;
       this.isTeamKeyUnlocked = true;
+      // 보조 키가 환경변수로 설정되지 않았다면 팀 키를 보조 키로 사용
+      if (!this.secondaryKey) {
+        this.secondaryKey = decryptedText;
+      }
 
       console.log(
         '✅ Google AI 팀 키가 성공적으로 잠금 해제되었습니다 (Node.js crypto).'
@@ -156,6 +172,10 @@ class GoogleAIManager {
   lockTeamKey(): void {
     this.decryptedTeamKey = null;
     this.isTeamKeyUnlocked = false;
+    // 보조 키가 팀 키였다면 다시 null로 설정
+    if (this.secondaryKey && this.secondaryKey === this.decryptedTeamKey) {
+      this.secondaryKey = null;
+    }
     console.log('🔒 Google AI 팀 키가 잠금되었습니다.');
   }
 
@@ -186,7 +206,8 @@ class GoogleAIManager {
 const googleAIManager = GoogleAIManager.getInstance();
 
 // 내보내기 - 기존 환경변수 암복호화 시스템 우선 사용
-export const getGoogleAIKey = () => googleAIManager.getAPIKey();
+export const getGoogleAIKey = () => googleAIManager.getPrimaryAPIKey(); // getPrimaryAPIKey로 변경
+export const getGoogleAISecondaryKey = () => googleAIManager.getSecondaryAPIKey(); // 새로운 내보내기
 export const isGoogleAIAvailable = () => googleAIManager.isAPIKeyAvailable();
 export const getGoogleAIStatus = () => googleAIManager.getKeyStatus();
 export const unlockGoogleAITeamKey = (password: string) =>

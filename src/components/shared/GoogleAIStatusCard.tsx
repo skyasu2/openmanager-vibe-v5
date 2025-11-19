@@ -38,7 +38,7 @@ export const GoogleAIStatusCard: FC<GoogleAIStatusCardProps> = ({
 }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
-  const [apiKey, setApiKey] = useState('');
+  const [apiKey, setApiKey] = useState(''); // This will be for secondary/team key
   const [isSaving, setIsSaving] = useState(false);
   const {
     data: status,
@@ -67,22 +67,27 @@ export const GoogleAIStatusCard: FC<GoogleAIStatusCardProps> = ({
 
     setIsSaving(true);
     try {
-      // API 키 저장 로직
-      const response = await fetch('/api/google-ai/unlock', {
+      // API 키 저장 로직 (이것은 팀 키 잠금 해제와 유사하게 작동할 수 있음)
+      // 현재는 secondary/team 키로 간주
+      const response = await fetch('/api/google-ai/unlock-team-key', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ apiKey: apiKey.trim() }),
+        body: JSON.stringify({ password: apiKey.trim() }),
       });
 
       if (response.ok) {
         setShowApiKeyInput(false);
         setApiKey('');
         await handleRefresh(); // 상태 새로고침
+      } else {
+        const errorData = await response.json();
+        alert(`API 키 저장 실패: ${errorData.message || '알 수 없는 오류'}`);
       }
     } catch (error) {
       console.error('API 키 저장 실패:', error);
+      alert('API 키 저장 중 오류가 발생했습니다.');
     } finally {
       setIsSaving(false);
     }
@@ -95,7 +100,7 @@ export const GoogleAIStatusCard: FC<GoogleAIStatusCardProps> = ({
         <button
           onClick={() => setShowApiKeyInput(true)}
           className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-          title="API 키 관리"
+          title="보조/팀 API 키 관리"
         >
           <Settings className="h-4 w-4" />
         </button>
@@ -105,7 +110,7 @@ export const GoogleAIStatusCard: FC<GoogleAIStatusCardProps> = ({
             type="password"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
-            placeholder="Google AI API 키 입력"
+            placeholder="보조/팀 키 비밀번호 입력"
             className="w-32 rounded border px-2 py-1 text-xs"
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
@@ -165,6 +170,54 @@ export const GoogleAIStatusCard: FC<GoogleAIStatusCardProps> = ({
     if (status?.healthCheckStatus === 'healthy') return 'text-green-600';
     if (status?.healthCheckStatus === 'degraded') return 'text-yellow-600';
     return 'text-red-600';
+  };
+
+  // 헬퍼 함수: API 키 상태 표시
+  const renderApiKeyStatus = (keyStatus: string, keyId?: string, isConnected?: boolean) => {
+    let colorClass = '';
+    let statusText = '';
+    let icon = null;
+
+    switch (keyStatus) {
+      case 'valid':
+        colorClass = 'text-green-600';
+        statusText = '유효함';
+        icon = <CheckCircle className="h-4 w-4" />;
+        break;
+      case 'invalid':
+        colorClass = 'text-red-600';
+        statusText = '유효하지 않음';
+        icon = <XCircle className="h-4 w-4" />;
+        break;
+      case 'missing':
+        colorClass = 'text-yellow-600';
+        statusText = '설정 안 됨';
+        icon = <AlertTriangle className="h-4 w-4" />;
+        break;
+      case 'expired':
+        colorClass = 'text-red-600';
+        statusText = '만료됨';
+        icon = <XCircle className="h-4 w-4" />;
+        break;
+      default:
+        colorClass = 'text-gray-600';
+        statusText = '알 수 없음';
+        icon = <Zap className="h-4 w-4" />;
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        <span className={`${colorClass} flex items-center gap-1`}>
+          {icon} {statusText}
+        </span>
+        {keyId && <span className="text-xs text-gray-500">({keyId})</span>}
+        {keyStatus === 'valid' && isConnected !== undefined && (
+          <span className={`text-xs ${isConnected ? 'text-green-500' : 'text-red-500'}`}>
+            {isConnected ? '(연결됨)' : '(연결안됨)'}
+          </span>
+        )}
+      </div>
+    );
   };
 
   // Admin 스타일 렌더링
@@ -229,7 +282,7 @@ export const GoogleAIStatusCard: FC<GoogleAIStatusCardProps> = ({
                   />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">연결</span>
+                  <span className="text-sm text-gray-600">전체 연결</span>
                   <CheckCircle
                     className={`h-4 w-4 ${status.isConnected ? 'text-green-500' : 'text-red-500'}`}
                   />
@@ -237,24 +290,38 @@ export const GoogleAIStatusCard: FC<GoogleAIStatusCardProps> = ({
               </div>
 
               <div className="rounded-lg border p-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Key className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm font-medium">
-                      API 키:{' '}
-                      {status.apiKeyStatus === 'valid'
-                        ? 'AIza****...****'
-                        : status.apiKeyStatus}
-                    </span>
+                <div className="mb-2 text-sm font-medium">API 키 상태</div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">주 API 키</span>
+                    {renderApiKeyStatus(
+                      status.apiKeyStatus.primary,
+                      status.primaryKeyId,
+                      status.primaryKeyConnected
+                    )}
                   </div>
-                  {variant === 'admin' && <APIKeyManagementButton />}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">보조 API 키</span>
+                    {renderApiKeyStatus(
+                      status.apiKeyStatus.secondary,
+                      status.secondaryKeyId,
+                      status.secondaryKeyConnected
+                    )}
+                  </div>
+                  {status.activeKeySource && status.activeKeySource !== 'none' && (
+                    <div className="flex items-center gap-2 text-sm text-blue-600">
+                      <Key className="h-4 w-4" />
+                      <span>활성 키: {status.activeKeySource === 'primary' ? '주 키' : '보조 키'}</span>
+                    </div>
+                  )}
                 </div>
+                {variant === 'admin' && <APIKeyManagementButton />}
               </div>
 
               <div className="rounded-lg border p-3">
                 <div className="mb-2 flex items-center gap-2">
                   <Activity className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm font-medium">성능 지표</span>
+                  <span className="text-sm font-medium">성능 지표 (활성 키)</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center text-xs">
                   <div>
@@ -328,6 +395,11 @@ export const GoogleAIStatusCard: FC<GoogleAIStatusCardProps> = ({
                 {new Date(status.lastHealthCheck).toLocaleTimeString('ko-KR')}
               </div>
             )}
+            {status?.activeKeySource && status.activeKeySource !== 'none' && (
+              <div className="mt-1 text-xs text-blue-600">
+                활성 키: {status.activeKeySource === 'primary' ? '주 키' : '보조 키'}
+              </div>
+            )}
           </div>
         </div>
 
@@ -336,6 +408,26 @@ export const GoogleAIStatusCard: FC<GoogleAIStatusCardProps> = ({
             <div
               className="space-y-3"
             >
+              <div className="mb-2 text-sm font-medium">API 키 상태</div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">주 API 키</span>
+                  {renderApiKeyStatus(
+                    status.apiKeyStatus.primary,
+                    status.primaryKeyId,
+                    status.primaryKeyConnected
+                  )}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">보조 API 키</span>
+                  {renderApiKeyStatus(
+                    status.apiKeyStatus.secondary,
+                    status.secondaryKeyId,
+                    status.secondaryKeyConnected
+                  )}
+                </div>
+              </div>
+
               {status.model && (
                 <div className="flex items-center gap-2 text-sm">
                   <Zap className="h-4 w-4 text-purple-500" />
