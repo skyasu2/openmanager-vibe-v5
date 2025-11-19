@@ -300,7 +300,7 @@ export class MCPToolHandler {
   private getContentPreview(content: string, searchTerm: string): string {
     const lines = content.split('\n');
     const matchingLines = lines
-      .map((line, _index) => ({ line, index }))
+      .map((line, index) => ({ line, index }))
       .filter(({ line }) => line.includes(searchTerm))
       .slice(0, 3)
       .map(({ line, index }) => `${index + 1}: ${line.trim()}`)

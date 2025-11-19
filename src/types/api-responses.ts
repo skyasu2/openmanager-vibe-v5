@@ -22,7 +22,7 @@ import {
   ErrorResponseSchema,
   PaginationRequestSchema,
   PaginationResponseSchema,
-  StatusSchema,
+  _StatusSchema,
   HealthStatusSchema,
   TimestampSchema,
   IdSchema,

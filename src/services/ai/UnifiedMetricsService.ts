@@ -357,7 +357,7 @@ export class UnifiedMetricsService {
         metadata: {
           serverType: 'web',
           scenarios: [
-            { type: 'fallback', severity: 'low', description: 'API 폴백 모드' },
+            { type: 'fallback', severity: 'info', description: 'API 폴백 모드' },
           ],
         },
       },

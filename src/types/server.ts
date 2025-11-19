@@ -10,9 +10,11 @@ import type {
 // 🏗️ AI 교차검증 기반 새로운 타입 시스템 통합
 import type {
   ServerStatus as EnumServerStatus,
+} from '@/schemas';
+import type {
   ServerEnvironment as EnumServerEnvironment,
   ServerRole as EnumServerRole,
-} from '@/schemas';
+} from './server-enums';
 import {
   isValidServerStatus,
   isValidServerEnvironment,
