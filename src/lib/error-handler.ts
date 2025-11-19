@@ -140,6 +140,16 @@ export function createSafeError(error: unknown): SafeError {
     }
   }
 
+  // Symbol 처리
+  if (typeof error === 'symbol') {
+    return {
+      message: `Symbol error: ${error.toString()}`,
+      code: 'SYMBOL_ERROR',
+      name: 'SymbolError',
+      originalError: error,
+    };
+  }
+
   // 기타 모든 경우
   try {
     return {

@@ -138,9 +138,9 @@ describe('Error Handler', () => {
       const symbolError = Symbol('error');
       const safeError = createSafeError(symbolError);
 
-      expect(safeError.message).toContain('Symbol(error)');
-      expect(safeError.code).toBe('UNKNOWN_ERROR');
-      expect(safeError.name).toBe('UnknownError');
+      expect(safeError.message).toContain('Symbol error: Symbol(error)');
+      expect(safeError.code).toBe('SYMBOL_ERROR');
+      expect(safeError.name).toBe('SymbolError');
     });
   });
 
