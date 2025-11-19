@@ -45,9 +45,9 @@ subagents:
 
 # 상세 정보: .claude/agents/*.md 참조
 # Workflow Integration:
-#   - post-commit hook triggers auto-codex-review.sh (background)
-#   - code-review-specialist analyzes generated review files
-#   - Multi-AI verification requires explicit "AI 교차검증" keyword
+#   - post-commit hook triggers auto-ai-review.sh (Codex → Gemini fallback, background)
+#   - Claude Code analyzes generated review files from logs/code-reviews/
+#   - Legacy 3-AI verification system is deprecated (see archive/deprecated/3-ai-system/)
 
 # ============================================================================
 # 3. Active MCP Servers (활성화된 MCP 서버만)

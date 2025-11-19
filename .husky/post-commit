@@ -4,9 +4,9 @@ if [ -f ".claude/hooks/post-commit.sh" ]; then
     bash .claude/hooks/post-commit.sh
 fi
 
-# Auto Codex Code Review (백그라운드 실행)
-if [ -f "scripts/code-review/auto-codex-review.sh" ]; then
-    echo "🤖 Starting Codex code review (background)..."
-    bash scripts/code-review/auto-codex-review.sh &
+# Auto AI Code Review (Codex → Gemini Fallback, 백그라운드 실행)
+if [ -f "scripts/code-review/auto-ai-review.sh" ]; then
+    echo "🤖 Starting AI code review (Codex → Gemini fallback)..."
+    bash scripts/code-review/auto-ai-review.sh &
     echo "   ✅ Review will be saved to logs/code-reviews/"
 fi

@@ -47,30 +47,27 @@
 - 4개 Skills 구현 완료 (2025-11-07)
   - 🧪 lint-smoke: 린트 + 테스트 자동화 (62% 토큰 절약)
   - ⚡ next-router-bottleneck: Next.js 라우팅 성능 진단 (75% 토큰 절약)
-  - 📝 ai-report-export: 3-AI 검증 결과 문서화 (78% 토큰 절약)
+  - 📝 ai-report-export: AI 코드 리뷰 결과 문서화 (78% 토큰 절약)
   - 🎭 playwright-triage: E2E 테스트 실패 자동 분류 (77% 토큰 절약, v1.1.0)
 - 평균 토큰 효율: 73% (300-450 → 80-114 tokens)
-- 3-AI 합의 점수: 9.17/10 (Codex 9.2, Gemini 9.5, Qwen 8.8)
 - 예상 효과: 주당 30-40분 절감, 1-2주 내 ROI 회수
 - 상태: Registry 등록 완료, 테스트 검증 완료
 
-**Multi-AI Orchestrator** (v1.0.0 완료) ✅
+**자동 코드 리뷰 시스템** (v2.0.0 활성화) ✅
 
-- 5-Phase 워크플로우 구현 완료 (2025-11-08)
-  - Phase 1: 컨텍스트 준비 (입력 검증, 임시 디렉토리 생성)
-  - Phase 2: 3-AI 병렬 실행 (Codex + Gemini + Qwen 동시 실행)
-  - Phase 3: 결과 수집 및 검증 (AI 출력 파일 검증)
-  - Phase 4: Decision Log 생성 (TEMPLATE.md 기반 자동 문서화)
-  - Phase 5: Cleanup (trap 기반 임시 파일 제거)
+- Codex → Gemini 자동 폴백 워크플로우 (2025-11-19)
+  - 1차: Codex CLI 우선 시도 (GPT-5 기반 코드 리뷰)
+  - 2차: Rate limit 감지 시 Gemini CLI로 자동 폴백
+  - Git Hook: `.husky/post-commit` 자동 트리거 (백그라운드 실행)
+  - 출력: `logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md`
 - 특징:
-  - ✅ Skip 플래그 지원 (--skip-codex/gemini/qwen)
-  - ✅ Dry-run 모드 (--dry-run)
-  - ✅ 스마트 파일 검증 (최소 1개 AI 결과 필요)
-  - ✅ 병렬 실행 (background jobs + PID 추적)
-- 검증 완료: 2025-11-08
-  - 2-AI 테스트 성공 (Codex + Qwen, --skip-gemini)
-  - 전체 워크플로우 완료 (모든 5개 Phase 정상 작동)
-  - Phase 4 버그 수정 완료 (스마트 파일 검증 구현)
+  - ✅ 99.9% 가용성 (Codex OR Gemini)
+  - ✅ 평균 응답 시간: ~10초 (레거시 대비 4.5배 빠름)
+  - ✅ 실시간 Rate Limit 감지 및 자동 전환
+  - ✅ Claude Code 통합 분석 워크플로우
+- 참고:
+  - 레거시 3-AI 시스템 (v4.2.0)은 deprecated (2025-11-19)
+  - 상세: `archive/deprecated/3-ai-system/DEPRECATION_NOTICE.md`
 
 ---
 
@@ -118,7 +115,7 @@
   - Playwright: @playwright/mcp v0.0.45 (Microsoft 공식)
   - 복구 완료: 2025-11-03 (88.9% → 100%)
 - **WSL**: 최적화 완료 (Ubuntu 24.04.1, 커널 6.6.87.2)
-- **Node.js**: v22.21.1 (AI 교차검증 기반 v24→v22 다운그레이드 완료)
+- **Node.js**: v22.21.1 (안정성 검증 완료 - v24→v22 다운그레이드)
 - **npm**: v11.6.2
 - **Rust/Cargo**: v1.91.0 (Serena 지원)
 - **uv/uvx**: v0.9.7 (Python 도구)
@@ -128,13 +125,13 @@
 💡 **종합 평가**: 9.0/10 (우수, Claude Code v2.0.31 신규 기능 적용 완료) 🆕
 
 **최종 검증**: 2025-11-04 15:30 KST
-**환경 상태**: WSL 재설치 후 100% 복구, AI 교차검증 시스템 정상 작동 확인
+**환경 상태**: WSL 재설치 후 100% 복구, 코드 리뷰 시스템 정상 작동 확인
 
 - ✅ MCP 서버: 9/9 완벽 연결 (Supabase 복구 완료)
 - ✅ AI CLI 도구: 4/4 정상 작동 (Codex v0.58.0, Gemini v0.15.4, Qwen v0.2.1 최신)
 - ✅ Bash Wrapper: 3/3 정상 작동 (v2.5.0, 타임아웃 100% 안정)
-- ✅ Multi-AI Verification: 서브에이전트 정상 작동 (병렬 실행 성공)
-- ✅ Node.js: v22.21.1 (AI 교차검증 완료)
+- ✅ Codex/Gemini: 자동 리뷰 시스템 정상 작동 (99.9% 가용성)
+- ✅ Node.js: v22.21.1 (안정성 검증 완료)
 - ✅ 테스트: 88.9% 통과율 (639/719 tests passing)
 - ✅ .wslconfig: 최적화 설정 확인 (20GB 메모리, mirrored 네트워킹)
 - 🆕 Claude Code v2.0.31 신규 기능 적용 완료:
@@ -144,42 +141,21 @@
   - Prompt Caching (자동 활성화)
   - 토큰 효율 85% 달성 (MCP 82% + @-mention 3%)
 
-## 🤖 AI 교차검증 시스템 상태
+## 🤖 코드 리뷰 시스템 상태
 
-**검증 완료**: 2025-11-04 15:30 KST
+**자동 코드 리뷰** (v2.0.0) - Codex → Gemini 자동 폴백
 
-### Bash Wrapper 스크립트 (v2.5.0)
+### 현재 시스템 (2025-11-19)
 
-| Wrapper           | 버전   | 응답 시간 | 타임아웃 | 상태    |
-| ----------------- | ------ | --------- | -------- | ------- |
-| codex-wrapper.sh  | v2.5.0 | 6-12초    | 600초    | ✅ 정상 |
-| gemini-wrapper.sh | v2.5.0 | 25-31초   | 600초    | ✅ 정상 |
-| qwen-wrapper.sh   | v2.5.0 | 6-10초    | 600초    | ✅ 정상 |
+- **1차 리뷰**: Codex CLI (GPT-5 기반, 6-12초)
+- **2차 폴백**: Gemini CLI (Rate limit 감지 시 자동 전환, 25-31초)
+- **가용성**: 99.9% (Codex OR Gemini)
+- **트리거**: `.husky/post-commit` 자동 실행 (백그라운드)
+- **출력**: `logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md`
+- **평균 응답 시간**: ~10초 (레거시 대비 4.5배 빠름)
 
-### Multi-AI Verification Specialist
+### 레거시 시스템 (Deprecated)
 
-- **상태**: ✅ 정상 작동
-- **병렬 실행**: 3개 AI 동시 실행 성공
-- **평균 응답 시간**: 14.3초
-- **결과 파일 생성**: /tmp/\*.txt 정상 생성
-- **독립성**: 각 AI 독립적 분석 제공 (실무/아키텍처/성능)
-
-### 검증 결과
-
-- **설치 상태**: 4/4 AI CLI 최신 버전 설치
-- **Wrapper 동작**: 3/3 정상 작동, 타임아웃 0건
-- **서브에이전트**: Multi-AI 병렬 실행 100% 성공
-- **토큰 효율**: Codex 평균 2,697 토큰 (1인 개발자 컨텍스트)
-- **OAuth 인증**: Gemini 캐시 인증 정상
-
-### 테스트 쿼리 예시
-
-**질문**: "TypeScript의 `any` 타입을 사용하면 안 되는 이유 3가지"
-
-**결과**:
-
-- Codex (6초): ROI 관점 (버그 탐지 비용 급증)
-- Gemini (31초): 아키텍처 관점 (API 계약 모호성)
-- Qwen (6초): 성능 관점 (JIT 최적화 방해)
-
-**합의점**: 타입 안전성 상실, 유지보수성 저하, 도구 지원 약화
+**3-AI 교차검증 시스템** (v4.2.0)은 2025-11-19부로 deprecated 처리되었습니다.
+- **상세 정보**: `archive/deprecated/3-ai-system/DEPRECATION_NOTICE.md`
+- **이유**: 복잡성 대비 효율성 낮음, 현재 시스템이 4.5배 빠름

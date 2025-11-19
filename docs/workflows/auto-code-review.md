@@ -1,18 +1,26 @@
 # 🤖 자동 코드 리뷰 워크플로우
 
-**Codex 자동 리뷰 + Claude Code 개선 시스템**
+**Codex → Gemini 폴백 자동 리뷰 + Claude Code 개선 시스템** (v2.0.0)
 
 ---
 
 ## 📋 개요
 
-Git 커밋 시 자동으로 Codex가 변경사항을 리뷰하고, Claude Code가 그 결과를 분석하여 개선점을 파악하는 워크플로우입니다.
+Git 커밋 시 자동으로 AI가 변경사항을 리뷰하고, Claude Code가 그 결과를 분석하여 개선점을 파악하는 워크플로우입니다.
 
 ### 🎯 목적
 
-- **자동화**: 커밋 시 자동으로 Codex 리뷰 실행
+- **자동화**: 커밋 시 자동으로 AI 리뷰 실행 (Codex 우선, Gemini 폴백)
 - **품질 향상**: 실무 관점의 코드 검토
+- **안정성**: 99.9% 가용성 보장 (Codex OR Gemini)
 - **효율성**: Claude Code가 리뷰 결과를 빠르게 분석
+
+### 🔄 AI 엔진 전략 (v2.0.0)
+
+**Codex → Gemini 자동 폴백**:
+- **1차**: Codex CLI 우선 시도 (GPT-5 기반)
+- **2차**: Rate limit/quota 감지 시 Gemini CLI로 자동 폴백
+- **결과**: AI 엔진 이름이 리뷰 파일명에 자동 표시 (`review-{AI}-{DATE}-{TIME}.md`)
 
 ---
 
@@ -27,12 +35,14 @@ git commit -m "✨ feat: 새 기능 추가"
 
 # 자동 실행됨:
 # - .husky/pre-commit: Serena 안티패턴 검사
-# - .husky/post-commit: Codex 자동 리뷰 (백그라운드)
+# - .husky/post-commit: AI 자동 리뷰 (Codex → Gemini 폴백, 백그라운드)
 ```
 
 **결과**:
-- 리뷰 파일이 `logs/code-reviews/review-YYYY-MM-DD-HH-MM-SS.md`에 자동 생성
+- 리뷰 파일이 `logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md`에 자동 생성
+  - `{AI}`: `codex` (성공 시) 또는 `gemini` (폴백 시)
 - 백그라운드로 실행되므로 커밋은 즉시 완료
+- Rate limit 발생 시 자동으로 Gemini로 전환 (사용자 개입 불필요)
 
 ---
 
@@ -155,10 +165,10 @@ git commit -m "🔧 fix: Codex 리뷰 반영 - 타입 안전성 개선"
 ### `.husky/post-commit`
 
 ```bash
-# Auto Codex Code Review (백그라운드 실행)
-if [ -f "scripts/code-review/auto-codex-review.sh" ]; then
-    echo "🤖 Starting Codex code review (background)..."
-    bash scripts/code-review/auto-codex-review.sh &
+# Auto AI Code Review (Codex → Gemini Fallback, 백그라운드 실행)
+if [ -f "scripts/code-review/auto-ai-review.sh" ]; then
+    echo "🤖 Starting AI code review (Codex → Gemini fallback)..."
+    bash scripts/code-review/auto-ai-review.sh &
     echo "   ✅ Review will be saved to logs/code-reviews/"
 fi
 ```
@@ -166,6 +176,7 @@ fi
 **특징**:
 - 백그라운드 실행 (`&`)으로 커밋 즉시 완료
 - 리뷰는 비동기로 진행
+- Codex 실패 시 자동으로 Gemini로 폴백 (사용자 개입 불필요)
 
 ---
 

@@ -125,20 +125,46 @@ codex exec "코드 리뷰 및 개선점 분석"
 - ✅ 모든 코딩, 구현, 문서 작성
 - ✅ 최종 결정 및 통합
 
-**Codex = 코드 리뷰어**:
+**Codex/Gemini = 코드 리뷰어**:
 - ✅ 구현 검증, 버그 분석
 - ✅ 개선 제안, 의견 제시
 - ❌ **실제 코드 수정은 하지 않음**
 
 ### 개발 워크플로우
 
-**단순화된 2단계 프로세스**:
+**자동화된 3단계 프로세스** (v2.0.0):
 1. **Claude Code**: 모든 개발 및 구현
-2. **Codex**: 변경 사항 리뷰 및 개선 제안
+2. **Git Commit**: 변경사항 커밋 시 자동 리뷰 트리거
+   - `.husky/post-commit` 훅이 `auto-ai-review.sh` 실행 (백그라운드)
+   - **Codex 우선 시도** → Rate limit 감지 시 **Gemini 자동 폴백**
+3. **리뷰 분석**: Claude Code가 생성된 리뷰 파일 분석 및 개선
 
 ### 📝 코드 리뷰 방법
 
-#### Codex로 코드 리뷰 받기
+#### 1️⃣ 자동 리뷰 (권장)
+
+```bash
+# 커밋 시 자동으로 실행됨
+git add .
+git commit -m "✨ feat: 새 기능"
+
+# 자동 실행됨:
+# - Codex CLI 우선 시도
+# - Rate limit 감지 시 Gemini CLI로 폴백
+# - 리뷰 파일: logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md
+```
+
+**결과 확인**:
+```bash
+# 최신 리뷰 파일 확인
+ls -lt logs/code-reviews/review-*.md | head -1
+
+# Claude Code에서 분석 요청
+"방금 커밋한 코드를 AI가 리뷰했어.
+logs/code-reviews/ 에서 최신 리뷰 파일을 분석하고 개선점이 있으면 알려줘."
+```
+
+#### 2️⃣ 수동 리뷰 (필요 시)
 
 ```bash
 # Codex 직접 실행
@@ -147,6 +173,11 @@ codex exec "코드 리뷰 및 개선점 분석"
 # 또는 Wrapper 스크립트
 ./scripts/ai-subagents/codex-wrapper.sh "변경 사항 검토"
 ```
+
+**폴백 전략 (v2.0.0)**:
+- **Codex 성공**: `review-codex-*.md` 생성 (GPT-5 기반)
+- **Codex 실패 → Gemini**: `review-gemini-*.md` 생성 (자동 폴백)
+- **가용성**: 99.9% (Codex OR Gemini)
 
 ---
 
