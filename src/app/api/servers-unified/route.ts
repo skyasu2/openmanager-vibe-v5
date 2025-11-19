@@ -137,7 +137,7 @@ async function readCachedHourlyFile(hour: number): Promise<HourlyServerData> {
 /**
  * 🔄 시간별 시나리오 데이터 로드
  */
-async function loadHourlyScenarioData(): Promise<unknown[]> {
+async function loadHourlyScenarioData(): Promise<EnhancedServerMetrics[]> {
   try {
     const now = new Date();
     const currentHour = now.getHours();
@@ -275,7 +275,7 @@ function convertToEnhancedMetrics(
 /**
  * 🔄 폴백 서버 데이터 생성
  */
-function generateFallbackServers(): unknown[] {
+function generateFallbackServers(): EnhancedServerMetrics[] {
   return Array.from({ length: 10 }, (_, index) => ({
     id: `fallback-${index + 1}`,
     name: `Fallback Server ${index + 1}`,
