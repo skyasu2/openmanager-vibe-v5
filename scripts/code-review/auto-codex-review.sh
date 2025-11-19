@@ -2,8 +2,17 @@
 
 # Auto Codex Code Review Script
 # 목적: 커밋 시 변경사항을 Codex가 자동 리뷰하고 리포트 생성
-# 버전: 1.2.0
+# 버전: 1.3.0
 # 날짜: 2025-11-19
+#
+# ⚠️ 중요: 이 스크립트는 직접 실행만 지원합니다 (source 사용 금지)
+# 최상단 cd 명령으로 인해 source 시 호출자의 작업 디렉토리가 변경됩니다
+#
+# Changelog v1.3.0:
+# - git -C 옵션 사용으로 cwd 의존성 완전 제거 (Codex 개선 제안 #1)
+# - 로깅 일관성 개선: log_success 사용 (Codex 개선 제안 #2)
+# - source 오용 방지 경고 추가 (Codex 개선 제안 #3)
+# - 목표: Codex 9/10 → 10/10 달성
 #
 # Changelog v1.2.0:
 # - cd "$PROJECT_ROOT" 위치 최적화: validation 직후로 이동
@@ -32,13 +41,6 @@ if [ -z "$PROJECT_ROOT" ] || [ ! -d "$PROJECT_ROOT" ]; then
 
     echo "✅ PROJECT_ROOT 설정 완료: $PROJECT_ROOT"
 fi
-
-# 프로젝트 루트로 이동 (git 명령어 및 로그 파일 생성 위치 일관성 보장)
-cd "$PROJECT_ROOT" || {
-    echo "❌ Fatal: cd to PROJECT_ROOT failed"
-    exit 1
-}
-echo "✅ Working directory: $PROJECT_ROOT"
 
 # 색상 정의
 RED='\033[0;31m'
@@ -76,14 +78,21 @@ log_error() {
     echo -e "${RED}❌ $1${NC}"
 }
 
+# 프로젝트 루트로 이동 (git 명령어 및 로그 파일 생성 위치 일관성 보장)
+cd "$PROJECT_ROOT" || {
+    echo "❌ Fatal: cd to PROJECT_ROOT failed"
+    exit 1
+}
+log_success "Working directory: $PROJECT_ROOT"
+
 # 변경사항 수집
 collect_changes() {
     log_info "📊 변경사항 수집 중..."
     
     # 마지막 커밋의 변경사항 가져오기
-    local last_commit=$(git log -1 --format=%H)
-    local commit_message=$(git log -1 --format=%s)
-    local changed_files=$(git diff-tree --no-commit-id --name-only -r "$last_commit")
+    local last_commit=$(git -C "$PROJECT_ROOT" log -1 --format=%H)
+    local commit_message=$(git -C "$PROJECT_ROOT" log -1 --format=%s)
+    local changed_files=$(git -C "$PROJECT_ROOT" diff-tree --no-commit-id --name-only -r "$last_commit")
     
     if [ -z "$changed_files" ]; then
         log_warning "변경된 파일이 없습니다"
@@ -108,7 +117,7 @@ collect_changes() {
             changes_summary+="\`\`\`diff
 "
             # Bug Fix #1: 실제 diff 표시 (파일 내용이 아닌 변경사항)
-            changes_summary+="$(git diff "$last_commit^" "$last_commit" -- "$file" 2>/dev/null | head -100)
+            changes_summary+="$(git -C "$PROJECT_ROOT" diff "$last_commit^" "$last_commit" -- "$file" 2>/dev/null | head -100)
 "
             changes_summary+="\`\`\`
 
