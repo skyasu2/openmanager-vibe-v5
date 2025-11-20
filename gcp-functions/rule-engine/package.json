@@ -1,30 +1,17 @@
 {
-  "name": "openmanager-rule-engine",
-  "version": "1.0.0",
-  "description": "Rule Engine Function - 규칙 기반 빠른 응답 전문 Function",
+  "name": "rule-engine",
+  "version": "2.0.0",
+  "description": "Rule-based Response Engine - 2025-11-20 업데이트",
   "main": "index.js",
   "scripts": {
-    "start": "functions-framework --target=rule-engine",
-    "deploy": "gcloud functions deploy rule-engine --runtime nodejs22 --trigger-http --allow-unauthenticated --memory 256MB --timeout 30s --region asia-northeast3",
-    "deploy:health": "gcloud functions deploy rule-engine-health --runtime nodejs22 --trigger-http --allow-unauthenticated --memory 128MB --timeout 10s --region asia-northeast3",
-    "logs": "gcloud functions logs read rule-engine --region asia-northeast3",
-    "test": "node test.js"
+    "start": "functions-framework --target=ruleEngine",
+    "deploy": "gcloud functions deploy rule-engine --runtime nodejs20 --trigger-http --allow-unauthenticated --memory=256MB --timeout=30s"
   },
   "dependencies": {
-    "@google-cloud/functions-framework": "^3.3.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
+    "@google-cloud/functions-framework": "^3.4.2",
+    "axios": "^1.7.7"
   },
   "engines": {
-    "node": "22"
-  },
-  "keywords": [
-    "rule-engine",
-    "pattern-matching",
-    "fast-response",
-    "gcp",
-    "functions",
-    "openmanager"
-  ]
+    "node": ">=20.0.0"
+  }
 }

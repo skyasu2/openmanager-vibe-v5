@@ -41,6 +41,7 @@
 - Codex CLI v0.58.0 (현재 버전, 최신)
 - Gemini CLI v0.15.4 (현재 버전, 최신)
 - Qwen CLI v0.2.1 (현재 버전, 최신)
+- Kiro CLI v1.20.0 (AWS Kiro Beta, 터미널 멀티 에이전트 – chat/agent/doctor/settings 지원)
 
 **Claude Code Skills** (Phase 1 완료) ✅
 

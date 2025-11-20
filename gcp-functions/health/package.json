@@ -1,26 +1,16 @@
 {
-  "name": "gcp-health-check",
-  "version": "1.0.0",
-  "description": "GCP Free Tier Health Check Function",
-  "type": "commonjs",
+  "name": "health-check",
+  "version": "2.0.0",
+  "description": "Health Check for GCP Functions - 2025-11-20 업데이트",
   "main": "index.js",
-  "engines": {
-    "node": ">=22.0.0"
+  "scripts": {
+    "start": "functions-framework --target=healthCheck",
+    "deploy": "gcloud functions deploy health-check --runtime nodejs20 --trigger-http --allow-unauthenticated --memory=128MB --timeout=10s"
   },
   "dependencies": {
-    "@google-cloud/functions-framework": "^3.4.0"
+    "@google-cloud/functions-framework": "^3.4.2"
   },
-  "scripts": {
-    "start": "functions-framework --target=health",
-    "deploy": "gcloud functions deploy health --runtime nodejs22 --trigger-http --allow-unauthenticated --memory 128MB --timeout 10s --region asia-northeast3"
-  },
-  "keywords": [
-    "health-check",
-    "gcp",
-    "cloud-functions",
-    "openmanager",
-    "free-tier"
-  ],
-  "author": "OpenManager Team",
-  "license": "MIT"
+  "engines": {
+    "node": ">=20.0.0"
+  }
 }

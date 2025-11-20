@@ -89,6 +89,16 @@ qwen:
         - "Plan Mode 도입"
         - "타임아웃 방지 최적화"
 
+kiro_cli:
+  current: "v1.20.0"
+  
+  history:
+    - version: "v1.20.0"
+      date: "2025-11-20"
+      changes:
+        - "AWS Kiro Beta CLI 최초 도입 (chat/agent/doctor/settings/quit)"
+        - "WSL 설치 경로: ~/.local/bin/kiro-cli, `kiro-cli --version` = 1.20.0"
+
 # ============================================================================
 # Bash Wrapper Scripts
 # ============================================================================

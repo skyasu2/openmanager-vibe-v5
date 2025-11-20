@@ -1,27 +1,23 @@
-# 🇰🇷 Enhanced Korean NLP - Python Dependencies (GCP Functions Compatible)
-# 메모리: 1GB, 타임아웃: 5분, 한국어 전문 처리
+# 🇰🇷 Enhanced Korean NLP - Python Dependencies
+# 한국어 자연어 처리 - 2025-11-20 업데이트
 
-# Functions Framework (필수)
-functions-framework==3.5.0          # GCP Functions
-flask==3.0.0                        # Flask for request handling
+# Functions Framework
+functions-framework==3.8.1
 
-# Text Processing & Analysis
-numpy==1.25.2                       # 수치 계산
-regex==2023.10.3                    # 확장 정규표현식 (한글 지원)
+# NLP Core
+konlpy==0.6.0                       # 한국어 형태소 분석
+soynlp==0.0.493                     # 비지도 학습 기반 NLP
 
-# Korean Text Utilities (Pure Python)
-jamo==0.4.1                         # 한글 자모 분리/조합
-hanja==0.15.1                       # 한자-한글 변환
+# ML & Data
+numpy==1.26.4
+scikit-learn==1.5.2
+pandas==2.2.3
 
-# Data Processing
-orjson==3.9.10                      # 빠른 JSON 처리
+# Text Processing
+regex==2024.11.6                    # 정규표현식
 
-# Cloud Integration
-google-cloud-storage==2.10.0        # GCS 모델 저장소
-google-cloud-translate==3.12.1      # Google 번역 API
+# Cloud
+google-cloud-storage==2.18.2
 
-# HTTP
-httpx==0.25.2                       # HTTP 클라이언트
-
-# Monitoring & Performance
-structlog==23.2.0                   # 로깅
+# Monitoring
+structlog==24.4.0

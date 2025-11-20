@@ -3,7 +3,7 @@
 # 목적: 토큰 사용량 최소화 (Cache Read 79% → 30% 목표)
 
 version: "2.0.0"  # registry-core 버전
-last_updated: "2025-11-19"
+last_updated: "2025-11-20"
 project: "OpenManager VIBE v5.80.0"
 
 # ============================================================================
@@ -19,6 +19,11 @@ ai-tools:
     wrapper_version: "v2.5.0"
     status: "✅ Active"
     role: "Code review and verification"
+
+  kiro-cli:
+    current_version: "v1.20.0"
+    status: "🆕 Beta"
+    role: "Terminal multi-agent orchestrator (chat/agent/doctor/settings)"
 
 # 상세 정보: config/ai/changelog.yaml 참조
 

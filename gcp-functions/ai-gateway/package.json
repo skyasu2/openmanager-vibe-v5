@@ -1,29 +1,17 @@
 {
-  "name": "openmanager-ai-gateway",
-  "version": "1.0.0",
-  "description": "AI Gateway Function - 베르셀 요청을 GCP Functions로 라우팅",
+  "name": "ai-gateway",
+  "version": "2.0.0",
+  "description": "AI Gateway for OpenManager VIBE v5 - 2025-11-20 업데이트",
   "main": "index.js",
   "scripts": {
-    "start": "functions-framework --target=ai-gateway",
-    "deploy": "gcloud functions deploy ai-gateway --runtime nodejs22 --trigger-http --allow-unauthenticated --memory 256MB --timeout 60s --region asia-northeast3",
-    "deploy:health": "gcloud functions deploy ai-gateway-health --runtime nodejs22 --trigger-http --allow-unauthenticated --memory 128MB --timeout 10s --region asia-northeast3",
-    "logs": "gcloud functions logs read ai-gateway --region asia-northeast3",
-    "test": "node test.js"
+    "start": "functions-framework --target=aiGateway",
+    "deploy": "gcloud functions deploy ai-gateway --runtime nodejs20 --trigger-http --allow-unauthenticated --memory=256MB --timeout=60s"
   },
   "dependencies": {
-    "@google-cloud/functions-framework": "^3.3.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
+    "@google-cloud/functions-framework": "^3.4.2",
+    "axios": "^1.7.7"
   },
   "engines": {
-    "node": "22"
-  },
-  "keywords": [
-    "ai",
-    "gateway",
-    "gcp",
-    "functions",
-    "openmanager"
-  ]
+    "node": ">=20.0.0"
+  }
 }

@@ -10,6 +10,7 @@
 | **OpenAI CLI (Codex)** | **v0.58.0** | Plus ($20/월) | 직접 CLI 실행 | **2025-11-19** |
 | **Google Gemini CLI** | **v0.15.4** | 무료 (60 RPM/1K RPD) | 직접 CLI 실행 | **2025-11-19** |
 | **Qwen Code** | **v0.2.1** | 무료 (60 RPM/2K RPD) | 설정 최적화 강화 | **2025-11-19** |
+| **Kiro CLI** | **v1.20.0** | Beta (AWS Kiro) | 멀티 에이전트 터미널 오케스트레이션 | **2025-11-20** |
 
 ## 🚀 Claude Code v2.0.37 신규 기능 (공식 문서 검증)
 
@@ -110,6 +111,7 @@ claude --version                         # Claude Code v2.0.37 버전 확인
 codex exec "작업 요청"                   # Codex CLI v0.58.0 직접 실행 (6~12초)
 gemini "작업 요청" --model gemini-2.5-pro # Gemini CLI v0.15.4 직접 실행 (25~31초 폴백)
 timeout 90 qwen --approval-mode yolo -p "작업 요청" # Qwen CLI v0.2.1 YOLO Mode (자동 승인)
+kiro-cli --version                       # Kiro CLI v1.20.0 설치 확인 (AWS Kiro Beta)
 ```
 
 ## 💡 Codex CLI v0.58.0 (OpenAI CLI)
@@ -263,6 +265,54 @@ qwen -p "성능 병목점 분석"
 - **타임아웃 600초**: `scripts/ai-subagents/qwen-wrapper.sh`에서 timeout 600초 & 로그 기록
 - **로그 추적**: `logs/ai-perf/qwen-perf-YYYY-MM-DD.log`에 응답 시간/모드 저장
 - **Plan Mode 병행 가능**: 필요 시 `qwen -p`로 수동 계획 출력
+
+## 🧑‍⚕️ Kiro CLI v1.20.0 (AWS Kiro Beta)
+
+**터미널 기반 멀티 에이전트 오케스트레이터** – AWS Kiro가 제공하는 Beta CLI (WSL 경로: `/home/sky-note/.local/bin/kiro-cli`)
+
+### 설치 및 버전 확인
+```bash
+which kiro-cli        # /home/sky-note/.local/bin/kiro-cli
+kiro-cli --version    # kiro-cli 1.20.0
+kiro-cli --help       # chat / agent / doctor / settings / quit 안내
+```
+
+> `kiro-cli`는 공급사 설치 스크립트를 통해 제공됩니다 (pip/npm 불필요). 업데이트는 AWS Kiro 배포 채널을 통해 진행하세요.
+
+### 사용법
+```bash
+# 기본 대화 (현재 디렉터리 세션 기준)
+kiro-cli chat --agent "central-supervisor" --no-interactive
+
+# 멀티 에이전트 관리
+kiro-cli agent list
+kiro-cli agent create --help
+kiro-cli agent set-default "codex-specialist"
+
+# 시스템 진단 및 복구
+kiro-cli doctor --all
+kiro-cli doctor --strict --verbose
+
+# 설정 확인/수정
+kiro-cli settings list
+kiro-cli settings theme dark
+kiro-cli settings --delete prompt_cache
+
+# 종료
+kiro-cli quit
+```
+
+### 특징 및 베스트 프랙티스
+- **Resume**: `kiro-cli chat --resume`으로 디렉터리별 세션 재개
+- **모델 지정**: `--model sonnet-4` 등으로 실험 가능 (agent 기본값 우선)
+- **툴 신뢰 옵션**: `--trust-all-tools` 또는 `--trust-tools=fs_read,fs_write`
+- **Doctor 모드**: 인증/네트워크 오류, 권한 문제 자동 진단
+- **Settings 포맷**: `kiro-cli settings list --format json-pretty`로 결과 파싱 용이
+
+### Known Issues (Beta)
+- Agent 마이그레이션(`kiro-cli agent migrate`)은 기존 글로벌 디렉터리를 덮어쓸 수 있으므로 **사전 백업 필수**
+- `kiro-cli chat --trust-all-tools` 사용 시 위험 명령도 자동 실행될 수 있으니 실서버에서는 금지
+- `.kiro/` 디렉터리를 Git에 커밋하지 않도록 `.vercelignore`/`.gitignore`에 포함 (이미 `.vercelignore` 146행에 `.kiro/` 등록됨)
 
 ---
 
