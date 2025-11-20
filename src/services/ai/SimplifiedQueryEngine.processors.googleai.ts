@@ -345,7 +345,7 @@ export class GoogleAIModeProcessor {
           mockMode: !!this.mockContextLoader.getMockContext(),
           mode: 'google-ai-rag',
           cloudFunctionsUsed: !!unifiedInsights.raw,
-          cloudFunctionsCacheHit: unifiedInsights.raw?.cache_hit ?? false,
+          cloudFunctionsCacheHit: unifiedInsights.raw?.metadata?.cacheHit ?? false,
           cloudFunctionsSummary: unifiedInsights.summary || undefined,
           // 기본 모델 고정 정보
           modelInfo: {
@@ -410,7 +410,7 @@ export class GoogleAIModeProcessor {
           mockMode: !!this.mockContextLoader.getMockContext(),
           mode: 'google-ai-rag',
           cloudFunctionsUsed: !!unifiedInsights.raw,
-          cloudFunctionsCacheHit: unifiedInsights.raw?.cache_hit ?? false,
+          cloudFunctionsCacheHit: unifiedInsights.raw?.metadata?.cacheHit ?? false,
           // 기본 모델 고정 정보 (에러 시에도 포함)
           modelInfo: {
             selectedModel,

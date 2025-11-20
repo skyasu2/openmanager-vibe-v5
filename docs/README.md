@@ -6,43 +6,61 @@ priority: critical
 ai_optimized: true
 related_docs:
   [
-    'ai/workflow.md',
+    'ai/README.md',
     'development/README.md',
     'testing/README.md',
-    'performance/README.md',
-    'meta/README.md',
-    'troubleshooting/README.md',
+    'architecture/README.md',
   ]
 updated: '2025-11-20'
 ---
 
 # 📚 Documentation Index
 
-This document is the master index for the project's documentation. The documentation is designed to be token-efficient and optimized for AI-assisted development workflows.
+OpenManager VIBE v5 문서 인덱스입니다. AI 기반 개발 워크플로우에 최적화되어 있습니다.
 
-## 🚀 Quick Navigation
+## 🚀 빠른 시작
 
-### 🏆 Core Guides
+### 🏆 필수 가이드
 
-- **[🤖 AI Workflow](ai/workflow.md)**: The primary guide for the 4-AI cross-verification development workflow. **(Core Reading)**
-- **[🚀 Development Environment](development/README.md)**: How to set up the WSL-based development environment, including Multi-AI tools and MCP servers. **(Setup Guide)**
-- **[🏗️ System Architecture](architecture/SYSTEM-ARCHITECTURE-REVIEW.md)**: A high-level overview of the project's technical stack and architecture.
-- **[🧩 UI Components](design/ui/components.md)**: Guide to the shadcn/ui component library.
-- **[⚡ Performance](performance/README.md)**: Guidelines and reports on performance optimization.
-- **[📊 Testing](testing/README.md)**: The project's testing strategy, including the 98.2% coverage goal and E2E automation.
-- **[🔧 Common Issues](troubleshooting/common.md)**: A collection of solutions for common debugging scenarios.
+- **[🚀 빠른 시작](../README.md#-빠른-시작)**: 5분 만에 프로젝트 시작하기
+- **[🤖 AI 시스템](ai/README.md)**: Multi-AI 교차검증 시스템 가이드
+- **[🛠️ 개발 환경](development/README.md)**: WSL2 + Claude Code + MCP 서버 설정
+- **[🧪 테스트 전략](testing/README.md)**: Vercel 중심 E2E 테스트 (98.2% 통과율)
+- **[🏗️ 시스템 아키텍처](architecture/README.md)**: 기술 스택 및 구조 개요
 
-### 🗄️ Key Technical References
+### 🗄️ 주요 기술 문서
 
-- **[🌐 API Routes](architecture/api/routes.md)**: A complete reference for the 76+ API endpoints.
-- **[📊 Database Schema](architecture/db/schema.md)**: The Supabase PostgreSQL database schema.
-- **[🚀 Vercel Deployment](deploy/vercel.md)**: Guide to deploying the application to production on Vercel.
-- **[🔒 Security Standards](security/README.md)**: Security protocols and best practices.
-- **[✍️ Coding Standards](standards/README.md)**: TypeScript, Git, and file organization conventions.
+- **[🌐 API 엔드포인트](architecture/api/endpoints.md)**: 76+ API 라우트 레퍼런스
+- **[📊 데이터베이스](architecture/db/schema.md)**: Supabase PostgreSQL 스키마
+- **[🚀 배포 가이드](deploy/README.md)**: Vercel 무료 티어 배포
+- **[🔒 보안 표준](security/README.md)**: 보안 프로토콜 및 모범 사례
+- **[✍️ 코딩 표준](standards/typescript-rules.md)**: TypeScript strict 모드 규칙
 
-## 🎯 AI Optimization Features
+## 📂 문서 구조
 
-### 📋 Standardized YAML frontmatter
+```
+docs/
+├── ai/                    # AI 시스템 (Multi-AI, 교차검증)
+├── architecture/          # 시스템 아키텍처
+│   ├── api/              # API 설계
+│   ├── db/               # 데이터베이스
+│   └── decisions/        # ADR (Architecture Decision Records)
+├── development/           # 개발 환경 설정
+│   └── mcp/              # MCP 서버 가이드
+├── testing/              # 테스트 전략 및 가이드
+├── deploy/               # 배포 가이드
+├── security/             # 보안 표준
+├── standards/            # 코딩 표준
+├── troubleshooting/      # 문제 해결
+├── archive/              # 아카이브 (과거 보고서)
+│   ├── lint-reports-2025-11/  # Lint 개선 보고서
+│   └── ai-verifications/      # AI 검증 히스토리
+└── temp/                 # 임시 작업 파일
+```
+
+## 🎯 AI 최적화 기능
+
+### 📋 표준화된 YAML frontmatter
 
 ```yaml
 ---
@@ -51,33 +69,82 @@ title: 'Document Title'
 keywords: [key1, key2, key3]
 priority: high|medium|low
 ai_optimized: true
-related_docs: ['category/doc1.md', 'category/doc2.md']
-updated: '2025-09-09'
+related_docs: ['category/doc1.md']
+updated: '2025-11-20'
 ---
 ```
 
-### 🔗 Cross-Reference System
+### 🔗 문서 간 연결
 
-- **15-char filenames** for quick reference
-- **`related_docs`** field for connecting documents
-- **Code-first examples** over lengthy explanations
-- **Token-efficient structure** for AI processing
-- **Workflow-based connections**: Document chains for specific development scenarios
+- **15자 이하 파일명**: 빠른 참조
+- **`related_docs`**: 관련 문서 연결
+- **코드 우선 예제**: 긴 설명보다 실용적 코드
+- **토큰 효율적 구조**: AI 처리 최적화
 
-## 🔄 Quick Commands
+## 🔄 빠른 명령어
 
 ```bash
-# Find documentation
+# 문서 검색
 grep -r "keyword" docs/
 
-# Validate structure
-npm run docs:validate
+# Lint 검사
+npm run lint
 
-# Generate TOC
-npm run docs:toc
+# 테스트 실행
+npm run test:quick
+
+# E2E 테스트 (Vercel)
+npm run test:vercel:e2e
 ```
 
-## 🤖 AI Cross-Verification System
+## 🤖 AI 교차검증 시스템
+
+### 사용 가능한 AI 도구
+
+1. **Claude Code** (메인) - 코드 작성 및 리팩토링
+2. **Codex CLI** - 코드 분석 및 검증
+3. **Gemini CLI** - 대안 검증
+4. **Qwen CLI** - 추가 검증
+
+자세한 내용: [AI 시스템 가이드](ai/README.md)
+
+## 📊 프로젝트 현황
+
+- **버전**: 5.79.1
+- **TypeScript**: strict 모드, 타입 오류 0개
+- **테스트**: E2E 98.2% 통과율
+- **Lint**: 316개 경고 (491개에서 35.6% 개선)
+- **배포**: Vercel 무료 티어
+
+자세한 현황: [status.md](status.md)
+
+## 🔧 유지보수
+
+### 문서 업데이트 원칙
+
+1. **실제 상태만 기록**: 확인 가능한 정보만 유지
+2. **날짜 명시**: `updated` 필드 업데이트
+3. **아카이브 활용**: 오래된 보고서는 `archive/`로 이동
+4. **간결성 유지**: 핵심 정보 위주
+
+### 최근 업데이트
+
+- **2025-11-20**: 문서 구조 최적화, LINT 보고서 아카이브
+- **2025-11-18**: ESLint 경고 35.6% 개선 (491→316)
+- **2025-11-16**: AI 시스템 문서 통합
+
+## 📞 지원
+
+- **이슈**: GitHub Issues
+- **문서 개선**: Pull Request 환영
+- **질문**: Discussions 활용
+
+---
+
+**📖 학습용 프로젝트**: 실제 서버 없이 모니터링 시스템 구현 연습  
+**🎯 적합한 대상**: DevOps 학습자, 포트폴리오 제작자  
+**🚀 시작하기**: [QUICK-START.md](QUICK-START.md)
+
 
 ### 🚀 4-AI Integrated Collaboration System
 
