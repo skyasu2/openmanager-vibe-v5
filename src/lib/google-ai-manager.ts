@@ -3,13 +3,22 @@ import { enhancedCryptoManager } from '@/lib/crypto/EnhancedEnvCryptoManager';
 import { getSecureGoogleAIKey } from '@/utils/encryption';
 
 /**
- * Google AI API 키 관리자 v3.0 (Node.js crypto 호환)
+ * Google AI API 키 관리자 v4.0 (Rate Limiting + ToS Compliance)
  *
  * 기존 환경변수 암복호화 시스템과 통합
  * 우선순위:
  * 1. 환경변수 (암호화/평문)
  * 2. 팀 설정 (Node.js crypto - 복호화)
  * 3. null (키 없음)
+ *
+ * ⚠️ ToS 준수 요구사항:
+ * - Primary/Secondary 키는 반드시 동일한 Google Cloud Project에서 발급
+ * - 서로 다른 계정의 키를 사용하여 Rate Limit 우회 시도는 ToS 위반
+ * - 계정 정지 위험
+ *
+ * 🚦 Rate Limiting (Free Tier):
+ * - gemini-2.0-flash: 15 RPM, 250,000 TPM, 1,000 RPD
+ * - RPD 할당량은 매일 자정(Pacific Time)에 초기화
  */
 class GoogleAIManager {
   private static instance: GoogleAIManager;
@@ -17,6 +26,11 @@ class GoogleAIManager {
   private secondaryKey: string | null = null;
   private decryptedTeamKey: string | null = null;
   private isTeamKeyUnlocked = false;
+
+  // Rate limiting 추적
+  private requestLog: number[] = []; // 타임스탬프 배열
+  private dailyRequestCount = 0;
+  private lastResetDate: string | null = null;
 
   private constructor() {
     this.loadAPIKeys();
@@ -183,6 +197,74 @@ class GoogleAIManager {
   }
 
   /**
+   * 🚦 Rate Limit 체크 (15 RPM, 1,000 RPD)
+   * @returns {allowed: boolean, reason?: string}
+   */
+  checkRateLimit(): { allowed: boolean; reason?: string } {
+    const now = Date.now();
+    const oneMinuteAgo = now - 60 * 1000;
+    const today = new Date().toISOString().split('T')[0] as string;
+
+    // 일일 할당량 초기화 (Pacific Time 자정 기준은 단순화)
+    if (this.lastResetDate !== today) {
+      this.dailyRequestCount = 0;
+      this.lastResetDate = today;
+    }
+
+    // 1분 동안의 요청 수 계산
+    this.requestLog = this.requestLog.filter((timestamp) => timestamp > oneMinuteAgo);
+    const requestsPerMinute = this.requestLog.length;
+
+    // RPM 한도 체크 (15 RPM)
+    if (requestsPerMinute >= 15) {
+      return {
+        allowed: false,
+        reason: `Rate limit exceeded: ${requestsPerMinute} requests in the last minute (max 15 RPM)`,
+      };
+    }
+
+    // RPD 한도 체크 (1,000 RPD)
+    if (this.dailyRequestCount >= 1000) {
+      return {
+        allowed: false,
+        reason: `Daily quota exceeded: ${this.dailyRequestCount} requests today (max 1,000 RPD)`,
+      };
+    }
+
+    return { allowed: true };
+  }
+
+  /**
+   * 🔄 요청 기록
+   */
+  recordRequest(): void {
+    const now = Date.now();
+    this.requestLog.push(now);
+    this.dailyRequestCount++;
+  }
+
+  /**
+   * 📊 Rate Limit 상태 조회
+   */
+  getRateLimitStatus(): {
+    requestsLastMinute: number;
+    requestsToday: number;
+    remainingRPM: number;
+    remainingRPD: number;
+  } {
+    const now = Date.now();
+    const oneMinuteAgo = now - 60 * 1000;
+    const requestsLastMinute = this.requestLog.filter((timestamp) => timestamp > oneMinuteAgo).length;
+
+    return {
+      requestsLastMinute,
+      requestsToday: this.dailyRequestCount,
+      remainingRPM: Math.max(0, 15 - requestsLastMinute),
+      remainingRPD: Math.max(0, 1000 - this.dailyRequestCount),
+    };
+  }
+
+  /**
    * 기본 팀 비밀번호로 자동 잠금 해제 시도
    */
   async tryAutoUnlock(): Promise<boolean> {
@@ -217,5 +299,10 @@ export const unlockGoogleAITeamKey = (password: string) =>
   googleAIManager.unlockTeamKey(password);
 export const lockGoogleAITeamKey = () => googleAIManager.lockTeamKey();
 export const tryAutoUnlockGoogleAI = () => googleAIManager.tryAutoUnlock();
+
+// Rate limiting 관련 내보내기
+export const checkGoogleAIRateLimit = () => googleAIManager.checkRateLimit();
+export const recordGoogleAIRequest = () => googleAIManager.recordRequest();
+export const getGoogleAIRateLimitStatus = () => googleAIManager.getRateLimitStatus();
 
 export default googleAIManager;

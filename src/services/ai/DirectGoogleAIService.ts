@@ -20,7 +20,12 @@ import type { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai'
 import { getGoogleAIClient } from '@/lib/ai/google-ai-client';
 import { getEnvironmentTimeouts } from '@/utils/timeout-config';
 import debug from '@/utils/debug';
-import { getGoogleAIKey, getGoogleAISecondaryKey } from '@/lib/google-ai-manager';
+import {
+  getGoogleAIKey,
+  getGoogleAISecondaryKey,
+  checkGoogleAIRateLimit,
+  recordGoogleAIRequest,
+} from '@/lib/google-ai-manager';
 
 export interface DirectGoogleAIOptions {
   model: string;
@@ -170,6 +175,24 @@ export class DirectGoogleAIService {
       promptLength: prompt.length
     });
 
+    // 🚦 Rate Limit 체크 (무료 티어: 15 RPM, 1,000 RPD)
+    const rateLimitCheck = checkGoogleAIRateLimit();
+    if (!rateLimitCheck.allowed) {
+      const responseTime = Date.now() - startTime;
+      debug.error('🚫 DirectGoogleAIService: Rate limit exceeded', {
+        reason: rateLimitCheck.reason,
+        model: options.model
+      });
+
+      return {
+        success: false,
+        content: '',
+        model: options.model,
+        responseTime,
+        error: `Rate limit exceeded: ${rateLimitCheck.reason}`
+      };
+    }
+
     try {
       // 모델 인스턴스 가져오기
       const model = await this.getModel(options.model, options.temperature, options.maxTokens);
@@ -185,6 +208,9 @@ export class DirectGoogleAIService {
 
       const responseTime = Date.now() - startTime;
       const content = result.response.text();
+
+      // 📊 요청 기록 (성공 시에만)
+      recordGoogleAIRequest();
 
       debug.log('✅ DirectGoogleAIService: 성공', {
         responseTime,
