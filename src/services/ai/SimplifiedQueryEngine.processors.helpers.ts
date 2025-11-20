@@ -23,7 +23,19 @@ import type {
 } from './SimplifiedQueryEngine.types';
 import type { EnhancedServerMetrics } from '@/types/server';
 import { processUnifiedAI } from '@/lib/gcp/gcp-functions-client';
-import type { UnifiedAIResponse } from '@/lib/gcp/gcp-functions.types';
+import type { UnifiedAIResponse } from '@/services/ai/formatters/unified-response-formatter'; // Correct import
+
+// ... (rest of the file)
+
+// UnifiedAIRequest는 GCP Functions 호출용으로 유지
+// No longer needs local declaration of UnifiedAIResponse
+// interface UnifiedAIResponse {
+//   aggregated_data?: {
+//     main_insights?: string[];
+//     metrics?: Record<string, unknown>;
+//   };
+//   recommendations?: string[];
+// }
 
 /**
  * 통합 응답 타입 (사이클 분석용)
@@ -401,13 +413,13 @@ export class SimplifiedQueryEngineHelpers {
 
   private formatUnifiedInsights(data: UnifiedAIResponse): string | null {
     const sections: string[] = [];
-    const aggregated = data.aggregated_data || {};
+    const aggregated = (data.additionalData?.aggregated_data as Record<string, any>) || {};
 
-    if (aggregated.main_insights && aggregated.main_insights.length > 0) {
+    if (aggregated.main_insights && Array.isArray(aggregated.main_insights) && aggregated.main_insights.length > 0) {
       sections.push(
         aggregated.main_insights
           .slice(0, 3)
-          .map((insight, index) => index + 1 + '. ' + insight)
+          .map((insight: string, index: number) => index + 1 + '. ' + insight)
           .join('\n')
       );
     }
@@ -435,9 +447,10 @@ export class SimplifiedQueryEngineHelpers {
       }
     }
 
-    if (data.recommendations?.length) {
+    const recommendations = data.additionalData?.recommendations;
+    if (Array.isArray(recommendations) && recommendations.length > 0) {
       sections.push(
-        '추천 조치: ' + data.recommendations.slice(0, 2).join(', ')
+        '추천 조치: ' + recommendations.slice(0, 2).join(', ')
       );
     }
 
