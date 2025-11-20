@@ -58,7 +58,7 @@ export class DataGateway {
 
     try {
       let data: T;
-      let cached = false;
+      const cached = false;
 
       // 데이터 소스별 라우팅
       switch (request.type) {
@@ -71,8 +71,10 @@ export class DataGateway {
         case 'database':
           data = await this.queryDatabase<T>(request);
           break;
-        default:
-          throw new Error(`Unknown data source: ${request.type}`);
+        default: {
+          const exhaustiveCheck: never = request.type;
+          throw new Error(`Unknown data source: ${exhaustiveCheck}`);
+        }
       }
 
       return {

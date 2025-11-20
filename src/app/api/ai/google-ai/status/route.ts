@@ -5,7 +5,6 @@
  */
 
 import { NextResponse } from 'next/server';
-import { getErrorMessage } from '@/types/type-utils';
 import { getGoogleAIModel } from '@/lib/ai/google-ai-client'; // getGoogleAIModel now includes fallback logic
 import type { GoogleAIStatus } from '@/hooks/api/useGoogleAIStatus';
 import debug from '@/utils/debug';
@@ -31,7 +30,7 @@ const getDefaultGoogleAIStatus = (): GoogleAIStatus => ({
 });
 
 export async function GET() {
-  let status: GoogleAIStatus = getDefaultGoogleAIStatus();
+  const status: GoogleAIStatus = getDefaultGoogleAIStatus();
   status.lastHealthCheck = new Date().toISOString(); // Always update last check time
 
   try {
@@ -64,10 +63,11 @@ export async function GET() {
           status.primaryKeyConnected = false;
           errorCount++;
         }
-      } catch (error: any) {
-        debug.warn('Google AI primary key health check failed:', error.message);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        debug.warn('Google AI primary key health check failed:', errorMessage);
         status.primaryKeyConnected = false;
-        status.apiKeyStatus.primary = error.message?.includes('invalid API key') ? 'invalid' : (error.message?.includes('quota') ? 'expired' : 'missing');
+        status.apiKeyStatus.primary = errorMessage.includes('invalid API key') ? 'invalid' : (errorMessage.includes('quota') ? 'expired' : 'missing');
         errorCount++;
       }
     }
@@ -88,10 +88,11 @@ export async function GET() {
             status.secondaryKeyConnected = false;
             errorCount++;
           }
-        } catch (error: any) {
-          debug.warn('Google AI secondary key health check failed:', error.message);
+        } catch (error: unknown) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          debug.warn('Google AI secondary key health check failed:', errorMessage);
           status.secondaryKeyConnected = false;
-          status.apiKeyStatus.secondary = error.message?.includes('invalid API key') ? 'invalid' : (error.message?.includes('quota') ? 'expired' : 'missing');
+          status.apiKeyStatus.secondary = errorMessage.includes('invalid API key') ? 'invalid' : (errorMessage.includes('quota') ? 'expired' : 'missing');
           errorCount++;
         }
       }

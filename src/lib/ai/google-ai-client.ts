@@ -32,8 +32,8 @@ export function getGoogleAIClient(apiKey: string): GoogleGenerativeAI {
  * @returns 생성 모델 인스턴스
  */
 export function getGoogleAIModel(modelName: string = 'gemini-1.5-flash') {
-  let primaryKey = getGoogleAIKey();
-  let secondaryKey = getGoogleAISecondaryKey();
+  const primaryKey = getGoogleAIKey();
+  const secondaryKey = getGoogleAISecondaryKey();
 
   let client: GoogleGenerativeAI | null = null;
   let currentKeySource: 'primary' | 'secondary' | 'none' = 'none';
