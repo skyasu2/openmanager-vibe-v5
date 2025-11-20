@@ -24,7 +24,7 @@ const getDefaultGoogleAIStatus = (): GoogleAIStatus => ({
   },
   lastHealthCheck: new Date().toISOString(),
   healthCheckStatus: 'unhealthy',
-  model: 'gemini-1.5-flash',
+  model: process.env.GOOGLE_AI_MODEL || 'gemini-2.0-flash',
   features: { chat: false, embedding: false, vision: false },
   performance: { averageResponseTime: 0, successRate: 0, errorRate: 100 },
   activeKeySource: 'none',
@@ -46,9 +46,6 @@ export async function GET() {
     status.secondaryKeyId = secondaryKey ? secondaryKey.substring(0, 7) + '...' + secondaryKey.substring(secondaryKey.length - 3) : undefined;
     status.activeKeySource = 'none';
 
-    let overallConnected = false;
-    let overallHealthStatus: 'healthy' | 'degraded' | 'unhealthy' = 'unhealthy';
-    let overallAverageResponseTime = 0;
     let successCount = 0;
     let errorCount = 0;
     let totalResponseTime = 0;
@@ -57,90 +54,77 @@ export async function GET() {
     if (primaryKey) {
       try {
         const startTime = Date.now();
-        const model = getGoogleAIModel('gemini-1.5-flash');
+        const model = getGoogleAIModel(process.env.GOOGLE_AI_MODEL || 'gemini-2.0-flash');
         const result = await model.generateContent("test");
         if (result.response.text()) {
           status.primaryKeyConnected = true;
           successCount++;
           totalResponseTime += (Date.now() - startTime);
-          status.activeKeySource = 'primary';
-          overallConnected = true;
-          overallHealthStatus = 'healthy';
         } else {
           status.primaryKeyConnected = false;
           errorCount++;
-          overallHealthStatus = overallHealthStatus === 'healthy' ? 'degraded' : 'unhealthy';
         }
       } catch (error: any) {
         debug.warn('Google AI primary key health check failed:', error.message);
         status.primaryKeyConnected = false;
         status.apiKeyStatus.primary = error.message?.includes('invalid API key') ? 'invalid' : (error.message?.includes('quota') ? 'expired' : 'missing');
         errorCount++;
-        overallHealthStatus = overallHealthStatus === 'healthy' ? 'degraded' : 'unhealthy';
       }
     }
 
-    // Health check for secondary key if primary failed or not available, or just to check secondary
+    // Health check for secondary key
     if (secondaryKey) {
       // Only run secondary health check if primary failed or we're checking both
-      if (!status.primaryKeyConnected || (primaryKey && secondaryKey && status.primaryKeyConnected)) {
+      if (!status.primaryKeyConnected) { // If primary wasn't connected, try secondary
         try {
           const startTime = Date.now();
-          // To ensure secondary key is used if primary failed
-          const model = getGoogleAIModel('gemini-1.5-flash'); // This model factory includes fallback
+          const model = getGoogleAIModel(process.env.GOOGLE_AI_MODEL || 'gemini-2.0-flash'); // This model factory includes fallback
           const result = await model.generateContent("test"); // It will try primary, then secondary
           if (result.response.text()) {
             status.secondaryKeyConnected = true;
             successCount++;
             totalResponseTime += (Date.now() - startTime);
-            if (!status.primaryKeyConnected) { // If primary wasn't connected, secondary is now active
-              status.activeKeySource = 'secondary';
-              overallConnected = true;
-              overallHealthStatus = 'healthy';
-            }
           } else {
             status.secondaryKeyConnected = false;
             errorCount++;
-            overallHealthStatus = overallHealthStatus === 'healthy' && !status.primaryKeyConnected ? 'degraded' : 'unhealthy';
           }
         } catch (error: any) {
           debug.warn('Google AI secondary key health check failed:', error.message);
           status.secondaryKeyConnected = false;
           status.apiKeyStatus.secondary = error.message?.includes('invalid API key') ? 'invalid' : (error.message?.includes('quota') ? 'expired' : 'missing');
           errorCount++;
-          overallHealthStatus = overallHealthStatus === 'healthy' && !status.primaryKeyConnected ? 'degraded' : 'unhealthy';
         }
       }
     }
     
     // Determine overall status
-    if (status.primaryKeyConnected && status.secondaryKeyConnected) {
-      overallHealthStatus = 'healthy';
-      status.activeKeySource = 'primary'; // Primary takes precedence if both connected
-    } else if (status.primaryKeyConnected) {
-      overallHealthStatus = 'healthy';
-      status.activeKeySource = 'primary';
-    } else if (status.secondaryKeyConnected) {
-      overallHealthStatus = 'healthy';
-      status.activeKeySource = 'secondary';
+    status.isConnected = status.primaryKeyConnected || status.secondaryKeyConnected;
+    status.healthCheckStatus = status.isConnected ? 'healthy' : 'unhealthy';
+    if (status.isConnected) { // Set active key source if not already set (e.g., if primary connected)
+      status.activeKeySource = status.primaryKeyConnected ? 'primary' : 'secondary';
     } else {
-      overallHealthStatus = 'unhealthy';
       status.activeKeySource = 'none';
     }
-    overallConnected = status.primaryKeyConnected || status.secondaryKeyConnected;
 
+    // Performance metrics calculation
     const totalChecks = successCount + errorCount;
-    status.isConnected = overallConnected;
-    status.healthCheckStatus = overallHealthStatus;
-    status.performance.averageResponseTime = totalChecks > 0 ? totalResponseTime / totalChecks : 0;
+    status.performance.averageResponseTime = successCount > 0 ? totalResponseTime / successCount : 0; // Only average successful response times
     status.performance.successRate = totalChecks > 0 ? (successCount / totalChecks) * 100 : 0;
     status.performance.errorRate = totalChecks > 0 ? (errorCount / totalChecks) * 100 : 0;
 
     // Mocked quota status (can be refined to reflect activeKeySource)
-    status.quotaStatus = {
-      daily: { used: 100, limit: 1000, remaining: 900 },
-      perMinute: { used: 10, limit: 60, remaining: 50 },
-    };
+    // For now, if at least one key is connected, use generic valid quota. Otherwise, use 0.
+    if (status.isConnected) {
+        status.quotaStatus = {
+            daily: { used: 100, limit: 1000, remaining: 900 },
+            perMinute: { used: 10, limit: 60, remaining: 50 },
+        };
+    } else {
+         status.quotaStatus = {
+            daily: { used: 0, limit: 1000, remaining: 1000 },
+            perMinute: { used: 0, limit: 60, remaining: 60 },
+        };
+    }
 
     return NextResponse.json(status);
   } catch (error) {

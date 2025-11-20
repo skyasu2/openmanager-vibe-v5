@@ -31,10 +31,13 @@ class GoogleAIManager {
 
   private loadAPIKeys(): void {
     this.primaryKey =
+      process.env.GEMINI_API_KEY_PRIMARY ||
+      process.env.GOOGLE_AI_API_KEY ||
       process.env.GOOGLE_AI_PRIMARY_API_KEY ||
       process.env.NEXT_PUBLIC_GOOGLE_AI_PRIMARY_API_KEY ||
       null;
     this.secondaryKey =
+      process.env.GEMINI_API_KEY_SECONDARY ||
       process.env.GOOGLE_AI_SECONDARY_API_KEY ||
       process.env.NEXT_PUBLIC_GOOGLE_AI_SECONDARY_API_KEY ||
       null;

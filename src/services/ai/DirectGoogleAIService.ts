@@ -20,6 +20,7 @@ import type { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai'
 import { getGoogleAIClient } from '@/lib/ai/google-ai-client';
 import { getEnvironmentTimeouts } from '@/utils/timeout-config';
 import debug from '@/utils/debug';
+import { getGoogleAIKey, getGoogleAISecondaryKey } from '@/lib/google-ai-manager';
 
 export interface DirectGoogleAIOptions {
   model: string;
@@ -66,7 +67,21 @@ export class DirectGoogleAIService {
     }
 
     try {
-      this.genAI = getGoogleAIClient();
+      const primaryKey = getGoogleAIKey();
+      const secondaryKey = getGoogleAISecondaryKey();
+      let apiKeyToUse: string | null = null;
+
+      if (primaryKey) {
+        apiKeyToUse = primaryKey;
+      } else if (secondaryKey) {
+        apiKeyToUse = secondaryKey;
+      }
+
+      if (!apiKeyToUse) {
+        throw new Error('Google AI API 키를 찾을 수 없습니다.');
+      }
+
+      this.genAI = getGoogleAIClient(apiKeyToUse);
 
       // 🔍 SDK 객체 안전성 검증
       if (!this.genAI || typeof this.genAI !== 'object') {

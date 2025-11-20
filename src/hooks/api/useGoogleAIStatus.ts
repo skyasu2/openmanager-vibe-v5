@@ -83,7 +83,9 @@ const fetchGoogleAIStatus = async (): Promise<GoogleAIStatus> => {
 const getDefaultGoogleAIStatus = (): GoogleAIStatus => ({
   isEnabled: false,
   isConnected: false,
-  apiKeyStatus: 'missing',
+  apiKeyStatus: { primary: 'missing', secondary: 'missing' }, // Updated
+  primaryKeyConnected: false, // Added
+  secondaryKeyConnected: false, // Added
   quotaStatus: {
     daily: {
       used: 0,
@@ -190,7 +192,7 @@ export const getHealthColor = (status: GoogleAIStatus['healthCheckStatus']) => {
 };
 
 // 🔑 API 키 상태 색상
-export const getApiKeyColor = (status: GoogleAIStatus['apiKeyStatus']) => {
+export const getApiKeyColor = (status: 'valid' | 'invalid' | 'missing' | 'expired') => {
   switch (status) {
     case 'valid':
       return 'text-green-600 bg-green-50';
