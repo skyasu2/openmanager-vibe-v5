@@ -36,9 +36,15 @@ claude_code:
 # External AI CLI Tools
 # ============================================================================
 codex:
-  current: "v0.56.0+"
+  current: "v0.58.0+"
   
   history:
+    - version: "v0.58.0"
+      date: "2025-11-19"
+      changes:
+        - "자동 코드 리뷰 Codex→Gemini 파이프라인 1차 엔진 (99.9% 가용성)"
+        - "응답 시간 6~12초 (logs/code-reviews/*, docs/status.md)"
+
     - version: "v0.56.0"
       date: "2025-11-08"
       changes:

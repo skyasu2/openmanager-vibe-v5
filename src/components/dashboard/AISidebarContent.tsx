@@ -28,6 +28,8 @@ import AIInsightsCard from './AIInsightsCard';
 import AIAssistantIconPanel, { type AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
 // AIModeSelector 제거 - 지능형 라우팅으로 자동 선택
 import FreeTierMonitor from '@/components/ai/FreeTierMonitor';
+import ThinkingProcessVisualizer from '@/components/ai/ThinkingProcessVisualizer';
+import type { ThinkingStep } from '@/domains/ai-sidebar/types/ai-sidebar-types';
 
 interface AISidebarContentProps {
   onClose: () => void;
@@ -40,6 +42,9 @@ interface ChatMessage {
   timestamp: Date;
   type?: 'text' | 'report' | 'analysis';
   error?: boolean;
+  thinkingSteps?: ThinkingStep[];
+  engine?: string;
+  responseTime?: number;
 }
 
 // 질문 예시 배열
@@ -151,7 +156,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
           // mode 제거 - 백엔드에서 자동 라우팅
           temperature: 0.7,
           maxTokens: 1000,
-          includeThinking: false,
+          includeThinking: true, // 사고 과정 포함
           // 실시간 서버 메타데이터 포함
           metadata: {
             totalServers,
@@ -171,13 +176,16 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
 
       const data = await response.json();
 
-      // AI 응답을 메시지로 추가
+      // AI 응답을 메시지로 추가 (사고 과정 포함)
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         content: data.response || data.answer || '응답을 받지 못했습니다.',
         role: 'assistant',
         timestamp: new Date(),
         type: content.includes('보고서') ? 'report' : 'text',
+        thinkingSteps: data.thinkingSteps || [],
+        engine: data.engine,
+        responseTime: data.responseTime,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -281,6 +289,16 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                   <div
                     className={`max-w-[80%] ${message.role === 'user' ? 'order-2' : 'order-1'}`}
                   >
+                    {/* 사고 과정 시각화 (AI 응답만) */}
+                    {message.role === 'assistant' && message.thinkingSteps && message.thinkingSteps.length > 0 && (
+                      <div className="mb-2">
+                        <ThinkingProcessVisualizer 
+                          steps={message.thinkingSteps}
+                          isActive={false}
+                        />
+                      </div>
+                    )}
+                    
                     <div
                       className={`rounded-lg p-3 ${
                         message.role === 'user'
@@ -296,16 +314,23 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                         {message.content}
                       </div>
                       <div
-                        className={`mt-1 text-xs opacity-70 ${
+                        className={`mt-1 flex items-center justify-between text-xs opacity-70 ${
                           message.role === 'user'
                             ? 'text-blue-100'
                             : 'text-gray-500'
                         }`}
                       >
-                        {message.timestamp.toLocaleTimeString('ko-KR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                        <span>
+                          {message.timestamp.toLocaleTimeString('ko-KR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                        {message.engine && message.responseTime && (
+                          <span className="ml-2">
+                            {message.engine} · {message.responseTime}ms
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

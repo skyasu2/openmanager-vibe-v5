@@ -6,16 +6,16 @@
 
 | 도구 | 버전 | 요금제 | 역할 | 최근 업데이트 |
 |------|------|--------|------|--------------|
-| **Claude Code** | **v2.0.8** | Max ($200/월) | 메인 개발 환경 | **2025-10-08** |
-| **OpenAI CLI (Codex)** | **v0.45.0** | Plus ($20/월) | 직접 CLI 실행 | **2025-10-08** |
-| **Google Gemini CLI** | **v0.8.1** | 무료 (60 RPM/1K RPD) | 직접 CLI 실행 | **2025-10-08** |
-| **Qwen Code** | **v0.0.14** | 무료 (60 RPM/2K RPD) | 설정 최적화 강화 | **2025-09-30** |
+| **Claude Code** | **v2.0.37** | Max ($200/월) | 메인 개발 환경 | **2025-11-19** |
+| **OpenAI CLI (Codex)** | **v0.58.0** | Plus ($20/월) | 직접 CLI 실행 | **2025-11-19** |
+| **Google Gemini CLI** | **v0.15.4** | 무료 (60 RPM/1K RPD) | 직접 CLI 실행 | **2025-11-19** |
+| **Qwen Code** | **v0.2.1** | 무료 (60 RPM/2K RPD) | 설정 최적화 강화 | **2025-11-19** |
 
-## 🚀 Claude Code v2.0.8 신규 기능 (공식 문서 검증)
+## 🚀 Claude Code v2.0.37 신규 기능 (공식 문서 검증)
 
 ```bash
 # 버전 확인
-claude --version  # v2.0.8
+claude --version  # v2.0.37
 
 # 새로운 슬래시 명령어 ✅
 /rewind              # 코드/대화 복원 메뉴 열기
@@ -24,9 +24,16 @@ claude --version  # v2.0.8
 # 키보드 단축키 ✅
 Esc Esc              # Rewind 메뉴 열기 (빠른 복원)
 Tab                  # Extended thinking 토글 (on-demand 활성화)
+/think              # think (4K), think hard (10K), ultrathink (32K) 토큰 버짓
 Ctrl-R               # 명령어 히스토리 역방향 검색
 Shift-Tab            # 권한 모드 전환
+
 ```
+
+**주요 개선점 (v2.0.31+ ⇒ v2.0.37)**:
+- Extended Thinking 탭 토글 + ultrathink 키워드 (docs/status.md)
+- @-mention MCP 서버 필터링 (토큰 10-18% 절약)
+- Prompt Caching 자동 활성화 (장기 세션 안정성)
 
 ### Checkpoints (체크포인트) ✅
 **공식 문서**: https://docs.claude.com/en/docs/claude-code/checkpointing
@@ -98,16 +105,16 @@ Esc Esc  # 또는 /rewind
 wsl
 cd /mnt/d/cursor/openmanager-vibe-v5
 
-# AI 도구들 직접 CLI 실행 (2025-10-08 업데이트)
-claude --version               # Claude Code v2.0.8 버전 확인
-codex exec "작업 요청"         # Codex CLI v0.45.0 직접 실행 (27초)
-gemini "작업 요청"             # Gemini CLI v0.8.1 직접 실행 (즉시)
-timeout 90 qwen -p "작업 요청" # Qwen CLI v0.0.14 Plan Mode (안전한 코드 계획, 90초)
+# AI 도구들 직접 CLI 실행 (2025-11-19 업데이트)
+claude --version                         # Claude Code v2.0.37 버전 확인
+codex exec "작업 요청"                   # Codex CLI v0.58.0 직접 실행 (6~12초)
+gemini "작업 요청" --model gemini-2.5-pro # Gemini CLI v0.15.4 직접 실행 (25~31초 폴백)
+timeout 90 qwen --approval-mode yolo -p "작업 요청" # Qwen CLI v0.2.1 YOLO Mode (자동 승인)
 ```
 
-## 💡 Codex CLI v0.45.0 (OpenAI CLI)
+## 💡 Codex CLI v0.58.0 (OpenAI CLI)
 
-**GPT-5 기반 실무 전문가** - ChatGPT Plus $20/월
+**GPT-5 기반 실무 전문가** - ChatGPT Plus $20/월 (Codex→Gemini 자동 코드 리뷰 1차 엔진, docs/status.md)
 
 ### 설치 및 인증
 ```bash
@@ -127,14 +134,15 @@ codex exec "복잡한 알고리즘 최적화 분석"
 # 코드 리뷰
 codex exec "이 코드의 보안 취약점 분석"
 
-# 타임아웃 설정 (wrapper 스크립트)
+# 타임아웃 설정 (wrapper v2.5.0, 600초, PROJECT_ROOT 자동)
 ./scripts/ai-subagents/codex-wrapper.sh
 
-# 성능: 평균 응답 27초
-# 특징: 실무 중심, 빠른 구현 우선
+# 컨텍스트: 1인 개발자 관점 prefix 자동 주입 (scripts/ai-subagents/codex-wrapper.sh)
+# 성능: 평균 응답 6~12초 (logs/code-reviews/*)
+# 특징: 실무 중심, 빠른 구현 우선 + Gemini 폴백 연동
 ```
 
-### Codex 철학 및 벤치마크 (2025-10-08 업데이트)
+### Codex 철학 및 벤치마크 (2025-11-19 업데이트)
 
 **핵심 철학** (GPT-5 Codex 자기 분석):
 > "사용자 지침을 정확히 따르고 결과를 재현 가능하게 남기는 것이 최우선"
@@ -152,9 +160,9 @@ codex exec "이 코드의 보안 취약점 분석"
 - 정확성 ⭐⭐⭐⭐⭐ / 실무 대응 ⭐⭐⭐⭐⭐ / 설계합치 ⭐⭐⭐⭐
 - 실무 개발자 관점 (책임감 있는 코드 중시)
 
-## 🧠 Gemini CLI v0.8.1 (Google CLI)
+## 🧠 Gemini CLI v0.15.4 (Google CLI)
 
-**아키텍처 전문가** - Google OAuth 무료
+**아키텍처 전문가** - Google OAuth 무료 (Codex rate limit 시 폴백 2차 엔진, docs/status.md)
 
 ### 설치 및 인증
 ```bash
@@ -172,19 +180,19 @@ gemini whoami
 ### 사용법
 ```bash
 # 기본 실행
-gemini "아키텍처 검토"
+gemini "아키텍처 검토" --model gemini-2.5-pro
 
 # 설계 분석
-gemini "SOLID 원칙 준수 여부 확인"
+gemini "SOLID 원칙 준수 여부 확인" --model gemini-2.5-pro
 
-# Wrapper 스크립트
+# Wrapper 스크립트 (v2.5.0, 기본 모델 gemini-2.5-pro, 600초)
 ./scripts/ai-subagents/gemini-wrapper.sh
 
-# 성능: 즉시 응답
+# 성능: Codex rate limit 폴백 시 25~31초 (docs/status.md)
 # 특징: 설계 원칙 중시, 장기 유지보수 우선
 ```
 
-### Gemini 철학 및 벤치마크 (2025-10-08 업데이트)
+### Gemini 철학 및 벤치마크 (2025-11-19 업데이트)
 
 **핵심 철학** (Gemini 2.5 Flash 자기 분석):
 > "구조적 무결성을 갖춘 효율성 - Senior Code Architect 역할"
@@ -202,9 +210,9 @@ gemini "SOLID 원칙 준수 여부 확인"
 - 정확성 ⭐⭐⭐⭐ / 아키텍처 ⭐⭐⭐⭐⭐ / 설계합치 ⭐⭐⭐⭐⭐
 - Senior Code Architect 관점 (구조적 품질 책임)
 
-## ⚙️ Qwen CLI v0.0.14
+## ⚙️ Qwen CLI v0.2.1
 
-**성능 최적화 전문가** - Qwen OAuth 무료
+**성능 최적화 전문가** - Qwen OAuth 무료 (YOLO Mode 완전 무인, scripts/ai-subagents/qwen-wrapper.sh)
 
 ### 설치 및 인증
 ```bash
@@ -218,21 +226,21 @@ qwen login
 
 ### 사용법
 ```bash
-# Plan Mode (권장) - 안전한 계획 수립
-timeout 90 qwen -p "기능 구현 계획"
-timeout 90 qwen -p "리팩토링 전략"
+# YOLO Mode (권장) - 자동 승인, 완전 무인
+timeout 90 qwen --approval-mode yolo -p "기능 구현 계획"
+timeout 90 qwen --approval-mode yolo -p "리팩토링 전략"
 
-# 일반 모드 (더 빠름)
-qwen "성능 병목점 분석"
+# Plan Mode (선택) - 세부 계획 수립
+qwen -p "성능 병목점 분석"
 
-# Wrapper 스크립트
+# Wrapper 스크립트 (v2.5.0, YOLO 기본, 600초)
 ./scripts/ai-subagents/qwen-wrapper.sh
 
-# 성능: Plan Mode 90초 타임아웃 (Normal Mode 실제 8초)
-# 특징: 성능 최적화 중시, 자원 효율 우선
+# 성능: YOLO Mode 타임아웃 600초 (실제 응답 수초, logs/ai-perf/qwen-perf-*.log)
+# 특징: 성능 최적화 중시, 자원 효율 우선, 완전 무인 워크플로우
 ```
 
-### Qwen 철학 및 벤치마크 (2025-10-04 업데이트)
+### Qwen 철학 및 벤치마크 (2025-11-19 업데이트)
 
 **핵심 철학** (Qwen 2.5 Coder):
 > "1ms라도 빨라야 함 - 성능과 실용성 우선"
@@ -242,7 +250,7 @@ qwen "성능 병목점 분석"
 - ✅ **MBPP**: 84.5% - Python 코드 생성 특화
 - ✅ **Math**: 57.2% (32B) - 수학적 최적화
 - ✅ **오픈소스 SOTA**: 동급 크기 중 최고 성능
-- ✅ **Plan Mode**: 코드 실행 전 안전한 계획 수립 (v0.0.14)
+- ✅ **YOLO Mode**: qwen --approval-mode yolo (완전 무인, scripts/ai-subagents/qwen-wrapper.sh)
 
 **강점 및 특징**:
 - 알고리즘 최적화, 성능 병목점 분석 전문
@@ -250,10 +258,11 @@ qwen "성능 병목점 분석"
 - 정확성 ⭐⭐⭐ / 성능 ⭐⭐⭐⭐⭐ / 설계합치 ⭐⭐
 - 성능 엔지니어 관점 (실행 속도 및 메모리 효율 최우선)
 
-### Plan Mode 특징 (v0.0.14 신규)
-- **코드 실행 전 계획 수립** (안전성 향상)
-- EditCorrector 버그 수정으로 안정성 향상
-- 타임아웃 보호 (60초 제한)
+### YOLO Mode 특징 (v0.2.1)
+- **모든 도구 자동 승인**: `qwen --approval-mode yolo -p "<prompt>"`
+- **타임아웃 600초**: `scripts/ai-subagents/qwen-wrapper.sh`에서 timeout 600초 & 로그 기록
+- **로그 추적**: `logs/ai-perf/qwen-perf-YYYY-MM-DD.log`에 응답 시간/모드 저장
+- **Plan Mode 병행 가능**: 필요 시 `qwen -p`로 수동 계획 출력
 
 ---
 
