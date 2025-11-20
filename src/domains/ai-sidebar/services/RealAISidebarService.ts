@@ -26,7 +26,43 @@ export class RealAISidebarService {
   }
 
   /**
+   * 🤖 AI 질의 처리 (V3 - 신규 구현)
+   * @param params API 요청에 필요한 파라미터
+   * @param signal AbortController signal for request cancellation
+   * @returns API 응답 데이터
+   */
+  async processV3Query(
+    params: {
+      query: string;
+      temperature: number;
+      maxTokens: number;
+      context: string;
+      includeThinking: boolean;
+      timeoutMs: number;
+    },
+    signal: AbortSignal
+  ): Promise<any> {
+    // V3에서는 API 경로가 상대 경로(/api/ai/query)이므로 baseUrl을 사용하지 않음
+    const response = await fetch('/api/ai/query', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params),
+      signal,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'API 응답 파싱 실패' }));
+      throw new Error(errorData.error || `API 오류: ${response.status}`);
+    }
+
+    return response.json();
+  }
+
+  /**
    * 🤖 AI 질의 처리 (MCP 시스템 연동)
+   * @deprecated V3 구현인 processV3Query 사용을 권장합니다.
    */
   async processQuery(
     question: string,

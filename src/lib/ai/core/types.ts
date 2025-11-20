@@ -541,6 +541,9 @@ export interface EngineConfig {
 
   /** Provider 설정 */
   providers: ProvidersConfig;
+
+  /** MCP (Multi-Cloud Platform) 활성화 여부 */
+  enableMcp?: boolean;
 }
 
 /**

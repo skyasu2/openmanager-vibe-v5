@@ -3,7 +3,7 @@
  * 애플리케이션 시작 시 암호화된 토큰들을 복호화하여 환경변수에 설정
  */
 
-import { decrypt } from '@/utils/encryption';
+import { decrypt } from './encryption';
 
 /**
  * 🔑 GitHub 토큰 초기화

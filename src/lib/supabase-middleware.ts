@@ -8,7 +8,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@supabase/supabase-js';
 import type { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseConfig } from './env';
+import { env } from '../env';
 
 // 서버 사이드 전용 싱글톤 인스턴스 (제거됨 - SSR 방식 사용)
 
@@ -16,22 +16,13 @@ import { getSupabaseConfig } from './env';
  * Supabase URL 가져오기
  */
 function getSupabaseUrl(): string {
-  const directUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const directUrl = env.NEXT_PUBLIC_SUPABASE_URL;
   if (
     directUrl &&
     directUrl !== '' &&
     directUrl !== 'https://temp.supabase.co'
   ) {
     return directUrl;
-  }
-
-  const config = getSupabaseConfig();
-  if (
-    config.isConfigured &&
-    config.url &&
-    config.url !== 'https://temp.supabase.co'
-  ) {
-    return config.url;
   }
 
   // Middleware는 빌드 타임에도 실행될 수 있으므로 임시 URL 허용
@@ -46,18 +37,9 @@ function getSupabaseUrl(): string {
  * Supabase Anon Key 가져오기
  */
 function getSupabaseAnonKey(): string {
-  const directKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const directKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (directKey && directKey !== '' && directKey !== 'temp-anon-key') {
     return directKey;
-  }
-
-  const config = getSupabaseConfig();
-  if (
-    config.isConfigured &&
-    config.anonKey &&
-    config.anonKey !== 'temp-anon-key'
-  ) {
-    return config.anonKey;
   }
 
   // Middleware는 빌드 타임에도 실행될 수 있으므로 임시 키 허용

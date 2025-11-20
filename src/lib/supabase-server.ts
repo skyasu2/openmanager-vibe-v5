@@ -17,6 +17,13 @@ if (typeof window !== 'undefined') {
 const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
+if (!supabaseUrl) {
+  throw new Error('❌ NEXT_PUBLIC_SUPABASE_URL is required for Supabase server client');
+}
+if (!supabaseServiceKey) {
+  throw new Error('❌ SUPABASE_SERVICE_ROLE_KEY is required for Supabase server client');
+}
+
 // Server-only Supabase admin client
 export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 

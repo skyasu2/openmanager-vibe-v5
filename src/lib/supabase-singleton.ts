@@ -7,7 +7,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@supabase/supabase-js';
-import { safeEnv, getSupabaseConfig } from '../env';
+import { env, isDevelopment } from '../env';
 
 // 전역 싱글톤 인스턴스 - 더 강력한 싱글톤 보장
 declare global {
@@ -27,25 +27,13 @@ let _initializationError = global.__supabaseInitError || null;
  * Supabase URL 가져오기 (기존 로직 재사용)
  */
 function getSupabaseUrl(): string {
-  const directUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (
-    directUrl &&
-    directUrl !== '' &&
-    directUrl !== 'https://temp.supabase.co'
-  ) {
+  const directUrl = env.NEXT_PUBLIC_SUPABASE_URL;
+
+  if (directUrl && directUrl !== '' && directUrl !== 'https://temp.supabase.co') {
     return directUrl;
   }
 
-  const config = getSupabaseConfig();
-  if (
-    config.isConfigured &&
-    config.url &&
-    config.url !== 'https://temp.supabase.co'
-  ) {
-    return config.url;
-  }
-
-  if (safeEnv.isBuildTime() && process.env.npm_lifecycle_event === 'build') {
+  if (process.env.npm_lifecycle_event === 'build') {
     console.warn('⚠️ 빌드 타임 - 임시 Supabase URL 사용');
     return 'https://temp.supabase.co';
   }
@@ -57,21 +45,12 @@ function getSupabaseUrl(): string {
  * Supabase Anon Key 가져오기 (기존 로직 재사용)
  */
 function getSupabaseAnonKey(): string {
-  const directKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const directKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (directKey && directKey !== '' && directKey !== 'temp-anon-key') {
     return directKey;
   }
 
-  const config = getSupabaseConfig();
-  if (
-    config.isConfigured &&
-    config.anonKey &&
-    config.anonKey !== 'temp-anon-key'
-  ) {
-    return config.anonKey;
-  }
-
-  if (safeEnv.isBuildTime() && process.env.npm_lifecycle_event === 'build') {
+  if (process.env.npm_lifecycle_event === 'build') {
     console.warn('⚠️ 빌드 타임 - 임시 Supabase Anon Key 사용');
     return 'temp-anon-key';
   }
@@ -170,7 +149,7 @@ export async function checkSupabaseConnection(): Promise<{
   try {
     const client = getSupabaseClient();
 
-    if (safeEnv.isDevelopment()) {
+    if (isDevelopment) {
       return {
         status: 'connected',
         message: 'Supabase connected successfully (development mode)',

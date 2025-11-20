@@ -243,45 +243,32 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
       try {
         console.log(`🤖 V3 AI 쿼리 처리 시작: ${query}`);
 
-        // 순차적 비동기 처리 (Race Condition 해결)
         if (enableRealTimeThinking) {
           startThinking();
           simulateThinkingSteps(query, 'UNIFIED');
         }
 
-        // 단계 2: API 호출 (timeout 및 abort controller 적용)
         const abortController = new AbortController();
-        abortControllerRef.current = abortController; // cleanup을 위해 참조 저장
-        const timeoutId = setTimeout(() => abortController.abort(), 30000); // 30초 timeout
+        abortControllerRef.current = abortController;
+        const timeoutId = setTimeout(() => abortController.abort(), 30000);
 
-        const response = await fetch('/api/ai/query', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        const data = await _aiService.processV3Query(
+          {
             query,
             temperature: 0.7,
             maxTokens: 1000,
             context: 'ai-sidebar-v3',
             includeThinking: enableRealTimeThinking,
             timeoutMs: 450,
-          }),
-          signal: abortController.signal,
-        });
+          },
+          abortController.signal
+        );
 
         clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          throw new Error(`API 오류: ${response.status}`);
-        }
-
-        const data = await response.json();
 
         if (data.success && data.response) {
           const processingTime = Date.now() - startTime;
 
-          // 단계 3: 최종 응답 추가
           const finalMessage: EnhancedChatMessage = {
             id: `assistant-${crypto.randomUUID()}`,
             content: data.response,
@@ -292,19 +279,12 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
               processingTime,
               confidence: data.confidence || 0.8,
             },
-            thinkingSteps:
-              enableRealTimeThinking
-                ? stepsRef.current
-                : undefined,
+            thinkingSteps: enableRealTimeThinking ? stepsRef.current : undefined,
             isCompleted: true,
           };
 
           addMessage(finalMessage);
-
-          // AbortController 참조 초기화 (성공 시)
           abortControllerRef.current = null;
-
-          // 부모 컴포넌트에 알림
           onMessageSend?.(query);
 
           return {
@@ -321,7 +301,6 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
       } catch (error) {
         console.error('❌ V3 AI 쿼리 실패:', error);
 
-        // 에러 메시지 추가
         const errorMessage: EnhancedChatMessage = {
           id: `error-${Date.now()}`,
           content: `죄송합니다. AI 응답 생성 중 오류가 발생했습니다: ${
@@ -352,6 +331,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
       simulateThinkingSteps,
       enableRealTimeThinking,
       onMessageSend,
+      _aiService,
     ]
   );
 

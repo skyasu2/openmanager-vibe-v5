@@ -109,6 +109,7 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
             config?.providers?.rule?.confidenceThreshold || 0.6,
         },
       },
+      enableMcp: config?.enableMcp ?? false,
     };
 
     this.cacheTTL = this.config.cache.ttl;

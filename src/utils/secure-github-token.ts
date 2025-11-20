@@ -3,7 +3,7 @@
  * 암호화된 토큰을 안전하게 복호화하여 사용
  */
 
-import { decrypt } from './encryption';
+import { decrypt } from '../lib/security/encryption';
 
 /**
  * 🔑 GitHub PAT 토큰 안전하게 가져오기

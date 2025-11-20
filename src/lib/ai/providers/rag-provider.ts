@@ -46,10 +46,12 @@ export class RAGProvider implements IContextProvider {
   private ragEngine: SupabaseRAGEngine;
   private cache = new Map<string, CacheEntry>();
   private readonly cacheTTL = 3 * 60 * 1000; // 3분 (RAG는 짧은 캐싱)
+  private enableMcp: boolean; // Add this property
 
-  constructor() {
+  constructor(enableMcp: boolean = false) { // Modify constructor to accept enableMcp
     // Supabase RAG Engine 초기화
     this.ragEngine = new SupabaseRAGEngine();
+    this.enableMcp = enableMcp; // Store the flag
   }
 
   /**
@@ -76,6 +78,7 @@ export class RAGProvider implements IContextProvider {
       const searchOptions = {
         limit: options?.top_k || 5, // 기본 5개 문서
         threshold: options?.threshold || 0.7, // 유사도 임계값
+        enableMCP: this.enableMcp, // Pass the stored enableMcp flag
       };
 
       const searchResult: RAGEngineSearchResult = await this.ragEngine.searchSimilar(
