@@ -8,7 +8,7 @@
 import { Bot, User } from 'lucide-react';
 import { Fragment, type FC, type RefObject } from 'react';
 import type { ChatMessage } from '@/stores/useAISidebarStore';
-import { AIThinkingDisplay } from './AIThinkingDisplay';
+import { ThinkingProcessVisualizer } from '@/components/ai/ThinkingProcessVisualizer';
 import type { CompletedThinking } from '../hooks/useAIThinking';
 
 interface AIChatMessagesProps {
@@ -54,16 +54,9 @@ export const AIChatMessages: FC<AIChatMessagesProps> = ({
             {/* 사용자 메시지 다음에 사고 과정 표시 */}
             {message.role === 'user' && thinkingForMessage && (
               <div className="mb-3">
-                <AIThinkingDisplay
-                  isThinking={false}
-                  currentSteps={[]}
-                  isExpanded={false}
-                  startTime={null}
-                  onToggleExpanded={() => {}}
-                  completedThinking={thinkingForMessage[1]}
-                  onToggleCompleted={() =>
-                    onToggleCompletedThinking(thinkingForMessage[0])
-                  }
+                <ThinkingProcessVisualizer
+                  steps={thinkingForMessage[1].steps}
+                  isActive={false}
                 />
               </div>
             )}

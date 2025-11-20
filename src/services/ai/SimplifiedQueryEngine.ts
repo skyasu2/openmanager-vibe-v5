@@ -174,12 +174,17 @@ export class SimplifiedQueryEngine {
       });
       
       const baseMetadata = cachedResponse.metadata || {};
+      const estimatedCost = Math.ceil(query.length / 4) * 0.000002; // $0.002 per 1K tokens
+      
       return {
         ...cachedResponse,
         metadata: {
           ...baseMetadata,
           cacheHit: true,
-        } as AIMetadata & { cacheHit?: boolean },
+          engineType: 'cache',
+          savedCost: estimatedCost,
+          actualCost: 0,
+        } as AIMetadata & { cacheHit?: boolean; engineType?: string; savedCost?: number; actualCost?: number },
         processingTime: Date.now() - startTime,
         thinkingSteps,
       };
@@ -247,12 +252,24 @@ export class SimplifiedQueryEngine {
         });
 
         // 로컬 RAG 또는 GCP Function만 사용
-        return await this.processors.processCommandQuery(
+        const localResponse = await this.processors.processCommandQuery(
           query,
           options.commandContext || {},
           thinkingSteps,
           startTime
         );
+        
+        // 비용 정보 추가
+        const estimatedCost = Math.ceil(query.length / 4) * 0.000002;
+        return {
+          ...localResponse,
+          metadata: {
+            ...localResponse.metadata,
+            engineType: 'local',
+            savedCost: estimatedCost,
+            actualCost: 0,
+          }
+        };
       }
 
       // 🔥 명령어 쿼리 감지 및 처리

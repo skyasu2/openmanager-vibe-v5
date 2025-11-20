@@ -328,6 +328,10 @@ export class GoogleAIModeProcessor {
       // 🚀 직접 응답 사용 (구조 단순화)
       const finalResponse = apiResponse.content || '응답을 생성할 수 없습니다.';
       const finalConfidence = 0.9; // DirectGoogleAIService는 항상 높은 신뢰도
+      
+      // 비용 계산
+      const tokenCount = apiResponse.usage?.totalTokens || Math.ceil((query.length + finalResponse.length) / 4);
+      const actualCost = tokenCount * 0.000002; // $0.002 per 1K tokens
 
       return {
         success: true,
@@ -337,7 +341,7 @@ export class GoogleAIModeProcessor {
         thinkingSteps,
         metadata: {
           model: selectedModel,
-          tokensUsed: apiResponse.usage?.totalTokens || 0,
+          tokensUsed: tokenCount,
           mcpUsed: !!(mcpContext && enableAIAssistantMCP),
           aiAssistantMCPUsed: enableAIAssistantMCP,
           koreanNLPUsed: enableKoreanNLP,
@@ -347,6 +351,11 @@ export class GoogleAIModeProcessor {
           cloudFunctionsUsed: !!unifiedInsights.raw,
           cloudFunctionsCacheHit: unifiedInsights.raw?.metadata?.cacheHit ?? false,
           cloudFunctionsSummary: unifiedInsights.summary || undefined,
+          // 비용 정보
+          engineType: 'google-ai',
+          savedCost: 0,
+          actualCost: actualCost,
+          tokenCount: tokenCount,
           // 기본 모델 고정 정보
           modelInfo: {
             selectedModel,
@@ -358,6 +367,10 @@ export class GoogleAIModeProcessor {
           aiAssistantMCPUsed?: boolean;
           koreanNLPUsed?: boolean;
           mockMode?: boolean;
+          engineType?: string;
+          savedCost?: number;
+          actualCost?: number;
+          tokenCount?: number;
           modelInfo?: {
             selectedModel: GoogleAIModel;
             temperature: number;
