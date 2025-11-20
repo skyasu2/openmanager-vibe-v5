@@ -9,7 +9,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { env, features, isProduction, isVercelProduction } from '@/utils/env';
+import { env, features, isProduction, isVercelProduction } from '@/env';
 import { authManager } from '@/lib/auth';
 
 export function GET(request: NextRequest) {

@@ -7,7 +7,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@supabase/supabase-js';
-import { safeEnv, getSupabaseConfig } from './env';
+import { safeEnv, getSupabaseConfig } from '../env';
 
 // 전역 싱글톤 인스턴스 - 더 강력한 싱글톤 보장
 declare global {

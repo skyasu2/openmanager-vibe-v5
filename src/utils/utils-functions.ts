@@ -9,7 +9,7 @@ import { twMerge } from 'tailwind-merge';
 import {
   safeErrorLog as coreErrorLog,
   safeErrorMessage as coreErrorMessage,
-} from './error-handler';
+} from '../lib/error-handler';
 
 /**
  * Combines class names with tailwind-merge to handle conflicts

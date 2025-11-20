@@ -18,12 +18,12 @@ import { z } from 'zod';
 const envSchema = z.object({
   // App Info
   APP_VERSION: z.string().optional(),
-  NEXTAUTH_SECRET: z.string().min(1, 'NEXTAUTH_SECRET is required for Auth.js'),
+  NEXTAUTH_SECRET: z.string().min(1).optional(),
 
   // Supabase
-  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
   SUPABASE_PROJECT_ID: z.string().min(1).optional(),
 
   // Caching
@@ -38,8 +38,8 @@ const envSchema = z.object({
   ENABLE_GCP_MCP_INTEGRATION: z.string().optional(),
 
   // GitHub
-  GITHUB_CLIENT_ID: z.string().min(1),
-  GITHUB_CLIENT_SECRET: z.string().min(1),
+  GITHUB_CLIENT_ID: z.string().min(1).optional(),
+  GITHUB_CLIENT_SECRET: z.string().min(1).optional(),
   GITHUB_TOKEN: z.string().startsWith('ghp_').optional(),
 
   // AI Services
@@ -83,8 +83,11 @@ function parseEnv(): Env {
       console.error('❌ 환경변수 검증 실패:', result.error.format());
 
       // @ts-ignore
-      if (currentEnv.NODE_ENV === 'development') {
-        console.warn('⚠️ 개발환경: 필수 환경변수 누락 시 일부 기능이 제한될 수 있습니다.');
+      const nodeEnv = currentEnv.NODE_ENV || process.env.NODE_ENV;
+      const isBuild = process.env.NEXT_PHASE === 'phase-production-build';
+      
+      if (nodeEnv === 'development' || isBuild) {
+        console.warn('⚠️ 개발/빌드 환경: 필수 환경변수 누락 시 일부 기능이 제한될 수 있습니다.');
         return result.error.formErrors.fieldErrors as unknown as Env;
       }
 
@@ -95,7 +98,8 @@ function parseEnv(): Env {
   } catch (error) {
     console.error('❌ 환경변수 파싱 오류:', error);
     // @ts-ignore
-    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+    const isBuild = process.env.NEXT_PHASE === 'phase-production-build';
+    if (typeof process !== 'undefined' && (process.env.NODE_ENV === 'development' || isBuild)) {
       return {} as Env;
     }
 
