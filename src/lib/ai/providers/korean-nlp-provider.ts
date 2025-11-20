@@ -171,7 +171,9 @@ export class KoreanNLPProvider implements IContextProvider {
             intent: {
               category: 'unknown',
               confidence: 0
-            }
+            },
+            domainTerms: [],
+            normalizedQuery: ''
           };
           return {
             type: 'rule',
