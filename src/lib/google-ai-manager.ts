@@ -30,7 +30,7 @@ class GoogleAIManager {
   // Rate limiting 추적
   private requestLog: number[] = []; // 타임스탬프 배열
   private dailyRequestCount = 0;
-  private lastResetDate: string | null = null;
+  private lastResetDate: string = '';
 
   private constructor() {
     this.loadAPIKeys();
@@ -208,7 +208,7 @@ class GoogleAIManager {
     // 일일 할당량 초기화 (Pacific Time 자정 기준은 단순화)
     if (this.lastResetDate !== today) {
       this.dailyRequestCount = 0;
-      this.lastResetDate = today as string | null;
+      this.lastResetDate = today;
     }
 
     // 1분 동안의 요청 수 계산

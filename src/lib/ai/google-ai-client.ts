@@ -55,14 +55,15 @@ export function getGoogleAIModel(modelName: string = 'gemini-1.5-flash') {
   const generativeModel = client.getGenerativeModel({ model: modelName });
 
   // 기존 generateContent 호출을 래핑하여 폴백 로직 추가
-  const originalGenerateContent = generativeModel.generateContent;
+  const originalGenerateContent = generativeModel.generateContent.bind(generativeModel);
   generativeModel.generateContent = async function (...args: Parameters<typeof originalGenerateContent>) {
     try {
       debug.log(`API 호출 시도 (키: ${currentKeySource})`);
-      return await originalGenerateContent.apply(this, args);
-    } catch (error: any) {
+      return await originalGenerateContent(...args);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : '';
       if (
-        error.message?.includes('429 Too Many Requests') &&
+        errorMessage.includes('429 Too Many Requests') &&
         currentKeySource === 'primary' &&
         secondaryKey
       ) {
@@ -70,7 +71,7 @@ export function getGoogleAIModel(modelName: string = 'gemini-1.5-flash') {
         client = getGoogleAIClient(secondaryKey);
         currentKeySource = 'secondary';
         generativeModel.generateContent = originalGenerateContent; // 재귀 호출 방지
-        return await generativeModel.generateContent.apply(this, args);
+        return await generativeModel.generateContent(...args);
       }
       throw error; // 다른 에러는 그대로 다시 throw
     }

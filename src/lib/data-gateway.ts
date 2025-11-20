@@ -73,7 +73,7 @@ export class DataGateway {
           break;
         default: {
           const exhaustiveCheck: never = request.type;
-          throw new Error(`Unknown data source: ${exhaustiveCheck}`);
+          throw new Error(`Unknown data source: ${String(exhaustiveCheck)}`);
         }
       }
 
