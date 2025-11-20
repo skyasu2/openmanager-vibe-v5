@@ -13,7 +13,7 @@ Gemini CLI 사용 가이드 - Senior Code Architect 서브에이전트
 
 - **SWE-bench Verified**: 54% (48.9% → 54% 5% 개선)
 - **테스트 커버리지**: 98.2% (54/55 통과) - 프로젝트 실적
-- **문제 발견율**: 95%+ (3-AI 교차검증)
+- **문제 발견율**: 95%+
 - **SOLID 원칙**: 대규모 리팩토링 전문
 
 ### 역할: 아키텍처 설계 & 직접 구현자
@@ -191,6 +191,8 @@ chmod +x scripts/gcli.sh
 
 ### Gemini CLI (Architect)
 
+- Claude Code가 개발한 코드 리뷰
+- Claude 제한 시 직접 개발 진행
 - 시스템 아키텍처 분석
 - SOLID 원칙 검증
 - 직접 구현 및 리팩토링
@@ -202,25 +204,11 @@ chmod +x scripts/gcli.sh
 
 ### Codex CLI (Implementation Specialist)
 
+- Claude Code가 개발한 코드 리뷰
 - 버그 수정
 - 실무적 구현
 
----
 
-## 🎯 3-AI 교차 검증 (v4.1)
-
-### 협업 방식
-
-- ✅ **혼합 전략**: Task 서브에이전트 + 직접 CLI
-- ✅ **Claude 주도**: Claude A안 → 외부 AI 개선점 → Claude 최종 판단
-- ✅ **독립 검증**: 각 AI가 독립적으로 분석 후 교차 발견
-- ✅ **95%+ 발견율**: 각 AI가 놓친 문제를 다른 AI가 발견
-
-### Gemini 역할
-
-- **아키텍처 관점**: SOLID 원칙, 구조적 개선
-- **타입 안전성**: any 타입 제거, 엄격한 타입 검증
-- **문제 발견**: 설계 결함, 기술 부채 식별
 
 ---
 
