@@ -189,7 +189,7 @@ export class SimplifiedQueryEngineUtils {
   }
 
   /**
-   * 📦 캐시된 응답 가져오기 (통계 추적 포함)
+   * 📦 캐시된 응답 가져오기 (LRU 로직 포함)
    */
   getCachedResponse(key: string): QueryResponse | null {
     this.cacheStats.totalRequests++;
@@ -210,6 +210,10 @@ export class SimplifiedQueryEngineUtils {
       return null;
     }
 
+    // 🔧 LRU: 캐시 히트 시 항목을 Map 끝으로 이동 (최근 사용)
+    this.responseCache.delete(key);
+    this.responseCache.set(key, cached);
+
     // 캐시 히트 카운트 증가
     this.cacheStats.hits++;
     cached.hits++;
@@ -217,18 +221,16 @@ export class SimplifiedQueryEngineUtils {
   }
 
   /**
-   * 💾 응답 캐싱
+   * 💾 응답 캐싱 (LRU 로직)
    */
   setCachedResponse(key: string, response: QueryResponse): void {
-    // 캐시 크기 제한 체크
+    // 캐시 크기 제한 체크 (LRU: 가장 오래 사용되지 않은 항목 제거)
     if (this.responseCache.size >= 100) {
-      // 가장 오래된 항목 삭제
-      const sorted = Array.from(this.responseCache.entries()).sort(
-        (a, b) => a[1].timestamp - b[1].timestamp
-      );
-      const oldestEntry = sorted[0];
-      if (oldestEntry) {
-        this.responseCache.delete(oldestEntry[0]);
+      // Map의 첫 번째 항목이 가장 오래된 항목 (LRU)
+      const firstKey = this.responseCache.keys().next().value;
+      if (firstKey) {
+        this.responseCache.delete(firstKey);
+        this.cacheStats.evictions++;
       }
     }
 
