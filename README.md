@@ -41,7 +41,7 @@ npm install
 
 환경 변수 설정:
 ```bash
-cp config/templates/env.local.template .env.local
+cp .env.example .env.local
 # .env.local에서 SUPABASE_URL, SUPABASE_ANON_KEY 설정
 ```
 

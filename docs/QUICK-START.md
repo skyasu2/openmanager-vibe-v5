@@ -22,7 +22,7 @@ npm install
 
 ```bash
 # .env.local 생성
-cp config/templates/env.local.template .env.local
+cp .env.example .env.local
 ```
 
 **`.env.local` 필수 설정**:

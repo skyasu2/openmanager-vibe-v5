@@ -57,6 +57,7 @@ backups/
 .env
 .env.*
 !.env.example
+.env.e2e
 
 # Cache and debug
 .cache/
