@@ -165,13 +165,14 @@ export class KoreanNLPProvider implements IContextProvider {
         // 403 CORS 오류는 무시하고 빈 결과 반환 (graceful degradation)
         if (response.status === 403) {
           console.warn('[KoreanNLPProvider] CORS 403 - returning empty result (graceful degradation)');
+          const emptyRuleData: RuleData = {
+            rules: [],
+            confidence: 0,
+            source: 'korean-nlp-unavailable'
+          };
           return {
             type: 'rule',
-            data: {
-              rules: [],
-              confidence: 0,
-              source: 'korean-nlp-unavailable'
-            }
+            data: emptyRuleData
           };
         }
         throw new Error(`Korean NLP API error: ${response.status}`);
