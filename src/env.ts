@@ -76,15 +76,13 @@ export type Env = z.infer<typeof envSchema>;
 // 환경변수 파싱 및 검증
 function parseEnv(): Env {
   try {
-    // @ts-expect-error - In some environments (like Vitest), process is not defined
     const currentEnv = typeof process !== 'undefined' ? process.env : {};
     const result = envSchema.safeParse(currentEnv);
 
     if (!result.success) {
       console.error('❌ 환경변수 검증 실패:', result.error.format());
 
-      // @ts-expect-error - currentEnv may not have NODE_ENV
-      const nodeEnv = currentEnv.NODE_ENV || process.env.NODE_ENV;
+      const nodeEnv = (currentEnv as Record<string, string | undefined>).NODE_ENV || process.env.NODE_ENV;
       const isBuild = process.env.NEXT_PHASE === 'phase-production-build';
       
       if (nodeEnv === 'development' || isBuild) {
@@ -98,7 +96,6 @@ function parseEnv(): Env {
     return result.data;
   } catch (error) {
     console.error('❌ 환경변수 파싱 오류:', error);
-    // @ts-expect-error - process.env may not be available
     const isBuild = process.env.NEXT_PHASE === 'phase-production-build';
     if (typeof process !== 'undefined' && (process.env.NODE_ENV === 'development' || isBuild)) {
       return {} as Env;
@@ -130,7 +127,6 @@ export const features = {
 
 // 개발용 환경변수 상태 로깅
 if (isDevelopment) {
-  // @ts-expect-error - process may not be available in all environments
   if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
       console.log('🔧 환경변수 기능 상태:', features);
   }
