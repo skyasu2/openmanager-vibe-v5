@@ -16,7 +16,7 @@ import {
   getMultipleServerMetrics,
   type InterpolatedMetric,
 } from '@/data/hourly-server-data';
-import { getCurrentKST } from '@/utils/kst-time';
+import { KST } from '@/lib/time';
 
 /**
  * 히스토리 데이터 포인트 (차트용)
@@ -68,7 +68,7 @@ export function useFixed24hMetrics(
     if (!isMountedRef.current) return;
 
     try {
-      const kst = getCurrentKST();
+      const kst = KST.getKST();
       const hour = kst.getUTCHours();
       const minute = kst.getUTCMinutes();
 
@@ -164,7 +164,7 @@ export function useMultipleFixed24hMetrics(
     if (!isMountedRef.current) return;
 
     try {
-      const kst = getCurrentKST();
+      const kst = KST.getKST();
       const hour = kst.getUTCHours();
       const minute = kst.getUTCMinutes();
 
@@ -237,7 +237,7 @@ export function useSingleMetric(
     if (!isMountedRef.current) return;
 
     try {
-      const kst = getCurrentKST();
+      const kst = KST.getKST();
       const hour = kst.getUTCHours();
       const minute = kst.getUTCMinutes();
 
@@ -294,7 +294,7 @@ export async function getFixedMetricNow(
   serverId: string
 ): Promise<InterpolatedMetric | null> {
   try {
-    const kst = getCurrentKST();
+    const kst = KST.getKST();
     const hour = kst.getUTCHours();
     const minute = kst.getUTCMinutes();
 

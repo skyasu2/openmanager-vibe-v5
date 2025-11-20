@@ -11,7 +11,7 @@
 
 import { FIXED_24H_DATASETS, getServer24hData, getDataAtMinute, getRecentData, calculateAverageMetrics } from '../src/data/fixed-24h-metrics';
 import { FAILURE_SCENARIOS } from '../src/data/scenarios';
-import { getKSTMinuteOfDay, minuteOfDayToTime, getCurrentKSTTime } from '../src/utils/kst-time';
+import { KST } from '../src/lib/time';
 
 console.log('🎯 24시간 고정 데이터 시스템 검증 시작\n');
 
@@ -63,8 +63,8 @@ if (FAILURE_SCENARIOS.length !== 6) {
 
 FAILURE_SCENARIOS.forEach((scenario) => {
   const [startMin, endMin] = scenario.timeRange;
-  const startTime = minuteOfDayToTime(startMin);
-  const endTime = minuteOfDayToTime(endMin);
+  const startTime = KST.toTime(startMin);
+  const endTime = KST.toTime(endMin);
   const duration = (endMin - startMin) / 60; // 시간 단위
   
   console.log(`📊 ${scenario.id}`);
@@ -92,7 +92,7 @@ console.log('새벽 2시-4시 디스크 사용량 추이 (10분 간격):\n');
 for (let minute = 120; minute <= 240; minute += 10) {
   const data = getDataAtMinute(dbServer, minute);
   if (data) {
-    const time = minuteOfDayToTime(data.minuteOfDay);
+    const time = KST.toTime(data.minuteOfDay);
     console.log(`${time} → 디스크: ${data.disk.toFixed(1)}%`);
   }
 }
@@ -102,8 +102,8 @@ console.log('\n' + '='.repeat(60));
 console.log('4️⃣  한국 시간 동기화 검증');
 console.log('='.repeat(60));
 
-const currentKST = getCurrentKSTTime();
-const currentMinute = getKSTMinuteOfDay();
+const currentKST = KST.currentTime();
+const currentMinute = KST.minuteOfDay();
 
 console.log(`현재 한국 시간: ${currentKST} (${currentMinute}분)`);
 console.log(`현재 10분 슬롯: ${Math.floor(currentMinute / 10) * 10}분\n`);
@@ -130,7 +130,7 @@ if (!testServer) {
 console.log('최근 10분 데이터 (현재 시각 기준 역순):\n');
 const recentData = getRecentData(testServer, currentMinute, 10);
 recentData.forEach((point, index) => {
-  const time = minuteOfDayToTime(point.minuteOfDay);
+  const time = KST.toTime(point.minuteOfDay);
   console.log(`${index === 0 ? '→' : ' '} ${time} | CPU: ${point.cpu.toFixed(1)}% | 메모리: ${point.memory.toFixed(1)}% | 디스크: ${point.disk.toFixed(1)}% | 네트워크: ${point.network.toFixed(1)}%`);
 });
 
@@ -144,7 +144,7 @@ const midnightTest = [
 
 midnightTest.forEach((data) => {
   if (data) {
-    const time = minuteOfDayToTime(data.minuteOfDay);
+    const time = KST.toTime(data.minuteOfDay);
     console.log(`  ${time} → CPU: ${data.cpu.toFixed(1)}%`);
   }
 });

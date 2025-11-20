@@ -26,6 +26,11 @@ import { getCachedData, setCachedData } from '@/lib/cache-helper';
 import { supabase } from '@/lib/supabase/supabase-client';
 import crypto from 'crypto';
 import debug from '@/utils/debug';
+
+// ✅ 옵션 A: Node.js Runtime + GCP Functions 최적화
+// - Supabase RAG 직접 호출
+// - GCP Korean NLP/ML (10분 캐싱)
+// - Gemini API 직접 호출
 export const runtime = 'nodejs';
 
 // 🔧 타임아웃 설정 (통합 유틸리티 사용)

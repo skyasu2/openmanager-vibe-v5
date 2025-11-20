@@ -12,7 +12,7 @@ import {
   useSingleMetric,
 } from '../useFixed24hMetrics';
 import * as hourlyDataModule from '@/data/hourly-server-data';
-import * as kstTimeModule from '@/utils/kst-time';
+import { KST } from '@/lib/time';
 
 // Mock Modules
 vi.mock('@/data/hourly-server-data', () => ({
@@ -32,8 +32,10 @@ interface InterpolatedMetric {
   timestamp: string;
 }
 
-vi.mock('@/utils/kst-time', () => ({
-  getCurrentKST: vi.fn(),
+vi.mock('@/lib/time', () => ({
+  KST: {
+    getKST: vi.fn(),
+  },
 }));
 
 vi.mock('../../../lib/api/errorHandler', () => ({
@@ -56,7 +58,7 @@ const mockKST = {
 describe('useFixed24hMetrics', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(kstTimeModule.getCurrentKST).mockReturnValue(mockKST as any);
+    vi.mocked(KST.getKST).mockReturnValue(mockKST as any);
   });
 
   afterEach(() => {
@@ -299,7 +301,7 @@ describe('useFixed24hMetrics', () => {
 describe('useMultipleFixed24hMetrics', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(kstTimeModule.getCurrentKST).mockReturnValue(mockKST as any);
+    vi.mocked(KST.getKST).mockReturnValue(mockKST as any);
   });
 
   afterEach(() => {
@@ -467,7 +469,7 @@ describe('useMultipleFixed24hMetrics', () => {
 describe('useSingleMetric', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(kstTimeModule.getCurrentKST).mockReturnValue(mockKST as any);
+    vi.mocked(KST.getKST).mockReturnValue(mockKST as any);
   });
 
   afterEach(() => {
@@ -579,7 +581,7 @@ import { getFixedMetricNow } from '../useFixed24hMetrics';
 describe('getFixedMetricNow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(kstTimeModule.getCurrentKST).mockReturnValue(mockKST as any);
+    vi.mocked(KST.getKST).mockReturnValue(mockKST as any);
   });
 
   afterEach(() => {

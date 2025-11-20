@@ -13,7 +13,8 @@ export default defineConfig({
       // 순수 함수 테스트만 포함
       'src/utils/**/*.{test,spec}.{js,ts}',
       'tests/unit/type-guards.test.ts',
-      'tests/unit/koreanTime.test.ts',
+      'tests/unit/time.test.ts',
+      'tests/unit/project-meta.test.ts',
       'tests/unit/safe-format.test.ts',
       'tests/unit/error-handler.test.ts',
     ],

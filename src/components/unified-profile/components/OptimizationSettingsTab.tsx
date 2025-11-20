@@ -6,7 +6,7 @@
 
 'use client';
 
-import KoreanTimeUtil from '@/utils/koreanTime';
+import { KST } from '@/lib/time';
 // framer-motion 제거 - CSS 애니메이션 사용
 import {
   Activity,
@@ -45,7 +45,7 @@ export function OptimizationSettingsTab({
       await onOptimizationRun();
       setSettings((prev) => ({
         ...prev,
-        lastOptimized: KoreanTimeUtil.now(),
+        lastOptimized: KST.nowString(),
       }));
     } catch (err) {
       console.error('최적화 실행 중 오류:', err);

@@ -13,7 +13,7 @@ import { devtools } from 'zustand/middleware';
 import { calculateOptimalUpdateInterval } from '../config/serverConfig';
 import type { EnhancedServerMetrics, ServerRole } from '../types/server';
 import { getMultipleServerMetrics, type InterpolatedMetric } from '@/data/hourly-server-data';
-import { getCurrentKST } from '@/utils/kst-time';
+import { KST } from '@/lib/time';
 
 // 🎯 서버 ID 목록 (hourly JSON 파일에서 가져올 서버들)
 const SERVER_IDS = [
@@ -202,7 +202,7 @@ export const createServerDataStore = (
           console.log('🚀 Vercel JSON hourly 데이터 로드 시작');
           
           // 현재 KST 시간 가져오기
-          const kst = getCurrentKST();
+          const kst = KST.getKST();
           const hour = kst.getUTCHours();
           const minute = kst.getUTCMinutes();
           
