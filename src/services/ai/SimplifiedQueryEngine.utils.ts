@@ -725,4 +725,46 @@ export class SimplifiedQueryEngineUtils {
     }
     return thinkingSteps;
   }
+
+  /**
+   * 🧠 쿼리 복잡도 분석 (한국어 가중치 적용)
+   */
+  analyzeComplexity(query: string): { level: string; score: number } {
+    let score = 0;
+
+    // 1. 길이 기반 (한국어 가중치)
+    const koreanChars = (query.match(/[\uac00-\ud7af]/g) || []).length;
+    const totalChars = query.length;
+    
+    // 한국어는 1글자당 2-3 토큰, 영어는 1글자당 0.25 토큰
+    const estimatedTokens = koreanChars * 2.5 + (totalChars - koreanChars) * 0.25;
+    
+    if (estimatedTokens > 100) score += 0.3;
+    else if (estimatedTokens > 50) score += 0.2;
+    else if (estimatedTokens > 20) score += 0.1;
+
+    // 2. 복잡한 키워드
+    const complexKeywords = [
+      '분석', '예측', '추천', '최적화', '비교', '평가',
+      'analyze', 'predict', 'recommend', 'optimize', 'compare'
+    ];
+    const foundComplex = complexKeywords.filter(k => query.toLowerCase().includes(k)).length;
+    score += Math.min(foundComplex * 0.15, 0.4);
+
+    // 3. 다중 조건
+    const conditions = (query.match(/그리고|또는|하지만|그러나|and|or|but/gi) || []).length;
+    score += Math.min(conditions * 0.1, 0.2);
+
+    // 4. 질문 복잡도
+    const questions = (query.match(/\?|어떻게|왜|무엇|언제|어디/g) || []).length;
+    if (questions > 1) score += 0.1;
+
+    score = Math.min(score, 1.0);
+
+    let level = 'low';
+    if (score > 0.7) level = 'high';
+    else if (score > 0.4) level = 'medium';
+
+    return { level, score };
+  }
 }

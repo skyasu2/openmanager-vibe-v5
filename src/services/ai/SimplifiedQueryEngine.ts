@@ -134,7 +134,7 @@ export class SimplifiedQueryEngine {
   }
 
   /**
-   * 🔍 쿼리 처리 (캐싱 및 자동 엔진 선택)
+   * 🔍 쿼리 처리 (지능형 라우팅 포함)
    */
   async query(request: QueryRequest): Promise<QueryResponse> {
     const startTime = Date.now();
@@ -157,24 +157,22 @@ export class SimplifiedQueryEngine {
 
     const thinkingSteps: QueryResponse['thinkingSteps'] = [];
 
-    // 🚀 환경변수 기반 타임아웃 설정 (Google AI vs Local AI 구분)
+    // 🚀 환경변수 기반 타임아웃 설정
     const timeouts = getEnvironmentTimeouts();
-    console.log('🔍 [DEBUG] Timeout configuration:', {
-      envVars: {
-        GOOGLE_AI_TIMEOUT: process.env.GOOGLE_AI_TIMEOUT,
-        MCP_TIMEOUT: process.env.MCP_TIMEOUT
-      },
-      calculatedTimeouts: timeouts,
-    });
-
     const timeoutMs = options.timeoutMs || timeouts.GOOGLE_AI;
 
-    console.log('🔍 [DEBUG] Final timeout selected:', timeoutMs);
-
-    // Cache check (delegated to utils)
+    // 🎯 Step 1: Cache Check (비용 $0)
     const cacheKey = this.utils.generateCacheKey(query, context);
     const cachedResponse = this.utils.getCachedResponse(cacheKey);
     if (cachedResponse && options.cached !== false) {
+      thinkingSteps.push({
+        step: '캐시 확인',
+        description: '✅ 캐시 히트 - 즉시 반환 (비용 $0)',
+        status: 'completed',
+        timestamp: Date.now(),
+        duration: Date.now() - startTime,
+      });
+      
       const baseMetadata = cachedResponse.metadata || {};
       return {
         ...cachedResponse,
@@ -183,8 +181,17 @@ export class SimplifiedQueryEngine {
           cacheHit: true,
         } as AIMetadata & { cacheHit?: boolean },
         processingTime: Date.now() - startTime,
+        thinkingSteps,
       };
     }
+
+    thinkingSteps.push({
+      step: '캐시 확인',
+      description: '캐시 미스 - 새로운 처리 필요',
+      status: 'completed',
+      timestamp: Date.now(),
+      duration: Date.now() - startTime,
+    });
 
     // 초기화 완료 대기
     await initPromise;
@@ -209,7 +216,46 @@ export class SimplifiedQueryEngine {
         };
       }
 
-      // 🔥 NEW: 명령어 쿼리 감지 및 처리
+      // 🎯 Step 2: Intent Classification (Circuit Breaker)
+      const intentStepStart = Date.now();
+      thinkingSteps.push({
+        step: '의도 분석',
+        description: '쿼리 의도 및 복잡도 분석 중...',
+        status: 'pending',
+        timestamp: intentStepStart,
+      });
+
+      const intentResult = await this.intentClassifier.classify(query);
+      const intentStep = thinkingSteps[thinkingSteps.length - 1];
+      if (intentStep) {
+        intentStep.status = 'completed';
+        intentStep.description = `의도: ${intentResult.name} (신뢰도: ${(intentResult.confidence * 100).toFixed(0)}%)`;
+        intentStep.duration = Date.now() - intentStepStart;
+      }
+
+      // 🔥 Circuit Breaker: 단순 질의는 Google AI 호출 없이 처리
+      const isSimpleQuery = intentResult.confidence > 0.7 && 
+        !intentResult.needsComplexML && 
+        !intentResult.needsNLP;
+
+      if (isSimpleQuery) {
+        thinkingSteps.push({
+          step: '라우팅 결정',
+          description: `✅ 단순 질의 감지 - 로컬 처리 (Google AI 호출 생략, 비용 절약)`,
+          status: 'completed',
+          timestamp: Date.now(),
+        });
+
+        // 로컬 RAG 또는 GCP Function만 사용
+        return await this.processors.processCommandQuery(
+          query,
+          options.commandContext || {},
+          thinkingSteps,
+          startTime
+        );
+      }
+
+      // 🔥 명령어 쿼리 감지 및 처리
       const commandStepStart = Date.now();
       thinkingSteps.push({
         step: '명령어 감지',
@@ -218,7 +264,6 @@ export class SimplifiedQueryEngine {
         timestamp: commandStepStart,
       });
 
-      // Command keyword detection (delegated to utils)
       const isCommandQuery = this.utils.detectCommandQuery(
         query,
         options.commandContext
@@ -228,11 +273,10 @@ export class SimplifiedQueryEngine {
         const commandStep = thinkingSteps[thinkingSteps.length - 1];
         if (commandStep) {
           commandStep.status = 'completed';
-          commandStep.description = '명령어 쿼리로 감지됨';
+          commandStep.description = '명령어 쿼리로 감지됨 - 로컬 처리';
           commandStep.duration = Date.now() - commandStepStart;
         }
 
-        // Command-specific processing (delegated to processors)
         return await this.processors.processCommandQuery(
           query,
           options.commandContext || {},
@@ -248,9 +292,52 @@ export class SimplifiedQueryEngine {
         }
       }
 
+      // 🎯 Step 3: Complexity Check & Routing Decision
+      thinkingSteps.push({
+        step: '복잡도 분석',
+        description: '쿼리 복잡도 및 필요 리소스 분석 중...',
+        status: 'pending',
+        timestamp: Date.now(),
+      });
+
+      const complexity = this.utils.analyzeComplexity(query);
+      const complexityStep = thinkingSteps[thinkingSteps.length - 1];
+      if (complexityStep) {
+        complexityStep.status = 'completed';
+        complexityStep.description = `복잡도: ${complexity.level} (점수: ${complexity.score})`;
+        complexityStep.duration = Date.now() - complexityStep.timestamp;
+      }
+
+      // 🎯 Intelligent Routing Decision
+      const routingStepStart = Date.now();
+      let routingDecision: 'local' | 'google-ai' = 'local';
+      let routingReason = '';
+
+      if (intentResult.needsComplexML || intentResult.needsNLP) {
+        routingDecision = 'google-ai';
+        routingReason = '복잡한 ML/NLP 분석 필요 - Google AI 사용';
+      } else if (complexity.score > 0.7) {
+        routingDecision = 'google-ai';
+        routingReason = '높은 복잡도 - Google AI 사용';
+      } else if (intentResult.confidence < 0.5) {
+        routingDecision = 'google-ai';
+        routingReason = '의도 불명확 - Google AI로 정확한 분석';
+      } else {
+        routingDecision = 'local';
+        routingReason = '단순 질의 - 로컬 RAG/GCP Function 사용 (비용 절약)';
+      }
+
+      thinkingSteps.push({
+        step: '라우팅 결정',
+        description: `${routingDecision === 'google-ai' ? '🤖' : '💾'} ${routingReason}`,
+        status: 'completed',
+        timestamp: routingStepStart,
+        duration: Date.now() - routingStepStart,
+      });
+
       thinkingSteps.push({
         step: '통합 파이프라인 준비',
-        description: 'RAG + Google Cloud Functions + Google AI 조합 실행',
+        description: `RAG + ${routingDecision === 'google-ai' ? 'Google AI' : 'GCP Functions'} 조합 실행`,
         status: 'completed',
         timestamp: Date.now(),
       });
