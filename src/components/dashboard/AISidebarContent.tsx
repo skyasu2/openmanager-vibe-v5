@@ -26,8 +26,7 @@ import { useServerDataStore } from '@/components/providers/StoreProvider';
 import type { EnhancedServerMetrics } from '@/types/server';
 import AIInsightsCard from './AIInsightsCard';
 import AIAssistantIconPanel, { type AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
-import { AIModeSelector } from '@/components/ai/AIModeSelector';
-import type { AIMode } from '@/types/ai-types';
+// AIModeSelector 제거 - 지능형 라우팅으로 자동 선택
 import FreeTierMonitor from '@/components/ai/FreeTierMonitor';
 
 interface AISidebarContentProps {
@@ -73,7 +72,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
   );
   const [selectedFunction, setSelectedFunction] = useState<AIAssistantFunction>('chat');
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const [aiMode, setAiMode] = useState<AIMode>('LOCAL'); // AI 모드 (LOCAL/GOOGLE_AI)
+  // AI 모드는 지능형 라우팅으로 자동 선택 (사용자 선택 불필요)
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -140,7 +139,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
         ? Math.round(servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + (s.memory || 0), 0) / servers.length)
         : 0;
 
-      // 🎯 실제 API 호출
+      // 🎯 실제 API 호출 (지능형 라우팅 자동 선택)
       const response = await fetch('/api/ai/query', {
         method: 'POST',
         headers: {
@@ -149,7 +148,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
         body: JSON.stringify({
           query: content,
           context: 'dashboard',
-          mode: aiMode === 'LOCAL' ? 'local-ai' : 'google-ai',
+          // mode 제거 - 백엔드에서 자동 라우팅
           temperature: 0.7,
           maxTokens: 1000,
           includeThinking: false,
@@ -270,14 +269,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
       <div className="flex flex-1 flex-col overflow-hidden">
         {activeTab === 'chat' && (
           <>
-            {/* AI 모드 선택기 */}
-            <div className="border-b border-gray-100 p-4">
-              <AIModeSelector
-                selectedMode={aiMode}
-                onModeChange={setAiMode}
-                disabled={isLoading}
-              />
-            </div>
+            {/* AI 모드 선택기 제거 - 지능형 라우팅 자동 선택 */}
 
             {/* 채팅 메시지 */}
             <div className="flex-1 space-y-4 overflow-y-auto p-4">
