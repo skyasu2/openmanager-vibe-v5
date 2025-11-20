@@ -193,7 +193,7 @@ export default function LoginClient() {
 
       // 강제 페이지 새로고침과 함께 이동 (쿠키가 확실히 적용되도록)
           const redirectTimer = setTimeout(() => {
-            window.location.href = '/main';
+            window.location.href = '/dashboard';
       }, PAGE_REDIRECT_DELAY_MS);
 
       // 🧹 Cleanup: 컴포넌트 언마운트 시 타이머 정리 (메모리 누수 방지)
