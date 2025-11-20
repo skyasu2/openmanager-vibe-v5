@@ -17,16 +17,16 @@ const {
 // 환경 변수 설정
 const ENHANCED_KOREAN_NLP_URL =
   process.env.ENHANCED_KOREAN_NLP_URL ||
-  'https://asia-northeast3-openmanager-ai.cloudfunctions.net/enhanced-korean-nlp';
+  'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/enhanced-korean-nlp';
 const RULE_ENGINE_URL =
   process.env.RULE_ENGINE_URL ||
-  'https://asia-northeast3-openmanager-ai.cloudfunctions.net/rule-engine';
+  'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/rule-engine';
 const ML_ANALYTICS_ENGINE_URL =
   process.env.ML_ANALYTICS_ENGINE_URL ||
-  'https://asia-northeast3-openmanager-ai.cloudfunctions.net/ml-analytics-engine';
+  'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/ml-analytics-engine';
 const UNIFIED_AI_PROCESSOR_URL =
   process.env.UNIFIED_AI_PROCESSOR_URL ||
-  'https://asia-northeast3-openmanager-ai.cloudfunctions.net/unified-ai-processor';
+  'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/unified-ai-processor';
 const VM_CONTEXT_URL =
   process.env.VM_CONTEXT_URL || 'http://34.64.213.108:10001';
 
