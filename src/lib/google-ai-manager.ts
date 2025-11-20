@@ -203,7 +203,7 @@ class GoogleAIManager {
   checkRateLimit(): { allowed: boolean; reason?: string } {
     const now = Date.now();
     const oneMinuteAgo = now - 60 * 1000;
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0] ?? '';
 
     // 일일 할당량 초기화 (Pacific Time 자정 기준은 단순화)
     if (this.lastResetDate !== today) {
