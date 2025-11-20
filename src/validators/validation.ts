@@ -17,7 +17,7 @@ import { ApiError } from '@/types/common-replacements';
 export type ApiHandler<
   TBody = unknown,
   TQuery = unknown,
-  TResponse = unknown,
+  _TResponse = unknown,
 > = (
   request: NextRequest,
   context: {
