@@ -153,12 +153,27 @@ export class KoreanNLPProvider implements IContextProvider {
     try {
       const response = await fetch(this.gcpEndpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Origin': 'https://openmanager-vibe-v5.vercel.app' // Server-side origin
+        },
         body: JSON.stringify(request),
         signal: AbortSignal.timeout(15000), // 15초 타임아웃 (NLP는 더 오래 걸림)
       });
 
       if (!response.ok) {
+        // 403 CORS 오류는 무시하고 빈 결과 반환 (graceful degradation)
+        if (response.status === 403) {
+          console.warn('[KoreanNLPProvider] CORS 403 - returning empty result (graceful degradation)');
+          return {
+            type: 'rule',
+            data: {
+              rules: [],
+              confidence: 0,
+              source: 'korean-nlp-unavailable'
+            }
+          };
+        }
         throw new Error(`Korean NLP API error: ${response.status}`);
       }
 
