@@ -49,7 +49,7 @@ class ServerlessTimerManager {
   /**
    * 🚫 타이머 토글 비활성화
    */
-  toggle(timerId: string, enabled: boolean): void {
+  toggle(timerId: string, _enabled: boolean): void {
     console.warn(`⚠️ 타이머 토글 무시됨: ${timerId} - 서버리스 환경`);
   }
 
@@ -76,7 +76,7 @@ class ServerlessTimerManager {
   /**
    * 🚫 우선순위별 타이머 제어 비활성화
    */
-  toggleByPriority(priority: TimerConfig['priority'], enabled: boolean): void {
+  toggleByPriority(priority: TimerConfig['priority'], _enabled: boolean): void {
     console.warn(
       `⚠️ 우선순위별 타이머 제어 무시됨: ${priority} - 서버리스 환경`
     );
@@ -85,7 +85,7 @@ class ServerlessTimerManager {
   /**
    * 🚫 AI 처리 모드 비활성화
    */
-  setAIProcessingMode(isProcessing: boolean): void {
+  setAIProcessingMode(_isProcessing: boolean): void {
     console.warn('⚠️ AI 처리 모드 무시됨 - 서버리스에서는 요청별 처리');
   }
 
@@ -94,7 +94,7 @@ class ServerlessTimerManager {
    */
   registerExclusive(
     config: Omit<TimerConfig, 'enabled' | 'lastRun' | 'errorCount'>,
-    category: string
+    _category: string
   ): void {
     console.warn(`⚠️ 배타적 타이머 등록 무시됨: ${config.id} - 서버리스 환경`);
   }

@@ -1,6 +1,6 @@
 # GEMINI.md
 
-> **최종 수정일**: 2025년 10월 8일
+> **최종 수정일**: 2025년 11월 21일
 > **질의 답변시 한국어 사용 원칙**: 모든 답변은 한국어로 제공
 
 Gemini CLI 사용 가이드 - Senior Code Architect 서브에이전트
@@ -181,6 +181,13 @@ chmod +x scripts/gcli.sh
 
 ---
 
+## 🧠 Gemini 추가 메모리
+
+- The Model Context Protocol (MCP) is used in the WSL development environment, but it is not used by the deployed AI assistant.
+  - (모델 컨텍스트 프로토콜(MCP)은 WSL 개발 환경에서는 사용되지만, 배포된 AI 어시스턴트에서는 사용되지 않습니다.)
+
+---
+
 ## 🤝 AI 협업 체계
 
 ### Claude Code (메인 개발자)
@@ -260,4 +267,4 @@ chmod +x scripts/gcli.sh
 **🚀 SOLID 원칙 전문가**
 **💰 OAuth 무료 티어**
 
-_Last Updated: 2025-10-06_
+_Last Updated: 2025-11-21_

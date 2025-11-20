@@ -31,7 +31,7 @@ class ModeTimerManager {
     console.log('📊 Vercel 대시보드 사용 권장: https://vercel.com/dashboard');
 
     // 기존 타이머가 있다면 정리
-    for (const [id, timer] of this.timers) {
+    for (const [_id, timer] of this.timers) {
       clearInterval(timer);
     }
     this.timers.clear();
@@ -76,7 +76,7 @@ class ModeTimerManager {
   }
 
   // 타이머 활성 상태 (항상 false)
-  isActive(id: string): boolean {
+  isActive(_id: string): boolean {
     return false; // 모든 타이머 비활성화
   }
 

@@ -55,7 +55,7 @@ export async function readCachedHourlyFile(hour: number): Promise<FileCache['dat
 
     return hourlyData;
     
-  } catch (accessError) {
+  } catch (_accessError) {
     console.error(`❌ [FILE-ERROR] 시간별 데이터 파일 없음: ${filePath}`);
     throw new Error(`베르셀 시간별 데이터 파일 누락: ${cacheKey}.json`);
   }

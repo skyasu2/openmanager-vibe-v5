@@ -476,7 +476,7 @@ export class AdaptiveServerConfigManager {
   private calculateOptimalConfig(
     planInfo: VercelPlanInfo
   ): Omit<OptimalServerConfig, 'planInfo'> {
-    const { plan, limitations } = planInfo;
+    const { plan } = planInfo;
 
     const configs = {
       hobby: {
