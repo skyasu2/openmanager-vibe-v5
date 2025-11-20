@@ -100,7 +100,7 @@ export class MLProvider implements IContextProvider {
 
   private readonly gcpEndpoint =
     process.env.NEXT_PUBLIC_GCP_ML_ANALYTICS_ENDPOINT ||
-    'https://us-central1-openmanager-free-tier.cloudfunctions.net/ml-analytics-engine';
+    'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/ml-analytics-engine';
 
   private cache = new Map<string, CacheEntry>();
   private readonly cacheTTL = 5 * 60 * 1000; // 5분 (무료 티어 최적화)

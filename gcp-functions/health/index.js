@@ -53,15 +53,17 @@ functions.http('health', async (req, res) => {
       },
       functions: {
         'ai-gateway':
-          'https://asia-northeast3-openmanager-ai.cloudfunctions.net/ai-gateway',
+          'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/ai-gateway',
         'enhanced-korean-nlp':
-          'https://asia-northeast3-openmanager-ai.cloudfunctions.net/enhanced-korean-nlp',
+          'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/enhanced-korean-nlp',
         'rule-engine':
-          'https://asia-northeast3-openmanager-ai.cloudfunctions.net/rule-engine',
+          'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/rule-engine',
         'ml-analytics-engine':
-          'https://asia-northeast3-openmanager-ai.cloudfunctions.net/ml-analytics-engine',
+          'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/ml-analytics-engine',
         'unified-ai-processor':
-          'https://asia-northeast3-openmanager-ai.cloudfunctions.net/unified-ai-processor',
+          'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/unified-ai-processor',
+        'health-check':
+          'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/health-check',
       },
     };
 

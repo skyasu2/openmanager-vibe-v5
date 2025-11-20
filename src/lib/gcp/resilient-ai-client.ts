@@ -342,7 +342,7 @@ export async function analyzeKoreanNLPResilient(query: string, context?: unknown
   const client = getResilientAIClient();
   
   return client.callWithFallback(
-    'https://us-central1-openmanager-free-tier.cloudfunctions.net/enhanced-korean-nlp',
+    'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/enhanced-korean-nlp',
     {
       body: { query, context }
     },
@@ -357,7 +357,7 @@ export async function analyzeMLMetricsResilient(metrics: unknown[], context?: un
   const client = getResilientAIClient();
   
   return client.callWithFallback(
-    'https://us-central1-openmanager-free-tier.cloudfunctions.net/ml-analytics-engine',
+    'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/ml-analytics-engine',
     {
       body: { metrics, context }
     },
@@ -372,7 +372,7 @@ export async function processUnifiedAIResilient(request: unknown) {
   const client = getResilientAIClient();
   
   return client.callWithFallback(
-    'https://us-central1-openmanager-free-tier.cloudfunctions.net/unified-ai-processor',
+    'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/unified-ai-processor',
     {
       body: request
     }

@@ -107,7 +107,7 @@ export class KoreanNLPProvider implements IContextProvider {
 
   private readonly gcpEndpoint =
     process.env.NEXT_PUBLIC_GCP_KOREAN_NLP_ENDPOINT ||
-    'https://us-central1-openmanager-free-tier.cloudfunctions.net/enhanced-korean-nlp';
+    'https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/enhanced-korean-nlp';
 
   private cache = new Map<string, CacheEntry>();
   private readonly cacheTTL = 10 * 60 * 1000; // 10분 (NLP는 더 긴 캐싱)
