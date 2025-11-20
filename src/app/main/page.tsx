@@ -327,6 +327,14 @@ function Home() {
       return;
     }
 
+    // 🎯 게스트 모드 제한 체크 (향후 활성화 예정)
+    // TODO: guestSystemStartEnabled가 false일 때 활성화
+    const isGuest = !isGitHubUser;
+    if (isGuest && !guestSystemStartEnabled) {
+      alert('⚠️ 게스트 모드는 시스템을 시작할 수 없습니다.\n\nGitHub 로그인을 이용해주세요.');
+      return;
+    }
+
     console.log('✅ 시스템 토글 실행 - GitHub 사용자:', isGitHubUser);
 
     // 카운트다운 중이면 취소 - 직접 로직 실행으로 순환 참조 제거
