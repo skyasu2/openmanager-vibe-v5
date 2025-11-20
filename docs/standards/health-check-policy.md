@@ -1,96 +1,75 @@
 # 🏥 헬스체크 정책
 
-> **작성**: 2025-11-21 08:01 KST  
-> **원칙**: 비용 발생 최소화, 수동 테스트 우선
+> **작성**: 2025-11-21 08:07 KST  
+> **원칙**: 모든 헬스체크는 수동 테스트 전용, 자동 호출 금지
 
 ---
 
 ## 📋 정책
 
-### ✅ 허용되는 헬스체크
+### ✅ 수동 테스트 전용
 
-#### 1. `/api/ping` - 외부 모니터링 전용
+#### 1. `/api/ping` - 간단한 연결 테스트
 ```typescript
-export const runtime = 'edge'; // 비용 $0
+export const runtime = 'edge';
 
-용도:
-- 외부 Uptime 모니터링 (UptimeRobot, Pingdom 등)
-- 최소 응답만 제공 (ping: pong)
-- 캐싱: 60초
-
-비용: $0 (Edge Runtime, 무료 100만 호출/월)
+용도: 수동 테스트 전용
+응답: { ping: "pong", timestamp: "..." }
+캐싱: 없음 (no-store)
+자동 호출: 금지
 ```
 
-#### 2. `/api/health` - 수동 테스트 전용
+#### 2. `/api/health` - 상세 상태 확인
 ```typescript
 export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
 
-용도:
-- 개발자가 수동으로 테스트할 때만 사용
-- Database, Cache, AI 서비스 상태 확인
-- 자동 호출 금지
-
-비용: 호출당 ~0.15초 컴퓨팅 (수동 호출만 허용)
+용도: 수동 테스트 전용
+응답: Database, Cache, AI 서비스 상태
+캐싱: 없음 (force-dynamic)
+자동 호출: 금지
 ```
 
 ---
 
 ## ❌ 금지 사항
 
-### 1. 자동 헬스체크 호출
+### 1. 모든 자동 호출
 ```
-❌ Cron Job으로 /api/health 호출
-❌ 1분마다 자동 체크
+❌ 외부 Uptime 모니터링 (UptimeRobot, Pingdom 등)
+❌ Cron Job 자동 체크
 ❌ 백그라운드 모니터링
+❌ 1분/5분 간격 자동 호출
 
 이유: 불필요한 컴퓨팅 비용 발생
 ```
 
-### 2. 복잡한 헬스체크 엔드포인트
+### 2. 캐싱 설정
 ```
-❌ /api/health/lite
-❌ /api/health/full
-❌ /api/health/detailed
+❌ Cache-Control: public, max-age=60
+❌ export const revalidate = 30
 
-이유: 관리 복잡도 증가, 실제 필요 없음
-```
-
-### 3. 캐싱된 헬스체크
-```
-❌ export const revalidate = 30;
-
-이유: 
-- 캐싱하면 자동 호출 유도
-- 수동 테스트는 실시간 상태 필요
+이유: 자동 호출 유도, 비용 발생
 ```
 
 ---
 
 ## 🎯 권장 사용법
 
-### 외부 모니터링 설정
-```
-서비스: UptimeRobot, Pingdom 등
-URL: https://openmanager-vibe-v5.vercel.app/api/ping
-간격: 5분 (권장)
-타임아웃: 10초
-```
-
-### 수동 테스트
+### 수동 테스트만 허용
 ```bash
-# 개발 중 상태 확인
-curl https://openmanager-vibe-v5.vercel.app/api/health
+# 개발 중 간단한 연결 확인
+curl https://openmanager-vibe-v5.vercel.app/api/ping
 
-# 또는 브라우저에서
-https://openmanager-vibe-v5.vercel.app/api/health
+# 상세 상태 확인
+curl https://openmanager-vibe-v5.vercel.app/api/health
 ```
 
 ### 시스템 모니터링
 ```
-Vercel Dashboard > Analytics > Functions
-- 실제 사용량 확인
-- 비정상 호출 패턴 감지
+Vercel Dashboard > Analytics
+- 실제 사용자 트래픽 확인
+- 에러율 모니터링
+- 외부 헬스체크 불필요
 ```
 
 ---
@@ -99,25 +78,19 @@ Vercel Dashboard > Analytics > Functions
 
 ### 현재 구성 (최적)
 ```
-/api/ping (Edge):
-- 외부 모니터링: 288회/일
-- 비용: $0
+/api/ping: 수동 테스트 ~3회/일
+/api/health: 수동 테스트 ~2회/일
 
-/api/health (Node.js):
-- 수동 테스트: ~5회/일
-- 비용: ~0.75초/일 = 22.5초/월 (무시 가능)
-
-총 비용: ~$0
+총 비용: ~$0 (무시 가능)
 ```
 
 ### 잘못된 구성 (예시)
 ```
-/api/health 자동 호출:
-- 1분마다: 1,440회/일
-- 비용: 216초/일 = 6,480초/월 = 108분/월
-- 예상 비용: $2-5/월
+외부 모니터링 5분 간격:
+- 288회/일 × 30일 = 8,640회/월
+- Edge Runtime이어도 불필요한 호출
 
-❌ 불필요한 비용 발생
+❌ 리소스 낭비
 ```
 
 ---
