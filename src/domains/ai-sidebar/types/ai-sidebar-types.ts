@@ -13,7 +13,7 @@ export interface ThinkingStep {
   id: string;
   title?: string;
   description?: string;
-  status?: 'pending' | 'processing' | 'completed';
+  status?: 'pending' | 'processing' | 'completed' | 'failed';
   duration?: number;
   step?: string;
   content?: string;

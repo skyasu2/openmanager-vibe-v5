@@ -19,7 +19,7 @@ export interface AIThinkingStep {
   subSteps?: string[]; // 세부 단계 로그
   icon?: string; // 아이콘 이름
   // useAISidebarStore 호환성을 위한 추가 속성들
-  status?: 'pending' | 'processing' | 'completed';
+  status?: 'pending' | 'processing' | 'completed' | 'failed';
   step?: string;
   content?: string;
   confidence?: number;

@@ -38,7 +38,7 @@ const stepIconMap: Record<string, ComponentType<{ className?: string }>> = {
 
 // status별 스타일
 const stepStatusConfig: Record<
-  NonNullable<AIThinkingStep['status']>,
+  'pending' | 'processing' | 'completed' | 'failed',
   {
     icon: ComponentType<{ className?: string }>;
     color: string;
@@ -157,8 +157,9 @@ export const ThinkingProcessVisualizer: FC<ThinkingProcessVisualizerProps> = ({
       {/* 사고 단계 타임라인 */}
       <div className="space-y-2">
         {visibleSteps.map((step, index) => {
-          const config = stepStatusConfig[step.status || 'pending'];
-          const StepIcon = stepIconMap[step.step] || Activity;
+          const status: 'pending' | 'processing' | 'completed' | 'failed' = step.status || 'pending';
+          const config = stepStatusConfig[status];
+          const StepIcon = (step.step && stepIconMap[step.step]) || Activity;
           const StatusIcon = config.icon;
           const isLast = index === visibleSteps.length - 1;
           const isRouting = step.step === '라우팅 결정';
