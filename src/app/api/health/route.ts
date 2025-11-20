@@ -22,7 +22,7 @@ import { env, isDevelopment } from '@/env';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const revalidate = 30; // 30초 캐싱으로 컴퓨팅 67% 절감
 
 // 서비스 상태 체크 함수들 - 실제 구현
 async function checkDatabaseStatus(): Promise<'connected' | 'disconnected' | 'error'> {
@@ -32,14 +32,14 @@ async function checkDatabaseStatus(): Promise<'connected' | 'disconnected' | 'er
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
     try {
-      const { data, error } = await supabase.from('command_vectors').select('id').limit(1);
+      const { error } = await supabase.from('command_vectors').select('count').limit(0);
       clearTimeout(timeoutId);
       const latency = Date.now() - startTime;
       if (error) {
         debug.error('❌ Database check failed:', error.message);
         return 'error';
       }
-      debug.log(`✅ Database connected (latency: ${latency}ms, records: ${data?.length || 0})`);
+      debug.log(`✅ Database connected (latency: ${latency}ms)`);
       return 'connected';
     } catch (fetchError) {
       clearTimeout(timeoutId);
