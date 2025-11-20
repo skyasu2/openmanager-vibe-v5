@@ -241,3 +241,51 @@ ls -la "/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
 
 **Last Updated**: 2025-10-16 by Claude Code
 **핵심 철학**: "WSL + Multi-AI 협업으로 개발 생산성 4배 증가"
+
+---
+
+## Best Practices and Checklists
+
+*The following best practices were extracted from a side-effects analysis report generated on 2025-09-24.*
+
+### Recommended Development Server Command
+
+To ensure a stable development environment and avoid port conflicts from multiple running instances, always use the `dev:stable` script.
+
+```bash
+# Recommended command to start the development server
+npm run dev:stable
+```
+
+### Side Effect Prevention Checklist
+
+To maintain system stability and code quality, please review this checklist during development:
+
+- [ ] **Maintain TypeScript Strict Mode**: Do not introduce `any` types. Ensure all new code is fully type-safe.
+- [ ] **Update Tests with API Routes**: When an API route is changed or created, the corresponding integration and unit tests must be updated in the same commit.
+- [ ] **Verify After Config Changes**: Any changes to configuration files must be followed by a full build (`npm run build`) and test run (`npm test`) to validate system integrity.
+- [ ] **Ensure Single Dev Server Instance**: Avoid running multiple `npm run dev` instances simultaneously to prevent port conflicts and memory issues. Use `npm run dev:stable`.
+
+---
+## Development Philosophy
+
+*The following principles are based on a development process optimization report from 2025-09-21. They reflect a pragmatic approach tailored to a 1-person AI-assisted development reality.*
+
+### 1. Pragmatism Over Dogma
+
+Formal, heavy processes have been actively simplified or removed in favor of more lightweight, on-demand tools.
+
+- **Test-Driven Development (TDD)**: The formal infrastructure for TDD was removed as it was not being actively used. The project instead relies on a strong `Type-First` approach and maintaining a high test coverage (~98%) to ensure quality.
+- **Spec-Driven Development (SDD)**: A complex, 4-stage SDD process was replaced with a lightweight system using the `spec-driven-specialist` sub-agent. This allows for documenting ideas and features as needed, rather than enforcing a rigid upfront specification process.
+
+### 2. Deployment Stability is Paramount
+
+- **GitHub Actions**: A complex set of 7+ GitHub Actions workflows was causing deployment instability. These were pruned to a minimal set of 3 essential workflows, which resolved deployment-blocking issues. E2E tests, while valuable, were disabled from the critical path to ensure CI/CD runs smoothly.
+
+### 3. Trust the AI, but Verify
+
+- The development workflow relies heavily on a multi-AI collaboration system. Each AI has a specialized role (Architecture, Performance, Practical Implementation), and their cross-verification is a key part of the quality process. However, the final decision always rests with the lead developer (or lead AI) who provides the project context.
+
+### 4. On-Demand Documentation
+
+- Rather than extensive upfront design documents, the project prefers to capture architectural decisions and key "whys" in Architectural Decision Records (ADRs) or in targeted, practical guides. This keeps the documentation relevant and less burdensome to maintain.

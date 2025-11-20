@@ -469,3 +469,39 @@ sudo apt-get install -y libnspr4 libnss3 libasound2t64
 
 **Last Updated**: 2025-10-16 by Claude Code
 **핵심 철학**: "테스트는 도구일 뿐, 목적은 안정적인 프로덕션 서비스"
+
+---
+
+## Mocking Strategy
+
+*The following information was extracted from a side-effects analysis report generated on 2025-09-24.*
+
+### Supabase Mocking with `SupabaseMockBuilder`
+
+To reduce code duplication and improve the consistency and maintainability of tests that rely on Supabase, a `SupabaseMockBuilder` was introduced. This helper can be found at `/src/test/helpers/supabase-mock.ts`.
+
+It uses a builder pattern to easily construct mock Supabase query responses.
+
+**Example Usage:**
+
+```typescript
+import { SupabaseMockBuilder } from '@/test/helpers/supabase-mock';
+
+it('should handle successful data fetching', () => {
+  const mockQueryBuilder = new SupabaseMockBuilder()
+    .withData([{ id: 1, name: 'Test Server' }])
+    .build();
+
+  // Your test logic here that uses the mockQueryBuilder
+});
+
+it('should handle fetching with an error', () => {
+  const mockQueryBuilder = new SupabaseMockBuilder()
+    .withError({ message: 'Failed to fetch' })
+    .build();
+
+  // Your test logic here
+});
+```
+
+This approach led to a **59% reduction in test code duplication** and should be the standard way to mock Supabase calls in unit and integration tests.
