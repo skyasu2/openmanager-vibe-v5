@@ -7,7 +7,8 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { envManager } from '@/lib/environment/EnvironmentManager';
+import { isProduction, isDevelopment, isVercel, env } from '@/env';
+import debug from '@/utils/debug';
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };
@@ -16,35 +17,34 @@ interface GlobalErrorProps {
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
-    // 환경별 에러 리포팅
-    if (envManager.shouldReportErrors()) {
-      envManager.log('error', 'Global Error Caught', {
+    // 프로덕션 환경에서만 에러 리포팅
+    if (isProduction) {
+      const platform = isVercel ? 'vercel' : 'local';
+      
+      debug.error('[GLOBAL_ERROR]', {
+        error: error.message,
+        digest: error.digest,
+        environment: env.NODE_ENV,
+        platform: platform,
+      });
+
+      // 외부 리포팅 서비스 연동 지점
+      console.error('[GLOBAL_ERROR_REPORT]', {
         message: error.message,
         digest: error.digest,
         stack: error.stack,
         timestamp: new Date().toISOString(),
-        userAgent:
-          typeof window !== 'undefined' ? window.navigator.userAgent : 'SSR',
+        userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'SSR',
         url: typeof window !== 'undefined' ? window.location.href : 'Unknown',
+        environment: env.NODE_ENV,
+        platform: platform,
       });
-
-      // 프로덕션에서는 외부 에러 리포팅 서비스로 전송
-      if (envManager.isProduction) {
-        // 추후 Sentry 등 에러 리포팅 서비스 연동
-        console.error('[GLOBAL_ERROR]', {
-          error: error.message,
-          digest: error.digest,
-          environment: envManager.environment,
-          platform: envManager.platform,
-        });
-      }
     }
   }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-red-900 via-gray-900 to-red-900">
           <div className="mx-auto max-w-md space-y-6 p-8 text-center">
-            {/* 에러 아이콘 */}
             <div className="flex justify-center">
               <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-600/20">
                 <svg
@@ -63,7 +63,6 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
               </div>
             </div>
 
-            {/* 에러 정보 */}
             <div className="space-y-2">
               <h1 className="text-4xl font-bold text-white">500</h1>
               <h2 className="text-xl font-semibold text-red-300">
@@ -74,8 +73,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
               </p>
             </div>
 
-            {/* 에러 세부사항 (개발 환경에서만) */}
-            {envManager.isDevelopment && (
+            {isDevelopment && (
               <div className="rounded-lg bg-gray-800/50 p-4 text-left">
                 <h3 className="mb-2 text-sm font-semibold text-red-400">
                   개발 모드 에러 정보:
@@ -93,17 +91,16 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                   )}
                   <p>
                     <span className="text-red-400">환경:</span>{' '}
-                    {envManager.environment}
+                    {env.NODE_ENV}
                   </p>
                   <p>
                     <span className="text-red-400">플랫폼:</span>{' '}
-                    {envManager.platform}
+                    {isVercel ? 'vercel' : 'local'}
                   </p>
                 </div>
               </div>
             )}
 
-            {/* 액션 버튼들 */}
             <div className="space-y-3">
               <div className="flex flex-col justify-center gap-3 sm:flex-row">
                 <button
@@ -128,11 +125,10 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
               </Link>
             </div>
 
-            {/* 추가 도움말 */}
             <div className="space-y-1 text-xs text-gray-500">
               <p>문제가 지속되면 브라우저를 새로고침하거나</p>
               <p>잠시 후 다시 시도해주세요.</p>
-              {envManager.isProduction && (
+              {isProduction && (
                 <p className="text-gray-600">
                   에러 ID: {error.digest || 'N/A'}
                 </p>

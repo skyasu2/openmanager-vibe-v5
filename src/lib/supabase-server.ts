@@ -3,7 +3,7 @@
  * This file should NEVER be imported in client-side code
  */
 import { createClient } from '@supabase/supabase-js';
-import { getSupabaseServiceRoleKey } from './env-server';
+import { env, isDevelopment } from '@/env';
 
 // Ensure this file is only used on the server
 if (typeof window !== 'undefined') {
@@ -12,29 +12,14 @@ if (typeof window !== 'undefined') {
   );
 }
 
-function getSupabaseUrl() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (
-    !url &&
-    (process.env.NODE_ENV === undefined ||
-      process.env.npm_lifecycle_event === 'build')
-  ) {
-    return 'https://temp.supabase.co';
-  }
-
-  if (!url) {
-    throw new Error('❌ NEXT_PUBLIC_SUPABASE_URL is required');
-  }
-
-  return url;
-}
+// The Zod schema in src/env.ts ensures these variables are defined.
+// If they are missing, the application will not start in production.
+const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Server-only Supabase admin client
-export const supabaseAdmin = createClient(
-  getSupabaseUrl(),
-  getSupabaseServiceRoleKey()
-);
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-if (process.env.NODE_ENV === 'development') {
+if (isDevelopment) {
   console.log('✅ Supabase Admin 클라이언트 초기화됨 (서버 전용)');
 }

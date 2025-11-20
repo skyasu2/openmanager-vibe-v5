@@ -6,7 +6,7 @@
  * - 복잡한 보안 기능은 향후 개발
  */
 
-import { generateSessionId } from '@/lib/utils-functions';
+import { generateSessionId } from '@/utils/utils-functions';
 import { isNotNullOrUndefined } from '@/types/type-utils';
 
 // 사용자 세션

@@ -24,7 +24,7 @@ vi.mock('@/lib/supabase', () => ({
   }
 }));
 
-vi.mock('@/utils/secure-cookies', () => ({
+vi.mock('@/lib/security/secure-cookies', () => ({
   validateRedirectUrl: vi.fn(),
   guestSessionCookies: {
     set: vi.fn(),
@@ -51,7 +51,7 @@ vi.mock('@/lib/auth-state-manager', () => ({
 import { signInWithGitHub, type AuthUser, type AuthCallbackResult } from '../../../src/lib/supabase-auth';
 import { AuthStateManager, type AuthSession, type AuthResult } from '../../../src/services/auth/AuthStateManager';
 import { supabase } from '../../../src/lib/supabase';
-import { validateRedirectUrl } from '../../../src/utils/secure-cookies';
+import { validateRedirectUrl } from '../../../src/lib/security/secure-cookies';
 
 // Test data
 const mockGitHubUser = {
@@ -524,7 +524,7 @@ describe('Supabase Authentication System', () => {
 
     it('should handle authentication state persistence', async () => {
       // Mock cookie/storage operations
-      const { guestSessionCookies } = await import('@/utils/secure-cookies');
+      const { guestSessionCookies } = await import('@/lib/security/secure-cookies');
       
       const loginResult = await authManager.loginAsGuest();
       const sessionId = loginResult.sessionId!;

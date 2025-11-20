@@ -5,8 +5,22 @@
  */
 
 import { useMemo } from 'react';
-import { getPublicEnvConfig } from '@/lib/env-config';
+import { env, isProduction, isDevelopment, isTest } from '@/env';
 import { apiCall, apiEndpoint } from '@/lib/api-config';
+
+// The logic from getSiteUrl is now replicated here using the centralized env object
+function getSiteUrl(): string {
+  if (env.NEXT_PUBLIC_VERCEL_URL) {
+    return `https://${env.NEXT_PUBLIC_VERCEL_URL}`;
+  }
+  if (isProduction) {
+    return env.NEXT_PUBLIC_PROD_URL || 'https://openmanager-vibe-v5.vercel.app';
+  }
+  if (isTest) {
+    return env.NEXT_PUBLIC_TEST_URL || 'https://openmanager-test.vercel.app';
+  }
+  return env.NEXT_PUBLIC_DEV_URL || 'http://localhost:3000';
+}
 
 export interface UseApiConfigReturn {
   // 환경 정보
@@ -32,33 +46,34 @@ export interface UseApiConfigReturn {
  * API 설정 훅
  */
 export function useApiConfig(): UseApiConfigReturn {
-  const config = useMemo(() => getPublicEnvConfig(), []);
+  const siteUrl = useMemo(() => getSiteUrl(), []);
+  const apiUrl = useMemo(() => `${siteUrl}/api`, [siteUrl]);
 
   // URL 빌더 함수들
   const buildUrl = useMemo(() => {
     return (path: string) => {
       const cleanPath = path.startsWith('/') ? path : `/${path}`;
-      return `${config.siteUrl}${cleanPath}`;
+      return `${siteUrl}${cleanPath}`;
     };
-  }, [config.siteUrl]);
+  }, [siteUrl]);
 
   const buildApiUrl = useMemo(() => {
     return (path: string) => {
       const cleanPath = path.startsWith('/') ? path : `/${path}`;
-      return `${config.apiUrl}${cleanPath}`;
+      return `${apiUrl}${cleanPath}`;
     };
-  }, [config.apiUrl]);
+  }, [apiUrl]);
 
   return {
     // 환경 정보
-    environment: config.environment,
-    isProduction: config.isProduction,
-    isDevelopment: config.isDevelopment,
-    isTest: config.isTest,
+    environment: env.NODE_ENV,
+    isProduction,
+    isDevelopment,
+    isTest,
 
     // URL 정보
-    siteUrl: config.siteUrl,
-    apiUrl: config.apiUrl,
+    siteUrl,
+    apiUrl,
 
     // API 헬퍼
     apiCall,

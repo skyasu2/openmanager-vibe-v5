@@ -1,0 +1,132 @@
+/**
+ * 🔐 환경변수 타입 안전성 보장 시스템
+ *
+ * @description
+ * 이 파일은 프로젝트의 모든 환경변수를 중앙에서 관리하고 검증합니다.
+ * Zod를 사용하여 런타임에 환경변수의 존재 여부와 타입을 검증하며,
+ * 타입스크립트 프로젝트 전반에 타입 안전성을 제공합니다.
+ *
+ * @best_practice
+ * - `process.env`를 직접 사용하지 마세요.
+ * - 항상 이 파일에서 export된 `env` 객체를 사용하세요.
+ * - 새로운 환경변수 추가 시, 반드시 이 파일의 `envSchema`에 정의해야 합니다.
+ */
+
+import { z } from 'zod';
+
+// 환경변수 스키마 정의
+const envSchema = z.object({
+  // App Info
+  APP_VERSION: z.string().optional(),
+  NEXTAUTH_SECRET: z.string().min(1, 'NEXTAUTH_SECRET is required for Auth.js'),
+
+  // Supabase
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+  SUPABASE_PROJECT_ID: z.string().min(1).optional(),
+
+  // Caching
+  MEMORY_CACHE_ENABLED: z.string().transform(val => val === 'true').optional(),
+  MEMORY_CACHE_MAX_SIZE: z.string().transform(val => parseInt(val) || 100).optional(),
+  MEMORY_CACHE_TTL_SECONDS: z.string().transform(val => parseInt(val) || 900).optional(),
+
+  // GCP
+  GCP_PROJECT_ID: z.string().min(1).optional(),
+  GCP_MCP_SERVER_URL: z.string().url().optional(),
+  GCP_FUNCTIONS_URL: z.string().url().optional(),
+  ENABLE_GCP_MCP_INTEGRATION: z.string().optional(),
+
+  // GitHub
+  GITHUB_CLIENT_ID: z.string().min(1),
+  GITHUB_CLIENT_SECRET: z.string().min(1),
+  GITHUB_TOKEN: z.string().startsWith('ghp_').optional(),
+
+  // AI Services
+  GOOGLE_AI_API_KEY: z.string().optional(),
+  TAVILY_API_KEY: z.string().startsWith('tvly-').optional(),
+  GOOGLE_AI_ENABLED: z.string().optional(),
+  GOOGLE_AI_QUOTA_PROTECTION: z.string().optional(),
+  GOOGLE_AI_DAILY_LIMIT: z.string().optional(),
+
+  // Next.js & Vercel
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  VERCEL_ENV: z.enum(['development', 'preview', 'production']).optional(),
+  VERCEL: z.string().optional(),
+  VERCEL_URL: z.string().optional(),
+  VERCEL_REGION: z.string().optional(),
+  NEXT_PUBLIC_APP_URL: z.string().url().optional(),
+  NEXT_PUBLIC_VERCEL_URL: z.string().url().optional(),
+  NEXT_PUBLIC_PROD_URL: z.string().url().optional(),
+  NEXT_PUBLIC_TEST_URL: z.string().url().optional(),
+  NEXT_PUBLIC_DEV_URL: z.string().url().optional(),
+
+  // APIs & Services
+  VM_API_URL: z.string().url().optional(),
+
+  // Debug & Features
+  NEXT_PUBLIC_DEBUG: z.string().optional(),
+  MOCK_MODE: z.string().optional(),
+});
+
+// 환경변수 타입 추출
+export type Env = z.infer<typeof envSchema>;
+
+// 환경변수 파싱 및 검증
+function parseEnv(): Env {
+  try {
+    // @ts-ignore - In some environments (like Vitest), process is not defined
+    const currentEnv = typeof process !== 'undefined' ? process.env : {};
+    const result = envSchema.safeParse(currentEnv);
+
+    if (!result.success) {
+      console.error('❌ 환경변수 검증 실패:', result.error.format());
+
+      // @ts-ignore
+      if (currentEnv.NODE_ENV === 'development') {
+        console.warn('⚠️ 개발환경: 필수 환경변수 누락 시 일부 기능이 제한될 수 있습니다.');
+        return result.error.formErrors.fieldErrors as unknown as Env;
+      }
+
+      throw new Error(`환경변수 검증 실패: ${result.error.message}`);
+    }
+
+    return result.data;
+  } catch (error) {
+    console.error('❌ 환경변수 파싱 오류:', error);
+    // @ts-ignore
+    if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+      return {} as Env;
+    }
+
+    throw error;
+  }
+}
+
+// 타입 안전한 환경변수 익스포트
+export const env = parseEnv();
+
+// 환경별 검증 헬퍼
+export const isProduction = env.NODE_ENV === 'production';
+export const isDevelopment = env.NODE_ENV === 'development';
+export const isTest = env.NODE_ENV === 'test';
+export const isVercel = !!env.VERCEL;
+export const isVercelProduction = env.VERCEL_ENV === 'production';
+
+// 특정 기능 활성화 검사
+export const features = {
+  supabase: !!env.NEXT_PUBLIC_SUPABASE_URL && !!env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  github: !!env.GITHUB_CLIENT_ID && !!env.GITHUB_CLIENT_SECRET,
+  gcp: !!env.GCP_PROJECT_ID,
+  ai: !!env.GOOGLE_AI_API_KEY,
+  search: !!env.TAVILY_API_KEY,
+  cache: env.MEMORY_CACHE_ENABLED ?? true,
+} as const;
+
+// 개발용 환경변수 상태 로깅
+if (isDevelopment) {
+  // @ts-ignore
+  if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+      console.log('🔧 환경변수 기능 상태:', features);
+  }
+}

@@ -1,6 +1,6 @@
 import { ENCRYPTED_GOOGLE_AI_CONFIG } from '@/config/google-ai-config';
 import { enhancedCryptoManager } from '@/lib/crypto/EnhancedEnvCryptoManager';
-import { getSecureGoogleAIKey } from '@/utils/encryption';
+import { getSecureGoogleAIKey } from '@/lib/security/encryption';
 
 /**
  * Google AI API 키 관리자 v4.0 (Rate Limiting + ToS Compliance)

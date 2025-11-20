@@ -30,7 +30,7 @@ import {
   sortBy,
   throttle,
   truncate,
-} from '@/lib/utils-functions';
+} from '@/utils/utils-functions';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('Utils Functions', () => {

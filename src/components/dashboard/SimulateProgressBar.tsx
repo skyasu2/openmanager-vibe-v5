@@ -8,10 +8,9 @@
  * - Toast 알림 및 UX 개선
  */
 
-// framer-motion 제거 - CSS 애니메이션 사용
 import { Sparkles } from 'lucide-react';
 import { Fragment, memo, useCallback, useEffect, type FC } from 'react';
-import { useToast } from '../ui/ToastNotification';
+import { useToast } from '@/hooks/use-toast'; //
 import ProgressLabel from './ProgressLabel';
 import StatusIcon from './StatusIcon';
 import StepDots from './StepDots';
@@ -26,8 +25,6 @@ interface SimulateProgressBarProps {
   showDetailed?: boolean;
   onComplete?: () => void;
   error?: string | null;
-
-  // 새로운 커스터마이제이션 옵션들
   variant?: 'default' | 'compact' | 'detailed';
   labelFormat?: 'default' | 'percentage' | 'step-count' | 'custom';
   showProgressNumber?: boolean;
@@ -56,71 +53,72 @@ const SimulateProgressBar: FC<SimulateProgressBarProps> = memo(
     customTitle,
     onStepChange,
   }) => {
-    // 토스트 알림 훅
-    const { info, success, error: showError } = useToast();
+    const { toast } = useToast();
 
-    // 진행률 계산
     const calculatedProgress =
       progress ?? Math.round(((currentStep + 1) / totalSteps) * 100);
     const isComplete =
       currentStep >= totalSteps - 1 || calculatedProgress >= 100;
 
-    // 진행률별 색상 결정
     const getProgressColor = () => {
       if (error) return 'from-red-500 to-red-600';
       if (isComplete) return 'from-green-500 to-emerald-600';
       if (calculatedProgress >= 75) return 'from-blue-500 to-purple-600';
       if (calculatedProgress >= 50) return 'from-blue-400 to-blue-600';
       if (calculatedProgress >= 25) return 'from-cyan-400 to-blue-500';
-      return 'from-gray-400 to-gray-500'; // Default return
+      return 'from-gray-400 to-gray-500';
     };
 
-    // 상태별 텍스트 색상
     const getTextColor = () => {
       if (error) return 'text-red-400';
       if (isComplete) return 'text-green-400';
-      return 'text-blue-400'; // Default return
+      return 'text-blue-400';
     };
 
-    // 단계 변경 알림
     const handleStepChange = useCallback(
       (step: number, description: string) => {
         if (showToastNotifications) {
           const stepNumber = step + 1;
-          info(`🔄 단계 ${stepNumber}: ${description}`);
+          toast({
+            title: `단계 ${stepNumber}`,
+            description: `🔄 ${description}`,
+          });
         }
         onStepChange?.(step, description);
       },
-      [showToastNotifications, onStepChange, info]
+      [showToastNotifications, onStepChange, toast]
     );
 
-    // 단계 변경 감지
     useEffect(() => {
       if (stepDescription) {
         handleStepChange(currentStep, stepDescription);
       }
     }, [currentStep, stepDescription, handleStepChange]);
 
-    // 완료시 콜백 실행
     useEffect(() => {
       if (isComplete && onComplete && !error) {
         if (showToastNotifications) {
-          success('🎉 시뮬레이션 완료! 시스템이 성공적으로 준비되었습니다.');
+          toast({
+            title: '성공',
+            description: '🎉 시뮬레이션 완료! 시스템이 성공적으로 준비되었습니다.',
+          });
         }
         const timer = setTimeout(onComplete, 1000);
         return () => clearTimeout(timer);
       }
       return undefined;
-    }, [isComplete, onComplete, error, showToastNotifications, success]);
+    }, [isComplete, onComplete, error, showToastNotifications, toast]);
 
-    // 오류 발생시 토스트 알림
     useEffect(() => {
       if (error && showToastNotifications) {
-        showError(`❌ 시뮬레이션 오류: ${error}`);
+        toast({
+          variant: 'destructive',
+          title: '오류',
+          description: `❌ 시뮬레이션 오류: ${error}`,
+        });
       }
-    }, [error, showToastNotifications, showError]);
+    }, [error, showToastNotifications, toast]);
 
-    // 배리언트별 스타일
     const getVariantClasses = () => {
       switch (variant) {
         case 'compact':
@@ -136,10 +134,8 @@ const SimulateProgressBar: FC<SimulateProgressBarProps> = memo(
       <div
         className={`border border-gray-700/50 bg-gradient-to-br from-gray-900/80 to-gray-800/80 shadow-xl backdrop-blur-lg ${getVariantClasses()}`}
       >
-        {/* 헤더 섹션 */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            {/* 상태 아이콘 */}
             <StatusIcon
               currentStep={currentStep}
               isActive={isActive}
@@ -153,8 +149,6 @@ const SimulateProgressBar: FC<SimulateProgressBarProps> = memo(
                     : 'md'
               }
             />
-
-            {/* 진행 정보 라벨 */}
             <ProgressLabel
               currentStep={currentStep}
               totalSteps={totalSteps}
@@ -166,12 +160,8 @@ const SimulateProgressBar: FC<SimulateProgressBarProps> = memo(
               showProgress={variant !== 'compact'}
             />
           </div>
-
-          {/* 진행률 숫자 */}
           {showProgressNumber && (
-            <div
-              className="text-right"
-            >
+            <div className="text-right">
               <div className={`text-3xl font-bold ${getTextColor()}`}>
                 {calculatedProgress}%
               </div>
@@ -182,24 +172,18 @@ const SimulateProgressBar: FC<SimulateProgressBarProps> = memo(
           )}
         </div>
 
-        {/* 프로그레스 바 */}
         {variant !== 'compact' && (
           <div className="mb-4">
-            {/* 배경 바 */}
             <div className="h-4 w-full overflow-hidden rounded-full border border-gray-600/30 bg-gray-700/50 backdrop-blur-sm">
-              {/* 진행 바 */}
               <div
                 style={{ width: `${calculatedProgress}%` }}
                 className={`h-full bg-gradient-to-r ${getProgressColor()} relative overflow-hidden rounded-full transition-all duration-800 ease-out`}
               >
-                {/* 빛나는 효과 */}
                 {!error && (
                   <div
                     className={`absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent ${isActive && !isComplete ? "animate-pulse" : ""}`}
                   />
                 )}
-
-                {/* 펄스 효과 */}
                 {isActive && !isComplete && !error && (
                   <div
                     className="absolute inset-0 bg-white/10"
@@ -207,8 +191,6 @@ const SimulateProgressBar: FC<SimulateProgressBarProps> = memo(
                 )}
               </div>
             </div>
-
-            {/* 단계 표시점들 */}
             {showStepDots && showDetailed && (
               <div className="mt-3">
                 <StepDots
@@ -223,11 +205,8 @@ const SimulateProgressBar: FC<SimulateProgressBarProps> = memo(
           </div>
         )}
 
-        {/* 상세 정보 */}
         {showDetailed && variant !== 'compact' && (
-          <div
-            className="flex justify-between text-xs text-gray-400"
-          >
+          <div className="flex justify-between text-xs text-gray-400">
             <span>시작</span>
             <span>
               {isComplete
@@ -240,15 +219,11 @@ const SimulateProgressBar: FC<SimulateProgressBarProps> = memo(
           </div>
         )}
 
-        {/* 완료 축하 메시지 */}
         <Fragment>
           {isComplete && !error && (
-            <div
-              className="mt-4 rounded-lg border border-green-500/20 bg-green-500/10 p-4"
-            >
+            <div className="mt-4 rounded-lg border border-green-500/20 bg-green-500/10 p-4">
               <div className="flex items-center space-x-3">
-                <div
-                >
+                <div>
                   <Sparkles className="h-5 w-5 text-green-400" aria-hidden="true" />
                 </div>
                 <div>

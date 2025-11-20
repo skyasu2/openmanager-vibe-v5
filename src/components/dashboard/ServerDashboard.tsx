@@ -4,7 +4,7 @@ import React from 'react'; // 🧪 테스트 환경에서 JSX 트랜스폼을 �
 import EnhancedServerModal from '@/components/dashboard/EnhancedServerModal';
 import VirtualizedServerList from '@/components/dashboard/VirtualizedServerList';
 import SafeServerCard from '@/components/dashboard/SafeServerCard';
-import { ServerCardErrorBoundary } from '@/components/debug/ComponentErrorBoundary';
+import { ServerCardErrorBoundary } from '@/components/development/ComponentErrorBoundary';
 import {
   Pagination,
   PaginationContent,

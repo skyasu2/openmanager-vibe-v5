@@ -7,7 +7,7 @@
 
 import type { AuthError, Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
-import { validateRedirectUrl, guestSessionCookies } from '@/utils/secure-cookies';
+import { validateRedirectUrl, guestSessionCookies } from '@/lib/security/secure-cookies';
 import { authStateManager } from './auth-state-manager';
 
 export interface AuthUser {

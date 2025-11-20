@@ -11,19 +11,19 @@ import { BarChart3, ChevronDown, LogOut, Power, Shield } from 'lucide-react';
 import {
   ProfileAvatar,
   UserTypeIcon,
-} from '@/components/profile/components/ProfileAvatar';
-import { ProfileDropdownMenu } from '@/components/profile/components/ProfileDropdownMenu';
+} from '@/components/unified-profile/components/ProfileAvatar';
+import { ProfileDropdownMenu } from '@/components/unified-profile/components/ProfileDropdownMenu';
 import { EnhancedProfileStatusDisplay } from '@/components/unified-profile/EnhancedProfileStatusDisplay';
 
 // 프로필 훅 임포트
-import { useProfileAuth } from '@/components/profile/hooks/useProfileAuth';
-import { useProfileMenu } from '@/components/profile/hooks/useProfileMenu';
+import { useProfileAuth } from '@/components/unified-profile/hooks/useProfileAuth';
+import { useProfileMenu } from '@/components/unified-profile/hooks/useProfileMenu';
 
 // 타입 임포트
 import type {
   MenuItem,
   UnifiedProfileHeaderProps,
-} from '@/components/profile/types/profile.types';
+} from '@/components/unified-profile/types/profile.types';
 
 /**
  * 통합 프로필 헤더 컴포넌트 (리팩토링 버전)

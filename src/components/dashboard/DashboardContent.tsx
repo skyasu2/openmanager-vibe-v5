@@ -4,7 +4,7 @@ import InfrastructureOverviewPage from '@/components/ai/pages/InfrastructureOver
 import dynamic from 'next/dynamic';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { safeConsoleError, safeErrorMessage } from '../../lib/utils-functions';
+import { safeConsoleError, safeErrorMessage } from '../../utils/utils-functions';
 import type { Server } from '../../types/server';
 // framer-motion 제거 - CSS 애니메이션 사용
 import debug from '@/utils/debug';

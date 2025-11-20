@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // 현재 구현된 해시 함수 import
-import { hashString } from '../../../src/lib/utils-functions';
+import { hashString } from '../../../src/utils/utils-functions';
 
 // Mock 데이터 생성 관련 import 시뮬레이션
 interface MockHashSystem {

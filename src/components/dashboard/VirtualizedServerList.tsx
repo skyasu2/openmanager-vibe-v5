@@ -7,7 +7,7 @@
  */
 
 import SafeServerCard from '@/components/dashboard/SafeServerCard';
-import { ServerCardErrorBoundary } from '@/components/debug/ComponentErrorBoundary';
+import { ServerCardErrorBoundary } from '@/components/development/ComponentErrorBoundary';
 import { formatUptime, getAlertsCount } from './types/server-dashboard.types';
 import { serverTypeGuards } from '@/utils/serverUtils';
 import type { Server, ServerStatus } from '@/types/server';
