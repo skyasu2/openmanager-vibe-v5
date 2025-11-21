@@ -167,13 +167,13 @@ scripts/ai-subagents/qwen-wrapper.sh   # Qwen CLI wrapper v3.0.0
 
 **주간 관리 (2개)** - 월요일
 ```bash
-scripts/mcp-health-check.sh            # MCP 서버 헬스체크
-scripts/ai-tools-health-check.sh       # AI CLI 도구 확인
+scripts/mcp/mcp-health-check.sh            # MCP 서버 헬스체크
+scripts/ai/health/ai-tools-health-check.sh       # AI CLI 도구 확인
 ```
 
 **개발 워크플로우 (10개)** - 필요 시
 ```bash
-scripts/dev/dev-server-manager.sh          # 개발 서버 관리
+scripts/dev/dev-server-manager.sh      # 개발 서버 관리
 scripts/deploy/git-push-safe.sh        # 안전한 Git Push
 scripts/dev/run-tests.sh               # 테스트 실행
 ```
@@ -204,14 +204,14 @@ npm run build  # 로컬 테스트
 "dev-environment-manager야, AI 도구 헬스 체크해줘"
 
 # 또는 레거시 스크립트 (기본 체크만)
-./scripts/ai-tools-health-check.sh  # Deprecated - 서브에이전트 권장
+./scripts/ai/health/ai-tools-health-check.sh  # Deprecated - 서브에이전트 권장
 ```
 
 **MCP 문제**:
 
 ```bash
 claude mcp list                # 전체 서버 상태 확인
-./scripts/mcp-health-check.sh  # 자동 헬스 체크 (로그 저장)
+./scripts/mcp/mcp-health-check.sh  # 자동 헬스 체크 (로그 저장)
 ```
 
 ---
