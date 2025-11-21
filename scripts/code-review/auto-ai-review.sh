@@ -2,17 +2,21 @@
 
 # Auto AI Code Review Script (Codex → Gemini Fallback)
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성
-# 버전: 2.1.0
+# 버전: 2.1.1
 # 날짜: 2025-11-21
 # 전략: Codex 우선 → Gemini 폴백 (사용량 제한 대응)
 #
 # ⚠️ 중요: 이 스크립트는 직접 실행만 지원합니다 (source 사용 금지)
 # 최상단 cd 명령으로 인해 source 시 호출자의 작업 디렉토리가 변경됩니다
 #
+# Changelog v2.1.1 (2025-11-21):
+# - 🐛 수정: AI 엔진 이름 전파 개선 (PID 기반 → 고정 파일명)
+# - 임시 파일을 /tmp/ai_engine_auto_review로 변경 (백그라운드 프로세스 안정성)
+# - Codex/Gemini 성공 시 엔진 이름을 임시 파일에 저장 → run_ai_review에서 읽기
+#
 # Changelog v2.1.0 (2025-11-21):
 # - 🐛 수정: AI 엔진 이름이 파일명 및 내용에 제대로 표시되도록 개선
-# - 임시 파일(/tmp/ai_engine_$$)을 통해 서브셸 간 AI_ENGINE 변수 전파
-# - Codex/Gemini 성공 시 엔진 이름을 임시 파일에 저장 → run_ai_review에서 읽기
+# - 임시 파일을 통해 서브셸 간 AI_ENGINE 변수 전파
 #
 # Changelog v2.0.0 (2025-11-19):
 # - Codex CLI 우선 사용, 실패 시 Gemini CLI로 자동 폴백
@@ -182,7 +186,7 @@ $changes
         fi
 
         # 파일 디스크립터를 통해 AI_ENGINE 전파
-        echo "codex" > /tmp/ai_engine_$$
+        echo "codex" > /tmp/ai_engine_auto_review
         echo "$codex_output"
         return 0
     else
@@ -219,7 +223,7 @@ $changes
     local gemini_output
     if gemini_output=$("$PROJECT_ROOT/scripts/ai-subagents/gemini-wrapper.sh" "$query" 2>&1); then
         # 파일 디스크립터를 통해 AI_ENGINE 전파
-        echo "gemini" > /tmp/ai_engine_$$
+        echo "gemini" > /tmp/ai_engine_auto_review
         echo "$gemini_output"
         return 0
     else
@@ -234,15 +238,15 @@ run_ai_review() {
     local review_output=""
 
     # 임시 파일 초기화
-    rm -f /tmp/ai_engine_$$
+    rm -f /tmp/ai_engine_auto_review
 
     # 1차 시도: Codex
     if review_output=$(try_codex_review "$changes"); then
         log_success "Codex 리뷰 성공!"
         # AI_ENGINE 읽기
-        if [ -f /tmp/ai_engine_$$ ]; then
-            AI_ENGINE=$(cat /tmp/ai_engine_$$)
-            rm -f /tmp/ai_engine_$$
+        if [ -f /tmp/ai_engine_auto_review ]; then
+            AI_ENGINE=$(cat /tmp/ai_engine_auto_review)
+            rm -f /tmp/ai_engine_auto_review
         fi
         echo "$review_output"
         return 0
@@ -253,9 +257,9 @@ run_ai_review() {
     if review_output=$(fallback_to_gemini_review "$changes"); then
         log_success "Gemini 폴백 성공!"
         # AI_ENGINE 읽기
-        if [ -f /tmp/ai_engine_$$ ]; then
-            AI_ENGINE=$(cat /tmp/ai_engine_$$)
-            rm -f /tmp/ai_engine_$$
+        if [ -f /tmp/ai_engine_auto_review ]; then
+            AI_ENGINE=$(cat /tmp/ai_engine_auto_review)
+            rm -f /tmp/ai_engine_auto_review
         fi
         echo "$review_output"
         return 0
@@ -263,7 +267,7 @@ run_ai_review() {
 
     # 모든 AI 실패
     log_error "모든 AI 엔진 실패 (Codex + Gemini)"
-    rm -f /tmp/ai_engine_$$
+    rm -f /tmp/ai_engine_auto_review
     return 1
 }
 
