@@ -137,26 +137,71 @@ scripts/ai-dispatcher.sh "$REQUEST_JSON"
 
 ## 🚀 사용 가이드
 
-### 자동 코드 리뷰 (비동기)
+### 1. 자동 코드 리뷰 (비동기, 백그라운드)
+
+**트리거**: Git 커밋 시 자동 실행
 
 ```bash
-# Git 커밋 시 자동 실행 (.husky/post-commit)
-git commit -m "feat: 새 기능 추가"
-# → auto-ai-review.sh 백그라운드 실행
+$ git commit -m "feat: 새 기능 추가"
+# → .husky/post-commit hook 자동 실행
+# → auto-ai-review.sh (백그라운드)
+# → Codex/Gemini 중 하나 선택 (2:1 비율)
 # → logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md 생성
+# → 사용자는 즉시 다른 작업 가능
 ```
 
-### 수동 검증 (동기)
+**Claude Code의 역할**:
+- "최근 코드 리뷰 확인해줘" 요청 시 파일 읽고 분석
+- 개선사항 자동 적용 또는 사용자에게 보고
 
+### 2. 실시간 검증 (동기, 즉시 응답)
+
+#### Codex 직접 호출 (실무 검증)
 ```bash
-# Codex 직접 호출
+# 사용자가 Claude에게 요청
+"이 코드 버그 있는지 Codex한테 물어봐줘"
+
+# Claude가 실행
 codex exec "이 함수에 버그가 있나요?"
+# → 8초 대기 → Codex 응답 → Claude가 분석
+```
 
-# Gemini 직접 호출
-echo "TypeScript 타입 안전성 검증해줘" | gemini --model gemini-2.5-pro
+#### Gemini 직접 호출 (아키텍처 분석)
+```bash
+# 사용자가 Claude에게 요청
+"이 구조 SOLID 원칙에 맞는지 Gemini한테 물어봐줘"
 
-# Claude Code 서브에이전트
-"code-review-specialist: 전체 코드 품질 검토해줘"
+# Claude가 실행
+echo "SOLID 원칙 위반 여부" | gemini --model gemini-2.5-pro
+# → 10초 대기 → Gemini 응답 → Claude가 분석
+```
+
+### 3. Claude Code 주도 작업
+
+**시나리오**: Claude가 복잡한 작업 중 외부 의견 필요 시
+
+```
+사용자: "이 API 설계 개선해줘"
+    ↓
+Claude: 1. 설계안 작성 (자체)
+        2. "Codex에게 검증 받아야겠다" (내부 판단)
+        3. codex exec "API 설계 검증" 실행
+        4. Codex 피드백 수령
+        5. 설계안 수정
+        6. 최종 코드 구현
+```
+
+### 실전 예시: Multi-AI 협업
+
+```
+사용자: "프로덕션 버그 급해!"
+    ↓
+Claude: 1. 에러 로그 분석 (자체)
+        2. Codex에게 문의: "스택 트레이스 분석"
+        3. Codex: "메모리 누수 가능성"
+        4. Claude가 수정 코드 작성
+        5. Gemini에게 검증: "SOLID 원칙 확인"
+        6. 최종 커밋 → 자동 리뷰
 ```
 
 ---
