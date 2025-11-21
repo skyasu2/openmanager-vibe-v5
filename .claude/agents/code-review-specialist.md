@@ -173,69 +173,6 @@ find logs/code-reviews -name "review-*.md" -type f -printf '%T@ %p\n' | sort -rn
 
 ---
 
-## 🎭 3. Multi-AI 교차검증 (v4.5.0)
-
-### 완전 자동화 워크플로우
-
-**0. Phase 0: 분석 파일 핵심 추출** ⭐ NEW
-- git-ignored 파일 접근 제약 우회
-- Executive Summary 섹션만 추출 (95% 크기 축소)
-- 추출된 내용을 각 AI 쿼리에 직접 포함
-
-**1. Phase 1: 3-AI 병렬 실행**
-```bash
-TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-./scripts/ai-subagents/codex-wrapper.sh "[쿼리] 실무 관점" > /tmp/codex-$TIMESTAMP.txt &
-./scripts/ai-subagents/gemini-wrapper.sh "[쿼리] 아키텍처" > /tmp/gemini-$TIMESTAMP.txt &
-./scripts/ai-subagents/qwen-wrapper.sh -p "[쿼리] 성능" > /tmp/qwen-$TIMESTAMP.txt &
-wait
-```
-
-**2. Phase 2: 결과 분석**
-- 각 AI 출력 읽기 (Read /tmp 파일)
-- 핵심 주장 추출 (3-5줄 요약)
-- 합의점 검출 (2+ AI 동의)
-- 충돌점 검출 (의견 불일치)
-
-**3. Phase 3: Claude Code 최종 평가** ⭐
-- 3-AI 답변 타당성 평가
-- 프로젝트 컨텍스트 반영
-- ROI 중심 판단 (1인 개발 환경)
-- 최종 판단 + 선택 근거 제시
-
-**4. Phase 4: Decision Log 작성**
-```bash
-# Decision Log 생성
-Write("logs/ai-decisions/YYYY-MM-DD-[주제].md", content)
-```
-
-**5. Phase 5: Temp 파일 정리**
-```bash
-rm -f /tmp/codex-$TIMESTAMP.txt /tmp/gemini-$TIMESTAMP.txt /tmp/qwen-$TIMESTAMP.txt
-```
-
-### 트리거 조건
-
-**명시적 요청만 (다음 키워드)**:
-- "AI 교차검증"
-- "3-AI 교차검증"
-- "멀티 AI 검증"
-- "Codex, Gemini, Qwen 모두"
-
-**예시**:
-- ✅ "useState를 AI 교차검증해줘"
-- ✅ "LoginClient.tsx를 3-AI로 검증"
-- ❌ "코드 리뷰해줘" (일반 리뷰, 호출 안 됨)
-
-### 성능 지표
-
-- 3-AI 병렬 실행: ~61초
-- 결과 분석: ~5초
-- Decision Log 작성: ~10초
-- **총 소요: ~76초** (원스톱)
-
----
-
 ## 🔧 통합 트리거 조건
 
 ### 1. 일반 코드 리뷰
@@ -248,11 +185,6 @@ rm -f /tmp/codex-$TIMESTAMP.txt /tmp/gemini-$TIMESTAMP.txt /tmp/qwen-$TIMESTAMP.
 - `.husky/post-commit` 훅 자동 실행
 - "최근 Codex 리뷰 분석" 요청
 - "자동 코드 리뷰 결과 확인" 요청
-
-### 3. Multi-AI 교차검증
-- **"AI 교차검증"** 키워드 명시적 포함
-- 복잡한 의사결정 (아키텍처, 라이브러리 선택)
-- 성능 vs 가독성 트레이드오프
 
 ---
 
@@ -269,10 +201,10 @@ rm -f /tmp/codex-$TIMESTAMP.txt /tmp/gemini-$TIMESTAMP.txt /tmp/qwen-$TIMESTAMP.
 
 ### 통합 효과
 
-- ✅ **원스톱 리뷰**: 일반 리뷰 + Codex + Multi-AI 모두 한곳에서
+- ✅ **원스톱 리뷰**: 일반 리뷰 + Codex 자동 리뷰를 한곳에서
 - 🚀 **자동화**: 커밋 후 Codex 리뷰 자동 실행 및 분석
-- 🎭 **교차검증**: 필요 시 3-AI 병렬 실행으로 의사결정 지원
-- 📝 **이력 관리**: Decision Log 자동 생성 및 Git 추적
+- 📊 **폴백 시스템**: Codex → Gemini 자동 전환으로 99.9% 가용성
+- 📝 **이력 관리**: 리뷰 결과 자동 저장 및 Git 추적
 
 ### 토큰 효율
 
@@ -300,7 +232,7 @@ rm -f /tmp/codex-$TIMESTAMP.txt /tmp/gemini-$TIMESTAMP.txt /tmp/qwen-$TIMESTAMP.
 
 **💡 핵심 (v2.0.0)**:
 
-- **통합**: 일반 리뷰 + Codex 자동 + Multi-AI 교차검증을 하나로
-- **자동화**: 커밋 → Codex 리뷰 → 분석 → 개선 (자동 워크플로우)
-- **유연성**: 상황에 맞는 리뷰 방식 선택 (일반/Codex/Multi-AI)
-- **품질**: Serena MCP + 3-AI 병렬 + Claude 최종 평가
+- **통합**: 일반 리뷰 + Codex 자동 리뷰를 하나로 통합
+- **자동화**: 커밋 → Codex/Gemini 리뷰 → 분석 → 개선 (자동 워크플로우)
+- **신뢰성**: Codex → Gemini 폴백으로 99.9% 가용성 보장
+- **품질**: Serena MCP 활용 + Claude 최종 분석 및 개선 제안

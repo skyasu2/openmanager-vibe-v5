@@ -32,7 +32,7 @@ Supabase PostgreSQL 데이터베이스의 설계, 최적화, 그리고 보안을
    - RAG 시스템 지원
 
 ## 프로젝트 컨텍스트
-- Supabase URL: `vnswjnltnhpsueosfhmw.supabase.co`
+- Supabase URL: `$SUPABASE_URL` (환경변수 참조, `.env.local`)
 - 주요 테이블: servers, real_time_metrics, alerts
 - 무료 티어: 500MB 제한 준수
 
@@ -63,11 +63,6 @@ const result = await mcp__supabase__execute_sql({
 ```
 
 ### 2️⃣ **권장**: Supabase 직접 접속 (MCP read-only 제한 해결)
-
-**✅ 포트폴리오 검증 완료**: 읽기/쓰기 모든 기능 정상 작동
-- **서비스 키 연결**: SUCCESS - REST API 응답 정상
-- **익명 키 연결**: SUCCESS - REST API 응답 정상
-- **쓰기 권한 테스트**: SUCCESS - 실제 데이터 삽입 성공
 
 ```typescript
 // 🔄 MCP 실패 시 직접 접속 전환

@@ -83,252 +83,27 @@ alias cdp='cd $PROJECT_ROOT'
 
 ## AI CLI 도구 관리 🆕
 
-**자동화된 AI 도구 헬스 체크 및 업그레이드 + 로그 기록**:
+**자동화된 AI 도구 헬스 체크 및 업그레이드**
 
-### 📋 로그 생성 자동화 (Phase 3A-2)
-
-**모든 헬스 체크 실행 시 자동으로 YAML 로그 파일 생성**:
-
-```typescript
-const generateHealthCheckLog = async (healthCheckResults) => {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const logDir = 'logs/ai-health';
-  const logFile = `${logDir}/${timestamp}-ai-health-check.log`;
-  const latestLog = `${logDir}/latest.log`;
-
-  // Create log directory if not exists
-  await execute_shell_command(`mkdir -p ${logDir}`);
-
-  // Generate YAML log
-  const logContent = `# AI Tools Health Check Log
-# Generated: ${new Date().toISOString()}
-
-timestamp: "${new Date().toISOString()}"
-overall_score: "${healthCheckResults.overall_score}/10"
-
-tools:
-${healthCheckResults.tools
-  .map(
-    (tool) => `  ${tool.name}:
-    installed: ${tool.installed}
-    version: "${tool.version}"
-    recommended: "${tool.recommended_version}+"
-    status: "${tool.status}"
-    response_time: "${tool.response_time}"
-${tool.oauth ? `    oauth: "${tool.oauth}"` : ''}
-${tool.updateAvailable ? `    update_available: "${tool.updateAvailable.current} → ${tool.updateAvailable.latest}"` : ''}`
-  )
-  .join('
-')}
-
-recommendations:
-${healthCheckResults.recommendations.map((rec) => `  - "${rec}"`).join('
-')}
-
-actions_taken:
-${healthCheckResults.actions.map((action) => `  - "${action}"`).join('
-')}
-`;
-
-  // Write log file
-  await execute_shell_command(`cat > ${logFile} << 'EOFLOG'
-${logContent}
-EOFLOG`);
-
-  // Update latest.log symlink
-  await execute_shell_command(`ln -sf $(basename ${logFile}) ${latestLog}`);
-
-  return {
-    logFile,
-    latestLog,
-    message: `✅ Log generated: ${logFile}`,
-  };
-};
-```
-
-**로그 구조 예시**:
-
-```yaml
-# logs/ai-health/2025-11-04T15-30-00-000Z-ai-health-check.log
-
-timestamp: '2025-11-04T15:30:00.000Z'
-overall_score: '9.5/10'
-
-tools:
-  codex:
-    installed: true
-    version: 'v0.53.0'
-    recommended: 'v0.53.0+'
-    status: '✅ 최신'
-    response_time: '5s'
-
-  gemini:
-    installed: true
-    version: 'v0.11.3'
-    recommended: 'v0.11.3+'
-    status: '✅ 최신'
-    response_time: '3s'
-    oauth: '캐시 인증 정상'
-
-  qwen:
-    installed: true
-    version: 'v0.1.2'
-    recommended: 'v0.1.2+'
-    status: '✅ 최신'
-    response_time: '2s'
-
-recommendations:
-  - '모든 AI 도구 최신 버전 유지 중'
-  - 'OAuth 인증 정상'
-
-actions_taken:
-  - '버전 확인 완료'
-  - '응답 테스트 완료'
-```
-
-**로그 파일 관리**:
-
-- **디렉토리**: `logs/ai-health/`
-- **명명 규칙**: `{ISO_timestamp}-ai-health-check.log`
-- **최신 로그**: `latest.log` (심볼릭 링크)
-- **형식**: YAML (구조화된 데이터)
-- **자동 생성**: 헬스 체크 실행 시마다
-
-**통합 예시**:
-
-```typescript
-// AI 도구 헬스 체크 + 로그 생성
-const performAIToolsHealthCheck = async () => {
-  // 1. 헬스 체크 실행
-  const results = await aiToolsHealthCheck();
-
-  // 2. 로그 생성
-  const logInfo = await generateHealthCheckLog(results);
-
-  // 3. 사용자 리포트
-  return {
-    summary: results.summary,
-    logPath: logInfo.logFile,
-    latestLog: logInfo.latestLog,
-    recommendations: results.recommendations,
-  };
-};
-```
-
-### 🔍 헬스 체크 프로세스
-
-```typescript
-const aiToolsHealthCheck = async () => {
-  // Phase 1: 설치 및 버전 확인 (✅ npm outdated 통합)
-  const tools = ['claude', 'codex', 'gemini', 'qwen'];
-
-  // ✅ CLI 명령어 → npm 패키지명 매핑
-  const npmPackageMap = {
-    claude: '@anthropic-ai/claude-code',
-    codex: '@openai/codex',
-    gemini: '@google/gemini-cli',
-    qwen: '@qwen-code/qwen-code',
-  };
-  const versions = await Promise.all(
-    tools.map(async (tool) => {
-      const installed = await execute_shell_command(`which ${tool}`);
-      const currentVersion = await execute_shell_command(`${tool} --version`);
-
-      // ✅ npm outdated로 업데이트 가능 여부 확인
-      const npmPackage = npmPackageMap[tool];
-      const outdatedInfo = await execute_shell_command(
-        `npm outdated -g ${npmPackage} --json 2>&1 || echo "{}"`
-      );
-
-      let updateAvailable = null;
-      try {
-        const outdated = JSON.parse(outdatedInfo);
-        if (outdated[npmPackage]) {
-          updateAvailable = {
-            current: outdated[npmPackage].current,
-            latest: outdated[npmPackage].latest,
-          };
-        }
-      } catch (e) {
-        // JSON 파싱 실패 시 무시
-      }
-
-      return {
-        name: tool,
-        installed: !!installed,
-        currentVersion,
-        updateAvailable,
-      };
-    })
-  );
-
-  // Phase 2: 대화 테스트 (OAuth 재인증 필요 여부 확인)
-  const healthTests = await Promise.all([
-    execute_shell_command('timeout 30 codex exec "hello"'),
-    execute_shell_command('timeout 30 gemini "hello"'),
-    execute_shell_command('timeout 30 qwen -p "hello"'),
-  ]);
-
-  // Phase 3: 업그레이드 권장사항 생성
-  const upgradeRecommendations = versions
-    .filter((v) => v.updateAvailable)
-    .map(
-      (v) =>
-        `${v.name}: ${v.updateAvailable.current} → ${v.updateAvailable.latest}`
-    );
-
-  return { versions, healthTests, upgradeRecommendations };
-};
-```
-
-### 🔄 자동 업그레이드
+### 사용 방법
 
 ```bash
-# AI 도구 업그레이드 (ENOTEMPTY 에러 방지)
-upgrade_ai_tool() {
-  local package=$1
-  echo "📦 Upgrading $package..."
+# 스크립트 실행 (권장)
+./scripts/ai-tools-health-check.sh
 
-  # 1. 기존 디렉토리 제거
-  npm root -g | xargs -I {} rm -rf {}/$package
-
-  # 2. 최신 버전 설치
-  npm install -g $package@latest
-
-  # 3. 설치 확인
-  npm list -g --depth=0 | grep $package
-}
-
-# 전체 AI 도구 업그레이드
-upgrade_ai_tool "@anthropic-ai/claude-code"
-upgrade_ai_tool "@openai/codex"
-upgrade_ai_tool "@google/gemini-cli"
-upgrade_ai_tool "@qwen-code/qwen-code"
+# 또는 서브에이전트 호출
+"dev-environment-manager야, AI 도구 헬스 체크해줘"
 ```
 
-### 📊 상태 리포트
+### 기능
 
-```typescript
-const generateAIToolsReport = (healthCheckResults) => {
-  const report = {
-    timestamp: new Date().toISOString(),
-    tools: healthCheckResults.versions.map((tool) => ({
-      name: tool.name,
-      status: tool.installed ? '✅ 설치됨' : '❌ 미설치',
-      version: tool.version,
-      needsUpdate: healthCheckResults.outdated.includes(tool.name),
-    })),
-    recommendations: [
-      ...identifyUpgradeNeeds(healthCheckResults.outdated),
-      ...identifyAuthIssues(healthCheckResults.healthTests),
-    ],
-  };
+- **설치 확인**: Claude Code, Codex, Gemini, Qwen CLI 설치 여부 및 버전
+- **업데이트 확인**: `npm outdated` 통합으로 최신 버전 확인
+- **동작 테스트**: 각 CLI 도구 응답 테스트 (OAuth 인증 확인 포함)
+- **로그 기록**: `logs/ai-health/` 디렉토리에 YAML 형식 자동 저장
+- **업그레이드 가이드**: 필요 시 자동 업그레이드 명령어 제시
 
-  return report;
-};
-```
-
-### 🛠️ 트러블슈팅
+### 트러블슈팅
 
 ```bash
 # OAuth 재인증
@@ -338,10 +113,14 @@ qwen auth         # Qwen 인증
 # 캐시 정리 (업그레이드 실패 시)
 npm cache clean --force
 
-# 디렉토리 충돌 해결
-npm root -g | xargs -I {} rm -rf {}/@google/gemini-cli
+# 전체 재설치 (문제 지속 시)
+npm uninstall -g @google/gemini-cli
 npm install -g @google/gemini-cli@latest
 ```
+
+**상세 구현**: `scripts/ai-tools-health-check.sh` 참조
+
+---
 
 ## Node.js 버전 관리
 
@@ -406,7 +185,7 @@ export $(grep -v '^#' .env.local | xargs)
 
 ```typescript
 // Phase 1: 프로젝트 구조 기반 환경 요구사항 분석
-const projectStructure = await list_dir('.', { recursive: true });
+const projectStructure = await list_dir('.', { recursive: true, skip_ignored_files: true });
 const environmentRequirements = analyzeProjectRequirements(projectStructure);
 
 // Phase 2: 현재 환경 상태 점검
