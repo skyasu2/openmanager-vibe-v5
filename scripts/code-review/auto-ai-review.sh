@@ -306,33 +306,29 @@ $changes
 
     # Gemini 실행 (직접 호출 + stderr 필터링) - Option 1
     local gemini_output
-    local temp_stdout="/tmp/gemini_stdout_$$"
-    local temp_stderr="/tmp/gemini_stderr_$$"
+    local temp_stdout=$(mktemp)
+    local temp_stderr=$(mktemp)
+    
+    # 함수 종료 시 임시 파일 자동 정리 (인터럽트 포함)
+    trap 'rm -f "$temp_stdout" "$temp_stderr"' RETURN
     
     # Gemini 실행: stdout과 stderr 분리
     if echo "$query" | gemini --model gemini-2.5-pro > "$temp_stdout" 2> "$temp_stderr"; then
-        # stderr 필터링: ImportProcessor 에러 무시
-        local filtered_errors=$(grep -v "^\[ERROR\] \[ImportProcessor\]" "$temp_stderr" | \
-                                grep -v "^Loaded cached credentials" | \
-                                grep -v "^Got it" | \
-                                grep -v "^Attempt .* failed:")
+        # stderr 필터링: 무해한 에러 메시지 제거 (단일 정규식)
+        local filtered_errors=$(grep -vE "\[ImportProcessor\]|Loaded cached credentials|Got it|Attempt .* failed:" "$temp_stderr")
         
         # stdout 읽기
         gemini_output=$(cat "$temp_stdout")
         
-        # cleanup
-        rm -f "$temp_stdout" "$temp_stderr"
-        
-        # 실제 출력이 있는지 확인
-        if [ -n "$gemini_output" ]; then
+        # 실제 출력이 있는지 확인 (공백 제거 후)
+        if [ -n "$(echo "$gemini_output" | tr -d '[:space:]')" ]; then
             echo "gemini" > /tmp/ai_engine_auto_review
             echo "$gemini_output"
             return 0
         fi
     fi
     
-    # 실패 시 cleanup
-    rm -f "$temp_stdout" "$temp_stderr"
+    # 실패 (trap이 자동으로 cleanup 수행)
     log_error "Gemini 리뷰도 실패"
     return 1
 }
