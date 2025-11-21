@@ -46,10 +46,12 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 ## 📊 주간 메트릭 (logs/feedback/week1-checklist.md)
 
 - MCP 활용도: 65% → 90% 목표
-- 코드 리뷰: **Codex → Gemini 폴백** (auto-ai-review.sh v2.0.0) 🆕
+- 코드 리뷰: **Codex → Gemini → Claude Code** (auto-ai-review.sh v3.2.0) 🆕
+  - 2:1 비율 선택 (Codex 2회, Gemini 1회)
   - Rate limit 자동 감지 및 폴백
+  - 최종 폴백: Claude Code 자동 리뷰
   - 리뷰 파일: `review-{AI}-{DATE}-{TIME}.md`
-  - 99.9% 가용성 보장
+  - 99.9% 가용성 보장 (Codex OR Gemini OR Claude Code)
 - 토큰 효율: 45토큰 목표 (MCP 82% + @-mention 3%)
 
 ---

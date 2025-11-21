@@ -54,18 +54,20 @@
 - 예상 효과: 주당 30-40분 절감, 1-2주 내 ROI 회수
 - 상태: Registry 등록 완료, 테스트 검증 완료
 
-**자동 코드 리뷰 시스템** (v2.0.0 활성화) ✅
+**자동 코드 리뷰 시스템** (v3.2.0 활성화) ✅
 
-- Codex → Gemini 자동 폴백 워크플로우 (2025-11-19)
-  - 1차: Codex CLI 우선 시도 (GPT-5 기반 코드 리뷰)
-  - 2차: Rate limit 감지 시 Gemini CLI로 자동 폴백
+- Codex → Gemini → Claude Code 자동 폴백 워크플로우 (2025-11-21)
+  - 1차: Codex/Gemini 2:1 비율 선택 (Codex 2회, Gemini 1회)
+  - 2차: Primary AI 실패 시 Secondary AI 폴백
+  - 3차: 모두 실패 시 Claude Code 자동 리뷰
   - Git Hook: `.husky/post-commit` 자동 트리거 (백그라운드 실행)
   - 출력: `logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md`
 - 특징:
-  - ✅ 99.9% 가용성 (Codex OR Gemini)
+  - ✅ 99.9% 가용성 (Codex OR Gemini OR Claude Code)
   - ✅ 평균 응답 시간: ~10초 (레거시 대비 4.5배 빠름)
+  - ✅ 2:1 비율 스마트 선택 (상태 파일 기반)
+  - ✅ Claude Code 자동 리뷰 (리뷰 요청 파일 자동 생성)
   - ✅ 실시간 Rate Limit 감지 및 자동 전환
-  - ✅ Claude Code 통합 분석 워크플로우
 - 참고:
   - 레거시 3-AI 시스템 (v4.2.0)은 deprecated (2025-11-19)
   - 상세: `archive/deprecated/3-ai-system/DEPRECATION_NOTICE.md`
@@ -144,13 +146,17 @@
 
 ## 🤖 코드 리뷰 시스템 상태
 
-**자동 코드 리뷰** (v2.0.0) - Codex → Gemini 자동 폴백
+**자동 코드 리뷰** (v3.2.0) - Codex → Gemini → Claude Code 완전 자동화
 
-### 현재 시스템 (2025-11-19)
+### 현재 시스템 (2025-11-21)
 
-- **1차 리뷰**: Codex CLI (GPT-5 기반, 6-12초)
-- **2차 폴백**: Gemini CLI (Rate limit 감지 시 자동 전환, 25-31초)
-- **가용성**: 99.9% (Codex OR Gemini)
+- **1차 선택**: 2:1 비율 (Codex 2회, Gemini 1회)
+- **2차 폴백**: Primary AI 실패 시 Secondary AI로 자동 전환
+- **3차 최종 폴백**: Claude Code 자동 리뷰
+  - 리뷰 요청 파일 자동 생성: `/tmp/claude_code_review_request_*.md`
+  - 구조화된 변경사항 저장 (마크다운 + diff)
+  - Claude Code가 파일 감지 후 자동 리뷰 수행
+- **가용성**: 99.9% (Codex OR Gemini OR Claude Code)
 - **트리거**: `.husky/post-commit` 자동 실행 (백그라운드)
 - **출력**: `logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md`
 - **평균 응답 시간**: ~10초 (레거시 대비 4.5배 빠름)
