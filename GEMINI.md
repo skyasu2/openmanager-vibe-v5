@@ -1,9 +1,9 @@
-# GEMINI.md
+# GEMINI.md - Gemini CLI 사용 가이드
 
-> **최종 수정일**: 2025년 11월 21일
-> **질의 답변시 한국어 사용 원칙**: 모든 답변은 한국어로 제공
+최종 수정일: 2025년 11월 21일  
+질의 답변시 한국어 사용 원칙: 모든 답변은 한국어로 제공
 
-Gemini CLI 사용 가이드 - Senior Code Architect 서브에이전트
+Senior Code Architect 서브에이전트
 
 ---
 

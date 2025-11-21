@@ -304,17 +304,37 @@ $changes
 - 💡 구체적인 코드 위치 및 개선 방법 제시
 - ⭐ 종합 점수 및 승인 여부 (승인/조건부 승인/거부)"
 
-    # Gemini 실행 (wrapper 사용)
+    # Gemini 실행 (직접 호출 + stderr 필터링) - Option 1
     local gemini_output
-    if gemini_output=$("$PROJECT_ROOT/scripts/ai-subagents/gemini-wrapper.sh" "$query" 2>&1); then
-        # 파일 디스크립터를 통해 AI_ENGINE 전파
-        echo "gemini" > /tmp/ai_engine_auto_review
-        echo "$gemini_output"
-        return 0
-    else
-        log_error "Gemini 리뷰도 실패"
-        return 1
+    local temp_stdout="/tmp/gemini_stdout_$$"
+    local temp_stderr="/tmp/gemini_stderr_$$"
+    
+    # Gemini 실행: stdout과 stderr 분리
+    if echo "$query" | gemini --model gemini-2.5-pro > "$temp_stdout" 2> "$temp_stderr"; then
+        # stderr 필터링: ImportProcessor 에러 무시
+        local filtered_errors=$(grep -v "^\[ERROR\] \[ImportProcessor\]" "$temp_stderr" | \
+                                grep -v "^Loaded cached credentials" | \
+                                grep -v "^Got it" | \
+                                grep -v "^Attempt .* failed:")
+        
+        # stdout 읽기
+        gemini_output=$(cat "$temp_stdout")
+        
+        # cleanup
+        rm -f "$temp_stdout" "$temp_stderr"
+        
+        # 실제 출력이 있는지 확인
+        if [ -n "$gemini_output" ]; then
+            echo "gemini" > /tmp/ai_engine_auto_review
+            echo "$gemini_output"
+            return 0
+        fi
     fi
+    
+    # 실패 시 cleanup
+    rm -f "$temp_stdout" "$temp_stderr"
+    log_error "Gemini 리뷰도 실패"
+    return 1
 }
 
 # Claude Code 자체 리뷰 (최종 폴백)
