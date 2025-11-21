@@ -34,7 +34,7 @@ export const aiEngineConfig = {
   /**
    * 🔧 General Settings
    */
-  defaultModel: (env.GOOGLE_AI_API_KEY ? AI_MODELS.FLASH_LITE : AI_MODELS.FLASH_LITE) as AIModel,
+  defaultModel: AI_MODELS.FLASH_LITE,
   temperature: 0.7,
   maxTokens: 2048,
   timeout: 30000, // 30 seconds (will be replaced by dynamic timeout)
