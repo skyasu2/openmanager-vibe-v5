@@ -2,12 +2,20 @@
 
 # Auto AI Code Review Script (Codex → Gemini Fallback)
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성
-# 버전: 2.1.2
+# 버전: 3.0.0
 # 날짜: 2025-11-21
 # 전략: Codex 우선 → Gemini 폴백 (사용량 제한 대응)
 #
 # ⚠️ 중요: 이 스크립트는 직접 실행만 지원합니다 (source 사용 금지)
 # 최상단 cd 명령으로 인해 source 시 호출자의 작업 디렉토리가 변경됩니다
+#
+# Changelog v3.0.0 (2025-11-21): 🚀 MAJOR UPDATE - 2:1 비율 + 상호 폴백 + Claude Code 최종 폴백
+# - ✨ 신규: 2:1 비율로 Codex/Gemini 자동 선택 (Codex 2회, Gemini 1회 순환)
+# - ✨ 신규: 상태 파일(.ai-usage-state)로 사용 카운터 추적
+# - ✨ 신규: Primary AI 실패 시 Secondary AI로 상호 폴백
+# - ✨ 신규: 모든 외부 AI 실패 시 Claude Code 서브에이전트(code-review-specialist) 최종 폴백
+# - 🔄 변경: Codex → Gemini 순차 폴백에서 2:1 비율 기반 스마트 선택으로 전환
+# - 🎯 목표: 99.99% 가용성 (Codex OR Gemini OR Claude Code)
 #
 # Changelog v2.1.2 (2025-11-21):
 # - 🐛 수정: AI 엔진 이름을 메인 스크립트에서 읽도록 개선
@@ -62,6 +70,9 @@ NC='\033[0m' # No Color
 REVIEW_DIR="$PROJECT_ROOT/logs/code-reviews"
 mkdir -p "$REVIEW_DIR"
 
+# 상태 파일 경로 (AI 사용 카운터 추적)
+STATE_FILE="$PROJECT_ROOT/logs/code-reviews/.ai-usage-state"
+
 # 오늘 날짜
 TODAY=$(date +%Y-%m-%d)
 TIMESTAMP=$(date +%H-%M-%S)
@@ -89,6 +100,64 @@ log_error() {
 
 log_ai_engine() {
     echo -e "${MAGENTA}🤖 $1${NC}"
+}
+
+# AI 사용 카운터 초기화
+init_ai_counter() {
+    if [ ! -f "$STATE_FILE" ]; then
+        echo "codex_count=0" > "$STATE_FILE"
+        echo "gemini_count=0" >> "$STATE_FILE"
+        log_info "상태 파일 초기화: $STATE_FILE"
+    fi
+}
+
+# AI 사용 카운터 읽기
+get_ai_counter() {
+    local engine="$1"
+    init_ai_counter
+    
+    if [ "$engine" = "codex" ]; then
+        grep "^codex_count=" "$STATE_FILE" | cut -d'=' -f2
+    elif [ "$engine" = "gemini" ]; then
+        grep "^gemini_count=" "$STATE_FILE" | cut -d'=' -f2
+    fi
+}
+
+# AI 사용 카운터 증가
+increment_ai_counter() {
+    local engine="$1"
+    init_ai_counter
+    
+    if [ "$engine" = "codex" ]; then
+        local count=$(get_ai_counter "codex")
+        count=$((count + 1))
+        sed -i "s/^codex_count=.*/codex_count=$count/" "$STATE_FILE"
+    elif [ "$engine" = "gemini" ]; then
+        local count=$(get_ai_counter "gemini")
+        count=$((count + 1))
+        sed -i "s/^gemini_count=.*/gemini_count=$count/" "$STATE_FILE"
+    fi
+}
+
+# 2:1 비율로 AI 선택 (Codex 2회, Gemini 1회 순환)
+select_primary_ai() {
+    init_ai_counter
+    
+    local codex_count=$(get_ai_counter "codex")
+    local gemini_count=$(get_ai_counter "gemini")
+    
+    # 2:1 비율 계산: Codex를 2번 사용할 때마다 Gemini 1번
+    # 총 사용 횟수를 3으로 나눈 나머지로 판단
+    local total=$((codex_count + gemini_count))
+    local remainder=$((total % 3))
+    
+    # remainder 0,1 → Codex (2번)
+    # remainder 2 → Gemini (1번)
+    if [ $remainder -eq 2 ]; then
+        echo "gemini"
+    else
+        echo "codex"
+    fi
 }
 
 # 프로젝트 루트로 이동 (git 명령어 및 로그 파일 생성 위치 일관성 보장)
@@ -237,7 +306,88 @@ $changes
     fi
 }
 
+# Claude Code 자체 리뷰 (최종 폴백)
+# Claude Code 서브에이전트 리뷰 (최종 폴백)
+claude_code_self_review() {
+    local changes="$1"
+    
+    log_ai_engine "🔄 Claude Code 서브에이전트 리뷰 호출 중..."
+    
+    # 임시 변경사항 파일 생성
+    local temp_changes="/tmp/code_changes_review_$$.md"
+    cat > "$temp_changes" << CHANGES_EOF
+# 코드 리뷰 요청 (자동 생성)
+
+## 변경사항
+
+$changes
+
+## 리뷰 요청 사항
+
+다음 Git 변경사항을 실무 관점에서 코드 리뷰해주세요:
+
+1. **버그 위험**: 잠재적 버그나 오류 가능성 (있다면 3개까지)
+2. **개선 제안**: 성능, 가독성, 유지보수성 측면 (3개)
+3. **TypeScript 안전성**: any 타입, 타입 단언 등 문제점
+4. **보안 이슈**: XSS, SQL Injection 등 보안 취약점
+5. **종합 평가**: 점수 (1-10) 및 한 줄 요약
+
+**출력 형식**:
+- 📌 각 항목을 명확히 구분
+- 💡 구체적인 코드 위치 및 개선 방법 제시
+- ⭐ 종합 점수 및 승인 여부 (승인/조건부 승인/거부)
+CHANGES_EOF
+
+    log_info "📝 변경사항 저장 완료: $temp_changes"
+    log_info "🤖 code-review-specialist 서브에이전트 호출 중..."
+    
+    # code-review-specialist 서브에이전트 호출
+    # Task 명령어로 서브에이전트 실행
+    local review_output
+    review_output=$(cat << TASK_EOF
+## 🤖 Claude Code 서브에이전트 리뷰 (자동 실행)
+
+**실행 방법**: 다음 명령을 Claude Code에서 실행하세요:
+
+\`\`\`
+Task code-review-specialist "$(cat "$temp_changes")"
+\`\`\`
+
+또는 간단히:
+
+\`\`\`
+code-review-specialist: $(cat "$temp_changes" | head -20)...
+(전체 내용은 $temp_changes 파일 참조)
+\`\`\`
+
+### 📋 자동 체크리스트
+
+외부 AI가 모두 실패했습니다. 수동으로 확인하세요:
+
+- [ ] **타입 체크**: \`npm run type-check\`
+- [ ] **린트**: \`npm run lint\`  
+- [ ] **테스트**: \`npm test\`
+- [ ] **빌드**: \`npm run build\`
+
+### 🎯 종합 평가
+
+**상태**: ⚠️ 외부 AI 불가 (Codex + Gemini 실패)
+**점수**: N/A (Claude Code 서브에이전트 리뷰 필요)
+**다음 단계**: 위 Task 명령 실행하여 상세 리뷰 받기
+TASK_EOF
+)
+    
+    # 파일 디스크립터를 통해 AI_ENGINE 전파
+    echo "claude-code" > /tmp/ai_engine_auto_review
+    echo "$review_output"
+    
+    # 임시 파일은 유지 (사용자가 참조할 수 있도록)
+    log_success "변경사항 파일: $temp_changes"
+    return 0
+}
+
 # AI 리뷰 실행 (Codex → Gemini 순차 시도)
+# AI 리뷰 실행 (2:1 비율 + 상호 폴백 + Claude Code 최종 폴백)
 run_ai_review() {
     local changes="$1"
     local review_output=""
@@ -245,23 +395,66 @@ run_ai_review() {
     # 임시 파일 초기화
     rm -f /tmp/ai_engine_auto_review
 
-    # 1차 시도: Codex
-    if review_output=$(try_codex_review "$changes"); then
-        log_success "Codex 리뷰 성공!"
+    # 1단계: 2:1 비율로 Primary AI 선택
+    local primary_ai=$(select_primary_ai)
+    local secondary_ai
+    
+    if [ "$primary_ai" = "codex" ]; then
+        secondary_ai="gemini"
+        log_info "🎯 Primary: Codex, Secondary: Gemini (2:1 비율)"
+    else
+        secondary_ai="codex"
+        log_info "🎯 Primary: Gemini, Secondary: Codex (2:1 비율)"
+    fi
+
+    # 2단계: Primary AI 시도
+    if [ "$primary_ai" = "codex" ]; then
+        if review_output=$(try_codex_review "$changes"); then
+            log_success "Codex 리뷰 성공!"
+            increment_ai_counter "codex"
+            echo "$review_output"
+            return 0
+        fi
+        log_warning "Codex 실패 → Gemini로 폴백"
+    else
+        if review_output=$(fallback_to_gemini_review "$changes"); then
+            log_success "Gemini 리뷰 성공!"
+            increment_ai_counter "gemini"
+            echo "$review_output"
+            return 0
+        fi
+        log_warning "Gemini 실패 → Codex로 폴백"
+    fi
+
+    # 3단계: Secondary AI 폴백
+    if [ "$secondary_ai" = "codex" ]; then
+        if review_output=$(try_codex_review "$changes"); then
+            log_success "Codex 폴백 성공!"
+            increment_ai_counter "codex"
+            echo "$review_output"
+            return 0
+        fi
+        log_warning "Codex도 실패"
+    else
+        if review_output=$(fallback_to_gemini_review "$changes"); then
+            log_success "Gemini 폴백 성공!"
+            increment_ai_counter "gemini"
+            echo "$review_output"
+            return 0
+        fi
+        log_warning "Gemini도 실패"
+    fi
+
+    # 4단계: 최종 폴백 - Claude Code 서브에이전트
+    log_error "모든 외부 AI 실패 (Codex + Gemini) → Claude Code 서브에이전트로 폴백"
+    if review_output=$(claude_code_self_review "$changes"); then
+        log_success "Claude Code 서브에이전트 리뷰 준비 완료!"
         echo "$review_output"
         return 0
     fi
 
-    # 2차 시도: Gemini (폴백)
-    log_warning "Codex 실패 → Gemini로 폴백 시도"
-    if review_output=$(fallback_to_gemini_review "$changes"); then
-        log_success "Gemini 폴백 성공!"
-        echo "$review_output"
-        return 0
-    fi
-
-    # 모든 AI 실패
-    log_error "모든 AI 엔진 실패 (Codex + Gemini)"
+    # 최종 실패 (거의 발생하지 않음)
+    log_error "모든 리뷰 방법 실패 (매우 드문 경우)"
     rm -f /tmp/ai_engine_auto_review
     return 1
 }
