@@ -46,6 +46,7 @@ export type ServerRole =
   | 'load-balancer'
   | 'queue'
   | 'storage'
+  | 'log'
   | 'app'
   | 'fallback';
 

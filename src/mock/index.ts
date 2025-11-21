@@ -9,7 +9,6 @@ export * from './mockDataRotator';
 
 import {
   generateMockServerData,
-  selectRandomScenario,
 } from './mockDataGenerator';
 import type { MockDataRotator } from './mockDataRotator';
 import { getRotatorInstance } from './mockDataRotator';
@@ -32,12 +31,8 @@ export interface MockSystemConfig {
 class MockSystem {
   private data: ReturnType<typeof generateMockServerData>;
   private rotator: MockDataRotator | null = null;
-  private scenario: ReturnType<typeof selectRandomScenario>;
 
   constructor(config: MockSystemConfig = {}) {
-    // 시나리오 선택
-    this.scenario = selectRandomScenario();
-
     // 데이터 생성
     this.data = generateMockServerData();
 
@@ -82,7 +77,6 @@ class MockSystem {
    */
   getSystemInfo() {
     return {
-      scenario: this.scenario,
       metadata: this.data.metadata,
       rotatorStatus: this.rotator?.getStatus() || null,
       serverCount: this.data.servers.length,
@@ -112,7 +106,6 @@ class MockSystem {
    */
   reset() {
     this.stopAutoRotation();
-    this.scenario = selectRandomScenario();
     this.data = generateMockServerData();
     this.rotator = null;
   }
