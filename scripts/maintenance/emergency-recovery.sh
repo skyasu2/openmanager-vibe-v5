@@ -1,7 +1,7 @@
 #!/bin/bash
 # WSL 응급 복구 스크립트
 # OpenManager VIBE 개발 환경 전용
-# 사용법: ./scripts/emergency-recovery.sh
+# 사용법: ./scripts/maintenance/emergency-recovery.sh
 
 set -e
 

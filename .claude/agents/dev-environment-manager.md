@@ -89,7 +89,7 @@ alias cdp='cd $PROJECT_ROOT'
 
 ```bash
 # 스크립트 실행 (권장)
-./scripts/ai-tools-health-check.sh
+./scripts/ai/health/ai-tools-health-check.sh
 
 # 또는 서브에이전트 호출
 "dev-environment-manager야, AI 도구 헬스 체크해줘"
@@ -118,7 +118,7 @@ npm uninstall -g @google/gemini-cli
 npm install -g @google/gemini-cli@latest
 ```
 
-**상세 구현**: `scripts/ai-tools-health-check.sh` 참조
+**상세 구현**: `scripts/ai/health/ai-tools-health-check.sh` 참조
 
 ---
 

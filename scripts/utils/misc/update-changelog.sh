@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # CHANGELOG.md 수동 업데이트 스크립트
-# Usage: ./scripts/update-changelog.sh [version] [message]
+# Usage: ./scripts/utils/misc/update-changelog.sh [version] [message]
 
 set -e
 

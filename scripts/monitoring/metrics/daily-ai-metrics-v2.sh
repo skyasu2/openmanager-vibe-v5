@@ -2,7 +2,7 @@
 # Daily AI Metrics Report v2 - 간소화 버전
 # 목적: 일일 AI 도구 사용 현황 자동 집계
 # 작성: 2025-10-16
-# 사용: ./scripts/daily-ai-metrics-v2.sh
+# 사용: ./scripts/monitoring/metrics/daily-ai-metrics-v2.sh
 
 set -eo pipefail
 
