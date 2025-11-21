@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Codex CLI Wrapper - 600초 타임아웃 (복잡한 분석 대응)
-# 버전: 2.5.0
-# 날짜: 2025-10-17 (환경 독립성 개선 - 포터블화)
+# Codex CLI Wrapper - 600초 타임아웃 + stderr 필터링
+# 버전: 3.0.0
+# 날짜: 2025-11-21 (Gemini와 동일한 수준의 견고성 확보)
 
 set -euo pipefail
 
@@ -60,11 +60,15 @@ $query"
     log_info "🤖 Codex 실행 중 (타임아웃 ${TIMEOUT_SECONDS}초 = 10분)..."
 
     local start_time=$(date +%s)
-    local output_file=$(mktemp)
+    local temp_stdout=$(mktemp)
+    local temp_stderr=$(mktemp)
     local exit_code=0
 
-    # Codex 실행 (타임아웃 보호)
-    if timeout "${TIMEOUT_SECONDS}s" codex exec "$query" > "$output_file" 2>&1; then
+    # 함수 종료 시 임시 파일 자동 정리 (인터럽트 포함)
+    trap 'rm -f "$temp_stdout" "$temp_stderr"' RETURN
+
+    # Codex 실행 (stderr 분리)
+    if timeout "${TIMEOUT_SECONDS}s" codex exec "$query" > "$temp_stdout" 2> "$temp_stderr"; then
         exit_code=0
     else
         exit_code=$?
@@ -73,23 +77,39 @@ $query"
     local end_time=$(date +%s)
     local duration=$((end_time - start_time))
 
+    # stderr 필터링 (Codex는 현재 무해한 에러 없음, 향후 대비)
+    local filtered_errors=$(cat "$temp_stderr" 2>/dev/null || true)
+
     # 결과 분석
     if [ $exit_code -eq 0 ]; then
-        log_success "Codex 실행 성공 (${duration}초)"
+        local codex_output=$(cat "$temp_stdout")
 
-        # 토큰 사용량 추출
-        local tokens_used=$(grep "tokens used:" "$output_file" | tail -1 | sed 's/.*tokens used: //' | tr -d ',')
-        if [ -n "$tokens_used" ]; then
-            log_info "📊 토큰 사용: $tokens_used"
-            echo "[$(date '+%Y-%m-%d %H:%M:%S')] TOKENS: $tokens_used, DURATION: ${duration}s" >> "$LOG_FILE"
+        # 실제 출력이 있는지 확인 (공백 제거 후)
+        if [ -n "$(echo "$codex_output" | tr -d '[:space:]')" ]; then
+            log_success "Codex 실행 성공 (${duration}초)"
+
+            # 토큰 사용량 추출
+            local tokens_used=$(echo "$codex_output" | grep "tokens used:" | tail -1 | sed 's/.*tokens used: //' | tr -d ',')
+            if [ -n "$tokens_used" ]; then
+                log_info "📊 토큰 사용: $tokens_used"
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] TOKENS: $tokens_used, DURATION: ${duration}s" >> "$LOG_FILE"
+            fi
+
+            # stderr에 실제 에러가 있으면 경고
+            if [ -n "$filtered_errors" ]; then
+                log_warning "stderr 경고 메시지 발견"
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] STDERR: $filtered_errors" >> "$LOG_FILE"
+            fi
+
+            # Auto-logging to Decision Log (Phase 1)
+
+            # 결과 출력
+            echo "$codex_output"
+            return 0
+        else
+            log_error "Codex가 빈 응답을 반환했습니다"
+            return 1
         fi
-
-        # Auto-logging to Decision Log (Phase 1)
-
-        # 결과 출력
-        cat "$output_file"
-        rm -f "$output_file"
-        return 0
     elif [ $exit_code -eq 124 ]; then
         log_error "Codex 타임아웃 (${TIMEOUT_SECONDS}초 = 10분 초과)"
         echo ""
@@ -98,12 +118,16 @@ $query"
         echo "  2️⃣  질문을 더 간결하게 만드세요"
         echo "  3️⃣  핵심 부분만 먼저 질문하세요"
         echo ""
-        rm -f "$output_file"
         return 124
     else
         log_error "Codex 실행 오류 (종료 코드: $exit_code)"
-        cat "$output_file" >&2
-        rm -f "$output_file"
+
+        # stderr가 있으면 출력
+        if [ -s "$temp_stderr" ]; then
+            echo -e "${RED}stderr 내용:${NC}" >&2
+            cat "$temp_stderr" >&2
+        fi
+
         return $exit_code
     fi
 }
@@ -111,7 +135,7 @@ $query"
 # 도움말
 usage() {
     cat << EOF
-${CYAN}🤖 Codex CLI Wrapper v2.5.0 - Claude Code 내부 도구${NC}
+${CYAN}🤖 Codex CLI Wrapper v3.0.0 - Claude Code 내부 도구${NC}
 
 ${YELLOW}⚠️  이 스크립트는 Claude Code가 제어하는 내부 도구입니다${NC}
 ${YELLOW}   사용자는 직접 실행하지 않고, 서브에이전트를 통해 사용합니다${NC}
@@ -129,9 +153,12 @@ ${YELLOW}   사용자는 직접 실행하지 않고, 서브에이전트를 통�
   $0 "이 TypeScript 코드를 분석하고 개선점 3가지를 제시해주세요."
 
 특징:
-  ✅ 고정 타임아웃: 600초 (10분) - 복잡한 분석 대응
+  ✅ 고정 타임아웃: 600초 (10분) - Gemini와 동일
+  ✅ stderr 분리 + 필터링 (향후 대비)
+  ✅ 공백 응답 자동 감지
+  ✅ mktemp + trap (안전한 임시 파일 관리)
+  ✅ 1인 개발자 컨텍스트 자동 추가
   ✅ 재시도 없음 (자원 낭비 방지)
-  ✅ 타임아웃 시 분할/간소화 제안
   ✅ 성능 로깅 ($LOG_FILE)
 
 타임아웃 발생 시:
@@ -169,7 +196,7 @@ main() {
 
     # 실행
     echo ""
-    log_info "🚀 Codex Wrapper v2.5.0 시작"
+    log_info "🚀 Codex Wrapper v3.0.0 시작"
     echo ""
 
     if execute_codex "$query"; then
