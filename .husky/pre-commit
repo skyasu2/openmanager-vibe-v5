@@ -1,13 +1,24 @@
 #!/usr/bin/env bash
 
-# Serena Anti-pattern Detection Hook
-# 목적: 컨텍스트 압축 방지 (5-20% 발생률 → 0% 목표)
+# Pre-commit Hook: Code Quality + Serena Anti-pattern Detection
+# 목적: 1) ESLint/Prettier 자동 수정 (staged files만)
+#      2) 컨텍스트 압축 방지 (Serena 안티패턴)
 
 set -e
 
+# 1. lint-staged: ESLint + Prettier (fast, staged files only)
+echo "🔍 Running lint-staged (ESLint + Prettier)..."
+npx lint-staged || {
+  echo "❌ Linting/Formatting failed"
+  echo "💡 Some files were auto-fixed. Please review and re-add them."
+  exit 1
+}
+
+# 2. Serena Anti-pattern Detection
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(md|ts|tsx|js|jsx)$' || true)
 
 if [ -z "$STAGED_FILES" ]; then
+  echo "✅ No staged files to check for Serena anti-patterns"
   exit 0
 fi
 

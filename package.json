@@ -170,6 +170,15 @@
     "zod": "^3.23.8",
     "zustand": "^4.5.7"
   },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
     "@executeautomation/playwright-mcp-server": "^1.0.6",
@@ -200,7 +209,7 @@
     "globals": "^16.3.0",
     "husky": "^9.1.7",
     "jsdom": "^26.0.0",
-    "lint-staged": "^16.1.2",
+    "lint-staged": "^16.2.7",
     "playwright": "^1.55.0",
     "postcss": "^8.5.6",
     "prettier": "^3.4.2",

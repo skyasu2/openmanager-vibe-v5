@@ -1,4 +1,4 @@
-echo "🔍 Pre-push: Type-safe validation (~60초 예상)..."
+echo "🔍 Pre-push: Type-safe + Build validation (~90초 예상)..."
 START_TIME=$(date +%s)
 
 # 1. 빠른 유닛 테스트 (11초)
@@ -19,14 +19,24 @@ npm run type-check || {
   exit 1
 }
 
-# 3. 민감 파일 체크 (보안)
+# 3. 프로덕션 빌드 검증 (CRITICAL - Vercel 배포 전 로컬 검증)
+echo "🏗️ Build validation..."
+npm run build || {
+  echo "❌ Build failed - push blocked"
+  echo "💡 Fix: npm run build"
+  echo "⚠️  CRITICAL: Build must succeed before push"
+  echo "   (Prevents Vercel deployment failures)"
+  exit 1
+}
+
+# 4. 민감 파일 체크 (보안)
 echo "🔒 Security check..."
 if git diff origin/main...HEAD --name-only 2>/dev/null | grep -E '\.(env|key|pem)$'; then
   echo "❌ 민감한 파일이 포함되어 있습니다"
   exit 1
 fi
 
-# 4. package.json 검증
+# 5. package.json 검증
 echo "📦 Checking package.json..."
 node -e "JSON.parse(require('fs').readFileSync('package.json', 'utf8'))" || {
   echo "❌ package.json has syntax errors"
@@ -36,7 +46,16 @@ node -e "JSON.parse(require('fs').readFileSync('package.json', 'utf8'))" || {
 END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
 
+echo ""
 echo "✅ Pre-push validation passed in ${DURATION}s"
-echo "🚀 Ready to push - Type-safe guaranteed!"
-echo "💡 CI will run: build + lint:strict"
-echo "🛡️  Protection: Type errors blocked at local → Vercel deployment safe"
+echo "🚀 Ready to push - Type-safe & Build-safe guaranteed!"
+echo ""
+echo "📊 Validation Summary:"
+echo "  ✅ Quick tests passed"
+echo "  ✅ TypeScript type check passed"
+echo "  ✅ Production build succeeded"
+echo "  ✅ Security check passed"
+echo "  ✅ package.json validated"
+echo ""
+echo "🛡️  Protection: Type errors + Build failures blocked at local"
+echo "💡 Vercel deployment will be safe"
