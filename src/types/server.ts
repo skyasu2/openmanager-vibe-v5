@@ -8,9 +8,7 @@ import type {
 } from './server-common';
 
 // 🏗️ AI 교차검증 기반 새로운 타입 시스템 통합
-import type {
-  ServerStatus as EnumServerStatus,
-} from '@/schemas';
+import type { ServerStatus as EnumServerStatus } from '@/schemas';
 import type {
   ServerEnvironment as EnumServerEnvironment,
   ServerRole as EnumServerRole,
@@ -571,6 +569,20 @@ export const SERVER_TYPE_DEFINITIONS: Record<ServerRole, ServerTypeDefinition> =
       failureProne: ['backup_system_overload', 'fallback_activation'],
       dependencies: ['api', 'database'],
     },
+    log: {
+      type: 'log',
+      tags: ['logging', 'elk', 'splunk', 'logs'],
+      characteristics: {
+        cpuWeight: 0.5,
+        memoryWeight: 0.6,
+        diskWeight: 1.1,
+        networkWeight: 0.7,
+        responseTimeBase: 200,
+        stabilityFactor: 0.85,
+      },
+      failureProne: ['disk_full', 'log_rotation_failure', 'parsing_errors'],
+      dependencies: ['storage'],
+    },
   };
 
 export interface RealisticFailureScenario {
@@ -610,6 +622,7 @@ export const FAILURE_IMPACT_GRAPH: Record<ServerRole, ServerRole[]> = {
   storage: ['database', 'backup'],
   app: ['api', 'database', 'queue'],
   fallback: ['api', 'database'],
+  log: ['storage', 'monitoring'],
 };
 
 export interface SystemOverview {

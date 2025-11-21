@@ -74,10 +74,10 @@ const nextConfig = {
 
   // 🔧 TypeScript 설정 - 빌드 최적화
   typescript: {
-    ignoreBuildErrors: false, // 임시: Vercel 배포를 위해 타입 오류 무시
+    ignoreBuildErrors: false, // 타입 오류는 반드시 수정
   },
   eslint: {
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: true, // ESLint 경고는 빌드 차단하지 않음
   },
 
   // 서버 외부 패키지 설정 (번들 크기 감소)

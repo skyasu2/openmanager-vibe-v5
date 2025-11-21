@@ -50,7 +50,7 @@ export function GET(request: NextRequest) {
                 updateInterval: 30000,
                 currentTime:
                   systemInfo.rotatorStatus?.simulationTime || '00:00:00',
-                scenarioDescription: systemInfo.scenario.description,
+                scenarioDescription: 'Mock scenario (rotation)',
               }
             : undefined,
         };
