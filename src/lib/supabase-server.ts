@@ -17,16 +17,26 @@ if (typeof window !== 'undefined') {
 const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl) {
-  throw new Error('❌ NEXT_PUBLIC_SUPABASE_URL is required for Supabase server client');
-}
-if (!supabaseServiceKey) {
-  throw new Error('❌ SUPABASE_SERVICE_ROLE_KEY is required for Supabase server client');
+// Check if we're in build time
+const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
+
+// Only validate environment variables if NOT in build time
+if (!isBuildTime) {
+  if (!supabaseUrl) {
+    throw new Error('❌ NEXT_PUBLIC_SUPABASE_URL is required for Supabase server client');
+  }
+  if (!supabaseServiceKey) {
+    throw new Error('❌ SUPABASE_SERVICE_ROLE_KEY is required for Supabase server client');
+  }
 }
 
 // Server-only Supabase admin client
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+// Use dummy values during build time (will be replaced at runtime)
+export const supabaseAdmin = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseServiceKey || 'placeholder-key'
+);
 
-if (isDevelopment) {
+if (isDevelopment && !isBuildTime) {
   console.log('✅ Supabase Admin 클라이언트 초기화됨 (서버 전용)');
 }
