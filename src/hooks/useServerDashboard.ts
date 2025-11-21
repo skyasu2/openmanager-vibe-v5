@@ -8,7 +8,8 @@ import {
   type ServerDisplayMode,
 } from '@/config/display-config';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
-import type { Server, Service, EnhancedServerMetrics, ServerRole, ServerEnvironment } from '@/types/server';
+import type { Server, Service, ServerRole, ServerEnvironment } from '@/types/server';
+import type { EnhancedServerMetrics } from '@/types/unified-server';
 import type { ServerStatus } from '@/types/server-common';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';

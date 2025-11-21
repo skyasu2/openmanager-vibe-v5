@@ -17,7 +17,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { AIMetricsCollector } from '@/lib/ai/metrics/AIMetricsCollector';
-import type { AIEngineType, AggregationPeriod } from '@/lib/ai/metrics/AIMetricsCollector';
+import type { AggregationPeriod } from '@/lib/ai/metrics/AIMetricsCollector';
+import type { AIEngineType } from '@/types/core-types';
 
 /**
  * 📊 GET /api/ai-metrics

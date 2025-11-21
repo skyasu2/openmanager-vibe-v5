@@ -23,13 +23,39 @@ import {
   Lightbulb,
 } from 'lucide-react';
 import { useServerDataStore } from '@/components/providers/StoreProvider';
-import type { EnhancedServerMetrics } from '@/types/server';
+import type { EnhancedServerMetrics } from '@/types/unified-server';
 import AIInsightsCard from './AIInsightsCard';
 import AIAssistantIconPanel, { type AIAssistantFunction } from '@/components/ai/AIAssistantIconPanel';
 // AIModeSelector 제거 - 지능형 라우팅으로 자동 선택
 import FreeTierMonitor from '@/components/ai/FreeTierMonitor';
 import ThinkingProcessVisualizer from '@/components/ai/ThinkingProcessVisualizer';
 import type { ThinkingStep } from '@/domains/ai-sidebar/types/ai-sidebar-types';
+
+/**
+ * Helper function to extract numeric value from ServerMetrics union type
+ */
+function extractNumericValue(
+  value: number | { usage: number; [key: string]: unknown } | { in: number; out: number; [key: string]: unknown } | { used: number; [key: string]: unknown }
+): number {
+  if (typeof value === 'number') {
+    return value;
+  }
+  // Handle network type with 'in' and 'out'
+  if ('in' in value && 'out' in value) {
+    const inValue = typeof value.in === 'number' ? value.in : 0;
+    const outValue = typeof value.out === 'number' ? value.out : 0;
+    return (inValue + outValue) / 2; // Average of in/out
+  }
+  // Handle disk type with 'used'
+  if ('used' in value && typeof value.used === 'number') {
+    return value.used;
+  }
+  // Handle other types with 'usage'
+  if ('usage' in value && typeof value.usage === 'number') {
+    return value.usage;
+  }
+  return 0;
+}
 
 interface AISidebarContentProps {
   onClose: () => void;
@@ -138,10 +164,10 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
       const criticalServers = servers.filter((s: EnhancedServerMetrics) => s.status === 'critical').length;
 
       const avgCpu = servers.length > 0
-        ? Math.round(servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + (s.cpu || 0), 0) / servers.length)
+        ? Math.round(servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + extractNumericValue(s.cpu), 0) / servers.length)
         : 0;
       const avgMemory = servers.length > 0
-        ? Math.round(servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + (s.memory || 0), 0) / servers.length)
+        ? Math.round(servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + extractNumericValue(s.memory), 0) / servers.length)
         : 0;
 
       // 🎯 실제 API 호출 (지능형 라우팅 자동 선택)
@@ -461,6 +487,100 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
 
             <AIInsightsCard className="mb-4" />
 
+            {/* 🆕 Phase 3A: AI Analysis & Trends Visualization */}
+            <div className="space-y-3 mb-4">
+              {servers.map((server) => (
+                server.aiAnalysis && server.trends && (
+                  <div key={server.id} className="rounded-lg border border-gray-200 bg-white p-4 space-y-3">
+                    {/* Server Header */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-gray-800">{server.name}</h4>
+                        <p className="text-xs text-gray-500">{server.ip}</p>
+                      </div>
+                      {/* Anomaly Score Badge */}
+                      <div className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                        server.aiAnalysis.anomalyScore > 0.7 ? 'bg-red-100 text-red-700' :
+                        server.aiAnalysis.anomalyScore > 0.4 ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-green-100 text-green-700'
+                      }`}>
+                        이상도: {(server.aiAnalysis.anomalyScore * 100).toFixed(0)}%
+                      </div>
+                    </div>
+
+                    {/* Trends */}
+                    <div className="grid grid-cols-4 gap-2">
+                      {(['cpu', 'memory', 'disk', 'network'] as const).map((metric) => {
+                        const trend = server.trends![metric];
+                        return (
+                          <div key={metric} className="text-center">
+                            <div className="text-xs text-gray-500 uppercase mb-1">{metric}</div>
+                            <div className={`text-lg font-semibold ${
+                              trend === 'increasing' ? 'text-red-600' :
+                              trend === 'decreasing' ? 'text-blue-600' :
+                              'text-gray-600'
+                            }`}>
+                              {trend === 'increasing' ? '↑' : trend === 'decreasing' ? '↓' : '→'}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Predicted Issues */}
+                    {server.aiAnalysis.predictedIssues.length > 0 && (
+                      <div className="border-t border-gray-200 pt-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertTriangle className="h-4 w-4 text-orange-500" />
+                          <h5 className="text-sm font-medium text-gray-700">예측된 문제</h5>
+                        </div>
+                        <ul className="space-y-1">
+                          {server.aiAnalysis.predictedIssues.map((issue, i) => (
+                            <li key={i} className="text-xs text-orange-700">• {issue}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Recommendations */}
+                    {server.aiAnalysis.recommendations.length > 0 && (
+                      <div className="border-t border-gray-200 pt-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Lightbulb className="h-4 w-4 text-purple-500" />
+                          <h5 className="text-sm font-medium text-gray-700">권장 사항</h5>
+                        </div>
+                        <ul className="space-y-1">
+                          {server.aiAnalysis.recommendations.slice(0, 3).map((rec, i) => (
+                            <li key={i} className="text-xs text-purple-700">{rec}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Confidence */}
+                    <div className="border-t border-gray-200 pt-3 flex items-center justify-between">
+                      <span className="text-xs text-gray-500">분석 신뢰도</span>
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-24 bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${
+                              server.aiAnalysis.confidence > 0.7 ? 'bg-green-500' :
+                              server.aiAnalysis.confidence > 0.4 ? 'bg-yellow-500' :
+                              'bg-red-500'
+                            }`}
+                            style={{ width: `${server.aiAnalysis.confidence * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-medium text-gray-700">
+                          {(server.aiAnalysis.confidence * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              ))}
+            </div>
+
             <div className="space-y-3">
               <div className="rounded-lg border border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 p-4">
                 <div className="mb-2 flex items-center gap-2">
@@ -482,7 +602,7 @@ export default function AISidebarContent({ onClose }: AISidebarContentProps) {
                   <h3 className="font-medium text-yellow-800">주의 사항</h3>
                 </div>
                 <p className="text-sm text-yellow-700">
-                  평균 CPU 사용률: {servers.length > 0 ? Math.round(servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + (s.cpu || 0), 0) / servers.length) : 0}%
+                  평균 CPU 사용률: {servers.length > 0 ? Math.round(servers.reduce((sum: number, s: EnhancedServerMetrics) => sum + extractNumericValue(s.cpu), 0) / servers.length) : 0}%
                 </p>
               </div>
 

@@ -20,6 +20,9 @@ import type { AIEngineType } from '@/types/core-types';
 import type { AIErrorType } from '../errors/AIErrorHandler';
 import type { ComplexityLevel } from '../utils/QueryComplexityAnalyzer';
 
+// Re-export for external usage
+export type { AIEngineType };
+
 /**
  * 📊 Metric Data Point
  */
@@ -70,6 +73,7 @@ export interface EngineMetrics {
 export interface SystemMetrics {
   totalQueries: number;
   totalErrors: number;
+  errorRate: number; // ✅ Phase 2 bug fix: errorRate 필드 추가
   averageResponseTime: number;
   cacheHitRate: number;
   quotaUsage: number;
@@ -254,6 +258,9 @@ export class AIMetricsCollector {
     if (aiEngineConfig.quotaProtection.enabled) {
       this.metrics.quotaUsage++;
     }
+    
+    // 🔧 Update system-wide error rate
+    this.metrics.errorRate = this.metrics.totalErrors / this.metrics.totalQueries;
     
     // Engine-specific metrics
     const engineMetrics = this.metrics.engineMetrics[engineType];

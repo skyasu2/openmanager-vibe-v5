@@ -3,7 +3,10 @@
  * 모든 서버 관련 인터페이스를 이 파일에서 통합 관리
  */
 
-import type { ServerMetrics } from '@/core/types';
+import type { ServerMetrics } from '@/core/types/server.types';
+
+// Re-export ServerMetrics for convenience
+export type { ServerMetrics };
 
 // 기본 서버 인터페이스
 export interface Server {
@@ -34,12 +37,19 @@ export type ServerType =
 
 // 확장된 서버 메트릭스 (AI 분석 포함)
 export interface EnhancedServerMetrics extends ServerMetrics {
+  // 서버 식별 정보 (UI에서 필요)
+  name?: string;
+  ip?: string;
+
+  // AI 분석 결과
   aiAnalysis?: {
     anomalyScore: number;
     predictedIssues: string[];
     recommendations: string[];
     confidence: number;
   };
+
+  // 트렌드 예측
   trends?: {
     cpu: 'increasing' | 'decreasing' | 'stable';
     memory: 'increasing' | 'decreasing' | 'stable';

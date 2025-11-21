@@ -11,7 +11,8 @@
 import { createStore } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { calculateOptimalUpdateInterval } from '../config/serverConfig';
-import type { EnhancedServerMetrics, ServerRole } from '../types/server';
+import type { EnhancedServerMetrics } from '../types/unified-server';
+import type { ServerRole } from '../types/server';
 import { getMultipleServerMetrics, type InterpolatedMetric } from '@/data/hourly-server-data';
 import { KST } from '@/lib/time';
 
@@ -67,46 +68,24 @@ function mapInterpolatedToEnhanced(
     // 기본 식별 정보
     id: serverId,
     hostname: serverId,
-    name: serverId,
+    name: serverId, // ✅ Phase 3A: UI에서 사용하는 필드
+    ip: serverId, // ✅ Phase 3A: UI에서 사용하는 필드 (hostname 재사용)
     environment: environment,
     role: role,
     status: metric.status,
-    
-    // 메트릭 데이터 (중복 매핑으로 호환성 보장)
+
+    // 메트릭 데이터 (ServerMetrics 표준 필드만 사용)
     cpu: metric.cpu,
-    cpu_usage: metric.cpu,
     memory: metric.memory,
-    memory_usage: metric.memory,
     disk: metric.disk,
-    disk_usage: metric.disk,
     network: metric.network,
-    network_usage: metric.network,
-    network_in: metric.network / 2,
-    network_out: metric.network / 2,
-    
+
     // 성능 정보
     responseTime: metric.responseTime,
     uptime: metric.uptime,
-    
+
     // 타임스탬프
     timestamp: metric.timestamp,
-    last_updated: new Date().toISOString(),
-    
-    // 기본값
-    alerts: [],
-    
-    // 메타데이터
-    metadata: {
-      timeInfo: {
-        normalized: Date.now(),
-        actual: Date.now(),
-        cycle24h: 0,
-        slot10min: Math.floor(new Date().getMinutes() / 10),
-        hour: new Date().getHours(),
-        validUntil: Date.now() + 60000, // 1분 후
-      },
-      isInterpolated: metric.isInterpolated,
-    },
   };
 }
 
@@ -236,7 +215,7 @@ export const createServerDataStore = (
                   status: enhanced.status,
                   cpu: enhanced.cpu,
                   memory: enhanced.memory,
-                  isInterpolated: enhanced.metadata?.isInterpolated,
+                  // ✅ Phase 3A: metadata 필드 제거 (unified-server.ts 타입에 없음)
                 });
               }
             } else {
