@@ -75,8 +75,13 @@ class MockSystem {
   /**
    * 시스템 상태 정보
    */
+  /**
+   * 시스템 정보 반환
+   * @deprecated scenario 필드는 v2에서 제거됨 (하위 호환성 위해 null 유지)
+   */
   getSystemInfo() {
     return {
+      scenario: null, // @deprecated - 하위 호환성 위해 유지
       metadata: this.data.metadata,
       rotatorStatus: this.rotator?.getStatus() || null,
       serverCount: this.data.servers.length,

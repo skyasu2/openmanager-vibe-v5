@@ -39,8 +39,30 @@ function createServerFromMetrics(
 ): Server {
   const server = SERVERS.find((s) => s.id === serverId);
 
+  // Fallback: 서버 메타데이터가 없으면 기본값 사용
   if (!server) {
-    throw new Error(`Server ${serverId} not found`);
+    console.warn(`Server ${serverId} not found in SERVERS, using fallback metadata`);
+    return {
+      id: serverId,
+      name: serverId.toUpperCase(),
+      status,
+      cpu: Math.round(currentMetrics.cpu),
+      memory: Math.round(currentMetrics.memory),
+      disk: Math.round(currentMetrics.disk),
+      network: Math.round(currentMetrics.network),
+      uptime: 99.99,
+      lastUpdate: new Date(),
+      location: 'Seoul-DC-01',
+      type: 'app', // fallback type
+      services: [
+        {
+          name: 'Unknown Service',
+          status: status === 'online' ? 'running' : 'stopped',
+          port: 8080,
+        },
+      ],
+      alerts: status !== 'online' ? 1 : 0,
+    };
   }
 
   return {
