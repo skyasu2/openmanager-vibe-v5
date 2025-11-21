@@ -15,6 +15,9 @@ import { unifiedCache, CacheNamespace } from '@/lib/unified-cache';
 import { getQueryCacheManager } from './query-cache-manager';
 import { aiLogger } from '@/lib/logger';
 import type { QueryRequest, QueryResponse } from './SimplifiedQueryEngine';
+import { recordQueryMetrics } from '@/lib/ai/metrics/AIMetricsCollector';
+import { ComplexityLevel } from '@/lib/ai/utils/QueryComplexityAnalyzer';
+import { AIErrorType } from '@/lib/ai/errors/AIErrorHandler';
 
 // Node.js Runtime 사용 (안정성 우선)
 // Edge Runtime 제거: Vercel 경고 해결 및 안정성 확보
@@ -85,31 +88,93 @@ export class StreamingAIEngine {
     const startTime = performance.now();
     const streamId = this.generateStreamId(request);
 
+    // Metrics: Determine complexity (simple for streaming, as it's optimized for speed)
+    const complexity = ComplexityLevel.SIMPLE;
+    let cacheHit = false;
+    let success = true;
+    let response: QueryResponse | null = null;
+
     try {
       // 1. 즉시 캐시 확인 (< 1ms)
       const cached = await this.getInstantCache(request);
       if (cached) {
+        cacheHit = true;
         this.updateMetrics('cache_hit', performance.now() - startTime);
+        response = cached;
+        
+        // Record metrics for cache hit
+        recordQueryMetrics({
+          engineType: 'performance-optimized',
+          query: request.query,
+          complexity,
+          responseTime: performance.now() - startTime,
+          success: true,
+          cacheHit: true,
+          timestamp: Date.now(),
+        });
+        
         return cached;
       }
 
       // 2. 예측적 응답 확인 (< 5ms)
       const predicted = this.getPredictiveResponse(request);
       if (predicted) {
+        cacheHit = true;
         this.updateMetrics('predictive_hit', performance.now() - startTime);
+        response = predicted;
+        
+        // Record metrics for predictive hit
+        recordQueryMetrics({
+          engineType: 'performance-optimized',
+          query: request.query,
+          complexity,
+          responseTime: performance.now() - startTime,
+          success: true,
+          cacheHit: true,
+          timestamp: Date.now(),
+        });
+        
         return predicted;
       }
 
       // 3. 스트리밍 처리 시작
       if (this.config.enableStreaming) {
-        return await this.processStreamingQuery(request, streamId, startTime);
+        response = await this.processStreamingQuery(request, streamId, startTime);
+      } else {
+        // 4. 병렬 처리 폴백
+        response = await this.processParallelQuery(request, startTime);
       }
-
-      // 4. 병렬 처리 폴백
-      return await this.processParallelQuery(request, startTime);
+      
+      // Record successful metrics
+      recordQueryMetrics({
+        engineType: 'performance-optimized',
+        query: request.query,
+        complexity,
+        responseTime: performance.now() - startTime,
+        success: true,
+        cacheHit: false,
+        timestamp: Date.now(),
+      });
+      
+      return response;
     } catch (error) {
+      success = false;
       aiLogger.error('StreamingAIEngine 오류', error);
-      return this.createFallbackResponse(request, startTime);
+      const fallbackResponse = this.createFallbackResponse(request, startTime);
+      
+      // Record error metrics
+      recordQueryMetrics({
+        engineType: 'performance-optimized',
+        query: request.query,
+        complexity,
+        responseTime: performance.now() - startTime,
+        success: false,
+        cacheHit: false,
+        error: AIErrorType.UNKNOWN,
+        timestamp: Date.now(),
+      });
+      
+      return fallbackResponse;
     }
   }
 

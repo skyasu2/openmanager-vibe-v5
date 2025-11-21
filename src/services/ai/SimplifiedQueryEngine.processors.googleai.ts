@@ -29,6 +29,10 @@ import { getGoogleAIUsageTracker } from './GoogleAIUsageTracker';
 import { getEnvironmentTimeouts } from '@/utils/timeout-config';
 // 🚀 아키텍처 개선: 직접 Google AI SDK 통합
 import { getDirectGoogleAIService } from './DirectGoogleAIService';
+// 📊 메트릭 수집
+import { recordQueryMetrics } from '@/lib/ai/metrics/AIMetricsCollector';
+import { ComplexityLevel } from '@/lib/ai/utils/QueryComplexityAnalyzer';
+import { AIErrorType } from '@/lib/ai/errors/AIErrorHandler';
 
 /**
  * 🤖 구글 AI 모드 프로세서
@@ -71,6 +75,12 @@ export class GoogleAIModeProcessor {
   ): Promise<QueryResponse> {
     const enableKoreanNLP = true;
     const enableAIAssistantMCP = !!mcpContext;
+    
+    // 📊 메트릭: 복잡도 분석 (간단한 휴리스틱)
+    const complexity = 
+      query.length > 200 ? ComplexityLevel.COMPLEX : 
+      query.length > 100 ? ComplexityLevel.MEDIUM : 
+      ComplexityLevel.SIMPLE;
 
     // 1단계: 한국어 NLP 처리 (활성화된 경우)
     if (enableKoreanNLP) {
@@ -333,6 +343,23 @@ export class GoogleAIModeProcessor {
       const tokenCount = apiResponse.usage?.totalTokens || Math.ceil((query.length + finalResponse.length) / 4);
       const actualCost = tokenCount * 0.000002; // $0.002 per 1K tokens
 
+      // 📊 메트릭 기록 (성공)
+      recordQueryMetrics({
+        engineType: 'google-ai',
+        provider: enableAIAssistantMCP ? 'rag' : undefined,
+        query,
+        complexity,
+        responseTime: Date.now() - startTime,
+        success: true,
+        cacheHit: false,
+        timestamp: Date.now(),
+        metadata: {
+          model: selectedModel,
+          tokensUsed: tokenCount,
+          koreanNLPUsed: enableKoreanNLP,
+        },
+      });
+
       return {
         success: true,
         response: finalResponse,
@@ -407,6 +434,19 @@ export class GoogleAIModeProcessor {
         googleFailedStep.description = 'Google AI 처리 실패';
         googleFailedStep.duration = Date.now() - googleStepStart;
       }
+
+      // 📊 메트릭 기록 (실패)
+      recordQueryMetrics({
+        engineType: 'google-ai',
+        provider: enableAIAssistantMCP ? 'rag' : undefined,
+        query,
+        complexity,
+        responseTime: Date.now() - startTime,
+        success: false,
+        cacheHit: false,
+        error: AIErrorType.API_ERROR,
+        timestamp: Date.now(),
+      });
 
       // Google AI 실패 시 에러 응답 반환 (폴백 없음)
       return {
