@@ -2,14 +2,19 @@
 
 # Auto AI Code Review Script (Codex → Gemini Fallback)
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성
-# 버전: 2.0.0
-# 날짜: 2025-11-19
+# 버전: 2.1.0
+# 날짜: 2025-11-21
 # 전략: Codex 우선 → Gemini 폴백 (사용량 제한 대응)
 #
 # ⚠️ 중요: 이 스크립트는 직접 실행만 지원합니다 (source 사용 금지)
 # 최상단 cd 명령으로 인해 source 시 호출자의 작업 디렉토리가 변경됩니다
 #
-# Changelog v2.0.0:
+# Changelog v2.1.0 (2025-11-21):
+# - 🐛 수정: AI 엔진 이름이 파일명 및 내용에 제대로 표시되도록 개선
+# - 임시 파일(/tmp/ai_engine_$$)을 통해 서브셸 간 AI_ENGINE 변수 전파
+# - Codex/Gemini 성공 시 엔진 이름을 임시 파일에 저장 → run_ai_review에서 읽기
+#
+# Changelog v2.0.0 (2025-11-19):
 # - Codex CLI 우선 사용, 실패 시 Gemini CLI로 자동 폴백
 # - AI 엔진 선택 로직 추가 (try_codex_first → fallback_to_gemini)
 # - 리뷰 파일명에 AI 엔진 표시 (review-{AI}-{DATE}-{TIME}.md)
@@ -176,7 +181,8 @@ $changes
             return 1  # 실패 반환 → Gemini로 폴백
         fi
 
-        AI_ENGINE="codex"
+        # 파일 디스크립터를 통해 AI_ENGINE 전파
+        echo "codex" > /tmp/ai_engine_$$
         echo "$codex_output"
         return 0
     else
@@ -212,7 +218,8 @@ $changes
     # Gemini 실행 (wrapper 사용)
     local gemini_output
     if gemini_output=$("$PROJECT_ROOT/scripts/ai-subagents/gemini-wrapper.sh" "$query" 2>&1); then
-        AI_ENGINE="gemini"
+        # 파일 디스크립터를 통해 AI_ENGINE 전파
+        echo "gemini" > /tmp/ai_engine_$$
         echo "$gemini_output"
         return 0
     else
@@ -226,9 +233,17 @@ run_ai_review() {
     local changes="$1"
     local review_output=""
 
+    # 임시 파일 초기화
+    rm -f /tmp/ai_engine_$$
+
     # 1차 시도: Codex
     if review_output=$(try_codex_review "$changes"); then
         log_success "Codex 리뷰 성공!"
+        # AI_ENGINE 읽기
+        if [ -f /tmp/ai_engine_$$ ]; then
+            AI_ENGINE=$(cat /tmp/ai_engine_$$)
+            rm -f /tmp/ai_engine_$$
+        fi
         echo "$review_output"
         return 0
     fi
@@ -237,12 +252,18 @@ run_ai_review() {
     log_warning "Codex 실패 → Gemini로 폴백 시도"
     if review_output=$(fallback_to_gemini_review "$changes"); then
         log_success "Gemini 폴백 성공!"
+        # AI_ENGINE 읽기
+        if [ -f /tmp/ai_engine_$$ ]; then
+            AI_ENGINE=$(cat /tmp/ai_engine_$$)
+            rm -f /tmp/ai_engine_$$
+        fi
         echo "$review_output"
         return 0
     fi
 
     # 모든 AI 실패
     log_error "모든 AI 엔진 실패 (Codex + Gemini)"
+    rm -f /tmp/ai_engine_$$
     return 1
 }
 
