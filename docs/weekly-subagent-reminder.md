@@ -1,100 +1,126 @@
-# 📅 주간 서브에이전트 체크리스트
+# 🛠️ 사용 가능한 도구 가이드
 
-**목적**: 서브에이전트 정기 활용으로 코드 품질 및 시스템 안정성 유지
+**목적**: 필요할 때 찾아 쓸 수 있는 도구 카탈로그
 **참조**: [서브에이전트 완전 가이드](ai/subagents-complete-guide.md)
 
 ---
 
-## 🌅 월요일 - 주간 시작
+## 📦 사용 가능한 도구들
 
-### 개발 환경 점검
+### 🤖 서브에이전트 (12개)
+
+프로젝트에는 12개의 전문 서브에이전트가 준비되어 있습니다. 필요할 때 활용하세요.
+
+**호출 방법**: `Task [에이전트명] "[작업 설명]"`
+
+#### 주요 에이전트
 
 ```bash
-Task dev-environment-manager "AI CLI 도구 상태 확인 및 최신 버전 체크"
-# Codex v0.58.0, Wrapper v2.5.0, OAuth 인증 상태 확인
+# 코드 품질
+code-review-specialist: "변경사항 리뷰해줘"
+debugger-specialist: "버그 원인 분석해줘"
+
+# 인프라
+vercel-platform-specialist: "배포 설정 확인해줘"
+database-administrator: "쿼리 최적화해줘"
+
+# 보안 & 테스트
+security-specialist: "보안 취약점 스캔해줘"
+test-automation-specialist: "테스트 진단해줘"
+
+# 구조 & UI
+structure-refactor-specialist: "아키텍처 개선해줘"
+ui-ux-specialist: "UI 개선 제안해줘"
 ```
 
-### MCP 서버 상태 확인
-
-```bash
-claude mcp list  # 또는 ./scripts/mcp-health-check.sh
-# 목표: 9/9 완벽 연결 유지
-```
-
-**체크포인트**:
-- [ ] Codex CLI 도구 정상 작동
-- [ ] MCP 서버 9/9 연결 확인
-- [ ] Bash Wrapper 타임아웃 0건 확인
+**전체 목록**: docs/ai/subagents-complete-guide.md 참조
 
 ---
 
-## 🔒 금요일 - 주간 마무리
+### 🎯 Claude Code Skills (4개)
 
-### 보안 스캔
-
-```bash
-Task security-specialist "이번 주 커밋된 변경사항 보안 스캔"
-# OWASP Top 10, 환경변수 노출, 인증/인가 로직, API 보안 검토
-```
-
-### 코드 품질 리포트
+반복 작업을 자동화하는 Skills가 준비되어 있습니다.
 
 ```bash
-Task code-review-specialist "이번 주 커밋 품질 종합 리포트"
-# TypeScript strict mode, any 타입, 코드 복잡도, 테스트 커버리지
+# .claude/skills/ 디렉토리에 위치
+lint-smoke              # 린트 + 테스트 자동화 (62% 토큰 절약)
+next-router-bottleneck  # Next.js 라우팅 성능 진단 (75% 토큰 절약)
+ai-report-export        # AI 코드 리뷰 결과 문서화 (78% 토큰 절약)
+playwright-triage       # E2E 테스트 실패 자동 분류 (77% 토큰 절약)
 ```
 
-**체크포인트**:
-- [ ] 보안 취약점 0건 확인
-- [ ] 코드 품질 점수 9.0/10 이상 유지
-- [ ] TypeScript 에러 0개 유지
+**사용법**: Claude Code가 자동으로 상황에 맞는 Skill 제안
 
 ---
 
-## 🚀 배포 전 - 필수 체크리스트
+### 🔌 MCP 서버 (9개)
 
-### 종합 테스트 진단
-
-```bash
-Task test-automation-specialist "배포 전 종합 테스트 진단"
-# Unit 테스트 실행, E2E 테스트, 실패 원인 자동 분류, 보안/성능 스캔
-```
-
-### Vercel 배포 최적화
+외부 서비스와 통합된 MCP 서버를 사용할 수 있습니다.
 
 ```bash
-Task vercel-platform-specialist "배포 최적화 및 환경변수 검증"
-# 환경변수, 빌드 설정, Edge Functions, 무료 티어 사용량 (30% 유지)
+# @-mention으로 특정 서버만 활성화 (토큰 10-18% 절약)
+@serena "코드 구조 분석해줘"           # 코드 분석 전문
+@vercel "배포 상태 확인해줘"           # Vercel 플랫폼
+@context7 "Next.js 15 문서 찾아줘"     # 최신 문서 조회
+@supabase "테이블 구조 보여줘"         # DB 관리
+@playwright "E2E 테스트 실행해줘"      # 브라우저 자동화
+@shadcn-ui "Button 컴포넌트 가져와줘"  # UI 컴포넌트
 ```
 
-**체크포인트**:
-- [ ] 테스트 통과율 88% 이상
-- [ ] Vercel 빌드 성공
-- [ ] 환경변수 검증 완료
-- [ ] 무료 티어 한도 안전
+**전체 상태 확인**: `claude mcp list`
 
 ---
 
-## 🎯 상황별 즉시 호출 가이드
+### 🚀 자동화 도구
 
-### 긴급 상황
+#### AI 코드 리뷰 (자동 실행)
 
-| 상황 | 즉시 호출 명령어 | 예상 효과 |
-|------|-----------------|----------|
-| 🐛 **프로덕션 버그** | `Task debugger-specialist "근본 원인 분석"` | 정확한 진단 |
-| 🚨 **보안 이슈** | `Task security-specialist "긴급 보안 스캔"` | 취약점 탐지 |
-| 🧪 **테스트 대량 실패** | `Task test-automation-specialist "실패 원인 진단"` | 자동 분류 |
+Git 커밋 시 자동으로 코드 리뷰가 실행됩니다.
 
-### 계획된 작업
+```bash
+# .husky/post-commit 훅이 자동 실행
+# 결과: logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md
 
-| 작업 | 권장 서브에이전트 | 활용 시점 |
-|------|-----------------|----------|
-| 🏗️ **대규모 리팩토링** | structure-refactor-specialist | 대규모 수정 전 |
-| 💾 **DB 스키마 변경** | database-administrator | 스키마 변경 시 |
-| 🎨 **UI 개선** | ui-ux-specialist | 디자인 구축 시 |
-| 📝 **문서화** | documentation-manager | 메모리 최적화 시 |
-| ☁️ **GCP 배포** | gcp-cloud-functions-specialist | 설정 시 |
+# Codex (1차) → Gemini (폴백) 자동 전환
+# 평균 응답 시간: ~10초
+# 가용성: 99.9%
+```
+
+**수동 실행**: `codex exec "변경사항 리뷰해줘"`
 
 ---
 
-**💡 핵심**: 정기적 활용으로 "잊혀진 도구"가 아닌 "자연스럽게 사용되는 도구"로 전환
+## 🎯 상황별 참고 가이드
+
+필요할 때 참고할 수 있는 빠른 가이드입니다.
+
+### 긴급 상황 발생 시
+
+| 상황 | 참고 명령어 |
+|------|------------|
+| 🐛 프로덕션 버그 | `Task debugger-specialist "근본 원인 분석"` |
+| 🚨 보안 이슈 | `Task security-specialist "긴급 보안 스캔"` |
+| 🧪 테스트 실패 | `Task test-automation-specialist "실패 원인 진단"` |
+| 🚀 배포 실패 | `Task vercel-platform-specialist "배포 로그 분석"` |
+
+### 계획된 작업 시
+
+| 작업 | 참고 도구 |
+|------|----------|
+| 대규모 리팩토링 | structure-refactor-specialist |
+| DB 스키마 변경 | database-administrator |
+| UI 개선 | ui-ux-specialist + @shadcn-ui |
+| 문서화 | documentation-manager |
+| 성능 최적화 | @vercel + vercel-platform-specialist |
+
+---
+
+## 📚 추가 자료
+
+- **서브에이전트 상세 가이드**: docs/ai/subagents-complete-guide.md
+- **MCP 우선순위 가이드**: docs/claude/environment/mcp/mcp-priority-guide.md
+- **통합 워크플로우**: docs/claude/1_workflows.md
+
+---
+
+**💡 핵심**: 도구가 있다는 걸 알고, 필요할 때 찾아 쓸 수 있으면 됩니다. 강제가 아닌 선택입니다.

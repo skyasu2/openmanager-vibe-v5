@@ -1,9 +1,3 @@
-# CHANGELOG.md 자동 갱신 Hook 실행
-if [ -f ".claude/hooks/post-commit.sh" ]; then
-    echo "🔄 Running CHANGELOG.md auto-update..."
-    bash .claude/hooks/post-commit.sh
-fi
-
 # Auto AI Code Review (Codex → Gemini Fallback, 백그라운드 실행)
 if [ -f "scripts/code-review/auto-ai-review.sh" ]; then
     echo "🤖 Starting AI code review (Codex → Gemini fallback)..."

@@ -59,7 +59,7 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 1. **Type-First**: 타입 정의 → 구현 → 리팩토링
 2. **any 금지**: TypeScript strict mode 100%
 3. **Vercel 중심**: 실제 환경 우선 테스트
-4. **MCP 우선**: 85% 토큰 절약 (MCP 82% + @-mention 3%)
+4. **MCP 필요시 사용**: 복잡한 작업 시 MCP 서버 활용 (85% 토큰 절약 가능)
 5. **Side-Effect First**: 테스트/문서/의존성 동시 수정
 
 ---
@@ -105,13 +105,7 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 | 🚀 **배포 최적화**   | `Task vercel-platform-specialist "배포 최적화 검증"`  | 무료 티어 활용 극대화  |
 | 📝 **코드 리뷰**     | `codex exec "변경사항 리뷰"`                          | 실무 관점 검증         |
 
-#### 📅 주간 정기 체크
-
-- **월요일**: `dev-environment-manager` (AI 도구 상태 확인)
-- **금요일**: `security-specialist` + `code-review-specialist` (주간 리포트)
-- **배포 전**: `test-automation-specialist` + `vercel-platform-specialist` (종합 검증)
-
-**상세**: @docs/weekly-subagent-reminder.md
+**상세 도구 가이드**: @docs/weekly-subagent-reminder.md (서브에이전트, Skills, MCP 서버)
 
 ---
 
@@ -141,10 +135,10 @@ npm run test:fast           # 21초 (44% 개선)
 
 **MCP 연결**: 9/9 완벽 (100% 가동률) ✅
 
-**MCP 우선 전략**: Serena (코드 분석), Vercel (배포), Context7 (문서), Shadcn-ui (UI)
-
-- **토큰 절약**: 85% (MCP 82% + @-mention 3%)
-- **핵심 서버**: vercel, serena, supabase, context7, playwright, shadcn-ui, memory, time, sequential-thinking
+**MCP 필요시 활용**: 복잡한 작업 시 전문 서버 사용
+- **주요 서버**: serena (코드 분석), vercel (배포), context7 (문서), shadcn-ui (UI)
+- **토큰 절약 효과**: 최대 85% (MCP 82% + @-mention 3%)
+- **전체 서버**: vercel, serena, supabase, context7, playwright, shadcn-ui, memory, time, sequential-thinking
 
 **상세**: @docs/claude/environment/mcp/mcp-priority-guide.md (514줄, Before/After 예시)
 
@@ -212,7 +206,7 @@ claude mcp list                # 전체 서버 상태 확인
 
 ---
 
-💡 **핵심**: Type-First + MCP 우선 + Vercel 중심 + any 금지
+💡 **핵심**: Type-First + MCP 필요시 사용 + Vercel 중심 + any 금지
 
 ⚠️ **주의**: 모든 수정 시 Side-Effect 분석 필수
 

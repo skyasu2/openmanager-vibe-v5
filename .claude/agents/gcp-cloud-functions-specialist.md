@@ -11,7 +11,11 @@ Google Cloud Platform의 Cloud Functions를 관리하고, 무료 티어 내에�
 
 ## 📦 현재 배포된 함수 (openmanager-free-tier)
 
-프로젝트에 배포되어 운영 중인 Cloud Functions:
+프로젝트에 배포되어 운영 중인 Cloud Functions (2025-11-21 기준):
+
+**동적 조회**: `gcloud functions list --project=openmanager-free-tier --region=asia-northeast3`
+
+**스냅샷** (참조용):
 
 1. **enhanced-korean-nlp** (asia-northeast3)
    - Runtime: Python 3.11
