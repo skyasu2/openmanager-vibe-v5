@@ -2,12 +2,17 @@
 
 # Auto AI Code Review Script (Codex → Gemini Fallback)
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성
-# 버전: 2.1.1
+# 버전: 2.1.2
 # 날짜: 2025-11-21
 # 전략: Codex 우선 → Gemini 폴백 (사용량 제한 대응)
 #
 # ⚠️ 중요: 이 스크립트는 직접 실행만 지원합니다 (source 사용 금지)
 # 최상단 cd 명령으로 인해 source 시 호출자의 작업 디렉토리가 변경됩니다
+#
+# Changelog v2.1.2 (2025-11-21):
+# - 🐛 수정: AI 엔진 이름을 메인 스크립트에서 읽도록 개선
+# - run_ai_review가 서브셸에서 실행되므로 main()에서 임시 파일 읽기
+# - 임시 파일 cleanup을 main()으로 이동하여 변수 전파 보장
 #
 # Changelog v2.1.1 (2025-11-21):
 # - 🐛 수정: AI 엔진 이름 전파 개선 (PID 기반 → 고정 파일명)
@@ -243,11 +248,6 @@ run_ai_review() {
     # 1차 시도: Codex
     if review_output=$(try_codex_review "$changes"); then
         log_success "Codex 리뷰 성공!"
-        # AI_ENGINE 읽기
-        if [ -f /tmp/ai_engine_auto_review ]; then
-            AI_ENGINE=$(cat /tmp/ai_engine_auto_review)
-            rm -f /tmp/ai_engine_auto_review
-        fi
         echo "$review_output"
         return 0
     fi
@@ -256,11 +256,6 @@ run_ai_review() {
     log_warning "Codex 실패 → Gemini로 폴백 시도"
     if review_output=$(fallback_to_gemini_review "$changes"); then
         log_success "Gemini 폴백 성공!"
-        # AI_ENGINE 읽기
-        if [ -f /tmp/ai_engine_auto_review ]; then
-            AI_ENGINE=$(cat /tmp/ai_engine_auto_review)
-            rm -f /tmp/ai_engine_auto_review
-        fi
         echo "$review_output"
         return 0
     fi
@@ -368,6 +363,15 @@ main() {
     if ! ai_review=$(run_ai_review "$changes"); then
         log_error "AI 리뷰 실패 (모든 엔진 실패)"
         exit 1
+    fi
+
+    # AI_ENGINE 읽기 (run_ai_review가 서브셸에서 실행되므로 여기서 읽어야 함)
+    if [ -f /tmp/ai_engine_auto_review ]; then
+        AI_ENGINE=$(cat /tmp/ai_engine_auto_review)
+        rm -f /tmp/ai_engine_auto_review
+        log_info "AI 엔진 확인: $AI_ENGINE"
+    else
+        log_warning "AI 엔진 정보 파일을 찾을 수 없음"
     fi
 
     # 리뷰 리포트 생성
