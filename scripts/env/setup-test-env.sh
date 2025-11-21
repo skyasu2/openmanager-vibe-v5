@@ -1,6 +1,34 @@
 #!/bin/bash
 
 # 🧪 MCP 테스트용 환경변수 설정 스크립트
+#
+# **목적**: MCP 서버 테스트를 위한 더미 환경변수 설정
+# **용도**: 실제 API 키 없이 MCP 서버 연결 테스트
+# **주의**: 프로덕션 환경에서는 절대 사용하지 말 것!
+#
+# **사용 시점**:
+# - MCP 서버 초기 설정 시
+# - .env.local 설정 전 테스트
+# - CI/CD 환경에서 더미 값 필요 시
+#
+# **사용 방법**:
+#   1. 현재 터미널에서 실행:
+#      source scripts/env/setup-test-env.sh
+#
+#   2. 또는 서브쉘에서 실행:
+#      ./scripts/env/setup-test-env.sh
+#
+# **주의사항**:
+# - 이 스크립트는 실제 API를 호출할 수 없습니다
+# - 단순 연결 테스트만 가능합니다
+# - 실제 프로젝트에서는 .env.local에 진짜 API 키를 설정해야 합니다
+#
+# **실제 API 키 설정**:
+# - GitHub: https://github.com/settings/tokens
+# - Supabase: https://supabase.com/dashboard/project/_/settings/api
+# - Tavily: https://tavily.com/
+# - Upstash: https://upstash.com/
+#
 # 실제 API 키를 얻기 전 임시로 사용할 더미 값들을 설정합니다
 
 echo "🧪 MCP 테스트용 환경변수 설정 중..."
