@@ -154,6 +154,34 @@ npm run test:fast           # 21초 (44% 개선)
 
 ---
 
+## 🛠️ 핵심 스크립트 (133개 중 17개 사용)
+
+**자동 실행 (5개)** - 매일
+```bash
+.husky/_/husky.sh                      # Git hook (커밋 시 자동)
+scripts/code-review/auto-ai-review.sh  # Codex→Gemini→Claude v3.2.0
+scripts/ai-subagents/codex-wrapper.sh  # Codex CLI wrapper v3.0.0
+scripts/ai-subagents/gemini-wrapper.sh # Gemini CLI wrapper v3.0.0
+scripts/ai-subagents/qwen-wrapper.sh   # Qwen CLI wrapper v3.0.0
+```
+
+**주간 관리 (2개)** - 월요일
+```bash
+scripts/mcp-health-check.sh            # MCP 서버 헬스체크
+scripts/ai-tools-health-check.sh       # AI CLI 도구 확인
+```
+
+**개발 워크플로우 (10개)** - 필요 시
+```bash
+scripts/dev-server-manager.sh          # 개발 서버 관리
+scripts/deploy/git-push-safe.sh        # 안전한 Git Push
+scripts/dev/run-tests.sh               # 테스트 실행
+```
+
+**상세 분석**: `/tmp/script-usage-analysis.md` (133개 전체 분석)
+
+---
+
 ## 🔧 트러블슈팅
 
 **TypeScript 오류**:
