@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Qwen CLI Wrapper - YOLO Mode
-# 버전: 2.5.0
-# 날짜: 2025-10-17 (환경 독립성 개선 - 포터블화)
+# Qwen CLI Wrapper - YOLO Mode + stderr 필터링
+# 버전: 3.0.0
+# 날짜: 2025-11-21 (Codex/Gemini와 동일한 수준의 견고성 확보)
 
 set -euo pipefail
 
@@ -53,14 +53,24 @@ TIMEOUT_SECONDS=600
 execute_qwen() {
     local query="$1"
     
+    # 1인 개발자 환경 컨텍스트 자동 추가 (Codex/Gemini와 동일)
+    local context="**당신의 관점**: 1인 개발자 실용성 - 보수적이되 대기업 운영 관점(kill-switch, watchdog, idle alarm 등) 불필요. ROI 중심 판단."
+    query="$context
+
+$query"
+    
     log_info "⚙️  Qwen YOLO Mode 실행 중 (타임아웃 ${TIMEOUT_SECONDS}초 = 10분)..."
 
     local start_time=$(date +%s)
-    local output_file=$(mktemp)
+    local temp_stdout=$(mktemp)
+    local temp_stderr=$(mktemp)
     local exit_code=0
 
-    # YOLO Mode: 모든 도구 자동 승인, 완전 무인 동작
-    if timeout "${TIMEOUT_SECONDS}s" qwen --approval-mode yolo -p "$query" > "$output_file" 2>&1; then
+    # 함수 종료 시 임시 파일 자동 정리 (인터럽트 포함)
+    trap 'rm -f "$temp_stdout" "$temp_stderr"' RETURN
+
+    # YOLO Mode: 모든 도구 자동 승인, 완전 무인 동작 (stderr 분리)
+    if timeout "${TIMEOUT_SECONDS}s" qwen --approval-mode yolo -p "$query" > "$temp_stdout" 2> "$temp_stderr"; then
         exit_code=0
     else
         exit_code=$?
@@ -69,15 +79,31 @@ execute_qwen() {
     local end_time=$(date +%s)
     local duration=$((end_time - start_time))
 
+    # stderr 필터링 (Qwen은 현재 무해한 에러 없음, 향후 대비)
+    local filtered_errors=$(cat "$temp_stderr" 2>/dev/null || true)
+
     if [ $exit_code -eq 0 ]; then
-        log_success "Qwen 실행 성공 (${duration}초)"
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] MODE: YOLO, DURATION: ${duration}s" >> "$LOG_FILE"
+        local qwen_output=$(cat "$temp_stdout")
 
-        # Auto-logging to Decision Log (Phase 1)
+        # 실제 출력이 있는지 확인 (공백 제거 후)
+        if [ -n "$(echo "$qwen_output" | tr -d '[:space:]')" ]; then
+            log_success "Qwen 실행 성공 (${duration}초)"
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] MODE: YOLO, DURATION: ${duration}s" >> "$LOG_FILE"
 
-        cat "$output_file"
-        rm -f "$output_file"
-        return 0
+            # stderr에 실제 에러가 있으면 경고
+            if [ -n "$filtered_errors" ]; then
+                log_warning "stderr 경고 메시지 발견"
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] STDERR: $filtered_errors" >> "$LOG_FILE"
+            fi
+
+            # Auto-logging to Decision Log (Phase 1)
+
+            echo "$qwen_output"
+            return 0
+        else
+            log_error "Qwen이 빈 응답을 반환했습니다"
+            return 1
+        fi
     elif [ $exit_code -eq 124 ]; then
         log_error "Qwen 타임아웃 (${TIMEOUT_SECONDS}초 = 10분 초과)"
         echo ""
@@ -86,12 +112,16 @@ execute_qwen() {
         echo "  2️⃣  질문을 더 간결하게 만드세요"
         echo "  3️⃣  핵심 부분만 먼저 질문하세요"
         echo ""
-        rm -f "$output_file"
         return 124
     else
         log_error "Qwen 실행 오류 (종료 코드: $exit_code)"
-        cat "$output_file" >&2
-        rm -f "$output_file"
+
+        # stderr가 있으면 출력
+        if [ -s "$temp_stderr" ]; then
+            echo -e "${RED}stderr 내용:${NC}" >&2
+            cat "$temp_stderr" >&2
+        fi
+
         return $exit_code
     fi
 }
@@ -99,7 +129,7 @@ execute_qwen() {
 # 도움말
 usage() {
     cat << EOF
-${CYAN}🟡 Qwen CLI Wrapper v2.5.0 - Claude Code 내부 도구${NC}
+${CYAN}🟡 Qwen CLI Wrapper v3.0.0 - Claude Code 내부 도구${NC}
 
 ${YELLOW}⚠️  이 스크립트는 Claude Code가 제어하는 내부 도구입니다${NC}
 ${YELLOW}   사용자는 직접 실행하지 않고, 서브에이전트를 통해 사용합니다${NC}
@@ -126,9 +156,13 @@ ${RED}   - 신뢰할 수 없는 입력에 사용 금지${NC}
   $0 "복잡한 리팩토링 계획"
   $0 "알고리즘 최적화 방안"
 
-특징 (v2.6.0):
+특징 (v3.0.0):
   🚀 YOLO Mode (--approval-mode yolo) - 완전 무인 동작
   🚨 보안 경고 강화 (읽기 전용 분석에만 안전)
+  ✅ stderr 분리 + 필터링 (향후 대비)
+  ✅ 공백 응답 자동 감지
+  ✅ mktemp + trap (안전한 임시 파일 관리)
+  ✅ 1인 개발자 컨텍스트 자동 추가
   ✅ 환경변수 로딩 표준화 (.env.local)
   ✅ 고정 타임아웃: 600초 (10분)
   ✅ 재시도 없음 (자원 낭비 방지)
@@ -203,7 +237,7 @@ main() {
     fi
 
     echo ""
-    log_info "🚀 Qwen Wrapper v2.5.0 시작"
+    log_info "🚀 Qwen Wrapper v3.0.0 시작"
     echo ""
 
     if execute_qwen "$query"; then

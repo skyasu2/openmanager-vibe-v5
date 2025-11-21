@@ -49,6 +49,8 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 - 코드 리뷰: **Codex → Gemini → Claude Code** (auto-ai-review.sh v3.2.0) 🆕
   - 2:1 비율 선택 (Codex 2회, Gemini 1회)
   - Rate limit 자동 감지 및 폴백
+  - **Wrapper 버전**: Codex v3.0.0, Gemini v3.0.0, Qwen v2.5.0 ✅
+  - **견고성**: stderr 분리 + trap + 공백 감지 (2025-11-21 통일)
   - 최종 폴백: Claude Code 자동 리뷰
   - 리뷰 파일: `review-{AI}-{DATE}-{TIME}.md`
   - 99.9% 가용성 보장 (Codex OR Gemini OR Claude Code)
