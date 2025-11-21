@@ -168,7 +168,7 @@ free -h
 ./scripts/wsl-monitor/wsl-monitor.sh --once
 
 # 응급 복구
-./scripts/emergency-recovery.sh
+./scripts/maintenance/emergency-recovery.sh
 ```
 
 #### AI CLI 도구 연결 실패

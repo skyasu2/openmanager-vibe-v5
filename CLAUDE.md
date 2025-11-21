@@ -173,7 +173,7 @@ scripts/ai-tools-health-check.sh       # AI CLI 도구 확인
 
 **개발 워크플로우 (10개)** - 필요 시
 ```bash
-scripts/dev-server-manager.sh          # 개발 서버 관리
+scripts/dev/dev-server-manager.sh          # 개발 서버 관리
 scripts/deploy/git-push-safe.sh        # 안전한 Git Push
 scripts/dev/run-tests.sh               # 테스트 실행
 ```

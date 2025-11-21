@@ -353,7 +353,7 @@ import { GoogleAIGenerateRequestSchema } from '@/schemas/api.schema';
 ### 자동화 테스트
 ```bash
 # 아키텍처 검증
-./scripts/check-free-tier.sh
+./scripts/monitoring/billing/check-free-tier.sh
 
 결과:
 ✓ Google AI 타임아웃: 8초
@@ -400,6 +400,6 @@ AI 어시스턴트 엔진은 **무료 티어 제한 내에서 적절하게 구�
 
 **작성자**: Kiro AI Assistant  
 **검증 도구**: 
-- `scripts/check-free-tier.sh` - 아키텍처 검증
+- `scripts/monitoring/billing/check-free-tier.sh` - 아키텍처 검증
 - `scripts/test-ai-integration.sh` - 통합 테스트
 - `tests/ai-free-tier-validation.test.ts` - 자동화 테스트

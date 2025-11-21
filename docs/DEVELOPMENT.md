@@ -321,7 +321,7 @@ claude mcp add [server-name] [command]
 ./scripts/wsl-monitor/wsl-monitor.sh --once
 
 # 응급 복구
-./scripts/emergency-recovery.sh
+./scripts/maintenance/emergency-recovery.sh
 
 # 메모리 최적화 확인
 free -h

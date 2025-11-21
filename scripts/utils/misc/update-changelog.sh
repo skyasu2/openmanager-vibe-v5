@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # 설정 로드
-CONFIG_FILE=".claude/changelog.config.sh"
+CONFIG_FILE="scripts/utils/misc/changelog.config.sh"
 if [ -f "$CONFIG_FILE" ]; then
     source "$CONFIG_FILE"
     echo -e "${GREEN}✅ 설정 로드: $CONFIG_FILE${NC}"

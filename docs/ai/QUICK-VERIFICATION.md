@@ -9,7 +9,7 @@
 
 ```bash
 cd /mnt/d/cursor/openmanager-vibe-v5
-./scripts/check-free-tier.sh
+./scripts/monitoring/billing/check-free-tier.sh
 ```
 
 **예상 출력**:

@@ -164,7 +164,7 @@ codex exec "TypeScript strict 모드 에러 해결: [에러 메시지]"
 #### 메모리 부족 문제
 ```bash
 # 긴급 메모리 회수
-./scripts/emergency-recovery.sh
+./scripts/maintenance/emergency-recovery.sh
 
 # 점진적 메모리 최적화
 export NODE_OPTIONS="--max-old-space-size=2048 --gc-interval=50"
@@ -247,7 +247,7 @@ npm run clean
 npm run wsl:stable
 
 # 백업 복구
-./scripts/emergency-recovery.sh
+./scripts/maintenance/emergency-recovery.sh
 ```
 
 ### 2. 메모리 부족 크래시
@@ -476,7 +476,7 @@ npm run build:vercel  # 압축 및 최적화 적용
 ### 성능 최적화 도구
 - `/scripts/wsl-native-dev.sh` - WSL 네이티브 개발 환경
 - `/scripts/wsl-monitor/` - WSL 성능 모니터링 도구
-- `/scripts/emergency-recovery.sh` - 응급 복구 도구
+- `/scripts/maintenance/emergency-recovery.sh` - 응급 복구 도구
 - `/scripts/dev-safe.sh` - AI 교차검증 기반 포트 관리
 
 ### 성능 측정 스크립트

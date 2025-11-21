@@ -160,7 +160,7 @@ class SimplifiedQueryEngine {
 
 ### 1. 아키텍처 검증 스크립트
 ```bash
-./scripts/check-free-tier.sh
+./scripts/monitoring/billing/check-free-tier.sh
 ```
 
 **결과**:

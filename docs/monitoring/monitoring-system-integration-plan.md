@@ -7,7 +7,7 @@ WSL 환경에서 중복된 모니터링 도구들을 통합하여 효율적이�
 
 ### ✅ 유지할 도구들 (정상 작동 중)
 - `scripts/wsl-monitor/wsl-monitor.sh` - WSL 시스템 리소스 모니터링
-- `scripts/emergency-recovery.sh` - WSL 응급 복구 도구
+- `scripts/maintenance/emergency-recovery.sh` - WSL 응급 복구 도구
 - `scripts/memory-monitor.ts` - Node.js 메모리 모니터링
 - `scripts/dev/project-health-monitor.ts` - 프로젝트 건강도 검사
 
