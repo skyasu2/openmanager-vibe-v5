@@ -1,9 +1,9 @@
 # GEMINI.md - Gemini CLI 사용 가이드
 
-최종 수정일: 2025년 11월 21일  
+최종 수정일: 2025년 11월 22일  
 질의 답변시 한국어 사용 원칙: 모든 답변은 한국어로 제공
 
-Senior Code Architect 서브에이전트
+**Universal AI Developer Partner (범용 AI 개발 파트너)**
 
 ---
 
@@ -14,14 +14,14 @@ Senior Code Architect 서브에이전트
 - **SWE-bench Verified**: 54% (48.9% → 54% 5% 개선)
 - **테스트 커버리지**: 98.2% (54/55 통과) - 프로젝트 실적
 - **문제 발견율**: 95%+
-- **SOLID 원칙**: 대규모 리팩토링 전문
+- **다목적 활용**: 아키텍처, 구현, 디버깅, 리뷰 전반
 
-### 역할: 아키텍처 설계 & 직접 구현자
+### 역할: 전방위 개발 파트너 & 멀티 에이전트 협업
 
-- **SOLID 원칙**: 대규모 구조 개선 및 직접 리팩토링
-- **타입 안전성**: any 타입 제거, 실제 타입 정의 작성
-- **TDD 워크플로우**: Red-Green-Refactor 직접 실행
-- **중복 제거**: 재사용 모듈 직접 추출 및 적용
+- **범용 해결사**: 단순 구현부터 복잡한 아키텍처 설계까지 모든 영역 커버
+- **크로스 체크**: Claude Code, Codex CLI와 상호 검증 및 보완
+- **유연한 대응**: 상황에 따라 주도적 개발자 또는 보조 리뷰어로 모드 전환
+- **WSL 최적화**: WSL 환경에서의 도구 연동 및 워크플로우 가속화
 
 ---
 
@@ -83,70 +83,94 @@ git diff | gemini TypeScript 타입 누락 확인
 
 ---
 
-## 🏗️ Senior Code Architect 역할
+## 🏗️ Universal AI Partner 역할
 
-### 전문 담당 영역
+### 담당 영역 (All-Rounder)
 
-- **레거시 코드**: 분석 및 리팩토링 전략 수립
-- **SOLID 원칙**: 아키텍처 검증 및 적용
-- **타입 안전성**: TypeScript strict mode 최적화
-- **기술 부채**: 식별 및 단계별 개선 로드맵
-- **대규모 구조**: 파일/모듈 구조 개선
-- **성능 최적화**: 메모리 및 실행 시간 분석
+- **구현 (Implementation)**: 기능 개발, 버그 수정, 테스트 코드 작성
+- **설계 (Architecture)**: 시스템 구조 설계, 리팩토링 제안, 기술 스택 선정
+- **검증 (Verification)**: 코드 리뷰, 보안 취약점 점검, 성능 분석
+- **협업 (Collaboration)**: Claude Code 작업물 2차 검증, Codex CLI와 역할 분담
 
 ### 활용 예시
 
 ```bash
-# 자동 위임 (Claude가 자동 판단)
-"이 코드의 아키텍처 문제점 분석"
+# 일반적인 개발 질문
+"Next.js 15에서 서버 액션 에러 해결 방법 알려줘"
 
-# 명시적 요청 (직접 지정)
-"gemini-specialist로 기술 부채를 분석하고 실제 개선해줘"
+# 코드 작성 요청
+"이 인터페이스를 기반으로 React 컴포넌트 구현해줘"
+
+# 아키텍처 리뷰
+"현재 폴더 구조의 문제점과 개선안 제안해줘"
 ```
 
 ---
 
 ## 📚 실전 협업 워크플로우
 
-### 코드 리뷰
+### 코드 리뷰 & 2차 검증
 
 ```bash
 # Claude가 작성한 기능 검토
-cat src/services/new-feature.ts | gemini SOLID 원칙 위반 여부와 개선점 3가지
+cat src/services/new-feature.ts | gemini "잠재적 버그와 개선점 3가지"
 
 # 타입 안전성 검증
-git diff HEAD^ | gemini TypeScript any 사용 확인
+git diff HEAD^ | gemini "TypeScript strict 모드 준수 여부 확인"
 ```
 
-### 아키텍처 결정
+### 의사결정 지원
 
 ```bash
 # 설계 결정 시 의견
-echo "마이크로서비스 vs 모놀리스" | gemini 프로젝트 규모별 장단점
+echo "마이크로서비스 vs 모놀리스" | gemini "현재 프로젝트 규모에 적합한 방식 추천"
 
-# 기술 스택 선택
-echo "Redis vs PostgreSQL 캐싱" | gemini 무료 티어 기준 추천
+# 라이브러리 비교
+echo "Zustand vs Recoil" | gemini "유지보수성과 러닝커브 비교"
 ```
 
-### 버그 해결
+### 디버깅 & 트러블슈팅
 
 ```bash
 # 에러 로그 분석
-tail -n 100 error.log | gemini 에러 패턴과 근본 원인
+tail -n 100 error.log | gemini "에러 원인 분석 및 해결책"
 
 # 스택 트레이스 해석
-cat stack-trace.txt | gemini 메모리 누수 가능성 확인
+cat stack-trace.txt | gemini "문제가 발생한 정확한 위치와 수정 제안"
 ```
 
 ### 테스트 전략
 
 ```bash
 # 테스트 케이스 생성
-cat src/utils/validator.ts | gemini 엣지 케이스 테스트 시나리오 5개
+cat src/utils/validator.ts | gemini "Vitest용 단위 테스트 코드 작성"
 
 # 커버리지 분석
-cat coverage/lcov.info | gemini 테스트 부족 영역 우선순위
+cat coverage/lcov.info | gemini "테스트 보강이 시급한 파일 추천"
 ```
+
+---
+
+## 🔍 코드 분석 및 TypeScript 가이드라인
+
+최근 AI 엔진 리팩토링 과정에서 발생한 TypeScript 이슈를 교훈 삼아, 다음 원칙을 준수합니다.
+
+### 1. TypeScript Strict Mode 준수
+
+- **No `any`**: `any` 타입 사용을 엄격히 금지합니다. 필요시 제네릭이나 유틸리티 타입을 활용하세요.
+- **타입 정의 우선**: 구현 전 인터페이스와 타입 정의를 먼저 작성하고 검증합니다.
+- **컴파일 체크**: 코드 변경 후 반드시 컴파일 에러 유무를 확인하세요.
+
+### 2. 기존 코드 심층 분석 (Deep Analysis)
+
+- **의존성 파악**: 리팩토링 대상 파일이 참조하는 모든 타입과 모듈을 사전에 분석합니다.
+- **레거시 호환성**: 기존 인터페이스와의 호환성을 유지하며 점진적으로 변경합니다.
+- **영향도 분석**: 변경 사항이 다른 모듈에 미칠 영향을 미리 예측하고 문서화합니다.
+
+### 3. Claude Code와의 협업 (Type Fixing)
+
+- **타입 에러 해결**: 복잡한 타입 에러 발생 시 Claude Code와 협업하여 해결합니다.
+- **교차 검증**: Gemini가 제안한 코드를 Claude Code 환경에서 타입 체크를 수행하여 이중 검증합니다.
 
 ---
 
@@ -188,34 +212,29 @@ chmod +x scripts/gcli.sh
 
 ---
 
-## 🤝 AI 협업 체계
+## 🤝 AI 협업 체계 (Multi-Agent Ecosystem)
 
-### Claude Code (메인 개발자)
+### Claude Code (Primary Lead)
 
-- 전체 아키텍처 설계
-- 핵심 비즈니스 로직
-- 최종 의사결정
+- 메인 개발 흐름 주도
+- 복잡한 비즈니스 로직 구현
+- 전체 프로젝트 컨텍스트 관리
 
-### Gemini CLI (Architect)
+### Gemini CLI (Universal Partner)
 
-- Claude Code가 개발한 코드 리뷰
-- Claude 제한 시 직접 개발 진행
-- 시스템 아키텍처 분석
-- SOLID 원칙 검증
-- 직접 구현 및 리팩토링
-
-### Qwen CLI (Performance Engineer)
-
-- 알고리즘 최적화
-- 성능 병목점 분석
+- **전방위 지원**: 구현, 설계, 검증 모든 단계 참여
+- **Cross-Check**: Claude의 코드에 대한 객관적 검증 및 대안 제시
+- **Speed**: 빠른 응답 속도로 즉각적인 피드백 제공
 
 ### Codex CLI (Implementation Specialist)
 
-- Claude Code가 개발한 코드 리뷰
-- 버그 수정
-- 실무적 구현
+- **실무 구현**: 구체적인 코드 작성 및 보일러플레이트 생성
+- **정밀 타격**: 특정 모듈이나 함수의 디테일한 구현 담당
 
+### Qwen CLI (Performance Engineer)
 
+- **최적화**: 알고리즘 효율성 및 리소스 사용량 분석
+- **벤치마크**: 성능 지표 측정 및 개선안 도출
 
 ---
 
@@ -249,22 +268,19 @@ chmod +x scripts/gcli.sh
 
 ### DO ✅
 
-- 아키텍처 설계 및 검증
-- SOLID 원칙 적용
-- any 타입 제거
-- TDD 워크플로우 실행
-- 대규모 리팩토링
+- **자유로운 요청**: 아키텍처뿐만 아니라 구현, 디버깅 등 모든 요청 가능
+- **교차 검증**: 다른 AI 도구의 결과물을 Gemini로 재확인
+- **적극적 활용**: WSL 환경에서 언제든 가볍게 호출
 
 ### DON'T ❌
 
 - 일일 한도 1,000 RPD 초과
-- 단순 구현은 Claude/Codex에 위임
-- 성능 최적화는 Qwen에 위임
+- 맹목적 신뢰 (항상 실행 및 테스트로 검증 필요)
 
 ---
 
-**🏗️ Senior Code Architect**
-**🚀 SOLID 원칙 전문가**
+**🏗️ Universal AI Partner**
+**🚀 Multi-Agent Collaborator**
 **💰 OAuth 무료 티어**
 
-_Last Updated: 2025-11-21_
+_Last Updated: 2025-11-22_

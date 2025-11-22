@@ -8,7 +8,7 @@
  * - 동적 임계값 조정 및 학습
  */
 
-import type { GoogleAIModel } from './QueryDifficultyAnalyzer';
+import type { GoogleAIModel } from './SimplifiedQueryEngine.types';
 import { GOOGLE_AI_MODEL_LIMITS } from '../../config/google-ai-usage-limits';
 
 // 사용량 추적 데이터 구조

@@ -331,7 +331,7 @@ export default function FeatureCardModal({
         </h3>
         <p className="mx-auto max-w-2xl text-sm text-gray-300">
           {cardData.id === 'cursor-ai' && isHistoryView
-            ? '바이브 코딩의 3단계 발전 과정을 시간 순서대로 보여줍니다. 초기(ChatGPT 개별 페이지) → 중기(Cursor + Vercel + Supabase) → 후기(Claude Code + WSL + 멀티 AI CLI)로 진화한 개발 도구들의 역사를 확인할 수 있습니다.'
+            ? '바이브 코딩의 4단계 발전 과정을 시간 순서대로 보여줍니다. 초기(ChatGPT 개별 페이지) → 중기(Cursor + Vercel + Supabase) → 후기(Claude Code + WSL + 멀티 AI CLI) → 현재(Claude Code v2.0+ + MCP 완전 통합)로 진화한 개발 도구들의 역사를 확인할 수 있습니다.'
             : sanitizeText(detailedContent.overview)}
         </p>
       </div>
@@ -452,7 +452,7 @@ export default function FeatureCardModal({
                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-500/20 text-sm font-bold text-purple-300">
                   3
                 </div>
-                후기 단계 (2025.07~현재)
+                후기 단계 (2025.07~10)
                 <span className="rounded-full bg-purple-500/20 px-3 py-1 text-sm text-purple-300">
                   {vibeHistoryStages.stage3?.length || 0}개 도구
                 </span>

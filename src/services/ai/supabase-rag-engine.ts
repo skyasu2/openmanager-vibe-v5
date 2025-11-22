@@ -8,9 +8,7 @@
  * ✅ MCP 컨텍스트 통합
  */
 
-import { CloudContextLoader } from '../mcp/CloudContextLoader';
-import type { RAGEngineContext } from '../mcp/CloudContextLoader.types';
-import type { AIMetadata, MCPContext } from '../../types/ai-service-types';
+import type { AIMetadata } from '../../types/ai-service-types';
 import { embeddingService } from './embedding-service';
 import { PostgresVectorDB } from './postgres-vector-db';
 
@@ -31,7 +29,6 @@ interface RAGSearchOptions {
   threshold?: number;
   category?: string;
   includeContext?: boolean;
-  enableMCP?: boolean;
   cached?: boolean;
   enableKeywordFallback?: boolean; // 키워드 기반 fallback 활성화
   useLocalEmbeddings?: boolean; // 로컬 임베딩 강제 사용
@@ -50,7 +47,6 @@ export interface RAGEngineSearchResult {
   processingTime: number;
   cached: boolean;
   error?: string;
-  mcpContext?: MCPContext;
   metadata?: {
     processingTime?: number;
   };
@@ -169,15 +165,7 @@ function convertAIMetadataToDocumentMetadata(
   return docMeta;
 }
 
-interface MCPFile {
-  path: string;
-  content: string;
-}
-
-interface MCPContextData {
-  files: MCPFile[];
-  [key: string]: unknown;
-}
+// MCP 관련 인터페이스 제거됨 (GCP VM 서버 사용 중단)
 
 // 메모리 기반 RAG 캐시 클래스
 class MemoryRAGCache {
@@ -345,7 +333,6 @@ class MemoryRAGCache {
 
 export class SupabaseRAGEngine {
   private vectorDB: PostgresVectorDB;
-  private contextLoader: CloudContextLoader;
   private memoryCache: MemoryRAGCache;
   private isInitialized = false;
   private cleanupTimer: NodeJS.Timeout | null = null;
@@ -355,7 +342,6 @@ export class SupabaseRAGEngine {
 
   constructor() {
     this.vectorDB = new PostgresVectorDB();
-    this.contextLoader = CloudContextLoader.getInstance();
     this.memoryCache = new MemoryRAGCache();
 
     // 주기적 정리 (5분마다)
@@ -392,8 +378,8 @@ export class SupabaseRAGEngine {
       console.log('✅ Supabase RAG 엔진 초기화 완료 (Memory-based)');
     } catch (error) {
       console.error('❌ RAG 엔진 초기화 실패:', error);
-      // 초기화 실패해도 계속 진행
-      this.isInitialized = true;
+      // 초기화 실패 시 재시도 가능하도록 false 유지
+      this.isInitialized = false;
     }
   }
 
@@ -411,7 +397,7 @@ export class SupabaseRAGEngine {
 
     try {
       await this._initialize();
-      
+
       // 쿼리에서 키워드 추출
       const keywords = this.extractKeywords(query);
       if (keywords.length === 0) {
@@ -442,37 +428,168 @@ export class SupabaseRAGEngine {
   private extractKeywords(query: string): string[] {
     // 한국어와 영어 키워드 추출
     const normalizedQuery = query.toLowerCase().trim();
-    
+
     // 불용어 제거
     const stopWords = new Set([
       // 영어 불용어
-      'the', 'is', 'at', 'which', 'on', 'and', 'or', 'but', 'in', 'with', 'a', 'an',
-      'as', 'are', 'was', 'were', 'been', 'be', 'have', 'has', 'had', 'do', 'does', 'did',
-      'will', 'would', 'should', 'could', 'can', 'may', 'might', 'must', 'shall',
-      'to', 'of', 'for', 'by', 'from', 'up', 'about', 'into', 'through', 'during',
-      'before', 'after', 'above', 'below', 'between', 'among', 'this', 'that', 'these', 'those',
-      'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours',
-      'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', 'her', 'hers',
-      'herself', 'it', 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves',
-      
+      'the',
+      'is',
+      'at',
+      'which',
+      'on',
+      'and',
+      'or',
+      'but',
+      'in',
+      'with',
+      'a',
+      'an',
+      'as',
+      'are',
+      'was',
+      'were',
+      'been',
+      'be',
+      'have',
+      'has',
+      'had',
+      'do',
+      'does',
+      'did',
+      'will',
+      'would',
+      'should',
+      'could',
+      'can',
+      'may',
+      'might',
+      'must',
+      'shall',
+      'to',
+      'of',
+      'for',
+      'by',
+      'from',
+      'up',
+      'about',
+      'into',
+      'through',
+      'during',
+      'before',
+      'after',
+      'above',
+      'below',
+      'between',
+      'among',
+      'this',
+      'that',
+      'these',
+      'those',
+      'i',
+      'me',
+      'my',
+      'myself',
+      'we',
+      'our',
+      'ours',
+      'ourselves',
+      'you',
+      'your',
+      'yours',
+      'yourself',
+      'yourselves',
+      'he',
+      'him',
+      'his',
+      'himself',
+      'she',
+      'her',
+      'hers',
+      'herself',
+      'it',
+      'its',
+      'itself',
+      'they',
+      'them',
+      'their',
+      'theirs',
+      'themselves',
+
       // 한국어 불용어
-      '이', '그', '저', '의', '가', '이가', '에서', '으로', '로', '에', '과', '와', '을', '를',
-      '은', '는', '도', '만', '까지', '부터', '에게', '에게서', '한테', '한테서', '께', '께서',
-      '이다', '있다', '없다', '하다', '되다', '같다', '다르다', '크다', '작다', '많다', '적다',
-      '좋다', '나쁘다', '새롭다', '오래되다', '높다', '낮다', '빠르다', '느리다',
-      '그리고', '하지만', '그러나', '또한', '그래서', '따라서', '그런데', '또는', '혹은',
-      '어떤', '무엇', '누구', '어디', '언제', '왜', '어떻게', '얼마나',
+      '이',
+      '그',
+      '저',
+      '의',
+      '가',
+      '이가',
+      '에서',
+      '으로',
+      '로',
+      '에',
+      '과',
+      '와',
+      '을',
+      '를',
+      '은',
+      '는',
+      '도',
+      '만',
+      '까지',
+      '부터',
+      '에게',
+      '에게서',
+      '한테',
+      '한테서',
+      '께',
+      '께서',
+      '이다',
+      '있다',
+      '없다',
+      '하다',
+      '되다',
+      '같다',
+      '다르다',
+      '크다',
+      '작다',
+      '많다',
+      '적다',
+      '좋다',
+      '나쁘다',
+      '새롭다',
+      '오래되다',
+      '높다',
+      '낮다',
+      '빠르다',
+      '느리다',
+      '그리고',
+      '하지만',
+      '그러나',
+      '또한',
+      '그래서',
+      '따라서',
+      '그런데',
+      '또는',
+      '혹은',
+      '어떤',
+      '무엇',
+      '누구',
+      '어디',
+      '언제',
+      '왜',
+      '어떻게',
+      '얼마나',
     ]);
 
     // 단어 분리 및 정제
     const words = normalizedQuery
       .replace(/[^\w\s가-힣]/g, ' ') // 특수문자 제거
       .split(/\s+/)
-      .filter(word => 
-        word.length > 1 && // 1글자 이상
-        word.length < 20 && // 20글자 미만
-        !stopWords.has(word) && // 불용어 제외
-        !/^\d+$/.test(word) // 순수 숫자 제외
+      .filter(
+        (word) =>
+          word.length > 1 && // 1글자 이상
+          word.length < 20 && // 20글자 미만
+          !stopWords.has(word) && // 불용어 제외
+          !/^\d+$/.test(word) // 순수 숫자 제외
       )
       .slice(0, 10); // 최대 10개 키워드
 
@@ -487,10 +604,10 @@ export class SupabaseRAGEngine {
     options: RAGSearchOptions = {}
   ): Promise<RAGEngineSearchResult> {
     const startTime = Date.now();
-    
+
     try {
       const { maxResults = 5, enableKeywordFallback = true } = options;
-      
+
       // 1차: 벡터 검색 시도
       const vectorResults = await this.searchSimilar(query, {
         ...options,
@@ -498,7 +615,10 @@ export class SupabaseRAGEngine {
       });
 
       // 벡터 검색 결과가 충분하면 반환
-      if (vectorResults.success && vectorResults.results.length >= Math.ceil(maxResults / 2)) {
+      if (
+        vectorResults.success &&
+        vectorResults.results.length >= Math.ceil(maxResults / 2)
+      ) {
         return vectorResults;
       }
 
@@ -511,10 +631,13 @@ export class SupabaseRAGEngine {
 
         // 결과 합성 (중복 제거)
         const combinedResults = [...vectorResults.results];
-        const existingIds = new Set(vectorResults.results.map(r => r.id));
+        const existingIds = new Set(vectorResults.results.map((r) => r.id));
 
         for (const keywordResult of keywordResults) {
-          if (!existingIds.has(keywordResult.id) && combinedResults.length < maxResults) {
+          if (
+            !existingIds.has(keywordResult.id) &&
+            combinedResults.length < maxResults
+          ) {
             combinedResults.push(keywordResult);
           }
         }
@@ -526,7 +649,6 @@ export class SupabaseRAGEngine {
           processingTime: Date.now() - startTime,
           cached: false,
           context: vectorResults.context,
-          mcpContext: vectorResults.mcpContext,
         };
       }
 
@@ -572,7 +694,6 @@ export class SupabaseRAGEngine {
         threshold = 0.5,
         category,
         includeContext = true,
-        enableMCP = false,
         cached = true,
       } = options;
 
@@ -590,7 +711,10 @@ export class SupabaseRAGEngine {
       }
 
       // 1. 쿼리 임베딩 생성 (로컬 임베딩 옵션 전달)
-      const queryEmbedding = await this.generateEmbedding(query, options.useLocalEmbeddings);
+      const queryEmbedding = await this.generateEmbedding(
+        query,
+        options.useLocalEmbeddings
+      );
       if (!queryEmbedding) {
         throw new Error('임베딩 생성 실패');
       }
@@ -613,22 +737,12 @@ export class SupabaseRAGEngine {
           };
         }
 
-        // 3. MCP 컨텍스트 수집 (옵션)
-        let mcpContext = null;
-        if (enableMCP) {
-          mcpContext = await this.contextLoader.queryMCPContextForRAG(query, {
-            maxFiles: 5,
-            includeSystemContext: true,
-          });
-        }
+        // MCP 컨텍스트 수집 제거됨 (GCP VM 서버 사용 중단)
 
         // 4. 컨텍스트 생성
         let context = '';
         if (includeContext) {
-          context = this.buildContext(
-            searchResults,
-            mcpContext as unknown as MCPContextData | undefined
-          );
+          context = this.buildContext(searchResults);
         }
 
         const result: RAGEngineSearchResult = {
@@ -643,7 +757,6 @@ export class SupabaseRAGEngine {
           totalResults: searchResults.length,
           processingTime: Date.now() - startTime,
           cached: false,
-          mcpContext: mcpContext ? this.convertRAGContextToMCPContext(mcpContext) : undefined,
         };
 
         // 메모리 캐시 저장
@@ -683,7 +796,10 @@ export class SupabaseRAGEngine {
   /**
    * 🧠 임베딩 생성 (로컬/클라우드 모드 지원)
    */
-  async generateEmbedding(text: string, useLocalEmbeddings?: boolean): Promise<number[] | null> {
+  async generateEmbedding(
+    text: string,
+    useLocalEmbeddings?: boolean
+  ): Promise<number[] | null> {
     // 메모리 캐시 확인 (로컬/클라우드 구분)
     const cacheKey = `embed:${useLocalEmbeddings ? 'local:' : 'cloud:'}${text}`;
     const cached = this.memoryCache.getEmbedding(cacheKey);
@@ -770,12 +886,11 @@ export class SupabaseRAGEngine {
       );
 
       // 임베딩이 성공한 문서들만 처리
-    const validDocuments = documents
-      .map((doc, i) => ({ ...doc, embedding: embeddings[i] }))
-      .filter(
-        (doc): doc is typeof doc & { embedding: number[] } =>
+      const validDocuments = documents
+        .map((doc, i) => ({ ...doc, embedding: embeddings[i] }))
+        .filter((doc): doc is typeof doc & { embedding: number[] } =>
           Array.isArray(doc.embedding)
-      );
+        );
 
       if (validDocuments.length === 0) {
         return { success: 0, failed: documents.length };
@@ -825,8 +940,7 @@ export class SupabaseRAGEngine {
       content: string;
       similarity: number;
       metadata?: AIMetadata | DocumentMetadata;
-    }>,
-    mcpContext?: MCPContextData
+    }>
   ): string {
     let context = '관련 정보:\n\n';
 
@@ -839,14 +953,7 @@ export class SupabaseRAGEngine {
       context += `   유사도: ${((result.similarity || 0) * 100).toFixed(1)}%\n\n`;
     });
 
-    // MCP 컨텍스트 추가
-    if (mcpContext && mcpContext.files && mcpContext.files.length > 0) {
-      context += '\n추가 컨텍스트 (MCP):\n\n';
-      mcpContext.files.forEach((file) => {
-        context += `파일: ${file.path}\n`;
-        context += `${file.content.substring(0, 200)}...\n\n`;
-      });
-    }
+    // MCP 컨텍스트 제거됨 (GCP VM 서버 사용 중단)
 
     return context;
   }
@@ -968,22 +1075,7 @@ export class SupabaseRAGEngine {
   /**
    * RAGEngineContext를 MCPContext로 변환
    */
-  private convertRAGContextToMCPContext(ragContext: RAGEngineContext): MCPContext {
-    return {
-      files: ragContext.files.map(file => ({
-        path: file.path,
-        content: file.content,
-        language: file.path.split('.').pop(),
-        size: file.content.length
-      })),
-      systemContext: JSON.stringify(ragContext.systemContext),
-      additionalContext: {
-        query: ragContext.query,
-        contextType: ragContext.contextType,
-        relevantPaths: ragContext.relevantPaths
-      }
-    };
-  }
+  // convertRAGContextToMCPContext 메서드 제거됨 (GCP VM 서버 사용 중단)
 }
 
 // 싱글톤 인스턴스

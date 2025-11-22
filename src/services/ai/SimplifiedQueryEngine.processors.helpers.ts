@@ -13,7 +13,6 @@ import { MockContextLoader } from './MockContextLoader';
 import { unifiedMetricsService } from './UnifiedMetricsService';
 import type {
   AIQueryContext,
-  MCPContext,
   AIMetadata,
   ServerArray,
 } from '../../types/ai-service-types';
@@ -99,7 +98,6 @@ export class SimplifiedQueryEngineHelpers {
         metadata?: AIMetadata;
       }>;
     },
-    mcpContext: MCPContext | null,
     userContext: AIQueryContext | undefined
   ): Promise<string> {
     const lowerQuery = query.toLowerCase();
@@ -175,13 +173,7 @@ export class SimplifiedQueryEngineHelpers {
       });
     }
 
-    // MCP 컨텍스트가 있으면 추가
-    if (mcpContext && mcpContext.files.length > 0) {
-      response += '\n\n프로젝트 파일 참고:\n';
-      mcpContext.files.slice(0, 2).forEach((file) => {
-        response += `- ${file.path}\n`;
-      });
-    }
+    // MCP 컨텍스트 제거됨 (GCP VM 서버 사용 중단)
 
     // Mock 모드 안내 추가
     if (mockContext) {
@@ -302,7 +294,6 @@ export class SimplifiedQueryEngineHelpers {
   buildGoogleAIPrompt(
     query: string,
     context: AIQueryContext | undefined,
-    mcpContext: MCPContext | null,
     ragResult: {
       results: Array<{
         id: string;
@@ -343,15 +334,7 @@ export class SimplifiedQueryEngineHelpers {
       prompt += `${unifiedInsights}\n\n`;
     }
 
-    // MCP 컨텍스트 추가
-    if (mcpContext && mcpContext.files.length > 0) {
-      prompt += '관련 파일 내용:\n';
-      mcpContext.files.forEach((file) => {
-        prompt += `\n파일: ${file.path}\n`;
-        prompt += `${file.content.substring(0, 500)}...\n`;
-      });
-      prompt += '\n';
-    }
+    // MCP 컨텍스트 제거됨 (GCP VM 서버 사용 중단)
 
     prompt += '위 정보를 바탕으로 사용자의 질문에 답변해주세요.';
 

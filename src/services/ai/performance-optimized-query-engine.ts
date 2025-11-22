@@ -18,7 +18,6 @@ import { getQueryCacheManager } from './query-cache-manager';
 import { getVectorSearchOptimizer } from './vector-search-optimizer';
 import { aiLogger } from '../../lib/logger';
 import type {
-  MCPContext,
   AIQueryContext,
   AIQueryOptions,
 } from '../../types/ai-service-types';
@@ -222,12 +221,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     // 병렬로 실행할 작업들 준비
     const tasks: Promise<unknown>[] = [];
 
-    // 1. MCP 컨텍스트 수집 (필요한 경우)
-    let mcpContextPromise: Promise<unknown> | null = null;
-    if (options?.includeMCPContext) {
-      mcpContextPromise = this.loadMCPContextAsync(query);
-      tasks.push(mcpContextPromise);
-    }
+    // MCP 컨텍스트 제거됨 (GCP VM 서버 사용 중단)
 
     // 2. 임베딩 생성 (로컬 모드용)
     let embeddingPromise: Promise<number[]> | null = null;
@@ -240,11 +234,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     const taskResults = await Promise.allSettled(tasks);
 
     // 4. 결과 처리
-    const mcpContext = mcpContextPromise !== null && mcpContextPromise !== undefined
-      ? taskResults[0]?.status === 'fulfilled'
-        ? (taskResults[0]).value
-        : null
-      : null;
+    // MCP 컨텍스트 제거됨 (GCP VM 서버 사용 중단)
 
     if (mode === 'local') {
       const embeddingResult =
@@ -259,7 +249,6 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
         query,
         context,
         options || {},
-        mcpContext,
         embedding,
         startTime
       );
@@ -268,7 +257,6 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
         query,
         context,
         options || {},
-        mcpContext,
         startTime
       );
     }
@@ -296,10 +284,9 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     }
 
     // 2. 유사한 쿼리 패턴 확인
-    for (const [
-      preloadedQuery,
-      embedding,
-    ] of Array.from(this.preloadedEmbeddings.entries())) {
+    for (const [preloadedQuery, embedding] of Array.from(
+      this.preloadedEmbeddings.entries()
+    )) {
       const similarity = this.calculateQuerySimilarity(query, preloadedQuery);
       if (similarity > 0.8) {
         aiLogger.debug('유사 쿼리 임베딩 재사용', {
@@ -326,27 +313,15 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     const words1 = new Set(query1.toLowerCase().split(/\s+/));
     const words2 = new Set(query2.toLowerCase().split(/\s+/));
 
-    const intersection = new Set(Array.from(words1).filter((x) => words2.has(x)));
+    const intersection = new Set(
+      Array.from(words1).filter((x) => words2.has(x))
+    );
     const union = new Set([...Array.from(words1), ...Array.from(words2)]);
 
     return intersection.size / union.size;
   }
 
-  /**
-   * 🔄 MCP 컨텍스트 비동기 로딩
-   */
-  private async loadMCPContextAsync(query: string): Promise<unknown> {
-    try {
-      const contextLoader = this.contextLoader;
-      return await contextLoader.queryMCPContextForRAG(query, {
-        maxFiles: 3, // 성능을 위해 파일 수 제한
-        includeSystemContext: false, // 필수 정보만
-      });
-    } catch (error) {
-      aiLogger.warn('MCP 컨텍스트 로딩 실패', error);
-      return null;
-    }
-  }
+  // MCP 컨텍스트 로딩 제거됨 (GCP VM 서버 사용 중단)
 
   /**
    * 🏠 최적화된 로컬 쿼리 처리
@@ -355,7 +330,6 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     query: string,
     context: unknown,
     options: AIQueryOptions,
-    mcpContext: unknown,
     embedding: number[] | undefined,
     startTime: number
   ): Promise<QueryResponse> {
@@ -370,14 +344,12 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
         threshold: 0.6, // 임계값 상향 조정
         category:
           typeof options?.category === 'string' ? options.category : undefined,
-        enableMCP: false,
         cached: true,
       });
 
       const response = this.generateLocalResponse(
         query,
         ragResult,
-        mcpContext as MCPContext | null,
         context as AIQueryContext | undefined
       );
 
@@ -390,7 +362,6 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
         metadata: {
           ragResults: ragResult.totalResults,
           cached: ragResult.cached,
-          mcpUsed: !!mcpContext,
           optimized: true,
           parallelProcessed: true,
         },
@@ -410,7 +381,6 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     query: string,
     context: unknown,
     options: AIQueryOptions,
-    mcpContext: unknown,
     startTime: number
   ): Promise<QueryResponse> {
     // Google AI access restricted - only available through AI Assistant
@@ -419,7 +389,6 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
       query,
       context,
       options,
-      mcpContext,
       undefined,
       startTime
     );
@@ -615,7 +584,6 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
   private generateLocalResponse(
     query: string,
     ragResult: RAGResult | null,
-    mcpContext: MCPContext | null,
     _context?: AIQueryContext
   ): string {
     try {
@@ -627,10 +595,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
         }
       }
 
-      // MCP 컨텍스트가 있으면 활용
-      if (mcpContext) {
-        return `MCP 컨텍스트를 활용한 답변: ${query}에 대한 정보를 시스템에서 찾을 수 있습니다.`;
-      }
+      // MCP 컨텍스트 제거됨 (GCP VM 서버 사용 중단)
 
       // 기본 응답
       return `${query}에 대한 기본 정보를 제공합니다. 더 구체적인 정보가 필요하시면 자세히 설명해주세요.`;
@@ -670,11 +635,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
   /**
    * 🌐 Google AI 프롬프트 구성
    */
-  private buildGoogleAIPrompt(
-    query: string,
-    context?: AIQueryContext,
-    mcpContext?: MCPContext | null
-  ): string {
+  private buildGoogleAIPrompt(query: string, context?: AIQueryContext): string {
     try {
       let prompt = `사용자 질문: ${query}\n\n`;
 
@@ -689,12 +650,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
         prompt += '\n';
       }
 
-      // MCP 컨텍스트 추가
-      if (mcpContext) {
-        prompt += `시스템 컨텍스트:\n`;
-        prompt += `- MCP 연결 상태: 활성화\n`;
-        prompt += `- 사용 가능한 도구들이 있습니다.\n\n`;
-      }
+      // MCP 컨텍스트 제거됨 (GCP VM 서버 사용 중단)
 
       prompt += `다음 지침을 따라 응답해주세요:
 1. 한국어로 명확하고 도움이 되는 답변을 제공하세요.
@@ -717,7 +673,6 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
     engines: {
       localRAG: boolean;
       googleAI: boolean;
-      mcp: boolean;
     };
   }> {
     try {
@@ -739,7 +694,6 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
         engines: {
           localRAG: baseHealth.engines.localRAG && this.isInitialized,
           googleAI: baseHealth.engines.googleAI,
-          mcp: baseHealth.engines.mcp,
         },
       };
     } catch {
@@ -748,7 +702,6 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
         engines: {
           localRAG: false,
           googleAI: false,
-          mcp: false,
         },
       };
     }

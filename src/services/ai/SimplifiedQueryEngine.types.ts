@@ -12,7 +12,13 @@ import type {
   AIMetadata,
 } from '../../types/ai-service-types';
 import type { AIMode } from '../../types/ai-types';
-import type { EnhancedServerMetrics } from '@/types/server';
+import type { EnhancedServerMetrics } from '../../types/server';
+
+// 구글 AI 모델 정의 (성능 순)
+export type GoogleAIModel =
+  | 'gemini-2.5-flash-lite'
+  | 'gemini-2.5-flash'
+  | 'gemini-2.5-pro';
 
 export interface QueryRequest {
   query: string;
@@ -20,7 +26,6 @@ export interface QueryRequest {
   context?: AIQueryContext;
   options?: AIQueryOptions & {
     includeThinking?: boolean;
-    includeMCPContext?: boolean;
     category?: string;
     cached?: boolean;
     timeoutMs?: number; // 타임아웃 설정
@@ -64,13 +69,7 @@ export interface QueryResponse {
     | 'error-fallback'
     | 'preloaded';
   confidence: number;
-  thinkingSteps: Array<{
-    step: string;
-    description?: string;
-    status: 'pending' | 'completed' | 'failed';
-    timestamp: number;
-    duration?: number;
-  }>;
+  thinkingSteps: ThinkingStep[];
   metadata?: AIMetadata & {
     complexity?: ComplexityScore;
     cacheHit?: boolean;

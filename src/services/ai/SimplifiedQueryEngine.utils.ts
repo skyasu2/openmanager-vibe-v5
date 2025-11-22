@@ -11,8 +11,8 @@ import {
   getTTL,
   validateDataSize,
 } from '../../config/free-tier-cache-config';
-import { analyzeKoreanNLP } from '@/lib/gcp/gcp-functions-client';
-import type { KoreanNLPResponse } from '@/lib/gcp/gcp-functions.types';
+import { analyzeKoreanNLP } from '../../lib/gcp/gcp-functions-client';
+import type { KoreanNLPResponse } from '../../lib/gcp/gcp-functions.types';
 import type {
   QueryResponse,
   CacheEntry,
@@ -20,6 +20,10 @@ import type {
   NLPAnalysis,
   ThinkingStep,
 } from './SimplifiedQueryEngine.types';
+import {
+  ComplexityScore,
+  ComplexityLevel,
+} from './SimplifiedQueryEngine.complexity-types';
 
 /**
  * 🧰 SimplifiedQueryEngine 유틸리티 클래스
@@ -459,20 +463,19 @@ export class SimplifiedQueryEngineUtils {
         return null;
       }
 
-      const data = result.data as KoreanNLPResponse;
-
       return {
-        intent: data.intent,
+        intent: result.data.intent,
         sentiment: this.mapUrgencyToSentiment(
-          data.semantic_analysis?.urgency_level
+          result.data.semantic_analysis?.urgency_level
         ),
-        keywords: data.semantic_analysis?.sub_topics ?? [],
-        summary: this.buildKoreanNLPSummary(data),
+        keywords: result.data.semantic_analysis?.sub_topics ?? [],
+        summary: this.buildKoreanNLPSummary(result.data),
         metadata: {
           koreanRatio,
-          urgency: data.semantic_analysis?.urgency_level,
-          technicalComplexity: data.semantic_analysis?.technical_complexity,
-          entityCount: data.entities?.length ?? 0,
+          urgency: result.data.semantic_analysis?.urgency_level,
+          technicalComplexity:
+            result.data.semantic_analysis?.technical_complexity,
+          entityCount: result.data.entities?.length ?? 0,
         },
       };
     } catch (error) {
@@ -723,8 +726,18 @@ export class SimplifiedQueryEngineUtils {
   /**
    * 🧠 쿼리 복잡도 분석 (한국어 가중치 적용)
    */
-  analyzeComplexity(query: string): { level: string; score: number } {
+  /**
+   * 🧠 쿼리 복잡도 분석 (한국어 가중치 적용)
+   */
+  analyzeComplexity(query: string): ComplexityScore {
     let score = 0;
+    const factors = {
+      length: 0,
+      keywords: 0,
+      patterns: 0,
+      context: 0,
+      language: 0,
+    };
 
     // 1. 길이 기반 (한국어 가중치)
     const koreanChars = (query.match(/[\uac00-\ud7af]/g) || []).length;
@@ -734,46 +747,84 @@ export class SimplifiedQueryEngineUtils {
     const estimatedTokens =
       koreanChars * 2.5 + (totalChars - koreanChars) * 0.25;
 
-    if (estimatedTokens > 100) score += 0.3;
-    else if (estimatedTokens > 50) score += 0.2;
-    else if (estimatedTokens > 20) score += 0.1;
+    if (estimatedTokens > 100) {
+      score += 0.3;
+      factors.length = 0.3;
+    } else if (estimatedTokens > 50) {
+      score += 0.2;
+      factors.length = 0.2;
+    } else if (estimatedTokens > 20) {
+      score += 0.1;
+      factors.length = 0.1;
+    }
 
-    // 2. 복잡한 키워드
-    const complexKeywords = [
-      '분석',
-      '예측',
-      '추천',
-      '최적화',
-      '비교',
-      '평가',
-      'analyze',
-      'predict',
-      'recommend',
-      'optimize',
-      'compare',
+    // 2. 복잡한 키워드 및 패턴 (QueryDifficultyAnalyzer 통합)
+    const complexPatterns = [
+      /분석.*패턴/i,
+      /원인.*분석/i,
+      /예측.*예상/i,
+      /최적화.*방법/i,
+      /상관관계.*분석/i,
+      /트렌드.*분석/i,
+      /보고서.*생성/i,
+      /대시보드.*구성/i,
+      /analyze/i,
+      /predict/i,
+      /recommend/i,
+      /optimize/i,
+      /compare/i,
     ];
-    const foundComplex = complexKeywords.filter((k) =>
-      query.toLowerCase().includes(k)
-    ).length;
-    score += Math.min(foundComplex * 0.15, 0.4);
 
-    // 3. 다중 조건
+    let patternMatches = 0;
+    for (const pattern of complexPatterns) {
+      if (pattern.test(query)) patternMatches++;
+    }
+
+    const keywordScore = Math.min(patternMatches * 0.15, 0.4);
+    score += keywordScore;
+    factors.keywords = keywordScore;
+
+    // 3. 다중 조건 및 논리
     const conditions = (
       query.match(/그리고|또는|하지만|그러나|and|or|but/gi) || []
     ).length;
-    score += Math.min(conditions * 0.1, 0.2);
+    const patternScore = Math.min(conditions * 0.1, 0.2);
+    score += patternScore;
+    factors.patterns = patternScore;
 
-    // 4. 질문 복잡도
+    // 4. 질문 유형 및 컨텍스트
     const questions = (query.match(/\?|어떻게|왜|무엇|언제|어디/g) || [])
       .length;
-    if (questions > 1) score += 0.1;
+    if (questions > 1) {
+      score += 0.1;
+      factors.context += 0.1;
+    }
+
+    // 시간/집계 관련 복잡도
+    if (query.match(/지난|최근|어제|시간|분|일|평균|합계|통계|비율|퍼센트/)) {
+      score += 0.1;
+      factors.context += 0.1;
+    }
 
     score = Math.min(score, 1.0);
 
-    let level = 'low';
-    if (score > 0.7) level = 'high';
-    else if (score > 0.4) level = 'medium';
+    let level = ComplexityLevel.SIMPLE;
+    let recommendation: 'local' | 'google-ai' | 'hybrid' = 'local';
 
-    return { level, score };
+    if (score > 0.7) {
+      level = ComplexityLevel.COMPLEX;
+      recommendation = 'google-ai';
+    } else if (score > 0.4) {
+      level = ComplexityLevel.MEDIUM;
+      recommendation = 'hybrid';
+    }
+
+    return {
+      score,
+      level,
+      factors,
+      recommendation,
+      confidence: 0.8,
+    };
   }
 }

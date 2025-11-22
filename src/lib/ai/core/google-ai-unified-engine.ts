@@ -37,7 +37,7 @@ import { promptBuilder } from './prompt-builder';
 
 // Usage Tracker import (할당량 보호)
 import { getGoogleAIUsageTracker } from '@/services/ai/GoogleAIUsageTracker';
-import type { GoogleAIModel } from '@/services/ai/QueryDifficultyAnalyzer';
+import type { GoogleAIModel } from '@/services/ai/SimplifiedQueryEngine.types';
 
 // ============================================================================
 // Cache Entry

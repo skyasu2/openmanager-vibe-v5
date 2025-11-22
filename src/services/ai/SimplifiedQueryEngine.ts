@@ -11,8 +11,6 @@
 
 import type { SupabaseRAGEngine } from './supabase-rag-engine';
 import { getSupabaseRAGEngine } from './supabase-rag-engine';
-import { CloudContextLoader } from '../mcp/CloudContextLoader';
-import type { RAGEngineContext } from '../mcp/CloudContextLoader.types';
 import { MockContextLoader } from './MockContextLoader';
 import { IntentClassifier } from '../../modules/ai-agent/processors/IntentClassifier';
 
@@ -20,12 +18,14 @@ import { IntentClassifier } from '../../modules/ai-agent/processors/IntentClassi
 import { SimplifiedQueryEngineUtils } from './SimplifiedQueryEngine.utils';
 import { SimplifiedQueryEngineProcessors } from './SimplifiedQueryEngine.processors';
 // 🔧 타임아웃 설정 (통합 유틸리티 사용)
-import { getEnvironmentTimeouts } from '@/utils/timeout-config';
+import { getEnvironmentTimeouts } from '../../utils/timeout-config';
+import type { ComplexityScore } from './SimplifiedQueryEngine.complexity-types';
+import type { IntentResult } from '../../modules/ai-agent/processors/IntentClassifier';
 import type {
   QueryRequest,
   QueryResponse,
 } from './SimplifiedQueryEngine.types';
-import type { MCPContext, AIMetadata } from '../../types/ai-service-types';
+import type { AIMetadata } from '../../types/ai-service-types';
 
 // Re-export types from the types module for backward compatibility
 export type {
@@ -45,7 +45,6 @@ export type { AIMetadata } from '../../types/ai-service-types';
 
 export class SimplifiedQueryEngine {
   protected ragEngine: SupabaseRAGEngine;
-  protected contextLoader: CloudContextLoader;
   protected mockContextLoader: MockContextLoader;
   protected intentClassifier: IntentClassifier;
   protected isInitialized = false;
@@ -57,7 +56,6 @@ export class SimplifiedQueryEngine {
 
   constructor() {
     this.ragEngine = getSupabaseRAGEngine();
-    this.contextLoader = CloudContextLoader.getInstance();
     this.mockContextLoader = MockContextLoader.getInstance();
     this.intentClassifier = new IntentClassifier();
 
@@ -66,7 +64,6 @@ export class SimplifiedQueryEngine {
     this.processors = new SimplifiedQueryEngineProcessors(
       this.utils,
       this.ragEngine,
-      this.contextLoader,
       this.mockContextLoader,
       this.intentClassifier
     );
@@ -125,6 +122,9 @@ export class SimplifiedQueryEngine {
   /**
    * 🔍 쿼리 처리 (지능형 라우팅 포함)
    */
+  /**
+   * 🔍 쿼리 처리 (지능형 라우팅 포함)
+   */
   async query(request: QueryRequest): Promise<QueryResponse> {
     const startTime = Date.now();
 
@@ -140,8 +140,6 @@ export class SimplifiedQueryEngine {
 
     const { query, context = {}, options = {} } = request;
 
-    const thinkingSteps: QueryResponse['thinkingSteps'] = [];
-
     // 🚀 환경변수 기반 타임아웃 설정
     const timeouts = getEnvironmentTimeouts();
     const timeoutMs = options.timeoutMs || timeouts.GOOGLE_AI;
@@ -149,6 +147,10 @@ export class SimplifiedQueryEngine {
     // 🎯 Step 1: Cache Check (비용 $0)
     const cacheKey = this.utils.generateCacheKey(query, context);
     const cachedResponse = this.utils.getCachedResponse(cacheKey);
+
+    // Thinking Steps 초기화 (캐시 히트 시에도 타입 호환성 유지)
+    const thinkingSteps: QueryResponse['thinkingSteps'] = [];
+
     if (cachedResponse && options.cached !== false) {
       thinkingSteps.push({
         step: '캐시 확인',
@@ -211,7 +213,7 @@ export class SimplifiedQueryEngine {
         };
       }
 
-      // 🎯 Step 2: Intent Classification (Circuit Breaker)
+      // 🎯 Step 2: Intent Classification
       const intentStepStart = Date.now();
       thinkingSteps.push({
         step: '의도 분석',
@@ -228,79 +230,7 @@ export class SimplifiedQueryEngine {
         intentStep.duration = Date.now() - intentStepStart;
       }
 
-      // 🔥 Circuit Breaker: 단순 질의는 Google AI 호출 없이 처리
-      const isSimpleQuery =
-        intentResult.confidence > 0.7 &&
-        !intentResult.needsComplexML &&
-        !intentResult.needsNLP;
-
-      if (isSimpleQuery) {
-        thinkingSteps.push({
-          step: '라우팅 결정',
-          description: `✅ 단순 질의 감지 - 로컬 처리 (Google AI 호출 생략, 비용 절약)`,
-          status: 'completed',
-          timestamp: Date.now(),
-        });
-
-        // 로컬 RAG 또는 GCP Function만 사용
-        const localResponse = await this.processors.processCommandQuery(
-          query,
-          options.commandContext || {},
-          thinkingSteps,
-          startTime
-        );
-
-        // 비용 정보 추가
-        const estimatedCost = Math.ceil(query.length / 4) * 0.000002;
-        return {
-          ...localResponse,
-          metadata: {
-            ...localResponse.metadata,
-            engineType: 'local',
-            savedCost: estimatedCost,
-            actualCost: 0,
-          },
-        };
-      }
-
-      // 🔥 명령어 쿼리 감지 및 처리
-      const commandStepStart = Date.now();
-      thinkingSteps.push({
-        step: '명령어 감지',
-        description: '명령어 관련 쿼리인지 확인',
-        status: 'pending',
-        timestamp: commandStepStart,
-      });
-
-      const isCommandQuery = this.utils.detectCommandQuery(
-        query,
-        options.commandContext
-      );
-
-      if (isCommandQuery) {
-        const commandStep = thinkingSteps[thinkingSteps.length - 1];
-        if (commandStep) {
-          commandStep.status = 'completed';
-          commandStep.description = '명령어 쿼리로 감지됨 - 로컬 처리';
-          commandStep.duration = Date.now() - commandStepStart;
-        }
-
-        return await this.processors.processCommandQuery(
-          query,
-          options.commandContext || {},
-          thinkingSteps,
-          startTime
-        );
-      } else {
-        const generalStep = thinkingSteps[thinkingSteps.length - 1];
-        if (generalStep) {
-          generalStep.status = 'completed';
-          generalStep.description = '일반 쿼리로 판단';
-          generalStep.duration = Date.now() - commandStepStart;
-        }
-      }
-
-      // 🎯 Step 3: Complexity Check & Routing Decision
+      // 🎯 Step 3: Complexity Analysis
       thinkingSteps.push({
         step: '복잡도 분석',
         description: '쿼리 복잡도 및 필요 리소스 분석 중...',
@@ -316,90 +246,7 @@ export class SimplifiedQueryEngine {
         complexityStep.duration = Date.now() - complexityStep.timestamp;
       }
 
-      // 🎯 Intelligent Routing Decision
-      const routingStepStart = Date.now();
-      let routingDecision: 'local' | 'google-ai' = 'local';
-      let routingReason = '';
-
-      if (intentResult.needsComplexML || intentResult.needsNLP) {
-        routingDecision = 'google-ai';
-        routingReason = '복잡한 ML/NLP 분석 필요 - Google AI 사용';
-      } else if (complexity.score > 0.7) {
-        routingDecision = 'google-ai';
-        routingReason = '높은 복잡도 - Google AI 사용';
-      } else if (intentResult.confidence < 0.5) {
-        routingDecision = 'google-ai';
-        routingReason = '의도 불명확 - Google AI로 정확한 분석';
-      } else {
-        routingDecision = 'local';
-        routingReason = '단순 질의 - 로컬 RAG/GCP Function 사용 (비용 절약)';
-      }
-
-      thinkingSteps.push({
-        step: '라우팅 결정',
-        description: `${routingDecision === 'google-ai' ? '🤖' : '💾'} ${routingReason}`,
-        status: 'completed',
-        timestamp: routingStepStart,
-        duration: Date.now() - routingStepStart,
-      });
-
-      thinkingSteps.push({
-        step: '통합 파이프라인 준비',
-        description: `RAG + ${routingDecision === 'google-ai' ? 'Google AI' : 'GCP Functions'} 조합 실행`,
-        status: 'completed',
-        timestamp: Date.now(),
-      });
-
-      // 2단계: 병렬 처리 준비 (예: MCP 컨텍스트)
-      const processingPromises: Promise<unknown>[] = [];
-      let mcpContext: MCPContext | null = null;
-
-      // MCP 컨텍스트 수집 (요청 시)
-      if (options.includeMCPContext) {
-        const mcpStepIndex = thinkingSteps.length;
-        thinkingSteps.push({
-          step: 'AI 어시스턴트 MCP 컨텍스트 수집',
-          status: 'pending',
-          timestamp: Date.now(),
-        });
-
-        processingPromises.push(
-          this.contextLoader
-            .queryMCPContextForRAG(query, {
-              maxFiles: 3, // 성능을 위해 파일 수 제한
-              includeSystemContext: true,
-            })
-            .then((result) => {
-              mcpContext = result
-                ? this.convertRAGContextToMCPContext(result)
-                : null;
-              const mcpStep = thinkingSteps[mcpStepIndex];
-              if (mcpStep) {
-                mcpStep.status = 'completed';
-                mcpStep.description = `${result?.files?.length || 0}개 파일 수집`;
-                mcpStep.duration = Date.now() - mcpStep.timestamp;
-              }
-            })
-            .catch((error) => {
-              console.warn('MCP 컨텍스트 수집 실패:', error);
-              const mcpFailedStep = thinkingSteps[mcpStepIndex];
-              if (mcpFailedStep) {
-                mcpFailedStep.status = 'failed';
-                mcpFailedStep.duration = Date.now() - mcpFailedStep.timestamp;
-              }
-            })
-        );
-      }
-
-      // 병렬 처리 대기 (최대 100ms)
-      if (processingPromises.length > 0) {
-        await Promise.race([
-          Promise.all(processingPromises),
-          new Promise((resolve) => setTimeout(resolve, 100)),
-        ]);
-      }
-
-      // 3단계: 타임아웃을 고려한 쿼리 처리
+      // 🎯 Step 4: Unified Processing (Delegated to Processors)
       const queryTimeout = new Promise<QueryResponse>((_, reject) =>
         setTimeout(() => reject(new Error('쿼리 타임아웃')), timeoutMs)
       );
@@ -408,11 +255,12 @@ export class SimplifiedQueryEngine {
 
       try {
         response = await Promise.race([
-          this.processors.processUnifiedQuery(
+          this.processors.processQuery(
             query,
             context,
             options,
-            mcpContext,
+            intentResult,
+            complexity,
             thinkingSteps,
             startTime
           ),
@@ -426,7 +274,6 @@ export class SimplifiedQueryEngine {
 
         return response;
       } catch (timeoutError) {
-        // 🚨 폴백 제거: 각 모드에서 타임아웃 시 에러 직접 반환
         const errorMessage = '통합 AI 파이프라인 처리 시간 초과입니다.';
         console.warn(`${errorMessage} (폴백 없음 - 에러 직접 반환)`);
 
@@ -499,40 +346,15 @@ export class SimplifiedQueryEngine {
     engines: {
       localRAG: boolean;
       googleAI: boolean;
-      mcp: boolean;
     };
   }> {
     const ragHealth = await this.ragEngine.healthCheck();
-    const mcpStatus = await this.contextLoader.getIntegratedStatus();
 
     return {
       status: ragHealth.status === 'healthy' ? 'healthy' : 'degraded',
       engines: {
         localRAG: ragHealth.vectorDB,
         googleAI: true, // API 엔드포인트 존재 여부로 판단
-        mcp: mcpStatus.mcpServer.status === 'online',
-      },
-    };
-  }
-
-  /**
-   * RAGEngineContext를 MCPContext로 변환
-   */
-  private convertRAGContextToMCPContext(
-    ragContext: RAGEngineContext
-  ): MCPContext {
-    return {
-      files: ragContext.files.map((file) => ({
-        path: file.path,
-        content: file.content,
-        language: file.path.split('.').pop(),
-        size: file.content.length,
-      })),
-      systemContext: JSON.stringify(ragContext.systemContext),
-      additionalContext: {
-        query: ragContext.query,
-        contextType: ragContext.contextType,
-        relevantPaths: ragContext.relevantPaths,
       },
     };
   }
