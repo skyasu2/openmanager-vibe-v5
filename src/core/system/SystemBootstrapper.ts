@@ -9,12 +9,16 @@ import { systemLogger } from '../../lib/logger';
 import { ProcessManager } from './ProcessManager.refactored';
 import { SystemWatchdog } from './SystemWatchdog.refactored';
 import { SystemEventBus } from '../events/SystemEventHandler';
-import type { ProcessConfig, ProcessState, SystemMetrics } from './ProcessManager.refactored';
+import type {
+  ProcessConfig,
+  ProcessState,
+  SystemMetrics,
+} from './ProcessManager.refactored';
 import type {
   SystemEventType,
-  ProcessEventPayload,
+  ProcessEventPayload as _ProcessEventPayload,
   WatchdogEventPayload,
-  SystemStatusPayload,
+  SystemStatusPayload as _SystemStatusPayload,
 } from '../interfaces/SystemEventBus';
 
 export interface SystemBootstrapConfig {
@@ -157,7 +161,7 @@ export class SystemBootstrapper {
 
     return {
       ...status,
-      ...(this.watchdog && { watchdogReport: this.watchdog.generateReport() })
+      ...(this.watchdog && { watchdogReport: this.watchdog.generateReport() }),
     };
   }
 
@@ -276,7 +280,9 @@ export class SystemBootstrapper {
   /**
    * 성능 저하 처리
    */
-  private handlePerformanceDegradation(metrics?: WatchdogEventPayload['metrics']): void {
+  private handlePerformanceDegradation(
+    metrics?: WatchdogEventPayload['metrics']
+  ): void {
     // 성능 점수가 30 미만이면 경고
     if (metrics?.performanceScore && metrics.performanceScore < 30) {
       systemLogger.error('⚠️ 심각한 성능 저하. 즉시 조치가 필요합니다.');
@@ -286,7 +292,9 @@ export class SystemBootstrapper {
   /**
    * 빈번한 재시작 처리
    */
-  private handleFrequentRestarts(metrics?: WatchdogEventPayload['metrics']): void {
+  private handleFrequentRestarts(
+    metrics?: WatchdogEventPayload['metrics']
+  ): void {
     // 재시작 횟수가 10회를 초과하면 경고
     if (metrics?.restartCount && metrics.restartCount > 10) {
       systemLogger.error(

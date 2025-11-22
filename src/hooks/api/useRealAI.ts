@@ -14,7 +14,6 @@
 import { useCallback, useRef, useState } from 'react';
 
 // ⚠️ 관리자 권한 체크용 import
-import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { isGuestFullAccessEnabled } from '@/config/guestMode';
 
@@ -119,8 +118,7 @@ export function useRealAI(options: UseRealAIOptions = {}) {
   // 🔒 관리자 권한 체크
   const permissions = useUserPermissions();
   const adminAccessGranted =
-    permissions.isGitHubAuthenticated ||
-    isGuestFullAccessEnabled();
+    permissions.isGitHubAuthenticated || isGuestFullAccessEnabled();
 
   /**
    * 🧠 통합 AI 분석 실행 (관리자 전용)

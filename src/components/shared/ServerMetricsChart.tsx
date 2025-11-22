@@ -11,7 +11,6 @@
 
 import React, { memo, useEffect, useRef, useCallback, useState } from 'react';
 import type { ServerStatus } from '../../types/server';
-import { usePerformanceTracking } from '@/utils/performance';
 
 interface ServerMetricsChartProps {
   type: 'cpu' | 'memory' | 'disk' | 'network';

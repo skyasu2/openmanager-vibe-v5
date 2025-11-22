@@ -3,8 +3,6 @@
 import React, { memo, type RefObject } from 'react';
 import { Bot, FileText, Send } from 'lucide-react';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
-import type { AIMode } from '@/types/ai-types';
-import { CompactModeSelector } from '@/components/ui/CompactModeSelector';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
 
 /**

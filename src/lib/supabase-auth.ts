@@ -7,7 +7,10 @@
 
 import type { AuthError, Session } from '@supabase/supabase-js';
 import { supabase } from './supabase';
-import { validateRedirectUrl, guestSessionCookies } from '@/lib/security/secure-cookies';
+import {
+  validateRedirectUrl,
+  guestSessionCookies,
+} from '@/lib/security/secure-cookies';
 import { authStateManager } from './auth-state-manager';
 
 export interface AuthUser {
@@ -36,7 +39,9 @@ export async function signInWithGitHub() {
 
     // 🔒 OAuth 리다이렉트 URL 보안 검증
     if (!validateRedirectUrl(redirectUrl)) {
-      throw new Error(`보안상 허용되지 않은 리다이렉트 URL입니다: ${redirectUrl}`);
+      throw new Error(
+        `보안상 허용되지 않은 리다이렉트 URL입니다: ${redirectUrl}`
+      );
     }
 
     console.log('🔗 OAuth 리다이렉트 URL:', redirectUrl);
@@ -116,7 +121,7 @@ export async function signOut(options?: { authType?: 'github' | 'guest' }) {
     return { error: null };
   } catch (error) {
     console.error('❌ 통합 로그아웃 에러:', error);
-    
+
     // Fallback: 레거시 로직 사용
     console.warn('⚠️ 레거시 로그아웃으로 fallback');
     return await signOutLegacy(options?.authType);
@@ -128,7 +133,9 @@ export async function signOut(options?: { authType?: 'github' | 'guest' }) {
  */
 async function signOutLegacy(authType?: 'github' | 'guest') {
   try {
-    console.warn('⚠️ 레거시 signOut 사용 중 - AuthStateManager로 마이그레이션 권장');
+    console.warn(
+      '⚠️ 레거시 signOut 사용 중 - AuthStateManager로 마이그레이션 권장'
+    );
 
     // Supabase 세션 정리 (GitHub OAuth)
     if (!authType || authType === 'github') {
@@ -144,17 +151,20 @@ async function signOutLegacy(authType?: 'github' | 'guest') {
       localStorage.removeItem('auth_type');
       localStorage.removeItem('auth_user');
       localStorage.removeItem('admin_mode');
-      
+
       // Supabase 관련 키들도 정리
-      const supabaseKeys = Object.keys(localStorage)
-        .filter(key => key.startsWith('sb-') || key.includes('supabase'));
-      supabaseKeys.forEach(key => localStorage.removeItem(key));
+      const supabaseKeys = Object.keys(localStorage).filter(
+        (key) => key.startsWith('sb-') || key.includes('supabase')
+      );
+      supabaseKeys.forEach((key) => localStorage.removeItem(key));
     }
 
     // 쿠키 정리 (레거시)
     if (typeof document !== 'undefined') {
-      document.cookie = 'guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=Strict';
-      document.cookie = 'auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=Strict';
+      document.cookie =
+        'guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=Strict';
+      document.cookie =
+        'auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; Secure; SameSite=Strict';
     }
 
     // 🍪 보안 강화된 게스트 세션 쿠키 정리 (기존 유틸 사용)
@@ -202,17 +212,20 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
     // AuthStateManager를 통한 통합 상태 관리로 리팩토링
     // authStateManager는 이미 import됨
     const authState = await authStateManager.getAuthState();
-    
+
     console.log('🔄 getCurrentUser -> AuthStateManager 위임:', {
       type: authState.type,
       isAuthenticated: authState.isAuthenticated,
-      userId: authState.user?.id
+      userId: authState.user?.id,
     });
-    
+
     return authState.user;
   } catch (error) {
-    console.error('❌ getCurrentUser 에러 (AuthStateManager 위임 실패):', error);
-    
+    console.error(
+      '❌ getCurrentUser 에러 (AuthStateManager 위임 실패):',
+      error
+    );
+
     // Fallback: 기존 로직 유지 (하위 호환성)
     return await getCurrentUserLegacy();
   }
@@ -223,8 +236,10 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
  */
 async function getCurrentUserLegacy(): Promise<AuthUser | null> {
   try {
-    console.warn('⚠️ 레거시 getCurrentUser 사용 중 - AuthStateManager로 마이그레이션 권장');
-    
+    console.warn(
+      '⚠️ 레거시 getCurrentUser 사용 중 - AuthStateManager로 마이그레이션 권장'
+    );
+
     // 세션 상태 확인 (재시도 로직 포함)
     let session = null;
     let attempts = 0;
@@ -234,10 +249,10 @@ async function getCurrentUserLegacy(): Promise<AuthUser | null> {
     do {
       const sessionResult = await getSession();
       session = sessionResult;
-      
+
       if (!session?.user && attempts < maxAttempts - 1) {
         // 짧은 지연 후 재시도 (OAuth 콜백 직후 세션 설정 대기)
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 200));
       }
       attempts++;
     } while (!session?.user && attempts < maxAttempts);
@@ -252,7 +267,9 @@ async function getCurrentUserLegacy(): Promise<AuthUser | null> {
         }
 
         // Supabase 세션 토큰 직접 확인 (fallback)
-        const supabaseAuthToken = localStorage.getItem('sb-vnswjnltnhpsueosfhmw-auth-token');
+        const supabaseAuthToken = localStorage.getItem(
+          'sb-vnswjnltnhpsueosfhmw-auth-token'
+        );
         if (supabaseAuthToken) {
           try {
             const tokenData = JSON.parse(supabaseAuthToken);
@@ -280,17 +297,22 @@ async function getCurrentUserLegacy(): Promise<AuthUser | null> {
           }
         }
       }
-      
+
       // 서버 환경 또는 localStorage가 없는 경우 쿠키 확인
       if (typeof document !== 'undefined') {
-        const cookies = document.cookie.split(';').map(c => c.trim());
-        const guestSessionCookie = cookies.find(c => c.startsWith('guest_session_id='));
-        const authTypeCookie = cookies.find(c => c.startsWith('auth_type=guest'));
-        
+        const cookies = document.cookie.split(';').map((c) => c.trim());
+        const guestSessionCookie = cookies.find((c) =>
+          c.startsWith('guest_session_id=')
+        );
+        const authTypeCookie = cookies.find((c) =>
+          c.startsWith('auth_type=guest')
+        );
+
         if (guestSessionCookie && authTypeCookie) {
           // 쿠키에서 게스트 사용자 정보 복원
-          const sessionId = guestSessionCookie.split('=')[1] ?? crypto.randomUUID();
-          
+          const sessionId =
+            guestSessionCookie.split('=')[1] ?? crypto.randomUUID();
+
           // localStorage에서 사용자 정보 확인 (쿠키는 sessionId만 저장)
           if (typeof window !== 'undefined') {
             const storedUser = localStorage.getItem('auth_user');
@@ -298,7 +320,7 @@ async function getCurrentUserLegacy(): Promise<AuthUser | null> {
               return JSON.parse(storedUser);
             }
           }
-          
+
           // localStorage가 없으면 기본 게스트 사용자 생성
           return {
             id: sessionId,
@@ -307,7 +329,7 @@ async function getCurrentUserLegacy(): Promise<AuthUser | null> {
           };
         }
       }
-      
+
       return null;
     }
 
@@ -338,16 +360,19 @@ export async function isAuthenticated(): Promise<boolean> {
     // AuthStateManager를 통한 통합 상태 확인
     // authStateManager는 이미 import됨
     const authState = await authStateManager.getAuthState();
-    
+
     console.log('🔄 isAuthenticated -> AuthStateManager 위임:', {
       type: authState.type,
-      isAuthenticated: authState.isAuthenticated
+      isAuthenticated: authState.isAuthenticated,
     });
-    
+
     return authState.isAuthenticated;
   } catch (error) {
-    console.error('❌ isAuthenticated 에러 (AuthStateManager 위임 실패):', error);
-    
+    console.error(
+      '❌ isAuthenticated 에러 (AuthStateManager 위임 실패):',
+      error
+    );
+
     // Fallback: getCurrentUser 사용 (레거시 호환성)
     const user = await getCurrentUser();
     return !!user;
@@ -363,13 +388,18 @@ export async function isGitHubAuthenticated(): Promise<boolean> {
     // AuthStateManager를 통한 GitHub 인증 확인
     // authStateManager는 이미 import됨
     const isGitHub = await authStateManager.isGitHubAuthenticated();
-    
-    console.log('🔄 isGitHubAuthenticated -> AuthStateManager 위임:', { isGitHub });
-    
+
+    console.log('🔄 isGitHubAuthenticated -> AuthStateManager 위임:', {
+      isGitHub,
+    });
+
     return isGitHub;
   } catch (error) {
-    console.error('❌ isGitHubAuthenticated 에러 (AuthStateManager 위임 실패):', error);
-    
+    console.error(
+      '❌ isGitHubAuthenticated 에러 (AuthStateManager 위임 실패):',
+      error
+    );
+
     // Fallback: 레거시 로직 사용
     return await isGitHubAuthenticatedLegacy();
   }
@@ -386,7 +416,7 @@ export function isGuestUser(): boolean {
       const authType = localStorage.getItem('auth_type');
       const sessionId = localStorage.getItem('auth_session_id');
       const isGuest = authType === 'guest' && !!sessionId;
-      
+
       console.log('🔄 isGuestUser 간단 확인:', { isGuest });
       return isGuest;
     }
@@ -401,38 +431,18 @@ export function isGuestUser(): boolean {
  * 레거시 GitHub 인증 확인 (하위 호환성용)
  */
 async function isGitHubAuthenticatedLegacy(): Promise<boolean> {
-  console.warn('⚠️ 레거시 isGitHubAuthenticated 사용 중 - AuthStateManager로 마이그레이션 권장');
-  
+  console.warn(
+    '⚠️ 레거시 isGitHubAuthenticated 사용 중 - AuthStateManager로 마이그레이션 권장'
+  );
+
   const session = await getSession();
   // GitHub OAuth 로그인 확인: 세션이 있고 GitHub 프로바이더인지 확인
-  return !!(session && 
-    session.user && 
-    (session.user.app_metadata?.provider === 'github' || 
-     session.user.user_metadata?.provider === 'github'));
-}
-
-/**
- * 레거시 게스트 사용자 확인 (하위 호환성용)
- */
-function isGuestUserLegacy(): boolean {
-  console.warn('⚠️ 레거시 isGuestUser 사용 중 - AuthStateManager로 마이그레이션 권장');
-  
-  // 클라이언트 환경에서만 localStorage 확인
-  if (typeof window !== 'undefined') {
-    const authType = localStorage.getItem('auth_type');
-    if (authType === 'guest') return true;
-  }
-  
-  // 쿠키에서 게스트 세션 확인 (getCurrentUser와 동일한 로직)
-  if (typeof document !== 'undefined') {
-    const cookies = document.cookie.split(';').map(c => c.trim());
-    const guestSessionCookie = cookies.find(c => c.startsWith('guest_session_id='));
-    const authTypeCookie = cookies.find(c => c.startsWith('auth_type=guest'));
-    
-    if (guestSessionCookie && authTypeCookie) return true;
-  }
-  
-  return false;
+  return !!(
+    session &&
+    session.user &&
+    (session.user.app_metadata?.provider === 'github' ||
+      session.user.user_metadata?.provider === 'github')
+  );
 }
 
 /**

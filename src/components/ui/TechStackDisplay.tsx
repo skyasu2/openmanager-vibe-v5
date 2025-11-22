@@ -66,9 +66,7 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
     <div className={`space-y-6 ${className}`}>
       {/* 헤더 및 요약 정보 */}
       {showHeader && (
-        <div
-          className="mb-6"
-        >
+        <div className="mb-6">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="flex items-center gap-2 text-lg font-semibold text-white">
               🧩 기술 스택 분석
@@ -97,7 +95,7 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
 
       {/* 카테고리별 기술 스택 */}
       <div className="space-y-6">
-        {categories.map((category: TechCategory, categoryIndex: number) => (
+        {categories.map((category: TechCategory, _categoryIndex: number) => (
           <div
             key={category.id}
             className="rounded-xl border border-gray-700/50 bg-gray-800/30 p-4 backdrop-blur-sm"
@@ -206,7 +204,12 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
             <div className="mt-4 flex items-center justify-between border-t border-gray-700/30 pt-3 text-xs text-gray-400">
               <div className="flex gap-4">
                 <span>
-                  핵심: {category.items.filter((item: TechItem) => item.isCore).length}개
+                  핵심:{' '}
+                  {
+                    category.items.filter((item: TechItem) => item.isCore)
+                      .length
+                  }
+                  개
                 </span>
                 <span>
                   고중요도:{' '}
@@ -258,9 +261,7 @@ const TechStackDisplay: FC<TechStackDisplayProps> = ({
 
       {/* 하단 요약 */}
       {!compact && (
-        <div
-          className="mt-6 rounded-xl border border-blue-500/20 bg-gradient-to-r from-blue-900/20 to-purple-900/20 p-4"
-        >
+        <div className="mt-6 rounded-xl border border-blue-500/20 bg-gradient-to-r from-blue-900/20 to-purple-900/20 p-4">
           <div className="text-center text-xs text-gray-300">
             <div className="mb-2 font-medium">🎯 기술 스택 요약</div>
             <div className="flex justify-center gap-6">

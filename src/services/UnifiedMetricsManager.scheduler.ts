@@ -9,10 +9,7 @@
  */
 
 import { TimerManager } from '../utils/TimerManager';
-import type {
-  UnifiedMetricsConfig,
-  DUPLICATE_TIMER_IDS,
-} from './UnifiedMetricsManager.types';
+import type { UnifiedMetricsConfig } from './UnifiedMetricsManager.types';
 
 export class Scheduler {
   /**
@@ -145,7 +142,7 @@ export class Scheduler {
     timerIntervals: Record<string, number>;
     lastExecutionTimes: Record<string, number>;
   } {
-    const timerManager = TimerManager.getInstance();
+    const _timerManager = TimerManager.getInstance();
 
     // Get active timer information (this would need to be implemented in TimerManager)
     const activeTimers = [
@@ -153,7 +150,7 @@ export class Scheduler {
       'unified-ai-analysis',
       'unified-autoscaling',
       'unified-performance-monitor',
-    ].filter((id) => {
+    ].filter((_id) => {
       // In a real implementation, we would check if the timer is actually registered
       return true; // Placeholder
     });
@@ -221,7 +218,7 @@ export class Scheduler {
       avgMemory: number;
       errorRate: number;
     },
-    config: UnifiedMetricsConfig
+    _config: UnifiedMetricsConfig
   ): {
     optimizedIntervals: Record<string, number>;
     recommendations: string[];

@@ -6,9 +6,7 @@ import {
   userSessionService,
   type UserSession,
 } from '@/services/time/UserSessionService';
-import dynamic from 'next/dynamic';
 
-// framer-motion을 동적 import로 처리
 // framer-motion 제거됨
 
 interface UserSessionDisplayProps {
@@ -148,9 +146,7 @@ export const UserSessionDisplay: FC<UserSessionDisplayProps> = ({
           <div className="relative">
             <User className="h-5 w-5" />
             {session?.isActive && (
-              <div
-                className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full bg-green-500"
-              />
+              <div className="absolute -bottom-1 -right-1 h-2 w-2 rounded-full bg-green-500" />
             )}
           </div>
 
@@ -245,9 +241,7 @@ export const UserSessionDisplay: FC<UserSessionDisplayProps> = ({
 
       {/* 경고 메시지 */}
       {showWarning && session && (
-        <div
-          className="mt-2 rounded-md border border-yellow-300 bg-yellow-50 p-2"
-        >
+        <div className="mt-2 rounded-md border border-yellow-300 bg-yellow-50 p-2">
           <div className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4 text-yellow-600" />
             <span className="text-xs font-medium text-yellow-800">

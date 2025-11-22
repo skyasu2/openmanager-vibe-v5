@@ -23,7 +23,7 @@ export default function ServerStartButton() {
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState<WarmupProgress | null>(null);
   const [pollInterval, setPollInterval] = useState<NodeJS.Timeout | null>(null);
-  const [showWarmupProgress, setShowWarmupProgress] = useState(true);
+  const [showWarmupProgress, _setShowWarmupProgress] = useState(true);
 
   // 웜업 상태 폴링
   const pollWarmupStatus = useCallback(async () => {
@@ -71,7 +71,9 @@ export default function ServerStartButton() {
         await pollWarmupStatus();
 
         // 30초마다 상태 확인
-        const interval = setInterval(() => { void pollWarmupStatus(); }, 30000);
+        const interval = setInterval(() => {
+          void pollWarmupStatus();
+        }, 30000);
         setPollInterval(interval);
       } else {
         toast.error(`서버 시작 실패: ${data.message}`);
@@ -169,7 +171,9 @@ export default function ServerStartButton() {
         <div className="space-y-3">
           {!progress?.active && !progress?.completed && (
             <button
-              onClick={() => { void handleStartServer(); }}
+              onClick={() => {
+                void handleStartServer();
+              }}
               disabled={isLoading}
               className="flex w-full items-center justify-center space-x-2 rounded-lg bg-blue-600 px-4 py-3 font-medium text-white transition-colors duration-200 hover:bg-blue-700 disabled:bg-blue-300"
             >
@@ -189,7 +193,9 @@ export default function ServerStartButton() {
 
           {progress?.active && !progress?.completed && (
             <button
-              onClick={() => { void handleStopWarmup(); }}
+              onClick={() => {
+                void handleStopWarmup();
+              }}
               className="flex w-full items-center justify-center space-x-2 rounded-lg bg-red-600 px-4 py-3 font-medium text-white transition-colors duration-200 hover:bg-red-700"
             >
               <span>🛑</span>

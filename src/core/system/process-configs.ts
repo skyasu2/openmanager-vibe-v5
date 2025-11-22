@@ -152,7 +152,7 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
 
       try {
         // 진행 중인 서버 생성 중지
-        const response = await fetch('/api/servers/next', {
+        const _response = await fetch('/api/servers/next', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'stop' }),
@@ -220,7 +220,7 @@ export const PROCESS_CONFIGS: ProcessConfig[] = [
 
       try {
         // AI 에이전트 비활성화 시도
-        const response = await fetch('/api/ai/mcp', {
+        const _response = await fetch('/api/ai/mcp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -426,7 +426,7 @@ export const DEVELOPMENT_PROCESS_CONFIGS: ProcessConfig[] = [
  */
 export function getProcessConfigs(): ProcessConfig[] {
   const isDevelopment = process.env.NODE_ENV === 'development';
-  const isQuickMode = process.env.SYSTEM_MODE === 'quick';
+  const _isQuickMode = process.env.SYSTEM_MODE === 'quick';
 
   // 개발 환경에서는 기본적으로 개발 모드 설정 사용
   if (isDevelopment) {

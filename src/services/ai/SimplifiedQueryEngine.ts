@@ -15,7 +15,6 @@ import { CloudContextLoader } from '../mcp/CloudContextLoader';
 import type { RAGEngineContext } from '../mcp/CloudContextLoader.types';
 import { MockContextLoader } from './MockContextLoader';
 import { IntentClassifier } from '../../modules/ai-agent/processors/IntentClassifier';
-import type { Entity } from '../../modules/ai-agent/processors/IntentClassifier';
 
 // Import extracted modules
 import { SimplifiedQueryEngineUtils } from './SimplifiedQueryEngine.utils';
@@ -25,18 +24,8 @@ import { getEnvironmentTimeouts } from '@/utils/timeout-config';
 import type {
   QueryRequest,
   QueryResponse,
-  ThinkingStep,
-  HealthCheckResult,
-  CommandContext,
-  MockContext,
-  NLPAnalysis,
 } from './SimplifiedQueryEngine.types';
-import type {
-  AIQueryContext,
-  AIQueryOptions,
-  MCPContext,
-  AIMetadata,
-} from '../../types/ai-service-types';
+import type { MCPContext, AIMetadata } from '../../types/ai-service-types';
 
 // Re-export types from the types module for backward compatibility
 export type {
@@ -149,11 +138,7 @@ export class SimplifiedQueryEngine {
     // 초기화 병렬 실행
     const initPromise = this._initialize();
 
-    const {
-      query,
-      context = {},
-      options = {},
-    } = request;
+    const { query, context = {}, options = {} } = request;
 
     const thinkingSteps: QueryResponse['thinkingSteps'] = [];
 
@@ -172,10 +157,10 @@ export class SimplifiedQueryEngine {
         timestamp: Date.now(),
         duration: Date.now() - startTime,
       });
-      
+
       const baseMetadata = cachedResponse.metadata || {};
       const estimatedCost = Math.ceil(query.length / 4) * 0.000002; // $0.002 per 1K tokens
-      
+
       return {
         ...cachedResponse,
         metadata: {
@@ -184,7 +169,12 @@ export class SimplifiedQueryEngine {
           engineType: 'cache',
           savedCost: estimatedCost,
           actualCost: 0,
-        } as AIMetadata & { cacheHit?: boolean; engineType?: string; savedCost?: number; actualCost?: number },
+        } as AIMetadata & {
+          cacheHit?: boolean;
+          engineType?: string;
+          savedCost?: number;
+          actualCost?: number;
+        },
         processingTime: Date.now() - startTime,
         thinkingSteps,
       };
@@ -239,8 +229,9 @@ export class SimplifiedQueryEngine {
       }
 
       // 🔥 Circuit Breaker: 단순 질의는 Google AI 호출 없이 처리
-      const isSimpleQuery = intentResult.confidence > 0.7 && 
-        !intentResult.needsComplexML && 
+      const isSimpleQuery =
+        intentResult.confidence > 0.7 &&
+        !intentResult.needsComplexML &&
         !intentResult.needsNLP;
 
       if (isSimpleQuery) {
@@ -258,7 +249,7 @@ export class SimplifiedQueryEngine {
           thinkingSteps,
           startTime
         );
-        
+
         // 비용 정보 추가
         const estimatedCost = Math.ceil(query.length / 4) * 0.000002;
         return {
@@ -268,7 +259,7 @@ export class SimplifiedQueryEngine {
             engineType: 'local',
             savedCost: estimatedCost,
             actualCost: 0,
-          }
+          },
         };
       }
 
@@ -379,7 +370,9 @@ export class SimplifiedQueryEngine {
               includeSystemContext: true,
             })
             .then((result) => {
-              mcpContext = result ? this.convertRAGContextToMCPContext(result) : null;
+              mcpContext = result
+                ? this.convertRAGContextToMCPContext(result)
+                : null;
               const mcpStep = thinkingSteps[mcpStepIndex];
               if (mcpStep) {
                 mcpStep.status = 'completed';
@@ -443,7 +436,8 @@ export class SimplifiedQueryEngine {
           engine: 'unified-google-rag',
           confidence: 0,
           thinkingSteps,
-          error: timeoutError instanceof Error ? timeoutError.message : '타임아웃',
+          error:
+            timeoutError instanceof Error ? timeoutError.message : '타임아웃',
           processingTime: Date.now() - startTime,
         };
       }
@@ -524,20 +518,22 @@ export class SimplifiedQueryEngine {
   /**
    * RAGEngineContext를 MCPContext로 변환
    */
-  private convertRAGContextToMCPContext(ragContext: RAGEngineContext): MCPContext {
+  private convertRAGContextToMCPContext(
+    ragContext: RAGEngineContext
+  ): MCPContext {
     return {
-      files: ragContext.files.map(file => ({
+      files: ragContext.files.map((file) => ({
         path: file.path,
         content: file.content,
         language: file.path.split('.').pop(),
-        size: file.content.length
+        size: file.content.length,
       })),
       systemContext: JSON.stringify(ragContext.systemContext),
       additionalContext: {
         query: ragContext.query,
         contextType: ragContext.contextType,
-        relevantPaths: ragContext.relevantPaths
-      }
+        relevantPaths: ragContext.relevantPaths,
+      },
     };
   }
 }

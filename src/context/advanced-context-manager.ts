@@ -506,7 +506,7 @@ export class AdvancedContextManager {
     console.log('❓ [AdvancedContext] FAQ 생성 중...');
 
     // 기존 문서에서 FAQ 패턴 찾기
-    for (const [docId, doc] of contextCache.documents) {
+    for (const [_docId, doc] of contextCache.documents) {
       if (doc.metadata.category === 'faq') {
         const faqs = this.extractFAQsFromDocument(doc);
         faqs.forEach((faq) => {

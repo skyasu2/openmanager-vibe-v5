@@ -53,7 +53,9 @@ export class RealAISidebarService {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'API 응답 파싱 실패' }));
+      const errorData = await response
+        .json()
+        .catch(() => ({ error: 'API 응답 파싱 실패' }));
       throw new Error(errorData.error || `API 오류: ${response.status}`);
     }
 
@@ -66,7 +68,7 @@ export class RealAISidebarService {
    */
   async processQuery(
     question: string,
-    sessionId?: string
+    _sessionId?: string
   ): Promise<AIResponse> {
     try {
       // 사고 과정 시뮬레이션
@@ -122,8 +124,10 @@ export class RealAISidebarService {
       return {
         id: `response_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         query: question,
-        content: aiData.response || '죄송합니다. 현재 AI 시스템에 문제가 있습니다.',
-        response: aiData.response || '죄송합니다. 현재 AI 시스템에 문제가 있습니다.',
+        content:
+          aiData.response || '죄송합니다. 현재 AI 시스템에 문제가 있습니다.',
+        response:
+          aiData.response || '죄송합니다. 현재 AI 시스템에 문제가 있습니다.',
         engine: 'supabase-rag',
         confidence: aiData.confidence || 0.5,
         timestamp: new Date(),
@@ -137,8 +141,10 @@ export class RealAISidebarService {
       return {
         id: `error_${Date.now()}`,
         query: question,
-        content: '죄송합니다. 현재 AI 시스템에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요.',
-        response: '죄송합니다. 현재 AI 시스템에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요.',
+        content:
+          '죄송합니다. 현재 AI 시스템에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요.',
+        response:
+          '죄송합니다. 현재 AI 시스템에 일시적인 문제가 있습니다. 잠시 후 다시 시도해주세요.',
         engine: 'local',
         confidence: 0.1,
         timestamp: new Date(),
@@ -206,13 +212,12 @@ export class RealAISidebarService {
     }
   }
 
-
   /**
    * 🧠 AI 사고 과정 스트리밍
    */
   async *streamThinkingProcess(
     question: string,
-    sessionId?: string
+    _sessionId?: string
   ): AsyncGenerator<AIThinkingStep> {
     const steps = [
       {
@@ -257,7 +262,7 @@ export class RealAISidebarService {
       if (!step) {
         continue; // Skip undefined steps
       }
-      
+
       await new Promise((resolve) =>
         setTimeout(resolve, 800 + Math.random() * 400)
       );

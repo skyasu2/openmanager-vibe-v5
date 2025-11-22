@@ -308,7 +308,7 @@ export async function runAutoOptimization(): Promise<{
   const recommendations: string[] = [];
 
   // 무료 티어 상태 체크
-  const status = checkFreeTierStatus();
+  const _status = checkFreeTierStatus();
 
   // 자동 최적화 규칙 실행
   for (const rule of FREE_TIER_MASTER_CONFIG.autoOptimization.rules) {

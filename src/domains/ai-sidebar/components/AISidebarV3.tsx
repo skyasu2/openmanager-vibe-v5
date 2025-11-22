@@ -46,7 +46,6 @@ import type {
   AISidebarV3Props,
   AIThinkingStep,
 } from '../types/ai-sidebar-types';
-import type { AIMode } from '../../../types/ai-types';
 import { RealAISidebarService } from '../services/RealAISidebarService';
 
 // 🎯 ThinkingProcessVisualizer 성능 최적화
@@ -279,7 +278,9 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
               processingTime,
               confidence: data.confidence || 0.8,
             },
-            thinkingSteps: enableRealTimeThinking ? stepsRef.current : undefined,
+            thinkingSteps: enableRealTimeThinking
+              ? stepsRef.current
+              : undefined,
             isCompleted: true,
           };
 

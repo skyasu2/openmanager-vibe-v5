@@ -16,7 +16,8 @@ export interface GoogleAIStatus {
   primaryKeyConnected: boolean; // Is primary key successfully making calls?
   secondaryKeyConnected: boolean; // Is secondary key successfully making calls?
 
-  quotaStatus: { // This would represent the active key's quota
+  quotaStatus: {
+    // This would represent the active key's quota
     daily: {
       used: number;
       limit: number;
@@ -46,7 +47,7 @@ export interface GoogleAIStatus {
 }
 
 // 🔧 API 함수
-const fetchGoogleAIStatus = async (): Promise<GoogleAIStatus> => {
+const _fetchGoogleAIStatus = async (): Promise<GoogleAIStatus> => {
   try {
     const response = await fetch('/api/ai/google-ai/status', {
       method: 'GET',
@@ -132,7 +133,7 @@ export const useGoogleAIStatus = () => {
             console.log('📦 Google AI 상태 캐시 사용 (세션 동안 유효)');
             return cached.data;
           }
-        } catch (error) {
+        } catch {
           console.warn('⚠️ Google AI 상태 캐시 파싱 실패, 새로 조회');
         }
       }
@@ -192,7 +193,9 @@ export const getHealthColor = (status: GoogleAIStatus['healthCheckStatus']) => {
 };
 
 // 🔑 API 키 상태 색상
-export const getApiKeyColor = (status: 'valid' | 'invalid' | 'missing' | 'expired') => {
+export const getApiKeyColor = (
+  status: 'valid' | 'invalid' | 'missing' | 'expired'
+) => {
   switch (status) {
     case 'valid':
       return 'text-green-600 bg-green-50';

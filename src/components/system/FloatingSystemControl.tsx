@@ -26,13 +26,13 @@ interface FloatingSystemControlProps {
 }
 
 export default function FloatingSystemControl({
-  systemState,
-  aiAgentState,
-  isSystemActive,
-  isSystemPaused,
-  onStartSystem,
-  onStopSystem,
-  onResumeSystem,
+  systemState: _systemState,
+  aiAgentState: _aiAgentState,
+  isSystemActive: _isSystemActive,
+  isSystemPaused: _isSystemPaused,
+  onStartSystem: _onStartSystem,
+  onStopSystem: _onStopSystem,
+  onResumeSystem: _onResumeSystem,
 }: FloatingSystemControlProps): null {
   // 🚫 Vercel 플랫폼 자체 모니터링 사용으로 인한 제거
   //

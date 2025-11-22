@@ -4,16 +4,11 @@
  * 모든 API가 동일한 데이터 소스를 사용하도록 보장
  */
 
-import {
-  SystemConfigurationManager,
-  getSystemConfig,
-  getMockConfig,
-} from '@/config/SystemConfiguration';
+import { SystemConfigurationManager } from '@/config/SystemConfiguration';
 import type { Server, ServerRole, ServerEnvironment } from '@/types/server';
 
 // 기존 Mock 설정들 (조건부 import)
 import { mockServersExpanded } from '@/mock/mockServerConfigExpanded';
-import { mockServers } from '@/mock/mockServerConfig';
 import { getMockSystem } from '@/mock';
 
 export interface ServerDataSourceConfig {
@@ -147,7 +142,7 @@ export class UnifiedServerDataSource {
    */
   private async loadFromExpandedMock(): Promise<Server[]> {
     try {
-    // @ts-expect-error - Server type mismatch
+      // @ts-expect-error - Server type mismatch
       // mockServersExpanded를 기반으로 서버 생성
       const servers: Server[] = mockServersExpanded
         .slice(0, this.config.totalServers)

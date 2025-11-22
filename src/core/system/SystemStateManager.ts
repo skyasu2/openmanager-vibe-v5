@@ -216,7 +216,9 @@ export class SystemStateManager extends EventEmitter {
    * 🏥 헬스 상태 결정
    */
   private determineHealthStatus(
-    simulationSummary: { activeFailures?: number; totalServers?: number } | unknown,
+    simulationSummary:
+      | { activeFailures?: number; totalServers?: number }
+      | unknown,
     errorRate: number,
     averageResponseTime: number
   ): 'healthy' | 'warning' | 'critical' | 'degraded' {
@@ -226,12 +228,16 @@ export class SystemStateManager extends EventEmitter {
     }
 
     // Warning 조건
-    const summary = simulationSummary as { activeFailures?: number; totalServers?: number };
+    const summary = simulationSummary as {
+      activeFailures?: number;
+      totalServers?: number;
+    };
     if (
       errorRate > 5 ||
       averageResponseTime > 2000 ||
-      (typeof summary.activeFailures === 'number' && typeof summary.totalServers === 'number' &&
-       summary.activeFailures > summary.totalServers * 0.3)
+      (typeof summary.activeFailures === 'number' &&
+        typeof summary.totalServers === 'number' &&
+        summary.activeFailures > summary.totalServers * 0.3)
     ) {
       return 'warning';
     }
@@ -366,7 +372,7 @@ export class SystemStateManager extends EventEmitter {
         };
       }
 
-      const state = simulationEngine.getState();
+      const _state = simulationEngine.getState();
       const runtime = 0; // 기본값 사용
 
       simulationEngine.stop();

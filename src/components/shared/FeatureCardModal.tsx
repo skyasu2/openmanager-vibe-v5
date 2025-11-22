@@ -111,98 +111,96 @@ export default function FeatureCardModal({
   };
 
   // 기술 카드 컴포넌트 (과거 구현 참조)
-  const TechCard = React.memo(
-    ({ tech }: { tech: TechItem }) => {
-      const importanceStyle = getImportanceStyle(tech.importance);
-      const categoryStyle = getCategoryStyle(tech.category);
+  const TechCard = React.memo(({ tech }: { tech: TechItem }) => {
+    const importanceStyle = getImportanceStyle(tech.importance);
+    const categoryStyle = getCategoryStyle(tech.category);
 
-      return (
-        <div
-          className={`rounded-lg border p-4 ${importanceStyle.bg} transition-all duration-300 hover:scale-105`}
-        >
-          <div className="mb-3 flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">{tech.icon}</span>
-              <div>
-                <h4 className="text-sm font-semibold text-white">
-                  {sanitizeText(tech.name)}
-                </h4>
-                {tech.version && (
-                  <span className="text-xs text-gray-400">
-                    v{sanitizeText(tech.version)}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span
-                className={`rounded-full px-2 py-1 text-xs font-medium ${importanceStyle.badge}`}
-              >
-                {importanceStyle.label}
-              </span>
-              <span
-                className={`rounded-full px-2 py-1 text-xs ${categoryStyle.bg} ${categoryStyle.color}`}
-              >
-                {tech.category}
-              </span>
+    return (
+      <div
+        className={`rounded-lg border p-4 ${importanceStyle.bg} transition-all duration-300 hover:scale-105`}
+      >
+        <div className="mb-3 flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">{tech.icon}</span>
+            <div>
+              <h4 className="text-sm font-semibold text-white">
+                {sanitizeText(tech.name)}
+              </h4>
+              {tech.version && (
+                <span className="text-xs text-gray-400">
+                  v{sanitizeText(tech.version)}
+                </span>
+              )}
             </div>
           </div>
-
-          <p className="mb-2 text-xs leading-relaxed text-gray-300">
-            {sanitizeText(tech.description)}
-          </p>
-
-          <div className="mb-3 rounded bg-gray-800/50 p-2 text-xs text-gray-400">
-            <strong className="text-gray-300">구현:</strong>{' '}
-            {sanitizeText(tech.implementation)}
-          </div>
-
-          {/* 제품 타입 및 AI 엔진 타입 배지 */}
-          <div className="mb-2 flex flex-wrap gap-2">
-            {tech.type && (
-              <span
-                className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                  tech.type === 'custom'
-                    ? 'border border-blue-500/30 bg-blue-500/20 text-blue-300'
-                    : tech.type === 'opensource'
-                      ? 'border border-green-500/30 bg-green-500/20 text-green-300'
-                      : 'border border-purple-500/30 bg-purple-500/20 text-purple-300'
-                }`}
-              >
-                {tech.type === 'custom'
-                  ? '🏭 커스텀'
-                  : tech.type === 'opensource'
-                    ? '🔓 오픈소스'
-                    : '📦 상용'}
-              </span>
-            )}
-            {tech.aiType && (
-              <span
-                className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                  tech.aiType === 'google-api'
-                    ? 'border border-green-500/30 bg-green-500/20 text-green-300'
-                    : 'border border-yellow-500/30 bg-yellow-500/20 text-yellow-300'
-                }`}
-              >
-                {tech.aiType === 'google-api' ? '🌐 Google AI' : '💻 로컬 AI'}
-              </span>
-            )}
-          </div>
-
-          <div className="flex flex-wrap gap-1">
-            {tech.tags?.map((tag, tagIndex) => (
-              <span
-                key={tagIndex}
-                className="rounded bg-gray-700/50 px-2 py-1 text-xs text-gray-300"
-              >
-                {sanitizeText(tag)}
-              </span>
-            )) || null}
+          <div className="flex flex-col gap-1">
+            <span
+              className={`rounded-full px-2 py-1 text-xs font-medium ${importanceStyle.badge}`}
+            >
+              {importanceStyle.label}
+            </span>
+            <span
+              className={`rounded-full px-2 py-1 text-xs ${categoryStyle.bg} ${categoryStyle.color}`}
+            >
+              {tech.category}
+            </span>
           </div>
         </div>
-      );
-    }
-  );
+
+        <p className="mb-2 text-xs leading-relaxed text-gray-300">
+          {sanitizeText(tech.description)}
+        </p>
+
+        <div className="mb-3 rounded bg-gray-800/50 p-2 text-xs text-gray-400">
+          <strong className="text-gray-300">구현:</strong>{' '}
+          {sanitizeText(tech.implementation)}
+        </div>
+
+        {/* 제품 타입 및 AI 엔진 타입 배지 */}
+        <div className="mb-2 flex flex-wrap gap-2">
+          {tech.type && (
+            <span
+              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                tech.type === 'custom'
+                  ? 'border border-blue-500/30 bg-blue-500/20 text-blue-300'
+                  : tech.type === 'opensource'
+                    ? 'border border-green-500/30 bg-green-500/20 text-green-300'
+                    : 'border border-purple-500/30 bg-purple-500/20 text-purple-300'
+              }`}
+            >
+              {tech.type === 'custom'
+                ? '🏭 커스텀'
+                : tech.type === 'opensource'
+                  ? '🔓 오픈소스'
+                  : '📦 상용'}
+            </span>
+          )}
+          {tech.aiType && (
+            <span
+              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                tech.aiType === 'google-api'
+                  ? 'border border-green-500/30 bg-green-500/20 text-green-300'
+                  : 'border border-yellow-500/30 bg-yellow-500/20 text-yellow-300'
+              }`}
+            >
+              {tech.aiType === 'google-api' ? '🌐 Google AI' : '💻 로컬 AI'}
+            </span>
+          )}
+        </div>
+
+        <div className="flex flex-wrap gap-1">
+          {tech.tags?.map((tag, tagIndex) => (
+            <span
+              key={tagIndex}
+              className="rounded bg-gray-700/50 px-2 py-1 text-xs text-gray-300"
+            >
+              {sanitizeText(tag)}
+            </span>
+          )) || null}
+        </div>
+      </div>
+    );
+  });
 
   TechCard.displayName = 'TechCard';
 
@@ -267,7 +265,6 @@ export default function FeatureCardModal({
   }, [cardData.id, isHistoryView]);
 
   // 기술 스택 배열 추출 (항상 배열)
-  const techCards = categorizedTechData.allCards;
   const {
     critical: criticalTech,
     high: highTech,
@@ -384,7 +381,7 @@ export default function FeatureCardModal({
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {vibeHistoryStages.stage1?.map(
-                (tech: TechItem, index: number) => (
+                (tech: TechItem, _index: number) => (
                   <TechCard key={tech.name} tech={tech} />
                 )
               ) || null}
@@ -410,7 +407,7 @@ export default function FeatureCardModal({
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {vibeHistoryStages.stage2?.map(
-                (tech: TechItem, index: number) => (
+                (tech: TechItem, _index: number) => (
                   <TechCard key={tech.name} tech={tech} />
                 )
               ) || null}
@@ -436,7 +433,7 @@ export default function FeatureCardModal({
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {vibeHistoryStages.stage3?.map(
-                (tech: TechItem, index: number) => (
+                (tech: TechItem, _index: number) => (
                   <TechCard key={tech.name} tech={tech} />
                 )
               ) || null}

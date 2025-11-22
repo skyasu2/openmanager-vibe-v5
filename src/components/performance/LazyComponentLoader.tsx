@@ -6,7 +6,7 @@
 'use client';
 
 import { Suspense, lazy } from 'react';
-import type { ReactNode } from 'react';;
+import type { ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
 
 interface LazyLoadConfig {
@@ -65,9 +65,11 @@ export const LazyMonacoEditor = lazy(() =>
   Promise.resolve({ default: () => <div>Monaco Editor not installed</div> })
 );
 
-// Mermaid 다이어그램 (애니메이션 라이브러리) - 컴포넌트 없음으로 비활성화  
+// Mermaid 다이어그램 (애니메이션 라이브러리) - 컴포넌트 없음으로 비활성화
 export const LazyMermaid = lazy(() =>
-  Promise.resolve({ default: () => <div>MermaidDiagram component not found</div> })
+  Promise.resolve({
+    default: () => <div>MermaidDiagram component not found</div>,
+  })
 );
 
 /**
@@ -78,7 +80,7 @@ export function LazyComponentWrapper({
   fallback,
   config = {},
 }: LazyComponentProps) {
-  const { delay = 0, priority = 5 } = config;
+  const { delay: _delay = 0, priority: _priority = 5 } = config;
 
   return (
     <Suspense fallback={fallback || <DefaultFallback />}>{children}</Suspense>
@@ -166,7 +168,7 @@ export class PriorityLoader {
     while (this.loadQueue.length > 0) {
       const queueItem = this.loadQueue.shift();
       if (!queueItem) continue;
-      
+
       const { component, name } = queueItem;
 
       try {

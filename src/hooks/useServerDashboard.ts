@@ -8,38 +8,48 @@ import {
   type ServerDisplayMode,
 } from '@/config/display-config';
 import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
-import type { Server, Service, ServerRole, ServerEnvironment } from '@/types/server';
+import type {
+  Server,
+  Service,
+  ServerRole,
+  ServerEnvironment,
+} from '@/types/server';
 import type { EnhancedServerMetrics } from '@/types/unified-server';
 import type { ServerStatus } from '@/types/server-common';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';
 import { useWorkerStats, calculateServerStatsFallback } from './useWorkerStats';
-import { serverTypeGuards } from '@/utils/serverUtils';
 import debug from '@/utils/debug';
 
 // 🛡️ 2025 모던 Type Guard 함수들 (Best Practices)
-const isValidArray = <T,>(value: unknown): value is T[] => {
+const isValidArray = <T>(value: unknown): value is T[] => {
   return Array.isArray(value) && value.length > 0;
 };
 
 const isValidServer = (value: unknown): value is EnhancedServerData => {
-  return value !== null &&
-         typeof value === 'object' &&
-         typeof (value as Record<string, unknown>).id === 'string';
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    typeof (value as Record<string, unknown>).id === 'string'
+  );
 };
 
 const isValidNumber = (value: unknown): value is number => {
-  return typeof value === 'number' &&
-         !Number.isNaN(value) &&
-         Number.isFinite(value) &&
-         value >= 0;
+  return (
+    typeof value === 'number' &&
+    !Number.isNaN(value) &&
+    Number.isFinite(value) &&
+    value >= 0
+  );
 };
 
-const hasValidLength = (value: unknown): value is { length: number } => {
-  return value !== null &&
-         typeof value === 'object' &&
-         Object.hasOwn(value, 'length') &&
-         isValidNumber((value as Record<string, unknown>).length);
+const _hasValidLength = (value: unknown): value is { length: number } => {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    Object.hasOwn(value, 'length') &&
+    isValidNumber((value as Record<string, unknown>).length)
+  );
 };
 
 // 🏗️ Clean Architecture: 도메인 레이어 - 순수 비즈니스 로직
@@ -65,13 +75,17 @@ interface ServerStats {
 
 // 🚀 성능 최적화: Map 기반 캐싱 시스템
 const statsCache = new Map<string, ServerStats>();
-const serverGroupCache = new Map<string, Map<string, EnhancedServerData[]>>();
+const _serverGroupCache = new Map<string, Map<string, EnhancedServerData[]>>();
 
 const getServerGroupKey = (servers: EnhancedServerData[]): string => {
-  return servers.map(s => `${s.id}:${s.status}:${s.cpu}:${s.memory}:${s.disk}`).join('|');
+  return servers
+    .map((s) => `${s.id}:${s.status}:${s.cpu}:${s.memory}:${s.disk}`)
+    .join('|');
 };
 
-const groupServersByStatus = (servers: EnhancedServerData[]): Map<string, EnhancedServerData[]> => {
+const _groupServersByStatus = (
+  servers: EnhancedServerData[]
+): Map<string, EnhancedServerData[]> => {
   const groups = new Map<string, EnhancedServerData[]>();
 
   for (const server of servers) {
@@ -132,7 +146,7 @@ const calculateServerStats = (servers: EnhancedServerData[]): ServerStats => {
       critical: 0,
       avgCpu: 0,
       avgMemory: 0,
-      avgDisk: 0
+      avgDisk: 0,
     };
   }
 
@@ -154,7 +168,8 @@ const calculateServerStats = (servers: EnhancedServerData[]): ServerStats => {
   // 🚀 결과 캐싱 (최대 100개 엔트리로 제한)
   if (statsCache.size >= 100) {
     const firstKey = statsCache.keys().next().value;
-    if (firstKey !== undefined) { // 🔧 수정: undefined 체크 추가
+    if (firstKey !== undefined) {
+      // 🔧 수정: undefined 체크 추가
       statsCache.delete(firstKey);
     }
   }
@@ -181,7 +196,8 @@ const calculatePagination = <T>(
 };
 
 // Type interfaces for server data transformation
-export interface EnhancedServerData { // 🔧 수정: export 추가 (useWorkerStats.ts에서 사용)
+export interface EnhancedServerData {
+  // 🔧 수정: export 추가 (useWorkerStats.ts에서 사용)
   id: string;
   name?: string;
   hostname?: string;
@@ -329,11 +345,16 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const { onStatsUpdate } = options;
 
   // 🚀 Web Worker 통계 계산 Hook (비동기 성능 최적화)
-  const { calculateStats: calculateStatsWorker, isWorkerReady } = useWorkerStats();
+  const { calculateStats: calculateStatsWorker, isWorkerReady } =
+    useWorkerStats();
 
   // Zustand 스토어에서 서버 데이터 가져오기
   const rawServers = useServerDataStore((state) => {
-    console.log('🔍 스토어에서 servers 선택:', state.servers?.length || 0, '개');
+    console.log(
+      '🔍 스토어에서 servers 선택:',
+      state.servers?.length || 0,
+      '개'
+    );
     return state.servers;
   });
 
@@ -346,17 +367,25 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
       rawServers_exists: !!rawServers,
       rawServers_length: rawServers?.length || 0,
       rawServers_isArray: Array.isArray(rawServers),
-      cache_length: previousServersRef.current.length
+      cache_length: previousServersRef.current.length,
     });
 
     // AI 사이드바 오픈 시 빈 배열이 되는 Race Condition 방지
     if (!rawServers || !Array.isArray(rawServers) || rawServers.length === 0) {
-      console.log('⚠️ 서버 데이터 없음 - 캐시된 데이터 사용:', previousServersRef.current.length, '개');
+      console.log(
+        '⚠️ 서버 데이터 없음 - 캐시된 데이터 사용:',
+        previousServersRef.current.length,
+        '개'
+      );
       return previousServersRef.current;
     }
 
     // 유효한 데이터인 경우 캐시 업데이트
-    console.log('✅ 서버 데이터 유효 - 캐시 업데이트:', rawServers.length, '개');
+    console.log(
+      '✅ 서버 데이터 유효 - 캐시 업데이트:',
+      rawServers.length,
+      '개'
+    );
     previousServersRef.current = rawServers;
     return rawServers;
   }, [rawServers]);
@@ -376,7 +405,11 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const stopAutoRefresh = useServerDataStore((state) => state.stopAutoRefresh);
 
   // 즉시 fetchServers 실행 (조건부)
-  if ((!servers || (!Array.isArray(servers) || servers.length === 0)) && !isLoading && fetchServers) {
+  if (
+    (!servers || !Array.isArray(servers) || servers.length === 0) &&
+    !isLoading &&
+    fetchServers
+  ) {
     console.log('🚀 즉시 fetchServers 실행 - 서버 데이터 없음');
     setTimeout(() => {
       console.log('⏰ setTimeout으로 fetchServers 호출');
@@ -398,7 +431,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   console.log('📍 useEffect 실행 직전:', {
     fetchServers: typeof fetchServers,
     startAutoRefresh: typeof startAutoRefresh,
-    stopAutoRefresh: typeof stopAutoRefresh
+    stopAutoRefresh: typeof stopAutoRefresh,
   });
 
   // 🎯 서버 설정에 따른 동적 페이지 크기 설정
@@ -479,9 +512,9 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
       servers_length: servers?.length || 0,
       servers_exists: !!servers,
       fetchServers_type: typeof fetchServers,
-      startAutoRefresh_type: typeof startAutoRefresh
+      startAutoRefresh_type: typeof startAutoRefresh,
     });
-    
+
     // 즉시 한 번 fetchServers 호출 (조건 없이)
     console.log('⚡ fetchServers 즉시 호출 시작');
     fetchServers()
@@ -510,7 +543,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
   // 실제 서버 데이터 사용 (메모이제이션 + 🕐 시간 기반 메트릭 변화)
   const actualServers = useMemo(() => {
-    if (!servers || (!Array.isArray(servers) || servers.length === 0)) {
+    if (!servers || !Array.isArray(servers) || servers.length === 0) {
       return [];
     }
 
@@ -539,7 +572,12 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
         network: network,
         uptime: s.uptime || 0,
         location: s.location || 'Unknown',
-        alerts: typeof s.alerts === 'number' ? s.alerts : (Array.isArray(s.alerts) ? s.alerts.length : 0), // 🔧 수정: 명시적 타입 변환
+        alerts:
+          typeof s.alerts === 'number'
+            ? s.alerts
+            : Array.isArray(s.alerts)
+              ? s.alerts.length
+              : 0, // 🔧 수정: 명시적 타입 변환
         ip: s.ip || '192.168.1.1',
         os: s.os || 'Ubuntu 22.04 LTS',
         role: (s.type || s.role || 'worker') as ServerRole,
@@ -614,19 +652,28 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     // Web Worker 사용 조건: 준비 완료 + 10개 이상 서버
     if (isWorkerReady() && actualServers.length >= 10) {
       if (!isCalculatingStats) {
-        console.log('🚀 Web Worker 비동기 계산 시작:', actualServers.length, '개 서버');
+        console.log(
+          '🚀 Web Worker 비동기 계산 시작:',
+          actualServers.length,
+          '개 서버'
+        );
         setIsCalculatingStats(true);
 
         calculateStatsWorker(actualServers as EnhancedServerData[])
           .then((workerResult) => {
-            console.log('✅ Web Worker 계산 완료:', workerResult.performanceMetrics);
+            console.log(
+              '✅ Web Worker 계산 완료:',
+              workerResult.performanceMetrics
+            );
             const adaptedStats = adaptWorkerStatsToLegacy(workerResult);
             setWorkerStats(adaptedStats);
             setIsCalculatingStats(false);
           })
           .catch((error) => {
             console.error('❌ Web Worker 계산 실패, Fallback으로 대체:', error);
-            const fallbackStats = calculateServerStats(actualServers as EnhancedServerData[]);
+            const fallbackStats = calculateServerStats(
+              actualServers as EnhancedServerData[]
+            );
             setWorkerStats(fallbackStats);
             setIsCalculatingStats(false);
           });
@@ -635,9 +682,11 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
       // 조건 미충족 시 동기 계산 결과 저장
       console.log('🔄 동기 계산 사용 (Worker 미준비 또는 서버 <10개):', {
         workerReady: isWorkerReady(),
-        serverCount: actualServers.length
+        serverCount: actualServers.length,
       });
-      const syncStats = calculateServerStats(actualServers as EnhancedServerData[]);
+      const syncStats = calculateServerStats(
+        actualServers as EnhancedServerData[]
+      );
       setWorkerStats(syncStats);
     }
   }, [actualServers, isWorkerReady, calculateStatsWorker, isCalculatingStats]);
@@ -646,13 +695,21 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   const stats = useMemo(() => {
     if (!actualServers || actualServers.length === 0) {
       return {
-        total: 0, online: 0, unknown: 0, warning: 0, critical: 0, // 🔧 수정: 'offline' → 'unknown' (일관성)
-        avgCpu: 0, avgMemory: 0, avgDisk: 0
+        total: 0,
+        online: 0,
+        unknown: 0,
+        warning: 0,
+        critical: 0, // 🔧 수정: 'offline' → 'unknown' (일관성)
+        avgCpu: 0,
+        avgMemory: 0,
+        avgDisk: 0,
       };
     }
 
     // Web Worker 결과 우선, 없으면 즉시 동기 계산
-    return workerStats || calculateServerStats(actualServers as EnhancedServerData[]);
+    return (
+      workerStats || calculateServerStats(actualServers as EnhancedServerData[])
+    );
   }, [actualServers, workerStats]);
 
   // 🚀 통계 업데이트 콜백 호출 (디바운싱 적용)
@@ -661,13 +718,15 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
       // 100ms 디바운싱으로 불필요한 업데이트 방지
       const timeoutId = setTimeout(() => {
         // 🔧 수정: offline 속성 추가 (ServerDashboard와 일관성)
-        const offlineCount = actualServers.filter(s => s.status === 'offline').length;
+        const offlineCount = actualServers.filter(
+          (s) => s.status === 'offline'
+        ).length;
         onStatsUpdate({
           total: stats.total,
           online: stats.online,
           warning: stats.warning,
           offline: offlineCount,
-          unknown: stats.unknown
+          unknown: stats.unknown,
         });
       }, 100);
 
@@ -708,7 +767,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     actualServers_length: actualServers.length,
     paginatedServers_length: paginatedServers.length,
     optimizedIsLoading,
-    stats
+    stats,
   });
 
   return {
@@ -817,7 +876,9 @@ export function useEnhancedServerDashboard({
     // 🛡️ AI 교차검증: servers 배열 안전성 검증
     if (!servers || !Array.isArray(servers) || servers.length === 0) {
       if (process.env.NODE_ENV !== 'production') {
-        console.warn('⚠️ useEnhancedServerDashboard: servers 배열이 비어있거나 유효하지 않음');
+        console.warn(
+          '⚠️ useEnhancedServerDashboard: servers 배열이 비어있거나 유효하지 않음'
+        );
       }
       return [];
     }
@@ -838,14 +899,21 @@ export function useEnhancedServerDashboard({
   // 📄 페이지네이션 계산
   const totalPages = useMemo(() => {
     // 🛡️ AI 교차검증: filteredServers 안전성 검증
-    const safeLength = (filteredServers && Array.isArray(filteredServers)) ? filteredServers.length : 0;
+    const safeLength =
+      filteredServers && Array.isArray(filteredServers)
+        ? filteredServers.length
+        : 0;
     return Math.ceil(safeLength / displayConfig.cardsPerPage);
   }, [filteredServers, displayConfig.cardsPerPage]);
 
   // 📊 페이지네이션된 서버
   const paginatedServers = useMemo(() => {
     // 🛡️ AI 교차검증: filteredServers 안전성 검증
-    if (!filteredServers || !Array.isArray(filteredServers) || filteredServers.length === 0) {
+    if (
+      !filteredServers ||
+      !Array.isArray(filteredServers) ||
+      filteredServers.length === 0
+    ) {
       return [];
     }
 
@@ -857,12 +925,11 @@ export function useEnhancedServerDashboard({
   // 📊 표시 정보 생성 (UI/UX 개선)
   const displayInfo = useMemo(() => {
     // 🛡️ AI 교차검증: filteredServers.length 안전성 검증
-    const safeFilteredLength = (filteredServers && Array.isArray(filteredServers)) ? filteredServers.length : 0;
-    return generateDisplayInfo(
-      displayMode,
-      currentPage,
-      safeFilteredLength
-    );
+    const safeFilteredLength =
+      filteredServers && Array.isArray(filteredServers)
+        ? filteredServers.length
+        : 0;
+    return generateDisplayInfo(displayMode, currentPage, safeFilteredLength);
   }, [displayMode, currentPage, filteredServers]);
 
   // 🔄 페이지 리셋 (필터 변경 시)
@@ -887,13 +954,16 @@ export function useEnhancedServerDashboard({
   };
 
   // 📊 디버깅 로그
-  const serversLength = useMemo(() => 
-    Array.isArray(servers) ? servers.length : 0, 
+  const serversLength = useMemo(
+    () => (Array.isArray(servers) ? servers.length : 0),
     [servers]
   );
-  
-  const filteredServersLength = useMemo(() => 
-    (filteredServers && Array.isArray(filteredServers)) ? filteredServers.length : 0,
+
+  const filteredServersLength = useMemo(
+    () =>
+      filteredServers && Array.isArray(filteredServers)
+        ? filteredServers.length
+        : 0,
     [filteredServers]
   );
 

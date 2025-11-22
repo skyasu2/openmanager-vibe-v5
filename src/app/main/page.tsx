@@ -78,10 +78,12 @@ function Home() {
     startSystem: startMultiUserSystem,
   } = useSystemStatus();
 
-  const [isLoading, _setIsLoading] = useState(false);
+  const [_isLoading, _setIsLoading] = useState(false);
   const [_systemTimeRemaining, setSystemTimeRemaining] = useState(0);
   const [systemStartCountdown, setSystemStartCountdown] = useState(0);
-  const [countdownTimer, setCountdownTimer] = useState<NodeJS.Timeout | null>(null);
+  const [countdownTimer, setCountdownTimer] = useState<NodeJS.Timeout | null>(
+    null
+  );
   const [isSystemStarting, setIsSystemStarting] = useState(false);
 
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -103,16 +105,31 @@ function Home() {
       };
     }
     if (multiUserStatus?.isRunning || isSystemStarted) {
-      const shutdownTime = typeof window !== 'undefined' ? localStorage.getItem('system_auto_shutdown') : null;
+      const shutdownTime =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('system_auto_shutdown')
+          : null;
       let message = '✅ 시스템 가동 중 - 대시보드로 이동';
       if (shutdownTime) {
-        const timeLeft = Math.max(0, Math.floor((parseInt(shutdownTime) - Date.now()) / 60000));
+        const timeLeft = Math.max(
+          0,
+          Math.floor((parseInt(shutdownTime) - Date.now()) / 60000)
+        );
         message = `✅ 시스템 가동 중 (${timeLeft}분 후 자동 종료)`;
       }
       return { color: 'text-green-300', message, showEscHint: false };
     }
-    return { color: 'text-white', message: '클릭하여 시작하기', showEscHint: false };
-  }, [systemStartCountdown, isSystemStarting, multiUserStatus?.isRunning, isSystemStarted]);
+    return {
+      color: 'text-white',
+      message: '클릭하여 시작하기',
+      showEscHint: false,
+    };
+  }, [
+    systemStartCountdown,
+    isSystemStarting,
+    multiUserStatus?.isRunning,
+    isSystemStarted,
+  ]);
 
   useEffect(() => {
     if (isVercel) performanceTracker.start('page-mount');
@@ -154,7 +171,11 @@ function Home() {
     if (!multiUserStatus) return;
     const currentStarting = multiUserStatus.isStarting || false;
     if (currentStarting !== isSystemStarting) {
-      debug.log(debugWithEnv(`🔄 시스템 시작 상태 업데이트: ${isSystemStarting} → ${currentStarting}`));
+      debug.log(
+        debugWithEnv(
+          `🔄 시스템 시작 상태 업데이트: ${isSystemStarting} → ${currentStarting}`
+        )
+      );
       setIsSystemStarting(currentStarting);
     }
   }, [multiUserStatus, isSystemStarting]);
@@ -163,7 +184,9 @@ function Home() {
     if (!authError || !authReady) return;
     debug.error(debugWithEnv('❌ 인증 에러 발생'), authError);
     const authRetryTimeout = setTimeout(() => {
-      debug.log(debugWithEnv(`🔄 인증 재시도 시작 (${authRetryDelay / 1000}초 후)`));
+      debug.log(
+        debugWithEnv(`🔄 인증 재시도 시작 (${authRetryDelay / 1000}초 후)`)
+      );
       retryAuth();
     }, authRetryDelay);
     return () => clearTimeout(authRetryTimeout);
@@ -203,15 +226,26 @@ function Home() {
   }, [systemStartCountdown, countdownTimer]);
 
   const handleSystemToggle = useCallback(() => {
-    const isActuallyLoading = statusLoading || isSystemStarting || (authLoading && !isAuthenticated && !isGitHubUser);
+    const isActuallyLoading =
+      statusLoading ||
+      isSystemStarting ||
+      (authLoading && !isAuthenticated && !isGitHubUser);
     if (isActuallyLoading) {
-      console.log('🚫 시스템 토글 차단:', { statusLoading, isSystemStarting, authLoading, isAuthenticated, isGitHubUser });
+      console.log('🚫 시스템 토글 차단:', {
+        statusLoading,
+        isSystemStarting,
+        authLoading,
+        isAuthenticated,
+        isGitHubUser,
+      });
       return;
     }
 
     const isGuest = !isGitHubUser;
     if (isGuest && !guestSystemStartEnabled) {
-      alert('⚠️ 게스트 모드는 시스템을 시작할 수 없습니다.\n\nGitHub 로그인을 이용해주세요.');
+      alert(
+        '⚠️ 게스트 모드는 시스템을 시작할 수 없습니다.\n\nGitHub 로그인을 이용해주세요.'
+      );
       return;
     }
 
@@ -252,16 +286,35 @@ function Home() {
       }, COUNTDOWN_INTERVAL_MS);
       setCountdownTimer(timer);
     }
-  }, [isSystemStarting, systemStartCountdown, multiUserStatus?.isRunning, isSystemStarted, pathname, isAuthenticated, isGitHubUser, authLoading, statusLoading, countdownTimer, router, startMultiUserSystem, startSystem, guestSystemStartEnabled]);
+  }, [
+    isSystemStarting,
+    systemStartCountdown,
+    multiUserStatus?.isRunning,
+    isSystemStarted,
+    pathname,
+    isAuthenticated,
+    isGitHubUser,
+    authLoading,
+    statusLoading,
+    countdownTimer,
+    router,
+    startMultiUserSystem,
+    startSystem,
+    guestSystemStartEnabled,
+  ]);
 
   const buttonConfig = useMemo(() => {
-    const getIcon = (IconComponent: React.ComponentType<{ className?: string }>, className: string) => isMounted ? <IconComponent className={className} /> : null;
+    const getIcon = (
+      IconComponent: React.ComponentType<{ className?: string }>,
+      className: string
+    ) => (isMounted ? <IconComponent className={className} /> : null);
 
     if (systemStartCountdown > 0) {
       return {
         text: `시작 취소 (${systemStartCountdown}초)`,
         icon: getIcon(X, 'h-5 w-5'),
-        className: 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50 relative overflow-hidden',
+        className:
+          'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-red-400/50 relative overflow-hidden',
         disabled: false,
       };
     }
@@ -270,17 +323,22 @@ function Home() {
       return {
         text: '시스템 시작 중...',
         icon: getIcon(Loader2, 'h-5 w-5 animate-spin'),
-        className: 'bg-gradient-to-r from-purple-500 to-blue-600 text-white border-purple-400/50 cursor-not-allowed',
+        className:
+          'bg-gradient-to-r from-purple-500 to-blue-600 text-white border-purple-400/50 cursor-not-allowed',
         disabled: true,
       };
     }
 
-    const isActuallyLoading = statusLoading || isSystemStarting || (authLoading && !isAuthenticated && !isGitHubUser);
+    const isActuallyLoading =
+      statusLoading ||
+      isSystemStarting ||
+      (authLoading && !isAuthenticated && !isGitHubUser);
     if (isActuallyLoading) {
       return {
         text: '시스템 초기화 중...',
         icon: getIcon(Loader2, 'h-5 w-5 animate-spin'),
-        className: 'bg-gray-500 text-white border-gray-400/50 cursor-not-allowed',
+        className:
+          'bg-gray-500 text-white border-gray-400/50 cursor-not-allowed',
         disabled: true,
       };
     }
@@ -289,7 +347,8 @@ function Home() {
       return {
         text: `📊 대시보드 이동 (사용자: ${multiUserStatus?.userCount || 0}명)`,
         icon: getIcon(BarChart3, 'h-5 w-5'),
-        className: 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50',
+        className:
+          'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-green-400/50',
         disabled: false,
       };
     }
@@ -297,10 +356,22 @@ function Home() {
     return {
       text: '🚀 시스템 시작',
       icon: getIcon(Play, 'h-5 w-5'),
-      className: 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-blue-400/50',
+      className:
+        'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-blue-400/50',
       disabled: false,
     };
-  }, [isMounted, systemStartCountdown, isSystemStarting, authLoading, isAuthenticated, isGitHubUser, statusLoading, multiUserStatus?.isRunning, multiUserStatus?.userCount, isSystemStarted]);
+  }, [
+    isMounted,
+    systemStartCountdown,
+    isSystemStarting,
+    authLoading,
+    isAuthenticated,
+    isGitHubUser,
+    statusLoading,
+    multiUserStatus?.isRunning,
+    multiUserStatus?.userCount,
+    isSystemStarted,
+  ]);
 
   const shouldShowLoading = !isMounted || authLoading || shouldRedirect;
 
@@ -309,15 +380,28 @@ function Home() {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="flex min-h-screen items-center justify-center">
           <div className="text-center">
-            <div><Loader2 className="mx-auto mb-4 h-8 w-8 text-white" /></div>
-            <p className="font-medium text-white/90">{getLoadingMessage()} ({envLabel} 환경)</p>
+            <div>
+              <Loader2 className="mx-auto mb-4 h-8 w-8 text-white" />
+            </div>
+            <p className="font-medium text-white/90">
+              {getLoadingMessage()} ({envLabel} 환경)
+            </p>
             {authError && (
               <div className="mx-auto mt-4 max-w-md">
-                <p className="mb-2 text-sm text-red-400">인증 오류: {authError}</p>
-                <button onClick={retryAuth} className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700">다시 시도</button>
+                <p className="mb-2 text-sm text-red-400">
+                  인증 오류: {authError}
+                </p>
+                <button
+                  onClick={retryAuth}
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
+                >
+                  다시 시도
+                </button>
               </div>
             )}
-            <div className="mt-2 text-xs text-white/90">{envLabel} 서버에서 로딩 중...</div>
+            <div className="mt-2 text-xs text-white/90">
+              {envLabel} 서버에서 로딩 중...
+            </div>
           </div>
         </div>
       </div>
@@ -336,17 +420,43 @@ function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" data-system-active={isSystemStarted ? 'true' : 'false'}>
+    <div
+      className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
+      data-system-active={isSystemStarted ? 'true' : 'false'}
+    >
       <div className="wave-particles"></div>
       <header className="relative z-50 flex items-center justify-between p-4 sm:p-6">
-        <button className="flex cursor-pointer items-center space-x-3 transition-opacity hover:opacity-80" onClick={() => router.push('/')} aria-label="홈으로 이동">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-lg shadow-lg" style={{ background: aiAgent.isEnabled ? 'linear-gradient(135deg, #a855f7, #ec4899)' : isSystemStarted ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #6b7280, #4b5563)' }}>
-            <Sparkles className={`h-5 w-5 text-white ${aiAgent.isEnabled || isSystemStarted ? 'motion-safe:animate-pulse-glow' : ''}`} strokeWidth={2.5} aria-hidden="true" />
+        <button
+          className="flex cursor-pointer items-center space-x-3 transition-opacity hover:opacity-80"
+          onClick={() => router.push('/')}
+          aria-label="홈으로 이동"
+        >
+          <div
+            className="relative flex h-10 w-10 items-center justify-center rounded-lg shadow-lg"
+            style={{
+              background: aiAgent.isEnabled
+                ? 'linear-gradient(135deg, #a855f7, #ec4899)'
+                : isSystemStarted
+                  ? 'linear-gradient(135deg, #10b981, #059669)'
+                  : 'linear-gradient(135deg, #6b7280, #4b5563)',
+            }}
+          >
+            <Sparkles
+              className={`h-5 w-5 text-white ${aiAgent.isEnabled || isSystemStarted ? 'motion-safe:animate-pulse-glow' : ''}`}
+              strokeWidth={2.5}
+              aria-hidden="true"
+            />
           </div>
           <div>
             <h1 className="text-xl font-bold text-white">OpenManager</h1>
             <p className="text-xs text-white/90">
-              {aiAgent.isEnabled && !isSystemStarted ? 'AI 독립 모드' : aiAgent.isEnabled && isSystemStarted ? 'AI + 시스템 통합 모드' : isSystemStarted ? '기본 모니터링' : '시스템 정지'}
+              {aiAgent.isEnabled && !isSystemStarted
+                ? 'AI 독립 모드'
+                : aiAgent.isEnabled && isSystemStarted
+                  ? 'AI + 시스템 통합 모드'
+                  : isSystemStarted
+                    ? '기본 모니터링'
+                    : '시스템 정지'}
             </p>
           </div>
         </button>
@@ -357,22 +467,36 @@ function Home() {
       <div className="container relative z-10 mx-auto px-6 pt-8">
         <div className="mb-12 text-center">
           <h1 className="mb-4 text-3xl font-bold md:text-5xl">
-            <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">{renderTextWithAIGradient('AI', isMounted)}</span>{' '}
-            <span className="font-semibold text-white">기반</span> <span className="text-white">서버 모니터링</span>
+            <span className="bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              {renderTextWithAIGradient('AI', isMounted)}
+            </span>{' '}
+            <span className="font-semibold text-white">기반</span>{' '}
+            <span className="text-white">서버 모니터링</span>
           </h1>
           <p className="mx-auto max-w-3xl text-lg leading-relaxed text-white/90 md:text-xl">
-            <span className="text-sm text-white/75">완전 독립 동작 AI 엔진 | 향후 개발: 선택적 LLM API 연동 확장</span>
+            <span className="text-sm text-white/75">
+              완전 독립 동작 AI 엔진 | 향후 개발: 선택적 LLM API 연동 확장
+            </span>
           </p>
         </div>
         <div className="mb-12">
           {!isSystemStarted ? (
             <div className="mx-auto max-w-2xl text-center">
               <div className="mb-6 flex flex-col items-center space-y-4">
-                {isGitHubUser || guestSystemStartEnabled || isGuestFullAccessEnabled() ? (
+                {isGitHubUser ||
+                guestSystemStartEnabled ||
+                isGuestFullAccessEnabled() ? (
                   <>
-                    <button onClick={handleSystemToggle} disabled={buttonConfig.disabled} className={`flex h-16 w-full max-w-xs items-center justify-center gap-3 rounded-xl border font-semibold shadow-xl transition-all duration-300 sm:w-64 ${buttonConfig.className}`}>
+                    <button
+                      onClick={handleSystemToggle}
+                      disabled={buttonConfig.disabled}
+                      className={`flex h-16 w-full max-w-xs items-center justify-center gap-3 rounded-xl border font-semibold shadow-xl transition-all duration-300 sm:w-64 ${buttonConfig.className}`}
+                    >
                       {systemStartCountdown > 0 && (
-                        <div className="absolute inset-0 overflow-hidden rounded-xl" style={{ transformOrigin: 'left' }}>
+                        <div
+                          className="absolute inset-0 overflow-hidden rounded-xl"
+                          style={{ transformOrigin: 'left' }}
+                        >
                           <div className="h-full bg-gradient-to-r from-red-600/40 via-red-500/40 to-red-400/40" />
                           <div className="absolute inset-0 h-full w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                         </div>
@@ -383,23 +507,50 @@ function Home() {
                       </div>
                     </button>
                     <div className="mt-2 flex flex-col items-center gap-1">
-                      <span className={`text-sm font-medium opacity-80 transition-all duration-300 ${statusInfo.color}`}>{statusInfo.message}</span>
-                      {statusInfo.showEscHint && <span className="text-xs text-white/75">또는 ESC 키를 눌러 취소</span>}
+                      <span
+                        className={`text-sm font-medium opacity-80 transition-all duration-300 ${statusInfo.color}`}
+                      >
+                        {statusInfo.message}
+                      </span>
+                      {statusInfo.showEscHint && (
+                        <span className="text-xs text-white/75">
+                          또는 ESC 키를 눌러 취소
+                        </span>
+                      )}
                     </div>
-                    {!systemStartCountdown && !isSystemStarting && !multiUserStatus?.isRunning && !isSystemStarted && (
-                      <div className="mt-2 flex justify-center"><span className="finger-pointer-primary">👆</span></div>
-                    )}
+                    {!systemStartCountdown &&
+                      !isSystemStarting &&
+                      !multiUserStatus?.isRunning &&
+                      !isSystemStarted && (
+                        <div className="mt-2 flex justify-center">
+                          <span className="finger-pointer-primary">👆</span>
+                        </div>
+                      )}
                   </>
                 ) : (
                   <div className="text-center">
                     <div className="mb-4 rounded-xl border border-blue-400/30 bg-blue-500/10 p-4 sm:p-6">
-                      {isMounted && <LogIn className="mx-auto mb-3 h-12 w-12 text-blue-400" />}
-                      <h3 className="mb-2 text-lg font-semibold text-white">GitHub 로그인이 필요합니다</h3>
-                      <p className="mb-4 text-sm text-blue-100">시스템 시작 기능은 GitHub 인증된 사용자만 사용할 수 있습니다.</p>
-                      <button onClick={() => router.push('/login')} className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700">로그인 페이지로 이동</button>
+                      {isMounted && (
+                        <LogIn className="mx-auto mb-3 h-12 w-12 text-blue-400" />
+                      )}
+                      <h3 className="mb-2 text-lg font-semibold text-white">
+                        GitHub 로그인이 필요합니다
+                      </h3>
+                      <p className="mb-4 text-sm text-blue-100">
+                        시스템 시작 기능은 GitHub 인증된 사용자만 사용할 수
+                        있습니다.
+                      </p>
+                      <button
+                        onClick={() => router.push('/login')}
+                        className="rounded-lg bg-blue-600 px-6 py-2 font-medium text-white transition-colors hover:bg-blue-700"
+                      >
+                        로그인 페이지로 이동
+                      </button>
                     </div>
                     <p className="text-xs text-gray-400">
-                      {guestSystemStartEnabled || isGuestFullAccessEnabled() ? '현재 게스트 모드에서도 시스템 제어 기능을 전부 테스트 중입니다.' : '게스트 모드에서는 읽기 전용 기능만 사용 가능합니다.'}
+                      {guestSystemStartEnabled || isGuestFullAccessEnabled()
+                        ? '현재 게스트 모드에서도 시스템 제어 기능을 전부 테스트 중입니다.'
+                        : '게스트 모드에서는 읽기 전용 기능만 사용 가능합니다.'}
                     </p>
                   </div>
                 )}
@@ -410,7 +561,9 @@ function Home() {
                     {isMounted && <Bot className="h-4 w-4 text-purple-400" />}
                     <span className="font-semibold">AI 어시스턴트</span>
                   </div>
-                  <p className="text-center text-white/90">시스템 시작 후 대시보드에서 AI 사이드바 이용 가능</p>
+                  <p className="text-center text-white/90">
+                    시스템 시작 후 대시보드에서 AI 사이드바 이용 가능
+                  </p>
                 </div>
               </div>
             </div>
@@ -418,22 +571,40 @@ function Home() {
             <div className="mx-auto max-w-4xl text-center">
               <div className="mb-6 flex justify-center">
                 <div className="flex flex-col items-center">
-                  {isGitHubUser || guestSystemStartEnabled || isGuestFullAccessEnabled() ? (
-                    <button onClick={() => router.push('/dashboard')} className="flex h-16 w-full max-w-xs items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-600 font-semibold text-white shadow-xl transition-all duration-200 hover:bg-emerald-700 sm:w-64">
+                  {isGitHubUser ||
+                  guestSystemStartEnabled ||
+                  isGuestFullAccessEnabled() ? (
+                    <button
+                      onClick={() => router.push('/dashboard')}
+                      className="flex h-16 w-full max-w-xs items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-600 font-semibold text-white shadow-xl transition-all duration-200 hover:bg-emerald-700 sm:w-64"
+                    >
                       <BarChart3 className="h-5 w-5" />
                       <span className="text-lg">📊 대시보드 열기</span>
                     </button>
                   ) : (
                     <div className="text-center">
-                      <p className="mb-2 text-sm text-gray-400">시스템이 다른 사용자에 의해 실행 중입니다</p>
-                      <p className="text-xs text-gray-500">GitHub 로그인 후 대시보드 접근이 가능합니다</p>
+                      <p className="mb-2 text-sm text-gray-400">
+                        시스템이 다른 사용자에 의해 실행 중입니다
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        GitHub 로그인 후 대시보드 접근이 가능합니다
+                      </p>
                     </div>
                   )}
-                  <div className="mt-2 flex justify-center"><span className="finger-pointer-dashboard">👆</span></div>
-                  <div className="mt-1 flex justify-center"><span className="text-xs text-white opacity-70">클릭하세요</span></div>
+                  <div className="mt-2 flex justify-center">
+                    <span className="finger-pointer-dashboard">👆</span>
+                  </div>
+                  <div className="mt-1 flex justify-center">
+                    <span className="text-xs text-white opacity-70">
+                      클릭하세요
+                    </span>
+                  </div>
                 </div>
               </div>
-              <p className="mt-4 text-center text-xs text-white/75">시스템이 활성화되어 있습니다. 대시보드에서 상세 모니터링을 확인하세요.</p>
+              <p className="mt-4 text-center text-xs text-white/75">
+                시스템이 활성화되어 있습니다. 대시보드에서 상세 모니터링을
+                확인하세요.
+              </p>
             </div>
           )}
         </div>
@@ -441,7 +612,9 @@ function Home() {
           <FeatureCardsGrid />
         </div>
         <div className="mt-8 border-t border-white/20 pt-6 text-center">
-          <p className="text-white/90">Copyright(c) OpenManager. All rights reserved.</p>
+          <p className="text-white/90">
+            Copyright(c) OpenManager. All rights reserved.
+          </p>
         </div>
       </div>
     </div>

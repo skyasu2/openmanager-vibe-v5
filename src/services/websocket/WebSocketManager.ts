@@ -12,16 +12,8 @@ import { IncidentReportService } from '@/services/ai/IncidentReportService';
  * - IncidentReportService 통합 장애 감지
  */
 
-import { Observable, Subject, BehaviorSubject, interval } from 'rxjs';
-import {
-  throttleTime,
-  debounceTime,
-  distinctUntilChanged,
-  filter,
-  map,
-  takeUntil,
-} from 'rxjs/operators';
-import type { Socket } from 'socket.io';
+import { Subject, BehaviorSubject, interval } from 'rxjs';
+import { throttleTime, distinctUntilChanged, filter } from 'rxjs/operators';
 // GCPRealDataService 사용
 // lightweight-anomaly-detector removed - using AnomalyDetectionService instead
 
@@ -259,164 +251,168 @@ export class WebSocketManager {
    */
   private startDataGeneration(): void {
     // 실시간 서버 데이터 브로드캐스트 (20초마다)
-    interval(20000).subscribe(() => { void (async () => {
-      const gcpServerData = await this.dataGenerator
-        .getRealServerMetrics()
-        .then((response: DataGeneratorResponse) => response.data);
-      const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
-
-      const serverMetrics = allServers.map((server) => {
-        return {
-          id: server.id,
-          name: server.name,
-          status: server.status,
-          metrics: {
-            cpu: server.cpu,
-            memory: server.memory,
-            disk: server.disk,
-            network: {
-              bytesIn: server.network || 0,
-              bytesOut: server.network || 0,
-            },
-          },
-          timestamp: new Date().toISOString(),
-        };
-      });
-
-      // 임계값 초과 시 알림 발생
-      if (
-        serverMetrics.some(
-          (server) => server.metrics.cpu > 85 || server.metrics.memory > 90
-        )
-      ) {
-        this.alertSubject.next({
-          serverId: 'anomaly-detector',
-          serverName: 'Anomaly Detector',
-          type: 'threshold_exceeded',
-          message: 'High resource usage detected',
-          priority: 'high',
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      serverMetrics.forEach((server) => {
-        const streamData: MetricStream = {
-          serverId: server.id,
-          data: server.metrics,
-          timestamp: server.timestamp,
-          type: 'cpu',
-          priority: this.calculatePriority(
-            server.metrics.cpu,
-            server.metrics.memory
-          ),
-        };
-
-        this.dataSubject.next(streamData);
-      });
-    })(); });
-
-    // 30초마다 장애 감지 및 보고서 생성
-    interval(30000).subscribe(() => { void (async () => {
-      if (!this.isActive || this.clients.size === 0) return;
-
-      try {
+    interval(20000).subscribe(() => {
+      void (async () => {
         const gcpServerData = await this.dataGenerator
           .getRealServerMetrics()
           .then((response: DataGeneratorResponse) => response.data);
         const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
 
-        // IncidentReportService를 사용한 장애 분석
-        const serverMetrics = allServers.slice(0, 15).map((server) => ({
-          serverId: server.id,
-          serverName: server.name,
-          cpu: server.cpu,
-          memory: server.memory,
-          disk: server.disk,
-          network: server.network || 0,
-          status: server.status,
-          errorRate: Math.random() * 10, // Mock error rate
-          responseTime: 500 + Math.random() * 2500, // Mock response time
-        }));
-
-        // 장애 분석 실행
-        const incidentReport =
-          await this.incidentReportService.analyzeIncident(serverMetrics);
-
-        // 장애가 감지된 경우 알림 브로드캐스트
-        if (
-          incidentReport.severity !== 'low' &&
-          incidentReport.affected.length > 0
-        ) {
-          const incidentAlert: MetricStream = {
-            serverId: 'incident-detector',
-            data: {
-              serverId: incidentReport.id,
-              serverName: '장애 감지 시스템',
-              type: 'incident',
-              message: incidentReport.description,
-              priority: incidentReport.severity,
-              timestamp: incidentReport.timestamp,
-              anomalies: incidentReport.affected,
-              overallScore:
-                incidentReport.severity === 'critical'
-                  ? 0.95
-                  : incidentReport.severity === 'high'
-                    ? 0.8
-                    : 0.6,
-              confidence: 0.9,
-              recommendations: incidentReport.recommendations,
+        const serverMetrics = allServers.map((server) => {
+          return {
+            id: server.id,
+            name: server.name,
+            status: server.status,
+            metrics: {
+              cpu: server.cpu,
+              memory: server.memory,
+              disk: server.disk,
+              network: {
+                bytesIn: server.network || 0,
+                bytesOut: server.network || 0,
+              },
             },
-            timestamp: incidentReport.timestamp,
-            type: 'alert',
-            priority: incidentReport.severity as
-              | 'low'
-              | 'medium'
-              | 'high'
-              | 'critical',
+            timestamp: new Date().toISOString(),
+          };
+        });
+
+        // 임계값 초과 시 알림 발생
+        if (
+          serverMetrics.some(
+            (server) => server.metrics.cpu > 85 || server.metrics.memory > 90
+          )
+        ) {
+          this.alertSubject.next({
+            serverId: 'anomaly-detector',
+            serverName: 'Anomaly Detector',
+            type: 'threshold_exceeded',
+            message: 'High resource usage detected',
+            priority: 'high',
+            timestamp: new Date().toISOString(),
+          });
+        }
+
+        serverMetrics.forEach((server) => {
+          const streamData: MetricStream = {
+            serverId: server.id,
+            data: server.metrics,
+            timestamp: server.timestamp,
+            type: 'cpu',
+            priority: this.calculatePriority(
+              server.metrics.cpu,
+              server.metrics.memory
+            ),
           };
 
-          this.broadcastToSubscribers('alerts', incidentAlert);
+          this.dataSubject.next(streamData);
+        });
+      })();
+    });
 
-          // 중요 장애는 추가 로깅
+    // 30초마다 장애 감지 및 보고서 생성
+    interval(30000).subscribe(() => {
+      void (async () => {
+        if (!this.isActive || this.clients.size === 0) return;
+
+        try {
+          const gcpServerData = await this.dataGenerator
+            .getRealServerMetrics()
+            .then((response: DataGeneratorResponse) => response.data);
+          const allServers = adaptGCPMetricsToServerInstances(gcpServerData);
+
+          // IncidentReportService를 사용한 장애 분석
+          const serverMetrics = allServers.slice(0, 15).map((server) => ({
+            serverId: server.id,
+            serverName: server.name,
+            cpu: server.cpu,
+            memory: server.memory,
+            disk: server.disk,
+            network: server.network || 0,
+            status: server.status,
+            errorRate: Math.random() * 10, // Mock error rate
+            responseTime: 500 + Math.random() * 2500, // Mock response time
+          }));
+
+          // 장애 분석 실행
+          const incidentReport =
+            await this.incidentReportService.analyzeIncident(serverMetrics);
+
+          // 장애가 감지된 경우 알림 브로드캐스트
           if (
-            incidentReport.severity === 'critical' ||
-            incidentReport.severity === 'high'
+            incidentReport.severity !== 'low' &&
+            incidentReport.affected.length > 0
           ) {
-            console.log(
-              `🚨 ${incidentReport.severity.toUpperCase()} 장애 감지:`,
-              {
-                id: incidentReport.id,
-                title: incidentReport.title,
-                affected: incidentReport.affected,
-                impact: incidentReport.impact,
-              }
-            );
-          }
-        }
-
-        // 배치 분석 (여러 그룹의 서버 동시 분석)
-        const batchReports =
-          await this.incidentReportService.analyzeBatch(serverMetrics);
-
-        // 배치 분석 결과 중 중요 장애만 추가 브로드캐스트
-        for (const report of batchReports) {
-          if (report.severity === 'critical' || report.severity === 'high') {
-            const batchAlert: AlertData = {
-              serverId: report.id,
-              serverName: `배치 분석: ${report.affected.join(', ')}`,
-              type: 'batch_incident',
-              message: report.title || '배치 장애 감지',
-              priority: report.severity,
-              timestamp: report.timestamp,
+            const incidentAlert: MetricStream = {
+              serverId: 'incident-detector',
+              data: {
+                serverId: incidentReport.id,
+                serverName: '장애 감지 시스템',
+                type: 'incident',
+                message: incidentReport.description,
+                priority: incidentReport.severity,
+                timestamp: incidentReport.timestamp,
+                anomalies: incidentReport.affected,
+                overallScore:
+                  incidentReport.severity === 'critical'
+                    ? 0.95
+                    : incidentReport.severity === 'high'
+                      ? 0.8
+                      : 0.6,
+                confidence: 0.9,
+                recommendations: incidentReport.recommendations,
+              },
+              timestamp: incidentReport.timestamp,
+              type: 'alert',
+              priority: incidentReport.severity as
+                | 'low'
+                | 'medium'
+                | 'high'
+                | 'critical',
             };
 
-            this.alertSubject.next(batchAlert);
+            this.broadcastToSubscribers('alerts', incidentAlert);
+
+            // 중요 장애는 추가 로깅
+            if (
+              incidentReport.severity === 'critical' ||
+              incidentReport.severity === 'high'
+            ) {
+              console.log(
+                `🚨 ${incidentReport.severity.toUpperCase()} 장애 감지:`,
+                {
+                  id: incidentReport.id,
+                  title: incidentReport.title,
+                  affected: incidentReport.affected,
+                  impact: incidentReport.impact,
+                }
+              );
+            }
           }
+
+          // 배치 분석 (여러 그룹의 서버 동시 분석)
+          const batchReports =
+            await this.incidentReportService.analyzeBatch(serverMetrics);
+
+          // 배치 분석 결과 중 중요 장애만 추가 브로드캐스트
+          for (const report of batchReports) {
+            if (report.severity === 'critical' || report.severity === 'high') {
+              const batchAlert: AlertData = {
+                serverId: report.id,
+                serverName: `배치 분석: ${report.affected.join(', ')}`,
+                type: 'batch_incident',
+                message: report.title || '배치 장애 감지',
+                priority: report.severity,
+                timestamp: report.timestamp,
+              };
+
+              this.alertSubject.next(batchAlert);
+            }
+          }
+        } catch (error) {
+          console.error('❌ 장애 감지 중 오류:', error);
         }
-      } catch (error) {
-        console.error('❌ 장애 감지 중 오류:', error);
-      }
-    })(); });
+      })();
+    });
   }
 
   /**

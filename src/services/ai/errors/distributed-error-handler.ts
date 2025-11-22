@@ -10,7 +10,6 @@
 import type {
   AIServiceType,
   DistributedError,
-  ProcessingStatus,
 } from '../interfaces/distributed-ai.interface';
 
 // 에러 코드 정의
@@ -155,7 +154,7 @@ export class DistributedErrorHandler {
   /**
    * 에러 코드 매핑
    */
-  private mapErrorCode(error: unknown, service: AIServiceType): ErrorCode {
+  private mapErrorCode(error: unknown, _service: AIServiceType): ErrorCode {
     // HTTP 상태 코드 체크
     if (this.hasHttpStatus(error)) {
       const status = (error as { status: number }).status;
@@ -381,7 +380,11 @@ export class DistributedErrorHandler {
     error: unknown
   ): Record<string, unknown> | undefined {
     if (typeof error === 'object' && error !== null) {
-      const { message, stack, ...details } = error as Record<string, unknown>;
+      const {
+        message: _message,
+        stack: _stack,
+        ...details
+      } = error as Record<string, unknown>;
       return Object.keys(details).length > 0 ? details : undefined;
     }
     return undefined;

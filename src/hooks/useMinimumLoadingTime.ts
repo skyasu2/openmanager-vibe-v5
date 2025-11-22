@@ -21,13 +21,6 @@ interface UseNaturalLoadingTimeProps {
   onComplete?: () => void;
 }
 
-interface LoadingPhase {
-  phase: 'system-starting' | 'data-loading' | 'completed';
-  progress: number;
-  message: string;
-  elapsedTime: number;
-}
-
 interface LoadingState {
   isLoading: boolean;
   progress: number;

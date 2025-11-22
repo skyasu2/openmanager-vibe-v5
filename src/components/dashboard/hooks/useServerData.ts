@@ -274,38 +274,42 @@ export const useServerData = (): UseServerDataReturn => {
       setError(null);
 
       const batcher = getAPIBatcher();
-      
+
       // 다중 API 엔드포인트를 배칭으로 호출
-      const [serversResponse, statusResponse, metricsResponse] = await Promise.allSettled([
-        batcher.request({
-          id: 'servers-all',
-          endpoint: '/api/servers/all',
-          priority: 'high', // 서버 데이터는 높은 우선순위
-        }),
-        batcher.request({
-          id: 'system-status', 
-          endpoint: '/api/system/status',
-          priority: 'normal',
-        }),
-        batcher.request({
-          id: 'server-metrics',
-          endpoint: '/api/servers/metrics', 
-          priority: 'normal',
-        })
-      ]);
+      const [serversResponse, _statusResponse, _metricsResponse] =
+        await Promise.allSettled([
+          batcher.request({
+            id: 'servers-all',
+            endpoint: '/api/servers/all',
+            priority: 'high', // 서버 데이터는 높은 우선순위
+          }),
+          batcher.request({
+            id: 'system-status',
+            endpoint: '/api/system/status',
+            priority: 'normal',
+          }),
+          batcher.request({
+            id: 'server-metrics',
+            endpoint: '/api/servers/metrics',
+            priority: 'normal',
+          }),
+        ]);
 
       // 서버 데이터 처리
-      if (serversResponse.status === 'fulfilled' && serversResponse.value.data) {
-        const serverData = Array.isArray(serversResponse.value.data) 
-          ? serversResponse.value.data 
+      if (
+        serversResponse.status === 'fulfilled' &&
+        serversResponse.value.data
+      ) {
+        const serverData = Array.isArray(serversResponse.value.data)
+          ? serversResponse.value.data
           : fallbackServers;
-        
+
         const mappedServers = serverData.map((server: Server) => ({
           ...server,
           status: mapStatus(server.status || 'unknown'),
           lastUpdate: new Date(),
         }));
-        
+
         setServers(mappedServers);
         setLastUpdate(new Date());
       } else {
@@ -321,7 +325,6 @@ export const useServerData = (): UseServerDataReturn => {
           setServers(fallbackServers);
         }
       }
-
     } catch (error) {
       console.error('🚨 Batched data refresh failed:', error);
       setError('서버 데이터를 불러올 수 없습니다.');
@@ -335,12 +338,14 @@ export const useServerData = (): UseServerDataReturn => {
   // 기존 호환성을 위한 refreshData 함수 (통합 타이머 사용)
   const refreshData = useCallback(() => {
     // 즉시 실행이 아닌 타이머 기반 배칭 업데이트 트리거
-    timer.registerTask(createTimerTask.customTask(
-      'manual-refresh',
-      100, // 100ms 후 실행
-      batchedRefreshData,
-      { priority: 'high' }
-    ));
+    timer.registerTask(
+      createTimerTask.customTask(
+        'manual-refresh',
+        100, // 100ms 후 실행
+        batchedRefreshData,
+        { priority: 'high' }
+      )
+    );
   }, [timer, batchedRefreshData]);
 
   // 🚀 Vercel 최적화: 통합 타이머 시스템으로 실시간 업데이트 관리
@@ -349,30 +354,34 @@ export const useServerData = (): UseServerDataReturn => {
     _initializeData();
 
     // 실시간 배칭 업데이트 타이머 등록 (5초마다)
-    timer.registerTask(createTimerTask.customTask(
-      'realtime-batch-update',
-      5000, // 5초마다 실행 (Vercel 무료 티어 고려)
-      batchedRefreshData,
-      { 
-        priority: 'normal',
-        maxRetries: 3
-      }
-    ));
+    timer.registerTask(
+      createTimerTask.customTask(
+        'realtime-batch-update',
+        5000, // 5초마다 실행 (Vercel 무료 티어 고려)
+        batchedRefreshData,
+        {
+          priority: 'normal',
+          maxRetries: 3,
+        }
+      )
+    );
 
     // 시스템 상태 체크 (30초마다)
-    timer.registerTask(createTimerTask.systemStatus(async () => {
-      try {
-        const batcher = getAPIBatcher();
-        await batcher.request({
-          id: 'health-check',
-          endpoint: '/api/health',
-          priority: 'low',
-        });
-        console.log('✅ System health check completed');
-      } catch (error) {
-        console.warn('⚠️ System health check failed:', error);
-      }
-    }));
+    timer.registerTask(
+      createTimerTask.systemStatus(async () => {
+        try {
+          const batcher = getAPIBatcher();
+          await batcher.request({
+            id: 'health-check',
+            endpoint: '/api/health',
+            priority: 'low',
+          });
+          console.log('✅ System health check completed');
+        } catch (error) {
+          console.warn('⚠️ System health check failed:', error);
+        }
+      })
+    );
 
     // 컴포넌트 언마운트 시 타이머 정리
     return () => {

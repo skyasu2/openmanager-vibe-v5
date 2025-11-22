@@ -6,11 +6,7 @@
  */
 
 import { z } from 'zod';
-import {
-  ApiResponse,
-  isApiResponse,
-  getErrorMessage,
-} from '@/types/api-responses';
+import { ApiResponse, isApiResponse } from '@/types/api-responses';
 
 /**
  * 환경별 기본 URL 가져오기
@@ -61,9 +57,12 @@ export async function apiFetch(
 
   try {
     const response = await fetch(url, defaultOptions);
-    
+
     console.log(`📡 응답 수신: ${response.status} ${response.statusText}`);
-    console.log(`📋 응답 헤더:`, Object.fromEntries(response.headers.entries()));
+    console.log(
+      `📋 응답 헤더:`,
+      Object.fromEntries(response.headers.entries())
+    );
 
     if (!response.ok) {
       console.error(
@@ -107,10 +106,14 @@ export async function apiRequest<T = unknown>(
   try {
     const responseText = await response.text();
     console.log(`📄 응답 본문 (첫 200자):`, responseText.substring(0, 200));
-    
+
     const jsonData = JSON.parse(responseText);
-    console.log(`✅ JSON 파싱 성공:`, typeof jsonData, Object.keys(jsonData || {}));
-    
+    console.log(
+      `✅ JSON 파싱 성공:`,
+      typeof jsonData,
+      Object.keys(jsonData || {})
+    );
+
     return jsonData;
   } catch (error) {
     console.error(`❌ JSON 파싱 실패:`, error);

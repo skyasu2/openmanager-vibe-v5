@@ -330,7 +330,7 @@ export function ConditionalAnimation({
  */
 export function BatchAnimation({
   children,
-  delay = 0,
+  delay: _delay = 0,
 }: {
   children: ReactNode[];
   delay?: number;

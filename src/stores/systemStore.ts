@@ -84,8 +84,8 @@ interface ServerlessSystemStore extends ServerlessSystemStatus {
  * 🚫 서버리스 호환: 모든 전역 상태 관리 비활성화
  */
 export const useGlobalSystemStore = create<ServerlessSystemStore>()((
-  set,
-  get
+  _set,
+  _get
 ) => {
   const logServerlessWarning = (action: string) => {
     console.warn(
@@ -115,7 +115,7 @@ export const useGlobalSystemStore = create<ServerlessSystemStore>()((
     /**
      * 🚫 전역 세션 중지 비활성화
      */
-    stopGlobalSession: async (reason = '서버리스 환경') => {
+    stopGlobalSession: async (_reason = '서버리스 환경') => {
       logServerlessWarning('전역 세션 중지');
       return {
         success: false,
@@ -170,7 +170,7 @@ export const useGlobalSystemStore = create<ServerlessSystemStore>()((
     reportServerAlert: (
       severity: 'warning' | 'critical',
       serverId: string,
-      message: string
+      _message: string
     ) => {
       logServerlessWarning(`서버 알림 보고 (${severity}: ${serverId})`);
     },

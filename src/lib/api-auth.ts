@@ -5,7 +5,6 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 
 /**
  * API 인증 확인
@@ -14,10 +13,14 @@ import { headers } from 'next/headers';
  */
 export async function checkAPIAuth(request: NextRequest) {
   // 개발 환경에서는 AI 테스트를 위해 인증 우회
-  if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV || process.env.NODE_ENV === 'test') {
+  if (
+    process.env.NODE_ENV === 'development' ||
+    !process.env.NODE_ENV ||
+    process.env.NODE_ENV === 'test'
+  ) {
     return null; // 개발환경에서 인증 우회
   }
-  
+
   // 세션 쿠키 확인 (NextAuth 사용)
   const cookieHeader = request.headers.get('cookie');
   const hasAuthSession =

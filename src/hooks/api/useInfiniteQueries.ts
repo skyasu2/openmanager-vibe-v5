@@ -38,10 +38,6 @@ interface MetricHistoryEntry {
   tags?: Record<string, string>;
 }
 
-// 페이지 매개변수 타입 정의
-interface PageParam {
-  pageParam: string | number;
-}
 // 쿼리 키 팩토리
 export const infiniteKeys = {
   logs: (filters: string) => ['infinite', 'logs', filters] as const,

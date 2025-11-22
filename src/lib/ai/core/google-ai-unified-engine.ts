@@ -17,19 +17,15 @@ import type {
   IUnifiedEngine,
   UnifiedQueryRequest,
   UnifiedQueryResponse,
-  ProviderContext,
   ProviderContexts,
   IContextProvider,
   EngineHealthStatus,
   EngineConfig,
   ThinkingStep,
-  ResponseMetadata,
-  CachedResponse,
-  AIScenario,
   GoogleAIPrompt,
 } from './types';
 
-import { UnifiedEngineError, GoogleAIError } from './types';
+import { GoogleAIError } from './types';
 
 // Provider imports
 import { RAGProvider } from '../providers/rag-provider';

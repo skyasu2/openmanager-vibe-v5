@@ -21,7 +21,7 @@ interface AIChatMessagesProps {
 export const AIChatMessages: FC<AIChatMessagesProps> = ({
   messages,
   completedThinkingSteps,
-  onToggleCompletedThinking,
+  onToggleCompletedThinking: _onToggleCompletedThinking,
   messagesEndRef,
 }: AIChatMessagesProps) => {
   if (messages.length === 0) {

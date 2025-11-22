@@ -1,6 +1,6 @@
 /**
  * 🤖 AI Engine Configuration (Centralized)
- * 
+ *
  * @description
  * All AI engine settings are centralized here for better maintainability.
  * This configuration covers:
@@ -9,12 +9,12 @@
  * - Provider configurations (RAG, ML, Korean NLP)
  * - Cache strategies (multi-layer)
  * - Quota protection
- * 
+ *
  * @version 2.0.0 - Expanded from 7 lines to 150+ lines
  * @date 2025-11-21
  */
 
-import { env, isDevelopment, isProduction } from '@/env';
+import { env, isDevelopment, isProduction as _isProduction } from '@/env';
 
 /**
  * 🎯 AI Model Types
@@ -25,7 +25,7 @@ export const AI_MODELS = {
   PRO: 'gemini-1.5-pro',
 } as const;
 
-export type AIModel = typeof AI_MODELS[keyof typeof AI_MODELS];
+export type AIModel = (typeof AI_MODELS)[keyof typeof AI_MODELS];
 
 /**
  * ⚙️ Core AI Engine Configuration
@@ -38,12 +38,12 @@ export const aiEngineConfig = {
   temperature: 0.7,
   maxTokens: 2048,
   timeout: 30000, // 30 seconds (will be replaced by dynamic timeout)
-  
+
   /**
    * 🔌 MCP Integration
    */
   useMcp: isDevelopment && (env.ENABLE_MCP ?? false),
-  
+
   /**
    * 💾 Cache Configuration (Multi-layer Strategy)
    */
@@ -54,14 +54,14 @@ export const aiEngineConfig = {
       ttl: 300000, // 5 minutes
       maxSize: 100,
     },
-    
+
     // L4: Streaming Engine Cache (Ultra-fast)
     streaming: {
       enabled: true,
       ttl: 180000, // 3 minutes
       maxSize: 50,
     },
-    
+
     // Provider-specific cache TTLs
     providers: {
       // L3: RAG (Supabase)
@@ -78,7 +78,7 @@ export const aiEngineConfig = {
       },
     },
   },
-  
+
   /**
    * 🎛️ Provider Configuration
    */
@@ -90,7 +90,7 @@ export const aiEngineConfig = {
       threshold: 0.7,
       endpoint: env.NEXT_PUBLIC_SUPABASE_URL,
     },
-    
+
     // ML Analytics Provider (GCP Functions)
     ml: {
       enabled: true,
@@ -102,7 +102,7 @@ export const aiEngineConfig = {
       endpoint: env.GCP_FUNCTIONS_URL,
       timeout: 5000, // 5 seconds
     },
-    
+
     // Korean NLP Provider (GCP Functions)
     nlp: {
       enabled: true,
@@ -110,14 +110,14 @@ export const aiEngineConfig = {
       corsEnabled: false, // Direct server-to-server
       timeout: 5000, // 5 seconds
     },
-    
+
     // Rule-based Provider (Local)
     rule: {
       enabled: true,
       confidenceThreshold: 0.6,
     },
   },
-  
+
   /**
    * ⚡ Streaming Configuration
    */
@@ -126,29 +126,25 @@ export const aiEngineConfig = {
     targetResponseTime: 152, // Target: 152ms (ultra-fast)
     maxConcurrency: 5, // Parallel query limit
     predictiveCaching: true, // Enable pattern-based preloading
-    
+
     // Initial response timing (< 20ms)
     initialResponseDelay: 20,
-    
+
     // Pattern learning
     minPatternFrequency: 3, // Learn after 3 occurrences
     maxPreloadedResponses: 20, // Cache up to 20 predicted responses
   },
-  
+
   /**
    * 🛡️ Quota Protection
    */
   quotaProtection: {
     enabled: env.GOOGLE_AI_QUOTA_PROTECTION === 'true',
-    models: [
-      AI_MODELS.FLASH_LITE,
-      AI_MODELS.FLASH,
-      AI_MODELS.PRO,
-    ] as AIModel[],
+    models: [AI_MODELS.FLASH_LITE, AI_MODELS.FLASH, AI_MODELS.PRO] as AIModel[],
     dailyLimit: parseInt(env.GOOGLE_AI_DAILY_LIMIT ?? '1500', 10),
     warningThreshold: 0.8, // Alert at 80% usage
   },
-  
+
   /**
    * 🎯 Scenario-based Provider Selection
    */
@@ -160,7 +156,7 @@ export const aiEngineConfig = {
       enableRules: true,
       enableNLP: false,
     },
-    
+
     // Performance analysis
     performance: {
       enableRAG: true,
@@ -168,7 +164,7 @@ export const aiEngineConfig = {
       enableRules: true,
       enableNLP: false,
     },
-    
+
     // General query (Korean heavy)
     general: {
       enableRAG: true,
@@ -176,7 +172,7 @@ export const aiEngineConfig = {
       enableRules: true,
       enableNLP: true,
     },
-    
+
     // Quick query (minimal context)
     quick: {
       enableRAG: false,
@@ -185,23 +181,23 @@ export const aiEngineConfig = {
       enableNLP: false,
     },
   } as const,
-  
+
   /**
    * 🔧 Advanced Settings
    */
   advanced: {
     // Parallel context collection
     parallelProviders: true,
-    
+
     // Health check interval (5 minutes)
     healthCheckInterval: 300000,
-    
+
     // Statistics collection
     collectStats: true,
-    
+
     // Graceful degradation
     gracefulDegradation: true,
-    
+
     // Retry configuration (basic - will be enhanced by AIErrorHandler)
     maxRetries: 3,
     retryDelay: 1000, // 1 second base delay
@@ -216,11 +212,15 @@ export type AIEngineConfig = typeof aiEngineConfig;
 /**
  * 🎯 Helper functions
  */
-export const getProviderConfig = (providerKey: keyof typeof aiEngineConfig.providers) => {
+export const getProviderConfig = (
+  providerKey: keyof typeof aiEngineConfig.providers
+) => {
   return aiEngineConfig.providers[providerKey];
 };
 
-export const getScenarioConfig = (scenario: keyof typeof aiEngineConfig.scenarios) => {
+export const getScenarioConfig = (
+  scenario: keyof typeof aiEngineConfig.scenarios
+) => {
   return aiEngineConfig.scenarios[scenario];
 };
 
@@ -237,7 +237,9 @@ if (isDevelopment) {
     quotaProtection: aiEngineConfig.quotaProtection.enabled,
     streaming: aiEngineConfig.streaming.enabled,
     providers: Object.keys(aiEngineConfig.providers).filter(
-      key => aiEngineConfig.providers[key as keyof typeof aiEngineConfig.providers].enabled
+      (key) =>
+        aiEngineConfig.providers[key as keyof typeof aiEngineConfig.providers]
+          .enabled
     ),
   });
 }

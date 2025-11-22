@@ -6,11 +6,14 @@
  * @integration AI 워크플로우 + 기존 테스트 시스템 완전 통합
  */
 
-import { execSync, spawn } from 'child_process';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { execSync } from 'child_process';
+import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { aiVitals } from './ai-friendly-vitals';
-import type { AIFriendlyMetric, VitalsAnalysisResult } from './ai-friendly-vitals';
+import type {
+  AIFriendlyMetric,
+  VitalsAnalysisResult,
+} from './ai-friendly-vitals';
 
 // 🎯 서브에이전트용 테스트 결과 타입
 export interface SubagentTestResult {
@@ -82,36 +85,37 @@ const SUBAGENT_TEST_PROFILES: Record<string, TestProfile> = {
     command: 'npx vitest run --config config/testing/vitest.config.minimal.ts',
     expectedDuration: '3초',
     coverage: '핵심 로직만',
-    description: '서브에이전트 빠른 검증용 - 순수 함수 및 유틸리티'
+    description: '서브에이전트 빠른 검증용 - 순수 함수 및 유틸리티',
   },
   'smart-fast': {
     name: 'Smart Fast',
-    command: 'npx vitest run --config config/testing/vitest.config.main.ts --reporter=dot',
+    command:
+      'npx vitest run --config config/testing/vitest.config.main.ts --reporter=dot',
     expectedDuration: '8초',
     coverage: '주요 컴포넌트',
-    description: '서브에이전트 개발 중 검증용 - Mock 기반 핵심 테스트'
+    description: '서브에이전트 개발 중 검증용 - Mock 기반 핵심 테스트',
   },
   'e2e-critical': {
     name: 'E2E Critical',
     command: 'npm run test:vercel',
     expectedDuration: '45초',
     coverage: '실제 환경',
-    description: '서브에이전트 최종 검증용 - Vercel 실제 환경 E2E'
+    description: '서브에이전트 최종 검증용 - Vercel 실제 환경 E2E',
   },
-  'comprehensive': {
+  comprehensive: {
     name: 'Comprehensive',
     command: 'npm run vitals:full-integration',
     expectedDuration: '120초',
     coverage: '전체 시스템',
-    description: '서브에이전트 품질 보증용 - Universal Vitals 포함 전체'
+    description: '서브에이전트 품질 보증용 - Universal Vitals 포함 전체',
   },
   'playwright-visual': {
     name: 'Playwright Visual',
     command: 'npx playwright test --reporter=html',
     expectedDuration: '60초',
     coverage: 'UI/UX 검증',
-    description: '서브에이전트 시각적 회귀 테스트용 - 스크린샷 비교'
-  }
+    description: '서브에이전트 시각적 회귀 테스트용 - 스크린샷 비교',
+  },
 };
 
 /**
@@ -146,7 +150,9 @@ export class SubagentTestController {
 
       // 1. 컨텍스트 분석
       const selectedProfile = this.analyzeAndSelectProfile(context);
-      console.log(`📋 선택된 프로필: ${selectedProfile.name} (${selectedProfile.expectedDuration})`);
+      console.log(
+        `📋 선택된 프로필: ${selectedProfile.name} (${selectedProfile.expectedDuration})`
+      );
 
       // 2. 테스트 실행
       const executionResult = await this.executeTest(selectedProfile, context);
@@ -174,7 +180,7 @@ export class SubagentTestController {
         recommendations,
         nextActions,
         errors: executionResult.errors,
-        warnings: executionResult.warnings
+        warnings: executionResult.warnings,
       };
 
       // 6. 로그 저장
@@ -184,7 +190,6 @@ export class SubagentTestController {
       this.printSubagentSummary(result);
 
       return result;
-
     } catch (error) {
       const errorResult: SubagentTestResult = {
         testId,
@@ -201,26 +206,32 @@ export class SubagentTestController {
           overallRating: 'poor',
           categoryBreakdown: {},
           summary: '테스트 실행 실패',
-          keyInsights: [`실행 오류: ${error instanceof Error ? error.message : String(error)}`]
+          keyInsights: [
+            `실행 오류: ${error instanceof Error ? error.message : String(error)}`,
+          ],
         },
-        recommendations: [{
-          id: 'fix-execution-error',
-          priority: 'critical',
-          category: 'fix',
-          title: '테스트 실행 오류 해결',
-          description: '테스트를 실행할 수 없습니다.',
-          commands: ['npm run test:super-fast'],
-          estimatedTime: '5분',
-          confidence: 0.9
-        }],
+        recommendations: [
+          {
+            id: 'fix-execution-error',
+            priority: 'critical',
+            category: 'fix',
+            title: '테스트 실행 오류 해결',
+            description: '테스트를 실행할 수 없습니다.',
+            commands: ['npm run test:super-fast'],
+            estimatedTime: '5분',
+            confidence: 0.9,
+          },
+        ],
         nextActions: ['환경 설정 확인', '의존성 설치 확인', '테스트 파일 검증'],
-        errors: [{
-          file: 'system',
-          message: error instanceof Error ? error.message : String(error),
-          category: 'setup',
-          severity: 'error'
-        }],
-        warnings: []
+        errors: [
+          {
+            file: 'system',
+            message: error instanceof Error ? error.message : String(error),
+            category: 'setup',
+            severity: 'error',
+          },
+        ],
+        warnings: [],
       };
 
       this.saveTestLog(errorResult);
@@ -230,13 +241,15 @@ export class SubagentTestController {
 
   // Helper function to ensure we always return a TestProfile
   private getProfileOrFallback(profileKey: string): TestProfile {
-    return SUBAGENT_TEST_PROFILES[profileKey] || {
-      name: 'Default Fast',
-      command: 'npm run test:fast',
-      expectedDuration: '8초',
-      coverage: '기본',
-      description: '기본 빠른 테스트'
-    };
+    return (
+      SUBAGENT_TEST_PROFILES[profileKey] || {
+        name: 'Default Fast',
+        command: 'npm run test:fast',
+        expectedDuration: '8초',
+        coverage: '기본',
+        description: '기본 빠른 테스트',
+      }
+    );
   }
 
   // 🧠 컨텍스트 기반 프로필 선택
@@ -255,16 +268,23 @@ export class SubagentTestController {
 
     // 포커스 영역 기반 선택
     if (context?.focus) {
-      if (context.focus.includes('e2e') || context.focus.includes('playwright')) {
+      if (
+        context.focus.includes('e2e') ||
+        context.focus.includes('playwright')
+      ) {
         return this.getProfileOrFallback('playwright-visual');
       }
-      if (context.focus.includes('api') || context.focus.includes('integration')) {
+      if (
+        context.focus.includes('api') ||
+        context.focus.includes('integration')
+      ) {
         return this.getProfileOrFallback('e2e-critical');
       }
     }
 
     // 타임아웃 기반 선택
-    if (context?.timeout && context.timeout < 10000) { // 10초 미만
+    if (context?.timeout && context.timeout < 10000) {
+      // 10초 미만
       return this.getProfileOrFallback('ultra-fast');
     }
 
@@ -273,7 +293,10 @@ export class SubagentTestController {
   }
 
   // ⚡ 테스트 실행
-  private async executeTest(profile: TestProfile, context?: unknown): Promise<{
+  private async executeTest(
+    profile: TestProfile,
+    _context?: unknown
+  ): Promise<{
     exitCode: number;
     stdout: string;
     stderr: string;
@@ -282,7 +305,7 @@ export class SubagentTestController {
     warnings: string[];
   }> {
     return new Promise((resolve) => {
-      const startTime = Date.now();
+      const _startTime = Date.now();
       let stdout = '';
       let stderr = '';
 
@@ -306,11 +329,14 @@ export class SubagentTestController {
           stderr,
           stats,
           errors,
-          warnings
+          warnings,
         });
-
       } catch (error: unknown) {
-        const execError = error as { stderr?: string; stdout?: string; status?: number };
+        const execError = error as {
+          stderr?: string;
+          stdout?: string;
+          status?: number;
+        };
         stderr = execError.stderr || '';
         stdout = execError.stdout || '';
 
@@ -324,7 +350,7 @@ export class SubagentTestController {
           stderr,
           stats,
           errors,
-          warnings
+          warnings,
         });
       }
     });
@@ -352,7 +378,8 @@ export class SubagentTestController {
 
     // 테스트 성공률 메트릭
     if (executionResult.stats.total > 0) {
-      const successRate = (executionResult.stats.passed / executionResult.stats.total) * 100;
+      const successRate =
+        (executionResult.stats.passed / executionResult.stats.total) * 100;
       const successMetric = aiVitals.quickCollect(
         'test-success-rate',
         successRate,
@@ -384,7 +411,7 @@ export class SubagentTestController {
     const recommendations: TestRecommendation[] = [];
 
     // 성능 문제가 있는 경우
-    const poorVitals = analysis.vitals.filter(v => v.rating === 'poor');
+    const poorVitals = analysis.vitals.filter((v) => v.rating === 'poor');
     if (poorVitals.length > 0) {
       recommendations.push({
         id: 'performance-optimization',
@@ -394,15 +421,17 @@ export class SubagentTestController {
         description: `${poorVitals.length}개 메트릭이 임계값을 초과했습니다.`,
         commands: [
           'npm run test:ai-optimized', // npm 오버헤드 제거
-          'npm run test:ultra-fast'    // 최소한의 테스트만
+          'npm run test:ultra-fast', // 최소한의 테스트만
         ],
         estimatedTime: '10분',
-        confidence: 0.85
+        confidence: 0.85,
       });
     }
 
     // 실패한 테스트가 있는 경우
-    const failureVitals = analysis.vitals.find(v => v.name.includes('success-rate'));
+    const failureVitals = analysis.vitals.find((v) =>
+      v.name.includes('success-rate')
+    );
     if (failureVitals && failureVitals.rating !== 'good') {
       recommendations.push({
         id: 'fix-failing-tests',
@@ -412,10 +441,10 @@ export class SubagentTestController {
         description: '일부 테스트가 실패했습니다. 즉시 수정이 필요합니다.',
         commands: [
           'npm run test -- --reporter=verbose', // 상세 로그
-          'npm run test:dev'                    // 개발 모드 테스트
+          'npm run test:dev', // 개발 모드 테스트
         ],
         estimatedTime: '30분',
-        confidence: 0.95
+        confidence: 0.95,
       });
     }
 
@@ -426,14 +455,15 @@ export class SubagentTestController {
         priority: 'medium',
         category: 'investigate',
         title: '종합적 테스트 검토',
-        description: '전반적인 테스트 품질이 낮습니다. 포괄적 검토가 필요합니다.',
+        description:
+          '전반적인 테스트 품질이 낮습니다. 포괄적 검토가 필요합니다.',
         commands: [
-          'npm run test:coverage',              // 커버리지 확인
-          'npm run vitals:full-integration',    // 전체 통합 테스트
-          'npm run lint:strict'                 // 엄격한 린트 검사
+          'npm run test:coverage', // 커버리지 확인
+          'npm run vitals:full-integration', // 전체 통합 테스트
+          'npm run lint:strict', // 엄격한 린트 검사
         ],
         estimatedTime: '2시간',
-        confidence: 0.75
+        confidence: 0.75,
       });
     }
 
@@ -448,17 +478,19 @@ export class SubagentTestController {
     const actions: string[] = [];
 
     // 우선순위 높은 권장사항 기반
-    const criticalRecs = recommendations.filter(r => r.priority === 'critical');
+    const criticalRecs = recommendations.filter(
+      (r) => r.priority === 'critical'
+    );
     const firstCritical = criticalRecs[0];
     if (firstCritical) {
       actions.push(`1. 즉시 조치: ${firstCritical.title}`);
-      firstCritical.commands.forEach(cmd => {
+      firstCritical.commands.forEach((cmd) => {
         actions.push(`   → ${cmd}`);
       });
     }
 
     // 성능 개선
-    const highRecs = recommendations.filter(r => r.priority === 'high');
+    const highRecs = recommendations.filter((r) => r.priority === 'high');
     const firstHigh = highRecs[0];
     if (firstHigh && firstHigh.commands.length > 0) {
       actions.push(`2. 성능 개선: ${firstHigh.title}`);
@@ -487,11 +519,13 @@ export class SubagentTestController {
       passed: 0,
       failed: 0,
       skipped: 0,
-      coverage: undefined as number | undefined
+      coverage: undefined as number | undefined,
     };
 
     // Vitest 출력 파싱
-    const vitestMatch = output.match(/Test Files\s+(\d+) passed.*?Tests\s+(\d+) passed.*?(\d+) failed.*?(\d+) skipped/s);
+    const vitestMatch = output.match(
+      /Test Files\s+(\d+) passed.*?Tests\s+(\d+) passed.*?(\d+) failed.*?(\d+) skipped/s
+    );
     if (vitestMatch && vitestMatch.length >= 5) {
       stats.passed = parseInt(vitestMatch[2] || '0');
       stats.failed = parseInt(vitestMatch[3] || '0');
@@ -506,7 +540,9 @@ export class SubagentTestController {
     }
 
     // Playwright 출력 파싱
-    const playwrightMatch = output.match(/(\d+) passed.*?(\d+) failed.*?(\d+) skipped/);
+    const playwrightMatch = output.match(
+      /(\d+) passed.*?(\d+) failed.*?(\d+) skipped/
+    );
     if (playwrightMatch && playwrightMatch.length >= 4 && stats.total === 0) {
       stats.passed = parseInt(playwrightMatch[1] || '0');
       stats.failed = parseInt(playwrightMatch[2] || '0');
@@ -523,17 +559,20 @@ export class SubagentTestController {
     const output = stdout + '\n' + stderr;
 
     // TypeScript 에러
-    const tsErrorMatches = output.match(/.*\.ts\((\d+),\d+\): error TS\d+: (.*)/g);
+    const tsErrorMatches = output.match(
+      /.*\.ts\((\d+),\d+\): error TS\d+: (.*)/g
+    );
     if (tsErrorMatches) {
-      tsErrorMatches.forEach(match => {
-        const [, line, message] = match.match(/.*\.ts\((\d+),\d+\): error TS\d+: (.*)/) || [];
+      tsErrorMatches.forEach((match) => {
+        const [, line, message] =
+          match.match(/.*\.ts\((\d+),\d+\): error TS\d+: (.*)/) || [];
         if (line && message) {
           errors.push({
             file: 'typescript',
             line: parseInt(line),
             message: message.trim(),
             category: 'syntax',
-            severity: 'error'
+            severity: 'error',
           });
         }
       });
@@ -542,13 +581,13 @@ export class SubagentTestController {
     // 테스트 실패 에러
     const testErrorMatches = output.match(/FAIL.*\n.*Error: (.*)/g);
     if (testErrorMatches) {
-      testErrorMatches.forEach(match => {
+      testErrorMatches.forEach((match) => {
         const message = match.replace(/FAIL.*\n.*Error: /, '');
         errors.push({
           file: 'test',
           message: message.trim(),
           category: 'assertion',
-          severity: 'error'
+          severity: 'error',
         });
       });
     }
@@ -565,13 +604,17 @@ export class SubagentTestController {
       /WARNING: (.*)/g,
       /WARN: (.*)/g,
       /deprecated: (.*)/g,
-      /⚠️ (.*)/g
+      /⚠️ (.*)/g,
     ];
 
-    warningPatterns.forEach(pattern => {
+    warningPatterns.forEach((pattern) => {
       const matches = output.match(pattern);
       if (matches) {
-        warnings.push(...matches.map(m => m.replace(/WARNING: |WARN: |deprecated: |⚠️ /, '').trim()));
+        warnings.push(
+          ...matches.map((m) =>
+            m.replace(/WARNING: |WARN: |deprecated: |⚠️ /, '').trim()
+          )
+        );
       }
     });
 
@@ -595,8 +638,12 @@ export class SubagentTestController {
     // 기본 정보
     console.log(`📊 테스트 ID: ${result.testId}`);
     console.log(`⏱️ 실행 시간: ${(result.duration / 1000).toFixed(1)}초`);
-    console.log(`📋 프로필: ${result.profile.name} (${result.profile.expectedDuration})`);
-    console.log(`${result.success ? '✅' : '❌'} 전체 결과: ${result.success ? '성공' : '실패'}`);
+    console.log(
+      `📋 프로필: ${result.profile.name} (${result.profile.expectedDuration})`
+    );
+    console.log(
+      `${result.success ? '✅' : '❌'} 전체 결과: ${result.success ? '성공' : '실패'}`
+    );
 
     // 테스트 통계
     if (result.stats.total > 0) {
@@ -626,9 +673,13 @@ export class SubagentTestController {
 
     // 권장사항 (상위 3개만)
     if (result.recommendations.length > 0) {
-      console.log(`\n🎯 권장사항 (상위 ${Math.min(3, result.recommendations.length)}개):`);
+      console.log(
+        `\n🎯 권장사항 (상위 ${Math.min(3, result.recommendations.length)}개):`
+      );
       result.recommendations.slice(0, 3).forEach((rec, idx) => {
-        console.log(`  ${idx + 1}. [${rec.priority.toUpperCase()}] ${rec.title}`);
+        console.log(
+          `  ${idx + 1}. [${rec.priority.toUpperCase()}] ${rec.title}`
+        );
         console.log(`     → ${rec.description}`);
         console.log(`     → 예상 시간: ${rec.estimatedTime}`);
       });
@@ -637,7 +688,7 @@ export class SubagentTestController {
     // 다음 액션
     if (result.nextActions.length > 0) {
       console.log(`\n🚀 다음 액션:`);
-      result.nextActions.forEach(action => {
+      result.nextActions.forEach((action) => {
         console.log(`  ${action}`);
       });
     }
@@ -662,7 +713,7 @@ export class SubagentTestController {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { mkdirSync } = require('fs');
       mkdirSync(this.logDir, { recursive: true });
-    } catch (error) {
+    } catch (_error) {
       // 이미 존재하거나 생성할 수 없는 경우 무시
     }
   }
@@ -682,7 +733,7 @@ export class SubagentTestController {
         const content = readFileSync(join(this.logDir, file), 'utf8');
         return JSON.parse(content);
       });
-    } catch (error) {
+    } catch (_error) {
       return [];
     }
   }
@@ -701,12 +752,14 @@ export class SubagentTestController {
         averageDuration: 0,
         successRate: 100,
         trend: 'stable',
-        recommendation: '더 많은 테스트 데이터가 필요합니다.'
+        recommendation: '더 많은 테스트 데이터가 필요합니다.',
       };
     }
 
-    const avgDuration = history.reduce((sum, test) => sum + test.duration, 0) / history.length;
-    const successRate = (history.filter(test => test.success).length / history.length) * 100;
+    const avgDuration =
+      history.reduce((sum, test) => sum + test.duration, 0) / history.length;
+    const successRate =
+      (history.filter((test) => test.success).length / history.length) * 100;
 
     // 트렌드 분석 (최근 3개 vs 이전 3개)
     const recent = history.slice(0, 3);
@@ -714,8 +767,12 @@ export class SubagentTestController {
 
     let trend: 'improving' | 'stable' | 'declining' = 'stable';
     if (recent.length >= 2 && previous.length >= 2) {
-      const recentAvg = recent.reduce((sum, test) => sum + test.analysis.overallScore, 0) / recent.length;
-      const previousAvg = previous.reduce((sum, test) => sum + test.analysis.overallScore, 0) / previous.length;
+      const recentAvg =
+        recent.reduce((sum, test) => sum + test.analysis.overallScore, 0) /
+        recent.length;
+      const previousAvg =
+        previous.reduce((sum, test) => sum + test.analysis.overallScore, 0) /
+        previous.length;
 
       if (recentAvg > previousAvg + 5) trend = 'improving';
       else if (recentAvg < previousAvg - 5) trend = 'declining';
@@ -725,11 +782,12 @@ export class SubagentTestController {
       averageDuration: Math.round(avgDuration),
       successRate: Math.round(successRate),
       trend,
-      recommendation: trend === 'declining'
-        ? '테스트 품질이 하락하고 있습니다. 즉시 검토가 필요합니다.'
-        : trend === 'improving'
-        ? '테스트 품질이 개선되고 있습니다. 현재 방향을 유지하세요.'
-        : '테스트 품질이 안정적입니다.'
+      recommendation:
+        trend === 'declining'
+          ? '테스트 품질이 하락하고 있습니다. 즉시 검토가 필요합니다.'
+          : trend === 'improving'
+            ? '테스트 품질이 개선되고 있습니다. 현재 방향을 유지하세요.'
+            : '테스트 품질이 안정적입니다.',
     };
   }
 }
@@ -737,13 +795,18 @@ export class SubagentTestController {
 // 🚀 서브에이전트용 간단한 팩토리 함수들
 export const subagentTesting = {
   // 가장 간단한 사용법 - 원샷 테스트
-  quickTest: async (priority: 'fast' | 'thorough' | 'comprehensive' = 'fast'): Promise<SubagentTestResult> => {
+  quickTest: async (
+    priority: 'fast' | 'thorough' | 'comprehensive' = 'fast'
+  ): Promise<SubagentTestResult> => {
     const controller = new SubagentTestController();
     return controller.runSmartTest({ priority });
   },
 
   // 특정 영역 포커스 테스트
-  focusTest: async (focus: string, priority: 'fast' | 'thorough' = 'fast'): Promise<SubagentTestResult> => {
+  focusTest: async (
+    focus: string,
+    priority: 'fast' | 'thorough' = 'fast'
+  ): Promise<SubagentTestResult> => {
     const controller = new SubagentTestController();
     return controller.runSmartTest({ priority, focus });
   },
@@ -763,7 +826,7 @@ export const subagentTesting = {
   getHistory: (limit: number = 5): SubagentTestResult[] => {
     const controller = new SubagentTestController();
     return controller.getTestHistory(limit);
-  }
+  },
 };
 
 // 📝 서브에이전트 사용 예시
@@ -797,5 +860,5 @@ console.log(\`평균 실행시간: \${trend.averageDuration}ms\`);
 console.log(\`성공률: \${trend.successRate}%\`);
 console.log(\`트렌드: \${trend.trend}\`);
 console.log(\`권장사항: \${trend.recommendation}\`);
-  `
+  `,
 };

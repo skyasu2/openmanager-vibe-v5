@@ -977,7 +977,7 @@ function _translateCommand(
   };
 
   const isWindows = toOS.toLowerCase().includes('windows');
-  const isLinux = !isWindows;
+  const _isLinux = !isWindows;
 
   if (isWindows && translations[command]) {
     return translations[command]['windows'] ?? null;

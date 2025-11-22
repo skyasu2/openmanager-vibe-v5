@@ -38,7 +38,7 @@ const THRESHOLDS = {
 export function PerformanceMonitor() {
   const [metrics, setMetrics] = useState<PerformanceMetrics | null>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [history, setHistory] = useState<PerformanceMetrics[]>([]);
+  const [_history, setHistory] = useState<PerformanceMetrics[]>([]);
 
   // Core Web Vitals 수집
   const collectWebVitals = useCallback(() => {
@@ -65,7 +65,8 @@ export function PerformanceMonitor() {
       new PerformanceObserver((entryList) => {
         const entries = entryList.getEntries();
         entries.forEach((entry: PerformanceEntry) => {
-          vitals.fid = (entry as PerformanceEventTiming).processingStart - entry.startTime;
+          vitals.fid =
+            (entry as PerformanceEventTiming).processingStart - entry.startTime;
         });
       }).observe({ entryTypes: ['first-input'] });
 
@@ -73,7 +74,10 @@ export function PerformanceMonitor() {
       new PerformanceObserver((entryList) => {
         let clsValue = 0;
         entryList.getEntries().forEach((entry: PerformanceEntry) => {
-          const layoutShiftEntry = entry as { value?: number; hadRecentInput?: boolean }; // Layout Shift 전용 타입
+          const layoutShiftEntry = entry as {
+            value?: number;
+            hadRecentInput?: boolean;
+          }; // Layout Shift 전용 타입
           if (!layoutShiftEntry.hadRecentInput) {
             clsValue += layoutShiftEntry.value || 0;
           }
@@ -107,19 +111,23 @@ export function PerformanceMonitor() {
     const webVitals = collectWebVitals();
 
     // 메모리 사용량
-    const memoryUsage = (performance as { memory?: { usedJSHeapSize?: number } }).memory?.usedJSHeapSize || 0;
+    const memoryUsage =
+      (performance as { memory?: { usedJSHeapSize?: number } }).memory
+        ?.usedJSHeapSize || 0;
 
     // 로드 시간
     const navigation = performance.getEntriesByType(
       'navigation'
     )[0] as PerformanceNavigationTiming;
     const loadTime = navigation
-      ? navigation.loadEventEnd - (navigation.fetchStart || navigation.startTime)
+      ? navigation.loadEventEnd -
+        (navigation.fetchStart || navigation.startTime)
       : 0;
 
     // 렌더 시간
     const renderTime = navigation
-      ? navigation.domContentLoadedEventEnd - (navigation.fetchStart || navigation.startTime)
+      ? navigation.domContentLoadedEventEnd -
+        (navigation.fetchStart || navigation.startTime)
       : 0;
 
     const newMetrics: PerformanceMetrics = {
@@ -208,9 +216,7 @@ export function PerformanceMonitor() {
   const score = calculateScore(metrics.webVitals);
 
   return (
-    <div
-      className="fixed bottom-4 right-4 z-50"
-    >
+    <div className="fixed bottom-4 right-4 z-50">
       {/* 토글 버튼 */}
       <button
         onClick={() => setIsVisible(!isVisible)}
@@ -229,9 +235,7 @@ export function PerformanceMonitor() {
 
       {/* 상세 패널 */}
       {isVisible && (
-        <div
-          className="w-80 rounded-lg bg-white/95 p-4 shadow-xl backdrop-blur-sm dark:bg-gray-900/95"
-        >
+        <div className="w-80 rounded-lg bg-white/95 p-4 shadow-xl backdrop-blur-sm dark:bg-gray-900/95">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="font-semibold text-gray-900 dark:text-white">
               성능 모니터링

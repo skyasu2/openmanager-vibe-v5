@@ -1,41 +1,46 @@
 /**
  * 🧠 Intelligent Monitoring Service
- * 
+ *
  * @description
  * Integrates anomaly detection and trend prediction for server monitoring.
  * Populates EnhancedServerMetrics with AI analysis and trend data.
- * 
+ *
  * @features
  * - Real-time anomaly detection
  * - Trend prediction
  * - Aggregate anomaly scoring
  * - Server recommendations
- * 
+ *
  * @version 1.0.0
  * @date 2025-11-21
  */
 
-import { 
-  SimpleAnomalyDetector, 
+import {
+  SimpleAnomalyDetector,
   getAnomalyDetector,
   type MetricDataPoint,
-  type AnomalyDetectionResult 
+  type AnomalyDetectionResult,
 } from '@/lib/ai/monitoring/SimpleAnomalyDetector';
 
-import { 
-  TrendPredictor, 
+import {
+  TrendPredictor,
   getTrendPredictor,
-  type TrendDataPoint,
-  type TrendPrediction 
+  type TrendPrediction,
 } from '@/lib/ai/monitoring/TrendPredictor';
 
-import type { EnhancedServerMetrics, ServerMetrics } from '@/types/unified-server';
+import type {
+  EnhancedServerMetrics,
+  ServerMetrics,
+} from '@/types/unified-server';
 
 /**
  * Helper function to extract numeric value from ServerMetrics union type
  */
 function extractNumericValue(
-  value: number | { usage: number; [key: string]: unknown } | { in: number; out: number; [key: string]: unknown }
+  value:
+    | number
+    | { usage: number; [key: string]: unknown }
+    | { in: number; out: number; [key: string]: unknown }
 ): number {
   if (typeof value === 'number') {
     return value;
@@ -78,15 +83,15 @@ export interface IntelligentAnalysisResult {
 export class IntelligentMonitoringService {
   private anomalyDetector: SimpleAnomalyDetector;
   private trendPredictor: TrendPredictor;
-  
+
   constructor() {
     this.anomalyDetector = getAnomalyDetector();
     this.trendPredictor = getTrendPredictor();
   }
-  
+
   /**
    * Analyze server metrics and return enhanced metrics with AI analysis.
-   * 
+   *
    * @param currentMetrics - Current server metrics
    * @param historicalData - Historical metric data
    * @returns Enhanced server metrics with AI analysis and trends
@@ -102,40 +107,39 @@ export class IntelligentMonitoringService {
       disk: extractNumericValue(currentMetrics.disk),
       network: extractNumericValue(currentMetrics.network),
     };
-    
+
     // Run anomaly detection
     const anomalyResults = this.anomalyDetector.detectAnomalies(
       currentValues,
       historicalData
     );
-    
+
     // Run trend prediction
     const trendResults = this.trendPredictor.predictTrends(historicalData);
-    
+
     // Calculate aggregate anomaly score
-    const aggregateAnomalyScore = this.anomalyDetector.calculateAggregateScore(
-      anomalyResults
-    );
-    
+    const aggregateAnomalyScore =
+      this.anomalyDetector.calculateAggregateScore(anomalyResults);
+
     // Generate recommendations
     const recommendations = this.generateRecommendations(
       anomalyResults,
       trendResults,
       currentMetrics
     );
-    
+
     // Identify predicted issues
     const predictedIssues = this.identifyPredictedIssues(
       anomalyResults,
       trendResults
     );
-    
+
     // Calculate overall confidence
     const confidence = this.calculateOverallConfidence(
       anomalyResults,
       trendResults
     );
-    
+
     // Build enhanced metrics
     const enhancedMetrics: EnhancedServerMetrics = {
       ...currentMetrics,
@@ -152,13 +156,13 @@ export class IntelligentMonitoringService {
         network: trendResults.network?.trend || 'stable',
       },
     };
-    
+
     return enhancedMetrics;
   }
-  
+
   /**
    * Get detailed analysis result (for debugging or detailed view).
-   * 
+   *
    * @param currentMetrics - Current server metrics
    * @param historicalData - Historical metric data
    * @returns Detailed analysis result
@@ -173,22 +177,23 @@ export class IntelligentMonitoringService {
       disk: extractNumericValue(currentMetrics.disk),
       network: extractNumericValue(currentMetrics.network),
     };
-    
+
     const anomalies = this.anomalyDetector.detectAnomalies(
       currentValues,
       historicalData
     );
-    
+
     const trends = this.trendPredictor.predictTrends(historicalData);
-    
-    const aggregateAnomalyScore = this.anomalyDetector.calculateAggregateScore(anomalies);
-    
+
+    const aggregateAnomalyScore =
+      this.anomalyDetector.calculateAggregateScore(anomalies);
+
     const recommendationsGenerated = this.generateRecommendations(
       anomalies,
       trends,
       currentMetrics
     );
-    
+
     return {
       anomalies,
       trends,
@@ -197,11 +202,11 @@ export class IntelligentMonitoringService {
       timestamp: Date.now(),
     };
   }
-  
+
   // ============================================================================
   // Private Methods
   // ============================================================================
-  
+
   /**
    * Generate actionable recommendations based on analysis results.
    */
@@ -211,7 +216,7 @@ export class IntelligentMonitoringService {
     currentMetrics: ServerMetrics
   ): string[] {
     const recommendations: string[] = [];
-    
+
     // Check for high severity anomalies
     for (const [metric, result] of Object.entries(anomalies)) {
       if (result.isAnomaly && result.severity === 'high') {
@@ -224,7 +229,7 @@ export class IntelligentMonitoringService {
         );
       }
     }
-    
+
     // Check for increasing trends that may lead to capacity issues
     for (const [metric, prediction] of Object.entries(trends)) {
       if (prediction.trend === 'increasing' && prediction.confidence > 0.7) {
@@ -236,32 +241,40 @@ export class IntelligentMonitoringService {
         }
       }
     }
-    
+
     // Check for critical thresholds
     const cpuValue = extractNumericValue(currentMetrics.cpu);
     const memoryValue = extractNumericValue(currentMetrics.memory);
     const diskValue = extractNumericValue(currentMetrics.disk);
-    
+
     if (cpuValue > 80) {
-      recommendations.push('🔥 CPU usage above 80%. Consider load balancing or scaling.');
+      recommendations.push(
+        '🔥 CPU usage above 80%. Consider load balancing or scaling.'
+      );
     }
-    
+
     if (memoryValue > 85) {
-      recommendations.push('🧠 Memory usage above 85%. Check for memory leaks or scale up.');
+      recommendations.push(
+        '🧠 Memory usage above 85%. Check for memory leaks or scale up.'
+      );
     }
-    
+
     if (diskValue > 90) {
-      recommendations.push('💾 Disk usage above 90%. Clean up space or expand storage.');
+      recommendations.push(
+        '💾 Disk usage above 90%. Clean up space or expand storage.'
+      );
     }
-    
+
     // If no issues found
     if (recommendations.length === 0) {
-      recommendations.push('✅ All metrics within normal range. System healthy.');
+      recommendations.push(
+        '✅ All metrics within normal range. System healthy.'
+      );
     }
-    
+
     return recommendations.slice(0, 5); // Limit to top 5 recommendations
   }
-  
+
   /**
    * Identify predicted issues based on trends and anomalies.
    */
@@ -270,27 +283,29 @@ export class IntelligentMonitoringService {
     trends: Record<string, TrendPrediction>
   ): string[] {
     const issues: string[] = [];
-    
+
     // Check for anomalies that indicate current issues
     for (const [metric, result] of Object.entries(anomalies)) {
       if (result.isAnomaly && result.severity === 'high') {
         issues.push(`Current ${metric} anomaly (${result.severity})`);
       }
     }
-    
+
     // Check for trends that predict future issues
     for (const [metric, prediction] of Object.entries(trends)) {
       if (prediction.trend === 'increasing' && prediction.confidence > 0.7) {
         const change = prediction.details.predictedChangePercent;
         if (change > 30) {
-          issues.push(`${metric} capacity issues in 1 hour (+${change.toFixed(0)}%)`);
+          issues.push(
+            `${metric} capacity issues in 1 hour (+${change.toFixed(0)}%)`
+          );
         }
       }
     }
-    
+
     return issues;
   }
-  
+
   /**
    * Calculate overall confidence score combining anomaly and trend confidence.
    */
@@ -298,15 +313,18 @@ export class IntelligentMonitoringService {
     anomalies: Record<string, AnomalyDetectionResult>,
     trends: Record<string, TrendPrediction>
   ): number {
-    const anomalyConfidences = Object.values(anomalies).map(a => a.confidence);
-    const trendConfidences = Object.values(trends).map(t => t.confidence);
-    
+    const anomalyConfidences = Object.values(anomalies).map(
+      (a) => a.confidence
+    );
+    const trendConfidences = Object.values(trends).map((t) => t.confidence);
+
     const allConfidences = [...anomalyConfidences, ...trendConfidences];
-    
+
     if (allConfidences.length === 0) return 0;
-    
-    const avgConfidence = allConfidences.reduce((sum, c) => sum + c, 0) / allConfidences.length;
-    
+
+    const avgConfidence =
+      allConfidences.reduce((sum, c) => sum + c, 0) / allConfidences.length;
+
     return Math.round(avgConfidence * 100) / 100; // Round to 2 decimal places
   }
 }

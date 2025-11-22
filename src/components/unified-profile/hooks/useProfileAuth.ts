@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from '@/hooks/useSupabaseSession';
 import { authStateManager, clearAuthData } from '@/lib/auth-state-manager';
-import {
-  getCurrentUser,
-  isGitHubAuthenticated,
-  isGuestUser,
-} from '@/lib/supabase-auth';
-import type { UserInfo, UserType, ProfileAuthHook } from '../types/profile.types';
+// Unused imports removed: getCurrentUser, isGitHubAuthenticated, isGuestUser
+import type {
+  UserInfo,
+  UserType,
+  ProfileAuthHook,
+} from '../types/profile.types';
 
 /**
  * 프로필 인증 관련 커스텀 훅
@@ -24,17 +24,22 @@ export function useProfileAuth(): ProfileAuthHook {
     const loadUserInfo = async () => {
       try {
         setIsLoading(true);
-        
+
         // 🚀 AuthStateManager를 통한 통합 인증 상태 확인 - 정확한 타입 감지
-        
+
         // 🔄 캐시 무효화 후 최신 상태 확인 (GitHub 로그인 후 즉시 반영)
         authStateManager.invalidateCache();
         const authState = await authStateManager.getAuthState();
 
         // AuthStateManager의 결과를 직접 사용 (더 정확함)
         setUserInfo(authState.user);
-        setUserType(authState.type === 'github' ? 'github' : 
-                   authState.type === 'guest' ? 'guest' : 'unknown');
+        setUserType(
+          authState.type === 'github'
+            ? 'github'
+            : authState.type === 'guest'
+              ? 'guest'
+              : 'unknown'
+        );
 
         console.log('👤 사용자 정보 로드 (AuthStateManager 통합):', {
           user: authState.user,
@@ -61,7 +66,7 @@ export function useProfileAuth(): ProfileAuthHook {
   const handleLogout = useCallback(async () => {
     const userTypeLabel = userType === 'github' ? 'GitHub' : '게스트';
     console.log('🚪 handleLogout 호출됨:', { userType, userTypeLabel });
-    
+
     const confirmed = confirm(
       `🚪 ${userTypeLabel} 계정에서 로그아웃하시겠습니까?`
     );
@@ -88,13 +93,12 @@ export function useProfileAuth(): ProfileAuthHook {
       // 로그인 페이지로 리다이렉트
       window.location.href = '/login';
       return true;
-
     } catch (error) {
       console.error('❌ 통합 로그아웃 실패:', error);
 
       // Fallback: 레거시 로그아웃 로직
       console.warn('⚠️ 레거시 로그아웃으로 fallback');
-      
+
       try {
         // Supabase 로그아웃 (GitHub)
         if (userType === 'github') {
@@ -107,10 +111,12 @@ export function useProfileAuth(): ProfileAuthHook {
             localStorage.removeItem('auth_type');
             localStorage.removeItem('auth_user');
           }
-          
+
           if (typeof document !== 'undefined') {
-            document.cookie = 'auth_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-            document.cookie = 'auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            document.cookie =
+              'auth_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            document.cookie =
+              'auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
           }
         }
       } catch (fallbackError) {
@@ -135,7 +141,7 @@ export function useProfileAuth(): ProfileAuthHook {
 
   const navigateToAdmin = useCallback(() => {
     console.log('🚀 navigateToAdmin 호출됨 - /admin으로 이동');
-    
+
     // window.location.href 사용 (더 확실한 라우팅)
     window.location.href = '/admin';
   }, []);

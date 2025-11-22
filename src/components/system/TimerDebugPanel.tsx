@@ -6,16 +6,7 @@
 
 'use client';
 
-import React, { type FC } from 'react';
-
-interface TimerStatus {
-  id: string;
-  interval: number;
-  priority: string;
-  lastRun?: number;
-  errorCount?: number;
-  nextRun: number;
-}
+import { type FC } from 'react';
 
 export const TimerDebugPanel: FC = () => {
   // 타이머 디버그 패널 제거됨 (웹 알람 삭제에 따라)

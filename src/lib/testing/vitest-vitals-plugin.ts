@@ -6,7 +6,7 @@
  * @auto-collect 테스트 실행 시간, 성공률, 커버리지 등을 자동으로 Vitals로 수집
  */
 
-import { beforeAll, afterAll, beforeEach, afterEach, expect } from 'vitest';
+import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import { universalVitals, type UniversalVital } from './universal-vitals';
 import { performance } from 'node:perf_hooks';
 
@@ -30,18 +30,17 @@ let vitestState: VitestVitalsState = {
   failedTests: 0,
   skippedTests: 0,
   currentTestName: '',
-  suiteMetrics: new Map()
+  suiteMetrics: new Map(),
 };
 
 // 📊 Vitest 메트릭 수집 함수들
 export const VitestVitals = {
-
   // 🚀 테스트 스위트 시작
   startSuite: (suiteName: string) => {
     vitestState.suiteStartTime = performance.now();
     universalVitals.startMeasurement(`suite-${suiteName}`, 'test-execution', {
       type: 'test-suite',
-      suiteName
+      suiteName,
     });
 
     console.log(`🧪 [Vitest Vitals] 테스트 스위트 시작: ${suiteName}`);
@@ -49,17 +48,26 @@ export const VitestVitals = {
 
   // 🏁 테스트 스위트 완료
   endSuite: (suiteName: string) => {
-    const suiteVital = universalVitals.endMeasurement(`suite-${suiteName}`, 'test-execution', 'ms', {
-      totalTests: vitestState.totalTests,
-      passedTests: vitestState.passedTests,
-      failedTests: vitestState.failedTests,
-      skippedTests: vitestState.skippedTests,
-      successRate: vitestState.totalTests > 0 ? (vitestState.passedTests / vitestState.totalTests) * 100 : 0
-    });
+    const suiteVital = universalVitals.endMeasurement(
+      `suite-${suiteName}`,
+      'test-execution',
+      'ms',
+      {
+        totalTests: vitestState.totalTests,
+        passedTests: vitestState.passedTests,
+        failedTests: vitestState.failedTests,
+        skippedTests: vitestState.skippedTests,
+        successRate:
+          vitestState.totalTests > 0
+            ? (vitestState.passedTests / vitestState.totalTests) * 100
+            : 0,
+      }
+    );
 
     // 성공률 Vital 별도 수집
     if (vitestState.totalTests > 0) {
-      const successRate = (vitestState.passedTests / vitestState.totalTests) * 100;
+      const successRate =
+        (vitestState.passedTests / vitestState.totalTests) * 100;
       universalVitals.collectVital(
         'test-success-rate',
         'test-execution',
@@ -70,7 +78,9 @@ export const VitestVitals = {
     }
 
     vitestState.suiteMetrics.set(suiteName, suiteVital);
-    console.log(`✅ [Vitest Vitals] 테스트 스위트 완료: ${suiteName} (${suiteVital.value.toFixed(0)}ms)`);
+    console.log(
+      `✅ [Vitest Vitals] 테스트 스위트 완료: ${suiteName} (${suiteVital.value.toFixed(0)}ms)`
+    );
 
     return suiteVital;
   },
@@ -81,15 +91,20 @@ export const VitestVitals = {
     vitestState.currentTestName = testName;
     universalVitals.startMeasurement(`test-${testName}`, 'test-execution', {
       type: 'unit-test',
-      testName
+      testName,
     });
   },
 
   // ✅ 개별 테스트 성공
   passTest: (testName: string = vitestState.currentTestName) => {
-    const testVital = universalVitals.endMeasurement(`test-${testName}`, 'test-execution', 'ms', {
-      result: 'passed'
-    });
+    const testVital = universalVitals.endMeasurement(
+      `test-${testName}`,
+      'test-execution',
+      'ms',
+      {
+        result: 'passed',
+      }
+    );
 
     vitestState.passedTests++;
     vitestState.totalTests++;
@@ -108,10 +123,15 @@ export const VitestVitals = {
 
   // ❌ 개별 테스트 실패
   failTest: (testName: string = vitestState.currentTestName, error?: Error) => {
-    const testVital = universalVitals.endMeasurement(`test-${testName}`, 'test-execution', 'ms', {
-      result: 'failed',
-      error: error?.message
-    });
+    const testVital = universalVitals.endMeasurement(
+      `test-${testName}`,
+      'test-execution',
+      'ms',
+      {
+        result: 'failed',
+        error: error?.message,
+      }
+    );
 
     vitestState.failedTests++;
     vitestState.totalTests++;
@@ -157,7 +177,7 @@ export const VitestVitals = {
           label,
           heapTotal: memUsage.heapTotal / 1024 / 1024,
           external: memUsage.external / 1024 / 1024,
-          rss: memUsage.rss / 1024 / 1024
+          rss: memUsage.rss / 1024 / 1024,
         }
       );
 
@@ -167,7 +187,12 @@ export const VitestVitals = {
   },
 
   // 🔧 커버리지 Vital 수집 (외부에서 호출)
-  collectCoverage: (coverageData: { lines: number; functions: number; branches: number; statements: number }) => {
+  collectCoverage: (coverageData: {
+    lines: number;
+    functions: number;
+    branches: number;
+    statements: number;
+  }) => {
     Object.entries(coverageData).forEach(([type, percentage]) => {
       universalVitals.collectVital(
         `test-coverage-${type}`,
@@ -179,7 +204,8 @@ export const VitestVitals = {
     });
 
     // 전체 커버리지 평균
-    const avgCoverage = Object.values(coverageData).reduce((sum, val) => sum + val, 0) / 4;
+    const avgCoverage =
+      Object.values(coverageData).reduce((sum, val) => sum + val, 0) / 4;
     universalVitals.collectVital(
       'test-coverage',
       'test-execution',
@@ -202,7 +228,7 @@ export const VitestVitals = {
       failedTests: 0,
       skippedTests: 0,
       currentTestName: '',
-      suiteMetrics: new Map()
+      suiteMetrics: new Map(),
     };
   },
 
@@ -218,34 +244,39 @@ export const VitestVitals = {
         passedTests: vitestState.passedTests,
         failedTests: vitestState.failedTests,
         skippedTests: vitestState.skippedTests,
-        successRate: vitestState.totalTests > 0 ? (vitestState.passedTests / vitestState.totalTests) * 100 : 0
+        successRate:
+          vitestState.totalTests > 0
+            ? (vitestState.passedTests / vitestState.totalTests) * 100
+            : 0,
       },
       vitals: metrics,
       summary: {
         totalVitals: summary.total,
         goodVitals: summary.good,
         needsImprovementVitals: summary.needsImprovement,
-        poorVitals: summary.poor
+        poorVitals: summary.poor,
       },
       recommendations: metrics
-        .filter(m => m.recommendations && m.recommendations.length > 0)
-        .map(m => ({ metric: m.name, recommendations: m.recommendations }))
+        .filter((m) => m.recommendations && m.recommendations.length > 0)
+        .map((m) => ({ metric: m.name, recommendations: m.recommendations })),
     };
 
     return report;
-  }
+  },
 };
 
 // 🔌 자동 Vitest Hook 통합
-export function setupVitestVitals(options: {
-  suiteName?: string;
-  autoMemoryTracking?: boolean;
-  reportEndpoint?: string;
-} = {}) {
+export function setupVitestVitals(
+  options: {
+    suiteName?: string;
+    autoMemoryTracking?: boolean;
+    reportEndpoint?: string;
+  } = {}
+) {
   const {
     suiteName = 'vitest-suite',
     autoMemoryTracking = true,
-    reportEndpoint
+    reportEndpoint,
   } = options;
 
   // 🚀 테스트 스위트 시작
@@ -297,14 +328,18 @@ export function setupVitestVitals(options: {
     // 최종 리포트 생성
     const report = VitestVitals.generateReport();
     console.log('\n📊 [Vitest Vitals] 최종 리포트:');
-    console.log(`✅ 성공: ${report.testExecution.passedTests}/${report.testExecution.totalTests}`);
+    console.log(
+      `✅ 성공: ${report.testExecution.passedTests}/${report.testExecution.totalTests}`
+    );
     console.log(`📈 성공률: ${report.testExecution.successRate.toFixed(1)}%`);
-    console.log(`🎯 Vitals 품질: ${report.summary.goodVitals}개 Good, ${report.summary.poorVitals}개 Poor`);
+    console.log(
+      `🎯 Vitals 품질: ${report.summary.goodVitals}개 Good, ${report.summary.poorVitals}개 Poor`
+    );
 
     // 권장사항 출력
     if (report.recommendations.length > 0) {
       console.log('\n💡 [성능 개선 권장사항]:');
-      report.recommendations.forEach(rec => {
+      report.recommendations.forEach((rec) => {
         console.log(`- ${rec.metric}: ${rec.recommendations?.join(', ')}`);
       });
     }
@@ -315,7 +350,7 @@ export function setupVitestVitals(options: {
         const response = await fetch(reportEndpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(report)
+          body: JSON.stringify(report),
         });
 
         if (response.ok) {
@@ -355,5 +390,5 @@ test('성능 측정이 필요한 테스트', () => {
   const afterMemory = VitestVitals.collectMemoryUsage('test-end');
   expect(afterMemory - beforeMemory).toBeLessThan(10); // 10MB 미만 증가
 });
-  `
+  `,
 };

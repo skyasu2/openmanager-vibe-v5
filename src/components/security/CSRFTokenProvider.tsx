@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
  * 토큰은 쿠키로 저장되며, 이후 API 요청 시 자동으로 사용됩니다.
  */
 export function CSRFTokenProvider({ children }: { children: React.ReactNode }) {
-  const [isReady, setIsReady] = useState(false);
+  const [_isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     // 페이지 로드 시 CSRF 토큰 발급 요청

@@ -227,9 +227,7 @@ function FeedbackDisplay({ feedback, compact = false }: FeedbackDisplayProps) {
   const styles = getStyles();
 
   return (
-    <div
-      className={styles.container}
-    >
+    <div className={styles.container}>
       {styles.icon}
       <span className={compact ? 'text-sm' : 'text-sm font-medium'}>
         {feedback.message}
@@ -368,7 +366,7 @@ export function ButtonWithFeedback({
         setStatus('idle');
         clear(feedbackArea);
       }, 3000);
-    } catch (err) {
+    } catch {
       setStatus('error');
       error(feedbackArea, errorMessage);
 
@@ -383,7 +381,9 @@ export function ButtonWithFeedback({
   return (
     <div className="space-y-2">
       <button
-        onClick={() => { void handleClick(); }}
+        onClick={() => {
+          void handleClick();
+        }}
         disabled={disabled || status === 'loading'}
         className={`${className} ${
           status === 'loading' ? 'cursor-not-allowed opacity-75' : ''

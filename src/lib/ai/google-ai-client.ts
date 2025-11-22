@@ -5,7 +5,10 @@
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import googleAIManager, { getGoogleAIKey, getGoogleAISecondaryKey } from '@/lib/google-ai-manager';
+import {
+  getGoogleAIKey,
+  getGoogleAISecondaryKey,
+} from '@/lib/google-ai-manager';
 import debug from '@/utils/debug';
 
 /**
@@ -55,8 +58,11 @@ export function getGoogleAIModel(modelName: string = 'gemini-1.5-flash') {
   const generativeModel = client.getGenerativeModel({ model: modelName });
 
   // 기존 generateContent 호출을 래핑하여 폴백 로직 추가
-  const originalGenerateContent = generativeModel.generateContent.bind(generativeModel);
-  generativeModel.generateContent = async function (...args: Parameters<typeof originalGenerateContent>) {
+  const originalGenerateContent =
+    generativeModel.generateContent.bind(generativeModel);
+  generativeModel.generateContent = async function (
+    ...args: Parameters<typeof originalGenerateContent>
+  ) {
     try {
       debug.log(`API 호출 시도 (키: ${currentKeySource})`);
       return await originalGenerateContent(...args);

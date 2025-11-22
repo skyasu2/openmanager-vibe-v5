@@ -22,12 +22,6 @@ interface NetworkInfo {
   endTime?: number;
 }
 
-// 🔧 네트워크 에러 타입 정의
-interface NetworkError extends Error {
-  networkInfo?: NetworkInfo;
-  originalError?: Error;
-}
-
 // 타입 가드 함수들은 network-tracking utils에서 import됨
 
 // 🔧 네트워크 정보 검증 헬퍼

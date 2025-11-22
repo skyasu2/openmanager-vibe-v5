@@ -101,13 +101,6 @@ export interface UserProfile {
   settings: Record<string, unknown>;
 }
 
-interface SystemIntegrations {
-  database: { enabled: boolean; provider?: string; status?: string };
-  cache: { enabled: boolean; provider?: string; status?: string };
-  ai: { enabled: boolean; provider?: string; models?: string[] };
-  // Slack 설정 제거됨 (포트폴리오용)
-}
-
 export class CustomContextManager {
   private static instance: CustomContextManager;
   private supabase: SupabaseClient | null = null;

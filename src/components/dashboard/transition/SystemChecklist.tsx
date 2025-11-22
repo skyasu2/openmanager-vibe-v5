@@ -19,11 +19,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from 'react';
 import debug from '@/utils/debug';
-import {
-  useSystemChecklist,
-  type ComponentStatus,
-  type SystemComponent,
-} from '../../../hooks/useSystemChecklist';
+import { useSystemChecklist } from '../../../hooks/useSystemChecklist';
 import type {
   SystemChecklistProps,
   DebugInfo,

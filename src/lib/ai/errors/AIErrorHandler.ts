@@ -1,6 +1,6 @@
 /**
  * 🚨 AI Error Handler with Retry Logic
- * 
+ *
  * @description
  * Centralized error handling system for AI engine operations.
  * Features:
@@ -8,7 +8,7 @@
  * - Exponential backoff retry strategy
  * - Retryability detection
  * - Detailed error logging
- * 
+ *
  * @version 1.0.0
  * @date 2025-11-21
  */
@@ -20,30 +20,30 @@ export enum AIErrorType {
   // API Quota & Rate Limiting
   RATE_LIMIT = 'rate_limit',
   QUOTA_EXCEEDED = 'quota_exceeded',
-  
+
   // Timeout Errors
   TIMEOUT = 'timeout',
   PROVIDER_TIMEOUT = 'provider_timeout',
-  
+
   // Network Errors
   NETWORK_ERROR = 'network_error',
   CONNECTION_REFUSED = 'connection_refused',
   DNS_ERROR = 'dns_error',
-  
+
   // CORS & Security
   CORS_ERROR = 'cors_error',
   AUTHENTICATION_ERROR = 'authentication_error',
   AUTHORIZATION_ERROR = 'authorization_error',
-  
+
   // API Errors
   INVALID_REQUEST = 'invalid_request',
   INVALID_RESPONSE = 'invalid_response',
   API_ERROR = 'api_error',
-  
+
   // Provider-specific
   PROVIDER_ERROR = 'provider_error',
   PROVIDER_UNAVAILABLE = 'provider_unavailable',
-  
+
   // Unknown
   UNKNOWN = 'unknown',
 }
@@ -92,7 +92,7 @@ export class AIError extends Error {
     this.provider = details.provider;
     this.timestamp = details.timestamp;
     this.originalError = details.originalError;
-    
+
     // Maintain proper stack trace
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, AIError);
@@ -109,10 +109,13 @@ export class AIErrorHandler {
    */
   static detectErrorType(error: unknown, provider?: string): AIErrorType {
     if (!error) return AIErrorType.UNKNOWN;
-    
-    const errorMessage = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+
+    const errorMessage =
+      error instanceof Error
+        ? error.message.toLowerCase()
+        : String(error).toLowerCase();
     const errorName = error instanceof Error ? error.name.toLowerCase() : '';
-    
+
     // Rate Limit Detection
     if (
       errorMessage.includes('rate limit') ||
@@ -122,7 +125,7 @@ export class AIErrorHandler {
     ) {
       return AIErrorType.RATE_LIMIT;
     }
-    
+
     // Quota Exceeded
     if (
       errorMessage.includes('quota') ||
@@ -131,7 +134,7 @@ export class AIErrorHandler {
     ) {
       return AIErrorType.QUOTA_EXCEEDED;
     }
-    
+
     // Timeout Detection
     if (
       errorMessage.includes('timeout') ||
@@ -140,7 +143,7 @@ export class AIErrorHandler {
     ) {
       return provider ? AIErrorType.PROVIDER_TIMEOUT : AIErrorType.TIMEOUT;
     }
-    
+
     // CORS Detection
     if (
       errorMessage.includes('cors') ||
@@ -149,7 +152,7 @@ export class AIErrorHandler {
     ) {
       return AIErrorType.CORS_ERROR;
     }
-    
+
     // Authentication/Authorization
     if (
       errorMessage.includes('unauthorized') ||
@@ -158,7 +161,7 @@ export class AIErrorHandler {
     ) {
       return AIErrorType.AUTHENTICATION_ERROR;
     }
-    
+
     if (
       errorMessage.includes('forbidden') ||
       errorMessage.includes('403') ||
@@ -166,7 +169,7 @@ export class AIErrorHandler {
     ) {
       return AIErrorType.AUTHORIZATION_ERROR;
     }
-    
+
     // Network Errors
     if (
       errorMessage.includes('network') ||
@@ -175,14 +178,14 @@ export class AIErrorHandler {
     ) {
       return AIErrorType.NETWORK_ERROR;
     }
-    
+
     if (
       errorMessage.includes('connection refused') ||
       errorMessage.includes('econnrefused')
     ) {
       return AIErrorType.CONNECTION_REFUSED;
     }
-    
+
     if (
       errorMessage.includes('dns') ||
       errorMessage.includes('enotfound') ||
@@ -190,7 +193,7 @@ export class AIErrorHandler {
     ) {
       return AIErrorType.DNS_ERROR;
     }
-    
+
     // Invalid Request/Response
     if (
       errorMessage.includes('invalid request') ||
@@ -199,7 +202,7 @@ export class AIErrorHandler {
     ) {
       return AIErrorType.INVALID_REQUEST;
     }
-    
+
     if (
       errorMessage.includes('invalid response') ||
       errorMessage.includes('parse') ||
@@ -207,7 +210,7 @@ export class AIErrorHandler {
     ) {
       return AIErrorType.INVALID_RESPONSE;
     }
-    
+
     // Provider Unavailable
     if (
       errorMessage.includes('unavailable') ||
@@ -216,12 +219,12 @@ export class AIErrorHandler {
     ) {
       return AIErrorType.PROVIDER_UNAVAILABLE;
     }
-    
+
     // Provider-specific error
     if (provider) {
       return AIErrorType.PROVIDER_ERROR;
     }
-    
+
     // Generic API error
     if (
       errorMessage.includes('api') ||
@@ -230,10 +233,10 @@ export class AIErrorHandler {
     ) {
       return AIErrorType.API_ERROR;
     }
-    
+
     return AIErrorType.UNKNOWN;
   }
-  
+
   /**
    * 🔄 Check if Error is Retryable
    */
@@ -247,28 +250,32 @@ export class AIErrorHandler {
       AIErrorType.PROVIDER_UNAVAILABLE,
       AIErrorType.API_ERROR,
     ];
-    
+
     return retryableTypes.includes(errorType);
   }
-  
+
   /**
    * 🔄 Get Retry Delay for Error Type
    */
-  static getRetryDelay(errorType: AIErrorType, attempt: number, baseDelay: number = 1000): number {
+  static getRetryDelay(
+    errorType: AIErrorType,
+    attempt: number,
+    baseDelay: number = 1000
+  ): number {
     // Rate limit: longer delay
     if (errorType === AIErrorType.RATE_LIMIT) {
       return Math.min(baseDelay * Math.pow(2, attempt) * 2, 30000); // Max 30s
     }
-    
+
     // Quota exceeded: very long delay
     if (errorType === AIErrorType.QUOTA_EXCEEDED) {
       return Math.min(baseDelay * Math.pow(2, attempt) * 5, 60000); // Max 60s
     }
-    
+
     // Standard exponential backoff
     return Math.min(baseDelay * Math.pow(2, attempt), 10000); // Max 10s
   }
-  
+
   /**
    * 🔄 Retry with Exponential Backoff
    */
@@ -284,16 +291,16 @@ export class AIErrorHandler {
       exponentialFactor = 2,
       onRetry,
     } = options;
-    
+
     let lastError: AIErrorDetails | null = null;
-    
+
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         return await fn();
       } catch (error) {
         const errorType = this.detectErrorType(error, provider);
         const retryable = this.isRetryable(errorType);
-        
+
         lastError = {
           type: errorType,
           message: error instanceof Error ? error.message : String(error),
@@ -302,45 +309,54 @@ export class AIErrorHandler {
           provider,
           timestamp: Date.now(),
         };
-        
+
         // Don't retry if not retryable or max attempts reached
         if (!retryable || attempt === maxRetries) {
           throw new AIError(lastError);
         }
-        
+
         // Calculate delay with exponential backoff
         const delay = Math.min(
           baseDelay * Math.pow(exponentialFactor, attempt),
           maxDelay
         );
-        
+
         // Special handling for specific error types
         const actualDelay = this.getRetryDelay(errorType, attempt, baseDelay);
-        
+
         // Call retry callback if provided
         if (onRetry) {
           onRetry(attempt + 1, lastError);
         }
-        
+
         // Log retry attempt
-        console.warn(`🔄 Retrying (attempt ${attempt + 1}/${maxRetries}) after ${actualDelay}ms due to ${errorType}`);
-        
+        console.warn(
+          `🔄 Retrying (attempt ${attempt + 1}/${maxRetries}) after ${actualDelay}ms due to ${errorType}`
+        );
+
         // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, actualDelay));
+        await new Promise((resolve) => setTimeout(resolve, actualDelay));
       }
     }
-    
+
     // Should never reach here, but TypeScript requires it
-    throw new AIError(lastError!);
+    throw new AIError(
+      lastError ?? {
+        type: AIErrorType.UNKNOWN,
+        message: 'Unknown error occurred during retry',
+        retryable: false,
+        timestamp: Date.now(),
+      }
+    );
   }
-  
+
   /**
    * 🛡️ Create AI Error from Unknown Error
    */
   static createAIError(error: unknown, provider?: string): AIError {
     const errorType = this.detectErrorType(error, provider);
     const retryable = this.isRetryable(errorType);
-    
+
     return new AIError({
       type: errorType,
       message: error instanceof Error ? error.message : String(error),
@@ -350,19 +366,22 @@ export class AIErrorHandler {
       timestamp: Date.now(),
     });
   }
-  
+
   /**
    * 📊 Log Error Details
    */
   static logError(error: AIError | AIErrorDetails, context?: string): void {
-    const errorInfo = error instanceof AIError ? {
-      type: error.type,
-      message: error.message,
-      retryable: error.retryable,
-      provider: error.provider,
-      timestamp: error.timestamp,
-    } : error;
-    
+    const errorInfo =
+      error instanceof AIError
+        ? {
+            type: error.type,
+            message: error.message,
+            retryable: error.retryable,
+            provider: error.provider,
+            timestamp: error.timestamp,
+          }
+        : error;
+
     console.error(`🚨 AI Error ${context ? `[${context}]` : ''}:`, {
       ...errorInfo,
       time: new Date(errorInfo.timestamp).toISOString(),

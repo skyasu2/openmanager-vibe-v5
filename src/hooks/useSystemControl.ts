@@ -49,7 +49,7 @@ interface UseSystemControlReturn {
 export function useSystemControl(): UseSystemControlReturn {
   const {
     isSystemStarted: unifiedSystemStarted,
-    aiAgent: unifiedAiAgent,
+    aiAgent: _unifiedAiAgent,
     startSystem: unifiedStartSystem,
     stopSystem: unifiedStopSystem,
     getSystemRemainingTime,
@@ -59,7 +59,7 @@ export function useSystemControl(): UseSystemControlReturn {
 
   // 기본값으로 안전하게 처리
   const state = globalStore.state || 'inactive';
-  const sessionInfo = globalStore.getSessionInfo();
+  const _sessionInfo = globalStore.getSessionInfo();
 
   // 누락된 속성들을 기본값으로 설정
   const aiAgent = { isEnabled: false };
@@ -69,8 +69,8 @@ export function useSystemControl(): UseSystemControlReturn {
   const userInitiated = false;
 
   // 누락된 함수들을 기본 구현으로 추가
-  const updateActivity = () => {};
-  const pauseSystem = async (reason?: string) => ({
+  const _updateActivity = () => {};
+  const pauseSystem = async (_reason?: string) => ({
     success: true,
     message: 'Paused',
   });

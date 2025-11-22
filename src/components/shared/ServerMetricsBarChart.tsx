@@ -81,7 +81,7 @@ const getMetricConfig = (
 };
 
 // 5분간 데이터 생성 함수
-const generateHistoricalData = (currentValue: number, type: string) => {
+const generateHistoricalData = (currentValue: number, _type: string) => {
   const data = [];
   const now = Date.now();
 
@@ -152,7 +152,7 @@ export default function ServerMetricsBarChart({
   }, [showRealTimeUpdates]);
 
   // 최대값 계산 (차트 스케일링용)
-  const maxValue = Math.max(...historicalData.map((d) => d.value), 100);
+  const _maxValue = Math.max(...historicalData.map((d) => d.value), 100);
 
   return (
     <div className={`${className}`}>
@@ -177,10 +177,7 @@ export default function ServerMetricsBarChart({
                 className="flex max-w-[20px] flex-1 flex-col items-center"
               >
                 {/* 막대 */}
-                <div
-                  className="relative w-full"
-                  style={{ height: '80px' }}
-                >
+                <div className="relative w-full" style={{ height: '80px' }}>
                   {/* 배경 막대 */}
                   <div className="absolute bottom-0 h-full w-full rounded-sm bg-gray-100 opacity-30" />
 
@@ -198,9 +195,7 @@ export default function ServerMetricsBarChart({
 
                     {/* 현재값 강조 효과 */}
                     {isCurrentValue && showRealTimeUpdates && (
-                      <div
-                        className="absolute inset-0 bg-white/40 animate-pulse"
-                      />
+                      <div className="absolute inset-0 animate-pulse bg-white/40" />
                     )}
                   </div>
 
@@ -259,11 +254,7 @@ export default function ServerMetricsBarChart({
         </div>
 
         {showRealTimeUpdates && (
-          <div
-            className="text-xs text-gray-400"
-          >
-            실시간
-          </div>
+          <div className="text-xs text-gray-400">실시간</div>
         )}
       </div>
     </div>

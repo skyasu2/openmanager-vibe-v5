@@ -51,7 +51,7 @@ export const FILE_SYSTEM_PROTECTION = {
   },
 
   // 안전한 파일 쓰기 래퍼
-  safeWriteFile: (operation: string, filePath: string, data: unknown) => {
+  safeWriteFile: (operation: string, filePath: string, _data: unknown) => {
     if (!FILE_SYSTEM_PROTECTION.isFileWriteAllowed()) {
       console.warn(
         `🚫 베르셀 환경에서 파일 쓰기 차단됨: ${operation} (${filePath})`
@@ -62,7 +62,7 @@ export const FILE_SYSTEM_PROTECTION = {
   },
 
   // 로그 파일 쓰기 차단
-  safeLogWrite: (logType: string, message: string) => {
+  safeLogWrite: (logType: string, _message: string) => {
     if (!FILE_SYSTEM_PROTECTION.isFileWriteAllowed()) {
       console.warn(`🚫 베르셀 환경에서 로그 파일 쓰기 차단됨: ${logType}`);
       return false;
@@ -167,7 +167,7 @@ export const FILE_SYSTEM_PROTECTION = {
   // 🔄 데이터 지속성 대체 방안
   alternativePersistence: {
     // IndexedDB를 활용한 브라우저 기반 데이터 저장
-    indexedDBStore: async (storeName: string, data: unknown) => {
+    indexedDBStore: async (storeName: string, _data: unknown) => {
       if (typeof window !== 'undefined' && 'indexedDB' in window) {
         try {
           // 실제 IndexedDB 구현은 필요시 추가
@@ -182,7 +182,7 @@ export const FILE_SYSTEM_PROTECTION = {
     },
 
     // 외부 서비스를 통한 데이터 저장 (Supabase, Firebase 등)
-    externalStore: async (service: string, data: unknown) => {
+    externalStore: async (service: string, _data: unknown) => {
       console.log(`🌐 외부 서비스 저장: ${service}`);
       // 외부 서비스 연동 로직은 필요시 추가
       return true;
@@ -440,7 +440,7 @@ export const enableGlobalProtection = () => {
 
   // 메모리 모니터링 시작
   if (FREE_TIER_OVERRIDES.isProductionFreeTier()) {
-    const memoryCheckInterval = SERVERLESS_TIMER_PROTECTION.safeSetInterval(
+    const _memoryCheckInterval = SERVERLESS_TIMER_PROTECTION.safeSetInterval(
       () => {
         MemoryMonitor.warnIfHighUsage();
       },

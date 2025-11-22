@@ -7,7 +7,7 @@
  * - 로딩 상태 관리
  */
 
-import type { ReactNode } from 'react';;
+import type { ReactNode } from 'react';
 import { memo, useEffect, useState, type FC } from 'react';
 // framer-motion 제거 - CSS 애니메이션 사용
 
@@ -27,10 +27,12 @@ const SmoothTransition: FC<SmoothTransitionProps> = memo(
     loadingComponent,
     className = '',
     onEnterComplete,
-    onExitComplete,
+    onExitComplete: _onExitComplete,
   }) => {
-    const [showContent, setShowContent] = useState(!isLoading);
-    const [animationPhase, setAnimationPhase] = useState<'entering' | 'visible' | 'exiting'>('entering');
+    const [_showContent, setShowContent] = useState(!isLoading);
+    const [animationPhase, setAnimationPhase] = useState<
+      'entering' | 'visible' | 'exiting'
+    >('entering');
 
     useEffect(() => {
       if (isLoading) {
@@ -40,7 +42,7 @@ const SmoothTransition: FC<SmoothTransitionProps> = memo(
       } else {
         setShowContent(true);
         setAnimationPhase('entering');
-        
+
         // 애니메이션 완료 후 콜백 호출
         const timer = setTimeout(() => {
           setAnimationPhase('visible');
@@ -68,7 +70,9 @@ const SmoothTransition: FC<SmoothTransitionProps> = memo(
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-500" />
-          <p className="font-medium text-gray-600">페이지를 로드하고 있습니다...</p>
+          <p className="font-medium text-gray-600">
+            페이지를 로드하고 있습니다...
+          </p>
         </div>
       </div>
     );
@@ -95,7 +99,7 @@ const SmoothTransition: FC<SmoothTransitionProps> = memo(
               transform: 'translate3d(0, 0, 0)',
             }}
           >
-            <div className="animate-in fade-in slide-in-from-bottom-1 duration-300 ease-out">
+            <div className="duration-300 ease-out animate-in fade-in slide-in-from-bottom-1">
               {children}
             </div>
           </div>

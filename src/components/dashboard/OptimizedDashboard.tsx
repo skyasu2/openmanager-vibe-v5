@@ -153,9 +153,7 @@ export default function OptimizedDashboard({
         {/* 메인 콘텐츠 */}
         <div className="flex min-h-screen flex-1 flex-col">
           {/* 통합 헤더 */}
-          <header
-            className="border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800"
-          >
+          <header className="border-b border-gray-200 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
             <div className="flex items-center justify-between">
               {/* 브랜드 로고 */}
               <div className="flex items-center space-x-4">
@@ -224,14 +222,15 @@ export default function OptimizedDashboard({
 
           {/* 대시보드 콘텐츠 */}
           <main className="flex-1 p-6">
-            <div
-            >
-              <ServerDashboard onStatsUpdate={(stats: {
-                total: number;
-                online: number;
-                warning: number;
-                offline: number;
-              }) => {}} />
+            <div>
+              <ServerDashboard
+                onStatsUpdate={(_stats: {
+                  total: number;
+                  online: number;
+                  warning: number;
+                  offline: number;
+                }) => {}}
+              />
             </div>
           </main>
         </div>
@@ -277,10 +276,17 @@ export default function OptimizedDashboard({
               memory: selectedServer.memory || 0,
               disk: selectedServer.disk || 0,
               network: selectedServer.network || 0,
-              services: (selectedServer.services || []).map(service => ({
+              services: (selectedServer.services || []).map((service) => ({
                 name: service.name,
-                status: service.status as 'running' | 'stopped' | 'error' | 'starting' | 'stopping' | 'failed' | 'unknown',
-                port: service.port || 80
+                status: service.status as
+                  | 'running'
+                  | 'stopped'
+                  | 'error'
+                  | 'starting'
+                  | 'stopping'
+                  | 'failed'
+                  | 'unknown',
+                port: service.port || 80,
               })),
             }}
             onClose={handleServerModalClose}

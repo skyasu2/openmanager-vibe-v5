@@ -10,7 +10,6 @@
 
 import React, { memo } from 'react';
 import type { ServerStatus } from '../../types/server';
-import { usePerformanceTracking } from '@/utils/performance';
 
 interface ServerStatusIndicatorProps {
   status: ServerStatus;

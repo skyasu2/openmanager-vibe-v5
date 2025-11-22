@@ -19,7 +19,11 @@ interface ProfileStore {
   isLocked: boolean;
   getRemainingLockTime(): number;
   attempts: number;
-  disableAIAgent(): Promise<{ success: boolean; error?: string; data?: AuthenticationState }>;
+  disableAIAgent(): Promise<{
+    success: boolean;
+    error?: string;
+    data?: AuthenticationState;
+  }>;
   adminMode?: {
     isAuthenticated: boolean;
   };
@@ -61,7 +65,7 @@ export class AuthenticationService {
         message: '🚀 AI 에이전트가 빠르게 활성화되었습니다!',
         data: { mode: 'quick-activation', timestamp: new Date().toISOString() },
       });
-    } catch (error) {
+    } catch {
       return Promise.resolve({
         success: false,
         error: '빠른 활성화 중 오류가 발생했습니다.',

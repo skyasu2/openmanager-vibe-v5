@@ -3,7 +3,6 @@
 import { useTimeControl } from '@/hooks/useTimeRotation';
 import { cn } from '@/lib/utils';
 import {
-  Clock,
   Pause,
   Play,
   Square,

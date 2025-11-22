@@ -17,12 +17,6 @@ interface UseSequentialLoadingTimeProps {
   skipCondition?: boolean;
 }
 
-interface LoadingStage {
-  name: string;
-  duration: number;
-  description: string;
-}
-
 export const useSequentialLoadingTime = ({
   onComplete,
   skipCondition = false,
@@ -33,13 +27,20 @@ export const useSequentialLoadingTime = ({
   const [isCompleted, setIsCompleted] = useState(false);
 
   // 로딩 단계 정의 (기존 구성 유지)
-  const phases = useMemo(() => [
-    { name: 'system-init', duration: 500, description: '시스템 초기화 중...' },
-    { name: 'data-load', duration: 800, description: '데이터 로딩 중...' },
-    // ai-warmup 제거됨 - Google Cloud VM 24시간 동작
-    { name: 'ui-render', duration: 400, description: 'UI 렌더링 중...' },
-    { name: 'final-check', duration: 300, description: '최종 확인 중...' },
-  ], []);
+  const phases = useMemo(
+    () => [
+      {
+        name: 'system-init',
+        duration: 500,
+        description: '시스템 초기화 중...',
+      },
+      { name: 'data-load', duration: 800, description: '데이터 로딩 중...' },
+      // ai-warmup 제거됨 - Google Cloud VM 24시간 동작
+      { name: 'ui-render', duration: 400, description: 'UI 렌더링 중...' },
+      { name: 'final-check', duration: 300, description: '최종 확인 중...' },
+    ],
+    []
+  );
 
   // 완료 처리 함수
   const handleComplete = useCallback(() => {
@@ -110,7 +111,7 @@ export const useSequentialLoadingTime = ({
         handleComplete();
         return;
       }
-      
+
       console.log(`📊 ${stage.name} 단계 시작: ${stage.description}`);
       setCurrentStage(stageIndex);
 

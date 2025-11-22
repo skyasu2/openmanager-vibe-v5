@@ -28,7 +28,7 @@ interface OptimizationSettingsTabProps {
 export function OptimizationSettingsTab({
   onOptimizationRun,
   onPerformanceAnalysis,
-  onCacheOptimization,
+  onCacheOptimization: _onCacheOptimization,
 }: OptimizationSettingsTabProps) {
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);

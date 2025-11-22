@@ -10,7 +10,6 @@
 import type {
   AIServiceType,
   DistributedResponse,
-  ResponseMetadata,
   ThinkingStep,
   SupabaseRAGResponse,
   GCPFunctionResponse,
@@ -265,7 +264,7 @@ export class UnifiedResponseFormatter {
 
   private extractAnswer(
     mainResponse: DistributedResponse | null,
-    responses: Map<AIServiceType, DistributedResponse>
+    _responses: Map<AIServiceType, DistributedResponse>
   ): string {
     if (!mainResponse || !mainResponse.data) {
       return '죄송합니다. 요청을 처리할 수 없습니다.';
@@ -581,8 +580,12 @@ export class UnifiedResponseFormatter {
     for (const [service, response] of responses) {
       if (response.data && typeof response.data === 'object') {
         // 추가 데이터 추출 (answer, confidence 등 기본 필드 제외)
-        const { results, result, context, ...additionalData } =
-          response.data as Record<string, unknown>;
+        const {
+          results: _results,
+          result: _result,
+          context: _context,
+          ...additionalData
+        } = response.data as Record<string, unknown>;
         if (Object.keys(additionalData).length > 0) {
           data[service] = additionalData;
         }
