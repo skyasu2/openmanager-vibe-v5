@@ -365,6 +365,16 @@ export class SupabaseRAGEngine {
 
       // 초기 지식 베이스 확인
       const stats = await this.vectorDB.getStats();
+
+      // ✅ undefined 체크 추가 (테스트 환경 대응)
+      if (!stats || typeof stats.total_documents === 'undefined') {
+        console.warn(
+          '⚠️ RAG stats unavailable (테스트 환경 또는 DB 연결 실패), 기본값으로 초기화'
+        );
+        this.isInitialized = true;
+        return;
+      }
+
       console.log(
         `📊 벡터 DB 상태: ${stats.total_documents}개 문서, ${stats.total_categories}개 카테고리`
       );

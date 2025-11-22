@@ -36,7 +36,10 @@ interface MetricDataPoint {
 interface MLAnalyticsRequest {
   metrics: MetricDataPoint[];
   context?: {
-    analysis_type?: 'anomaly_detection' | 'trend_analysis' | 'pattern_recognition';
+    analysis_type?:
+      | 'anomaly_detection'
+      | 'trend_analysis'
+      | 'pattern_recognition';
     threshold?: number;
   };
 }
@@ -108,7 +111,10 @@ export class MLProvider implements IContextProvider {
   /**
    * 메인 엔트리 포인트: ML 분석 컨텍스트 제공
    */
-  async getContext(query: string, options?: ProviderOptions): Promise<ProviderContext> {
+  async getContext(
+    query: string,
+    options?: ProviderOptions
+  ): Promise<ProviderContext> {
     const cacheKey = this.getCacheKey(query, options);
     const cached = this.getFromCache(cacheKey);
 
@@ -127,9 +133,11 @@ export class MLProvider implements IContextProvider {
     // 메트릭 데이터 준비
     const metrics = this.prepareMetrics(options);
 
-    if (metrics.length < 10) {
+    // ✅ undefined 체크 추가 (테스트 환경 대응)
+    if (!metrics || !Array.isArray(metrics) || metrics.length < 10) {
       // 최소 데이터 부족 시 빈 결과 반환
-      console.warn('[MLProvider] Insufficient metrics data:', metrics.length);
+      const dataLength = metrics ? metrics.length : 0;
+      console.warn('[MLProvider] Insufficient metrics data:', dataLength);
       return this.getEmptyContext('insufficient_data');
     }
 
@@ -198,12 +206,17 @@ export class MLProvider implements IContextProvider {
   /**
    * GCP 응답을 MLData 타입으로 변환
    */
-  private transformToMLData(result: MLAnalyticsResponse, metrics: MetricDataPoint[]): MLData {
+  private transformToMLData(
+    result: MLAnalyticsResponse,
+    metrics: MetricDataPoint[]
+  ): MLData {
     return {
-      anomalies: result.data.anomalies.map(a => ({
+      anomalies: result.data.anomalies.map((a) => ({
         severity: a.severity,
         description: `값 ${a.value.toFixed(2)}이(가) 예상 범위 [${a.expected_range[0].toFixed(2)}, ${a.expected_range[1].toFixed(2)}]를 벗어남`,
-        metric: metrics.find(m => m.timestamp === a.timestamp)?.metric_type || 'unknown',
+        metric:
+          metrics.find((m) => m.timestamp === a.timestamp)?.metric_type ||
+          'unknown',
         value: a.value,
         timestamp: a.timestamp,
       })),
@@ -215,7 +228,7 @@ export class MLProvider implements IContextProvider {
           timeframe: '24h',
         },
       ],
-      patterns: result.data.patterns.map(p => ({
+      patterns: result.data.patterns.map((p) => ({
         type: p.type,
         description: p.description,
         confidence: p.confidence,
@@ -230,7 +243,12 @@ export class MLProvider implements IContextProvider {
   private getAnalysisType(
     options?: ProviderOptions
   ): 'anomaly_detection' | 'trend_analysis' | 'pattern_recognition' {
-    return (options?.analysisType as 'anomaly_detection' | 'trend_analysis' | 'pattern_recognition') || 'anomaly_detection';
+    return (
+      (options?.analysisType as
+        | 'anomaly_detection'
+        | 'trend_analysis'
+        | 'pattern_recognition') || 'anomaly_detection'
+    );
   }
 
   /**
@@ -289,16 +307,19 @@ export class MLProvider implements IContextProvider {
   /**
    * 빈 컨텍스트 반환 (에러 또는 데이터 부족 시)
    */
-  private getEmptyContext(reason: 'insufficient_data' | 'api_error'): ProviderContext {
+  private getEmptyContext(
+    reason: 'insufficient_data' | 'api_error'
+  ): ProviderContext {
     return {
       type: 'ml',
       data: {
         anomalies: [],
         trends: [],
         patterns: [],
-        recommendations: reason === 'insufficient_data'
-          ? ['분석을 위한 충분한 메트릭 데이터가 없습니다. (최소 10개 필요)']
-          : ['ML 분석 서비스가 일시적으로 사용 불가능합니다.'],
+        recommendations:
+          reason === 'insufficient_data'
+            ? ['분석을 위한 충분한 메트릭 데이터가 없습니다. (최소 10개 필요)']
+            : ['ML 분석 서비스가 일시적으로 사용 불가능합니다.'],
       },
       metadata: {
         source: 'gcp-ml-analytics',

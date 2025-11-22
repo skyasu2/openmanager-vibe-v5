@@ -164,9 +164,10 @@ export class KoreanNLPProvider implements IContextProvider {
         signal: AbortSignal.timeout(15000), // 15초 타임아웃 (NLP는 더 오래 걸림)
       });
 
-      if (!response.ok) {
+      // ✅ response undefined 체크 추가 (테스트 환경 대응)
+      if (!response || !response.ok) {
         // 403 CORS 오류는 무시하고 빈 결과 반환 (graceful degradation)
-        if (response.status === 403) {
+        if (response && response.status === 403) {
           console.warn(
             '[KoreanNLPProvider] CORS 403 - returning empty result (graceful degradation)'
           );
