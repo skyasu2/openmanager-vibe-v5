@@ -5,12 +5,18 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { timingSafeEqual } from 'crypto';
 
 /**
  * API 인증 확인
  * - GitHub OAuth 로그인 여부만 확인
  * - 복잡한 권한 시스템 없음
  * - 테스트용 API 키 지원 (프로덕션 환경에서 외부 도구 테스트용)
+ *
+ * ⚠️ 보안 참고:
+ * - API 키 인증 시 사용자 세션 컨텍스트 없음
+ * - 다른 로직에서 session.user.id 사용 시 에러 발생 가능
+ * - 테스트 목적으로만 사용 권장
  */
 export async function checkAPIAuth(request: NextRequest) {
   // 개발 환경에서는 AI 테스트를 위해 인증 우회
@@ -24,15 +30,58 @@ export async function checkAPIAuth(request: NextRequest) {
 
   // 🔑 테스트용 API 키 확인 (프로덕션 환경에서 Postman/curl 테스트용)
   const apiKey = request.headers.get('x-api-key');
-  if (apiKey && process.env.TEST_API_KEY) {
-    if (apiKey === process.env.TEST_API_KEY) {
-      return null; // API 키 인증 통과
+  const envApiKey = process.env.TEST_API_KEY;
+
+  if (apiKey && envApiKey) {
+    // 보안: 빈 키 방지 (최소 8자 이상)
+    if (envApiKey.length < 8) {
+      console.error(
+        '[Security] TEST_API_KEY too short, must be at least 8 characters'
+      );
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid API configuration' },
+        { status: 401 }
+      );
     }
-    // API 키가 제공되었지만 일치하지 않음
-    return NextResponse.json(
-      { error: 'Unauthorized - Invalid API key' },
-      { status: 401 }
-    );
+
+    // 보안: 타이밍 공격 방지 (constant-time comparison)
+    try {
+      const keyBuffer = Buffer.from(apiKey);
+      const envKeyBuffer = Buffer.from(envApiKey);
+
+      // 길이가 다르면 즉시 실패
+      if (keyBuffer.length !== envKeyBuffer.length) {
+        console.warn(
+          '[Security] Invalid API key attempt from',
+          request.headers.get('x-forwarded-for') || 'unknown IP'
+        );
+        return NextResponse.json(
+          { error: 'Unauthorized - Invalid API key' },
+          { status: 401 }
+        );
+      }
+
+      // 타이밍 안전한 비교
+      if (timingSafeEqual(keyBuffer, envKeyBuffer)) {
+        return null; // API 키 인증 통과
+      }
+
+      // 실패 로깅 (보안 모니터링용)
+      console.warn(
+        '[Security] Invalid API key attempt from',
+        request.headers.get('x-forwarded-for') || 'unknown IP'
+      );
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid API key' },
+        { status: 401 }
+      );
+    } catch (error) {
+      console.error('[Security] API key validation error:', error);
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid API key' },
+        { status: 401 }
+      );
+    }
   }
 
   // 세션 쿠키 확인 (NextAuth 사용)
