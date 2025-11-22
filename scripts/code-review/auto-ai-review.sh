@@ -2,12 +2,19 @@
 
 # Auto AI Code Review Script (Codex → Gemini Fallback) with Smart Verification
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성 (스마트 검증)
-# 버전: 4.1.0
+# 버전: 4.1.1
 # 날짜: 2025-11-22
 # 전략: Codex 우선 → Gemini 폴백 (사용량 제한 대응) + 스마트 검증
 #
 # ⚠️ 중요: 이 스크립트는 직접 실행만 지원합니다 (source 사용 금지)
 # 최상단 cd 명령으로 인해 source 시 호출자의 작업 디렉토리가 변경됩니다
+#
+# Changelog v4.1.1 (2025-11-22): 🐛 Codex 피드백 - 3가지 버그 수정
+# - 🐛 수정: HEAD~1 에러 (초기 커밋/새 브랜치) → staged → HEAD → origin/main 안전한 fallback
+# - 🐛 수정: 변수 미인용 ($changed_files) → Bash 배열로 안전하게 전달
+# - 🐛 수정: 삭제된 파일 ESLint 실패 → 파일 존재 여부 직접 확인
+# - 📊 개선: git diff fallback 체인 (staged → HEAD → origin/main)
+# - 🎯 효과: 초기 커밋, 특수문자 파일명, 삭제된 파일 시나리오 모두 안전
 #
 # Changelog v4.1.0 (2025-11-22): ⚡ ESLint 스마트 검증 - 타임아웃 문제 해결
 # - ⚡ 신규: 변경 파일만 우선 검사 (5-10초, 타임아웃 거의 없음)
@@ -212,18 +219,45 @@ run_verification() {
     local lint_exit_code=0
     local changed_files=""
     
-    # 1단계: 변경된 TS/TSX 파일 추출 (커밋된 파일 + staged 파일)
-    changed_files=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -E '\.(ts|tsx)$' || true)
+    # 1단계: 변경된 TS/TSX 파일 추출 (안전한 fallback 체인)
+    # - staged 파일 우선 (가장 안전)
+    # - HEAD와 비교 (일반적인 경우)
+    # - origin/main 비교 (브랜치 작업)
+    changed_files=$(git diff --name-only --cached 2>/dev/null | grep -E '\.(ts|tsx)$' | grep -v '^$' || true)
     
     if [ -z "$changed_files" ]; then
-        # 변경 파일 없음 → staged 파일 확인
-        changed_files=$(git diff --name-only --cached 2>/dev/null | grep -E '\.(ts|tsx)$' || true)
+        # staged 없음 → HEAD와 비교 (HEAD~1은 초기 커밋에서 실패하므로 사용 안 함)
+        changed_files=$(git diff --name-only HEAD 2>/dev/null | grep -E '\.(ts|tsx)$' | grep -v '^$' || true)
+    fi
+    
+    if [ -z "$changed_files" ]; then
+        # 아직도 없음 → origin/main과 비교 (브랜치 작업 시)
+        changed_files=$(git diff --name-only origin/main...HEAD 2>/dev/null | grep -E '\.(ts|tsx)$' | grep -v '^$' || true)
+    fi
+    
+    # 삭제된 파일 제외 (존재 여부 직접 확인)
+    if [ -n "$changed_files" ]; then
+        local existing_files=""
+        while IFS= read -r file; do
+            if [ -f "$file" ]; then
+                existing_files="${existing_files}${file}"$'\n'
+            fi
+        done <<< "$changed_files"
+        changed_files=$(echo "$existing_files" | grep -v '^$' || true)
     fi
     
     if [ -n "$changed_files" ]; then
-        # 변경 파일만 린트 (5-10초 예상)
-        log_info "  → 변경 파일만 검사 ($(echo "$changed_files" | wc -l)개 파일)"
-        timeout 30 npx eslint $changed_files --format compact > "$LINT_LOG" 2>&1 || lint_exit_code=$?
+        # 변경 파일만 린트 (5-10초 예상) - 배열로 안전하게 전달
+        local file_count=$(echo "$changed_files" | wc -l)
+        log_info "  → 변경 파일만 검사 (${file_count}개 파일)"
+        
+        # 파일명을 배열로 변환하여 안전하게 전달
+        local -a files_array
+        while IFS= read -r file; do
+            files_array+=("$file")
+        done <<< "$changed_files"
+        
+        timeout 30 npx eslint "${files_array[@]}" --format compact > "$LINT_LOG" 2>&1 || lint_exit_code=$?
         
         if [ $lint_exit_code -eq 124 ]; then
             # 변경 파일도 타임아웃 → 전체 스캔으로 폴백 (60초)
