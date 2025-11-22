@@ -190,35 +190,48 @@ log_success "Working directory: $PROJECT_ROOT"
 run_verification() {
     log_info "🔍 실시간 검증 시작 (lint + typecheck)..."
 
+    # 로그 디렉토리 생성 (Codex 피드백 반영)
+    mkdir -p "$PROJECT_ROOT/logs/lint" "$PROJECT_ROOT/logs/typecheck"
+
     # 타임스탬프 생성 (로그 파일명)
     local VERIFY_TIMESTAMP=$(date +%Y-%m-%d-%H-%M-%S)
     local LINT_LOG="$PROJECT_ROOT/logs/lint/lint-${VERIFY_TIMESTAMP}.txt"
     local TS_LOG="$PROJECT_ROOT/logs/typecheck/ts-${VERIFY_TIMESTAMP}.txt"
 
-    # 1. ESLint 실행 (10초 타임아웃, 로그 저장)
+    # 1. ESLint 실행 (30초 타임아웃, 로그 저장) - Codex 피드백: 10초 → 30초
     log_info "📝 ESLint 실행 중..."
-    timeout 10 npm run lint > "$LINT_LOG" 2>&1 || true
+    local lint_exit_code=0
+    timeout 30 npm run lint > "$LINT_LOG" 2>&1 || lint_exit_code=$?
 
-    # 2. TypeScript 타입 체크 (10초 타임아웃, 로그 저장)
+    # 2. TypeScript 타입 체크 (30초 타임아웃, 로그 저장) - Codex 피드백: 10초 → 30초
     log_info "📝 TypeScript 타입 체크 중..."
-    timeout 10 npm run type-check > "$TS_LOG" 2>&1 || true
+    local ts_exit_code=0
+    timeout 30 npm run type-check > "$TS_LOG" 2>&1 || ts_exit_code=$?
 
-    # 3. 요약 추출
+    # 3. 요약 추출 (Codex 피드백: exit code 검증 추가)
     local LINT_SUMMARY
     local TS_SUMMARY
 
-    # ESLint 결과 (problems 라인 찾기)
-    if grep -q "problems" "$LINT_LOG" 2>/dev/null; then
+    # ESLint 결과 (exit code 먼저 확인)
+    if [ $lint_exit_code -eq 124 ]; then
+        LINT_SUMMARY="❌ ESLint 타임아웃 (30초 초과)"
+    elif [ $lint_exit_code -ne 0 ] && grep -q "npm ERR!" "$LINT_LOG" 2>/dev/null; then
+        LINT_SUMMARY="❌ ESLint 실패 (npm 에러, exit code: $lint_exit_code)"
+    elif grep -q "problems" "$LINT_LOG" 2>/dev/null; then
         LINT_SUMMARY=$(grep "problems" "$LINT_LOG" | tail -1)
     else
-        LINT_SUMMARY="ESLint 실행 성공 (경고 없음)"
+        LINT_SUMMARY="✅ ESLint 실행 성공 (경고 없음)"
     fi
 
-    # TypeScript 결과 (Found X errors 또는 성공 메시지)
-    if grep -q "Found.*errors" "$TS_LOG" 2>/dev/null; then
+    # TypeScript 결과 (exit code 먼저 확인)
+    if [ $ts_exit_code -eq 124 ]; then
+        TS_SUMMARY="❌ TypeScript 타임아웃 (30초 초과)"
+    elif [ $ts_exit_code -ne 0 ] && grep -q "npm ERR!" "$TS_LOG" 2>/dev/null; then
+        TS_SUMMARY="❌ TypeScript 실패 (npm 에러, exit code: $ts_exit_code)"
+    elif grep -q "Found.*errors" "$TS_LOG" 2>/dev/null; then
         TS_SUMMARY=$(grep "Found.*errors" "$TS_LOG" | tail -1)
     else
-        TS_SUMMARY="TypeScript 컴파일 성공 (0 errors)"
+        TS_SUMMARY="✅ TypeScript 컴파일 성공 (0 errors)"
     fi
 
     log_success "검증 완료: $LINT_SUMMARY"
