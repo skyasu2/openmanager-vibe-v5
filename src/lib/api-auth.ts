@@ -6,6 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
+import { securityLogger } from './security/security-logger';
 
 /**
  * API 인증 확인
@@ -17,6 +18,7 @@ import { timingSafeEqual } from 'crypto';
  * - API 키 인증 시 사용자 세션 컨텍스트 없음
  * - 다른 로직에서 session.user.id 사용 시 에러 발생 가능
  * - 테스트 목적으로만 사용 권장
+ * - TEST_API_KEY 길이는 앱 시작 시점에 검증됨 (instrumentation.ts)
  */
 export async function checkAPIAuth(request: NextRequest) {
   // 개발 환경에서는 AI 테스트를 위해 인증 우회
@@ -33,50 +35,41 @@ export async function checkAPIAuth(request: NextRequest) {
   const envApiKey = process.env.TEST_API_KEY;
 
   if (apiKey && envApiKey) {
-    // 보안: 빈 키 방지 (최소 8자 이상)
-    if (envApiKey.length < 8) {
-      console.error(
-        '[Security] TEST_API_KEY too short, must be at least 8 characters'
-      );
-      return NextResponse.json(
-        { error: 'Unauthorized - Invalid API configuration' },
-        { status: 401 }
-      );
-    }
-
-    // 보안: 타이밍 공격 방지 (constant-time comparison)
+    // 보안: 타이밍 공격 완전 방어 (constant-time comparison + 패딩)
     try {
       const keyBuffer = Buffer.from(apiKey);
       const envKeyBuffer = Buffer.from(envApiKey);
 
-      // 길이가 다르면 즉시 실패
-      if (keyBuffer.length !== envKeyBuffer.length) {
-        console.warn(
-          '[Security] Invalid API key attempt from',
-          request.headers.get('x-forwarded-for') || 'unknown IP'
-        );
-        return NextResponse.json(
-          { error: 'Unauthorized - Invalid API key' },
-          { status: 401 }
-        );
-      }
+      // 타이밍 공격 방어 강화: 길이가 다를 때도 동일한 경로로 처리
+      const maxLength = Math.max(keyBuffer.length, envKeyBuffer.length);
+      const paddedKeyBuffer = Buffer.alloc(maxLength);
+      const paddedEnvKeyBuffer = Buffer.alloc(maxLength);
+
+      keyBuffer.copy(paddedKeyBuffer);
+      envKeyBuffer.copy(paddedEnvKeyBuffer);
 
       // 타이밍 안전한 비교
-      if (timingSafeEqual(keyBuffer, envKeyBuffer)) {
+      if (timingSafeEqual(paddedKeyBuffer, paddedEnvKeyBuffer)) {
         return null; // API 키 인증 통과
       }
 
-      // 실패 로깅 (보안 모니터링용)
-      console.warn(
-        '[Security] Invalid API key attempt from',
-        request.headers.get('x-forwarded-for') || 'unknown IP'
-      );
+      // 실패 로깅 (샘플링 적용 - 로그 폭증 방지)
+      const ip = request.headers.get('x-forwarded-for') || 'unknown';
+      securityLogger.logAuthFailure(ip, 'Invalid API key');
+
       return NextResponse.json(
         { error: 'Unauthorized - Invalid API key' },
         { status: 401 }
       );
     } catch (error) {
-      console.error('[Security] API key validation error:', error);
+      // 에러 로깅 (샘플링 없음 - 중요 이벤트)
+      const ip = request.headers.get('x-forwarded-for') || 'unknown';
+      securityLogger.logSecurityEvent({
+        type: 'buffer_error',
+        ip,
+        details: error instanceof Error ? error.message : 'Unknown error',
+      });
+
       return NextResponse.json(
         { error: 'Unauthorized - Invalid API key' },
         { status: 401 }
