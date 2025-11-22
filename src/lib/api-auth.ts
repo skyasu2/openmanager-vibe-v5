@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * API 인증 확인
  * - GitHub OAuth 로그인 여부만 확인
  * - 복잡한 권한 시스템 없음
+ * - 테스트용 API 키 지원 (프로덕션 환경에서 외부 도구 테스트용)
  */
 export async function checkAPIAuth(request: NextRequest) {
   // 개발 환경에서는 AI 테스트를 위해 인증 우회
@@ -19,6 +20,19 @@ export async function checkAPIAuth(request: NextRequest) {
     process.env.NODE_ENV === 'test'
   ) {
     return null; // 개발환경에서 인증 우회
+  }
+
+  // 🔑 테스트용 API 키 확인 (프로덕션 환경에서 Postman/curl 테스트용)
+  const apiKey = request.headers.get('x-api-key');
+  if (apiKey && process.env.TEST_API_KEY) {
+    if (apiKey === process.env.TEST_API_KEY) {
+      return null; // API 키 인증 통과
+    }
+    // API 키가 제공되었지만 일치하지 않음
+    return NextResponse.json(
+      { error: 'Unauthorized - Invalid API key' },
+      { status: 401 }
+    );
   }
 
   // 세션 쿠키 확인 (NextAuth 사용)
