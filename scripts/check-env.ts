@@ -8,6 +8,11 @@
  * Husky: pre-push 훅에서 자동 실행
  */
 
+// Load environment variables from .env.local and .env
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' }); // Load .env.local first
+dotenv.config(); // Fallback to .env
+
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -211,13 +216,6 @@ function generateEnvExample(): void {
 
 function main(): void {
   console.log('🔍 Environment Variable Checker v1.0.0\n');
-
-  // .env.example 자동 생성 (없을 경우)
-  try {
-    generateEnvExample();
-  } catch (error) {
-    console.warn('⚠️  .env.example 생성 실패 (이미 존재하거나 권한 부족)');
-  }
 
   // 환경 변수 검사
   const result = checkEnvironmentVariables();
