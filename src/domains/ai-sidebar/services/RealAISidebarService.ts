@@ -14,6 +14,7 @@ import type {
   SystemAlert,
   AIThinkingStep,
 } from '../types';
+import type { QueryResponse } from '@/services/ai/SimplifiedQueryEngine.types';
 
 export class RealAISidebarService {
   private baseUrl: string;
@@ -41,7 +42,7 @@ export class RealAISidebarService {
       timeoutMs: number;
     },
     signal: AbortSignal
-  ): Promise<unknown> {
+  ): Promise<QueryResponse> {
     // V3에서는 API 경로가 상대 경로(/api/ai/query)이므로 baseUrl을 사용하지 않음
     const response = await fetch('/api/ai/query', {
       method: 'POST',
