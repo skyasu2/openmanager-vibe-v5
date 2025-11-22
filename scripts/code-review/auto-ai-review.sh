@@ -2,12 +2,17 @@
 
 # Auto AI Code Review Script (Codex → Gemini Fallback) with Smart Verification
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성 (스마트 검증)
-# 버전: 4.1.1
+# 버전: 4.1.2
 # 날짜: 2025-11-22
 # 전략: Codex 우선 → Gemini 폴백 (사용량 제한 대응) + 스마트 검증
 #
 # ⚠️ 중요: 이 스크립트는 직접 실행만 지원합니다 (source 사용 금지)
 # 최상단 cd 명령으로 인해 source 시 호출자의 작업 디렉토리가 변경됩니다
+#
+# Changelog v4.1.2 (2025-11-22): 📊 Gemini 피드백 - npm 에러 분류 개선
+# - 📊 개선: npm ERR! 탐지 로직 세분화 (스크립트 없음 / 설정 에러 / 코드 문제)
+# - 🎯 효과: 디버깅 시 문제 원인 즉시 파악 가능 (설정 vs 코드)
+# - 💡 적용: ESLint/TypeScript 양쪽 모두 동일한 분류 체계
 #
 # Changelog v4.1.1 (2025-11-22): 🐛 Codex 피드백 - 3가지 버그 수정
 # - 🐛 수정: HEAD~1 에러 (초기 커밋/새 브랜치) → staged → HEAD → origin/main 안전한 fallback
@@ -282,8 +287,15 @@ run_verification() {
     # ESLint 결과 (exit code 먼저 확인)
     if [ $lint_exit_code -eq 124 ]; then
         LINT_SUMMARY="❌ ESLint 타임아웃 (60초 초과, 전체 스캔)"
-    elif [ $lint_exit_code -ne 0 ] && grep -q "npm ERR!" "$LINT_LOG" 2>/dev/null; then
-        LINT_SUMMARY="❌ ESLint 실패 (npm 에러, exit code: $lint_exit_code)"
+    elif [ $lint_exit_code -ne 0 ]; then
+        # npm 에러 유형 세분화 (설정 오류 vs 코드 문제 구분)
+        if grep -q "npm ERR! Missing script" "$LINT_LOG" 2>/dev/null; then
+            LINT_SUMMARY="❌ ESLint 실패 (스크립트 없음, exit code: $lint_exit_code)"
+        elif grep -q "npm ERR!" "$LINT_LOG" 2>/dev/null; then
+            LINT_SUMMARY="❌ ESLint 실패 (npm 설정 에러, exit code: $lint_exit_code)"
+        else
+            LINT_SUMMARY="❌ ESLint 실패 (코드 문제, exit code: $lint_exit_code)"
+        fi
     elif grep -q "problems" "$LINT_LOG" 2>/dev/null; then
         LINT_SUMMARY=$(grep "problems" "$LINT_LOG" | tail -1)
     else
@@ -299,8 +311,15 @@ run_verification() {
     # TypeScript 결과 (exit code 먼저 확인)
     if [ $ts_exit_code -eq 124 ]; then
         TS_SUMMARY="❌ TypeScript 타임아웃 (30초 초과)"
-    elif [ $ts_exit_code -ne 0 ] && grep -q "npm ERR!" "$TS_LOG" 2>/dev/null; then
-        TS_SUMMARY="❌ TypeScript 실패 (npm 에러, exit code: $ts_exit_code)"
+    elif [ $ts_exit_code -ne 0 ]; then
+        # npm 에러 유형 세분화 (설정 오류 vs 코드 문제 구분)
+        if grep -q "npm ERR! Missing script" "$TS_LOG" 2>/dev/null; then
+            TS_SUMMARY="❌ TypeScript 실패 (스크립트 없음, exit code: $ts_exit_code)"
+        elif grep -q "npm ERR!" "$TS_LOG" 2>/dev/null; then
+            TS_SUMMARY="❌ TypeScript 실패 (npm 설정 에러, exit code: $ts_exit_code)"
+        else
+            TS_SUMMARY="❌ TypeScript 실패 (컴파일 에러, exit code: $ts_exit_code)"
+        fi
     elif grep -q "Found.*errors" "$TS_LOG" 2>/dev/null; then
         TS_SUMMARY=$(grep "Found.*errors" "$TS_LOG" | tail -1)
     else
