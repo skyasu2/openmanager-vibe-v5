@@ -211,6 +211,7 @@ export default function FeatureCardModal({
     // 항상 동일한 구조 반환 (배열 + 메타데이터)
     const result = {
       allCards: [] as TechItem[],
+      currentCards: [] as TechItem[], // 🆕 현재 도구 목록 추가
       hasData: false,
       isVibeCard: false,
       historyStages: null as VibeCodeData['history'] | null,
@@ -236,13 +237,15 @@ export default function FeatureCardModal({
       const vibeData = data as VibeCodeData;
       result.isVibeCard = true;
       result.historyStages = vibeData.history || null;
+      result.currentCards = vibeData.current || []; // 🆕 현재 도구 저장
 
       if (isHistoryView && vibeData.history) {
         // 🎯 Qwen 제안: O(n²) → O(n) 최적화 - concat 체인 사용
         result.allCards = ([] as TechItem[]).concat(
           vibeData.history.stage1 || [],
           vibeData.history.stage2 || [],
-          vibeData.history.stage3 || []
+          vibeData.history.stage3 || [],
+          vibeData.history.stage4 || [] // 🆕 stage4 추가
         );
       } else {
         result.allCards = vibeData.current || [];
@@ -359,9 +362,37 @@ export default function FeatureCardModal({
         </div>
       )}
 
-      {/* 바이브 코딩 히스토리 3단계 섹션 또는 중요도별 기술 스택 섹션 */}
+      {/* 바이브 코딩 히스토리 섹션 또는 중요도별 기술 스택 섹션 */}
       {cardData.id === 'cursor-ai' && isHistoryView && vibeHistoryStages ? (
         <div className="space-y-10">
+          {/* 4단계: 현재 */}
+          {vibeHistoryStages.stage4 && vibeHistoryStages.stage4.length > 0 && (
+            <div className="space-y-4">
+              <div className="mb-6 rounded-lg border border-blue-500/30 bg-blue-500/10 p-4">
+                <h4 className="mb-2 flex items-center gap-2 text-xl font-bold text-blue-300">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-500/20 text-sm font-bold text-blue-300">
+                    4
+                  </div>
+                  현재 단계 (2025.11~)
+                  <span className="rounded-full bg-blue-500/20 px-3 py-1 text-sm text-blue-300">
+                    {vibeHistoryStages.stage4.length}개 도구
+                  </span>
+                </h4>
+                <p className="text-sm text-blue-200/80">
+                  Claude Code v2.0+ → MCP 서버 완전 통합 → 멀티 AI CLI 협업 강화
+                  → 자동화 시스템 고도화
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {vibeHistoryStages.stage4.map(
+                  (tech: TechItem, _index: number) => (
+                    <TechCard key={tech.name} tech={tech} />
+                  )
+                )}
+              </div>
+            </div>
+          )}
+
           {/* 1단계: 초기 */}
           <div className="space-y-4">
             <div className="mb-6 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4">
