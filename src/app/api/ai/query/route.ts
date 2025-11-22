@@ -26,6 +26,7 @@ import { getCachedData, setCachedData } from '@/lib/cache-helper';
 import { supabase } from '@/lib/supabase/supabase-client';
 import crypto from 'crypto';
 import debug from '@/utils/debug';
+import { withAuth } from '@/lib/api-auth';
 
 // ✅ 옵션 A: Node.js Runtime + GCP Functions 최적화
 // - Supabase RAG 직접 호출
@@ -114,7 +115,9 @@ async function logQuery(
       ai_mode: aiMode || 'UNIFIED',
       status: status || 'success',
       user_id: userId || null,
-      guest_user_id: !userId ? `guest_${Date.now()}_${Math.random().toString(36).substr(2, 8)}` : null,
+      guest_user_id: !userId
+        ? `guest_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`
+        : null,
       session_id: sessionId || null,
       created_at: new Date().toISOString(),
     });
@@ -135,7 +138,7 @@ interface ErrorAnalysis {
 
 function classifyError(error: Error, responseTime: number): ErrorAnalysis {
   const message = error.message?.toLowerCase() || '';
-  
+
   // 타임아웃 에러
   if (message.includes('timeout') || responseTime > 30000) {
     return {
@@ -143,32 +146,41 @@ function classifyError(error: Error, responseTime: number): ErrorAnalysis {
       severity: 'medium',
       retryable: true,
       confidence: 0.3,
-      userFriendly: true
+      userFriendly: true,
     };
   }
-  
+
   // 네트워크 에러
-  if (message.includes('fetch') || message.includes('connection') || message.includes('network')) {
+  if (
+    message.includes('fetch') ||
+    message.includes('connection') ||
+    message.includes('network')
+  ) {
     return {
       type: 'network',
       severity: 'high',
       retryable: true,
       confidence: 0.2,
-      userFriendly: true
+      userFriendly: true,
     };
   }
-  
+
   // API 관련 에러
-  if (message.includes('api') || message.includes('400') || message.includes('401') || message.includes('403')) {
+  if (
+    message.includes('api') ||
+    message.includes('400') ||
+    message.includes('401') ||
+    message.includes('403')
+  ) {
     return {
       type: 'api',
       severity: 'high',
       retryable: false,
       confidence: 0.1,
-      userFriendly: true
+      userFriendly: true,
     };
   }
-  
+
   // 메모리 관련 에러
   if (message.includes('memory') || message.includes('heap')) {
     return {
@@ -176,364 +188,292 @@ function classifyError(error: Error, responseTime: number): ErrorAnalysis {
       severity: 'critical',
       retryable: false,
       confidence: 0.1,
-      userFriendly: false
+      userFriendly: false,
     };
   }
-  
+
   // 유효성 검사 에러
-  if (message.includes('validation') || message.includes('required') || message.includes('invalid')) {
+  if (
+    message.includes('validation') ||
+    message.includes('required') ||
+    message.includes('invalid')
+  ) {
     return {
       type: 'validation',
       severity: 'low',
       retryable: false,
       confidence: 0.4,
-      userFriendly: true
+      userFriendly: true,
     };
   }
-  
+
   // 알 수 없는 에러
   return {
     type: 'unknown',
     severity: 'medium',
     retryable: true,
     confidence: 0.2,
-    userFriendly: true
+    userFriendly: true,
   };
 }
 
 // 🎯 에러 타입별 맞춤형 메시지 생성
 function generateErrorMessage(analysis: ErrorAnalysis): string {
   const messages = {
-    timeout: '⏱️ 요청 처리 시간이 초과되었습니다. 네트워크 상태를 확인하고 다시 시도해주세요.',
+    timeout:
+      '⏱️ 요청 처리 시간이 초과되었습니다. 네트워크 상태를 확인하고 다시 시도해주세요.',
     network: '🌐 네트워크 연결에 문제가 있습니다. 잠시 후 다시 시도해주세요.',
     api: '🔧 API 서비스에 일시적인 문제가 있습니다. 몇 분 후 다시 시도해주세요.',
-    memory: '💾 시스템 리소스가 부족합니다. 관리자에게 문의하거나 잠시 후 시도해주세요.',
-    validation: '📝 입력하신 내용을 확인해주세요. 질문을 다시 작성해보시겠어요?',
-    unknown: '🤖 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.'
+    memory:
+      '💾 시스템 리소스가 부족합니다. 관리자에게 문의하거나 잠시 후 시도해주세요.',
+    validation:
+      '📝 입력하신 내용을 확인해주세요. 질문을 다시 작성해보시겠어요?',
+    unknown: '🤖 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
   };
-  
+
   let baseMessage = messages[analysis.type];
-  
+
   // 재시도 가능한 경우 추가 안내
   if (analysis.retryable) {
     baseMessage += '\n\n💡 팁: 질문을 좀 더 간단하게 바꿔서 시도해보세요.';
   }
-  
+
   return baseMessage;
 }
 
 async function postHandler(request: NextRequest) {
-
   let query = ''; // 에러 처리를 위해 query를 외부에서 선언
 
   const startTime = Date.now(); // startTime을 최상위로 이동
 
-
-
   try {
-
     const body: AIQueryRequest = await request.json();
 
     query = body.query; // query 저장
 
-        const {
+    const {
+      temperature = 0.7,
 
-          temperature = 0.7,
+      maxTokens = 1000,
 
-          maxTokens = 1000,
+      context = 'general',
 
-          context = 'general',
+      includeThinking = true,
 
-          includeThinking = true,
+      timeoutMs, // 환경변수 기반 타임아웃 사용
+    } = body;
 
-          timeoutMs, // 환경변수 기반 타임아웃 사용
+    // 🔧 환경변수 기반 타임아웃 설정 (Google AI/Local AI 모드 구분)
 
-        } = body;
+    const timeouts = getEnvironmentTimeouts();
 
-    
+    const finalTimeoutMs = timeoutMs || timeouts.GOOGLE_AI;
 
-        // 🔧 환경변수 기반 타임아웃 설정 (Google AI/Local AI 모드 구분)
+    console.log('🔍 [DEBUG] API Route timeout configuration:', {
+      providedTimeout: timeoutMs,
 
-        const timeouts = getEnvironmentTimeouts();
+      calculatedTimeout: finalTimeoutMs,
 
-        const finalTimeoutMs = timeoutMs || timeouts.GOOGLE_AI;
+      environmentTimeouts: timeouts,
+    });
 
-    
+    if (!query || typeof query !== 'string') {
+      return NextResponse.json(
+        {
+          success: false,
 
-        console.log('🔍 [DEBUG] API Route timeout configuration:', {
-
-          providedTimeout: timeoutMs,
-
-          calculatedTimeout: finalTimeoutMs,
-
-          environmentTimeouts: timeouts,
-
-        });
-
-    
-
-        if (!query || typeof query !== 'string') {
-
-          return NextResponse.json(
-
-            {
-
-              success: false,
-
-              error: 'Query parameter is required',
-
-              timestamp: new Date().toISOString(),
-
-            },
-
-            { status: 400 }
-
-          );
-
-        }
-
-    
-
-        // 쿼리 길이 제한
-
-        if (query.length > 1000) {
-
-          return NextResponse.json(
-
-            {
-
-              success: false,
-
-              error: 'Query too long (max 1000 characters)',
-
-              timestamp: new Date().toISOString(),
-
-            },
-
-            { status: 400 }
-
-          );
-
-        }
-
-    
-
-        let result: QueryResponse;
-
-        let cacheHit = false;
-
-        let responseTime: number;
-
-    
-
-        // Existing unified engine logic
-
-        // 캐시 키 생성 및 캐시 확인
-
-        const cacheKey = generateCacheKey(query, context);
-
-        const cachedResponse = await getCachedData<QueryResponse>(cacheKey);
-
-    
-
-        if (cachedResponse && cachedResponse.success !== undefined) {
-
-          // 캐시된 응답 사용
-
-          result = cachedResponse;
-
-          cacheHit = true;
-
-          responseTime = Date.now() - startTime;
-
-          debug.log(`✅ 캐시 HIT: ${cacheKey}, 응답 시간: ${responseTime}ms`);
-
-        } else {
-
-          // 새로운 쿼리 실행
-
-          const queryRequest: QueryRequest = {
-
-            query,
-
-            context: {
-
-              metadata: {
-
-                category: context,
-
-              },
-
-            },
-
-            options: {
-
-              temperature,
-
-              maxTokens,
-
-              includeThinking,
-
-              // MCP 컨텍스트 비활성화
-
-              category: context,
-
-              timeoutMs: finalTimeoutMs,
-
-            },
-
-          };
-
-    
-
-          // SimplifiedQueryEngine을 사용한 실제 쿼리 처리
-
-          const engine = await getQueryEngine();
-
-          result = await engine.query(queryRequest);
-
-          responseTime = result.processingTime || Date.now() - startTime;
-
-    
-
-          // 성공한 응답만 캐시에 저장 (5분 TTL)
-
-          if (result.success) {
-
-            setCachedData(cacheKey, result, 300);
-
-          }
-
-        }
-
-    
-
-        // 쿼리 의도 분석
-
-        const intent = analyzeQueryIntent(query);
-
-    
-
-        // 사용자/세션 정보 추출 (게스트 사용자 지원)
-
-        const sessionId = request.headers.get('x-session-id') || `guest_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
-
-        const userId = request.headers.get('x-user-id') || null;
-
-    
-
-        // AI 모드 (단일 파이프라인)
-
-        const aiMode = 'UNIFIED';
-
-    
-
-        // 쿼리 로그 저장 (비동기, 응답을 기다리지 않음) - 대화 히스토리 포함
-
-        void logQuery(
-
-          query,
-
-          responseTime,
-
-          cacheHit,
-
-          intent,
-
-          result.response, // AI 응답 텍스트
-
-          aiMode,         // AI 모드 (unified or google-ai-pure)
-
-          'success',      // 상태
-
-          userId,         // 사용자 ID
-
-          sessionId       // 세션 ID
-
-        );
-
-    
-
-        // 응답 포맷팅
-
-        const response = {
-
-          success: result.success,
-
-          query,
-
-          answer: result.response, // 테스트와 일치시키기 위해 'answer' 필드 추가
-
-          response: result.response, // 기존 호환성 유지
-
-          confidence: result.confidence,
-
-          engine: result.engine,
-
-          responseTime,
+          error: 'Query parameter is required',
 
           timestamp: new Date().toISOString(),
+        },
 
+        { status: 400 }
+      );
+    }
+
+    // 쿼리 길이 제한
+
+    if (query.length > 1000) {
+      return NextResponse.json(
+        {
+          success: false,
+
+          error: 'Query too long (max 1000 characters)',
+
+          timestamp: new Date().toISOString(),
+        },
+
+        { status: 400 }
+      );
+    }
+
+    let result: QueryResponse;
+
+    let cacheHit = false;
+
+    let responseTime: number;
+
+    // Existing unified engine logic
+
+    // 캐시 키 생성 및 캐시 확인
+
+    const cacheKey = generateCacheKey(query, context);
+
+    const cachedResponse = await getCachedData<QueryResponse>(cacheKey);
+
+    if (cachedResponse && cachedResponse.success !== undefined) {
+      // 캐시된 응답 사용
+
+      result = cachedResponse;
+
+      cacheHit = true;
+
+      responseTime = Date.now() - startTime;
+
+      debug.log(`✅ 캐시 HIT: ${cacheKey}, 응답 시간: ${responseTime}ms`);
+    } else {
+      // 새로운 쿼리 실행
+
+      const queryRequest: QueryRequest = {
+        query,
+
+        context: {
           metadata: {
-
-            mode: 'unified-google-rag',
-
-            temperature,
-
-            maxTokens,
-
-            context,
-
-            includeThinking,
-
-            thinkingSteps: includeThinking ? result.thinkingSteps : undefined,
-
-            complexity: result.metadata?.complexity,
-
-            cacheHit: cacheHit, // 실제 캐시 히트 여부
-
-            ragResults: result.metadata?.ragResults,
-
-            intent, // 쿼리 의도
-
-            responseTime, // 응답 시간
-
-            queryId: crypto.randomUUID(), // 쿼리 ID
-
-            fallback: false, // 정상 응답
-
+            category: context,
           },
+        },
 
-        };
+        options: {
+          temperature,
 
+          maxTokens,
 
+          includeThinking,
+
+          // MCP 컨텍스트 비활성화
+
+          category: context,
+
+          timeoutMs: finalTimeoutMs,
+        },
+      };
+
+      // SimplifiedQueryEngine을 사용한 실제 쿼리 처리
+
+      const engine = await getQueryEngine();
+
+      result = await engine.query(queryRequest);
+
+      responseTime = result.processingTime || Date.now() - startTime;
+
+      // 성공한 응답만 캐시에 저장 (5분 TTL)
+
+      if (result.success) {
+        setCachedData(cacheKey, result, 300);
+      }
+    }
+
+    // 쿼리 의도 분석
+
+    const intent = analyzeQueryIntent(query);
+
+    // 사용자/세션 정보 추출 (게스트 사용자 지원)
+
+    const sessionId =
+      request.headers.get('x-session-id') ||
+      `guest_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+
+    const userId = request.headers.get('x-user-id') || null;
+
+    // AI 모드 (단일 파이프라인)
+
+    const aiMode = 'UNIFIED';
+
+    // 쿼리 로그 저장 (비동기, 응답을 기다리지 않음) - 대화 히스토리 포함
+
+    void logQuery(
+      query,
+
+      responseTime,
+
+      cacheHit,
+
+      intent,
+
+      result.response, // AI 응답 텍스트
+
+      aiMode, // AI 모드 (unified or google-ai-pure)
+
+      'success', // 상태
+
+      userId, // 사용자 ID
+
+      sessionId // 세션 ID
+    );
+
+    // 응답 포맷팅
+
+    const response = {
+      success: result.success,
+
+      query,
+
+      answer: result.response, // 테스트와 일치시키기 위해 'answer' 필드 추가
+
+      response: result.response, // 기존 호환성 유지
+
+      confidence: result.confidence,
+
+      engine: result.engine,
+
+      responseTime,
+
+      timestamp: new Date().toISOString(),
+
+      metadata: {
+        mode: 'unified-google-rag',
+
+        temperature,
+
+        maxTokens,
+
+        context,
+
+        includeThinking,
+
+        thinkingSteps: includeThinking ? result.thinkingSteps : undefined,
+
+        complexity: result.metadata?.complexity,
+
+        cacheHit: cacheHit, // 실제 캐시 히트 여부
+
+        ragResults: result.metadata?.ragResults,
+
+        intent, // 쿼리 의도
+
+        responseTime, // 응답 시간
+
+        queryId: crypto.randomUUID(), // 쿼리 ID
+
+        fallback: false, // 정상 응답
+      },
+    };
 
     // 성능 모니터링
 
     if (responseTime > 500) {
-
       debug.warn(
-
         `⚠️ AI 쿼리 응답 시간 초과: ${responseTime}ms, 엔진: ${result.engine}`
-
       );
-
     } else {
-
       debug.log(
-
         `✅ AI 쿼리 처리 완료: ${responseTime}ms, 엔진: ${result.engine}, 캐시: ${result.metadata?.cacheHit ? 'HIT' : 'MISS'}`
-
       );
-
     }
-
-
 
     // 성능 모니터링 헤더 추가
 
     const headers = new Headers({
-
       'Content-Type': 'application/json',
 
       'Cache-Control': cacheHit ? 'public, max-age=60' : 'no-store',
@@ -545,45 +485,32 @@ async function postHandler(request: NextRequest) {
       'X-Cache-Status': cacheHit ? 'HIT' : 'MISS',
 
       'X-Query-Intent': intent,
-
     });
-
-
 
     // 복잡도 정보 추가 (디버깅용)
 
     if (result.metadata?.complexity) {
-
       headers.set(
-
         'X-Complexity-Score',
 
         result.metadata.complexity.score.toString()
-
       );
 
       headers.set(
-
         'X-Complexity-Recommendation',
 
         result.metadata.complexity.recommendation
-
       );
-
     }
 
-
-
     return NextResponse.json(response, {
-
       status: result.success ? 200 : 500,
 
       headers,
-
     });
   } catch (error) {
     const finalResponseTime = Date.now() - startTime;
-    
+
     // 🔍 에러 분류 및 처리
     const errorAnalysis = classifyError(error as Error, finalResponseTime);
     debug.error(`❌ AI 쿼리 처리 실패 [${errorAnalysis.type}]:`, error);
@@ -592,7 +519,9 @@ async function postHandler(request: NextRequest) {
     const intent = analyzeQueryIntent(query);
 
     // 사용자/세션 정보 추출 (에러 케이스)
-    const sessionId = request.headers.get('x-session-id') || `guest_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+    const sessionId =
+      request.headers.get('x-session-id') ||
+      `guest_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
     const userId = request.headers.get('x-user-id') || null;
 
     // 에러 응답 메시지 생성
@@ -604,10 +533,10 @@ async function postHandler(request: NextRequest) {
       false,
       `error:${errorAnalysis.type}:${intent}`,
       errorMessage, // 에러 응답 텍스트
-      'UNIFIED',      // 에러 시 기본 모드
-      'error',      // 상태
-      userId,       // 사용자 ID
-      sessionId     // 세션 ID
+      'UNIFIED', // 에러 시 기본 모드
+      'error', // 상태
+      userId, // 사용자 ID
+      sessionId // 세션 ID
     );
 
     // 🎯 에러 타입별 맞춤형 폴백 응답
@@ -653,7 +582,7 @@ async function postHandler(request: NextRequest) {
  *
  * GET /api/ai/query
  */
-function getHandler(_request: NextRequest) {
+async function getHandler(_request: NextRequest) {
   try {
     const healthStatus = {
       status: 'online',
@@ -674,19 +603,25 @@ function getHandler(_request: NextRequest) {
           'unified-google-rag': {
             name: 'Unified Google AI + Supabase RAG',
             available: healthStatus.engines.unifiedPipeline,
-            status: healthStatus.engines.unifiedPipeline ? 'healthy' : 'degraded',
+            status: healthStatus.engines.unifiedPipeline
+              ? 'healthy'
+              : 'degraded',
             description: 'RAG + Google Cloud Functions + Gemini',
           },
           'cloud-functions': {
             name: 'Google Cloud Functions',
             available: healthStatus.engines.cloudFunctions,
-            status: healthStatus.engines.cloudFunctions ? 'healthy' : 'unavailable',
+            status: healthStatus.engines.cloudFunctions
+              ? 'healthy'
+              : 'unavailable',
             description: 'Korean NLP · ML Analytics · Unified Processor',
           },
           'supabase-rag': {
             name: 'Supabase pgvector',
             available: healthStatus.engines.supabaseRAG,
-            status: healthStatus.engines.supabaseRAG ? 'healthy' : 'unavailable',
+            status: healthStatus.engines.supabaseRAG
+              ? 'healthy'
+              : 'unavailable',
             description: 'pgvector 기반 RAG 검색',
           },
         },
@@ -746,11 +681,6 @@ export function OPTIONS(_req: NextRequest) {
   });
 }
 
-// TODO: [2025-10-10] Re-enable authentication after AI testing complete
-// Design decision: AI API is currently public for demo purposes
-// export const GET = withAuth(getHandler);
-// export const POST = withAuth(postHandler);
-
-// Current: Public AI API (no authentication required)
-export const GET = getHandler;
-export const POST = postHandler;
+// Authentication enabled - consistent with other AI API endpoints
+export const GET = withAuth(getHandler);
+export const POST = withAuth(postHandler);
