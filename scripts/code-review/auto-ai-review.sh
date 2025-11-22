@@ -193,10 +193,10 @@ run_verification() {
     # 로그 디렉토리 생성 (Codex 피드백 반영)
     mkdir -p "$PROJECT_ROOT/logs/lint" "$PROJECT_ROOT/logs/typecheck"
 
-    # 타임스탬프 생성 (로그 파일명)
-    local VERIFY_TIMESTAMP=$(date +%Y-%m-%d-%H-%M-%S)
-    local LINT_LOG="$PROJECT_ROOT/logs/lint/lint-${VERIFY_TIMESTAMP}.txt"
-    local TS_LOG="$PROJECT_ROOT/logs/typecheck/ts-${VERIFY_TIMESTAMP}.txt"
+    # 타임스탬프 생성 (로그 파일명) - 전역 변수로 설정 (heredoc에서 접근 가능)
+    VERIFY_TIMESTAMP=$(date +%Y-%m-%d-%H-%M-%S)
+    LINT_LOG="$PROJECT_ROOT/logs/lint/lint-${VERIFY_TIMESTAMP}.txt"
+    TS_LOG="$PROJECT_ROOT/logs/typecheck/ts-${VERIFY_TIMESTAMP}.txt"
 
     # 1. ESLint 실행 (30초 타임아웃, 로그 저장) - Codex 피드백: 10초 → 30초
     log_info "📝 ESLint 실행 중..."
@@ -208,9 +208,9 @@ run_verification() {
     local ts_exit_code=0
     timeout 30 npm run type-check > "$TS_LOG" 2>&1 || ts_exit_code=$?
 
-    # 3. 요약 추출 (Codex 피드백: exit code 검증 추가)
-    local LINT_SUMMARY
-    local TS_SUMMARY
+    # 3. 요약 추출 (Codex 피드백: exit code 검증 추가) - 전역 변수로 설정
+    LINT_SUMMARY=""
+    TS_SUMMARY=""
 
     # ESLint 결과 (exit code 먼저 확인)
     if [ $lint_exit_code -eq 124 ]; then
@@ -237,12 +237,10 @@ run_verification() {
     log_success "검증 완료: $LINT_SUMMARY"
     log_success "검증 완료: $TS_SUMMARY"
 
-    # 4. 검증 결과를 환경 변수로 전달 (AI 프롬프트에서 사용)
-    export VERIFICATION_TIMESTAMP="$VERIFY_TIMESTAMP"
-    export LINT_SUMMARY="$LINT_SUMMARY"
-    export TS_SUMMARY="$TS_SUMMARY"
-    export LINT_LOG="$LINT_LOG"
-    export TS_LOG="$TS_LOG"
+    # 4. 검증 결과를 전역 변수로 설정 (AI 프롬프트 및 리포트에서 사용)
+    # - VERIFY_TIMESTAMP, LINT_LOG, TS_LOG은 이미 전역 변수로 설정됨
+    # - LINT_SUMMARY, TS_SUMMARY도 전역 변수로 설정됨
+    # - export 불필요 (같은 프로세스 내에서 접근 가능)
 }
 
 # 변경사항 수집
@@ -312,7 +310,7 @@ try_codex_review() {
     # Codex 쿼리 생성 (검증 결과 포함)
     local query="다음 Git 변경사항을 실무 관점에서 코드 리뷰해주세요:
 
-## 🔍 실시간 검증 결과 (${VERIFICATION_TIMESTAMP:-N/A})
+## 🔍 실시간 검증 결과 (${VERIFY_TIMESTAMP:-N/A})
 
 \`\`\`
 ESLint: ${LINT_SUMMARY:-실행 안 됨}
@@ -372,7 +370,7 @@ fallback_to_gemini_review() {
     # Gemini 쿼리 생성 (검증 결과 포함)
     local query="다음 Git 변경사항을 실무 관점에서 코드 리뷰해주세요:
 
-## 🔍 실시간 검증 결과 (${VERIFICATION_TIMESTAMP:-N/A})
+## 🔍 실시간 검증 결과 (${VERIFY_TIMESTAMP:-N/A})
 
 \`\`\`
 ESLint: ${LINT_SUMMARY:-실행 안 됨}
@@ -617,7 +615,7 @@ generate_review_report() {
 
 ---
 
-## 🔍 실시간 검증 결과 (${VERIFICATION_TIMESTAMP:-N/A})
+## 🔍 실시간 검증 결과 (${VERIFY_TIMESTAMP:-N/A})
 
 \`\`\`
 ESLint: ${LINT_SUMMARY:-실행 안 됨}
