@@ -7,7 +7,6 @@
  */
 
 import type {
-  DistributedRequest,
   DistributedResponse,
   SupabaseRAGRequest,
   SupabaseRAGResponse,
@@ -19,7 +18,6 @@ import type {
 import { getSupabaseRAGEngine } from '../supabase-rag-engine';
 import { distributedErrorHandler } from '../errors/distributed-error-handler';
 import { supabaseRealtimeAdapter as supabaseRealtimeAdapterInstance } from './supabase-realtime-adapter';
-import type { RAGSearchResult } from '@/types/ai-service-types';
 
 /**
  * Supabase RAG 어댑터

@@ -411,7 +411,7 @@ export function setupGlobalErrorHandler(): void {
 
   // Unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
-    const safeError = safeErrorLog(
+    const _safeError = safeErrorLog(
       '🚨 Unhandled Promise Rejection',
       event.reason,
       true

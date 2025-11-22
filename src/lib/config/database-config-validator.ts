@@ -68,7 +68,7 @@ function extractDatabaseConfig(): DatabaseConfig {
       kvReadOnlyToken: process.env.KV_REST_API_READ_ONLY_TOKEN,
     },
     environment: {
-      nodeEnv: (process.env.NODE_ENV) || 'development',
+      nodeEnv: process.env.NODE_ENV || 'development',
       isVercel: !!process.env.VERCEL,
       isProduction: process.env.NODE_ENV === 'production',
     },
@@ -193,7 +193,7 @@ async function performSecurityCheck(config: DatabaseConfig): Promise<{
   }
 
   // 환경변수 노출 체크
-  const publicEnvVars = [
+  const _publicEnvVars = [
     'NEXT_PUBLIC_SUPABASE_URL',
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
   ];

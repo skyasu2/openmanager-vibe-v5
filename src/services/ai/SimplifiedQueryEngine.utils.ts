@@ -17,10 +17,8 @@ import type {
   QueryResponse,
   CacheEntry,
   CommandContext,
-  MockContext,
   NLPAnalysis,
   ThinkingStep,
-  HealthCheckResult,
 } from './SimplifiedQueryEngine.types';
 
 /**

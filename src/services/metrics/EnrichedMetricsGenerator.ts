@@ -609,7 +609,7 @@ export class EnrichedMetricsGenerator {
     try {
       console.log('📥 베이스라인 데이터 로드 중...');
       // GCP Storage에서 베이스라인 로드 (현재는 스텁)
-      const servers = Array.from(this.servers.values());
+      const _servers = Array.from(this.servers.values());
       // TODO: 실제 베이스라인 로드 구현 예정
       this.lastBaselineLoad = new Date();
       console.log('✅ 베이스라인 데이터 로드 완료 (스텁 모드)');

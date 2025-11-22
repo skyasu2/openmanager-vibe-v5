@@ -357,13 +357,13 @@ export abstract class QueryProcessorBase implements IAIProcessor {
     }
 
     // 카테고리 결정
-    let category: 'simple' | 'moderate' | 'complex';
+    let _category: 'simple' | 'moderate' | 'complex';
     if (score <= 2) {
-      category = 'simple';
+      _category = 'simple';
     } else if (score <= 5) {
-      category = 'moderate';
+      _category = 'moderate';
     } else {
-      category = 'complex';
+      _category = 'complex';
     }
 
     // ComplexityScore 인터페이스에 맞게 반환

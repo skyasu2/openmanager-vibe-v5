@@ -266,7 +266,7 @@ export class EnhancedEnvCryptoManager {
    * 체크섬 생성
    */
   private generateChecksum(config: Partial<EncryptedEnvConfig>): string {
-    const { checksum, ...configWithoutChecksum } = config;
+    const { checksum: _checksum, ...configWithoutChecksum } = config;
     const content = JSON.stringify(configWithoutChecksum);
     return crypto.createHash('sha256').update(content).digest('hex');
   }

@@ -54,7 +54,7 @@ export class AIErrorHandler {
   createErrorResponse(
     error: unknown,
     context: RetryContext,
-    request?: QueryRequest
+    _request?: QueryRequest
   ): QueryResponse {
     const errorMessage = this.extractErrorMessage(error);
     const isRetryable = this.isRetryableError(error);

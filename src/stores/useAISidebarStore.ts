@@ -78,8 +78,8 @@ export const useAIThinking = () => {
       ...step,
       timestamp: new Date(),
     };
-    
-    setThinkingState(prev => ({
+
+    setThinkingState((prev) => ({
       ...prev,
       steps: [...prev.steps, newStep],
       isThinking: step.status !== 'completed',
@@ -87,22 +87,25 @@ export const useAIThinking = () => {
     }));
   }, []);
 
-  const updateStep = useCallback((stepId: string, updates: Partial<AIThinkingStep>) => {
-    setThinkingState(prev => ({
-      ...prev,
-      steps: prev.steps.map(step => 
-        step.id === stepId 
-          ? { ...step, ...updates, timestamp: new Date() }
-          : step
-      ),
-      isThinking: updates.status 
-        ? (updates.status !== 'completed')
-        : prev.isThinking,
-    }));
-  }, []);
+  const updateStep = useCallback(
+    (stepId: string, updates: Partial<AIThinkingStep>) => {
+      setThinkingState((prev) => ({
+        ...prev,
+        steps: prev.steps.map((step) =>
+          step.id === stepId
+            ? { ...step, ...updates, timestamp: new Date() }
+            : step
+        ),
+        isThinking: updates.status
+          ? updates.status !== 'completed'
+          : prev.isThinking,
+      }));
+    },
+    []
+  );
 
   const clearSteps = useCallback(() => {
-    setThinkingState(prev => ({
+    setThinkingState((prev) => ({
       ...prev,
       steps: [],
       isThinking: false,
@@ -110,28 +113,35 @@ export const useAIThinking = () => {
     }));
   }, []);
 
-  const startThinking = useCallback((initialStep?: string, sessionId?: string) => {
-    const now = new Date();
-    setThinkingState({
-      steps: initialStep ? [{
-        id: crypto.randomUUID(),
-        step: initialStep,
-        status: 'processing',
-        timestamp: now,
-      }] : [],
-      isThinking: true,
-      currentStepIndex: 0,
-      startTime: now,
-      sessionId,
-    });
-  }, []);
+  const startThinking = useCallback(
+    (initialStep?: string, sessionId?: string) => {
+      const now = new Date();
+      setThinkingState({
+        steps: initialStep
+          ? [
+              {
+                id: crypto.randomUUID(),
+                step: initialStep,
+                status: 'processing',
+                timestamp: now,
+              },
+            ]
+          : [],
+        isThinking: true,
+        currentStepIndex: 0,
+        startTime: now,
+        sessionId,
+      });
+    },
+    []
+  );
 
   const completeThinking = useCallback(() => {
-    setThinkingState(prev => ({
+    setThinkingState((prev) => ({
       ...prev,
       isThinking: false,
-      steps: prev.steps.map(step => 
-        step.status === 'processing' 
+      steps: prev.steps.map((step) =>
+        step.status === 'processing'
           ? { ...step, status: 'completed', timestamp: new Date() }
           : step
       ),
@@ -139,87 +149,93 @@ export const useAIThinking = () => {
   }, []);
 
   // 실제 thinking 과정 시뮬레이션
-  const simulateThinkingSteps = useCallback((query: string, mode: AIMode = 'LOCAL') => {
-    if (mode === 'GOOGLE_AI') {
-      // Google AI는 단순한 처리 과정
-      const steps: Omit<AIThinkingStep, 'timestamp'>[] = [
-        {
-          id: crypto.randomUUID(),
-          step: 'API 호출 중...',
-          status: 'processing',
-          description: 'Google AI API를 호출하고 있습니다.'
-        }
-      ];
-      
-      steps.forEach(step => addStep(step));
-      
-      // 2초 후 완료
-      setTimeout(() => {
+  const simulateThinkingSteps = useCallback(
+    (query: string, mode: AIMode = 'LOCAL') => {
+      if (mode === 'GOOGLE_AI') {
+        // Google AI는 단순한 처리 과정
+        const steps: Omit<AIThinkingStep, 'timestamp'>[] = [
+          {
+            id: crypto.randomUUID(),
+            step: 'API 호출 중...',
+            status: 'processing',
+            description: 'Google AI API를 호출하고 있습니다.',
+          },
+        ];
+
+        steps.forEach((step) => addStep(step));
+
+        // 2초 후 완료
+        setTimeout(() => {
+          const firstStep = steps[0];
+          if (firstStep) {
+            updateStep(firstStep.id, { status: 'completed' });
+          }
+          completeThinking();
+        }, 2000);
+      } else {
+        // Local AI는 상세한 thinking 과정
+        const steps: Omit<AIThinkingStep, 'timestamp'>[] = [
+          {
+            id: crypto.randomUUID(),
+            step: '질문 분석',
+            status: 'processing',
+            description: `"${query}" 질문을 이해하고 의도를 파악하고 있습니다...`,
+          },
+          {
+            id: crypto.randomUUID(),
+            step: '데이터 수집',
+            status: 'processing',
+            description: '관련 시스템 데이터와 메트릭을 수집하고 있습니다...',
+          },
+          {
+            id: crypto.randomUUID(),
+            step: '분석 및 추론',
+            status: 'processing',
+            description: '수집된 데이터를 분석하고 패턴을 파악하고 있습니다...',
+          },
+          {
+            id: crypto.randomUUID(),
+            step: '답변 생성',
+            status: 'processing',
+            description: '최적의 답변을 생성하고 검증하고 있습니다...',
+          },
+        ];
+
+        // 첫 번째 단계 시작
         const firstStep = steps[0];
         if (firstStep) {
-          updateStep(firstStep.id, { status: 'completed' });
+          addStep(firstStep);
         }
-        completeThinking();
-      }, 2000);
-    } else {
-      // Local AI는 상세한 thinking 과정
-      const steps: Omit<AIThinkingStep, 'timestamp'>[] = [
-        {
-          id: crypto.randomUUID(),
-          step: '질문 분석',
-          status: 'processing',
-          description: `"${query}" 질문을 이해하고 의도를 파악하고 있습니다...`
-        },
-        {
-          id: crypto.randomUUID(),
-          step: '데이터 수집',
-          status: 'processing',
-          description: '관련 시스템 데이터와 메트릭을 수집하고 있습니다...'
-        },
-        {
-          id: crypto.randomUUID(),
-          step: '분석 및 추론',
-          status: 'processing', 
-          description: '수집된 데이터를 분석하고 패턴을 파악하고 있습니다...'
-        },
-        {
-          id: crypto.randomUUID(),
-          step: '답변 생성',
-          status: 'processing',
-          description: '최적의 답변을 생성하고 검증하고 있습니다...'
-        }
-      ];
 
-      // 첫 번째 단계 시작
-      const firstStep = steps[0];
-      if (firstStep) {
-        addStep(firstStep);
+        // 단계별 진행 시뮬레이션
+        steps.forEach((step, index) => {
+          setTimeout(
+            () => {
+              if (index > 0) addStep(step); // 첫 번째는 이미 추가됨
+
+              // 이전 단계 완료
+              if (index > 0) {
+                const prevStep = steps[index - 1];
+                if (prevStep) {
+                  updateStep(prevStep.id, { status: 'completed' });
+                }
+              }
+
+              // 마지막 단계면 전체 완료
+              if (index === steps.length - 1) {
+                setTimeout(() => {
+                  updateStep(step.id, { status: 'completed' });
+                  completeThinking();
+                }, 1500);
+              }
+            },
+            (index + 1) * 1500
+          ); // 1.5초 간격으로 진행
+        });
       }
-      
-      // 단계별 진행 시뮬레이션
-      steps.forEach((step, index) => {
-        setTimeout(() => {
-          if (index > 0) addStep(step); // 첫 번째는 이미 추가됨
-          
-          // 이전 단계 완료
-          if (index > 0) {
-            const prevStep = steps[index - 1];
-            if (prevStep) {
-              updateStep(prevStep.id, { status: 'completed' });
-            }
-          }
-          
-          // 마지막 단계면 전체 완료
-          if (index === steps.length - 1) {
-            setTimeout(() => {
-              updateStep(step.id, { status: 'completed' });
-              completeThinking();
-            }, 1500);
-          }
-        }, (index + 1) * 1500); // 1.5초 간격으로 진행
-      });
-    }
-  }, [addStep, updateStep, completeThinking]); // addStep, updateStep, completeThinking 함수 의존성 복구
+    },
+    [addStep, updateStep, completeThinking]
+  ); // addStep, updateStep, completeThinking 함수 의존성 복구
 
   return {
     steps: thinkingState.steps,
@@ -240,39 +256,42 @@ export const useAIChat = () => {
   const messages = useAISidebarStore((state) => state.messages);
   const addMessage = useAISidebarStore((state) => state.addMessage);
   const clearMessages = useAISidebarStore((state) => state.clearMessages);
-  
+
   const [isLoading, setIsLoading] = useState(false);
 
-  const sendMessage = useCallback(async (content: string) => {
-    const userMessage: EnhancedChatMessage = {
-      id: crypto.randomUUID(),
-      content,
-      role: 'user',
-      timestamp: new Date(),
-    };
-
-    addMessage(userMessage);
-    setIsLoading(true);
-
-    try {
-      // API 호출 로직 여기에 추가 예정
-      // 현재는 더미 응답
-      const assistantMessage: EnhancedChatMessage = {
+  const sendMessage = useCallback(
+    async (content: string) => {
+      const userMessage: EnhancedChatMessage = {
         id: crypto.randomUUID(),
-        content: '응답을 처리 중입니다...',
-        role: 'assistant',
+        content,
+        role: 'user',
         timestamp: new Date(),
-        isStreaming: true,
-        isCompleted: false,
       };
 
-      addMessage(assistantMessage);
-    } catch (error) {
-      console.error('Send message error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [addMessage]); // addMessage 함수 의존성 복구
+      addMessage(userMessage);
+      setIsLoading(true);
+
+      try {
+        // API 호출 로직 여기에 추가 예정
+        // 현재는 더미 응답
+        const assistantMessage: EnhancedChatMessage = {
+          id: crypto.randomUUID(),
+          content: '응답을 처리 중입니다...',
+          role: 'assistant',
+          timestamp: new Date(),
+          isStreaming: true,
+          isCompleted: false,
+        };
+
+        addMessage(assistantMessage);
+      } catch (error) {
+        console.error('Send message error:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [addMessage]
+  ); // addMessage 함수 의존성 복구
 
   return {
     messages,
@@ -400,7 +419,10 @@ interface AISidebarState {
 
   // 채팅 관련 액션들
   addMessage: (message: EnhancedChatMessage) => void;
-  updateMessage: (messageId: string, updates: Partial<EnhancedChatMessage>) => void;
+  updateMessage: (
+    messageId: string,
+    updates: Partial<EnhancedChatMessage>
+  ) => void;
   clearMessages: () => void;
   setCurrentEngine: (engine: string) => void;
 
@@ -411,7 +433,7 @@ interface AISidebarState {
 export const useAISidebarStore = create<AISidebarState>()(
   devtools(
     persist(
-      (set, get) => ({
+      (set, _get) => ({
         // 초기 상태
         isOpen: false,
         isMinimized: false,
@@ -449,7 +471,7 @@ export const useAISidebarStore = create<AISidebarState>()(
 
         updateMessage: (messageId, updates) =>
           set((state) => ({
-            messages: state.messages.map(msg => 
+            messages: state.messages.map((msg) =>
               msg.id === messageId ? { ...msg, ...updates } : msg
             ),
           })),

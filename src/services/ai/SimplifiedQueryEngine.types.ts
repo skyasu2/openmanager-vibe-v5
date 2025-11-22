@@ -9,7 +9,6 @@ import type { Entity } from '../../modules/ai-agent/processors/IntentClassifier'
 import type {
   AIQueryContext,
   AIQueryOptions,
-  MCPContext,
   AIMetadata,
 } from '../../types/ai-service-types';
 import type { AIMode } from '../../types/ai-types';

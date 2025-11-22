@@ -124,7 +124,7 @@ const fetchSystemStatus = async (): Promise<SystemStatus> => {
   if (!response.ok) {
     throw new Error(`시스템 상태 조회 실패: ${response.status}`);
   }
-  const data = await response.json();
+  const _data = await response.json();
 
   // 대시보드 데이터를 SystemStatus 형식으로 변환
   return {

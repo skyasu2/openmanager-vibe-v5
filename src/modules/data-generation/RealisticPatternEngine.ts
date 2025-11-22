@@ -301,10 +301,8 @@ export class RealisticPatternEngine {
     timestamp: Date,
     previousMetrics?: PreviousMetrics
   ): number {
-    const profile =
-      this.serverProfiles.get(serverType) || 
-      this.serverProfiles.get('web') ||
-      {
+    const profile = this.serverProfiles.get(serverType) ||
+      this.serverProfiles.get('web') || {
         name: 'default',
         cpu_base: 20,
         memory_base: 40,
@@ -314,13 +312,13 @@ export class RealisticPatternEngine {
         correlation: {
           cpu_memory: 0.6,
           cpu_response_time: 0.4,
-          memory_disk: 0.3
+          memory_disk: 0.3,
         },
         characteristics: {
           stability: 0.85,
           volatility: 0.15,
-          recovery_time: 5
-        }
+          recovery_time: 5,
+        },
       };
 
     // 기본값 설정
@@ -427,12 +425,10 @@ export class RealisticPatternEngine {
   shouldTriggerFailure(
     serverType: string,
     currentMetrics: PreviousMetrics,
-    timestamp: Date
+    _timestamp: Date
   ): { shouldTrigger: boolean; failureType?: string; severity?: number } {
-    const profile =
-      this.serverProfiles.get(serverType) || 
-      this.serverProfiles.get('web') ||
-      {
+    const profile = this.serverProfiles.get(serverType) ||
+      this.serverProfiles.get('web') || {
         name: 'default',
         cpu_base: 20,
         memory_base: 40,
@@ -442,13 +438,13 @@ export class RealisticPatternEngine {
         correlation: {
           cpu_memory: 0.6,
           cpu_response_time: 0.4,
-          memory_disk: 0.3
+          memory_disk: 0.3,
         },
         characteristics: {
           stability: 0.85,
           volatility: 0.15,
-          recovery_time: 5
-        }
+          recovery_time: 5,
+        },
       };
 
     // 메트릭 기반 장애 확률 계산
@@ -522,10 +518,8 @@ export class RealisticPatternEngine {
   } {
     const timeMultiplier = this.getTimeMultiplier(timestamp);
     const seasonalMultiplier = this.getSeasonalMultiplier(timestamp);
-    const profile =
-      this.serverProfiles.get(serverType) || 
-      this.serverProfiles.get('web') ||
-      {
+    const profile = this.serverProfiles.get(serverType) ||
+      this.serverProfiles.get('web') || {
         name: 'default',
         cpu_base: 20,
         memory_base: 40,
@@ -535,13 +529,13 @@ export class RealisticPatternEngine {
         correlation: {
           cpu_memory: 0.6,
           cpu_response_time: 0.4,
-          memory_disk: 0.3
+          memory_disk: 0.3,
         },
         characteristics: {
           stability: 0.85,
           volatility: 0.15,
-          recovery_time: 5
-        }
+          recovery_time: 5,
+        },
       };
 
     const combinedMultiplier = timeMultiplier * seasonalMultiplier;

@@ -15,7 +15,6 @@ import type {
   ServerStatus,
   ServerInitConfig,
   ArchitectureType,
-  ROLE_MULTIPLIERS,
 } from './UnifiedMetricsManager.types';
 
 export class ServerFactory {

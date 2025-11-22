@@ -4,7 +4,11 @@
  */
 
 import type { ScenarioPoint } from './mockScenarios';
-import { generate24HourData, SERVERS, getServerStatus as getMetricBasedStatus } from './mockScenarios';
+import {
+  generate24HourData,
+  SERVERS,
+  getServerStatus as getMetricBasedStatus,
+} from './mockScenarios';
 export type { ScenarioPoint };
 import type { Server } from '../types/server';
 
@@ -41,7 +45,9 @@ function createServerFromMetrics(
 
   // Fallback: 서버 메타데이터가 없으면 기본값 사용
   if (!server) {
-    console.warn(`Server ${serverId} not found in SERVERS, using fallback metadata`);
+    console.warn(
+      `Server ${serverId} not found in SERVERS, using fallback metadata`
+    );
     return {
       id: serverId,
       name: serverId.toUpperCase(),
@@ -92,7 +98,9 @@ function createServerFromMetrics(
  * 메트릭 기반 서버 상태 결정 (AI-blind)
  * mockScenarios의 getServerStatus를 활용
  */
-function determineServerStatus(metrics: ScenarioPoint): 'online' | 'warning' | 'critical' {
+function determineServerStatus(
+  metrics: ScenarioPoint
+): 'online' | 'warning' | 'critical' {
   const status = getMetricBasedStatus(metrics);
   return status === 'normal' ? 'online' : status;
 }
@@ -103,9 +111,6 @@ function determineServerStatus(metrics: ScenarioPoint): 'online' | 'warning' | '
 export function generateMockServerData(): MockServerData {
   const servers: Server[] = [];
   const timeSeries: Record<string, ServerTimeSeriesData> = {};
-
-  // 현재 시간 (시뮬레이션)
-  const currentHour = new Date().getHours();
 
   // 15개 서버 각각에 대해 데이터 생성
   SERVERS.forEach((server) => {

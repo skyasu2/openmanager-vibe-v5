@@ -6,7 +6,11 @@
  * @pattern Strategy + Factory + Dependency Injection 패턴 적용
  */
 
-import { UniversalVital, VitalCategory, universalVitals } from './universal-vitals';
+import {
+  UniversalVital,
+  VitalCategory,
+  universalVitals,
+} from './universal-vitals';
 
 // 🎯 AI 친화적 메트릭 표준 스키마
 export interface AIFriendlyMetric {
@@ -33,21 +37,34 @@ export interface AIFriendlyMetric {
 
 // 🔌 메트릭 수집 인터페이스 (DI용)
 export interface MetricCollector {
-  collect(name: string, value: number, category: VitalCategory, unit?: string): AIFriendlyMetric;
+  collect(
+    name: string,
+    value: number,
+    category: VitalCategory,
+    unit?: string
+  ): AIFriendlyMetric;
   startTimer(name: string, category: VitalCategory): string; // 타이머 ID 반환
-  endTimer(timerId: string, context?: Record<string, unknown>): AIFriendlyMetric;
+  endTimer(
+    timerId: string,
+    context?: Record<string, unknown>
+  ): AIFriendlyMetric;
 }
 
 // 📊 메트릭 분석 인터페이스 (ISP 적용)
 export interface MetricAnalyzer {
   analyze(metrics: AIFriendlyMetric[]): VitalsAnalysisResult;
-  detectRegressions(current: AIFriendlyMetric[], baseline?: AIFriendlyMetric[]): RegressionAlert[];
+  detectRegressions(
+    current: AIFriendlyMetric[],
+    baseline?: AIFriendlyMetric[]
+  ): RegressionAlert[];
 }
 
 // 💡 권장사항 생성 인터페이스
 export interface RecommendationEngine {
   generateRecommendations(metrics: AIFriendlyMetric[]): ActionRecommendation[];
-  prioritizeActions(recommendations: ActionRecommendation[]): ActionRecommendation[];
+  prioritizeActions(
+    recommendations: ActionRecommendation[]
+  ): ActionRecommendation[];
 }
 
 // 📈 분석 결과 타입
@@ -90,10 +107,18 @@ export interface ActionRecommendation {
 
 // 🤖 AI 전용 간단한 Vitals 수집기 (Facade Pattern)
 export class AIVitalsCollector implements MetricCollector {
-  private timers: Map<string, { name: string; category: VitalCategory; startTime: number }> = new Map();
+  private timers: Map<
+    string,
+    { name: string; category: VitalCategory; startTime: number }
+  > = new Map();
 
   // 📊 즉시 메트릭 수집 (가장 간단한 방법)
-  collect(name: string, value: number, category: VitalCategory, unit: string = 'ms'): AIFriendlyMetric {
+  collect(
+    name: string,
+    value: number,
+    category: VitalCategory,
+    unit: string = 'ms'
+  ): AIFriendlyMetric {
     // 기존 Universal Vitals 시스템 활용
     const vital = universalVitals.collectVital(name, category, value, unit);
 
@@ -107,14 +132,17 @@ export class AIVitalsCollector implements MetricCollector {
     this.timers.set(timerId, {
       name,
       category,
-      startTime: performance.now()
+      startTime: performance.now(),
     });
 
     return timerId;
   }
 
   // ⏹️ 타이머 종료 및 메트릭 수집
-  endTimer(timerId: string, context: Record<string, unknown> = {}): AIFriendlyMetric {
+  endTimer(
+    timerId: string,
+    context: Record<string, unknown> = {}
+  ): AIFriendlyMetric {
     const timer = this.timers.get(timerId);
     if (!timer) {
       throw new Error(`타이머를 찾을 수 없음: ${timerId}`);
@@ -148,34 +176,50 @@ export class AIVitalsCollector implements MetricCollector {
         testType: (vital.context?.type as string | undefined) || 'unknown',
         environment: process.env.NODE_ENV || 'development',
         duration: vital.value,
-        source: ((vital.context?.source as 'vitest' | 'playwright' | 'api' | 'manual' | undefined) || 'manual')
+        source:
+          (vital.context?.source as
+            | 'vitest'
+            | 'playwright'
+            | 'api'
+            | 'manual'
+            | undefined) || 'manual',
       },
-      actionItems: (vital.recommendations || []).map(rec => ({
+      actionItems: (vital.recommendations || []).map((rec) => ({
         priority: this.inferPriority(vital.rating),
         action: rec,
         estimatedImpact: this.estimateImpact(vital.rating, vital.value),
-        category: this.inferActionCategory(vital.category)
-      }))
+        category: this.inferActionCategory(vital.category),
+      })),
     };
   }
 
   // 🎯 우선순위 추론
-  private inferPriority(rating: 'good' | 'needs-improvement' | 'poor'): 'high' | 'medium' | 'low' {
+  private inferPriority(
+    rating: 'good' | 'needs-improvement' | 'poor'
+  ): 'high' | 'medium' | 'low' {
     switch (rating) {
-      case 'poor': return 'high';
-      case 'needs-improvement': return 'medium';
-      case 'good': return 'low';
+      case 'poor':
+        return 'high';
+      case 'needs-improvement':
+        return 'medium';
+      case 'good':
+        return 'low';
     }
   }
 
   // 📈 임팩트 추정
-  private estimateImpact(rating: 'good' | 'needs-improvement' | 'poor', value: number): number {
+  private estimateImpact(
+    rating: 'good' | 'needs-improvement' | 'poor',
+    _value: number
+  ): number {
     const baseImpact = { poor: 80, 'needs-improvement': 50, good: 20 };
     return baseImpact[rating];
   }
 
   // 🏷️ 액션 카테고리 추론
-  private inferActionCategory(vitalCategory: VitalCategory): 'performance' | 'reliability' | 'maintainability' {
+  private inferActionCategory(
+    vitalCategory: VitalCategory
+  ): 'performance' | 'reliability' | 'maintainability' {
     switch (vitalCategory) {
       case 'web-performance':
       case 'api-performance':
@@ -199,18 +243,21 @@ export class SimpleMetricAnalyzer implements MetricAnalyzer {
         overallRating: 'excellent',
         categoryBreakdown: {},
         summary: '측정된 메트릭이 없습니다.',
-        keyInsights: ['테스트를 실행하여 성능 데이터를 수집하세요.']
+        keyInsights: ['테스트를 실행하여 성능 데이터를 수집하세요.'],
       };
     }
 
     // 간단한 점수 계산
-    const ratings = metrics.map(m => m.rating);
-    const goodCount = ratings.filter(r => r === 'good').length;
-    const needsImprovementCount = ratings.filter(r => r === 'needs-improvement').length;
-    const poorCount = ratings.filter(r => r === 'poor').length;
+    const ratings = metrics.map((m) => m.rating);
+    const goodCount = ratings.filter((r) => r === 'good').length;
+    const needsImprovementCount = ratings.filter(
+      (r) => r === 'needs-improvement'
+    ).length;
+    const poorCount = ratings.filter((r) => r === 'poor').length;
 
     const overallScore = Math.round(
-      (goodCount * 100 + needsImprovementCount * 60 + poorCount * 20) / metrics.length
+      (goodCount * 100 + needsImprovementCount * 60 + poorCount * 20) /
+        metrics.length
     );
 
     const overallRating = this.determineOverallRating(overallScore);
@@ -220,32 +267,46 @@ export class SimpleMetricAnalyzer implements MetricAnalyzer {
       overallRating,
       categoryBreakdown: this.analyzeCategoryBreakdown(metrics),
       summary: this.generateSummary(overallScore, metrics.length),
-      keyInsights: this.generateKeyInsights(metrics)
+      keyInsights: this.generateKeyInsights(metrics),
     };
   }
 
-  detectRegressions(current: AIFriendlyMetric[], baseline?: AIFriendlyMetric[]): RegressionAlert[] {
+  detectRegressions(
+    current: AIFriendlyMetric[],
+    baseline?: AIFriendlyMetric[]
+  ): RegressionAlert[] {
     if (!baseline || baseline.length === 0) {
       return [];
     }
 
     const alerts: RegressionAlert[] = [];
 
-    current.forEach(currentMetric => {
-      const baselineMetric = baseline.find(b =>
-        b.name === currentMetric.name && b.category === currentMetric.category
+    current.forEach((currentMetric) => {
+      const baselineMetric = baseline.find(
+        (b) =>
+          b.name === currentMetric.name && b.category === currentMetric.category
       );
 
-      if (baselineMetric && currentMetric.value > baselineMetric.value * 1.2) { // 20% 임계값
-        const regressionPercent = ((currentMetric.value - baselineMetric.value) / baselineMetric.value) * 100;
+      if (baselineMetric && currentMetric.value > baselineMetric.value * 1.2) {
+        // 20% 임계값
+        const regressionPercent =
+          ((currentMetric.value - baselineMetric.value) /
+            baselineMetric.value) *
+          100;
 
         alerts.push({
           metric: currentMetric.name,
           category: currentMetric.category,
-          severity: regressionPercent > 50 ? 'critical' : regressionPercent > 30 ? 'high' : 'medium',
+          severity:
+            regressionPercent > 50
+              ? 'critical'
+              : regressionPercent > 30
+                ? 'high'
+                : 'medium',
           regressionPercent,
           impact: `성능이 ${regressionPercent.toFixed(1)}% 저하되었습니다.`,
-          fixSuggestion: currentMetric.actionItems[0]?.action || '성능 최적화가 필요합니다.'
+          fixSuggestion:
+            currentMetric.actionItems[0]?.action || '성능 최적화가 필요합니다.',
         });
       }
     });
@@ -253,7 +314,9 @@ export class SimpleMetricAnalyzer implements MetricAnalyzer {
     return alerts;
   }
 
-  private determineOverallRating(score: number): 'excellent' | 'good' | 'needs-improvement' | 'poor' {
+  private determineOverallRating(
+    score: number
+  ): 'excellent' | 'good' | 'needs-improvement' | 'poor' {
     if (score >= 90) return 'excellent';
     if (score >= 75) return 'good';
     if (score >= 50) return 'needs-improvement';
@@ -263,16 +326,18 @@ export class SimpleMetricAnalyzer implements MetricAnalyzer {
   private analyzeCategoryBreakdown(metrics: AIFriendlyMetric[]) {
     const breakdown: VitalsAnalysisResult['categoryBreakdown'] = {};
 
-    const categories = [...new Set(metrics.map(m => m.category))];
+    const categories = [...new Set(metrics.map((m) => m.category))];
 
-    categories.forEach(category => {
-      const categoryMetrics = metrics.filter(m => m.category === category);
-      const goodCount = categoryMetrics.filter(m => m.rating === 'good').length;
+    categories.forEach((category) => {
+      const categoryMetrics = metrics.filter((m) => m.category === category);
+      const goodCount = categoryMetrics.filter(
+        (m) => m.rating === 'good'
+      ).length;
 
       breakdown[category] = {
         score: Math.round((goodCount / categoryMetrics.length) * 100),
         count: categoryMetrics.length,
-        trend: 'stable' // 단순화: 실제로는 히스토리 데이터 필요
+        trend: 'stable', // 단순화: 실제로는 히스토리 데이터 필요
       };
     });
 
@@ -280,9 +345,12 @@ export class SimpleMetricAnalyzer implements MetricAnalyzer {
   }
 
   private generateSummary(score: number, totalMetrics: number): string {
-    if (score >= 90) return `우수한 성능! ${totalMetrics}개 메트릭 중 대부분이 양호합니다.`;
-    if (score >= 75) return `양호한 성능. ${totalMetrics}개 메트릭 중 일부 개선 여지가 있습니다.`;
-    if (score >= 50) return `성능 개선 필요. ${totalMetrics}개 메트릭 중 다수가 개선이 필요합니다.`;
+    if (score >= 90)
+      return `우수한 성능! ${totalMetrics}개 메트릭 중 대부분이 양호합니다.`;
+    if (score >= 75)
+      return `양호한 성능. ${totalMetrics}개 메트릭 중 일부 개선 여지가 있습니다.`;
+    if (score >= 50)
+      return `성능 개선 필요. ${totalMetrics}개 메트릭 중 다수가 개선이 필요합니다.`;
     return `성능 문제 발견. ${totalMetrics}개 메트릭 중 상당수가 임계값을 초과했습니다.`;
   }
 
@@ -290,16 +358,18 @@ export class SimpleMetricAnalyzer implements MetricAnalyzer {
     const insights: string[] = [];
 
     // 가장 문제가 되는 메트릭 찾기
-    const poorMetrics = metrics.filter(m => m.rating === 'poor');
+    const poorMetrics = metrics.filter((m) => m.rating === 'poor');
     if (poorMetrics.length > 0) {
       insights.push(`${poorMetrics.length}개 메트릭이 임계값을 초과했습니다.`);
     }
 
     // 카테고리별 문제점
-    const categories = [...new Set(metrics.map(m => m.category))];
-    categories.forEach(category => {
-      const categoryMetrics = metrics.filter(m => m.category === category);
-      const poorInCategory = categoryMetrics.filter(m => m.rating === 'poor').length;
+    const categories = [...new Set(metrics.map((m) => m.category))];
+    categories.forEach((category) => {
+      const categoryMetrics = metrics.filter((m) => m.category === category);
+      const poorInCategory = categoryMetrics.filter(
+        (m) => m.rating === 'poor'
+      ).length;
       if (poorInCategory > 0) {
         insights.push(`${category} 영역에서 ${poorInCategory}개 문제 발견`);
       }
@@ -318,7 +388,11 @@ export const aiVitals = {
   createAnalyzer: (): MetricAnalyzer => new SimpleMetricAnalyzer(),
 
   // 원샷 메트릭 수집 (가장 간단)
-  quickCollect: (name: string, value: number, category: VitalCategory = 'test-execution'): AIFriendlyMetric => {
+  quickCollect: (
+    name: string,
+    value: number,
+    category: VitalCategory = 'test-execution'
+  ): AIFriendlyMetric => {
     const collector = new AIVitalsCollector();
     return collector.collect(name, value, category);
   },
@@ -327,7 +401,7 @@ export const aiVitals = {
   quickAnalyze: (metrics: AIFriendlyMetric[]): VitalsAnalysisResult => {
     const analyzer = new SimpleMetricAnalyzer();
     return analyzer.analyze(metrics);
-  }
+  },
 };
 
 // 📝 AI 사용 예시
@@ -363,5 +437,5 @@ const regressions = analyzer.detectRegressions(currentMetrics, baselineMetrics);
 regressions.forEach(alert => {
   console.log(\`🚨 \${alert.metric}: \${alert.impact}\`);
 });
-  `
+  `,
 };

@@ -518,7 +518,10 @@ export class CloudVersionManager {
     await this.detectAndRegisterCurrentVersion();
   }
 
-  private async analyzeChanges(current: CloudVersion, previous: CloudVersion) {
+  private async analyzeChanges(
+    _current: CloudVersion,
+    _previous: CloudVersion
+  ) {
     // 실제로는 Git diff 분석 등을 통해 변경사항 추출
     return [
       {
@@ -530,12 +533,12 @@ export class CloudVersionManager {
   }
 
   private async checkCompatibility(
-    current: CloudVersion,
-    previous: CloudVersion
+    _current: CloudVersion,
+    _previous: CloudVersion
   ): Promise<boolean> {
     // 실제로는 API 호환성, 데이터베이스 스키마 등을 확인
-    const versionDiff = current.version.localeCompare(
-      previous.version,
+    const versionDiff = _current.version.localeCompare(
+      _previous.version,
       undefined,
       { numeric: true }
     );

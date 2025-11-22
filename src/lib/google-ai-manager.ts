@@ -1,6 +1,6 @@
 import { ENCRYPTED_GOOGLE_AI_CONFIG } from '@/config/google-ai-config';
 import { enhancedCryptoManager } from '@/lib/crypto/EnhancedEnvCryptoManager';
-import { getSecureGoogleAIKey } from '@/lib/security/encryption';
+import { getSecureGoogleAIKey as _getSecureGoogleAIKey } from '@/lib/security/encryption';
 
 /**
  * Google AI API 키 관리자 v4.0 (Rate Limiting + ToS Compliance)
@@ -89,7 +89,9 @@ class GoogleAIManager {
    * API 키 사용 가능 여부 확인 (주 키 기준)
    */
   isAPIKeyAvailable(): boolean {
-    return this.getPrimaryAPIKey() !== null || this.getSecondaryAPIKey() !== null;
+    return (
+      this.getPrimaryAPIKey() !== null || this.getSecondaryAPIKey() !== null
+    );
   }
 
   /**
@@ -212,7 +214,9 @@ class GoogleAIManager {
     }
 
     // 1분 동안의 요청 수 계산
-    this.requestLog = this.requestLog.filter((timestamp) => timestamp > oneMinuteAgo);
+    this.requestLog = this.requestLog.filter(
+      (timestamp) => timestamp > oneMinuteAgo
+    );
     const requestsPerMinute = this.requestLog.length;
 
     // RPM 한도 체크 (15 RPM)
@@ -254,7 +258,9 @@ class GoogleAIManager {
   } {
     const now = Date.now();
     const oneMinuteAgo = now - 60 * 1000;
-    const requestsLastMinute = this.requestLog.filter((timestamp) => timestamp > oneMinuteAgo).length;
+    const requestsLastMinute = this.requestLog.filter(
+      (timestamp) => timestamp > oneMinuteAgo
+    ).length;
 
     return {
       requestsLastMinute,
@@ -292,7 +298,8 @@ const googleAIManager = GoogleAIManager.getInstance();
 
 // 내보내기 - 기존 환경변수 암복호화 시스템 우선 사용
 export const getGoogleAIKey = () => googleAIManager.getPrimaryAPIKey(); // getPrimaryAPIKey로 변경
-export const getGoogleAISecondaryKey = () => googleAIManager.getSecondaryAPIKey(); // 새로운 내보내기
+export const getGoogleAISecondaryKey = () =>
+  googleAIManager.getSecondaryAPIKey(); // 새로운 내보내기
 export const isGoogleAIAvailable = () => googleAIManager.isAPIKeyAvailable();
 export const getGoogleAIStatus = () => googleAIManager.getKeyStatus();
 export const unlockGoogleAITeamKey = (password: string) =>
@@ -303,6 +310,7 @@ export const tryAutoUnlockGoogleAI = () => googleAIManager.tryAutoUnlock();
 // Rate limiting 관련 내보내기
 export const checkGoogleAIRateLimit = () => googleAIManager.checkRateLimit();
 export const recordGoogleAIRequest = () => googleAIManager.recordRequest();
-export const getGoogleAIRateLimitStatus = () => googleAIManager.getRateLimitStatus();
+export const getGoogleAIRateLimitStatus = () =>
+  googleAIManager.getRateLimitStatus();
 
 export default googleAIManager;

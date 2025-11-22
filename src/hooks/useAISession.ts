@@ -54,8 +54,12 @@ export function useAISession(
     persistToSupabase: true,
   }
 ) {
-  const { enableHistory, maxHistoryItems, autoSave, persistToSupabase } =
-    options;
+  const {
+    enableHistory,
+    maxHistoryItems,
+    autoSave: _autoSave,
+    persistToSupabase,
+  } = options;
 
   // ==============================================
   // 🔄 상태 관리
@@ -86,7 +90,7 @@ export function useAISession(
   /**
    * 💾 로컬 스토리지에서 상태 복원
    */
-  const restoreFromLocalStorage = useCallback(() => {
+  const _restoreFromLocalStorage = useCallback(() => {
     try {
       const saved = localStorage.getItem(localStorageKey);
       if (saved) {
@@ -238,10 +242,16 @@ export function useAISession(
       fullResponse?: unknown
     ) => {
       // fullResponse 타입 가드
-      const responseData = fullResponse as {
-        enginePath?: Array<{ engine: string; description: string; timestamp: number }>;
-        reasoning_steps?: string[];
-      } | undefined;
+      const responseData = fullResponse as
+        | {
+            enginePath?: Array<{
+              engine: string;
+              description: string;
+              timestamp: number;
+            }>;
+            reasoning_steps?: string[];
+          }
+        | undefined;
 
       const newState: AISessionState = {
         ...sessionState,
@@ -249,7 +259,16 @@ export function useAISession(
         currentResponse: response,
         confidence,
         error: null,
-        enginePath: (responseData?.enginePath as Array<{ engine: string; description: string; timestamp: number }> | undefined)?.map(item => item.engine) ?? [],
+        enginePath:
+          (
+            responseData?.enginePath as
+              | Array<{
+                  engine: string;
+                  description: string;
+                  timestamp: number;
+                }>
+              | undefined
+          )?.map((item) => item.engine) ?? [],
         reasoningSteps: responseData?.reasoning_steps ?? [],
       };
 

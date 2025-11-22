@@ -10,7 +10,6 @@
 import type {
   QueryRequest,
   QueryResponse,
-  ThinkingStep,
 } from '@/services/ai/SimplifiedQueryEngine.types';
 
 import type {
@@ -24,7 +23,7 @@ import { GoogleAiUnifiedEngine } from '../core/google-ai-unified-engine';
 /**
  * 쿼리 → 시나리오 자동 감지
  */
-function detectScenario(query: string, context?: unknown): AIScenario {
+function detectScenario(query: string, _context?: unknown): AIScenario {
   const lowerQuery = query.toLowerCase();
 
   // 키워드 기반 시나리오 감지
@@ -89,8 +88,7 @@ function detectScenario(query: string, context?: unknown): AIScenario {
  * UnifiedQueryResponse → QueryResponse 변환
  */
 function convertToQueryResponse(
-  unifiedResponse: UnifiedQueryResponse,
-  originalQuery: string
+  unifiedResponse: UnifiedQueryResponse
 ): QueryResponse {
   return {
     success: unifiedResponse.success,
@@ -162,10 +160,10 @@ export class SimplifiedQueryEngineAdapter {
    * 쿼리 처리 (SimplifiedQueryEngine 인터페이스)
    */
   async query(request: QueryRequest): Promise<QueryResponse> {
-    const { query, context, options } = request;
+    const { query, context: _context, options } = request;
 
     // 1. 시나리오 자동 감지
-    const scenario = detectScenario(query, context);
+    const scenario = detectScenario(query, _context);
 
     // 2. UnifiedQueryRequest 생성
     const unifiedRequest: UnifiedQueryRequest = {
@@ -186,7 +184,7 @@ export class SimplifiedQueryEngineAdapter {
     const unifiedResponse = await this.engine.query(unifiedRequest);
 
     // 4. QueryResponse 변환
-    return convertToQueryResponse(unifiedResponse, query);
+    return convertToQueryResponse(unifiedResponse);
   }
 
   /**
@@ -205,7 +203,7 @@ export class SimplifiedQueryEngineAdapter {
     return {
       status: health.healthy ? 'healthy' : 'degraded',
       engines: {
-        localRAG: health.providers.some(p => p.type === 'rag' && p.healthy),
+        localRAG: health.providers.some((p) => p.type === 'rag' && p.healthy),
         googleAI: health.googleAIStatus.available,
         mcp: false, // SimplifiedQueryEngine 호환성
       },

@@ -53,7 +53,7 @@ class SystemInactivityService {
     if (typeof window === 'undefined') return;
 
     const systemInactive = localStorage.getItem('system_inactive') === 'true';
-    const autoLogoutTime = localStorage.getItem('auto_logout_time');
+    const _autoLogoutTime = localStorage.getItem('auto_logout_time');
 
     if (systemInactive) {
       if (this.isSystemActive) {
@@ -115,7 +115,7 @@ class SystemInactivityService {
    * 모든 백그라운드 작업 일시 중지
    */
   private pauseAllBackgroundTasks(): void {
-    this.backgroundTasks.forEach((task, id) => {
+    this.backgroundTasks.forEach((task, _id) => {
       if (task.intervalId) {
         clearInterval(task.intervalId);
         task.intervalId = undefined;
@@ -130,7 +130,7 @@ class SystemInactivityService {
    * 모든 백그라운드 작업 재개
    */
   private resumeAllBackgroundTasks(): void {
-    this.backgroundTasks.forEach((task, id) => {
+    this.backgroundTasks.forEach((task, _id) => {
       if (!task.isActive && !task.intervalId) {
         // 원래 콜백 함수를 다시 얻어야 하므로, 실제로는 각 서비스에서 재등록하도록 신호를 보냄
         this.sendResumeSignal(task.id, task.name);

@@ -217,7 +217,7 @@ export class BaselineOptimizer {
   /**
    * ⏰ 시간대별 패턴 계산
    */
-  private calculateTimePattern(hour: number, minute: number): number {
+  private calculateTimePattern(hour: number, _minute: number): number {
     // 업무시간 패턴 (09:00-18:00 높은 부하)
     if (hour >= 9 && hour <= 18) {
       return 0.8 + 0.4 * Math.sin(((hour - 9) * Math.PI) / 9); // 0.8 ~ 1.2

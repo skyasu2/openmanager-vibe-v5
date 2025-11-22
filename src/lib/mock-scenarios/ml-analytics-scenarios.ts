@@ -487,7 +487,7 @@ export function generateMetricsByWorkload(
 ): number {
   const hour = timestamp.getHours();
   const dayOfWeek = timestamp.getDay();
-  const minute = timestamp.getMinutes();
+  const _minute = timestamp.getMinutes();
 
   let value = baseValue;
 
@@ -583,7 +583,7 @@ export function detectAnomalies(
 
     const current = metrics[i];
     if (!current) continue;
-    
+
     const zScore = Math.abs((current.value - avg) / stdDev);
 
     // Z-score 기반 이상 감지
@@ -650,18 +650,18 @@ export function generatePredictions(
   const recentMetrics = historicalMetrics.slice(-24); // 최근 24개 데이터
   const firstMetric = recentMetrics[0];
   const lastMetric = recentMetrics[recentMetrics.length - 1];
-  
+
   if (!firstMetric || !lastMetric) {
     return [];
   }
-  
+
   const trend = (lastMetric.value - firstMetric.value) / recentMetrics.length;
 
   const lastHistoricalMetric = historicalMetrics[historicalMetrics.length - 1];
   if (!lastHistoricalMetric) {
     return [];
   }
-  
+
   const lastTimestamp = lastHistoricalMetric.timestamp;
   const lastValue = lastHistoricalMetric.value;
 

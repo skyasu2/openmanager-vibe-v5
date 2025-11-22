@@ -204,17 +204,20 @@ export class ApiRouteBuilder<
         }
 
         // 성공 응답 (CORS 헤더 포함)
-        const response = NextResponse.json({
-          success: true,
-          data: responseData,
-          timestamp: new Date().toISOString(),
-        }, {
-          headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        const response = NextResponse.json(
+          {
+            success: true,
+            data: responseData,
+            timestamp: new Date().toISOString(),
+          },
+          {
+            headers: {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            },
           }
-        });
+        );
 
         // 로깅
         if (this.config.enableLogging) {
@@ -335,15 +338,15 @@ export async function authMiddleware(
  * Rate Limiting 미들웨어
  */
 export async function rateLimitMiddleware(
-  limit = 100,
-  window = 3600 // 1시간
+  _limit = 100,
+  _window = 3600 // 1시간
 ) {
   return async (request: NextRequest): Promise<NextRequest | NextResponse> => {
     const ip =
       request.headers.get('x-forwarded-for')?.split(',')[0] ||
       request.headers.get('x-real-ip') ||
       'unknown';
-    const key = `rate_limit:${ip}:${request.url}`;
+    const _key = `rate_limit:${ip}:${request.url}`;
 
     // Rate limiting 로직 (Redis 등 사용)
     // const count = await redis.incr(key);

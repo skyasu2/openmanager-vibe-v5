@@ -395,7 +395,7 @@ export const useRealtimePrediction = (
   horizon: number = 30,
   enabled: boolean = true
 ) => {
-  const predictionMutation = usePredictionMutation();
+  const _predictionMutation = usePredictionMutation();
 
   return useQuery({
     queryKey: ['realtime-prediction', metric, horizon],
@@ -455,7 +455,15 @@ export const usePredictionSummary = () => {
               acc[metric].predictions[0]?.trend || 'stable';
             return acc;
           },
-          {} as Record<string, { predictions: PredictionResult[]; count: number; avgAccuracy: number; latestTrend: string }>
+          {} as Record<
+            string,
+            {
+              predictions: PredictionResult[];
+              count: number;
+              avgAccuracy: number;
+              latestTrend: string;
+            }
+          >
         ),
         trends: {
           increasing: predictions.filter((p) => p.trend === 'increasing')

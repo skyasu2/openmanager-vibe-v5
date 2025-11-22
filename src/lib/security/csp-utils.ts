@@ -31,7 +31,7 @@ export function generateCSPNonce(): string {
  */
 export function generateCSPString(
   isDev: boolean = false,
-  isVercel: boolean = false,
+  _isVercel: boolean = false,
   nonce?: string
 ): string {
   const directives = {
@@ -163,7 +163,8 @@ export function checkCSPSupport(userAgent?: string): {
     supportsNonce: true,
     supportsTrustedTypes:
       (userAgent?.includes('Chrome/') &&
-      parseInt(userAgent.match(/Chrome\/(\d+)/)?.[1] || '0') >= 83) || false,
+        parseInt(userAgent.match(/Chrome\/(\d+)/)?.[1] || '0') >= 83) ||
+      false,
   };
 }
 

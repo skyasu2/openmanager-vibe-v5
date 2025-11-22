@@ -166,14 +166,14 @@ export function classifyError(error: unknown): {
 /**
  * 🛡️ API 엔드포인트용 에러 핸들러 래퍼
  */
-export function withErrorHandler<T extends unknown[], R>(
+export function withErrorHandler<T extends unknown[]>(
   handler: (...args: T) => Promise<NextResponse>
 ) {
   return async (...args: T): Promise<NextResponse> => {
     try {
       return await handler(...args);
     } catch (error) {
-      const safeError = safeErrorLog('❌ API 에러 캐치', error);
+      void safeErrorLog('❌ API 에러 캐치', error);
 
       const { type, message, details } = classifyError(error);
 

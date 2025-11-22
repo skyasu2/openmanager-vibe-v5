@@ -1,9 +1,7 @@
 import { browserNotificationService } from '@/services/notifications/BrowserNotificationService';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import {
-  SYSTEM_AUTO_SHUTDOWN_TIME,
-} from '@/config/system-constants';
+import { SYSTEM_AUTO_SHUTDOWN_TIME } from '@/config/system-constants';
 
 interface UnifiedAdminState {
   // 시스템 상태
@@ -17,15 +15,15 @@ interface UnifiedAdminState {
     state: 'disabled' | 'enabled' | 'processing' | 'idle';
   };
 
-// UI 상태
+  // UI 상태
   ui: {
     isSettingsPanelOpen: boolean; // 설정 패널 열림 상태
   };
 
-// 액션 메소드
+  // 액션 메소드
   startSystem: () => void;
   stopSystem: () => void;
-getSystemRemainingTime: () => number;
+  getSystemRemainingTime: () => number;
   logout: () => void;
   setSettingsPanelOpen: (isOpen: boolean) => void;
 }
@@ -44,14 +42,10 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
         state: 'enabled',
       },
 
-
-
       // UI 상태
       ui: {
         isSettingsPanelOpen: false,
       },
-
-
 
       // 시스템 시작
       startSystem: () => {
@@ -116,10 +110,6 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
         }
       },
 
-
-
-
-
       // 시스템 남은 시간
       getSystemRemainingTime: () => {
         const { systemStartTime } = get();
@@ -129,10 +119,6 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
         }
         return 0;
       },
-
-
-
-
 
       // 전체 로그아웃 (시스템 + 관리자)
       logout: () => {
@@ -178,7 +164,7 @@ export const useUnifiedAdminStore = create<UnifiedAdminState>()(
     }),
     {
       name: 'unified-admin-storage',
-      partialize: (state) => ({
+      partialize: (_state) => ({
         // AI 에이전트는 항상 활성화 상태이므로 저장하지 않음
       }),
       // SSR 안전성을 위한 skipHydration 추가

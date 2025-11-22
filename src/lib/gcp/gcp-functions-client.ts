@@ -23,7 +23,11 @@ import type { UnifiedAIResponse } from '@/services/ai/formatters/unified-respons
 
 import { GCPFunctionErrorCode } from './gcp-functions.types';
 
-import { createConfig, RATE_LIMIT_CONFIG, logConfiguration } from './gcp-functions.config';
+import {
+  createConfig,
+  RATE_LIMIT_CONFIG,
+  logConfiguration,
+} from './gcp-functions.config';
 import {
   checkRateLimit,
   createSecurityHeaders,
@@ -33,7 +37,7 @@ import {
   convertHttpError,
   createSafeUrl,
   validateResponse,
-  debugLog
+  debugLog,
 } from './gcp-functions.utils';
 
 /**
@@ -44,7 +48,7 @@ export class GCPFunctionsClient {
 
   constructor(config?: Partial<GCPFunctionsClientConfig>) {
     this.config = config ? { ...createConfig(), ...config } : createConfig();
-    
+
     // 개발 환경에서 설정 로깅
     if (process.env.NODE_ENV === 'development') {
       logConfiguration();
@@ -63,7 +67,7 @@ export class GCPFunctionsClient {
       return {
         success: false,
         error: 'Rate limit exceeded. Please try again later.',
-        code: 429
+        code: 429,
       };
     }
 
@@ -86,13 +90,13 @@ export class GCPFunctionsClient {
     try {
       // 안전한 URL 생성
       const url = createSafeUrl(this.config.baseUrl, functionName);
-      
+
       // 보안 헤더 생성
       const headers = createSecurityHeaders();
 
-      debugLog(functionName, 'Making HTTP request', { 
+      debugLog(functionName, 'Making HTTP request', {
         url: url.toString(),
-        timeout: this.config.timeout 
+        timeout: this.config.timeout,
       });
 
       // 타임아웃과 함께 요청
@@ -115,7 +119,7 @@ export class GCPFunctionsClient {
       let responseData: unknown;
       try {
         responseData = await response.json();
-      } catch (parseError) {
+      } catch {
         throw createGCPError(
           GCPFunctionErrorCode.CLIENT_ERROR,
           'Invalid JSON response',
@@ -128,7 +132,6 @@ export class GCPFunctionsClient {
 
       // 응답 검증 및 반환
       return validateResponse<TResponse>(responseData);
-
     } catch (error) {
       debugLog(functionName, 'Request failed', { error });
 
@@ -140,14 +143,15 @@ export class GCPFunctionsClient {
           status?: number;
           details?: string;
         };
-        const errorCode = gcpError.code !== undefined && typeof gcpError.code === 'number'
-          ? gcpError.code
-          : gcpError.status || 500;
+        const errorCode =
+          gcpError.code !== undefined && typeof gcpError.code === 'number'
+            ? gcpError.code
+            : gcpError.status || 500;
         return {
           success: false,
           error: gcpError.message || 'GCP Function Error',
           code: errorCode,
-          details: gcpError.details
+          details: gcpError.details,
         };
       }
 
@@ -155,7 +159,7 @@ export class GCPFunctionsClient {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
-        code: 500
+        code: 500,
       };
     }
   }
@@ -201,12 +205,12 @@ export function getGCPFunctionsClient(): GCPFunctionsClient {
  * Korean NLP 분석 헬퍼 (직접 호출)
  */
 export async function analyzeKoreanNLP(
-  query: string, 
+  query: string,
   context?: unknown
 ): Promise<Result<KoreanNLPResponse>> {
   const client = getGCPFunctionsClient();
   return client.callFunction<KoreanNLPRequest, KoreanNLPResponse>(
-    'enhanced-korean-nlp', 
+    'enhanced-korean-nlp',
     { query, context }
   );
 }
@@ -215,12 +219,12 @@ export async function analyzeKoreanNLP(
  * ML Analytics 분석 헬퍼 (직접 호출)
  */
 export async function analyzeMLMetrics(
-  metrics: unknown[], 
+  metrics: unknown[],
   context?: { analysis_type?: string; [key: string]: unknown }
 ): Promise<Result<MLAnalyticsResponse>> {
   const client = getGCPFunctionsClient();
   return client.callFunction<MLAnalyticsRequest, MLAnalyticsResponse>(
-    'ml-analytics-engine', 
+    'ml-analytics-engine',
     { metrics, context }
   );
 }
@@ -233,7 +237,7 @@ export async function processUnifiedAI(
 ): Promise<Result<UnifiedAIResponse>> {
   const client = getGCPFunctionsClient();
   return client.callFunction<UnifiedAIRequest, UnifiedAIResponse>(
-    'unified-ai-processor', 
+    'unified-ai-processor',
     request
   );
 }

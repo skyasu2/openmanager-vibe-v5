@@ -36,7 +36,7 @@ export class ServerlessSSEConnectionPool {
   /**
    * 🚫 연결 획득 비활성화
    */
-  async acquire(url: string): Promise<PooledConnection | null> {
+  async acquire(_url: string): Promise<PooledConnection | null> {
     console.warn('⚠️ SSE 연결 획득 무시됨 - 서버리스 환경');
     console.warn('📊 Vercel 실시간 모니터링 사용 권장');
     return null;
@@ -45,7 +45,7 @@ export class ServerlessSSEConnectionPool {
   /**
    * 🚫 연결 반환 비활성화
    */
-  release(connection: PooledConnection): void {
+  release(_connection: PooledConnection): void {
     console.warn('⚠️ SSE 연결 반환 무시됨 - 서버리스 환경');
   }
 

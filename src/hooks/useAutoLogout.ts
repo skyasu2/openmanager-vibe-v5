@@ -32,8 +32,8 @@ export function useAutoLogout({
   redirectPath = '/login',
   onWarning,
   onLogout,
-  timeoutMinutes = 30,
-  warningMinutes = 5,
+  timeoutMinutes: _timeoutMinutes = 30,
+  warningMinutes: _warningMinutes = 5,
 }: UseAutoLogoutOptions = {}) {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);

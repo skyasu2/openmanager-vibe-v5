@@ -413,9 +413,14 @@ export class SimplifiedQueryEngineHelpers {
 
   private formatUnifiedInsights(data: UnifiedAIResponse): string | null {
     const sections: string[] = [];
-    const aggregated = (data.additionalData?.aggregated_data as Record<string, any>) || {};
+    const aggregated =
+      (data.additionalData?.aggregated_data as Record<string, unknown>) || {};
 
-    if (aggregated.main_insights && Array.isArray(aggregated.main_insights) && aggregated.main_insights.length > 0) {
+    if (
+      aggregated.main_insights &&
+      Array.isArray(aggregated.main_insights) &&
+      aggregated.main_insights.length > 0
+    ) {
       sections.push(
         aggregated.main_insights
           .slice(0, 3)
@@ -449,9 +454,7 @@ export class SimplifiedQueryEngineHelpers {
 
     const recommendations = data.additionalData?.recommendations;
     if (Array.isArray(recommendations) && recommendations.length > 0) {
-      sections.push(
-        '추천 조치: ' + recommendations.slice(0, 2).join(', ')
-      );
+      sections.push('추천 조치: ' + recommendations.slice(0, 2).join(', '));
     }
 
     return sections.length > 0 ? sections.join('\n') : null;
@@ -516,7 +519,7 @@ export class SimplifiedQueryEngineHelpers {
       summary,
       criticalServers,
       warningServers,
-      healthyServers,
+      healthyServers: _healthyServers,
       timeContext,
     } = analysis;
 
@@ -524,7 +527,7 @@ export class SimplifiedQueryEngineHelpers {
     contextString += `- 전체 요약: ${summary}\n`;
     contextString += `- 위험 서버: ${criticalServers.length}개\n`;
     contextString += `- 경고 서버: ${warningServers.length}개\n`;
-    contextString += `- 정상 서버: ${healthyServers.length}개\n`;
+    contextString += `- 정상 서버: ${_healthyServers.length}개\n`;
     contextString += `- 조회 시간: ${timeContext}\n`;
 
     // 위험 서버 상세 정보 (있을 경우)
@@ -616,7 +619,7 @@ export class SimplifiedQueryEngineHelpers {
       summary,
       criticalServers,
       warningServers,
-      healthyServers,
+      healthyServers: _healthyServers,
       timeContext,
     } = analysis;
 

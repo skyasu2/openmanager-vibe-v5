@@ -713,7 +713,7 @@ export class SubagentTestController {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { mkdirSync } = require('fs');
       mkdirSync(this.logDir, { recursive: true });
-    } catch (_error) {
+    } catch {
       // 이미 존재하거나 생성할 수 없는 경우 무시
     }
   }
@@ -733,7 +733,7 @@ export class SubagentTestController {
         const content = readFileSync(join(this.logDir, file), 'utf8');
         return JSON.parse(content);
       });
-    } catch (_error) {
+    } catch {
       return [];
     }
   }

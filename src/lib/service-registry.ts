@@ -43,7 +43,10 @@ export class ServiceRegistry {
       return;
     }
 
-    if (this._initializationPromise !== null && this._initializationPromise !== undefined) {
+    if (
+      this._initializationPromise !== null &&
+      this._initializationPromise !== undefined
+    ) {
       return this._initializationPromise;
     }
 
@@ -253,7 +256,7 @@ export class ServiceRegistry {
       logger.info('Logging service _initialized');
 
       // 2. 에러 처리 서비스 초기화
-      const errorHandler = container.resolve<IErrorHandler>(
+      const _errorHandler = container.resolve<IErrorHandler>(
         SERVICE_TOKENS.ERROR_HANDLER
       );
       logger.info('Error handling service _initialized');

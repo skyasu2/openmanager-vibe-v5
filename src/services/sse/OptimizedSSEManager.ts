@@ -180,7 +180,7 @@ export class OptimizedSSEManager {
   /**
    * 💓 하트비트 전송
    */
-  async sendHeartbeat(channel: string): Promise<void> {
+  async sendHeartbeat(_channel: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error('Heartbeat timeout'));
@@ -265,19 +265,19 @@ export class OptimizedSSEManager {
    * 🔧 이벤트 리스너 설정
    */
   private setupEventListeners(connection: SSEConnection): void {
-    const onOpen = (event: Event) => {
+    const onOpen = (_event: Event) => {
       connection.lastActivity = new Date();
       console.log(`✅ SSE 연결 열림: ${connection.channel}`);
     };
 
-    const onMessage: EventListener = (event: Event) => {
+    const onMessage: EventListener = (_event: Event) => {
       connection.lastActivity = new Date();
       try {
-        const messageEvent = event as MessageEvent;
+        const messageEvent = _event as MessageEvent;
         const data = JSON.parse(messageEvent.data);
         this.emit('message', data);
       } catch {
-        const messageEvent = event as MessageEvent;
+        const messageEvent = _event as MessageEvent;
         this.emit('message', messageEvent.data);
       }
     };

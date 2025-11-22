@@ -330,21 +330,21 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
   private selectProviders(request: UnifiedQueryRequest): IContextProvider[] {
     const providers: IContextProvider[] = [];
 
-    for (const [key, provider] of this.providers.entries()) {
+    for (const [_key, provider] of this.providers.entries()) {
       // 1. Provider가 시나리오에 활성화되어 있는지 확인
       if (!provider.isEnabled(request.scenario)) {
         continue;
       }
 
       // 2. 사용자 옵션 확인 (수동 비활성화)
-      if (key === 'rag' && request.options?.enableRAG === false) continue;
-      if (key === 'ml' && request.options?.enableML === false) continue;
-      if (key === 'rule' && request.options?.enableRules === false) continue;
+      if (_key === 'rag' && request.options?.enableRAG === false) continue;
+      if (_key === 'ml' && request.options?.enableML === false) continue;
+      if (_key === 'rule' && request.options?.enableRules === false) continue;
 
       // 3. 엔진 설정 확인 (전역 비활성화)
-      if (key === 'rag' && !this.config.providers.rag.enabled) continue;
-      if (key === 'ml' && !this.config.providers.ml.enabled) continue;
-      if (key === 'rule' && !this.config.providers.rule.enabled) continue;
+      if (_key === 'rag' && !this.config.providers.rag.enabled) continue;
+      if (_key === 'ml' && !this.config.providers.ml.enabled) continue;
+      if (_key === 'rule' && !this.config.providers.rule.enabled) continue;
 
       providers.push(provider);
     }
@@ -549,8 +549,8 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
     request: UnifiedQueryRequest,
     response: UnifiedQueryResponse
   ): void {
-    const key = this.getCacheKey(request);
-    this.cache.set(key, { response, timestamp: Date.now() });
+    const cacheKey = this.getCacheKey(request);
+    this.cache.set(cacheKey, { response, timestamp: Date.now() });
 
     // 캐시 크기 제한
     if (this.cache.size > this.config.cache.maxSize) {
@@ -572,7 +572,7 @@ export class GoogleAiUnifiedEngine implements IUnifiedEngine {
     }> = [];
 
     // Provider 상태 확인 (간단한 테스트 쿼리)
-    for (const [key, provider] of this.providers.entries()) {
+    for (const [_key, provider] of this.providers.entries()) {
       const startTime = Date.now();
       try {
         await provider.getContext('health check', { timeoutMs: 5000 });

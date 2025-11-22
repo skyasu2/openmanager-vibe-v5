@@ -67,7 +67,7 @@ export class GoogleAIMock extends MockBase {
     const lowerPrompt = prompt.toLowerCase();
 
     // 시나리오에서 매칭되는 응답 찾기
-    for (const [key, scenario] of Object.entries(scenarios.googleAI)) {
+    for (const [_key, scenario] of Object.entries(scenarios.googleAI)) {
       const hasKeyword = scenario.keywords.some((keyword) =>
         lowerPrompt.includes(keyword.toLowerCase())
       );
@@ -76,7 +76,10 @@ export class GoogleAIMock extends MockBase {
         const randomIndex = Math.floor(
           Math.random() * scenario.responses.length
         );
-        return scenario.responses[randomIndex] ?? this.generateDefaultResponse(prompt);
+        return (
+          scenario.responses[randomIndex] ??
+          this.generateDefaultResponse(prompt)
+        );
       }
     }
 

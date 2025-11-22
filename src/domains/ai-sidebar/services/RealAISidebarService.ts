@@ -41,7 +41,7 @@ export class RealAISidebarService {
       timeoutMs: number;
     },
     signal: AbortSignal
-  ): Promise<any> {
+  ): Promise<unknown> {
     // V3에서는 API 경로가 상대 경로(/api/ai/query)이므로 baseUrl을 사용하지 않음
     const response = await fetch('/api/ai/query', {
       method: 'POST',

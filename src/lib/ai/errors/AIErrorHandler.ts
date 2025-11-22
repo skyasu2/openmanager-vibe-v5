@@ -104,16 +104,34 @@ export class AIError extends Error {
  * 🛡️ AI Error Handler
  */
 export class AIErrorHandler {
+  private static toErrorMessage(error: unknown): string {
+    if (typeof error === 'string') return error;
+    if (error instanceof Error) return error.message;
+    if (typeof error === 'object' && error !== null) {
+      try {
+        return JSON.stringify(error);
+      } catch {
+        return '[unserializable error object]';
+      }
+    }
+    if (
+      typeof error === 'number' ||
+      typeof error === 'boolean' ||
+      typeof error === 'bigint' ||
+      typeof error === 'symbol'
+    ) {
+      return String(error);
+    }
+    return 'Unknown error';
+  }
+
   /**
    * 🔍 Detect Error Type from Error Object
    */
   static detectErrorType(error: unknown, provider?: string): AIErrorType {
     if (!error) return AIErrorType.UNKNOWN;
 
-    const errorMessage =
-      error instanceof Error
-        ? error.message.toLowerCase()
-        : String(error).toLowerCase();
+    const errorMessage = this.toErrorMessage(error).toLowerCase();
     const errorName = error instanceof Error ? error.name.toLowerCase() : '';
 
     // Rate Limit Detection
@@ -287,8 +305,8 @@ export class AIErrorHandler {
     const {
       maxRetries = 3,
       baseDelay = 1000,
-      maxDelay = 10000,
-      exponentialFactor = 2,
+      maxDelay: _maxDelay = 10000,
+      exponentialFactor: _exponentialFactor = 2,
       onRetry,
     } = options;
 
@@ -303,7 +321,7 @@ export class AIErrorHandler {
 
         lastError = {
           type: errorType,
-          message: error instanceof Error ? error.message : String(error),
+          message: this.toErrorMessage(error),
           originalError: error,
           retryable,
           provider,
@@ -316,11 +334,6 @@ export class AIErrorHandler {
         }
 
         // Calculate delay with exponential backoff
-        const delay = Math.min(
-          baseDelay * Math.pow(exponentialFactor, attempt),
-          maxDelay
-        );
-
         // Special handling for specific error types
         const actualDelay = this.getRetryDelay(errorType, attempt, baseDelay);
 
@@ -359,7 +372,7 @@ export class AIErrorHandler {
 
     return new AIError({
       type: errorType,
-      message: error instanceof Error ? error.message : String(error),
+      message: this.toErrorMessage(error),
       originalError: error,
       retryable,
       provider,
@@ -379,11 +392,13 @@ export class AIErrorHandler {
             retryable: error.retryable,
             provider: error.provider,
             timestamp: error.timestamp,
+            originalError: error.originalError,
           }
         : error;
 
     console.error(`🚨 AI Error ${context ? `[${context}]` : ''}:`, {
       ...errorInfo,
+      message: this.toErrorMessage(errorInfo.message),
       time: new Date(errorInfo.timestamp).toISOString(),
     });
   }

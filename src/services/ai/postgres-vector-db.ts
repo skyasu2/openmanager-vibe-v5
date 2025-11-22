@@ -108,7 +108,7 @@ export class PostgresVectorDB {
 
     try {
       // 테이블 존재 여부 확인
-      const { data, error } = await supabase
+      const { data: _data, error } = await supabase
         .from(this.tableName)
         .select('id')
         .limit(1);
@@ -250,9 +250,7 @@ export class PostgresVectorDB {
     queryEmbedding: number[],
     options: SearchOptions = {}
   ): Promise<SearchResult[]> {
-    console.warn(
-      '⚠️ pgvector 네이티브 함수 실패, 2단계 최적화 폴백 검색 시작'
-    );
+    console.warn('⚠️ pgvector 네이티브 함수 실패, 2단계 최적화 폴백 검색 시작');
 
     const {
       topK = 10,
@@ -277,7 +275,8 @@ export class PostgresVectorDB {
         embedQuery = embedQuery.contains('metadata', metadata_filter);
       }
 
-      const { data: embedData, error: embedError } = await embedQuery.limit(100);
+      const { data: embedData, error: embedError } =
+        await embedQuery.limit(100);
 
       if (embedError || !embedData || embedData.length === 0) {
         console.error('1단계 조회 실패:', embedError?.message);
@@ -343,8 +342,8 @@ export class PostgresVectorDB {
       console.log(`🎯 2단계 대상: ${topCandidates.length}개 문서 선별`);
 
       // ===== 2단계: 상위 K개에 대해서만 content + metadata 조회 =====
-      const selectedIds = topCandidates.map(c => c.id);
-      
+      const selectedIds = topCandidates.map((c) => c.id);
+
       const { data: contentData, error: contentError } = await supabase
         .from(this.tableName)
         .select('id, content, metadata')
@@ -359,9 +358,9 @@ export class PostgresVectorDB {
 
       // ===== 결과 조합 및 반환 =====
       const results: SearchResult[] = [];
-      
+
       for (const candidate of topCandidates) {
-        const contentDoc = contentData.find(doc => doc.id === candidate.id);
+        const contentDoc = contentData.find((doc) => doc.id === candidate.id);
         if (contentDoc) {
           results.push({
             id: candidate.id,
@@ -374,7 +373,6 @@ export class PostgresVectorDB {
 
       console.log(`🎉 폴백 검색 완료: ${results.length}개 결과 반환`);
       return results;
-
     } catch (error) {
       console.error('❌ 폴백 검색 전체 실패:', error);
       return [];
@@ -428,12 +426,14 @@ export class PostgresVectorDB {
       limit?: number;
       category?: string;
     } = {}
-  ): Promise<Array<{
-    id: string;
-    content: string;
-    metadata?: DocumentMetadata;
-    score?: number;
-  }>> {
+  ): Promise<
+    Array<{
+      id: string;
+      content: string;
+      metadata?: DocumentMetadata;
+      score?: number;
+    }>
+  > {
     try {
       await this._initialize();
 
@@ -446,8 +446,10 @@ export class PostgresVectorDB {
       // PostgreSQL Full-Text Search 쿼리 구성
       // to_tsvector를 사용하여 텍스트를 tsvector로 변환하고
       // to_tsquery로 검색 조건을 만들어 검색
-      const tsquery = keywords.map(keyword => keyword.replace(/[^\w가-힣]/g, '')).join(' | ');
-      
+      const tsquery = keywords
+        .map((keyword) => keyword.replace(/[^\w가-힣]/g, ''))
+        .join(' | ');
+
       let query = supabase
         .from(this.tableName)
         .select('id, content, metadata')
@@ -465,7 +467,7 @@ export class PostgresVectorDB {
 
       if (error) {
         console.error('키워드 검색 오류:', error);
-        
+
         // Fallback: ILIKE 연산자로 부분 문자열 검색
         return await this.fallbackKeywordSearch(keywords, options);
       }
@@ -479,7 +481,7 @@ export class PostgresVectorDB {
         id: row.id,
         content: row.content,
         metadata: row.metadata,
-        score: 0.8 - (index * 0.1), // 순서에 따라 점수 부여
+        score: 0.8 - index * 0.1, // 순서에 따라 점수 부여
       }));
     } catch (error) {
       console.error('❌ 키워드 검색 실패:', error);
@@ -496,23 +498,25 @@ export class PostgresVectorDB {
       limit?: number;
       category?: string;
     } = {}
-  ): Promise<Array<{
-    id: string;
-    content: string;
-    metadata?: DocumentMetadata;
-    score?: number;
-  }>> {
+  ): Promise<
+    Array<{
+      id: string;
+      content: string;
+      metadata?: DocumentMetadata;
+      score?: number;
+    }>
+  > {
     try {
       const { limit = 5, category } = options;
 
       // ILIKE 조건 구성 (대소문자 무시 부분 검색)
-      let query = supabase
-        .from(this.tableName)
-        .select('id, content, metadata');
+      let query = supabase.from(this.tableName).select('id, content, metadata');
 
       // 각 키워드에 대해 OR 조건으로 검색
       if (keywords.length > 0) {
-        const conditions = keywords.map(keyword => `content.ilike.%${keyword}%`);
+        const conditions = keywords.map(
+          (keyword) => `content.ilike.%${keyword}%`
+        );
         query = query.or(conditions.join(','));
       }
 
@@ -531,19 +535,21 @@ export class PostgresVectorDB {
       }
 
       // 매칭된 키워드 수에 따라 점수 계산
-      return data.map(row => {
-        const content = (row.content || '').toLowerCase();
-        const matchCount = keywords.filter(keyword => 
-          content.includes(keyword.toLowerCase())
-        ).length;
-        
-        return {
-          id: row.id,
-          content: row.content,
-          metadata: row.metadata,
-          score: 0.5 + (matchCount / keywords.length) * 0.3, // 0.5 ~ 0.8
-        };
-      }).sort((a, b) => (b.score || 0) - (a.score || 0));
+      return data
+        .map((row) => {
+          const content = (row.content || '').toLowerCase();
+          const matchCount = keywords.filter((keyword) =>
+            content.includes(keyword.toLowerCase())
+          ).length;
+
+          return {
+            id: row.id,
+            content: row.content,
+            metadata: row.metadata,
+            score: 0.5 + (matchCount / keywords.length) * 0.3, // 0.5 ~ 0.8
+          };
+        })
+        .sort((a, b) => (b.score || 0) - (a.score || 0));
     } catch (error) {
       console.error('❌ 폴백 키워드 검색 실패:', error);
       return [];

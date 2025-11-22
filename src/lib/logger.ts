@@ -63,7 +63,7 @@ class DevLogger {
     const levelIcon = this.getLevelIcon(level);
     const categoryIcon = this.getCategoryIcon(category);
 
-    let formatted = `${levelIcon} [${category.toUpperCase()}] ${message}`;
+    let formatted = `${timestamp} ${levelIcon} ${categoryIcon} [${category.toUpperCase()}] ${message}`;
 
     if (data) {
       formatted += `\n${JSON.stringify(data, null, 2)}`;
@@ -204,11 +204,7 @@ class DevLogger {
     error?: unknown
   ): void {
     const safeError = error ? createSafeError(error) : undefined;
-    this.warn(
-      category,
-      message,
-      { details, error: safeError?.message }
-    );
+    this.warn(category, message, { details, error: safeError?.message });
   }
 
   // AI 관련 로깅

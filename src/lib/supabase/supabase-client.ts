@@ -34,7 +34,7 @@ export function getSupabaseClient(): SupabaseClient {
  * - 메서드는 this 바인딩 유지를 위해 bind() 처리
  */
 export const supabase = new Proxy({} as SupabaseClient, {
-  get(_target, prop, receiver) {
+  get(_target, prop, _receiver) {
     const client = getSingletonClient();
     const value = client[prop as keyof SupabaseClient];
 

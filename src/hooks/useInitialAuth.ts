@@ -2,14 +2,18 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { getCurrentUser, isGitHubAuthenticated, type AuthUser } from '@/lib/supabase-auth';
+import {
+  getCurrentUser,
+  isGitHubAuthenticated,
+  type AuthUser,
+} from '@/lib/supabase-auth';
 import { isVercel } from '@/env';
 
 // This logic is now inlined from the old vercel-env.ts
-const authRetryDelay = isVercel ? 5000 : 3000;
+const _authRetryDelay = isVercel ? 5000 : 3000;
 const initDelay = isVercel ? 300 : 100;
-const debugWithEnv = (message: string) => `[${isVercel ? 'Vercel' : 'Local'}] ${message}`;
-
+const debugWithEnv = (message: string) =>
+  `[${isVercel ? 'Vercel' : 'Local'}] ${message}`;
 
 // 초기화 상태 타입 정의
 export interface InitialAuthState {
@@ -18,7 +22,12 @@ export interface InitialAuthState {
   user: AuthUser | null;
   isGitHubConnected: boolean;
   error: string | null;
-  currentStep: 'init' | 'auth-check' | 'user-fetch' | 'github-check' | 'complete';
+  currentStep:
+    | 'init'
+    | 'auth-check'
+    | 'user-fetch'
+    | 'github-check'
+    | 'complete';
 }
 
 // 초기화 상태 초기값
@@ -45,28 +54,37 @@ export function useInitialAuth() {
 
   // 상태 업데이트 헬퍼
   const updateState = useCallback((updates: Partial<InitialAuthState>) => {
-    setState(prev => ({ ...prev, ...updates }));
+    setState((prev) => ({ ...prev, ...updates }));
   }, []);
 
   // 안전한 리다이렉트 헬퍼 (안정된 환경 감지)
-  const safeRedirect = useCallback((targetPath: string) => {
-    if (redirectRef.current || pathname === targetPath) {
-      console.log(debugWithEnv(`🚫 리다이렉트 스킵: 현재 경로(${pathname}) === 타겟(${targetPath}) 또는 이미 리다이렉트됨`));
-      return;
-    }
-    
-    redirectRef.current = true;
-    console.log(debugWithEnv(`🔄 안전한 리다이렉트: ${pathname} → ${targetPath}`));
-    
-    setTimeout(() => {
-      try {
-        router.replace(targetPath);
-      } catch (error) {
-        console.error(debugWithEnv('❌ 리다이렉트 실패'), error);
-        redirectRef.current = false;
+  const safeRedirect = useCallback(
+    (targetPath: string) => {
+      if (redirectRef.current || pathname === targetPath) {
+        console.log(
+          debugWithEnv(
+            `🚫 리다이렉트 스킵: 현재 경로(${pathname}) === 타겟(${targetPath}) 또는 이미 리다이렉트됨`
+          )
+        );
+        return;
       }
-    }, initDelay);
-  }, [pathname, router]);
+
+      redirectRef.current = true;
+      console.log(
+        debugWithEnv(`🔄 안전한 리다이렉트: ${pathname} → ${targetPath}`)
+      );
+
+      setTimeout(() => {
+        try {
+          router.replace(targetPath);
+        } catch (error) {
+          console.error(debugWithEnv('❌ 리다이렉트 실패'), error);
+          redirectRef.current = false;
+        }
+      }, initDelay);
+    },
+    [pathname, router]
+  );
 
   // 통합 초기화 프로세스
   const initializeAuth = useCallback(async () => {
@@ -76,10 +94,10 @@ export function useInitialAuth() {
     try {
       updateState({ currentStep: 'auth-check', isLoading: true });
       console.log(debugWithEnv('🔄 인증 상태 확인 중...'));
-      
+
       const [user, isGitHub] = await Promise.all([
         getCurrentUser(),
-        isGitHubAuthenticated()
+        isGitHubAuthenticated(),
       ]);
 
       console.log(debugWithEnv('📊 인증 결과'), {
@@ -89,11 +107,11 @@ export function useInitialAuth() {
         userEmail: user?.email,
         userId: user?.id,
         isGitHub,
-        currentPath: pathname
+        currentPath: pathname,
       });
 
       const isActuallyGitHubUser = isGitHub || user?.provider === 'github';
-      
+
       updateState({
         currentStep: 'complete',
         isLoading: false,
@@ -106,16 +124,19 @@ export function useInitialAuth() {
       console.log(debugWithEnv('🔧 GitHub 인증 상태 개선:'), {
         isGitHubFromSession: isGitHub,
         userProvider: user?.provider,
-        finalGitHubStatus: isActuallyGitHubUser
+        finalGitHubStatus: isActuallyGitHubUser,
       });
 
       if (!user) {
         console.log(debugWithEnv('🚫 인증되지 않음 - 로그인 페이지로 이동'));
         safeRedirect('/login');
       } else {
-        console.log(debugWithEnv('✅ 인증 성공'), user.name, `(${user.provider})`);
+        console.log(
+          debugWithEnv('✅ 인증 성공'),
+          user.name,
+          `(${user.provider})`
+        );
       }
-
     } catch (error) {
       console.error('Authentication initialization failed:', error);
       updateState({
@@ -132,15 +153,17 @@ export function useInitialAuth() {
 
   useEffect(() => {
     console.log(debugWithEnv('🔄 useInitialAuth 초기화 시작'));
-    
+
     const timeoutId = setTimeout(() => {
       if (initRef.current) {
-        console.log(debugWithEnv('🚫 useInitialAuth: 이미 초기화 중이므로 스킵'));
+        console.log(
+          debugWithEnv('🚫 useInitialAuth: 이미 초기화 중이므로 스킵')
+        );
         return;
       }
       void initializeAuth();
     }, initDelay);
-    
+
     return () => {
       clearTimeout(timeoutId);
       if (timeoutRef.current) {
@@ -149,7 +172,7 @@ export function useInitialAuth() {
       }
       console.log(debugWithEnv('🧹 useInitialAuth 타이머 정리 완료'));
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

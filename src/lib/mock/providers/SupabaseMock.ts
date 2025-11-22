@@ -58,7 +58,7 @@ export class SupabaseMock extends MockBase {
    */
   async signIn(
     email: string,
-    password: string
+    _password: string
   ): Promise<{ user: unknown; session: unknown }> {
     return this.execute('auth.signIn', async () => {
       const users = this.tables.get('users') || [];
@@ -224,7 +224,7 @@ class SupabaseQueryBuilder {
     };
   }
 
-  select(columns?: string): this {
+  select(_columns?: string): this {
     // 간단한 구현 - 컬럼 선택은 무시
     return this;
   }

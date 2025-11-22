@@ -1,8 +1,8 @@
 /**
  * 🔄 통합 데이터 서비스
- * 
+ *
  * 서버 모니터링과 AI 어시스턴트가 동일한 24시간 고정 데이터를 사용하도록 통합
- * 
+ *
  * ✅ 핵심 원칙:
  * - 단일 데이터 소스 (Single Source of Truth)
  * - 시간 동기화 (30초 순차 회전)
@@ -15,7 +15,7 @@ import type { EnhancedServerMetrics } from '../types/server';
 export interface UnifiedDataResponse {
   // 서버 모니터링용 데이터
   servers: EnhancedServerMetrics[];
-  
+
   // AI 분석용 메타데이터 (선택적 포함)
   aiContext?: {
     scenario: string;
@@ -26,7 +26,7 @@ export interface UnifiedDataResponse {
       predictedIssues?: string[];
     };
   };
-  
+
   // 데이터 출처 정보
   dataSource: {
     type: 'hourly-scenario';
@@ -42,7 +42,7 @@ export interface UnifiedDataResponse {
  */
 export class UnifiedDataService {
   private static instance: UnifiedDataService;
-  
+
   static getInstance(): UnifiedDataService {
     if (!UnifiedDataService.instance) {
       UnifiedDataService.instance = new UnifiedDataService();
@@ -54,7 +54,9 @@ export class UnifiedDataService {
    * 🔄 현재 시간 기준 통합 데이터 조회
    * @param includeAIMetadata AI 메타데이터 포함 여부 (기본값: false)
    */
-  async getCurrentData(includeAIMetadata: boolean = false): Promise<UnifiedDataResponse> {
+  async getCurrentData(
+    includeAIMetadata: boolean = false
+  ): Promise<UnifiedDataResponse> {
     try {
       // 1단계: 서버 모니터링 API 호출 (기존 24시간 회전 시스템 활용)
       const response = await fetch('/api/servers/all', {
@@ -83,11 +85,12 @@ export class UnifiedDataService {
         dataSource: {
           type: 'hourly-scenario',
           hour: new Date().getHours(),
-          segment: Math.floor((new Date().getMinutes() * 60 + new Date().getSeconds()) / 30),
+          segment: Math.floor(
+            (new Date().getMinutes() * 60 + new Date().getSeconds()) / 30
+          ),
           timestamp: new Date().toISOString(),
         },
       };
-
     } catch (error) {
       console.error('❌ 통합 데이터 조회 실패:', error);
       throw error;
@@ -100,15 +103,17 @@ export class UnifiedDataService {
    */
   private async generateAIContext(
     servers: EnhancedServerMetrics[],
-    dataSource: string
+    _dataSource: string
   ): Promise<UnifiedDataResponse['aiContext']> {
     const currentHour = new Date().getHours();
-    const currentTime = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+    const currentTime = new Date().toLocaleTimeString('ko-KR', {
+      hour12: false,
+    });
 
     // 서버 상태 분석
-    const criticalServers = servers.filter(s => s.status === 'critical');
-    const warningServers = servers.filter(s => s.status === 'warning');
-    const healthyServers = servers.filter(s => s.status === 'online'); // 🔧 수정: 'healthy' 제거 (타입 통합)
+    const criticalServers = servers.filter((s) => s.status === 'critical');
+    const warningServers = servers.filter((s) => s.status === 'warning');
+    const _healthyServers = servers.filter((s) => s.status === 'online'); // 🔧 수정: 'healthy' 제거 (타입 통합)
 
     // 시나리오 추론 (시간대별)
     let scenario = '정상 운영';
@@ -142,22 +147,25 @@ export class UnifiedDataService {
   /**
    * 🔍 장애 유형 추론
    */
-  private inferIncidentType(servers: EnhancedServerMetrics[], hour: number): string {
-    const criticalServers = servers.filter(s => s.status === 'critical');
-    
-    if (criticalServers.some(s => s.type === 'database')) {
+  private inferIncidentType(
+    servers: EnhancedServerMetrics[],
+    hour: number
+  ): string {
+    const criticalServers = servers.filter((s) => s.status === 'critical');
+
+    if (criticalServers.some((s) => s.type === 'database')) {
       return '데이터베이스 성능 저하';
     }
-    if (criticalServers.some(s => s.type === 'web')) {
+    if (criticalServers.some((s) => s.type === 'web')) {
       return '웹서버 응답 지연';
     }
-    if (criticalServers.some(s => s.type === 'api')) {
+    if (criticalServers.some((s) => s.type === 'api')) {
       return 'API 서비스 장애';
     }
     if (hour >= 0 && hour <= 5) {
       return '백업/유지보수 관련 장애';
     }
-    
+
     return '시스템 과부하';
   }
 
@@ -166,29 +174,40 @@ export class UnifiedDataService {
    */
   private analyzeCascadeRisk(servers: EnhancedServerMetrics[]): string[] {
     const risks: string[] = [];
-    const criticalServers = servers.filter(s => s.status === 'critical');
-    
-    if (criticalServers.some(s => s.type === 'database')) {
+    const criticalServers = servers.filter((s) => s.status === 'critical');
+
+    if (criticalServers.some((s) => s.type === 'database')) {
       risks.push('DB 장애로 인한 전체 서비스 영향 우려');
     }
-    if (criticalServers.some(s => s.name.includes('load') || (s.type && s.type === 'load-balancer'))) {
+    if (
+      criticalServers.some(
+        (s) => s.name.includes('load') || (s.type && s.type === 'load-balancer')
+      )
+    ) {
       risks.push('로드밸런서 장애로 인한 서비스 접근 불가');
     }
     if (criticalServers.length > 2) {
       risks.push('다중 서버 장애로 인한 시스템 전반 불안정');
     }
-    
+
     return risks;
   }
 
   /**
    * 🔮 예상 이슈 예측
    */
-  private predictUpcomingIssues(servers: EnhancedServerMetrics[], hour: number): string[] {
+  private predictUpcomingIssues(
+    servers: EnhancedServerMetrics[],
+    hour: number
+  ): string[] {
     const predictions: string[] = [];
-    const highCpuServers = servers.filter(s => (s.cpu_usage || s.cpu || 0) > 80);
-    const highMemoryServers = servers.filter(s => (s.memory_usage || s.memory || 0) > 85);
-    
+    const highCpuServers = servers.filter(
+      (s) => (s.cpu_usage || s.cpu || 0) > 80
+    );
+    const highMemoryServers = servers.filter(
+      (s) => (s.memory_usage || s.memory || 0) > 85
+    );
+
     if (highCpuServers.length > 0) {
       predictions.push('CPU 사용률 급증으로 인한 응답시간 지연 예상');
     }
@@ -198,7 +217,7 @@ export class UnifiedDataService {
     if (hour >= 8 && hour <= 10) {
       predictions.push('오전 피크 시간 대비 추가 리소스 필요');
     }
-    
+
     return predictions;
   }
 
@@ -238,6 +257,8 @@ export async function getCurrentAIContext(): Promise<UnifiedDataResponse> {
 }
 
 // 통합 데이터 조회 (용도에 따른 선택적 메타데이터)
-export async function getUnifiedData(includeAIMetadata: boolean = false): Promise<UnifiedDataResponse> {
+export async function getUnifiedData(
+  includeAIMetadata: boolean = false
+): Promise<UnifiedDataResponse> {
   return unifiedDataService.getCurrentData(includeAIMetadata);
 }

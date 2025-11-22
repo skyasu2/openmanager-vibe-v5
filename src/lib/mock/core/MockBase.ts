@@ -24,6 +24,7 @@ export abstract class MockBase<T = unknown> {
   protected stats: MockStats;
   protected logger: MockLogger;
   protected isEnabled: boolean = false;
+  protected _typeHolder?: T;
 
   constructor(name: string, options: MockOptions = {}) {
     this.options = {

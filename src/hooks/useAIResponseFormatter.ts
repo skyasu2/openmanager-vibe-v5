@@ -49,7 +49,7 @@ export const useAIResponseFormatter = () => {
   );
 
   // 🎯 키워드-아이콘 매핑 (메모화)
-  const keywordIcons = useMemo(
+  const _keywordIcons = useMemo(
     () => ({
       // 시스템 관련
       시스템: '🖥️',

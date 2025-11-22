@@ -541,7 +541,7 @@ class DataRetentionScheduler {
    * 🔧 일반 데이터 정리
    */
   private async cleanupGeneric(
-    policy: RetentionPolicy
+    _policy: RetentionPolicy
   ): Promise<{ itemsRemoved: number; sizeFreed: number }> {
     return { itemsRemoved: 0, sizeFreed: 0 };
   }
@@ -578,9 +578,9 @@ class DataRetentionScheduler {
       'memory' in (performance as ExtendedPerformance)
     ) {
       const memory = (performance as ExtendedPerformance).memory;
-      this.stats.memoryUsageMB = memory ? Math.round(
-        memory.usedJSHeapSize / 1024 / 1024
-      ) : 0;
+      this.stats.memoryUsageMB = memory
+        ? Math.round(memory.usedJSHeapSize / 1024 / 1024)
+        : 0;
     }
   }
 
@@ -690,12 +690,17 @@ export function resetDataRetentionScheduler(): void {
     instance: DataRetentionScheduler | null;
   };
 
-  const SchedulerWithInstance = DataRetentionScheduler as unknown as SchedulerClass;
+  const SchedulerWithInstance =
+    DataRetentionScheduler as unknown as SchedulerClass;
 
-  const instance = (SchedulerWithInstance as { instance: DataRetentionScheduler | null }).instance;
+  const instance = (
+    SchedulerWithInstance as { instance: DataRetentionScheduler | null }
+  ).instance;
   if (instance) {
     instance.shutdown();
-    (SchedulerWithInstance as { instance: DataRetentionScheduler | null }).instance = null;
+    (
+      SchedulerWithInstance as { instance: DataRetentionScheduler | null }
+    ).instance = null;
   }
 }
 

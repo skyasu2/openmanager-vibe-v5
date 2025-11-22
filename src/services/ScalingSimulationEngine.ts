@@ -174,7 +174,7 @@ export class ScalingSimulationEngine {
    * 📈 용량 계획 생성
    */
   generateCapacityPlan(timeframe: string = '24h'): CapacityPlan {
-    const currentTime = new Date();
+    const _currentTime = new Date();
     const recentEvents = this.scalingHistory.slice(-10);
 
     // 예측 로직 (단순화된 버전)

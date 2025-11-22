@@ -2,7 +2,6 @@
 
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { clearAuthData } from '@/lib/auth-state-manager';
 
@@ -33,7 +32,6 @@ export function useSession(): UseSessionReturn {
   const [status, setStatus] = useState<
     'loading' | 'authenticated' | 'unauthenticated'
   >('loading');
-  const router = useRouter();
 
   useEffect(() => {
     // 초기 세션 확인
@@ -53,28 +51,30 @@ export function useSession(): UseSessionReturn {
             if (guestUser && authType === 'guest') {
               try {
                 const guestUserData = JSON.parse(guestUser);
-            // 게스트 사용자를 Supabase User 형태로 변환
-            setUser({
-              id: guestUserData.id,
-              aud: 'guest',
-              email: guestUserData.email || null,
-              created_at: guestUserData.created_at || new Date().toISOString(),
-              updated_at: guestUserData.updated_at || new Date().toISOString(),
-              last_sign_in_at:
-                guestUserData.last_sign_in_at || new Date().toISOString(),
-              app_metadata: {
-                provider: 'guest',
-                providers: ['guest'],
-              },
-              user_metadata: {
-                name: guestUserData.name,
-                auth_type: 'guest',
-              },
-              identities: [],
-              factors: [],
-              role: 'authenticated',
-            } as User);
-            setStatus('authenticated');
+                // 게스트 사용자를 Supabase User 형태로 변환
+                setUser({
+                  id: guestUserData.id,
+                  aud: 'guest',
+                  email: guestUserData.email || null,
+                  created_at:
+                    guestUserData.created_at || new Date().toISOString(),
+                  updated_at:
+                    guestUserData.updated_at || new Date().toISOString(),
+                  last_sign_in_at:
+                    guestUserData.last_sign_in_at || new Date().toISOString(),
+                  app_metadata: {
+                    provider: 'guest',
+                    providers: ['guest'],
+                  },
+                  user_metadata: {
+                    name: guestUserData.name,
+                    auth_type: 'guest',
+                  },
+                  identities: [],
+                  factors: [],
+                  role: 'authenticated',
+                } as User);
+                setStatus('authenticated');
               } catch (parseError) {
                 console.warn('게스트 사용자 정보 JSON 파싱 실패:', parseError);
                 // localStorage에서 잘못된 데이터 제거
@@ -89,7 +89,10 @@ export function useSession(): UseSessionReturn {
               setStatus('unauthenticated');
             }
           } catch (error) {
-            console.warn('게스트 세션 확인 오류 (localStorage 접근 제한):', error);
+            console.warn(
+              '게스트 세션 확인 오류 (localStorage 접근 제한):',
+              error
+            );
             setUser(null);
             setStatus('unauthenticated');
           }
@@ -162,7 +165,7 @@ export function useSession(): UseSessionReturn {
 export async function signOut(options?: { callbackUrl?: string }) {
   try {
     console.log('🚪 Supabase 로그아웃 시작');
-    
+
     // Supabase 세션 종료 (핵심 동작)
     await supabase.auth.signOut();
 
@@ -173,16 +176,16 @@ export async function signOut(options?: { callbackUrl?: string }) {
         console.log('✅ AuthStateManager를 통한 세션 정리 완료');
       } catch (error) {
         console.warn('⚠️ AuthStateManager 정리 실패 (계속 진행):', error);
-        
+
         // Fallback: 기본 localStorage 정리
-        ['auth_session_id', 'auth_type', 'auth_user'].forEach(key => {
+        ['auth_session_id', 'auth_type', 'auth_user'].forEach((key) => {
           localStorage.removeItem(key);
         });
       }
     }
 
     console.log('✅ 로그아웃 완료');
-    
+
     // 페이지 이동
     if (typeof window !== 'undefined') {
       window.location.href = options?.callbackUrl || '/login';

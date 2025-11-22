@@ -270,46 +270,46 @@ const useSimulationProgress = ({
 
     intervalRef.current = setInterval(() => {
       void (async () => {
-      // 페이지가 숨겨져 있으면 폴링 건너뛰기
-      if (!isVisibleRef.current && pauseWhenHidden) {
-        setIsPaused(true);
-        return;
-      }
-
-      setIsPaused(false);
-
-      try {
-        const newData = await fetchSimulationData();
-
-        // 데이터가 변경된 경우에만 업데이트
-        if (
-          !lastDataRef.current ||
-          lastDataRef.current.currentStep !== newData?.currentStep ||
-          lastDataRef.current.progress !== newData?.progress ||
-          lastDataRef.current.stepDescription !== newData?.stepDescription
-        ) {
-          setData((prevData) => {
-            lastDataRef.current = newData;
-            return newData;
-          });
+        // 페이지가 숨겨져 있으면 폴링 건너뛰기
+        if (!isVisibleRef.current && pauseWhenHidden) {
+          setIsPaused(true);
+          return;
         }
 
-        setError(null);
-        retryCountRef.current = 0;
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : '폴링 중 오류 발생';
-        setError(errorMessage);
+        setIsPaused(false);
 
-        // 연속 실패시 폴링 중단
-        if (retryCountRef.current >= maxRetries) {
-          console.warn('⚠️ 최대 재시도 횟수 초과. 폴링을 중단합니다.');
-          stopPolling();
-        } else {
-          retryCountRef.current += 1;
+        try {
+          const newData = await fetchSimulationData();
+
+          // 데이터가 변경된 경우에만 업데이트
+          if (
+            !lastDataRef.current ||
+            lastDataRef.current.currentStep !== newData?.currentStep ||
+            lastDataRef.current.progress !== newData?.progress ||
+            lastDataRef.current.stepDescription !== newData?.stepDescription
+          ) {
+            setData((_prevData) => {
+              lastDataRef.current = newData;
+              return newData;
+            });
+          }
+
+          setError(null);
+          retryCountRef.current = 0;
+        } catch (err) {
+          const errorMessage =
+            err instanceof Error ? err.message : '폴링 중 오류 발생';
+          setError(errorMessage);
+
+          // 연속 실패시 폴링 중단
+          if (retryCountRef.current >= maxRetries) {
+            console.warn('⚠️ 최대 재시도 횟수 초과. 폴링을 중단합니다.');
+            stopPolling();
+          } else {
+            retryCountRef.current += 1;
+          }
         }
-      }
-    })();
+      })();
     }, pollInterval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -387,7 +387,7 @@ const useSimulationProgress = ({
       document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [autoStart, pauseWhenHidden, startPolling, stopPolling]);
 
-  const resetSimulation = useCallback(() => {
+  const _resetSimulation = useCallback(() => {
     setData((prev) => {
       if (!prev) return null;
       return {

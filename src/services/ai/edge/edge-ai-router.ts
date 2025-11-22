@@ -15,7 +15,6 @@ import type {
   DistributedResponse,
   AIServiceType,
   ServiceHealth,
-  ThinkingStep,
 } from '../interfaces/distributed-ai.interface';
 
 import {
@@ -26,8 +25,6 @@ import {
 import { edgeCache } from './edge-cache';
 
 import { distributedErrorHandler } from '../errors/distributed-error-handler';
-import { unifiedResponseFormatter } from '../formatters/unified-response-formatter';
-
 // Node.js Runtime 사용 (안정성 우선)
 // Edge Runtime 제거: Vercel 경고 해결 및 안정성 확보
 export const preferredRegion = 'icn1'; // 서울 리전

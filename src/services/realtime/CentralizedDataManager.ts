@@ -57,7 +57,7 @@ class CentralizedDataManager {
     id: string,
     callback: UpdateCallback<T>,
     dataType: DataType,
-    options?: { priority?: number }
+    _options?: { priority?: number }
   ): () => void {
     const subscriber: Subscriber = {
       id,

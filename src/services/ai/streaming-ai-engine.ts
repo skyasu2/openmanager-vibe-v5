@@ -90,18 +90,18 @@ export class StreamingAIEngine {
 
     // Metrics: Determine complexity (simple for streaming, as it's optimized for speed)
     const complexity = ComplexityLevel.SIMPLE;
-    let cacheHit = false;
-    let success = true;
+    let _cacheHit = false;
+    let _success = true;
     let response: QueryResponse | null = null;
 
     try {
       // 1. 즉시 캐시 확인 (< 1ms)
       const cached = await this.getInstantCache(request);
       if (cached) {
-        cacheHit = true;
+        _cacheHit = true;
         this.updateMetrics('cache_hit', performance.now() - startTime);
         response = cached;
-        
+
         // Record metrics for cache hit
         recordQueryMetrics({
           engineType: 'performance-optimized',
@@ -112,17 +112,17 @@ export class StreamingAIEngine {
           cacheHit: true,
           timestamp: Date.now(),
         });
-        
+
         return cached;
       }
 
       // 2. 예측적 응답 확인 (< 5ms)
       const predicted = this.getPredictiveResponse(request);
       if (predicted) {
-        cacheHit = true;
+        _cacheHit = true;
         this.updateMetrics('predictive_hit', performance.now() - startTime);
         response = predicted;
-        
+
         // Record metrics for predictive hit
         recordQueryMetrics({
           engineType: 'performance-optimized',
@@ -133,18 +133,22 @@ export class StreamingAIEngine {
           cacheHit: true,
           timestamp: Date.now(),
         });
-        
+
         return predicted;
       }
 
       // 3. 스트리밍 처리 시작
       if (this.config.enableStreaming) {
-        response = await this.processStreamingQuery(request, streamId, startTime);
+        response = await this.processStreamingQuery(
+          request,
+          streamId,
+          startTime
+        );
       } else {
         // 4. 병렬 처리 폴백
         response = await this.processParallelQuery(request, startTime);
       }
-      
+
       // Record successful metrics
       recordQueryMetrics({
         engineType: 'performance-optimized',
@@ -155,13 +159,13 @@ export class StreamingAIEngine {
         cacheHit: false,
         timestamp: Date.now(),
       });
-      
+
       return response;
     } catch (error) {
-      success = false;
+      _success = false;
       aiLogger.error('StreamingAIEngine 오류', error);
       const fallbackResponse = this.createFallbackResponse(request, startTime);
-      
+
       // Record error metrics
       recordQueryMetrics({
         engineType: 'performance-optimized',
@@ -173,7 +177,7 @@ export class StreamingAIEngine {
         error: AIErrorType.UNKNOWN,
         timestamp: Date.now(),
       });
-      
+
       return fallbackResponse;
     }
   }

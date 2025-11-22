@@ -115,7 +115,10 @@ export class KoreanNLPProvider implements IContextProvider {
   /**
    * 메인 엔트리 포인트: Korean NLP 분석 컨텍스트 제공
    */
-  async getContext(query: string, options?: ProviderOptions): Promise<ProviderContext> {
+  async getContext(
+    query: string,
+    _options?: ProviderOptions
+  ): Promise<ProviderContext> {
     const cacheKey = this.getCacheKey(query);
     const cached = this.getFromCache(cacheKey);
 
@@ -153,9 +156,9 @@ export class KoreanNLPProvider implements IContextProvider {
     try {
       const response = await fetch(this.gcpEndpoint, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'Origin': 'https://openmanager-vibe-v5.vercel.app' // Server-side origin
+          Origin: 'https://openmanager-vibe-v5.vercel.app', // Server-side origin
         },
         body: JSON.stringify(request),
         signal: AbortSignal.timeout(15000), // 15초 타임아웃 (NLP는 더 오래 걸림)
@@ -164,24 +167,26 @@ export class KoreanNLPProvider implements IContextProvider {
       if (!response.ok) {
         // 403 CORS 오류는 무시하고 빈 결과 반환 (graceful degradation)
         if (response.status === 403) {
-          console.warn('[KoreanNLPProvider] CORS 403 - returning empty result (graceful degradation)');
+          console.warn(
+            '[KoreanNLPProvider] CORS 403 - returning empty result (graceful degradation)'
+          );
           const emptyRuleData: RuleData = {
             keywords: [],
             entities: [],
             intent: {
               category: 'unknown',
-              confidence: 0
+              confidence: 0,
             },
             domainTerms: [],
-            normalizedQuery: ''
+            normalizedQuery: '',
           };
           return {
             type: 'rule',
             data: emptyRuleData,
             metadata: {
               source: 'korean-nlp-unavailable',
-              cached: false
-            }
+              cached: false,
+            },
           };
         }
         throw new Error(`Korean NLP API error: ${response.status}`);
@@ -244,12 +249,14 @@ export class KoreanNLPProvider implements IContextProvider {
    */
   private extractKeywords(result: KoreanNLPResponse): string[] {
     const keywords = result.data.tokens
-      .filter(token => {
+      .filter((token) => {
         // 명사(N*), 동사(V*), 형용사(A*) 중심
         const pos = token.pos;
-        return pos.startsWith('N') || pos.startsWith('V') || pos.startsWith('A');
+        return (
+          pos.startsWith('N') || pos.startsWith('V') || pos.startsWith('A')
+        );
       })
-      .map(token => token.surface);
+      .map((token) => token.surface);
 
     // 중복 제거 및 빈도순 정렬 (간단한 구현)
     return Array.from(new Set(keywords)).slice(0, 10);
@@ -263,7 +270,7 @@ export class KoreanNLPProvider implements IContextProvider {
     value: string;
     confidence: number;
   }> {
-    return result.data.entities.map(entity => ({
+    return result.data.entities.map((entity) => ({
       type: entity.type,
       value: entity.text,
       confidence: entity.confidence,
@@ -289,7 +296,7 @@ export class KoreanNLPProvider implements IContextProvider {
    * 도메인 용어 추출 (서버 모니터링 특화)
    */
   private extractDomainTerms(result: KoreanNLPResponse): string[] {
-    return result.data.domain_terms.map(term => {
+    return result.data.domain_terms.map((term) => {
       // normalized가 있으면 사용, 없으면 원본 term
       return term.normalized || term.term;
     });
@@ -336,7 +343,9 @@ export class KoreanNLPProvider implements IContextProvider {
   /**
    * 빈 컨텍스트 반환 (에러 또는 데이터 부족 시)
    */
-  private getEmptyContext(reason: 'query_too_short' | 'api_error'): ProviderContext {
+  private getEmptyContext(
+    reason: 'query_too_short' | 'api_error'
+  ): ProviderContext {
     return {
       type: 'rule',
       data: {

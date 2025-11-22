@@ -120,12 +120,6 @@ export class AIAnalyzer {
     let anomalyScore = 0;
 
     // Check for unusual patterns
-    const metrics = [
-      server.node_cpu_usage_percent,
-      server.node_memory_usage_percent,
-      server.node_disk_usage_percent,
-    ];
-
     // Look for extreme values or unusual combinations
     if (
       server.node_cpu_usage_percent > 95 &&

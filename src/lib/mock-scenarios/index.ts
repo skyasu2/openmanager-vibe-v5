@@ -20,7 +20,6 @@ import {
   BUSINESS_CONTEXT_CASES,
   COMPLEX_MIXED_CASES,
   EDGE_CASES,
-  generateRandomKoreanQuery,
 } from './korean-nlp-scenarios';
 
 import {

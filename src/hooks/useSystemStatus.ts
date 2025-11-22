@@ -31,7 +31,7 @@ export function useSystemStatus(): UseSystemStatusReturn {
   const [error, setError] = useState<string | null>(null);
   const [lastFocusRefresh, setLastFocusRefresh] = useState<number>(0);
 
-  const fetchStatus = useCallback(async () => {
+  const _fetchStatus = useCallback(async () => {
     try {
       setError(null);
 
@@ -85,7 +85,8 @@ export function useSystemStatus(): UseSystemStatusReturn {
       setStatus(data);
       setError(null);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '시스템 상태 조회 실패';
+      const errorMessage =
+        err instanceof Error ? err.message : '시스템 상태 조회 실패';
       setError(errorMessage);
       console.error('시스템 상태 조회 실패:', err);
     } finally {
@@ -140,7 +141,8 @@ export function useSystemStatus(): UseSystemStatusReturn {
         if (err instanceof Error && err.name === 'AbortError') {
           return;
         }
-        const errorMessage = err instanceof Error ? err.message : '시스템 상태 조회 실패';
+        const errorMessage =
+          err instanceof Error ? err.message : '시스템 상태 조회 실패';
         setError(errorMessage);
         console.error('시스템 상태 조회 실패:', err);
       } finally {
@@ -190,7 +192,8 @@ export function useSystemStatus(): UseSystemStatusReturn {
               if (err instanceof Error && err.name === 'AbortError') {
                 return;
               }
-              const errorMessage = err instanceof Error ? err.message : '시스템 상태 조회 실패';
+              const errorMessage =
+                err instanceof Error ? err.message : '시스템 상태 조회 실패';
               setError(errorMessage);
               console.error('시스템 상태 조회 실패:', err);
             } finally {

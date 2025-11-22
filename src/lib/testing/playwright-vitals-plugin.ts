@@ -106,7 +106,7 @@ export const PlaywrightVitals = {
   },
 
   // ⏱️ 개별 E2E 테스트 시작
-  startTest: (testName: string, page?: Page) => {
+  startTest: (testName: string, _page?: Page) => {
     playwrightState.testStartTime = performance.now();
     playwrightState.currentTestName = testName;
 
@@ -119,7 +119,7 @@ export const PlaywrightVitals = {
   },
 
   // 📄 페이지 네비게이션 시작
-  startNavigation: (page: Page, url: string) => {
+  startNavigation: (_page: Page, url: string) => {
     const navigationKey = `navigation-${url}`;
     universalVitals.startMeasurement(navigationKey, 'web-performance', {
       url,
@@ -486,7 +486,7 @@ export function setupPlaywrightVitals(
   const {
     suiteName = 'playwright-suite',
     browserName = 'chromium',
-    collectWebVitals = true,
+    collectWebVitals: _collectWebVitals = true,
     collectBrowserMetrics = true,
     reportEndpoint,
   } = options;

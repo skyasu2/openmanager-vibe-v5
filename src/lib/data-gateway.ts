@@ -1,11 +1,11 @@
 /**
  * 🎯 통합 데이터 게이트웨이
- * 
+ *
  * 목적: 모든 데이터 소스에 대한 단일 진입점 제공
  * - StaticDataLoader (더미 데이터)
  * - Google AI API (자연어 처리)
  * - Supabase (RAG + 대화 이력)
- * 
+ *
  * 장점:
  * - 데이터 흐름 추적 용이
  * - 로깅 및 에러 처리 중앙화
@@ -52,7 +52,7 @@ export class DataGateway {
    */
   async query<T>(request: DataRequest): Promise<DataResponse<T>> {
     const startTime = Date.now();
-    
+
     // 요청 로깅
     this.logRequest(request);
 
@@ -111,7 +111,7 @@ export class DataGateway {
   /**
    * AI 쿼리 (향후 구현)
    */
-  private async queryAI<T>(request: DataRequest): Promise<T> {
+  private async queryAI<T>(_request: DataRequest): Promise<T> {
     // TODO: AI 엔진 통합
     throw new Error('AI query not implemented yet');
   }
@@ -119,7 +119,7 @@ export class DataGateway {
   /**
    * 데이터베이스 쿼리 (향후 구현)
    */
-  private async queryDatabase<T>(request: DataRequest): Promise<T> {
+  private async queryDatabase<T>(_request: DataRequest): Promise<T> {
     // TODO: Supabase 통합
     throw new Error('Database query not implemented yet');
   }
@@ -145,23 +145,25 @@ export class DataGateway {
   getStats() {
     const now = Date.now();
     const last5min = this.requestLog.filter(
-      log => now - log.timestamp < 5 * 60 * 1000
+      (log) => now - log.timestamp < 5 * 60 * 1000
     );
 
     return {
       totalRequests: this.requestLog.length,
       last5minRequests: last5min.length,
       bySource: {
-        static: last5min.filter(l => l.request.type === 'static').length,
-        ai: last5min.filter(l => l.request.type === 'ai').length,
-        database: last5min.filter(l => l.request.type === 'database').length,
+        static: last5min.filter((l) => l.request.type === 'static').length,
+        ai: last5min.filter((l) => l.request.type === 'ai').length,
+        database: last5min.filter((l) => l.request.type === 'database').length,
       },
     };
   }
 }
 
 // 편의 함수
-export async function queryData<T>(request: DataRequest): Promise<DataResponse<T>> {
+export async function queryData<T>(
+  request: DataRequest
+): Promise<DataResponse<T>> {
   return DataGateway.getInstance().query<T>(request);
 }
 
@@ -174,7 +176,9 @@ export async function getServers(): Promise<EnhancedServerMetrics[]> {
   return response.data;
 }
 
-export async function getServerById(id: string): Promise<EnhancedServerMetrics | null> {
+export async function getServerById(
+  id: string
+): Promise<EnhancedServerMetrics | null> {
   const response = await queryData<EnhancedServerMetrics | null>({
     type: 'static',
     operation: 'getServerById',

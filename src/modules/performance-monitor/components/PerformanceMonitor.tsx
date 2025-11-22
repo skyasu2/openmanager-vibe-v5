@@ -19,7 +19,7 @@ import {
 } from 'chart.js';
 import { Line, Doughnut } from 'react-chartjs-2';
 import { usePerformanceMetrics } from '../hooks/usePerformanceMetrics';
-import { Alert as AlertType, PerformanceMetric } from '../types/performance';
+import { Alert as AlertType } from '../types/performance';
 
 // Register Chart.js components
 ChartJS.register(
@@ -31,7 +31,6 @@ ChartJS.register(
   Tooltip,
   Legend,
   ArcElement
-
 );
 interface PerformanceMonitorProps {
   updateInterval?: number;

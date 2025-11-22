@@ -40,7 +40,7 @@ const defaultSections = {
 
 export const useDashboardToggleStore = create<DashboardToggleState>()(
   persist(
-    (set, get) => ({
+    (set, _get) => ({
       sections: defaultSections,
 
       toggleSection: (sectionKey) => {

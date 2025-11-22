@@ -48,7 +48,10 @@ export class PromptBuilder {
     }
 
     // 1. 컨텍스트 우선순위 정렬
-    const prioritizedContexts = this.prioritizeContexts(params.contexts, template.priority);
+    const prioritizedContexts = this.prioritizeContexts(
+      params.contexts,
+      template.priority
+    );
 
     // 2. 시스템 instruction 생성
     const systemInstruction = this.applyTemplate(template.systemTemplate, {
@@ -56,10 +59,16 @@ export class PromptBuilder {
     });
 
     // 3. 사용자 메시지 생성 (컨텍스트 + 쿼리)
-    const userMessage = this.buildUserMessage(template.userTemplate, params.query, prioritizedContexts);
+    const userMessage = this.buildUserMessage(
+      template.userTemplate,
+      params.query,
+      prioritizedContexts
+    );
 
     // 4. 토큰 예상
-    const estimatedTokens = this.estimateTokens(systemInstruction + userMessage);
+    const estimatedTokens = this.estimateTokens(
+      systemInstruction + userMessage
+    );
 
     // 5. 토큰 제한 초과 시 truncation
     const maxTokens = template.maxTokens || this.defaultMaxTokens;
@@ -72,7 +81,9 @@ export class PromptBuilder {
       return {
         systemInstruction,
         userMessage: truncatedUserMessage,
-        estimatedTokens: this.estimateTokens(systemInstruction + truncatedUserMessage),
+        estimatedTokens: this.estimateTokens(
+          systemInstruction + truncatedUserMessage
+        ),
       };
     }
 
@@ -252,7 +263,7 @@ export class PromptBuilder {
       },
     ];
 
-    return new Map(templates.map(t => [t.scenario, t]));
+    return new Map(templates.map((t) => [t.scenario, t]));
   }
 
   /**
@@ -262,7 +273,7 @@ export class PromptBuilder {
    */
   private prioritizeContexts(
     contexts: ProviderContexts,
-    priority: ContextPriority[]
+    _priority: ContextPriority[]
   ): ProviderContexts {
     // 현재는 단순히 반환 (향후 우선순위 기반 정렬 구현 가능)
     // 예: priority = ['high', 'medium'] → 'low' 컨텍스트는 제외
@@ -299,7 +310,9 @@ export class PromptBuilder {
 
       if (ragData.documents && ragData.documents.length > 0) {
         ragData.documents.forEach((doc, idx) => {
-          parts.push(`### 문서 ${idx + 1} (유사도: ${(doc.similarity * 100).toFixed(1)}%)\n`);
+          parts.push(
+            `### 문서 ${idx + 1} (유사도: ${(doc.similarity * 100).toFixed(1)}%)\n`
+          );
           parts.push(`**출처**: ${doc.source}\n`);
           parts.push(`**내용**:\n${doc.content}\n\n`);
         });
@@ -315,7 +328,7 @@ export class PromptBuilder {
 
       if (mlData.anomalies && mlData.anomalies.length > 0) {
         parts.push('**이상 탐지**:\n');
-        mlData.anomalies.forEach(anomaly => {
+        mlData.anomalies.forEach((anomaly) => {
           parts.push(`- ${anomaly.description} (${anomaly.severity})\n`);
         });
         parts.push('\n');
@@ -323,15 +336,17 @@ export class PromptBuilder {
 
       if (mlData.trends && mlData.trends.length > 0) {
         parts.push('**트렌드 분석**:\n');
-        mlData.trends.forEach(trend => {
-          parts.push(`- ${trend.direction} (신뢰도: ${(trend.confidence * 100).toFixed(1)}%)\n`);
+        mlData.trends.forEach((trend) => {
+          parts.push(
+            `- ${trend.direction} (신뢰도: ${(trend.confidence * 100).toFixed(1)}%)\n`
+          );
         });
         parts.push('\n');
       }
 
       if (mlData.patterns && mlData.patterns.length > 0) {
         parts.push('**패턴 인식**:\n');
-        mlData.patterns.forEach(pattern => {
+        mlData.patterns.forEach((pattern) => {
           parts.push(`- ${pattern.type}: ${pattern.description}\n`);
         });
         parts.push('\n');
@@ -339,7 +354,7 @@ export class PromptBuilder {
 
       if (mlData.recommendations && mlData.recommendations.length > 0) {
         parts.push('**권장사항**:\n');
-        mlData.recommendations.forEach(rec => {
+        mlData.recommendations.forEach((rec) => {
           parts.push(`- ${rec}\n`);
         });
         parts.push('\n');
@@ -361,14 +376,16 @@ export class PromptBuilder {
 
       if (ruleData.entities && ruleData.entities.length > 0) {
         parts.push('**엔티티**:\n');
-        ruleData.entities.forEach(entity => {
+        ruleData.entities.forEach((entity) => {
           parts.push(`- ${entity.type}: ${entity.value}\n`);
         });
         parts.push('\n');
       }
 
       if (ruleData.intent) {
-        parts.push(`**의도**: ${ruleData.intent.category} (신뢰도: ${(ruleData.intent.confidence * 100).toFixed(1)}%)\n\n`);
+        parts.push(
+          `**의도**: ${ruleData.intent.category} (신뢰도: ${(ruleData.intent.confidence * 100).toFixed(1)}%)\n\n`
+        );
       }
 
       if (ruleData.domainTerms && ruleData.domainTerms.length > 0) {
@@ -416,7 +433,10 @@ export class PromptBuilder {
    *
    * {{variable}} 형식 지원
    */
-  private applyTemplate(template: string, variables: Record<string, string | number | boolean>): string {
+  private applyTemplate(
+    template: string,
+    variables: Record<string, string | number | boolean>
+  ): string {
     let result = template;
 
     for (const [key, value] of Object.entries(variables)) {
