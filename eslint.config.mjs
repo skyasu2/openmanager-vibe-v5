@@ -137,10 +137,10 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/ban-ts-comment': 'off',
       '@typescript-eslint/require-await': 'off',  // Disabled: conflicts with TypeScript explicit Promise return types
-      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/no-floating-promises': 'error', // UPGRADED: Uncaught promises can cause runtime bugs
       '@typescript-eslint/no-redundant-type-constituents': 'off',  // Disabled: produces false positives with multi-level re-exports
-      '@typescript-eslint/no-base-to-string': 'warn',
-      'no-case-declarations': 'warn',
+      '@typescript-eslint/no-base-to-string': 'error', // UPGRADED: toString() misuse causes runtime errors
+      'no-case-declarations': 'error', // UPGRADED: Potential scoping bugs in switch statements
       
       // TypeScript unsafe operations - disabled for better TypeScript inference
       '@typescript-eslint/no-unsafe-member-access': 'off',
@@ -153,7 +153,7 @@ export default tseslint.config(
       'react/react-in-jsx-scope': 'off', // Not needed with Next.js 17+
       'react/jsx-uses-react': 'off', // Not needed with Next.js 17+
       'react/prop-types': 'off', // Handled by TypeScript
-      'react/jsx-key': 'warn', // Warn about missing keys
+      'react/jsx-key': 'error', // UPGRADED: Missing keys cause React rendering bugs
       'react/no-unknown-property': ['error', { ignore: ['jsx'] }],
       
     },
@@ -179,14 +179,14 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
 
-      // Downgrade these rules to warnings for buildability
+      // Override type-checked rules (must match first config block)
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/no-floating-promises': 'error', // UPGRADED: Uncaught promises can cause runtime bugs
       '@typescript-eslint/no-redundant-type-constituents': 'off',  // Disabled: produces false positives with multi-level re-exports
-      '@typescript-eslint/no-base-to-string': 'warn',
+      '@typescript-eslint/no-base-to-string': 'error', // UPGRADED: toString() misuse causes runtime errors
       '@typescript-eslint/require-await': 'off',  // Disabled: conflicts with TypeScript explicit Promise return types
       '@typescript-eslint/no-explicit-any': 'warn',
-      'no-case-declarations': 'warn',
+      'no-case-declarations': 'error', // UPGRADED: Potential scoping bugs in switch statements
     },
   },
 

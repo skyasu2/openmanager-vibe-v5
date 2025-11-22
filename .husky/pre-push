@@ -29,14 +29,24 @@ npm run build || {
   exit 1
 }
 
-# 4. 민감 파일 체크 (보안)
+# 4. 환경 변수 검사 (CRITICAL - 배포 안전성)
+echo "🔐 Environment variables check..."
+npm run env:check || {
+  echo "❌ Environment variables check failed - push blocked"
+  echo "💡 Fix: Add missing env vars to .env.local"
+  echo "⚠️  CRITICAL: Missing env vars will break deployment"
+  echo "   (Check .env.example for required variables)"
+  exit 1
+}
+
+# 5. 민감 파일 체크 (보안)
 echo "🔒 Security check..."
 if git diff origin/main...HEAD --name-only 2>/dev/null | grep -E '\.(env|key|pem)$'; then
   echo "❌ 민감한 파일이 포함되어 있습니다"
   exit 1
 fi
 
-# 5. package.json 검증
+# 6. package.json 검증
 echo "📦 Checking package.json..."
 node -e "JSON.parse(require('fs').readFileSync('package.json', 'utf8'))" || {
   echo "❌ package.json has syntax errors"
@@ -54,6 +64,7 @@ echo "📊 Validation Summary:"
 echo "  ✅ Quick tests passed"
 echo "  ✅ TypeScript type check passed"
 echo "  ✅ Production build succeeded"
+echo "  ✅ Environment variables validated"
 echo "  ✅ Security check passed"
 echo "  ✅ package.json validated"
 echo ""

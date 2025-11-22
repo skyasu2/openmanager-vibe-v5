@@ -108,7 +108,7 @@
     "ai-tools:update": "bash scripts/ai-tools-auto-update.sh",
     "ai-tools:remove-cron": "bash scripts/setup-ai-tools-cron.sh",
     "ai:context-check": "node scripts/check-ai-context.js",
-    "env:check": "node scripts/check-env.js",
+    "env:check": "ts-node scripts/check-env.ts",
     "dev:tmux:enhanced": "bash scripts/dev-tmux-enhanced.sh",
     "dev:tmux:test": "AUTO_START_TEST_SERVER=true bash scripts/dev-tmux-enhanced.sh",
     "dev:tmux:clean": "tmux kill-session -t openmanager-dev",
@@ -236,19 +236,6 @@
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
-    ]
-  },
-  "prettier": {
-    "semi": true,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "es5",
-    "printWidth": 80,
-    "bracketSpacing": true,
-    "arrowParens": "always",
-    "endOfLine": "lf",
-    "plugins": [
-      "prettier-plugin-tailwindcss"
     ]
   }
 }
