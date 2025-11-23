@@ -21,6 +21,7 @@ export default defineConfig({
       'out/**',
       'gcp-functions/**',
       'tests/archive/**', // ✅ 아카이브된 테스트 제외 (jsdom 한계로 개선 불가능)
+      'tests/e2e/**', // ✅ E2E 테스트 제외 (Playwright 전용, Vitest에서 실행 금지)
     ],
     coverage: {
       provider: 'v8',
