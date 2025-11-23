@@ -23,11 +23,9 @@ export default function Header({ isDark, onThemeToggle }: HeaderProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navItems: { name: string; href: string }[] = [
+  const navItems = [
     { name: '홈', href: '#home' },
     { name: '기능', href: '#features' },
-    { name: '문서', href: '/docs' },
-    { name: '지원', href: '/support' },
   ];
 
   return (
@@ -41,9 +39,7 @@ export default function Header({ isDark, onThemeToggle }: HeaderProps) {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* 로고 & 브랜딩 */}
-          <div
-            className="flex items-center space-x-3"
-          >
+          <div className="flex items-center space-x-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg">
               <span className="text-lg font-bold text-white">OM</span>
             </div>
@@ -97,7 +93,7 @@ export default function Header({ isDark, onThemeToggle }: HeaderProps) {
 
       {/* 모바일 메뉴 */}
       <div
-        className={`overflow-hidden border-t border-white/10 bg-black/20 backdrop-blur-lg md:hidden transition-all duration-300 ${isMobileMenuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}
+        className={`overflow-hidden border-t border-white/10 bg-black/20 backdrop-blur-lg transition-all duration-300 md:hidden ${isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
       >
         <div className="space-y-4 px-4 py-6">
           {navItems.map((item, _index) => (
