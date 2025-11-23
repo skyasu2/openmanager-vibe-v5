@@ -5,6 +5,3 @@
 
 // 메인 컴포넌트
 export { default as AISidebarV3 } from './AISidebarV3';
-
-// UI 컴포넌트
-export { AIChatMessages } from './AIChatMessages';

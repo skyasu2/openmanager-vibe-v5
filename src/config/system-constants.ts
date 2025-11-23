@@ -16,26 +16,7 @@ export const HEALTH_CHECK_INTERVAL =
     ? 60 * 1000 // 개발: 60초
     : 30 * 1000; // 운영: 30초
 
-// 🔒 관리자 모드 설정
-export const ADMIN_PASSWORD = (() => {
-  const password = process.env.ADMIN_PASSWORD;
-
-  // Production 환경에서는 환경변수 필수
-  if (process.env.NODE_ENV === 'production' && !password) {
-    throw new Error('❌ ADMIN_PASSWORD must be set in production environment');
-  }
-
-  // Development/Test 환경에서는 기본값 허용 (보안 경고 출력)
-  if (!password) {
-    console.warn(
-      '⚠️  ADMIN_PASSWORD not set - using default (development only)'
-    );
-    return '4231';
-  }
-
-  return password;
-})();
-
+// 🔒 보안 설정 (게스트 모드)
 export const MAX_LOGIN_ATTEMPTS = 5;
 export const LOCKOUT_DURATION = 10 * 1000; // 10초
 

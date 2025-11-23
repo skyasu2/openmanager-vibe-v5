@@ -3,6 +3,7 @@
 **AI가 베르셀 프로덕션/프리뷰/개발 환경에서 자유롭게 테스트할 수 있는 시스템**
 
 **⚡ v1.1.0 주요 개선사항:**
+
 - 미들웨어 성능 60-75% 향상
 - SECRET 검증 60-70% 향상
 - Rate Limiting 실제 구현 (1분 10회)
@@ -12,6 +13,7 @@
 ## 🎯 시스템 개요
 
 ### 핵심 기능
+
 - ✅ **모든 베르셀 환경 지원** (Production / Preview / Development)
 - ✅ **인증 없이 모든 페이지 접근** (한 줄 코드)
 - ✅ **강력한 보안** (환경변수 SECRET_KEY로 보호)
@@ -20,6 +22,7 @@
 - 🛡️ **실제 Rate Limiting** (DDoS 방지, 1분 10회)
 
 ### 작동 방식
+
 ```
 AI/Playwright → 테스트 API 호출 (SECRET_KEY 인증)
               ↓
@@ -37,18 +40,17 @@ AI/Playwright → 테스트 API 호출 (SECRET_KEY 인증)
 ### 1️⃣ 환경변수 설정
 
 **로컬 개발 (`.env.local`)**:
+
 ```bash
 # 🔐 테스트 시크릿 키 (필수!)
 TEST_SECRET_KEY=your-super-secret-test-key-here-change-me
-
-# 관리자 PIN (기존)
-ADMIN_PASSWORD=4231
 
 # 환경 설정
 NODE_ENV=development
 ```
 
 **베르셀 배포 (Vercel Dashboard)**:
+
 1. Vercel 프로젝트 설정 → Settings → Environment Variables
 2. 다음 환경변수 추가:
    ```
@@ -56,17 +58,12 @@ NODE_ENV=development
    Value: your-super-secret-test-key-here-change-me
    Environment: Production, Preview, Development (모두 선택)
    ```
-3. 다음 환경변수 추가:
-   ```
-   Key: ADMIN_PASSWORD
-   Value: 4231
-   Environment: Production, Preview, Development
-   ```
-4. 배포 재시작 (Deployments → ... → Redeploy)
+3. 배포 재시작 (Deployments → ... → Redeploy)
 
 ### 2️⃣ Playwright 설정
 
 **`.env.test` 파일 생성**:
+
 ```bash
 # 🔐 테스트 시크릿 키 (반드시 .env.local과 동일하게!)
 TEST_SECRET_KEY=your-super-secret-test-key-here-change-me
@@ -78,6 +75,7 @@ PLAYWRIGHT_BASE_URL=https://openmanager-vibe-v5.vercel.app
 ```
 
 **`playwright.config.ts` 업데이트**:
+
 ```typescript
 import { defineConfig } from '@playwright/test';
 import dotenv from 'dotenv';
@@ -96,6 +94,7 @@ export default defineConfig({
 ### 3️⃣ 테스트 코드 작성
 
 **최소 코드 (AI 친화적)**:
+
 ```typescript
 import { test, expect } from '@playwright/test';
 import { enableVercelTestMode } from './helpers/vercel-test-auth';
@@ -112,6 +111,7 @@ test('내 테스트', async ({ page }) => {
 ```
 
 **더 간단한 방법 (aiNavigate)**:
+
 ```typescript
 import { aiNavigate } from './helpers/vercel-test-auth';
 
@@ -127,6 +127,7 @@ test('더 간단한 테스트', async ({ page }) => {
 ## 📊 사용 예시
 
 ### 예시 1: 기본 사용
+
 ```typescript
 import { test, expect } from '@playwright/test';
 import { enableVercelTestMode } from './helpers/vercel-test-auth';
@@ -145,15 +146,11 @@ test('대시보드 접근 테스트', async ({ page }) => {
 ```
 
 ### 예시 2: 모드별 테스트
+
 ```typescript
 test('게스트 모드 테스트', async ({ page }) => {
   await enableVercelTestMode(page, { mode: 'guest' });
   // 게스트 권한으로 테스트
-});
-
-test('관리자 모드 테스트', async ({ page }) => {
-  await enableVercelTestMode(page, { mode: 'admin', pin: '4231' });
-  // 관리자 권한으로 테스트
 });
 
 test('완전 접근 모드 (권장)', async ({ page }) => {
@@ -163,6 +160,7 @@ test('완전 접근 모드 (권장)', async ({ page }) => {
 ```
 
 ### 예시 3: 여러 페이지 연속 테스트
+
 ```typescript
 test('전체 페이지 탐색', async ({ page }) => {
   await enableVercelTestMode(page);
@@ -177,6 +175,7 @@ test('전체 페이지 탐색', async ({ page }) => {
 ```
 
 ### 예시 4: AI 친화적 최소 코드
+
 ```typescript
 import { aiNavigate } from './helpers/vercel-test-auth';
 
@@ -199,8 +198,7 @@ test('AI 복사용 템플릿', async ({ page }) => {
 
 2. **모드별 권한 제어**
    - `guest`: 읽기 전용
-   - `admin`: PIN 필요 (4231)
-   - `full_access`: bypass 플래그 필수
+   - `full_access`: bypass 플래그 필수 (모든 기능 접근)
 
 3. **Rate Limiting** 🛡️ **실제 구현됨**
    - **1분에 최대 10회 요청** (실제 차단)
@@ -220,17 +218,18 @@ test('AI 복사용 템플릿', async ({ page }) => {
 
 ### 환경별 보안 레벨
 
-| 환경 | 보안 레벨 | 설명 |
-|------|----------|------|
-| **Production** | 🔒 최고 | SECRET_KEY + 모든 검증 활성화 |
-| **Preview** | 🔐 높음 | SECRET_KEY + 검증 활성화 |
-| **Development** | 🔓 보통 | SECRET_KEY만 (개발 편의성) |
+| 환경            | 보안 레벨 | 설명                          |
+| --------------- | --------- | ----------------------------- |
+| **Production**  | 🔒 최고   | SECRET_KEY + 모든 검증 활성화 |
+| **Preview**     | 🔐 높음   | SECRET_KEY + 검증 활성화      |
+| **Development** | 🔓 보통   | SECRET_KEY만 (개발 편의성)    |
 
 ---
 
 ## 🌐 베르셀 환경별 사용법
 
 ### 1. Production (프로덕션)
+
 ```bash
 # 🔐 강력한 보안
 PLAYWRIGHT_BASE_URL=https://openmanager-vibe-v5.vercel.app
@@ -238,11 +237,13 @@ TEST_SECRET_KEY=your-production-secret-key
 ```
 
 **특징**:
+
 - ✅ SECRET_KEY 필수
 - ✅ 모든 보안 검증 활성화
 - ✅ Rate Limiting 적용
 
 ### 2. Preview (프리뷰 배포)
+
 ```bash
 # 🧪 테스트 친화적
 PLAYWRIGHT_BASE_URL=https://openmanager-vibe-v5-xyz.vercel.app
@@ -250,11 +251,13 @@ TEST_SECRET_KEY=your-preview-secret-key
 ```
 
 **특징**:
+
 - ✅ SECRET_KEY 필수
 - ✅ 보안 검증 활성화
 - ✅ 테스트 최적화
 
 ### 3. Development (로컬)
+
 ```bash
 # 🚀 개발 편의성
 PLAYWRIGHT_BASE_URL=http://localhost:3000
@@ -262,6 +265,7 @@ TEST_SECRET_KEY=your-local-secret-key
 ```
 
 **특징**:
+
 - ✅ SECRET_KEY만 필요
 - ✅ 보안 완화 (개발 속도 우선)
 - ✅ 모든 테스트 기능 사용 가능
@@ -273,21 +277,23 @@ TEST_SECRET_KEY=your-local-secret-key
 ### `enableVercelTestMode(page, options)`
 
 **기본 사용**:
+
 ```typescript
 await enableVercelTestMode(page);
 ```
 
 **옵션**:
+
 ```typescript
 interface Options {
-  mode?: 'guest' | 'admin' | 'full_access';  // 기본: 'full_access'
-  pin?: string;                                // 관리자 PIN (기본: '4231')
-  bypass?: boolean;                            // 완전 우회 (기본: true)
-  baseUrl?: string;                            // 베이스 URL (자동 감지)
+  mode?: 'guest' | 'full_access'; // 기본: 'full_access'
+  bypass?: boolean; // 완전 우회 (기본: true)
+  baseUrl?: string; // 베이스 URL (자동 감지)
 }
 ```
 
 **반환값**:
+
 ```typescript
 {
   success: boolean;
@@ -305,14 +311,16 @@ interface Options {
 ### `aiNavigate(page, url, autoSetup)`
 
 **사용법**:
+
 ```typescript
-await aiNavigate(page, '/dashboard');      // 자동 테스트 모드 설정
-await aiNavigate(page, '/admin', false);   // 수동 모드 (이미 설정됨)
+await aiNavigate(page, '/dashboard'); // 자동 테스트 모드 설정
+await aiNavigate(page, '/admin', false); // 수동 모드 (이미 설정됨)
 ```
 
 ### `getVercelTestStatus(page)`
 
 **사용법**:
+
 ```typescript
 const status = await getVercelTestStatus(page);
 console.log(status);
@@ -327,8 +335,9 @@ console.log(status);
 ### `cleanupVercelTestMode(page)`
 
 **사용법**:
+
 ```typescript
-await cleanupVercelTestMode(page);  // localStorage + Cookie 정리
+await cleanupVercelTestMode(page); // localStorage + Cookie 정리
 ```
 
 ---
@@ -336,11 +345,12 @@ await cleanupVercelTestMode(page);  // localStorage + Cookie 정리
 ## 🎯 실전 시나리오
 
 ### 시나리오 1: CI/CD 통합
+
 ```typescript
 // GitHub Actions / Vercel CI
 test('CI에서 실행', async ({ page }) => {
   await enableVercelTestMode(page, {
-    baseUrl: process.env.VERCEL_URL  // Vercel 자동 URL
+    baseUrl: process.env.VERCEL_URL, // Vercel 자동 URL
   });
 
   await page.goto('/dashboard');
@@ -349,6 +359,7 @@ test('CI에서 실행', async ({ page }) => {
 ```
 
 ### 시나리오 2: 크로스 브라우저 테스트
+
 ```typescript
 test.use({ browserName: 'chromium' });
 test.use({ browserName: 'firefox' });
@@ -361,6 +372,7 @@ test('모든 브라우저에서 작동', async ({ page }) => {
 ```
 
 ### 시나리오 3: 병렬 테스트
+
 ```typescript
 test.describe.parallel('병렬 실행', () => {
   test('테스트 1', async ({ page }) => {
@@ -376,6 +388,7 @@ test.describe.parallel('병렬 실행', () => {
 ```
 
 ### 시나리오 4: AI가 실시간으로 테스트
+
 ```typescript
 // Claude Code나 Codex가 실시간으로 실행 가능
 await enableVercelTestMode(page);
@@ -384,7 +397,7 @@ await aiNavigate(page, '/new-feature');
 const result = await page.evaluate(() => {
   return {
     title: document.querySelector('h1')?.textContent,
-    buttons: document.querySelectorAll('button').length
+    buttons: document.querySelectorAll('button').length,
   };
 });
 
@@ -396,9 +409,11 @@ console.log('AI 분석 결과:', result);
 ## 🚨 트러블슈팅
 
 ### 문제 1: "잘못된 테스트 시크릿 키"
+
 **원인**: SECRET_KEY 불일치
 
 **해결**:
+
 ```bash
 # .env.local과 .env.test를 동일하게 설정
 TEST_SECRET_KEY=same-key-everywhere
@@ -408,17 +423,21 @@ vercel env ls
 ```
 
 ### 문제 2: "프로덕션 환경에서는 사용할 수 없습니다"
+
 **원인**: 기존 `/api/test/admin-auth`는 프로덕션 차단
 
 **해결**: 새로운 `/api/test/vercel-test-auth` 사용
+
 ```typescript
-await enableVercelTestMode(page);  // 자동으로 새 API 사용
+await enableVercelTestMode(page); // 자동으로 새 API 사용
 ```
 
 ### 문제 3: 미들웨어에서 인증 차단
+
 **원인**: 테스트 모드 미감지
 
 **해결**:
+
 ```typescript
 // 쿠키/헤더가 제대로 설정되었는지 확인
 const status = await getVercelTestStatus(page);
@@ -426,9 +445,11 @@ console.log('테스트 상태:', status);
 ```
 
 ### 문제 4: Rate Limit 초과 🛡️ **실제 구현됨**
+
 **원인**: 1분에 10회 이상 요청 (실제 차단)
 
 **증상**:
+
 ```json
 {
   "success": false,
@@ -438,6 +459,7 @@ console.log('테스트 상태:', status);
 ```
 
 **응답 헤더**:
+
 ```
 Status: 429 Too Many Requests
 X-RateLimit-Remaining: 0
@@ -446,6 +468,7 @@ Retry-After: 42
 ```
 
 **해결**:
+
 ```typescript
 // 방법 1: 테스트 간격 조절
 await page.waitForTimeout(6000);  // 6초 대기
@@ -471,19 +494,22 @@ if (parseInt(remaining) < 2) {
 ## 📈 성능 최적화
 
 ### 팁 1: 한 번만 설정
+
 ```typescript
 test.beforeEach(async ({ page }) => {
-  await enableVercelTestMode(page);  // 모든 테스트에서 공유
+  await enableVercelTestMode(page); // 모든 테스트에서 공유
 });
 ```
 
 ### 팁 2: baseUrl 캐싱
+
 ```typescript
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL;
 await enableVercelTestMode(page, { baseUrl });
 ```
 
 ### 팁 3: 병렬 실행
+
 ```typescript
 test.describe.parallel('병렬', () => {
   // 여러 테스트 동시 실행
@@ -518,8 +544,8 @@ test.describe.parallel('병렬', () => {
 단 한 줄 코드로 베르셀 프로덕션 환경을 포함한 모든 페이지에 자유롭게 접근할 수 있습니다.
 
 ```typescript
-await enableVercelTestMode(page);  // 이게 전부!
-await page.goto('/anywhere');      // 인증 없이 접근!
+await enableVercelTestMode(page); // 이게 전부!
+await page.goto('/anywhere'); // 인증 없이 접근!
 ```
 
 질문이 있으면 언제든지 물어보세요! 🤖

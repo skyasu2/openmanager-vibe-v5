@@ -153,10 +153,8 @@ const generateMockLogs = (): LogEntry[] => [
 ];
 
 const AssistantLogPanel: FC<AssistantLogPanelProps> = ({ className = '' }) => {
-  // 🔧 관리자 기능 상태
-  const [adminMode, setAdminMode] = useState(false);
+  // 🔧 세션 관리 상태
   const [_selectedSession, setSelectedSession] = useState<string | null>(null);
-  const [exportInProgress, setExportInProgress] = useState(false);
 
   // 데이터 로딩 (10초마다 자동 새로고침)
   const {
@@ -236,51 +234,10 @@ const AssistantLogPanel: FC<AssistantLogPanelProps> = ({ className = '' }) => {
     };
   }, [logs, sessionGroups]);
 
-  // 🤖 관리자 기능: 로그 내보내기
-  const exportLogsToCSV = () => {
-    if (!logs || exportInProgress) return;
-
-    setExportInProgress(true);
-
-    try {
-      const csvContent = [
-        'ID,Timestamp,Type,Level,Step,Content,Duration,Confidence,SessionID,AIEngine,PatternDetected',
-        ...logs.map((log) =>
-          [
-            log.id,
-            log.timestamp.toISOString(),
-            log.type,
-            log.level,
-            log.step,
-            `"${log.content.replace(/"/g, '""')}"`,
-            log.duration || '',
-            log.confidence || '',
-            log.sessionId || '',
-            log.aiEngine || '',
-            log.patternDetected || false,
-          ].join(',')
-        ),
-      ].join('\n');
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `ai-logs-${new Date().toISOString().split('T')[0]}.csv`;
-      link.click();
-
-      console.log('✅ AI 로그 CSV 내보내기 완료');
-    } catch (error) {
-      console.error('❌ 로그 내보내기 실패:', error);
-      alert('로그 내보내기에 실패했습니다.');
-    } finally {
-      setExportInProgress(false);
-    }
-  };
-
   // 🔍 세션 상세 보기
   const viewSessionDetails = (sessionId: string) => {
     setSelectedSession(sessionId);
-    setAdminMode(true);
+    // 세션 상세 보기 기능은 추후 구현 예정
   };
 
   // 필터링된 로그들
@@ -379,54 +336,15 @@ const AssistantLogPanel: FC<AssistantLogPanelProps> = ({ className = '' }) => {
       }}
       className={className}
     >
-      {/* 관리자 기능 패널 */}
-      {adminMode && (
-        <div className="border-b border-purple-200 bg-purple-50 p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h4 className="font-semibold text-purple-800">🔧 관리자 기능</h4>
-            <button
-              onClick={() => setAdminMode(false)}
-              className="text-purple-600 hover:text-purple-800"
-            >
-              ✕
-            </button>
-          </div>
-
-          <div className="flex items-center gap-3 text-sm">
-            <button
-              onClick={exportLogsToCSV}
-              disabled={exportInProgress}
-              className={`rounded border px-3 py-1 ${
-                exportInProgress
-                  ? 'border-gray-300 bg-gray-100 text-gray-400'
-                  : 'border-purple-300 bg-white text-purple-700 hover:bg-purple-50'
-              }`}
-            >
-              {exportInProgress ? '내보내는 중...' : '📊 CSV 내보내기'}
-            </button>
-
-            <span className="text-purple-600">
-              📈 통계: 총 {logStats.total}개 로그, {logStats.sessions}개 세션
-            </span>
-          </div>
-        </div>
-      )}
-
       {/* 로그 목록 */}
       <div className="p-4">
         {/* 세션 그룹별 표시 (사고 과정 시각화) */}
         {selectedType === 'thinking' || selectedType === 'user_query' ? (
           <div className="space-y-4">
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4">
               <h4 className="font-semibold text-gray-800">
                 🧠 세션별 사고 과정
               </h4>
-              <button
-                onClick={() => setAdminMode(!adminMode)}
-                className="text-sm text-purple-600 hover:text-purple-800"
-              >
-                {adminMode ? '관리 모드 끄기' : '관리 모드 켜기'}
-              </button>
             </div>
 
             {Array.from(sessionGroups.entries()).map(

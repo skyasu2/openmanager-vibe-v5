@@ -2,7 +2,9 @@
 # 한국어 자연어 처리 - 2025-11-20 업데이트
 
 # Functions Framework
-functions-framework==3.8.1
+functions-framework==3.4.0
+numpy==1.26.4
+scikit-learn==1.4.1.post11
 
 # NLP Core
 konlpy==0.6.0                       # 한국어 형태소 분석

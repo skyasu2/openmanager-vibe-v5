@@ -35,9 +35,6 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # AI 기능 (선택 - Google AI API 사용 시)
 GOOGLE_AI_API_KEY=your_google_ai_api_key
-
-# 관리자 PIN (기본값: 4231)
-ADMIN_PASSWORD=4231
 ```
 
 ### 3. 개발 서버 실행
@@ -64,10 +61,10 @@ npm run dev
 - **Google AI API**: 실시간 서버 분석 및 자연어 질의 (API 키 필요)
 - **Mock 모드**: API 키 없을 때 자동 폴백 (무료, 시뮬레이션)
 
-### 3. PIN 인증 시스템
+### 3. 게스트 모드 접근
 
-- 관리자 PIN: 4231 (변경 가능)
-- 권한별 차등 접근 제어
+- 모든 기능이 게스트 모드로 제공됨
+- PIN 인증 없이 즉시 사용 가능
 
 ## 🧪 테스트 실행
 
@@ -126,6 +123,6 @@ npm run validate:all
 
 💡 **5분 만에 시작**: 설치 → `.env.local` 설정 → `npm run dev:stable` → http://localhost:3000
 
-🎯 **즉시 체험**: PIN 4231로 관리자 로그인 → 실시간 대시보드 확인
+🎯 **즉시 체험**: 게스트로 체험하기 버튼 클릭 → 실시간 대시보드 확인
 
 🤖 **AI 활용**: Google AI로 서버 분석 (API 키) 또는 Mock 모드로 체험 (무료)

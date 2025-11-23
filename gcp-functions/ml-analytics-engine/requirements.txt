@@ -2,12 +2,13 @@
 # 머신러닝 분석 및 예측 - 2025-11-20 업데이트
 
 # Functions Framework (필수)
-functions-framework==3.8.1          # GCP Functions (최신)
+functions-framework==3.4.0          # GCP Functions (최신)
 
 # Core ML Libraries (2025 최신 버전)
 numpy==1.26.4                       # 수치 계산
-scikit-learn==1.5.2                 # 머신러닝
-pandas==2.2.3                       # 데이터 처리
+scikit-learn==1.4.1.post1           # 머신러닝
+pandas==2.2.1                       # 데이터 처리
+statsmodels==0.14.1                 # 통계 모델링
 
 # Data Processing
 orjson==3.10.10                     # 빠른 JSON 처리

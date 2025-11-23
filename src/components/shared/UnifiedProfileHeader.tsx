@@ -215,22 +215,13 @@ export default function UnifiedProfileHeader({
         data-testid="profile-dropdown-trigger"
       >
         {/* 프로필 아바타 */}
-        <ProfileAvatar
-          userInfo={userInfo}
-          userType={userType}
-          isAdminMode={false}
-          size="medium"
-        />
+        <ProfileAvatar userInfo={userInfo} userType={userType} size="medium" />
 
         {/* 사용자 정보 */}
         <div className="hidden text-left sm:block">
           <div className="flex items-center gap-1 text-sm font-medium text-gray-900">
             {getUserName()}
-            <UserTypeIcon
-              userType={userType}
-              isAdminMode={false}
-              className="h-3 w-3"
-            />
+            <UserTypeIcon userType={userType} className="h-3 w-3" />
           </div>
           <div className="flex items-center gap-1 text-xs text-gray-500">
             {userType === 'github'

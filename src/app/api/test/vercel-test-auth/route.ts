@@ -35,33 +35,13 @@ const VERCEL_ENVIRONMENTS = {
 const TEST_SECRET_KEY =
   process.env.TEST_SECRET_KEY || 'test-secret-key-please-change-in-env';
 
-const ADMIN_PASSWORD = (() => {
-  const password = process.env.ADMIN_PASSWORD;
-
-  // Production 환경에서는 환경변수 필수
-  if (process.env.NODE_ENV === 'production' && !password) {
-    throw new Error('❌ ADMIN_PASSWORD must be set in production environment');
-  }
-
-  // Development/Test 환경에서는 기본값 허용 (보안 경고 출력)
-  if (!password) {
-    console.warn(
-      '⚠️  ADMIN_PASSWORD not set - using default (development only)'
-    );
-    return '4231';
-  }
-
-  return password;
-})();
-
-// 🧪 테스트 모드 종류
-type TestMode = 'guest' | 'admin' | 'full_access';
+// 🧪 테스트 모드 종류 (게스트 모드 전용)
+type TestMode = 'guest' | 'full_access';
 
 interface TestAuthRequest {
   secret?: string;
   mode?: TestMode;
   bypass?: boolean;
-  pin?: string;
 }
 
 interface TestAuthResponse {
@@ -249,7 +229,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: TestAuthRequest = await request.json();
-    const { secret, mode = 'guest', bypass = false, pin } = body;
+    const { secret, mode = 'guest', bypass = false } = body;
 
     // 📊 요청 로깅
     console.log('🧪 [Vercel Test Auth] 요청 수신:', {
@@ -257,7 +237,6 @@ export async function POST(request: NextRequest) {
       bypass,
       environment: process.env.VERCEL_ENV || 'local',
       hasSecret: !!secret,
-      hasPin: !!pin,
       ip,
       rateLimit: { remaining },
     });
@@ -292,29 +271,6 @@ export async function POST(request: NextRequest) {
           adminMode: false,
           permissions: ['read', 'guest_access'],
         };
-        break;
-
-      case 'admin':
-        // 관리자 모드는 PIN 또는 bypass 필요
-        if (bypass || pin === ADMIN_PASSWORD) {
-          sessionData = {
-            authType: 'admin',
-            adminMode: true,
-            permissions: ['read', 'write', 'admin_access', 'full_dashboard'],
-          };
-        } else {
-          console.warn(
-            '🚨 [Vercel Test Auth] 관리자 모드 요청 실패 - PIN 불일치'
-          );
-          return NextResponse.json(
-            {
-              success: false,
-              message: '관리자 PIN이 필요합니다.',
-              error: 'PIN_REQUIRED',
-            } as TestAuthResponse,
-            { status: 401 }
-          );
-        }
         break;
 
       case 'full_access':
@@ -430,8 +386,8 @@ export function GET(request: NextRequest) {
     nodeEnv: process.env.NODE_ENV,
     available: true,
     methods: ['POST', 'GET'],
-    description: '베르셀 친화적 AI 테스트 인증 API',
-    modes: ['guest', 'admin', 'full_access'],
+    description: '베르셀 친화적 AI 테스트 인증 API (게스트 모드 전용)',
+    modes: ['guest', 'full_access'],
     security: '🔒 TEST_SECRET_KEY 환경변수로 보호됨',
     rateLimit: {
       enabled: true,
@@ -441,7 +397,6 @@ export function GET(request: NextRequest) {
     },
     usage: {
       guest: 'POST { secret, mode: "guest" }',
-      admin: 'POST { secret, mode: "admin", pin: "4231" }',
       full_access: 'POST { secret, mode: "full_access", bypass: true }',
     },
     environments: VERCEL_ENVIRONMENTS,

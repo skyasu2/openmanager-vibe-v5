@@ -4,6 +4,7 @@ import React, { memo, type RefObject } from 'react';
 import { Bot, FileText, Send } from 'lucide-react';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
 import { AutoResizeTextarea } from '@/components/ui/AutoResizeTextarea';
+import { AIEngineIndicator } from './AIEngineIndicator';
 
 /**
  * Enhanced AI Chat Props
@@ -38,6 +39,10 @@ interface EnhancedAIChatProps {
   isGenerating: boolean;
   /** 응답 재생성 핸들러 */
   regenerateResponse: (messageId: string) => void;
+  /** 현재 사용 중인 엔진 */
+  currentEngine?: string;
+  /** 라우팅 사유 */
+  routingReason?: string;
 }
 
 /**
@@ -49,25 +54,7 @@ interface EnhancedAIChatProps {
  * - Real-time thinking 지원 표시
  * - 메시지 렌더링 및 스크롤 관리
  * - 키보드 단축키 (Ctrl+Enter)
- *
- * @example
- * ```tsx
- * <EnhancedAIChat
- *   enableRealTimeThinking={true}
- *   autoReportTrigger={{shouldGenerate: false}}
- *   allMessages={messages}
- *   limitedMessages={limitedMessages}
- *   messagesEndRef={messagesEndRef}
- *   MessageComponent={MessageComponent}
- *   inputValue={inputValue}
- *   setInputValue={setInputValue}
- *   handleSendInput={handleSendInput}
- *   isGenerating={false}
- *   selectedEngine="LOCAL"
- *   handleModeChange={handleModeChange}
- *   regenerateResponse={regenerateResponse}
- * />
- * ```
+ * - AI 엔진 상태 표시 (AIEngineIndicator)
  */
 export const EnhancedAIChat = memo(function EnhancedAIChat({
   enableRealTimeThinking,
@@ -81,6 +68,8 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
   handleSendInput,
   isGenerating,
   regenerateResponse,
+  currentEngine,
+  routingReason,
 }: EnhancedAIChatProps) {
   return (
     <div className="flex h-full flex-col bg-gradient-to-br from-slate-50 to-blue-50">
@@ -100,6 +89,12 @@ export const EnhancedAIChat = memo(function EnhancedAIChat({
               </p>
             </div>
           </div>
+
+          {/* AI 엔진 표시기 */}
+          <AIEngineIndicator
+            currentEngine={currentEngine}
+            routingReason={routingReason}
+          />
         </div>
       </div>
 

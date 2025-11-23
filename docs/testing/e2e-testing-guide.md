@@ -149,7 +149,7 @@ export default defineConfig({
 
 - **프로덕션 빌드 최적화** 관련 버그
 - **CDN 캐싱** 및 Edge 최적화 문제
-- **베르셀 환경변수** 적용 오류 (ADMIN_PASSWORD="4231" 등)
+- **베르셀 환경변수** 적용 오류
 - **SSR/SSG** 렌더링 차이점
 - **실제 네트워크 지연** 및 응답 시간
 
@@ -171,26 +171,7 @@ test('베르셀 프로덕션 성능 측정', async ({ page }) => {
 });
 ```
 
-#### 2. 환경변수 검증
-
-```typescript
-test('베르셀 환경변수 적용 확인', async ({ page }) => {
-  await page.goto('https://openmanager-vibe-v5.vercel.app');
-
-  // 관리자 모드 접근
-  await page.click('button:has-text("게스트로 체험하기")');
-  await page.click('[data-testid="admin-mode"]');
-
-  // PIN 4231 인증 (베르셀 환경변수 확인)
-  await page.fill('[data-testid="pin-input"]', '4231');
-  await page.click('[data-testid="pin-submit"]');
-
-  // 인증 성공 확인
-  await expect(page.locator('text=시스템 시작')).toBeVisible();
-});
-```
-
-#### 3. CDN 캐싱 효과 확인
+#### 2. CDN 캐싱 효과 확인
 
 ```typescript
 test('베르셀 CDN 캐싱 성능', async ({ page }) => {
@@ -225,10 +206,10 @@ tests/e2e/
 ├── comprehensive-ui-ux-test.spec.ts      # 🔐 전체 UI/UX 플로우
 ├── ai-assistant-advanced-test.spec.ts     # 🤖 AI 기능 심화 테스트
 ├── performance-visual-regression.spec.ts  # ⚡ 성능 및 시각적 회귀
-├── admin-mode-improved.spec.ts            # 🛡️ 관리자 모드 최적화
+├── guest-dashboard-flow.spec.ts           # 👤 게스트 대시보드 플로우
 ├── helpers/
-│   └── admin.ts                          # 🔧 관리자 모드 헬퍼 함수
-└── test-runner.ts                        # 🎮 통합 테스트 실행기
+│   └── auth.ts                            # 🔧 인증 헬퍼 함수
+└── test-runner.ts                         # 🎮 통합 테스트 실행기
 ```
 
 ## 🎭 테스트 시나리오 상세
@@ -255,8 +236,9 @@ test('게스트 로그인 → 대시보드 접근', async ({ page }) => {
 
 ```typescript
 test('AI 쿼리 입력 및 응답', async ({ page }) => {
-  // 관리자 모드 활성화
-  await navigateToAdminDashboard(page);
+  // 게스트 모드로 대시보드 접근
+  await page.goto('/');
+  await page.click('button:has-text("게스트로 체험하기")');
 
   // AI 사이드바 열기
   await page.click('[data-testid="ai-assistant"]');

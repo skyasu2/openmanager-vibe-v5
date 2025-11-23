@@ -43,8 +43,7 @@ declare global {
       readonly NEXT_PUBLIC_APP_NAME?: string;
       readonly NEXT_PUBLIC_APP_VERSION?: string;
 
-      // 🔒 보안 관련 환경변수
-      readonly ADMIN_PASSWORD?: string;
+      // 🔒 보안 관련 환경변수 (게스트 모드 전용)
       readonly JWT_SECRET?: string;
       readonly ENCRYPTION_KEY?: string;
 
@@ -93,7 +92,6 @@ export interface DeploymentEnvConfig {
 }
 
 export interface SecurityEnvConfig {
-  adminPassword: string;
   jwtSecret: string;
   encryptionKey: string;
   isConfigured: boolean;

@@ -1,7 +1,7 @@
 'use client';
 
 import { memo } from 'react';
-import { Crown, Shield, UserCheck } from 'lucide-react';
+import { Shield, UserCheck } from 'lucide-react';
 import type { ProfileAvatarProps } from '../types/profile.types';
 
 /**
@@ -11,7 +11,6 @@ import type { ProfileAvatarProps } from '../types/profile.types';
 export const ProfileAvatar = memo(function ProfileAvatar({
   userInfo,
   userType,
-  isAdminMode,
   size = 'medium',
   showBadge = true,
   onClick,
@@ -59,7 +58,6 @@ export const ProfileAvatar = memo(function ProfileAvatar({
 
   // 배경색 클래스 결정
   const getBackgroundClass = () => {
-    if (isAdminMode) return 'bg-gradient-to-r from-red-500 to-pink-500';
     if (userType === 'github')
       return 'bg-gradient-to-r from-purple-500 to-pink-500';
     if (userType === 'guest')
@@ -69,7 +67,6 @@ export const ProfileAvatar = memo(function ProfileAvatar({
 
   // 배지 색상 결정
   const getBadgeColor = () => {
-    if (isAdminMode) return 'bg-red-500';
     if (userType === 'github') return 'bg-green-500';
     if (userType === 'guest') return 'bg-blue-500';
     return 'bg-gray-400';
@@ -77,7 +74,6 @@ export const ProfileAvatar = memo(function ProfileAvatar({
 
   // 사용자 타입 타이틀
   const getUserTypeTitle = () => {
-    if (isAdminMode) return '관리자 모드';
     if (userType === 'github') return 'GitHub 사용자';
     if (userType === 'guest') return '게스트 사용자';
     return '알 수 없음';
@@ -131,21 +127,11 @@ export const ProfileAvatar = memo(function ProfileAvatar({
  */
 export const UserTypeIcon = memo(function UserTypeIcon({
   userType,
-  isAdminMode,
   className = 'w-4 h-4',
 }: {
-  userType: 'github' | 'guest' | 'admin' | 'unknown';
-  isAdminMode: boolean;
+  userType: 'github' | 'guest' | 'unknown';
   className?: string;
 }) {
-  if (isAdminMode) {
-    return (
-      <span title="관리자 모드">
-        <Crown className={`${className} text-red-600`} />
-      </span>
-    );
-  }
-
   if (userType === 'github') {
     return (
       <span title="GitHub 인증">

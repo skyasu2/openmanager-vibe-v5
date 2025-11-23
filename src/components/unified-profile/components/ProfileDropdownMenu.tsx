@@ -59,7 +59,6 @@ export const ProfileDropdownMenu = memo(function ProfileDropdownMenu({
               <ProfileAvatar
                 userInfo={userInfo}
                 userType={userType}
-                isAdminMode={false}
                 size="large"
                 showBadge={false}
               />
@@ -69,7 +68,6 @@ export const ProfileDropdownMenu = memo(function ProfileDropdownMenu({
                   {getUserName()}
                   <UserTypeIcon
                     userType={userType}
-                    isAdminMode={false}
                     className="h-4 w-4 flex-shrink-0"
                   />
                 </div>

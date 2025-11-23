@@ -16,7 +16,7 @@ export interface UserInfo {
 /**
  * 사용자 타입
  */
-export type UserType = 'github' | 'guest' | 'admin' | 'unknown';
+export type UserType = 'github' | 'guest' | 'unknown';
 
 /**
  * 메뉴 아이템 타입
@@ -49,7 +49,6 @@ export interface UnifiedProfileHeaderProps {
 export interface ProfileAvatarProps {
   userInfo: UserInfo | null;
   userType: UserType;
-  isAdminMode: boolean;
   size?: 'small' | 'medium' | 'large';
   showBadge?: boolean;
   onClick?: () => void;

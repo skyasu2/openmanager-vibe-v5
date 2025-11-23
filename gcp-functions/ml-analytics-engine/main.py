@@ -2,27 +2,32 @@
 ML Analytics Engine (GCP Functions)
 
 Features:
-- Anomaly detection
-- Trend analysis
-- Performance prediction
-- Pattern recognition
+- Advanced Time Series Forecasting (Holt-Winters)
+- Deep Analysis with Pandas
+- Server Health Scoring
+- K-Means Clustering for Server Grouping
 - 10-50x performance improvement over JavaScript
 
 Author: AI Migration Team
-Version: 1.0.0 (Python)
+Version: 2.0.0 (Python Portfolio Edition)
 """
 
 import json
 import time
 import numpy as np
+import pandas as pd
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, asdict
 import functions_framework
 from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import DBSCAN
-import pandas as pd
+from sklearn.cluster import KMeans
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
 import structlog
+import warnings
+
+# Suppress warnings for cleaner logs
+warnings.filterwarnings('ignore')
 
 # Configure structured logging
 logger = structlog.get_logger()
@@ -52,6 +57,16 @@ class TrendAnalysis:
     rate_of_change: float
     prediction_24h: float
     confidence: float
+    seasonality_detected: bool
+    forecast_model: str # 'Holt-Winters' or 'Simple Linear'
+
+
+@dataclass
+class ServerHealthScore:
+    server_id: str
+    score: float # 0-100
+    status: str # 'Healthy', 'Warning', 'Critical'
+    primary_issue: Optional[str]
 
 
 @dataclass
@@ -60,32 +75,49 @@ class MLAnalysisResult:
     trend: TrendAnalysis
     patterns: List[Dict[str, Any]]
     recommendations: List[str]
+    health_scores: List[ServerHealthScore]
+    clusters: Dict[str, List[str]] # cluster_id -> list of server_ids
     processing_time_ms: float
 
 
 class MLAnalyticsEngine:
-    """High-performance ML analytics for server monitoring"""
+    """High-performance ML analytics for server monitoring (Portfolio Edition)"""
     
     def __init__(self):
         self.scaler = StandardScaler()
-        self.anomaly_detector = DBSCAN(eps=0.5, min_samples=5)
+        # Pre-initialize models where possible to save cold-start time
         
     async def analyze_metrics(self, 
                             metrics: List[Dict[str, Any]], 
                             context: Optional[Dict] = None) -> MLAnalysisResult:
-        """Analyze server metrics using ML algorithms"""
+        """Analyze server metrics using advanced ML algorithms"""
         start_time = time.time()
         
-        logger.info("Starting ML analysis", metric_count=len(metrics))
+        logger.info("Starting Advanced ML analysis", metric_count=len(metrics))
         
-        # Convert to structured data
-        metric_data = self._prepare_data(metrics)
+        # 1. Data Preparation (Pandas)
+        df = self._prepare_dataframe(metrics)
         
-        # Perform analyses
-        anomalies = await self._detect_anomalies(metric_data)
-        trend = await self._analyze_trend(metric_data)
-        patterns = await self._find_patterns(metric_data)
-        recommendations = self._generate_recommendations(anomalies, trend, patterns)
+        if df.empty:
+            return self._create_empty_result(start_time)
+
+        # 2. Advanced Forecasting (Statsmodels)
+        trend = await self._analyze_trend_advanced(df)
+        
+        # 3. Anomaly Detection (Statistical)
+        anomalies = await self._detect_anomalies(df)
+        
+        # 4. Deep Analysis: Health Scoring
+        health_scores = self._calculate_health_scores(df)
+        
+        # 5. Clustering (K-Means)
+        clusters = self._cluster_servers(df)
+        
+        # 6. Pattern Recognition
+        patterns = await self._find_patterns(df)
+        
+        # 7. Recommendation Generation
+        recommendations = self._generate_recommendations(anomalies, trend, patterns, health_scores)
         
         processing_time = (time.time() - start_time) * 1000
         
@@ -94,6 +126,8 @@ class MLAnalyticsEngine:
             trend=trend,
             patterns=patterns,
             recommendations=recommendations,
+            health_scores=health_scores,
+            clusters=clusters,
             processing_time_ms=processing_time
         )
         
@@ -103,182 +137,260 @@ class MLAnalyticsEngine:
         
         return result
     
-    def _prepare_data(self, metrics: List[Dict[str, Any]]) -> List[MetricData]:
-        """Convert raw metrics to structured data"""
-        prepared = []
-        
-        for metric in metrics:
-            try:
-                prepared.append(MetricData(
-                    timestamp=datetime.fromisoformat(metric.get('timestamp', '')),
-                    value=float(metric.get('value', 0)),
-                    server_id=metric.get('server_id', 'unknown'),
-                    metric_type=metric.get('metric_type', 'unknown')
-                ))
-            except Exception as e:
-                logger.warning("Failed to parse metric", error=str(e))
-                
-        return prepared
-    
-    async def _detect_anomalies(self, data: List[MetricData]) -> List[AnomalyResult]:
-        """Detect anomalies using statistical methods"""
-        if len(data) < 10:
-            return []
+    def _prepare_dataframe(self, metrics: List[Dict[str, Any]]) -> pd.DataFrame:
+        """Convert raw metrics to Pandas DataFrame for efficient processing"""
+        try:
+            df = pd.DataFrame(metrics)
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            df['value'] = pd.to_numeric(df['value'], errors='coerce')
+            df = df.dropna(subset=['value', 'timestamp'])
+            return df
+        except Exception as e:
+            logger.error("Data preparation failed", error=str(e))
+            return pd.DataFrame()
             
+    def _create_empty_result(self, start_time: float) -> MLAnalysisResult:
+        return MLAnalysisResult(
+            anomalies=[],
+            trend=TrendAnalysis('stable', 0, 0, 0, False, 'None'),
+            patterns=[],
+            recommendations=["데이터가 부족하여 분석할 수 없습니다."],
+            health_scores=[],
+            clusters={},
+            processing_time_ms=(time.time() - start_time) * 1000
+        )
+    
+    async def _detect_anomalies(self, df: pd.DataFrame) -> List[AnomalyResult]:
+        """Detect anomalies using Z-Score method per metric type"""
         anomalies = []
         
-        # Group by metric type
-        df = pd.DataFrame([
-            {'timestamp': d.timestamp, 'value': d.value, 'type': d.metric_type}
-            for d in data
-        ])
-        
-        for metric_type in df['type'].unique():
-            type_data = df[df['type'] == metric_type]
-            values = type_data['value'].values
+        for metric_type in df['metric_type'].unique():
+            type_df = df[df['metric_type'] == metric_type].copy()
             
-            # Calculate statistics
-            mean = np.mean(values)
-            std = np.std(values)
+            if len(type_df) < 5:
+                continue
+                
+            # Calculate Z-Score
+            mean = type_df['value'].mean()
+            std = type_df['value'].std()
             
-            # Simple anomaly detection: 3 standard deviations
-            lower_bound = mean - 3 * std
-            upper_bound = mean + 3 * std
+            if std == 0:
+                continue
+                
+            type_df['z_score'] = (type_df['value'] - mean) / std
             
-            for idx, row in type_data.iterrows():
-                value = row['value']
-                if value < lower_bound or value > upper_bound:
-                    severity = self._calculate_severity(value, mean, std)
-                    anomalies.append(AnomalyResult(
-                        is_anomaly=True,
-                        severity=severity,
-                        confidence=0.85,
-                        timestamp=row['timestamp'],
-                        value=value,
-                        expected_range=(lower_bound, upper_bound)
-                    ))
-        
+            # Detect outliers (> 3 std dev)
+            outliers = type_df[abs(type_df['z_score']) > 3]
+            
+            for _, row in outliers.iterrows():
+                severity = 'high' if abs(row['z_score']) > 5 else 'medium'
+                anomalies.append(AnomalyResult(
+                    is_anomaly=True,
+                    severity=severity,
+                    confidence=0.9,
+                    timestamp=row['timestamp'],
+                    value=row['value'],
+                    expected_range=(mean - 3*std, mean + 3*std)
+                ))
+                
         return anomalies
     
-    async def _analyze_trend(self, data: List[MetricData]) -> TrendAnalysis:
-        """Analyze metric trends"""
-        if len(data) < 5:
-            return TrendAnalysis(
-                direction='stable',
-                rate_of_change=0.0,
-                prediction_24h=0.0,
-                confidence=0.0
-            )
+    async def _analyze_trend_advanced(self, df: pd.DataFrame) -> TrendAnalysis:
+        """Analyze trend using Holt-Winters Exponential Smoothing if enough data exists"""
+        # Use the most frequent metric type for general trend
+        if df.empty:
+             return TrendAnalysis('stable', 0, 0, 0, False, 'None')
+
+        main_metric = df['metric_type'].mode()[0]
+        ts_data = df[df['metric_type'] == main_metric].set_index('timestamp').sort_index()['value']
         
-        # Sort by timestamp
-        sorted_data = sorted(data, key=lambda x: x.timestamp)
-        values = [d.value for d in sorted_data]
+        # Resample to hourly to regularize time series
+        ts_resampled = ts_data.resample('h').mean().interpolate()
         
-        # Simple linear regression
-        x = np.arange(len(values))
-        y = np.array(values)
-        
-        # Calculate slope
-        slope = np.polyfit(x, y, 1)[0]
-        
-        # Determine direction
-        if abs(slope) < 0.01:
+        if len(ts_resampled) < 24: # Not enough data for seasonality
+            # Fallback to Linear Regression
+            return self._analyze_trend_linear(ts_data.values)
+            
+        try:
+            # Holt-Winters Exponential Smoothing (Additive)
+            model = ExponentialSmoothing(
+                ts_resampled, 
+                seasonal_periods=24, 
+                trend='add', 
+                seasonal='add', 
+                initialization_method="estimated"
+            ).fit()
+            
+            forecast = model.forecast(24) # Forecast next 24 hours
+            prediction_24h = forecast.iloc[-1]
+            
+            current_value = ts_resampled.iloc[-1]
+            rate_of_change = (prediction_24h - current_value) / current_value if current_value != 0 else 0
+            
             direction = 'stable'
-        elif slope > 0:
-            direction = 'increasing'
-        else:
-            direction = 'decreasing'
+            if rate_of_change > 0.1: direction = 'increasing'
+            elif rate_of_change < -0.1: direction = 'decreasing'
+            
+            return TrendAnalysis(
+                direction=direction,
+                rate_of_change=rate_of_change,
+                prediction_24h=prediction_24h,
+                confidence=0.85,
+                seasonality_detected=True,
+                forecast_model='Holt-Winters'
+            )
+            
+        except Exception as e:
+            logger.warning("Holt-Winters failed, falling back to linear", error=str(e))
+            return self._analyze_trend_linear(ts_data.values)
+
+    def _analyze_trend_linear(self, values: np.ndarray) -> TrendAnalysis:
+        """Simple linear regression fallback"""
+        if len(values) < 2:
+             return TrendAnalysis('stable', 0, 0, 0, False, 'Insufficient Data')
+
+        x = np.arange(len(values))
+        slope = np.polyfit(x, values, 1)[0]
         
-        # Simple prediction (extend the line)
-        last_value = values[-1]
-        prediction_24h = last_value + (slope * 24)  # Assuming hourly data
+        direction = 'stable'
+        if slope > 0.1: direction = 'increasing'
+        elif slope < -0.1: direction = 'decreasing'
         
         return TrendAnalysis(
             direction=direction,
             rate_of_change=float(slope),
-            prediction_24h=float(prediction_24h),
-            confidence=0.75
+            prediction_24h=float(values[-1] + slope * 24),
+            confidence=0.6,
+            seasonality_detected=False,
+            forecast_model='Linear Regression'
         )
     
-    async def _find_patterns(self, data: List[MetricData]) -> List[Dict[str, Any]]:
-        """Find patterns in the data"""
+    def _calculate_health_scores(self, df: pd.DataFrame) -> List[ServerHealthScore]:
+        """Calculate comprehensive health score for each server"""
+        scores = []
+        
+        for server_id in df['server_id'].unique():
+            server_df = df[df['server_id'] == server_id]
+            
+            # Base score
+            score = 100.0
+            issues = []
+            
+            # CPU Penalty
+            cpu_data = server_df[server_df['metric_type'] == 'cpu']
+            if not cpu_data.empty:
+                avg_cpu = cpu_data['value'].mean()
+                if avg_cpu > 80: 
+                    score -= 30
+                    issues.append("High CPU Load")
+                elif avg_cpu > 60:
+                    score -= 10
+            
+            # Memory Penalty
+            mem_data = server_df[server_df['metric_type'] == 'memory']
+            if not mem_data.empty:
+                avg_mem = mem_data['value'].mean()
+                if avg_mem > 90:
+                    score -= 40
+                    issues.append("Critical Memory Usage")
+                elif avg_mem > 75:
+                    score -= 20
+            
+            # Stability Penalty (Variance)
+            if not cpu_data.empty:
+                cpu_std = cpu_data['value'].std()
+                if cpu_std > 20:
+                    score -= 10
+                    issues.append("Unstable CPU Performance")
+            
+            score = max(0.0, score)
+            
+            status = 'Healthy'
+            if score < 60: status = 'Critical'
+            elif score < 80: status = 'Warning'
+            
+            scores.append(ServerHealthScore(
+                server_id=server_id,
+                score=round(score, 1),
+                status=status,
+                primary_issue=issues[0] if issues else None
+            ))
+            
+        return scores
+
+    def _cluster_servers(self, df: pd.DataFrame) -> Dict[str, List[str]]:
+        """Group servers by behavior using K-Means Clustering"""
+        # Pivot table to get features per server: avg_cpu, avg_memory, etc.
+        features = df.pivot_table(index='server_id', columns='metric_type', values='value', aggfunc='mean')
+        features = features.fillna(0)
+        
+        if len(features) < 3: # Need at least 3 servers for meaningful clustering
+            return {"default": features.index.tolist()}
+            
+        try:
+            # Normalize features
+            scaled_features = self.scaler.fit_transform(features)
+            
+            # K-Means Clustering
+            n_clusters = min(3, len(features))
+            kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+            labels = kmeans.fit_predict(scaled_features)
+            
+            clusters = {}
+            for server_id, label in zip(features.index, labels):
+                label_str = f"Cluster_{label}"
+                if label_str not in clusters:
+                    clusters[label_str] = []
+                clusters[label_str].append(server_id)
+                
+            return clusters
+        except Exception as e:
+            logger.warning("Clustering failed", error=str(e))
+            return {"default": features.index.tolist()}
+
+    async def _find_patterns(self, df: pd.DataFrame) -> List[Dict[str, Any]]:
+        """Find patterns using Pandas aggregations"""
         patterns = []
         
-        if len(data) < 20:
-            return patterns
+        if df.empty: return patterns
         
-        # Group by hour to find hourly patterns
-        df = pd.DataFrame([
-            {
-                'hour': d.timestamp.hour,
-                'value': d.value,
-                'type': d.metric_type
-            }
-            for d in data
-        ])
-        
-        # Find peak hours
+        # Hourly patterns
+        df['hour'] = df['timestamp'].dt.hour
         hourly_avg = df.groupby('hour')['value'].mean()
         peak_hour = hourly_avg.idxmax()
         
         patterns.append({
             'type': 'peak_hour',
             'description': f'Peak usage typically occurs at {peak_hour}:00',
-            'confidence': 0.8
+            'confidence': 0.8,
+            'details': {'peak_hour': int(peak_hour), 'avg_value': float(hourly_avg[peak_hour])}
         })
         
-        # Find weekly patterns (if enough data)
-        if len(data) > 168:  # More than a week of hourly data
-            patterns.append({
-                'type': 'weekly_cycle',
-                'description': 'Weekly usage pattern detected',
-                'confidence': 0.7
-            })
-        
         return patterns
-    
-    def _calculate_severity(self, value: float, mean: float, std: float) -> str:
-        """Calculate anomaly severity"""
-        deviation = abs(value - mean) / std
-        
-        if deviation < 4:
-            return 'low'
-        elif deviation < 5:
-            return 'medium'
-        else:
-            return 'high'
     
     def _generate_recommendations(self, 
                                 anomalies: List[AnomalyResult],
                                 trend: TrendAnalysis,
-                                patterns: List[Dict[str, Any]]) -> List[str]:
-        """Generate ML-based recommendations"""
+                                patterns: List[Dict[str, Any]],
+                                health_scores: List[ServerHealthScore]) -> List[str]:
+        """Generate comprehensive recommendations"""
         recommendations = []
         
-        # Anomaly-based recommendations
-        high_severity_count = sum(1 for a in anomalies if a.severity == 'high')
-        if high_severity_count > 0:
-            recommendations.append(
-                f"🚨 {high_severity_count}개의 심각한 이상 징후가 감지되었습니다. 즉시 확인이 필요합니다."
-            )
+        # Critical Health Issues
+        critical_servers = [s for s in health_scores if s.status == 'Critical']
+        if critical_servers:
+            server_names = ", ".join([s.server_id for s in critical_servers])
+            recommendations.append(f"🚨 Critical Health Alert: Servers {server_names} require immediate attention.")
+            
+        # Trend Analysis
+        if trend.forecast_model == 'Holt-Winters':
+            if trend.direction == 'increasing':
+                recommendations.append(f"📈 Advanced forecasting predicts load increase to {trend.prediction_24h:.1f} in 24h.")
         
-        # Trend-based recommendations
-        if trend.direction == 'increasing' and trend.rate_of_change > 0.5:
-            recommendations.append(
-                "📈 지속적인 증가 추세가 감지되었습니다. 용량 확장을 고려하세요."
-            )
-        elif trend.prediction_24h > 90:
-            recommendations.append(
-                "⚠️ 24시간 내 임계값 초과가 예상됩니다. 사전 조치가 필요합니다."
-            )
-        
-        # Pattern-based recommendations
-        for pattern in patterns:
-            if pattern['type'] == 'peak_hour':
-                recommendations.append(
-                    f"💡 {pattern['description']}. 이 시간대에 리소스를 집중 배치하세요."
-                )
-        
+        # Anomaly Summary
+        if anomalies:
+            recommendations.append(f"⚠️ Detected {len(anomalies)} anomalies in metric patterns.")
+            
         return recommendations[:5]
 
 
@@ -291,12 +403,7 @@ def ml_analytics_engine(request):
     """
     GCP Functions entry point for ML Analytics Engine
     Expects JSON payload: {
-        "metrics": [{
-            "timestamp": "2024-01-19T12:00:00",
-            "value": 75.5,
-            "server_id": "web-001",
-            "metric_type": "cpu"
-        }, ...],
+        "metrics": [{...}],
         "context": {...}
     }
     """
@@ -317,32 +424,21 @@ def ml_analytics_engine(request):
     }
     
     try:
-        # Parse request
         if not request.is_json:
-            return (json.dumps({
-                'success': False,
-                'error': 'Content-Type must be application/json',
-                'function_name': 'ml-analytics-engine'
-            }), 400, headers)
+            return (json.dumps({'success': False, 'error': 'Content-Type must be application/json'}), 400, headers)
         
         data = request.get_json()
         metrics = data.get('metrics', [])
         context = data.get('context', {})
         
         if not metrics:
-            return (json.dumps({
-                'success': False,
-                'error': 'Metrics parameter is required',
-                'function_name': 'ml-analytics-engine'
-            }), 400, headers)
+            return (json.dumps({'success': False, 'error': 'Metrics parameter is required'}), 400, headers)
         
         logger.info("Processing ML analytics request", metric_count=len(metrics))
         
-        # Process metrics
         import asyncio
         result = asyncio.run(ml_engine.analyze_metrics(metrics, context))
         
-        # Convert to JSON-serializable format
         response = {
             'success': True,
             'data': {
@@ -359,36 +455,25 @@ def ml_analytics_engine(request):
                 ],
                 'trend': asdict(result.trend),
                 'patterns': result.patterns,
-                'recommendations': result.recommendations
+                'recommendations': result.recommendations,
+                'health_scores': [asdict(h) for h in result.health_scores],
+                'clusters': result.clusters
             },
             'function_name': 'ml-analytics-engine',
             'source': 'gcp-functions',
+            'version': '2.0.0',
             'timestamp': datetime.now().isoformat(),
             'performance': {
                 'processing_time_ms': result.processing_time_ms,
-                'metrics_analyzed': len(metrics),
-                'anomalies_found': len(result.anomalies)
+                'metrics_analyzed': len(metrics)
             }
         }
-        
-        logger.info("ML analytics completed", 
-                   success=True,
-                   processing_time=result.processing_time_ms)
         
         return (json.dumps(response), 200, headers)
         
     except Exception as e:
         logger.error("ML analytics error", error=str(e))
-        
-        error_response = {
-            'success': False,
-            'error': str(e),
-            'function_name': 'ml-analytics-engine',
-            'source': 'gcp-functions',
-            'timestamp': datetime.now().isoformat()
-        }
-        
-        return (json.dumps(error_response), 500, headers)
+        return (json.dumps({'success': False, 'error': str(e)}), 500, headers)
 
 
 if __name__ == '__main__':
@@ -396,23 +481,49 @@ if __name__ == '__main__':
     import asyncio
     
     async def test():
-        # Generate test data
+        # Generate test data with seasonality
         test_metrics = []
-        base_time = datetime.now() - timedelta(hours=24)
+        base_time = datetime.now() - timedelta(hours=48)
         
-        for i in range(100):
+        print("Generating test data with seasonality...")
+        for i in range(200):
+            # Create a sine wave pattern (seasonality) + trend + noise
+            t = i / 10
+            seasonal = 20 * np.sin(t)
+            trend = i * 0.1
+            noise = np.random.normal(0, 2)
+            value = 50 + seasonal + trend + noise
+            
             test_metrics.append({
                 'timestamp': (base_time + timedelta(hours=i/4)).isoformat(),
-                'value': 50 + 20 * np.sin(i/10) + np.random.normal(0, 5),
-                'server_id': 'test-001',
+                'value': value,
+                'server_id': 'web-001',
+                'metric_type': 'cpu'
+            })
+            
+            # Add another server data
+            test_metrics.append({
+                'timestamp': (base_time + timedelta(hours=i/4)).isoformat(),
+                'value': 30 + np.random.normal(0, 1), # Stable low usage
+                'server_id': 'db-001',
                 'metric_type': 'cpu'
             })
         
-        # Add some anomalies
-        test_metrics[50]['value'] = 95
-        test_metrics[75]['value'] = 15
-        
+        print(f"Running analysis on {len(test_metrics)} metrics...")
         result = await ml_engine.analyze_metrics(test_metrics)
-        print("Test result:", asdict(result))
+        
+        print("\n=== Analysis Result ===")
+        print(f"Processing Time: {result.processing_time_ms:.2f}ms")
+        print(f"Trend Model: {result.trend.forecast_model}")
+        print(f"Prediction (24h): {result.trend.prediction_24h:.2f}")
+        print(f"Seasonality Detected: {result.trend.seasonality_detected}")
+        print("\nHealth Scores:")
+        for score in result.health_scores:
+            print(f" - {score.server_id}: {score.score} ({score.status})")
+        print("\nClusters:")
+        print(json.dumps(result.clusters, indent=2))
+        print("\nRecommendations:")
+        for rec in result.recommendations:
+            print(f" - {rec}")
     
     asyncio.run(test())

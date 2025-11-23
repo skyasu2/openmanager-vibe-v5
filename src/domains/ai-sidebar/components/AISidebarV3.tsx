@@ -225,7 +225,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
     logs: _realTimeLogs,
     isConnected: _isLogConnected,
     isProcessing: _isRealTimeProcessing,
-    currentEngine: _currentEngine,
+    currentEngine,
     techStack: _techStack,
     connectionStatus: _connectionStatus,
   } = useRealTimeAILogs({
@@ -425,6 +425,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
           }}
           isGenerating={isGenerating}
           regenerateResponse={regenerateResponse}
+          currentEngine={currentEngine}
         />
       );
     }
