@@ -8,6 +8,7 @@ export default defineConfig({
     env: {
       NEXT_PUBLIC_SUPABASE_URL: 'http://mock-supabase-url.local',
       NEXT_PUBLIC_SUPABASE_ANON_KEY: 'mock-anon-key-for-testing',
+      GOOGLE_AI_API_KEY: 'mock-google-ai-key-for-testing',
     },
     setupFiles: ['./src/test/setup.ts'],
     include: [
