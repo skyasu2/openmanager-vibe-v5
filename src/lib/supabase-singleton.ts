@@ -7,7 +7,6 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '@supabase/supabase-js';
-import { env, isDevelopment } from '../env';
 
 // 전역 싱글톤 인스턴스 - 더 강력한 싱글톤 보장
 declare global {
@@ -24,12 +23,18 @@ let isInitialized = global.__supabaseInitialized || false;
 let _initializationError = global.__supabaseInitError || null;
 
 /**
- * Supabase URL 가져오기 (기존 로직 재사용)
+ * Supabase URL 가져오기
+ * 클라이언트와 서버에서 모두 안전하게 접근 가능
  */
 function getSupabaseUrl(): string {
-  const directUrl = env.NEXT_PUBLIC_SUPABASE_URL;
+  // NEXT_PUBLIC_ 접두사가 붙은 변수는 클라이언트에서도 접근 가능
+  const directUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-  if (directUrl && directUrl !== '' && directUrl !== 'https://temp.supabase.co') {
+  if (
+    directUrl &&
+    directUrl !== '' &&
+    directUrl !== 'https://temp.supabase.co'
+  ) {
     return directUrl;
   }
 
@@ -42,10 +47,12 @@ function getSupabaseUrl(): string {
 }
 
 /**
- * Supabase Anon Key 가져오기 (기존 로직 재사용)
+ * Supabase Anon Key 가져오기
+ * 클라이언트와 서버에서 모두 안전하게 접근 가능
  */
 function getSupabaseAnonKey(): string {
-  const directKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // NEXT_PUBLIC_ 접두사가 붙은 변수는 클라이언트에서도 접근 가능
+  const directKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (directKey && directKey !== '' && directKey !== 'temp-anon-key') {
     return directKey;
   }
@@ -149,14 +156,17 @@ export async function checkSupabaseConnection(): Promise<{
   try {
     const client = getSupabaseClient();
 
-    if (isDevelopment) {
+    if (process.env.NODE_ENV === 'development') {
       return {
         status: 'connected',
         message: 'Supabase connected successfully (development mode)',
       };
     }
 
-    const { error } = await client.from('command_vectors').select('id').limit(1);
+    const { error } = await client
+      .from('command_vectors')
+      .select('id')
+      .limit(1);
 
     return {
       status: error ? 'error' : 'connected',
