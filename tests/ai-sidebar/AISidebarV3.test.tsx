@@ -81,12 +81,12 @@ describe('AISidebarV3', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (useAISidebarStore as any).mockReturnValue(mockStore);
-    
+
     // Setup RealAISidebarService mock
     (RealAISidebarService as any).mockImplementation(() => ({
       processV3Query: mockProcessV3Query,
     }));
-    
+
     // Default successful response
     mockProcessV3Query.mockResolvedValue({
       success: true,
@@ -96,15 +96,29 @@ describe('AISidebarV3', () => {
   });
 
   it('renders V3 with new features enabled', () => {
-    render(<AISidebarV3 isOpen={true} enableRealTimeThinking={true} onClose={vi.fn()} />);
+    render(
+      <AISidebarV3
+        isOpen={true}
+        enableRealTimeThinking={true}
+        onClose={vi.fn()}
+      />
+    );
 
     expect(screen.getByText('AI와 자연어로 시스템 질의')).toBeInTheDocument();
     expect(screen.getByText('실시간 thinking 지원')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/시스템에 대해 질문해보세요/)).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/시스템에 대해 질문해보세요/)
+    ).toBeInTheDocument();
   });
 
   it('shows different UI when real-time thinking is disabled', () => {
-    render(<AISidebarV3 isOpen={true} enableRealTimeThinking={false} onClose={vi.fn()} />);
+    render(
+      <AISidebarV3
+        isOpen={true}
+        enableRealTimeThinking={false}
+        onClose={vi.fn()}
+      />
+    );
 
     expect(screen.getByText('AI 기반 대화형 인터페이스')).toBeInTheDocument();
     expect(screen.queryByText('실시간 thinking 지원')).not.toBeInTheDocument();
@@ -125,7 +139,7 @@ describe('AISidebarV3', () => {
             timestamp: new Date(),
           },
           {
-            id: 'step2', 
+            id: 'step2',
             step: 'Generating response',
             status: 'complete',
             timestamp: new Date(),
@@ -156,7 +170,7 @@ describe('AISidebarV3', () => {
         {
           id: 'step1',
           step: 'Processing',
-          status: 'thinking',
+          status: 'processing',
           timestamp: new Date(),
         },
       ],
@@ -175,12 +189,15 @@ describe('AISidebarV3', () => {
   });
 
   it('limits messages to MAX_MESSAGES for memory efficiency', () => {
-    const manyMessages: EnhancedChatMessage[] = Array.from({ length: 60 }, (_, i) => ({
-      id: `msg-${i}`,
-      content: `Message ${i}`,
-      role: 'user' as const,
-      timestamp: new Date(),
-    }));
+    const manyMessages: EnhancedChatMessage[] = Array.from(
+      { length: 60 },
+      (_, i) => ({
+        id: `msg-${i}`,
+        content: `Message ${i}`,
+        role: 'user' as const,
+        timestamp: new Date(),
+      })
+    );
 
     (useAISidebarStore as any).mockReturnValue({
       ...mockStore,
@@ -192,7 +209,7 @@ describe('AISidebarV3', () => {
     // Only the last 50 messages should be rendered (MAX_MESSAGES = 50)
     const messageElements = screen.getAllByText(/Message \d+/);
     expect(messageElements).toHaveLength(50);
-    
+
     // First message should be Message 10 (60 - 50 = 10)
     expect(screen.getByText('Message 10')).toBeInTheDocument();
     expect(screen.getByText('Message 59')).toBeInTheDocument();
@@ -241,7 +258,9 @@ describe('AISidebarV3', () => {
   it('clears input after successful submission', async () => {
     render(<AISidebarV3 isOpen={true} onClose={vi.fn()} />);
 
-    const input = screen.getByPlaceholderText(/시스템에 대해 질문해보세요/) as HTMLTextAreaElement;
+    const input = screen.getByPlaceholderText(
+      /시스템에 대해 질문해보세요/
+    ) as HTMLTextAreaElement;
     const sendButton = screen.getByRole('button', { name: /메시지 전송/ });
 
     fireEvent.input(input, { target: { value: '테스트 질문' } });
@@ -268,7 +287,9 @@ describe('AISidebarV3', () => {
     await waitFor(() => {
       expect(mockStore.addMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          content: expect.stringContaining('AI 응답 생성 중 오류가 발생했습니다'),
+          content: expect.stringContaining(
+            'AI 응답 생성 중 오류가 발생했습니다'
+          ),
           role: 'assistant',
         })
       );
@@ -279,14 +300,14 @@ describe('AISidebarV3', () => {
     render(<AISidebarV3 isOpen={true} onClose={vi.fn()} />);
 
     const sendButton = screen.getByRole('button', { name: /메시지 전송/ });
-    
+
     expect(sendButton).toBeDisabled();
-    
+
     const input = screen.getByPlaceholderText(/시스템에 대해 질문해보세요/);
     fireEvent.input(input, { target: { value: '   ' } }); // Only whitespace
-    
+
     expect(sendButton).toBeDisabled();
-    
+
     fireEvent.input(input, { target: { value: '실제 질문' } });
     expect(sendButton).not.toBeDisabled();
   });
@@ -311,7 +332,7 @@ describe('AISidebarV3', () => {
     render(<AISidebarV3 isOpen={true} onClose={vi.fn()} />);
 
     const input = screen.getByPlaceholderText(/시스템에 대해 질문해보세요/);
-    
+
     fireEvent.input(input, { target: { value: '첫 줄' } });
     fireEvent.keyDown(input, { key: 'Enter', shiftKey: true });
 
@@ -321,7 +342,13 @@ describe('AISidebarV3', () => {
 
   it('calls onMessageSend callback when provided', async () => {
     const onMessageSend = vi.fn();
-    render(<AISidebarV3 isOpen={true} onClose={vi.fn()} onMessageSend={onMessageSend} />);
+    render(
+      <AISidebarV3
+        isOpen={true}
+        onClose={vi.fn()}
+        onMessageSend={onMessageSend}
+      />
+    );
 
     const input = screen.getByPlaceholderText(/시스템에 대해 질문해보세요/);
     const sendButton = screen.getByRole('button', { name: /메시지 전송/ });
@@ -337,7 +364,13 @@ describe('AISidebarV3', () => {
   it('uses provided sessionId', () => {
     // This is implicit as we can't easily check internal state,
     // but we can verify it renders without error with a custom session ID
-    render(<AISidebarV3 isOpen={true} onClose={vi.fn()} sessionId="custom-session-id" />);
+    render(
+      <AISidebarV3
+        isOpen={true}
+        onClose={vi.fn()}
+        sessionId="custom-session-id"
+      />
+    );
     expect(screen.getByText('AI와 자연어로 시스템 질의')).toBeInTheDocument();
   });
 });
