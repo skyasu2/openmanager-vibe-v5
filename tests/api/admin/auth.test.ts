@@ -40,6 +40,10 @@ const mockAuthManager = {
 // authManager를 mockAuthManager로 대체
 Object.assign(authManager, mockAuthManager);
 
+// TODO: Fix path alias (@/) resolution in node environment
+// Tracked in improvement plan Task 1.3
+// Path alias works in jsdom but fails in node environment
+// Future: Convert to E2E test or install vite-tsconfig-paths plugin
 describe.skip('🔐 Admin API 인증 테스트', () => {
   beforeEach(() => {
     vi.clearAllMocks();
