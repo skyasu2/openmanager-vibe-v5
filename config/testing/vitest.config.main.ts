@@ -13,7 +13,13 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: [
       'src/**/*.{test,spec}.{js,ts,tsx}',
-      'tests/**/*.{test,spec}.{js,ts,tsx}', // 🆕 tests/ 디렉토리 테스트 파일 포함
+      'tests/ai-sidebar/**/*.{test,spec}.{js,ts,tsx}',
+      'tests/api/**/*.{test,spec}.{js,ts,tsx}',
+      'tests/archive/**/*.{test,spec}.{js,ts,tsx}',
+      'tests/integration/**/*.{test,spec}.{js,ts,tsx}',
+      'tests/performance/**/*.{test,spec}.{js,ts,tsx}',
+      'tests/unit/**/*.{test,spec}.{js,ts,tsx}',
+      // ⚠️ tests/e2e/**는 명시하지 않음 - Playwright 전용 E2E 테스트
     ],
     exclude: [
       'node_modules/**',
@@ -22,7 +28,8 @@ export default defineConfig({
       'out/**',
       'gcp-functions/**',
       'tests/archive/**', // ✅ 아카이브된 테스트 제외 (jsdom 한계로 개선 불가능)
-      'tests/e2e/**', // ✅ E2E 테스트 제외 (Playwright 전용, Vitest에서 실행 금지)
+      'tests/e2e/**/*.spec.ts', // ✅ E2E 테스트 제외 (Playwright 전용, Vitest에서 실행 금지) - 패턴 명확화
+      '**/e2e/**', // ✅ 추가 안전장치: 어떤 경로의 e2e 디렉토리도 제외
     ],
     coverage: {
       provider: 'v8',
