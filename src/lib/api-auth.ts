@@ -35,6 +35,21 @@ export async function checkAPIAuth(request: NextRequest) {
   const envApiKey = process.env.TEST_API_KEY;
 
   if (apiKey && envApiKey) {
+    // 보안: DoS 방지 - API 키 길이 상한 (256자)
+    const MAX_API_KEY_LENGTH = 256;
+    if (apiKey.length > MAX_API_KEY_LENGTH) {
+      const ip = request.headers.get('x-forwarded-for') || 'unknown';
+      securityLogger.logSecurityEvent({
+        type: 'invalid_key',
+        ip,
+        details: `API key too long: ${apiKey.length} characters (max: ${MAX_API_KEY_LENGTH})`,
+      });
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid API key' },
+        { status: 401 }
+      );
+    }
+
     // 보안: 타이밍 공격 완전 방어 (constant-time comparison + 패딩)
     try {
       const keyBuffer = Buffer.from(apiKey);

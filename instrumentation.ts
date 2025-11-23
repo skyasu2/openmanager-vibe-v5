@@ -26,7 +26,7 @@ export async function register() {
     // 🔐 선택적 환경 변수 검증 (TEST_API_KEY 등)
     try {
       const { validateEnvironmentVariables } = await import(
-        './src/lib/config/env-validation.js'
+        './src/lib/config/env-validation'
       );
       validateEnvironmentVariables();
     } catch (error) {

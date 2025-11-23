@@ -97,9 +97,14 @@ class SecurityLogger {
 // 싱글톤 인스턴스
 export const securityLogger = new SecurityLogger();
 
-// 1시간마다 자동 정리 (서버 환경에서만)
-if (typeof window === 'undefined') {
-  setInterval(() => {
+// 1시간마다 자동 정리 (서버 환경에서만, 단일 등록 보장)
+let cleanupTimerId: NodeJS.Timeout | null = null;
+
+if (typeof window === 'undefined' && !cleanupTimerId) {
+  cleanupTimerId = setInterval(() => {
     securityLogger.cleanup();
-  }, 3600000); // 1시간
+  }, 3600000);
+
+  // 서버리스 환경에서 이벤트 루프 블로킹 방지
+  cleanupTimerId.unref();
 }
