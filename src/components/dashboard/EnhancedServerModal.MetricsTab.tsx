@@ -18,7 +18,7 @@ import {
 } from './EnhancedServerModal.types';
 import { getMetricColorByStatus } from './EnhancedServerModal.utils';
 import { RealtimeChart } from './EnhancedServerModal.components';
-import { getSafeLastArrayItem } from '../../lib/vercel-safe-utils';
+import { getSafeLastArrayItem } from '@/lib/utils/vercel-safe-utils';
 
 /**
  * Metrics Tab Props
