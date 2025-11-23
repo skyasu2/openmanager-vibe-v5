@@ -5,7 +5,7 @@ import {
   safeServerStatus,
   safeServerEnvironment,
   safeServerRole,
-} from '@/lib/type-converters';
+} from '@/lib/utils/type-converters';
 
 // Enhanced Server Metrics 인터페이스 (route.ts와 동기화 필요)
 export interface EnhancedServerMetrics {

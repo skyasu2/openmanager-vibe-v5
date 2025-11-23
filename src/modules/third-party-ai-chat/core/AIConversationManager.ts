@@ -3,7 +3,7 @@
  * 다양한 AI 서비스와 직접 대화할 수 있는 통합 모듈
  */
 
-import { KST } from '@/lib/time';
+import { KST } from '@/lib/utils/time';
 
 export interface AIProvider {
   name: string;

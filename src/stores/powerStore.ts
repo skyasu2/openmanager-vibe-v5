@@ -4,7 +4,7 @@
  * 🔋 시스템 절전 모드 및 전력 관리
  */
 
-import { KST } from '@/lib/time';
+import { KST } from '@/lib/utils/time';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 

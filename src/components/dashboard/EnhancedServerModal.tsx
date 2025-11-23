@@ -38,7 +38,7 @@ import type {
   TabInfo,
 } from './EnhancedServerModal.types';
 import { getStatusTheme } from './EnhancedServerModal.utils';
-import { getSafeServicesLength } from '@/lib/vercel-safe-utils';
+import { getSafeServicesLength } from '@/lib/utils/vercel-safe-utils';
 import { OverviewTab } from './EnhancedServerModal.OverviewTab';
 import { MetricsTab } from './EnhancedServerModal.MetricsTab';
 import { ProcessesTab } from './EnhancedServerModal.ProcessesTab';

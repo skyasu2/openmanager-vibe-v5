@@ -382,7 +382,11 @@ export const normalizeServerForVercel = (server: unknown): Server | null => {
       ip: getSafeProperty(s, 'ip', '192.168.1.1'),
       os: getSafeProperty(s, 'os', 'Ubuntu 22.04 LTS'),
       role: getSafeProperty(s, 'type', 'worker') as ServerRole,
-      environment: getSafeProperty(s, 'environment', 'production') as ServerEnvironment,
+      environment: getSafeProperty(
+        s,
+        'environment',
+        'production'
+      ) as ServerEnvironment,
       provider: getSafeProperty(s, 'provider', 'On-Premise'),
       specs: getSafeProperty(s, 'specs', {
         cpu_cores: 4,

@@ -41,7 +41,7 @@ import {
   getSafeValidServices,
   vercelSafeLog,
   isValidServer,
-} from '@/lib/vercel-safe-utils';
+} from '@/lib/utils/vercel-safe-utils';
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
 import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
 import { getServerStatusTheme, LAYOUT } from '../../styles/design-constants';
@@ -363,7 +363,9 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     // 🚀 클릭 핸들러 메모이제이션 (5층 방어 시스템 적용)
     const handleClick = useCallback(() => {
       try {
-      {/* @ts-expect-error - Server type mismatch */}
+        {
+          /* @ts-expect-error - Server type mismatch */
+        }
         // 안전한 서버 객체로 콜백 호출
         onClick(safeServer);
       } catch (error) {

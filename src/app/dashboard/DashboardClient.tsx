@@ -40,7 +40,7 @@ import {
 import { useRouter } from 'next/navigation';
 import debug from '@/utils/debug';
 // 🛡️ 베르셀 안전 유틸리티 import 추가 (Bundle-Safe Inline으로 l6 압축 방지)
-// import { handleVercelError } from '@/lib/vercel-safe-utils'; // Unused
+// import { handleVercelError } from '@/lib/utils/vercel-safe-utils'; // Unused
 
 // 🎯 Bundle-Safe Inline 매크로 - getSafeArrayLength (압축 방지)
 const getSafeArrayLength = (arr: unknown): number => {
