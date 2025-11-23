@@ -5,7 +5,7 @@
  * 최상위 레벨 에러 처리 (500, unhandled errors)
  */
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import debug from '@/utils/debug';
 
@@ -29,7 +29,7 @@ interface GlobalErrorProps {
 }
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
-  const clientEnv = getClientEnvironment();
+  const clientEnv = useMemo(() => getClientEnvironment(), []);
 
   useEffect(() => {
     // 프로덕션 환경에서만 에러 리포팅
