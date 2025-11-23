@@ -7,7 +7,7 @@
  * @tdd-coverage 100%
  */
 
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
 import { z } from 'zod';
 
 // 테스트 설정
