@@ -7,7 +7,7 @@
 
 import type { Server } from '../../types/server';
 import { isMockMode } from '../../config/mock-config';
-import { staticDataLoader } from '../data/StaticDataLoader';
+import { UnifiedServerDataSource } from '../data/UnifiedServerDataSource';
 
 export interface MockContext {
   enabled: boolean;
@@ -34,7 +34,7 @@ export class MockContextLoader {
   private static instance: MockContextLoader;
   private cachedContext: MockContext | null = null;
   private cacheTimestamp: number = 0;
-  private readonly CACHE_TTL_MS = 60000; // 60초 캐시 (StaticDataLoader와 동기화)
+  private readonly CACHE_TTL_MS = 300000; // 5분 캐시 (UnifiedServerDataSource와 동기화)
 
   static getInstance(): MockContextLoader {
     if (!MockContextLoader.instance) {
@@ -97,9 +97,9 @@ export class MockContextLoader {
 
     try {
       if (process.env.NODE_ENV === 'development') {
-        console.log('🔄 StaticDataLoader 동기 컨텍스트 조회 시도...');
+        console.log('🔄 UnifiedServerDataSource 동기 컨텍스트 조회 시도...');
       }
-      // 🚀 베르셀 최적화: StaticDataLoader를 통해 정적 JSON 데이터 사용 (NEW 17-server system)
+      // 🚀 베르셀 최적화: UnifiedServerDataSource를 통해 정적 JSON 데이터 사용 (scenario-loader)
       const result = this.getStaticContextSync();
 
       // 캐시 업데이트
@@ -109,7 +109,7 @@ export class MockContextLoader {
       }
 
       if (process.env.NODE_ENV === 'development') {
-        console.log('✅ StaticDataLoader 동기 컨텍스트 성공:', {
+        console.log('✅ UnifiedServerDataSource 동기 컨텍스트 성공:', {
           enabled: result?.enabled,
           serverCount: result?.servers?.length,
           currentTime: result?.currentTime,
@@ -118,12 +118,12 @@ export class MockContextLoader {
       }
       return result;
     } catch (error) {
-      console.error('❌ StaticDataLoader 데이터 조회 실패:', error);
+      console.error('❌ UnifiedServerDataSource 데이터 조회 실패:', error);
 
-      // 폴백: null 반환 (StaticDataLoader 캐시 초기화 대기 필요)
+      // 폴백: null 반환 (UnifiedServerDataSource 캐시 초기화 대기 필요)
       // AI는 데이터 없음 상태를 gracefully 처리 가능
       console.warn(
-        '⚠️ MockContext 사용 불가 - StaticDataLoader 초기화 대기 중'
+        '⚠️ MockContext 사용 불가 - UnifiedServerDataSource 초기화 대기 중'
       );
 
       // 캐시 무효화 (다음 요청 시 재시도)
@@ -213,118 +213,107 @@ export class MockContextLoader {
   }
 
   /**
-   * 🚀 베르셀 최적화: StaticDataLoader 기반 컨텍스트 생성
-   * CPU 99.4% 절약, 메모리 90% 절약
+   * 🚀 베르셀 최적화: UnifiedServerDataSource 기반 컨텍스트 생성
+   * Single Source of Truth: scenario-loader 통합
    *
-   * Phase 3.3: 동기 래퍼 메서드 연동으로 하드코딩 제거
+   * ✅ UnifiedServerDataSource 마이그레이션 완료 (2025-11-23)
+   * - 5분 간격 고정 데이터 (12 data points/hour)
+   * - scenario-loader 기반 EnhancedServerMetrics
+   * - KST 타임존 동기화
    */
   private getStaticContextSync(): MockContext | null {
     try {
       if (process.env.NODE_ENV === 'development') {
-        console.log('🚀 StaticDataLoader 기반 컨텍스트 생성 시도 (동기 래퍼)');
+        console.log(
+          '🚀 UnifiedServerDataSource 기반 컨텍스트 생성 시도 (동기 래퍼)'
+        );
       }
 
-      // 🔄 StaticDataLoader의 동기 래퍼 메서드 호출
-      const serversData = staticDataLoader.getCurrentServersDataSync(true); // forAI=true (고정 데이터)
-      const stats = staticDataLoader.getCurrentStatisticsSync();
+      // 🎯 Single Source of Truth: UnifiedServerDataSource → scenario-loader
+      const dataSource = UnifiedServerDataSource.getInstance();
+      const servers = dataSource.getCachedServersSync();
 
-      // 캐시가 준비되지 않은 경우 null 반환 (NEW 17-server system)
-      if (!serversData || !stats) {
+      // 캐시가 준비되지 않은 경우 null 반환
+      if (servers.length === 0) {
         if (process.env.NODE_ENV === 'development') {
           console.warn(
-            '⚠️ StaticDataLoader 캐시 미준비 - 다음 요청에서 재시도'
+            '⚠️ UnifiedServerDataSource 캐시 미준비 - 다음 요청에서 재시도'
           );
         }
         return null;
       }
 
       if (process.env.NODE_ENV === 'development') {
-        console.log('✅ StaticDataLoader 동기 데이터 로드 성공:', {
-          serversCount: serversData.length,
-          stats: stats,
+        console.log('✅ UnifiedServerDataSource 동기 데이터 로드 성공:', {
+          serversCount: servers.length,
         });
       }
 
       // 서버 상태별 분류
-      const criticalServers = serversData.filter(
-        (s) => s.status === 'critical'
-      );
-      const warningServers = serversData.filter((s) => s.status === 'warning');
-      const onlineServers = serversData.filter((s) => s.status === 'online');
+      const criticalServers = servers.filter((s) => s.status === 'critical');
+      const warningServers = servers.filter((s) => s.status === 'warning');
+      const onlineServers = servers.filter((s) => s.status === 'online');
 
-      // 평균 디스크 사용률 계산 (stats에 없으므로 서버 데이터에서 계산)
-      const avgDisk =
-        serversData.length > 0
+      // 평균 메트릭 계산 (서버 데이터에서 직접 계산)
+      const avgCpu =
+        servers.length > 0
           ? Math.round(
-              serversData.reduce((sum, s) => sum + s.disk, 0) /
-                serversData.length
+              servers.reduce((sum, s) => sum + s.cpu, 0) / servers.length
+            )
+          : 0;
+
+      const avgMemory =
+        servers.length > 0
+          ? Math.round(
+              servers.reduce((sum, s) => sum + s.memory, 0) / servers.length
+            )
+          : 0;
+
+      const avgDisk =
+        servers.length > 0
+          ? Math.round(
+              servers.reduce((sum, s) => sum + s.disk, 0) / servers.length
             )
           : 0;
 
       const currentTime = new Date().toLocaleTimeString('ko-KR', {
         hour12: false,
+        timeZone: 'Asia/Seoul', // KST 타임존 명시
       });
-
-  // @ts-expect-error - Server type mismatch
-      // Server 타입으로 변환 (MockContext 인터페이스 호환)
-      const servers: Server[] = serversData.map((s) => ({
-        id: s.serverId,
-        name: s.serverId,
-        hostname: s.serverId,
-        status: s.status, // 'online' | 'warning' | 'critical'
-        cpu: s.cpu,
-        memory: s.memory,
-        disk: s.disk,
-        network: s.network,
-        uptime: 86400, // 기본값 (24시간)
-        location: 'Seoul-DC-01',
-        alerts: s.status === 'critical' ? 2 : s.status === 'warning' ? 1 : 0,
-        ip: '192.168.1.1',
-        os: 'Ubuntu 22.04 LTS',
-        type: 'application',
-        role: 'worker',
-        environment: 'production',
-        provider: 'StaticDataLoader',
-        lastUpdate: new Date(),
-      }));
 
       return {
         enabled: true,
         currentTime,
         metrics: {
-          serverCount: serversData.length,
+          serverCount: servers.length,
           criticalCount: criticalServers.length,
           warningCount: warningServers.length,
           healthyCount: onlineServers.length,
-          avgCpu: stats.avgCpu,
-          avgMemory: stats.avgMemory,
-          avgDisk: avgDisk,
+          avgCpu,
+          avgMemory,
+          avgDisk,
         },
         servers: servers.slice(0, 10), // 상위 10개 서버 (AI 분석에 충분)
         trends: {
           cpuTrend:
-            stats.avgCpu > 70
-              ? 'increasing'
-              : stats.avgCpu < 30
-                ? 'decreasing'
-                : 'stable',
+            avgCpu > 70 ? 'increasing' : avgCpu < 30 ? 'decreasing' : 'stable',
           memoryTrend:
-            stats.avgMemory > 75
+            avgMemory > 75
               ? 'increasing'
-              : stats.avgMemory < 40
+              : avgMemory < 40
                 ? 'decreasing'
                 : 'stable',
           alertTrend:
-            criticalServers.length > serversData.length * 0.3
+            criticalServers.length > servers.length * 0.3
               ? 'increasing'
               : criticalServers.length === 0
                 ? 'decreasing'
                 : 'stable',
-          scenario: { name: 'static' },
+          scenario: { name: 'scenario-loader' }, // scenario-loader 사용 명시
         },
       };
     } catch (error) {
-      console.error('❌ StaticDataLoader 컨텍스트 생성 실패:', error);
+      console.error('❌ UnifiedServerDataSource 컨텍스트 생성 실패:', error);
       return null;
     }
   }

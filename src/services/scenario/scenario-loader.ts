@@ -8,7 +8,7 @@ import {
 } from '@/lib/type-converters';
 
 // Enhanced Server Metrics 인터페이스 (route.ts와 동기화 필요)
-interface EnhancedServerMetrics {
+export interface EnhancedServerMetrics {
   id: string;
   name: string;
   hostname: string;
@@ -74,22 +74,27 @@ interface EnhancedServerMetrics {
 /**
  * 🎯 24시간 고정 데이터 순차 회전 시스템 (I/O 최적화)
  *
- * 미리 정의된 24시간 데이터를 30초마다 순차적으로 회전시키며 사용
+ * 미리 정의된 24시간 데이터를 5분마다 순차적으로 회전시키며 사용
  * 하루가 끝나면 다시 처음부터 순환 (고정 패턴의 연속 회전)
+ * KST(한국 시간) 기준으로 동기화
  */
 export async function loadHourlyScenarioData(): Promise<
   EnhancedServerMetrics[]
 > {
   try {
-    const now = new Date();
-    const currentHour = now.getHours(); // 0-23
-    const currentMinute = now.getMinutes(); // 0-59
-    const currentSecond = now.getSeconds(); // 0-59
+    // 🇰🇷 KST (Asia/Seoul) 기준 시간 사용
+    const koreaTime = new Date().toLocaleString('en-US', {
+      timeZone: 'Asia/Seoul',
+    });
+    const koreaDate = new Date(koreaTime);
 
-    // 🔄 30초 단위로 시간별 데이터를 순차 회전 (120개 구간 = 60분)
-    // 각 시간대 내에서 30초마다 다른 분(minute) 데이터 포인트 사용
-    const segmentInHour = Math.floor((currentMinute * 60 + currentSecond) / 30); // 0-119 (60분을 30초 구간으로 나눔)
-    const rotationMinute = segmentInHour % 60; // 0-59분 순환 사용
+    const currentHour = koreaDate.getHours(); // 0-23
+    const currentMinute = koreaDate.getMinutes(); // 0-59
+
+    // 🔄 5분 단위로 시간별 데이터를 순차 회전 (12개 구간 = 60분)
+    // 각 시간대 내에서 5분마다 다른 분(minute) 데이터 포인트 사용
+    const segmentInHour = Math.floor(currentMinute / 5); // 0-11 (60분을 5분 구간으로 나눔)
+    const rotationMinute = segmentInHour * 5; // 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55
 
     // 🚀 캐시된 파일 읽기 (성능 최적화: 로그 간소화)
     const hourlyData = await readCachedHourlyFile(currentHour);
@@ -189,9 +194,9 @@ function convertFixedRotationData(
   }
 
   return Object.values(servers).map((serverData: RawServerData, index) => {
-    // 🔒 고정 데이터 그대로 사용 (변동 없음)
-    // rotationMinute를 사용하여 시간 내 분별 고정 패턴 적용
-    const minuteFactor = rotationMinute / 59; // 0-1 사이 고정 팩터
+    // 🔒 고정 데이터 그대로 사용 (5분 간격 패턴)
+    // rotationMinute를 사용하여 시간 내 5분별 고정 패턴 적용
+    const minuteFactor = rotationMinute / 55; // 0-1 사이 고정 팩터 (0, 5, 10, ..., 55분)
     const fixedOffset = Math.sin(minuteFactor * 2 * Math.PI) * 2; // 고정된 2% 오프셋 (시간 내 패턴)
 
     // 서버별 고정 특성 (항상 동일한 패턴)

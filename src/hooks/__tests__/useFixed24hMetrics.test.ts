@@ -1,7 +1,7 @@
 /**
  * 🧪 useFixed24hMetrics 훅 테스트
  *
- * 24시간 고정 데이터 기반 메트릭 훅의 정확한 동작을 검증
+ * UnifiedServerDataSource 기반 메트릭 훅의 정확한 동작을 검증
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -10,31 +10,16 @@ import {
   useFixed24hMetrics,
   useMultipleFixed24hMetrics,
   useSingleMetric,
+  getFixedMetricNow,
 } from '../useFixed24hMetrics';
-import * as hourlyDataModule from '@/data/hourly-server-data';
-import { KST } from '@/lib/time';
+import type { Server } from '@/types/server';
 
-// Mock Modules
-vi.mock('@/data/hourly-server-data', () => ({
-  getServerMetricAt: vi.fn(),
-  getRecentMetrics: vi.fn(),
-  getMultipleServerMetrics: vi.fn(),
-}));
-
-interface InterpolatedMetric {
-  id: string;
-  cpu: number;
-  memory: number;
-  disk: number;
-  network: number;
-  status: string;
-  isInterpolated: boolean;
-  timestamp: string;
-}
-
-vi.mock('@/lib/time', () => ({
-  KST: {
-    getKST: vi.fn(),
+// Mock UnifiedServerDataSource
+vi.mock('@/services/data/UnifiedServerDataSource', () => ({
+  UnifiedServerDataSource: {
+    getInstance: vi.fn(() => ({
+      getServers: vi.fn(),
+    })),
   },
 }));
 
@@ -49,16 +34,46 @@ vi.mock('../../../lib/api/errorHandler', () => ({
   withErrorHandler: vi.fn((handler) => handler),
 }));
 
-// Mock KST
-const mockKST = {
-  getUTCHours: vi.fn(),
-  getUTCMinutes: vi.fn(),
-};
+import { UnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
+
+// Mock 서버 데이터 생성 헬퍼
+function createMockServer(overrides?: Partial<Server>): Server {
+  return {
+    id: 'server-1',
+    name: 'Test Server 1',
+    hostname: 'server-1.example.com',
+    status: 'online',
+    cpu: 50,
+    memory: 60,
+    disk: 30,
+    network: 20,
+    responseTime: 100,
+    uptime: 86400,
+    location: '서울',
+    ip: '192.168.1.1',
+    os: 'Ubuntu 22.04',
+    type: 'web',
+    role: 'web',
+    environment: 'production',
+    provider: 'AWS',
+    specs: {
+      cpu_cores: 4,
+      memory_gb: 16,
+      disk_gb: 500,
+      network_speed: '10Gbps',
+    },
+    ...overrides,
+  };
+}
 
 describe('useFixed24hMetrics', () => {
+  let mockGetServers: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(KST.getKST).mockReturnValue(mockKST as any);
+    const mockInstance = UnifiedServerDataSource.getInstance();
+    mockGetServers = vi.fn();
+    (mockInstance as any).getServers = mockGetServers;
   });
 
   afterEach(() => {
@@ -67,21 +82,8 @@ describe('useFixed24hMetrics', () => {
 
   describe('기본 동작', () => {
     it('서버 ID로 훅을 초기화할 수 있다', async () => {
-      vi.mocked(hourlyDataModule.getServerMetricAt).mockResolvedValueOnce({
-        id: 'server-1',
-        cpu: 50,
-        memory: 60,
-        disk: 30,
-        network: 20,
-        status: 'online',
-        isInterpolated: false,
-        timestamp: '2023-01-01T00:00:00Z',
-      });
-
-      vi.mocked(hourlyDataModule.getRecentMetrics).mockResolvedValueOnce([]);
-
-      mockKST.getUTCHours.mockReturnValue(10);
-      mockKST.getUTCMinutes.mockReturnValue(30);
+      const mockServer = createMockServer({ id: 'server-1', cpu: 50 });
+      mockGetServers.mockResolvedValueOnce([mockServer]);
 
       const { result } = renderHook(() => useFixed24hMetrics('server-1'));
 
@@ -94,11 +96,7 @@ describe('useFixed24hMetrics', () => {
     });
 
     it('서버 데이터를 찾지 못하면 에러를 반환한다', async () => {
-      vi.mocked(hourlyDataModule.getServerMetricAt).mockResolvedValueOnce(null);
-      vi.mocked(hourlyDataModule.getRecentMetrics).mockResolvedValueOnce([]);
-
-      mockKST.getUTCHours.mockReturnValue(10);
-      mockKST.getUTCMinutes.mockReturnValue(30);
+      mockGetServers.mockResolvedValueOnce([]);
 
       const { result } = renderHook(() => useFixed24hMetrics('invalid-id'));
 
@@ -111,13 +109,7 @@ describe('useFixed24hMetrics', () => {
 
     it('API 오류 시 적절한 에러를 반환한다', async () => {
       const errorMessage = 'Network error';
-      vi.mocked(hourlyDataModule.getServerMetricAt).mockRejectedValueOnce(
-        new Error(errorMessage)
-      );
-      vi.mocked(hourlyDataModule.getRecentMetrics).mockResolvedValueOnce([]);
-
-      mockKST.getUTCHours.mockReturnValue(10);
-      mockKST.getUTCMinutes.mockReturnValue(30);
+      mockGetServers.mockRejectedValueOnce(new Error(errorMessage));
 
       const { result } = renderHook(() => useFixed24hMetrics('error-server'));
 
@@ -131,32 +123,15 @@ describe('useFixed24hMetrics', () => {
 
   describe('히스토리 데이터', () => {
     it('히스토리 데이터를 정상적으로 가져온다', async () => {
-      const mockMetric = {
+      const mockServer = createMockServer({
         id: 'server-1',
         cpu: 50,
         memory: 60,
         disk: 30,
         network: 20,
-        status: 'online',
-        isInterpolated: false,
-        timestamp: '2023-01-01T00:00:00Z',
-      };
+      });
 
-      const mockHistory = [
-        { timestamp: '09:00', cpu: 45, memory: 55, disk: 25, network: 15 },
-        { timestamp: '09:30', cpu: 48, memory: 58, disk: 28, network: 18 },
-        { timestamp: '10:00', cpu: 50, memory: 60, disk: 30, network: 20 },
-      ];
-
-      vi.mocked(hourlyDataModule.getServerMetricAt).mockResolvedValueOnce(
-        mockMetric
-      );
-      vi.mocked(hourlyDataModule.getRecentMetrics).mockResolvedValueOnce(
-        mockHistory
-      );
-
-      mockKST.getUTCHours.mockReturnValue(10);
-      mockKST.getUTCMinutes.mockReturnValue(30);
+      mockGetServers.mockResolvedValueOnce([mockServer]);
 
       const { result } = renderHook(() => useFixed24hMetrics('server-1'));
 
@@ -164,49 +139,27 @@ describe('useFixed24hMetrics', () => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(result.current.historyData).toHaveLength(3);
-      expect(result.current.historyData[0]).toEqual({
-        time: '09:00',
-        cpu: 45,
-        memory: 55,
-        disk: 25,
-        network: 15,
-      });
+      // New system returns current snapshot only
+      expect(result.current.historyData).toHaveLength(1);
+      expect(result.current.historyData[0]).toEqual(
+        expect.objectContaining({
+          cpu: 50,
+          memory: 60,
+          disk: 30,
+          network: 20,
+        })
+      );
     });
   });
 
   describe('업데이트 기능', () => {
     it('refreshMetrics 함수로 데이터를 다시 로드할 수 있다', async () => {
-      const firstMetric = {
-        id: 'server-1',
-        cpu: 50,
-        memory: 60,
-        disk: 30,
-        network: 20,
-        status: 'online',
-        isInterpolated: false,
-        timestamp: '01:00',
-      };
-      const secondMetric = {
-        id: 'server-1',
-        cpu: 55,
-        memory: 65,
-        disk: 35,
-        network: 25,
-        status: 'online',
-        isInterpolated: false,
-        timestamp: '02:00',
-      };
+      const firstServer = createMockServer({ id: 'server-1', cpu: 50 });
+      const secondServer = createMockServer({ id: 'server-1', cpu: 55 });
 
-      const getMetricSpy = vi.spyOn(hourlyDataModule, 'getServerMetricAt');
-
-      vi.mocked(getMetricSpy)
-        .mockResolvedValueOnce(firstMetric)
-        .mockResolvedValueOnce(secondMetric);
-      vi.mocked(hourlyDataModule.getRecentMetrics).mockResolvedValueOnce([]);
-
-      mockKST.getUTCHours.mockReturnValue(10);
-      mockKST.getUTCMinutes.mockReturnValue(30);
+      mockGetServers
+        .mockResolvedValueOnce([firstServer])
+        .mockResolvedValueOnce([secondServer]);
 
       const { result } = renderHook(() => useFixed24hMetrics('server-1'));
 
@@ -215,10 +168,6 @@ describe('useFixed24hMetrics', () => {
         expect(result.current.isLoading).toBe(false);
       });
       expect(result.current.currentMetrics?.cpu).toBe(50);
-
-      // 두 번째 결과 설정
-      mockKST.getUTCHours.mockReturnValue(11);
-      mockKST.getUTCMinutes.mockReturnValue(45);
 
       // refresh 호출
       await result.current.refreshMetrics();
@@ -232,21 +181,8 @@ describe('useFixed24hMetrics', () => {
 
   describe('업데이트 간격 설정', () => {
     it('업데이트 간격을 커스터마이징할 수 있다', async () => {
-      vi.mocked(hourlyDataModule.getServerMetricAt).mockResolvedValueOnce({
-        id: 'server-1',
-        cpu: 50,
-        memory: 60,
-        disk: 30,
-        network: 20,
-        status: 'online',
-        isInterpolated: false,
-        timestamp: '2023-01-01T00:00:00Z',
-      });
-
-      vi.mocked(hourlyDataModule.getRecentMetrics).mockResolvedValueOnce([]);
-
-      mockKST.getUTCHours.mockReturnValue(10);
-      mockKST.getUTCMinutes.mockReturnValue(30);
+      const mockServer = createMockServer({ id: 'server-1', cpu: 50 });
+      mockGetServers.mockResolvedValueOnce([mockServer]);
 
       const { result } = renderHook(() =>
         useFixed24hMetrics('server-1', 120000)
@@ -263,22 +199,8 @@ describe('useFixed24hMetrics', () => {
   describe('컴포넌트 언마운트 처리', () => {
     it('훅이 언마운트되면 더 이상 데이터를 업데이트하지 않는다', async () => {
       const clearIntervalSpy = vi.spyOn(global, 'clearInterval');
-
-      vi.mocked(hourlyDataModule.getServerMetricAt).mockResolvedValueOnce({
-        id: 'server-1',
-        cpu: 50,
-        memory: 60,
-        disk: 30,
-        network: 20,
-        status: 'online',
-        isInterpolated: false,
-        timestamp: '2023-01-01T00:00:00Z',
-      });
-
-      vi.mocked(hourlyDataModule.getRecentMetrics).mockResolvedValueOnce([]);
-
-      mockKST.getUTCHours.mockReturnValue(10);
-      mockKST.getUTCMinutes.mockReturnValue(30);
+      const mockServer = createMockServer({ id: 'server-1', cpu: 50 });
+      mockGetServers.mockResolvedValueOnce([mockServer]);
 
       const { unmount, result } = renderHook(() =>
         useFixed24hMetrics('server-1')
@@ -299,9 +221,13 @@ describe('useFixed24hMetrics', () => {
  * 🧪 useMultipleFixed24hMetrics 훅 테스트
  */
 describe('useMultipleFixed24hMetrics', () => {
+  let mockGetServers: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(KST.getKST).mockReturnValue(mockKST as any);
+    const mockInstance = UnifiedServerDataSource.getInstance();
+    mockGetServers = vi.fn();
+    (mockInstance as any).getServers = mockGetServers;
   });
 
   afterEach(() => {
@@ -309,34 +235,12 @@ describe('useMultipleFixed24hMetrics', () => {
   });
 
   it('여러 서버의 메트릭을 동시에 가져올 수 있다', async () => {
-    const mockMetricsMap = new Map();
-    mockMetricsMap.set('server-1', {
-      id: 'server-1',
-      cpu: 50,
-      memory: 60,
-      disk: 30,
-      network: 20,
-      status: 'online',
-      isInterpolated: false,
-      timestamp: '2023-01-01T00:00:00Z',
-    });
-    mockMetricsMap.set('server-2', {
-      id: 'server-2',
-      cpu: 45,
-      memory: 55,
-      disk: 25,
-      network: 15,
-      status: 'online',
-      isInterpolated: false,
-      timestamp: '2023-01-01T00:00:00Z',
-    });
+    const mockServers = [
+      createMockServer({ id: 'server-1', cpu: 50 }),
+      createMockServer({ id: 'server-2', cpu: 45 }),
+    ];
 
-    vi.mocked(hourlyDataModule.getMultipleServerMetrics).mockResolvedValueOnce(
-      mockMetricsMap
-    );
-
-    mockKST.getUTCHours.mockReturnValue(10);
-    mockKST.getUTCMinutes.mockReturnValue(30);
+    mockGetServers.mockResolvedValueOnce(mockServers);
 
     const { result } = renderHook(() =>
       useMultipleFixed24hMetrics(['server-1', 'server-2'])
@@ -356,24 +260,9 @@ describe('useMultipleFixed24hMetrics', () => {
   });
 
   it('서버 ID 배열이 변경되면 데이터를 다시 가져온다', async () => {
-    const mockMetricsMap = new Map();
-    mockMetricsMap.set('server-1', {
-      id: 'server-1',
-      cpu: 50,
-      memory: 60,
-      disk: 30,
-      network: 20,
-      status: 'online',
-      isInterpolated: false,
-      timestamp: '2023-01-01T00:00:00Z',
-    });
+    const mockServers = [createMockServer({ id: 'server-1', cpu: 50 })];
 
-    vi.mocked(hourlyDataModule.getMultipleServerMetrics).mockResolvedValueOnce(
-      mockMetricsMap
-    );
-
-    mockKST.getUTCHours.mockReturnValue(10);
-    mockKST.getUTCMinutes.mockReturnValue(30);
+    mockGetServers.mockResolvedValue(mockServers);
 
     const { result, rerender } = renderHook(
       (serverIds) => useMultipleFixed24hMetrics(serverIds as string[]),
@@ -398,50 +287,15 @@ describe('useMultipleFixed24hMetrics', () => {
 
   describe('업데이트 기능', () => {
     it('refreshMetrics 함수로 여러 서버 데이터를 다시 로드할 수 있다', async () => {
-      const mockMetricsMap1 = new Map();
-      mockMetricsMap1.set('server-1', {
-        id: 'server-1',
-        cpu: 50,
-        memory: 60,
-        disk: 30,
-        network: 20,
-        status: 'online',
-        isInterpolated: false,
-        timestamp: '2023-01-01T00:00:00Z',
-      });
+      const firstBatch = [createMockServer({ id: 'server-1', cpu: 50 })];
+      const secondBatch = [
+        createMockServer({ id: 'server-1', cpu: 60 }),
+        createMockServer({ id: 'server-2', cpu: 45 }),
+      ];
 
-      const mockMetricsMap2 = new Map();
-      mockMetricsMap2.set('server-1', {
-        id: 'server-1',
-        cpu: 60,
-        memory: 70,
-        disk: 40,
-        network: 30,
-        status: 'online',
-        isInterpolated: false,
-        timestamp: '2023-01-01T00:00:00Z',
-      });
-      mockMetricsMap2.set('server-2', {
-        id: 'server-2',
-        cpu: 45,
-        memory: 55,
-        disk: 25,
-        network: 15,
-        status: 'online',
-        isInterpolated: false,
-        timestamp: '2023-01-01T00:00:00Z',
-      });
-
-      const getMultipleServerMetricsSpy = vi.spyOn(
-        hourlyDataModule,
-        'getMultipleServerMetrics'
-      );
-      vi.mocked(getMultipleServerMetricsSpy)
-        .mockResolvedValueOnce(mockMetricsMap1)
-        .mockResolvedValueOnce(mockMetricsMap2);
-
-      mockKST.getUTCHours.mockReturnValue(10);
-      mockKST.getUTCMinutes.mockReturnValue(30);
+      mockGetServers
+        .mockResolvedValueOnce(firstBatch)
+        .mockResolvedValueOnce(secondBatch);
 
       const { result } = renderHook(() =>
         useMultipleFixed24hMetrics(['server-1'])
@@ -467,9 +321,13 @@ describe('useMultipleFixed24hMetrics', () => {
  * 🧪 useSingleMetric 훅 테스트
  */
 describe('useSingleMetric', () => {
+  let mockGetServers: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(KST.getKST).mockReturnValue(mockKST as any);
+    const mockInstance = UnifiedServerDataSource.getInstance();
+    mockGetServers = vi.fn();
+    (mockInstance as any).getServers = mockGetServers;
   });
 
   afterEach(() => {
@@ -477,23 +335,8 @@ describe('useSingleMetric', () => {
   });
 
   it('특정 메트릭 타입의 값을 가져올 수 있다', async () => {
-    const mockMetric = {
-      id: 'server-1',
-      cpu: 50,
-      memory: 60,
-      disk: 30,
-      network: 20,
-      status: 'online',
-      isInterpolated: false,
-      timestamp: '2023-01-01T00:00:00Z',
-    };
-
-    vi.mocked(hourlyDataModule.getServerMetricAt).mockResolvedValueOnce(
-      mockMetric
-    );
-
-    mockKST.getUTCHours.mockReturnValue(10);
-    mockKST.getUTCMinutes.mockReturnValue(30);
+    const mockServer = createMockServer({ id: 'server-1', cpu: 50 });
+    mockGetServers.mockResolvedValueOnce([mockServer]);
 
     const { result } = renderHook(() => useSingleMetric('server-1', 'cpu'));
 
@@ -505,10 +348,7 @@ describe('useSingleMetric', () => {
   });
 
   it('서버 데이터가 없을 경우 적절한 에러를 반환한다', async () => {
-    vi.mocked(hourlyDataModule.getServerMetricAt).mockResolvedValueOnce(null);
-
-    mockKST.getUTCHours.mockReturnValue(10);
-    mockKST.getUTCMinutes.mockReturnValue(30);
+    mockGetServers.mockResolvedValueOnce([]);
 
     const { result } = renderHook(() =>
       useSingleMetric('invalid-server', 'cpu')
@@ -523,23 +363,15 @@ describe('useSingleMetric', () => {
 
   describe('업데이트 기능', () => {
     it('다양한 메트릭 타입(cpu, memory, disk, network)을 가져올 수 있다', async () => {
-      const mockMetric = {
+      const mockServer = createMockServer({
         id: 'server-1',
         cpu: 50,
         memory: 60,
         disk: 30,
         network: 20,
-        status: 'online',
-        isInterpolated: false,
-        timestamp: '2023-01-01T00:00:00Z',
-      };
+      });
 
-      vi.mocked(hourlyDataModule.getServerMetricAt).mockResolvedValueOnce(
-        mockMetric
-      );
-
-      mockKST.getUTCHours.mockReturnValue(10);
-      mockKST.getUTCMinutes.mockReturnValue(30);
+      mockGetServers.mockResolvedValue([mockServer]);
 
       // CPU 메트릭 테스트
       const { result: cpuResult } = renderHook(() =>
@@ -572,16 +404,17 @@ describe('useSingleMetric', () => {
   });
 });
 
-// Import the function at the end to test it independently
-import { getFixedMetricNow } from '../useFixed24hMetrics';
-
 /**
  * 🧪 getFixedMetricNow 함수 테스트
  */
 describe('getFixedMetricNow', () => {
+  let mockGetServers: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(KST.getKST).mockReturnValue(mockKST as any);
+    const mockInstance = UnifiedServerDataSource.getInstance();
+    mockGetServers = vi.fn();
+    (mockInstance as any).getServers = mockGetServers;
   });
 
   afterEach(() => {
@@ -589,34 +422,16 @@ describe('getFixedMetricNow', () => {
   });
 
   it('현재 시간의 서버 메트릭을 가져올 수 있다', async () => {
-    const expectedMetric = {
-      id: 'server-1',
-      cpu: 50,
-      memory: 60,
-      disk: 30,
-      network: 20,
-      status: 'online',
-      isInterpolated: false,
-      timestamp: '2023-01-01T00:00:00Z',
-    };
-
-    vi.mocked(hourlyDataModule.getServerMetricAt).mockResolvedValueOnce(
-      expectedMetric
-    );
-
-    mockKST.getUTCHours.mockReturnValue(10);
-    mockKST.getUTCMinutes.mockReturnValue(30);
+    const expectedServer = createMockServer({ id: 'server-1', cpu: 50 });
+    mockGetServers.mockResolvedValueOnce([expectedServer]);
 
     const result = await getFixedMetricNow('server-1');
 
-    expect(result).toEqual(expectedMetric);
+    expect(result).toEqual(expectedServer);
   });
 
   it('서버를 찾지 못하면 null을 반환한다', async () => {
-    vi.mocked(hourlyDataModule.getServerMetricAt).mockResolvedValueOnce(null);
-
-    mockKST.getUTCHours.mockReturnValue(10);
-    mockKST.getUTCMinutes.mockReturnValue(30);
+    mockGetServers.mockResolvedValueOnce([]);
 
     const result = await getFixedMetricNow('invalid-server');
 
@@ -624,12 +439,7 @@ describe('getFixedMetricNow', () => {
   });
 
   it('API 오류가 발생하면 null을 반환한다', async () => {
-    vi.mocked(hourlyDataModule.getServerMetricAt).mockRejectedValueOnce(
-      new Error('Network error')
-    );
-
-    mockKST.getUTCHours.mockReturnValue(10);
-    mockKST.getUTCMinutes.mockReturnValue(30);
+    mockGetServers.mockRejectedValueOnce(new Error('Network error'));
 
     const result = await getFixedMetricNow('error-server');
 

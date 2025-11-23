@@ -9,17 +9,28 @@ import { z } from 'zod';
 export const ServerConfigSchema = z.object({
   // 기본 서버 설정
   totalServers: z.number().int().min(1).max(50).default(15),
-  serverTypes: z.array(z.string()).min(1).default([
-    'web', 'api', 'database', 'cache', 'storage',
-    'monitoring', 'security', 'backup', 'queue', 'load-balancer'
-  ]),
+  serverTypes: z
+    .array(z.string())
+    .min(1)
+    .default([
+      'web',
+      'api',
+      'database',
+      'cache',
+      'storage',
+      'monitoring',
+      'security',
+      'backup',
+      'queue',
+      'load-balancer',
+    ]),
 
   // Mock 시스템 설정
   mockSystem: z.object({
     enabled: z.boolean().default(true),
-    dataSource: z.enum(['basic', 'expanded', 'custom']).default('expanded'),
+    dataSource: z.enum(['basic', 'expanded', 'custom']).default('custom'), // 🎯 scenario-loader 사용
     autoRotation: z.boolean().default(false),
-    updateInterval: z.number().min(1000).default(30000), // 30초
+    updateInterval: z.number().min(1000).default(300000), // 5분 (scenario-loader와 동기화)
   }),
 
   // API 응답 설정
@@ -40,7 +51,9 @@ export const ServerConfigSchema = z.object({
 
   // 환경별 설정
   environment: z.object({
-    mode: z.enum(['development', 'staging', 'production']).default('development'),
+    mode: z
+      .enum(['development', 'staging', 'production'])
+      .default('development'),
     enableDebugLogs: z.boolean().default(true),
     enableMetrics: z.boolean().default(true),
     enableHealthChecks: z.boolean().default(true),
@@ -108,7 +121,11 @@ export class SystemConfigurationManager {
     for (const [envKey, configPath] of Object.entries(ENV_MAPPING)) {
       const envValue = process.env[envKey];
       if (envValue !== undefined) {
-        this.setNestedValue(rawConfig, configPath, this.parseEnvValue(envValue));
+        this.setNestedValue(
+          rawConfig,
+          configPath,
+          this.parseEnvValue(envValue)
+        );
       }
     }
 
@@ -143,7 +160,11 @@ export class SystemConfigurationManager {
   /**
    * 📝 중첩된 객체 속성 설정
    */
-  private setNestedValue(obj: Record<string, unknown>, path: string, value: boolean | number | string | string[]): void {
+  private setNestedValue(
+    obj: Record<string, unknown>,
+    path: string,
+    value: boolean | number | string | string[]
+  ): void {
     const keys = path.split('.');
     let current: Record<string, unknown> = obj;
 
@@ -154,7 +175,10 @@ export class SystemConfigurationManager {
       }
       if (key) {
         const nextValue = current[key];
-        current = typeof nextValue === 'object' && nextValue !== null ? nextValue as Record<string, unknown> : {};
+        current =
+          typeof nextValue === 'object' && nextValue !== null
+            ? (nextValue as Record<string, unknown>)
+            : {};
       }
     }
 
@@ -178,7 +202,7 @@ export class SystemConfigurationManager {
 
     // Array 변환 (콤마 구분)
     if (value.includes(',')) {
-      return value.split(',').map(item => item.trim());
+      return value.split(',').map((item) => item.trim());
     }
 
     return value;
@@ -208,8 +232,8 @@ export class SystemConfigurationManager {
       return { isValid: true };
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const errors = error.errors.map(err =>
-          `${err.path.join('.')}: ${err.message}`
+        const errors = error.errors.map(
+          (err) => `${err.path.join('.')}: ${err.message}`
         );
         return { isValid: false, errors };
       }
@@ -263,11 +287,16 @@ export class SystemConfigurationManager {
 }
 
 // 🌟 편의 함수들
-export const getSystemConfig = () => SystemConfigurationManager.getInstance().getAll();
-export const getServerConfig = () => SystemConfigurationManager.getInstance().get('totalServers');
-export const getMockConfig = () => SystemConfigurationManager.getInstance().get('mockSystem');
-export const getApiConfig = () => SystemConfigurationManager.getInstance().get('api');
-export const getPerformanceConfig = () => SystemConfigurationManager.getInstance().get('performance');
+export const getSystemConfig = () =>
+  SystemConfigurationManager.getInstance().getAll();
+export const getServerConfig = () =>
+  SystemConfigurationManager.getInstance().get('totalServers');
+export const getMockConfig = () =>
+  SystemConfigurationManager.getInstance().get('mockSystem');
+export const getApiConfig = () =>
+  SystemConfigurationManager.getInstance().get('api');
+export const getPerformanceConfig = () =>
+  SystemConfigurationManager.getInstance().get('performance');
 
 // 기본 인스턴스 생성
 export const systemConfig = SystemConfigurationManager.getInstance();
@@ -275,7 +304,10 @@ export const systemConfig = SystemConfigurationManager.getInstance();
 // 설정 검증 (시작 시)
 const validation = systemConfig.validate();
 if (!validation.isValid) {
-  console.error('❌ System configuration validation failed:', validation.errors);
+  console.error(
+    '❌ System configuration validation failed:',
+    validation.errors
+  );
   if (process.env.NODE_ENV === 'production') {
     throw new Error('Invalid system configuration');
   }

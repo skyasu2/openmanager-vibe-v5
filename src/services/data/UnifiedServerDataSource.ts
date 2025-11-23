@@ -11,6 +11,10 @@ import type { Server, ServerRole, ServerEnvironment } from '@/types/server';
 import { mockServersExpanded } from '@/mock/mockServerConfigExpanded';
 import { getMockSystem } from '@/mock';
 
+// 🎯 Scenario-based failure data (Single Source of Truth)
+import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
+import type { EnhancedServerMetrics } from '@/services/scenario/scenario-loader';
+
 export interface ServerDataSourceConfig {
   totalServers: number;
   dataSource: 'basic' | 'expanded' | 'custom';
@@ -115,6 +119,25 @@ export class UnifiedServerDataSource {
     };
 
     return metrics;
+  }
+
+  /**
+   * 🔄 동기 래퍼: 캐시된 서버 데이터 반환 (MockContextLoader용)
+   *
+   * Single Source of Truth: scenario-loader 기반 캐시 데이터 동기 접근
+   *
+   * @returns 캐시된 서버 데이터 또는 빈 배열 (캐시 미준비 시)
+   */
+  public getCachedServersSync(): Server[] {
+    if (
+      !this.isCacheValid() ||
+      !this.cachedServers ||
+      this.cachedServers.length === 0
+    ) {
+      console.warn('⚠️ getCachedServersSync(): Cache not ready or empty');
+      return [];
+    }
+    return this.cachedServers;
   }
 
   /**
@@ -224,12 +247,54 @@ export class UnifiedServerDataSource {
   }
 
   /**
-   * 🎛️ 커스텀 데이터 소스 로드
+   * 🎛️ 커스텀 데이터 소스 로드 (Scenario-based failure data)
+   * 🎯 Single Source of Truth: scenario-loader를 사용하여 UI/ML Provider 데이터 통합
    */
   private async loadFromCustomSource(): Promise<Server[]> {
-    // 향후 실제 API나 데이터베이스 연결 시 사용
-    console.log('🔄 Loading from custom data source...');
-    return this.loadFromExpandedMock(); // 현재는 expanded로 폴백
+    try {
+      console.log('🔄 Loading from scenario-based failure data...');
+
+      // scenario-loader에서 장애 시나리오 데이터 로드
+      const scenarioMetrics = await loadHourlyScenarioData();
+
+      // EnhancedServerMetrics[] → Server[] 변환
+      const servers: Server[] = scenarioMetrics.map((metric) => ({
+        id: metric.id,
+        name: metric.name,
+        hostname: metric.hostname,
+        status: metric.status as 'online' | 'warning' | 'critical',
+        cpu: metric.cpu,
+        memory: metric.memory,
+        disk: metric.disk,
+        network: metric.network,
+        uptime: metric.uptime / 1000 / 60 / 60 / 24, // ms → days (uptime은 일수)
+        responseTime: metric.responseTime,
+        lastUpdate: new Date(metric.last_updated),
+        ip: metric.ip,
+        os: metric.os,
+        type: metric.type as ServerRole, // type을 ServerRole로 변환
+        role: metric.role as ServerRole,
+        environment: metric.environment as ServerEnvironment,
+        location: metric.location,
+        alerts: metric.alerts as never[],
+        provider: metric.provider,
+        specs: {
+          cpu_cores: metric.specs.cpu_cores,
+          memory_gb: metric.specs.memory_gb,
+          disk_gb: metric.specs.disk_gb,
+          network_speed: metric.specs.network_speed,
+        },
+      }));
+
+      console.log(`✅ Loaded ${servers.length} servers from scenario data`);
+      return servers;
+    } catch (error) {
+      console.error(
+        '❌ Failed to load scenario data, falling back to expanded mock:',
+        error
+      );
+      return this.loadFromExpandedMock();
+    }
   }
 
   /**

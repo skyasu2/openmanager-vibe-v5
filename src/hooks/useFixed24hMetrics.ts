@@ -1,22 +1,18 @@
 /**
- * 🎯 24시간 JSON 데이터 + 1분 선형 보간 훅 (v2.0)
+ * 🎯 24시간 고정 데이터 훅 (v3.0 - UnifiedServerDataSource)
  *
- * ✅ 10분 간격 실제 데이터 (Vercel JSON)
- * ✅ 1분 단위 선형 보간 (자연스러운 변화)
+ * ✅ Single Source of Truth: scenario-loader 기반 통합 데이터
+ * ✅ 5분 간격 고정 데이터 (선형 보간 제거)
  * ✅ 한국 시간(KST) 동기화
+ * ✅ UnifiedServerDataSource 캐시 활용
  *
- * @see /public/data/servers/hourly/hour-XX.json - 데이터 소스
- * @see src/data/hourly-server-data.ts - 데이터 로더 + 보간 로직
+ * @see src/services/data/UnifiedServerDataSource.ts - 통합 데이터 소스
+ * @see src/services/scenario/scenario-loader.ts - 시나리오 기반 데이터
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  getServerMetricAt,
-  getRecentMetrics,
-  getMultipleServerMetrics,
-  type InterpolatedMetric,
-} from '@/data/hourly-server-data';
-import { KST } from '@/lib/time';
+import { UnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
+import type { Server } from '@/types/server';
 
 /**
  * 히스토리 데이터 포인트 (차트용)
@@ -56,8 +52,7 @@ export function useFixed24hMetrics(
   serverId: string,
   updateInterval: number = 60000
 ) {
-  const [currentMetrics, setCurrentMetrics] =
-    useState<InterpolatedMetric | null>(null);
+  const [currentMetrics, setCurrentMetrics] = useState<Server | null>(null);
   const [historyData, setHistoryData] = useState<HistoryDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,27 +63,32 @@ export function useFixed24hMetrics(
     if (!isMountedRef.current) return;
 
     try {
-      const kst = KST.getKST();
-      const hour = kst.getUTCHours();
-      const minute = kst.getUTCMinutes();
+      // 🎯 Single Source of Truth: UnifiedServerDataSource
+      const dataSource = UnifiedServerDataSource.getInstance();
+      const servers = await dataSource.getServers();
 
-      // 현재 시간의 메트릭 가져오기 (선형 보간 포함)
-      const metric = await getServerMetricAt(serverId, hour, minute);
+      // 특정 서버 찾기
+      const server = servers.find((s) => s.id === serverId);
 
-      if (metric) {
-        setCurrentMetrics(metric);
+      if (server) {
+        setCurrentMetrics(server);
         setError(null);
 
-        // 히스토리 데이터 가져오기 (최근 60분, 10분 간격)
-        const recentData = await getRecentMetrics(serverId, hour, minute, 60);
-
-        const history: HistoryDataPoint[] = recentData.map((point) => ({
-          time: point.timestamp,
-          cpu: Math.round(point.cpu * 10) / 10,
-          memory: Math.round(point.memory * 10) / 10,
-          disk: Math.round(point.disk * 10) / 10,
-          network: Math.round(point.network * 10) / 10,
-        }));
+        // 히스토리 데이터는 현재 시점의 스냅샷만 제공
+        // (5분 간격 데이터이므로 실시간 변화 추적)
+        const history: HistoryDataPoint[] = [
+          {
+            time: new Date().toLocaleTimeString('ko-KR', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: false,
+            }),
+            cpu: Math.round(server.cpu * 10) / 10,
+            memory: Math.round(server.memory * 10) / 10,
+            disk: Math.round(server.disk * 10) / 10,
+            network: Math.round((server.network ?? 0) * 10) / 10,
+          },
+        ];
 
         setHistoryData(history);
         setIsLoading(false);
@@ -101,7 +101,7 @@ export function useFixed24hMetrics(
       setError(err instanceof Error ? err.message : '알 수 없는 오류');
       setIsLoading(false);
     }
-  }, [serverId]); // serverId를 의존성에 추가
+  }, [serverId]);
 
   // 초기 로드 및 자동 업데이트
   useEffect(() => {
@@ -110,7 +110,7 @@ export function useFixed24hMetrics(
     // 초기 로드
     void updateMetrics();
 
-    // 1분마다 자동 업데이트
+    // 자동 업데이트 (기본 1분)
     const intervalId = setInterval(() => {
       void updateMetrics();
     }, updateInterval);
@@ -152,9 +152,7 @@ export function useMultipleFixed24hMetrics(
   serverIds: string[],
   updateInterval: number = 60000
 ) {
-  const [metricsMap, setMetricsMap] = useState<Map<string, InterpolatedMetric>>(
-    new Map()
-  );
+  const [metricsMap, setMetricsMap] = useState<Map<string, Server>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
@@ -164,12 +162,18 @@ export function useMultipleFixed24hMetrics(
     if (!isMountedRef.current) return;
 
     try {
-      const kst = KST.getKST();
-      const hour = kst.getUTCHours();
-      const minute = kst.getUTCMinutes();
+      // 🎯 Single Source of Truth: UnifiedServerDataSource
+      const dataSource = UnifiedServerDataSource.getInstance();
+      const servers = await dataSource.getServers();
 
-      // 모든 서버 메트릭 병렬로 가져오기
-      const newMap = await getMultipleServerMetrics(serverIds, hour, minute);
+      // 요청된 서버 ID만 필터링하여 Map 생성
+      const newMap = new Map<string, Server>();
+      for (const serverId of serverIds) {
+        const server = servers.find((s) => s.id === serverId);
+        if (server) {
+          newMap.set(serverId, server);
+        }
+      }
 
       setMetricsMap(newMap);
       setError(null);
@@ -179,7 +183,7 @@ export function useMultipleFixed24hMetrics(
       setError(err instanceof Error ? err.message : '알 수 없는 오류');
       setIsLoading(false);
     }
-  }, [serverIds]); // serverIds를 의존성에 추가
+  }, [serverIds]);
 
   // serverIds.join(',')을 별도 변수로 추출하여 의존성 배열의 복잡도를 줄임
   const serverIdsKey = serverIds.join(',');
@@ -190,7 +194,7 @@ export function useMultipleFixed24hMetrics(
     // 초기 로드
     void updateAllMetrics();
 
-    // 1분마다 자동 업데이트
+    // 자동 업데이트
     const intervalId = setInterval(() => {
       void updateAllMetrics();
     }, updateInterval);
@@ -199,7 +203,7 @@ export function useMultipleFixed24hMetrics(
       isMountedRef.current = false;
       clearInterval(intervalId);
     };
-  }, [serverIdsKey, updateInterval, updateAllMetrics]); // serverIds 배열 변경 시에만 재실행
+  }, [serverIdsKey, updateInterval, updateAllMetrics]);
 
   return {
     metricsMap,
@@ -237,14 +241,15 @@ export function useSingleMetric(
     if (!isMountedRef.current) return;
 
     try {
-      const kst = KST.getKST();
-      const hour = kst.getUTCHours();
-      const minute = kst.getUTCMinutes();
+      // 🎯 Single Source of Truth: UnifiedServerDataSource
+      const dataSource = UnifiedServerDataSource.getInstance();
+      const servers = await dataSource.getServers();
 
-      const metric = await getServerMetricAt(serverId, hour, minute);
+      const server = servers.find((s) => s.id === serverId);
 
-      if (metric) {
-        setValue(Math.round(metric[metricType] * 10) / 10);
+      if (server) {
+        const value = server[metricType] ?? 0;
+        setValue(Math.round(value * 10) / 10);
         setError(null);
         setIsLoading(false);
       } else {
@@ -256,7 +261,7 @@ export function useSingleMetric(
       setError(err instanceof Error ? err.message : '알 수 없는 오류');
       setIsLoading(false);
     }
-  }, [serverId, metricType]); // serverId와 metricType을 의존성에 추가
+  }, [serverId, metricType]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -264,7 +269,7 @@ export function useSingleMetric(
     // 초기 로드
     void updateMetric();
 
-    // 1분마다 자동 업데이트
+    // 자동 업데이트
     const intervalId = setInterval(() => {
       void updateMetric();
     }, updateInterval);
@@ -292,13 +297,13 @@ export function useSingleMetric(
  */
 export async function getFixedMetricNow(
   serverId: string
-): Promise<InterpolatedMetric | null> {
+): Promise<Server | null> {
   try {
-    const kst = KST.getKST();
-    const hour = kst.getUTCHours();
-    const minute = kst.getUTCMinutes();
+    // 🎯 Single Source of Truth: UnifiedServerDataSource
+    const dataSource = UnifiedServerDataSource.getInstance();
+    const servers = await dataSource.getServers();
 
-    return await getServerMetricAt(serverId, hour, minute);
+    return servers.find((s) => s.id === serverId) || null;
   } catch (error) {
     console.error('현재 메트릭 가져오기 실패:', error);
     return null;

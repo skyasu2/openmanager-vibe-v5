@@ -131,7 +131,7 @@ export class MLProvider implements IContextProvider {
     }
 
     // 메트릭 데이터 준비
-    const metrics = this.prepareMetrics(options);
+    const metrics = await this.prepareMetrics(options);
 
     // ✅ undefined 체크 추가 (테스트 환경 대응)
     if (!metrics || !Array.isArray(metrics) || metrics.length < 10) {
@@ -253,16 +253,61 @@ export class MLProvider implements IContextProvider {
 
   /**
    * 메트릭 데이터 준비
-   * TODO: 실제 구현에서는 DB에서 최근 메트릭을 가져올 수 있음
+   * 🎯 scenario-loader에서 장애 시나리오 기반 메트릭 로딩 (Single Source of Truth)
    */
-  private prepareMetrics(options?: ProviderOptions): MetricDataPoint[] {
+  private async prepareMetrics(
+    options?: ProviderOptions
+  ): Promise<MetricDataPoint[]> {
     if (options?.metricsData) {
-      // options.metricsData가 MetricDataPoint[] 형식이라고 가정
       return options.metricsData as MetricDataPoint[];
     }
 
-    // 기본값: 빈 배열 (실제 구현에서는 DB 조회)
-    return [];
+    // 🎯 scenario-loader에서 현재 시간대 장애 시나리오 데이터 로딩
+    const { loadHourlyScenarioData } = await import(
+      '@/services/scenario/scenario-loader'
+    );
+    const scenarioMetrics = await loadHourlyScenarioData();
+
+    // EnhancedServerMetrics[] → MetricDataPoint[] 변환
+    const metrics: MetricDataPoint[] = [];
+    const now = new Date();
+    const isoTimestamp = now.toISOString();
+
+    for (const serverMetric of scenarioMetrics) {
+      // 1개 서버 메트릭 → 4개 MetricDataPoint (cpu, memory, disk, network)
+      metrics.push(
+        {
+          timestamp: isoTimestamp,
+          value: serverMetric.cpu,
+          server_id: serverMetric.id,
+          metric_type: 'cpu',
+        },
+        {
+          timestamp: isoTimestamp,
+          value: serverMetric.memory,
+          server_id: serverMetric.id,
+          metric_type: 'memory',
+        },
+        {
+          timestamp: isoTimestamp,
+          value: serverMetric.disk,
+          server_id: serverMetric.id,
+          metric_type: 'disk',
+        },
+        {
+          timestamp: isoTimestamp,
+          value: serverMetric.network,
+          server_id: serverMetric.id,
+          metric_type: 'network',
+        }
+      );
+    }
+
+    // GCP 요청 제한 (1,000개)
+    console.log(
+      `✅ Prepared ${metrics.length} metric data points from scenario data`
+    );
+    return metrics.slice(0, 1000);
   }
 
   /**

@@ -13,79 +13,46 @@ import { devtools } from 'zustand/middleware';
 import { calculateOptimalUpdateInterval } from '../config/serverConfig';
 import type { EnhancedServerMetrics } from '../types/unified-server';
 import type { ServerRole } from '../types/server';
-import { getMultipleServerMetrics, type InterpolatedMetric } from '@/data/hourly-server-data';
-import { KST } from '@/lib/time';
+import { UnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 
-// 🎯 서버 ID 목록 (hourly JSON 파일에서 가져올 서버들)
-const SERVER_IDS = [
-  'web-prod-01', 'web-prod-02', 'web-prod-03',
-  'api-prod-01', 'api-prod-02',
-  'db-prod-01', 'db-prod-02',
-  'cache-prod-01', 'cache-prod-02',
-  'storage-prod-01',
-  'lb-prod-01',
-  'backup-prod-01',
-  'monitoring-prod-01',
-  'security-prod-01',
-  'queue-prod-01',
-  'app-prod-01',
-] as const;
+// 🎯 Single Source of Truth: UnifiedServerDataSource 사용
 
 /**
- * InterpolatedMetric을 EnhancedServerMetrics로 변환
+ * Server를 EnhancedServerMetrics로 변환
  */
-function mapInterpolatedToEnhanced(
-  serverId: string,
-  metric: InterpolatedMetric
+function mapServerToEnhanced(
+  server: import('@/types/server').Server
 ): EnhancedServerMetrics {
-  // 서버 ID에서 타입 추출 (예: "web-prod-01" → "web")
-  const [serverTypeRaw] = serverId.split('-');
-  const serverType = serverTypeRaw ?? 'fallback';
-  
-  // 환경 결정 (prod/staging/dev)
-  const environment = serverId.includes('prod') ? 'production' 
-    : serverId.includes('staging') ? 'staging' 
-    : 'development';
-  
-  // 역할 매핑 (ServerRole 타입에 맞게)
-  const roleMap: Record<string, ServerRole> = {
-    'web': 'web',
-    'api': 'api',
-    'db': 'database',
-    'cache': 'cache',
-    'storage': 'storage',
-    'lb': 'load-balancer',
-    'backup': 'backup',
-    'monitoring': 'monitoring',
-    'security': 'security',
-    'queue': 'queue',
-    'app': 'app',
-  };
-  
-  const role = roleMap[serverType] || 'fallback';
-  
+  // uptime을 number로 변환
+  const uptimeNumber =
+    typeof server.uptime === 'number'
+      ? server.uptime
+      : parseInt(String(server.uptime), 10) || 0;
+
   return {
     // 기본 식별 정보
-    id: serverId,
-    hostname: serverId,
-    name: serverId, // ✅ Phase 3A: UI에서 사용하는 필드
-    ip: serverId, // ✅ Phase 3A: UI에서 사용하는 필드 (hostname 재사용)
-    environment: environment,
-    role: role,
-    status: metric.status,
+    id: server.id,
+    hostname: server.hostname,
+    environment: server.environment,
+    role: server.role,
+    status: server.status,
 
-    // 메트릭 데이터 (ServerMetrics 표준 필드만 사용)
-    cpu: metric.cpu,
-    memory: metric.memory,
-    disk: metric.disk,
-    network: metric.network,
+    // 메트릭 데이터
+    cpu: server.cpu,
+    memory: server.memory,
+    disk: server.disk,
+    network: server.network ?? 0,
 
     // 성능 정보
-    responseTime: metric.responseTime,
-    uptime: metric.uptime,
+    responseTime: server.responseTime,
+    uptime: uptimeNumber,
 
-    // 타임스탬프
-    timestamp: metric.timestamp,
+    // 타임스탬프 (현재 시간)
+    timestamp: new Date().toISOString(),
+
+    // UI에서 필요한 필드
+    name: server.name ?? server.id,
+    ip: server.ip ?? server.hostname,
   };
 }
 
@@ -171,65 +138,43 @@ export const createServerDataStore = (
       },
       ..._initialState,
 
-      // 서버 데이터 가져오기 (Vercel JSON hourly files 사용)
+      // 서버 데이터 가져오기 (UnifiedServerDataSource 사용)
       fetchServers: async () => {
-        console.log('🎯 fetchServers 함수 시작 - Vercel JSON hourly 데이터 로드');
-        
+        console.log('🎯 fetchServers 함수 시작 - UnifiedServerDataSource 사용');
+
         set({ isLoading: true, error: null });
 
         try {
-          console.log('🚀 Vercel JSON hourly 데이터 로드 시작');
-          
-          // 현재 KST 시간 가져오기
-          const kst = KST.getKST();
-          const hour = kst.getUTCHours();
-          const minute = kst.getUTCMinutes();
-          
-          console.log(`🕐 현재 시간: ${hour}시 ${minute}분 (KST)`);
-          console.log(`📊 로드할 서버 수: ${SERVER_IDS.length}개`);
-          
-          // 모든 서버의 메트릭을 병렬로 가져오기
-          const metricsMap = await getMultipleServerMetrics(
-            [...SERVER_IDS], // spread to convert readonly array to mutable array
-            hour,
-            minute
-          );
-          
-          console.log('📡 hourly JSON 데이터 수신 완료');
-          console.log(`✅ 성공적으로 로드된 서버: ${metricsMap.size}개`);
-          
-          // InterpolatedMetric → EnhancedServerMetrics 변환
-          const enhancedServers: EnhancedServerMetrics[] = [];
-          
-          for (const serverId of SERVER_IDS) {
-            const metric = metricsMap.get(serverId);
-            
-            if (metric) {
-              const enhanced = mapInterpolatedToEnhanced(serverId, metric);
-              enhancedServers.push(enhanced);
-              
-              if (enhancedServers.length === 1) {
-                // 첫 번째 서버 데이터 샘플 로깅
-                console.log('🔍 첫 번째 서버 데이터 샘플:', {
-                  id: enhanced.id,
-                  status: enhanced.status,
-                  cpu: enhanced.cpu,
-                  memory: enhanced.memory,
-                  // ✅ Phase 3A: metadata 필드 제거 (unified-server.ts 타입에 없음)
-                });
-              }
-            } else {
-              console.warn(`⚠️ 서버 "${serverId}" 데이터를 찾을 수 없습니다.`);
-            }
-          }
-          
+          console.log('🚀 UnifiedServerDataSource에서 데이터 로드 시작');
+
+          // 🎯 Single Source of Truth: UnifiedServerDataSource
+          const dataSource = UnifiedServerDataSource.getInstance();
+          const rawServers = await dataSource.getServers();
+
+          console.log('📡 UnifiedServerDataSource 데이터 수신 완료');
+          console.log(`✅ 성공적으로 로드된 서버: ${rawServers.length}개`);
+
+          // Server[] → EnhancedServerMetrics[] 변환
+          const enhancedServers = rawServers.map(mapServerToEnhanced);
+
           if (enhancedServers.length > 0) {
             console.log(
-              '✅ Vercel JSON 데이터 변환 성공:',
+              '✅ 서버 데이터 로드 성공:',
               enhancedServers.length,
               '개 서버'
             );
-            
+
+            // 첫 번째 서버 데이터 샘플 로깅
+            const firstServer = enhancedServers[0];
+            if (firstServer) {
+              console.log('🔍 첫 번째 서버 데이터 샘플:', {
+                id: firstServer.id,
+                status: firstServer.status,
+                cpu: firstServer.cpu,
+                memory: firstServer.memory,
+              });
+            }
+
             set({
               servers: enhancedServers,
               isLoading: false,
@@ -247,11 +192,11 @@ export const createServerDataStore = (
           console.error('  - 오류 메시지:', error.message);
           console.error('  - 오류 스택:', error.stack);
           console.error('  - 오류 타입:', error.constructor.name);
-          
-          set({ 
-            isLoading: false, 
+
+          set({
+            isLoading: false,
             error: error.message,
-            servers: []
+            servers: [],
           });
         }
       },
@@ -294,7 +239,8 @@ export const createServerDataStore = (
             const response = await fetch(`${appUrl}/api/system/stop`, {
               method: 'POST',
             });
-            if (!response.ok) throw new Error('통합 시스템 중지에 실패했습니다.');
+            if (!response.ok)
+              throw new Error('통합 시스템 중지에 실패했습니다.');
             // 자동 갱신도 함께 중지
             get().stopAutoRefresh();
             set({ servers: [] });

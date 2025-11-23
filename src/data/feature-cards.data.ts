@@ -92,7 +92,7 @@ export const FEATURE_CARDS_DATA: FeatureCard[] = [
         '🎆 Lucide React 0.441.0: 풍부한 아이콘 라이브러리, 프로젝트 전체 활용',
         '🧰 Zustand: 글로벌 상태 관리 및 persist 미들웨어 적용',
         '🔔 Radix Toast: 접근성 표준 기반 알림 시스템',
-        '📈 성능 최적화: StaticDataLoader 99.6% CPU 절약, 평균 응답 152ms',
+        '📈 성능 최적화: UnifiedServerDataSource 99.6% CPU 절약, 평균 응답 152ms',
       ],
       technologies: [
         'Next.js 15.5.5',
