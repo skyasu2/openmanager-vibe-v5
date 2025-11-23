@@ -94,6 +94,11 @@ yarn-error.log*
 **/*token*
 **/*credential*
 
+# 테스트 파일 (API 키가 포함될 수 있음)
+test-gemini*.js
+test-*-direct.js
+test-*-lite.js
+
 # CSRF 토큰 API는 예외 (보안 로직이므로 git에 포함)
 !src/app/api/csrf-token/
 !src/app/api/csrf-token/**

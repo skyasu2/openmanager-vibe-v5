@@ -34,7 +34,25 @@ const VERCEL_ENVIRONMENTS = {
 // 🔐 시크릿 키 검증 (환경변수에서 관리)
 const TEST_SECRET_KEY =
   process.env.TEST_SECRET_KEY || 'test-secret-key-please-change-in-env';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '4231';
+
+const ADMIN_PASSWORD = (() => {
+  const password = process.env.ADMIN_PASSWORD;
+
+  // Production 환경에서는 환경변수 필수
+  if (process.env.NODE_ENV === 'production' && !password) {
+    throw new Error('❌ ADMIN_PASSWORD must be set in production environment');
+  }
+
+  // Development/Test 환경에서는 기본값 허용 (보안 경고 출력)
+  if (!password) {
+    console.warn(
+      '⚠️  ADMIN_PASSWORD not set - using default (development only)'
+    );
+    return '4231';
+  }
+
+  return password;
+})();
 
 // 🧪 테스트 모드 종류
 type TestMode = 'guest' | 'admin' | 'full_access';

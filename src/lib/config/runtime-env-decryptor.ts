@@ -53,6 +53,9 @@ function decryptValue(
   try {
     const { encrypted, salt, iv } = encryptedData;
 
+    // ⚠️ 보안 개선 필요: OWASP는 100,000 iterations 권장
+    // 현재 10,000 유지 (기존 암호화 데이터와 호환성 유지)
+    // 새로 암호화 시 100,000으로 증가 권장
     const key = CryptoJS.PBKDF2(password, salt, {
       keySize: 256 / 32,
       iterations: 10000,
@@ -140,10 +143,24 @@ export function getDecryptedRedisConfig(): {
       };
     }
 
-    // 팀 비밀번호 (환경변수 또는 기본값)
-    const teamPassword = process.env.TEAM_DECRYPT_PASSWORD || 'openmanager2025';
+    // 팀 비밀번호 (환경변수 필수)
+    const teamPassword = process.env.TEAM_DECRYPT_PASSWORD;
+
+    if (!teamPassword) {
+      if (process.env.NODE_ENV === 'production') {
+        console.error(
+          '❌ TEAM_DECRYPT_PASSWORD required in production - Redis disabled'
+        );
+        return null;
+      }
+      console.warn(
+        '⚠️ TEAM_DECRYPT_PASSWORD not set - Redis disabled (development)'
+      );
+      return null;
+    }
 
     // 비밀번호 검증
+    // ⚠️ 보안 개선 권장: SHA256 → PBKDF2로 업그레이드 (새로 암호화 시)
     const passwordHash = CryptoJS.SHA256(teamPassword).toString();
     if (passwordHash !== ENCRYPTED_REDIS_CONFIG.teamPasswordHash) {
       console.warn('⚠️ 팀 비밀번호 불일치 - Redis 복호화 실패');
