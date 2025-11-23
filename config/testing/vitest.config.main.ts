@@ -49,6 +49,7 @@ export default defineConfig({
     },
   },
   resolve: {
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'], // ✅ Auto-resolve .ts files in node environment
     alias: {
       '@': path.resolve(__dirname, '../../src'),
       '@/components': path.resolve(__dirname, '../../src/components'),

@@ -1,3 +1,4 @@
+// @vitest-environment node
 /**
  * 🔐 Admin API 인증 테스트
  *
