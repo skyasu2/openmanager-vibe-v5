@@ -3,11 +3,11 @@ updates:
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
-      interval: 'monthly' # 월간 업데이트로 빈도 제한
-    open-pull-requests-limit: 0 # PR 생성 완전 비활성화
-    ignore:
-      # 모든 자동 업데이트 무시 (수동 관리)
-      - dependency-name: '*'
+      interval: 'weekly' # 1인 개발: 주 1회가 적절
+    open-pull-requests-limit: 3 # 부담 줄이기
+    labels:
+      - 'dependencies'
+      - 'automated'
     assignees:
       - 'skyasu2'
     reviewers:

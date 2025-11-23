@@ -4,10 +4,7 @@
  */
 
 // 컴포넌트
-export {
-  AISidebarV3,
-  AIChatMessages,
-} from './components';
+export { AISidebarV3 } from './components';
 
 // Hooks
 export {

@@ -11,7 +11,7 @@ interface DashboardAnomalyFeedProps {
 }
 
 export const AnomalyFeed: FC<DashboardAnomalyFeedProps> = (props) => {
-  return <UnifiedAnomalyFeed {...props} variant="dashboard" />;
+  return <UnifiedAnomalyFeed {...props} />;
 };
 
 export default AnomalyFeed;
