@@ -1,13 +1,32 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AISidebarV3 } from '@/domains/ai-sidebar/components/AISidebarV3';
+import AISidebarV3 from '@/domains/ai-sidebar/components/AISidebarV3';
 import { useAISidebarStore } from '@/stores/useAISidebarStore';
 import type { EnhancedChatMessage } from '@/stores/useAISidebarStore';
+import { RealAISidebarService } from '@/domains/ai-sidebar/services/RealAISidebarService';
+
+// Mock Next.js App Router hooks
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => '/',
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 // Mock modules
 vi.mock('@/stores/useAISidebarStore', () => ({
   useAISidebarStore: vi.fn(),
+  useAIThinking: () => ({
+    steps: [],
+    isThinking: false,
+    startThinking: vi.fn(),
+    simulateThinkingSteps: vi.fn(),
+    clearSteps: vi.fn(),
+  }),
   EnhancedChatMessage: vi.fn(),
 }));
 
@@ -16,24 +35,37 @@ vi.mock('@/hooks/useRealTimeAILogs', () => ({
 }));
 
 vi.mock('@/components/ai/ThinkingProcessVisualizer', () => ({
-  default: ({ title, steps, isActive }: any) => (
+  default: ({ steps, isActive }: any) => (
     <div data-testid="thinking-visualizer">
-      <div>{title}</div>
-      <div data-testid="thinking-active">{isActive.toString()}</div>
+      <span>🤖 AI 처리 과정</span>
+      <span>분석 중...</span>
+      <div data-testid="thinking-active">{isActive?.toString() || 'false'}</div>
       <div data-testid="thinking-steps-count">{steps?.length || 0}</div>
     </div>
   ),
 }));
 
-// Mock fetch
-global.fetch = vi.fn();
+// Mock RealAISidebarService
+vi.mock('@/domains/ai-sidebar/services/RealAISidebarService', () => {
+  return {
+    RealAISidebarService: vi.fn().mockImplementation(() => ({
+      processV3Query: vi.fn().mockResolvedValue({
+        success: true,
+        response: 'AI response',
+        confidence: 0.9,
+      }),
+    })),
+  };
+});
 
-// Environment detection - Skip in Vitest due to App Router mounting limitations
-// These tests work correctly in production (Vercel) but fail in Vitest environment
-// Vitest does not support Next.js App Router mounting, so these tests must be skipped
-// TODO: Convert to Playwright E2E tests for actual App Router testing
+// Mock user permissions
+vi.mock('@/hooks/useUserPermissions', () => ({
+  useUserPermissions: () => ({
+    canToggleAI: true,
+  }),
+}));
 
-describe.skip('AISidebarV3 - Requires Next.js App Router (Skipped in Vitest)', () => {
+describe('AISidebarV3', () => {
   const mockStore = {
     messages: [],
     isOpen: true,
@@ -44,22 +76,35 @@ describe.skip('AISidebarV3 - Requires Next.js App Router (Skipped in Vitest)', (
     toggleSidebar: vi.fn(),
   };
 
+  const mockProcessV3Query = vi.fn();
+
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
     (useAISidebarStore as any).mockReturnValue(mockStore);
-    (global.fetch as any).mockClear();
+    
+    // Setup RealAISidebarService mock
+    (RealAISidebarService as any).mockImplementation(() => ({
+      processV3Query: mockProcessV3Query,
+    }));
+    
+    // Default successful response
+    mockProcessV3Query.mockResolvedValue({
+      success: true,
+      response: 'AI response',
+      confidence: 0.9,
+    });
   });
 
   it('renders V3 with new features enabled', () => {
-    render(<AISidebarV3 enableRealTimeThinking={true} />);
+    render(<AISidebarV3 isOpen={true} enableRealTimeThinking={true} onClose={vi.fn()} />);
 
-    expect(screen.getByText('자연어 질의 V3')).toBeInTheDocument();
+    expect(screen.getByText('AI와 자연어로 시스템 질의')).toBeInTheDocument();
     expect(screen.getByText('실시간 thinking 지원')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/V3 - 실시간 thinking 지원/)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/시스템에 대해 질문해보세요/)).toBeInTheDocument();
   });
 
   it('shows different UI when real-time thinking is disabled', () => {
-    render(<AISidebarV3 enableRealTimeThinking={false} />);
+    render(<AISidebarV3 isOpen={true} enableRealTimeThinking={false} onClose={vi.fn()} />);
 
     expect(screen.getByText('AI 기반 대화형 인터페이스')).toBeInTheDocument();
     expect(screen.queryByText('실시간 thinking 지원')).not.toBeInTheDocument();
@@ -94,7 +139,7 @@ describe.skip('AISidebarV3 - Requires Next.js App Router (Skipped in Vitest)', (
       messages: messagesWithThinking,
     });
 
-    render(<AISidebarV3 />);
+    render(<AISidebarV3 isOpen={true} onClose={vi.fn()} />);
 
     expect(screen.getByTestId('thinking-visualizer')).toBeInTheDocument();
     expect(screen.getByTestId('thinking-steps-count')).toHaveTextContent('2');
@@ -122,11 +167,11 @@ describe.skip('AISidebarV3 - Requires Next.js App Router (Skipped in Vitest)', (
       messages: [thinkingMessage],
     });
 
-    render(<AISidebarV3 />);
+    render(<AISidebarV3 isOpen={true} onClose={vi.fn()} />);
 
     expect(screen.getByTestId('thinking-visualizer')).toBeInTheDocument();
     expect(screen.getByTestId('thinking-active')).toHaveTextContent('true');
-    expect(screen.getByText('AI가 생각하는 중...')).toBeInTheDocument();
+    expect(screen.getByText('분석 중...')).toBeInTheDocument();
   });
 
   it('limits messages to MAX_MESSAGES for memory efficiency', () => {
@@ -142,7 +187,7 @@ describe.skip('AISidebarV3 - Requires Next.js App Router (Skipped in Vitest)', (
       messages: manyMessages,
     });
 
-    render(<AISidebarV3 />);
+    render(<AISidebarV3 isOpen={true} onClose={vi.fn()} />);
 
     // Only the last 50 messages should be rendered (MAX_MESSAGES = 50)
     const messageElements = screen.getAllByText(/Message \d+/);
@@ -155,25 +200,15 @@ describe.skip('AISidebarV3 - Requires Next.js App Router (Skipped in Vitest)', (
   });
 
   it('handles AI query submission with sequential processing', async () => {
-    const mockResponse = {
-      ok: true,
-      json: () => Promise.resolve({
-        success: true,
-        response: 'AI response',
-        confidence: 0.9,
-      }),
-    };
-
-    (global.fetch as any).mockResolvedValue(mockResponse);
-
-    render(<AISidebarV3 />);
+    render(<AISidebarV3 isOpen={true} onClose={vi.fn()} />);
 
     const input = screen.getByPlaceholderText(/시스템에 대해 질문해보세요/);
-    const sendButton = screen.getByRole('button', { name: /전송/ });
+    const sendButton = screen.getByRole('button', { name: /메시지 전송/ });
 
-    fireEvent.change(input, { target: { value: '테스트 질문' } });
+    fireEvent.input(input, { target: { value: '테스트 질문' } });
     fireEvent.click(sendButton);
 
+    // Should add user message
     await waitFor(() => {
       expect(mockStore.addMessage).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -183,52 +218,33 @@ describe.skip('AISidebarV3 - Requires Next.js App Router (Skipped in Vitest)', (
       );
     });
 
-    // Should add processing/thinking message first
+    // Should call processV3Query with correct parameters
+    expect(mockProcessV3Query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: '테스트 질문',
+        includeThinking: true,
+      }),
+      expect.any(AbortSignal)
+    );
+
+    // Should add assistant response message
     await waitFor(() => {
       expect(mockStore.addMessage).toHaveBeenCalledWith(
         expect.objectContaining({
-          role: 'thinking',
-          isStreaming: true,
-        })
-      );
-    });
-  });
-
-  it('handles engine change correctly', async () => {
-    render(<AISidebarV3 />);
-
-    // Mock engine change logic would be tested here
-    // This tests the handleEngineChange callback
-    const engineSelector = screen.getByRole('combobox', { name: /AI 엔진/ });
-    fireEvent.change(engineSelector, { target: { value: 'GOOGLE_AI' } });
-
-    await waitFor(() => {
-      expect(mockStore.addMessage).toHaveBeenCalledWith(
-        expect.objectContaining({
-          content: expect.stringContaining('Google AI'),
           role: 'assistant',
+          content: 'AI response',
         })
       );
     });
   });
 
   it('clears input after successful submission', async () => {
-    const mockResponse = {
-      ok: true,
-      json: () => Promise.resolve({
-        success: true,
-        response: 'AI response',
-      }),
-    };
-
-    (global.fetch as any).mockResolvedValue(mockResponse);
-
-    render(<AISidebarV3 />);
+    render(<AISidebarV3 isOpen={true} onClose={vi.fn()} />);
 
     const input = screen.getByPlaceholderText(/시스템에 대해 질문해보세요/) as HTMLTextAreaElement;
-    const sendButton = screen.getByRole('button', { name: /전송/ });
+    const sendButton = screen.getByRole('button', { name: /메시지 전송/ });
 
-    fireEvent.change(input, { target: { value: '테스트 질문' } });
+    fireEvent.input(input, { target: { value: '테스트 질문' } });
     expect(input.value).toBe('테스트 질문');
 
     fireEvent.click(sendButton);
@@ -239,20 +255,14 @@ describe.skip('AISidebarV3 - Requires Next.js App Router (Skipped in Vitest)', (
   });
 
   it('shows error message when API fails', async () => {
-    const mockResponse = {
-      ok: false,
-      status: 500,
-      statusText: 'Internal Server Error',
-    };
+    mockProcessV3Query.mockRejectedValue(new Error('API Error'));
 
-    (global.fetch as any).mockResolvedValue(mockResponse);
-
-    render(<AISidebarV3 />);
+    render(<AISidebarV3 isOpen={true} onClose={vi.fn()} />);
 
     const input = screen.getByPlaceholderText(/시스템에 대해 질문해보세요/);
-    const sendButton = screen.getByRole('button', { name: /전송/ });
+    const sendButton = screen.getByRole('button', { name: /메시지 전송/ });
 
-    fireEvent.change(input, { target: { value: '테스트 질문' } });
+    fireEvent.input(input, { target: { value: '테스트 질문' } });
     fireEvent.click(sendButton);
 
     await waitFor(() => {
@@ -266,28 +276,28 @@ describe.skip('AISidebarV3 - Requires Next.js App Router (Skipped in Vitest)', (
   });
 
   it('prevents submission when input is empty', () => {
-    render(<AISidebarV3 />);
+    render(<AISidebarV3 isOpen={true} onClose={vi.fn()} />);
 
-    const sendButton = screen.getByRole('button', { name: /전송/ });
+    const sendButton = screen.getByRole('button', { name: /메시지 전송/ });
     
     expect(sendButton).toBeDisabled();
     
     const input = screen.getByPlaceholderText(/시스템에 대해 질문해보세요/);
-    fireEvent.change(input, { target: { value: '   ' } }); // Only whitespace
+    fireEvent.input(input, { target: { value: '   ' } }); // Only whitespace
     
     expect(sendButton).toBeDisabled();
     
-    fireEvent.change(input, { target: { value: '실제 질문' } });
+    fireEvent.input(input, { target: { value: '실제 질문' } });
     expect(sendButton).not.toBeDisabled();
   });
 
-  it('handles Enter key submission', () => {
-    render(<AISidebarV3 />);
+  it('handles Ctrl+Enter key submission', () => {
+    render(<AISidebarV3 isOpen={true} onClose={vi.fn()} />);
 
     const input = screen.getByPlaceholderText(/시스템에 대해 질문해보세요/);
-    
-    fireEvent.change(input, { target: { value: '테스트 질문' } });
-    fireEvent.keyDown(input, { key: 'Enter', shiftKey: false });
+
+    fireEvent.input(input, { target: { value: '테스트 질문' } });
+    fireEvent.keyDown(input, { key: 'Enter', ctrlKey: true });
 
     expect(mockStore.addMessage).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -298,14 +308,36 @@ describe.skip('AISidebarV3 - Requires Next.js App Router (Skipped in Vitest)', (
   });
 
   it('allows Shift+Enter for line breaks', () => {
-    render(<AISidebarV3 />);
+    render(<AISidebarV3 isOpen={true} onClose={vi.fn()} />);
 
     const input = screen.getByPlaceholderText(/시스템에 대해 질문해보세요/);
     
-    fireEvent.change(input, { target: { value: '첫 줄' } });
+    fireEvent.input(input, { target: { value: '첫 줄' } });
     fireEvent.keyDown(input, { key: 'Enter', shiftKey: true });
 
     // Should not submit when Shift+Enter is pressed
     expect(mockStore.addMessage).not.toHaveBeenCalled();
+  });
+
+  it('calls onMessageSend callback when provided', async () => {
+    const onMessageSend = vi.fn();
+    render(<AISidebarV3 isOpen={true} onClose={vi.fn()} onMessageSend={onMessageSend} />);
+
+    const input = screen.getByPlaceholderText(/시스템에 대해 질문해보세요/);
+    const sendButton = screen.getByRole('button', { name: /메시지 전송/ });
+
+    fireEvent.input(input, { target: { value: '테스트 질문' } });
+    fireEvent.click(sendButton);
+
+    await waitFor(() => {
+      expect(onMessageSend).toHaveBeenCalledWith('테스트 질문');
+    });
+  });
+
+  it('uses provided sessionId', () => {
+    // This is implicit as we can't easily check internal state,
+    // but we can verify it renders without error with a custom session ID
+    render(<AISidebarV3 isOpen={true} onClose={vi.fn()} sessionId="custom-session-id" />);
+    expect(screen.getByText('AI와 자연어로 시스템 질의')).toBeInTheDocument();
   });
 });

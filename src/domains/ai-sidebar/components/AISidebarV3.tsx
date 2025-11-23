@@ -54,6 +54,7 @@ const MemoizedThinkingProcessVisualizer = memo(ThinkingProcessVisualizer);
 // 🎯 메시지 컴포넌트 성능 최적화
 const MessageComponent = memo<{
   message: EnhancedChatMessage;
+  onRegenerateResponse?: (messageId: string) => void;
 }>(({ message }) => {
   // thinking 메시지일 경우 ThinkingProcessVisualizer 사용
   if (message.role === 'thinking' && message.thinkingSteps) {

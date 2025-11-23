@@ -11,8 +11,8 @@ import {
  * 추후 게스트 제한을 두고 싶으면 ENV 기반 플래그만 조정하면 된다.
  */
 export function useUserPermissions(): UserPermissions {
-  const { data: session } = useSession();
-  const { user: guestUser } = useAuth();
+  const { data: session, status: sessionStatus } = useSession();
+  const { user: guestUser, isLoading: isAuthLoading } = useAuth();
 
   const isGitHub = Boolean(session?.user);
   const isGuest = !isGitHub && Boolean(guestUser);
@@ -22,10 +22,22 @@ export function useUserPermissions(): UserPermissions {
   const guestCanControlSystem =
     guestFullAccess || (isGuest && guestSystemStartAllowed);
   const guestCanAccessDashboard = guestFullAccess;
-  const resolvedUser =
-    session?.user || guestUser || { name: '사용자', email: 'guest@example.com' };
+  const resolvedUser = session?.user ||
+    guestUser || { name: '사용자', email: 'guest@example.com' };
 
-  const userType: UserType = isGitHub ? 'github' : guestUser ? 'guest' : 'loading';
+  // 🔒 정확한 로딩 상태 및 사용자 유형 결정
+  let userType: UserType = 'anonymous';
+
+  if (sessionStatus === 'loading' || isAuthLoading) {
+    userType = 'loading';
+  } else if (isGitHub) {
+    userType = 'github';
+  } else if (isGuest) {
+    userType = 'guest';
+  } else {
+    userType = 'anonymous';
+  }
+
   const userName =
     resolvedUser.name ||
     resolvedUser.email?.split('@')[0] ||

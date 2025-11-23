@@ -32,16 +32,16 @@
 
 ## 🤖 AI 도구
 
-**권장 버전 (2025-11-19 기준)** ✅
+**권장 버전 (2025-11-24 기준)** ✅
 
-- Claude Code v2.0.37 (현재 버전, 최신)
+- Claude Code v2.0.49 (현재 버전, 최신)
   - 🆕 Extended Thinking (think / think hard / think harder / ultrathink)
   - 🆕 @-mention 서버 필터링 (토큰 10-18% 추가 절약)
   - 🆕 Prompt Caching (자동 활성화)
-- Codex CLI v0.58.0 (현재 버전, 최신)
-- Gemini CLI v0.15.4 (현재 버전, 최신)
-- Qwen CLI v0.2.1 (현재 버전, 최신)
-- Kiro CLI v1.20.0 (AWS Kiro Beta, 터미널 멀티 에이전트 – chat/agent/doctor/settings 지원)
+- Codex CLI v0.63.0 (현재 버전, 최신)
+- Gemini CLI v0.17.1 (현재 버전, 최신)
+- Qwen CLI v0.2.3 (현재 버전, 최신)
+- Kiro CLI v1.20.0 (AWS Kiro Beta, 터미널 멀티 에이전트 – 미설치)
 
 **Claude Code Skills** (Phase 1 완료) ✅
 

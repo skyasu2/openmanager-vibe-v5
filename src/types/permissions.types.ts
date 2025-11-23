@@ -4,7 +4,7 @@
  * 사용자 권한 관련 TypeScript 타입 정의
  */
 
-export type UserType = 'github' | 'guest' | 'loading';
+export type UserType = 'github' | 'guest' | 'loading' | 'anonymous';
 
 export interface UserPermissions {
   // 시스템 제어 권한

@@ -70,9 +70,13 @@ export default defineConfig({
       '@/hooks': path.resolve(__dirname, '../../src/hooks'),
       '@/domains': path.resolve(__dirname, '../../src/domains'),
       '@/schemas': path.resolve(__dirname, '../../src/schemas'),
+      '@/config': path.resolve(__dirname, '../../src/config'),
+      '@/stores': path.resolve(__dirname, '../../src/stores'),
     },
   },
   esbuild: {
     target: 'node14',
+    jsxInject: `import React from 'react'`, // Auto-import React for JSX
+    jsx: 'automatic', // Use automatic JSX runtime (Next.js 15 style)
   },
 });
