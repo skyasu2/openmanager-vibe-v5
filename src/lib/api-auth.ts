@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
 import { securityLogger } from './security/security-logger';
+import { SECURITY } from '@/config/constants';
 
 /**
  * API 인증 확인
@@ -35,14 +36,16 @@ export async function checkAPIAuth(request: NextRequest) {
   const envApiKey = process.env.TEST_API_KEY;
 
   if (apiKey && envApiKey) {
-    // 보안: DoS 방지 - API 키 길이 상한 (256자)
-    const MAX_API_KEY_LENGTH = 256;
-    if (apiKey.length > MAX_API_KEY_LENGTH) {
-      const ip = request.headers.get('x-forwarded-for') || 'unknown';
+    // 보안: DoS 방지 - API 키 길이 상한
+    if (apiKey.length > SECURITY.API.MAX_KEY_LENGTH) {
+      const ip =
+        request.headers.get('x-real-ip') ||
+        request.headers.get('x-forwarded-for') ||
+        'unknown';
       securityLogger.logSecurityEvent({
         type: 'invalid_key',
         ip,
-        details: `API key too long: ${apiKey.length} characters (max: ${MAX_API_KEY_LENGTH})`,
+        details: `API key too long: ${apiKey.length} characters (max: ${SECURITY.API.MAX_KEY_LENGTH})`,
       });
       return NextResponse.json(
         { error: 'Unauthorized - Invalid API key' },
@@ -69,7 +72,10 @@ export async function checkAPIAuth(request: NextRequest) {
       }
 
       // 실패 로깅 (샘플링 적용 - 로그 폭증 방지)
-      const ip = request.headers.get('x-forwarded-for') || 'unknown';
+      const ip =
+        request.headers.get('x-real-ip') ||
+        request.headers.get('x-forwarded-for') ||
+        'unknown';
       securityLogger.logAuthFailure(ip, 'Invalid API key');
 
       return NextResponse.json(
@@ -78,7 +84,10 @@ export async function checkAPIAuth(request: NextRequest) {
       );
     } catch (error) {
       // 에러 로깅 (샘플링 없음 - 중요 이벤트)
-      const ip = request.headers.get('x-forwarded-for') || 'unknown';
+      const ip =
+        request.headers.get('x-real-ip') ||
+        request.headers.get('x-forwarded-for') ||
+        'unknown';
       securityLogger.logSecurityEvent({
         type: 'buffer_error',
         ip,

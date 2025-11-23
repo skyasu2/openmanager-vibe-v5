@@ -164,6 +164,18 @@ export const SECURITY = {
     LOGIN_ATTEMPTS_PER_HOUR: 5,
     PASSWORD_RESET_PER_DAY: 3,
   },
+
+  // API 인증 설정
+  API: {
+    MAX_KEY_LENGTH: 256, // DoS 방지를 위한 API 키 최대 길이
+  },
+
+  // 보안 로거 설정
+  LOGGER: {
+    CLEANUP_INTERVAL_MS: 60 * 60 * 1000, // 1시간 (밀리초)
+    SAMPLE_WINDOW_MS: 60 * 1000, // 1분 (밀리초)
+    MAX_LOG_SIZE: 1000, // 최대 IP 추적 개수
+  },
 } as const;
 
 // 📈 모니터링 설정

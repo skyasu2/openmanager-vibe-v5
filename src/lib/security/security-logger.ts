@@ -3,6 +3,8 @@
  * 로그 폭증 방지를 위한 샘플링 로직 포함
  */
 
+import { SECURITY } from '@/config/constants';
+
 interface SecurityLogEntry {
   ip: string;
   timestamp: number;
@@ -14,8 +16,8 @@ interface SecurityLogEntry {
  */
 class SecurityLogger {
   private failureLog = new Map<string, SecurityLogEntry>();
-  private readonly sampleWindow = 60000; // 1분 (밀리초)
-  private readonly maxLogSize = 1000; // 최대 1000개 IP 추적
+  private readonly sampleWindow = SECURITY.LOGGER.SAMPLE_WINDOW_MS;
+  private readonly maxLogSize = SECURITY.LOGGER.MAX_LOG_SIZE;
 
   /**
    * 인증 실패 로그 (샘플링 적용)
@@ -103,8 +105,10 @@ let cleanupTimerId: NodeJS.Timeout | null = null;
 if (typeof window === 'undefined' && !cleanupTimerId) {
   cleanupTimerId = setInterval(() => {
     securityLogger.cleanup();
-  }, 3600000);
+  }, SECURITY.LOGGER.CLEANUP_INTERVAL_MS);
 
-  // 서버리스 환경에서 이벤트 루프 블로킹 방지
+  // 서버리스 환경에서 setInterval이 이벤트 루프를 계속 활성 상태로 유지하는 것을 방지하여,
+  // 의도치 않은 동작이나 추가 비용 발생을 막습니다.
+  // unref()를 호출하면 타이머가 Node.js 프로세스 종료를 막지 않습니다.
   cleanupTimerId.unref();
 }
