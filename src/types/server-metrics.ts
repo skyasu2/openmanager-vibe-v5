@@ -14,38 +14,89 @@ import type { Service } from './server';
 // ==========================================
 
 /**
- * 원시 서버 데이터 (JSON 파일 기반)
+ * 🛡️ Unified Raw Server Data
+ *
+ * 서버의 원시 데이터 표현 (JSON 파일, API 응답, 시나리오 로더 등)
+ * - 모든 소스에서 사용 가능한 통합 타입
+ * - 필수 필드: id, name, hostname, type, status, core metrics
+ * - 선택 필드: 환경 정보, 스펙, 서비스 등
+ *
+ * @unified 이전에 3개 파일에 분산되어 있던 정의를 통합 (2025-11-24)
  */
 export interface RawServerData {
+  // ===== Core Identity (Required) =====
   id: string;
   name: string;
   hostname: string;
-  status: "warning" | "critical" | "online";
-  type: string;
-  service: string;
-  location: string;
-  environment: string;
-  provider: string;
-  uptime: number;
-  cpu: number;
-  memory: number;
-  disk: number;
-  network: number;
-  specs: {
+  type: string; // 'web', 'db', 'cache', etc.
+
+  // ===== Status (Required) =====
+  /**
+   * 서버 상태
+   * - online: 정상 작동
+   * - warning: 주의 필요
+   * - critical: 위험 상태
+   * - running: 실행 중 (legacy)
+   * - error: 오류 발생 (legacy)
+   * - stopped: 중지됨
+   * - maintenance: 유지보수 중
+   * - unknown: 알 수 없음
+   */
+  status:
+    | 'online'
+    | 'warning'
+    | 'critical'
+    | 'running'
+    | 'error'
+    | 'stopped'
+    | 'maintenance'
+    | 'unknown';
+
+  // ===== Core Metrics (Required) =====
+  cpu: number; // 0-100 percentage
+  memory: number; // 0-100 percentage
+  disk: number; // 0-100 percentage
+  network: number; // MBps or usage percentage
+  uptime: number; // seconds
+
+  // ===== Environment (Optional) =====
+  environment?: string; // 'production', 'staging', 'development'
+  location?: string; // 'Seoul', 'Tokyo', etc.
+  region?: string; // 'ap-northeast-2', etc.
+  provider?: string; // 'AWS', 'GCP', 'Azure', etc.
+
+  // ===== Hardware Specs (Optional) =====
+  specs?: {
     cpu_cores: number;
     memory_gb: number;
     disk_gb: number;
   };
-  // 선택적 속성
-  responseTime?: number;
-  connections?: number;
+
+  // ===== Services (Optional) =====
+  /**
+   * Primary service name (singular)
+   * @deprecated Use services array instead
+   */
+  service?: string;
+  /**
+   * Running services (plural)
+   */
+  services?: Service[];
+
+  // ===== Additional Metadata (Optional) =====
+  role?: string; // 'master', 'slave', 'primary', 'replica', etc.
   ip?: string;
   os?: string;
-  role?: string;
   processes?: number;
-  services?: Service[];
+  connections?: number;
+  responseTime?: number; // milliseconds
+  alerts?: number;
+  lastUpdate?: string | number | Date;
+
+  // ===== Events & Trends (Optional) =====
   events?: string[];
   trend?: 'stable' | 'increasing' | 'decreasing';
+  networkStatus?: string;
 }
 
 /**
@@ -177,7 +228,10 @@ export interface FileCache {
 /**
  * 정렬 가능한 메트릭 키
  */
-export type SortableKey = keyof Pick<ServerMetrics, 'cpu' | 'memory' | 'disk' | 'network' | 'uptime' | 'name'>;
+export type SortableKey = keyof Pick<
+  ServerMetrics,
+  'cpu' | 'memory' | 'disk' | 'network' | 'uptime' | 'name'
+>;
 
 // ==========================================
 // 타입 가드 및 검증 유틸리티
@@ -186,6 +240,9 @@ export type SortableKey = keyof Pick<ServerMetrics, 'cpu' | 'memory' | 'disk' | 
 /**
  * 숫자 값 안전 변환
  */
-export const ensureNumber = (value: number | undefined, fallback: number = 0): number => {
+export const ensureNumber = (
+  value: number | undefined,
+  fallback: number = 0
+): number => {
   return typeof value === 'number' && !isNaN(value) ? value : fallback;
 };

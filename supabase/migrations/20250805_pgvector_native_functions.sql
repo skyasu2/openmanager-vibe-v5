@@ -179,16 +179,22 @@ GRANT EXECUTE ON FUNCTION hybrid_search_vectors TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION get_vector_stats TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION search_vectors_with_filters TO anon, authenticated;
 
+-- 함수 버전 문서화
+COMMENT ON FUNCTION search_similar_vectors IS 'v2.0 - Basic vector search for command_vectors';
+COMMENT ON FUNCTION search_vectors_by_category IS 'v2.0 - Category-filtered vector search';
+COMMENT ON FUNCTION hybrid_search_vectors IS 'v2.0 - Hybrid search (Vector + Text) for command_vectors';
+
 -- 인덱스가 없으면 생성
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_indexes 
-    WHERE indexname = 'command_vectors_embedding_idx'
-  ) THEN
-    CREATE INDEX command_vectors_embedding_idx 
-    ON command_vectors 
-    USING ivfflat (embedding vector_cosine_ops)
-    WITH (lists = 27);  -- sqrt(714) 최적화
-  END IF;
-END $$;
+-- [2025-11-24 수정] HNSW 인덱스로 대체됨 (20251124_create_command_vectors_table.sql 참조)
+-- DO $$
+-- BEGIN
+--   IF NOT EXISTS (
+--     SELECT 1 FROM pg_indexes 
+--     WHERE indexname = 'command_vectors_embedding_idx'
+--   ) THEN
+--     CREATE INDEX command_vectors_embedding_idx 
+--     ON command_vectors 
+--     USING ivfflat (embedding vector_cosine_ops)
+--     WITH (lists = 27);  -- sqrt(714) 최적화
+--   END IF;
+-- END $$;

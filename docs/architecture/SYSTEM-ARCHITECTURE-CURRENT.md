@@ -8,6 +8,8 @@ related_docs:
   - 'architecture/api/endpoints.md'
   - 'architecture/decisions/adr-001-unified-ai-engine-cache-and-providers.md'
   - 'ai/README.md'
+  - 'architecture/domain-driven-design.md'
+  - 'architecture/module-structure.md'
 updated: '2025-11-20'
 ---
 
@@ -45,6 +47,7 @@ updated: '2025-11-20'
 ### 1. Frontend Layer
 
 #### 주요 디렉토리
+
 ```
 src/
 ├── app/                   # Next.js 15 App Router
@@ -59,12 +62,24 @@ src/
 │   ├── ai/              # AI 클라이언트
 │   ├── supabase/        # Supabase 클라이언트
 │   └── config/          # 설정 관리
-└── services/            # 비즈니스 로직
+├── domains/             # [NEW] Domain-Driven Design (e.g., ai-sidebar)
+├── modules/             # [NEW] Feature Modules (e.g., performance-monitor)
+└── services/            # 비즈니스 로직 (Legacy/Shared)
     ├── ai/              # AI 서비스
     └── data/            # 데이터 서비스
 ```
 
+#### 아키텍처 진화 (Hybrid Architecture)
+
+현재 시스템은 기존의 Layered Architecture에서 Domain-Driven Design (DDD)으로 점진적 전환 중입니다.
+
+- **Legacy**: `src/services`, `src/components` (기능 중심 분리)
+- **Modern**: `src/domains`, `src/modules` (도메인/기능 단위 응집)
+
+자세한 내용은 [Domain-Driven Design](domain-driven-design.md) 및 [Module Structure](module-structure.md) 문서를 참조하세요.
+
 #### 상태 관리
+
 - **Zustand**: 전역 상태 (서버, 메트릭, AI)
 - **React Query**: 서버 상태 캐싱
 - **Context API**: 인증, 테마
@@ -72,6 +87,7 @@ src/
 ### 2. API Layer (85개 Routes)
 
 #### AI 관련 (20개)
+
 ```typescript
 /api/ai/
 ├── query                 # 통합 쿼리 엔진 (메인)
@@ -93,6 +109,7 @@ src/
 ```
 
 #### 서버 관리 (30개)
+
 ```typescript
 /api/servers/
 ├── [id]                 # 서버 상세
@@ -103,6 +120,7 @@ src/
 ```
 
 #### 메트릭 (15개)
+
 ```typescript
 /api/metrics/
 ├── overview             # 전체 개요
@@ -113,11 +131,13 @@ src/
 ```
 
 #### 기타 (20개)
+
 - 인증, 헬스체크, A/B 테스트, 로깅 등
 
 ### 3. Service Layer
 
 #### AI 서비스 (src/services/ai/)
+
 ```typescript
 // 핵심 엔진
 SimplifiedQueryEngine          # 통합 쿼리 엔진
@@ -137,6 +157,7 @@ VectorSearchOptimizer           # 벡터 검색 최적화
 ```
 
 #### 데이터 서비스 (src/services/data/)
+
 ```typescript
 StaticDataLoader              # 24시간 Mock 데이터
 UnifiedMetricsManager         # 메트릭 관리
@@ -146,6 +167,7 @@ ScalingSimulationEngine       # 스케일링 시뮬레이션
 ### 4. Data Layer
 
 #### StaticDataLoader (v5.71.0)
+
 ```typescript
 class StaticDataLoader {
   // 특징
@@ -154,7 +176,7 @@ class StaticDataLoader {
   - 99.6% CPU 절약
   - 92% 메모리 절약
   - 캐시 히트율 3배 향상
-  
+
   // 데이터 구조
   servers: 17개 (web, api, db, cache 등)
   metrics: CPU, Memory, Disk, Network
@@ -163,6 +185,7 @@ class StaticDataLoader {
 ```
 
 #### Supabase PostgreSQL
+
 ```typescript
 // 테이블
 - ai_conversations        # AI 대화 이력
@@ -177,6 +200,7 @@ class StaticDataLoader {
 ```
 
 #### Google AI (Gemini 2.5 Flash)
+
 ```typescript
 // 사용량
 - 1500 요청/일 (무료)
@@ -192,6 +216,7 @@ class StaticDataLoader {
 ## 🔄 데이터 플로우
 
 ### 1. 일반 쿼리
+
 ```
 사용자 입력
     ↓
@@ -212,6 +237,7 @@ AI 사이드바 렌더링
 ```
 
 ### 2. 실시간 메트릭
+
 ```
 StaticDataLoader (메모리)
     ↓
@@ -225,6 +251,7 @@ Chart.js / Recharts 렌더링
 ```
 
 ### 3. 캐싱 전략
+
 ```typescript
 // 3단계 캐싱
 1. 메모리 캐시 (1분 TTL)
@@ -243,6 +270,7 @@ Chart.js / Recharts 렌더링
 ## 📦 주요 라이브러리
 
 ### Frontend
+
 ```json
 {
   "next": "^15.4.5",
@@ -257,6 +285,7 @@ Chart.js / Recharts 렌더링
 ```
 
 ### Backend
+
 ```json
 {
   "@google/generative-ai": "^0.21.0",
@@ -267,6 +296,7 @@ Chart.js / Recharts 렌더링
 ```
 
 ### Testing
+
 ```json
 {
   "vitest": "^2.1.8",
@@ -278,17 +308,20 @@ Chart.js / Recharts 렌더링
 ## 🎯 성능 지표
 
 ### 응답 시간
+
 - **API 평균**: 152ms
 - **Google AI**: 1초 이내
 - **RAG 검색**: 200ms
 - **페이지 로드**: 1.2초
 
 ### 리소스 사용
+
 - **Vercel**: ~10GB/월 (100GB 중)
 - **Supabase**: ~50MB (500MB 중)
 - **Google AI**: ~300 요청/일 (1500 중)
 
 ### 테스트 커버리지
+
 - **E2E**: 98.2% 통과율
 - **Unit**: 주요 컴포넌트 커버
 - **Lint**: 316개 경고 (491에서 35.6% 개선)
@@ -296,14 +329,17 @@ Chart.js / Recharts 렌더링
 ## 🔒 보안
 
 ### 인증
+
 ```typescript
-// PIN 기반 인증
-- 기본 PIN: 4231
-- 세션 관리: Zustand + localStorage
-- 권한: 관리자/운영자/게스트
+// GitHub OAuth 인증
+- NextAuth.js 기반
+- Supabase Auth 통합
+- 세션 관리: Supabase + localStorage
+- 권한: GitHub 사용자 / 게스트
 ```
 
 ### API 보안
+
 ```typescript
 // Rate Limiting
 - 100 요청/분 (IP 기반)
@@ -316,6 +352,7 @@ Chart.js / Recharts 렌더링
 ## 🚀 배포
 
 ### Vercel (무료 티어)
+
 ```yaml
 환경: Production
 빌드: Next.js 15 (Turbopack)
@@ -324,6 +361,7 @@ Chart.js / Recharts 렌더링
 ```
 
 ### 환경 변수
+
 ```bash
 # Google AI
 GOOGLE_AI_API_KEY=***
@@ -340,33 +378,38 @@ NODE_ENV=production
 ## 📊 모니터링
 
 ### 실시간 모니터링
+
 - StaticDataLoader: 17개 서버
 - 메트릭: CPU, Memory, Disk, Network
 - 업데이트: 1분 간격
 
 ### 로깅
+
 ```typescript
 // 구조화된 로깅
 logger.info('API 요청', {
   endpoint: '/api/ai/query',
   duration: 152,
-  status: 200
+  status: 200,
 });
 ```
 
 ## 🔄 향후 계획
 
 ### 단기 (1개월)
+
 - [ ] Lint 경고 추가 개선 (316 → 200)
 - [ ] E2E 테스트 100% 통과
 - [ ] 성능 최적화 (응답 시간 100ms 목표)
 
 ### 중기 (3개월)
+
 - [ ] 실제 서버 연동 옵션
 - [ ] 고급 AI 기능 (예측, 이상 탐지)
 - [ ] 다국어 지원
 
 ### 장기 (6개월)
+
 - [ ] 엔터프라이즈 기능
 - [ ] 플러그인 시스템
 - [ ] 모바일 앱

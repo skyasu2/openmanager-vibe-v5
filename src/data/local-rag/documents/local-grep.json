@@ -1,7 +1,0 @@
-{
-  "id": "local-grep",
-  "command": "grep -r \"pattern\" .",
-  "description": "Search for text patterns recursively in files",
-  "category": "search",
-  "content": "Grep is a powerful search tool that can find text patterns in files recursively through directory structures"
-}

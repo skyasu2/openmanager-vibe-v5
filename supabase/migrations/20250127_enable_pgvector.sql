@@ -211,5 +211,5 @@ WITH CHECK (metadata->>'user_id' = auth.uid()::text);
 
 -- Add comment for documentation
 COMMENT ON TABLE knowledge_base IS 'Stores embedded documents for RAG (Retrieval-Augmented Generation) with pgvector support';
-COMMENT ON FUNCTION hybrid_search IS 'Performs hybrid search combining vector similarity and text search';
+COMMENT ON FUNCTION hybrid_search IS 'v1.0 - Performs hybrid search combining vector similarity and text search (Target: knowledge_base)';
 COMMENT ON FUNCTION cleanup_old_embeddings IS 'Removes old embeddings to optimize storage for free tier';

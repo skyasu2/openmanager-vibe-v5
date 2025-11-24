@@ -1,4 +1,4 @@
-import type { RawServerData } from '@/types/raw/RawServerData';
+import type { RawServerData } from '@/types/server-metrics';
 import type { Server } from '@/types/server';
 import type { ServerMetrics } from '@/config/server-status-thresholds';
 import { determineServerStatus } from '@/config/server-status-thresholds';
@@ -20,7 +20,7 @@ export interface EnhancedServer {
   uptime: string;
   lastUpdate: Date;
   alerts: number;
-  services: Array<{ name: string; status: string; port: number }>;
+  services: Array<{ name: string; status: string; port?: number }>;
   specs: {
     cpu_cores: number;
     memory_gb: number;
@@ -76,10 +76,10 @@ export function transformRawToServer(
   raw: RawServerData,
   index: number = 0
 ): Server {
-  const cpu = raw.metrics?.cpu ?? raw.cpu ?? 0;
-  const memory = raw.metrics?.memory ?? raw.memory ?? 0;
-  const disk = raw.metrics?.disk ?? raw.disk ?? 0;
-  const network = raw.metrics?.network?.in ?? raw.network ?? 0;
+  const cpu = raw.cpu ?? 0;
+  const memory = raw.memory ?? 0;
+  const disk = raw.disk ?? 0;
+  const network = raw.network ?? 0;
 
   // 🚨 통합 기준으로 서버 상태 판별 (데이터 전처리 단계)
   const serverMetrics: ServerMetrics = {
@@ -136,10 +136,10 @@ function extractBasicInfo(
 function extractMetrics(
   raw: RawServerData
 ): Pick<EnhancedServer, 'cpu' | 'memory' | 'disk' | 'network'> {
-  const cpu = raw.metrics?.cpu ?? raw.cpu ?? 0;
-  const memory = raw.metrics?.memory ?? raw.memory ?? 0;
-  const disk = raw.metrics?.disk ?? raw.disk ?? 0;
-  const network = raw.metrics?.network?.in ?? raw.network ?? 0;
+  const cpu = raw.cpu ?? 0;
+  const memory = raw.memory ?? 0;
+  const disk = raw.disk ?? 0;
+  const network = raw.network ?? 0;
 
   return {
     cpu: Math.round(cpu),

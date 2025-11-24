@@ -139,13 +139,6 @@ export function useProfileAuth(): ProfileAuthHook {
     window.location.href = '/login';
   }, []);
 
-  const navigateToAdmin = useCallback(() => {
-    console.log('🚀 navigateToAdmin 호출됨 - /admin으로 이동');
-
-    // window.location.href 사용 (더 확실한 라우팅)
-    window.location.href = '/admin';
-  }, []);
-
   const navigateToDashboard = useCallback(() => {
     console.log('🚀 navigateToDashboard 호출됨 - /dashboard로 이동');
     window.location.href = '/dashboard';
@@ -158,7 +151,6 @@ export function useProfileAuth(): ProfileAuthHook {
     status,
     handleLogout,
     navigateToLogin,
-    navigateToAdmin,
     navigateToDashboard,
   };
 }

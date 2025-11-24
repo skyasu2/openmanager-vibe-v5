@@ -1,7 +1,0 @@
-{
-  "id": "local-ls",
-  "command": "ls -la",
-  "description": "List all files and directories with detailed information",
-  "category": "file-management",
-  "content": "The ls -la command shows all files and directories including hidden ones with detailed permissions, ownership, and timestamps"
-}

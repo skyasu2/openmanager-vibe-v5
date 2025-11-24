@@ -1,5 +1,5 @@
 ---
-id: api-endpoints  
+id: api-endpoints
 title: Complete API Endpoints
 keywords: [api, endpoints, rest, reference]
 priority: high
@@ -14,44 +14,47 @@ updated: '2025-11-20'
 ### 🤖 AI 관련 (20개)
 
 #### 통합 쿼리
+
 ```typescript
 // POST /api/ai/query - 메인 AI 쿼리 엔진
 interface QueryRequest {
-  query: string
+  query: string;
   context?: {
-    servers?: string[]
-    timeRange?: string
-  }
+    servers?: string[];
+    timeRange?: string;
+  };
 }
 
 interface QueryResponse {
-  response: string
-  confidence: number
-  sources?: string[]
-  cached: boolean
+  response: string;
+  confidence: number;
+  sources?: string[];
+  cached: boolean;
 }
 ```
 
 #### Google AI 직접 호출
+
 ```typescript
 // POST /api/ai/google-ai/generate
 interface GenerateRequest {
-  prompt: string
-  systemPrompt?: string
-  temperature?: number
+  prompt: string;
+  systemPrompt?: string;
+  temperature?: number;
 }
 
 // GET /api/ai/google-ai/status
 interface StatusResponse {
-  available: boolean
+  available: boolean;
   quota: {
-    used: number
-    limit: number
-  }
+    used: number;
+    limit: number;
+  };
 }
 ```
 
 #### 특화 기능
+
 ```typescript
 // POST /api/ai/incident-report - 장애 보고서 생성
 // POST /api/ai/insight-center - 인사이트 분석
@@ -69,26 +72,27 @@ interface StatusResponse {
 ### 🖥️ 서버 관리 (30개)
 
 #### 기본 CRUD
+
 ```typescript
 // GET /api/servers - 서버 목록
 interface ServersResponse {
-  servers: Server[]
-  total: number
-  page: number
+  servers: Server[];
+  total: number;
+  page: number;
 }
 
 // GET /api/servers/[id] - 서버 상세
 interface ServerResponse {
-  server: ServerDetail
-  metrics: ServerMetric[]
-  status: 'healthy' | 'warning' | 'critical'
+  server: ServerDetail;
+  metrics: ServerMetric[];
+  status: 'healthy' | 'warning' | 'critical';
 }
 
 // POST /api/servers - 서버 생성 (Mock)
 interface CreateServerRequest {
-  name: string
-  type: 'web' | 'api' | 'database' | 'cache'
-  config: ServerConfig
+  name: string;
+  type: 'web' | 'api' | 'database' | 'cache';
+  config: ServerConfig;
 }
 
 // PUT /api/servers/[id] - 서버 업데이트
@@ -96,29 +100,31 @@ interface CreateServerRequest {
 ```
 
 #### 메트릭 수집
+
 ```typescript
 // GET /api/servers/[id]/metrics - 서버 메트릭
 interface ServerMetricsResponse {
-  serverId: string
-  timeRange: string
+  serverId: string;
+  timeRange: string;
   metrics: {
-    cpu: number[]
-    memory: number[]
-    disk: number[]
-    network: number[]
-  }
-  timestamps: string[]
+    cpu: number[];
+    memory: number[];
+    disk: number[];
+    network: number[];
+  };
+  timestamps: string[];
 }
 
 // GET /api/servers/[id]/health - 헬스 체크
 interface HealthResponse {
-  status: 'healthy' | 'degraded' | 'down'
-  checks: HealthCheck[]
-  lastCheck: string
+  status: 'healthy' | 'degraded' | 'down';
+  checks: HealthCheck[];
+  lastCheck: string;
 }
 ```
 
 #### 시나리오 관리
+
 ```typescript
 // GET /api/servers/scenarios - 시나리오 목록
 // POST /api/servers/scenarios/[id]/apply - 시나리오 적용
@@ -128,17 +134,18 @@ interface HealthResponse {
 ### 📈 메트릭 (15개)
 
 #### 전체 메트릭
+
 ```typescript
 // GET /api/metrics - 전체 개요
 interface MetricsResponse {
   overview: {
-    totalServers: number
-    healthyServers: number
-    avgCpu: number
-    avgMemory: number
-  }
-  servers: ServerSummary[]
-  alerts: Alert[]
+    totalServers: number;
+    healthyServers: number;
+    avgCpu: number;
+    avgMemory: number;
+  };
+  servers: ServerSummary[];
+  alerts: Alert[];
 }
 
 // GET /api/metrics/overview - 상세 개요
@@ -146,13 +153,14 @@ interface MetricsResponse {
 ```
 
 #### 서버별 메트릭
+
 ```typescript
 // GET /api/metrics/[serverId] - 서버별 메트릭
 interface ServerMetricsResponse {
-  serverId: string
-  current: MetricSnapshot
-  history: MetricPoint[]
-  predictions?: MetricPrediction[]
+  serverId: string;
+  current: MetricSnapshot;
+  history: MetricPoint[];
+  predictions?: MetricPrediction[];
 }
 
 // GET /api/metrics/[serverId]/historical - 히스토리
@@ -160,6 +168,7 @@ interface ServerMetricsResponse {
 ```
 
 #### 실시간 스트림
+
 ```typescript
 // GET /api/metrics/stream - SSE 스트림
 // Returns: Server-Sent Events
@@ -169,15 +178,16 @@ interface ServerMetricsResponse {
 ### 🔐 인증 (5개)
 
 ```typescript
-// POST /api/auth/login - PIN 로그인
-interface LoginRequest {
-  pin: string
+// POST /api/auth/github - GitHub OAuth
+interface AuthRequest {
+  code: string;
+  state: string;
 }
 
-interface LoginResponse {
-  success: boolean
-  role: 'admin' | 'operator' | 'guest'
-  token: string
+interface AuthResponse {
+  user: User;
+  session: Session;
+  tokens: Tokens;
 }
 
 // POST /api/auth/logout - 로그아웃
@@ -189,28 +199,31 @@ interface LoginResponse {
 ### 🔧 유틸리티 (15개)
 
 #### 헬스체크
+
 ```typescript
 // GET /api/health - 시스템 헬스
 interface HealthResponse {
-  status: 'ok' | 'degraded' | 'down'
+  status: 'ok' | 'degraded' | 'down';
   services: {
-    api: boolean
-    database: boolean
-    ai: boolean
-  }
-  uptime: number
+    api: boolean;
+    database: boolean;
+    ai: boolean;
+  };
+  uptime: number;
 }
 
 // GET /api/agents/health - 에이전트 헬스
 ```
 
 #### A/B 테스트
+
 ```typescript
 // GET /api/ab-test - A/B 테스트 설정
 // POST /api/ab-test/track - 이벤트 추적
 ```
 
 #### 로깅
+
 ```typescript
 // POST /api/ai/logging/stream - 로그 스트림
 // GET /api/logs - 로그 조회
@@ -219,25 +232,27 @@ interface HealthResponse {
 ## 🔄 공통 응답 형식
 
 ### 성공 응답
+
 ```typescript
 interface SuccessResponse<T> {
-  success: true
-  data: T
-  timestamp: string
-  cached?: boolean
+  success: true;
+  data: T;
+  timestamp: string;
+  cached?: boolean;
 }
 ```
 
 ### 에러 응답
+
 ```typescript
 interface ErrorResponse {
-  success: false
+  success: false;
   error: {
-    code: string
-    message: string
-    details?: unknown
-  }
-  timestamp: string
+    code: string;
+    message: string;
+    details?: unknown;
+  };
+  timestamp: string;
 }
 ```
 
@@ -260,28 +275,29 @@ X-RateLimit-Reset: 1234567890
 
 ## 🔒 인증
 
-### PIN 인증
+### GitHub OAuth + Supabase Auth
+
 ```typescript
 // 헤더
-Authorization: Bearer <token>
+Authorization: Bearer <supabase_access_token>
 
 // 또는 쿠키
-session=<token>
+sb-access-token=<token>
 ```
 
 ### 권한 레벨
-- **admin**: 모든 엔드포인트 접근
-- **operator**: 읽기 + 일부 쓰기
-- **guest**: 읽기 전용
+
+- **GitHub 사용자**: 인증된 사용자, 전체 기능 접근
+- **게스트**: 비인증 사용자, 읽기 전용 (제한적)
 
 ## 📊 응답 시간 (평균)
 
-| 카테고리 | 평균 | P95 | P99 |
-|---------|------|-----|-----|
-| AI 쿼리 | 1000ms | 2000ms | 3000ms |
-| 서버 관리 | 50ms | 100ms | 200ms |
-| 메트릭 | 30ms | 60ms | 100ms |
-| 인증 | 20ms | 40ms | 80ms |
+| 카테고리  | 평균   | P95    | P99    |
+| --------- | ------ | ------ | ------ |
+| AI 쿼리   | 1000ms | 2000ms | 3000ms |
+| 서버 관리 | 50ms   | 100ms  | 200ms  |
+| 메트릭    | 30ms   | 60ms   | 100ms  |
+| 인증      | 20ms   | 40ms   | 80ms   |
 
 ## 🔗 관련 문서
 
@@ -295,11 +311,12 @@ session=<token>
 **총 엔드포인트**: 85개  
 **상태**: ✅ 프로덕션
 
-  health: boolean
-  latency: number
-  lastUpdate: string
+health: boolean
+latency: number
+lastUpdate: string
 }
-```
+
+````
 
 ## 📊 Dashboard API
 
@@ -324,33 +341,33 @@ interface WidgetResponse {
   data: any
   lastUpdated: string
 }
-```
+````
 
 ## 🔐 Authentication
 
 ```typescript
 // POST /api/auth/github - GitHub OAuth
 interface AuthRequest {
-  code: string
-  state: string
+  code: string;
+  state: string;
 }
 
 interface AuthResponse {
-  user: User
-  session: Session
-  tokens: Tokens
+  user: User;
+  session: Session;
+  tokens: Tokens;
 }
 
 // GET /api/auth/session - Current session
 interface SessionResponse {
-  user: User | null
-  isAuthenticated: boolean
-  expiresAt: string
+  user: User | null;
+  isAuthenticated: boolean;
+  expiresAt: string;
 }
 
 // POST /api/auth/logout - Logout
 interface LogoutResponse {
-  success: boolean
+  success: boolean;
 }
 ```
 
@@ -359,20 +376,20 @@ interface LogoutResponse {
 ```typescript
 // GET /api/search - Global search
 interface SearchRequest {
-  q: string
+  q: string;
   filters?: {
-    type?: string[]
-    status?: string[]
-    timeRange?: string
-  }
-  page?: number
-  limit?: number
+    type?: string[];
+    status?: string[];
+    timeRange?: string;
+  };
+  page?: number;
+  limit?: number;
 }
 
 interface SearchResponse {
-  results: SearchResult[]
-  total: number
-  facets: SearchFacets
+  results: SearchResult[];
+  total: number;
+  facets: SearchFacets;
 }
 ```
 
@@ -381,21 +398,21 @@ interface SearchResponse {
 ```typescript
 // GET /api/alerts - List alerts
 interface AlertsResponse {
-  alerts: Alert[]
-  total: number
-  unread: number
+  alerts: Alert[];
+  total: number;
+  unread: number;
 }
 
 // POST /api/alerts/[id]/acknowledge - Acknowledge alert
 interface AcknowledgeResponse {
-  success: boolean
-  alert: Alert
+  success: boolean;
+  alert: Alert;
 }
 
 // GET /api/notifications - Notifications
 interface NotificationsResponse {
-  notifications: Notification[]
-  unread: number
+  notifications: Notification[];
+  unread: number;
 }
 ```
 
@@ -404,22 +421,22 @@ interface NotificationsResponse {
 ```typescript
 // GET /api/health - System health check
 interface HealthResponse {
-  status: 'healthy' | 'degraded' | 'down'
-  version: string
-  uptime: number
+  status: 'healthy' | 'degraded' | 'down';
+  version: string;
+  uptime: number;
   services: {
-    database: 'up' | 'down'
-    cache: 'up' | 'down'
-    ai: 'up' | 'down'
-  }
+    database: 'up' | 'down';
+    cache: 'up' | 'down';
+    ai: 'up' | 'down';
+  };
 }
 
 // GET /api/version - Version info
 interface VersionResponse {
-  version: string
-  buildDate: string
-  commitHash: string
-  environment: 'development' | 'production'
+  version: string;
+  buildDate: string;
+  commitHash: string;
+  environment: 'development' | 'production';
 }
 ```
 
@@ -435,7 +452,7 @@ curl /api/servers
 # Get server metrics (1 hour)
 curl "/api/metrics/server-001?range=1h"
 
-# Search servers  
+# Search servers
 curl "/api/search?q=web&type=server"
 
 # AI analysis

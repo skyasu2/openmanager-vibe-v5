@@ -9,6 +9,7 @@
 ## 🎯 핵심 개념
 
 ### 현재 아키텍처 (이미 통합됨)
+
 ```
 사용자 쿼리
     ↓
@@ -32,6 +33,7 @@ SimplifiedQueryEngine (단일 엔진)
 ```
 
 ### 문제점
+
 ```
 ❌ UI에 "LOCAL" / "GOOGLE_AI" 모드 선택 표시
 ❌ 사용자가 선택해도 무시됨 (자동 라우팅)
@@ -44,6 +46,7 @@ SimplifiedQueryEngine (단일 엔진)
 ## 📊 제거 대상
 
 ### 1. 모드 관련 타입
+
 ```typescript
 // src/types/ai-types.ts
 ❌ export type AIMode = 'LOCAL' | 'GOOGLE_AI';
@@ -53,6 +56,7 @@ SimplifiedQueryEngine (단일 엔진)
 ```
 
 ### 2. 모드 선택 UI
+
 ```typescript
 // 제거 대상
 ❌ AIEngineSelector.tsx
@@ -61,6 +65,7 @@ SimplifiedQueryEngine (단일 엔진)
 ```
 
 ### 3. 모드 관련 상태
+
 ```typescript
 // useAISidebarStore.ts
 ❌ aiMode: 'LOCAL' | 'GOOGLE_AI'
@@ -71,6 +76,7 @@ SimplifiedQueryEngine (단일 엔진)
 ```
 
 ### 4. 모드 관련 훅
+
 ```typescript
 // useAIEngine.ts
 ❌ const { aiMode, setAiMode } = useAIEngine();
@@ -84,6 +90,7 @@ SimplifiedQueryEngine (단일 엔진)
 ## ✅ 유지/개선 대상
 
 ### 1. SimplifiedQueryEngine (핵심)
+
 ```typescript
 ✅ 유지: Intelligent Routing
 ✅ 유지: Intent Classification
@@ -93,6 +100,7 @@ SimplifiedQueryEngine (단일 엔진)
 ```
 
 ### 2. 정보 표시 (신규)
+
 ```typescript
 // 새 컴포넌트: AIEngineInfo.tsx
 interface AIEngineInfo {
@@ -103,12 +111,13 @@ interface AIEngineInfo {
 }
 
 // 표시 예시
-"🔄 통합 AI 파이프라인"
-"📊 현재: Gemini 분석 중..."
-"💰 비용 절약: $0.02"
+('🔄 통합 AI 파이프라인');
+('📊 현재: Gemini 분석 중...');
+('💰 비용 절약: $0.02');
 ```
 
 ### 3. ThinkingProcessVisualizer
+
 ```typescript
 ✅ 유지: 라우팅 정보 표시
 ✅ 유지: 단계별 진행 상황
@@ -120,6 +129,7 @@ interface AIEngineInfo {
 ## 🔧 리팩토링 단계
 
 ### Phase 1: 타입 정리 (10분)
+
 ```typescript
 // 1. src/types/ai-types.ts
 - export type AIMode = 'LOCAL' | 'GOOGLE_AI';
@@ -130,6 +140,7 @@ interface AIEngineInfo {
 ```
 
 ### Phase 2: UI 컴포넌트 제거 (15분)
+
 ```bash
 # 모드 선택 UI 제거
 rm src/domains/ai-sidebar/components/AIEngineSelector.tsx
@@ -142,13 +153,14 @@ rm src/domains/ai-sidebar/components/AIEngineDropdown.tsx
 ```
 
 ### Phase 3: 상태 관리 단순화 (15분)
+
 ```typescript
 // useAISidebarStore.ts
 interface AISidebarStore {
   // 제거
   - aiMode: AIMode;
   - setAiMode: (mode: AIMode) => void;
-  
+
   // 추가 (선택)
   + engineInfo?: {
   +   pipeline: 'unified';
@@ -158,6 +170,7 @@ interface AISidebarStore {
 ```
 
 ### Phase 4: 훅 단순화 (10분)
+
 ```typescript
 // useAIEngine.ts
 // 전체 제거 또는 정보 제공만
@@ -169,13 +182,14 @@ export function useAIEngineInfo() {
     features: [
       'Intelligent Routing',
       'Auto Engine Selection',
-      'Cost Optimization'
-    ]
+      'Cost Optimization',
+    ],
   };
 }
 ```
 
 ### Phase 5: API 라우트 정리 (5분)
+
 ```typescript
 // src/app/api/ai/query/route.ts
 // mode 파라미터 제거 또는 무시
@@ -196,6 +210,7 @@ const result = await simplifiedQueryEngine.query({
 ## 📝 코드 변경 예시
 
 ### Before (현재)
+
 ```typescript
 // EnhancedAIChat.tsx
 <CompactModeSelector
@@ -207,6 +222,7 @@ const result = await simplifiedQueryEngine.query({
 ```
 
 ### After (개선)
+
 ```typescript
 // EnhancedAIChat.tsx
 <AIEngineInfo
@@ -222,6 +238,7 @@ const result = await simplifiedQueryEngine.query({
 ## 🎨 새로운 UI 제안
 
 ### 1. 통합 파이프라인 배지
+
 ```typescript
 <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
   <span className="text-sm font-medium text-purple-700">
@@ -234,6 +251,7 @@ const result = await simplifiedQueryEngine.query({
 ```
 
 ### 2. 실시간 단계 표시
+
 ```typescript
 <div className="text-xs text-gray-500">
   {currentStep === 'rag' && '📚 문서 검색 중...'}
@@ -243,6 +261,7 @@ const result = await simplifiedQueryEngine.query({
 ```
 
 ### 3. 비용 절감 표시
+
 ```typescript
 <div className="flex items-center gap-1 text-xs text-green-600">
   <span>💰</span>
@@ -255,6 +274,7 @@ const result = await simplifiedQueryEngine.query({
 ## 📊 예상 효과
 
 ### 코드 감소
+
 ```
 제거 대상:
 - AIEngineSelector.tsx (5.5KB)
@@ -266,6 +286,7 @@ const result = await simplifiedQueryEngine.query({
 ```
 
 ### UX 개선
+
 ```
 Before:
 ❌ "LOCAL 모드" vs "GOOGLE_AI 모드" 선택
@@ -279,6 +300,7 @@ After:
 ```
 
 ### 유지보수 개선
+
 ```
 Before:
 ❌ 2개 모드 관리
@@ -296,6 +318,7 @@ After:
 ## 🚀 실행 계획
 
 ### Step 1: 분석 및 계획 (완료)
+
 ```
 ✅ 현재 상태 분석
 ✅ 제거 대상 식별
@@ -303,6 +326,7 @@ After:
 ```
 
 ### Step 2: 타입 및 인터페이스 정리 (10분)
+
 ```bash
 # 1. AIMode 타입 제거/단순화
 # 2. 관련 인터페이스 업데이트
@@ -310,6 +334,7 @@ After:
 ```
 
 ### Step 3: UI 컴포넌트 제거 (15분)
+
 ```bash
 # 1. 모드 선택 컴포넌트 삭제
 # 2. Import 제거
@@ -317,6 +342,7 @@ After:
 ```
 
 ### Step 4: 상태 관리 단순화 (15분)
+
 ```bash
 # 1. useAISidebarStore 정리
 # 2. useAIEngine 단순화
@@ -324,6 +350,7 @@ After:
 ```
 
 ### Step 5: 새 UI 구현 (20분)
+
 ```bash
 # 1. AIEngineInfo 컴포넌트 생성
 # 2. 통합 파이프라인 배지 추가
@@ -331,6 +358,7 @@ After:
 ```
 
 ### Step 6: 테스트 및 검증 (10분)
+
 ```bash
 # 1. TypeScript 컴파일
 # 2. 빌드 테스트
@@ -344,6 +372,7 @@ After:
 ## 💡 추가 개선 제안
 
 ### 1. 파이프라인 시각화
+
 ```typescript
 <PipelineVisualizer
   steps={[
@@ -355,6 +384,7 @@ After:
 ```
 
 ### 2. 성능 메트릭 표시
+
 ```typescript
 <PerformanceMetrics
   totalTime="1.2s"
@@ -365,6 +395,7 @@ After:
 ```
 
 ### 3. 파이프라인 설정 (고급)
+
 ```typescript
 // 관리자 전용
 <PipelineSettings
@@ -380,6 +411,7 @@ After:
 ## 📋 체크리스트
 
 ### 제거 작업
+
 - [ ] AIMode 타입 제거/단순화
 - [ ] AIEngineSelector.tsx 삭제
 - [ ] AIEngineDropdown.tsx 삭제
@@ -388,12 +420,14 @@ After:
 - [ ] 모드 관련 Import 정리
 
 ### 신규 구현
+
 - [ ] AIEngineInfo 컴포넌트
 - [ ] 통합 파이프라인 배지
 - [ ] 실시간 단계 표시
 - [ ] 비용 절감 표시
 
 ### 테스트
+
 - [ ] TypeScript 컴파일
 - [ ] 빌드 성공
 - [ ] UI 정상 표시
@@ -404,6 +438,7 @@ After:
 ## 🎯 결론
 
 ### 현재 상태
+
 ```
 ✅ 백엔드: 이미 통합 파이프라인 작동 중
 ❌ 프론트엔드: 불필요한 모드 선택 UI
@@ -411,6 +446,7 @@ After:
 ```
 
 ### 개선 후
+
 ```
 ✅ 백엔드: 통합 파이프라인 유지
 ✅ 프론트엔드: 단순하고 명확한 UI
@@ -418,6 +454,7 @@ After:
 ```
 
 ### 핵심 메시지
+
 **"Supabase RAG + GCP Functions + Google AI API = 하나의 통합 파이프라인"**
 
 ---

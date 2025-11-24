@@ -1,7 +1,0 @@
-{
-  "id": "local-kubectl-get",
-  "command": "kubectl get pods",
-  "description": "List Kubernetes pods",
-  "category": "kubernetes",
-  "content": "Kubectl get pods displays all pods in the current namespace with their status and readiness"
-}

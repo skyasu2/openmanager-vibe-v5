@@ -102,6 +102,5 @@ export interface ProfileAuthHook {
   status: 'loading' | 'authenticated' | 'unauthenticated';
   handleLogout: () => Promise<boolean>;
   navigateToLogin: () => void;
-  navigateToAdmin: () => void;
   navigateToDashboard: () => void;
 }

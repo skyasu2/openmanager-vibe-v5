@@ -1,7 +1,0 @@
-{
-  "id": "local-top",
-  "command": "top",
-  "description": "Display running processes and system resource usage",
-  "category": "monitoring",
-  "content": "The top command provides real-time view of running processes, CPU usage, memory consumption, and system load"
-}

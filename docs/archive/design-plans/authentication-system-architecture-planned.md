@@ -1,20 +1,40 @@
 ---
-id: authentication-system-architecture
-title: "인증 시스템 아키텍처"
-keywords: ["authentication", "oauth", "pin", "security", "github", "supabase"]
-priority: high
-security_critical: true
-related_docs: ["system-architecture-overview.md", "test-automation-architecture.md"]
-updated: "2025-10-03"
+id: authentication-system-architecture-planned
+title: '인증 시스템 아키텍처 (계획안 - 미구현)'
+keywords:
+  [
+    'authentication',
+    'oauth',
+    'pin',
+    'security',
+    'github',
+    'supabase',
+    'planned',
+  ]
+priority: archive
+status: 'planned-not-implemented'
+security_critical: false
+related_docs:
+  ['system-architecture-overview.md', 'test-automation-architecture.md']
+updated: '2025-10-03'
+archived: '2025-11-24'
+archive_reason: '구현되지 않은 설계 문서 - 실제 시스템은 GitHub OAuth + ADMIN_PASSWORD 환경변수 사용'
 ---
 
-# 🔐 OpenManager VIBE v5.71.0 인증 시스템 아키텍처
+# 🔐 OpenManager VIBE v5.71.0 인증 시스템 아키텍처 (계획안)
+
+> ⚠️ **중요**: 이 문서는 **구현되지 않은 설계 계획안**입니다.
+>
+> **실제 구현**: GitHub OAuth (NextAuth.js + Supabase) + ADMIN_PASSWORD 환경변수
+>
+> **아카이브 사유**: 2025-11-24, 실제 구현과 다른 PIN 인증 시스템 설계 문서
 
 **작성일**: 2025-10-03
-**기준 버전**: v5.71.0 (현재 운영 중)
+**기준 버전**: v5.71.0
+**상태**: ❌ **미구현** (설계 단계)
 **목적**: GitHub OAuth + PIN 인증 이중 체계 및 강화된 세션 관리 시스템 문서화
-**보안 등급**: A+ (95/100점)
-**특징**: 이중 인증 체계, 게스트 모드 지원, 관리자 전용 PIN 시스템
+**보안 등급**: A+ (95/100점) - 계획안 기준
+**특징**: 이중 인증 체계, 게스트 모드 지원, 관리자 전용 PIN 시스템 (계획)
 
 ---
 
@@ -23,6 +43,7 @@ updated: "2025-10-03"
 OpenManager VIBE의 인증 시스템은 **"보안성과 사용자 편의성의 균형"**을 핵심 철학으로 구축되었습니다.
 
 ### 🎯 **핵심 보안 설계 원칙**
+
 - **🔒 이중 인증 체계**: GitHub OAuth + PIN 인증 조합
 - **👤 게스트 모드**: 인증 없이 기본 기능 체험 가능
 - **⚡ 단계별 권한 승격**: 기본 → 인증 → 관리자 순차 권한 시스템
@@ -31,52 +52,59 @@ OpenManager VIBE의 인증 시스템은 **"보안성과 사용자 편의성의 �
 
 ### 📈 **현재 보안 성과 지표**
 
-| 지표 | 현재 수치 | 보안 기준 | 달성도 |
-|------|-----------|----------|--------|
-| **인증 성공률** | 99.7% | >99% | ✅ **100.7% 달성** |
-| **PIN 인증 정확도** | 100% | 100% | ✅ **완전 달성** |
-| **세션 보안 점수** | 95/100 | >90 | ✅ **105% 달성** |
-| **무인가 접근 차단** | 100% | 100% | ✅ **완전 달성** |
-| **사용자 만족도** | 9.2/10 | >8.0 | ✅ **115% 달성** |
+| 지표                 | 현재 수치 | 보안 기준 | 달성도             |
+| -------------------- | --------- | --------- | ------------------ |
+| **인증 성공률**      | 99.7%     | >99%      | ✅ **100.7% 달성** |
+| **PIN 인증 정확도**  | 100%      | 100%      | ✅ **완전 달성**   |
+| **세션 보안 점수**   | 95/100    | >90       | ✅ **105% 달성**   |
+| **무인가 접근 차단** | 100%      | 100%      | ✅ **완전 달성**   |
+| **사용자 만족도**    | 9.2/10    | >8.0      | ✅ **115% 달성**   |
 
 ---
 
 ## 🏗️ **인증 아키텍처 개요**
 
 ### 🔄 **3단계 권한 시스템**
+
 ```typescript
 // 권한 시스템 아키텍처 (2025-09-29 현재 운영)
 enum UserAuthLevel {
-  GUEST = 'guest',           // 게스트: 기본 기능 체험 가능
-  AUTHENTICATED = 'user',    // 인증 사용자: GitHub OAuth 완료
-  ADMIN = 'admin'           // 관리자: GitHub OAuth + PIN 인증 완료
+  GUEST = 'guest', // 게스트: 기본 기능 체험 가능
+  AUTHENTICATED = 'user', // 인증 사용자: GitHub OAuth 완료
+  ADMIN = 'admin', // 관리자: GitHub OAuth + PIN 인증 완료
 }
 
 interface AuthenticationFlow {
   // 1단계: 게스트 모드 (기본 진입점)
   guest: {
-    permissions: ['view_dashboard', 'basic_monitoring', 'public_apis'],
-    restrictions: ['no_admin_functions', 'no_sensitive_data'],
-    nextStep: 'github_oauth_optional'
+    permissions: ['view_dashboard', 'basic_monitoring', 'public_apis'];
+    restrictions: ['no_admin_functions', 'no_sensitive_data'];
+    nextStep: 'github_oauth_optional';
   };
 
   // 2단계: GitHub OAuth 인증
   authenticated: {
-    permissions: ['full_dashboard', 'api_access', 'user_preferences'],
-    restrictions: ['no_admin_panel', 'no_system_settings'],
-    nextStep: 'pin_verification_required'
+    permissions: ['full_dashboard', 'api_access', 'user_preferences'];
+    restrictions: ['no_admin_panel', 'no_system_settings'];
+    nextStep: 'pin_verification_required';
   };
 
   // 3단계: 관리자 PIN 인증
   admin: {
-    permissions: ['all_features', 'admin_panel', 'system_settings', 'user_management'],
-    restrictions: [],
-    sessionTimeout: '2_hours'
+    permissions: [
+      'all_features',
+      'admin_panel',
+      'system_settings',
+      'user_management',
+    ];
+    restrictions: [];
+    sessionTimeout: '2_hours';
   };
 }
 ```
 
 ### 🌊 **사용자 플로우 다이어그램**
+
 ```mermaid
 graph TD
     A[메인페이지 접속] --> B[게스트로 체험하기]
@@ -105,6 +133,7 @@ graph TD
 ## 🔐 **GitHub OAuth 시스템**
 
 ### ⚙️ **OAuth 구현 아키텍처**
+
 ```typescript
 // GitHub OAuth 통합 시스템 (커밋: 3283637d 기반)
 class EnhancedGitHubOAuthManager {
@@ -116,11 +145,11 @@ class EnhancedGitHubOAuthManager {
 
     // 강화된 보안 설정
     security: {
-      state: 'random-csrf-token',          // CSRF 공격 방지
-      codeChallenge: 'pkce-enabled',       // PKCE 활성화
+      state: 'random-csrf-token', // CSRF 공격 방지
+      codeChallenge: 'pkce-enabled', // PKCE 활성화
       sessionTimeout: 24 * 60 * 60 * 1000, // 24시간
-      refreshTokenRotation: true           // 토큰 로테이션
-    }
+      refreshTokenRotation: true, // 토큰 로테이션
+    },
   };
 
   async initiateOAuthFlow(): Promise<OAuthInitiation> {
@@ -135,13 +164,13 @@ class EnhancedGitHubOAuthManager {
     // 3. GitHub 인증 URL 생성
     const authUrl = this.buildAuthUrl({
       state: csrfToken,
-      codeChallenge: codeChallenge
+      codeChallenge: codeChallenge,
     });
 
     return {
       authUrl,
       csrfToken,
-      expiresAt: Date.now() + (5 * 60 * 1000) // 5분 만료
+      expiresAt: Date.now() + 5 * 60 * 1000, // 5분 만료
     };
   }
 
@@ -168,20 +197,21 @@ class EnhancedGitHubOAuthManager {
       name: userProfile.name,
       avatarUrl: userProfile.avatar_url,
       accessToken: tokenResponse.accessToken,
-      refreshToken: tokenResponse.refreshToken
+      refreshToken: tokenResponse.refreshToken,
     });
 
     return {
       user: session.user,
       session: session,
       authLevel: 'authenticated',
-      nextStep: 'pin_verification_available'
+      nextStep: 'pin_verification_available',
     };
   }
 }
 ```
 
 ### 🛡️ **보안 강화 기능**
+
 ```typescript
 interface OAuthSecurityFeatures {
   csrfProtection: {
@@ -217,6 +247,7 @@ interface OAuthSecurityFeatures {
 ## 📟 **PIN 인증 시스템**
 
 ### 🎯 **관리자 PIN 아키텍처**
+
 ```typescript
 // 4자리 PIN 인증 시스템 (환경변수 ADMIN_PASSWORD)
 class AdminPinAuthenticationSystem {
@@ -237,7 +268,7 @@ class AdminPinAuthenticationSystem {
         success: false,
         error: 'account_locked',
         nextRetryAt: userStatus.lockoutExpiry,
-        message: '계정이 일시 잠겨있습니다. 5분 후 재시도해주세요.'
+        message: '계정이 일시 잠겨있습니다. 5분 후 재시도해주세요.',
       };
     }
 
@@ -253,7 +284,7 @@ class AdminPinAuthenticationSystem {
         success: true,
         authLevel: 'admin',
         privileges: this.getAdminPrivileges(),
-        sessionExpiry: Date.now() + (2 * 60 * 60 * 1000) // 2시간
+        sessionExpiry: Date.now() + 2 * 60 * 60 * 1000, // 2시간
       };
     } else {
       // 실패: 시도 횟수 증가
@@ -266,7 +297,7 @@ class AdminPinAuthenticationSystem {
           success: false,
           error: 'max_attempts_exceeded',
           message: '3회 실패로 계정이 5분간 잠겼습니다.',
-          lockoutDuration: this.LOCKOUT_DURATION
+          lockoutDuration: this.LOCKOUT_DURATION,
         };
       }
 
@@ -274,13 +305,16 @@ class AdminPinAuthenticationSystem {
         success: false,
         error: 'invalid_pin',
         remainingAttempts: this.MAX_PIN_ATTEMPTS - updatedFailures,
-        message: `PIN이 올바르지 않습니다. ${this.MAX_PIN_ATTEMPTS - updatedFailures}회 시도 남음`
+        message: `PIN이 올바르지 않습니다. ${this.MAX_PIN_ATTEMPTS - updatedFailures}회 시도 남음`,
       };
     }
   }
 
   // 보안 강화된 PIN 비교 (타이밍 공격 방지)
-  private async secureComparePin(input: string, correct: string): Promise<boolean> {
+  private async secureComparePin(
+    input: string,
+    correct: string
+  ): Promise<boolean> {
     // 상수 시간 비교 알고리즘 사용
     let result = 0;
     const inputBytes = Buffer.from(input.padEnd(4, '0'));
@@ -291,7 +325,7 @@ class AdminPinAuthenticationSystem {
     }
 
     // 추가 보안: 최소 처리 시간 보장 (타이밍 분석 방지)
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     return result === 0;
   }
@@ -299,18 +333,19 @@ class AdminPinAuthenticationSystem {
 ```
 
 ### 📊 **PIN 인증 통계 (실제 운영 데이터)**
+
 ```typescript
 interface PinAuthenticationStats {
   // 2025-09-29 기준 실측 데이터
-  successRate: '100%',              // PIN 인증 성공률
-  averageInputTime: '3.2초',        // 평균 PIN 입력 시간
-  securityIncidents: 0,             // 보안 사고 발생 횟수
-  lockoutEvents: '월 0-1회',        // 계정 잠김 발생 빈도
+  successRate: '100%'; // PIN 인증 성공률
+  averageInputTime: '3.2초'; // 평균 PIN 입력 시간
+  securityIncidents: 0; // 보안 사고 발생 횟수
+  lockoutEvents: '월 0-1회'; // 계정 잠김 발생 빈도
 
   // 보안 감사 결과
-  vulnerabilityScore: 'A+',         // 취약점 평가 점수
-  complianceStatus: 'GDPR 준수',    // 개인정보보호법 준수
-  penetrationTestResult: '통과',    // 모의해킹 테스트 결과
+  vulnerabilityScore: 'A+'; // 취약점 평가 점수
+  complianceStatus: 'GDPR 준수'; // 개인정보보호법 준수
+  penetrationTestResult: '통과'; // 모의해킹 테스트 결과
 }
 ```
 
@@ -319,6 +354,7 @@ interface PinAuthenticationStats {
 ## 🗄️ **Supabase 세션 관리**
 
 ### 💾 **세션 저장 아키텍처**
+
 ```typescript
 // Supabase 기반 세션 관리 시스템
 class SupabaseSessionManager {
@@ -376,7 +412,7 @@ class SupabaseSessionManager {
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24시간
         ip_address: authData.ipAddress,
         user_agent: authData.userAgent,
-        device_fingerprint: this.generateDeviceFingerprint(authData)
+        device_fingerprint: this.generateDeviceFingerprint(authData),
       })
       .select()
       .single();
@@ -385,7 +421,7 @@ class SupabaseSessionManager {
       sessionId: session.data.id,
       sessionToken,
       csrfToken,
-      expiresAt: session.data.expires_at
+      expiresAt: session.data.expires_at,
     };
   }
 
@@ -400,45 +436,46 @@ class SupabaseSessionManager {
     return {
       deletedCount: result.count || 0,
       cleanupTime: new Date(),
-      nextCleanup: new Date(Date.now() + 60 * 60 * 1000) // 1시간 후
+      nextCleanup: new Date(Date.now() + 60 * 60 * 1000), // 1시간 후
     };
   }
 }
 ```
 
 ### 🔄 **세션 생명주기 관리**
+
 ```typescript
 interface SessionLifecycleManager {
   // 세션 생성
   creation: {
-    trigger: 'successful_oauth_or_pin_auth',
-    duration: '24_hours_default',
-    adminDuration: '2_hours_for_security',
-    storage: 'supabase_encrypted_table'
+    trigger: 'successful_oauth_or_pin_auth';
+    duration: '24_hours_default';
+    adminDuration: '2_hours_for_security';
+    storage: 'supabase_encrypted_table';
   };
 
   // 세션 갱신
   renewal: {
-    trigger: 'user_activity',
-    interval: '15_minutes',
-    maxRenewals: '48_times', // 최대 12시간 연장
-    adminMaxRenewals: '8_times' // 관리자는 최대 2시간
+    trigger: 'user_activity';
+    interval: '15_minutes';
+    maxRenewals: '48_times'; // 최대 12시간 연장
+    adminMaxRenewals: '8_times'; // 관리자는 최대 2시간
   };
 
   // 세션 만료
   expiration: {
-    idleTimeout: '30_minutes',
-    hardTimeout: '24_hours',
-    adminHardTimeout: '2_hours',
-    cleanupInterval: '1_hour'
+    idleTimeout: '30_minutes';
+    hardTimeout: '24_hours';
+    adminHardTimeout: '2_hours';
+    cleanupInterval: '1_hour';
   };
 
   // 보안 이벤트 처리
   securityEvents: {
-    simultaneousLogins: 'allow_3_sessions_max',
-    ipAddressChange: 'require_reauth',
-    userAgentChange: 'security_warning',
-    suspiciousActivity: 'immediate_lockout'
+    simultaneousLogins: 'allow_3_sessions_max';
+    ipAddressChange: 'require_reauth';
+    userAgentChange: 'security_warning';
+    suspiciousActivity: 'immediate_lockout';
   };
 }
 ```
@@ -501,9 +538,11 @@ export const useAuthStore = create<AuthState>()(
         });
 
         // CustomEvent 발생 (레거시 호환성)
-        window.dispatchEvent(new CustomEvent('auth-state-changed', {
-          detail: { adminMode: true, authType: existingAuthType }
-        }));
+        window.dispatchEvent(
+          new CustomEvent('auth-state-changed', {
+            detail: { adminMode: true, authType: existingAuthType },
+          })
+        );
       },
 
       // GitHub 인증
@@ -541,12 +580,12 @@ export const useAuthUser = () => useAuthStore((s) => s.user);
 
 ### 📊 **성능 최적화 성과**
 
-| 지표 | Phase 1 (useSyncExternalStore) | Phase 2 (Zustand) | 개선율 |
-|------|-------------------------------|-------------------|--------|
-| **PIN 인증 응답 시간** | 8-15ms | 2-3ms | **5배 향상** ⚡ |
-| **컴포넌트 리렌더링** | 평균 3-5회 | 평균 1회 | **3-5배 감소** |
-| **localStorage 동기화** | 수동 (비일관적) | 자동 (persist 미들웨어) | **100% 일관성** |
-| **코드 라인 수** | ~150 lines | ~60 lines | **60% 감소** |
+| 지표                    | Phase 1 (useSyncExternalStore) | Phase 2 (Zustand)       | 개선율          |
+| ----------------------- | ------------------------------ | ----------------------- | --------------- |
+| **PIN 인증 응답 시간**  | 8-15ms                         | 2-3ms                   | **5배 향상** ⚡ |
+| **컴포넌트 리렌더링**   | 평균 3-5회                     | 평균 1회                | **3-5배 감소**  |
+| **localStorage 동기화** | 수동 (비일관적)                | 자동 (persist 미들웨어) | **100% 일관성** |
+| **코드 라인 수**        | ~150 lines                     | ~60 lines               | **60% 감소**    |
 
 ### 🏗️ **아키텍처 구성**
 
@@ -555,32 +594,32 @@ export const useAuthUser = () => useAuthStore((s) => s.user);
 interface ZustandAuthArchitecture {
   // 1. 상태 관리 (Zustand Store)
   stateManagement: {
-    store: 'useAuthStore',
-    middleware: ['persist', 'createJSONStorage'],
-    performance: '2-3ms 응답 (5배 향상)',
-    autoSync: 'localStorage 자동 동기화'
+    store: 'useAuthStore';
+    middleware: ['persist', 'createJSONStorage'];
+    performance: '2-3ms 응답 (5배 향상)';
+    autoSync: 'localStorage 자동 동기화';
   };
 
   // 2. 선택적 구독 (Selective Subscription)
   selectiveSubscription: {
-    useAdminMode: 'PIN 인증 상태만 구독',
-    useAuthType: '인증 타입만 구독',
-    useAuthUser: '사용자 정보만 구독',
-    benefit: '불필요한 리렌더링 제거'
+    useAdminMode: 'PIN 인증 상태만 구독';
+    useAuthType: '인증 타입만 구독';
+    useAuthUser: '사용자 정보만 구독';
+    benefit: '불필요한 리렌더링 제거';
   };
 
   // 3. 레거시 호환성 (Backward Compatibility)
   legacySupport: {
-    customEvents: 'auth-state-changed 이벤트 발생',
-    localStorage: 'auth-storage 키로 자동 동기화',
-    migration: 'Phase 3에서 완전 제거 예정'
+    customEvents: 'auth-state-changed 이벤트 발생';
+    localStorage: 'auth-storage 키로 자동 동기화';
+    migration: 'Phase 3에서 완전 제거 예정';
   };
 
   // 4. 타입 안전성 (Type Safety)
   typeSafety: {
-    strictMode: 'TypeScript strict 모드 100%',
-    noAny: 'any 사용 0개',
-    interfaces: '명시적 타입 정의 완료'
+    strictMode: 'TypeScript strict 모드 100%';
+    noAny: 'any 사용 0개';
+    interfaces: '명시적 타입 정의 완료';
   };
 }
 ```
@@ -588,17 +627,20 @@ interface ZustandAuthArchitecture {
 ### 🔄 **마이그레이션 히스토리**
 
 **Phase 1 (2025-09-28)**: isPinAuth 우선순위 처리
+
 - useUserPermissions에서 PIN 인증 우선 체크
 - authState 대기 불필요한 즉시 권한 부여
 - 성능: 8-15ms 응답
 
 **Phase 2 (2025-10-03)**: Zustand 전환 완료 ✅
+
 - useSyncExternalStore → Zustand 마이그레이션
 - localStorage 직접 접근 제거 (~90 lines 정리)
 - 성능: 2-3ms 응답 (**5배 향상**)
 - 코드 품질: 주석 업데이트, 타입 안전성 강화
 
 **Phase 3 (예정)**: 레거시 코드 완전 제거
+
 - useProfileSecurity.ts의 localStorage 이중 체크 제거
 - CustomEvent 의존성 제거
 - 100% Zustand 기반 순수 구현
@@ -608,56 +650,58 @@ interface ZustandAuthArchitecture {
 ## 🚦 **권한 관리 시스템**
 
 ### 🏛️ **역할 기반 접근 제어 (RBAC)**
+
 ```typescript
 // 세분화된 권한 시스템
 interface RoleBasedAccessControl {
   // 게스트 사용자 권한
   guest: {
     dashboard: {
-      view: ['basic_metrics', 'public_charts', 'system_status'],
-      actions: ['refresh_data', 'change_theme'],
-      restrictions: ['no_detailed_logs', 'no_sensitive_metrics']
-    },
+      view: ['basic_metrics', 'public_charts', 'system_status'];
+      actions: ['refresh_data', 'change_theme'];
+      restrictions: ['no_detailed_logs', 'no_sensitive_metrics'];
+    };
     apis: {
-      allowed: ['/api/health', '/api/public-metrics'],
-      forbidden: ['/api/admin/*', '/api/user/*', '/api/sensitive/*']
-    }
+      allowed: ['/api/health', '/api/public-metrics'];
+      forbidden: ['/api/admin/*', '/api/user/*', '/api/sensitive/*'];
+    };
   };
 
   // 인증된 사용자 권한
   authenticated: {
     dashboard: {
-      view: ['all_metrics', 'detailed_charts', 'user_preferences'],
-      actions: ['save_preferences', 'export_data', 'create_alerts'],
-      restrictions: ['no_admin_settings', 'no_user_management']
-    },
+      view: ['all_metrics', 'detailed_charts', 'user_preferences'];
+      actions: ['save_preferences', 'export_data', 'create_alerts'];
+      restrictions: ['no_admin_settings', 'no_user_management'];
+    };
     apis: {
-      allowed: ['/api/user/*', '/api/metrics/*', '/api/preferences/*'],
-      forbidden: ['/api/admin/*', '/api/system-config/*']
-    }
+      allowed: ['/api/user/*', '/api/metrics/*', '/api/preferences/*'];
+      forbidden: ['/api/admin/*', '/api/system-config/*'];
+    };
   };
 
   // 관리자 권한
   admin: {
     dashboard: {
-      view: ['everything', 'admin_panel', 'user_activity_logs'],
-      actions: ['system_settings', 'user_management', 'security_config'],
-      restrictions: []
-    },
+      view: ['everything', 'admin_panel', 'user_activity_logs'];
+      actions: ['system_settings', 'user_management', 'security_config'];
+      restrictions: [];
+    };
     apis: {
-      allowed: ['/*'], // 모든 API 접근 가능
-      forbidden: [] // 제한 없음
-    },
+      allowed: ['/*']; // 모든 API 접근 가능
+      forbidden: []; // 제한 없음
+    };
     specialPrivileges: {
-      userImpersonation: false, // 보안상 비활성화
-      systemReboot: false,      // 서버리스 환경에서 불필요
-      databaseDirectAccess: true // Supabase 관리 기능
-    }
+      userImpersonation: false; // 보안상 비활성화
+      systemReboot: false; // 서버리스 환경에서 불필요
+      databaseDirectAccess: true; // Supabase 관리 기능
+    };
   };
 }
 ```
 
 ### 🔍 **실시간 권한 검증 시스템**
+
 ```typescript
 class RealTimePermissionValidator {
   // API 요청별 권한 검증
@@ -671,7 +715,7 @@ class RealTimePermissionValidator {
       return {
         allowed: false,
         reason: 'invalid_session',
-        requiredAction: 'reauthentication'
+        requiredAction: 'reauthentication',
       };
     }
 
@@ -688,7 +732,7 @@ class RealTimePermissionValidator {
         reason: 'insufficient_privileges',
         requiredLevel,
         currentLevel: userLevel,
-        upgradeOptions: this.getUpgradeOptions(userLevel)
+        upgradeOptions: this.getUpgradeOptions(userLevel),
       };
     }
 
@@ -699,7 +743,7 @@ class RealTimePermissionValidator {
         return {
           allowed: false,
           reason: 'admin_verification_expired',
-          requiredAction: 'pin_reauthentication'
+          requiredAction: 'pin_reauthentication',
         };
       }
     }
@@ -708,7 +752,7 @@ class RealTimePermissionValidator {
       allowed: true,
       authLevel: userLevel,
       accessGrantedAt: new Date(),
-      sessionExpiresAt: sessionValid.expiresAt
+      sessionExpiresAt: sessionValid.expiresAt,
     };
   }
 }
@@ -719,6 +763,7 @@ class RealTimePermissionValidator {
 ## 🔒 **보안 감사 및 모니터링**
 
 ### 📊 **실시간 보안 모니터링**
+
 ```typescript
 class SecurityAuditingSystem {
   // 모든 인증 이벤트 로깅
@@ -732,7 +777,7 @@ class SecurityAuditingSystem {
       timestamp: new Date(),
       success: event.success,
       failureReason: event.failureReason,
-      securityFlags: this.analyzeSecurityFlags(event)
+      securityFlags: this.analyzeSecurityFlags(event),
     };
 
     await supabase.from('security_audit_logs').insert(auditLog);
@@ -752,56 +797,57 @@ class SecurityAuditingSystem {
         total: await this.countAuthAttempts(last24Hours),
         successful: await this.countSuccessfulAuth(last24Hours),
         failed: await this.countFailedAuth(last24Hours),
-        successRate: '99.7%'
+        successRate: '99.7%',
       },
 
       securityIncidents: {
         total: await this.countSecurityIncidents(last24Hours),
         resolved: await this.countResolvedIncidents(last24Hours),
         pending: await this.countPendingIncidents(),
-        severity: 'low' // 현재 보안 위험 수준
+        severity: 'low', // 현재 보안 위험 수준
       },
 
       userActivity: {
         activeUsers: await this.countActiveUsers(last24Hours),
         adminSessions: await this.countAdminSessions(last24Hours),
         guestSessions: await this.countGuestSessions(last24Hours),
-        suspiciousActivity: await this.countSuspiciousActivity(last24Hours)
-      }
+        suspiciousActivity: await this.countSuspiciousActivity(last24Hours),
+      },
     };
   }
 }
 ```
 
 ### 🚨 **자동 보안 응답 시스템**
+
 ```typescript
 interface AutoSecurityResponseSystem {
   // 위협 감지 및 자동 대응
   threatDetection: {
     bruteForceAttack: {
-      threshold: '5_failed_attempts_in_5_minutes',
-      response: 'ip_temporary_block',
-      duration: '15_minutes'
-    },
+      threshold: '5_failed_attempts_in_5_minutes';
+      response: 'ip_temporary_block';
+      duration: '15_minutes';
+    };
 
     sessionHijacking: {
-      indicators: ['ip_change', 'user_agent_change', 'impossible_travel'],
-      response: 'immediate_session_invalidation',
-      notification: 'email_security_alert'
-    },
+      indicators: ['ip_change', 'user_agent_change', 'impossible_travel'];
+      response: 'immediate_session_invalidation';
+      notification: 'email_security_alert';
+    };
 
     adminPrivilegeAbuse: {
-      monitoring: ['admin_action_frequency', 'unusual_access_patterns'],
-      response: 'admin_privilege_revocation',
-      escalation: 'manual_security_review'
-    }
+      monitoring: ['admin_action_frequency', 'unusual_access_patterns'];
+      response: 'admin_privilege_revocation';
+      escalation: 'manual_security_review';
+    };
   };
 
   // 자동 복구 시스템
   autoRecovery: {
-    compromisedAccount: 'force_password_reset_and_reauth',
-    suspiciousAdmin: 'require_pin_reauth_and_mfa',
-    systemWideAttack: 'enable_maintenance_mode'
+    compromisedAccount: 'force_password_reset_and_reauth';
+    suspiciousAdmin: 'require_pin_reauth_and_mfa';
+    systemWideAttack: 'enable_maintenance_mode';
   };
 }
 ```
@@ -811,17 +857,18 @@ interface AutoSecurityResponseSystem {
 ## 🧪 **보안 테스트 및 검증**
 
 ### 🔍 **자동화된 보안 테스트**
+
 ```typescript
 // 보안 테스트 자동화 시스템 (test-automation-specialist 연동)
 class SecurityTestAutomation {
   async runSecurityTestSuite(): Promise<SecurityTestResults> {
     const tests = await Promise.all([
-      this.testOAuthFlow(),           // OAuth 플로우 보안 테스트
-      this.testPinAuthentication(),   // PIN 인증 보안 테스트
-      this.testSessionManagement(),   // 세션 관리 보안 테스트
+      this.testOAuthFlow(), // OAuth 플로우 보안 테스트
+      this.testPinAuthentication(), // PIN 인증 보안 테스트
+      this.testSessionManagement(), // 세션 관리 보안 테스트
       this.testPrivilegeEscalation(), // 권한 승격 공격 테스트
-      this.testCSRFProtection(),      // CSRF 공격 방어 테스트
-      this.testXSSProtection()        // XSS 공격 방어 테스트
+      this.testCSRFProtection(), // CSRF 공격 방어 테스트
+      this.testXSSProtection(), // XSS 공격 방어 테스트
     ]);
 
     return this.consolidateSecurityTestResults(tests);
@@ -829,21 +876,21 @@ class SecurityTestAutomation {
 
   // 실제 보안 테스트 예시 (2025-09-29 검증 완료)
   private securityTestResults = {
-    "OAuth_보안_테스트": {
-      "CSRF_방어": "✅ 통과 - 랜덤 토큰 검증 정상",
-      "PKCE_구현": "✅ 통과 - S256 코드 챌린지 적용",
-      "상태_검증": "✅ 통과 - 상태 매개변수 검증 완료"
+    OAuth_보안_테스트: {
+      CSRF_방어: '✅ 통과 - 랜덤 토큰 검증 정상',
+      PKCE_구현: '✅ 통과 - S256 코드 챌린지 적용',
+      상태_검증: '✅ 통과 - 상태 매개변수 검증 완료',
     },
-    "PIN_인증_테스트": {
-      "브루트포스_방어": "✅ 통과 - 3회 실패 시 계정 잠금",
-      "타이밍_공격_방어": "✅ 통과 - 상수 시간 비교 알고리즘",
-      "세션_타임아웃": "✅ 통과 - 2시간 관리자 세션 만료"
+    PIN_인증_테스트: {
+      브루트포스_방어: '✅ 통과 - 3회 실패 시 계정 잠금',
+      타이밍_공격_방어: '✅ 통과 - 상수 시간 비교 알고리즘',
+      세션_타임아웃: '✅ 통과 - 2시간 관리자 세션 만료',
     },
-    "권한_시스템_테스트": {
-      "권한_승격_방지": "✅ 통과 - PIN 없이 관리자 접근 차단",
-      "API_접근_제어": "✅ 통과 - 인가되지 않은 API 호출 차단",
-      "세션_하이재킹_방지": "✅ 통과 - IP 변경 시 재인증 요구"
-    }
+    권한_시스템_테스트: {
+      권한_승격_방지: '✅ 통과 - PIN 없이 관리자 접근 차단',
+      API_접근_제어: '✅ 통과 - 인가되지 않은 API 호출 차단',
+      세션_하이재킹_방지: '✅ 통과 - IP 변경 시 재인증 요구',
+    },
   };
 }
 ```
@@ -855,43 +902,45 @@ class SecurityTestAutomation {
 ### 📅 **로드맵 (2025 Q4 - 2026 Q1)**
 
 #### Phase 1: 다중 인증 강화 (Q4 2025)
+
 ```typescript
 // 추가 보안 레이어 계획
 interface EnhancedSecurityFeatures {
   twoFactorAuthentication: {
-    methods: ['totp', 'sms', 'email'],
-    backup_codes: 'generated_on_enable',
-    required_for: 'admin_level_users'
+    methods: ['totp', 'sms', 'email'];
+    backup_codes: 'generated_on_enable';
+    required_for: 'admin_level_users';
   };
 
   biometricAuthentication: {
-    webauthn: 'passkey_support',
-    device_binding: 'trusted_device_registration',
-    fallback: 'pin_authentication'
+    webauthn: 'passkey_support';
+    device_binding: 'trusted_device_registration';
+    fallback: 'pin_authentication';
   };
 
   riskBasedAuthentication: {
-    factors: ['location', 'device', 'time_patterns'],
-    adaptive_auth: 'automatic_challenge_escalation',
-    ml_detection: 'anomaly_detection_system'
+    factors: ['location', 'device', 'time_patterns'];
+    adaptive_auth: 'automatic_challenge_escalation';
+    ml_detection: 'anomaly_detection_system';
   };
 }
 ```
 
 #### Phase 2: 제로 트러스트 아키텍처 (Q1 2026)
+
 ```typescript
 // 제로 트러스트 보안 모델
 interface ZeroTrustArchitecture {
   continuousVerification: {
-    session_validation: 'every_5_minutes',
-    device_attestation: 'per_request_validation',
-    behavior_analysis: 'ml_powered_anomaly_detection'
+    session_validation: 'every_5_minutes';
+    device_attestation: 'per_request_validation';
+    behavior_analysis: 'ml_powered_anomaly_detection';
   };
 
   microsegmentation: {
-    api_isolation: 'function_level_permissions',
-    data_encryption: 'field_level_encryption',
-    network_security: 'vercel_edge_security'
+    api_isolation: 'function_level_permissions';
+    data_encryption: 'field_level_encryption';
+    network_security: 'vercel_edge_security';
   };
 }
 ```

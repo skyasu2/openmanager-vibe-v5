@@ -57,7 +57,6 @@ export const BUNDLE_OPTIMIZATION = {
     '/': 'home',
     '/main': 'main',
     '/dashboard': 'dashboard',
-    '/admin': 'admin',
   },
 };
 

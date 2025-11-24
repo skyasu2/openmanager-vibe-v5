@@ -144,14 +144,14 @@ Google AI Unified Engine 및 관련 AI 기능에 대한 문서입니다.
 
 ### 배포 가이드
 
-| 문서                                                                       | 설명                    |
-| -------------------------------------------------------------------------- | ----------------------- |
-| [deploy/README.md](./deploy/README.md)                                     | 배포 가이드 (작성 예정) |
-| [deploy/vercel.md](./deploy/vercel.md)                                     | Vercel 배포             |
-| [gcp-deployment-guide.md](./gcp-deployment-guide.md)                       | GCP 배포 가이드         |
-| [deploy/free-tier.md](./deploy/free-tier.md)                               | 무료 티어 운영          |
-| [deploy/zero-cost-operations.md](./deploy/zero-cost-operations.md)         | 제로 비용 운영 전략     |
-| [deploy/deployment-status-report.md](./deploy/deployment-status-report.md) | 배포 상태 리포트        |
+| 문서                                                                                                                      | 설명                    |
+| ------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| [deploy/README.md](./deploy/README.md)                                                                                    | 배포 가이드 (작성 예정) |
+| [deploy/vercel.md](./deploy/vercel.md)                                                                                    | Vercel 배포             |
+| [gcp-deployment-guide.md](./gcp-deployment-guide.md)                                                                      | GCP 배포 가이드         |
+| [deploy/free-tier.md](./deploy/free-tier.md)                                                                              | 무료 티어 운영          |
+| [deploy/zero-cost-operations.md](./deploy/zero-cost-operations.md)                                                        | 제로 비용 운영 전략     |
+| [archive/reports-2025-09/deployment-status-report.md](./archive/reports-2025-09/deployment-status-report.md) (아카이브됨) | 배포 상태 리포트        |
 
 ### Vercel 최적화
 
@@ -357,6 +357,8 @@ Google AI Unified Engine 및 관련 AI 기능에 대한 문서입니다.
 | [archive/DOCS-CLEANUP-2025-11-20.md](./archive/DOCS-CLEANUP-2025-11-20.md) | 문서 정리 기록                   |
 | [archive/ai-verifications/](./archive/ai-verifications/)                   | AI 검증 아카이브 (15개 파일)     |
 | [archive/lint-reports-2025-11/](./archive/lint-reports-2025-11/)           | Lint 리포트 아카이브 (17개 파일) |
+| [archive/reports-2025-09/](./archive/reports-2025-09/)                     | 2025-09월 리포트 아카이브 (3개)  |
+| [archive/refactoring-plans/](./archive/refactoring-plans/)                 | 완료된 리팩토링 계획 (2개)       |
 | [archive/reports/](./archive/reports/)                                     | 기타 리포트                      |
 | [archive/subagent-analysis/](./archive/subagent-analysis/)                 | 서브에이전트 분석                |
 | [archive/testing/](./archive/testing/)                                     | 테스트 관련 아카이브             |

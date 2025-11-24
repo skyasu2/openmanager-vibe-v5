@@ -211,15 +211,6 @@ export function SystemStateChecker({
               <Button onClick={testSystemOperation} variant="outline" size="sm">
                 작업 실행 테스트
               </Button>
-              {systemState.isSystemActive && (
-                <Button
-                  onClick={() => window.open('/admin', '_blank')}
-                  variant="secondary"
-                  size="sm"
-                >
-                  관리자 대시보드
-                </Button>
-              )}
             </div>
           </>
         )}

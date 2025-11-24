@@ -41,88 +41,6 @@ export class AuthManager {
   private readonly ADMIN_SESSION_DURATION = 8 * 60 * 60 * 1000; // 8시간
 
   /**
-   * 관리자 인증 (강화된 보안)
-   */
-  async authenticateAdmin(
-    credentials: { username: string; password: string; totpCode?: string },
-    clientInfo: { ipAddress?: string; userAgent?: string }
-  ): Promise<{ success: boolean; sessionId?: string; error?: string }> {
-    const { username, password, totpCode } = credentials;
-    const { ipAddress, userAgent } = clientInfo;
-
-    // IP 차단 확인
-    if (this.isIPBlocked(ipAddress)) {
-      this.logAuthAttempt({
-        ipAddress,
-        userAgent,
-        success: false,
-        failureReason: 'IP_BLOCKED',
-      });
-
-      return {
-        success: false,
-        error: 'IP가 일시적으로 차단되었습니다. 15분 후 다시 시도해주세요.',
-      };
-    }
-
-    // 기본 자격 증명 확인
-    const isValidCredentials = await this.validateAdminCredentials(
-      username,
-      password
-    );
-    if (!isValidCredentials) {
-      this.handleFailedAuth(ipAddress, userAgent, 'INVALID_CREDENTIALS');
-      return {
-        success: false,
-        error: '잘못된 사용자명 또는 비밀번호입니다.',
-      };
-    }
-
-    // TOTP 확인 (관리자는 2FA 필수)
-    if (!totpCode || !this.validateTOTP(username, totpCode)) {
-      this.handleFailedAuth(ipAddress, userAgent, 'INVALID_TOTP');
-      return {
-        success: false,
-        error: '2단계 인증 코드가 올바르지 않습니다.',
-      };
-    }
-
-    // 세션 생성
-    const sessionId = this.generateSessionId();
-    const session: AuthSession = {
-      sessionId,
-      userId: username,
-      userRole: 'admin',
-      permissions: [
-        'ai_agent:read',
-        'ai_agent:write',
-        'ai_agent:admin',
-        'logs:read',
-        'logs:export',
-        'users:manage',
-        'system:admin',
-      ],
-      createdAt: Date.now(),
-      expiresAt: Date.now() + this.ADMIN_SESSION_DURATION,
-      lastActivity: Date.now(),
-      ipAddress,
-      userAgent,
-    };
-
-    this.sessions.set(sessionId, session);
-
-    this.logAuthAttempt({
-      ipAddress,
-      userAgent,
-      success: true,
-      userId: username,
-    });
-
-    console.log(`🔐 Admin authenticated: ${username} (${sessionId})`);
-    return { success: true, sessionId };
-  }
-
-  /**
    * 데모 사용자 인증 (간소화된 인증)
    */
   async authenticateDemo(clientInfo: {
@@ -316,20 +234,6 @@ export class AuthManager {
   /**
    * 헬퍼 메서드들
    */
-  private async validateAdminCredentials(
-    username: string,
-    password: string
-  ): Promise<boolean> {
-    // 실제 환경에서는 해시된 비밀번호와 비교
-    const adminCredentials = {
-      admin: 'admin123!@#',
-      manager: 'manager456!@#',
-    };
-
-    return (
-      adminCredentials[username as keyof typeof adminCredentials] === password
-    );
-  }
 
   private validateTOTP(username: string, code: string): boolean {
     // 실제 환경에서는 TOTP 라이브러리 사용
