@@ -12,6 +12,19 @@ import {
 } from '../../src/lib/error-handler';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+// Mock logger to prevent "No logError export" error
+vi.mock('@/lib/logger', () => ({
+  logError: vi.fn(),
+  logWarningWithDetails: vi.fn(),
+  logPerformance: vi.fn(),
+  logAI: vi.fn(),
+  devLogger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
 describe('Error Handler', () => {
   let consoleSpy: ReturnType<typeof vi.spyOn>;
 
