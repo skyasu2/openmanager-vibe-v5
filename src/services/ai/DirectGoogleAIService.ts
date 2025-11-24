@@ -16,7 +16,10 @@
  * @version 1.0.0
  */
 
-import type { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
+import type {
+  GoogleGenerativeAI,
+  GenerativeModel,
+} from '@google/generative-ai';
 import { getGoogleAIClient } from '@/lib/ai/google-ai-client';
 import { getEnvironmentTimeouts } from '@/utils/timeout-config';
 import debug from '@/utils/debug';
@@ -25,7 +28,7 @@ import {
   getGoogleAISecondaryKey,
   checkGoogleAIRateLimit,
   recordGoogleAIRequest,
-} from '@/lib/google-ai-manager';
+} from '@/lib/ai/google-ai-manager';
 
 export interface DirectGoogleAIOptions {
   model: string;
@@ -90,7 +93,9 @@ export class DirectGoogleAIService {
 
       // 🔍 SDK 객체 안전성 검증
       if (!this.genAI || typeof this.genAI !== 'object') {
-        throw new Error('getGoogleAIClient()가 유효한 객체를 반환하지 않았습니다.');
+        throw new Error(
+          'getGoogleAIClient()가 유효한 객체를 반환하지 않았습니다.'
+        );
       }
 
       if (typeof this.genAI.getGenerativeModel !== 'function') {
@@ -99,9 +104,11 @@ export class DirectGoogleAIService {
           type: typeof this.genAI,
           constructor: this.genAI.constructor?.name,
           hasGetGenerativeModel: 'getGenerativeModel' in this.genAI,
-          methods: Object.getOwnPropertyNames(this.genAI)
+          methods: Object.getOwnPropertyNames(this.genAI),
         });
-        throw new Error('Google AI SDK의 getGenerativeModel 메서드가 존재하지 않습니다.');
+        throw new Error(
+          'Google AI SDK의 getGenerativeModel 메서드가 존재하지 않습니다.'
+        );
       }
 
       debug.log('✅ DirectGoogleAIService: Google AI 클라이언트 초기화 완료');
@@ -115,7 +122,11 @@ export class DirectGoogleAIService {
   /**
    * 🚀 모델 인스턴스 가져오기 (캐싱 적용)
    */
-  private async getModel(modelName: string, temperature: number, maxTokens: number): Promise<GenerativeModel> {
+  private async getModel(
+    modelName: string,
+    temperature: number,
+    maxTokens: number
+  ): Promise<GenerativeModel> {
     const cacheKey = `${modelName}-${temperature}-${maxTokens}`;
 
     const cachedModel = this.modelCache.get(cacheKey);
@@ -172,7 +183,7 @@ export class DirectGoogleAIService {
       temperature: options.temperature,
       maxTokens: options.maxTokens,
       timeout: timeoutMs,
-      promptLength: prompt.length
+      promptLength: prompt.length,
     });
 
     // 🚦 Rate Limit 체크 (무료 티어: 15 RPM, 1,000 RPD)
@@ -181,7 +192,7 @@ export class DirectGoogleAIService {
       const responseTime = Date.now() - startTime;
       debug.error('🚫 DirectGoogleAIService: Rate limit exceeded', {
         reason: rateLimitCheck.reason,
-        model: options.model
+        model: options.model,
       });
 
       return {
@@ -189,22 +200,23 @@ export class DirectGoogleAIService {
         content: '',
         model: options.model,
         responseTime,
-        error: `Rate limit exceeded: ${rateLimitCheck.reason}`
+        error: `Rate limit exceeded: ${rateLimitCheck.reason}`,
       };
     }
 
     try {
       // 모델 인스턴스 가져오기
-      const model = await this.getModel(options.model, options.temperature, options.maxTokens);
+      const model = await this.getModel(
+        options.model,
+        options.temperature,
+        options.maxTokens
+      );
 
       // Promise.race를 사용한 간단한 타임아웃 처리
       const generationPromise = model.generateContent(prompt);
       const timeoutPromise = this.createTimeoutPromise(timeoutMs);
 
-      const result = await Promise.race([
-        generationPromise,
-        timeoutPromise
-      ]);
+      const result = await Promise.race([generationPromise, timeoutPromise]);
 
       const responseTime = Date.now() - startTime;
       const content = result.response.text();
@@ -215,7 +227,7 @@ export class DirectGoogleAIService {
       debug.log('✅ DirectGoogleAIService: 성공', {
         responseTime,
         contentLength: content.length,
-        model: options.model
+        model: options.model,
       });
 
       return {
@@ -227,19 +239,19 @@ export class DirectGoogleAIService {
           // Google AI SDK는 usage 정보를 제공하지 않지만 구조 유지
           promptTokens: Math.ceil(prompt.length / 4), // 대략적 계산
           completionTokens: Math.ceil(content.length / 4),
-          totalTokens: Math.ceil((prompt.length + content.length) / 4)
-        }
+          totalTokens: Math.ceil((prompt.length + content.length) / 4),
+        },
       };
-
     } catch (error) {
       const responseTime = Date.now() - startTime;
-      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      const errorMessage =
+        error instanceof Error ? error.message : '알 수 없는 오류';
 
       debug.error('❌ DirectGoogleAIService: 실패', {
         error: errorMessage,
         responseTime,
         model: options.model,
-        timeout: timeoutMs
+        timeout: timeoutMs,
       });
 
       return {
@@ -247,7 +259,7 @@ export class DirectGoogleAIService {
         content: '',
         model: options.model,
         responseTime,
-        error: errorMessage
+        error: errorMessage,
       };
     }
   }
@@ -257,15 +269,12 @@ export class DirectGoogleAIService {
    */
   async healthCheck(): Promise<boolean> {
     try {
-      const testResponse = await this.generateContent(
-        'Hello',
-        {
-          model: 'gemini-2.0-flash-exp',
-          temperature: 0.1,
-          maxTokens: 10,
-          timeout: 2000 // 2초 타임아웃
-        }
-      );
+      const testResponse = await this.generateContent('Hello', {
+        model: 'gemini-2.0-flash-exp',
+        temperature: 0.1,
+        maxTokens: 10,
+        timeout: 2000, // 2초 타임아웃
+      });
 
       return testResponse.success;
     } catch (error) {
@@ -288,7 +297,7 @@ export class DirectGoogleAIService {
   getCacheStats(): { size: number; keys: string[] } {
     return {
       size: this.modelCache.size,
-      keys: Array.from(this.modelCache.keys())
+      keys: Array.from(this.modelCache.keys()),
     };
   }
 }

@@ -5,10 +5,7 @@
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import {
-  getGoogleAIKey,
-  getGoogleAISecondaryKey,
-} from '@/lib/google-ai-manager';
+import { getGoogleAIKey, getGoogleAISecondaryKey } from './google-ai-manager';
 import debug from '@/utils/debug';
 
 /**

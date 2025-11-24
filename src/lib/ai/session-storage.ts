@@ -7,8 +7,8 @@
  * ✅ Redis 대체 (Vercel 최적화)
  */
 
-import { getSupabaseClient } from './supabase-singleton';
-import { EdgeLogger } from './edge-runtime-utils';
+import { getSupabaseClient } from '../supabase-singleton';
+import { EdgeLogger } from '../edge-runtime-utils';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 // ==============================================
@@ -361,14 +361,24 @@ export async function saveAIResponse(
     mode,
     response: {
       success: (typedResponse.success as boolean | undefined) ?? false,
-      response: (typedResponse.response as string | undefined) || (typedResponse.result as string | undefined) || '',
+      response:
+        (typedResponse.response as string | undefined) ||
+        (typedResponse.result as string | undefined) ||
+        '',
       confidence: (typedResponse.confidence as number | undefined) ?? 0.7,
       engine_path:
-        (typedResponse.enginePath as string[] | undefined) || ((typedResponse.engines as { used?: string[] } | undefined)?.used) || [],
+        (typedResponse.enginePath as string[] | undefined) ||
+        (typedResponse.engines as { used?: string[] } | undefined)?.used ||
+        [],
       processing_time:
-        (typedResponse.processingTime as number | undefined) || (typedResponse.response_time as number | undefined) || 0,
+        (typedResponse.processingTime as number | undefined) ||
+        (typedResponse.response_time as number | undefined) ||
+        0,
       fallbacks_used:
-        (typedResponse.fallbacksUsed as number | undefined) ?? ((typedResponse.engines as { fallbacks?: number } | undefined)?.fallbacks) ?? 0,
+        (typedResponse.fallbacksUsed as number | undefined) ??
+        (typedResponse.engines as { fallbacks?: number } | undefined)
+          ?.fallbacks ??
+        0,
     },
     thinking_process: thinkingProcess as
       | Array<{

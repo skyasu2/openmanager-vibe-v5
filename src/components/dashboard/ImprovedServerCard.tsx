@@ -71,7 +71,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         id: server?.id || 'unknown',
         name: server?.name || '알 수 없는 서버',
         status: server?.status || 'unknown', // 🔧 수정: 'offline' → 'unknown' (기본값 변경)
-        type: server.type || 'server',
+        type: (server.type || server.role || 'worker') as ServerType['role'],
         location: server.location || '서울',
         os: server.os || 'Ubuntu 22.04',
         ip: server.ip || '192.168.1.1',
