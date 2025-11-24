@@ -8,7 +8,7 @@
  */
 
 import { createApiRoute } from '@/lib/api/zod-middleware';
-import { getCacheStats } from '@/lib/cache-helper';
+import { getCacheStats } from '@/lib/cache/cache-helper';
 import {
   CacheStatsResponseSchema,
   type CachePerformance,
@@ -64,7 +64,7 @@ const cacheStatsHandler = createApiRoute()
     };
 
     // 메모리 캐시 정보
-  
+
     // 메모리 사용량 추정
     const memoryUsage = estimateMemoryCacheUsage();
 
@@ -169,9 +169,7 @@ function analyzePerformance(stats: CacheStats): CachePerformance {
 /**
  * 메모리 캐시 개선 권장사항 생성
  */
-function getMemoryCacheRecommendations(
-  stats: CacheStats
-): string[] {
+function getMemoryCacheRecommendations(stats: CacheStats): string[] {
   const recommendations: string[] = [];
 
   if (stats.hitRate < 50) {

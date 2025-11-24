@@ -5,7 +5,7 @@
  * 영향 범위를 파악하여 자동으로 보고서 생성
  */
 
-import { getCachedData, setCachedData } from '../../lib/cache-helper';
+import { getCachedData, setCachedData } from '../../lib/cache/cache-helper';
 
 export interface IncidentReport {
   id: string;

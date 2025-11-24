@@ -11,7 +11,7 @@
  * 성능 목표: 280ms → 152ms (45% 개선)
  */
 
-import { unifiedCache, CacheNamespace } from '@/lib/unified-cache';
+import { unifiedCache, CacheNamespace } from '@/lib/cache/unified-cache';
 import { getQueryCacheManager } from './query-cache-manager';
 import { aiLogger } from '@/lib/logger';
 import type { QueryRequest, QueryResponse } from './SimplifiedQueryEngine';

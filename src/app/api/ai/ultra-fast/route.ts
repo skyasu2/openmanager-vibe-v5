@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getUltraFastAIRouter } from '@/services/ai/ultrafast-ai-router';
-import { createCachedResponse } from '@/lib/unified-cache';
+import { createCachedResponse } from '@/lib/cache/unified-cache';
 import { aiLogger } from '@/lib/logger';
 import { extractProperty } from '@/types/type-utils';
 

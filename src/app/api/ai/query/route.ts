@@ -22,7 +22,7 @@ async function getQueryEngine() {
   );
   return getSimplifiedQueryEngineAdapter();
 }
-import { getCachedData, setCachedData } from '@/lib/cache-helper';
+import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';
 import { supabase } from '@/lib/supabase/supabase-client';
 import crypto from 'crypto';
 import debug from '@/utils/debug';

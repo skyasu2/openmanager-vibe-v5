@@ -12,7 +12,7 @@ import {
   warmupCache,
   invalidateCache,
   getCacheService,
-} from '@/lib/cache-helper';
+} from '@/lib/cache/cache-helper';
 import { getMockSystem } from '@/mock';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import debug from '@/utils/debug';
@@ -88,7 +88,9 @@ async function handleWarmup(options?: {
       key: 'servers:list',
       fetcher: async () => {
         const servers = mockSystem.getServers();
-        debug.log(`📋 Mock 시스템에서 ${servers.length}개 서버 로드됨 (캐시 워밍업)`);
+        debug.log(
+          `📋 Mock 시스템에서 ${servers.length}개 서버 로드됨 (캐시 워밍업)`
+        );
         return servers;
       },
       ttl: 300, // 5분
@@ -112,7 +114,9 @@ async function handleWarmup(options?: {
           timestamp: Date.now(),
         };
 
-        debug.log(`📊 Mock 시스템 서버 요약: 총 ${summary.totalServers}개, 온라인 ${summary.onlineServers}개`);
+        debug.log(
+          `📊 Mock 시스템 서버 요약: 총 ${summary.totalServers}개, 온라인 ${summary.onlineServers}개`
+        );
         return summary;
       },
       ttl: 900, // 15분
@@ -129,15 +133,21 @@ async function handleWarmup(options?: {
         key: `server:${server.id}`,
         fetcher: async () => {
           // Mock 시스템에서 특정 서버 ID 찾기
-          const foundServer = mockSystem.getServers().find(s => s.id === server.id);
-          debug.log(`🔍 서버 [${server.id}] 캐시 워밍업: ${foundServer ? '성공' : '실패'}`);
+          const foundServer = mockSystem
+            .getServers()
+            .find((s) => s.id === server.id);
+          debug.log(
+            `🔍 서버 [${server.id}] 캐시 워밍업: ${foundServer ? '성공' : '실패'}`
+          );
           return foundServer || null;
         },
         ttl: 300, // 5분
       });
     });
 
-    debug.log(`🔥 ${topServers.length}개 개별 서버 데이터 캐시 워밍업 준비 완료`);
+    debug.log(
+      `🔥 ${topServers.length}개 개별 서버 데이터 캐시 워밍업 준비 완료`
+    );
   }
 
   await warmupCache(warmupItems);

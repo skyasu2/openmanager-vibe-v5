@@ -11,7 +11,7 @@
  */
 
 import { getStreamingAIEngine } from './streaming-ai-engine';
-import { unifiedCache, CacheNamespace } from '@/lib/unified-cache';
+import { unifiedCache, CacheNamespace } from '@/lib/cache/unified-cache';
 import { aiLogger } from '@/lib/logger';
 import type {
   QueryRequest,

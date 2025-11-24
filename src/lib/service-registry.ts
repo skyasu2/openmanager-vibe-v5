@@ -15,7 +15,7 @@ import type {
 } from '@/interfaces/services';
 import { LoggingService } from '@/services/LoggingService';
 import { ErrorHandlingService } from '@/services/error-handling/ErrorHandlingService';
-import { getCacheService } from '@/lib/cache-helper';
+import { getCacheService } from '@/lib/cache/cache-helper';
 import {
   container,
   registerFactory,

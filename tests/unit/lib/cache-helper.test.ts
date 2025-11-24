@@ -1,19 +1,19 @@
 /**
  * 🚀 캐시 헬퍼 유틸리티 테스트
- * 
+ *
  * @description 메모리 기반 LRU 캐시 시스템 테스트
  * @created 2025-08-10
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { 
-  getCacheService, 
-  getCachedData, 
+import {
+  getCacheService,
+  getCachedData,
   setCachedData,
   getCachedDataWithFallback,
   invalidateCache,
-  cacheWrapper
-} from '@/lib/cache-helper';
+  cacheWrapper,
+} from '@/lib/cache/cache-helper';
 
 describe('MemoryCacheService', () => {
   let cacheService: ReturnType<typeof getCacheService>;
@@ -36,10 +36,10 @@ describe('MemoryCacheService', () => {
     it('데이터를 저장하고 조회할 수 있어야 함', async () => {
       const key = 'test-key';
       const value = { data: 'test-value' };
-      
+
       await cacheService.set(key, value);
       const retrieved = await cacheService.get(key);
-      
+
       expect(retrieved).toEqual(value);
     });
 
@@ -51,13 +51,13 @@ describe('MemoryCacheService', () => {
     it('TTL 설정이 올바르게 작동해야 함', async () => {
       const key = 'ttl-practical-test';
       const value = 'practical-value';
-      
+
       // TTL 설정하고 저장
       await cacheService.set(key, value, 300); // 5분 TTL
-      
+
       // 즉시 조회 시 값이 있어야 함
       expect(await cacheService.get(key)).toBe(value);
-      
+
       // 캐시 통계에 반영되어야 함
       const stats = cacheService.getStats();
       expect(stats.hits).toBeGreaterThan(0);
@@ -94,7 +94,7 @@ describe('MemoryCacheService', () => {
       (cacheService as any).unifiedCache.maxSize = 2;
 
       await cacheService.set('old', 'old-value');
-      
+
       vi.advanceTimersByTime(1000);
       await cacheService.set('new', 'new-value');
 
@@ -118,7 +118,7 @@ describe('MemoryCacheService', () => {
       // 2 hits
       await cacheService.get('key1');
       await cacheService.get('key2');
-      
+
       // 2 misses
       await cacheService.get('non-existent1');
       await cacheService.get('non-existent2');
@@ -171,7 +171,7 @@ describe('MemoryCacheService', () => {
       await cacheService.set('expire-later', 'value2', 1); // 1초
 
       // 150ms 대기 (첫 번째는 만료, 두 번째는 유효)
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 150));
 
       cacheService.cleanup();
 
@@ -186,8 +186,13 @@ describe('MemoryCacheService', () => {
       await cacheService.set('key2', 'value2');
       await cacheService.set('key3', 'value3');
 
-      const results = await cacheService.mget<string>(['key1', 'key2', 'non-existent', 'key3']);
-      
+      const results = await cacheService.mget<string>([
+        'key1',
+        'key2',
+        'non-existent',
+        'key3',
+      ]);
+
       expect(results).toEqual(['value1', 'value2', null, 'value3']);
     });
   });
@@ -228,7 +233,7 @@ describe('캐시 헬퍼 함수', () => {
   describe('getCachedDataWithFallback', () => {
     it('캐시 미스 시 fallback 함수를 실행해야 함', async () => {
       const fallback = vi.fn().mockResolvedValue('fallback-value');
-      
+
       const result = await getCachedDataWithFallback(
         'missing-key',
         fallback,
@@ -237,7 +242,7 @@ describe('캐시 헬퍼 함수', () => {
 
       expect(fallback).toHaveBeenCalled();
       expect(result).toBe('fallback-value');
-      
+
       // 캐시에 저장되었는지 확인
       const cached = await getCachedData('missing-key');
       expect(cached).toBe('fallback-value');
@@ -249,7 +254,7 @@ describe('캐시 헬퍼 함수', () => {
       const fallback = vi.fn();
 
       await setCachedData(key, value);
-      
+
       const result = await getCachedDataWithFallback(key, fallback);
 
       expect(fallback).not.toHaveBeenCalled();
@@ -260,11 +265,7 @@ describe('캐시 헬퍼 함수', () => {
   describe('cacheWrapper', () => {
     it('함수 실행 결과를 캐싱해야 함', async () => {
       const expensiveFunction = vi.fn().mockResolvedValue('expensive-result');
-      const cachedFunction = cacheWrapper(
-        'wrapped-key',
-        expensiveFunction,
-        60
-      );
+      const cachedFunction = cacheWrapper('wrapped-key', expensiveFunction, 60);
 
       // 첫 번째 호출 - 함수 실행
       const result1 = await cachedFunction();

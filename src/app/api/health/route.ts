@@ -16,7 +16,7 @@ import {
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
 import { getSupabaseClient } from '@/lib/supabase/supabase-client';
-import { getCacheStats } from '@/lib/cache-helper';
+import { getCacheStats } from '@/lib/cache/cache-helper';
 import { getApiConfig } from '@/lib/api/api-config';
 import { env, isDevelopment } from '@/env';
 import debug from '@/utils/debug';

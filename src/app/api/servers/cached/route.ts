@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCachedData, setCachedData } from '@/lib/cache-helper';
+import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';
 import type { Server } from '@/types/server';
 import type { EnhancedServerMetrics } from '@/types/server';
 import debug from '@/utils/debug';

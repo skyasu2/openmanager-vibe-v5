@@ -8,20 +8,24 @@ import {
   FAILURE_CORRELATIONS,
   FAILURE_TIMELINE,
   WARNING_FAILURES,
-} from '../../../lib/enterprise-failures';
+  type FailureChain,
+  type FailureCorrelation,
+} from '@/lib/enterprise/enterprise-failures';
 import {
   AUTOMATION_METRICS,
   BUSINESS_HOURS_PATTERNS,
   CAPACITY_PLANNING,
   getCurrentPerformanceMetrics,
   SLA_TARGETS,
-} from '../../../lib/enterprise-metrics';
+  type CapacityPlan,
+} from '@/lib/enterprise/enterprise-metrics';
 import {
   ENTERPRISE_SERVERS,
   IDC_LOCATIONS,
   SERVER_STATS,
-} from '../../../lib/enterprise-servers';
-import { getCacheService } from '@/lib/cache-helper';
+} from '@/lib/enterprise/enterprise-servers';
+import type { ServerStatus } from '@/types/index';
+import { getCacheService } from '@/lib/cache/cache-helper';
 import debug from '@/utils/debug';
 
 /**
@@ -82,25 +86,34 @@ export async function GET(request: NextRequest) {
 
     // 서버 상태별 분류
     const serversByStatus = {
-      critical: ENTERPRISE_SERVERS.filter((s) => s.status === 'error'),
-      warning: ENTERPRISE_SERVERS.filter((s) => s.status === 'warning'),
-      healthy: ENTERPRISE_SERVERS.filter((s) => s.status === 'online'),
+      critical: ENTERPRISE_SERVERS.filter(
+        (s: ServerStatus) => s.status === 'error'
+      ),
+      warning: ENTERPRISE_SERVERS.filter(
+        (s: ServerStatus) => s.status === 'warning'
+      ),
+      healthy: ENTERPRISE_SERVERS.filter(
+        (s: ServerStatus) => s.status === 'online'
+      ),
     };
 
     // IDC별 서버 분류
     const serversByLocation = Object.entries(IDC_LOCATIONS).map(
-      ([location, serverIds]) => ({
+      ([location, serverIds]: [string, string[]]) => ({
         location,
-        servers: ENTERPRISE_SERVERS.filter((s) => serverIds.includes(s.id)),
+        servers: ENTERPRISE_SERVERS.filter((s: ServerStatus) =>
+          serverIds.includes(s.id)
+        ),
         totalServers: serverIds.length,
         healthyServers: ENTERPRISE_SERVERS.filter(
-          (s) => serverIds.includes(s.id) && s.status === 'online'
+          (s: ServerStatus) => serverIds.includes(s.id) && s.status === 'online'
         ).length,
         warningServers: ENTERPRISE_SERVERS.filter(
-          (s) => serverIds.includes(s.id) && s.status === 'warning'
+          (s: ServerStatus) =>
+            serverIds.includes(s.id) && s.status === 'warning'
         ).length,
         criticalServers: ENTERPRISE_SERVERS.filter(
-          (s) => serverIds.includes(s.id) && s.status === 'error'
+          (s: ServerStatus) => serverIds.includes(s.id) && s.status === 'error'
         ).length,
       })
     );
@@ -131,7 +144,7 @@ export async function GET(request: NextRequest) {
 
       // 🚨 현재 장애 상황
       activeIncidents: {
-        critical: CRITICAL_FAILURE_CHAINS.map((chain) => ({
+        critical: CRITICAL_FAILURE_CHAINS.map((chain: FailureChain) => ({
           id: chain.id,
           name: chain.name,
           origin: chain.origin,
@@ -140,7 +153,7 @@ export async function GET(request: NextRequest) {
           businessImpact: chain.businessImpact,
           status: 'active',
         })),
-        warning: WARNING_FAILURES.map((failure) => ({
+        warning: WARNING_FAILURES.map((failure: FailureChain) => ({
           id: failure.id,
           name: failure.name,
           origin: failure.origin,
@@ -152,13 +165,15 @@ export async function GET(request: NextRequest) {
       },
 
       // 🔗 장애 상관관계
-      correlationAnalysis: FAILURE_CORRELATIONS.map((corr) => ({
-        primaryServer: corr.primaryFailure,
-        affectedServers: corr.secondaryFailures,
-        strength: corr.correlationStrength,
-        propagationTime: corr.propagationTime,
-        impactedSystems: corr.affectedSystems,
-      })),
+      correlationAnalysis: FAILURE_CORRELATIONS.map(
+        (corr: FailureCorrelation) => ({
+          primaryServer: corr.primaryFailure,
+          affectedServers: corr.secondaryFailures,
+          strength: corr.correlationStrength,
+          propagationTime: corr.propagationTime,
+          impactedSystems: corr.affectedSystems,
+        })
+      ),
 
       // ⏰ 현재 운영 상황
       operationalContext: {
@@ -184,7 +199,7 @@ export async function GET(request: NextRequest) {
         longTermPlanning: AI_RECOMMENDATIONS.longTermActions,
         preventiveMeasures: AI_RECOMMENDATIONS.preventiveActions,
         capacityPlanning: CAPACITY_PLANNING.filter(
-          (plan) => plan.currentUsage > plan.scalingTrigger
+          (plan: CapacityPlan) => plan.currentUsage > plan.scalingTrigger
         ),
       },
 
@@ -192,20 +207,28 @@ export async function GET(request: NextRequest) {
       serverDetails: {
         byStatus: serversByStatus,
         kubernetes: {
-          masters: ENTERPRISE_SERVERS.filter((s) => s.id.includes('master')),
-          workers: ENTERPRISE_SERVERS.filter((s) => s.id.includes('worker')),
+          masters: ENTERPRISE_SERVERS.filter((s: ServerStatus) =>
+            s.id.includes('master')
+          ),
+          workers: ENTERPRISE_SERVERS.filter((s: ServerStatus) =>
+            s.id.includes('worker')
+          ),
         },
         onPremise: {
-          web: ENTERPRISE_SERVERS.filter((s) => s.id.includes('web-')),
-          database: ENTERPRISE_SERVERS.filter((s) => s.id.includes('db-')),
+          web: ENTERPRISE_SERVERS.filter((s: ServerStatus) =>
+            s.id.includes('web-')
+          ),
+          database: ENTERPRISE_SERVERS.filter((s: ServerStatus) =>
+            s.id.includes('db-')
+          ),
           storage: ENTERPRISE_SERVERS.filter(
-            (s) =>
+            (s: ServerStatus) =>
               s.id.includes('storage-') ||
               s.id.includes('file-') ||
               s.id.includes('backup-')
           ),
           infrastructure: ENTERPRISE_SERVERS.filter(
-            (s) =>
+            (s: ServerStatus) =>
               s.id.includes('monitor-') ||
               s.id.includes('log-') ||
               s.id.includes('proxy-') ||
@@ -216,16 +239,20 @@ export async function GET(request: NextRequest) {
 
       // 🔧 복구 우선순위
       recoveryPriority: FAILURE_ANALYTICS.recoveryPriority.map(
-        (serverId, index) => ({
+        (serverId: string, index: number) => ({
           priority: index + 1,
           serverId,
-          server: ENTERPRISE_SERVERS.find((s) => s.id === serverId),
+          server: ENTERPRISE_SERVERS.find(
+            (s: ServerStatus) => s.id === serverId
+          ),
           estimatedImpact:
-            CRITICAL_FAILURE_CHAINS.find((c) => c.origin === serverId)
-              ?.businessImpact || 0,
+            CRITICAL_FAILURE_CHAINS.find(
+              (c: FailureChain) => c.origin === serverId
+            )?.businessImpact || 0,
           dependencies:
-            FAILURE_CORRELATIONS.find((c) => c.primaryFailure === serverId)
-              ?.secondaryFailures || [],
+            FAILURE_CORRELATIONS.find(
+              (c: FailureCorrelation) => c.primaryFailure === serverId
+            )?.secondaryFailures || [],
         })
       ),
     };
