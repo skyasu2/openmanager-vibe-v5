@@ -290,7 +290,9 @@ export function checkEdgeCompatibility() {
     hasProcess,
     hasGlobal,
     hasBuffer,
-    userAgent: hasWindow ? (window as { navigator?: { userAgent?: string } }).navigator?.userAgent : undefined,
+    userAgent: hasWindow
+      ? (window as { navigator?: { userAgent?: string } }).navigator?.userAgent
+      : undefined,
     nodeVersion: hasProcess ? process.version : undefined,
     platform: hasProcess ? process.platform : undefined,
   };

@@ -20,7 +20,9 @@ if (typeof window === 'undefined') {
 
   // window 객체 폴리필
   if (!globalAny.window) {
-    globalAny.window = {} as unknown as Window & typeof globalThis & Record<string, unknown>;
+    globalAny.window = {} as unknown as Window &
+      typeof globalThis &
+      Record<string, unknown>;
   }
 
   // document 객체 폴리필

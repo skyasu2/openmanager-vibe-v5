@@ -8,7 +8,7 @@
  */
 
 import { getSupabaseClient } from '../supabase-singleton';
-import { EdgeLogger } from '../edge-runtime-utils';
+import { EdgeLogger } from '../runtime/edge-runtime-utils';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 // ==============================================
