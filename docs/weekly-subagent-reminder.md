@@ -37,7 +37,7 @@ ui-ux-specialist: "UI 개선 제안해줘"
 
 ---
 
-### 🎯 Claude Code Skills (4개)
+### 🎯 Claude Code Skills (5개)
 
 반복 작업을 자동화하는 Skills가 준비되어 있습니다.
 
@@ -47,6 +47,7 @@ lint-smoke              # 린트 + 테스트 자동화 (62% 토큰 절약)
 next-router-bottleneck  # Next.js 라우팅 성능 진단 (75% 토큰 절약)
 ai-report-export        # AI 코드 리뷰 결과 문서화 (78% 토큰 절약)
 playwright-triage       # E2E 테스트 실패 자동 분류 (77% 토큰 절약)
+security-audit-workflow # 배포 전 보안 감사 자동화 (70% 토큰 절약) 🆕
 ```
 
 **사용법**: Claude Code가 자동으로 상황에 맞는 Skill 제안
@@ -96,22 +97,22 @@ Git 커밋 시 자동으로 코드 리뷰가 실행됩니다.
 
 ### 긴급 상황 발생 시
 
-| 상황 | 참고 명령어 |
-|------|------------|
-| 🐛 프로덕션 버그 | `Task debugger-specialist "근본 원인 분석"` |
-| 🚨 보안 이슈 | `Task security-specialist "긴급 보안 스캔"` |
-| 🧪 테스트 실패 | `Task test-automation-specialist "실패 원인 진단"` |
-| 🚀 배포 실패 | `Task vercel-platform-specialist "배포 로그 분석"` |
+| 상황             | 참고 명령어                                        |
+| ---------------- | -------------------------------------------------- |
+| 🐛 프로덕션 버그 | `Task debugger-specialist "근본 원인 분석"`        |
+| 🚨 보안 이슈     | `Task security-specialist "긴급 보안 스캔"`        |
+| 🧪 테스트 실패   | `Task test-automation-specialist "실패 원인 진단"` |
+| 🚀 배포 실패     | `Task vercel-platform-specialist "배포 로그 분석"` |
 
 ### 계획된 작업 시
 
-| 작업 | 참고 도구 |
-|------|----------|
-| 대규모 리팩토링 | structure-refactor-specialist |
-| DB 스키마 변경 | database-administrator |
-| UI 개선 | ui-ux-specialist + @shadcn-ui |
-| 문서화 | documentation-manager |
-| 성능 최적화 | @vercel + vercel-platform-specialist |
+| 작업            | 참고 도구                            |
+| --------------- | ------------------------------------ |
+| 대규모 리팩토링 | structure-refactor-specialist        |
+| DB 스키마 변경  | database-administrator               |
+| UI 개선         | ui-ux-specialist + @shadcn-ui        |
+| 문서화          | documentation-manager                |
+| 성능 최적화     | @vercel + vercel-platform-specialist |
 
 ---
 

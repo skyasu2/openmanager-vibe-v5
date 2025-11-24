@@ -72,17 +72,18 @@ mcp-servers:
 # 상세 정보: .mcp.json 참조
 
 # ============================================================================
-# 4. Claude Code Skills (Phase 1)
+# 4. Claude Code Skills (Phase 1.1)
 # ============================================================================
 skills:
   active:
-    - lint-smoke              # 62% token savings
-    - next-router-bottleneck  # 75% token savings
-    - ai-report-export        # 78% token savings
-    - playwright-triage       # 77% token savings
-  
-  average_efficiency: "73%"
-  status: "✅ Phase 1 Complete"
+    - lint-smoke              # 62% token savings (v1.1.0)
+    - next-router-bottleneck  # 75% token savings (v1.0.0)
+    - ai-report-export        # 78% token savings (v1.1.0)
+    - playwright-triage       # 77% token savings (v1.1.0)
+    - security-audit-workflow # 70% token savings (v1.0.0 NEW)
+
+  average_efficiency: "71.8%"
+  status: "✅ Phase 1.1 Complete (5 Skills)"
 
 # 상세 정보: .claude/skills/*/*.md 참조
 
