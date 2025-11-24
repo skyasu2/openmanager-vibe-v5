@@ -1,17 +1,17 @@
 /**
  * 🧠 Intelligent Monitoring Service - Unit Tests
- * 
+ *
  * @description
  * Tests for anomaly detection and trend prediction integration
- * 
+ *
  * @date 2025-11-21
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { 
-  IntelligentMonitoringService, 
+import {
+  IntelligentMonitoringService,
   getIntelligentMonitoringService,
-  type MetricHistory 
+  type MetricHistory,
 } from '@/services/ai/IntelligentMonitoringService';
 import type { ServerMetrics } from '@/types/unified-server';
 
@@ -55,7 +55,10 @@ describe('IntelligentMonitoringService', () => {
       };
 
       // Act
-      const result = service.analyzeServerMetrics(currentMetrics, historicalData);
+      const result = service.analyzeServerMetrics(
+        currentMetrics,
+        historicalData
+      );
 
       // Assert: Check structure
       expect(result).toBeDefined();
@@ -113,12 +116,17 @@ describe('IntelligentMonitoringService', () => {
       };
 
       // Act
-      const result = service.analyzeServerMetrics(currentMetrics, historicalData);
+      const result = service.analyzeServerMetrics(
+        currentMetrics,
+        historicalData
+      );
 
       // Assert: Should detect anomaly
       expect(result.aiAnalysis?.anomalyScore).toBeGreaterThan(0.5);
       expect(result.aiAnalysis?.predictedIssues.length).toBeGreaterThan(0);
-      expect(result.aiAnalysis?.recommendations.some(r => r.includes('CPU'))).toBe(true);
+      expect(
+        result.aiAnalysis?.recommendations.some((r) => r.includes('CPU'))
+      ).toBe(true);
     });
 
     it('should predict increasing trend', () => {
@@ -134,9 +142,11 @@ describe('IntelligentMonitoringService', () => {
       // Arrange: Historical data with INCREASING TREND
       const now = Date.now();
       const historicalData: MetricHistory = {
+        // CPU: Strong increasing trend in last 12 points (50% → 65%, 30% increase)
+        // TrendPredictor uses last 12 points with slopeThreshold = 0.1 (10%)
         cpu: Array.from({ length: 312 }, (_, i) => ({
           timestamp: now - (311 - i) * 5 * 60 * 1000,
-          value: 50 + (i / 312) * 30, // Linear increase: 50% → 80%
+          value: i < 300 ? 50 : 50 + ((i - 300) / 12) * 15, // Last 12 points: 50% → 65%
         })),
         memory: Array.from({ length: 312 }, (_, i) => ({
           timestamp: now - (311 - i) * 5 * 60 * 1000,
@@ -153,7 +163,10 @@ describe('IntelligentMonitoringService', () => {
       };
 
       // Act
-      const result = service.analyzeServerMetrics(currentMetrics, historicalData);
+      const result = service.analyzeServerMetrics(
+        currentMetrics,
+        historicalData
+      );
 
       // Assert: CPU trend should be increasing
       expect(result.trends?.cpu).toBe('increasing');
@@ -190,7 +203,10 @@ describe('IntelligentMonitoringService', () => {
       };
 
       // Act
-      const result = service.analyzeServerMetrics(currentMetrics, historicalData);
+      const result = service.analyzeServerMetrics(
+        currentMetrics,
+        historicalData
+      );
 
       // Assert: Should have recommendations (max 5)
       expect(result.aiAnalysis?.recommendations).toBeDefined();
@@ -231,7 +247,10 @@ describe('IntelligentMonitoringService', () => {
       };
 
       // Act
-      const result = service.getDetailedAnalysis(currentMetrics, historicalData);
+      const result = service.getDetailedAnalysis(
+        currentMetrics,
+        historicalData
+      );
 
       // Assert: Check structure
       expect(result).toBeDefined();
