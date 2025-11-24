@@ -1,6 +1,6 @@
 ---
 name: checking-code-quality
-version: v1.0.0
+version: v1.1.0
 description: Automated lint and test smoke check workflow for code quality verification. Triggers when user requests code quality checks, lint execution, test validation, or smoke testing. Use for pre-commit checks or quality gates.
 ---
 
@@ -15,7 +15,9 @@ Automated lint + test workflow for quick code quality verification without manua
 ## Trigger Keywords
 
 - "check code quality"
+- "quality check"
 - "run lint and tests"
+- "lint check"
 - "smoke check"
 - "verify code"
 - "validate code"
@@ -199,8 +201,11 @@ Tokens: ~114 (62% reduction)
 
 ## Changelog
 
+- 2025-11-24: v1.1.0 - Enhanced trigger coverage (Phase 1.1 Optimization)
+  - Added 2 new trigger keywords: "quality check", "lint check" (10 → 12 total)
+  - Improved Skill discoverability and auto-activation
 - 2025-11-08: Enhanced with auto-fix detection and ESLint config verification (Phase 1 Optimization)
   - Added 5 new trigger keywords (10 total)
   - Added auto-fix suggestion logic for common issues
   - Added ESLint strict mode configuration verification
-- 2025-11-04: Initial implementation (Phase 1)
+- 2025-11-04: v1.0.0 - Initial implementation (Phase 1)
