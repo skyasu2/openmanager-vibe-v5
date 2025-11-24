@@ -56,8 +56,8 @@
 
 **자동 코드 리뷰 시스템** (v3.2.0 활성화) ✅
 
-- Codex → Gemini → Claude Code 자동 폴백 워크플로우 (2025-11-21)
-  - 1차: Codex/Gemini 2:1 비율 선택 (Codex 2회, Gemini 1회)
+- Codex → Gemini → Claude Code 자동 폴백 워크플로우 (2025-11-25)
+  - 1차: Codex/Gemini 4:1 비율 선택 (Codex 4회, Gemini 1회)
   - 2차: Primary AI 실패 시 Secondary AI 폴백
   - 3차: 모두 실패 시 Claude Code 자동 리뷰
   - Git Hook: `.husky/post-commit` 자동 트리거 (백그라운드 실행)
@@ -65,7 +65,7 @@
 - 특징:
   - ✅ 99.9% 가용성 (Codex OR Gemini OR Claude Code)
   - ✅ 평균 응답 시간: ~10초 (레거시 대비 4.5배 빠름)
-  - ✅ 2:1 비율 스마트 선택 (상태 파일 기반)
+  - ✅ 4:1 비율 스마트 선택 (상태 파일 기반, Codex 우선)
   - ✅ Claude Code 자동 리뷰 (리뷰 요청 파일 자동 생성)
   - ✅ 실시간 Rate Limit 감지 및 자동 전환
 - 참고:
@@ -148,9 +148,9 @@
 
 **자동 코드 리뷰** (v3.2.0) - Codex → Gemini → Claude Code 완전 자동화
 
-### 현재 시스템 (2025-11-21)
+### 현재 시스템 (2025-11-25)
 
-- **1차 선택**: 2:1 비율 (Codex 2회, Gemini 1회)
+- **1차 선택**: 4:1 비율 (Codex 4회, Gemini 1회)
 - **2차 폴백**: Primary AI 실패 시 Secondary AI로 자동 전환
 - **3차 최종 폴백**: Claude Code 자동 리뷰
   - 리뷰 요청 파일 자동 생성: `/tmp/claude_code_review_request_*.md`
@@ -164,5 +164,6 @@
 ### 레거시 시스템 (Deprecated)
 
 **3-AI 교차검증 시스템** (v4.2.0)은 2025-11-19부로 deprecated 처리되었습니다.
+
 - **상세 정보**: `archive/deprecated/3-ai-system/DEPRECATION_NOTICE.md`
 - **이유**: 복잡성 대비 효율성 낮음, 현재 시스템이 4.5배 빠름
