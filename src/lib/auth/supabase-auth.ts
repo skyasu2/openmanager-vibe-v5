@@ -6,7 +6,7 @@
  */
 
 import type { AuthError, Session } from '@supabase/supabase-js';
-import { supabase } from '../supabase';
+import { supabase } from '../supabase/client';
 import {
   validateRedirectUrl,
   guestSessionCookies,

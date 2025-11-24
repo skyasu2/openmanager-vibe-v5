@@ -7,7 +7,7 @@
  * - 저장소 키 분리로 충돌 방지
  */
 
-import { supabase } from '../supabase';
+import { supabase } from '../supabase/client';
 import type { Session } from '@supabase/supabase-js';
 
 // 통일된 키 접두사

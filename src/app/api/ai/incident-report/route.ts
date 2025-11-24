@@ -10,7 +10,7 @@
 
 import { withAuth } from '@/lib/auth/api-auth';
 import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';
-import { supabase } from '@/lib/supabase/client';
+import { createServerClient } from '@/lib/supabase/server';
 import debug from '@/utils/debug';
 import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
@@ -445,6 +445,9 @@ async function postHandler(request: NextRequest) {
       }
 
       case 'generate': {
+        // Create server-side Supabase client for API route
+        const supabase = createServerClient();
+
         if (!metrics || !validateMetrics(metrics)) {
           return NextResponse.json(
             { success: false, error: 'Invalid metrics data' },
