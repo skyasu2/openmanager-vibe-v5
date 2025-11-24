@@ -1,15 +1,26 @@
 /**
- * 🛡️ Serverless-Compatible Rate Limiter v2.0
+ * 🛡️ Serverless-Compatible Rate Limiter v2.1
  *
  * ✅ Supabase 기반 분산 rate limiting (Vercel serverless 호환)
  * ✅ Edge Runtime 지원 (setInterval 제거, on-demand cleanup)
  * ✅ Graceful fallback (Supabase 실패 시 경고 로깅)
  * ✅ 자동 만료 레코드 정리
+ * ✅ Atomic operation via RPC (Race condition 완전 해결)
+ * ✅ Row Level Security (보안 강화)
  *
  * 🔧 Architecture:
  * - Supabase 테이블: rate_limits (ip, path, count, reset_time, expires_at)
- * - 각 요청마다 DB 조회/업데이트 (Lambda 간 상태 공유)
- * - 만료 레코드 자동 정리 (Supabase TTL 활용)
+ * - RPC 함수: check_rate_limit() - Atomic increment with row lock
+ * - RPC 함수: cleanup_rate_limits() - Returns actual delete count
+ * - RLS 정책: Service role only access (anon key 보호)
+ *
+ * 🔒 Security:
+ * - Row-level locking (FOR UPDATE) prevents race conditions
+ * - Service role only access (prevents anon key abuse)
+ *
+ * Changelog:
+ * - v2.1 (2025-11-24): Added RPC functions, RLS policies, atomic operations
+ * - v2.0 (2025-11-24): Initial Supabase-based implementation
  */
 
 import type { NextRequest } from 'next/server';
@@ -67,7 +78,12 @@ class RateLimiter {
   }
 
   /**
-   * 🔍 IP 기반 레이트 리미팅 (Supabase 분산 저장)
+   * 🔍 IP 기반 레이트 리미팅 (Atomic RPC 함수 사용)
+   *
+   * ⚡ Race Condition 완전 해결:
+   * - Supabase RPC 함수 check_rate_limit() 호출
+   * - DB-level row locking (FOR UPDATE) 사용
+   * - Atomic increment (SELECT + UPDATE in single transaction)
    */
   async checkLimit(request: NextRequest): Promise<RateLimitResult> {
     const ip = this.getClientIP(request);
@@ -87,73 +103,31 @@ class RateLimiter {
     }
 
     try {
-      // 1. 현재 rate limit 기록 조회
-      const { data: existingRecord, error: fetchError } = await this.supabase
-        .from(this.TABLE_NAME)
-        .select('*')
-        .eq('ip', ip)
-        .eq('path', path)
-        .gt('reset_time', now)
-        .single();
+      // ⚡ Atomic RPC 함수 호출 (Race Condition 방지)
+      const { data, error } = await this.supabase.rpc('check_rate_limit', {
+        p_ip: ip,
+        p_path: path,
+        p_max_requests: this.config.maxRequests,
+        p_window_ms: this.config.windowMs,
+      });
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        // PGRST116 = No rows found (정상 케이스)
-        this.logger.error('[Rate Limit] DB 조회 실패', fetchError);
+      if (error) {
+        this.logger.error('[Rate Limit] RPC 실행 실패', error);
         return this.fallbackAllow(now);
       }
 
-      // 2-A. 윈도우가 리셋되었거나 첫 요청 → 새 레코드 생성
-      if (!existingRecord) {
-        const newRecord: RateLimitRecord = {
-          ip,
-          path,
-          count: 1,
-          reset_time: now + this.config.windowMs,
-          expires_at: new Date(now + this.config.windowMs).toISOString(),
-        };
+      // RPC 함수가 배열로 반환하므로 첫 번째 row 사용
+      const result = Array.isArray(data) ? data[0] : data;
 
-        const { error: insertError } = await this.supabase
-          .from(this.TABLE_NAME)
-          .upsert(newRecord, { onConflict: 'ip,path' });
-
-        if (insertError) {
-          this.logger.error('[Rate Limit] DB 삽입 실패', insertError);
-          return this.fallbackAllow(now);
-        }
-
-        return {
-          allowed: true,
-          remaining: this.config.maxRequests - 1,
-          resetTime: now + this.config.windowMs,
-        };
-      }
-
-      // 2-B. 제한 초과 확인
-      if (existingRecord.count >= this.config.maxRequests) {
-        return {
-          allowed: false,
-          remaining: 0,
-          resetTime: existingRecord.reset_time,
-        };
-      }
-
-      // 2-C. 카운트 증가
-      const newCount = existingRecord.count + 1;
-      const { error: updateError } = await this.supabase
-        .from(this.TABLE_NAME)
-        .update({ count: newCount })
-        .eq('ip', ip)
-        .eq('path', path);
-
-      if (updateError) {
-        this.logger.error('[Rate Limit] DB 업데이트 실패', updateError);
+      if (!result) {
+        this.logger.error('[Rate Limit] RPC 결과 없음');
         return this.fallbackAllow(now);
       }
 
       return {
-        allowed: true,
-        remaining: this.config.maxRequests - newCount,
-        resetTime: existingRecord.reset_time,
+        allowed: result.allowed,
+        remaining: result.remaining,
+        resetTime: Number(result.reset_time),
       };
     } catch (error) {
       this.logger.error('[Rate Limit] 예상치 못한 오류', error);
@@ -183,7 +157,12 @@ class RateLimiter {
   }
 
   /**
-   * 🧹 만료된 레코드 정리 (on-demand, setInterval 제거)
+   * 🧹 만료된 레코드 정리 (RPC 함수 사용)
+   *
+   * ✅ 개선사항:
+   * - RPC 함수 cleanup_rate_limits() 호출
+   * - 실제 삭제 카운트 반환 (기존 버그 수정)
+   * - on-demand execution (setInterval 제거)
    */
   async cleanup(): Promise<number> {
     if (!this.supabase) {
@@ -191,23 +170,23 @@ class RateLimiter {
     }
 
     try {
-      const now = new Date().toISOString();
-
-      const { error, count } = await this.supabase
-        .from(this.TABLE_NAME)
-        .delete()
-        .lt('expires_at', now);
+      // ✅ RPC 함수 호출 (정확한 삭제 카운트 반환)
+      const { data, error } = await this.supabase.rpc('cleanup_rate_limits');
 
       if (error) {
         this.logger.error('[Rate Limit] 만료 레코드 정리 실패', error);
         return 0;
       }
 
-      if (count && count > 0) {
-        this.logger.info(`[Rate Limit] 만료 레코드 ${count}개 정리 완료`);
+      const deletedCount = Number(data) || 0;
+
+      if (deletedCount > 0) {
+        this.logger.info(
+          `[Rate Limit] 만료 레코드 ${deletedCount}개 정리 완료`
+        );
       }
 
-      return count || 0;
+      return deletedCount;
     } catch (error) {
       this.logger.error('[Rate Limit] Cleanup 오류', error);
       return 0;
