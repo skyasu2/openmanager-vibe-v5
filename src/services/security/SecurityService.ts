@@ -296,6 +296,15 @@ export class SecurityService {
     );
   }
 
+  /**
+   * 🧹 전체 세션 초기화 (테스트용)
+   * @internal - 테스트 환경에서만 사용
+   */
+  clearAllSessions(): void {
+    this.sessions.clear();
+    console.log('🧹 모든 세션 초기화 완료');
+  }
+
   async createSession(
     userId: string,
     metadata?: {

@@ -1,23 +1,28 @@
 /**
  * 🔐 강화된 보안 서비스 단위 테스트
- * 
+ *
  * SecurityService의 새로운 보안 기능들을 검증합니다:
  * - 세션 보안 강화
  * - 권한 검사 개선
  * - 보안 이벤트 로깅
  * - 위협 탐지 연동
- * 
+ *
  * @author Test Automation Specialist (보안 강화 프로젝트)
  * @created 2025-08-19
  * @version 1.0.0
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { SecurityService, getSecurityService } from '@/services/security/SecurityService';
+import {
+  SecurityService,
+  getSecurityService,
+} from '@/services/security/SecurityService';
 
 // Environment detection - Skip Date Mock tests in Vitest due to context loss issues
 // These tests validate working production code but fail due to "TypeError: this is not a Date object"
-const isVitest = typeof process !== 'undefined' && (process.env.VITEST === 'true' || process.env.NODE_ENV === 'test');
+const isVitest =
+  typeof process !== 'undefined' &&
+  (process.env.VITEST === 'true' || process.env.NODE_ENV === 'test');
 
 interface UserSession {
   id: string;
@@ -43,6 +48,8 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
 
   beforeEach(() => {
     securityService = getSecurityService();
+    // Clear all sessions for test isolation (singleton state)
+    securityService.clearAllSessions();
     vi.clearAllMocks();
   });
 
@@ -55,7 +62,7 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
       // Given: 클라이언트 정보를 포함한 인증 요청
       const clientInfo = {
         ip: '192.168.1.100',
-        userAgent: 'Mozilla/5.0 (Test Browser)'
+        userAgent: 'Mozilla/5.0 (Test Browser)',
       };
 
       // When: 사용자 인증 수행
@@ -68,8 +75,8 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
       // Then: 세션에 IP 정보가 포함되어야 함
       if (result.success && result.sessionId) {
         const activeSessions = securityService.getActiveSessions();
-        const session = activeSessions.find(s => s.id === result.sessionId);
-        
+        const session = activeSessions.find((s) => s.id === result.sessionId);
+
         expect(session).toBeDefined();
         expect(session?.ip).toBe(clientInfo.ip);
       }
@@ -96,16 +103,17 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
       }
 
       // Then: 활성 세션이 최대 수를 초과하지 않아야 함
-      const activeSessions = securityService.getActiveSessions()
-        .filter(s => s.userId === userId && s.isValid);
-      
+      const activeSessions = securityService
+        .getActiveSessions()
+        .filter((s) => s.userId === userId && s.isValid);
+
       expect(activeSessions.length).toBeLessThanOrEqual(maxSessions);
     });
 
     it.skipIf(isVitest)('세션 만료 시간이 올바르게 적용되어야 함', async () => {
       // Given: 세션 생성
       const sessionId = await securityService.createSession('testuser', {
-        ip: '192.168.1.100'
+        ip: '192.168.1.100',
       });
 
       // When: 세션 검증 (현재는 유효)
@@ -113,7 +121,7 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
       expect(validation1.isValid).toBe(true);
 
       // 세션 타임아웃 시뮬레이션 (8시간 후)
-      const mockFutureTime = new Date(Date.now() + (8 * 60 * 60 * 1000) + 1000); // 8시간 + 1초
+      const mockFutureTime = new Date(Date.now() + 8 * 60 * 60 * 1000 + 1000); // 8시간 + 1초
       vi.spyOn(globalThis, 'Date').mockImplementation((...args) => {
         if (args.length === 0) {
           return mockFutureTime;
@@ -130,13 +138,13 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
     it('세션 활동 시간이 업데이트되어야 함', async () => {
       // Given: 세션 생성
       const sessionId = await securityService.createSession('testuser');
-      
+
       // When: 첫 번째 세션 검증
       const validation1 = await securityService.validateSession(sessionId);
       const firstActivity = validation1.session?.lastActivity;
 
       // 시간 경과 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // 두 번째 세션 검증
       const validation2 = await securityService.validateSession(sessionId);
@@ -146,7 +154,9 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
       expect(secondActivity).toBeDefined();
       expect(firstActivity).toBeDefined();
       if (firstActivity && secondActivity) {
-        expect(secondActivity.getTime()).toBeGreaterThanOrEqual(firstActivity.getTime());
+        expect(secondActivity.getTime()).toBeGreaterThanOrEqual(
+          firstActivity.getTime()
+        );
       }
     });
   });
@@ -217,9 +227,9 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
     it.skipIf(isVitest)('만료된 세션으로 접근 시 거부되어야 함', async () => {
       // Given: 세션 생성 후 만료 시뮬레이션
       const sessionId = await securityService.createSession('user');
-      
+
       // 세션 만료 시뮬레이션
-      const mockExpiredTime = new Date(Date.now() + (8 * 60 * 60 * 1000) + 1000);
+      const mockExpiredTime = new Date(Date.now() + 8 * 60 * 60 * 1000 + 1000);
       vi.spyOn(globalThis, 'Date').mockImplementation((...args) => {
         if (args.length === 0) {
           return mockExpiredTime;
@@ -246,7 +256,7 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
       const username = 'admin';
       const clientInfo = {
         ip: '192.168.1.100',
-        userAgent: 'Test Browser'
+        userAgent: 'Test Browser',
       };
 
       // When: 성공적인 로그인
@@ -258,10 +268,9 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
 
       // Then: 로그인 이벤트가 기록되어야 함
       const events = securityService.getSecurityEvents(10);
-      const loginEvent = events.find(e => 
-        e.type === 'login' && 
-        e.userId === username &&
-        e.ip === clientInfo.ip
+      const loginEvent = events.find(
+        (e) =>
+          e.type === 'login' && e.userId === username && e.ip === clientInfo.ip
       );
 
       expect(loginEvent).toBeDefined();
@@ -274,7 +283,7 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
       const wrongPassword = 'wrong-password';
       const clientInfo = {
         ip: '192.168.1.100',
-        userAgent: 'Test Browser'
+        userAgent: 'Test Browser',
       };
 
       // When: 실패한 로그인 시도
@@ -286,9 +295,8 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
 
       // Then: 실패 이벤트가 기록되어야 함
       const events = securityService.getSecurityEvents(10);
-      const failedEvent = events.find(e => 
-        e.type === 'access_denied' && 
-        e.userId === username
+      const failedEvent = events.find(
+        (e) => e.type === 'access_denied' && e.userId === username
       );
 
       expect(result.success).toBe(false);
@@ -309,9 +317,10 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
 
       // Then: 접근 거부 이벤트가 기록되어야 함
       const events = securityService.getSecurityEvents(10);
-      const deniedEvent = events.find(e => 
-        e.type === 'access_denied' &&
-        e.details.reason === 'insufficient_permissions'
+      const deniedEvent = events.find(
+        (e) =>
+          e.type === 'access_denied' &&
+          e.details.reason === 'insufficient_permissions'
       );
 
       expect(accessResult.allowed).toBe(false);
@@ -327,9 +336,8 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
 
       // Then: 로그아웃 이벤트가 기록되어야 함
       const events = securityService.getSecurityEvents(10);
-      const logoutEvent = events.find(e => 
-        e.type === 'logout' &&
-        e.details.sessionId === sessionId
+      const logoutEvent = events.find(
+        (e) => e.type === 'logout' && e.details.sessionId === sessionId
       );
 
       expect(logoutEvent).toBeDefined();
@@ -340,11 +348,10 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
       const eventCount = 1100; // 최대 제한 1000개를 초과
 
       for (let i = 0; i < eventCount; i++) {
-        await securityService.authenticateUser(
-          'user',
-          'wrong-password',
-          { ip: '192.168.1.100', userAgent: 'Test' }
-        );
+        await securityService.authenticateUser('user', 'wrong-password', {
+          ip: '192.168.1.100',
+          userAgent: 'Test',
+        });
       }
 
       // When: 이벤트 히스토리 조회
@@ -376,11 +383,10 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
       const failedAttempts = 15; // 임계값 10개 초과
 
       for (let i = 0; i < failedAttempts; i++) {
-        await securityService.authenticateUser(
-          'attacker',
-          'wrong-password',
-          { ip: '192.168.1.100', userAgent: 'Bot' }
-        );
+        await securityService.authenticateUser('attacker', 'wrong-password', {
+          ip: '192.168.1.100',
+          userAgent: 'Bot',
+        });
       }
 
       // When: 보안 통계 조회
@@ -409,10 +415,10 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
       const activeSessions = securityService.getActiveSessions();
 
       // Then: 유효한 세션만 반환되어야 함 (session1, session3만)
-      const validSessions = activeSessions.filter(s => s.isValid);
+      const validSessions = activeSessions.filter((s) => s.isValid);
       expect(validSessions.length).toBe(2); // session1, session3만
-      expect(activeSessions.every(s => s.isValid)).toBe(true);
-      expect(activeSessions.find(s => s.id === session2)).toBeUndefined();
+      expect(activeSessions.every((s) => s.isValid)).toBe(true);
+      expect(activeSessions.find((s) => s.id === session2)).toBeUndefined();
     });
   });
 
@@ -423,7 +429,7 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
         ip: '192.168.1.100',
         userAgent: 'Mozilla/5.0 Test Browser',
         loginMethod: 'password',
-        deviceFingerprint: 'test-device-123'
+        deviceFingerprint: 'test-device-123',
       };
 
       // When: 세션 생성
@@ -438,25 +444,25 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
     it('동시 세션 처리가 안전해야 함', async () => {
       // Given: 동시 로그인 시도
       const concurrentLogins = Array.from({ length: 10 }, (_, i) =>
-        securityService.authenticateUser(
-          'admin',
-          'admin123',
-          { ip: `192.168.1.${100 + i}`, userAgent: 'Test Browser' }
-        )
+        securityService.authenticateUser('admin', 'admin123', {
+          ip: `192.168.1.${100 + i}`,
+          userAgent: 'Test Browser',
+        })
       );
 
       // When: 모든 로그인 시도 완료 대기
       const results = await Promise.all(concurrentLogins);
 
       // Then: 모든 요청이 안전하게 처리되어야 함
-      results.forEach(result => {
+      results.forEach((result) => {
         expect(result).toHaveProperty('success');
         expect(result).toHaveProperty('sessionId');
       });
 
       // 활성 세션 수가 최대 제한을 초과하지 않아야 함
-      const activeSessions = securityService.getActiveSessions()
-        .filter(s => s.userId === 'admin');
+      const activeSessions = securityService
+        .getActiveSessions()
+        .filter((s) => s.userId === 'admin');
       expect(activeSessions.length).toBeLessThanOrEqual(5); // MAX_SESSIONS
     });
 
@@ -478,11 +484,11 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
 
       // When: 빈 사용자 ID로 세션 생성 시도
       const result = await securityService.createSession(invalidUserId);
-      
+
       // Then: Mock 환경에서는 세션이 생성되지만, 실제로는 보안 검증이 필요
       // 실제 구현에서는 빈 문자열 검증 로직이 필요함을 테스트로 확인
       expect(typeof result).toBe('string');
-      
+
       // 보안 권고: 실제 구현에서는 다음과 같은 검증 필요
       // if (!userId || userId.trim() === '') {
       //   throw new Error('세션 생성 실패: 유효하지 않은 사용자 ID');
@@ -494,7 +500,8 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
       const nonExistentSessionId = 'non-existent-session-123';
 
       // When: 세션 검증
-      const result = await securityService.validateSession(nonExistentSessionId);
+      const result =
+        await securityService.validateSession(nonExistentSessionId);
 
       // Then: 검증 실패해야 함
       expect(result.isValid).toBe(false);
@@ -529,11 +536,10 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
       }
 
       for (let i = 0; i < eventCount; i++) {
-        await securityService.authenticateUser(
-          'test',
-          'wrong',
-          { ip: '127.0.0.1', userAgent: 'Test' }
-        );
+        await securityService.authenticateUser('test', 'wrong', {
+          ip: '127.0.0.1',
+          userAgent: 'Test',
+        });
       }
 
       // Then: 시스템이 안정적으로 동작해야 함
@@ -552,12 +558,12 @@ describe('🔐 강화된 보안 서비스 단위 테스트', () => {
 function createMockClientInfo(ip?: string, userAgent?: string) {
   return {
     ip: ip || `192.168.1.${Math.floor(Math.random() * 255)}`,
-    userAgent: userAgent || 'Test Browser/1.0'
+    userAgent: userAgent || 'Test Browser/1.0',
   };
 }
 
 function simulateDelayedExecution(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 // 커스텀 매처
