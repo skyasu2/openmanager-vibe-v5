@@ -23,7 +23,7 @@ import {
   GET as getBackupStatus,
   POST as manageBackup,
 } from '../../../src/app/api/admin/backup-status/route';
-import { authManager } from '@/lib/auth';
+import { authManager } from '@/lib/auth/auth';
 
 // Mock 타입 정의
 const mockAuthManager = {

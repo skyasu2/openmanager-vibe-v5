@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { timingSafeEqual } from 'crypto';
-import { securityLogger } from './security/security-logger';
+import { securityLogger } from '../security/security-logger';
 import { SECURITY } from '@/config/constants';
 
 /**

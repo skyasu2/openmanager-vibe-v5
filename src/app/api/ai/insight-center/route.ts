@@ -13,7 +13,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/api-auth';
+import { withAuth } from '@/lib/auth/api-auth';
 import debug from '@/utils/debug';
 
 // Import all modular components

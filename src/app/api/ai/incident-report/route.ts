@@ -8,7 +8,7 @@
  * - 패턴 학습 및 예측
  */
 
-import { withAuth } from '@/lib/api-auth';
+import { withAuth } from '@/lib/auth/api-auth';
 import { getCachedData, setCachedData } from '@/lib/cache-helper';
 import { supabase } from '@/lib/supabase/supabase-client';
 import debug from '@/utils/debug';
@@ -111,13 +111,12 @@ function validateMetrics(metrics: unknown[]): metrics is ServerMetric[] {
   return metrics.every((metric) => {
     // Check if metric is an object
     if (typeof metric !== 'object' || metric === null) return false;
-    
+
     const m = metric as Record<string, unknown>; // Type assertion for property access
-    
+
     // Required string fields
     if (!m.server_id || typeof m.server_id !== 'string') return false;
-    if (!m.server_name || typeof m.server_name !== 'string')
-      return false;
+    if (!m.server_name || typeof m.server_name !== 'string') return false;
     if (!m.timestamp || typeof m.timestamp !== 'string') return false;
 
     // Required numeric fields (must be numbers, not strings or null)

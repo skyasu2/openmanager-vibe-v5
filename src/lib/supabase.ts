@@ -12,7 +12,7 @@ import {
 } from '@/lib/supabase/supabase-client';
 
 // GitHub OAuth는 supabase-auth.ts에서 import
-import { signInWithGitHub } from '@/lib/supabase-auth';
+import { signInWithGitHub } from '@/lib/auth/supabase-auth';
 
 // Re-export
 export {

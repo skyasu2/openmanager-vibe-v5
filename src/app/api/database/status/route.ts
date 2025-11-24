@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { withAuth } from '@/lib/api-auth';
+import { withAuth } from '@/lib/auth/api-auth';
 import debug from '@/utils/debug';
 
 // 데이터베이스 상태 시뮬레이션

@@ -5,8 +5,12 @@
  * NextAuth 대체 구현
  */
 
-import type { AuthError, Session } from '@supabase/supabase-js';
-import { supabase } from './supabase';
+import type {
+  AuthError,
+  Session,
+  AuthChangeEvent,
+} from '@supabase/supabase-js';
+import { supabase } from '../supabase';
 import {
   validateRedirectUrl,
   guestSessionCookies,

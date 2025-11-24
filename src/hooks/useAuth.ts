@@ -4,8 +4,8 @@
  * OpenManager Vibe v5 게스트 인증 시스템 (Google OAuth 제거됨)
  */
 
-import type { AuthUser } from '@/lib/auth-state-manager';
-import { authStateManager } from '@/lib/auth-state-manager';
+import type { AuthUser } from '@/lib/auth/auth-state-manager';
+import { authStateManager } from '@/lib/auth/auth-state-manager';
 import { useEffect, useState } from 'react';
 
 export interface UseAuthResult {
@@ -41,10 +41,11 @@ export function useAuth(): UseAuthResult {
 
       // AuthStateManager를 통한 게스트 인증 설정
       await authStateManager.setGuestAuth(guestUser);
-      
+
       // 세션 ID 가져오기
-      const newSessionId = localStorage.getItem('auth_session_id') || `guest_${Date.now()}`;
-      
+      const newSessionId =
+        localStorage.getItem('auth_session_id') || `guest_${Date.now()}`;
+
       setUser(guestUser);
       setSessionId(newSessionId);
 
@@ -94,8 +95,11 @@ export function useAuth(): UseAuthResult {
 
       // 세션 유효성 확인
       const currentState = await authStateManager.getAuthState();
-      
-      if (currentState.isAuthenticated && currentState.sessionId === storedSessionId) {
+
+      if (
+        currentState.isAuthenticated &&
+        currentState.sessionId === storedSessionId
+      ) {
         setUser(currentState.user);
         setSessionId(storedSessionId);
       } else {

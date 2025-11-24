@@ -6,9 +6,9 @@
 
 'use client';
 
-import type { ReactNode } from 'react';;
+import type { ReactNode } from 'react';
 import { useEffect } from 'react';
-import { onAuthStateChange } from '@/lib/supabase-auth';
+import { onAuthStateChange } from '@/lib/auth/supabase-auth';
 
 interface SupabaseAuthProviderProps {
   children: ReactNode;

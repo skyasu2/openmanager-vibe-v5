@@ -58,7 +58,7 @@ const useSystemHooks = () => {
       const [systemStatus, adminStore, auth] = await Promise.all([
         import('@/hooks/useSystemStatus'),
         import('@/stores/useUnifiedAdminStore'),
-        import('@/lib/supabase-auth'),
+        import('@/lib/auth/supabase-auth'),
       ]);
       setHooks({
         useSystemStatus: systemStatus.useSystemStatus,
@@ -89,7 +89,7 @@ function AuthCheck({ children }: { children: ReactNode }) {
   useEffect(() => {
     // 동적으로 인증 모듈 로드
     const checkAuth = async () => {
-      const authModule = await import('@/lib/supabase-auth');
+      const authModule = await import('@/lib/auth/supabase-auth');
       try {
         const [isAuthenticated, user] = await Promise.all([
           authModule.isAuthenticated(),

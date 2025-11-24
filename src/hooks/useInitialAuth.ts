@@ -6,7 +6,7 @@ import {
   getCurrentUser,
   isGitHubAuthenticated,
   type AuthUser,
-} from '@/lib/supabase-auth';
+} from '@/lib/auth/supabase-auth';
 import { isVercel } from '@/env';
 
 // This logic is now inlined from the old vercel-env.ts

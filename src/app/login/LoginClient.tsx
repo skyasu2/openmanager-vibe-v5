@@ -13,11 +13,11 @@ import { useEffect, useState } from 'react';
 import debug from '@/utils/debug';
 
 // Supabase Auth 관련 임포트
-import { signInWithGitHub } from '@/lib/supabase-auth';
+import { signInWithGitHub } from '@/lib/auth/supabase-auth';
 
 // 게스트 로그인 관련 임포트 (lib/auth-state-manager로 통합)
-import type { AuthUser } from '@/lib/auth-state-manager';
-import { authStateManager } from '@/lib/auth-state-manager';
+import type { AuthUser } from '@/lib/auth/auth-state-manager';
+import { authStateManager } from '@/lib/auth/auth-state-manager';
 
 // AI 텍스트 렌더링 유틸리티
 import { renderTextWithAIGradient } from '@/utils/text-rendering';
@@ -38,11 +38,7 @@ const PAGE_REDIRECT_DELAY_MS = 500; // 페이지 이동 지연
 const PULSE_ANIMATION_DURATION_MS = 600; // 펄스 애니메이션 시간
 
 // 🎨 로딩 오버레이 컴포넌트 (코드 중복 제거)
-const LoadingOverlay = ({
-  type,
-}: {
-  type: 'github' | 'guest';
-}) => {
+const LoadingOverlay = ({ type }: { type: 'github' | 'guest' }) => {
   const progressGradient =
     type === 'github'
       ? 'from-green-500 to-blue-500'
@@ -141,11 +137,11 @@ export default function LoginClient() {
     if (code) {
       debug.log('🔐 OAuth 콜백 코드 감지:', code);
       debug.log('🔄 /auth/callback으로 리다이렉트 중...');
-      
+
       // 현재 URL에서 code 파라미터를 유지하면서 /auth/callback으로 이동
       const callbackUrl = new URL('/auth/callback', window.location.origin);
       callbackUrl.search = window.location.search; // 모든 파라미터 유지
-      
+
       window.location.href = callbackUrl.toString();
       return;
     }
@@ -192,8 +188,8 @@ export default function LoginClient() {
       );
 
       // 강제 페이지 새로고침과 함께 이동 (쿠키가 확실히 적용되도록)
-          const redirectTimer = setTimeout(() => {
-            window.location.href = '/main';
+      const redirectTimer = setTimeout(() => {
+        window.location.href = '/main';
       }, PAGE_REDIRECT_DELAY_MS);
 
       // 🧹 Cleanup: 컴포넌트 언마운트 시 타이머 정리 (메모리 누수 방지)
@@ -290,24 +286,27 @@ export default function LoginClient() {
       // AuthStateManager를 통한 게스트 인증 설정
       await authStateManager.setGuestAuth(guestUser);
       console.log('🔍 [DEBUG Step 1] setGuestAuth completed successfully');
-      
+
       // 세션 ID 생성 (localStorage에서 가져옴)
-      const sessionId = localStorage.getItem('auth_session_id') || `guest_${Date.now()}`;
+      const sessionId =
+        localStorage.getItem('auth_session_id') || `guest_${Date.now()}`;
       console.log('🔍 [DEBUG Step 2] Retrieved sessionId from localStorage:', {
         sessionId,
         fromLocalStorage: !!localStorage.getItem('auth_session_id'),
-        allAuthKeys: Object.keys(localStorage).filter(k => k.startsWith('auth_')),
+        allAuthKeys: Object.keys(localStorage).filter((k) =>
+          k.startsWith('auth_')
+        ),
       });
-      
+
       // 상태 업데이트 직전
       console.log('🔍 [DEBUG Step 3] About to call setGuestSession with:', {
         sessionId,
         userId: guestUser.id,
         userName: guestUser.name,
       });
-      
+
       setGuestSession({ sessionId, user: guestUser });
-      
+
       console.log('🔍 [DEBUG Step 4] setGuestSession called successfully');
     } catch (error) {
       debug.error('게스트 로그인 실패:', error);
@@ -333,8 +332,12 @@ export default function LoginClient() {
         {/* 헤더 */}
         <div className="mb-8 text-center">
           {/* ✨ 개선된 로고: Sparkles 아이콘 + AI 그라데이션 애니메이션 */}
-          <div className="mx-auto mb-4 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-[length:200%_200%] animate-gradient-x shadow-lg shadow-purple-500/50">
-            <Sparkles className="h-6 w-6 sm:h-9 sm:w-9 text-white" strokeWidth={2.5} aria-hidden="true" />
+          <div className="mx-auto mb-4 flex h-12 w-12 animate-gradient-x items-center justify-center rounded-2xl bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-[length:200%_200%] shadow-lg shadow-purple-500/50 sm:h-16 sm:w-16">
+            <Sparkles
+              className="h-6 w-6 text-white sm:h-9 sm:w-9"
+              strokeWidth={2.5}
+              aria-hidden="true"
+            />
           </div>
           <h1 className="mb-2 text-3xl font-bold text-white">OpenManager</h1>
           <p className="text-base text-gray-300">
@@ -343,7 +346,7 @@ export default function LoginClient() {
         </div>
 
         {/* 로그인 폼 */}
-        <div className="rounded-xl border border-gray-700 bg-gray-800 p-6 sm:p-8 shadow-2xl">
+        <div className="rounded-xl border border-gray-700 bg-gray-800 p-6 shadow-2xl sm:p-8">
           <h2 className="mb-6 text-center text-xl font-semibold text-white">
             로그인 방식을 선택하세요
           </h2>
@@ -379,7 +382,9 @@ export default function LoginClient() {
           <div className="space-y-4">
             {/* GitHub OAuth 로그인 - 업계 표준 스타일 */}
             <button
-              onClick={() => { void handleGitHubLogin(); }}
+              onClick={() => {
+                void handleGitHubLogin();
+              }}
               disabled={isLoading}
               className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-lg border border-gray-600 bg-[#24292e] px-4 py-3 text-white shadow-lg transition-all duration-200 hover:bg-[#1a1e22] hover:shadow-xl disabled:cursor-progress disabled:opacity-70"
             >
@@ -424,7 +429,9 @@ export default function LoginClient() {
 
             {/* 게스트 로그인 - 개선된 스타일 */}
             <button
-              onClick={() => { void handleGuestLogin(); }}
+              onClick={() => {
+                void handleGuestLogin();
+              }}
               disabled={isLoading}
               className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 text-white shadow-lg transition-all duration-200 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl disabled:cursor-progress disabled:opacity-70"
             >

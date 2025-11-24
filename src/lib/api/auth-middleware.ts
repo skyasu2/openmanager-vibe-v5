@@ -6,7 +6,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { authManager } from '../auth';
+import { authManager } from '../auth/auth';
 
 export interface AuthenticatedRequest extends NextRequest {
   authInfo?: {

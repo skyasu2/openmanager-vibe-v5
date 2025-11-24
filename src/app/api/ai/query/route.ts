@@ -26,7 +26,7 @@ import { getCachedData, setCachedData } from '@/lib/cache-helper';
 import { supabase } from '@/lib/supabase/supabase-client';
 import crypto from 'crypto';
 import debug from '@/utils/debug';
-import { withAuth } from '@/lib/api-auth';
+import { withAuth } from '@/lib/auth/api-auth';
 
 // ✅ 옵션 A: Node.js Runtime + GCP Functions 최적화
 // - Supabase RAG 직접 호출

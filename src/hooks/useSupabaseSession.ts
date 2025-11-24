@@ -3,7 +3,7 @@
 import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
-import { clearAuthData } from '@/lib/auth-state-manager';
+import { clearAuthData } from '@/lib/auth/auth-state-manager';
 
 // NextAuth 호환 세션 타입
 interface Session {
