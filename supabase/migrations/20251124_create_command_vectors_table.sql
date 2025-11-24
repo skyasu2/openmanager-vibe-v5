@@ -16,29 +16,43 @@ CREATE TABLE IF NOT EXISTS command_vectors (
 ALTER TABLE command_vectors ENABLE ROW LEVEL SECURITY;
 
 -- 3. RLS 정책 설정 (중복 방지)
+-- 🔒 보안 강화: 사용자별 데이터 격리 또는 읽기 전용 접근
 DO $$
 BEGIN
-    -- 읽기 정책
+    -- 🗑️ 기존 취약한 정책 제거 (있을 경우)
+    IF EXISTS (
+        SELECT 1 FROM pg_policies
+        WHERE tablename = 'command_vectors' AND policyname = 'Authenticated users can manage command vectors'
+    ) THEN
+        DROP POLICY "Authenticated users can manage command vectors" ON command_vectors;
+    END IF;
+    -- 읽기 정책: 모든 인증된 사용자가 조회 가능 (공개 명령어 셋)
     IF NOT EXISTS (
-        SELECT 1 FROM pg_policies 
+        SELECT 1 FROM pg_policies
         WHERE tablename = 'command_vectors' AND policyname = 'Command vectors viewable by authenticated users'
     ) THEN
-        CREATE POLICY "Command vectors viewable by authenticated users" 
-        ON command_vectors FOR SELECT 
-        TO authenticated 
+        CREATE POLICY "Command vectors viewable by authenticated users"
+        ON command_vectors FOR SELECT
+        TO authenticated
         USING (true);
     END IF;
 
-    -- 쓰기 정책 (관리자/인증된 사용자용)
+    -- 쓰기 정책: 관리자 역할만 가능 (service_role)
+    -- 🔐 보안 개선: authenticated → service_role로 제한
     IF NOT EXISTS (
-        SELECT 1 FROM pg_policies 
-        WHERE tablename = 'command_vectors' AND policyname = 'Authenticated users can manage command vectors'
+        SELECT 1 FROM pg_policies
+        WHERE tablename = 'command_vectors' AND policyname = 'Only service role can manage command vectors'
     ) THEN
-        CREATE POLICY "Authenticated users can manage command vectors" 
-        ON command_vectors FOR ALL 
-        TO authenticated 
-        USING (true);
+        CREATE POLICY "Only service role can manage command vectors"
+        ON command_vectors FOR ALL
+        TO service_role
+        USING (true)
+        WITH CHECK (true);
     END IF;
+
+    -- 📝 참고: 사용자별 데이터 격리가 필요한 경우 아래 정책으로 교체:
+    -- USING (metadata->>'user_id' = auth.uid()::text)
+    -- WITH CHECK (metadata->>'user_id' = auth.uid()::text)
 END $$;
 
 -- 4. HNSW 인덱스 생성 (pgvector 0.5.0+)

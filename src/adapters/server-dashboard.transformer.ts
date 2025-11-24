@@ -32,15 +32,34 @@ export interface EnhancedServer {
   networkStatus: string;
 }
 
-// 🎯 상태 매핑 헬퍼 (API → UI 상태 변환)
+/**
+ * 🎯 상태 매핑 헬퍼 (API → UI 상태 변환)
+ *
+ * RawServerData의 상태 값을 UI에서 사용하는 상태 값으로 변환합니다.
+ *
+ * **매핑 규칙**:
+ * - `online` → `online` (정상 작동)
+ * - `running` → `online` (레거시 호환)
+ * - `warning` → `warning` (주의 필요)
+ * - `critical` → `offline` (위험 상태)
+ * - `error` → `offline` (오류 발생)
+ * - `stopped` → `offline` (중지됨)
+ * - `maintenance` → `offline` (유지보수 중)
+ * - `unknown` → `offline` (알 수 없음)
+ *
+ * @param raw - RawServerData의 status 값
+ * @returns UI에서 사용하는 'online' | 'warning' | 'offline'
+ */
 export const mapStatus = (
   raw: RawServerData['status']
 ): 'online' | 'warning' | 'offline' => {
   switch (raw) {
+    case 'online':
     case 'running':
       return 'online';
     case 'warning':
       return 'warning';
+    case 'critical':
     case 'error':
     case 'stopped':
     case 'maintenance':
@@ -76,10 +95,11 @@ export function transformRawToServer(
   raw: RawServerData,
   index: number = 0
 ): Server {
-  const cpu = raw.cpu ?? 0;
-  const memory = raw.memory ?? 0;
-  const disk = raw.disk ?? 0;
-  const network = raw.network ?? 0;
+  // 🔄 안전한 fallback: raw.metrics.* 형태와 raw.* 형태 모두 지원
+  const cpu = (raw as any).metrics?.cpu ?? raw.cpu ?? 0;
+  const memory = (raw as any).metrics?.memory ?? raw.memory ?? 0;
+  const disk = (raw as any).metrics?.disk ?? raw.disk ?? 0;
+  const network = (raw as any).metrics?.network ?? raw.network ?? 0;
 
   // 🚨 통합 기준으로 서버 상태 판별 (데이터 전처리 단계)
   const serverMetrics: ServerMetrics = {
@@ -136,10 +156,11 @@ function extractBasicInfo(
 function extractMetrics(
   raw: RawServerData
 ): Pick<EnhancedServer, 'cpu' | 'memory' | 'disk' | 'network'> {
-  const cpu = raw.cpu ?? 0;
-  const memory = raw.memory ?? 0;
-  const disk = raw.disk ?? 0;
-  const network = raw.network ?? 0;
+  // 🔄 안전한 fallback: raw.metrics.* 형태와 raw.* 형태 모두 지원
+  const cpu = (raw as any).metrics?.cpu ?? raw.cpu ?? 0;
+  const memory = (raw as any).metrics?.memory ?? raw.memory ?? 0;
+  const disk = (raw as any).metrics?.disk ?? raw.disk ?? 0;
+  const network = (raw as any).metrics?.network ?? raw.network ?? 0;
 
   return {
     cpu: Math.round(cpu),
