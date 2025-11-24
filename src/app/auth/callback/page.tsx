@@ -7,7 +7,7 @@
 
 'use client';
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -32,24 +32,30 @@ export default function AuthCallbackPage() {
           hash: window.location.hash,
           isVercel: window.location.origin.includes('vercel.app'),
         });
-        
+
         // 🔍 상세 디버깅: URL 파라미터 및 기존 토큰 상태 확인
         const urlParams = new URLSearchParams(window.location.search);
         const authCode = urlParams.get('code');
         const state = urlParams.get('state');
         const error_param = urlParams.get('error');
-        
+
         // ✅ 보안 개선: 민감정보 로깅 제거, 필요한 상태만 기록
         debug.log('🔍 OAuth 콜백 처리 시작:', {
           hasAuthCode: !!authCode,
           hasState: !!state,
           hasError: !!error_param,
           hasExistingTokens: {
-            codeVerifier: !!localStorage.getItem('sb-vnswjnltnhpsueosfhmw-auth-token-code-verifier'),
-            authToken: !!localStorage.getItem('sb-vnswjnltnhpsueosfhmw-auth-token'),
-            hasAuthCookie: document.cookie.includes('sb-vnswjnltnhpsueosfhmw-auth-token')
+            codeVerifier: !!localStorage.getItem(
+              'sb-vnswjnltnhpsueosfhmw-auth-token-code-verifier'
+            ),
+            authToken: !!localStorage.getItem(
+              'sb-vnswjnltnhpsueosfhmw-auth-token'
+            ),
+            hasAuthCookie: document.cookie.includes(
+              'sb-vnswjnltnhpsueosfhmw-auth-token'
+            ),
           },
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
         // URL에서 에러 파라미터 확인 (이미 위에서 정의됨)
@@ -105,11 +111,13 @@ export default function AuthCallbackPage() {
             const maxDelay = 2000; // 최대 지연 시간 50% 단축
             const jitter = Math.random() * 0.1; // 10% 지터로 thundering herd 방지
             const retryDelay = Math.min(
-              baseDelay * Math.pow(1.8, attempts) * (1 + jitter), 
+              baseDelay * Math.pow(1.8, attempts) * (1 + jitter),
               maxDelay
             );
-            
-            debug.log(`🔄 세션 확인 재시도 ${attempts + 1}/${maxAttempts} (${Math.round(retryDelay)}ms 대기, 지수 백오프)`);
+
+            debug.log(
+              `🔄 세션 확인 재시도 ${attempts + 1}/${maxAttempts} (${Math.round(retryDelay)}ms 대기, 지수 백오프)`
+            );
             await new Promise((resolve) => setTimeout(resolve, retryDelay));
           }
           attempts++;
@@ -132,17 +140,17 @@ export default function AuthCallbackPage() {
           debug.log('🧹 게스트 쿠키 정리 시작...');
           const isProduction = window.location.protocol === 'https:';
           const secureFlag = isProduction ? '; Secure' : '';
-          
+
           // 게스트 쿠키 삭제
           document.cookie = `guest_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
           document.cookie = `auth_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
           document.cookie = `auth_type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${secureFlag}`;
-          
+
           // localStorage 게스트 데이터 정리
           localStorage.removeItem('auth_type');
           localStorage.removeItem('auth_session_id');
           localStorage.removeItem('auth_user');
-          
+
           debug.log('✅ 게스트 쿠키 및 localStorage 정리 완료');
 
           // auth_verified 쿠키 설정 (Vercel HTTPS 환경 대응)
@@ -160,16 +168,16 @@ export default function AuthCallbackPage() {
           const hasAuthToken = cookies.some(
             (c) => c.startsWith('sb-') && c.includes('auth-token')
           );
-          
+
           // 추가 세션 유효성 검증
           const finalSessionCheck = await supabase.auth.getSession();
           const sessionValid = !!finalSessionCheck.data.session?.access_token;
-          
+
           debug.log('🍪 세션 완전성 검증:', {
             hasAuthToken,
             sessionValid,
             userId: finalSessionCheck.data.session?.user?.id,
-            environment: isVercel ? 'Vercel' : 'Local'
+            environment: isVercel ? 'Vercel' : 'Local',
           });
 
           // 검증 통과 후 리다이렉트
@@ -209,27 +217,31 @@ export default function AuthCallbackPage() {
             // 최종 세션 확인 (더 엄격한 검증)
             const finalCheck = await supabase.auth.getSession();
             const finalSession = finalCheck.data.session;
-            
+
             debug.log('🔍 최종 세션 검증:', {
               hasSession: !!finalSession,
               hasAccessToken: !!finalSession?.access_token,
               hasUser: !!finalSession?.user?.id,
               userEmail: finalSession?.user?.email,
-              expiresAt: finalSession?.expires_at
+              expiresAt: finalSession?.expires_at,
             });
-            
+
             if (finalSession?.access_token && finalSession?.user) {
               debug.log('✅ 최종 세션 검증 성공!');
-              
+
               // 세션 유효성 재확인 후 리다이렉트
               await new Promise((resolve) => setTimeout(resolve, 500));
               window.location.href = '/main';
             } else {
               debug.log('❌ 최종 세션 생성 실패 - 로그인 페이지로 이동');
-              
+
               // 무한 리다이렉션 루프 방지: 메인 페이지 대신 로그인 페이지로 직접 이동
-              router.push('/login?error=session_timeout&message=' + 
-                encodeURIComponent('세션 생성에 실패했습니다. 다시 로그인해주세요.'));
+              router.push(
+                '/login?error=session_timeout&message=' +
+                  encodeURIComponent(
+                    '세션 생성에 실패했습니다. 다시 로그인해주세요.'
+                  )
+              );
             }
           }
         }

@@ -8,7 +8,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getSupabaseClient } from '@/lib/supabase-singleton';
+import { getSupabaseClient } from '@/lib/supabase/client';
 
 // 버전 관리 인터페이스
 export interface CloudVersion {

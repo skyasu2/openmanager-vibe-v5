@@ -7,7 +7,7 @@
 
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/api-auth';
-import { supabase } from '@/lib/supabase/supabase-client';
+import { supabase } from '@/lib/supabase/client';
 import debug from '@/utils/debug';
 
 // 동적 import로 빌드 시점 초기화 방지

@@ -15,7 +15,7 @@ import {
   type HealthCheckResponse,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
-import { getSupabaseClient } from '@/lib/supabase/supabase-client';
+import { getSupabaseClient } from '@/lib/supabase/client';
 import { getCacheStats } from '@/lib/cache/cache-helper';
 import { getApiConfig } from '@/lib/api/api-config';
 import { env, isDevelopment } from '@/env';

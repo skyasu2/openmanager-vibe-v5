@@ -1,5 +1,5 @@
 import { devKeyManager } from '@/utils/dev-key-manager';
-import { supabase } from '@/lib/supabase/supabase-client';
+import { supabase } from '@/lib/supabase/client';
 import { env, isDevelopment } from '@/env';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
@@ -33,7 +33,10 @@ async function checkSupabase(): Promise<ServiceStatus> {
   const startTime = Date.now();
   try {
     const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL;
-    const { error } = await supabase.from('system_logs').select('count').limit(1);
+    const { error } = await supabase
+      .from('system_logs')
+      .select('count')
+      .limit(1);
     const responseTime = Date.now() - startTime;
 
     if (error) {
@@ -51,7 +54,10 @@ async function checkSupabase(): Promise<ServiceStatus> {
       status: 'connected',
       responseTime,
       details: {
-        url: supabaseUrl === 'https://dummy.supabase.co' ? '미설정 (Mock)' : '설정됨',
+        url:
+          supabaseUrl === 'https://dummy.supabase.co'
+            ? '미설정 (Mock)'
+            : '설정됨',
         region: 'Seoul-DC-1',
         database: 'postgres',
         connection: 'pooler',
@@ -170,7 +176,10 @@ async function checkLocalMCP(): Promise<ServiceStatus> {
     const mcpUrl = devKeyManager.getMCPUrl();
     if (!mcpUrl) {
       return {
-        name: 'Local MCP Server', status: 'error', responseTime: 0, details: null,
+        name: 'Local MCP Server',
+        status: 'error',
+        responseTime: 0,
+        details: null,
         error: 'MCP URL not configured in environment variables',
       };
     }
@@ -181,19 +190,32 @@ async function checkLocalMCP(): Promise<ServiceStatus> {
     const responseTime = Date.now() - startTime;
     if (!response.ok) {
       return {
-        name: 'Local MCP Server', status: 'error', responseTime,
-        details: { httpStatus: response.status }, error: `HTTP ${response.status}`,
+        name: 'Local MCP Server',
+        status: 'error',
+        responseTime,
+        details: { httpStatus: response.status },
+        error: `HTTP ${response.status}`,
       };
     }
     const data = await response.json();
     return {
-      name: 'Local MCP Server', status: 'connected', responseTime,
-      details: { url: mcpUrl, port: 3000, health: data, keyManager: 'DevKeyManager v1.0' },
+      name: 'Local MCP Server',
+      status: 'connected',
+      responseTime,
+      details: {
+        url: mcpUrl,
+        port: 3000,
+        health: data,
+        keyManager: 'DevKeyManager v1.0',
+      },
     };
   } catch (error: unknown) {
     return {
-      name: 'Local MCP Server', status: 'error', responseTime: Date.now() - startTime,
-      details: null, error: error instanceof Error ? error.message : 'Unknown error',
+      name: 'Local MCP Server',
+      status: 'error',
+      responseTime: Date.now() - startTime,
+      details: null,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -202,7 +224,9 @@ async function checkVercel(): Promise<ServiceStatus> {
   const startTime = Date.now();
   try {
     const vercelUrl = env.VERCEL_URL;
-    const baseUrl = vercelUrl ? `https://${vercelUrl}` : 'http://localhost:3000';
+    const baseUrl = vercelUrl
+      ? `https://${vercelUrl}`
+      : 'http://localhost:3000';
     const response = await fetch(`${baseUrl}/api/health`, { method: 'GET' });
     const responseTime = Date.now() - startTime;
 
@@ -247,10 +271,15 @@ export async function GET(_request: NextRequest) {
 
     const summary = {
       total: services.length,
-      connected: services.filter((s: ServiceStatus) => s.status === 'connected').length,
-      errors: services.filter((s: ServiceStatus) => s.status === 'error').length,
+      connected: services.filter((s: ServiceStatus) => s.status === 'connected')
+        .length,
+      errors: services.filter((s: ServiceStatus) => s.status === 'error')
+        .length,
       averageResponseTime: Math.round(
-        services.reduce((sum: number, s: ServiceStatus) => sum + s.responseTime, 0) / services.length
+        services.reduce(
+          (sum: number, s: ServiceStatus) => sum + s.responseTime,
+          0
+        ) / services.length
       ),
     };
 
@@ -261,7 +290,9 @@ export async function GET(_request: NextRequest) {
       summary,
     };
 
-    debug.log(`✅ 서비스 상태 확인 완료 (Redis-Free): ${summary.connected}/${summary.total} 연결됨`);
+    debug.log(
+      `✅ 서비스 상태 확인 완료 (Redis-Free): ${summary.connected}/${summary.total} 연결됨`
+    );
 
     return NextResponse.json(response);
   } catch (error: unknown) {

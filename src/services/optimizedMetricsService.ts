@@ -9,7 +9,7 @@
  * - Redis 완전 제거, 메모리 캐시만 사용
  */
 
-import { getSupabaseClient } from '@/lib/supabase-singleton';
+import { getSupabaseClient } from '@/lib/supabase/client';
 import type { ServerMetrics } from '@/types/common';
 
 // Raw database metric interface
@@ -43,10 +43,10 @@ function parseTimeRange(range: string): number {
   const value = match[1];
   const unit = match[2];
   if (!value || !unit) return 60 * 60 * 1000;
-  
+
   const multiplier = units[unit];
   if (!multiplier) return 60 * 60 * 1000; // 기본 1시간
-  
+
   return parseInt(value) * multiplier;
 }
 

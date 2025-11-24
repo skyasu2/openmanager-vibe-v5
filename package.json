@@ -118,7 +118,6 @@
     "ai-tools:check": "bash scripts/ai/health/check-ai-tools-updates.sh",
     "ai-tools:update": "bash scripts/ai-tools-auto-update.sh",
     "ai-tools:remove-cron": "bash scripts/setup-ai-tools-cron.sh",
-    "ai:context-check": "node scripts/check-ai-context.js",
     "env:check": "ts-node scripts/check-env.ts",
     "dev:tmux:enhanced": "bash scripts/dev-tmux-enhanced.sh",
     "dev:tmux:test": "AUTO_START_TEST_SERVER=true bash scripts/dev-tmux-enhanced.sh",

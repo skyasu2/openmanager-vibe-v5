@@ -24,7 +24,7 @@ import type {
   ServerRole,
 } from '@/types/server';
 import type { HourlyServerData, RawServerData } from '@/types/server-metrics';
-import { getSupabaseClient } from '@/lib/supabase/supabase-client';
+import { getSupabaseClient } from '@/lib/supabase/client';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -297,7 +297,8 @@ function generateFallbackServers(): EnhancedServerMetrics[] {
     alerts: [],
     ip: `192.168.1.${100 + index}`,
     os: 'Ubuntu 22.04 LTS',
-    type: (['web', 'api', 'database', 'cache'][index % 4] || 'web') as ServerRole,
+    type: (['web', 'api', 'database', 'cache'][index % 4] ||
+      'web') as ServerRole,
     role: 'fallback',
     environment: 'production',
     provider: 'Fallback-System',
@@ -366,7 +367,8 @@ async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
           ip: server.ip_address,
           os: server.os ?? 'Ubuntu 22.04 LTS',
           role: (server.role ?? 'web') as ServerRole,
-          environment: (server.environment ?? 'production') as ServerEnvironment,
+          environment: (server.environment ??
+            'production') as ServerEnvironment,
           provider: server.provider,
           specs: {
             cpu_cores: server.cpu_cores ?? 4,

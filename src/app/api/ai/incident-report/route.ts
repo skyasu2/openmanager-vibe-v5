@@ -10,7 +10,7 @@
 
 import { withAuth } from '@/lib/auth/api-auth';
 import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';
-import { supabase } from '@/lib/supabase/supabase-client';
+import { supabase } from '@/lib/supabase/client';
 import debug from '@/utils/debug';
 import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';

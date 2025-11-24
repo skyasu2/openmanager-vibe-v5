@@ -14,7 +14,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getClientSupabase } from '@/lib/supabase-factory';
+import { getSupabaseClient } from '@/lib/supabase/client';
 
 interface SystemLogEntry {
   id: string;
@@ -164,7 +164,7 @@ export class CloudLoggingService {
       process.env.NEXT_PUBLIC_SUPABASE_URL &&
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     ) {
-      this.supabase = getClientSupabase();
+      this.supabase = getSupabaseClient();
       this.startBatchProcessor();
     }
 

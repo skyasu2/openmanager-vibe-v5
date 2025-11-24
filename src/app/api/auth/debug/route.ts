@@ -4,8 +4,8 @@
  * Vercel 환경에서 세션 상태와 쿠키 정보를 확인합니다.
  */
 
-import { supabase } from '@/lib/supabase';
-import { createMiddlewareClient } from '@/lib/supabase-ssr';
+import { supabase } from '@/lib/supabase/client';
+import { createMiddlewareClient } from '@/lib/supabase/middleware';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';

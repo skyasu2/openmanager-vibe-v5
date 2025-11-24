@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { postgresVectorDB } from '@/services/ai/postgres-vector-db';
 import { embeddingService } from '@/services/ai/embedding-service';
 import { getSupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase/client';
 import debug from '@/utils/debug';
 
 // Interface for PostgreSQL index information

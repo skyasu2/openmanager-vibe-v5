@@ -5,10 +5,13 @@
 
 import { vi } from 'vitest';
 import '@testing-library/jest-dom';
-import { createSupabaseMock, SupabaseMockBuilder } from './helpers/supabase-mock';
+import {
+  createSupabaseMock,
+  SupabaseMockBuilder,
+} from './helpers/supabase-mock';
 
 // Supabase Client Mock - 향상된 Builder 패턴 사용
-vi.mock('@/lib/supabase/supabase-client', () => {
+vi.mock('@/lib/supabase/client', () => {
   return createSupabaseMock(
     new SupabaseMockBuilder()
       .withData([])
@@ -84,12 +87,13 @@ globalThis.fetch = vi.fn().mockImplementation((url: string) => {
     ok: true,
     status: 200,
     statusText: 'OK',
-    json: () => Promise.resolve({
-      data: {
-        response: 'Mock AI response',
-        confidence: 0.9
-      }
-    }),
+    json: () =>
+      Promise.resolve({
+        data: {
+          response: 'Mock AI response',
+          confidence: 0.9,
+        },
+      }),
     text: () => Promise.resolve('Mock text response'),
     headers: new Headers(),
     url,
@@ -109,7 +113,7 @@ Object.defineProperty(globalThis, 'localStorage', {
 
 Object.defineProperty(globalThis, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,

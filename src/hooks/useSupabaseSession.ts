@@ -1,6 +1,6 @@
 'use client';
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
 import { clearAuthData } from '@/lib/auth/auth-state-manager';

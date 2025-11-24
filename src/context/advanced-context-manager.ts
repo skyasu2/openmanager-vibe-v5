@@ -11,7 +11,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getClientSupabase } from '@/lib/supabase-factory';
+import { getSupabaseClient } from '@/lib/supabase/client';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -137,7 +137,7 @@ export class AdvancedContextManager {
       process.env.NEXT_PUBLIC_SUPABASE_URL &&
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     ) {
-      this.supabase = getClientSupabase();
+      this.supabase = getSupabaseClient();
     }
 
     console.log('🧠 AdvancedContextManager 초기화 완료');

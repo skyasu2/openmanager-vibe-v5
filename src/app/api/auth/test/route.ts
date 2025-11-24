@@ -10,7 +10,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/supabase-client';
+import { supabase } from '@/lib/supabase/client';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
   AuthTestResponseSchema,
@@ -65,11 +65,11 @@ const getHandler = createApiRoute()
     debug.log('🐙 GitHub OAuth URL 생성 테스트 (서버 환경 안전 모드)...');
     let oauthData: OAuthData | null = null;
     let oauthError: OAuthError | null = null;
-    
+
     try {
       // 서버 환경에서는 OAuth URL만 생성 (브라우저 API 사용 방지)
       const redirectUrl = `${request.headers.get('origin') || `https://${request.headers.get('host')}`}/auth/callback`;
-      
+
       // Supabase OAuth URL 직접 생성 (브라우저 API 회피)
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       if (supabaseUrl) {
@@ -77,14 +77,16 @@ const getHandler = createApiRoute()
         const oauthUrl = `${supabaseUrl}/auth/v1/authorize?provider=github&redirect_to=${encodeURIComponent(redirectUrl)}&scopes=read:user+user:email`;
         oauthData = {
           url: oauthUrl,
-          provider: 'github'
+          provider: 'github',
         };
         debug.log('✅ OAuth URL 생성 성공:', oauthUrl);
       } else {
         oauthError = { message: 'Supabase URL이 설정되지 않았습니다.' };
       }
     } catch (error) {
-      oauthError = { message: `OAuth 테스트 실패: ${error instanceof Error ? error.message : 'Unknown error'}` };
+      oauthError = {
+        message: `OAuth 테스트 실패: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      };
     }
 
     const testResults: AuthTestResult = {
@@ -191,13 +193,13 @@ const postHandler = createApiRoute()
 
         let oauthData: OAuthData | null = null;
         let oauthError: OAuthError | null = null;
-        
+
         if (supabaseUrl) {
           // OAuth URL 수동 생성으로 브라우저 API 의존성 제거
           const oauthUrl = `${supabaseUrl}/auth/v1/authorize?provider=github&redirect_to=${encodeURIComponent(redirectUrl)}&scopes=read:user+user:email&prompt=consent`;
           oauthData = {
             url: oauthUrl,
-            provider: 'github'
+            provider: 'github',
           };
         } else {
           oauthError = { message: 'Supabase URL이 설정되지 않았습니다.' };

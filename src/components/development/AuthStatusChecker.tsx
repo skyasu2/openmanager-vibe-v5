@@ -8,7 +8,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -122,7 +122,9 @@ export default function AuthStatusChecker() {
   // 자동 새로고침
   useEffect(() => {
     if (autoRefresh) {
-      const interval = setInterval(() => { void checkAuthStatus(); }, 3000); // 3초마다
+      const interval = setInterval(() => {
+        void checkAuthStatus();
+      }, 3000); // 3초마다
       return () => clearInterval(interval);
     }
     // autoRefresh가 false인 경우 cleanup 함수 없음
