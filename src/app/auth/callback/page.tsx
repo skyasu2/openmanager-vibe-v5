@@ -13,6 +13,21 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import debug from '@/utils/debug';
 
+/**
+ * 🔧 Supabase 프로젝트 ID 동적 추출
+ */
+function getSupabaseStorageKey(suffix: string = ''): string {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!url) return suffix ? `sb-auth-token-${suffix}` : 'sb-auth-token';
+
+  const projectId = url.match(/https?:\/\/([^.]+)\.supabase\.co/)?.[1];
+  if (!projectId) return suffix ? `sb-auth-token-${suffix}` : 'sb-auth-token';
+
+  return suffix
+    ? `sb-${projectId}-auth-token-${suffix}`
+    : `sb-${projectId}-auth-token`;
+}
+
 export default function AuthCallbackPage() {
   const router = useRouter();
 
@@ -46,14 +61,10 @@ export default function AuthCallbackPage() {
           hasError: !!error_param,
           hasExistingTokens: {
             codeVerifier: !!localStorage.getItem(
-              'sb-vnswjnltnhpsueosfhmw-auth-token-code-verifier'
+              getSupabaseStorageKey('code-verifier')
             ),
-            authToken: !!localStorage.getItem(
-              'sb-vnswjnltnhpsueosfhmw-auth-token'
-            ),
-            hasAuthCookie: document.cookie.includes(
-              'sb-vnswjnltnhpsueosfhmw-auth-token'
-            ),
+            authToken: !!localStorage.getItem(getSupabaseStorageKey()),
+            hasAuthCookie: document.cookie.includes(getSupabaseStorageKey()),
           },
           timestamp: new Date().toISOString(),
         });

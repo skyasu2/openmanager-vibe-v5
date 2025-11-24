@@ -5,17 +5,34 @@
  * NextAuth 대체 구현
  */
 
-import type {
-  AuthError,
-  Session,
-  AuthChangeEvent,
-} from '@supabase/supabase-js';
+import type { AuthError, Session } from '@supabase/supabase-js';
 import { supabase } from '../supabase';
 import {
   validateRedirectUrl,
   guestSessionCookies,
 } from '@/lib/security/secure-cookies';
 import { authStateManager } from './auth-state-manager';
+
+/**
+ * 🔧 Supabase 프로젝트 ID 동적 추출
+ * URL에서 프로젝트 ID를 추출하여 스토리지 키를 생성합니다
+ */
+function getSupabaseStorageKey(suffix: string = ''): string {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!url) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL is not defined');
+  }
+
+  // https://vnswjnltnhpsueosfhmw.supabase.co → vnswjnltnhpsueosfhmw
+  const projectId = url.match(/https?:\/\/([^.]+)\.supabase\.co/)?.[1];
+  if (!projectId) {
+    throw new Error(`Invalid Supabase URL format: ${url}`);
+  }
+
+  return suffix
+    ? `sb-${projectId}-auth-token-${suffix}`
+    : `sb-${projectId}-auth-token`;
+}
 
 export interface AuthUser {
   id: string;
@@ -271,9 +288,7 @@ async function getCurrentUserLegacy(): Promise<AuthUser | null> {
         }
 
         // Supabase 세션 토큰 직접 확인 (fallback)
-        const supabaseAuthToken = localStorage.getItem(
-          'sb-vnswjnltnhpsueosfhmw-auth-token'
-        );
+        const supabaseAuthToken = localStorage.getItem(getSupabaseStorageKey());
         if (supabaseAuthToken) {
           try {
             const tokenData = JSON.parse(supabaseAuthToken);

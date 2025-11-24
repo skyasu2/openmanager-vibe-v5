@@ -13,11 +13,13 @@ declare global {
 
 export function getSupabaseClient(): SupabaseClient {
   if (typeof window === 'undefined') {
-    // Fallback for server-side rendering (if called accidentally)
-    // But ideally, use createServerClient for SSR
-    return createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    // ⚠️ SSR 환경에서는 createServerClient를 사용해야 합니다
+    // 이 경로는 실수로 호출된 경우의 폴백이며, 프로덕션에서는 경고를 발생시킵니다
+    console.error(
+      '❌ getSupabaseClient() should not be called in SSR. Use createServerClient() instead.'
+    );
+    throw new Error(
+      'Invalid Supabase client usage: Use createServerClient() for SSR'
     );
   }
 
