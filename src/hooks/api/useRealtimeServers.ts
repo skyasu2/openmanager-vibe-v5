@@ -11,8 +11,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import type { Server } from '@/types/server';
-import { getAPIBatcher } from '@/lib/api-batcher';
-import type { APIRequest } from '@/lib/api-batcher';
+import { getAPIBatcher } from '@/lib/api/api-batcher';
+import type { APIRequest } from '@/lib/api/api-batcher';
 
 // 타입 정의
 interface UseRealtimeServersOptions {

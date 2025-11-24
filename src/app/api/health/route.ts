@@ -17,7 +17,7 @@ import {
 import { getErrorMessage } from '@/types/type-utils';
 import { getSupabaseClient } from '@/lib/supabase/supabase-client';
 import { getCacheStats } from '@/lib/cache-helper';
-import { getApiConfig } from '@/lib/api-config';
+import { getApiConfig } from '@/lib/api/api-config';
 import { env, isDevelopment } from '@/env';
 import debug from '@/utils/debug';
 
@@ -25,21 +25,28 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic'; // 수동 테스트 전용, 자동 호출 금지
 
 // 서비스 상태 체크 함수들 - 실제 구현
-async function checkDatabaseStatus(): Promise<'connected' | 'disconnected' | 'error'> {
+async function checkDatabaseStatus(): Promise<
+  'connected' | 'disconnected' | 'error'
+> {
   try {
     const startTime = Date.now();
     const supabase = getSupabaseClient();
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
     try {
-      const { data, error } = await supabase.from('command_vectors').select('id').limit(1);
+      const { data, error } = await supabase
+        .from('command_vectors')
+        .select('id')
+        .limit(1);
       clearTimeout(timeoutId);
       const latency = Date.now() - startTime;
       if (error) {
         debug.error('❌ Database check failed:', error.message);
         return 'error';
       }
-      debug.log(`✅ Database connected (latency: ${latency}ms, records: ${data?.length || 0})`);
+      debug.log(
+        `✅ Database connected (latency: ${latency}ms, records: ${data?.length || 0})`
+      );
       return 'connected';
     } catch (fetchError) {
       clearTimeout(timeoutId);
@@ -56,7 +63,9 @@ function checkCacheStatus(): Promise<'connected' | 'disconnected' | 'error'> {
   try {
     const stats = getCacheStats();
     if (stats.size >= 0) {
-      debug.log(`✅ Cache operational (${stats.size}/${stats.maxSize} items, hit rate: ${stats.hitRate}%)`);
+      debug.log(
+        `✅ Cache operational (${stats.size}/${stats.maxSize} items, hit rate: ${stats.hitRate}%)`
+      );
       return Promise.resolve('connected');
     }
     return Promise.resolve('disconnected');
@@ -66,7 +75,9 @@ function checkCacheStatus(): Promise<'connected' | 'disconnected' | 'error'> {
   }
 }
 
-async function checkAIStatus(): Promise<'connected' | 'disconnected' | 'error'> {
+async function checkAIStatus(): Promise<
+  'connected' | 'disconnected' | 'error'
+> {
   try {
     const startTime = Date.now();
     const gcpMcpEnabled = env.ENABLE_GCP_MCP_INTEGRATION === 'true';
@@ -81,7 +92,10 @@ async function checkAIStatus(): Promise<'connected' | 'disconnected' | 'error'> 
     const timeoutId = setTimeout(() => controller.abort(), 3000);
 
     try {
-      const response = await fetch(`${vmUrl}/health`, { signal: controller.signal, method: 'GET' });
+      const response = await fetch(`${vmUrl}/health`, {
+        signal: controller.signal,
+        method: 'GET',
+      });
       clearTimeout(timeoutId);
       const latency = Date.now() - startTime;
       if (response.ok) {
@@ -135,16 +149,38 @@ const healthCheckHandler = createApiRoute()
       checkAIWithLatency(),
     ]);
 
-    const allServicesHealthy = dbResult.status === 'connected' && cacheResult.status === 'connected' && aiResult.status === 'connected';
-    const hasErrors = dbResult.status === 'error' || cacheResult.status === 'error' || aiResult.status === 'error';
-    const overallStatus = hasErrors ? 'unhealthy' : allServicesHealthy ? 'healthy' : 'degraded';
+    const allServicesHealthy =
+      dbResult.status === 'connected' &&
+      cacheResult.status === 'connected' &&
+      aiResult.status === 'connected';
+    const hasErrors =
+      dbResult.status === 'error' ||
+      cacheResult.status === 'error' ||
+      aiResult.status === 'error';
+    const overallStatus = hasErrors
+      ? 'unhealthy'
+      : allServicesHealthy
+        ? 'healthy'
+        : 'degraded';
 
     const response: HealthCheckResponse = {
       status: overallStatus,
       services: {
-        database: { status: dbResult.status, lastCheck: new Date().toISOString(), latency: dbResult.latency },
-        cache: { status: cacheResult.status, lastCheck: new Date().toISOString(), latency: cacheResult.latency },
-        ai: { status: aiResult.status, lastCheck: new Date().toISOString(), latency: aiResult.latency },
+        database: {
+          status: dbResult.status,
+          lastCheck: new Date().toISOString(),
+          latency: dbResult.latency,
+        },
+        cache: {
+          status: cacheResult.status,
+          lastCheck: new Date().toISOString(),
+          latency: cacheResult.latency,
+        },
+        ai: {
+          status: aiResult.status,
+          lastCheck: new Date().toISOString(),
+          latency: aiResult.latency,
+        },
       },
       uptime: process.uptime ? Math.floor(process.uptime()) : 0,
       version: env.APP_VERSION || '5.66.32',
@@ -178,10 +214,13 @@ export async function GET(request: NextRequest) {
   try {
     const apiConfig = getApiConfig();
     const response = await healthCheckHandler(request);
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
 
     if (apiConfig.cache.enabled) {
-      headers['Cache-Control'] = `public, max-age=${apiConfig.cache.ttl}, stale-while-revalidate=30`;
+      headers['Cache-Control'] =
+        `public, max-age=${apiConfig.cache.ttl}, stale-while-revalidate=30`;
     } else {
       headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
     }

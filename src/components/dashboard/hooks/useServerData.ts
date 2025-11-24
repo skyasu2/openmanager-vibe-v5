@@ -27,7 +27,7 @@ import type { Server, ServerRole, ServerEnvironment } from '@/types/server';
 import { useCallback, useEffect, useState } from 'react';
 import type { DashboardStats, ServerFilters } from '../types/dashboard.types';
 // 🚀 Vercel 최적화: API 배칭 + 통합 타이머 시스템 통합
-import { getAPIBatcher } from '@/lib/api-batcher';
+import { getAPIBatcher } from '@/lib/api/api-batcher';
 import { useUnifiedTimer, createTimerTask } from '@/hooks/useUnifiedTimer';
 
 // 🎯 통합된 폴백 서버 데이터 사용 (하드코딩 제거)

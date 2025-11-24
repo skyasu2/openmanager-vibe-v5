@@ -1,6 +1,6 @@
 /**
  * 🚀 Vercel Edge Runtime 호환 API 배칭 시스템
- * 
+ *
  * Vercel 무료 티어 최적화:
  * - 동시 요청 수 최소화 (10개 함수 제한 고려)
  * - 콜드 스타트 지연 최소화
@@ -62,12 +62,15 @@ function isValidAPIResponse(value: unknown): value is APIResponse {
 class VercelOptimizedAPIBatcher {
   private readonly options: BatchOptions;
   private readonly queue = new Map<string, APIRequest>();
-  private readonly pendingPromises = new Map<string, {
-    resolve: (value: APIResponse<unknown>) => void;
-    reject: (error: Error) => void;
-    timestamp: number;
-  }>();
-  
+  private readonly pendingPromises = new Map<
+    string,
+    {
+      resolve: (value: APIResponse<unknown>) => void;
+      reject: (error: Error) => void;
+      timestamp: number;
+    }
+  >();
+
   private batchTimer: NodeJS.Timeout | null = null;
   private isProcessing = false;
 
@@ -89,7 +92,7 @@ class VercelOptimizedAPIBatcher {
     return new Promise((resolve, reject) => {
       // 메모리 누수 방지: 오래된 요청 정리
       this.cleanupExpiredRequests();
-      
+
       // 큐에 요청 추가
       this.queue.set(request.id, request);
       this.pendingPromises.set(request.id, {
@@ -111,9 +114,8 @@ class VercelOptimizedAPIBatcher {
     if (this.isProcessing) return;
 
     // 고우선순위이거나 배치 크기 도달 시 즉시 실행
-    const shouldExecuteImmediately = 
-      isHighPriority || 
-      this.queue.size >= this.options.maxBatchSize;
+    const shouldExecuteImmediately =
+      isHighPriority || this.queue.size >= this.options.maxBatchSize;
 
     if (shouldExecuteImmediately) {
       void this.executeBatch();
@@ -139,7 +141,7 @@ class VercelOptimizedAPIBatcher {
     if (this.isProcessing || this.queue.size === 0) return;
 
     this.isProcessing = true;
-    
+
     // 타이머 정리
     if (this.batchTimer) {
       clearTimeout(this.batchTimer);
@@ -154,22 +156,23 @@ class VercelOptimizedAPIBatcher {
       // 우선순위별 정렬 (high > normal > low)
       const sortedRequests = Array.from(currentBatch.values()).sort((a, b) => {
         const priorityOrder = { high: 0, normal: 1, low: 2 };
-        return (priorityOrder[a.priority || 'normal'] || 1) - 
-               (priorityOrder[b.priority || 'normal'] || 1);
+        return (
+          (priorityOrder[a.priority || 'normal'] || 1) -
+          (priorityOrder[b.priority || 'normal'] || 1)
+        );
       });
 
       // Vercel Edge 환경 최적화된 병렬 실행
       const results = await this.executeParallelRequests(sortedRequests);
-      
+
       // 결과 처리
       this.processResults(results);
-      
     } catch (error) {
       // 배치 전체 실패 시 모든 요청에 에러 전파
       this.handleBatchError(currentBatch, error as Error);
     } finally {
       this.isProcessing = false;
-      
+
       // 큐에 대기 중인 요청이 있으면 다음 배치 스케줄링
       if (this.queue.size > 0) {
         this.scheduleBatch();
@@ -182,64 +185,69 @@ class VercelOptimizedAPIBatcher {
    * - 메모리 효율적 Promise.allSettled 사용
    * - 타임아웃 제어로 콜드 스타트 대응
    */
-  private async executeParallelRequests(requests: APIRequest[]): Promise<APIResponse[]> {
+  private async executeParallelRequests(
+    requests: APIRequest[]
+  ): Promise<APIResponse[]> {
     const startTime = Date.now();
-    
-    const requestPromises = requests.map(async (request): Promise<APIResponse> => {
-      const requestStart = Date.now();
-      
-      try {
-        // Vercel 환경 기본 설정 적용
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-          controller.abort();
-        }, this.options.timeout);
 
-        const response = await fetch(request.endpoint, {
-          ...request.options,
-          signal: controller.signal,
-          // Vercel Edge Runtime 최적화 헤더
-          headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache',
-            ...request.options?.headers,
-          },
-        });
+    const requestPromises = requests.map(
+      async (request): Promise<APIResponse> => {
+        const requestStart = Date.now();
 
-        clearTimeout(timeoutId);
-        
-        const data = response.headers.get('content-type')?.includes('application/json')
-          ? await response.json()
-          : await response.text();
+        try {
+          // Vercel 환경 기본 설정 적용
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => {
+            controller.abort();
+          }, this.options.timeout);
 
-        return {
-          id: request.id,
-          data,
-          status: response.status,
-          timing: {
-            queued: requestStart - startTime,
-            executed: requestStart,
-            duration: Date.now() - requestStart,
-          },
-        };
+          const response = await fetch(request.endpoint, {
+            ...request.options,
+            signal: controller.signal,
+            // Vercel Edge Runtime 최적화 헤더
+            headers: {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache',
+              ...request.options?.headers,
+            },
+          });
 
-      } catch (error) {
-        return {
-          id: request.id,
-          error: error instanceof Error ? error.message : 'Unknown error',
-          status: 0,
-          timing: {
-            queued: requestStart - startTime,
-            executed: requestStart,
-            duration: Date.now() - requestStart,
-          },
-        };
+          clearTimeout(timeoutId);
+
+          const data = response.headers
+            .get('content-type')
+            ?.includes('application/json')
+            ? await response.json()
+            : await response.text();
+
+          return {
+            id: request.id,
+            data,
+            status: response.status,
+            timing: {
+              queued: requestStart - startTime,
+              executed: requestStart,
+              duration: Date.now() - requestStart,
+            },
+          };
+        } catch (error) {
+          return {
+            id: request.id,
+            error: error instanceof Error ? error.message : 'Unknown error',
+            status: 0,
+            timing: {
+              queued: requestStart - startTime,
+              executed: requestStart,
+              duration: Date.now() - requestStart,
+            },
+          };
+        }
       }
-    });
+    );
 
     // Promise.allSettled로 부분 실패 허용
     const settledResults = await Promise.allSettled(requestPromises);
-    
+
     return settledResults.map((result, index) => {
       if (result.status === 'fulfilled') {
         return result.value;
@@ -262,7 +270,7 @@ class VercelOptimizedAPIBatcher {
    * 결과 처리 및 Promise 해결 (Phase 76: 스키마 검증 추가)
    */
   private processResults(results: APIResponse[]): void {
-    results.forEach(result => {
+    results.forEach((result) => {
       // 🛡️ Phase 76: Batcher 응답 스키마 검증
       if (!isValidAPIResponse(result)) {
         console.error('❌ Batcher 응답 스키마 불일치:', result);
@@ -305,7 +313,7 @@ class VercelOptimizedAPIBatcher {
       }
     });
 
-    expiredIds.forEach(id => {
+    expiredIds.forEach((id) => {
       const pending = this.pendingPromises.get(id);
       if (pending) {
         pending.reject(new Error('Request timeout'));
@@ -323,12 +331,12 @@ class VercelOptimizedAPIBatcher {
       clearTimeout(this.batchTimer);
       this.batchTimer = null;
     }
-    
+
     // 대기 중인 모든 요청 취소
-    this.pendingPromises.forEach(pending => {
+    this.pendingPromises.forEach((pending) => {
       pending.reject(new Error('Batcher cleanup'));
     });
-    
+
     this.queue.clear();
     this.pendingPromises.clear();
     this.isProcessing = false;

@@ -8,16 +8,16 @@ import { env, isProduction, isDevelopment, isTest } from '@/env';
 
 // This logic is moved from the now-deleted env-config.ts
 function getSiteUrl(): string {
-    if (env.NEXT_PUBLIC_VERCEL_URL) {
-      return `https://${env.NEXT_PUBLIC_VERCEL_URL}`;
-    }
-    if (isProduction) {
-      return env.NEXT_PUBLIC_PROD_URL || 'https://openmanager-vibe-v5.vercel.app';
-    }
-    if (isTest) {
-      return env.NEXT_PUBLIC_TEST_URL || 'https://openmanager-test.vercel.app';
-    }
-    return env.NEXT_PUBLIC_DEV_URL || 'http://localhost:3000';
+  if (env.NEXT_PUBLIC_VERCEL_URL) {
+    return `https://${env.NEXT_PUBLIC_VERCEL_URL}`;
+  }
+  if (isProduction) {
+    return env.NEXT_PUBLIC_PROD_URL || 'https://openmanager-vibe-v5.vercel.app';
+  }
+  if (isTest) {
+    return env.NEXT_PUBLIC_TEST_URL || 'https://openmanager-test.vercel.app';
+  }
+  return env.NEXT_PUBLIC_DEV_URL || 'http://localhost:3000';
 }
 
 /**
@@ -126,7 +126,9 @@ export class ApiEndpointBuilder {
   }
 }
 
-export function createApiHeaders(options: { auth?: string; contentType?: string; cache?: boolean; } = {}): HeadersInit {
+export function createApiHeaders(
+  options: { auth?: string; contentType?: string; cache?: boolean } = {}
+): HeadersInit {
   const headers: HeadersInit = {};
   headers['Content-Type'] = options.contentType || 'application/json';
   if (options.auth) {
@@ -142,9 +144,20 @@ export function createApiHeaders(options: { auth?: string; contentType?: string;
   return headers;
 }
 
-export function createApiRequestOptions(options: { method?: string; body?: unknown; auth?: string; cache?: boolean; timeout?: number; } = {}): RequestInit {
+export function createApiRequestOptions(
+  options: {
+    method?: string;
+    body?: unknown;
+    auth?: string;
+    cache?: boolean;
+    timeout?: number;
+  } = {}
+): RequestInit {
   const config = getApiConfig();
-  const headers = createApiHeaders({ auth: options.auth, cache: options.cache });
+  const headers = createApiHeaders({
+    auth: options.auth,
+    cache: options.cache,
+  });
 
   const requestOptions: RequestInit = {
     method: options.method || 'GET',
@@ -152,7 +165,10 @@ export function createApiRequestOptions(options: { method?: string; body?: unkno
   };
 
   if (options.body) {
-    requestOptions.body = typeof options.body === 'string' ? options.body : JSON.stringify(options.body);
+    requestOptions.body =
+      typeof options.body === 'string'
+        ? options.body
+        : JSON.stringify(options.body);
   }
 
   if (!config.cache.enabled || options.cache === false) {
@@ -169,9 +185,14 @@ export function createApiRequestOptions(options: { method?: string; body?: unkno
   return requestOptions;
 }
 
-export async function apiCall<T = unknown>(endpoint: string, options: Parameters<typeof createApiRequestOptions>[0] = {}): Promise<T> {
+export async function apiCall<T = unknown>(
+  endpoint: string,
+  options: Parameters<typeof createApiRequestOptions>[0] = {}
+): Promise<T> {
   const builder = new ApiEndpointBuilder();
-  const url = endpoint.startsWith('http') ? endpoint : builder.internal(endpoint);
+  const url = endpoint.startsWith('http')
+    ? endpoint
+    : builder.internal(endpoint);
   const requestOptions = createApiRequestOptions(options);
 
   try {
