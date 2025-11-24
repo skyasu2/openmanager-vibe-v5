@@ -2,9 +2,9 @@
 
 # Auto AI Code Review Script (Codex → Gemini Fallback) with Smart Verification
 # 목적: 커밋 시 변경사항을 AI가 자동 리뷰하고 리포트 생성 (스마트 검증)
-# 버전: 4.1.2
-# 날짜: 2025-11-22
-# 전략: Codex 우선 → Gemini 폴백 (사용량 제한 대응) + 스마트 검증
+# 버전: 4.2.0
+# 날짜: 2025-11-24
+# 전략: Codex 우선 (4:1 비율) → Gemini 폴백 (사용량 제한 대응) + 스마트 검증
 #
 # ⚠️ 중요: 이 스크립트는 직접 실행만 지원합니다 (source 사용 금지)
 # 최상단 cd 명령으로 인해 source 시 호출자의 작업 디렉토리가 변경됩니다
@@ -46,6 +46,10 @@
 # - 🔄 변경: Claude Code 최종 폴백을 간단한 알림으로 변경 (옵션 3)
 # - ✨ 개선: 불필요한 임시 파일 생성 제거
 # - 💡 개선: 사용자 판단 존중 (3가지 선택지 제공)
+#
+# Changelog v3.0.1 (2025-11-24): 🎯 4:1 비율로 업데이트
+# - 🔄 변경: Codex/Gemini 비율을 2:1에서 4:1로 조정 (Codex 4회, Gemini 1회 순환)
+# - 🎯 목표: Codex 우선 사용으로 일관성 향상
 #
 # Changelog v3.0.0 (2025-11-21): 🚀 MAJOR UPDATE - 2:1 비율 + 상호 폴백 + Claude Code 최종 폴백
 # - ✨ 신규: 2:1 비율로 Codex/Gemini 자동 선택 (Codex 2회, Gemini 1회 순환)
@@ -177,21 +181,21 @@ increment_ai_counter() {
     fi
 }
 
-# 2:1 비율로 AI 선택 (Codex 2회, Gemini 1회 순환)
+# 4:1 비율로 AI 선택 (Codex 4회, Gemini 1회 순환)
 select_primary_ai() {
     init_ai_counter
-    
+
     local codex_count=$(get_ai_counter "codex")
     local gemini_count=$(get_ai_counter "gemini")
-    
-    # 2:1 비율 계산: Codex를 2번 사용할 때마다 Gemini 1번
-    # 총 사용 횟수를 3으로 나눈 나머지로 판단
+
+    # 4:1 비율 계산: Codex를 4번 사용할 때마다 Gemini 1번
+    # 총 사용 횟수를 5로 나눈 나머지로 판단
     local total=$((codex_count + gemini_count))
-    local remainder=$((total % 3))
-    
-    # remainder 0,1 → Codex (2번)
-    # remainder 2 → Gemini (1번)
-    if [ $remainder -eq 2 ]; then
+    local remainder=$((total % 5))
+
+    # remainder 0,1,2,3 → Codex (4번)
+    # remainder 4 → Gemini (1번)
+    if [ $remainder -eq 4 ]; then
         echo "gemini"
     else
         echo "codex"
@@ -609,8 +613,7 @@ OUTPUT_EOF
     return 0
 }
 
-# AI 리뷰 실행 (Codex → Gemini 순차 시도)
-# AI 리뷰 실행 (2:1 비율 + 상호 폴백 + Claude Code 최종 폴백)
+# AI 리뷰 실행 (4:1 비율 + 상호 폴백 + Claude Code 최종 폴백)
 run_ai_review() {
     local changes="$1"
     local review_output=""
@@ -618,16 +621,16 @@ run_ai_review() {
     # 임시 파일 초기화
     rm -f /tmp/ai_engine_auto_review
 
-    # 1단계: 2:1 비율로 Primary AI 선택
+    # 1단계: 4:1 비율로 Primary AI 선택
     local primary_ai=$(select_primary_ai)
     local secondary_ai
-    
+
     if [ "$primary_ai" = "codex" ]; then
         secondary_ai="gemini"
-        log_info "🎯 Primary: Codex, Secondary: Gemini (2:1 비율)"
+        log_info "🎯 Primary: Codex, Secondary: Gemini (4:1 비율)"
     else
         secondary_ai="codex"
-        log_info "🎯 Primary: Gemini, Secondary: Codex (2:1 비율)"
+        log_info "🎯 Primary: Gemini, Secondary: Codex (4:1 비율)"
     fi
 
     # 2단계: Primary AI 시도
