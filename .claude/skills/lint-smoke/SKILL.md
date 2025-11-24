@@ -1,5 +1,6 @@
 ---
 name: checking-code-quality
+version: v1.0.0
 description: Automated lint and test smoke check workflow for code quality verification. Triggers when user requests code quality checks, lint execution, test validation, or smoke testing. Use for pre-commit checks or quality gates.
 ---
 

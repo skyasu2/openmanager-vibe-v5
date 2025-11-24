@@ -1,5 +1,6 @@
 ---
 name: diagnosing-nextjs-performance
+version: v1.0.0
 description: Next.js Router performance analysis and bottleneck identification workflow. Triggers when user reports performance issues, slow routing, or requests Next.js optimization analysis. Use for identifying FCP/LCP/CLS bottlenecks and Server Actions blocking.
 ---
 
