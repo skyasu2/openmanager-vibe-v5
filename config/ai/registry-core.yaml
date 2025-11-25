@@ -61,14 +61,18 @@ mcp-servers:
   active:
     - vercel          # v0.0.13, stdio, API_KEY
     - supabase        # CLI
-    - serena          # Native
+    - serena          # Native, 코드 검색 전문
     - context7        # CLI
     - playwright      # CLI, v0.0.45
     - shadcn-ui       # CLI
     - memory          # CLI
     - time            # Python
     - sequential-thinking  # CLI
+    - filesystem      # CLI, 파일 시스템 작업 전문
 
+# 역할 구분:
+#   - serena: 코드 검색 (심볼, 구조 분석)
+#   - filesystem: 파일 작업 (읽기/쓰기, 디렉토리 탐색)
 # 상세 정보: .mcp.json 참조
 
 # ============================================================================

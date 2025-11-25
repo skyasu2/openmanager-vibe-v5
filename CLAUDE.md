@@ -36,7 +36,8 @@ Esc Esc                     # 빠른 복원
 Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K) < ultrathink(32K)
 
 # @-mention 서버 필터링 (v2.0.10+) 🔥
-@serena "코드 구조 분석"       # Serena만 활성화 → 10-18% 추가 절약
+@serena "코드 검색"             # Serena만 활성화 → 10-18% 추가 절약
+@filesystem "파일 작업"        # filesystem만 활성화
 @context7 "Next.js 15 문서"    # Context7만 활성화
 @vercel "배포 상태 확인"       # Vercel만 활성화
 ```
@@ -177,13 +178,13 @@ npm run test:fast           # 21초 (44% 개선)
 - .wslconfig: `dnsTunneling=true`, `autoProxy=true` (필수)
 - MCP 상태: 9/9 연결 (완벽 연결!)
 
-**MCP 연결**: 9/9 완벽 (100% 가동률) ✅
+**MCP 연결**: 10/10 완벽 (100% 가동률) ✅
 
 **MCP 필요시 활용**: 복잡한 작업 시 전문 서버 사용
 
-- **주요 서버**: serena (코드 분석), vercel (배포), context7 (문서), shadcn-ui (UI)
+- **주요 서버**: serena (코드 검색), filesystem (파일 작업), vercel (배포), context7 (문서), shadcn-ui (UI)
 - **토큰 절약 효과**: 최대 85% (MCP 82% + @-mention 3%)
-- **전체 서버**: vercel, serena, supabase, context7, playwright, shadcn-ui, memory, time, sequential-thinking
+- **전체 서버**: vercel, serena, supabase, context7, playwright, shadcn-ui, memory, time, sequential-thinking, filesystem
 
 **상세**: @docs/claude/environment/mcp/mcp-priority-guide.md (514줄, Before/After 예시)
 
