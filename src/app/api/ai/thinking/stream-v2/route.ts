@@ -8,7 +8,7 @@
  */
 
 import { NextRequest } from 'next/server';
-import { supabaseRealtimeAdapter } from '@/services/ai/adapters/service-adapters';
+import { supabaseRealtimeAdapter } from '@/services/ai/adapters/supabase-realtime-adapter';
 import type { ThinkingStep } from '@/services/ai/interfaces/distributed-ai.interface';
 import debug from '@/utils/debug';
 
@@ -77,6 +77,9 @@ export function GET(req: NextRequest) {
         }
       }, STREAM_CONFIG.heartbeatInterval);
 
+      // Supabase Realtime 구독 (먼저 선언)
+      let unsubscribe: (() => void) | null = null;
+
       // 정리 함수
       const cleanup = () => {
         isActive = false;
@@ -86,8 +89,8 @@ export function GET(req: NextRequest) {
         }
       };
 
-      // Supabase Realtime 구독
-      const unsubscribe = supabaseRealtimeAdapter.subscribeToSession(
+      // 구독 초기화
+      unsubscribe = await supabaseRealtimeAdapter.subscribeToSession(
         sessionId,
         (step: ThinkingStep) => {
           if (!isActive) return;
@@ -118,7 +121,7 @@ export function GET(req: NextRequest) {
             debug.error('Failed to send thinking step:', error);
           }
         },
-        (error) => {
+        (error: Error) => {
           debug.error('Supabase subscription error:', error);
           controller.enqueue(
             encoder.encode(

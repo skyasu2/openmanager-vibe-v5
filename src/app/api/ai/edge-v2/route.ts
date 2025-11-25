@@ -9,7 +9,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getGoogleAIModel } from '@/lib/ai/google-ai-client';
-import { supabaseRealtimeAdapter } from '@/services/ai/adapters/service-adapters';
 import debug from '@/utils/debug';
 
 // Edge Runtime 설정
@@ -64,7 +63,10 @@ export async function POST(req: NextRequest) {
     const sessionIdString = sessionId || crypto.randomUUID();
     const startTime = Date.now();
 
-    // 3. 생각중 상태 시작 (비동기)
+    // 3. 생각중 상태 시작 (비동기) - 동적 import로 SSR 이슈 방지
+    const { supabaseRealtimeAdapter } = await import(
+      '@/services/ai/adapters/supabase-realtime-adapter'
+    );
     const thinkingPromise = supabaseRealtimeAdapter
       .addThinkingStep(
         sessionIdString,
@@ -80,7 +82,7 @@ export async function POST(req: NextRequest) {
 
     // 4. Google AI 직접 호출
     const generativeModel = getGoogleAIModel('gemini-1.5-flash');
-    
+
     const result = await generativeModel.generateContent({
       contents: [{ role: 'user', parts: [{ text: query }] }],
       generationConfig: {
@@ -171,9 +173,7 @@ export function GET(_req: NextRequest) {
       rateLimit: '무료 티어 보호 (10req/min)',
       noRAG: 'RAG나 다른 서비스 사용 안함',
     },
-    services: [
-      'google-ai-only'
-    ],
+    services: ['google-ai-only'],
     usage: {
       method: 'POST',
       contentType: 'application/json',

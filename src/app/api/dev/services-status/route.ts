@@ -1,5 +1,5 @@
 import { devKeyManager } from '@/utils/dev-key-manager';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 import { env, isDevelopment } from '@/env';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
@@ -32,6 +32,7 @@ interface ServicesStatusResponse {
 async function checkSupabase(): Promise<ServiceStatus> {
   const startTime = Date.now();
   try {
+    const supabase = await createClient();
     const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL;
     const { error } = await supabase
       .from('system_logs')

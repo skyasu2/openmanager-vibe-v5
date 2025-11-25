@@ -15,12 +15,20 @@ import * as path from 'path';
 export default function globalSetup() {
   console.log('🔧 [Global Setup] Loading environment variables from .env');
 
-  // Load .env file
-  const result = dotenv.config({ path: path.resolve(__dirname, '.env') });
+  // Load .env.e2e file (prioritize E2E config)
+  const result = dotenv.config({ path: path.resolve(__dirname, '.env.e2e') });
 
   if (result.error) {
-    console.error('❌ [Global Setup] Failed to load .env file:', result.error);
-    throw new Error(`Failed to load .env file: ${result.error.message}`);
+    console.warn('⚠️ [Global Setup] .env.e2e file not found, trying .env');
+    const fallbackResult = dotenv.config({
+      path: path.resolve(__dirname, '.env'),
+    });
+
+    if (fallbackResult.error) {
+      console.error('❌ [Global Setup] Failed to load .env or .env.e2e file');
+      // Don't throw here, let the validation check fail if vars are missing
+      // throw new Error(`Failed to load .env file: ${fallbackResult.error.message}`);
+    }
   }
 
   // Validate critical environment variables

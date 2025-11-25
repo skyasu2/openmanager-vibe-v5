@@ -7,7 +7,7 @@
 
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/api-auth';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 import debug from '@/utils/debug';
 
 // 동적 import로 빌드 시점 초기화 방지
@@ -80,6 +80,7 @@ interface MonitoringData {
 
 async function getHandler() {
   try {
+    const supabase = await createClient();
     const startTime = Date.now();
 
     // AI 엔진 인스턴스 가져오기

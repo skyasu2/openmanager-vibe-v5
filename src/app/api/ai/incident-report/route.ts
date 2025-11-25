@@ -10,7 +10,7 @@
 
 import { withAuth } from '@/lib/auth/api-auth';
 import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';
-import { createServerClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import debug from '@/utils/debug';
 import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
@@ -446,7 +446,7 @@ async function postHandler(request: NextRequest) {
 
       case 'generate': {
         // Create server-side Supabase client for API route
-        const supabase = createServerClient();
+        const supabase = await createClient();
 
         if (!metrics || !validateMetrics(metrics)) {
           return NextResponse.json(
@@ -620,6 +620,7 @@ async function postHandler(request: NextRequest) {
  */
 async function getHandler(request: NextRequest) {
   try {
+    const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 

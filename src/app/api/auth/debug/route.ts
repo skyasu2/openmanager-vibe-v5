@@ -4,7 +4,7 @@
  * Vercel 환경에서 세션 상태와 쿠키 정보를 확인합니다.
  */
 
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 import { createMiddlewareClient } from '@/lib/supabase/middleware';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
@@ -24,6 +24,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const supabase = await createClient();
+
     // 환경 정보
     const hostname = request.headers.get('host') || '';
     const isVercel =

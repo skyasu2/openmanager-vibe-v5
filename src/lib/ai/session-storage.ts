@@ -7,7 +7,7 @@
  * ✅ Redis 대체 (Vercel 최적화)
  */
 
-import { getSupabaseClient } from '../supabase-singleton';
+import { getSupabaseClient } from '@/lib/supabase/client';
 import { EdgeLogger } from '../runtime/edge-runtime-utils';
 import type { SupabaseClient } from '@supabase/supabase-js';
 

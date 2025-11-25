@@ -23,7 +23,7 @@ async function getQueryEngine() {
   return getSimplifiedQueryEngineAdapter();
 }
 import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 import crypto from 'crypto';
 import debug from '@/utils/debug';
 import { withAuth } from '@/lib/auth/api-auth';
@@ -95,6 +95,7 @@ function analyzeQueryIntent(query: string): string {
 
 // 쿼리 로깅 함수 (대화 히스토리 포함)
 async function logQuery(
+  supabase: Awaited<ReturnType<typeof createClient>>,
   query: string,
   responseTime: number,
   cacheHit: boolean,
@@ -245,6 +246,7 @@ async function postHandler(request: NextRequest) {
   let query = ''; // 에러 처리를 위해 query를 외부에서 선언
 
   const startTime = Date.now(); // startTime을 최상위로 이동
+  const supabase = await createClient();
 
   try {
     const body: AIQueryRequest = await request.json();
@@ -392,6 +394,8 @@ async function postHandler(request: NextRequest) {
     // 쿼리 로그 저장 (비동기, 응답을 기다리지 않음) - 대화 히스토리 포함
 
     void logQuery(
+      supabase,
+
       query,
 
       responseTime,
@@ -528,6 +532,7 @@ async function postHandler(request: NextRequest) {
     const errorMessage = generateErrorMessage(errorAnalysis);
 
     await logQuery(
+      supabase,
       query,
       finalResponseTime,
       false,

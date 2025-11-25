@@ -25,7 +25,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getSupabaseClient } from '../supabase-singleton';
+import { getSupabaseClient } from '@/lib/supabase/client';
 import { EdgeLogger } from '../runtime/edge-runtime-utils';
 
 // ==============================================

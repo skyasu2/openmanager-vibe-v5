@@ -17,7 +17,7 @@ import type {
 
 import { getSupabaseRAGEngine } from '../supabase-rag-engine';
 import { distributedErrorHandler } from '../errors/distributed-error-handler';
-import { supabaseRealtimeAdapter as supabaseRealtimeAdapterInstance } from './supabase-realtime-adapter';
+// supabaseRealtimeAdapter removed from barrel export - import directly from './supabase-realtime-adapter' with dynamic import
 
 /**
  * Supabase RAG 어댑터
@@ -215,5 +215,5 @@ export class GCPFunctionsAdapter {
 export const supabaseRAGAdapter = new SupabaseRAGAdapter();
 export const gcpFunctionsAdapter = new GCPFunctionsAdapter();
 
-// Supabase Realtime 어댑터 (Redis 대체)
-export const supabaseRealtimeAdapter = supabaseRealtimeAdapterInstance;
+// Supabase Realtime 어댑터 removed from barrel export
+// Import directly from './supabase-realtime-adapter' with dynamic import to avoid SSR issues

@@ -83,11 +83,5 @@ export function getGoogleAIModel(modelName: string = 'gemini-1.5-flash') {
   return generativeModel;
 }
 
-// 환경 정보 로깅
-if (process.env.NODE_ENV === 'development') {
-  debug.log('🔍 Google AI 환경 설정:');
-  debug.log(`  - NODE_ENV: ${process.env.NODE_ENV}`);
-  debug.log(`  - 실제 Google AI API 사용`);
-  debug.log(`  - 주 API 키 사용 가능: ${!!getGoogleAIKey()}`);
-  debug.log(`  - 보조 API 키 사용 가능: ${!!getGoogleAISecondaryKey()}`);
-}
+// 환경 정보 로깅 - 모듈 레벨 코드 제거 (build-time evaluation 방지)
+// getGoogleAIModel() 호출 시점에 필요한 로깅은 함수 내부(line 64)에서 수행됨

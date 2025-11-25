@@ -10,7 +10,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 import { createApiRoute } from '@/lib/api/zod-middleware';
 import {
   AuthTestResponseSchema,
@@ -45,6 +45,7 @@ const getHandler = createApiRoute()
     debug.log('🧪 Supabase Auth 설정 테스트 시작...');
 
     // 중앙 집중식 Supabase 클라이언트 사용 (환경 변수 검증 포함)
+    const supabase = await createClient();
 
     // 1. Supabase 연결 테스트
     debug.log('📡 Supabase 연결 테스트...');
@@ -176,6 +177,7 @@ const postHandler = createApiRoute()
     debug.log('🔬 GitHub OAuth 상세 진단 시작...', testType);
 
     // 중앙 집중식 Supabase 클라이언트 사용
+    const supabase = await createClient();
 
     const diagnostics: AuthDiagnostics = {
       timestamp: new Date().toISOString(),

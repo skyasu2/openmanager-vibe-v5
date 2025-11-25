@@ -7,8 +7,7 @@
  * - RLS 보안 적용
  */
 
-import { supabase } from '../../../lib/supabase/supabase-client';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import type { RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 import type {
   ThinkingStep,
   AIServiceType,
@@ -46,6 +45,8 @@ export class SupabaseRealtimeAdapter {
     userId?: string
   ): Promise<string> {
     try {
+      const { createClient } = await import('@/lib/supabase/server');
+      const supabase = await createClient();
       const { data, error } = await supabase
         .from('thinking_steps')
         .insert({
@@ -82,6 +83,8 @@ export class SupabaseRealtimeAdapter {
     updates: Partial<ThinkingStep>
   ): Promise<void> {
     try {
+      const { createClient } = await import('@/lib/supabase/server');
+      const supabase = await createClient();
       const { error } = await supabase
         .from('thinking_steps')
         .update({
@@ -109,6 +112,8 @@ export class SupabaseRealtimeAdapter {
     afterId?: string
   ): Promise<ThinkingStep[]> {
     try {
+      const { createClient } = await import('@/lib/supabase/server');
+      const supabase = await createClient();
       let query = supabase
         .from('thinking_steps')
         .select('*')
@@ -145,12 +150,15 @@ export class SupabaseRealtimeAdapter {
   /**
    * 실시간 구독 시작
    */
-  subscribeToSession(
+  async subscribeToSession(
     sessionId: string,
     onStep: (step: ThinkingStep) => void,
     onError?: (error: Error) => void
-  ): () => void {
+  ): Promise<() => void> {
     try {
+      const { createClient } = await import('@/lib/supabase/server');
+      const supabase = await createClient();
+
       // 기존 채널이 있으면 재사용
       if (this.channels.has(sessionId)) {
         const existingChannel = this.channels.get(sessionId);
@@ -191,7 +199,6 @@ export class SupabaseRealtimeAdapter {
           }
         )
         .subscribe((status) => {
-          /* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
           if (
             status === 'SUBSCRIBED' ||
             status === 'CHANNEL_ERROR' ||
@@ -202,7 +209,6 @@ export class SupabaseRealtimeAdapter {
               onError?.(new Error(`Subscription failed: ${status}`));
             }
           }
-          /* eslint-enable @typescript-eslint/no-unsafe-enum-comparison */
         });
 
       this.channels.set(sessionId, channel);
@@ -224,6 +230,8 @@ export class SupabaseRealtimeAdapter {
    */
   async clearSession(sessionId: string): Promise<void> {
     try {
+      const { createClient } = await import('@/lib/supabase/server');
+      const supabase = await createClient();
       const { error } = await supabase
         .from('thinking_steps')
         .delete()
@@ -248,6 +256,8 @@ export class SupabaseRealtimeAdapter {
     userId?: string
   ): Promise<string[]> {
     try {
+      const { createClient } = await import('@/lib/supabase/server');
+      const supabase = await createClient();
       const records = steps.map((step) => ({
         session_id: sessionId,
         step: step.step,
@@ -306,5 +316,61 @@ export class SupabaseRealtimeAdapter {
   }
 }
 
-// 싱글톤 인스턴스
-export const supabaseRealtimeAdapter = new SupabaseRealtimeAdapter();
+// 싱글톤 인스턴스 (lazy initialization to avoid build-time evaluation)
+let _instance: SupabaseRealtimeAdapter | null = null;
+
+export const supabaseRealtimeAdapter = {
+  get instance(): SupabaseRealtimeAdapter {
+    if (!_instance) {
+      _instance = new SupabaseRealtimeAdapter();
+    }
+    return _instance;
+  },
+
+  // Proxy all methods to the lazy instance
+  async addThinkingStep(
+    sessionId: string,
+    step: Omit<ThinkingStep, 'id'>,
+    userId?: string
+  ): Promise<string> {
+    return this.instance.addThinkingStep(sessionId, step, userId);
+  },
+
+  async updateThinkingStep(
+    stepId: string,
+    updates: Partial<ThinkingStep>
+  ): Promise<void> {
+    return this.instance.updateThinkingStep(stepId, updates);
+  },
+
+  async getThinkingSteps(
+    sessionId: string,
+    afterId?: string
+  ): Promise<ThinkingStep[]> {
+    return this.instance.getThinkingSteps(sessionId, afterId);
+  },
+
+  async subscribeToSession(
+    sessionId: string,
+    onStep: (step: ThinkingStep) => void,
+    onError?: (error: Error) => void
+  ): Promise<() => void> {
+    return this.instance.subscribeToSession(sessionId, onStep, onError);
+  },
+
+  async clearSession(sessionId: string): Promise<void> {
+    return this.instance.clearSession(sessionId);
+  },
+
+  async addThinkingStepsBatch(
+    sessionId: string,
+    steps: Array<Omit<ThinkingStep, 'id'>>,
+    userId?: string
+  ): Promise<string[]> {
+    return this.instance.addThinkingStepsBatch(sessionId, steps, userId);
+  },
+
+  cleanup(): void {
+    return this.instance.cleanup();
+  },
+};

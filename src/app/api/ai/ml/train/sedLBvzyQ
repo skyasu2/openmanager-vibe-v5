@@ -58,7 +58,6 @@ interface TrainingResult {
 
 // 실제 서버 메트릭 데이터 조회
 async function getServerMetrics(
-  supabase: Awaited<ReturnType<typeof createClient>>,
   serverId?: string,
   timeRange = '24h'
 ): Promise<MLMetricData[]> {
@@ -346,7 +345,6 @@ function performMLTraining(
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
     const body: TrainRequest = await request.json();
     const { type, serverId, timeRange = '24h', config } = body;
 
@@ -373,7 +371,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 실제 서버 메트릭 데이터 조회
-    const metrics = await getServerMetrics(supabase, serverId, timeRange);
+    const metrics = await getServerMetrics(serverId, timeRange);
 
     if (metrics.length === 0) {
       return NextResponse.json(

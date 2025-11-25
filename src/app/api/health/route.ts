@@ -15,7 +15,7 @@ import {
   type HealthCheckResponse,
 } from '@/schemas/api.schema';
 import { getErrorMessage } from '@/types/type-utils';
-import { getSupabaseClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 import { getCacheStats } from '@/lib/cache/cache-helper';
 import { getApiConfig } from '@/lib/api/api-config';
 import { env, isDevelopment } from '@/env';
@@ -30,7 +30,7 @@ async function checkDatabaseStatus(): Promise<
 > {
   try {
     const startTime = Date.now();
-    const supabase = getSupabaseClient();
+    const supabase = await createClient();
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
     try {
