@@ -92,9 +92,15 @@ fi
 echo "✅ Serena 안티패턴 검사 통과!"
 
 # 3. AI Code Review (Auto-fix encoding included)
-echo "🤖 Running AI code review..."
-# 백그라운드 실행이 아닌 포그라운드 실행으로 변경하여 완료 대기
-# (커밋 메시지 작성 전 리뷰 완료 보장)
-./scripts/code-review/auto-ai-review.sh || echo "⚠️ AI Review failed but continuing commit..."
+# Windows 환경에서는 AI 리뷰 건너뛰기 (WSL 전용)
+if [ -n "${WSL_DISTRO_NAME:-}" ]; then
+  echo "🤖 Running AI code review..."
+  # 백그라운드 실행이 아닌 포그라운드 실행으로 변경하여 완료 대기
+  # (커밋 메시지 작성 전 리뷰 완료 보장)
+  ./scripts/code-review/auto-ai-review.sh || echo "⚠️ AI Review failed but continuing commit..."
+else
+  echo "⚠️ Skipping AI Code Review (Windows environment detected)"
+  echo "   (AI Review runs only in WSL)"
+fi
 
 exit 0
