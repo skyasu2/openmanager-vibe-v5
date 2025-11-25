@@ -82,6 +82,27 @@
 
 set -euo pipefail
 
+# 인코딩 설정 (한글 깨짐 방지)
+export LANG=ko_KR.UTF-8
+export LC_ALL=ko_KR.UTF-8
+# Windows/WSL 환경 호환성
+if [ -n "${WSL_DISTRO_NAME:-}" ]; then
+    export PYTHONIOENCODING=utf-8
+else
+    # WSL이 아닌 경우 (Windows Git Bash 등)
+    echo "⚠️  Windows 환경에서 실행됨을 감지했습니다."
+    if command -v wsl.exe >/dev/null; then
+        echo "🔄 WSL 환경으로 전환하여 실행합니다..."
+        # 현재 스크립트 재실행 (WSL 내부에서)
+        # Git Hook에서 실행되므로 현재 디렉토리는 프로젝트 루트임
+        exec wsl.exe bash -c "./scripts/code-review/auto-ai-review.sh \"$@\""
+    else
+        echo "❌ WSL을 찾을 수 없습니다. 이 스크립트는 WSL에서 실행되어야 합니다."
+        echo "   (Microsoft Store에서 Ubuntu 등을 설치하세요)"
+        exit 1
+    fi
+fi
+
 # 프로젝트 루트 (폴백 포함)
 PROJECT_ROOT="${PROJECT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 

@@ -90,4 +90,11 @@ if [ $ANTI_PATTERN_FOUND -eq 1 ]; then
 fi
 
 echo "✅ Serena 안티패턴 검사 통과!"
+
+# 3. AI Code Review (Auto-fix encoding included)
+echo "🤖 Running AI code review..."
+# 백그라운드 실행이 아닌 포그라운드 실행으로 변경하여 완료 대기
+# (커밋 메시지 작성 전 리뷰 완료 보장)
+./scripts/code-review/auto-ai-review.sh || echo "⚠️ AI Review failed but continuing commit..."
+
 exit 0
