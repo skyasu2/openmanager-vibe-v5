@@ -36,13 +36,13 @@
 
 ## 🎯 상황별 에이전트 선택 매트릭스
 
-| 상황                 | 1순위                      | 2순위                         | 조합 사용          |
-| -------------------- | -------------------------- | ----------------------------- | ------------------ |
-| 🐛 **버그 수정**     | debugger-specialist        | codex-specialist              | 분석→해결 순서     |
-| 🚀 **성능 개선**     | structure-refactor-specialist | codex-specialist              | 구조→검증 순서     |
-| 🔒 **보안 강화**     | security-specialist        | codex-specialist              | 스캔→실무검증      |
-| 📱 **UI 개선**       | ui-ux-specialist           | shadcn-ui 도구                | 디자인→구현        |
-| 🧪 **테스트 자동화** | test-automation-specialist | vercel-platform-specialist    | 테스트→배포        |
+| 상황                 | 1순위                         | 2순위                      | 조합 사용      |
+| -------------------- | ----------------------------- | -------------------------- | -------------- |
+| 🐛 **버그 수정**     | debugger-specialist           | codex-specialist           | 분석→해결 순서 |
+| 🚀 **성능 개선**     | structure-refactor-specialist | codex-specialist           | 구조→검증 순서 |
+| 🔒 **보안 강화**     | security-specialist           | codex-specialist           | 스캔→실무검증  |
+| 📱 **UI 개선**       | ui-ux-specialist              | shadcn-ui 도구             | 디자인→구현    |
+| 🧪 **테스트 자동화** | test-automation-specialist    | vercel-platform-specialist | 테스트→배포    |
 
 ---
 
@@ -83,10 +83,9 @@ test-automation-specialist: "테스트 전체 상황을 분석하고 실행해�
 - **호출 예시**: `codex: 구현된 알고리즘을 실무 관점에서 검증해주세요`
 - **중요**: Codex는 분석/제안만, 실제 수정은 Claude가 수행
 
-### 2. 시스템 설정 & 범용 (3개)
+### 2. 시스템 설정 & 범용 (2개)
 
 - **general-purpose**: 복잡한 다단계 작업 자율 처리, 코드 검색 및 연구 (모든 도구)
-- **statusline-setup**: Claude Code 상태표시줄 설정 (Read, Edit)
 - **output-style-setup**: Claude Code 출력 스타일 생성 (Read, Write, Edit, Glob, Grep)
 
 ### 3. 전문 도구 (12개)
@@ -132,6 +131,7 @@ test-automation-specialist: "테스트 전체 상황을 분석하고 실행해�
 ### 🗑️ 최적화 완료 (2025-09-19)
 
 **제거/통합**:
+
 - 7개 중복 에이전트 제거 (orchestrator, verification, supervisor, security-auditor/reviewer, analyst, coordinator)
 - design-architect → ui-ux-specialist (이름 명확화)
 - security-specialist (auditor + reviewer 통합)

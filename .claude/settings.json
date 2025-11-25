@@ -1,15 +1,14 @@
 {
   "outputStyle": "color",
-  "statusLine": {
-    "type": "command",
-    "command": "npx ccstatusline@latest",
-    "padding": 0
-  },
   "env": {
     "FORCE_COLOR": "1",
     "CI": "true",
     "NO_TTY": "1",
     "NODE_NO_READLINE": "1",
     "FORCE_TTY": "false"
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "echo ''"
   }
 }
