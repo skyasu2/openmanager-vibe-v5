@@ -8,7 +8,6 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getSupabaseClient } from '@/lib/supabase/client';
 
 export interface CustomRule {
   id: string;
@@ -104,11 +103,11 @@ export interface UserProfile {
 export class CustomContextManager {
   private static instance: CustomContextManager;
   private supabase: SupabaseClient | null = null;
-  private isInitialized = false;
+  private supabaseInitialized = false;
   private localCache: Map<string, unknown> = new Map();
 
   private constructor() {
-    void this._initializeSupabase();
+    // Supabase client will be initialized lazily on first use
   }
 
   static getInstance(): CustomContextManager {
@@ -160,66 +159,20 @@ export class CustomContextManager {
   }
 
   /**
-   * 🔧 Supabase 초기화 (통합 싱글톤 사용)
+   * 🔄 Lazy initialization of Supabase client (SSR-compatible)
    */
-  private async _initializeSupabase(): Promise<void> {
-    try {
-      // 통합 Supabase 싱글톤 사용
-      this.supabase = getSupabaseClient();
-      await this.createTablesIfNotExists();
-      this.isInitialized = true;
-      console.log('✅ [CustomContext] Supabase 싱글톤 연결 성공');
-    } catch (error) {
-      console.error('❌ [CustomContext] Supabase 초기화 실패:', error);
-      this.isInitialized = true; // 로컬 캐시로 폴백
-    }
-  }
-
-  /**
-   * 📋 필요한 테이블 생성
-   */
-  private async createTablesIfNotExists(): Promise<void> {
-    if (!this.supabase) return;
+  private async initializeSupabase(): Promise<void> {
+    if (this.supabaseInitialized) return;
 
     try {
-      // organization_settings 테이블 확인/생성
-      const { error: orgError } = await this.supabase
-        .from('organization_settings')
-        .select('id')
-        .limit(1);
-
-      if (orgError && orgError.code === '42P01') {
-        // 테이블이 없으면 생성 (실제로는 migration으로 처리)
-        console.log(
-          '📋 [CustomContext] organization_settings 테이블 필요 - 관리자에게 문의'
-        );
-      }
-
-      // custom_rules 테이블 확인/생성
-      const { error: rulesError } = await this.supabase
-        .from('custom_rules')
-        .select('id')
-        .limit(1);
-
-      if (rulesError && rulesError.code === '42P01') {
-        console.log(
-          '📋 [CustomContext] custom_rules 테이블 필요 - 관리자에게 문의'
-        );
-      }
-
-      // user_profiles 테이블 확인/생성
-      const { error: profilesError } = await this.supabase
-        .from('user_profiles')
-        .select('id')
-        .limit(1);
-
-      if (profilesError && profilesError.code === '42P01') {
-        console.log(
-          '📋 [CustomContext] user_profiles 테이블 필요 - 관리자에게 문의'
-        );
-      }
+      const { createClient } = await import('@/lib/supabase/server');
+      this.supabase = await createClient();
+      this.supabaseInitialized = true;
+      console.log('✅ [CustomContext] Supabase 클라이언트 초기화 완료');
     } catch (error) {
-      console.error('❌ [CustomContext] 테이블 확인 실패:', error);
+      console.warn('⚠️ [CustomContext] Supabase 초기화 실패 - 로컬 캐시만 사용', error);
+      this.supabase = null;
+      this.supabaseInitialized = true;
     }
   }
 
@@ -229,6 +182,7 @@ export class CustomContextManager {
   async saveOrganizationSettings(
     settings: OrganizationSettings
   ): Promise<void> {
+    await this.initializeSupabase();
     try {
       if (this.supabase) {
         const { error } = await this.supabase
@@ -267,6 +221,7 @@ export class CustomContextManager {
   async getOrganizationSettings(
     orgId: string
   ): Promise<OrganizationSettings | null> {
+    await this.initializeSupabase();
     try {
       // 먼저 메모리 캐시 확인
       if (this.localCache.has(`org_${orgId}`)) {
@@ -317,6 +272,7 @@ export class CustomContextManager {
       'id' | 'createdAt' | 'executionCount' | 'successRate'
     >
   ): Promise<string> {
+    await this.initializeSupabase();
     try {
       const ruleId = `rule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const completeRule: CustomRule = {
@@ -360,6 +316,7 @@ export class CustomContextManager {
    * 📏 커스텀 규칙 조회 (실제 구현)
    */
   async getCustomRules(category?: string): Promise<CustomRule[]> {
+    await this.initializeSupabase();
     try {
       if (this.supabase) {
         let query = this.supabase.from('custom_rules').select('rule_data');
@@ -597,6 +554,7 @@ export class CustomContextManager {
    * 👤 사용자 프로필 저장 (실제 구현)
    */
   async saveUserProfile(profile: UserProfile): Promise<void> {
+    await this.initializeSupabase();
     try {
       if (this.supabase) {
         const { error } = await this.supabase.from('user_profiles').upsert({
@@ -630,6 +588,7 @@ export class CustomContextManager {
    * 👤 사용자 프로필 조회 (실제 구현)
    */
   async getUserProfile(userId: string): Promise<UserProfile | null> {
+    await this.initializeSupabase();
     try {
       // 메모리 캐시 확인
       if (this.localCache.has(`user_${userId}`)) {
@@ -716,6 +675,7 @@ export class CustomContextManager {
     orgId: string,
     guide: Omit<GuideDocument, 'id' | 'lastUpdated'>
   ): Promise<string> {
+    await this.initializeSupabase();
     try {
       const guideId = `guide_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const completeGuide: GuideDocument = {
@@ -773,6 +733,7 @@ export class CustomContextManager {
     activeRules: number;
     avgSuccessRate: number;
   }> {
+    await this.initializeSupabase();
     try {
       if (this.supabase) {
         const [orgResult, userResult, ruleResult] = await Promise.all([
@@ -850,7 +811,7 @@ export class CustomContextManager {
    */
   getSystemStatus() {
     return {
-      isInitialized: this.isInitialized,
+      isInitialized: this.supabaseInitialized,
       hasSupabase: this.supabase !== null,
       cacheSize: this.localCache.size,
       implementationLevel: 'FULL', // 더미에서 완전 구현으로 변경

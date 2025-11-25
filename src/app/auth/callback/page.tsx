@@ -7,6 +7,10 @@
 
 'use client';
 
+// Force dynamic rendering - this page uses browser APIs (window, document, localStorage)
+// and handles OAuth callbacks at runtime, cannot be statically generated
+export const dynamic = 'force-dynamic';
+
 import { supabase } from '@/lib/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';

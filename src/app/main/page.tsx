@@ -3,6 +3,8 @@
  *
  * GitHub OAuth + 게스트 로그인 지원 + 원래 UI 구조 복원
  * 웨이브 파티클 배경, 고급 애니메이션, 카운트다운 시스템 복원
+ * 
+ * NOTE: 이 파일은 반드시 Client Component여야 합니다 (hooks 사용)
  */
 
 'use client';

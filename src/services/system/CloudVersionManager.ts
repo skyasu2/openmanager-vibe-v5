@@ -8,7 +8,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getSupabaseClient } from '@/lib/supabase/client';
+
 
 // 버전 관리 인터페이스
 export interface CloudVersion {
@@ -130,7 +130,7 @@ export class CloudVersionManager {
     // 통합 Supabase 싱글톤 사용
     if (this.config.enableSupabase) {
       try {
-        this.supabase = getSupabaseClient();
+        this.supabase = this.supabase!;
         console.log('✅ CloudVersionManager - Supabase 싱글톤 연결 성공');
       } catch (error) {
         console.warn(

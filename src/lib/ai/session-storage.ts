@@ -7,7 +7,6 @@
  * ✅ Redis 대체 (Vercel 최적화)
  */
 
-import { getSupabaseClient } from '@/lib/supabase/client';
 import { EdgeLogger } from '../runtime/edge-runtime-utils';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -76,7 +75,8 @@ export interface AISessionRequest {
 // ==============================================
 
 export class AISessionStorage {
-  private supabase: SupabaseClient | null;
+  private supabase: SupabaseClient | null = null;
+  private supabaseInitialized = false;
   private logger: EdgeLogger;
   private readonly TABLE_NAME = 'ai_sessions';
   private readonly SUMMARY_TABLE = 'ai_session_summaries';
@@ -84,16 +84,26 @@ export class AISessionStorage {
 
   constructor() {
     this.logger = EdgeLogger.getInstance();
+    // Supabase client will be initialized lazily on first use
+  }
 
-    // Supabase 싱글톤 클라이언트 사용
+  /**
+   * 🔄 Lazy initialization of Supabase client (SSR-compatible)
+   */
+  private async initializeSupabase(): Promise<void> {
+    if (this.supabaseInitialized) return;
+
     try {
-      this.supabase = getSupabaseClient();
+      const { createClient } = await import('@/lib/supabase/server');
+      this.supabase = await createClient();
+      this.supabaseInitialized = true;
     } catch (error) {
       this.logger.warn(
         'Supabase 클라이언트 초기화 실패 - 메모리 캐시 사용',
         error
       );
       this.supabase = null;
+      this.supabaseInitialized = true;
     }
   }
 
@@ -102,6 +112,9 @@ export class AISessionStorage {
    */
   async saveSession(data: AISessionData): Promise<boolean> {
     try {
+      // Lazy initialization (SSR-compatible)
+      await this.initializeSupabase();
+
       if (!this.supabase) {
         this.logger.warn('Supabase 비활성화 - 세션 저장 생략');
         return false;
@@ -159,6 +172,9 @@ export class AISessionStorage {
    */
   async getSession(sessionId: string): Promise<AISessionData | null> {
     try {
+      // Lazy initialization (SSR-compatible)
+      await this.initializeSupabase();
+
       if (!this.supabase) {
         this.logger.warn('Supabase 비활성화 - 세션 조회 불가');
         return null;
@@ -195,6 +211,9 @@ export class AISessionStorage {
     limit: number = 10
   ): Promise<AISessionSummary[]> {
     try {
+      // Lazy initialization (SSR-compatible)
+      await this.initializeSupabase();
+
       if (!this.supabase) {
         return [];
       }
@@ -233,6 +252,9 @@ export class AISessionStorage {
    */
   async cleanupExpiredSessions(): Promise<number> {
     try {
+      // Lazy initialization (SSR-compatible)
+      await this.initializeSupabase();
+
       if (!this.supabase) {
         return 0;
       }
@@ -291,6 +313,9 @@ export class AISessionStorage {
     storage_health: 'healthy' | 'degraded' | 'unavailable';
   }> {
     try {
+      // Lazy initialization (SSR-compatible)
+      await this.initializeSupabase();
+
       if (!this.supabase) {
         return {
           total_sessions: 0,

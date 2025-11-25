@@ -24,7 +24,7 @@ import type {
   ServerRole,
 } from '@/types/server';
 import type { HourlyServerData, RawServerData } from '@/types/server-metrics';
-import { getSupabaseClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -334,7 +334,7 @@ function generateFallbackServers(): EnhancedServerMetrics[] {
  */
 async function getRealtimeServers(): Promise<EnhancedServerMetrics[]> {
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await createClient();
     const { data: servers, error } = await supabase
       .from('server_metrics')
       .select('*')

@@ -4,6 +4,8 @@
  * Ensures a single instance of the Supabase client is used on the client-side.
  */
 
+'use client';
+
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 // Global declaration for singleton

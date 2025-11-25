@@ -159,7 +159,7 @@ export class PostgresVectorDB {
       }
 
       // command_vectors 테이블에 직접 upsert
-      const supabaseClient = this.supabase;
+      const supabaseClient = this.supabase!;
       const { error } = await supabaseClient.from(this.tableName).upsert({
         id,
         content,
@@ -204,7 +204,7 @@ export class PostgresVectorDB {
       // pgvector 네이티브 함수 사용
       if (category) {
         // 카테고리별 검색
-        const supabaseClient = this.supabase;
+        const supabaseClient = this.supabase!;
         const { data, error } = await supabaseClient.rpc(
           'search_vectors_by_category',
           {
@@ -224,7 +224,7 @@ export class PostgresVectorDB {
         return data || [];
       } else {
         // 일반 검색
-        const supabaseClient = this.supabase;
+        const supabaseClient = this.supabase!;
         const { data, error } = await supabaseClient.rpc(
           'search_similar_vectors',
           {
@@ -411,7 +411,7 @@ export class PostgresVectorDB {
       await this._initialize();
 
       // pgvector 네이티브 하이브리드 검색 함수 사용
-      const supabaseClient = this.supabase;
+      const supabaseClient = this.supabase!;
       const { data, error } = await supabaseClient.rpc(
         'hybrid_search_vectors',
         {
@@ -536,7 +536,7 @@ export class PostgresVectorDB {
       const { limit = 5, category } = options;
 
       // ILIKE 조건 구성 (대소문자 무시 부분 검색)
-      const supabaseClient = this.supabase;
+      const supabaseClient = this.supabase!;
       let query = supabaseClient
         .from(this.tableName)
         .select('id, content, metadata');
@@ -812,7 +812,7 @@ export class PostgresVectorDB {
     // 네이티브 pgvector 검색 벤치마크
     const nativeTimes: number[] = [];
     for (let i = 0; i < iterations; i++) {
-      const supabaseClient = this.supabase;
+      const supabaseClient = this.supabase!;
       const start = Date.now();
       const { error } = await supabaseClient.rpc('search_similar_vectors', {
         query_embedding: queryEmbedding,
@@ -863,7 +863,7 @@ export class PostgresVectorDB {
     try {
       await this._initialize();
 
-      const supabaseClient = this.supabase;
+      const supabaseClient = this.supabase!;
       let query = supabaseClient.from(this.tableName).select('*');
 
       // 메타데이터 필터 적용

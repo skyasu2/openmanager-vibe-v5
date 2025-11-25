@@ -9,6 +9,7 @@
  * ✅ 응답 시간 500ms 이하 목표
  */
 
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { SupabaseRAGEngine } from './supabase-rag-engine';
 import { getSupabaseRAGEngine } from './supabase-rag-engine';
 import { MockContextLoader } from './MockContextLoader';
@@ -54,8 +55,8 @@ export class SimplifiedQueryEngine {
   public utils: SimplifiedQueryEngineUtils;
   private processors: SimplifiedQueryEngineProcessors;
 
-  constructor() {
-    this.ragEngine = getSupabaseRAGEngine();
+  constructor(supabaseClient?: SupabaseClient) {
+    this.ragEngine = getSupabaseRAGEngine(supabaseClient);
     this.mockContextLoader = MockContextLoader.getInstance();
     this.intentClassifier = new IntentClassifier();
 
@@ -360,12 +361,17 @@ export class SimplifiedQueryEngine {
   }
 }
 
-// 싱글톤 인스턴스
+// 싱글톤 인스턴스 (deprecated - use direct instantiation with dependency injection)
 let engineInstance: SimplifiedQueryEngine | null = null;
 
-export function getSimplifiedQueryEngine(): SimplifiedQueryEngine {
+/**
+ * @deprecated Use `new SimplifiedQueryEngine(supabaseClient)` with dependency injection instead
+ */
+export function getSimplifiedQueryEngine(
+  supabaseClient?: SupabaseClient
+): SimplifiedQueryEngine {
   if (!engineInstance) {
-    engineInstance = new SimplifiedQueryEngine();
+    engineInstance = new SimplifiedQueryEngine(supabaseClient);
   }
   return engineInstance;
 }

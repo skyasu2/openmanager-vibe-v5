@@ -9,6 +9,7 @@
  */
 
 import type { AIMetadata } from '../../types/ai-service-types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { embeddingService } from './embedding-service';
 import { PostgresVectorDB } from './postgres-vector-db';
 
@@ -340,8 +341,8 @@ export class SupabaseRAGEngine {
   // 임베딩 모델 설정 (384차원)
   private readonly EMBEDDING_DIMENSION = 384;
 
-  constructor() {
-    this.vectorDB = new PostgresVectorDB();
+  constructor(supabaseClient?: SupabaseClient) {
+    this.vectorDB = new PostgresVectorDB(supabaseClient);
     this.memoryCache = new MemoryRAGCache();
 
     // 주기적 정리 (5분마다)
@@ -1088,12 +1089,17 @@ export class SupabaseRAGEngine {
   // convertRAGContextToMCPContext 메서드 제거됨 (GCP VM 서버 사용 중단)
 }
 
-// 싱글톤 인스턴스
+// 싱글톤 인스턴스 (deprecated - use direct instantiation with dependency injection)
 let ragEngineInstance: SupabaseRAGEngine | null = null;
 
-export function getSupabaseRAGEngine(): SupabaseRAGEngine {
+/**
+ * @deprecated Use `new SupabaseRAGEngine(supabaseClient)` with dependency injection instead
+ */
+export function getSupabaseRAGEngine(
+  supabaseClient?: SupabaseClient
+): SupabaseRAGEngine {
   if (!ragEngineInstance) {
-    ragEngineInstance = new SupabaseRAGEngine();
+    ragEngineInstance = new SupabaseRAGEngine(supabaseClient);
   }
   return ragEngineInstance;
 }

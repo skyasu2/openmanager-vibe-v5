@@ -15,6 +15,7 @@ import { SimplifiedQueryEngine } from '@/services/ai/SimplifiedQueryEngine';
 import { corsHeaders } from '@/lib/api/cors';
 import { aiLogger } from '@/lib/logger';
 import { createApiRoute } from '@/lib/api/zod-middleware';
+import { createClient } from '@/lib/supabase/server';
 import {
   AIPerformanceStatsResponseSchema,
   AIBenchmarkRequestSchema,
@@ -41,8 +42,11 @@ const getHandler = createApiRoute()
     try {
       debug.log('🔍 Performance API: 시작');
       
-      // Engine 초기화
-      const engine = getPerformanceOptimizedQueryEngine();
+      // Create server-side Supabase client for SSR compatibility
+      const supabase = await createClient();
+      
+      // Engine 초기화 with dependency injection
+      const engine = getPerformanceOptimizedQueryEngine(undefined, supabase);
       debug.log('✅ Performance API: Engine 초기화 완료');
       
       // 성능 통계 수집

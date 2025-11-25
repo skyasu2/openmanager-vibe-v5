@@ -25,7 +25,7 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase/client';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { EdgeLogger } from '../runtime/edge-runtime-utils';
 
 // ==============================================
@@ -60,20 +60,31 @@ interface RateLimitResult {
 class RateLimiter {
   private logger: EdgeLogger;
   private readonly TABLE_NAME = 'rate_limits';
-  private supabase: ReturnType<typeof getSupabaseClient> | null;
+  private supabase: SupabaseClient | null = null;
+  private supabaseInitialized = false;
 
   constructor(private config: RateLimitConfig) {
     this.logger = EdgeLogger.getInstance();
+    // Supabase client will be initialized lazily on first use
+  }
 
-    // Supabase 싱글톤 클라이언트 사용
+  /**
+   * 🔄 Lazy initialization of Supabase client (SSR-compatible)
+   */
+  private async initializeSupabase(): Promise<void> {
+    if (this.supabaseInitialized) return;
+
     try {
-      this.supabase = getSupabaseClient();
+      const { createClient } = await import('@/lib/supabase/server');
+      this.supabase = await createClient();
+      this.supabaseInitialized = true;
     } catch (error) {
       this.logger.warn(
         'Supabase 비활성화 - Rate limiting graceful fallback',
         error
       );
       this.supabase = null;
+      this.supabaseInitialized = true;
     }
   }
 
@@ -89,6 +100,9 @@ class RateLimiter {
     const ip = this.getClientIP(request);
     const path = request.nextUrl.pathname;
     const now = Date.now();
+
+    // Lazy initialization (SSR-compatible)
+    await this.initializeSupabase();
 
     // Supabase 비활성화 시 graceful fallback (요청 허용하되 경고)
     if (!this.supabase) {
@@ -165,6 +179,9 @@ class RateLimiter {
    * - on-demand execution (setInterval 제거)
    */
   async cleanup(): Promise<number> {
+    // Lazy initialization (SSR-compatible)
+    await this.initializeSupabase();
+
     if (!this.supabase) {
       return 0;
     }

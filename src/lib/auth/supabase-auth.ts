@@ -5,13 +5,15 @@
  * NextAuth 대체 구현
  */
 
+'use client';
+
 import type { AuthError, Session } from '@supabase/supabase-js';
-import { supabase } from '../supabase/client';
 import {
   validateRedirectUrl,
   guestSessionCookies,
 } from '@/lib/security/secure-cookies';
 import { authStateManager } from './auth-state-manager';
+import { supabase } from '../supabase/client';
 
 /**
  * 🔧 Supabase 프로젝트 ID 동적 추출
@@ -528,5 +530,4 @@ export async function refreshSession() {
   }
 }
 
-// 초기화 로그
-console.log('🔐 Supabase Auth 모듈 초기화됨');
+// Module initialization log removed - lazy loading pattern prevents module-level execution

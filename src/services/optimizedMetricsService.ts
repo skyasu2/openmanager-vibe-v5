@@ -9,7 +9,7 @@
  * - Redis 완전 제거, 메모리 캐시만 사용
  */
 
-import { getSupabaseClient } from '@/lib/supabase/client';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { ServerMetrics } from '@/types/common';
 
 // Raw database metric interface
@@ -21,6 +21,30 @@ interface RawMetric {
   cpu_usage?: number;
   memory_usage?: number;
   disk_usage?: number;
+}
+
+
+// Lazy Supabase client initialization for SSR compatibility
+let cachedSupabase: SupabaseClient | null = null;
+let supabaseInitPromise: Promise<SupabaseClient> | null = null;
+
+async function getSupabaseInstance(): Promise<SupabaseClient> {
+  if (cachedSupabase) return cachedSupabase;
+  
+  if (!supabaseInitPromise) {
+    supabaseInitPromise = (async () => {
+      try {
+        const { createClient } = await import('@/lib/supabase/server');
+        cachedSupabase = await createClient();
+        return cachedSupabase;
+      } catch (error) {
+        console.warn('Supabase initialization failed', error);
+        throw new Error('Supabase not available');
+      }
+    })();
+  }
+  
+  return supabaseInitPromise;
 }
 
 // 메모리 캐시 제거 - Supabase 직접 조회로 성능 최적화
@@ -96,7 +120,7 @@ export async function getOptimizedServerMetrics(
     // 2. Supabase에서 직접 조회
     console.log('🔍 데이터베이스 조회: 캐시 제거됨');
 
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseInstance();
     const timeRangeMs = parseTimeRange(timeRange);
     const startTime = new Date(Date.now() - timeRangeMs);
 
@@ -158,7 +182,7 @@ export async function getAggregatedMetrics(
   // 캐시 제거 - Supabase 직접 조회로 최적화
 
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseInstance();
     const timeRangeMs = parseTimeRange(timeRange);
     const startTime = new Date(Date.now() - timeRangeMs);
 
@@ -314,7 +338,7 @@ export async function getRealtimeMetrics(
   serverId: string
 ): Promise<ServerMetrics | null> {
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseInstance();
 
     const { data, error } = await supabase
       .from('server_metrics')
@@ -354,7 +378,7 @@ export async function getMetricsTrend(
   // 캐시 제거 - Supabase 직접 조회
 
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseInstance();
     const timeRangeMs = parseTimeRange(timeRange);
     const startTime = new Date(Date.now() - timeRangeMs);
 
@@ -461,7 +485,7 @@ export async function saveBatchMetrics(
   if (metrics.length === 0) return true;
 
   try {
-    const supabase = getSupabaseClient();
+    const supabase = await getSupabaseInstance();
 
     // 배치 크기 제한 (무료 티어 고려)
     const batchSize = 100;

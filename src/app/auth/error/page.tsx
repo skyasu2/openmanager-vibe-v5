@@ -2,6 +2,8 @@
  * 🚫 NextAuth Error Page
  *
  * GitHub OAuth 인증 오류 시 표시되는 페이지
+ * 
+ * NOTE: Dynamic rendering은 layout.tsx에서 설정됨
  */
 
 'use client';

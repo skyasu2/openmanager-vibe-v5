@@ -14,7 +14,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getSupabaseClient } from '@/lib/supabase/client';
+
 
 interface SystemLogEntry {
   id: string;
@@ -130,10 +130,11 @@ class MemoryLogStream {
 }
 
 export class CloudLoggingService {
+  private supabase: SupabaseClient | null = null;
+  private supabaseInitialized = false;
   private static instance: CloudLoggingService;
   private config: LoggingConfig;
   private memoryStream: MemoryLogStream;
-  private supabase: SupabaseClient | null = null;
   private logBuffer: SystemLogEntry[] = [];
   private batchTimer: NodeJS.Timeout | null = null;
   private isProcessing = false;
@@ -164,7 +165,7 @@ export class CloudLoggingService {
       process.env.NEXT_PUBLIC_SUPABASE_URL &&
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     ) {
-      this.supabase = getSupabaseClient();
+      this.supabase = this.supabase!;
       this.startBatchProcessor();
     }
 

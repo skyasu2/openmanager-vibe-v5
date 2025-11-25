@@ -11,7 +11,6 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getSupabaseClient } from '@/lib/supabase/client';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -122,6 +121,7 @@ class AdvancedMemoryCache {
 export class AdvancedContextManager {
   private memoryCache: AdvancedMemoryCache;
   private supabase: SupabaseClient | null = null;
+  private supabaseInitialized = false;
   private readonly CACHE_KEY = 'openmanager:advanced_context';
   private readonly DOCS_PATH = './docs';
   private readonly LOGS_PATH = './logs';
@@ -131,23 +131,34 @@ export class AdvancedContextManager {
   constructor() {
     // 메모리 캐시 초기화
     this.memoryCache = new AdvancedMemoryCache();
-
-    // Supabase 연결 (환경변수 있을 때만) - 팩토리 사용
-    if (
-      process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    ) {
-      this.supabase = getSupabaseClient();
-    }
-
+    // Supabase client will be initialized lazily on first use
     console.log('🧠 AdvancedContextManager 초기화 완료');
-    console.log(`📦 캐시: Memory${this.supabase ? ' + Supabase' : ' Only'}`);
+    console.log('📦 캐시: Memory (Supabase lazy initialization)');
+  }
+
+  /**
+   * 🔄 Lazy initialization of Supabase client (SSR-compatible)
+   */
+  private async initializeSupabase(): Promise<void> {
+    if (this.supabaseInitialized) return;
+
+    try {
+      const { createClient } = await import('@/lib/supabase/server');
+      this.supabase = await createClient();
+      this.supabaseInitialized = true;
+      console.log('✅ Supabase 클라이언트 초기화 완료');
+    } catch (error) {
+      console.warn('⚠️ Supabase 초기화 실패 - 메모리 캐시만 사용', error);
+      this.supabase = null;
+      this.supabaseInitialized = true;
+    }
   }
 
   /**
    * 🚀 문서 임베딩 프로세스 시작
    */
   async startDocumentIndexing(): Promise<void> {
+    await this.initializeSupabase();
     console.log('📚 [AdvancedContext] 문서 임베딩 시작...');
 
     try {
@@ -709,6 +720,7 @@ export class AdvancedContextManager {
     query: string,
     limit: number = 10
   ): Promise<DocumentEmbedding[]> {
+    await this.initializeSupabase();
     const contextCache = await this.loadContextCache();
     const queryLower = query.toLowerCase();
     const queryWords = queryLower.split(/\s+/);
@@ -920,6 +932,7 @@ export class AdvancedContextManager {
     lastIndexed: Date | null;
     searchIndexSize: number;
   }> {
+    await this.initializeSupabase();
     const contextCache = await this.loadContextCache();
 
     return {
