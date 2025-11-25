@@ -20,8 +20,8 @@ import { SimplifiedQueryEngineUtils } from './SimplifiedQueryEngine.utils';
 import { SimplifiedQueryEngineProcessors } from './SimplifiedQueryEngine.processors';
 // 🔧 타임아웃 설정 (통합 유틸리티 사용)
 import { getEnvironmentTimeouts } from '../../utils/timeout-config';
-import type { ComplexityScore } from './SimplifiedQueryEngine.complexity-types';
-import type { IntentResult } from '../../modules/ai-agent/processors/IntentClassifier';
+import type { ComplexityScore as _ComplexityScore } from './SimplifiedQueryEngine.complexity-types';
+import type { IntentResult as _IntentResult } from '../../modules/ai-agent/processors/IntentClassifier';
 import type {
   QueryRequest,
   QueryResponse,

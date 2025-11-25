@@ -39,7 +39,7 @@ interface RateLimitConfig {
   skipFailedRequests?: boolean;
 }
 
-interface RateLimitRecord {
+interface _RateLimitRecord {
   ip: string;
   path: string;
   count: number;

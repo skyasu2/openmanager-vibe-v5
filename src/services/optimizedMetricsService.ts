@@ -23,15 +23,14 @@ interface RawMetric {
   disk_usage?: number;
 }
 
-
 // Lazy Supabase client initialization for SSR compatibility
 let cachedSupabase: SupabaseClient | null = null;
 let supabaseInitPromise: Promise<SupabaseClient> | null = null;
 
 async function getSupabaseInstance(): Promise<SupabaseClient> {
   if (cachedSupabase) return cachedSupabase;
-  
-  if (!supabaseInitPromise) {
+
+  if (supabaseInitPromise === null) {
     supabaseInitPromise = (async () => {
       try {
         const { createClient } = await import('@/lib/supabase/server');
@@ -43,7 +42,7 @@ async function getSupabaseInstance(): Promise<SupabaseClient> {
       }
     })();
   }
-  
+
   return supabaseInitPromise;
 }
 
