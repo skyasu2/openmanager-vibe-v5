@@ -5,10 +5,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { postgresVectorDB } from '@/services/ai/postgres-vector-db';
+import { PostgresVectorDB } from '@/services/ai/postgres-vector-db';
 import { embeddingService } from '@/services/ai/embedding-service';
 import { getSupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/server';
 import debug from '@/utils/debug';
 
 // Interface for PostgreSQL index information
@@ -19,6 +19,8 @@ interface PgIndex {
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = await createClient();
+    const postgresVectorDB = new PostgresVectorDB(supabase);
     const searchParams = request.nextUrl.searchParams;
     const testQuery = searchParams.get('query') || '서버 상태 확인';
     const iterations = parseInt(searchParams.get('iterations') || '10');
