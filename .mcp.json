@@ -60,7 +60,7 @@
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem"],
       "env": {
-        "ALLOWED_DIRECTORIES": "/mnt/d/cursor/openmanager-vibe-v5"
+        "ALLOWED_DIRECTORIES": "${PROJECT_ROOT}"
       }
     }
   }

@@ -6,9 +6,5 @@
     "NO_TTY": "1",
     "NODE_NO_READLINE": "1",
     "FORCE_TTY": "false"
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "echo ''"
   }
 }
