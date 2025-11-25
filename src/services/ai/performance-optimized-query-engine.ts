@@ -21,6 +21,7 @@ import type {
   AIQueryContext,
   AIQueryOptions,
 } from '../../types/ai-service-types';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 interface PerformanceConfig {
   enableParallelProcessing: boolean;
@@ -70,9 +71,14 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
   private preloadedEmbeddings = new Map<string, number[]>();
   private queryQueue: Array<() => Promise<void>> = [];
   private isProcessingQueue = false;
+  private supabaseClient?: SupabaseClient;
 
-  constructor(config?: Partial<PerformanceConfig>) {
-    super();
+  constructor(
+    config?: Partial<PerformanceConfig>,
+    supabaseClient?: SupabaseClient
+  ) {
+    super(supabaseClient);
+    this.supabaseClient = supabaseClient;
 
     this.config = {
       enableParallelProcessing: true,
@@ -143,7 +149,7 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
 
       // 4. 캐시 매니저 초기화
       getQueryCacheManager();
-      getVectorSearchOptimizer();
+      getVectorSearchOptimizer(this.supabaseClient);
 
       // 5. 헬스체크로 모든 엔진 확인
       await this.healthCheck();
@@ -708,14 +714,21 @@ export class PerformanceOptimizedQueryEngine extends SimplifiedQueryEngine {
   }
 }
 
-// 싱글톤 인스턴스
+// 싱글톤 인스턴스 (deprecated - use direct instantiation with dependency injection)
 let performanceEngineInstance: PerformanceOptimizedQueryEngine | null = null;
 
+/**
+ * @deprecated Use `new PerformanceOptimizedQueryEngine(config, supabaseClient)` with dependency injection instead
+ */
 export function getPerformanceOptimizedQueryEngine(
-  config?: Partial<PerformanceConfig>
+  config?: Partial<PerformanceConfig>,
+  supabaseClient?: SupabaseClient
 ): PerformanceOptimizedQueryEngine {
   if (!performanceEngineInstance) {
-    performanceEngineInstance = new PerformanceOptimizedQueryEngine(config);
+    performanceEngineInstance = new PerformanceOptimizedQueryEngine(
+      config,
+      supabaseClient
+    );
   }
   return performanceEngineInstance;
 }

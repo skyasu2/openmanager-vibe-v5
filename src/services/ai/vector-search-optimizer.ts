@@ -7,7 +7,6 @@
  * - 검색 쿼리 최적화
  */
 
-import { getSupabaseClient } from '@/lib/supabase/client';
 import { aiLogger } from '../../lib/logger';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -31,8 +30,15 @@ export class VectorSearchOptimizer {
   private supabase: SupabaseClient;
   private indexes: Map<string, IndexInfo> = new Map();
 
-  constructor() {
-    this.supabase = getSupabaseClient();
+  constructor(supabaseClient?: SupabaseClient) {
+    if (supabaseClient) {
+      this.supabase = supabaseClient;
+    } else {
+      // Fallback for backward compatibility - will be deprecated
+      throw new Error(
+        'VectorSearchOptimizer requires a Supabase client. Please pass it to the constructor.'
+      );
+    }
   }
 
   /**
@@ -465,9 +471,27 @@ export class VectorSearchOptimizer {
 // 싱글톤 인스턴스
 let optimizerInstance: VectorSearchOptimizer | null = null;
 
-export function getVectorSearchOptimizer(): VectorSearchOptimizer {
+/**
+ * @deprecated Use dependency injection by passing SupabaseClient to constructor.
+ * This singleton pattern will be removed in a future version.
+ *
+ * Example:
+ * ```ts
+ * import { createClient } from '@/lib/supabase/server';
+ * const supabase = await createClient();
+ * const optimizer = new VectorSearchOptimizer(supabase);
+ * ```
+ */
+export function getVectorSearchOptimizer(
+  supabaseClient?: SupabaseClient
+): VectorSearchOptimizer {
   if (!optimizerInstance) {
-    optimizerInstance = new VectorSearchOptimizer();
+    if (!supabaseClient) {
+      throw new Error(
+        'First call to getVectorSearchOptimizer requires a Supabase client parameter'
+      );
+    }
+    optimizerInstance = new VectorSearchOptimizer(supabaseClient);
   }
   return optimizerInstance;
 }
