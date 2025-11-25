@@ -159,7 +159,8 @@ export class PostgresVectorDB {
       }
 
       // command_vectors 테이블에 직접 upsert
-      const { error } = await this.supabase.from(this.tableName).upsert({
+      const supabaseClient = this.supabase;
+      const { error } = await supabaseClient.from(this.tableName).upsert({
         id,
         content,
         embedding,
@@ -203,7 +204,8 @@ export class PostgresVectorDB {
       // pgvector 네이티브 함수 사용
       if (category) {
         // 카테고리별 검색
-        const { data, error } = await this.supabase.rpc(
+        const supabaseClient = this.supabase;
+        const { data, error } = await supabaseClient.rpc(
           'search_vectors_by_category',
           {
             max_results: topK,
@@ -222,7 +224,8 @@ export class PostgresVectorDB {
         return data || [];
       } else {
         // 일반 검색
-        const { data, error } = await this.supabase.rpc(
+        const supabaseClient = this.supabase;
+        const { data, error } = await supabaseClient.rpc(
           'search_similar_vectors',
           {
             query_embedding: queryEmbedding,
@@ -408,12 +411,16 @@ export class PostgresVectorDB {
       await this._initialize();
 
       // pgvector 네이티브 하이브리드 검색 함수 사용
-      const { data, error } = await this.supabase.rpc('hybrid_search_vectors', {
-        query_embedding: queryEmbedding,
-        text_query: textQuery,
-        similarity_threshold: 0.3,
-        max_results: topK,
-      });
+      const supabaseClient = this.supabase;
+      const { data, error } = await supabaseClient.rpc(
+        'hybrid_search_vectors',
+        {
+          query_embedding: queryEmbedding,
+          text_query: textQuery,
+          similarity_threshold: 0.3,
+          max_results: topK,
+        }
+      );
 
       if (error) {
         console.error('하이브리드 검색 오류:', error);
@@ -529,7 +536,8 @@ export class PostgresVectorDB {
       const { limit = 5, category } = options;
 
       // ILIKE 조건 구성 (대소문자 무시 부분 검색)
-      let query = this.supabase
+      const supabaseClient = this.supabase;
+      let query = supabaseClient
         .from(this.tableName)
         .select('id, content, metadata');
 
@@ -804,8 +812,9 @@ export class PostgresVectorDB {
     // 네이티브 pgvector 검색 벤치마크
     const nativeTimes: number[] = [];
     for (let i = 0; i < iterations; i++) {
+      const supabaseClient = this.supabase;
       const start = Date.now();
-      const { error } = await this.supabase.rpc('search_similar_vectors', {
+      const { error } = await supabaseClient.rpc('search_similar_vectors', {
         query_embedding: queryEmbedding,
         similarity_threshold: 0.3,
         max_results: 10,
@@ -854,7 +863,8 @@ export class PostgresVectorDB {
     try {
       await this._initialize();
 
-      let query = this.supabase.from(this.tableName).select('*');
+      const supabaseClient = this.supabase;
+      let query = supabaseClient.from(this.tableName).select('*');
 
       // 메타데이터 필터 적용
       Object.entries(filter).forEach(([key, value]) => {
