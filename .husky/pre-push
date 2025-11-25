@@ -1,21 +1,32 @@
 echo "🔍 Pre-push: Type-safe + Build validation (~90초 예상)..."
 START_TIME=$(date +%s)
 
-# 1. 빠른 유닛 테스트 (11초) - TEMPORARILY OPTIONAL
+# 1. 빠른 유닛 테스트 (11초) - CRITICAL (opt-out with SKIP_TESTS=true)
 echo "🧪 Running quick tests..."
 TEST_STATUS="passed"
-npm run test:super-fast || {
-  TEST_STATUS="failed"
-  echo "⚠️  Tests failed (known Rollup native binary issue)"
-  echo "💡 TODO: Fix @rollup/rollup-linux-x64-gnu installation"
-  echo "ℹ️  Production build validation (step #3) is still enforced"
-  echo "   Continuing with remaining validations..."
-}
+if [ "${SKIP_TESTS:-false}" = "true" ]; then
+  TEST_STATUS="skipped"
+  echo "⚪ Tests skipped (SKIP_TESTS=true)"
+  echo "⚠️  WARNING: Skipping tests may allow regressions to slip through"
+else
+  npm run test:super-fast || {
+    TEST_STATUS="failed"
+    echo "❌ Tests failed - push blocked"
+    echo "💡 Fix: npm run test:super-fast"
+    echo "⚠️  To bypass (not recommended): SKIP_TESTS=true git push"
+    echo "   Known issue: @rollup/rollup-linux-x64-gnu installation"
+    exit 1
+  }
+fi
 
 # 2. Lint 검사 (수정된 파일만 - 빠른 검증)
 echo "🔍 Linting changed files..."
-# origin/main과 비교하여 실제 변경된 파일 체크 (fallback: HEAD~1)
-CHANGED_FILES=$(git diff origin/main...HEAD --name-only --diff-filter=ACM 2>/dev/null || git diff HEAD~1 --name-only --diff-filter=ACM 2>/dev/null || true)
+# origin/main과 비교하여 실제 변경된 파일 체크 (fallback: HEAD~1 if empty)
+CHANGED_FILES=$(git diff origin/main...HEAD --name-only --diff-filter=ACM 2>/dev/null)
+if [ -z "$CHANGED_FILES" ]; then
+  # Fallback: 빈 결과면 HEAD~1과 비교 (얕은 클론/원격 부재 시)
+  CHANGED_FILES=$(git diff HEAD~1 --name-only --diff-filter=ACM 2>/dev/null || true)
+fi
 CHANGED_FILES=$(echo "$CHANGED_FILES" | grep -E '\.(ts|tsx|js|jsx)$' || true)
 LINT_STATUS="passed"
 if [ -n "$CHANGED_FILES" ]; then
@@ -85,8 +96,10 @@ echo "📊 Validation Summary:"
 # Test 상태 동적 표시
 if [ "$TEST_STATUS" = "passed" ]; then
   echo "  ✅ Quick tests passed"
+elif [ "$TEST_STATUS" = "skipped" ]; then
+  echo "  ⚪ Quick tests skipped (SKIP_TESTS=true)"
 else
-  echo "  ⚠️  Quick tests failed (non-blocking, known issue)"
+  echo "  ❌ Quick tests failed (should not reach here)"
 fi
 # Lint 상태 동적 표시
 if [ "$LINT_STATUS" = "passed" ]; then
