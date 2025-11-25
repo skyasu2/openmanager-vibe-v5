@@ -26,6 +26,21 @@ echo -e "${BLUE}==================${NC}"
 echo "시작 시간: $TIMESTAMP"
 echo ""
 
+# 1. PROJECT_ROOT 환경변수 검증 (Codex AI Review 권장)
+echo -e "${YELLOW}🔍 Checking PROJECT_ROOT environment variable...${NC}"
+if [ -z "${PROJECT_ROOT:-}" ]; then
+  echo -e "${RED}❌ PROJECT_ROOT is not set in .env.local${NC}"
+  echo -e "${YELLOW}💡 Fix: Add PROJECT_ROOT=/mnt/d/cursor/openmanager-vibe-v5 to .env.local${NC}"
+  echo "PROJECT_ROOT: ❌ NOT SET" >> "$LOG_FILE"
+elif [ ! -d "$PROJECT_ROOT" ]; then
+  echo -e "${RED}❌ PROJECT_ROOT points to non-existent directory: $PROJECT_ROOT${NC}"
+  echo "PROJECT_ROOT: ❌ INVALID PATH" >> "$LOG_FILE"
+else
+  echo -e "${GREEN}✅ PROJECT_ROOT is valid: $PROJECT_ROOT${NC}"
+  echo "PROJECT_ROOT: ✅ $PROJECT_ROOT" >> "$LOG_FILE"
+fi
+echo ""
+
 # 로그 시작
 {
   echo "==================================="
@@ -34,7 +49,7 @@ echo ""
   echo ""
 } >> "$LOG_FILE"
 
-# MCP 서버 목록 (9개)
+# MCP 서버 목록 (10개)
 EXPECTED_SERVERS=(
   "vercel"
   "serena"
@@ -45,6 +60,7 @@ EXPECTED_SERVERS=(
   "time"
   "sequential-thinking"
   "shadcn-ui"
+  "filesystem"
 )
 
 # MCP 상태 확인

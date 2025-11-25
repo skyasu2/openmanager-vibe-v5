@@ -12,15 +12,19 @@ npm run test:super-fast || {
 
 # 2. Lint 검사 (수정된 파일만 - 빠른 검증)
 echo "🔍 Linting changed files..."
-CHANGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx|js|jsx)$' || true)
+# origin/main과 비교하여 실제 변경된 파일 체크
+CHANGED_FILES=$(git diff origin/main...HEAD --name-only --diff-filter=ACM 2>/dev/null | grep -E '\.(ts|tsx|js|jsx)$' || true)
+LINT_STATUS="passed"
 if [ -n "$CHANGED_FILES" ]; then
   echo "$CHANGED_FILES" | xargs npx eslint --max-warnings=0 || {
+    LINT_STATUS="failed"
     echo "⚠️  Lint warnings/errors found in changed files"
     echo "💡 Fix: npm run lint -- --fix"
     echo "ℹ️  Continuing with remaining validations..."
   }
 else
   echo "ℹ️  No TypeScript/JavaScript files changed, skipping lint"
+  LINT_STATUS="skipped"
 fi
 
 # 3. TypeScript 타입 체크 (CRITICAL - 프로덕션 안전성)
@@ -76,7 +80,14 @@ echo "🚀 Ready to push - Type-safe & Build-safe guaranteed!"
 echo ""
 echo "📊 Validation Summary:"
 echo "  ✅ Quick tests passed"
-echo "  ✅ Lint check passed (changed files only)"
+# Lint 상태 동적 표시
+if [ "$LINT_STATUS" = "passed" ]; then
+  echo "  ✅ Lint check passed (changed files only)"
+elif [ "$LINT_STATUS" = "skipped" ]; then
+  echo "  ⚪ Lint check skipped (no files changed)"
+else
+  echo "  ⚠️  Lint check failed (warnings found, non-blocking)"
+fi
 echo "  ✅ TypeScript type check passed"
 echo "  ✅ Production build succeeded"
 echo "  ✅ Environment variables validated"
