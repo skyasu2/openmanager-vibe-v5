@@ -95,6 +95,8 @@ export LC_ALL=ko_KR.UTF-8
 # Windows/WSL 환경 호환성
 if [ -n "${WSL_DISTRO_NAME:-}" ]; then
     export PYTHONIOENCODING=utf-8
+    # npm global bin 경로 추가 (WSL에서 codex/gemini/claude 찾기 위함)
+    export PATH="$PATH:$(npm prefix -g)/bin"
 else
     # WSL이 아닌 경우 (Windows Git Bash 등)
     echo "⚠️  Windows 환경에서 실행됨을 감지했습니다."
@@ -565,6 +567,37 @@ claude_code_self_review() {
     local changes="$1"
     
     log_ai_engine "🤖 Claude Code 자동 리뷰 시작..."
+
+    # claude 명령어가 있는지 확인
+    if command -v claude >/dev/null 2>&1; then
+        log_info "Claude CLI 감지됨. 직접 실행을 시도합니다."
+        
+        local query="다음 Git 변경사항을 실무 관점에서 코드 리뷰해주세요:
+
+$changes
+
+**리뷰 요청 사항**:
+1. **버그 위험**: 잠재적 버그나 오류 가능성 (있다면 3개까지)
+2. **개선 제안**: 성능, 가독성, 유지보수성 측면 (3개)
+3. **TypeScript 안전성**: any 타입, 타입 단언 등 문제점
+4. **보안 이슈**: XSS, SQL Injection 등 보안 취약점
+5. **종합 평가**: 점수 (1-10) 및 한 줄 요약
+
+**출력 형식**:
+- 📌 각 항목을 명확히 구분
+- 💡 구체적인 코드 위치 및 개선 방법 제시
+- ⭐ 종합 점수 및 승인 여부 (승인/조건부 승인/거부)"
+
+        # Claude CLI 실행
+        local claude_output
+        if claude_output=$(echo "$query" | claude -p "Code Reviewer" 2>&1); then
+            echo "claude-code-auto" > /tmp/ai_engine_auto_review
+            echo "$claude_output"
+            return 0
+        else
+            log_warning "Claude CLI 실행 실패. 파일 기반 방식으로 폴백합니다."
+        fi
+    fi
     
     # 변경사항을 임시 파일에 저장하여 Claude Code가 자동으로 감지하도록 함
     local temp_review_request="/tmp/claude_code_review_request_$$.md"

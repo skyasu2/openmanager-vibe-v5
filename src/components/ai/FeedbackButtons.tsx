@@ -57,10 +57,7 @@ export default function FeedbackButtons({
 
       if (onFeedback) {
         // onFeedback이 Promise를 반환할 수도 있고 아닐 수도 있음
-        const result = onFeedback(feedbackData);
-        if (result instanceof Promise) {
-          await result;
-        }
+        await Promise.resolve(onFeedback(feedbackData));
       }
 
       setShowDetailForm(false);

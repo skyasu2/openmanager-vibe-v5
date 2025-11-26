@@ -10,8 +10,8 @@ import React, {
   Fragment,
   type FC,
 } from 'react';
-import { useChat } from 'ai/react';
-import { Message } from 'ai';
+import { useChat } from '@ai-sdk/react';
+import type { UIMessage } from 'ai';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { isGuestFullAccessEnabled } from '@/config/guestMode';
 import {
@@ -153,24 +153,25 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
     reload,
     stop,
   } = useChat({
-    api: '/api/ai/chat',
+    api: '/api/ai/unified-stream', // ✨ NEW: 포트폴리오용 Tools 포함
     initialMessages: [], // TODO: Load from store if needed
-    onFinish: (message) => {
+    onFinish: (message: any) => {
       // Optional: Sync to global store if needed
       onMessageSend?.(input);
     },
   });
 
   // Map Vercel messages to EnhancedChatMessage
+  // Note: Using 'any' for compatibility with AI SDK v5.x message structure
   const enhancedMessages = useMemo(() => {
     return messages.map(
-      (m): EnhancedChatMessage => ({
+      (m: any): EnhancedChatMessage => ({
         id: m.id,
         role: m.role,
-        content: m.content,
+        content: m.content || m.parts?.find((p: any) => p.type === 'text')?.text || '',
         timestamp: m.createdAt || new Date(),
-        isStreaming: isLoading && m.id === messages[messages.length - 1].id,
-        thinkingSteps: m.toolInvocations?.map((t) => ({
+        isStreaming: isLoading && m.id === messages[messages.length - 1]?.id,
+        thinkingSteps: m.toolInvocations?.map((t: any) => ({
           id: t.toolCallId,
           step: t.toolName,
           status: t.state === 'result' ? 'completed' : 'processing',

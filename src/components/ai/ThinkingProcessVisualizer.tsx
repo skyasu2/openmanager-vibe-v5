@@ -28,12 +28,29 @@ interface ThinkingProcessVisualizerProps {
 
 // 단계별 아이콘 및 스타일 매핑
 const stepIconMap: Record<string, ComponentType<{ className?: string }>> = {
+  // Legacy steps
   '캐시 확인': Database,
   '의도 분석': Brain,
   '명령어 감지': Search,
   '복잡도 분석': Activity,
   '라우팅 결정': Route,
   '통합 파이프라인 준비': Cpu,
+
+  // 🧠 Extended Thinking Tools (NEW - Phase 2)
+  'analyzeIntent': Brain,
+  'analyzeComplexity': Activity,
+  'selectRoute': Route,
+  'searchContext': Search,
+  'generateInsight': Zap,
+
+  // 📊 Action Tools (Phase 1)
+  'getServerMetrics': Database,
+  'predictIncident': TrendingDown,
+  'searchKnowledgeBase': Search,
+  'analyzeServerHealth': CheckCircle2,
+  'getSystemStatus': Cpu,
+  'checkResourceUsage': Activity,
+  'analyzeLogs': Search,
 };
 
 // status별 스타일

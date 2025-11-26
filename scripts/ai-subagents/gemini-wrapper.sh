@@ -9,6 +9,9 @@ set -euo pipefail
 # 프로젝트 루트 자동 결정 (포터블)
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
+# npm global bin 경로 추가 (WSL에서 codex/gemini 찾기 위함)
+export PATH="$PATH:$(npm prefix -g)/bin"
+
 
 # 색상 정의
 RED='\033[0;31m'

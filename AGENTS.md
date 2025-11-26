@@ -8,7 +8,7 @@ Maintained for active Codex CLI usage in WSL2
 > **이 문서는 Codex CLI 설정 및 사용 지침의 공식 레퍼런스입니다.**
 > **OpenManager VIBE v5 Codex CLI 연동 안내**
 > **Language Policy**: 한국어 우선, 기술용어 영어 허용
-> **Last Updated**: 2025-11-20
+> **Last Updated**: 2025-11-27
 > **Environment**: Windows 11 + WSL2 (Ubuntu)
 > **다른 AI 도구**: `CLAUDE.md` (Claude Code/Multi-AI MCP), `GEMINI.md` (Gemini), `QWEN.md` (Qwen)
 >
@@ -54,8 +54,8 @@ npm run test     # Vitest (메인 설정)
 
 - **Codex CLI v0.58.0 (GPT-5)** – ChatGPT Plus $20/월, `config/ai/registry-core.yaml`
 - **응답 속도**: 6~12초 (자동 코드 리뷰 로그, `logs/code-reviews/*`)
-- **자동 코드 리뷰 1차 엔진**: Codex → Gemini 폴백 (99.9% 가용성, `docs/status.md`)
-- **Wrapper**: `scripts/ai-subagents/codex-wrapper.sh` v2.5.0 (600초 고정, PROJECT_ROOT 자동)
+- **자동 코드 리뷰 1차 엔진**: `.husky/post-commit` → `scripts/code-review/auto-ai-review.sh` v4.3.0 (Codex 우선 4:1 비율 + Gemini 폴백, lint/typecheck 선행, `logs/code-reviews/*`, `docs/status.md`)
+- **Wrapper**: `scripts/ai-subagents/codex-wrapper.sh` v3.0.0 (600초 타임아웃, stderr 분리, 1인 개발자 컨텍스트 자동 주입)
 - **철학**: "사용자 지침 준수 & 재현 가능성" (Codex 자기 분석)
 - **핵심 원칙**:
   - **Simplicity**: 코드는 읽기 쉽고 단순하게 유지 (KISS)
@@ -76,12 +76,12 @@ npm run test     # Vitest (메인 설정)
    ```
    프로젝트별 설정을 공유하려면 `~/.codex/` 하위 파일을 확인한 뒤 필요한 항목만 수동으로 커밋하세요.
 
-### 자동 코드 리뷰 파이프라인 (Codex → Gemini)
+### 자동 코드 리뷰 파이프라인 (Codex 우선 4:1 + Gemini, Claude 폴백)
 
-- **트리거**: `.husky/post-commit` → auto Codex review → Gemini 폴백 (logs/code-reviews/review-\*.md)
-- **1차**: Codex CLI v0.58.0 (GPT-5, 6~12초, 실무형 진단)
-- **2차**: Rate limit 또는 오류 감지 시 Gemini CLI v0.15.4 폴백 (25~31초, docs/status.md)
-- **가용성**: Codex OR Gemini 조합으로 99.9% (docs/status.md)
+- **트리거**: `.husky/post-commit` → `scripts/code-review/auto-ai-review.sh` 백그라운드 실행
+- **엔진 로직**: Codex/Gemini 4:1 라운드로빈 + 상호 폴백, 최종 Claude Code 폴백 (`logs/code-reviews/.ai-usage-state` 관리)
+- **검증**: lint + typecheck 선행 실행(`logs/lint`, `logs/typecheck`)
+- **가용성**: Codex/Gemini/Claude 조합으로 99.9% (`docs/status.md`)
 - **출력**: `logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md`
 
 ### 📊 2025 벤치마크 성능 (GPT-5 Codex v0.58.0)
@@ -98,7 +98,7 @@ npm run test     # Vitest (메인 설정)
 
 - **역할**: CLI 기반 코드 리뷰 & 검증, 자동 리뷰 시스템 1차 엔진
 - **Collaboration**: "Implementation Specialist" - Claude의 설계를 구체적인 코드로 구현
-- **Wrapper**: `scripts/ai-subagents/codex-wrapper.sh` **v2.5.0** (600초, 포터블, 1인 개발자 컨텍스트 자동 주입)
+- **Wrapper**: `scripts/ai-subagents/codex-wrapper.sh` **v3.0.0** (600초, 포터블, 1인 개발자 컨텍스트 자동 주입)
 
 ### ✅ Pre-Implementation Checklist
 
@@ -116,28 +116,19 @@ npm run test     # Vitest (메인 설정)
 | Gemini CLI                 | v0.15.4   | `GEMINI.md` |
 | Qwen CLI                   | v0.2.1    | `QWEN.md`   |
 
-## Codex Wrapper 스크립트 (v2.5.0)
+## Codex Wrapper 스크립트 (v3.0.0)
 
 **위치**: `scripts/ai-subagents/codex-wrapper.sh`  
-**버전**: v2.5.0 (2025-10-17, 포터블)  
-**목적**: Codex CLI 호출 시 안정적 타임아웃 및 사용자 가이드 제공
+**버전**: v3.0.0 (2025-11-21, 포터블)  
+**목적**: Codex CLI 호출 시 600초 타임아웃과 안전한 로깅/컨텍스트 주입 제공
 
 ### 주요 기능
 
 1. **고정 타임아웃 600초** – 복잡한 분석도 한 번에 처리 (`timeout 600s`)
-2. **PROJECT_ROOT 자동 계산** – 어떤 작업 디렉터리에서도 실행 가능
-3. **1인 개발자 컨텍스트 프롬프트 자동 주입** – "ROI 중심" 관점 유지
-4. **`.env.local` 자동 로드** – API 키/설정 공유
-5. **성능 로깅** – `logs/ai-perf/codex-perf-YYYY-MM-DD.log`에 토큰/시간 기록
-6. **타임아웃 가이드** – 분할/간소화/핵심 질문 3단계 안내
-
-### v2.5.0 개선 사항
-
-- 타임아웃 300초 → **600초** 확장 (프로덕션 워크로드 기준)
-- 하드코딩된 경로 제거, **PROJECT_ROOT 동적 계산**
-- Wrapper 시작 시 상태 로그: "🚀 Codex Wrapper v2.5.0 시작"
-- 토큰 사용량 자동 추출 (`tokens used:` 로그)
-- (Phase 1) Decision Log 연동을 위한 파일 훅 포함
+2. **PROJECT_ROOT 자동 계산** – 어떤 작업 디렉터리에서도 실행 가능 (PATH에 npm global bin 추가)
+3. **1인 개발자 컨텍스트 프롬프트 자동 주입** – ROI 중심 관점 유지
+4. **stderr 분리 + 토큰/시간 로깅** – `logs/ai-perf/codex-perf-YYYY-MM-DD.log`에 기록, 공백 응답/타임아웃 안내 포함
+5. **`.env.local` 자동 로드** – 프로젝트 루트에 존재하면 환경 변수 주입
 
 ### 사용 예시
 
@@ -161,8 +152,7 @@ npm run test     # Vitest (메인 설정)
 
 ### 다른 AI Wrapper 스크립트
 
-- **Gemini**: `scripts/ai-subagents/gemini-wrapper.sh` v2.5.0 – 기본 모델 `gemini-2.5-pro`, 600초, Codex 폴백용
-- **Qwen**: `scripts/ai-subagents/qwen-wrapper.sh` v2.5.0 – YOLO Mode 기본(`--approval-mode yolo`), 600초, 완전 무인
+- Gemini/Qwen 래퍼는 동일한 포터블 구조(v3.0.0)이며 세부 설정은 각 전용 문서(`GEMINI.md`, `QWEN.md`)를 참고하세요.
 
 ## 추천 워크플로우
 
@@ -177,7 +167,7 @@ npm run test     # Vitest (메인 설정)
    - Claude Task에서 복잡한 문제 감지 시 "WSL Codex 분석" 요청
    - Codex 결과를 Claude 대화에 붙여 후속 작업
 2. **Codex ↔ Gemini**
-   - 자동 코드 리뷰: Codex(1차) → Gemini(2차 폴백), logs/code-reviews/\* 참조
+   - 자동 코드 리뷰: Codex 우선 4:1 비율 + Gemini 폴백(최종 Claude Code 폴백), `scripts/code-review/auto-ai-review.sh` 로그 `logs/code-reviews/*` 확인
 3. **Gemini/Qwen과 병행**
    - `scripts/ai-subagents` 문서를 참고하여 필요 시 수동 호출
    - 자동 호출 스크립트가 필요하면 `archive/`에서 복원 후 업데이트 기록 남기기
@@ -190,6 +180,7 @@ npm run test     # Vitest (메인 설정)
 
 ## 업데이트 로그
 
+- **2025-11-27**: Codex wrapper v3.0.0 및 자동 코드 리뷰 스크립트 v4.3.0(4:1 비율, lint/typecheck, Claude 폴백) 반영. Gemini/Qwen 래퍼 안내를 전용 문서 참조로 단순화.
 - **2025-11-20**: Codex CLI v0.58.0, Wrapper v2.5.0(600초) 및 자동 코드 리뷰 파이프라인 정보 반영. Node 22.21.1/Next ^15.5.5 테이블 갱신.
 - **2025-10-10**: Codex Wrapper v2.0.0 반영 (타임아웃 300초, 재시도 제거), Qwen v2.1.0 참조 추가.
 - **2025-10-08**: Codex CLI 버전 정보 0.45.0으로 갱신하고 Gemini CLI 0.8.1 업그레이드 반영.

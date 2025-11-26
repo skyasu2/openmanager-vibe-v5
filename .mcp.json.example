@@ -5,7 +5,7 @@
       "command": "npx",
       "args": ["-y", "@open-mcp/vercel"],
       "env": {
-        "API_KEY": "${VERCEL_API_KEY}"
+        "API_KEY": "YOUR_VERCEL_API_KEY"
       }
     },
     "serena": {
@@ -18,8 +18,8 @@
       "command": "npx",
       "args": ["-y", "@supabase/mcp-server-supabase@latest"],
       "env": {
-        "SUPABASE_URL": "${SUPABASE_URL}",
-        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
+        "SUPABASE_URL": "YOUR_SUPABASE_URL",
+        "SUPABASE_ACCESS_TOKEN": "YOUR_SUPABASE_TOKEN"
       }
     },
     "context7": {
