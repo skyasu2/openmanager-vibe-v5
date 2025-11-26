@@ -83,14 +83,14 @@
 - **일반 방식**: 모든 MCP 서버(9개) 활성화 → 불필요한 도구 목록도 포함
 - **@-mention 방식**: 필요한 MCP 서버만 활성화 → 해당 서버 도구만 로드
 
-### 전체 10개 MCP 서버 @-mention 예시
+### 전체 11개 MCP 서버 @-mention 예시
 
 #### 1️⃣ @serena - 코드 검색 전문
 
 ```bash
-# ❌ Before: 모든 MCP 활성화 (10개 서버 × 평균 10개 도구 = 100개 도구 로드)
+# ❌ Before: 모든 MCP 활성화 (11개 서버 × 평균 10개 도구 = 110개 도구 로드)
 "src/components/LoginClient.tsx의 심볼 구조를 분석해줘"
-# 토큰: ~150 토큰 (MCP 서버 10개 모두 활성화)
+# 토큰: ~160 토큰 (MCP 서버 11개 모두 활성화)
 
 # ✅ After: Serena만 활성화
 @serena "src/components/LoginClient.tsx의 심볼 구조를 분석해줘"
@@ -215,6 +215,20 @@
 # Time 도구만 로드: get_current_time, convert_time
 ```
 
+#### 1️⃣1️⃣ @github - GitHub 저장소 관리
+
+```bash
+# ❌ Before: 모든 MCP 활성화
+"현재 저장소의 이슈 목록과 PR을 확인해줘"
+# 토큰: ~155 토큰
+
+# ✅ After: GitHub만 활성화
+@github "현재 저장소의 이슈 목록과 PR을 확인해줘"
+# 토큰: ~128 토큰 (17% 절약!)
+# GitHub 도구만 로드: list_issues, get_pull_request, create_issue 등
+# 참고: GITHUB_PERSONAL_ACCESS_TOKEN 환경변수 필요
+```
+
 ### 복합 작업 시 조합 사용
 
 ```bash
@@ -245,7 +259,8 @@
 | @sequential-thinking | 155 토큰     | 130 토큰     | 16%     |
 | @memory              | 150 토큰     | 125 토큰     | 17%     |
 | @time                | 140 토큰     | 115 토큰     | 18%     |
-| **평균**             | **147 토큰** | **120 토큰** | **18%** |
+| @github              | 155 토큰     | 128 토큰     | 17%     |
+| **평균**             | **147 토큰** | **121 토큰** | **18%** |
 
 ### 💡 사용 팁
 
@@ -535,6 +550,7 @@ mcp__shadcn_ui__get_component_demo('button');
   - `@filesystem "파일 작업"` - 파일 읽기/쓰기, 디렉토리 탐색
   - `@context7 "문서 조회"` - 라이브러리 공식 문서
   - `@vercel "배포 확인"` - 프로젝트/배포 정보
+  - `@github "이슈/PR 관리"` - GitHub 저장소 작업
 
 - [ ] 코드 검색 → Serena (심볼/구조 분석)
 - [ ] 파일 작업 → filesystem (읽기/쓰기, 디렉토리 탐색)

@@ -178,13 +178,13 @@ npm run test:fast           # 21초 (44% 개선)
 - .wslconfig: `dnsTunneling=true`, `autoProxy=true` (필수)
 - MCP 상태: 9/9 연결 (완벽 연결!)
 
-**MCP 연결**: 10/10 완벽 (100% 가동률) ✅
+**MCP 연결**: 11/11 완벽 (100% 가동률) ✅
 
 **MCP 필요시 활용**: 복잡한 작업 시 전문 서버 사용
 
-- **주요 서버**: serena (코드 검색), filesystem (파일 작업), vercel (배포), context7 (문서), shadcn-ui (UI)
+- **주요 서버**: serena (코드 검색), filesystem (파일 작업), vercel (배포), context7 (문서), shadcn-ui (UI), github (저장소)
 - **토큰 절약 효과**: 최대 85% (MCP 82% + @-mention 3%)
-- **전체 서버**: vercel, serena, supabase, context7, playwright, shadcn-ui, memory, time, sequential-thinking, filesystem
+- **전체 서버**: vercel, serena, supabase, context7, playwright, shadcn-ui, memory, time, sequential-thinking, filesystem, github
 
 **상세**: @docs/claude/environment/mcp/mcp-priority-guide.md (514줄, Before/After 예시)
 

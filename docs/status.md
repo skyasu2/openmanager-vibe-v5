@@ -114,9 +114,10 @@
 
 ## 🔌 인프라
 
-- **MCP 연결**: 10/10 작동 완료 (100% 가동률) ✅ (프로젝트 .mcp.json)
-  - 역할 구분: serena (코드 검색), filesystem (파일 작업)
+- **MCP 연결**: 11/11 작동 완료 (100% 가동률) ✅ (프로젝트 .mcp.json)
+  - 역할 구분: serena (코드 검색), filesystem (파일 작업), github (저장소)
   - Playwright: @playwright/mcp v0.0.45 (Microsoft 공식)
+  - GitHub: @modelcontextprotocol/server-github v0.5.0 (환경변수 참조)
   - 복구 완료: 2025-11-03 (88.9% → 100%)
 - **WSL**: 최적화 완료 (Ubuntu 24.04.1, 커널 6.6.87.2)
 - **Node.js**: v22.21.1 (안정성 검증 완료 - v24→v22 다운그레이드)
@@ -131,7 +132,7 @@
 **최종 검증**: 2025-11-04 15:30 KST
 **환경 상태**: WSL 재설치 후 100% 복구, 코드 리뷰 시스템 정상 작동 확인
 
-- ✅ MCP 서버: 10/10 완벽 연결 (filesystem 추가 확인)
+- ✅ MCP 서버: 11/11 완벽 연결 (filesystem, github 추가 확인)
 - ✅ AI CLI 도구: 4/4 정상 작동 (Codex v0.58.0, Gemini v0.15.4, Qwen v0.2.1 최신)
 - ✅ Bash Wrapper: 3/3 정상 작동 (v2.5.0, 타임아웃 100% 안정)
 - ✅ Codex/Gemini: 자동 리뷰 시스템 정상 작동 (99.9% 가용성)
