@@ -76,7 +76,9 @@ export const supabaseHandlers = [
    */
   http.post(`${SUPABASE_URL}/rest/v1/:table`, async ({ params, request }) => {
     const { table } = params;
-    const body = await request.json();
+    const body = (await request.json()) as
+      | Record<string, unknown>
+      | Record<string, unknown>[];
 
     console.log(
       `[MSW] Supabase Insert Mocked: table=${String(table)}, data=${JSON.stringify(body).substring(0, 50)}...`
