@@ -25,17 +25,7 @@ else
   }
 fi
 
-# 2. TypeScript 타입 체크 (CRITICAL - 프로덕션 안전성)
-echo "🔍 Type checking..."
-npm run type-check || {
-  echo "❌ TypeScript errors found - push blocked"
-  echo "💡 Fix: npm run type-check"
-  echo "⚠️  CRITICAL: Type errors must be fixed before push"
-  echo "   (Vercel may deploy broken code if this is skipped)"
-  exit 1
-}
-
-# 3. 프로덕션 빌드 검증 (CRITICAL - Vercel 배포 전 로컬 검증)
+# 2. 프로덕션 빌드 검증 (CRITICAL - Vercel 배포 전 로컬 검증, 타입 체크 포함)
 echo "🏗️ Build validation..."
 npm run build || {
   echo "❌ Build failed - push blocked"
@@ -45,7 +35,7 @@ npm run build || {
   exit 1
 }
 
-# 4. 환경 변수 검사 (CRITICAL - 배포 안전성)
+# 3. 환경 변수 검사 (CRITICAL - 배포 안전성)
 echo "🔐 Environment variables check..."
 npm run env:check || {
   echo "❌ Environment variables check failed - push blocked"
@@ -55,11 +45,11 @@ npm run env:check || {
   exit 1
 }
 
-# 5. 민감 파일 체크 (보안)
+# 4. 민감 파일 체크 (보안)
 echo "🔒 Security check..."
 # Robust security check with fallback for shallow clones/missing remote
 SENSITIVE_FILES=$(git diff origin/main...HEAD --name-only 2>/dev/null) || \
-  SENSITIVE_FILES=$(git diff HEAD~1 --name-only 2>/dev/null || true)
+  SENSITIVE_FILES=$(git diff HEAD~1 --name-only --diff-filter=d 2>/dev/null || true)
 SENSITIVE_FILES=$(echo "$SENSITIVE_FILES" | grep -E '\.(env|key|pem)$' || true)
 if [ -n "$SENSITIVE_FILES" ]; then
   echo "❌ 민감한 파일이 포함되어 있습니다:"
@@ -67,7 +57,7 @@ if [ -n "$SENSITIVE_FILES" ]; then
   exit 1
 fi
 
-# 6. package.json 검증
+# 5. package.json 검증
 echo "📦 Checking package.json..."
 node -e "JSON.parse(require('fs').readFileSync('package.json', 'utf8'))" || {
   echo "❌ package.json has syntax errors"
@@ -90,12 +80,15 @@ elif [ "$TEST_STATUS" = "skipped" ]; then
 else
   echo "  ❌ Quick tests failed (should not reach here)"
 fi
-echo "  ✅ TypeScript type check passed"
-echo "  ✅ Production build succeeded"
+echo "  ✅ Production build succeeded (includes type check)"
 echo "  ✅ Environment variables validated"
 echo "  ✅ Security check passed"
 echo "  ✅ package.json validated"
-echo "  ℹ️  ESLint runs in post-commit (non-blocking)"
+echo ""
+echo "ℹ️  Post-commit (background, non-blocking):"
+echo "  • ESLint → logs/lint-reports/"
+echo "  • TypeScript → logs/typecheck-reports/"
+echo "  • AI review → logs/code-reviews/"
 echo ""
 echo "🛡️  Protection: Type errors + Build failures blocked at local"
 echo "💡 Vercel deployment will be safe"

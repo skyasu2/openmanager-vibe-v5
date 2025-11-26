@@ -7,12 +7,26 @@
 
 set -e
 
-# Auto AI Code Review (Codex → Gemini Fallback, 백그라운드 실행)
-if [ -f "scripts/code-review/auto-ai-review.sh" ]; then
-    echo "🤖 Starting AI code review (Codex → Gemini fallback)..."
-    echo "   (Review will run in background, check logs/code-reviews/ for results)"
-    bash scripts/code-review/auto-ai-review.sh &
-    echo "   ✅ Review will be saved to logs/code-reviews/"
+echo "🚀 Post-commit validation started (background)..."
+
+# 1. ESLint 전체 검사 (백그라운드, 타임아웃 없음)
+if [ -f "scripts/lint/run-lint-check.sh" ]; then
+    echo "  🔍 ESLint check → logs/lint-reports/"
+    bash scripts/lint/run-lint-check.sh > /dev/null 2>&1 &
 fi
+
+# 2. TypeScript 타입 체크 (백그라운드, 타임아웃 없음)
+if [ -f "scripts/typecheck/run-typecheck.sh" ]; then
+    echo "  📝 TypeScript check → logs/typecheck-reports/"
+    bash scripts/typecheck/run-typecheck.sh > /dev/null 2>&1 &
+fi
+
+# 3. Auto AI Code Review (Codex → Gemini Fallback, 백그라운드)
+if [ -f "scripts/code-review/auto-ai-review.sh" ]; then
+    echo "  🤖 AI code review → logs/code-reviews/"
+    bash scripts/code-review/auto-ai-review.sh > /dev/null 2>&1 &
+fi
+
+echo "✅ All background tasks started. Check logs/ for results."
 
 exit 0

@@ -849,11 +849,11 @@ show_review_summary() {
 
 # 메인 실행
 main() {
-    log_info "🚀 Auto AI Review 시작 (v4.0.0 - 실시간 검증 포함)"
+    log_info "🚀 Auto AI Review 시작 (v5.0.0 - 검증 분리)"
     echo ""
 
-    # 1단계: 실시간 검증 실행 (v4.0.0 신규)
-    run_verification
+    # 1단계: 실시간 검증 실행 (v5.0.0: 별도 스크립트로 분리)
+    # run_verification  # Disabled: 별도 스크립트로 실행 (post-commit)
 
     # 2단계: 변경사항 수집
     local changes
