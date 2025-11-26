@@ -4,4 +4,6 @@
  */
 
 // 메인 컴포넌트
+// 메인 컴포넌트
 export { default as AISidebarV3 } from './AISidebarV3';
+export { default as AISidebarV4 } from './AISidebarV4';

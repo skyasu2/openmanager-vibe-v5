@@ -66,6 +66,16 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 3. **Vercel 중심**: 실제 환경 우선 테스트
 4. **MCP 필요시 사용**: 복잡한 작업 시 MCP 서버 활용 (85% 토큰 절약 가능)
 5. **Side-Effect First**: 테스트/문서/의존성 동시 수정
+6. **UX Obsession**: 사용자 경험 최우선 (Premium Quality)
+7. **Simplicity**: 코드는 읽기 쉽고 단순하게 유지 (KISS)
+
+### 🤖 AI Collaboration Philosophy
+
+**"Trust but Verify"**
+
+- **Role**: Claude (Lead) ↔ Gemini (Partner/Reviewer)
+- **Cross-Check**: 중요한 아키텍처 결정이나 복잡한 로직 구현 시 Gemini에게 "Second Opinion" 요청
+- **Context Sharing**: 작업 전 핵심 컨텍스트(목표, 제약사항)를 명확히 공유
 
 ### 🔍 작업 전 필수 체크 (Pre-Development Checklist)
 
@@ -85,6 +95,10 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
    - 수정 대상의 참조 위치 파악 (@serena find_referencing_symbols)
    - API 변경 시 Breaking Change 여부 확인
    - 하위 호환성(Backward Compatibility) 검토
+
+4. **AI Cross-Check** 🤖
+   - 복잡한 설계/리팩토링 시 Gemini에게 리뷰 요청
+   - "이 설계의 잠재적 문제점은?" 질문 습관화
 
 ### 🎯 구현 시 필수 작업 (Implementation Checklist)
 
