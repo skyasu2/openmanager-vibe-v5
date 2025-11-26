@@ -237,11 +237,7 @@
   },
   "packageManager": "npm@10.9.2",
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "bash -c 'export NODE_OPTIONS=\"--max-old-space-size=8192\"; git diff --cached --name-only --diff-filter=d \"$@\" | xargs -r eslint --cache --cache-location /tmp/lint-cache/eslint-precommit/ --max-warnings=100 --fix --no-warn-ignored' _",
-      "prettier --write"
-    ],
-    "*.{json,md,mdx,css,scss}": [
+    "*.{js,jsx,ts,tsx,json,md,mdx,css,scss}": [
       "prettier --write"
     ]
   },

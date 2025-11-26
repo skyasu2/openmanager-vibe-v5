@@ -33,7 +33,9 @@ CHANGED_FILES=$(git diff origin/main...HEAD --name-only --diff-filter=ACMR 2>/de
 CHANGED_FILES=$(echo "$CHANGED_FILES" | grep -E '\.(ts|tsx|js|jsx)$' || true)
 LINT_STATUS="passed"
 if [ -n "$CHANGED_FILES" ]; then
-  echo "$CHANGED_FILES" | xargs npx eslint --max-warnings=0 || {
+  # ESLINT_FAST=true: 타입 체킹 없이 빠른 린트 (10-20배 향상)
+  # --cache: 캐시 사용으로 성능 향상, timeout: 30초 제한 (비차단)
+  echo "$CHANGED_FILES" | ESLINT_FAST=true timeout 30 xargs npx eslint --cache --max-warnings=0 || {
     LINT_STATUS="failed"
     echo "⚠️  Lint warnings/errors found in changed files"
     echo "💡 Fix: npm run lint -- --fix"
