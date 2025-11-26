@@ -10,7 +10,10 @@ export default defineConfig({
       NEXT_PUBLIC_SUPABASE_ANON_KEY: 'mock-anon-key-for-testing',
       GOOGLE_AI_API_KEY: 'mock-google-ai-key-for-testing',
     },
-    setupFiles: ['./src/test/setup.ts'],
+    setupFiles: [
+      './src/test/setup.ts',
+      './config/testing/msw-setup.ts', // ✅ MSW Mock Server Setup
+    ],
     include: [
       'src/**/*.{test,spec}.{js,ts,tsx}',
       'tests/ai-sidebar/**/*.{test,spec}.{js,ts,tsx}',
