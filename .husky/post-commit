@@ -1,6 +1,18 @@
+#!/usr/bin/env bash
+
+# Post-commit Hook: Background AI Code Review
+# 목적: 커밋 완료 후 백그라운드에서 자동 AI 코드 리뷰 실행
+# 변경 이력:
+#   - 2025-11-26: pre-commit에서 post-commit으로 이동 (커밋 블로킹 방지)
+
+set -e
+
 # Auto AI Code Review (Codex → Gemini Fallback, 백그라운드 실행)
 if [ -f "scripts/code-review/auto-ai-review.sh" ]; then
     echo "🤖 Starting AI code review (Codex → Gemini fallback)..."
+    echo "   (Review will run in background, check logs/code-reviews/ for results)"
     bash scripts/code-review/auto-ai-review.sh &
     echo "   ✅ Review will be saved to logs/code-reviews/"
 fi
+
+exit 0
