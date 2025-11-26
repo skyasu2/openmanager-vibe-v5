@@ -1,9 +1,6 @@
 echo "🔍 Pre-push: Type-safe + Build validation (~90초 예상)..."
 START_TIME=$(date +%s)
 
-# Enable pipefail for robust error handling in pipelines
-set -o pipefail
-
 # 1. 빠른 유닛 테스트 (11초) - CRITICAL (opt-out with SKIP_TESTS=true)
 echo "🧪 Running quick tests..."
 TEST_STATUS="passed"
@@ -80,8 +77,9 @@ npm run env:check || {
 # 6. 민감 파일 체크 (보안)
 echo "🔒 Security check..."
 # Robust security check with fallback for shallow clones/missing remote
-SENSITIVE_FILES=$(git diff origin/main...HEAD --name-only 2>/dev/null | grep -E '\.(env|key|pem)$') || \
-  SENSITIVE_FILES=$(git diff HEAD~1 --name-only 2>/dev/null | grep -E '\.(env|key|pem)$' || true)
+SENSITIVE_FILES=$(git diff origin/main...HEAD --name-only 2>/dev/null) || \
+  SENSITIVE_FILES=$(git diff HEAD~1 --name-only 2>/dev/null || true)
+SENSITIVE_FILES=$(echo "$SENSITIVE_FILES" | grep -E '\.(env|key|pem)$' || true)
 if [ -n "$SENSITIVE_FILES" ]; then
   echo "❌ 민감한 파일이 포함되어 있습니다:"
   echo "$SENSITIVE_FILES"
