@@ -1,6 +1,9 @@
 echo "🔍 Pre-push: Type-safe + Build validation (~90초 예상)..."
 START_TIME=$(date +%s)
 
+# Enable pipefail for robust error handling in pipelines
+set -o pipefail
+
 # 1. 빠른 유닛 테스트 (11초) - CRITICAL (opt-out with SKIP_TESTS=true)
 echo "🧪 Running quick tests..."
 TEST_STATUS="passed"
@@ -12,21 +15,24 @@ else
   npm run test:super-fast || {
     TEST_STATUS="failed"
     echo "❌ Tests failed - push blocked"
-    echo "💡 Fix: npm run test:super-fast"
-    echo "⚠️  To bypass (not recommended): SKIP_TESTS=true git push"
-    echo "   Known issue: @rollup/rollup-linux-x64-gnu installation"
+    echo ""
+    echo "💡 Fix the test failures:"
+    echo "   npm run test:super-fast"
+    echo ""
+    echo "⚠️  To bypass (not recommended):"
+    echo "   SKIP_TESTS=true git push"
+    echo ""
+    echo "ℹ️  Known issue: @rollup/rollup-linux-x64-gnu installation"
+    echo "   If tests fail due to Rollup native binary, use SKIP_TESTS=true"
     exit 1
   }
 fi
 
 # 2. Lint 검사 (수정된 파일만 - 빠른 검증)
 echo "🔍 Linting changed files..."
-# origin/main과 비교하여 실제 변경된 파일 체크 (fallback: HEAD~1 if empty)
-CHANGED_FILES=$(git diff origin/main...HEAD --name-only --diff-filter=ACM 2>/dev/null)
-if [ -z "$CHANGED_FILES" ]; then
-  # Fallback: 빈 결과면 HEAD~1과 비교 (얕은 클론/원격 부재 시)
-  CHANGED_FILES=$(git diff HEAD~1 --name-only --diff-filter=ACM 2>/dev/null || true)
-fi
+# origin/main과 비교하여 실제 변경된 파일 체크 (fallback: HEAD~1 if error or empty)
+CHANGED_FILES=$(git diff origin/main...HEAD --name-only --diff-filter=ACMR 2>/dev/null) || \
+  CHANGED_FILES=$(git diff HEAD~1 --name-only --diff-filter=ACMR 2>/dev/null || true)
 CHANGED_FILES=$(echo "$CHANGED_FILES" | grep -E '\.(ts|tsx|js|jsx)$' || true)
 LINT_STATUS="passed"
 if [ -n "$CHANGED_FILES" ]; then
@@ -73,8 +79,12 @@ npm run env:check || {
 
 # 6. 민감 파일 체크 (보안)
 echo "🔒 Security check..."
-if git diff origin/main...HEAD --name-only 2>/dev/null | grep -E '\.(env|key|pem)$'; then
-  echo "❌ 민감한 파일이 포함되어 있습니다"
+# Robust security check with fallback for shallow clones/missing remote
+SENSITIVE_FILES=$(git diff origin/main...HEAD --name-only 2>/dev/null | grep -E '\.(env|key|pem)$') || \
+  SENSITIVE_FILES=$(git diff HEAD~1 --name-only 2>/dev/null | grep -E '\.(env|key|pem)$' || true)
+if [ -n "$SENSITIVE_FILES" ]; then
+  echo "❌ 민감한 파일이 포함되어 있습니다:"
+  echo "$SENSITIVE_FILES"
   exit 1
 fi
 
