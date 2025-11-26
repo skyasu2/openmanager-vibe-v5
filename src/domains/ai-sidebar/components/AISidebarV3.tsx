@@ -448,6 +448,7 @@ export const AISidebarV3: FC<AISidebarV3Props> = ({
     isGenerating,
     handleSendInput,
     regenerateResponse,
+    currentEngine,
   ]);
 
   // ESC 키로 사이드바 닫기
