@@ -3,12 +3,16 @@
  * DOM testing 환경 설정
  */
 
-import { vi } from 'vitest';
+import { vi, expect } from 'vitest';
 import '@testing-library/jest-dom';
+import { toHaveNoViolations } from 'jest-axe';
 import {
   createSupabaseMock,
   SupabaseMockBuilder,
 } from './helpers/supabase-mock';
+
+// jest-axe matcher 등록
+expect.extend(toHaveNoViolations);
 
 // Supabase Client Mock - 향상된 Builder 패턴 사용
 vi.mock('@/lib/supabase/client', () => {

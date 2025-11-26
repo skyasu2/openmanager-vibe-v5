@@ -30,14 +30,14 @@ export default function FeedbackButtons({
 
     if (feedback === 'helpful') {
       // 긍정적 피드백은 바로 제출
-      submitFeedback(feedback);
+      void submitFeedback(feedback);
     } else {
       // 부정적 피드백은 상세 정보 요청
       setShowDetailForm(true);
     }
   };
 
-  const submitFeedback = (
+  const submitFeedback = async (
     feedback: 'helpful' | 'not_helpful' | 'incorrect',
     skipDetails = false
   ) => {
@@ -56,7 +56,11 @@ export default function FeedbackButtons({
       logger.logFeedback(feedbackData);
 
       if (onFeedback) {
-        onFeedback(feedbackData);
+        // onFeedback이 Promise를 반환할 수도 있고 아닐 수도 있음
+        const result = onFeedback(feedbackData);
+        if (result instanceof Promise) {
+          await result;
+        }
       }
 
       setShowDetailForm(false);
@@ -72,13 +76,13 @@ export default function FeedbackButtons({
 
   const handleDetailSubmit = () => {
     if (selectedFeedback && selectedFeedback !== 'helpful') {
-      submitFeedback(selectedFeedback);
+      void submitFeedback(selectedFeedback);
     }
   };
 
   const handleSkipDetails = () => {
     if (selectedFeedback && selectedFeedback !== 'helpful') {
-      submitFeedback(selectedFeedback, true);
+      void submitFeedback(selectedFeedback, true);
     }
   };
 
@@ -103,7 +107,9 @@ export default function FeedbackButtons({
           </span>
 
           <button
-            onClick={() => { void handleFeedbackClick('helpful'); }}
+            onClick={() => {
+              void handleFeedbackClick('helpful');
+            }}
             disabled={isSubmitting}
             className="flex items-center gap-1 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5 text-sm text-green-700 transition-colors hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -112,7 +118,9 @@ export default function FeedbackButtons({
           </button>
 
           <button
-            onClick={() => { void handleFeedbackClick('not_helpful'); }}
+            onClick={() => {
+              void handleFeedbackClick('not_helpful');
+            }}
             disabled={isSubmitting}
             className="flex items-center gap-1 rounded-lg border border-orange-200 bg-orange-50 px-3 py-1.5 text-sm text-orange-700 transition-colors hover:bg-orange-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -121,7 +129,9 @@ export default function FeedbackButtons({
           </button>
 
           <button
-            onClick={() => { void handleFeedbackClick('incorrect'); }}
+            onClick={() => {
+              void handleFeedbackClick('incorrect');
+            }}
             disabled={isSubmitting}
             className="flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm text-red-700 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -140,7 +150,10 @@ export default function FeedbackButtons({
           </div>
 
           <div>
-            <label htmlFor="detailed-reason-select" className="mb-1 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="detailed-reason-select"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
               왜 도움이 되지 않았나요?
             </label>
             <select
@@ -162,7 +175,10 @@ export default function FeedbackButtons({
           </div>
 
           <div>
-            <label htmlFor="additional-comments-textarea" className="mb-1 block text-sm font-medium text-gray-700">
+            <label
+              htmlFor="additional-comments-textarea"
+              className="mb-1 block text-sm font-medium text-gray-700"
+            >
               추가 의견 (선택사항)
             </label>
             <textarea

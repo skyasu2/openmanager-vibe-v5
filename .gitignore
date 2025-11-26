@@ -200,6 +200,7 @@ next-env.d.ts
 
 # 🔐 MCP 민감한 정보 포함 파일들 (GitHub 완전 차단)
 .mcp.json
+.claude/mcp.json
 .claude/claude_workspace.json
 
 # MCP 개발용 설정 파일들 (GitHub 허용, Vercel 배포 제외)
@@ -464,3 +465,4 @@ docs/testing/pin-authentication-*.md
 # Runtime temp files
 .dev-server.pid
 dev-server.log
+.mcp.json.README.md
