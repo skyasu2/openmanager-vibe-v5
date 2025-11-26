@@ -62,6 +62,14 @@
       "env": {
         "ALLOWED_DIRECTORIES": "${PROJECT_ROOT}"
       }
+    },
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "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"
+      }
     }
   }
 }
