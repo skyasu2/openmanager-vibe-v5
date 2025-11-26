@@ -1,188 +1,134 @@
 /**
- * AI 엔진 관리 Custom Hook
- * AI 모드 선택 및 엔진 상태 관리
+ * AI 엔진 관리 Custom Hook (v4.0 - UNIFIED 전용)
+ *
+ * @since v4.0 - AI 모드 선택 UI 제거, UNIFIED 모드로 통합
+ * @deprecated 이 Hook은 하위 호환성을 위해 유지됨. 직접 '/api/ai/query' 사용 권장
+ * @author Claude Code
+ * @created 2025-11-26
  */
 
-import { useCallback, useState, useEffect } from 'react';
-import type { AIMode } from '../../../types/ai-types';
+import { useCallback, useEffect } from 'react';
 import type { ChatMessage } from '../../../stores/useAISidebarStore';
 
-// 테스트 호환성을 위한 엔진 타입 확장
-type ExtendedAIMode = AIMode | 'UNIFIED';
-
 export interface UseAIEngineReturn {
-  // 상태 (테스트 호환성)
-  currentEngine: ExtendedAIMode;
-  selectedEngine: ExtendedAIMode; // 기존 코드 호환성
-  showEngineInfo: boolean;
-  isChangingEngine: boolean;
+  // 상태 (하위 호환성)
+  currentEngine: 'UNIFIED';
+  selectedEngine: 'UNIFIED';
+  showEngineInfo: false;
+  isChangingEngine: false;
 
-  // 액션
-  setSelectedEngine: (engine: ExtendedAIMode) => void;
+  // 액션 (하위 호환성 - 더 이상 아무것도 하지 않음)
+  setSelectedEngine: (engine: string) => void;
   toggleEngineInfo: () => void;
-  handleModeChange: (newMode: AIMode) => Promise<ChatMessage | null>;
-  
-  // 테스트 호환성을 위한 메서드
-  setEngine: (engine: ExtendedAIMode) => void;
-  isEngineAvailable: (engine: ExtendedAIMode) => boolean;
-  getEngineDisplayName: (engine: ExtendedAIMode) => string;
-  getEngineDescription: (engine: ExtendedAIMode) => string;
-  getEngineEndpoint: (engine: ExtendedAIMode) => string;
+  handleModeChange: (newMode: string) => Promise<ChatMessage | null>;
+
+  // 유틸리티 메서드
+  setEngine: (engine: string) => void;
+  isEngineAvailable: (engine: string) => boolean;
+  getEngineDisplayName: (engine?: string) => string;
+  getEngineDescription: (engine?: string) => string;
+  getEngineEndpoint: (engine?: string) => string;
 }
 
 const STORAGE_KEY = 'selected-ai-engine';
 
-// 엔진 설정 맵
-const ENGINE_CONFIG = {
-  UNIFIED: {
-    displayName: '통합 AI 엔진',
-    description: 'Provider 패턴 통합 - RAG + ML + Google AI + 자연어 처리 (GoogleAiUnifiedEngine)',
-    endpoint: '/api/ai/query'  // GoogleAiUnifiedEngine via SimplifiedQueryEngineAdapter
-  },
-  LOCAL: {
-    displayName: '로컬 RAG',
-    description: 'Supabase RAG 엔진 - 벡터 검색 기반 문서 검색 (레거시, UNIFIED 사용 권장)',
-    endpoint: '/api/ai/query'
-  },
-  GOOGLE_AI: {
-    displayName: 'Google AI',
-    description: 'Google AI 모드 - 순수 Google AI 직접 호출 (컨텍스트 인텔리전스)',
-    endpoint: '/api/ai/google-ai/generate'
-  },
-  AUTO: {
-    displayName: '자동 선택',
-    description: '시나리오 기반 자동 라우팅 (7개 시나리오 지원)',
-    endpoint: '/api/ai/query'
-  }
-} as const;
-
-// 엔진 유효성 검사 - useState 초기화 전에 정의
-function isEngineValid(engine: string): engine is ExtendedAIMode {
-  return Object.keys(ENGINE_CONFIG).includes(engine);
-}
-
-export function useAIEngine(
-  initialEngine: ExtendedAIMode = 'UNIFIED'
-): UseAIEngineReturn {
-  // localStorage에서 저장된 엔진 복원
-  const [currentEngine, setCurrentEngine] = useState<ExtendedAIMode>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(STORAGE_KEY) as ExtendedAIMode;
-      if (saved && isEngineValid(saved)) {
-        return saved;
-      }
-    }
-    return initialEngine;
-  });
-
-  const [showEngineInfo, setShowEngineInfo] = useState(false);
-  const [isChangingEngine, setIsChangingEngine] = useState(false);
-
-  // localStorage에 엔진 선택 저장
+/**
+ * useAIEngine Hook (v4.0 - UNIFIED 전용)
+ *
+ * ⚠️ 중요: 이 Hook은 하위 호환성을 위해 유지됩니다.
+ * - 모든 엔진 선택은 무시되고 UNIFIED로 자동 전환됩니다.
+ * - localStorage에 저장된 레거시 모드는 자동으로 UNIFIED로 마이그레이션됩니다.
+ *
+ * @returns {UseAIEngineReturn} UNIFIED 엔진 정보
+ */
+export function useAIEngine(): UseAIEngineReturn {
+  // localStorage 마이그레이션 (한 번만 실행)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, currentEngine);
+    if (typeof window === 'undefined') return;
+
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved && saved !== 'UNIFIED') {
+      console.info(`🔄 AI 모드 자동 마이그레이션: ${saved} → UNIFIED`);
+      localStorage.setItem(STORAGE_KEY, 'UNIFIED');
     }
-  }, [currentEngine]);
-
-
-
-  // 엔진 가용성 확인
-  const isEngineAvailable = useCallback((engine: ExtendedAIMode): boolean => {
-    return Object.keys(ENGINE_CONFIG).includes(engine);
   }, []);
 
-  // 엔진 표시 이름 가져오기
-  const getEngineDisplayName = useCallback((engine: ExtendedAIMode): string => {
-    return ENGINE_CONFIG[engine]?.displayName || engine;
-  }, []);
-
-  // 엔진 설명 가져오기  
-  const getEngineDescription = useCallback((engine: ExtendedAIMode): string => {
-    return ENGINE_CONFIG[engine]?.description || `${engine} 엔진`;
-  }, []);
-
-  // 엔진 API 엔드포인트 가져오기
-  const getEngineEndpoint = useCallback((engine: ExtendedAIMode): string => {
-    return ENGINE_CONFIG[engine]?.endpoint || '/api/ai/query';
-  }, []);
-
-  // 엔진 설정 (localStorage 포함)
-  const setEngine = useCallback((engine: ExtendedAIMode) => {
-    if (!isEngineAvailable(engine)) {
-      console.warn(`Invalid engine: ${engine}, falling back to UNIFIED`);
-      setCurrentEngine('UNIFIED');
-      return;
+  // 엔진 설정 (더 이상 아무것도 하지 않음)
+  const setEngine = useCallback((engine: string) => {
+    if (engine !== 'UNIFIED') {
+      console.warn(
+        `⚠️ AI 모드 "${engine}"는 더 이상 지원되지 않습니다. UNIFIED 사용.`
+      );
     }
-    setCurrentEngine(engine);
-  }, [isEngineAvailable]); // isEngineAvailable 함수 의존성 복구
-
-  // 기존 호환성을 위한 setSelectedEngine
-  const setSelectedEngine = useCallback((engine: ExtendedAIMode) => {
-    setEngine(engine);
-  }, [setEngine]); // setEngine 함수 의존성 복구
-
-  // 엔진 정보 토글
-  const toggleEngineInfo = useCallback(() => {
-    setShowEngineInfo((prev) => !prev);
   }, []);
 
-  // AI 모드 변경 핸들러 (기존 호환성)
-  const handleModeChange = useCallback(
-    async (newMode: AIMode): Promise<ChatMessage | null> => {
-      try {
-        setIsChangingEngine(true);
-        
-        // AIMode를 ExtendedAIMode로 매핑
-        let mappedEngine: ExtendedAIMode = newMode;
-        if (newMode === 'GOOGLE_AI') {
-          mappedEngine = 'GOOGLE_AI';
-        }
-        
-        setEngine(mappedEngine);
-
-        console.log(`🔄 AI 모드 변경: ${mappedEngine}`);
-
-        const message: ChatMessage = {
-          id: Date.now().toString(),
-          role: 'assistant',
-          content: `AI 모드가 ${getEngineDisplayName(mappedEngine)}로 변경되었습니다.`,
-          timestamp: new Date(),
-        };
-
-        return message;
-      } catch (error) {
-        console.error('AI 모드 변경 실패:', error);
-
-        const errorMessage: ChatMessage = {
-          id: Date.now().toString(),
-          role: 'assistant',
-          content: `AI 모드 변경에 실패했습니다: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          timestamp: new Date(),
-        };
-
-        return errorMessage;
-      } finally {
-        setIsChangingEngine(false);
-        setShowEngineInfo(false);
-      }
+  // setSelectedEngine (하위 호환성)
+  const setSelectedEngine = useCallback(
+    (engine: string) => {
+      setEngine(engine);
     },
-    [setEngine, getEngineDisplayName]
+    [setEngine]
   );
 
-  return {
-    // 상태 (테스트 호환성)
-    currentEngine,
-    selectedEngine: currentEngine, // 기존 코드 호환성
-    showEngineInfo,
-    isChangingEngine,
+  // toggleEngineInfo (더 이상 아무것도 하지 않음)
+  const toggleEngineInfo = useCallback(() => {
+    // No-op for backward compatibility
+  }, []);
 
-    // 액션
+  // handleModeChange (하위 호환성 - 항상 UNIFIED로 변경)
+  const handleModeChange = useCallback(
+    async (newMode: string): Promise<ChatMessage | null> => {
+      if (newMode !== 'UNIFIED') {
+        console.warn(
+          `⚠️ AI 모드 "${newMode}"는 더 이상 지원되지 않습니다. UNIFIED 사용.`
+        );
+      }
+
+      const message: ChatMessage = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: 'AI 엔진은 UNIFIED 모드로 고정되어 있습니다. (자동 라우팅)',
+        timestamp: new Date(),
+      };
+
+      return message;
+    },
+    []
+  );
+
+  // isEngineAvailable (UNIFIED만 사용 가능)
+  const isEngineAvailable = useCallback((engine: string): boolean => {
+    return engine === 'UNIFIED';
+  }, []);
+
+  // getEngineDisplayName
+  const getEngineDisplayName = useCallback((_engine?: string): string => {
+    return '통합 AI 엔진';
+  }, []);
+
+  // getEngineDescription
+  const getEngineDescription = useCallback((_engine?: string): string => {
+    return 'Supabase RAG + ML + Google AI Gemini (자동 라우팅)';
+  }, []);
+
+  // getEngineEndpoint
+  const getEngineEndpoint = useCallback((_engine?: string): string => {
+    return '/api/ai/query';
+  }, []);
+
+  return {
+    // 상태 (모두 고정값)
+    currentEngine: 'UNIFIED',
+    selectedEngine: 'UNIFIED',
+    showEngineInfo: false,
+    isChangingEngine: false,
+
+    // 액션 (하위 호환성)
     setSelectedEngine,
     toggleEngineInfo,
     handleModeChange,
-    
-    // 테스트 호환성 메서드
+
+    // 유틸리티 메서드
     setEngine,
     isEngineAvailable,
     getEngineDisplayName,

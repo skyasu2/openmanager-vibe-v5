@@ -64,13 +64,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const {
       query,
       userId,
-      mode: rawMode = 'local-ai',
+      mode: rawMode = 'UNIFIED', // v4.0: UNIFIED로 고정
       enableStreaming = true,
       maxResponseTime = 152,
     } = body;
 
-    // Mode 타입 변환
-    const mode = rawMode === 'google-ai' ? 'GOOGLE_AI' : 'LOCAL';
+    // v4.0: AI 모드는 UNIFIED로 고정 (자동 라우팅)
+    const mode = 'UNIFIED';
+
+    // 레거시 모드 파라미터 경고 (v4.0: 하위 호환성)
+    if (rawMode && rawMode !== 'UNIFIED' && rawMode !== 'local-ai') {
+      console.warn(
+        `[ultra-fast] [Deprecated] AI mode "${rawMode}"는 더 이상 지원되지 않습니다. UNIFIED 사용.`
+      );
+    }
 
     // 입력 검증 (최소한으로)
     if (!query || typeof query !== 'string' || query.trim().length === 0) {

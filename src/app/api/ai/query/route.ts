@@ -387,9 +387,25 @@ async function postHandler(request: NextRequest) {
 
     const userId = request.headers.get('x-user-id') || null;
 
-    // AI 모드 (단일 파이프라인)
-
+    // AI 모드 (v4.0: UNIFIED로 고정, 자동 라우팅)
+    // Legacy mode 파라미터는 무시됨 (하위 호환성 유지)
     const aiMode = 'UNIFIED';
+
+    // 레거시 모드 파라미터 경고 (v4.0: 하위 호환성)
+    const bodyWithMode = body as AIQueryRequest & {
+      mode?: string;
+      aiMode?: string;
+    };
+    if (bodyWithMode.mode && bodyWithMode.mode !== 'UNIFIED') {
+      console.warn(
+        `[Deprecated] AI mode "${bodyWithMode.mode}"는 더 이상 지원되지 않습니다. UNIFIED 사용.`
+      );
+    }
+    if (bodyWithMode.aiMode && bodyWithMode.aiMode !== 'UNIFIED') {
+      console.warn(
+        `[Deprecated] AI mode "${bodyWithMode.aiMode}"는 더 이상 지원되지 않습니다. UNIFIED 사용.`
+      );
+    }
 
     // 쿼리 로그 저장 (비동기, 응답을 기다리지 않음) - 대화 히스토리 포함
 
@@ -406,7 +422,7 @@ async function postHandler(request: NextRequest) {
 
       result.response, // AI 응답 텍스트
 
-      aiMode, // AI 모드 (unified or google-ai-pure)
+      aiMode, // AI 모드 (v4.0: UNIFIED 고정)
 
       'success', // 상태
 

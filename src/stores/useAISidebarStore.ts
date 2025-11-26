@@ -148,10 +148,14 @@ export const useAIThinking = () => {
     }));
   }, []);
 
-  // 실제 thinking 과정 시뮬레이션
+  // 실제 thinking 과정 시뮬레이션 (v4.0: UNIFIED 모드 전용)
   const simulateThinkingSteps = useCallback(
-    (query: string, mode: AIMode = 'LOCAL') => {
-      if (mode === 'GOOGLE_AI') {
+    (query: string, _mode: AIMode = 'UNIFIED') => {
+      // v4.0: 모든 모드가 UNIFIED로 통합되어 동일한 처리
+      // 레거시 모드 조건 제거 (하위 호환성 유지)
+      // eslint-disable-next-line no-constant-condition
+      if (false) {
+        // mode 조건 제거
         // Google AI는 단순한 처리 과정
         const steps: Omit<AIThinkingStep, 'timestamp'>[] = [
           {
@@ -399,7 +403,7 @@ interface AISidebarState {
   // 채팅 관련 상태
   messages: EnhancedChatMessage[];
   sessionId: string;
-  currentEngine: string;
+  // currentEngine 제거 - v4.0: AI 모드 자동 선택으로 불필요
 
   // 함수 패널 관련 상태
   functionTab: 'qa' | 'report' | 'patterns' | 'logs' | 'context';
@@ -424,7 +428,7 @@ interface AISidebarState {
     updates: Partial<EnhancedChatMessage>
   ) => void;
   clearMessages: () => void;
-  setCurrentEngine: (engine: string) => void;
+  // setCurrentEngine 제거 - v4.0: AI 모드 자동 선택으로 불필요
 
   reset: () => void;
 }
@@ -444,7 +448,7 @@ export const useAISidebarStore = create<AISidebarState>()(
         sessionId: crypto.randomUUID
           ? crypto.randomUUID()
           : `session-${Date.now()}`,
-        currentEngine: 'unified',
+        // currentEngine 제거 - v4.0: UNIFIED 모드로 자동 선택
 
         // UI 액션들
         setOpen: (open) =>
@@ -478,7 +482,7 @@ export const useAISidebarStore = create<AISidebarState>()(
 
         clearMessages: () => set({ messages: [] }),
 
-        setCurrentEngine: (engine) => set({ currentEngine: engine }),
+        // setCurrentEngine 제거 - v4.0: AI 모드 자동 선택으로 불필요
 
         reset: () =>
           set({
@@ -491,7 +495,7 @@ export const useAISidebarStore = create<AISidebarState>()(
             sessionId: crypto.randomUUID
               ? crypto.randomUUID()
               : `session-${Date.now()}`,
-            currentEngine: 'unified',
+            // currentEngine 제거 - v4.0: UNIFIED 모드로 자동 선택
           }),
       }),
       {
@@ -504,7 +508,7 @@ export const useAISidebarStore = create<AISidebarState>()(
           selectedContext: state.selectedContext,
           // 🔥 대화 기록 영속화 추가
           messages: state.messages,
-          currentEngine: state.currentEngine,
+          // currentEngine 제거 - v4.0: localStorage 마이그레이션으로 자동 정리됨
           sessionId: state.sessionId,
         }),
         // SSR 안전성을 위한 완전한 hydration 제어

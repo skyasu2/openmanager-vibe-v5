@@ -115,7 +115,7 @@ export class RealAISidebarService {
           maxTokens: 1000,
           context: 'ai-sidebar',
           includeThinking: true,
-          mode: 'local-ai',
+          // v4.0: mode 파라미터 제거 (UNIFIED로 자동 선택)
           timeoutMs: 450,
         }),
       });

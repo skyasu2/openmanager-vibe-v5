@@ -22,6 +22,7 @@ export default defineConfig({
       'tests/integration/**/*.{test,spec}.{js,ts,tsx}',
       'tests/performance/**/*.{test,spec}.{js,ts,tsx}',
       'tests/unit/**/*.{test,spec}.{js,ts,tsx}',
+      'tests/types/**/*.{test,spec}.{js,ts,tsx}', // ✅ 타입 레벨 테스트 추가
       // ⚠️ tests/e2e/**는 명시하지 않음 - Playwright 전용 E2E 테스트
     ],
     exclude: [
@@ -36,16 +37,52 @@ export default defineConfig({
     ],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/**',
-        'src/test/**',
-        '**/*.d.ts',
-        '**/*.config.*',
-        'src/**/*.stories.*',
-        'src/**/*.test.*',
-        'src/**/*.spec.*',
+      enabled: true,
+      // ✅ 소스 파일만 측정 (빌드 파일 제외)
+      include: [
+        'src/components/**/*.{ts,tsx}',
+        'src/lib/**/*.{ts,tsx}',
+        'src/utils/**/*.{ts,tsx}',
+        'src/hooks/**/*.{ts,tsx}',
+        'src/services/**/*.{ts,tsx}',
+        'src/domains/**/*.{ts,tsx}',
+        'src/stores/**/*.{ts,tsx}',
       ],
+      exclude: [
+        // 빌드 & 배포 아티팩트
+        '.next/**',
+        '.vercel/**',
+        'out/**',
+        'dist/**',
+        'coverage/**',
+        'node_modules/**',
+
+        // 테스트 관련 파일
+        'src/test/**',
+        '**/*.test.*',
+        '**/*.spec.*',
+        '**/*.stories.*',
+
+        // 설정 파일
+        '**/*.config.*',
+        '**/*.d.ts',
+
+        // 기타
+        'src/app/**/layout.tsx', // Next.js layouts (서버 컴포넌트)
+        'src/app/**/page.tsx', // Next.js pages (서버 컴포넌트)
+        'src/middleware.ts', // Next.js middleware
+      ],
+      reporter: ['text', 'json', 'html', 'lcov'],
+      reportsDirectory: './coverage',
+      all: true, // 모든 소스 파일 측정 (테스트 안 된 파일도 포함)
+
+      // ✅ 커버리지 목표 설정
+      thresholds: {
+        lines: 80, // 80% 라인 커버리지
+        branches: 75, // 75% 브랜치 커버리지
+        functions: 80, // 80% 함수 커버리지
+        statements: 80, // 80% 구문 커버리지
+      },
     },
     testTimeout: 30000,
     hookTimeout: 30000,

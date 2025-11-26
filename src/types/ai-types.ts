@@ -11,11 +11,20 @@
 // ==============================================
 
 /**
- * AI 모드 정의 v3.0 (단일 파이프라인)
- * - UNIFIED: Supabase RAG + Google Cloud Functions + Gemini (기본값)
- * - 나머지 값은 하위 호환성만 유지
+ * AI 모드 정의 v4.0 (단순화 완료)
+ * - UNIFIED: 단일 통합 엔진 (Supabase RAG + Google Cloud Functions + Gemini)
+ * @since v3.2.0 - 자동 라우팅으로 단일 모드 사용
+ * @since v4.0 - 타입 단순화 (LOCAL, GOOGLE_AI, AUTO 제거)
  */
-export type AIMode = 'UNIFIED' | 'LOCAL' | 'GOOGLE_AI' | 'AUTO';
+export type AIMode = 'UNIFIED';
+
+/**
+ * 레거시 AI 모드 (하위 호환성)
+ * @deprecated v6.0에서 완전 제거 예정
+ * - 기존 코드 호환성을 위해 유지
+ * - 모든 값은 내부적으로 UNIFIED로 처리됨
+ */
+export type LegacyAIMode = 'LOCAL' | 'GOOGLE_AI' | 'AUTO';
 
 /**
  * AI 엔진 타입 정의
