@@ -6,7 +6,6 @@
  */
 
 import type { Server } from './server';
-import type { MCPServerInfo } from './mcp';
 
 // ============================================================================
 // 📋 컨텍스트 관련 타입
@@ -64,8 +63,6 @@ export interface MCPContext {
     framework?: string;
     dependencies?: Record<string, string>;
   };
-  /** MCP 서버 정보 */
-  servers?: MCPServerInfo[];
   /** 추가 컨텍스트 데이터 */
   additionalContext?: Record<string, unknown>;
   /** 시스템 컨텍스트 */
