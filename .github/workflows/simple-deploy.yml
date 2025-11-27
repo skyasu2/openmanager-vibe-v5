@@ -105,7 +105,7 @@ jobs:
           fi
 
       - name: Lint check (품질 게이트)
-        run: npm run lint
+        run: npm run lint:ci
         # 에러만 차단, warning은 허용 (252개 warning 점진적 개선)
 
     # Vercel이 자동으로 배포를 처리
