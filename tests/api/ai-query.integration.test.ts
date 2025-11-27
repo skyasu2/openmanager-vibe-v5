@@ -24,8 +24,9 @@ describe('AI Query API Integration Tests', () => {
       });
 
       expect(response.status).toBe(200);
-      
-      const data = await response.json();
+
+      // Gemini 리뷰 제안: 명시적 타입 지정
+      const data: { response: string; metadata?: unknown; [key: string]: unknown } = await response.json();
       expect(data.response).toBeDefined();
       expect(typeof data.response).toBe('string');
       expect(data.metadata).toBeDefined();
@@ -45,8 +46,9 @@ describe('AI Query API Integration Tests', () => {
       });
 
       expect(response.status).toBe(200);
-      
-      const data = await response.json();
+
+      // Gemini 리뷰 제안: 명시적 타입 지정
+      const data: { response: string; [key: string]: unknown } = await response.json();
       expect(data.response).toContain('서버');
     });
 
@@ -64,8 +66,9 @@ describe('AI Query API Integration Tests', () => {
       });
 
       expect(response.status).toBe(400);
-      
-      const data = await response.json();
+
+      // Gemini 리뷰 제안: 명시적 타입 지정
+      const data: { error: string; [key: string]: unknown } = await response.json();
       expect(data.error).toContain('쿼리');
     });
 
@@ -86,8 +89,9 @@ describe('AI Query API Integration Tests', () => {
       });
 
       expect(response.status).toBe(200);
-      
-      const data = await response.json();
+
+      // Gemini 리뷰 제안: 명시적 타입 지정
+      const data: { response: string; [key: string]: unknown } = await response.json();
       expect(data.response).toBeDefined();
     });
 
@@ -176,68 +180,44 @@ describe('AI Query API Integration Tests', () => {
       // v4.0: 항상 UNIFIED 사용하므로 200 OK 반환
       expect(response.status).toBe(200);
 
-      const data = await response.json();
+      // Gemini 리뷰 제안: 명시적 타입 지정
+      const data: { response: string; [key: string]: unknown } = await response.json();
       expect(data.response).toBeDefined();
     });
   });
 
   describe('v4.0 Backward Compatibility', () => {
-    it('should ignore legacy mode parameter and use UNIFIED', async () => {
-      const response = await fetch(`${baseUrl}/api/ai/query`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: '레거시 모드 테스트',
-          mode: 'LOCAL', // 레거시 파라미터 (무시됨)
-          context: []
-        })
-      });
+    // Gemini 리뷰 제안: test.each()로 중복 제거
+    const backwardCompatibilityCases = [
+      {
+        name: 'with legacy mode parameter',
+        body: { query: '레거시 모드 테스트', mode: 'LOCAL', context: [] }
+      },
+      {
+        name: 'with legacy GOOGLE_AI mode',
+        body: { query: '구글 AI 모드 테스트', mode: 'GOOGLE_AI', context: [] }
+      },
+      {
+        name: 'without engine parameter',
+        body: { query: '엔진 파라미터 없음', context: [] }
+      },
+    ];
 
-      expect(response.status).toBe(200);
+    it.each(backwardCompatibilityCases)(
+      'should work correctly $name (defaults to UNIFIED)',
+      async ({ body }) => {
+        const response = await fetch(`${baseUrl}/api/ai/query`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
 
-      const data = await response.json();
-      expect(data.response).toBeDefined();
-      // v4.0: 항상 UNIFIED 모드 사용
-    });
+        expect(response.status).toBe(200);
 
-    it('should handle GOOGLE_AI legacy mode parameter', async () => {
-      const response = await fetch(`${baseUrl}/api/ai/query`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: '구글 AI 모드 테스트',
-          mode: 'GOOGLE_AI', // 레거시 파라미터 (무시됨)
-          context: []
-        })
-      });
-
-      expect(response.status).toBe(200);
-
-      const data = await response.json();
-      expect(data.response).toBeDefined();
-    });
-
-    it('should work without engine parameter (defaults to UNIFIED)', async () => {
-      const response = await fetch(`${baseUrl}/api/ai/query`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: '엔진 파라미터 없음',
-          // engine 파라미터 생략
-          context: []
-        })
-      });
-
-      expect(response.status).toBe(200);
-
-      const data = await response.json();
-      expect(data.response).toBeDefined();
-    });
+        // Gemini 리뷰 제안: 명시적 타입 지정
+        const data: { response: string; [key: string]: unknown } = await response.json();
+        expect(data.response).toBeDefined();
+      }
+    );
   });
 });
