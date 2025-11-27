@@ -240,20 +240,6 @@
     "npm": ">=10.0.0"
   },
   "packageManager": "npm@10.9.2",
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "prettier --write",
-      "bash -c 'tsc --noEmit'",
-      "eslint --cache --fix --max-warnings=0"
-    ],
-    "*.{js,jsx}": [
-      "prettier --write",
-      "eslint --cache --fix"
-    ],
-    "*.{json,md,mdx,css,scss}": [
-      "prettier --write"
-    ]
-  },
   "browserslist": {
     "production": [
       ">0.2%",

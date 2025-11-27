@@ -67,8 +67,8 @@ export default tseslint.config(
       '**/*.d.ts',
 
       // Test files
-      '**/*.test.*',
-      '**/*.spec.*',
+      // '**/*.test.*', // Enabled for linting
+      // '**/*.spec.*', // Enabled for linting
       '**/*.stories.*',
 
       // Generated files
@@ -271,6 +271,20 @@ export default tseslint.config(
         group: 'readonly',
         sleep: 'readonly',
       },
+    },
+  },
+  // 6. Configuration for Test files
+  {
+    files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+        vi: 'readonly',
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      'no-console': 'off',
     },
   }
 );

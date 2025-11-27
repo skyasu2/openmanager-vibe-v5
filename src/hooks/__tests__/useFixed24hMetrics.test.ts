@@ -15,13 +15,16 @@ import {
 import type { Server } from '@/types/server';
 
 // Mock UnifiedServerDataSource
-vi.mock('@/services/data/UnifiedServerDataSource', () => ({
-  UnifiedServerDataSource: {
-    getInstance: vi.fn(() => ({
-      getServers: vi.fn(),
-    })),
-  },
-}));
+// Mock UnifiedServerDataSource
+vi.mock('@/services/data/UnifiedServerDataSource', () => {
+  const mockGetServers = vi.fn();
+  const mockInstance = { getServers: mockGetServers };
+  return {
+    UnifiedServerDataSource: {
+      getInstance: vi.fn(() => mockInstance),
+    },
+  };
+});
 
 vi.mock('../../../lib/api/errorHandler', () => ({
   createSuccessResponse: vi.fn((data) => ({ success: true, data })),
@@ -225,9 +228,9 @@ describe('useMultipleFixed24hMetrics', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Singleton instance is already mocked at top level
     const mockInstance = UnifiedServerDataSource.getInstance();
-    mockGetServers = vi.fn();
-    (mockInstance as any).getServers = mockGetServers;
+    mockGetServers = (mockInstance as any).getServers;
   });
 
   afterEach(() => {
@@ -293,12 +296,14 @@ describe('useMultipleFixed24hMetrics', () => {
         createMockServer({ id: 'server-2', cpu: 45 }),
       ];
 
-      mockGetServers
-        .mockResolvedValueOnce(firstBatch)
-        .mockResolvedValueOnce(secondBatch);
+      let returnSecondBatch = false;
+      mockGetServers.mockImplementation(async () => {
+        if (returnSecondBatch) return secondBatch;
+        return firstBatch;
+      });
 
       const { result } = renderHook(() =>
-        useMultipleFixed24hMetrics(['server-1'])
+        useMultipleFixed24hMetrics(['server-1', 'server-2'])
       );
 
       await waitFor(() => {
@@ -308,10 +313,14 @@ describe('useMultipleFixed24hMetrics', () => {
       expect(result.current.metricsMap.get('server-1')?.cpu).toBe(50);
 
       // refresh 호출
+      returnSecondBatch = true;
       await result.current.refreshMetrics();
 
       // 데이터 갱신 확인
-      expect(result.current.metricsMap.get('server-1')?.cpu).toBe(60);
+      await waitFor(() => {
+        const server1 = result.current.metricsMap.get('server-1');
+        expect(server1?.cpu).toBe(60);
+      });
       expect(result.current.metricsMap.get('server-2')?.cpu).toBe(45);
     });
   });
