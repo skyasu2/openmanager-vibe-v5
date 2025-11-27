@@ -10,8 +10,7 @@ import React, {
   Fragment,
   type FC,
 } from 'react';
-// @ts-expect-error - ai 패키지 버전 호환성 문제로 임시 우회
-import { useChat } from 'ai';
+import { useChat } from '@ai-sdk/react';
 import { useUserPermissions } from '@/hooks/useUserPermissions';
 import { isGuestFullAccessEnabled } from '@/config/guestMode';
 import { EnhancedChatMessage } from '../../../stores/useAISidebarStore';
@@ -141,26 +140,17 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
   const [selectedFunction, setSelectedFunction] =
     useState<AIAssistantFunction>('chat');
 
-  // Vercel AI SDK useChat Hook
-  const {
-    messages,
-    input,
-    handleInputChange,
-    handleSubmit,
-    isLoading,
-    reload,
-  } = useChat({
-    api: '/api/ai/unified-stream', // ✨ NEW: 포트폴리오용 Tools 포함
-    initialMessages: [], // TODO: Load from store if needed
-     
-    onFinish: (_message: any) => {
+  // Vercel AI SDK useChat Hook (@ai-sdk/react v1.2.12)
+  const { messages, input, handleInputChange, handleSubmit, isLoading, reload } = useChat({
+    api: '/api/ai/unified-stream', // ✨ 포트폴리오용 Tools 포함
+    onFinish: (message) => {
       // Optional: Sync to global store if needed
       onMessageSend?.(input);
+      console.log('AI response finished:', message);
     },
   });
 
   // Map Vercel messages to EnhancedChatMessage
-  // Note: Using 'any' for compatibility with AI SDK v5.x message structure
   const enhancedMessages = useMemo(() => {
     return messages.map(
       (m: any): EnhancedChatMessage => ({
@@ -220,14 +210,14 @@ export const AISidebarV4: FC<AISidebarV3Props> = ({
           MessageComponent={MessageComponent}
           inputValue={input}
           setInputValue={(val) => {
-            // Hack to set input value via handleInputChange event simulation
+            // Simulate event for handleInputChange
             const event = { target: { value: val } } as any;
             handleInputChange(event);
           }}
           handleSendInput={() => {
-            // Create a synthetic event for handleSubmit
+            // Simulate event for handleSubmit
             const event = { preventDefault: () => {} } as any;
-            handleSubmit(event);
+            void handleSubmit(event); // void operator to ignore Promise return
           }}
           isGenerating={isLoading}
           regenerateResponse={() => reload()}
