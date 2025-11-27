@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import type { AIQuerySuccessResponse, AIQueryErrorResponse } from '@/types/ai-types';
 
 describe('AI Query API Integration Tests', () => {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3002';
@@ -25,8 +26,8 @@ describe('AI Query API Integration Tests', () => {
 
       expect(response.status).toBe(200);
 
-      // Gemini 리뷰 제안: 명시적 타입 지정
-      const data: { response: string; metadata?: unknown; [key: string]: unknown } = await response.json();
+      // Codex 리뷰 반영: 공유 타입 사용
+      const data: AIQuerySuccessResponse = await response.json();
       expect(data.response).toBeDefined();
       expect(typeof data.response).toBe('string');
       expect(data.metadata).toBeDefined();
@@ -47,8 +48,8 @@ describe('AI Query API Integration Tests', () => {
 
       expect(response.status).toBe(200);
 
-      // Gemini 리뷰 제안: 명시적 타입 지정
-      const data: { response: string; [key: string]: unknown } = await response.json();
+      // Codex 리뷰 반영: 공유 타입 사용
+      const data: AIQuerySuccessResponse = await response.json();
       expect(data.response).toContain('서버');
     });
 
@@ -67,8 +68,8 @@ describe('AI Query API Integration Tests', () => {
 
       expect(response.status).toBe(400);
 
-      // Gemini 리뷰 제안: 명시적 타입 지정
-      const data: { error: string; [key: string]: unknown } = await response.json();
+      // Codex 리뷰 반영: 공유 타입 사용
+      const data: AIQueryErrorResponse = await response.json();
       expect(data.error).toContain('쿼리');
     });
 
@@ -90,8 +91,8 @@ describe('AI Query API Integration Tests', () => {
 
       expect(response.status).toBe(200);
 
-      // Gemini 리뷰 제안: 명시적 타입 지정
-      const data: { response: string; [key: string]: unknown } = await response.json();
+      // Codex 리뷰 반영: 공유 타입 사용
+      const data: AIQuerySuccessResponse = await response.json();
       expect(data.response).toBeDefined();
     });
 
@@ -180,8 +181,8 @@ describe('AI Query API Integration Tests', () => {
       // v4.0: 항상 UNIFIED 사용하므로 200 OK 반환
       expect(response.status).toBe(200);
 
-      // Gemini 리뷰 제안: 명시적 타입 지정
-      const data: { response: string; [key: string]: unknown } = await response.json();
+      // Codex 리뷰 반영: 공유 타입 사용
+      const data: AIQuerySuccessResponse = await response.json();
       expect(data.response).toBeDefined();
     });
   });
@@ -214,8 +215,8 @@ describe('AI Query API Integration Tests', () => {
 
         expect(response.status).toBe(200);
 
-        // Gemini 리뷰 제안: 명시적 타입 지정
-        const data: { response: string; [key: string]: unknown } = await response.json();
+        // Codex 리뷰 반영: 공유 타입 사용
+        const data: AIQuerySuccessResponse = await response.json();
         expect(data.response).toBeDefined();
       }
     );

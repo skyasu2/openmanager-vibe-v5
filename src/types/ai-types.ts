@@ -317,3 +317,24 @@ export interface AIEngineResult {
   fallbackUsed: boolean;
   engineDetails: unknown;
 }
+
+// ==============================================
+// 🧪 테스트용 API 응답 타입
+// ==============================================
+
+/**
+ * AI Query API 성공 응답 타입
+ * @usage 테스트에서 response.json() 파싱 결과의 타입 지정
+ */
+export interface AIQuerySuccessResponse {
+  response: string;
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * AI Query API 에러 응답 타입
+ * @usage 테스트에서 에러 response.json() 파싱 결과의 타입 지정
+ */
+export interface AIQueryErrorResponse {
+  error: string;
+}
