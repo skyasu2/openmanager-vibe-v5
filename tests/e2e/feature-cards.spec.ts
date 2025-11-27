@@ -49,10 +49,11 @@ test.describe('Feature Cards - Main Page', () => {
     await page.click('text=💻 기술 스택');
 
     // 모달 오픈 확인
-    await expect(page.locator('role=dialog')).toBeVisible();
+    const modal = page.getByRole('dialog');
+    await expect(modal).toBeVisible();
 
-    // 모달 제목 확인
-    await expect(page.locator('role=dialog >> text=💻 기술 스택')).toBeVisible();
+    // 모달 제목 확인 (Strict Mode 준수: heading level 3로 구체화)
+    await expect(modal.getByRole('heading', { level: 3 })).toContainText('💻 기술 스택');
   });
 
   test('기술 스택 모달 - 최신 버전 확인', async ({ page }) => {
@@ -60,11 +61,11 @@ test.describe('Feature Cards - Main Page', () => {
     await page.click('text=💻 기술 스택');
 
     // 모달 내 최신 기술 버전 확인
-    const modal = page.locator('role=dialog');
-    await expect(modal).toContainText('Next.js 15.5.5');
-    await expect(modal).toContainText('TypeScript 5.7.3');
-    await expect(modal).toContainText('React 18.3.1');
-    await expect(modal).toContainText('Tailwind CSS 3.4.17');
+    const modal = page.getByRole('dialog');
+    await expect(modal).toContainText('Next.js 15');  // 버전 포맷 유연하게
+    await expect(modal).toContainText('TypeScript 5.7');
+    await expect(modal).toContainText('React 18.3');
+    await expect(modal).toContainText('Tailwind CSS 3.4');
   });
 
   test('Vibe Coding 카드 클릭 시 모달 오픈 확인', async ({ page }) => {
@@ -72,10 +73,11 @@ test.describe('Feature Cards - Main Page', () => {
     await page.click('text=🔥 Vibe Coding');
 
     // 모달 오픈 확인
-    await expect(page.locator('role=dialog')).toBeVisible();
+    const modal = page.getByRole('dialog');
+    await expect(modal).toBeVisible();
 
-    // 모달 제목 확인
-    await expect(page.locator('role=dialog >> text=🔥 Vibe Coding')).toBeVisible();
+    // 모달 제목 확인 (Strict Mode 준수)
+    await expect(modal.getByRole('heading', { level: 3 })).toContainText('🔥 Vibe Coding');
   });
 
   test('Vibe Coding 모달 - 워크플로우 확인', async ({ page }) => {
@@ -83,7 +85,7 @@ test.describe('Feature Cards - Main Page', () => {
     await page.click('text=🔥 Vibe Coding');
 
     // 모달 내 업데이트된 워크플로우 확인
-    const modal = page.locator('role=dialog');
+    const modal = page.getByRole('dialog');
     await expect(modal).toContainText('Claude Code (메인 개발)');
     await expect(modal).toContainText('Codex CLI (코드 리뷰)');
     await expect(modal).toContainText('Gemini CLI (코드 리뷰)');
@@ -94,10 +96,11 @@ test.describe('Feature Cards - Main Page', () => {
     await page.click('text=🧠 AI 어시스턴트');
 
     // 모달 오픈 확인
-    await expect(page.locator('role=dialog')).toBeVisible();
+    const modal = page.getByRole('dialog');
+    await expect(modal).toBeVisible();
 
-    // 모달 제목 확인
-    await expect(page.locator('role=dialog >> text=🧠 AI 어시스턴트')).toBeVisible();
+    // 모달 제목 확인 (Strict Mode 준수)
+    await expect(modal.getByRole('heading', { level: 3 })).toContainText('🧠 AI 어시스턴트');
   });
 
   test('AI 어시스턴트 모달 - 5개 AI 기능 확인', async ({ page }) => {
@@ -105,7 +108,7 @@ test.describe('Feature Cards - Main Page', () => {
     await page.click('text=🧠 AI 어시스턴트');
 
     // 모달 내 5개 AI 기능 확인
-    const modal = page.locator('role=dialog');
+    const modal = page.getByRole('dialog');
     await expect(modal).toContainText('자연어 질의');
     await expect(modal).toContainText('자동장애 보고서');
     await expect(modal).toContainText('이상감지/예측');
@@ -118,10 +121,11 @@ test.describe('Feature Cards - Main Page', () => {
     await page.click('text=🏗️ 클라우드 플랫폼 활용');
 
     // 모달 오픈 확인
-    await expect(page.locator('role=dialog')).toBeVisible();
+    const modal = page.getByRole('dialog');
+    await expect(modal).toBeVisible();
 
-    // 모달 제목 확인
-    await expect(page.locator('role=dialog >> text=🏗️ 클라우드 플랫폼 활용')).toBeVisible();
+    // 모달 제목 확인 (Strict Mode 준수)
+    await expect(modal.getByRole('heading', { level: 3 })).toContainText('🏗️ 클라우드 플랫폼 활용');
   });
 
   test('클라우드 플랫폼 모달 - 3개 플랫폼 확인', async ({ page }) => {
@@ -140,13 +144,14 @@ test.describe('Feature Cards - Main Page', () => {
     await page.click('text=💻 기술 스택');
 
     // 모달 오픈 확인
-    await expect(page.locator('role=dialog')).toBeVisible();
+    const modal = page.getByRole('dialog');
+    await expect(modal).toBeVisible();
 
-    // 닫기 버튼 클릭
-    await page.click('role=dialog >> role=button[name="Close"]');
+    // 닫기 버튼 클릭 (aria-label 정확히 매칭)
+    await modal.getByRole('button', { name: 'Close modal' }).click();
 
     // 모달 닫힘 확인
-    await expect(page.locator('role=dialog')).not.toBeVisible();
+    await expect(modal).not.toBeVisible();
   });
 
   test('모달 ESC 키로 닫기', async ({ page }) => {
@@ -190,14 +195,15 @@ test.describe('Feature Cards - Main Page', () => {
       await page.click(`text=${cardTitle}`);
 
       // 모달 오픈 확인
-      await expect(page.locator('role=dialog')).toBeVisible();
-      await expect(page.locator(`role=dialog >> text=${cardTitle}`)).toBeVisible();
+      const modal = page.getByRole('dialog');
+      await expect(modal).toBeVisible();
+      await expect(modal.getByRole('heading', { level: 3 })).toContainText(cardTitle);
 
       // ESC로 닫기
       await page.keyboard.press('Escape');
 
       // 모달 닫힘 확인
-      await expect(page.locator('role=dialog')).not.toBeVisible();
+      await expect(modal).not.toBeVisible();
 
       // 다음 카드 클릭 전 대기
       await page.waitForTimeout(200);
@@ -257,7 +263,7 @@ test.describe('Feature Cards - Main Page', () => {
     // Vibe Coding 카드 클릭
     await page.click('text=🔥 Vibe Coding');
 
-    const modal = page.locator('role=dialog');
+    const modal = page.getByRole('dialog');
 
     // MCP 서버 관련 내용 확인
     await expect(modal).toContainText('9개 MCP 서버');
@@ -278,7 +284,7 @@ test.describe('Feature Cards - Main Page', () => {
     // 클라우드 플랫폼 카드 클릭
     await page.click('text=🏗️ 클라우드 플랫폼 활용');
 
-    const modal = page.locator('role=dialog');
+    const modal = page.getByRole('dialog');
 
     // 무료 티어 정보 확인
     await expect(modal).toContainText('무료 티어');

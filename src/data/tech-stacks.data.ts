@@ -5,14 +5,13 @@
 
 import type { TechItem } from '../types/feature-card.types';
 
-// 바이브 코딩 전용 현재/4단계 히스토리 구분 타입
+// 바이브 코딩 전용 현재/히스토리 구분 타입
 export interface VibeCodeData {
   current: TechItem[];
   history: {
     stage1: TechItem[]; // 초기: ChatGPT → 개별 페이지 → Netlify
     stage2: TechItem[]; // 중기: Cursor → Vercel → Supabase
-    stage3: TechItem[]; // 후기: Claude Code → WSL → 멀티 AI CLI
-    stage4: TechItem[]; // 현재: Claude Code v2.0+ → MCP 완전 통합 → 자동화 고도화 (2025.11~)
+    stage3: TechItem[]; // 후기: Claude Code → WSL → 멀티 AI CLI (2025.07~2025.10)
   };
 }
 
@@ -327,8 +326,8 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         description:
           '현재 메인 개발 도구 - Anthropic의 공식 CLI 기반 AI 코딩 어시스턴트',
         implementation:
-          'claude.ai/code로 제공되는 강력한 AI 개발 도구. 파일 읽기/쓰기, 코드 수정, 터미널 명령어 실행, 웹 검색 등을 자연어로 수행. Opus 4.1 모델 기반으로 복잡한 코딩 작업 자동화',
-        version: 'v1.0.95+',
+          'claude.ai/code로 제공되는 강력한 AI 개발 도구. Extended Thinking (Tab 키 또는 ultrathink로 심층 분석), @-mention 서버 필터링 (10-18% 토큰 절약), Prompt Caching 자동 활성화. Sonnet 4.5 모델 기반으로 복잡한 코딩 작업 자동화',
+        version: 'v2.0.49',
         status: 'active',
         icon: '🤖',
         tags: ['메인도구', 'AI개발', '자연어코딩', 'CLI'],
@@ -339,34 +338,54 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         category: 'ai',
         importance: 'high',
         description:
-          'Claude Code의 기능을 확장하는 Model Context Protocol 서버들',
+          'Claude Code의 기능을 확장하는 Model Context Protocol 서버들 (11개)',
         implementation: `핵심 서버들로 개발 효율성 극대화:
-• memory: 지식 그래프 관리 및 컨텍스트 유지
-• supabase: PostgreSQL 데이터베이스 직접 작업  
-• playwright: 브라우저 자동화 및 E2E 테스트
-• sequential-thinking: 복잡한 문제 단계별 해결
-• context7: 라이브러리 문서 실시간 검색
+• vercel: Vercel 플랫폼 배포 및 관리
 • serena: 고급 코드 분석 및 리팩토링
+• supabase: PostgreSQL 데이터베이스 직접 작업
+• context7: 라이브러리 문서 실시간 검색
+• playwright: 브라우저 자동화 및 E2E 테스트
 • shadcn-ui: UI 컴포넌트 개발 지원
+• memory: 지식 그래프 관리 및 컨텍스트 유지
 • time: 시간대 변환 및 시간 계산
-• vercel: Vercel 플랫폼 배포 및 관리`,
+• sequential-thinking: 복잡한 문제 단계별 해결
+• filesystem: 파일 시스템 작업 전문
+• github: 저장소 관리 및 자동화`,
         status: 'active',
         icon: '🔌',
         tags: ['MCP서버', '자동화도구', '확장기능'],
         type: 'opensource',
       },
       {
-        name: 'Gemini CLI',
+        name: 'Claude Code Skills',
         category: 'ai',
         importance: 'high',
-        description: 'WSL 터미널에서 1M 토큰으로 대규모 분석 전용 도구',
-        implementation:
-          '코드베이스 전체 분석, 대용량 로그 분석, Claude Code와 협업하여 복잡한 문제 해결',
+        description:
+          '반복 작업 자동화 Skills (5개) - 평균 71.8% 토큰 절약',
+        implementation: `자동화된 워크플로우:
+• lint-smoke: 린트 + 테스트 자동화 (62% 절약)
+• next-router-bottleneck: Next.js 성능 진단 (75% 절약)
+• ai-report-export: AI 리뷰 결과 문서화 (78% 절약)
+• playwright-triage: E2E 테스트 실패 분류 (77% 절약)
+• security-audit-workflow: 배포 전 보안 감사 (70% 절약)`,
         status: 'active',
-        icon: '✨',
-        tags: ['대용량분석', '협업AI', '터미널'],
-        type: 'commercial',
-        aiType: 'google-api',
+        icon: '⚡',
+        tags: ['자동화', '토큰효율', '워크플로우'],
+        type: 'custom',
+      },
+      {
+        name: 'Auto Code Review',
+        category: 'ai',
+        importance: 'critical',
+        description:
+          'Codex → Gemini → Claude Code 자동 폴백 리뷰 시스템 (99.9% 가용성)',
+        implementation:
+          '커밋 시 .husky/post-commit이 자동 트리거. Codex/Gemini가 변경 파일 리뷰 → Claude Code가 결과 분석 및 코드 개선 적용. 평균 응답 10초',
+        version: 'v3.2.0',
+        status: 'active',
+        icon: '🔄',
+        tags: ['자동리뷰', '폴백시스템', '고가용성'],
+        type: 'custom',
       },
       {
         name: 'Codex CLI',
@@ -374,12 +393,26 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         importance: 'high',
         description: 'ChatGPT Plus 기반 코드 리뷰 및 검증 전문 도구',
         implementation:
-          'WSL에서 실행되는 ChatGPT CLI로 Claude Code와 교차 검증, 코드 리뷰, 복잡한 알고리즘 분석 담당',
-        version: 'v0.25.0',
+          'WSL에서 실행되는 ChatGPT CLI로 Claude Code와 교차 검증, 코드 리뷰, 복잡한 알고리즘 분석 담당. Auto Code Review 시스템의 1차 리뷰어',
+        version: 'v0.63.0',
         status: 'active',
         icon: '💎',
         tags: ['코드리뷰', '교차검증', '알고리즘'],
         type: 'commercial',
+      },
+      {
+        name: 'Gemini CLI',
+        category: 'ai',
+        importance: 'high',
+        description: 'WSL 터미널에서 1M 토큰으로 대규모 분석 전용 도구',
+        implementation:
+          '코드베이스 전체 분석, 대용량 로그 분석, Claude Code와 협업. Auto Code Review 시스템의 2차 폴백 리뷰어',
+        version: 'v0.17.1',
+        status: 'active',
+        icon: '✨',
+        tags: ['대용량분석', '협업AI', '터미널'],
+        type: 'commercial',
+        aiType: 'google-api',
       },
       {
         name: 'Qwen Code CLI',
@@ -388,7 +421,7 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
         description: '오픈소스 AI로 빠른 프로토타이핑과 알고리즘 검증',
         implementation:
           'WSL 환경에서 Qwen OAuth 통합, 2,000회/일 활용. 빠른 코드 스니펫 생성과 알고리즘 검증 담당',
-        version: 'v0.0.9',
+        version: 'v0.2.3',
         status: 'active',
         icon: '🧠',
         tags: ['오픈소스AI', '프로토타이핑', '검증'],
@@ -612,193 +645,6 @@ export const TECH_STACKS_DATA: Record<string, TechItem[] | VibeCodeData> = {
           icon: '💻',
           tags: ['VSCode호스팅', 'WSL통합', '터미널환경'],
           type: 'opensource',
-        },
-      ],
-      // 4단계: 현재 (2025.11~) - Claude Code v2.0+ 고도화 + MCP 완전 통합 + 자동화 시스템
-      stage4: [
-        {
-          name: 'Claude Code v2.0+',
-          category: 'ai',
-          importance: 'critical',
-          description:
-            'stage3부터 현재까지 메인 개발 도구 - Extended Thinking과 @-mention 서버 필터링 추가',
-          implementation:
-            'stage3에서 Cursor 대체로 선택된 후 지속 사용. Extended Thinking 모드(Tab 키, ultrathink)로 복잡한 문제 단계별 해결, @-mention 서버 필터링으로 10-18% 추가 토큰 절약, Prompt Caching 자동 활성화로 효율성 극대화',
-          version: 'v2.0.37',
-          status: 'active',
-          icon: '🤖',
-          tags: ['메인도구', 'stage3부터', 'ExtendedThinking', '@mention'],
-          type: 'commercial',
-        },
-        {
-          name: 'Google Antigravity IDE',
-          category: 'ai',
-          importance: 'medium',
-          description:
-            'Gemini 3 탑재 신규 IDE - Windows에서 실행, 터미널에서 WSL + Claude Code 병행 (2025.11)',
-          implementation:
-            'Google의 새로운 AI 에이전트 개발 플랫폼, Gemini 3 Pro 모델 탑재. Windows에서 Antigravity IDE 실행 → 터미널에서 WSL 열기 → WSL 안에서 Claude Code 사용. VSCode 기반 에이전트 우선 아키텍처로 자율 AI가 복잡한 코딩 작업을 계획/실행/검증 (SWE-bench 76.2%). IDE는 Gemini 3 활용, 터미널은 Claude Code로 이중 AI 개발 환경 구축',
-          version: 'Public Preview',
-          status: 'active',
-          icon: '🌐',
-          tags: ['신규IDE', 'Windows실행', 'Gemini3탑재', '터미널WSL+Claude'],
-          type: 'commercial',
-        },
-        {
-          name: 'MCP 서버 완전 통합',
-          category: 'ai',
-          importance: 'critical',
-          description: '9개 MCP 서버 100% 가동률 달성 및 최적화 완료',
-          implementation: `완전 통합된 MCP 서버 생태계:
-• memory: 지식 그래프 기반 프로젝트 컨텍스트 관리
-• supabase: PostgreSQL 데이터베이스 직접 작업  
-• playwright: E2E 테스트 자동화 (v0.0.45)
-• sequential-thinking: 복잡한 문제 단계별 해결
-• context7: 라이브러리 최신 문서 실시간 검색
-• serena: 코드 분석 및 리팩토링 전문
-• shadcn-ui: UI 컴포넌트 개발 지원
-• time: 시간대 변환 및 계산
-• vercel: Vercel 플랫폼 배포 관리`,
-          status: 'active',
-          icon: '🔌',
-          tags: ['MCP완전통합', '100%가동', '9개서버'],
-          type: 'opensource',
-        },
-        {
-          name: 'Claude Code Skills',
-          category: 'ai',
-          importance: 'high',
-          description: '반복 작업 자동화로 73% 토큰 효율 달성',
-          implementation: `4개 Skills로 개발 생산성 극대화:
-• lint-smoke: 린트+테스트 자동화 (62% 절약)
-• next-router-bottleneck: Next.js 성능 진단 (75% 절약)
-• ai-report-export: AI 리뷰 문서화 (78% 절약)
-• playwright-triage: E2E 실패 분류 (77% 절약)`,
-          version: 'Phase 1 Complete',
-          status: 'active',
-          icon: '⚡',
-          tags: ['Skills', '73%효율', '자동화'],
-          type: 'custom',
-        },
-        {
-          name: '자동 AI 코드 리뷰 v3.2.0',
-          category: 'ai',
-          importance: 'high',
-          description: 'Codex → Gemini → Claude Code 완전 자동화 폴백 시스템',
-          implementation:
-            '99.9% 가용성 보장: 1차 2:1 비율 선택(Codex 2회, Gemini 1회) → 2차 Primary AI 실패 시 Secondary AI → 3차 최종 Claude Code 자동 리뷰. 평균 응답 시간 ~10초(레거시 대비 4.5배 빠름)',
-          version: 'v3.2.0',
-          status: 'active',
-          icon: '🔄',
-          tags: ['자동리뷰', '99.9%가용성', '3단계폴백'],
-          type: 'custom',
-        },
-        {
-          name: 'Gemini 3 CLI',
-          category: 'ai',
-          importance: 'high',
-          description:
-            'Gemini 2.5 → 3으로 업그레이드 - SOTA 추론 능력 + 생성형 UI',
-          implementation:
-            'Gemini 2.5 Pro에서 Gemini 3 Pro로 업그레이드 (2025.11): 1M 토큰 컨텍스트 + 텍스트/이미지/비디오/오디오/코드 멀티모달 동시 처리. MMMU-Pro 81%, Video-MMMU 87.6% 달성. 대규模 코드베이스 전체 분석, 자동 리뷰 시스템 폴백 AI로 통합, Codex 실패 시 자동 전환. 생성형 인터페이스로 맞춤형 출력',
-          version: 'v0.15.4 (Gemini 3)',
-          status: 'active',
-          icon: '✨',
-          tags: ['Gemini2.5→3', 'SOTA추론', '멀티모달', '폴백AI', '생성UI'],
-          type: 'commercial',
-          aiType: 'google-api',
-        },
-        {
-          name: 'Codex CLI (ChatGPT Plus)',
-          category: 'ai',
-          importance: 'high',
-          description:
-            '코드 리뷰 및 검증 전문 - Claude Code 교차 검증 목적 도입',
-          implementation:
-            'ChatGPT Plus 기반 WSL CLI 도구. Claude Code의 단일 AI 한계를 극복하기 위해 stage3부터 도입, 자동 리뷰 시스템 1차 AI로 활용. GPT-4 기반 실무 관점 코드 리뷰와 버그 분석으로 품질 극대화',
-          version: 'v0.58.0',
-          status: 'active',
-          icon: '💎',
-          tags: ['교차검증', '1차AI', 'ChatGPT', 'stage3도입'],
-          type: 'commercial',
-        },
-        {
-          name: 'Kiro CLI (AWS Beta)',
-          category: 'ai',
-          importance: 'medium',
-          description:
-            '터미널 멀티 에이전트 오케스트레이터 - Claude 보완 목적 도입',
-          implementation:
-            'AWS 베타 제공 Claude Sonnet 기반 멀티 에이전트 CLI. chat/agent/doctor/settings 4가지 모드로 터미널 환경 최적화. Claude Code의 단일 세션 한계를 보완하기 위해 stage3부터 추가 도입, 병렬 작업 처리 및 시스템 진단 담당',
-          version: 'v1.20.0',
-          status: 'active',
-          icon: '☁️',
-          tags: ['멀티에이전트', 'AWS베타', '터미널', 'stage3도입'],
-          type: 'commercial',
-        },
-        {
-          name: 'Qwen Code CLI',
-          category: 'ai',
-          importance: 'medium',
-          description: '오픈소스 AI로 빠른 프로토타이핑',
-          implementation:
-            'WSL 환경에서 Qwen OAuth 통합, 2,000회/일 활용, 빠른 코드 스니펫과 알고리즘 검증',
-          version: 'v0.2.1',
-          status: 'active',
-          icon: '🧠',
-          tags: ['오픈소스AI', '프로토타이핑', '2K회/일'],
-          type: 'opensource',
-        },
-        {
-          name: 'WSL 2 최적화',
-          category: 'custom',
-          importance: 'high',
-          description: '개발 환경 완전 최적화 및 안정화',
-          implementation:
-            '20GB 메모리 할당, mirrored 네트워킹, dnsTunneling + autoProxy 활성화, I/O 성능 54배 향상, Ubuntu 24.04.1 + 커널 6.6.87.2',
-          version: 'Ubuntu 24.04.1',
-          status: 'active',
-          icon: '🐧',
-          tags: ['WSL최적화', '20GB메모리', '성능극대화'],
-          type: 'opensource',
-        },
-        {
-          name: 'Node.js v22 안정화',
-          category: 'custom',
-          importance: 'high',
-          description: 'v24에서 v22로 다운그레이드 후 안정성 검증 완료',
-          implementation:
-            'v22.21.1로 다운그레이드 후 모든 테스트 통과, 88.9% 통과율 달성, npm v11.6.2 + Rust v1.91.0 + uv v0.9.7 통합',
-          version: 'v22.21.1',
-          status: 'active',
-          icon: '🟢',
-          tags: ['안정화', 'v22.21.1', '검증완료'],
-          type: 'opensource',
-        },
-        {
-          name: 'Git Hooks 자동화',
-          category: 'custom',
-          importance: 'high',
-          description: 'post-commit hook으로 자동 코드 리뷰 트리거',
-          implementation:
-            '.husky/post-commit에서 auto-ai-review.sh v3.2.0 자동 실행, 백그라운드 처리로 개발 흐름 방해 없음',
-          status: 'active',
-          icon: '🪝',
-          tags: ['Git자동화', 'post-commit', '백그라운드'],
-          type: 'custom',
-        },
-        {
-          name: 'GitHub + Vercel + Supabase + GCP',
-          category: 'deployment',
-          importance: 'critical',
-          description:
-            'stage3부터 현재까지 지속 사용 중인 완전 자동화 배포 환경',
-          implementation:
-            'stage2에서 구축한 배포 파이프라인 지속 활용: git push → Vercel 자동 배포 → Supabase 실시간 동기화 → GCP Functions 서버리스 백엔드. 무료 티어 100% 활용(월 $0 운영비), MCP 서버로 GitHub/Vercel 직접 관리',
-          status: 'active',
-          icon: '🚀',
-          tags: ['stage2부터지속', '완전자동화', '무료100%', 'CI/CD'],
-          type: 'commercial',
         },
       ],
     },
