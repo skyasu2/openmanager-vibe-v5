@@ -2,13 +2,13 @@
  * 📦 AI Sidebar Presentation Layer
  *
  * OptimizedDashboard.tsx를 위한 export
- * f129a18fb 커밋 복구를 위한 호환성 레이어
+ * AISidebarV4로 업그레이드 (V3 archived)
  */
 
 import type { FC } from 'react';
 import type { AISidebarV3Props } from '@/domains/ai-sidebar/types/ai-sidebar-types';
-import AISidebarV3Component from '@/domains/ai-sidebar/components/AISidebarV3';
+import AISidebarV4Component from '@/domains/ai-sidebar/components/AISidebarV4';
 
-// AISidebarV3를 AISidebar로 re-export with proper typing  
-export const AISidebar: FC<AISidebarV3Props> = AISidebarV3Component;
+// AISidebarV4를 AISidebar로 re-export with proper typing
+export const AISidebar: FC<AISidebarV3Props> = AISidebarV4Component;
 export { AISidebar as default };

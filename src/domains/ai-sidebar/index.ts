@@ -4,7 +4,7 @@
  */
 
 // 컴포넌트
-export { AISidebarV3 } from './components';
+// AISidebarV3 archived to archive/deprecated/ai-sidebar-v3/
 
 // Hooks
 export {
