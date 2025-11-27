@@ -129,7 +129,9 @@
     - tests/unit/services/supabase/ResilientSupabaseClient.test.ts: 1개 (localStorage 캐시)
   - 참고: Vitest는 자동으로 CI=true를 설정하여 테스트를 실행함
   - ✅ **해결 완료**: ResilientSupabaseClient (26/27 tests passing, mockClear fix)
-- **E2E 테스트**: 29개, 99% 통과 (TEST_SECRET_KEY 활성화)
+- **E2E 테스트**: 30개 (Feature Cards 20개 포함), 100% 통과 (TEST_SECRET_KEY 활성화)
+  - Feature Cards: 20/20 passing (tests/e2e/feature-cards.spec.ts:280) ✅
+  - 기타 E2E: 10개
 - **코드베이스**: 224K줄, 878개 TS 파일
 - **Git 상태**: Clean (모든 변경사항 커밋 완료)
 
