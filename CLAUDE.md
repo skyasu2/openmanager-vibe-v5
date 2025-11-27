@@ -47,14 +47,15 @@ Tab 키 토글 | ultrathink 키워드 | Token Budget: think(4K) < think hard(10K
 ## 📊 주간 메트릭 (logs/feedback/week1-checklist.md)
 
 - MCP 활용도: 65% → 90% 목표
-- 코드 리뷰: **Codex → Gemini → Claude Code** (auto-ai-review.sh v4.2.0) 🆕
-  - 4:1 비율 선택 (Codex 4회, Gemini 1회)
+- 코드 리뷰: **Codex → Gemini → Qwen → Claude Code** (auto-ai-review.sh v5.0.0) 🆕
+  - 1:1:1:1 균등 분배 (각 25%, 순환적 선택)
   - Rate limit 자동 감지 및 폴백
-  - **Wrapper 버전**: Codex v3.0.0, Gemini v3.0.0, Qwen v2.5.0 ✅
+  - **Wrapper 버전**: Codex v3.0.0, Gemini v3.0.0, Qwen v3.0.0 ✅
   - **견고성**: stderr 분리 + trap + 공백 감지 (2025-11-21 통일)
-  - 최종 폴백: Claude Code 자동 리뷰
+  - 최종 폴백: Claude Code 서브에이전트 (code-review-specialist)
   - 리뷰 파일: `review-{AI}-{DATE}-{TIME}.md`
-  - 99.9% 가용성 보장 (Codex OR Gemini OR Claude Code)
+  - 99.99% 가용성 보장 (Codex OR Gemini OR Qwen OR Claude) 🆕
+  - Codex 의존도 감소: 80% → 25% (Rate Limit 위험 감소)
 - 토큰 효율: 45토큰 목표 (MCP 82% + @-mention 3%)
 
 ---

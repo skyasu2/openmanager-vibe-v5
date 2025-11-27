@@ -143,6 +143,14 @@ QWEN_MODEL=qwen3
 - Claude Code 제안에 대한 성능 관점 검증
 - 독립적인 제3자 시각 제공
 
+### 5. Optimization Standards
+
+최적화 제안 시 다음 핵심 코딩 규칙을 준수합니다:
+
+- **Simplicity**: 복잡한 최적화보다 단순한 코드 우선 (KISS)
+- **Scalability**: 확장성을 고려한 구조 제안
+- **Readability**: 성능을 위해 가독성을 과도하게 희생하지 않음
+
 ---
 
 ## 🎯 Claude-Centric 개발 전략

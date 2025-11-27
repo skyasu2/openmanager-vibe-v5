@@ -95,20 +95,23 @@
 - 예상 효과: 주당 30-40분 절감, 1-2주 내 ROI 회수
 - 상태: Registry 등록 완료, 테스트 검증 완료
 
-**자동 코드 리뷰 시스템** (v3.2.0 활성화) ✅
+**자동 코드 리뷰 시스템** (v5.0.0 활성화) ✅ 🆕
 
-- Codex → Gemini → Claude Code 자동 폴백 워크플로우 (2025-11-25)
-  - 1차: Codex/Gemini 4:1 비율 선택 (Codex 4회, Gemini 1회)
-  - 2차: Primary AI 실패 시 Secondary AI 폴백
-  - 3차: 모두 실패 시 Claude Code 자동 리뷰
+- **1:1:1:1 균등 분배** (Codex, Gemini, Qwen, Claude 각 25%) - 2025-11-27
+  - 1차: 1:1:1:1 비율로 Primary AI 선택 (순환적 균등 분배)
+  - 2차: Primary AI 실패 시 → Secondary AI 1 폴백
+  - 3차: Secondary AI 1 실패 시 → Secondary AI 2 폴백
+  - 4차: Secondary AI 2 실패 시 → Secondary AI 3 폴백 (최종)
   - Git Hook: `.husky/post-commit` 자동 트리거 (백그라운드 실행)
   - 출력: `logs/code-reviews/review-{AI}-YYYY-MM-DD-HH-MM-SS.md`
 - 특징:
-  - ✅ 99.9% 가용성 (Codex OR Gemini OR Claude Code)
+  - ✅ 99.99% 가용성 (Codex OR Gemini OR Qwen OR Claude) 🆕
   - ✅ 평균 응답 시간: ~10초 (레거시 대비 4.5배 빠름)
-  - ✅ 4:1 비율 스마트 선택 (상태 파일 기반, Codex 우선)
-  - ✅ Claude Code 자동 리뷰 (리뷰 요청 파일 자동 생성)
+  - ✅ 1:1:1:1 균등 선택 (상태 파일 기반, 순환) 🆕
+  - ✅ Qwen 통합 (qwen-wrapper.sh v3.0.0) 🆕
+  - ✅ Claude Code 서브에이전트 통합 (code-review-specialist) 🆕
   - ✅ 실시간 Rate Limit 감지 및 자동 전환
+  - ✅ Codex 의존도 감소 (80% → 25%) 🆕
 - 참고:
   - 레거시 3-AI 시스템 (v4.2.0)은 deprecated (2025-11-19)
   - 상세: `archive/deprecated/3-ai-system/DEPRECATION_NOTICE.md`

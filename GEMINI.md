@@ -174,6 +174,16 @@ cat coverage/lcov.info | gemini "테스트 보강이 시급한 파일 추천"
 - **타입 에러 해결**: 복잡한 타입 에러 발생 시 Claude Code와 협업하여 해결합니다.
 - **교차 검증**: Gemini가 제안한 코드를 Claude Code 환경에서 타입 체크를 수행하여 이중 검증합니다.
 
+### 4. Code Review Standards (핵심 검증 기준)
+
+리뷰 시 다음 핵심 코딩 규칙을 기준으로 검증합니다:
+
+- **가독성 (Readability)**: 변수명, 함수 분리 적절성 확인
+- **간결함 (Simplicity)**: 매직 넘버, 과도한 복잡성 확인 (KISS)
+- **유지보수성 (Maintainability)**: SOLID 원칙 준수 여부
+- **테스트 (Testing)**: 주요 로직 테스트 커버리지 확인
+- **상호 검증 (Cross-Check)**: Claude Code/Codex와의 교차 검증 여부 확인
+
 ---
 
 ## 💡 컨텍스트 관리

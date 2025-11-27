@@ -22,15 +22,18 @@
     "dev:optimize:ann:help": "ts-node scripts/optimization/ann-search-upgrade.ts help",
     "build": "cross-env NODE_OPTIONS='--max-old-space-size=2048' next build",
     "build:prod": "cross-env NODE_OPTIONS='--max-old-space-size=2048' NEXT_DISABLE_DEVTOOLS=1 next build",
-    "build:vercel": "./.vercel-deploy-check.sh && npm run build:ci && npm run validate:quick",
+    "build:vercel": "./.vercel-deploy-check.sh && npm run build:ci && npm run lint:ci && npm run test:quick",
     "deploy:safe": "./.vercel-deploy-check.sh && npx vercel --prod",
     "start": "next start",
     "start:prod": "NODE_ENV=production next start",
-    "lint": "eslint . --cache --cache-location .eslintcache",
-    "lint:fix": "eslint . --fix --cache --cache-location .eslintcache",
-    "lint:strict": "eslint . --max-warnings=0 --cache --cache-location .eslintcache",
+    "lint": "cross-env NODE_OPTIONS='--max-old-space-size=4096' eslint . --cache --cache-location .eslintcache",
+    "lint:fix": "cross-env NODE_OPTIONS='--max-old-space-size=4096' eslint . --fix --cache --cache-location .eslintcache",
+    "lint:strict": "cross-env NODE_OPTIONS='--max-old-space-size=4096' eslint . --max-warnings=0 --cache --cache-location .eslintcache",
     "lint:progressive": "eslint . --max-warnings=50 --cache",
     "lint:fast": "eslint src/ --config config/eslint-backups/eslint.config.fast.mjs --cache",
+    "lint:ci": "cross-env ESLINT_FAST=true NODE_OPTIONS='--max-old-space-size=2048' eslint . --cache --cache-location .eslintcache",
+    "lint:ci:strict": "cross-env ESLINT_FAST=true NODE_OPTIONS='--max-old-space-size=2048' eslint . --max-warnings=0 --cache --cache-location .eslintcache",
+    "lint:quick": "cross-env ESLINT_FAST=true eslint src/ --cache",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "test": "vitest run --config config/testing/vitest.config.main.ts",
@@ -77,6 +80,7 @@
     "test:ci:fast": "vitest run --config config/testing/vitest.config.minimal.ts",
     "prepare": "husky || true",
     "validate": "npm run type-check && npm run lint:quick",
+    "validate:quick": "npm run type-check:fast && npm run lint:quick",
     "validate:all": "npm run type-check && npm run lint && npm run test",
     "verify:ai-cli": "bash scripts/ai-cli-verification.sh",
     "verify:fast": "bash scripts/ai-cli-verification.sh && echo '✅ 96.4% 더 빠른 AI CLI 검증 완료'",
@@ -237,7 +241,16 @@
   },
   "packageManager": "npm@10.9.2",
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,json,md,mdx,css,scss}": [
+    "*.{ts,tsx}": [
+      "prettier --write",
+      "bash -c 'tsc --noEmit'",
+      "eslint --cache --fix --max-warnings=0"
+    ],
+    "*.{js,jsx}": [
+      "prettier --write",
+      "eslint --cache --fix"
+    ],
+    "*.{json,md,mdx,css,scss}": [
       "prettier --write"
     ]
   },

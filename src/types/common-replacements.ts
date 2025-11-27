@@ -248,6 +248,6 @@ export function toSafeString(value: unknown): string {
     return String(value);
   }
   // For objects and arrays, use String() to get standard JavaScript string representation
-  // eslint-disable-next-line @typescript-eslint/no-base-to-string
+  // eslint-disable-next-line @typescript-eslint/no-base-to-string -- 의도적인 [object Object] 출력
   return String(value);
 }

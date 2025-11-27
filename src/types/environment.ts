@@ -6,7 +6,7 @@
 
 // 🔧 기본 환경변수 타입 확장
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
+  // eslint-disable-next-line @typescript-eslint/no-namespace -- ProcessEnv 확장에 필요
   namespace NodeJS {
     interface ProcessEnv {
       readonly NODE_ENV: 'development' | 'production' | 'test';

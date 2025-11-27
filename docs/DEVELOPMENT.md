@@ -243,14 +243,77 @@ npm run dev:playwright
 
 ### 2. 코드 품질 관리
 
+#### ESLint 명령어 (메모리 최적화)
+
+```bash
+# 로컬 개발용 (완전한 타입 체킹)
+npm run lint                # 4GB 메모리, 전체 검사
+npm run lint:fix            # 4GB 메모리, 자동 수정
+npm run lint:strict         # 4GB 메모리, 경고 0개 강제
+
+# CI/CD용 (무료 티어 최적화)
+npm run lint:ci             # 2GB 메모리, FAST_MODE (타입 체킹 없음)
+npm run lint:ci:strict      # 2GB 메모리, FAST_MODE, 경고 0개
+
+# 빠른 검사용
+npm run lint:quick          # FAST_MODE, src 폴더만
+npm run lint:progressive    # 경고 50개까지 허용
+```
+
+**성능 비교:**
+
+- 기존 (`lint`): 150초+ → OOM 에러 발생 ❌
+- 개선 (`lint`): 4GB 메모리로 안정적 실행 ✅
+- 최적화 (`lint:ci`): 71초, 2GB 메모리 ✅
+
+**사용 권장사항:**
+
+- **로컬 개발**: `npm run lint` (완전한 타입 체킹)
+- **커밋 전**: `lint-staged`가 자동 실행 (TypeScript 타입 체크 포함)
+- **푸시 전**: `pre-push` 훅에서 빌드 검증
+- **CI/CD**: `npm run lint:ci` (GitHub Actions 무료 티어 보호)
+
+#### TypeScript 타입 체크
+
+```bash
+# 전체 타입 체크
+npm run type-check          # 프로젝트 전체
+
+# 빠른 타입 체크
+npm run type-check:fast     # 래퍼 스크립트 사용
+npm run type-check:changed  # 변경된 파일만
+```
+
+#### 통합 검증
+
 ```bash
 # 전체 검증
 npm run validate:all        # 린트+타입+테스트
+npm run validate            # 타입+퀵 린트
+npm run validate:quick      # 빠른 타입+퀵 린트
+npm run validate:changed    # 변경된 파일만
 
-# 개별 검증
-npm run lint                # ESLint
-npm run type-check          # TypeScript
-npm run test               # 단위 테스트
+# 개별 테스트
+npm run test                # 단위 테스트
+npm run test:quick          # 최소 테스트 세트
+```
+
+#### Pre-commit 검사 자동화
+
+커밋 시 자동으로 실행됩니다:
+
+```bash
+# TypeScript 파일 (.ts, .tsx)
+1. Prettier 포맷팅
+2. tsc --noEmit (타입 체크)
+3. ESLint 자동 수정 (--max-warnings=0)
+
+# JavaScript 파일 (.js, .jsx)
+1. Prettier 포맷팅
+2. ESLint 자동 수정
+
+# 기타 파일 (.json, .md, .css)
+1. Prettier 포맷팅만
 ```
 
 ### 3. 빌드 및 배포

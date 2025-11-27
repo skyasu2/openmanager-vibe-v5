@@ -196,8 +196,8 @@ export class EdgeAIRouter {
       // 동시 실행 제한
       if (promises.length >= this.config.maxConcurrency) {
         await Promise.race(promises);
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        promises.splice(0, 1); // Promise 배열 관리 패턴
+         
+        void promises.splice(0, 1); // Promise 배열 관리 패턴
       }
     }
 
