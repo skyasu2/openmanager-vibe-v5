@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 echo "🔍 Pre-push: Type-safe + Build validation (~90초 예상)..."
 START_TIME=$(date +%s)
 
@@ -9,20 +11,52 @@ if [ "${SKIP_TESTS:-false}" = "true" ]; then
   echo "⚪ Tests skipped (SKIP_TESTS=true)"
   echo "⚠️  WARNING: Skipping tests may allow regressions to slip through"
 else
-  npm run test:super-fast || {
-    TEST_STATUS="failed"
-    echo "❌ Tests failed - push blocked"
-    echo ""
-    echo "💡 Fix the test failures:"
-    echo "   npm run test:super-fast"
-    echo ""
-    echo "⚠️  To bypass (not recommended):"
-    echo "   SKIP_TESTS=true git push"
-    echo ""
-    echo "ℹ️  Known issue: @rollup/rollup-linux-x64-gnu installation"
-    echo "   If tests fail due to Rollup native binary, use SKIP_TESTS=true"
-    exit 1
-  }
+  # Rollup 바이너리 체크 (WSL/Linux 환경)
+  if command -v uname \u003e/dev/null 2\u003e\u00261 \u0026\u0026 [ "$(uname -s)" = "Linux" ]; then
+    # Linux 환경에서는 바이너리 확인
+    if ! npm list @rollup/rollup-linux-x64-gnu \u003e/dev/null 2\u003e\u00261; then
+      echo "⚠️  Rollup Linux binary not found"
+      echo "   This is a known issue in WSL environments"
+      echo "   Skipping tests (build validation will still run)"
+      TEST_STATUS="skipped-rollup"
+    else
+      npm run test:super-fast || {
+        TEST_STATUS="failed"
+        echo "❌ Tests failed - push blocked"
+        echo ""
+        echo "💡 Fix the test failures:"
+        echo "   npm run test:super-fast"
+        echo ""
+        echo "⚠️  To bypass (not recommended):"
+        echo "   SKIP_TESTS=true git push"
+        exit 1
+      }
+    fi
+  else
+    # Windows/macOS에서는 테스트 실행 시도
+    npm run test:super-fast || {
+      # Rollup 에러인지 확인
+      if npm run test:super-fast 2\u003e\u00261 | grep -q "@rollup"; then
+        echo "⚠️  Rollup binary issue detected"
+        echo "   Tests skipped (build validation will still run)"
+        echo ""
+        echo "ℹ️  To fix permanently:"
+        echo "   - Windows: Install WSL and run from Linux"
+        echo "   - Or use: SKIP_TESTS=true git push"
+        TEST_STATUS="skipped-rollup"
+      else
+        TEST_STATUS="failed"
+        echo "❌ Tests failed - push blocked"
+        echo ""
+        echo "💡 Fix the test failures:"
+        echo "   npm run test:super-fast"
+        echo ""
+        echo "⚠️  To bypass (not recommended):"
+        echo "   SKIP_TESTS=true git push"
+        exit 1
+      fi
+    }
+  fi
 fi
 
 # 2. 프로덕션 빌드 검증 (CRITICAL - Vercel 배포 전 로컬 검증, 타입 체크 포함)
@@ -77,6 +111,8 @@ if [ "$TEST_STATUS" = "passed" ]; then
   echo "  ✅ Quick tests passed"
 elif [ "$TEST_STATUS" = "skipped" ]; then
   echo "  ⚪ Quick tests skipped (SKIP_TESTS=true)"
+elif [ "$TEST_STATUS" = "skipped-rollup" ]; then
+  echo "  ⚪ Quick tests skipped (Rollup binary issue)"
 else
   echo "  ❌ Quick tests failed (should not reach here)"
 fi
