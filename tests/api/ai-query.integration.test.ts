@@ -159,7 +159,8 @@ describe('AI Query API Integration Tests', () => {
       expect(response.status).toBe(400);
     });
 
-    it('should handle unsupported engines', async () => {
+    it('should handle unsupported engines (always uses UNIFIED in v4.0)', async () => {
+      // v4.0: 잘못된 engine 파라미터도 UNIFIED로 자동 변환되어 정상 응답
       const response = await fetch(`${baseUrl}/api/ai/query`, {
         method: 'POST',
         headers: {
@@ -167,12 +168,76 @@ describe('AI Query API Integration Tests', () => {
         },
         body: JSON.stringify({
           query: '테스트 쿼리',
-          engine: 'INVALID_ENGINE',
+          engine: 'INVALID_ENGINE', // 무시됨
           context: []
         })
       });
 
-      expect(response.status).toBe(400);
+      // v4.0: 항상 UNIFIED 사용하므로 200 OK 반환
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data.response).toBeDefined();
+    });
+  });
+
+  describe('v4.0 Backward Compatibility', () => {
+    it('should ignore legacy mode parameter and use UNIFIED', async () => {
+      const response = await fetch(`${baseUrl}/api/ai/query`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: '레거시 모드 테스트',
+          mode: 'LOCAL', // 레거시 파라미터 (무시됨)
+          context: []
+        })
+      });
+
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data.response).toBeDefined();
+      // v4.0: 항상 UNIFIED 모드 사용
+    });
+
+    it('should handle GOOGLE_AI legacy mode parameter', async () => {
+      const response = await fetch(`${baseUrl}/api/ai/query`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: '구글 AI 모드 테스트',
+          mode: 'GOOGLE_AI', // 레거시 파라미터 (무시됨)
+          context: []
+        })
+      });
+
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data.response).toBeDefined();
+    });
+
+    it('should work without engine parameter (defaults to UNIFIED)', async () => {
+      const response = await fetch(`${baseUrl}/api/ai/query`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: '엔진 파라미터 없음',
+          // engine 파라미터 생략
+          context: []
+        })
+      });
+
+      expect(response.status).toBe(200);
+
+      const data = await response.json();
+      expect(data.response).toBeDefined();
     });
   });
 });

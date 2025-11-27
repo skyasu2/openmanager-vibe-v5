@@ -1,7 +1,19 @@
+/**
+ * @deprecated 이 테스트는 레거시 디버깅 테스트입니다.
+ *
+ * 대신 사용: tests/e2e/dashboard-ai-sidebar.spec.ts
+ * - 더 간결하고 명확한 테스트 구조
+ * - guestLogin() 헬퍼 사용
+ * - 일관된 타임아웃 처리
+ *
+ * 이 파일은 v5.0에서 제거될 예정입니다.
+ * @since v4.0 - deprecated
+ */
+
 import { test, expect } from '@playwright/test';
 import { TIMEOUTS } from './helpers/timeouts';
 
-test.describe('AI 어시스턴트 버튼 클릭 테스트', () => {
+test.describe.skip('AI 어시스턴트 버튼 클릭 테스트 (DEPRECATED)', () => {
   test('AI 어시스턴트 버튼 클릭 시 사이드바 활성화 테스트', async ({ page }) => {
     console.log('\n=== AI 어시스턴트 버튼 클릭 테스트 ===');
 
