@@ -370,6 +370,7 @@ run_ai_review() {
             if review_output=$(try_codex_review "$changes"); then
                 log_success "Codex 리뷰 성공!"
                 increment_ai_counter "codex"
+                AI_ENGINE="codex"
                 echo "$review_output"
                 return 0
             fi
@@ -378,6 +379,7 @@ run_ai_review() {
             if review_output=$(fallback_to_gemini_review "$changes"); then
                 log_success "Gemini 리뷰 성공!"
                 increment_ai_counter "gemini"
+                AI_ENGINE="gemini"
                 echo "$review_output"
                 return 0
             fi
@@ -386,6 +388,7 @@ run_ai_review() {
             if review_output=$(try_qwen_review "$changes"); then
                 log_success "Qwen 리뷰 성공!"
                 increment_ai_counter "qwen"
+                AI_ENGINE="qwen"
                 echo "$review_output"
                 return 0
             fi
@@ -394,6 +397,7 @@ run_ai_review() {
             if review_output=$(claude_code_review_with_subagent "$changes"); then
                 log_success "Claude 서브에이전트 리뷰 성공!"
                 increment_ai_counter "claude"
+                AI_ENGINE="claude"
                 echo "$review_output"
                 return 0
             fi
@@ -408,6 +412,7 @@ run_ai_review() {
             if review_output=$(try_codex_review "$changes"); then
                 log_success "Codex 폴백 성공!"
                 increment_ai_counter "codex"
+                AI_ENGINE="codex"
                 echo "$review_output"
                 return 0
             fi
@@ -416,6 +421,7 @@ run_ai_review() {
             if review_output=$(fallback_to_gemini_review "$changes"); then
                 log_success "Gemini 폴백 성공!"
                 increment_ai_counter "gemini"
+                AI_ENGINE="gemini"
                 echo "$review_output"
                 return 0
             fi
@@ -424,6 +430,7 @@ run_ai_review() {
             if review_output=$(try_qwen_review "$changes"); then
                 log_success "Qwen 폴백 성공!"
                 increment_ai_counter "qwen"
+                AI_ENGINE="qwen"
                 echo "$review_output"
                 return 0
             fi
@@ -432,6 +439,7 @@ run_ai_review() {
             if review_output=$(claude_code_review_with_subagent "$changes"); then
                 log_success "Claude 서브에이전트 폴백 성공!"
                 increment_ai_counter "claude"
+                AI_ENGINE="claude"
                 echo "$review_output"
                 return 0
             fi
@@ -446,6 +454,7 @@ run_ai_review() {
             if review_output=$(try_codex_review "$changes"); then
                 log_success "Codex 폴백 성공!"
                 increment_ai_counter "codex"
+                AI_ENGINE="codex"
                 echo "$review_output"
                 return 0
             fi
@@ -454,6 +463,7 @@ run_ai_review() {
             if review_output=$(fallback_to_gemini_review "$changes"); then
                 log_success "Gemini 폴백 성공!"
                 increment_ai_counter "gemini"
+                AI_ENGINE="gemini"
                 echo "$review_output"
                 return 0
             fi
@@ -462,6 +472,7 @@ run_ai_review() {
             if review_output=$(try_qwen_review "$changes"); then
                 log_success "Qwen 폴백 성공!"
                 increment_ai_counter "qwen"
+                AI_ENGINE="qwen"
                 echo "$review_output"
                 return 0
             fi
@@ -470,6 +481,7 @@ run_ai_review() {
             if review_output=$(claude_code_review_with_subagent "$changes"); then
                 log_success "Claude 서브에이전트 폴백 성공!"
                 increment_ai_counter "claude"
+                AI_ENGINE="claude"
                 echo "$review_output"
                 return 0
             fi
@@ -484,6 +496,7 @@ run_ai_review() {
             if review_output=$(try_codex_review "$changes"); then
                 log_success "Codex 최종 폴백 성공!"
                 increment_ai_counter "codex"
+                AI_ENGINE="codex"
                 echo "$review_output"
                 return 0
             fi
@@ -492,6 +505,7 @@ run_ai_review() {
             if review_output=$(fallback_to_gemini_review "$changes"); then
                 log_success "Gemini 최종 폴백 성공!"
                 increment_ai_counter "gemini"
+                AI_ENGINE="gemini"
                 echo "$review_output"
                 return 0
             fi
@@ -500,6 +514,7 @@ run_ai_review() {
             if review_output=$(try_qwen_review "$changes"); then
                 log_success "Qwen 최종 폴백 성공!"
                 increment_ai_counter "qwen"
+                AI_ENGINE="qwen"
                 echo "$review_output"
                 return 0
             fi
@@ -508,6 +523,7 @@ run_ai_review() {
             if review_output=$(claude_code_review_with_subagent "$changes"); then
                 log_success "Claude 서브에이전트 최종 폴백 성공!"
                 increment_ai_counter "claude"
+                AI_ENGINE="claude"
                 echo "$review_output"
                 return 0
             fi
