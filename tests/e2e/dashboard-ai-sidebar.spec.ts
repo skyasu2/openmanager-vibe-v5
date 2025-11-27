@@ -25,7 +25,8 @@ test.describe('대시보드 AI 사이드바 테스트', () => {
   test('AI 메시지 입력 필드 확인', async ({ page }) => {
     await openAiSidebar(page);
 
-    const input = page.locator('textarea, input[type="text"]').filter({ hasText: /AI|메시지|질문/i }).first();
+    // Fix: input/textarea는 텍스트 노드가 없으므로 placeholder 사용
+    const input = page.locator('textarea[placeholder*="메시지"], textarea[placeholder*="질문"], input[type="text"][placeholder*="AI"]').first();
     await expect(input).toBeVisible({ timeout: TIMEOUTS.DOM_UPDATE });
   });
 
