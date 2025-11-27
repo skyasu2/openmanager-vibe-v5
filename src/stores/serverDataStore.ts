@@ -12,7 +12,6 @@ import { createStore } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { calculateOptimalUpdateInterval } from '../config/serverConfig';
 import type { EnhancedServerMetrics } from '../types/unified-server';
-import type { ServerRole } from '../types/server';
 import { UnifiedServerDataSource } from '@/services/data/UnifiedServerDataSource';
 
 // 🎯 Single Source of Truth: UnifiedServerDataSource 사용

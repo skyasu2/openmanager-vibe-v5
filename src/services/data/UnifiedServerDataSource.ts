@@ -13,7 +13,6 @@ import { getMockSystem } from '@/mock';
 
 // 🎯 Scenario-based failure data (Single Source of Truth)
 import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
-import type { EnhancedServerMetrics } from '@/services/scenario/scenario-loader';
 
 export interface ServerDataSourceConfig {
   totalServers: number;

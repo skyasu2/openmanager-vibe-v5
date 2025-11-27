@@ -15,16 +15,16 @@ import {
   Clock,
 } from '@/lib/bundle-optimization';
 
-interface FeatureCard {
+type FeatureCardData = {
   id: string;
   title: string;
   description: string;
   icon: ComponentType<{ className?: string }>;
   color: string;
   stats?: string;
-}
+};
 
-const features: FeatureCard[] = [
+const features: FeatureCardData[] = [
   {
     id: 'monitoring',
     title: '실시간 모니터링',
@@ -87,7 +87,7 @@ const colorClasses = {
   red: 'from-red-500 to-red-600 hover:from-red-600 hover:to-red-700',
 };
 
-const FeatureCard = ({ feature }: { feature: FeatureCard }) => {
+const FeatureCard = ({ feature }: { feature: FeatureCardData }) => {
   const Icon = feature.icon;
 
   return (
