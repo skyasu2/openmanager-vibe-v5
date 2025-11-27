@@ -149,9 +149,11 @@ jobs:
           else
             echo "⚠️ Rollup binary 누락 - 테스트 스킵"
             echo "ℹ️  WSL/Linux 환경에서 Rollup optional dependency 이슈 발생"
-            echo "📝 해결 방법:"
+            echo "::group::📝 해결 방법"
             echo "   1. package-lock.json과 node_modules 삭제 후 npm install 재실행"
             echo "   2. 또는 로컬 환경에서 테스트 실행 확인"
+            echo "   3. 참고: https://github.com/npm/cli/issues/4828"
+            echo "::endgroup::"
             echo "✅ 테스트 스킵됨 (CI 통과)"
           fi
 

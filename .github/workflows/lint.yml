@@ -35,8 +35,8 @@ jobs:
         run: |
           echo "🔍 ESLint Strict CI Check 시작..."
 
-          # 메모리 제한 증가 및 타임아웃 설정
-          if timeout 300 npm run lint:ci:strict; then
+          # 메모리 제한 증가 및 타임아웃 설정 (출력 캡처로 재실행 방지)
+          if output=$(timeout 300 npm run lint:ci:strict 2>&1); then
             echo "✅ ESLint 검사 통과 (경고 0개)"
           else
             exit_code=$?
@@ -47,7 +47,7 @@ jobs:
             else
               echo "⚠️ ESLint 경고 발견"
               echo "📋 경고 상세 (최근 10개):"
-              npm run lint:ci:strict 2>&1 | grep -E "warning|⚠" | head -10 || true
+              echo "$output" | grep -E "warning|⚠" | head -10 || true
               echo "📝 로컬에서 'npm run lint'로 전체 확인 가능"
             fi
 
