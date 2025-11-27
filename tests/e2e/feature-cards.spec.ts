@@ -9,12 +9,14 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { guestLogin } from './helpers/guest';
 
 test.describe('Feature Cards - Main Page', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+    // 게스트 로그인 후 메인 페이지로 이동
+    await guestLogin(page);
 
-    // 페이지 로딩 대기
+    // Feature Cards 렌더링 대기
     await page.waitForLoadState('networkidle');
   });
 
