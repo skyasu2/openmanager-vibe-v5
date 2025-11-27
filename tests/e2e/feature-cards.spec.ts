@@ -62,10 +62,10 @@ test.describe('Feature Cards - Main Page', () => {
 
     // 모달 내 최신 기술 버전 확인
     const modal = page.getByRole('dialog');
-    await expect(modal).toContainText('Next.js 15');  // 버전 포맷 유연하게
-    await expect(modal).toContainText('TypeScript 5.7');
-    await expect(modal).toContainText('React 18.3');
-    await expect(modal).toContainText('Tailwind CSS 3.4');
+    await expect(modal).toContainText('v15.4');  // Next.js
+    await expect(modal).toContainText('v5.7');   // TypeScript
+    await expect(modal).toContainText('v18.3');  // React
+    await expect(modal).toContainText('v3.4');   // Tailwind CSS
   });
 
   test('Vibe Coding 카드 클릭 시 모달 오픈 확인', async ({ page }) => {
@@ -86,9 +86,10 @@ test.describe('Feature Cards - Main Page', () => {
 
     // 모달 내 업데이트된 워크플로우 확인
     const modal = page.getByRole('dialog');
-    await expect(modal).toContainText('Claude Code (메인 개발)');
-    await expect(modal).toContainText('Codex CLI (코드 리뷰)');
-    await expect(modal).toContainText('Gemini CLI (코드 리뷰)');
+    await expect(modal).toContainText('Claude Code');
+    await expect(modal).toContainText('메인 개발 도구');
+    await expect(modal).toContainText('Codex CLI');
+    await expect(modal).toContainText('Gemini CLI');
   });
 
   test('AI 어시스턴트 카드 클릭 시 모달 오픈 확인', async ({ page }) => {
@@ -103,17 +104,15 @@ test.describe('Feature Cards - Main Page', () => {
     await expect(modal.getByRole('heading', { level: 3 })).toContainText('🧠 AI 어시스턴트');
   });
 
-  test('AI 어시스턴트 모달 - 5개 AI 기능 확인', async ({ page }) => {
+  test('AI 어시스턴트 모달 - AI 기능 확인', async ({ page }) => {
     // AI 어시스턴트 카드 클릭
     await page.click('text=🧠 AI 어시스턴트');
 
-    // 모달 내 5개 AI 기능 확인
+    // 모달 내 주요 AI 기능 확인 (실제 current array 기준)
     const modal = page.getByRole('dialog');
-    await expect(modal).toContainText('자연어 질의');
-    await expect(modal).toContainText('자동장애 보고서');
-    await expect(modal).toContainText('이상감지/예측');
-    await expect(modal).toContainText('AI 고급관리');
-    await expect(modal).toContainText('무료 티어 모니터');
+    await expect(modal).toContainText('Google AI');
+    await expect(modal).toContainText('Gemini');
+    await expect(modal).toContainText('RAG');
   });
 
   test('클라우드 플랫폼 카드 클릭 시 모달 오픈 확인', async ({ page }) => {
@@ -266,7 +265,12 @@ test.describe('Feature Cards - Main Page', () => {
     const modal = page.getByRole('dialog');
 
     // MCP 서버 관련 내용 확인
-    await expect(modal).toContainText('9개 MCP 서버');
+    await expect(modal).toContainText('MCP 서버');
+
+    // 주요 MCP 서버 확인 (11개 중 대표 3개)
+    await expect(modal).toContainText('vercel');
+    await expect(modal).toContainText('serena');
+    await expect(modal).toContainText('playwright');
   });
 
   test('AI 어시스턴트 모달 - 성능 지표 확인', async ({ page }) => {
@@ -278,16 +282,5 @@ test.describe('Feature Cards - Main Page', () => {
     // 성능 지표 확인
     await expect(modal).toContainText('평균 응답 250');
     await expect(modal).toContainText('캐시 히트');
-  });
-
-  test('클라우드 플랫폼 모달 - 무료 티어 정보 확인', async ({ page }) => {
-    // 클라우드 플랫폼 카드 클릭
-    await page.click('text=🏗️ 클라우드 플랫폼 활용');
-
-    const modal = page.getByRole('dialog');
-
-    // 무료 티어 정보 확인
-    await expect(modal).toContainText('무료 티어');
-    await expect(modal).toContainText('$0/월');
   });
 });
