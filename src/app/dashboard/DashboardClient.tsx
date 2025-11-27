@@ -27,6 +27,8 @@ import type { Server } from '@/types/server';
 import type { ServerData } from '@/components/dashboard/EnhancedServerModal.types';
 import { AlertTriangle } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import AuthLoadingUI from '@/components/shared/AuthLoadingUI';
+import UnauthorizedAccessUI from '@/components/shared/UnauthorizedAccessUI';
 import {
   Suspense,
   useRef,
@@ -868,19 +870,7 @@ function DashboardPageContent() {
     console.log(
       '❌ [Loading Check] 로딩 UI 렌더링 - dashboard-container 차단!'
     );
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="mx-auto max-w-md p-6 text-center">
-          <div className="mb-6">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-purple-600">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-            </div>
-            <h2 className="mb-2 text-2xl font-bold text-white">로딩 중...</h2>
-            <p className="mb-6 text-gray-300">권한을 확인하고 있습니다.</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <AuthLoadingUI loadingMessage="권한을 확인하고 있습니다" />;
   }
 
   console.log('✅ [Loading Check] 통과 - 권한 체크로 진행', {
@@ -901,44 +891,7 @@ function DashboardPageContent() {
     !testModeDetected &&
     !isGuestFullAccessEnabled()
   ) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="mx-auto max-w-md p-6 text-center">
-          <div className="mb-6">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 to-purple-600">
-              <i className="fas fa-shield-alt text-2xl text-white"></i>
-            </div>
-            <h2 className="mb-2 text-2xl font-bold text-white">
-              접근 권한 필요
-            </h2>
-            <p className="mb-6 text-gray-300">
-              대시보드 접근을 위해 GitHub 로그인 또는 관리자 PIN 인증이
-              필요합니다.
-            </p>
-          </div>
-
-          <div className="space-y-3">
-            <button
-              onClick={() => router.push('/login')}
-              className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white transition-all duration-200 hover:from-blue-600 hover:to-blue-700"
-            >
-              GitHub 로그인
-            </button>
-
-            <button
-              onClick={() => router.push('/main')}
-              className="w-full rounded-lg bg-gray-700 px-6 py-3 font-medium text-gray-200 transition-all duration-200 hover:bg-gray-600"
-            >
-              메인 페이지로 돌아가기
-            </button>
-          </div>
-
-          <p className="mt-4 text-xs text-gray-500">
-            게스트 모드에서는 관리자 PIN 인증으로 대시보드 접근이 가능합니다
-          </p>
-        </div>
-      </div>
-    );
+    return <UnauthorizedAccessUI />;
   }
 
   // 🎯 DIAGNOSTIC: Final state check before dashboard-container return

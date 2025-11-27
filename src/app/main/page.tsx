@@ -32,17 +32,18 @@ import {
 import { renderTextWithAIGradient } from '@/utils/text-rendering';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
 import FeatureCardsGrid from '@/components/home/FeatureCardsGrid';
+import AuthLoadingUI from '@/components/shared/AuthLoadingUI';
 import {
   isGuestFullAccessEnabled,
   isGuestSystemStartEnabled,
 } from '@/config/guestMode';
-
-// Inlined from vercel-env.ts
-const mountDelay = isVercel ? 100 : 0;
-const syncDebounce = isVercel ? 1000 : 500;
-const authRetryDelay = isVercel ? 5000 : 3000;
-const envLabel = isVercel ? 'Vercel' : 'Local';
-const debugWithEnv = (message: string) => `[${envLabel}] ${message}`;
+import {
+  mountDelay,
+  syncDebounce,
+  authRetryDelay,
+  envLabel,
+  debugWithEnv,
+} from '@/utils/vercel-env-utils';
 
 const SYSTEM_START_COUNTDOWN_SECONDS = 3;
 const COUNTDOWN_INTERVAL_MS = 1000;
@@ -379,34 +380,12 @@ function Home() {
 
   if (shouldShowLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="text-center">
-            <div>
-              <Loader2 className="mx-auto mb-4 h-8 w-8 text-white" />
-            </div>
-            <p className="font-medium text-white/90">
-              {getLoadingMessage()} ({envLabel} 환경)
-            </p>
-            {authError && (
-              <div className="mx-auto mt-4 max-w-md">
-                <p className="mb-2 text-sm text-red-400">
-                  인증 오류: {authError}
-                </p>
-                <button
-                  onClick={retryAuth}
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
-                >
-                  다시 시도
-                </button>
-              </div>
-            )}
-            <div className="mt-2 text-xs text-white/90">
-              {envLabel} 서버에서 로딩 중...
-            </div>
-          </div>
-        </div>
-      </div>
+      <AuthLoadingUI
+        loadingMessage={getLoadingMessage()}
+        envLabel={envLabel}
+        authError={authError}
+        onRetry={retryAuth}
+      />
     );
   }
 
