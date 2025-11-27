@@ -133,7 +133,13 @@
   - Feature Cards: 20/20 passing (tests/e2e/feature-cards.spec.ts:280) ✅
   - 기타 E2E: 10개
 - **코드베이스**: 213K줄, 818개 TS 파일, 65개 테스트 파일
-- **Git 상태**: Clean (최신 커밋: 8bbdd8e1)
+  ```bash
+  # 측정 방법 (2025-11-27):
+  # TS 파일: find src -name "*.ts" -o -name "*.tsx" | wc -l
+  # 코드 라인: find src -name "*.ts" -o -name "*.tsx" | xargs wc -l | tail -1
+  # 테스트 파일: find tests -name "*.test.ts" -o -name "*.spec.ts" | wc -l
+  ```
+- **기준 커밋**: 8bbdd8e1 (측정 시점: 2025-11-27)
 
 ---
 
