@@ -111,109 +111,37 @@ git diff | gemini TypeScript 타입 누락 확인
 
 ## 📚 실전 협업 워크플로우
 
-### 코드 리뷰 & 2차 검증
+**코드 리뷰**: `cat file.ts | gemini "잠재적 버그 3가지"`
+**타입 검증**: `git diff | gemini "TypeScript strict 준수 확인"`
+**설계 결정**: `echo "A vs B" | gemini "추천 및 비교"`
+**디버깅**: `tail error.log | gemini "에러 원인 분석"`
+**테스트**: `cat file.ts | gemini "Vitest 테스트 작성"`
 
-```bash
-# Claude가 작성한 기능 검토
-cat src/services/new-feature.ts | gemini "잠재적 버그와 개선점 3가지"
-
-# 타입 안전성 검증
-git diff HEAD^ | gemini "TypeScript strict 모드 준수 여부 확인"
-```
-
-### 의사결정 지원
-
-```bash
-# 설계 결정 시 의견
-echo "마이크로서비스 vs 모놀리스" | gemini "현재 프로젝트 규모에 적합한 방식 추천"
-
-# 라이브러리 비교
-echo "Zustand vs Recoil" | gemini "유지보수성과 러닝커브 비교"
-```
-
-### 디버깅 & 트러블슈팅
-
-```bash
-# 에러 로그 분석
-tail -n 100 error.log | gemini "에러 원인 분석 및 해결책"
-
-# 스택 트레이스 해석
-cat stack-trace.txt | gemini "문제가 발생한 정확한 위치와 수정 제안"
-```
-
-### 테스트 전략
-
-```bash
-# 테스트 케이스 생성
-cat src/utils/validator.ts | gemini "Vitest용 단위 테스트 코드 작성"
-
-# 커버리지 분석
-cat coverage/lcov.info | gemini "테스트 보강이 시급한 파일 추천"
-```
+**상세**: @docs/ai/ai-workflows.md (워크플로우 예시 전체)
 
 ---
 
 ## 🔍 코드 분석 및 TypeScript 가이드라인
 
-최근 AI 엔진 리팩토링 과정에서 발생한 TypeScript 이슈를 교훈 삼아, 다음 원칙을 준수합니다.
+### TypeScript Strict Mode
 
-### 1. TypeScript Strict Mode 준수
+- No `any` 타입 (제네릭/유틸리티 타입 활용)
+- 타입 정의 우선 (구현 전 인터페이스 작성)
+- 컴파일 체크 필수
 
-- **No `any`**: `any` 타입 사용을 엄격히 금지합니다. 필요시 제네릭이나 유틸리티 타입을 활용하세요.
-- **타입 정의 우선**: 구현 전 인터페이스와 타입 정의를 먼저 작성하고 검증합니다.
-- **컴파일 체크**: 코드 변경 후 반드시 컴파일 에러 유무를 확인하세요.
+### Code Review Standards
 
-### 2. 기존 코드 심층 분석 (Deep Analysis)
+- 가독성, 간결함, 유지보수성, 테스트, 교차 검증
 
-- **의존성 파악**: 리팩토링 대상 파일이 참조하는 모든 타입과 모듈을 사전에 분석합니다.
-- **레거시 호환성**: 기존 인터페이스와의 호환성을 유지하며 점진적으로 변경합니다.
-- **영향도 분석**: 변경 사항이 다른 모듈에 미칠 영향을 미리 예측하고 문서화합니다.
-
-### 3. Claude Code와의 협업 (Type Fixing)
-
-- **타입 에러 해결**: 복잡한 타입 에러 발생 시 Claude Code와 협업하여 해결합니다.
-- **교차 검증**: Gemini가 제안한 코드를 Claude Code 환경에서 타입 체크를 수행하여 이중 검증합니다.
-
-### 4. Code Review Standards (핵심 검증 기준)
-
-리뷰 시 다음 핵심 코딩 규칙을 기준으로 검증합니다:
-
-- **가독성 (Readability)**: 변수명, 함수 분리 적절성 확인
-- **간결함 (Simplicity)**: 매직 넘버, 과도한 복잡성 확인 (KISS)
-- **유지보수성 (Maintainability)**: SOLID 원칙 준수 여부
-- **테스트 (Testing)**: 주요 로직 테스트 커버리지 확인
-- **상호 검증 (Cross-Check)**: Claude Code/Codex와의 교차 검증 여부 확인
+**상세**: @docs/ai/ai-coding-standards.md (전체 코딩 규칙)
 
 ---
 
 ## 💡 컨텍스트 관리
 
-Gemini CLI는 stateful 메모리를 지원하지 않으므로 매 요청마다 핵심 컨텍스트를 포함해야 합니다.
+Gemini CLI는 stateful 메모리 미지원 → 래퍼 스크립트 사용 권장
 
-### 래퍼 스크립트 (`scripts/gcli.sh`)
-
-```bash
-#!/bin/bash
-# Gemini CLI 컨텍스트 래퍼
-
-CONTEXT="
-- Project: OpenManager VIBE v5
-- Stack: Next.js 15, TypeScript strict, Node.js v22.x
-- Environment: Vercel Edge Runtime
-- Rules: SOLID, No 'any', TDD, Reuse existing
-"
-
-echo "$CONTEXT
----
-User Request: $1" | gemini Process
-```
-
-**사용법**:
-
-```bash
-chmod +x scripts/gcli.sh
-./scripts/gcli.sh "분석해줘"
-```
+**상세**: @docs/ai/ai-wrappers-guide.md (Gemini 래퍼 스크립트)
 
 ---
 
@@ -224,72 +152,33 @@ chmod +x scripts/gcli.sh
 
 ---
 
-## 🤝 AI 협업 체계 (Multi-Agent Ecosystem)
+## 🤝 AI 협업 체계
 
-### 🔄 Cross-Check Protocol (with Claude)
+### Cross-Check Protocol
 
-**"Perfect Partner"**
+1. Objective Review (객관적 리뷰)
+2. Gap Analysis (엣지 케이스, 보안, 성능)
+3. Alternative Suggestion (대안 제시)
 
-1. **Objective Review**: Claude의 설계/코드에 대해 객관적인 시각에서 비판적 리뷰 제공
-2. **Gap Analysis**: 놓친 엣지 케이스, 보안 취약점, 성능 병목 구간 식별
-3. **Alternative Suggestion**: 더 나은 대안이 있다면 주저 없이 제안
+### AI 도구별 역할
 
-### ✅ Pre-Development Checklist (Condensed)
+- **Claude Code**: 메인 개발, 비즈니스 로직
+- **Gemini CLI**: 전방위 지원, 교차 검증
+- **Codex CLI**: 코드 리뷰, 실무 구현
+- **Qwen CLI**: 성능 최적화, 알고리즘 분석
 
-작업 시작 전 다음 항목을 빠르게 스캔하세요:
-
-1. **Context**: 목표와 제약사항을 정확히 이해했는가?
-2. **Duplication**: 이미 존재하는 기능인가?
-3. **Impact**: 이 변경이 다른 모듈에 미칠 영향은?
-4. **Simplicity**: 더 단순한 해결책은 없는가?
-
-### Claude Code (Primary Lead)
-
-- 메인 개발 흐름 주도
-- 복잡한 비즈니스 로직 구현
-- 전체 프로젝트 컨텍스트 관리
-
-### Gemini CLI (Universal Partner)
-
-- **전방위 지원**: 구현, 설계, 검증 모든 단계 참여
-- **Cross-Check**: Claude의 코드에 대한 객관적 검증 및 대안 제시
-- **Speed**: 빠른 응답 속도로 즉각적인 피드백 제공
-
-### Codex CLI (Implementation Specialist)
-
-- **실무 구현**: 구체적인 코드 작성 및 보일러플레이트 생성
-- **정밀 타격**: 특정 모듈이나 함수의 디테일한 구현 담당
-
-### Qwen CLI (Performance Engineer)
-
-- **최적화**: 알고리즘 효율성 및 리소스 사용량 분석
-- **벤치마크**: 성능 지표 측정 및 개선안 도출
+**상세**: @docs/ai/ai-collaboration-architecture.md (협업 프로토콜)
 
 ---
 
 ## 📊 현재 프로젝트 상태
 
-### 기술 환경
+**기술 환경**: Node.js v22.21.1, TypeScript strict, ESLint + Prettier
+**AI 시스템**: UnifiedAIEngineRouter (Google AI + Supabase RAG)
+**성능**: Vercel 사용량 90% 절감, Edge Runtime 최적화
+**개발 도구**: Husky v10, TDD 98.2% 커버리지
 
-- Node.js v22.18.0
-- TypeScript strict mode
-- ESLint + Prettier
-
-### AI 시스템
-
-- UnifiedAIEngineRouter
-- Google AI + Supabase RAG + Korean NLP
-
-### 성능
-
-- Vercel 사용량 90% 절감
-- Edge Runtime 최적화
-
-### 개발 도구
-
-- Husky v10 호환
-- CLI 도구 안정화
-- TDD 환경 (98.2% 커버리지)
+**상세**: @docs/status.md (종합 평가 9.0/10)
 
 ---
 

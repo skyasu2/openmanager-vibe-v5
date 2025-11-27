@@ -24,7 +24,7 @@ import type {
 
 // Supabase RAG Engine 임포트 (기존 구현 재사용)
 import { SupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
-import type { RAGEngineSearchResult } from '@/services/ai/supabase-rag-engine';
+import type { RAGEngineSearchResult } from '@/types/rag/rag-types';
 
 // ============================================================================
 // Cache Entry
@@ -48,7 +48,8 @@ export class RAGProvider implements IContextProvider {
   private readonly cacheTTL = 3 * 60 * 1000; // 3분 (RAG는 짧은 캐싱)
   private enableMcp: boolean; // Add this property
 
-  constructor(enableMcp: boolean = false) { // Modify constructor to accept enableMcp
+  constructor(enableMcp: boolean = false) {
+    // Modify constructor to accept enableMcp
     // Supabase RAG Engine 초기화
     this.ragEngine = new SupabaseRAGEngine();
     this.enableMcp = enableMcp; // Store the flag
@@ -57,7 +58,10 @@ export class RAGProvider implements IContextProvider {
   /**
    * 메인 엔트리 포인트: RAG 검색 컨텍스트 제공
    */
-  async getContext(query: string, options?: ProviderOptions): Promise<ProviderContext> {
+  async getContext(
+    query: string,
+    options?: ProviderOptions
+  ): Promise<ProviderContext> {
     const cacheKey = this.getCacheKey(query, options);
     const cached = this.getFromCache(cacheKey);
 
@@ -81,10 +85,8 @@ export class RAGProvider implements IContextProvider {
         enableMCP: this.enableMcp, // Pass the stored enableMcp flag
       };
 
-      const searchResult: RAGEngineSearchResult = await this.ragEngine.searchSimilar(
-        query,
-        searchOptions
-      );
+      const searchResult: RAGEngineSearchResult =
+        await this.ragEngine.searchSimilar(query, searchOptions);
 
       if (!searchResult.success) {
         throw new Error(searchResult.error || 'RAG search failed');
@@ -131,19 +133,26 @@ export class RAGProvider implements IContextProvider {
    */
   private transformToRAGData(searchResult: RAGEngineSearchResult): RAGData {
     return {
-      documents: searchResult.results.map((result: { id: string; content: string; similarity: number; metadata?: Record<string, unknown> }) => ({
-        id: result.id,
-        content: result.content,
-        source: result.metadata?.source as string || 'unknown',
-        similarity: result.similarity,
-        metadata: {
-          title: result.metadata?.title,
-          section: result.metadata?.section,
-          tags: result.metadata?.tags || [],
-          createdAt: result.metadata?.createdAt,
-          updatedAt: result.metadata?.updatedAt,
-        },
-      })),
+      documents: searchResult.results.map(
+        (result: {
+          id: string;
+          content: string;
+          similarity: number;
+          metadata?: Record<string, unknown>;
+        }) => ({
+          id: result.id,
+          content: result.content,
+          source: (result.metadata?.source as string) || 'unknown',
+          similarity: result.similarity,
+          metadata: {
+            title: result.metadata?.title,
+            section: result.metadata?.section,
+            tags: result.metadata?.tags || [],
+            createdAt: result.metadata?.createdAt,
+            updatedAt: result.metadata?.updatedAt,
+          },
+        })
+      ),
       totalResults: searchResult.totalResults || searchResult.results.length,
       queryEmbedding: searchResult.queryEmbedding,
     };
@@ -160,7 +169,10 @@ export class RAGProvider implements IContextProvider {
     // 상위 3개 문서의 평균 유사도
     const topResults = searchResult.results.slice(0, 3);
     const avgSimilarity =
-      topResults.reduce((sum: number, r: { similarity: number }) => sum + r.similarity, 0) / topResults.length;
+      topResults.reduce(
+        (sum: number, r: { similarity: number }) => sum + r.similarity,
+        0
+      ) / topResults.length;
 
     return avgSimilarity;
   }
@@ -207,7 +219,9 @@ export class RAGProvider implements IContextProvider {
   /**
    * 빈 컨텍스트 반환 (에러 시)
    */
-  private getEmptyContext(reason: 'search_error' | 'no_results'): ProviderContext {
+  private getEmptyContext(
+    reason: 'search_error' | 'no_results'
+  ): ProviderContext {
     return {
       type: 'rag',
       data: {

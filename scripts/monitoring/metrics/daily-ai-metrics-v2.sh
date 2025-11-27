@@ -230,12 +230,10 @@ if [ $TOTAL_TIMEOUT -gt 0 ]; then
   } >> "$LOG_FILE"
 
   echo -e "  ${YELLOW}⚠️  타임아웃 발생 ($TOTAL_TIMEOUT회)${NC}"
-  echo -e "  ${YELLOW}→ docs/ai/3-ai-query-optimization-guide.md 참조${NC}"
   echo -e "  ${YELLOW}→ 쿼리 50% 축소 또는 Executive Summary 방식 사용${NC}"
 
   {
     echo "  ⚠️  타임아웃 발생 ($TOTAL_TIMEOUT회)"
-    echo "  → docs/ai/3-ai-query-optimization-guide.md 참조"
     echo "  → 쿼리 50% 축소 또는 Executive Summary 방식 사용"
     echo ""
   } >> "$LOG_FILE"

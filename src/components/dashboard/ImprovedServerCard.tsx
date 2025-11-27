@@ -45,6 +45,7 @@ import {
 import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
 import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
 import { getServerStatusTheme, LAYOUT } from '../../styles/design-constants';
+import { Sparkline } from '../shared/Sparkline';
 
 export interface ImprovedServerCardProps {
   server: ServerType;
@@ -95,7 +96,10 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     const isMountedRef = useRef(true); // 비동기 상태 관리 개선 (Codex 제안)
 
     // 🎯 24시간 고정 데이터 + 1분 미세 변동 (KST 동기화)
-    const { currentMetrics } = useFixed24hMetrics(server.id, 60000); // 1분 간격 업데이트
+    const { currentMetrics, historyData } = useFixed24hMetrics(
+      server.id,
+      60000
+    ); // 1분 간격 업데이트
 
     // 🛡️ 메트릭 안전성 검증 (고정 데이터 기반)
     const realtimeMetrics = useMemo(() => {
@@ -506,7 +510,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
               role="group"
               aria-label="주요 서버 메트릭"
             >
-              <div className="flex transform justify-center transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-105 hover:shadow-lg">
+              <div className="flex transform flex-col items-center transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-105 hover:shadow-lg">
                 <ServerMetricsChart
                   type="cpu"
                   value={(realtimeMetrics && realtimeMetrics.cpu) || 50}
@@ -514,8 +518,25 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   size="md"
                   showLabel={true}
                 />
+                {/* Sparkline for CPU */}
+                <div className="mt-2 h-8 w-full opacity-70">
+                  <Sparkline
+                    data={
+                      (
+                        historyData as Array<{ cpu: number; memory: number }>
+                      )?.map((h) => h.cpu) || []
+                    }
+                    width={80}
+                    height={20}
+                    color={
+                      (statusTheme as { accent: { color: string } }).accent
+                        .color
+                    }
+                    fill={true}
+                  />
+                </div>
               </div>
-              <div className="flex transform justify-center transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-105 hover:shadow-lg">
+              <div className="flex transform flex-col items-center transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-105 hover:shadow-lg">
                 <ServerMetricsChart
                   type="memory"
                   value={(realtimeMetrics && realtimeMetrics.memory) || 50}
@@ -523,6 +544,23 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                   size="md"
                   showLabel={true}
                 />
+                {/* Sparkline for Memory */}
+                <div className="mt-2 h-8 w-full opacity-70">
+                  <Sparkline
+                    data={
+                      (
+                        historyData as Array<{ cpu: number; memory: number }>
+                      )?.map((h) => h.memory) || []
+                    }
+                    width={80}
+                    height={20}
+                    color={
+                      (statusTheme as { accent: { color: string } }).accent
+                        .color
+                    }
+                    fill={true}
+                  />
+                </div>
               </div>
             </div>
           </div>

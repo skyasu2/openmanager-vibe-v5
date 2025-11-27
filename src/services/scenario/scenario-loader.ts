@@ -2,7 +2,6 @@ import type { HourlyServerData, RawServerData } from '@/types/server-metrics';
 import { readCachedHourlyFile } from '@/utils/cache/file-cache';
 import { RealisticVariationGenerator } from '@/services/metrics/variation-generator';
 import {
-  safeServerStatus,
   safeServerEnvironment,
   safeServerRole,
 } from '@/lib/utils/type-converters';
@@ -215,7 +214,13 @@ function convertFixedRotationData(
       id: serverData.id || `server-${index}`,
       name: serverData.name || `Unknown Server ${index + 1}`,
       hostname: serverData.hostname || serverData.name || `server-${index}`,
-      status: safeServerStatus(serverData.status),
+      status: serverData.status as
+        | 'online'
+        | 'warning'
+        | 'critical'
+        | 'maintenance'
+        | 'offline'
+        | 'unknown',
       cpu: Math.round((serverData.cpu || 0) * fixedVariation),
       cpu_usage: Math.round((serverData.cpu || 0) * fixedVariation),
       memory: Math.round((serverData.memory || 0) * fixedVariation),
@@ -273,7 +278,13 @@ function convertFixedRotationData(
           serverData.status === 'critical'
             ? Math.floor(serverOffset % 3) + 1
             : 0,
-        status: safeServerStatus(serverData.status),
+        status: serverData.status as
+          | 'online'
+          | 'warning'
+          | 'critical'
+          | 'maintenance'
+          | 'offline'
+          | 'unknown',
       },
     };
 

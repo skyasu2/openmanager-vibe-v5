@@ -39,6 +39,7 @@ export interface DashboardStats {
   online: number;
   warning: number;
   offline: number;
+  unknown: number;
 }
 
 // 🎯 서버 인스턴스 타입 (기존 코드에서 추출)

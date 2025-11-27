@@ -222,7 +222,7 @@ export const useServerData = (): UseServerDataReturn => {
         }
         return acc;
       },
-      { total: 0, online: 0, warning: 0, offline: 0 }
+      { total: 0, online: 0, warning: 0, offline: 0, unknown: 0 }
     );
 
     return stats;

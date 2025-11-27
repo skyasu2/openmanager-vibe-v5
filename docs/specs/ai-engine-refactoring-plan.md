@@ -1,5 +1,7 @@
 # SimplifiedQueryEngine AI 엔진 리팩토링 계획서
 
+> **📝 빠른 참조**: 핵심 요약은 [@ai-engine-refactoring-summary.md](./ai-engine-refactoring-summary.md) 참조
+
 **작성일**: 2025-11-22
 **프로젝트**: OpenManager VIBE v5.80.0
 **담당**: 구조 리팩토링 전문가 (Claude Code)

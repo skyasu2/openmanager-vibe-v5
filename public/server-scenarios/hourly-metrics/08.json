@@ -8,7 +8,7 @@
       "id": "web-server-1",
       "name": "Web Server #1",
       "hostname": "web-01.prod.example.com",
-      "status": "healthy",
+      "status": "online",
       "type": "web",
       "service": "Nginx",
       "location": "us-east-1a",
@@ -1015,7 +1015,7 @@
       "id": "api-server-1",
       "name": "API Server #1",
       "hostname": "api-01.prod.example.com",
-      "status": "healthy",
+      "status": "online",
       "type": "application",
       "service": "Node.js",
       "location": "us-east-1b",
@@ -2022,7 +2022,7 @@
       "id": "db-master-1",
       "name": "Database Master",
       "hostname": "db-master-01.prod.example.com",
-      "status": "healthy",
+      "status": "online",
       "type": "database",
       "service": "PostgreSQL",
       "location": "us-east-1c",
@@ -3029,7 +3029,7 @@
       "id": "db-replica-1",
       "name": "Database Replica",
       "hostname": "db-replica-01.prod.example.com",
-      "status": "healthy",
+      "status": "online",
       "type": "database",
       "service": "PostgreSQL",
       "location": "us-east-1d",
@@ -5048,7 +5048,7 @@
       "id": "storage-server-1",
       "name": "Storage Server #1",
       "hostname": "storage-01.prod.example.com",
-      "status": "healthy",
+      "status": "online",
       "type": "storage",
       "service": "MinIO",
       "location": "us-east-1f",
@@ -6055,7 +6055,7 @@
       "id": "queue-server-1",
       "name": "Message Queue #1",
       "hostname": "queue-01.prod.example.com",
-      "status": "healthy",
+      "status": "online",
       "type": "queue",
       "service": "RabbitMQ",
       "location": "us-east-1g",
@@ -7062,7 +7062,7 @@
       "id": "monitoring-server-1",
       "name": "Monitoring Server #1",
       "hostname": "monitoring-01.prod.example.com",
-      "status": "healthy",
+      "status": "online",
       "type": "monitoring",
       "service": "Prometheus",
       "location": "us-east-1h",
@@ -8070,23 +8070,12 @@
     "scenario_type": "시스템 안정화",
     "business_impact": "야간 작업 완료 후 정상 운영 상태 복구",
     "severity_level": "medium",
-    "affected_services": [
-      "Redis"
-    ],
-    "root_causes": [
-      "cache_warmup"
-    ],
-    "user_experience_impact": [
-      "캐시 워밍업으로 메모리 사용률 일시 증가"
-    ],
+    "affected_services": ["Redis"],
+    "root_causes": ["cache_warmup"],
+    "user_experience_impact": ["캐시 워밍업으로 메모리 사용률 일시 증가"],
     "recovery_actions": [],
     "timeline": "6:00-8:59",
-    "keywords": [
-      "cache",
-      "warmup",
-      "시스템",
-      "안정화"
-    ],
+    "keywords": ["cache", "warmup", "시스템", "안정화"],
     "natural_language_summary": "야간 작업 완료 후 정상 운영 상태 복구. 영향받은 시스템: Cache Server #1"
   }
 }

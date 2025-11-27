@@ -11,6 +11,7 @@ import type { Server } from '../../types/server';
 // framer-motion 제거 - CSS 애니메이션 사용
 import debug from '@/utils/debug';
 import type { DashboardStats } from './types/dashboard.types';
+import { DashboardSummary } from './DashboardSummary';
 
 // framer-motion 제거됨
 
@@ -80,7 +81,7 @@ export default function DashboardContent({
   // 폴백 통계 계산 (개선된 로직: 가용성과 성능 상태 분리)
   const calculateFallbackStats = useCallback((): DashboardStats => {
     if (!servers || servers.length === 0) {
-      return { total: 0, online: 0, offline: 0, warning: 0 };
+      return { total: 0, online: 0, offline: 0, warning: 0, unknown: 0 };
     }
 
     const stats = servers.reduce(
@@ -356,189 +357,8 @@ export default function DashboardContent({
           {/* 🎯 메인 컨텐츠 영역 */}
           {servers && servers.length > 0 ? (
             <>
-              {/* 인프라 전체 현황 */}
-              <div className="mb-6">
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-3">
-                  {/* 🎛️ 인프라 전체 현황 - 큰 화면에서 2칸, 작은 화면에서 전체 */}
-                  <div className="lg:col-span-2 xl:col-span-2 2xl:col-span-2">
-                    <Suspense
-                      fallback={
-                        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
-                          <div className="animate-pulse">
-                            <div className="mb-4 h-6 w-1/3 rounded bg-gray-200"></div>
-                            <div className="space-y-3">
-                              <div className="h-4 rounded bg-gray-200"></div>
-                              <div className="h-4 w-5/6 rounded bg-gray-200"></div>
-                            </div>
-                          </div>
-                        </div>
-                      }
-                    >
-                      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
-                        {/* 🎛️ 인프라 전체 현황 - 직접 구현 (MIME type 문제 우회) */}
-                        <div className="h-80 p-3 lg:h-96">
-                          {/* 헤더 */}
-                          <div className="mb-3 flex items-center justify-between">
-                            <div>
-                              <h2 className="flex items-center gap-2 text-lg font-bold text-gray-800">
-                                <div className="h-5 w-5 text-blue-600">🎛️</div>
-                                인프라 전체 현황
-                              </h2>
-                              <p className="mt-1 text-xs text-gray-600">
-                                마지막 업데이트:{' '}
-                                {new Date().toLocaleTimeString()}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* 메인 통계 카드 */}
-                          <div className="mb-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
-                            <h3 className="mb-2 text-sm font-semibold text-gray-700">
-                              📊 전체 인프라 현황
-                            </h3>
-
-                            <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-                              {/* 총 서버 수 */}
-                              <div className="rounded-lg border border-blue-200 bg-blue-50 p-2 text-center">
-                                <div className="mx-auto mb-1 h-5 w-5 text-blue-600">
-                                  🖥️
-                                </div>
-                                <div className="text-lg font-bold text-blue-600">
-                                  {serverStats.total}
-                                </div>
-                                <div className="text-xs text-blue-500">
-                                  Total Servers
-                                </div>
-                              </div>
-
-                              {/* 온라인 서버 */}
-                              <div className="rounded-lg border border-green-200 bg-green-50 p-2 text-center">
-                                <div className="mx-auto mb-1 h-5 w-5 text-green-600">
-                                  ✅
-                                </div>
-                                <div className="text-lg font-bold text-green-600">
-                                  {serverStats.online}
-                                </div>
-                                <div className="text-xs text-green-500">
-                                  🟢 Online
-                                </div>
-                              </div>
-
-                              {/* critical 상태는 warning으로 통합됨 - 별도 카드 제거 */}
-
-                              {/* 총 알림 수 (경고 + 오프라인) - critical은 warning에 포함됨 */}
-                              <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-2 text-center">
-                                <div className="mx-auto mb-1 h-5 w-5 text-yellow-600">
-                                  ⚠️
-                                </div>
-                                <div className="text-lg font-bold text-yellow-600">
-                                  {serverStats.warning + serverStats.offline}
-                                </div>
-                                <div className="text-xs text-yellow-500">
-                                  ⚠️ Total Alerts
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* 리소스 사용률 */}
-                          <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
-                            <h3 className="mb-2 text-sm font-semibold text-gray-700">
-                              💻 평균 리소스 사용률
-                            </h3>
-
-                            <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-4">
-                              {/* CPU 사용률 */}
-                              <div className="rounded-lg border border-green-200 bg-green-50 p-2">
-                                <div className="mb-1 flex items-center justify-between">
-                                  <div className="h-4 w-4 text-green-600">
-                                    💻
-                                  </div>
-                                  <span className="text-lg font-bold text-green-600">
-                                    44%
-                                  </span>
-                                </div>
-                                <div className="text-xs text-gray-600">
-                                  💻 Total CPU
-                                </div>
-                                <div className="mt-1 h-1.5 w-full rounded-full bg-gray-200">
-                                  <div
-                                    className="h-1.5 rounded-full bg-green-500 transition-all duration-500"
-                                    style={{ width: '44%' }}
-                                  />
-                                </div>
-                              </div>
-
-                              {/* RAM 사용률 */}
-                              <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-2">
-                                <div className="mb-1 flex items-center justify-between">
-                                  <div className="h-4 w-4 text-yellow-600">
-                                    💾
-                                  </div>
-                                  <span className="text-lg font-bold text-yellow-600">
-                                    77%
-                                  </span>
-                                </div>
-                                <div className="text-xs text-gray-600">
-                                  💾 Total RAM
-                                </div>
-                                <div className="mt-1 h-1.5 w-full rounded-full bg-gray-200">
-                                  <div
-                                    className="h-1.5 rounded-full bg-yellow-500 transition-all duration-500"
-                                    style={{ width: '77%' }}
-                                  />
-                                </div>
-                              </div>
-
-                              {/* Disk 사용률 */}
-                              <div className="rounded-lg border border-green-200 bg-green-50 p-2">
-                                <div className="mb-1 flex items-center justify-between">
-                                  <div className="h-4 w-4 text-green-600">
-                                    💿
-                                  </div>
-                                  <span className="text-lg font-bold text-green-600">
-                                    48%
-                                  </span>
-                                </div>
-                                <div className="text-xs text-gray-600">
-                                  💿 Total Disk
-                                </div>
-                                <div className="mt-1 h-1.5 w-full rounded-full bg-gray-200">
-                                  <div
-                                    className="h-1.5 rounded-full bg-green-500 transition-all duration-500"
-                                    style={{ width: '48%' }}
-                                  />
-                                </div>
-                              </div>
-
-                              {/* 네트워크 대역폭 */}
-                              <div className="rounded-lg border border-blue-200 bg-blue-50 p-2">
-                                <div className="mb-1 flex items-center justify-between">
-                                  <div className="h-4 w-4 text-blue-600">
-                                    🌐
-                                  </div>
-                                  <span className="text-lg font-bold text-blue-600">
-                                    324MB
-                                  </span>
-                                </div>
-                                <div className="text-xs text-gray-600">
-                                  🌐 Bandwidth
-                                </div>
-                                <div className="mt-1 h-1.5 w-full rounded-full bg-gray-200">
-                                  <div
-                                    className="h-1.5 rounded-full bg-blue-500 transition-all duration-500"
-                                    style={{ width: '32%' }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Suspense>
-                  </div>
-                </div>
-              </div>
+              {/* 인프라 전체 현황 (Bento Grid) */}
+              <DashboardSummary servers={servers} stats={serverStats} />
 
               {/* 서버 카드 목록 */}
               <Suspense

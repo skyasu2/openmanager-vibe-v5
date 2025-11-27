@@ -25,6 +25,7 @@ vercel inspect
 ## 🛠️ **베르셀 CLI 최신 활용법** (v46.1.0)
 
 ### 📦 **배포/승급 (Deploy/Promote)**
+
 ```bash
 # 현재 디렉터리 배포 (프리뷰/프로덕션)
 vercel
@@ -39,6 +40,7 @@ vercel deploy --prebuilt
 ```
 
 ### 🛠️ **로컬 개발/빌드**
+
 ```bash
 # 베르셀 환경을 로컬에서 복제 (함수·미들웨어 포함)
 vercel dev
@@ -49,6 +51,7 @@ vercel pull
 ```
 
 ### 🔐 **환경변수 관리**
+
 ```bash
 # 환경변수 조회/추가/삭제/내보내기
 vercel env ls
@@ -62,6 +65,7 @@ vercel pull --environment=staging
 ```
 
 ### 📊 **로그/디버깅**
+
 ```bash
 # 특정 배포의 실행 로그 스트리밍
 vercel logs <url|id>
@@ -117,23 +121,23 @@ vercel env add ENABLE_QUOTA_PROTECTION production
 export const vercelConfig = {
   // Memory optimization (50MB limit)
   maxMemoryUsage: 40, // MB
-  
+
   // Function timeout (10s limit)
   maxExecutionTime: 8000, // ms
-  
+
   // Request optimization
   maxRequestSize: '1mb',
-  
+
   // Auto garbage collection
   forceGC: process.env.NODE_ENV === 'production',
-  
+
   // Disable file system writes
-  disableFileSystem: process.env.VERCEL === '1'
-}
+  disableFileSystem: process.env.VERCEL === '1',
+};
 
 // Apply optimizations
 if (vercelConfig.disableFileSystem) {
-  console.warn('🚫 File system writes disabled (Vercel)')
+  console.warn('🚫 File system writes disabled (Vercel)');
 }
 ```
 
@@ -157,17 +161,17 @@ https://vercel.com/dashboard/analytics
 const securityHeaders = [
   {
     key: 'X-DNS-Prefetch-Control',
-    value: 'on'
+    value: 'on',
   },
   {
     key: 'Strict-Transport-Security',
-    value: 'max-age=63072000; includeSubDomains; preload'
+    value: 'max-age=63072000; includeSubDomains; preload',
   },
   {
     key: 'X-Content-Type-Options',
-    value: 'nosniff'
-  }
-]
+    value: 'nosniff',
+  },
+];
 
 module.exports = {
   async headers() {
@@ -176,9 +180,9 @@ module.exports = {
         source: '/(.*)',
         headers: securityHeaders,
       },
-    ]
+    ];
   },
-}
+};
 ```
 
 ## 🚨 Common Issues & Solutions
@@ -192,7 +196,7 @@ npm run lint:fix    # Fix ESLint issues
 MEMORY_LIMIT_MB=40
 FORCE_GARBAGE_COLLECTION=true
 
-# Timeout issues  
+# Timeout issues
 SERVERLESS_FUNCTION_TIMEOUT=8
 DISABLE_BACKGROUND_JOBS=true
 ```
@@ -200,6 +204,7 @@ DISABLE_BACKGROUND_JOBS=true
 ## 💡 **실무 팁 & 베스트 프랙티스**
 
 ### 🔄 **권장 워크플로우**
+
 ```bash
 # 1. 개발 환경 구성
 vercel pull                    # 대시보드 설정 동기화
@@ -216,6 +221,7 @@ vercel promote <preview-url>  # 검증 후 프로덕션 승급
 ```
 
 ### 🚀 **CI/CD 최적화**
+
 ```bash
 # GitHub Actions에서 활용
 vercel build --prod           # 프로덕션 빌드
@@ -223,6 +229,7 @@ vercel deploy --prebuilt --prod  # 빌드 결과물 배포
 ```
 
 ### 📊 **모니터링 & 디버깅**
+
 ```bash
 # 실시간 로그 스트리밍
 vercel logs --follow
@@ -235,14 +242,16 @@ vercel ls
 ```
 
 ### 🎯 **무료 티어 최적화 팁**
+
 - `vercel pull` → `vercel dev` 순서로 개발 환경 구성
 - CI/CD에서는 `vercel build` → `vercel deploy --prebuilt` 패턴 활용
 - 환경별 배포는 `--target` 플래그로 구분
 - 실시간 로그 모니터링은 `vercel logs` 활용
 
 ### 📚 **공식 문서 참조**
+
 - **메인 가이드**: https://vercel.com/docs/cli
-- **배포**: https://vercel.com/docs/cli#commands/deploy  
+- **배포**: https://vercel.com/docs/cli#commands/deploy
 - **개발**: https://vercel.com/docs/cli#commands/dev
 - **환경변수**: https://vercel.com/docs/cli#commands/env
 - **로그**: https://vercel.com/docs/cli#commands/logs
