@@ -9,7 +9,7 @@
  */
 
 import { useRef, useCallback, useEffect } from 'react';
-import type { EnhancedServerData } from './useServerDashboard'; // 🔧 Phase 77: type-only import로 순환 참조 완전 차단
+import type { EnhancedServerData } from '@/types/dashboard/server-dashboard.types'; // 🔧 Phase 77: type-only import로 순환 참조 완전 차단
 
 export interface ServerStats {
   total: number;
@@ -68,10 +68,15 @@ type WorkerErrorCallback = (error: Error) => void;
  */
 export const useWorkerStats = () => {
   const workerRef = useRef<Worker | null>(null);
-  const callbacksRef = useRef<Map<string, {
-    resolve: WorkerCallback;
-    reject: WorkerErrorCallback;
-  }>>(new Map());
+  const callbacksRef = useRef<
+    Map<
+      string,
+      {
+        resolve: WorkerCallback;
+        reject: WorkerErrorCallback;
+      }
+    >
+  >(new Map());
   const isInitializedRef = useRef(false);
 
   // 🚀 Worker 초기화
@@ -101,7 +106,9 @@ export const useWorkerStats = () => {
         if (type === 'SUCCESS') {
           callbacks.resolve(data);
         } else if (type === 'ERROR') {
-          const errorObj = new Error(error?.message || 'Worker calculation failed');
+          const errorObj = new Error(
+            error?.message || 'Worker calculation failed'
+          );
           if (error?.stack) {
             errorObj.stack = error.stack;
           }
@@ -118,7 +125,6 @@ export const useWorkerStats = () => {
         });
         callbacksRef.current.clear();
       };
-
     } catch (error) {
       console.error('🚨 Worker initialization failed:', error);
       isInitializedRef.current = false;
@@ -126,100 +132,123 @@ export const useWorkerStats = () => {
   }, []);
 
   // 🔄 Worker 메시지 전송 (Promise 기반)
-  const sendMessage = useCallback(<T>(type: string, data: unknown): Promise<T> => {
-    return new Promise((resolve, reject) => {
-      if (!workerRef.current) {
-        reject(new Error('Worker not initialized'));
-        return;
-      }
-
-      const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-      // 콜백 등록
-      callbacksRef.current.set(id, { resolve: resolve as WorkerCallback, reject });
-
-      // Worker에 메시지 전송
-      workerRef.current.postMessage({ type, data, id });
-
-      // 타임아웃 설정 (30초)
-      setTimeout(() => {
-        if (callbacksRef.current.has(id)) {
-          callbacksRef.current.delete(id);
-          reject(new Error('Worker calculation timeout'));
+  const sendMessage = useCallback(
+    <T>(type: string, data: unknown): Promise<T> => {
+      return new Promise((resolve, reject) => {
+        if (!workerRef.current) {
+          reject(new Error('Worker not initialized'));
+          return;
         }
-      }, 30000);
-    });
-  }, []);
+
+        const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+        // 콜백 등록
+        callbacksRef.current.set(id, {
+          resolve: resolve as WorkerCallback,
+          reject,
+        });
+
+        // Worker에 메시지 전송
+        workerRef.current.postMessage({ type, data, id });
+
+        // 타임아웃 설정 (30초)
+        setTimeout(() => {
+          if (callbacksRef.current.has(id)) {
+            callbacksRef.current.delete(id);
+            reject(new Error('Worker calculation timeout'));
+          }
+        }, 30000);
+      });
+    },
+    []
+  );
 
   // 📊 통합 계산 (가장 효율적인 방법)
-  const calculateCombinedStats = useCallback(async (
-    servers: EnhancedServerData[],
-    filters: Filters,
-    currentPage: number = 1,
-    itemsPerPage: number = 10
-  ): Promise<CombinedResult> => {
-    if (!workerRef.current) {
-      throw new Error('Worker not available');
-    }
-
-    return sendMessage<CombinedResult>('COMBINED_CALCULATION', {
-      servers,
-      filters,
-      currentPage,
-      itemsPerPage
-    });
-  }, [sendMessage]);
-
-  // 📈 서버 통계만 계산 (Phase 76: 스키마 검증 추가)
-  const calculateStats = useCallback(async (servers: EnhancedServerData[]): Promise<ServerStats> => {
-    if (!workerRef.current) {
-      throw new Error('Worker not available');
-    }
-
-    try {
-      const result = await sendMessage<ServerStats>('CALCULATE_STATS', { servers });
-
-      // 🛡️ Phase 76: Worker 응답 스키마 검증
-      if (!isValidServerStats(result)) {
-        console.error('❌ Worker 응답 스키마 불일치, Fallback 사용:', result);
-        return calculateServerStatsFallback(servers);
+  const calculateCombinedStats = useCallback(
+    async (
+      servers: EnhancedServerData[],
+      filters: Filters,
+      currentPage: number = 1,
+      itemsPerPage: number = 10
+    ): Promise<CombinedResult> => {
+      if (!workerRef.current) {
+        throw new Error('Worker not available');
       }
 
-      return result;
-    } catch (error) {
-      console.error('❌ Worker 계산 실패, Fallback 사용:', error);
-      return calculateServerStatsFallback(servers);
-    }
-  }, [sendMessage]);
+      return sendMessage<CombinedResult>('COMBINED_CALCULATION', {
+        servers,
+        filters,
+        currentPage,
+        itemsPerPage,
+      });
+    },
+    [sendMessage]
+  );
+
+  // 📈 서버 통계만 계산 (Phase 76: 스키마 검증 추가)
+  const calculateStats = useCallback(
+    async (servers: EnhancedServerData[]): Promise<ServerStats> => {
+      if (!workerRef.current) {
+        throw new Error('Worker not available');
+      }
+
+      try {
+        const result = await sendMessage<ServerStats>('CALCULATE_STATS', {
+          servers,
+        });
+
+        // 🛡️ Phase 76: Worker 응답 스키마 검증
+        if (!isValidServerStats(result)) {
+          console.error('❌ Worker 응답 스키마 불일치, Fallback 사용:', result);
+          return calculateServerStatsFallback(servers);
+        }
+
+        return result;
+      } catch (error) {
+        console.error('❌ Worker 계산 실패, Fallback 사용:', error);
+        return calculateServerStatsFallback(servers);
+      }
+    },
+    [sendMessage]
+  );
 
   // 📄 페이지네이션만 계산
-  const calculatePagination = useCallback(async (
-    totalItems: number,
-    currentPage: number,
-    itemsPerPage: number
-  ): Promise<PaginationInfo> => {
-    if (!workerRef.current) {
-      throw new Error('Worker not available');
-    }
+  const calculatePagination = useCallback(
+    async (
+      totalItems: number,
+      currentPage: number,
+      itemsPerPage: number
+    ): Promise<PaginationInfo> => {
+      if (!workerRef.current) {
+        throw new Error('Worker not available');
+      }
 
-    return sendMessage<PaginationInfo>('CALCULATE_PAGINATION', {
-      totalItems,
-      currentPage,
-      itemsPerPage
-    });
-  }, [sendMessage]);
+      return sendMessage<PaginationInfo>('CALCULATE_PAGINATION', {
+        totalItems,
+        currentPage,
+        itemsPerPage,
+      });
+    },
+    [sendMessage]
+  );
 
   // 🔍 필터링만 적용
-  const applyFilters = useCallback(async (
-    servers: EnhancedServerData[],
-    filters: Filters
-  ): Promise<EnhancedServerData[]> => {
-    if (!workerRef.current) {
-      throw new Error('Worker not available');
-    }
+  const applyFilters = useCallback(
+    async (
+      servers: EnhancedServerData[],
+      filters: Filters
+    ): Promise<EnhancedServerData[]> => {
+      if (!workerRef.current) {
+        throw new Error('Worker not available');
+      }
 
-    return sendMessage<EnhancedServerData[]>('APPLY_FILTERS', { servers, filters });
-  }, [sendMessage]);
+      return sendMessage<EnhancedServerData[]>('APPLY_FILTERS', {
+        servers,
+        filters,
+      });
+    },
+    [sendMessage]
+  );
 
   // 🎯 Worker 상태 확인
   const isWorkerReady = useCallback(() => {
@@ -266,7 +295,7 @@ export const useWorkerStats = () => {
     // 성능 모니터링
     get pendingOperations() {
       return callbacksRef.current.size;
-    }
+    },
   };
 };
 
@@ -281,16 +310,20 @@ const isValidArray = <T>(value: unknown): value is T[] => {
 };
 
 const isValidServer = (value: unknown): value is EnhancedServerData => {
-  return value !== null &&
-         typeof value === 'object' &&
-         typeof (value as { id?: unknown }).id === 'string';
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    typeof (value as { id?: unknown }).id === 'string'
+  );
 };
 
 const isValidNumber = (value: unknown): value is number => {
-  return typeof value === 'number' &&
-         !Number.isNaN(value) &&
-         Number.isFinite(value) &&
-         value >= 0;
+  return (
+    typeof value === 'number' &&
+    !Number.isNaN(value) &&
+    Number.isFinite(value) &&
+    value >= 0
+  );
 };
 
 // 🛡️ ServerStats 타입 가드 (Phase 76)
@@ -319,7 +352,9 @@ const isValidServerStats = (value: unknown): value is ServerStats => {
 };
 
 // 🔄 Fallback 통계 계산
-export const calculateServerStatsFallback = (servers: EnhancedServerData[]): ServerStats => {
+export const calculateServerStatsFallback = (
+  servers: EnhancedServerData[]
+): ServerStats => {
   if (!isValidArray(servers)) {
     return {
       total: 0,
@@ -334,8 +369,8 @@ export const calculateServerStatsFallback = (servers: EnhancedServerData[]): Ser
       typeDistribution: {},
       performanceMetrics: {
         calculationTime: 0,
-        serversProcessed: 0
-      }
+        serversProcessed: 0,
+      },
     };
   }
 
@@ -367,7 +402,8 @@ export const calculateServerStatsFallback = (servers: EnhancedServerData[]): Ser
     if (isValidNumber(bandwidth)) bandwidthSum += bandwidth;
   }
 
-  const safeAverage = (sum: number, count: number) => count > 0 ? sum / count : 0;
+  const safeAverage = (sum: number, count: number) =>
+    count > 0 ? sum / count : 0;
   const endTime = performance.now();
 
   return {
@@ -383,8 +419,8 @@ export const calculateServerStatsFallback = (servers: EnhancedServerData[]): Ser
     typeDistribution: Object.fromEntries(typeMap),
     performanceMetrics: {
       calculationTime: endTime - startTime,
-      serversProcessed: validServersCount
-    }
+      serversProcessed: validServersCount,
+    },
   };
 };
 

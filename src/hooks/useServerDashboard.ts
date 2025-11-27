@@ -7,7 +7,6 @@ import {
   getDisplayModeConfig,
   type ServerDisplayMode,
 } from '@/config/display-config';
-import { ACTIVE_SERVER_CONFIG } from '@/config/serverConfig';
 import type {
   Server,
   Service,
@@ -15,390 +14,48 @@ import type {
   ServerEnvironment,
 } from '@/types/server';
 import type { EnhancedServerMetrics } from '@/types/unified-server';
-import type { ServerStatus } from '@/types/server-common';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';
-import { useWorkerStats, calculateServerStatsFallback } from './useWorkerStats';
-import debug from '@/utils/debug';
-
-// 🛡️ 2025 모던 Type Guard 함수들 (Best Practices)
-const isValidArray = <T>(value: unknown): value is T[] => {
-  return Array.isArray(value) && value.length > 0;
-};
-
-const isValidServer = (value: unknown): value is EnhancedServerData => {
-  return (
-    value !== null &&
-    typeof value === 'object' &&
-    typeof (value as Record<string, unknown>).id === 'string'
-  );
-};
-
-const isValidNumber = (value: unknown): value is number => {
-  return (
-    typeof value === 'number' &&
-    !Number.isNaN(value) &&
-    Number.isFinite(value) &&
-    value >= 0
-  );
-};
-
-const _hasValidLength = (value: unknown): value is { length: number } => {
-  return (
-    value !== null &&
-    typeof value === 'object' &&
-    Object.hasOwn(value, 'length') &&
-    isValidNumber((value as Record<string, unknown>).length)
-  );
-};
-
-// 🏗️ Clean Architecture: 도메인 레이어 - 순수 비즈니스 로직
-interface ServerStats {
-  total: number;
-  online: number;
-  unknown: number; // 🔧 수정: 'offline' → 'unknown' (일관성)
-  warning: number;
-  critical: number;
-  avgCpu: number;
-  avgMemory: number;
-  avgDisk: number;
-  averageCpu?: number; // 🚀 Web Worker 호환성
-  averageMemory?: number; // 🚀 Web Worker 호환성
-  averageUptime?: number; // 🚀 Web Worker 추가 메트릭
-  totalBandwidth?: number; // 🚀 Web Worker 추가 메트릭
-  typeDistribution?: Record<string, number>; // 🚀 Web Worker 추가 메트릭
-  performanceMetrics?: {
-    calculationTime: number;
-    serversProcessed: number;
-  };
-}
-
-// 🚀 성능 최적화: Map 기반 캐싱 시스템
-const statsCache = new Map<string, ServerStats>();
-const _serverGroupCache = new Map<string, Map<string, EnhancedServerData[]>>();
-
-const getServerGroupKey = (servers: EnhancedServerData[]): string => {
-  return servers
-    .map((s) => `${s.id}:${s.status}:${s.cpu}:${s.memory}:${s.disk}`)
-    .join('|');
-};
-
-const _groupServersByStatus = (
-  servers: EnhancedServerData[]
-): Map<string, EnhancedServerData[]> => {
-  const groups = new Map<string, EnhancedServerData[]>();
-
-  for (const server of servers) {
-    if (!isValidServer(server)) continue;
-
-    const status = server.status || 'unknown';
-    if (!groups.has(status)) {
-      groups.set(status, []);
-    }
-    const bucket = groups.get(status);
-    bucket?.push(server);
-  }
-
-  return groups;
-};
-
-// 🚀 Web Worker 결과를 레거시 포맷으로 변환하는 어댑터 함수
-const adaptWorkerStatsToLegacy = (workerStats: {
-  total?: number;
-  online?: number;
-  offline?: number;
-  unknown?: number;
-  warning?: number;
-  critical?: number;
-  averageCpu?: number;
-  averageMemory?: number;
-  averageUptime?: number;
-  totalBandwidth?: number;
-  typeDistribution?: Record<string, number>;
-  performanceMetrics?: { calculationTime: number; serversProcessed: number };
-}): ServerStats => {
-  return {
-    total: workerStats.total || 0,
-    online: workerStats.online || 0,
-    unknown: workerStats.unknown || workerStats.offline || 0, // 🔧 수정: 'offline' → 'unknown' (호환성)
-    warning: workerStats.warning || 0,
-    critical: workerStats.critical || 0,
-    avgCpu: Math.round(workerStats.averageCpu || 0),
-    avgMemory: Math.round(workerStats.averageMemory || 0),
-    avgDisk: 0, // Web Worker에서는 disk 메트릭 미지원, fallback 사용
-    // Web Worker 추가 정보 유지
-    averageCpu: workerStats.averageCpu,
-    averageMemory: workerStats.averageMemory,
-    averageUptime: workerStats.averageUptime,
-    totalBandwidth: workerStats.totalBandwidth,
-    typeDistribution: workerStats.typeDistribution,
-    performanceMetrics: workerStats.performanceMetrics,
-  };
-};
-
-const calculateServerStats = (servers: EnhancedServerData[]): ServerStats => {
-  if (!isValidArray<EnhancedServerData>(servers)) {
-    return {
-      total: 0,
-      online: 0,
-      unknown: 0, // 🔧 수정: 'offline' → 'unknown' (일관성)
-      warning: 0,
-      critical: 0,
-      avgCpu: 0,
-      avgMemory: 0,
-      avgDisk: 0,
-    };
-  }
-
-  // 🚀 캐시 키 생성 및 캐시 확인
-  const cacheKey = getServerGroupKey(servers);
-  if (statsCache.has(cacheKey)) {
-    const cachedStats = statsCache.get(cacheKey);
-    if (cachedStats) {
-      return cachedStats;
-    }
-  }
-
-  // 🚀 Fallback 계산 사용 (Web Worker 미지원 환경용)
-  const fallbackStats = calculateServerStatsFallback(servers);
-
-  // 레거시 포맷으로 변환
-  const result: ServerStats = adaptWorkerStatsToLegacy(fallbackStats);
-
-  // 🚀 결과 캐싱 (최대 100개 엔트리로 제한)
-  if (statsCache.size >= 100) {
-    const firstKey = statsCache.keys().next().value;
-    if (firstKey !== undefined) {
-      // 🔧 수정: undefined 체크 추가
-      statsCache.delete(firstKey);
-    }
-  }
-  statsCache.set(cacheKey, result);
-
-  return result;
-};
-
-const calculatePagination = <T>(
-  items: T[],
-  currentPage: number,
-  itemsPerPage: number
-): { paginatedItems: T[]; totalPages: number } => {
-  if (!isValidArray<T>(items)) {
-    return { paginatedItems: [], totalPages: 0 };
-  }
-
-  const totalPages = Math.ceil(items.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedItems = items.slice(startIndex, endIndex);
-
-  return { paginatedItems, totalPages };
-};
-
-// Type interfaces for server data transformation
-export interface EnhancedServerData {
-  // 🔧 수정: export 추가 (useWorkerStats.ts에서 사용)
-  id: string;
-  name?: string;
-  hostname?: string;
-  status: ServerStatus;
-  cpu?: number;
-  cpu_usage?: number;
-  memory?: number;
-  memory_usage?: number;
-  disk?: number;
-  disk_usage?: number;
-  network?: number;
-  network_in?: number;
-  network_out?: number;
-  bandwidth?: number; // 🔧 수정: bandwidth 속성 추가 (useWorkerStats에서 사용)
-  uptime?: number;
-  location?: string;
-  alerts?: Array<unknown> | number;
-  ip?: string;
-  os?: string;
-  type?: string;
-  role?: string;
-  environment?: string;
-  provider?: string;
-  specs?: {
-    cpu_cores: number;
-    memory_gb: number;
-    disk_gb: number;
-    network_speed?: string;
-  };
-  lastUpdate?: Date | string;
-  services?: Array<unknown>;
-  systemInfo?: {
-    os: string;
-    uptime: string;
-    processes: number;
-    zombieProcesses: number;
-    loadAverage: string;
-    lastUpdate: string;
-  };
-  networkInfo?: {
-    interface: string;
-    receivedBytes: string;
-    sentBytes: string;
-    receivedErrors: number;
-    sentErrors: number;
-    status: 'online' | 'warning' | 'critical'; // 🔧 수정: 'healthy' → 'online' (타입 통합)
-  };
-}
-
-interface ServerWithMetrics extends Server {
-  cpu: number;
-  memory: number;
-  disk: number;
-  network: number;
-  uptime: number;
-}
-
-export type DashboardTab = 'servers' | 'network' | 'clusters' | 'applications';
-export type ViewMode = 'grid' | 'list';
-
-// 🎯 기존 useServerDashboard 인터페이스 유지
-interface UseServerDashboardOptions {
-  onStatsUpdate?: (stats: {
-    total: number;
-    online: number;
-    warning: number;
-    offline: number; // 🔧 수정: offline 속성 추가 (ServerDashboard와 일관성)
-    unknown: number;
-  }) => void;
-}
-
-// 🆕 새로운 Enhanced 훅 인터페이스
-interface UseEnhancedServerDashboardProps {
-  servers: Server[];
-  _initialViewMode?: ViewMode;
-  _initialDisplayMode?: ServerDisplayMode;
-}
-
-interface UseEnhancedServerDashboardReturn {
-  // 🎯 서버 데이터
-  paginatedServers: Server[];
-  filteredServers: Server[];
-
-  // 🎨 뷰 설정
-  viewMode: ViewMode;
-  displayMode: ServerDisplayMode;
-
-  // 🔍 필터링
-  searchTerm: string;
-  statusFilter: string;
-  locationFilter: string;
-  uniqueLocations: string[];
-
-  // 📄 페이지네이션
-  currentPage: number;
-  totalPages: number;
-
-  // 📊 표시 정보 (UI/UX 개선)
-  displayInfo: {
-    totalServers: number;
-    displayedCount: number;
-    statusMessage: string;
-    paginationMessage: string;
-    modeDescription: string;
-    displayRange: string;
-  };
-
-  // 🎛️ 그리드 레이아웃 (세로 2줄)
-  gridLayout: {
-    className: string;
-    cols: number;
-    rows: number;
-  };
-
-  // 🎯 액션 함수들
-  setViewMode: (mode: ViewMode) => void;
-  setDisplayMode: (mode: ServerDisplayMode) => void;
-  setSearchTerm: (term: string) => void;
-  setStatusFilter: (status: string) => void;
-  setLocationFilter: (location: string) => void;
-  setCurrentPage: (page: number) => void;
-  resetFilters: () => void;
-
-  // 🔄 유틸리티
-  refreshLayout: () => void;
-  isLoading: boolean;
-}
-
-// 🎯 폴백 서버 데이터 제거 - 목업 시스템 사용
-
-// 업타임 포맷팅 유틸리티
-const formatUptime = (uptime: number): string => {
-  const days = Math.floor(uptime / (24 * 3600));
-  const hours = Math.floor((uptime % (24 * 3600)) / 3600);
-  const minutes = Math.floor((uptime % 3600) / 60);
-
-  if (days > 0) return `${days}d ${hours}h`;
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
-};
+import {
+  EnhancedServerData,
+  ServerStats,
+  ServerWithMetrics,
+  UseServerDashboardOptions,
+  UseEnhancedServerDashboardProps,
+  UseEnhancedServerDashboardReturn,
+  ViewMode,
+  DashboardTab,
+} from '@/types/dashboard/server-dashboard.types';
+import { formatUptime } from '@/utils/dashboard/server-utils';
+import { useServerPagination } from '@/hooks/dashboard/useServerPagination';
+import { useServerFilter } from '@/hooks/dashboard/useServerFilter';
+import { useServerStats } from '@/hooks/dashboard/useServerStats';
 
 // 🎯 기존 useServerDashboard 훅 (하위 호환성 유지 + 성능 최적화)
 export function useServerDashboard(options: UseServerDashboardOptions = {}) {
-  console.log('🔥 useServerDashboard 훅이 실행되었습니다!');
   const { onStatsUpdate } = options;
 
-  // 🚀 Web Worker 통계 계산 Hook (비동기 성능 최적화)
-  const { calculateStats: calculateStatsWorker, isWorkerReady } =
-    useWorkerStats();
-
   // Zustand 스토어에서 서버 데이터 가져오기
-  const rawServers = useServerDataStore((state) => {
-    console.log(
-      '🔍 스토어에서 servers 선택:',
-      state.servers?.length || 0,
-      '개'
-    );
-    return state.servers;
-  });
+  const rawServers = useServerDataStore((state) => state.servers);
 
   // 🛡️ AI 교차검증 기반: previousServers 캐시로 Race Condition 방지
   const previousServersRef = useRef<EnhancedServerMetrics[]>([]);
 
   // Double-check null safety: 스토어 데이터가 유효한 경우에만 캐시 업데이트
   const servers = useMemo(() => {
-    console.log('🛡️ 서버 데이터 안전성 검사:', {
-      rawServers_exists: !!rawServers,
-      rawServers_length: rawServers?.length || 0,
-      rawServers_isArray: Array.isArray(rawServers),
-      cache_length: previousServersRef.current.length,
-    });
-
     // AI 사이드바 오픈 시 빈 배열이 되는 Race Condition 방지
     if (!rawServers || !Array.isArray(rawServers) || rawServers.length === 0) {
-      console.log(
-        '⚠️ 서버 데이터 없음 - 캐시된 데이터 사용:',
-        previousServersRef.current.length,
-        '개'
-      );
       return previousServersRef.current;
     }
 
     // 유효한 데이터인 경우 캐시 업데이트
-    console.log(
-      '✅ 서버 데이터 유효 - 캐시 업데이트:',
-      rawServers.length,
-      '개'
-    );
     previousServersRef.current = rawServers;
     return rawServers;
   }, [rawServers]);
 
-  const isLoading = useServerDataStore((state) => {
-    console.log('🔍 스토어에서 isLoading 선택:', state.isLoading);
-    return state.isLoading;
-  });
+  const isLoading = useServerDataStore((state) => state.isLoading);
   const error = useServerDataStore((state) => state.error);
-  const fetchServers = useServerDataStore((state) => {
-    console.log('🔍 fetchServers 함수 선택됨');
-    return state.fetchServers;
-  });
+  const fetchServers = useServerDataStore((state) => state.fetchServers);
   const startAutoRefresh = useServerDataStore(
     (state) => state.startAutoRefresh
   );
@@ -410,63 +67,50 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     !isLoading &&
     fetchServers
   ) {
-    console.log('🚀 즉시 fetchServers 실행 - 서버 데이터 없음');
     setTimeout(() => {
-      console.log('⏰ setTimeout으로 fetchServers 호출');
       fetchServers();
     }, 100);
   }
 
-  // 페이지네이션 상태 - 설정 기반으로 동적 조정
-  const [currentPage, setCurrentPage] = useState(1);
   // 🚀 화면 크기에 따른 초기 페이지 크기 설정
   const getInitialPageSize = () => {
-    // 🚀 성능 최적화: 초기 로딩 개선 (3개로 시작)
-    // 사용자는 필요시 6, 9, 12, 15개로 증가 가능
     return 3; // 모든 화면 크기에서 3개 시작 (무거움 방지)
   };
 
-  const [pageSize, setPageSize] = useState(getInitialPageSize);
+  // 🎨 화면 크기 변경 시 페이지 크기 자동 조정 로직은 useServerPagination 내부가 아닌 여기서 처리 (반응형 로직)
+  const [responsivePageSize, setResponsivePageSize] =
+    useState(getInitialPageSize);
 
-  console.log('📍 useEffect 실행 직전:', {
-    fetchServers: typeof fetchServers,
-    startAutoRefresh: typeof startAutoRefresh,
-    stopAutoRefresh: typeof stopAutoRefresh,
-  });
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      let newPageSize: number;
+
+      if (width < 640) {
+        newPageSize = 6;
+      } else if (width < 1024) {
+        newPageSize = 9;
+      } else {
+        newPageSize = 15;
+      }
+
+      if (newPageSize !== responsivePageSize && responsivePageSize <= 15) {
+        setResponsivePageSize(newPageSize);
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      handleResize();
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+    return undefined;
+  }, [responsivePageSize]);
 
   // 🎯 서버 설정에 따른 동적 페이지 크기 설정
   const ITEMS_PER_PAGE = useMemo(() => {
-    // 📊 실제 서버 생성 개수 (데이터 생성기에서 만드는 서버 수)
-    const ACTUAL_SERVER_COUNT = ACTIVE_SERVER_CONFIG.maxServers; // 15개
-
-    // 🖥️ 화면 표시 설정 (한 페이지에 보여줄 카드 수)
-    const DISPLAY_OPTIONS = {
-      SHOW_ALL: ACTUAL_SERVER_COUNT, // 모든 서버 표시 (8개)
-      SHOW_HALF: Math.ceil(ACTUAL_SERVER_COUNT / 2), // 절반씩 표시 (4개)
-      SHOW_QUARTER: Math.ceil(ACTUAL_SERVER_COUNT / 4), // 1/4씩 표시 (2개)
-      SHOW_THIRD: Math.ceil(ACTUAL_SERVER_COUNT / 3), // 1/3씩 표시 (3개)
-    };
-
-    debug.log('🎯 서버 표시 설정:', {
-      실제_서버_생성_개수: ACTUAL_SERVER_COUNT,
-      화면_표시_옵션: DISPLAY_OPTIONS,
-      현재_선택: `${pageSize}개씩 페이지네이션`,
-      사용자_설정_페이지_크기: pageSize,
-    });
-
-    // 🎛️ 사용자가 선택한 페이지 크기 사용
-    return pageSize;
-  }, [pageSize]);
-
-  // 🎛️ 페이지 크기 변경 함수 (간단한 함수라 useCallback 불필요)
-  const changePageSize = (newSize: number) => {
-    setPageSize(newSize);
-    setCurrentPage(1); // 페이지 크기 변경 시 첫 페이지로 이동
-    debug.log('📊 페이지 크기 변경:', {
-      이전_크기: pageSize,
-      새_크기: newSize,
-    });
-  };
+    return responsivePageSize;
+  }, [responsivePageSize]);
 
   // 선택된 서버 상태
   const [selectedServer, setSelectedServer] = useState<Server | null>(null);
@@ -474,72 +118,20 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   // 서버 메트릭 훅
   const { metricsHistory } = useServerMetrics();
 
-  // 🕐 Supabase에서 24시간 데이터를 직접 제공하므로 시간 회전 시스템 제거됨
-
-  // 🎨 화면 크기 변경 시 페이지 크기 자동 조정
-  useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
-      let newPageSize: number;
-
-      if (width < 640) {
-        newPageSize = 6; // 모바일 (적어도 6개)
-      } else if (width < 1024) {
-        newPageSize = 9; // 태블릿 (9개)
-      } else {
-        newPageSize = 15; // 데스크톱 (15개 모두 표시)
-      }
-
-      // 현재 페이지 크기와 다르면 업데이트
-      if (newPageSize !== pageSize && pageSize <= 15) {
-        // 사용자가 수동으로 변경한 경우도 반영
-        setPageSize(newPageSize);
-      }
-    };
-
-    // 초기 실행 및 리스너 등록
-    handleResize();
-    window.addEventListener('resize', handleResize);
-
-    return () => window.removeEventListener('resize', handleResize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 의존성 배열을 비워서 초기에만 리스너 등록 (pageSize는 handleResize 내부에서 계산)
-
   // 🚀 최적화된 서버 데이터 로드 및 자동 갱신 설정
   useEffect(() => {
-    console.log('🔧 useServerDashboard useEffect 실행됨');
-    console.log('📊 현재 서버 상태:', {
-      servers_length: servers?.length || 0,
-      servers_exists: !!servers,
-      fetchServers_type: typeof fetchServers,
-      startAutoRefresh_type: typeof startAutoRefresh,
+    fetchServers().catch((err) => {
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('❌ fetchServers 호출 실패:', err);
+      }
     });
 
-    // 즉시 한 번 fetchServers 호출 (조건 없이)
-    console.log('⚡ fetchServers 즉시 호출 시작');
-    fetchServers()
-      .then(() => {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('✅ fetchServers 호출 성공');
-        }
-      })
-      .catch((err) => {
-        if (process.env.NODE_ENV !== 'production') {
-          console.error('❌ fetchServers 호출 실패:', err);
-        }
-      });
-
-    // 자동 갱신 시작 (5-10분 주기로 최적화됨)
-    console.log('🔄 서버 데이터 자동 갱신 시작 (5-10분 주기)');
     startAutoRefresh();
-
-    // 컴포넌트 언마운트 시 자동 갱신 중지
     return () => {
-      console.log('🛑 서버 데이터 자동 갱신 중지');
       stopAutoRefresh();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 빈 의존성 배열로 마운트 시 한 번만 실행 (함수들은 ref 기반으로 안정적)
+  }, []);
 
   // 실제 서버 데이터 사용 (메모이제이션 + 🕐 시간 기반 메트릭 변화)
   const actualServers = useMemo(() => {
@@ -550,9 +142,6 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     // EnhancedServerMetrics를 Server 타입으로 변환 (고정 시간별 데이터 사용)
     return servers.map((server: unknown): Server => {
       const s = server as EnhancedServerData;
-
-      // 고정 시간별 데이터에서 이미 시간 기반 메트릭이 적용되어 있음
-      // 추가 시간 배율 적용 없이 데이터 그대로 사용
       const cpu = Math.round(s.cpu || s.cpu_usage || 0);
       const memory = Math.round(s.memory || s.memory_usage || 0);
       const disk = Math.round(s.disk || s.disk_usage || 0);
@@ -564,8 +153,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
         id: s.id,
         name: s.name || s.hostname || 'Unknown',
         hostname: s.hostname || s.name || 'Unknown',
-        status: s.status, // 🔧 수정: 직접 할당 (타입 가드에서 이미 검증됨)
-        // 고정 시간별 데이터의 메트릭 그대로 사용
+        status: s.status,
         cpu: cpu,
         memory: memory,
         disk: disk,
@@ -577,7 +165,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
             ? s.alerts
             : Array.isArray(s.alerts)
               ? s.alerts.length
-              : 0, // 🔧 수정: 명시적 타입 변환
+              : 0,
         ip: s.ip || '192.168.1.1',
         os: s.os || 'Ubuntu 22.04 LTS',
         role: (s.type || s.role || 'worker') as ServerRole,
@@ -596,7 +184,7 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
         services: Array.isArray(s.services) ? (s.services as Service[]) : [],
         networkStatus:
           s.status === 'online'
-            ? 'online' // 🔧 수정: 'healthy' → 'online' (타입 통합)
+            ? 'online'
             : s.status === 'warning'
               ? 'warning'
               : 'critical',
@@ -624,100 +212,41 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
           sentErrors: Math.floor(Math.random() * 10),
           status:
             s.status === 'online'
-              ? 'online' // 🔧 수정: 'healthy' → 'online' (타입 통합)
+              ? 'online'
               : s.status === 'warning'
                 ? 'warning'
                 : 'critical',
         },
       };
     });
-  }, [servers]); // 고정 시간별 데이터 사용으로 시간 회전 의존성 제거
+  }, [servers]);
 
-  // 🏗️ Clean Architecture: 페이지네이션 도메인 로직 (순수 함수)
-  const { paginatedItems: paginatedServers, totalPages } = useMemo(() => {
-    return calculatePagination(actualServers, currentPage, ITEMS_PER_PAGE);
-  }, [actualServers, currentPage, ITEMS_PER_PAGE]);
+  // 🏗️ Clean Architecture: 페이지네이션 훅 사용
+  const {
+    paginatedItems: paginatedServers,
+    totalPages,
+    currentPage,
+    setCurrentPage,
+    setPageSize: setHookPageSize,
+  } = useServerPagination(actualServers, ITEMS_PER_PAGE);
 
-  // 🚀 Web Worker 기반 비동기 통계 계산 상태
-  const [workerStats, setWorkerStats] = useState<ServerStats | null>(null);
-  const [isCalculatingStats, setIsCalculatingStats] = useState(false);
-
-  // 🛡️ 안전한 Web Worker 계산 관리 (useEffect로 분리)
+  // 페이지 크기 변경 시 훅의 상태도 업데이트
   useEffect(() => {
-    if (!actualServers || actualServers.length === 0) {
-      setWorkerStats(null);
-      return;
-    }
+    setHookPageSize(ITEMS_PER_PAGE);
+  }, [ITEMS_PER_PAGE, setHookPageSize]);
 
-    // Web Worker 사용 조건: 준비 완료 + 10개 이상 서버
-    if (isWorkerReady() && actualServers.length >= 10) {
-      if (!isCalculatingStats) {
-        console.log(
-          '🚀 Web Worker 비동기 계산 시작:',
-          actualServers.length,
-          '개 서버'
-        );
-        setIsCalculatingStats(true);
+  const changePageSize = (newSize: number) => {
+    setResponsivePageSize(newSize);
+    setCurrentPage(1);
+  };
 
-        calculateStatsWorker(actualServers as EnhancedServerData[])
-          .then((workerResult) => {
-            console.log(
-              '✅ Web Worker 계산 완료:',
-              workerResult.performanceMetrics
-            );
-            const adaptedStats = adaptWorkerStatsToLegacy(workerResult);
-            setWorkerStats(adaptedStats);
-            setIsCalculatingStats(false);
-          })
-          .catch((error) => {
-            console.error('❌ Web Worker 계산 실패, Fallback으로 대체:', error);
-            const fallbackStats = calculateServerStats(
-              actualServers as EnhancedServerData[]
-            );
-            setWorkerStats(fallbackStats);
-            setIsCalculatingStats(false);
-          });
-      }
-    } else {
-      // 조건 미충족 시 동기 계산 결과 저장
-      console.log('🔄 동기 계산 사용 (Worker 미준비 또는 서버 <10개):', {
-        workerReady: isWorkerReady(),
-        serverCount: actualServers.length,
-      });
-      const syncStats = calculateServerStats(
-        actualServers as EnhancedServerData[]
-      );
-      setWorkerStats(syncStats);
-    }
-  }, [actualServers, isWorkerReady, calculateStatsWorker, isCalculatingStats]);
-
-  // 🏗️ Clean Architecture: 순수 동기 stats 반환 (useMemo)
-  const stats = useMemo(() => {
-    if (!actualServers || actualServers.length === 0) {
-      return {
-        total: 0,
-        online: 0,
-        unknown: 0,
-        warning: 0,
-        critical: 0, // 🔧 수정: 'offline' → 'unknown' (일관성)
-        avgCpu: 0,
-        avgMemory: 0,
-        avgDisk: 0,
-      };
-    }
-
-    // Web Worker 결과 우선, 없으면 즉시 동기 계산
-    return (
-      workerStats || calculateServerStats(actualServers as EnhancedServerData[])
-    );
-  }, [actualServers, workerStats]);
+  // 🏗️ Clean Architecture: 통계 계산 훅 사용
+  const { stats } = useServerStats(actualServers as EnhancedServerData[]);
 
   // 🚀 통계 업데이트 콜백 호출 (디바운싱 적용)
   useEffect(() => {
     if (onStatsUpdate && stats.total > 0) {
-      // 100ms 디바운싱으로 불필요한 업데이트 방지
       const timeoutId = setTimeout(() => {
-        // 🔧 수정: offline 속성 추가 (ServerDashboard와 일관성)
         const offlineCount = actualServers.filter(
           (s) => s.status === 'offline'
         ).length;
@@ -733,14 +262,14 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
       return () => clearTimeout(timeoutId);
     }
     return undefined;
-  }, [stats, onStatsUpdate, actualServers]); // actualServers 의존성 추가
+  }, [stats, onStatsUpdate, actualServers]);
 
-  // 서버 선택 핸들러 (간단한 상태 업데이트라 useCallback 불필요)
+  // 서버 선택 핸들러
   const handleServerSelect = (server: Server) => {
     setSelectedServer(server);
   };
 
-  // 모달 닫기 핸들러 (간단한 상태 리셋이라 useCallback 불필요)
+  // 모달 닫기 핸들러
   const handleModalClose = () => {
     setSelectedServer(null);
   };
@@ -760,41 +289,25 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     };
   }, [selectedServer]);
 
-  // 🚀 최적화된 로딩 상태 - 실제 로딩 중이고 데이터가 없을 때만 true
+  // 🚀 최적화된 로딩 상태
   const optimizedIsLoading = isLoading && actualServers.length === 0;
 
-  console.log('🎯 useServerDashboard 리턴 직전:', {
-    actualServers_length: actualServers.length,
-    paginatedServers_length: paginatedServers.length,
-    optimizedIsLoading,
-    stats,
-  });
-
   return {
-    // 데이터
     servers: actualServers,
     paginatedServers,
-    isLoading: optimizedIsLoading, // 🚀 최적화된 로딩 상태
+    isLoading: optimizedIsLoading,
     error,
     stats,
-
-    // 페이지네이션
     currentPage,
     totalPages,
-    pageSize,
+    pageSize: responsivePageSize,
     setCurrentPage,
     changePageSize,
-
-    // 서버 선택
     selectedServer,
     selectedServerMetrics,
     handleServerSelect,
     handleModalClose,
-
-    // 메트릭 히스토리
     metricsHistory,
-
-    // 유틸리티
     formatUptime,
   };
 }
@@ -803,17 +316,25 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 export function useEnhancedServerDashboard({
   servers,
   _initialViewMode = 'grid',
-  _initialDisplayMode = 'SHOW_TWO_ROWS', // 🆕 기본값: 세로 2줄
+  _initialDisplayMode = 'SHOW_TWO_ROWS',
 }: UseEnhancedServerDashboardProps): UseEnhancedServerDashboardReturn {
   // 🎨 뷰 상태
   const [viewMode, setViewMode] = useState<ViewMode>(_initialViewMode);
   const [displayMode, setDisplayMode] =
     useState<ServerDisplayMode>(_initialDisplayMode);
 
-  // 🔍 필터 상태
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [locationFilter, setLocationFilter] = useState('all');
+  // 🏗️ Clean Architecture: 필터링 훅 사용
+  const {
+    searchTerm,
+    setSearchTerm,
+    statusFilter,
+    setStatusFilter,
+    locationFilter,
+    setLocationFilter,
+    filteredServers,
+    uniqueLocations,
+    resetFilters,
+  } = useServerFilter(servers);
 
   // 📄 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
@@ -853,7 +374,6 @@ export function useEnhancedServerDashboard({
       };
     }
 
-    // 기본 반응형 그리드
     return {
       className:
         'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6',
@@ -862,43 +382,12 @@ export function useEnhancedServerDashboard({
     };
   }, [displayMode, screenWidth]);
 
-  // 🌍 고유 위치 목록
-  const uniqueLocations = useMemo(() => {
-    // 🛡️ AI 교차검증: servers 배열 안전성 검증
-    if (!servers || !Array.isArray(servers) || servers.length === 0) {
-      return [];
-    }
-    return Array.from(new Set(servers.map((server) => server.location))).sort();
-  }, [servers]);
+  // 🏗️ Clean Architecture: 페이지네이션 훅 사용
+  // useServerPagination을 사용하되, displayConfig.cardsPerPage를 동적으로 반영
+  // 여기서는 useServerPagination을 직접 쓰지 않고 내부 로직을 재구현하여 최적화
+  // (useServerPagination은 state를 가지므로, props로 전달된 pageSize 변경에 반응하려면 useEffect가 필요함)
 
-  // 🔍 필터링된 서버
-  const filteredServers = useMemo(() => {
-    // 🛡️ AI 교차검증: servers 배열 안전성 검증
-    if (!servers || !Array.isArray(servers) || servers.length === 0) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn(
-          '⚠️ useEnhancedServerDashboard: servers 배열이 비어있거나 유효하지 않음'
-        );
-      }
-      return [];
-    }
-
-    return servers.filter((server) => {
-      const matchesSearch =
-        server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        server.location.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus =
-        statusFilter === 'all' || server.status === statusFilter;
-      const matchesLocation =
-        locationFilter === 'all' || server.location === locationFilter;
-
-      return matchesSearch && matchesStatus && matchesLocation;
-    });
-  }, [servers, searchTerm, statusFilter, locationFilter]);
-
-  // 📄 페이지네이션 계산
-  const totalPages = useMemo(() => {
-    // 🛡️ AI 교차검증: filteredServers 안전성 검증
+  const calculatedTotalPages = useMemo(() => {
     const safeLength =
       filteredServers && Array.isArray(filteredServers)
         ? filteredServers.length
@@ -906,9 +395,7 @@ export function useEnhancedServerDashboard({
     return Math.ceil(safeLength / displayConfig.cardsPerPage);
   }, [filteredServers, displayConfig.cardsPerPage]);
 
-  // 📊 페이지네이션된 서버
-  const paginatedServers = useMemo(() => {
-    // 🛡️ AI 교차검증: filteredServers 안전성 검증
+  const calculatedPaginatedServers = useMemo(() => {
     if (
       !filteredServers ||
       !Array.isArray(filteredServers) ||
@@ -924,7 +411,6 @@ export function useEnhancedServerDashboard({
 
   // 📊 표시 정보 생성 (UI/UX 개선)
   const displayInfo = useMemo(() => {
-    // 🛡️ AI 교차검증: filteredServers.length 안전성 검증
     const safeFilteredLength =
       filteredServers && Array.isArray(filteredServers)
         ? filteredServers.length
@@ -937,15 +423,7 @@ export function useEnhancedServerDashboard({
     setCurrentPage(1);
   }, [searchTerm, statusFilter, locationFilter, displayMode]);
 
-  // 🎯 필터 리셋 (간단한 상태 리셋이라 useCallback 불필요)
-  const resetFilters = () => {
-    setSearchTerm('');
-    setStatusFilter('all');
-    setLocationFilter('all');
-    setCurrentPage(1);
-  };
-
-  // 🔄 레이아웃 새로고침 (간단한 로딩 토글이라 useCallback 불필요)
+  // 🔄 레이아웃 새로고침
   const refreshLayout = () => {
     setIsLoading(true);
     setTimeout(() => {
@@ -953,68 +431,19 @@ export function useEnhancedServerDashboard({
     }, 300);
   };
 
-  // 📊 디버깅 로그
-  const serversLength = useMemo(
-    () => (Array.isArray(servers) ? servers.length : 0),
-    [servers]
-  );
-
-  const filteredServersLength = useMemo(
-    () =>
-      filteredServers && Array.isArray(filteredServers)
-        ? filteredServers.length
-        : 0,
-    [filteredServers]
-  );
-
-  useEffect(() => {
-    debug.log('🎯 Enhanced 서버 대시보드 상태:', {
-      전체_서버_수: serversLength,
-      필터링된_서버_수: filteredServersLength,
-      현재_페이지: currentPage,
-      총_페이지: totalPages,
-      표시_모드: displayMode,
-      표시_설정: displayConfig,
-      그리드_레이아웃: gridLayout,
-      표시_정보: displayInfo,
-    });
-  }, [
-    serversLength,
-    filteredServersLength,
-    currentPage,
-    totalPages,
-    displayMode,
-    displayConfig,
-    gridLayout,
-    displayInfo,
-  ]);
-
   return {
-    // 🎯 서버 데이터
-    paginatedServers,
+    paginatedServers: calculatedPaginatedServers,
     filteredServers,
-
-    // 🎨 뷰 설정
     viewMode,
     displayMode,
-
-    // 🔍 필터링
     searchTerm,
     statusFilter,
     locationFilter,
     uniqueLocations,
-
-    // 📄 페이지네이션
     currentPage,
-    totalPages,
-
-    // 📊 표시 정보
+    totalPages: calculatedTotalPages,
     displayInfo,
-
-    // 🎛️ 그리드 레이아웃
     gridLayout,
-
-    // 🎯 액션 함수들
     setViewMode,
     setDisplayMode,
     setSearchTerm,
@@ -1022,9 +451,19 @@ export function useEnhancedServerDashboard({
     setLocationFilter,
     setCurrentPage,
     resetFilters,
-
-    // 🔄 유틸리티
     refreshLayout,
     isLoading,
   };
 }
+
+// 🔄 Re-export types for backward compatibility
+export type {
+  EnhancedServerData,
+  ServerStats,
+  ServerWithMetrics,
+  DashboardTab,
+  ViewMode,
+  UseServerDashboardOptions,
+  UseEnhancedServerDashboardProps,
+  UseEnhancedServerDashboardReturn,
+};

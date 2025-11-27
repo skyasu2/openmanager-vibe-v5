@@ -8,6 +8,7 @@
 ## 📋 현재 .env.local 설정 확인
 
 ### GCP 프로젝트 정보
+
 ```bash
 GOOGLE_CLOUD_PROJECT=openmanager-free-tier
 GCP_VM_NAME=gcp-server
@@ -16,6 +17,7 @@ GCP_VM_EXTERNAL_IP=35.209.146.37
 ```
 
 ### GCP Functions URL
+
 ```bash
 NEXT_PUBLIC_GCP_FUNCTIONS_URL=https://asia-northeast3-openmanager-free-tier.cloudfunctions.net
 ```
@@ -65,6 +67,7 @@ cd /mnt/d/cursor/openmanager-vibe-v5/gcp-functions/deployment
 ```
 
 **특징**:
+
 - ✅ 환경 변수 자동 검증
 - ✅ 6개 Functions 일괄 배포
 - ✅ 배포 후 자동 검증
@@ -157,6 +160,7 @@ gcloud functions list --region=asia-northeast3
 ```
 
 **예상 출력**:
+
 ```
 NAME                    STATUS  TRIGGER       REGION
 ai-gateway              ACTIVE  HTTP Trigger  asia-northeast3
@@ -181,6 +185,7 @@ curl https://asia-northeast3-openmanager-free-tier.cloudfunctions.net/health-che
 ```
 
 **예상 응답**:
+
 ```json
 {
   "status": "healthy",
@@ -216,6 +221,7 @@ https://console.cloud.google.com/functions/list?project=openmanager-free-tier
 ```
 
 **확인 항목**:
+
 - ✅ 호출 횟수
 - ✅ 평균 실행 시간
 - ✅ 에러 발생률
@@ -236,6 +242,7 @@ cd /mnt/d/cursor/openmanager-vibe-v5/gcp-functions/deployment
 ### 배포 실패 시
 
 #### 1. API 활성화 확인
+
 ```bash
 # Cloud Functions API 확인
 gcloud services list --enabled | grep cloudfunctions
@@ -246,6 +253,7 @@ gcloud services enable cloudbuild.googleapis.com
 ```
 
 #### 2. 권한 확인
+
 ```bash
 # 현재 계정 확인
 gcloud auth list
@@ -255,6 +263,7 @@ gcloud projects get-iam-policy openmanager-free-tier
 ```
 
 #### 3. 빌드 로그 확인
+
 ```bash
 # 최근 빌드 로그
 gcloud builds list --limit=5
@@ -315,11 +324,13 @@ gcloud functions deploy enhanced-korean-nlp \
 ## 🗑️ Functions 삭제
 
 ### 개별 삭제
+
 ```bash
 gcloud functions delete FUNCTION_NAME --region=asia-northeast3
 ```
 
 ### 전체 삭제
+
 ```bash
 # 주의: 모든 Functions 삭제
 gcloud functions list --region=asia-northeast3 --format="value(name)" | \
@@ -331,6 +342,7 @@ gcloud functions list --region=asia-northeast3 --format="value(name)" | \
 ## 💰 비용 관리
 
 ### 무료 티어 한도
+
 ```
 호출: 2,000,000회/월
 컴퓨팅: 400,000 GB-초/월
@@ -338,6 +350,7 @@ gcloud functions list --region=asia-northeast3 --format="value(name)" | \
 ```
 
 ### 현재 예상 사용량
+
 ```
 호출: 50,000회/월 (2.5%)
 컴퓨팅: 8,000 GB-초/월 (2.0%)
@@ -361,17 +374,20 @@ https://console.cloud.google.com/billing/budgets?project=openmanager-free-tier
 ## 📝 체크리스트
 
 ### 배포 전
+
 - [ ] GCP 프로젝트 ID 확인
 - [ ] 환경 변수 설정 (`GCP_PROJECT_ID`, `GCP_REGION`)
 - [ ] GCP 인증 완료 (`gcloud auth login`)
 - [ ] API 활성화 확인
 
 ### 배포 중
+
 - [ ] 배포 스크립트 실행
 - [ ] 에러 없이 완료 확인
 - [ ] 6개 Functions 모두 배포 확인
 
 ### 배포 후
+
 - [ ] Functions 목록 확인
 - [ ] 헬스체크 테스트
 - [ ] 로그 확인

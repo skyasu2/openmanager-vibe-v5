@@ -9,6 +9,7 @@
 ## ⚠️ 중요 수정 사항
 
 ### 1. LRU 캐시 버그 수정 필수
+
 ```typescript
 // 현재 문제: FIFO 방식으로 잘못 구현됨
 ❌ const oldestKey = this.cache.keys().next().value;
@@ -21,11 +22,13 @@
 ```
 
 **영향**:
+
 - 캐시 히트율 향상 → Google AI API 호출 감소
 - 비용 절감 효과 극대화
 - 응답 속도 개선
 
 ### 2. 비용 절감 로직 구체화
+
 ```typescript
 // QueryResponse에 메타데이터 추가
 interface QueryResponse {
@@ -47,6 +50,7 @@ if (engineType === 'local' || engineType === 'cache') {
 ```
 
 ### 3. 안전한 삭제 체크리스트
+
 ```bash
 # 삭제 전 확인 사항
 ✅ AISidebarV3.tsx에서 AIThinkingDisplay import 제거 확인
@@ -61,6 +65,7 @@ if (engineType === 'local' || engineType === 'cache') {
 ### Step 1: 백엔드 선행 작업 (30분) ⚠️ 필수
 
 #### 1.1 LRU 캐시 버그 수정 (15분)
+
 ```typescript
 // src/services/ai/SimplifiedQueryEngine.utils.ts
 
@@ -79,13 +84,13 @@ setCachedResponse(key: string, response: QueryResponse): void {
   if (this.cache.has(key)) {
     this.cache.delete(key);
   }
-  
+
   // 캐시 크기 초과 시 가장 오래된 항목 제거
   if (this.cache.size >= this.maxCacheSize) {
     const lruKey = this.cache.keys().next().value;
     this.cache.delete(lruKey);
   }
-  
+
   // 새 항목 추가 (맨 뒤로)
   this.cache.set(key, { response, timestamp: Date.now() });
 }
@@ -93,22 +98,23 @@ setCachedResponse(key: string, response: QueryResponse): void {
 getCachedResponse(key: string): QueryResponse | null {
   const cached = this.cache.get(key);
   if (!cached) return null;
-  
+
   // TTL 체크
   if (Date.now() - cached.timestamp > this.cacheTTL) {
     this.cache.delete(key);
     return null;
   }
-  
+
   // LRU: 접근 시 재삽입으로 최신화
   this.cache.delete(key);
   this.cache.set(key, cached);
-  
+
   return cached.response;
 }
 ```
 
 #### 1.2 비용 메타데이터 추가 (15분)
+
 ```typescript
 // src/services/ai/SimplifiedQueryEngine.types.ts
 export interface QueryResponse {
@@ -140,7 +146,7 @@ export interface QueryResponse {
 // src/services/ai/SimplifiedQueryEngine.ts
 async query(request: QueryRequest): Promise<QueryResponse> {
   // ... 기존 로직
-  
+
   // 캐시 히트 시
   if (cachedResponse) {
     return {
@@ -153,7 +159,7 @@ async query(request: QueryRequest): Promise<QueryResponse> {
       }
     };
   }
-  
+
   // 로컬 처리 시
   if (routingDecision === 'local') {
     return {
@@ -166,7 +172,7 @@ async query(request: QueryRequest): Promise<QueryResponse> {
       }
     };
   }
-  
+
   // Google AI 사용 시
   return {
     ...result,
@@ -192,6 +198,7 @@ private estimateCost(query: string): number {
 ### Step 2: 프론트엔드 다이어트 (30분)
 
 #### 2.1 Import 정리 및 검증 (10분)
+
 ```bash
 # 1. AISidebarV3.tsx 확인
 grep -n "AIThinkingDisplay\|AIEngineSelector" src/domains/ai-sidebar/components/AISidebarV3.tsx
@@ -203,6 +210,7 @@ grep -n "AIThinkingDisplay\|AIEngineSelector" src/domains/ai-sidebar/components/
 ```
 
 #### 2.2 안전한 파일 삭제 (10분)
+
 ```bash
 # 삭제 전 빌드 테스트
 npm run type-check
@@ -220,6 +228,7 @@ npm run type-check
 ```
 
 #### 2.3 Index 파일 정리 (10분)
+
 ```typescript
 // src/domains/ai-sidebar/components/index.ts
 // 제거
@@ -242,6 +251,7 @@ export { AISidebarHeader } from './AISidebarHeader';
 ### Step 3: 신규 UI/UX 구현 (60분)
 
 #### 3.1 통합 엔진 배지 컴포넌트 (20분)
+
 ```typescript
 // src/components/ai/UnifiedEngineBadge.tsx
 'use client';
@@ -304,6 +314,7 @@ export const UnifiedEngineBadge: FC<UnifiedEngineBadgeProps> = ({
 ```
 
 #### 3.2 실시간 파이프라인 시각화 (20분)
+
 ```typescript
 // src/components/ai/PipelineStepIndicator.tsx
 'use client';
@@ -361,6 +372,7 @@ export const PipelineStepIndicator: FC<PipelineStepIndicatorProps> = ({
 ```
 
 #### 3.3 AISidebarV3 통합 (20분)
+
 ```typescript
 // src/domains/ai-sidebar/components/AISidebarV3.tsx
 import { UnifiedEngineBadge } from '@/components/ai/UnifiedEngineBadge';
@@ -380,7 +392,7 @@ useEffect(() => {
   if (lastMessage?.metadata) {
     setCurrentEngine(lastMessage.metadata.engineType);
     setSavedCost(lastMessage.metadata.savedCost || 0);
-    
+
     // 파이프라인 단계 업데이트
     updatePipelineSteps(lastMessage.metadata);
   }
@@ -393,7 +405,7 @@ useEffect(() => {
     savedCost={savedCost}
     isProcessing={isGenerating}
   />
-  
+
   {isGenerating && (
     <PipelineStepIndicator steps={pipelineSteps} />
   )}
@@ -405,6 +417,7 @@ useEffect(() => {
 ## 📋 실행 체크리스트
 
 ### Step 1: 백엔드 (30분)
+
 - [ ] LRU 캐시 버그 수정
   - [ ] setCachedResponse 수정
   - [ ] getCachedResponse 수정
@@ -416,6 +429,7 @@ useEffect(() => {
 - [ ] TypeScript 컴파일 확인
 
 ### Step 2: 프론트엔드 정리 (30분)
+
 - [ ] Import 검증
   - [ ] AISidebarV3.tsx 확인
   - [ ] 레거시 import 제거
@@ -426,6 +440,7 @@ useEffect(() => {
 - [ ] Index 파일 정리
 
 ### Step 3: 신규 UI (60분)
+
 - [ ] UnifiedEngineBadge 구현
 - [ ] PipelineStepIndicator 구현
 - [ ] AISidebarV3 통합
@@ -433,6 +448,7 @@ useEffect(() => {
 - [ ] 반응형 테스트
 
 ### 최종 검증
+
 - [ ] TypeScript 컴파일 성공
 - [ ] 빌드 성공
 - [ ] 로컬 테스트
@@ -444,6 +460,7 @@ useEffect(() => {
 ## 💡 핵심 개선 사항
 
 ### 1. LRU 캐시 수정 효과
+
 ```
 Before (FIFO):
 - 캐시 히트율: ~40%
@@ -457,6 +474,7 @@ After (LRU):
 ```
 
 ### 2. 비용 투명성
+
 ```
 Before:
 ❌ 사용자가 비용 절감 모름
@@ -469,6 +487,7 @@ After:
 ```
 
 ### 3. 파이프라인 시각화
+
 ```
 Before:
 ❌ 블랙박스 처리
@@ -485,6 +504,7 @@ After:
 ## 🎯 예상 결과
 
 ### 코드 품질
+
 ```
 - 코드 감소: -54KB
 - 복잡도 감소: 40%
@@ -492,6 +512,7 @@ After:
 ```
 
 ### 성능
+
 ```
 - 캐시 히트율: +30%p
 - API 호출: -50%
@@ -499,6 +520,7 @@ After:
 ```
 
 ### 비용
+
 ```
 - 월 비용: $5 → $2.5
 - 절감률: 50%
@@ -506,6 +528,7 @@ After:
 ```
 
 ### 사용자 경험
+
 ```
 - 투명성: 대폭 향상
 - 신뢰도: 증가

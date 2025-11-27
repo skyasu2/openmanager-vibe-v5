@@ -21,7 +21,7 @@ const extraHTTPHeaders = bypassSecret
 
 export default defineConfig({
   // Load environment variables globally before any tests run
-  globalSetup: require.resolve('./globalSetup'),
+  globalSetup: require.resolve('./tests/support/globalSetup'),
   testDir: './tests/e2e',
   /* Run tests in files in parallel */
   fullyParallel: true,

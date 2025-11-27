@@ -3,7 +3,11 @@
  * 사용법: npx ts-node test-curve-validation.ts
  */
 
-import { generate24HourData, getServerStatus, SERVERS } from './src/mock/mockScenarios';
+import {
+  generate24HourData,
+  getServerStatus,
+  SERVERS,
+} from './src/mock/mockScenarios';
 
 console.log('🧪 자연스러운 변화 곡선 검증\n');
 
@@ -21,7 +25,9 @@ for (let h = 0; h < 6; h++) {
   const point = data[idx];
   if (point) {
     const status = getServerStatus(point);
-    console.log(`${h}시   | ${point.cpu.toFixed(1).padStart(5)} | ${point.memory.toFixed(1).padStart(8)} | ${status}`);
+    console.log(
+      `${h}시   | ${point.cpu.toFixed(1).padStart(5)} | ${point.memory.toFixed(1).padStart(8)} | ${status}`
+    );
   }
 }
 
@@ -30,11 +36,13 @@ console.log('시각    | CPU (%) | Status');
 console.log('--------|---------|----------');
 
 for (let min = 0; min < 60; min += 5) {
-  const idx = 2 * 12 + (min / 5); // 2시 + 분
+  const idx = 2 * 12 + min / 5; // 2시 + 분
   const point = data[idx];
   if (point) {
     const status = getServerStatus(point);
-    console.log(`2:${min.toString().padStart(2, '0')}   | ${point.cpu.toFixed(1).padStart(5)} | ${status}`);
+    console.log(
+      `2:${min.toString().padStart(2, '0')}   | ${point.cpu.toFixed(1).padStart(5)} | ${status}`
+    );
   }
 }
 
