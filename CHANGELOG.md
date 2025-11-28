@@ -8,6 +8,166 @@
 > - [v5.66.40 ~ v5.67.21](./CHANGELOG-LEGACY-2.md) (2025-08-12 ~ 2025-08-17)
 > - [v5.0.0 ~ v5.65.6](./CHANGELOG-LEGACY.md) (2025-05 ~ 2025-08)
 
+## [Unreleased] - 2025-11-28
+
+### 🚀 Features
+
+- refactor system boot, improve ai sidebar ux, and cleanup code ([7b86458f](https://github.com/your-username/openmanager-vibe-v5/commit/7b86458f))
+- refactor useServerDashboard hook and unify design consistency ([6a19f96d](https://github.com/your-username/openmanager-vibe-v5/commit/6a19f96d))
+- AI Assistant Engine improvements - Google AI routing & ML libraries ([5fa65c7a](https://github.com/your-username/openmanager-vibe-v5/commit/5fa65c7a))
+- 테스트 API 키 인증 추가 ([12628144](https://github.com/your-username/openmanager-vibe-v5/commit/12628144))
+- 바이브 코딩 히스토리에 현재 단계(stage4) 추가 ([385f4473](https://github.com/your-username/openmanager-vibe-v5/commit/385f4473))
+- 환경 변수 검증 시스템 추가 ([7adda1bd](https://github.com/your-username/openmanager-vibe-v5/commit/7adda1bd))
+- auto-ai-review.sh v4.1.2 - Gemini 피드백 적용 ([a7cfa4e4](https://github.com/your-username/openmanager-vibe-v5/commit/a7cfa4e4))
+- auto-ai-review.sh v4.1.0 - ESLint 스마트 검증 ([89f4bc6c](https://github.com/your-username/openmanager-vibe-v5/commit/89f4bc6c))
+- auto-ai-review.sh v4.0.0 - 실시간 검증 추가 ([350badc4](https://github.com/your-username/openmanager-vibe-v5/commit/350badc4))
+- Git Hooks 베스트 프렉티스 적용 (2025 표준) ([bc9eafc2](https://github.com/your-username/openmanager-vibe-v5/commit/bc9eafc2))
+- AI 협업 아키텍처 완성 - Gemini ImportProcessor 근본 해결 ([c03a24ea](https://github.com/your-username/openmanager-vibe-v5/commit/c03a24ea))
+- Phase 2-3 AI 모니터링 시스템 통합 완료 ([bb80af1a](https://github.com/your-username/openmanager-vibe-v5/commit/bb80af1a))
+- GCP Functions 배포 준비 100% 완료 ([57ba76a6](https://github.com/your-username/openmanager-vibe-v5/commit/57ba76a6))
+- GCP Functions 최적화 및 배포 준비 완료 ([82c21f57](https://github.com/your-username/openmanager-vibe-v5/commit/82c21f57))
+- AI 사고 과정 시각화 개선 (Step 4) ([7e5b7738](https://github.com/your-username/openmanager-vibe-v5/commit/7e5b7738))
+- AI 모드 선택 UI 제거 (Step 3) ([13a01122](https://github.com/your-username/openmanager-vibe-v5/commit/13a01122))
+- 지능형 라우팅 로직 구현 (Step 2) ([4a14d9e2](https://github.com/your-username/openmanager-vibe-v5/commit/4a14d9e2))
+- 게스트 모드 제한 로직 추가 (현재는 비활성화) ([065f78be](https://github.com/your-username/openmanager-vibe-v5/commit/065f78be))
+- Add Google AI API rate limiting and ToS compliance ([ac42598a](https://github.com/your-username/openmanager-vibe-v5/commit/ac42598a))
+- Implement primary/secondary Google AI API keys with fallback ([4d12e1ba](https://github.com/your-username/openmanager-vibe-v5/commit/4d12e1ba))
+- Implement AI mode selection and improve error handling ([9e8059fc](https://github.com/your-username/openmanager-vibe-v5/commit/9e8059fc))
+- Update feature cards with latest versions and accurate metrics ([5198d1a4](https://github.com/your-username/openmanager-vibe-v5/commit/5198d1a4))
+- AI 사이드바에 무료 티어 모니터링 대시보드 추가 ([2881faba](https://github.com/your-username/openmanager-vibe-v5/commit/2881faba))
+- 공통 컴포넌트에 애니메이션 및 성능 추적 추가, 테스트 커버리지 확대 ([5a2d8be9](https://github.com/your-username/openmanager-vibe-v5/commit/5a2d8be9))
+- 서버 카드 UI 개선 및 메트릭 차트 컴포넌트 분리 ([8b148e53](https://github.com/your-username/openmanager-vibe-v5/commit/8b148e53))
+- lint improvements for multiple components and services ([96023c77](https://github.com/your-username/openmanager-vibe-v5/commit/96023c77))
+
+### 🐛 Bug Fixes
+
+- add shebang to pre-push hook ([55f402f3](https://github.com/your-username/openmanager-vibe-v5/commit/55f402f3))
+- Remove side-effects from admin mode removal ([b20615e6](https://github.com/your-username/openmanager-vibe-v5/commit/b20615e6))
+- Use client-safe environment variable access ([4b24f1cc](https://github.com/your-username/openmanager-vibe-v5/commit/4b24f1cc))
+- Add missing navItems array declaration in Header ([12f1ccb8](https://github.com/your-username/openmanager-vibe-v5/commit/12f1ccb8))
+- Provider 에러 핸들링 강화 (RAG, KoreanNLP, ML - undefined 체크) ([45957986](https://github.com/your-username/openmanager-vibe-v5/commit/45957986))
+- Codex 리뷰 피드백 반영 (Critical 이슈 2개 해결) ([ae513bdf](https://github.com/your-username/openmanager-vibe-v5/commit/ae513bdf))
+- Codex 리뷰 피드백 반영 (Critical 이슈 2개 해결) ([6da819e9](https://github.com/your-username/openmanager-vibe-v5/commit/6da819e9))
+- auto-ai-review.sh v4.1.1 - Codex 피드백 3가지 버그 수정 ([196b9327](https://github.com/your-username/openmanager-vibe-v5/commit/196b9327))
+- 전역 변수 사용으로 검증 결과 전달 문제 해결 ([4636df2b](https://github.com/your-username/openmanager-vibe-v5/commit/4636df2b))
+- auto-ai-review.sh v4.0.0 - Codex 피드백 반영 ([c6c34536](https://github.com/your-username/openmanager-vibe-v5/commit/c6c34536))
+- TypeScript 타입 에러 수정 및 Phase 3 계획서 추가 ([583b4028](https://github.com/your-username/openmanager-vibe-v5/commit/583b4028))
+- Git Hooks 개선 및 TypeScript 에러 수정 ([a84789f9](https://github.com/your-username/openmanager-vibe-v5/commit/a84789f9))
+- 스크립트 경로 참조 업데이트 및 자동 정리 스크립트 추가 ([1775de4e](https://github.com/your-username/openmanager-vibe-v5/commit/1775de4e))
+- 스크립트 경로 참조 업데이트 (Phase 3 Side-Effect 수정 완료) ([54fa0f98](https://github.com/your-username/openmanager-vibe-v5/commit/54fa0f98))
+- 스크립트 경로 참조 업데이트 (Phase 3 Side-Effect 수정 완료) ([56fe1c1c](https://github.com/your-username/openmanager-vibe-v5/commit/56fe1c1c))
+- Codex 리뷰 반영 - 안정성 및 하위 호환성 개선 ([90dc9b3e](https://github.com/your-username/openmanager-vibe-v5/commit/90dc9b3e))
+- Vercel 빌드 실패 수정 - 빌드 타임 환경변수 검증 건너뛰기 ([ee1fd852](https://github.com/your-username/openmanager-vibe-v5/commit/ee1fd852))
+- 불필요한 @ts-expect-error 제거 및 타입 수정 ([31482219](https://github.com/your-username/openmanager-vibe-v5/commit/31482219))
+- Gemini CLI 리팩토링 후 사이드 이펙트 수정 ([d51e7d63](https://github.com/your-username/openmanager-vibe-v5/commit/d51e7d63))
+- 게스트 로그인 시 메인 페이지 건너뛰는 문제 수정 ([c9d89078](https://github.com/your-username/openmanager-vibe-v5/commit/c9d89078))
+- google-ai-manager 타입 에러 수정 (string  ([949ccef6](https://github.com/your-username/openmanager-vibe-v5/commit/949ccef6))
+- GitHub Actions lint 에러 수정 (3 errors → 0) ([5b7261c9](https://github.com/your-username/openmanager-vibe-v5/commit/5b7261c9))
+- GitHub Actions 에러 수정 (7 errors, 10 warnings) ([7f0141b7](https://github.com/your-username/openmanager-vibe-v5/commit/7f0141b7))
+- CI 워크플로우 Node.js 버전 수정 및 분석 문서 추가 ([3bfbcc98](https://github.com/your-username/openmanager-vibe-v5/commit/3bfbcc98))
+- Re-configure Vercel environment variables with clean stdin ([4d22b76f](https://github.com/your-username/openmanager-vibe-v5/commit/4d22b76f))
+- Correct Vercel environment variables setup ([d8c26c3b](https://github.com/your-username/openmanager-vibe-v5/commit/d8c26c3b))
+- TypeScript error - Use additionalData for aggregated_data and recommendations ([2064aa24](https://github.com/your-username/openmanager-vibe-v5/commit/2064aa24))
+- Update Google AI API to use environment variable for model name ([8bc0fc02](https://github.com/your-username/openmanager-vibe-v5/commit/8bc0fc02))
+- Replace @ alias with relative paths in unit tests ([39644ac5](https://github.com/your-username/openmanager-vibe-v5/commit/39644ac5))
+- Replace removed admin helpers with guest helpers in performance test ([4dda6a62](https://github.com/your-username/openmanager-vibe-v5/commit/4dda6a62))
+- AlertSeverity 타입 정의 통일 및 일관성 개선 ([c17c5032](https://github.com/your-username/openmanager-vibe-v5/commit/c17c5032))
+
+### 📚 Documentation
+
+- Phase 4 재구조화 완료 - core vs environment 분리 ([fd125c98](https://github.com/your-username/openmanager-vibe-v5/commit/fd125c98))
+- update AI system documentation and fix ESLint errors ([7ce645c0](https://github.com/your-username/openmanager-vibe-v5/commit/7ce645c0))
+- docs: ([2c37e23d](https://github.com/your-username/openmanager-vibe-v5/commit/2c37e23d))
+- 오픈소스 도입 여부 평가 (2025-11-22) ([bae2c54c](https://github.com/your-username/openmanager-vibe-v5/commit/bae2c54c))
+- AI 엔진 종합 상태 리포트 추가 (2025-11-22) ([24035b02](https://github.com/your-username/openmanager-vibe-v5/commit/24035b02))
+- AI 엔진 리팩토링 분석 리포트 추가 ([a36327bb](https://github.com/your-username/openmanager-vibe-v5/commit/a36327bb))
+- Phase 3 계획서 최종 업데이트 (100% 달성 반영) ([4aa547a7](https://github.com/your-username/openmanager-vibe-v5/commit/4aa547a7))
+- 헬스체크 정책 문서 추가 ([1d8fc366](https://github.com/your-username/openmanager-vibe-v5/commit/1d8fc366))
+- Update GEMINI.md with new AI collaboration workflow ([2b0511f0](https://github.com/your-username/openmanager-vibe-v5/commit/2b0511f0))
+- GCP 배포 실행 가이드 추가 ([785e8048](https://github.com/your-username/openmanager-vibe-v5/commit/785e8048))
+- GCP Functions 배포 가이드 추가 ([a08f2d52](https://github.com/your-username/openmanager-vibe-v5/commit/a08f2d52))
+- GCP Functions 현황 분석 및 최적화 계획 ([48fea6ed](https://github.com/your-username/openmanager-vibe-v5/commit/48fea6ed))
+- 단계별 개선 계획 수립 ([b800877e](https://github.com/your-username/openmanager-vibe-v5/commit/b800877e))
+- 게스트 모드 변경 사이드 이펙트 분석 ([b89d3fba](https://github.com/your-username/openmanager-vibe-v5/commit/b89d3fba))
+- 문서 구조 최적화 및 아키텍처 문서 개선 ([8fc6d364](https://github.com/your-username/openmanager-vibe-v5/commit/8fc6d364))
+- Refactor and unify documentation, archive legacy files ([504c99e5](https://github.com/your-username/openmanager-vibe-v5/commit/504c99e5))
+- Clarify development-only tools ([da0e479e](https://github.com/your-username/openmanager-vibe-v5/commit/da0e479e))
+- Add feature cards update summary report ([71a6f454](https://github.com/your-username/openmanager-vibe-v5/commit/71a6f454))
+- AI 어시스턴트 기능 분석 및 연결 검증 문서 ([238f1b2f](https://github.com/your-username/openmanager-vibe-v5/commit/238f1b2f))
+- update lint plan status (errors cleared, 538 warnings) ([764654f1](https://github.com/your-username/openmanager-vibe-v5/commit/764654f1))
+
+### 💅 Styles
+
+- @ts-ignore를 @ts-expect-error로 변경 (ESLint 규칙 준수) ([193ce352](https://github.com/your-username/openmanager-vibe-v5/commit/193ce352))
+
+### ♻️ Refactors
+
+- 타입 정리 및 불필요한 import 제거 ([28075a9f](https://github.com/your-username/openmanager-vibe-v5/commit/28075a9f))
+- modularize supabase-rag-engine.ts ([808b2c6c](https://github.com/your-username/openmanager-vibe-v5/commit/808b2c6c))
+- split useServerDashboard.ts into types, utils, and hooks ([25d99a05](https://github.com/your-username/openmanager-vibe-v5/commit/25d99a05))
+- Remove admin variant from UI components ([e42a8f74](https://github.com/your-username/openmanager-vibe-v5/commit/e42a8f74))
+- Complete migration to UnifiedServerDataSource - remove OLD data system ([bcb4cca3](https://github.com/your-username/openmanager-vibe-v5/commit/bcb4cca3))
+- 코드 품질 개선 (Gemini 리뷰 피드백 반영) ([3e619628](https://github.com/your-username/openmanager-vibe-v5/commit/3e619628))
+- API 인증 보안 강화 - 2차 개선 (Codex 리뷰 피드백 반영) ([ef0c3bbf](https://github.com/your-username/openmanager-vibe-v5/commit/ef0c3bbf))
+- API 인증 보안 강화 (Codex 리뷰 피드백 반영) ([12b465c9](https://github.com/your-username/openmanager-vibe-v5/commit/12b465c9))
+- TODO 정리 및 보안 강화 ([a4592974](https://github.com/your-username/openmanager-vibe-v5/commit/a4592974))
+- GCP Functions 정리 - Phase 1 코드 클린업 ([529be755](https://github.com/your-username/openmanager-vibe-v5/commit/529be755))
+- ESLint 경고 추가 정리 및 작업 계획서 추가 ([f15619e3](https://github.com/your-username/openmanager-vibe-v5/commit/f15619e3))
+- ESLint 경고 대량 감소 (245→110, 55% 개선) ([ba370a76](https://github.com/your-username/openmanager-vibe-v5/commit/ba370a76))
+- 커밋 훅 및 서브에이전트 최적화 ([45af8f2c](https://github.com/your-username/openmanager-vibe-v5/commit/45af8f2c))
+- 서브에이전트 최적화 (deprecated 제거, 간소화, 하드코딩 제거) ([6e658af4](https://github.com/your-username/openmanager-vibe-v5/commit/6e658af4))
+- 모든 헬스체크를 수동 테스트 전용으로 변경 ([a52b706e](https://github.com/your-username/openmanager-vibe-v5/commit/a52b706e))
+- 미사용 타입 정리 (2개 경고 추가 해결) ([7d220afb](https://github.com/your-username/openmanager-vibe-v5/commit/7d220afb))
+- 미사용 변수/파라미터 정리 (7개 경고 해결) ([f0d00649](https://github.com/your-username/openmanager-vibe-v5/commit/f0d00649))
+- 중복 및 분산된 개발 패턴 통합 ([b46a1f7d](https://github.com/your-username/openmanager-vibe-v5/commit/b46a1f7d))
+- LRU 캐시 로직 수정 (ADR-001 버그 수정) ([3fe52936](https://github.com/your-username/openmanager-vibe-v5/commit/3fe52936))
+- Simplify environment setup and improve security ([4ee50939](https://github.com/your-username/openmanager-vibe-v5/commit/4ee50939))
+- Remove AI mode selection and unify AI pipeline ([89dba706](https://github.com/your-username/openmanager-vibe-v5/commit/89dba706))
+- Clean up and refactor e2e test suite ([01418b66](https://github.com/your-username/openmanager-vibe-v5/commit/01418b66))
+- Simplify Vibe Coding card for portfolio focus ([b89d8415](https://github.com/your-username/openmanager-vibe-v5/commit/b89d8415))
+- GCP Functions Phase 2 최적화 - 중복 타입 제거 ([c1c12c76](https://github.com/your-username/openmanager-vibe-v5/commit/c1c12c76))
+
+### ⚡ Performance
+
+- Optimize useEffect with useMemo in global-error.tsx ([11681ff6](https://github.com/your-username/openmanager-vibe-v5/commit/11681ff6))
+- 시스템 중단 상태 컴퓨팅 사용량 78% 절감 ([8752e6d2](https://github.com/your-username/openmanager-vibe-v5/commit/8752e6d2))
+
+### 🧪 Tests
+
+- Skip localhost tests when not on Vercel ✅ ([ca04f4a8](https://github.com/your-username/openmanager-vibe-v5/commit/ca04f4a8))
+- Exclude E2E tests from Vitest (Quick Win #2 Revised) ✅ ([e4666a6d](https://github.com/your-username/openmanager-vibe-v5/commit/e4666a6d))
+- Add GOOGLE_AI_API_KEY to test env (Quick Win #4) ([b7ff9a51](https://github.com/your-username/openmanager-vibe-v5/commit/b7ff9a51))
+- Skip path alias test (Quick Win #3 Revised) ✅ ([e37cb805](https://github.com/your-username/openmanager-vibe-v5/commit/e37cb805))
+- Exclude E2E tests from Vitest (Quick Win #2) ✅ ([68b15c87](https://github.com/your-username/openmanager-vibe-v5/commit/68b15c87))
+- Fix missing vitest imports (Quick Win #1) ✅ ([54dcbb42](https://github.com/your-username/openmanager-vibe-v5/commit/54dcbb42))
+- Skip path alias tests pending proper resolution ([57437e00](https://github.com/your-username/openmanager-vibe-v5/commit/57437e00))
+- Add node environment for API route unit tests ([93b17f1c](https://github.com/your-username/openmanager-vibe-v5/commit/93b17f1c))
+
+### 🔧 Chores
+
+- remove Serena anti-pattern check from pre-commit hook ([1f081ed9](https://github.com/your-username/openmanager-vibe-v5/commit/1f081ed9))
+- remove unused @executeautomation/playwright-mcp-server dependency ([faa351ba](https://github.com/your-username/openmanager-vibe-v5/commit/faa351ba))
+- remove legacy MCP code and unused files ([d1200471](https://github.com/your-username/openmanager-vibe-v5/commit/d1200471))
+- optimize eslint config, fix lint-staged and tsc wrapper ([eed63a9e](https://github.com/your-username/openmanager-vibe-v5/commit/eed63a9e))
+- reactivate AI review system and enforce WSL execution ([24b168ed](https://github.com/your-username/openmanager-vibe-v5/commit/24b168ed))
+- snapshot before lib reorganization ([0900283e](https://github.com/your-username/openmanager-vibe-v5/commit/0900283e))
+- Trigger Vercel redeployment for ADMIN_PASSWORD env var ([50752ea2](https://github.com/your-username/openmanager-vibe-v5/commit/50752ea2))
+- 스크립트 개선 완료 (Phase 2) ([32cadd2b](https://github.com/your-username/openmanager-vibe-v5/commit/32cadd2b))
+- 스크립트 대량 정리 - 68개 삭제 (Phase 1 완료) ([79365b66](https://github.com/your-username/openmanager-vibe-v5/commit/79365b66))
+- trigger deploy after env var cleanup ([769310b9](https://github.com/your-username/openmanager-vibe-v5/commit/769310b9))
+- Trigger Vercel redeploy with updated environment variables ([14ac8704](https://github.com/your-username/openmanager-vibe-v5/commit/14ac8704))
+- fix hook deps in dashboard client ([68d17b41](https://github.com/your-username/openmanager-vibe-v5/commit/68d17b41))
+- fix hook deps in auth error and memo util ([30df1c1c](https://github.com/your-username/openmanager-vibe-v5/commit/30df1c1c))
+- suppress floating promises in system controls and ai engines ([9edf2bfb](https://github.com/your-username/openmanager-vibe-v5/commit/9edf2bfb))
+- fix streaming router floating promises and unused ([fcf34c73](https://github.com/your-username/openmanager-vibe-v5/commit/fcf34c73))
+- remove unused schemas in servers APIs ([e143acf7](https://github.com/your-username/openmanager-vibe-v5/commit/e143acf7))
+- clear lint unused vars in utils ([f23680a1](https://github.com/your-username/openmanager-vibe-v5/commit/f23680a1))
+- clean lint warnings in recovery and modal ([f4a5355a](https://github.com/your-username/openmanager-vibe-v5/commit/f4a5355a))
+- lint cleanup batch ([ddd31ccb](https://github.com/your-username/openmanager-vibe-v5/commit/ddd31ccb))
+- lint_unused 정리 및 경고 감소 ([dad18929](https://github.com/your-username/openmanager-vibe-v5/commit/dad18929))
+
+---
+
 ## [5.80.0] - 2025-11-15
 
 ### 🚀 Features

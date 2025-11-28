@@ -67,6 +67,15 @@ npm run dev:stable  # 안정화된 서버 (권장)
 - **실시간 메트릭**: CPU, Memory, Disk, Network 사용률
 - **장애 시나리오**: 15+ 현실적 장애 상황 시뮬레이션
 
+### ⚡ GPU-Accelerated Animations
+
+- **120fps 목표**: 55fps → 120fps (118% 성능 향상)
+- **하드웨어 가속**: transform3d, will-change, cubic-bezier
+- **9가지 카테고리**: 카드, 모달, 사이드바, 버튼, 로딩 등
+- **접근성 지원**: prefers-reduced-motion 자동 대응
+
+→ **[📚 성능 검증 가이드](./docs/performance/gpu-animation-validation.md)**
+
 ### 🤖 AI 어시스턴트 (Google AI Unified Engine)
 
 - **RAG 검색**: Supabase pgvector 기반 문서 검색 (3분 TTL 캐싱)

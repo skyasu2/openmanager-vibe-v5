@@ -11,8 +11,15 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, User, Bot, Sparkles, AlertCircle } from 'lucide-react';
 import { useAIThinking } from '@/stores/useAISidebarStore';
 import debug from '@/utils/debug';
-import type { QueryResponse as UnifiedQueryResponse } from '@/services/ai/SimplifiedQueryEngine';
+// import type { QueryResponse as UnifiedQueryResponse } from '@/services/ai/SimplifiedQueryEngine';
 // import ThinkingView from '../ThinkingView'; // 백업됨
+
+interface UnifiedQueryResponse {
+  success: boolean;
+  response?: string;
+  metadata?: any;
+  [key: string]: any;
+}
 
 interface Message {
   id: string;
@@ -45,7 +52,9 @@ export default function AIChatPage() {
   }, [localMessages]);
 
   // 통합 AI API 호출 함수
-  const callUnifiedAI = async (prompt: string): Promise<UnifiedQueryResponse> => {
+  const callUnifiedAI = async (
+    prompt: string
+  ): Promise<UnifiedQueryResponse> => {
     const response = await fetch('/api/ai/query', {
       method: 'POST',
       headers: {
@@ -58,7 +67,7 @@ export default function AIChatPage() {
         temperature: 0.7,
         maxTokens: 1000,
         context: 'ai-chat-page',
-      })
+      }),
     });
 
     if (!response.ok) {
@@ -84,7 +93,7 @@ export default function AIChatPage() {
 
     try {
       debug.log('🤖 통합 AI 요청 시작:', currentPrompt);
-      
+
       // AI 응답 처리
       const startTime = Date.now();
       const apiResponse = await callUnifiedAI(currentPrompt);
@@ -98,18 +107,22 @@ export default function AIChatPage() {
           timestamp: new Date(),
           metadata: {
             ...apiResponse.metadata,
-            processingTime
-          }
+            processingTime,
+          },
         };
-        
+
         setLocalMessages((prev) => [...prev, aiMessage]);
         debug.log(`✅ 통합 AI 응답 성공: ${processingTime}ms`);
       } else {
-        throw new Error('message' in apiResponse ? String(apiResponse.message) : 'AI 응답에서 오류가 발생했습니다.');
+        throw new Error(
+          'message' in apiResponse
+            ? String(apiResponse.message)
+            : 'AI 응답에서 오류가 발생했습니다.'
+        );
       }
     } catch (error) {
       debug.error('❌ 통합 AI 오류:', error);
-      
+
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'error',
@@ -172,8 +185,8 @@ export default function AIChatPage() {
                   message.type === 'user'
                     ? 'bg-blue-500 text-white'
                     : message.type === 'error'
-                    ? 'bg-red-500 text-white'
-                    : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                      ? 'bg-red-500 text-white'
+                      : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
                 }`}
               >
                 {message.type === 'user' ? (
@@ -189,22 +202,24 @@ export default function AIChatPage() {
                   message.type === 'user'
                     ? 'bg-blue-500 text-white'
                     : message.type === 'error'
-                    ? 'border border-red-200 bg-red-50 text-red-800'
-                    : 'border border-gray-200 bg-white text-gray-800'
+                      ? 'border border-red-200 bg-red-50 text-red-800'
+                      : 'border border-gray-200 bg-white text-gray-800'
                 }`}
               >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                <p className="whitespace-pre-wrap text-sm">{message.content}</p>
                 <div className="mt-1 flex items-center justify-between">
                   <p
                     className={`text-xs ${
-                      message.type === 'user' 
-                        ? 'text-blue-100' 
+                      message.type === 'user'
+                        ? 'text-blue-100'
                         : message.type === 'error'
-                        ? 'text-red-500'
-                        : 'text-gray-500'
+                          ? 'text-red-500'
+                          : 'text-gray-500'
                     }`}
                   >
-                    {message.timestamp.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
+                    {message.timestamp.toLocaleString('ko-KR', {
+                      timeZone: 'Asia/Seoul',
+                    })}
                   </p>
                   {message.metadata?.processingTime && (
                     <p className="text-xs text-gray-400">
@@ -222,14 +237,25 @@ export default function AIChatPage() {
           <div className="flex justify-start">
             <div className="flex max-w-[80%] items-start space-x-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-purple-500 to-pink-500">
-                <Sparkles className="animate-pulse h-4 w-4 text-white" aria-hidden="true" />
+                <Sparkles
+                  className="h-4 w-4 animate-pulse text-white"
+                  aria-hidden="true"
+                />
               </div>
               <div className="rounded-lg border border-gray-200 bg-white p-3">
                 <div className="flex items-center space-x-2">
                   <div className="h-2 w-2 animate-bounce rounded-full bg-purple-500"></div>
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-purple-500" style={{animationDelay: '0.1s'}}></div>
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-purple-500" style={{animationDelay: '0.2s'}}></div>
-                  <span className="text-sm text-gray-500 ml-2">Google AI가 질의를 분석하고 있습니다...</span>
+                  <div
+                    className="h-2 w-2 animate-bounce rounded-full bg-purple-500"
+                    style={{ animationDelay: '0.1s' }}
+                  ></div>
+                  <div
+                    className="h-2 w-2 animate-bounce rounded-full bg-purple-500"
+                    style={{ animationDelay: '0.2s' }}
+                  ></div>
+                  <span className="ml-2 text-sm text-gray-500">
+                    Google AI가 질의를 분석하고 있습니다...
+                  </span>
                 </div>
               </div>
             </div>
@@ -246,17 +272,24 @@ export default function AIChatPage() {
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={(e) => { if (e.key === 'Enter') void handleSendMessage(); }}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') void handleSendMessage();
+            }}
             placeholder="시스템에 대해 질문해보세요..."
             className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
-            onClick={() => { void handleSendMessage(); }}
+            onClick={() => {
+              void handleSendMessage();
+            }}
             disabled={!inputValue.trim() || isThinking}
             className="rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isThinking ? (
-              <Sparkles className="h-4 w-4 motion-safe:animate-pulse-glow" aria-hidden="true" />
+              <Sparkles
+                className="h-4 w-4 motion-safe:animate-pulse-glow"
+                aria-hidden="true"
+              />
             ) : (
               <Send className="h-4 w-4" />
             )}
