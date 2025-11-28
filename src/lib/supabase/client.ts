@@ -46,5 +46,23 @@ export function getSupabaseClient(): SupabaseClient {
   return global.__supabaseInstance;
 }
 
-// Default instance for easy import
-export const supabase = getSupabaseClient();
+// Lazy initialization to prevent SSR errors during module evaluation
+let _supabase: SupabaseClient | null = null;
+
+/**
+ * Default Supabase client instance with lazy initialization
+ * @returns Singleton Supabase client instance
+ */
+export function getDefaultSupabaseClient(): SupabaseClient {
+  if (!_supabase) {
+    _supabase = getSupabaseClient();
+  }
+  return _supabase;
+}
+
+/**
+ * @deprecated Use getDefaultSupabaseClient() instead for better SSR safety
+ * This export is kept for backwards compatibility but may cause SSR issues
+ */
+export const supabase =
+  typeof window !== 'undefined' ? getSupabaseClient() : ({} as SupabaseClient);
