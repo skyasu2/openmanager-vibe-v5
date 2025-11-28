@@ -162,13 +162,11 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           cardBorder: theme.border, // 상태별 테두리
           cardStyle: {
             backgroundColor: 'transparent', // Tailwind CSS로 배경 처리
-            borderColor: 'transparent', // Tailwind CSS로 테두리 처리
             color: 'inherit',
           },
 
           // 호버 효과 - 상태별 색상 반영
           hoverStyle: {
-            borderColor: 'transparent',
             boxShadow:
               safeServer.status === 'online' // 🔧 수정: normalizedStatus → safeServer.status
                 ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(16, 185, 129, 0.125)'
@@ -209,11 +207,9 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
           cardBorder: 'border-gray-200',
           cardStyle: {
             backgroundColor: 'transparent',
-            borderColor: 'transparent',
             color: 'inherit',
           },
           hoverStyle: {
-            borderColor: 'transparent',
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
           },
           statusColor: { backgroundColor: '#f3f4f6', color: '#374151' },
@@ -388,7 +384,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     return (
       <button
         type="button"
-        className={`md3-state-layer md3-card-hover group relative w-full cursor-pointer overflow-hidden rounded-2xl border-2 text-left ${statusTheme.cardBg} ${statusTheme.cardBorder} ${variantStyles.container} focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:ring-offset-2`}
+        className={`md3-state-layer md3-card-hover group relative w-full cursor-pointer overflow-hidden rounded-2xl border text-left shadow-sm ${statusTheme.cardBg} ${statusTheme.cardBorder} ${variantStyles.container} focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:ring-offset-2`}
         style={{
           ...statusTheme.cardStyle,
           transition: `all ${'300ms'} ${'cubic-bezier(0.2, 0.0, 0, 1.0)'}`,
