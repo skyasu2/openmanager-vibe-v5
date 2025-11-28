@@ -120,7 +120,10 @@ export async function openAiSidebar(
 
   // 사이드바가 닫혀있으면 버튼을 찾아서 클릭
   let trigger: Locator | null = null;
+  const attemptedButtonSelectors: string[] = [];
+
   for (const selector of buttonSelectors) {
+    attemptedButtonSelectors.push(selector);
     const candidate = page.locator(selector).first();
     const isVisible = await candidate
       .isVisible({ timeout: TIMEOUTS.MODAL_DISPLAY })
@@ -133,7 +136,9 @@ export async function openAiSidebar(
 
   if (!trigger) {
     throw new Error(
-      `AI 토글 버튼을 찾을 수 없습니다. 시도한 셀렉터: ${buttonSelectors.join(', ')}`
+      `AI 토글 버튼을 찾을 수 없습니다.\n` +
+        `페이지: ${page.url()}\n` +
+        `시도한 셀렉터: ${attemptedButtonSelectors.join(', ')}`
     );
   }
 
@@ -143,7 +148,10 @@ export async function openAiSidebar(
     return trigger;
   }
 
+  const attemptedSidebarSelectors: string[] = [];
+
   for (const selector of sidebarSelectors) {
+    attemptedSidebarSelectors.push(selector);
     const sidebar = page.locator(selector).first();
     const isVisible = await sidebar
       .isVisible({ timeout: waitTimeout })
@@ -153,5 +161,9 @@ export async function openAiSidebar(
     }
   }
 
-  throw new Error('AI 사이드바가 나타나지 않았습니다.');
+  throw new Error(
+    `AI 사이드바가 나타나지 않았습니다.\n` +
+      `페이지: ${page.url()}\n` +
+      `시도한 셀렉터: ${attemptedSidebarSelectors.join(', ')}`
+  );
 }
