@@ -16,19 +16,14 @@
 
 import React, { useCallback, useMemo } from 'react'; // 🧪 테스트 환경에서 JSX 트랜스폼을 위해 명시적 import 필요
 import {
-  AlertCircle,
-  CheckCircle2,
   Clock,
   MapPin,
-  Server,
-  Database,
-  Globe,
   HardDrive,
-  Archive,
   ChevronDown,
   ChevronUp,
   Activity,
   Zap,
+  Globe,
 } from 'lucide-react';
 import { memo, useEffect, useState, useRef, type FC, Fragment } from 'react';
 
@@ -46,6 +41,7 @@ import ServerCardErrorBoundary from '../error/ServerCardErrorBoundary';
 import { useFixed24hMetrics } from '@/hooks/useFixed24hMetrics';
 import { getServerStatusTheme, LAYOUT } from '../../styles/design-constants';
 import { Sparkline } from '../shared/Sparkline';
+import { useSafeServer } from '@/hooks/useSafeServer';
 
 export interface ImprovedServerCardProps {
   server: ServerType;
@@ -64,32 +60,11 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
     showRealTimeUpdates = true,
     enableProgressiveDisclosure = true,
   }) => {
-    // 🛡️ 5층 방어 시스템 Layer 1: 서버 객체 존재성 검증 (베르셀 서버리스 환경 대응)
-    // TypeError: Cannot read properties of undefined (reading 'length') 완전 방지
-    // 🛡️ 5층 방어 시스템 Layer 2: 필수 서버 속성 안전성 검증
-    const safeServer = useMemo(
-      () => ({
-        id: server?.id || 'unknown',
-        name: server?.name || '알 수 없는 서버',
-        status: server?.status || 'unknown', // 🔧 수정: 'offline' → 'unknown' (기본값 변경)
-        type: (server.type || server.role || 'worker') as ServerType['role'],
-        location: server.location || '서울',
-        os: server.os || 'Ubuntu 22.04',
-        ip: server.ip || '192.168.1.1',
-        uptime: server.uptime || 0,
-        cpu: typeof server.cpu === 'number' ? server.cpu : 50,
-        memory: typeof server.memory === 'number' ? server.memory : 50,
-        disk: typeof server.disk === 'number' ? server.disk : 30,
-        network: typeof server.network === 'number' ? server.network : 25,
-        alerts: server.alerts || 0,
-        services: Array.isArray(server.services) ? server.services : [],
-        lastUpdate: server.lastUpdate || new Date(),
-      }),
-      [server]
-    );
+    // 🛡️ 5층 방어 시스템 (Hook으로 분리됨)
+    const { safeServer, statusTheme, serverIcon, osIcon } =
+      useSafeServer(server);
 
     // 🚀 성능 추적 활성화 (개발환경 전용)
-
     const [isHovered, setIsHovered] = useState(false);
     const [showSecondaryInfo, setShowSecondaryInfo] = useState(false);
     const [showTertiaryInfo, setShowTertiaryInfo] = useState(false);
@@ -97,7 +72,7 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
 
     // 🎯 24시간 고정 데이터 + 1분 미세 변동 (KST 동기화)
     const { currentMetrics, historyData } = useFixed24hMetrics(
-      server.id,
+      safeServer.id,
       60000
     ); // 1분 간격 업데이트
 
@@ -146,153 +121,6 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
         isMountedRef.current = false;
       };
     }, []);
-
-    // ✅ 실시간 메트릭 업데이트는 useFixed24hMetrics 훅에서 자동 처리됨
-    // 기존 setInterval 로직 제거 (24시간 고정 데이터 시스템으로 대체)
-
-    // 🎨 Material Design 3 토큰 기반 서버 상태별 테마 (5층 방어 시스템 적용)
-    const statusTheme = useMemo(() => {
-      try {
-        // 서버 상태를 Material Design 3 표준 상태로 매핑 (베르셀 환경 안전성)
-        const theme = getServerStatusTheme(safeServer.status); // 🔧 수정: 타입 어설션 (타입 통합 호환성)
-
-        return {
-          // Material Design 3 Surface 기반 배경 - 상태별 색상 적용
-          cardBg: theme.background, // 상태별 배경 그라데이션
-          cardBorder: theme.border, // 상태별 테두리
-          cardStyle: {
-            backgroundColor: 'transparent', // Tailwind CSS로 배경 처리
-            color: 'inherit',
-          },
-
-          // 호버 효과 - 상태별 색상 반영
-          hoverStyle: {
-            boxShadow:
-              safeServer.status === 'online' // 🔧 수정: normalizedStatus → safeServer.status
-                ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(16, 185, 129, 0.125)'
-                : safeServer.status === 'warning'
-                  ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(245, 158, 11, 0.125)'
-                  : '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(239, 68, 68, 0.125)',
-          },
-
-          // 상태 표시 - design-constants 사용
-          statusColor: theme.statusColor,
-          statusIcon:
-            safeServer.status === 'online' ? ( // 🔧 수정: normalizedStatus → safeServer.status
-              <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-            ) : (
-              <AlertCircle className="h-4 w-4" aria-hidden="true" />
-            ),
-          statusText:
-            safeServer.status === 'online' // 🔧 수정: normalizedStatus → safeServer.status
-              ? '정상'
-              : safeServer.status === 'warning'
-                ? '경고'
-                : '심각',
-
-          // 실시간 펄스 - 상태별 색상
-          pulse: {
-            backgroundColor: theme.accentColor,
-          },
-
-          // 액센트 색상 - 상태별 색상
-          accent: {
-            color: theme.accentColor,
-          },
-        };
-      } catch (error) {
-        console.error('⚠️ statusTheme 생성 실패, 기본 테마 사용', error);
-        return {
-          cardBg: 'bg-gray-50',
-          cardBorder: 'border-gray-200',
-          cardStyle: {
-            backgroundColor: 'transparent',
-            color: 'inherit',
-          },
-          hoverStyle: {
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-          },
-          statusColor: { backgroundColor: '#f3f4f6', color: '#374151' },
-          statusIcon: <AlertCircle className="h-4 w-4" aria-hidden="true" />,
-          statusText: '오류',
-          pulse: { backgroundColor: '#6b7280' },
-          accent: { color: '#6b7280' },
-        };
-      }
-    }, [safeServer.status]); // 상태별 의존성 최적화 (5층 방어 시스템 적용)
-
-    // 🚀 서버 타입별 아이콘 메모이제이션 최적화 (5층 방어 시스템 적용)
-    const serverIcon = useMemo(() => {
-      try {
-        switch (safeServer.type) {
-          case 'web':
-            return <Globe className="h-5 w-5" aria-hidden="true" />;
-          case 'database':
-            return <Database className="h-5 w-5" aria-hidden="true" />;
-          case 'storage':
-            return <HardDrive className="h-5 w-5" aria-hidden="true" />;
-          case 'backup':
-            return <Archive className="h-5 w-5" aria-hidden="true" />;
-          case 'app':
-          default:
-            return <Server className="h-5 w-5" aria-hidden="true" />;
-        }
-      } catch (error) {
-        console.error('⚠️ serverIcon 생성 실패, 기본 아이콘 사용', error);
-        return <Server className="h-5 w-5" aria-hidden="true" />;
-      }
-    }, [safeServer.type]);
-
-    // 🚀 OS별 아이콘/이모지 메모이제이션 최적화 (5층 방어 시스템 적용)
-    const osIcon = useMemo(() => {
-      try {
-        const os = (safeServer.os || '').toLowerCase();
-
-        if (
-          os.includes('ubuntu') ||
-          os.includes('debian') ||
-          os.includes('linux')
-        ) {
-          return (
-            <span
-              className="text-base"
-              title={safeServer.os}
-              aria-label={`운영체제: ${safeServer.os}`}
-            >
-              🐧
-            </span>
-          );
-        } else if (
-          os.includes('centos') ||
-          os.includes('red hat') ||
-          os.includes('rhel')
-        ) {
-          return (
-            <span
-              className="text-base"
-              title={safeServer.os}
-              aria-label={`운영체제: ${safeServer.os}`}
-            >
-              🎩
-            </span>
-          );
-        } else if (os.includes('windows')) {
-          return (
-            <span
-              className="text-base"
-              title={safeServer.os}
-              aria-label={`운영체제: ${safeServer.os}`}
-            >
-              🪟
-            </span>
-          );
-        }
-        return null;
-      } catch (error) {
-        console.error('⚠️ osIcon 생성 실패', error);
-        return null;
-      }
-    }, [safeServer.os]);
 
     // Material Design 3 배리언트별 스타일 (Typography 토큰 기반) - 메모이제이션 최적화
     const variantStyles = useMemo(() => {
@@ -423,7 +251,15 @@ const ImprovedServerCardInner: FC<ImprovedServerCardProps> = memo(
                 >
                   {safeServer.name}
                 </h3>
-                {osIcon}
+                {osIcon && (
+                  <span
+                    className="text-base"
+                    title={safeServer.os}
+                    aria-label={`운영체제: ${safeServer.os}`}
+                  >
+                    {osIcon}
+                  </span>
+                )}
               </div>
               <div
                 className={`flex items-center gap-2 ${'text-sm font-medium'}`}
