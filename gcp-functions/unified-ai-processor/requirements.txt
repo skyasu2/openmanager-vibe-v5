@@ -9,6 +9,10 @@ numpy==1.26.4
 scikit-learn==1.5.2
 pandas==2.2.3
 
+# Networking & Caching (Required for Orchestration)
+httpx==0.27.0
+cachetools==5.3.3
+
 # NLP
 konlpy==0.6.0
 soynlp==0.0.493

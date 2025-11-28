@@ -6,13 +6,14 @@
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/api-auth';
 import { analyzeKoreanNLP } from '@/lib/gcp/gcp-functions-client';
 import { getErrorMessage } from '@/types/type-utils';
 import debug from '@/utils/debug';
 
 export const runtime = 'nodejs';
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest) => {
   try {
     // 요청 파싱
     const body = await request.json();
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * OPTIONS 요청 처리 (CORS)

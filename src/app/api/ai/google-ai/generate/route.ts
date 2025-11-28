@@ -8,6 +8,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { createApiRoute } from '@/lib/api/zod-middleware';
+import { withAuth } from '@/lib/auth/api-auth';
 import {
   GoogleAIGenerateRequestSchema,
   GoogleAIGenerateResponseSchema,
@@ -276,7 +277,7 @@ const postHandler = createApiRoute()
     };
   });
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest) => {
   try {
     const response = await postHandler(request);
     const responseData = await response.json();
@@ -354,7 +355,7 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * 📊 Google AI 서비스 상태 확인
@@ -389,7 +390,7 @@ const getHandler = createApiRoute()
     };
   });
 
-export async function GET(_request: NextRequest) {
+export const GET = withAuth(async (_request: NextRequest) => {
   try {
     const response = await getHandler(_request);
     return NextResponse.json(response, {
@@ -408,4 +409,4 @@ export async function GET(_request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

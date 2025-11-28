@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getCachedData, setCachedData } from '@/lib/cache/cache-helper';
+import { withAuth } from '@/lib/auth/api-auth';
 import crypto from 'crypto';
 
 export const runtime = 'nodejs';
@@ -344,7 +345,7 @@ function performMLTraining(
   };
 }
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest) => {
   try {
     const supabase = await createClient();
     const body: TrainRequest = await request.json();
@@ -447,4 +448,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
