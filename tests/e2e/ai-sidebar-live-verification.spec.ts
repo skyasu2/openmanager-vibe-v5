@@ -41,8 +41,10 @@ test.describe('AI 사이드바 실시간 검증 (Vercel)', () => {
     // /system-boot 로딩 페이지로 이동 대기 (3초 카운트다운 후)
     await page.waitForURL('**/system-boot', { timeout: 10000 });
 
-    // 로딩 화면 완료 후 /dashboard로 자동 전환 대기 (최대 15초)
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    // 로딩 화면 완료 후 /dashboard로 자동 전환 대기 (Vercel Cold Start 대응)
+    await page.waitForURL('**/dashboard', {
+      timeout: TIMEOUTS.DASHBOARD_LOAD,
+    });
     await page.waitForLoadState('networkidle');
   });
 
@@ -275,8 +277,10 @@ test.describe('AI 사이드바 성능 테스트', () => {
     // /system-boot 로딩 페이지로 이동 대기 (3초 카운트다운 후)
     await page.waitForURL('**/system-boot', { timeout: 10000 });
 
-    // 로딩 화면 완료 후 /dashboard로 자동 전환 대기 (최대 15초)
-    await page.waitForURL('**/dashboard', { timeout: 15000 });
+    // 로딩 화면 완료 후 /dashboard로 자동 전환 대기 (Vercel Cold Start 대응)
+    await page.waitForURL('**/dashboard', {
+      timeout: TIMEOUTS.DASHBOARD_LOAD,
+    });
     await page.waitForLoadState('networkidle');
 
     await openAiSidebar(page);
