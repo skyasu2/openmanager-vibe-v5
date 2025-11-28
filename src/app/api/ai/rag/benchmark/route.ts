@@ -9,6 +9,7 @@ import { PostgresVectorDB } from '@/services/ai/postgres-vector-db';
 import { embeddingService } from '@/services/ai/embedding-service';
 import { getSupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
 import { createClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/auth/api-auth';
 import debug from '@/utils/debug';
 
 // Interface for PostgreSQL index information
@@ -17,7 +18,7 @@ interface PgIndex {
   indexdef?: string;
 }
 
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request: NextRequest) => {
   try {
     const supabase = await createClient();
     const postgresVectorDB = new PostgresVectorDB(supabase);
@@ -133,7 +134,7 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 /**
  * 성능 개선 권장사항 생성

@@ -8,18 +8,7 @@
  * - Rate limiting
  */
 
-import type {
-  Result,
-  GCPFunctionsClientConfig,
-  KoreanNLPRequest,
-  KoreanNLPResponse,
-  MLAnalyticsRequest,
-  MLAnalyticsResponse,
-  UnifiedAIRequest,
-} from './gcp-functions.types';
-
-// UnifiedAIResponse는 별도 파일에서 import
-import type { UnifiedAIResponse } from '@/services/ai/formatters/unified-response-formatter';
+import type { Result, GCPFunctionsClientConfig } from './gcp-functions.types';
 
 import { GCPFunctionErrorCode } from './gcp-functions.types';
 
@@ -191,55 +180,15 @@ export function getGCPFunctionsClient(): GCPFunctionsClient {
   if (!globalClient) {
     const baseUrl = process.env.NEXT_PUBLIC_GCP_FUNCTIONS_URL;
     if (!baseUrl || baseUrl.includes('your-project')) {
-      throw new Error(
-        '⚠️ GCP Functions URL이 설정되지 않았습니다. .env.local을 확인하세요.'
-      );
+      // throw new Error(
+      //   '⚠️ GCP Functions URL이 설정되지 않았습니다. .env.local을 확인하세요.'
+      // );
+      console.warn('⚠️ GCP Functions URL이 설정되지 않았습니다.');
     }
     globalClient = new GCPFunctionsClient();
     console.log('🌐 실제 GCP Functions 사용 중');
   }
   return globalClient;
-}
-
-/**
- * Korean NLP 분석 헬퍼 (직접 호출)
- */
-export async function analyzeKoreanNLP(
-  query: string,
-  context?: unknown
-): Promise<Result<KoreanNLPResponse>> {
-  const client = getGCPFunctionsClient();
-  return client.callFunction<KoreanNLPRequest, KoreanNLPResponse>(
-    'enhanced-korean-nlp',
-    { query, context }
-  );
-}
-
-/**
- * ML Analytics 분석 헬퍼 (직접 호출)
- */
-export async function analyzeMLMetrics(
-  metrics: unknown[],
-  context?: { analysis_type?: string; [key: string]: unknown }
-): Promise<Result<MLAnalyticsResponse>> {
-  const client = getGCPFunctionsClient();
-  return client.callFunction<MLAnalyticsRequest, MLAnalyticsResponse>(
-    'ml-analytics-engine',
-    { metrics, context }
-  );
-}
-
-/**
- * 통합 AI 처리 헬퍼 (직접 호출)
- */
-export async function processUnifiedAI(
-  request: UnifiedAIRequest
-): Promise<Result<UnifiedAIResponse>> {
-  const client = getGCPFunctionsClient();
-  return client.callFunction<UnifiedAIRequest, UnifiedAIResponse>(
-    'unified-ai-processor',
-    request
-  );
 }
 
 /**

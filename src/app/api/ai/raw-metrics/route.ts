@@ -4,6 +4,7 @@ import {
   safeResponseTime,
   safeConnections,
 } from '@/lib/utils/type-converters';
+import { withAuth } from '@/lib/auth/api-auth';
 import fs from 'fs';
 import path from 'path';
 
@@ -299,7 +300,7 @@ function getBaseMetricsForType(type: string): {
  * 🤖 AI Raw Metrics API Endpoint
  * 순수 메트릭만 제공, 시나리오 힌트 완전 차단
  */
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);
     const limit = Math.min(
@@ -391,4 +392,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
