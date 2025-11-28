@@ -26,17 +26,14 @@ WSL 재설치 전 현재 설치된 모든 패키지를 백업합니다.
 ```bash
 # 스냅샷 생성 스크립트 실행
 # Git 리포지토리 최상위 디렉토리로 이동 (동적 경로)
-cd "$(git rev-parse --show-toplevel)" || {
-  echo "❌ Git 리포지토리가 아닙니다. 프로젝트 디렉토리에서 실행하세요."
-  exit 1
-}
-chmod +x scripts/environment/create-wsl-snapshot.sh
-./scripts/environment/create-wsl-snapshot.sh
+cd "$(git rev-parse --show-toplevel)" && \
+  chmod +x scripts/environment/create-wsl-snapshot.sh && \
+  ./scripts/environment/create-wsl-snapshot.sh
 ```
 
 **생성되는 파일** (`$HOME/wsl-restore-backup-YYYYMMDD_HHMMSS/`):
 
-**참고**: 백업 디렉토리는 타임스탬프 기반으로 자동 생성됩니다 (예: `wsl-restore-backup-20251128_211708`)
+**참고**: 백업 디렉토리는 `wsl-restore-backup-YYYYMMDD_HHMMSS` 형식으로 타임스탬프 기반 생성됩니다. 실제 경로는 스크립트 실행 시 출력되는 메시지를 확인하세요.
 
 - `apt-packages.txt` - apt 패키지 목록 (1076개)
 - `npm-global-packages.json` - npm 글로벌 패키지 (8개)

@@ -5,8 +5,8 @@
 # 엄격 모드: 에러 발생 시 즉시 종료
 set -euo pipefail
 
-# 에러 발생 시 자동 처리
-trap 'echo "❌ 스냅샷 생성 중 오류 발생 (라인: $LINENO)"; exit 1' ERR
+# 에러 발생 시 자동 처리 (실패한 명령어 표시)
+trap 'echo "❌ 스냅샷 생성 중 오류 발생 (라인: $LINENO, 명령어: $BASH_COMMAND)"; exit 1' ERR
 
 # 타임스탬프 기반 백업 디렉토리 생성
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
