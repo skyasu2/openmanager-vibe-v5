@@ -60,14 +60,21 @@ else
 fi
 
 # 2. 프로덕션 빌드 검증 (CRITICAL - Vercel 배포 전 로컬 검증, 타입 체크 포함)
+# 2. 프로덕션 빌드 검증 (CRITICAL - Vercel 배포 전 로컬 검증, 타입 체크 포함)
 echo "🏗️ Build validation..."
-npm run build || {
-  echo "❌ Build failed - push blocked"
-  echo "💡 Fix: npm run build"
-  echo "⚠️  CRITICAL: Build must succeed before push"
-  echo "   (Prevents Vercel deployment failures)"
-  exit 1
-}
+if [ "${SKIP_BUILD:-false}" = "true" ]; then
+  echo "⚪ Build validation skipped (SKIP_BUILD=true)"
+  echo "⚠️  WARNING: Skipping build validation may lead to deployment failures"
+else
+  npm run build || {
+    echo "❌ Build failed - push blocked"
+    echo "💡 Fix: npm run build"
+    echo "⚠️  CRITICAL: Build must succeed before push"
+    echo "   (Prevents Vercel deployment failures)"
+    echo "   To bypass (emergency only): SKIP_BUILD=true git push"
+    exit 1
+  }
+fi
 
 # 3. 환경 변수 검사 (CRITICAL - 배포 안전성)
 echo "🔐 Environment variables check..."

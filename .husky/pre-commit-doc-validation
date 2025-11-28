@@ -94,8 +94,14 @@ if [[ ${#WARNINGS[@]} -gt 0 ]]; then
   echo -e "   - 문서 갱신: ./scripts/docs/update-changelog.sh"
   echo -e "   - README 업데이트: 주요 변경사항 반영"
   echo ""
-  echo -e "${YELLOW}계속 진행하려면 Enter를 누르세요...${NC}"
-  read -r
+
+  # CI/CD 환경 자동 통과 (인터랙티브 모드 제거)
+  if [[ -t 0 ]] && [[ -z "${CI:-}" ]]; then
+    echo -e "${YELLOW}계속 진행하려면 Enter를 누르세요 (5초 후 자동 진행)...${NC}"
+    read -r -t 5 || true
+  else
+    echo -e "${YELLOW}CI/CD 환경 감지: 자동 진행${NC}"
+  fi
 fi
 
 echo -e "${GREEN}✅ 문서/테스트 검증 완료!${NC}"

@@ -72,9 +72,10 @@ for TYPE in feat fix docs style refactor perf test chore; do
     echo "" >> "$TEMP_CHANGELOG"
 
     while IFS='|' read -r HASH MSG AUTHOR DATE; do
-      # 커밋 메시지에서 타입 prefix 제거
-      CLEAN_MSG=$(echo "$MSG" | sed "s/^${TYPE}[:(] //")
-      echo "- $CLEAN_MSG ([${HASH}](https://github.com/your-username/openmanager-vibe-v5/commit/${HASH}))" >> "$TEMP_CHANGELOG"
+      # 커밋 메시지에서 타입 prefix 제거 (Shell Injection 방어)
+      # shellcheck disable=SC2001
+      CLEAN_MSG=$(echo "$MSG" | sed "s/^${TYPE}[:(] //" | sed 's/[`$\\]/\\&/g')
+      printf "- %s ([%s](https://github.com/your-username/openmanager-vibe-v5/commit/%s))\n" "$CLEAN_MSG" "$HASH" "$HASH" >> "$TEMP_CHANGELOG"
     done <<< "$SECTION_COMMITS"
 
     echo "" >> "$TEMP_CHANGELOG"

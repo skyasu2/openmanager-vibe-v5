@@ -345,9 +345,12 @@ git push origin main
 git add .
 git commit -m "✨ feat: 새로운 기능 추가"
 # → 자동으로 CHANGELOG.md 업데이트
+# 💡 Tip: 소스 변경 시 문서/테스트가 없으면 경고가 표시됩니다 (Soft Warning)
 
 # 푸시 (pre-push 검증 포함)
 git push origin main
+# 💡 Tip: 긴급 수정 시 빌드 검증 건너뛰기:
+# SKIP_BUILD=true git push origin main
 ```
 
 ## 🔧 문제 해결

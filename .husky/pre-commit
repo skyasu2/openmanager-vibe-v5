@@ -5,6 +5,10 @@
 
 set -e
 
+# 문서/테스트 검증 (Soft Warning)
+# 소스 변경 시 문서/테스트 업데이트 여부 확인
+./.husky/pre-commit-doc-validation || true
+
 # lint-staged: ESLint + Prettier (fast, staged files only)
 echo "🔍 Running lint-staged (ESLint + Prettier)..."
 npx lint-staged || {
