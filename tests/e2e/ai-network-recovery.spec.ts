@@ -60,14 +60,20 @@ test.describe('AI 사이드바 네트워크 오류 복구 (하루 2-3회 수동 
     await page.waitForTimeout(TIMEOUTS.DOM_UPDATE);
 
     // 에러 메시지 또는 네트워크 오류 표시 확인
-    // (실제 구현에 따라 에러 메시지가 표시될 수 있음)
+    // (선택적: 에러 메시지가 없을 수도 있음)
     const errorMessage = page.locator(
       'text=/네트워크|연결|오류|error|offline/i'
     );
-    await errorMessage.isVisible().catch(() => false);
+    const hasErrorMessage = await errorMessage
+      .isVisible({ timeout: 3000 })
+      .catch(() => false);
 
-    // 에러가 표시되거나, 메시지가 전송되지 않았는지만 확인
-    // (네트워크 차단 상태에서는 응답이 없어야 함)
+    if (!hasErrorMessage) {
+      // eslint-disable-next-line no-undef
+      console.log(
+        '⚠️ 네트워크 오류 메시지 미표시 (UI 구현에 따라 정상일 수 있음)'
+      );
+    }
 
     // 온라인 모드로 복구
     await context.setOffline(false);
@@ -121,15 +127,18 @@ test.describe('AI 사이드바 네트워크 오류 복구 (하루 2-3회 수동 
 
     await page.waitForTimeout(TIMEOUTS.DOM_UPDATE);
 
-    // 로딩 인디케이터 또는 메시지 전송 상태 확인
-    // (실제 구현에 따라 로딩 스피너가 표시될 수 있음)
+    // 로딩 인디케이터 또는 메시지 전송 상태 확인 (선택적)
     const loadingIndicator = page.locator(
       '[data-testid="loading"], .loading, .spinner'
     );
-    await loadingIndicator.isVisible().catch(() => false);
+    const hasLoadingIndicator = await loadingIndicator
+      .isVisible({ timeout: 2000 })
+      .catch(() => false);
 
-    // 로딩 상태가 표시되거나, 메시지 전송이 진행 중임을 확인
-    // (실제로는 UI 구현에 따라 다를 수 있음)
+    if (!hasLoadingIndicator) {
+      // eslint-disable-next-line no-undef
+      console.log('⚠️ 로딩 인디케이터 미표시 (UI 구현에 따라 정상일 수 있음)');
+    }
   });
 
   test('4. API 엔드포인트 실패 시 에러 핸들링', async ({ page }) => {
@@ -151,14 +160,18 @@ test.describe('AI 사이드바 네트워크 오류 복구 (하루 2-3회 수동 
 
     await page.waitForTimeout(TIMEOUTS.DOM_UPDATE);
 
-    // 에러 메시지 표시 확인
+    // 에러 메시지 표시 확인 (선택적)
     const errorMessage = page.locator(
       'text=/서버 오류|에러|실패|error|failed/i'
     );
-    await errorMessage.isVisible().catch(() => false);
+    const hasErrorMessage = await errorMessage
+      .isVisible({ timeout: 3000 })
+      .catch(() => false);
 
-    // 에러가 표시되거나, 메시지가 전송되지 않았는지만 확인
-    // (실제 구현에 따라 에러 처리 방식이 다를 수 있음)
+    if (!hasErrorMessage) {
+      // eslint-disable-next-line no-undef
+      console.log('⚠️ 서버 오류 메시지 미표시 (UI 구현에 따라 정상일 수 있음)');
+    }
   });
 
   test('5. 재시도 메커니즘 확인 (선택적)', async ({ page }) => {

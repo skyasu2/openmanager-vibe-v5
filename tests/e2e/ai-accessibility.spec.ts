@@ -43,48 +43,16 @@ test.describe('AI 사이드바 접근성 (하루 2-3회 수동 실행)', () => {
   });
 
   test('1. 키보드로 AI 사이드바 열기 (Tab + Enter)', async ({ page }) => {
-    // AI 사이드바 버튼에 포커스 이동
-    await page.keyboard.press('Tab');
-
-    // AI 사이드바 버튼이 포커스되었는지 확인
+    // AI 사이드바 버튼 locator
     const aiButton = page.locator('[data-testid="ai-assistant"]');
-    const isFocused = await aiButton.evaluate(
-      // eslint-disable-next-line no-undef
-      (el) => el === document.activeElement
-    );
 
-    if (isFocused) {
-      // Enter 키로 사이드바 열기
-      await page.keyboard.press('Enter');
+    // Playwright 내장 메서드로 포커스 및 클릭
+    await aiButton.focus();
+    await aiButton.press('Enter');
 
-      await page.waitForTimeout(TIMEOUTS.DOM_UPDATE);
-
-      // 사이드바가 열렸는지 확인
-      const sidebar = page.locator('[data-testid="ai-sidebar"]');
-      expect(await sidebar.isVisible()).toBe(true);
-    } else {
-      // Tab 키를 여러 번 눌러 AI 버튼 찾기
-      for (let i = 0; i < 10; i++) {
-        await page.keyboard.press('Tab');
-        const currentFocused = await aiButton.evaluate(
-          // eslint-disable-next-line no-undef
-          (el) => el === document.activeElement
-        );
-        if (currentFocused) {
-          await page.keyboard.press('Enter');
-          break;
-        }
-      }
-
-      await page.waitForTimeout(TIMEOUTS.DOM_UPDATE);
-
-      // 사이드바 상태 확인 (열렸거나 이미 열려있음)
-      const sidebar = page.locator('[data-testid="ai-sidebar"]');
-      const isVisible = await sidebar.isVisible().catch(() => false);
-
-      // 테스트는 사이드바가 접근 가능한지만 확인
-      expect(isVisible || true).toBeTruthy();
-    }
+    // 사이드바가 열렸는지 검증
+    const sidebar = page.locator('[data-testid="ai-sidebar"]');
+    await expect(sidebar).toBeVisible({ timeout: TIMEOUTS.DOM_UPDATE });
   });
 
   test('2. ESC 키로 AI 사이드바 닫기', async ({ page }) => {
