@@ -17,6 +17,8 @@ import { getGoogleAIKey } from '@/lib/ai/google-ai-manager';
 import { loadHourlyScenarioData } from '@/services/scenario/scenario-loader';
 import { SupabaseRAGEngine } from '@/services/ai/supabase-rag-engine';
 import { createClient } from '@/lib/supabase/server';
+import { NextRequest } from 'next/server';
+import { withAuth } from '@/lib/auth/api-auth';
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -682,7 +684,7 @@ const generateInsight = tool({
 /**
  * POST 핸들러 - Vercel AI SDK streamText 사용
  */
-export async function POST(req: Request) {
+export const POST = withAuth(async (req: NextRequest) => {
   try {
     const { messages } = await req.json();
     const apiKey = getGoogleAIKey();
@@ -744,4 +746,4 @@ export async function POST(req: Request) {
     console.error('❌ AI 스트리밍 처리 실패:', error);
     return new Response('AI streaming failed', { status: 500 });
   }
-}
+});
