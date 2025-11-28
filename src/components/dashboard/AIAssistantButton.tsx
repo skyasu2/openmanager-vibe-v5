@@ -36,7 +36,7 @@ interface AIAssistantButtonProps {
 export const AIAssistantButton = memo(function AIAssistantButton({
   isOpen,
   isEnabled,
-  onClick
+  onClick,
 }: AIAssistantButtonProps) {
   // 🔒 Hydration 불일치 방지를 위한 클라이언트 전용 상태
   const [isMounted, setIsMounted] = useState(false);
@@ -58,7 +58,8 @@ export const AIAssistantButton = memo(function AIAssistantButton({
         style={
           isMounted && (isOpen || isEnabled)
             ? {
-                background: 'linear-gradient(90deg, #8b5cf6, #ec4899, #06b6d4, #8b5cf6)',
+                background:
+                  'linear-gradient(90deg, #c084fc, #f472b6, #22d3ee, #c084fc)',
                 backgroundSize: '200% 200%',
                 animation: 'gradient-shift 4s ease-in-out infinite',
               }
@@ -81,7 +82,9 @@ export const AIAssistantButton = memo(function AIAssistantButton({
         )}
 
         <div className="relative flex items-center gap-2">
-          <div className={`h-5 w-5 ${isOpen || isEnabled ? 'text-white' : 'text-gray-600'}`}>
+          <div
+            className={`h-5 w-5 ${isOpen || isEnabled ? 'text-white' : 'text-gray-600'}`}
+          >
             <Bot className="h-5 w-5" />
           </div>
           <span className="hidden text-sm font-medium sm:inline">

@@ -1,0 +1,70 @@
+'use client';
+
+import React from 'react';
+import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
+import { AI_GRADIENT_STYLE } from '@/styles/design-constants';
+
+interface OpenManagerLogoProps {
+  /**
+   * 텍스트 색상 테마
+   * - 'dark': 어두운 배경용 (흰색 텍스트) - 메인 페이지
+   * - 'light': 밝은 배경용 (검은색 텍스트) - 대시보드
+   */
+  variant?: 'dark' | 'light';
+  /** 서브타이틀 표시 여부 */
+  showSubtitle?: boolean;
+  /** 추가 클래스 */
+  className?: string;
+}
+
+/**
+ * 🎨 OpenManager 로고 컴포넌트
+ *
+ * 메인 페이지와 대시보드에서 공통으로 사용되는 로고입니다.
+ * 시스템 상태(AI 모드, 시스템 시작 여부)에 따라 아이콘 배경 그라데이션이 동적으로 변경됩니다.
+ * 아이콘 없이 그라데이션 사각형만 표시합니다.
+ */
+export const OpenManagerLogo: React.FC<OpenManagerLogoProps> = ({
+  variant = 'dark',
+  showSubtitle = true,
+  className = '',
+}) => {
+  const { aiAgent, isSystemStarted } = useUnifiedAdminStore();
+
+  // 배경 그라데이션 로직 (상태 반응형)
+  const backgroundStyle = aiAgent.isEnabled
+    ? AI_GRADIENT_STYLE // AI 모드: 표준 AI 그라데이션 (Purple -> Pink -> Cyan)
+    : isSystemStarted
+      ? 'linear-gradient(135deg, #10b981, #059669)' // 시스템 시작: 에메랄드
+      : 'linear-gradient(135deg, #6b7280, #4b5563)'; // 정지: 회색
+
+  // 텍스트 색상 설정
+  const titleColor = variant === 'dark' ? 'text-white' : 'text-gray-900';
+  const subtitleColor = variant === 'dark' ? 'text-white/90' : 'text-gray-500';
+
+  return (
+    <div className={`flex items-center gap-3 ${className}`}>
+      {/* 아이콘 영역 (아이콘 제거됨 - 그라데이션 스퀘어 컨셉) */}
+      <div
+        className="relative flex h-10 w-10 items-center justify-center rounded-lg shadow-lg"
+        style={{ background: backgroundStyle }}
+      />
+
+      {/* 텍스트 영역 */}
+      <div className="text-left">
+        <h1 className={`text-xl font-bold ${titleColor}`}>OpenManager</h1>
+        {showSubtitle && (
+          <p className={`text-xs ${subtitleColor}`}>
+            {aiAgent.isEnabled && !isSystemStarted
+              ? 'AI 독립 모드'
+              : aiAgent.isEnabled && isSystemStarted
+                ? 'AI + 시스템 통합 모드'
+                : isSystemStarted
+                  ? '기본 모니터링'
+                  : '시스템 정지'}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};

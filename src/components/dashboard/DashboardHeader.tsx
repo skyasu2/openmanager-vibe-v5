@@ -11,6 +11,7 @@ import { RealTimeDisplay } from './RealTimeDisplay';
 import { SystemStatusBadge } from './SystemStatusBadge';
 import { AIAssistantButton } from './AIAssistantButton';
 import debug from '@/utils/debug';
+import { OpenManagerLogo } from '@/components/shared/OpenManagerLogo';
 
 // framer-motion 제거 - CSS 애니메이션 사용
 
@@ -65,7 +66,7 @@ const DashboardHeader = memo(function DashboardHeader({
 }: DashboardHeaderProps) {
   // 🔒 Hydration 불일치 방지를 위한 클라이언트 전용 상태
   const [isMounted, setIsMounted] = React.useState(false);
-  
+
   React.useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -118,16 +119,7 @@ const DashboardHeader = memo(function DashboardHeader({
             className="flex cursor-pointer items-center gap-3 transition-opacity hover:opacity-80"
             aria-label="홈으로 이동"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-pink-500 to-purple-600">
-              <i
-                className="fas fa-server text-sm text-white"
-                aria-hidden="true"
-              ></i>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">OpenManager</h1>
-              <p className="text-xs text-gray-500">AI 서버 모니터링</p>
-            </div>
+            <OpenManagerLogo variant="light" />
           </button>
         </div>
 

@@ -10,6 +10,7 @@ import {
   Server as ServerIcon,
   Zap,
 } from 'lucide-react';
+import { PAGE_BACKGROUNDS } from '@/styles/design-constants';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, type ComponentType, type FC } from 'react';
 import debug from '@/utils/debug';
@@ -189,7 +190,9 @@ export default function SystemBootClient() {
     };
 
     // 시스템 상태를 1초마다 체크 (API 호출 최적화)
-    const statusCheckInterval = setInterval(() => { void checkSystemStatus(); }, 1000);
+    const statusCheckInterval = setInterval(() => {
+      void checkSystemStatus();
+    }, 1000);
 
     // 초기 즉시 체크
     void checkSystemStatus();
@@ -278,14 +281,18 @@ export default function SystemBootClient() {
   // 클라이언트 렌더링이 준비되지 않았으면 로딩 표시
   if (!isClient) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+      <div
+        className={`flex min-h-screen items-center justify-center ${PAGE_BACKGROUNDS.DARK_PAGE_BG}`}
+      >
         <div className="text-white">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+    <div
+      className={`relative min-h-screen overflow-hidden ${PAGE_BACKGROUNDS.DARK_PAGE_BG}`}
+    >
       {/* 첫페이지와 동일한 웨이브 파티클 배경 효과 */}
       <div className="wave-particles"></div>
 

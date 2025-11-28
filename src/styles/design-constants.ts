@@ -5,7 +5,7 @@
  * Material Design 3 색상 체계 유지하면서 번들 크기 최소화
  */
 
-import type { ServerStatus } from '@/types/server-enums'; // 🔧 추가: Single Source of Truth
+import type { ServerStatus } from '../types/server-enums'; // 🔧 수정: 상대 경로로 변경 (모듈 해결)
 export type { ServerStatus }; // 🔧 re-export (타입 통합)
 
 // ===== 서버 상태별 색상 시스템 =====
@@ -147,6 +147,12 @@ export const LAYOUT = {
 // ===== 유틸리티 함수 =====
 // 🔧 수정: ServerStatus 타입은 server-enums에서 import (타입 통합)
 
+// 🎨 AI 관련 디자인 상수
+export const AI_GRADIENT_CLASSES =
+  'bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400';
+export const AI_GRADIENT_STYLE =
+  'linear-gradient(to right, #c084fc, #f472b6, #22d3ee)';
+
 export const getServerStatusTheme = (status: ServerStatus) => {
   return SERVER_STATUS_COLORS[status] || SERVER_STATUS_COLORS.unknown; // 🔧 수정: 기본값 'healthy' → 'unknown'
 };
@@ -157,3 +163,19 @@ export const getTypographyClass = (
 ) => {
   return TYPOGRAPHY[scale][size] || TYPOGRAPHY.body.medium;
 };
+
+// ===== 페이지 배경 시스템 =====
+export const PAGE_BACKGROUNDS = {
+  // 표준 다크 페이지 배경 (Slate-900 기반)
+  DARK_PAGE_BG: 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900',
+} as const;
+
+// ===== 버튼 스타일 시스템 =====
+export const BUTTON_STYLES = {
+  // 기본 액션 버튼 (GitHub 로그인 등)
+  primary:
+    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl border border-gray-600 bg-[#24292e] px-4 py-3 text-white shadow-xl transition-all duration-200 hover:bg-[#1a1e22] hover:shadow-2xl disabled:cursor-progress disabled:opacity-70',
+  // 강조 액션 버튼 (게스트 로그인 등)
+  accent:
+    'group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 text-white shadow-xl transition-all duration-200 hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl disabled:cursor-progress disabled:opacity-70',
+} as const;

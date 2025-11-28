@@ -3,7 +3,7 @@
  *
  * GitHub OAuth + 게스트 로그인 지원 + 원래 UI 구조 복원
  * 웨이브 파티클 배경, 고급 애니메이션, 카운트다운 시스템 복원
- * 
+ *
  * NOTE: 이 파일은 반드시 Client Component여야 합니다 (hooks 사용)
  */
 
@@ -12,15 +12,7 @@
 import { useSystemStatus } from '@/hooks/useSystemStatus';
 import { useUnifiedAdminStore } from '@/stores/useUnifiedAdminStore';
 import { useInitialAuth } from '@/hooks/useInitialAuth';
-import {
-  BarChart3,
-  Bot,
-  Loader2,
-  Play,
-  X,
-  LogIn,
-  Sparkles,
-} from 'lucide-react';
+import { BarChart3, Bot, Loader2, Play, X, LogIn } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import debug from '@/utils/debug';
@@ -31,7 +23,9 @@ import {
 } from '@/utils/vercel-optimization';
 import { renderTextWithAIGradient } from '@/utils/text-rendering';
 import UnifiedProfileHeader from '@/components/shared/UnifiedProfileHeader';
+import { OpenManagerLogo } from '@/components/shared/OpenManagerLogo';
 import FeatureCardsGrid from '@/components/home/FeatureCardsGrid';
+import { PAGE_BACKGROUNDS } from '@/styles/design-constants';
 import AuthLoadingUI from '@/components/shared/AuthLoadingUI';
 import {
   isGuestFullAccessEnabled,
@@ -67,13 +61,8 @@ function Home() {
   const guestSystemStartEnabled = isGuestSystemStartEnabled();
   const [isMounted, setIsMounted] = useState(false);
 
-  const {
-    isSystemStarted,
-    aiAgent,
-    startSystem,
-    stopSystem,
-    getSystemRemainingTime,
-  } = useUnifiedAdminStore();
+  const { isSystemStarted, startSystem, stopSystem, getSystemRemainingTime } =
+    useUnifiedAdminStore();
 
   const {
     status: multiUserStatus,
@@ -402,7 +391,7 @@ function Home() {
 
   return (
     <div
-      className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"
+      className={`min-h-screen ${PAGE_BACKGROUNDS.DARK_PAGE_BG}`}
       data-system-active={isSystemStarted ? 'true' : 'false'}
     >
       <div className="wave-particles"></div>
@@ -412,34 +401,7 @@ function Home() {
           onClick={() => router.push('/')}
           aria-label="홈으로 이동"
         >
-          <div
-            className="relative flex h-10 w-10 items-center justify-center rounded-lg shadow-lg"
-            style={{
-              background: aiAgent.isEnabled
-                ? 'linear-gradient(135deg, #a855f7, #ec4899)'
-                : isSystemStarted
-                  ? 'linear-gradient(135deg, #10b981, #059669)'
-                  : 'linear-gradient(135deg, #6b7280, #4b5563)',
-            }}
-          >
-            <Sparkles
-              className={`h-5 w-5 text-white ${aiAgent.isEnabled || isSystemStarted ? 'motion-safe:animate-pulse-glow' : ''}`}
-              strokeWidth={2.5}
-              aria-hidden="true"
-            />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-white">OpenManager</h1>
-            <p className="text-xs text-white/90">
-              {aiAgent.isEnabled && !isSystemStarted
-                ? 'AI 독립 모드'
-                : aiAgent.isEnabled && isSystemStarted
-                  ? 'AI + 시스템 통합 모드'
-                  : isSystemStarted
-                    ? '기본 모니터링'
-                    : '시스템 정지'}
-            </p>
-          </div>
+          <OpenManagerLogo variant="dark" />
         </button>
         <div className="flex items-center gap-3">
           <UnifiedProfileHeader />

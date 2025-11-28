@@ -6,6 +6,8 @@
 
 import React from 'react';
 
+import { AI_GRADIENT_CLASSES } from '@/styles/design-constants';
+
 /**
  * AI 단어에 그라데이션 애니메이션 적용
  *
@@ -28,7 +30,7 @@ export function renderTextWithAIGradient(
       return (
         <span
           key={index}
-          className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text font-bold text-transparent"
+          className={`${AI_GRADIENT_CLASSES} bg-clip-text font-bold text-transparent`}
           style={
             isMounted
               ? {
@@ -59,7 +61,7 @@ export function renderAIGradientWithAnimation(text: string): React.ReactNode {
       return (
         <span
           key={index}
-          className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-[length:200%_200%] animate-gradient-x bg-clip-text font-bold text-transparent"
+          className={`${AI_GRADIENT_CLASSES} animate-gradient-x bg-[length:200%_200%] bg-clip-text font-bold text-transparent`}
         >
           {part}
         </span>

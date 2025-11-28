@@ -7,7 +7,7 @@
 
 'use client';
 
-import { Sparkles, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import debug from '@/utils/debug';
@@ -21,6 +21,11 @@ import { authStateManager } from '@/lib/auth/auth-state-manager';
 
 // AI 텍스트 렌더링 유틸리티
 import { renderTextWithAIGradient } from '@/utils/text-rendering';
+import {
+  AI_GRADIENT_CLASSES,
+  PAGE_BACKGROUNDS,
+  BUTTON_STYLES,
+} from '@/styles/design-constants';
 
 interface GuestSessionData {
   sessionId: string;
@@ -327,18 +332,16 @@ export default function LoginClient() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black p-3 sm:p-4">
+    <div
+      className={`flex min-h-screen items-center justify-center ${PAGE_BACKGROUNDS.DARK_PAGE_BG} p-3 sm:p-4`}
+    >
       <div className="w-full max-w-md">
         {/* 헤더 */}
         <div className="mb-8 text-center">
-          {/* ✨ 개선된 로고: Sparkles 아이콘 + AI 그라데이션 애니메이션 */}
-          <div className="mx-auto mb-4 flex h-12 w-12 animate-gradient-x items-center justify-center rounded-2xl bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-[length:200%_200%] shadow-lg shadow-purple-500/50 sm:h-16 sm:w-16">
-            <Sparkles
-              className="h-6 w-6 text-white sm:h-9 sm:w-9"
-              strokeWidth={2.5}
-              aria-hidden="true"
-            />
-          </div>
+          {/* ✨ 개선된 로고: Sparkles 아이콘 제거 -> 그라데이션 스퀘어 컨셉 */}
+          <div
+            className={`mx-auto mb-4 flex h-12 w-12 animate-gradient-x items-center justify-center rounded-2xl ${AI_GRADIENT_CLASSES} bg-[length:200%_200%] shadow-lg shadow-purple-500/50 sm:h-16 sm:w-16`}
+          />
           <h1 className="mb-2 text-3xl font-bold text-white">OpenManager</h1>
           <p className="text-base text-gray-300">
             {renderTextWithAIGradient('AI 서버 모니터링 시스템', isClient)}
@@ -386,7 +389,7 @@ export default function LoginClient() {
                 void handleGitHubLogin();
               }}
               disabled={isLoading}
-              className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-lg border border-gray-600 bg-[#24292e] px-4 py-3 text-white shadow-lg transition-all duration-200 hover:bg-[#1a1e22] hover:shadow-xl disabled:cursor-progress disabled:opacity-70"
+              className={BUTTON_STYLES.primary}
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'github' && <LoadingOverlay type="github" />}
@@ -433,7 +436,7 @@ export default function LoginClient() {
                 void handleGuestLogin();
               }}
               disabled={isLoading}
-              className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 text-white shadow-lg transition-all duration-200 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl disabled:cursor-progress disabled:opacity-70"
+              className={BUTTON_STYLES.accent}
             >
               {/* 로딩 오버레이 */}
               {loadingType === 'guest' && <LoadingOverlay type="guest" />}

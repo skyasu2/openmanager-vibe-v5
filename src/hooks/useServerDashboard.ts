@@ -7,14 +7,8 @@ import {
   getDisplayModeConfig,
   type ServerDisplayMode,
 } from '@/config/display-config';
-import type {
-  Server,
-  Service,
-  ServerRole,
-  ServerEnvironment,
-} from '@/types/server';
-import type { EnhancedServerMetrics } from '@/types/unified-server';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import type { Server } from '@/types/server';
+import { useEffect, useMemo, useState } from 'react';
 import { useServerMetrics } from './useServerMetrics';
 import {
   EnhancedServerData,
@@ -30,6 +24,9 @@ import { formatUptime } from '@/utils/dashboard/server-utils';
 import { useServerPagination } from '@/hooks/dashboard/useServerPagination';
 import { useServerFilter } from '@/hooks/dashboard/useServerFilter';
 import { useServerStats } from '@/hooks/dashboard/useServerStats';
+import { useResponsivePageSize } from '@/hooks/dashboard/useResponsivePageSize';
+import { useServerDataCache } from '@/hooks/dashboard/useServerDataCache';
+import { transformServerData } from '@/utils/dashboard/server-transformer';
 
 // 🎯 기존 useServerDashboard 훅 (하위 호환성 유지 + 성능 최적화)
 export function useServerDashboard(options: UseServerDashboardOptions = {}) {
@@ -38,20 +35,10 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   // Zustand 스토어에서 서버 데이터 가져오기
   const rawServers = useServerDataStore((state) => state.servers);
 
-  // 🛡️ AI 교차검증 기반: previousServers 캐시로 Race Condition 방지
-  const previousServersRef = useRef<EnhancedServerMetrics[]>([]);
-
-  // Double-check null safety: 스토어 데이터가 유효한 경우에만 캐시 업데이트
-  const servers = useMemo(() => {
-    // AI 사이드바 오픈 시 빈 배열이 되는 Race Condition 방지
-    if (!rawServers || !Array.isArray(rawServers) || rawServers.length === 0) {
-      return previousServersRef.current;
-    }
-
-    // 유효한 데이터인 경우 캐시 업데이트
-    previousServersRef.current = rawServers;
-    return rawServers;
-  }, [rawServers]);
+  // 🛡️ Race Condition 방어: 캐싱 훅 사용
+  const { cachedServers } = useServerDataCache(
+    rawServers as unknown as EnhancedServerData[]
+  );
 
   const isLoading = useServerDataStore((state) => state.isLoading);
   const error = useServerDataStore((state) => state.error);
@@ -63,7 +50,9 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
 
   // 즉시 fetchServers 실행 (조건부)
   if (
-    (!servers || !Array.isArray(servers) || servers.length === 0) &&
+    (!cachedServers ||
+      !Array.isArray(cachedServers) ||
+      cachedServers.length === 0) &&
     !isLoading &&
     fetchServers
   ) {
@@ -73,39 +62,8 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
   }
 
   // 🚀 화면 크기에 따른 초기 페이지 크기 설정
-  const getInitialPageSize = () => {
-    return 3; // 모든 화면 크기에서 3개 시작 (무거움 방지)
-  };
-
-  // 🎨 화면 크기 변경 시 페이지 크기 자동 조정 로직은 useServerPagination 내부가 아닌 여기서 처리 (반응형 로직)
-  const [responsivePageSize, setResponsivePageSize] =
-    useState(getInitialPageSize);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
-      let newPageSize: number;
-
-      if (width < 640) {
-        newPageSize = 6;
-      } else if (width < 1024) {
-        newPageSize = 9;
-      } else {
-        newPageSize = 15;
-      }
-
-      if (newPageSize !== responsivePageSize && responsivePageSize <= 15) {
-        setResponsivePageSize(newPageSize);
-      }
-    };
-
-    if (typeof window !== 'undefined') {
-      handleResize();
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }
-    return undefined;
-  }, [responsivePageSize]);
+  const { pageSize: responsivePageSize, setPageSize: setResponsivePageSize } =
+    useResponsivePageSize(3);
 
   // 🎯 서버 설정에 따른 동적 페이지 크기 설정
   const ITEMS_PER_PAGE = useMemo(() => {
@@ -133,93 +91,10 @@ export function useServerDashboard(options: UseServerDashboardOptions = {}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 실제 서버 데이터 사용 (메모이제이션 + 🕐 시간 기반 메트릭 변화)
+  // 실제 서버 데이터 사용 (메모이제이션 + 데이터 변환)
   const actualServers = useMemo(() => {
-    if (!servers || !Array.isArray(servers) || servers.length === 0) {
-      return [];
-    }
-
-    // EnhancedServerMetrics를 Server 타입으로 변환 (고정 시간별 데이터 사용)
-    return servers.map((server: unknown): Server => {
-      const s = server as EnhancedServerData;
-      const cpu = Math.round(s.cpu || s.cpu_usage || 0);
-      const memory = Math.round(s.memory || s.memory_usage || 0);
-      const disk = Math.round(s.disk || s.disk_usage || 0);
-      const network = Math.round(
-        s.network || (s.network_in || 0) + (s.network_out || 0) || 0
-      );
-
-      return {
-        id: s.id,
-        name: s.name || s.hostname || 'Unknown',
-        hostname: s.hostname || s.name || 'Unknown',
-        status: s.status,
-        cpu: cpu,
-        memory: memory,
-        disk: disk,
-        network: network,
-        uptime: s.uptime || 0,
-        location: s.location || 'Unknown',
-        alerts:
-          typeof s.alerts === 'number'
-            ? s.alerts
-            : Array.isArray(s.alerts)
-              ? s.alerts.length
-              : 0,
-        ip: s.ip || '192.168.1.1',
-        os: s.os || 'Ubuntu 22.04 LTS',
-        role: (s.type || s.role || 'worker') as ServerRole,
-        environment: (s.environment || 'production') as ServerEnvironment,
-        provider: s.provider || 'On-Premise',
-        specs: s.specs || {
-          cpu_cores: 4,
-          memory_gb: 8,
-          disk_gb: 250,
-          network_speed: '1Gbps',
-        },
-        lastUpdate:
-          typeof s.lastUpdate === 'string'
-            ? new Date(s.lastUpdate)
-            : s.lastUpdate || new Date(),
-        services: Array.isArray(s.services) ? (s.services as Service[]) : [],
-        networkStatus:
-          s.status === 'online'
-            ? 'online'
-            : s.status === 'warning'
-              ? 'warning'
-              : 'critical',
-        systemInfo: s.systemInfo || {
-          os: s.os || 'Ubuntu 22.04 LTS',
-          uptime:
-            typeof s.uptime === 'string'
-              ? s.uptime
-              : `${Math.floor((s.uptime || 0) / 3600)}h`,
-          processes: Math.floor(Math.random() * 200) + 50,
-          zombieProcesses: Math.floor(Math.random() * 5),
-          loadAverage: '1.23, 1.45, 1.67',
-          lastUpdate:
-            typeof s.lastUpdate === 'string'
-              ? s.lastUpdate
-              : s.lastUpdate instanceof Date
-                ? s.lastUpdate.toISOString()
-                : new Date().toISOString(),
-        },
-        networkInfo: s.networkInfo || {
-          interface: 'eth0',
-          receivedBytes: `${Math.floor(s.network_in || 0)} MB`,
-          sentBytes: `${Math.floor(s.network_out || 0)} MB`,
-          receivedErrors: Math.floor(Math.random() * 10),
-          sentErrors: Math.floor(Math.random() * 10),
-          status:
-            s.status === 'online'
-              ? 'online'
-              : s.status === 'warning'
-                ? 'warning'
-                : 'critical',
-        },
-      };
-    });
-  }, [servers]);
+    return transformServerData(cachedServers);
+  }, [cachedServers]);
 
   // 🏗️ Clean Architecture: 페이지네이션 훅 사용
   const {
