@@ -34,10 +34,13 @@ test.describe('AI 사이드바 실시간 검증 (Vercel)', () => {
       state: 'visible',
       timeout: TIMEOUTS.DASHBOARD_LOAD,
     });
-    await startButton.click();
 
-    // 대시보드로 이동 및 로딩 대기
-    await page.waitForURL('**/dashboard', { timeout: TIMEOUTS.DASHBOARD_LOAD });
+    // 버튼 클릭 + navigation 동시 대기
+    await Promise.all([
+      page.waitForURL('**/dashboard', { timeout: TIMEOUTS.DASHBOARD_LOAD }),
+      startButton.click(),
+    ]);
+
     await page.waitForLoadState('networkidle');
   });
 
@@ -263,10 +266,13 @@ test.describe('AI 사이드바 성능 테스트', () => {
       state: 'visible',
       timeout: TIMEOUTS.DASHBOARD_LOAD,
     });
-    await startButton.click();
 
-    // 대시보드로 이동 및 로딩 대기
-    await page.waitForURL('**/dashboard', { timeout: TIMEOUTS.DASHBOARD_LOAD });
+    // 버튼 클릭 + navigation 동시 대기
+    await Promise.all([
+      page.waitForURL('**/dashboard', { timeout: TIMEOUTS.DASHBOARD_LOAD }),
+      startButton.click(),
+    ]);
+
     await page.waitForLoadState('networkidle');
 
     await openAiSidebar(page);
